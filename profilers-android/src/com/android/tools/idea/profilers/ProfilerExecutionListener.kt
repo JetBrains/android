@@ -63,10 +63,12 @@ class ProfilerExecutionListener : ExecutionListener {
 
     // When Studio detects that the process is terminated, remove the LAST_RUN_APP_INFO cache to prevent the profilers from waiting
     // to auto-profiling a process that has already been killed.
-    handler.addProcessListener(object : ProcessAdapter() {
-      override fun processTerminated(event: ProcessEvent) {
-        project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null)
+    handler.addProcessListener(
+      object : ProcessAdapter() {
+        override fun processTerminated(event: ProcessEvent) {
+          project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null)
+        }
       }
-    })
+    )
   }
 }

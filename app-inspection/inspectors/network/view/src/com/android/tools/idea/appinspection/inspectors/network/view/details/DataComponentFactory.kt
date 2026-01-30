@@ -21,10 +21,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.details.Data
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import javax.swing.JComponent
 
-/**
- * A factory which wraps a target [ConnectionData] and can create useful, shared UI components for
- * displaying aspects of it.
- */
+/** A factory which wraps a target [ConnectionData] and can create useful, shared UI components for displaying aspects of it. */
 internal abstract class DataComponentFactory(protected val data: ConnectionData?) {
   enum class ConnectionType {
     REQUEST,
@@ -34,15 +31,11 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData?
       get() = if (this == REQUEST) "REQUEST_PAYLOAD_COMPONENT" else "RESPONSE_PAYLOAD_COMPONENT"
   }
 
-  /**
-   * Creates a component which displays the current [ConnectionData]'s headers as a list of
-   * key/value pairs.
-   */
+  /** Creates a component which displays the current [ConnectionData]'s headers as a list of key/value pairs. */
   fun createHeaderComponent(type: ConnectionType) = createHeaderComponent(getHeaders(type))
 
   /**
-   * Creates a component which displays the current [ConnectionData]'s trailers as a list of
-   * key/value pairs.
+   * Creates a component which displays the current [ConnectionData]'s trailers as a list of key/value pairs.
    *
    * Returns `null` if there are no trailers
    */

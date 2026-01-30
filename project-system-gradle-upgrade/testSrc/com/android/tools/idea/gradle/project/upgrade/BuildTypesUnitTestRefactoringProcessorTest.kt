@@ -30,13 +30,10 @@ import org.junit.Test
 
 @RunsInEdt
 class BuildTypesUnitTestRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  override val projectRule = AndroidProjectRule.withAndroidModels(
-    AndroidModuleModelBuilder(
-      gradlePath = ":",
-      selectedBuildVariant = "release",
-      projectBuilder = AndroidProjectBuilder()
+  override val projectRule =
+    AndroidProjectRule.withAndroidModels(
+      AndroidModuleModelBuilder(gradlePath = ":", selectedBuildVariant = "release", projectBuilder = AndroidProjectBuilder())
     )
-  )
 
   @Test
   fun `Property file created when not present and release unit tests exists`() {
@@ -44,8 +41,8 @@ class BuildTypesUnitTestRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     val processor = BuildTypesUnitTestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains(
-      "android.onlyEnableUnitTestForTheTestedBuildType=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.onlyEnableUnitTestForTheTestedBuildType=false")
   }
 
   @Test
@@ -53,11 +50,11 @@ class BuildTypesUnitTestRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = BuildTypesUnitTestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain(
-      "android.onlyEnableUnitTestForTheTestedBuildType=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.onlyEnableUnitTestForTheTestedBuildType=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains(
-      "android.onlyEnableUnitTestForTheTestedBuildType=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.onlyEnableUnitTestForTheTestedBuildType=false")
   }
 
   @Test
@@ -66,8 +63,8 @@ class BuildTypesUnitTestRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     projectRule.fixture.addFileToProject("gradle.properties", "android.onlyEnableUnitTestForTheTestedBuildType=false")
     val processor = BuildTypesUnitTestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains(
-      "android.onlyEnableUnitTestForTheTestedBuildType=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.onlyEnableUnitTestForTheTestedBuildType=false")
   }
 
   @Test
@@ -76,8 +73,8 @@ class BuildTypesUnitTestRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     projectRule.fixture.addFileToProject("gradle.properties", "android.onlyEnableUnitTestForTheTestedBuildType=true")
     val processor = BuildTypesUnitTestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains(
-      "android.onlyEnableUnitTestForTheTestedBuildType=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.onlyEnableUnitTestForTheTestedBuildType=true")
   }
 
   @Test
@@ -99,11 +96,11 @@ class BuildTypesUnitTestRefactoringProcessorNoOpTest : UpgradeGradleFileModelTes
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = BuildTypesUnitTestDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain(
-      "android.onlyEnableUnitTestForTheTestedBuildType")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.onlyEnableUnitTestForTheTestedBuildType")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain(
-      "android.onlyEnableUnitTestForTheTestedBuildType")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.onlyEnableUnitTestForTheTestedBuildType")
   }
 
   private fun Project.findGradleProperties(): VirtualFile? = guessProjectDir()?.findChild("gradle.properties")

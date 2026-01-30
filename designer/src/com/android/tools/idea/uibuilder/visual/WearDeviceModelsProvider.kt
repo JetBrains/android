@@ -32,8 +32,7 @@ import java.util.ArrayList
 
 /** Recommended wear device configs. */
 @VisibleForTesting
-val WEAR_DEVICES_TO_DISPLAY =
-  listOf("Wear OS Small Round", "Wear OS Square", "Wear OS Large Round", "Wear OS Rectangular")
+val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Small Round", "Wear OS Square", "Wear OS Large Round", "Wear OS Rectangular")
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -50,11 +49,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
 
   @VisibleForTesting val deviceCaches = mutableMapOf<ConfigurationManager, List<Device>>()
 
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
@@ -66,9 +61,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
       deviceCaches.getOrElse(configurationManager) {
         val deviceList = ArrayList<Device>()
         for (name in WEAR_DEVICES_TO_DISPLAY) {
-          configurationManager.devices
-            .firstOrNull { device -> name == device.displayName }
-            ?.let { deviceList.add(it) }
+          configurationManager.devices.firstOrNull { device -> name == device.displayName }?.let { deviceList.add(it) }
         }
         deviceCaches[configurationManager] = deviceList
         Disposer.register(configurationManager, { deviceCaches.remove(configurationManager) })
@@ -84,13 +77,9 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
       // Round and Circle device must be portrait, and Chin device must be landscape
-      val screenOrientation =
-        if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+      val screenOrientation = if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
-      val model =
-        NlModel.Builder(parentDisposable, buildTarget, virtualFile, config)
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+      val model = NlModel.Builder(parentDisposable, buildTarget, virtualFile, config).withComponentRegistrar(NlComponentRegistrar).build()
       model.displaySettings.setTooltip(config.toHtmlTooltip())
       model.displaySettings.setDisplayName(device.displayName)
       models.add(model)

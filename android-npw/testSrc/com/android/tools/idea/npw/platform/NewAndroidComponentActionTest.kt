@@ -98,8 +98,7 @@ class NewAndroidComponentActionTest {
 
   @Before
   fun setUp() {
-    val file =
-      projectRule.fixture.addFileToProject("app/src/kotlin/Test.kt", "fun a() {}").virtualFile
+    val file = projectRule.fixture.addFileToProject("app/src/kotlin/Test.kt", "fun a() {}").virtualFile
     val srcDirectory = file.parent.parent
     val module = ModuleUtilCore.findModuleForFile(srcDirectory, projectRule.project)!!
 
@@ -123,10 +122,7 @@ class NewAndroidComponentActionTest {
     return facet
   }
 
-  private fun createTestActionEventForFile(
-    virtualFile: VirtualFile,
-    module: Module,
-  ): AnActionEvent {
+  private fun createTestActionEventForFile(virtualFile: VirtualFile, module: Module): AnActionEvent {
     val dataContext =
       SimpleDataContext.builder()
         .add<Module>(PlatformCoreDataKeys.MODULE, module)
@@ -143,8 +139,7 @@ class NewAndroidComponentActionTest {
 
     assertThat(actionEvent.presentation.isVisible).isFalse()
     assertThat(actionEvent.presentation.isEnabled).isFalse()
-    assertThat(actionEvent.presentation.text)
-      .isEqualTo("templateName (Disabled - No Android module found)")
+    assertThat(actionEvent.presentation.text).isEqualTo("templateName (Disabled - No Android module found)")
   }
 
   @Test
@@ -156,8 +151,7 @@ class NewAndroidComponentActionTest {
 
   @Test
   fun lowMinSdkApiPresentationShouldBeDisabled() {
-    NewAndroidComponentAction(Category.Other, "templateName", SdkVersionInfo.HIGHEST_KNOWN_API + 1)
-      .update(myActionEvent)
+    NewAndroidComponentAction(Category.Other, "templateName", SdkVersionInfo.HIGHEST_KNOWN_API + 1).update(myActionEvent)
 
     assertThat(myActionEvent.presentation.isEnabled).isFalse()
     assertThat(myActionEvent.presentation.text).contains("Requires minSdk")
@@ -223,10 +217,8 @@ class NewAndroidComponentActionTest {
 
     val modelWizardReference = AtomicReference<ModelWizard?>(null)
     val action =
-      NewAndroidComponentAction(Category.Other, "Empty Activity", 0, ImmutableSet.of()) {
-        modelWizard: ModelWizard?,
-        _: String?,
-        _: Project? ->
+      NewAndroidComponentAction(Category.Other, "Empty Activity", 0, ImmutableSet.of()) { modelWizard: ModelWizard?, _: String?, _: Project?
+        ->
         modelWizardReference.set(modelWizard)
       }
     action.update(myActionEvent)
@@ -244,10 +236,7 @@ class NewAndroidComponentActionTest {
 
       // There should only be 3 compatible templates (_main_, debug, release) since the file is in
       // the "app/src" directory and the templates without source roots are filtered out.
-      val comboBox =
-        fakeUi.findComponent(ComboBox::class.java) { combo: ComboBox<*> ->
-          "ModuleTemplateCombo" == combo.getName()
-        }
+      val comboBox = fakeUi.findComponent(ComboBox::class.java) { combo: ComboBox<*> -> "ModuleTemplateCombo" == combo.getName() }
       assertNotNull(comboBox)
       assertThat(comboBox.itemCount).isEqualTo(3)
     }

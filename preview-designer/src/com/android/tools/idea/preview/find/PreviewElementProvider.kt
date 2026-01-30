@@ -32,8 +32,7 @@ interface PreviewElementProvider<P : PreviewElement<*>> {
   suspend fun previewElements(): Sequence<P>
 }
 
-class StaticPreviewProvider<P : PreviewElement<*>>(private val collection: Collection<P>) :
-  PreviewElementProvider<P> {
+class StaticPreviewProvider<P : PreviewElement<*>>(private val collection: Collection<P>) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
 
@@ -46,9 +45,8 @@ class FilteredPreviewElementProvider<P : PreviewElement<*>>(
 }
 
 /**
- * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This
- * [PreviewElementProvider] contents will only be updated when the given [modificationTracker]
- * updates.
+ * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents will
+ * only be updated when the given [modificationTracker] updates.
  */
 class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
   private val delegate: PreviewElementProvider<P>,
@@ -56,8 +54,7 @@ class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
 ) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()
-  @GuardedBy("cachedPreviewElementLock")
-  private var cachedPreviewElements: Collection<P> = emptyList()
+  @GuardedBy("cachedPreviewElementLock") private var cachedPreviewElements: Collection<P> = emptyList()
 
   /** Refreshes the [previewElements]. Do not call on the UI thread. */
   private suspend fun refreshIfNeeded() {
@@ -79,8 +76,8 @@ class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
   }
 
   /**
-   * Returns the latest value of the [P]s contained in the [delegate]. If the [modificationTracker]
-   * has not changed, this property will return a cached value.
+   * Returns the latest value of the [P]s contained in the [delegate]. If the [modificationTracker] has not changed, this property will
+   * return a cached value.
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */
@@ -93,15 +90,14 @@ class MemoizedPreviewElementProvider<P : PreviewElement<*>>(
 }
 
 /**
- * A [PreviewElementProvider] that provides a list of [PreviewElement] found within a given
- * [PsiFile] thanks to a given [FilePreviewElementFinder].
+ * A [PreviewElementProvider] that provides a list of [PreviewElement] found within a given [PsiFile] thanks to a given
+ * [FilePreviewElementFinder].
  */
 class FilePreviewElementProvider<P : PreviewElement<*>>(
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val filePreviewElementFinder: FilePreviewElementFinder<P>,
 ) : PreviewElementProvider<P> {
   override suspend fun previewElements() =
-    psiFilePointer.virtualFile?.let {
-      filePreviewElementFinder.findPreviewElements(psiFilePointer.project, it).asSequence()
-    } ?: emptySequence()
+    psiFilePointer.virtualFile?.let { filePreviewElementFinder.findPreviewElements(psiFilePointer.project, it).asSequence() }
+      ?: emptySequence()
 }

@@ -23,13 +23,9 @@ import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-/**
- * Coroutine-friendly wrapper around an [AsynchronousServerSocketChannel] with the suspending
- * [accept] method.
- */
-class SuspendingServerSocketChannel(
-  asynchronousChannel: AsynchronousServerSocketChannel
-) : SuspendingNetworkChannel<AsynchronousServerSocketChannel>(asynchronousChannel) {
+/** Coroutine-friendly wrapper around an [AsynchronousServerSocketChannel] with the suspending [accept] method. */
+class SuspendingServerSocketChannel(asynchronousChannel: AsynchronousServerSocketChannel) :
+  SuspendingNetworkChannel<AsynchronousServerSocketChannel>(asynchronousChannel) {
 
   private val completionHandler = CompletionHandlerAdapter()
 
@@ -38,7 +34,7 @@ class SuspendingServerSocketChannel(
    *
    * See [AsynchronousServerSocketChannel.accept]
    */
-  suspend fun accept() : SuspendingSocketChannel {
+  suspend fun accept(): SuspendingSocketChannel {
     return suspendCancellableCoroutine { continuation ->
       // Ensure that the asynchronous operation is stopped if the coroutine is cancelled.
       closeOnCancel(continuation)
@@ -46,8 +42,7 @@ class SuspendingServerSocketChannel(
     }
   }
 
-  private class CompletionHandlerAdapter :
-      CompletionHandler<AsynchronousSocketChannel, CancellableContinuation<SuspendingSocketChannel>> {
+  private class CompletionHandlerAdapter : CompletionHandler<AsynchronousSocketChannel, CancellableContinuation<SuspendingSocketChannel>> {
 
     override fun completed(socketChannel: AsynchronousSocketChannel, continuation: CancellableContinuation<SuspendingSocketChannel>) {
       continuation.resume(SuspendingSocketChannel(socketChannel))

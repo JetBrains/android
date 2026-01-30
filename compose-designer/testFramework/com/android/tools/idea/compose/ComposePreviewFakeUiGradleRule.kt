@@ -39,6 +39,12 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.image.BufferedImage
+import javax.swing.JPanel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -47,20 +53,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
 import org.junit.runner.Description
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.image.BufferedImage
-import javax.swing.JPanel
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private val DEFAULT_REFRESH_TIMEOUT = 10.seconds
 private val DEFAULT_BUILD_AND_REFRESH_TIMEOUT = 40.seconds
 
 /**
- * A [ComposeGradleProjectRule] that uses the whole Compose Preview machinery, except from its UI,
- * that is replaced by a [FakeUi] instance using a [TestComposePreviewView], which is a fair
- * approximation of the production UI.
+ * A [ComposeGradleProjectRule] that uses the whole Compose Preview machinery, except from its UI, that is replaced by a [FakeUi] instance
+ * using a [TestComposePreviewView], which is a fair approximation of the production UI.
  */
 class ComposePreviewFakeUiGradleRule(
   projectPath: String,
@@ -173,39 +172,27 @@ class ComposePreviewFakeUiGradleRule(
     }
   }
 
-  /**
-   * Executes [runnable], expecting it to cause a refresh of type [expectedRefreshType] to start
-   * running.
-   */
-  suspend fun waitForAnyRefreshToStart(
-    timeout: Duration,
-    expectedRefreshType: ComposePreviewRefreshType,
-    runnable: suspend () -> Unit,
-  ) = coroutineScope {
-    // Make sure to start waiting for the change before triggering it
-    val awaitingJob = launch {
-      refreshManager.refreshingTypeFlow.awaitStatus(
-        "Timeout waiting for refresh to start",
-        timeout,
-      ) {
-        it == expectedRefreshType
+  /** Executes [runnable], expecting it to cause a refresh of type [expectedRefreshType] to start running. */
+  suspend fun waitForAnyRefreshToStart(timeout: Duration, expectedRefreshType: ComposePreviewRefreshType, runnable: suspend () -> Unit) =
+    coroutineScope {
+      // Make sure to start waiting for the change before triggering it
+      val awaitingJob = launch {
+        refreshManager.refreshingTypeFlow.awaitStatus("Timeout waiting for refresh to start", timeout) { it == expectedRefreshType }
       }
+      runnable()
+      awaitingJob.join()
+      assertTrue(awaitingJob.isCompleted)
+      // Make sure that the job hasn't failed, i.e. that a refresh started
+      assertFalse(awaitingJob.isCancelled)
     }
-    runnable()
-    awaitingJob.join()
-    assertTrue(awaitingJob.isCompleted)
-    // Make sure that the job hasn't failed, i.e. that a refresh started
-    assertFalse(awaitingJob.isCancelled)
-  }
 
   /**
-   * Runs the [runnable]. The [runnable] is expected to trigger a refresh and this method will
-   * return once the refresh has happened. Throws an exception if the timeout is exceeded while
-   * waiting.
+   * Runs the [runnable]. The [runnable] is expected to trigger a refresh and this method will return once the refresh has happened. Throws
+   * an exception if the timeout is exceeded while waiting.
    *
-   * Some checks in this method are done over transient states, and they are susceptible of race
-   * conditions. It's recommended to use a false [failOnTimeout] whenever it's possible to verify a
-   * side effect of the refresh that could indicate whether it resulted as expected or not.
+   * Some checks in this method are done over transient states, and they are susceptible of race conditions. It's recommended to use a false
+   * [failOnTimeout] whenever it's possible to verify a side effect of the refresh that could indicate whether it resulted as expected or
+   * not.
    */
   suspend fun runAndWaitForRefresh(
     anyRefreshStartTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
@@ -232,10 +219,7 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
-  suspend fun buildAndRefresh(
-    timeout: Duration = DEFAULT_BUILD_AND_REFRESH_TIMEOUT,
-    failOnTimeout: Boolean = true,
-  ) {
+  suspend fun buildAndRefresh(timeout: Duration = DEFAULT_BUILD_AND_REFRESH_TIMEOUT, failOnTimeout: Boolean = true) {
     logger.info("buildAndRefresh")
     runAndWaitForRefresh(timeout, failOnTimeout = failOnTimeout) { buildAndAssertIsSuccessful() }
     validate()
@@ -243,10 +227,7 @@ class ComposePreviewFakeUiGradleRule(
 
   /** Validates the UI to ensure is up to date. */
   suspend fun validate(zoomToFit: Boolean = true) {
-    runAndWaitForRefresh(
-      expectedRefreshType = ComposePreviewRefreshType.QUALITY,
-      failOnTimeout = false,
-    ) {
+    runAndWaitForRefresh(expectedRefreshType = ComposePreviewRefreshType.QUALITY, failOnTimeout = false) {
       withContext(AndroidDispatchers.uiThread) {
         fakeUi.root.validate()
         fakeUi.layoutAndDispatchEvents()
@@ -259,12 +240,8 @@ class ComposePreviewFakeUiGradleRule(
     }
   }
 
-  internal fun createComposePreviewRepresentation(
-    psiFile: PsiFile,
-    view: TestComposePreviewView,
-  ): ComposePreviewRepresentation {
-    val previewRepresentation =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
+  internal fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
+    val previewRepresentation = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }
@@ -272,8 +249,6 @@ class ComposePreviewFakeUiGradleRule(
   /** Finds the render result of the [SceneViewPeerPanel] with the given [name]. */
   fun findSceneViewRenderWithName(@Suppress("SameParameterValue") name: String): BufferedImage {
     val sceneViewPanel = fakeUi.findComponent<SceneViewPeerPanel> { it.displayName == name }!!
-    return fakeUi
-      .render()
-      .getSubimage(sceneViewPanel.x, sceneViewPanel.y, sceneViewPanel.width, sceneViewPanel.height)
+    return fakeUi.render().getSubimage(sceneViewPanel.x, sceneViewPanel.y, sceneViewPanel.width, sceneViewPanel.height)
   }
 }

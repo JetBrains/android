@@ -25,8 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class MissingCmakeIssueCheckerIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testIntegration() {

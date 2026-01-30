@@ -68,12 +68,7 @@ class PreviewAnnotationGeneratorTest {
     return configuration
   }
 
-  private fun device(
-    width: Int,
-    height: Int,
-    density: Density,
-    orientation: ScreenOrientation,
-  ): Device =
+  private fun device(width: Int, height: Int, density: Density, orientation: ScreenOrientation): Device =
     Device.Builder()
       .apply {
         setTagId("")
@@ -155,15 +150,14 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 1080,
             heightDp = 1920
         )
-      """
+        """
           .trimIndent()
       )
   }
 
   @Test
   fun `toPreviewAnnotationText generates with widthDp and heightDp`() = runTest {
-    val previewElement =
-      createPreviewElement(name = "CustomSizePreview", widthDp = 200, heightDp = 300)
+    val previewElement = createPreviewElement(name = "CustomSizePreview", widthDp = 200, heightDp = 300)
     val configuration = createConfiguration(width = 200, height = 300)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "CustomSizePreview")
@@ -175,7 +169,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 200,
             heightDp = 300
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -183,13 +177,7 @@ class PreviewAnnotationGeneratorTest {
   @Test
   fun `toPreviewAnnotationText generates with device spec when showDecoration is true`() = runTest {
     val previewElement = createPreviewElement(name = "DevicePreview", showDecoration = true)
-    val configuration =
-      createConfiguration(
-        width = 1080,
-        height = 1920,
-        density = Density.XHIGH,
-        orientation = ScreenOrientation.LANDSCAPE,
-      )
+    val configuration = createConfiguration(width = 1080, height = 1920, density = Density.XHIGH, orientation = ScreenOrientation.LANDSCAPE)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "DevicePreview")
     // Expected DPI for XHIGH is 320.
@@ -206,7 +194,7 @@ class PreviewAnnotationGeneratorTest {
             showSystemUi = true,
             device = "spec:width=960dp,height=540dp,dpi=320,orientation=landscape"
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -244,7 +232,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 400,
             heightDp = 600
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -254,18 +242,17 @@ class PreviewAnnotationGeneratorTest {
     val previewElement = createPreviewElement(name = "ShowSystemUiPreview", showDecoration = true)
     val configuration = createConfiguration(width = 400, height = 600)
 
-    val generatedText =
-      toPreviewAnnotationText(previewElement, configuration, "ShowSystemUiPreview")
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "ShowSystemUiPreview")
 
     assertThat(generatedText)
       .isEqualTo(
         """
-      @androidx.compose.ui.tooling.preview.Preview(
-          name = "ShowSystemUiPreview",
-          showSystemUi = true,
-          device = "spec:width=400dp,height=600dp,dpi=160"
-      )
-      """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "ShowSystemUiPreview",
+            showSystemUi = true,
+            device = "spec:width=400dp,height=600dp,dpi=160"
+        )
+        """
           .trimIndent()
       )
   }
@@ -294,7 +281,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 100,
             heightDp = 100
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -302,11 +289,9 @@ class PreviewAnnotationGeneratorTest {
   @Test
   fun `toPreviewAnnotationText handles landscape orientation for widthDp heightDp`() = runTest {
     val previewElement = createPreviewElement(name = "LandscapeComposable", showDecoration = false)
-    val configuration =
-      createConfiguration(width = 1000, height = 500, orientation = ScreenOrientation.LANDSCAPE)
+    val configuration = createConfiguration(width = 1000, height = 500, orientation = ScreenOrientation.LANDSCAPE)
 
-    val generatedText =
-      toPreviewAnnotationText(previewElement, configuration, "LandscapeComposable")
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "LandscapeComposable")
     // For composable resize, if width < height but orientation is landscape,
     // they should be swapped to represent the actual dimensions.
     assertThat(generatedText)
@@ -317,7 +302,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 1000,
             heightDp = 500
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -325,8 +310,7 @@ class PreviewAnnotationGeneratorTest {
   @Test
   fun `toPreviewAnnotationText handles portrait orientation for widthDp heightDp`() = runTest {
     val previewElement = createPreviewElement(name = "PortraitComposable", showDecoration = false)
-    val configuration =
-      createConfiguration(width = 500, height = 1000, orientation = ScreenOrientation.PORTRAIT)
+    val configuration = createConfiguration(width = 500, height = 1000, orientation = ScreenOrientation.PORTRAIT)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "PortraitComposable")
     assertThat(generatedText)
@@ -337,7 +321,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 500,
             heightDp = 1000
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -345,13 +329,7 @@ class PreviewAnnotationGeneratorTest {
   @Test
   fun `toPreviewAnnotationText handles device spec with portrait orientation`() = runTest {
     val previewElement = createPreviewElement(name = "DevicePortrait", showDecoration = true)
-    val configuration =
-      createConfiguration(
-        width = 500,
-        height = 1000,
-        density = Density.XXHIGH,
-        orientation = ScreenOrientation.PORTRAIT,
-      )
+    val configuration = createConfiguration(width = 500, height = 1000, density = Density.XXHIGH, orientation = ScreenOrientation.PORTRAIT)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "DevicePortrait")
     // 500px at 480dpi -> 500 * (160/480) = 166.66 -> 167dp (int truncation)
@@ -364,7 +342,7 @@ class PreviewAnnotationGeneratorTest {
             showSystemUi = true,
             device = "spec:width=167dp,height=333dp,dpi=480"
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -373,11 +351,7 @@ class PreviewAnnotationGeneratorTest {
   fun `toPreviewAnnotationText uses passed name for name attribute`() = runTest {
     val originalName = "MyOriginalName"
     val previewElement =
-      createPreviewElement(
-        name = originalName,
-        baseName = "MyComposable",
-        composableMethodFqn = "com.example.MyComposable",
-      )
+      createPreviewElement(name = originalName, baseName = "MyComposable", composableMethodFqn = "com.example.MyComposable")
     val configuration = createConfiguration(width = 100, height = 100)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "NewName")
@@ -389,7 +363,7 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 100,
             heightDp = 100
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -408,8 +382,7 @@ class PreviewAnnotationGeneratorTest {
         parameterName = displayNameWithSuffix,
         showDecoration = false,
       )
-    val configuration =
-      createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
+    val configuration = createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "NewName")
 
@@ -421,16 +394,14 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 845,
             heightDp = 360
         )
-      """
+        """
           .trimIndent()
       )
   }
 
   private fun createConfigurationForDevice(deviceId: String): Configuration {
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
-    val device =
-      manager.devices.find { it.id == deviceId }
-        ?: error("Device '$deviceId' not found in available devices")
+    val device = manager.devices.find { it.id == deviceId } ?: error("Device '$deviceId' not found in available devices")
     val configuration = Configuration.create(manager, FolderConfiguration())
     configuration.setEffectiveDevice(device, device.defaultState)
     return configuration
@@ -450,11 +421,11 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @androidx.compose.ui.tooling.preview.Preview(
-          name = "KnownDevicePreview",
-          device = "id:pixel_3"
-      )
-      """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "KnownDevicePreview",
+            device = "id:pixel_3"
+        )
+        """
           .trimIndent()
       )
   }
@@ -464,17 +435,16 @@ class PreviewAnnotationGeneratorTest {
     val configuration = createConfigurationForDevice(DEFAULT_DEVICE_ID)
     val previewElement = createPreviewElement(name = "DefaultDevicePreview")
 
-    val generatedText =
-      toPreviewAnnotationText(previewElement, configuration, "DefaultDevicePreview")
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "DefaultDevicePreview")
 
     // For the default device, no device specifier is needed.
     assertThat(generatedText)
       .isEqualTo(
         """
-      @androidx.compose.ui.tooling.preview.Preview(
-          name = "DefaultDevicePreview"
-      )
-      """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "DefaultDevicePreview"
+        )
+        """
           .trimIndent()
       )
   }
@@ -486,11 +456,9 @@ class PreviewAnnotationGeneratorTest {
 
     // showDecoration is false to ensure the spec is generated because it's a reference device,
     // not because of the decoration.
-    val previewElement =
-      createPreviewElement(name = "ReferenceDevicePreview", showDecoration = false)
+    val previewElement = createPreviewElement(name = "ReferenceDevicePreview", showDecoration = false)
 
-    val generatedText =
-      toPreviewAnnotationText(previewElement, configuration, "ReferenceDevicePreview")
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "ReferenceDevicePreview")
 
     // For a reference device, a 'spec' should be generated instead of an 'id',
     // as reference devices are for tooling purposes and their IDs are not stable.
@@ -498,11 +466,11 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @androidx.compose.ui.tooling.preview.Preview(
-          name = "ReferenceDevicePreview",
-          device = "spec:width=411dp,height=891dp"
-      )
-      """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "ReferenceDevicePreview",
+            device = "spec:width=411dp,height=891dp"
+        )
+        """
           .trimIndent()
       )
   }
@@ -551,11 +519,11 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @androidx.compose.ui.tooling.preview.Preview(
-          name = "AvdDevicePreview",
-          device = "spec:width=720dp,height=1280dp,dpi=240"
-      )
-      """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "AvdDevicePreview",
+            device = "spec:width=720dp,height=1280dp,dpi=240"
+        )
+        """
           .trimIndent()
       )
   }

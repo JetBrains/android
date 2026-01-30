@@ -35,52 +35,40 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import java.nio.file.Paths
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.nio.file.Paths
-import kotlinx.coroutines.runBlocking
 
 @RunsInEdt
 class GradleUtilAndroidGradleTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   @Test
   fun testGetGradleBuildFileFromAppModule() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.open { project ->
-      verifyBuildFile(project, project.findAppModule(), "app", "build.gradle")
-    }
+    preparedProject.open { project -> verifyBuildFile(project, project.findAppModule(), "app", "build.gradle") }
   }
 
   @Test
   fun testGetGradleBuildFileFromProjectModule() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.open { project ->
-      verifyBuildFile(project, project.findModule(project.name), "build.gradle")
-    }
+    preparedProject.open { project -> verifyBuildFile(project, project.findModule(project.name), "build.gradle") }
   }
 
   @Test
   fun testHasKtsBuildFilesKtsBasedProject() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_GRADLE_DSL)
-    preparedProject.open(updateOptions = {
-      it.copy(
-        disableKtsRelatedIndexing = true
-      )
-    }
-    ) { project ->
-      assertTrue(
-        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
+    preparedProject.open(updateOptions = { it.copy(disableKtsRelatedIndexing = true) }) { project ->
+      assertTrue(GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
     }
   }
 
@@ -88,8 +76,7 @@ class GradleUtilAndroidGradleTest {
   fun testHasKtsBuildFilesGroovyBasedProject() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      assertFalse(
-        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
+      assertFalse(GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT))
     }
   }
 
@@ -134,9 +121,7 @@ class GradleUtilAndroidGradleTest {
       val basePath = project.basePath
       assertThat(basePath).isNotNull()
       assertThat(basePath).isNotEmpty()
-      val managerPath = runBlocking {
-        AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, basePath!!)
-      }
+      val managerPath = runBlocking { AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, basePath!!) }
       assertThat(managerPath).isNotNull()
       val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project)
       val settingsPath = settings.javaHome
@@ -147,9 +132,6 @@ class GradleUtilAndroidGradleTest {
   }
 
   private fun underProgressIndicator(action: () -> Unit) {
-    ProgressManager.getInstance().runProcess(
-      Computable { action() },
-      EmptyProgressIndicator()
-    )
+    ProgressManager.getInstance().runProcess(Computable { action() }, EmptyProgressIndicator())
   }
 }

@@ -19,9 +19,7 @@ import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.table.JBTable
 import javax.swing.JTable
 
-/**
- * Install a hover listener that allows the hover row to be synchronized between [frozenTable] and [scrollableTable].
- */
+/** Install a hover listener that allows the hover row to be synchronized between [frozenTable] and [scrollableTable]. */
 @Suppress("UnstableApiUsage")
 class SubTableHoverListener(private val frozenTable: JBTable, private val scrollableTable: JBTable) : TableHoverListener() {
   private val delegate = DEFAULT as TableHoverListener

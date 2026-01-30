@@ -17,9 +17,9 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
+import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.NopLoader
-import com.android.tools.rendering.classloading.PseudoClassLocatorForLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -36,16 +36,19 @@ internal class PseudoClassLocatorForLoaderTest(classLoaderWithDescription: Class
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val parentClassLoaders = listOf(
-      ClassLoaderWithDescription(
-        FilteringClassLoader(PseudoClassLocatorForLoaderTest::class.java.classLoader) {
-          throw IllegalAccessError("$it should not have been loaded, only accessed via resources.")
-        },
-        "Class loader that will fail if findClass is invoked, only allowing resource loading."),
-      ClassLoaderWithDescription(
-        FirewalledResourcesClassLoader(PseudoClassLocatorForLoaderTest::class.java.classLoader),
-        "Class loader that will not allow access resources and will force the PseudoClassLocatorForLoader to fall back to loading the Class<?>z.")
-    )
+    val parentClassLoaders =
+      listOf(
+        ClassLoaderWithDescription(
+          FilteringClassLoader(PseudoClassLocatorForLoaderTest::class.java.classLoader) {
+            throw IllegalAccessError("$it should not have been loaded, only accessed via resources.")
+          },
+          "Class loader that will fail if findClass is invoked, only allowing resource loading.",
+        ),
+        ClassLoaderWithDescription(
+          FirewalledResourcesClassLoader(PseudoClassLocatorForLoaderTest::class.java.classLoader),
+          "Class loader that will not allow access resources and will force the PseudoClassLocatorForLoader to fall back to loading the Class<?>z.",
+        ),
+      )
   }
 
   private val parentClassLoader = classLoaderWithDescription.classLoader
@@ -68,8 +71,10 @@ internal class PseudoClassLocatorForLoaderTest(classLoaderWithDescription: Class
     pseudoClassLocator.locatePseudoClass("java.util.ArrayList").let {
       assertEquals("java.util.ArrayList", it.name)
       assertEquals("java.util.AbstractList", it.superName)
-      assertEquals("java.io.Serializable,java.lang.Cloneable,java.util.List,java.util.RandomAccess",
-                   it.interfaces.sorted().joinToString(","))
+      assertEquals(
+        "java.io.Serializable,java.lang.Cloneable,java.util.List,java.util.RandomAccess",
+        it.interfaces.sorted().joinToString(","),
+      )
     }
   }
 }

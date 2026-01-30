@@ -5,9 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-/**
- * Tests for [AssembleTypeSelectionGroupActionTest].
- */
+/** Tests for [AssembleTypeSelectionGroupActionTest]. */
 class AssembleTypeSelectionGroupActionTest : TestCase() {
 
   fun testDoPerform() {

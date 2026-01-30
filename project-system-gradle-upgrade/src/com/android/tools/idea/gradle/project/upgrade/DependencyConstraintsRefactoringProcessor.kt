@@ -20,12 +20,13 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 /**
- * Starting with AGP 9.0, the default value of android.dependency.useConstraints is now false. This refactoring adds
- * the property if it was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha02
+ * Starting with AGP 9.0, the default value of android.dependency.useConstraints is now false. This refactoring adds the property if it was
+ * not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha02
  */
-class DependencyConstraintsRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class DependencyConstraintsRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.dependency.useConstraints"
   override val oldDefault = true
@@ -36,7 +37,10 @@ class DependencyConstraintsRefactoringProcessor: AbstractBooleanPropertyDefaultR
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha02"))
   // TODO: Add redirect once we have a landing page (b/358385655)
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("dependency-constraints")
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.dependency.constraints"
+
   override fun getCommandName() = AgpUpgradeBundle.message("dependencyConstraintsDefaultRefactoringProcessor.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("dependencyConstraintsDefaultRefactoringProcessor.shortDescription")
 }

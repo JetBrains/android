@@ -71,17 +71,14 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Executor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.Executor
 
-/**
- * Allows any component to listen to all method body edits of a project.
- */
+/** Allows any component to listen to all method body edits of a project. */
 @Service(Service.Level.PROJECT)
-class LiveEditServiceImpl(val project: Project,
-                          var executor: Executor,
-                          override val adbEventsListener: LiveEditAdbEventsListener) : Disposable, LiveEditService {
+class LiveEditServiceImpl(val project: Project, var executor: Executor, override val adbEventsListener: LiveEditAdbEventsListener) :
+  Disposable, LiveEditService {
 
   private val LOGGER = LiveEditLogger("LiveEditService")
 
@@ -95,10 +92,13 @@ class LiveEditServiceImpl(val project: Project,
 
   // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
   // dispatched from the UI thread, and we do not want to block it.
-  constructor(project: Project) : this(project,
-                                       AppExecutorUtil.createBoundedApplicationPoolExecutor(
-                                         "Document changed listeners executor", 1),
-                                       LiveEditAdbEventsListener())
+  constructor(
+    project: Project
+  ) : this(
+    project,
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1),
+    LiveEditAdbEventsListener(),
+  )
 
   init {
     val adapter = EmulatorLiveEditAdapter(project)
@@ -111,68 +111,98 @@ class LiveEditServiceImpl(val project: Project,
     // When we change editor, grab a snapshot of the current PSI. We cannot do this in the beforeDocumentChanged
     // callback, as certain editor actions modify the PSI *before* the document callbacks occur. This causes us to
     // obtain an incorrect (too recent) snapshot in those cases, and makes the PSI validation diff incorrect.
-    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun selectionChanged(event: FileEditorManagerEvent) {
-        val file = event.newFile ?: return
-        deployMonitor.updatePsiSnapshot(file)
-      }
-    })
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        object : FileEditorManagerListener {
+          override fun selectionChanged(event: FileEditorManagerEvent) {
+            val file = event.newFile ?: return
+            deployMonitor.updatePsiSnapshot(file)
+          }
+        },
+      )
 
-    project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
-      override fun before(events: MutableList<out VFileEvent>) {
-        for (event in events.filterIsInstance<VFileDeleteEvent>()) {
-          deployMonitor.fileChanged(event.file)
-        }
-      }
-    })
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        VirtualFileManager.VFS_CHANGES,
+        object : BulkFileListener {
+          override fun before(events: MutableList<out VFileEvent>) {
+            for (event in events.filterIsInstance<VFileDeleteEvent>()) {
+              deployMonitor.fileChanged(event.file)
+            }
+          }
+        },
+      )
 
     // Listen to changes in Kotlin files. The class-differ equivalent of listening to the PSI.
-    EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
-        deployMonitor.fileChanged(file)
-      }
-    }, this)
+    EditorFactory.getInstance()
+      .eventMulticaster
+      .addDocumentListener(
+        object : DocumentListener {
+          override fun documentChanged(event: DocumentEvent) {
+            val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+            deployMonitor.fileChanged(file)
+          }
+        },
+        this,
+      )
 
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
-    //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+    // bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
     // Listen for when the user starts a Run/Debug.
-    project.messageBus.connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, object: ExecutionListener {
-      override fun processStarting(executorId: String, env: ExecutionEnvironment) {
-        val executionTarget = (env.executionTarget as? AndroidExecutionTarget) ?: return
-        val devices = executionTarget.runningDevices
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        ExecutionManager.EXECUTION_TOPIC,
+        object : ExecutionListener {
+          override fun processStarting(executorId: String, env: ExecutionEnvironment) {
+            val executionTarget = (env.executionTarget as? AndroidExecutionTarget) ?: return
+            val devices = executionTarget.runningDevices
 
-        val multiDeploy = deployMonitor.notifyExecution(devices)
-        val composeEnabled = usesCompose(project) && LiveEditApplicationConfiguration.getInstance().isLiveEdit
+            val multiDeploy = deployMonitor.notifyExecution(devices)
+            val composeEnabled = usesCompose(project) && LiveEditApplicationConfiguration.getInstance().isLiveEdit
 
-        if (composeEnabled && devices.size > 1 && showMultiDeviceNotification) {
-          NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
-            .createNotification(
-              "Live Edit works with multi-device deployments but this is not officially supported.",
-              NotificationType.INFORMATION)
-            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations"))
-            .notify(project)
-          showMultiDeviceNotification = false
-        }
+            if (composeEnabled && devices.size > 1 && showMultiDeviceNotification) {
+              NotificationGroupManager.getInstance()
+                .getNotificationGroup("Deploy")
+                .createNotification(
+                  "Live Edit works with multi-device deployments but this is not officially supported.",
+                  NotificationType.INFORMATION,
+                )
+                .addAction(
+                  BrowseNotificationAction(
+                    "Learn more",
+                    "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations",
+                  )
+                )
+                .notify(project)
+              showMultiDeviceNotification = false
+            }
 
-        if (composeEnabled && multiDeploy && showMultiDeployNotification) {
-          NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
-            .createNotification(
-              "Live Edit does not work with previous deployments on different devices.",
-              NotificationType.INFORMATION)
-            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations"))
-            .notify(project)
-          showMultiDeployNotification = false
-        }
-      }
-    })
+            if (composeEnabled && multiDeploy && showMultiDeployNotification) {
+              NotificationGroupManager.getInstance()
+                .getNotificationGroup("Deploy")
+                .createNotification("Live Edit does not work with previous deployments on different devices.", NotificationType.INFORMATION)
+                .addAction(
+                  BrowseNotificationAction(
+                    "Learn more",
+                    "https://developer.android.com/develop/ui/compose/tooling/iterative-development#limitations",
+                  )
+                )
+                .notify(project)
+              showMultiDeployNotification = false
+            }
+          }
+        },
+      )
   }
 
   companion object {
-    private fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
-      LiveEditProjectMonitor.supportLiveEdits(device)
-    }
+    private fun hasLiveEditSupportedDeviceConnected() =
+      AndroidDebugBridge.getBridge()!!.devices.any { device -> LiveEditProjectMonitor.supportLiveEdits(device) }
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
@@ -189,22 +219,18 @@ class LiveEditServiceImpl(val project: Project,
     return deployMonitor.status(device)
   }
 
-  /**
-   * Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device
-   */
+  /** Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device */
   override fun notifyAppRefresh(device: IDevice): Boolean {
     return deployMonitor.notifyAppRefresh(device)
   }
 
-  /**
-   * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-   */
+  /** Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device */
   override fun notifyAppDeploy(
     runProfile: RunProfile,
     executor: com.intellij.execution.Executor,
     applicationProjectContext: ApplicationProjectContext,
     device: IDevice,
-    app: LiveEditApp
+    app: LiveEditApp,
   ): Boolean {
     // Obtain the list of files open and focused in the editor. This will be a single file unless the user has a split view.
     // When Live Edit is active, the first time a file is focused in the editor, we take a snapshot of the PSI. We pass the list of
@@ -213,7 +239,10 @@ class LiveEditServiceImpl(val project: Project,
     return deployMonitor.notifyAppDeploy(applicationProjectContext, device, app, openFiles) { isLiveEditable(runProfile, executor) }
   }
 
-  override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
+  override fun toggleLiveEdit(
+    oldMode: LiveEditApplicationConfiguration.LiveEditMode,
+    newMode: LiveEditApplicationConfiguration.LiveEditMode,
+  ) {
     if (oldMode == newMode) {
       return
     } else if (newMode == LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT) {
@@ -225,24 +254,26 @@ class LiveEditServiceImpl(val project: Project,
     }
   }
 
-  override fun toggleLiveEditMode(oldMode: LiveEditService.Companion.LiveEditTriggerMode, newMode: LiveEditService.Companion.LiveEditTriggerMode) {
+  override fun toggleLiveEditMode(
+    oldMode: LiveEditService.Companion.LiveEditTriggerMode,
+    newMode: LiveEditService.Companion.LiveEditTriggerMode,
+  ) {
     if (oldMode == newMode) {
       return
-    }
-    else if (newMode == LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
+    } else if (newMode == LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
       deployMonitor.onManualLETrigger()
     }
   }
 
   override fun dispose() {
-    //TODO: "Not yet implemented"
+    // TODO: "Not yet implemented"
   }
 
   override fun triggerLiveEdit() {
     deployMonitor.onManualLETrigger()
   }
 
-  override fun triggerVibeEdit(pathString: String, prompt: String) : String {
+  override fun triggerVibeEdit(pathString: String, prompt: String): String {
     return deployMonitor.onAgentTrigger(pathString, prompt)
   }
 
@@ -279,14 +310,15 @@ class LiveEditServiceImpl(val project: Project,
       }
       return true
     }
-    // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if LaunchUtils.canDebugApp may be run on it
+    // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if
+    // LaunchUtils.canDebugApp may be run on it
     // Check if the run profile deploys to local device to allow BlazeCommandRunConfiguration based run profiles
     return DeployableToDevice.deploysToLocalDevice(runProfile)
   }
 
   /**
-   * Wrapper function to add listeners to the running devices tool window. This wrapper is needed due to changing startup sequence,
-   * forcing us to determine if we need to wait for the running devices tool window initialization first.
+   * Wrapper function to add listeners to the running devices tool window. This wrapper is needed due to changing startup sequence, forcing
+   * us to determine if we need to wait for the running devices tool window initialization first.
    */
   private fun registerWithRunningDevices(project: Project, adapter: EmulatorLiveEditAdapter) {
     val toolWindow = project.getServiceIfCreated(ToolWindowManager::class.java)?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
@@ -294,51 +326,63 @@ class LiveEditServiceImpl(val project: Project,
       // If our service gets initialized before running devices tool window, then we need to listen for when the tool window is created,
       // then add listeners to it.
       val connection = project.messageBus.connect()
-      connection.subscribe(ToolWindowManagerListener.TOPIC, object: ToolWindowManagerListener {
-        override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
-          if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID)) {
-            toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)?.let { addListenersToRunningDevices(adapter, it) }
-            connection.disconnect()
+      connection.subscribe(
+        ToolWindowManagerListener.TOPIC,
+        object : ToolWindowManagerListener {
+          override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
+            if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID)) {
+              toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)?.let { addListenersToRunningDevices(adapter, it) }
+              connection.disconnect()
+            }
           }
-        }
-      })
-    }
-    else {
+        },
+      )
+    } else {
       // If the running devices tool window is already initialized, then we can safely add listeners to it.
       addListenersToRunningDevices(adapter, toolWindow)
     }
   }
 
-  /**
-   * Adds content listeners, so we know when a device is added/removed to the running devices tool window.
-   */
+  /** Adds content listeners, so we know when a device is added/removed to the running devices tool window. */
   private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
-    Disposer.register(this, object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
-      override fun contentAdded(event: ContentManagerEvent) {
-        val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
-          DataSink.Companion.uiDataSnapshot(sink, event.content.component)
-        })
-        val serial = dataContext.getData(SERIAL_NUMBER_KEY)
-        serial?.let { adapter.register(it) }
-      }
-
-      override fun contentRemoveQuery(event: ContentManagerEvent) {
-        val content = event.content
-        if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
-          return
+    Disposer.register(
+      this,
+      object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
+        override fun contentAdded(event: ContentManagerEvent) {
+          val dataContext =
+            IdeUiService.getInstance()
+              .createCustomizedDataContext(
+                DataContext.EMPTY_CONTEXT,
+                EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, event.content.component) },
+              )
+          val serial = dataContext.getData(SERIAL_NUMBER_KEY)
+          serial?.let { adapter.register(it) }
         }
-        val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
-          DataSink.Companion.uiDataSnapshot(sink, event.content.component)
-        })
-        val serial = dataContext.getData(SERIAL_NUMBER_KEY)
-        serial?.let { adapter.unregister(it) }
-      }
-    })
+
+        override fun contentRemoveQuery(event: ContentManagerEvent) {
+          val content = event.content
+          if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
+            return
+          }
+          val dataContext =
+            IdeUiService.getInstance()
+              .createCustomizedDataContext(
+                DataContext.EMPTY_CONTEXT,
+                EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, event.content.component) },
+              )
+          val serial = dataContext.getData(SERIAL_NUMBER_KEY)
+          serial?.let { adapter.unregister(it) }
+        }
+      },
+    )
 
     runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach { content ->
-      val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
-        DataSink.Companion.uiDataSnapshot(sink, content.component)
-      })
+      val dataContext =
+        IdeUiService.getInstance()
+          .createCustomizedDataContext(
+            DataContext.EMPTY_CONTEXT,
+            EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, content.component) },
+          )
       val serial = dataContext.getData(SERIAL_NUMBER_KEY)
       serial?.let { s -> adapter.register(s) }
     }

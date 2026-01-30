@@ -35,8 +35,7 @@ fun getSizeLabel(size: Long): String {
 }
 
 /**
- * Returns a string that rounds the number so number of integer places + decimal places is less or
- * equal to [maxDigits].
+ * Returns a string that rounds the number so number of integer places + decimal places is less or equal to [maxDigits].
  *
  * Number will not be truncated if it has more integer digits then [maxDigits].
  */
@@ -65,7 +64,5 @@ fun getMessageWithDetails(message: String, details: String?): String =
     "$message: $details$dotIfNeeded"
   }
 
-internal fun invokeLater(
-  modalityState: ModalityState = ModalityState.defaultModalityState(),
-  block: () -> Unit,
-): Unit = ApplicationManager.getApplication().invokeLater(block, modalityState)
+internal fun invokeLater(modalityState: ModalityState = ModalityState.defaultModalityState(), block: () -> Unit): Unit =
+  ApplicationManager.getApplication().invokeLater(block, modalityState)

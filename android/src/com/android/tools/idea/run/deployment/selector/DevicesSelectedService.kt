@@ -24,6 +24,10 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -34,26 +38,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 /**
  * The central coordination point between the UI, the DevicesService, and the persistent state.
  *
- * This class accepts updates to the selection based on user actions and persists them via
- * SelectedTargetStateService.
+ * This class accepts updates to the selection based on user actions and persists them via SelectedTargetStateService.
  *
- * It receives device list updates from the DevicesService, adjusts the selection based on it, and
- * supplies a consistent view of the available and selected devices to other components in the
- * DevicesAndTargets class. Note that we can only persist TargetIds; returning a Target based on a
- * persisted TargetId requires resolving it to an available Device.
+ * It receives device list updates from the DevicesService, adjusts the selection based on it, and supplies a consistent view of the
+ * available and selected devices to other components in the DevicesAndTargets class. Note that we can only persist TargetIds; returning a
+ * Target based on a persisted TargetId requires resolving it to an available Device.
  *
- * The actual selected device(s) are computed based on the most recent user input and the current
- * device state. Note that, perhaps surprisingly, a newly connected device takes precedence over any
- * device that was previously explicitly selected prior to the connection time. However, these
- * devices are *not* persisted in SelectedTargetStateService -- only user selections are stored.
+ * The actual selected device(s) are computed based on the most recent user input and the current device state. Note that, perhaps
+ * surprisingly, a newly connected device takes precedence over any device that was previously explicitly selected prior to the connection
+ * time. However, these devices are *not* persisted in SelectedTargetStateService -- only user selections are stored.
  */
 @Service(Service.Level.PROJECT)
 class DevicesSelectedService
@@ -81,30 +78,20 @@ internal constructor(
   override fun dispose() {}
 
   /**
-   * Explicit updates to the selection by [setTargetSelectedWithComboBox] or
-   * [setTargetsSelectedWithDialog] are sent through this flow; the updates propagate through to the
-   * [devicesAndTargetsFlow].
+   * Explicit updates to the selection by [setTargetSelectedWithComboBox] or [setTargetsSelectedWithDialog] are sent through this flow; the
+   * updates propagate through to the [devicesAndTargetsFlow].
    */
   private val selectionStateUpdateFlow =
-    MutableSharedFlow<SelectionState>(
-      extraBufferCapacity = 1,
-      onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    MutableSharedFlow<SelectionState>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-  /**
-   * The current selection state can change either because the run configuration has changed, or
-   * because the user updated the selection.
-   */
+  /** The current selection state can change either because the run configuration has changed, or because the user updated the selection. */
   private val selectionStateFlow =
-    merge(
-        runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) },
-        selectionStateUpdateFlow,
-      )
+    merge(runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) }, selectionStateUpdateFlow)
       .stateIn(coroutineScope, SharingStarted.Eagerly, SelectionState())
 
   /**
-   * The primary output of this class, which is the result of combining the current set of devices
-   * and the persisted selection to determine a set of selected targets.
+   * The primary output of this class, which is the result of combining the current set of devices and the persisted selection to determine
+   * a set of selected targets.
    */
   internal val devicesAndTargetsFlow =
     devicesFlow
@@ -118,10 +105,7 @@ internal constructor(
 
   init {
     coroutineScope.launch {
-      devicesAndTargetsFlow
-        .map { it.selectedTargets }
-        .distinctUntilChanged()
-        .collect { ActivityTracker.getInstance().inc() }
+      devicesAndTargetsFlow.map { it.selectedTargets }.distinctUntilChanged().collect { ActivityTracker.getInstance().inc() }
     }
   }
 
@@ -133,26 +117,18 @@ internal constructor(
     selectionStateUpdateFlow.tryEmit(selectionState)
   }
 
-  private fun updateState(
-    presentDevices: List<DeploymentTargetDevice>,
-    selectionState: SelectionState,
-  ): DevicesAndTargets {
+  private fun updateState(presentDevices: List<DeploymentTargetDevice>, selectionState: SelectionState): DevicesAndTargets {
     val presentDevices = presentDevices.sortedWith(DeviceComparator)
     val selectedTargets: List<DeploymentTarget>
     when (selectionState.selectionMode) {
       SelectionMode.DROPDOWN -> {
         selectedTargets =
           listOfNotNull(
-            updateSingleSelection(
-              presentDevices,
-              selectionState.dropdownSelection?.target,
-              selectionState.dropdownSelection?.timestamp,
-            )
+            updateSingleSelection(presentDevices, selectionState.dropdownSelection?.target, selectionState.dropdownSelection?.timestamp)
           )
       }
       SelectionMode.DIALOG -> {
-        selectedTargets =
-          selectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
+        selectedTargets = selectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
         if (selectedTargets.isEmpty()) {
           // TODO: Here, without explicit user action, we switch the mode from multiple to single
           // selection. Is this really what we want?
@@ -169,10 +145,7 @@ internal constructor(
     )
   }
 
-  /**
-   * Given that we are in single-device mode, with the given devices present, determine the device
-   * to select.
-   */
+  /** Given that we are in single-device mode, with the given devices present, determine the device to select. */
   private fun updateSingleSelection(
     presentDevices: List<DeploymentTargetDevice>,
     lastSelectedTargetId: TargetId?,
@@ -190,10 +163,7 @@ internal constructor(
         selectionTime > connectionTime -> lastSelectedTarget
         else -> latestConnectedDevice.defaultTarget
       }
-    } else
-      lastSelectedTarget
-        ?: latestConnectedDevice?.defaultTarget
-        ?: presentDevices.firstOrNull()?.defaultTarget
+    } else lastSelectedTarget ?: latestConnectedDevice?.defaultTarget ?: presentDevices.firstOrNull()?.defaultTarget
   }
 
   fun getSelectedTargets(): List<DeploymentTarget> = devicesAndTargets.selectedTargets
@@ -202,18 +172,13 @@ internal constructor(
     updateSelectionState(
       selectionStateFlow.value.copy(
         selectionMode = SelectionMode.DROPDOWN,
-        dropdownSelection =
-          targetSelectedWithComboBox?.let {
-            DropdownSelection(target = it.id, timestamp = clock.now())
-          },
+        dropdownSelection = targetSelectedWithComboBox?.let { DropdownSelection(target = it.id, timestamp = clock.now()) },
       )
     )
   }
 
   fun getTargetsSelectedWithDialog(): List<DeploymentTarget> {
-    return selectionStateFlow.value.dialogSelection.targets.mapNotNull {
-      it.resolve(devicesAndTargets.allDevices)
-    }
+    return selectionStateFlow.value.dialogSelection.targets.mapNotNull { it.resolve(devicesAndTargets.allDevices) }
   }
 
   /** Updates the currently-persisted selected device state with the new set of selected targets. */
@@ -223,8 +188,7 @@ internal constructor(
         // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
         // dropdown.
         dialogSelection = DialogSelection(targets = targetsSelectedWithDialog.map { it.id }),
-        selectionMode =
-          if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
+        selectionMode = if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG,
       )
     )
   }
@@ -244,8 +208,8 @@ internal data class DevicesAndTargets(
 )
 
 /**
- * Given a serialized target ID and a list of present devices, we want to find the best acceptable
- * match. Note that the ID and the devices may both either be templates or handles.
+ * Given a serialized target ID and a list of present devices, we want to find the best acceptable match. Note that the ID and the devices
+ * may both either be templates or handles.
  *
  * If the serialized ID is a template, our order of preference is:
  * 1. An active device based on the template
@@ -259,13 +223,11 @@ internal data class DevicesAndTargets(
 internal fun TargetId.resolve(devices: List<DeploymentTargetDevice>): DeploymentTarget? {
   val device =
     if (deviceId.isTemplate)
-      devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
-        ?: devices.firstOrNull { it.id == deviceId }
+      devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId } ?: devices.firstOrNull { it.id == deviceId }
     else
       devices.firstOrNull { it.id == deviceId }
         ?: templateId?.let {
-          devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
-            ?: devices.firstOrNull { it.templateId == templateId }
+          devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId } ?: devices.firstOrNull { it.templateId == templateId }
         }
   return device?.let { DeploymentTarget(it, bootOption) }
 }

@@ -33,18 +33,17 @@ import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 
 class AssetDataProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setup() {
@@ -89,8 +88,8 @@ class AssetDataProviderTest {
     val resourceResolver = mock<ResourceResolver>()
     val fakeDesignAsset = createFakeDesignAsset(fileName, ResourceType.COLOR)
 
-    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
-      ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, resName, resValue))
+    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any()))
+      .thenReturn(ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, resName, resValue))
 
     val colorDataProvider = ColorAssetDataProvider(project, resourceResolver)
 
@@ -115,8 +114,8 @@ class AssetDataProviderTest {
     val resourceResolver = mock<ResourceResolver>()
     val fakeDesignAsset = createFakeDesignAsset(fileName, ResourceType.STRING)
 
-    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
-      ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, resName, resValue))
+    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any()))
+      .thenReturn(ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, resName, resValue))
 
     val valueDataProvider = ValueAssetDataProvider(resourceResolver)
 
@@ -139,8 +138,11 @@ class AssetDataProviderTest {
     val resValue = "one: %s coin, other: %s coins"
     val resTruncatedValue = "one: %s coin, oth..."
 
-    val pluralResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.RES_AUTO, ResourceType.PLURALS).values().first()
+    val pluralResource =
+      StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.PLURALS)
+        .values()
+        .first()
     val designAsset = Asset.fromResourceItem(pluralResource) as DesignAsset
 
     val resourceResolver = mock<ResourceResolver>()
@@ -167,8 +169,11 @@ class AssetDataProviderTest {
     val resValue = "item 1, item 2, item 3"
     val resTruncatedValue = "item 1, item 2, i..."
 
-    val stringArray = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "string_array" }
+    val stringArray =
+      StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.ARRAY)
+        .values()
+        .first { it.name == "string_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 
     val resourceResolver = mock<ResourceResolver>()
@@ -194,8 +199,11 @@ class AssetDataProviderTest {
     val fileName = "arrays.xml"
     val resValue = "1, 2, 3"
 
-    val stringArray = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "integer_array" }
+    val stringArray =
+      StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.ARRAY)
+        .values()
+        .first { it.name == "integer_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 
     val resourceResolver = mock<ResourceResolver>()

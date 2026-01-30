@@ -24,8 +24,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 
-class RemoveUselessViewQuickFix(element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class RemoveUselessViewQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   override fun getFamilyName() = "RemoveUselessViewQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =

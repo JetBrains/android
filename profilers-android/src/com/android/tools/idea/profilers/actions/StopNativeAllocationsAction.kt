@@ -20,7 +20,7 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class StopNativeAllocationsAction : AnAction(){
+class StopNativeAllocationsAction : AnAction() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!

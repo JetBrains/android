@@ -23,7 +23,8 @@ import java.net.URL
 import java.util.Optional
 import javax.swing.Icon
 
-private val log get() = logger<IconLoader>()
+private val log
+  get() = logger<IconLoader>()
 
 /**
  * Guava [CacheLoader] which can convert a file path to an icon. This is used to help us load standard 256x256 icons out of template files.
@@ -32,14 +33,17 @@ private val log get() = logger<IconLoader>()
  */
 internal class IconLoader : CacheLoader<URL, Optional<Icon>>() {
   override fun load(iconPath: URL): Optional<Icon> {
-    val icon = findIcon(iconPath) ?: run {
-      log.warn("${iconPath} could not be found or is not a valid image")
-      return Optional.empty()
-    }
+    val icon =
+      findIcon(iconPath)
+        ?: run {
+          log.warn("${iconPath} could not be found or is not a valid image")
+          return Optional.empty()
+        }
     return Optional.of(
       TemplateIcon(icon).apply {
         cropBlankWidth()
         setHeight(256)
-      })
+      }
+    )
   }
 }

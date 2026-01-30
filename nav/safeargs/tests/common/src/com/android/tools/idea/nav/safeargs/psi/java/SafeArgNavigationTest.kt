@@ -35,28 +35,28 @@ class SafeArgNavigationTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg_one"
-                app:argType="string" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
           <argument
-                android:name="arg_two"
-                app:argType="string" />
-          </fragment>
-        </navigation>
+              android:name="arg_one"
+              app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2">
+        <argument
+              android:name="arg_two"
+              app:argType="string" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -70,8 +70,7 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check Fragment1Args class navigation
-    val arg1Class =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context) as LightArgsClass
+    val arg1Class = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context) as LightArgsClass
     arg1Class.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -80,8 +79,7 @@ class SafeArgNavigationTest {
     }
 
     // check Fragment2Args class navigation
-    val arg2Class =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context) as LightArgsClass
+    val arg2Class = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context) as LightArgsClass
     arg2Class.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -100,10 +98,10 @@ class SafeArgNavigationTest {
         assertThat(it.navigationElement.text)
           .isEqualTo(
             """
-          <argument
-                  android:name="arg_one"
-                  app:argType="string" />
-          """
+            <argument
+                    android:name="arg_one"
+                    app:argType="string" />
+            """
               .trimIndent()
           )
       } else {
@@ -122,10 +120,10 @@ class SafeArgNavigationTest {
         assertThat(it.navigationElement.text)
           .isEqualTo(
             """
-          <argument
-                  android:name="arg_two"
-                  app:argType="string" />
-          """
+            <argument
+                    android:name="arg_two"
+                    app:argType="string" />
+            """
               .trimIndent()
           )
       } else {
@@ -140,24 +138,24 @@ class SafeArgNavigationTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg_one"
-                app:argType="string" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" />
-        </navigation>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <argument
+              android:name="arg_one"
+              app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" />
+      </navigation>
       """
         .trimIndent(),
     )
@@ -171,9 +169,7 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check class navigation
-    val innerBuilderClass =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context)
-        as LightArgsBuilderClass
+    val innerBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context) as LightArgsBuilderClass
     innerBuilderClass.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
     assertThat(innerBuilderClass.navigationElement).isInstanceOf(XmlTag::class.java)
@@ -198,10 +194,10 @@ class SafeArgNavigationTest {
         assertThat(it.navigationElement.text)
           .isEqualTo(
             """
-          <argument
-                  android:name="arg_one"
-                  app:argType="string" />
-          """
+            <argument
+                    android:name="arg_one"
+                    app:argType="string" />
+            """
               .trimIndent()
           )
       } else {
@@ -216,45 +212,45 @@ class SafeArgNavigationTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
+        <action
+          android:id="@+id/action_to_nested"
+          app:destination="@id/nested" />
+
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1" >
           <action
-            android:id="@+id/action_to_nested"
-            app:destination="@id/nested" />
+            android:id="@+id/action_fragment1_to_fragment2"
+            app:destination="@id/fragment2" />
+          <action
+            android:id="@+id/action_fragment1_to_fragment3"
+            app:destination="@id/fragment3" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
+        </fragment>
+
+        <navigation
+            android:id="@+id/nested"
+            app:startDestination="@id/fragment3">
 
           <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" >
-            <action
-              android:id="@+id/action_fragment1_to_fragment2"
-              app:destination="@id/fragment2" />
-            <action
-              android:id="@+id/action_fragment1_to_fragment3"
-              app:destination="@id/fragment3" />
+              android:id="@+id/fragment3"
+              android:name="test.safeargs.Fragment3"
+              android:label="Fragment3">
           </fragment>
 
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-          </fragment>
-
-          <navigation
-              android:id="@+id/nested"
-              app:startDestination="@id/fragment3">
-
-            <fragment
-                android:id="@+id/fragment3"
-                android:name="test.safeargs.Fragment3"
-                android:label="Fragment3">
-            </fragment>
-
-          </navigation>
         </navigation>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -268,9 +264,7 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check mainDirections class navigation
-    val mainDirections =
-      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
-        as LightDirectionsClass
+    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
     mainDirections.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -279,9 +273,7 @@ class SafeArgNavigationTest {
     }
 
     // check fragment1directions class navigation
-    val fragment1directions =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
-        as LightDirectionsClass
+    val fragment1directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
     fragment1directions.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -297,10 +289,10 @@ class SafeArgNavigationTest {
       assertThat(it.navigationElement.text)
         .isEqualTo(
           """
-        <action
-            android:id="@+id/action_to_nested"
-            app:destination="@id/nested" />
-        """
+          <action
+              android:id="@+id/action_to_nested"
+              app:destination="@id/nested" />
+          """
             .trimIndent()
         )
     }
@@ -315,10 +307,10 @@ class SafeArgNavigationTest {
           assertThat(it.navigationElement.text)
             .isEqualTo(
               """
-            <action
-                  android:id="@+id/action_fragment1_to_fragment2"
-                  app:destination="@id/fragment2" />
-            """
+              <action
+                    android:id="@+id/action_fragment1_to_fragment2"
+                    app:destination="@id/fragment2" />
+              """
                 .trimIndent()
             )
         }
@@ -326,10 +318,10 @@ class SafeArgNavigationTest {
           assertThat(it.navigationElement.text)
             .isEqualTo(
               """
-            <action
-                  android:id="@+id/action_fragment1_to_fragment3"
-                  app:destination="@id/fragment3" />
-            """
+              <action
+                    android:id="@+id/action_fragment1_to_fragment3"
+                    app:destination="@id/fragment3" />
+              """
                 .trimIndent()
             )
         }
@@ -343,40 +335,40 @@ class SafeArgNavigationTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" >
-            <action
-                android:id="@+id/action_fragment1_to_fragment2"
-                app:destination="@id/fragment2" >
-                <argument
-                  android:name="arg"
-                  app:argType="string"
-                  android:defaultValue="defaultString" />
-                <argument
-                  android:name="arg_in_action"
-                  app:argType="string" />
-            </action>
-          </fragment>
-
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-            <argument
-              android:name="arg"
-              app:argType="string" />
-            <argument
-                android:name="arg_in_destination"
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1" >
+          <action
+              android:id="@+id/action_fragment1_to_fragment2"
+              app:destination="@id/fragment2" >
+              <argument
+                android:name="arg"
+                app:argType="string"
+                android:defaultValue="defaultString" />
+              <argument
+                android:name="arg_in_action"
                 app:argType="string" />
-          </fragment>
-        </navigation>
+          </action>
+        </fragment>
+
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
+          <argument
+            android:name="arg"
+            app:argType="string" />
+          <argument
+              android:name="arg_in_destination"
+              app:argType="string" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -391,10 +383,7 @@ class SafeArgNavigationTest {
 
     // check actionBuilderClass navigation
     val actionBuilderClass =
-      safeArgsRule.fixture.findClass(
-        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context,
-      ) as LightActionBuilderClass
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context) as LightActionBuilderClass
     actionBuilderClass.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -413,7 +402,7 @@ class SafeArgNavigationTest {
                     android:name="arg_in_action"
                     app:argType="string" />
               </action>
-        """
+          """
             .trimIndent()
         )
     }
@@ -435,7 +424,7 @@ class SafeArgNavigationTest {
                         android:name="arg"
                         app:argType="string"
                         android:defaultValue="defaultString" />
-            """
+              """
                 .trimIndent()
             )
         }
@@ -447,7 +436,7 @@ class SafeArgNavigationTest {
               <argument
                         android:name="arg_in_action"
                         app:argType="string" />
-            """
+              """
                 .trimIndent()
             )
         }
@@ -459,7 +448,7 @@ class SafeArgNavigationTest {
               <argument
                       android:name="arg_in_destination"
                       app:argType="string" />
-            """
+              """
                 .trimIndent()
             )
         }

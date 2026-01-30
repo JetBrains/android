@@ -32,8 +32,7 @@ import org.junit.Test
 @RunsInEdt
 class ProGuardR8ClassReferencesIntegrationTest {
 
-  @get:Rule
-  val gradleProjectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val gradleProjectRule = AndroidGradleProjectRule().onEdt()
 
   private val fixture
     get() = gradleProjectRule.fixture as JavaCodeInsightTestFixture
@@ -51,22 +50,25 @@ class ProGuardR8ClassReferencesIntegrationTest {
     VfsTestUtil.createFile(
       project.guessProjectDir()!!,
       "app/src/main/java/test/MyClass.java",
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       public class MyClass {}
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/proguard.pro",
-      """
+    val file =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/proguard.pro",
+        """
         -keep class test.MyClass {
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     fixture.openFileInEditor(file)
 
@@ -78,14 +80,16 @@ class ProGuardR8ClassReferencesIntegrationTest {
   @Test
   fun testResolveToClassNameFromLibrary() {
 
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/proguard.pro",
-      """
+    val file =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/proguard.pro",
+        """
         -keep class com.google.common.util.concurrent.AtomicDoubleArray {
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     fixture.openFileInEditor(file)
 
@@ -97,55 +101,66 @@ class ProGuardR8ClassReferencesIntegrationTest {
   @Test
   fun testFindUsagesOfNonPublicClass() {
     VfsTestUtil.createFile(
-      project.guessProjectDir()!!, "app/src/main/java/test/MyClass.java",
-      //language=JAVA
+      project.guessProjectDir()!!,
+      "app/src/main/java/test/MyClass.java",
+      // language=JAVA
       """
       package test;
 
       class MyClass {}
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/proguard.pro",
-      """
+    val file =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/proguard.pro",
+        """
         -keep class test.MyClass {
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     fixture.openFileInEditor(file)
     fixture.moveCaret("My|Class")
-    
+
     val presentation = fixture.getUsageViewTreeTextRepresentation(fixture.elementAtCaret)
-    Truth.assertThat(presentation).contains(
-      """
+    Truth.assertThat(presentation)
+      .contains(
+        """
         Usages in Project Files (1)
           Referenced in Shrinker Config files (1)
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testResolveToPackage() {
     VfsTestUtil.createFile(
-      project.guessProjectDir()!!, "app/src/main/java/test/MyClass.java",
-      //language=JAVA
+      project.guessProjectDir()!!,
+      "app/src/main/java/test/MyClass.java",
+      // language=JAVA
       """
       package test;
 
       class MyClass {}
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!, "app/proguard.pro",
-      """
+    val file =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/proguard.pro",
+        """
         -keep class test.MyC${caret}lass {
         }
-    """.trimIndent()
-    )
+    """
+          .trimIndent(),
+      )
 
     fixture.openFileInEditor(file)
     fixture.moveCaret("tes|t")
@@ -156,25 +171,29 @@ class ProGuardR8ClassReferencesIntegrationTest {
   @Test
   fun testResolveToInnerClass() {
     VfsTestUtil.createFile(
-      project.guessProjectDir()!!, "app/src/main/java/test/MyClass.java",
-      //language=JAVA
+      project.guessProjectDir()!!,
+      "app/src/main/java/test/MyClass.java",
+      // language=JAVA
       """
       package test;
 
       public class MyClass {
         class InnerClass {}
       }
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "app/proguard.pro",
-      """
+    val file =
+      VfsTestUtil.createFile(
+        project.guessProjectDir()!!,
+        "app/proguard.pro",
+        """
         -keep class test.MyClass${"$"}InnerClass {
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     fixture.openFileInEditor(file)
     fixture.moveCaret("InnerClas|s")

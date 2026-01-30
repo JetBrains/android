@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 
-class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) : PsChildModel(){
+class PsAndroidModuleDefaultConfig(val module: PsAndroidModule) : PsChildModel() {
   override val descriptor by PsAndroidModuleDefaultConfigDescriptors
   override val parent: PsModel = module
   override val name: String = "default"

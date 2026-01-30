@@ -23,9 +23,7 @@ import com.intellij.openapi.project.Project
 import org.jdom.Element
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
-/**
- * A run configuration for running an AGP test suite.
- */
+/** A run configuration for running an AGP test suite. */
 class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory, name: String) :
   GradleRunConfiguration(project, factory, name), RunConfigurationWithSuppressedDefaultRunAction {
 
@@ -35,75 +33,54 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
 
   private var testEngineIds: Set<String> = setOf()
 
-  /**
-   * Returns the test engine IDs used by this test suite.
-   */
+  /** Returns the test engine IDs used by this test suite. */
   fun getTestEngineIds(): Set<String> {
     return testEngineIds
   }
 
-  /**
-   * Sets the test engine IDs used by this test suite.
-   */
+  /** Sets the test engine IDs used by this test suite. */
   fun setTestEngineIds(testEngineIds: Set<String>) {
     this.testEngineIds = testEngineIds
   }
 
-  /**
-   * Adds a task name to the list of tasks executed by this run configuration.
-   */
+  /** Adds a task name to the list of tasks executed by this run configuration. */
   fun addTaskName(taskName: String) {
     val encodedTaskName = if (taskName.contains(" ")) "\"$taskName\"" else taskName
     settings.taskNames = settings.taskNames + encodedTaskName
   }
 
-  /**
-   * Returns true if the given [taskName] is executed by this run configuration.
-   */
+  /** Returns true if the given [taskName] is executed by this run configuration. */
   fun containsTask(taskName: String): Boolean {
     return settings.taskNames.contains(encodeTaskName(taskName))
   }
 
-  /**
-   * Returns the names of the Gradle tasks executed by this run configuration.
-   */
+  /** Returns the names of the Gradle tasks executed by this run configuration. */
   fun getTaskNames(): List<String> {
     return settings.taskNames
   }
 
-  /**
-   * Sets whether a test device should be started
-   */
+  /** Sets whether a test device should be started */
   fun setIsDeployableToDevice(isDeployableToDevice: Boolean) {
-    putUserData<Boolean>(
-      GradleRunConfigurationExtension.BooleanOptions.USE_ANDROID_DEVICE.userDataKey,
-      isDeployableToDevice
-    )
+    putUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.USE_ANDROID_DEVICE.userDataKey, isDeployableToDevice)
   }
 
-  /**
-   * Returns true if a test device should be started
-   */
+  /** Returns true if a test device should be started */
   fun isDeployableToDevice(): Boolean {
     return getUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.USE_ANDROID_DEVICE.userDataKey) == true
   }
 
-  /**
-   * Sets whether to show the test results in the Android Test Suite view.
-   */
+  /** Sets whether to show the test results in the Android Test Suite view. */
   fun setShowsResultsInAndroidTestMatrix(showsResultsInAndroidTestMatrix: Boolean) {
     putUserData<Boolean>(
-      GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
-        .userDataKey,
+      GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey,
       showsResultsInAndroidTestMatrix,
     )
   }
 
-  /**
-   * Returns true if the test results should be shown in the Android Test Suite view.
-   */
+  /** Returns true if the test results should be shown in the Android Test Suite view. */
   fun showsResultsInAndroidTestMatrix(): Boolean {
-    return getUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) == true
+    return getUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) ==
+      true
   }
 
   fun getTestSuiteModule(): Module? = TestSuiteUtils.getTestSuiteModule(this)
@@ -111,13 +88,15 @@ class TestSuiteRunConfiguration(project: Project, factory: ConfigurationFactory,
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
 
-    element.addContent(Element(TEST_ENGINE_IDS_XML_CONTAINER_KEY).apply {
-      for (testEngineId in testEngineIds) {
-        val idElement = Element(TEST_ENGINE_IDS_XML_ENTRY_KEY)
-        idElement.setAttribute("id", testEngineId)
-        addContent(idElement)
+    element.addContent(
+      Element(TEST_ENGINE_IDS_XML_CONTAINER_KEY).apply {
+        for (testEngineId in testEngineIds) {
+          val idElement = Element(TEST_ENGINE_IDS_XML_ENTRY_KEY)
+          idElement.setAttribute("id", testEngineId)
+          addContent(idElement)
+        }
       }
-    })
+    )
   }
 
   override fun readExternal(element: Element) {

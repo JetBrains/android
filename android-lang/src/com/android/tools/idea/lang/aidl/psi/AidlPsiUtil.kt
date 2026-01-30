@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 // Various method implementations called from generated methods referenced in Aidl.bnf
 fun getNameIdentifier(element: AidlQualifiedName): PsiElement = element.lastChild
+
 fun getNameIdentifier(element: AidlDottedName): PsiElement = element.lastChild
 
 fun getQualifiedName(element: AidlDottedName): String {
@@ -83,16 +84,17 @@ fun resolve(element: AidlQualifiedName): PsiElement? {
     return typeClass
   }
 
-  val fqn = when (text) {
-    "String" -> "java.lang.String"
-    "List" -> "java.util.List"
-    "Map" -> "java.util.Map"
-    "IBinder" -> "android.os.IBinder"
-    "FileDescriptor" -> "java.io.FileDescriptor"
-    "CharSequence" -> "java.lang.CharSequence"
-    "ParcelFileDescriptor" -> "android.os.ParcelFileDescriptor"
-    "ParcelableHolder" -> "android.os.ParcelableHolder"
-    else -> return null
-  }
+  val fqn =
+    when (text) {
+      "String" -> "java.lang.String"
+      "List" -> "java.util.List"
+      "Map" -> "java.util.Map"
+      "IBinder" -> "android.os.IBinder"
+      "FileDescriptor" -> "java.io.FileDescriptor"
+      "CharSequence" -> "java.lang.CharSequence"
+      "ParcelFileDescriptor" -> "android.os.ParcelFileDescriptor"
+      "ParcelableHolder" -> "android.os.ParcelableHolder"
+      else -> return null
+    }
   return facade.findClass(fqn, scope)
 }

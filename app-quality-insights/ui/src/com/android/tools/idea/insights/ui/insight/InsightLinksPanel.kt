@@ -53,18 +53,11 @@ class InsightLinksPanel(
         }
     }
     add(leftPanel, BorderLayout.WEST)
-    add(
-      InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback),
-      BorderLayout.EAST,
-    )
+    add(InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
   }
 }
 
-private fun createLinks(
-  event: Event,
-  issue: AppInsightsIssue,
-  project: Project,
-): List<HyperlinkLabel> =
+private fun createLinks(event: Event, issue: AppInsightsIssue, project: Project): List<HyperlinkLabel> =
   AgentActionContributor.EP_NAME.extensions.flatMap { ex ->
     ex.provideActions(event, issue, project).map { (name, action) ->
       HyperlinkLabel(name).apply { addHyperlinkListener { action.invoke() } }

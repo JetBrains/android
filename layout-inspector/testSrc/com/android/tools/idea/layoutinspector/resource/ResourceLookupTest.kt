@@ -84,8 +84,7 @@ class ResourceLookupTest {
 
   @Test
   fun testSingleColorIcon() = runBlocking {
-    val title =
-      ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0, false)
+    val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0, false)
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
@@ -108,7 +107,6 @@ class ResourceLookupTest {
         context,
       )
     val icon = context.resourceLookup.resolveAsIcon(property.value, title)
-    assertThat(icon)
-      .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
+    assertThat(icon).isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }
 }

@@ -66,20 +66,11 @@ class ComponentCurveTest {
 
     assertTrue(componentCurve.height > 0)
     // Point in the middle of curve baseline
-    assertTrue(
-      componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(50), curveBaseLine)
-    )
+    assertTrue(componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(50), curveBaseLine))
     // Point inside left diamond
-    assertTrue(
-      componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(0) - 5, curveBaseLine)
-    )
+    assertTrue(componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(0) - 5, curveBaseLine))
     // Point inside right diamond
-    assertTrue(
-      componentCurve.contains(
-        slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-        curveBaseLine,
-      )
-    )
+    assertTrue(componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(100) + 5, curveBaseLine))
     // Uncomment to preview ui.
     // ui.render() // Curve is from 0ms to 100ms
   }

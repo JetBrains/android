@@ -27,11 +27,9 @@ internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollecti
 
   override fun update(key: PsVariantKey, model: PsVariant) {
     val resolvedVariant =
-      parent
-        .resolvedModel
-        ?.variantsWithDependencies
-        ?.singleOrNull { it.buildType == key.buildType && it.productFlavors == key.productFlavors && it.name == key.name }
-                          ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
+      parent.resolvedModel?.variantsWithDependencies?.singleOrNull {
+        it.buildType == key.buildType && it.productFlavors == key.productFlavors && it.name == key.name
+      } ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
     model.init(resolvedVariant)
   }
 }

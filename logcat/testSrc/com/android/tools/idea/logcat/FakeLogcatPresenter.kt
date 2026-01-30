@@ -118,8 +118,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun countFilterMatches(filter: LogcatFilter?): Int =
-    LogcatMasterFilter(filter).filter(messageBatches.flatten()).size
+  override fun countFilterMatches(filter: LogcatFilter?): Int = LogcatMasterFilter(filter).filter(messageBatches.flatten()).size
 
   override fun foldImmediately() {
     TODO("Not yet implemented")

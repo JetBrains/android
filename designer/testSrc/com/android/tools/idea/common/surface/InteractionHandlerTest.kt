@@ -53,43 +53,23 @@ class InteractionHandlerTest {
   fun testDesignSurfaceToolbarVisibility() {
     val handlerProvider: (DesignSurface<SceneManager>) -> InteractionHandler = {
       object : InteractionHandlerBase(it) {
-        override fun createInteractionOnPressed(
-          mouseX: Int,
-          mouseY: Int,
-          modifiersEx: Int,
-        ): Interaction? = null
+        override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
-        override fun createInteractionOnDrag(
-          mouseX: Int,
-          mouseY: Int,
-          modifiersEx: Int,
-        ): Interaction? = null
+        override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
       }
     }
 
-    val actionManagerProvider:
-      (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>> =
-      {
-        object : ActionManager<DesignSurface<SceneManager>>(it) {
-          override fun registerActionsShortcuts(component: JComponent) = Unit
+    val actionManagerProvider: (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>> = {
+      object : ActionManager<DesignSurface<SceneManager>>(it) {
+        override fun registerActionsShortcuts(component: JComponent) = Unit
 
-          override fun getPopupMenuActions(
-            leafComponent: NlComponent?,
-            mouseEvent: MouseEvent,
-          ): DefaultActionGroup = DefaultActionGroup()
+        override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup = DefaultActionGroup()
 
-          override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
-            DefaultActionGroup()
-        }
+        override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup = DefaultActionGroup()
       }
+    }
 
-    val surface =
-      Surface(
-        rule.testRootDisposable.createCoroutineScope(),
-        rule.project,
-        handlerProvider,
-        actionManagerProvider,
-      )
+    val surface = Surface(rule.testRootDisposable.createCoroutineScope(), rule.project, handlerProvider, actionManagerProvider)
     Disposer.register(rule.testRootDisposable, surface)
     surface.activate()
     val toolbar = surface.actionManager.designSurfaceToolbar
@@ -97,20 +77,10 @@ class InteractionHandlerTest {
     val otherComponent = JPanel()
     val listeners = Toolkit.getDefaultToolkit().awtEventListeners
 
-    val enterToSurfaceEvent =
-      MouseEventBuilder(99, 99).withComponent(surface).withId(MouseEvent.MOUSE_ENTERED).build()
-    val exitFromSurfaceEvent =
-      MouseEventBuilder(101, 101).withComponent(surface).withId(MouseEvent.MOUSE_EXITED).build()
-    val enterToOtherEvent =
-      MouseEventBuilder(101, 101)
-        .withComponent(otherComponent)
-        .withId(MouseEvent.MOUSE_ENTERED)
-        .build()
-    val exitFromOtherEvent =
-      MouseEventBuilder(99, 99)
-        .withComponent(otherComponent)
-        .withId(MouseEvent.MOUSE_EXITED)
-        .build()
+    val enterToSurfaceEvent = MouseEventBuilder(99, 99).withComponent(surface).withId(MouseEvent.MOUSE_ENTERED).build()
+    val exitFromSurfaceEvent = MouseEventBuilder(101, 101).withComponent(surface).withId(MouseEvent.MOUSE_EXITED).build()
+    val enterToOtherEvent = MouseEventBuilder(101, 101).withComponent(otherComponent).withId(MouseEvent.MOUSE_ENTERED).build()
+    val exitFromOtherEvent = MouseEventBuilder(99, 99).withComponent(otherComponent).withId(MouseEvent.MOUSE_EXITED).build()
 
     run {
       // Simulate moving mouse from surface to other
@@ -153,8 +123,7 @@ private class Surface(
   override val selectionAsTransferable: ItemTransferable
     get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
-  override fun createSceneManager(model: NlModel) =
-    TestSceneManager(model, this).apply { updateSceneViews() }
+  override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneViews() }
 
   override fun scrollToCenter(list: List<NlComponent>) {}
 

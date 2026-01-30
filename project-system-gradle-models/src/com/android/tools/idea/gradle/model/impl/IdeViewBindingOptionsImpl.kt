@@ -18,6 +18,4 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import java.io.Serializable
 
-data class IdeViewBindingOptionsImpl(
-  override val enabled: Boolean
-) : IdeViewBindingOptions, Serializable
+data class IdeViewBindingOptionsImpl(override val enabled: Boolean) : IdeViewBindingOptions, Serializable

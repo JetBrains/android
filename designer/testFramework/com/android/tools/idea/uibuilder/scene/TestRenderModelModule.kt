@@ -21,12 +21,8 @@ import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
 
 /** Studio specific [RenderModelModule] implementation for testing. */
-internal class TestRenderModelModule(private val delegate: RenderModelModule) :
-  RenderModelModule by delegate {
+internal class TestRenderModelModule(private val delegate: RenderModelModule) : RenderModelModule by delegate {
   // For testing, we do not need to wait for the full merged manifest
   override val manifest: RenderModelManifest?
-    get() =
-      MergedManifestManager.getMergedManifestSupplier(delegate.getIdeaModule()).now?.let {
-        RenderMergedManifest(it)
-      }
+    get() = MergedManifestManager.getMergedManifestSupplier(delegate.getIdeaModule()).now?.let { RenderMergedManifest(it) }
 }

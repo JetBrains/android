@@ -22,16 +22,14 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import java.io.File
 
-/** Blaze model for an android project  */
+/** Blaze model for an android project */
 class BlazeAndroidModel(
   project: Project,
   rootDirPath: File,
-  /**
-   * Note: this is unused and supposed to be `null` in query sync.
-   */
+  /** Note: this is unused and supposed to be `null` in query sync. */
   val defaultSourceProviderLegacySyncOnly: NamedIdeaSourceProvider?,
   applicationId: ListenableFuture<String>,
-  minSdkVersion: Int
+  minSdkVersion: Int,
 ) : BlazeAndroidModelBase(project, rootDirPath, applicationId, minSdkVersion) {
   override val namespacing: Namespacing
     get() = Namespacing.DISABLED

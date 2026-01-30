@@ -31,37 +31,29 @@ interface DaggerIndexTypeWrapper : DaggerIndexPsiWrapper {
   /**
    * Simple name of a type, without any package name. Eg: "Foo"
    *
-   * These simple names end up being used as keys in the Dagger index, so it's necessary to call out
-   * a few special cases to be considered when looking up entries in the index:
-   * 1. **Primitive Types** are returned differently depending on the language. In Java, the short
-   *    name of the unboxed type is Used (eg, `Integer` or `Boolean`). In Kotlin, the short name of
-   *    the Kotlin type is used (eg, `Int` or `Boolean`). Some of these names overlap, and some do
-   *    not. Dagger treats Kotlin and Java primitive types as equivalent, as well as their boxed
-   *    versions. It would be ideal to store them all using the same simple name, but it's not
-   *    possible to resolve with certainty at indexing time. (For instance, is `Int` in Kotlin
-   *    referring to the primitive type or a class called `Int` in the current package? That can't
-   *    be determined.) So it is up to the index reading logic to query both variants when looking
-   *    for primitive types.
-   * 2. **Strings** are represented by different types in Java and Kotlin, but Dagger treats them as
-   *    equivalent (similar to primitive types). Both return "String" as their simple name.
-   * 3. **Generic Types** have their simple name constructed by getting a "simple" version of each
-   *    type reference in their representation. So a type of `java.util.List<java.lang.String,
-   *    java.lang.Integer>` has simple name "List&lt;String, Integer&gt;".
-   * 4. **Arrays** have differing representations in Java and Kotlin. Java arrays will return the
-   *    base type name followed by square brackets (eg, "TypeName[]" or "int[]"). Note that
-   *    primitive types here are specified with the actual primitive token (eg, "int" instead of
-   *    "Integer"). This is because Dagger treats arrays of boxed types as different from arrays of
-   *    unboxed types. Kotlin arrays will return either a primitive array type (eg "IntArray") or a
-   *    generic object array type (eg "Array<TypeName>").
+   * These simple names end up being used as keys in the Dagger index, so it's necessary to call out a few special cases to be considered
+   * when looking up entries in the index:
+   * 1. **Primitive Types** are returned differently depending on the language. In Java, the short name of the unboxed type is Used (eg,
+   *    `Integer` or `Boolean`). In Kotlin, the short name of the Kotlin type is used (eg, `Int` or `Boolean`). Some of these names overlap,
+   *    and some do not. Dagger treats Kotlin and Java primitive types as equivalent, as well as their boxed versions. It would be ideal to
+   *    store them all using the same simple name, but it's not possible to resolve with certainty at indexing time. (For instance, is `Int`
+   *    in Kotlin referring to the primitive type or a class called `Int` in the current package? That can't be determined.) So it is up to
+   *    the index reading logic to query both variants when looking for primitive types.
+   * 2. **Strings** are represented by different types in Java and Kotlin, but Dagger treats them as equivalent (similar to primitive
+   *    types). Both return "String" as their simple name.
+   * 3. **Generic Types** have their simple name constructed by getting a "simple" version of each type reference in their representation.
+   *    So a type of `java.util.List<java.lang.String, java.lang.Integer>` has simple name "List&lt;String, Integer&gt;".
+   * 4. **Arrays** have differing representations in Java and Kotlin. Java arrays will return the base type name followed by square brackets
+   *    (eg, "TypeName[]" or "int[]"). Note that primitive types here are specified with the actual primitive token (eg, "int" instead of
+   *    "Integer"). This is because Dagger treats arrays of boxed types as different from arrays of unboxed types. Kotlin arrays will return
+   *    either a primitive array type (eg "IntArray") or a generic object array type (eg "Array<TypeName>").
    * 5. **Nullables** in Kotlin are stored as if they were the inner non-nullable type.
    */
   fun getSimpleName(): String?
 }
 
-internal class KtTypeReferenceWrapper(
-  private val ktTypeReference: KtTypeReference,
-  private val importHelper: KotlinImportHelper,
-) : DaggerIndexTypeWrapper {
+internal class KtTypeReferenceWrapper(private val ktTypeReference: KtTypeReference, private val importHelper: KotlinImportHelper) :
+  DaggerIndexTypeWrapper {
   override fun getSimpleName(): String? {
     val typeElement = ktTypeReference.typeElement
     if (typeElement == null) {
@@ -122,8 +114,7 @@ internal class KtTypeReferenceWrapper(
   }
 }
 
-internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) :
-  DaggerIndexTypeWrapper {
+internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) : DaggerIndexTypeWrapper {
   override fun getSimpleName(): String = psiTypeElement.type.getSimpleName()
 
   companion object {
@@ -135,8 +126,7 @@ internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement)
           boxedTypeName!!.substringAfterLast(".")
         is PsiArrayType -> {
           val componentType = componentType
-          if (componentType is PsiPrimitiveType) "${componentType.name}[]"
-          else "${componentType.getSimpleName()}[]"
+          if (componentType is PsiPrimitiveType) "${componentType.name}[]" else "${componentType.getSimpleName()}[]"
         }
         else -> presentableText.substringBefore("<")
       }

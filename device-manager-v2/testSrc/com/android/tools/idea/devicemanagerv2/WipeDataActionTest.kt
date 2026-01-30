@@ -49,8 +49,7 @@ class WipeDataActionTest {
 
       assertThat(handle.deactivationAction.invoked).isEqualTo(1)
       assertThat(handle.wipeDataAction.invoked).isEqualTo(1)
-      assertThat(usageTrackerRule.deviceManagerEventKinds())
-        .containsExactly(DeviceManagerEvent.EventKind.VIRTUAL_WIPE_DATA_ACTION)
+      assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(DeviceManagerEvent.EventKind.VIRTUAL_WIPE_DATA_ACTION)
     }
   }
 

@@ -28,10 +28,7 @@ import javax.swing.JMenuItem
  * For testing a [sendToClipboard] handler method can be passed to handle the paste action.
  */
 internal class CopyAllSelectedAction
-private constructor(
-  private val table: FrozenColumnTable<*>,
-  private val sendToClipboard: (String) -> Unit,
-) : AbstractAction() {
+private constructor(private val table: FrozenColumnTable<*>, private val sendToClipboard: (String) -> Unit) : AbstractAction() {
   fun update(copyAllMenuItem: JMenuItem) {
     copyAllMenuItem.text = "Copy All Columns"
     copyAllMenuItem.isVisible = table.selectedRowCount > 0
@@ -44,9 +41,7 @@ private constructor(
       val columnCount = model.columnCount
       val rowString = StringBuilder()
       for (column in 0 until columnCount) {
-        rowString
-          .append(table.model.getValueAt(row, column).toString())
-          .append(if (column != columnCount - 1) "\t" else "")
+        rowString.append(table.model.getValueAt(row, column).toString()).append(if (column != columnCount - 1) "\t" else "")
       }
       if (rowString.isNotEmpty()) copyContent.appendLine(rowString)
     }
@@ -55,12 +50,8 @@ private constructor(
   }
 
   companion object {
-    @TestOnly
-    fun forTesting(table: FrozenColumnTable<*>, copyContent: (String) -> Unit) =
-      CopyAllSelectedAction(table, copyContent)
+    @TestOnly fun forTesting(table: FrozenColumnTable<*>, copyContent: (String) -> Unit) = CopyAllSelectedAction(table, copyContent)
 
-    @JvmStatic
-    fun create(table: FrozenColumnTable<*>) =
-      CopyAllSelectedAction(table) { CopyPasteManager.copyTextToClipboard(it) }
+    @JvmStatic fun create(table: FrozenColumnTable<*>) = CopyAllSelectedAction(table) { CopyPasteManager.copyTextToClipboard(it) }
   }
 }

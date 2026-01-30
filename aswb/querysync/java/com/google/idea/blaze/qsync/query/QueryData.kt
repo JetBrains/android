@@ -17,11 +17,9 @@ package com.google.idea.blaze.qsync.query
 
 import com.google.idea.blaze.common.Label
 
-/** Contains records for storing query summary data, as an alternative to protos.  */
+/** Contains records for storing query summary data, as an alternative to protos. */
 interface QueryData {
-  /**
-   * Native representation of a the parts we use from [ ].
-   */
+  /** Native representation of a the parts we use from [ ]. */
   @JvmRecord
   data class Rule(
     val label: Label,
@@ -40,7 +38,7 @@ interface QueryData {
     val copts: List<String>,
     val tags: List<String>,
     val mainClass: String,
-    val testRule: Label?
+    val testRule: Label?,
   ) {
     companion object {
       fun createForTests(label: Label): Rule {
@@ -61,12 +59,11 @@ interface QueryData {
           copts = emptyList(),
           tags = emptyList(),
           mainClass = "",
-          testRule = null
+          testRule = null,
         )
       }
     }
   }
 
-  @JvmRecord
-  data class SourceFile(val label: Label, val subincliudes: Collection<Label>)
+  @JvmRecord data class SourceFile(val label: Label, val subincliudes: Collection<Label>)
 }

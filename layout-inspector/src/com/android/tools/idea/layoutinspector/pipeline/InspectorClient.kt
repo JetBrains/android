@@ -40,8 +40,8 @@ import java.util.EnumSet
 /**
  * Client for communicating with the agent.
  *
- * When created, it is expected that [connect] should be called shortly after, and that the client
- * will be in a valid state until [disconnect] is called.
+ * When created, it is expected that [connect] should be called shortly after, and that the client will be in a valid state until
+ * [disconnect] is called.
  */
 interface InspectorClient : Disposable {
   enum class State {
@@ -53,14 +53,10 @@ interface InspectorClient : Disposable {
   }
 
   enum class Capability {
-    /**
-     * Indicates this client supports continuous fetching via [startFetching] and [stopFetching].
-     */
+    /** Indicates this client supports continuous fetching via [startFetching] and [stopFetching]. */
     SUPPORTS_CONTINUOUS_MODE,
 
-    /**
-     * Indicates that this client is able to separate user defined nodes from system defined nodes.
-     */
+    /** Indicates that this client is able to separate user defined nodes from system defined nodes. */
     SUPPORTS_SYSTEM_NODES,
 
     /** Indicates that this client is able to send [AndroidWindow.ImageType.SKP] screenshots. */
@@ -72,23 +68,16 @@ interface InspectorClient : Disposable {
     /** Indicates that this client is able to inspect compose parts of the application. */
     SUPPORTS_COMPOSE,
 
-    /**
-     * Indicates that this client is able to inspect compose recomposition counts of the
-     * application.
-     */
+    /** Indicates that this client is able to inspect compose recomposition counts of the application. */
     SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
 
     /**
-     * Indicates that some of the compose nodes currently have line number information. Certain
-     * features will not work if the compose application was created without source code
-     * information.
+     * Indicates that some of the compose nodes currently have line number information. Certain features will not work if the compose
+     * application was created without source code information.
      */
     HAS_LINE_NUMBER_INFORMATION,
 
-    /**
-     * This client is able to record and report state reads in connection with compose
-     * recompositions.
-     */
+    /** This client is able to record and report state reads in connection with compose recompositions. */
     CAN_OBSERVE_RECOMPOSE_STATE_READS,
   }
 
@@ -107,15 +96,11 @@ interface InspectorClient : Disposable {
   /** Register a handler that is triggered when this client encounters an error message */
   fun registerErrorCallback(errorListener: ErrorListener)
 
-  /**
-   * Register a handler that is triggered when this client receives an event containing the changed
-   * window roots for this device.
-   */
+  /** Register a handler that is triggered when this client receives an event containing the changed window roots for this device. */
   fun registerRootsEventCallback(callback: (List<*>) -> Unit)
 
   /**
-   * Register a handler that is triggered when this client receives an event containing layout tree
-   * data about this device.
+   * Register a handler that is triggered when this client receives an event containing layout tree data about this device.
    *
    * See also: [treeLoader], which helps consume this data
    */
@@ -127,8 +112,8 @@ interface InspectorClient : Disposable {
   /**
    * Connect this client to the device.
    *
-   * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has
-   * finished. This may also get set to [State.DISCONNECTED] if the client fails to connect.
+   * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has finished. This may also get set to
+   * [State.DISCONNECTED] if the client fails to connect.
    *
    * You are only supposed to call this once.
    */
@@ -139,8 +124,7 @@ interface InspectorClient : Disposable {
   /**
    * Disconnect this client.
    *
-   * Use [registerStateCallback] and check for [State.DISCONNECTED] if you need to know when this
-   * has finished.
+   * Use [registerStateCallback] and check for [State.DISCONNECTED] if you need to know when this has finished.
    *
    * You are only supposed to call this once.
    */
@@ -151,13 +135,12 @@ interface InspectorClient : Disposable {
    *
    * If this is currently happening, then [inLiveMode] will be set to true.
    *
-   * See also [refresh], which is used for pulling the state of the device one piece at a time
-   * instead.
+   * See also [refresh], which is used for pulling the state of the device one piece at a time instead.
    *
    * Once called, you should call [stopFetching] to cancel.
    *
-   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
-   * method should not be called, and doing so is undefined.
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this method should not be called, and doing so
+   * is undefined.
    */
   suspend fun startFetching()
 
@@ -166,16 +149,15 @@ interface InspectorClient : Disposable {
    *
    * See also: [startFetching]
    *
-   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
-   * method should not be called, and doing so is undefined.
+   * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this method should not be called, and doing so
+   * is undefined.
    */
   suspend fun stopFetching()
 
   /**
    * Refresh the content of the inspector.
    *
-   * This shouldn't be necessary if the client is already continuously fetching off the device, i.e.
-   * [inLiveMode] is true.
+   * This shouldn't be necessary if the client is already continuously fetching off the device, i.e. [inLiveMode] is true.
    */
   fun refresh()
 
@@ -186,8 +168,7 @@ interface InspectorClient : Disposable {
   fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {}
 
   /**
-   * Save a snapshot of the current view, including all data needed to reconstitute it (e.g.
-   * properties information) to the given [path].
+   * Save a snapshot of the current view, including all data needed to reconstitute it (e.g. properties information) to the given [path].
    */
   suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type)
 
@@ -195,8 +176,8 @@ interface InspectorClient : Disposable {
   val clientType: ClientType
 
   /**
-   * Report this client's capabilities so that external systems can check what functionality is
-   * available before interacting with some of this client's methods.
+   * Report this client's capabilities so that external systems can check what functionality is available before interacting with some of
+   * this client's methods.
    */
   val capabilities: Set<Capability>
     get() = EnumSet.noneOf(Capability::class.java)
@@ -221,10 +202,7 @@ interface InspectorClient : Disposable {
   /** Return a provider of properties from the current agent. */
   val provider: PropertiesProvider
 
-  /**
-   * Return true if the current client is actively connected (or about to connect) to the current
-   * process.
-   */
+  /** Return true if the current client is actively connected (or about to connect) to the current process. */
   val isConnected: Boolean
     get() = (state == State.CONNECTED)
 
@@ -254,10 +232,7 @@ object DisconnectedClient : InspectorClient {
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(
-    path: Path,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
-  ) {}
+  override suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type) {}
 
   override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
 
@@ -284,11 +259,7 @@ object DisconnectedClient : InspectorClient {
   override val stats: SessionStatistics = DisconnectedSessionStatistics
   override val treeLoader =
     object : TreeLoader {
-      override fun loadComponentTree(
-        data: Any?,
-        resourceLookup: ResourceLookup,
-        process: ProcessDescriptor,
-      ): ComponentTreeData? = null
+      override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? = null
 
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
     }

@@ -21,12 +21,12 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
-class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
+class IncompatibleAgpVersionsIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
@@ -46,12 +46,14 @@ class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
    *
    * Because of this there is no actual error in build output, so we don't need to parse anything in this function.
    */
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return false
   }
 }

@@ -67,20 +67,20 @@ import javax.swing.table.TableCellEditor
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parseEditorText].
  */
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
-    property: ModelPropertyT,
-    propertyContext: ModelPropertyContext<PropertyT>,
-    variablesScope: PsVariablesScope?,
-    private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
-    cellEditor: TableCellEditor? = null,
-    private val isPropertyContext: Boolean = false,
-    private val logValueEdited: () -> Unit = {},
-    private val hideMiniButton: Boolean = false,
-    private val viewOnly: Boolean = false,
-    private val note: Pair<String, String?>? = null
+  property: ModelPropertyT,
+  propertyContext: ModelPropertyContext<PropertyT>,
+  variablesScope: PsVariablesScope?,
+  private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
+  cellEditor: TableCellEditor? = null,
+  private val isPropertyContext: Boolean = false,
+  private val logValueEdited: () -> Unit = {},
+  private val hideMiniButton: Boolean = false,
+  private val viewOnly: Boolean = false,
+  private val note: Pair<String, String?>? = null,
 ) :
-    PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
-    ModelPropertyEditor<PropertyT>,
-    ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
+  PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
+  ModelPropertyEditor<PropertyT>,
+  ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
 
   init {
     check(extensions.count { it.isMainAction } <= 1) {
@@ -90,7 +90,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
-  private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
+  private var knownValuesFuture: ListenableFuture<Unit>? = null // Accessed only from the EDT.
   private val formatter = propertyContext.valueFormatter()
   var customRenderTo: RenderToHandler<PropertyT>? = null
     set(value) {
@@ -98,175 +98,182 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       renderedComboBox.updateWatermark()
     }
 
-  private val renderedComboBox = object : RenderedComboBox<Annotated<ParsedValue<PropertyT>>>(DefaultComboBoxModel()) {
+  private val renderedComboBox =
+    object : RenderedComboBox<Annotated<ParsedValue<PropertyT>>>(DefaultComboBoxModel()) {
 
-    override fun getPreferredSize(): Dimension {
-      val dimensions = super.getPreferredSize()
-      return if (dimensions.width < 200) {
-        Dimension(200, dimensions.height)
+      override fun getPreferredSize(): Dimension {
+        val dimensions = super.getPreferredSize()
+        return if (dimensions.width < 200) {
+          Dimension(200, dimensions.height)
+        } else dimensions
       }
-      else dimensions
-    }
 
-    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = propertyContext.parseEditorText(text)
+      override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = propertyContext.parseEditorText(text)
 
-    override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String = when (anObject) {
-      null -> ""
-      // Annotations are not part of the value.
-      else -> anObject.value.getText(formatter)
-    }
-
-    override fun TextRenderer.renderCell(value: Annotated<ParsedValue<PropertyT>>?) {
-      val annotatedVal = value ?: ParsedValue.NotSet.annotated()
-      val rendered = customRenderTo?.invoke(annotatedVal, this, formatter, knownValueRenderers) ?: false
-      // if custom RenderTo was empty or did not work - call standard renderTo
-      if (!rendered) annotatedVal.renderTo(this, formatter, knownValueRenderers)
-    }
-
-    override fun createEditorExtensions(): List<Extension> =
-      extensions
-        .filter { !it.isMainAction }
-        .map { action ->
-      object : Extension {
-        override fun getIcon(hovered: Boolean): Icon = action.icon
-        override fun getTooltip(): String = action.tooltip
-        override fun getActionOnClick(): Runnable = Runnable {
-          action.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+      override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String =
+        when (anObject) {
+          null -> ""
+          // Annotations are not part of the value.
+          else -> anObject.value.getText(formatter)
         }
+
+      override fun TextRenderer.renderCell(value: Annotated<ParsedValue<PropertyT>>?) {
+        val annotatedVal = value ?: ParsedValue.NotSet.annotated()
+        val rendered = customRenderTo?.invoke(annotatedVal, this, formatter, knownValueRenderers) ?: false
+        // if custom RenderTo was empty or did not work - call standard renderTo
+        if (!rendered) annotatedVal.renderTo(this, formatter, knownValueRenderers)
       }
-    }
 
-    fun loadKnownValues() {
-      val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
+      override fun createEditorExtensions(): List<Extension> =
+        extensions
+          .filter { !it.isMainAction }
+          .map { action ->
+            object : Extension {
+              override fun getIcon(hovered: Boolean): Icon = action.icon
 
-      knownValuesFuture?.cancel(false)
+              override fun getTooltip(): String = action.tooltip
 
-      knownValuesFuture =
-        propertyContext.getKnownValues().continueOnEdt { knownValues ->
-          val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
-          knownValueRenderers = possibleValues
-          knownValues to possibleValues
-        }.invokeLater { (knownValues, possibleValues) ->
-          if (disposed) return@invokeLater
-          setKnownValues(
-            (possibleValues.keys.toList().map { it.annotated() } +
-             availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()
-            )
-          )
-          knownValuesFuture = null
-        }
-    }
-
-    private fun setStatus(status: ValueRenderer) {
-      statusComponent.clear()
-      status.renderTo(statusComponentRenderer)
-    }
-
-    private fun getStatusRenderer(valueAnnotation: ValueAnnotation?): ValueRenderer =
-      (valueAnnotation as? ValueAnnotation.Error).let {
-        if (it != null) {
-          object: ValueRenderer {
-            override fun renderTo(textRenderer: TextRenderer): Boolean {
-              textRenderer.append(it.message, SimpleTextAttributes.ERROR_ATTRIBUTES)
-              return true
+              override fun getActionOnClick(): Runnable = Runnable {
+                action.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+              }
             }
           }
-        } else {
-          object: ValueRenderer {
-            override fun renderTo(textRenderer: TextRenderer): Boolean = false
+
+      fun loadKnownValues() {
+        val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
+
+        knownValuesFuture?.cancel(false)
+
+        knownValuesFuture =
+          propertyContext
+            .getKnownValues()
+            .continueOnEdt { knownValues ->
+              val possibleValues = buildKnownValueRenderers(knownValues, formatter, property.defaultValueGetter?.invoke())
+              knownValueRenderers = possibleValues
+              knownValues to possibleValues
+            }
+            .invokeLater { (knownValues, possibleValues) ->
+              if (disposed) return@invokeLater
+              setKnownValues(
+                (possibleValues.keys.toList().map { it.annotated() } +
+                  availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty())
+              )
+              knownValuesFuture = null
+            }
+      }
+
+      private fun setStatus(status: ValueRenderer) {
+        statusComponent.clear()
+        status.renderTo(statusComponentRenderer)
+      }
+
+      private fun getStatusRenderer(valueAnnotation: ValueAnnotation?): ValueRenderer =
+        (valueAnnotation as? ValueAnnotation.Error).let {
+          if (it != null) {
+            object : ValueRenderer {
+              override fun renderTo(textRenderer: TextRenderer): Boolean {
+                textRenderer.append(it.message, SimpleTextAttributes.ERROR_ATTRIBUTES)
+                return true
+              }
+            }
+          } else {
+            object : ValueRenderer {
+              override fun renderTo(textRenderer: TextRenderer): Boolean = false
+            }
           }
         }
-      }
 
-    fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
-      setValue(annotatedPropertyValue.value.parsedValue.let { annotatedParsedValue ->
-        if (annotatedParsedValue.annotation != null && knownValueRenderers.containsKey(annotatedParsedValue.value))
-          annotatedParsedValue.value.annotated()
-        else annotatedParsedValue
-      })
-      setStatus(getStatusRenderer(annotatedPropertyValue.annotation))
-      updateModified()
-    }
-
-    fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
-      property.setParsedValue(annotatedValue.value)
-    }
-
-    private fun onEditorChanged() =
-      when (updateProperty()) {
-        UpdatePropertyOutcome.UPDATED -> reloadValue(property.getValue())
-        UpdatePropertyOutcome.NOT_CHANGED -> Unit
-        UpdatePropertyOutcome.INVALID -> Unit
-      }
-
-    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? {
-      // use property scope as property can be from another build/toml file and has another scope than module
-      val scope: PsVariablesScope? = property.variableScope?.invoke() ?: variablesScope
-      return scope?.getAvailableVariablesFor(propertyContext)
-    }
-
-    /**
-     * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
-     *
-     * (Returns [false] if the editor has not yet been initialized).
-     */
-    fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
-
-    private var delayedActionPending = false
-
-    override fun setPopupVisible(visible: Boolean) {
-      super.setPopupVisible(visible)
-      if (!visible && delayedActionPending) {
-        delayedActionPending = false
-        if (!disposed && !beingLoaded) {
-          onEditorChanged()
-        }
-      }
-    }
-
-    init {
-      if (cellEditor != null) {
-        // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
-        // breaks property editors.
-        putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
-      }
-      setEditable(true)
-      isEnabled = !viewOnly
-
-      addActionListener {
-        if (!disposed && !beingLoaded) {
-          if (super.isPopupVisible()) {
-            delayedActionPending = true
+      fun reloadValue(annotatedPropertyValue: Annotated<PropertyValue<PropertyT>>) {
+        setValue(
+          annotatedPropertyValue.value.parsedValue.let { annotatedParsedValue ->
+            if (annotatedParsedValue.annotation != null && knownValueRenderers.containsKey(annotatedParsedValue.value))
+              annotatedParsedValue.value.annotated()
+            else annotatedParsedValue
           }
-          else {
-            onEditorChanged()
-          }
-        }
+        )
+        setStatus(getStatusRenderer(annotatedPropertyValue.annotation))
+        updateModified()
       }
 
-      val focusListener = object : FocusListener {
-        override fun focusLost(e: FocusEvent?) {
+      fun applyChanges(annotatedValue: Annotated<ParsedValue<PropertyT>>) {
+        property.setParsedValue(annotatedValue.value)
+      }
+
+      private fun onEditorChanged() =
+        when (updateProperty()) {
+          UpdatePropertyOutcome.UPDATED -> reloadValue(property.getValue())
+          UpdatePropertyOutcome.NOT_CHANGED -> Unit
+          UpdatePropertyOutcome.INVALID -> Unit
+        }
+
+      private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? {
+        // use property scope as property can be from another build/toml file and has another scope than module
+        val scope: PsVariablesScope? = property.variableScope?.invoke() ?: variablesScope
+        return scope?.getAvailableVariablesFor(propertyContext)
+      }
+
+      /**
+       * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
+       *
+       * (Returns [false] if the editor has not yet been initialized).
+       */
+      fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
+
+      private var delayedActionPending = false
+
+      override fun setPopupVisible(visible: Boolean) {
+        super.setPopupVisible(visible)
+        if (!visible && delayedActionPending) {
+          delayedActionPending = false
           if (!disposed && !beingLoaded) {
             onEditorChanged()
           }
         }
-        override fun focusGained(e: FocusEvent?) {
-          if (!disposed) {
-            reloadIfNotChanged()
+      }
+
+      init {
+        if (cellEditor != null) {
+          // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
+          // breaks property editors.
+          putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
+        }
+        setEditable(true)
+        isEnabled = !viewOnly
+
+        addActionListener {
+          if (!disposed && !beingLoaded) {
+            if (super.isPopupVisible()) {
+              delayedActionPending = true
+            } else {
+              onEditorChanged()
+            }
           }
         }
+
+        val focusListener =
+          object : FocusListener {
+            override fun focusLost(e: FocusEvent?) {
+              if (!disposed && !beingLoaded) {
+                onEditorChanged()
+              }
+            }
+
+            override fun focusGained(e: FocusEvent?) {
+              if (!disposed) {
+                reloadIfNotChanged()
+              }
+            }
+          }
+        editor.editorComponent.addFocusListener(focusListener)
+        addFocusListener(focusListener)
       }
-      editor.editorComponent.addFocusListener(focusListener)
-      addFocusListener(focusListener)
     }
-  }
 
   override fun addFocusListener(listener: FocusListener) {
     renderedComboBox.editor.editorComponent.addFocusListener(listener)
   }
 
-  @VisibleForTesting
-  val testRenderedComboBox: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
+  @VisibleForTesting val testRenderedComboBox: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
 
   override val component: JComponent = EditorWrapper(property)
 
@@ -274,21 +281,20 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     init {
       isFocusable = false
       add(renderedComboBox)
-      if(!hideMiniButton) add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
-      if(note != null) {
-        val subPanel = JPanel(HorizontalLayout(5)).apply {
-          add(JBLabel(note.first), HorizontalLayout.LEFT)
-          note.second?.let { url ->
-            ActionLink("Learn more")
-              .apply {
-                addActionListener { BrowserUtil.browse(url) }
-                setExternalLinkIcon()
-              }
-              .also {
-                add(it, HorizontalLayout.LEFT)
-              }
+      if (!hideMiniButton) add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
+      if (note != null) {
+        val subPanel =
+          JPanel(HorizontalLayout(5)).apply {
+            add(JBLabel(note.first), HorizontalLayout.LEFT)
+            note.second?.let { url ->
+              ActionLink("Learn more")
+                .apply {
+                  addActionListener { BrowserUtil.browse(url) }
+                  setExternalLinkIcon()
+                }
+                .also { add(it, HorizontalLayout.LEFT) }
+            }
           }
-        }
         subPanel.border = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0), subPanel.border)
         add(subPanel, BorderLayout.SOUTH)
       }
@@ -301,30 +307,40 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
           isFocusable = ScreenReader.isActive()
           icon = StudioIcons.Common.OVERFLOW
           toolTipText = extensionAction.tooltip + " (Shift+Enter)"
-          addFocusListener(object : FocusListener {
-            override fun focusLost(e: FocusEvent) {
-              icon = StudioIcons.Common.OVERFLOW
+          addFocusListener(
+            object : FocusListener {
+              override fun focusLost(e: FocusEvent) {
+                icon = StudioIcons.Common.OVERFLOW
+              }
 
+              override fun focusGained(e: FocusEvent) {
+                icon = StudioIcons.Common.OVERFLOW
+              }
             }
-
-            override fun focusGained(e: FocusEvent) {
-              icon = StudioIcons.Common.OVERFLOW
+          )
+          addMouseListener(
+            object : MouseAdapter() {
+              override fun mousePressed(event: MouseEvent) {
+                invokeAction()
+              }
             }
-          })
-          addMouseListener(object : MouseAdapter() {
-            override fun mousePressed(event: MouseEvent) { invokeAction() }
-          })
+          )
           registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("SPACE"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-          this@EditorWrapper
-              .registerKeyboardAction({ invokeAction() }, KeyStroke.getKeyStroke("shift ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-        }
-        else {
+          this@EditorWrapper.registerKeyboardAction(
+            { invokeAction() },
+            KeyStroke.getKeyStroke("shift ENTER"),
+            WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+          )
+        } else {
           if (isPropertyContext) {
-            icon = object : Icon {
-              override fun getIconHeight(): Int = 20
-              override fun getIconWidth(): Int = 15
-              override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
-            }
+            icon =
+              object : Icon {
+                override fun getIconHeight(): Int = 20
+
+                override fun getIconWidth(): Int = 15
+
+                override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+              }
           }
         }
       }
@@ -339,8 +355,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   private val statusComponentRenderer = statusComponent.toRenderer()
 
   override fun getValue(): Annotated<ParsedValue<PropertyT>> =
-    @Suppress("UNCHECKED_CAST")
-    (renderedComboBox.editor.item as Annotated<ParsedValue<PropertyT>>)
+    @Suppress("UNCHECKED_CAST") (renderedComboBox.editor.item as Annotated<ParsedValue<PropertyT>>)
 
   override fun updateProperty(): UpdatePropertyOutcome {
     if (disposed) throw IllegalStateException()
@@ -369,17 +384,17 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 
   override fun reloadIfNotChanged() {
     renderedComboBox.loadKnownValues()
-    if (!renderedComboBox.isEditorChanged()) {  // Do not override a not applied invalid value.
+    if (!renderedComboBox.isEditorChanged()) { // Do not override a not applied invalid value.
       renderedComboBox.reloadValue(property.getValue())
     }
   }
 
   override fun createNew(
-      property: ModelPropertyT,
-      cellEditor: TableCellEditor?,
-      isPropertyContext: Boolean
+    property: ModelPropertyT,
+    cellEditor: TableCellEditor?,
+    isPropertyContext: Boolean,
   ): ModelPropertyEditor<PropertyT> =
-      simplePropertyEditor(property, propertyContext, variablesScope, extensions, isPropertyContext, cellEditor)
+    simplePropertyEditor(property, propertyContext, variablesScope, extensions, isPropertyContext, cellEditor)
 
   init {
     reload()
@@ -387,25 +402,26 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
 }
 
 fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePropertyEditor(
-    boundProperty: ModelPropertyT,
-    boundPropertyContext: ModelPropertyContext<PropertyT>,
-    variablesScope: PsVariablesScope?,
-    extensions: Collection<EditorExtensionAction<PropertyT, ModelPropertyT>>,
-    isPropertyContext: Boolean,
-    cellEditor: TableCellEditor?,
-    logValueEdited: () -> Unit = { /* no usage tracking */ },
-    hideMiniButton: Boolean = false,
-    viewOnly: Boolean = false,
-    note: Pair<String, String?>? = null
+  boundProperty: ModelPropertyT,
+  boundPropertyContext: ModelPropertyContext<PropertyT>,
+  variablesScope: PsVariablesScope?,
+  extensions: Collection<EditorExtensionAction<PropertyT, ModelPropertyT>>,
+  isPropertyContext: Boolean,
+  cellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit = { /* no usage tracking */ },
+  hideMiniButton: Boolean = false,
+  viewOnly: Boolean = false,
+  note: Pair<String, String?>? = null,
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
-    SimplePropertyEditor(
-        boundProperty,
-        boundPropertyContext,
-        variablesScope,
-        extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
-        cellEditor,
-        isPropertyContext,
-        logValueEdited,
-        hideMiniButton,
-        viewOnly,
-        note)
+  SimplePropertyEditor(
+    boundProperty,
+    boundPropertyContext,
+    variablesScope,
+    extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
+    cellEditor,
+    isPropertyContext,
+    logValueEdited,
+    hideMiniButton,
+    viewOnly,
+    note,
+  )

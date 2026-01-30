@@ -80,9 +80,7 @@ class VariantComboBoxTest {
         )
       )
 
-      delayUntilCondition(200) {
-        comboBox.selectedItem == DisabledTextRow("No variants available.")
-      }
+      delayUntilCondition(200) { comboBox.selectedItem == DisabledTextRow("No variants available.") }
     }
 
   @Test
@@ -100,9 +98,7 @@ class VariantComboBoxTest {
         )
       )
 
-      delayUntilCondition(200) {
-        comboBox.selectedItem == DisabledTextRow("Failed to load variants.")
-      }
+      delayUntilCondition(200) { comboBox.selectedItem == DisabledTextRow("Failed to load variants.") }
     }
 
   @Test
@@ -120,9 +116,7 @@ class VariantComboBoxTest {
         )
       )
 
-      delayUntilCondition(200) {
-        comboBox.selectedItem == DisabledTextRow("Not available offline.")
-      }
+      delayUntilCondition(200) { comboBox.selectedItem == DisabledTextRow("Not available offline.") }
     }
 
   @Test
@@ -203,8 +197,6 @@ class VariantComboBoxTest {
         )
       )
 
-      delayUntilCondition(200) {
-        (comboBox.model.selectedItem as? VariantRow)?.name == "All (2 variants)"
-      }
+      delayUntilCondition(200) { (comboBox.model.selectedItem as? VariantRow)?.name == "All (2 variants)" }
     }
 }

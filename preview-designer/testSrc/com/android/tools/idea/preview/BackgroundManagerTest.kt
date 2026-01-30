@@ -38,9 +38,7 @@ class BackgroundManagerTest {
   fun `setBackground and getBackground work correctly`() = runTest {
     val manager = BackgroundManager.getInstance(project)
     val psiFile = projectRule.fixture.addFileToProject("Test.kt", "fun test() {}")
-    val element = readAction {
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile)
-    }
+    val element = readAction { SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile) }
     val background = PreviewDisplaySettings.Background.Image {}
 
     manager.setBackground(element, background)
@@ -51,9 +49,7 @@ class BackgroundManagerTest {
   fun `setBackground with null removes the background`() = runTest {
     val manager = BackgroundManager.getInstance(project)
     val psiFile = projectRule.fixture.addFileToProject("Test.kt", "fun test() {}")
-    val element = readAction {
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile)
-    }
+    val element = readAction { SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile) }
     val background = PreviewDisplaySettings.Background.Image {}
 
     manager.setBackground(element, background)
@@ -67,9 +63,7 @@ class BackgroundManagerTest {
   fun `modificationTracker updates on background changes`() = runTest {
     val manager = BackgroundManager.getInstance(project)
     val psiFile = projectRule.fixture.addFileToProject("Test.kt", "fun test() {}")
-    val element = readAction {
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile)
-    }
+    val element = readAction { SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile) }
     val background1 = PreviewDisplaySettings.Background.Image {}
     val background2 = PreviewDisplaySettings.Background.Image {}
 
@@ -103,9 +97,7 @@ class BackgroundManagerTest {
   fun `modificationFlow emits on background changes`() = runTest {
     val manager = BackgroundManager.getInstance(project)
     val psiFile = projectRule.fixture.addFileToProject("Test.kt", "fun test() {}")
-    val element = readAction {
-      SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile)
-    }
+    val element = readAction { SmartPointerManager.getInstance(project).createSmartPsiElementPointer<PsiFile>(psiFile) }
     val background = PreviewDisplaySettings.Background.Image {}
 
     val initialCount = manager.modificationFlow.first()

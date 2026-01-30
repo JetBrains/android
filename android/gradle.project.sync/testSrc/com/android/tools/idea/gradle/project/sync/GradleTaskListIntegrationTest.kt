@@ -28,12 +28,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests to verify the functionality of disabling gradle task list during Gradle Sync.
- */
+/** Tests to verify the functionality of disabling gradle task list during Gradle Sync. */
 class GradleTaskListIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private var myOriginalTaskListSetting: Boolean = false
 

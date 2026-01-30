@@ -17,8 +17,7 @@ package com.android.tools.idea.serverflags
 
 import com.google.protobuf.Message
 
-open class FakeDynamicServerFlagService(private val flagProvider: () -> Map<String, Any>) :
-  DynamicServerFlagService {
+open class FakeDynamicServerFlagService(private val flagProvider: () -> Map<String, Any>) : DynamicServerFlagService {
   override val configurationVersion = -1L
   override val flagAssignments = emptyMap<String, Int>()
   private val flags = mutableMapOf<String, Any>()

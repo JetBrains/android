@@ -32,40 +32,28 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
     provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
-    val selection =
-      (state.currentEvents as? LoadingState.Ready)?.value
-        ?: return StateTransition(state, Action.NONE)
+    val selection = (state.currentEvents as? LoadingState.Ready)?.value ?: return StateTransition(state, Action.NONE)
     return if (movement == EventMovement.NEXT && selection.hasNext()) {
       val newSelection = selection.next()
       StateTransition(
           newState = state.copy(currentEvents = LoadingState.Ready(newSelection)),
           action =
             if (newSelection.isLastIndexSelected() && newSelection.canRequestMoreEvents()) {
-              Action.ListEvents(
-                state.selectedIssue!!.id,
-                state.selectedVariant?.id,
-                newSelection.token,
-              )
+              Action.ListEvents(state.selectedIssue!!.id, state.selectedVariant?.id, newSelection.token)
             } else {
               Action.NONE
             },
         )
         .also { trackEventView(tracker, it) }
     } else if (movement == EventMovement.PREVIOUS && selection.hasPrevious()) {
-      StateTransition(
-          newState = state.copy(currentEvents = LoadingState.Ready(selection.previous())),
-          action = Action.NONE,
-        )
-        .also { trackEventView(tracker, it) }
+      StateTransition(newState = state.copy(currentEvents = LoadingState.Ready(selection.previous())), action = Action.NONE).also {
+        trackEventView(tracker, it)
+      }
     } else {
-      Logger.getInstance(this::class.java)
-        .warn(
-          "Invalid state: attempting to select ${movement.name} item when there is none available."
-        )
+      Logger.getInstance(this::class.java).warn("Invalid state: attempting to select ${movement.name} item when there is none available.")
       StateTransition(state, Action.NONE)
     }
   }
 
-  private fun trackEventView(tracker: AppInsightsTracker, transition: StateTransition<Action>) =
-    tracker.trackEventView(transition.newState)
+  private fun trackEventView(tracker: AppInsightsTracker, transition: StateTransition<Action>) = tracker.trackEventView(transition.newState)
 }

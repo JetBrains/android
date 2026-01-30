@@ -30,18 +30,11 @@ import com.intellij.testFramework.LightVirtualFile
 /** [PreviewElementModelAdapter] adapting [ComposePreviewElementInstance] to [NlModel]. */
 abstract class ComposePreviewElementModelAdapter :
   ConfigurablePreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>,
-  MethodPreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>(
-    PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-  ) {
+  MethodPreviewElementModelAdapter<PsiComposePreviewElementInstance, NlModel>(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
 
-  override fun applyToConfiguration(
-    previewElement: PsiComposePreviewElementInstance,
-    configuration: Configuration,
-  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
+  override fun applyToConfiguration(previewElement: PsiComposePreviewElementInstance, configuration: Configuration) =
+    previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long,
-  ): LightVirtualFile = ComposeAdapterLightVirtualFile("compose-model-$id.xml", content, backedFile)
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile =
+    ComposeAdapterLightVirtualFile("compose-model-$id.xml", content, backedFile)
 }

@@ -31,10 +31,6 @@ private fun createBooleanValidator(): EditingValidation = validator@{ editedValu
   when (editedValue.trim()) {
     SdkConstants.VALUE_TRUE,
     SdkConstants.VALUE_FALSE -> return@validator EDITOR_NO_ERROR
-    else ->
-      return@validator Pair(
-        EditingErrorCategory.ERROR,
-        message("picker.preview.input.validation.boolean.nan"),
-      )
+    else -> return@validator Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.boolean.nan"))
   }
 }

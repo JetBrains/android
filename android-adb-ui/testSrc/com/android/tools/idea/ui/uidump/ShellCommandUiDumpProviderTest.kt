@@ -30,8 +30,7 @@ internal class ShellCommandUiDumpProviderTest {
   private val projectRule = ProjectRule()
   private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, fakeAdbSessionRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule)
 
   private val deviceServices = fakeAdbSessionRule.adbSession.deviceServices
   private val serialNumber = "123"
@@ -45,14 +44,11 @@ internal class ShellCommandUiDumpProviderTest {
     private const val UI_DUMP_OUTPUT_EXPECTED = "<node>THINGS</node>"
   }
 
-  @Before
-  fun setUp() {
-  }
+  @Before fun setUp() {}
 
   @Test
   fun successDump() {
-    deviceServices.configureShellCommand(device, DUMP_COMMAND,
-                                         "UI hierarchy dumped to: $TMP_DUMP_FILE")
+    deviceServices.configureShellCommand(device, DUMP_COMMAND, "UI hierarchy dumped to: $TMP_DUMP_FILE")
     deviceServices.configureShellCommand(device, READ_COMMAND, UI_DUMP_OUTPUT_RAW)
     deviceServices.configureShellCommand(device, CLEANUP_COMMAND, "")
 
@@ -63,10 +59,7 @@ internal class ShellCommandUiDumpProviderTest {
   @Test
   fun failedDump() {
     val errorMessage = "Bad things happened"
-    deviceServices.configureShellCommand(device, DUMP_COMMAND,
-                                         stdout = "",
-                                         stderr = errorMessage,
-                                         exitCode = 1)
+    deviceServices.configureShellCommand(device, DUMP_COMMAND, stdout = "", stderr = errorMessage, exitCode = 1)
 
     val result = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
     assert(result.hasError())
@@ -76,12 +69,8 @@ internal class ShellCommandUiDumpProviderTest {
   @Test
   fun failedRead() {
     val errorMessage = "Bad things happened again"
-    deviceServices.configureShellCommand(device, DUMP_COMMAND,
-                                         "UI hierarchy dumped to: $TMP_DUMP_FILE")
-    deviceServices.configureShellCommand(device, READ_COMMAND,
-                                         stdout = "",
-                                         stderr = errorMessage,
-                                         exitCode = 1)
+    deviceServices.configureShellCommand(device, DUMP_COMMAND, "UI hierarchy dumped to: $TMP_DUMP_FILE")
+    deviceServices.configureShellCommand(device, READ_COMMAND, stdout = "", stderr = errorMessage, exitCode = 1)
     val result = runBlockingWithTimeout { uiDumpProvider.uiDump(project, serialNumber) }
     assert(result.hasError())
     assertEquals("Failed to read $TMP_DUMP_FILE. $errorMessage", result.error)

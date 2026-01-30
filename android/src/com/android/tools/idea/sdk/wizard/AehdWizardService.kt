@@ -22,10 +22,7 @@ import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 
-/**
- * A service responsible for showing the wizard which configures the Android Emulator hypervisor
- * driver (AEHD).
- */
+/** A service responsible for showing the wizard which configures the Android Emulator hypervisor driver (AEHD). */
 @Service(Service.Level.APP)
 class AehdWizardService {
 

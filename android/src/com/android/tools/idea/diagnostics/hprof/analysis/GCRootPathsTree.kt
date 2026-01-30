@@ -32,7 +32,7 @@ import java.util.HashMap
 class GCRootPathsTree(
   private val context: AnalysisContext,
   private val treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
-  allObjectsOfClass: ClassDefinition?
+  allObjectsOfClass: ClassDefinition?,
 ) {
   val topNode = RootNode(context.classStore)
   private var countOfIgnoredObjects = 0
@@ -45,22 +45,24 @@ class GCRootPathsTree(
     LastInPath;
 
     companion object {
-      fun getStatus(refIndex: Int, lastInPath: Boolean, disposed: Boolean): Status = when {
-        lastInPath -> LastInPath
-        disposed -> Warning
-        refIndex == RefIndexUtil.SOFT_REFERENCE -> Warning
-        refIndex == RefIndexUtil.WEAK_REFERENCE -> Warning
-        else -> None
-      }
+      fun getStatus(refIndex: Int, lastInPath: Boolean, disposed: Boolean): Status =
+        when {
+          lastInPath -> LastInPath
+          disposed -> Warning
+          refIndex == RefIndexUtil.SOFT_REFERENCE -> Warning
+          refIndex == RefIndexUtil.WEAK_REFERENCE -> Warning
+          else -> None
+        }
     }
 
     override fun toString(): String = getStatusCharacter().toString()
 
-    fun getStatusCharacter(): Char = when (this) {
-      None -> ' '
-      Warning -> '!'
-      LastInPath -> '*'
-    }
+    fun getStatusCharacter(): Char =
+      when (this) {
+        None -> ' '
+        Warning -> '!'
+        LastInPath -> '*'
+      }
   }
 
   interface ObjectSizeCalculationStrategy {
@@ -70,12 +72,10 @@ class GCRootPathsTree(
       fun getBestStrategyForClass(classDefinition: ClassDefinition?): ObjectSizeCalculationStrategy {
         if (classDefinition == null || classDefinition.isArray()) {
           return SizeFromObjectNavigatorStrategy()
-        }
-        else if (classDefinition.name == "java.nio.DirectByteBuffer") {
+        } else if (classDefinition.name == "java.nio.DirectByteBuffer") {
           // When focusing on DirectByteBuffers, add sizes of native arrays.
           return DirectByteBufferNativeSizeStrategy(classDefinition)
-        }
-        else {
+        } else {
           // If all objects are of the same class and not arrays then instance size can be computed only once.
           return AllObjectsSameSizeStrategy(classDefinition.instanceSize + ClassDefinition.OBJECT_PREAMBLE_SIZE)
         }
@@ -178,12 +178,14 @@ class GCRootPathsTree(
   }
 
   interface Node {
-    fun addEdge(objectId: Int,
-                objectSize: Int,
-                subgraphSizeInDwords: Int,
-                classDefinition: ClassDefinition,
-                refIndex: Byte,
-                disposed: Boolean): Node
+    fun addEdge(
+      objectId: Int,
+      objectSize: Int,
+      subgraphSizeInDwords: Int,
+      classDefinition: ClassDefinition,
+      refIndex: Byte,
+      disposed: Boolean,
+    ): Node
   }
 
   data class Edge(val classDefinition: ClassDefinition, val refIndex: Byte, val disposed: Boolean)
@@ -197,14 +199,17 @@ class GCRootPathsTree(
     var totalSizeInDwords = 0
     val totalSizeInBytes
       get() = totalSizeInDwords.toLong() * 4
+
     val instances = IntOpenHashSet(1)
 
-    override fun addEdge(objectId: Int,
-                         objectSize: Int,
-                         subgraphSizeInDwords: Int,
-                         classDefinition: ClassDefinition,
-                         refIndex: Byte,
-                         disposed: Boolean): Node {
+    override fun addEdge(
+      objectId: Int,
+      objectSize: Int,
+      subgraphSizeInDwords: Int,
+      classDefinition: ClassDefinition,
+      refIndex: Byte,
+      disposed: Boolean,
+    ): Node {
       var localEdges = edges
       if (localEdges == null) {
         localEdges = HashMap(1)
@@ -214,8 +219,7 @@ class GCRootPathsTree(
       node.pathsCount++
       if (node.pathsSize + objectSize.toLong() > Int.MAX_VALUE) {
         node.pathsSize = Int.MAX_VALUE
-      }
-      else {
+      } else {
         node.pathsSize += objectSize
       }
 
@@ -223,8 +227,7 @@ class GCRootPathsTree(
       if (added) {
         if (node.totalSizeInDwords + subgraphSizeInDwords.toLong() > Int.MAX_VALUE) {
           node.totalSizeInDwords = Int.MAX_VALUE
-        }
-        else {
+        } else {
           node.totalSizeInDwords += subgraphSizeInDwords
         }
       }
@@ -239,8 +242,7 @@ class GCRootPathsTree(
         currentNode.edges?.forEach { (edge, childNode) ->
           if (edge.disposed) {
             result.getOrPut(edge.classDefinition) { mutableListOf() }.add(childNode)
-          }
-          else {
+          } else {
             stack.push(childNode)
           }
         }
@@ -253,19 +255,20 @@ class GCRootPathsTree(
     // In root node each instance has a separate path
     val edges = Int2ObjectOpenHashMap<Pair<RegularNode, Edge>>()
 
-    override fun addEdge(objectId: Int,
-                         objectSize: Int,
-                         subgraphSizeInDwords: Int,
-                         classDefinition: ClassDefinition,
-                         refIndex: Byte,
-                         disposed: Boolean): Node {
+    override fun addEdge(
+      objectId: Int,
+      objectSize: Int,
+      subgraphSizeInDwords: Int,
+      classDefinition: ClassDefinition,
+      refIndex: Byte,
+      disposed: Boolean,
+    ): Node {
       val nullableNode = edges.get(objectId)?.first
       val node: RegularNode
 
       if (nullableNode != null) {
         node = nullableNode
-      }
-      else {
+      } else {
         val newNode = RegularNode()
         val pair = Pair(newNode, Edge(classDefinition, refIndex, disposed))
         newNode.instances.add(objectId)
@@ -276,8 +279,7 @@ class GCRootPathsTree(
       node.pathsCount++
       if (node.pathsSize + objectSize.toLong() > Int.MAX_VALUE) {
         node.pathsSize = Int.MAX_VALUE
-      }
-      else {
+      } else {
         node.pathsSize += objectSize
       }
 
@@ -286,9 +288,7 @@ class GCRootPathsTree(
 
     private fun calculateTotalInstanceCount(): Int {
       var result = 0
-      edges.values.forEach { (node, _) ->
-        result += node.pathsCount
-      }
+      edges.values.forEach { (node, _) -> result += node.pathsCount }
       return result
     }
 
@@ -297,126 +297,126 @@ class GCRootPathsTree(
       val edge: Edge,
       val node: RegularNode,
       val indent: String,
-      val nextIndent: String
+      val nextIndent: String,
     )
 
-    fun createHotPathReport(treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
-                            rootReasonGetter: (Int) -> String): String = buildString {
-      val rootList = mutableListOf<Triple<Int, RegularNode, Edge>>()
-      edges.forEach { objectId, (node, edge) ->
-        rootList.add(Triple(objectId, node, edge))
-      }
-      val totalInstanceCount = calculateTotalInstanceCount()
+    fun createHotPathReport(treeDisplayOptions: AnalysisConfig.TreeDisplayOptions, rootReasonGetter: (Int) -> String): String =
+      buildString {
+        val rootList = mutableListOf<Triple<Int, RegularNode, Edge>>()
+        edges.forEach { objectId, (node, edge) -> rootList.add(Triple(objectId, node, edge)) }
+        val totalInstanceCount = calculateTotalInstanceCount()
 
-      val minimumObjectsForReport = Math.min(
-        treeDisplayOptions.minimumObjectCount,
-        (Math.ceil(totalInstanceCount / 100.0) * treeDisplayOptions.minimumObjectCountPercent).toInt())
+        val minimumObjectsForReport =
+          Math.min(
+            treeDisplayOptions.minimumObjectCount,
+            (Math.ceil(totalInstanceCount / 100.0) * treeDisplayOptions.minimumObjectCountPercent).toInt(),
+          )
 
-      // Show paths from roots that have at least minimumObjectCountPercent%, minimumObjectCount objects or size of all reported objects
-      // in the subtree is more than minimumObjectSize.
-      // Always show at least two paths.
-      rootList
-        .sortedByDescending { it.second.pathsSize }
-        .filterIndexed { index, (_, node, _) ->
-          index < treeDisplayOptions.minimumPaths ||
-          node.pathsCount >= minimumObjectsForReport ||
-          node.pathsSize >= treeDisplayOptions.minimumObjectSize
-        }
-        .forEachIndexed { index, (rootObjectId, rootNode, rootEdge) ->
-          val rootReasonString = rootReasonGetter(rootObjectId)
-          val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
+        // Show paths from roots that have at least minimumObjectCountPercent%, minimumObjectCount objects or size of all reported objects
+        // in the subtree is more than minimumObjectSize.
+        // Always show at least two paths.
+        rootList
+          .sortedByDescending { it.second.pathsSize }
+          .filterIndexed { index, (_, node, _) ->
+            index < treeDisplayOptions.minimumPaths ||
+              node.pathsCount >= minimumObjectsForReport ||
+              node.pathsSize >= treeDisplayOptions.minimumObjectSize
+          }
+          .forEachIndexed { index, (rootObjectId, rootNode, rootEdge) ->
+            val rootReasonString = rootReasonGetter(rootObjectId)
+            val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
 
-          appendLine("Root ${index + 1}:")
-          printReportLine(this::appendLine,
-                          rootNode.pathsCount,
-                          rootPercent,
-                          rootNode.pathsSize,
-                          rootNode.totalSizeInDwords.toLong() * 4,
-                          1,
-                          Status.getStatus(RefIndexUtil.ROOT, false, false),
-                          false,
-                          null,
-                          "",
-                          "ROOT: $rootReasonString")
+            appendLine("Root ${index + 1}:")
+            printReportLine(
+              this::appendLine,
+              rootNode.pathsCount,
+              rootPercent,
+              rootNode.pathsSize,
+              rootNode.totalSizeInDwords.toLong() * 4,
+              1,
+              Status.getStatus(RefIndexUtil.ROOT, false, false),
+              false,
+              null,
+              "",
+              "ROOT: $rootReasonString",
+            )
 
-          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendLine).use { buffer ->
-            // Iterate over the hot path
-            val stack = ArrayDeque<StackEntry>()
-            stack.push(StackEntry(null, rootEdge, rootNode, "", ""))
+            TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendLine).use { buffer ->
+              // Iterate over the hot path
+              val stack = ArrayDeque<StackEntry>()
+              stack.push(StackEntry(null, rootEdge, rootNode, "", ""))
 
-            while (!stack.isEmpty()) {
-              val (parentClass, edge, node, indent, nextIndent) = stack.pop()
-              val (classDefinition, refIndexByte, disposed) = edge
-              val refIndex = java.lang.Byte.toUnsignedInt(refIndexByte)
+              while (!stack.isEmpty()) {
+                val (parentClass, edge, node, indent, nextIndent) = stack.pop()
+                val (classDefinition, refIndexByte, disposed) = edge
+                val refIndex = java.lang.Byte.toUnsignedInt(refIndexByte)
 
-              printReportLine(buffer::println,
-                              node.pathsCount,
-                              (100.0 * node.pathsCount / totalInstanceCount).toInt(),
-                              node.pathsSize,
-                              node.totalSizeInDwords.toLong() * 4,
-                              node.instances.size,
-                              Status.getStatus(refIndex, node.edges == null, disposed),
-                              disposed,
-                              RefIndexUtil.getFieldDescription(refIndex, parentClass, classStore),
-                              indent,
-                              classDefinition.prettyName)
+                printReportLine(
+                  buffer::println,
+                  node.pathsCount,
+                  (100.0 * node.pathsCount / totalInstanceCount).toInt(),
+                  node.pathsSize,
+                  node.totalSizeInDwords.toLong() * 4,
+                  node.instances.size,
+                  Status.getStatus(refIndex, node.edges == null, disposed),
+                  disposed,
+                  RefIndexUtil.getFieldDescription(refIndex, parentClass, classStore),
+                  indent,
+                  classDefinition.prettyName,
+                )
 
-              val currentNodeEdges = node.edges ?: continue
-              val childrenToReport =
-                currentNodeEdges
-                  .entries
-                  .sortedWith { a, b ->
-                    if (a.value.pathsSize != b.value.pathsSize) {
-                      // Descending
-                      b.value.pathsSize.compareTo(a.value.pathsSize)
-                    }
-                    else
+                val currentNodeEdges = node.edges ?: continue
+                val childrenToReport =
+                  currentNodeEdges.entries
+                    .sortedWith { a, b ->
+                      if (a.value.pathsSize != b.value.pathsSize) {
+                        // Descending
+                        b.value.pathsSize.compareTo(a.value.pathsSize)
+                      } else
                       // To have a deterministic report, sort by field# if the size is the same
                       a.key.refIndex.compareTo(b.key.refIndex)
-                  }
-                  .filterIndexed { index, e ->
-                    index == 0 ||
-                    e.value.pathsCount >= minimumObjectsForReport ||
-                    e.value.pathsSize >= treeDisplayOptions.minimumObjectSize ||
-                    e.value.totalSizeInDwords.toLong() * 4 >= treeDisplayOptions.minimumSubgraphSize
-                  }
-                  .asReversed()
+                    }
+                    .filterIndexed { index, e ->
+                      index == 0 ||
+                        e.value.pathsCount >= minimumObjectsForReport ||
+                        e.value.pathsSize >= treeDisplayOptions.minimumObjectSize ||
+                        e.value.totalSizeInDwords.toLong() * 4 >= treeDisplayOptions.minimumSubgraphSize
+                    }
+                    .asReversed()
 
-              if (childrenToReport.size == 1 && treeDisplayOptions.smartIndent) {
-                // No indentation for a single child
-                stack.push(StackEntry(classDefinition, childrenToReport[0].key, childrenToReport[0].value, nextIndent, nextIndent))
-              }
-              else {
-                // Don't report too deep paths
-                if (nextIndent.length >= treeDisplayOptions.maximumIndent)
-                  printReportLine(buffer::println,
-                                  null, null, null, null,
-                                  null, Status.LastInPath, null, null,
-                                  nextIndent, "\\-[...]")
-                else {
-                  // Add indentation only if there are 2+ children
-                  childrenToReport.forEachIndexed { index, e ->
-                    if (index == 0) stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent\\-", "$nextIndent  "))
-                    else stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent+-", "$nextIndent| "))
+                if (childrenToReport.size == 1 && treeDisplayOptions.smartIndent) {
+                  // No indentation for a single child
+                  stack.push(StackEntry(classDefinition, childrenToReport[0].key, childrenToReport[0].value, nextIndent, nextIndent))
+                } else {
+                  // Don't report too deep paths
+                  if (nextIndent.length >= treeDisplayOptions.maximumIndent)
+                    printReportLine(buffer::println, null, null, null, null, null, Status.LastInPath, null, null, nextIndent, "\\-[...]")
+                  else {
+                    // Add indentation only if there are 2+ children
+                    childrenToReport.forEachIndexed { index, e ->
+                      if (index == 0) stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent\\-", "$nextIndent  "))
+                      else stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent+-", "$nextIndent| "))
+                    }
                   }
                 }
               }
             }
           }
-        }
-    }
+      }
 
-    private fun printReportLine(printFunc: (String) -> Any,
-                                pathsCount: Int?,
-                                percent: Int?,
-                                instanceSize: Int?,
-                                subgraphSize: Long?,
-                                instanceCount: Int?,
-                                status: Status,
-                                disposed: Boolean?,
-                                fieldName: String?,
-                                indent: String,
-                                text: String) {
+    private fun printReportLine(
+      printFunc: (String) -> Any,
+      pathsCount: Int?,
+      percent: Int?,
+      instanceSize: Int?,
+      subgraphSize: Long?,
+      instanceCount: Int?,
+      status: Status,
+      disposed: Boolean?,
+      fieldName: String?,
+      indent: String,
+      text: String,
+    ) {
       val pathsCountString = (pathsCount?.let { toShortStringAsCount(it.toLong()) } ?: "").padStart(STRING_PADDING_FOR_COUNT)
       val percentString = (percent?.let { "$it%" } ?: "").padStart(4)
       val instanceSizeString = (instanceSize?.let { toShortStringAsSize(it.toLong()) } ?: "").padStart(STRING_PADDING_FOR_SIZE)
@@ -426,13 +426,14 @@ class GCRootPathsTree(
       val subgraphSizeString = (subgraphSize?.let { toShortStringAsSize(it) } ?: "").padStart(STRING_PADDING_FOR_SIZE)
 
       printFunc(
-        "[$pathsCountString/$percentString/$instanceSizeString] $subgraphSizeString $instanceCountString $status $indent$fieldNameString$text$disposedString")
+        "[$pathsCountString/$percentString/$instanceSizeString] $subgraphSizeString $instanceCountString $status $indent$fieldNameString$text$disposedString"
+      )
     }
 
     fun collectDisposedDominatorNodes(result: MutableMap<ClassDefinition, MutableList<RegularNode>>) {
       edges.values.forEach { (node, edge) ->
         if (edge.disposed) {
-            result.getOrPut(edge.classDefinition) { mutableListOf() }.add(node)
+          result.getOrPut(edge.classDefinition) { mutableListOf() }.add(node)
         } else {
           node.collectDisposedDominatorNodes(result)
         }

@@ -61,9 +61,7 @@ val PLATFORM_SUPPORT_LIBS =
     .map { TestProjectSystem.Artifact(it, TestVersion.create(1)) }
 @JvmField
 val NON_PLATFORM_SUPPORT_LAYOUT_LIBS =
-  listOf(CONSTRAINT_LAYOUT, ANDROIDX_CONSTRAINTLAYOUT, FLEXBOX_LAYOUT).map {
-    TestProjectSystem.Artifact(it, TestVersion.create(1))
-  }
+  listOf(CONSTRAINT_LAYOUT, ANDROIDX_CONSTRAINTLAYOUT, FLEXBOX_LAYOUT).map { TestProjectSystem.Artifact(it, TestVersion.create(1)) }
 
 @JvmField
 val GOOGLE_PLAY_SERVICES =

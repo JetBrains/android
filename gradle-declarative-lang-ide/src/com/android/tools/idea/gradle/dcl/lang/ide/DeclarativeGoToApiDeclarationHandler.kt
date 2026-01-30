@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
-import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
-import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
-import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.JavaPsiFacade
@@ -36,7 +34,6 @@ import org.apache.commons.lang3.StringUtils
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
-import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 
 class DeclarativeGoToApiDeclarationHandler : GotoDeclarationHandlerBase() {
   override fun getGotoDeclarationTarget(sourceElement: PsiElement?, editor: Editor?): PsiElement? {
@@ -59,21 +56,18 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
   var methods = clazz.findMethodsByName(propertyName, true)
   if (methods.isEmpty()) {
     // if it does not work - try standard setter name
-    methods = clazz.findMethodsByName("set" +
-                                      StringUtils.capitalize(propertyName),
-                                      true)
+    methods = clazz.findMethodsByName("set" + StringUtils.capitalize(propertyName), true)
   }
-  val method = methods.firstOrNull {
-    it.containingClass?.isInterface == true &&
-    it.containingClass?.qualifiedName?.startsWith("com.android.build.api.dsl") == true
-  } ?: return null
+  val method =
+    methods.firstOrNull {
+      it.containingClass?.isInterface == true && it.containingClass?.qualifiedName?.startsWith("com.android.build.api.dsl") == true
+    } ?: return null
   return if (method.textOffset == 0) {
     // if we have Kotlin property - need to find it in kotlinOrigin
     val ktOrigin = method.containingClass?.unwrapped
     val ktClass = (ktOrigin as? KtClass)
     ktClass?.findPropertyByName(propertyName)
-  }
-  else method
+  } else method
 }
 
 private fun findDslElementClassName(path: List<String>, element: DeclarativeIdentifier): String? {
@@ -81,29 +75,30 @@ private fun findDslElementClassName(path: List<String>, element: DeclarativeIden
   val fileName = element.containingFile.name
 
   fun extractFqName(receivers: List<EntryWithContext>): String =
-    receivers.map { it.entry }.firstNotNullOf {
-      when (it) {
-        is SchemaFunction ->
-          when (val semantic = it.semantic) {
-            is BlockFunction -> semantic.accessor.fqName.name
-            else -> null
-          }
+    receivers
+      .map { it.entry }
+      .firstNotNullOf {
+        when (it) {
+          is SchemaFunction ->
+            when (val semantic = it.semantic) {
+              is BlockFunction -> semantic.accessor.fqName.name
+              else -> null
+            }
 
-        is DataProperty ->
-          when (val type = it.valueType) {
-            is DataClassRef -> type.fqName.name
-            else -> null
-          }
+          is DataProperty ->
+            when (val type = it.valueType) {
+              is DataClassRef -> type.fqName.name
+              else -> null
+            }
+        }
       }
-    }
 
   if (path.isEmpty()) {
     return element.name?.let {
       val result = schema.getTopLevelEntriesByName(it, fileName)
       extractFqName(result)
     }
-  }
-  else {
+  } else {
     var receivers = schema.getTopLevelEntriesByName(path[0], fileName)
     for (i in 1 until path.size) {
       receivers = receivers.flatMap { it.getNextLevel(path[i]) }
@@ -124,9 +119,7 @@ private fun generateExistingPath(start: DeclarativeIdentifier): List<String> {
     }
   }
 
-  navigateToRoot(start) { element ->
-    element.name?.let { result.add(it) }
-  }
+  navigateToRoot(start) { element -> element.name?.let { result.add(it) } }
 
   return result.tail().reversed()
 }

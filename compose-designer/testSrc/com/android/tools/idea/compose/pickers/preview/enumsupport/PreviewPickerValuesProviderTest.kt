@@ -71,12 +71,8 @@ class PreviewPickerValuesProviderTest {
   fun testValuesProvider() {
     rule.fixture.stubConfigurationAsLibrary()
 
-    val manifest =
-      rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
-    rule.fixture.addFileToProjectAndInvalidate(
-      "res/values/strings.xml",
-      STRINGS_CONTENT,
-    ) // Should not affect locale options
+    val manifest = rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
+    rule.fixture.addFileToProjectAndInvalidate("res/values/strings.xml", STRINGS_CONTENT) // Should not affect locale options
     rule.fixture.addFileToProjectAndInvalidate("res/values-es-rES/strings.xml", STRINGS_CONTENT)
     rule.fixture.addFileToProjectAndInvalidate("res/values-en-rUS/strings.xml", STRINGS_CONTENT)
     rule.fixture.addFileToProjectAndInvalidate("res/values-en-rGB/strings.xml", STRINGS_CONTENT)
@@ -103,10 +99,7 @@ class PreviewPickerValuesProviderTest {
     assertEquals("Normal (night)", uiModeValues[++nightModeIndex].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
-    assertEquals(
-      18,
-      deviceValues.size,
-    ) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
+    assertEquals(18, deviceValues.size) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Medium Phone", deviceValues[1].display)
@@ -217,8 +210,7 @@ class PreviewPickerValuesProviderTest {
   @RunsInEdt
   @Test
   fun testGroupValuesProvider() {
-    rule.fixture
-      .stubComposableAnnotation() // Package does not matter, we are not testing the Composable
+    rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable
     // annotation
     rule.fixture.stubPreviewAnnotation()
     val file =
@@ -244,8 +236,7 @@ class PreviewPickerValuesProviderTest {
           .trimIndent(),
       )
 
-    val valuesProvider =
-      PreviewPickerValuesProvider.createPreviewValuesProvider(module, file.virtualFile)
+    val valuesProvider = PreviewPickerValuesProvider.createPreviewValuesProvider(module, file.virtualFile)
     val groupEnumValues = valuesProvider.getValuesProvider("group")!!.invoke()
     assertEquals(2, groupEnumValues.size)
     assertEquals("group1", groupEnumValues[0].display)

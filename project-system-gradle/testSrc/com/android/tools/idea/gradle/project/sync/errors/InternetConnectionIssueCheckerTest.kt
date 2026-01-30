@@ -25,33 +25,39 @@ class InternetConnectionIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Could not GET ",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Could not GET ",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Could not HEAD ",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Could not HEAD ",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Network is unreachable",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Network is unreachable",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

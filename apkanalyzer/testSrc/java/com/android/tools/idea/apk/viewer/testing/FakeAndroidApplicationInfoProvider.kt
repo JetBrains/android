@@ -23,14 +23,12 @@ import com.android.tools.idea.apk.viewer.ApkParser
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
-/**
- * A [AndroidApplicationInfo] for tests.
- */
+/** A [AndroidApplicationInfo] for tests. */
 internal class FakeAndroidApplicationInfoProvider(
   private val packageId: String = "com.app",
   private val versionName: String = "version",
   private val versionCode: Long = 1L,
-  private val extractNativeLibs: Boolean = false
+  private val extractNativeLibs: Boolean = false,
 ) : AndroidApplicationInfoProvider {
   override fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry): ListenableFuture<AndroidApplicationInfo> =
     Futures.immediateFuture(AndroidApplicationInfo(packageId, versionName, versionCode, extractNativeLibs))

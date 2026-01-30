@@ -26,8 +26,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.C
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
-class ArgumentInspectorBuilder :
-  ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer()) {
+class ArgumentInspectorBuilder : ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer()) {
   override fun title(component: NlComponent): String = "Arguments"
 
   override fun addActionText(component: NlComponent) = "Add argument"
@@ -42,8 +41,7 @@ class ArgumentInspectorBuilder :
     component.parent?.let { invokeDialog(component, it) }
   }
 
-  override fun isApplicable(component: NlComponent) =
-    component.supportsArguments && !component.isAction
+  override fun isApplicable(component: NlComponent) = component.supportsArguments && !component.isAction
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
     val argumentDialog = AddArgumentDialog(component, parent)

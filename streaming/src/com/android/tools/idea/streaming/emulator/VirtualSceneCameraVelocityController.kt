@@ -20,6 +20,7 @@ import com.intellij.openapi.Disposable
 
 /**
  * Controller that changes virtual camera velocity in response to pressing and releasing WASDQE keys.
+ *
  * ```
  *   D - forward along X axis
  *   A - backward along X axis
@@ -28,6 +29,7 @@ import com.intellij.openapi.Disposable
  *   S - forward along Z axis
  *   W - backward along Z axis
  * ```
+ *
  * For AZERTY keyboard the keys are ZQSDAE.
  *
  * The coordinate system is right-handed and is defined as follows:
@@ -37,17 +39,13 @@ import com.intellij.openapi.Disposable
  *   Z axis is pointing towards the viewer
  * ```
  */
-internal class VirtualSceneCameraVelocityController(
-  private val emulator: EmulatorController,
-  private val controlKeys: String
-) : Disposable {
+internal class VirtualSceneCameraVelocityController(private val emulator: EmulatorController, private val controlKeys: String) :
+  Disposable {
 
   private var pressedKeysMask = 0
   private val virtualSceneCameraVelocity = Velocity.newBuilder()
 
-  /**
-   * Stops the camera movement and releases all keys.
-   */
+  /** Stops the camera movement and releases all keys. */
   override fun dispose() {
     // Stop the camera movement and release all keys.
     pressedKeysMask = 0
@@ -57,9 +55,7 @@ internal class VirtualSceneCameraVelocityController(
     }
   }
 
-  /**
-   * Notifies the controller that a key was pressed.
-   */
+  /** Notifies the controller that a key was pressed. */
   fun keyPressed(keyCode: Int) {
     val mask = keyToMask(keyCode)
     val newPressed = pressedKeysMask or mask
@@ -69,9 +65,7 @@ internal class VirtualSceneCameraVelocityController(
     }
   }
 
-  /**
-   * Notifies the controller that a key was released.
-   */
+  /** Notifies the controller that a key was released. */
   fun keyReleased(keyCode: Int) {
     val mask = keyToMask(keyCode)
     val newPressed = pressedKeysMask and mask.inv()

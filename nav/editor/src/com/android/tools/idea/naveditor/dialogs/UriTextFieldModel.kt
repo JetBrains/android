@@ -19,8 +19,7 @@ import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 
-class UriTextFieldModel :
-  DefaultCommonTextFieldModel("", "e.g. https://www.example.com/person/{id}") {
+class UriTextFieldModel : DefaultCommonTextFieldModel("", "e.g. https://www.example.com/person/{id}") {
   lateinit var argumentNames: List<String>
 
   override val editingSupport =

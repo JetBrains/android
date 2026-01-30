@@ -54,10 +54,7 @@ class InsightDisclaimerPanel(
 ) : JPanel(VerticalLayout(0)) {
 
   private val insightToConnectionFlow =
-    combine(
-        currentInsightFlow.map { it.valueOrNull() },
-        controller.state.map { it.connections.selected },
-      ) { insight, conn ->
+    combine(currentInsightFlow.map { it.valueOrNull() }, controller.state.map { it.connections.selected }) { insight, conn ->
         insight to conn
       }
       .distinctUntilChanged()
@@ -105,10 +102,8 @@ class InsightDisclaimerPanel(
             } else {
               // shouldn't be null, but at least don't blow up if it is. We just won't get
               // highlighting.
-              DataManager.getInstance()
-                .getDataContext(component)
-                .getData(SearchTextField.KEY)
-                ?.text = "Use all Gemini features Use context from this project"
+              DataManager.getInstance().getDataContext(component).getData(SearchTextField.KEY)?.text =
+                "Use all Gemini features Use context from this project"
             }
           }
           runnableReference.set(runnable)
@@ -126,12 +121,7 @@ class InsightDisclaimerPanel(
 
   init {
     val toolbar =
-      ActionManager.getInstance()
-        .createActionToolbar(
-          "GeminiOnboardingObserver",
-          DefaultActionGroup(geminiOnboardingObserverAction),
-          true,
-        )
+      ActionManager.getInstance().createActionToolbar("GeminiOnboardingObserver", DefaultActionGroup(geminiOnboardingObserverAction), true)
     toolbar.targetComponent = this
 
     scope.launch {

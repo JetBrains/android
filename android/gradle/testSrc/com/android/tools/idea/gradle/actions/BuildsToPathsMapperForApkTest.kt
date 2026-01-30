@@ -40,13 +40,11 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
+import java.io.File
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.io.File
 
-/**
- * Tests for [BuildsToPathsMapper].
- */
+/** Tests for [BuildsToPathsMapper]. */
 class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   private lateinit var myTask: BuildsToPathsMapper
 
@@ -65,10 +63,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
         gradlePath = ":app",
         agpVersion = agpVersion,
         selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          projectType = { type }
-        )
-      )
+        projectBuilder = AndroidProjectBuilder(projectType = { type }),
+      ),
     )
     myModule = project.findAppModule()
   }
@@ -78,12 +74,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val output = File("path/to/apk")
     val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
-      ImmutableList.of(),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
+        ImmutableList.of(),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
@@ -95,12 +92,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     assertThat(output2.parentFile).isEqualTo(output1.parentFile)
     val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createPostBuildModel(Lists.newArrayList(output1, output2), buildVariant).toTestAssembleResult(),
-      ImmutableList.of(),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createPostBuildModel(Lists.newArrayList(output1, output2), buildVariant).toTestAssembleResult(),
+        ImmutableList.of(),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output1.parentFile)
   }
@@ -108,12 +106,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromPostBuildModelForSignedApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
-      ImmutableList.of(buildVariant),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
+        ImmutableList.of(buildVariant),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
@@ -123,13 +122,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
     assertThat(output2.parentFile).isEqualTo(output1.parentFile)
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createPostBuildModel(Lists.newArrayList(output1, output2),
-                           buildVariant).toTestAssembleResult(),
-      ImmutableList.of(buildVariant),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createPostBuildModel(Lists.newArrayList(output1, output2), buildVariant).toTestAssembleResult(),
+        ImmutableList.of(buildVariant),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output1.parentFile)
   }
@@ -139,12 +138,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val output = File("path/to/bundle")
     val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
-      emptyList(),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
+        emptyList(),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
@@ -152,12 +152,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromInstantAppPostBuildModelForSignedApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP)
     val output = File("path/to/bundle")
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
-      ImmutableList.of(buildVariant),
-      setOf(myModule),
-      false
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
+        ImmutableList.of(buildVariant),
+        setOf(myModule),
+        false,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
@@ -165,12 +166,13 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromPostBuildModelForBundle() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createAppBundleBuildModel(output, GradleAndroidModel.get(myModule)!!.selectedVariant.name).toTestAssembleResult(),
-      emptyList(),
-      setOf(myModule),
-      true
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createAppBundleBuildModel(output, GradleAndroidModel.get(myModule)!!.selectedVariant.name).toTestAssembleResult(),
+        emptyList(),
+        setOf(myModule),
+        true,
+      )
 
     assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
@@ -179,63 +181,57 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromPostBuildModelForSignedBundle() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
-    val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createAppBundleBuildModel(output, buildVariant).toTestAssembleResult(),
-      ImmutableList.of(buildVariant),
-      setOf(myModule),
-      true
-    )
+    val buildsAndBundlePaths =
+      myTask.getBuildsToPaths(
+        createAppBundleBuildModel(output, buildVariant).toTestAssembleResult(),
+        ImmutableList.of(buildVariant),
+        setOf(myModule),
+        true,
+      )
     assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
   private fun createInstantAppPostBuildModel(output: File, buildVariant: String): PostBuildProjectModels {
-    val instantAppProjectBuildOutput = createInstantAppProjectBuildOutputMock(
-      buildVariant, output)
-    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setInstantAppProjectBuildOutput(
-      instantAppProjectBuildOutput).build()
-    return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
+    val instantAppProjectBuildOutput = createInstantAppProjectBuildOutputMock(buildVariant, output)
+    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setInstantAppProjectBuildOutput(instantAppProjectBuildOutput).build()
+    return PostBuildProjectModelsMockBuilder()
+      .setPostBuildModuleModels(myModule.getGradleProjectPath()!!.path, postBuildModuleModels)
+      .build()
   }
 
-  private fun createPostBuildModel(outputs: Collection<File>,
-                                   buildVariant: String): PostBuildProjectModels {
+  private fun createPostBuildModel(outputs: Collection<File>, buildVariant: String): PostBuildProjectModels {
     val projectBuildOutput = createProjectBuildOutputMock(buildVariant, outputs)
-    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setProjectBuildOutput(
-      projectBuildOutput).build()
-    return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
+    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setProjectBuildOutput(projectBuildOutput).build()
+    return PostBuildProjectModelsMockBuilder()
+      .setPostBuildModuleModels(myModule.getGradleProjectPath()!!.path, postBuildModuleModels)
+      .build()
   }
 
-  private fun createAppBundleBuildModel(output: File,
-                                        buildVariant: String): PostBuildProjectModels {
+  private fun createAppBundleBuildModel(output: File, buildVariant: String): PostBuildProjectModels {
     val projectBuildOutput = createAppBundleOutputMock(buildVariant, output)
-    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setAppBundleProjectBuildOutput(
-      projectBuildOutput).build()
-    return PostBuildProjectModelsMockBuilder().setPostBuildModuleModels(
-      myModule.getGradleProjectPath()!!.path, postBuildModuleModels).build()
+    val postBuildModuleModels = PostBuildModuleModelsMockBuilder().setAppBundleProjectBuildOutput(projectBuildOutput).build()
+    return PostBuildProjectModelsMockBuilder()
+      .setPostBuildModuleModels(myModule.getGradleProjectPath()!!.path, postBuildModuleModels)
+      .build()
   }
 
   private class PostBuildModuleModelsMockBuilder {
     private val myPostBuildModuleModels: PostBuildModuleModels = Mockito.mock(PostBuildModuleModels::class.java)
+
     fun setProjectBuildOutput(projectBuildOutput: ProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      whenever(
-        myPostBuildModuleModels.findModel(Mockito.eq(
-          ProjectBuildOutput::class.java))).thenReturn(projectBuildOutput)
+      whenever(myPostBuildModuleModels.findModel(Mockito.eq(ProjectBuildOutput::class.java))).thenReturn(projectBuildOutput)
       return this
     }
 
     fun setAppBundleProjectBuildOutput(appBundleOutput: AppBundleProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      whenever(
-        myPostBuildModuleModels.findModel(Mockito.eq(
-          AppBundleProjectBuildOutput::class.java))).thenReturn(appBundleOutput)
+      whenever(myPostBuildModuleModels.findModel(Mockito.eq(AppBundleProjectBuildOutput::class.java))).thenReturn(appBundleOutput)
       return this
     }
 
     fun setInstantAppProjectBuildOutput(instantAppProjectBuildOutput: InstantAppProjectBuildOutput): PostBuildModuleModelsMockBuilder {
-      whenever(
-        myPostBuildModuleModels.findModel(Mockito.eq(
-          InstantAppProjectBuildOutput::class.java))).thenReturn(instantAppProjectBuildOutput)
+      whenever(myPostBuildModuleModels.findModel(Mockito.eq(InstantAppProjectBuildOutput::class.java)))
+        .thenReturn(instantAppProjectBuildOutput)
       return this
     }
 
@@ -246,10 +242,9 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
 
   private class PostBuildProjectModelsMockBuilder {
     private val myPostBuildProjectModels: PostBuildProjectModels = Mockito.mock(PostBuildProjectModels::class.java)
-    fun setPostBuildModuleModels(gradlePath: String,
-                                 postBuildModuleModels: PostBuildModuleModels): PostBuildProjectModelsMockBuilder {
-      whenever(myPostBuildProjectModels.getModels(Mockito.eq(gradlePath))).thenReturn(
-        postBuildModuleModels)
+
+    fun setPostBuildModuleModels(gradlePath: String, postBuildModuleModels: PostBuildModuleModels): PostBuildProjectModelsMockBuilder {
+      whenever(myPostBuildProjectModels.getModels(Mockito.eq(gradlePath))).thenReturn(postBuildModuleModels)
       return this
     }
 
@@ -260,22 +255,19 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
 
   companion object {
     private const val buildVariant = "FreeDebug"
+
     private fun createInstantAppProjectBuildOutputMock(variant: String, file: File): InstantAppProjectBuildOutput {
-      val projectBuildOutput = Mockito.mock(
-        InstantAppProjectBuildOutput::class.java)
-      val variantBuildOutput = Mockito.mock(
-        InstantAppVariantBuildOutput::class.java)
+      val projectBuildOutput = Mockito.mock(InstantAppProjectBuildOutput::class.java)
+      val variantBuildOutput = Mockito.mock(InstantAppVariantBuildOutput::class.java)
       val outputFile = Mockito.mock(OutputFile::class.java)
-      whenever(
-        projectBuildOutput.instantAppVariantsBuildOutput).thenReturn(setOf(variantBuildOutput))
+      whenever(projectBuildOutput.instantAppVariantsBuildOutput).thenReturn(setOf(variantBuildOutput))
       whenever(variantBuildOutput.name).thenReturn(variant)
       whenever(variantBuildOutput.output).thenReturn(outputFile)
       whenever(outputFile.outputFile).thenReturn(file)
       return projectBuildOutput
     }
 
-    private fun createProjectBuildOutputMock(variant: String,
-                                             files: Collection<File>): ProjectBuildOutput {
+    private fun createProjectBuildOutputMock(variant: String, files: Collection<File>): ProjectBuildOutput {
       val projectBuildOutput = Mockito.mock(ProjectBuildOutput::class.java)
       val variantBuildOutput = Mockito.mock(VariantBuildOutput::class.java)
       val outputFiles: MutableList<OutputFile> = ArrayList()
@@ -284,20 +276,17 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
         whenever(outputFile.outputFile).thenReturn(file)
         outputFiles.add(outputFile)
       }
-      whenever(projectBuildOutput.variantsBuildOutput).thenReturn(
-        setOf(variantBuildOutput))
+      whenever(projectBuildOutput.variantsBuildOutput).thenReturn(setOf(variantBuildOutput))
       whenever(variantBuildOutput.name).thenReturn(variant)
       whenever(variantBuildOutput.outputs).thenReturn(outputFiles)
       return projectBuildOutput
     }
 
-    private fun createAppBundleOutputMock(variant: String,
-                                          file: File): AppBundleProjectBuildOutput {
+    private fun createAppBundleOutputMock(variant: String, file: File): AppBundleProjectBuildOutput {
       val projectBuildOutput = Mockito.mock(AppBundleProjectBuildOutput::class.java)
       val variantBuildOutput = Mockito.mock(AppBundleVariantBuildOutput::class.java)
 
-      whenever(projectBuildOutput.appBundleVariantsBuildOutput).thenReturn(
-        setOf(variantBuildOutput))
+      whenever(projectBuildOutput.appBundleVariantsBuildOutput).thenReturn(setOf(variantBuildOutput))
       whenever(variantBuildOutput.name).thenReturn(variant)
       whenever(variantBuildOutput.bundleFile).thenReturn(file)
       return projectBuildOutput
@@ -313,9 +302,9 @@ private fun PostBuildProjectModels.toTestAssembleResult() =
           rootProjectPath = File("/not-expected-to-matter"),
           tasks = listOf("not-expected-to-matter"),
           buildError = null,
-          model = this
+          model = this,
         )
       )
     ),
-    BuildMode.ASSEMBLE
+    BuildMode.ASSEMBLE,
   )

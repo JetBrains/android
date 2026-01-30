@@ -39,9 +39,7 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val PROJECT_NAME = "SantaTrackerKotlin"
 
@@ -58,13 +56,7 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
     val fileTypes = listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE)
     runInEdtAndWait {
       for (fileType in fileTypes) {
-        measureHighlighting(
-          fileType,
-          PROJECT_NAME,
-          maxFiles = 1,
-          doWarmup = false,
-          doLogging = false
-        )
+        measureHighlighting(fileType, PROJECT_NAME, maxFiles = 1, doWarmup = false, doLogging = false)
       }
     }
   }
@@ -72,51 +64,46 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
   // Only run inspection on one file
   @Test
   fun fullProjectLintInspection() {
-    runInEdtAndWait {
-      measureLintInspections(
-        PROJECT_NAME,
-        maxFiles = 1,
-        doWarmup = false,
-        doLogging = false
-      )
-    }
+    runInEdtAndWait { measureLintInspections(PROJECT_NAME, maxFiles = 1, doWarmup = false, doLogging = false) }
   }
 
   // No warmup, only one iteration
   @Test
   fun layoutAttributeCompletion() {
-    val input = LayoutCompletionInput(
-      "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
-      "updateScore()\n|",
-      "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-      "android:id=\"@+id/title_city_quiz\"\n            |"
-    )
+    val input =
+      LayoutCompletionInput(
+        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
+        "updateScore()\n|",
+        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
+        "android:id=\"@+id/title_city_quiz\"\n            |",
+      )
 
     runBenchmark(
       recordResults = { runLayoutEditingCuj(input) },
       runBetweenIterations = { clearCaches() },
-      commitResults = { },
+      commitResults = {},
       warmupIterations = 0,
-      mainIterations = 1
+      mainIterations = 1,
     )
   }
 
   // No warmup, only one iteration
   @Test
   fun layoutTagCompletion() {
-    val input = LayoutCompletionInput(
-      "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
-      "updateScore()\n|",
-      "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-      "<|ProgressBar"
-    )
+    val input =
+      LayoutCompletionInput(
+        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
+        "updateScore()\n|",
+        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
+        "<|ProgressBar",
+      )
 
     runBenchmark(
       recordResults = { runLayoutEditingCuj(input) },
       runBetweenIterations = { clearCaches() },
-      commitResults = { },
+      commitResults = {},
       warmupIterations = 0,
-      mainIterations = 1
+      mainIterations = 1,
     )
   }
 
@@ -124,12 +111,10 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
   @Test
   fun kotlinTopLevelCompletion() {
     runBenchmark(
-      collectElements = {
-        collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 1)
-      },
-      warmupAction = { },
+      collectElements = { collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 1) },
+      warmupAction = {},
       benchmarkAction = { performTopLevelCompletionForFile(it) },
-      commitResults = { }
+      commitResults = {},
     )
   }
 
@@ -141,14 +126,17 @@ class SantaTrackerKotlinBenchmarkTest : FullProjectBenchmark() {
         // Find a file with a suitable function to do local completion in
         listOf(
           collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 50).first { file ->
-            PsiManager.getInstance(gradleRule.project).findFile(file)
-              ?.descendantsOfType<KtFunction>()?.filter { it.hasBlockBody() && it.bodyExpression != null }?.firstOrNull() != null
+            PsiManager.getInstance(gradleRule.project)
+              .findFile(file)
+              ?.descendantsOfType<KtFunction>()
+              ?.filter { it.hasBlockBody() && it.bodyExpression != null }
+              ?.firstOrNull() != null
           }
         )
       },
-      warmupAction = { },
+      warmupAction = {},
       benchmarkAction = { performLocalCompletionForFile(it, 5) },
-      commitResults = { }
+      commitResults = {},
     )
   }
 }

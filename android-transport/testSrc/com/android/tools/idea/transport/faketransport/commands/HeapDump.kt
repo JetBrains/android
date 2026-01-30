@@ -21,9 +21,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 
 /**
- * Handles the HEAP_DUMP command in tests. This is responsible for generating a status event, then if |dumpStatus| is
- * set to be |SUCCUESS|, also generates the start and end event pair for the heap dump. The start event's timestamp
- * is the current timer's timestamp and the end event's timestamp is +1 of that.
+ * Handles the HEAP_DUMP command in tests. This is responsible for generating a status event, then if |dumpStatus| is set to be |SUCCUESS|,
+ * also generates the start and end event pair for the heap dump. The start event's timestamp is the current timer's timestamp and the end
+ * event's timestamp is +1 of that.
  */
 class HeapDump(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler(timer, isTaskBasedUxEnabled) {
   var dumpStatus = Memory.HeapDumpStatus.Status.UNSPECIFIED
@@ -31,43 +31,68 @@ class HeapDump(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val dumpStartTime = timer.currentTimeNs
 
-    events.add(Common.Event.newBuilder().apply {
-      pid = command.pid
-      kind = Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS
-      timestamp = dumpStartTime
-      commandId = command.commandId
-      memoryHeapdumpStatus = Memory.MemoryHeapDumpStatusData.newBuilder().apply {
-        status = Memory.HeapDumpStatus.newBuilder().setStatus(dumpStatus).build()
-      }.build()
-    }.build())
+    events.add(
+      Common.Event.newBuilder()
+        .apply {
+          pid = command.pid
+          kind = Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS
+          timestamp = dumpStartTime
+          commandId = command.commandId
+          memoryHeapdumpStatus =
+            Memory.MemoryHeapDumpStatusData.newBuilder()
+              .apply { status = Memory.HeapDumpStatus.newBuilder().setStatus(dumpStatus).build() }
+              .build()
+        }
+        .build()
+    )
 
     if (dumpStatus == Memory.HeapDumpStatus.Status.SUCCESS) {
-      events.add(Common.Event.newBuilder().apply {
-        groupId = dumpStartTime
-        pid = command.pid
-        kind = Common.Event.Kind.MEMORY_HEAP_DUMP
-        timestamp = dumpStartTime
-        memoryHeapdump = Memory.MemoryHeapDumpData.newBuilder().apply {
-          info = Memory.HeapDumpInfo.newBuilder().apply {
-            startTime = dumpStartTime
-            endTime = Long.MAX_VALUE
-          }.build()
-        }.build()
-      }.build())
+      events.add(
+        Common.Event.newBuilder()
+          .apply {
+            groupId = dumpStartTime
+            pid = command.pid
+            kind = Common.Event.Kind.MEMORY_HEAP_DUMP
+            timestamp = dumpStartTime
+            memoryHeapdump =
+              Memory.MemoryHeapDumpData.newBuilder()
+                .apply {
+                  info =
+                    Memory.HeapDumpInfo.newBuilder()
+                      .apply {
+                        startTime = dumpStartTime
+                        endTime = Long.MAX_VALUE
+                      }
+                      .build()
+                }
+                .build()
+          }
+          .build()
+      )
 
-      events.add(Common.Event.newBuilder().apply {
-        groupId = dumpStartTime
-        pid = command.pid
-        kind = Common.Event.Kind.MEMORY_HEAP_DUMP
-        timestamp = dumpStartTime + 1
-        memoryHeapdump = Memory.MemoryHeapDumpData.newBuilder().apply {
-          info = Memory.HeapDumpInfo.newBuilder().apply {
-            startTime = dumpStartTime
-            endTime = dumpStartTime + 1
-            success = true
-          }.build()
-        }.build()
-      }.build())
+      events.add(
+        Common.Event.newBuilder()
+          .apply {
+            groupId = dumpStartTime
+            pid = command.pid
+            kind = Common.Event.Kind.MEMORY_HEAP_DUMP
+            timestamp = dumpStartTime + 1
+            memoryHeapdump =
+              Memory.MemoryHeapDumpData.newBuilder()
+                .apply {
+                  info =
+                    Memory.HeapDumpInfo.newBuilder()
+                      .apply {
+                        startTime = dumpStartTime
+                        endTime = dumpStartTime + 1
+                        success = true
+                      }
+                      .build()
+                }
+                .build()
+          }
+          .build()
+      )
 
       addSessionEndedEvent(command, events)
     }

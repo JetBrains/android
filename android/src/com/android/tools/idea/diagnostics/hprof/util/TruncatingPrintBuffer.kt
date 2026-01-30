@@ -19,11 +19,7 @@ import java.io.Closeable
 import java.util.LinkedList
 import java.util.Queue
 
-class TruncatingPrintBuffer(
-  private val headLimit: Int,
-  private val tailLimit: Int,
-  private val printFunc: (String) -> Any
-) : Closeable {
+class TruncatingPrintBuffer(private val headLimit: Int, private val tailLimit: Int, private val printFunc: (String) -> Any) : Closeable {
   private val queue: Queue<String> = LinkedList<String>()
   private var linesPrinted = 0
   private var linesLost = 0
@@ -41,9 +37,7 @@ class TruncatingPrintBuffer(
       assert(linesLost > 1)
       printFunc("[...removed $linesLost lines...]")
     }
-    queue.forEach {
-      printFunc(it)
-    }
+    queue.forEach { printFunc(it) }
     queue.clear()
   }
 
@@ -52,8 +46,7 @@ class TruncatingPrintBuffer(
     if (linesPrinted < headLimit) {
       printFunc(s)
       linesPrinted++
-    }
-    else {
+    } else {
       queue.add(s)
       if (queue.size > tailLimit + 1) {
         queue.remove()

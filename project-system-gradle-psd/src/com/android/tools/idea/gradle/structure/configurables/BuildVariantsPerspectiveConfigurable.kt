@@ -22,14 +22,15 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
+import org.jetbrains.annotations.Nls
 
 const val BUILD_VARIANTS_VIEW = "BuildVariantsView"
-@Nls val buildVariantsPerspectiveDisplayName = AndroidGradlePsdBundle.message("android.build.variants.perspective.configurable.display.name")
+@Nls
+val buildVariantsPerspectiveDisplayName = AndroidGradlePsdBundle.message("android.build.variants.perspective.configurable.display.name")
 
-class BuildVariantsPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
+class BuildVariantsPerspectiveConfigurable(context: PsContext) :
+  BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_BUILD_VARIANTS
 
@@ -38,15 +39,15 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when {
       module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
-      module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module, detailedMessage = "Please select a module that has build variants.")
+      module is PsAndroidModule && module.isKmpModule ->
+        KmpModuleConfigurable(context, this, module, detailedMessage = "Please select a module that has build variants.")
       else -> ModuleUnsupportedConfigurable(context, this, module)
     }
 
-  @Nls
-  override fun getDisplayName() = buildVariantsPerspectiveDisplayName
+  @Nls override fun getDisplayName() = buildVariantsPerspectiveDisplayName
 
   private fun createConfigurable(module: PsAndroidModule): AndroidModuleBuildVariantsConfigurable =
-      AndroidModuleBuildVariantsConfigurable(context, this, module).apply { history = myHistory }
+    AndroidModuleBuildVariantsConfigurable(context, this, module).apply { history = myHistory }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = BUILD_VARIANTS_VIEW }
 }

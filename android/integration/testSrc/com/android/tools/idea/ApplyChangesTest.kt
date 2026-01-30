@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -15,22 +14,20 @@
  * limitations under the License.
  */
 package com.android.tools.idea
+
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-class ApplyChangesTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+class ApplyChangesTest {
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
+
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * ETE Test for Apply Changes.
@@ -57,7 +54,7 @@ class ApplyChangesTest {
           studio.waitForSync()
           studio.waitForIndex()
 
-          println("Waiting for project init");
+          println("Waiting for project init")
           studio.waitForProjectInit()
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
@@ -73,9 +70,7 @@ class ApplyChangesTest {
 
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.applychanges", 60, TimeUnit.SECONDS)
 
-          adb.runCommand("logcat") {
-            waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS) }
 
           val ktNewContents = "printAfter()\n"
           studio.editFile(ktPath.toString(), "(?s)// EASILY SEARCHABLE ONRESUME LINE.*?// END ONRESUME SEARCH", ktNewContents)
@@ -85,9 +80,7 @@ class ApplyChangesTest {
 
           studio.executeAction("android.deploy.ApplyChanges")
 
-          adb.runCommand("logcat") {
-            waitForLog(".*OnResume After with resource status: new.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*OnResume After with resource status: new.*", 600, TimeUnit.SECONDS) }
         }
       }
     }

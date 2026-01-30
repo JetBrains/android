@@ -24,6 +24,12 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
+import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,16 +39,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
-import java.util.concurrent.CountDownLatch
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
- * Class used for bundling together some data used across the tests in [RenderQualityManagerTest].
- * This class is conceptually acting as a "preview tool" using a RenderQualityManager.
+ * Class used for bundling together some data used across the tests in [RenderQualityManagerTest]. This class is conceptually acting as a
+ * "preview tool" using a RenderQualityManager.
  */
 private class TestPreviewTool {
   var errorMargin: Float = 0.1f
@@ -114,10 +114,7 @@ class RenderQualityManagerTest {
     Disposer.register(projectRule.disposable, surfaceMock)
     Disposer.register(projectRule.disposable, sceneManagerMock)
 
-    qualityManager =
-      DefaultRenderQualityManager(surfaceMock, TestRenderQualityPolicy(tool)) {
-        tool.qualityChangeMightBeNeeded()
-      }
+    qualityManager = DefaultRenderQualityManager(surfaceMock, TestRenderQualityPolicy(tool)) { tool.qualityChangeMightBeNeeded() }
   }
 
   @Test

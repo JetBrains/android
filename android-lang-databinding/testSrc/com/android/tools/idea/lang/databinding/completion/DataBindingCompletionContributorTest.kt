@@ -38,27 +38,18 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * A collection of various code completion tests that verify data binding completions work as
- * expected.
- */
+/** A collection of various code completion tests that verify data binding completions work as expected. */
 @RunWith(Parameterized::class)
 class DataBindingCompletionContributorTest(private val dataBindingMode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT,
-                         DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
-  private val fixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val fixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Before
   fun setUp() {
@@ -70,7 +61,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_caretInMethodReference() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -78,9 +70,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public void doSomething(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -94,12 +91,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -113,12 +113,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::doSomething}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_caretInStaticMethodReference() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -126,9 +129,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public static void doSomethingStatic(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -141,12 +149,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -159,12 +170,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::doSomethingStatic}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_excludeNonPublicMethods() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -172,9 +186,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         private static void doSomethingStatic(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -187,12 +206,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -205,20 +227,28 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_excludeConstructors() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
 
       public class Model {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -231,12 +261,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -249,12 +282,17 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_undefinedType() {
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -267,12 +305,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -285,12 +326,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_completeInstanceMethodInStaticContext() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -298,9 +342,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public void doSomethingStatic(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -313,12 +362,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -331,12 +383,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model::d}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_completeStaticMethodInNonStaticContext() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -344,9 +399,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public static void doSomethingStatic(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -360,12 +420,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -379,12 +442,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::d}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_repeatedInvocationsIncludeAllSuggestions() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -394,9 +460,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         private static void doPrivateStatic(View view) {}
         private void doPrivate(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -410,7 +481,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.complete(CompletionType.BASIC, 2)
@@ -419,7 +492,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_onMethodWithParameters_caretMovesInsideParens() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -427,9 +501,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public void doSomething(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -443,12 +522,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{() -> model.do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -462,12 +544,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{() -> model.doSomething(${caret})}"/>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_onMethodWithNoParameters_caretMovesAfterParens() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -475,9 +560,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public void doSomethingNoParameters() {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -491,12 +581,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{() -> member.do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -510,13 +603,16 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{() -> member.doSomethingNoParameters()${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
   @Test
   fun testDataBindingCompletion_multipleLookupItems() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -525,9 +621,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         public static void function_a(View view) {}
         public static void function_b(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -541,7 +642,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{() -> model.fu${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.complete(CompletionType.BASIC, 2)
@@ -550,7 +653,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_methodsWithSameName() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -559,9 +663,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         public void doSomething(View view) {}
         public void doSomething(View view, int a) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -575,12 +684,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -594,12 +706,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::doSomething}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_methodsFromBaseClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -607,18 +722,26 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Base {
         public void methodFromBaseClass(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
 
       public class Model extends Base {
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -632,12 +755,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::m${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -651,12 +777,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::methodFromBaseClass}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_fieldsFromBaseClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -664,18 +793,26 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Base {
         public int fieldFromBaseClass = 0;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
 
       public class Model extends Base {
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -689,12 +826,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.fi${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -708,13 +848,16 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.fieldFromBaseClass}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_methodPresentation() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -723,9 +866,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         public void doSomething(View view) {}
         public void doSomething2(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -739,7 +887,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -749,7 +899,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_methodFromBaseClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -761,9 +912,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       class Base {
         public void doSomethingBase(View view) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -777,7 +933,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model::do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -787,7 +945,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_fieldFromBaseClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -799,9 +958,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       class Base {
         public int fieldBase;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -815,7 +979,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{model.fi${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -825,7 +991,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_fieldsAreSuggestedWithType() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -834,9 +1001,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         public int field1;
         public String field2;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -850,7 +1022,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{model.fi${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val lookupElements = fixture.completeBasic()
@@ -862,13 +1036,19 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_importedClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -882,11 +1062,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{Mod${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -900,19 +1083,27 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{Model}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_packageFromRoot() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -926,11 +1117,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{tes${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -944,19 +1138,27 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{test.}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_packageWithPrefix() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -970,11 +1172,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{android.vie${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -988,12 +1193,17 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{android.view.}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_testCompleteVariableOutsideReferenceContext() {
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1006,12 +1216,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{st${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1024,12 +1237,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{str}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_testCompleteStaticFunctionOutsideReferenceContext() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1039,9 +1255,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
           return "a";
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1054,12 +1275,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{Model::st${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1072,12 +1296,17 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{Model::strUpper}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_testCompleteJavaLangClasses() {
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1089,12 +1318,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{By${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1106,12 +1338,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:text="@{Byte}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_getterMethodConvertedToField() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1119,9 +1354,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public String getValue() { return "unused"; }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1135,7 +1375,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -1147,7 +1389,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_booleanGetterMethodConvertedToField() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1155,9 +1398,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public boolean isGood() {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1171,7 +1419,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -1186,7 +1436,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_setterMethodNotConvertedToField() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1194,9 +1445,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       public class Model {
         public void setName(String name) { }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1210,7 +1466,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -1222,7 +1480,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_overriddenMethodsAreSuppressed() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1231,9 +1490,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         @Override
         public String toString() {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1247,7 +1511,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     // We should only find one method with name "toString()", The "toString()" declared in [java.lang.Object] should be removed.
@@ -1257,7 +1523,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_suggestImportedType() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1266,9 +1533,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
         @Override
         public String toString() {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1281,12 +1553,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Mod${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1299,13 +1574,16 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Model}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_classWithSubstitutor() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1317,9 +1595,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       class Data<T, R> {
         public R setData(T data) {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1333,7 +1616,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.data.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -1344,7 +1629,10 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
 
   @Test
   fun testDataBindingCompletion_genericType() {
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1356,12 +1644,15 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_height="120dp"
             android:onClick="@{list::clea${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
 
-    fixture.checkResult("""
+    fixture.checkResult(
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1373,13 +1664,16 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:layout_height="120dp"
             android:onClick="@{list::clear}"/>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_classWithBaseSubstitutor() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1387,9 +1681,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       class Data<X> {
         public X getData() {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1403,7 +1702,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{model.data.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.completeBasic()
@@ -1415,7 +1716,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_innerClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1425,9 +1727,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
           public static int x = 1;
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1441,7 +1748,9 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Data.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertThat(fixture.completeBasic().any { it.lookupString == "InnerData" }).isTrue()
@@ -1450,7 +1759,8 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_methodFromInnerClass() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -1460,9 +1770,14 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
           public static void doNothing() {}
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -1476,18 +1791,19 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
             android:gravity="center"
             android:onClick="@{Data.Inner.${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertThat(fixture.completeBasic().any { it.lookupString == "doNothing" }).isTrue()
   }
 
   /**
-   * Returns a lookup element's full rendered text, with a "$type $value$tail" format,
-   * e.g. "String name (from getName())"
+   * Returns a lookup element's full rendered text, with a "$type $value$tail" format, e.g. "String name (from getName())"
    *
-   * The default lookup element string provided by the test fixture only includes the lookup name,
-   * but in many tests we want to ensure that the additional details are correct as well
+   * The default lookup element string provided by the test fixture only includes the lookup name, but in many tests we want to ensure that
+   * the additional details are correct as well
    */
   private val LookupElement.renderedText: String
     get() {

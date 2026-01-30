@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -47,11 +46,7 @@ class InspectionsGradleTest {
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_unitTest() {
     fixture.enableInspections(ComposePreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
-    val vFile =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
-        projectRule.project.guessProjectDir(),
-      )!!
+    val vFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path, projectRule.project.guessProjectDir())!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertEquals(
       "21: Preview is not supported in unit test files",
@@ -62,11 +57,7 @@ class InspectionsGradleTest {
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_androidTest() {
     fixture.enableInspections(ComposePreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
-    val vFile =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-        projectRule.project.guessProjectDir(),
-      )!!
+    val vFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path, projectRule.project.guessProjectDir())!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertTrue(fixture.doHighlighting(HighlightSeverity.ERROR).isEmpty())
   }

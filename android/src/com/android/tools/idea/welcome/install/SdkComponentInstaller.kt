@@ -39,10 +39,7 @@ import java.io.File
 /** Installs SDK components. */
 class SdkComponentInstaller {
   @Throws(PackageResolutionException::class)
-  fun getPackagesToInstall(
-    sdkHandler: AndroidSdkHandler,
-    components: Iterable<InstallableSdkComponentTreeNode>,
-  ): List<RemotePackage> {
+  fun getPackagesToInstall(sdkHandler: AndroidSdkHandler, components: Iterable<InstallableSdkComponentTreeNode>): List<RemotePackage> {
     // TODO: Prompt about connection in handoff case?
     val progress = StudioLoggerProgressIndicator(javaClass)
     val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
@@ -51,8 +48,8 @@ class SdkComponentInstaller {
   }
 
   /**
-   * Installs all components in the `componentTree` that are configured to be installed. Once the
-   * components have been installed, the SDK path and installer timestamp are stored in preferences.
+   * Installs all components in the `componentTree` that are configured to be installed. Once the components have been installed, the SDK
+   * path and installer timestamp are stored in preferences.
    *
    * @param installableSdkComponents The SDK components to install
    * @param installContext Used to track installation progress
@@ -96,14 +93,8 @@ class SdkComponentInstaller {
   }
 
   @Slow
-  fun installPackages(
-    sdkHandler: AndroidSdkHandler,
-    packages: List<RemotePackage>,
-    downloader: Downloader,
-    progress: ProgressIndicator,
-  ) {
-    val sdkManager =
-      sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
+  fun installPackages(sdkHandler: AndroidSdkHandler, packages: List<RemotePackage>, downloader: Downloader, progress: ProgressIndicator) {
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
     val throttledProgress = ThrottledProgressWrapper(progress)
     var progressMax = 0.0
     val progressIncrement = 0.9 / (packages.size * 2.0)
@@ -122,20 +113,11 @@ class SdkComponentInstaller {
         throttledProgress.fraction = progressMax
       }
 
-    sdkManager.loadSynchronously(
-      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-      throttledProgress.createSubProgress(1.0),
-      null,
-      null,
-    )
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, throttledProgress.createSubProgress(1.0), null, null)
   }
 
   @Slow
-  fun ensureSdkPackagesUninstalled(
-    sdkHandler: AndroidSdkHandler,
-    packageNames: Collection<String>,
-    progress: ProgressIndicator,
-  ) {
+  fun ensureSdkPackagesUninstalled(sdkHandler: AndroidSdkHandler, packageNames: Collection<String>, progress: ProgressIndicator) {
     val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
     val localPackages = sdkManager.packages.localPackages
     val packagesToUninstall = mutableListOf<LocalPackage>()
@@ -176,19 +158,12 @@ class SdkComponentInstaller {
         progressMax += progressIncrement
         progress.fraction = progressMax
       }
-    sdkManager.loadSynchronously(
-      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-      progress.createSubProgress(1.0),
-      null,
-      null,
-    )
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1.0), null, null)
     progress.fraction = 1.0
   }
 
-  private class SetPreference(
-    private val myInstallerTimestamp: String?,
-    private val myModalityState: ModalityState,
-  ) : Function<File, File> {
+  private class SetPreference(private val myInstallerTimestamp: String?, private val myModalityState: ModalityState) :
+    Function<File, File> {
     override fun apply(input: File): File {
       ApplicationUtils.invokeWriteActionAndWait(myModalityState) {
         IdeSdks.getInstance().setAndroidSdkPath(input)

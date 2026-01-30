@@ -25,23 +25,19 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 /**
  * The amount of "padding" used when querying for data.
  *
- * Note, the padding does not throw off the accuracy of the model at all. It is used to guarantee
- * enough sampling points so a result can be interpolated.
+ * Note, the padding does not throw off the accuracy of the model at all. It is used to guarantee enough sampling points so a result can be
+ * interpolated.
  */
 private const val TIME_BUFFER_US = 1000000
 
-class NetworkInspectorDataSeries<T>(
-  private val dataSource: NetworkInspectorDataSource,
-  private val transform: (Event) -> T,
-) : DataSeries<T> {
+class NetworkInspectorDataSeries<T>(private val dataSource: NetworkInspectorDataSource, private val transform: (Event) -> T) :
+  DataSeries<T> {
 
   override fun getDataForRange(range: Range): List<SeriesData<T>> {
     return runBlocking {
-      dataSource
-        .queryForSpeedData(Range(range.min - TIME_BUFFER_US, range.max + TIME_BUFFER_US))
-        .map { event ->
-          SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestamp), transform(event))
-        }
+      dataSource.queryForSpeedData(Range(range.min - TIME_BUFFER_US, range.max + TIME_BUFFER_US)).map { event ->
+        SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestamp), transform(event))
+      }
     }
   }
 }

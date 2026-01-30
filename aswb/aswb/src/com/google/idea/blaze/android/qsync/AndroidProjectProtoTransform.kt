@@ -24,20 +24,19 @@ import com.google.idea.blaze.qsync.java.AddDependencyAars
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 
-/** A [ProjectProtoTransform] that adds android specific information to the project proto.  */
+/** A [ProjectProtoTransform] that adds android specific information to the project proto. */
 object AndroidProjectProtoTransform {
-  /**
-   * Provides a [ProjectProtoTransform] that adds android specific information to the project
-   * proto.
-   */
+  /** Provides a [ProjectProtoTransform] that adds android specific information to the project proto. */
   class Provider : ProjectProtoTransformProvider {
     override fun createTransforms(projectDef: ProjectDefinition): List<ProjectProtoUpdateOperation> {
       return listOf(
         AddDependencyAars(
           projectDef,
-          AarPackageNameExtractor { ManifestParser.parseManifestFromInputStream(it)?.packageName ?: throw BuildException("Failed to parse manifest") }
+          AarPackageNameExtractor {
+            ManifestParser.parseManifestFromInputStream(it)?.packageName ?: throw BuildException("Failed to parse manifest")
+          },
         ),
-        AddAndroidResPackages()
+        AddAndroidResPackages(),
       )
     }
   }

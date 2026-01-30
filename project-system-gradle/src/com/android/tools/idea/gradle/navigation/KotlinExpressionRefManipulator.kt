@@ -20,7 +20,7 @@ import com.intellij.psi.AbstractElementManipulator
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 
 // This class is a renaming stub for KtsDotExpressionVersionCatalogReference
-class KotlinExpressionRefManipulator: AbstractElementManipulator<KtDotQualifiedExpression>() {
+class KotlinExpressionRefManipulator : AbstractElementManipulator<KtDotQualifiedExpression>() {
   override fun handleContentChange(element: KtDotQualifiedExpression, range: TextRange, newContent: String): KtDotQualifiedExpression? {
     return null
   }

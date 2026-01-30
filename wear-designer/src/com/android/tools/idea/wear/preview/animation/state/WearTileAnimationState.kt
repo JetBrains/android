@@ -30,21 +30,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 /**
  * Interface representing a state for Wear Tile animations.
  *
- * A state is responsible for maintaining and updating the state of a specific type of animation
- * used in Wear Tiles. It provides access to the current "from" and "to" states of the animation.
+ * A state is responsible for maintaining and updating the state of a specific type of animation used in Wear Tiles. It provides access to
+ * the current "from" and "to" states of the animation.
  */
 interface WearTileAnimationState<T> : FromToState<T> {
   /**
-   * Applies the current state to the provided [ProtoAnimation] object, modifying the animation
-   * properties to reflect the current "from" and "to" states.
+   * Applies the current state to the provided [ProtoAnimation] object, modifying the animation properties to reflect the current "from" and
+   * "to" states.
    *
    * @param animation The [ProtoAnimation] object to be updated.
    */
   fun updateAnimation(animation: ProtoAnimation)
 }
 
-class WearTileFloatState(tracker: AnimationTracker, initial: Float?, target: Float?) :
-  WearTileAnimationState<Float> {
+class WearTileFloatState(tracker: AnimationTracker, initial: Float?, target: Float?) : WearTileAnimationState<Float> {
 
   override val state = MutableStateFlow((initial ?: 0f) to (target ?: 0f))
 
@@ -53,10 +52,8 @@ class WearTileFloatState(tracker: AnimationTracker, initial: Float?, target: Flo
     animation.setFloatValues(initial, target)
   }
 
-  private val fromInput =
-    FloatInputComponentAction(state.value.first) { state.value = it to state.value.second }
-  private val toInput =
-    FloatInputComponentAction(state.value.second) { state.value = state.value.first to it }
+  private val fromInput = FloatInputComponentAction(state.value.first) { state.value = it to state.value.second }
+  private val toInput = FloatInputComponentAction(state.value.second) { state.value = state.value.first to it }
   override val changeStateActions: List<AnAction> =
     listOf(
       SwapAction(tracker) {
@@ -70,8 +67,7 @@ class WearTileFloatState(tracker: AnimationTracker, initial: Float?, target: Flo
     )
 }
 
-class WearTileIntState(tracker: AnimationTracker, initial: Int?, target: Int?) :
-  WearTileAnimationState<Int> {
+class WearTileIntState(tracker: AnimationTracker, initial: Int?, target: Int?) : WearTileAnimationState<Int> {
   override val state = MutableStateFlow((initial ?: 0) to (target ?: 0))
 
   override fun updateAnimation(animation: ProtoAnimation) {
@@ -79,10 +75,8 @@ class WearTileIntState(tracker: AnimationTracker, initial: Int?, target: Int?) :
     animation.setIntValues(initial, target)
   }
 
-  private val fromInput =
-    IntInputComponentAction(state.value.first) { state.value = it to state.value.second }
-  private val toInput =
-    IntInputComponentAction(state.value.second) { state.value = state.value.first to it }
+  private val fromInput = IntInputComponentAction(state.value.first) { state.value = it to state.value.second }
+  private val toInput = IntInputComponentAction(state.value.second) { state.value = state.value.first to it }
   override val changeStateActions: List<AnAction> =
     listOf(
       SwapAction(tracker) {
@@ -96,13 +90,8 @@ class WearTileIntState(tracker: AnimationTracker, initial: Int?, target: Int?) :
     )
 }
 
-class WearTileColorPickerState(
-  tracker: AnimationTracker,
-  initialColor: ColorUnit,
-  targetColor: ColorUnit,
-) :
-  WearTileAnimationState<ColorUnit>,
-  ColorAnimationState<ColorUnit>(tracker, initialColor, targetColor) {
+class WearTileColorPickerState(tracker: AnimationTracker, initialColor: ColorUnit, targetColor: ColorUnit) :
+  WearTileAnimationState<ColorUnit>, ColorAnimationState<ColorUnit>(tracker, initialColor, targetColor) {
 
   override fun updateAnimation(animation: ProtoAnimation) {
     val (initialColor, targetColor) = state.value

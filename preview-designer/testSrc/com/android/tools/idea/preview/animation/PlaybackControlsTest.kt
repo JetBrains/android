@@ -49,18 +49,11 @@ class PlaybackControlsTest {
           projectRule,
           "layout",
           "layout.xml",
-          com.android.tools.idea.common.fixtures.ComponentDescriptor(
-            SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
-          ),
+          com.android.tools.idea.common.fixtures.ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
-    surface =
-      com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.builder(
-          projectRule.project,
-          parentDisposable,
-        )
-        .build()
+    surface = com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.builder(projectRule.project, parentDisposable).build()
     surface.addModelsWithoutRender(listOf(model))
   }
 
@@ -78,13 +71,7 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar and each component is visible`() =
     runBlocking(uiThread) {
-      val playbackControl =
-        PlaybackControls(
-          clockControl = SliderClockControl(JSlider()),
-          NoopAnimationTracker,
-          surface,
-          parentDisposable,
-        )
+      val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), NoopAnimationTracker, surface, parentDisposable)
       val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
       val ui =
         FakeUi(toolbar).apply {
@@ -100,15 +87,8 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar with extra action and each component is visible`() =
     runBlocking(uiThread) {
-      val playbackControl =
-        PlaybackControls(
-          clockControl = SliderClockControl(JSlider()),
-          NoopAnimationTracker,
-          surface,
-          parentDisposable,
-        )
-      val toolbar =
-        playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
+      val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), NoopAnimationTracker, surface, parentDisposable)
+      val toolbar = playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
       val ui =
         com.android.tools.adtui.swing.FakeUi(toolbar).apply {
           updateToolbars()

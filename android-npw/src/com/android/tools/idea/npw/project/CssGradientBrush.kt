@@ -47,9 +47,7 @@ class CssGradientBrush(
 
   init {
     val colorStops = stops
-    check(colorStops == null || colors.size == colorStops.size) {
-      "The number of stops and colors must match"
-    }
+    check(colorStops == null || colors.size == colorStops.size) { "The number of stops and colors must match" }
     check(colors.isNotEmpty()) { "Specify at least one color and stop" }
   }
 
@@ -123,19 +121,10 @@ class CssGradientBrush(
     val gradientEnd = calculateProjection(size.center, angleRadians, endCorner) + finalOffset
 
     // We need to reverse gradient end and start points to get the intended effect
-    return LinearGradientShader(
-      from = gradientStart,
-      to = gradientEnd,
-      colors = colors,
-      colorStops = stops,
-    )
+    return LinearGradientShader(from = gradientStart, to = gradientEnd, colors = colors, colorStops = stops)
   }
 
-  private fun calculateProjection(
-    linePoint: Offset,
-    angleRadians: Double,
-    pointToProject: Offset,
-  ): Offset {
+  private fun calculateProjection(linePoint: Offset, angleRadians: Double, pointToProject: Offset): Offset {
     // Calculate slope from angle
     val m = tan(angleRadians)
 

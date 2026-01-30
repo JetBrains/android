@@ -16,38 +16,32 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.annotations.concurrency.UiThread
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
-/**
- * An extension point to provide a [PsiElement] for a given [AndroidTestResults].
- */
+/** An extension point to provide a [PsiElement] for a given [AndroidTestResults]. */
 @AnyThread
 interface TestResultsPsiElementProvider {
   companion object {
-    val EP_NAME = ExtensionPointName.create<TestResultsPsiElementProvider>(
-      "com.android.tools.idea.testartifacts.instrumented.testsuite.api.testResultsPsiElementProvider")
+    val EP_NAME =
+      ExtensionPointName.create<TestResultsPsiElementProvider>(
+        "com.android.tools.idea.testartifacts.instrumented.testsuite.api.testResultsPsiElementProvider"
+      )
 
     fun getProvider(runConfiguration: RunConfiguration): TestResultsPsiElementProvider? =
       EP_NAME.extensionList.firstOrNull { it.isApplicable(runConfiguration) }
   }
 
-  /**
-   * Returns true if this provider can handle the given [runConfiguration].
-   */
+  /** Returns true if this provider can handle the given [runConfiguration]. */
   fun isApplicable(runConfiguration: RunConfiguration): Boolean
 
   /**
    * Returns a [PsiElement] for the given [androidTestResults].
    *
-   * Implementations should ensure any operations that read PSI elements
-   * occur from within a read action
+   * Implementations should ensure any operations that read PSI elements occur from within a read action
    */
-  fun getPsiElement(project: Project,
-                    androidTestResults: AndroidTestResults,
-                    module: Module?): PsiElement?
+  fun getPsiElement(project: Project, androidTestResults: AndroidTestResults, module: Module?): PsiElement?
 }

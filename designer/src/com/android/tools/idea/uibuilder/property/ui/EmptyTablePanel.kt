@@ -37,8 +37,7 @@ import javax.swing.event.HyperlinkEvent
 private const val BORDER_SIZE = 4
 
 /** A panel with text to inform the user what to do when a table is empty. */
-class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) :
-  JPanel(BorderLayout()) {
+class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : JPanel(BorderLayout()) {
   private var textPanel: JEditorPane? = null
 
   init {
@@ -52,15 +51,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) :
     text.addHyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         val context = DataManager.getInstance().getDataContext(this@EmptyTablePanel)
-        val actionEvent =
-          AnActionEvent.createEvent(
-            addAction,
-            context,
-            null,
-            ActionPlaces.UNKNOWN,
-            ActionUiKind.NONE,
-            null,
-          )
+        val actionEvent = AnActionEvent.createEvent(addAction, context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
         addAction.actionPerformed(actionEvent)
       }
     }

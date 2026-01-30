@@ -32,16 +32,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.setMain
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -62,6 +52,16 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.setMain
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 /** Tests the [DeviceAdapter] class. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -273,17 +273,11 @@ class DeviceAdapterTest {
       onReadyCalls == 1
     }
 
-    val configCharEvents =
-      listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map {
-        KeyEvent.KEY_TYPED to it
-      }
+    val configCharEvents = listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map { KeyEvent.KEY_TYPED to it }
     val expectedKeyEvents =
       listOf(KeyEvent.KEY_PRESSED to KeyEvent.VK_UP, KeyEvent.KEY_RELEASED to KeyEvent.VK_UP) +
         configCharEvents +
-        listOf(
-          KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
-          KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
-        )
+        listOf(KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER, KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER)
     waitForCondition(2.seconds) { keyEvents.size == expectedKeyEvents.size }
     assertThat(keyEvents).isEqualTo(expectedKeyEvents)
   }
@@ -419,9 +413,7 @@ class DeviceAdapterTest {
       assertThat(onReadyCalls).isEqualTo(bitsPerChannel + 1)
       assertThat(errors).isEmpty()
 
-      customAdapter.frameRendered(
-        point.toBufferedImage(bitsPerChannel = bitsPerChannel, latency = latency)
-      )
+      customAdapter.frameRendered(point.toBufferedImage(bitsPerChannel = bitsPerChannel, latency = latency))
 
       assertThat(returnedInputs).hasSize(bitsPerChannel + 1)
       assertThat(returnedInputs.last().first).isEqualTo(point)
@@ -438,30 +430,28 @@ class DeviceAdapterTest {
     latencyBits: Int = 6,
   ): DeviceAdapter {
     return DeviceAdapter(
-      projectRule.project,
-      target = StreamingBenchmarkTarget("Device Name", "12345", view),
-      bitsPerChannel = bitsPerChannel,
-      latencyBits = latencyBits,
-      maxTouches = maxTouches,
-      step = step,
-      spikiness = spikiness,
-      timeSource = testTimeSource,
-      installer = fakeInstaller,
-      // we use fqns to suppress deprecation on import level
-      coroutineScope = @Suppress("DEPRECATION_ERROR") kotlinx.coroutines.test.TestCoroutineScope(
-        kotlinx.coroutines.test.TestCoroutineDispatcher()),
-    )
-    .apply { setCallbacks(callbacks) }
+        projectRule.project,
+        target = StreamingBenchmarkTarget("Device Name", "12345", view),
+        bitsPerChannel = bitsPerChannel,
+        latencyBits = latencyBits,
+        maxTouches = maxTouches,
+        step = step,
+        spikiness = spikiness,
+        timeSource = testTimeSource,
+        installer = fakeInstaller,
+        // we use fqns to suppress deprecation on import level
+        coroutineScope =
+          @Suppress("DEPRECATION_ERROR") kotlinx.coroutines.test.TestCoroutineScope(kotlinx.coroutines.test.TestCoroutineDispatcher()),
+      )
+      .apply { setCallbacks(callbacks) }
   }
 
   private fun DeviceAdapter.frameRendered(bufferedImage: BufferedImage) {
     frameRendered(frameNumber++, displayRectangle, 0, bufferedImage)
   }
 
-  private inner class TestDisplayView(
-    project: Project,
-    override val deviceDisplaySize: Dimension
-  ) : AbstractDisplayView(project, 0, "StreamingContextMenuVirtualDevice") {
+  private inner class TestDisplayView(project: Project, override val deviceDisplaySize: Dimension) :
+    AbstractDisplayView(project, 0, "StreamingContextMenuVirtualDevice") {
 
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
@@ -538,12 +528,9 @@ private val TOUCHABLE_AREA_FRAME = bufferedImage { i, j ->
   if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
 }
 private val INITIALIZED_GRADIENT = listOf(Color.RED, Color.GREEN, Color.BLUE)
-private val INITIALIZED_FRAME = bufferedImage { i, _ ->
-  interpolate(INITIALIZED_GRADIENT, i / WIDTH.toDouble())
-}
+private val INITIALIZED_FRAME = bufferedImage { i, _ -> interpolate(INITIALIZED_GRADIENT, i / WIDTH.toDouble()) }
 
-private fun Int.bits(maxBits: Int = MAX_BITS): String =
-  toUInt().toString(2).padStart(maxBits, '0')
+private fun Int.bits(maxBits: Int = MAX_BITS): String = toUInt().toString(2).padStart(maxBits, '0')
 
 private fun List<String>.toColor(): Color {
   require(isNotEmpty()) { "Must provide at least one value." }
@@ -568,10 +555,7 @@ private fun Int.toColors(maxBits: Int = MAX_BITS, bitsPerChannel: Int = BITS_PER
   return bits(maxBits).chunked(bitsPerChannel).chunked(3) { it.toColor() }
 }
 
-/**
- * Gets the item out of the list that is the same proportion of the way through the list as
- * [value] is through [min, max].
- */
+/** Gets the item out of the list that is the same proportion of the way through the list as [value] is through [min, max]. */
 private fun <T> List<T>.getFractional(min: Int, max: Int, value: Int): T {
   val index = (size * (value - min) / (max - min).toDouble()).toInt().coerceIn(indices)
   return get(index)
@@ -605,8 +589,6 @@ private fun Point.toBufferedImage(
 
 private fun bufferedImage(width: Int = WIDTH, height: Int = HEIGHT, pixelColorSupplier: (Int, Int) -> Color): BufferedImage {
   val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-  repeat(width) { i ->
-    repeat(height) { j -> bufferedImage.setRGB(i, j, pixelColorSupplier(i, j).rgb) }
-  }
+  repeat(width) { i -> repeat(height) { j -> bufferedImage.setRGB(i, j, pixelColorSupplier(i, j).rgb) } }
   return bufferedImage
 }

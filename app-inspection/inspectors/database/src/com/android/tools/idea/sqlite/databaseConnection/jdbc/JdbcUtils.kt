@@ -30,10 +30,7 @@ import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-/**
- * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in
- * the statement.
- */
+/** Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in the statement. */
 fun Connection.resolvePreparedStatement(sqliteStatement: SqliteStatement): PreparedStatement {
   val preparedStatement = prepareStatement(sqliteStatement.sqliteStatementText)
   sqliteStatement.parametersValues.forEachIndexed { index, value ->
@@ -66,9 +63,7 @@ fun selectAllAndRowIdFromTable(table: SqliteTable): String {
   // _rowid_ FROM table",
   // in the result set the column corresponding to rowid is always called "rowid".
   // But in [SqliteTable] we save the name of the rowid column as "rowid", "_rowid_" or "oid"
-  val columnsToSelect =
-    table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" }
-      ?: "*"
+  val columnsToSelect = table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
   return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
 }
 

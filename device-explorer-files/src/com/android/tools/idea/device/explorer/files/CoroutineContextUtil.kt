@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files;
+package com.android.tools.idea.device.explorer.files
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.application.EDT
@@ -29,25 +29,18 @@ import kotlinx.coroutines.withContext
 /**
  * Executes the block in a write-safe scope in the current modality state.
  *
- * If this is called from a non-EDT thread, the "current" modality state cannot be observed, and
- * thus directly using the uiThread context results in the NON_MODAL state being used, preventing
- * execution until modal dialogs complete (see [ModalityState.defaultModalityState]).
+ * If this is called from a non-EDT thread, the "current" modality state cannot be observed, and thus directly using the uiThread context
+ * results in the NON_MODAL state being used, preventing execution until modal dialogs complete (see [ModalityState.defaultModalityState]).
  *
- * Thus, this first uses [ModalityState.any()] to transfer control to the EDT, allowing us to access
- * the current modality state, and then invokes the block with that modality state.
+ * Thus, this first uses [ModalityState.any()] to transfer control to the EDT, allowing us to access the current modality state, and then
+ * invokes the block with that modality state.
  *
- * We cannot just stay in [ModalityState.any()], because accessing VFS, PSI, etc. is not allowed
- * (see [ModalityState.any]).
+ * We cannot just stay in [ModalityState.any()], because accessing VFS, PSI, etc. is not allowed (see [ModalityState.any]).
  */
 suspend fun <T> withWriteSafeContextWithCurrentModality(block: suspend CoroutineScope.() -> T): T =
-  withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-    withContext(uiThread, block)
-  }
+  withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) { withContext(uiThread, block) }
 
-/**
- * Cancels the current coroutine, then throws CancellationException to immediately start
- * unwinding execution.
- */
+/** Cancels the current coroutine, then throws CancellationException to immediately start unwinding execution. */
 suspend fun cancelAndThrow(): Nothing = coroutineScope {
   cancel()
   throw CancellationException()

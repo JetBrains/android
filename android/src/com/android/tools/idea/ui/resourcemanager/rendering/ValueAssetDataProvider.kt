@@ -28,20 +28,18 @@ import com.intellij.openapi.util.text.StringUtil
  * Will try to return the resolved value of the resource in [AssetData.metadata] for [DesignAsset]s, and in [AssetData.subtitle] for
  * [ResourceAssetSet].
  */
-class ValueAssetDataProvider (
-  private val resourceResolver: ResourceResolver
-): DefaultAssetDataProvider() {
+class ValueAssetDataProvider(private val resourceResolver: ResourceResolver) : DefaultAssetDataProvider() {
 
   override fun getAssetData(asset: DesignAsset): AssetData {
     val defaultData = super.getAssetData(asset)
-    val metadata = resourceResolver.resolveValue(asset)?.getReadableValue()?.truncate()?: defaultData.subtitle
+    val metadata = resourceResolver.resolveValue(asset)?.getReadableValue()?.truncate() ?: defaultData.subtitle
     return AssetData(defaultData.title, defaultData.subtitle, metadata)
   }
 
   override fun getAssetSetData(assetSet: ResourceAssetSet): AssetData {
     val defaultData = super.getAssetSetData(assetSet)
     val asset = assetSet.getHighestDensityAsset()
-    val subtitle = resourceResolver.resolveValue(asset)?.getReadableValue()?: defaultData.subtitle
+    val subtitle = resourceResolver.resolveValue(asset)?.getReadableValue() ?: defaultData.subtitle
     return AssetData(defaultData.title, subtitle, defaultData.metadata)
   }
 }

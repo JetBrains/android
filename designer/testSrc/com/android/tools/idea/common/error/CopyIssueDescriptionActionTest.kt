@@ -66,10 +66,7 @@ class CopyIssueDescriptionActionTest {
 
     val issueNodeEvent2 = createIssueNodeEvent(action, "another description")
     action.actionPerformed(issueNodeEvent2)
-    assertEquals(
-      "another description",
-      CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor),
-    )
+    assertEquals("another description", CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor))
   }
 
   private fun createIssueNodeEvent(action: AnAction, description: String = ""): AnActionEvent {
@@ -82,9 +79,7 @@ class CopyIssueDescriptionActionTest {
     `when`(tree.selectionPath).thenReturn(path)
     `when`(path.lastPathComponent).thenReturn(node)
 
-    val context = runInEdtAndGet {
-      SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, tree)
-    }
+    val context = runInEdtAndGet { SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, tree) }
 
     return TestActionEvent.createTestEvent(action, context)
   }

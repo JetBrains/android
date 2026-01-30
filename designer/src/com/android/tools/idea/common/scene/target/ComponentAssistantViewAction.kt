@@ -36,17 +36,12 @@ import javax.swing.KeyStroke
 
 private const val ACTION_HIDE = "actionHide"
 
-/**
- * A [DirectViewAction] that displays a popup displaying a [JComponent] provided by
- * [ComponentAssistantFactory].
- */
+/** A [DirectViewAction] that displays a popup displaying a [JComponent] provided by [ComponentAssistantFactory]. */
 // TODO(b/120382660): Replace icon with the final version
 class ComponentAssistantViewAction
 @JvmOverloads
-constructor(
-  assistantLabel: String = "Set Sample Data",
-  private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?,
-) : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
+constructor(assistantLabel: String = "Set Sample Data", private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?) :
+  DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
 
@@ -61,9 +56,7 @@ constructor(
         }
       },
     )
-    component
-      .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-      .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
+    component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
   }
 
   private fun fireCloseEvent() = onClose(false)
@@ -90,16 +83,10 @@ constructor(
     val scene = sceneComponent.scene
     val designSurface = scene.designSurface
     val context = scene.sceneManager.sceneViews.first().context
-    val popup =
-      LightCalloutPopup(
-        closedCallback = this::fireCloseEvent,
-        cancelCallBack = this::fireCancelEvent,
-      )
+    val popup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
     val popupRef = WeakReference(popup)
     val assistantContext =
-      ComponentAssistantFactory.Context(selectedComponent) { cancel ->
-        if (cancel) popupRef.get()?.cancel() else popupRef.get()?.close()
-      }
+      ComponentAssistantFactory.Context(selectedComponent) { cancel -> if (cancel) popupRef.get()?.cancel() else popupRef.get()?.close() }
     val component =
       panelFactory.createComponent(assistantContext).apply {
         name = "Component Assistant" // For UI tests
@@ -112,20 +99,13 @@ constructor(
       assistantContext.onClose(cancelled)
     }
 
-    val position =
-      Point(
-        context.getSwingXDip(sceneComponent.centerX.toFloat()),
-        context.getSwingYDip(sceneComponent.drawBottom.toFloat()),
-      )
+    val position = Point(context.getSwingXDip(sceneComponent.centerX.toFloat()), context.getSwingYDip(sceneComponent.drawBottom.toFloat()))
     val parentComponent = designSurface.layeredPane
     if (canShowBelow(parentComponent, position, component)) {
       popup.show(component, parentComponent, position)
     } else {
       val location =
-        Point(
-          context.getSwingXDip(sceneComponent.centerX.toFloat()),
-          context.getSwingYDip(sceneComponent.drawBottom.toFloat()),
-        )
+        Point(context.getSwingXDip(sceneComponent.centerX.toFloat()), context.getSwingYDip(sceneComponent.drawBottom.toFloat()))
       popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
   }
@@ -138,14 +118,7 @@ constructor(
     selectedChildren: MutableList<NlComponent>,
     modifiersEx: Int,
   ) {
-    super.updatePresentation(
-      presentation,
-      editor,
-      handler,
-      component,
-      selectedChildren,
-      modifiersEx,
-    )
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx)
 
     val visible = (selectedChildren.size == 1).and(panelFactoryFactory(selectedChildren[0]) != null)
     presentation.setVisible(visible)

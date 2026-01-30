@@ -33,85 +33,128 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class ProductFlavorConfigurable(
-  private val productFlavor: PsProductFlavor,
-  val context: PsContext
-) :
+class ProductFlavorConfigurable(private val productFlavor: PsProductFlavor, val context: PsContext) :
   ChildModelConfigurable<PsProductFlavor, ProductFlavorConfigPanel>(productFlavor) {
   override fun getBannerSlogan() = "Product Flavor '${productFlavor.name}'"
+
   override fun getIcon(expanded: Boolean): Icon = productFlavor.icon
+
   override fun createPanel(): ProductFlavorConfigPanel = ProductFlavorConfigPanel(productFlavor, context)
 }
 
-class FlavorDimensionConfigurable(
-    private val module: PsAndroidModule,
-    val flavorDimension: PsFlavorDimension,
-    val context: PsContext
-) : NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
+class FlavorDimensionConfigurable(private val module: PsAndroidModule, val flavorDimension: PsFlavorDimension, val context: PsContext) :
+  NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
   override fun getEditableObject(): PsFlavorDimension = flavorDimension
+
   override fun getBannerSlogan(): String = "Dimension '$flavorDimension'"
+
   override fun getIcon(expanded: Boolean): Icon = flavorDimension.icon
+
   override fun isModified(): Boolean = false
+
   override fun getDisplayName(): String = flavorDimension.name
+
   override fun apply() = Unit
+
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
 
   override fun getChildrenModels(): Collection<PsProductFlavor> =
-    module
-      .productFlavors
-      .filter { it.effectiveDimension == flavorDimension.name || (it.effectiveDimension == null && flavorDimension.isInvalid) }
+    module.productFlavors.filter {
+      it.effectiveDimension == flavorDimension.name || (it.effectiveDimension == null && flavorDimension.isInvalid)
+    }
 
   override fun createChildConfigurable(model: PsProductFlavor): NamedConfigurable<PsProductFlavor> =
     ProductFlavorConfigurable(model, context).also { Disposer.register(this, it) }
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.productFlavors.onChange(disposable, listener)
+
   override fun dispose() = Unit
 
   private val component = JPanel()
+
   override fun createOptionsPanel(): JComponent = component
 }
 
 fun productFlavorPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
     listOfNotNull(
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.dimension, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_DIMENSION),
-      if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor,
-                                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_APPLICATION_ID)
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.dimension,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_DIMENSION,
+      ),
+      if (!isLibrary)
+        uiProperty(
+          PsProductFlavor.ProductFlavorDescriptors.applicationId,
+          ::simplePropertyEditor,
+          PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_APPLICATION_ID,
+        )
       else null,
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       if (!isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix, ::simplePropertyEditor, null) else null,
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_CODE),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_NAME),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.versionCode,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_CODE,
+      ),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.versionName,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_VERSION_NAME,
+      ),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionNameSuffix, ::simplePropertyEditor, null),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TARGET_SDK_VERSION),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MIN_SDK_VERSION),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.signingConfig, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_SIGNING_CONFIG),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TARGET_SDK_VERSION,
+      ),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.minSdkVersion,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MIN_SDK_VERSION,
+      ),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.signingConfig,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_SIGNING_CONFIG,
+      ),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       if (isLibrary) uiProperty(PsProductFlavor.ProductFlavorDescriptors.consumerProGuardFiles, ::listPropertyEditor, null) else null,
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.proGuardFiles, ::listPropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_PROGUARD_FILES),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders, ::mapPropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MANIFEST_PLACEHOLDERS),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MULTI_DEX_ENABLED),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.proGuardFiles,
+        ::listPropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_PROGUARD_FILES,
+      ),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders,
+        ::mapPropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MANIFEST_PLACEHOLDERS,
+      ),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_MULTI_DEX_ENABLED,
+      ),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.resConfigs, ::listPropertyEditor, null),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TEST_INSTRUMENTATION_RUNNER_CLASS_NAME),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TEST_INSTRUMENTATION_RUNNER_CLASS_NAME,
+      ),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments, ::mapPropertyEditor, null),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest, ::simplePropertyEditor, null),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
       uiProperty(PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling, ::simplePropertyEditor, null),
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TEST_APPLICATION_ID),
+      uiProperty(
+        PsProductFlavor.ProductFlavorDescriptors.testApplicationId,
+        ::simplePropertyEditor,
+        PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_BUILDVARIANTS_FLAVORS_TEST_APPLICATION_ID,
+      ),
       // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
-      uiProperty(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks, ::listPropertyEditor, null)))
-
+      uiProperty(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks, ::listPropertyEditor, null),
+    )
+  )

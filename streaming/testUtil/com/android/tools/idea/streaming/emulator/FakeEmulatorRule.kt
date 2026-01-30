@@ -42,9 +42,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
 
-/**
- * Allows tests to use [FakeEmulator] instead of the real one.
- */
+/** Allows tests to use [FakeEmulator] instead of the real one. */
 class FakeEmulatorRule : TestRule {
 
   val avdRoot: Path by lazy { Files.createDirectories(userHome.resolve(".android/avd")) }
@@ -57,52 +55,54 @@ class FakeEmulatorRule : TestRule {
   private val root by lazy { Files.createDirectories(tempDirectory.newPath()) }
   private val userHome by lazy { Files.createDirectories(root.resolve("home")) }
 
-  private val emulatorResource = object : ExternalResource() {
-    override fun before() {
-      val disposable = Disposer.newDisposable("FakeEmulatorRule").also { disposable = it }
-      val grpcFactory = object : GrpcChannelBuilderFactory {
-        override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> =
-            InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))
+  private val emulatorResource =
+    object : ExternalResource() {
+      override fun before() {
+        val disposable = Disposer.newDisposable("FakeEmulatorRule").also { disposable = it }
+        val grpcFactory =
+          object : GrpcChannelBuilderFactory {
+            override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> =
+              InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))
+          }
+        ApplicationManager.getApplication().registerOrReplaceServiceInstance(GrpcChannelBuilderFactory::class.java, grpcFactory, disposable)
+        val emulatorCatalog = RunningEmulatorCatalog.getInstance()
+        System.setProperty("user.home", userHome.toString())
+        Files.createDirectories(userHome.resolve("Desktop"))
+        registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
+        emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
+        AvdManagerConnection.setConnectionFactory { sdkHandler, _ -> TestAvdManagerConnection(sdkHandler, avdRoot) }
+        val androidSdks =
+          object : AndroidSdksImpl() {
+            override fun tryToChooseSdkHandler(): AndroidSdkHandler {
+              val sdkRoot = FakeEmulator.getSdkFolder(avdRoot)
+              return AndroidSdkHandler(sdkRoot, sdkRoot)
+            }
+          }
+        ApplicationManager.getApplication()?.registerOrReplaceServiceInstance(AndroidSdks::class.java, androidSdks, disposable)
       }
-      ApplicationManager.getApplication().registerOrReplaceServiceInstance(GrpcChannelBuilderFactory::class.java, grpcFactory, disposable)
-      val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-      System.setProperty("user.home", userHome.toString())
-      Files.createDirectories(userHome.resolve("Desktop"))
-      registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
-      emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
-      AvdManagerConnection.setConnectionFactory { sdkHandler, _ -> TestAvdManagerConnection(sdkHandler, avdRoot) }
-      val androidSdks = object : AndroidSdksImpl() {
-        override fun tryToChooseSdkHandler(): AndroidSdkHandler {
-          val sdkRoot = FakeEmulator.getSdkFolder(avdRoot)
-          return AndroidSdkHandler(sdkRoot, sdkRoot)
-        }
-      }
-      ApplicationManager.getApplication()?.registerOrReplaceServiceInstance(AndroidSdks::class.java, androidSdks, disposable)
-    }
 
-    override fun after() {
-      val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-      val emulatorControllers = emulatorCatalog.emulators
-      try {
-        for (emulator in emulatorControllers) {
-          emulator.shutdown()
+      override fun after() {
+        val emulatorCatalog = RunningEmulatorCatalog.getInstance()
+        val emulatorControllers = emulatorCatalog.emulators
+        try {
+          for (emulator in emulatorControllers) {
+            emulator.shutdown()
+          }
+          for (emulator in emulators) {
+            emulator.stop()
+          }
+        } finally {
+          disposable?.let { Disposer.dispose(it) }
+          for (emulator in emulatorControllers) {
+            emulator.awaitTermination(1.seconds)
+          }
+          System.setProperty("user.home", savedUserHome)
+          registrationDirectory = null
+          emulatorCatalog.overrideRegistrationDirectory(null)
+          AvdManagerConnection.resetConnectionFactory()
         }
-        for (emulator in emulators) {
-          emulator.stop()
-        }
-      }
-      finally {
-        disposable?.let { Disposer.dispose(it) }
-        for (emulator in emulatorControllers) {
-          emulator.awaitTermination(1.seconds)
-        }
-        System.setProperty("user.home", savedUserHome)
-        registrationDirectory = null
-        emulatorCatalog.overrideRegistrationDirectory(null)
-        AvdManagerConnection.resetConnectionFactory()
       }
     }
-  }
 
   override fun apply(base: Statement, description: Description): Statement {
     return tempDirectory.apply(emulatorResource.apply(ProcessHandleProviderRule().apply(base, description), description), description)
@@ -117,18 +117,16 @@ class FakeEmulatorRule : TestRule {
     return emulator
   }
 
-  private inner class TestAvdManagerConnection(
-    sdkHandler: AndroidSdkHandler,
-    avdHomeFolder: Path,
-  ) : AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder), Dispatchers.Unconfined) {
+  private inner class TestAvdManagerConnection(sdkHandler: AndroidSdkHandler, avdHomeFolder: Path) :
+    AvdManagerConnection(sdkHandler, IdeAvdManagers.getAvdManager(sdkHandler, avdHomeFolder), Dispatchers.Unconfined) {
 
     override fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
       return super.getAvds(true) // Always refresh in tests.
     }
 
     override suspend fun startAvd(project: Project?, avd: AvdInfo, forceLaunchInToolWindow: Boolean, bootMode: BootMode): IDevice {
-      val emulator = emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?:
-          throw IllegalArgumentException("Unknown AVD: ${avd.id}")
+      val emulator =
+        emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?: throw IllegalArgumentException("Unknown AVD: ${avd.id}")
       emulator.start(standalone = !forceLaunchInToolWindow)
       return mock<IDevice>()
     }

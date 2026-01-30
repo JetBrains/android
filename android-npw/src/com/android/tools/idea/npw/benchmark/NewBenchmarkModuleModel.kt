@@ -28,63 +28,65 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 enum class BenchmarkModuleType(val title: String) {
   MACROBENCHMARK("Macrobenchmark"),
   MICROBENCHMARK("Microbenchmark"),
 }
 
-class NewBenchmarkModuleModel(
-  project: Project,
-  moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker,
-) : ModuleModel(
-  name = "benchmark",
-  commandName = "New Benchmark Module",
-  isLibrary = true,
-  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent,
-  wizardContext = NEW_MODULE
-) {
+class NewBenchmarkModuleModel(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) :
+  ModuleModel(
+    name = "benchmark",
+    commandName = "New Benchmark Module",
+    isLibrary = true,
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+    moduleParent = moduleParent,
+    wizardContext = NEW_MODULE,
+  ) {
   val benchmarkModuleType = ObjectValueProperty<BenchmarkModuleType>(MACROBENCHMARK)
   val targetModule = OptionalValueProperty<Module>()
 
   override fun getParamsToLog(): String {
-    return super.getParamsToLog() + """
+    return super.getParamsToLog() +
+      """
       |
       |[Benchmark params]
       |Benchmark module type: ${benchmarkModuleType.get().name}
       |Target application: ${targetModule.valueOrNull ?: "N/A"}
-    """.trimMargin()
+    """
+        .trimMargin()
   }
 
-  override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe
-      get() = { td: TemplateData ->
-        when (benchmarkModuleType.get()) {
-          MICROBENCHMARK -> generateBenchmarkModule(
-            moduleData = td as ModuleTemplateData,
-            useGradleKts = useGradleKts.get(),
-            useVersionCatalog = useVersionCatalog.get()
-          )
-          MACROBENCHMARK -> generateMacrobenchmarkModule(
-            newModule = td as ModuleTemplateData,
-            useGradleKts = useGradleKts.get(),
-            targetModule = targetModule.value,
-            useVersionCatalog = useVersionCatalog.get()
-          )
+  override val renderer =
+    object : ModuleTemplateRenderer() {
+      override val recipe: Recipe
+        get() = { td: TemplateData ->
+          when (benchmarkModuleType.get()) {
+            MICROBENCHMARK ->
+              generateBenchmarkModule(
+                moduleData = td as ModuleTemplateData,
+                useGradleKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            MACROBENCHMARK ->
+              generateMacrobenchmarkModule(
+                newModule = td as ModuleTemplateData,
+                useGradleKts = useGradleKts.get(),
+                targetModule = targetModule.value,
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+          }
         }
-      }
-  }
+    }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-    get() = when (benchmarkModuleType.get()) {
-      MICROBENCHMARK -> RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
-      MACROBENCHMARK -> RenderLoggingEvent.MACROBENCHMARK_LIBRARY_MODULE
-    }
+    get() =
+      when (benchmarkModuleType.get()) {
+        MICROBENCHMARK -> RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
+        MACROBENCHMARK -> RenderLoggingEvent.MACROBENCHMARK_LIBRARY_MODULE
+      }
 }
-

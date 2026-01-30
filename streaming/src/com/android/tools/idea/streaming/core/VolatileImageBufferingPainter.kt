@@ -16,13 +16,12 @@ import java.awt.image.VolatileImage
 import org.intellij.lang.annotations.MagicConstant
 
 /**
- * Allows painting with the help of an intermediate buffer
- * This in turn allows post-processing of the painted data without affecting the actual target surface
+ * Allows painting with the help of an intermediate buffer This in turn allows post-processing of the painted data without affecting the
+ * actual target surface
  *
  * This implementation uses [VolatileImage] as a buffer, which can sometimes be hardware accelerated
  *
- * This is a copy of `com.intellij.collaboration.ui.util.VolatileImageBufferingPainter` with the added
- * [alpha] property.
+ * This is a copy of `com.intellij.collaboration.ui.util.VolatileImageBufferingPainter` with the added [alpha] property.
  */
 internal class VolatileImageBufferingPainter(@MagicConstant(valuesFromClass = Transparency::class) private val bufferTransparency: Int) {
 
@@ -41,13 +40,12 @@ internal class VolatileImageBufferingPainter(@MagicConstant(valuesFromClass = Tr
       PaintUtil.alignTxToInt(g2, null, true, true, PaintUtil.RoundingMode.ROUND_FLOOR_BIAS)
       g2.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha)
       g2.drawImage(buffer, 0, 0, null)
-    }
-    finally {
+    } finally {
       g2.dispose()
     }
   }
 
-  //TODO: recreate buffer on system scale change
+  // TODO: recreate buffer on system scale change
   private fun validateAndRecreateBuffer(g2: Graphics2D, bufferSize: Dimension): VolatileImage? {
     /*
     Where do I begin?
@@ -69,24 +67,19 @@ internal class VolatileImageBufferingPainter(@MagicConstant(valuesFromClass = Tr
     if (widthAligned <= 0 || heightAligned <= 0) return null
 
     val dc = g2.deviceConfiguration
-    return buffer?.takeIf {
-      it.width == widthAligned && it.height == heightAligned && it.validate(dc) != VolatileImage.IMAGE_INCOMPATIBLE
-    } ?: createVolatileImage(dc, widthAligned, heightAligned).also {
-      buffer = it
-    }
+    return buffer?.takeIf { it.width == widthAligned && it.height == heightAligned && it.validate(dc) != VolatileImage.IMAGE_INCOMPATIBLE }
+      ?: createVolatileImage(dc, widthAligned, heightAligned).also { buffer = it }
   }
 
   private fun createVolatileImage(dc: GraphicsConfiguration, width: Int, height: Int): VolatileImage? =
     try {
-      // acceleration does not work for BITMASK so we defer to full transparency
-      val transparency = if (bufferTransparency != Transparency.OPAQUE) Transparency.TRANSLUCENT else bufferTransparency
-      dc.createCompatibleVolatileImage(width, height, ImageCapabilities(true), transparency)
-    }
-    catch (_: AWTException) {
-      dc.createCompatibleVolatileImage(width, height, bufferTransparency)
-    }?.takeIf {
-      it.validate(dc) != VolatileImage.IMAGE_INCOMPATIBLE
-    }
+        // acceleration does not work for BITMASK so we defer to full transparency
+        val transparency = if (bufferTransparency != Transparency.OPAQUE) Transparency.TRANSLUCENT else bufferTransparency
+        dc.createCompatibleVolatileImage(width, height, ImageCapabilities(true), transparency)
+      } catch (_: AWTException) {
+        dc.createCompatibleVolatileImage(width, height, bufferTransparency)
+      }
+      ?.takeIf { it.validate(dc) != VolatileImage.IMAGE_INCOMPATIBLE }
 }
 
 private fun paintToVolatileImage(image: VolatileImage, painter: (g2: Graphics2D) -> Unit): Boolean {
@@ -96,11 +89,9 @@ private fun paintToVolatileImage(image: VolatileImage, painter: (g2: Graphics2D)
     val bufferG = image.createGraphics()
     try {
       painter(bufferG)
-    }
-    finally {
+    } finally {
       bufferG.dispose()
     }
-  }
-  while (image.contentsLost() && iteration <= 3)
+  } while (image.contentsLost() && iteration <= 3)
   return !image.contentsLost()
 }

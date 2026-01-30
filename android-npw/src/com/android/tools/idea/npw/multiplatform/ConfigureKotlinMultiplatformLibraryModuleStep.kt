@@ -30,43 +30,25 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import java.util.Optional
 import org.jetbrains.android.util.AndroidBundle
 
-class ConfigureKotlinMultiplatformLibraryModuleStep(
-  model: NewKotlinMultiplatformLibraryModuleModel,
-  title: String,
-) :
-  ConfigureModuleStep<NewKotlinMultiplatformLibraryModuleModel>(
-    model,
-    FormFactor.MOBILE,
-    SdkVersionInfo.LOWEST_ACTIVE_API,
-    title = title,
-  ) {
+class ConfigureKotlinMultiplatformLibraryModuleStep(model: NewKotlinMultiplatformLibraryModuleModel, title: String) :
+  ConfigureModuleStep<NewKotlinMultiplatformLibraryModuleModel>(model, FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API, title = title) {
 
   init {
     model.language.set(Optional.of(Language.Kotlin))
     validatorPanel.registerValidator(model.kgpVersion, MultiplatformKgpMinVersionValidator())
-    validatorPanel.registerValidator(
-      model.agpVersionSelector,
-      MultiplatformAgpMinVersionValidator(),
-    )
+    validatorPanel.registerValidator(model.agpVersionSelector, MultiplatformAgpMinVersionValidator())
   }
 
   override fun createMainPanel(): DialogPanel =
     panel {
-        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
-          cell(moduleName).align(AlignX.FILL)
-        }
+        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
         row("Package name") { cell(packageName).align(AlignX.FILL) }
       }
       .withBorder(empty(6))
 
   override fun onProceeding() {
     super.onProceeding()
-    model.template.set(
-      GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(
-        model.project,
-        model.moduleName.get(),
-      )
-    )
+    model.template.set(GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(model.project, model.moduleName.get()))
   }
 
   override fun getPreferredFocusComponent() = moduleName

@@ -18,10 +18,9 @@ package com.android.tools.idea.insights
 /**
  * Models App Insight states.
  *
- * App Insights functionality currently has a hard dependency on the user being logged into Android
- * Studio with their Google account. Without it, none of the functionality is meaningful since we
- * are unable to make any API calls. To express this dependency the model provides [Unauthenticated]
- * and [Authenticated] states.
+ * App Insights functionality currently has a hard dependency on the user being logged into Android Studio with their Google account.
+ * Without it, none of the functionality is meaningful since we are unable to make any API calls. To express this dependency the model
+ * provides [Unauthenticated] and [Authenticated] states.
  */
 sealed class AppInsightsModel {
   /** The system hasn't initialized yet. Represents the state before authentication is known. */
@@ -31,19 +30,14 @@ sealed class AppInsightsModel {
   data object Unauthenticated : AppInsightsModel()
 
   /**
-   * Indicates some failure during the initialization causing AQI to not be able to show any useful
-   * information.
+   * Indicates some failure during the initialization causing AQI to not be able to show any useful information.
    *
-   * For Crashlytics, this means Studio failed the gradle sync at startup and AQI could not
-   * determine app names.
+   * For Crashlytics, this means Studio failed the gradle sync at startup and AQI could not determine app names.
    *
    * For Vitals, this means the initial connections query failed.
    */
   data object InitializationFailed : AppInsightsModel()
 
-  /**
-   * When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App
-   * Insights state data.
-   */
+  /** When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App Insights state data. */
   data class Authenticated(val controller: AppInsightsProjectLevelController) : AppInsightsModel()
 }

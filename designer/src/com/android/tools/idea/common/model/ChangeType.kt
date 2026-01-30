@@ -31,9 +31,6 @@ enum class ChangeType {
   BUILD,
   CONFIGURATION_CHANGE,
 
-  /**
-   * When the model is not active, it will batch all the notifications and send this one on
-   * reactivation.
-   */
+  /** When the model is not active, it will batch all the notifications and send this one on reactivation. */
   MODEL_ACTIVATION,
 }

@@ -39,13 +39,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
-/**
- * Tests for [AddGoogleMavenRepositoryHyperlink].
- */
+/** Tests for [AddGoogleMavenRepositoryHyperlink]. */
 @RunsInEdt
 class AddGoogleMavenRepositoryHyperlinkTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
   val projectFolderPath by lazy { File(project.basePath!!) }
@@ -53,7 +50,8 @@ class AddGoogleMavenRepositoryHyperlinkTest {
   @Before
   fun setup() {
     // Prepare project
-    AndroidGradleTests.prepareProjectForImportCore(AndroidCoreTestProject.SIMPLE_APPLICATION.templateAbsolutePath, projectFolderPath) { root ->
+    AndroidGradleTests.prepareProjectForImportCore(AndroidCoreTestProject.SIMPLE_APPLICATION.templateAbsolutePath, projectFolderPath) { root
+      ->
       AndroidGradleTests.defaultPatchPreparedProject(root, AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve(), null, false)
     }
   }
@@ -120,7 +118,6 @@ class AddGoogleMavenRepositoryHyperlinkTest {
     assertThat(buildModel.isModified()).isFalse()
     assertThat(buildModel.repositories().repositories()).hasSize(0)
     assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0)
-
   }
 
   companion object {
@@ -135,4 +132,3 @@ class AddGoogleMavenRepositoryHyperlinkTest {
     }
   }
 }
-

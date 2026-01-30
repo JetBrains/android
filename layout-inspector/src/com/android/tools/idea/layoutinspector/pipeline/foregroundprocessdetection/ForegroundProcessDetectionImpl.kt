@@ -38,6 +38,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -47,16 +49,12 @@ import kotlinx.coroutines.withContext
 import layout_inspector.LayoutInspector
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
 
 /** This class contains information about a foreground process on an Android device. */
 data class ForegroundProcess(val pid: Int, val processName: String)
 
 /** Match a [ForegroundProcess] with a [ProcessDescriptor]. */
-internal fun ForegroundProcess.matchToProcessDescriptor(
-  processModel: ProcessesModel
-): ProcessDescriptor? {
+internal fun ForegroundProcess.matchToProcessDescriptor(processModel: ProcessesModel): ProcessDescriptor? {
   return processModel.processes.firstOrNull { it.pid == this.pid }
 }
 
@@ -68,11 +66,7 @@ fun interface ForegroundProcessListener {
    * @param foregroundProcess The foreground process.
    * @param isDebuggable True if the foreground process is debuggable.
    */
-  fun onNewProcess(
-    device: DeviceDescriptor,
-    foregroundProcess: ForegroundProcess,
-    isDebuggable: Boolean,
-  )
+  fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess, isDebuggable: Boolean)
 }
 
 /**
@@ -88,22 +82,18 @@ interface ForegroundProcessDetection {
   /**
    * Start polling for foreground process on [newDevice].
    *
-   * If we are already polling on another device and stopPollingPreviousDevice is true, we send a
-   * stop command to that device before sending a start command to the new device.
+   * If we are already polling on another device and stopPollingPreviousDevice is true, we send a stop command to that device before sending
+   * a start command to the new device.
    */
   fun startPollingDevice(newDevice: DeviceDescriptor, stopPollingPreviousDevice: Boolean = true)
 
-  /**
-   * Stop listening to foreground process events from [DeviceModel.selectedDevice]. Then sets
-   * [DeviceModel.selectedDevice] to null.
-   */
+  /** Stop listening to foreground process events from [DeviceModel.selectedDevice]. Then sets [DeviceModel.selectedDevice] to null. */
   fun stopPollingSelectedDevice()
 
   /**
-   * Starts listening for events from the Transport, such as device connected/disconnected and
-   * foreground process detection events. It ignores events that do not originate from the selected
-   * device, if one is provided. If no device is selected, it automatically connects to the first
-   * connected device from the events stream, so the user doesn't have to manually pick the device.
+   * Starts listening for events from the Transport, such as device connected/disconnected and foreground process detection events. It
+   * ignores events that do not originate from the selected device, if one is provided. If no device is selected, it automatically connects
+   * to the first connected device from the events stream, so the user doesn't have to manually pick the device.
    */
   fun start(selectedDeviceId: String? = null)
 
@@ -112,13 +102,11 @@ interface ForegroundProcessDetection {
 }
 
 /**
- * This class is responsible for establishing a connection to the transport, sending commands to it
- * and receiving events from it.
+ * This class is responsible for establishing a connection to the transport, sending commands to it and receiving events from it.
  *
- * The code that tracks the foreground process on the device is a library added to the transport's
- * daemon, which runs on Android. When it receives the start command, the library starts tracking
- * the foreground process, it stops when it receives the stop command. Information about the
- * foreground process is sent by the transport as an event.
+ * The code that tracks the foreground process on the device is a library added to the transport's daemon, which runs on Android. When it
+ * receives the start command, the library starts tracking the foreground process, it stops when it receives the stop command. Information
+ * about the foreground process is sent by the transport as an event.
  *
  * @param deviceModel At any time reflects on which device we are polling for foreground process.
  */
@@ -141,18 +129,14 @@ class ForegroundProcessDetectionImpl(
     private val logger = Logger.getInstance(ForegroundProcessDetectionImpl::class.java)
 
     /**
-     * We are storing static references of [DeviceModel] because when multiple projects are open,
-     * they need to coordinate with each other.
+     * We are storing static references of [DeviceModel] because when multiple projects are open, they need to coordinate with each other.
      *
-     * When multiple projects are open, they all share the same device, on which a thread is running
-     * to do foreground process detection. When a project asks the device to stop foreground process
-     * detection, it stops not only for that project, but for all the others too.
+     * When multiple projects are open, they all share the same device, on which a thread is running to do foreground process detection.
+     * When a project asks the device to stop foreground process detection, it stops not only for that project, but for all the others too.
      *
-     * On-device foreground process detection should be stopped only if the device is not the
-     * selected device on any [DeviceModel].
+     * On-device foreground process detection should be stopped only if the device is not the selected device on any [DeviceModel].
      *
-     * This could be avoided by changing the communication protocol between Studio and device see
-     * b/257101182.
+     * This could be avoided by changing the communication protocol between Studio and device see b/257101182.
      */
     @VisibleForTesting val deviceModels = CopyOnWriteArrayList<DeviceModel>()
 
@@ -166,18 +150,11 @@ class ForegroundProcessDetectionImpl(
       logger.info("Device model removed. Existing device models count: ${deviceModels.size}")
     }
 
-    /**
-     * Keeps track of the timestamp at connection for each device that was connected. This is used
-     * to detect when b/250589069 happens.
-     */
+    /** Keeps track of the timestamp at connection for each device that was connected. This is used to detect when b/250589069 happens. */
     private val connectTimestamps = mutableMapOf<DeviceDescriptor, Long>()
     private val loggedDevices = mutableSetOf<DeviceDescriptor>()
 
-    private fun addTimeStamp(
-      deviceDescriptor: DeviceDescriptor,
-      newTimeStamp: Long,
-      layoutInspectorMetrics: LayoutInspectorMetrics,
-    ) {
+    private fun addTimeStamp(deviceDescriptor: DeviceDescriptor, newTimeStamp: Long, layoutInspectorMetrics: LayoutInspectorMetrics) {
       if (connectTimestamps.contains(deviceDescriptor)) {
         val prevTimeStamp = connectTimestamps[deviceDescriptor]!!
         // the previous timestamp is >= the new timestamp, this means that b/250589069 happened.
@@ -189,8 +166,7 @@ class ForegroundProcessDetectionImpl(
           // log only once per device
           loggedDevices.add(deviceDescriptor)
           layoutInspectorMetrics.logTransportError(
-            DynamicLayoutInspectorTransportError.Type
-              .TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
+            DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
             deviceDescriptor,
           )
         } else {
@@ -202,12 +178,11 @@ class ForegroundProcessDetectionImpl(
     }
   }
 
-  private val foregroundProcessListeners =
-    ListenerCollection.createWithDirectExecutor<ForegroundProcessListener>()
+  private val foregroundProcessListeners = ListenerCollection.createWithDirectExecutor<ForegroundProcessListener>()
 
   /**
-   * Maps groupId to connected stream. Each stream corresponds to a device. The groupId is the only
-   * information available when the stream disconnects.
+   * Maps groupId to connected stream. Each stream corresponds to a device. The groupId is the only information available when the stream
+   * disconnects.
    */
   private val connectedStreams = ConcurrentHashMap<Long, TransportStreamChannel>()
 
@@ -239,16 +214,9 @@ class ForegroundProcessDetectionImpl(
     }
   }
 
-  private data class ForegroundProcessData(
-    val device: DeviceDescriptor,
-    val process: ForegroundProcess,
-    val isDebuggable: Boolean,
-  )
+  private data class ForegroundProcessData(val device: DeviceDescriptor, val process: ForegroundProcess, val isDebuggable: Boolean)
 
-  /**
-   * Keeps track of the last seen foreground process, it is used to notify new listeners about the
-   * current state
-   */
+  /** Keeps track of the last seen foreground process, it is used to notify new listeners about the current state */
   private var lastForegroundProcess: ForegroundProcessData? = null
 
   @VisibleForTesting var transportListenerJob: Job? = null
@@ -259,11 +227,7 @@ class ForegroundProcessDetectionImpl(
   }
 
   /** This is the preferred way to call the listeners, as it keeps track of the latest state */
-  private fun invokeListeners(
-    device: DeviceDescriptor,
-    process: ForegroundProcess,
-    isDebuggable: Boolean,
-  ) {
+  private fun invokeListeners(device: DeviceDescriptor, process: ForegroundProcess, isDebuggable: Boolean) {
     lastForegroundProcess = ForegroundProcessData(device, process, isDebuggable)
     foregroundProcessListeners.forEach { it.onNewProcess(device, process, isDebuggable) }
   }
@@ -287,10 +251,8 @@ class ForegroundProcessDetectionImpl(
             if (activity is StreamConnected) {
               connectedStreams[streamChannel.stream.streamId] = streamChannel
 
-              val timeRequest =
-                Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
-              val currentTime =
-                activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
+              val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
+              val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
 
               addTimeStamp(streamDevice, currentTime, layoutInspectorMetrics)
 
@@ -298,10 +260,7 @@ class ForegroundProcessDetectionImpl(
               launch {
                 streamChannel
                   .eventFlow(
-                    StreamEventQuery(
-                      eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS,
-                      startTime = { currentTime },
-                    )
+                    StreamEventQuery(eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS, startTime = { currentTime })
                   )
                   // There can be multiple projects or devices open, which can lead to race
                   // conditions. For example, in the case of projects: Project1 with device1
@@ -315,72 +274,49 @@ class ForegroundProcessDetectionImpl(
                     val foregroundProcess = streamEvent.toForegroundProcess()
                     if (foregroundProcess != null) {
                       // The ProcessesModel only contains debuggable processes.
-                      val isDebuggable =
-                        foregroundProcess.matchToProcessDescriptor(processModel) != null
+                      val isDebuggable = foregroundProcess.matchToProcessDescriptor(processModel) != null
                       invokeListeners(streamDevice, foregroundProcess, isDebuggable)
                     }
                   }
               }
 
               val handshakeExecutor =
-                HandshakeExecutor(
-                  streamDevice,
-                  stream,
-                  scope,
-                  workDispatcher,
-                  transportClient,
-                  metrics,
-                  pollingIntervalMs,
-                )
+                HandshakeExecutor(streamDevice, stream, scope, workDispatcher, transportClient, metrics, pollingIntervalMs)
 
               // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
               launch {
                 streamChannel
                   .eventFlow(
                     StreamEventQuery(
-                      eventKind =
-                        Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
+                      eventKind = Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
                       startTime = { currentTime },
                     )
                   )
                   .collect { streamEvent ->
                     if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
-                      val trackingForegroundProcessSupportedEvent =
-                        streamEvent.event.layoutInspectorTrackingForegroundProcessSupported
+                      val trackingForegroundProcessSupportedEvent = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported
                       val supportType = trackingForegroundProcessSupportedEvent.supportType!!
                       when (supportType) {
                         LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
-                          handshakeExecutor.post(
-                            HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent)
-                          )
+                          handshakeExecutor.post(HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent))
                           deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
                             ForegroundProcessDetectionSupport.NOT_SUPPORTED
                         }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType
-                          .SUPPORTED -> {
-                          handshakeExecutor.post(
-                            HandshakeState.Supported(trackingForegroundProcessSupportedEvent)
-                          )
+                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
+                          handshakeExecutor.post(HandshakeState.Supported(trackingForegroundProcessSupportedEvent))
 
-                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
-                            ForegroundProcessDetectionSupport.SUPPORTED
+                          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.SUPPORTED
 
                           // If there are no devices connected, we can automatically connect to the
                           // first device.
                           // So the user doesn't have to handpick the device.
-                          if (
-                            deviceModel.selectedDevice == null &&
-                              deviceModel.devices.contains(streamDevice)
-                          ) {
+                          if (deviceModel.selectedDevice == null && deviceModel.devices.contains(streamDevice)) {
                             // TODO make sure this doesn't happen when the tool window is collapsed
                             startPollingDevice(streamDevice)
                           }
                         }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType
-                          .NOT_SUPPORTED -> {
-                          handshakeExecutor.post(
-                            HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent)
-                          )
+                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
+                          handshakeExecutor.post(HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent))
 
                           deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
                             ForegroundProcessDetectionSupport.NOT_SUPPORTED
@@ -389,8 +325,7 @@ class ForegroundProcessDetectionImpl(
                           // DeviceModel#foregroundProcessDetectionSupportedDevices,
                           // so it will be handled in the UI by showing a process picker.
                         }
-                        LayoutInspector.TrackingForegroundProcessSupported.SupportType
-                          .UNRECOGNIZED -> {
+                        LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
                           deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
                             ForegroundProcessDetectionSupport.NOT_SUPPORTED
                           throw RuntimeException("Unrecognized support type: $supportType")
@@ -408,8 +343,7 @@ class ForegroundProcessDetectionImpl(
               }
 
               handshakeExecutor.post(HandshakeState.Connected)
-              deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
-                ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS
+              deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] = ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS
               handshakeExecutors[streamDevice] = handshakeExecutor
             } else if (activity is StreamDisconnected) {
               connectedStreams.remove(stream.streamId)
@@ -446,15 +380,11 @@ class ForegroundProcessDetectionImpl(
   }
 
   override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
-    lastForegroundProcess?.let {
-      foregroundProcessListener.onNewProcess(it.device, it.process, it.isDebuggable)
-    }
+    lastForegroundProcess?.let { foregroundProcessListener.onNewProcess(it.device, it.process, it.isDebuggable) }
     foregroundProcessListeners.add(foregroundProcessListener)
   }
 
-  override fun removeForegroundProcessListener(
-    foregroundProcessListener: ForegroundProcessListener
-  ) {
+  override fun removeForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
     foregroundProcessListeners.remove(foregroundProcessListener)
   }
 
@@ -464,8 +394,7 @@ class ForegroundProcessDetectionImpl(
       return
     }
 
-    val oldStream =
-      connectedStreams.values.find { it.stream.device.serial == selectedDevice?.serial }
+    val oldStream = connectedStreams.values.find { it.stream.device.serial == selectedDevice?.serial }
     val newStream = connectedStreams.values.find { it.stream.device.serial == newDevice.serial }
 
     if (oldStream != null && stopPollingPreviousDevice) {
@@ -485,8 +414,7 @@ class ForegroundProcessDetectionImpl(
 
   override fun stopPollingSelectedDevice() {
     val selectedDevice = deviceModel.selectedDevice ?: return
-    val transportStreamChannel =
-      connectedStreams.values.find { it.stream.device.serial == selectedDevice.serial }
+    val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == selectedDevice.serial }
     if (transportStreamChannel != null) {
       sendStopOnDevicePollingCommand(transportStreamChannel.stream, selectedDevice)
     }
@@ -498,50 +426,28 @@ class ForegroundProcessDetectionImpl(
     deviceModel.selectedDevice = null
   }
 
-  /**
-   * Tell the device connected to this stream to start the on-device detection of foreground
-   * process.
-   */
+  /** Tell the device connected to this stream to start the on-device detection of foreground process. */
   private fun sendStartOnDevicePollingCommand(stream: Common.Stream) {
-    scope.launch {
-      transportClient.sendCommand(
-        Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS,
-        stream.streamId,
-      )
-    }
+    scope.launch { transportClient.sendCommand(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS, stream.streamId) }
   }
 
-  /**
-   * Tell the device connected to this stream to stop the on-device detection of foreground process.
-   */
-  private fun sendStopOnDevicePollingCommand(
-    stream: Common.Stream,
-    deviceDescriptor: DeviceDescriptor,
-  ) {
+  /** Tell the device connected to this stream to stop the on-device detection of foreground process. */
+  private fun sendStopOnDevicePollingCommand(stream: Common.Stream, deviceDescriptor: DeviceDescriptor) {
     if (shouldStopPollingDevice(deviceDescriptor)) {
-      scope.launch {
-        transportClient.sendCommand(
-          Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS,
-          stream.streamId,
-        )
-      }
+      scope.launch { transportClient.sendCommand(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS, stream.streamId) }
     }
   }
 
   /**
-   * The polling should be stopped on a device only if it's not the selected device on any other
-   * [DeviceModel]. There can be multiple [DeviceModel]s if there are multiple projects open in
-   * Studio.
+   * The polling should be stopped on a device only if it's not the selected device on any other [DeviceModel]. There can be multiple
+   * [DeviceModel]s if there are multiple projects open in Studio.
    *
    * @see ForegroundProcessDetectionImpl.deviceModels
    */
   private fun shouldStopPollingDevice(selectedDevice: DeviceDescriptor) =
     deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial } <= 1
 
-  /**
-   * Initiates a new handshake. Only if [device] already executed the handshake that happens at
-   * connection time.
-   */
+  /** Initiates a new handshake. Only if [device] already executed the handshake that happens at connection time. */
   private suspend fun initiateNewHandshake(device: DeviceDescriptor) {
     val handshakeExecutor = handshakeExecutors[device]
     if (handshakeExecutor?.isHandshakeInProgress == false) {
@@ -551,10 +457,7 @@ class ForegroundProcessDetectionImpl(
 }
 
 /** Send a command to the transport. */
-internal suspend fun TransportClient.sendCommand(
-  commandType: Commands.Command.CommandType,
-  streamId: Long,
-) =
+internal suspend fun TransportClient.sendCommand(commandType: Commands.Command.CommandType, streamId: Long) =
   withContext(AndroidDispatchers.workerThread) {
     val command = Commands.Command.newBuilder().setType(commandType).setStreamId(streamId).build()
     // This is a potentially long-running operation, should not be executed on the main thread.

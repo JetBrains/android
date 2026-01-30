@@ -39,12 +39,14 @@ class IconPickerCellRenderer : TableCellRenderer {
 
   private val label = IconPickerCellComponent()
 
-  override fun getTableCellRendererComponent(table: JTable?,
-                                             value: Any?,
-                                             isSelected: Boolean,
-                                             hasFocus: Boolean,
-                                             row: Int,
-                                             column: Int): Component {
+  override fun getTableCellRendererComponent(
+    table: JTable?,
+    value: Any?,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int,
+  ): Component {
     return label.apply { updateComponent(isSelected = isSelected, isFocused = hasFocus, value = value) }
   }
 }

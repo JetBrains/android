@@ -31,13 +31,11 @@ class DeviceUiSettingsIntegrationTestSuite : IdeaTestSuiteBase()
 /**
  * Integration test for the UI settings picker for physical devices.
  *
- * The test is run on an emulator, but a [DeviceToolWindowPanel] is created which will
- * push the device agent to the emulator and communicate with the emulator the same way
- * a device would.
+ * The test is run on an emulator, but a [DeviceToolWindowPanel] is created which will push the device agent to the emulator and communicate
+ * with the emulator the same way a device would.
  */
 internal class DeviceUiSettingsIntegrationTest {
-  @get:Rule
-  val rule = UiSettingsIntegrationRule().onDevice()
+  @get:Rule val rule = UiSettingsIntegrationRule().onDevice()
 
   /**
    * The test:

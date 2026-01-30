@@ -20,64 +20,51 @@ import java.io.File
 interface IdeAndroidArtifactOutput {
 
   companion object {
-    /** An object representing the lack of filter.  */
-    @JvmField
-    val NO_FILTER: String? = null
+    /** An object representing the lack of filter. */
+    @JvmField val NO_FILTER: String? = null
 
-    /**
-     * String representation of the OutputType enum which can be used for remote-able interfaces.
-     */
-    @JvmField
-    val MAIN = OutputType.MAIN.name
+    /** String representation of the OutputType enum which can be used for remote-able interfaces. */
+    @JvmField val MAIN = OutputType.MAIN.name
 
-    @JvmField
-    val FULL_SPLIT = OutputType.FULL_SPLIT.name
+    @JvmField val FULL_SPLIT = OutputType.FULL_SPLIT.name
 
-    /**
-     * String representations of the FilterType enum which can be used for remote-able interfaces.Ap
-     */
-    @JvmField
-    val DENSITY = FilterType.DENSITY.name
+    /** String representations of the FilterType enum which can be used for remote-able interfaces.Ap */
+    @JvmField val DENSITY = FilterType.DENSITY.name
 
-    @JvmField
-    val ABI = FilterType.ABI.name
+    @JvmField val ABI = FilterType.ABI.name
 
-    @JvmField
-    val LANGUAGE = FilterType.LANGUAGE.name
+    @JvmField val LANGUAGE = FilterType.LANGUAGE.name
   }
 
-  /**
-   * Type of package file, either the main APK or a full split APK file containing resources for a
-   * particular split dimension.
-   */
+  /** Type of package file, either the main APK or a full split APK file containing resources for a particular split dimension. */
   enum class OutputType {
-    MAIN, FULL_SPLIT
+    MAIN,
+    FULL_SPLIT,
   }
 
-  /** Split dimension type  */
+  /** Split dimension type */
   enum class FilterType {
-    DENSITY, ABI, LANGUAGE
+    DENSITY,
+    ABI,
+    LANGUAGE,
   }
 
-  /** Returns all the split information used to create the APK.  */
+  /** Returns all the split information used to create the APK. */
   val filters: Collection<IdeFilterData?>
 
   /**
    * Returns the version code for this output.
    *
-   *
-   * This is convenient method that returns the final version code whether it's coming from the
-   * override set in the output or from the variant's merged flavor.
+   * This is convenient method that returns the final version code whether it's coming from the override set in the output or from the
+   * variant's merged flavor.
    *
    * @return the version code.
    */
   val versionCode: Int
 
   /**
-   * Returns the output file for this artifact's output.
-   * Depending on whether the project is an app or a library project, this could be an apk or
-   * an aar file. If this output file has filters, this is a split
-   * APK.
+   * Returns the output file for this artifact's output. Depending on whether the project is an app or a library project, this could be an
+   * apk or an aar file. If this output file has filters, this is a split APK.
    *
    * For test artifact for a library project, this would also be an apk.
    *

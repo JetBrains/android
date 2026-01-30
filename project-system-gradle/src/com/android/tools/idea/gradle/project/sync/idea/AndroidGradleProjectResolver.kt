@@ -53,8 +53,8 @@ import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
 import com.android.tools.idea.gradle.project.sync.ModelProviderCachedData
-import com.android.tools.idea.gradle.project.sync.PhasedSyncDependencyModelProvider
 import com.android.tools.idea.gradle.project.sync.PhasedSyncAdditionalModelProvider
+import com.android.tools.idea.gradle.project.sync.PhasedSyncDependencyModelProvider
 import com.android.tools.idea.gradle.project.sync.PhasedSyncProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
@@ -125,7 +125,15 @@ import com.intellij.util.ExceptionUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.SystemProperties
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import java.io.File
+import java.io.IOException
+import java.util.IdentityHashMap
+import java.util.function.Function
+import java.util.zip.ZipException
+import kotlin.io.path.Path
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -146,20 +154,10 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
-import java.io.File
-import java.io.IOException
-import java.util.IdentityHashMap
-import java.util.function.Function
-import java.util.zip.ZipException
-import kotlin.io.path.Path
-import kotlinx.coroutines.async
-import kotlinx.coroutines.future.asCompletableFuture
 
 private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 
-/**
- * Imports Android-Gradle projects into IDEA.
- */
+/** Imports Android-Gradle projects into IDEA. */
 @Order(ExternalSystemConstants.UNORDERED)
 @Suppress("AvoidByLazy")
 class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal constructor(private val myCommandLineArgs: CommandLineArgs) :
@@ -217,9 +215,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
     val ideAndroidSyncIssuesAndExceptions = resolverCtx.getExtraProject(gradleModule, IdeAndroidSyncIssuesAndExceptions::class.java)
     if (!isAndroidGradleProject) {
-      return nextResolver.createModule(gradleModule, projectDataNode)?.also {
-        ideAndroidSyncIssuesAndExceptions?.process(it)
-      }
+      return nextResolver.createModule(gradleModule, projectDataNode)?.also { ideAndroidSyncIssuesAndExceptions?.process(it) }
     }
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
     val moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode) ?: return null
@@ -230,10 +226,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     return moduleDataNode
   }
 
-  private fun registerModuleData(
-    gradleModule: IdeaModule,
-    moduleDataNode: DataNode<ModuleData>
-  ) {
+  private fun registerModuleData(gradleModule: IdeaModule, moduleDataNode: DataNode<ModuleData>) {
     val projectIdentifier = gradleModule.gradleProject.projectIdentifier
     val sourceSetNodes = ExternalSystemApiUtil.findAll(moduleDataNode, GradleSourceSetData.KEY)
     if (!sourceSetNodes.isEmpty()) {
@@ -241,11 +234,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       sourceSetNodes.forEach { node: DataNode<GradleSourceSetData> ->
         val sourceSet = node.data.getIdeModuleSourceSet()
         if (sourceSet.canBeConsumed) {
-          val gradleProjectPath: GradleProjectPath = GradleSourceSetProjectPath(
-            PathUtil.toSystemIndependentName(projectIdentifier.buildIdentifier.rootDir.path),
-            projectIdentifier.projectPath,
-            sourceSet
-          )
+          val gradleProjectPath: GradleProjectPath =
+            GradleSourceSetProjectPath(
+              PathUtil.toSystemIndependentName(projectIdentifier.buildIdentifier.rootDir.path),
+              projectIdentifier.projectPath,
+              sourceSet,
+            )
           moduleDataByGradlePath[gradleProjectPath] = node
           gradlePathByModuleId[node.data.id] = gradleProjectPath
         }
@@ -261,11 +255,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
   }
 
-  private fun patchLanguageLevels(
-    moduleDataNode: DataNode<ModuleData>,
-    gradleModule: IdeaModule,
-    androidProject: IdeAndroidProject?
-  ) {
+  private fun patchLanguageLevels(moduleDataNode: DataNode<ModuleData>, gradleModule: IdeaModule, androidProject: IdeAndroidProject?) {
     val javaModuleData = ExternalSystemApiUtil.find(moduleDataNode, JavaModuleData.KEY) ?: return
     val moduleData = javaModuleData.data
     if (androidProject != null) {
@@ -301,21 +291,20 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
     ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
 
-    project.coroutineScope.async {
-      if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
-        gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
-      } else {
-        GradleJdkConfigurationUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
-      } ?.let { gradleJdkPath ->
-        projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
+    project.coroutineScope
+      .async {
+        if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
+            gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
+          } else {
+            GradleJdkConfigurationUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
+          }
+          ?.let { gradleJdkPath -> projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath)) }
       }
-    }.asCompletableFuture().join()
+      .asCompletableFuture()
+      .join()
   }
 
-  override fun populateModuleCompileOutputSettings(
-    gradleModule: IdeaModule,
-    ideModule: DataNode<ModuleData>
-  ) {
+  override fun populateModuleCompileOutputSettings(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
     super.populateModuleCompileOutputSettings(gradleModule, ideModule)
     ideModule.setupCompilerOutputPaths(isDelegatedBuildUsed = resolverCtx.isDelegatedBuild)
   }
@@ -326,27 +315,25 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       Unit::class.java,
       AndroidProjectSyncMarker::class.java,
       Object2ObjectOpenHashMap::class.java,
-      Job::class.java
+      Job::class.java,
     )
   }
 
   /**
    * Creates and attaches the following models to the moduleNode depending on the type of module:
+   * * GradleAndroidModel
+   * * NdkModuleModel
+   * * GradleModuleModel
+   * * JavaModuleModel
    *
-   *  * GradleAndroidModel
-   *  * NdkModuleModel
-   *  * GradleModuleModel
-   *  * JavaModuleModel
-   *
-   *
-   * @param moduleNode      the module node to attach the models to
-   * @param gradleModule    the module in question
-   * @param androidModels   the android project models obtained from this module (null is none found)
+   * @param moduleNode the module node to attach the models to
+   * @param gradleModule the module in question
+   * @param androidModels the android project models obtained from this module (null is none found)
    */
   private fun createAndAttachModelsToDataNode(
     moduleNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
-    androidModels: IdeAndroidModels?
+    androidModels: IdeAndroidModels?,
   ) {
     val moduleName = moduleNode.data.internalName
     val rootModulePath = FilePaths.stringToFile(moduleNode.data.linkedExternalProjectPath)
@@ -368,16 +355,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val gradleSettingsFile = findGradleSettingsFile(rootModulePath!!)
     val hasArtifactsOrNoRootSettingsFile = hasArtifacts(externalProject) || !gradleSettingsFile.isFile
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
-      gradleModel = externalProject?.let { externalProject -> // shouldn't be null in general case
-        createGradleModuleModel(
-          moduleName,
-          gradleModule,
-          externalProject,
-          androidModels?.androidProject?.agpVersion,
-          buildScriptClasspathModel,
-          gradlePluginModel,
-        )
-      }
+      gradleModel =
+        externalProject?.let { externalProject -> // shouldn't be null in general case
+          createGradleModuleModel(
+            moduleName,
+            gradleModule,
+            externalProject,
+            androidModels?.androidProject?.agpVersion,
+            buildScriptClasspathModel,
+            gradlePluginModel,
+          )
+        }
     }
     if (gradleModel != null) {
       moduleNode.createChild(AndroidProjectKeys.GRADLE_MODULE_MODEL, gradleModel)
@@ -394,17 +382,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
     if (androidModel != null) {
       val variant = androidModel.selectedVariantCore
-      val prodModule = createAndSetupGradleSourceSetDataNode(
-        moduleNode, gradleModule, variant.mainArtifact.name, null
-      ).data
+      val prodModule = createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.mainArtifact.name, null).data
       val unitTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
       if (unitTest != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule)
       }
       val androidTest: IdeBaseArtifactCore? = variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
       if (androidTest != null) {
-        createAndSetupGradleSourceSetDataNode(
-          moduleNode, gradleModule, androidTest.name, prodModule)
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest.name, prodModule)
       }
       val testFixtures: IdeBaseArtifactCore? = variant.testFixturesArtifact
       if (testFixtures != null) {
@@ -433,10 +418,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   @Suppress("NewApi")
-  private fun createAndSetupTestDataNode(
-    moduleDataNode: DataNode<ModuleData>,
-    gradleAndroidModel: GradleAndroidModelData
-  ) {
+  private fun createAndSetupTestDataNode(moduleDataNode: DataNode<ModuleData>, gradleAndroidModel: GradleAndroidModelData) {
     // Get the unit test task for the current module.
     val testTaskName = getTasksFromAndroidModuleData(gradleAndroidModel)
     val moduleData = moduleDataNode.data
@@ -454,20 +436,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   private fun addGeneratedClassesToLibraryDependencies(variant: IdeVariantCore, moduleNode: DataNode<ModuleData>) {
-    fun processGeneratedClasspath(
-      artifactSelector: (IdeVariantCore) -> IdeBaseArtifactCore?,
-      isTest: Boolean = false
-    ) {
+    fun processGeneratedClasspath(artifactSelector: (IdeVariantCore) -> IdeBaseArtifactCore?, isTest: Boolean = false) {
       val artifact = artifactSelector(variant) ?: return
       // Make sure if there is no generated classpath for the tested component, we still process the main one for it by processing each key
-      val allClasspathNames =  artifact.generatedClassPaths.keys + variant.mainArtifact.generatedClassPaths.keys
+      val allClasspathNames = artifact.generatedClassPaths.keys + variant.mainArtifact.generatedClassPaths.keys
       allClasspathNames.forEach { classpathName ->
         addToNewOrExistingLibraryData(
           moduleNode.findSourceSetDataForArtifact(artifact),
           classpathName,
           // For tests, include the main artifact classpath as well
           setOfNotNull(artifact.generatedClassPaths[classpathName], variant.mainArtifact.generatedClassPaths[classpathName]),
-          isTest
+          isTest,
         )
       }
     }
@@ -484,27 +463,26 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     gradleModule: IdeaModule,
     artifactName: IdeArtifactName,
     productionModule: GradleSourceSetData?,
-  ) = createAndSetupGradleSourceSetDataNode(
-    parentDataNode,
-    gradleModule,
-    getModuleName(artifactName),
-    productionModule,
-  )
+  ) = createAndSetupGradleSourceSetDataNode(parentDataNode, gradleModule, getModuleName(artifactName), productionModule)
 
   private fun createAndSetupGradleSourceSetDataNode(
     parentDataNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
     readableArtifactName: String,
     productionModule: GradleSourceSetData?,
-    isTestSuite: Boolean = false
+    isTestSuite: Boolean = false,
   ): DataNode<GradleSourceSetData> {
     val moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, readableArtifactName)
     val moduleExternalName = gradleModule.name + ":" + readableArtifactName
     val moduleInternalName = parentDataNode.data.internalName + "." + readableArtifactName
-    val sourceSetData = GradleSourceSetData(
-      moduleId, moduleExternalName, moduleInternalName, parentDataNode.data.moduleFileDirectoryPath,
-      parentDataNode.data.linkedExternalProjectPath
-    )
+    val sourceSetData =
+      GradleSourceSetData(
+        moduleId,
+        moduleExternalName,
+        moduleInternalName,
+        parentDataNode.data.moduleFileDirectoryPath,
+        parentDataNode.data.linkedExternalProjectPath,
+      )
     if (productionModule != null) {
       sourceSetData.productionModuleId = productionModule.internalName
     }
@@ -531,11 +509,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ideModule.setupAndroidContentEntriesPerSourceSet(gradleAndroidModelNode.data)
   }
 
-  override fun populateModuleDependencies(
-    gradleModule: IdeaModule,
-    ideModule: DataNode<ModuleData>,
-    ideProject: DataNode<ProjectData>
-  ) {
+  override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
     val androidModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL)
     // Don't process non-android modules here.
     if (androidModelNode == null) {
@@ -543,13 +517,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       return
     }
     if (resolvedLibraryTable == null) {
-      val ideLibraryTable = resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
-        ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
+      val ideLibraryTable =
+        resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
+          ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
       resolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
-      ideProject.createChild(
-        AndroidProjectKeys.IDE_LIBRARY_TABLE,
-        resolvedLibraryTable!!
-      )
+      ideProject.createChild(AndroidProjectKeys.IDE_LIBRARY_TABLE, resolvedLibraryTable!!)
     }
     val libraryResolver = fromLibraryTables(resolvedLibraryTable, null)
 
@@ -594,41 +566,40 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       },
       artifactLookup::apply,
       androidModelNode.data.selectedVariant(libraryResolver),
-      libraryDataCache
+      libraryDataCache,
     )
   }
 
   private fun buildResolvedLibraryTable(
     ideProject: DataNode<ProjectData>,
-    ideLibraryTable: IdeUnresolvedLibraryTable
+    ideLibraryTable: IdeUnresolvedLibraryTable,
   ): IdeResolvedLibraryTableImpl {
     val artifactModuleIdMap = buildArtifactsModuleIdMap()
-    val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.find(
-      ideProject,
-      AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
-    )?.data
+    val kotlinMultiplatformAndroidSourceSetData =
+      ExternalSystemApiUtil.find(ideProject, AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE)?.data
     return ResolvedLibraryTableBuilder(
-      { key: Any? -> gradlePathByModuleId[key] },
-      { key: Any? -> moduleDataByGradlePath[key] },
-      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
-      {
-        kotlinMultiplatformAndroidSourceSetData?.sourceSetsByGradleProjectPath?.get(
-          it.path
-        )?.get(KotlinMultiplatformAndroidSourceSetType.MAIN)
-      }
-    ).buildResolvedLibraryTable(ideLibraryTable)
+        { key: Any? -> gradlePathByModuleId[key] },
+        { key: Any? -> moduleDataByGradlePath[key] },
+        { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
+        {
+          kotlinMultiplatformAndroidSourceSetData
+            ?.sourceSetsByGradleProjectPath
+            ?.get(it.path)
+            ?.get(KotlinMultiplatformAndroidSourceSetType.MAIN)
+        },
+      )
+      .buildResolvedLibraryTable(ideLibraryTable)
   }
 
   private fun buildArtifactsModuleIdMap(): Map<String, Set<String>> {
     val artifactsMap = resolverCtx.artifactsMap
-    return artifactsMap.keys.associateWith { path ->
-      artifactsMap.getModuleMapping(path)?.moduleIds?.toSet().orEmpty()
-    }
+    return artifactsMap.keys.associateWith { path -> artifactsMap.getModuleMapping(path)?.moduleIds?.toSet().orEmpty() }
   }
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, Set<String>>, artifact: File) =
-    artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
-      ?.mapNotNull { artifactToModuleId -> gradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath }
+    artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]?.mapNotNull { artifactToModuleId ->
+      gradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath
+    }
 
   @Suppress("UnstableApiUsage")
   override fun resolveFinished(projectDataNode: DataNode<ProjectData>) {
@@ -639,34 +610,28 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private val isAndroidGradleProject: Boolean by lazy {
-    resolverCtx.hasModulesWithModel(IdeAndroidModels::class.java)
-  }
+  private val isAndroidGradleProject: Boolean by lazy { resolverCtx.hasModulesWithModel(IdeAndroidModels::class.java) }
 
   /**
    * Find IdeaModule representations of every Gradle project included in the main build and calls
    * [.removeExternalSourceSetsAndReportWarnings] on each of them.
    *
-   * @param project         the project
+   * @param project the project
    * @param mainGradleBuild the IdeaProject representing the mainGradleBuild
    */
   private fun removeExternalSourceSetsAndReportWarnings(project: Project, mainGradleBuild: IdeaProject) {
     // We also need to process composite builds
-    val compositeProjects: Collection<IdeaProject?> = resolverCtx.nestedBuilds.map { build ->
-      resolverCtx.getBuildModel(build, IdeaProject::class.java)
-    }
-    val gradleProjects =
-      compositeProjects.flatMap { gradleBuild: IdeaProject? -> gradleBuild!!.modules } +
-      mainGradleBuild.modules
+    val compositeProjects: Collection<IdeaProject?> =
+      resolverCtx.nestedBuilds.map { build -> resolverCtx.getBuildModel(build, IdeaProject::class.java) }
+    val gradleProjects = compositeProjects.flatMap { gradleBuild: IdeaProject? -> gradleBuild!!.modules } + mainGradleBuild.modules
 
     gradleProjects.forEach { gradleProject: IdeaModule -> removeExternalSourceSetsAndReportWarnings(project, gradleProject) }
   }
 
   /**
-   * This method strips all Gradle source sets from JetBrains' ExternalProject model associated with the given gradleProject.
-   * It also emits a warning informing the user that these source sets were detected and ignored. Android modules do not use
-   * standard Gradle source sets and as such they can be safely ignored by the IDE.
-   *
+   * This method strips all Gradle source sets from JetBrains' ExternalProject model associated with the given gradleProject. It also emits
+   * a warning informing the user that these source sets were detected and ignored. Android modules do not use standard Gradle source sets
+   * and as such they can be safely ignored by the IDE.
    *
    * This method will ignore any non-Android modules as these source sets are required for these modules.
    *
@@ -694,19 +659,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // Remove the source sets so the platform doesn't create extra modules
     (sourceSetModel as DefaultGradleSourceSetModel).sourceSets = emptyMap()
 
-    val notification = Notification(
-      "Detected Gradle source sets",
-      "Non-Android source sets detected in '" + gradleProject.gradleProject.name + "'",
-      "Gradle source sets ignored: $sourceSetNames.",
-      NotificationType.WARNING
-    )
+    val notification =
+      Notification(
+        "Detected Gradle source sets",
+        "Non-Android source sets detected in '" + gradleProject.gradleProject.name + "'",
+        "Gradle source sets ignored: $sourceSetNames.",
+        NotificationType.WARNING,
+      )
     Notifications.Bus.notify(notification, project)
   }
 
-  /**
-   * This method is not used. Its functionality is only present when not using a
-   * [ProjectImportModelProvider]. See: [.getModelProvider]
-   */
+  /** This method is not used. Its functionality is only present when not using a [ProjectImportModelProvider]. See: [.getModelProvider] */
   override fun getExtraProjectModelClasses(): Set<Class<*>> {
     throw UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.")
   }
@@ -718,18 +681,19 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     val syncOptions = resolverCtx.getSyncOptions(project)
     val dependencyResolutionEnabled = StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.get()
-    val disableLegacyModelProvidersForSupportedProjects = StudioFlags.PHASED_SYNC_DISABLE_LEGACY_MODEL_PROVIDERS_FOR_SUPPORTED_PROJECTS.get()
+    val disableLegacyModelProvidersForSupportedProjects =
+      StudioFlags.PHASED_SYNC_DISABLE_LEGACY_MODEL_PROVIDERS_FOR_SUPPORTED_PROJECTS.get()
     val cachedModels = ModelProviderCachedData(disableLegacyModelProvidersForSupportedProjects)
     return listOf<ProjectImportModelProvider>(AndroidExtraModelProvider(syncOptions, cachedModels)) +
-           if (resolverCtx.isPhasedSyncEnabled) {
-             listOfNotNull(
-               PhasedSyncProjectModelProvider(syncOptions, cachedModels),
-               PhasedSyncDependencyModelProvider(syncOptions, cachedModels).takeIf { dependencyResolutionEnabled },
-               PhasedSyncAdditionalModelProvider(cachedModels)
-             )
-           } else {
-             emptyList()
-           }
+      if (resolverCtx.isPhasedSyncEnabled) {
+        listOfNotNull(
+          PhasedSyncProjectModelProvider(syncOptions, cachedModels),
+          PhasedSyncDependencyModelProvider(syncOptions, cachedModels).takeIf { dependencyResolutionEnabled },
+          PhasedSyncAdditionalModelProvider(cachedModels),
+        )
+      } else {
+        emptyList()
+      }
   }
 
   override fun preImportCheck() {
@@ -790,7 +754,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     buildEnvironment: BuildEnvironment?,
     error: Throwable,
     projectPath: String,
-    buildFilePath: String?
+    buildFilePath: String?,
   ): ExternalSystemException {
     SyncFailureUsageReporter.getInstance().collectUnprocessedGradleError(projectPath, error)
     val msg = error.message
@@ -800,8 +764,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         if (msg.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) {
           return ExternalSystemException(msg)
         }
-      }
-      else if (rootCause is AndroidSyncException) {
+      } else if (rootCause is AndroidSyncException) {
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, rootCause.toGradleSyncFailure())
         val ideSyncIssues = rootCause.syncIssues
         val buildPath = rootCause.buildPath
@@ -812,9 +775,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           val project = findOpenProject(projectPath)
           val maybeModule = project?.findModule(moduleGradleHolder)
           maybeModule?.let { module ->
-            SyncIssuesReporter.getInstance().report(
-              mapOf(module to ideSyncIssues),
-              ExternalSystemApiUtil.getExternalRootProjectPath(module))
+            SyncIssuesReporter.getInstance()
+              .report(mapOf(module to ideSyncIssues), ExternalSystemApiUtil.getExternalRootProjectPath(module))
             return ExternalSystemException(rootCause.message)
           }
         }
@@ -824,14 +786,15 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath)
   }
 
-  private fun AndroidSyncException.toGradleSyncFailure(): GradleSyncFailure = when (type) {
-    AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> GradleSyncFailure.OLD_ANDROID_PLUGIN
-    AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
-    AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
-    AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH -> GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
-    AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND
-    AndroidSyncExceptionType.NO_VARIANTS_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
-  }
+  private fun AndroidSyncException.toGradleSyncFailure(): GradleSyncFailure =
+    when (type) {
+      AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> GradleSyncFailure.OLD_ANDROID_PLUGIN
+      AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
+      AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
+      AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH -> GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
+      AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND
+      AndroidSyncExceptionType.NO_VARIANTS_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
+    }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {
     if (StudioFlags.DISABLE_FORCED_UPGRADES.get()) {
@@ -860,12 +823,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     /**
      * Stores a collection of variants of the data node tree for previously synced build variants.
      *
-     *
      * NOTE: This key/data is not directly processed by any data importers.
      */
-    val CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS = Key.create(
-      VariantProjectDataNodes::class.java, 1 /* not used */
-    )
+    val CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS = Key.create(VariantProjectDataNodes::class.java, 1 /* not used */)
 
     private const val BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules"
     private val IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
@@ -881,11 +841,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       buildScriptClasspathModel: GradleBuildScriptClasspathModel?,
       gradlePluginModel: GradlePluginModel?,
     ): GradleModuleModel {
-      val buildScriptPath = try {
-        gradleModule.gradleProject.buildScript.sourceFile
-      } catch (e: UnsupportedOperationException) {
-        null
-      }
+      val buildScriptPath =
+        try {
+          gradleModule.gradleProject.buildScript.sourceFile
+        } catch (e: UnsupportedOperationException) {
+          null
+        }
 
       return GradleModuleModel(
         moduleName,
@@ -898,11 +859,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       )
     }
 
-    private fun maybeCreateNdkModuleModel(
-      moduleName: String,
-      rootModulePath: File,
-      ideModels: IdeAndroidModels
-    ): NdkModuleModel? {
+    private fun maybeCreateNdkModuleModel(moduleName: String, rootModulePath: File, ideModels: IdeAndroidModels): NdkModuleModel? {
       // Prefer V2 NativeModule if available
       val selectedAbiName = ideModels.selectedAbiName ?: return null
       // If there are models we have a selected ABI name.
@@ -912,15 +869,18 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           rootModulePath,
           ideModels.selectedVariantName,
           selectedAbiName,
-          V2NdkModel(ideModels.androidProject.agpVersion, ideModels.v2NativeModule!!)
+          V2NdkModel(ideModels.androidProject.agpVersion, ideModels.v2NativeModule!!),
         )
       }
       return null
     }
 
     private fun Coordinates.toIdeCoordinates(): IdeCoordinatesImpl = IdeCoordinatesImpl(group, name, version)
+
     internal fun DeclaredDependencies?.toIdeDeclaredDependencies(): IdeDeclaredDependenciesImpl =
-      IdeDeclaredDependenciesImpl(this?.configurationsToCoordinates?.map { e -> e.key to e.value.map { it.toIdeCoordinates() } }?.toMap() ?: emptyMap())
+      IdeDeclaredDependenciesImpl(
+        this?.configurationsToCoordinates?.map { e -> e.key to e.value.map { it.toIdeCoordinates() } }?.toMap() ?: emptyMap()
+      )
 
     private fun createGradleAndroidModel(
       moduleName: String,
@@ -928,25 +888,24 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       ideModels: IdeAndroidModels,
       mppModel: KotlinMPPGradleModel?,
       declaredDependenciesModel: DeclaredDependencies?,
-      ): GradleAndroidModelData {
+    ): GradleAndroidModelData {
       return create(
         moduleName,
         rootModulePath!!,
         ideModels.androidProject,
         declaredDependenciesModel.toIdeDeclaredDependencies(),
         ideModels.fetchedVariants.map {
-          if (mppModel != null && it.name == ideModels.selectedVariantName) it.patchFromMppModel(ideModels.androidProject, mppModel)
-          else it
+          if (mppModel != null && it.name == ideModels.selectedVariantName) it.patchFromMppModel(ideModels.androidProject, mppModel) else it
         },
-        ideModels.selectedVariantName
+        ideModels.selectedVariantName,
       )
     }
 
     /**
      * Get test tasks for a given android model.
      *
-     * @return the test task for the module. This does not include the full task path, but only the task name.
-     * The full task path will be configured later at the execution level in the Gradle producers.
+     * @return the test task for the module. This does not include the full task path, but only the task name. The full task path will be
+     *   configured later at the execution level in the Gradle producers.
      */
     private fun getTasksFromAndroidModuleData(gradleAndroidModel: GradleAndroidModelData): String {
       val variant = gradleAndroidModel.selectedVariantName
@@ -956,7 +915,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     private fun computeModuleIdForArtifact(
       resolverCtx: ProjectResolverContext,
       gradleModule: IdeaModule,
-      readableArtifactName: String
+      readableArtifactName: String,
     ): String {
       return GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule) + ":" + readableArtifactName
     }
@@ -965,24 +924,23 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
      * Adds the Kapt generated source directories to Android models generated source folders and sets up the kapt generated class library
      * for both Android and non-android modules.
      *
-     *
-     * This should probably not be done here. If we need this information in the Android model then this should
-     * be the responsibility of the Android Gradle plugin. If we don't then this should be handled by the
-     * KaptProjectResolverExtension, however as of now this class only works when module per source set is
-     * enabled.
+     * This should probably not be done here. If we need this information in the Android model then this should be the responsibility of the
+     * Android Gradle plugin. If we don't then this should be handled by the KaptProjectResolverExtension, however as of now this class only
+     * works when module per source set is enabled.
      */
     fun patchMissingKaptInformationOntoModelAndDataNode(
       androidModel: GradleAndroidModelData?,
       moduleDataNode: DataNode<ModuleData>,
-      kaptGradleModel: KaptGradleModel?
+      kaptGradleModel: KaptGradleModel?,
     ) {
       if (androidModel == null || kaptGradleModel == null || !kaptGradleModel.isEnabled) {
         return
       }
       kaptGradleModel.sourceSets.forEach { sourceSet: KaptSourceSetModel ->
-        val result = findVariantAndDataNode(sourceSet, androidModel, moduleDataNode)
-          ?: // No artifact was found for the current source set
-          return@forEach
+        val result =
+          findVariantAndDataNode(sourceSet, androidModel, moduleDataNode)
+            ?: // No artifact was found for the current source set
+            return@forEach
         val variant = result.first
         if (variant == androidModel.selectedVariantCore) {
           val classesDirFile = sourceSet.generatedClassesDirFile
@@ -1000,11 +958,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ) {
       // Code adapted from KaptProjectResolverExtension
       val newLibrary = LibraryData(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, name)
-      val existingData = moduleDataNode.children.asSequence()
-        .map { obj: DataNode<*> -> obj.data }
-        .filter { data: Any? -> data is LibraryDependencyData && newLibrary.externalName == data.externalName }
-        .map { data: Any -> (data as LibraryDependencyData).target }
-        .firstOrNull()
+      val existingData =
+        moduleDataNode.children
+          .asSequence()
+          .map { obj: DataNode<*> -> obj.data }
+          .filter { data: Any? -> data is LibraryDependencyData && newLibrary.externalName == data.externalName }
+          .map { data: Any -> (data as LibraryDependencyData).target }
+          .firstOrNull()
       if (existingData != null) {
         files.forEach { file: File? -> existingData.addPath(LibraryPathType.BINARY, file!!.absolutePath) }
       } else {
@@ -1019,7 +979,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     private fun findVariantAndDataNode(
       sourceSetModel: KaptSourceSetModel,
       androidModel: GradleAndroidModelData,
-      moduleNode: DataNode<ModuleData>
+      moduleNode: DataNode<ModuleData>,
     ): Pair<IdeVariantCore, DataNode<GradleSourceSetData>>? {
       val sourceSetName = sourceSetModel.sourceSetName
       if (!sourceSetModel.isTest) {
@@ -1071,14 +1031,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
 
     /**
-     * A method that resets the configuration of "Build sync orphan modules" notification group to "not display" and "not log"
-     * in order to prevent a notification which allows users to restore the removed module as a non-Gradle module. Non-Gradle modules
-     * are not supported by AS in Gradle projects.
+     * A method that resets the configuration of "Build sync orphan modules" notification group to "not display" and "not log" in order to
+     * prevent a notification which allows users to restore the removed module as a non-Gradle module. Non-Gradle modules are not supported
+     * by AS in Gradle projects.
      */
     private fun disableOrphanModuleNotifications() {
       if (IdeInfo.getInstance().isAndroidStudio) {
-        NotificationsConfiguration
-          .getNotificationsConfiguration()
+        NotificationsConfiguration.getNotificationsConfiguration()
           .changeSettings(BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME, NotificationDisplayType.NONE, false, false)
       }
     }
@@ -1095,18 +1054,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     fun saveCurrentlySyncedVariantsForReuse(project: Project) {
       val data = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.basePath!!) ?: return
       val currentDataNodes = data.externalProjectStructure ?: return
-      project.putUserData(
-        VARIANTS_SAVED_FROM_PREVIOUS_SYNCS,
-        collectCurrentAndPreviouslyCachedVariants(currentDataNodes)
-      )
+      project.putUserData(VARIANTS_SAVED_FROM_PREVIOUS_SYNCS, collectCurrentAndPreviouslyCachedVariants(currentDataNodes))
     }
 
     @JvmStatic
     fun clearVariantsSavedForReuse(project: Project) {
-      project.putUserData(
-        VARIANTS_SAVED_FROM_PREVIOUS_SYNCS,
-        null
-      )
+      project.putUserData(VARIANTS_SAVED_FROM_PREVIOUS_SYNCS, null)
     }
 
     @VisibleForTesting
@@ -1119,16 +1072,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
     private fun getAllSourceFolders(provider: IdeSourceProvider): Collection<File> {
       return listOf(
-        provider.javaDirectories,
-        provider.kotlinDirectories,
-        provider.resDirectories,
-        provider.aidlDirectories,
-        provider.renderscriptDirectories,
-        provider.assetsDirectories,
-        provider.jniLibsDirectories,
-        provider.baselineProfileDirectories,
-        provider.keepRulesDirectories
-      ).flatten()
+          provider.javaDirectories,
+          provider.kotlinDirectories,
+          provider.resDirectories,
+          provider.aidlDirectories,
+          provider.renderscriptDirectories,
+          provider.assetsDirectories,
+          provider.jniLibsDirectories,
+          provider.baselineProfileDirectories,
+          provider.keepRulesDirectories,
+        )
+        .flatten()
     }
   }
 }
@@ -1141,7 +1095,7 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
         data = null,
         multiLineMessage = it.stackTraceAsMultiLineMessage(),
         severity = IdeSyncIssue.SEVERITY_ERROR,
-        type = IdeSyncIssue.TYPE_EXCEPTION
+        type = IdeSyncIssue.TYPE_EXCEPTION,
       )
     }
   }

@@ -32,9 +32,7 @@ import org.mockito.quality.Strictness
 
 class ResourceUrlTreeNodeTest {
 
-  @Rule
-  @JvmField
-  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @Rule @JvmField val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Test
   fun `render sets icon to Android file`() {

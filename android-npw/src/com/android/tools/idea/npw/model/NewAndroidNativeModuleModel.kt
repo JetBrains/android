@@ -32,8 +32,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 class NewAndroidNativeModuleModel(
   projectModuleData: ProjectModelData,
   moduleParent: String,
-  val cppStandard: OptionalValueProperty<CppStandardType> =
-    OptionalValueProperty(CppStandardType.`Toolchain Default`),
+  val cppStandard: OptionalValueProperty<CppStandardType> = OptionalValueProperty(CppStandardType.`Toolchain Default`),
 ) :
   ModuleModel(
     name = "",
@@ -65,17 +64,10 @@ class NewAndroidNativeModuleModel(
         super.init()
 
         moduleTemplateDataBuilder.apply {
-          setModuleRoots(
-            template.get().paths,
-            project.basePath!!,
-            moduleName.get(),
-            this@NewAndroidNativeModuleModel.packageName.get(),
-          )
+          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidNativeModuleModel.packageName.get())
         }
         val tff = formFactor.get()
-        projectTemplateDataBuilder.includedFormFactorNames
-          .putIfAbsent(tff, mutableListOf(moduleName.get()))
-          ?.add(moduleName.get())
+        projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
       }
 
       override val recipe: Recipe
@@ -94,15 +86,8 @@ class NewAndroidNativeModuleModel(
           val nativeLibraryName = data.packageName.deriveNativeLibraryName()
           val nativeSourceName = "$nativeLibraryName.cpp"
           generateCMakeFile(data, nativeSourceName, nativeLibraryName)
-          generateBasicJniBindings(
-            data,
-            language.get().orElse(Language.Java),
-            "NativeLib",
-            nativeSourceName,
-            nativeLibraryName,
-          )
+          generateBasicJniBindings(data, language.get().orElse(Language.Java), "NativeLib", nativeSourceName, nativeLibraryName)
         }
     }
-  override val loggingEvent: AndroidStudioEvent.TemplateRenderer =
-    AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer = AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
 }

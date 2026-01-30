@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 @file:JvmName("IncludingLayout")
+
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.res.ensureNamespaceImported;
 import com.android.SdkConstants
+import com.android.tools.idea.res.ensureNamespaceImported
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlFile

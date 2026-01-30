@@ -34,15 +34,11 @@ import org.junit.Test
 @RunsInEdt
 class GradleClassFileFinderTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  /**
-   * Regression test for b/206060369
-   */
+  /** Regression test for b/206060369 */
   @Test
   fun testClassFileFinder() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.UNIT_TESTING)
@@ -71,9 +67,7 @@ class GradleClassFileFinderTest {
     }
   }
 
-  /**
-   * Regression test for b/319822816
-   */
+  /** Regression test for b/319822816 */
   @Test
   fun testClassFileFinder_nonAndroidTest() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)

@@ -33,8 +33,7 @@ import org.junit.Test
 @RunsInEdt
 class PsModuleAndroidDependencyTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testModuleDependenciesAreResolved() {
@@ -81,9 +80,9 @@ class PsModuleAndroidDependencyTest {
       val appModule = project.findModuleByName("mainModule") as PsAndroidModule
 
       fun findLib(name: String, version: String) =
-        appModule.dependencies
-          .findLibraryDependencies("com.example.libs", name)
-          .find { (it as? PsLibraryDependency)?.spec?.version == version }
+        appModule.dependencies.findLibraryDependencies("com.example.libs", name).find {
+          (it as? PsLibraryDependency)?.spec?.version == version
+        }
 
       val releaseImplementationLib1 = findLib("lib1", "0.9.1")
 

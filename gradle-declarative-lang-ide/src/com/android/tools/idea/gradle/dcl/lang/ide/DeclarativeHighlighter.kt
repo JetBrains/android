@@ -39,29 +39,28 @@ import com.intellij.psi.tree.IElementType
 class DeclarativeHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = DeclarativeHighlightingLexer()
 
-
   override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> {
     return pack(tokenMap[tokenType]?.textAttributesKey)
   }
 
-  private val tokenMap: Map<IElementType, DeclarativeColor> = HashMap<IElementType, DeclarativeColor>().apply {
-    put(LINE_COMMENT, DeclarativeColor.COMMENT)
-    put(BLOCK_COMMENT, DeclarativeColor.BLOCK_COMMENT)
+  private val tokenMap: Map<IElementType, DeclarativeColor> =
+    HashMap<IElementType, DeclarativeColor>().apply {
+      put(LINE_COMMENT, DeclarativeColor.COMMENT)
+      put(BLOCK_COMMENT, DeclarativeColor.BLOCK_COMMENT)
 
-    put(ONE_LINE_STRING_LITERAL, DeclarativeColor.STRING)
-    put(MULTILINE_STRING_LITERAL, DeclarativeColor.STRING)
-    put(BOOLEAN, DeclarativeColor.BOOLEAN)
-    put(NULL, DeclarativeColor.NULL)
+      put(ONE_LINE_STRING_LITERAL, DeclarativeColor.STRING)
+      put(MULTILINE_STRING_LITERAL, DeclarativeColor.STRING)
+      put(BOOLEAN, DeclarativeColor.BOOLEAN)
+      put(NULL, DeclarativeColor.NULL)
 
-    put(INTEGER_LITERAL, DeclarativeColor.NUMBER)
-    put(LONG_LITERAL, DeclarativeColor.NUMBER)
-    put(UNSIGNED_LONG, DeclarativeColor.NUMBER)
-    put(UNSIGNED_INTEGER, DeclarativeColor.NUMBER)
-    put(DOUBLE_LITERAL, DeclarativeColor.NUMBER)
+      put(INTEGER_LITERAL, DeclarativeColor.NUMBER)
+      put(LONG_LITERAL, DeclarativeColor.NUMBER)
+      put(UNSIGNED_LONG, DeclarativeColor.NUMBER)
+      put(UNSIGNED_INTEGER, DeclarativeColor.NUMBER)
+      put(DOUBLE_LITERAL, DeclarativeColor.NUMBER)
 
-    put(INVALID_CHARACTER_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
-    put(INVALID_UNICODE_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
-    put(VALID_STRING_ESCAPE_TOKEN, DeclarativeColor.VALID_STRING_ESCAPE)
-  }
+      put(INVALID_CHARACTER_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+      put(INVALID_UNICODE_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+      put(VALID_STRING_ESCAPE_TOKEN, DeclarativeColor.VALID_STRING_ESCAPE)
+    }
 }
-

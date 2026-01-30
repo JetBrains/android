@@ -19,9 +19,9 @@ import com.intellij.ide.AboutPopupDescriptionProvider
 import com.intellij.openapi.util.NlsContexts
 
 /** Provider to attach extra debug information to the about box */
-class StudioFlagsAboutProvider: AboutPopupDescriptionProvider {
+class StudioFlagsAboutProvider : AboutPopupDescriptionProvider {
   // Don't show directly to the user in the about box.
-  override fun getDescription(): @NlsContexts.DetailedDescription String?  = null
+  override fun getDescription(): @NlsContexts.DetailedDescription String? = null
 
   // Shown in the copied text if not null.
   override fun getExtendedDescription(): @NlsContexts.DetailedDescription String = StudioFlags.FLAGS.toString("StudioFlags")

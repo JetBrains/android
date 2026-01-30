@@ -87,15 +87,12 @@ class AnimationUtilsKtTest {
     val nlComponent =
       MockNlComponent.create(
         runReadAction {
-          XmlTagUtil.createTag(projectRule.project, "<FrameLayout/>").apply {
-            putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module)
-          }
+          XmlTagUtil.createTag(projectRule.project, "<FrameLayout/>").apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
         }
       )
     val dataProvider =
       object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
       }
 
     val model = nlComponent.model
@@ -123,8 +120,7 @@ class AnimationUtilsKtTest {
     whenever(layoutlibSceneManager.viewObject).thenReturn(tileServiceViewAdapterNoAnimations)
     detectAnimations(layoutlibSceneManager)
 
-    assertThat(previewElement.tileServiceViewAdapter.value)
-      .isEqualTo(tileServiceViewAdapterNoAnimations)
+    assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapterNoAnimations)
     assertThat(previewElement.hasAnimations).isFalse()
   }
 
@@ -136,15 +132,12 @@ class AnimationUtilsKtTest {
     val nlComponent =
       MockNlComponent.create(
         runReadAction {
-          XmlTagUtil.createTag(projectRule.project, "<FrameLayout/>").apply {
-            putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module)
-          }
+          XmlTagUtil.createTag(projectRule.project, "<FrameLayout/>").apply { putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module) }
         }
       )
     val dataProvider =
       object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
       }
     val model = nlComponent.model
     whenever(model.dataProvider).thenReturn(dataProvider)
@@ -159,9 +152,7 @@ class AnimationUtilsKtTest {
     try {
       detectAnimations(layoutlibSceneManager)
     } catch (_: Exception) {
-      fail(
-        "Detect animations should not throw an exception when there is no getAnimations method in the ViewAdapter"
-      )
+      fail("Detect animations should not throw an exception when there is no getAnimations method in the ViewAdapter")
     }
 
     assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapter)

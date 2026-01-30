@@ -105,10 +105,7 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
       if (type != Type.NONE) {
         return@let type
       }
-      /**
-       * For Data Binding. It has the format like: <layout> <data> </data>
-       * <androidx...ConstraintLayout>
-       */
+      /** For Data Binding. It has the format like: <layout> <data> </data> <androidx...ConstraintLayout> */
       if (SdkConstants.TAG_LAYOUT == tagName) {
         val tag = getTag(e) ?: return@let Type.NONE
         return@let getChildrenType(tag)
@@ -156,14 +153,10 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
-private val constraintLayoutHelpPanelBundle =
-  HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
+private val constraintLayoutHelpPanelBundle = HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
 
-private val fullHelpPanelBundle =
-  HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
+private val fullHelpPanelBundle = HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
 
-class ConstraintLayoutPanelAssistantBundleCreator :
-  LayoutEditorHelpPanelAssistantBundleCreatorBase(constraintLayoutHelpPanelBundle)
+class ConstraintLayoutPanelAssistantBundleCreator : LayoutEditorHelpPanelAssistantBundleCreatorBase(constraintLayoutHelpPanelBundle)
 
-class LayoutEditorPanelAssistantBundleCreator :
-  LayoutEditorHelpPanelAssistantBundleCreatorBase(fullHelpPanelBundle)
+class LayoutEditorPanelAssistantBundleCreator : LayoutEditorHelpPanelAssistantBundleCreatorBase(fullHelpPanelBundle)

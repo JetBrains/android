@@ -23,14 +23,14 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.intellij.openapi.externalSystem.model.project.dependencies.ArtifactDependencyNode
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.text.nullize
-import org.gradle.tooling.model.GradleModuleVersion
 import java.util.regex.Pattern
+import org.gradle.tooling.model.GradleModuleVersion
 
 /**
- * Similar to [com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec], with the difference that for the
- * 'Project Structure Dialog' (PSD) we don't care about a dependency's classifier and extension because the PSD matches/merges
- * dependencies obtained from different models (e.g. Gradle model, 'parsed' model and POM model,) and those dependencies can be expressed
- * differently on each model.
+ * Similar to [com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec], with the difference that for the 'Project
+ * Structure Dialog' (PSD) we don't care about a dependency's classifier and extension because the PSD matches/merges dependencies obtained
+ * from different models (e.g. Gradle model, 'parsed' model and POM model,) and those dependencies can be expressed differently on each
+ * model.
  */
 interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
   val group: String?
@@ -41,23 +41,21 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
 
   fun getDisplayText(uiSettings: PsUISettings): String = getDisplayText(uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID, true)
 
-  fun getDisplayText(showGroupId: Boolean, showVersion: Boolean): String =
-    buildString {
-      if (showGroupId && isNotEmpty(group)) {
-        append(group)
-        append(GRADLE_PATH_SEPARATOR)
-      }
-      append(name)
-      if (showVersion && isNotEmpty(version)) {
-        append(GRADLE_PATH_SEPARATOR)
-        append(version)
-      }
+  fun getDisplayText(showGroupId: Boolean, showVersion: Boolean): String = buildString {
+    if (showGroupId && isNotEmpty(group)) {
+      append(group)
+      append(GRADLE_PATH_SEPARATOR)
     }
+    append(name)
+    if (showVersion && isNotEmpty(version)) {
+      append(GRADLE_PATH_SEPARATOR)
+      append(version)
+    }
+  }
 
   // Hiding as a private class to ensure empty string to null conversion.
-  private data class Impl(override val group: String?,
-                          override val name: String,
-                          override val version: String?) : PsArtifactDependencySpec {
+  private data class Impl(override val group: String?, override val name: String, override val version: String?) :
+    PsArtifactDependencySpec {
 
     // Note: the use of RichVersion.parse() here is the lesser of two bad choices.  PsArtifactDependencySpec objects are used both in
     // declared dependencies (where the version field is implicitly a RichVersion) and resolved dependencies (where the version field
@@ -71,8 +69,10 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
 
   companion object {
 
-    // Regex covering the format group:name:version:classifier@extension. only name group and version are captured, and only name is required.
-    // To avoid ambiguity name must not start with a digit and version must start with a digit (otherwise a:b could be parsed as group:name or
+    // Regex covering the format group:name:version:classifier@extension. only name group and version are captured, and only name is
+    // required.
+    // To avoid ambiguity name must not start with a digit and version must start with a digit (otherwise a:b could be parsed as group:name
+    // or
     // name:version). This requirement does not seem to be documented anywhere but is assumed elsewhere in the code and is true for all
     // examples of this format that I have seen.
     private val ourPattern = Pattern.compile("^(?:([^:@]*):)?([^\\d+:@][^:@]*)(?::([^:@]*))?(?::[^@]*)?(?:@.*)?$")
@@ -87,21 +87,17 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
       val matcher = ourPattern.matcher(notation)
       return if (!matcher.matches()) {
         null
-      }
-      else create(matcher.group(1), matcher.group(2), matcher.group(3))
+      } else create(matcher.group(1), matcher.group(2), matcher.group(3))
     }
 
     fun create(dependency: ArtifactDependencyModel): PsArtifactDependencySpec =
       create(dependency.group().toString(), dependency.name().forceString(), dependency.version().toString())
 
-    fun create(component: Component): PsArtifactDependencySpec =
-      create(component.group, component.name, component.version.toString())
+    fun create(component: Component): PsArtifactDependencySpec = create(component.group, component.name, component.version.toString())
 
     fun create(moduleVersion: GradleModuleVersion): PsArtifactDependencySpec =
       create(moduleVersion.group, moduleVersion.name, moduleVersion.version)
 
-    fun create(id: ArtifactDependencyNode): PsArtifactDependencySpec =
-      create(id.group, id.module, id.version)
+    fun create(id: ArtifactDependencyNode): PsArtifactDependencySpec = create(id.group, id.module, id.version)
   }
 }
-

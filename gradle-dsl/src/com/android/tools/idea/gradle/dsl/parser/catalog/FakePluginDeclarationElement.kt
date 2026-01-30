@@ -25,16 +25,19 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.openapi.diagnostic.Logger
 
-class FakePluginDeclarationElement(private val parent: GradleDslElement,
-                                   name: GradleNameElement,
-                                   private val literal: GradleDslLiteral,
-                                   private val getter: (PluginDeclarationSpec) -> String?,
-                                   private val setter: (PluginDeclarationSpecImpl, String) -> Boolean,
-                                   canDelete: Boolean) : FakeElement(parent, name, literal, canDelete) {
+class FakePluginDeclarationElement(
+  private val parent: GradleDslElement,
+  name: GradleNameElement,
+  private val literal: GradleDslLiteral,
+  private val getter: (PluginDeclarationSpec) -> String?,
+  private val setter: (PluginDeclarationSpecImpl, String) -> Boolean,
+  canDelete: Boolean,
+) : FakeElement(parent, name, literal, canDelete) {
 
   companion object {
     val LOG = Logger.getInstance(FakePluginDeclarationElement::class.java)
   }
+
   override fun extractValue(): Any? {
     return getSpec()?.let { getter.invoke(it) }
   }
@@ -45,8 +48,7 @@ class FakePluginDeclarationElement(private val parent: GradleDslElement,
         val result = setter.invoke(it, value)
         if (result) {
           literal.setValue(it.compactNotation())
-        }
-        else {
+        } else {
           LOG.warn("Plugin value was not set: " + value)
         }
       }
@@ -63,7 +65,6 @@ class FakePluginDeclarationElement(private val parent: GradleDslElement,
 
   override fun getResolvedVariables(): List<GradleReferenceInjection?> = listOf()
 
-
   override fun getDependencies(): List<GradleReferenceInjection?> {
     return resolvedVariables
   }
@@ -74,5 +75,4 @@ class FakePluginDeclarationElement(private val parent: GradleDslElement,
     val value = literal.getValue(String::class.java) ?: return null
     return PluginDeclarationSpecImpl.create(value)
   }
-
 }

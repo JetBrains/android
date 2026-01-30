@@ -19,8 +19,8 @@ import com.android.tools.idea.streaming.device.AKEYCODE_POWER
 import com.android.tools.idea.streaming.device.AKEYCODE_VOLUME_UP
 
 /**
- * Simulates pressing the Power and the Volume Up buttons together on an Android device.
- * This button combination invokes Android Power Menu on devices with API >= 31.
+ * Simulates pressing the Power and the Volume Up buttons together on an Android device. This button combination invokes Android Power Menu
+ * on devices with API >= 31.
  */
 internal class DevicePowerAndVolumeUpButtonAction :
   DevicePushButtonAction(AKEYCODE_POWER, modifierKeyCode = AKEYCODE_VOLUME_UP, configFilter = { !it.isWatch && it.apiLevel >= 31 })

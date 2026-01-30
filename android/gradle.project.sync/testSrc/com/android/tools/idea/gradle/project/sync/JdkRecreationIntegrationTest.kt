@@ -33,17 +33,15 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
+import java.io.File
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class JdkRecreationIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   @Test
   @Ignore("b/385322415")
@@ -95,8 +93,7 @@ class JdkRecreationIntegrationTest {
           Disposer.dispose(project2Jdk)
         }
       }
-    }
-    finally {
+    } finally {
       (projectJdk as? Disposable)?.let { Disposer.dispose(it) }
       (corruptedJdk as? Disposable)?.let { Disposer.dispose(it) }
       StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride()

@@ -22,12 +22,12 @@ import com.android.ide.common.pagealign.AlignmentProblem.RelroStartNotAligned
 import com.android.ide.common.pagealign.ELF_PT_GNU_RELRO
 import com.android.ide.common.pagealign.ELF_PT_LOAD
 import com.android.ide.common.pagealign.ProgramHeader
+import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
 import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
-import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
+import org.junit.Test
 
 private const val PAGE_ALIGN_2B = 2L
 private const val PAGE_ALIGN_4KB = 4L * 1024
@@ -42,69 +42,78 @@ class AlignmentFindingTest {
 
   private val ELF_WITH_NO_ALIGNMENT_PROBLEMS = listOf<AlignmentProblem>()
 
-  private val ALLOWED_ALIGNMENT_FINDING_TEXT = setOf(
-    "Does not support 16 KB devices",
-    "",
-    "4 KB",
-    "16 KB",
-    "4 KB zip and 4 KB LOAD section, but 16 KB is required for both",
-    "4 KB LOAD section alignment, but 16 KB is required",
-    "2 B LOAD section alignment, but 16 KB is required",
-    "4 KB zip alignment, but 16 KB is required",
-    "4 KB zip|16 KB LOAD section",
-    "4 KB zip|2 B LOAD section",
-    "4 KB zip and 2 B LOAD section, but 16 KB is required for both",
-    "16 KB zip|4 KB LOAD section",
-    "16 KB zip|2 B LOAD section",
-    "RELRO is not a prefix and its start is not 16 KB aligned",
-    "RELRO is not a suffix and its end is not 16 KB aligned",
-    "RELRO start and end are not 16 KB aligned"
-  )
+  private val ALLOWED_ALIGNMENT_FINDING_TEXT =
+    setOf(
+      "Does not support 16 KB devices",
+      "",
+      "4 KB",
+      "16 KB",
+      "4 KB zip and 4 KB LOAD section, but 16 KB is required for both",
+      "4 KB LOAD section alignment, but 16 KB is required",
+      "2 B LOAD section alignment, but 16 KB is required",
+      "4 KB zip alignment, but 16 KB is required",
+      "4 KB zip|16 KB LOAD section",
+      "4 KB zip|2 B LOAD section",
+      "4 KB zip and 2 B LOAD section, but 16 KB is required for both",
+      "16 KB zip|4 KB LOAD section",
+      "16 KB zip|2 B LOAD section",
+      "RELRO is not a prefix and its start is not 16 KB aligned",
+      "RELRO is not a suffix and its end is not 16 KB aligned",
+      "RELRO start and end are not 16 KB aligned",
+    )
 
   @Test
   fun `ELF that supports 16 KB device`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_16K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("16 KB", result.text)
     assertFalse(result.hasWarning)
   }
 
   @Test
   fun `ELF with 4 KB LOAD section and it's a problem`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_16K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("4 KB LOAD section alignment, but 16 KB is required", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `ELF with 4 KB zip alignment and it's a problem`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_4K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_4K,
+      )
     assertEquals("4 KB zip alignment, but 16 KB is required", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `lib folder with ELF with 4 KB LOAD section and it's a problem`() {
-    val result = getAlignmentFinding(
-      path = "/lib",
-      extractNativeLibs = false,
-      elfAlignmentProblems = null, // Folder itself isn't an ELF
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_NONE)
+    val result =
+      getAlignmentFinding(
+        path = "/lib",
+        extractNativeLibs = false,
+        elfAlignmentProblems = null, // Folder itself isn't an ELF
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_NONE,
+      )
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -112,60 +121,70 @@ class AlignmentFindingTest {
   // For example, 4 KB LOAD section is not a problem on 32 bit devices
   @Test
   fun `ELF that with 4 KB LOAD section and it's not a problem`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_16K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("16 KB zip|4 KB LOAD section", result.text)
     assertFalse(result.hasWarning)
   }
 
   @Test
   fun `root folder with alignment problem`() {
-    val result = getAlignmentFinding(
-      path = "/",
-      extractNativeLibs = false,
-      elfAlignmentProblems = null,
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_NONE)
+    val result =
+      getAlignmentFinding(
+        path = "/",
+        extractNativeLibs = false,
+        elfAlignmentProblems = null,
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_NONE,
+      )
     assertEquals("Does not support 16 KB devices", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `ABI folder with alignment problem`() {
-    val result = getAlignmentFinding(
-      path = "/lib/arm64-v8a",
-      extractNativeLibs = false,
-      elfAlignmentProblems = null,
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_NONE)
+    val result =
+      getAlignmentFinding(
+        path = "/lib/arm64-v8a",
+        extractNativeLibs = false,
+        elfAlignmentProblems = null,
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_NONE,
+      )
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
 
   @Test
   fun `4 KB zip alignment with 16 KB page alignment`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_4K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_4K,
+      )
     assertEquals("4 KB zip|16 KB LOAD section", result.text)
     assertFalse(result.hasWarning)
   }
 
   @Test
   fun `typical 32-bit library`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = null,
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_4K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = null,
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_4K,
+      )
     assertEquals("4 KB", result.text)
     assertFalse(result.hasWarning)
   }
@@ -173,63 +192,70 @@ class AlignmentFindingTest {
   // -z,max-page-size flag only constrains the page size to a power of 2
   @Test
   fun `page size is less than kilo`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_2B),
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_16K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_2B),
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("16 KB zip|2 B LOAD section", result.text)
     assertFalse(result.hasWarning)
   }
 
   @Test
   fun `both zip align and LOAD align are too low`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_4K)
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_4K,
+      )
     assertEquals("4 KB zip and 4 KB LOAD section, but 16 KB is required for both", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `RELRO start is unaligned`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(RELRO_START_NOT_ALIGNED_2B),
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_16K
-    )
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(RELRO_START_NOT_ALIGNED_2B),
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("RELRO is not a prefix and its start is not 16 KB aligned", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `RELRO end is unaligned`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(RELRO_END_NOT_ALIGNED_2B),
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_16K
-    )
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(RELRO_END_NOT_ALIGNED_2B),
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("RELRO is not a suffix and its end is not 16 KB aligned", result.text)
     assertTrue(result.hasWarning)
   }
 
   @Test
   fun `RELRO start and end are unaligned`() {
-    val result = getAlignmentFinding(
-      path = "/path/to/my.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(RELRO_START_NOT_ALIGNED_2B, RELRO_END_NOT_ALIGNED_2B),
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_16K
-    )
+    val result =
+      getAlignmentFinding(
+        path = "/path/to/my.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(RELRO_START_NOT_ALIGNED_2B, RELRO_END_NOT_ALIGNED_2B),
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_16K,
+      )
     assertEquals("RELRO start and end are not 16 KB aligned", result.text)
     assertTrue(result.hasWarning)
   }
@@ -238,12 +264,14 @@ class AlignmentFindingTest {
   // Make sure we return something and don't crash.
   @Test
   fun `fuzz found 1`() {
-    val result = getAlignmentFinding(
-      path = "/lib/arm64-v8a/lib.so",
-      extractNativeLibs = false,
-      elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
-      selfOrChildLoadSectionIncompatible = true,
-      zipAlignment = Alignment.ALIGNMENT_NONE)
+    val result =
+      getAlignmentFinding(
+        path = "/lib/arm64-v8a/lib.so",
+        extractNativeLibs = false,
+        elfAlignmentProblems = ELF_WITH_NO_ALIGNMENT_PROBLEMS,
+        selfOrChildLoadSectionIncompatible = true,
+        zipAlignment = Alignment.ALIGNMENT_NONE,
+      )
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -252,12 +280,14 @@ class AlignmentFindingTest {
   // Make sure we return something and don't crash.
   @Test
   fun `fuzz found 2`() {
-    val result = getAlignmentFinding(
-      path = "/",
-      extractNativeLibs = false,
-      elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
-      selfOrChildLoadSectionIncompatible = false,
-      zipAlignment = Alignment.ALIGNMENT_NONE)
+    val result =
+      getAlignmentFinding(
+        path = "/",
+        extractNativeLibs = false,
+        elfAlignmentProblems = listOf(LOAD_SECTION_NOT_ALIGNED_4KB),
+        selfOrChildLoadSectionIncompatible = false,
+        zipAlignment = Alignment.ALIGNMENT_NONE,
+      )
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -276,40 +306,36 @@ class AlignmentFindingTest {
     val seen = mutableSetOf<String>()
 
     // Create a list of possible problem states to fuzz
-    val elfProblemStates = combinations(
-      LOAD_SECTION_NOT_ALIGNED_4KB,
-      LOAD_SECTION_NOT_ALIGNED_2B,
-      RELRO_START_NOT_ALIGNED_4KB,
-      RELRO_START_NOT_ALIGNED_2B,
-      RELRO_END_NOT_ALIGNED_4KB,
-      RELRO_END_NOT_ALIGNED_2B) + null
+    val elfProblemStates =
+      combinations(
+        LOAD_SECTION_NOT_ALIGNED_4KB,
+        LOAD_SECTION_NOT_ALIGNED_2B,
+        RELRO_START_NOT_ALIGNED_4KB,
+        RELRO_START_NOT_ALIGNED_2B,
+        RELRO_END_NOT_ALIGNED_4KB,
+        RELRO_END_NOT_ALIGNED_2B,
+      ) + null
 
-    for(path in listOf("/", "/lib", "/lib/arm64-v8a", "/lib/arm64-v8a/lib.so", "/random"))
-      for(extractNativeLibs in listOf(true, false))
-        for(problems in elfProblemStates)
-          for(selfOrChildLoadSectionIncompatible in listOf(true, false))
-            for(zipAlign in Alignment.entries) {
-              val result = getAlignmentFinding(
-                path,
-                extractNativeLibs,
-                problems,
-                selfOrChildLoadSectionIncompatible,
-                zipAlignment = zipAlign)
-              seen.add(result.text)
-              if (!ALLOWED_ALIGNMENT_FINDING_TEXT.contains(result.text)) {
-                error("Unexpected text: '${result.text}' for inputs: path=$path, problems=$problems, zip=$zipAlign")
-              }
-              val lookLikeWarning = result.text.contains("required")
-                                    || result.text.contains("Does not support")
-                                    || result.text.contains("not 16 KB aligned") // Added specific RELRO warning text check
+    for (path in listOf("/", "/lib", "/lib/arm64-v8a", "/lib/arm64-v8a/lib.so", "/random")) for (extractNativeLibs in
+      listOf(true, false)) for (problems in elfProblemStates) for (selfOrChildLoadSectionIncompatible in
+      listOf(true, false)) for (zipAlign in Alignment.entries) {
+      val result = getAlignmentFinding(path, extractNativeLibs, problems, selfOrChildLoadSectionIncompatible, zipAlignment = zipAlign)
+      seen.add(result.text)
+      if (!ALLOWED_ALIGNMENT_FINDING_TEXT.contains(result.text)) {
+        error("Unexpected text: '${result.text}' for inputs: path=$path, problems=$problems, zip=$zipAlign")
+      }
+      val lookLikeWarning =
+        result.text.contains("required") ||
+          result.text.contains("Does not support") ||
+          result.text.contains("not 16 KB aligned") // Added specific RELRO warning text check
 
-              if (result.hasWarning && !lookLikeWarning) {
-                error("Has warning flag but text doesn't look like warning: ${result.text}")
-              }
-              if (!result.hasWarning && lookLikeWarning) {
-                error("Text looks like warning but flag is false: ${result.text}")
-              }
-            }
+      if (result.hasWarning && !lookLikeWarning) {
+        error("Has warning flag but text doesn't look like warning: ${result.text}")
+      }
+      if (!result.hasWarning && lookLikeWarning) {
+        error("Text looks like warning but flag is false: ${result.text}")
+      }
+    }
     val unused = ALLOWED_ALIGNMENT_FINDING_TEXT subtract seen
     if (unused.isNotEmpty()) {
       error("Unused allowed text: $unused")

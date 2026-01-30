@@ -39,13 +39,12 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.treeStructure.Tree
 import java.awt.event.MouseEvent
 
-class NavigateToSourceAction(private val tree: Tree) :
-  AnAction("Navigate to Source", null, AllIcons.Actions.EditSource) {
+class NavigateToSourceAction(private val tree: Tree) : AnAction("Navigate to Source", null, AllIcons.Actions.EditSource) {
 
-    init {
-      registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION).shortcutSet, tree)
+  init {
+    registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION).shortcutSet, tree)
+  }
 
-    }
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }
@@ -87,8 +86,7 @@ class NavigateToSourceAction(private val tree: Tree) :
   private fun DexClassNode.getClassNavigators(project: Project): List<PsiTarget> {
     val packageNode = parent as? DexPackageNode ?: return emptyList()
     val className = "${packageNode.packageName}.$name"
-    return AndroidPsiUtils.resolveClasses(project, className)
-      .filter { it.name == name && it.canNavigateToSource() }
+    return AndroidPsiUtils.resolveClasses(project, className).filter { it.name == name && it.canNavigateToSource() }
   }
 
   private fun DexFieldNode.getFieldNavigators(project: Project): List<PsiTarget> {
@@ -106,14 +104,9 @@ class NavigateToSourceAction(private val tree: Tree) :
     val className = "${packageNode.packageName}.${classNode.name}"
     val classes = AndroidPsiUtils.resolveClasses(project, className)
     return if (name == "<clinit>()") {
-      classes.flatMap { it.initializers.asIterable() }
-        .filter { it.canNavigateToSource() }
-        .map { PsiClassInitializerTarget(it) }
-    }
-    else {
-      classes
-        .flatMap { it.methods.asIterable() }
-        .filter { it.toNodeName() == name && it.canNavigateToSource() }
+      classes.flatMap { it.initializers.asIterable() }.filter { it.canNavigateToSource() }.map { PsiClassInitializerTarget(it) }
+    } else {
+      classes.flatMap { it.methods.asIterable() }.filter { it.toNodeName() == name && it.canNavigateToSource() }
     }
   }
 
@@ -150,9 +143,7 @@ private fun showChooser(targets: List<PsiTarget>, e: AnActionEvent) {
       .createPopupChooserBuilder(targets.map { it.navigationElement })
       .setRenderer(DefaultPsiElementCellRenderer())
       .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
-      .setItemChosenCallback {
-        (it as Navigatable).navigate(true)
-      }
+      .setItemChosenCallback { (it as Navigatable).navigate(true) }
       .createPopup()
   val inputEvent = e.inputEvent
   val mouseEvent = inputEvent as? MouseEvent

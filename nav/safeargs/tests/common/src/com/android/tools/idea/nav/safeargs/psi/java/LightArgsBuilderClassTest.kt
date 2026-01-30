@@ -33,28 +33,28 @@ class LightArgsBuilderClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg"
-                app:argType="string" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
-            <argument
-                android:name="arg"
-                app:argType="string" />
-          </fragment>
-        </navigation>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <argument
+              android:name="arg"
+              app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2">
+          <argument
+              android:name="arg"
+              app:argType="string" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )

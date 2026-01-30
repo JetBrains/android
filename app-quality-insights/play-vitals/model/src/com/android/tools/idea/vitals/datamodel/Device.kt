@@ -51,12 +51,7 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
     }
   }
 
-  return Device(
-    manufacturer = manufacturer,
-    model = deviceModel,
-    displayName = displayName,
-    deviceType = DeviceType(deviceType),
-  )
+  return Device(manufacturer = manufacturer, model = deviceModel, displayName = displayName, deviceType = DeviceType(deviceType))
 }
 
 private fun extractDeviceModel(value: String) = value.split('/').getOrElse(1) { value }
@@ -70,8 +65,8 @@ private fun extractMarketingName(manufacturer: String, model: String, value: Str
 /**
  * Constructs the full display name of a device using the manufacturer and marketing name.
  *
- * For cases where the marketing name's first word is the manufacturer name, we omit the
- * manufacturer in the final output and use only the marketing name.
+ * For cases where the marketing name's first word is the manufacturer name, we omit the manufacturer in the final output and use only the
+ * marketing name.
  */
 private fun createFullDisplayName(manufacturer: String, model: String, value: String): String {
   val marketingName = extractMarketingName(manufacturer, model, value)

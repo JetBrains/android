@@ -27,28 +27,35 @@ import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
+import org.jetbrains.annotations.Nls
 
 const val DEPENDENCIES_VIEW = "DependenciesView"
 @Nls val dependenciesPerspectiveDisplayName = AndroidGradlePsdBundle.message("android.dependencies.perspective.configurable.display.name")
 
-class DependenciesPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
+class DependenciesPerspectiveConfigurable(context: PsContext) :
+  BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_DEPENDENCIES
+
   override fun getId(): String = "android.psd.dependencies"
 
-  @Nls
-  override fun getDisplayName(): String = dependenciesPerspectiveDisplayName
+  @Nls override fun getDisplayName(): String = dependenciesPerspectiveDisplayName
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when {
       module is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
       module is PsAndroidModule && module.isKmpModule.not() -> AndroidModuleDependenciesConfigurable(module, context, this)
-      module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module, "Viewing and managing dependencies of a KMP shared module is not currently supported in the Project Structure dialog.")
+      module is PsAndroidModule && module.isKmpModule ->
+        KmpModuleConfigurable(
+          context,
+          this,
+          module,
+          "Viewing and managing dependencies of a KMP shared module is not currently supported in the Project Structure dialog.",
+        )
       module is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
-      module is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
+      module is PsEmptyModule ->
+        ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
       else -> throw IllegalStateException()
     }
 

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.android.model.android.CompileSdkPropertyModelImpl.Companion.asCompileSdkString
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
@@ -31,14 +31,16 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.platform.jvm.JdkPlatform
 
 data class AndroidModuleResolvedModels(val android: IdeAndroidProject?, val ndk: NdkModel?, val kotlin: IKotlinFacetSettings?)
+
 object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModuleResolvedModels, AndroidModel> {
   override fun getResolved(model: PsAndroidModule): AndroidModuleResolvedModels =
     AndroidModuleResolvedModels(
       android = model.resolvedModel?.androidProject,
       ndk = model.resolvedNativeModel?.ndkModel,
-      kotlin = model.parent.ideProject.getHolderModuleByGradlePath(model.gradlePath)?.getMainModule()?.let { module ->
-        KotlinFacet.get(module)?.configuration?.settings
-      }
+      kotlin =
+        model.parent.ideProject.getHolderModuleByGradlePath(model.gradlePath)?.getMainModule()?.let { module ->
+          KotlinFacet.get(module)?.configuration?.settings
+        },
     )
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
@@ -49,117 +51,137 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModule
     model.isModified = true
   }
 
-  val compileSdkVersion: SimpleProperty<PsAndroidModule, String> = property(
-    "Compile Sdk Version",
-    preferredVariableName = { "compileSdkVersion" },
-    resolvedValueGetter = { android?.compileTarget },
-    parsedPropertyGetter = { compileSdkVersion() },
-    getter = { asCompileSdkString() },
-    setter = { setValue(it.toIntOrNull() ?: it) },
-    parser = ::parseString,
-    matcher = ::matchHashStrings,
-    knownValuesGetter = ::compileSdkValues
-  )
+  val compileSdkVersion: SimpleProperty<PsAndroidModule, String> =
+    property(
+      "Compile Sdk Version",
+      preferredVariableName = { "compileSdkVersion" },
+      resolvedValueGetter = { android?.compileTarget },
+      parsedPropertyGetter = { compileSdkVersion() },
+      getter = { asCompileSdkString() },
+      setter = { setValue(it.toIntOrNull() ?: it) },
+      parser = ::parseString,
+      matcher = ::matchHashStrings,
+      knownValuesGetter = ::compileSdkValues,
+    )
 
-  val buildToolsVersion: SimpleProperty<PsAndroidModule, String> = property(
-    "Build Tools Version",
-    preferredVariableName = { "buildToolsVersion" },
-    resolvedValueGetter = { android?.buildToolsVersion },
-    parsedPropertyGetter = { buildToolsVersion() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString,
-    knownValuesGetter = ::buildToolsVersionValues,
-    variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
-  )
+  val buildToolsVersion: SimpleProperty<PsAndroidModule, String> =
+    property(
+      "Build Tools Version",
+      preferredVariableName = { "buildToolsVersion" },
+      resolvedValueGetter = { android?.buildToolsVersion },
+      parsedPropertyGetter = { buildToolsVersion() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      knownValuesGetter = ::buildToolsVersionValues,
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+    )
 
-  val ndkVersion: SimpleProperty<PsAndroidModule, String> = property(
-    "NDK Version",
-    preferredVariableName = { "ndkVersion" },
-    defaultValueGetter = { it.resolvedNativeModel?.defaultNdkVersion },
-    // TODO(192053331): Allow using the nativeModel in resolvedValueGetter as the ndkVersion isn't available from IdeAndroidProject.
-    resolvedValueGetter = null,
-    parsedPropertyGetter = { ndkVersion() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString,
-    knownValuesGetter = ::ndkVersionValues,
-    variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
-  )
+  val ndkVersion: SimpleProperty<PsAndroidModule, String> =
+    property(
+      "NDK Version",
+      preferredVariableName = { "ndkVersion" },
+      defaultValueGetter = { it.resolvedNativeModel?.defaultNdkVersion },
+      // TODO(192053331): Allow using the nativeModel in resolvedValueGetter as the ndkVersion isn't available from IdeAndroidProject.
+      resolvedValueGetter = null,
+      parsedPropertyGetter = { ndkVersion() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      knownValuesGetter = ::ndkVersionValues,
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+    )
 
-  val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
-    "Source Compatibility",
-    preferredVariableName = { "sourceCompatibility" },
-    resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.sourceCompatibility) },
-    parsedPropertyGetter = { compileOptions().sourceCompatibility() },
-    getter = { asLanguageLevel() },
-    setter = { setLanguageLevel(it) },
-    parser = ::parseLanguageLevel,
-    formatter = ::formatLanguageLevel,
-    knownValuesGetter = ::languageLevels
-  )
+  val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> =
+    property(
+      "Source Compatibility",
+      preferredVariableName = { "sourceCompatibility" },
+      resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.sourceCompatibility) },
+      parsedPropertyGetter = { compileOptions().sourceCompatibility() },
+      getter = { asLanguageLevel() },
+      setter = { setLanguageLevel(it) },
+      parser = ::parseLanguageLevel,
+      formatter = ::formatLanguageLevel,
+      knownValuesGetter = ::languageLevels,
+    )
 
-  val targetCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
-    "Target Compatibility",
-    preferredVariableName = { "targetCompatibility" },
-    resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.targetCompatibility) },
-    parsedPropertyGetter = { compileOptions().targetCompatibility() },
-    getter = { asLanguageLevel() },
-    setter = { setLanguageLevel(it) },
-    parser = ::parseLanguageLevel,
-    formatter = ::formatLanguageLevel,
-    knownValuesGetter = ::languageLevels
-  )
+  val targetCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> =
+    property(
+      "Target Compatibility",
+      preferredVariableName = { "targetCompatibility" },
+      resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.targetCompatibility) },
+      parsedPropertyGetter = { compileOptions().targetCompatibility() },
+      getter = { asLanguageLevel() },
+      setter = { setLanguageLevel(it) },
+      parser = ::parseLanguageLevel,
+      formatter = ::formatLanguageLevel,
+      knownValuesGetter = ::languageLevels,
+    )
 
-  val kotlinJvmTarget: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
-    "Kotlin JVM Target",
-    preferredVariableName = { "kotlinJvmTarget" },
-    resolvedValueGetter = { LanguageLevel.parse(kotlin?.targetPlatform?.filterIsInstance<JdkPlatform>()?.firstOrNull()?.targetVersion?.description) },
-    parsedPropertyGetter = { kotlinOptions().jvmTarget() },
-    getter = { asLanguageLevel() },
-    setter = { setLanguageLevel(it) },
-    parser = ::parseLanguageLevel,
-    formatter = ::formatLanguageLevel,
-    knownValuesGetter = ::languageLevels
-  )
+  val kotlinJvmTarget: SimpleProperty<PsAndroidModule, LanguageLevel> =
+    property(
+      "Kotlin JVM Target",
+      preferredVariableName = { "kotlinJvmTarget" },
+      resolvedValueGetter = {
+        LanguageLevel.parse(kotlin?.targetPlatform?.filterIsInstance<JdkPlatform>()?.firstOrNull()?.targetVersion?.description)
+      },
+      parsedPropertyGetter = { kotlinOptions().jvmTarget() },
+      getter = { asLanguageLevel() },
+      setter = { setLanguageLevel(it) },
+      parser = ::parseLanguageLevel,
+      formatter = ::formatLanguageLevel,
+      knownValuesGetter = ::languageLevels,
+    )
 
-  val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> = property(
-    "Enable View Binding",
-    preferredVariableName = { "viewBindingEnabled" },
-    resolvedValueGetter = { android?.viewBindingOptions?.enabled },
-    parsedPropertyGetter = { viewBinding().enabled() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> =
+    property(
+      "Enable View Binding",
+      preferredVariableName = { "viewBindingEnabled" },
+      resolvedValueGetter = { android?.viewBindingOptions?.enabled },
+      parsedPropertyGetter = { viewBinding().enabled() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
-  val includeDependenciesInfoInApk: SimpleProperty<PsAndroidModule, Boolean> = property(
-    "Retain information about dependencies in the apk",
-    preferredVariableName = { "includeInApk" },
-    resolvedValueGetter = { android?.dependenciesInfo?.includeInApk },
-    parsedPropertyGetter = { dependenciesInfo().includeInApk() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val includeDependenciesInfoInApk: SimpleProperty<PsAndroidModule, Boolean> =
+    property(
+      "Retain information about dependencies in the apk",
+      preferredVariableName = { "includeInApk" },
+      resolvedValueGetter = { android?.dependenciesInfo?.includeInApk },
+      parsedPropertyGetter = { dependenciesInfo().includeInApk() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
-  val includeDependenciesInfoInBundle: SimpleProperty<PsAndroidModule, Boolean> = property(
-    "Retain information about dependencies in the bundle",
-    preferredVariableName = { "includeInBundle" },
-    resolvedValueGetter = { android?.dependenciesInfo?.includeInBundle },
-    parsedPropertyGetter = { dependenciesInfo().includeInBundle() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val includeDependenciesInfoInBundle: SimpleProperty<PsAndroidModule, Boolean> =
+    property(
+      "Retain information about dependencies in the bundle",
+      preferredVariableName = { "includeInBundle" },
+      resolvedValueGetter = { android?.dependenciesInfo?.includeInBundle },
+      parsedPropertyGetter = { dependenciesInfo().includeInBundle() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
   override fun enumerateModels(model: PsAndroidModule): Collection<PsModel> =
     model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
 
   override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
-    listOf(compileSdkVersion, buildToolsVersion, ndkVersion, sourceCompatibility, targetCompatibility, kotlinJvmTarget,
-           viewBindingEnabled, includeDependenciesInfoInApk, includeDependenciesInfoInBundle)
+    listOf(
+      compileSdkVersion,
+      buildToolsVersion,
+      ndkVersion,
+      sourceCompatibility,
+      targetCompatibility,
+      kotlinJvmTarget,
+      viewBindingEnabled,
+      includeDependenciesInfoInApk,
+      includeDependenciesInfoInBundle,
+    )
 }

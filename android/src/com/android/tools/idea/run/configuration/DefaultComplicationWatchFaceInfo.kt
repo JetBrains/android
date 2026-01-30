@@ -24,9 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-/**
- * Returns the base directory for the Sample Data directory contents
- */
+/** Returns the base directory for the Sample Data directory contents */
 private fun getApksBaseDir(): Path? {
   val homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath())
   var apksPath = Paths.get(homePath, "plugins/android/resources/apks")
@@ -41,61 +39,47 @@ private fun getApksBaseDir(): Path? {
   return null
 }
 
-/**
- * Includes metadata required to work with the ComplicationWatchFaceApk
- */
+/** Includes metadata required to work with the ComplicationWatchFaceApk */
 object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
-  override val complicationSlots = listOf(
-    ComplicationSlot(
-      "Top",
-      0,
-      arrayOf(
-        ComplicationType.SHORT_TEXT,
-        ComplicationType.RANGED_VALUE,
-        ComplicationType.ICON,
-        ComplicationType.SMALL_IMAGE,
-        ComplicationType.LONG_TEXT
-      )
-    ),
-    ComplicationSlot(
-      "Right",
-      1,
-      arrayOf(
-        ComplicationType.SHORT_TEXT,
-        ComplicationType.RANGED_VALUE,
-        ComplicationType.ICON,
-        ComplicationType.SMALL_IMAGE
-      )
-    ),
-    ComplicationSlot(
-      "Bottom",
-      2,
-      arrayOf(
-        ComplicationType.SHORT_TEXT,
-        ComplicationType.RANGED_VALUE,
-        ComplicationType.ICON,
-        ComplicationType.SMALL_IMAGE,
-        ComplicationType.LONG_TEXT
-      )
-    ),
-    ComplicationSlot(
-      "Left",
-      3,
-      arrayOf(
-        ComplicationType.SHORT_TEXT,
-        ComplicationType.RANGED_VALUE,
-        ComplicationType.ICON,
-        ComplicationType.SMALL_IMAGE
-      )
-    ),
-    ComplicationSlot(
-      "Background Image",
-      4,
-      arrayOf(ComplicationType.LARGE_IMAGE)
+  override val complicationSlots =
+    listOf(
+      ComplicationSlot(
+        "Top",
+        0,
+        arrayOf(
+          ComplicationType.SHORT_TEXT,
+          ComplicationType.RANGED_VALUE,
+          ComplicationType.ICON,
+          ComplicationType.SMALL_IMAGE,
+          ComplicationType.LONG_TEXT,
+        ),
+      ),
+      ComplicationSlot(
+        "Right",
+        1,
+        arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.RANGED_VALUE, ComplicationType.ICON, ComplicationType.SMALL_IMAGE),
+      ),
+      ComplicationSlot(
+        "Bottom",
+        2,
+        arrayOf(
+          ComplicationType.SHORT_TEXT,
+          ComplicationType.RANGED_VALUE,
+          ComplicationType.ICON,
+          ComplicationType.SMALL_IMAGE,
+          ComplicationType.LONG_TEXT,
+        ),
+      ),
+      ComplicationSlot(
+        "Left",
+        3,
+        arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.RANGED_VALUE, ComplicationType.ICON, ComplicationType.SMALL_IMAGE),
+      ),
+      ComplicationSlot("Background Image", 4, arrayOf(ComplicationType.LARGE_IMAGE)),
     )
-  )
   override val apk: String
     get() = getApksBaseDir()!!.resolve("ComplicationWatchFace.apk").toString()
+
   override val appId = "androidx.wear.watchface.samples.app"
   override val watchFaceFQName = "androidx.wear.watchface.samples.ExampleCanvasDigitalWatchFaceService"
 }

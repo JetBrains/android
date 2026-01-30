@@ -42,42 +42,16 @@ const val RECOMPOSITION_COLOR_PURPLE_ARGB = 0xFF871094.toInt()
 const val RECOMPOSITION_COLOR_ORANGE_ARGB = 0xFFE1A336.toInt()
 
 /** Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings]. */
-class RenderSettingsAction(
-  private val renderModelProvider: () -> RenderModel,
-  renderSettingsProvider: () -> RenderSettings,
-) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
+class RenderSettingsAction(private val renderModelProvider: () -> RenderModel, renderSettingsProvider: () -> RenderSettings) :
+  DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
-    add(
-      ToggleRenderSettingsAction(
-        "Show Borders",
-        renderSettingsProvider,
-        RenderSettings::drawBorders,
-      )
-    )
+    add(ToggleRenderSettingsAction("Show Borders", renderSettingsProvider, RenderSettings::drawBorders))
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      add(
-        ToggleRenderSettingsAction(
-          "Show Layout Bounds",
-          renderSettingsProvider,
-          RenderSettings::drawUntransformedBounds,
-        )
-      )
+      add(ToggleRenderSettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
     }
-    add(
-      ToggleRenderSettingsAction(
-        "Show View Label",
-        renderSettingsProvider,
-        RenderSettings::drawLabel,
-      )
-    )
-    add(
-      ToggleRenderSettingsAction(
-        "Show Fold Hinge and Angle",
-        renderSettingsProvider,
-        RenderSettings::drawFold,
-      )
-    )
+    add(ToggleRenderSettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
+    add(ToggleRenderSettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
     add(HighlightColorAction(renderSettingsProvider))
   }
 
@@ -111,8 +85,7 @@ private class ToggleRenderSettingsAction(
 }
 
 @VisibleForTesting
-class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
-  DefaultActionGroup("Recomposition Highlight Color", true) {
+class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) : DefaultActionGroup("Recomposition Highlight Color", true) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -136,13 +109,9 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
   }
 }
 
-private class ColorSettingAction(
-  actionName: String,
-  private val color: Int,
-  private val renderSettingsProvider: () -> RenderSettings,
-) : CheckboxAction(actionName, null, null) {
-  override fun isSelected(event: AnActionEvent): Boolean =
-    renderSettingsProvider().recompositionColor == color
+private class ColorSettingAction(actionName: String, private val color: Int, private val renderSettingsProvider: () -> RenderSettings) :
+  CheckboxAction(actionName, null, null) {
+  override fun isSelected(event: AnActionEvent): Boolean = renderSettingsProvider().recompositionColor == color
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     renderSettingsProvider().recompositionColor = color

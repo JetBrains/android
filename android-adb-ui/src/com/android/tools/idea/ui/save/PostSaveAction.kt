@@ -20,7 +20,9 @@ import com.intellij.ide.actions.RevealFileAction
 
 /** Defines what happens after a screenshot or a screen recording is saved to a file. */
 internal enum class PostSaveAction {
-  NONE, SHOW_IN_FOLDER, OPEN;
+  NONE,
+  SHOW_IN_FOLDER,
+  OPEN;
 
   val isSupported: Boolean
     get() = this != SHOW_IN_FOLDER || RevealFileAction.isSupported()

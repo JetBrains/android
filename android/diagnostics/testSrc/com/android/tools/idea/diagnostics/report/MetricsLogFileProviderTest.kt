@@ -22,15 +22,16 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.FileUtil
-import junit.framework.TestCase
 import java.nio.file.Path
 import java.nio.file.Paths
+import junit.framework.TestCase
 import kotlin.io.path.readText
 
 private const val DIRECTORY_NAME = "diagnostics"
 private const val FILE_NAME = "MetricsInfo.log"
 
-private const val LOG_DATA = """2022-02-07 00:00:00 UTC
+private const val LOG_DATA =
+  """2022-02-07 00:00:00 UTC
 kind: EMULATOR_PING
 
 2022-02-08 00:00:00 UTC
@@ -65,9 +66,7 @@ class MetricsLogFileProviderTest : TestCase() {
 
     for (i in (1..10)) {
       AnalyticsSettings.dateProvider = StubDateProvider(2022, 1, i)
-      val builder = AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.EMULATOR_PING
-      }
+      val builder = AndroidStudioEvent.newBuilder().apply { kind = AndroidStudioEvent.EventKind.EMULATOR_PING }
 
       metricsLogFileProvider.processEvent(builder)
     }

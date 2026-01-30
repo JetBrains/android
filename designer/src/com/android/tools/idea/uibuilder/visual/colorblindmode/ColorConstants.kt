@@ -45,71 +45,26 @@ enum class ColorBlindMode(val displayName: String) {
         }
 }
 
-/**
- * RGB to LMS based on the paper "Digital Vido Colourmaps for Checking the Legibility of Displays by
- * Dichromats"
- */
-val RGB_TO_LMS: Mat3D =
-  Mat3D(17.8824, 43.5161, 4.11935, 3.45565, 27.1554, 3.86713, 0.0299566, 0.184309, 1.46709)
+/** RGB to LMS based on the paper "Digital Vido Colourmaps for Checking the Legibility of Displays by Dichromats" */
+val RGB_TO_LMS: Mat3D = Mat3D(17.8824, 43.5161, 4.11935, 3.45565, 27.1554, 3.86713, 0.0299566, 0.184309, 1.46709)
 
 /** LMS to RGB, inverse of the [RGB_TO_LMS]. */
-val LMS_TO_RGB: Mat3D =
-  Mat3D(
-    0.080944,
-    -0.13054,
-    0.116721,
-    -0.0102485,
-    0.0540194,
-    -0.113615,
-    -0.000365294,
-    -0.00412163,
-    0.693513,
-  )
+val LMS_TO_RGB: Mat3D = Mat3D(0.080944, -0.13054, 0.116721, -0.0102485, 0.0540194, -0.113615, -0.000365294, -0.00412163, 0.693513)
 
 /** Simple identity matrix. */
 val IDENTITY_MATRIX: Mat3D = Mat3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
 
 /** For protanopes lms to lms matrix built based on [RGB_TO_LMS] */
 fun buildLms2Lmsp(factor: Double = 0.0): Mat3D {
-  return Mat3D(
-    0.0 + factor,
-    2.02344 * (1.0 - factor),
-    -2.52579 * (1.0 - factor),
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    0.0,
-    1.0,
-  )
+  return Mat3D(0.0 + factor, 2.02344 * (1.0 - factor), -2.52579 * (1.0 - factor), 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
 }
 
 /** Deuteropes lms to lms matrix */
 fun buildLms2Lmsd(factor: Double = 0.0): Mat3D {
-  return Mat3D(
-    1.0,
-    0.0,
-    0.0,
-    0.494207 * (1.0 - factor),
-    0.0 + factor,
-    1.24826 * (1.0 - factor),
-    0.0,
-    0.0,
-    1.0,
-  )
+  return Mat3D(1.0, 0.0, 0.0, 0.494207 * (1.0 - factor), 0.0 + factor, 1.24826 * (1.0 - factor), 0.0, 0.0, 1.0)
 }
 
 /** Tritanopes lms to lms matrix */
 fun buildLms2Lmst(factor: Double = 0.0): Mat3D {
-  return Mat3D(
-    1.0,
-    0.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    -0.012244 * (1.0 - factor),
-    0.072034 * (1.0 - factor),
-    0.0 + factor,
-  )
+  return Mat3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.012244 * (1.0 - factor), 0.072034 * (1.0 - factor), 0.0 + factor)
 }

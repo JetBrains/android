@@ -34,9 +34,8 @@ const val OTHER_HEADER = "Other"
 /**
  * [EnumSupport] for the "style" attribute.
  *
- * We will find a base style for the current XML tag, and from that find all transitive derived
- * styles. The styles are organized in a tree with the following headings: "Project", "Library",
- * "AppCompat", "Android" where "Project" are the user defined styles.
+ * We will find a base style for the current XML tag, and from that find all transitive derived styles. The styles are organized in a tree
+ * with the following headings: "Project", "Library", "AppCompat", "Android" where "Project" are the user defined styles.
  */
 open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
@@ -72,12 +71,9 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
     var prev: StyleResourceValue? = null
     val result = mutableListOf<EnumValue>()
     for (style in styles) {
-      val xmlValue =
-        style.asReference().getRelativeResourceUrl(currentNamespace, namespaceResolver).toString()
+      val xmlValue = style.asReference().getRelativeResourceUrl(currentNamespace, namespaceResolver).toString()
       val value = EnumValue.indented(xmlValue, displayName(style))
-      if (
-        prev != null && style.namespace == prev.namespace && style.libraryName == prev.libraryName
-      ) {
+      if (prev != null && style.namespace == prev.namespace && style.libraryName == prev.libraryName) {
         result.add(value)
       } else {
         val header =
@@ -109,10 +105,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
     return possibleNames.mapNotNull { resolve(it, prefixMap) }
   }
 
-  private fun resolve(
-    qualifiedStyleName: String,
-    prefixMap: Map<String, String>,
-  ): StyleResourceValue? {
+  private fun resolve(qualifiedStyleName: String, prefixMap: Map<String, String>): StyleResourceValue? {
     if (resolver == null) {
       return null
     }

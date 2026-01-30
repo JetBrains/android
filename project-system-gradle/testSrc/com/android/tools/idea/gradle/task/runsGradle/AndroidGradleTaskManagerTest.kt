@@ -44,11 +44,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidGradleTaskManagerTest {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `app assembleDebug from root and app`() = runBlocking {
@@ -64,17 +62,14 @@ class AndroidGradleTaskManagerTest {
       run {
         // 1) This is a common form used by Android Studio etc.
         val projectPath = path.absolutePath
-        val settings = GradleExecutionSettings().apply {
-          tasks = listOf(":app:assembleDebug")
-        }
+        val settings = GradleExecutionSettings().apply { tasks = listOf(":app:assembleDebug") }
         taskManager.executeTasks(projectPath, externalSystemTaskId, settings)
       }
       run {
-        // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
+        // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this
+        // way.
         val projectPath = path.resolve("app").absolutePath
-        val settings = GradleExecutionSettings().apply {
-          tasks = listOf("assembleDebug")
-        }
+        val settings = GradleExecutionSettings().apply { tasks = listOf("assembleDebug") }
         taskManager.executeTasks(projectPath, externalSystemTaskId, settings)
       }
 
@@ -93,63 +88,69 @@ class AndroidGradleTaskManagerTest {
   }
 
   @Test
-  fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() = runBlocking {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.open {
-      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
-        project, project.basePath!!, GradleConstants.SYSTEM_ID
-      ).apply {
-        tasks = listOf(":help")
-        javaHome = "invalid"
-      }
+  fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() =
+    runBlocking {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+      preparedProject.open {
+        val executionSettings =
+          ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID)
+            .apply {
+              tasks = listOf(":help")
+              javaHome = "invalid"
+            }
 
-      val exception = assertThrows(ExternalSystemException::class.java) {
-        AndroidGradleTaskManager().executeTasks(
-          project.basePath!!,
-          ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-          executionSettings,
-          ExternalSystemTaskNotificationListener.NULL_OBJECT
-        )
-      }
+        val exception =
+          assertThrows(ExternalSystemException::class.java) {
+            AndroidGradleTaskManager()
+              .executeTasks(
+                project.basePath!!,
+                ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+                executionSettings,
+                ExternalSystemTaskNotificationListener.NULL_OBJECT,
+              )
+          }
 
-      assertThat(exception.cause).isInstanceOf(IllegalArgumentException::class.java)
-      assertThat(exception.message).contains("Supplied javaHome is not a valid folder")
+        assertThat(exception.cause).isInstanceOf(IllegalArgumentException::class.java)
+        assertThat(exception.message).contains("Supplied javaHome is not a valid folder")
+      }
     }
-  }
 
   @Test
   fun `supports version-specific scripts`() = runBlocking {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       var capturedException: Exception? = null
-      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
-        project, project.basePath!!, GradleConstants.SYSTEM_ID
-      ).apply {
-        tasks = listOf("foo")
-      }
-      val initScript = PredefinedVersionSpecificInitScript(
-        script = """
-          afterProject {
-            it.tasks.register("foo") {
-              println 'foo'
+      val executionSettings =
+        ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID).apply {
+          tasks = listOf("foo")
+        }
+      val initScript =
+        PredefinedVersionSpecificInitScript(
+          script =
+            """
+            afterProject {
+              it.tasks.register("foo") {
+                println 'foo'
+              }
             }
-          }
-        """.trimIndent(),
-        filePrefix = "fooTask",
-        isApplicable = { v -> GradleVersion.version("7.0") < v }
-      )
+            """
+              .trimIndent(),
+          filePrefix = "fooTask",
+          isApplicable = { v -> GradleVersion.version("7.0") < v },
+        )
       executionSettings.putUserData(GradleTaskManager.VERSION_SPECIFIC_SCRIPTS_KEY, listOf(initScript))
 
-      AndroidGradleTaskManager().executeTasks(
-        project.basePath!!,
-        ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-        executionSettings,
-        object : ExternalSystemTaskNotificationListener {
-          override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: java.lang.Exception) {
-            capturedException = exception
-          }
-        }
-      )
+      AndroidGradleTaskManager()
+        .executeTasks(
+          project.basePath!!,
+          ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+          executionSettings,
+          object : ExternalSystemTaskNotificationListener {
+            override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: java.lang.Exception) {
+              capturedException = exception
+            }
+          },
+        )
 
       assertNull(capturedException)
     }
@@ -163,19 +164,20 @@ class AndroidGradleTaskManagerTest {
         val buildFile = VfsUtil.findFileByIoFile(projectRoot.resolve("app/build.gradle"), true)!!
         buildFile.writeText("**")
       }
-      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
-        project, project.basePath!!, GradleConstants.SYSTEM_ID
-      ).apply {
-        tasks = listOf(":assembleDebug")
-      }
-      val exception = assertThrows(LocationAwareExternalSystemException::class.java) {
-        AndroidGradleTaskManager().executeTasks(
-          project.basePath!!,
-          ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-          executionSettings,
-          ExternalSystemTaskNotificationListener.NULL_OBJECT
-        )
-      }
+      val executionSettings =
+        ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID).apply {
+          tasks = listOf(":assembleDebug")
+        }
+      val exception =
+        assertThrows(LocationAwareExternalSystemException::class.java) {
+          AndroidGradleTaskManager()
+            .executeTasks(
+              project.basePath!!,
+              ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+              executionSettings,
+              ExternalSystemTaskNotificationListener.NULL_OBJECT,
+            )
+        }
 
       assertThat(exception.message).contains("fails/project/app/build.gradle': 1: Unexpected input: '**' @ line 1, column 1")
     }

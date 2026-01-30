@@ -27,19 +27,26 @@ private val LOG = Logger.getInstance(PsVariant::class.java)
 
 data class PsVariantKey(val buildType: String, val productFlavors: List<String>, val name: String)
 
-open class PsVariant(
-  override val parent: PsAndroidModule,
-  val key: PsVariantKey
-) : PsChildModel() {
-  final override var name: String = key.name; private set
+open class PsVariant(override val parent: PsAndroidModule, val key: PsVariantKey) : PsChildModel() {
+  final override var name: String = key.name
+    private set
 
-  val buildTypeName: String get() = key.buildType
-  val productFlavorNames: List<String> get() = key.productFlavors
-  var resolvedModel: IdeVariant? = null ; private set
+  val buildTypeName: String
+    get() = key.buildType
+
+  val productFlavorNames: List<String>
+    get() = key.productFlavors
+
+  var resolvedModel: IdeVariant? = null
+    private set
+
   private var myArtifactCollection: PsAndroidArtifactCollection? = null
 
-  val artifacts: Collection<PsAndroidArtifact> get() = artifactCollection
-  open val buildType: PsBuildType get() = parent.findBuildType(buildTypeName)!!
+  val artifacts: Collection<PsAndroidArtifact>
+    get() = artifactCollection
+
+  open val buildType: PsBuildType
+    get() = parent.findBuildType(buildTypeName)!!
 
   internal fun init(resolvedModel: IdeVariant?) {
     this.resolvedModel = resolvedModel

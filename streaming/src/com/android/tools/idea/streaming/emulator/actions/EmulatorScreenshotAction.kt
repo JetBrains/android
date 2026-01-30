@@ -64,10 +64,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     val project: Project = event.project ?: return
     val emulatorController = getEmulatorController(event) ?: return
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY) ?: return
-    val displayIds = when {
-      !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || event.place == "EmulatorView" -> intArrayOf(event.getData(DISPLAY_ID_KEY) ?: 0)
-      else -> displayInfoProvider.getIdsOfAllDisplays()
-    }
+    val displayIds =
+      when {
+        !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || event.place == "EmulatorView" -> intArrayOf(event.getData(DISPLAY_ID_KEY) ?: 0)
+        else -> displayInfoProvider.getIdsOfAllDisplays()
+      }
 
     val scope = emulatorController.createCoroutineScope()
     val dialogLocationArbiter = if (displayIds.size > 1) DialogLocationArbiter() else null
@@ -84,37 +85,52 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
             val emulatorConfig = emulatorController.emulatorConfig
             val displaySize = displayInfoProvider.getDisplaySize(displayId)
-            val screenshotImage = ScreenshotImage(image, format.rotation.rotationValue,
-                                                  emulatorConfig.deviceType, emulatorConfig.avdName, displayId, displaySize)
+            val screenshotImage =
+              ScreenshotImage(
+                image,
+                format.rotation.rotationValue,
+                emulatorConfig.deviceType,
+                emulatorConfig.avdName,
+                displayId,
+                displaySize,
+              )
             val screenshotDecorator = EmulatorScreenshotDecorator { displayInfoProvider.getSkin(displayId) }
             val framingOptions = displayInfoProvider.getSkin(displayId)?.let { listOf(AvdFrame()) } ?: listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-            val decoratedImage = when (decoration) {
-              ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
-              else -> screenshotDecorator.decorate(screenshotImage, decoration)
-            }
+            val decoratedImage =
+              when (decoration) {
+                ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
+                else -> screenshotDecorator.decorate(screenshotImage, decoration)
+              }
             val processedImage = ImageUtils.scale(decoratedImage, getScreenshotScale())
             val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
             processedImage.writeImage("PNG", file)
-            val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
-                throw IOException("Unable to save screenshot")
+            val backingFile =
+              LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
             val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId, displayInfoProvider)
             ApplicationManager.getApplication().invokeLater {
-              val viewer = ScreenshotViewer(project, screenshotImage, processedImage, backingFile, screenshotProvider, screenshotDecorator,
-                                            framingOptions, 0, false, dialogLocationArbiter)
+              val viewer =
+                ScreenshotViewer(
+                  project,
+                  screenshotImage,
+                  processedImage,
+                  backingFile,
+                  screenshotProvider,
+                  screenshotDecorator,
+                  framingOptions,
+                  0,
+                  false,
+                  dialogLocationArbiter,
+                )
               viewer.show()
             }
-          }
-          catch (e: CancellationException) {
+          } catch (e: CancellationException) {
             throw e
-          }
-          catch (e: Throwable) {
+          } catch (e: Throwable) {
             val message = "Error obtaining screenshot"
             thisLogger().error(message, e)
             if (++errorCount == 1) { // Show error dialog no more than once.
-              ApplicationManager.getApplication().invokeLater {
-                Messages.showErrorDialog(project, message, "Take Screenshot")
-              }
+              ApplicationManager.getApplication().invokeLater { Messages.showErrorDialog(project, message, "Take Screenshot") }
             }
           }
         }
@@ -151,17 +167,21 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val emulatorConfig = emulator.emulatorConfig
         val deviceName = emulatorConfig.avdName
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorConfig.deviceType, deviceName, displayId,
-                               displayInfoProvider.getDisplaySize(displayId))
-      }
-      catch (e: Throwable) {
+        return ScreenshotImage(
+          image,
+          screenshot.format.rotation.rotationValue,
+          emulatorConfig.deviceType,
+          deviceName,
+          displayId,
+          displayInfoProvider.getDisplaySize(displayId),
+        )
+      } catch (e: Throwable) {
         throwIfUnchecked(e)
         throw RuntimeException(e)
       }
     }
 
-    override fun dispose() {
-    }
+    override fun dispose() {}
   }
 
   private class EmulatorScreenshotDecorator(private val skinDefinitionProvider: () -> SkinDefinition?) : ScreenshotDecorator {
@@ -181,4 +201,4 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 }
 
 private fun createScreenshotRequest(displayId: Int) =
-    ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).setDisplay(displayId).build()
+  ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).setDisplay(displayId).build()

@@ -63,9 +63,8 @@ import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A project service that manages [ResourceFolderRepository] instances, creating them as necessary
- * and reusing repositories for the same directories when multiple modules need them. For every
- * directory a namespaced and non-namespaced repository may be created, if needed.
+ * A project service that manages [ResourceFolderRepository] instances, creating them as necessary and reusing repositories for the same
+ * directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if needed.
  */
 class ResourceFolderRegistry(val project: Project) : Disposable {
   private val namespacedCache = buildCache()
@@ -88,22 +87,14 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       subscribe(FileDocumentManagerListener.TOPIC, fileDocumentManagerListener)
     }
 
-    EditorFactory.getInstance()
-      .eventMulticaster
-      .addDocumentListener(ResourceFolderDocumentListener(project, this), this)
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(ResourceFolderDocumentListener(project, this), this)
   }
 
-  operator fun get(facet: AndroidFacet, dir: VirtualFile) =
-    get(facet, dir, StudioResourceRepositoryManager.getInstance(facet).namespace)
+  operator fun get(facet: AndroidFacet, dir: VirtualFile) = get(facet, dir, StudioResourceRepositoryManager.getInstance(facet).namespace)
 
   @VisibleForTesting
-  operator fun get(
-    facet: AndroidFacet,
-    dir: VirtualFile,
-    namespace: ResourceNamespace,
-  ): ResourceFolderRepository {
-    val cache =
-      if (namespace === ResourceNamespace.RES_AUTO) nonNamespacedCache else namespacedCache
+  operator fun get(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
+    val cache = if (namespace === ResourceNamespace.RES_AUTO) nonNamespacedCache else namespacedCache
     val repository = cache.getAndUnwrap(dir) { createRepository(facet, dir, namespace) }
     assert(repository.namespace == namespace)
 
@@ -113,10 +104,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     return repository.ensureLoaded()
   }
 
-  /**
-   * Returns the resource repository for the given directory, or null if such repository doesn't
-   * already exist.
-   */
+  /** Returns the resource repository for the given directory, or null if such repository doesn't already exist. */
   fun getCached(dir: VirtualFile, namespacing: Namespacing): ResourceFolderRepository? {
     val cache = if (namespacing === Namespacing.REQUIRED) namespacedCache else nonNamespacedCache
     return cache.getIfPresent(dir)
@@ -135,10 +123,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       return
     }
 
-    val keysToRemove =
-      cacheAsMap.entries.mapNotNull { (virtualFile, repository) ->
-        virtualFile.takeIf { repository.facet == facet }
-      }
+    val keysToRemove = cacheAsMap.entries.mapNotNull { (virtualFile, repository) -> virtualFile.takeIf { repository.facet == facet } }
 
     keysToRemove.forEach(cache::invalidate)
   }
@@ -158,8 +143,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       return
     }
     val facets: MutableSet<AndroidFacet> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
-    val newResourceFolders: MutableSet<VirtualFile> =
-      Sets.newHashSetWithExpectedSize(cacheAsMap.size)
+    val newResourceFolders: MutableSet<VirtualFile> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
     for (repository in cacheAsMap.values) {
       val facet = repository.facet
       if (!facet.isDisposed && facets.add(facet)) {
@@ -178,10 +162,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     nonNamespacedCache.invalidateAll()
   }
 
-  fun dispatchToRepositories(
-    file: VirtualFile,
-    handler: BiConsumer<ResourceFolderRepository, VirtualFile>,
-  ) {
+  fun dispatchToRepositories(file: VirtualFile, handler: BiConsumer<ResourceFolderRepository, VirtualFile>) {
     ResourceUpdateTracer.log {
       "ResourceFolderRegistry.dispatchToRepositories(${ResourceUpdateTracer.getInstance().pathForLogging(file)}, ...) VFS change"
     }
@@ -213,18 +194,12 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     return CacheBuilder.newBuilder().build()
   }
 
-  private fun createRepository(
-    facet: AndroidFacet,
-    dir: VirtualFile,
-    namespace: ResourceNamespace,
-  ): ResourceFolderRepository {
+  private fun createRepository(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     val executor =
       if (ApplicationManager.getApplication().isUnitTestMode) Executor { _: Runnable? -> }
       else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
-    val cachingData =
-      ResourceFolderRepositoryFileCacheService.get()
-        .getCachingData(facet.module.project, dir, executor)
+    val cachingData = ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.module.project, dir, executor)
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData)
   }
 
@@ -237,8 +212,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   class PopulateCachesTask(private val myProject: Project) : DumbModeTask() {
 
     override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? =
-      if (taskFromQueue is PopulateCachesTask && taskFromQueue.myProject == myProject) this
-      else null
+      if (taskFromQueue is PopulateCachesTask && taskFromQueue.myProject == myProject) this else null
 
     override fun performInDumbMode(indicator: ProgressIndicator) {
       val facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)
@@ -269,9 +243,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       val repositoryJobs: MutableList<Future<ResourceFolderRepository>> = ArrayList()
       for ((dir, facet) in resDirectories) {
         val registry = getInstance(myProject)
-        repositoryJobs.add(
-          parallelExecutor.submit<ResourceFolderRepository> { registry[facet, dir] }
-        )
+        repositoryJobs.add(parallelExecutor.submit<ResourceFolderRepository> { registry[facet, dir] })
       }
       for (job in repositoryJobs) {
         if (indicator.isCanceled) {
@@ -292,10 +264,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 }
 
-private class ResourceFolderDocumentListener(
-  private val project: Project,
-  private val registry: ResourceFolderRegistry,
-) : DocumentListener {
+private class ResourceFolderDocumentListener(private val project: Project, private val registry: ResourceFolderRegistry) :
+  DocumentListener {
 
   override fun documentChanged(event: DocumentEvent) {
     // Note that event may arrive from any project, not only from the project parameter.
@@ -307,26 +277,21 @@ private class ResourceFolderDocumentListener(
       val virtualFile = FileDocumentManager.getInstance().getFile(document) ?: return
       if (virtualFile is LightVirtualFile || !isRelevantFile(virtualFile)) return
 
-      runInWriteAction {
-        registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) }
-      }
+      runInWriteAction { registry.dispatchToRepositories(virtualFile) { repo, f -> repo.scheduleScan(f) } }
     }
   }
 
   private fun runInWriteAction(runnable: Runnable) {
     val application = ApplicationManager.getApplication()
-    if (application.isWriteAccessAllowed) runnable.run()
-    else application.invokeLater { application.runWriteAction(runnable) }
+    if (application.isWriteAccessAllowed) runnable.run() else application.invokeLater { application.runWriteAction(runnable) }
   }
 }
 
 /**
- * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
- * file within a folder with a corresponding [ResourceFolderRepository], the event is delegated to
- * it.
+ * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a file within a folder with a corresponding
+ * [ResourceFolderRepository], the event is delegated to it.
  */
-private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) :
-  BulkFileListener {
+private class ResourceFolderVfsListener(private val registry: ResourceFolderRegistry) : BulkFileListener {
 
   @RequiresWriteLock
   override fun before(events: List<VFileEvent>) {
@@ -360,9 +325,7 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
     ResourceUpdateTracer.log {
       val pathToLog =
         if (parent == null) childName
-        else
-          ResourceUpdateTracer.getInstance()
-            .pathForLogging(parent.toPathString().resolve(childName), registry.project)
+        else ResourceUpdateTracer.getInstance().pathForLogging(parent.toPathString().resolve(childName), registry.project)
       "ResourceFolderVfsListener.onFileOrDirectoryCreated($pathToLog)"
     }
     val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
@@ -376,15 +339,10 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
   }
 
   companion object {
-    private fun onFileOrDirectoryCreated(
-      created: VirtualFile,
-      repository: ResourceFolderRepository?,
-    ) {
+    private fun onFileOrDirectoryCreated(created: VirtualFile, repository: ResourceFolderRepository?) {
       if (repository == null) return
 
-      ResourceUpdateTracer.log {
-        "ResourceFolderVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})"
-      }
+      ResourceUpdateTracer.log { "ResourceFolderVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})" }
       if (!created.isDirectory) {
         repository.onFileCreated(created)
       } else {
@@ -404,9 +362,7 @@ private class ResourceFolderVfsListener(private val registry: ResourceFolderRegi
   }
 }
 
-private class ResourceFolderFileDocumentManagerListener(
-  private val registry: ResourceFolderRegistry
-) : FileDocumentManagerListener {
+private class ResourceFolderFileDocumentManagerListener(private val registry: ResourceFolderRegistry) : FileDocumentManagerListener {
   override fun fileWithNoDocumentChanged(file: VirtualFile) {
     registry.dispatchToRepositories(file) { repo, f -> repo.scheduleScan(f) }
   }

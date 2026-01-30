@@ -42,21 +42,15 @@ internal abstract class AbstractDeviceAction(private val configFilter: Predicate
     presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
-  protected open fun isEnabled(event: AnActionEvent): Boolean =
-    isDeviceConnected(event)
+  protected open fun isEnabled(event: AnActionEvent): Boolean = isDeviceConnected(event)
 }
 
-internal fun getDeviceClient(event: AnActionEvent): DeviceClient? =
-  event.dataContext.getData(DEVICE_CLIENT_KEY)
+internal fun getDeviceClient(event: AnActionEvent): DeviceClient? = event.dataContext.getData(DEVICE_CLIENT_KEY)
 
-internal fun getDeviceController(event: AnActionEvent): DeviceController? =
-  event.dataContext.getData(DEVICE_CONTROLLER_KEY)
+internal fun getDeviceController(event: AnActionEvent): DeviceController? = event.dataContext.getData(DEVICE_CONTROLLER_KEY)
 
-internal fun getDeviceView(event: AnActionEvent): DeviceView? =
-  event.dataContext.getData(DEVICE_VIEW_KEY)
+internal fun getDeviceView(event: AnActionEvent): DeviceView? = event.dataContext.getData(DEVICE_VIEW_KEY)
 
-internal fun getDeviceConfig(event: AnActionEvent): DeviceConfiguration? =
-  getDeviceClient(event)?.deviceConfig
+internal fun getDeviceConfig(event: AnActionEvent): DeviceConfiguration? = getDeviceClient(event)?.deviceConfig
 
-internal fun isDeviceConnected(event: AnActionEvent) =
-  getDeviceView(event)?.isConnected == true
+internal fun isDeviceConnected(event: AnActionEvent) = getDeviceView(event)?.isConnected == true

@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.findVariant
 import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.util.toIoFile
@@ -42,8 +40,7 @@ import org.junit.Test
 @RunsInEdt
 class CatalogDependencyManagementTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testCatalogScopesForVersionVariable() {
@@ -57,18 +54,12 @@ class CatalogDependencyManagementTest {
       assertThat(scope.getVariable("anotherVersion")?.value, equalTo("0.9.2".asParsed<Any>()))
       assertThat(scope.getVariable("wrongVersion")?.value, equalTo("wrongVersion".asParsed<Any>()))
 
-      assertThat(
-        scope.map { it.name }.toSet(),
-        equalTo(
-          setOf("coreVersion", "anotherVersion", "wrongVersion")))
+      assertThat(scope.map { it.name }.toSet(), equalTo(setOf("coreVersion", "anotherVersion", "wrongVersion")))
 
       val dependency2 = appModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.6")
       val scope2 = dependency2!![0].versionScope()
       // expecting variables for compact notation as well as we can do literal to map transformation on the fly
-      assertThat(
-        scope2.map { it.name }.toSet(),
-        equalTo(
-          setOf("coreVersion", "anotherVersion", "wrongVersion")))
+      assertThat(scope2.map { it.name }.toSet(), equalTo(setOf("coreVersion", "anotherVersion", "wrongVersion")))
     }
   }
 
@@ -83,10 +74,7 @@ class CatalogDependencyManagementTest {
       assertThat(scope.getVariable("var10")?.value, equalTo("1.0".asParsed<Any>()))
       // this will be filtered out as value is not in set of all possible library versions
       assertThat(scope.getVariable("varLib")?.value, equalTo("com.android.support:appcompat-v7:+".asParsed<Any>()))
-      assertThat(
-        scope.map { it.name }.toSet(),
-        equalTo(
-          setOf("var06", "var10", "varLib")))
+      assertThat(scope.map { it.name }.toSet(), equalTo(setOf("var06", "var10", "varLib")))
     }
   }
 
@@ -109,7 +97,6 @@ class CatalogDependencyManagementTest {
       val declaration = catalogModel.libraryDeclarations().getAll()["lib1"]
       assertThat(declaration, notNullValue())
       assertThat(declaration!!.compactNotation(), equalTo("com.example.libs:lib1:1.0"))
-
 
       run {
         val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
@@ -141,7 +128,6 @@ class CatalogDependencyManagementTest {
       val declaration2 = catalogModel2.libraryDeclarations().getAll()["lib1"]
       assertThat(declaration2, notNullValue())
       assertThat(declaration2!!.compactNotation(), equalTo("com.example.libs:lib1:1.0"))
-
     }
   }
 
@@ -163,7 +149,10 @@ class CatalogDependencyManagementTest {
       assertThat(dependency, notNullValue())
       val buildDependencyModel = dependency!![0]
       assertThat(buildDependencyModel, notNullValue())
-      assertThat((buildDependencyModel.parsedModel.completeModel().rawElement as GradleDslLiteral).unresolvedValue, equalTo("libs.lib1O.old"))
+      assertThat(
+        (buildDependencyModel.parsedModel.completeModel().rawElement as GradleDslLiteral).unresolvedValue,
+        equalTo("libs.lib1O.old"),
+      )
 
       assertThat(catalogModel.libraryDeclarations().getAll()["lib1"], nullValue())
 
@@ -199,8 +188,8 @@ class CatalogDependencyManagementTest {
         assertThat(catalogDep!!.size, equalTo(1))
         assertFalse(catalogDep[0].canExtractVariable())
 
-        val plainDep = resolvedDependencies.findLibraryDependencies("com.android.support",
-                                                                    "appcompat-v7").singleOrNull()?.declaredDependencies
+        val plainDep =
+          resolvedDependencies.findLibraryDependencies("com.android.support", "appcompat-v7").singleOrNull()?.declaredDependencies
         assertThat(plainDep!!.size, equalTo(1))
         assertTrue(plainDep[0].canExtractVariable())
       }

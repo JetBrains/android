@@ -24,11 +24,11 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.Consumer
+import kotlin.io.path.Path
 import org.jetbrains.android.util.AndroidBundle
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
-import kotlin.io.path.Path
 
 class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
 
@@ -81,17 +81,16 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given list of suggested JDKs When create component Then dropdown contains all items`() {
-    val items = listOf(
-      LabelAndFileForLocation("label1", Path("path1")),
-      LabelAndFileForLocation("label2", Path("path2")),
-      LabelAndFileForLocation("label3", Path("path3")),
-      LabelAndFileForLocation("label4", Path("path4"))
-    )
+    val items =
+      listOf(
+        LabelAndFileForLocation("label1", Path("path1")),
+        LabelAndFileForLocation("label2", Path("path2")),
+        LabelAndFileForLocation("label3", Path("path3")),
+        LabelAndFileForLocation("label4", Path("path4")),
+      )
     val jdkComboBox = GradleJdkPathEditComboBox(items, null, "")
     assertEquals(items.size, jdkComboBox.itemCount)
-    items.forEachIndexed { index, labelAndFileForLocation ->
-      assertEquals(labelAndFileForLocation, jdkComboBox.getItemAt(index))
-    }
+    items.forEachIndexed { index, labelAndFileForLocation -> assertEquals(labelAndFileForLocation, jdkComboBox.getItemAt(index)) }
   }
 
   fun `test Given comboBox Then was configured with expected settings`() {

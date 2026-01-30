@@ -18,21 +18,13 @@ package com.android.tools.idea.ui.resourcechooser.common
 import com.android.resources.ResourceType
 import com.android.tools.configurations.Configuration
 
-/**
- * An enum for the different possible sources where resources could be loaded from for the Resource Picker.
- */
+/** An enum for the different possible sources where resources could be loaded from for the Resource Picker. */
 enum class ResourcePickerSources(val displayableName: String) {
-  /**
-   * For all local resources, this is the resources from the current module and all the local modules it depends on.
-   */
+  /** For all local resources, this is the resources from the current module and all the local modules it depends on. */
   PROJECT("Project"),
-  /**
-   * For resources from all the external libraries available for the current module.
-   */
+  /** For resources from all the external libraries available for the current module. */
   LIBRARY("Libraries"),
-  /**
-   * For resources that are part of the Android Framework.
-   */
+  /** For resources that are part of the Android Framework. */
   ANDROID("Android"),
   /**
    * For all [ResourceType.ATTR] resources that have a valid mapping to a resource of desired [ResourceType].
@@ -46,10 +38,7 @@ enum class ResourcePickerSources(val displayableName: String) {
   }
 
   companion object {
-    /**
-     * Convenience function to return all available sources in a list.
-     */
-    @JvmStatic
-    fun allSources() = values().toList()
+    /** Convenience function to return all available sources in a list. */
+    @JvmStatic fun allSources() = values().toList()
   }
 }

@@ -42,8 +42,7 @@ internal object DeviceTableColumns {
 
     override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel()
 
-    override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) =
-      component.update(rowValue)
+    override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) = component.update(rowValue)
   }
 
   val formFactorAttribute =
@@ -75,19 +74,14 @@ internal object DeviceTableColumns {
     override val visibleWhenGrouped = true
     override val attribute =
       object : Attribute<DeviceRowData, DeviceRowData.Status> {
-        override val sorter: Comparator<DeviceRowData.Status> =
-          Ordering.explicit(DeviceRowData.Status.ONLINE, DeviceRowData.Status.OFFLINE)
+        override val sorter: Comparator<DeviceRowData.Status> = Ordering.explicit(DeviceRowData.Status.ONLINE, DeviceRowData.Status.OFFLINE)
 
         override fun value(t: DeviceRowData) = t.status
       }
 
     override val widthConstraint = Column.SizeConstraint.exactly(JBUI.scale(24))
 
-    override fun updateValue(
-      rowValue: DeviceRowData,
-      component: IconLabel,
-      value: DeviceRowData.Status,
-    ) {
+    override fun updateValue(rowValue: DeviceRowData, component: IconLabel, value: DeviceRowData.Status) {
       component.baseIcon =
         when {
           rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
@@ -105,12 +99,10 @@ internal object DeviceTableColumns {
         }
     }
 
-    override fun createUi(rowValue: DeviceRowData) =
-      IconLabel(null).apply { size = JBDimension(24, 24) }
+    override fun createUi(rowValue: DeviceRowData) = IconLabel(null).apply { size = JBDimension(24, 24) }
   }
 
-  class Actions(private val project: Project?, val coroutineScope: CoroutineScope) :
-    Column<DeviceRowData, Unit, ActionButtonsPanel> {
+  class Actions(private val project: Project?, val coroutineScope: CoroutineScope) : Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
     override val columnHeaderName = "" // no room for a name
     override val attribute = Attribute.Unit
@@ -126,20 +118,15 @@ internal object DeviceTableColumns {
       }
     }
 
-    override fun installMouseDelegate(
-      component: ActionButtonsPanel,
-      mouseDelegate: DelegateMouseEventHandler,
-    ) {
+    override fun installMouseDelegate(component: ActionButtonsPanel, mouseDelegate: DelegateMouseEventHandler) {
       // Install the mouse handler on each child of the panel
       component.components.forEach { mouseDelegate.installListenerOn(it) }
     }
 
     // TODO: Precomputing this is a hack... can we base it on the panel after it has been
     // constructed?
-    override val widthConstraint =
-      Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 2)
+    override val widthConstraint = Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 2)
   }
 
-  fun columns(project: Project?, coroutineScope: CoroutineScope) =
-    listOf(Status, Name, Api, HandleType, Actions(project, coroutineScope))
+  fun columns(project: Project?, coroutineScope: CoroutineScope) = listOf(Status, Name, Api, HandleType, Actions(project, coroutineScope))
 }

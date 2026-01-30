@@ -24,12 +24,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 
-/**
- * Override the base fixture to replace DevicesService with a flow of Devices that we directly
- * control.
- */
-internal class DevicesSelectedServiceTestFixture(project: Project, testScope: TestScope) :
-  Fixture(project, testScope) {
+/** Override the base fixture to replace DevicesService with a flow of Devices that we directly control. */
+internal class DevicesSelectedServiceTestFixture(project: Project, testScope: TestScope) : Fixture(project, testScope) {
   private val _devicesFlow = MutableStateFlow<List<DeploymentTargetDevice>>(emptyList())
 
   var devices: List<DeploymentTargetDevice>
@@ -54,9 +50,7 @@ internal class DevicesSelectedServiceTestFixture(project: Project, testScope: Te
       .also { scope.launch { it.devicesAndTargetsFlow.collect() } }
 }
 
-internal fun runTestWithDevicesSelectedServiceFixture(
-  project: Project,
-  block: suspend DevicesSelectedServiceTestFixture.() -> Unit,
-) = runTest {
-  with(DevicesSelectedServiceTestFixture(project, this@runTest)) { runFixture { block() } }
-}
+internal fun runTestWithDevicesSelectedServiceFixture(project: Project, block: suspend DevicesSelectedServiceTestFixture.() -> Unit) =
+  runTest {
+    with(DevicesSelectedServiceTestFixture(project, this@runTest)) { runFixture { block() } }
+  }

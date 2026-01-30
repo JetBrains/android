@@ -41,6 +41,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -71,14 +75,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.Executor
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
-/**
- * [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors].
- */
+/** [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors]. */
 object AndroidDispatchers {
   /**
    * [CoroutineDispatcher] that dispatches to the UI thread with [ModalityState.defaultModalityState].
@@ -87,15 +85,13 @@ object AndroidDispatchers {
    */
   @Deprecated(
     "Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(
-      expression = "Dispatchers.EDT",
-      imports = ["kotlinx.coroutines.Dispatchers", "com.intellij.openapi.application.EDT"]
-    ))
+    replaceWith =
+      ReplaceWith(expression = "Dispatchers.EDT", imports = ["kotlinx.coroutines.Dispatchers", "com.intellij.openapi.application.EDT"]),
+  )
   val uiThread: CoroutineDispatcher
     get() =
-      Executor { block ->
-        AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block)
-      }.asCoroutineDispatcher()
+      Executor { block -> AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block) }
+        .asCoroutineDispatcher()
 
   /**
    * [CoroutineDispatcher] that dispatches to a background worker thread.
@@ -104,56 +100,52 @@ object AndroidDispatchers {
    */
   @Deprecated(
     "Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(
-      expression = "Dispatchers.Default",
-      imports = ["kotlinx.coroutines.Dispatchers"]
-    ))
-  val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
+    replaceWith = ReplaceWith(expression = "Dispatchers.Default", imports = ["kotlinx.coroutines.Dispatchers"]),
+  )
+  val workerThread: CoroutineDispatcher
+    get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
-   * [CoroutineDispatcher] that dispatches to a disk IO thread. Please notice that the disk IO
-   * thread pool is very limited and should not be used for anything except local disk IO.
-   * For socket IO and inter-process communication please use [kotlinx.coroutines.Dispatchers.IO].
+   * [CoroutineDispatcher] that dispatches to a disk IO thread. Please notice that the disk IO thread pool is very limited and should not be
+   * used for anything except local disk IO. For socket IO and inter-process communication please use [kotlinx.coroutines.Dispatchers.IO].
    *
    * @see AndroidExecutors.diskIoThreadExecutor
    */
   @Deprecated(
     "Prefer using Dispatchers.IO. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
-    replaceWith = ReplaceWith(
-      expression = "Dispatchers.IO",
-      imports = ["kotlinx.coroutines.Dispatchers"]
-    ))
-  val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
+    replaceWith = ReplaceWith(expression = "Dispatchers.IO", imports = ["kotlinx.coroutines.Dispatchers"]),
+  )
+  val diskIoThread: CoroutineDispatcher
+    get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
+private val LOG: Logger
+  get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
 
 /**
- * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
- * logs the [CoroutineName] from context.
+ * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally logs
+ * the [CoroutineName] from context.
  */
 val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwable ->
   if (throwable !is ProcessCanceledException) {
     val coroutineName = ctx[CoroutineName]?.name
     if (coroutineName != null) {
       LOG.error(coroutineName, throwable)
-    }
-    else {
+    } else {
       LOG.error(throwable)
     }
   }
 }
 
 /**
- * Creates a coroutine scope matching the [Disposable]'s lifecycle. When the [Disposable] gets
- * disposed, the scope's job is also canceled.
+ * Creates a coroutine scope matching the [Disposable]'s lifecycle. When the [Disposable] gets disposed, the scope's job is also canceled.
  *
- * The scope is created with a [SupervisorJob], meaning that a child coroutine failing will not
- * cause the other coroutines in the scope to fail.
+ * The scope is created with a [SupervisorJob], meaning that a child coroutine failing will not cause the other coroutines in the scope to
+ * fail.
  *
  * @param dispatcher The dispatcher to use when creating the scope. Defaults to [Dispatchers.Default].
- * @param extraContext The context to append to the scope's context. Can be used to provide
- *   a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
+ * @param extraContext The context to append to the scope's context. Can be used to provide a [CoroutineName], for example. Defaults to
+ *   [EmptyCoroutineContext].
  * @see androidCoroutineExceptionHandler
  */
 fun Disposable.createCoroutineScope(
@@ -165,28 +157,23 @@ fun Disposable.createCoroutineScope(
   return CoroutineScope(job + dispatcher + androidCoroutineExceptionHandler + extraContext)
 }
 
-/**
- * Creates a [Job] tied to the lifecycle of a [Disposable].
- */
+/** Creates a [Job] tied to the lifecycle of a [Disposable]. */
 @Suppress("FunctionName") // mirroring upstream API.
 fun SupervisorJob(disposable: Disposable): Job {
-  return SupervisorJob().also { job ->
-    cancelJobOnDispose(disposable, job)
-  }
+  return SupervisorJob().also { job -> cancelJobOnDispose(disposable, job) }
 }
 
 /**
  * Returns a [CoroutineScope] containing:
- *   - a [SupervisorJob] tied to the [Disposable] lifecycle of [disposable]
- *   - [AndroidDispatchers.workerThread]
- *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
+ * - a [SupervisorJob] tied to the [Disposable] lifecycle of [disposable]
+ * - [AndroidDispatchers.workerThread]
+ * - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
  *
- * The optional [context] parameter can be used to override the [Job], [CoroutineDispatcher]
- * and [CoroutineExceptionHandler] of the [CoroutineContext] of the returned [CoroutineScope].
+ * The optional [context] parameter can be used to override the [Job], [CoroutineDispatcher] and [CoroutineExceptionHandler] of the
+ * [CoroutineContext] of the returned [CoroutineScope].
  *
- * Note: This method creates a "top-level" (or "root") [CoroutineScope]. Use [createChildScope]
- * to create a [CoroutineScope] to create a child scope that is tied to both a [Disposable]
- * and a parent scope.
+ * Note: This method creates a "top-level" (or "root") [CoroutineScope]. Use [createChildScope] to create a [CoroutineScope] to create a
+ * child scope that is tied to both a [Disposable] and a parent scope.
  */
 @Deprecated(
   "Use Disposable.createCoroutineScope(dispatcher, extraContext) instead",
@@ -200,8 +187,8 @@ fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = Em
 }
 
 /**
- * Ensure [job] is canceled if it is still active when [disposable] is disposed.
- * If the given [disposable] is already disposed, [job] will be cancelled immediately.
+ * Ensure [job] is canceled if it is still active when [disposable] is disposed. If the given [disposable] is already disposed, [job] will
+ * be cancelled immediately.
  */
 private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
@@ -210,15 +197,19 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
       job.cancel(CancellationException("$disposableId has been disposed."))
     }
   }
-  val registered = Disposer.tryRegister(disposable, object : Disposable {
-    override fun dispose() {
-      onDispose()
-    }
+  val registered =
+    Disposer.tryRegister(
+      disposable,
+      object : Disposable {
+        override fun dispose() {
+          onDispose()
+        }
 
-    override fun toString(): String {
-      return "CancelJobOnDispose(job=$job,parent=$disposableId)"
-    }
-  })
+        override fun toString(): String {
+          return "CancelJobOnDispose(job=$job,parent=$disposableId)"
+        }
+      },
+    )
   // If the disposable was already disposed, cancel the job immediately.
   if (!registered) onDispose()
 }
@@ -230,9 +221,8 @@ val Project.coroutineScope: CoroutineScope
   get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
 
 /**
- * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
- * [Disposable] can be used as the root. This is analogous to [AndroidCoroutineScope] where this
- * generates a [Disposable] for the given [CoroutineScope].
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned [Disposable] can be used as the root.
+ * This is analogous to [AndroidCoroutineScope] where this generates a [Disposable] for the given [CoroutineScope].
  */
 fun CoroutineScope.scopeDisposable(): Disposable {
   val disposable = Disposer.newDisposable(service<ApplicationCoroutineScopeDisposable>())
@@ -243,14 +233,12 @@ fun CoroutineScope.scopeDisposable(): Disposable {
 }
 
 /**
- * This application level service is used to ensure all Disposables created by
- * [CoroutineScope.scopeDisposable] get disposed when the application is disposed.
- * [Job.invokeOnCompletion] does not provide thread guarantees (cf.
- * https://github.com/Kotlin/kotlinx.coroutines/issues/3505) and we had some race conditions where
- * the UndisposedAndroidObjectsCheckerRule#checkUndisposedAndroidRelatedObjects leak check would run
- * before the call to [Disposable.dispose] inside the [Job.invokeOnCompletion]. This created some
- * errors in some tests, for example: b/328290264. By using this application level service as a
- * parent disposable, we ensure all child disposables are disposed of at the end of each test.
+ * This application level service is used to ensure all Disposables created by [CoroutineScope.scopeDisposable] get disposed when the
+ * application is disposed. [Job.invokeOnCompletion] does not provide thread guarantees (cf.
+ * https://github.com/Kotlin/kotlinx.coroutines/issues/3505) and we had some race conditions where the
+ * UndisposedAndroidObjectsCheckerRule#checkUndisposedAndroidRelatedObjects leak check would run before the call to [Disposable.dispose]
+ * inside the [Job.invokeOnCompletion]. This created some errors in some tests, for example: b/328290264. By using this application level
+ * service as a parent disposable, we ensure all child disposables are disposed of at the end of each test.
  */
 @Service(Service.Level.APP)
 private class ApplicationCoroutineScopeDisposable : Disposable {
@@ -259,29 +247,29 @@ private class ApplicationCoroutineScopeDisposable : Disposable {
 
 /**
  * Launches a new coroutine that will be bound to the given [ProgressIndicatorEx]. If the indicator is stopped, the coroutine will be
- * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped.
- * This method also accepts an optional [CoroutineContext].
+ * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped. This method also accepts an optional
+ * [CoroutineContext].
  */
-@Deprecated("Prefer using withBackgroundProgress or withModalProgress from package " +
-            "com.intellij.platform.ide.progress. " +
-            "See https://plugins.jetbrains.com/docs/intellij/execution-contexts.html#progress-reporting")
+@Deprecated(
+  "Prefer using withBackgroundProgress or withModalProgress from package " +
+    "com.intellij.platform.ide.progress. " +
+    "See https://plugins.jetbrains.com/docs/intellij/execution-contexts.html#progress-reporting"
+)
 fun CoroutineScope.launchWithProgress(
   progressIndicator: ProgressIndicator,
   context: CoroutineContext = EmptyCoroutineContext,
-  runnable: suspend CoroutineScope.() -> Unit): Job {
+  runnable: suspend CoroutineScope.() -> Unit,
+): Job {
   if (!progressIndicator.isRunning) progressIndicator.start()
 
   // We create a new scope that we will cancel if the progressIndicator is stopped.
   val scope = createChildScope()
 
-  /**
-   * Checks if [progressIndicator] is cancelled and cancels the scope. Returns true as long as the scope is still active.
-   */
+  /** Checks if [progressIndicator] is cancelled and cancels the scope. Returns true as long as the scope is still active. */
   fun checkProgressIndicatorState(): Boolean {
     if (progressIndicator.isCanceled) {
       scope.cancel("User cancelled the refresh")
-    }
-    else if (!progressIndicator.isRunning) {
+    } else if (!progressIndicator.isRunning) {
       scope.cancel("The progress indicator is not running")
     }
 
@@ -348,136 +336,128 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
    */
   suspend fun launch(task: suspend () -> Unit): Job? {
     var newJob: Job? = null
-    coroutineScope.launch(taskDispatcher) {
-      jobMutex.withLock {
-        // Cancel any running job and wait for the cancellation to complete
-        taskJob?.cancelAndJoin()
-        newJob = coroutineScope.launch(taskDispatcher) {
-          task()
+    coroutineScope
+      .launch(taskDispatcher) {
+        jobMutex.withLock {
+          // Cancel any running job and wait for the cancellation to complete
+          taskJob?.cancelAndJoin()
+          newJob = coroutineScope.launch(taskDispatcher) { task() }
+          taskJob = newJob
         }
-        taskJob = newJob
       }
-    }.join()
+      .join()
     return newJob
   }
 }
 
 /**
  * Utility function for creating a scope that is a child of the current scope.
- *
  * * The new scope can optionally be a [supervisor][isSupervisor] scope.
- *
- * * An optional [parentDisposable] can be used to ensure the new scope is
- *   [cancelled][CoroutineScope.cancel] when the [parentDisposable] is
- *   [disposed][Disposer.dispose]. The new scope is, as usual, also cancelled
- *   with its parent scope.
+ * * An optional [parentDisposable] can be used to ensure the new scope is [cancelled][CoroutineScope.cancel] when the [parentDisposable] is
+ *   [disposed][Disposer.dispose]. The new scope is, as usual, also cancelled with its parent scope.
  */
-fun CoroutineScope.createChildScope(isSupervisor: Boolean = false,
-                                    context: CoroutineContext = EmptyCoroutineContext,
-                                    parentDisposable: Disposable? = null): CoroutineScope {
+fun CoroutineScope.createChildScope(
+  isSupervisor: Boolean = false,
+  context: CoroutineContext = EmptyCoroutineContext,
+  parentDisposable: Disposable? = null,
+): CoroutineScope {
   val newJob = if (isSupervisor) SupervisorJob(this.coroutineContext.job) else Job(this.coroutineContext.job)
   return CoroutineScope(this.coroutineContext + newJob + context).also { newScope ->
     // Attach new scope to [parentDisposable] lifecycle
-    parentDisposable?.apply {
-      cancelJobOnDispose(parentDisposable, newScope.coroutineContext.job)
-    }
+    parentDisposable?.apply { cancelJobOnDispose(parentDisposable, newScope.coroutineContext.job) }
   }
 }
 
-/**
- * Immediately returns the completed result. If deferred is not complete for any reason, return null.
- */
+/** Immediately returns the completed result. If deferred is not complete for any reason, return null. */
 suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
   if (isCompleted) {
     return try {
       this.await()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       null
     }
   }
   return null
 }
 
-/**
- * Suspendable method that will suspend until the given [compute] can be executed in a write action in the UI thread.
- */
+/** Suspendable method that will suspend until the given [compute] can be executed in a write action in the UI thread. */
 suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScope {
   val result = CompletableDeferred<T>()
   ApplicationManager.getApplication().invokeLater {
     if (isActive) {
-      WriteAction.run<Throwable> {
-        if (isActive) result.complete(compute.compute())
-      }
+      WriteAction.run<Throwable> { if (isActive) result.complete(compute.compute()) }
     }
   }
   return@coroutineScope result.await()
 }
 
-/**
- * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
- */
+/** Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function. */
 suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = readAction {
   if (project.isDisposed) return@readAction null
   val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@readAction null
   if (psiFile.isValid) psiFile else null
 }
 
-/**
- * Scope passed to the runnable in [disposableCallbackFlow].
- */
+/** Scope passed to the runnable in [disposableCallbackFlow]. */
 interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
   /**
-   * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in
-   * [disposableCallbackFlow] is disposed.
+   * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in [disposableCallbackFlow]
+   * is disposed.
    */
   val disposable: Disposable
 
-  /**
-   * Equivalent to [kotlinx.coroutines.channels.ProducerScope.trySend].
-   */
+  /** Equivalent to [kotlinx.coroutines.channels.ProducerScope.trySend]. */
   fun trySend(e: T)
 }
 
 /**
  * Similar to [callbackFlow] but allows to use a [Disposable] as part of the callback.
  *
- * The [runnable] will be called with a [CallbackFlowWithDisposableScope] that contains a [Disposable]. The [Disposable] will be disposed if:
- *  - The [parentDisposable] is disposed, if not null.
- *  - The flow is closed.
+ * The [runnable] will be called with a [CallbackFlowWithDisposableScope] that contains a [Disposable]. The [Disposable] will be disposed
+ * if:
+ * - The [parentDisposable] is disposed, if not null.
+ * - The flow is closed.
  *
  * This allows for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
  */
-fun <T> disposableCallbackFlow(debugName: String,
-                               logger: Logger? = null,
-                               parentDisposable: Disposable? = null,
-                               runnable: suspend CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+fun <T> disposableCallbackFlow(
+  debugName: String,
+  logger: Logger? = null,
+  parentDisposable: Disposable? = null,
+  runnable: suspend CallbackFlowWithDisposableScope<T>.() -> Unit,
+) = callbackFlow {
   logger?.debug("$debugName start")
 
-  val disposable = parentDisposable?.let {
-    // If there is a parent disposable, cancel the flow when it's disposed.
-    Disposer.register(it, object : Disposable {
-      override fun dispose() {
-        cancel("parentDisposable was disposed")
+  val disposable =
+    parentDisposable?.let {
+      // If there is a parent disposable, cancel the flow when it's disposed.
+      Disposer.register(
+        it,
+        object : Disposable {
+          override fun dispose() {
+            cancel("parentDisposable was disposed")
+          }
+
+          override fun toString(): String {
+            return "DisposableCallbackFlow(name=$debugName)"
+          }
+        },
+      )
+      Disposer.newDisposable(it, debugName)
+    } ?: Disposer.newDisposable(debugName)
+
+  val scope =
+    object : CallbackFlowWithDisposableScope<T> {
+      override val coroutineContext: CoroutineContext
+        get() = this@callbackFlow.coroutineContext
+
+      override val disposable: Disposable
+        get() = disposable
+
+      override fun trySend(e: T) {
+        this@callbackFlow.trySend(e)
       }
-
-      override fun toString(): String {
-        return "DisposableCallbackFlow(name=$debugName)"
-      }
-    })
-    Disposer.newDisposable(it, debugName)
-  } ?: Disposer.newDisposable(debugName)
-
-  val scope = object : CallbackFlowWithDisposableScope<T> {
-    override val coroutineContext: CoroutineContext
-      get() = this@callbackFlow.coroutineContext
-    override val disposable: Disposable
-      get() = disposable
-
-    override fun trySend(e: T) {
-      this@callbackFlow.trySend(e)
     }
-  }
 
   scope.runnable()
 
@@ -488,21 +468,26 @@ fun <T> disposableCallbackFlow(debugName: String,
 }
 
 /**
- * A [callbackFlow] that produces an element when the [project] moves into smart mode. The [onConnected] listener will be
- * called in the context of a worker thread.
+ * A [callbackFlow] that produces an element when the [project] moves into smart mode. The [onConnected] listener will be called in the
+ * context of a worker thread.
  */
 @VisibleForTesting
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
   disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
     val wasInDumbMode = AtomicBoolean(DumbService.getInstance(project).isDumb)
     logger?.debug { "SmartModeFlow wasInDumbMode=${wasInDumbMode.get()}" }
-    project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
-      override fun exitDumbMode() {
-        // We have detected the change, so clear the flag
-        wasInDumbMode.set(false)
-        trySend(Unit)
-      }
-    })
+    project.messageBus
+      .connect(disposable)
+      .subscribe(
+        DumbService.DUMB_MODE,
+        object : DumbService.DumbModeListener {
+          override fun exitDumbMode() {
+            // We have detected the change, so clear the flag
+            wasInDumbMode.set(false)
+            trySend(Unit)
+          }
+        },
+      )
 
     onConnected?.let { launch(workerThread) { it() } }
 
@@ -513,29 +498,30 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
     }
   }
 
-/**
- * A [callbackFlow] that produces an element when the [project] moves into smart mode.
- */
+/** A [callbackFlow] that produces an element when the [project] moves into smart mode. */
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
   smartModeFlow(project, parentDisposable, logger, null)
 
-/**
- * A [callbackFlow] that produces an element when a [PsiFile] changes.
- */
-fun psiFileChangeFlow(psiManager: PsiManager, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+/** A [callbackFlow] that produces an element when a [PsiFile] changes. */
+fun psiFileChangeFlow(
+  psiManager: PsiManager,
+  scope: CoroutineScope,
+  logger: Logger? = null,
+  onConnected: (() -> Unit)? = null,
+): Flow<PsiFile> =
   disposableCallbackFlow(debugName = "PsiFileChangeFlow", parentDisposable = scope.scopeDisposable(), logger = logger) {
-    psiManager.addPsiTreeChangeListener(
-      object : PsiTreeAnyChangeAbstractAdapter() {
-        override fun onChange(changedFile: PsiFile?) {
-          if (changedFile == null) return
-          trySend(changedFile)
-        }
-      },
-      this.disposable
-    )
+      psiManager.addPsiTreeChangeListener(
+        object : PsiTreeAnyChangeAbstractAdapter() {
+          override fun onChange(changedFile: PsiFile?) {
+            if (changedFile == null) return
+            trySend(changedFile)
+          }
+        },
+        this.disposable,
+      )
 
-    onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
-  }
+      onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
+    }
     // Avoid repeated change events for no modifications
     .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }
 

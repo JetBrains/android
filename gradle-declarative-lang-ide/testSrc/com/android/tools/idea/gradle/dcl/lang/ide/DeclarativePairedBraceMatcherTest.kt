@@ -29,9 +29,11 @@ class DeclarativePairedBraceMatcherTest : BasePlatformTestCase() {
         foo("bar")
         block { foo = "bar" }
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private val caret = "<caret>"
+
   private fun String.offset(window: String): Int {
     val delta = window.indexOf(caret)
     val withoutCursor = window.substring(0, delta) + window.substring(delta + caret.length)

@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.k2
 
+import java.io.File
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompiledFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
-import java.io.File
 
-/**
- * A class used to convert the compile result of K2 codegen API to [OutputFile].
- */
+/** A class used to convert the compile result of K2 codegen API to [OutputFile]. */
 @OptIn(KaExperimentalApi::class)
 @ApiStatus.Internal
-class OutputFileForKtCompiledFile(private val compiledFile: KaCompiledFile): OutputFile {
+class OutputFileForKtCompiledFile(private val compiledFile: KaCompiledFile) : OutputFile {
   override val relativePath: String
     get() = compiledFile.path
 

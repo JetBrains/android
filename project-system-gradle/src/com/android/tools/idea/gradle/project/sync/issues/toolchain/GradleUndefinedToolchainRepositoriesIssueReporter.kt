@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.UNDEFINED_TOOLCHAIN_REPOSITORIES_PLUGIN
 import org.jetbrains.kotlin.idea.gradleJava.issues.checkers.GradleUndefinedToolchainRepositoriesIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleUndefinedToolchainRepositoriesIssueChecker]
- */
-class GradleUndefinedToolchainRepositoriesIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleUndefinedToolchainRepositoriesIssueChecker(),
-  errorEvent = UNDEFINED_TOOLCHAIN_REPOSITORIES_PLUGIN
-)
+/** Gradle build error analytics tracker for [GradleUndefinedToolchainRepositoriesIssueChecker] */
+class GradleUndefinedToolchainRepositoriesIssueReporter :
+  DaemonJvmCriteriaIssueReporter(
+    checker = GradleUndefinedToolchainRepositoriesIssueChecker(),
+    errorEvent = UNDEFINED_TOOLCHAIN_REPOSITORIES_PLUGIN,
+  )

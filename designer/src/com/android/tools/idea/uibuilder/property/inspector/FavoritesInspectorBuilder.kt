@@ -52,22 +52,13 @@ private const val PACKAGE_SEPARATOR_CHAR = ':'
 
 @VisibleForTesting const val FAVORITES_PROPERTY = "ANDROID.FAVORITE_PROPERTIES"
 
-class FavoritesInspectorBuilder(
-  private val model: NlPropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NlPropertyItem>,
-) : InspectorBuilder<NlPropertyItem> {
-  private val nameControlTypeProvider =
-    SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
+class FavoritesInspectorBuilder(private val model: NlPropertiesModel, enumSupportProvider: EnumSupportProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
+  private val nameControlTypeProvider = SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
   private val nameEditorProvider = EditorProvider.createForNames<NlNewPropertyItem>()
   private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-  private val tableUIProvider =
-    TableUIProvider(
-      nameControlTypeProvider,
-      nameEditorProvider,
-      controlTypeProvider,
-      editorProvider,
-    )
+  private val tableUIProvider = TableUIProvider(nameControlTypeProvider, nameEditorProvider, controlTypeProvider, editorProvider)
   private val splitter = Splitter.on(FAVORITE_SEPARATOR_CHAR).trimResults().omitEmptyStrings()
   private var favoritesAsString = ""
   private var favorites = mutableSetOf<ResourceReference>()
@@ -130,10 +121,7 @@ class FavoritesInspectorBuilder(
     favorites.addAll(newFavorites)
   }
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.FAVORITES.visible) {
       return
     }
@@ -157,8 +145,7 @@ class FavoritesInspectorBuilder(
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, actions)
-    val tableLineModel =
-      inspector.addTable(favoritesTableModel, false, tableUIProvider, actions, titleModel)
+    val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, actions, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
@@ -171,23 +158,17 @@ class FavoritesInspectorBuilder(
   /**
    * The [newPropertyItem] was assigned a new delegate.
    *
-   * At this point we know which attribute was assigned. Save that new attribute to the list of
-   * favorites, and clear [newPropertyItem] such that a new favorite can be specified.
+   * At this point we know which attribute was assigned. Save that new attribute to the list of favorites, and clear [newPropertyItem] such
+   * that a new favorite can be specified.
    */
-  private fun newDelegateWasAssigned(
-    newPropertyItem: NlNewPropertyItem,
-    tableModel: FilteredPTableModel<NlPropertyItem>,
-  ) {
+  private fun newDelegateWasAssigned(newPropertyItem: NlNewPropertyItem, tableModel: FilteredPTableModel<NlPropertyItem>) {
     val delegate = addToFavorites(newPropertyItem) ?: return
     newPropertyItem.name = ""
     tableModel.addNewItem(delegate)
     newPropertyItem.model.firePropertyValueChangeIfNeeded()
   }
 
-  private fun insertNewItem(
-    name: String,
-    @Suppress("UNUSED_PARAMETER") value: String,
-  ): NlPropertyItem? {
+  private fun insertNewItem(name: String, @Suppress("UNUSED_PARAMETER") value: String): NlPropertyItem? {
     val newPropertyInstance = NlNewPropertyItem(model, model.properties, { true })
     newPropertyInstance.name = name
     return addToFavorites(newPropertyInstance)
@@ -227,8 +208,7 @@ class FavoritesInspectorBuilder(
     }
   }
 
-  private inner class DeleteRowAction :
-    AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
+  private inner class DeleteRowAction : AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 
@@ -248,8 +228,7 @@ class FavoritesInspectorBuilder(
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
-      val selected =
-        (model.selectedItem ?: model.tableModel.items.firstOrNull()) as? NlPropertyItem ?: return
+      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) as? NlPropertyItem ?: return
       if (selected is NlNewPropertyItem) {
         // This item is not in the favorites yet, just remove the item in the table:
         model.removeItem(selected)

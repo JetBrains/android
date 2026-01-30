@@ -27,15 +27,12 @@ import org.junit.Test
 /** Ensures tip-of-the-day is disabled; it does not work correctly in Android Studio (b/302571384). */
 class AndroidStudioTipOfTheDayTest {
   companion object {
-    @JvmStatic
-    @get:ClassRule
-    val appRule = ApplicationRule()
+    @JvmStatic @get:ClassRule val appRule = ApplicationRule()
   }
 
   @Test
   fun popupDisabled() {
-    @Suppress("UnstableApiUsage")
-    assertThat(application.serviceOrNull<TipAndTrickManager>()).isNull()
+    @Suppress("UnstableApiUsage") assertThat(application.serviceOrNull<TipAndTrickManager>()).isNull()
   }
 
   @Test

@@ -26,8 +26,8 @@ import com.intellij.diagnostic.ThreadDumper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.registry.Registry
-import jdk.jfr.consumer.RecordedEvent
 import java.nio.file.Path
+import jdk.jfr.consumer.RecordedEvent
 
 object JfrFreezeReports {
   private const val CALL_TREES_FIELD = "callTrees"
@@ -38,24 +38,27 @@ object JfrFreezeReports {
 
   fun createFreezeReportManager(parentDisposable: Disposable) =
     JfrReportManager.create(::JfrFreezeReportGenerator, null) {
-      val listener = object : IdePerformanceListener {
-        override fun uiFreezeStarted(reportDir: Path) {
-          startCapture()
-          currentReportGenerator!!.edtStackForCrash =
-            ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
-        }
+      val listener =
+        object : IdePerformanceListener {
+          override fun uiFreezeStarted(reportDir: Path) {
+            startCapture()
+            currentReportGenerator!!.edtStackForCrash =
+              ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
+          }
 
-        override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
-          stopCapture()
+          override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
+            stopCapture()
+          }
         }
-      }
       ApplicationManager.getApplication().messageBus.connect(parentDisposable).subscribe(IdePerformanceListener.TOPIC, listener)
     }
 
-  class JfrFreezeReportGenerator : JfrReportGenerator(
-    REPORT_TYPE,
-    EventFilter.CPU_SAMPLES,
-    -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0).toLong()) {
+  class JfrFreezeReportGenerator :
+    JfrReportGenerator(
+      REPORT_TYPE,
+      EventFilter.CPU_SAMPLES,
+      -Registry.intValue("performance.watcher.unresponsive.interval.ms", 0).toLong(),
+    ) {
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
     var edtStackForCrash: String = EMPTY_ANR_STACKTRACE
 
@@ -68,8 +71,10 @@ object JfrFreezeReports {
     }
 
     override fun generateReport(): Map<String, String> {
-      return mapOf(CALL_TREES_FIELD to callTreeAggregator.generateReport(200_000),
-                   StudioExceptionReport.KEY_EXCEPTION_INFO to edtStackForCrash)
+      return mapOf(
+        CALL_TREES_FIELD to callTreeAggregator.generateReport(200_000),
+        StudioExceptionReport.KEY_EXCEPTION_INFO to edtStackForCrash,
+      )
     }
   }
 }

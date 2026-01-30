@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.l
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.build
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.builder
-import com.google.common.collect.ImmutableList
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
@@ -85,13 +84,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
 
   fun testEmptyRenderSuccess() = runTest {
     val model: NlModel =
-      model(
-          "absolute.xml",
-          component(SdkConstants.ABSOLUTE_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
-        )
+      model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies
     // on
@@ -118,12 +111,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
           .matchParentHeight()
-          .children(
-            component("custom.view.not.present.yet")
-              .withBounds(100, 100, 100, 100)
-              .matchParentWidth()
-              .matchParentHeight()
-          ),
+          .children(component("custom.view.not.present.yet").withBounds(100, 100, 100, 100).matchParentWidth().matchParentHeight()),
       )
 
     var model: NlModel = modelBuilder.build()
@@ -147,22 +135,13 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     // styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
-    assertTrue(
-      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? ->
-        issue!!.summary.startsWith("Missing classes")
-      }
-    )
+    assertTrue(designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("Missing classes") })
     assertFalse(
-      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? ->
-        issue!!.summary.startsWith("The project is still building")
-      }
+      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("The project is still building") }
     )
   }
 
-  /**
-   * Copy a component and check that the id of the new component has the same base and an
-   * incremented number
-   */
+  /** Copy a component and check that the id of the new component has the same base and an incremented number */
   fun ignore_testCopyPasteWithId() {
     val model: NlModel =
       model(
@@ -172,11 +151,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp")
             ),
         )
         .build()
@@ -206,11 +181,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp")
             ),
         )
         .build()
@@ -234,36 +205,18 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton2")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton3")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton2").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton3").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
             ),
         )
         .build()
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
-    val button2 =
-      model.treeReader.find("cuteLittleButton2")
-        ?: throw NullPointerException("Button2 should not be null")
-    val button3 =
-      model.treeReader.find("cuteLittleButton3")
-        ?: throw NullPointerException("Button3 should not be null")
+    val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
+    val button2 = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button2 should not be null")
+    val button3 = model.treeReader.find("cuteLittleButton3") ?: throw NullPointerException("Button3 should not be null")
     designSurface.selectionModel.setSelection(listOf(button, button2, button3))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
@@ -282,36 +235,18 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton2")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton3")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton2").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton3").withBounds(100, 100, 100, 100).width("100dp").height("100dp"),
             ),
         )
         .build()
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
-    val button2 =
-      model.treeReader.find("cuteLittleButton2")
-        ?: throw NullPointerException("Button2 should not be null")
-    val button3 =
-      model.treeReader.find("cuteLittleButton3")
-        ?: throw NullPointerException("Button3 should not be null")
+    val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
+    val button2 = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button2 should not be null")
+    val button3 = model.treeReader.find("cuteLittleButton3") ?: throw NullPointerException("Button3 should not be null")
     designSurface.selectionModel.setSelection(listOf(button, button2, button3))
     handler.performCopy(dataContext)
     designSurface.selectionModel.clear()
@@ -330,26 +265,18 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp")
             ),
         )
         .build()
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
+    val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
-    val button2 =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
+    val button2 = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2)
 
     designSurface.selectionModel.setSelection(listOf(button2))
@@ -358,10 +285,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertComponentWithId(model, "cuteLittleButton2")
   }
 
-  /**
-   * Cut component1, paste it, copy it, cut the copy and paste it. The copy should keep the same id
-   * as the first time.
-   */
+  /** Cut component1, paste it, copy it, cut the copy and paste it. The copy should keep the same id as the first time. */
   fun ignore_testCutPasteCut() {
     val model: NlModel =
       model(
@@ -371,26 +295,18 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .matchParentWidth()
             .matchParentHeight()
             .children(
-              component(SdkConstants.BUTTON)
-                .id("@+id/cuteLittleButton")
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
+              component(SdkConstants.BUTTON).id("@+id/cuteLittleButton").withBounds(100, 100, 100, 100).width("100dp").height("100dp")
             ),
         )
         .build()
     designSurface.setModel(model)
     val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
+    val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
-    val buttonCut =
-      model.treeReader.find("cuteLittleButton")
-        ?: throw NullPointerException("Button should not be null")
+    val buttonCut = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut)
 
     designSurface.selectionModel.setSelection(listOf(buttonCut))
@@ -398,9 +314,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     handler.performPaste(dataContext)
     assertComponentWithId(model, "cuteLittleButton2")
 
-    val buttonCopied =
-      model.treeReader.find("cuteLittleButton2")
-        ?: throw NullPointerException("Button should not be null")
+    val buttonCopied = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(buttonCopied))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
@@ -417,12 +331,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .withBounds(0, 0, 200, 200)
             .matchParentWidth()
             .matchParentHeight()
-            .children(
-              component(SdkConstants.FRAME_LAYOUT)
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
-            ),
+            .children(component(SdkConstants.FRAME_LAYOUT).withBounds(100, 100, 100, 100).width("100dp").height("100dp")),
         )
         .build()
     designSurface.setModel(model)
@@ -434,10 +343,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     delayUntilCondition(250) { designSurface.focusedSceneView != null }
 
     val view = designSurface.focusedSceneView
-    assertEquals(
-      Point(0, 0),
-      Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
 
     var scale = designSurface.zoomController.scale
 
@@ -446,10 +352,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
       designSurface.zoomController.zoom(ZoomType.IN)
       scale = designSurface.zoomController.scale
       assertTrue(scale > origScale)
-      assertEquals(
-        Point(0, 0),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
+      assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     }
     // Zoom in more will keep the scale equals to max scale
     designSurface.zoomController.zoom(ZoomType.IN)
@@ -461,10 +364,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     while (scale > designSurface.zoomController.minScale) {
       designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
       scale = designSurface.zoomController.scale
-      assertEquals(
-        Point(0, 0),
-        Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-      )
+      assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
       assertTrue(scale < zoomedInScale)
       designSurface.zoomController.zoom(ZoomType.OUT)
     }
@@ -497,12 +397,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
             .withBounds(0, 0, 200, 200)
             .matchParentWidth()
             .matchParentHeight()
-            .children(
-              component(SdkConstants.FRAME_LAYOUT)
-                .withBounds(100, 100, 100, 100)
-                .width("100dp")
-                .height("100dp")
-            ),
+            .children(component(SdkConstants.FRAME_LAYOUT).withBounds(100, 100, 100, 100).width("100dp").height("100dp")),
         )
         .build()
     val config = model.configuration.clone()
@@ -516,36 +411,21 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertEquals(origScale, designSurface.zoomController.minScale)
 
     val view = designSurface.focusedSceneView
-    assertEquals(
-      Point(-122, -122),
-      Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN)
     var scale = designSurface.zoomController.scale
     assertTrue(scale > origScale)
-    assertEquals(
-      Point(-44, -44),
-      Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(-44, -44), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN, 100, 100)
     assertTrue(designSurface.zoomController.scale > scale)
-    assertEquals(
-      Point(-29, -29),
-      Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(-29, -29), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
-    assertEquals(
-      Point(-43, -43),
-      Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(-43, -43), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
-    assertEquals(
-      Point(-122, -122),
-      Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition),
-    )
+    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
 
     assertEquals(designSurface.zoomController.scale, origScale)
@@ -563,13 +443,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
 
   fun ignore_testCanZoomToFit() {
     val model: NlModel =
-      model(
-          "absolute.xml",
-          component(SdkConstants.ABSOLUTE_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
-        )
+      model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on
     // the Material theme
@@ -592,13 +466,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
 
   fun ignore_testCannotZoomToFit() {
     val model: NlModel =
-      model(
-          "absolute.xml",
-          component(SdkConstants.ABSOLUTE_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
-        )
+      model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
 
     val surfaceWidth = 500
@@ -642,13 +510,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
   /** Test that we don't have any negative scale in case the windows size becomes too small */
   fun ignore_testsMinScale() {
     val model: NlModel =
-      model(
-          "absolute.xml",
-          component(SdkConstants.ABSOLUTE_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
-        )
+      model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
     val surface = designSurface
     surface.setModel(model)
@@ -689,10 +551,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
       "Expected id is \"" +
         expectedId +
         "\" but current ids are: " +
-        model.treeReader
-          .flattenComponents()
-          .map<String?> { obj: NlComponent? -> obj!!.getId() }
-          .collect(Collectors.joining(", ")),
+        model.treeReader.flattenComponents().map<String?> { obj: NlComponent? -> obj!!.getId() }.collect(Collectors.joining(", ")),
       component,
     )
   }

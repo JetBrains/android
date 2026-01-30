@@ -32,15 +32,15 @@ data class PsLibraryDependencyVersionQuickFixPath(
 ) : PsQuickFix, Serializable {
   override val text: String
     get() {
-      val updateText = when (updateVariable) {
-        null -> "Update"
-        true -> "Update Variable"
-        false -> "Update Dependency"
-      }
+      val updateText =
+        when (updateVariable) {
+          null -> "Update"
+          true -> "Update Variable"
+          false -> "Update Dependency"
+        }
       return if (addVersionInText) {
         "$updateText\nto $version"
-      }
-      else {
+      } else {
         updateText
       }
     }
@@ -52,7 +52,13 @@ data class PsLibraryDependencyVersionQuickFixPath(
     addVersionInText: Boolean = false,
     onUpdate: (() -> Unit)? = null,
   ) : this(
-    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, updateVariable, addVersionInText, onUpdate
+    dependency.parent.name,
+    dependency.spec.compactNotation(),
+    dependency.joinedConfigurationNames,
+    version,
+    updateVariable,
+    addVersionInText,
+    onUpdate,
   )
 
   override fun execute(context: PsContext) {

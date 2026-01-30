@@ -23,11 +23,9 @@ import org.junit.rules.ExternalResource
 /**
  * A `TestRule` that waits for indexing to be completed.
  *
- * Useful for tests that depend on indices but also prevents flakiness in leak detection and
- * eliminates warning logs.
+ * Useful for tests that depend on indices but also prevents flakiness in leak detection and eliminates warning logs.
  *
- * Note: AndroidProjectRule already waits for indexes to be ready, so no equivalent rule is needed
- * for AndroidProjectRule.
+ * Note: AndroidProjectRule already waits for indexes to be ready, so no equivalent rule is needed for AndroidProjectRule.
  */
 class WaitForIndexRule(private val projectRule: ProjectRule) : ExternalResource() {
   override fun before() {

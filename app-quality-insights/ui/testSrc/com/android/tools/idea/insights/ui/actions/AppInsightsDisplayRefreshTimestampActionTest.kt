@@ -43,11 +43,7 @@ class AppInsightsDisplayRefreshTimestampActionTest {
   @Before
   fun setUp() {
     clock = InsightsFakeClock()
-    scope =
-      CoroutineScope(
-        MoreExecutors.directExecutor().asCoroutineDispatcher() +
-          SupervisorJob(disposableRule.disposable)
-      )
+    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob(disposableRule.disposable))
     timestamp = MutableSharedFlow()
     action = AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope)
   }

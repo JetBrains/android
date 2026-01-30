@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 
-class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
-  : PsMutableCollectionBase<PsBuildType, String, PsAndroidModule>(parent) {
+class PsBuildTypeCollection internal constructor(parent: PsAndroidModule) :
+  PsMutableCollectionBase<PsBuildType, String, PsAndroidModule>(parent) {
   init {
     refresh()
   }
@@ -36,7 +36,7 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   override fun update(key: String, model: PsBuildType) {
     model.init(
       parent.resolvedModel?.androidProject?.multiVariantData?.buildTypes?.map { it.buildType }?.firstOrNull { it.name == key },
-      parent.parsedModel?.android()?.buildTypes()?.firstOrNull { it.name() == key }
+      parent.parsedModel?.android()?.buildTypes()?.firstOrNull { it.name() == key },
     )
   }
 

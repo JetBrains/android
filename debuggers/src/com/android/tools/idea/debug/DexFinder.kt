@@ -31,9 +31,8 @@ import com.android.tools.idea.util.LocalInstallerPathManager
 import com.android.zipflinger.ZipRepo
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent
-import com.google.wireless.android.sdk.stats.DebuggerEvent.SmartStepTargetFilteringPerformed.DexSearchStatus
 import com.google.wireless.android.sdk.stats.DebuggerEvent.SmartStepTargetFilteringPerformed.DexSearchMode
-import kotlin.system.measureTimeMillis
+import com.google.wireless.android.sdk.stats.DebuggerEvent.SmartStepTargetFilteringPerformed.DexSearchStatus
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -45,6 +44,7 @@ import com.intellij.xdebugger.impl.XDebugSessionImpl
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import kexter.Dex
+import kotlin.system.measureTimeMillis
 import org.jetbrains.kotlin.psi.KtElement
 
 object DexFinder {
@@ -75,22 +75,21 @@ object DexFinder {
    * @param location A location of a class that should be found in a [Dex] file.
    * @return A [Result] that contains a [Dex] file and a status of a search.
    */
-  suspend  fun findDex(debugProcess: DebugProcessImpl, expression: KtElement, location: Location): Dex? {
+  suspend fun findDex(debugProcess: DebugProcessImpl, expression: KtElement, location: Location): Dex? {
     val type = location.declaringType()
     val cache = DexCache.instance(debugProcess)
-    cache.typeToSearchResult[type]?.let { return it.dex }
+    cache.typeToSearchResult[type]?.let {
+      return it.dex
+    }
 
     val result: Result
-    val time = measureTimeMillis {
-      result = findDexImpl(debugProcess, expression, location)
-    }
+    val time = measureTimeMillis { result = findDexImpl(debugProcess, expression, location) }
 
     logSmartStepTargetFilteringEvent(result, time)
 
     cache.typeToSearchResult[type] = result
     return result.dex
   }
-
 }
 
 private fun logSmartStepTargetFilteringEvent(result: Result, timeMs: Long) {
@@ -131,10 +130,8 @@ private suspend fun findDexImpl(debugProcess: DebugProcessImpl, expression: KtEl
         }
         return Result(null, DexSearchStatus.ERROR, mode)
       }
-      FindDexResponse.Status.FILE_TOO_LARGE ->
-        return Result(null, DexSearchStatus.DEX_FILE_TOO_LARGE, mode)
-      else ->
-        return Result(null, DexSearchStatus.DEX_NOT_FOUND, mode)
+      FindDexResponse.Status.FILE_TOO_LARGE -> return Result(null, DexSearchStatus.DEX_FILE_TOO_LARGE, mode)
+      else -> return Result(null, DexSearchStatus.DEX_NOT_FOUND, mode)
     }
   } catch (_: Exception) {
     return Result(null, DexSearchStatus.ERROR, mode)
@@ -146,13 +143,11 @@ private suspend fun findDexViaApkProvider(
   apkProvider: ApkProvider,
   debugProcess: DebugProcessImpl,
   expression: KtElement,
-  location: Location
+  location: Location,
 ): Dex? {
   val device = debugProcess.connectedDevice ?: return null
   val apks = findApksWithExpression(device, apkProvider, expression)
-  return apks.firstNotNullOfOrNull {
-    findDexWithLocation(it, location)
-  }
+  return apks.firstNotNullOfOrNull { findDexWithLocation(it, location) }
 }
 
 // Retrieve the dex files from the .apk(s) on the device.
@@ -167,39 +162,29 @@ private fun findDexViaInstaller(debugProcess: DebugProcessImpl, location: Locati
         val dex = Dex.fromBytes(response.dexFile.toByteArray()).getDexFileWithClass(signature)
         return dex to response.status
       }
-      FindDexResponse.Status.FILE_TOO_LARGE ->
-        return null to response.status
+      FindDexResponse.Status.FILE_TOO_LARGE -> return null to response.status
       else -> {}
     }
   }
   return null to FindDexResponse.Status.NOT_FOUND
 }
 
-private suspend fun findApksWithExpression(
-  device: IDevice,
-  apkProvider: ApkProvider,
-  expression: KtElement,
-): List<ApkFileUnit> {
+private suspend fun findApksWithExpression(device: IDevice, apkProvider: ApkProvider, expression: KtElement): List<ApkFileUnit> {
   val module = findModule(expression) ?: return emptyList()
   val result = mutableListOf<ApkFileUnit>()
   for (apkInfos in apkProvider.getApks(device)) {
     for (file in apkInfos.files) {
       /**
-       * TODO: b/424108700
-       * This heuristic is intended do find an APK that contains compiled code for a debugged
-       * module. However, it doesn't work when an [ApkFileUnit] doesn't have module name assigned,
-       * which is sometimes the case. Also this heuristic only works when a breakpoint is set in an
-       * application module, when debugging libraries it will not yield anything. At the same time,
-       * it is intentionally left here because of the reasons below:
-       * 1. While not always being correct this heuristic still covers most of the user cases while
-       * debugging (which has been measured).
-       * 2. When it fails, the debugger will try to fetch the sought for DEX file via
-       * [com.android.tools.deployer.Installer]. If a DEX file is still not found after that,
-       * smart step target filtering will simply not be performed, which is not critical for
-       * "complex" debugging scenarios.
-       * 3. If this heuristic is removed and we try to reach a 100% accuracy when searching for a
-       * DEX file with an [ApkProvider], we would have to scan through all of the APKs on a device
-       * (unless we find a better approach), which is a waste of resources.
+       * TODO: b/424108700 This heuristic is intended do find an APK that contains compiled code for a debugged module. However, it doesn't
+       *   work when an [ApkFileUnit] doesn't have module name assigned, which is sometimes the case. Also this heuristic only works when a
+       *   breakpoint is set in an application module, when debugging libraries it will not yield anything. At the same time, it is
+       *   intentionally left here because of the reasons below:
+       * 1. While not always being correct this heuristic still covers most of the user cases while debugging (which has been measured).
+       * 2. When it fails, the debugger will try to fetch the sought for DEX file via [com.android.tools.deployer.Installer]. If a DEX file
+       *    is still not found after that, smart step target filtering will simply not be performed, which is not critical for "complex"
+       *    debugging scenarios.
+       * 3. If this heuristic is removed and we try to reach a 100% accuracy when searching for a DEX file with an [ApkProvider], we would
+       *    have to scan through all of the APKs on a device (unless we find a better approach), which is a waste of resources.
        */
       if (module.name.startsWith(file.moduleName)) {
         result.add(file)
@@ -234,13 +219,7 @@ private suspend fun findModule(element: KtElement): Module? {
 fun newInstaller(device: IDevice): Installer {
   val metrics = MetricsRecorder()
   val adb = AdbClient(device, DexFinder.LOGGER)
-  return AdbInstaller(
-    LocalInstallerPathManager.getLocalInstaller(),
-    adb,
-    metrics.deployMetrics,
-    DexFinder.LOGGER,
-    AdbInstaller.Mode.DAEMON
-  )
+  return AdbInstaller(LocalInstallerPathManager.getLocalInstaller(), adb, metrics.deployMetrics, DexFinder.LOGGER, AdbInstaller.Mode.DAEMON)
 }
 
 @Suppress("UnstableApiUsage")

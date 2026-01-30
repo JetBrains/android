@@ -28,19 +28,16 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
 /**
- * Tracks tool window usage by listening to state changes.
- * [ToolWindowManagerListener]'s [stateChanged] method doesn't actually contained which tool window was changed, so we
- * calculate it by tracking all registered tool window states in a state map and checking which tool window(s) state was changed.
- * Note:
- * If a tool window is active and the user opens another tool window in the same group, then the active tool window is closed and
- * the new tool window is opened. This triggers 2 events (1 close and 1 open).
+ * Tracks tool window usage by listening to state changes. [ToolWindowManagerListener]'s [stateChanged] method doesn't actually contained
+ * which tool window was changed, so we calculate it by tracking all registered tool window states in a state map and checking which tool
+ * window(s) state was changed. Note: If a tool window is active and the user opens another tool window in the same group, then the active
+ * tool window is closed and the new tool window is opened. This triggers 2 events (1 close and 1 open).
  */
 class ToolWindowTrackerService(private val project: Project) : ToolWindowManagerListener {
   private val stateMap = HashMap<String, ToolWindowState>()
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
+    @JvmStatic fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
   }
 
   override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
@@ -59,15 +56,14 @@ class ToolWindowTrackerService(private val project: Project) : ToolWindowManager
         continue
       }
 
-      val stats = StudioToolWindowActionStats.newBuilder()
-        .setToolWindowId(id)
-        .setEventType(currentState.eventType)
-        .setToolWindowType(getToolWindowType(window))
-        .build()
+      val stats =
+        StudioToolWindowActionStats.newBuilder()
+          .setToolWindowId(id)
+          .setEventType(currentState.eventType)
+          .setToolWindowType(getToolWindowType(window))
+          .build()
 
-      val builder = AndroidStudioEvent.newBuilder()
-        .setKind(EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS)
-        .setStudioToolWindowActionStats(stats)
+      val builder = AndroidStudioEvent.newBuilder().setKind(EventKind.STUDIO_TOOL_WINDOW_ACTION_STATS).setStudioToolWindowActionStats(stats)
 
       UsageTracker.log(builder)
       stateMap[id] = currentState
@@ -77,7 +73,9 @@ class ToolWindowTrackerService(private val project: Project) : ToolWindowManager
 
 private sealed class ToolWindowState(val eventType: EventType) {
   object UNKNOWN : ToolWindowState(EventType.UNKNOWN_EVENT_TYPE)
+
   object OPENED : ToolWindowState(EventType.OPEN_EVENT_TYPE)
+
   object CLOSED : ToolWindowState(EventType.CLOSED_EVENT_TYPE)
 }
 

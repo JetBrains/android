@@ -24,9 +24,8 @@ import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.util.Key
 
 /**
- * [BulkAwareDocumentListener] that tracks changes to documents for code edited metrics. Since
- * documents can be opened in multiple editors, it ensures that it's only registered once for each
- * document so that edits aren't double-counted.
+ * [BulkAwareDocumentListener] that tracks changes to documents for code edited metrics. Since documents can be opened in multiple editors,
+ * it ensures that it's only registered once for each document so that edits aren't double-counted.
  */
 private class CodeEditedDocumentListener private constructor() : BulkAwareDocumentListener {
   private var editorCount: Int = 0

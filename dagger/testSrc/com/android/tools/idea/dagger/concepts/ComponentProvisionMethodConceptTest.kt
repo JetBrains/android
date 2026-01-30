@@ -165,23 +165,13 @@ class ComponentProvisionMethodConceptTest {
     val fooPsiType = myFixture.findParentElement<KtClass>("class F|oo").toPsiType()!!
 
     val provisionMethodComponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<KtFunction>("provisionMethod|Component")
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<KtFunction>("provisionMethod|Component"))
     val provisionMethodSubcomponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<KtFunction>("provisionMethod|Subcomponent")
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<KtFunction>("provisionMethod|Subcomponent"))
     val provisionPropertyComponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<KtProperty>("fooProperty|Component"),
-        fooPsiType,
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<KtProperty>("fooProperty|Component"), fooPsiType)
     val provisionPropertySubcomponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<KtProperty>("fooProperty|Subcomponent"),
-        fooPsiType,
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<KtProperty>("fooProperty|Subcomponent"), fooPsiType)
 
     // Expected to resolve
     assertThat(
@@ -228,18 +218,12 @@ class ComponentProvisionMethodConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertWithMessage("Resolution for ($classId, $methodName)")
-        .that(
-          ComponentProvisionMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+        .that(ComponentProvisionMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
 
       assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
-          ComponentProvisionPropertyIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
+          ComponentProvisionPropertyIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList()
         )
         .isEmpty()
     }
@@ -285,13 +269,9 @@ class ComponentProvisionMethodConceptTest {
     )
 
     val provisionMethodComponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<PsiMethod>("provisionMethod|Component")
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<PsiMethod>("provisionMethod|Component"))
     val provisionMethodSubcomponentDaggerElement =
-      ComponentProvisionMethodDaggerElement(
-        myFixture.findParentElement<PsiMethod>("provisionMethod|Subcomponent")
-      )
+      ComponentProvisionMethodDaggerElement(myFixture.findParentElement<PsiMethod>("provisionMethod|Subcomponent"))
 
     // Expected to resolve
     assertThat(
@@ -321,11 +301,7 @@ class ComponentProvisionMethodConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertWithMessage("Resolution for ($classId, $methodName)")
-        .that(
-          ComponentProvisionMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+        .that(ComponentProvisionMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
     }
   }

@@ -45,19 +45,13 @@ class CodeEditedMetricsServiceTest {
   private val testDispatcher = StandardTestDispatcher(testScheduler)
   private val testScope = TestScope(testDispatcher)
   private val service: CodeEditedMetricsServiceImpl by lazy {
-    CodeEditedMetricsServiceImpl(testScope, testDispatcher).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    CodeEditedMetricsServiceImpl(testScope, testDispatcher).also { Disposer.register(projectRule.testRootDisposable, it) }
   }
   private val fakeCodeEditedListener = FakeCodeEditedListener()
 
   @Before
   fun setUp() {
-    ExtensionTestUtil.maskExtensions(
-      CodeEditedListener.EP_NAME,
-      listOf(fakeCodeEditedListener),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(CodeEditedListener.EP_NAME, listOf(fakeCodeEditedListener), projectRule.testRootDisposable)
     fixture.configureByText("empty.kt", "")
   }
 
@@ -78,15 +72,11 @@ class CodeEditedMetricsServiceTest {
         // The document must have an editor associated with it or the listener never
         // gets hooked up.
         createEditor(document).also {
-          Disposer.register(projectRule.testRootDisposable) {
-            application.invokeAndWait { releaseEditor(it) }
-          }
+          Disposer.register(projectRule.testRootDisposable) { application.invokeAndWait { releaseEditor(it) } }
         }
       }
     }
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      document.insertString(10, "inserted text")
-    }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { document.insertString(10, "inserted text") }
 
     testScope.runCurrent()
 
@@ -131,18 +121,12 @@ class CodeEditedMetricsServiceTest {
     testScope.runCurrent()
 
     assertThat(fakeCodeEditedListener.receivedEvents)
-      .containsExactly(
-        CodeEdited(3, 3, Source.UNKNOWN),
-        CodeEdited(7, 3, Source.TYPING),
-        CodeEdited(0, 7, Source.UNKNOWN),
-      )
+      .containsExactly(CodeEdited(3, 3, Source.UNKNOWN), CodeEdited(7, 3, Source.TYPING), CodeEdited(0, 7, Source.UNKNOWN))
       .inOrder()
   }
 
-  inner class FakeDocumentEvent(
-    private val oldFrag: CharSequence,
-    private val newFrag: CharSequence,
-  ) : DocumentEvent(fixture.editor.document) {
+  inner class FakeDocumentEvent(private val oldFrag: CharSequence, private val newFrag: CharSequence) :
+    DocumentEvent(fixture.editor.document) {
     constructor(oldToNew: Pair<CharSequence, CharSequence>) : this(oldToNew.first, oldToNew.second)
 
     override fun getOffset() = 42

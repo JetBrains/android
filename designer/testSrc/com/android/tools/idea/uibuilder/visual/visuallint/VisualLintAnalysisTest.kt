@@ -48,14 +48,11 @@ class VisualLintAnalysisTest {
   @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private val issueProvider by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
-    }
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable) }
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
     val visualLintInspections =
       arrayOf(
@@ -71,11 +68,7 @@ class VisualLintAnalysisTest {
     projectRule.fixture.enableInspections(*visualLintInspections)
     InspectionProfileManager.getInstance(projectRule.project)
       .currentProfile
-      .setErrorLevel(
-        HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName)!!,
-        HighlightDisplayLevel.ERROR,
-        projectRule.project,
-      )
+      .setErrorLevel(HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName)!!, HighlightDisplayLevel.ERROR, projectRule.project)
   }
 
   @After
@@ -88,22 +81,10 @@ class VisualLintAnalysisTest {
     projectRule.load("projects/visualLintApplication")
 
     val module = projectRule.getModule("app")
-    val activityLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/activity_main.xml"
-      )!!
-    val dashboardLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_dashboard.xml"
-      )!!
-    val notificationsLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_notifications.xml"
-      )!!
-    val homeLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_home.xml"
-      )!!
+    val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
+    val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
+    val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
     var filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
 
     analyzeFile(module, filesToAnalyze, "_device_class_phone")
@@ -129,10 +110,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.BOTTOM_NAV -> {
           assertEquals(3, it.models.size)
-          assertEquals(
-            "Bottom navigation bar is not recommended for breakpoints over 600dp",
-            it.summary,
-          )
+          assertEquals("Bottom navigation bar is not recommended for breakpoints over 600dp", it.summary)
           assertEquals(
             "Bottom navigation bar is not recommended for breakpoints >= 600dp, which affects 3 preview configurations." +
               "<BR/>Material Design recommends replacing bottom navigation bar with " +
@@ -146,10 +124,7 @@ class VisualLintAnalysisTest {
         }
         VisualLintErrorType.LONG_TEXT -> {
           assertEquals(2, it.models.size)
-          assertEquals(
-            "text_notifications <TextView> has lines containing more than 120 characters",
-            it.summary,
-          )
+          assertEquals("text_notifications <TextView> has lines containing more than 120 characters", it.summary)
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
               "reducing the width of TextView or switching to a " +
@@ -196,10 +171,7 @@ class VisualLintAnalysisTest {
       assertEquals(it.models.size, it.source.models.size)
     }
 
-    projectRule.fixture.disableInspections(
-      BoundsAnalyzerInspection(),
-      TextFieldSizeAnalyzerInspection(),
-    )
+    projectRule.fixture.disableInspections(BoundsAnalyzerInspection(), TextFieldSizeAnalyzerInspection())
     issueProvider.clear()
     analyzeFile(module, filesToAnalyze, "_device_class_phone")
     analyzeFile(module, filesToAnalyze, "_device_class_foldable")
@@ -213,17 +185,12 @@ class VisualLintAnalysisTest {
         assertNotEquals(VisualLintErrorType.TEXT_FIELD_SIZE, it.type)
       }
 
-    val wearLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/wear_layout.xml"
-      )!!
+    val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     filesToAnalyze = listOf(wearLayout)
     issueProvider.clear()
     analyzeFile(module, filesToAnalyze, "_device_class_phone")
     assertEquals(7, issues.size)
-    issues
-      .map { it as VisualLintRenderIssue }
-      .forEach { assertNotEquals(VisualLintErrorType.WEAR_MARGIN, it.type) }
+    issues.map { it as VisualLintRenderIssue }.forEach { assertNotEquals(VisualLintErrorType.WEAR_MARGIN, it.type) }
 
     issueProvider.clear()
     analyzeFile(module, filesToAnalyze, "wearos_square")
@@ -231,20 +198,14 @@ class VisualLintAnalysisTest {
     analyzeFile(module, filesToAnalyze, "wearos_small_round")
     analyzeFile(module, filesToAnalyze, "wearos_large_round")
     assertEquals(12, issues.size)
-    val wearIssues =
-      issues.filterIsInstance<VisualLintRenderIssue>().filter {
-        it.type == VisualLintErrorType.WEAR_MARGIN
-      }
+    val wearIssues = issues.filterIsInstance<VisualLintRenderIssue>().filter { it.type == VisualLintErrorType.WEAR_MARGIN }
     assertEquals(5, wearIssues.size)
     wearIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
       when (it.components.first().id) {
         "image_view" -> {
           assertEquals(3, it.models.size)
-          assertEquals(
-            "The view image_view <ImageView> is too close to the side of the device",
-            it.summary,
-          )
+          assertEquals("The view image_view <ImageView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 3 preview configurations, the view ImageView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -254,10 +215,7 @@ class VisualLintAnalysisTest {
         }
         "textview1" -> {
           assertEquals(4, it.models.size)
-          assertEquals(
-            "The view textview1 <TextView> is too close to the side of the device",
-            it.summary,
-          )
+          assertEquals("The view textview1 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 4 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -267,10 +225,7 @@ class VisualLintAnalysisTest {
         }
         "textview2" -> {
           assertEquals(1, it.models.size)
-          assertEquals(
-            "The view textview2 <TextView> is too close to the side of the device",
-            it.summary,
-          )
+          assertEquals("The view textview2 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -280,10 +235,7 @@ class VisualLintAnalysisTest {
         }
         "textview3" -> {
           assertEquals(3, it.models.size)
-          assertEquals(
-            "The view textview3 <TextView> is too close to the side of the device",
-            it.summary,
-          )
+          assertEquals("The view textview3 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In 3 preview configurations, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -293,10 +245,7 @@ class VisualLintAnalysisTest {
         }
         "textview4" -> {
           assertEquals(1, it.models.size)
-          assertEquals(
-            "The view textview4 <TextView> is too close to the side of the device",
-            it.summary,
-          )
+          assertEquals("The view textview4 <TextView> is too close to the side of the device", it.summary)
           assertEquals(
             "In a preview configuration, the view TextView is closer to the side of the device than the recommended amount.<BR/>" +
               "It is recommended that, for Wear OS layouts, margins should be at least 2.5% for square devices, and 5.2% for round devices.",
@@ -310,13 +259,7 @@ class VisualLintAnalysisTest {
 
   private fun analyzeFile(module: Module, files: List<VirtualFile>, deviceId: String) {
     val facet = AndroidFacet.getInstance(module)!!
-    val configuration =
-      RenderTestUtil.getConfiguration(
-        module,
-        files[0],
-        deviceId,
-        "Theme.MaterialComponents.DayNight.DarkActionBar",
-      )
+    val configuration = RenderTestUtil.getConfiguration(module, files[0], deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
     files.forEach { file ->
       val nlModel =
         SyncNlModel.create(
@@ -333,12 +276,7 @@ class VisualLintAnalysisTest {
         try {
           val result = task.render().get()
           val service = VisualLintService.getInstance(projectRule.project)
-          service.analyzeAfterModelUpdate(
-            issueProvider,
-            result,
-            nlModel,
-            VisualLintBaseConfigIssues(),
-          )
+          service.analyzeAfterModelUpdate(issueProvider, result, nlModel, VisualLintBaseConfigIssues())
         } catch (ex: Exception) {
           throw RuntimeException(ex)
         }

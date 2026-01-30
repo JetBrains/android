@@ -54,11 +54,10 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can use to
-   * inspect the state of our parsed files. In other cases, it's just fewer characters to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -78,7 +77,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
@@ -96,7 +95,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           <variable name="firstValue" type="String"/>
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -109,7 +108,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           <variable name="secondValue" type="Int"/>
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -121,15 +120,10 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
-    val cache =
-      PsiShortNamesCache.getInstance(
-        projectRule.project
-      ) // Powered behind the scenes by DataBindingShortNamesCache
+    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
 
-    assertThat(cache.allClassNames.asIterable())
-      .containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
-    assertThat(cache.getClassesByName("FirstLayoutBinding", contextScope).toList().map { it.name })
-      .contains("FirstLayoutBinding")
+    assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
+    assertThat(cache.getClassesByName("FirstLayoutBinding", contextScope).toList().map { it.name }).contains("FirstLayoutBinding")
     assertThat(cache.getClassesByName("FirstLayoutBinding", invalidScope).toList()).isEmpty()
 
     // "Binding" shortcuts to all bindings
@@ -137,8 +131,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       .containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
 
     assertThat(cache.allMethodNames.asIterable()).containsAllIn(listOf("inflate", "bind"))
-    assertThat(cache.getMethodsByName("inflate", contextScope).toList().map { it.name })
-      .contains("inflate")
+    assertThat(cache.getMethodsByName("inflate", contextScope).toList().map { it.name }).contains("inflate")
     assertThat(cache.getMethodsByNameIfNotMoreThan("inflate", contextScope, 0).toList()).isEmpty()
     assertThat(cache.getMethodsByName("inflate", invalidScope).toList()).isEmpty()
     run {
@@ -151,8 +144,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     }
 
     assertThat(cache.allFieldNames.asIterable()).containsAllIn(listOf("firstValue", "secondValue"))
-    assertThat(cache.getFieldsByName("firstValue", contextScope).toList().map { it.name })
-      .contains("firstValue")
+    assertThat(cache.getFieldsByName("firstValue", contextScope).toList().map { it.name }).contains("firstValue")
     assertThat(cache.getFieldsByNameIfNotMoreThan("firstValue", contextScope, 0).toList()).isEmpty()
     assertThat(cache.getFieldsByName("firstValue", invalidScope).toList()).isEmpty()
   }
@@ -168,7 +160,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           <variable name="firstValue" type="String"/>
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -181,7 +173,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           <variable name="secondValue" type="Int"/>
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -194,11 +186,9 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
 
-    val psiPackage =
-      JavaPsiFacade.getInstance(projectRule.project).findPackage("test.db.databinding")!!
+    val psiPackage = JavaPsiFacade.getInstance(projectRule.project).findPackage("test.db.databinding")!!
     psiPackage.getClasses(contextScope).let { classes ->
-      assertThat(classes.map { it.name })
-        .containsExactly("FirstLayoutBinding", "SecondLayoutBinding")
+      assertThat(classes.map { it.name }).containsExactly("FirstLayoutBinding", "SecondLayoutBinding")
     }
     psiPackage.getClasses(invalidScope).let { classes -> assertThat(classes).isEmpty() }
   }
@@ -212,7 +202,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data class=".CustomBinding" />
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -220,10 +210,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     // DataBindingShortNamesCache class.
     StudioResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
-    val cache =
-      PsiShortNamesCache.getInstance(
-        projectRule.project
-      ) // Powered behind the scenes by DataBindingShortNamesCache
+    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("CustomBinding"))
   }
 
@@ -238,20 +225,20 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
           <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/innerTextView" />
         </LinearLayout>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
     fixture.addFileToProject(
       "res/layout/main_layout.xml",
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
-            <include layout="@layout/included_layout" android:id="@+id/includedLayout"/>
-          </FrameLayout>
-        </layout>
-    """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+          <include layout="@layout/included_layout" android:id="@+id/includedLayout"/>
+        </FrameLayout>
+      </layout>
+      """
         .trimIndent(),
     )
 

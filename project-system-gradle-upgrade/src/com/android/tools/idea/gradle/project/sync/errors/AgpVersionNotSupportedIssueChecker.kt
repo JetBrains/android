@@ -40,10 +40,8 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
-/**
- * IssueChecker to handle projects with incompatible (too old or mismatched preview) AGP versions.
- */
-class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
+/** IssueChecker to handle projects with incompatible (too old or mismatched preview) AGP versions. */
+class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
@@ -52,33 +50,32 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
     // instances it is reported in AndroidGradleProjectResolver.
 
-    val (agpVersion, userMessage, url) = when(rootCause.type) {
-      AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> {
-        val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
-        if (!tooOldMatcher.find()) return null
-        Triple(tooOldMatcher.group(1), tooOldMatcher.group(0), TOO_OLD_URL)
+    val (agpVersion, userMessage, url) =
+      when (rootCause.type) {
+        AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> {
+          val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
+          if (!tooOldMatcher.find()) return null
+          Triple(tooOldMatcher.group(1), tooOldMatcher.group(0), TOO_OLD_URL)
+        }
+        AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> {
+          val incompatiblePreviewMatcher = AgpVersionIncompatible.pattern(AgpVersions.latestKnown).matcher(message)
+          if (!incompatiblePreviewMatcher.find()) return null
+          Triple(incompatiblePreviewMatcher.group(1), incompatiblePreviewMatcher.group(0), PREVIEW_URL)
+        }
+        AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> {
+          val tooNewMatcher = AgpVersionTooNew.pattern(AgpVersions.latestKnown).matcher(message)
+          if (!tooNewMatcher.find()) return null
+          Triple(tooNewMatcher.group(1), tooNewMatcher.group(0), TOO_NEW_URL)
+        }
+        else -> return null
       }
-      AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> {
-        val incompatiblePreviewMatcher = AgpVersionIncompatible.pattern(AgpVersions.latestKnown).matcher(message)
-        if (!incompatiblePreviewMatcher.find()) return null
-        Triple(incompatiblePreviewMatcher.group(1), incompatiblePreviewMatcher.group(0), PREVIEW_URL)
-      }
-      AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> {
-        val tooNewMatcher = AgpVersionTooNew.pattern(AgpVersions.latestKnown).matcher(message)
-        if (!tooNewMatcher.find()) return null
-        Triple(tooNewMatcher.group(1), tooNewMatcher.group(0), TOO_NEW_URL)
-      }
-      else -> return null
-    }
     val buildIssueComposer = BuildIssueComposer(userMessage)
 
     return buildIssueComposer.run {
       if (rootCause.type == AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE) {
         AgpVersion.tryParse(agpVersion)?.let { version ->
           if (!AndroidGradleProjectResolver.shouldDisableForceUpgrades()) {
-            fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project ->
-              updateAndRequestSync(project, version)
-            }
+            fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project -> updateAndRequestSync(project, version) }
           }
           addQuickFix(AgpUpgradeQuickFix(version))
         }
@@ -94,11 +91,11 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     stacktrace: String?,
     location: FilePosition?,
     parentEventId: Any,
-    messageConsumer: Consumer<in BuildEvent>
+    messageConsumer: Consumer<in BuildEvent>,
   ): Boolean {
     return AgpVersionTooOld.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
-           AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
-           AgpVersionTooNew.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
+      AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
+      AgpVersionTooNew.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
   }
 
   companion object {
@@ -109,8 +106,8 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
 }
 
 /**
- * Hyperlink that triggers the showing of the AGP Upgrade Assistant dialog, letting the user
- * upgrade their Android Gradle plugin and Gradle versions.
+ * Hyperlink that triggers the showing of the AGP Upgrade Assistant dialog, letting the user upgrade their Android Gradle plugin and Gradle
+ * versions.
  */
 class AgpUpgradeQuickFix(val currentAgpVersion: AgpVersion) : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
@@ -123,9 +120,7 @@ class AgpUpgradeQuickFix(val currentAgpVersion: AgpVersion) : DescribedBuildIssu
   }
 }
 
-/**
- * Helper method to trigger the forced upgrade prompt and then request a sync if it was successful.
- */
+/** Helper method to trigger the forced upgrade prompt and then request a sync if it was successful. */
 private fun updateAndRequestSync(project: Project, currentAgpVersion: AgpVersion, future: CompletableFuture<Unit>? = null) {
   AndroidExecutors.getInstance().diskIoThreadExecutor.execute {
     performForcedPluginUpgrade(project, currentAgpVersion)

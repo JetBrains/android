@@ -41,10 +41,7 @@ import javax.swing.border.EmptyBorder
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Custom panel to support direct editing of transforms (rotation, etc.) */
-class TransformsPanel(
-  private val model: NlPropertiesModel,
-  properties: PropertiesTable<NlPropertyItem>,
-) : JPanel(BorderLayout()) {
+class TransformsPanel(private val model: NlPropertiesModel, properties: PropertiesTable<NlPropertyItem>) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH + 80
@@ -66,10 +63,7 @@ class TransformsPanel(
 
   private val modelListener =
     object : PropertiesModelListener<NlPropertyItem> {
-      override fun propertyValuesChanged(
-        model: PropertiesModel<NlPropertyItem>,
-        childElementChanges: Boolean,
-      ) {
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
         updateFromValues()
       }
     }
@@ -248,10 +242,7 @@ class TransformsPanel(
     TransactionGuard.submitTransaction(
       property.model,
       Runnable {
-        NlWriteCommandActionUtil.run(
-          property.components,
-          "Set $component.${property.name} to $propertyValue",
-        ) {
+        NlWriteCommandActionUtil.run(property.components, "Set $component.${property.name} to $propertyValue") {
           property.value = propertyValue
         }
       },

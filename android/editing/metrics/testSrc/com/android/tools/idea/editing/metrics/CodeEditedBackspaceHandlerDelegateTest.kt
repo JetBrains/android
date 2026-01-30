@@ -41,10 +41,7 @@ class CodeEditedBackspaceHandlerDelegateTest {
 
   @Before
   fun setUp() {
-    CodeEditedListener.EP_NAME.point.registerExtension(
-      codeEditedListener,
-      projectRule.testRootDisposable,
-    )
+    CodeEditedListener.EP_NAME.point.registerExtension(codeEditedListener, projectRule.testRootDisposable)
 
     application.replaceService(
       CodeEditedMetricsService::class.java,

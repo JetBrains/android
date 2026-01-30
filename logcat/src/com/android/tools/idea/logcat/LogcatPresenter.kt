@@ -29,8 +29,7 @@ import com.intellij.openapi.editor.ex.EditorEx
 import java.nio.file.Path
 
 /** Encapsulates the presentation of Logcat messages. */
-internal interface LogcatPresenter :
-  TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
+internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
   var formattingOptions: FormattingOptions
 
   /** Reloads messages from the backlog into the view */

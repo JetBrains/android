@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME
+import com.android.tools.idea.gradle.dsl.android.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
-import com.android.tools.idea.gradle.dsl.android.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-
 
 class PropertyUtilTest : TransformTestCase() {
   private val fieldName = GradleNameElement.create("storeFile")
@@ -111,13 +110,12 @@ class PropertyUtilTest : TransformTestCase() {
     literal.setValue("hello")
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME);
+    verifyFileContents(myBuildFile, PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME)
 
     val applicationId = buildModel.android().defaultConfig().applicationId()
     if (isGroovy) {
       assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId 'hello'"))
-    }
-    else {
+    } else {
       assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId = \"hello\""))
     }
   }

@@ -17,11 +17,8 @@ package com.android.tools.idea.diagnostics.report
 
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
-open class HeapCrashReport(type: String,
-                           private val heapProperties: HeapReportProperties,
-                           properties: DiagnosticReportProperties) :
-  DiagnosticCrashReport(type, properties)
-{
+open class HeapCrashReport(type: String, private val heapProperties: HeapReportProperties, properties: DiagnosticReportProperties) :
+  DiagnosticCrashReport(type, properties) {
   override fun serialize(builder: MultipartEntityBuilder) {
     super.serialize(builder)
     builder.addTextBody("reason", heapProperties.reason.toString())

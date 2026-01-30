@@ -29,12 +29,11 @@ import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.util.parentOfType
 
 /**
- *  There is one reference type used for both field and method name, even though we have separate PSI nodes for fields and methods,
- *  because getVariants() will may return methods for PSI that is (user haven't typed parentheses yet) a field.
+ * There is one reference type used for both field and method name, even though we have separate PSI nodes for fields and methods, because
+ * getVariants() will may return methods for PSI that is (user haven't typed parentheses yet) a field.
  */
-class ProguardR8ClassMemberNameReference(
-  classMemberName: ProguardR8ClassMemberName
-) : PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(classMemberName) {
+class ProguardR8ClassMemberNameReference(classMemberName: ProguardR8ClassMemberName) :
+  PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(classMemberName) {
   private val containingMember = classMemberName.parentOfType<ProguardR8ClassMember>()!!
   private val type = containingMember.type
   private val parameters = containingMember.parameters
@@ -67,7 +66,9 @@ class ProguardR8ClassMemberNameReference(
   }
 
   private fun getFields(): Collection<PsiField> {
-    return containingMember.resolveParentClasses().asSequence()
+    return containingMember
+      .resolveParentClasses()
+      .asSequence()
       .flatMap { it.fields.asSequence() }
       .filter { type == null || type.matchesPsiType(it.type) }
       .filter(::matchesAccessLevel)
@@ -76,7 +77,9 @@ class ProguardR8ClassMemberNameReference(
   }
 
   private fun getMethods(): Collection<PsiMethod> {
-    return containingMember.resolveParentClasses().asSequence()
+    return containingMember
+      .resolveParentClasses()
+      .asSequence()
       .flatMap { it.methods.asSequence() }
       .filter { it.returnType != null } // if returnType is null it's constructor
       .filter { type == null || type.matchesPsiType(it.returnType!!) } // match return type
@@ -90,7 +93,9 @@ class ProguardR8ClassMemberNameReference(
     // Constructors don't have return type, but always have parameters.
     if (type != null || parameters == null) return emptyList()
 
-    return containingMember.resolveParentClasses().asSequence()
+    return containingMember
+      .resolveParentClasses()
+      .asSequence()
       .flatMap { it.constructors.asSequence() }
       .filter { parameters.matchesPsiParameterList(it.parameterList) } // match parameters
       .filter(::matchesAccessLevel)
@@ -100,8 +105,8 @@ class ProguardR8ClassMemberNameReference(
 
   /**
    * Returns empty array if there is no class member matching the type and parameters corresponding to this [ProguardR8ClassMemberName]
-   * otherwise returns array with found class members.
-   * It can be single element array or not (case with overloads/different access modifiers/not specified return type/ etc.)
+   * otherwise returns array with found class members. It can be single element array or not (case with overloads/different access
+   * modifiers/not specified return type/ etc.)
    */
   override fun multiResolve(incompleteCode: Boolean): Array<PsiElementResolveResult> {
     val constructors = if (containingMember.isConstructor()) getConstructors() else emptyList()
@@ -111,11 +116,10 @@ class ProguardR8ClassMemberNameReference(
 
   override fun getVariants(): Array<LookupElementBuilder> {
     val fields = (if (parameters == null) getFields() else emptyList()).map(JavaLookupElementBuilder::forField)
-    val methods = getMethods().map {
-      JavaLookupElementBuilder
-        .forMethod(it, PsiSubstitutor.EMPTY)
-        .withInsertHandler(ParenthesesInsertHandler.WITH_PARAMETERS)
-    }
+    val methods =
+      getMethods().map {
+        JavaLookupElementBuilder.forMethod(it, PsiSubstitutor.EMPTY).withInsertHandler(ParenthesesInsertHandler.WITH_PARAMETERS)
+      }
     return (fields + methods).toTypedArray()
   }
 }

@@ -43,19 +43,15 @@ fun AppInsight.createVcsDocument(contextVFile: VirtualFile, project: Project): D
   val appVcsInfo = issue.sampleEvent.appVcsInfo as? AppVcsInfo.ValidInfo ?: return null
 
   val associatedVcs = contextVFile.getVcsManager(project) ?: return null
-  val matchedRepoInfo =
-    appVcsInfo.repoInfo.firstOrNull { it.locateRepository(project)?.vcs == associatedVcs }
-      ?: return null
+  val matchedRepoInfo = appVcsInfo.repoInfo.firstOrNull { it.locateRepository(project)?.vcs == associatedVcs } ?: return null
 
   return createVcsDocument(matchedRepoInfo.vcsKey, contextVFile, matchedRepoInfo.revision, project)
 }
 
 /**
- * Returns a mapped line number in the current [document] for a given [oldLineNumber] in the
- * historical [vcsDocument].
+ * Returns a mapped line number in the current [document] for a given [oldLineNumber] in the historical [vcsDocument].
  *
- * This is achieved by calculating the unchanged line shifts from diffing [vcsDocument] and
- * [document].
+ * This is achieved by calculating the unchanged line shifts from diffing [vcsDocument] and [document].
  */
 fun getUpToDateLineNumber(oldLineNumber: Int, vcsDocument: Document, document: Document): Int? {
   val diffIterator: FairDiffIterable =
@@ -69,9 +65,7 @@ fun getUpToDateLineNumber(oldLineNumber: Int, vcsDocument: Document, document: D
   return diffIterator.iterateChanges().toList().inferLineNumber(oldLineNumber)
 }
 
-/**
- * Returns a mapped line number by calculating line shifts from those changed blocks/ranges or null
- */
+/** Returns a mapped line number by calculating line shifts from those changed blocks/ranges or null */
 fun List<Range>.inferLineNumber(lineNumber: Int): Int? {
   var mappedLineNumber = lineNumber
 

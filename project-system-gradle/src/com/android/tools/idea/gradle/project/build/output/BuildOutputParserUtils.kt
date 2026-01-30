@@ -28,28 +28,27 @@ object BuildOutputParserUtils {
   const val BUILD_COMPLETED_WITH_FAILURES_LINE = "FAILURE: Build completed with "
 
   fun String.isBuildFailureOutputLine(): Boolean =
-    startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) ||
-    startsWith(BUILD_COMPLETED_WITH_FAILURES_LINE)
+    startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) || startsWith(BUILD_COMPLETED_WITH_FAILURES_LINE)
 
   fun String?.isEndOfBuildOutputLine(): Boolean =
     this == null ||
-    startsWith("BUILD FAILED") ||
-    startsWith("CONFIGURE FAILED") ||
-    startsWith("BUILD SUCCESSFUL") ||
-    startsWith("CONFIGURE SUCCESSFUL")
+      startsWith("BUILD FAILED") ||
+      startsWith("CONFIGURE FAILED") ||
+      startsWith("BUILD SUCCESSFUL") ||
+      startsWith("CONFIGURE SUCCESSFUL")
 
   fun String.isCompilationFailureLine(): Boolean =
     this.startsWith("Compilation failed") ||
-    this == "Compilation error. See log for more details" ||
-    this == "Script compilation error:" ||
-    this.contains("compiler failed")
+      this == "Compilation error. See log for more details" ||
+      this == "Script compilation error:" ||
+      this.contains("compiler failed")
 
   /** Extracts task name from @param [parentEventId]. */
   fun extractTaskNameFromId(parentEventId: Any): String? {
     if (parentEventId !is String) {
       return null
     }
-    //[-447475743:244193606] > [Task :app:compileDebugJavaWithJavac]
+    // [-447475743:244193606] > [Task :app:compileDebugJavaWithJavac]
     val taskNamePattern = Pattern.compile("> \\[Task (?<gradleFullTaskName>(?::[^:]+)*)]")
     val matcher = taskNamePattern.matcher(parentEventId as String)
     if (matcher.find()) {
@@ -59,19 +58,14 @@ object BuildOutputParserUtils {
   }
 }
 
-
 /**
  * A simple [BuildOutputInstantReader] useful for parsing already read message and for build output parsing tests.
  *
- * This reader simply takes an input and splits it around any newlines, omitting empty strings,
- * which mimics the behavior of [BuildOutputInstantReaderImpl]
+ * This reader simply takes an input and splits it around any newlines, omitting empty strings, which mimics the behavior of
+ * [BuildOutputInstantReaderImpl]
  */
-class LinesBuildOutputInstantReader(
-  private val lines: List<String>,
-  private val parentEventId: Any
-) : BuildOutputInstantReader {
-  constructor(input: String, parentEventId: Any) :
-    this(Splitter.on("\n").omitEmptyStrings().split(input).toList(), parentEventId)
+class LinesBuildOutputInstantReader(private val lines: List<String>, private val parentEventId: Any) : BuildOutputInstantReader {
+  constructor(input: String, parentEventId: Any) : this(Splitter.on("\n").omitEmptyStrings().split(input).toList(), parentEventId)
 
   var currentIndex: Int = -1
     private set
@@ -82,8 +76,7 @@ class LinesBuildOutputInstantReader(
     currentIndex++
     return if (currentIndex >= lines.size) {
       null
-    }
-    else lines[currentIndex]
+    } else lines[currentIndex]
   }
 
   override fun pushBack() {

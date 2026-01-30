@@ -21,17 +21,17 @@ import com.android.tools.idea.observable.expressions.Expression
 
 /**
  * This Expression takes the Company Domain (eg: "mycompany.com"), and the Application Name (eg: "My App") and returns a valid Java package
- * name (eg: "com.mycompany.myapp"). Besides reversing the Company Name, taking spaces, a lower casing, it also takes care of
- * invalid java keywords (eg "new", "switch", "if", etc).
+ * name (eg: "com.mycompany.myapp"). Besides reversing the Company Name, taking spaces, a lower casing, it also takes care of invalid java
+ * keywords (eg "new", "switch", "if", etc).
  */
-class DomainToPackageExpression(
-  private val companyDomain: StringProperty,
-  private val applicationName: StringProperty
-) : Expression<String>(companyDomain, applicationName) {
-  override fun get(): String = sequence {
-    yieldAll(companyDomain.get().split(".").asReversed())
-    yield(applicationName.get())
-  }.map { NewProjectModel.nameToJavaPackage(it) }
-    .filter(String::isNotEmpty)
-    .joinToString(".")
+class DomainToPackageExpression(private val companyDomain: StringProperty, private val applicationName: StringProperty) :
+  Expression<String>(companyDomain, applicationName) {
+  override fun get(): String =
+    sequence {
+        yieldAll(companyDomain.get().split(".").asReversed())
+        yield(applicationName.get())
+      }
+      .map { NewProjectModel.nameToJavaPackage(it) }
+      .filter(String::isNotEmpty)
+      .joinToString(".")
 }

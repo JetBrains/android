@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-/**
- * A value of a property resolved by Gradle.
- */
+/** A value of a property resolved by Gradle. */
 sealed class ResolvedValue<out T> {
   class NotResolved<out T> : ResolvedValue<T>()
+
   class Set<out T>(val resolved: T?) : ResolvedValue<T>()
 }

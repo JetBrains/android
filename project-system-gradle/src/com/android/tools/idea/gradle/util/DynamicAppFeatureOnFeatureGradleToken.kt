@@ -19,10 +19,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.DynamicAppFeatureOnFeatureToken
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.gradle.getHolderModule
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.roots.ModuleRootManager
@@ -33,39 +33,42 @@ class DynamicAppFeatureOnFeatureGradleToken : DynamicAppFeatureOnFeatureToken<Gr
   override fun getFeatureModulesDependingOnFeature(projectSystem: GradleProjectSystem, module: Module): List<Module> {
     return if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
       listOf()
-    }
-    else selectFeatureModules(removeModulesInTheSameGradleProject(
-      ModuleManager.getInstance(module.project).getModuleDependentModules(module.getMainModule())
-        .stream(), module))
-
+    } else
+      selectFeatureModules(
+        removeModulesInTheSameGradleProject(
+          ModuleManager.getInstance(module.project).getModuleDependentModules(module.getMainModule()).stream(),
+          module,
+        )
+      )
   }
 
   override fun getFeatureModuleDependenciesForFeature(projectSystem: GradleProjectSystem, module: Module): List<Module> {
     return if (!StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.get()) {
       listOf()
-    }
-    else selectFeatureModules(removeModulesInTheSameGradleProject(
-      Stream.of(*ModuleRootManager.getInstance(module.getMainModule()).dependencies), module))
-}
+    } else
+      selectFeatureModules(
+        removeModulesInTheSameGradleProject(Stream.of(*ModuleRootManager.getInstance(module.getMainModule()).dependencies), module)
+      )
+  }
 
   /**
-   * Finds the modules in a stream that are either legacy or dynamic features. If there are multiple modules belonging to the same
-   * dynamic feature (i.e Gradle Project) this method will only return the holder modules.
+   * Finds the modules in a stream that are either legacy or dynamic features. If there are multiple modules belonging to the same dynamic
+   * feature (i.e Gradle Project) this method will only return the holder modules.
    */
   private fun selectFeatureModules(moduleStream: Stream<Module>): List<Module> {
-    return moduleStream.map { it.getHolderModule() }
+    return moduleStream
+      .map { it.getHolderModule() }
       .distinct()
       .filter { module: Module ->
         val moduleSystem = module.getModuleSystem()
         val type = moduleSystem.type
-        type === AndroidModuleSystem.Type.TYPE_FEATURE ||  // Legacy
-        type === AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
-      }.collect(Collectors.toList())
+        type === AndroidModuleSystem.Type.TYPE_FEATURE || // Legacy
+          type === AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
+      }
+      .collect(Collectors.toList())
   }
 
   private fun removeModulesInTheSameGradleProject(modules: Stream<Module>, moduleOfProjectToRemove: Module): Stream<Module> {
     return modules.filter { m: Module -> m.getHolderModule() !== moduleOfProjectToRemove.getHolderModule() }
   }
-
-
 }

@@ -30,45 +30,31 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.regex.MatchResult
+import java.util.regex.Pattern
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import java.util.regex.MatchResult
-import java.util.regex.Pattern
 
 @RunsInEdt
 class ImporterTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val supportedTypes = setOf("png", "jpg")
 
   @Test
   fun getCreateAsset() {
     val directory = runWriteAction {
-      getExternalResourceDirectory(
-        "icon.png",
-        "icon@2x.png",
-        "icon@3x.jpg",
-        "image.jpg",
-        "image@4x.jpg",
-        "image@4x_dark.jpg"
-      )
+      getExternalResourceDirectory("icon.png", "icon@2x.png", "icon@3x.jpg", "image.jpg", "image@4x.jpg", "image@4x_dark.jpg")
     }
 
-    val assetSets = getAssetSets(
-      directory,
-      supportedTypes,
-      QualifierMatcher(densityMapper, nightModeMapper)
-    )
+    val assetSets = getAssetSets(directory, supportedTypes, QualifierMatcher(densityMapper, nightModeMapper))
     assertEquals(2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")
@@ -110,21 +96,17 @@ class ImporterTest {
       }
     }
 
-    val localeMapper = object : Mapper<LocaleQualifier> {
-      override val pattern: Pattern = Pattern.compile("([a-z]{2}?)/")
+    val localeMapper =
+      object : Mapper<LocaleQualifier> {
+        override val pattern: Pattern = Pattern.compile("([a-z]{2}?)/")
 
-      override val defaultQualifier: LocaleQualifier? = null
+        override val defaultQualifier: LocaleQualifier? = null
 
-      override fun getQualifier(value: String?) = if (value != null) LocaleQualifier(value) else null
+        override fun getQualifier(value: String?) = if (value != null) LocaleQualifier(value) else null
 
-      override fun getValue(matcher: MatchResult): String? = matcher.group(1)
-    }
-    val assetSets = getAssetSets(
-      directory, supportedTypes, QualifierMatcher(
-        localeMapper,
-        densityMapper
-      )
-    )
+        override fun getValue(matcher: MatchResult): String? = matcher.group(1)
+      }
+    val assetSets = getAssetSets(directory, supportedTypes, QualifierMatcher(localeMapper, densityMapper))
     assertEquals(assetSets.toString(), 2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")

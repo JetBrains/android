@@ -36,10 +36,8 @@ class ProjectDefinitionTest {
         testSources = emptySet(),
         systemExcludes = emptySet(),
       )
-    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/some/path")))
-      .isEqualTo(Path.of("contentroot1"))
-    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot2")))
-      .isEqualTo(Path.of("contentroot2"))
+    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/some/path"))).isEqualTo(Path.of("contentroot1"))
+    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot2"))).isEqualTo(Path.of("contentroot2"))
   }
 
   @Test
@@ -55,8 +53,7 @@ class ProjectDefinitionTest {
         testSources = emptySet(),
         systemExcludes = emptySet(),
       )
-    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("anotherRoot/some/path")))
-      .isNull()
+    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("anotherRoot/some/path"))).isNull()
   }
 
   @Test
@@ -72,7 +69,6 @@ class ProjectDefinitionTest {
         testSources = emptySet(),
         systemExcludes = emptySet(),
       )
-    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/excluded/path")))
-      .isNull()
+    Truth.assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/excluded/path"))).isNull()
   }
 }

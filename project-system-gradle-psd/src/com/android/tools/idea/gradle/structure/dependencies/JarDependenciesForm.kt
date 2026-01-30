@@ -28,27 +28,24 @@ import javax.swing.JPanel
 internal class JarDependenciesForm(module: PsModule) : Disposable {
   val panel: JPanel = JPanel(BorderLayout())
   private val textBox: EditorComboBox
-  val preferredFocusedComponent: JComponent get() = textBox
-  val directoryOrFile: String get() = textBox.text
+  val preferredFocusedComponent: JComponent
+    get() = textBox
+
+  val directoryOrFile: String
+    get() = textBox.text
 
   init {
     val ideProject = module.parent.ideProject
     val filesAndDirectories =
       ModuleManager.getInstance(ideProject)
         .findModuleByName(module.name)
-        ?.let {
-          it.moduleContentScope
-        }?.let {
-          FilenameIndex.getAllFilesByExt(ideProject, "aar", it) +
-          FilenameIndex.getAllFilesByExt(ideProject, "jar", it)
-        }
+        ?.let { it.moduleContentScope }
+        ?.let { FilenameIndex.getAllFilesByExt(ideProject, "aar", it) + FilenameIndex.getAllFilesByExt(ideProject, "jar", it) }
         ?.flatMap { listOfNotNull(it.canonicalPath, it.parent.canonicalPath) }
         ?.mapNotNull { path -> module.rootDir?.let { File(path).relativeTo(it).path } }
         ?.distinct()
-        ?.sorted()
-      ?: listOf()
-    textBox = createQuickSearchComboBox(ideProject, filesAndDirectories, filesAndDirectories)
-      .also { panel.add(it) }
+        ?.sorted() ?: listOf()
+    textBox = createQuickSearchComboBox(ideProject, filesAndDirectories, filesAndDirectories).also { panel.add(it) }
   }
 
   override fun dispose() = Unit

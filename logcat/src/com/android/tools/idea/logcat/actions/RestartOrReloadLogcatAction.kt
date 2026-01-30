@@ -43,11 +43,7 @@ import kotlin.io.path.exists
 
 /** An action that restarts or reloads Logcat on the connected device or file. */
 internal class RestartOrReloadLogcatAction :
-  DumbAwareAction(
-    LogcatBundle.message("logcat.restart.action.text"),
-    null,
-    AllIcons.Actions.Restart,
-  ) {
+  DumbAwareAction(LogcatBundle.message("logcat.restart.action.text"), null, AllIcons.Actions.Restart) {
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return

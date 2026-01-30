@@ -36,8 +36,7 @@ private const val CUSTOM_SET_NAME = "Create a Custom Category"
 private const val HORIZONTAL_BORDER_PX = 12
 private const val FIELD_VERTICAL_BORDER_PX = 3
 
-class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
-  AdtPrimaryPanel(BorderLayout()) {
+class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) : AdtPrimaryPanel(BorderLayout()) {
   private var customSetName: String = "Custom"
   private val addButton: JButton
 
@@ -53,25 +52,11 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
     add(optionPanel, BorderLayout.CENTER)
 
     optionPanel.add(
-      JBLabel("Name").apply {
-        border =
-          JBUI.Borders.empty(
-            FIELD_VERTICAL_BORDER_PX,
-            HORIZONTAL_BORDER_PX,
-            FIELD_VERTICAL_BORDER_PX,
-            0,
-          )
-      }
+      JBLabel("Name").apply { border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, HORIZONTAL_BORDER_PX, FIELD_VERTICAL_BORDER_PX, 0) }
     )
     optionPanel.add(
       createNameOptionPanel().apply {
-        border =
-          JBUI.Borders.empty(
-            FIELD_VERTICAL_BORDER_PX,
-            0,
-            FIELD_VERTICAL_BORDER_PX,
-            HORIZONTAL_BORDER_PX,
-          )
+        border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 0, FIELD_VERTICAL_BORDER_PX, HORIZONTAL_BORDER_PX)
       }
     )
 
@@ -98,14 +83,12 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
   private fun createNameOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
     val editTextField = JBTextField(customSetName)
-    val existingConfigurationNames =
-      VisualizationUtil.getUserMadeConfigurationSets().map { it.name }
+    val existingConfigurationNames = VisualizationUtil.getUserMadeConfigurationSets().map { it.name }
     editTextField.document.addDocumentListener(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           customSetName = e.document.getText(0, e.document.length) ?: ""
-          addButton.isEnabled =
-            customSetName.isNotBlank() && !existingConfigurationNames.contains(customSetName)
+          addButton.isEnabled = customSetName.isNotBlank() && !existingConfigurationNames.contains(customSetName)
         }
       }
     )
@@ -119,8 +102,7 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
 
   private fun createAddButtonPanel(button: JButton): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border =
-      JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 50, FIELD_VERTICAL_BORDER_PX * 3, 50)
+    panel.border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 50, FIELD_VERTICAL_BORDER_PX * 3, 50)
     val action =
       object : AbstractAction() {
         override fun actionPerformed(e: ActionEvent) {
@@ -144,6 +126,5 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
     return panel
   }
 
-  override fun requestFocusInWindow(): Boolean =
-    defaultFocusComponent?.requestFocusInWindow() ?: false
+  override fun requestFocusInWindow(): Boolean = defaultFocusComponent?.requestFocusInWindow() ?: false
 }

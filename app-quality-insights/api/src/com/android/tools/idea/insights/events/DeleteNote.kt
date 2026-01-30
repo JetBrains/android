@@ -34,14 +34,9 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
     provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
-    check(!isCreatingNoteInProgress()) {
-      "Deleting on \"creating in progress\" note is not allowed."
-    }
+    check(!isCreatingNoteInProgress()) { "Deleting on \"creating in progress\" note is not allowed." }
 
-    return StateTransition(
-      newState = state.copy(currentNotes = state.currentNotes.markDeletePending(id)),
-      action = Action.DeleteNote(id),
-    )
+    return StateTransition(newState = state.copy(currentNotes = state.currentNotes.markDeletePending(id)), action = Action.DeleteNote(id))
   }
 
   private fun isCreatingNoteInProgress(): Boolean {
@@ -58,8 +53,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
   }
 }
 
-data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Failure) :
-  ChangeEvent {
+data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Failure) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -76,9 +70,7 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
     )
   }
 
-  private fun LoadingState<List<Note>?>.revertMarkDeletePending(
-    id: NoteId
-  ): LoadingState<List<Note>> {
+  private fun LoadingState<List<Note>?>.revertMarkDeletePending(id: NoteId): LoadingState<List<Note>> {
     return map {
       checkNotNull(it) { "No prior notes fetched, thus deleting any note is not allowed." }
       it.map { note -> if (note.id == id) note.copy(state = NoteState.CREATED) else note }
@@ -102,10 +94,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
         appId,
         state.mode,
         AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.newBuilder()
-          .apply {
-            noteEvent =
-              AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.REMOVED
-          }
+          .apply { noteEvent = AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.REMOVED }
           .build(),
       )
     }
@@ -113,9 +102,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
       newState =
         state.copy(
           issues = state.issues.decrementNotesCount(id.issueId),
-          currentNotes =
-            if (state.selectedIssue?.id == id.issueId) state.currentNotes.delete(id)
-            else state.currentNotes,
+          currentNotes = if (state.selectedIssue?.id == id.issueId) state.currentNotes.delete(id) else state.currentNotes,
         ),
       action = Action.NONE,
     )

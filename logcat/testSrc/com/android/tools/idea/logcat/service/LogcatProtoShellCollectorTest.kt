@@ -162,11 +162,7 @@ class LogcatProtoShellCollectorTest {
     assertThat(messages).hasSize(5)
   }
 
-  private fun testFromFile(
-    filename: String,
-    expectedCount: Int,
-    bufferSize: Int = random.nextInt(10, 1000),
-  ): Unit = runBlocking {
+  private fun testFromFile(filename: String, expectedCount: Int, bufferSize: Int = random.nextInt(10, 1000)): Unit = runBlocking {
     val bytes = TestResources.getFile(filename).readBytes()
     val buffers = bytes.asIterable().chunked(bufferSize) { ByteBuffer.wrap(it.toByteArray()) }
     val collector = LogcatProtoShellCollector("", fakeProcessNameMonitor)
@@ -184,15 +180,12 @@ private suspend fun Flow<List<LogcatMessage>>.countMessages(): Int {
   return count
 }
 
-private fun LogcatProtoShellCollector.loadMessageFromBuffer(
-  buffer: ByteBuffer
-): List<LogcatMessage> = runBlocking {
+private fun LogcatProtoShellCollector.loadMessageFromBuffer(buffer: ByteBuffer): List<LogcatMessage> = runBlocking {
   val messages = flow { collectStdout(this, buffer) }.toList().flatten()
   messages.map {
     val timestamp = it.header.timestamp
     val millis = timestamp.getLong(ChronoField.MILLI_OF_SECOND)
-    val roundedTimestamp =
-      Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
+    val roundedTimestamp = Instant.ofEpochSecond(timestamp.epochSecond, TimeUnit.MILLISECONDS.toNanos(millis))
     it.copy(it.header.copy(timestamp = roundedTimestamp))
   }
 }
@@ -202,11 +195,7 @@ private fun LogcatProtoShellCollector.loadMessageFromFile(filename: String): Lis
 
 private fun LogcatEntryProto.toByteBuffer(): ByteBuffer {
   val bytes = toByteArray()
-  return ByteBuffer.allocate(Long.SIZE_BYTES + bytes.size)
-    .order(LITTLE_ENDIAN)
-    .putLong(bytes.size.toLong())
-    .put(bytes)
-    .rewind()
+  return ByteBuffer.allocate(Long.SIZE_BYTES + bytes.size).order(LITTLE_ENDIAN).putLong(bytes.size.toLong()).put(bytes).rewind()
 }
 
 private fun LogcatEntryProto.Builder.setNullTerminatedTag(tag: String): LogcatEntryProto.Builder {

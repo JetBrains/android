@@ -38,10 +38,7 @@ class UastAnnotationAttributesProviderTest {
   private val fixture
     get() = projectRule.fixture
 
-  /**
-   * Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to
-   * be called under smart mode,
-   */
+  /** Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to be called under smart mode, */
   @Test
   fun testDumbMode(): Unit = runBlocking {
     val composeTest =
@@ -50,19 +47,19 @@ class UastAnnotationAttributesProviderTest {
         // language=kotlin
         """
 
-     @Repeatable
-     annotation class TestAnnotation(
-      val name: String = "",
-     )
+        @Repeatable
+        annotation class TestAnnotation(
+         val name: String = "",
+        )
 
-      @TestAnnotation(name = "preview1")
-      fun review1() {
-      }
+         @TestAnnotation(name = "preview1")
+         fun review1() {
+         }
 
-      @TestAnnotation(name = "preview2")
-      fun Preview1() {
-      }
-    """
+         @TestAnnotation(name = "preview2")
+         fun Preview1() {
+         }
+        """
           .trimIndent(),
       )
 
@@ -74,15 +71,13 @@ class UastAnnotationAttributesProviderTest {
     }
     val outputInSmartMode =
       annotations.joinToString("\n") {
-        runReadAction {
-          UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>"
-        }
+        runReadAction { UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>" }
       }
     Assert.assertEquals(
       """
       preview1
       preview2
-    """
+      """
         .trimIndent(),
       outputInSmartMode,
     )
@@ -90,18 +85,18 @@ class UastAnnotationAttributesProviderTest {
     val output =
       DumbModeTestUtils.computeInDumbModeSynchronously(project) {
         annotations.joinToString("\n") {
-          runReadAction {
-            UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>"
-          }
+          runReadAction { UastAnnotationAttributesProvider(it, emptyMap(), null).getStringAttribute("name") ?: "<null>" }
         }
       }
 
     // This checks the result when UastAnnotationAttributesProvider runs without the index being
     // ready.
-    val expectedOutput = """
-        preview1
-        preview2
-      """.trimIndent()
+    val expectedOutput =
+      """
+      preview1
+      preview2
+      """
+        .trimIndent()
     Assert.assertEquals(expectedOutput, output)
   }
 }

@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_POWER
 
-/**
- * Simulates pressing the second button on an Android Wear physical device.
- */
+/** Simulates pressing the second button on an Android Wear physical device. */
 internal class DeviceWear2ButtonAction : DevicePushButtonAction(AKEYCODE_POWER, configFilter = { it.isWatch })

@@ -26,44 +26,51 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
+import org.jetbrains.plugins.gradle.util.GradleConstants
 
 data class GradleAndroidTestsTaskManagerTestDef(
   override val name: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  val test: (Project) -> Unit
+  val test: (Project) -> Unit,
 ) : SyncedProjectTestDef {
 
   companion object {
-    val tests: List<GradleAndroidTestsTaskManagerTestDef> = listOf(
-      GradleAndroidTestsTaskManagerTestDef(
-        name = "simpleApplication gradle task manager",
-        testProject = TestProject.SIMPLE_APPLICATION,
-      ) { project ->
-        val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project)
-        val settings = runBlocking {
-          GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
-            tasks = listOf("tasks")
-            jvmParameters = null
-            putUserData(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+    val tests: List<GradleAndroidTestsTaskManagerTestDef> =
+      listOf(
+        GradleAndroidTestsTaskManagerTestDef(
+          name = "simpleApplication gradle task manager",
+          testProject = TestProject.SIMPLE_APPLICATION,
+        ) { project ->
+          val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project)
+          val settings = runBlocking {
+            GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
+              tasks = listOf("tasks")
+              jvmParameters = null
+              putUserData(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
+            }
           }
+          val sb = StringBuilder()
+          GradleTaskManager()
+            .executeTasks(
+              requireNotNull(project.basePath),
+              id,
+              settings,
+              object : ExternalSystemTaskNotificationListener {
+                override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+                  sb.append(text)
+                }
+              },
+            )
+          val output = sb.toString()
+          assertThat(output).contains("BUILD SUCCESSFUL")
+          assertThat(output).contains("wrapper - Generates Gradle wrapper files.") // canary output
+          assertThat(output).doesNotContain("FAILURE")
         }
-        val sb = StringBuilder()
-        GradleTaskManager().executeTasks(requireNotNull(project.basePath), id, settings, object : ExternalSystemTaskNotificationListener {
-          override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
-            sb.append(text)
-          }
-        })
-        val output = sb.toString()
-        assertThat(output).contains("BUILD SUCCESSFUL")
-        assertThat(output).contains("wrapper - Generates Gradle wrapper files.") // canary output
-        assertThat(output).doesNotContain("FAILURE")
-      }
-    )
+      )
   }
 
   override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {

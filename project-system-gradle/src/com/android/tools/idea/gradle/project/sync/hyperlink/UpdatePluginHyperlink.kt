@@ -21,13 +21,8 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.UpdateGradleP
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class UpdatePluginHyperlink(
-  val pluginToVersionMap: Map<GradlePluginInfo, String>
-) : SyncIssueNotificationHyperlink(
-  "update.plugins",
-  "Update plugins",
-  AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK
-) {
+class UpdatePluginHyperlink(val pluginToVersionMap: Map<GradlePluginInfo, String>) :
+  SyncIssueNotificationHyperlink("update.plugins", "Update plugins", AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK) {
   override fun execute(project: Project) {
     val processor = UpdateGradlePluginProcessor(project, pluginToVersionMap)
     processor.setPreviewUsages(true)

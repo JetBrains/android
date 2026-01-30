@@ -51,9 +51,7 @@ class SelectorMenuActionTest {
     val action = SelectorMenuAction()
     val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
-    DataManager.registerDataProvider(surface) {
-      if (it == ANIMATION_TOOLBAR.name) toolbar else null
-    }
+    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
     whenever(toolbar.isTransitionSelected()).thenReturn(false)
 
     val context = createContext(surface, toolbar)
@@ -72,9 +70,7 @@ class SelectorMenuActionTest {
     val action = SelectorMenuAction()
     val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
-    DataManager.registerDataProvider(surface) {
-      if (it == ANIMATION_TOOLBAR.name) toolbar else null
-    }
+    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
     whenever(toolbar.isTransitionSelected()).thenReturn(true)
 
     val context = createContext(surface, toolbar)
@@ -93,9 +89,7 @@ class SelectorMenuActionTest {
     val action = SelectorMenuAction()
     val surface = NlSurfaceBuilder.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimationToolbar>()
-    DataManager.registerDataProvider(surface) {
-      if (it == ANIMATION_TOOLBAR.name) toolbar else null
-    }
+    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
 
     val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)

@@ -74,18 +74,13 @@ class MaterialVdIconsImpl : MaterialVdIcons {
     get() = modelLock.read { _styles.toSet() }
 
   override fun getCategories(style: String): List<String> =
-    modelLock.read {
-      loadedIcons.keys.filter { it.style == style }.mapNotNull { it.category }.distinct().sorted()
-    }
+    modelLock.read { loadedIcons.keys.filter { it.style == style }.mapNotNull { it.category }.distinct().sorted() }
 
   override fun getIcons(style: String, category: String): List<VdIcon> =
     modelLock.read {
       if (!_styles.contains(style)) return emptyList()
 
-      loadedIcons
-        .filter { it.key.style == style && it.key.category == category }
-        .map { it.value }
-        .distinct()
+      loadedIcons.filter { it.key.style == style && it.key.category == category }.map { it.value }.distinct()
     }
 
   override fun getAllIcons(style: String): List<VdIcon> =
@@ -119,11 +114,10 @@ class MaterialVdIconsLoader(
   private val model = MaterialVdIconsImpl()
 
   /**
-   * Loads the icons bundled with AndroidStudio that correspond to the given [style], returns an
-   * updated [MaterialVdIcons].
+   * Loads the icons bundled with AndroidStudio that correspond to the given [style], returns an updated [MaterialVdIcons].
    *
-   * Every call to this method will update the backing model of all the icons loaded by this
-   * instance, so the returned [MaterialVdIcons] will also include icons loaded in previous calls.
+   * Every call to this method will update the backing model of all the icons loaded by this instance, so the returned [MaterialVdIcons]
+   * will also include icons loaded in previous calls.
    */
   @Slow
   internal fun loadMaterialVdIcons(style: String): MaterialVdIcons {
@@ -145,29 +139,16 @@ class MaterialVdIconsLoader(
         }
         // The name should be consistent with bundled AND downloaded icons, to guarantee that we can
         // find them
-        val expectedFileName =
-          getIconFileNameWithoutExtension(iconName = iconMetadata.name, styleName = style) +
-            SdkConstants.DOT_XML
-        val vdIcon =
-          loadVdIcon(styleName = style, iconName = iconMetadata.name, fileName = expectedFileName)
+        val expectedFileName = getIconFileNameWithoutExtension(iconName = iconMetadata.name, styleName = style) + SdkConstants.DOT_XML
+        val vdIcon = loadVdIcon(styleName = style, iconName = iconMetadata.name, fileName = expectedFileName)
 
         if (vdIcon != null) {
           if (iconMetadata.categories.isNotEmpty()) {
             iconMetadata.categories.map {
-              MaterialVdIconsImpl.IconCoordinates(
-                style = style,
-                category = it,
-                name = iconMetadata.name,
-              ) to vdIcon
+              MaterialVdIconsImpl.IconCoordinates(style = style, category = it, name = iconMetadata.name) to vdIcon
             }
           } else {
-            listOf(
-              MaterialVdIconsImpl.IconCoordinates(
-                style = style,
-                category = null,
-                name = iconMetadata.name,
-              ) to vdIcon
-            )
+            listOf(MaterialVdIconsImpl.IconCoordinates(style = style, category = null, name = iconMetadata.name) to vdIcon)
           }
         } else emptyList()
       }
@@ -179,9 +160,7 @@ class MaterialVdIconsLoader(
   fun loadVdIcon(styleName: String, iconName: String, fileName: String): VdIcon? {
     val iconUrl = urlProvider.getIconUrl(styleName, iconName, fileName)
     if (iconUrl == null) {
-      LOG.warn(
-        "Could not obtain Icon URL: Name=$iconName FileName=$fileName. From provider: ${urlProvider::class.java.name}."
-      )
+      LOG.warn("Could not obtain Icon URL: Name=$iconName FileName=$fileName. From provider: ${urlProvider::class.java.name}.")
       return null
     }
     return try {

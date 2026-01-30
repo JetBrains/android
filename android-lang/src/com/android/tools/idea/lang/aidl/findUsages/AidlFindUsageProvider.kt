@@ -26,9 +26,7 @@ import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 
-/**
- * Enable find usage action on AIDL symbols.
- */
+/** Enable find usage action on AIDL symbols. */
 class AidlFindUsageProvider : FindUsagesProvider {
   override fun canFindUsagesFor(psiElement: PsiElement) = psiElement is AidlDeclaration
 

@@ -2,7 +2,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.AssumeUtil
 import com.google.common.truth.Truth
-import org.junit.Before
 import org.junit.Test
 
 class AndroidSdkBootClasspathTest {

@@ -25,11 +25,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * [ComposeAnimationState] to control animations like AnimatedVisibility.
  *
  * @param tracker The [AnimationTracker] for tracking animation usage.
- * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing
- *   coroutine operations within the state.
+ * @param scope The [CoroutineScope] associated with the AnimationManager, used for managing coroutine operations within the state.
  */
-class SingleState<T>(private val tracker: AnimationTracker, val states: Set<T>, initialState: T) :
-  AnimationState<T> {
+class SingleState<T>(private val tracker: AnimationTracker, val states: Set<T>, initialState: T) : AnimationState<T> {
 
   override val state = MutableStateFlow(initialState)
 
@@ -43,9 +41,7 @@ class SingleState<T>(private val tracker: AnimationTracker, val states: Set<T>, 
   override val changeStateActions =
     listOf(
       SwapAction(tracker) {
-        val nextState =
-          enumState.states.firstOrNull { state -> state != enumState.currentState }
-            ?: return@SwapAction
+        val nextState = enumState.states.firstOrNull { state -> state != enumState.currentState } ?: return@SwapAction
         enumState.currentState = nextState
       },
       enumState,

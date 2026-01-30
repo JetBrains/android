@@ -20,10 +20,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.editingsupport.PsiEditingSupport
 
-/**
- * A [PsiPropertyItem] that only exists on memory. Changes on this property will not immediately
- * reflect on a file.
- */
+/** A [PsiPropertyItem] that only exists on memory. Changes on this property will not immediately reflect on a file. */
 open class MemoryParameterPropertyItem(
   override var name: String,
   override val defaultValue: String?,

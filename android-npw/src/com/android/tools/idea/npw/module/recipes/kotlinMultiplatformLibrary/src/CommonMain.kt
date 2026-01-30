@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src
 
 import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 
-fun exampleCommonMain(packageName: String) = """
+fun exampleCommonMain(packageName: String) =
+  """
   package ${escapeKotlinIdentifier(packageName)}
 
   expect fun platform(): String

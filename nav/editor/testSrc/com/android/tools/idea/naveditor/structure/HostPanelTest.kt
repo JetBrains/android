@@ -239,12 +239,7 @@ class HostPanelTest {
   }
 
   private fun modelBuilder(name: String, f: () -> ComponentDescriptor): ModelBuilder {
-    return NavModelBuilderUtil.model(
-      name,
-      projectRule.module.androidFacet!!,
-      projectRule.fixture,
-      f,
-    )
+    return NavModelBuilderUtil.model(name, projectRule.module.androidFacet!!, projectRule.fixture, f)
   }
 
   private fun waitFor(error: String, condition: () -> Boolean) {

@@ -39,21 +39,13 @@ class AllAttributesInspectorBuilder(
 
   private val allTableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty) {
       return
     }
 
     val allTableModel =
-      FilteredPTableModel(
-        model,
-        itemFilter = { true },
-        itemComparator = alphabeticalSortOrder,
-        groups = createGroups(properties),
-      )
+      FilteredPTableModel(model, itemFilter = { true }, itemComparator = alphabeticalSortOrder, groups = createGroups(properties))
     if (InspectorSection.ALL.visible) {
       val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
       inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
@@ -64,9 +56,7 @@ class AllAttributesInspectorBuilder(
     }
   }
 
-  private fun createGroups(
-    properties: PropertiesTable<NlPropertyItem>
-  ): List<GroupSpec<NlPropertyItem>> {
+  private fun createGroups(properties: PropertiesTable<NlPropertyItem>): List<GroupSpec<NlPropertyItem>> {
     val groups = mutableListOf<GroupSpec<NlPropertyItem>>()
     groups.add(PaddingGroup(properties))
     groups.add(MarginGroup(properties))

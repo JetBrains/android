@@ -49,8 +49,6 @@ enum class DaggerAnnotation(val daggerClass: DaggerClass) {
     get() = daggerClass.fqNameString
 }
 
-fun PsiModifierListOwner.hasAnnotation(annotation: DaggerAnnotation): Boolean =
-  this.hasAnnotation(annotation.fqNameString)
+fun PsiModifierListOwner.hasAnnotation(annotation: DaggerAnnotation): Boolean = this.hasAnnotation(annotation.fqNameString)
 
-fun KtAnnotated.hasAnnotation(annotation: DaggerAnnotation): Boolean =
-  this.hasAnnotation(annotation.classId)
+fun KtAnnotated.hasAnnotation(annotation: DaggerAnnotation): Boolean = this.hasAnnotation(annotation.classId)

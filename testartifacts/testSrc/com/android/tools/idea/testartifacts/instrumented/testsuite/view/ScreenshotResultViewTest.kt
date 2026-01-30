@@ -22,13 +22,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
 import java.awt.image.BufferedImage
@@ -38,14 +31,19 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import javax.swing.JLabel
 import javax.swing.JScrollPane
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.mockito.MockedStatic
+import org.mockito.Mockito
 
 class ScreenshotResultViewTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private lateinit var view: ScreenshotResultView
   private lateinit var appExecutorUtilMock: MockedStatic<AppExecutorUtil>
@@ -60,27 +58,27 @@ class ScreenshotResultViewTest {
 
     // Handle the .submit() call
     Mockito.doAnswer { invocation ->
-      val runnable = invocation.getArgument<Runnable>(0)
-      runnable.run()
-      CompletableFuture.completedFuture(null)
-    }.`when`(directExecutor).submit(Mockito.any(Runnable::class.java))
+        val runnable = invocation.getArgument<Runnable>(0)
+        runnable.run()
+        CompletableFuture.completedFuture(null)
+      }
+      .`when`(directExecutor)
+      .submit(Mockito.any(Runnable::class.java))
 
     // Handle the .schedule() call
     Mockito.doAnswer { invocation ->
-      val runnable = invocation.getArgument<Runnable>(0)
-      runnable.run()
-      // schedule() must return a ScheduledFuture
-      Mockito.mock(ScheduledFuture::class.java)
-    }.`when`(directExecutor).schedule(Mockito.any(Runnable::class.java), Mockito.anyLong(), Mockito.any(java.util.concurrent.TimeUnit::class.java))
+        val runnable = invocation.getArgument<Runnable>(0)
+        runnable.run()
+        // schedule() must return a ScheduledFuture
+        Mockito.mock(ScheduledFuture::class.java)
+      }
+      .`when`(directExecutor)
+      .schedule(Mockito.any(Runnable::class.java), Mockito.anyLong(), Mockito.any(java.util.concurrent.TimeUnit::class.java))
 
-    appExecutorUtilMock.`when`<ScheduledExecutorService> { AppExecutorUtil.getAppExecutorService() }
-      .thenReturn(directExecutor)
-    appExecutorUtilMock.`when`<ScheduledExecutorService> { AppExecutorUtil.getAppScheduledExecutorService() }
-      .thenReturn(directExecutor)
+    appExecutorUtilMock.`when`<ScheduledExecutorService> { AppExecutorUtil.getAppExecutorService() }.thenReturn(directExecutor)
+    appExecutorUtilMock.`when`<ScheduledExecutorService> { AppExecutorUtil.getAppScheduledExecutorService() }.thenReturn(directExecutor)
 
-    runInEdtAndWait {
-      view = ScreenshotResultView()
-    }
+    runInEdtAndWait { view = ScreenshotResultView() }
   }
 
   @After
@@ -88,9 +86,7 @@ class ScreenshotResultViewTest {
     // Closing the static mock to restore the original static method
     // and prevent test pollution in other tests.
     appExecutorUtilMock.close()
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
   @Test
@@ -108,10 +104,7 @@ class ScreenshotResultViewTest {
     assertThat(viewportView.icon).isNull()
   }
 
-  @Test
-  fun initialTabIsSelected() = runInEdtAndWait {
-    assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.ALL.displayText)
-  }
+  @Test fun initialTabIsSelected() = runInEdtAndWait { assertThat(view.selectedTab).isEqualTo(ScreenshotViewType.ALL.displayText) }
 
   @Test
   fun clickingTabChangesSelection() = runInEdtAndWait {
@@ -213,9 +206,7 @@ class ScreenshotResultViewTest {
 
     view.commonZoomInAction.actionPerformed(TestActionEvent.createTestEvent())
 
-    panels.forEach {
-      assertThat(it.currentScale).isGreaterThan(1.0)
-    }
+    panels.forEach { assertThat(it.currentScale).isGreaterThan(1.0) }
   }
 
   @Test
@@ -229,9 +220,7 @@ class ScreenshotResultViewTest {
 
     view.commonZoomOutAction.actionPerformed(TestActionEvent.createTestEvent())
 
-    panels.forEach {
-      assertThat(it.currentScale).isLessThan(1.0)
-    }
+    panels.forEach { assertThat(it.currentScale).isLessThan(1.0) }
   }
 
   @Test
@@ -343,8 +332,8 @@ class ScreenshotResultViewTest {
   }
 
   /**
-   * Iteratively searches a container to find the first component of a given type
-   * that satisfies an optional predicate. This is non-recursive to support inlining.
+   * Iteratively searches a container to find the first component of a given type that satisfies an optional predicate. This is
+   * non-recursive to support inlining.
    */
   private inline fun <reified T : Component> findComponent(container: Container, crossinline predicate: (T) -> Boolean = { true }): T? {
     val queue = ArrayDeque<Component>()

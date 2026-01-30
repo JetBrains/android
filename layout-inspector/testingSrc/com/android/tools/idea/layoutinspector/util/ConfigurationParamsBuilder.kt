@@ -37,10 +37,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
   fun makeSampleContext(project: Project): AppContext {
     val packageName = runInEdtAndGet { getAppPackageName(project) }
     return AppContext(
-      theme =
-        strings.add(
-          ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme")
-        )!!,
+      theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))!!,
       displays = listOf(Display(id = 0, size = Dimension(1080, 1920), orientation = 90)),
     )
   }
@@ -58,9 +55,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
   }
 
   private fun getAppPackageName(project: Project): String {
-    val module =
-      ModuleManager.getInstance(project).modules.find { it.isMainModule() }
-        ?: return defaultPackageName
+    val module = ModuleManager.getInstance(project).modules.find { it.isMainModule() } ?: return defaultPackageName
     val facet = AndroidFacet.getInstance(module)
     return Manifest.getMainManifest(facet)?.`package`?.value ?: defaultPackageName
   }

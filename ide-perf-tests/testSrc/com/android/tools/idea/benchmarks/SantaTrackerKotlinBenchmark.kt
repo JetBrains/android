@@ -20,7 +20,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.fileTypes.LanguageFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
-
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -28,16 +27,13 @@ import org.junit.Test
 /**
  * Runs the FullProjectBenchmark tests on an updated version of SantaTracker project which includes Kotlin, Java and XML files
  *
- * Run locally with:
- * bazel test --test_output=streamed --test_filter=SantaTrackerKotlinBenchmark //tools/adt/idea/ide-perf-tests/...
+ * Run locally with: bazel test --test_output=streamed --test_filter=SantaTrackerKotlinBenchmark //tools/adt/idea/ide-perf-tests/...
  */
 class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val PROJECT_NAME = "SantaTrackerKotlin"
 
@@ -51,8 +47,10 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE),
-                                  PROJECT_NAME)
+    super.fullProjectHighlighting(
+      listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE),
+      PROJECT_NAME,
+    )
   }
 
   @Test
@@ -67,9 +65,10 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
         "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
         "updateScore()\n|",
         "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "android:id=\"@+id/title_city_quiz\"\n            |"
+        "android:id=\"@+id/title_city_quiz\"\n            |",
       ),
-      PROJECT_NAME)
+      PROJECT_NAME,
+    )
   }
 
   @Test
@@ -79,9 +78,10 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
         "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
         "updateScore()\n|",
         "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "<|ProgressBar"
+        "<|ProgressBar",
       ),
-      PROJECT_NAME)
+      PROJECT_NAME,
+    )
   }
 
   @Test

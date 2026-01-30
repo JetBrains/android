@@ -23,9 +23,8 @@ import javax.swing.ListCellRenderer
 /**
  * [EnumSupport] that provides its values lazily.
  *
- * Normally, if we are going to run long execution when acquiring values, we are expected to do it
- * every time the property is called, but if we don't expect different data after the first
- * invocation, we can use a lazy property.
+ * Normally, if we are going to run long execution when acquiring values, we are expected to do it every time the property is called, but if
+ * we don't expect different data after the first invocation, we can use a lazy property.
  */
 internal class EnumSupportWithConstantData(
   enumSupportValuesProvider: EnumSupportValuesProvider,

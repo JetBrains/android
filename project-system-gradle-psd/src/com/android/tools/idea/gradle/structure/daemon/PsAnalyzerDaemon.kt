@@ -55,9 +55,9 @@ import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.containers.addIfNotNull
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.EventListener
+import org.jetbrains.annotations.VisibleForTesting
 
 private val LOG = Logger.getInstance(PsAnalyzerDaemon::class.java)
 
@@ -66,11 +66,11 @@ class PsAnalyzerDaemon(
   private val project: PsProject,
   private val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon,
   private val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon,
-  private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>>
-) :
-  PsDaemon(parentDisposable) {
+  private val modelAnalyzers: Map<Class<*>, PsModelAnalyzer<out PsModule>>,
+) : PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
-  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", MergingUpdateQueue.ANY_COMPONENT)
+  override val resultsUpdaterQueue: MergingUpdateQueue =
+    createQueue("Project Structure Analysis Results Updater", MergingUpdateQueue.ANY_COMPONENT)
 
   val issues: PsIssueCollection = PsIssueCollection()
 
@@ -106,34 +106,41 @@ class PsAnalyzerDaemon(
     val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
     val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
     return PsGeneralIssue(
-        text,
-        "",
-        mainPath,
-        LIBRARY_UPDATES_AVAILABLE, UPDATE,
-        if (!valueIsReference)
-          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString()))
-        else
-          listOf(
-            PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true),
-            PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false)
-          ))
+      text,
+      "",
+      mainPath,
+      LIBRARY_UPDATES_AVAILABLE,
+      UPDATE,
+      if (!valueIsReference) listOf(PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString()))
+      else
+        listOf(
+          PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true),
+          PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false),
+        ),
+    )
   }
 
   fun onIssuesChange(parentDisposable: Disposable, @UiThread listener: () -> Unit) {
-    issuesUpdatedEventDispatcher.addListener(object : IssuesUpdatedListener {
-      override fun issuesUpdated() = listener()
-    }, parentDisposable)
+    issuesUpdatedEventDispatcher.addListener(
+      object : IssuesUpdatedListener {
+        override fun issuesUpdated() = listener()
+      },
+      parentDisposable,
+    )
   }
 
   /**
-   * Registers a listener which is notified when the running state has changed (but may also be called in other cases).
-   * NOTE: Current implementation may miss some cases when the state changes to not-running. However, it should be enough to handle both
-   *       [onRunningChange] and [onIssuesChange].
+   * Registers a listener which is notified when the running state has changed (but may also be called in other cases). NOTE: Current
+   * implementation may miss some cases when the state changes to not-running. However, it should be enough to handle both [onRunningChange]
+   * and [onIssuesChange].
    */
   fun onRunningChange(parentDisposable: Disposable, @UiThread listener: () -> Unit) {
-    onRunningEventDispatcher.addListener(object : IssuesUpdatedListener {
-      override fun issuesUpdated() = listener()
-    }, parentDisposable)
+    onRunningEventDispatcher.addListener(
+      object : IssuesUpdatedListener {
+        override fun issuesUpdated() = listener()
+      },
+      parentDisposable,
+    )
   }
 
   @UiThread
@@ -143,16 +150,13 @@ class PsAnalyzerDaemon(
     notifyRunning()
   }
 
-  /**
-   * Runs validation-essential analysis (must be invoked on EDT).
-   */
+  /** Runs validation-essential analysis (must be invoked on EDT). */
   @Suppress("UNCHECKED_CAST")
   fun validate(model: PsModel): Sequence<PsIssue> =
     (modelAnalyzers[model.javaClass] as? PsModelAnalyzer<PsModel>)?.analyze(model) ?: sequenceOf()
 
   private fun doAnalyzeStructure(model: PsModel) {
-    @Suppress("UNCHECKED_CAST")
-    val analyzer = modelAnalyzers[model.javaClass] as? PsModelAnalyzer<PsModel>
+    @Suppress("UNCHECKED_CAST") val analyzer = modelAnalyzers[model.javaClass] as? PsModelAnalyzer<PsModel>
     if (analyzer == null) {
       LOG.info("Failed to find analyzer for model of type " + model.javaClass.name)
       return
@@ -184,8 +188,7 @@ class PsAnalyzerDaemon(
     if (now) {
       ThreadingAssertions.assertEventDispatchThread()
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
-    }
-    else resultsUpdaterQueue.queue(IssuesComputed())
+    } else resultsUpdaterQueue.queue(IssuesComputed())
   }
 
   @UiThread
@@ -193,20 +196,19 @@ class PsAnalyzerDaemon(
     onRunningEventDispatcher.multicaster.issuesUpdated()
   }
 
-  private inner class AnalyzeModuleStructure(private val myModel: PsModule): Update(myModel) {
+  private inner class AnalyzeModuleStructure(private val myModel: PsModule) : Update(myModel) {
     override fun run() {
       try {
         if (!isDisposed && !isStopped) {
           doAnalyzeStructure(myModel)
         }
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         LOG.error("Failed to analyze $myModel", e)
       }
     }
   }
 
-  private inner class IssuesComputed: Update(IssuesComputed::class.java) {
+  private inner class IssuesComputed : Update(IssuesComputed::class.java) {
     @UiThread
     override fun run() {
       issuesUpdatedEventDispatcher.multicaster.issuesUpdated()
@@ -225,21 +227,24 @@ class PsAnalyzerDaemon(
     var numInfo = 0
     var numUpdates = 0
     var numOther = 0
-    addAll(project.modules.flatMap { module ->
-      module.dependencies.libraries.map {
-        getSdkIndexIssueFor(it, availableUpdates = AvailableLibraryUpdateStorage.getInstance(project.ideProject))
-      }.flatten()
-        .onEach { issue ->
-          when (issue.severity) {
-            ERROR -> numErrors++
-            WARNING -> numWarnings++
-            INFO -> numInfo++
-            UPDATE -> numUpdates++
-            // Currently not needed but here to catch when new severities are added
-            else -> numOther++
+    addAll(
+      project.modules.flatMap { module ->
+        module.dependencies.libraries
+          .map { getSdkIndexIssueFor(it, availableUpdates = AvailableLibraryUpdateStorage.getInstance(project.ideProject)) }
+          .flatten()
+          .onEach { issue ->
+            when (issue.severity) {
+              ERROR -> numErrors++
+              WARNING -> numWarnings++
+              INFO -> numInfo++
+              UPDATE -> numUpdates++
+              // Currently not needed but here to catch when new severities are added
+              else -> numOther++
+            }
           }
-        }
-    }, now = false)
+      },
+      now = false,
+    )
     LOG.debug("Issues recreated: $numErrors errors, $numWarnings warnings, $numInfo information, $numUpdates updates, $numOther other")
     notifyRunning()
   }
@@ -249,86 +254,104 @@ class PsAnalyzerDaemon(
  * Returns the list of issues from the Google Play SDK Index that the given library has.
  *
  * @param dependency: dependency being checked
- *
  * @return The list of issues from the SDK index for the given library, empty if no issues are present
  */
-fun getSdkIndexIssueFor(dependency: PsDeclaredLibraryDependency,
-                        availableUpdates: AvailableLibraryUpdateStorage? = null): List<PsGeneralIssue> {
+fun getSdkIndexIssueFor(
+  dependency: PsDeclaredLibraryDependency,
+  availableUpdates: AvailableLibraryUpdateStorage? = null,
+): List<PsGeneralIssue> {
   val updateFixes = generateUpdateFixesForSdkIndex(dependency, availableUpdates)
   return getSdkIndexIssueFor(dependency.spec, dependency.path, dependency.parent.rootDir, updateFixes)
 }
 
-private fun generateUpdateFixesForSdkIndex(dependency: PsDeclaredLibraryDependency,
-                                   availableUpdates: AvailableLibraryUpdateStorage?): List<PsQuickFix> {
+private fun generateUpdateFixesForSdkIndex(
+  dependency: PsDeclaredLibraryDependency,
+  availableUpdates: AvailableLibraryUpdateStorage?,
+): List<PsQuickFix> {
   val sdkIndex = IdeGooglePlaySdkIndex
   val dependencySpec = dependency.spec
-  val groupId = dependencySpec.group?: return listOf()
+  val groupId = dependencySpec.group ?: return listOf()
   val artifactId = dependencySpec.name
   val versionFromStorage = availableUpdates?.findUpdatedVersionFor(dependencySpec)
-  val versionFromIndex = sdkIndex.getLatestVersion(groupId, artifactId)?.let {
-    if (sdkIndex.hasLibraryErrorOrWarning(groupId, artifactId, it)) {
-      null
-    }
-    else {
-      val parsedVersion = Version.parse(it)
-      if (parsedVersion.isPreview) {
+  val versionFromIndex =
+    sdkIndex.getLatestVersion(groupId, artifactId)?.let {
+      if (sdkIndex.hasLibraryErrorOrWarning(groupId, artifactId, it)) {
         null
-      }
-      else {
-        parsedVersion
+      } else {
+        val parsedVersion = Version.parse(it)
+        if (parsedVersion.isPreview) {
+          null
+        } else {
+          parsedVersion
+        }
       }
     }
-  }
 
-  val versionToUpdateTo = if (versionFromIndex == null) {
-    versionFromStorage
-  }
-  else {
-    if (versionFromStorage == null) {
-      versionFromIndex
-    }
-    else {
-      if (versionFromIndex < versionFromStorage) {
-        versionFromStorage
-      }
-      else {
+  val versionToUpdateTo =
+    if (versionFromIndex == null) {
+      versionFromStorage
+    } else {
+      if (versionFromStorage == null) {
         versionFromIndex
+      } else {
+        if (versionFromIndex < versionFromStorage) {
+          versionFromStorage
+        } else {
+          versionFromIndex
+        }
       }
     }
-  }
 
   return if (versionToUpdateTo != null) {
     val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
     val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
-    val onUpdateCallback: (() -> Unit)? = if (dependencySpec.version != null) ({
-      sdkIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, dependency.version.toString(), versionToUpdateTo.toString(), null)
-    })
-    else {
-      null
-    }
+    val onUpdateCallback: (() -> Unit)? =
+      if (dependencySpec.version != null)
+        ({
+          sdkIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, dependency.version.toString(), versionToUpdateTo.toString(), null)
+        })
+      else {
+        null
+      }
     if (valueIsReference) {
       listOf(
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true, addVersionInText = true, onUpdate = onUpdateCallback),
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false, addVersionInText = true, onUpdate = onUpdateCallback),
+        PsLibraryDependencyVersionQuickFixPath(
+          dependency,
+          versionToUpdateTo.toString(),
+          updateVariable = true,
+          addVersionInText = true,
+          onUpdate = onUpdateCallback,
+        ),
+        PsLibraryDependencyVersionQuickFixPath(
+          dependency,
+          versionToUpdateTo.toString(),
+          updateVariable = false,
+          addVersionInText = true,
+          onUpdate = onUpdateCallback,
+        ),
       )
-    }
-    else {
+    } else {
       listOf(
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), addVersionInText = true, onUpdate = onUpdateCallback),
+        PsLibraryDependencyVersionQuickFixPath(
+          dependency,
+          versionToUpdateTo.toString(),
+          addVersionInText = true,
+          onUpdate = onUpdateCallback,
+        )
       )
     }
-  }
-  else {
+  } else {
     listOf()
   }
 }
 
 @VisibleForTesting
-fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
-                        libraryPath: PsPath,
-                        parentModuleRootDir: File?,
-                        updateFixes: List<PsQuickFix> = listOf(),
-                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex,
+fun getSdkIndexIssueFor(
+  dependencySpec: PsArtifactDependencySpec,
+  libraryPath: PsPath,
+  parentModuleRootDir: File?,
+  updateFixes: List<PsQuickFix> = listOf(),
+  sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex,
 ): List<PsGeneralIssue> {
   val groupId = dependencySpec.group ?: return emptyList()
   val versionString = dependencySpec.version ?: return emptyList()
@@ -337,18 +360,26 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   // Report all SDK Index issues without grouping them(b/316038712):
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
   val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
-  foundIssues.addIfNotNull(generateDeprecatedLibraryIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, sdkIndex))
-  val policyIssue = generatePolicyIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
+  foundIssues.addIfNotNull(
+    generateDeprecatedLibraryIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, sdkIndex)
+  )
+  val policyIssue =
+    generatePolicyIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
   if (policyIssue != null) foundIssues.add(policyIssue)
-  var criticalIssue = generateCriticalIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
+  var criticalIssue =
+    generateCriticalIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
   if (isBlocking) {
     // Critical issues are added before vulnerability issues if they are blocking
     foundIssues.addIfNotNull(criticalIssue)
     // Set to null so it is not added multiple times
     criticalIssue = null
   }
-  foundIssues.addAll(generateVulnerabilityIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
-  foundIssues.addIfNotNull(generateOutdatedIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  foundIssues.addAll(
+    generateVulnerabilityIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
+  )
+  foundIssues.addIfNotNull(
+    generateOutdatedIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
+  )
   foundIssues.addIfNotNull(criticalIssue)
   return foundIssues
 }
@@ -360,7 +391,8 @@ private fun generateDeprecatedLibraryIssue(
   isBlocking: Boolean,
   file: File?,
   path: PsPath,
-  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  index: GooglePlaySdkIndex,
+): PsGeneralIssue? {
   if (!index.isLibraryDeprecated(groupId, artifactId, versionString, file)) {
     return null
   }
@@ -378,12 +410,15 @@ private fun generatePolicyIssue(
   file: File?,
   path: PsPath,
   updateFixes: List<PsQuickFix>,
-  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  index: GooglePlaySdkIndex,
+): PsGeneralIssue? {
   if (!index.isLibraryNonCompliant(groupId, artifactId, versionString, file)) {
     return null
   }
   val severity = if (isBlocking) ERROR else WARNING
-  val message = if (isBlocking) index.generateBlockingPolicyMessage(groupId, artifactId, versionString) else index.generatePolicyMessage(groupId, artifactId, versionString)
+  val message =
+    if (isBlocking) index.generateBlockingPolicyMessage(groupId, artifactId, versionString)
+    else index.generatePolicyMessage(groupId, artifactId, versionString)
   return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
@@ -395,12 +430,15 @@ private fun generateCriticalIssue(
   file: File?,
   path: PsPath,
   updateFixes: List<PsQuickFix>,
-  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  index: GooglePlaySdkIndex,
+): PsGeneralIssue? {
   if (!index.hasLibraryCriticalIssues(groupId, artifactId, versionString, file)) {
     return null
   }
   val severity = if (isBlocking) ERROR else INFO
-  val message = if (isBlocking) index.generateBlockingCriticalMessage(groupId, artifactId, versionString) else index.generateCriticalMessage(groupId, artifactId, versionString)
+  val message =
+    if (isBlocking) index.generateBlockingCriticalMessage(groupId, artifactId, versionString)
+    else index.generateCriticalMessage(groupId, artifactId, versionString)
   return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
@@ -412,13 +450,14 @@ fun generateVulnerabilityIssues(
   file: File?,
   path: PsPath,
   updateFixes: List<PsQuickFix>,
-  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  index: GooglePlaySdkIndex,
+): List<PsGeneralIssue> {
   if (!index.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, file)) {
     return listOf()
   }
   val severity = if (isBlocking) ERROR else WARNING
   val messages = index.generateVulnerabilityMessages(groupId, artifactId, versionString)
-  return messages.map { message->
+  return messages.map { message ->
     val fixes = mutableListOf<PsQuickFix>()
     fixes.addAll(updateFixes)
     createVulnerabilityQuickFix(message)?.let { fixes.add(it) }
@@ -434,12 +473,15 @@ private fun generateOutdatedIssue(
   file: File?,
   path: PsPath,
   updateFixes: List<PsQuickFix>,
-  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  index: GooglePlaySdkIndex,
+): PsGeneralIssue? {
   if (!index.isLibraryOutdated(groupId, artifactId, versionString, file)) {
     return null
   }
   val severity = if (isBlocking) ERROR else WARNING
-  val message = if (isBlocking) index.generateBlockingOutdatedMessage(groupId, artifactId, versionString) else index.generateOutdatedMessage(groupId, artifactId, versionString)
+  val message =
+    if (isBlocking) index.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+    else index.generateOutdatedMessage(groupId, artifactId, versionString)
   return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
@@ -461,22 +503,13 @@ private fun createIndexIssue(
     fixes.add(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
   }
   val formattedMessage = formatToPSD(message)
-  return PsGeneralIssue(
-    formattedMessage,
-    "",
-    mainPath,
-    PLAY_SDK_INDEX_ISSUE,
-    severity,
-    fixes,
-    priority = severityOffset,
-  )
+  return PsGeneralIssue(formattedMessage, "", mainPath, PLAY_SDK_INDEX_ISSUE, severity, fixes, priority = severityOffset)
 }
 
 private fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
   return if (vulnerability.link.isNullOrBlank()) {
     null
-  }
-  else {
+  } else {
     SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
   }
 }
@@ -492,5 +525,7 @@ private fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Compan
  */
 @VisibleForTesting
 fun formatToPSD(message: String, maxWidth: Int = 55): String {
-  return TextFormat.RAW.toHtml(SdkUtils.wrap(message.replace("\n", "\n\n"), maxWidth, maxWidth, /* no hanging*/null, /*no breaks*/false).trim())
+  return TextFormat.RAW.toHtml(
+    SdkUtils.wrap(message.replace("\n", "\n\n"), maxWidth, maxWidth, /* no hanging*/ null, /*no breaks*/ false).trim()
+  )
 }

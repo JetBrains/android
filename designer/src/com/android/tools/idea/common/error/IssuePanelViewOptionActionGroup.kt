@@ -37,25 +37,15 @@ class IssuePanelViewOptionActionGroup : ActionGroup(), DumbAware {
       SeverityRegistrar.getSeverityRegistrar(project)
         .allSeverities
         .reversed()
-        .filter {
-          it != HighlightSeverity.INFO &&
-            it > HighlightSeverity.INFORMATION &&
-            it < HighlightSeverity.ERROR
-        }
-        .map {
-          SeverityFilterAction("Show " + SingleInspectionProfilePanel.renderSeverity(it), it.myVal)
-        }
+        .filter { it != HighlightSeverity.INFO && it > HighlightSeverity.INFORMATION && it < HighlightSeverity.ERROR }
+        .map { SeverityFilterAction("Show " + SingleInspectionProfilePanel.renderSeverity(it), it.myVal) }
         .toTypedArray()
     val visualLintViewOption: Array<AnAction> = arrayOf(VisualLintFilterAction())
     val toggleViewOptions = severityViewOptions + visualLintViewOption
 
     val separator = arrayOf(Separator.create())
 
-    val toggleOrderOptions =
-      arrayOf<AnAction>(
-        ToggleIssuePanelSortedBySeverityAction(),
-        ToggleIssuePanelSortedByNameAction(),
-      )
+    val toggleOrderOptions = arrayOf<AnAction>(ToggleIssuePanelSortedBySeverityAction(), ToggleIssuePanelSortedByNameAction())
 
     return toggleViewOptions + separator + toggleOrderOptions
   }
@@ -96,8 +86,7 @@ class VisualLintFilterAction : DumbAwareToggleAction("Show Screen Size Problem")
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
-private fun updateIssuePanelFilter(e: AnActionEvent) =
-  e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL)?.updateIssueVisibility()
+private fun updateIssuePanelFilter(e: AnActionEvent) = e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL)?.updateIssueVisibility()
 
 class ToggleIssuePanelSortedBySeverityAction : DumbAwareToggleAction("Sort By Severity") {
 
@@ -135,5 +124,4 @@ class ToggleIssuePanelSortedByNameAction : DumbAwareToggleAction("Sort By Name")
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
-private fun updateIssuePanelOrder(e: AnActionEvent) =
-  e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL)?.updateIssueOrder()
+private fun updateIssuePanelOrder(e: AnActionEvent) = e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL)?.updateIssueOrder()

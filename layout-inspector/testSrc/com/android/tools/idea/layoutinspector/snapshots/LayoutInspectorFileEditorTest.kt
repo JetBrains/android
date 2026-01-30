@@ -40,24 +40,16 @@ class LayoutInspectorFileEditorTest {
   val projectRule = AndroidProjectRule.inMemory()
   val disposableRule = DisposableRule()
 
-  @get:Rule
-  val chain =
-    RuleChain.outerRule(PortableUiFontRule())
-      .around(projectRule)
-      .around(disposableRule)
-      .around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(PortableUiFontRule()).around(projectRule).around(disposableRule).around(EdtRule())!!
 
   @Test
   fun editorShowsVersionError() {
-    @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(400, 100, BufferedImage.TYPE_INT_ARGB)
+    @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(400, 100, BufferedImage.TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     val file = createInMemoryFileSystemAndFolder("").resolve("myFile.li")
     val fakeVersion = mock<ProtocolVersion>()
     whenever(fakeVersion.value).thenReturn("99")
-    ObjectOutputStream(Files.newOutputStream(file)).use {
-      it.writeUTF(LayoutInspectorCaptureOptions(fakeVersion, "myTitle").toString())
-    }
+    ObjectOutputStream(Files.newOutputStream(file)).use { it.writeUTF(LayoutInspectorCaptureOptions(fakeVersion, "myTitle").toString()) }
     val editor = LayoutInspectorFileEditor(projectRule.project, file)
     Disposer.register(disposableRule.disposable, editor)
 

@@ -18,22 +18,19 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.calculateMatchPercentage
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.truth.Truth.assertThat
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.awt.image.BufferedImage
-import java.io.File
-import javax.imageio.ImageIO
 
 class ScreenshotTestUtilsTest {
 
-  @get:Rule
-  val tempFolder = TemporaryFolder()
+  @get:Rule val tempFolder = TemporaryFolder()
 
-  /**
-   * Verifies that a valid difference ratio is correctly converted to a match percentage.
-   */
+  /** Verifies that a valid difference ratio is correctly converted to a match percentage. */
   @Test
   fun testCalculateMatchPercentage() {
     val diffPercent = 0.0123 // Represents 1.23% difference
@@ -41,18 +38,14 @@ class ScreenshotTestUtilsTest {
     assertThat(result).isEqualTo("98.77%")
   }
 
-  /**
-   * Ensures that a null input to calculateMatchPercentage is handled gracefully and returns null.
-   */
+  /** Ensures that a null input to calculateMatchPercentage is handled gracefully and returns null. */
   @Test
   fun testCalculateMatchPercentage_null() {
     val result = calculateMatchPercentage(null)
     assertThat(result).isNull()
   }
 
-  /**
-   * Tests the case where the difference is exactly 0.0, expecting a 100.00% match.
-   */
+  /** Tests the case where the difference is exactly 0.0, expecting a 100.00% match. */
   @Test
   fun testCalculateMatchPercentage_zeroDifference() {
     val diffPercent = 0.0
@@ -60,9 +53,7 @@ class ScreenshotTestUtilsTest {
     assertThat(result).isEqualTo("100.00%")
   }
 
-  /**
-   * Verifies that a 100% difference (ratio 1.0) correctly results in a 0.00% match.
-   */
+  /** Verifies that a 100% difference (ratio 1.0) correctly results in a 0.00% match. */
   @Test
   fun testCalculateMatchPercentage_hundredDifference() {
     val diffPercent = 1.0
@@ -70,9 +61,7 @@ class ScreenshotTestUtilsTest {
     assertThat(result).isEqualTo("0.00%")
   }
 
-  /**
-   * Tests a typical difference ratio.
-   */
+  /** Tests a typical difference ratio. */
   @Test
   fun testCalculateMatchPercentage_typicalDifference() {
     val diffPercent = 0.1 // Represents 10% difference
@@ -81,8 +70,8 @@ class ScreenshotTestUtilsTest {
   }
 
   /**
-   * Tests that difference ratios with more than four decimal places are correctly handled
-   * in the match percentage calculation, resulting in a string rounded to two decimal places.
+   * Tests that difference ratios with more than four decimal places are correctly handled in the match percentage calculation, resulting in
+   * a string rounded to two decimal places.
    */
   @Test
   fun testCalculateMatchPercentage_manyDecimalPlaces() {
@@ -91,9 +80,7 @@ class ScreenshotTestUtilsTest {
     assertThat(result).isEqualTo("87.65%")
   }
 
-  /**
-   * Verifies that metadata is correctly loaded from a valid PNG image file.
-   */
+  /** Verifies that metadata is correctly loaded from a valid PNG image file. */
   @Test
   fun testLoadImageMetadata_validPng() = runBlocking {
     val imageFile = createImageFile("valid.png", "png")
@@ -103,9 +90,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isNotEqualTo(NOT_APPLICABLE)
   }
 
-  /**
-   * Verifies that metadata is correctly loaded from a valid JPEG image file.
-   */
+  /** Verifies that metadata is correctly loaded from a valid JPEG image file. */
   @Test
   fun testLoadImageMetadata_validJpeg() = runBlocking {
     val imageFile = createImageFile("valid.jpeg", "jpeg")
@@ -115,9 +100,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isNotEqualTo(NOT_APPLICABLE)
   }
 
-  /**
-   * Ensures that a null file path is handled correctly, returning "N/A" for all metadata fields.
-   */
+  /** Ensures that a null file path is handled correctly, returning "N/A" for all metadata fields. */
   @Test
   fun testLoadImageMetadata_nullPath() = runBlocking {
     val metadata = loadImageMetadata(null)
@@ -126,9 +109,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
   }
 
-  /**
-   * Checks that a non-existent file path is handled gracefully, returning "N/A" for all metadata fields.
-   */
+  /** Checks that a non-existent file path is handled gracefully, returning "N/A" for all metadata fields. */
   @Test
   fun testLoadImageMetadata_nonExistentFile() = runBlocking {
     val metadata = loadImageMetadata("nonexistent.png")
@@ -137,9 +118,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
   }
 
-  /**
-   * Verifies that a file that is not a valid image is handled correctly, returning "N/A" for dimensions.
-   */
+  /** Verifies that a file that is not a valid image is handled correctly, returning "N/A" for dimensions. */
   @Test
   fun testLoadImageMetadata_notAnImage() = runBlocking {
     val notAnImage = tempFolder.newFile("not_an_image.txt")
@@ -150,9 +129,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isNotEmpty()
   }
 
-  /**
-   * Ensures that a directory path is handled correctly, returning "N/A" for all metadata fields.
-   */
+  /** Ensures that a directory path is handled correctly, returning "N/A" for all metadata fields. */
   @Test
   fun testLoadImageMetadata_directory() = runBlocking {
     val directory = tempFolder.newFolder("a_directory")
@@ -162,9 +139,7 @@ class ScreenshotTestUtilsTest {
     assertThat(metadata.date).isEqualTo(NOT_APPLICABLE)
   }
 
-  /**
-   * Checks that an empty file is handled gracefully, returning "N/A" for all metadata fields.
-   */
+  /** Checks that an empty file is handled gracefully, returning "N/A" for all metadata fields. */
   @Test
   fun testLoadImageMetadata_emptyFile() = runBlocking {
     val emptyFile = tempFolder.newFile("empty.png")

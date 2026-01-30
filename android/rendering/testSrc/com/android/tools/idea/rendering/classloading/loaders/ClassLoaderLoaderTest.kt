@@ -17,13 +17,13 @@ package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.intellij.openapi.util.io.FileUtil
+import java.io.File
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class ClassLoaderLoaderTest {
   @Test
@@ -32,9 +32,7 @@ class ClassLoaderLoaderTest {
     val testJarFile = File.createTempFile("RenderClassLoader", ".jar")
     FileUtil.copy(jarSource, testJarFile)
 
-    val loader = ClassLoaderLoader(
-      createUrlClassLoader(listOf(testJarFile.toPath()), false)
-    )
+    val loader = ClassLoaderLoader(createUrlClassLoader(listOf(testJarFile.toPath()), false))
     assertNotNull(loader.loadClass("com.myjar.MyJarClass"))
     assertTrue(testJarFile.delete())
     assertNull("Class should not be available anymore", loader.loadClass("com.myjar.MyJarClass"))

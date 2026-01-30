@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
 
 class AndroidLintCoreLibDesugaringV1Inspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.core.lib.desugaring.v1"),
-    GradleDetector.CORE_LIB_DESUGARING_V2,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.core.lib.desugaring.v1"), GradleDetector.CORE_LIB_DESUGARING_V2)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidViewProjectNodeUtil")
+
 package com.android.tools.idea.navigator.nodes
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -38,21 +39,21 @@ private fun ProjectSystemSyncManager.waitForAnySyncOutcomeInterruptibly() {
   val condVar = lock.newCondition()
   val application = ApplicationManagerEx.getApplicationEx()
 
-  val listener = object : ApplicationListener {
-    override fun beforeWriteActionStart(action: Any) {
-      lock.withLock {
-        condVar.signal() // Interrupt waiting to give priority to write actions as we are holding the read lock.
+  val listener =
+    object : ApplicationListener {
+      override fun beforeWriteActionStart(action: Any) {
+        lock.withLock {
+          condVar.signal() // Interrupt waiting to give priority to write actions as we are holding the read lock.
+        }
       }
     }
-  }
 
   fun withListener(action: () -> Unit) {
     val disposable = Disposer.newDisposable()
     ApplicationManager.getApplication().addApplicationListener(listener, disposable)
     try {
       action()
-    }
-    finally {
+    } finally {
       Disposer.dispose(disposable)
     }
   }
@@ -69,4 +70,3 @@ private fun ProjectSystemSyncManager.waitForAnySyncOutcomeInterruptibly() {
     }
   }
 }
-

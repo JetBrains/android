@@ -22,17 +22,14 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists
 
-class PluginDeclarationSpecImpl(private var id: String,
-                                private var version: VersionDeclarationSpec): PluginDeclarationSpec {
+class PluginDeclarationSpecImpl(private var id: String, private var version: VersionDeclarationSpec) : PluginDeclarationSpec {
   companion object {
     fun create(notation: String): PluginDeclarationSpecImpl? {
       val segments = Splitter.on(GRADLE_PATH_SEPARATOR).trimResults().omitEmptyStrings().splitToList(notation)
       return when (segments.size) {
         2 -> {
           val versionSpec = VersionDeclarationSpecImpl.create(segments[1])
-          versionSpec?.let {
-            PluginDeclarationSpecImpl(segments[0], versionSpec)
-          }
+          versionSpec?.let { PluginDeclarationSpecImpl(segments[0], versionSpec) }
         }
         else -> null
       }
@@ -47,16 +44,13 @@ class PluginDeclarationSpecImpl(private var id: String,
     version = newVersion
   }
 
-  /**
-   * Return true if newVersion was parsed and set as version spec
-   */
+  /** Return true if newVersion was parsed and set as version spec */
   fun setStringVersion(newVersion: String): Boolean {
     val newSpec = VersionDeclarationSpecImpl.create(newVersion)
     return if (newSpec != null) {
       version = newSpec
       true
-    }
-    else false
+    } else false
   }
 
   fun setId(newId: String): Boolean {
@@ -70,8 +64,6 @@ class PluginDeclarationSpecImpl(private var id: String,
     val str = version.compactNotation()
     val versionString = if (str.isNullOrBlank()) null else str
 
-    return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(
-      Lists.newArrayList(id, versionString)
-    )
+    return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(Lists.newArrayList(id, versionString))
   }
 }

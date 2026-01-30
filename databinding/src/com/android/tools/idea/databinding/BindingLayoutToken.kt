@@ -28,10 +28,7 @@ interface BindingLayoutToken<P : AndroidProjectSystem> : Token {
   fun additionalModulesForLightBindingScope(projectSystem: P, module: Module): List<Module>
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName<BindingLayoutToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.databinding.bindingLayoutToken"
-      )
+    val EP_NAME = ExtensionPointName<BindingLayoutToken<AndroidProjectSystem>>("com.android.tools.idea.databinding.bindingLayoutToken")
 
     @JvmStatic
     fun isTestModule(module: Module): Boolean {
@@ -42,9 +39,7 @@ interface BindingLayoutToken<P : AndroidProjectSystem> : Token {
     @JvmStatic
     fun additionalModulesForLightBindingScope(module: Module): List<Module> {
       val projectSystem = module.project.getProjectSystem()
-      return projectSystem
-        .getTokenOrNull(EP_NAME)
-        ?.additionalModulesForLightBindingScope(projectSystem, module) ?: emptyList()
+      return projectSystem.getTokenOrNull(EP_NAME)?.additionalModulesForLightBindingScope(projectSystem, module) ?: emptyList()
     }
   }
 }

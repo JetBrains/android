@@ -28,23 +28,25 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
 
     myFixture.addClass(
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        public class MainActivity  {
-          public static class Inner {}
-        }
+      public class MainActivity  {
+        public static class Inner {}
+      }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     myFixture.addClass(
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        public class OtherClass  {
+      public class OtherClass  {
 
-        }
+      }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -53,7 +55,9 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
       MultiDexKeepFileType.INSTANCE,
       """
         com/example/myapplication/MainActivity.class${caret}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isInstanceOf(PsiClass::class.java)
     val psiClass = myFixture.elementAtCaret as PsiClass
@@ -65,7 +69,9 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
       MultiDexKeepFileType.INSTANCE,
       """
         com/example/myapplication/MainActivity${'$'}Inner.class${caret}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isInstanceOf(PsiClass::class.java)
     val psiClass = myFixture.elementAtCaret as PsiClass
@@ -73,19 +79,18 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
   }
 
   fun testCodeCompletionOnEmptyFile() {
-    myFixture.configureByText(
-      MultiDexKeepFileType.INSTANCE,
-      "")
+    myFixture.configureByText(MultiDexKeepFileType.INSTANCE, "")
 
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "com/example/myapplication/MainActivity.class",
-      "com/example/myapplication/MainActivity${'$'}Inner.class",
-      "com/example/myapplication/OtherClass.class",
-      "p1/p2/R.class",
-      "com/myjar/MyJarClass.class"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "com/example/myapplication/MainActivity.class",
+        "com/example/myapplication/MainActivity${'$'}Inner.class",
+        "com/example/myapplication/OtherClass.class",
+        "p1/p2/R.class",
+        "com/myjar/MyJarClass.class",
+      )
   }
 
   fun testCodeCompletion() {
@@ -93,14 +98,17 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
       MultiDexKeepFileType.INSTANCE,
       """
         com/example/myapplication${caret}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "com/example/myapplication/MainActivity.class",
-      "com/example/myapplication/MainActivity${'$'}Inner.class",
-      "com/example/myapplication/OtherClass.class"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "com/example/myapplication/MainActivity.class",
+        "com/example/myapplication/MainActivity${'$'}Inner.class",
+        "com/example/myapplication/OtherClass.class",
+      )
   }
 }

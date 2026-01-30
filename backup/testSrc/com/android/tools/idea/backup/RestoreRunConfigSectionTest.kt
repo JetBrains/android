@@ -39,8 +39,7 @@ class RestoreRunConfigSectionTest {
   private val project
     get() = projectRule.project
 
-  private val temporaryFolder =
-    TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val temporaryFolder = TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
 
   @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), temporaryFolder)
 

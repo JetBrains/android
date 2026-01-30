@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 @file:JvmName("CommandLineDecoderUtils")
+
 package com.android.tools.idea.streaming.emulator
 
 /**
- * Parses a command line string into individual arguments. The arguments are separated by
- * whitespace characters. Each argument is optionally enclosed into double quotes. Double quotes
- * inside quoted arguments and whitespaces inside a non-quoted ones are escaped by backslashes.
- * Backslashes inside arguments are doubled. A character preceded by a single backslash is taken
- * literally and doesn't have any special meaning.
+ * Parses a command line string into individual arguments. The arguments are separated by whitespace characters. Each argument is optionally
+ * enclosed into double quotes. Double quotes inside quoted arguments and whitespaces inside a non-quoted ones are escaped by backslashes.
+ * Backslashes inside arguments are doubled. A character preceded by a single backslash is taken literally and doesn't have any special
+ * meaning.
  */
 fun decodeCommandLine(commandLine: String): List<String> {
   val args = ArrayList<String>(16)
@@ -34,8 +34,7 @@ fun decodeCommandLine(commandLine: String): List<String> {
       if (escaped) {
         argBuilder.append(c)
         escaped = false
-      }
-      else {
+      } else {
         when {
           quoted && c == '"' || !quoted && c.isWhitespace() -> {
             args.add(argBuilder.toString())
@@ -47,8 +46,7 @@ fun decodeCommandLine(commandLine: String): List<String> {
           else -> argBuilder.append(c)
         }
       }
-    }
-    else {
+    } else {
       if (!c.isWhitespace()) {
         insideArgument = true
         when (c) {

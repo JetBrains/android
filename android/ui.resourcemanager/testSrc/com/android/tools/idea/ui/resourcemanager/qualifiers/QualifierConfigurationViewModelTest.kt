@@ -46,41 +46,42 @@ import com.android.tools.idea.ui.resourcemanager.CollectionParam
 import com.android.tools.idea.ui.resourcemanager.IntParam
 import com.android.tools.idea.ui.resourcemanager.TextParam
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Test
 
 @Suppress("UNCHECKED_CAST")
 class QualifierConfigurationViewModelTest {
 
-  private val qualifiersUnderTest = setOf(
-    CountryCodeQualifier(),
-    DensityQualifier(),
-    HighDynamicRangeQualifier(),
-    KeyboardStateQualifier(),
-    LayoutDirectionQualifier(),
-    LocaleQualifier(null, "fr", "FR", null),
-    NavigationMethodQualifier(),
-    NavigationStateQualifier(),
-    NetworkCodeQualifier(),
-    NightModeQualifier(),
-    ScreenDimensionQualifier(),
-    ScreenOrientationQualifier(),
-    ScreenRatioQualifier(),
-    ScreenRoundQualifier(),
-    ScreenSizeQualifier(),
-    ScreenWidthQualifier(),
-    ScreenHeightQualifier(),
-    SmallestScreenWidthQualifier(),
-    TextInputMethodQualifier(),
-    TouchScreenQualifier(),
-    UiModeQualifier(),
-    VersionQualifier(),
-    WideGamutColorQualifier(),
-    GrammaticalGenderQualifier(),
-  )
+  private val qualifiersUnderTest =
+    setOf(
+      CountryCodeQualifier(),
+      DensityQualifier(),
+      HighDynamicRangeQualifier(),
+      KeyboardStateQualifier(),
+      LayoutDirectionQualifier(),
+      LocaleQualifier(null, "fr", "FR", null),
+      NavigationMethodQualifier(),
+      NavigationStateQualifier(),
+      NetworkCodeQualifier(),
+      NightModeQualifier(),
+      ScreenDimensionQualifier(),
+      ScreenOrientationQualifier(),
+      ScreenRatioQualifier(),
+      ScreenRoundQualifier(),
+      ScreenSizeQualifier(),
+      ScreenWidthQualifier(),
+      ScreenHeightQualifier(),
+      SmallestScreenWidthQualifier(),
+      TextInputMethodQualifier(),
+      TouchScreenQualifier(),
+      UiModeQualifier(),
+      VersionQualifier(),
+      WideGamutColorQualifier(),
+      GrammaticalGenderQualifier(),
+    )
 
   @Test
   fun noMissingQualifiers() {
@@ -88,19 +89,17 @@ class QualifierConfigurationViewModelTest {
     val expectedQualifierCount = expectedQualifiers.size
     val viewModel = QualifierConfigurationViewModel()
     val missingConfiguration = mutableListOf<String>()
-    val availableConfigurationCount = viewModel
-      .getAvailableQualifiers()
-      .mapNotNull { qualifier ->
-        viewModel.selectQualifier(qualifier).also { conf ->
-          if (conf == null) missingConfiguration.add(qualifier::class.simpleName!!)
+    val availableConfigurationCount =
+      viewModel
+        .getAvailableQualifiers()
+        .mapNotNull { qualifier ->
+          viewModel.selectQualifier(qualifier).also { conf -> if (conf == null) missingConfiguration.add(qualifier::class.simpleName!!) }
         }
-      }
-      .size
+        .size
 
     assertThat(missingConfiguration).isEmpty()
     assertEquals(expectedQualifierCount, availableConfigurationCount, "Some qualifiers don't have matching configuration")
-    assertThat(qualifiersUnderTest.map { it::class.simpleName })
-      .containsAllIn(expectedQualifiers.map { it::class.simpleName })
+    assertThat(qualifiersUnderTest.map { it::class.simpleName }).containsAllIn(expectedQualifiers.map { it::class.simpleName })
     assertEquals(expectedQualifierCount, qualifiersUnderTest.size, "Some qualifiers are not tested")
   }
 
@@ -154,15 +153,60 @@ class QualifierConfigurationViewModelTest {
     // We now request the configuration for DensityQualifier and we should be able to request a new one
     val qualifierConfiguration = viewModel.selectQualifier(availableQualifiers.first { it is DensityQualifier })
 
-    val localQualifierConfiguration = viewModel.selectQualifier(
-      viewModel.getAvailableQualifiers().first { it is LocaleQualifier })
+    val localQualifierConfiguration = viewModel.selectQualifier(viewModel.getAvailableQualifiers().first { it is LocaleQualifier })
     val language = localQualifierConfiguration!!.parameters[0] as CollectionParam<String?>
     val region = localQualifierConfiguration.parameters[1] as CollectionParam<String?>
     language.paramValue = language.values.first { it == "fr" }
-    assertThat(region.values.toList()).containsExactly(null, "FR", "BI", "BE", "BJ", "BF", "BL", "CF", "CA", "CH", "CI", "CM",
-                                                       "CD", "CG", "KM", "DJ", "DZ", "GA", "GN", "GP", "GQ", "GF", "HT", "LU",
-                                                       "MF", "MA", "MC", "MG", "ML", "MR", "MQ", "MU", "YT", "NC", "NE", "PF",
-                                                       "RE", "RW", "SN", "PM", "SC", "SY", "TD", "TG", "TN", "VU", "WF")
+    assertThat(region.values.toList())
+      .containsExactly(
+        null,
+        "FR",
+        "BI",
+        "BE",
+        "BJ",
+        "BF",
+        "BL",
+        "CF",
+        "CA",
+        "CH",
+        "CI",
+        "CM",
+        "CD",
+        "CG",
+        "KM",
+        "DJ",
+        "DZ",
+        "GA",
+        "GN",
+        "GP",
+        "GQ",
+        "GF",
+        "HT",
+        "LU",
+        "MF",
+        "MA",
+        "MC",
+        "MG",
+        "ML",
+        "MR",
+        "MQ",
+        "MU",
+        "YT",
+        "NC",
+        "NE",
+        "PF",
+        "RE",
+        "RW",
+        "SN",
+        "PM",
+        "SC",
+        "SY",
+        "TD",
+        "TG",
+        "TN",
+        "VU",
+        "WF",
+      )
     region.paramValue = region.values.first { it == "BE" }
     val listParam = qualifierConfiguration!!.parameters[0] as CollectionParam<Density>
     val density = listParam.values.first { it == Density.XXXHIGH }

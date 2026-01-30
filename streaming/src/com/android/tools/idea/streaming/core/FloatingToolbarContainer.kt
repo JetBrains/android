@@ -73,15 +73,13 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A container of floating toolbars that may change their appearance by becoming semi-transparent
- * and/or shrinking when inactive. If [activateOnHover] is true, the activity state is controlled
- * by the mouse hover events. Otherwise, the toolbar should include actions explicitly controlling
- * its activity state.
+ * A container of floating toolbars that may change their appearance by becoming semi-transparent and/or shrinking when inactive. If
+ * [activateOnHover] is true, the activity state is controlled by the mouse hover events. Otherwise, the toolbar should include actions
+ * explicitly controlling its activity state.
  *
- * If [collapsedStateSelector] is not null, the toolbar container is collapsible. In the collapsed
- * state the contained toolbars shrink to a single button or completely disappear from the view.
- * The button that remains visible when the toolbar is shrunk is the first one, for which
- * [collapsedStateSelector] returns true.
+ * If [collapsedStateSelector] is not null, the toolbar container is collapsible. In the collapsed state the contained toolbars shrink to a
+ * single button or completely disappear from the view. The button that remains visible when the toolbar is shrunk is the first one, for
+ * which [collapsedStateSelector] returns true.
  */
 internal class FloatingToolbarContainer(
   horizontal: Boolean,
@@ -91,8 +89,7 @@ internal class FloatingToolbarContainer(
   initiallyActive: Boolean = false,
 ) : JPanel() {
 
-  @Orientation
-  private val orientation = if (horizontal) HORIZONTAL else VERTICAL
+  @Orientation private val orientation = if (horizontal) HORIZONTAL else VERTICAL
   private val actionToolbars = mutableListOf<ActionToolbar>()
 
   private var visibilityDisposable: Disposable? = null
@@ -116,6 +113,7 @@ internal class FloatingToolbarContainer(
         alpha = ((inactiveAlpha + (ACTIVE_ALPHA - inactiveAlpha) * value)).coerceIn(inactiveAlpha, ACTIVE_ALPHA)
       }
     }
+
   private var expansionFactor: Double = if (collapsible) activationFactor else 1.0
     set(value) {
       if (field != value) {
@@ -123,6 +121,7 @@ internal class FloatingToolbarContainer(
         revalidate()
       }
     }
+
   private var alpha: Double = inactiveAlpha
     set(value) {
       if (field != value) {
@@ -135,6 +134,7 @@ internal class FloatingToolbarContainer(
         repaint()
       }
     }
+
   private val collapsible: Boolean
     get() = collapsedStateSelector != null
 
@@ -152,9 +152,8 @@ internal class FloatingToolbarContainer(
 
   /** Adds a floating toolbar. */
   fun addToolbar(@NonNls place: String, actionGroup: ActionGroup) {
-    val actionToolbar = ActionManager.getInstance().createActionToolbar(place, actionGroup, orientation == HORIZONTAL).apply {
-      configureToolbar()
-    }
+    val actionToolbar =
+      ActionManager.getInstance().createActionToolbar(place, actionGroup, orientation == HORIZONTAL).apply { configureToolbar() }
     actionToolbars.add(actionToolbar)
     val toolbarPanel = ToolbarPanel(actionToolbar, collapsedStateSelector)
     toolbarPanel.alpha = alpha.toFloat()
@@ -181,8 +180,7 @@ internal class FloatingToolbarContainer(
         val duration = if (slow) COLLAPSE_ANIMATION_DURATION_SLOW_MILLIS else COLLAPSE_ANIMATION_DURATION_MILLIS
         deactivationAnimator = DeactivationAnimator(delayMillis, duration).apply { resume() }
       }
-    }
-    else {
+    } else {
       pendingDeactivation = true
     }
   }
@@ -196,20 +194,21 @@ internal class FloatingToolbarContainer(
       return // Already set up.
     }
 
-    val mouseListener = object : MouseAdapter() {
+    val mouseListener =
+      object : MouseAdapter() {
 
-      override fun mouseEntered(event: MouseEvent) {
-        controlActivation(event)
-      }
+        override fun mouseEntered(event: MouseEvent) {
+          controlActivation(event)
+        }
 
-      override fun mouseExited(event: MouseEvent) {
-        controlActivation(event)
-      }
+        override fun mouseExited(event: MouseEvent) {
+          controlActivation(event)
+        }
 
-      override fun mouseMoved(event: MouseEvent) {
-        controlActivation(event)
+        override fun mouseMoved(event: MouseEvent) {
+          controlActivation(event)
+        }
       }
-    }
 
     val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     glass.addMousePreprocessor(mouseListener, disposable)
@@ -219,11 +218,16 @@ internal class FloatingToolbarContainer(
 
   private fun controlActivation(event: MouseEvent) {
     val mouseLocation = event.locationOnScreen - locationOnScreen
-    if (mouseLocation.x >= 0 && mouseLocation.y >= 0 && mouseLocation.x < width && mouseLocation.y < height &&
-        componentCount != 0 && mouseLocation[orientation] >= getComponent(0).location[orientation]) {
+    if (
+      mouseLocation.x >= 0 &&
+        mouseLocation.y >= 0 &&
+        mouseLocation.x < width &&
+        mouseLocation.y < height &&
+        componentCount != 0 &&
+        mouseLocation[orientation] >= getComponent(0).location[orientation]
+    ) {
       triggerActivation()
-    }
-    else {
+    } else {
       triggerDeactivation(COLLAPSE_DELAY_MILLIS, slow = true)
     }
   }
@@ -234,8 +238,7 @@ internal class FloatingToolbarContainer(
       if (activateOnHover && (collapsible || inactiveAlpha < 1.0)) {
         setUpMouseListener(disposable)
       }
-    }
-    else {
+    } else {
       activationAnimator?.dispose()
       deactivationAnimator?.dispose()
       visibilityDisposable?.let { Disposer.dispose(it) }
@@ -244,11 +247,10 @@ internal class FloatingToolbarContainer(
     }
   }
 
-  @MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()])
-  private annotation class Orientation
+  @MagicConstant(intValues = [HORIZONTAL.toLong(), VERTICAL.toLong()]) private annotation class Orientation
 
-  private inner class ActivationAnimator(durationMillis: Int)
-      : Animator("ActivationAnimator", numFrames(durationMillis), durationMillis, false) {
+  private inner class ActivationAnimator(durationMillis: Int) :
+    Animator("ActivationAnimator", numFrames(durationMillis), durationMillis, false) {
 
     private val initialActivationFactor = activationFactor
 
@@ -271,8 +273,8 @@ internal class FloatingToolbarContainer(
     }
   }
 
-  private inner class DeactivationAnimator(delayMillis: Int, durationMillis: Int)
-      : Animator("CollapseAnimator", numFrames(delayMillis + durationMillis), delayMillis + durationMillis, false) {
+  private inner class DeactivationAnimator(delayMillis: Int, durationMillis: Int) :
+    Animator("CollapseAnimator", numFrames(delayMillis + durationMillis), delayMillis + durationMillis, false) {
 
     private val initialActivationFactor = activationFactor
     private val delayFrames = numFrames(delayMillis)
@@ -295,17 +297,17 @@ internal class FloatingToolbarContainer(
     }
   }
 
-  private class ToolbarPanel(
-    private val toolbar: ActionToolbar,
-    private val collapsedStateSelector: ((ActionButton) -> Boolean)?,
-  ) : BorderLayoutPanel() {
+  private class ToolbarPanel(private val toolbar: ActionToolbar, private val collapsedStateSelector: ((ActionButton) -> Boolean)?) :
+    BorderLayoutPanel() {
 
     private var bufferingPainter = VolatileImageBufferingPainter(Transparency.TRANSLUCENT)
 
     private val crossDimension
       get() = if (toolbar.orientation == HORIZONTAL) height else width
+
     private val cornerRadius
       get() = crossDimension / 2
+
     var alpha: Float by bufferingPainter::alpha
     private val actionButtons = mutableListOf<ActionButton>()
     private val hierarchyListener = HierarchyListener {
@@ -358,9 +360,7 @@ internal class FloatingToolbarContainer(
 
     override fun paintChildren(g: Graphics) {
       val outsideShape = createOutsideShape()
-      bufferingPainter.paintBuffered(g, size) {
-        paintWithTransparentCorners(it, outsideShape)
-      }
+      bufferingPainter.paintBuffered(g, size) { paintWithTransparentCorners(it, outsideShape) }
     }
 
     private fun paintWithTransparentCorners(g2: Graphics2D, outsideShape: Shape) {
@@ -395,8 +395,7 @@ internal class FloatingToolbarContainer(
       }
     }
 
-    override fun getMaximumSize(): Dimension =
-        toolbar.component.getPreferredSize() + insets
+    override fun getMaximumSize(): Dimension = toolbar.component.getPreferredSize() + insets
 
     private fun isVisibleWhenCollapsed(): Boolean {
       val selector = collapsedStateSelector ?: return false
@@ -408,8 +407,7 @@ internal class FloatingToolbarContainer(
       private val orientation
         get() = toolbar.orientation
 
-      override fun preferredLayoutSize(parent: Container): Dimension =
-          toolbar.component.preferredSize + insets
+      override fun preferredLayoutSize(parent: Container): Dimension = toolbar.component.preferredSize + insets
 
       override fun layoutContainer(parent: Container) {
         val insets = insets
@@ -515,8 +513,7 @@ internal class FloatingToolbarContainer(
   private fun Component.containsActionButtonsOtherThanCollapser(): Boolean {
     if (this is ActionButton && action !is CollapserAction) {
       return true
-    }
-    else if (this is Container) {
+    } else if (this is Container) {
       for (child in components) {
         if (child.containsActionButtonsOtherThanCollapser()) {
           return true
@@ -536,53 +533,42 @@ internal class FloatingToolbarContainer(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-        ActionButton(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
+      ActionButton(this, presentation, place, JBDimension(0, DEFAULT_MINIMUM_BUTTON_SIZE.height, true))
   }
 
   companion object {
 
     /**
-     * Returns the [FloatingToolbarContainer] associated with the given [event], if any. The [event]
-     * has to be triggered by a mouse event on a button of that toolbar.
+     * Returns the [FloatingToolbarContainer] associated with the given [event], if any. The [event] has to be triggered by a mouse event on
+     * a button of that toolbar.
      */
     fun fromActionEvent(event: AnActionEvent): FloatingToolbarContainer? {
       val component = event.inputEvent?.component ?: return null
       return getParentOfType(FloatingToolbarContainer::class.java, component)
     }
 
-    /**
-     * Activates the floating toolbar. The action [event] has to be triggered by a mouse event on
-     * a button of that toolbar.
-     */
+    /** Activates the floating toolbar. The action [event] has to be triggered by a mouse event on a button of that toolbar. */
     fun triggerActivation(event: AnActionEvent) {
       fromActionEvent(event)?.triggerActivation()
     }
 
-    /**
-     * Deactivates the floating toolbar. The [event] has to be triggered by a mouse event on
-     * a button of that toolbar.
-     */
+    /** Deactivates the floating toolbar. The [event] has to be triggered by a mouse event on a button of that toolbar. */
     fun triggerDeactivation(event: AnActionEvent) {
       fromActionEvent(event)?.triggerDeactivation()
     }
 
-    /**
-     * Toggles activation state of the floating toolbar. The [event] has to be triggered by a mouse
-     * event on a button of that toolbar.
-     */
+    /** Toggles activation state of the floating toolbar. The [event] has to be triggered by a mouse event on a button of that toolbar. */
     fun toggleActiveState(event: AnActionEvent) {
       fromActionEvent(event)?.toggleActiveState()
     }
 
     @Suppress("SameParameterValue")
     private fun createRoundRectangle(x: Int, y: Int, w: Int, h: Int, cornerRadius: Int): RoundRectangle2D =
-        RoundRectangle2D.Double(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), cornerRadius.toDouble(), cornerRadius.toDouble())
+      RoundRectangle2D.Double(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble(), cornerRadius.toDouble(), cornerRadius.toDouble())
 
-    private fun Component.preferredSize(collapsed: Boolean): Dimension =
-        if (collapsed) collapsedSize() else preferredSize
+    private fun Component.preferredSize(collapsed: Boolean): Dimension = if (collapsed) collapsedSize() else preferredSize
 
-    private fun Component.collapsedSize(): Dimension =
-        (this as? ToolbarPanel)?.collapsedSize ?: ZERO_DIMENSION
+    private fun Component.collapsedSize(): Dimension = (this as? ToolbarPanel)?.collapsedSize ?: ZERO_DIMENSION
 
     @Suppress("UnstableApiUsage")
     private fun ActionToolbar.configureToolbar() {
@@ -601,8 +587,7 @@ internal class FloatingToolbarContainer(
       if (orientation == HORIZONTAL) {
         width += other.width
         height = max(height, other.height)
-      }
-      else {
+      } else {
         width = max(width, other.width)
         height += other.height
       }
@@ -611,8 +596,7 @@ internal class FloatingToolbarContainer(
     private fun Dimension.increment(@Orientation orientation: Int, value: Int) {
       if (orientation == HORIZONTAL) {
         width += value
-      }
-      else {
+      } else {
         height += value
       }
     }
@@ -620,29 +604,24 @@ internal class FloatingToolbarContainer(
     private operator fun Dimension.set(@Orientation orientation: Int, value: Int) {
       if (orientation == HORIZONTAL) {
         width = value
-      }
-      else {
+      } else {
         height = value
       }
     }
 
-    private operator fun Dimension.get(@Orientation orientation: Int): Int =
-        if (orientation == HORIZONTAL) width else height
+    private operator fun Dimension.get(@Orientation orientation: Int): Int = if (orientation == HORIZONTAL) width else height
 
     private operator fun Dimension.minus(insets: Insets): Dimension =
-        Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
+      Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
 
     private operator fun Dimension.plus(insets: Insets): Dimension =
-        Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
+      Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
-    private operator fun Point.get(@Orientation orientation: Int): Int =
-        if (orientation == HORIZONTAL) x else y
+    private operator fun Point.get(@Orientation orientation: Int): Int = if (orientation == HORIZONTAL) x else y
 
-    private operator fun Point.minus(point: Point): Point =
-        Point(x - point.x, y - point.y)
+    private operator fun Point.minus(point: Point): Point = Point(x - point.x, y - point.y)
 
-    private fun Int.scaled(numerator: Int, denominator: Int): Int =
-        ((this.toLong() * numerator + denominator / 2) / denominator).toInt()
+    private fun Int.scaled(numerator: Int, denominator: Int): Int = ((this.toLong() * numerator + denominator / 2) / denominator).toInt()
 
     private fun numFrames(durationMillis: Int): Int = max(durationMillis.scaled(ANIMATION_FRAMES_PER_SECOND, 1000), 1)
 

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
-fun benchmarkProguardRules() = """
+fun benchmarkProguardRules() =
+  """
   # Add project specific ProGuard rules here.
   # You can control the set of applied configuration files using the
   # proguardFiles setting in build.gradle.
@@ -53,4 +54,5 @@ fun benchmarkProguardRules() = """
   -dontwarn com.squareup.javawriter.JavaWriter
 
   -keepclasseswithmembers @org.junit.runner.RunWith public class *
-""".trimIndent()
+  """
+    .trimIndent()

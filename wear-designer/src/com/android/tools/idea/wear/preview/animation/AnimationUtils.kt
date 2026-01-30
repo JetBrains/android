@@ -23,30 +23,22 @@ import com.android.tools.wear.preview.WearTilePreviewElement
 /**
  * Detects animations within an inflated Wear Tile view.
  *
- * It updates the associated [WearTilePreviewElement] with information about the detected animations
- * and the current instance of [TileServiceViewAdapter].
+ * It updates the associated [WearTilePreviewElement] with information about the detected animations and the current instance of
+ * [TileServiceViewAdapter].
  */
 fun detectAnimations(sceneManager: SceneManager) {
   if (!StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get()) return
-  val previewElementInstance =
-    sceneManager.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
-      ?: return
+  val previewElementInstance = sceneManager.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*> ?: return
   val tileServiceViewAdapter = sceneManager.viewObject
   previewElementInstance.tileServiceViewAdapter.value = tileServiceViewAdapter
   previewElementInstance.hasAnimations =
-    StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get() &&
-      tileServiceViewAdapter?.getAnimations()?.isNotEmpty() == true
+    StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get() && tileServiceViewAdapter?.getAnimations()?.isNotEmpty() == true
 }
 
 /** Supposed to be invoked on instance of [TileServiceViewAdapter]. */
 internal fun Any.getAnimations(): List<ProtoAnimation> {
   try {
-    val getAnimationsMethod =
-      this::class
-        .java
-        .declaredMethods
-        .single { it.name == "getAnimations" }
-        .also { it.isAccessible = true }
+    val getAnimationsMethod = this::class.java.declaredMethods.single { it.name == "getAnimations" }.also { it.isAccessible = true }
     val list = getAnimationsMethod.invoke(this) as List<*>
     return list.requireNoNulls().map { ProtoAnimation(it) }
   } catch (_: Exception) {

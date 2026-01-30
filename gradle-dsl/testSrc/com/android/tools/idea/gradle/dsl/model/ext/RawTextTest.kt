@@ -50,53 +50,40 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetLiteral() {
-    set {
-      it.setValue(RawText("25", "25"))
-    }.validate {
-      verifyPropertyModel(it, INTEGER_TYPE, 25, INTEGER, REGULAR, 0, "newProp")
-    }
+    set { it.setValue(RawText("25", "25")) }.validate { verifyPropertyModel(it, INTEGER_TYPE, 25, INTEGER, REGULAR, 0, "newProp") }
   }
 
   @Test
   fun textSetUnknownMethodCall() {
-    val quotes = if(isGroovy) "'" else "\""
-    set {
-      it.setValue(RawText("getDefaultProguardFile('android.txt')", "getDefaultProguardFile(\"android.txt\")"))
-    }.validate {
-      verifyPropertyModel(it, STRING_TYPE, "getDefaultProguardFile(${quotes}android.txt${quotes})", UNKNOWN, REGULAR, 0, "newProp")
-    }
+    val quotes = if (isGroovy) "'" else "\""
+    set { it.setValue(RawText("getDefaultProguardFile('android.txt')", "getDefaultProguardFile(\"android.txt\")")) }
+      .validate {
+        verifyPropertyModel(it, STRING_TYPE, "getDefaultProguardFile(${quotes}android.txt${quotes})", UNKNOWN, REGULAR, 0, "newProp")
+      }
   }
 
   @Test
   fun testSetUnknownExpression() {
     // In KTS we cannot use ** as this will result in a broken psi tree different from what we want to get.
     // This highlights that a RawText consumer will very likely want to use different text for KTS and Groovy.
-    val expectedValueText = when {
-      isGroovy -> "1 + (4 * 5)**2 - 7"
-      else -> "1 + (4 * 5) * 2 - 7"
-    }
-    set {
-      it.setValue(RawText("1 + (4 * 5)**2 - 7", "1 + (4 * 5) * 2 - 7"))
-    }.validate {
-      verifyPropertyModel(it, STRING_TYPE, expectedValueText, UNKNOWN, REGULAR, 0, "newProp")
-    }
+    val expectedValueText =
+      when {
+        isGroovy -> "1 + (4 * 5)**2 - 7"
+        else -> "1 + (4 * 5) * 2 - 7"
+      }
+    set { it.setValue(RawText("1 + (4 * 5)**2 - 7", "1 + (4 * 5) * 2 - 7")) }
+      .validate { verifyPropertyModel(it, STRING_TYPE, expectedValueText, UNKNOWN, REGULAR, 0, "newProp") }
   }
 
   @Test
   fun testSetReference() {
-    set {
-      it.setValue(RawText("prop1", "prop1"))
-    }.validate {
-      verifyPropertyModel(it, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0, "newProp")
-    }
+    set { it.setValue(RawText("prop1", "prop1")) }
+      .validate { verifyPropertyModel(it, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0, "newProp") }
   }
 
   @Test
   fun testSetIndexReference() {
-    set {
-      it.setValue(RawText("prop1[2]", "prop1[2]"))
-    }.validate {
-      verifyPropertyModel(it, STRING_TYPE, "prop1[2]", REFERENCE, REGULAR, 0, "newProp")
-    }
+    set { it.setValue(RawText("prop1[2]", "prop1[2]")) }
+      .validate { verifyPropertyModel(it, STRING_TYPE, "prop1[2]", REFERENCE, REGULAR, 0, "newProp") }
   }
 }

@@ -15,5 +15,4 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-interface DeclarativeValue : DeclarativeElement {
-}
+interface DeclarativeValue : DeclarativeElement {}

@@ -20,7 +20,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
 import java.nio.file.Path
 
-/** Test utility for building [GraphToProjectConverter] instances  */
+/** Test utility for building [GraphToProjectConverter] instances */
 object GraphToProjectConvertersForTests {
   fun create(
     javaPackagePrefixReader: JavaPackagePrefixReader = QuerySyncTestUtils.EMPTY_PREFIX_READER,
@@ -34,16 +34,17 @@ object GraphToProjectConvertersForTests {
     return GraphToProjectConverter(
       javaPackagePrefixReader = javaPackagePrefixReader,
       context = NOOP_CONTEXT,
-      projectDefinition = ProjectDefinition(
-        projectIncludes = projectIncludes,
-        projectExcludes = projectExcludes,
-        deriveTargetsFromDirectories = false,
-        targetPatterns = emptyList(),
-        isAndroidWorkspace = isAndroidWorkspace,
-        languageClasses = languageClasses,
-        testSources = testSources,
-        systemExcludes = systemExcludes
-      )
+      projectDefinition =
+        ProjectDefinition(
+          projectIncludes = projectIncludes,
+          projectExcludes = projectExcludes,
+          deriveTargetsFromDirectories = false,
+          targetPatterns = emptyList(),
+          isAndroidWorkspace = isAndroidWorkspace,
+          languageClasses = languageClasses,
+          testSources = testSources,
+          systemExcludes = systemExcludes,
+        ),
     )
   }
 }

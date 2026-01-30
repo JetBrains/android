@@ -39,8 +39,7 @@ object MaterialIconsUtils {
    *
    * Does not end on trailing slash.
    */
-  fun getBundledStyleDirectoryPath(styleName: String): String =
-    MATERIAL_ICONS_PATH + styleName.toDirFormat()
+  fun getBundledStyleDirectoryPath(styleName: String): String = MATERIAL_ICONS_PATH + styleName.toDirFormat()
 
   /** Path from classpath to the bundled icon in the Material Icons directory. */
   fun getBundledIconPath(styleName: String, iconName: String, iconFileName: String) =
@@ -66,8 +65,7 @@ object MaterialIconsUtils {
   }
 
   /**
-   * Returns `true` if there's a file with the name [METADATA_FILE_NAME] in the .../Android/Sdk
-   * directory.
+   * Returns `true` if there's a file with the name [METADATA_FILE_NAME] in the .../Android/Sdk directory.
    *
    * Does not check if it's a valid file for [MaterialIconsMetadata].
    */
@@ -89,12 +87,10 @@ object MaterialIconsUtils {
    *
    * E.g. For 'android' of 'Material Icons Rounded' returns 'rounded_android_24'
    *
-   * This should be used whenever we want to read or write material icons, since we rely on this
-   * consistency.
+   * This should be used whenever we want to read or write material icons, since we rely on this consistency.
    */
   fun getIconFileNameWithoutExtension(iconName: String, styleName: String): String {
-    val family =
-      styleName.toDirFormat().substringAfter("materialicons").substringAfter("materialsymbols")
+    val family = styleName.toDirFormat().substringAfter("materialicons").substringAfter("materialsymbols")
     val familyPrefix =
       when (family) {
         "" -> "baseline"

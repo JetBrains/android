@@ -42,16 +42,14 @@ class ReferenceTagReferenceTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
 
   private val fixture
     get() = projectRule.fixture
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
     overrideCurrentWFFVersion(WFFVersion4, projectRule.testRootDisposable)
   }
 
@@ -73,7 +71,7 @@ class ReferenceTagReferenceTest {
             <Parameter expression="[REFERENCE.partTextRef] + someId + #ff0000 + [DATA_SOURCE] + [REFERENCE.partImageRef]" />
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -83,18 +81,14 @@ class ReferenceTagReferenceTest {
     assertThat(partTextRef).isNotNull()
     assertThat(partTextRef?.referenceTagReference).isNotNull()
     assertThat(partTextRef?.referenceTagReference?.resolve())
-      .isEqualTo(
-        fixture.findElementByText("<Reference name=\"partTextRef\" />", XmlTag::class.java)
-      )
+      .isEqualTo(fixture.findElementByText("<Reference name=\"partTextRef\" />", XmlTag::class.java))
 
     fixture.moveCaret("[REFERENCE.partImageRef|]")
     val partImageRef = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(partImageRef).isNotNull()
     assertThat(partImageRef?.referenceTagReference).isNotNull()
     assertThat(partImageRef?.referenceTagReference?.resolve())
-      .isEqualTo(
-        fixture.findElementByText("<Reference name=\"partImageRef\" />", XmlTag::class.java)
-      )
+      .isEqualTo(fixture.findElementByText("<Reference name=\"partImageRef\" />", XmlTag::class.java))
 
     fixture.moveCaret("some|Id")
     val someId = fixture.findInjectedExpressionLiteralAtCaret()
@@ -117,10 +111,7 @@ class ReferenceTagReferenceTest {
 
   @Test
   fun `references are not created when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     val watchFaceFile =
       fixture.addFileToProject(
         "res/raw/watch_face.xml",
@@ -134,7 +125,7 @@ class ReferenceTagReferenceTest {
             <Parameter expression="[REFERENCE.partTextRef]" />
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -153,14 +144,14 @@ class ReferenceTagReferenceTest {
         "res/raw/watch_face.xml",
         // language=XML
         """
-          <WatchFace>
-            <Scene>
-              <PartText>
-                <Reference name="partTextRef" />
-              </PartText>
-              <Parameter expression="[REFERENCE.partTextRef]" />
-            </Scene>
-          </WatchFace>
+        <WatchFace>
+          <Scene>
+            <PartText>
+              <Reference name="partTextRef" />
+            </PartText>
+            <Parameter expression="[REFERENCE.partTextRef]" />
+          </Scene>
+        </WatchFace>
         """
           .trimIndent(),
       )
@@ -205,12 +196,7 @@ class ReferenceTagReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
-      .containsAllOf(
-        "REFERENCE.partTextRef",
-        "[REFERENCE.partTextRef]",
-        "REFERENCE.partImageRef",
-        "[REFERENCE.partImageRef]",
-      )
+      .containsAllOf("REFERENCE.partTextRef", "[REFERENCE.partTextRef]", "REFERENCE.partImageRef", "[REFERENCE.partImageRef]")
   }
 
   @Test
@@ -245,12 +231,7 @@ class ReferenceTagReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
-      .containsAllOf(
-        "REFERENCE.partTextRef",
-        "[REFERENCE.partTextRef]",
-        "REFERENCE.partImageRef",
-        "[REFERENCE.partImageRef]",
-      )
+      .containsAllOf("REFERENCE.partTextRef", "[REFERENCE.partTextRef]", "REFERENCE.partImageRef", "[REFERENCE.partImageRef]")
   }
 
   // Regression test for b/443685010
@@ -278,26 +259,17 @@ class ReferenceTagReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
     val injectionTestFixture = InjectionTestFixture(fixture)
     val quickEditHandler =
-      QuickEditAction()
-        .invokeImpl(
-          fixture.project,
-          injectionTestFixture.topLevelEditor,
-          injectionTestFixture.topLevelFile,
-        )
+      QuickEditAction().invokeImpl(fixture.project, injectionTestFixture.topLevelEditor, injectionTestFixture.topLevelFile)
     val fragmentFile = quickEditHandler.newFile
     fixture.openFileInEditor(fragmentFile.virtualFile)
 
-    val reference =
-      fixture
-        .findElementByText("[REFERENCE.partTextRef]", WFFExpressionLiteralExpr::class.java)
-        .referenceTagReference
+    val reference = fixture.findElementByText("[REFERENCE.partTextRef]", WFFExpressionLiteralExpr::class.java).referenceTagReference
 
     assertThat(reference).isNotNull()
     val resolved = reference?.resolve()
     assertThat(resolved).isNotNull()
     assertThat(resolved).isInstanceOf(XmlTag::class.java)
-    assertThat(fixture.completeBasic().flatMap { it.allLookupStrings })
-      .containsAllOf("[REFERENCE.partTextRef]", "[REFERENCE.partImageRef]")
+    assertThat(fixture.completeBasic().flatMap { it.allLookupStrings }).containsAllOf("[REFERENCE.partTextRef]", "[REFERENCE.partImageRef]")
   }
 
   private val WFFExpressionLiteralExpr.referenceTagReference

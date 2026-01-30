@@ -34,8 +34,8 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.regex.Pattern
+import org.jetbrains.android.facet.AndroidFacet
 
 /*
 Each Launch Option should extend this class and add a set of public fields such that they can be saved/restored using
@@ -52,8 +52,8 @@ abstract class LaunchOptionState {
     isDebug: Boolean,
     extraFlags: String,
     console: ConsoleView,
-    stats: RunStats
-  ) : Boolean {
+    stats: RunStats,
+  ): Boolean {
     return stats.track(id) { doLaunch(device, app, apkProvider, isDebug, extraFlags, console) }
   }
 
@@ -64,21 +64,26 @@ abstract class LaunchOptionState {
     apkProvider: ApkProvider,
     isDebug: Boolean,
     extraFlags: String,
-    console: ConsoleView
-  ) : Boolean
+    console: ConsoleView,
+  ): Boolean
 
   open fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
   }
 }
 
-
 abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionState() {
   override val componentType = ComponentType.ACTIVITY
   override val userVisibleComponentTypeName = "Activity"
 
   override fun doLaunch(
-    device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView) : Boolean {
+    device: IDevice,
+    app: App,
+    apkProvider: ApkProvider,
+    isDebug: Boolean,
+    extraFlags: String,
+    console: ConsoleView,
+  ): Boolean {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
@@ -92,10 +97,8 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     return true
   }
 
-
   companion object {
-    @JvmField
-    val INSTANCE = DefaultActivityLaunch()
+    @JvmField val INSTANCE = DefaultActivityLaunch()
 
     val UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY = "UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY"
 
@@ -103,8 +106,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
 
     protected const val ACTIVITY_DOES_NOT_EXIST_REGEX = "Activity class \\{[^}]*} does not exist"
 
-    @JvmStatic
-    protected val activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX)
+    @JvmStatic protected val activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX)
 
     val logger = LogWrapper(Logger.getInstance(ActivityLaunchOptionState::class.java))
   }
@@ -114,7 +116,9 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
 
 class ConsoleLogger(val delegate: ILogger, val console: ConsoleView) : ILogger {
   override fun error(t: Throwable?, msgFormat: String?, vararg args: Any?) = delegate.error(t, msgFormat, *args)
+
   override fun warning(msgFormat: String, vararg args: Any?) = delegate.warning(msgFormat, *args)
+
   override fun verbose(msgFormat: String, vararg args: Any?) = delegate.verbose(msgFormat, *args)
 
   override fun info(msgFormat: String, vararg args: Any?) {

@@ -97,13 +97,10 @@ enum class NavigationDirection {
   RIGHT,
 }
 
-class SystemUiModeAction :
-  DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
+class SystemUiModeAction : DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val button =
-      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton
-        ?: return
+    val button = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton ?: return
     val menu = createPopupMenu(event.dataContext)
     JBPopupMenu.showBelow(button, menu)
   }
@@ -191,8 +188,7 @@ class SystemUiModeAction :
       gbc.insets =
         when (index) {
           0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
-          numWallpapers ->
-            JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
+          numWallpapers -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
           else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
         }
       menu.add(menuItem, gbc)
@@ -212,15 +208,12 @@ class SystemUiModeAction :
   @TestOnly
   fun getNightModeActions(): List<AnAction> {
     val actions = mutableListOf<ConfigurationAction>()
-    enumValues<NightMode>().forEach { mode ->
-      actions.add(SetNightModeAction(mode.shortDisplayValue, mode))
-    }
+    enumValues<NightMode>().forEach { mode -> actions.add(SetNightModeAction(mode.shortDisplayValue, mode)) }
     return actions
   }
 }
 
-private class ActionItem(action: SetNightModeAction, dataContext: DataContext) :
-  JBMenuItem(action.templateText) {
+private class ActionItem(action: SetNightModeAction, dataContext: DataContext) : JBMenuItem(action.templateText) {
   init {
     val currentNightMode = dataContext.getData(CONFIGURATIONS)?.firstOrNull()?.nightMode
     if (currentNightMode == action.nightMode) {
@@ -241,15 +234,7 @@ private class ActionItem(action: SetNightModeAction, dataContext: DataContext) :
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
-      val anEvent =
-        AnActionEvent.createEvent(
-          action,
-          dataContext,
-          null,
-          ActionPlaces.POPUP,
-          ActionUiKind.POPUP,
-          null,
-        )
+      val anEvent = AnActionEvent.createEvent(action, dataContext, null, ActionPlaces.POPUP, ActionUiKind.POPUP, null)
       action.actionPerformed(anEvent)
     }
   }
@@ -266,8 +251,7 @@ private class ActionItem(action: SetNightModeAction, dataContext: DataContext) :
   }
 
   private fun shouldConvertIconToDarkVariant(): Boolean {
-    return JBColor.isBright() &&
-      ColorUtil.isDark(JBColor.namedColor("MenuItem.background", 0xffffff))
+    return JBColor.isBright() && ColorUtil.isDark(JBColor.namedColor("MenuItem.background", 0xffffff))
   }
 }
 
@@ -317,21 +301,13 @@ private class SetWallpaperAction(val wallpaper: Wallpaper?) : ConfigurationActio
   fun toMenuItem(dataContext: DataContext): JMenuItem {
     val scaledIconSize = JBUIScale.scale(ICON_SIZE)
     val scaledWallpaperIcon =
-      wallpaper?.let {
-        RoundedIcon(IconUtil.cropIcon(it.icon, scaledIconSize, scaledIconSize), 0.1)
-      } ?: getNullWallpaperIcon(scaledIconSize)
+      wallpaper?.let { RoundedIcon(IconUtil.cropIcon(it.icon, scaledIconSize, scaledIconSize), 0.1) }
+        ?: getNullWallpaperIcon(scaledIconSize)
     val action =
       object : AbstractAction(null, scaledWallpaperIcon) {
         override fun actionPerformed(e: ActionEvent) {
           val actionEvent =
-            AnActionEvent.createEvent(
-              this@SetWallpaperAction,
-              dataContext,
-              null,
-              ActionPlaces.POPUP,
-              ActionUiKind.POPUP,
-              null,
-            )
+            AnActionEvent.createEvent(this@SetWallpaperAction, dataContext, null, ActionPlaces.POPUP, ActionUiKind.POPUP, null)
           this@SetWallpaperAction.actionPerformed(actionEvent)
         }
       }
@@ -374,8 +350,7 @@ private fun getNullWallpaperIcon(scaledIconSize: Int) =
     setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
   }
 
-private class SetNightModeAction(title: String, val nightMode: NightMode) :
-  ConfigurationAction(title) {
+private class SetNightModeAction(title: String, val nightMode: NightMode) : ConfigurationAction(title) {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.nightMode = nightMode

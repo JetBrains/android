@@ -27,9 +27,7 @@ internal object SystemImageComparator :
     .thenBy { it.isForTablet() }
     .thenByDescending { it.androidVersion.isPreview }
     .thenBy { it.androidVersion.featureLevel }
-    .thenByDescending {
-      if (it.androidVersion.isBaseExtension) 0 else it.androidVersion.extensionLevel ?: 0
-    }
+    .thenByDescending { if (it.androidVersion.isBaseExtension) 0 else it.androidVersion.extensionLevel ?: 0 }
     .thenByDescending { it.getServices() }
     .thenByDescending { it.getOtherTagCount() }
     .thenByDescending { it.`package`.displayName })
@@ -37,9 +35,8 @@ internal object SystemImageComparator :
 private fun ISystemImage.isForTablet() = SystemImageTags.isTabletImage(tags)
 
 /**
- * Returns the number of tags that haven't otherwise been considered by the comparator. The more of
- * these a system image has the less we know about it and the further down the list it gets sorted
- * at.
+ * Returns the number of tags that haven't otherwise been considered by the comparator. The more of these a system image has the less we
+ * know about it and the further down the list it gets sorted at.
  */
 private fun ISystemImage.getOtherTagCount() = tags.count { it !in ACCOUNTED_FOR_TAGS }
 

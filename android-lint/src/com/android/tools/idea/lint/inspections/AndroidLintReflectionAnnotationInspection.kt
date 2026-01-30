@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.KeepRuleDetector
 
 class AndroidLintReflectionAnnotationInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.reflection.annotation"),
-    KeepRuleDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.reflection.annotation"), KeepRuleDetector.ISSUE)

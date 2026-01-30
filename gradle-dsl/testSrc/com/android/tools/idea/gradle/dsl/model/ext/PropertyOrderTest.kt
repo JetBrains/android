@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
@@ -41,10 +41,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.intellij.pom.java.LanguageLevel
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
-import java.io.File
 
 class PropertyOrderTest : GradleFileModelTestCase() {
   private fun GradleBlockModel.dslElement(): GradlePropertiesDslElement {
@@ -813,7 +813,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED)
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ADD_PROPERTIES_TO_EMPTY_EXPECTED("addPropertiesToEmptyExpected"),
     CREATE_PROPERTY_MIDDLE("createPropertyMiddle"),
     CREATE_PROPERTY_MIDDLE_EXPECTED("createPropertyMiddleExpected"),
@@ -874,8 +874,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS_EXPECTED("addBuildscriptBlockBeforePluginsExpected"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS("addExtBlockAfterBuildscriptAndPlugins"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED("addExtBlockAfterBuildscriptAndPluginsExpected"),
-    ROOT_PROJECT_SETTINGS("rootProjectSettings"),
-    ;
+    ROOT_PROJECT_SETTINGS("rootProjectSettings");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/propertyOrder/$path", extension)

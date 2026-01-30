@@ -18,23 +18,15 @@ package com.android.tools.idea.gradle.fixtures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.VfsTestUtil
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
 private const val PROPERTIES_PATH = "gradle/gradle-daemon-jvm.properties"
 
 fun Project.createDaemonJvmPropertiesFile(version: String?) {
-  VfsTestUtil.createFile(
-    guessProjectDir()!!,
-    PROPERTIES_PATH,
-    version?.let { "toolchainVersion=$version" }.orEmpty()
-  )
+  VfsTestUtil.createFile(guessProjectDir()!!, PROPERTIES_PATH, version?.let { "toolchainVersion=$version" }.orEmpty())
 }
 
 fun File.createDaemonJvmPropertiesFile(version: String?) {
-  VfsTestUtil.createFile(
-    this.toVirtualFile()!!,
-    PROPERTIES_PATH,
-    version?.let { "toolchainVersion=$version" }.orEmpty()
-  )
+  VfsTestUtil.createFile(this.toVirtualFile()!!, PROPERTIES_PATH, version?.let { "toolchainVersion=$version" }.orEmpty())
 }

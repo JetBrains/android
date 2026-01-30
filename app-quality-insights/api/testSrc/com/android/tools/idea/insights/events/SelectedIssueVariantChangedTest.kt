@@ -47,26 +47,16 @@ class SelectedIssueVariantChangedTest {
 
     val transition =
       SelectedIssueVariantChanged(ISSUE_VARIANT2)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FAKE_INSIGHTS_PROVIDER,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
-        .isEqualTo(
-          LoadingState.Ready(Selection(ISSUE_VARIANT2, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
-        )
+        .isEqualTo(LoadingState.Ready(Selection(ISSUE_VARIANT2, listOf(ISSUE_VARIANT, ISSUE_VARIANT2))))
       assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentInsight).isEqualTo(LoadingState.Loading)
 
       assertThat(action)
-        .isEqualTo(
-          Action.FetchDetails(ISSUE1.id, ISSUE_VARIANT2.id) and
-            Action.ListEvents(ISSUE1.id, ISSUE_VARIANT2.id, null)
-        )
+        .isEqualTo(Action.FetchDetails(ISSUE1.id, ISSUE_VARIANT2.id) and Action.ListEvents(ISSUE1.id, ISSUE_VARIANT2.id, null))
     }
   }
 
@@ -82,23 +72,14 @@ class SelectedIssueVariantChangedTest {
 
     val transition =
       SelectedIssueVariantChanged(null)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FAKE_INSIGHTS_PROVIDER,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
         .isEqualTo(LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT, ISSUE_VARIANT2))))
-      assertThat(transition.newState.currentIssueDetails)
-        .isInstanceOf(LoadingState.Loading::class.java)
+      assertThat(transition.newState.currentIssueDetails).isInstanceOf(LoadingState.Loading::class.java)
 
-      assertThat(action)
-        .isEqualTo(
-          Action.FetchDetails(ISSUE1.id, null) and Action.ListEvents(ISSUE1.id, null, null)
-        )
+      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE1.id, null) and Action.ListEvents(ISSUE1.id, null, null))
     }
   }
 
@@ -114,12 +95,7 @@ class SelectedIssueVariantChangedTest {
 
     val transition =
       SelectedIssueVariantChanged(ISSUE_VARIANT)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FAKE_INSIGHTS_PROVIDER,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     with(transition) {
       assertThat(transition.newState).isEqualTo(currentState)

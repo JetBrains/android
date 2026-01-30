@@ -39,12 +39,12 @@ import org.junit.Test
 // language=kotlin
 private val simpleKotlinCode =
   """
-      import androidx.compose.runtime.Composable
-      @Composable
-      fun Greeting() {
-        val a = 35
-      }
-      """
+  import androidx.compose.runtime.Composable
+  @Composable
+  fun Greeting() {
+    val a = 35
+  }
+  """
     .trimIndent()
 
 class NShotXmlToComposeConverterTest {
@@ -58,18 +58,9 @@ class NShotXmlToComposeConverterTest {
 
     override fun isFileExcluded(project: Project, file: VirtualFile) = false
 
-    override fun sendChatQuery(
-      project: Project,
-      prompt: LlmPrompt,
-      displayText: String?,
-      requestSource: GeminiPluginApi.RequestSource,
-    ) {}
+    override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {}
 
-    override fun stageChatQuery(
-      project: Project,
-      prompt: String,
-      requestSource: GeminiPluginApi.RequestSource,
-    ) {}
+    override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {}
 
     override fun generate(project: Project, prompt: LlmPrompt): Flow<String> {
       return flowOf(
@@ -95,12 +86,7 @@ class NShotXmlToComposeConverterTest {
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.contextAllowed = true
 
-    ApplicationManager.getApplication()
-      .registerExtension(
-        GeminiPluginApi.EP_NAME,
-        fakeGeminiPluginApi,
-        projectRule.testRootDisposable,
-      )
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, fakeGeminiPluginApi, projectRule.testRootDisposable)
   }
 
   @Test
@@ -121,38 +107,27 @@ class NShotXmlToComposeConverterTest {
               android:layout_height="match_parent"
               android:orientation="vertical">
              </LinearLayout>
-          """
+            """
               .trimIndent(),
             XMLLanguage.INSTANCE,
             emptyList(),
           )
         }
       }
-    assertEquals(
-      expectedPrompt.formatForTests(),
-      nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests(),
-    )
+    assertEquals(expectedPrompt.formatForTests(), nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests())
   }
 
   @Test
   fun testViewModel() {
-    val nShotXmlToComposeConverter =
-      NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(true).build()
+    val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(true).build()
     val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout())
-    assertTrue(
-      query
-        .formatForTests()
-        .contains("Create a subclass of androidx.lifecycle.ViewModel to store the states.")
-    )
+    assertTrue(query.formatForTests().contains("Create a subclass of androidx.lifecycle.ViewModel to store the states."))
   }
 
   @Test
   fun testDataTypes() {
     val nShotXmlToComposeConverter =
-      NShotXmlToComposeConverter.Builder(projectRule.project)
-        .useViewModel(true)
-        .withDataType(ComposeConverterDataType.LIVE_DATA)
-        .build()
+      NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(true).withDataType(ComposeConverterDataType.LIVE_DATA).build()
     val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests()
     assertTrue(
       query.contains(
@@ -167,10 +142,7 @@ class NShotXmlToComposeConverterTest {
   @Test
   fun testDataTypesWithoutViewModel() {
     val nShotXmlToComposeConverter =
-      NShotXmlToComposeConverter.Builder(projectRule.project)
-        .useViewModel(false)
-        .withDataType(ComposeConverterDataType.LIVE_DATA)
-        .build()
+      NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(false).withDataType(ComposeConverterDataType.LIVE_DATA).build()
     val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests()
     // If not querying about a ViewModel, it's pointless to include data types in the query.
     assertFalse(query.contains("The ViewModel must store data using objects of type"))
@@ -179,10 +151,7 @@ class NShotXmlToComposeConverterTest {
   @Test
   fun testUnknownDataType() {
     val nShotXmlToComposeConverter =
-      NShotXmlToComposeConverter.Builder(projectRule.project)
-        .useViewModel(true)
-        .withDataType(ComposeConverterDataType.UNKNOWN)
-        .build()
+      NShotXmlToComposeConverter.Builder(projectRule.project).useViewModel(true).withDataType(ComposeConverterDataType.UNKNOWN).build()
     val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests()
     // If data type is specified as unknown, we shouldn't specify it in the query.
     assertFalse(query.contains("The ViewModel must store data using objects of type"))
@@ -190,8 +159,7 @@ class NShotXmlToComposeConverterTest {
 
   @Test
   fun testDataTypesWithCustomViews() {
-    val nShotXmlToComposeConverter =
-      NShotXmlToComposeConverter.Builder(projectRule.project).useCustomView(true).build()
+    val nShotXmlToComposeConverter = NShotXmlToComposeConverter.Builder(projectRule.project).useCustomView(true).build()
     val query = nShotXmlToComposeConverter.getPrompt(simpleXmlLayout()).formatForTests()
     assertTrue(query.contains("Wrap any Custom Views in an AndroidView composable."))
   }
@@ -220,8 +188,7 @@ class NShotXmlToComposeConverterTest {
     val response = runBlocking { nShotXmlToComposeConverter.convertToCompose(simpleXmlLayout()) }
     assertEquals(ConversionResponse.Status.ERROR, response.status)
     assertEquals(
-      "Please follow the Gemini onboarding and enable context sharing if you want to use " +
-        "this feature.",
+      "Please follow the Gemini onboarding and enable context sharing if you want to use " + "this feature.",
       response.generatedCode,
     )
   }
@@ -229,11 +196,11 @@ class NShotXmlToComposeConverterTest {
   // language=xml
   private fun simpleXmlLayout() =
     """
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-       </LinearLayout>
-      """
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+     </LinearLayout>
+    """
       .trimIndent()
 }

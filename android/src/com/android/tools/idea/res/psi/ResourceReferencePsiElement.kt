@@ -64,32 +64,26 @@ import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.usageView.UsageViewLongNameLocation
 import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
+import javax.swing.Icon
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
-import javax.swing.Icon
 
 /**
  * A fake PsiElement that wraps a [ResourceReference].
  *
- * Android resources can have multiple definitions, but most editor operations should not need to
- * know how many definitions a given resource has or which one was used to start a refactoring, e.g.
- * rename. A [ResourceReferencePsiElement] implements [PsiElement] so can be used in editor APIs,
- * but abstracts away how the resource was actually defined.
+ * Android resources can have multiple definitions, but most editor operations should not need to know how many definitions a given resource
+ * has or which one was used to start a refactoring, e.g. rename. A [ResourceReferencePsiElement] implements [PsiElement] so can be used in
+ * editor APIs, but abstracts away how the resource was actually defined.
  *
- * Most [PsiReference]s related to Android resources resolve to instances of this class (other than
- * R fields, since we don't control references in Java/Kotlin). We do this instead of using
- * [PsiPolyVariantReference] and resolving to all definitions, because checking if a resource is
- * defined at all can be done using resource repositories and is faster than determining the exact
- * XML attribute that defines it. Another reason is that most refactorings (e.g. renaming) are only
- * passed one [PsiElement] as their "target". This class is used to recognize all mentions of
- * Android resources (XML, * "@+id", R fields) as early as possible. Custom [FindUsagesHandler],
+ * Most [PsiReference]s related to Android resources resolve to instances of this class (other than R fields, since we don't control
+ * references in Java/Kotlin). We do this instead of using [PsiPolyVariantReference] and resolving to all definitions, because checking if a
+ * resource is defined at all can be done using resource repositories and is faster than determining the exact XML attribute that defines
+ * it. Another reason is that most refactorings (e.g. renaming) are only passed one [PsiElement] as their "target". This class is used to
+ * recognize all mentions of Android resources (XML, * "@+id", R fields) as early as possible. Custom [FindUsagesHandler],
  * [GotoDeclarationHandler] and [RenameHandler] are used to handle all these cases uniformly.
  */
-class ResourceReferencePsiElement(
-  val delegate: PsiElement,
-  val resourceReference: ResourceReference,
-  val writable: Boolean = false,
-) : FakePsiElement() {
+class ResourceReferencePsiElement(val delegate: PsiElement, val resourceReference: ResourceReference, val writable: Boolean = false) :
+  FakePsiElement() {
 
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
 
@@ -117,8 +111,7 @@ class ResourceReferencePsiElement(
 
   override fun getName() = resourceReference.name
 
-  override fun isEquivalentTo(element: PsiElement) =
-    create(element)?.resourceReference == resourceReference
+  override fun isEquivalentTo(element: PsiElement) = create(element)?.resourceReference == resourceReference
 
   fun toWritableResourceReferencePsiElement(): ResourceReferencePsiElement? {
     // Framework resources are not writable.
@@ -147,12 +140,8 @@ class ResourceReferencePsiElement(
 
   /** Element description for Android resources. */
   class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
-    override fun getElementDescription(
-      element: PsiElement,
-      location: ElementDescriptionLocation,
-    ): String? {
-      val resourceReference =
-        (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
       return when (location) {
         is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
         is UsageViewLongNameLocation -> element.presentableText
@@ -165,8 +154,7 @@ class ResourceReferencePsiElement(
 
     @JvmField val RESOURCE_ICON: Icon = StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
     @JvmField
-    val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> =
-      Key.create(::RESOURCE_CONTEXT_ELEMENT.qualifiedName<ResourceReferencePsiElement>())
+    val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create(::RESOURCE_CONTEXT_ELEMENT.qualifiedName<ResourceReferencePsiElement>())
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
@@ -192,21 +180,12 @@ class ResourceReferencePsiElement(
       if (resourceFolderType == ResourceFolderType.VALUES) return null
       val resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType)
       val resourceNamespace = element.resourceNamespace ?: return null
-      if (
-        FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) !=
-          null
-      )
-        return null
+      if (FileResourceNameValidator.getErrorTextForFileResource(element.name, resourceFolderType) != null) return null
       val resourceName = SdkUtils.fileNameToResourceName(element.name)
-      return ResourceReferencePsiElement(
-        element,
-        ResourceReference(resourceNamespace, resourceType, resourceName),
-      )
+      return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
     }
 
-    private fun convertStyleableAttrLightField(
-      element: StyleableAttrLightField
-    ): ResourceReferencePsiElement? {
+    private fun convertStyleableAttrLightField(element: StyleableAttrLightField): ResourceReferencePsiElement? {
       val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
       val facet = element.androidFacet
       val namespacing = facet?.let { StudioResourceRepositoryManager.getInstance(it).namespacing }
@@ -216,51 +195,29 @@ class ResourceReferencePsiElement(
         } else {
           ResourceNamespace.RES_AUTO
         }
-      return ResourceReferencePsiElement(
-        element,
-        ResourceReference(resourceNamespace, STYLEABLE, element.name),
-      )
+      return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, STYLEABLE, element.name))
     }
 
-    private fun convertResourceLightField(
-      element: ResourceLightField
-    ): ResourceReferencePsiElement? {
+    private fun convertResourceLightField(element: ResourceLightField): ResourceReferencePsiElement? {
       val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
       return when (grandClass) {
         is ResourceRepositoryRClass -> {
           val facet = element.androidFacet
-          val namespacing =
-            facet?.let { StudioResourceRepositoryManager.getInstance(it).namespacing }
+          val namespacing = facet?.let { StudioResourceRepositoryManager.getInstance(it).namespacing }
           val resourceNamespace =
             if (ResourceNamespacing.REQUIRED == namespacing) {
-              ResourceNamespace.fromPackageName(
-                StringUtil.getPackageName(grandClass.qualifiedName!!)
-              )
+              ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
             } else {
               ResourceNamespace.RES_AUTO
             }
-          ResourceReferencePsiElement(
-            element,
-            ResourceReference(resourceNamespace, element.resourceType, element.resourceName),
-          )
+          ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, element.resourceType, element.resourceName))
         }
         is TransitiveAarRClass -> {
-          ResourceReferencePsiElement(
-            element,
-            ResourceReference(
-              ResourceNamespace.RES_AUTO,
-              element.resourceType,
-              element.resourceName,
-            ),
-          )
+          ResourceReferencePsiElement(element, ResourceReference(ResourceNamespace.RES_AUTO, element.resourceType, element.resourceName))
         }
         is SmallAarRClass -> {
-          val resourceNamespace =
-            ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
-          ResourceReferencePsiElement(
-            element,
-            ResourceReference(resourceNamespace, element.resourceType, element.resourceName),
-          )
+          val resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
+          ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, element.resourceType, element.resourceName))
         }
         else -> null
       }
@@ -273,21 +230,16 @@ class ResourceReferencePsiElement(
         return null
       }
       val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return null
-      return ResourceReferencePsiElement(
-        element,
-        ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name),
-      )
+      return ResourceReferencePsiElement(element, ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name))
     }
 
     /**
-     * Attempts to convert an XmlAttributeValue into ResourceReferencePsiElement, if the attribute
-     * references or defines a resources.
+     * Attempts to convert an XmlAttributeValue into ResourceReferencePsiElement, if the attribute references or defines a resources.
      *
-     * These are cases where the [com.intellij.util.xml.ResolvingConverter] does not provide a
-     * PsiElement and so the dom provides the invocation element.
+     * These are cases where the [com.intellij.util.xml.ResolvingConverter] does not provide a PsiElement and so the dom provides the
+     * invocation element.
      *
-     * TODO: Implement resolve in all ResolvingConverters so that we never get the underlying
-     *   element.
+     * TODO: Implement resolve in all ResolvingConverters so that we never get the underlying element.
      */
     private fun convertXmlAttributeValue(element: XmlAttributeValue): ResourceReferencePsiElement? {
       val resUrl = ResourceUrl.parse(element.value)

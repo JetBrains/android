@@ -62,18 +62,14 @@ class SampleDataResourceRepositoryTest {
       AndroidModuleModelBuilder(
         ":",
         "debug",
-        AndroidProjectBuilder().withAndroidModuleDependencyList {
-          listOf(AndroidModuleDependency(":lib", "debug"))
-        },
+        AndroidProjectBuilder().withAndroidModuleDependencyList { listOf(AndroidModuleDependency(":lib", "debug")) },
       ),
       AndroidModuleModelBuilder(
         ":lib",
         "debug",
         AndroidProjectBuilder()
           .withProjectType { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }
-          .withAndroidModuleDependencyList {
-            listOf(AndroidModuleDependency(":transitive", "debug"))
-          },
+          .withAndroidModuleDependencyList { listOf(AndroidModuleDependency(":transitive", "debug")) },
       ),
       AndroidModuleModelBuilder(
         ":transitive",
@@ -101,7 +97,7 @@ class SampleDataResourceRepositoryTest {
       <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-        """
+      """
         .trimIndent(),
     )
 
@@ -153,7 +149,7 @@ class SampleDataResourceRepositoryTest {
       """
       @string/test1
       @string/invalid
-       """
+      """
         .trimIndent(),
     )
     projectRule.fixture.addFileToProject(
@@ -180,10 +176,8 @@ class SampleDataResourceRepositoryTest {
       """
         .trimIndent(),
     )
-    val image1 =
-      projectRule.fixture.addFileToProject("sampledata/images/image1.png", "Insert image here\n")
-    val image2 =
-      projectRule.fixture.addFileToProject("sampledata/images/image2.jpg", "Insert image here 2\n")
+    val image1 = projectRule.fixture.addFileToProject("sampledata/images/image1.png", "Insert image here\n")
+    val image2 = projectRule.fixture.addFileToProject("sampledata/images/image2.jpg", "Insert image here 2\n")
     projectRule.fixture.addFileToProject(
       "src/main/res/values/strings.xml",
       // language=xml
@@ -198,9 +192,7 @@ class SampleDataResourceRepositoryTest {
     )
 
     val layout = addLayoutFile()
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(layout.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(layout.virtualFile)
     waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).sampleDataResources)
     val resolver = configuration.resourceResolver
 
@@ -214,46 +206,21 @@ class SampleDataResourceRepositoryTest {
     assertThat(resolver.findResValue("@sample/users.json/users/name")).isEqualTo("Name1")
 
     // The order of the returned paths might depend on the file system
-    val imagePaths =
-      setOf(resolver.findResValue("@sample/images"), resolver.findResValue("@sample/images"))
-    assertThat(imagePaths)
-      .containsExactly(image1.virtualFile.canonicalPath, image2.virtualFile.canonicalPath)
+    val imagePaths = setOf(resolver.findResValue("@sample/images"), resolver.findResValue("@sample/images"))
+    assertThat(imagePaths).containsExactly(image1.virtualFile.canonicalPath, image2.virtualFile.canonicalPath)
 
     // Check that we wrap around
     assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string1")
-    val reference =
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings")
+    val reference = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings")
     assertThat(resolver.getResolvedResource(reference)?.value).isEqualTo("string2")
     assertThat(resolver.findResValue("@sample/ints")).isEqualTo("1")
     assertThat(imagePaths).contains(resolver.findResValue("@sample/images"))
 
     // Check reference resolution
-    assertThat(
-        resolver
-          .resolveResValue(
-            ResourceValueImpl(
-              ResourceNamespace.RES_AUTO,
-              ResourceType.STRING,
-              "test",
-              "@sample/refs",
-            )
-          )
-          ?.value
-      )
+    assertThat(resolver.resolveResValue(ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "test", "@sample/refs"))?.value)
       .isEqualTo("Hello 1")
     // @string/invalid does not exist so the sample data will just return the unresolved reference
-    assertThat(
-        resolver
-          .resolveResValue(
-            ResourceValueImpl(
-              ResourceNamespace.RES_AUTO,
-              ResourceType.STRING,
-              "test",
-              "@sample/refs",
-            )
-          )
-          ?.value
-      )
+    assertThat(resolver.resolveResValue(ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "test", "@sample/refs"))?.value)
       .isEqualTo("@string/invalid")
 
     // Check indexing (all calls should return the same)
@@ -262,8 +229,7 @@ class SampleDataResourceRepositoryTest {
 
     assertThat(resolver.findResValue("@sample/invalid")).isNull()
 
-    val elementRef =
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]")
+    val elementRef = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]")
     assertThat(resolver.getResolvedResource(elementRef)).isNotNull()
   }
 
@@ -312,10 +278,7 @@ class SampleDataResourceRepositoryTest {
 
     val sampleDir =
       requireNotNull(
-        WriteAction.computeAndWait<PathString?, IOException> {
-            appModuleSystem.getOrCreateSampleDataDirectory()
-          }
-          .toVirtualFile()
+        WriteAction.computeAndWait<PathString?, IOException> { appModuleSystem.getOrCreateSampleDataDirectory() }.toVirtualFile()
       )
     val stringsOutside = projectRule.fixture.addFileToProject("strings", "string1\n")
 
@@ -337,10 +300,7 @@ class SampleDataResourceRepositoryTest {
 
     val sampleDir =
       requireNotNull(
-        WriteAction.computeAndWait<PathString?, IOException> {
-            appModuleSystem.getOrCreateSampleDataDirectory()
-          }
-          .toVirtualFile()
+        WriteAction.computeAndWait<PathString?, IOException> { appModuleSystem.getOrCreateSampleDataDirectory() }.toVirtualFile()
       )
     projectRule.fixture.addFileToProject("sampledata/strings", "string1\n")
     waitForUpdates(repo)
@@ -441,10 +401,7 @@ class SampleDataResourceRepositoryTest {
     val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
     waitForUpdates(appResources)
 
-    val resolver =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(layout.virtualFile)
-        .resourceResolver
+    val resolver = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(layout.virtualFile).resourceResolver
     assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string1")
     assertThat(resolver.findResValue("@sample/strings")).isEqualTo("string2")
     ApplicationManager.getApplication().runWriteAction {
@@ -480,13 +437,9 @@ class SampleDataResourceRepositoryTest {
 
     val repository = StudioResourceRepositoryManager.getAppResources(facet)
     waitForUpdates(repository)
-    val items =
-      repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
+    val items = repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
     assertThat(items).hasSize(2)
-    val item =
-      repository
-        .getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "images")
-        .single() as SampleDataResourceItem
+    val item = repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "images").single() as SampleDataResourceItem
     assertThat(item.name).isEqualTo("images")
     assertThat(item.contentType).isEqualTo(SampleDataResourceItem.ContentType.IMAGE)
     val value = item.resourceValue as SampleDataResourceValue
@@ -494,9 +447,7 @@ class SampleDataResourceRepositoryTest {
     assertThat(fileNames).containsExactly("image1.png", "image2.png", "image3.png")
 
     val rootImageItem =
-      repository
-        .getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "root_image.png")
-        .single() as SampleDataResourceItem
+      repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, "root_image.png").single() as SampleDataResourceItem
     assertThat(rootImageItem.contentType).isEqualTo(rootImageItem.contentType)
     assertThat(rootImageItem.valueText).isEqualTo(rootImagePsiFile.virtualFile.path)
   }
@@ -504,20 +455,12 @@ class SampleDataResourceRepositoryTest {
   @Test
   fun testSubsetSampleData() {
     val layout = addLayoutFile()
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(layout.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
     val sampledLorem: ResourceValue =
-      ResourceValueImpl(
-        ResourceNamespace.TOOLS,
-        ResourceType.SAMPLE_DATA,
-        "lorem_data",
-        "@sample/lorem[4:10]",
-      )
+      ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]")
     assertThat(resolver.dereference(sampledLorem)?.value).isEqualTo("Lorem ipsum dolor sit amet.")
-    assertThat(resolver.dereference(sampledLorem)?.value)
-      .isEqualTo("Lorem ipsum dolor sit amet, consectetur.")
+    assertThat(resolver.dereference(sampledLorem)?.value).isEqualTo("Lorem ipsum dolor sit amet, consectetur.")
   }
 
   @Test
@@ -564,9 +507,7 @@ class SampleDataResourceRepositoryTest {
     val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
     waitForUpdates(appResources)
 
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(layout.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
     assertThat(resolver.findResValue("@sample/lib.csv/name")).isEqualTo("LibName1")
     assertThat(resolver.findResValue("@sample/transitive.csv/name")).isEqualTo("TransitiveName1")
@@ -620,27 +561,19 @@ class SampleDataResourceRepositoryTest {
     val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
     waitForUpdates(appResources)
 
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(layout.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(layout.virtualFile)
     val resolver = configuration.resourceResolver
     assertThat(resolver.findResValue("@sample/users.csv/name")).isEqualTo("AppName1")
   }
 }
 
-private fun ResourceRepository.getSampleDataResources() =
-  getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
+private fun ResourceRepository.getSampleDataResources() = getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA).values()
 
 private fun ResourceRepository.getSampleDataResources(resName: String) =
   getResources(ResourceNamespace.RES_AUTO, ResourceType.SAMPLE_DATA, resName)
 
 private fun ResourceResolver.findResValue(reference: String) =
   dereference(
-      ResourceValueImpl(
-        ResourceNamespace.RES_AUTO,
-        ResourceType.ID,
-        "com.android.ide.common.rendering.api.RenderResources",
-        reference,
-      )
+      ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.ID, "com.android.ide.common.rendering.api.RenderResources", reference)
     )
     ?.value

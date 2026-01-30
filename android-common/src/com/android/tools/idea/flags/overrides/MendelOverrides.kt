@@ -20,11 +20,8 @@ import com.android.flags.FlagValueProvider
 import com.android.flags.MendelFlag
 import com.android.tools.idea.mendel.MendelFlagsProvider
 
-class MendelOverrides: FlagValueProvider {
-  override fun get(flag: Flag<*>): String? =
-    (flag as? MendelFlag)?.mendelId?.let {
-      MendelFlagsProvider.isExperimentEnabled(it).toString()
-    }
+class MendelOverrides : FlagValueProvider {
+  override fun get(flag: Flag<*>): String? = (flag as? MendelFlag)?.mendelId?.let { MendelFlagsProvider.isExperimentEnabled(it).toString() }
 
   override fun toString(): String = "MendelOverrides(MendelFlagsProvider count=${MendelFlagsProvider.EP_NAME.extensionList.size})"
 }

@@ -24,8 +24,8 @@ class DisplaySettings {
   private val _displayName = MutableStateFlow<String?>(null)
 
   /**
-   * Model name. This can be used when multiple models are displayed at the same time
-   * [modelDisplayName] contains both [baseName] and [parameterName].
+   * Model name. This can be used when multiple models are displayed at the same time [modelDisplayName] contains both [baseName] and
+   * [parameterName].
    */
   val modelDisplayName: StateFlow<String?> = _displayName.asStateFlow()
 
@@ -36,8 +36,8 @@ class DisplaySettings {
 
   private val _baseName = MutableStateFlow<String?>(null)
   /**
-   * For parametrized previews, all of them have a same base name. For example for Composable it
-   * will be method name. It used as name for organization group.
+   * For parametrized previews, all of them have a same base name. For example for Composable it will be method name. It used as name for
+   * organization group.
    */
   val baseName: StateFlow<String?> = _baseName.asStateFlow()
 
@@ -48,8 +48,8 @@ class DisplaySettings {
 
   private val _parameterName = MutableStateFlow<String?>(null)
   /**
-   * For parametrized previews, they might have a parameter name. It can be used as name for Preview
-   * instead of full name [modelDisplayName].
+   * For parametrized previews, they might have a parameter name. It can be used as name for Preview instead of full name
+   * [modelDisplayName].
    */
   val parameterName: StateFlow<String?> = _parameterName.asStateFlow()
 

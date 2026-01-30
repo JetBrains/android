@@ -152,9 +152,7 @@ class OnClickEnumSupportTest {
     val otherValues = allValues.subList(4, 6)
     assertThat(mainValues.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(mainValues.map { it.value }).containsExactly("help", "onClick").inOrder()
-    assertThat(otherValues.map { it.display })
-      .containsExactly("onClick", "startProcessing")
-      .inOrder()
+    assertThat(otherValues.map { it.display }).containsExactly("onClick", "startProcessing").inOrder()
     assertThat(otherValues.map { it.value }).containsExactly("onClick", "startProcessing").inOrder()
     assertThat(allValues.size).isEqualTo(6)
   }
@@ -164,8 +162,7 @@ class OnClickEnumSupportTest {
     fixture.addClass(MAIN_ACTIVITY.trimIndent())
     fixture.addClass(OTHER_ACTIVITY.trimIndent())
     fixture.addClass(THIRD_ACTIVITY.trimIndent())
-    val util =
-      SupportTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
     return OnClickEnumSupport(util.nlModel)
   }
 }

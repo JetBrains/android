@@ -108,8 +108,7 @@ class NlNewPropertyItemTest {
 
     assertThat(property.value).isEqualTo("Hello")
     assertThat(property.type).isEqualTo(NlPropertyType.STRING)
-    assertThat(property.definition!!.resourceReference)
-      .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
+    assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
     assertThat(property.componentName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(property.components).containsExactly(delegate.components[0])
     assertThat(property.libraryName).isEqualTo("android")
@@ -135,8 +134,7 @@ class NlNewPropertyItemTest {
 
     assertThat(property.value).isEqualTo("abc")
     assertThat(property.type).isEqualTo(NlPropertyType.ID)
-    assertThat(property.definition!!.resourceReference)
-      .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ID))
+    assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ID))
     assertThat(property.components).containsExactly(delegate.components[0])
     assertThat(property.resolvedValue).isEqualTo("@+id/abc")
     assertThat(property.isReference).isFalse()
@@ -256,8 +254,7 @@ class NlNewPropertyItemTest {
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(property.nameEditingSupport.validation("android:xyz"))
-      .isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
+    assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
     assertThat(property.nameEditingSupport.validation("android:text"))
       .isEqualTo(Pair(ERROR, "A property by the name: 'android:text' is already specified"))
   }
@@ -291,19 +288,7 @@ class NlNewPropertyItemTest {
 
     // Override property1 such that componentName and library name is set for the delegate test
     // above:
-    val textProperty =
-      with(property1) {
-        NlPropertyItem(
-          namespace,
-          name,
-          type,
-          definition,
-          FQCN_TEXT_VIEW,
-          "android",
-          model,
-          components,
-        )
-      }
+    val textProperty = with(property1) { NlPropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, components) }
     add(table, property0)
     add(table, textProperty)
     add(table, property2)

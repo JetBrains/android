@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.util
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.util.LinkedList
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 typealias MyListener = () -> Unit
 
@@ -80,10 +80,12 @@ class ListenerCollectionTest {
 
     // Check reentrant handler
     handler.add({ handler.add({}) })
-    handler.forEach(Consumer { l ->
-      callCount.incrementAndGet()
-      l()
-    })
+    handler.forEach(
+      Consumer { l ->
+        callCount.incrementAndGet()
+        l()
+      }
+    )
     assertEquals(1, callCount.get().toLong())
   }
 

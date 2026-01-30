@@ -21,8 +21,8 @@ import java.awt.Dimension
 import java.awt.Point
 
 /**
- * A [SurfaceLayoutManager] for testing which returns empty [Dimension] and always return
- * zoom-to-fit scale as 100%. It also does nothing when [measure] is called.
+ * A [SurfaceLayoutManager] for testing which returns empty [Dimension] and always return zoom-to-fit scale as 100%. It also does nothing
+ * when [measure] is called.
  */
 class EmptySurfaceLayoutManager : SurfaceLayoutManager {
 
@@ -33,11 +33,7 @@ class EmptySurfaceLayoutManager : SurfaceLayoutManager {
     dimension: Dimension?,
   ): Dimension = Dimension()
 
-  override fun getFitIntoScale(
-    content: Collection<PositionableContent>,
-    availableWidth: Int,
-    availableHeight: Int,
-  ): Double = 1.0
+  override fun getFitIntoScale(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Double = 1.0
 
   override fun measure(
     content: Collection<PositionableContent>,

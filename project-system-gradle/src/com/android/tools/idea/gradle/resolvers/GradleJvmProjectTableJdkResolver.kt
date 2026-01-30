@@ -24,18 +24,20 @@ import org.jetbrains.plugins.gradle.resolvers.GradleJvmResolver
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
- * A [GradleJvmResolver] implementation to resolve all non-macros gradleJvm (which starts with '#' prefix e.g: #JAVA_HOME),
- * bypassing the existing implementation of [com.intellij.openapi.externalSystem.service.execution.resolveSdkInfoBySdkName]
- * which is flaky caused by IDEA-385084 issue
+ * A [GradleJvmResolver] implementation to resolve all non-macros gradleJvm (which starts with '#' prefix e.g: #JAVA_HOME), bypassing the
+ * existing implementation of [com.intellij.openapi.externalSystem.service.execution.resolveSdkInfoBySdkName] which is flaky caused by
+ * IDEA-385084 issue
  */
 @Suppress("UnstableApiUsage")
-class GradleJvmProjectTableJdkResolver : GradleJvmResolver()  {
+class GradleJvmProjectTableJdkResolver : GradleJvmResolver() {
   override fun canBeResolved(gradleJvm: String) = !gradleJvm.startsWith("#")
 
-  override fun getResolvedSdkInfo(project: Project,
-                                  projectSdk: Sdk?,
-                                  externalProjectPath: String?,
-                                  sdkLookupProvider: SdkLookupProvider): SdkInfo {
+  override fun getResolvedSdkInfo(
+    project: Project,
+    projectSdk: Sdk?,
+    externalProjectPath: String?,
+    sdkLookupProvider: SdkLookupProvider,
+  ): SdkInfo {
     val externalProjectPath = externalProjectPath ?: return SdkInfo.Undefined
     val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(externalProjectPath) ?: return SdkInfo.Undefined
     val gradleJvm = settings.gradleJvm ?: return SdkInfo.Undefined
@@ -44,7 +46,8 @@ class GradleJvmProjectTableJdkResolver : GradleJvmResolver()  {
     // same instance is used from different threads, resulting on loosing getSdkInfo()
     // when a new lookup starts from another thread.
     val uniqueSdkLookupProvider = SdkLookupProvider.getInstance(project, UniqueId())
-    uniqueSdkLookupProvider.newLookupBuilder()
+    uniqueSdkLookupProvider
+      .newLookupBuilder()
       .withSdkName(gradleJvm)
       .onBeforeSdkSuggestionStarted { SdkLookupDecision.STOP }
       .executeLookup()

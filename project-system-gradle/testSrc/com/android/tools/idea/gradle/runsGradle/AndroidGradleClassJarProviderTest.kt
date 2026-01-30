@@ -33,9 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidGradleClassJarProviderTest {
-  @JvmField
-  @Rule
-  val gradleProjectRule = AndroidGradleProjectRule()
+  @JvmField @Rule val gradleProjectRule = AndroidGradleProjectRule()
 
   // Regression test for b/144018886 checking that runtime aar gradle dependencies are added to the  returned classpath by
   // AndroidGradleClassJarProvider
@@ -53,16 +51,18 @@ class AndroidGradleClassJarProviderTest {
     val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED)
     getInstance().requestProjectSync(module.project, request, null)
 
-    fun IdeDependencies.all() = this.libraries.flatMap {
-      when (it) {
-        is IdeAndroidLibrary -> it.runtimeJarFiles
-        is IdeJavaLibrary -> listOf(it.artifact)
-        else -> emptyList()
+    fun IdeDependencies.all() =
+      this.libraries.flatMap {
+        when (it) {
+          is IdeAndroidLibrary -> it.runtimeJarFiles
+          is IdeJavaLibrary -> listOf(it.artifact)
+          else -> emptyList()
+        }
       }
-    }
 
     val model = GradleAndroidDependencyModel.get(module)!!
-    val runtimeDependencies = model.mainArtifactWithDependencies.runtimeClasspath.all().toSet() - model.mainArtifactWithDependencies.compileClasspath.all().toSet()
+    val runtimeDependencies =
+      model.mainArtifactWithDependencies.runtimeClasspath.all().toSet() - model.mainArtifactWithDependencies.compileClasspath.all().toSet()
     assertTrue(runtimeDependencies.isNotEmpty())
 
     assertTrue(AndroidGradleClassJarProvider.getModuleExternalLibraries(module).containsAll(runtimeDependencies))

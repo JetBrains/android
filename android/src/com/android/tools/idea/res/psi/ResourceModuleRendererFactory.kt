@@ -32,8 +32,7 @@ class ResourceModuleRendererFactory : ModuleRendererFactory() {
     // https://youtrack.jetbrains.com/issue/IDEA-345002/ModuleRendererFactorygetModuleTextWithIcon-not-called-in-ReadAction
     val textWithIcon = runReadAction {
       val resourceNavigationItem = element as ResourceNavigationItem
-      val virtualFile =
-        resourceNavigationItem.resource.getSourceAsVirtualFile() ?: return@runReadAction null
+      val virtualFile = resourceNavigationItem.resource.getSourceAsVirtualFile() ?: return@runReadAction null
       val fileIndex = ProjectFileIndex.getInstance(resourceNavigationItem.project)
       val inTestSource = fileIndex.isInTestSourceContent(virtualFile)
       val module = fileIndex.getModuleForFile(virtualFile) ?: return@runReadAction null

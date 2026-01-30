@@ -17,9 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import java.nio.file.Path
 
-/**
- * Identifying information for a running Emulator.
- */
+/** Identifying information for a running Emulator. */
 data class EmulatorId(
   val pid: Long,
   val grpcPort: Int,

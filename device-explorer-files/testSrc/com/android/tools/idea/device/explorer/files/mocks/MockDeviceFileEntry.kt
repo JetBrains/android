@@ -20,8 +20,8 @@ import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem.Companion.OPERATION_TIMEOUT_MILLIS
-import kotlinx.coroutines.delay
 import java.nio.file.Path
+import kotlinx.coroutines.delay
 
 class MockDeviceFileEntry(
   override val fileSystem: MockDeviceFileSystem,
@@ -31,7 +31,7 @@ class MockDeviceFileEntry(
   override val isSymbolicLink: Boolean,
   override val symbolicLinkTarget: String?,
   private var myIsSymbolicLinkToDirectory: Boolean = false,
-  var getEntriesTimeoutMillis: Long = OPERATION_TIMEOUT_MILLIS
+  var getEntriesTimeoutMillis: Long = OPERATION_TIMEOUT_MILLIS,
 ) : DeviceFileEntry {
   init {
     parent?.myEntries?.add(this)
@@ -41,6 +41,7 @@ class MockDeviceFileEntry(
   override var size: Long = 0
   var getEntriesError: Throwable? = null
   var deleteError: Throwable? = null
+
   override fun toString() = name
 
   @Throws(AdbShellCommandException::class)
@@ -54,11 +55,16 @@ class MockDeviceFileEntry(
   fun addDirLink(name: String, linkTarget: String): MockDeviceFileEntry {
     assert(isDirectory)
     throwIfEntryExists(name)
-    val entry = MockDeviceFileEntry(fileSystem, this, name,
-                                    isDirectory = false,
-                                    isSymbolicLink = true,
-                                    symbolicLinkTarget = linkTarget,
-                                    myIsSymbolicLinkToDirectory = true)
+    val entry =
+      MockDeviceFileEntry(
+        fileSystem,
+        this,
+        name,
+        isDirectory = false,
+        isSymbolicLink = true,
+        symbolicLinkTarget = linkTarget,
+        myIsSymbolicLinkToDirectory = true,
+      )
     return entry
   }
 
@@ -91,10 +97,11 @@ class MockDeviceFileEntry(
     get() = myEntries
 
   override val fullPath: String
-    get() = when (parent) {
-      null -> name
-      else -> AdbPathUtil.resolve(parent.fullPath, name)
-    }
+    get() =
+      when (parent) {
+        null -> name
+        else -> AdbPathUtil.resolve(parent.fullPath, name)
+      }
 
   override suspend fun entries(): List<DeviceFileEntry> {
     delay(getEntriesTimeoutMillis)

@@ -35,11 +35,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
   override fun updateForBlazeProject(project: Project, e: AnActionEvent) {
     ActionPresentationHelper.of(e)
       .disableIf(!isEnabled(project, e))
-      .setTextWithSubject(
-        "Compile File",
-        "Compile %s",
-        e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)?.firstOrNull()
-      )
+      .setTextWithSubject("Compile File", "Compile %s", e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)?.firstOrNull())
       .disableWithoutSubject()
       .commit()
   }
@@ -47,14 +43,14 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
   private fun isEnabled(project: Project, e: AnActionEvent): Boolean {
     val vfs = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)?.takeUnless { it.isEmpty() }?.toList() ?: return false
     val querySyncManager = QuerySyncManager.getInstance(project)
-    return querySyncManager.getLoadedProject().isPresent
-      &&
-           // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
-           // they should automatically trigger sync.
-           querySyncManager
-             .getTargetsToBuildByPaths(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs))
+    return querySyncManager.getLoadedProject().isPresent &&
+      // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
+      // they should automatically trigger sync.
+      querySyncManager
+        .getTargetsToBuildByPaths(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs))
         .asSequence()
-        .flatMap { it.targets }.any()
+        .flatMap { it.targets }
+        .any()
   }
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent) {
@@ -68,9 +64,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
-      BlazeBuildService.getInstance(project)
-        .buildFileForLabels(files.joinToString(", ", limit = 2), labels)
-        .asDeferred()
+      BlazeBuildService.getInstance(project).buildFileForLabels(files.joinToString(", ", limit = 2), labels).asDeferred()
     }
   }
 }

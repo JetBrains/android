@@ -28,29 +28,18 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.util.module
 
-/**
- * Creates Android project view nodes for a given [project].
- */
-fun createChildModuleNodes(
-  project: Project,
-  submodules: Collection<Module>,
-  settings: ViewSettings
-): MutableList<AbstractTreeNode<*>> {
+/** Creates Android project view nodes for a given [project]. */
+fun createChildModuleNodes(project: Project, submodules: Collection<Module>, settings: ViewSettings): MutableList<AbstractTreeNode<*>> {
   val providers = AndroidViewNodeProvider.getProviders()
   val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
   submodules.forEach { module ->
     val nodeGroups = providers.mapNotNull { provider -> provider.getModuleNodes(module, settings) }
-    children.addAll(
-      if (nodeGroups.isNotEmpty()) nodeGroups.flatten()
-      else listOf(NonAndroidModuleNode(project, module, settings))
-    )
+    children.addAll(if (nodeGroups.isNotEmpty()) nodeGroups.flatten() else listOf(NonAndroidModuleNode(project, module, settings)))
   }
   return children
 }
 
-/**
- * Should this build script be shown in the project node?
- */
+/** Should this build script be shown in the project node? */
 fun showInProjectBuildScriptsGroup(psiFile: PsiFile): Boolean {
   if (isProjectBuildScript(psiFile)) {
     return true
@@ -62,8 +51,7 @@ fun showBuildFilesInModule(): Boolean {
   return overrideShowBuildFilesInModule ?: (ProjectToolWindowSettings.getInstanceIfCreated()?.showBuildFilesInModule == true)
 }
 
-@VisibleForTesting
-var overrideShowBuildFilesInModule: Boolean? = null
+@VisibleForTesting var overrideShowBuildFilesInModule: Boolean? = null
 
 private fun isProjectBuildScript(psiFile: PsiFile): Boolean {
   return (psiFile.module?.getGradleIdentityPath() == ":")

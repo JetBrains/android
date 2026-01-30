@@ -54,13 +54,7 @@ class SceneDisplayListWithSelectionTest : SceneTest() {
             .height("250dp")
             .withAttribute("tools:layout_editor_absoluteX", "600dp")
             .withAttribute("tools:layout_editor_absoluteY", "600dp")
-            .children(
-              component(TEXT_VIEW)
-                .id("@id/textView3")
-                .withBounds(1200, 1200, 200, 200)
-                .width("100dp")
-                .height("100dp")
-            ),
+            .children(component(TEXT_VIEW).id("@id/textView3").withBounds(1200, 1200, 200, 200).width("100dp").height("100dp")),
         ),
     )
 

@@ -17,16 +17,14 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 
-
 private val supportedFileTypes = setOf("xml")
 
-/**
- * Importer for VectorDrawable
- */
+/** Importer for VectorDrawable */
 class VectorDrawableImporter : ResourceImporter {
   override val presentableName = "Vector Drawable Importer"
 
-  override val userCanEditQualifiers get() = true
+  override val userCanEditQualifiers
+    get() = true
 
   override fun getSupportedFileTypes() = supportedFileTypes // TODO reuse DesignAssetRenderer.isFileSupported
 

@@ -33,11 +33,11 @@ import javax.swing.UIManager
 
 private val CRASHLYTICS_GEMINI_PROMPT_FORMAT =
   """
-    Explain this exception from my app running on %s with Android version %s:
-    Exception:
-    ```
-    %s
-    ```
+  Explain this exception from my app running on %s with Android version %s:
+  Exception:
+  ```
+  %s
+  ```
   """
     .trimIndent()
 
@@ -49,11 +49,7 @@ private val CRASHLYTICS_GEMINI_PROMPT_FORMAT =
  * * If Gemini is not available, opens the Gemini toolwindow for user to finish onboarding.
  */
 object InsightAction :
-  JButtonAction(
-    "Enable insights",
-    "Complete Gemini onboarding to enable insights",
-    StudioIcons.StudioBot.GEMINI_LOGO,
-  ) {
+  JButtonAction("Enable insights", "Complete Gemini onboarding to enable insights", StudioIcons.StudioBot.GEMINI_LOGO) {
 
   private val geminiPluginId: PluginId?
     get() = PluginManagerCore.plugins.firstOrNull { it.name == "Gemini" }?.pluginId
@@ -97,13 +93,7 @@ object InsightAction :
   }
 
   private fun createPrompt(event: Event) =
-    String.format(
-        CRASHLYTICS_GEMINI_PROMPT_FORMAT,
-        event.deviceName,
-        event.apiLevel,
-        event.stackTrace(),
-      )
-      .trim()
+    String.format(CRASHLYTICS_GEMINI_PROMPT_FORMAT, event.deviceName, event.apiLevel, event.stackTrace()).trim()
 
   private val Event.deviceName: String
     get() = eventData.device.let { "${it.manufacturer} ${it.model}" }
@@ -116,9 +106,7 @@ object InsightAction :
         stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
           if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
             appendLine(exception.rawExceptionMessage)
-            append(
-              exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" }
-            )
+            append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
           }
         }
       }

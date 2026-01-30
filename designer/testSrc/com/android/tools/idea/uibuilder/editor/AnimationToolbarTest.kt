@@ -29,12 +29,7 @@ class AnimationToolbarTest {
   @Test
   fun testControlFunctions() {
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createUnlimitedAnimationToolbar(
-        projectRule.testRootDisposable,
-        EMPTY_ANIMATION_LISTENER,
-        10L,
-        0L,
-      )
+      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
     }
     val listener = mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
@@ -58,13 +53,7 @@ class AnimationToolbarTest {
   fun testAnimationComplete() {
     // Set animation length as 2 second.
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createAnimationToolbar(
-        projectRule.testRootDisposable,
-        EMPTY_ANIMATION_LISTENER,
-        10L,
-        0L,
-        2 * 1000L,
-      )
+      AnimationToolbar.createAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L, 2 * 1000L)
     }
     toolbar.setLooping(false)
     val listener = mock<AnimationControllerListener>()

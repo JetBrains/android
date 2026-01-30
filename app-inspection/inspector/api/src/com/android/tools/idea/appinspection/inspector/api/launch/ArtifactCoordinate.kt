@@ -23,30 +23,23 @@ import org.jetbrains.annotations.TestOnly
  *
  * This normally refers to the maven/gradle coordinate of the artifact.
  *
- * [version] can optionally be '+' to match any version of the artifact, when used in the context of
- * compatibility checks.
+ * [version] can optionally be '+' to match any version of the artifact, when used in the context of compatibility checks.
  */
 interface ArtifactCoordinate {
   val groupId: String
   val artifactId: String
   val version: String
 
-  fun sameArtifact(other: ArtifactCoordinate) =
-    groupId == other.groupId && artifactId == other.artifactId
+  fun sameArtifact(other: ArtifactCoordinate) = groupId == other.groupId && artifactId == other.artifactId
 
   fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate =
-    AppInspection.ArtifactCoordinate.newBuilder()
-      .setGroupId(groupId)
-      .setArtifactId(artifactId)
-      .setVersion(version)
-      .build()
+    AppInspection.ArtifactCoordinate.newBuilder().setGroupId(groupId).setArtifactId(artifactId).setVersion(version).build()
 
   fun toCoordinateString() = "${groupId}:${artifactId}:${version}"
 
   fun toAny(): ArtifactCoordinate = AnyArtifactCoordinate(this)
 
-  private class AnyArtifactCoordinate(private val coordinate: ArtifactCoordinate) :
-    ArtifactCoordinate by coordinate {
+  private class AnyArtifactCoordinate(private val coordinate: ArtifactCoordinate) : ArtifactCoordinate by coordinate {
     override val version = "0.0.0"
   }
 

@@ -23,13 +23,11 @@ import org.jetbrains.kotlin.psi.KtFile
 /**
  * Filter that prevents nested resource classes from being automatically imported.
  *
- * Without this, classes like `my.app.pkg.R.string`, `my.app.pkg.R.color`, etc. might be
- * inadvertently imported if the user has checked the "Insert imports for nested classes" option
- * selected.
+ * Without this, classes like `my.app.pkg.R.string`, `my.app.pkg.R.color`, etc. might be inadvertently imported if the user has checked the
+ * "Insert imports for nested classes" option selected.
  */
 class NestedResourceClassImportFilter : ClassImportFilter {
-  override fun allowClassImport(classInfo: ClassInfo, contextFile: KtFile) =
-    !classInfo.isNestedRClass()
+  override fun allowClassImport(classInfo: ClassInfo, contextFile: KtFile) = !classInfo.isNestedRClass()
 
   private fun ClassInfo.isNestedRClass() =
     isNested &&

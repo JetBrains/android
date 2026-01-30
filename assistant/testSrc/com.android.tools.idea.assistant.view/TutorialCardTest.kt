@@ -25,8 +25,6 @@ import com.android.tools.idea.assistant.datamodel.TutorialData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBScrollPane
-import org.junit.Rule
-import org.junit.Test
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.BorderFactory
@@ -34,6 +32,8 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.Border
+import org.junit.Rule
+import org.junit.Test
 
 internal class TutorialCardTest {
   @get:Rule val projectRule = ProjectRule()
@@ -139,16 +139,7 @@ internal class TutorialCardTest {
   // rendering the whole UI
   private fun addTutorialStep(yIndex: Int): TutorialStep {
     val listener = TestActionListener()
-    val step =
-      TutorialStep(
-        TestStepData(),
-        yIndex,
-        listener,
-        projectRule.project,
-        true,
-        false,
-        TutorialStep::class.java,
-      )
+    val step = TutorialStep(TestStepData(), yIndex, listener, projectRule.project, true, false, TutorialStep::class.java)
     // only y bounds matter for scroll wheel setting
     step.setBounds(0, yIndex, 0, 0)
     return step
@@ -159,8 +150,7 @@ internal class TutorialCardTest {
     // Given the bundle to make a tutorial card
     var testTutorialData = TestTutorialData()
     var testTutorialBundleData = TestTutorialBundleData()
-    var myFeaturesPanel =
-      FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
+    var myFeaturesPanel = FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
 
     // When creating a tutorial card
     TutorialCard(myFeaturesPanel, testTutorialData, TestFeatureData(), true, testTutorialBundleData)
@@ -173,16 +163,8 @@ internal class TutorialCardTest {
     // Given a tutorial card
     var testTutorialData = TestTutorialData()
     var testTutorialBundleData = TestTutorialBundleData()
-    var myFeaturesPanel =
-      FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
-    val card =
-      TutorialCard(
-        myFeaturesPanel,
-        testTutorialData,
-        TestFeatureData(),
-        true,
-        testTutorialBundleData,
-      )
+    var myFeaturesPanel = FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
+    val card = TutorialCard(myFeaturesPanel, testTutorialData, TestFeatureData(), true, testTutorialBundleData)
     // normally called by swing internals during setup
     card.addNotify()
     assertThat(testTutorialData.myGetStepCounter).isEqualTo(1)
@@ -199,16 +181,8 @@ internal class TutorialCardTest {
     // Given a tutorial card that is not notified of messages
     var testTutorialData = TestTutorialData()
     var testTutorialBundleData = TestTutorialBundleData()
-    var myFeaturesPanel =
-      FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
-    val card =
-      TutorialCard(
-        myFeaturesPanel,
-        testTutorialData,
-        TestFeatureData(),
-        true,
-        testTutorialBundleData,
-      )
+    var myFeaturesPanel = FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
+    val card = TutorialCard(myFeaturesPanel, testTutorialData, TestFeatureData(), true, testTutorialBundleData)
     assertThat(testTutorialData.myGetStepCounter).isEqualTo(1)
     // called on close by swing internals
     card.removeNotify()
@@ -225,16 +199,8 @@ internal class TutorialCardTest {
     // Given a tutorial card that is not notified of messages
     var testTutorialData = TestTutorialData()
     var testTutorialBundleData = TestTutorialBundleData()
-    var myFeaturesPanel =
-      FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
-    val card =
-      TutorialCard(
-        myFeaturesPanel,
-        testTutorialData,
-        TestFeatureData(),
-        true,
-        testTutorialBundleData,
-      )
+    var myFeaturesPanel = FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
+    val card = TutorialCard(myFeaturesPanel, testTutorialData, TestFeatureData(), true, testTutorialBundleData)
 
     card.addNotify()
     assertThat(testTutorialData.myGetStepCounter).isEqualTo(1)
@@ -252,23 +218,14 @@ internal class TutorialCardTest {
   }
 
   private fun sendMessage(): Unit =
-    projectRule.project.messageBus
-      .syncPublisher(TutorialCardRefreshNotifier.TUTORIAL_CARD_TOPIC)
-      .stateUpdated(1)
+    projectRule.project.messageBus.syncPublisher(TutorialCardRefreshNotifier.TUTORIAL_CARD_TOPIC).stateUpdated(1)
 
   private fun createTestTutorialCard(): TutorialCard {
     var testTutorialData = TestTutorialData()
     var testTutorialBundleData = TestTutorialBundleData()
-    var myFeaturesPanel =
-      FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
+    var myFeaturesPanel = FeaturesPanel(testTutorialBundleData, projectRule.project, TestAnalyticsProvider(), null)
 
-    return TutorialCard(
-      myFeaturesPanel,
-      testTutorialData,
-      TestFeatureData(),
-      true,
-      testTutorialBundleData,
-    )
+    return TutorialCard(myFeaturesPanel, testTutorialData, TestFeatureData(), true, testTutorialBundleData)
   }
 
   class TestActionListener : ActionListener {

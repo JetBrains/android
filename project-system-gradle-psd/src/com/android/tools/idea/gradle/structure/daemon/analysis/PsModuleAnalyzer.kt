@@ -73,7 +73,7 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Sequence<PsIssue> 
       }
       configurationName.endsWith("Compile") -> {
         val base = configurationName.removeSuffix("Compile")
-        if(suggestApi) fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Api"))
+        if (suggestApi) fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Api"))
         fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Implementation"))
       }
       configurationName == "runtime" -> {
@@ -99,8 +99,10 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Sequence<PsIssue> 
         issues.add(issue)
       }
     }
-    configurationName == "compile" || configurationName == "runtime" ||
-    configurationName.endsWith("Compile") || configurationName.endsWith("Runtime") -> {
+    configurationName == "compile" ||
+      configurationName == "runtime" ||
+      configurationName.endsWith("Compile") ||
+      configurationName.endsWith("Runtime") -> {
       val text = "Obsolete dependency configuration found: <b>$configurationName</b>"
       val fixes = fixesFor(configurationName)
       val path = dependency.path

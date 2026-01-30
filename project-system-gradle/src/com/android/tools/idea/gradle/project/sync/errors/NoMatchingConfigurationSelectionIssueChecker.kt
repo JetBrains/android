@@ -19,16 +19,17 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
 
 /**
- * A [RuntimeJavaCompiledVersionIssueChecker] for NoMatchingGraphVariantsException with messages following this format:
- * "No matching variant of com.android.tools.build:<Project AGP version> was found. The consumer was
- * configured to find a library for use during runtime, compatible with Java <Version used by Gradle JDK>"
+ * A [RuntimeJavaCompiledVersionIssueChecker] for NoMatchingGraphVariantsException with messages following this format: "No matching variant
+ * of com.android.tools.build:<Project AGP version> was found. The consumer was configured to find a library for use during runtime,
+ * compatible with Java <Version used by Gradle JDK>"
  */
 class NoMatchingConfigurationSelectionIssueChecker : RuntimeJavaCompiledVersionIssueChecker() {
 
-  override val expectedErrorRegex = Regex(
-    "No matching variant of com.android.tools.build:gradle:(\\d+\\.\\d+\\.\\d+[-\\w]*) was found. The consumer was " +
-    "configured to find a library for use during runtime, compatible with Java (\\d+)"
-  )
+  override val expectedErrorRegex =
+    Regex(
+      "No matching variant of com.android.tools.build:gradle:(\\d+\\.\\d+\\.\\d+[-\\w]*) was found. The consumer was " +
+        "configured to find a library for use during runtime, compatible with Java (\\d+)"
+    )
 
   override fun parseErrorRegexMatch(matchResult: MatchResult): Pair<String, String>? {
     val agpVersion = matchResult.groups[1]?.value

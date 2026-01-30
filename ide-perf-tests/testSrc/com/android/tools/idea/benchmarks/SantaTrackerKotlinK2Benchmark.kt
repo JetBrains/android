@@ -28,12 +28,11 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val GRADLE_PROJECT_NAME = "SantaTrackerKotlin"
     private var PROJECT_NAME = "SantaTrackerKotlin_K2"
+
     @JvmStatic
     @BeforeClass
     fun setUpBeforeClass() {
@@ -43,7 +42,10 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+    super.fullProjectHighlighting(
+      listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE),
+      PROJECT_NAME,
+    )
   }
 
   @Test
@@ -68,8 +70,9 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
         "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
         "updateScore()\n|",
         "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
-        "<|ProgressBar"
+        "<|ProgressBar",
       ),
-      PROJECT_NAME)
+      PROJECT_NAME,
+    )
   }
 }

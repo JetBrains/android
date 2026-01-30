@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -63,31 +62,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.replaceService
+import java.io.File
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import java.io.File
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doCallRealMethod
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.whenever
 
 abstract class ProjectsUpgradeTestBase {
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule("tools/adt/idea/project-system-gradle-upgrade/testData/upgrade/Projects")
+  @get:Rule val projectRule = AndroidGradleProjectRule("tools/adt/idea/project-system-gradle-upgrade/testData/upgrade/Projects")
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val fakeSyncInvoker = FakeInvoker()
 
@@ -104,14 +93,15 @@ abstract class ProjectsUpgradeTestBase {
     addStateEmbeddedJdkToTable(to)
 
     fakeSyncInvoker.fakeNextSyncSuccess = true
-    //TODO run upgrade through FakeUI instead.
+    // TODO run upgrade through FakeUI instead.
     val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
-      it.isEnabled = when (it.necessity()) {
-        AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE -> false
-        AgpUpgradeComponentNecessity.IRRELEVANT_PAST -> false
-        else -> true
-      }
+      it.isEnabled =
+        when (it.necessity()) {
+          AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE -> false
+          AgpUpgradeComponentNecessity.IRRELEVANT_PAST -> false
+          else -> true
+        }
     }
 
     processor.run()
@@ -124,14 +114,15 @@ abstract class ProjectsUpgradeTestBase {
     loadAUATestProject(baseProject)
     addStateEmbeddedJdkToTable(to)
     fakeSyncInvoker.fakeNextSyncSuccess = true
-    //TODO run upgrade through FakeUI instead.
+    // TODO run upgrade through FakeUI instead.
     val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
-      it.isEnabled = when (it.necessity()) {
-        AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> true
-        AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT -> true
-        else -> false
-      }
+      it.isEnabled =
+        when (it.necessity()) {
+          AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> true
+          AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT -> true
+          else -> false
+        }
     }
 
     processor.run()
@@ -140,13 +131,14 @@ abstract class ProjectsUpgradeTestBase {
     Truth.assertThat(fakeSyncInvoker.callsCount).isEqualTo(2)
   }
 
-  fun loadAUATestProject(testProject: AUATestProjectState) = projectRule.load(
-    projectPath = testProject.projectBasePath(),
-    agpVersion = testProject.agpVersionDef(),
-    ndkVersion = testProject.ndkVersion()
-  ) { projectRoot ->
-    applyProjectPatch(testProject, projectRoot)
-  }
+  fun loadAUATestProject(testProject: AUATestProjectState) =
+    projectRule.load(
+      projectPath = testProject.projectBasePath(),
+      agpVersion = testProject.agpVersionDef(),
+      ndkVersion = testProject.ndkVersion(),
+    ) { projectRoot ->
+      applyProjectPatch(testProject, projectRoot)
+    }
 
   private fun addStateEmbeddedJdkToTable(state: AUATestProjectState) {
     state.jdkVersion()?.let {
@@ -167,17 +159,15 @@ abstract class ProjectsUpgradeTestBase {
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
         val environment = testProject.agpVersionDef().resolve()
-        AndroidGradleTests.updateToolingVersionsAndPaths(
-          target,
-          environment,
-          testProject.ndkVersion(),
-          emptyList(),
-          false
-        )
+        AndroidGradleTests.updateToolingVersionsAndPaths(target, environment, testProject.ndkVersion(), emptyList(), false)
         when (relative.path) {
           FN_GRADLE_PROPERTIES -> {
             VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion.fromString(environment.compileSdk));
+            AndroidGradleTests.updateGradleProperties(
+              projectRoot,
+              AgpVersion.parse(environment.agpVersion),
+              AndroidVersion.fromString(environment.compileSdk),
+            )
           }
         }
       }
@@ -185,10 +175,8 @@ abstract class ProjectsUpgradeTestBase {
   }
 
   private fun prepareProjectForCheck(expectedProjectState: AUATestProjectState): File {
-    prepareGradleProject(
-      projectRule.resolveTestDataPath(expectedProjectState.projectBasePath()),
-      temporaryFolder.root
-    ) { projectRoot: File ->
+    prepareGradleProject(projectRule.resolveTestDataPath(expectedProjectState.projectBasePath()), temporaryFolder.root) { projectRoot: File
+      ->
       // Load project with base gradle version first. We can not pass expected updated version here because
       // it will try to verify the binary actually exists. That would require to get all versions of gradle
       // for every test target. But we don't care about binary existing in this case, we are not going to run
@@ -196,12 +184,7 @@ abstract class ProjectsUpgradeTestBase {
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       val resolvedAgpVersion = expectedProjectState.agpVersionDef().withGradle(baseGradleVersion).resolve()
-      AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot,
-        resolvedAgpVersion,
-        expectedProjectState.ndkVersion(),
-        true
-      )
+      AndroidGradleTests.defaultPatchPreparedProject(projectRoot, resolvedAgpVersion, expectedProjectState.ndkVersion(), true)
       JdkUtils.overrideProjectGradleJdkPathWithVersion(projectRoot, resolvedAgpVersion.jdkVersion)
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
@@ -234,38 +217,42 @@ abstract class ProjectsUpgradeTestBase {
   }
 
   private fun File.getExpectFun(expectedProjectState: AUATestProjectState): ((String?, String, String) -> Unit)? =
-    takeIf { it.isFile }?.let {
-      when {
-        path.endsWith(SdkConstants.DOT_GRADLE) ||
-        path.endsWith(SdkConstants.EXT_GRADLE_KTS) ||
-        path.endsWith(SdkConstants.DOT_XML) ||
-        path.endsWith(SdkConstants.DOT_JAVA) ||
-        path.endsWith(SdkConstants.DOT_KT) ->
-          { relativePath: String?, actualContent: String, goldenContent: String ->
-            expect.withMessage(relativePath).that(actualContent).isEqualTo(goldenContent)
-          }
+    takeIf { it.isFile }
+      ?.let {
+        when {
+          path.endsWith(SdkConstants.DOT_GRADLE) ||
+            path.endsWith(SdkConstants.EXT_GRADLE_KTS) ||
+            path.endsWith(SdkConstants.DOT_XML) ||
+            path.endsWith(SdkConstants.DOT_JAVA) ||
+            path.endsWith(SdkConstants.DOT_KT) -> { relativePath: String?, actualContent: String, goldenContent: String ->
+              expect.withMessage(relativePath).that(actualContent).isEqualTo(goldenContent)
+            }
 
-        path.endsWith(SdkConstants.DOT_PROPERTIES) ->
-        { relativePath: String?, actualContent: String, goldenContent: String ->
-          fun List<String>.additionalFilter(): List<String> = when (relativePath) {
-            "gradle.properties" -> let {
-              val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
-              return@let filter { line -> expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=") }
+          path.endsWith(SdkConstants.DOT_PROPERTIES) -> { relativePath: String?, actualContent: String, goldenContent: String ->
+              fun List<String>.additionalFilter(): List<String> =
+                when (relativePath) {
+                  "gradle.properties" ->
+                    let {
+                      val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
+                      return@let filter { line ->
+                        expectedContainsSuppression || !line.startsWith("android.suppressUnsupportedCompileSdk=")
+                      }
+                    }
+                  ".gradle/config.properties" ->
+                    map { line ->
+                      Regex("^java.home=.*/prebuilts/studio/jdk/([^/]*)/.*$").matchEntire(line)?.let { match ->
+                        "java.home=${match.groupValues[1]}"
+                      } ?: line
+                    }
+                  else -> this
+                }
+              fun String.filteredLines() = lines().filter { !it.startsWith("#") }.additionalFilter().joinToString("\n")
+              expect.withMessage(relativePath).that(actualContent.filteredLines()).isEqualTo(goldenContent.filteredLines())
             }
-            ".gradle/config.properties" -> map { line ->
-              Regex("^java.home=.*/prebuilts/studio/jdk/([^/]*)/.*$").matchEntire(line)?.let { match ->
-                "java.home=${match.groupValues[1]}"
-              } ?: line
-            }
-            else -> this
-          }
-          fun String.filteredLines() = lines().filter { !it.startsWith("#") }.additionalFilter().joinToString("\n")
-          expect.withMessage(relativePath).that(actualContent.filteredLines()).isEqualTo(goldenContent.filteredLines())
+
+          else -> null
         }
-
-        else -> null
       }
-    }
 
   private class FakeInvoker(val delegate: GradleSyncInvoker = GradleSyncInvokerImpl()) : GradleSyncInvoker by delegate {
     var callsCount = 0
@@ -273,17 +260,20 @@ abstract class ProjectsUpgradeTestBase {
 
     override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
       callsCount++
-      if (fakeNextSyncSuccess) listener?.syncSucceeded(project)
-      else delegate.requestProjectSync(project, request, listener)
+      if (fakeNextSyncSuccess) listener?.syncSucceeded(project) else delegate.requestProjectSync(project, request, listener)
     }
   }
 
   private fun AUATestProjectState.agpVersionString() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
+
   private fun AUATestProjectState.agpVersion() = AgpVersion.parse(agpVersionString())
+
   private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(agpVersion()).version
+
   private fun AUATestProjectState.gradleVersionString() = gradleVersion().version
 
   private fun AUATestProjectState.jdkVersion() = version.jdkVersion
+
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
 
   private fun AUATestProjectState.agpVersionDef(): AgpVersionSoftwareEnvironment =

@@ -19,10 +19,10 @@ import com.android.tools.idea.device.explorer.monitor.mocks.MockDevice
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
+import org.junit.Before
+import org.junit.Test
 
 class DeviceMonitorTableModelTest {
   private lateinit var tableModel: DeviceMonitorTableModel
@@ -71,9 +71,7 @@ class DeviceMonitorTableModelTest {
   fun testSingleInsertAtStart() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      add(createProcessInfo(0))
-    }
+    val newRows = createDefaultProcessInfoList().apply { add(createProcessInfo(0)) }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -90,9 +88,7 @@ class DeviceMonitorTableModelTest {
   fun testSingleInsertAtEnd() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      add(createProcessInfo(7))
-    }
+    val newRows = createDefaultProcessInfoList().apply { add(createProcessInfo(7)) }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -109,9 +105,7 @@ class DeviceMonitorTableModelTest {
   fun testSingleInsertAtTheMiddle() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      add(createProcessInfo(17))
-    }
+    val newRows = createDefaultProcessInfoList().apply { add(createProcessInfo(17)) }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -128,11 +122,12 @@ class DeviceMonitorTableModelTest {
   fun testMultipleInsertsScattered() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      add(createProcessInfo(1))
-      add(createProcessInfo(7))
-      add(createProcessInfo(18))
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        add(createProcessInfo(1))
+        add(createProcessInfo(7))
+        add(createProcessInfo(18))
+      }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -149,10 +144,11 @@ class DeviceMonitorTableModelTest {
   fun testSingleDeleteAtStart() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
-      removeFirst()
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
+        removeFirst()
+      }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -168,10 +164,11 @@ class DeviceMonitorTableModelTest {
   fun testSingleDeleteAtEnd() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
-      removeLast()
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
+        removeLast()
+      }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -187,10 +184,11 @@ class DeviceMonitorTableModelTest {
   fun testSingleDeleteAtTheMiddle() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
-      removeAt(2)
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
+        removeAt(2)
+      }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -206,12 +204,13 @@ class DeviceMonitorTableModelTest {
   fun testMultipleDeleteScattered() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
-      removeFirst()
-      removeAt(1)
-      removeLast()
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
+        removeFirst()
+        removeAt(1)
+        removeLast()
+      }
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -227,15 +226,16 @@ class DeviceMonitorTableModelTest {
   fun testMultipleChanges() {
     // Prepare
     setupModelWithDefaultList()
-    val newRows = createDefaultProcessInfoList().apply {
-      removeFirst()
-      removeAt(1)
-      add(createProcessInfo(0))
-      add(createProcessInfo(17))
-      sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
-    }
+    val newRows =
+      createDefaultProcessInfoList().apply {
+        removeFirst()
+        removeAt(1)
+        add(createProcessInfo(0))
+        add(createProcessInfo(17))
+        sortWith(DeviceMonitorTableModel.ProcessInfoNameComparator)
+      }
     val infoToUpdate = newRows[newRows.size - 1]
-    newRows[newRows.size - 1] = createChangedProcessInfo(infoToUpdate.pid, infoToUpdate.pid+1)
+    newRows[newRows.size - 1] = createChangedProcessInfo(infoToUpdate.pid, infoToUpdate.pid + 1)
 
     // Act
     tableModel.updateProcessRows(newRows)
@@ -262,19 +262,12 @@ class DeviceMonitorTableModelTest {
     return previousRows.size
   }
 
-  private fun createDefaultProcessInfoList() = mutableListOf(
-    createProcessInfo(3),
-    createProcessInfo(5),
-    createProcessInfo(10),
-    createProcessInfo(15),
-    createProcessInfo(20)
-  )
+  private fun createDefaultProcessInfoList() =
+    mutableListOf(createProcessInfo(3), createProcessInfo(5), createProcessInfo(10), createProcessInfo(15), createProcessInfo(20))
 
-  private fun createProcessInfo(pid: Int) =
-    ProcessInfo(device, pid = pid, processName = "Test Process $pid")
+  private fun createProcessInfo(pid: Int) = ProcessInfo(device, pid = pid, processName = "Test Process $pid")
 
-  private fun createChangedProcessInfo(oldPid: Int, newPid: Int) =
-    ProcessInfo(device, pid = newPid, processName= "Test Process $oldPid")
+  private fun createChangedProcessInfo(oldPid: Int, newPid: Int) = ProcessInfo(device, pid = newPid, processName = "Test Process $oldPid")
 
   class TestListener : TableModelListener {
     var insertRowCount = 0

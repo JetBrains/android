@@ -28,24 +28,25 @@ import org.junit.Test
 class UnsupportedGradleVersionIssueCheckerIntegrationTest {
   private val unsupportedGradleVersionIssueChecker = UnsupportedGradleVersionIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssueWithPlugin2_3AndGradleOlderThan3_3() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
 
-    val errMessage = "Minimum supported Gradle version is 3.3. Current version is 2.14.1. " +
-                     "If using the gradle wrapper, try editing the distributionUrl in " +
-                     "/MyApplication/gradle/wrapper/gradle-wrapper.properties to gradle-3.3-all.zip"
+    val errMessage =
+      "Minimum supported Gradle version is 3.3. Current version is 2.14.1. " +
+        "If using the gradle wrapper, try editing the distributionUrl in " +
+        "/MyApplication/gradle/wrapper/gradle-wrapper.properties to gradle-3.3-all.zip"
     val issueData = GradleIssueData(projectRule.project.basePath!!, UnsupportedVersionException(errMessage), null, null)
     val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
 
     Truth.assertThat(buildIssue).isNotNull()
-    Truth.assertThat(buildIssue!!.description).contains("Minimum supported Gradle version is 3.3. Current version is 2.14.1.\n\n" +
-                                                  "Please fix the project's Gradle settings.")
+    Truth.assertThat(buildIssue!!.description)
+      .contains("Minimum supported Gradle version is 3.3. Current version is 2.14.1.\n\n" + "Please fix the project's Gradle settings.")
     Truth.assertThat(buildIssue.quickFixes).hasSize(3)
-    Truth.assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
+    Truth.assertThat(buildIssue.quickFixes[0])
+      .isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
     val fixVersionFix = buildIssue.quickFixes[0] as UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix
     Truth.assertThat(fixVersionFix.gradleVersion).isEqualTo("3.3")
     Truth.assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)

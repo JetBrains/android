@@ -62,15 +62,15 @@ class AppInsightsPerformanceTrackerTest {
     checkLoggedContents(
       listOf(
         """
-          type: PERFORMANCE_STATS
-          performance_stats {
-            vc_based_line_number_mapping_latency {
-              min_latency_ms: 1
-              p50_latency_ms: 2
-              p90_latency_ms: 10
-              max_latency_ms: 10
-            }
+        type: PERFORMANCE_STATS
+        performance_stats {
+          vc_based_line_number_mapping_latency {
+            min_latency_ms: 1
+            p50_latency_ms: 2
+            p90_latency_ms: 10
+            max_latency_ms: 10
           }
+        }
         """
           .trimIndent()
       )
@@ -86,27 +86,27 @@ class AppInsightsPerformanceTrackerTest {
     checkLoggedContents(
       listOf(
         """
-          type: PERFORMANCE_STATS
-          performance_stats {
-            vc_based_line_number_mapping_latency {
-              min_latency_ms: 1
-              p50_latency_ms: 2
-              p90_latency_ms: 10
-              max_latency_ms: 10
-            }
+        type: PERFORMANCE_STATS
+        performance_stats {
+          vc_based_line_number_mapping_latency {
+            min_latency_ms: 1
+            p50_latency_ms: 2
+            p90_latency_ms: 10
+            max_latency_ms: 10
           }
+        }
         """
           .trimIndent(),
         """
-          type: PERFORMANCE_STATS
-          performance_stats {
-            vc_based_line_number_mapping_latency {
-              min_latency_ms: 5
-              p50_latency_ms: 6
-              p90_latency_ms: 20
-              max_latency_ms: 20
-            }
+        type: PERFORMANCE_STATS
+        performance_stats {
+          vc_based_line_number_mapping_latency {
+            min_latency_ms: 5
+            p50_latency_ms: 6
+            p90_latency_ms: 20
+            max_latency_ms: 20
           }
+        }
         """
           .trimIndent(),
       )
@@ -125,15 +125,15 @@ class AppInsightsPerformanceTrackerTest {
     checkLoggedContents(
       listOf(
         """
-          type: PERFORMANCE_STATS
-          performance_stats {
-            vc_based_line_number_mapping_latency {
-              min_latency_ms: 1
-              p50_latency_ms: 2
-              p90_latency_ms: 10
-              max_latency_ms: 10
-            }
+        type: PERFORMANCE_STATS
+        performance_stats {
+          vc_based_line_number_mapping_latency {
+            min_latency_ms: 1
+            p50_latency_ms: 2
+            p90_latency_ms: 10
+            max_latency_ms: 10
           }
+        }
         """
           .trimIndent()
       )
@@ -144,15 +144,15 @@ class AppInsightsPerformanceTrackerTest {
     checkLoggedContents(
       listOf(
         """
-          type: PERFORMANCE_STATS
-          performance_stats {
-            vc_based_line_number_mapping_latency {
-              min_latency_ms: 1
-              p50_latency_ms: 2
-              p90_latency_ms: 10
-              max_latency_ms: 10
-            }
+        type: PERFORMANCE_STATS
+        performance_stats {
+          vc_based_line_number_mapping_latency {
+            min_latency_ms: 1
+            p50_latency_ms: 2
+            p90_latency_ms: 10
+            max_latency_ms: 10
           }
+        }
         """
           .trimIndent()
       )
@@ -195,12 +195,7 @@ class AppInsightsPerformanceTrackerTest {
 
       // Mock AppExecutorUtil.
       mockStatic<AppExecutorUtil>(disposableRule.disposable).apply {
-        this.whenever<Any> {
-            AppExecutorUtil.createBoundedScheduledExecutorService(
-              "App Insights Performance Statistics Collector",
-              1,
-            )
-          }
+        this.whenever<Any> { AppExecutorUtil.createBoundedScheduledExecutorService("App Insights Performance Statistics Collector", 1) }
           .thenReturn(virtualExecutor)
         this.whenever<Any> { AppExecutorUtil.getAppScheduledExecutorService() }.thenCallRealMethod()
       }

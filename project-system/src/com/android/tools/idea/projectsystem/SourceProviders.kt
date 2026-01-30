@@ -37,56 +37,38 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface SourceProviders {
 
-  /**
-   * Returns the source provider for all production sources in the currently selected variant in the overlay order.
-   */
+  /** Returns the source provider for all production sources in the currently selected variant in the overlay order. */
   val sources: IdeaSourceProvider
 
-  /**
-   * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order. */
   val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
 
-  /**
-   * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order. */
   val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
 
-  /**
-   * Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order. */
   val testSuiteSources: Map<String, List<IdeaSourceProvider>>
 
-  /**
-   * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
-   */
+  /** Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order. */
   val testFixturesSources: IdeaSourceProvider
 
-  /**
-   * Returns the source provider for all production sources in the currently selected variant in the overlay order.
-   */
+  /** Returns the source provider for all production sources in the currently selected variant in the overlay order. */
   val generatedSources: IdeaSourceProvider
 
-  /**
-   * Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all host test sources in the currently selected variant in the overlay order. */
   val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
 
-  /**
-   * Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all device test sources in the currently selected variant in the overlay order. */
   val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
 
-  /**
-   * Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order.
-   */
+  /** Returns the source provider for all test fixtures sources in the currently selected variant in the overlay order. */
   val generatedTestFixturesSources: IdeaSourceProvider
 
   /**
    * The first in the overlay order [NamedIdeaSourceProvider].
    *
    * Note: This source provider does not necessarily include all the source code required to build the module. Consider using [sources]
-   *       source provider which includes all the production source files.
+   * source provider which includes all the production source files.
    */
   val mainIdeaSourceProvider: NamedIdeaSourceProvider?
 
@@ -94,13 +76,14 @@ interface SourceProviders {
    * The main manifest file of the module.
    *
    * Note: A module may have multiple manifest files which are merged by the build process. Consider using [MergedManifestManager] APIs to
-   *       look up data in the merged manifest.
+   * look up data in the merged manifest.
    */
-  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider?.manifestFiles?.singleOrNull()
+  val mainManifestFile: VirtualFile?
+    get() = mainIdeaSourceProvider?.manifestFiles?.singleOrNull()
 
   /**
-   * Returns a list of source providers, in the overlay order (meaning that later providers
-   * override earlier providers when they redefine resources) for the currently selected variant.
+   * Returns a list of source providers, in the overlay order (meaning that later providers override earlier providers when they redefine
+   * resources) for the currently selected variant.
    *
    * The overlay source order is defined by the underlying build system.
    *
@@ -109,8 +92,8 @@ interface SourceProviders {
   val currentSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of source providers for Host test artifacts (e.g. for unit test artifact: `test/`source sets), in increasing
-   * precedence order.
+   * Returns a list of source providers for Host test artifacts (e.g. for unit test artifact: `test/`source sets), in increasing precedence
+   * order.
    *
    * @see currentSourceProviders
    */
@@ -124,14 +107,11 @@ interface SourceProviders {
    */
   val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
 
-  /**
-   * Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order.
-   */
+  /** Returns a map of the source provider for all test suite sources in the currently selected variant in the overlay order. */
   val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
 
   /**
-   * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing
-   * precedence order.
+   * Returns a list of source providers for test fixtures artifacts (e.g. `testFixtures/` source sets), in increasing precedence order.
    *
    * @see currentSourceProviders
    */
@@ -140,8 +120,8 @@ interface SourceProviders {
   /**
    * Returns a list of source providers for all variants, not just the currently-selected one, of all artifacts in this module.
    *
-   * Note: Inactive source providers (those not associated with the current variant) are not configured as project source roots
-   *       and may not represent directories under a configured content entry.
+   * Note: Inactive source providers (those not associated with the current variant) are not configured as project source roots and may not
+   * represent directories under a configured content entry.
    */
   val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
 
@@ -151,8 +131,8 @@ interface SourceProviders {
    * (In Gradle) Returns a list of all active main scope source providers (i.e. the same as [currentSourceProviders]) and additionally
    * returns frequently used inactive source providers.
    *
-   * Note: Inactive source providers are not configured as project source roots and do not necessarily represent directories
-   *       under a configured content entry.
+   * Note: Inactive source providers are not configured as project source roots and do not necessarily represent directories under a
+   * configured content entry.
    *
    * Note: Does not include test scope source providers.
    *
@@ -161,18 +141,15 @@ interface SourceProviders {
   val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of source providers which includes the main source provider and
-   * product flavor specific source providers.
+   * Returns a list of source providers which includes the main source provider and product flavor specific source providers.
    *
-   * DEPRECATED: This is method is added here to support android-kotlin-extensions which
-   * for compatibility reasons require this particular subset of source providers.
+   * DEPRECATED: This is method is added here to support android-kotlin-extensions which for compatibility reasons require this particular
+   * subset of source providers.
    */
-  @Deprecated("Do not use. This is unlikely to be what anybody needs.")
-  val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+  @Deprecated("Do not use. This is unlikely to be what anybody needs.") val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
 
   companion object {
-    @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.sourceProviders
+    @JvmStatic fun getInstance(facet: AndroidFacet) = facet.sourceProviders
 
     /**
      * Replaces the instances of SourceProviderManager for the given [facet] with a test stub based on a single source set [sourceSet].
@@ -181,47 +158,66 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
-      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
-        override val sources: IdeaSourceProvider
-          get() = sourceSet
-        override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val testFixturesSources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val generatedSources: IdeaSourceProvider =
-          createMergedSourceProvider(ScopeType.MAIN, emptyList())
-        override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val generatedTestFixturesSources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val currentSourceProviders: List<NamedIdeaSourceProvider>
-          get() = ImmutableList.of(sourceSet)
-        override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
-          get() = ImmutableList.of(sourceSet)
-        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
-          get() = ImmutableList.of(sourceSet)
-        @Suppress("OverridingDeprecatedMember")
-        override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val mainIdeaSourceProvider: NamedIdeaSourceProvider
-          get() = sourceSet
-        override val mainManifestFile: VirtualFile?
-          get() = sourceSet.manifestFiles.single()
-      })
+      facet.putUserData(
+        KEY_FOR_TEST,
+        object : SourceProviders {
+          override val sources: IdeaSourceProvider
+            get() = sourceSet
+
+          override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val testFixturesSources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val generatedSources: IdeaSourceProvider = createMergedSourceProvider(ScopeType.MAIN, emptyList())
+          override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val generatedTestFixturesSources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val currentSourceProviders: List<NamedIdeaSourceProvider>
+            get() = ImmutableList.of(sourceSet)
+
+          override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
+            get() = ImmutableList.of(sourceSet)
+
+          override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
+            get() = ImmutableList.of(sourceSet)
+
+          @Suppress("OverridingDeprecatedMember")
+          override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val mainIdeaSourceProvider: NamedIdeaSourceProvider
+            get() = sourceSet
+
+          override val mainManifestFile: VirtualFile?
+            get() = sourceSet.manifestFiles.single()
+        },
+      )
       Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
 
@@ -232,53 +228,75 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
-        override val sources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val testFixturesSources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val generatedSources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val generatedTestFixturesSources: IdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val currentSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
-          get() = throw UnsupportedOperationException()
-        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        @Suppress("OverridingDeprecatedMember")
-        override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
-        override val mainIdeaSourceProvider: NamedIdeaSourceProvider
-          get() = throw UnsupportedOperationException()
-        override val mainManifestFile: VirtualFile?
-          get() = manifestFile
-      })
+      facet.putUserData(
+        KEY_FOR_TEST,
+        object : SourceProviders {
+          override val sources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val testFixturesSources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val generatedSources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val generatedTestFixturesSources: IdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val currentSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val testSuiteSources: Map<String, List<IdeaSourceProvider>>
+            get() = throw UnsupportedOperationException()
+
+          override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          @Suppress("OverridingDeprecatedMember")
+          override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+            get() = throw UnsupportedOperationException()
+
+          override val mainIdeaSourceProvider: NamedIdeaSourceProvider
+            get() = throw UnsupportedOperationException()
+
+          override val mainManifestFile: VirtualFile?
+            get() = manifestFile
+        },
+      )
       Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
   }
 }
 
-val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: getSourceProviderFor(this).value
+val AndroidFacet.sourceProviders: SourceProviders
+  get() = getUserData(KEY_FOR_TEST) ?: getSourceProviderFor(this).value
 
 private val KEY: Key<CachedValue<SourceProviders>> = Key.create(::KEY.qualifiedName<SourceProviders>())
 private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName<SourceProviders>())
@@ -287,13 +305,10 @@ private fun getSourceProviderFor(facet: AndroidFacet): CachedValue<SourceProvide
   return facet.computeUserDataIfAbsent(KEY) {
     val project = facet.module.project
     CachedValuesManager.getManager(project).createCachedValue {
-      val value = project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
-        ?: createSourceProvidersForLegacyModule(facet)
-      CachedValueProvider.Result.create(
-        value,
-        ProjectRootManager.getInstance(project),
-        ProjectSyncModificationTracker.getInstance(project)
-      )
+      val value =
+        project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
+          ?: createSourceProvidersForLegacyModule(facet)
+      CachedValueProvider.Result.create(value, ProjectRootManager.getInstance(project), ProjectSyncModificationTracker.getInstance(project))
     }
   }
 }
@@ -303,26 +318,56 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
   //       This is because they may be re-used between main and tests scopes.
   return IdeaSourceProviderImpl(
     scopeType,
-    core = object : IdeaSourceProviderImpl.Core {
-      override val manifestFileUrls get() = providers.asSequence().map { it.manifestFileUrls.asSequence() }.flatten()
-      override val manifestDirectoryUrls get() = providers.asSequence().map { it.manifestDirectoryUrls.asSequence() }.flatten()
-      override val javaDirectoryUrls get() = providers.asSequence().map { it.javaDirectoryUrls.asSequence() }.flatten()
-      override val kotlinDirectoryUrls get() = providers.asSequence().map { it.kotlinDirectoryUrls.asSequence() }.flatten()
-      override val resourcesDirectoryUrls get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
-      override val aidlDirectoryUrls get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
-      override val renderscriptDirectoryUrls get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
-      override val jniLibsDirectoryUrls get() = providers.asSequence().map { it.jniLibsDirectoryUrls.asSequence() }.flatten()
-      override val resDirectoryUrls get() = providers.asSequence().map { it.resDirectoryUrls.asSequence() }.flatten()
-      override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
-      override val shadersDirectoryUrls get() = providers.asSequence().map { it.shadersDirectoryUrls.asSequence() }.flatten()
-      override val mlModelsDirectoryUrls get() = providers.asSequence().map { it.mlModelsDirectoryUrls.asSequence() }.flatten()
-      override val customSourceDirectories: Map<String, Sequence<String>> =
-        providers.asSequence().flatMap { it.custom.keys }.toSet().associateWith { customKey ->
-          providers.asSequence().map { it.custom[customKey]!!.directoryUrls.asSequence() }.flatten()
-        }
-      override val baselineProfileDirectoryUrls: Sequence<String> get() = providers.asSequence().map { it.baselineProfileDirectoryUrls.asSequence() }.flatten()
-      override val keepRulesDirectoryUrls: Sequence<String> get() = providers.asSequence().map { it.keepRulesDirectoryUrls.asSequence() }.flatten()
-    }
+    core =
+      object : IdeaSourceProviderImpl.Core {
+        override val manifestFileUrls
+          get() = providers.asSequence().map { it.manifestFileUrls.asSequence() }.flatten()
+
+        override val manifestDirectoryUrls
+          get() = providers.asSequence().map { it.manifestDirectoryUrls.asSequence() }.flatten()
+
+        override val javaDirectoryUrls
+          get() = providers.asSequence().map { it.javaDirectoryUrls.asSequence() }.flatten()
+
+        override val kotlinDirectoryUrls
+          get() = providers.asSequence().map { it.kotlinDirectoryUrls.asSequence() }.flatten()
+
+        override val resourcesDirectoryUrls
+          get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
+
+        override val aidlDirectoryUrls
+          get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
+
+        override val renderscriptDirectoryUrls
+          get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
+
+        override val jniLibsDirectoryUrls
+          get() = providers.asSequence().map { it.jniLibsDirectoryUrls.asSequence() }.flatten()
+
+        override val resDirectoryUrls
+          get() = providers.asSequence().map { it.resDirectoryUrls.asSequence() }.flatten()
+
+        override val assetsDirectoryUrls
+          get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
+
+        override val shadersDirectoryUrls
+          get() = providers.asSequence().map { it.shadersDirectoryUrls.asSequence() }.flatten()
+
+        override val mlModelsDirectoryUrls
+          get() = providers.asSequence().map { it.mlModelsDirectoryUrls.asSequence() }.flatten()
+
+        override val customSourceDirectories: Map<String, Sequence<String>> =
+          providers
+            .asSequence()
+            .flatMap { it.custom.keys }
+            .toSet()
+            .associateWith { customKey -> providers.asSequence().map { it.custom[customKey]!!.directoryUrls.asSequence() }.flatten() }
+        override val baselineProfileDirectoryUrls: Sequence<String>
+          get() = providers.asSequence().map { it.baselineProfileDirectoryUrls.asSequence() }.flatten()
+
+        override val keepRulesDirectoryUrls: Sequence<String>
+          get() = providers.asSequence().map { it.keepRulesDirectoryUrls.asSequence() }.flatten()
+      },
   )
 }
 
@@ -342,7 +387,7 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     override val shadersDirectoryUrls: Iterable<String> = emptyList()
     override val mlModelsDirectoryUrls: Iterable<String> = emptyList()
     override val baselineProfileDirectoryUrls: Iterable<String> = emptyList()
-    override val keepRulesDirectoryUrls: Iterable<String> =  emptyList()
+    override val keepRulesDirectoryUrls: Iterable<String> = emptyList()
 
     override val manifestFiles: Iterable<VirtualFile> = emptyList()
     override val manifestDirectories: Iterable<VirtualFile> = emptyList()
@@ -356,16 +401,16 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     override val assetsDirectories: Iterable<VirtualFile> = emptyList()
     override val shadersDirectories: Iterable<VirtualFile> = emptyList()
     override val mlModelsDirectories: Iterable<VirtualFile> = emptyList()
-    override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
+    override val custom: Map<String, IdeaSourceProvider.Custom>
+      get() = emptyMap()
+
     override val baselineProfileDirectories: Iterable<VirtualFile> = emptyList()
     override val keepRulesDirectories: Iterable<VirtualFile> = emptyList()
   }
 }
 
 /**
- * Returns a list of all source providers that contain, or are contained by, the given file.
- * For example, with the file structure:
- *
+ * Returns a list of all source providers that contain, or are contained by, the given file. For example, with the file structure:
  * ```
  * src
  *   main
@@ -376,9 +421,8 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
  *       myoverlay.aidl
  * ```
  *
- * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
- * the returned list would be ['main', 'free'] since both of those source providers have source folders which
- * are descendants of "src."
+ * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src", the returned list would be
+ * ['main', 'free'] since both of those source providers have source folders which are descendants of "src."
  *
  * Returns `null` if none found.
  */
@@ -387,43 +431,32 @@ fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSource
     // Add source providers that contain the file (if any) and any that have files under the given folder
     // Also checks in the test providers.
     (currentAndSomeFrequentlyUsedInactiveSourceProviders +
-     currentDeviceTestSourceProviders.values.flatten() +
-     currentHostTestSourceProviders.values.flatten() +
-     currentTestSuiteSourceProviders.values.flatten()
-    ).filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }.takeUnless { it.isEmpty() }
-  }
-  else null
+        currentDeviceTestSourceProviders.values.flatten() +
+        currentHostTestSourceProviders.values.flatten() +
+        currentTestSuiteSourceProviders.values.flatten())
+      .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
+      .takeUnless { it.isEmpty() }
+  } else null
 }
 
 @VisibleForTesting
 fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
   return manifestFileUrls.any { manifestFileUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
-         allSourceFolderUrls.any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
+    allSourceFolderUrls.any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
 }
-
 
 private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
   get() =
-    arrayOf(
-      javaDirectoryUrls,
-      resDirectoryUrls,
-      aidlDirectoryUrls,
-      renderscriptDirectoryUrls,
-      assetsDirectoryUrls,
-      jniLibsDirectoryUrls
-    )
+    arrayOf(javaDirectoryUrls, resDirectoryUrls, aidlDirectoryUrls, renderscriptDirectoryUrls, assetsDirectoryUrls, jniLibsDirectoryUrls)
       .asSequence()
       .flatten()
 
-/**
- * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
- * the given folder.
- */
+/** Returns true if this SourceProvider has one or more source folders contained by (or equal to) the given folder. */
 fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean = findSourceRoot(file) != null
 
 /**
- * Returns the source root as a VirualFile that includes the given [file]. If the [file] is not present in
- * the [IdeaSourceProvider] then this method will return null.
+ * Returns the source root as a VirualFile that includes the given [file]. If the [file] is not present in the [IdeaSourceProvider] then
+ * this method will return null.
  */
 fun IdeaSourceProvider.findSourceRoot(file: VirtualFile): VirtualFile? {
   if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
@@ -447,29 +480,28 @@ fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = fir
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
   return SourceProviders.getInstance(facet).hostTestSources.values.findByFile(candidate) != null ||
-         SourceProviders.getInstance(facet).deviceTestSources.values.findByFile(candidate) != null ||
-         SourceProviders.getInstance(facet).testSuiteSources.values.flatten().findByFile(candidate) != null
+    SourceProviders.getInstance(facet).deviceTestSources.values.findByFile(candidate) != null ||
+    SourceProviders.getInstance(facet).testSuiteSources.values.flatten().findByFile(candidate) != null
 }
 
-/** Returns true if the given candidate file is a manifest file in the given module  */
+/** Returns true if the given candidate file is a manifest file in the given module */
 fun AndroidFacet.isManifestFile(candidate: VirtualFile): Boolean {
   return SourceProviders.getInstance(this).sources.manifestFiles.contains(candidate)
 }
 
-/** Returns the manifest files in the given module  */
+/** Returns the manifest files in the given module */
 fun AndroidFacet.getManifestFiles(): List<VirtualFile> = SourceProviders.getInstance(this).sources.manifestFiles.toList()
 
 val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
   get() =
     arrayOf(
-      javaDirectories,
-      kotlinDirectories,
-      resDirectories,
-      aidlDirectories,
-      renderscriptDirectories,
-      assetsDirectories,
-      jniLibsDirectories
-    )
+        javaDirectories,
+        kotlinDirectories,
+        resDirectories,
+        aidlDirectories,
+        renderscriptDirectories,
+        assetsDirectories,
+        jniLibsDirectories,
+      )
       .asSequence()
       .flatten()
-

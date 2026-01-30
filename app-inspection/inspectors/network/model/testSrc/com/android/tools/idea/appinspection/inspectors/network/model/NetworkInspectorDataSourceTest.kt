@@ -39,24 +39,15 @@ class NetworkInspectorDataSourceTest {
   fun basicSearch(): Unit = runBlocking {
     val speedEvent = speedEvent(timestampNanos = 1000, rxSpeed = 10, txSpeed = 20)
     val httpEvent = httpRequestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
-    val testMessenger =
-      TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
-    val dataSource =
-      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    val testMessenger = TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
+    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     dataSource.start()
     testMessenger.await()
 
     assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
 
     assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
-      .containsExactly(
-        HttpData.createHttpData(
-          id = 1,
-          updateTimeUs = 1,
-          requestStartTimeUs = 1,
-          url = "www.google.com",
-        )
-      )
+      .containsExactly(HttpData.createHttpData(id = 1, updateTimeUs = 1, requestStartTimeUs = 1, url = "www.google.com"))
   }
 
   @Test
@@ -84,8 +75,7 @@ class NetworkInspectorDataSourceTest {
           speedEvent8.toByteArray(),
         ),
       )
-    val dataSource =
-      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     dataSource.start()
     testMessenger.await()
 
@@ -93,16 +83,7 @@ class NetworkInspectorDataSourceTest {
     run {
       val speedEvents = dataSource.queryForSpeedData(Range(0.0, 10.0))
       assertThat(speedEvents)
-        .containsExactly(
-          speedEvent1,
-          speedEvent2,
-          speedEvent3,
-          speedEvent4,
-          speedEvent5,
-          speedEvent6,
-          speedEvent7,
-          speedEvent8,
-        )
+        .containsExactly(speedEvent1, speedEvent2, speedEvent3, speedEvent4, speedEvent5, speedEvent6, speedEvent7, speedEvent8)
     }
 
     // search beginning
@@ -132,8 +113,7 @@ class NetworkInspectorDataSourceTest {
     // multiple elements with same timestamp at search boundary
     run {
       val speedEvents = dataSource.queryForSpeedData(Range(2.0, 3.0))
-      assertThat(speedEvents)
-        .containsExactly(speedEvent2, speedEvent3, speedEvent4, speedEvent5, speedEvent6)
+      assertThat(speedEvents).containsExactly(speedEvent2, speedEvent3, speedEvent4, speedEvent5, speedEvent6)
     }
   }
 
@@ -169,41 +149,21 @@ class NetworkInspectorDataSourceTest {
           end4.toByteArray(),
         ),
       )
-    val dataSource =
-      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     dataSource.start()
     testMessenger.await()
 
     assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
       .containsExactly(
-        HttpData.createHttpData(
-          id = 2,
-          updateTimeUs = 1,
-          requestStartTimeUs = 0,
-          requestCompleteTimeUs = 1,
-          url = "www.url2.com",
-        ),
-        HttpData.createHttpData(
-          id = 3,
-          updateTimeUs = 4,
-          requestStartTimeUs = 0,
-          requestCompleteTimeUs = 4,
-          url = "www.url3.com",
-        ),
-        HttpData.createHttpData(
-          id = 1,
-          updateTimeUs = 3,
-          requestStartTimeUs = 1,
-          requestCompleteTimeUs = 3,
-          url = "www.url1.com",
-        ),
+        HttpData.createHttpData(id = 2, updateTimeUs = 1, requestStartTimeUs = 0, requestCompleteTimeUs = 1, url = "www.url2.com"),
+        HttpData.createHttpData(id = 3, updateTimeUs = 4, requestStartTimeUs = 0, requestCompleteTimeUs = 4, url = "www.url3.com"),
+        HttpData.createHttpData(id = 1, updateTimeUs = 3, requestStartTimeUs = 1, requestCompleteTimeUs = 3, url = "www.url1.com"),
       )
       .inOrder()
   }
 }
 
-private class TestMessenger(override val scope: CoroutineScope, val flow: Flow<ByteArray>) :
-  AppInspectorMessenger {
+private class TestMessenger(override val scope: CoroutineScope, val flow: Flow<ByteArray>) : AppInspectorMessenger {
   private val isCollected = CompletableDeferred<Boolean>()
 
   override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {

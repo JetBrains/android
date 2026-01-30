@@ -38,18 +38,17 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import java.awt.Dimension
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import kotlin.time.Duration.Companion.seconds
 
 private const val API_LEVEL = 33
 
 class DeviceUiSettingsControllerTest {
-  @get:Rule
-  val agentRule = FakeScreenSharingAgentRule()
+  @get:Rule val agentRule = FakeScreenSharingAgentRule()
 
   private val project
     get() = agentRule.project
@@ -185,10 +184,10 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     val appLanguage = model.appLanguage
     appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
-    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == "da"}
+    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == "da" }
     waitForCondition(10.seconds) { model.differentFromDefault.value }
     appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
-    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == ""}
+    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == "" }
     waitForCondition(10.seconds) { !model.differentFromDefault.value }
   }
 
@@ -235,7 +234,7 @@ class DeviceUiSettingsControllerTest {
   }
 
   @Test
-    fun testSetFontScale() {
+  fun testSetFontScale() {
     agent.setOriginalValues()
     controller.initAndWait()
     model.fontScaleIndex.setFromUi(0)
@@ -292,9 +291,7 @@ class DeviceUiSettingsControllerTest {
     return view
   }
 
-  private fun DeviceUiSettingsController.initAndWait() = runBlocking {
-    populateModel()
-  }
+  private fun DeviceUiSettingsController.initAndWait() = runBlocking { populateModel() }
 
   private fun waitForFrame(view: DeviceView) {
     val ui = FakeUi(view)

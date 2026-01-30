@@ -20,8 +20,5 @@ import com.android.tools.idea.common.layout.positionable.PositionableContent
 /** Layout of components. */
 class GridLayoutGroup(val header: PositionableContent?, val rows: List<List<PositionableContent>>)
 
-/**
- * @return A list with all the content in the [GridLayoutGroup] without considering the rows,
- *   returns an empty list otherwise.
- */
+/** @return A list with all the content in the [GridLayoutGroup] without considering the rows, returns an empty list otherwise. */
 fun GridLayoutGroup?.content(): List<PositionableContent> = this?.rows?.flatten() ?: emptyList()

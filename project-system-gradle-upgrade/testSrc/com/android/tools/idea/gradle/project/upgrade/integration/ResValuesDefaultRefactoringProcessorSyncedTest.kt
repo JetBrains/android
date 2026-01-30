@@ -44,72 +44,84 @@ import org.junit.Test
 @RunsInEdt
 class ResValuesDefaultRefactoringProcessorSyncedTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProjectWithNoResValues() {
-    projectRule
-      .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-      .open { project ->
-        val buildGradleVfsFile = project.findAppBuildGradle()
-        val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+    projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70).open {
+      project ->
+      val buildGradleVfsFile = project.findAppBuildGradle()
+      val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+      VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+      val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+      Assert.assertFalse(processor.isBlocked)
+      val usages = processor.findUsages()
+      UsefulTestCase.assertSize(1, usages)
+      processor.run()
+      Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+      Assert.assertTrue(
         VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-        val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
-        Assert.assertFalse(processor.isBlocked)
-        val usages = processor.findUsages()
-        UsefulTestCase.assertSize(1, usages)
-        processor.run()
-        Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-          .contains("android.defaults.buildfeatures.resvalues=true"))
-      }
+          .contains("android.defaults.buildfeatures.resvalues=true")
+      )
+    }
   }
 
   @Test
   fun testProjectWithResValuesFalseInGradleProperties() {
-    PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", "false", ThrowableRunnable {
-      projectRule
-        .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-        .addResValuesFlagInGradleProperties(false)
-        .open { project ->
-          project.findGradleProperties().also { it.refresh(false, false) }
-          val buildGradleVfsFile = project.findAppBuildGradle()
-          val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
-          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-          val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
-          Assert.assertFalse(processor.isBlocked)
-          val usages = processor.findUsages()
-          UsefulTestCase.assertSize(0, usages)
-          processor.run()
-          Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                              .contains("android.defaults.buildfeatures.resvalues=false"))
-        }
-    })
+    PlatformTestUtil.withSystemProperty(
+      "idea.skip.indices.initialization",
+      "false",
+      ThrowableRunnable {
+        projectRule
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .addResValuesFlagInGradleProperties(false)
+          .open { project ->
+            project.findGradleProperties().also { it.refresh(false, false) }
+            val buildGradleVfsFile = project.findAppBuildGradle()
+            val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+            VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+            Assert.assertFalse(processor.isBlocked)
+            val usages = processor.findUsages()
+            UsefulTestCase.assertSize(0, usages)
+            processor.run()
+            Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+            Assert.assertTrue(
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                .contains("android.defaults.buildfeatures.resvalues=false")
+            )
+          }
+      },
+    )
   }
 
   @Test
   fun testProjectWithResValuesTrueInGradleProperties() {
-    PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", "false", ThrowableRunnable {
-      projectRule
-        .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-        .addResValuesFlagInGradleProperties(true)
-        .open { project ->
-          project.findGradleProperties().also { it.refresh(false, false) }
-          val buildGradleVfsFile = project.findAppBuildGradle()
-          val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
-          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-          val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
-          Assert.assertFalse(processor.isBlocked)
-          val usages = processor.findUsages()
-          UsefulTestCase.assertSize(0, usages)
-          processor.run()
-          Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                              .contains("android.defaults.buildfeatures.resvalues=true"))
-        }
-    })
+    PlatformTestUtil.withSystemProperty(
+      "idea.skip.indices.initialization",
+      "false",
+      ThrowableRunnable {
+        projectRule
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .addResValuesFlagInGradleProperties(true)
+          .open { project ->
+            project.findGradleProperties().also { it.refresh(false, false) }
+            val buildGradleVfsFile = project.findAppBuildGradle()
+            val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+            VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+            Assert.assertFalse(processor.isBlocked)
+            val usages = processor.findUsages()
+            UsefulTestCase.assertSize(0, usages)
+            processor.run()
+            Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+            Assert.assertTrue(
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                .contains("android.defaults.buildfeatures.resvalues=true")
+            )
+          }
+      },
+    )
   }
 
   private fun PreparedTestProject.addResValuesFlagInGradleProperties(flag: Boolean): PreparedTestProject {
@@ -121,5 +133,6 @@ class ResValuesDefaultRefactoringProcessorSyncedTest {
   }
 
   private fun Project.findAppBuildGradle(): VirtualFile = findAppModule().guessModuleDir()!!.findChild("build.gradle")!!
+
   private fun Project.findGradleProperties(): VirtualFile = guessProjectDir()?.findChild("gradle.properties")!!
 }

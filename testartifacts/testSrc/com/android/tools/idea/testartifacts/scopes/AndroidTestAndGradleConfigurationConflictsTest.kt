@@ -28,13 +28,10 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for verifying that there is no conflict creating an instrumented test after a Gradle unit test.
- */
+/** Tests for verifying that there is no conflict creating an instrumented test after a Gradle unit test. */
 @RunsInEdt
 class AndroidTestAndGradleConfigurationConflictsTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   @Test // See: http://b/173106394
@@ -47,13 +44,13 @@ class AndroidTestAndGradleConfigurationConflictsTest {
     // was created from the AndroidTest context, and return it.
     // The Gradle Configuration producer fails in detecting that the created unit test configuration isn't from the context of AndroidTest
     // because it doesn't check for the unique PSI location.
-    var androidTestRunConfiguration = findExistingAndroidTestConfigurationFromDirectory(
-      project, "app/src/androidTest/java/google/simpleapplication")
+    var androidTestRunConfiguration =
+      findExistingAndroidTestConfigurationFromDirectory(project, "app/src/androidTest/java/google/simpleapplication")
     assertThat(androidTestRunConfiguration).isNull()
 
     // Verify that we can successfully create an AndroidTest run configuration.
-    androidTestRunConfiguration = TestConfigurationTesting.createAndroidTestConfigurationFromDirectory(
-      project, "app/src/androidTest/java/google/simpleapplication")
+    androidTestRunConfiguration =
+      TestConfigurationTesting.createAndroidTestConfigurationFromDirectory(project, "app/src/androidTest/java/google/simpleapplication")
     assertThat(androidTestRunConfiguration).isNotNull()
   }
 

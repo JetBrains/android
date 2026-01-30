@@ -26,8 +26,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 import org.jetbrains.android.AndroidPluginDisposable
 
-class DeleteTemplateAction :
-  DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
+class DeleteTemplateAction : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -43,8 +42,7 @@ class DeleteTemplateAction :
 
     DeviceManagerUsageTracker.logDeviceManagerEvent(
       when {
-        deviceTemplate.properties.isVirtual == true ->
-          DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
+        deviceTemplate.properties.isVirtual == true -> DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
         else -> DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
       }
     )
@@ -53,8 +51,6 @@ class DeleteTemplateAction :
       e.deviceManagerCoroutineScope()
         ?: e.project?.let { AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(it)) }
         ?: AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
-    deviceTemplate.launchCatchingDeviceActionException(coroutineScope, project = e.project) {
-      deleteAction.delete()
-    }
+    deviceTemplate.launchCatchingDeviceActionException(coroutineScope, project = e.project) { deleteAction.delete() }
   }
 }

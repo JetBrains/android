@@ -30,14 +30,12 @@ import com.intellij.psi.util.CachedValuesManager
 /**
  * A finder responsible for finding data binding packages missing in the app.
  *
- * Note that some packages used by databinding/viewbinding are already found by default finders, and
- * if we try to suggest our own copies, it can confuse the IntelliJ project structure tool window,
- * which thinks there are two packages with the same name.
+ * Note that some packages used by databinding/viewbinding are already found by default finders, and if we try to suggest our own copies, it
+ * can confuse the IntelliJ project structure tool window, which thinks there are two packages with the same name.
  *
- * Therefore, this finder is registered with a reduced priority, so it will only suggest packages
- * that were not previously suggested, while data binding class finders are added with a higher
- * priority. See [BindingClassFinder], [DataBindingComponentClassFinder] and [BrClassFinder] for the
- * class-focused finders.
+ * Therefore, this finder is registered with a reduced priority, so it will only suggest packages that were not previously suggested, while
+ * data binding class finders are added with a higher priority. See [BindingClassFinder], [DataBindingComponentClassFinder] and
+ * [BrClassFinder] for the class-focused finders.
  *
  * See also: https://issuetracker.google.com/37120280
  */
@@ -58,11 +56,7 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
           }
           .associateBy { psiPackage -> psiPackage.qualifiedName }
 
-      CachedValueProvider.Result.create(
-        packages,
-        bindingFacetsProvider,
-        ProjectLayoutResourcesModificationTracker.getInstance(project),
-      )
+      CachedValueProvider.Result.create(packages, bindingFacetsProvider, ProjectLayoutResourcesModificationTracker.getInstance(project))
     }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {

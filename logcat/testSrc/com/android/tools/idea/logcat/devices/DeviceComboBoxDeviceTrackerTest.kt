@@ -48,12 +48,9 @@ class DeviceComboBoxDeviceTrackerTest {
   private val deviceProvisioner
     get() = deviceProvisionerRule.deviceProvisioner
 
-  private val device1 =
-    TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1", type = DeviceType.HANDHELD)
-  private val device2 =
-    TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2", type = DeviceType.WEAR)
-  private val emulator1 =
-    TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1", type = DeviceType.AUTOMOTIVE)
+  private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1", type = DeviceType.HANDHELD)
+  private val device2 = TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2", type = DeviceType.WEAR)
+  private val emulator1 = TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1", type = DeviceType.AUTOMOTIVE)
 
   @Test
   fun initialDevices(): Unit = runBlockingWithTimeout {
@@ -89,29 +86,24 @@ class DeviceComboBoxDeviceTrackerTest {
   }
 
   @Test
-  fun initialDevices_withInitialPreexistingDeviceMatchingOnlineDevice(): Unit =
-    runBlockingWithTimeout {
-      val preexistingEmulator = emulator1.withState(OFFLINE).withSerialNumber("")
-      addDevices(emulator1, device1)
-      val deviceTracker = deviceComboBoxDeviceTracker(preexistingEmulator.device)
+  fun initialDevices_withInitialPreexistingDeviceMatchingOnlineDevice(): Unit = runBlockingWithTimeout {
+    val preexistingEmulator = emulator1.withState(OFFLINE).withSerialNumber("")
+    addDevices(emulator1, device1)
+    val deviceTracker = deviceComboBoxDeviceTracker(preexistingEmulator.device)
 
-      val events = deviceTracker.trackDevices().take(2).toList()
+    val events = deviceTracker.trackDevices().take(2).toList()
 
-      assertThat(events).containsExactly(Added(emulator1.device), Added(device1.device))
-    }
+    assertThat(events).containsExactly(Added(emulator1.device), Added(device1.device))
+  }
 
   @Test
   fun deviceAdded(): Unit = runBlockingWithTimeout {
     val preexistingDevice = device1.withState(OFFLINE).device
     val deviceTracker = deviceComboBoxDeviceTracker(preexistingDevice)
 
-    val events =
-      async { deviceTracker.trackDevices().take(3).toList() }
-        .also { addDevices(device2, emulator1) }
-        .await()
+    val events = async { deviceTracker.trackDevices().take(3).toList() }.also { addDevices(device2, emulator1) }.await()
 
-    assertThat(events)
-      .containsExactly(Added(preexistingDevice), Added(device2.device), Added(emulator1.device))
+    assertThat(events).containsExactly(Added(preexistingDevice), Added(device2.device), Added(emulator1.device))
   }
 
   @Test
@@ -127,9 +119,7 @@ class DeviceComboBoxDeviceTrackerTest {
       }
       .join()
 
-    assertThat(events)
-      .containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device))
-      .inOrder()
+    assertThat(events).containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device)).inOrder()
   }
 
   @Test
@@ -145,9 +135,7 @@ class DeviceComboBoxDeviceTrackerTest {
       }
       .join()
 
-    assertThat(events)
-      .containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device))
-      .inOrder()
+    assertThat(events).containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device)).inOrder()
   }
 
   @Test
@@ -166,11 +154,7 @@ class DeviceComboBoxDeviceTrackerTest {
       .join()
 
     assertThat(events)
-      .containsExactly(
-        Added(device1.device),
-        StateChanged(device1.withState(OFFLINE).device),
-        StateChanged(device1.device),
-      )
+      .containsExactly(Added(device1.device), StateChanged(device1.withState(OFFLINE).device), StateChanged(device1.device))
       .inOrder()
   }
 
@@ -200,14 +184,11 @@ class DeviceComboBoxDeviceTrackerTest {
       .inOrder()
   }
 
-  private fun deviceComboBoxDeviceTracker(
-    preexistingDevice: Device? = null
-  ): DeviceComboBoxDeviceTracker {
+  private fun deviceComboBoxDeviceTracker(preexistingDevice: Device? = null): DeviceComboBoxDeviceTracker {
     return DeviceComboBoxDeviceTracker(deviceProvisioner, preexistingDevice)
   }
 
-  private suspend fun addDevices(vararg devices: TestDevice): List<DeviceHandle> =
-    devices.map { it.addDevice(plugin) }
+  private suspend fun addDevices(vararg devices: TestDevice): List<DeviceHandle> = devices.map { it.addDevice(plugin) }
 }
 
 private suspend fun DeviceHandle.connect() {

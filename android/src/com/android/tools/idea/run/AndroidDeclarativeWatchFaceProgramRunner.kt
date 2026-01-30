@@ -21,21 +21,19 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
+import com.android.tools.idea.run.configuration.execution.AndroidDeclarativeWatchFaceConfigurationExecutor
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.android.tools.idea.run.configuration.execution.AndroidDeclarativeWatchFaceConfigurationExecutor
-import com.intellij.execution.runners.ProgramRunner
 
 /**
- * [ProgramRunner] for [AndroidDeclarativeWatchFaceConfigurationExecutor] which only
- * supports [DefaultRunExecutor]. [DefaultDebugExecutor] is not available for
- * Watch Face Formats as they do not have any code associated with them,
- * only XML files.
+ * [ProgramRunner] for [AndroidDeclarativeWatchFaceConfigurationExecutor] which only supports [DefaultRunExecutor]. [DefaultDebugExecutor]
+ * is not available for Watch Face Formats as they do not have any code associated with them, only XML files.
  *
  * For more context, see https://developer.android.com/training/wearables/wff
  */
@@ -45,11 +43,9 @@ class AndroidDeclarativeWatchFaceProgramRunner(
 
   override fun getRunnerId() = "AndroidDeclarativeWatchFaceProgramRunner"
 
-  override val supportedConfigurationTypeIds =
-    listOf(AndroidDeclarativeWatchFaceConfigurationType.ID)
+  override val supportedConfigurationTypeIds = listOf(AndroidDeclarativeWatchFaceConfigurationType.ID)
 
-  override fun canRunWithMultipleDevices(executorId: String) =
-    DefaultRunExecutor.EXECUTOR_ID == executorId
+  override fun canRunWithMultipleDevices(executorId: String) = DefaultRunExecutor.EXECUTOR_ID == executorId
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     if (profile !is AndroidDeclarativeWatchFaceConfiguration) {

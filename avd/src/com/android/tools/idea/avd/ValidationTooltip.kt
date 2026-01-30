@@ -33,37 +33,26 @@ import org.jetbrains.jewel.ui.component.styling.TooltipStyle
 import org.jetbrains.jewel.ui.theme.tooltipStyle
 
 /**
- * Displays a tooltip with error styling when hovering over the given [content] if [errorMessage] is
- * not null; otherwise, just displays the content.
+ * Displays a tooltip with error styling when hovering over the given [content] if [errorMessage] is not null; otherwise, just displays the
+ * content.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun ErrorTooltip(
-  errorMessage: String?,
-  modifier: Modifier = Modifier,
-  content: @Composable () -> Unit,
-) {
+internal fun ErrorTooltip(errorMessage: String?, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   ValidationTooltip(errorMessage, modifier, validationErrorTooltipStyle(), content = content)
 }
 
 /**
- * Displays a tooltip with warning styling when hovering over the given [content] if
- * [warningMessage] is not null; otherwise, just displays the content.
+ * Displays a tooltip with warning styling when hovering over the given [content] if [warningMessage] is not null; otherwise, just displays
+ * the content.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun WarningTooltip(
-  warningMessage: String?,
-  modifier: Modifier = Modifier,
-  content: @Composable () -> Unit,
-) {
+internal fun WarningTooltip(warningMessage: String?, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   ValidationTooltip(warningMessage, modifier, validationWarningTooltipStyle(), content = content)
 }
 
-/**
- * Displays a tooltip when hovering over the given [content] if [message] is not null; otherwise,
- * just displays the content.
- */
+/** Displays a tooltip when hovering over the given [content] if [message] is not null; otherwise, just displays the content. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ValidationTooltip(
@@ -73,14 +62,7 @@ internal fun ValidationTooltip(
   tooltipPlacement: TooltipPlacement = style.metrics.placement,
   content: @Composable () -> Unit,
 ) {
-  Tooltip(
-    tooltip = { Text(message ?: "") },
-    modifier,
-    enabled = message != null,
-    style,
-    tooltipPlacement,
-    content,
-  )
+  Tooltip(tooltip = { Text(message ?: "") }, modifier, enabled = message != null, style, tooltipPlacement, content)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -122,11 +104,7 @@ private fun validationTooltipMetrics() =
       borderWidth = borderWidth,
       shadowSize = shadowSize,
       placement =
-        TooltipPlacement.ComponentRect(
-          anchor = Alignment.TopCenter,
-          alignment = Alignment.TopEnd,
-          offset = DpOffset(0.dp, -8.dp),
-        ),
+        TooltipPlacement.ComponentRect(anchor = Alignment.TopCenter, alignment = Alignment.TopEnd, offset = DpOffset(0.dp, -8.dp)),
       regularDisappearDelay = Registry.intValue("ide.helptooltip.regular.dismissDelay").milliseconds,
       fullDisappearDelay = Registry.intValue("ide.helptooltip.full.dismissDelay").milliseconds,
     )

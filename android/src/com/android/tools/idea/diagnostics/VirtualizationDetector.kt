@@ -18,14 +18,14 @@ package com.android.tools.idea.diagnostics
 import com.google.wireless.android.sdk.stats.VirtualizationEvent.ContainerType
 import com.google.wireless.android.sdk.stats.VirtualizationEvent.VmType
 import com.intellij.openapi.util.SystemInfo
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.util.concurrent.TimeUnit
 
 class VirtualizationDetector(private val handler: VirtualizationHandler) {
 
@@ -84,9 +84,7 @@ class VirtualizationDetector(private val handler: VirtualizationHandler) {
   private suspend fun detectMacOSVirtualization(): VmType {
     return withContext(Dispatchers.IO) {
       try {
-        val process = ProcessBuilder(MACOS_SYSCTL_COMMAND, "-a")
-          .redirectErrorStream(true)
-          .start()
+        val process = ProcessBuilder(MACOS_SYSCTL_COMMAND, "-a").redirectErrorStream(true).start()
 
         if (!process.waitFor(2, TimeUnit.SECONDS)) {
           process.destroy()
@@ -100,7 +98,6 @@ class VirtualizationDetector(private val handler: VirtualizationHandler) {
       } catch (e: Exception) {
         println(e)
         VmType.VM_ERROR_CANNOT_DETECT
-
       }
     }
   }
@@ -108,18 +105,14 @@ class VirtualizationDetector(private val handler: VirtualizationHandler) {
   private suspend fun runCommand(command: String): String {
     return withContext(Dispatchers.IO) {
       try {
-        val process = ProcessBuilder(command.split(" "))
-          .redirectErrorStream(true)
-          .start()
+        val process = ProcessBuilder(command.split(" ")).redirectErrorStream(true).start()
 
         if (!process.waitFor(2, TimeUnit.SECONDS)) {
           process.destroy()
           return@withContext "error:timeout"
         }
 
-        BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-          reader.readLine()?.takeIf { it.isNotBlank() } ?: "none"
-        }
+        BufferedReader(InputStreamReader(process.inputStream)).use { reader -> reader.readLine()?.takeIf { it.isNotBlank() } ?: "none" }
       } catch (e: Exception) {
         "error:cannot-detect"
       }

@@ -23,9 +23,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.DefaultComboBoxModel
 
-/**
- * Provides a [ComboBox] well suited for handling [EnumParameter] parameters.
- */
+/** Provides a [ComboBox] well suited for handling [EnumParameter] parameters. */
 class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<String>>(parameter) {
 
   override fun createComponent(parameter: Parameter<*>): ComboBox<String> {
@@ -33,9 +31,7 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
     val comboBoxModel = DefaultComboBoxModel<String>()
 
     assert(options.isNotEmpty())
-    options.forEach {
-      comboBoxModel.addElement(it.name)
-    }
+    options.forEach { comboBoxModel.addElement(it.name) }
     return ComboBox(comboBoxModel)
   }
 

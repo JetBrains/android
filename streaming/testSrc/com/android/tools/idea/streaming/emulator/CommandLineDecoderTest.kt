@@ -18,17 +18,16 @@ package com.android.tools.idea.streaming.emulator
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for functions defined in CommandLineDecoder.kt.
- */
+/** Tests for functions defined in CommandLineDecoder.kt. */
 class CommandLineDecoderTest {
   @Test
   fun testCommandLineArguments() {
-    val commandLine = """
-        "C:\\home\\janedoe\\my emulator" "quoted \"\arg\"" arg\ without\ "\\\ quotes
-        """.trimIndent()
-    assertThat(decodeCommandLine(commandLine)).containsExactly("C:\\home\\janedoe\\my emulator",
-                                                               "quoted \"arg\"",
-                                                               "arg without \"\\ quotes")
+    val commandLine =
+      """
+      "C:\\home\\janedoe\\my emulator" "quoted \"\arg\"" arg\ without\ "\\\ quotes
+      """
+        .trimIndent()
+    assertThat(decodeCommandLine(commandLine))
+      .containsExactly("C:\\home\\janedoe\\my emulator", "quoted \"arg\"", "arg without \"\\ quotes")
   }
 }

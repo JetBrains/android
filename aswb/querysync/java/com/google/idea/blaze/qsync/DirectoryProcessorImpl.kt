@@ -17,22 +17,17 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
-import com.google.idea.blaze.qsync.dispatchers.QuerySyncDispatchers
 import com.google.idea.blaze.traverser.DirectoryContents
 import com.google.idea.blaze.traverser.DirectoryProcessor
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlinx.coroutines.withContext
 
 /**
- * This class is an implementation of the [DirectoryProcessor] interface. Its purpose is to list
- * the files and subdirectories within a single directory, to be used for workspace traversal.
+ * This class is an implementation of the [DirectoryProcessor] interface. Its purpose is to list the files and subdirectories within a
+ * single directory, to be used for workspace traversal.
  */
-class DirectoryProcessorImpl(
-  private val context: Context<*>,
-  private val excludeAbsolute: Set<Path>,
-) : DirectoryProcessor {
+class DirectoryProcessorImpl(private val context: Context<*>, private val excludeAbsolute: Set<Path>) : DirectoryProcessor {
 
   private companion object {
     val WORKSPACE_FILE_NAMES = setOf("MODULE.bazel", "WORKSPACE", "WORKSPACE.bazel")

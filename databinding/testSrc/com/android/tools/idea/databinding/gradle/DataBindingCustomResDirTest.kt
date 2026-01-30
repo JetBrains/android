@@ -32,8 +32,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that ensure that layouts can be found inside custom resource directories, which can be
- * defined like so:
+ * Tests that ensure that layouts can be found inside custom resource directories, which can be defined like so:
  * ```
  *   android { main { sourceSets { res.srcDirs += ['...'] } } }
  * ```
@@ -45,8 +44,7 @@ class DataBindingCustomResDirTest(private val projectPath: String) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val projectPaths =
-      listOf(PROJECT_WITH_DATA_BINDING_ANDROID_X, PROJECT_WITH_DATA_BINDING_SUPPORT)
+    val projectPaths = listOf(PROJECT_WITH_DATA_BINDING_ANDROID_X, PROJECT_WITH_DATA_BINDING_SUPPORT)
   }
 
   private val projectRule = AndroidGradleProjectRule()
@@ -70,9 +68,7 @@ class DataBindingCustomResDirTest(private val projectPath: String) {
     val file =
       projectRule
         .findGradleModule(":app")!!
-        .fileUnderGradleRoot(
-          "src/main/java/com/android/example/appwithdatabinding/ResAltActivity.java"
-        )!!
+        .fileUnderGradleRoot("src/main/java/com/android/example/appwithdatabinding/ResAltActivity.java")!!
     fixture.configureFromExistingVirtualFile(file)
     fixture.checkHighlighting(false, false, false)
   }

@@ -61,29 +61,14 @@ class WearDevicePairingWizard {
           wizardDialog?.close(CANCEL_EXIT_CODE)
 
           if (project == null) {
-            val deviceManagerAction =
-              ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager2")
-            val actionEvent =
-              AnActionEvent.createEvent(
-                DataContext.EMPTY_CONTEXT,
-                null,
-                ActionPlaces.UNKNOWN,
-                ActionUiKind.NONE,
-                null,
-              )
+            val deviceManagerAction = ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager2")
+            val actionEvent = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
             ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           } else {
             // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
-            val deviceManagerAction =
-              ActionManager.getInstance().getAction("Android.DeviceManager2")
+            val deviceManagerAction = ActionManager.getInstance().getAction("Android.DeviceManager2")
             val actionEvent =
-              AnActionEvent.createEvent(
-                SimpleDataContext.getProjectContext(project),
-                null,
-                ActionPlaces.UNKNOWN,
-                ActionUiKind.NONE,
-                null,
-              )
+              AnActionEvent.createEvent(SimpleDataContext.getProjectContext(project), null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
             ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           }
         }
@@ -100,8 +85,7 @@ class WearDevicePairingWizard {
       false -> model.selectedPhoneDevice.setNullableValue(selectedDevice)
       null -> {}
     }
-    val modelWizard =
-      ModelWizard.Builder().addStep(DeviceListStep(model, project, wizardAction)).build()
+    val modelWizard = ModelWizard.Builder().addStep(DeviceListStep(model, project, wizardAction)).build()
 
     // Remove the dialog reference when the dialog is disposed (closed).
     Disposer.register(modelWizard) { wizardDialog = null }
@@ -125,13 +109,8 @@ class WearDevicePairingWizard {
   @UiThread
   fun show(project: Project?, selectedDeviceId: String?) {
     val owner = project?.let { ModalTaskOwner.project(project) } ?: ModalTaskOwner.guess()
-    runWithModalProgressBlocking(
-      owner,
-      message("wear.assistant.device.connection.balloon.link"),
-      cancellable(),
-    ) {
-      val selectedDevice =
-        selectedDeviceId?.let { WearPairingManager.getInstance().findDevice(selectedDeviceId) }
+    runWithModalProgressBlocking(owner, message("wear.assistant.device.connection.balloon.link"), cancellable()) {
+      val selectedDevice = selectedDeviceId?.let { WearPairingManager.getInstance().findDevice(selectedDeviceId) }
       withContext(uiThread) { show(project, selectedDevice) }
     }
   }

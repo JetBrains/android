@@ -27,6 +27,5 @@ object LayoutFileType : LayoutEditorFileType("layout"), XmlDesignerEditorFileTyp
 
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.LAYOUT
 
-  override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)
+  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)
 }

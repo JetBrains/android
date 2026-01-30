@@ -93,31 +93,22 @@ fun scaleDimension(dim: Dimension, scaleFactor: Double) =
  */
 fun Double.roundToInt(): Int = roundToInt()
 
-/**
- * Create a tiny sample image, so that we can always return a not null result if an image we were
- * looking for isn't found.
- */
-@Suppress(
-  "UndesirableClassUsage"
-) // we intentionally avoid UiUtil.createImage (for retina) because we just want a small image
+/** Create a tiny sample image, so that we can always return a not null result if an image we were looking for isn't found. */
+@Suppress("UndesirableClassUsage") // we intentionally avoid UiUtil.createImage (for retina) because we just want a small image
 fun createPlaceholderImage(): BufferedImage = BufferedImage(1, 1, TYPE_INT_ARGB)
 
 /** Remove any surrounding padding from the image. */
-fun trim(image: BufferedImage): BufferedImage =
-  ImageUtils.cropBlank(image, null, TYPE_INT_ARGB) ?: image
+fun trim(image: BufferedImage): BufferedImage = ImageUtils.cropBlank(image, null, TYPE_INT_ARGB) ?: image
 
 /**
- * Pad the image with extra space. The padding percent works by taking the largest side of the
- * current image, multiplying that with the percent value, and adding that portion to each side of
- * the image.
+ * Pad the image with extra space. The padding percent works by taking the largest side of the current image, multiplying that with the
+ * percent value, and adding that portion to each side of the image.
  *
- * So for example, an image that's 100x100, with 50% padding percent, ends up resized to
- * (50+100+50)x(50+100+50), or 200x200. The 100x100 portion is then centered, taking up what looks
- * like 50% of the final image. The same 100x100 image, with 100% padding, ends up at 300x300,
- * looking in the final image like it takes up ~33% of the space.
+ * So for example, an image that's 100x100, with 50% padding percent, ends up resized to (50+100+50)x(50+100+50), or 200x200. The 100x100
+ * portion is then centered, taking up what looks like 50% of the final image. The same 100x100 image, with 100% padding, ends up at
+ * 300x300, looking in the final image like it takes up ~33% of the space.
  *
- * Padding can also be negative, which eats into the space of the original asset, causing a zoom in
- * effect.
+ * Padding can also be negative, which eats into the space of the original asset, causing a zoom in effect.
  */
 fun pad(image: BufferedImage, paddingPercent: Int): BufferedImage {
   if (image.width <= 1 || image.height <= 1) {
@@ -132,31 +123,24 @@ fun pad(image: BufferedImage, paddingPercent: Int): BufferedImage {
   // And  since padding is added to all sides, negative padding should be at most half of the
   // smallest side.
   // Example: if the smaller side is 100px, min padding is -49px
-  val padding =
-    (largerSide * paddingPercent.coerceAtMost(100) / 100).coerceAtLeast(-(smallerSide / 2 - 1))
+  val padding = (largerSide * paddingPercent.coerceAtMost(100) / 100).coerceAtLeast(-(smallerSide / 2 - 1))
 
   return AssetUtil.paddedImage(image, padding)
 }
 
 /** Returns the name of an enum value as a lower camel case string. */
-fun toLowerCamelCase(enumValue: Enum<*>): String =
-  CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name)
+fun toLowerCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, enumValue.name)
 
 /** Returns the name of an enum value as an upper camel case string. */
-fun toUpperCamelCase(enumValue: Enum<*>): String =
-  CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name)
+fun toUpperCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, enumValue.name)
 
 /** Returns a file pointing to a resource bundled with Studio. */
 fun getBundledImage(dir: String, fileName: String): Path {
   val imageFile =
     when {
       StudioPathManager.isRunningFromSources() ->
-        StudioPathManager.resolvePathFromSourcesRoot(
-          "tools/adt/idea/android/resources/images/$dir/$fileName"
-        )
-      else ->
-        Paths.get(PathManager.getHomePath())
-          .resolve("plugins/android/resources/images/$dir/$fileName")
+        StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/resources/images/$dir/$fileName")
+      else -> Paths.get(PathManager.getHomePath()).resolve("plugins/android/resources/images/$dir/$fileName")
     }
 
   if (!Files.exists(imageFile)) {
@@ -168,8 +152,8 @@ fun getBundledImage(dir: String, fileName: String): Path {
 }
 
 /**
- * Return a list of [NamedModuleTemplate]s sorted by alphabetical order, but starting with "main",
- * "debug" and "release" if those are present in the input.
+ * Return a list of [NamedModuleTemplate]s sorted by alphabetical order, but starting with "main", "debug" and "release" if those are
+ * present in the input.
  */
 fun orderTemplates(templates: List<NamedModuleTemplate>): List<NamedModuleTemplate> {
   var main: NamedModuleTemplate? = null

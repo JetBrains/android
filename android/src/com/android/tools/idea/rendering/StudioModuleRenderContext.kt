@@ -20,30 +20,22 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Co
 import com.intellij.openapi.module.Module
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Studio specific module render context.
- */
-open class StudioModuleRenderContext protected constructor(
-  val buildTargetReference: BuildTargetReference,
-)  {
+/** Studio specific module render context. */
+open class StudioModuleRenderContext protected constructor(val buildTargetReference: BuildTargetReference) {
 
   open fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     return ProjectSystemClassLoader { fqcn ->
       val classFileFinder =
         buildTargetReference.getBuildSystemFilePreviewServices().getRenderingServices(buildTargetReference).classFileFinder
-        ?: return@ProjectSystemClassLoader null
+          ?: return@ProjectSystemClassLoader null
       return@ProjectSystemClassLoader classFileFinder.findClassFile(fqcn)
     }
   }
 
   companion object {
-    @JvmStatic
-    fun forBuildTargetReference(buildTargetReference: BuildTargetReference) =
-      StudioModuleRenderContext(buildTargetReference)
+    @JvmStatic fun forBuildTargetReference(buildTargetReference: BuildTargetReference) = StudioModuleRenderContext(buildTargetReference)
 
     /** Always use one of the methods that can provide a file, only use this for testing. */
-    @TestOnly
-    @JvmStatic
-    fun forModule(module: Module) = StudioModuleRenderContext(BuildTargetReference.gradleOnly(module))
+    @TestOnly @JvmStatic fun forModule(module: Module) = StudioModuleRenderContext(BuildTargetReference.gradleOnly(module))
   }
 }

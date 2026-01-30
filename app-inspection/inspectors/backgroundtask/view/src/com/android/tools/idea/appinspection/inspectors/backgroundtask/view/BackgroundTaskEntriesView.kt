@@ -65,12 +65,7 @@ class BackgroundTaskEntriesView(
     GRAPH,
   }
 
-  private inner class CancelAction :
-    AnAction(
-      BackgroundTaskInspectorBundle.message("action.cancel.work"),
-      "",
-      AllIcons.Actions.Suspend,
-    ) {
+  private inner class CancelAction : AnAction(BackgroundTaskInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -105,8 +100,7 @@ class BackgroundTaskEntriesView(
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
         selectedTag = tableView.treeModel.filterTag
-        event.presentation.text =
-          selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
+        event.presentation.text = selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
       }
       val isTableActive = (contentMode == Mode.TABLE)
       if (event.presentation.isVisible != isTableActive) {
@@ -124,8 +118,7 @@ class BackgroundTaskEntriesView(
   }
 
   /** ToggleAction that filters works with a specific [tag]. */
-  private inner class FilterWithTagToggleAction(private val tag: String?) :
-    ToggleAction(tag ?: "All tags") {
+  private inner class FilterWithTagToggleAction(private val tag: String?) : ToggleAction(tag ?: "All tags") {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -138,8 +131,7 @@ class BackgroundTaskEntriesView(
     }
   }
 
-  private inner class TableViewAction :
-    AnAction(BackgroundTaskInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
+  private inner class TableViewAction : AnAction(BackgroundTaskInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -158,12 +150,7 @@ class BackgroundTaskEntriesView(
     }
   }
 
-  private inner class GraphViewAction :
-    AnAction(
-      BackgroundTaskInspectorBundle.message("action.show.graph"),
-      "",
-      AllIcons.Graph.Layout,
-    ) {
+  private inner class GraphViewAction : AnAction(BackgroundTaskInspectorBundle.message("action.show.graph"), "", AllIcons.Graph.Layout) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -181,8 +168,7 @@ class BackgroundTaskEntriesView(
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isEnabled =
-        contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
+      e.presentation.isEnabled = contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
     }
   }
 
@@ -249,8 +235,7 @@ class BackgroundTaskEntriesView(
         addSeparator()
         add(TagsDropDownAction())
       }
-    val leftToolbar =
-      ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
     leftToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
@@ -260,8 +245,7 @@ class BackgroundTaskEntriesView(
         add(TableViewAction())
         add(GraphViewAction())
       }
-    val rightToolbar =
-      ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
+    val rightToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
     rightToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)

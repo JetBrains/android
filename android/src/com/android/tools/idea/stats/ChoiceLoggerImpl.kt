@@ -25,13 +25,18 @@ object ChoiceLoggerImpl : ChoiceLogger {
   }
 
   override fun log(name: String, result: List<Int>) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
-      surveyResponse = SurveyResponse.newBuilder().apply {
-        this.name = name
-        addAllResponses(result)
-      }.build()
-    })
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.SURVEY_RESPONSE
+        surveyResponse =
+          SurveyResponse.newBuilder()
+            .apply {
+              this.name = name
+              addAllResponses(result)
+            }
+            .build()
+      }
+    )
   }
 
   override fun cancel(name: String) {

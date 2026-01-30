@@ -21,9 +21,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ext.LibrarySearchHelper
 
-/**
- * A [LibrarySearchHelper] that checks for an Android project
- */
+/** A [LibrarySearchHelper] that checks for an Android project */
 class AndroidProjectChecker : LibrarySearchHelper {
   override fun isLibraryExists(project: Project): Boolean {
     val value = CommonAndroidUtil.getInstance().isAndroidProject(project)

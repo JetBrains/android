@@ -28,17 +28,19 @@ import javax.swing.SwingConstants
 
 private val INFO_ICON_COLORS = JBColor(0x6E6E6E, 0xAFB1B3)
 
-/**
- * Small warning label to display that a system image is localized for China.
- */
+/** Small warning label to display that a system image is localized for China. */
 class WearOsChinaLocalizedAlert : JPanel() {
-  private val warningLabel = JBLabel("<html>The selected image is a localized version of Wear OS for China</html>",
-                                     ColoredIconGenerator.generateColoredIcon(AllIcons.General.Information, INFO_ICON_COLORS),
-                                     JLabel.LEADING).apply {
-    isAllowAutoWrapping = true
-    verticalTextPosition = SwingConstants.CENTER
-    isOpaque = false
-  }
+  private val warningLabel =
+    JBLabel(
+        "<html>The selected image is a localized version of Wear OS for China</html>",
+        ColoredIconGenerator.generateColoredIcon(AllIcons.General.Information, INFO_ICON_COLORS),
+        JLabel.LEADING,
+      )
+      .apply {
+        isAllowAutoWrapping = true
+        verticalTextPosition = SwingConstants.CENTER
+        isOpaque = false
+      }
 
   init {
     this.layout = GridLayoutManager(1, 1)

@@ -38,10 +38,7 @@ class ReturnToSourceActionTest : NavTestCase() {
       }
     TestNavUsageTracker.create(model).use { tracker ->
       val f2 = model.treeReader.find("f2")!!
-      ReturnToSourceAction(f2)
-        .actionPerformed(
-          TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null }
-        )
+      ReturnToSourceAction(f2).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
       val action = f2.children.first { it.isAction }
       assertEquals("f2", action.popUpTo)
       assertEquals(true, action.inclusive)
@@ -51,11 +48,7 @@ class ReturnToSourceActionTest : NavTestCase() {
           NavEditorEvent.newBuilder()
             .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
             .setActionInfo(
-              NavActionInfo.newBuilder()
-                .setCountFromSource(1)
-                .setHasPop(true)
-                .setInclusive(true)
-                .setType(NavActionInfo.ActionType.EXIT)
+              NavActionInfo.newBuilder().setCountFromSource(1).setHasPop(true).setInclusive(true).setType(NavActionInfo.ActionType.EXIT)
             )
             .setSource(NavEditorEvent.Source.CONTEXT_MENU)
             .build()

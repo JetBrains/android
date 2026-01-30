@@ -45,12 +45,7 @@ open class SceneComponentTest : SceneTest() {
 
   fun testAddSceneComponent() {
     val sceneComponent =
-      TemporarySceneComponent(
-        myScene,
-        LayoutTestUtilities.createMockComponent().apply {
-          whenever(this.tagName).thenReturn(TEXT_VIEW)
-        },
-      )
+      TemporarySceneComponent(myScene, LayoutTestUtilities.createMockComponent().apply { whenever(this.tagName).thenReturn(TEXT_VIEW) })
     val parent = myScene.getSceneComponent("parent")
 
     assertSize(1, parent!!.children)
@@ -116,13 +111,7 @@ open class SceneComponentTest : SceneTest() {
         .withBounds(0, 0, 2000, 2000)
         .matchParentWidth()
         .matchParentHeight()
-        .children(
-          component(BUTTON)
-            .id("@+id/child")
-            .withBounds(0, 0, 2000, 2000)
-            .matchParentWidth()
-            .matchParentHeight()
-        ),
+        .children(component(BUTTON).id("@+id/child").withBounds(0, 0, 2000, 2000).matchParentWidth().matchParentHeight()),
     )
   }
 }

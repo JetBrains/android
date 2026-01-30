@@ -31,11 +31,14 @@ import org.junit.Test
 class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testIsAlwaysEnabled() {
-    val versions = listOf(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION,
-                          SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION,
-                          SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION,
-                          Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION,
-                          Version.ANDROID_GRADLE_PLUGIN_VERSION)
+    val versions =
+      listOf(
+        SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION,
+        SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION,
+        SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION,
+        Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION,
+        Version.ANDROID_GRADLE_PLUGIN_VERSION,
+      )
     versions.forEach { current ->
       versions.forEach { new ->
         val currentVersion = AgpVersion.parse(current)
@@ -50,11 +53,14 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testIsAlwaysMandatoryCodependent() {
-    val versions = listOf(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION,
-                          SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION,
-                          SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION,
-                          Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION,
-                          Version.ANDROID_GRADLE_PLUGIN_VERSION)
+    val versions =
+      listOf(
+        SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION,
+        SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION,
+        SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION,
+        Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION,
+        Version.ANDROID_GRADLE_PLUGIN_VERSION,
+      )
     versions.forEach { current ->
       versions.forEach { new ->
         val currentVersion = AgpVersion.parse(current)

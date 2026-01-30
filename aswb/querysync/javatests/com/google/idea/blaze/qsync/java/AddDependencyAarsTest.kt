@@ -26,11 +26,11 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import com.google.idea.common.experiments.ExperimentService
 import com.google.idea.common.experiments.MockExperimentService
@@ -50,13 +50,10 @@ import org.mockito.junit.MockitoRule
 class AddDependencyAarsTest {
   val buildTimestamp = Instant.now()
 
-  @get:Rule
-  val mockito: MockitoRule = MockitoJUnit.rule()
+  @get:Rule val mockito: MockitoRule = MockitoJUnit.rule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val intellij = IntellijRule()
+    @JvmField @ClassRule val intellij = IntellijRule()
   }
 
   @Before
@@ -64,8 +61,7 @@ class AddDependencyAarsTest {
     intellij.registerApplicationService(ExperimentService::class.java, MockExperimentService())
   }
 
-  private val syncer =
-    TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
   private val aarPackageMetadata = AarPackageNameExtractor(null)
 
@@ -74,13 +70,11 @@ class AddDependencyAarsTest {
   fun no_deps_built() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars =
-      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
     val update = ProjectProtoUpdate(original.project)
 
-    addAars.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
-                   ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    addAars.update(update, ArtifactTracker.State.EMPTY, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
@@ -93,40 +87,31 @@ class AddDependencyAarsTest {
   fun dep_aar_added() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars =
-      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
-    val update =
-      ProjectProtoUpdate(original.project)
+    val update = ProjectProtoUpdate(original.project)
 
     addAars.update(
       update,
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+          JavaArtifactInfo.empty(Label.of("//path/to:dep"))
+            .toBuilder()
             .setIdeAar(
-                BuildArtifact.create(
-                  "aardigest",
-                  Path.of("path/to/dep.aar"),
-                  Label.of("//path/to:dep")
-                )
-                .withMetadata(
-                  AarResPackage(
-                    "com.google.idea.blaze.qsync.testdata.android"
-                  )
-                )
+              BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep"))
+                .withMetadata(AarResPackage("com.google.idea.blaze.qsync.testdata.android"))
             )
             .build(),
-          DependencyBuildContext.create("", buildTimestamp)
+          DependencyBuildContext.create("", buildTimestamp),
         )
-      ), NoopContext(),
-      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+      ),
+      NoopContext(),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+    )
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
-    Truth.assertThat(
-      newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()
-    )
+    Truth.assertThat(newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull())
       .isEqualTo(
         ProjectProto.ExternalAndroidLibrary(
           name = "path_to_dep.aar",
@@ -134,25 +119,29 @@ class AddDependencyAarsTest {
           manifestFile = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/AndroidManifest.xml")),
           resFolder = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/res")),
           symbolFile = ProjectPath.projectRelative(Path.of(".bazel/buildout/path/to/dep.aar/R.txt")),
-          packageName = "com.google.idea.blaze.qsync.testdata.android"
+          packageName = "com.google.idea.blaze.qsync.testdata.android",
         )
       )
 
     Truth.assertThat(newProject.artifactDirectories)
       .isEqualTo(
         ProjectProto.ArtifactDirectories(
-          directoriesMap = mapOf(
-            ArtifactDirectories.DEFAULT to ProjectProto.ArtifactDirectoryContents(
-              contents = mapOf(
-                "path/to/dep.aar" to ProjectProto.ProjectArtifact(
-                  target = Label.of("//path/to:dep"),
-                  buildArtifact = ProjectProto.BuildArtifact("aardigest"),
-                  fromBuild = buildTimestamp,
-                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+          directoriesMap =
+            mapOf(
+              ArtifactDirectories.DEFAULT to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/dep.aar" to
+                        ProjectProto.ProjectArtifact(
+                          target = Label.of("//path/to:dep"),
+                          buildArtifact = ProjectProto.BuildArtifact("aardigest"),
+                          fromBuild = buildTimestamp,
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+                        )
+                    )
                 )
-              )
-            ),
-          )
+            )
         )
       )
   }
@@ -162,51 +151,48 @@ class AddDependencyAarsTest {
   fun dep_aar_no_package_name_added() {
     val original = syncer.sync(TestData.ANDROID_LIB_QUERY)
 
-    val addAars =
-      AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
+    val addAars = AddDependencyAars(original.queryData.projectDefinition(), aarPackageMetadata)
 
-    val update =
-      ProjectProtoUpdate(original.project)
+    val update = ProjectProtoUpdate(original.project)
 
     addAars.update(
       update,
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.create("", buildTimestamp),
         ImmutableList.of(
-          JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-            .setIdeAar(
-              BuildArtifact.create(
-                "aardigest",
-                Path.of("path/to/dep.aar"),
-                Label.of("//path/to:dep")
-              )
-            )
+          JavaArtifactInfo.empty(Label.of("//path/to:dep"))
+            .toBuilder()
+            .setIdeAar(BuildArtifact.create("aardigest", Path.of("path/to/dep.aar"), Label.of("//path/to:dep")))
             .build()
-        )
-      ), NoopContext(),
-      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+        ),
+      ),
+      NoopContext(),
+      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
+    )
     val newProject = update.build()
 
     Truth.assertThat(newProject.libraries).isEqualTo(original.project.libraries)
-    Truth.assertThat(
-      newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()?.packageName
-    ).isEmpty()
+    Truth.assertThat(newProject.modules.singleOrNull()?.androidExternalLibraries?.singleOrNull()?.packageName).isEmpty()
 
     Truth.assertThat(newProject.artifactDirectories)
       .isEqualTo(
         ProjectProto.ArtifactDirectories(
-          directoriesMap = mapOf(
-            ArtifactDirectories.DEFAULT to ProjectProto.ArtifactDirectoryContents(
-              contents = mapOf(
-                "path/to/dep.aar" to ProjectProto.ProjectArtifact(
-                  target = Label.of("//path/to:dep"),
-                  buildArtifact = ProjectProto.BuildArtifact("aardigest"),
-                  fromBuild = buildTimestamp,
-                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
-                  )
-              )
+          directoriesMap =
+            mapOf(
+              ArtifactDirectories.DEFAULT to
+                ProjectProto.ArtifactDirectoryContents(
+                  contents =
+                    mapOf(
+                      "path/to/dep.aar" to
+                        ProjectProto.ProjectArtifact(
+                          target = Label.of("//path/to:dep"),
+                          buildArtifact = ProjectProto.BuildArtifact("aardigest"),
+                          fromBuild = buildTimestamp,
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.UNZIP,
+                        )
+                    )
+                )
             )
-          )
         )
       )
   }

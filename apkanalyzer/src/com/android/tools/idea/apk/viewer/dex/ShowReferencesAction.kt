@@ -79,14 +79,17 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
     val references = checkNotNull(dexFileViewer.dexReferences)
     val project = checkNotNull(getEventProject(e))
 
-    Futures.addCallback(references, object : FutureCallback<DexReferences?> {
-      override fun onSuccess(result: DexReferences?) {
-        showReferenceTree(e, node, project, result!!)
-      }
+    Futures.addCallback(
+      references,
+      object : FutureCallback<DexReferences?> {
+        override fun onSuccess(result: DexReferences?) {
+          showReferenceTree(e, node, project, result!!)
+        }
 
-      override fun onFailure(t: Throwable) {
-      }
-    }, EdtExecutorService.getInstance())
+        override fun onFailure(t: Throwable) {}
+      },
+      EdtExecutorService.getInstance(),
+    )
   }
 
   private fun showReferenceTree(e: AnActionEvent, node: DexElementNode, project: Project?, references: DexReferences) {
@@ -99,42 +102,42 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
     checkNotNull(reference)
     val tree = Tree(DefaultTreeModel(references.getReferenceTreeFor(reference, true)))
     tree.showsRootHandles = true
-    tree.addTreeWillExpandListener(object : TreeWillExpandListener {
-      override fun treeWillExpand(event: TreeExpansionEvent) {
-        val path = event.path
-        if (path.lastPathComponent is DexElementNode) {
-          val lastNode = path.lastPathComponent as DexElementNode
-          if (!DexReferences.isAlreadyLoaded(lastNode)) {
-            lastNode.removeAllChildren()
-            checkNotNull(lastNode.reference)
-            references.addReferencesForNode(lastNode, true)
-            lastNode.sort(DexReferences.NODE_COMPARATOR)
+    tree.addTreeWillExpandListener(
+      object : TreeWillExpandListener {
+        override fun treeWillExpand(event: TreeExpansionEvent) {
+          val path = event.path
+          if (path.lastPathComponent is DexElementNode) {
+            val lastNode = path.lastPathComponent as DexElementNode
+            if (!DexReferences.isAlreadyLoaded(lastNode)) {
+              lastNode.removeAllChildren()
+              checkNotNull(lastNode.reference)
+              references.addReferencesForNode(lastNode, true)
+              lastNode.sort(DexReferences.NODE_COMPARATOR)
+            }
           }
         }
-      }
 
-      @Throws(ExpandVetoException::class)
-      override fun treeWillCollapse(event: TreeExpansionEvent) {
+        @Throws(ExpandVetoException::class) override fun treeWillCollapse(event: TreeExpansionEvent) {}
       }
-    })
+    )
 
-    tree.addTreeSelectionListener {
-      onSelectionChanged(it)
-    }
+    tree.addTreeSelectionListener { onSelectionChanged(it) }
 
     tree.cellRenderer = ReferenceRenderer(seedsMap, proguardMap, deobfuscate)
 
     val pane = JBScrollPane(tree)
     pane.preferredSize = Dimension(600, 400)
-    val popup = JBPopupFactory.getInstance().createComponentPopupBuilder(pane, null)
-      .setProject(project)
-      .setDimensionServiceKey(project, ShowReferencesAction::class.java.name, false)
-      .setResizable(true)
-      .setMovable(true)
-      .setTitle("References to " + node.name)
-      .setFocusable(true)
-      .setRequestFocus(true)
-      .createPopup()
+    val popup =
+      JBPopupFactory.getInstance()
+        .createComponentPopupBuilder(pane, null)
+        .setProject(project)
+        .setDimensionServiceKey(project, ShowReferencesAction::class.java.name, false)
+        .setResizable(true)
+        .setMovable(true)
+        .setTitle("References to " + node.name)
+        .setFocusable(true)
+        .setRequestFocus(true)
+        .createPopup()
     popup.showInBestPositionFor(e.dataContext)
   }
 
@@ -161,7 +164,8 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
   private class ReferenceRenderer(
     private val seedsMap: ProguardSeedsMap?,
     private val proguardMap: ProguardMap?,
-    private val deobfuscate: Boolean) : ColoredTreeCellRenderer() {
+    private val deobfuscate: Boolean,
+  ) : ColoredTreeCellRenderer() {
     override fun customizeCellRenderer(
       tree: JTree,
       value: Any,
@@ -169,16 +173,13 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       expanded: Boolean,
       leaf: Boolean,
       row: Int,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       val node = value as DexElementNode
       val ref = node.reference
 
       val isSeed = node.isSeed(seedsMap, proguardMap, false)
-      val attr = SimpleTextAttributes(
-        if (isSeed) SimpleTextAttributes.STYLE_BOLD else SimpleTextAttributes.STYLE_PLAIN,
-        null
-      )
+      val attr = SimpleTextAttributes(if (isSeed) SimpleTextAttributes.STYLE_BOLD else SimpleTextAttributes.STYLE_PLAIN, null)
 
       val usedProguardMap = if (deobfuscate) proguardMap else null
 
@@ -190,19 +191,11 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       icon = DexNodeIcons.forNode(node)
     }
 
-    private fun renderTypeReference(
-      ref: TypeReference,
-      usedProguardMap: ProguardMap?,
-      attr: SimpleTextAttributes
-    ) {
+    private fun renderTypeReference(ref: TypeReference, usedProguardMap: ProguardMap?, attr: SimpleTextAttributes) {
       append(PackageTreeCreator.decodeClassName(ref.type, usedProguardMap), attr)
     }
 
-    private fun renderMethodReference(
-      ref: MethodReference,
-      usedProguardMap: ProguardMap?,
-      attr: SimpleTextAttributes
-    ) {
+    private fun renderMethodReference(ref: MethodReference, usedProguardMap: ProguardMap?, attr: SimpleTextAttributes) {
       append(PackageTreeCreator.decodeClassName(ref.definingClass, usedProguardMap), attr)
       append(": ", attr)
       append(PackageTreeCreator.decodeClassName(ref.returnType, usedProguardMap), attr)
@@ -211,11 +204,7 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       append(PackageTreeCreator.decodeMethodParams(ref, usedProguardMap), attr)
     }
 
-    private fun renderFieldReference(
-      ref: FieldReference,
-      usedProguardMap: ProguardMap?,
-      attr: SimpleTextAttributes
-    ) {
+    private fun renderFieldReference(ref: FieldReference, usedProguardMap: ProguardMap?, attr: SimpleTextAttributes) {
       append(PackageTreeCreator.decodeClassName(ref.definingClass, usedProguardMap), attr)
       append(": ", attr)
       append(PackageTreeCreator.decodeClassName(ref.type, usedProguardMap), attr)
@@ -240,13 +229,13 @@ private fun DexElementNode.findDescendant(reference: Reference): DexElementNode?
 }
 
 private fun DexElementNode.toTreePath(): TreePath {
-  val nodes = buildList<DexElementNode> {
-    var node: DexElementNode? = this@toTreePath
-    while (node != null) {
-      add(0, node)
-      node = node.parent
+  val nodes =
+    buildList<DexElementNode> {
+      var node: DexElementNode? = this@toTreePath
+      while (node != null) {
+        add(0, node)
+        node = node.parent
+      }
     }
-  }
   return TreePath(nodes.toTypedArray())
 }
-

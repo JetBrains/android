@@ -88,10 +88,7 @@ import org.jetbrains.annotations.TestOnly
 
 private val LOG = Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
 
-private data class ProjectState(
-  val currentState: AppInsightsState,
-  val lastGoodState: AppInsightsState?,
-)
+private data class ProjectState(val currentState: AppInsightsState, val lastGoodState: AppInsightsState?)
 
 class AppInsightsProjectLevelControllerImpl(
   override val provider: InsightsProvider,
@@ -115,20 +112,9 @@ class AppInsightsProjectLevelControllerImpl(
   private val dispatcherScope = CoroutineScope(coroutineScope.coroutineContext + dispatcher)
 
   private val actionDispatcher =
-    ActionDispatcher(
-      dispatcherScope,
-      clock,
-      appInsightsClient,
-      defaultFilters,
-      aiInsightToolkit,
-      ::doEmit,
-      onErrorAction,
-    )
+    ActionDispatcher(dispatcherScope, clock, appInsightsClient, defaultFilters, aiInsightToolkit, ::doEmit, onErrorAction)
 
-  /**
-   * Represents a flow that is used by filter selectors and refresh to inject [ChangeEvent]s into
-   * the main event flow(below).
-   */
+  /** Represents a flow that is used by filter selectors and refresh to inject [ChangeEvent]s into the main event flow(below). */
   val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
 
   private val settings: InsightsFilterSettings?
@@ -166,18 +152,12 @@ class AppInsightsProjectLevelControllerImpl(
 
     @Suppress("RequiredOptIn")
     state =
-      merge(
-          eventFlow.map { wrapAdapters(it) },
-          connectionsFlow,
-          offlineStatusManager.offlineStatus.map { it.toEvent() },
-        )
+      merge(eventFlow.map { wrapAdapters(it) }, connectionsFlow, offlineStatusManager.offlineStatus.map { it.toEvent() })
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
           val (newState, action) = event.transition(currentState, tracker, provider, cache)
           if (currentState.issues != newState.issues) {
-            project
-              .service<IssuesPerFileIndex>()
-              .updateIssueIndex(newState.issues.map { it.value }, provider.displayName)
+            project.service<IssuesPerFileIndex>().updateIssueIndex(newState.issues.map { it.value }, provider.displayName)
           }
           if (currentState.mode != newState.mode) {
             offlineStatusManager.enterMode(newState.mode)
@@ -185,16 +165,9 @@ class AppInsightsProjectLevelControllerImpl(
           ProjectState(
               currentState = newState,
               lastGoodState =
-                if (
-                  newState.issues is LoadingState.Ready &&
-                    newState.currentNotes is LoadingState.Ready
-                )
-                  newState
-                else lastGoodState,
+                if (newState.issues is LoadingState.Ready && newState.currentNotes is LoadingState.Ready) newState else lastGoodState,
             )
-            .also { (currentState, lastGoodState) ->
-              actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
-            }
+            .also { (currentState, lastGoodState) -> actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState)) }
         }
         .map { it.currentState }
         .distinctUntilChanged()
@@ -294,18 +267,11 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   override fun insightsInFile(file: PsiFile): List<AppInsight> {
-    val issues =
-      project
-        .service<IssuesPerFileIndex>()
-        .getIssuesPerFilename(provider.displayName)
-        .get(file.virtualFile.name)
-        .toList()
+    val issues = project.service<IssuesPerFileIndex>().getIssuesPerFilename(provider.displayName).get(file.virtualFile.name).toList()
 
     logIssues(issues, file)
 
-    val selectIssueCallback = { issue: AppInsightsIssue ->
-      selectIssue(issue, IssueSelectionSource.INSPECTION)
-    }
+    val selectIssueCallback = { issue: AppInsightsIssue -> selectIssue(issue, IssueSelectionSource.INSPECTION) }
 
     return issues.map { issueInFrame ->
       AppInsight(
@@ -330,14 +296,9 @@ class AppInsightsProjectLevelControllerImpl(
   private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
     if (issues.isEmpty()) return
     val formattedIssues =
-      issues
-        .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
-        .reduce { acc, value -> acc + "\n" + value }
-    LOG.debug(
-      "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
-    )
+      issues.map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }.reduce { acc, value -> acc + "\n" + value }
+    LOG.debug("Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing...")
   }
 
-  private fun wrapAdapters(event: ChangeEvent) =
-    PersistSettingsAdapter(SafeFiltersAdapter(event), project, provider.displayName)
+  private fun wrapAdapters(event: ChangeEvent) = PersistSettingsAdapter(SafeFiltersAdapter(event), project, provider.displayName)
 }

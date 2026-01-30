@@ -21,12 +21,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 
 internal class DialogFactoryImpl : DialogFactory {
-  override fun showDialog(
-    project: Project,
-    title: String,
-    message: String,
-    buttons: List<DialogButton>,
-  ) {
+  override fun showDialog(project: Project, title: String, message: String, buttons: List<DialogButton>) {
     runInEdt {
       val buttonTexts = buttons.map { it.text }
       val actionMap = buttons.associateBy { it.text }

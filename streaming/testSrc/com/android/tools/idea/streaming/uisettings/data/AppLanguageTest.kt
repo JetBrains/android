@@ -22,24 +22,29 @@ import org.junit.Test
 class AppLanguageTest {
   @Test
   fun languagesAreSortedWithPseudoLanguagesLast() {
-    val languages = convertFromLocaleConfig(setOf(
-      LocaleQualifier(null, "es", "ES", null),
-      LocaleQualifier(null, "en", "XA", null),
-      LocaleQualifier(null, "es", "AR", null),
-      LocaleQualifier(null, "da", null, null),
-      LocaleQualifier(null, "it", null, null),
-      LocaleQualifier(null, "ar", "XB", null),
-      LocaleQualifier(null, "es", null, null),
-    ))
-    assertThat(languages.map { it.name }).containsExactly(
-      "System default",
-      "Danish",
-      "Italian",
-      "Spanish",
-      "Spanish in Argentina",
-      "Spanish in Spain",
-      "Pseudo English",
-      "Pseudo Arabic",
-    ).inOrder()
+    val languages =
+      convertFromLocaleConfig(
+        setOf(
+          LocaleQualifier(null, "es", "ES", null),
+          LocaleQualifier(null, "en", "XA", null),
+          LocaleQualifier(null, "es", "AR", null),
+          LocaleQualifier(null, "da", null, null),
+          LocaleQualifier(null, "it", null, null),
+          LocaleQualifier(null, "ar", "XB", null),
+          LocaleQualifier(null, "es", null, null),
+        )
+      )
+    assertThat(languages.map { it.name })
+      .containsExactly(
+        "System default",
+        "Danish",
+        "Italian",
+        "Spanish",
+        "Spanish in Argentina",
+        "Spanish in Spain",
+        "Pseudo English",
+        "Pseudo Arabic",
+      )
+      .inOrder()
   }
 }

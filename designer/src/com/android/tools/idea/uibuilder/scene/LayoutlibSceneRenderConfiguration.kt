@@ -51,25 +51,20 @@ class LayoutlibSceneRenderConfiguration(
   private val model: NlModel,
   private val surface: NlDesignSurface,
   /**
-   * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
-   * Based on the configuration layout validation will be turned on or off while rendering.
+   * Configuration for layout validation from Accessibility Testing Framework through Layoutlib. Based on the configuration layout
+   * validation will be turned on or off while rendering.
    */
   val layoutScannerConfig: LayoutScannerConfiguration,
 ) {
 
-  /**
-   * Topic to tag the render with. This is used to identify the tool or context under which a render
-   * is executed.
-   */
+  /** Topic to tag the render with. This is used to identify the tool or context under which a render is executed. */
   var renderingTopic: RenderingTopic = RenderingTopic.NOT_SPECIFIED
 
   /**
-   * When true, the model will be inflated on the next render, causing the existing [RenderTask] to
-   * be disposed and replaced by a newer one.
+   * When true, the model will be inflated on the next render, causing the existing [RenderTask] to be disposed and replaced by a newer one.
    *
-   * Clients of this render configuration should set this to true to indicate the need of
-   * re-inflating. And the corresponding [LayoutlibSceneRenderer] will reset this to false after the
-   * inflation is done.
+   * Clients of this render configuration should set this to true to indicate the need of re-inflating. And the corresponding
+   * [LayoutlibSceneRenderer] will reset this to false after the inflation is done.
    *
    * The initial value is true because the model needs to be inflated on the first render.
    */
@@ -95,10 +90,7 @@ class LayoutlibSceneRenderConfiguration(
   /** If true, clears any overridden sizes on RenderTask before rendering. */
   var clearOverrideRenderSize: Boolean = false
 
-  /**
-   * If true, errors during inflation and render will be logged and made available to be shown in
-   * the errors panel.
-   */
+  /** If true, errors during inflation and render will be logged and made available to be shown in the errors panel. */
   var logRenderErrors = true
 
   /** If true, a transparent background will be used when rendering. */
@@ -132,16 +124,13 @@ class LayoutlibSceneRenderConfiguration(
   /**
    * If true, the scene should use a private ClassLoader.
    *
-   * Whether this scene manager should use a private/individual ClassLoader. If two compose previews
-   * share the same ClassLoader they share the same compose framework. This way they share the
-   * state. In the interactive preview and animation inspector, we would like to control the state
-   * of the framework and preview. Shared state makes control impossible. Therefore, in certain
-   * situations (currently only in compose) we want to create a dedicated ClassLoader so that the
-   * preview has its own compose framework. Having a dedicated ClassLoader also allows for clearing
-   * resources right after the preview no longer used. We could apply this approach by default (e.g.
-   * for static previews as well) but it might have a negative impact if there are many of them.
-   * Therefore, this should be configured by calling this method when we want to use the private
-   * ClassLoader, e.g. in interactive previews or animation inspector.
+   * Whether this scene manager should use a private/individual ClassLoader. If two compose previews share the same ClassLoader they share
+   * the same compose framework. This way they share the state. In the interactive preview and animation inspector, we would like to control
+   * the state of the framework and preview. Shared state makes control impossible. Therefore, in certain situations (currently only in
+   * compose) we want to create a dedicated ClassLoader so that the preview has its own compose framework. Having a dedicated ClassLoader
+   * also allows for clearing resources right after the preview no longer used. We could apply this approach by default (e.g. for static
+   * previews as well) but it might have a negative impact if there are many of them. Therefore, this should be configured by calling this
+   * method when we want to use the private ClassLoader, e.g. in interactive previews or animation inspector.
    */
   var usePrivateClassLoader = false
     set(value) {
@@ -155,32 +144,30 @@ class LayoutlibSceneRenderConfiguration(
   /**
    * List of classes to preload when rendering.
    *
-   * This intended for classes that are very likely to be used, so that they can be preloaded.
-   * Interactive Preview is an example where preloading classes is a good idea.
+   * This intended for classes that are very likely to be used, so that they can be preloaded. Interactive Preview is an example where
+   * preloading classes is a good idea.
    */
   var classesToPreload = emptyList<String>()
 
   /** If false, the [ImagePool] won't be used when rendering. */
   var useImagePool = true
 
-  /**
-   * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
-   */
+  /** Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality. */
   var quality = 1f
 
   /** The time for which the frame to be rendered will be selected. */
   var elapsedFrameTimeMs: Long = -1
 
   /**
-   * If true, the rendering will report when the user classes used are out of date and have been
-   * modified after the last build. The reporting will be done via the rendering log. Compose has
-   * its own mechanism to track out of date files, so it will disable this reporting.
+   * If true, the rendering will report when the user classes used are out of date and have been modified after the last build. The
+   * reporting will be done via the rendering log. Compose has its own mechanism to track out of date files, so it will disable this
+   * reporting.
    */
   var reportOutOfDateUserClasses = false
 
   /**
-   * Custom parser that will be applied to the root view of the layout in order to build the
-   * ViewInfo hierarchy. If null, layoutlib will use its default parser.
+   * Custom parser that will be applied to the root view of the layout in order to build the ViewInfo hierarchy. If null, layoutlib will use
+   * its default parser.
    */
   var customContentHierarchyParser: ((Any) -> List<ViewInfo>)? = null
 
@@ -188,19 +175,16 @@ class LayoutlibSceneRenderConfiguration(
   var useCustomInflater = true
 
   /**
-   * If true, when class loading fails during inflation, some fallback mechanisms will be executed.
-   * See [ViewLoader.loadView] for details.
+   * If true, when class loading fails during inflation, some fallback mechanisms will be executed. See [ViewLoader.loadView] for details.
    */
   var useLoadViewFallbacks = true
 
-  /**
-   * If true sets value of Settings.Global.ANIMATOR_DURATION_SCALE to 0f, otherwise sets it to 1f.
-   */
+  /** If true sets value of Settings.Global.ANIMATOR_DURATION_SCALE to 0f, otherwise sets it to 1f. */
   var disableAnimation = false
 
   /**
-   * Factory of [SessionClock]s to be used in context of the renders. A new clock is created on each
-   * new inflation, but not necessarily on each render.
+   * Factory of [SessionClock]s to be used in context of the renders. A new clock is created on each new inflation, but not necessarily on
+   * each render.
    */
   var sessionClockProvider: () -> SessionClock = ::RealTimeSessionClock
 
@@ -221,11 +205,7 @@ class LayoutlibSceneRenderConfiguration(
   }
 
   /** Creates a new [RenderTask] for the [model] using the current configuration values */
-  internal suspend fun createRenderTask(
-    configuration: Configuration,
-    renderService: RenderService,
-    logger: RenderLogger,
-  ): RenderTask? {
+  internal suspend fun createRenderTask(configuration: Configuration, renderService: RenderService, logger: RenderLogger): RenderTask? {
     val taskBuilder =
       renderService
         .taskBuilder(model.buildTarget, configuration, logger) { wrapRenderModule(it) }

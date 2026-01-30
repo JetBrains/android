@@ -29,17 +29,10 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
     private val reservationActions =
       DefaultActionGroup(
         CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.half.hour"),
+        CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.extend.quarter.hour"),
+        CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.extend.half.hour"),
       )
-    private val wearableActions =
-      DefaultActionGroup(
-        PairWearableDeviceAction(),
-        ViewPairedDevicesAction(),
-        UnpairWearableDeviceAction(),
-      )
+    private val wearableActions = DefaultActionGroup(PairWearableDeviceAction(), ViewPairedDevicesAction(), UnpairWearableDeviceAction())
 
     private val pairGlassesActions = DefaultActionGroup(PairGlassesAction(), UnpairGlassesAction())
   }
@@ -67,14 +60,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
   init {
     addActionListener {
       JBPopupFactory.getInstance()
-        .createActionGroupPopup(
-          null,
-          actions,
-          DataManager.getInstance().getDataContext(this@OverflowButton),
-          true,
-          null,
-          15,
-        )
+        .createActionGroupPopup(null, actions, DataManager.getInstance().getDataContext(this@OverflowButton), true, null, 15)
         .showUnderneathOf(this@OverflowButton)
     }
   }

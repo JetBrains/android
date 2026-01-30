@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("FutureUtils")
+
 package com.android.tools.idea.concurrency
 
 import com.google.common.base.Function
@@ -47,27 +48,23 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-/**
- * @see Futures.transform
- */
-fun <I: Any, O> ListenableFuture<I>.transform(executor: Executor, func: (I) -> O): ListenableFuture<O> {
+/** @see Futures.transform */
+fun <I : Any, O> ListenableFuture<I>.transform(executor: Executor, func: (I) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i!!) }, executor)
 }
 
 /**
  * @see Futures.transform
  *
- * This function is useful for interoperability between Java and Kotlin
- * When in Java the future is ListenableFuture<Void> we set a `null` value to complete the future, if that future is used
- * from Kotlin with the [transform] defined above it throws exception because we are assigning null to a non-nullable variable (I)
+ * This function is useful for interoperability between Java and Kotlin When in Java the future is ListenableFuture<Void> we set a `null`
+ * value to complete the future, if that future is used from Kotlin with the [transform] defined above it throws exception because we are
+ * assigning null to a non-nullable variable (I)
  */
 fun <I, O> ListenableFuture<I>.transformNullable(executor: Executor, func: (I?) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i) }, executor)
 }
 
-/**
- * @see Futures.transformAsync
- */
+/** @see Futures.transformAsync */
 fun <I, O> ListenableFuture<I>.transformAsync(executor: Executor, func: (I) -> ListenableFuture<O>): ListenableFuture<O> {
   return Futures.transformAsync(this, AsyncFunction { i -> func(i!!) }, executor)
 }
@@ -75,17 +72,15 @@ fun <I, O> ListenableFuture<I>.transformAsync(executor: Executor, func: (I) -> L
 /**
  * @see Futures.transformAsync
  *
- * This function is useful for interoperability between Java and Kotlin
- * When in Java the future is ListenableFuture<Void> we set a `null` value to complete the future, if that future is used
- * from Kotlin with the [transformAsync] defined above it throws exception because we are assigning null to a non-nullable variable (I)
+ * This function is useful for interoperability between Java and Kotlin When in Java the future is ListenableFuture<Void> we set a `null`
+ * value to complete the future, if that future is used from Kotlin with the [transformAsync] defined above it throws exception because we
+ * are assigning null to a non-nullable variable (I)
  */
 fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: (I?) -> ListenableFuture<O>): ListenableFuture<O> {
   return Futures.transformAsync(this, AsyncFunction { i -> func(i) }, executor)
 }
 
-/**
- * Wrapper function to convert Future to ListenableFuture
- */
+/** Wrapper function to convert Future to ListenableFuture */
 fun <I> Future<I>.listenInPoolThread(executor: Executor): ListenableFuture<I> {
   return JdkFutureAdapters.listenInPoolThread(this, executor)
 }
@@ -98,24 +93,23 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
   return Futures.whenAllComplete(this)
 }
 
-/**
- * Wrapper function to add callback for a ListenableFuture
- */
+/** Wrapper function to add callback for a ListenableFuture */
 fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable) -> Unit) {
-  addCallback(executor, object : FutureCallback<I> {
-    override fun onFailure(t: Throwable) {
-      failure(t)
-    }
+  addCallback(
+    executor,
+    object : FutureCallback<I> {
+      override fun onFailure(t: Throwable) {
+        failure(t)
+      }
 
-    override fun onSuccess(result: I) {
-      success(result)
-    }
-  })
+      override fun onSuccess(result: I) {
+        success(result)
+      }
+    },
+  )
 }
 
-/**
- * Wrapper function to add callback for a ListenableFuture
- */
+/** Wrapper function to add callback for a ListenableFuture */
 fun <I> ListenableFuture<I>.addCallback(executor: Executor, futureCallback: FutureCallback<I>) {
   Futures.addCallback(this, futureCallback, executor)
 }
@@ -126,18 +120,14 @@ fun <T> executeOnPooledThread(action: () -> T): ListenableFuture<T> {
   return futureTask
 }
 
-/**
- * Converts a [ListenableFuture] to a [CompletionStage].
- */
+/** Converts a [ListenableFuture] to a [CompletionStage]. */
 fun <T> ListenableFuture<T>.toCompletionStage(): CompletionStage<T> = ListenableFutureToCompletionStageAdapter(this)
 
 fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> {
   return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit<T> { ReadAction.compute<T, Throwable>(function) }
 }
 
-private val MyAlarm by lazy {
-  Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication())
-}
+private val MyAlarm by lazy { Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication()) }
 
 fun <V> delayedValue(value: V, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
@@ -151,12 +141,11 @@ fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFut
     Runnable {
       try {
         result.set(callable.call())
-      }
-      catch (t: Throwable) {
+      } catch (t: Throwable) {
         result.setException(t)
       }
     },
-    delayMillis
+    delayMillis,
   )
   return result
 }
@@ -168,10 +157,8 @@ fun <V> delayedError(t: Throwable, delayMillis: Int): ListenableFuture<V> {
 }
 
 /**
- * Waits on the dispatch thread for a [Future] to complete.
- * Calling this method instead of [Future.get] is required for
- * [Future] that have callbacks executing on the
- * [com.intellij.util.concurrency.EdtExecutorService].
+ * Waits on the dispatch thread for a [Future] to complete. Calling this method instead of [Future.get] is required for [Future] that have
+ * callbacks executing on the [com.intellij.util.concurrency.EdtExecutorService].
  */
 @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
 fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeUnit): V {
@@ -185,23 +172,17 @@ fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeU
 
   while (System.nanoTime() <= endNano) {
     IdeEventQueue.getInstance().flushQueue()
-    ApplicationManager.getApplication().invokeAndWait(
-      Runnable {
-        try {
-          future.get(50, TimeUnit.MILLISECONDS)
-        }
-        catch (e: InterruptedException) {
-          // Ignore exceptions since we will retry (or rethrow) later on
-        }
-        catch (e: ExecutionException) {
-        }
-        catch (e: TimeoutException) {
-        }
-        catch (e: CancellationException) {
-        }
-      },
-      ModalityState.any()
-    )
+    ApplicationManager.getApplication()
+      .invokeAndWait(
+        Runnable {
+          try {
+            future.get(50, TimeUnit.MILLISECONDS)
+          } catch (e: InterruptedException) {
+            // Ignore exceptions since we will retry (or rethrow) later on
+          } catch (e: ExecutionException) {} catch (e: TimeoutException) {} catch (e: CancellationException) {}
+        },
+        ModalityState.any(),
+      )
 
     if (future.isDone) {
       return future.get()
@@ -212,46 +193,46 @@ fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeU
 }
 
 /**
- * Similar to [transform], but executes [finallyBlock] in both success and error completion.
- * The returned future fails if:
+ * Similar to [transform], but executes [finallyBlock] in both success and error completion. The returned future fails if:
  * 1. The original future fails.
  * 2. The [finallyBlock] fails.
  *
- * If they both fail, the Throwable from the original future is returned,
- * with the error from [finallyBlock] available through [Throwable.getSuppressed].
+ * If they both fail, the Throwable from the original future is returned, with the error from [finallyBlock] available through
+ * [Throwable.getSuppressed].
  */
 fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> Unit): ListenableFuture<I> {
   val futureResult = SettableFuture.create<I>()
   val inputFuture = this
-  addCallback(executor, object : FutureCallback<I> {
-    override fun onSuccess(result: I) {
-      try {
-        finallyBlock()
-        futureResult.set(result)
-      }
-      catch (finallyError: Throwable) {
-        futureResult.setException(finallyError)
-      }
-    }
-
-    override fun onFailure(t: Throwable) {
-      try {
-        finallyBlock()
-      }
-      catch (finallyThrowable: Throwable) {
-        t.addSuppressed(finallyThrowable)
+  addCallback(
+    executor,
+    object : FutureCallback<I> {
+      override fun onSuccess(result: I) {
+        try {
+          finallyBlock()
+          futureResult.set(result)
+        } catch (finallyError: Throwable) {
+          futureResult.setException(finallyError)
+        }
       }
 
-      if (inputFuture.isCancelled) {
-        // respect cancellation cause, though we swallow
-        // finallyThrowable in this situation
-        futureResult.setFuture(inputFuture)
-        return
+      override fun onFailure(t: Throwable) {
+        try {
+          finallyBlock()
+        } catch (finallyThrowable: Throwable) {
+          t.addSuppressed(finallyThrowable)
+        }
+
+        if (inputFuture.isCancelled) {
+          // respect cancellation cause, though we swallow
+          // finallyThrowable in this situation
+          futureResult.setFuture(inputFuture)
+          return
+        }
+        // propagate original exception with finallyThrowableSuppressed
+        futureResult.setException(t)
       }
-      // propagate original exception with finallyThrowableSuppressed
-      futureResult.setException(t)
-    }
-  })
+    },
+  )
 
   futureResult.addCallback(executor, {}) {
     if (futureResult.isCancelled) {
@@ -261,25 +242,27 @@ fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> 
   return futureResult
 }
 
-/**
- * @see [Futures.catching]
- */
+/** @see [Futures.catching] */
 fun <V, X : Throwable> ListenableFuture<out V>.catching(
-    executor: Executor, exceptionType: Class<X>, fallback: (X) -> V): ListenableFuture<V> {
+  executor: Executor,
+  exceptionType: Class<X>,
+  fallback: (X) -> V,
+): ListenableFuture<V> {
   return Futures.catching(this, exceptionType, Function<X, V> { t -> fallback(t!!) }, executor)
 }
 
-/**
- * @see [Futures.catchingAsync]
- */
+/** @see [Futures.catchingAsync] */
 fun <V, X : Throwable> ListenableFuture<out V>.catchingAsync(
-    executor: Executor, exceptionType: Class<X>, fallback: (X) -> ListenableFuture<V>): ListenableFuture<V> {
+  executor: Executor,
+  exceptionType: Class<X>,
+  fallback: (X) -> ListenableFuture<V>,
+): ListenableFuture<V> {
   return Futures.catchingAsync(this, exceptionType, { t -> fallback(t) }, executor)
 }
 
 /**
- * Submits a [function] in this executor queue, and returns a [ListenableFuture]
- * that completes with the [function] result or the exception thrown from the [function].
+ * Submits a [function] in this executor queue, and returns a [ListenableFuture] that completes with the [function] result or the exception
+ * thrown from the [function].
  */
 fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
   // Should be migrated to Futures.submit(), once guava will be updated to version >= 28.2
@@ -305,13 +288,16 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
   // because it is completed by now, so it is relatively safe.
   // It isn't completely safe, because to access the tree Disposer grabs internal lock
   // and it is blocking operation
-  addListener({
-    if (!Disposer.isDisposed(disposable)) {
-      // we need to remove disposable from the tree since we don't need it anymore
-      // as well as we need to free future, so it can be gc-ed
-      Disposer.dispose(disposable)
-    }
-  }, directExecutor())
+  addListener(
+    {
+      if (!Disposer.isDisposed(disposable)) {
+        // we need to remove disposable from the tree since we don't need it anymore
+        // as well as we need to free future, so it can be gc-ed
+        Disposer.dispose(disposable)
+      }
+    },
+    directExecutor(),
+  )
   try {
     Disposer.register(parent, disposable)
   } catch (e: IncorrectOperationException) {
@@ -321,14 +307,11 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
   return this
 }
 
-/**
- * Tries to get the result of the future without blocking. If result is not ready for any reason, return null.
- */
+/** Tries to get the result of the future without blocking. If result is not ready for any reason, return null. */
 fun <V> Future<V>.getDoneOrNull(): V? {
   try {
     return Futures.getDone(this)
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     return null
   }
 }

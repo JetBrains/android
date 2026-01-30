@@ -84,8 +84,7 @@ class DeviceModelTest {
     assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)
 
     val deviceModel2 = DeviceModel(disposableRule.disposable, processModel)
-    assertThat(ForegroundProcessDetectionImpl.deviceModels)
-      .containsExactly(deviceModel1, deviceModel2)
+    assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1, deviceModel2)
 
     Disposer.dispose(deviceModel2)
     assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)

@@ -25,11 +25,13 @@ import com.android.tools.idea.diagnostics.hprof.visitors.CompositeVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CreateClassStoreVisitor
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
-                    val threads: Long2ObjectOpenHashMap<ThreadInfo>,
-                    var roots: Long2ObjectOpenHashMap<RootReason>) {
+class HProfMetadata(
+  var classStore: ClassStore, // TODO: private-set, public-get
+  val threads: Long2ObjectOpenHashMap<ThreadInfo>,
+  var roots: Long2ObjectOpenHashMap<RootReason>,
+) {
 
-  class RemapException : Exception();
+  class RemapException : Exception()
 
   fun remapIds(idMapper: IDMapper) {
     // Remap ids in class store
@@ -58,16 +60,9 @@ class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
       val threadInfoVisitor = CollectThreadInfoVisitor(threadsMap, stringIdMap)
       val rootReasonsVisitor = CollectRootReasonsVisitor(threadsMap)
 
-      val visitor = CompositeVisitor(
-        CollectStringValuesVisitor(stringIdMap),
-        classStoreVisitor,
-        threadInfoVisitor,
-        rootReasonsVisitor
-      )
+      val visitor = CompositeVisitor(CollectStringValuesVisitor(stringIdMap), classStoreVisitor, threadInfoVisitor, rootReasonsVisitor)
       parser.accept(visitor, "create hprof metadata")
-      return HProfMetadata(classStoreVisitor.getClassStore(),
-                           threadsMap,
-                           rootReasonsVisitor.roots)
+      return HProfMetadata(classStoreVisitor.getClassStore(), threadsMap, rootReasonsVisitor.roots)
     }
   }
 }

@@ -29,10 +29,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
 import java.nio.file.Path
 
-/**
- * Opens a project using [openProjectImplementation], supplements it with
- * `JavaCodeInsightTestFixture` and runs the `testBody`.
- */
+/** Opens a project using [openProjectImplementation], supplements it with `JavaCodeInsightTestFixture` and runs the `testBody`. */
 internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
   openProjectImplementation: ((project: Project, projectRoot: File) -> T) -> T,
   testBody: PreparedTestProject.Context.(project: Project) -> T,
@@ -56,15 +53,13 @@ internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
         override fun getProject(): Project? =
           currentProject.let { currentProject ->
             when {
-              currentProject == null ->
-                error("Unexpected: project must have been initialized by now")
+              currentProject == null -> error("Unexpected: project must have been initialized by now")
               currentProject.isDisposed -> null
               else -> currentProject
             }
           }
 
-        override fun getModule(): Module? =
-          currentModule ?: project?.gradleModule(":app")?.getMainModule()
+        override fun getModule(): Module? = currentModule ?: project?.gradleModule(":app")?.getMainModule()
 
         override fun getTestRootDisposable(): Disposable = rootDisposable
       }
@@ -85,8 +80,7 @@ internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
             override fun doCreateTempDirectory(): Path = projectRoot.toPath()
           }
 
-        val codeInsightTestFixture =
-          JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
+        val codeInsightTestFixture = JavaCodeInsightTestFixtureImpl(projectTestFixture, tempDirFixture)
         usingIdeaTestFixture(codeInsightTestFixture) {
           val preparedProjectContext =
             object : PreparedTestProject.Context {
@@ -102,9 +96,7 @@ internal fun <T> openProjectAndRunTestWithTestFixturesAvailable(
         }
       }
     } finally {
-      runInEdtAndWait {
-        runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) }
-      }
+      runInEdtAndWait { runCatchingAndRecord { Disposer.dispose(projectTestFixture.testRootDisposable) } }
     }
   }
 }

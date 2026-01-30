@@ -34,15 +34,14 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.UsefulTestCase.assertInstanceOf
 import com.intellij.testFramework.UsefulTestCase.assertSize
+import java.util.IdentityHashMap
 import junit.framework.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import java.util.IdentityHashMap
 
 @RunsInEdt
 class MissingSdkIssueReporterTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val reporter = MissingSdkIssueReporter()
 
@@ -50,7 +49,6 @@ class MissingSdkIssueReporterTest {
   fun testWithSingleModule() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-
       val localPropertiesPath = preparedProject.root.resolve(SdkConstants.FN_LOCAL_PROPERTIES)
       val syncIssue = setUpMockSyncIssue(localPropertiesPath.absolutePath)
 
@@ -65,7 +63,7 @@ class MissingSdkIssueReporterTest {
           "your project's local.properties file.\n" +
           "<a href=\"set.sdkdir\">Set sdk.dir in local.properties and sync project</a>\n" +
           "Affected Modules: app",
-        notification.message
+        notification.message,
       )
       assertEquals(MessageType.WARNING, notification.type)
 
@@ -79,13 +77,12 @@ class MissingSdkIssueReporterTest {
 
       assertEquals(
         listOf(
-          GradleSyncIssue
-            .newBuilder()
+          GradleSyncIssue.newBuilder()
             .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
             .build()
         ),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage })
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage }),
       )
     }
   }
@@ -94,7 +91,6 @@ class MissingSdkIssueReporterTest {
   fun testWithCompositeBuild() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
-
       val localPropertiesPath = preparedProject.root.resolve(SdkConstants.FN_LOCAL_PROPERTIES)
       val localPropertiesPathTwo = preparedProject.root.resolve("TestCompositeLib1/${SdkConstants.FN_LOCAL_PROPERTIES}")
       val localPropertiesPathThree = preparedProject.root.resolve("TestCompositeLib3/${SdkConstants.FN_LOCAL_PROPERTIES}")
@@ -103,23 +99,17 @@ class MissingSdkIssueReporterTest {
       val syncIssueTwo = setUpMockSyncIssue(localPropertiesPathTwo.absolutePath)
       val syncIssueThree = setUpMockSyncIssue(localPropertiesPathThree.absolutePath)
 
-
       val projectModule = project.gradleModule(":")!!
       val testCompositeBuildLib1 = project.gradleModule(":TestCompositeLib1")!!
       val testCompositeBuildLib3 = project.gradleModule(":TestCompositeLib3")!!
-      val moduleMap = listOf(
-        syncIssueOne to projectModule,
-        syncIssueTwo to testCompositeBuildLib1,
-        syncIssueThree to testCompositeBuildLib3
-      ).toMap(IdentityHashMap())
+      val moduleMap =
+        listOf(syncIssueOne to projectModule, syncIssueTwo to testCompositeBuildLib1, syncIssueThree to testCompositeBuildLib3)
+          .toMap(IdentityHashMap())
 
-      val messages = reporter
-        .reportAll(
-          listOf(syncIssueOne, syncIssueTwo, syncIssueThree),
-          moduleMap,
-          mapOf()
-        )
-        .filter { it.syncMessage.type == MessageType.WARNING }
+      val messages =
+        reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf()).filter {
+          it.syncMessage.type == MessageType.WARNING
+        }
 
       assertSize(1, messages)
       val notification = messages[0].syncMessage
@@ -130,7 +120,7 @@ class MissingSdkIssueReporterTest {
           "your project's local.properties files.\n" +
           "<a href=\"set.sdkdir\">Set sdk.dir in local.properties and sync project</a>\n" +
           "Affected Modules: TestCompositeLib1, TestCompositeLib3, project",
-        notification.message
+        notification.message,
       )
 
       val quickFixes = notification.quickFixes
@@ -139,20 +129,21 @@ class MissingSdkIssueReporterTest {
       val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
       assertSize(3, quickFixPaths)
       assertContainsElements(
-        quickFixPaths, localPropertiesPath.absolutePath, localPropertiesPathTwo.absolutePath,
-        localPropertiesPathThree.absolutePath
+        quickFixPaths,
+        localPropertiesPath.absolutePath,
+        localPropertiesPathTwo.absolutePath,
+        localPropertiesPathThree.absolutePath,
       )
       assertEquals(listOf(testCompositeBuildLib1, testCompositeBuildLib3, projectModule), messages[0].affectedModules)
 
       assertEquals(
         listOf(
-          GradleSyncIssue
-            .newBuilder()
+          GradleSyncIssue.newBuilder()
             .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
             .build()
         ),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage })
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage }),
       )
     }
   }
@@ -163,7 +154,7 @@ class MissingSdkIssueReporterTest {
       severity = IdeSyncIssue.SEVERITY_ERROR,
       message = "This is some message that is not used",
       type = IdeSyncIssue.TYPE_SDK_NOT_SET,
-      multiLineMessage = null
+      multiLineMessage = null,
     )
   }
 }

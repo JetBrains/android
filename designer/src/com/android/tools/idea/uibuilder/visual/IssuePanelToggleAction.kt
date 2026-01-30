@@ -27,8 +27,7 @@ import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
-class IssuePanelToggleAction :
-  ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
+class IssuePanelToggleAction : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
     val project = e.project ?: return false
@@ -49,8 +48,7 @@ class IssuePanelToggleAction :
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.getData(PlatformDataKeys.PROJECT)?.let { project ->
-      e.presentation.isVisible =
-        IssuePanelService.getInstance(project).getSharedPanelIssues().isNotEmpty()
+      e.presentation.isVisible = IssuePanelService.getInstance(project).getSharedPanelIssues().isNotEmpty()
     }
   }
 

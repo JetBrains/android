@@ -41,6 +41,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,14 +56,12 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.io.File
 
 @RunsInEdt
 class AehdWizardControllerTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain = RuleChain(projectRule, EdtRule())
+  @get:Rule val chain = RuleChain(projectRule, EdtRule())
 
   private val sdkLocation: File = FileUtil.createTempDirectory("sdk", null)
   private lateinit var sdkHandler: AndroidSdkHandler
@@ -70,9 +69,7 @@ class AehdWizardControllerTest {
   private lateinit var progressStep: ProgressStep
   private lateinit var sdkComponentInstaller: SdkComponentInstaller
   private lateinit var controller: AehdWizardController
-  private val sdkPackages = listOf(
-    FakePackage.FakeRemotePackage("extras;google;Android_Emulator_Hypervisor_Driver"),
-  )
+  private val sdkPackages = listOf(FakePackage.FakeRemotePackage("extras;google;Android_Emulator_Hypervisor_Driver"))
 
   @Before
   fun setUp() {
@@ -81,9 +78,9 @@ class AehdWizardControllerTest {
     whenever(projectRule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
     progressStep = FakeProgressStep()
     sdkComponentInstaller = spy(SdkComponentInstaller())
-    doAnswer {
-      doReturn(emptyList<RemotePackage>()).whenever(sdkComponentInstaller).getPackagesToInstall(any(), any())
-    }.whenever(sdkComponentInstaller).installPackages(any(), any(), any(), any())
+    doAnswer { doReturn(emptyList<RemotePackage>()).whenever(sdkComponentInstaller).getPackagesToInstall(any(), any()) }
+      .whenever(sdkComponentInstaller)
+      .installPackages(any(), any(), any(), any())
     controller = AehdWizardController(sdkComponentInstaller)
   }
 
@@ -112,9 +109,7 @@ class AehdWizardControllerTest {
   fun setupAehd_installsAndConfigures() {
     val aehdNode = spy(AehdSdkComponentTreeNode(INSTALL_WITH_UPDATES))
     aehdNode.updateState(sdkHandler)
-    doAnswer {
-      doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted
-    }.whenever(aehdNode).configure(any(), any())
+    doAnswer { doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted }.whenever(aehdNode).configure(any(), any())
 
     val result = controller.setupAehd(aehdNode, progressStep, fakeProgressIndicator)
 
@@ -128,9 +123,7 @@ class AehdWizardControllerTest {
   fun setupAehd_configuresOnlyWhenInstallationIntentionSetToConfigureOnly() {
     val aehdNode = spy(AehdSdkComponentTreeNode(CONFIGURE_ONLY))
     aehdNode.updateState(sdkHandler)
-    doAnswer {
-      doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted
-    }.whenever(aehdNode).configure(any(), any())
+    doAnswer { doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted }.whenever(aehdNode).configure(any(), any())
 
     val result = controller.setupAehd(aehdNode, progressStep, fakeProgressIndicator)
 
@@ -144,9 +137,7 @@ class AehdWizardControllerTest {
   fun setupAehd_configuresOnlyWhenInstallationIntentionSetToUninstall() {
     val aehdNode = spy(AehdSdkComponentTreeNode(UNINSTALL))
     aehdNode.updateState(sdkHandler)
-    doAnswer {
-      doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted
-    }.whenever(aehdNode).configure(any(), any())
+    doAnswer { doReturn(true).whenever(aehdNode).isInstallerSuccessfullyCompleted }.whenever(aehdNode).configure(any(), any())
 
     val result = controller.setupAehd(aehdNode, progressStep, fakeProgressIndicator)
 
@@ -160,9 +151,7 @@ class AehdWizardControllerTest {
   fun setupAehd_cleansUpInstalledPackagesIfConfigurationFailed() {
     val aehdNode = spy(AehdSdkComponentTreeNode(INSTALL_WITH_UPDATES))
     aehdNode.updateState(sdkHandler)
-    doAnswer {
-      doReturn(false).whenever(aehdNode).isInstallerSuccessfullyCompleted
-    }.whenever(aehdNode).configure(any(), any())
+    doAnswer { doReturn(false).whenever(aehdNode).isInstallerSuccessfullyCompleted }.whenever(aehdNode).configure(any(), any())
     doNothing().whenever(sdkComponentInstaller).ensureSdkPackagesUninstalled(any(), any(), any())
 
     val result = controller.setupAehd(aehdNode, progressStep, fakeProgressIndicator)
@@ -223,12 +212,15 @@ class AehdWizardControllerTest {
 
   class FakeProgressStep : ProgressStep {
     override fun isCanceled(): Boolean = false
+
     override fun print(s: String, contentType: ConsoleViewContentType) {}
+
     override fun run(runnable: Runnable, progressPortion: Double) {
       runnable.run()
     }
 
     override fun attachToProcess(processHandler: ProcessHandler) {}
+
     override fun getProgressIndicator(): com.intellij.openapi.progress.ProgressIndicator = ProgressIndicatorBase()
   }
 }

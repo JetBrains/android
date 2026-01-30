@@ -72,8 +72,7 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 
 private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
-const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
-  "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
+const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
 const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 // For these keys we store Deferred<T> instead of just T as it can take a while to calculate the
@@ -81,20 +80,17 @@ const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TileP
 // fast and re-used fast.
 // This way additional calls made before the value has finished being calculated won't result
 // in additional calculations being "piled on". Instead, they can just wait on the deferred.
-private val hasPreviewElementsCacheKey =
-  Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("hasPreviewElements")
-private val previewElementsCacheKey =
-  Key<ChangeTrackerCachedValue<Deferred<Collection<PsiWearTilePreviewElement>>>>("previewElements")
+private val hasPreviewElementsCacheKey = Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("hasPreviewElements")
+private val previewElementsCacheKey = Key<ChangeTrackerCachedValue<Deferred<Collection<PsiWearTilePreviewElement>>>>("previewElements")
 private val uMethodsWithTilePreviewSignatureCacheKey =
   Key<ChangeTrackerCachedValue<Deferred<List<UMethod>>>>("uMethodsWithTilePreviewSignature")
-private val isTileAnnotationUsedCacheKey =
-  Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("isTileAnnotationUsed")
+private val isTileAnnotationUsedCacheKey = Key<ChangeTrackerCachedValue<Deferred<Boolean>>>("isTileAnnotationUsed")
 
 /**
  * Object that can detect wear tile preview elements in a file.
  *
- * @param findMethods a function that returns all [PsiMethod]s and [KtNamedFunction]s for a given
- *   [PsiFile]. The method will be invoked under a read lock.
+ * @param findMethods a function that returns all [PsiMethod]s and [KtNamedFunction]s for a given [PsiFile]. The method will be invoked
+ *   under a read lock.
  */
 internal class WearTilePreviewElementFinder(
   @RequiresReadLock
@@ -104,10 +100,9 @@ internal class WearTilePreviewElementFinder(
 ) : FilePreviewElementFinder<PsiWearTilePreviewElement> {
 
   /**
-   * Checks if a given [vFile] contains any [PsiWearTilePreviewElement]s. Results of this method
-   * will be cached until there are changes to any java or kotlin files in the given [project] or
-   * when there are smart mode changes to the [project]. It's also possible for the cached value to
-   * be garbage collected, in which case the results will be recomputed.
+   * Checks if a given [vFile] contains any [PsiWearTilePreviewElement]s. Results of this method will be cached until there are changes to
+   * any java or kotlin files in the given [project] or when there are smart mode changes to the [project]. It's also possible for the
+   * cached value to be garbage collected, in which case the results will be recomputed.
    */
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     if (DumbService.isDumb(project)) return false
@@ -116,14 +111,8 @@ internal class WearTilePreviewElementFinder(
         if (!isTileAnnotationUsed(project, vFile)) {
           return@withContext false
         }
-        cachedAsyncValue(
-          vFile,
-          hasPreviewElementsCacheKey,
-          project.javaKotlinAndDumbChangeTrackers(),
-        ) {
-          findUMethodsWithTilePreviewSignature(project, vFile, findMethods).any {
-            it.findAllTilePreviewAnnotations().firstOrNull() != null
-          }
+        cachedAsyncValue(vFile, hasPreviewElementsCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
+          findUMethodsWithTilePreviewSignature(project, vFile, findMethods).any { it.findAllTilePreviewAnnotations().firstOrNull() != null }
         }
       }
     } catch (_: CancellationException) {
@@ -133,30 +122,19 @@ internal class WearTilePreviewElementFinder(
   }
 
   /**
-   * Retrieves all [PsiWearTilePreviewElement] in a given [vFile]. Results of this method will be
-   * cached until there are changes to any java or kotlin files in the given [project] or when there
-   * are smart mode changes to the [project]. It's also possible for the cached value to be garbage
-   * collected, in which case the results will be recomputed.
+   * Retrieves all [PsiWearTilePreviewElement] in a given [vFile]. Results of this method will be cached until there are changes to any java
+   * or kotlin files in the given [project] or when there are smart mode changes to the [project]. It's also possible for the cached value
+   * to be garbage collected, in which case the results will be recomputed.
    */
-  override suspend fun findPreviewElements(
-    project: Project,
-    vFile: VirtualFile,
-  ): Collection<PsiWearTilePreviewElement> {
+  override suspend fun findPreviewElements(project: Project, vFile: VirtualFile): Collection<PsiWearTilePreviewElement> {
     if (DumbService.isDumb(project)) return emptyList()
     return try {
       withContext(workerThread) {
-        cachedAsyncValue(
-          vFile,
-          previewElementsCacheKey,
-          project.javaKotlinAndDumbChangeTrackers(),
-        ) {
+        cachedAsyncValue(vFile, previewElementsCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
           findUMethodsWithTilePreviewSignature(project, vFile, findMethods)
             .flatMap { method ->
               ProgressManager.checkCanceled()
-              method
-                .findAllTilePreviewAnnotations()
-                .mapNotNull { it.asTilePreviewNode(method) }
-                .toList()
+              method.findAllTilePreviewAnnotations().mapNotNull { it.asTilePreviewNode(method) }.toList()
             }
             .distinct()
         }
@@ -169,20 +147,16 @@ internal class WearTilePreviewElementFinder(
 }
 
 /**
- * Returns true if a [UMethod] or [UAnnotation] is not null is annotated with a Tile Preview
- * annotation, either directly or through a Multi-Preview annotation.
+ * Returns true if a [UMethod] or [UAnnotation] is not null is annotated with a Tile Preview annotation, either directly or through a
+ * Multi-Preview annotation.
  */
 @RequiresBackgroundThread
 fun UElement?.hasTilePreviewAnnotation(): Boolean {
-  assert(this is UMethod? || this is UAnnotation?) {
-    "The UElement should be either a UMethod or a UAnnotation"
-  }
+  assert(this is UMethod? || this is UAnnotation?) { "The UElement should be either a UMethod or a UAnnotation" }
   val project = this?.sourcePsi?.project ?: return false
   if (DumbService.isDumb(project)) return false
   // TODO(b/381827960): avoid using runBlockingCancellable
-  return runBlockingCancellable {
-    this@hasTilePreviewAnnotation?.findAllTilePreviewAnnotations()?.firstOrNull() != null
-  }
+  return runBlockingCancellable { this@hasTilePreviewAnnotation?.findAllTilePreviewAnnotations()?.firstOrNull() != null }
 }
 
 /**
@@ -190,23 +164,17 @@ fun UElement?.hasTilePreviewAnnotation(): Boolean {
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
-internal fun UAnnotation.isTilePreviewAnnotation() =
-  this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
+@RequiresReadLock internal fun UAnnotation.isTilePreviewAnnotation() = this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
-private fun UElement?.isWearTilePreviewAnnotation() =
-  (this as? UAnnotation)?.isTilePreviewAnnotation() == true
+@RequiresReadLock private fun UElement?.isWearTilePreviewAnnotation() = (this as? UAnnotation)?.isTilePreviewAnnotation() == true
 
 @Slow
-private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
-  uMethod: UMethod
-): PsiWearTilePreviewElement? {
+private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(uMethod: UMethod): PsiWearTilePreviewElement? {
   val annotation = element as UAnnotation
   if (readAction { !annotation.isTilePreviewAnnotation() }) return null
 
@@ -222,9 +190,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
       previewParameterAnnotationFqns = setOf(),
     )
   val nameHelper =
-    AnnotationPreviewNameHelper.create(this, readAction { annotatedMethod.name }) {
-      readAction { isWearTilePreviewAnnotation() }
-    }
+    AnnotationPreviewNameHelper.create(this, readAction { annotatedMethod.name }) { readAction { isWearTilePreviewAnnotation() } }
 
   return readAction {
     previewAnnotationToWearTilePreviewElement(
@@ -238,10 +204,9 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 }
 
 /**
- * Retrieves all [UMethod]s in a given [virtualFile] that have a Tile Preview signature. Results of
- * this method will be cached until there are changes to any java or kotlin files in the given
- * [project] or when there are smart mode changes to the [project]. It's also possible for the
- * cached value to be garbage collected, in which case the results will be recomputed.
+ * Retrieves all [UMethod]s in a given [virtualFile] that have a Tile Preview signature. Results of this method will be cached until there
+ * are changes to any java or kotlin files in the given [project] or when there are smart mode changes to the [project]. It's also possible
+ * for the cached value to be garbage collected, in which case the results will be recomputed.
  *
  * @see isMethodWithTilePreviewSignature for details on what a tile preview signature should be
  */
@@ -251,11 +216,7 @@ private suspend fun CoroutineScope.findUMethodsWithTilePreviewSignature(
   virtualFile: VirtualFile,
   @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
-  return cachedAsyncValue(
-    virtualFile,
-    uMethodsWithTilePreviewSignatureCacheKey,
-    project.javaKotlinAndDumbChangeTrackers(),
-  ) {
+  return cachedAsyncValue(virtualFile, uMethodsWithTilePreviewSignatureCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
     findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile, findMethods)
   }
 }
@@ -282,17 +243,14 @@ private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
     .mapNotNull { smartReadAction(project) { it.element.toUElement(UMethod::class.java) } }
 }
 
-private fun UElement.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph {
-  readAction { it.isTilePreviewAnnotation() }
-}
+private fun UElement.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph { readAction { it.isTilePreviewAnnotation() } }
 
 /**
- * Checks if a [PsiElement] is a method with the signature required for a Tile Preview. The expected
- * signature of a Tile Preview method is to have the return type [TILE_PREVIEW_DATA_FQ_NAME] and to
- * have either no parameters or single parameter of type [SdkConstants.CLASS_CONTEXT].
+ * Checks if a [PsiElement] is a method with the signature required for a Tile Preview. The expected signature of a Tile Preview method is
+ * to have the return type [TILE_PREVIEW_DATA_FQ_NAME] and to have either no parameters or single parameter of type
+ * [SdkConstants.CLASS_CONTEXT].
  *
- * To be considered a method, the [PsiElement] should be either a [PsiMethod] or a
- * [KtNamedFunction].
+ * To be considered a method, the [PsiElement] should be either a [PsiMethod] or a [KtNamedFunction].
  */
 @RequiresReadLock
 internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
@@ -329,8 +287,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   val hasSingleContextParameter =
     when (this) {
       is PsiMethod ->
-        parameterList.parametersCount == 1 &&
-          parameterList.getParameter(0)?.type?.equalsToText(SdkConstants.CLASS_CONTEXT) == true
+        parameterList.parametersCount == 1 && parameterList.getParameter(0)?.type?.equalsToText(SdkConstants.CLASS_CONTEXT) == true
       is KtNamedFunction -> {
         val typeReference = valueParameters.singleOrNull()?.typeReference
         if (typeReference != null) {
@@ -345,46 +302,32 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   return hasSingleContextParameter
 }
 
-private fun <T> UserDataHolder.getOrCreateCachedValue(
-  key: Key<ChangeTrackerCachedValue<T>>,
-  create: () -> ChangeTrackerCachedValue<T>,
-) = getUserData(key) ?: create().also { putUserData(key, it) }
+private fun <T> UserDataHolder.getOrCreateCachedValue(key: Key<ChangeTrackerCachedValue<T>>, create: () -> ChangeTrackerCachedValue<T>) =
+  getUserData(key) ?: create().also { putUserData(key, it) }
 
 private fun Project.javaKotlinAndDumbChangeTrackers() =
   ChangeTracker(
     ChangeTracker {
       PsiModificationTracker.getInstance(this)
-        .forLanguages { lang ->
-          lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
-        }
+        .forLanguages { lang -> lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE) }
         .modificationCount
     },
     ChangeTracker { DumbService.getInstance(this).modificationTracker.modificationCount },
   )
 
 /**
- * This method looks up the annotations indexes in order to see if the tile preview annotation is
- * used. If the annotation is never used, then we don't need to iterate over methods to search for
- * previews. We search the module as well as its dependencies and libraries as a preview can be
- * using a Multi-Preview declared in another module or library.
+ * This method looks up the annotations indexes in order to see if the tile preview annotation is used. If the annotation is never used,
+ * then we don't need to iterate over methods to search for previews. We search the module as well as its dependencies and libraries as a
+ * preview can be using a Multi-Preview declared in another module or library.
  */
 @Slow
-private suspend fun CoroutineScope.isTileAnnotationUsed(
-  project: Project,
-  vFile: VirtualFile,
-): Boolean {
+private suspend fun CoroutineScope.isTileAnnotationUsed(project: Project, vFile: VirtualFile): Boolean {
   val module = vFile.getModule(project) ?: return false
-  return cachedAsyncValue(
-    module,
-    isTileAnnotationUsedCacheKey,
-    project.javaKotlinAndDumbChangeTrackers(),
-  ) {
+  return cachedAsyncValue(module, isTileAnnotationUsedCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
     smartReadAction(project) {
       val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
       KotlinAnnotationsIndex[TILE_PREVIEW_ANNOTATION_NAME, project, scope].any() ||
-        JavaAnnotationIndex.getInstance()
-          .getAnnotations(TILE_PREVIEW_ANNOTATION_NAME, project, scope)
-          .any()
+        JavaAnnotationIndex.getInstance().getAnnotations(TILE_PREVIEW_ANNOTATION_NAME, project, scope).any()
     }
   }
 }

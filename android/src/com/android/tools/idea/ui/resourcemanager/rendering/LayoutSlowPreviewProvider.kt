@@ -29,18 +29,19 @@ import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.JBUIScale
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * [SlowResourcePreviewProvider] for Layout and Menu resources.
- */
-class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
-                                private val resourceResolver: ResourceResolver,
-                                private val renderingOptions: LayoutRenderOptions? = null,
-                                placeholderImage: BufferedImage? = null) : SlowResourcePreviewProvider {
+/** [SlowResourcePreviewProvider] for Layout and Menu resources. */
+class LayoutSlowPreviewProvider(
+  private val facet: AndroidFacet,
+  private val resourceResolver: ResourceResolver,
+  private val renderingOptions: LayoutRenderOptions? = null,
+  placeholderImage: BufferedImage? = null,
+) : SlowResourcePreviewProvider {
 
-  override val previewPlaceholder: BufferedImage = placeholderImage ?: createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
+  override val previewPlaceholder: BufferedImage =
+    placeholderImage ?: createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
 
   override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
     val designAsset = asset as? DesignAsset ?: return null
@@ -53,11 +54,8 @@ class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
   private fun ResourceResolver.getResolvedLayoutFile(designAsset: DesignAsset): VirtualFile? =
     if (designAsset.resourceItem.type == ResourceType.ATTR) {
       // For theme attributes, resolve the layout file.
-      resolveValue(designAsset)?.value?.let {
-        toFileResourcePathString(it)?.toVirtualFile()
-      }
-    }
-    else {
+      resolveValue(designAsset)?.value?.let { toFileResourcePathString(it)?.toVirtualFile() }
+    } else {
       designAsset.file
     }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.DocumentAdapter
@@ -24,33 +23,30 @@ import javax.swing.event.DocumentEvent
 import javax.swing.text.JTextComponent
 
 /**
- * Class installs validation function as component validator for a JTextComponent. Validation function will run each time text is changed
- * in the component.
+ * Class installs validation function as component validator for a JTextComponent. Validation function will run each time text is changed in
+ * the component.
  *
  * validationFunction takes sting to validate and returns null if input is correct or validation message otherwise
  */
-class PropertyEditorValidator(
-  private val disposable: Disposable,
-  private val validationFunction: ((String) -> String?)
-) {
+class PropertyEditorValidator(private val disposable: Disposable, private val validationFunction: ((String) -> String?)) {
   fun installValidation(component: JTextComponent) {
-    ComponentValidator(disposable).withValidator { ->
-      val message = validationFunction.invoke(component.text)
-      message?.let { ValidationInfo(it, component) }
-    }.installOn(component)
+    ComponentValidator(disposable)
+      .withValidator { ->
+        val message = validationFunction.invoke(component.text)
+        message?.let { ValidationInfo(it, component) }
+      }
+      .installOn(component)
 
     component.document?.addDocumentListener(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           ComponentValidator.getInstance(component).ifPresent { v: ComponentValidator -> v.revalidate() }
         }
-      })
+      }
+    )
   }
 
-  /**
-   * installValidation should be called before this method.
-   * Validator must be installed to component before triggering manual validation
-   */
+  /** installValidation should be called before this method. Validator must be installed to component before triggering manual validation */
   fun validate(component: JTextComponent) {
     ComponentValidator.getInstance(component).ifPresent { v: ComponentValidator -> v.revalidate() }
   }

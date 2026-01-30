@@ -23,8 +23,7 @@ import com.android.tools.preview.config.Orientation
 internal val ExpectedInteger = OpenEndedValueType("Integer")
 
 /** Value should be a boolean, either 'true' or 'false'. */
-internal val ExpectedStrictBoolean =
-  MultipleChoiceValueType(listOf(true.toString(), false.toString()))
+internal val ExpectedStrictBoolean = MultipleChoiceValueType(listOf(true.toString(), false.toString()))
 
 /** Value should be either 'landscape' or 'portrait'. */
 internal val ExpectedOrientation = MultipleChoiceValueType(Orientation.values().map { it.name })

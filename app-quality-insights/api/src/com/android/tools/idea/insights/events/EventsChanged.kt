@@ -41,12 +41,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
         if (selectedIssue == null) {
           Action.NONE
         } else {
-          Action.FetchInsight(
-            selectedIssue.id,
-            state.selectedVariant?.id,
-            selectedIssue.issueDetails.fatality,
-            Event.EMPTY,
-          )
+          Action.FetchInsight(selectedIssue.id, state.selectedVariant?.id, selectedIssue.issueDetails.fatality, Event.EMPTY)
         },
       )
     }
@@ -56,45 +51,28 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
         state.currentEvents.map { currentEvents ->
           if (currentEvents == null) {
             Logger.getInstance(this::class.java)
-              .warn(
-                "currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready"
-              )
+              .warn("currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready")
             DynamicEventGallery(newEvents.events, 0, newEvents.token)
           } else {
             currentEvents.appendEventPage(newEvents)
           }
         }
       } else {
-        eventPage.map {
-          if (it == EventPage.EMPTY) null
-          else DynamicEventGallery(newEvents.events, 0, newEvents.token)
-        }
+        eventPage.map { if (it == EventPage.EMPTY) null else DynamicEventGallery(newEvents.events, 0, newEvents.token) }
       }
     val eventGallery = events.value
-    val shouldFetchInsight =
-      selectedIssue != null &&
-        eventGallery?.selected != null &&
-        state.currentInsight is LoadingState.Loading
+    val shouldFetchInsight = selectedIssue != null && eventGallery?.selected != null && state.currentInsight is LoadingState.Loading
     return StateTransition(
         newState = state.copy(currentEvents = events),
         action =
           if (shouldFetchInsight) {
-            Action.FetchInsight(
-              selectedIssue.id,
-              state.selectedVariant?.id,
-              selectedIssue.issueDetails.fatality,
-              eventGallery.selected!!,
-            )
+            Action.FetchInsight(selectedIssue.id, state.selectedVariant?.id, selectedIssue.issueDetails.fatality, eventGallery.selected!!)
           } else Action.NONE,
       )
       .also { trackEventFetched(tracker, it.newState, state.currentEvents is LoadingState.Loading) }
   }
 
-  private fun trackEventFetched(
-    tracker: AppInsightsTracker,
-    state: AppInsightsState,
-    isFirstFetch: Boolean,
-  ) {
+  private fun trackEventFetched(tracker: AppInsightsTracker, state: AppInsightsState, isFirstFetch: Boolean) {
     val appId = state.connections.selected?.appId ?: return
     val issue = state.selectedIssue ?: return
 

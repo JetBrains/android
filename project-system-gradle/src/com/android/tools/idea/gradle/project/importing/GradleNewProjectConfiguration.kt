@@ -15,6 +15,4 @@
  */
 package com.android.tools.idea.gradle.project.importing
 
-data class GradleNewProjectConfiguration(
-    val useDefaultDaemonJvmCriteria: Boolean = false
-)
+data class GradleNewProjectConfiguration(val useDefaultDaemonJvmCriteria: Boolean = false)

@@ -57,32 +57,16 @@ class SceneHitListenerTest : SceneTest() {
             .withBounds(200, 200, 200, 200)
             .width("100dp")
             .height("100dp")
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "100dp",
-            )
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-              "100dp",
-            )
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp")
             .children(
               component(SdkConstants.TEXT_VIEW)
                 .id("@+id/textView")
                 .withBounds(300, 300, 100, 50)
                 .width("50dp")
                 .height("25dp")
-                .withAttribute(
-                  SdkConstants.SHERPA_URI,
-                  SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                  "50dp",
-                )
-                .withAttribute(
-                  SdkConstants.SHERPA_URI,
-                  SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                  "50dp",
-                )
+                .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "50dp")
+                .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "50dp")
             )
         ),
     )

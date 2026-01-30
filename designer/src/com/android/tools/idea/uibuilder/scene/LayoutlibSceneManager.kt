@@ -67,33 +67,21 @@ private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
  * @param model the [NlModel] to be rendered by this [LayoutlibSceneManager].
  * @param designSurface the [DesignSurface] used to present the result of the renders.
  * @param renderTaskDisposerExecutor the [Executor] to be used for running the slow [dispose] calls.
- * @param sceneComponentProvider the [SceneComponentHierarchyProvider] providing the mapping from
- *   [NlComponent] to [SceneComponent]s.
- * @param layoutScannerConfig the [LayoutScannerConfiguration] for layout validation from
- *   Accessibility Testing Framework.
- * @param listenToResourceChanges if true, a change in resources will automatically trigger a
- *   re-render and will clear the caches.
- * @param notificationExecutorService the [ExecutorService] to be used for running the resource
- *   change notifications.
+ * @param sceneComponentProvider the [SceneComponentHierarchyProvider] providing the mapping from [NlComponent] to [SceneComponent]s.
+ * @param layoutScannerConfig the [LayoutScannerConfiguration] for layout validation from Accessibility Testing Framework.
+ * @param listenToResourceChanges if true, a change in resources will automatically trigger a re-render and will clear the caches.
+ * @param notificationExecutorService the [ExecutorService] to be used for running the resource change notifications.
  */
 open class LayoutlibSceneManager(
   model: NlModel,
   designSurface: DesignSurface<*>,
   renderTaskDisposerExecutor: Executor = AppExecutorUtil.getAppExecutorService(),
-  sceneComponentProvider: SceneComponentHierarchyProvider =
-    LayoutlibSceneManagerHierarchyProvider(),
+  sceneComponentProvider: SceneComponentHierarchyProvider = LayoutlibSceneManagerHierarchyProvider(),
   layoutScannerConfig: LayoutScannerConfiguration = LayoutScannerEnabled(),
   listenToResourceChanges: Boolean = true,
-  notificationExecutorServiceProvider: (Disposable) -> ExecutorService =
-    ::defaultNotificationExecutorService,
+  notificationExecutorServiceProvider: (Disposable) -> ExecutorService = ::defaultNotificationExecutorService,
 ) :
-  SceneManager(
-    model,
-    designSurface,
-    sceneComponentProvider,
-    listenToResourceChanges,
-    notificationExecutorServiceProvider,
-  ),
+  SceneManager(model, designSurface, sceneComponentProvider, listenToResourceChanges, notificationExecutorServiceProvider),
   InteractiveSceneManager {
   private var areListenersRegistered = false
 
@@ -105,9 +93,8 @@ open class LayoutlibSceneManager(
   override val sceneDecoratorFactory: SceneDecoratorFactory = DECORATOR_FACTORY
 
   /**
-   * In the layout editor, Scene uses [AndroidDpCoordinate]s whereas rendering is done in (zoomed
-   * and offset) [AndroidCoordinate]s. The scaling factor between them is the ratio of the screen
-   * density to the standard density (160).
+   * In the layout editor, Scene uses [AndroidDpCoordinate]s whereas rendering is done in (zoomed and offset) [AndroidCoordinate]s. The
+   * scaling factor between them is the ratio of the screen density to the standard density (160).
    */
   override val sceneScalingFactor: Float
     get() = model.configuration.density.dpiValue / Density.DEFAULT_DENSITY.toFloat()
@@ -116,21 +103,14 @@ open class LayoutlibSceneManager(
   // TODO(b/335424569): add a better explanation after moving more responsibilities to
   // LayoutlibSceneRenderer
   private val layoutlibSceneRenderer: LayoutlibSceneRenderer =
-    LayoutlibSceneRenderer(
-      this,
-      renderTaskDisposerExecutor,
-      model,
-      designSurface as NlDesignSurface,
-      layoutScannerConfig,
-    )
+    LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, designSurface as NlDesignSurface, layoutScannerConfig)
 
   /**
-   * If `true`, the next layout pass triggered via `ConfigurationResizeListener` should attempt to
-   * size the Composable content to its `@Preview` original size.
+   * If `true`, the next layout pass triggered via `ConfigurationResizeListener` should attempt to size the Composable content to its
+   * `@Preview` original size.
    *
-   * This flag is set by UI actions (like reverting to original size in `ResizePanel`) when a
-   * "shrink-mode" Composable (where `showDecorations` is false and its original `@Preview` did not
-   * define explicit dimensions) should revert to its original size.
+   * This flag is set by UI actions (like reverting to original size in `ResizePanel`) when a "shrink-mode" Composable (where
+   * `showDecorations` is false and its original `@Preview` did not define explicit dimensions) should revert to its original size.
    */
   var forceNextResizeToUseOriginalSize: Boolean = false
 
@@ -155,8 +135,8 @@ open class LayoutlibSceneManager(
   var visualLintMode = VisualLintMode.DISABLED
 
   /**
-   * If true, automatically update (if needed) and re-render when being activated. Which happens
-   * after [activate] is called. Note that if it is activated already, then it will not re-render.
+   * If true, automatically update (if needed) and re-render when being activated. Which happens after [activate] is called. Note that if it
+   * is activated already, then it will not re-render.
    */
   var updateAndRenderWhenActivated = true
 
@@ -180,16 +160,13 @@ open class LayoutlibSceneManager(
       model.file.rootTag
         ?.takeIf {
           runReadAction {
-            it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) ==
-              NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+            it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) == NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
           }
         }
         ?.let {
           ScreenView.newBuilder(designSurface, this)
             .withLayersProvider { sv: ScreenView? ->
-              ImmutableList.of(
-                ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree)
-              )
+              ImmutableList.of(ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree))
             }
             .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
             .withShapePolicy(SQUARE_SHAPE_POLICY)
@@ -236,10 +213,7 @@ open class LayoutlibSceneManager(
 
             // Selection change listener should run in UI thread not in the layoublib rendering
             // thread. This avoids race condition.
-            selectionChangeListener.selectionChanged(
-              surface.selectionModel,
-              surface.selectionModel.selection,
-            )
+            selectionChangeListener.selectionChanged(surface.selectionModel, surface.selectionModel.selection)
           },
           EdtExecutorService.getInstance(),
         )
@@ -296,13 +270,11 @@ open class LayoutlibSceneManager(
     scene.selectionChanged(designSurface.selectionModel, designSurface.selectionModel.selection)
   }
 
-  private fun getRenderTrigger() =
-    getTriggerFromChangeType(model.lastChangeType).also { model.resetLastChange() }
+  private fun getRenderTrigger() = getTriggerFromChangeType(model.lastChangeType).also { model.resetLastChange() }
 
   private fun onBeforeRender(): Boolean {
     if (isDisposed()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("tried to render after LayoutlibSceneManager has been disposed")
+      Logger.getInstance(LayoutlibSceneManager::class.java).warn("tried to render after LayoutlibSceneManager has been disposed")
       return false
     }
     logConfigurationChange(designSurface)
@@ -331,11 +303,9 @@ open class LayoutlibSceneManager(
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
     if (isDisposed()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("requestLayout after LayoutlibSceneManager has been disposed")
+      Logger.getInstance(LayoutlibSceneManager::class.java).warn("requestLayout after LayoutlibSceneManager has been disposed")
     }
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+    val currentTask = layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
     return currentTask.layout().thenAccept { result: RenderResult? ->
       result
         ?.takeUnless { isDisposed() }
@@ -347,21 +317,16 @@ open class LayoutlibSceneManager(
   }
 
   /**
-   * Executes the given block under a [RenderSession]. This allows the given block to access
-   * resources since they are set up before executing it.
+   * Executes the given block under a [RenderSession]. This allows the given block to access resources since they are set up before
+   * executing it.
    *
    * @param block the [Runnable] to be executed in the Render thread.
-   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
-   *   will be used (see [RenderAsyncActionExecutor])
+   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout will be used (see
+   *   [RenderAsyncActionExecutor])
    * @param timeUnit the [TimeUnit] of the given timeout.
    */
-  open fun executeInRenderSessionAsync(
-    block: Runnable,
-    timeout: Long,
-    timeUnit: TimeUnit,
-  ): CompletableFuture<Void> {
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+  open fun executeInRenderSessionAsync(block: Runnable, timeout: Long, timeUnit: TimeUnit): CompletableFuture<Void> {
+    val currentTask = layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
     return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit)
   }
 
@@ -409,8 +374,7 @@ open class LayoutlibSceneManager(
     return active
   }
 
-  override fun deactivate(): Boolean =
-    super.deactivate().also { if (it) layoutlibSceneRenderer.deactivate() }
+  override fun deactivate(): Boolean = super.deactivate().also { if (it) layoutlibSceneRenderer.deactivate() }
 
   override fun dispose() {
     if (isDisposed()) return
@@ -433,22 +397,16 @@ open class LayoutlibSceneManager(
   private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock?.timeNanos ?: 0
 
   /**
-   * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a
-   * particular point
+   * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a particular point
    *
    * @param type type of touch event
    * @param x horizontal android coordinate of the detected touch event
    * @param y vertical android coordinate of the detected touch event
    * @return a future that is completed when layoutlib handled the touch event
    */
-  fun triggerTouchEventAsync(
-    type: TouchEventType,
-    @AndroidCoordinate x: Int,
-    @AndroidCoordinate y: Int,
-  ) {
+  fun triggerTouchEventAsync(type: TouchEventType, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
     if (isDisposed()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
+      Logger.getInstance(LayoutlibSceneManager::class.java).warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
       return
     }
     layoutlibSceneRenderer.renderTask?.let {
@@ -464,8 +422,7 @@ open class LayoutlibSceneManager(
    */
   fun triggerKeyEventAsync(event: KeyEvent) {
     if (isDisposed()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
+      Logger.getInstance(LayoutlibSceneManager::class.java).warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
       return
     }
     layoutlibSceneRenderer.renderTask?.let {

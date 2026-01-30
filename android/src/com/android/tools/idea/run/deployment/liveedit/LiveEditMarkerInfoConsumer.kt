@@ -21,10 +21,10 @@ import com.android.tools.r8.MarkerInfoConsumerData
 
 class LiveEditMarkerInfoConsumer() : MarkerInfoConsumer {
 
-  val minApis : MutableSet<MinApiLevel> = mutableSetOf()
+  val minApis: MutableSet<MinApiLevel> = mutableSetOf()
 
   override fun acceptMarkerInfo(info: MarkerInfoConsumerData?) {
-    info?.markers?.forEach{
+    info?.markers?.forEach {
       // R8 returns -1 if it found marker but no min-api was in it.
       // This is a workaround for b/283737440. Once fixed, we can delete
       // this test.
@@ -34,6 +34,5 @@ class LiveEditMarkerInfoConsumer() : MarkerInfoConsumer {
     }
   }
 
-  override fun finished() {
-  }
+  override fun finished() {}
 }

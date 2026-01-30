@@ -49,44 +49,45 @@ class ResourceExplorerView(
   private val withMultiModuleSearch: Boolean = true,
   withSummaryView: Boolean = false,
   private val withDetailView: Boolean = true, // TODO: Refactor detailView to follow a closer pattern with summaryView
-  private val multiSelection: Boolean = true
+  private val multiSelection: Boolean = true,
 ) : JPanel(BorderLayout()), Disposable {
 
   private var fileToSelect: VirtualFile? = null
   private var resourceToSelect: String? = preselectedResourceName
 
-  private val resourcesTabsPanel = OverflowingTabbedPaneWrapper().apply {
-    viewModel.supportedResourceTypes.forEach {
-      tabbedPane.add(it.displayName, null)
+  private val resourcesTabsPanel =
+    OverflowingTabbedPaneWrapper().apply {
+      viewModel.supportedResourceTypes.forEach { tabbedPane.add(it.displayName, null) }
+      tabbedPane.selectedIndex = viewModel.resourceTypeIndex
+      tabbedPane.addChangeListener { event ->
+        val index = (event.source as JTabbedPane).model.selectedIndex
+        viewModel.resourceTypeIndex = index
+        this.requestFocus()
+      }
     }
-    tabbedPane.selectedIndex = viewModel.resourceTypeIndex
-    tabbedPane.addChangeListener { event ->
-      val index = (event.source as JTabbedPane).model.selectedIndex
-      viewModel.resourceTypeIndex = index
-      this.requestFocus()
+
+  private val topActionsPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      isOpaque = false
     }
-  }
 
-  private val topActionsPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    isOpaque = false
-  }
+  private val headerPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(resourcesTabsPanel)
+      add(topActionsPanel)
+    }
 
-  private val headerPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    add(resourcesTabsPanel)
-    add(topActionsPanel)
-  }
-
-  private val centerPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    isOpaque = false
-    border = JBUI.Borders.empty()
-  }
+  private val centerPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
 
   /**
-   * A summary panel including some detailed information about the [ResourceAssetSet].
-   * May contain information like:
+   * A summary panel including some detailed information about the [ResourceAssetSet]. May contain information like:
    *
    * An icon preview, name of the resource, the reference to use the resource (i.e @drawable/resource_name) and the default value of the
    * resource or a table of the configurations and values defined in the [ResourceAssetSet].
@@ -101,12 +102,8 @@ class ResourceExplorerView(
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
     add(getContentPanel())
 
-    viewModel.updateResourceTabCallback = {
-      resourcesTabsPanel.tabbedPane.selectedIndex = viewModel.resourceTypeIndex
-    }
-    viewModel.populateResourcesCallback = {
-      populateResources()
-    }
+    viewModel.updateResourceTabCallback = { resourcesTabsPanel.tabbedPane.selectedIndex = viewModel.resourceTypeIndex }
+    viewModel.populateResourcesCallback = { populateResources() }
     populateResources()
   }
 
@@ -114,19 +111,26 @@ class ResourceExplorerView(
     listView?.let { Disposer.dispose(it) }
     listView = null
     listViewJob?.cancel(true)
-    listViewJob = viewModel.createResourceListViewModel().whenCompleteAsync(BiConsumer { listViewModel, _ ->
-      // TODO: Add a loading screen if this process takes too long.
-      listView = createResourcesListView(listViewModel).also {
-        if (!Disposer.isDisposed(this)) {
-          centerPanel.removeAll()
-          centerPanel.add(it)
-          Disposer.register(this, it)
-        } else {
-          Disposer.dispose(it)
-        }
-      }
-      selectIfNeeded()
-    }, EdtExecutorService.getInstance())
+    listViewJob =
+      viewModel
+        .createResourceListViewModel()
+        .whenCompleteAsync(
+          BiConsumer { listViewModel, _ ->
+            // TODO: Add a loading screen if this process takes too long.
+            listView =
+              createResourcesListView(listViewModel).also {
+                if (!Disposer.isDisposed(this)) {
+                  centerPanel.removeAll()
+                  centerPanel.add(it)
+                  Disposer.register(this, it)
+                } else {
+                  Disposer.dispose(it)
+                }
+              }
+            selectIfNeeded()
+          },
+          EdtExecutorService.getInstance(),
+        )
   }
 
   override fun dispose() {
@@ -134,10 +138,11 @@ class ResourceExplorerView(
   }
 
   private fun getContentPanel(): JPanel {
-    val explorerListPanel = JPanel(BorderLayout()).apply {
-      add(headerPanel, BorderLayout.NORTH)
-      add(centerPanel, BorderLayout.CENTER)
-    }
+    val explorerListPanel =
+      JPanel(BorderLayout()).apply {
+        add(headerPanel, BorderLayout.NORTH)
+        add(centerPanel, BorderLayout.CENTER)
+      }
     if (summaryView == null) {
       return explorerListPanel
     }
@@ -158,8 +163,7 @@ class ResourceExplorerView(
     if (file != null) {
       fileToSelect = null
       selectAsset(file)
-    }
-    else if (resourceName != null) {
+    } else if (resourceName != null) {
       resourceToSelect = null
       selectAsset(resourceName, false)
     }
@@ -170,8 +174,7 @@ class ResourceExplorerView(
     viewModel.resourceTypeIndex = viewModel.getTabIndexForFile(virtualFile)
     if (listView == null) {
       fileToSelect = virtualFile
-    }
-    else {
+    } else {
       listView?.selectAsset(virtualFile)
     }
   }
@@ -179,8 +182,7 @@ class ResourceExplorerView(
   fun selectAsset(resourceName: String, recentlyAdded: Boolean) {
     if (listView == null) {
       resourceToSelect = resourceName
-    }
-    else {
+    } else {
       listView?.selectAsset(resourceName, recentlyAdded)
     }
   }
@@ -192,7 +194,7 @@ class ResourceExplorerView(
       withMultiModuleSearch = withMultiModuleSearch,
       summaryView = summaryView,
       withDetailView = withDetailView,
-      multiSelection = multiSelection
+      multiSelection = multiSelection,
     )
   }
 }

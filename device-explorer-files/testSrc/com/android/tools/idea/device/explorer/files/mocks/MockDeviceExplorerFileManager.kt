@@ -29,14 +29,11 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.delete
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.util.function.Supplier
+import kotlinx.coroutines.withContext
 
-class MockDeviceExplorerFileManager(
-  private val myProject: Project,
-  defaultPath: Supplier<Path>
-) : DeviceExplorerFileManager, Disposable {
+class MockDeviceExplorerFileManager(private val myProject: Project, defaultPath: Supplier<Path>) : DeviceExplorerFileManager, Disposable {
   private val LOGGER = thisLogger()
 
   private val myFileManagerImpl = DeviceExplorerFileManagerImpl(myProject) { defaultPath.get() }

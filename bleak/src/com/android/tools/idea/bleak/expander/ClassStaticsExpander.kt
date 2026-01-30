@@ -18,14 +18,15 @@ package com.android.tools.idea.bleak.expander
 import com.android.tools.idea.bleak.DoNotTrace
 import com.android.tools.idea.bleak.Edge
 import com.android.tools.idea.bleak.ReflectionUtil
-import sun.misc.Unsafe
 import java.lang.reflect.Modifier
+import sun.misc.Unsafe
 
-/** [ClassStaticsExpander] takes a Class object and generates children for all of its static fields,
- * using [FieldLabel]s for the edge labels.
+/**
+ * [ClassStaticsExpander] takes a Class object and generates children for all of its static fields, using [FieldLabel]s for the edge labels.
  */
-class ClassStaticsExpander: Expander() {
+class ClassStaticsExpander : Expander() {
   override fun canExpand(obj: Any) = obj is Class<*>
+
   override fun expand(n: Node) {
     if ((n.obj as Class<*>).isInitialized() && !DoNotTrace::class.java.isAssignableFrom(n.obj)) {
       for (field in ReflectionUtil.getAllFields(n.obj)) {
@@ -76,5 +77,4 @@ class ClassStaticsExpander: Expander() {
       return !(Unsafe_shouldBeInitialized.invoke(unsafe, this) as Boolean)
     }
   }
-
 }

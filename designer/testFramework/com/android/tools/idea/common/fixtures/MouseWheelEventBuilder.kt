@@ -20,8 +20,7 @@ import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 import org.mockito.kotlin.whenever
 
-class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
-  MouseEventBuilder(x, y) {
+class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) : MouseEventBuilder(x, y) {
 
   /** By default we assume it only scroll 1 tick. */
   private var scrollAmount: Int = 1
@@ -34,8 +33,7 @@ class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
 
   override fun withButton(button: Int) = super.withButton(button) as MouseWheelEventBuilder
 
-  override fun withClickCount(clickCount: Int) =
-    super.withClickCount(clickCount) as MouseWheelEventBuilder
+  override fun withClickCount(clickCount: Int) = super.withClickCount(clickCount) as MouseWheelEventBuilder
 
   override fun withId(id: Int) = super.withId(id) as MouseWheelEventBuilder
 

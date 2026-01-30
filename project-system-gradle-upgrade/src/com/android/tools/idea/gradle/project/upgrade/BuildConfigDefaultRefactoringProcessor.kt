@@ -20,8 +20,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 class BuildConfigDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT
   override val propertyKey = "android.defaults.buildfeatures.buildconfig"
@@ -34,15 +35,19 @@ class BuildConfigDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRef
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("build-config-default")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildConfigDefault"
+
   override fun getCommandName() = AgpUpgradeBundle.message("buildConfigDefaultRefactoringProcessor.commandName")
-  override fun getShortDescription() = """
+
+  override fun getShortDescription() =
+    """
     The default value for buildFeatures.buildConfig is changing, meaning that
     the Android Gradle Plugin will no longer generate BuildConfig classes by default.
     This processor adds a directive to preserve the previous behavior of generating
     BuildConfig classes for all modules; if this project does not use BuildConfig, you
     can remove the android.defaults.buildfeatures.buildconfig property from the
     project's gradle.properties file after this upgrade.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   companion object {
     val DEFAULT_CHANGED: AgpVersion = AgpVersion.parse("8.0.0-alpha02")

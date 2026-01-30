@@ -30,11 +30,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 private const val minRev = "1.2.4"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
-fun RecipeExecutor.generateBenchmarkModule(
-  moduleData: ModuleTemplateData,
-  useGradleKts: Boolean,
-  useVersionCatalog: Boolean,
-) {
+fun RecipeExecutor.generateBenchmarkModule(moduleData: ModuleTemplateData, useGradleKts: Boolean, useVersionCatalog: Boolean) {
   val projectData = moduleData.projectTemplateData
   val testOut = moduleData.testDir
   val packageName = moduleData.packageName
@@ -59,16 +55,8 @@ fun RecipeExecutor.generateBenchmarkModule(
 
   save(bg, moduleOut.resolve(buildFile))
   addCompileSdk(buildApi)
-  addPlugin(
-    "com.android.library",
-    "com.android.tools.build:gradle",
-    projectData.agpVersion.toString(),
-  )
-  addPlugin(
-    "androidx.benchmark",
-    "androidx.benchmark:benchmark-baseline-profile-gradle-plugin",
-    minRev,
-  )
+  addPlugin("com.android.library", "com.android.tools.build:gradle", projectData.agpVersion.toString())
+  addPlugin("androidx.benchmark", "androidx.benchmark:benchmark-baseline-profile-gradle-plugin", minRev)
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
   addDependency("junit:junit:4.+", "androidTestImplementation", "4.13.2")
@@ -79,15 +67,9 @@ fun RecipeExecutor.generateBenchmarkModule(
   save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
-    save(
-      exampleBenchmarkKt(exampleBenchmarkName, packageName),
-      testOut.resolve("$exampleBenchmarkName.kt"),
-    )
+    save(exampleBenchmarkKt(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.kt"))
   } else {
-    save(
-      exampleBenchmarkJava(exampleBenchmarkName, packageName),
-      testOut.resolve("$exampleBenchmarkName.java"),
-    )
+    save(exampleBenchmarkJava(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.java"))
   }
 
   addKotlinIfNeeded(projectData, targetApi = targetApi.apiLevel, noKtx = true)

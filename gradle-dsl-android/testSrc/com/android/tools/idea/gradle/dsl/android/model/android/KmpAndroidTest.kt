@@ -47,13 +47,10 @@ class KmpAndroidTest : AndroidGradleFileModelTestCase() {
 
     val release = (version as CompileSdkReleaseModel)
 
-    assertThat(release.getVersion().getValue(
-      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(36)
-    assertThat(release.getMinorApiLevel().getValue(
-      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(1)
+    assertThat(release.getVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(36)
+    assertThat(release.getMinorApiLevel().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(1)
 
-    assertThat(kmpAndroidLibraryModel.minSdkVersion().getValue(
-      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(30)
+    assertThat(kmpAndroidLibraryModel.minSdkVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(30)
   }
 
   @Test
@@ -68,11 +65,9 @@ class KmpAndroidTest : AndroidGradleFileModelTestCase() {
 
     assertEquals("namespace", "abc", kmpAndroidLibraryModel.namespace())
 
-    assertThat(kmpAndroidLibraryModel.compileSdkVersion().getValue(
-      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(36)
+    assertThat(kmpAndroidLibraryModel.compileSdkVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(36)
 
-    assertThat(kmpAndroidLibraryModel.minSdkVersion().getValue(
-      GradlePropertyModel.INTEGER_TYPE)).isEqualTo(30)
+    assertThat(kmpAndroidLibraryModel.minSdkVersion().getValue(GradlePropertyModel.INTEGER_TYPE)).isEqualTo(30)
   }
 
   @Test
@@ -93,7 +88,7 @@ class KmpAndroidTest : AndroidGradleFileModelTestCase() {
     val config = buildModel.kotlin().android().compileSdkVersion().toCompileSdkConfig()
     assertThat(config).isNotNull()
 
-    config!!.setReleaseVersion(36,1, null)
+    config!!.setReleaseVersion(36, 1, null)
 
     buildModel.kotlin().android().minSdkVersion().setValue(30)
 
@@ -103,8 +98,7 @@ class KmpAndroidTest : AndroidGradleFileModelTestCase() {
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     KMP_ANDROID("block"),
-    KMP_ANDROID_LIBRARY("legacyBlock")
-    ;
+    KMP_ANDROID_LIBRARY("legacyBlock");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/kotlinMultiplatform/$path", extension)

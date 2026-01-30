@@ -41,11 +41,7 @@ interface OfflineModeManager {
     handleError: (String, Throwable?) -> Unit,
   ): Flow<DownloadProgress>
 
-  data class DownloadProgress(
-    val downloadState: DownloadState,
-    val filesDownloaded: List<DatabaseFileData>,
-    val totalFiles: Int,
-  )
+  data class DownloadProgress(val downloadState: DownloadState, val filesDownloaded: List<DatabaseFileData>, val totalFiles: Int)
 
   enum class DownloadState {
     IN_PROGRESS,
@@ -57,12 +53,9 @@ class OfflineModeManagerImpl(
   private val project: Project,
   private val fileDatabaseManager: FileDatabaseManager,
   private val uiDispatcher: CoroutineContext,
-  private val isFileDownloadAllowed: suspend () -> Boolean = {
-    doIsFileDownloadAllowed(project, uiDispatcher)
-  },
+  private val isFileDownloadAllowed: suspend () -> Boolean = { doIsFileDownloadAllowed(project, uiDispatcher) },
 ) : OfflineModeManager {
-  private val databaseInspectorAnalyticsTracker =
-    DatabaseInspectorAnalyticsTracker.getInstance(project)
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   /** Downloads files for all [SqliteDatabaseId.LiveSqliteDatabaseId] databases. */
   override fun downloadFiles(
@@ -74,29 +67,14 @@ class OfflineModeManagerImpl(
     return flow {
       val downloadedFiles = mutableListOf<DatabaseFileData>()
 
-      val databasesToDownload =
-        databases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>().filter {
-          !it.isInMemoryDatabase()
-        }
+      val databasesToDownload = databases.filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>().filter { !it.isInMemoryDatabase() }
 
       try {
-        emit(
-          OfflineModeManager.DownloadProgress(
-            OfflineModeManager.DownloadState.IN_PROGRESS,
-            emptyList(),
-            databasesToDownload.size,
-          )
-        )
+        emit(OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.IN_PROGRESS, emptyList(), databasesToDownload.size))
 
         when {
           isFileDownloadAllowed() -> {
-            downloadFiles(
-              databasesToDownload,
-              appPackageName,
-              processDescriptor,
-              downloadedFiles,
-              handleError,
-            )
+            downloadFiles(databasesToDownload, appPackageName, processDescriptor, downloadedFiles, handleError)
           }
           else -> {
             handleError(
@@ -135,11 +113,7 @@ class OfflineModeManagerImpl(
     databasesToDownload.forEach { liveSqliteDatabaseId ->
       try {
         val databaseFileData =
-          fileDatabaseManager.loadDatabaseFileData(
-            appPackageName ?: processDescriptor.name,
-            processDescriptor,
-            liveSqliteDatabaseId,
-          )
+          fileDatabaseManager.loadDatabaseFileData(appPackageName ?: processDescriptor.name, processDescriptor, liveSqliteDatabaseId)
         downloadedFiles.add(databaseFileData)
         emit(
           OfflineModeManager.DownloadProgress(
@@ -161,11 +135,10 @@ class OfflineModeManagerImpl(
     private const val PROJECT_TRUSTED_KEY = "PROJECT_TRUSTED_KEY"
 
     /**
-     * Before downloading any database, ask the user if they trust the app. We're doing this because
-     * downloading a db and running statements on it might result in executing malicious code.
+     * Before downloading any database, ask the user if they trust the app. We're doing this because downloading a db and running statements
+     * on it might result in executing malicious code.
      *
-     * If user trusts the app we store the value as a project level property, so that we don't ask
-     * each time.
+     * If user trusts the app we store the value as a project level property, so that we don't ask each time.
      */
     @VisibleForTesting
     suspend fun doIsFileDownloadAllowed(
@@ -174,8 +147,7 @@ class OfflineModeManagerImpl(
       askUser: () -> Boolean = { askUserIfAppIsTrusted(project) },
     ) =
       withContext(uiDispatcher) {
-        val isProjectTrusted =
-          PropertiesComponent.getInstance(project).getBoolean(PROJECT_TRUSTED_KEY)
+        val isProjectTrusted = PropertiesComponent.getInstance(project).getBoolean(PROJECT_TRUSTED_KEY)
 
         if (isProjectTrusted) {
           return@withContext true

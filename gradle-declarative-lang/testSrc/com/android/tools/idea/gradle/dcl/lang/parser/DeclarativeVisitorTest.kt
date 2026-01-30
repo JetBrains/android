@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
@@ -42,84 +41,94 @@ class DeclarativeVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", Dec
   fun `test visit array table`() {
     doTest<DeclarativeBlock>(
       """
-         an<caret>droid {
-         }
-      """.trimIndent(), DeclarativeEntry::class)
+      an<caret>droid {
+      }
+      """
+        .trimIndent(),
+      DeclarativeEntry::class,
+    )
   }
 
   fun `test visit assignment`() {
     doTest<DeclarativeAssignment>(
       """
-         he<caret>llo = "world"
-      """.trimIndent(), DeclarativeEntry::class)
+      he<caret>llo = "world"
+      """
+        .trimIndent(),
+      DeclarativeEntry::class,
+    )
   }
 
   fun `test visit function`() {
     doTest<DeclarativeSimpleFactory>(
       """
-         hel<caret>lo("world")
-      """.trimIndent(), DeclarativeEntry::class)
+      hel<caret>lo("world")
+      """
+        .trimIndent(),
+      DeclarativeEntry::class,
+    )
   }
 
   fun `test visit block with factory name`() {
     doTest<DeclarativeBlock>(
       """
-         hel<caret>lo("world"){
-         }
-      """.trimIndent(), DeclarativeEntry::class)
+      hel<caret>lo("world"){
+      }
+      """
+        .trimIndent(),
+      DeclarativeEntry::class,
+    )
   }
 
-  private inline fun <reified T : DeclarativeElement> doTest(
-    code: String,
-    vararg additionalVisits: KClass<out DeclarativeElement>
-  ) {
+  private inline fun <reified T : DeclarativeElement> doTest(code: String, vararg additionalVisits: KClass<out DeclarativeElement>) {
     val index = code.indexOf("<caret>").also { if (it == -1) throw Exception("Should define <caret>") }
     val cleanCode = code.replace("<caret>", "")
     val file = createPsiFile("in-memory", cleanCode)
 
     val visits = mutableListOf<KClass<out DeclarativeElement>>()
 
-    val visitor = object : DeclarativeVisitor() {
-      override fun visitElement(o: DeclarativeElement) {
-        visits.add(DeclarativeElement::class)
-        super.visitElement(o)
-      }
+    val visitor =
+      object : DeclarativeVisitor() {
+        override fun visitElement(o: DeclarativeElement) {
+          visits.add(DeclarativeElement::class)
+          super.visitElement(o)
+        }
 
-      override fun visitAssignment(o: DeclarativeAssignment) {
-        visits.add(DeclarativeAssignment::class)
-        super.visitAssignment(o)
-      }
+        override fun visitAssignment(o: DeclarativeAssignment) {
+          visits.add(DeclarativeAssignment::class)
+          super.visitAssignment(o)
+        }
 
-      override fun visitBlock(o: DeclarativeBlock) {
-        visits.add(DeclarativeBlock::class)
-        super.visitBlock(o)
-      }
+        override fun visitBlock(o: DeclarativeBlock) {
+          visits.add(DeclarativeBlock::class)
+          super.visitBlock(o)
+        }
 
-      override fun visitIdentifier(o: DeclarativeIdentifier) {
-        visits.add(DeclarativeIdentifier::class)
-        super.visitIdentifier(o)
-      }
+        override fun visitIdentifier(o: DeclarativeIdentifier) {
+          visits.add(DeclarativeIdentifier::class)
+          super.visitIdentifier(o)
+        }
 
-      override fun visitLiteral(o: DeclarativeLiteral) {
-        visits.add(DeclarativeLiteral::class)
-        super.visitLiteral(o)
-      }
+        override fun visitLiteral(o: DeclarativeLiteral) {
+          visits.add(DeclarativeLiteral::class)
+          super.visitLiteral(o)
+        }
 
-      override fun visitProperty(o: DeclarativeProperty) {
-        visits.add(DeclarativeProperty::class)
-        super.visitProperty(o)
-      }
+        override fun visitProperty(o: DeclarativeProperty) {
+          visits.add(DeclarativeProperty::class)
+          super.visitProperty(o)
+        }
 
-      override fun visitEntry(o: DeclarativeEntry) {
-        visits.add(DeclarativeEntry::class)
-        super.visitEntry(o)
-      }
+        override fun visitEntry(o: DeclarativeEntry) {
+          visits.add(DeclarativeEntry::class)
+          super.visitEntry(o)
+        }
 
-      override fun visitSimpleFactory(o: DeclarativeSimpleFactory) {
-        visits.add(DeclarativeSimpleFactory::class)
-        super.visitSimpleFactory(o)
+        override fun visitSimpleFactory(o: DeclarativeSimpleFactory) {
+          visits.add(DeclarativeSimpleFactory::class)
+          super.visitSimpleFactory(o)
+        }
       }
-    }
 
     val element = file.findElementAt(index)!!.parentOfType<T>(true)!!
 

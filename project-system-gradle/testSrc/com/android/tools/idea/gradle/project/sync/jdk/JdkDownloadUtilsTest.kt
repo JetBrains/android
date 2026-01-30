@@ -52,7 +52,7 @@ class JdkDownloadUtilsTest : LightPlatformTestCase() {
       simpleJdkItem("JetBrains", "Runtime", 17),
       simpleJdkItem("Amazon", "Corretto", 21),
       simpleJdkItem("IBM", "Semeru", 21),
-      simpleJdkItem("JetBrains", "Runtime", 21)
+      simpleJdkItem("JetBrains", "Runtime", 21),
     )
     captureErrorDialogMessages()
   }
@@ -62,37 +62,49 @@ class JdkDownloadUtilsTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun `test Given JDK version unknown for downloaderModel When downloading JDK Then expected exception dialog is displayed`() = timeoutRunBlocking {
-    val downloadedJdk = JdkDownloadUtils.downloadJdkWithVersion(project, 0)
+  fun `test Given JDK version unknown for downloaderModel When downloading JDK Then expected exception dialog is displayed`() =
+    timeoutRunBlocking {
+      val downloadedJdk = JdkDownloadUtils.downloadJdkWithVersion(project, 0)
 
-    assertNull(downloadedJdk)
-    assertEquals("Failed to locate and download a JDK matching criteria (version=0, vendor=Jetbrains). " +
-        "Consider installing it manually and modify project's Gradle JDK configuration.", capturedErrorDialogMessage)
-  }
-
-  fun `test Given JDK version existing in downloaderModel When download fails Then expected exception dialog is displayed`() = timeoutRunBlocking {
-    val actualJdkItemAndPath = JdkDownloadUtils.downloadJdkWithVersion(project, 17)
-
-    assertNull(actualJdkItemAndPath)
-    assertEquals("Failed to locate and download a JDK matching criteria (version=17, vendor=Jetbrains). " +
-        "Consider installing it manually and modify project's Gradle JDK configuration.", capturedErrorDialogMessage)
-  }
-
-  fun `test Given JDK version existing in downloaderModel When download succeeds Then expected Sdk instance is returned`() = timeoutRunBlocking {
-    val sdkDownloadTracker = spy(SdkDownloadTracker()).apply {
-      doAnswer {
-        (it.arguments.last() as Consumer<Boolean>).accept(true)
-        true
-      }.whenever(this).tryRegisterDownloadingListener(any(), any(), anyOrNull(), any())
+      assertNull(downloadedJdk)
+      assertEquals(
+        "Failed to locate and download a JDK matching criteria (version=0, vendor=Jetbrains). " +
+          "Consider installing it manually and modify project's Gradle JDK configuration.",
+        capturedErrorDialogMessage,
+      )
     }
-    application.replaceService(SdkDownloadTracker::class.java, sdkDownloadTracker, testRootDisposable)
 
-    val downloadedSdk = JdkDownloadUtils.downloadJdkWithVersion(project, 17)
+  fun `test Given JDK version existing in downloaderModel When download fails Then expected exception dialog is displayed`() =
+    timeoutRunBlocking {
+      val actualJdkItemAndPath = JdkDownloadUtils.downloadJdkWithVersion(project, 17)
 
-    assertNotNull(downloadedSdk)
-    assertEquals(JavaSdkVersion.JDK_17, JavaSdk.getInstance().getVersion(downloadedSdk!!))
-    assertNull(capturedErrorDialogMessage)
-  }
+      assertNull(actualJdkItemAndPath)
+      assertEquals(
+        "Failed to locate and download a JDK matching criteria (version=17, vendor=Jetbrains). " +
+          "Consider installing it manually and modify project's Gradle JDK configuration.",
+        capturedErrorDialogMessage,
+      )
+    }
+
+  fun `test Given JDK version existing in downloaderModel When download succeeds Then expected Sdk instance is returned`() =
+    timeoutRunBlocking {
+      val sdkDownloadTracker =
+        spy(SdkDownloadTracker()).apply {
+          doAnswer {
+              (it.arguments.last() as Consumer<Boolean>).accept(true)
+              true
+            }
+            .whenever(this)
+            .tryRegisterDownloadingListener(any(), any(), anyOrNull(), any())
+        }
+      application.replaceService(SdkDownloadTracker::class.java, sdkDownloadTracker, testRootDisposable)
+
+      val downloadedSdk = JdkDownloadUtils.downloadJdkWithVersion(project, 17)
+
+      assertNotNull(downloadedSdk)
+      assertEquals(JavaSdkVersion.JDK_17, JavaSdk.getInstance().getVersion(downloadedSdk!!))
+      assertNull(capturedErrorDialogMessage)
+    }
 
   private fun simpleJdkItem(vendor: String, product: String, version: Int): JdkItem {
     val url = "https://sample-test/jdk.zip"
@@ -118,27 +130,27 @@ class JdkDownloadUtilsTest : LightPlatformTestCase() {
       archiveFileName = url.split("/").last(),
       installFolderName = url.split("/").last().removeSuffix(".zip"),
       sharedIndexAliases = listOf(),
-      saveToFile = {}
+      saveToFile = {},
     )
   }
 
   private fun configJdkListDownloaderWithPredefinedItems(vararg jdkItems: JdkItem) {
-    val jdkListDownloader = mock<JdkListDownloader>().apply {
-      whenever(downloadModelForJdkInstaller(anyOrNull(), any())).thenReturn(jdkItems.toList())
-    }
+    val jdkListDownloader =
+      mock<JdkListDownloader>().apply { whenever(downloadModelForJdkInstaller(anyOrNull(), any())).thenReturn(jdkItems.toList()) }
     application.replaceService(JdkListDownloader::class.java, jdkListDownloader, testRootDisposable)
   }
 
   private fun captureErrorDialogMessages() {
-    TestDialogManager.setTestDialog({
-      capturedErrorDialogMessage = it
-      Messages.OK
-    }, testRootDisposable)
+    TestDialogManager.setTestDialog(
+      {
+        capturedErrorDialogMessage = it
+        Messages.OK
+      },
+      testRootDisposable,
+    )
   }
 
   private fun cleanJdkTable() {
-    ProjectJdkTable.getInstance().allJdks.forEach {
-      ProjectJdkTable.getInstance().removeJdk(it)
-    }
+    ProjectJdkTable.getInstance().allJdks.forEach { ProjectJdkTable.getInstance().removeJdk(it) }
   }
 }

@@ -19,12 +19,11 @@ import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.parser.elements.EmptyGradleBlockModel
 
-class EmptyConfigurationsModelImpl: EmptyGradleBlockModel(), ConfigurationsModel {
+class EmptyConfigurationsModelImpl : EmptyGradleBlockModel(), ConfigurationsModel {
   override fun all(): List<ConfigurationModel> = listOf()
 
   override fun addConfiguration(name: String): ConfigurationModel =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun removeConfiguration(name: String) =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun removeConfiguration(name: String) = throw UnsupportedOperationException("Call is not supported for Declarative")
 }

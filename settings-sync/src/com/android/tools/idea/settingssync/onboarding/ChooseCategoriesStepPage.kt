@@ -38,9 +38,7 @@ import org.jetbrains.jewel.ui.component.Text
 
 internal class ChooseCategoriesStepPage : WizardPage() {
   override val description: String = "Backup & Sync step3: select what categories to sync."
-  override val composableContent: @Composable WizardState.() -> Unit = {
-    ChooseCategoriesComposableContent()
-  }
+  override val composableContent: @Composable WizardState.() -> Unit = { ChooseCategoriesComposableContent() }
   override val controlProvider: (WizardState) -> WizardPageControl = { state ->
     object : WizardPageControl() {
       override suspend fun shouldShow(): Boolean {
@@ -74,10 +72,7 @@ internal fun WizardState.ChooseCategoriesComposableContent() {
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      HierarchicalCheckboxes(
-        getOrCreateState { SyncConfigurationState() }.syncCategoryStates,
-        modifier = Modifier.padding(start = 16.dp),
-      )
+      HierarchicalCheckboxes(getOrCreateState { SyncConfigurationState() }.syncCategoryStates, modifier = Modifier.padding(start = 16.dp))
     }
   }
 }

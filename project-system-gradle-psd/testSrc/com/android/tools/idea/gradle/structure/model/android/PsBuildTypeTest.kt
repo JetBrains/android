@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import junit.framework.Assert.assertTrue
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
@@ -41,16 +42,13 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.plugins.groovy.GroovyLanguage
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class PsBuildTypeTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   private fun doTestDescriptor(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -59,7 +57,8 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("release")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
 
     assertThat(buildType.descriptor.testEnumerateProperties(), equalTo(PsBuildType.BuildTypeDescriptors.testEnumerateProperties()))
   }
@@ -67,9 +66,7 @@ class PsBuildTypeTest {
   @Test
   fun testDescriptorGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestDescriptor(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestDescriptor(resolvedProject) }
   }
 
   @Test
@@ -88,7 +85,8 @@ class PsBuildTypeTest {
       assertThat(appModule, notNullValue())
 
       val buildType = appModule.findBuildType("release")
-      assertThat(buildType, notNullValue()); buildType!!
+      assertThat(buildType, notNullValue())
+      buildType!!
 
       val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(buildType).getValue()
       val debuggable = PsBuildType.BuildTypeDescriptors.debuggable.bind(buildType).getValue()
@@ -128,10 +126,11 @@ class PsBuildTypeTest {
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(2))
 
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
-      val mySigningConfigDslText =  "signingConfigs.myConfig"
+      val mySigningConfigDslText = "signingConfigs.myConfig"
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()),
+      )
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
@@ -144,11 +143,11 @@ class PsBuildTypeTest {
       // TODO(b/72052622): assertThat(
       //  (proGuardFiles[0].parsedValue as ParsedValue.Set.Parsed<File>).dslText?.mode,
       //  equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT)
-      //)
+      // )
       // TODO(b/72052622): assertThat(
       //  (proGuardFiles[0].parsedValue as ParsedValue.Set.Parsed<File>).dslText?.text,
       //  equalTo("getDefaultProguardFile('proguard-android.txt')")
-      //)
+      // )
 
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
@@ -166,7 +165,8 @@ class PsBuildTypeTest {
       assertThat(appModule, notNullValue())
 
       val buildType = appModule.findBuildType("specialRelease")
-      assertThat(buildType, notNullValue()); buildType!!
+      assertThat(buildType, notNullValue())
+      buildType!!
       val matchingFallbacks = PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).getEditableValues().map { it.getValue() }
 
       assertThat(matchingFallbacks.size, equalTo(2))
@@ -180,20 +180,19 @@ class PsBuildTypeTest {
       assertThat(appModule, notNullValue())
 
       val buildType = appModule.findBuildType("release")
-      assertThat(buildType, notNullValue()); buildType!!
+      assertThat(buildType, notNullValue())
+      buildType!!
 
       val consumerProGuardFiles = PsBuildType.BuildTypeDescriptors.consumerProGuardFiles.bind(buildType).getValue()
       assertThat(consumerProGuardFiles.parsedValue.asTestValue(), equalTo(listOf(File("other.pro"))))
-      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf(File(appModule.rootDir!!,"other.pro"))))
+      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf(File(appModule.rootDir!!, "other.pro"))))
     }
   }
 
   @Test
   fun testPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestProperties(resolvedProject) }
   }
 
   @Test
@@ -211,7 +210,8 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("debug")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
     assertTrue(buildType.isDeclared)
 
     val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(buildType).getValue()
@@ -260,9 +260,7 @@ class PsBuildTypeTest {
   @Test
   fun testDefaultResolvedPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestDefaultResolvedProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestDefaultResolvedProperties(resolvedProject) }
   }
 
   @Test
@@ -280,7 +278,8 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("release")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
 
     buildType.applicationIdSuffix = "new_suffix".asParsed()
     buildType.debuggable = true.asParsed()
@@ -291,9 +290,7 @@ class PsBuildTypeTest {
     buildType.renderscriptOptimLevel = 3.asParsed()
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
     PsBuildType.BuildTypeDescriptors.signingConfig.bind(buildType).setParsedValue(ParsedValue.NotSet)
-    PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).run {
-      addItem(0).setParsedValue("debug".asParsed())
-    }
+    PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).run { addItem(0).setParsedValue("debug".asParsed()) }
     PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).run {
       deleteItem(1)
       val editableProGuardFiles = getEditableValues()
@@ -306,7 +303,6 @@ class PsBuildTypeTest {
       changeEntryKey("b", "v")
       deleteEntry("v")
     }
-
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(buildType).getValue()
@@ -338,11 +334,12 @@ class PsBuildTypeTest {
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
       // TODO(b/142454204): DslText is not language-agnostic
-      val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
-        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
-        else -> "***unknown language for defaultProguardFile Dsl text***"
-      }
+      val myDefaultProguardFilesText =
+        when (appModule.parsedModel?.psiFile?.language) {
+          is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
+          is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
+          else -> "***unknown language for defaultProguardFile Dsl text***"
+        }
       assertThat(proGuardFiles[0].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
@@ -387,9 +384,7 @@ class PsBuildTypeTest {
   @Test
   fun testSetPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestSetProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestSetProperties(resolvedProject) }
   }
 
   @Test
@@ -407,9 +402,9 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("debug")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
     assertThat(buildType.isDeclared, equalTo(true))
-
 
     buildType.jniDebuggable = true.asParsed()
 
@@ -420,7 +415,7 @@ class PsBuildTypeTest {
 
       if (afterSync) {
         assertThat(jniDebuggable.parsedValue.asTestValue(), equalTo(jniDebuggable.resolved.asTestValue()))
-       }
+      }
     }
 
     verifyValues(buildType)
@@ -436,9 +431,7 @@ class PsBuildTypeTest {
   @Test
   fun testUndeclaredDebugSetPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestUndeclaredDebugSetProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestUndeclaredDebugSetProperties(resolvedProject) }
   }
 
   @Test
@@ -456,12 +449,10 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("debug")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
 
-    PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).run {
-      addItem(0).setParsedValue(File("z.txt").asParsed())
-    }
-
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).run { addItem(0).setParsedValue(File("z.txt").asParsed()) }
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
@@ -472,7 +463,7 @@ class PsBuildTypeTest {
 
       if (afterSync) {
         // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[0].resolved.asTestValue()))
-       }
+      }
     }
 
     verifyValues(buildType)
@@ -488,9 +479,7 @@ class PsBuildTypeTest {
   @Test
   fun testUndeclaredDebugEditListsGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestUndeclaredDebugEditLists(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestUndeclaredDebugEditLists(resolvedProject) }
   }
 
   @Test
@@ -508,12 +497,10 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("debug")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
 
-    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).run {
-      addEntry("k").setParsedValue("v".asParsed<Any>())
-    }
-
+    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).run { addEntry("k").setParsedValue("v".asParsed<Any>()) }
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val manifestPlaceholders =
@@ -523,7 +510,7 @@ class PsBuildTypeTest {
 
       if (afterSync) {
         assertThat(manifestPlaceholders["k"]?.parsedValue?.asTestValue(), equalTo(manifestPlaceholders["k"]?.resolved?.asTestValue()))
-       }
+      }
     }
 
     verifyValues(buildType)
@@ -539,9 +526,7 @@ class PsBuildTypeTest {
   @Test
   fun testUndeclaredDebugEditMapsGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestUndeclaredDebugEditMaps(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestUndeclaredDebugEditMaps(resolvedProject) }
   }
 
   @Test
@@ -559,7 +544,8 @@ class PsBuildTypeTest {
     assertThat(appModule, notNullValue())
 
     val buildType = appModule.findBuildType("release")
-    assertThat(buildType, notNullValue()); buildType!!
+    assertThat(buildType, notNullValue())
+    buildType!!
 
     PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).run {
       val editableProGuardFiles = getEditableValues()
@@ -567,7 +553,6 @@ class PsBuildTypeTest {
       editableProGuardFiles[2].setParsedValue(File("b.txt").asParsed())
       addItem(0).setParsedValue(File("z.txt").asParsed())
     }
-
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
@@ -578,11 +563,12 @@ class PsBuildTypeTest {
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
       // TODO(b/142454204): DslText is not language-agnostic
-      val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
-        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
-        else -> "***unknown language for defaultProguardFile Dsl text***"
-      }
+      val myDefaultProguardFilesText =
+        when (appModule.parsedModel?.psiFile?.language) {
+          is GroovyLanguage -> "getDefaultProguardFile('proguard-android-optimize.txt')"
+          is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android-optimize.txt\")"
+          else -> "***unknown language for defaultProguardFile Dsl text***"
+        }
       assertThat(proGuardFiles[1].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
@@ -595,7 +581,7 @@ class PsBuildTypeTest {
         // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
         // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
         // TODO(b/72814329): assertThat(proGuardFiles[3].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
-       }
+      }
     }
 
     verifyValues(buildType)
@@ -611,9 +597,7 @@ class PsBuildTypeTest {
   @Test
   fun testInsertingProguardFilesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestInsertingProguardFiles(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestInsertingProguardFiles(resolvedProject) }
   }
 
   @Test
@@ -628,21 +612,18 @@ class PsBuildTypeTest {
   fun testSetListReferences() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
     preparedProject.open { resolvedProject ->
-
       var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
       var appModule = project.findModuleByName("app") as PsAndroidModule
       assertThat(appModule, notNullValue())
 
       val buildType = appModule.findBuildType("release")
-      assertThat(buildType, notNullValue()); buildType!!
+      assertThat(buildType, notNullValue())
+      buildType!!
 
-      PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).setParsedValue(
-        ParsedValue.Set.Parsed(
-          dslText = DslText.Reference("varProGuardFiles"),
-          value = null
-        )
-      )
+      PsBuildType.BuildTypeDescriptors.proGuardFiles
+        .bind(buildType)
+        .setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.Reference("varProGuardFiles"), value = null))
 
       fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
         val proGuardFilesValue = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getValue()

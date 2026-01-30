@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:Suppress("unused")
+
 package com.android.tools.idea.streaming.device
 
 import java.awt.event.KeyEvent
@@ -24,15 +25,13 @@ import java.awt.event.KeyEvent
 /** Unknown key code. */
 const val AKEYCODE_UNKNOWN = 0
 /**
- * Soft Left key.
- * Usually situated below the display on phones and used as a multi-function feature key
- * for selecting a software defined function shown on the bottom left of the display.
+ * Soft Left key. Usually situated below the display on phones and used as a multi-function feature key for selecting a software defined
+ * function shown on the bottom left of the display.
  */
 const val AKEYCODE_SOFT_LEFT = 1
 /**
- * Soft Right key.
- * Usually situated below the display on phones and used as a multi-function feature key
- * for selecting a software defined function shown on the bottom right of the display.
+ * Soft Right key. Usually situated below the display on phones and used as a multi-function feature key for selecting a software defined
+ * function shown on the bottom right of the display.
  */
 const val AKEYCODE_SOFT_RIGHT = 2
 /** Home key. This key is handled by the framework and is never delivered to applications. */
@@ -185,10 +184,7 @@ const val AKEYCODE_APOSTROPHE = 75
 const val AKEYCODE_SLASH = 76
 /** '@' key. */
 const val AKEYCODE_AT = 77
-/**
- * Number modifier key. Used to enter numeric symbols.
- * This key is not [AKEYCODE_NUM_LOCK]; it is more like [AKEYCODE_ALT_LEFT].
- */
+/** Number modifier key. Used to enter numeric symbols. This key is not [AKEYCODE_NUM_LOCK]; it is more like [AKEYCODE_ALT_LEFT]. */
 const val AKEYCODE_NUM = 78
 /** Headset Hook key. Used to hang up calls and stop media. */
 const val AKEYCODE_HEADSETHOOK = 79
@@ -225,33 +221,33 @@ const val AKEYCODE_PICTSYMBOLS = 94
 /** Switch Charset modifier key. Used to switch character sets (Kanji, Katakana). */
 const val AKEYCODE_SWITCH_CHARSET = 95
 /**
- * 'A' Button key. On a game controller, the A button should be either the button labeled A
- * or the first button on the bottom row of controller buttons.
+ * 'A' Button key. On a game controller, the A button should be either the button labeled A or the first button on the bottom row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_A = 96
 /**
- * 'B' Button key. On a game controller, the B button should be either the button labeled B
- * or the second button on the bottom row of controller buttons.
+ * 'B' Button key. On a game controller, the B button should be either the button labeled B or the second button on the bottom row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_B = 97
 /**
- * 'C' Button key. On a game controller, the C button should be either the button labeled C
- * or the third button on the bottom row of controller buttons.
+ * 'C' Button key. On a game controller, the C button should be either the button labeled C or the third button on the bottom row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_C = 98
 /**
- * 'X' Button key. On a game controller, the X button should be either the button labeled X
- * or the first button on the upper row of controller buttons.
+ * 'X' Button key. On a game controller, the X button should be either the button labeled X or the first button on the upper row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_X = 99
 /**
- * 'Y' Button key. On a game controller, the Y button should be either the button labeled Y
- * or the second button on the upper row of controller buttons.
+ * 'Y' Button key. On a game controller, the Y button should be either the button labeled Y or the second button on the upper row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_Y = 100
 /**
- * 'Z' Button key. On a game controller, the Z button should be either the button labeled Z
- * or the third button on the upper row of controller buttons.
+ * 'Z' Button key. On a game controller, the Z button should be either the button labeled Z or the third button on the upper row of
+ * controller buttons.
  */
 const val AKEYCODE_BUTTON_Z = 101
 /** L1 Button key. On a game controller, the L1 button should be either the button labeled L1 (or L) or the top left trigger button. */
@@ -300,7 +296,7 @@ const val AKEYCODE_MOVE_HOME = 122
 const val AKEYCODE_MOVE_END = 123
 /** Insert key. Toggles insert / overwrite edit mode. */
 const val AKEYCODE_INSERT = 124
-/** Forward key. Navigates forward in the history stack.  Complement of [AKEYCODE_BACK]. */
+/** Forward key. Navigates forward in the history stack. Complement of [AKEYCODE_BACK]. */
 const val AKEYCODE_FORWARD = 125
 /** Play media key. */
 const val AKEYCODE_MEDIA_PLAY = 126
@@ -337,8 +333,8 @@ const val AKEYCODE_F11 = 141
 /** F12 key. */
 const val AKEYCODE_F12 = 142
 /**
- * Num Lock key. This is the Num Lock key; it is different from [AKEYCODE_NUM].
- * This key alters the behavior of other keys on the numeric keypad.
+ * Num Lock key. This is the Num Lock key; it is different from [AKEYCODE_NUM]. This key alters the behavior of other keys on the numeric
+ * keypad.
  */
 const val AKEYCODE_NUM_LOCK = 143
 /** Numeric keypad '0' key. */
@@ -382,8 +378,7 @@ const val AKEYCODE_NUMPAD_LEFT_PAREN = 62
 /** Numeric keypad ')' key. */
 const val AKEYCODE_NUMPAD_RIGHT_PAREN = 163
 /**
- * Volume Mute key. Mutes the speaker, unlike [AKEYCODE_MUTE].
- * This key should normally be implemented as a toggle such that the first press
+ * Volume Mute key. Mutes the speaker, unlike [AKEYCODE_MUTE]. This key should normally be implemented as a toggle such that the first press
  * mutes the speaker and the second press restores the original volume.
  */
 const val AKEYCODE_VOLUME_MUTE = 164
@@ -433,50 +428,46 @@ const val AKEYCODE_PROG_YELLOW = 185
 const val AKEYCODE_PROG_BLUE = 186
 /** App switch key. Should bring up the application switcher dialog. */
 const val AKEYCODE_APP_SWITCH = 187
-/** Generic Game Pad Button #1.*/
+/** Generic Game Pad Button #1. */
 const val AKEYCODE_BUTTON_1 = 188
-/** Generic Game Pad Button #2.*/
+/** Generic Game Pad Button #2. */
 const val AKEYCODE_BUTTON_2 = 189
-/** Generic Game Pad Button #3.*/
+/** Generic Game Pad Button #3. */
 const val AKEYCODE_BUTTON_3 = 190
-/** Generic Game Pad Button #4.*/
+/** Generic Game Pad Button #4. */
 const val AKEYCODE_BUTTON_4 = 191
-/** Generic Game Pad Button #5.*/
+/** Generic Game Pad Button #5. */
 const val AKEYCODE_BUTTON_5 = 192
-/** Generic Game Pad Button #6.*/
+/** Generic Game Pad Button #6. */
 const val AKEYCODE_BUTTON_6 = 193
-/** Generic Game Pad Button #7.*/
+/** Generic Game Pad Button #7. */
 const val AKEYCODE_BUTTON_7 = 194
-/** Generic Game Pad Button #8.*/
+/** Generic Game Pad Button #8. */
 const val AKEYCODE_BUTTON_8 = 195
-/** Generic Game Pad Button #9.*/
+/** Generic Game Pad Button #9. */
 const val AKEYCODE_BUTTON_9 = 196
-/** Generic Game Pad Button #10.*/
+/** Generic Game Pad Button #10. */
 const val AKEYCODE_BUTTON_10 = 197
-/** Generic Game Pad Button #11.*/
+/** Generic Game Pad Button #11. */
 const val AKEYCODE_BUTTON_11 = 198
-/** Generic Game Pad Button #12.*/
+/** Generic Game Pad Button #12. */
 const val AKEYCODE_BUTTON_12 = 199
-/** Generic Game Pad Button #13.*/
+/** Generic Game Pad Button #13. */
 const val AKEYCODE_BUTTON_13 = 200
-/** Generic Game Pad Button #14.*/
+/** Generic Game Pad Button #14. */
 const val AKEYCODE_BUTTON_14 = 201
-/** Generic Game Pad Button #15.*/
+/** Generic Game Pad Button #15. */
 const val AKEYCODE_BUTTON_15 = 202
-/** Generic Game Pad Button #16.*/
+/** Generic Game Pad Button #16. */
 const val AKEYCODE_BUTTON_16 = 203
 /**
- * Language Switch key.
- * Toggles the current input language such as switching between English and Japanese on
- * a QWERTY keyboard.  On some devices, the same function may be performed by
- * pressing Shift+Spacebar.
+ * Language Switch key. Toggles the current input language such as switching between English and Japanese on a QWERTY keyboard. On some
+ * devices, the same function may be performed by pressing Shift+Spacebar.
  */
 const val AKEYCODE_LANGUAGE_SWITCH = 204
 /**
- * Manner Mode key.
- * Toggles silent or vibrate mode on and off to make the device behave more politely
- * in certain settings such as on a crowded train. On some devices, the key may only
- * operate when long-pressed.
+ * Manner Mode key. Toggles silent or vibrate mode on and off to make the device behave more politely in certain settings such as on a
+ * crowded train. On some devices, the key may only operate when long-pressed.
  */
 const val AKEYCODE_MANNER_MODE = 205
 /** 3D Mode key. Toggles the display between 2D and 3D mode. */
@@ -513,19 +504,13 @@ const val AKEYCODE_BRIGHTNESS_DOWN = 220
 const val AKEYCODE_BRIGHTNESS_UP = 221
 /** Audio Track key. Switches the audio tracks. */
 const val AKEYCODE_MEDIA_AUDIO_TRACK = 222
-/**
- * Sleep key. Puts the device to sleep. Behaves somewhat like [AKEYCODE_POWER] but
- * has no effect if the device is already asleep.
- */
+/** Sleep key. Puts the device to sleep. Behaves somewhat like [AKEYCODE_POWER] but has no effect if the device is already asleep. */
 const val AKEYCODE_SLEEP = 223
-/**
- * Wakeup key. Wakes up the device. Behaves somewhat like [AKEYCODE_POWER] but
- * has no effect if the device is already awake.
- */
+/** Wakeup key. Wakes up the device. Behaves somewhat like [AKEYCODE_POWER] but has no effect if the device is already awake. */
 const val AKEYCODE_WAKEUP = 224
 /**
- * Pairing key. Initiates peripheral pairing mode. Useful for pairing remote control
- * devices or game controllers, especially if no other input mode is available.
+ * Pairing key. Initiates peripheral pairing mode. Useful for pairing remote control devices or game controllers, especially if no other
+ * input mode is available.
  */
 const val AKEYCODE_PAIRING = 225
 /** Media Top Menu key. Goes to the top of media menu. */
@@ -545,10 +530,8 @@ const val AKEYCODE_TV_RADIO_SERVICE = 232
 /** Teletext key. Displays Teletext service. */
 const val AKEYCODE_TV_TELETEXT = 233
 /**
- * Number entry key.
- * Initiates to enter multi-digit channel number when each digit key is assigned
- * for selecting separate channel. Corresponds to Number Entry Mode(0x1D) of CEC
- * User Control Code.
+ * Number entry key. Initiates to enter multi-digit channel number when each digit key is assigned for selecting separate channel.
+ * Corresponds to Number Entry Mode(0x1D) of CEC User Control Code.
  */
 const val AKEYCODE_TV_NUMBER_ENTRY = 234
 /** Analog Terrestrial key. Switches to analog terrestrial broadcast service. */
@@ -596,14 +579,11 @@ const val AKEYCODE_TV_ZOOM_MODE = 255
 /** Contents menu key. Goes to the title list. Corresponds to Contents Menu(0x0B) of CEC User Control Code */
 const val AKEYCODE_TV_CONTENTS_MENU = 256
 /**
- * Media context menu key. Goes to the context menu of media contents.
- * Corresponds to Media Context-sensitive Menu(0x11) of CEC User Control Code.
+ * Media context menu key. Goes to the context menu of media contents. Corresponds to Media Context-sensitive Menu(0x11) of CEC User Control
+ * Code.
  */
 const val AKEYCODE_TV_MEDIA_CONTEXT_MENU = 257
-/**
- * Timer programming key. Goes to the timer recording menu. Corresponds to Timer Programming(0x54)
- * of CEC User Control Code.
- */
+/** Timer programming key. Goes to the timer recording menu. Corresponds to Timer Programming(0x54) of CEC User Control Code. */
 const val AKEYCODE_TV_TIMER_PROGRAMMING = 258
 /** Help key. */
 const val AKEYCODE_HELP = 259
@@ -654,7 +634,8 @@ const val AKEYCODE_SYSTEM_NAVIGATION_RIGHT = 283
 /** All apps. */
 const val AKEYCODE_ALL_APPS = 284
 
-internal val VK_TO_AKEYCODE = mapOf(
+internal val VK_TO_AKEYCODE =
+  mapOf(
     KeyEvent.VK_0 to AKEYCODE_0,
     KeyEvent.VK_1 to AKEYCODE_1,
     KeyEvent.VK_2 to AKEYCODE_2,
@@ -770,4 +751,5 @@ internal val VK_TO_AKEYCODE = mapOf(
     KeyEvent.VK_W to AKEYCODE_W,
     KeyEvent.VK_X to AKEYCODE_X,
     KeyEvent.VK_Y to AKEYCODE_Y,
-    KeyEvent.VK_Z to AKEYCODE_Z)
+    KeyEvent.VK_Z to AKEYCODE_Z,
+  )

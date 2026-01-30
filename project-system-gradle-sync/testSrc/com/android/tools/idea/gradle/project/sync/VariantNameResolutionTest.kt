@@ -20,31 +20,28 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.utils.appendCapitalized
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.io.File
+import org.junit.Test
 
 private val PROJECT_ROOT = File("/")
 private val APP_MODULE_ROOT = File("/app")
 
 class VariantNameResolutionTest {
 
-  @Test
-  fun `matches when flavors in default order`() = matches(reorderFlavors = false)
+  @Test fun `matches when flavors in default order`() = matches(reorderFlavors = false)
 
-  @Test
-  fun `matches when flavors reordered`() = matches(reorderFlavors = true)
+  @Test fun `matches when flavors reordered`() = matches(reorderFlavors = true)
 
   private fun matches(reorderFlavors: Boolean) {
     val projectModelBuilder =
       AndroidProjectBuilder(
-        flavorDimensions = { listOf("dim1", "dim2") },
-        productFlavorsStub = { dimension ->
-          when (dimension) {
-            "dim1" -> listOf("firstAbc", "firstXyz")
-            "dim2" -> listOf("secondAbc", "secondXyz")
-            else -> error("Unknown: $dimension")
-          }
-            .flatMap { flavorName ->
+          flavorDimensions = { listOf("dim1", "dim2") },
+          productFlavorsStub = { dimension ->
+            when (dimension) {
+              "dim1" -> listOf("firstAbc", "firstXyz")
+              "dim2" -> listOf("secondAbc", "secondXyz")
+              else -> error("Unknown: $dimension")
+            }.flatMap { flavorName ->
               listOf(
                 IdeProductFlavorImpl(
                   name = flavorName,
@@ -71,38 +68,35 @@ class VariantNameResolutionTest {
                   vectorDrawables = null,
                   matchingFallbacks = emptyList(),
                   missingDimensionStrategy = emptyMap(),
-                  isDefault = null
+                  isDefault = null,
                 )
               )
             }
-        },
-        androidProject = {
-          buildAndroidProjectStub()
-            .let {
+          },
+          androidProject = {
+            buildAndroidProjectStub().let {
               if (reorderFlavors) {
                 it.copy(
-                  multiVariantData = it.multiVariantData?.copy(
-                    productFlavors = it.multiVariantData?.productFlavors.orEmpty().reversed()
-                  )
+                  multiVariantData = it.multiVariantData?.copy(productFlavors = it.multiVariantData?.productFlavors.orEmpty().reversed())
                 )
               } else it
             }
-        }
-      )
+          },
+        )
         .build()
     val (androidProject, variants, ndkModel) =
       projectModelBuilder("projectName", ":app", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version", InternedModels(null))
 
     val resolver = buildVariantNameResolver(androidProject, variants)
     Truth.assertThat(
-      resolver.resolveVariant(
-        "debug"
-      ) {
-        when (it) {
-          "dim1" -> "firstAbc"
-          "dim2" -> "secondXyz"
-          else -> error("Unknown dimension: $it")
+        resolver.resolveVariant("debug") {
+          when (it) {
+            "dim1" -> "firstAbc"
+            "dim2" -> "secondXyz"
+            else -> error("Unknown dimension: $it")
+          }
         }
-      }).isEqualTo("firstAbcSecondXyzDebug")
+      )
+      .isEqualTo("firstAbcSecondXyzDebug")
   }
 }

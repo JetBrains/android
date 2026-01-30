@@ -17,4 +17,4 @@ package com.android.tools.idea.gradle.dsl.api
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface SoftwareTypesModel: GradleBlockModel
+interface SoftwareTypesModel : GradleBlockModel

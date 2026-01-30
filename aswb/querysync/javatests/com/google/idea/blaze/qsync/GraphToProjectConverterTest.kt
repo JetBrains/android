@@ -103,13 +103,7 @@ class GraphToProjectConverterTest {
 
     Truth.assertThat(split.keys).containsExactlyElementsIn(roots)
     Truth.assertThat(split.get(Path.of("java")))
-      .isEqualTo(
-        mapOf(
-          Path.of("com/test") to "com.test",
-          Path.of("com/test/nested") to "com.test.nested",
-          Path.of("com/root") to "",
-        )
-      )
+      .isEqualTo(mapOf(Path.of("com/test") to "com.test", Path.of("com/test/nested") to "com.test.nested", Path.of("com/root") to ""))
     Truth.assertThat(split.get(Path.of("javatests")))
       .isEqualTo(mapOf(Path.of("com/one") to "prefix.com", Path.of("com/two") to "other.prefix"))
   }
@@ -141,12 +135,7 @@ class GraphToProjectConverterTest {
     Truth.assertThat(roots)
       .isEqualTo(
         mapOf(
-          Path.of("java") to
-            mapOf(
-              Path.of("") to "",
-              Path.of("com/google/e/z") to "z",
-              Path.of("com/google/e/z/y") to "com.y",
-            ),
+          Path.of("java") to mapOf(Path.of("") to "", Path.of("com/google/e/z") to "z", Path.of("com/google/e/z/y") to "com.y"),
           Path.of("javatests") to
             mapOf(
               Path.of("") to "",
@@ -173,15 +162,13 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_singleSource_belowImportRoot() {
     val packages = PackageSet.of(Path.of("java/com/test"))
-    val sourcePackages =
-      mapOf(Path.of("java/com/test/subpackage/Class1.java") to "com.test.subpackage")
+    val sourcePackages = mapOf(Path.of("java/com/test/subpackage/Class1.java") to "com.test.subpackage")
 
     val converter =
       GraphToProjectConvertersForTests.create(
@@ -192,8 +179,7 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
@@ -214,18 +200,13 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiRoots() {
     val packages = PackageSet.of(Path.of("java/com/app"), Path.of("java/com/lib"))
-    val sourcePackages =
-      mapOf(
-        Path.of("java/com/app/AppClass.java") to "com.app",
-        Path.of("java/com/lib/LibClass.java") to "com.lib",
-      )
+    val sourcePackages = mapOf(Path.of("java/com/app/AppClass.java") to "com.app", Path.of("java/com/lib/LibClass.java") to "com.lib")
 
     val converter =
       GraphToProjectConvertersForTests.create(
@@ -235,12 +216,9 @@ class GraphToProjectConverterTest {
       )
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
-    Truth.assertThat(rootSources.keys)
-      .containsExactly(Path.of("java/com/app"), Path.of("java/com/lib"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/app")))
-      .containsExactly(Path.of(""), "com.app")
-    Truth.assertThat(rootSources.get(Path.of("java/com/lib")))
-      .containsExactly(Path.of(""), "com.lib")
+    Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/app"), Path.of("java/com/lib"))
+    Truth.assertThat(rootSources.get(Path.of("java/com/app"))).containsExactly(Path.of(""), "com.app")
+    Truth.assertThat(rootSources.get(Path.of("java/com/lib"))).containsExactly(Path.of(""), "com.lib")
   }
 
   @Test
@@ -267,8 +245,7 @@ class GraphToProjectConverterTest {
 
   @Test
   fun testCalculateRootSources_multiSource_samePrefix() {
-    val packages =
-      PackageSet.of(Path.of("java/com/test/package1"), Path.of("java/com/test/package2"))
+    val packages = PackageSet.of(Path.of("java/com/test/package1"), Path.of("java/com/test/package2"))
     val sourcePackages =
       mapOf(
         Path.of("java/com/test/package2/Class1.java") to "com.test.package2",
@@ -284,18 +261,14 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_nextedPrefixCompatible() {
     val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/package"))
     val sourcePackages =
-      mapOf(
-        Path.of("java/com/test/Class1.java") to "com.test",
-        Path.of("java/com/test/package/Class2.java") to "com.test.package",
-      )
+      mapOf(Path.of("java/com/test/Class1.java") to "com.test", Path.of("java/com/test/package/Class2.java") to "com.test.package")
 
     val converter =
       GraphToProjectConvertersForTests.create(
@@ -306,18 +279,14 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateRootSources_multiSource_nestedPrefixIncompatible() {
     val packages = PackageSet.of(Path.of("java/com/test"), Path.of("java/com/test/package"))
     val sourcePackages =
-      mapOf(
-        Path.of("java/com/test/Class1.java") to "com.test.odd",
-        Path.of("java/com/test/package/Class2.java") to "com.test.package",
-      )
+      mapOf(Path.of("java/com/test/Class1.java") to "com.test.odd", Path.of("java/com/test/package/Class2.java") to "com.test.package")
 
     val converter =
       GraphToProjectConvertersForTests.create(
@@ -351,8 +320,7 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("third_party"))
-    Truth.assertThat(rootSources.get(Path.of("third_party")))
-      .containsExactly(Path.of("java"), "", Path.of("javatests"), "")
+    Truth.assertThat(rootSources.get(Path.of("third_party"))).containsExactly(Path.of("java"), "", Path.of("javatests"), "")
   }
 
   @Test
@@ -373,20 +341,14 @@ class GraphToProjectConverterTest {
 
     val rootSources = converter.calculateJavaRootSources(context, sourcePackages.keys, packages)
     Truth.assertThat(rootSources.keys).containsExactly(Path.of("java/com/test"))
-    Truth.assertThat(rootSources.get(Path.of("java/com/test")))
-      .containsExactly(Path.of("repackaged"), "", Path.of(""), "com.test")
+    Truth.assertThat(rootSources.get(Path.of("java/com/test"))).containsExactly(Path.of("repackaged"), "", Path.of(""), "com.test")
   }
 
   @Test
   fun testCalculateAndroidResourceDirectories_single_directory() {
-    val sourceFiles =
-      ImmutableSet.of(
-        of("//java/com/test:AndroidManifest.xml"),
-        of("//java/com/test:res/values/strings.xml"),
-      )
+    val sourceFiles = ImmutableSet.of(of("//java/com/test:AndroidManifest.xml"), of("//java/com/test:res/values/strings.xml"))
 
-    val androidResourceDirectories =
-      GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
+    val androidResourceDirectories = GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
     Truth.assertThat(androidResourceDirectories).containsExactly(Path.of("java/com/test/res"))
   }
 
@@ -401,50 +363,38 @@ class GraphToProjectConverterTest {
         of("//java/com/test2:res/layout/another-activity.xml"),
       )
 
-    val androidResourceDirectories =
-      GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
-    Truth.assertThat(androidResourceDirectories)
-      .containsExactly(Path.of("java/com/test/res"), Path.of("java/com/test2/res"))
+    val androidResourceDirectories = GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
+    Truth.assertThat(androidResourceDirectories).containsExactly(Path.of("java/com/test/res"), Path.of("java/com/test2/res"))
   }
 
   @Test
   fun testCalculateAndroidResourceDirectories_manifest_without_res_directory() {
-    val sourceFiles =
-      ImmutableSet.of(of("//java/com/nores:AndroidManifest.xml"), of("//java/com/nores:Foo.java"))
+    val sourceFiles = ImmutableSet.of(of("//java/com/nores:AndroidManifest.xml"), of("//java/com/nores:Foo.java"))
 
-    val androidResourceDirectories =
-      GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
+    val androidResourceDirectories = GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles)
     Truth.assertThat(androidResourceDirectories).isEmpty()
   }
 
   @Test
   fun testCalculateAndroidSourcePackages_rootWithEmptyPrefix() {
-    val converter =
-      GraphToProjectConvertersForTests.create(languageClasses = setOf(QuerySyncLanguage.JVM))
+    val converter = GraphToProjectConvertersForTests.create(languageClasses = setOf(QuerySyncLanguage.JVM))
 
-    val androidSourceFiles =
-      listOf(Path.of("java/com/example/foo/Foo.java"), Path.of("java/com/example/bar/Bar.java"))
+    val androidSourceFiles = listOf(Path.of("java/com/example/foo/Foo.java"), Path.of("java/com/example/bar/Bar.java"))
     val rootToPrefix = mapOf(Path.of("java/com/example") to mapOf(Path.of("") to "com.example"))
 
-    val androidResourcePackages =
-      converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
+    val androidResourcePackages = converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
     Truth.assertThat(androidResourcePackages).containsExactly("com.example.foo", "com.example.bar")
   }
 
   @Test
   fun testCalculateAndroidSourcePackages_emptyRootWithPrefix() {
-    val converter =
-      GraphToProjectConvertersForTests.create(languageClasses = setOf(QuerySyncLanguage.JVM))
+    val converter = GraphToProjectConvertersForTests.create(languageClasses = setOf(QuerySyncLanguage.JVM))
 
     val androidSourceFiles =
-      listOf(
-        Path.of("some_project/java/com/example/foo/Foo.java"),
-        Path.of("some_project/java/com/example/bar/Bar.java"),
-      )
+      listOf(Path.of("some_project/java/com/example/foo/Foo.java"), Path.of("some_project/java/com/example/bar/Bar.java"))
     val rootToPrefix = mapOf(Path.of("some_project") to mapOf(Path.of("java") to ""))
 
-    val androidResourcePackages =
-      converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
+    val androidResourcePackages = converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
     Truth.assertThat(androidResourcePackages).containsExactly("com.example.foo", "com.example.bar")
   }
 
@@ -452,19 +402,11 @@ class GraphToProjectConverterTest {
   fun testCalculateAndroidSourcePackages_emptyRootAndNonEmptyRoot() {
     val converter = GraphToProjectConvertersForTests.create()
 
-    val androidSourceFiles =
-      listOf(
-        Path.of("some_project/java/com/example/foo/Foo.java"),
-        Path.of("java/com/example/bar/Bar.java"),
-      )
+    val androidSourceFiles = listOf(Path.of("some_project/java/com/example/foo/Foo.java"), Path.of("java/com/example/bar/Bar.java"))
     val rootToPrefix =
-      mapOf(
-        Path.of("some_project") to mapOf(Path.of("java") to ""),
-        Path.of("java/com/example") to mapOf(Path.of("") to "com.example"),
-      )
+      mapOf(Path.of("some_project") to mapOf(Path.of("java") to ""), Path.of("java/com/example") to mapOf(Path.of("") to "com.example"))
 
-    val androidResourcePackages =
-      converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
+    val androidResourcePackages = converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
     Truth.assertThat(androidResourcePackages).containsExactly("com.example.foo", "com.example.bar")
   }
 
@@ -472,19 +414,10 @@ class GraphToProjectConverterTest {
   fun testCalculateAndroidSourcePackages_pathPrefixOfAnotherPath() {
     val converter = GraphToProjectConvertersForTests.create()
 
-    val androidSourceFiles =
-      listOf(
-        Path.of("project/MainActivity.java"),
-        Path.of("project/modules/test/com/example/bar/Bar.java"),
-      )
-    val rootToPrefix =
-      mapOf(
-        Path.of("project") to
-          mapOf(Path.of("") to "com.root.project", Path.of("modules", "test") to "")
-      )
+    val androidSourceFiles = listOf(Path.of("project/MainActivity.java"), Path.of("project/modules/test/com/example/bar/Bar.java"))
+    val rootToPrefix = mapOf(Path.of("project") to mapOf(Path.of("") to "com.root.project", Path.of("modules", "test") to ""))
 
-    val androidResourcePackages =
-      converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
+    val androidResourcePackages = converter.computeAndroidSourcePackages(androidSourceFiles, rootToPrefix)
     Truth.assertThat(androidResourcePackages).containsExactly("com.root.project", "com.example.bar")
   }
 
@@ -509,7 +442,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
-          BuildGraphData.ProtoRules.forTests()
+          BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
     val converter =
@@ -528,24 +461,18 @@ class GraphToProjectConverterTest {
     Truth.assertThat(workspaceModule.contentEntries.size).isEqualTo(1)
 
     val javaContentEntry = workspaceModule.contentEntries.values.iterator().next()
-    Truth.assertThat(javaContentEntry.root)
-      .isEqualTo(workspaceRelativeForTests(workspaceImportDirectory))
+    Truth.assertThat(javaContentEntry.root).isEqualTo(workspaceRelativeForTests(workspaceImportDirectory))
     Truth.assertThat(javaContentEntry.sourceFolders.size).isEqualTo(1)
 
     val javaSource = javaContentEntry.sourceFolders.get(0)
-    Truth.assertThat(javaSource.projectPath)
-      .isEqualTo(workspaceRelativeForTests(workspaceImportDirectory))
+    Truth.assertThat(javaSource.projectPath).isEqualTo(workspaceRelativeForTests(workspaceImportDirectory))
     Truth.assertThat(javaSource.isGenerated).isFalse()
     Truth.assertThat(javaSource.isTest).isFalse()
   }
 
   @Test
   fun testTestSources() {
-    val sourcePackages =
-      mapOf(
-        TestData.ROOT.resolve("nodeps/TestClassNoDeps.java") to
-          "com.google.idea.blaze.qsync.testdata.nodeps"
-      )
+    val sourcePackages = mapOf(TestData.ROOT.resolve("nodeps/TestClassNoDeps.java") to "com.google.idea.blaze.qsync.testdata.nodeps")
 
     val converter =
       GraphToProjectConvertersForTests.create(
@@ -554,8 +481,7 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
         testSources = setOf("tools/adt/idea/aswb/querysync/javatests/*"),
       )
-    val buildGraphData: BuildGraphData =
-      BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_NO_DEPS_QUERY)
+    val buildGraphData: BuildGraphData = BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_NO_DEPS_QUERY)
     val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
 
     Truth.assertThat(project.modules.size).isEqualTo(1)
@@ -564,8 +490,7 @@ class GraphToProjectConverterTest {
     Truth.assertThat(contentEntry.sourceFolders.size).isEqualTo(1)
     val sourceFolder = contentEntry.sourceFolders.get(0)
 
-    Truth.assertThat(sourceFolder.projectPath)
-      .isEqualTo(workspaceRelativeForTests(TestData.ROOT.resolve("nodeps")))
+    Truth.assertThat(sourceFolder.projectPath).isEqualTo(workspaceRelativeForTests(TestData.ROOT.resolve("nodeps")))
 
     Truth.assertThat(sourceFolder.isTest).isTrue()
   }
@@ -581,10 +506,8 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val additionalProtoSourceFolders =
-      converter.nonJavaSourceFolders(setOf(Path.of("myproject/protos/test.proto")))
-    Truth.assertThat(additionalProtoSourceFolders)
-      .containsExactly(Path.of("myproject"), listOf(Path.of("protos")))
+    val additionalProtoSourceFolders = converter.nonJavaSourceFolders(setOf(Path.of("myproject/protos/test.proto")))
+    Truth.assertThat(additionalProtoSourceFolders).containsExactly(Path.of("myproject"), listOf(Path.of("protos")))
   }
 
   @Test
@@ -599,8 +522,7 @@ class GraphToProjectConverterTest {
         languageClasses = setOf(QuerySyncLanguage.JVM),
       )
 
-    val additionalProtoSourceFolders =
-      converter.nonJavaSourceFolders(setOf(Path.of("myproject/excluded/protos/excluded.proto")))
+    val additionalProtoSourceFolders = converter.nonJavaSourceFolders(setOf(Path.of("myproject/excluded/protos/excluded.proto")))
     Truth.assertThat(additionalProtoSourceFolders).isEmpty()
   }
 
@@ -626,7 +548,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.JAVA_LIBRARY_NO_DEPS_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
-          BuildGraphData.ProtoRules.forTests()
+          BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
     val project = converter.configureProject(buildGraphData, emptyRepositoryFinder)
@@ -637,11 +559,7 @@ class GraphToProjectConverterTest {
   @Test
   fun testCreateProject_cc() {
     val workspaceImportDirectory = TestData.ROOT.resolve("cc")
-    val converter =
-      GraphToProjectConvertersForTests.create(
-        projectIncludes = setOf(workspaceImportDirectory),
-        isAndroidWorkspace = false,
-      )
+    val converter = GraphToProjectConvertersForTests.create(projectIncludes = setOf(workspaceImportDirectory), isAndroidWorkspace = false)
 
     val buildGraphData =
       BlazeQueryParser(
@@ -649,7 +567,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.CC_LIBRARY_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
-          BuildGraphData.ProtoRules.forTests()
+          BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
 
@@ -710,7 +628,7 @@ class GraphToProjectConverterTest {
           QuerySyncTestUtils.getQuerySummary(TestData.ANDROID_LIB_QUERY),
           QuerySyncTestUtils.NOOP_CONTEXT,
           emptySet(),
-          BuildGraphData.ProtoRules.forTests()
+          BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
 
@@ -739,11 +657,9 @@ class GraphToProjectConverterTest {
                       excludes = emptyList(),
                     )
                 ),
-              androidResourceDirectories =
-                listOf(workspaceRelativeForTests(TestData.ROOT.resolve("android/res"))),
+              androidResourceDirectories = listOf(workspaceRelativeForTests(TestData.ROOT.resolve("android/res"))),
               isAndroidModule = true,
-              androidSourcePackages =
-                emptyList(), // Expected to be empty as Build Graph does not contain resource
+              androidSourcePackages = emptyList(), // Expected to be empty as Build Graph does not contain resource
               // packages
               androidCustomPackages = emptyList(),
               androidExternalLibraries = emptyList(),

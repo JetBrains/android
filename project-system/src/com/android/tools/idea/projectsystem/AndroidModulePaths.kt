@@ -19,42 +19,34 @@ import java.io.File
 import java.util.Collections
 
 /**
- * Represents a template for creating new Android components. It knows where to put the various
- * files given the root of the module. This is used when creating new files:
- * E.g., New Activity, Fragment, Module, Project.
+ * Represents a template for creating new Android components. It knows where to put the various files given the root of the module. This is
+ * used when creating new files: E.g., New Activity, Fragment, Module, Project.
  */
 interface AndroidModulePaths {
   val moduleRoot: File?
 
   /**
-   * @param packageName package name of the new component. May affect resulting source directory (e.g., appended to source root).
-   * For "com.google.foo.Bar", this would be "com.google.foo", and the resulting source directory *might* be
-   * "src/main/java/com/google/foo/". `null` means no transformation is required on the source root.
-   *
+   * @param packageName package name of the new component. May affect resulting source directory (e.g., appended to source root). For
+   *   "com.google.foo.Bar", this would be "com.google.foo", and the resulting source directory *might* be "src/main/java/com/google/foo/".
+   *   `null` means no transformation is required on the source root.
    * @return the target directory in which to place a new Android component or `null` if the current selection does not support source
-   * directories.
+   *   directories.
    */
   fun getSrcDirectory(packageName: String?): File?
 
-  /**
-   * Similar to [AndroidModulePaths.getSrcDirectory], except for new Android tests.
-   */
+  /** Similar to [AndroidModulePaths.getSrcDirectory], except for new Android tests. */
   fun getTestDirectory(packageName: String?): File?
 
-  /**
-   * Similar to [AndroidModulePaths.getSrcDirectory], except for new unit tests.
-   */
+  /** Similar to [AndroidModulePaths.getSrcDirectory], except for new unit tests. */
   fun getUnitTestDirectory(packageName: String?): File?
 
   /**
-   * Resource directories in order of increasing precedence. A resource in the last directory overrides
-   * resources with the same name and type in earlier directories.
+   * Resource directories in order of increasing precedence. A resource in the last directory overrides resources with the same name and
+   * type in earlier directories.
    */
   val resDirectories: List<File>
 
-  /**
-   * Similar to [AndroidModulePaths.getSrcDirectory], except for new aidl files.
-   */
+  /** Similar to [AndroidModulePaths.getSrcDirectory], except for new aidl files. */
   fun getAidlDirectory(packageName: String?): File?
 
   val manifestDirectory: File?
@@ -71,11 +63,14 @@ data class AndroidModulePathsImpl(
   private val testRoot: File?,
   private val aidlRoot: File?,
   override val resDirectories: List<File>,
-  override val mlModelsDirectories: List<File>
+  override val mlModelsDirectories: List<File>,
 ) : AndroidModulePaths {
   override fun getSrcDirectory(packageName: String?): File? = srcRoot?.appendPackageToRoot(packageName)
+
   override fun getTestDirectory(packageName: String?): File? = testRoot?.appendPackageToRoot(packageName)
+
   override fun getUnitTestDirectory(packageName: String?): File? = unitTestRoot?.appendPackageToRoot(packageName)
+
   override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
 }
 
@@ -89,13 +84,18 @@ data class KotlinMultiplatformModulePathsImpl(
   private val instrumentedTestRoot: File?,
   private val aidlRoot: File?,
   override val resDirectories: List<File>,
-  override val mlModelsDirectories: List<File>
+  override val mlModelsDirectories: List<File>,
 ) : AndroidModulePaths {
   override fun getSrcDirectory(packageName: String?): File? = androidSrcRoot?.appendPackageToRoot(packageName)
+
   override fun getTestDirectory(packageName: String?): File? = instrumentedTestRoot?.appendPackageToRoot(packageName)
+
   override fun getUnitTestDirectory(packageName: String?): File? = unitTestRoot?.appendPackageToRoot(packageName)
+
   override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
+
   fun getCommonSrcDirectory(packageName: String?): File? = commonSrcRoot?.appendPackageToRoot(packageName)
+
   fun getIosSrcDirectory(packageName: String?): File? = iosSrcRoot?.appendPackageToRoot(packageName)
 }
 

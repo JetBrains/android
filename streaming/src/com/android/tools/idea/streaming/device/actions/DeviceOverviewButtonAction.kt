@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_APP_SWITCH
 
-/**
- * Simulates pressing the Overview button on an Android device.
- */
+/** Simulates pressing the Overview button on an Android device. */
 internal class DeviceOverviewButtonAction : DevicePushButtonAction(AKEYCODE_APP_SWITCH, configFilter = { !it.isWatch && !it.isAutomotive })

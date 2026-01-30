@@ -34,35 +34,28 @@ import com.intellij.openapi.project.Project
 import java.io.File
 import java.nio.file.Path
 
-/** Info about the deployment phase.  */
-class BlazeAndroidDeployInfo private constructor(
+/** Info about the deployment phase. */
+class BlazeAndroidDeployInfo
+private constructor(
   /**
-   * Returns parsed manifest of the main target for this deployment. During normal app deployment,
-   * the main target is the android_binary that builds the app itself. During instrumentation tests
-   * the main target is the android_binary/android_test target responsible for instrumenting the
-   * app, while the merged manifest of the app under test can be obtained through [BlazeAndroidDeployInfo.appUnderTestMergedManifest].
+   * Returns parsed manifest of the main target for this deployment. During normal app deployment, the main target is the android_binary
+   * that builds the app itself. During instrumentation tests the main target is the android_binary/android_test target responsible for
+   * instrumenting the app, while the merged manifest of the app under test can be obtained through
+   * [BlazeAndroidDeployInfo.appUnderTestMergedManifest].
    */
   val mainAppMergedManifest: ParsedManifest,
 
-  /**
-   * Returns parsed manifest of the app under test during an instrumentation test. This method
-   * returns null in all other scenarios.
-   */
+  /** Returns parsed manifest of the app under test during an instrumentation test. This method returns null in all other scenarios. */
   val appUnderTestMergedManifest: ParsedManifest?,
 
-  /** Returns the full list of C++ symbol files to provide to LLDB to symbolize debugging.  */
+  /** Returns the full list of C++ symbol files to provide to LLDB to symbolize debugging. */
   val symbolFiles: List<File>,
 
-  /**
-   * Returns a list of [ApkInfo]s to deploy. This includes the main apk and any split apks.
-   */
+  /** Returns a list of [ApkInfo]s to deploy. This includes the main apk and any split apks. */
   val apkInfos: List<ApkInfo>,
 ) {
 
-  /**
-   * Returns the primary application ID for the app being launched (either an android_binary app or
-   * a test instrumentation app).
-   */
+  /** Returns the primary application ID for the app being launched (either an android_binary app or a test instrumentation app). */
   val mainAppPackageName: String
     @Throws(ApkProvisionException::class)
     get() = mainAppMergedManifest.packageName ?: throw ApkProvisionException("No application id in merged manifest.")
@@ -70,8 +63,8 @@ class BlazeAndroidDeployInfo private constructor(
   /**
    * Returns the application ID of the app under test for instrumentation tests.
    *
-   * If [BlazeAndroidDeployInfo.appUnderTestMergedManifest] is null (i.e., the
-   * test app is testing itself), this falls back to [BlazeAndroidDeployInfo.mainAppPackageName].
+   * If [BlazeAndroidDeployInfo.appUnderTestMergedManifest] is null (i.e., the test app is testing itself), this falls back to
+   * [BlazeAndroidDeployInfo.mainAppPackageName].
    */
   val appUnderTestPackageName: String?
     @Throws(ApkProvisionException::class)
@@ -108,7 +101,7 @@ class BlazeAndroidDeployInfo private constructor(
         mainAppMergedManifest = mainApp.mergedManifest,
         appUnderTestMergedManifest = appUnderTest?.mergedManifest,
         symbolFiles = nativeSymbols,
-        apkInfos = listOfNotNull(mainAppPackage, testTargetAppPackage)
+        apkInfos = listOfNotNull(mainAppPackage, testTargetAppPackage),
       )
     }
   }
@@ -123,25 +116,19 @@ data class DeployData(val targetLabel: Label, val mergedManifest: ParsedManifest
     }
 
     @Throws(ApkProvisionException::class)
-    internal fun DeployData.fetchApks(
-      project: Project,
-      context: BlazeContext,
-      cacheLocally: CacheLocallyFunction,
-    ): ApkInfo {
+    internal fun DeployData.fetchApks(project: Project, context: BlazeContext, cacheLocally: CacheLocallyFunction): ApkInfo {
       return ApkInfo(
-        cacheLocally(project, targetLabel, apks, context)
-          .map { ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, it.toFile()) }
-          .toList(),
-        mergedManifest.packageName ?: throw ApkProvisionException("Valid manifest must have a package name")
+        cacheLocally(project, targetLabel, apks, context).map { ApkFileUnit(BlazeDataStorage.WORKSPACE_MODULE_NAME, it.toFile()) }.toList(),
+        mergedManifest.packageName ?: throw ApkProvisionException("Valid manifest must have a package name"),
       )
     }
   }
 }
 
-typealias CacheLocallyFunction = (project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext) -> List<Path>
-private fun cacheLocally(
-  project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext,
-): List<Path> {
+typealias CacheLocallyFunction =
+  (project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext) -> List<Path>
+
+private fun cacheLocally(project: Project, targetLabel: Label, artifacts: List<OutputArtifact>, context: BlazeContext): List<Path> {
   val runtimeArtifactCache = RuntimeArtifactCache.getInstance(project)
   return runtimeArtifactCache.fetchArtifacts(targetLabel, artifacts, context, RuntimeArtifactKind.APK)
 }

@@ -38,33 +38,21 @@ import org.jetbrains.uast.tryResolve
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 /**
- * Class that checks that [SdkConstants.CLASS_CONTEXT]s that are used in method calls come from the
- * preview method's parameter.
+ * Class that checks that [SdkConstants.CLASS_CONTEXT]s that are used in method calls come from the preview method's parameter.
  *
- * NOTE: This class only checks the preview's immediate body and does not analyse the call stack.
- * It's possible a [SdkConstants.CLASS_CONTEXT] that is not the one passed in the preview parameter
- * is used further down the call stack. This would be resource intensive. Instead, we let the
- * preview fail and surface the error in the designer errors panel instead in that case.
+ * NOTE: This class only checks the preview's immediate body and does not analyse the call stack. It's possible a
+ * [SdkConstants.CLASS_CONTEXT] that is not the one passed in the preview parameter is used further down the call stack. This would be
+ * resource intensive. Instead, we let the preview fail and surface the error in the designer errors panel instead in that case.
  */
 class WearTilePreviewContextComesFromParameter : WearTilePreviewInspectionBase() {
-  override fun checkMethod(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
-    if (
-      !method.sourcePsi.isMethodWithTilePreviewSignature() || !method.hasTilePreviewAnnotation()
-    ) {
+  override fun checkMethod(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
+    if (!method.sourcePsi.isMethodWithTilePreviewSignature() || !method.hasTilePreviewAnnotation()) {
       return super.checkMethod(method, manager, isOnTheFly)
     }
 
-    val contextParameter =
-      method.uastParameters.firstOrNull {
-        it.typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
-      }
+    val contextParameter = method.uastParameters.firstOrNull { it.typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT }
 
-    val methodVisitor =
-      InvalidContextUsageWithinUMethodVisitor(contextParameter, manager, isOnTheFly)
+    val methodVisitor = InvalidContextUsageWithinUMethodVisitor(contextParameter, manager, isOnTheFly)
     method.accept(methodVisitor)
     return methodVisitor.issues.toTypedArray()
   }
@@ -111,9 +99,7 @@ private class InvalidContextUsageWithinUMethodVisitor(
       return super.visitQualifiedReferenceExpression(node)
     }
     val isSelectorFromAndroidOrAndroidx =
-      node.selector.tryResolve()?.kotlinFqName?.asString()?.let {
-        it.startsWith("android.") || it.startsWith("androidx.")
-      } == true
+      node.selector.tryResolve()?.kotlinFqName?.asString()?.let { it.startsWith("android.") || it.startsWith("androidx.") } == true
 
     // If we are accessing methods from a class that comes from android or androidx, it means we are
     // probably using the context class  in the wrong way. If the selector is coming from a
@@ -141,10 +127,7 @@ private class InvalidContextUsageWithinUMethodVisitor(
     return super.visitQualifiedReferenceExpression(node)
   }
 
-  /**
-   * This method checks that the given [PsiElement] is the same as the Context provided in the
-   * Preview method's parameter.
-   */
+  /** This method checks that the given [PsiElement] is the same as the Context provided in the Preview method's parameter. */
   private fun PsiElement?.isContextFromMethodParameter(): Boolean {
     val contextSourcePsi = contextFromMethodParameter?.sourcePsi
 

@@ -23,22 +23,31 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
 import com.intellij.util.PlatformIcons
 import javax.swing.Icon
 
-class PsDeclaredModuleJavaDependency(
-  parent: PsJavaModule
-) : PsJavaDependency(parent), PsDeclaredModuleDependency {
-  override lateinit var parsedModel: ModuleDependencyModel ; private set
+class PsDeclaredModuleJavaDependency(parent: PsJavaModule) : PsJavaDependency(parent), PsDeclaredModuleDependency {
+  override lateinit var parsedModel: ModuleDependencyModel
+    private set
 
   fun init(parsedModel: ModuleDependencyModel) {
     this.parsedModel = parsedModel
   }
 
-  override val name: String get() = parsedModel.name()
+  override val name: String
+    get() = parsedModel.name()
+
   override val isDeclared: Boolean = true
-  override val joinedConfigurationNames: String get() = parsedModel.configurationName()
+  override val joinedConfigurationNames: String
+    get() = parsedModel.configurationName()
+
   override fun toText(): String = name
-  override val icon: Icon get() = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
-  override val gradlePath: String get() = parsedModel.path().forceString()
-  override val configurationName: String get() = parsedModel.configurationName()
+
+  override val icon: Icon
+    get() = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
+
+  override val gradlePath: String
+    get() = parsedModel.path().forceString()
+
+  override val configurationName: String
+    get() = parsedModel.configurationName()
 }
 
 class PsResolvedModuleJavaDependency(
@@ -46,12 +55,19 @@ class PsResolvedModuleJavaDependency(
   override val gradlePath: String,
   scope: String,
   private val targetModule: PsModule,
-  override val declaredDependencies: List<PsDeclaredModuleJavaDependency>
-  ) : PsJavaDependency(parent), PsResolvedModuleDependency {
-  override val name: String get() = targetModule.name
-  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
+  override val declaredDependencies: List<PsDeclaredModuleJavaDependency>,
+) : PsJavaDependency(parent), PsResolvedModuleDependency {
+  override val name: String
+    get() = targetModule.name
+
+  override val isDeclared: Boolean
+    get() = declaredDependencies.isNotEmpty()
+
   override val joinedConfigurationNames: String = scope
+
   override fun toText(): String = name
+
   override val icon: Icon = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: PlatformIcons.LIBRARY_ICON
+
   override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
 }

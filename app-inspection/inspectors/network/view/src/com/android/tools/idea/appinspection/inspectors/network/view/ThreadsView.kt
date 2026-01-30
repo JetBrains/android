@@ -76,11 +76,9 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
   init {
     val tableModel = ThreadsTableModel(model.selectionRangeDataFetcher)
-    threadsTable =
-      TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.displayName, true)
+    threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.displayName, true)
     val timelineRenderer = TimelineRenderer(threadsTable, model)
-    threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer =
-      BorderlessTableCellRenderer()
+    threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer()
     threadsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
     threadsTable.setBackground(DEFAULT_BACKGROUND)
     threadsTable.setShowVerticalLines(true)
@@ -94,19 +92,14 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     threadsTable.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
-          threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).preferredWidth =
-            (threadsTable.getWidth() * 1.0 / 8).toInt()
-          threadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal).preferredWidth =
-            (threadsTable.getWidth() * 7.0 / 8).toInt()
+          threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).preferredWidth = (threadsTable.getWidth() * 1.0 / 8).toInt()
+          threadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal).preferredWidth = (threadsTable.getWidth() * 7.0 / 8).toInt()
         }
       }
     )
     val sorter = TableRowSorter(tableModel)
     sorter.setComparator(Column.NAME.ordinal, Comparator.comparing { obj: String -> obj })
-    sorter.setComparator(
-      Column.TIMELINE.ordinal,
-      Comparator.comparing { data: List<ConnectionData> -> data[0].requestStartTimeUs },
-    )
+    sorter.setComparator(Column.TIMELINE.ordinal, Comparator.comparing { data: List<ConnectionData> -> data[0].requestStartTimeUs })
     threadsTable.setRowSorter(sorter)
     threadsTable.addMouseListener(
       object : MouseAdapter() {
@@ -121,9 +114,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
         }
       }
     )
-    threadsTable.addMouseMotionListener(
-      TooltipView(threadsTable, parentPane, timelineRenderer.activeRange)
-    )
+    threadsTable.addMouseMotionListener(TooltipView(threadsTable, parentPane, timelineRenderer.activeRange))
     observer = AspectObserver()
     model.aspect.addDependency(observer).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       timelineRenderer.updateRows()
@@ -131,8 +122,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     }
   }
 
-  private class ThreadsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
-    AbstractTableModel() {
+  private class ThreadsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) : AbstractTableModel() {
     private val threads = mutableListOf<List<ConnectionData>>()
 
     init {
@@ -148,11 +138,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       val groupedThreads = dataList.filter { it.threads.isNotEmpty() }.groupBy { it.threads[0].id }
 
       // Sort by thread name, so that they're consistently displayed in alphabetical order.
-      threads.addAll(
-        groupedThreads.values.sortedWith(
-          compareBy({ it[0].threads[0].name }, { it[0].threads[0].id })
-        )
-      )
+      threads.addAll(groupedThreads.values.sortedWith(compareBy({ it[0].threads[0].name }, { it[0].threads[0].id })))
       fireTableDataChanged()
     }
 
@@ -171,10 +157,8 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     }
   }
 
-  private class TimelineRenderer(
-    private val table: JTable,
-    private val model: NetworkInspectorModel,
-  ) : TimelineTable.CellRenderer(model.timeline, true), TableModelListener {
+  private class TimelineRenderer(private val table: JTable, private val model: NetworkInspectorModel) :
+    TimelineTable.CellRenderer(model.timeline, true), TableModelListener {
     private val connectionsInfo = mutableListOf<JComponent>()
 
     init {
@@ -189,8 +173,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     fun updateRows() {
       connectionsInfo.clear()
       for (index in 0 until table.model.rowCount) {
-        @Suppress("UNCHECKED_CAST")
-        val data = table.model.getValueAt(index, 1) as List<ConnectionData>
+        @Suppress("UNCHECKED_CAST") val data = table.model.getValueAt(index, 1) as List<ConnectionData>
         connectionsInfo.add(ConnectionsInfoComponent(table, data, model, activeRange))
       }
     }
@@ -201,8 +184,8 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
   }
 
   /**
-   * A component that responsible for rendering information of the given connections, such as
-   * connection names, warnings, and lifecycle states.
+   * A component that responsible for rendering information of the given connections, such as connection names, warnings, and lifecycle
+   * states.
    */
   private class ConnectionsInfoComponent(
     private val table: JTable,
@@ -221,10 +204,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       super.paintComponent(g)
       val g2d: Graphics2D = g.create() as Graphics2D
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
-      g2d.setRenderingHint(
-        RenderingHints.KEY_TEXT_ANTIALIASING,
-        RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
-      )
+      g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
       for (i in dataList.indices) {
         val data = dataList[i]
         val endLimit =
@@ -246,48 +226,28 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       if (data.responseStartTimeUs > 0) {
         val download = rangeToPosition(data.responseStartTimeUs.toDouble())
         // draw sending
-        g2d.fill(
-          Rectangle2D.Double(
-            prev,
-            (height - STATE_HEIGHT) / 2.0,
-            download - prev,
-            STATE_HEIGHT.toDouble(),
-          )
-        )
+        g2d.fill(Rectangle2D.Double(prev, (height - STATE_HEIGHT) / 2.0, download - prev, STATE_HEIGHT.toDouble()))
         g2d.color = NETWORK_RECEIVING_COLOR
         prev = download
       }
-      val end =
-        if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble())
-        else endLimit
-      g2d.fill(
-        Rectangle2D.Double(prev, (height - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT.toDouble())
-      )
+      val end = if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble()) else endLimit
+      g2d.fill(Rectangle2D.Double(prev, (height - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT.toDouble()))
     }
 
     private fun drawConnectionName(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       g2d.font = font
       g2d.color = foreground
       val start = rangeToPosition(data.requestStartTimeUs.toDouble())
-      val end =
-        if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble())
-        else endLimit
+      val end = if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble()) else endLimit
       val metrics = getFontMetrics(font)
-      val text =
-        AdtUiUtils.shrinkToFit(data.name, metrics, (end - start - 2 * NAME_PADDING).toFloat())
+      val text = AdtUiUtils.shrinkToFit(data.name, metrics, (end - start - 2 * NAME_PADDING).toFloat())
       val availableSpace = end - start - metrics.stringWidth(text)
-      g2d.drawString(
-        text,
-        (start + availableSpace / 2.0).toFloat(),
-        ((height - metrics.height) * 0.5 + metrics.ascent).toFloat(),
-      )
+      g2d.drawString(text, (start + availableSpace / 2.0).toFloat(), ((height - metrics.height) * 0.5 + metrics.ascent).toFloat())
     }
 
     private fun drawSelection(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       val start = rangeToPosition(data.requestStartTimeUs.toDouble())
-      val end =
-        if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble())
-        else endLimit
+      val end = if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble()) else endLimit
       g2d.stroke = BasicStroke(SELECTION_OUTLINE_BORDER.toFloat())
       g2d.color = table.selectionBackground
       val rect =
@@ -309,11 +269,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     }
   }
 
-  private class TooltipView(
-    private val table: JTable,
-    parentPane: TooltipLayeredPane,
-    private val range: Range,
-  ) : MouseAdapter() {
+  private class TooltipView(private val table: JTable, parentPane: TooltipLayeredPane, private val range: Range) : MouseAdapter() {
     private val content =
       JPanel(TabularLayout("*", "*")).apply {
         border = TOOLTIP_BORDER
@@ -348,10 +304,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
         divider.background = content.background
         content.add(divider, TabularLayout.Constraint(content.componentCount, 0))
         val alsoAccessedByLabel = newTooltipLabel("Also accessed by:")
-        alsoAccessedByLabel.font =
-          alsoAccessedByLabel.font.deriveFont(
-            mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_BOLD)
-          )
+        alsoAccessedByLabel.font = alsoAccessedByLabel.font.deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_BOLD))
         addToContent(alsoAccessedByLabel)
         for (i in 1 until data.threads.size) {
           val label = newTooltipLabel(data.threads[i].name)
@@ -386,14 +339,9 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     private val SELECTION_OUTLINE_BORDER
       get() = JBUI.scale(2)
 
-    private val ROW_HEIGHT =
-      STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING)
+    private val ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING)
 
-    private fun findHttpDataUnderCursor(
-      table: JTable,
-      range: Range,
-      e: MouseEvent,
-    ): ConnectionData? {
+    private fun findHttpDataUnderCursor(table: JTable, range: Range, e: MouseEvent): ConnectionData? {
       val p = SwingUtilities.convertPoint(e.component, e.point, table)
       val row = table.rowAtPoint(p)
       val column = table.columnAtPoint(p)
@@ -403,8 +351,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       if (column == Column.TIMELINE.ordinal) {
         val cellBounds = table.getCellRect(row, column, false)
         val modelIndex = table.convertRowIndexToModel(row)
-        @Suppress("UNCHECKED_CAST")
-        val dataList = table.model.getValueAt(modelIndex, 1) as List<ConnectionData>
+        @Suppress("UNCHECKED_CAST") val dataList = table.model.getValueAt(modelIndex, 1) as List<ConnectionData>
         val at = positionToRange((p.x - cellBounds.x).toDouble(), cellBounds.getWidth(), range)
         for (data in dataList) {
           if (data.requestStartTimeUs <= at && at <= data.connectionEndTimeUs) {

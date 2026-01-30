@@ -52,8 +52,7 @@ import java.util.concurrent.CountDownLatch
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * This implementation of AndroidProjectSystem is used during integration tests and includes methods
- * to stub project system functionalities.
+ * This implementation of AndroidProjectSystem is used during integration tests and includes methods to stub project system functionalities.
  */
 @Deprecated(
   "Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project"
@@ -79,16 +78,10 @@ constructor(
     val version
       get() = spec.version
 
-    constructor(
-      type: DependencyType,
-      id: WellKnownMavenArtifactId,
-      version: TestVersion,
-    ) : this(type, DependencySpec(id, version))
+    constructor(type: DependencyType, id: WellKnownMavenArtifactId, version: TestVersion) : this(type, DependencySpec(id, version))
   }
 
-  interface TestModuleSystem :
-    AndroidModuleSystem,
-    RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
+  interface TestModuleSystem : AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
 
   override fun isAndroidProject(): Boolean {
     return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
@@ -108,9 +101,7 @@ constructor(
           projectSystem: AndroidProjectSystem,
           info: ApplicationProjectContextProvider.RunningApplicationIdentity,
         ): ApplicationProjectContext {
-          return TestApplicationProjectContext(
-            info.applicationId ?: error("applicationId must not be empty")
-          )
+          return TestApplicationProjectContext(info.applicationId ?: error("applicationId must not be empty"))
         }
       }
     ApplicationManager.getApplication()
@@ -122,8 +113,7 @@ constructor(
   private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
   private val availablePreviewDependencies: List<Artifact>
   private val availableStableDependencies: List<Artifact>
-  private val incompatibleArtifactIdPairs:
-    HashMap<WellKnownMavenArtifactId, WellKnownMavenArtifactId>
+  private val incompatibleArtifactIdPairs: HashMap<WellKnownMavenArtifactId, WellKnownMavenArtifactId>
   private val artifactIdToFakeRegisterDependencyError: HashMap<WellKnownMavenArtifactId, String>
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
@@ -141,23 +131,15 @@ constructor(
   }
 
   /** Adds the given artifact to the given module's list of dependencies. */
-  fun addDependency(
-    artifactId: WellKnownMavenArtifactId,
-    module: Module,
-    testVersion: TestVersion,
-  ) {
-    dependenciesByModule.put(
-      module,
-      Dependency(DependencyType.IMPLEMENTATION, artifactId, testVersion),
-    )
+  fun addDependency(artifactId: WellKnownMavenArtifactId, module: Module, testVersion: TestVersion) {
+    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, artifactId, testVersion))
   }
 
   /** @return the set of dependencies added to the given module. */
   fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
-   * Mark a pair of ids as incompatible so that
-   * [RegisteringModuleSystem.analyzeDependencyCompatibility] will return them as incompatible
+   * Mark a pair of ids as incompatible so that [RegisteringModuleSystem.analyzeDependencyCompatibility] will return them as incompatible
    * dependencies.
    */
   fun addIncompatibleArtifactIdPair(id1: WellKnownMavenArtifactId, id2: WellKnownMavenArtifactId) {
@@ -165,21 +147,16 @@ constructor(
   }
 
   /**
-   * Add a fake error condition for [id] such that calling
-   * [RegisteringModuleSystem.registerDependency] on the coordinate will throw a
+   * Add a fake error condition for [id] such that calling [RegisteringModuleSystem.registerDependency] on the coordinate will throw a
    * [DependencyManagementException] with error message set to [errorMessage].
    */
   fun addFakeErrorForRegisteringDependency(id: WellKnownMavenArtifactId, errorMessage: String) {
     artifactIdToFakeRegisterDependencyError[id] = errorMessage
   }
 
-  data class TestRegisteredDependencyQueryId(val id: WellKnownMavenArtifactId) :
-    RegisteredDependencyQueryId
+  data class TestRegisteredDependencyQueryId(val id: WellKnownMavenArtifactId) : RegisteredDependencyQueryId
 
-  data class TestRegisteredDependencyId(
-    val id: WellKnownMavenArtifactId,
-    val version: TestVersion,
-  ) : RegisteredDependencyId {
+  data class TestRegisteredDependencyId(val id: WellKnownMavenArtifactId, val version: TestVersion) : RegisteredDependencyId {
     val dependencySpec
       get() = DependencySpec(id, version)
 
@@ -210,25 +187,19 @@ constructor(
             incompatibleArtifactIdPairs[lookup.id]?.let { value ->
               dependencies
                 .firstOrNull { it.id == value }
-                ?.let { other ->
-                  compatibilityWarningMessage += "$dependency is not compatible with $other\n"
-                }
+                ?.let { other -> compatibilityWarningMessage += "$dependency is not compatible with $other\n" }
             }
           } else {
             missing.add(dependency)
             compatibilityWarningMessage += "Can't find $dependency\n"
           }
         }
-        return Futures.immediateFuture<
-          RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>
-        >(
+        return Futures.immediateFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>>(
           RegisteredDependencyCompatibilityResult(found, missing, compatibilityWarningMessage)
         )
       }
 
-      override fun getAndroidLibraryDependencies(
-        scope: DependencyScopeType
-      ): Collection<ExternalAndroidLibrary> {
+      override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
         return androidLibraryDependencies
       }
 
@@ -236,38 +207,24 @@ constructor(
 
       override fun getDirectResourceModuleDependents() = emptyList<Module>()
 
-      override fun registerDependency(
-        dependency: TestRegisteredDependencyId,
-        type: DependencyType,
-      ) {
+      override fun registerDependency(dependency: TestRegisteredDependencyId, type: DependencyType) {
         artifactIdToFakeRegisterDependencyError[dependency.id]?.let {
-          throw DependencyManagementException(
-            it,
-            DependencyManagementException.ErrorCodes.INVALID_ARTIFACT,
-          )
+          throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
         }
         dependenciesByModule.put(module, Dependency(type, dependency.dependencySpec))
       }
 
-      override fun getRegisteredDependencyQueryId(
-        id: WellKnownMavenArtifactId
-      ): TestRegisteredDependencyQueryId = TestRegisteredDependencyQueryId(id)
+      override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId =
+        TestRegisteredDependencyQueryId(id)
 
-      override fun getRegisteredDependencyId(
-        id: WellKnownMavenArtifactId
-      ): TestRegisteredDependencyId = TestRegisteredDependencyId(id, TestVersion.WILD)
+      override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId =
+        TestRegisteredDependencyId(id, TestVersion.WILD)
 
-      override fun getRegisteredDependency(
-        id: TestRegisteredDependencyQueryId
-      ): TestRegisteredDependencyId? =
-        dependenciesByModule[module]
-          .firstOrNull { it.id == id.id }
-          ?.let { TestRegisteredDependencyId(it.id, it.version) }
+      override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
+        dependenciesByModule[module].firstOrNull { it.id == id.id }?.let { TestRegisteredDependencyId(it.id, it.version) }
 
-      override fun hasResolvedDependency(
-        id: WellKnownMavenArtifactId,
-        scope: DependencyScopeType,
-      ): Boolean = dependenciesByModule[module].firstOrNull { it.id == id } != null
+      override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
+        dependenciesByModule[module].firstOrNull { it.id == id } != null
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
         listOfNotNull(
@@ -312,9 +269,7 @@ constructor(
         }
         val facet = module.androidFacet ?: return null
         val primaryManifest = facet.sourceProviders.mainManifestFile ?: return null
-        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(
-          PathString(primaryManifest.path)
-        )
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
       }
 
       override fun getManifestOverrides() = manifestOverrides
@@ -342,8 +297,7 @@ constructor(
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
     return object : ApplicationIdProvider {
       override fun getPackageName(): String =
-        (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let {
-          module ->
+        (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.let { module ->
           getModuleSystem(module).getPackageName()
         } ?: throw ApkProvisionException("Not supported run configuration")
 
@@ -393,8 +347,7 @@ constructor(
 
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {
-      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) =
-        emptyList<PsiClass>()
+      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
 
       override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
 
@@ -462,17 +415,14 @@ enum class SpecialTestVersion(val string: String) : TestVersion {
   override fun toString() = string
 }
 
-class TestProjectSystemBuildManager(val ensureClockAdvancesWhileBuilding: Boolean) :
-  ProjectSystemBuildManager {
+class TestProjectSystemBuildManager(val ensureClockAdvancesWhileBuilding: Boolean) : ProjectSystemBuildManager {
   companion object {
     @JvmStatic
-    fun get(project: Project): TestProjectSystemBuildManager =
-      project.getProjectSystem().getBuildManager() as TestProjectSystemBuildManager
+    fun get(project: Project): TestProjectSystemBuildManager = project.getProjectSystem().getBuildManager() as TestProjectSystemBuildManager
   }
 
   private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
-  private var lastBuildResult: ProjectSystemBuildManager.BuildResult =
-    ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
+  private var lastBuildResult: ProjectSystemBuildManager.BuildResult = ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
   private var lastBuildMode = ProjectSystemBuildManager.BuildMode.UNKNOWN
   private var _isBuilding = false
 
@@ -482,10 +432,7 @@ class TestProjectSystemBuildManager(val ensureClockAdvancesWhileBuilding: Boolea
     simulateBuild(BuildMode.COMPILE_OR_ASSEMBLE)
   }
 
-  override fun addBuildListener(
-    parentDisposable: Disposable,
-    buildListener: ProjectSystemBuildManager.BuildListener,
-  ) {
+  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
     listeners.add(buildListener)
     Disposer.register(parentDisposable) { listeners.remove(buildListener) }
   }
@@ -531,12 +478,10 @@ private class SourceProvidersFactoryStub : SourceProvidersFactory {
 }
 
 /** An [ApplicationProjectContext] used with the [TestProjectSystem] */
-data class TestApplicationProjectContext(override val applicationId: String) :
-  ApplicationProjectContext
+data class TestApplicationProjectContext(override val applicationId: String) : ApplicationProjectContext
 
 interface TestToken : ProjectSystemToken {
-  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean =
-    projectSystem == expectedInstance
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem == expectedInstance
 
   val expectedInstance: TestProjectSystem
 }

@@ -30,10 +30,10 @@ import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.RunsInEdt
-import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -42,31 +42,51 @@ import org.mockito.Mockito.`when`
 @RunsInEdt
 class VariablesConfigurableTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testIsModified() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project).also { it.testResolve() }
-      val context = object : PsContext {
-        override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
-        override val project: PsProject = psProject
-        override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
-        override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon get() = throw UnsupportedOperationException()
-        override val uiSettings: PsUISettings get() = throw UnsupportedOperationException()
-        override val selectedModule: String? get() = throw UnsupportedOperationException()
-        override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()
-        override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService = throw UnsupportedOperationException()
-        override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
-        override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
-        override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
-        override fun applyChanges() = psProject.applyChanges()
-        override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
-        override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
-        override fun dispose() = throw UnsupportedOperationException()
-      }
+      val context =
+        object : PsContext {
+          override val analyzerDaemon: PsAnalyzerDaemon
+            get() = throw UnsupportedOperationException()
+
+          override val project: PsProject = psProject
+          override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+            get() = throw UnsupportedOperationException()
+
+          override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon
+            get() = throw UnsupportedOperationException()
+
+          override val uiSettings: PsUISettings
+            get() = throw UnsupportedOperationException()
+
+          override val selectedModule: String?
+            get() = throw UnsupportedOperationException()
+
+          override val mainConfigurable: ProjectStructureConfigurable
+            get() = throw UnsupportedOperationException()
+
+          override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService =
+            throw UnsupportedOperationException()
+
+          override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
+
+          override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
+
+          override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
+
+          override fun applyChanges() = psProject.applyChanges()
+
+          override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
+
+          override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
+
+          override fun dispose() = throw UnsupportedOperationException()
+        }
       val configurable = VariablesConfigurable(project, context)
       val variablesTable = mock(VariablesTable::class.java)
       configurable.table = variablesTable

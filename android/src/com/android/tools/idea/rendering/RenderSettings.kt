@@ -22,9 +22,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "RenderSettings", storages = [(Storage("render.experimental.xml"))])
-data class RenderSettings(var quality: Float = 0.9f,
-                          var useLiveRendering: Boolean = true,
-                          var showDecorations: Boolean = false) : PersistentStateComponent<RenderSettings> {
+data class RenderSettings(var quality: Float = 0.9f, var useLiveRendering: Boolean = true, var showDecorations: Boolean = false) :
+  PersistentStateComponent<RenderSettings> {
   override fun getState(): RenderSettings = this
 
   override fun loadState(state: RenderSettings) {

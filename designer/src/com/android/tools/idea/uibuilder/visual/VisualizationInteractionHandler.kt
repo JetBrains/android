@@ -62,8 +62,7 @@ class VisualizationInteractionHandler(
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
-  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
-    null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? = null
 
   override fun mouseReleaseWhenNoInteraction(
     @SwingCoordinate x: Int,
@@ -88,8 +87,7 @@ class VisualizationInteractionHandler(
 
     if (sourceFile == targetFile) {
       // Same file, just apply the config to it.
-      val surfaceInLayoutEditor =
-        (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+      val surfaceInLayoutEditor = (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
       val configInLayoutEditor = surfaceInLayoutEditor?.models?.firstOrNull()?.configuration
       if (configInLayoutEditor != null) {
         applyConfiguration(configInLayoutEditor, view.configuration)
@@ -97,12 +95,9 @@ class VisualizationInteractionHandler(
       }
     } else {
       // Open another file, or switch to it if it has been open. Then, apply the config to it.
-      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) {
-        newEditor ->
-        val surfaceInDestinationEditor =
-          (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
-        val configInDestinationEditor =
-          surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
+      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) { newEditor ->
+        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+        val configInDestinationEditor = surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
         if (configInDestinationEditor != null) {
           applyConfiguration(configInDestinationEditor, view.configuration)
           surfaceInDestinationEditor.zoomController.zoomToFit()
@@ -186,9 +181,7 @@ class VisualizationInteractionHandler(
   ): Cursor? = null
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
-    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode)
-      PanInteraction(surface.pannable)
-    else null
+    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) PanInteraction(surface.pannable) else null
   }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
@@ -208,8 +201,7 @@ class VisualizationInteractionHandler(
 class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel) :
   AnAction("Remove Configuration", "Remove a custom configuration", null) {
 
-  override fun actionPerformed(e: AnActionEvent) =
-    provider.removeCustomConfigurationAttributes(model)
+  override fun actionPerformed(e: AnActionEvent) = provider.removeCustomConfigurationAttributes(model)
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

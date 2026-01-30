@@ -52,22 +52,17 @@ import io.grpc.ClientInterceptor
 import java.time.ZoneId
 import java.util.logging.Logger
 
-class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterceptor) :
-  VitalsGrpcClient {
+class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterceptor) : VitalsGrpcClient {
 
   private val vitalsReportingServiceGrpcClient =
-    ReportingServiceGrpcKt.ReportingServiceCoroutineStub(channel)
-      .withInterceptors(authTokenInterceptor)
+    ReportingServiceGrpcKt.ReportingServiceCoroutineStub(channel).withInterceptors(authTokenInterceptor)
   private val vitalsErrorGrpcClient =
-    VitalsErrorsServiceGrpcKt.VitalsErrorsServiceCoroutineStub(channel)
-      .withInterceptors(authTokenInterceptor)
+    VitalsErrorsServiceGrpcKt.VitalsErrorsServiceCoroutineStub(channel).withInterceptors(authTokenInterceptor)
 
   override suspend fun listAccessibleApps(maxNumResults: Int): List<AppConnection> {
     val searchAccessibleAppsRequest = searchAccessibleAppsRequest { pageSize = maxNumResults }
 
-    return retryRpc {
-        vitalsReportingServiceGrpcClient.searchAccessibleApps(searchAccessibleAppsRequest)
-      }
+    return retryRpc { vitalsReportingServiceGrpcClient.searchAccessibleApps(searchAccessibleAppsRequest) }
       .appsList
       .map { AppConnection(it.name.substringAfter('/'), it.displayName) }
   }
@@ -88,8 +83,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
 
       timelineSpec = timelineSpec {
         aggregationPeriod = freshness.timeGranularity.toProto()
-        startTime =
-          filters.interval.startTime.toProtoDateTime(zoneId).truncate(freshness.timeGranularity)
+        startTime = filters.interval.startTime.toProtoDateTime(zoneId).truncate(freshness.timeGranularity)
         endTime = freshness.latestEndTime.truncate(freshness.timeGranularity)
       }
 
@@ -111,9 +105,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
       pageSize = maxNumResults
     }
 
-    return retryRpc {
-        vitalsErrorGrpcClient.queryErrorCountMetricSet(queryErrorCountMetricsSetRequest)
-      }
+    return retryRpc { vitalsErrorGrpcClient.queryErrorCountMetricSet(queryErrorCountMetricsSetRequest) }
       .rowsList
       .map { row ->
         DimensionsAndMetrics(
@@ -128,9 +120,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
       name = "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
     }
 
-    return retryRpc {
-        vitalsErrorGrpcClient.getErrorCountMetricSet(queryErrorCountMetricsSetRequest)
-      }
+    return retryRpc { vitalsErrorGrpcClient.getErrorCountMetricSet(queryErrorCountMetricsSetRequest) }
       .freshnessInfo
       .freshnessesList
       .mapNotNull {
@@ -140,8 +130,7 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
             AggregationPeriod.DAILY -> TimeGranularity.DAILY
             AggregationPeriod.FULL_RANGE -> TimeGranularity.FULL_RANGE
             else -> {
-              Logger.getLogger(VitalsGrpcClientImpl::class.qualifiedName)
-                .warning("${it.aggregationPeriod} is not recognized.")
+              Logger.getLogger(VitalsGrpcClientImpl::class.qualifiedName).warning("${it.aggregationPeriod} is not recognized.")
               return@mapNotNull null
             }
           }
@@ -151,15 +140,9 @@ class VitalsGrpcClientImpl(channel: Channel, authTokenInterceptor: ClientInterce
   }
 
   override suspend fun getReleases(connection: Connection): List<Version> {
-    val fetchReleaseFilterOptionsRequest = fetchReleaseFilterOptionsRequest {
-      name = connection.clientId
-    }
+    val fetchReleaseFilterOptionsRequest = fetchReleaseFilterOptionsRequest { name = connection.clientId }
 
-    return retryRpc {
-        vitalsReportingServiceGrpcClient.fetchReleaseFilterOptions(fetchReleaseFilterOptionsRequest)
-      }
-      .tracksList
-      .extract()
+    return retryRpc { vitalsReportingServiceGrpcClient.fetchReleaseFilterOptions(fetchReleaseFilterOptionsRequest) }.tracksList.extract()
   }
 
   override suspend fun listTopIssues(

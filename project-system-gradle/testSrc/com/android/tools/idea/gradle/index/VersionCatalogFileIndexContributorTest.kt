@@ -20,12 +20,15 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
-class VersionCatalogFileIndexContributorTest{
+class VersionCatalogFileIndexContributorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
-  private val fixture get() = projectRule.fixture
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  private val fixture
+    get() = projectRule.fixture
+
+  private val project
+    get() = projectRule.project
+
   @Test
   fun testCatalogInIndex() {
     val tomlFile = fixture.addFileToProject("gradle/libs.versions.toml", "")

@@ -17,8 +17,6 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 
-/**
- * Simulates pressing the Back button on an Android virtual device.
- */
+/** Simulates pressing the Back button on an Android virtual device. */
 class EmulatorBackButtonAction :
-    EmulatorPushButtonAction("GoBack", configFilter = { it.deviceType != DeviceType.AUTOMOTIVE }, skinOverridesConfigFilter = true)
+  EmulatorPushButtonAction("GoBack", configFilter = { it.deviceType != DeviceType.AUTOMOTIVE }, skinOverridesConfigFilter = true)

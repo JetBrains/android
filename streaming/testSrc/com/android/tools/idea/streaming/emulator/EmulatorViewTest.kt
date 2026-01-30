@@ -147,16 +147,12 @@ import org.mockito.kotlin.whenever
 class EmulatorViewTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val iconLoaderRule = IconLoaderRule()
+    @JvmField @ClassRule val iconLoaderRule = IconLoaderRule()
   }
 
   private val emulatorViewRule = EmulatorViewRule()
-  @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), ProcessHandleProviderRule(), EdtRule())
-  @get:Rule
-  val usageTrackerRule = UsageTrackerRule()
+  @get:Rule val ruleChain = RuleChain(emulatorViewRule, ClipboardSynchronizationDisablementRule(), ProcessHandleProviderRule(), EdtRule())
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
   private lateinit var view: EmulatorView
   private val fakeEmulator: FakeEmulator by lazy { emulatorViewRule.getFakeEmulator(view) }
   private lateinit var fakeUi: FakeUi
@@ -186,11 +182,12 @@ class EmulatorViewTest {
   fun testResizingRotationAndMouseInput() {
     fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
     val inputEvents = LinkedBlockingDeque<AndroidInputEvent>()
-    val inputListener = object: DeviceInputListener {
-      override fun eventSent(event: AndroidInputEvent) {
-        inputEvents.add(event)
+    val inputListener =
+      object : DeviceInputListener {
+        override fun eventSent(event: AndroidInputEvent) {
+          inputEvents.add(event)
+        }
       }
-    }
     val inputListenerManager = emulatorViewRule.project.getService(DeviceInputListenerManager::class.java)
     inputListenerManager.addDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
@@ -371,82 +368,115 @@ class EmulatorViewTest {
         call = fakeEmulator.getNextGrpcCall(2.seconds)
       }
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-      val expectedText = when (c) { '\"', '\'', '\\' -> "\\$c" else -> c.toString() }
+      val expectedText =
+        when (c) {
+          '\"',
+          '\'',
+          '\\' -> "\\$c"
+          else -> c.toString()
+        }
       assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { text: \"$expectedText\" }")
     }
 
-    val trivialKeyStrokeCases = mapOf(
-      VK_ENTER to "Enter",
-      VK_TAB to "Tab",
-      VK_ESCAPE to "Escape",
-      VK_BACK_SPACE to "Backspace",
-      VK_DELETE to if (SystemInfo.isMac) "Backspace" else "Delete",
-      VK_LEFT to "ArrowLeft",
-      VK_KP_LEFT to "ArrowLeft",
-      VK_RIGHT to "ArrowRight",
-      VK_KP_RIGHT to "ArrowRight",
-      VK_DOWN to "ArrowDown",
-      VK_KP_DOWN to "ArrowDown",
-      VK_UP to "ArrowUp",
-      VK_KP_UP to "ArrowUp",
-      VK_HOME to "Home",
-      VK_END to "End",
-      VK_PAGE_DOWN to "PageDown",
-      VK_PAGE_UP to "PageUp",
-    )
+    val trivialKeyStrokeCases =
+      mapOf(
+        VK_ENTER to "Enter",
+        VK_TAB to "Tab",
+        VK_ESCAPE to "Escape",
+        VK_BACK_SPACE to "Backspace",
+        VK_DELETE to if (SystemInfo.isMac) "Backspace" else "Delete",
+        VK_LEFT to "ArrowLeft",
+        VK_KP_LEFT to "ArrowLeft",
+        VK_RIGHT to "ArrowRight",
+        VK_KP_RIGHT to "ArrowRight",
+        VK_DOWN to "ArrowDown",
+        VK_KP_DOWN to "ArrowDown",
+        VK_UP to "ArrowUp",
+        VK_KP_UP to "ArrowUp",
+        VK_HOME to "Home",
+        VK_END to "End",
+        VK_PAGE_DOWN to "PageDown",
+        VK_PAGE_UP to "PageUp",
+      )
     for ((hostKeyStroke, emulatorKeyName) in trivialKeyStrokeCases) {
       fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      assertThat(shortDebugString(call!!.getNextRequest(1.seconds))).isEqualTo(
-          "key_event { eventType: keypress key: \"$emulatorKeyName\" }")
+      assertThat(shortDebugString(call!!.getNextRequest(1.seconds)))
+        .isEqualTo("key_event { eventType: keypress key: \"$emulatorKeyName\" }")
     }
 
-    val keyStrokeCases = mapOf(
-      getKeyStroke(ACTION_CUT) to listOf("key: \"Control\"", "eventType: keypress key: \"x\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_COPY) to  listOf("key: \"Control\"", "eventType: keypress key: \"c\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_PASTE) to  listOf("key: \"Control\"", "eventType: keypress key: \"v\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_SELECT_ALL) to listOf("key: \"Control\"", "eventType: keypress key: \"a\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION) to
+    val keyStrokeCases =
+      mapOf(
+        getKeyStroke(ACTION_CUT) to listOf("key: \"Control\"", "eventType: keypress key: \"x\"", "eventType: keyup key: \"Control\""),
+        getKeyStroke(ACTION_COPY) to listOf("key: \"Control\"", "eventType: keypress key: \"c\"", "eventType: keyup key: \"Control\""),
+        getKeyStroke(ACTION_PASTE) to listOf("key: \"Control\"", "eventType: keypress key: \"v\"", "eventType: keyup key: \"Control\""),
+        getKeyStroke(ACTION_SELECT_ALL) to
+          listOf("key: \"Control\"", "eventType: keypress key: \"a\"", "eventType: keyup key: \"Control\""),
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowRight\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowDown\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowUp\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD) to
+        getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD) to
           listOf("key: \"Control\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_EDITOR_NEXT_WORD) to
+        getKeyStroke(ACTION_EDITOR_NEXT_WORD) to
           listOf("key: \"Control\"", "eventType: keypress key: \"ArrowRight\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"ArrowLeft\"",
-                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"ArrowRight\"",
-                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION) to
+          listOf(
+            "key: \"Shift\"",
+            "key: \"Control\"",
+            "eventType: keypress key: \"ArrowLeft\"",
+            "eventType: keyup key: \"Control\"",
+            "eventType: keyup key: \"Shift\"",
+          ),
+        getKeyStroke(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION) to
+          listOf(
+            "key: \"Shift\"",
+            "key: \"Control\"",
+            "eventType: keypress key: \"ArrowRight\"",
+            "eventType: keyup key: \"Control\"",
+            "eventType: keyup key: \"Shift\"",
+          ),
+        getKeyStroke(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"Home\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"End\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"PageDown\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION) to
+        getKeyStroke(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"PageUp\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_TEXT_START) to
+        getKeyStroke(ACTION_EDITOR_TEXT_START) to
           listOf("key: \"Control\"", "eventType: keypress key: \"Home\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_EDITOR_TEXT_END) to
+        getKeyStroke(ACTION_EDITOR_TEXT_END) to
           listOf("key: \"Control\"", "eventType: keypress key: \"End\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_EDITOR_TEXT_START_WITH_SELECTION) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"Home\"",
-                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_EDITOR_TEXT_END_WITH_SELECTION) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"End\"",
-                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
-      getKeyStroke(ACTION_UNDO) to
-          listOf("key: \"Control\"", "eventType: keypress key: \"z\"", "eventType: keyup key: \"Control\""),
-      getKeyStroke(ACTION_REDO) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"z\"",
-                 "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\"")
-    )
+        getKeyStroke(ACTION_EDITOR_TEXT_START_WITH_SELECTION) to
+          listOf(
+            "key: \"Shift\"",
+            "key: \"Control\"",
+            "eventType: keypress key: \"Home\"",
+            "eventType: keyup key: \"Control\"",
+            "eventType: keyup key: \"Shift\"",
+          ),
+        getKeyStroke(ACTION_EDITOR_TEXT_END_WITH_SELECTION) to
+          listOf(
+            "key: \"Shift\"",
+            "key: \"Control\"",
+            "eventType: keypress key: \"End\"",
+            "eventType: keyup key: \"Control\"",
+            "eventType: keyup key: \"Shift\"",
+          ),
+        getKeyStroke(ACTION_UNDO) to listOf("key: \"Control\"", "eventType: keypress key: \"z\"", "eventType: keyup key: \"Control\""),
+        getKeyStroke(ACTION_REDO) to
+          listOf(
+            "key: \"Shift\"",
+            "key: \"Control\"",
+            "eventType: keypress key: \"z\"",
+            "eventType: keyup key: \"Control\"",
+            "eventType: keyup key: \"Shift\"",
+          ),
+      )
     for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
       fakeUi.keyboard.hit(hostKeyStroke)
       for (message in keyboardEventMessages) {
@@ -465,8 +495,7 @@ class EmulatorViewTest {
     whenever(mockFocusManager.processKeyEvent(any<Component>(), any<KeyEvent>())).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
 
-    mockFocusManager.processKeyEvent(
-        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+    mockFocusManager.processKeyEvent(view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
 
     verify(mockFocusManager, atLeast(1)).focusNextComponent(eq(view))
   }
@@ -489,7 +518,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1528 y: 1635 }")
 
     fakeEmulator.setPosture(PostureValue.POSTURE_CLOSED)
-    waitForCondition(1.seconds) { view.currentPosture?.posture == PostureValue.POSTURE_CLOSED}
+    waitForCondition(1.seconds) { view.currentPosture?.posture == PostureValue.POSTURE_CLOSED }
     getStreamScreenshotCallAndWaitForFrame()
     assertAppearance("FoldingClosed")
 
@@ -544,22 +573,28 @@ class EmulatorViewTest {
 
     fakeUi.mouse.press(mousePosition)
     assertAppearance("MultiTouch2")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo(
+    assertThat(shortDebugString(call.getNextRequest(1.seconds)))
+      .isEqualTo(
         "touch_event { touches { x: 1274 y: 744 pressure: 1024 expiration: NEVER_EXPIRE }" +
-        " touches { x: 165 y: 2215 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }")
+          " touches { x: 165 y: 2215 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }"
+      )
 
     mousePosition.x -= 20
     mousePosition.y += 20
     fakeUi.mouse.dragTo(mousePosition)
     assertAppearance("MultiTouch3")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo(
+    assertThat(shortDebugString(call.getNextRequest(1.seconds)))
+      .isEqualTo(
         "touch_event { touches { x: 1058 y: 960 pressure: 1024 expiration: NEVER_EXPIRE }" +
-        " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }")
+          " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }"
+      )
 
     fakeUi.mouse.release()
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo(
+    assertThat(shortDebugString(call.getNextRequest(1.seconds)))
+      .isEqualTo(
         "touch_event { touches { x: 1058 y: 960 expiration: NEVER_EXPIRE }" +
-        " touches { x: 381 y: 1999 identifier: 1 expiration: NEVER_EXPIRE } }")
+          " touches { x: 381 y: 1999 identifier: 1 expiration: NEVER_EXPIRE } }"
+      )
 
     fakeUi.keyboard.release(VK_CONTROL)
     assertAppearance("MultiTouch4")
@@ -637,9 +672,11 @@ class EmulatorViewTest {
     // Here we expect the gRPC call from `press()`, as `moveTo()` should not trigger any gRPC calls.
     val call = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo(
+    assertThat(shortDebugString(call.getNextRequest(1.seconds)))
+      .isEqualTo(
         "touch_event { touches { x: 1118 y: 1989 pressure: 1024 expiration: NEVER_EXPIRE }" + // Non-zero pressure.
-        " touches { x: 321 y: 970 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }")
+          " touches { x: 321 y: 970 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }"
+      )
 
     fakeUi.keyboard.release(VK_CONTROL)
   }
@@ -712,7 +749,6 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
     fakeUi.render()
-
 
     fakeUi.mouse.press(135, 190, FakeMouse.Button.RIGHT)
 
@@ -835,8 +871,10 @@ class EmulatorViewTest {
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
-    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK or CTRL_DOWN_MASK, VK_J,
-                                                    CHAR_UNDEFINED))).isFalse()
+    assertThat(
+        view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK or CTRL_DOWN_MASK, VK_J, CHAR_UNDEFINED))
+      )
+      .isFalse()
   }
 
   @Test
@@ -870,25 +908,19 @@ class EmulatorViewTest {
     // Activate the virtual scene camera
     focusManager.focusOwner = view
     fakeEmulator.virtualSceneCameraActive = true
-    waitForCondition(200, MILLISECONDS) {
-      fakeUi.findComponent<EditorNotificationPanel>() != null
-    }
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() != null }
 
     // Enable hardware input
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
 
     // Check if notification panel is disappeared
-    waitForCondition(200, MILLISECONDS) {
-      fakeUi.findComponent<EditorNotificationPanel>() == null
-    }
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() == null }
 
     // Disable hardware input
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
 
     // Check if notification panel is re-appeared
-    waitForCondition(200, MILLISECONDS) {
-      fakeUi.findComponent<EditorNotificationPanel>() != null
-    }
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() != null }
   }
 
   @Test
@@ -908,12 +940,10 @@ class EmulatorViewTest {
     executeAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = SHIFT_DOWN_MASK)
 
     // Check if notification panel is disappeared
-    waitForCondition(200, MILLISECONDS) {
-      fakeUi.findComponent<EditorNotificationPanel>() != null
-    }
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() != null }
 
-    assertThat(fakeUi.findComponent<EditorNotificationPanel>()?.text).isEqualTo(
-        "Move camera with WASDQE keys, rotate with mouse or arrow keys")
+    assertThat(fakeUi.findComponent<EditorNotificationPanel>()?.text)
+      .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
   }
 
   @Test
@@ -964,9 +994,11 @@ class EmulatorViewTest {
 
     // Check if touch event is generated
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-    assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo(
+    assertThat(shortDebugString(call.getNextRequest(1.seconds)))
+      .isEqualTo(
         "touch_event { touches { x: 1058 y: 960 pressure: 1024 expiration: NEVER_EXPIRE }" +
-        " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }")
+          " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE } }"
+      )
   }
 
   @Test
@@ -1040,15 +1072,17 @@ class EmulatorViewTest {
     val avdFolder = view.emulator.emulatorConfig.avdFolder
 
     val processHandle = ProcessHandleProvider.getProcessHandle(view.emulator.emulatorId.pid)!!
-    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(
-        processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "Attention!")
+    messageBus
+      .syncPublisher(EmulatorLogListener.TOPIC)
+      .messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "Attention!")
     waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
     var notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Attention!")
     assertThat(notificationPanel.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
 
-    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(
-        processHandle, avdFolder, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
+    messageBus
+      .syncPublisher(EmulatorLogListener.TOPIC)
+      .messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.ERROR, true, "Crashed!")
     waitForCondition(2.seconds) { notificationHolderPanel.findDescendant<EditorNotificationPanel>() != null }
     notificationPanel = notificationHolderPanel.getDescendant<EditorNotificationPanel>()
     assertThat(notificationPanel.text).isEqualTo("Crashed!")
@@ -1093,23 +1127,24 @@ class EmulatorViewTest {
     Disposer.dispose(view)
     val mirroringSessions = usageTrackerRule.deviceMirroringSessions()
     assertThat(mirroringSessions.size).isEqualTo(1)
-    val mirroringSessionPattern = Regex(
-      "kind: DEVICE_MIRRORING_SESSION\n" +
-      "studio_session_id: \".+\"\n" +
-      "product_details \\{\n" +
-      "\\s*version: \".*\"\n" +
-      "}\n" +
-      "device_info \\{\n" +
-      "\\s*device_type: LOCAL_EMULATOR\n" +
-      "}\n" +
-      "ide_brand: ANDROID_STUDIO\n" +
-      "idea_is_internal: \\w+\n" +
-      "device_mirroring_session \\{\n" +
-      "\\s*device_kind: VIRTUAL\n" +
-      "\\s*duration_sec: \\d+\n" +
-      "\\s*first_frame_delay_millis: \\d+\n" +
-      "}\n"
-    )
+    val mirroringSessionPattern =
+      Regex(
+        "kind: DEVICE_MIRRORING_SESSION\n" +
+          "studio_session_id: \".+\"\n" +
+          "product_details \\{\n" +
+          "\\s*version: \".*\"\n" +
+          "}\n" +
+          "device_info \\{\n" +
+          "\\s*device_type: LOCAL_EMULATOR\n" +
+          "}\n" +
+          "ide_brand: ANDROID_STUDIO\n" +
+          "idea_is_internal: \\w+\n" +
+          "device_mirroring_session \\{\n" +
+          "\\s*device_kind: VIRTUAL\n" +
+          "\\s*duration_sec: \\d+\n" +
+          "\\s*first_frame_delay_millis: \\d+\n" +
+          "}\n"
+      )
     assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
   }
 
@@ -1131,10 +1166,10 @@ class EmulatorViewTest {
   }
 
   private fun createRootContainer(): HeadlessRootPaneContainer =
-      HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
+    HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
 
   private fun createEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel =
-      emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }
+    emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }
 
   @Throws(TimeoutException::class)
   private fun getStreamScreenshotCallAndWaitForFrame(): GrpcCallRecord {
@@ -1147,14 +1182,14 @@ class EmulatorViewTest {
 
   @Throws(TimeoutException::class)
   private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
-      fakeEmulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
+    fakeEmulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
 
   @Throws(TimeoutException::class)
   private fun waitForFrame() {
     waitForCondition(2.seconds) {
       view.emulator.connectionState == ConnectionState.CONNECTED &&
-      view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
-      view.currentPosture?.posture == fakeEmulator.devicePosture
+        view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
+        view.currentPosture?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber() == fakeEmulator.frameNumber
     }
   }
@@ -1169,14 +1204,12 @@ class EmulatorViewTest {
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
-  private fun getGoldenFile(name: String): Path =
-      TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
+  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
 }
 
 private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent> =
-    usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
+  usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
 
-private fun getKeyStroke(action: String) =
-    KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
+private fun getKeyStroke(action: String) = KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/EmulatorViewTest/golden"

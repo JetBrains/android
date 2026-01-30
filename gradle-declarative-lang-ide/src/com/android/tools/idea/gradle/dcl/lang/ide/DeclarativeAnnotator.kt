@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignableProperty
@@ -46,7 +47,6 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
-import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 
 class DeclarativeAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -96,18 +96,16 @@ class DeclarativeAnnotator : Annotator {
         showWrongType(types.map { it.elementType.str }, holder)
       }
       // check augmentation
-      val missedAugmented = element.getElementType()?.augmented?.find {
-        augmentedType -> types.none { it.augmented.contains(augmentedType) }
-      }
-      if (missedAugmented !=null ) {
+      val missedAugmented =
+        element.getElementType()?.augmented?.find { augmentedType -> types.none { it.augmented.contains(augmentedType) } }
+      if (missedAugmented != null) {
         showWrongAugmentation(missedAugmented, holder)
       }
     }
   }
 
   // psi element that has identifier we can build path to the root element
-  private fun PsiElement.isMainLevelElement() =
-    this is DeclarativeEntry
+  private fun PsiElement.isMainLevelElement() = this is DeclarativeEntry
 
   private fun PsiElement.findIdentifier() =
     when (this) {
@@ -129,14 +127,15 @@ class DeclarativeAnnotator : Annotator {
   sealed class SearchResult {
     fun toElementType(): ElementTypeWithAugmentation {
       return when (this) {
-        is FoundFunction -> when (type.semantic) {
-          is PlainFunction -> ElementTypeWithAugmentation(ElementType.FACTORY, listOf())
-          is BlockFunction -> if (type.parameters.isNotEmpty()) ElementTypeWithAugmentation(ElementType.FACTORY_BLOCK, listOf())
-          else ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
-        }
+        is FoundFunction ->
+          when (type.semantic) {
+            is PlainFunction -> ElementTypeWithAugmentation(ElementType.FACTORY, listOf())
+            is BlockFunction ->
+              if (type.parameters.isNotEmpty()) ElementTypeWithAugmentation(ElementType.FACTORY_BLOCK, listOf())
+              else ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
+          }
 
-        is FoundBlock ->
-          ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
+        is FoundBlock -> ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
 
         is FoundObjectProperty -> ElementTypeWithAugmentation(ElementType.PROPERTY, listOf())
         is FoundSimpleProperty -> ElementTypeWithAugmentation(getSimpleType(type), listOf())
@@ -147,11 +146,16 @@ class DeclarativeAnnotator : Annotator {
   }
 
   data class FoundBlock(val type: ClassModel) : SearchResult()
+
   data class FoundEnum(val type: EnumModel) : SearchResult()
+
   // FoundParametrizedType its non gradle class like List or Array that does not have properties or methods
   data class FoundParametrizedType(val type: ParameterizedClassModel, val augmented: List<AugmentationKind>) : SearchResult()
+
   data class FoundFunction(val type: SchemaFunction) : SearchResult()
+
   data class FoundSimpleProperty(val type: SimpleDataType) : SearchResult()
+
   data class FoundObjectProperty(val type: ClassModel) : SearchResult()
 
   private fun searchForType(path: List<String>, schema: BuildDeclarativeSchemas, fileName: String): List<SearchResult> {
@@ -183,37 +187,34 @@ class DeclarativeAnnotator : Annotator {
     }
   }
 
-  private fun Entry.getAugmentedTypes(schema: BuildDeclarativeSchemas, fileName: String):List<AugmentationKind>{
-    val fullName = if(this is DataProperty && this.valueType is Named) (valueType as Named).fqName else null
+  private fun Entry.getAugmentedTypes(schema: BuildDeclarativeSchemas, fileName: String): List<AugmentationKind> {
+    val fullName = if (this is DataProperty && this.valueType is Named) (valueType as Named).fqName else null
     fullName ?: return listOf()
     return schema.getAugmentedTypes(fileName)[fullName] ?: listOf()
   }
 
-  private fun ClassType.wrap(augmented: List<AugmentationKind>) = when (this) {
-    is ClassModel -> FoundObjectProperty(this)
-    is EnumModel -> FoundEnum(this)
-    is ParameterizedClassModel -> FoundParametrizedType(this, augmented)
-  }
+  private fun ClassType.wrap(augmented: List<AugmentationKind>) =
+    when (this) {
+      is ClassModel -> FoundObjectProperty(this)
+      is EnumModel -> FoundEnum(this)
+      is ParameterizedClassModel -> FoundParametrizedType(this, augmented)
+    }
 
   private fun showUnknownName(holder: AnnotationHolder) {
     holder.newAnnotation(HighlightSeverity.ERROR, "Unknown identifier").create()
   }
 
   private fun showWrongType(types: List<String>, holder: AnnotationHolder) {
-    if (types.size == 1)
-      holder.newAnnotation(HighlightSeverity.ERROR,
-                           "Element type should be of type: ${types.first()}").create()
-    else
-      holder.newAnnotation(HighlightSeverity.ERROR,
-                           "Element type should be of one of types: ${types.joinToString(", ")}").create()
+    if (types.size == 1) holder.newAnnotation(HighlightSeverity.ERROR, "Element type should be of type: ${types.first()}").create()
+    else holder.newAnnotation(HighlightSeverity.ERROR, "Element type should be of one of types: ${types.joinToString(", ")}").create()
   }
 
   private fun showWrongAugmentation(augmented: AugmentationKind, holder: AnnotationHolder) {
-    val operation = when (augmented) {
-      AugmentationKind.PLUS -> "`+=`"
-    }
-    holder.newAnnotation(HighlightSeverity.ERROR,
-                         "Cannot do $operation for this property type").create()
+    val operation =
+      when (augmented) {
+        AugmentationKind.PLUS -> "`+=`"
+      }
+    holder.newAnnotation(HighlightSeverity.ERROR, "Cannot do $operation for this property type").create()
   }
 
   private fun getPath(element: DeclarativeIdentifier): List<String> {
@@ -225,8 +226,7 @@ class DeclarativeAnnotator : Annotator {
         is DeclarativeAssignableProperty -> current = parseReceiver<DeclarativeAssignableProperty>(current, result).parent
         is DeclarativePropertyReceiver -> current = parseReceiver<DeclarativePropertyReceiver>(current, result).parent
 
-        is DeclarativeFactoryReceiver ->
-          current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
+        is DeclarativeFactoryReceiver -> current = parseReceiver<DeclarativeFactoryReceiver>(current, result)
 
         else -> {
           (current as? DeclarativeIdentifierOwner)?.identifier?.name?.let { result.add(it) }
@@ -243,8 +243,7 @@ class DeclarativeAnnotator : Annotator {
     do {
       current?.identifier?.name?.let { result.add(it) }
       current = current?.getReceiver()
-    }
-    while (current != null)
+    } while (current != null)
     return result.reversed()
   }
 
@@ -256,8 +255,10 @@ class DeclarativeAnnotator : Annotator {
     return element.parent
   }
 
-  private inline fun <reified T : DeclarativeReceiverPrefixed<T>> parseReceiver(property: DeclarativeReceiverPrefixed<T>,
-                                                                                list: MutableList<String>): PsiElement {
+  private inline fun <reified T : DeclarativeReceiverPrefixed<T>> parseReceiver(
+    property: DeclarativeReceiverPrefixed<T>,
+    list: MutableList<String>,
+  ): PsiElement {
     var currentProperty = property
     currentProperty.identifier.name?.let { list.add(it) }
 

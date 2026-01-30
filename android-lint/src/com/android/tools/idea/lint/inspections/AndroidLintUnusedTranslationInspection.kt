@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.LocaleConfigDetector
 
 class AndroidLintUnusedTranslationInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unused.translation"),
-    LocaleConfigDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unused.translation"), LocaleConfigDetector.ISSUE)

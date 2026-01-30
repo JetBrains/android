@@ -19,7 +19,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
 
 const val proguardRules =
-"""
+  """
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
@@ -44,9 +44,9 @@ const val proguardRules =
  """
 
 fun RecipeExecutor.proguardRecipe(projectOut: File, isLibraryProject: Boolean = false) {
-     save(proguardRules, projectOut.resolve("proguard-rules.pro"))
+  save(proguardRules, projectOut.resolve("proguard-rules.pro"))
 
-    if (isLibraryProject) {
-      save("", projectOut.resolve("consumer-rules.pro"))
-    }
+  if (isLibraryProject) {
+    save("", projectOut.resolve("consumer-rules.pro"))
+  }
 }

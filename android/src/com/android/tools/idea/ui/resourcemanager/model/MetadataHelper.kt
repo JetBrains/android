@@ -33,31 +33,20 @@ import javax.imageio.ImageIO
 enum class DesignAssetMetadata(val metadataName: String) {
   FILE_NAME("File name"),
 
-  /**
-   * The type of the
-   */
+  /** The type of the */
   FILE_TYPE("File type"),
 
-  /**
-   * A human-readable representation of the file size.
-   */
+  /** A human-readable representation of the file size. */
   FILE_SIZE("File size"),
 
-  /**
-   * The dimension in pixel of the file (only if it is an image).
-   */
+  /** The dimension in pixel of the file (only if it is an image). */
   DIMENSIONS_PX("Dimensions (px)"),
 
-  /**
-   * The dimensions of the image in dip. This value can only be found if the
-   * [DENSITY] can be found.
-   */
+  /** The dimensions of the image in dip. This value can only be found if the [DENSITY] can be found. */
   DIMENSIONS_DP("Dimensions (dp)"),
 
-  /**
-   * The density of the file. This will be inferred from the parent folder of the [VirtualFile].
-   */
-  DENSITY("Density")
+  /** The density of the file. This will be inferred from the parent folder of the [VirtualFile]. */
+  DENSITY("Density"),
 }
 
 /**
@@ -82,12 +71,12 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
 
   val parentFileName = toPathString().parentFileName
 
-  val density = if (parentFileName != null) {
-    FolderConfiguration.getConfigForFolder(parentFileName)?.densityQualifier?.value
-  }
-  else {
-    Density.MEDIUM
-  }
+  val density =
+    if (parentFileName != null) {
+      FolderConfiguration.getConfigForFolder(parentFileName)?.densityQualifier?.value
+    } else {
+      Density.MEDIUM
+    }
   if (keys.remove(DENSITY)) {
     if (density != null) {
       map[DENSITY] = density.longDisplayValue
@@ -98,9 +87,7 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
     map[FILE_SIZE] = StringUtil.formatFileSize(length)
   }
 
-  val reader = ImageIO.getImageReadersBySuffix(extension)
-    .asSequence()
-    .firstOrNull()
+  val reader = ImageIO.getImageReadersBySuffix(extension).asSequence().firstOrNull()
   if (reader != null) {
     try {
       reader.input = ImageIO.createImageInputStream(this.inputStream)
@@ -120,7 +107,6 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
       // Handle the case where ImageIO can not process the file. Maybe corrupted?
       thisLogger().warn(t)
     }
-
   }
   return map
 }

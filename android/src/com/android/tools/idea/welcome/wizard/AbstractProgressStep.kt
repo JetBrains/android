@@ -30,8 +30,7 @@ import com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis
 import javax.swing.JComponent
 
 /** Wizard step with progress bar and "more details" button. */
-abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
-  ModelWizardStep<T>(model, name), ProgressStep {
+abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) : ModelWizardStep<T>(model, name), ProgressStep {
   private val form = ProgressStepForm()
   private var myProgressIndicator: ProgressIndicator? = null
 
@@ -76,8 +75,7 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
   /**
    * Will output process standard in and out to the console view.
    *
-   * Note: current version does not support collecting user input. We may reconsider this at a later
-   * point.
+   * Note: current version does not support collecting user input. We may reconsider this at a later point.
    *
    * @param processHandler The process to track
    */
@@ -90,12 +88,10 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
   fun showConsole() = form.showConsole()
 
   /**
-   * Executes a runnable under a progress indicator, allocating a specific portion of the overall
-   * progress to this runnable.
+   * Executes a runnable under a progress indicator, allocating a specific portion of the overall progress to this runnable.
    *
    * @param runnable The code to execute.
-   * @param progressPortion The fraction of the overall progress bar to allocate to this runnable
-   *   (between 0.0 and 1.0).
+   * @param progressPortion The fraction of the overall progress bar to allocate to this runnable (between 0.0 and 1.0).
    */
   @AnyThread
   override fun run(runnable: Runnable, progressPortion: Double) {
@@ -110,11 +106,8 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
 
   /** Progress indicator that scales task to only use a portion of the parent indicator. */
   // TODO(qumeric): make private
-  class ProgressPortionReporter(
-    indicator: ProgressIndicator,
-    private val start: Double,
-    private val portion: Double,
-  ) : DelegatingProgressIndicator(indicator) {
+  class ProgressPortionReporter(indicator: ProgressIndicator, private val start: Double, private val portion: Double) :
+    DelegatingProgressIndicator(indicator) {
 
     override fun start() {
       fraction = 0.0
@@ -160,9 +153,7 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
 
     override fun setIndeterminate(indeterminate: Boolean) {
       super.setIndeterminate(indeterminate)
-      invokeLater(ModalityState.stateForComponent(form.progressBar)) {
-        form.progressBar.isIndeterminate = indeterminate
-      }
+      invokeLater(ModalityState.stateForComponent(form.progressBar)) { form.progressBar.isIndeterminate = indeterminate }
     }
 
     override fun setFraction(fraction: Double) {

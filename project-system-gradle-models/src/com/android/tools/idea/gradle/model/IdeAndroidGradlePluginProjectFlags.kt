@@ -19,25 +19,24 @@ interface IdeAndroidGradlePluginProjectFlags {
   /**
    * Whether the R class in applications and dynamic features are constant.
    *
-   * If they are constant they can be inlined by the java compiler and used in places that
-   * require constants such as annotations and cases of switch statements.
+   * If they are constant they can be inlined by the java compiler and used in places that require constants such as annotations and cases
+   * of switch statements.
    */
   val applicationRClassConstantIds: Boolean
 
   /**
    * Whether the R class in instrumentation tests are constant.
    *
-   * If they are constant they can be inlined by the java compiler and used in places that
-   * require constants such as annotations and cases of switch statements.
+   * If they are constant they can be inlined by the java compiler and used in places that require constants such as annotations and cases
+   * of switch statements.
    */
   val testRClassConstantIds: Boolean
 
   /**
    * Whether the R class generated for this project is Transitive.
    *
-   * If it is transitive it will contain all of the resources defined in its transitive
-   * dependencies alongside those defined in this project.
-   * If non-transitive it will only contain the resources defined in this project.
+   * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
+   * project. If non-transitive it will only contain the resources defined in this project.
    */
   val transitiveRClasses: Boolean
 
@@ -64,7 +63,7 @@ interface IdeAndroidGradlePluginProjectFlags {
   /** Whether to disable Android Gradle plugin upgrade prompt for this project. */
   val disableAgpUpgradePrompt: Boolean
 
-  /** Whether to use Gradle managed devices.  */
+  /** Whether to use Gradle managed devices. */
   val useCustomManagedDevices: Boolean
 
   /** Whether Studio needs to highlight gradual R8 */

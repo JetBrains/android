@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.util.PerformanceCounter
 interface KotlinPerfCountersMXBean {
   val report: Array<String>
   var enabled: Boolean
+
   fun resetAllCounters()
 }
 

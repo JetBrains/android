@@ -27,16 +27,13 @@ import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
-import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 import kotlin.reflect.KClass
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
+import org.jetbrains.plugins.gradle.util.GradleBundle
 
-class AssertInMemoryConfig(
-  private val syncedProject: Project,
-  private val expect: Expect
-) {
+class AssertInMemoryConfig(private val syncedProject: Project, private val expect: Expect) {
 
   private val projectFile by lazy { File(syncedProject.basePath.orEmpty()) }
 
@@ -53,9 +50,7 @@ class AssertInMemoryConfig(
 
   fun assertGradleRoots(expectedGradleRoots: Map<String, ExpectedGradleRoot>) {
     expectedGradleRoots.forEach { (gradleRootName, expectedGradleRoot) ->
-      expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName ->
-        assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName)
-      }
+      expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName -> assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName) }
       expectedGradleRoot.gradleExecutionDaemonJdkPath?.let { expectedJdkPath ->
         assertGradleExecutionDaemon(expectedJdkPath, gradleRootName)
       }
@@ -92,10 +87,7 @@ class AssertInMemoryConfig(
   }
 }
 
-class AssertOnDiskConfig(
-  private val syncedProject: Project,
-  private val expect: Expect
-) {
+class AssertOnDiskConfig(private val syncedProject: Project, private val expect: Expect) {
 
   private val projectFile by lazy { File(syncedProject.basePath.orEmpty()) }
 
@@ -106,12 +98,8 @@ class AssertOnDiskConfig(
 
   fun assertGradleRoots(expectedGradleRoots: Map<String, ExpectedGradleRoot>) {
     expectedGradleRoots.forEach { (gradleRootName, expectedGradleRoot) ->
-      expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName ->
-        assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName)
-      }
-      expectedGradleRoot.gradleLocalJavaHome?.let { expectedJavaHome ->
-        assertGradleLocalJavaHome(expectedJavaHome, gradleRootName)
-      }
+      expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName -> assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName) }
+      expectedGradleRoot.gradleLocalJavaHome?.let { expectedJavaHome -> assertGradleLocalJavaHome(expectedJavaHome, gradleRootName) }
     }
   }
 
@@ -134,10 +122,7 @@ class AssertOnDiskConfig(
   }
 }
 
-class AssertOnFailure(
-  private val exception: Exception,
-  private val expect: Expect
-) {
+class AssertOnFailure(private val exception: Exception, private val expect: Expect) {
   fun assertException(expectedException: KClass<out Exception>) {
     expect.that(exception).isInstanceOf(expectedException::class.java)
   }
@@ -148,10 +133,7 @@ class AssertOnFailure(
   }
 }
 
-class AssertSyncEvents(
-  private val exceptionSyncMessages: List<String>,
-  private val expect: Expect
-) {
+class AssertSyncEvents(private val exceptionSyncMessages: List<String>, private val expect: Expect) {
   fun assertExceptionMessage(expectedException: String) {
     val currentException = exceptionSyncMessages.joinToString("\n")
     expect.that(currentException).isEqualTo(expectedException)
@@ -159,12 +141,14 @@ class AssertSyncEvents(
 
   fun assertInvalidGradleJdkMessage(expectedInvalidGradleJdk: InvalidGradleJdkCause) {
     val currentException = exceptionSyncMessages.joinToString("\n")
-    val expectedException = """
+    val expectedException =
+      """
       |${GradleBundle.message("gradle.jvm.is.invalid")}
       |${expectedInvalidGradleJdk.description}
       |<a href="${UseJdkAsProjectJdkListener.baseId()}.embedded">Use Embedded JDK (${IdeSdks.getInstance().embeddedJdkPath})</a>
       |<a href="${OpenProjectJdkLocationListener.ID}">Change Gradle JDK location</a>
-    """.trimMargin()
+    """
+        .trimMargin()
     expect.that(currentException).isEqualTo(expectedException)
   }
 }

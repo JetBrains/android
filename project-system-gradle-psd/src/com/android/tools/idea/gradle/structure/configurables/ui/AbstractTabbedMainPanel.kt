@@ -32,23 +32,22 @@ import javax.swing.SwingConstants
  *
  * Implementations should add their tabs by calling [addTab] method.
  */
-abstract class AbstractTabbedMainPanel(
-    context: PsContext,
-    private val placeName: String
-) : AbstractMainPanel(context), CrossModuleUiStateComponent {
+abstract class AbstractTabbedMainPanel(context: PsContext, private val placeName: String) :
+  AbstractMainPanel(context), CrossModuleUiStateComponent {
 
   private var inQuietSelection = false
 
-  private val tabbedPane = JBTabbedPane(SwingConstants.TOP).also {
-    it.tabComponentInsets = null
-    add(it)
-    it.addChangeListener {
-      if (topLevelAncestor != null) {
-        ensureSelectedTabComponentInstantiated()
-        context.project.ideProject.logUsageTopNavigateTo(getCurrentModelTab())
+  private val tabbedPane =
+    JBTabbedPane(SwingConstants.TOP).also {
+      it.tabComponentInsets = null
+      add(it)
+      it.addChangeListener {
+        if (topLevelAncestor != null) {
+          ensureSelectedTabComponentInstantiated()
+          context.project.ideProject.logUsageTopNavigateTo(getCurrentModelTab())
+        }
       }
     }
-  }
 
   private val tabPanels: MutableList<ModelPanel<*>> = mutableListOf()
 
@@ -109,8 +108,7 @@ abstract class AbstractTabbedMainPanel(
 
     return if (tabPanel != null) {
       navigateToTab(tabPanel)
-    }
-    else {
+    } else {
       ActionCallback.DONE
     }
   }
@@ -118,6 +116,7 @@ abstract class AbstractTabbedMainPanel(
   private fun findPanel(path: String?): ModelPanel<*>? = tabPanels.find { it.title == path }
 
   abstract fun PsUISettings.getLastSelectedTab(): String?
+
   abstract fun PsUISettings.setLastSelectedTab(value: String)
 
   override fun restoreUiState() {
@@ -131,8 +130,7 @@ abstract class AbstractTabbedMainPanel(
       inQuietSelection = true
       try {
         tabbedPane.selectedTitle = panel.title
-      }
-      finally {
+      } finally {
         inQuietSelection = false
       }
     }

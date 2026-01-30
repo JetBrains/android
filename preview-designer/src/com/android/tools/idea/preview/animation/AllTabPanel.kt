@@ -49,8 +49,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel
-private constructor(parentDisposable: Disposable, private val onUserScaleChange: () -> Unit) :
+class AllTabPanel private constructor(parentDisposable: Disposable, private val onUserScaleChange: () -> Unit) :
   JPanel(TabularLayout("6px,*", "32px,*")), Disposable {
 
   //   ________________________________________________
@@ -76,8 +75,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
       firstComponent = createHorizontalScrollPane(firstPanel)
 
       // Timeline
-      secondComponent =
-        JPanel(BorderLayout()).apply { this.border = MatteBorder(0, 1, 0, 0, JBColor.border()) }
+      secondComponent = JPanel(BorderLayout()).apply { this.border = MatteBorder(0, 1, 0, 0, JBColor.border()) }
 
       setBlindZone { Insets(0, 1, 0, 1) }
     }
@@ -101,10 +99,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   private val timelinePanel
     get() = splitter.secondComponent as JPanel
 
-  private val scrollPane =
-    JBScrollPane(VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER).apply {
-      this.setViewportView(splitter)
-    }
+  private val scrollPane = JBScrollPane(VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER).apply { this.setViewportView(splitter) }
 
   private val cardsLock = ReentrantReadWriteLock()
 
@@ -123,18 +118,13 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   /**
-   * Helper function to wrap a component in a horizontal scroll pane. The horizontal scrollbar is
-   * shown when the component is scrollable.
+   * Helper function to wrap a component in a horizontal scroll pane. The horizontal scrollbar is shown when the component is scrollable.
    *
    * @param component The component to wrap in the scroll pane.
    * @param minWidth The minimum width of the scroll pane. Default value [MIN_PANEL_WIDTH_PX].
    * @param minHeight The minimum height of the scroll pane.
    */
-  private fun createHorizontalScrollPane(
-    component: Component,
-    minWidth: Int = MIN_PANEL_WIDTH_PX,
-    minHeight: Int = 0,
-  ) =
+  private fun createHorizontalScrollPane(component: Component, minWidth: Int = MIN_PANEL_WIDTH_PX, minHeight: Int = 0) =
     JBScrollPane(component, VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_ALWAYS).apply {
       // Removes JBScrollPane border to avoid double borders with panel.
       border = null
@@ -143,12 +133,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
 
   private fun updateDimension() {
     val sumOfCardHeights = cardsLock.read { cards.sumOf { it.getCurrentHeight() } }
-    val preferredHeight =
-      InspectorLayout.timelineHeaderHeightScaled() + JBUI.scale(sumOfCardHeights)
-    splitter.firstComponent.preferredSize =
-      Dimension(splitter.firstComponent.width, preferredHeight)
-    splitter.secondComponent.preferredSize =
-      Dimension(splitter.secondComponent.width, preferredHeight)
+    val preferredHeight = InspectorLayout.timelineHeaderHeightScaled() + JBUI.scale(sumOfCardHeights)
+    splitter.firstComponent.preferredSize = Dimension(splitter.firstComponent.width, preferredHeight)
+    splitter.secondComponent.preferredSize = Dimension(splitter.secondComponent.width, preferredHeight)
   }
 
   fun addTimeline(timeline: JComponent) {
@@ -158,10 +145,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   fun addPlayback(playback: JComponent) {
-    add(
-      playback.apply { border = MatteBorder(0, 0, 1, 0, JBColor.border()) },
-      TabularLayout.Constraint(0, 1),
-    )
+    add(playback.apply { border = MatteBorder(0, 0, 1, 0, JBColor.border()) }, TabularLayout.Constraint(0, 1))
   }
 
   fun addCard(card: Card) {
@@ -176,8 +160,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     }
     updateDimension()
     if (card is AnimationCard) {
-      jobsByCard[card] =
-        scope.launch { card.expanded.collect { withContext(uiThread) { updateCardSize(card) } } }
+      jobsByCard[card] = scope.launch { card.expanded.collect { withContext(uiThread) { updateCardSize(card) } } }
     }
   }
 

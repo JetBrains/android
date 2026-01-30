@@ -36,13 +36,11 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 
 /**
- * Service that subscribes to project root changes in order to invalidate
- * [AndroidDependenciesCache], the [ResourceFolderManager] cache, and to update resource
- * repositories.
+ * Service that subscribes to project root changes in order to invalidate [AndroidDependenciesCache], the [ResourceFolderManager] cache, and
+ * to update resource repositories.
  */
 @Service(Service.Level.PROJECT)
-class AndroidProjectRootListener private constructor(private val project: Project) :
-  Disposable.Default {
+class AndroidProjectRootListener private constructor(private val project: Project) : Disposable.Default {
   init {
     val messageBusConnection = project.messageBus.connect(this)
 
@@ -76,15 +74,12 @@ class AndroidProjectRootListener private constructor(private val project: Projec
   }
 
   private fun hasAndroidFacets(): Boolean {
-    return ModuleManager.getInstance(project).modules.any {
-      AndroidFacet.getInstance(it) != null
-    }
+    return ModuleManager.getInstance(project).modules.any { AndroidFacet.getInstance(it) != null }
   }
 
   companion object {
     /**
-     * Makes AndroidProjectRootListener listen to the [ModuleRootListener.TOPIC] events if it has
-     * not been listening already.
+     * Makes AndroidProjectRootListener listen to the [ModuleRootListener.TOPIC] events if it has not been listening already.
      *
      * @param project the project to listen on
      */
@@ -95,8 +90,7 @@ class AndroidProjectRootListener private constructor(private val project: Projec
   }
 }
 
-private class RootsChangedDumbModeTask(private val project: Project, parent: Disposable) :
-  DumbModeTask() {
+private class RootsChangedDumbModeTask(private val project: Project, parent: Disposable) : DumbModeTask() {
   init {
     Disposer.register(parent, this)
   }
@@ -121,9 +115,7 @@ private class RootsChangedDumbModeTask(private val project: Project, parent: Dis
   }
 
   override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? {
-    return this.takeIf {
-      taskFromQueue is RootsChangedDumbModeTask && taskFromQueue.project == project
-    }
+    return this.takeIf { taskFromQueue is RootsChangedDumbModeTask && taskFromQueue.project == project }
   }
 
   /**

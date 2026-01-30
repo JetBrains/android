@@ -30,8 +30,7 @@ import com.intellij.openapi.project.Project
 class RuleVariablesStateComponent : PersistentStateComponent<RuleVariableState> {
   private var state = RuleVariableState()
 
-  override fun getState() =
-    if (StudioFlags.NETWORK_INSPECTOR_RULE_VARIABLES.get()) state else RuleVariableState()
+  override fun getState() = if (StudioFlags.NETWORK_INSPECTOR_RULE_VARIABLES.get()) state else RuleVariableState()
 
   override fun loadState(state: RuleVariableState) {
     this.state = state

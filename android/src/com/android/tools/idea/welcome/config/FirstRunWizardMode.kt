@@ -18,19 +18,13 @@ package com.android.tools.idea.welcome.config
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import java.io.File
 
-/**
- * There are several reasons when first run wizard is shown. Wizard behaves slightly differently,
- * depending on the mode.
- */
+/** There are several reasons when first run wizard is shown. Wizard behaves slightly differently, depending on the mode. */
 enum class FirstRunWizardMode {
   /** Newly installed Android Studio, first run wizard never ran on this system. */
   NEW_INSTALL,
   /** Android Studio was installed by the Windows installer, we need to pick it up where it left. */
   INSTALL_HANDOFF,
-  /**
-   * Android Studio was completely setup but something happened to an SDK, we need to reinitialize
-   * it.
-   */
+  /** Android Studio was completely setup but something happened to an SDK, we need to reinitialize it. */
   MISSING_SDK;
 
   val installerTimestamp: String?

@@ -35,8 +35,7 @@ class SystemImageComparatorTest {
     val image1 = mockSystemImage(AndroidVersion(34).withBaseExtensionLevel())
 
     val image2 = mockSystemImage(AndroidVersion(34).withBaseExtensionLevel())
-    whenever(image2.tags)
-      .thenReturn(listOf(SystemImageTags.PLAY_STORE_TAG, SystemImageTags.TABLET_TAG))
+    whenever(image2.tags).thenReturn(listOf(SystemImageTags.PLAY_STORE_TAG, SystemImageTags.TABLET_TAG))
 
     val images = listOf(image2, image1)
 
@@ -128,19 +127,9 @@ class SystemImageComparatorTest {
 
   @Test
   fun compareDisplayNames() {
-    val image1 =
-      mockSystemImage(
-        AndroidVersion(33).withBaseExtensionLevel(),
-        true,
-        "Google Play Intel x86_64 Atom System Image",
-      )
+    val image1 = mockSystemImage(AndroidVersion(33).withBaseExtensionLevel(), true, "Google Play Intel x86_64 Atom System Image")
 
-    val image2 =
-      mockSystemImage(
-        AndroidVersion(33).withBaseExtensionLevel(),
-        true,
-        "Google Play ARM 64 v8a System Image",
-      )
+    val image2 = mockSystemImage(AndroidVersion(33).withBaseExtensionLevel(), true, "Google Play ARM 64 v8a System Image")
 
     val images = listOf(image2, image1)
 
@@ -152,11 +141,7 @@ class SystemImageComparatorTest {
   }
 
   private companion object {
-    private fun mockSystemImage(
-      version: AndroidVersion,
-      hasPlayStore: Boolean = false,
-      displayName: String? = null,
-    ): ISystemImage {
+    private fun mockSystemImage(version: AndroidVersion, hasPlayStore: Boolean = false, displayName: String? = null): ISystemImage {
       val image = mock<ISystemImage>()
       whenever(image.androidVersion).thenReturn(version)
       whenever(image.hasPlayStore()).thenReturn(hasPlayStore)

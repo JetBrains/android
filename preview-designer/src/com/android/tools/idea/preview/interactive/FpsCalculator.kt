@@ -18,8 +18,8 @@ package com.android.tools.idea.preview.interactive
 import java.time.Duration
 
 /**
- * Wraps frame per second calculation functionality. [resetAndStart] has to be explicitly called to
- * start tracking the period of time for FPS calculation.
+ * Wraps frame per second calculation functionality. [resetAndStart] has to be explicitly called to start tracking the period of time for
+ * FPS calculation.
  */
 class FpsCalculator(private val timeNanosProvider: () -> Long) {
   private var startTimeNanos = 0L

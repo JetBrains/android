@@ -69,7 +69,7 @@ class AddJarDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(m
       val file = File(jarDependenciesForm!!.directoryOrFile)
       val resolvedFile = module.rootDir?.resolve(file) ?: file
       if (!resolvedFile.exists()) {
-          return ValidationInfo("The file or directory specified must exist", jarDependenciesForm!!.preferredFocusedComponent)
+        return ValidationInfo("The file or directory specified must exist", jarDependenciesForm!!.preferredFocusedComponent)
       }
     }
     return scopesPanel.validateInput()
@@ -82,10 +82,8 @@ class AddJarDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(m
 fun PsModule.addJarDependency(filePath: String, configurationName: String) {
   val file = File(filePath)
   val resolvedFile = rootDir?.resolve(file) ?: file
-  val isDirectory = resolvedFile.exists() && resolvedFile.isDirectory ||
-                    filePath.endsWith(Platform.current().fileSeparator)
+  val isDirectory = resolvedFile.exists() && resolvedFile.isDirectory || filePath.endsWith(Platform.current().fileSeparator)
   if (isDirectory)
-    addJarFileTreeDependency(
-      filePath, includes = listOf("*.aar", "*.jar"), excludes = listOf(), configurationName = configurationName)
+    addJarFileTreeDependency(filePath, includes = listOf("*.aar", "*.jar"), excludes = listOf(), configurationName = configurationName)
   else addJarFileDependency(filePath, configurationName)
 }

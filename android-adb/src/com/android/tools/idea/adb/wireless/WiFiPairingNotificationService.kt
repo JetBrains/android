@@ -24,22 +24,12 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
 
-/**
- * Service responsible for showing notification popups related to ADB device pairing (see
- * [WiFiPairingController])
- */
+/** Service responsible for showing notification popups related to ADB device pairing (see [WiFiPairingController]) */
 interface WiFiPairingNotificationService {
 
   val project: Project
 
-  @UiThread
-  fun showBalloon(
-    title: String,
-    content: String,
-    type: NotificationType,
-    icon: Icon?,
-    actions: List<AnAction> = emptyList(),
-  )
+  @UiThread fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?, actions: List<AnAction> = emptyList())
 }
 
 fun WiFiPairingNotificationService.showPairingSuccessBalloon(device: AdbOnlineDevice) {
@@ -59,8 +49,7 @@ fun WiFiPairingNotificationService.showDeviceHiddenBalloon(deviceName: String?) 
     StudioIcons.Common.SUCCESS,
     listOf(
       NotificationAction.createExpiring("Open wifi-pairing dialog") { _, _ ->
-        val wifiPairingService =
-          WiFiPairingServiceImpl(RandomProvider(), AdbServiceWrapperAdbLibImpl(project))
+        val wifiPairingService = WiFiPairingServiceImpl(RandomProvider(), AdbServiceWrapperAdbLibImpl(project))
         WifiAvailableDevicesDialog(project, wifiPairingService).showDialog()
       }
     ),

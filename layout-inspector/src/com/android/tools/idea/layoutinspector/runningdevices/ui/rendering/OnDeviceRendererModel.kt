@@ -34,23 +34,17 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Model for a renderer that delegates the actual rendering to the device. Sends rendering
- * instructions to the device each time the [renderModel] changes and handles input events from the
- * device. There should be at most one model for each device, to avoid sending and receiving
- * duplicated events.
+ * Model for a renderer that delegates the actual rendering to the device. Sends rendering instructions to the device each time the
+ * [renderModel] changes and handles input events from the device. There should be at most one model for each device, to avoid sending and
+ * receiving duplicated events.
  */
-class OnDeviceRendererModel(
-  disposable: Disposable,
-  scope: CoroutineScope,
-  val renderModel: EmbeddedRendererModel,
-) : Disposable {
+class OnDeviceRendererModel(disposable: Disposable, scope: CoroutineScope, val renderModel: EmbeddedRendererModel) : Disposable {
   companion object {
     private val logger = Logger.getInstance(OnDeviceRendererModel::class.java)
   }
 
   /**
-   * Test-only constructor to avoid having to deal with connecting a fake client in tests. This
-   * model is immediately connected to [client].
+   * Test-only constructor to avoid having to deal with connecting a fake client in tests. This model is immediately connected to [client].
    */
   @TestOnly
   constructor(
@@ -83,8 +77,7 @@ class OnDeviceRendererModel(
       if (newClient.isConnected && newClient is AppInspectionInspectorClient) {
         logger.info("Setting up rendering on new client")
 
-        val viewInspector =
-          checkNotNull(newClient.viewInspector) { "View Inspector is null on a connected client." }
+        val viewInspector = checkNotNull(newClient.viewInspector) { "View Inspector is null on a connected client." }
 
         // When a new client is connected, set up on-device rendering events.
         onNewClientJob?.cancel()
@@ -108,29 +101,15 @@ class OnDeviceRendererModel(
   private suspend fun onNewClientConnected(client: OnDeviceRenderingClient) = coroutineScope {
     client.enableOnDeviceRendering(true)
 
-    launch {
-      renderModel.interceptClicks.collect { interceptClicks ->
-        client.interceptTouchEvents(interceptClicks)
-      }
-    }
+    launch { renderModel.interceptClicks.collect { interceptClicks -> client.interceptTouchEvents(interceptClicks) } }
 
-    launch {
-      renderModel.selectedNode.collect { selectedNode -> client.drawSelectedNode(selectedNode) }
-    }
+    launch { renderModel.selectedNode.collect { selectedNode -> client.drawSelectedNode(selectedNode) } }
 
-    launch {
-      renderModel.hoveredNode.collect { hoveredNode -> client.drawHoveredNode(hoveredNode) }
-    }
+    launch { renderModel.hoveredNode.collect { hoveredNode -> client.drawHoveredNode(hoveredNode) } }
 
-    launch {
-      renderModel.visibleNodes.collect { visibleNodes -> client.drawVisibleNodes(visibleNodes) }
-    }
+    launch { renderModel.visibleNodes.collect { visibleNodes -> client.drawVisibleNodes(visibleNodes) } }
 
-    launch {
-      renderModel.recomposingNodes.collect { recomposingNodes ->
-        client.drawRecomposingNodes(recomposingNodes)
-      }
-    }
+    launch { renderModel.recomposingNodes.collect { recomposingNodes -> client.drawRecomposingNodes(recomposingNodes) } }
 
     launch { renderModel.overlay.collect { overlay -> client.drawOverlay(overlay) } }
 

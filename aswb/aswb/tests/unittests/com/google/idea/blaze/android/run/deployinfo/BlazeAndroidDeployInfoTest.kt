@@ -37,8 +37,7 @@ import org.junit.runners.JUnit4
 class BlazeAndroidDeployInfoTest {
   @get:Rule var expect: Expect = Expect.create()
 
-  private fun stubManifest(packageName: String?): ParsedManifest =
-      ParsedManifest(packageName, emptyList(), null)
+  private fun stubManifest(packageName: String?): ParsedManifest = ParsedManifest(packageName, emptyList(), null)
 
   private fun stubOutputArtifact(artifactPath: String): OutputArtifact = TestOutputArtifact(artifactPath)
 
@@ -61,19 +60,18 @@ class BlazeAndroidDeployInfoTest {
     val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, mainAppArtifacts)
 
     // Mock cacheLocally function to return a known path
-    val mockCacheLocally: CacheLocallyFunction =
-        { _, _, _, _ -> listOf(dummyApkPath) }
+    val mockCacheLocally: CacheLocallyFunction = { _, _, _, _ -> listOf(dummyApkPath) }
 
     val deployInfo =
-        BlazeAndroidDeployInfo.fetchDeployArtifacts(
-            dummyProject,
-            dummyBuildOutputs,
-            mainApp = mainAppDeployData,
-            appUnderTest = null,
-            nativeDebuggingEnabled = false,
-            context = BlazeContext.create(),
-            cacheLocally = mockCacheLocally
-        )
+      BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        dummyProject,
+        dummyBuildOutputs,
+        mainApp = mainAppDeployData,
+        appUnderTest = null,
+        nativeDebuggingEnabled = false,
+        context = BlazeContext.create(),
+        cacheLocally = mockCacheLocally,
+      )
 
     expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(mainAppPackageName)
 
@@ -83,9 +81,7 @@ class BlazeAndroidDeployInfoTest {
 
     val apkFileUnit = apkInfos.first().files.first()
     expect.withMessage("apkInfo files size").that(apkInfos.first().files).hasSize(1)
-    expect.withMessage("apkInfo file path")
-        .that(apkFileUnit.apkFile.toPath())
-        .isEqualTo(dummyApkPath)
+    expect.withMessage("apkInfo file path").that(apkFileUnit.apkFile.toPath()).isEqualTo(dummyApkPath)
   }
 
   @Test
@@ -112,15 +108,15 @@ class BlazeAndroidDeployInfoTest {
     }
 
     val deployInfo =
-        BlazeAndroidDeployInfo.fetchDeployArtifacts(
-            dummyProject,
-            dummyBuildOutputs,
-            mainApp = mainAppDeployData,
-            appUnderTest = appUnderTestDeployData,
-            nativeDebuggingEnabled = false,
-            context = BlazeContext.create(),
-            cacheLocally = mockCacheLocally
-        )
+      BlazeAndroidDeployInfo.fetchDeployArtifacts(
+        dummyProject,
+        dummyBuildOutputs,
+        mainApp = mainAppDeployData,
+        appUnderTest = appUnderTestDeployData,
+        nativeDebuggingEnabled = false,
+        context = BlazeContext.create(),
+        cacheLocally = mockCacheLocally,
+      )
 
     expect.withMessage("mainAppPackageName").that(deployInfo.mainAppPackageName).isEqualTo(testPackageName)
     expect.withMessage("appUnderTestPackageName").that(deployInfo.appUnderTestPackageName).isEqualTo(appPackageName)
@@ -131,18 +127,15 @@ class BlazeAndroidDeployInfoTest {
     // First APKInfo is the main app (test app)
     val mainAppApkInfo = apkInfos[0]
     expect.withMessage("main app apkInfo package").that(mainAppApkInfo.applicationId).isEqualTo(testPackageName)
-    expect.withMessage("main app apkInfo file path")
-        .that(mainAppApkInfo.files.first().apkFile.toPath())
-        .isEqualTo(mainAppCachedPath)
+    expect.withMessage("main app apkInfo file path").that(mainAppApkInfo.files.first().apkFile.toPath()).isEqualTo(mainAppCachedPath)
 
     // Second APKInfo is the app under test
     val appUnderTestApkInfo = apkInfos[1]
-    expect.withMessage("app under test apkInfo package")
-        .that(appUnderTestApkInfo.applicationId)
-        .isEqualTo(appPackageName)
-    expect.withMessage("app under test apkInfo file path")
-        .that(appUnderTestApkInfo.files.first().apkFile.toPath())
-        .isEqualTo(appUnderTestCachedPath)
+    expect.withMessage("app under test apkInfo package").that(appUnderTestApkInfo.applicationId).isEqualTo(appPackageName)
+    expect
+      .withMessage("app under test apkInfo file path")
+      .that(appUnderTestApkInfo.files.first().apkFile.toPath())
+      .isEqualTo(appUnderTestCachedPath)
   }
 
   @Test
@@ -152,29 +145,31 @@ class BlazeAndroidDeployInfoTest {
     val mainAppDeployData = DeployData(mainAppLabel, mainAppManifest, mainAppArtifacts)
 
     // Mock cacheLocally is included for signature matching.
-    val mockCacheLocally: CacheLocallyFunction =
-        { _, _, _, _ -> listOf(dummyApkPath) }
+    val mockCacheLocally: CacheLocallyFunction = { _, _, _, _ -> listOf(dummyApkPath) }
 
     val exception =
-        assertThrows(ApkProvisionException::class.java) {
-            BlazeAndroidDeployInfo.fetchDeployArtifacts(
-                dummyProject,
-                dummyBuildOutputs,
-                mainApp = mainAppDeployData,
-                appUnderTest = null,
-                nativeDebuggingEnabled = false,
-                context = BlazeContext.create(),
-                cacheLocally = mockCacheLocally
-            )
-        }
+      assertThrows(ApkProvisionException::class.java) {
+        BlazeAndroidDeployInfo.fetchDeployArtifacts(
+          dummyProject,
+          dummyBuildOutputs,
+          mainApp = mainAppDeployData,
+          appUnderTest = null,
+          nativeDebuggingEnabled = false,
+          context = BlazeContext.create(),
+          cacheLocally = mockCacheLocally,
+        )
+      }
 
     assertThat(exception).hasMessageThat().contains("Valid manifest must have a package name")
   }
 }
 
-private class TestOutputArtifact(val artifact: String): OutputArtifact {
+private class TestOutputArtifact(val artifact: String) : OutputArtifact {
   override fun getArtifactPathPrefixLength(): Int = 3
+
   override fun getArtifactPath(): Path = Path.of("bazel-out/k8/bin").resolve(artifact)
+
   override fun getLength(): Long = 123
+
   override fun getDigest(): String = "HASH OF: $artifact"
 }

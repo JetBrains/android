@@ -25,12 +25,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
 
 /** Common functionality for all safe args light classes. */
 abstract class SafeArgsLightBaseClass
-private constructor(
-  protected val navInfo: NavInfo,
-  protected val navEntry: NavEntry,
-  val destination: NavDestinationData,
-  names: Names,
-) :
+private constructor(protected val navInfo: NavInfo, protected val navEntry: NavEntry, val destination: NavDestinationData, names: Names) :
   AndroidLightClassBase(
     PsiManager.getInstance(navInfo.facet.module.project),
     setOf(PsiModifier.PUBLIC, PsiModifier.FINAL),

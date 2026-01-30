@@ -17,8 +17,8 @@ package com.android.tools.idea.flags.overrides
 
 import com.android.flags.BooleanFlag
 import com.android.flags.FlagGroup
-import com.android.flags.Flags
 import com.android.flags.FlagValueProvider
+import com.android.flags.Flags
 import com.android.flags.MendelFlag
 import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.google.common.truth.Truth.assertThat
@@ -35,19 +35,15 @@ import org.mockito.kotlin.whenever
 private const val TEST_GROUP = "testgroup"
 
 class MendelOverridesTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val service = mock(MendelFlagsProvider::class.java)
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().registerExtension(
-      MendelFlagsProvider.EP_NAME, service, disposableRule.disposable
-    )
+    ApplicationManager.getApplication().registerExtension(MendelFlagsProvider.EP_NAME, service, disposableRule.disposable)
   }
 
   @Test

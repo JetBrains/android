@@ -17,19 +17,8 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeBuild
 import java.io.File
-
 import java.io.Serializable
 
-data class IdeBuildImpl(
-  override val buildPath: String,
-  override val buildId: FileImpl
-) : IdeBuild, Serializable {
-  constructor(
-    buildPath: String,
-    buildId: File
-  ): this(
-    buildPath,
-    buildId.toImpl()
-  )
+data class IdeBuildImpl(override val buildPath: String, override val buildId: FileImpl) : IdeBuild, Serializable {
+  constructor(buildPath: String, buildId: File) : this(buildPath, buildId.toImpl())
 }
-

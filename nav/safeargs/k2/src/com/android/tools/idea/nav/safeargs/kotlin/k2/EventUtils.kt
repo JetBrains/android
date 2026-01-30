@@ -24,8 +24,7 @@ import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 
 @OptIn(KaPlatformInterface::class)
-internal fun Module.fireModificationEvent(createEvent: (KaModule) -> KotlinModificationEvent) =
-  runWriteAction {
-    val publisher = project.analysisMessageBus.syncPublisher(KotlinModificationEvent.TOPIC)
-    this@fireModificationEvent.toKaModulesForModificationEvents().forEach { publisher.onModification(createEvent(it)) }
-  }
+internal fun Module.fireModificationEvent(createEvent: (KaModule) -> KotlinModificationEvent) = runWriteAction {
+  val publisher = project.analysisMessageBus.syncPublisher(KotlinModificationEvent.TOPIC)
+  this@fireModificationEvent.toKaModulesForModificationEvents().forEach { publisher.onModification(createEvent(it)) }
+}

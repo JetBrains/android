@@ -17,14 +17,12 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class GradleTokensTest {
-  @JvmField
-  @Rule
-  var system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule var system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun `all sub-interfaces of Token are implemented by classes implementing GradleToken`() {
@@ -34,7 +32,8 @@ class GradleTokensTest {
     }
     system.runStudioWithoutProject().use { studio ->
       studio.executeAction("VerifyGradleTokensAction")
-      val matches = system.installation.ideaLog.waitForMatchingLine(".*VerifyGradleTokens - ([0-9]+)/([0-9]+) problems? found.*", 900, TimeUnit.SECONDS)
+      val matches =
+        system.installation.ideaLog.waitForMatchingLine(".*VerifyGradleTokens - ([0-9]+)/([0-9]+) problems? found.*", 900, TimeUnit.SECONDS)
       assertThat(matches.groupCount()).isEqualTo(2)
       assertThat(matches.group(1)).isEqualTo("0")
       assertThat(matches.group(2)).isEqualTo("38")

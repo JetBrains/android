@@ -27,12 +27,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 class FakeUiComponentsProvider : UiComponentsProvider {
-  override fun createDataViewer(
-    bytes: ByteArray,
-    contentType: ContentType,
-    styleHint: DataViewer.Style,
-    formatted: Boolean,
-  ): DataViewer {
+  override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return if (contentType.isSupportedImageType) {
       object : DataViewer {
         private val SAMPLE_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)

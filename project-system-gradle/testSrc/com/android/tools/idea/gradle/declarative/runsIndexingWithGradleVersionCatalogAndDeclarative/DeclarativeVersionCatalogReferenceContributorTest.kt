@@ -29,17 +29,16 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.toml.lang.psi.TomlKeyValue
-import java.io.File
 
 @RunsInEdt
 class DeclarativeVersionCatalogReferenceContributorTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
   @Before
   fun setUp() {
@@ -58,9 +57,10 @@ class DeclarativeVersionCatalogReferenceContributorTest {
       dependencies {
         implementation(libs.gu^ava)
       }
-    """.trimIndent(),
+      """
+        .trimIndent(),
       "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }",
-      "libs.versions.toml"
+      "libs.versions.toml",
     )
   }
 
@@ -71,9 +71,10 @@ class DeclarativeVersionCatalogReferenceContributorTest {
       dependencies {
         implementation(libs.bundles.bo^th)
       }
-    """.trimIndent(),
+      """
+        .trimIndent(),
       "both = [\"constraint-layout\", \"guava\"]",
-      "libs.versions.toml"
+      "libs.versions.toml",
     )
   }
 
@@ -84,9 +85,10 @@ class DeclarativeVersionCatalogReferenceContributorTest {
       dependencies {
         implementation(libsTest.jun^it)
       }
-    """.trimIndent(),
+      """
+        .trimIndent(),
       "junit = { module = \"junit:junit\", version.ref = \"junit\" }",
-      "libsTest.versions.toml"
+      "libsTest.versions.toml",
     )
   }
 
@@ -97,9 +99,10 @@ class DeclarativeVersionCatalogReferenceContributorTest {
       dependencies {
         implementation(libs.constra^int.layout)
       }
-    """.trimIndent(),
+      """
+        .trimIndent(),
       "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
-      "libs.versions.toml"
+      "libs.versions.toml",
     )
   }
 
@@ -107,12 +110,13 @@ class DeclarativeVersionCatalogReferenceContributorTest {
   fun testEnum() {
     doNoReferenceTest(
       """
-      androidLibrary {
-        compileOptions {
-          targetCompatibility = VERS^ION_1_1
-        }
-    }
-    """.trimIndent()
+        androidLibrary {
+          compileOptions {
+            targetCompatibility = VERS^ION_1_1
+          }
+      }
+      """
+        .trimIndent()
     )
   }
 
@@ -137,9 +141,7 @@ class DeclarativeVersionCatalogReferenceContributorTest {
 
     val file = File(File(project.basePath!!), buildFileName)
 
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG) {
-      file.writeText(withoutCaret)
-    }
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG) { file.writeText(withoutCaret) }
 
     val buildFile = VfsUtil.findFileByIoFile(file, false)
 
@@ -152,9 +154,6 @@ class DeclarativeVersionCatalogReferenceContributorTest {
   }
 
   private fun doNoReferenceTest(text: String) {
-    doInternalTest(text) { reference ->
-      Truth.assertThat(reference).isNull()
-    }
+    doInternalTest(text) { reference -> Truth.assertThat(reference).isNull() }
   }
-
 }

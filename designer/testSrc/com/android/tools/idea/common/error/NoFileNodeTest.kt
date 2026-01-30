@@ -40,10 +40,7 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithSingleIssue() {
     // single issue case
-    val root =
-      DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue()))) {
-        LayoutValidationNodeFactory
-      }
+    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue()))) { LayoutValidationNodeFactory }
     val node = LayoutValidationNoFileNode(root)
     node.update()
 
@@ -59,12 +56,7 @@ class NoFileNodeTest {
   fun testPresentationWithMultipleIssues() {
     // multiple issues case
     val root =
-      DesignerCommonIssueRoot(
-        null,
-        DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b"))),
-      ) {
-        LayoutValidationNodeFactory
-      }
+      DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b")))) { LayoutValidationNodeFactory }
     val node = LayoutValidationNoFileNode(root)
     node.update()
 
@@ -85,10 +77,7 @@ class NoFileNodeTest {
     }
 
     run {
-      val root =
-        DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(emptyList())) {
-          LayoutValidationNodeFactory
-        }
+      val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(emptyList())) { LayoutValidationNodeFactory }
       val node1 = LayoutValidationNoFileNode(root)
       val node2 = LayoutValidationNoFileNode(root)
       Assert.assertEquals(node1, node2)

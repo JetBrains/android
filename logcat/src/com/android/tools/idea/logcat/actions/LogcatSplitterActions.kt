@@ -23,14 +23,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** An action that opens a popup menu with Logcat format-related actions */
 internal class LogcatSplitterActions(splitterActions: DefaultActionGroup) :
-  PopupActionGroupAction(
-    LogcatBundle.message("logcat.splitter.actions.text"),
-    null,
-    AllIcons.Actions.SplitVertically,
-  ) {
+  PopupActionGroupAction(LogcatBundle.message("logcat.splitter.actions.text"), null, AllIcons.Actions.SplitVertically) {
 
-  private val splitterActions =
-    splitterActions.getChildren(ActionManager.getInstance()).asList()
+  private val splitterActions = splitterActions.getChildren(ActionManager.getInstance()).asList()
 
   override fun getPopupActions(): List<AnAction> = splitterActions
 }

@@ -64,10 +64,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       // Completion for `id:<device_id>`
       PlatformPatterns.psiElement(DeviceSpecTypes.STRING_T)
-        .afterLeafSkipping(
-          PlatformPatterns.psiElement(DeviceSpecTypes.COLON),
-          PlatformPatterns.psiElement(DeviceSpecTypes.ID_KEYWORD),
-        ),
+        .afterLeafSkipping(PlatformPatterns.psiElement(DeviceSpecTypes.COLON), PlatformPatterns.psiElement(DeviceSpecTypes.ID_KEYWORD)),
       SdkDeviceIdProvider,
     )
     extend(
@@ -133,10 +130,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
         // Unresolved/incomplete statements are wrapped in a PsiErrorElement.
         .withParent(
           PlatformPatterns.psiElement(PsiErrorElement::class.java)
-            .afterLeaf(
-              PlatformPatterns.psiElement(DeviceSpecTypes.COLON)
-                .or(PlatformPatterns.psiElement(DeviceSpecTypes.COMMA))
-            )
+            .afterLeaf(PlatformPatterns.psiElement(DeviceSpecTypes.COLON).or(PlatformPatterns.psiElement(DeviceSpecTypes.COMMA)))
         )
         .withSuperParent(2, DeviceSpecPsiFile::class.java),
       DeviceSpecParameterProvider,
@@ -144,10 +138,7 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
   }
 }
 
-/**
- * Pattern that is successful when the currently captured [PsiElement] is the first element within
- * its parent.
- */
+/** Pattern that is successful when the currently captured [PsiElement] is the first element within its parent. */
 private fun <T : PsiElement> PsiElementPattern<T, PsiElementPattern.Capture<T>>.isFirstChild() =
   with(
     object : PatternCondition<T>("isFirstChild") {
@@ -158,10 +149,7 @@ private fun <T : PsiElement> PsiElementPattern<T, PsiElementPattern.Capture<T>>.
     }
   )
 
-/**
- * Supported parameters to autocomplete a custom Device definition with the `spec` prefix when using
- * the DeviceSpec Language.
- */
+/** Supported parameters to autocomplete a custom Device definition with the `spec` prefix when using the DeviceSpec Language. */
 private val customSpecParamsToDefaultValues: Map<String, String> by
   lazy(LazyThreadSafetyMode.NONE) {
     mapOf(
@@ -176,10 +164,7 @@ private val customSpecParamsToDefaultValues: Map<String, String> by
     )
   }
 
-/**
- * Supported parameters to autocomplete an existing device definition with the `spec` prefix when
- * using the DeviceSpec Language
- */
+/** Supported parameters to autocomplete an existing device definition with the `spec` prefix when using the DeviceSpec Language */
 private val parentBasedSpecParamsToDefaultValues: Map<String, String> by
   lazy(LazyThreadSafetyMode.NONE) {
     mapOf(
@@ -206,11 +191,9 @@ private val allSpecParamsToDefaultValues: Map<String, String> by
   }
 
 /**
- * The common parameters of [parentBasedSpecParamsToDefaultValues] and
- * [customSpecParamsToDefaultValues].
+ * The common parameters of [parentBasedSpecParamsToDefaultValues] and [customSpecParamsToDefaultValues].
  *
- * This help us decide if we can use [allSpecParamsToDefaultValues] when providing parameter
- * completion.
+ * This help us decide if we can use [allSpecParamsToDefaultValues] when providing parameter completion.
  */
 private val commonSpecParams: Set<String> by
   lazy(LazyThreadSafetyMode.NONE) {
@@ -220,16 +203,12 @@ private val commonSpecParams: Set<String> by
     return@lazy allParams.toSet()
   }
 
-/**
- * A [LiveTemplateFormat] that includes all supported DeviceSpec parameters with their default
- * values.
- */
+/** A [LiveTemplateFormat] that includes all supported DeviceSpec parameters with their default values. */
 private val baseDeviceSpecTemplate: LiveTemplateFormat by lazy {
   val template =
     customSpecParamsToDefaultValues
       .map { entry ->
-        val suffix =
-          if (DeviceSpec.isDimensionParameter(entry.key)) DeviceSpec.DEFAULT_UNIT.name else ""
+        val suffix = if (DeviceSpec.isDimensionParameter(entry.key)) DeviceSpec.DEFAULT_UNIT.name else ""
 
         // param=<default_value>suffix
         entry.key + DeviceSpec.OPERATOR + "<${entry.value}>" + suffix
@@ -240,11 +219,7 @@ private val baseDeviceSpecTemplate: LiveTemplateFormat by lazy {
 
 /** Provides completions for the Id of the Devices present in the Sdk. */
 private object SdkDeviceIdProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     val module = parameters.position.module ?: return
     val devices = getSdkDevices(module)
 
@@ -255,76 +230,40 @@ private object SdkDeviceIdProvider : CompletionProvider<CompletionParameters>() 
 /**
  * [CompletionProvider] for the device parameter as a whole.
  *
- * This is meant to provide usage examples of the `device` parameter, so it should only provide
- * completions on the first segment of the device definition. Ie: when the user is typing 'id:' or
- * 'spec:'
+ * This is meant to provide usage examples of the `device` parameter, so it should only provide completions on the first segment of the
+ * device definition. Ie: when the user is typing 'id:' or 'spec:'
  */
 private object DeviceReferenceProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     val module = parameters.position.module
-    val defaultDeviceId =
-      module?.let(ConfigurationManager::getOrCreateInstance)?.getDefaultPreviewDevice()?.id
-    defaultDeviceId?.let {
-      result.addLookupElement(
-        lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId,
-        tailText = " Default Device",
-      )
-    }
+    val defaultDeviceId = module?.let(ConfigurationManager::getOrCreateInstance)?.getDefaultPreviewDevice()?.id
+    defaultDeviceId?.let { result.addLookupElement(lookupString = DEVICE_BY_ID_PREFIX + defaultDeviceId, tailText = " Default Device") }
 
     val unitName = DeviceSpec.DEFAULT_UNIT.name
     result.addLookupElement(
       lookupString = DEVICE_BY_SPEC_PREFIX,
-      tailText =
-        "width=$unitName,height=$unitName,dpi=int,isRound=boolean,chinSize=$unitName,orientation=portrait/landscape",
+      tailText = "width=$unitName,height=$unitName,dpi=int,isRound=boolean,chinSize=$unitName,orientation=portrait/landscape",
       format = baseDeviceSpecTemplate,
     )
-    result.addLookupElement(
-      lookupString = ReferencePhoneConfig.deviceSpec(),
-      tailText = " Reference Phone",
-    )
-    result.addLookupElement(
-      lookupString = ReferenceTabletConfig.deviceSpec(),
-      tailText = " Reference Tablet",
-    )
-    result.addLookupElement(
-      lookupString = ReferenceDesktopConfig.deviceSpec(),
-      tailText = " Reference Desktop",
-    )
-    result.addLookupElement(
-      lookupString = ReferenceFoldableConfig.deviceSpec(),
-      tailText = " Reference Foldable",
-    )
+    result.addLookupElement(lookupString = ReferencePhoneConfig.deviceSpec(), tailText = " Reference Phone")
+    result.addLookupElement(lookupString = ReferenceTabletConfig.deviceSpec(), tailText = " Reference Tablet")
+    result.addLookupElement(lookupString = ReferenceDesktopConfig.deviceSpec(), tailText = " Reference Desktop")
+    result.addLookupElement(lookupString = ReferenceFoldableConfig.deviceSpec(), tailText = " Reference Foldable")
   }
 }
 
 /**
- * Provides the remaining parameters for a Device Specification, depending on the intended usage of
- * `spec:...`.
+ * Provides the remaining parameters for a Device Specification, depending on the intended usage of `spec:...`.
  *
  * In other words, completes the parameters so that either of these declarations can be achieved:
  * - spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
  * - spec:parent=...,orientation=...
  */
 private object DeviceSpecParameterProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
-    val deviceSpecImplElement =
-      parameters.position
-        .getParentOfType<DeviceSpecPsiFile>(false)
-        ?.getChildOfType<DeviceSpecSpecImpl>()
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    val deviceSpecImplElement = parameters.position.getParentOfType<DeviceSpecPsiFile>(false)?.getChildOfType<DeviceSpecSpecImpl>()
     val expectedUnit = deviceSpecImplElement?.getFirstValidUnit() ?: DeviceSpec.DEFAULT_UNIT
-    val existingParameters =
-      deviceSpecImplElement
-        ?.getChildrenOfType<DeviceSpecParam>()
-        ?.map { it.firstChild.text }
-        ?.toSet() ?: emptySet()
+    val existingParameters = deviceSpecImplElement?.getChildrenOfType<DeviceSpecParam>()?.map { it.firstChild.text }?.toSet() ?: emptySet()
 
     val createDimensionParameterFormat: (String) -> InsertionFormat = { defaultValue ->
       LiveTemplateFormat("=<$defaultValue>${expectedUnit.name}")
@@ -353,15 +292,9 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
       if (DeviceSpec.isDimensionParameter(it.key)) {
         // For parameters that take a dimension, use an appropriate InsertionFormat that includes
         // the expected dimension unit.
-        result.addLookupElement(
-          lookupString = it.key,
-          format = createDimensionParameterFormat(it.value),
-        )
+        result.addLookupElement(lookupString = it.key, format = createDimensionParameterFormat(it.value))
       } else {
-        result.addLookupElement(
-          lookupString = it.key,
-          format = LiveTemplateFormat("=<${it.value}>"),
-        )
+        result.addLookupElement(lookupString = it.key, format = LiveTemplateFormat("=<${it.value}>"))
       }
     }
   }
@@ -373,11 +306,7 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
  * I.e: provides "portrait,landscape" for `orientation=$caret`
  */
 private object OrientationValueProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     Orientation.values().forEach { result.addLookupElement(lookupString = it.name) }
   }
 }
@@ -388,11 +317,7 @@ private object OrientationValueProvider : CompletionProvider<CompletionParameter
  * I.e: provides "none,corner,double,punch_hole,tall" for `cutout=$caret`
  */
 private object CutoutValueProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     Cutout.entries.forEach { result.addLookupElement(lookupString = it.name) }
   }
 }
@@ -403,18 +328,14 @@ private object CutoutValueProvider : CompletionProvider<CompletionParameters>() 
  * I.e: provides "buttons,gesture" for `navigation=$caret`
  */
 private object NavigationValueProvider : CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     Navigation.entries.forEach { result.addLookupElement(lookupString = it.name) }
   }
 }
 
 /**
- * Return the first valid dimension unit [DimUnit] used within a [DeviceSpecSpecImpl] element. That
- * same unit is expected to be used in other dimension values.
+ * Return the first valid dimension unit [DimUnit] used within a [DeviceSpecSpecImpl] element. That same unit is expected to be used in
+ * other dimension values.
  */
 private fun DeviceSpecSpecImpl.getFirstValidUnit(): DimUnit? {
   getChildrenOfType<DeviceSpecParam>().forEach loop@{ paramElement ->

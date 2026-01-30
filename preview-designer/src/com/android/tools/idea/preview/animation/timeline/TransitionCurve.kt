@@ -24,10 +24,8 @@ import com.intellij.openapi.util.Disposer
 
 /** Curves for all properties of [Transition]. */
 class TransitionCurve
-private constructor(
-  frozenState: SupportedAnimationManager.FrozenState,
-  private val propertyCurves: List<PropertyCurve>,
-) : ParentTimelineElement(frozenState, propertyCurves) {
+private constructor(frozenState: SupportedAnimationManager.FrozenState, private val propertyCurves: List<PropertyCurve>) :
+  ParentTimelineElement(frozenState, propertyCurves) {
 
   companion object {
     fun create(
@@ -53,15 +51,11 @@ private constructor(
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(frozenState, curves).also {
-        curves.forEach { curve -> Disposer.register(it, curve) }
-      }
+      return TransitionCurve(frozenState, curves).also { curves.forEach { curve -> Disposer.register(it, curve) } }
     }
 
     fun expectedHeight(transition: Transition) =
-      transition.properties.values.filterNotNull().sumOf {
-        it.components.size * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
-      }
+      transition.properties.values.filterNotNull().sumOf { it.components.size * InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT }
   }
 
   var timelineUnits: List<AnimationUnit.TimelineUnit?> = listOf()

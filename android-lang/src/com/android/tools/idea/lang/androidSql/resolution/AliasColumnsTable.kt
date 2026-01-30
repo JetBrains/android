@@ -24,11 +24,15 @@ import com.intellij.util.Processor
  *
  * Used to resolve references to these aliases from other parts of the query, e.g. the WHERE clause.
  */
-
 class AliasColumnsTable(private val resultColumns: AndroidSqlResultColumns) : AndroidSqlTable {
-  override val name get() = null
-  override val definingElement get() = resultColumns
-  override val isView: Boolean get() = true
+  override val name
+    get() = null
+
+  override val definingElement
+    get() = resultColumns
+
+  override val isView: Boolean
+    get() = true
 
   override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
     val resultColumns = resultColumns.resultColumnList

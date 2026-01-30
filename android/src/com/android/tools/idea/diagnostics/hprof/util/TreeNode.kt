@@ -17,5 +17,6 @@ package com.android.tools.idea.diagnostics.hprof.util
 
 interface TreeNode {
   fun description(): String
+
   fun children(): Collection<TreeNode>
 }

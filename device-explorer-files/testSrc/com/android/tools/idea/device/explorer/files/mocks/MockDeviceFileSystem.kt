@@ -24,13 +24,13 @@ import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry.Companion.createRoot
 import com.intellij.openapi.util.text.StringUtil
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.math.min
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, override val name: String) : DeviceFileSystem {
 
@@ -67,10 +67,7 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
     return resolvePathSegments(root, pathSegments)
   }
 
-  private suspend fun resolvePathSegments(
-    rootEntry: DeviceFileEntry,
-    segments: List<String>
-  ): DeviceFileEntry {
+  private suspend fun resolvePathSegments(rootEntry: DeviceFileEntry, segments: List<String>): DeviceFileEntry {
     var currentEntry = rootEntry
     for (segment in segments) {
       currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
@@ -123,11 +120,7 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
     }
   }
 
-  suspend fun uploadFile(localFilePath: Path,
-    remoteDirectory: DeviceFileEntry,
-    fileName: String,
-    progress: FileTransferProgress
-  ) {
+  suspend fun uploadFile(localFilePath: Path, remoteDirectory: DeviceFileEntry, fileName: String, progress: FileTransferProgress) {
     delay(OPERATION_TIMEOUT_MILLIS)
     uploadError?.let { throw it }
 

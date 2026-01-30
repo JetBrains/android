@@ -28,9 +28,7 @@ class HideablePanelTest {
 
   @Test
   fun toggleDisplay() {
-    composeTestRule.setContent {
-      HideablePanel("Header", initiallyOpen = false) { Text("Content") }
-    }
+    composeTestRule.setContent { HideablePanel("Header", initiallyOpen = false) { Text("Content") } }
     composeTestRule.onNodeWithText("Content").assertDoesNotExist()
     composeTestRule.onNodeWithText("Header").performClick()
     composeTestRule.onNodeWithText("Content").assertIsDisplayed()

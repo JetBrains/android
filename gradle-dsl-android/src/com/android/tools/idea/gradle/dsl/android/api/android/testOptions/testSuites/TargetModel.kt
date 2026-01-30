@@ -20,5 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface TargetModel : GradleBlockModel {
   fun name(): String
+
   fun addVariant(variant: String): ResolvedPropertyModel
 }

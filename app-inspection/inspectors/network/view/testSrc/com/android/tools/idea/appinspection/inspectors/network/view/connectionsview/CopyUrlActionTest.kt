@@ -27,16 +27,10 @@ class CopyUrlActionTest {
 
   @Test
   fun actionPerformed_grpcData() {
-    val action =
-      CopyUrlAction(
-        GrpcData.createGrpcData(0, address = "address", service = "service", method = "method")
-      ) {
-        fakeClipboard
-      }
+    val action = CopyUrlAction(GrpcData.createGrpcData(0, address = "address", service = "service", method = "method")) { fakeClipboard }
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
-    assertThat(fakeClipboard.getContents(null).getTransferData(stringFlavor))
-      .isEqualTo("grpc://address/service/method")
+    assertThat(fakeClipboard.getContents(null).getTransferData(stringFlavor)).isEqualTo("grpc://address/service/method")
   }
 }

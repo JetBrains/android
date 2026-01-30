@@ -17,9 +17,7 @@ package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
 
-/**
- * The [TreeNode] representation of an SDK component that may be installed by the first run wizard.
- */
+/** The [TreeNode] representation of an SDK component that may be installed by the first run wizard. */
 abstract class SdkComponentTreeNode(val description: String) {
   companion object {
     @JvmStatic

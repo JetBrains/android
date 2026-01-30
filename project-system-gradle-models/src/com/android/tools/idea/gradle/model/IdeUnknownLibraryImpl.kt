@@ -16,11 +16,9 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.tools.idea.gradle.model.impl.FileImpl
-
 import java.io.Serializable
 
-data class IdeUnknownLibraryImpl constructor(
-  override val key: String
-): IdeUnresolvedUnknownLibrary, Serializable {
-  override val lintJar: FileImpl? get() = null
+data class IdeUnknownLibraryImpl constructor(override val key: String) : IdeUnresolvedUnknownLibrary, Serializable {
+  override val lintJar: FileImpl?
+    get() = null
 }

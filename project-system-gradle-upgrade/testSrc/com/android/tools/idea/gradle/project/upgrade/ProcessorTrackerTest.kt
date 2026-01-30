@@ -56,17 +56,23 @@ class ProcessorTrackerTest : UpgradeGradleFileModelTestCase() {
 
     checkProcessorEvents(
       UpgradeAssistantProcessorEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
+        .setUpgradeUuid(processor.uuid)
+        .setCurrentAgpVersion("3.5.0")
+        .setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1).setFiles(2))
         .build(),
       UpgradeAssistantProcessorEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
+        .setUpgradeUuid(processor.uuid)
+        .setCurrentAgpVersion("3.5.0")
+        .setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
         .build(),
       UpgradeAssistantProcessorEvent.newBuilder()
-        .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
+        .setUpgradeUuid(processor.uuid)
+        .setCurrentAgpVersion("3.5.0")
+        .setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(SYNC_SKIPPED).setUsages(1).setFiles(2))
         .build(),
@@ -74,17 +80,21 @@ class ProcessorTrackerTest : UpgradeGradleFileModelTestCase() {
   }
 
   private fun checkProcessorEvents(vararg expectedEvents: UpgradeAssistantProcessorEvent) {
-    val events = tracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT || it.studioEvent.kind == AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT }
-      .sortedBy { it.timestamp }
-      .map { it.studioEvent }
+    val events =
+      tracker.usages
+        .filter {
+          it.studioEvent.kind == AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT ||
+            it.studioEvent.kind == AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT
+        }
+        .sortedBy { it.timestamp }
+        .map { it.studioEvent }
     val processorEvents = events.filter { it.kind == AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT }
     assertSize(expectedEvents.size, processorEvents)
     fun simplifyComponentInfo(event: UpgradeAssistantProcessorEvent): UpgradeAssistantProcessorEvent {
       val builder = UpgradeAssistantProcessorEvent.newBuilder(event)
       val infoList = builder.componentInfoList
       builder.clearComponentInfo()
-      infoList.forEach { if(it.isEnabled) builder.addComponentInfo(it) }
+      infoList.forEach { if (it.isEnabled) builder.addComponentInfo(it) }
       return builder.build()
     }
 

@@ -37,6 +37,5 @@ class VersionCatalogDocumentationProviderTest : AndroidTestCase() {
     val offset = myFixture.editor.caretModel.offset
     val element = myFixture.file.findElementAt(offset)
     Truth.assertThat(CtrlMouseHandler.getInfo(element, element)).isEqualTo(expectedDoc)
-
   }
 }

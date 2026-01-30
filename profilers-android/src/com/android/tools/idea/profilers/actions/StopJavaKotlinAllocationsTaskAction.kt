@@ -19,12 +19,11 @@ import com.android.tools.profilers.memory.AllocationStage
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * This action is purely for testing purposes and can only be used to stop Java Kotlin Allocations task. These profiler task actions are
- * to be performed in a sequential format:
+ * This action is purely for testing purposes and can only be used to stop Java Kotlin Allocations task. These profiler task actions are to
+ * be performed in a sequential format:
  *
- * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Java Kotlin Allocations Task ->
- * SetProfilingStartingPointToNowAction / SetProfilingStartingPointToProcessStartAction  ->
- * StartProfilerTaskAction -> StopJavaKotlinAllocationsTaskAction
+ * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Java Kotlin Allocations Task -> SetProfilingStartingPointToNowAction
+ * / SetProfilingStartingPointToProcessStartAction -> StartProfilerTaskAction -> StopJavaKotlinAllocationsTaskAction
  *
  * Note: This test only action is for the Java/Kotlin Allocations Task for O+ devices. Because before api O the test action would be defined
  * differently (e.g. we would need to call stopTask instead of stopTracking).

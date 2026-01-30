@@ -32,16 +32,9 @@ import kotlinx.coroutines.Job
 interface DatabaseInspectorViewsFactory {
   fun createTableView(type: TableViewType): TableView
 
-  fun createEvaluatorView(
-    project: Project,
-    schemaProvider: SchemaProvider,
-    tableView: TableView,
-  ): SqliteEvaluatorView
+  fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView
 
-  fun createParametersBindingView(
-    project: Project,
-    sqliteStatementText: String,
-  ): ParametersBindingDialogView
+  fun createParametersBindingView(project: Project, sqliteStatementText: String): ParametersBindingDialogView
 
   fun createExportToFileView(
     project: Project,
@@ -49,11 +42,7 @@ interface DatabaseInspectorViewsFactory {
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView
 
-  fun createExportInProgressView(
-    project: Project,
-    job: Job,
-    taskDispatcher: CoroutineDispatcher,
-  ): ExportInProgressView
+  fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView
 
   fun createDatabaseInspectorView(project: Project): DatabaseInspectorView
 }

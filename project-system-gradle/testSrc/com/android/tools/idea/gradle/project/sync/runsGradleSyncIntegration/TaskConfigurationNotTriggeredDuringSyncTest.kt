@@ -30,13 +30,11 @@ import org.junit.Test
 
 @RunsInEdt
 class TaskConfigurationNotTriggeredDuringSyncTest {
-  private var originalFlagValue : Boolean? = null
+  private var originalFlagValue: Boolean? = null
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Before
   fun saveOriginalFlagValue() {
@@ -60,7 +58,8 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val failureMessage = "task should not be configured"
     val lintAnalysisTaskRegistration = "lint analysis task registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
-    buildFile.appendText("""
+    buildFile.appendText(
+      """
       
           tasks.register("shouldNotBeConfigured", Test.class).configure {
             println("$failureMessage")
@@ -71,7 +70,9 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
               if (tasks.names.contains("lintAnalyzeDebug")) println("$lintAnalysisTaskRegistration")
 
           }
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
     val outputLog = StringBuilder()
     prepared.open(updateOptions = { preparedProjectOptions -> preparedProjectOptions.copy(outputHandler = { outputLog.append(it) }) }) {}
     assertThat(outputLog.toString()).contains(projectsConfigured)
@@ -91,7 +92,8 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val failureMessage = "task should not be configured"
     val lintAnalysisTaskRegistration = "lint analysis task registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
-    buildFile.appendText("""
+    buildFile.appendText(
+      """
       
           tasks.register("shouldNotBeConfigured", Test.class).configure {
             println("$failureMessage")
@@ -102,7 +104,9 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
               if (tasks.names.contains("lintAnalyzeDebug")) println("$lintAnalysisTaskRegistration")
 
           }
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
     val outputLog = StringBuilder()
     prepared.open(updateOptions = { preparedProjectOptions -> preparedProjectOptions.copy(outputHandler = { outputLog.append(it) }) }) {}
     assertThat(outputLog.toString()).contains(projectsConfigured)
@@ -110,5 +114,4 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     assertThat(outputLog.toString()).contains(failureMessage)
     assertThat(outputLog.toString()).contains(lintAnalysisTaskRegistration)
   }
-
 }

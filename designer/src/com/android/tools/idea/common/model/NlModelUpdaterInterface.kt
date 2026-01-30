@@ -18,10 +18,7 @@ package com.android.tools.idea.common.model
 import com.android.ide.common.rendering.api.ViewInfo
 import com.intellij.psi.xml.XmlTag
 
-/**
- * Responsible for updating [NlModel] once results from LayoutLibSceneManager is available as
- * [TagSnapshotTreeNode].
- */
+/** Responsible for updating [NlModel] once results from LayoutLibSceneManager is available as [TagSnapshotTreeNode]. */
 interface NlModelUpdaterInterface {
   fun updateFromTagSnapshot(model: NlModel, newRoot: XmlTag?, roots: List<TagSnapshotTreeNode>)
 

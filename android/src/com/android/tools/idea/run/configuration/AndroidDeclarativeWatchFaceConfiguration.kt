@@ -41,14 +41,12 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 /**
  * Represents a run configuration for Declarative Watch Faces. Declarative Watch Faces use the
- * [Watch Face Format](https://developer.android.com/training/wearables/wff), which is the
- * recommended approach to creating Watch Faces.
+ * [Watch Face Format](https://developer.android.com/training/wearables/wff), which is the recommended approach to creating Watch Faces.
  */
 class AndroidDeclarativeWatchFaceConfiguration(project: Project, factory: ConfigurationFactory) :
   AndroidRunConfigurationBase(project, factory, false) {
 
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet) =
-    Pair(false, message("android.cannot.run.library.project.error"))
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet) = Pair(false, message("android.cannot.run.library.project.error"))
 
   override fun checkConfiguration(facet: AndroidFacet) = emptyList<ValidationError>()
 
@@ -61,13 +59,11 @@ class AndroidDeclarativeWatchFaceConfiguration(project: Project, factory: Config
     deviceFutures: DeviceFutures,
   ): AndroidConfigurationExecutor {
     val applicationIdProvider =
-      project.getProjectSystem().getApplicationIdProvider(this)
-        ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+      project.getProjectSystem().getApplicationIdProvider(this) ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider =
       environment.project.getProjectSystem().getApkProvider(this)
         ?: throw ExecutionException(message("android.run.configuration.not.supported", this::class.simpleName))
-    val applicationDeployer =
-      ApplicationDeployerImpl(environment.project, RunStats.from(environment))
+    val applicationDeployer = ApplicationDeployerImpl(environment.project, RunStats.from(environment))
 
     return AndroidDeclarativeWatchFaceConfigurationExecutor(
       environment,
@@ -101,8 +97,7 @@ class AndroidDeclarativeWatchFaceConfigurationType :
       object : AndroidWearConfigurationFactory(this) {
         override fun getId() = "AndroidDeclarativeWatchFaceConfigurationFactory"
 
-        override fun createTemplateConfiguration(project: Project) =
-          AndroidDeclarativeWatchFaceConfiguration(project, this)
+        override fun createTemplateConfiguration(project: Project) = AndroidDeclarativeWatchFaceConfiguration(project, this)
 
         override fun configureDefaultSettings(settings: RunnerAndConfigurationSettings) {
           // We want this to be disabled by default so that the logcat window for the

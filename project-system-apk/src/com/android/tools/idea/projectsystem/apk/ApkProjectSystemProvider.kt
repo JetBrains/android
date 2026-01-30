@@ -26,10 +26,12 @@ class ApkProjectSystemProvider : AndroidProjectSystemProvider {
   companion object {
     const val ID = "com.android.tools.idea.ApkProjectSystem"
   }
+
   override val id: String = ID
+
   override fun isApplicable(project: Project) =
-    StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() &&
-    ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
+    StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get() && ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.getFacetTypeId())
+
   override fun projectSystemFactory(project: Project) =
     if (StudioFlags.ENABLE_APK_PROJECT_SYSTEM.get()) ApkProjectSystem(project) else DefaultProjectSystem(project)
 }

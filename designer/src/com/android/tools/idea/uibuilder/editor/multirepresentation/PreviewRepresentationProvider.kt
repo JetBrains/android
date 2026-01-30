@@ -19,23 +19,20 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
 /**
- * A generic interface for a [PreviewRepresentation] provider. Used by the
- * [MultiRepresentationPreview] to find all the [PreviewRepresentation]s suitable for particular
- * file. [PreviewRepresentationProvider] is implied to have 1-to-1 correspondence with some
+ * A generic interface for a [PreviewRepresentation] provider. Used by the [MultiRepresentationPreview] to find all the
+ * [PreviewRepresentation]s suitable for particular file. [PreviewRepresentationProvider] is implied to have 1-to-1 correspondence with some
  * [PreviewRepresentation] that it provides (creates).
  */
 interface PreviewRepresentationProvider {
   /** A name associated with the representation */
   val displayName: RepresentationName
 
-  /**
-   * Tells a client if the corresponding [PreviewRepresentation] is applicable for the input file.
-   */
+  /** Tells a client if the corresponding [PreviewRepresentation] is applicable for the input file. */
   suspend fun accept(project: Project, psiFile: PsiFile): Boolean
 
   /**
-   * Creates a corresponding [PreviewRepresentation] for the input file. It is only valid to call
-   * this if [accept] is true, undefined behavior otherwise.
+   * Creates a corresponding [PreviewRepresentation] for the input file. It is only valid to call this if [accept] is true, undefined
+   * behavior otherwise.
    */
   suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation
 }

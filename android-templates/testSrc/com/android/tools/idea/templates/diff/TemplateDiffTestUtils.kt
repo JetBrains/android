@@ -36,26 +36,23 @@ object TemplateDiffTestUtils {
    * TODO: extend this to more versions
    */
   internal fun getPinnedAgpVersion(): AgpVersionSoftwareEnvironment {
-    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-      .withCompileSdk(SDK_VERSION_FOR_TEMPLATE_TESTS)
+    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(SDK_VERSION_FOR_TEMPLATE_TESTS)
       .withTargetSdk(SDK_VERSION_FOR_TEMPLATE_TESTS)
   }
 
   /**
-   * Whether to use smart diff for the AGP version string found in a couple template-generated
-   * files, usually properties files. This is because the version numbers change frequently (~ every
-   * week) on the latest major AGP version in development, so we want to be able to diff the other
-   * file contents without having to update golden files every week just for this version string.
+   * Whether to use smart diff for the AGP version string found in a couple template-generated files, usually properties files. This is
+   * because the version numbers change frequently (~ every week) on the latest major AGP version in development, so we want to be able to
+   * diff the other file contents without having to update golden files every week just for this version string.
    */
   internal fun smartDiffAgpVersion(): Boolean {
     return getPinnedAgpVersion().agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.agpVersion
   }
 
   /**
-   * Gets the output directory where we should put generated files. Bazel places files in
-   * TEST_UNDECLARED_OUTPUTS_DIR which produces outputs.zip as a test artifact, so we can put any
-   * files there. We use a "golden" subdirectory in the zip for the template-generated golden files
-   * and a "lintBaseline" subdirectory for the Lint baseline XMLs.
+   * Gets the output directory where we should put generated files. Bazel places files in TEST_UNDECLARED_OUTPUTS_DIR which produces
+   * outputs.zip as a test artifact, so we can put any files there. We use a "golden" subdirectory in the zip for the template-generated
+   * golden files and a "lintBaseline" subdirectory for the Lint baseline XMLs.
    */
   internal fun getOutputDir(subDirName: String): Path {
     val undeclaredOutputs = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")

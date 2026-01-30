@@ -33,67 +33,28 @@ class PerfgateComposeUiCheckGradleTest : PerfgateComposeGradleTestBase() {
   @Test
   fun testUiCheckMode() =
     projectRule.runWithRenderQualityEnabled {
-      assertEquals(
-        1,
-        composePreviewRepresentation
-          .renderedPreviewElementsInstancesFlowForTest()
-          .value
-          .asCollection()
-          .size,
-      )
-      assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(
-        composePreviewRepresentation.uiCheckFilterFlow.value
-      )
-      val uiCheckElement =
-        composePreviewRepresentation
-          .renderedPreviewElementsInstancesFlowForTest()
-          .value
-          .asCollection()
-          .single()
+      assertEquals(1, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
+      assertInstanceOf<UiCheckModeFilter.Disabled<PsiComposePreviewElementInstance>>(composePreviewRepresentation.uiCheckFilterFlow.value)
+      val uiCheckElement = composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().single()
 
       // Start UI Check mode
       projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 120.seconds) {
-        composePreviewRepresentation.setMode(
-          PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
-        )
+        composePreviewRepresentation.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
       }
-      assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
-        composePreviewRepresentation.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(composePreviewRepresentation.uiCheckFilterFlow.value)
 
       // Now do measure time and memory usage of full refreshes when ui check is enabled.
       addPreviewsAndMeasure(
         nPreviewsToAdd = 0,
-        nExpectedPreviewInstances =
-          composePreviewRepresentation
-            .renderedPreviewElementsInstancesFlowForTest()
-            .value
-            .asCollection()
-            .size,
+        nExpectedPreviewInstances = composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size,
         listOf(
           // Measures the full rendering time, including ModuleClassLoader instantiation, inflation
           // and render.
           ElapsedTimeMeasurement(Metric("uiCheckMode_refresh_time")),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            null,
-            Metric("uiCheckMode_total_memory"),
-          ),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            "rendering",
-            Metric("uiCheckMode_rendering_memory"),
-          ),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            "layoutEditor",
-            Metric("uiCheckMode_layoutEditor_memory"),
-          ),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            "layoutlib",
-            Metric("uiCheckMode_layoutlib_memory"),
-          ),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("uiCheckMode_total_memory")),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("uiCheckMode_rendering_memory")),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("uiCheckMode_layoutEditor_memory")),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("uiCheckMode_layoutlib_memory")),
           LayoutlibNativeMemoryMeasurement(Metric("uiCheckMode_layoutlib_native_memory")),
         ),
         nSamples = 1, // run it only once as this test takes a long time

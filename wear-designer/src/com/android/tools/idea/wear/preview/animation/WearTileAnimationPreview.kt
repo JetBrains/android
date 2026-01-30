@@ -32,8 +32,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * A specialized [AnimationPreview] for Wear Tile animations, providing controls and visualization
- * for animating Wear Tile elements within the Android Studio preview.
+ * A specialized [AnimationPreview] for Wear Tile animations, providing controls and visualization for animating Wear Tile elements within
+ * the Android Studio preview.
  *
  * @param parentScope parent [CoroutineScope] for this preview
  * @param project The project associated with this preview.
@@ -53,9 +53,7 @@ class WearTileAnimationPreview(
     project,
     sceneManagerProvider = getter@{
         val modelForElement =
-          surface.models.find {
-            it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) == wearPreviewElement
-          } ?: return@getter null
+          surface.models.find { it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) == wearPreviewElement } ?: return@getter null
         surface.getSceneManager(modelForElement)
       },
     rootComponent = surface as JComponent,
@@ -75,14 +73,10 @@ class WearTileAnimationPreview(
   }
 
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
-    animations
-      .maxOfOrNull { it.timelineMaximumMs }
-      ?.let { maxDurationPerIteration.value = it.toLong() }
+    animations.maxOfOrNull { it.timelineMaximumMs }?.let { maxDurationPerIteration.value = it.toLong() }
   }
 
-  private suspend fun createAnimationManager(
-    animation: ProtoAnimation
-  ): SupportedWearTileAnimationManager {
+  private suspend fun createAnimationManager(animation: ProtoAnimation): SupportedWearTileAnimationManager {
     var title = ""
     executeInRenderSession { title = animation.name }
     return SupportedWearTileAnimationManager(
@@ -124,9 +118,7 @@ class WearTileAnimationPreview(
           withContext(Dispatchers.EDT) { hideErrorPanel() }
           updateAllAnimations(it?.getAnimations() ?: emptyList())
         } else {
-          withContext(Dispatchers.EDT) {
-            showErrorPanel(message("animation.inspector.error.panel.message"))
-          }
+          withContext(Dispatchers.EDT) { showErrorPanel(message("animation.inspector.error.panel.message")) }
         }
       }
     }

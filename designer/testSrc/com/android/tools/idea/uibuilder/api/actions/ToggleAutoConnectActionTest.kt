@@ -47,10 +47,7 @@ class ToggleAutoConnectActionTest : AndroidTestCase() {
     val mockParent = Mockito.mock(NlComponent::class.java)
     val selectedChildren = emptyList<NlComponent>()
 
-    assertEquals(
-      ToggleAutoConnectAction.isAutoconnectOn(),
-      action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren),
-    )
+    assertEquals(ToggleAutoConnectAction.isAutoconnectOn(), action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren))
 
     action.setSelected(mockEditor, mockHandler, mockParent, selectedChildren, true)
     assertTrue(ToggleAutoConnectAction.isAutoconnectOn())

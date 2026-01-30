@@ -21,11 +21,10 @@ import com.intellij.openapi.startup.ProjectActivity
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 /**
- * The purpose of this project activity is to make sure the [IssuePanelService] is created after
- * project is opened. The [IssuePanelService] creates and setups [DesignerCommonIssuePanel] and
- * [DesignerCommonIssueModel] when it is constructed. IJ create the project service lazily, so we
- * explicit get the instance to make it be created. TODO? (b/235832774): Consider to move the setup
- * of [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] from [IssuePanelService] to here?
+ * The purpose of this project activity is to make sure the [IssuePanelService] is created after project is opened. The [IssuePanelService]
+ * creates and setups [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] when it is constructed. IJ create the project service
+ * lazily, so we explicit get the instance to make it be created. TODO? (b/235832774): Consider to move the setup of
+ * [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] from [IssuePanelService] to here?
  */
 class IssuePanelProjectActivity : ProjectActivity {
   override suspend fun execute(project: Project) {

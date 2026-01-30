@@ -33,14 +33,9 @@ import com.intellij.ui.LayeredIcon
 import javax.swing.Icon
 import javax.swing.JComponent
 
-@VisibleForTesting
-val ICON_LEGACY_PHONE: Icon =
-  LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
+@VisibleForTesting val ICON_LEGACY_PHONE: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
 
-data class DropDownActionWithButton(
-  val dropDownAction: DropDownAction,
-  val getButton: () -> JComponent?,
-)
+data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
 
 /** Factory class responsible for creating either a device or process picker. */
 object TargetSelectionActionFactory {
@@ -56,21 +51,13 @@ object TargetSelectionActionFactory {
     }
   }
 
-  /**
-   * Returns the process picker to use when Layout Inspector is running inside the Running Devices
-   * Tool Window.
-   */
-  fun getSingleDeviceProcessPicker(
-    layoutInspector: LayoutInspector,
-    targetDeviceSerialNumber: String,
-  ): SingleDeviceSelectProcessAction? {
+  /** Returns the process picker to use when Layout Inspector is running inside the Running Devices Tool Window. */
+  fun getSingleDeviceProcessPicker(layoutInspector: LayoutInspector, targetDeviceSerialNumber: String): SingleDeviceSelectProcessAction? {
     val model = layoutInspector.deviceModel ?: return null
     return SingleDeviceSelectProcessAction(
       deviceModel = model,
       targetDeviceSerialNumber = targetDeviceSerialNumber,
-      onProcessSelected = { newProcess ->
-        layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess)
-      },
+      onProcessSelected = { newProcess -> layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess) },
     )
   }
 
@@ -81,10 +68,7 @@ object TargetSelectionActionFactory {
       supportsOffline = false,
       createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
       stopPresentation =
-        SelectProcessAction.StopPresentation(
-          "Stop Inspector",
-          "Stop running the layout inspector against the current process",
-        ),
+        SelectProcessAction.StopPresentation("Stop Inspector", "Stop running the layout inspector against the current process"),
       onStopAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution,
     )
@@ -96,12 +80,8 @@ object TargetSelectionActionFactory {
       layoutInspector.inspectorModel.project.service<DeviceProvisionerService>().deviceProvisioner,
       layoutInspector.inspectorModel.scope,
       deviceModel = model,
-      onDeviceSelected = { newDevice ->
-        layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice)
-      },
-      onProcessSelected = { newProcess ->
-        layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess)
-      },
+      onDeviceSelected = { newDevice -> layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice) },
+      onProcessSelected = { newProcess -> layoutInspector.processModel?.setLayoutInspectorSelectedProcess(newProcess) },
       onDetachAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution,
     )
@@ -111,8 +91,7 @@ object TargetSelectionActionFactory {
     when {
       device.apiLevel.majorVersion < MIN_SUPPORTED_VERSION -> {
         event.presentation.isEnabled = false
-        event.presentation.text =
-          "${device.buildDeviceName()} (Unsupported for API < ${MIN_SUPPORTED_VERSION})"
+        event.presentation.text = "${device.buildDeviceName()} (Unsupported for API < ${MIN_SUPPORTED_VERSION})"
       }
       else -> {}
     }

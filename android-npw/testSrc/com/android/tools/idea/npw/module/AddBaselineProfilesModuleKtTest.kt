@@ -26,13 +26,10 @@ import org.junit.runners.Parameterized
 class AddBaselineProfilesModuleKtTest(private val useGmdParam: Boolean) {
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useGmdParam={0}")
-    fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
+    @JvmStatic @Parameterized.Parameters(name = "useGmdParam={0}") fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewBaselineProfilesModuleTest() {

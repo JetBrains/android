@@ -72,11 +72,7 @@ object ComponentUtil {
               .id("@id/linear")
               .matchParentWidth()
               .matchParentHeight()
-              .withAttribute(
-                SdkConstants.TOOLS_URI,
-                SdkConstants.ATTR_CONTEXT,
-                "com.example.MyActivity",
-              )
+              .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
               .children(*descriptors),
             false,
           )
@@ -86,11 +82,8 @@ object ComponentUtil {
     val result = mutableListOf<NlComponent>()
     when (resourceFolder) {
       SdkConstants.FD_RES_XML ->
-        descriptors.mapNotNullTo(result) { descriptor ->
-          nlModel.treeReader.find { it.tagName == descriptor.tagName }
-        }
-      else ->
-        descriptors.mapNotNullTo(result) { nlModel.treeReader.find(stripPrefixFromId(it.id!!)) }
+        descriptors.mapNotNullTo(result) { descriptor -> nlModel.treeReader.find { it.tagName == descriptor.tagName } }
+      else -> descriptors.mapNotNullTo(result) { nlModel.treeReader.find(stripPrefixFromId(it.id!!)) }
     }
     return result
   }
@@ -102,28 +95,20 @@ object ComponentUtil {
     attrName: String,
     type: NlPropertyType,
     components: List<NlComponent>,
-    model: NlPropertiesModel =
-      NlPropertiesModel(
-        projectRule.testRootDisposable,
-        AndroidFacet.getInstance(projectRule.module)!!,
-      ),
+    model: NlPropertiesModel = NlPropertiesModel(projectRule.testRootDisposable, AndroidFacet.getInstance(projectRule.module)!!),
   ): NlPropertyItem {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface
-    val resourceManagers =
-      ModuleResourceManagers.getInstance(AndroidFacet.getInstance(projectRule.module)!!)
+    val resourceManagers = ModuleResourceManagers.getInstance(AndroidFacet.getInstance(projectRule.module)!!)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
-      frameworkResourceManager
-        ?.attributeDefinitions
-        ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
-      .also {
-        runBlocking {
-          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
-          // asynchronously.
-          delayUntilCondition(10) { it.model.resolver != null }
-        }
+      frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
+    return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components).also {
+      runBlocking {
+        // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+        // asynchronously.
+        delayUntilCondition(10) { it.model.resolver != null }
       }
+    }
   }
 }

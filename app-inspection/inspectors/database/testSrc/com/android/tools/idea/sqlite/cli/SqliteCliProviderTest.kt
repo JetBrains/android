@@ -68,12 +68,8 @@ class SqliteCliProviderTest {
     val fakeSqlite3Env = temporaryFolder.newFile("fake-sqlite3-env").toPath().toFile()
     val fakeSqlite3Property = temporaryFolder.newFile("fake-sqlite3-property").toPath().toFile()
 
-    val propertyResolver: (key: String) -> String? = { key ->
-      if (key == SQLITE3_PATH_PROPERTY) fakeSqlite3Property.path else ""
-    }
-    val envResolver: (key: String) -> String? = { key ->
-      if (key == SQLITE3_PATH_ENV) fakeSqlite3Env.path else ""
-    }
+    val propertyResolver: (key: String) -> String? = { key -> if (key == SQLITE3_PATH_PROPERTY) fakeSqlite3Property.path else "" }
+    val envResolver: (key: String) -> String? = { key -> if (key == SQLITE3_PATH_ENV) fakeSqlite3Env.path else "" }
     val nullResolver: (key: String) -> String? = { null }
 
     // test env

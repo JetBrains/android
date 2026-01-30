@@ -23,26 +23,23 @@ import java.time.Duration
 import java.util.concurrent.Callable
 
 abstract class ArtifactRepository(private val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
-  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ArtifactRepository search", 1)
-    .let { MoreExecutors.listeningDecorator(it) }
+  private val executor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("ArtifactRepository search", 1).let { MoreExecutors.listeningDecorator(it) }
 
   abstract val name: String
   abstract val isRemote: Boolean
+
   @Throws(Exception::class) protected abstract fun doSearch(request: SearchRequest): SearchResult
 
-  override fun search(request: SearchRequest): ListenableFuture<SearchResult> =
-    executor.submit(Callable { executeAndMeasure(request) })
+  override fun search(request: SearchRequest): ListenableFuture<SearchResult> = executor.submit(Callable { executeAndMeasure(request) })
 
   private fun executeAndMeasure(request: SearchRequest): SearchResult {
     val startedAt = System.currentTimeMillis()
-    return (
-      try {
+    return (try {
         doSearch(request)
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         SearchResult(e)
       })
-      .copy(
-        stats = SearchResultStats.duration(repoForStats, Duration.ofMillis(System.currentTimeMillis() - startedAt)))
+      .copy(stats = SearchResultStats.duration(repoForStats, Duration.ofMillis(System.currentTimeMillis() - startedAt)))
   }
 }

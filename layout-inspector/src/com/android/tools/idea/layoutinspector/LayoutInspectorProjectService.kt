@@ -39,10 +39,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.ThreadingAssertions
-import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
 
 /** Class used to keep track of open projects, for metrics purposes */
 object LayoutInspectorOpenProjectsTracker {
@@ -54,8 +54,7 @@ object LayoutInspectorOpenProjectsTracker {
 /**
  * A project service that creates and holds an instance of [LayoutInspector].
  *
- * Methods of this class are meant to be called on the UI thread, so we don't need to worry about
- * concurrency.
+ * Methods of this class are meant to be called on the UI thread, so we don't need to worry about concurrency.
  */
 @UiThread
 class LayoutInspectorProjectService(private val project: Project) : Disposable {
@@ -70,11 +69,10 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   private var layoutInspector: LayoutInspector? = null
 
   /**
-   * Creates an instance of [LayoutInspector]. [LayoutInspector] will automatically connect to the
-   * device, so call this method only when Layout Inspector is meant to be used.
+   * Creates an instance of [LayoutInspector]. [LayoutInspector] will automatically connect to the device, so call this method only when
+   * Layout Inspector is meant to be used.
    *
-   * TODO(b/289017459): once the standalone Layout Inspector is deprecated, we should refactor LI to
-   *   only connect to a device on-demand.
+   * TODO(b/289017459): once the standalone Layout Inspector is deprecated, we should refactor LI to only connect to a device on-demand.
    */
   @UiThread
   fun getLayoutInspector(): LayoutInspector {
@@ -100,24 +98,15 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     val edtExecutor = EdtExecutorService.getInstance()
 
     val notificationModel = NotificationModel(project)
-    TransportErrorListener(
-      project,
-      notificationModel,
-      LayoutInspectorMetrics,
-      disposable,
-      layoutInspectorCoroutineScope,
-    )
+    TransportErrorListener(project, notificationModel, LayoutInspectorMetrics, disposable, layoutInspectorCoroutineScope)
 
     val processesModel =
-      ProcessesModel(
-          executor = edtExecutor,
-          processDiscovery = AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
-        )
-        .also { Disposer.register(disposable, it) }
+      ProcessesModel(executor = edtExecutor, processDiscovery = AppInspectionDiscoveryService.instance.apiServices.processDiscovery).also {
+        Disposer.register(disposable, it)
+      }
 
     val scheduledExecutor = createScheduledExecutor(disposable)
-    val model =
-      InspectorModel(project, layoutInspectorCoroutineScope, scheduledExecutor, processesModel)
+    val model = InspectorModel(project, layoutInspectorCoroutineScope, scheduledExecutor, processesModel)
 
     processesModel.addSelectedProcessListeners {
       // Reset notification bar every time active process changes, since otherwise we might leave up
@@ -144,13 +133,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     val deviceModel = DeviceModel(disposable, processesModel)
 
     val foregroundProcessDetection =
-      createForegroundProcessDetection(
-        disposable,
-        project,
-        processesModel,
-        deviceModel,
-        layoutInspectorCoroutineScope,
-      )
+      createForegroundProcessDetection(disposable, project, processesModel, deviceModel, layoutInspectorCoroutineScope)
 
     return LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,

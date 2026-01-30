@@ -35,8 +35,7 @@ class ComposeResolverTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setup() {
@@ -51,11 +50,7 @@ class ComposeResolverTest {
     val resolver = ComposeResolver(projectRule.project)
     val navigatable = resolver.findComposableNavigatable(composable)
     navigatable!!.navigate(true)
-    fileOpenCaptureRule.checkEditor(
-      "MyCompose.kt",
-      17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
-    )
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
   }
 
   @RunsInEdt
@@ -71,8 +66,7 @@ class ComposeResolverTest {
 
   private fun loadComposeFiles() {
     val fixture = projectRule.fixture
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
@@ -87,9 +81,7 @@ class ComposeResolverTest {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
               compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
-              compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
-                compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
-              }
+              compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) { compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3) }
             }
           }
         },

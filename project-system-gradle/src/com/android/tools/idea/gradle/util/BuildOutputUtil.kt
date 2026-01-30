@@ -23,16 +23,14 @@ import com.android.tools.idea.log.LogWrapper
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 
-/**
- * Utility methods to find APK/Bundle output file or folder.
- */
-
-private val LOG: Logger get() = Logger.getInstance("BuildOutputUtil.kt")
+/** Utility methods to find APK/Bundle output file or folder. */
+private val LOG: Logger
+  get() = Logger.getInstance("BuildOutputUtil.kt")
 
 enum class OutputType {
   Apk,
   ApkFromBundle,
-  Bundle
+  Bundle,
 }
 
 fun getOutputFilesFromListingFile(listingFile: String): List<File> {
@@ -42,17 +40,13 @@ fun getOutputFilesFromListingFile(listingFile: String): List<File> {
     // NOTE: These strings come from com.android.build.api.artifact.ArtifactKind.DIRECTORY and alike.
     return if (builtArtifacts.elementType == null || builtArtifacts.elementType == "Directory") {
       items.flatMap { fileOrDirectory ->
-        runCatching {
-          if (fileOrDirectory.isDirectory) fileOrDirectory.listFiles()?.toList().orEmpty()
-          else listOf(fileOrDirectory)
-        }
+        runCatching { if (fileOrDirectory.isDirectory) fileOrDirectory.listFiles()?.toList().orEmpty() else listOf(fileOrDirectory) }
           .getOrElse { e ->
             LOG.warn("Error reading list of APK files from build output directory '$fileOrDirectory'.", e)
             emptyList()
           }
       }
-    }
-    else {
+    } else {
       items
     }
   }
@@ -61,12 +55,11 @@ fun getOutputFilesFromListingFile(listingFile: String): List<File> {
 }
 
 fun IdeBuildTasksAndOutputInformation.getOutputListingFileOrLogError(outputType: OutputType): String? {
-  return getOutputListingFile(outputType)
-    .also {
-      if (it == null) {
-        LOG.error(Throwable("Output listing build file is not available for output type $outputType in $this"))
-      }
+  return getOutputListingFile(outputType).also {
+    if (it == null) {
+      LOG.error(Throwable("Output listing build file is not available for output type $outputType in $this"))
     }
+  }
 }
 
 fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType) =

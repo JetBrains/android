@@ -55,12 +55,7 @@ class SdkComponentsStepTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val chain =
-    RuleChain(
-      projectRule,
-      HeadlessDialogRule(),
-      EdtRule(),
-    ) // AndroidProjectRule must get initialized off the EDT thread
+  val chain = RuleChain(projectRule, HeadlessDialogRule(), EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
 
   private lateinit var mode: FirstRunWizardMode
   private lateinit var sdkPath: Path
@@ -78,10 +73,7 @@ class SdkComponentsStepTest {
       SdkComponentCategoryTreeNode(
         "Root",
         "Root node that is not supposed to appear in the UI",
-        listOf(
-          FakeOptionalInstallableSdkComponent("Optional component"),
-          FakeOptionalInstallableSdkComponent("Another optional component"),
-        ),
+        listOf(FakeOptionalInstallableSdkComponent("Optional component"), FakeOptionalInstallableSdkComponent("Another optional component")),
       )
     whenever(model.componentTree).thenReturn(root)
   }
@@ -90,8 +82,7 @@ class SdkComponentsStepTest {
   fun titleIsCorrect() {
     val sdkComponentsStep = SdkComponentsStep(model, null, mode, licenseAgreementStep, mock())
     runInWizardDialog(sdkComponentsStep) { fakeUi ->
-      val title =
-        checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("SDK Components Setup") })
+      val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("SDK Components Setup") })
       assertTrue { fakeUi.isShowing(title) }
     }
   }
@@ -109,10 +100,7 @@ class SdkComponentsStepTest {
     }
   }
 
-  private fun runInWizardDialog(
-    sdkComponentsStep: SdkComponentsStep,
-    action: (fakeUi: FakeUi) -> Unit,
-  ) {
+  private fun runInWizardDialog(sdkComponentsStep: SdkComponentsStep, action: (fakeUi: FakeUi) -> Unit) {
     val modelWizardDialog = wrapInWizardDialog(sdkComponentsStep)
     createModalDialogAndInteractWithIt({ modelWizardDialog.show() }) {
       val fakeUi = FakeUi(modelWizardDialog.contentPane, createFakeWindow = true)
@@ -126,10 +114,7 @@ class SdkComponentsStepTest {
   }
 
   private fun getSdkComponentCheckbox(containingText: String, inTable: JBTable): JCheckBox {
-    val renderedCell =
-      inTable
-        .getCellEditor(0, 0)
-        .getTableCellEditorComponent(inTable, inTable.getValueAt(0, 0), false, 0, 0)
+    val renderedCell = inTable.getCellEditor(0, 0).getTableCellEditorComponent(inTable, inTable.getValueAt(0, 0), false, 0, 0)
     return checkNotNull(renderedCell.findDescendant<JCheckBox> { it.text == containingText })
   }
 

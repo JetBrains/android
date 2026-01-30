@@ -18,4 +18,4 @@ package com.android.tools.idea.progress
 import com.intellij.openapi.progress.ProgressManager
 
 /** Calls [ProgressManager.checkCanceled] each time the [Sequence] passes this point. */
-fun <T, S: Sequence<T>> S.checkCanceled() = onEach { ProgressManager.checkCanceled() }
+fun <T, S : Sequence<T>> S.checkCanceled() = onEach { ProgressManager.checkCanceled() }

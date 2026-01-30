@@ -21,23 +21,32 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * A panel containing two subpanels separated by an [OnePixelSplitter].
- */
+/** A panel containing two subpanels separated by an [OnePixelSplitter]. */
 internal class SplitPanel(splitType: SplitType, proportion: Double) : JPanel(BorderLayout()) {
 
   var splitType: SplitType
     get() = if (splitter.orientation) SplitType.VERTICAL else SplitType.HORIZONTAL
-    set(value) { splitter.orientation = value == SplitType.VERTICAL }
+    set(value) {
+      splitter.orientation = value == SplitType.VERTICAL
+    }
+
   var proportion: Double
     get() = splitter.proportion.toDouble()
-    set(value) { splitter.proportion = value.toFloat() }
+    set(value) {
+      splitter.proportion = value.toFloat()
+    }
+
   var firstComponent: JComponent
     get() = splitter.firstComponent
-    set(value) { splitter.firstComponent = value }
+    set(value) {
+      splitter.firstComponent = value
+    }
+
   var secondComponent: JComponent
     get() = splitter.secondComponent
-    set(value) { splitter.secondComponent = value }
+    set(value) {
+      splitter.secondComponent = value
+    }
 
   private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat(), 0.1f, 0.9f)
 
@@ -71,5 +80,5 @@ internal enum class SplitType {
   /** Panels are side by side. */
   HORIZONTAL,
   /** One panel is above the other. */
-  VERTICAL
+  VERTICAL,
 }

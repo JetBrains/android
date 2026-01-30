@@ -52,10 +52,7 @@ internal sealed class Device() {
 
   abstract fun getScreenshotParameters(): ScreenshotParameters
 
-  abstract fun copy(
-    isOnline: Boolean = this.isOnline,
-    apiLevel: AndroidApiLevel = this.apiLevel,
-  ): Device
+  abstract fun copy(isOnline: Boolean = this.isOnline, apiLevel: AndroidApiLevel = this.apiLevel): Device
 
   data class PhysicalDevice(
     override val serialNumber: String,
@@ -79,16 +76,7 @@ internal sealed class Device() {
     override fun getScreenshotParameters() = ScreenshotParameters(serialNumber, type, model)
 
     override fun copy(isOnline: Boolean, apiLevel: AndroidApiLevel) =
-      PhysicalDevice(
-        serialNumber,
-        isOnline,
-        release,
-        apiLevel,
-        featureLevel,
-        manufacturer,
-        model,
-        type,
-      )
+      PhysicalDevice(serialNumber, isOnline, release, apiLevel, featureLevel, manufacturer, model, type)
   }
 
   data class EmulatorDevice(
@@ -110,20 +98,10 @@ internal sealed class Device() {
     override val name: String
       get() = avdName
 
-    override fun getScreenshotParameters() =
-      ScreenshotParameters(serialNumber, type, Path.of(avdPath))
+    override fun getScreenshotParameters() = ScreenshotParameters(serialNumber, type, Path.of(avdPath))
 
     override fun copy(isOnline: Boolean, apiLevel: AndroidApiLevel) =
-      EmulatorDevice(
-        serialNumber,
-        isOnline,
-        release,
-        apiLevel,
-        featureLevel,
-        avdName,
-        avdPath,
-        type,
-      )
+      EmulatorDevice(serialNumber, isOnline, release, apiLevel, featureLevel, avdName, avdPath, type)
   }
 
   companion object {
@@ -175,11 +153,7 @@ internal sealed class Device() {
 
   // This is required since Gson can't deal with the sealed base class.
   internal class DeviceSerializer : JsonSerializer<Device?>, JsonDeserializer<Device?> {
-    override fun serialize(
-      src: Device?,
-      type: Type,
-      context: JsonSerializationContext,
-    ): JsonElement {
+    override fun serialize(src: Device?, type: Type, context: JsonSerializationContext): JsonElement {
       val obj = JsonObject()
       val jsonTree = Gson().toJsonTree(src)
       when (src) {
@@ -190,18 +164,12 @@ internal sealed class Device() {
       return obj
     }
 
-    override fun deserialize(
-      element: JsonElement,
-      type: Type,
-      context: JsonDeserializationContext,
-    ): Device? {
+    override fun deserialize(element: JsonElement, type: Type, context: JsonDeserializationContext): Device? {
       val obj = element.asJsonObject
       val gson = Gson()
       return when {
-        obj.has(PROPERTY_PHYSICAL_DEVICE) ->
-          gson.fromJson(obj.get(PROPERTY_PHYSICAL_DEVICE), PhysicalDevice::class.java)
-        obj.has(PROPERTY_EMULATOR_DEVICE) ->
-          gson.fromJson(obj.get(PROPERTY_EMULATOR_DEVICE), EmulatorDevice::class.java)
+        obj.has(PROPERTY_PHYSICAL_DEVICE) -> gson.fromJson(obj.get(PROPERTY_PHYSICAL_DEVICE), PhysicalDevice::class.java)
+        obj.has(PROPERTY_EMULATOR_DEVICE) -> gson.fromJson(obj.get(PROPERTY_EMULATOR_DEVICE), EmulatorDevice::class.java)
         else -> null
       }
     }
@@ -212,8 +180,7 @@ internal fun LogcatService.readLogcat(
   device: Device,
   duration: Duration = INFINITE_DURATION,
   maxHistoryEntries: Int = Int.MAX_VALUE,
-): Flow<List<LogcatMessage>> =
-  readLogcat(device.serialNumber, device.apiLevel, duration, maxHistoryEntries)
+): Flow<List<LogcatMessage>> = readLogcat(device.serialNumber, device.apiLevel, duration, maxHistoryEntries)
 
 private val VERSION_TRAILING_ZEROS_REGEX = "(\\.0)+$".toRegex()
 

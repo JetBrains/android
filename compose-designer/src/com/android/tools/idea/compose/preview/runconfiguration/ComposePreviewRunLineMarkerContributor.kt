@@ -27,13 +27,11 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
- * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to `@Composable` functions
- * annotated with [PREVIEW_ANNOTATION_FQN]. The icon can be used to create new
- * [ComposePreviewRunConfiguration] or run an existing configuration.
+ * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to `@Composable` functions annotated with [PREVIEW_ANNOTATION_FQN].
+ * The icon can be used to create new [ComposePreviewRunConfiguration] or run an existing configuration.
  *
- * In order to avoid duplicated gutter icons displayed next to the `@Composable` function, [getInfo]
- * should only return a valid [Info] when receiving the [PsiElement] corresponding to the function
- * identifier.
+ * In order to avoid duplicated gutter icons displayed next to the `@Composable` function, [getInfo] should only return a valid [Info] when
+ * receiving the [PsiElement] corresponding to the function identifier.
  */
 class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
 
@@ -49,9 +47,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     (element.parent as? KtNamedFunction)
       ?.takeIf { it.isValidComposePreviewForRunConfiguration() }
       ?.let {
-        return Info(StudioIcons.GutterIcons.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
-          message("run.line.marker.text", it.name!!)
-        }
+        return Info(StudioIcons.GutterIcons.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
       }
     return null
   }

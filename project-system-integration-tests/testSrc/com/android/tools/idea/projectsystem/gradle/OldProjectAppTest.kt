@@ -25,8 +25,7 @@ import org.junit.Test
 
 class OldProjectAppTest {
 
-  @JvmField @Rule
-  var system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule var system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun `Given old app configured with JDK 11 and compatible gradle version When open project with recent studio Then gradle sync succeed`() {
@@ -40,8 +39,6 @@ class OldProjectAppTest {
     val embeddedJdk11Path = EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11")
     system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, embeddedJdk11Path.toString())
     system.installRepo(MavenRepo("tools/adt/idea/project-system-integration-tests/oldprojectapp_deps.manifest"))
-    system.runStudio(project).use { studio ->
-      studio.waitForSync()
-    }
+    system.runStudio(project).use { studio -> studio.waitForSync() }
   }
 }

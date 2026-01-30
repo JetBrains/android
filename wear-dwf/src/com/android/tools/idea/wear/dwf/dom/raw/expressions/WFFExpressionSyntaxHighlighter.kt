@@ -33,11 +33,9 @@ import com.intellij.psi.TokenType.BAD_CHARACTER
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-private val PARENTHESES =
-  TokenSet.create(WFFExpressionTypes.OPEN_PAREN, WFFExpressionTypes.CLOSE_PAREN)
+private val PARENTHESES = TokenSet.create(WFFExpressionTypes.OPEN_PAREN, WFFExpressionTypes.CLOSE_PAREN)
 
-private val BRACKETS =
-  TokenSet.create(WFFExpressionTypes.OPEN_BRACKET, WFFExpressionTypes.CLOSE_BRACKET)
+private val BRACKETS = TokenSet.create(WFFExpressionTypes.OPEN_BRACKET, WFFExpressionTypes.CLOSE_BRACKET)
 
 enum class WFFExpressionTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
@@ -83,6 +81,5 @@ class WFFExpressionSyntaxHighlighter : SyntaxHighlighterBase() {
 }
 
 class WFFExpressionSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
-  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?) =
-    WFFExpressionSyntaxHighlighter()
+  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?) = WFFExpressionSyntaxHighlighter()
 }

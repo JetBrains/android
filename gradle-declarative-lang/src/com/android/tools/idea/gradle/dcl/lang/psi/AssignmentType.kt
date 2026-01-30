@@ -16,5 +16,6 @@
 package com.android.tools.idea.gradle.dcl.lang.psi
 
 enum class AssignmentType {
-  ASSIGNMENT, APPEND
+  ASSIGNMENT,
+  APPEND,
 }

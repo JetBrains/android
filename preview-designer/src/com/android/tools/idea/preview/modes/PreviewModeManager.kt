@@ -26,9 +26,8 @@ import java.awt.Color
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Interface used for Preview Representations that support [PreviewMode]s. Classes implementing this
- * interface can only be in a single [PreviewMode] at a time, such as [PreviewMode.Default] or
- * [PreviewMode.Interactive].
+ * Interface used for Preview Representations that support [PreviewMode]s. Classes implementing this interface can only be in a single
+ * [PreviewMode] at a time, such as [PreviewMode.Default] or [PreviewMode.Interactive].
  */
 interface PreviewModeManager {
   /** The current [PreviewMode]. */
@@ -50,16 +49,12 @@ interface PreviewModeManager {
   }
 }
 
-/**
- * A class that represents a Preview Mode. Each [PreviewMode] stores data that is specific to a
- * Preview Mode.
- */
+/** A class that represents a Preview Mode. Each [PreviewMode] stores data that is specific to a Preview Mode. */
 sealed class PreviewMode {
 
   /**
-   * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Focus] are
-   * normal modes.
+   * Indicates whether the preview is in its default mode by opposition to one of the special modes (interactive, animation, UI check). Both
+   * [PreviewMode.Default] and [PreviewMode.Focus] are normal modes.
    */
   val isNormal: Boolean
     get() = this is Default || this is Focus
@@ -75,9 +70,8 @@ sealed class PreviewMode {
   open val selected: PreviewElement<*>? = null
 
   /**
-   * This function returns to false if the given [PreviewMode] doesn't trigger any resize of
-   * [DesignSurface] (default). Override it to true if are entering a [PreviewMode] that triggers a
-   * [DesignSurface] resize explaining why a resize is expected when it returns true.
+   * This function returns to false if the given [PreviewMode] doesn't trigger any resize of [DesignSurface] (default). Override it to true
+   * if are entering a [PreviewMode] that triggers a [DesignSurface] resize explaining why a resize is expected when it returns true.
    *
    * @param previousMode The previous [PreviewMode] before the following one.
    * @param project The [Project] used by the [Preview]
@@ -130,9 +124,8 @@ sealed class PreviewMode {
   open fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean = false
 
   /**
-   * Returns a [PreviewMode] with the same content as the current one, but with a different layout
-   * option if that is allowed by the mode. Modes that want to react to layout changes have to
-   * override this.
+   * Returns a [PreviewMode] with the same content as the current one, but with a different layout option if that is allowed by the mode.
+   * Modes that want to react to layout changes have to override this.
    */
   open fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
     return this
@@ -143,17 +136,14 @@ sealed class PreviewMode {
     if (javaClass != other?.javaClass) return false
 
     other as PreviewMode
-    return backgroundColor == other.backgroundColor &&
-           layoutOption == other.layoutOption &&
-           selected == other.selected
+    return backgroundColor == other.backgroundColor && layoutOption == other.layoutOption && selected == other.selected
   }
 
   override fun hashCode(): Int {
     return Objects.hashCode(backgroundColor, layoutOption, selected)
   }
 
-  class Default(override val layoutOption: SurfaceLayoutOption = DEFAULT_LAYOUT_OPTION) :
-    RestorePreviewMode() {
+  class Default(override val layoutOption: SurfaceLayoutOption = DEFAULT_LAYOUT_OPTION) : RestorePreviewMode() {
 
     // Resize is expected in Default PreviewMode if the previous Preview was Animation Inspection or
     // Focus mode.
@@ -171,10 +161,8 @@ sealed class PreviewMode {
   /** Represents a mode that can be restored when clicking on "Stop" when inside a mode. */
   sealed class RestorePreviewMode : PreviewMode()
 
-  class UiCheck(
-    val baseInstance: UiCheckInstance,
-    override val layoutOption: SurfaceLayoutOption = UI_CHECK_LAYOUT_OPTION,
-  ) : PreviewMode() {
+  class UiCheck(val baseInstance: UiCheckInstance, override val layoutOption: SurfaceLayoutOption = UI_CHECK_LAYOUT_OPTION) :
+    PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 
     override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project): Boolean {
@@ -182,8 +170,7 @@ sealed class PreviewMode {
         // We always expect a resize on enter if the previous mode was of type Focus.
         return true
       }
-      val isProblemPanelNotVisible =
-        ProblemsViewToolWindowUtils.getToolWindow(project)?.isVisible == false
+      val isProblemPanelNotVisible = ProblemsViewToolWindowUtils.getToolWindow(project)?.isVisible == false
       // If we are in Default mode and the problem panel is not open we expect a resize when
       // entering Ui Check mode.
       return previousMode is Default && isProblemPanelNotVisible
@@ -210,15 +197,11 @@ sealed class PreviewMode {
     override fun expectResizeOnEnter(previousMode: PreviewMode?, project: Project) = true
 
     /**
-     * If list of previews is updated while [PreviewMode.Focus] is selected - [selected] element
-     * might become invalid and new [Focus] mode with new corresponding [selected] element should be
-     * created. At the moment there is no exact match which preview element is which after update.
-     * So we are doing our best guess to select new element.
+     * If list of previews is updated while [PreviewMode.Focus] is selected - [selected] element might become invalid and new [Focus] mode
+     * with new corresponding [selected] element should be created. At the moment there is no exact match which preview element is which
+     * after update. So we are doing our best guess to select new element.
      */
-    fun newMode(
-      newElements: Collection<PreviewElement<*>>,
-      previousElements: Set<PreviewElement<*>>,
-    ): Focus {
+    fun newMode(newElements: Collection<PreviewElement<*>>, previousElements: Set<PreviewElement<*>>): Focus {
       // Try to match which element was selected before
       // If selectedKey was removed select first key. If it was only updated (i.e. if a
       // parameter value has changed), we select the new key corresponding to it.
@@ -234,9 +217,7 @@ sealed class PreviewMode {
         (newElements subtract previousElements).singleOrNull()
           // Find the element that has the same annotation definition point (i.e. the name @Preview
           // in source).
-          ?: newElements.singleOrNull {
-            selected != null && it.previewElementDefinition == selected.previewElementDefinition
-          }
+          ?: newElements.singleOrNull { selected != null && it.previewElementDefinition == selected.previewElementDefinition }
           // We couldn't find any best match. Default to the first key.
           ?: newElements.firstOrNull()
 
@@ -246,15 +227,13 @@ sealed class PreviewMode {
     }
 
     /**
-     * Checks if the [otherMode] is [PreviewMode.Focus] and if their [PreviewMode.Focus.selected]
-     * tabs are different.
+     * Checks if the [otherMode] is [PreviewMode.Focus] and if their [PreviewMode.Focus.selected] tabs are different.
      *
      * @param otherMode the [PreviewMode] that we want to compare with this [PreviewMode.Focus].
-     * @return true if the [otherMode] is [PreviewMode.Focus] and if their
-     *   [PreviewMode.Focus.selected] tabs are different, return false otherwise.
+     * @return true if the [otherMode] is [PreviewMode.Focus] and if their [PreviewMode.Focus.selected] tabs are different, return false
+     *   otherwise.
      */
-    fun isFocusModeWithDifferentTabs(otherMode: PreviewMode): Boolean =
-      otherMode is Focus && this.selected != otherMode.selected
+    fun isFocusModeWithDifferentTabs(otherMode: PreviewMode): Boolean = otherMode is Focus && this.selected != otherMode.selected
   }
 
   class Interactive(selected: PreviewElement<*>) : SingleItemMode<PreviewElement<*>>(selected) {
@@ -267,8 +246,7 @@ sealed class PreviewMode {
     }
   }
 
-  class AnimationInspection(selected: PreviewElement<*>) :
-    SingleItemMode<PreviewElement<*>>(selected) {
+  class AnimationInspection(selected: PreviewElement<*>) : SingleItemMode<PreviewElement<*>>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
     override val layoutOption = GRID_NO_GROUP_LAYOUT_OPTION
 

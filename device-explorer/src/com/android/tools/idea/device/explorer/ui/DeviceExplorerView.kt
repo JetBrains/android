@@ -19,11 +19,15 @@ import javax.swing.JComponent
 
 interface DeviceExplorerView {
   fun setup()
+
   fun addListener(listener: DeviceExplorerViewListener)
+
   fun removeListener(listener: DeviceExplorerViewListener)
 
   fun addTab(tab: JComponent, title: String)
+
   suspend fun trackDeviceListChanges()
+
   suspend fun trackActiveDeviceChanges()
 
   fun reportErrorGeneric(message: String, t: Throwable)

@@ -33,17 +33,11 @@ import java.io.File
 
 fun RecipeExecutor.generateMultiplatformModule(data: ModuleTemplateData, useKts: Boolean) {
 
-  check(data.category != Category.Compose || data.isCompose) {
-    "Template in Compose category must have isCompose set"
-  }
+  check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
   generateModule(data = data, useKts = useKts, manifestXml = generateManifest())
 }
 
-private fun RecipeExecutor.generateModule(
-  data: ModuleTemplateData,
-  useKts: Boolean,
-  manifestXml: String,
-) {
+private fun RecipeExecutor.generateModule(data: ModuleTemplateData, useKts: Boolean, manifestXml: String) {
   val projectData = data.projectTemplateData
   val language = projectData.language
   val packageName = data.packageName
@@ -54,29 +48,13 @@ private fun RecipeExecutor.generateModule(
 
   val buildFile = if (useKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
 
-  save(
-    buildKmpGradle(
-      projectData.agpVersion,
-      data.name,
-      data.namespace,
-      data.apis.minApi,
-    ),
-    data.rootDir.resolve(buildFile),
-  )
+  save(buildKmpGradle(projectData.agpVersion, data.name, data.namespace, data.apis.minApi), data.rootDir.resolve(buildFile))
 
   addCompileSdk(data.apis.buildApi, true)
 
   setKotlinVersion(projectData.kotlinVersion)
-  addPlugin(
-    "org.jetbrains.kotlin.multiplatform",
-    "org.jetbrains.kotlin:kotlin-gradle-plugin",
-    projectData.kotlinVersion,
-  )
-  addPlugin(
-    "com.android.kotlin.multiplatform.library",
-    "com.android.tools.build:gradle",
-    projectData.agpVersion.toString(),
-  )
+  addPlugin("org.jetbrains.kotlin.multiplatform", "org.jetbrains.kotlin:kotlin-gradle-plugin", projectData.kotlinVersion)
+  addPlugin("com.android.kotlin.multiplatform.library", "com.android.tools.build:gradle", projectData.agpVersion.toString())
   addPlugin("com.android.lint", "com.android.tools.build:gradle", projectData.agpVersion.toString())
 
   save(manifestXml, data.manifestDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML))
@@ -98,19 +76,11 @@ private fun RecipeExecutor.generateModule(
 }
 
 fun RecipeExecutor.addCommonMainDependencies(kotlinVersion: String) {
-  addDependency(
-    "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
-    "implementation",
-    sourceSetName = "commonMain",
-  )
+  addDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion", "implementation", sourceSetName = "commonMain")
 }
 
 fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {
-  addDependency(
-    "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
-    "implementation",
-    sourceSetName = "commonTest",
-  )
+  addDependency("org.jetbrains.kotlin:kotlin-test:$kotlinVersion", "implementation", sourceSetName = "commonTest")
 }
 
 fun RecipeExecutor.addInstrumentedTestDependencies() {
@@ -139,8 +109,8 @@ fun RecipeExecutor.addMultiplatformLocalTests(packageName: String, localTestOut:
 }
 
 /**
- * Add kotlin.native.distribution.downloadFromMaven=true to gradle.properties if it doesn't already
- * exist, and if the Kotlin version is lower than 2.0.0
+ * Add kotlin.native.distribution.downloadFromMaven=true to gradle.properties if it doesn't already exist, and if the Kotlin version is
+ * lower than 2.0.0
  */
 fun RecipeExecutor.addDownloadFromMavenProperty(kotlinVersion: String) {
   if (Version.parse(kotlinVersion) >= Version.parse("2.0.0")) {
@@ -148,10 +118,11 @@ fun RecipeExecutor.addDownloadFromMavenProperty(kotlinVersion: String) {
   }
   addProjectGradleProperty(
     "kotlin.native.distribution.downloadFromMaven",
-    """# Opt in to the future (Kotlin Gradle plugin 2.0.0) default behavior of downloading the
-       # Kotlin native libraries from Maven.
-      kotlin.native.distribution.downloadFromMaven=true
-      """
+    """
+    # Opt in to the future (Kotlin Gradle plugin 2.0.0) default behavior of downloading the
+           # Kotlin native libraries from Maven.
+          kotlin.native.distribution.downloadFromMaven=true
+    """
       .trimIndent(),
   )
 }

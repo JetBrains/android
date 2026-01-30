@@ -17,11 +17,8 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary.src
 
 import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 
-fun placeholderKt(
-  packageName: String,
-  className: String
-) =
-"""
+fun placeholderKt(packageName: String, className: String) =
+  """
 package ${escapeKotlinIdentifier(packageName)}
 
 class ${className} {

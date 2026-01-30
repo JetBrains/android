@@ -34,11 +34,7 @@ class DeclarativeWatchFaceUsageTracker() {
         .setDeclarativeWatchFaceEvent(
           DeclarativeWatchFaceEvent.newBuilder()
             .setType(XML_SCHEMA_USED)
-            .setWffVersion(
-              DeclarativeWatchFaceEvent.WFFVersion.newBuilder()
-                .setVersion(wffVersion.version)
-                .setIsFallback(isFallback)
-            )
+            .setWffVersion(DeclarativeWatchFaceEvent.WFFVersion.newBuilder().setVersion(wffVersion.version).setIsFallback(isFallback))
         )
     )
   }

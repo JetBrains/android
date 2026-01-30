@@ -17,32 +17,20 @@
 
 package com.android.tools.idea.transport
 
-@JvmField
-val TRANSPORT_DEV_DIR = "bazel-bin/tools/base/transport/android"
-@JvmField
-val TRANSPORT_RELEASE_DIR = "plugins/android/resources/transport"
+@JvmField val TRANSPORT_DEV_DIR = "bazel-bin/tools/base/transport/android"
+@JvmField val TRANSPORT_RELEASE_DIR = "plugins/android/resources/transport"
 
-@JvmField
-val PERFA_DEV_DIR = "bazel-bin/tools/base/profiler/app"
-@JvmField
-val PERFA_RELEASE_DIR = "plugins/android/resources"
+@JvmField val PERFA_DEV_DIR = "bazel-bin/tools/base/profiler/app"
+@JvmField val PERFA_RELEASE_DIR = "plugins/android/resources"
 
-@JvmField
-val JVMTI_AGENT_DEV_DIR = "bazel-bin/tools/base/transport/native/agent/android"
-@JvmField
-val JVMTI_AGENT_RELEASE_DIR = "plugins/android/resources/transport/native/agent"
+@JvmField val JVMTI_AGENT_DEV_DIR = "bazel-bin/tools/base/transport/native/agent/android"
+@JvmField val JVMTI_AGENT_RELEASE_DIR = "plugins/android/resources/transport/native/agent"
 
-@JvmField
-val SIMPLEPERF_DEV_DIR = "prebuilts/tools/common/simpleperf"
-@JvmField
-val SIMPLEPERF_RELEASE_DIR = "plugins/android/resources/simpleperf"
+@JvmField val SIMPLEPERF_DEV_DIR = "prebuilts/tools/common/simpleperf"
+@JvmField val SIMPLEPERF_RELEASE_DIR = "plugins/android/resources/simpleperf"
 
-@JvmField
-val PERFETTO_DEV_DIR = "prebuilts/tools/common/perfetto"
-@JvmField
-val PERFETTO_RELEASE_DIR = "plugins/android/resources/perfetto"
+@JvmField val PERFETTO_DEV_DIR = "prebuilts/tools/common/perfetto"
+@JvmField val PERFETTO_RELEASE_DIR = "plugins/android/resources/perfetto"
 
-@JvmField
-val TRACEBOX_DEV_DIR = "prebuilts/tools/common/tracebox"
-@JvmField
-val TRACEBOX_RELEASE_DIR = "plugins/android/resources/tracebox"
+@JvmField val TRACEBOX_DEV_DIR = "prebuilts/tools/common/tracebox"
+@JvmField val TRACEBOX_RELEASE_DIR = "plugins/android/resources/tracebox"

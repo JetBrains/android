@@ -35,10 +35,10 @@ private val TEST_ANNOTATION =
     "Insight",
     "Native lock contention",
     """
-            The main thread is blocked, waiting on a native synchronization routine, such as a mutex.
+    The main thread is blocked, waiting on a native synchronization routine, such as a mutex.
 
-            Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
-          """
+    Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
+    """
       .trimIndent(),
   )
 
@@ -50,22 +50,16 @@ class SdkInsightsPanelTest {
 
   @Test
   fun `show correct information when expanded and shrunk`() {
-    val panel =
-      JPanel().apply {
-        add(SdkInsightsPanel(TEST_ANNOTATION.category, TEST_ANNOTATION.title, TEST_ANNOTATION.body))
-      }
+    val panel = JPanel().apply { add(SdkInsightsPanel(TEST_ANNOTATION.category, TEST_ANNOTATION.title, TEST_ANNOTATION.body)) }
 
     val fakeUi = FakeUi(panel)
-    val titleLabel =
-      fakeUi.findComponent<JBLabel> { it.icon == AllIcons.Actions.IntentionBulb }
-        ?: fail("Title label not found")
+    val titleLabel = fakeUi.findComponent<JBLabel> { it.icon == AllIcons.Actions.IntentionBulb } ?: fail("Title label not found")
 
     assertThat(titleLabel.isVisible).isTrue()
     assertThat(titleLabel.text).contains(TEST_ANNOTATION.category)
     assertThat(titleLabel.text).contains(TEST_ANNOTATION.title)
 
-    val showLabel =
-      fakeUi.findComponent<JBLabel> { it.text == "Show more" } ?: fail("Show more label not found")
+    val showLabel = fakeUi.findComponent<JBLabel> { it.text == "Show more" } ?: fail("Show more label not found")
     val textPane = fakeUi.findComponent<JTextPane>() ?: fail("Text pane not found")
     assertThat(textPane.isVisible).isTrue()
     var expectedShrunkText = truncateText(textPane, TEST_ANNOTATION.body, showLabel)
@@ -83,12 +77,7 @@ class SdkInsightsPanelTest {
 
   @Test
   fun `see more not visible if content fits in label without truncating`() {
-    val panel =
-      SdkInsightsPanel(
-        TEST_ANNOTATION.category,
-        TEST_ANNOTATION.title,
-        TEST_ANNOTATION.body.take(20),
-      )
+    val panel = SdkInsightsPanel(TEST_ANNOTATION.category, TEST_ANNOTATION.title, TEST_ANNOTATION.body.take(20))
     val fakeUi =
       FakeUi(
         BorderLayoutPanel().apply {

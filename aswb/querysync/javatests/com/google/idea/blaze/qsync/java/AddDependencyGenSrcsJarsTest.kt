@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import com.intellij.openapi.application.ApplicationManager
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
@@ -39,6 +38,7 @@ import com.google.idea.blaze.qsync.testdata.TestData
 import com.google.idea.common.experiments.ExperimentService
 import com.google.idea.common.experiments.MockExperimentService
 import com.google.idea.testing.IntellijRule
+import com.intellij.openapi.application.ApplicationManager
 import java.nio.file.Path
 import org.junit.Before
 import org.junit.ClassRule
@@ -54,20 +54,15 @@ import org.mockito.junit.MockitoRule
 
 @RunWith(JUnit4::class)
 class AddDependencyGenSrcsJarsTest {
-  @get:Rule
-  val mockito: MockitoRule = MockitoJUnit.rule()
+  @get:Rule val mockito: MockitoRule = MockitoJUnit.rule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val intellij = IntellijRule()
+    @JvmField @ClassRule val intellij = IntellijRule()
   }
 
-  @Mock
-  var cache: BuildArtifactCache? = null
+  @Mock var cache: BuildArtifactCache? = null
 
-  private val syncer =
-    TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
   private lateinit var original: QuerySyncProjectSnapshot
 
@@ -81,8 +76,7 @@ class AddDependencyGenSrcsJarsTest {
 
   @Test
   fun no_deps_built() {
-    val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     no_deps_built(addGenSrcJars)
   }
 
@@ -90,8 +84,7 @@ class AddDependencyGenSrcsJarsTest {
   private fun no_deps_built(addGenSrcJars: AddDependencyGenSrcsJars) {
     val update = ProjectProtoUpdate(original.project)
 
-    addGenSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
-                         ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    addGenSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
 
@@ -103,8 +96,7 @@ class AddDependencyGenSrcsJarsTest {
   @Test
   @Throws(Exception::class)
   fun project_gensrcs_ignored() {
-    val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     project_gensrcs_ignored(addGenSrcJars)
   }
 
@@ -115,17 +107,14 @@ class AddDependencyGenSrcsJarsTest {
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.NONE,
-        JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel()).toBuilder()
+        JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel())
+          .toBuilder()
           .setGenSrcs(
             ImmutableList.of(
-              BuildArtifact.create(
-                "srcjardigest",
-                Path.of("output/path/to/in_project.srcjar"),
-                testProject.getAssumedOnlyLabel()
-              )
+              BuildArtifact.create("srcjardigest", Path.of("output/path/to/in_project.srcjar"), testProject.getAssumedOnlyLabel())
             )
           )
-          .build()
+          .build(),
       )
 
     val update = ProjectProtoUpdate(original.project)
@@ -144,26 +133,23 @@ class AddDependencyGenSrcsJarsTest {
   fun external_gensrcs_added() {
     val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
     experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
-    val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     external_gensrcs_added(
       addGenSrcJars,
       ProjectProto.Library(
         name = Label.of("//java/com/google/common/collect:collect"),
         classesJarList = listOf(),
-        sourcesList = listOf(
-          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root")),
-          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root2")),
-        )
-      )
+        sourcesList =
+          listOf(
+            ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root")),
+            ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar")).withInnerJarPath(Path.of("root2")),
+          ),
+      ),
     )
   }
 
   @Throws(Exception::class)
-  private fun external_gensrcs_added(
-    addGenSrcJars: AddDependencyGenSrcsJars,
-    vararg expectedLibraries: ProjectProto.Library?
-  ) {
+  private fun external_gensrcs_added(addGenSrcJars: AddDependencyGenSrcsJars, vararg expectedLibraries: ProjectProto.Library?) {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
@@ -172,19 +158,15 @@ class AddDependencyGenSrcsJarsTest {
             .setGenSrcs(
               ImmutableList.of(
                 BuildArtifact.create(
-                  "srcjardigest",
-                  Path.of("output/path/to/external.srcjar"),
-                  of("//java/com/google/common/collect:collect")
-                )
-                  .withMetadata(
-                    SrcJarJavaPackageRoots(
-                      ImmutableSet.of(Path.of("root"), Path.of("root2"))
-                    )
+                    "srcjardigest",
+                    Path.of("output/path/to/external.srcjar"),
+                    of("//java/com/google/common/collect:collect"),
                   )
+                  .withMetadata(SrcJarJavaPackageRoots(ImmutableSet.of(Path.of("root"), Path.of("root2"))))
               )
             )
             .build(),
-          DependencyBuildContext.NONE
+          DependencyBuildContext.NONE,
         )
       )
 
@@ -195,31 +177,24 @@ class AddDependencyGenSrcsJarsTest {
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
   }
 
-
   @Test
   @Throws(Exception::class)
   fun no_metadata_present() {
     val experimentService = ApplicationManager.getApplication().getService(ExperimentService::class.java) as? MockExperimentService
     experimentService?.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
-    val addGenSrcJars =
-      AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
+    val addGenSrcJars = AddDependencyGenSrcsJars(original.queryData.projectDefinition(), innerRootsMetadata)
     no_metadata_present(
       addGenSrcJars,
       ProjectProto.Library(
         name = Label.of("//java/com/google/common/collect:collect"),
         classesJarList = listOf(),
-        sourcesList = listOf(
-          ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar"))
-        )
-      )
+        sourcesList = listOf(ProjectPath.projectRelative(Path.of(".bazel/buildout/output/path/to/external.srcjar"))),
+      ),
     )
   }
 
   @Throws(Exception::class)
-  private fun no_metadata_present(
-    addGenSrcJars: AddDependencyGenSrcsJars,
-    vararg expectedLibraries: ProjectProto.Library?
-  ) {
+  private fun no_metadata_present(addGenSrcJars: AddDependencyGenSrcsJars, vararg expectedLibraries: ProjectProto.Library?) {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
@@ -230,12 +205,12 @@ class AddDependencyGenSrcsJarsTest {
                 BuildArtifact.create(
                   "srcjardigest",
                   Path.of("output/path/to/external.srcjar"),
-                  of("//java/com/google/common/collect:collect")
+                  of("//java/com/google/common/collect:collect"),
                 )
               )
             )
             .build(),
-          DependencyBuildContext.NONE
+          DependencyBuildContext.NONE,
         )
       )
 

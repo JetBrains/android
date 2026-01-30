@@ -36,11 +36,7 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
       measures =
         listOf(
           ElapsedTimeMeasurement(Metric("render_time_with_accessibility")),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            null,
-            Metric("render_memory_use_with_accessibility"),
-          ),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("render_memory_use_with_accessibility")),
           LayoutlibNativeMemoryMeasurement(Metric("layoutlib_native_memory_with_accessibility")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
@@ -51,11 +47,7 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
       measures =
         listOf(
           ElapsedTimeMeasurement(Metric("render_time_without_accessibility")),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            null,
-            Metric("render_memory_use_without_accessibility"),
-          ),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("render_memory_use_without_accessibility")),
           LayoutlibNativeMemoryMeasurement(Metric("layoutlib_native_memory_without_accessibility")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
@@ -66,16 +58,12 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
 
   private fun renderPreview(withAccessibilityParser: Boolean) {
     val facet = projectRule.mainAndroidFacet(":app")
-    val uiCheckPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
+    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     renderPreviewElementForResult(
         facet,
         uiCheckPreviewFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview"
-        ),
-        customViewInfoParser =
-          if (withAccessibilityParser) accessibilityBasedHierarchyParser else null,
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview"),
+        customViewInfoParser = if (withAccessibilityParser) accessibilityBasedHierarchyParser else null,
       )
       .get()!!
   }

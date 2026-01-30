@@ -28,10 +28,9 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Responsible for animation subscription events and passing them to [ComposeAnimationHandler].
- * `PreviewAnimationClockMethodTransform` intercepts calls to `subscribe` and `unsubscribe` calls on
- * `ui-tooling` and redirects them to [onAnimationSubscribed] and [onAnimationUnsubscribed],
- * respectively.
+ * Responsible for animation subscription events and passing them to [ComposeAnimationHandler]. `PreviewAnimationClockMethodTransform`
+ * intercepts calls to `subscribe` and `unsubscribe` calls on `ui-tooling` and redirects them to [onAnimationSubscribed] and
+ * [onAnimationUnsubscribed], respectively.
  */
 object ComposeAnimationSubscriber {
   private val LOG = Logger.getInstance(ComposeAnimationSubscriber::class.java)
@@ -44,16 +43,9 @@ object ComposeAnimationSubscriber {
 
   private val onSubscribedUnsubscribedExecutor =
     if (ApplicationManager.getApplication().isUnitTestMode) MoreExecutors.directExecutor()
-    else
-      AppExecutorUtil.createBoundedApplicationPoolExecutor(
-        "Animation Subscribe/Unsubscribe Callback Handler",
-        1,
-      )
+    else AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
-  /**
-   * [CoroutineScope] to use in tests, when it's null, [onSubscribedUnsubscribedExecutor] will be
-   * used instead.
-   */
+  /** [CoroutineScope] to use in tests, when it's null, [onSubscribedUnsubscribedExecutor] will be used instead. */
   private var testScope: CoroutineScope? = null
 
   private fun createScope(): CoroutineScope {
@@ -103,9 +95,7 @@ object ComposeAnimationSubscriber {
     if (LOG.isDebugEnabled) {
       LOG.debug("Animation subscribed: $animation")
     }
-    createScope().launch {
-      (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
-    }
+    createScope().launch { (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) } }
   }
 
   @JvmStatic

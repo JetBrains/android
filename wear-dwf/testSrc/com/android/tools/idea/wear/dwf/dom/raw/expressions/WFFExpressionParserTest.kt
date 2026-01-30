@@ -18,72 +18,68 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.lang.AndroidParsingTestCase
 
-class WFFExpressionParserTest :
-  AndroidParsingTestCase(WFFExpressionFileType.defaultExtension, WFFExpressionParserDefinition()) {
+class WFFExpressionParserTest : AndroidParsingTestCase(WFFExpressionFileType.defaultExtension, WFFExpressionParserDefinition()) {
 
-  override fun getTestDataPath() =
-    resolveWorkspacePath("tools/adt/idea/wear-dwf/testData").toString()
+  override fun getTestDataPath() = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData").toString()
 
   fun testParse() {
     assertEquals(
       """
-FILE
-  WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
-    WFFExpressionParenExprImpl(PAREN_EXPR)
-      PsiElement(()('(')
-      WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('CONFIGURATION.showBackgroundInAfternoon')
-            PsiElement(])(']')
-        WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
-          PsiElement(OPERATORS)('==')
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          PsiElement(QUOTED_STRING)('"TRUE"')
-      PsiElement())(')')
-    WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
-      PsiElement(OPERATORS)('&&')
-    WFFExpressionParenExprImpl(PAREN_EXPR)
-      PsiElement(()('(')
-      WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('SECONDS_IN_DAY')
-            PsiElement(])(']')
-        WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
-          PsiElement(OPERATORS)('<')
-        WFFExpressionCallExprImpl(CALL_EXPR)
-          WFFExpressionFunctionIdImpl(FUNCTION_ID)
-            PsiElement(ID)('log10')
-          WFFExpressionArgListImpl(ARG_LIST)
+      FILE
+        WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
+          WFFExpressionParenExprImpl(PAREN_EXPR)
             PsiElement(()('(')
-            WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('10')
-            PsiElement(,)(',')
-            WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('2')
-            PsiElement(,)(',')
-            WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('3')
+            WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('CONFIGURATION.showBackgroundInAfternoon')
+                  PsiElement(])(']')
+              WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
+                PsiElement(OPERATORS)('==')
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                PsiElement(QUOTED_STRING)('"TRUE"')
             PsiElement())(')')
-      PsiElement())(')')
-          """
+          WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
+            PsiElement(OPERATORS)('&&')
+          WFFExpressionParenExprImpl(PAREN_EXPR)
+            PsiElement(()('(')
+            WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('SECONDS_IN_DAY')
+                  PsiElement(])(']')
+              WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
+                PsiElement(OPERATORS)('<')
+              WFFExpressionCallExprImpl(CALL_EXPR)
+                WFFExpressionFunctionIdImpl(FUNCTION_ID)
+                  PsiElement(ID)('log10')
+                WFFExpressionArgListImpl(ARG_LIST)
+                  PsiElement(()('(')
+                  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                    PsiElement(NUMBER)('10')
+                  PsiElement(,)(',')
+                  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                    PsiElement(NUMBER)('2')
+                  PsiElement(,)(',')
+                  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                    PsiElement(NUMBER)('3')
+                  PsiElement())(')')
+            PsiElement())(')')
+      """
         .trimIndent(),
-      toParseTreeText(
-        "([CONFIGURATION.showBackgroundInAfternoon] == \"TRUE\") && ([SECONDS_IN_DAY] < log10(10, 2, 3))"
-      ),
+      toParseTreeText("([CONFIGURATION.showBackgroundInAfternoon] == \"TRUE\") && ([SECONDS_IN_DAY] < log10(10, 2, 3))"),
     )
   }
 
   fun testParseNumber() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(NUMBER)('1')
+      """
         .trimIndent(),
       toParseTreeText("1"),
     )
@@ -91,12 +87,12 @@ FILE
     // we expect an integer after the dot
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1')
-  PsiErrorElement:<conditional op> expected, got '.'
-    PsiElement(BAD_CHARACTER)('.')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(NUMBER)('1')
+        PsiErrorElement:<conditional op> expected, got '.'
+          PsiElement(BAD_CHARACTER)('.')
+      """
         .trimIndent(),
       toParseTreeText("1."),
     )
@@ -104,10 +100,10 @@ FILE
     // this is a valid number
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1.2')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(NUMBER)('1.2')
+      """
         .trimIndent(),
       toParseTreeText("1.2"),
     )
@@ -115,13 +111,13 @@ FILE
     // this is not a valid number
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1.2')
-  PsiErrorElement:<conditional op> expected, got '.'
-    PsiElement(BAD_CHARACTER)('.')
-  PsiElement(NUMBER)('3')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(NUMBER)('1.2')
+        PsiErrorElement:<conditional op> expected, got '.'
+          PsiElement(BAD_CHARACTER)('.')
+        PsiElement(NUMBER)('3')
+      """
         .trimIndent(),
       toParseTreeText("1.2.3"),
     )
@@ -130,26 +126,26 @@ FILE
   fun testParseConfiguration() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.themeColor')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.themeColor')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       toParseTreeText("[CONFIGURATION.themeColor]"),
     )
 
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.themeColor.1')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.themeColor.1')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       toParseTreeText("[CONFIGURATION.themeColor.1]"),
     )
@@ -157,14 +153,14 @@ FILE
     // An incomplete configuration should be considered as a source type
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.')
-      PsiErrorElement:']' expected
-        <empty list>
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.')
+            PsiErrorElement:']' expected
+              <empty list>
+      """
         .trimIndent(),
       // missing everything after the configuration prefix
       toParseTreeText("[CONFIGURATION."),
@@ -172,14 +168,14 @@ FILE
 
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.themeColor.1')
-      PsiErrorElement:']' expected
-        <empty list>
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.themeColor.1')
+            PsiErrorElement:']' expected
+              <empty list>
+      """
         .trimIndent(),
       // missing closing bracket
       toParseTreeText("[CONFIGURATION.themeColor.1"),
@@ -189,13 +185,13 @@ FILE
   fun testConfigurationsCanStartWithAnInteger() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       // missing closing bracket
       toParseTreeText("[CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115]"),
@@ -205,13 +201,13 @@ FILE
   fun testConfigurationsIdsCanBeAnInteger() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('CONFIGURATION.0')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('CONFIGURATION.0')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       // missing closing bracket
       toParseTreeText("[CONFIGURATION.0]"),
@@ -221,12 +217,12 @@ FILE
   fun testCanOnlyHaveOneRootExpression() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1')
-  PsiErrorElement:'1' unexpected
-    PsiElement(NUMBER)('1')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(NUMBER)('1')
+        PsiErrorElement:'1' unexpected
+          PsiElement(NUMBER)('1')
+      """
         .trimIndent(),
       toParseTreeText("1 1"),
     )
@@ -235,26 +231,26 @@ FILE
   fun testParseWeather() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('WEATHER.IS_AVAILABLE')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('WEATHER.IS_AVAILABLE')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       toParseTreeText("[WEATHER.IS_AVAILABLE]"),
     )
 
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    WFFExpressionDataSourceImpl(DATA_SOURCE)
-      PsiElement([)('[')
-      PsiElement(ID)('WEATHER.HOURS.0.CONDITION')
-      PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          WFFExpressionDataSourceImpl(DATA_SOURCE)
+            PsiElement([)('[')
+            PsiElement(ID)('WEATHER.HOURS.0.CONDITION')
+            PsiElement(])(']')
+      """
         .trimIndent(),
       toParseTreeText("[WEATHER.HOURS.0.CONDITION]"),
     )
@@ -264,28 +260,28 @@ FILE
   fun testParseTernary() {
     assertEquals(
       """
-FILE
-  WFFExpressionElvisExprImpl(ELVIS_EXPR)
-    WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
-      WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-        PsiElement(NUMBER)('0')
-      WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
-        PsiElement(OPERATORS)('==')
-      WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-        PsiElement(NUMBER)('0')
-    PsiElement(?)('?')
-    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceImpl(DATA_SOURCE)
-        PsiElement([)('[')
-        PsiElement(ID)('HOUR_0_23_Z')
-        PsiElement(])(']')
-    PsiElement(:)(':')
-    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceImpl(DATA_SOURCE)
-        PsiElement([)('[')
-        PsiElement(ID)('HOUR_1_12_Z')
-        PsiElement(])(']')
-          """
+      FILE
+        WFFExpressionElvisExprImpl(ELVIS_EXPR)
+          WFFExpressionConditionalExprImpl(CONDITIONAL_EXPR)
+            WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+              PsiElement(NUMBER)('0')
+            WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
+              PsiElement(OPERATORS)('==')
+            WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+              PsiElement(NUMBER)('0')
+          PsiElement(?)('?')
+          WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+            WFFExpressionDataSourceImpl(DATA_SOURCE)
+              PsiElement([)('[')
+              PsiElement(ID)('HOUR_0_23_Z')
+              PsiElement(])(']')
+          PsiElement(:)(':')
+          WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+            WFFExpressionDataSourceImpl(DATA_SOURCE)
+              PsiElement([)('[')
+              PsiElement(ID)('HOUR_1_12_Z')
+              PsiElement(])(']')
+      """
         .trimIndent(),
       toParseTreeText("0 == 0 ?[HOUR_0_23_Z] : [HOUR_1_12_Z]"),
     )
@@ -295,58 +291,58 @@ FILE
   fun testParseComplexTernary() {
     assertEquals(
       """
-FILE
-  WFFExpressionElvisExprImpl(ELVIS_EXPR)
-    WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-      WFFExpressionDataSourceImpl(DATA_SOURCE)
-        PsiElement([)('[')
-        PsiElement(ID)('CONFIGURATION.leadingZero')
-        PsiElement(])(']')
-    PsiElement(?)('?')
-    WFFExpressionParenExprImpl(PAREN_EXPR)
-      PsiElement(()('(')
-      WFFExpressionElvisExprImpl(ELVIS_EXPR)
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('IS_24_HOUR_MODE')
-            PsiElement(])(']')
-        PsiElement(?)('?')
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('HOUR_0_23_Z')
-            PsiElement(])(']')
-        PsiElement(:)(':')
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('HOUR_1_12_Z')
-            PsiElement(])(']')
-      PsiElement())(')')
-    PsiElement(:)(':')
-    WFFExpressionParenExprImpl(PAREN_EXPR)
-      PsiElement(()('(')
-      WFFExpressionElvisExprImpl(ELVIS_EXPR)
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('IS_24_HOUR_MODE')
-            PsiElement(])(']')
-        PsiElement(?)('?')
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('HOUR_0_23')
-            PsiElement(])(']')
-        PsiElement(:)(':')
-        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          WFFExpressionDataSourceImpl(DATA_SOURCE)
-            PsiElement([)('[')
-            PsiElement(ID)('HOUR_1_12')
-            PsiElement(])(']')
-      PsiElement())(')')
-          """
+      FILE
+        WFFExpressionElvisExprImpl(ELVIS_EXPR)
+          WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+            WFFExpressionDataSourceImpl(DATA_SOURCE)
+              PsiElement([)('[')
+              PsiElement(ID)('CONFIGURATION.leadingZero')
+              PsiElement(])(']')
+          PsiElement(?)('?')
+          WFFExpressionParenExprImpl(PAREN_EXPR)
+            PsiElement(()('(')
+            WFFExpressionElvisExprImpl(ELVIS_EXPR)
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('IS_24_HOUR_MODE')
+                  PsiElement(])(']')
+              PsiElement(?)('?')
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('HOUR_0_23_Z')
+                  PsiElement(])(']')
+              PsiElement(:)(':')
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('HOUR_1_12_Z')
+                  PsiElement(])(']')
+            PsiElement())(')')
+          PsiElement(:)(':')
+          WFFExpressionParenExprImpl(PAREN_EXPR)
+            PsiElement(()('(')
+            WFFExpressionElvisExprImpl(ELVIS_EXPR)
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('IS_24_HOUR_MODE')
+                  PsiElement(])(']')
+              PsiElement(?)('?')
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('HOUR_0_23')
+                  PsiElement(])(']')
+              PsiElement(:)(':')
+              WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+                WFFExpressionDataSourceImpl(DATA_SOURCE)
+                  PsiElement([)('[')
+                  PsiElement(ID)('HOUR_1_12')
+                  PsiElement(])(']')
+            PsiElement())(')')
+      """
         .trimIndent(),
       toParseTreeText(
         "[CONFIGURATION.leadingZero] ? ([IS_24_HOUR_MODE] ? [HOUR_0_23_Z] : [HOUR_1_12_Z]) : ([IS_24_HOUR_MODE] ? [HOUR_0_23] : [HOUR_1_12])"
@@ -358,10 +354,10 @@ FILE
   fun testParseHexColor() {
     assertEquals(
       """
-FILE
-  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(HEX_COLOR)('#abc012')
-          """
+      FILE
+        WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+          PsiElement(HEX_COLOR)('#abc012')
+      """
         .trimIndent(),
       toParseTreeText("#abc012"),
     )

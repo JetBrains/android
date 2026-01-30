@@ -84,13 +84,14 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
-import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
+import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -105,11 +106,8 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettingsListener
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
-/**
- * Syncs Android Gradle project with the persisted project data on startup.
- */
+/** Syncs Android Gradle project with the persisted project data on startup. */
 class AndroidGradleProjectStartupActivity : ProjectActivity {
 
   @Service(Service.Level.PROJECT)
@@ -127,7 +125,9 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
           val myJob = currentCoroutineContext().job
           val externalProjectsJob = CompletableDeferred<Unit>(parent = myJob)
           val jpsProjectJob = CompletableDeferred<Unit>(parent = myJob)
-          val newProjectStartupJob = async { project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization() }
+          val newProjectStartupJob = async {
+            project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization()
+          }
 
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
           whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
@@ -165,24 +165,23 @@ private suspend fun performActivity(project: Project) {
     removePointlessModules(project)
     addJUnitProducersToIgnoredList(project)
     /**
-       * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
-       * if they are not then we request a project sync in order to ensure that the IDE has access to all the models it needs to function.
-       */
-      try {
-        attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
+     * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet, if they are
+     * not then we request a project sync in order to ensure that the IDE has access to all the models it needs to function.
+     */
+    try {
+      attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
+    } catch (e: RequestSyncThrowable) {
+      if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
+        // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external
+        // project
+        //  path individually.
+        LOG.info("Requesting Gradle sync (${e.reason}).")
+        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
+      } else {
+        LOG.info("Requesting Gradle sync (${e.reason}) cancelled by Auto Sync disabled.")
+        SyncDueMessage.maybeShow(project)
       }
-      catch (e: RequestSyncThrowable) {
-        if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
-          // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
-          //  path individually.
-          LOG.info("Requesting Gradle sync (${e.reason}).")
-          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
-        }
-        else {
-          LOG.info("Requesting Gradle sync (${e.reason}) cancelled by Auto Sync disabled.")
-          SyncDueMessage.maybeShow(project)
-        }
-      }
+    }
     subscribeToGradleSettingChanges(project)
   }
 
@@ -192,11 +191,14 @@ private suspend fun performActivity(project: Project) {
 private fun subscribeToGradleSettingChanges(project: Project) {
   val disposable = project.getService(AndroidStartupManager.ProjectDisposableScope::class.java)
   val connection = project.messageBus.connect(disposable)
-  connection.subscribe(GradleSettingsListener.TOPIC, object : GradleSettingsListener {
-    override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
-      GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
-    }
-  })
+  connection.subscribe(
+    GradleSettingsListener.TOPIC,
+    object : GradleSettingsListener {
+      override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
+        GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
+      }
+    },
+  )
 }
 
 private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, callback: () -> Unit) {
@@ -228,21 +230,24 @@ private suspend fun removePointlessModules(project: Project) {
   moduleManager.modules.forEach { module ->
     if (module.isLoaded && ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty()) {
       if (module.isEmptyModule()) {
-        emptyModulesToRemove.add(Pair(module) {
-          LOG.warn("Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
-        })
+        emptyModulesToRemove.add(
+          Pair(module) {
+            LOG.warn(
+              "Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist."
+            )
+          }
+        )
       } else if (module.hasOnlyNativeRoots()) {
-        nativeOnlySourceRootsModulesToRemove.add(Pair(module) {
-          LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native roots.")
-        })
+        nativeOnlySourceRootsModulesToRemove.add(
+          Pair(module) {
+            LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native roots.")
+          }
+        )
       }
     }
   }
 
-  removeModules(
-    moduleManager,
-    modules = emptyModulesToRemove + nativeOnlySourceRootsModulesToRemove
-  )
+  removeModules(moduleManager, modules = emptyModulesToRemove + nativeOnlySourceRootsModulesToRemove)
 }
 
 private suspend fun removeModules(moduleManager: ModuleManager, modules: List<Pair<Module, Module.() -> Unit>>) {
@@ -264,13 +269,13 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   val moduleManager = ModuleManager.getInstance(project)
   val projectDataManager = ProjectDataManager.getInstance()
 
-  fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
-    ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
+  fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> = ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
 
   fun requestSync(reason: String, trigger: Trigger? = null): Nothing {
-    throw RequestSyncThrowable(reason,
-                               trigger
-                               ?: if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN)
+    throw RequestSyncThrowable(
+      reason,
+      trigger ?: if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN,
+    )
   }
 
   val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
@@ -278,8 +283,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   val modulesById =
     existingGradleModules
       .mapNotNull { module ->
-        val externalId = ExternalSystemApiUtil.getExternalProjectId(module)
-                         ?: requestSync("Unable to get external project id for ${module.name} from project ${project.name}.")
+        val externalId =
+          ExternalSystemApiUtil.getExternalProjectId(module)
+            ?: requestSync("Unable to get external project id for ${module.name} from project ${project.name}.")
         externalId to module
       }
       .toMap()
@@ -315,7 +321,6 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
           ?: requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants")
       }
 
-
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
   }
@@ -324,9 +329,7 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     existingGradleModules
       .flatMap { module ->
         FacetManager.getInstance(module).let {
-          it.getFacetsByType(GradleFacet.getFacetTypeId()) +
-            it.getFacetsByType(AndroidFacet.ID) +
-            it.getFacetsByType(NdkFacet.facetTypeId)
+          it.getFacetsByType(GradleFacet.getFacetTypeId()) + it.getFacetsByType(AndroidFacet.ID) + it.getFacetsByType(NdkFacet.facetTypeId)
         }
       }
       .toMutableSet()
@@ -336,21 +339,22 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
   // facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
   // information isn't lost for modules.
   if (StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
-    facets.forEach {
-      it.externalSource = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId())
+    facets.forEach { it.externalSource = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId()) }
+  }
+
+  existingGradleModules
+    .asSequence()
+    .flatMap { module ->
+      ModuleRootManager.getInstance(module)
+        .orderEntries
+        .filterIsInstance<LibraryOrderEntry>()
+        .asSequence()
+        .mapNotNull { it.library }
+        .filter { it.name?.startsWith("Gradle: ") ?: false }
+        // Module level libraries and libraries not listed in any library table usually represent special kinds of artifacts like local
+        // libraries in `lib` folders, generated code, etc. We are interested in libraries with JAR files in the shared Gradle cache.
+        .filter { it.table?.tableLevel == LibraryTablesRegistrar.PROJECT_LEVEL }
     }
-  }
-
-
-  existingGradleModules.asSequence().flatMap { module ->
-    ModuleRootManager.getInstance(module)
-      .orderEntries.filterIsInstance<LibraryOrderEntry>().asSequence()
-      .mapNotNull { it.library }
-      .filter { it.name?.startsWith("Gradle: ") ?: false }
-      // Module level libraries and libraries not listed in any library table usually represent special kinds of artifacts like local
-      // libraries in `lib` folders, generated code, etc. We are interested in libraries with JAR files in the shared Gradle cache.
-      .filter { it.table?.tableLevel == LibraryTablesRegistrar.PROJECT_LEVEL }
-  }
     .distinct()
     .forEach { library ->
       // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
@@ -368,118 +372,108 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     val module: Module,
     val dataNode: DataNode<out ModuleData>,
     val libraryResolver: IdeLibraryModelResolverImpl,
-    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl
+    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl,
   )
 
   val moduleSetupData: Collection<ModuleSetupData> =
     projectDataNodes.flatMap { projectData ->
       val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
       val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
-      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
-        libraries,
-        kmpLibraries
+      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
+      val modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl = { data -> GradleAndroidModelImpl(data) }
+      projectData.modules().flatMap inner@{ node ->
+        val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
+
+        val externalId = node.data.id
+        val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
+
+        if (sourceSets.isEmpty()) {
+          listOf(ModuleSetupData(module, node, libraryResolver, modelFactory))
+        } else {
+          sourceSets.mapNotNull { sourceSet ->
+            val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
+            if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, libraryResolver, modelFactory) else null
+          } + ModuleSetupData(module, node, libraryResolver, modelFactory)
+        }
+      }
+    }
+
+  val attachModelActions =
+    moduleSetupData.flatMap { data ->
+      fun GradleAndroidModelData.validate() =
+        shouldDisableForceUpgrades() ||
+          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
+            !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
+          }
+
+      /** Returns an action that attaches a model from the data node to the appropriate place. */
+      fun <T, V : Facet<*>> prepare(
+        dataKey: Key<T>,
+        getModel: (DataNode<*>, Key<T>) -> T?,
+        getFacet: (Module) -> V?,
+        attach: V.(T, MutableEntityStorage) -> Unit,
+        validate: T.() -> Boolean = { true },
+      ): ((MutableEntityStorage) -> Unit) {
+        val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
+        if (!model.validate()) {
+          requestSync("invalid model found for $dataKey in ${data.module.name}")
+        }
+        val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
+        facets.remove(facet)
+        return { storage -> facet.attach(model, storage) }
+      }
+
+      // For models that can be broken into source sets we need to check the parent datanode for the model
+      // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
+      // module per source set we should replace this code with were we know the model will be living.
+      fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
+        return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
+      }
+      // In some cases when phased sync aborts early, the data nodes will have the final say on what should be on the model, so setting the
+      // workspace model entities below for compatibility with data services on startup.
+      listOf(
+        prepare(
+          ANDROID_MODEL,
+          getModelForMaybeSourceSetDataNode(),
+          AndroidFacet::getInstance,
+          { model, storage ->
+            module.findModuleEntity(storage)?.let { entity ->
+              val coreModel = data.gradleAndroidModelFactory(model)
+              setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
+            }
+          },
+          validate = GradleAndroidModelData::validate,
+        ),
+        prepare(
+          GRADLE_MODULE_MODEL,
+          ::getModelFromDataNode,
+          GradleFacet::getInstance,
+          { model, storage ->
+            module.findModuleEntity(storage)?.let { entity ->
+              storage.modifyModuleEntity(entity) {
+                this.gradleModuleModel =
+                  GradleModuleModelEntity(entitySource = this@modifyModuleEntity.entitySource, gradleModuleModel = model)
+              }
+            }
+          },
+        ),
+        prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ -> setNdkModuleModel(model) }),
       )
-      val modelFactory: (GradleAndroidModelData) -> GradleAndroidModelImpl = { data ->
-        GradleAndroidModelImpl(data)
-      }
-      projectData
-        .modules()
-        .flatMap inner@{ node ->
-          val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
-
-          val externalId = node.data.id
-          val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
-
-          if (sourceSets.isEmpty()) {
-            listOf(ModuleSetupData(module, node, libraryResolver, modelFactory))
-          } else {
-            sourceSets
-              .mapNotNull { sourceSet ->
-                val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
-                if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, libraryResolver,modelFactory) else null
-              } + ModuleSetupData(module, node, libraryResolver,modelFactory)
-          }
-        }
     }
-
-  val attachModelActions = moduleSetupData.flatMap { data ->
-
-    fun GradleAndroidModelData.validate() =
-      shouldDisableForceUpgrades() ||
-      AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
-          !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
-        }
-
-    /** Returns an action that attaches a model from the data node to the appropriate place. */
-    fun <T, V : Facet<*>> prepare(
-      dataKey: Key<T>,
-      getModel: (DataNode<*>, Key<T>) -> T?,
-      getFacet: (Module) -> V?,
-      attach: V.(T, MutableEntityStorage) -> Unit,
-      validate: T.() -> Boolean = { true }
-    ): ((MutableEntityStorage) -> Unit) {
-      val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
-      if (!model.validate()) {
-        requestSync("invalid model found for $dataKey in ${data.module.name}")
-      }
-      val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
-      facets.remove(facet)
-      return { storage -> facet.attach(model, storage) }
-    }
-
-    // For models that can be broken into source sets we need to check the parent datanode for the model
-    // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
-    // module per source set we should replace this code with were we know the model will be living.
-    fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
-      return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
-    }
-    // In some cases when phased sync aborts early, the data nodes will have the final say on what should be on the model, so setting the
-    // workspace model entities below for compatibility with data services on startup.
-    listOf(
-      prepare(
-        ANDROID_MODEL,
-        getModelForMaybeSourceSetDataNode(),
-        AndroidFacet::getInstance,
-        { model, storage ->
-          module.findModuleEntity(storage)?.let { entity ->
-            val coreModel = data.gradleAndroidModelFactory(model)
-            setGradleAndroidModelFromDataNode(storage, entity, coreModel, data.libraryResolver)
-          }
-        },
-        validate = GradleAndroidModelData::validate
-      ),
-      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, { model, storage ->
-        module.findModuleEntity(storage)?.let { entity ->
-          storage.modifyModuleEntity(entity) {
-            this.gradleModuleModel = GradleModuleModelEntity(
-              entitySource = this@modifyModuleEntity.entitySource,
-              gradleModuleModel = model
-            )
-          }
-        }
-      }),
-      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, { model, _ ->
-        setNdkModuleModel(model)
-      })
-    )
-  }
 
   if (facets.isNotEmpty()) {
     requestSync("Cached models not available for:\n" + facets.joinToString(separator = ",\n") { "${it.module.name} : ${it.typeId}" })
   }
 
   LOG.info("Up-to-date models found in the cache. Not invoking Gradle sync.")
-  project.workspaceModel.update("Update Android entities") { storage ->
-    attachModelActions.forEach { action -> action(storage) }
-  }
+  project.workspaceModel.update("Update Android entities") { storage -> attachModelActions.forEach { action -> action(storage) } }
   additionalProjectSetup(project)
 
   GradleSyncStateHolder.getInstance(project).syncSkipped(null)
 }
 
 private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =
-  ExternalSystemApiUtil
-    .getChildren(moduleDataNode, dataKey)
+  ExternalSystemApiUtil.getChildren(moduleDataNode, dataKey)
     .singleOrNull() // None or one node is expected here.
     ?.data
 
@@ -497,7 +491,8 @@ private fun additionalProjectSetup(project: Project) {
 @VisibleForTesting
 fun addJUnitProducersToIgnoredList(project: Project) {
   val producerService = RunConfigurationProducerService.getInstance(project)
-  val allJUnitProducers = RunConfigurationProducer.EP_NAME.extensionList.filter { it.configurationType == JUnitConfigurationType.getInstance() }
+  val allJUnitProducers =
+    RunConfigurationProducer.EP_NAME.extensionList.filter { it.configurationType == JUnitConfigurationType.getInstance() }
   for (producer in allJUnitProducers) {
     producerService.state.ignoredProducers.add(producer::class.java.name)
   }
@@ -506,10 +501,10 @@ fun addJUnitProducersToIgnoredList(project: Project) {
 @RequiresBackgroundThread
 private fun Module.isEmptyModule() =
   moduleFile == null &&
-  rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
+    rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
 
 private fun Module.hasOnlyNativeRoots() =
   rootManager.let { roots ->
     roots.sourceRoots.isNotEmpty() &&
-    roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
+      roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
   }

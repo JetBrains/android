@@ -60,14 +60,8 @@ class AndroidJavaDocExternalFilterTest {
   }
 
   private fun getInputFiles(): List<String> {
-    val inputDir =
-      TestUtils.resolveWorkspacePath(
-        "tools/adt/idea/android/editing/documentation/testData/javadoc/classes/input"
-      )
-    return inputDir
-      .listDirectoryEntries()
-      .map { p -> p.fileName.toString() }
-      .filterNot { it == "README" }
+    val inputDir = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/documentation/testData/javadoc/classes/input")
+    return inputDir.listDirectoryEntries().map { p -> p.fileName.toString() }.filterNot { it == "README" }
   }
 
   private fun String.toOutputFile(): String {
@@ -77,11 +71,7 @@ class AndroidJavaDocExternalFilterTest {
   }
 
   private fun fileReader(path: String): FileReader {
-    val dir =
-      TestUtils.resolveWorkspacePath(
-          "tools/adt/idea/android/editing/documentation/testData/javadoc/classes"
-        )
-        .toString()
+    val dir = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/documentation/testData/javadoc/classes").toString()
     return FileReader("$dir/$path")
   }
 }

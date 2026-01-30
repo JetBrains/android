@@ -29,6 +29,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import java.awt.event.ActionEvent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.event.ActionEvent
 
 class WorkDependencyGraphViewTest {
   private val projectRule = ProjectRule()
@@ -63,8 +63,7 @@ class WorkDependencyGraphViewTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger =
-        BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       client =
         BackgroundTaskInspectorClient(

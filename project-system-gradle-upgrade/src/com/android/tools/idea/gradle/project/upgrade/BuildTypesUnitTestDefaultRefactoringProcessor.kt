@@ -16,56 +16,61 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.impl.rules.UsageType
-import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBasicVariant
-import com.intellij.openapi.project.guessProjectDir
 
 /**
- * Starting with AGP 9.0, the default value of android.onlyEnableUnitTestForTheTestedBuildType is now
- * true. This refactoring adds the property if it was not defined and sets it to false when
- * upgrading from a version lower than 9.0.0-alpha01 with release type unit tests present.
+ * Starting with AGP 9.0, the default value of android.onlyEnableUnitTestForTheTestedBuildType is now true. This refactoring adds the
+ * property if it was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01 with release type unit tests
+ * present.
  */
 class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.onlyEnableUnitTestForTheTestedBuildType"
   override val oldDefault = false
-  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ONLY_ENABLE_UNIT_TEST_BY_DEFAULT_FOR_THE_TESTED_BUILD_TYPE
+  override val upgradeEventKind =
+    UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ONLY_ENABLE_UNIT_TEST_BY_DEFAULT_FOR_THE_TESTED_BUILD_TYPE
   override val insertPropertyText = AgpUpgradeBundle.message("buildTypesUnitTest.enable.usageType")
   override val tooltip = AgpUpgradeBundle.message("buildTypesUnitTest.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("buildTypesUnitTest.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.onlyEnableUnitTestForTheTestedBuildType"
+
   override fun getCommandName() = AgpUpgradeBundle.message("buildTypesUnitTest.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("buildTypesUnitTest.shortDescription")
+
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()
 
-    val hasReleaseUnitTest = project.modules.any { module ->
-      val androidModel = GradleAndroidModel.get(module) ?: return@any false
+    val hasReleaseUnitTest =
+      project.modules.any { module ->
+        val androidModel = GradleAndroidModel.get(module) ?: return@any false
 
-      androidModel.variants.any { variant ->
-        val basicVariant = androidModel.findBasicVariantByName(variant.name) ?: return@any false
-        val buildTypeContainer = androidModel.getBuildType(basicVariant) ?: return@any false
-        val isDebuggable = buildTypeContainer.buildType.isDebuggable
-        if (isDebuggable) {
-          false
-        }
-        else {
-          variant.hostTestArtifacts.any { it.name == IdeArtifactName.UNIT_TEST }
+        androidModel.variants.any { variant ->
+          val basicVariant = androidModel.findBasicVariantByName(variant.name) ?: return@any false
+          val buildTypeContainer = androidModel.getBuildType(basicVariant) ?: return@any false
+          val isDebuggable = buildTypeContainer.buildType.isDebuggable
+          if (isDebuggable) {
+            false
+          } else {
+            variant.hostTestArtifacts.any { it.name == IdeArtifactName.UNIT_TEST }
+          }
         }
       }
-    }
 
     if (hasReleaseUnitTest) {
       val baseDir = project.guessProjectDir() ?: return usages.toTypedArray()
@@ -79,8 +84,7 @@ class BuildTypesUnitTestDefaultRefactoringProcessor : AbstractBooleanPropertyDef
             usages.add(GradlePropertyUsageInfo(wrappedPsiElement, propertyKey, oldDefault, tooltip))
           }
         }
-      }
-      else if (baseDir.exists()) {
+      } else if (baseDir.exists()) {
         val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
         if (baseDirPsiDirectory is PsiElement) {
           val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)

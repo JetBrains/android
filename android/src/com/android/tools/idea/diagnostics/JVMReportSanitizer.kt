@@ -82,8 +82,7 @@ object JVMReportSanitizer {
       }
       if (line.startsWith("Heap Regions: ") || line.startsWith("Environment Variables:")) {
         skipSubsection(line, parser, builder)
-      }
-      else {
+      } else {
         builder.sanitizeUntilEOL(line)
       }
     }

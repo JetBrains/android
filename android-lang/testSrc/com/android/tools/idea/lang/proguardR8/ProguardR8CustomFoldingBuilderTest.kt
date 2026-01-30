@@ -38,19 +38,23 @@ class ProguardR8CustomFoldingBuilderTest(private val fileType: LanguageFileType)
     myFixture.configureByText(
       fileType,
       """
-        #region
-        
-        #endregion
-      """.trimIndent()
+      #region
+
+      #endregion
+      """
+        .trimIndent(),
     )
 
     val res = (myFixture as CodeInsightTestFixtureImpl).getFoldingDescription(false, false)
 
-    assertThat(res).isEqualTo(
-      """
-      <fold text='...'>#region
+    assertThat(res)
+      .isEqualTo(
+        """
+        <fold text='...'>#region
 
-      #endregion</fold>
-    """.trimIndent())
+        #endregion</fold>
+        """
+          .trimIndent()
+      )
   }
 }

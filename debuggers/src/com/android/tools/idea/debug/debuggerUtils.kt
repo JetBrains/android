@@ -27,6 +27,5 @@ val DebugProcess.connectedDevice: IDevice?
 
 val DebugProcess.applicationPackageNames: List<String>
   get() {
-    return (processHandler as? AndroidRemoteDebugProcessHandler)?.applicationPackageNames
-           ?: emptyList()
+    return (processHandler as? AndroidRemoteDebugProcessHandler)?.applicationPackageNames ?: emptyList()
   }

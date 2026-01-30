@@ -35,27 +35,23 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.util.containers.ContainerUtil
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 /**
- * This currently does not fail sync as Configuration Cache is not active during sync.
- * THus this has to be tested on build, but since infrastructure for parsing errors is shared between build and sync
- * it is still belong here.
+ * This currently does not fail sync as Configuration Cache is not active during sync. THus this has to be tested on build, but since
+ * infrastructure for parsing errors is shared between build and sync it is still belong here.
  */
 class ConfigurationCacheFailureTest {
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
@@ -74,29 +70,26 @@ class ConfigurationCacheFailureTest {
   fun testConfigurationCacheFailure() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
-    preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).let {
-      it.appendText("\norg.gradle.configuration-cache=true")
-    }
-    preparedProject.root.resolve(SdkConstants.FN_BUILD_GRADLE).let {
-      it.appendText("\ngradle.addBuildListener(new BuildAdapter())")
-    }
+    preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).let { it.appendText("\norg.gradle.configuration-cache=true") }
+    preparedProject.root.resolve(SdkConstants.FN_BUILD_GRADLE).let { it.appendText("\ngradle.addBuildListener(new BuildAdapter())") }
 
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
     val allBuildEventsProcessedLatch = CountDownLatch(1)
 
     preparedProject.open {
-      val result = it.buildAndWait(
-        eventHandler = { buildEvent ->
-          buildEvents.add(buildEvent)
-          // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-          // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-          if (buildEvent is FinishBuildEventImpl) {
-            allBuildEventsProcessedLatch.countDown()
+      val result =
+        it.buildAndWait(
+          eventHandler = { buildEvent ->
+            buildEvents.add(buildEvent)
+            // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+            // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+            if (buildEvent is FinishBuildEventImpl) {
+              allBuildEventsProcessedLatch.countDown()
+            }
           }
+        ) { invoker ->
+          invoker.cleanProject()
         }
-      ) { invoker ->
-        invoker.cleanProject()
-      }
       Truth.assertThat(result.isBuildSuccessful).isFalse()
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
 
@@ -109,14 +102,17 @@ class ConfigurationCacheFailureTest {
       expect.that(buildEvents.filterIsInstanceAnd<MessageEvent> { it !is BuildIssueEvent }).isEmpty()
       expect.that(buildEvents.finishEventFailures()).isEmpty()
 
-      val reportedFailureDetails = usageTracker.usages
-        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+      val reportedFailureDetails =
+        usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
       expect.that(reportedFailureDetails).hasSize(1)
-      reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-          .containsExactly(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE)
-      }
-
+      reportedFailureDetails
+        .map { it.studioEvent }
+        .firstOrNull()
+        ?.let {
+          expect
+            .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+            .containsExactly(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE)
+        }
     }
   }
 

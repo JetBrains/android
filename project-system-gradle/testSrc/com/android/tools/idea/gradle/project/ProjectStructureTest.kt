@@ -27,12 +27,11 @@ import com.google.common.truth.Truth
 import com.intellij.testFramework.HeavyPlatformTestCase
 import java.io.File
 
-/**
- * Tests for [ProjectStructure].
- */
+/** Tests for [ProjectStructure]. */
 class ProjectStructureTest : HeavyPlatformTestCase() {
 
-  fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1 Java library.
+  fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1
+    // Java library.
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
@@ -40,7 +39,7 @@ class ProjectStructureTest : HeavyPlatformTestCase() {
       androidModule(":app", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
       androidModule(":instantApp", "3.1.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
       androidModule(":androidLib", "2.3.1", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
-      javaModule(":javaLib")
+      javaModule(":javaLib"),
     )
     val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
@@ -82,16 +81,17 @@ class ProjectStructureTest : HeavyPlatformTestCase() {
     agpVersion: String,
     projectType: IdeAndroidProjectType,
     dynamicFeatures: List<String> = emptyList(),
-    moduleDependencies: List<String> = emptyList()
+    moduleDependencies: List<String> = emptyList(),
   ) =
     AndroidModuleModelBuilder(
       gradlePath,
       agpVersion = agpVersion,
       selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(
-        projectType = { projectType },
-        dynamicFeatures = { dynamicFeatures },
-        androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } }
-      )
+      projectBuilder =
+        AndroidProjectBuilder(
+          projectType = { projectType },
+          dynamicFeatures = { dynamicFeatures },
+          androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
+        ),
     )
 }

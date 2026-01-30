@@ -71,22 +71,24 @@ data class PsBuildTypeNavigationPath(override val parent: PsBuildTypesNavigation
   }
 
   override fun toString(): String = buildTypeName
+
   fun property(property: ModelProperty<PsBuildType, *, *, *>): PsPlaceBasedPath = PsBuildTypePropertyNavigationPath(this, property)
 }
 
-data class PsProductFlavorNavigationPath(override val parent: PsProductFlavorsNavigationPath, val productFlavorName: String)
-  : PsPlaceBasedPath() {
+data class PsProductFlavorNavigationPath(override val parent: PsProductFlavorsNavigationPath, val productFlavorName: String) :
+  PsPlaceBasedPath() {
   override fun queryPlace(place: Place, context: PsContext) {
     parent.queryPlace(place, context)
     place.putPath(PRODUCT_FLAVORS_PLACE_NAME, productFlavorName)
   }
 
   override fun toString(): String = productFlavorName
+
   fun property(property: ModelProperty<PsProductFlavor, *, *, *>): PsPlaceBasedPath = PsProductFlavorPropertyNavigationPath(this, property)
 }
 
-data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavorsNavigationPath, val flavorDimensionName: String)
-  : PsPlaceBasedPath() {
+data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavorsNavigationPath, val flavorDimensionName: String) :
+  PsPlaceBasedPath() {
   override fun queryPlace(place: Place, context: PsContext) {
     parent.queryPlace(place, context)
     place.putPath(PRODUCT_FLAVORS_PLACE_NAME, flavorDimensionName)
@@ -95,8 +97,7 @@ data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavors
   override fun toString(): String = flavorDimensionName
 }
 
-data class PsBuildTypePropertyNavigationPath(override val parent: PsBuildTypeNavigationPath, val property: String)
-  : PsPlaceBasedPath() {
+data class PsBuildTypePropertyNavigationPath(override val parent: PsBuildTypeNavigationPath, val property: String) : PsPlaceBasedPath() {
   constructor(parent: PsBuildTypeNavigationPath, property: ModelProperty<PsBuildType, *, *, *>) : this(parent, property.description)
 
   override fun queryPlace(place: Place, context: PsContext) {
@@ -107,8 +108,8 @@ data class PsBuildTypePropertyNavigationPath(override val parent: PsBuildTypeNav
   override fun toString(): String = property
 }
 
-data class PsProductFlavorPropertyNavigationPath(override val parent: PsProductFlavorNavigationPath, val property: String)
-  : PsPlaceBasedPath() {
+data class PsProductFlavorPropertyNavigationPath(override val parent: PsProductFlavorNavigationPath, val property: String) :
+  PsPlaceBasedPath() {
   constructor(parent: PsProductFlavorNavigationPath, property: ModelProperty<PsProductFlavor, *, *, *>) : this(parent, property.description)
 
   override fun queryPlace(place: Place, context: PsContext) {

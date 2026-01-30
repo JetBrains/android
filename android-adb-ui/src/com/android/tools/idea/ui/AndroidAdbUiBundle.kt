@@ -20,12 +20,9 @@ import org.jetbrains.annotations.PropertyKey
 
 private const val BUNDLE_NAME = "messages.AndroidAdbUiBundle"
 
-/**
- * Message bundle for the Android ADB UI module.
- */
+/** Message bundle for the Android ADB UI module. */
 internal object AndroidAdbUiBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
-  @JvmStatic
-  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
-    bundleRef.message(key, *params)
+
+  @JvmStatic fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
 }

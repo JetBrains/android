@@ -69,15 +69,17 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
     if (anchorAfter !is GradleDslAnchor.After) return null // TODO(xof), wait, we can't move elements to the first position!?
-    val parentPsiElement = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)?.parent ?: return null
-      else -> getParentPsi(element.parent) ?: return null
-    }
+    val parentPsiElement =
+      when (element.parent) {
+        is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)?.parent ?: return null
+        else -> getParentPsi(element.parent) ?: return null
+      }
 
-    val anchor = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)
-      else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
-    }
+    val anchor =
+      when (element.parent) {
+        is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)
+        else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
+      }
 
     // Create a placeholder element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
@@ -88,9 +90,11 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var e = element.psiElement ?: return null
     val dslParent = element.parent as? GradlePropertiesDslElement ?: return null
 
-    while (!(e.parent is KtFile ||
-             (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(this, dslParent)) ||
-             (e.parent is KtBlockExpression && dslParent is ExtDslElement))) {
+    while (
+      !(e.parent is KtFile ||
+        (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(this, dslParent)) ||
+        (e.parent is KtBlockExpression && dslParent is ExtDslElement))
+    ) {
       if (e.parent == null) {
         e = element.psiElement as PsiElement
         break
@@ -124,7 +128,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var isNamedPropertyMap = false
     var isVarOrProperty = false
 
-    if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
+    if (element.isNewEmptyBlockElement) return null // Avoid creation of an empty block.
     if (anchorAfter == null) return null // we don't have a parent?  return null.
     val dslParent = anchorAfter.parentDslElement ?: return null
 
@@ -142,44 +146,42 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val externalNameInfo = maybeTrimForParent(element, this)
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
-    var statementText : String
+    var statementText: String
     val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
     element.externalSyntax = syntax
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
     if (dslParent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
       statementText = "\"${joinedName}\""
-    }
-    else if (element is GradleDslNamedDomainElement) {
-      statementText = when {
-        // use an existing methodName if we have one
-        element.methodName != null -> "${element.methodName}(\"$joinedName\")"
-        // use getByName() if the element is implicitly provided, otherwise create()
-        dslParent is GradleDslNamedDomainContainer -> when {
-          dslParent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
-          else -> "create(\"$joinedName\")"
+    } else if (element is GradleDslNamedDomainElement) {
+      statementText =
+        when {
+          // use an existing methodName if we have one
+          element.methodName != null -> "${element.methodName}(\"$joinedName\")"
+          // use getByName() if the element is implicitly provided, otherwise create()
+          dslParent is GradleDslNamedDomainContainer ->
+            when {
+              dslParent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
+              else -> "create(\"$joinedName\")"
+            }
+          // should never happen (named domain element added to something that isn't a named domain container)
+          else -> {
+            val log = logger<KotlinDslWriter>()
+            log.warn("NamedDomainElement $element added to non-NamedDomainContainer $dslParent", Throwable())
+            "getByName(\"$joinedName\")"
+          }
         }
-        // should never happen (named domain element added to something that isn't a named domain container)
-        else -> {
-          val log = logger<KotlinDslWriter>()
-          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $dslParent", Throwable())
-          "getByName(\"$joinedName\")"
-        }
-      }
-    }
-    else {
+    } else {
       statementText = joinedName
     }
 
     if (element.isBlockElement) {
       if (element is MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
         statementText += "()"
+      } else {
+        statementText += " {\n}" // Can't create expression with another new line after.
       }
-      else {
-        statementText += " {\n}"  // Can't create expression with another new line after.
-      }
-    }
-    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
+    } else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
@@ -190,8 +192,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
             statementText = "val $quotedName by extra(\"abc\")"
             isVarOrProperty = true
           }
-        }
-        else {
+        } else {
           when (syntax) {
             ASSIGNMENT -> statementText += " = \"abc\""
             AUGMENTED_ASSIGNMENT -> statementText += " += \"abc\""
@@ -200,44 +201,35 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
             UNKNOWN -> {}
           }
         }
-      }
-      else if (element.elementType == PropertyType.VARIABLE) {
+      } else if (element.elementType == PropertyType.VARIABLE) {
         statementText = "val ${quotedName} = \"abc\""
         isVarOrProperty = true
       }
-    }
-    else if (element is GradleDslExpressionList) {
+    } else if (element is GradleDslExpressionList) {
       if (dslParent is GradleDslMethodCall && element.elementType == PropertyType.DERIVED) {
         // This is when we have not a proper list element (listOf()) but rather a methodCall arguments. In such case we need to skip
         // creating the list and use the KtValueArgumentList of the parent.
-        return (dslParent.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
-      }
-      else if (element.name.isEmpty()){
+        return (dslParent.psiElement as? KtCallExpression)?.valueArgumentList // TODO add more tests to verify the code consistency.
+      } else if (element.name.isEmpty()) {
         // This is the case where we are handling a list element
         statementText += "listOf()"
         isRealList = true
-      }
-      else {
+      } else {
         statementText += "()"
       }
-    }
-    else if (element is GradleDslExpressionMap) {
+    } else if (element is GradleDslExpressionMap) {
       if (element.asNamedArgs) {
         statementText += "()"
-      }
-      else if (element.name.isEmpty()) {
+      } else if (element.name.isEmpty()) {
         statementText += "mapOf()"
-      }
-      else if (element.elementType == PropertyType.DERIVED && element.isLiteralMap) {
+      } else if (element.elementType == PropertyType.DERIVED && element.isLiteralMap) {
         // This is the case of maps within other maps
         statementText = "\"${StringUtil.unquoteString(element.name)}\" to \"abc\""
-      }
-      else {
+      } else {
         statementText += "(mapOf())"
         isNamedPropertyMap = true
       }
-    }
-    else {
+    } else {
       statementText += "()"
     }
 
@@ -256,8 +248,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         // If we created a local variable, we need to delete the right value to allow adding the right one.
         if (element.elementType == PropertyType.VARIABLE) {
           statement.initializer?.delete()
-        }
-        else {
+        } else {
           // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
           val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
           delegateExpression.valueArgumentList?.removeArgument(0)
@@ -270,7 +261,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     }
 
     val lineTerminator = psiFactory.createNewLine()
-    val addedElement : PsiElement
+    val addedElement: PsiElement
     var anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
 
     when (parentPsiElement) {
@@ -289,11 +280,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
           if (!isWhiteSpaceOrNls(addedElement.prevSibling)) {
             parentPsiElement.addBefore(lineTerminator, addedElement)
           }
-        }
-        else if (fileBlock != null && anchor == null && firstRealChild?.node?.elementType == BLOCK_COMMENT) {
+        } else if (fileBlock != null && anchor == null && firstRealChild?.node?.elementType == BLOCK_COMMENT) {
           addedElement = fileBlock.addAfter(statement, firstRealChild)
-        }
-        else {
+        } else {
           addedElement = parentPsiElement.addAfter(statement, anchor)
           if (!isWhiteSpaceOrNls(addedElement.nextSibling)) {
             parentPsiElement.addAfter(lineTerminator, addedElement)
@@ -305,8 +294,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         }
         if (addBefore) {
           parentPsiElement.addAfter(lineTerminator, addedElement)
-        }
-        else {
+        } else {
           parentPsiElement.addBefore(lineTerminator, addedElement)
         }
       }
@@ -337,30 +325,23 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       if (blockExpression != null) {
         element.psiElement = blockExpression
       }
-    }
-    else if (addedElement is KtBinaryExpression) {
+    } else if (addedElement is KtBinaryExpression) {
       addedElement.addAfter(psiFactory.createWhiteSpace(), addedElement.lastChild)
       element.psiElement = addedElement
-    }
-    else if (addedElement is KtCallExpression) {
+    } else if (addedElement is KtCallExpression) {
       if (element is GradleDslExpressionList && !isRealList) {
         element.psiElement = addedElement.valueArgumentList
-      }
-      else if (element is GradleDslExpressionMap && isNamedPropertyMap) {
+      } else if (element is GradleDslExpressionMap && isNamedPropertyMap) {
         element.psiElement = addedElement.valueArguments[0].getArgumentExpression()
-      }
-      else {
+      } else {
         element.psiElement = addedElement
       }
-    }
-    else if (addedElement is KtValueArgument) {
+    } else if (addedElement is KtValueArgument) {
       element.psiElement = addedElement.getArgumentExpression()
-    }
-    else if (addedElement is KtProperty) {
+    } else if (addedElement is KtProperty) {
       element.psiElement = addedElement
-    }
-    else if (addedElement is KtDotQualifiedExpression) {
-      element.psiElement = addedElement.getChildOfType<KtCallExpression>() //?.valueArguments?.get(0)?.getArgumentExpression()
+    } else if (addedElement is KtDotQualifiedExpression) {
+      element.psiElement = addedElement.getChildOfType<KtCallExpression>() // ?.valueArguments?.get(0)?.getArgumentExpression()
     }
 
     return element.psiElement
@@ -396,35 +377,34 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
       when (replace) {
-        is KtStringTemplateExpression, is KtConstantExpression, is KtNameReferenceExpression, is KtDotQualifiedExpression,
-        is KtArrayAccessExpression, is KtBinaryExpressionWithTypeRHS -> literal.setExpression(replace)
+        is KtStringTemplateExpression,
+        is KtConstantExpression,
+        is KtNameReferenceExpression,
+        is KtDotQualifiedExpression,
+        is KtArrayAccessExpression,
+        is KtBinaryExpressionWithTypeRHS -> literal.setExpression(replace)
         else -> Unit
       }
-    }
-    else if (psiElement is KtCallExpression) {
+    } else if (psiElement is KtCallExpression) {
       // This element has just been created and will be "propertyName()".
       val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
       val valueArgumentList = psiElement.valueArgumentList
       val added =
         valueArgumentList?.addArgumentAfter(valueArgument, valueArgumentList?.arguments?.lastOrNull())?.getArgumentExpression() ?: return
       literal.setExpression(added)
-    }
-    else if (psiElement is KtProperty && psiElement.hasDelegate()) {
+    } else if (psiElement is KtProperty && psiElement.hasDelegate()) {
       // This is an extra property that has just been created.
       val delegateExpression = requireNotNull(psiElement.delegateExpression as KtCallExpression)
       val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
       val added = delegateExpression.valueArgumentList?.addArgument(valueArgument)?.getArgumentExpression() ?: return
       literal.setExpression(added)
-    }
-    else {
+    } else {
       // This element has just been created and will be like "propertyName = " or "val propertyName = ".
       val added = psiElement.addAfter(newLiteral, psiElement.lastChild)
       literal.setExpression(added)
     }
 
-    literal.unsavedClosure?.let {
-      createAndAddClosure(it, literal)
-    }
+    literal.unsavedClosure?.let { createAndAddClosure(it, literal) }
 
     literal.reset()
     literal.commit()
@@ -444,7 +424,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var anchorAfter = methodCall.anchor ?: return null
     val methodParent = anchorAfter.parentDslElement ?: return null
 
-    //If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
+    // If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
     if (needToCreateParent(methodParent)) {
       anchorAfter = GradleDslAnchor.Start(methodParent)
     }
@@ -469,16 +449,14 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         if (syntax == ASSIGNMENT) {
           // Ex: a = b().
           "$propertyName = $methodName()"
-        }
-        else {
+        } else {
           // Ex: implementation(fileTree()), "feature"(fileTree())
           if (methodCall.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
             propertyName = "\"$propertyName\""
           }
           "$propertyName($methodName())"
         }
-      }
-    else {
+      } else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
         "$methodName()"
       }
@@ -489,14 +467,12 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       val valueArgument = psiFactory.createArgument(expression)
       val addedArgument = parentPsiElement.addArgumentAfter(valueArgument, anchor as? KtValueArgument)
       addedElement = requireNotNull(addedArgument.getArgumentExpression())
-    }
-    else {
+    } else {
       // If the parent is a KtFile, we should be careful adding the methodCall to its main block.
       if (parentPsiElement is KtFile) {
         parentPsiElement = parentPsiElement.script?.blockExpression ?: parentPsiElement
         addedElement = parentPsiElement.addAfter(expression, anchor)
-      }
-      else {
+      } else {
         addedElement = parentPsiElement.addAfter(expression, anchor)
       }
       // We need to add empty lines if we're adding expressions to a file because IDEA doesn't handle formatting
@@ -542,8 +518,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       methodCall.psiElement = argumentList[0].getArgumentExpression()
       methodCall.argumentsElement.psiElement = (argumentList[0].getArgumentExpression() as KtCallExpression).valueArgumentList
       return methodCall.psiElement
-    }
-    else if (argumentList.isEmpty()) {
+    } else if (argumentList.isEmpty()) {
       methodCall.psiElement = addedElement
       methodCall.argumentsElement.psiElement = addedElement.valueArgumentList
       methodCall.argumentsElement.applyChanges()
@@ -572,8 +547,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var psiElement = expressionList.psiElement
     if (psiElement != null) {
       return psiElement
-    }
-    else {
+    } else {
       if (expressionList.parent is GradleDslExpressionMap) {
         // The list is an entry in a map, and we need to create a binaryExpression for it.
         return createBinaryExpression(expressionList)
@@ -583,36 +557,37 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
     if (psiElement is KtCallExpression) return psiElement
 
-    val emptyListText = when (expressionList.externalSyntax) {
-      AUGMENTED_ASSIGNMENT -> when (expressionList.modelProperty?.type) {
-        MUTABLE_LIST -> "listOf()"
-        MUTABLE_MAP -> "mapOf()"
-        MUTABLE_SET -> "setOf()"
-        else -> "listOf()"
+    val emptyListText =
+      when (expressionList.externalSyntax) {
+        AUGMENTED_ASSIGNMENT ->
+          when (expressionList.modelProperty?.type) {
+            MUTABLE_LIST -> "listOf()"
+            MUTABLE_MAP -> "mapOf()"
+            MUTABLE_SET -> "setOf()"
+            else -> "listOf()"
+          }
+        else ->
+          when (expressionList.modelProperty?.type) {
+            MUTABLE_LIST -> "mutableListOf()"
+            MUTABLE_MAP -> "mutableMapOf()"
+            MUTABLE_SET -> "mutableSetOf()"
+            else -> "listOf()"
+          }
       }
-      else -> when (expressionList.modelProperty?.type) {
-        MUTABLE_LIST -> "mutableListOf()"
-        MUTABLE_MAP -> "mutableMapOf()"
-        MUTABLE_SET -> "mutableSetOf()"
-        else -> "listOf()"
-      }
-    }
 
     if (psiElement is KtBinaryExpression) {
       val emptyList = KtPsiFactory(psiElement.project).createExpression(emptyListText)
       val added = psiElement.addAfter(emptyList, psiElement.lastChild)
       expressionList.psiElement = added
       return expressionList.psiElement
-    }
-    else if (psiElement is KtValueArgumentList) { // When the dsl list resolves to a callExpression arguments.
+    } else if (psiElement is KtValueArgumentList) { // When the dsl list resolves to a callExpression arguments.
       if (expressionList.expressions.size == 1 && psiElement.arguments.size == 1 && !expressionList.isAppendToArgumentListWithOneElement) {
         // Sometimes we don't want to allow adding to a list that has one argument (ex : proguardFile("xyz")).
         expressionList.psiElement = null
         psiElement = createDslElement(expressionList)
       }
       return psiElement
-    }
-    else if (psiElement is KtProperty) {
+    } else if (psiElement is KtProperty) {
       if (psiElement.hasDelegate()) {
         // This is the case of a property with a delegate (ex: extra property).
         val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
@@ -620,15 +595,13 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         val listElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
         expressionList.psiElement = listElement
         return expressionList.psiElement
-      }
-      else {
+      } else {
         // This should be the case of a property with an initializer (ex: val prop = listOf()).
         val emptyList = KtPsiFactory(psiElement.project).createExpression(emptyListText)
         val added = psiElement.addAfter(emptyList, psiElement.lastChild)
         expressionList.psiElement = added
         return expressionList.psiElement
       }
-
     }
 
     return null
@@ -647,8 +620,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       val emptyMapExpression = psiFactory.createExpression("mapOf()")
       val mapElement = psiElement.addAfter(emptyMapExpression, psiElement.lastChild)
       expressionMap.psiElement = mapElement
-    }
-    else if (psiElement is KtProperty && psiElement.hasDelegate()) {
+    } else if (psiElement is KtProperty && psiElement.hasDelegate()) {
       // This is the case of an extra property, and the map is used as the property delegate expression.
       val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
       val valueArgument = psiFactory.createArgument("mapOf()")
@@ -663,7 +635,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   }
 
   fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
-    expression.psiElement?.also { return it }
+    expression.psiElement?.also {
+      return it
+    }
 
     expression.parent?.create() ?: return null
     when (val firstElement = expression.currentElements[0]) {

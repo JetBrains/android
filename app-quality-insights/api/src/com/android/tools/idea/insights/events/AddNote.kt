@@ -35,8 +35,7 @@ import com.intellij.openapi.components.service
 import java.time.Clock
 import java.util.UUID
 
-data class AddNoteRequested(val issueId: IssueId, val message: String, val clock: Clock) :
-  ChangeEvent {
+data class AddNoteRequested(val issueId: IssueId, val message: String, val clock: Clock) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -53,10 +52,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
         state = NoteState.CREATING,
       )
 
-    return StateTransition(
-      newState = state.copy(currentNotes = state.currentNotes.addDraft(draft)),
-      action = Action.AddNote(draft),
-    )
+    return StateTransition(newState = state.copy(currentNotes = state.currentNotes.addDraft(draft)), action = Action.AddNote(draft))
   }
 
   private fun LoadingState<List<Note>?>.addDraft(note: Note): LoadingState<List<Note>> {
@@ -67,13 +63,11 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
   }
 
   private fun fetchEmail(): String {
-    return service<GoogleLoginService>().getEmail()?.takeUnless { it.isEmpty() }
-      ?: "You (logged out)"
+    return service<GoogleLoginService>().getEmail()?.takeUnless { it.isEmpty() } ?: "You (logged out)"
   }
 }
 
-data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Failure) :
-  ChangeEvent {
+data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Failure) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -114,9 +108,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
         appId,
         state.mode,
         AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.newBuilder()
-          .apply {
-            noteEvent = AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.ADDED
-          }
+          .apply { noteEvent = AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails.NoteEvent.ADDED }
           .build(),
       )
     }
@@ -125,34 +117,25 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
         state.copy(
           issues = state.issues.incrementNotesCount(note.id.issueId),
           currentNotes =
-            if (state.selectedIssue?.id == note.id.issueId)
-              state.currentNotes.markDraftDone(note, sessionId)
-            else state.currentNotes,
+            if (state.selectedIssue?.id == note.id.issueId) state.currentNotes.markDraftDone(note, sessionId) else state.currentNotes,
         ),
       action = Action.NONE,
     )
   }
 
-  private fun LoadingState<List<Note>?>.markDraftDone(
-    newNote: Note,
-    sessionId: String,
-  ): LoadingState<List<Note>> {
+  private fun LoadingState<List<Note>?>.markDraftDone(newNote: Note, sessionId: String): LoadingState<List<Note>> {
     return map {
       checkNotNull(it) { "No prior notes fetched, thus adding on new note is not allowed." }
-      it.map { note ->
-        if (note.state == NoteState.CREATING && note.id.sessionId == sessionId) newNote else note
-      }
+      it.map { note -> if (note.state == NoteState.CREATING && note.id.sessionId == sessionId) newNote else note }
     }
   }
 }
 
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::incrementNotesCount)
+internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(issueId: IssueId) =
+  applyUpdate(issueId, AppInsightsIssue::incrementNotesCount)
 
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementNotesCount(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::decrementNotesCount)
+internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementNotesCount(issueId: IssueId) =
+  applyUpdate(issueId, AppInsightsIssue::decrementNotesCount)
 
 private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.applyUpdate(
   issueId: IssueId,

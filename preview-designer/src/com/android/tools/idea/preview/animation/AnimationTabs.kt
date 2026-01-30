@@ -46,25 +46,19 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
     ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
     setUiDecorator(
       object : UiDecorator {
-        override fun getDecoration() =
-          UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
+        override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
       }
     )
   }
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
     return super.addTab(info).also { tabInfo ->
-      getTabLabel(tabInfo)!!.add(
-        CloseButton(CloseActionListener(tabInfo, closeAction)),
-        BorderLayout.EAST,
-      )
+      getTabLabel(tabInfo)!!.add(CloseButton(CloseActionListener(tabInfo, closeAction)), BorderLayout.EAST)
     }
   }
 
   override fun addTab(info: TabInfo): TabInfo {
-    return super.addTab(info).also { tabInfo ->
-      getTabLabel(tabInfo)!!.add(JPanel(), BorderLayout.EAST)
-    }
+    return super.addTab(info).also { tabInfo -> getTabLabel(tabInfo)!!.add(JPanel(), BorderLayout.EAST) }
   }
 
   override fun createTabLabel(info: TabInfo): TabLabel =
@@ -73,10 +67,8 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
       isCreated = true
     }
 
-  private inner class CloseActionListener(
-    private val tabInfo: TabInfo,
-    private val closeAction: (tabInfo: TabInfo) -> Unit,
-  ) : ActionListener {
+  private inner class CloseActionListener(private val tabInfo: TabInfo, private val closeAction: (tabInfo: TabInfo) -> Unit) :
+    ActionListener {
     override fun actionPerformed(e: ActionEvent?) {
       removeTab(tabInfo)
       closeAction(tabInfo)
@@ -85,11 +77,7 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
 
   private class CloseButton(actionListener: ActionListener?) :
     InplaceButton(
-      IconButton(
-        message("animation.inspector.action.close.tab"),
-        AllIcons.Actions.Close,
-        AllIcons.Actions.CloseHovered,
-      ),
+      IconButton(message("animation.inspector.action.close.tab"), AllIcons.Actions.Close, AllIcons.Actions.CloseHovered),
       actionListener,
     ) {
     init {
@@ -104,27 +92,23 @@ class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(proje
 
     init {
       if (mouseListeners.size != 1) {
-        logger<FocusableTabLabel>()
-          .warn("FocusableTabLabel is expected to have a single MouseListener.")
+        logger<FocusableTabLabel>().warn("FocusableTabLabel is expected to have a single MouseListener.")
       }
       mouseListeners.getOrNull(0)?.let {
         val ignoreRightClickListener =
           object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
-              if (SwingUtilities.isRightMouseButton(e))
-                return // Ignore right-click events, so we don't show the context menu popup
+              if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
               it.mouseClicked(e)
             }
 
             override fun mousePressed(e: MouseEvent?) {
-              if (SwingUtilities.isRightMouseButton(e))
-                return // Ignore right-click events, so we don't show the context menu popup
+              if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
               it.mousePressed(e)
             }
 
             override fun mouseReleased(e: MouseEvent?) {
-              if (SwingUtilities.isRightMouseButton(e))
-                return // Ignore right-click events, so we don't show the context menu popup
+              if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
               it.mouseReleased(e)
             }
 

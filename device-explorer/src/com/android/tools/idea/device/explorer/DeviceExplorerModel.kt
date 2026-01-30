@@ -40,27 +40,27 @@ class DeviceExplorerModel @NonInjectable constructor(private val deviceProvision
 
   val devices: StateFlow<List<DeviceHandle>> =
     flow {
-      val deviceMap = mutableMapOf<DeviceHandle, ConnectedDevice>()
+        val deviceMap = mutableMapOf<DeviceHandle, ConnectedDevice>()
 
-      deviceProvisioner.devices
-        .pairWithNestedState { deviceHandle -> deviceHandle.stateFlow.map { deviceState -> deviceState.connectedDevice } }
-        .collect { pairs: List<Pair<DeviceHandle, ConnectedDevice?>> ->
-          // Remove any device that is no longer present
-          val handles = pairs.map { it.first }.toSet()
-          deviceMap.keys.retainAll(handles)
+        deviceProvisioner.devices
+          .pairWithNestedState { deviceHandle -> deviceHandle.stateFlow.map { deviceState -> deviceState.connectedDevice } }
+          .collect { pairs: List<Pair<DeviceHandle, ConnectedDevice?>> ->
+            // Remove any device that is no longer present
+            val handles = pairs.map { it.first }.toSet()
+            deviceMap.keys.retainAll(handles)
 
-          // Add new devices and update existing devices
-          for ((handle, connectedDevice) in pairs) {
-            if (handle.state.isOnline()) {
-              deviceMap.compute(handle) { _, _ -> connectedDevice }
-            } else  {
-              // Remove offline devices if they've been added
-              deviceMap.remove(handle)
+            // Add new devices and update existing devices
+            for ((handle, connectedDevice) in pairs) {
+              if (handle.state.isOnline()) {
+                deviceMap.compute(handle) { _, _ -> connectedDevice }
+              } else {
+                // Remove offline devices if they've been added
+                deviceMap.remove(handle)
+              }
             }
+            emit(deviceMap.keys.toList())
           }
-          emit(deviceMap.keys.toList())
-        }
-    }
+      }
       .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
   val activeDevice = MutableStateFlow<DeviceHandle?>(null)

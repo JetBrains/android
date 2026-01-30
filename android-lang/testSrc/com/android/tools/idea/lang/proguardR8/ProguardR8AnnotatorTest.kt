@@ -30,11 +30,12 @@ class ProguardR8AnnotatorTest(private val fileType: LanguageFileType) : Proguard
     myFixture.configureByText(
       fileType,
       """
-        -keep class class.interface.myClass {
-          int foo;
-          int void;
-        }
-      """.trimIndent()
+      -keep class class.interface.myClass {
+        int foo;
+        int void;
+      }
+      """
+        .trimIndent(),
     )
     var element = myFixture.moveCaret("interf|ace")
     var annotations = CodeInsightTestUtil.testAnnotator(ProguardR8Annotator(), element)

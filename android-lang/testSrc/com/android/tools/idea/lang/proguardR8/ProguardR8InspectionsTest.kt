@@ -38,7 +38,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       -keep class ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} {
         long myBoolean;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -48,7 +50,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       -keep class test.MyNotExistingClass.WithWildCard** {
         long myBoolean;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -59,7 +63,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
         ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")}
         ${"myVal".highlightedAs(ERROR, "The rule matches no class members")};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -72,7 +78,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       """
       -dontwarn test.MyNotExistingClass
       -dontnote test.MyNotExistingClass
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -85,7 +93,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       -keep class ** {
         long myBoolean;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -93,7 +103,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       fileType,
       """
       -keep class com.android.** { *; }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -101,20 +113,22 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
   @Test
   fun testInnerClasses() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package example;
 
       class MyClass {
         class Inner {}
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
       """
       -keep class example.MyClass${'$'}Inner
-      """
+      """,
     )
     myFixture.checkHighlighting()
   }
@@ -122,7 +136,7 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
   @Test
   fun testInnerClassesSeparatorInspection() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package example;
 
@@ -131,13 +145,15 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
           class SecondInner {}
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
       """
       -keep class example.MyClass.Inner
-      """
+      """,
     )
     var highlights = myFixture.doHighlighting(ERROR).map { it.description }
 
@@ -147,7 +163,7 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       fileType,
       """
       -keep class example.MyClass.Inner${'$'}SecondInner
-      """
+      """,
     )
     highlights = myFixture.doHighlighting(ERROR).map { it.description }
 
@@ -157,7 +173,7 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
       fileType,
       """
       -keep class example.MyClass${'$'}Inner.SecondInner
-      """
+      """,
     )
     highlights = myFixture.doHighlighting(ERROR).map { it.description }
 
@@ -169,8 +185,9 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
     myFixture.configureByText(
       fileType,
       """
-        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag")}
-      """.trimIndent()
+      ${"-invalidflag".highlightedAs(ERROR, "Invalid flag")}
+      """
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -178,12 +195,15 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
 
   @Test
   fun testSpacesInArrayType() {
-    myFixture.addClass("""
+    myFixture.addClass(
+      """
       package test
       class myClass {
         int[] method() {};
        }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -194,11 +214,12 @@ class ProguardR8InspectionsTest(private val fileType: LanguageFileType) : Progua
         int ${"[  ]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method();
         int[] method();
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
-
 }
 
 @RunWith(Parameterized::class)
@@ -209,6 +230,7 @@ class ProguardR8IgnoredFlagInspectionTest(private val fileType: LanguageFileType
     @get:Parameterized.Parameters(name = "{0}")
     val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
   }
+
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(ProguardR8IgnoredFlagInspection::class.java)
@@ -223,7 +245,8 @@ class ProguardR8IgnoredFlagInspectionTest(private val fileType: LanguageFileType
       fileType,
       """
         ${"-${flag}".highlightedAs(WARNING, "Flag ignored by R8")}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -234,7 +257,8 @@ class ProguardR8IgnoredFlagInspectionTest(private val fileType: LanguageFileType
       fileType,
       """
         -${flag}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()
@@ -245,7 +269,8 @@ class ProguardR8IgnoredFlagInspectionTest(private val fileType: LanguageFileType
       fileType,
       """
         -${flag}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.checkHighlighting()

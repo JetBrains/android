@@ -19,11 +19,11 @@ import com.android.sdklib.IAndroidTarget
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
-import com.android.tools.sdk.getLayoutLibrary
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.sdk.getLayoutLibrary
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -42,20 +42,19 @@ open class StudioRenderService {
      * the access to the new instances.
      */
     private val KEY: Key<RenderService> = Key.create(RenderService::class.java.name)
+
     init {
       // Register the executor to be shutdown on close
       ShutDownTracker.getInstance().registerShutdownTask { RenderService.shutdownRenderExecutor() }
     }
 
-    /**
-     * @return the [RenderService] for the given facet.
-     */
+    /** @return the [RenderService] for the given facet. */
     @JvmStatic
     fun getInstance(project: Project): RenderService {
       synchronized(KEY) {
         var renderService = project.getUserData(KEY)
         if (renderService == null) {
-          renderService = RenderService { }
+          renderService = RenderService {}
           Disposer.register(project, renderService)
           Disposer.register(renderService) { project.putUserData(KEY, null) }
           project.putUserData(KEY, renderService)
@@ -72,17 +71,14 @@ open class StudioRenderService {
   }
 }
 
-/**
- * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
- */
+/** Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask]. */
 @JvmOverloads
 fun RenderService.taskBuilder(
   buildTarget: AndroidBuildTargetReference,
   configuration: Configuration,
   logger: RenderLogger = createLogger(buildTarget.project),
   wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity(),
-): RenderService.RenderTaskBuilder =
-  taskBuilder(wrapRenderModule(AndroidFacetRenderModelModule(buildTarget)), configuration, logger)
+): RenderService.RenderTaskBuilder = taskBuilder(wrapRenderModule(AndroidFacetRenderModelModule(buildTarget)), configuration, logger)
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
   val context = StudioLayoutlibContext(module.project)

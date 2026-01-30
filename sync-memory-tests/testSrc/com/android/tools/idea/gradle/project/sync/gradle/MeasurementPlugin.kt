@@ -16,15 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.gradle
 
 import com.sun.management.HotSpotDiagnosticMXBean
-import org.gradle.BuildAdapter
-import org.gradle.api.Plugin
-import org.gradle.api.initialization.Settings
-import org.gradle.api.invocation.Gradle
-import org.gradle.api.services.BuildService
-import org.gradle.api.services.BuildServiceParameters
-import org.gradle.build.event.BuildEventsListenerRegistry
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationCompletionListener
 import java.io.Closeable
 import java.io.File
 import java.lang.management.GarbageCollectorMXBean
@@ -34,16 +25,25 @@ import javax.inject.Inject
 import javax.management.MBeanServer
 import javax.management.ObjectName
 import kotlin.time.Duration.Companion.milliseconds
+import org.gradle.BuildAdapter
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
 
 enum class CaptureType {
   HEAP_HISTOGRAM,
   HEAP_DUMP,
-  TIMESTAMP
+  TIMESTAMP,
 }
 
 enum class MeasurementCheckpoint {
   CONFIGURATION_FINISHED,
-  SYNC_FINISHED
+  SYNC_FINISHED,
 }
 
 // Functions and variables can't be top level and has to be static to keep Gradle happy.
@@ -54,23 +54,22 @@ object MeasurementPluginConfig {
 
   /** Call this from a benchmark test to configure and apply the plugin globally via init script in Gradle home. */
   @JvmStatic
-  fun configureAndApply(
-    outputPath: String,
-    captureTypes: Set<CaptureType>,
-    captureJfr: Boolean = false
-  ) {
+  fun configureAndApply(outputPath: String, captureTypes: Set<CaptureType>, captureJfr: Boolean = false) {
 
     val src = File("tools/adt/idea/sync-memory-tests/testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt")
     val initScript = File(System.getProperty("gradle.user.home")).resolve("init.gradle.kts")
     src.copyTo(initScript, overwrite = true)
-    initScript.appendText("""
+    initScript.appendText(
+      """
       ${this::class.simpleName}.${this::outputPath.name} = "$outputPath"
       ${this::class.simpleName}.${this::captureJfr.name} = $captureJfr
       ${this::class.simpleName}.${this::captureTypes.name} = setOf(${
       captureTypes.joinToString(",") { "${CaptureType::class.simpleName}.$it" }
     })
       apply<${MeasurementPlugin::class.simpleName}>()
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Create dummy Gradle init KTS as a workaround for KTIJ-35104
     File(System.getProperty("gradle.user.home")).resolve("init.d").run {
@@ -80,7 +79,7 @@ object MeasurementPluginConfig {
   }
 }
 
-class MeasurementPlugin @Inject constructor(private val registry: BuildEventsListenerRegistry): Plugin<Gradle>, BuildAdapter() {
+class MeasurementPlugin @Inject constructor(private val registry: BuildEventsListenerRegistry) : Plugin<Gradle>, BuildAdapter() {
   override fun apply(gradle: Gradle) {
     gradle.addBuildListener(this)
     registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("measurement-service", MeasurementService::class.java) {})
@@ -98,10 +97,10 @@ class MeasurementPlugin @Inject constructor(private val registry: BuildEventsLis
 }
 
 open class MeasurementServiceParams : BuildServiceParameters
+
 abstract class MeasurementService : OperationCompletionListener, Closeable, BuildService<MeasurementServiceParams> {
   // Ignored event, we only care about the one right before closing
   override fun onFinish(event: FinishEvent?) {}
-
 
   override fun close() {
     if (MeasurementPluginConfig.captureJfr) {
@@ -125,7 +124,7 @@ object EventRecorder {
     if (CaptureType.HEAP_HISTOGRAM in MeasurementPluginConfig.captureTypes) {
       captureHeapHistogramOfCurrentProcess(checkpoint)
     }
-    if (CaptureType.TIMESTAMP in MeasurementPluginConfig.captureTypes){
+    if (CaptureType.TIMESTAMP in MeasurementPluginConfig.captureTypes) {
       captureEventTimestamp(checkpoint)
     }
   }
@@ -145,12 +144,9 @@ object EventRecorder {
     println(server.execute("jfrStop", arrayOf(arrayOf("name=jfr filename=${fileJfr.path}"))))
   }
 
-
   @JvmStatic
   fun captureGcCollectionTime() {
-    val collectionTime = ManagementFactory.getGarbageCollectorMXBeans().sumOf {
-      (it as GarbageCollectorMXBean).collectionTime
-    }
+    val collectionTime = ManagementFactory.getGarbageCollectorMXBeans().sumOf { (it as GarbageCollectorMXBean).collectionTime }
     val file = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_$GC_COLLECTION_TIME_FILE_NAME_SUFFIX")
     file.writeText(collectionTime.toString())
     println("Total accumulated GC Collection time: ${collectionTime.milliseconds}")
@@ -181,21 +177,13 @@ object EventRecorder {
     val name = checkpoint.name
     val server: MBeanServer = ManagementFactory.getPlatformMBeanServer()
     val mxBean: HotSpotDiagnosticMXBean =
-      ManagementFactory.newPlatformMXBeanProxy(
-        server,
-        "com.sun.management:type=HotSpotDiagnostic",
-        HotSpotDiagnosticMXBean::class.java
-      )
+      ManagementFactory.newPlatformMXBeanProxy(server, "com.sun.management:type=HotSpotDiagnostic", HotSpotDiagnosticMXBean::class.java)
     val heapDumpPath = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_${name}.hprof").path
     println("Capturing heap dump at $heapDumpPath")
     mxBean.dumpHeap(heapDumpPath, true)
   }
 
   @JvmStatic
-  private fun MBeanServer.execute(name: String, args: Array<Array<String>?> = arrayOf(null)) = invoke(
-    ObjectName("com.sun.management:type=DiagnosticCommand"),
-    name,
-    args,
-    arrayOf(Array<String>::class.java.name)
-  ).toString()
+  private fun MBeanServer.execute(name: String, args: Array<Array<String>?> = arrayOf(null)) =
+    invoke(ObjectName("com.sun.management:type=DiagnosticCommand"), name, args, arrayOf(Array<String>::class.java.name)).toString()
 }

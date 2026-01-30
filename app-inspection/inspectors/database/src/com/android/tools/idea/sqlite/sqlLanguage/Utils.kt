@@ -46,12 +46,11 @@ import com.intellij.psi.util.parentOfTypes
 import java.util.Deque
 
 /**
- * Returns a SQLite statement where named parameters have been replaced with positional parameters
- * (?) and the list of named parameters in the original statement.
+ * Returns a SQLite statement where named parameters have been replaced with positional parameters (?) and the list of named parameters in
+ * the original statement.
  *
  * @param psiElement The [PsiElement] corresponding to a SQLite statement.
- * @return The text of the SQLite statement with positional parameters and the list of named
- *   parameters.
+ * @return The text of the SQLite statement with positional parameters and the list of named parameters.
  */
 fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): ParsedSqliteStatement {
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
@@ -70,27 +69,16 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
               if (!bindParameterText.startsWith("?")) {
                 bindParameterText
               } else {
-                val parent =
-                  bindParameter.parentOfTypes(
-                    AndroidSqlEquivalenceExpression::class,
-                    AndroidSqlComparisonExpression::class,
-                  )
+                val parent = bindParameter.parentOfTypes(AndroidSqlEquivalenceExpression::class, AndroidSqlComparisonExpression::class)
 
                 // If there is no parent of type EquivalenceExpression or ComparisonExpression keep
                 // '?' as the variable name.
                 // Otherwise, use the name of the column.
-                parent
-                  ?.children
-                  ?.filterIsInstance<AndroidSqlColumnRefExpression>()
-                  ?.firstOrNull()
-                  ?.text ?: bindParameterText
+                parent?.children?.filterIsInstance<AndroidSqlColumnRefExpression>()?.firstOrNull()?.text ?: bindParameterText
               }
 
             parametersNames.add(SqliteParameter(parameterName, parentIsInExpression(bindParameter)))
-            bindParameter.node.replaceChild(
-              bindParameter.node.firstChildNode,
-              ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"),
-            )
+            bindParameter.node.replaceChild(bindParameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
           }
         }
 
@@ -103,10 +91,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
   return ParsedSqliteStatement(psiElementCopy.text, parametersNames)
 }
 
-fun expandCollectionParameters(
-  psiElement: PsiElement,
-  parameterValues: Deque<SqliteParameterValue>,
-): PsiElement {
+fun expandCollectionParameters(psiElement: PsiElement, parameterValues: Deque<SqliteParameterValue>): PsiElement {
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 
@@ -144,8 +129,7 @@ fun expandCollectionParameters(
 }
 
 /**
- * Replaces all [AndroidSqlBindParameter]s with parameter values in [parameterValues], matching them
- * by the order they have in the queue.
+ * Replaces all [AndroidSqlBindParameter]s with parameter values in [parameterValues], matching them by the order they have in the queue.
  */
 fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteValue>): String {
   if (parameterValues.isEmpty()) {
@@ -164,10 +148,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
             val leaf =
               when (val sqliteValue = parameterValues.pollFirst()) {
                 is SqliteValue.StringValue -> {
-                  ASTFactory.leaf(
-                    AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
-                    AndroidSqlLexer.getValidStringValue(sqliteValue.value),
-                  )
+                  ASTFactory.leaf(AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL, AndroidSqlLexer.getValidStringValue(sqliteValue.value))
                 }
                 is SqliteValue.NullValue -> ASTFactory.leaf(AndroidSqlPsiTypes.NULL, "null")
               }
@@ -185,9 +166,7 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
   return psiElementCopy.text
 }
 
-/**
- * Returns true if the SqliteStatement in [psiElement] has at least one [AndroidSqlBindParameter].
- */
+/** Returns true if the SqliteStatement in [psiElement] has at least one [AndroidSqlBindParameter]. */
 fun needsBinding(psiElement: PsiElement): Boolean {
   var needsBinding = false
   @Suppress("UnstableApiUsage")
@@ -216,20 +195,14 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
 
   return when {
     PsiTreeUtil.hasErrorElements(psiFile) -> SqliteStatementType.UNKNOWN
-    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlExplainPrefix::class.java) != null ->
-      SqliteStatementType.EXPLAIN
-    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlSelectStatement::class.java) != null ->
-      SqliteStatementType.SELECT
-    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlDeleteStatement::class.java) != null ->
-      SqliteStatementType.DELETE
-    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlInsertStatement::class.java) != null ->
-      SqliteStatementType.INSERT
-    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null ->
-      SqliteStatementType.UPDATE
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlExplainPrefix::class.java) != null -> SqliteStatementType.EXPLAIN
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlSelectStatement::class.java) != null -> SqliteStatementType.SELECT
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlDeleteStatement::class.java) != null -> SqliteStatementType.DELETE
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlInsertStatement::class.java) != null -> SqliteStatementType.INSERT
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null -> SqliteStatementType.UPDATE
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlWithClauseStatement::class.java) != null -> {
       // check part of "with" statement after "with" clause
-      val withClauseStatement =
-        PsiTreeUtil.getChildOfType(psiFile, AndroidSqlWithClauseStatement::class.java)
+      val withClauseStatement = PsiTreeUtil.getChildOfType(psiFile, AndroidSqlWithClauseStatement::class.java)
       return when {
         withClauseStatement == null -> SqliteStatementType.UNKNOWN
         withClauseStatement.selectStatement != null -> SqliteStatementType.SELECT
@@ -240,8 +213,7 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
       }
     }
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java) != null -> {
-      val pragmaStatement =
-        PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java)!!
+      val pragmaStatement = PsiTreeUtil.getChildOfType(psiFile, AndroidSqlPragmaStatement::class.java)!!
       // we can just check for EQ (=) because the syntax of pragma statements is fairly limited
       // see https://www.sqlite.org/pragma.html#syntax
       if (pragmaStatement.node.findChildByType(AndroidSqlPsiTypes.EQ) == null) {
@@ -255,17 +227,14 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
 }
 
 /**
- * Returns a version of [sqliteStatement] that has the same semantic meaning but is safe to wrap in
- * other SQLite statements.
+ * Returns a version of [sqliteStatement] that has the same semantic meaning but is safe to wrap in other SQLite statements.
  *
- * Eg: `SELECT * FROM t;` becomes `SELECT * FROM t`, that can be safely wrapped like `SELECT
- * COUNT(*) FROM (SELECT * FROM t)`
+ * Eg: `SELECT * FROM t;` becomes `SELECT * FROM t`, that can be safely wrapped like `SELECT COUNT(*) FROM (SELECT * FROM t)`
  */
 fun getWrappableStatement(project: Project, sqliteStatement: String): String {
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
   if (
-    psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON ||
-      psiElement.lastChild.elementType == AndroidSqlPsiTypes.LINE_COMMENT
+    psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON || psiElement.lastChild.elementType == AndroidSqlPsiTypes.LINE_COMMENT
   ) {
     psiElement.node.removeChild(psiElement.lastChild.node)
   }

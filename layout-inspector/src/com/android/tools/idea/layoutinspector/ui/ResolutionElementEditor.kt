@@ -84,9 +84,7 @@ class ResolutionElementEditor(
     val property = editorModel.property as InspectorPropertyItem
     val locations = property.sourceLocations
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
-    val hideLinkPanel =
-      (locations.isEmpty() && classLocation == null) ||
-        (property is PTableGroupItem && !editorModel.isExpandedTableItem)
+    val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
     val isSelected = editorModel.isUsedInRendererWithSelection
     linkPanel.isVisible = !hideLinkPanel
     editorModel.isCustomHeight = !hideLinkPanel
@@ -99,10 +97,7 @@ class ResolutionElementEditor(
       when (locations.size) {
         0 -> {}
         1 -> linkPanel.add(SourceLocationLink(locations.first(), isSelected, isOverridden))
-        else ->
-          linkPanel.add(
-            ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden)
-          )
+        else -> linkPanel.add(ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden))
       }
     }
   }
@@ -209,16 +204,11 @@ class ResolutionElementEditor(
   /**
    * Allow the link to be clickable in the table even though the editor is only used for rendering.
    *
-   * @param [location] the source location. If [SourceLocation.navigatable] is missing then show the
-   *   link as normal text.
+   * @param [location] the source location. If [SourceLocation.navigatable] is missing then show the link as normal text.
    * @param [isSelected] then the font color will use the table foreground for selected and focused.
    * @param [isOverridden] then the font will use strikeout to indicate the value is overridden.
    */
-  private class SourceLocationLink(
-    private val location: SourceLocation,
-    isSelected: Boolean,
-    isOverridden: Boolean,
-  ) : JBLabel() {
+  private class SourceLocationLink(private val location: SourceLocation, isSelected: Boolean, isOverridden: Boolean) : JBLabel() {
 
     init {
       val showAsLink = location.navigatable != null
@@ -260,8 +250,7 @@ class ResolutionElementEditor(
 
     private fun getSmallFont(showAsLink: Boolean, strikeout: Boolean): Font {
       val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-      @Suppress("UNCHECKED_CAST")
-      val attributes = font.attributes as MutableMap<TextAttribute, Any?>
+      @Suppress("UNCHECKED_CAST") val attributes = font.attributes as MutableMap<TextAttribute, Any?>
       if (showAsLink) {
         attributes[TextAttribute.UNDERLINE] = TextAttribute.UNDERLINE_ON
       }

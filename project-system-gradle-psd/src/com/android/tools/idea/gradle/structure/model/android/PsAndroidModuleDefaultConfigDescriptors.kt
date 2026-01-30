@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.sdklib.AndroidTargetHash
+import com.android.tools.idea.gradle.dsl.android.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeProductFlavor
-import com.android.tools.idea.gradle.dsl.android.api.android.ProductFlavorModel
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
@@ -56,8 +56,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   override fun getResolved(model: PsAndroidModuleDefaultConfig): IdeProductFlavor? =
     model.module.resolvedModel?.androidProject?.multiVariantData?.defaultConfig
 
-  override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
-    model.module.parsedModel?.android()?.defaultConfig()
+  override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? = model.module.parsedModel?.android()?.defaultConfig()
 
   override fun prepareForModification(model: PsAndroidModuleDefaultConfig) = Unit
 
@@ -65,206 +64,243 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     model.module.isModified = true
   }
 
-  val applicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Application ID",
-    preferredVariableName = { "defaultApplicationId" },
-    resolvedValueGetter = { applicationId },
-    parsedPropertyGetter = { applicationId() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val applicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Application ID",
+      preferredVariableName = { "defaultApplicationId" },
+      resolvedValueGetter = { applicationId },
+      parsedPropertyGetter = { applicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val applicationIdSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Application ID Suffix",
-    preferredVariableName = { "defaultApplicationIdSuffix" },
-    resolvedValueGetter = { applicationIdSuffix },
-    parsedPropertyGetter = { applicationIdSuffix() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val applicationIdSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Application ID Suffix",
+      preferredVariableName = { "defaultApplicationIdSuffix" },
+      resolvedValueGetter = { applicationIdSuffix },
+      parsedPropertyGetter = { applicationIdSuffix() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
-    "Max SDK Version",
-    preferredVariableName = { "defaultMaxSdkVersion" },
-    resolvedValueGetter = { maxSdkVersion },
-    parsedPropertyGetter = { maxSdkVersion() },
-    getter = { asInt() },
-    setter = { setValue(it) },
-    parser = ::parseInt,
-    knownValuesGetter = ::maxSdkValues
-  )
+  val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> =
+    property(
+      "Max SDK Version",
+      preferredVariableName = { "defaultMaxSdkVersion" },
+      resolvedValueGetter = { maxSdkVersion },
+      parsedPropertyGetter = { maxSdkVersion() },
+      getter = { asInt() },
+      setter = { setValue(it) },
+      parser = ::parseInt,
+      knownValuesGetter = ::maxSdkValues,
+    )
 
-  val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Min SDK Version",
-    preferredVariableName = { "defaultMinSdkVersion" },
-    resolvedValueGetter = { minSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
-    parsedPropertyGetter = { minSdkVersion() },
-    getter = { asString() },
-    setter = { setValue(it.toIntOrNull() ?: it) },
-    parser = ::parseString,
-    matcher = ::matchHashStrings,
-    knownValuesGetter = ::minSdkValues
-  )
+  val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Min SDK Version",
+      preferredVariableName = { "defaultMinSdkVersion" },
+      resolvedValueGetter = { minSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
+      parsedPropertyGetter = { minSdkVersion() },
+      getter = { asString() },
+      setter = { setValue(it.toIntOrNull() ?: it) },
+      parser = ::parseString,
+      matcher = ::matchHashStrings,
+      knownValuesGetter = ::minSdkValues,
+    )
 
-  val multiDexEnabled: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
-    "Multi Dex Enabled",
-    preferredVariableName = { "defaultMultiDexEnabled" },
-    resolvedValueGetter = { multiDexEnabled },
-    parsedPropertyGetter = { multiDexEnabled() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val multiDexEnabled: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> =
+    property(
+      "Multi Dex Enabled",
+      preferredVariableName = { "defaultMultiDexEnabled" },
+      resolvedValueGetter = { multiDexEnabled },
+      parsedPropertyGetter = { multiDexEnabled() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
-  val signingConfig: SimpleProperty<PsAndroidModuleDefaultConfig, Unit> = property(
-    "Signing Config",
-    resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
-    parsedPropertyGetter = { signingConfig() },
-    getter = ResolvedPropertyModel::asUnit,
-    setter = {},
-    parser = ::parseReferenceOnly,
-    formatter = ::formatUnit,
-    knownValuesGetter = { model -> signingConfigs(model.module) }
-  )
+  val signingConfig: SimpleProperty<PsAndroidModuleDefaultConfig, Unit> =
+    property(
+      "Signing Config",
+      resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
+      parsedPropertyGetter = { signingConfig() },
+      getter = ResolvedPropertyModel::asUnit,
+      setter = {},
+      parser = ::parseReferenceOnly,
+      formatter = ::formatUnit,
+      knownValuesGetter = { model -> signingConfigs(model.module) },
+    )
 
-  val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Target SDK Version",
-    preferredVariableName = { "defaultTargetSdkVersion" },
-    resolvedValueGetter = { targetSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
-    parsedPropertyGetter = { targetSdkVersion() },
-    getter = { asString() },
-    setter = { setValue(it.toIntOrNull() ?: it) },
-    parser = ::parseString,
-    matcher = ::matchHashStrings,
-    knownValuesGetter = ::targetSdkValues
-  )
+  val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Target SDK Version",
+      preferredVariableName = { "defaultTargetSdkVersion" },
+      resolvedValueGetter = { targetSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
+      parsedPropertyGetter = { targetSdkVersion() },
+      getter = { asString() },
+      setter = { setValue(it.toIntOrNull() ?: it) },
+      parser = ::parseString,
+      matcher = ::matchHashStrings,
+      knownValuesGetter = ::targetSdkValues,
+    )
 
-  val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Test Application ID",
-    preferredVariableName = { "defaultTestApplicationId" },
-    resolvedValueGetter = { testApplicationId },
-    parsedPropertyGetter = { testApplicationId() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Test Application ID",
+      preferredVariableName = { "defaultTestApplicationId" },
+      resolvedValueGetter = { testApplicationId },
+      parsedPropertyGetter = { testApplicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
-    "Test Functional Test",
-    preferredVariableName = { "defaultTestFunctionalTest" },
-    resolvedValueGetter = { testFunctionalTest },
-    parsedPropertyGetter = { testFunctionalTest() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> =
+    property(
+      "Test Functional Test",
+      preferredVariableName = { "defaultTestFunctionalTest" },
+      resolvedValueGetter = { testFunctionalTest },
+      parsedPropertyGetter = { testFunctionalTest() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
-  val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
-    "Test Handle Profiling",
-    preferredVariableName = { "defaultTestHandleProfiling" },
-    resolvedValueGetter = { testHandleProfiling },
-    parsedPropertyGetter = { testHandleProfiling() },
-    getter = { asBoolean() },
-    setter = { setValue(it) },
-    parser = ::parseBoolean,
-    knownValuesGetter = ::booleanValues
-  )
+  val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> =
+    property(
+      "Test Handle Profiling",
+      preferredVariableName = { "defaultTestHandleProfiling" },
+      resolvedValueGetter = { testHandleProfiling },
+      parsedPropertyGetter = { testHandleProfiling() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parser = ::parseBoolean,
+      knownValuesGetter = ::booleanValues,
+    )
 
-  val testInstrumentationRunner: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Test instrumentation runner class name",
-    preferredVariableName = { "defaultTestInstrumentationRunner" },
-    resolvedValueGetter = { testInstrumentationRunner },
-    parsedPropertyGetter = { testInstrumentationRunner() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val testInstrumentationRunner: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Test instrumentation runner class name",
+      preferredVariableName = { "defaultTestInstrumentationRunner" },
+      resolvedValueGetter = { testInstrumentationRunner },
+      parsedPropertyGetter = { testInstrumentationRunner() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
-    "Version Code",
-    preferredVariableName = { "defaultVersionCode" },
-    resolvedValueGetter = { versionCode },
-    parsedPropertyGetter = { versionCode() },
-    getter = { asInt() },
-    setter = { setValue(it) },
-    parser = ::parseInt
-  )
+  val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, Int> =
+    property(
+      "Version Code",
+      preferredVariableName = { "defaultVersionCode" },
+      resolvedValueGetter = { versionCode },
+      parsedPropertyGetter = { versionCode() },
+      getter = { asInt() },
+      setter = { setValue(it) },
+      parser = ::parseInt,
+    )
 
-  val versionName: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Version Name",
-    preferredVariableName = { "defaultVersionName" },
-    resolvedValueGetter = { versionName },
-    parsedPropertyGetter = { versionName() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val versionName: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Version Name",
+      preferredVariableName = { "defaultVersionName" },
+      resolvedValueGetter = { versionName },
+      parsedPropertyGetter = { versionName() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val versionNameSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Version Name Suffix",
-    preferredVariableName = { "defaultVersionNameSuffix" },
-    resolvedValueGetter = { versionNameSuffix },
-    parsedPropertyGetter = { versionNameSuffix() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val versionNameSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> =
+    property(
+      "Version Name Suffix",
+      preferredVariableName = { "defaultVersionNameSuffix" },
+      resolvedValueGetter = { versionNameSuffix },
+      parsedPropertyGetter = { versionNameSuffix() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val consumerProGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
-    "Consumer ProGuard Files",
-    resolvedValueGetter = { consumerProguardFiles.toList() },
-    parsedPropertyGetter = { consumerProguardFiles() },
-    getter = { asFile() },
-    setter = { setValue(it.toString()) },
-    parser = ::parseFile,
-    knownValuesGetter = { model -> proGuardFileValues(model.module) }
-  )
-    .withProFileSelector(module = { module })
+  val consumerProGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> =
+    listProperty(
+        "Consumer ProGuard Files",
+        resolvedValueGetter = { consumerProguardFiles.toList() },
+        parsedPropertyGetter = { consumerProguardFiles() },
+        getter = { asFile() },
+        setter = { setValue(it.toString()) },
+        parser = ::parseFile,
+        knownValuesGetter = { model -> proGuardFileValues(model.module) },
+      )
+      .withProFileSelector(module = { module })
 
-  val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> = listProperty(
-    "ProGuard Files",
-    resolvedValueGetter = { proguardFiles.toList() },
-    parsedPropertyGetter = { proguardFiles() },
-    getter = { asFile() },
-    setter = { setValue(it.toString()) },
-    parser = ::parseFile,
-    knownValuesGetter = { model -> proGuardFileValues(model.module) }
-  )
-    .withProFileSelector(module = { module })
+  val proGuardFiles: ListProperty<PsAndroidModuleDefaultConfig, File> =
+    listProperty(
+        "ProGuard Files",
+        resolvedValueGetter = { proguardFiles.toList() },
+        parsedPropertyGetter = { proguardFiles() },
+        getter = { asFile() },
+        setter = { setValue(it.toString()) },
+        parser = ::parseFile,
+        knownValuesGetter = { model -> proGuardFileValues(model.module) },
+      )
+      .withProFileSelector(module = { module })
 
-  val resConfigs: ListProperty<PsAndroidModuleDefaultConfig, String> = listProperty(
-    "Resource Configs",
-    resolvedValueGetter = { resourceConfigurations.toList() },
-    parsedPropertyGetter = { resConfigs() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val resConfigs: ListProperty<PsAndroidModuleDefaultConfig, String> =
+    listProperty(
+      "Resource Configs",
+      resolvedValueGetter = { resourceConfigurations.toList() },
+      parsedPropertyGetter = { resConfigs() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
-  val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, Any> = mapProperty(
-    "Manifest Placeholders",
-    resolvedValueGetter = { manifestPlaceholders },
-    parsedPropertyGetter = { manifestPlaceholders() },
-    getter = { asAny() },
-    setter = { setValue(it) },
-    parser = ::parseAny
-  )
+  val manifestPlaceholders: MapProperty<PsAndroidModuleDefaultConfig, Any> =
+    mapProperty(
+      "Manifest Placeholders",
+      resolvedValueGetter = { manifestPlaceholders },
+      parsedPropertyGetter = { manifestPlaceholders() },
+      getter = { asAny() },
+      setter = { setValue(it) },
+      parser = ::parseAny,
+    )
 
-  val testInstrumentationRunnerArguments: MapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
-    "Test Instrumentation Runner Arguments",
-    resolvedValueGetter = { testInstrumentationRunnerArguments },
-    parsedPropertyGetter = { testInstrumentationRunnerArguments() },
-    getter = { asString() },
-    setter = { setValue(it) },
-    parser = ::parseString
-  )
+  val testInstrumentationRunnerArguments: MapProperty<PsAndroidModuleDefaultConfig, String> =
+    mapProperty(
+      "Test Instrumentation Runner Arguments",
+      resolvedValueGetter = { testInstrumentationRunnerArguments },
+      parsedPropertyGetter = { testInstrumentationRunnerArguments() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+    )
 
   override val properties: Collection<ModelProperty<PsAndroidModuleDefaultConfig, *, *, *>> =
-    listOf(applicationId, applicationIdSuffix, maxSdkVersion, minSdkVersion, multiDexEnabled, signingConfig, targetSdkVersion,
-           testApplicationId, testFunctionalTest, testHandleProfiling, testInstrumentationRunner, versionCode, versionName,
-           versionNameSuffix, consumerProGuardFiles, proGuardFiles, resConfigs, manifestPlaceholders, testInstrumentationRunnerArguments)
+    listOf(
+      applicationId,
+      applicationIdSuffix,
+      maxSdkVersion,
+      minSdkVersion,
+      multiDexEnabled,
+      signingConfig,
+      targetSdkVersion,
+      testApplicationId,
+      testFunctionalTest,
+      testHandleProfiling,
+      testInstrumentationRunner,
+      versionCode,
+      versionName,
+      versionNameSuffix,
+      consumerProGuardFiles,
+      proGuardFiles,
+      resConfigs,
+      manifestPlaceholders,
+      testInstrumentationRunnerArguments,
+    )
 }

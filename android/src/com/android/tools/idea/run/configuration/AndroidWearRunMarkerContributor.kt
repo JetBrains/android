@@ -28,17 +28,18 @@ import org.jetbrains.kotlin.lexer.KtToken
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
- * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to classes that extend
- * Wear Services (Watch Face, Tiles and Complications).
- * The icon can be used to create new [AndroidWearConfiguration] or run an existing configuration.
+ * A [RunLineMarkerContributor] that displays a "Run" gutter icon next to classes that extend Wear Services (Watch Face, Tiles and
+ * Complications). The icon can be used to create new [AndroidWearConfiguration] or run an existing configuration.
  */
 class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(element: PsiElement): Info? = null
 
   override fun getSlowInfo(e: PsiElement): Info? {
     val elementType = e.node.elementType
-    if (!(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
-        && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {
+    if (
+      !(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
+      && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)
+    ) {
       return null
     }
 

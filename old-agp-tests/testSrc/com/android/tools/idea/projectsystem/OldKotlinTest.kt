@@ -28,23 +28,22 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Moved from [com.android.tools.idea.gradle.util.runsGradle.GradleProjectSystemUtilSoftwareVersionsTest]
- * because pre 2.0.0 KGP is not supported by Gradle 9.0.
+ * Moved from [com.android.tools.idea.gradle.util.runsGradle.GradleProjectSystemUtilSoftwareVersionsTest] because pre 2.0.0 KGP is not
+ * supported by Gradle 9.0.
  */
 @OldAgpTest(gradleVersions = ["8.13"], agpVersions = ["8.12.0"])
 class OldKotlinTest() {
 
   private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk(AndroidApiLevel(35))
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)
 
   @Test
   fun testOldKotlin() {
     projectRule.load(TestProjectPaths.KOTLIN_KAPT, agpVersion.withKotlin("1.6.21"))
 
-    val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(projectRule.project,
-                                                                                  projectRule.project.basePath!!)?.firstOrNull()?.toString()
+    val kotlinVersionInUse =
+      KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(projectRule.project, projectRule.project.basePath!!)?.firstOrNull()?.toString()
     assertThat(kotlinVersionInUse).isNotNull()
     assertThat(kotlinVersionInUse).isEqualTo("1.6.21")
   }

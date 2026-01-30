@@ -27,12 +27,7 @@ private const val WATCH_FEATURE_BLOCK =
     <uses-feature android:name="android.hardware.type.watch" />
   """
 
-fun RecipeExecutor.generateWearModule(
-  data: ModuleTemplateData,
-  appTitle: String?,
-  useKts: Boolean,
-  useVersionCatalog: Boolean = true,
-) {
+fun RecipeExecutor.generateWearModule(data: ModuleTemplateData, appTitle: String?, useKts: Boolean, useVersionCatalog: Boolean = true) {
   if (data.isWatchFace) {
     generateWearWatchFaceModule(data, appTitle, useKts, useVersionCatalog)
     return
@@ -68,8 +63,7 @@ private fun RecipeExecutor.generateWearWatchFaceModule(
     appTitle = appTitle,
     appTitleResName = "watch_face_name",
     useKts = useKts,
-    manifestXml =
-      generateManifest(hasApplicationBlock = false, usesFeatureBlock = WATCH_FEATURE_BLOCK),
+    manifestXml = generateManifest(hasApplicationBlock = false, usesFeatureBlock = WATCH_FEATURE_BLOCK),
     iconsGenerationStyle = IconsGenerationStyle.NONE,
     themesXml = null,
     colorsXml = null,

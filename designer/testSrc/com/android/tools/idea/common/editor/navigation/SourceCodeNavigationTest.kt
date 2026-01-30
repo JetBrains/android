@@ -28,11 +28,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
 
   override fun setUp() {
     super.setUp()
-    project.replaceService(
-      FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope),
-      testRootDisposable,
-    )
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
   }
 
   fun testNavigationWithinFile() {
@@ -41,7 +37,8 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       """
       class AA {}
 
-      class BV extends A<caret>A {}"""
+      class BV extends A<caret>A {}
+      """
         .trimIndent(),
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_DECLARATION)
@@ -49,7 +46,8 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       """
       class <caret>AA {}
 
-      class BV extends AA {}"""
+      class BV extends AA {}
+      """
         .trimIndent()
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_BACK)
@@ -57,7 +55,8 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       """
       class AA {}
 
-      class BV extends A<caret>A {}"""
+      class BV extends A<caret>A {}
+      """
         .trimIndent()
     )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_FORWARD)
@@ -65,7 +64,8 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
       """
       class <caret>AA {}
 
-      class BV extends AA {}"""
+      class BV extends AA {}
+      """
         .trimIndent()
     )
   }

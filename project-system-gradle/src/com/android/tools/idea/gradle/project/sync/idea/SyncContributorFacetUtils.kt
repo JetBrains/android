@@ -33,54 +33,46 @@ import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
-internal fun SyncContributorAndroidProjectContext.createAndroidGradleFacet(
-  moduleEntity: ModuleEntityBuilder
-) {
-  val configuration = GradleFacet.getFacetType().createDefaultConfiguration().apply {
-    LAST_KNOWN_AGP_VERSION = versions.agpVersionAsString
-  }
-  val facetId = FacetId(
-    GradleFacet.ANDROID_GRADLE_FACET_NAME,
-    FacetEntityTypeId(GradleFacet.getFacetType().stringId),
-    ModuleId(moduleEntity.name)
-  )
-  createFacet(facetId,GradleFacet.getFacetTypeId(), configuration, moduleEntity)
+internal fun SyncContributorAndroidProjectContext.createAndroidGradleFacet(moduleEntity: ModuleEntityBuilder) {
+  val configuration = GradleFacet.getFacetType().createDefaultConfiguration().apply { LAST_KNOWN_AGP_VERSION = versions.agpVersionAsString }
+  val facetId =
+    FacetId(GradleFacet.ANDROID_GRADLE_FACET_NAME, FacetEntityTypeId(GradleFacet.getFacetType().stringId), ModuleId(moduleEntity.name))
+  createFacet(facetId, GradleFacet.getFacetTypeId(), configuration, moduleEntity)
 }
 
 internal fun SyncContributorAndroidProjectContext.createAndroidFacet(moduleEntity: ModuleEntityBuilder) {
-  val configuration = AndroidFacet.getFacetType().createDefaultConfiguration().apply {
-    state.apply {
-      @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
-      ALLOW_USER_CONFIGURATION = false
+  val configuration =
+    AndroidFacet.getFacetType().createDefaultConfiguration().apply {
+      state.apply {
+        @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
+        ALLOW_USER_CONFIGURATION = false
 
-      PROJECT_TYPE = when (basicAndroidProject.projectType) {
-        ProjectType.APPLICATION -> AndroidProjectTypes.PROJECT_TYPE_APP
-        ProjectType.LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-        ProjectType.DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
-        ProjectType.TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
-        ProjectType.FUSED_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_FUSED_LIBRARY
+        PROJECT_TYPE =
+          when (basicAndroidProject.projectType) {
+            ProjectType.APPLICATION -> AndroidProjectTypes.PROJECT_TYPE_APP
+            ProjectType.LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+            ProjectType.DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+            ProjectType.TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
+            ProjectType.FUSED_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_FUSED_LIBRARY
+          }
+
+        val modulePath = projectModel.projectDirectory
+        // Copied from data service logic, not using File.separator but explicitly "/", not sure why (also the case in the XML
+        // representation)
+        val separator = "/"
+        fun String.prependSeparator() = if (this.startsWith(separator)) this else separator + this
+        fun File?.relativizeOrEmpty(): String = this?.relativeTo(modulePath)?.path?.prependSeparator().orEmpty()
+
+        // Note: Full sync also sets GradleAndroidModel on the facet, but we can't do that here.
+        val sourceProvider = basicAndroidProject.mainSourceSet?.sourceProvider
+        MANIFEST_FILE_RELATIVE_PATH = sourceProvider?.manifestFile.relativizeOrEmpty()
+        RES_FOLDER_RELATIVE_PATH = sourceProvider?.resDirectories?.firstOrNull().relativizeOrEmpty()
+        ASSETS_FOLDER_RELATIVE_PATH = sourceProvider?.assetsDirectories?.firstOrNull().relativizeOrEmpty()
+        SELECTED_BUILD_VARIANT = variantName
       }
-
-      val modulePath = projectModel.projectDirectory
-      // Copied from data service logic, not using File.separator but explicitly "/", not sure why (also the case in the XML representation)
-      val separator = "/"
-      fun String.prependSeparator() = if (this.startsWith(separator)) this else separator + this
-      fun File?.relativizeOrEmpty(): String = this?.relativeTo(modulePath)?.path?.prependSeparator().orEmpty()
-
-      // Note: Full sync also sets GradleAndroidModel on the facet, but we can't do that here.
-      val sourceProvider = basicAndroidProject.mainSourceSet?.sourceProvider
-      MANIFEST_FILE_RELATIVE_PATH = sourceProvider?.manifestFile.relativizeOrEmpty()
-      RES_FOLDER_RELATIVE_PATH = sourceProvider?.resDirectories?.firstOrNull().relativizeOrEmpty()
-      ASSETS_FOLDER_RELATIVE_PATH = sourceProvider?.assetsDirectories?.firstOrNull().relativizeOrEmpty()
-      SELECTED_BUILD_VARIANT = variantName
     }
-  }
 
-  val facetId = FacetId(
-    AndroidFacet.NAME,
-    FacetEntityTypeId(AndroidFacet.getFacetType().stringId),
-    ModuleId(moduleEntity.name)
-  )
+  val facetId = FacetId(AndroidFacet.NAME, FacetEntityTypeId(AndroidFacet.getFacetType().stringId), ModuleId(moduleEntity.name))
 
   createFacet(facetId, AndroidFacet.getFacetType().id, configuration, moduleEntity)
 }
@@ -89,7 +81,8 @@ private fun SyncContributorAndroidProjectContext.createFacet(
   facetId: FacetId,
   facetTypeId: FacetTypeId<*>,
   configuration: FacetConfiguration,
-  moduleEntity: ModuleEntityBuilder) {
+  moduleEntity: ModuleEntityBuilder,
+) {
   val facet = FacetEntity(facetId.parentId, facetId.name, facetId.type, projectEntitySource)
   // Set external source for facet, as this is not serialized
   registerModuleAction(moduleEntity.name) { module ->

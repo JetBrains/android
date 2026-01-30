@@ -26,9 +26,8 @@ typealias Callback = () -> Unit
 /**
  * State machine class that operates over an enum of states.
  *
- * Provides various levels of checking for state transitions and callbacks on state enter, exit, and
- * for specific state transitions. Can be created via the [Builder] in Java or via DSL (using the
- * [stateMachine] method) in Kotlin.
+ * Provides various levels of checking for state transitions and callbacks on state enter, exit, and for specific state transitions. Can be
+ * created via the [Builder] in Java or via DSL (using the [stateMachine] method) in Kotlin.
  *
  * e.g.
  *
@@ -76,8 +75,8 @@ private constructor(
      *
      * Within these groups, callbacks are executed in the order they were added to the [Builder].
      *
-     * If the [SelfTransitionBehavior] is [SelfTransitionBehavior.NOOP] and [newState] is the same
-     * as the current state, this method does nothing.
+     * If the [SelfTransitionBehavior] is [SelfTransitionBehavior.NOOP] and [newState] is the same as the current state, this method does
+     * nothing.
      */
     @Synchronized
     set(newState) {
@@ -86,10 +85,7 @@ private constructor(
         return
       }
 
-      if (
-        transitions[state]?.contains(newState) == true ||
-          illegalTransitionHandler.handleTransition(state, newState, config)
-      ) {
+      if (transitions[state]?.contains(newState) == true || illegalTransitionHandler.handleTransition(state, newState, config)) {
         val oldState = state
         config.logger.debug { "Transition from $oldState to $newState." }
         transitionExitCallbacks[oldState]?.execute()
@@ -107,10 +103,7 @@ private constructor(
     fun handleTransition(state: StateEnum, newState: StateEnum, config: Config): Boolean
 
     companion object {
-      /**
-       * Returns an [IllegalTransitionHandler] that allows illegal transitions, i.e. the state does
-       * change.
-       */
+      /** Returns an [IllegalTransitionHandler] that allows illegal transitions, i.e. the state does change. */
       @JvmStatic
       fun <StateEnum : Enum<StateEnum>> allow() =
         IllegalTransitionHandler<StateEnum> { state, newState, config ->
@@ -118,10 +111,7 @@ private constructor(
           true
         }
 
-      /**
-       * Returns an [IllegalTransitionHandler] that ignores illegal transitions, i.e. the state does
-       * not change.
-       */
+      /** Returns an [IllegalTransitionHandler] that ignores illegal transitions, i.e. the state does not change. */
       @JvmStatic
       fun <StateEnum : Enum<StateEnum>> ignore() =
         IllegalTransitionHandler<StateEnum> { state, newState, config ->
@@ -130,8 +120,8 @@ private constructor(
         }
 
       /**
-       * Returns an [IllegalTransitionHandler] that is the same as [ignore] but logs at
-       * [LogLevel.WARNING] instead of the default [LogLevel.DEBUG].
+       * Returns an [IllegalTransitionHandler] that is the same as [ignore] but logs at [LogLevel.WARNING] instead of the default
+       * [LogLevel.DEBUG].
        */
       @JvmStatic
       fun <StateEnum : Enum<StateEnum>> warn() =
@@ -140,15 +130,10 @@ private constructor(
           false
         }
 
-      /**
-       * Returns an [IllegalTransitionHandler] that throws [IllegalArgumentException] when an
-       * illegal transition is requested.
-       */
+      /** Returns an [IllegalTransitionHandler] that throws [IllegalArgumentException] when an illegal transition is requested. */
       @JvmStatic
       fun <StateEnum : Enum<StateEnum>> throwException() =
-        IllegalTransitionHandler<StateEnum> { state, newState, _ ->
-          throw IllegalArgumentException(illegalTransitionMsg(state, newState))
-        }
+        IllegalTransitionHandler<StateEnum> { state, newState, _ -> throw IllegalArgumentException(illegalTransitionMsg(state, newState)) }
     }
   }
 
@@ -210,14 +195,10 @@ private constructor(
   @JvmOverloads
   constructor(private val initialState: StateEnum, private val config: Config = Config()) {
     private val transitions: MutableMap<StateEnum, MutableCollection<StateEnum>> = mutableMapOf()
-    private val transitionEnterCallbacks: MutableMap<StateEnum, MutableList<Callback>> =
-      mutableMapOf()
-    private val transitionCallbacks: MutableMap<Pair<StateEnum, StateEnum>, MutableList<Callback>> =
-      mutableMapOf()
-    private val transitionExitCallbacks: MutableMap<StateEnum, MutableList<Callback>> =
-      mutableMapOf()
-    private var illegalTransitionHandler: IllegalTransitionHandler<StateEnum> =
-      IllegalTransitionHandler.throwException()
+    private val transitionEnterCallbacks: MutableMap<StateEnum, MutableList<Callback>> = mutableMapOf()
+    private val transitionCallbacks: MutableMap<Pair<StateEnum, StateEnum>, MutableList<Callback>> = mutableMapOf()
+    private val transitionExitCallbacks: MutableMap<StateEnum, MutableList<Callback>> = mutableMapOf()
+    private var illegalTransitionHandler: IllegalTransitionHandler<StateEnum> = IllegalTransitionHandler.throwException()
 
     /**
      * Specifies a valid transition between two states.
@@ -225,9 +206,7 @@ private constructor(
      * @param fromState the starting state of the transition.
      * @param toState the finishing state of the transition.
      */
-    fun addTransition(fromState: StateEnum, toState: StateEnum) = apply {
-      transitions.getOrPut(fromState, ::mutableSetOf).add(toState)
-    }
+    fun addTransition(fromState: StateEnum, toState: StateEnum) = apply { transitions.getOrPut(fromState, ::mutableSetOf).add(toState) }
 
     /**
      * Adds a callback to be invoked when a given state is entered.
@@ -246,8 +225,7 @@ private constructor(
      * @param state which state to invoke the callback upon entering.
      * @param runnable the actual callback to invoke.
      */
-    fun addTransitionEnterCallback(state: StateEnum, runnable: Runnable) =
-      addTransitionEnterCallback(state, runnable::run)
+    fun addTransitionEnterCallback(state: StateEnum, runnable: Runnable) = addTransitionEnterCallback(state, runnable::run)
 
     /**
      * Adds a callback to be invoked when a transition occurs between two states.
@@ -257,10 +235,9 @@ private constructor(
      * @param callback the actual callback to invoke.
      */
     @JvmSynthetic
-    fun addTransitionCallback(fromState: StateEnum, toState: StateEnum, callback: Callback) =
-      apply {
-        transitionCallbacks.getOrPut(fromState to toState, ::mutableListOf).add(callback)
-      }
+    fun addTransitionCallback(fromState: StateEnum, toState: StateEnum, callback: Callback) = apply {
+      transitionCallbacks.getOrPut(fromState to toState, ::mutableListOf).add(callback)
+    }
 
     /**
      * Adds a callback to be invoked when a transition occurs between two states.
@@ -289,13 +266,11 @@ private constructor(
      * @param state which state to invoke the callback upon exiting.
      * @param runnable the actual callback to invoke.
      */
-    fun addTransitionExitCallback(state: StateEnum, runnable: Runnable) =
-      addTransitionExitCallback(state, runnable::run)
+    fun addTransitionExitCallback(state: StateEnum, runnable: Runnable) = addTransitionExitCallback(state, runnable::run)
 
-    fun setIllegalTransitionHandler(illegalTransitionHandler: IllegalTransitionHandler<StateEnum>) =
-      apply {
-        this.illegalTransitionHandler = illegalTransitionHandler
-      }
+    fun setIllegalTransitionHandler(illegalTransitionHandler: IllegalTransitionHandler<StateEnum>) = apply {
+      this.illegalTransitionHandler = illegalTransitionHandler
+    }
 
     /**
      * Builds the [StateMachine].
@@ -315,11 +290,7 @@ private constructor(
   }
 
   class StateMachineBuilderScope<StateEnum : Enum<StateEnum>>
-  internal constructor(
-    initialState: StateEnum,
-    config: Config,
-    illegalTransitionHandler: IllegalTransitionHandler<StateEnum>?,
-  ) {
+  internal constructor(initialState: StateEnum, config: Config, illegalTransitionHandler: IllegalTransitionHandler<StateEnum>?) {
     private val builder = Builder(initialState, config)
 
     init {
@@ -348,10 +319,8 @@ private constructor(
   companion object {
     private val stateMachineClassLogger = Logger.getInstance(StateMachine::class.java)
 
-    private fun <StateEnum : Enum<StateEnum>> illegalTransitionMsg(
-      fromState: StateEnum,
-      toState: StateEnum,
-    ): String = "Illegal state transition from %s to %s!".format(Locale.US, fromState, toState)
+    private fun <StateEnum : Enum<StateEnum>> illegalTransitionMsg(fromState: StateEnum, toState: StateEnum): String =
+      "Illegal state transition from %s to %s!".format(Locale.US, fromState, toState)
 
     @JvmSynthetic
     fun <StateEnum : Enum<StateEnum>> stateMachine(
@@ -359,16 +328,12 @@ private constructor(
       config: Config = Config(),
       illegalTransitionHandler: IllegalTransitionHandler<StateEnum>? = null,
       builder: StateMachineBuilderScope<StateEnum>.() -> Unit,
-    ): StateMachine<StateEnum> =
-      StateMachineBuilderScope(initialState, config, illegalTransitionHandler)
-        .apply(builder)
-        .build()
+    ): StateMachine<StateEnum> = StateMachineBuilderScope(initialState, config, illegalTransitionHandler).apply(builder).build()
   }
 }
 
 /**
- * Specifies a valid transition between two states and adds a callback to be invoked on that
- * transition.
+ * Specifies a valid transition between two states and adds a callback to be invoked on that transition.
  *
  * This method is a convenience and is equivalent to
  *
@@ -380,5 +345,4 @@ fun <StateEnum : Enum<StateEnum>> StateMachine.Builder<StateEnum>.addTransition(
   fromState: StateEnum,
   toState: StateEnum,
   callback: Callback,
-): StateMachine.Builder<StateEnum> =
-  addTransition(fromState, toState).addTransitionCallback(fromState, toState, callback)
+): StateMachine.Builder<StateEnum> = addTransition(fromState, toState).addTransitionCallback(fromState, toState, callback)

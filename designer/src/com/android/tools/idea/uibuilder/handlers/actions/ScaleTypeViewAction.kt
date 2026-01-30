@@ -35,11 +35,8 @@ enum class ScaleType(val icon: Icon?, val displayName: String, val attributeValu
   MATRIX(null, "Matrix", "matrix"),
 }
 
-class ScaleTypeViewAction(
-  private val namespace: String?,
-  private val attribute: String,
-  private val type: ScaleType,
-) : DirectViewAction(type.icon, type.displayName) {
+class ScaleTypeViewAction(private val namespace: String?, private val attribute: String, private val type: ScaleType) :
+  DirectViewAction(type.icon, type.displayName) {
   override fun perform(
     editor: ViewEditor,
     handler: ViewHandler,
@@ -54,8 +51,4 @@ class ScaleTypeViewAction(
 }
 
 class ScaleTypesViewActionMenu(namespace: String?, attribute: String) :
-  ViewActionMenu(
-    "",
-    StudioIcons.LayoutEditor.Motion.MAX_SCALE,
-    ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) },
-  )
+  ViewActionMenu("", StudioIcons.LayoutEditor.Motion.MAX_SCALE, ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) })

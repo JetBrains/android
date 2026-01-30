@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeBuildType
 import java.io.File
-
 import java.io.Serializable
 
 data class IdeBuildTypeImpl(
@@ -37,7 +36,7 @@ data class IdeBuildTypeImpl(
   override val isMinifyEnabled: Boolean,
   override val isZipAlignEnabled: Boolean,
   override val isDefault: Boolean?,
-  override val matchingFallbacks: List<String>
+  override val matchingFallbacks: List<String>,
 ) : IdeBuildType, Serializable {
   constructor(
     name: String,
@@ -57,7 +56,7 @@ data class IdeBuildTypeImpl(
     isZipAlignEnabled: Boolean,
     isDefault: Boolean?,
     matchingFallbacks: List<String>,
-    unused: String = "" // to prevent clash
+    unused: String = "", // to prevent clash
   ) : this(
     name,
     applicationIdSuffix,
@@ -75,6 +74,6 @@ data class IdeBuildTypeImpl(
     isMinifyEnabled,
     isZipAlignEnabled,
     isDefault,
-    matchingFallbacks
+    matchingFallbacks,
   )
 }

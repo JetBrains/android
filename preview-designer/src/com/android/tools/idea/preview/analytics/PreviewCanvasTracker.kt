@@ -46,10 +46,8 @@ interface PreviewCanvasTracker {
   }
 }
 
-class PreviewCanvasTrackerImpl(
-  private val myExecutor: Executor,
-  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>,
-) : PreviewCanvasTracker {
+class PreviewCanvasTrackerImpl(private val myExecutor: Executor, private val myEventLogger: Consumer<AndroidStudioEvent.Builder>) :
+  PreviewCanvasTracker {
   override fun logSwitchLayout(layoutType: SurfaceLayoutOption.LayoutType) {
     try {
       val layoutName =
@@ -61,12 +59,9 @@ class PreviewCanvasTrackerImpl(
           // Maintaining consistency with the original key ensures continuity in our data analysis
           // and reporting.
           SurfaceLayoutOption.LayoutType.Focus -> ComposePreviewCanvasEvent.LayoutName.GALLERY
-          SurfaceLayoutOption.LayoutType.SingleDirection ->
-            ComposePreviewCanvasEvent.LayoutName.LIST
-          SurfaceLayoutOption.LayoutType.OrganizationGrid ->
-            ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
-          SurfaceLayoutOption.LayoutType.Default ->
-            ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
+          SurfaceLayoutOption.LayoutType.SingleDirection -> ComposePreviewCanvasEvent.LayoutName.LIST
+          SurfaceLayoutOption.LayoutType.OrganizationGrid -> ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
+          SurfaceLayoutOption.LayoutType.Default -> ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
         }
       myExecutor.execute {
         val event =

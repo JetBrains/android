@@ -27,11 +27,10 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-
 class AndroidModularizeDialog(
   project: Project,
   private val targetModules: List<Module>,
-  private val processor: AndroidModularizeProcessor
+  private val processor: AndroidModularizeProcessor,
 ) : RefactoringDialog(project, true) {
 
   private lateinit var myModuleCombo: ComboBox<Module>
@@ -52,16 +51,21 @@ class AndroidModularizeDialog(
     val panel = JPanel(BorderLayout())
 
     panel.add(
-      JLabel(String.format(
-        Locale.US,
-        "Move %1\$d classes, ${if (processor.ktTopLevelDeclarationsCount != 0) "%2\$d top-level declarations, " else ""}and %3\$d resources to:",
-        processor.classesCount, processor.ktTopLevelDeclarationsCount, processor.resourcesCount)),
-      BorderLayout.NORTH)
+      JLabel(
+        String.format(
+          Locale.US,
+          "Move %1\$d classes, ${if (processor.ktTopLevelDeclarationsCount != 0) "%2\$d top-level declarations, " else ""}and %3\$d resources to:",
+          processor.classesCount,
+          processor.ktTopLevelDeclarationsCount,
+          processor.resourcesCount,
+        )
+      ),
+      BorderLayout.NORTH,
+    )
 
     val model: ComboBoxModel<Module> = CollectionComboBoxModel(targetModules.sortedBy { it.name })
     myModuleCombo = ComboBox(model)
     panel.add(myModuleCombo, BorderLayout.CENTER)
     return panel
   }
-
 }

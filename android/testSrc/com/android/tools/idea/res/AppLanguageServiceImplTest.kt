@@ -32,35 +32,37 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class AppLanguageServiceImplTest {
-  private val projectRule = AndroidProjectRule.withAndroidModels(
-      prepareProjectSources = { dir ->
-        File(dir, "one/res").mkdirs()
-        File(dir, "two/res").mkdirs()
-      },
-      JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(":one", "debug", createApp("com.example.one")),
-      AndroidModuleModelBuilder(":two", "debug", createApp("com.example.two")),
-    ).onEdt()
+  private val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        prepareProjectSources = { dir ->
+          File(dir, "one/res").mkdirs()
+          File(dir, "two/res").mkdirs()
+        },
+        JavaModuleModelBuilder.rootModuleBuilder,
+        AndroidModuleModelBuilder(":one", "debug", createApp("com.example.one")),
+        AndroidModuleModelBuilder(":two", "debug", createApp("com.example.two")),
+      )
+      .onEdt()
 
-  private val pseudoLocalesToken = object : PseudoLocalesToken {
-    override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState =
-      when (applicationProjectContext.applicationId) {
-        "com.example.one" -> PseudoLocalesToken.PseudoLocalesState.DISABLED
-        "com.example.two" -> PseudoLocalesToken.PseudoLocalesState.ENABLED
-        else -> PseudoLocalesToken.PseudoLocalesState.UNKNOWN
-      }
+  private val pseudoLocalesToken =
+    object : PseudoLocalesToken {
+      override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState =
+        when (applicationProjectContext.applicationId) {
+          "com.example.one" -> PseudoLocalesToken.PseudoLocalesState.DISABLED
+          "com.example.two" -> PseudoLocalesToken.PseudoLocalesState.ENABLED
+          else -> PseudoLocalesToken.PseudoLocalesState.UNKNOWN
+        }
 
-    override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
-  }
+      override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = true
+    }
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule())
+  @get:Rule val ruleChain = RuleChain(projectRule, EdtRule())
 
   @Before
   fun before() {
@@ -79,22 +81,22 @@ class AppLanguageServiceImplTest {
       <resources>
           <string name="hello">$helloTranslation</string>
       </resources>
-    """.trimIndent()
+    """
+      .trimIndent()
   }
 
   @Test
   fun testLanguageServices() {
     val services = AppLanguageService.getInstance(projectRule.project)
-    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.one"))).isEqualTo(
-      AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da")))
-    )
-    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.two"))).isEqualTo(
-      AppLanguageInfo("com.example.two", setOf(
-        LocaleQualifier("ru"),
-        LocaleQualifier(null, "en", "XA", null),
-        LocaleQualifier(null, "ar", "XB", null))
-      ),
-    )
+    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.one")))
+      .isEqualTo(AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da"))))
+    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.two")))
+      .isEqualTo(
+        AppLanguageInfo(
+          "com.example.two",
+          setOf(LocaleQualifier("ru"), LocaleQualifier(null, "en", "XA", null), LocaleQualifier(null, "ar", "XB", null)),
+        )
+      )
   }
 
   private fun createApp(applicationId: String) =

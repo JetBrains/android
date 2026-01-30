@@ -70,10 +70,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
           action = Action.CancelFetches,
         )
     }
-    if (
-      result.newState.filters.versions.selected.isEmpty() &&
-        result.newState.filters.versions.items.isNotEmpty()
-    ) {
+    if (result.newState.filters.versions.selected.isEmpty() && result.newState.filters.versions.items.isNotEmpty()) {
       result =
         StateTransition(
           result.newState.copy(
@@ -85,10 +82,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
           action = Action.CancelFetches,
         )
     }
-    if (
-      result.newState.filters.devices.selected.isEmpty() &&
-        result.newState.filters.devices.items.isNotEmpty()
-    ) {
+    if (result.newState.filters.devices.selected.isEmpty() && result.newState.filters.devices.items.isNotEmpty()) {
       result =
         StateTransition(
           result.newState.copy(
@@ -100,10 +94,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
           action = Action.CancelFetches,
         )
     }
-    if (
-      result.newState.filters.operatingSystems.selected.isEmpty() &&
-        result.newState.filters.operatingSystems.items.isNotEmpty()
-    ) {
+    if (result.newState.filters.operatingSystems.selected.isEmpty() && result.newState.filters.operatingSystems.items.isNotEmpty()) {
       result =
         StateTransition(
           result.newState.copy(

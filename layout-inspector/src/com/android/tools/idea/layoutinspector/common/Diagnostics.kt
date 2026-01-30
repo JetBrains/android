@@ -21,8 +21,7 @@ import com.intellij.openapi.diagnostic.Logger
 private const val DIAGNOSTICS_PREFIX = "LI-DIAG: "
 
 /** Optional logging for determining problems in released versions. */
-fun logDiagnostics(where: Class<*>, message: String, vararg arguments: Any?) =
-  logDiagnostics(where, null, message, *arguments)
+fun logDiagnostics(where: Class<*>, message: String, vararg arguments: Any?) = logDiagnostics(where, null, message, *arguments)
 
 /** Optional logging for determining problems in released versions with lazy generated arguments. */
 fun logDiagnostics(where: Class<*>, message: String, lazyArguments: () -> Array<Any?>) {

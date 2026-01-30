@@ -20,20 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.HttpRequests.HttpStatusException
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpServer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
@@ -54,15 +40,26 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.TestTimeSource
 import kotlin.time.toJavaInstant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 private const val LOCALHOST = "127.0.0.1"
 private const val LAST_MODIFIED = "last modified header value"
 private const val ETAG = "etag header value"
 private val FILES =
-  listOf(
-    "/path/to/file1" to "Hey these are the great contents of my file.",
-    "/path/to/file2" to "This file isn't quite as great.",
-  )
+  listOf("/path/to/file1" to "Hey these are the great contents of my file.", "/path/to/file2" to "This file isn't quite as great.")
 private val FETCH_DURATION = 37.seconds
 private val SUBSEQUENT_FETCH_DURATION = 22.seconds
 
@@ -79,8 +76,7 @@ class UrlFileCacheTest {
   private val testTimeSource = TestTimeSource()
   private val testClock = TestClock()
 
-  private val urlFileCache =
-    UrlFileCache(TestScope(unconfinedDispatcher), testIoDispatcher, testTimeSource, testClock)
+  private val urlFileCache = UrlFileCache(TestScope(unconfinedDispatcher), testIoDispatcher, testTimeSource, testClock)
 
   @Before
   fun setUp() {
@@ -113,10 +109,7 @@ class UrlFileCacheTest {
     assertFailsWith<MalformedURLException> { deferred.getCompleted() }
   }
 
-  /**
-   * Most of the tests just call getWithStats since it calls the same code. This makes sure the
-   * basic "get" works correctly.
-   */
+  /** Most of the tests just call getWithStats since it calls the same code. This makes sure the basic "get" works correctly. */
   @Test
   fun get_fresh_basic() = runTest {
     serveTextFile(FILES[0])
@@ -159,8 +152,7 @@ class UrlFileCacheTest {
     assertThat(String(path.readBytes())).isEqualTo(FILES[0].second)
 
     val fileSize = FILES[0].second.numBytesAsLong()
-    assertThat(stats)
-      .isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
+    assertThat(stats).isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
   }
 
   @Test
@@ -190,11 +182,7 @@ class UrlFileCacheTest {
 
     assertThat(stats)
       .isEqualTo(
-        FetchStats(
-          FETCH_DURATION,
-          numBytesFetched = FILES[0].second.numBytesAsLong(),
-          numBytesCached = FILES[1].second.numBytesAsLong(),
-        )
+        FetchStats(FETCH_DURATION, numBytesFetched = FILES[0].second.numBytesAsLong(), numBytesCached = FILES[1].second.numBytesAsLong())
       )
   }
 
@@ -224,13 +212,7 @@ class UrlFileCacheTest {
     assertThat(parents.first().listDirectoryEntries()).containsExactlyElementsIn(paths)
     assertThat(stats)
       .isEqualTo(
-        FILES.map {
-          FetchStats(
-            FETCH_DURATION,
-            numBytesFetched = it.second.numBytesAsLong(),
-            numBytesCached = it.second.numBytesAsLong(),
-          )
-        }
+        FILES.map { FetchStats(FETCH_DURATION, numBytesFetched = it.second.numBytesAsLong(), numBytesCached = it.second.numBytesAsLong()) }
       )
   }
 
@@ -245,8 +227,7 @@ class UrlFileCacheTest {
     assertThat(initialDeferred.isCompleted).isTrue()
     val (initialPath, initialStats) = initialDeferred.getCompleted()
     val fileSize = FILES[0].second.numBytesAsLong()
-    assertThat(initialStats)
-      .isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
+    assertThat(initialStats).isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
 
     val repeatedDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first))
     assertThat(repeatedDeferred.isCompleted).isFalse()
@@ -262,10 +243,7 @@ class UrlFileCacheTest {
     assertThat(repeatedPath.parent.isDirectory()).isTrue()
     assertThat(repeatedPath.parent.listDirectoryEntries()).containsExactly(repeatedPath)
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[0].second)
-    assertThat(repeatedStats)
-      .isEqualTo(
-        FetchStats(SUBSEQUENT_FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize)
-      )
+    assertThat(repeatedStats).isEqualTo(FetchStats(SUBSEQUENT_FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
   }
 
   @Test
@@ -281,8 +259,7 @@ class UrlFileCacheTest {
     val initialWrittenInstant = testClock.now().toJavaInstant()
     assertThat(initialPath.getLastModifiedTime().toInstant()).isEqualTo(initialWrittenInstant)
     val fileSize = FILES[0].second.numBytesAsLong()
-    assertThat(initialStats)
-      .isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
+    assertThat(initialStats).isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
 
     testClock += 5.minutes
 
@@ -318,8 +295,7 @@ class UrlFileCacheTest {
         job.await()
       }
     assertThat(e.cause).isInstanceOf(HttpStatusException::class.java)
-    assertThat(e.fetchStats)
-      .isEqualTo(FetchStats(FETCH_DURATION, success = false, notModified = true))
+    assertThat(e.fetchStats).isEqualTo(FetchStats(FETCH_DURATION, success = false, notModified = true))
   }
 
   @Test
@@ -346,11 +322,9 @@ class UrlFileCacheTest {
     advanceUntilIdle()
     assertThat(initialDeferred.isCompleted).isTrue()
     val (initialPath, initialStats) = initialDeferred.getCompleted()
-    assertThat(initialPath.getLastModifiedTime().toInstant())
-      .isEqualTo(testClock.now().toJavaInstant())
+    assertThat(initialPath.getLastModifiedTime().toInstant()).isEqualTo(testClock.now().toJavaInstant())
     val fileSize = FILES[0].second.numBytesAsLong()
-    assertThat(initialStats)
-      .isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
+    assertThat(initialStats).isEqualTo(FetchStats(FETCH_DURATION, numBytesFetched = fileSize, numBytesCached = fileSize))
 
     testClock += 5.minutes
 
@@ -374,8 +348,7 @@ class UrlFileCacheTest {
     assertThat(repeatedPath.parent.listDirectoryEntries()).containsExactly(repeatedPath)
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[0].second)
     // The timestamp should have updated since we heard from the server.
-    assertThat(repeatedPath.getLastModifiedTime().toInstant())
-      .isEqualTo(testClock.now().toJavaInstant())
+    assertThat(repeatedPath.getLastModifiedTime().toInstant()).isEqualTo(testClock.now().toJavaInstant())
 
     assertThat(repeatedStats).isEqualTo(FetchStats(SUBSEQUENT_FETCH_DURATION, notModified = true))
   }
@@ -385,23 +358,16 @@ class UrlFileCacheTest {
     // Load up the cache.
     serveTextFile(FILES[0])
     val initialDeferred =
-      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) {
-        ByteArrayInputStream(FILES[1].second.reversed().toByteArray())
-      }
+      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) { ByteArrayInputStream(FILES[1].second.reversed().toByteArray()) }
     assertThat(initialDeferred.isCompleted).isFalse()
     testTimeSource += FETCH_DURATION
     advanceUntilIdle()
     assertThat(initialDeferred.isCompleted).isTrue()
     val (initialPath, initialStats) = initialDeferred.getCompleted()
-    assertThat(initialPath.getLastModifiedTime().toInstant())
-      .isEqualTo(testClock.now().toJavaInstant())
+    assertThat(initialPath.getLastModifiedTime().toInstant()).isEqualTo(testClock.now().toJavaInstant())
     assertThat(initialStats)
       .isEqualTo(
-        FetchStats(
-          FETCH_DURATION,
-          numBytesFetched = FILES[0].second.numBytesAsLong(),
-          numBytesCached = FILES[1].second.numBytesAsLong(),
-        )
+        FetchStats(FETCH_DURATION, numBytesFetched = FILES[0].second.numBytesAsLong(), numBytesCached = FILES[1].second.numBytesAsLong())
       )
 
     server.removeContext(FILES[0].first)
@@ -411,8 +377,7 @@ class UrlFileCacheTest {
     }
 
     // The transform should not be repeated
-    val repeatedDeferred =
-      urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) { fail("Should not even be called") }
+    val repeatedDeferred = urlFileCache.getWithStats(urlWithHeaders(url + FILES[0].first)) { fail("Should not even be called") }
     assertThat(repeatedDeferred.isCompleted).isFalse()
     testTimeSource += SUBSEQUENT_FETCH_DURATION
     advanceUntilIdle()
@@ -424,8 +389,7 @@ class UrlFileCacheTest {
     assertThat(repeatedPath.isRegularFile()).isTrue()
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[1].second.reversed())
     // The timestamp should have updated since we heard from the server.
-    assertThat(repeatedPath.getLastModifiedTime().toInstant())
-      .isEqualTo(testClock.now().toJavaInstant())
+    assertThat(repeatedPath.getLastModifiedTime().toInstant()).isEqualTo(testClock.now().toJavaInstant())
 
     assertThat(repeatedStats).isEqualTo(FetchStats(SUBSEQUENT_FETCH_DURATION, notModified = true))
   }
@@ -433,10 +397,7 @@ class UrlFileCacheTest {
   @Test
   fun getWithStats_repeated_usesLastModifiedHeaders() = runTest {
     // Load up the cache.
-    serveTextFile(
-      FILES[0],
-      responseHeaders = mapOf("Last-Modified" to LAST_MODIFIED, "ETag" to ETAG),
-    )
+    serveTextFile(FILES[0], responseHeaders = mapOf("Last-Modified" to LAST_MODIFIED, "ETag" to ETAG))
 
     urlFileCache.get(urlWithHeaders(url + FILES[0].first))
     advanceUntilIdle()
@@ -489,21 +450,13 @@ class UrlFileCacheTest {
     parents.forEach { assertThat(it.exists()).isFalse() }
   }
 
-  private fun serveTextFile(
-    pathAndContent: Pair<String, String>,
-    responseHeaders: Map<String, String> = mapOf(),
-  ) {
+  private fun serveTextFile(pathAndContent: Pair<String, String>, responseHeaders: Map<String, String> = mapOf()) {
     serveFile(pathAndContent.first, pathAndContent.second.toByteArray(), responseHeaders)
   }
 
-  private fun urlWithHeaders(url: String, vararg headers: Pair<String, String>) =
-    UrlFileCache.UrlWithHeaders(url, headers.toMap())
+  private fun urlWithHeaders(url: String, vararg headers: Pair<String, String>) = UrlFileCache.UrlWithHeaders(url, headers.toMap())
 
-  private fun serveFile(
-    path: String,
-    content: ByteArray,
-    responseHeaders: Map<String, String> = mapOf(),
-  ) {
+  private fun serveFile(path: String, content: ByteArray, responseHeaders: Map<String, String> = mapOf()) {
     server.createContext(path) { ex ->
       responseHeaders.forEach { ex.responseHeaders.add(it.key, it.value) }
       ex.responseHeaders.add("Content-Type", "text/plain")

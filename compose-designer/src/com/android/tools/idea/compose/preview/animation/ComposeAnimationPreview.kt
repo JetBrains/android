@@ -50,22 +50,13 @@ class ComposeAnimationPreview(
   val tracker: ComposeAnimationTracker,
   sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
-) :
-  AnimationPreview<ComposeAnimationManager>(
-    parentScope,
-    project,
-    sceneManagerProvider,
-    rootComponent,
-    tracker,
-  ),
-  ComposeAnimationHandler {
+) : AnimationPreview<ComposeAnimationManager>(parentScope, project, sceneManagerProvider, rootComponent, tracker), ComposeAnimationHandler {
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
   private val tabNames = TabNamesGenerator()
 
   /**
-   * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed
-   * to. Null when there are no animations.
+   * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
    */
   override var animationClock: AnimationClock? = null
 
@@ -83,9 +74,7 @@ class ComposeAnimationPreview(
       executeInRenderSession(longTimeout = longTimeout, requestAnimationRender = true) {
         setClockTimes(
           animationsToUpdate.associate {
-            val newTime =
-              if (it.frozenState.value.isFrozen) it.frozenState.value.frozenAt.toLong()
-              else clockTimeMs
+            val newTime = if (it.frozenState.value.isFrozen) it.frozenState.value.frozenAt.toLong() else clockTimeMs
             it.animation to newTime
           }
         )
@@ -93,8 +82,7 @@ class ComposeAnimationPreview(
     }
   }
 
-  @GuardedBy("subscribedAnimationsLock")
-  private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  @GuardedBy("subscribedAnimationsLock") private val subscribedAnimations = mutableSetOf<ComposeAnimation>()
   private val subscribedAnimationsLock = Any()
 
   @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
@@ -102,8 +90,7 @@ class ComposeAnimationPreview(
   /**
    * Creates and adds [ComposeAnimationManager] for given [ComposeAnimation] to the panel.
    *
-   * If this animation was already added, removes old [ComposeAnimationManager] first. Repaints
-   * panel.
+   * If this animation was already added, removes old [ComposeAnimationManager] first. Repaints panel.
    */
   override fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
@@ -111,15 +98,13 @@ class ComposeAnimationPreview(
         val tab = withContext(Dispatchers.EDT) { createAnimationManager(animation) }
         tab.setup()
         /**
-         * [ComposeAnimationManager.setup] can take a while, by the time we want to call
-         * [addAnimationManager] it might not be needed anymore. Example:
+         * [ComposeAnimationManager.setup] can take a while, by the time we want to call [addAnimationManager] it might not be needed
+         * anymore. Example:
          * * [addAnimation] is called and [animation] is added to [subscribedAnimations] list
          * * [ComposeAnimationManager.setup] is taking a while
-         * * in meantime [removeAnimation] is called and [animation] is removed from
-         *   [subscribedAnimations]
+         * * in meantime [removeAnimation] is called and [animation] is removed from [subscribedAnimations]
          * * [ComposeAnimationManager.setup] is finished
-         * * [addAnimationManager] will not be called as this [animation] should not be added
-         *   anymore
+         * * [addAnimationManager] will not be called as this [animation] should not be added anymore
          */
         if (synchronized(subscribedAnimationsLock) { subscribedAnimations.contains(animation) }) {
           addAnimationManager(tab)
@@ -130,14 +115,12 @@ class ComposeAnimationPreview(
   override suspend fun updateMaxDuration(longTimeout: Boolean) {
     val clock = animationClock ?: return
 
-    executeInRenderSession(longTimeout) {
-      maxDurationPerIteration.value = clock.getMaxDurationMsPerIteration()
-    }
+    executeInRenderSession(longTimeout) { maxDurationPerIteration.value = clock.getMaxDurationMsPerIteration() }
   }
 
   /**
-   * Creates an [ComposeAnimationManager] corresponding to the given [animation]. Note: this method
-   * does not add the tab to [tabbedPane]. For that, [addAnimationManager] should be used.
+   * Creates an [ComposeAnimationManager] corresponding to the given [animation]. Note: this method does not add the tab to [tabbedPane].
+   * For that, [addAnimationManager] should be used.
    */
   @UiThread
   private fun createAnimationManager(animation: ComposeAnimation): ComposeAnimationManager =
@@ -171,13 +154,10 @@ class ComposeAnimationPreview(
         val unit = ComposeUnit.parseStateUnit(currentState)
         val state =
           when {
-            unit is ComposeUnit.Color ->
-              ComposeColorState(tracker, unit, states.lastOrNull()?.let { unit.create(it) })
-            unit !is AnimationUnit.UnitUnknown ->
-              PickerState(tracker, states.firstOrNull(), states.lastOrNull())
+            unit is ComposeUnit.Color -> ComposeColorState(tracker, unit, states.lastOrNull()?.let { unit.create(it) })
+            unit !is AnimationUnit.UnitUnknown -> PickerState(tracker, states.firstOrNull(), states.lastOrNull())
             currentState is Boolean -> BooleanFromToState(tracker, currentState)
-            currentState is Enum<*> ->
-              EnumFromToState(tracker, states.toSet() as Set<Enum<*>>, currentState)
+            currentState is Enum<*> -> EnumFromToState(tracker, states.toSet() as Set<Enum<*>>, currentState)
             else -> FromToStateComboBox(tracker, states, currentState)
           }
         FromToSupportedAnimationManager(
@@ -206,14 +186,10 @@ class ComposeAnimationPreview(
       ComposeAnimationType.ANIMATE_CONTENT_SIZE,
       ComposeAnimationType.DECAY_ANIMATION,
       ComposeAnimationType.TARGET_BASED_ANIMATION,
-      ComposeAnimationType.UNSUPPORTED ->
-        ComposeUnsupportedAnimationManager(animation, tabNames.createName(animation))
+      ComposeAnimationType.UNSUPPORTED -> ComposeUnsupportedAnimationManager(animation, tabNames.createName(animation))
     }
 
-  /**
-   * Removes the [ComposeAnimationManager] card and tab corresponding to the given [animation] from
-   * [tabbedPane].
-   */
+  /** Removes the [ComposeAnimationManager] card and tab corresponding to the given [animation] from [tabbedPane]. */
   override fun removeAnimation(animation: ComposeAnimation) =
     scope.launch {
       synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }

@@ -31,31 +31,26 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.DumbAware
 import com.intellij.ui.content.Content
 
-internal abstract class StreamingAction(
-  virtualDeviceAction: AnAction,
-  physicalDeviceAction: AnAction,
-) : DelegatingAction(virtualDeviceAction, physicalDeviceAction), DumbAware {
+internal abstract class StreamingAction(virtualDeviceAction: AnAction, physicalDeviceAction: AnAction) :
+  DelegatingAction(virtualDeviceAction, physicalDeviceAction), DumbAware {
 
-  override fun getDelegate(event: AnActionEvent): AnAction =
-      delegates[if (getEmulatorController(event) == null) 1 else 0]
+  override fun getDelegate(event: AnActionEvent): AnAction = delegates[if (getEmulatorController(event) == null) 1 else 0]
 }
 
-fun getNotificationHolderPanel(event: AnActionEvent): NotificationHolderPanel? =
-    getDisplayView(event)?.findNotificationHolderPanel()
+fun getNotificationHolderPanel(event: AnActionEvent): NotificationHolderPanel? = getDisplayView(event)?.findNotificationHolderPanel()
 
-internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
-    event.getData(DISPLAY_VIEW_KEY)
+internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? = event.getData(DISPLAY_VIEW_KEY)
 
-internal fun getDeviceType(event: AnActionEvent): DeviceType? =
-    event.getData(DEVICE_TYPE_KEY)
+internal fun getDeviceType(event: AnActionEvent): DeviceType? = event.getData(DEVICE_TYPE_KEY)
 
 internal fun getXrInputController(event: AnActionEvent): AbstractXrInputController? {
   if (getDeviceType(event) != DeviceType.XR_HEADSET) {
     return null
   }
   val project = event.project ?: return null
-  val emulatorController = getEmulatorController(event) ?:
-      return getDeviceClient(event)?.let { deviceClient -> DeviceXrInputController.getInstance(project, deviceClient) }
+  val emulatorController =
+    getEmulatorController(event)
+      ?: return getDeviceClient(event)?.let { deviceClient -> DeviceXrInputController.getInstance(project, deviceClient) }
 
   return if (emulatorController.isShuttingDown) null else EmulatorXrInputController.getInstance(project, emulatorController)
 }
@@ -66,4 +61,3 @@ internal val AnActionEvent.toolWindowContents: List<Content>
     val contentManager = toolWindow.contentManagerIfCreated ?: return emptyList()
     return contentManager.contentsRecursively
   }
-

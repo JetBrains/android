@@ -20,13 +20,12 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
-import com.google.common.truth.Truth.assertThat
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
 
 // We have some code in ComposeUsageGroupingRuleProvider that logs usages it sees for the explicit purposes of this test.
 // The Provider is otherwise unrelated to this test.
@@ -34,8 +33,7 @@ private const val regex = ".*ComposeUsageGroupingRuleProvider.*?Saw usage.*"
 
 @RunWith(JUnit4::class)
 class ShowUsagesTest {
-  @get:Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @get:Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @Test
   fun basicShowUsages() {
@@ -44,18 +42,16 @@ class ShowUsagesTest {
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
 
     // Create a maven repo and set it up in the installation and environment
-    system.installRepo(MavenRepo("tools/adt/idea/android/integration/showusages_deps.manifest"));
+    system.installRepo(MavenRepo("tools/adt/idea/android/integration/showusages_deps.manifest"))
 
     // Ensure that our log messages show up in idea.log.
-    installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.compose.ComposeUsageGroupingRuleProvider");
-    system.getInstallation().copySystemDir(projectArtifactsPath);
+    installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.compose.ComposeUsageGroupingRuleProvider")
+    system.getInstallation().copySystemDir(projectArtifactsPath)
     system.runStudio(project).use { studio ->
       studio.waitForSyncSkippedLog()
       // Line 10, column 15 corresponds to the symbol "label" which should have 2 usages in the rest of the file.
       studio.openFile(project.targetProject.fileName.toString(), "src/main/java/com/example/minapp/MainActivity.kt", 10, 15)
-      ComponentMatchersBuilder()
-        .addSwingClassRegexMatch(".*EditorComponentImpl")
-        .let { studio.waitForComponent(it) }
+      ComponentMatchersBuilder().addSwingClassRegexMatch(".*EditorComponentImpl").let { studio.waitForComponent(it) }
       // This is here instead of above because sometimes Studio kicks off some additional indexing after we open the file.
       studio.waitForIndexingSkippedLog()
       repeat(2) { studio.executeAction("ShowUsages", AndroidStudio.DataContextSource.SELECTED_TEXT_EDITOR) }

@@ -21,34 +21,23 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
- * A project-wide modification tracker whose modification count is a value incremented by any
- * modifications of corresponding navigation resource files.
+ * A project-wide modification tracker whose modification count is a value incremented by any modifications of corresponding navigation
+ * resource files.
  */
-class ProjectNavigationResourceModificationTracker(project: Project) :
-  ModificationTracker, Disposable.Default {
+class ProjectNavigationResourceModificationTracker(project: Project) : ModificationTracker, Disposable.Default {
   private val navigationModificationTracker = SimpleModificationTracker()
 
   init {
-    project.messageBus
-      .connect(this)
-      .subscribe(
-        NAVIGATION_RESOURCES_CHANGED,
-        NavigationResourcesChangeListener { navigationChanged() },
-      )
+    project.messageBus.connect(this).subscribe(NAVIGATION_RESOURCES_CHANGED, NavigationResourcesChangeListener { navigationChanged() })
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(ProjectNavigationResourceModificationTracker::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectNavigationResourceModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount
 
-  /**
-   * This is invoked when NavigationModificationListener detects a navigation file has been changed
-   * or added or deleted for this project
-   */
+  /** This is invoked when NavigationModificationListener detects a navigation file has been changed or added or deleted for this project */
   private fun navigationChanged() {
     navigationModificationTracker.incModificationCount()
   }

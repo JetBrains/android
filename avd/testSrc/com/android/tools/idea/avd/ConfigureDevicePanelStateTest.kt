@@ -33,8 +33,7 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ConfigureDevicePanelStateTest {
-  private val skin =
-    DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
+  private val skin = DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
 
   @Test
   fun initDeviceSkins() {
@@ -153,8 +152,7 @@ class ConfigureDevicePanelStateTest {
     assertEquals(skins, actualSkins)
   }
 
-  private fun mockPlayStoreImage(): ISystemImage =
-    mock<ISystemImage>().also { whenever(it.hasPlayStore()).thenReturn(true) }
+  private fun mockPlayStoreImage(): ISystemImage = mock<ISystemImage>().also { whenever(it.hasPlayStore()).thenReturn(true) }
 }
 
 private fun VirtualDevice.setNoSkin() {

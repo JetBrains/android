@@ -12,8 +12,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ProjectProtoUpdateTest {
 
-  @get:Rule
-  val expect: Expect = Expect.create()
+  @get:Rule val expect: Expect = Expect.create()
 
   @Test
   fun testAddLibrary() {
@@ -24,30 +23,34 @@ class ProjectProtoUpdateTest {
     }
     val project = update.build()
 
-    val expectedProject = ProjectProto.Project(
-      modules = listOf(
-        ProjectProto.Module(
-          name = ".workspace",
-          isAndroidModule = false,
-          contentEntries = emptyMap(),
-          androidResourceDirectories = emptyList(),
-          androidSourcePackages = emptyList(),
-          androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList(),
-          kotlinCompilerFlags = emptyList(),
-        )
-      ),
-      libraries = mapOf(
-        Label.of("//foo:bar") to ProjectProto.Library(
-          name = Label.of("//foo:bar"),
-          classesJarList = listOf(workspaceRelative("foo/foo.jar")),
-          sourcesList = listOf(workspaceRelative("foo/foo-src.jar"))
-        )
-      ),
-      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
-      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
-      activeLanguages = emptySet()
-    )
+    val expectedProject =
+      ProjectProto.Project(
+        modules =
+          listOf(
+            ProjectProto.Module(
+              name = ".workspace",
+              isAndroidModule = false,
+              contentEntries = emptyMap(),
+              androidResourceDirectories = emptyList(),
+              androidSourcePackages = emptyList(),
+              androidCustomPackages = emptyList(),
+              androidExternalLibraries = emptyList(),
+              kotlinCompilerFlags = emptyList(),
+            )
+          ),
+        libraries =
+          mapOf(
+            Label.of("//foo:bar") to
+              ProjectProto.Library(
+                name = Label.of("//foo:bar"),
+                classesJarList = listOf(workspaceRelative("foo/foo.jar")),
+                sourcesList = listOf(workspaceRelative("foo/foo-src.jar")),
+              )
+          ),
+        artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+        ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+        activeLanguages = emptySet(),
+      )
     expect.that(project).isEqualTo(expectedProject)
   }
 
@@ -62,37 +65,42 @@ class ProjectProtoUpdateTest {
     }
     val project = update.build()
 
-    val expectedProject = ProjectProto.Project(
-      modules = listOf(
-        ProjectProto.Module(
-          name = ".workspace",
-          isAndroidModule = false,
-          contentEntries = mapOf(
-            workspaceRelative("foo/bar") to ProjectProto.ContentEntry(
-              root = workspaceRelative("foo/bar"),
-              sourceFolders = listOf(
-                ProjectProto.SourceFolder(
-                  projectPath = workspaceRelative("foo/bar/java"),
-                  isGenerated = false,
-                  isTest = false,
-                  packagePrefix = "com.google.foo"
-                )
-              ),
-              excludes = listOf(workspaceRelative("foo/bar/baz"))
+    val expectedProject =
+      ProjectProto.Project(
+        modules =
+          listOf(
+            ProjectProto.Module(
+              name = ".workspace",
+              isAndroidModule = false,
+              contentEntries =
+                mapOf(
+                  workspaceRelative("foo/bar") to
+                    ProjectProto.ContentEntry(
+                      root = workspaceRelative("foo/bar"),
+                      sourceFolders =
+                        listOf(
+                          ProjectProto.SourceFolder(
+                            projectPath = workspaceRelative("foo/bar/java"),
+                            isGenerated = false,
+                            isTest = false,
+                            packagePrefix = "com.google.foo",
+                          )
+                        ),
+                      excludes = listOf(workspaceRelative("foo/bar/baz")),
+                    )
+                ),
+              androidResourceDirectories = emptyList(),
+              androidSourcePackages = emptyList(),
+              androidCustomPackages = emptyList(),
+              androidExternalLibraries = emptyList(),
+              kotlinCompilerFlags = emptyList(),
             )
           ),
-          androidResourceDirectories = emptyList(),
-          androidSourcePackages = emptyList(),
-          androidCustomPackages = emptyList(),
-          androidExternalLibraries = emptyList(),
-          kotlinCompilerFlags = emptyList(),
-        )
-      ),
-      libraries = emptyMap(),
-      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
-      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
-      activeLanguages = emptySet()
-    )
+        libraries = emptyMap(),
+        artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+        ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+        activeLanguages = emptySet(),
+      )
     expect.that(project).isEqualTo(expectedProject)
   }
 
@@ -106,24 +114,26 @@ class ProjectProtoUpdateTest {
     }
     val project = update.build()
 
-    val expectedProject = ProjectProto.Project(
-      modules = listOf(
-        ProjectProto.Module(
-          name = ".workspace",
-          isAndroidModule = true,
-          contentEntries = emptyMap(),
-          androidResourceDirectories = listOf(workspaceRelative("foo/res")),
-          androidSourcePackages = emptyList(),
-          androidCustomPackages = listOf("com.example.custom"),
-          androidExternalLibraries = emptyList(),
-          kotlinCompilerFlags = emptyList(),
-        )
-      ),
-      libraries = emptyMap(),
-      artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
-      ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
-      activeLanguages = emptySet()
-    )
+    val expectedProject =
+      ProjectProto.Project(
+        modules =
+          listOf(
+            ProjectProto.Module(
+              name = ".workspace",
+              isAndroidModule = true,
+              contentEntries = emptyMap(),
+              androidResourceDirectories = listOf(workspaceRelative("foo/res")),
+              androidSourcePackages = emptyList(),
+              androidCustomPackages = listOf("com.example.custom"),
+              androidExternalLibraries = emptyList(),
+              kotlinCompilerFlags = emptyList(),
+            )
+          ),
+        libraries = emptyMap(),
+        artifactDirectories = ProjectProto.ArtifactDirectories.getDefaultInstance(),
+        ccWorkspace = ProjectProto.CcWorkspace.getDefaultInstance(),
+        activeLanguages = emptySet(),
+      )
     expect.that(project).isEqualTo(expectedProject)
   }
 }

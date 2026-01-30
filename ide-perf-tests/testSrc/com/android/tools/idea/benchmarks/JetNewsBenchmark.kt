@@ -17,7 +17,6 @@ package com.android.tools.idea.benchmarks
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.jetbrains.kotlin.idea.KotlinFileType
-
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -26,16 +25,13 @@ import org.toml.lang.psi.TomlFileType
 /**
  * Runs the FullProjectBenchmark tests on JetNews project.
  *
- * Run locally with:
- * bazel test --test_output=streamed --test_filter=JetNewsBenchmark //tools/adt/idea/ide-perf-tests/...
+ * Run locally with: bazel test --test_output=streamed --test_filter=JetNewsBenchmark //tools/adt/idea/ide-perf-tests/...
  */
 class JetNewsBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val PROJECT_NAME = "JetNews"
 

@@ -67,14 +67,10 @@ private constructor(
   initResolver: Boolean,
 ) {
   private var updates = 0
-  private val queue =
-    MergingUpdateQueue("MQ", 100, true, null, fixture.testRootDisposable).apply {
-      isPassThrough = true
-    }
+  private val queue = MergingUpdateQueue("MQ", 100, true, null, fixture.testRootDisposable).apply { isPassThrough = true }
   val model = NlPropertiesModel(fixture.testRootDisposable, facet, queue)
   val nlModel = components.first().model
-  private val frameworkResourceManager =
-    ModuleResourceManagers.getInstance(facet).frameworkResourceManager
+  private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
   private constructor(
     facet: AndroidFacet,
@@ -89,17 +85,7 @@ private constructor(
   ) : this(
     facet,
     fixture,
-    createComponents(
-        facet,
-        fixture,
-        activityName,
-        parentTag,
-        resourceFolder,
-        fileName,
-        listenToResourceChanges,
-        *tags,
-      )
-      .toMutableList(),
+    createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, listenToResourceChanges, *tags).toMutableList(),
     initResolver,
   )
 
@@ -112,15 +98,7 @@ private constructor(
   ) : this(
     facet,
     fixture,
-    createComponent(
-        facet,
-        fixture,
-        FD_RES_LAYOUT,
-        DEFAULT_FILENAME,
-        component,
-        listenToResourceChanges,
-      )
-      .toMutableList(),
+    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component, listenToResourceChanges).toMutableList(),
     initResolver,
   )
 
@@ -150,13 +128,7 @@ private constructor(
     component: ComponentDescriptor,
     initResolver: Boolean = true,
     listenToResourceChanges: Boolean = true,
-  ) : this(
-    AndroidFacet.getInstance(projectRule.module)!!,
-    projectRule.fixture,
-    component,
-    initResolver,
-    listenToResourceChanges,
-  )
+  ) : this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component, initResolver, listenToResourceChanges)
 
   init {
     model.addListener(
@@ -165,10 +137,7 @@ private constructor(
           updates++
         }
 
-        override fun propertyValuesChanged(
-          model: PropertiesModel<NlPropertyItem>,
-          childElementChanges: Boolean,
-        ) {
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
           updates++
         }
       }
@@ -179,11 +148,7 @@ private constructor(
     }
   }
 
-  fun waitForPropertiesUpdate(
-    updatesToWaitFor: Int,
-    timeout: Long = 10,
-    unit: TimeUnit = TimeUnit.SECONDS,
-  ) {
+  fun waitForPropertiesUpdate(updatesToWaitFor: Int, timeout: Long = 10, unit: TimeUnit = TimeUnit.SECONDS) {
     val stop = System.currentTimeMillis() + unit.toMillis(timeout)
     while (updates < updatesToWaitFor && System.currentTimeMillis() < stop) {
       Thread.sleep(100)
@@ -199,44 +164,21 @@ private constructor(
     return when {
       definition == null -> NlPropertyItem(namespace, name, type, null, "", "", model, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
-        NlFlagsPropertyItem(
-          namespace,
-          name,
-          NlPropertyType.ENUM,
-          definition,
-          "",
-          "",
-          model,
-          components,
-        )
+        NlFlagsPropertyItem(namespace, name, NlPropertyType.ENUM, definition, "", "", model, components)
       else -> makeProperty(namespace, definition, type)
     }
   }
 
-  fun makeProperty(
-    namespace: String,
-    definition: AttributeDefinition,
-    type: NlPropertyType,
-  ): NlPropertyItem {
+  fun makeProperty(namespace: String, definition: AttributeDefinition, type: NlPropertyType): NlPropertyItem {
     return NlPropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NlPropertyItem {
-    return NlFlagsPropertyItem(
-      namespace,
-      definition.name,
-      NlPropertyType.STRING,
-      definition,
-      "",
-      "",
-      model,
-      components,
-    )
+    return NlFlagsPropertyItem(namespace, definition.name, NlPropertyType.STRING, definition, "", "", model, components)
   }
 
   fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NlPropertyItem {
-    val definition =
-      AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
     val valueMappings = HashMap<String, Int?>()
     values.forEach { valueMappings[it] = null }
     definition.setValueMappings(valueMappings)
@@ -276,9 +218,7 @@ private constructor(
   }
 
   fun addIssue(property: NlPropertyItem, level: HighlightDisplayLevel, message: String) {
-    val lintModel =
-      nlModel.lintAnnotationsModel
-        ?: LintAnnotationsModel().apply { nlModel.lintAnnotationsModel = this }
+    val lintModel = nlModel.lintAnnotationsModel ?: LintAnnotationsModel().apply { nlModel.lintAnnotationsModel = this }
     val component = property.components.single()
     lintModel.addIssue(
       component,
@@ -307,34 +247,35 @@ private constructor(
     fun setUpCustomView(fixture: CodeInsightTestFixture) {
       @Language("XML")
       val attrsSrc =
-        """<?xml version="1.0" encoding="utf-8"?>
-      <resources>
-        <declare-styleable name="PieChart">
-          <!-- Help Text -->
-          <attr name="legend" format="boolean" />
-          <attr name="labelPosition" format="enum">
-            <enum name="left" value="0"/>
-            <enum name="right" value="1"/>
-          </attr>
-        </declare-styleable>
-      </resources>
-      """
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+              <resources>
+                <declare-styleable name="PieChart">
+                  <!-- Help Text -->
+                  <attr name="legend" format="boolean" />
+                  <attr name="labelPosition" format="enum">
+                    <enum name="left" value="0"/>
+                    <enum name="right" value="1"/>
+                  </attr>
+                </declare-styleable>
+              </resources>
+        """
           .trimIndent()
 
       @Language("JAVA")
       val javaSrc =
         """
-      package com.example;
+        package com.example;
 
-      import android.content.Context;
-      import android.view.View;
+        import android.content.Context;
+        import android.view.View;
 
-      public class PieChart extends View {
-          public PieChart(Context context) {
-              super(context);
-          }
-      }
-      """
+        public class PieChart extends View {
+            public PieChart(Context context) {
+                super(context);
+            }
+        }
+        """
           .trimIndent()
 
       fixture.addFileToProject("res/values/attrs.xml", attrsSrc)
@@ -381,23 +322,14 @@ private constructor(
         if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
         else fromMultipleTags(activityName, parentTag, resourceFolder, *tags)
 
-      return createComponent(
-        facet,
-        fixture,
-        resourceFolder,
-        fileName,
-        descriptor,
-        listenToResourceChanges,
-      )
+      return createComponent(facet, fixture, resourceFolder, fileName, descriptor, listenToResourceChanges)
     }
 
     private fun fromSingleTag(activityName: String, tag: String): ComponentDescriptor {
       val descriptor = ComponentDescriptor(tag).withBounds(0, 0, 100, 100).id(toId(tag))
 
       if (activityName.isNotEmpty()) {
-        descriptor
-          .withAttribute(XMLNS_PREFIX + "tools", TOOLS_URI)
-          .withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
+        descriptor.withAttribute(XMLNS_PREFIX + "tools", TOOLS_URI).withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
       }
       if (tag.contains('.')) {
         descriptor.withAttribute(XMLNS_PREFIX + APP_PREFIX, AUTO_URI)

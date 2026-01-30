@@ -24,66 +24,58 @@ import javax.swing.JComponent
 import javax.swing.event.AncestorEvent
 import javax.swing.event.AncestorListener
 
-/**
- * Android Studio usage tracker for Android Test Suite feature.
- */
-class AndroidTestSuiteLogger(private val usageLogReporter: UsageLogReporter = UsageLogReporterImpl,
-                             private val timestamp: Long = System.currentTimeMillis()) {
+/** Android Studio usage tracker for Android Test Suite feature. */
+class AndroidTestSuiteLogger(
+  private val usageLogReporter: UsageLogReporter = UsageLogReporterImpl,
+  private val timestamp: Long = System.currentTimeMillis(),
+) {
   private val impressions: MutableSet<ParallelAndroidTestReportUiEvent.UiElement> = mutableSetOf()
 
-  /**
-   * Add impression event. The event is reported in bulk by [reportImpressions].
-   */
+  /** Add impression event. The event is reported in bulk by [reportImpressions]. */
   fun addImpression(element: ParallelAndroidTestReportUiEvent.UiElement) {
     impressions.add(element)
   }
 
-  /**
-   * Add impression events. The event is reported in bulk by [reportImpressions].
-   */
+  /** Add impression events. The event is reported in bulk by [reportImpressions]. */
   fun addImpressions(vararg elements: ParallelAndroidTestReportUiEvent.UiElement) {
     impressions.addAll(elements)
   }
 
-  /**
-   * Add impression event when a given component is displayed.
-   * The event is reported in bulk by [reportImpressions].
-   */
-  fun addImpressionWhenDisplayed(component: JComponent,
-                                 element: ParallelAndroidTestReportUiEvent.UiElement) {
-    component.addAncestorListener(object: AncestorListener {
-      // Note: This method is called when the source or one of its ancestors is made visible.
-      override fun ancestorAdded(event: AncestorEvent) {
-        impressions.add(element)
-        component.removeAncestorListener(this)
+  /** Add impression event when a given component is displayed. The event is reported in bulk by [reportImpressions]. */
+  fun addImpressionWhenDisplayed(component: JComponent, element: ParallelAndroidTestReportUiEvent.UiElement) {
+    component.addAncestorListener(
+      object : AncestorListener {
+        // Note: This method is called when the source or one of its ancestors is made visible.
+        override fun ancestorAdded(event: AncestorEvent) {
+          impressions.add(element)
+          component.removeAncestorListener(this)
+        }
+
+        override fun ancestorMoved(event: AncestorEvent) {}
+
+        override fun ancestorRemoved(event: AncestorEvent) {}
       }
-      override fun ancestorMoved(event: AncestorEvent) {}
-      override fun ancestorRemoved(event: AncestorEvent) {}
-    })
+    )
   }
 
-  /**
-   * Reports the impressions to the [UsageTracker] in bulk with the timestamp when
-   * this logger is instantiated.
-   */
+  /** Reports the impressions to the [UsageTracker] in bulk with the timestamp when this logger is instantiated. */
   fun reportImpressions() {
     usageLogReporter.report(
       AndroidStudioEvent.newBuilder().apply {
         category = AndroidStudioEvent.EventCategory.TESTS
         kind = AndroidStudioEvent.EventKind.PARALLEL_ANDROID_TEST_REPORT_UI
-        parallelAndroidTestReportUiEventBuilder.apply {
-          addAllImpressions(impressions)
-        }
+        parallelAndroidTestReportUiEventBuilder.apply { addAllImpressions(impressions) }
       },
-      timestamp)
+      timestamp,
+    )
     impressions.clear()
   }
 
-  /**
-   * Reports a click interaction immediately to the [UsageTracker].
-   */
-  fun reportClickInteraction(element: ParallelAndroidTestReportUiEvent.UiElement,
-                             resultType: UserInteractionResultType = UserInteractionResultType.UNKNOWN_UI_INTERACTION_RESULT) {
+  /** Reports a click interaction immediately to the [UsageTracker]. */
+  fun reportClickInteraction(
+    element: ParallelAndroidTestReportUiEvent.UiElement,
+    resultType: UserInteractionResultType = UserInteractionResultType.UNKNOWN_UI_INTERACTION_RESULT,
+  ) {
     usageLogReporter.report(
       AndroidStudioEvent.newBuilder().apply {
         category = AndroidStudioEvent.EventCategory.TESTS
@@ -99,8 +91,7 @@ class AndroidTestSuiteLogger(private val usageLogReporter: UsageLogReporter = Us
     )
   }
 
-  @VisibleForTesting
-  fun getImpressionsForTesting(): Set<ParallelAndroidTestReportUiEvent.UiElement> = impressions
+  @VisibleForTesting fun getImpressionsForTesting(): Set<ParallelAndroidTestReportUiEvent.UiElement> = impressions
 }
 
 interface UsageLogReporter {

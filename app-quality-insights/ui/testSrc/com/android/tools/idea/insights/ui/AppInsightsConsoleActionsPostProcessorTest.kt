@@ -40,8 +40,7 @@ class AppInsightsConsoleActionsPostProcessorTest {
 
   @Before
   fun setup() {
-    stackTraceConsoleView =
-      StackTraceConsoleBuilder(projectRule.project).console as StackTraceConsoleView
+    stackTraceConsoleView = StackTraceConsoleBuilder(projectRule.project).console as StackTraceConsoleView
     Disposer.register(projectRule.disposable, stackTraceConsoleView)
   }
 
@@ -50,15 +49,11 @@ class AppInsightsConsoleActionsPostProcessorTest {
     val actions =
       createActionGroup(
         ClearConsoleAction(),
-        createActionGroup(
-          CutAction(),
-          createActionGroup(PasteAction(), createActionGroup(PauseAction(), CopyAction())),
-        ),
+        createActionGroup(CutAction(), createActionGroup(PasteAction(), createActionGroup(PauseAction(), CopyAction()))),
       )
 
     val processor = AppInsightsConsoleActionsPostProcessor()
-    val processedActions =
-      processor.postProcessPopupActions(stackTraceConsoleView, arrayOf(actions))
+    val processedActions = processor.postProcessPopupActions(stackTraceConsoleView, arrayOf(actions))
 
     assertThat(processedActions.size).isEqualTo(1)
     assertThat(processedActions.first()).isInstanceOf(CopyAction::class.java)
@@ -70,16 +65,14 @@ class AppInsightsConsoleActionsPostProcessorTest {
 
     val processor = AppInsightsConsoleActionsPostProcessor()
     // Test with generic ConsoleViewImpl
-    val consoleActions =
-      processor.postProcessPopupActions(mock<ConsoleViewImpl>(), arrayOf(actions))
+    val consoleActions = processor.postProcessPopupActions(mock<ConsoleViewImpl>(), arrayOf(actions))
 
     assertThat(consoleActions.size).isEqualTo(1)
     assertThat(consoleActions.first()).isInstanceOf(DefaultActionGroup::class.java)
     assertThat((consoleActions.first() as DefaultActionGroup).getChildren(null).size).isEqualTo(3)
 
     // Test with StackTraceConsoleView
-    val stackTraceConsoleActions =
-      processor.postProcessPopupActions(stackTraceConsoleView, arrayOf(actions))
+    val stackTraceConsoleActions = processor.postProcessPopupActions(stackTraceConsoleView, arrayOf(actions))
     assertThat(stackTraceConsoleActions.size).isEqualTo(1)
     assertThat(stackTraceConsoleActions.first()).isInstanceOf(CopyAction::class.java)
   }

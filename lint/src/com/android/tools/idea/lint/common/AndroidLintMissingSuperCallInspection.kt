@@ -22,23 +22,11 @@ import com.android.tools.lint.detector.api.LintFix.Companion.getMethod
 import com.intellij.psi.PsiElement
 
 class AndroidLintMissingSuperCallInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.missing.super.call"),
-    CallSuperDetector.ISSUE,
-  ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    message: String,
-    fixData: LintFix?,
-  ): Array<LintIdeQuickFix> {
+  AndroidLintInspectionBase(message("android.lint.inspections.missing.super.call"), CallSuperDetector.ISSUE) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
     if (fixData != null) {
       getMethod(fixData, CallSuperDetector.KEY_METHOD)?.let { method ->
-        return arrayOf(
-          ModCommandLintQuickFix(
-            AddSuperCallFix(startElement, method)
-          )
-        )
+        return arrayOf(ModCommandLintQuickFix(AddSuperCallFix(startElement, method)))
       }
     }
     return super.getQuickFixes(startElement, endElement, message, fixData)

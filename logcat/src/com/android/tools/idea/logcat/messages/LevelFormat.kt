@@ -27,10 +27,7 @@ internal data class LevelFormat(val enabled: Boolean = true) {
   // TODO(aalbert): Consider changing other formatters too
   fun format(logLevel: LogLevel, textAccumulator: TextAccumulator, logcatColors: LogcatColors) {
     if (enabled) {
-      textAccumulator.accumulate(
-        text = " ${logLevel.priorityLetter} ",
-        textAttributesKey = logcatColors.getLogLevelKey(logLevel),
-      )
+      textAccumulator.accumulate(text = " ${logLevel.priorityLetter} ", textAttributesKey = logcatColors.getLogLevelKey(logLevel))
       textAccumulator.accumulate(" ")
     }
   }

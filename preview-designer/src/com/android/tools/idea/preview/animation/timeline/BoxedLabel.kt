@@ -29,23 +29,14 @@ import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.font.TextLayout
 
-class BoxedLabel(
-  private val componentId: Int,
-  private val grouped: Boolean,
-  private val position: () -> Point,
-) {
+class BoxedLabel(private val componentId: Int, private val grouped: Boolean, private val position: () -> Point) {
   fun paint(g: Graphics2D) {
     timelineUnit?.let { paintBoxedLabel(g, it, componentId, grouped, position()) }
   }
 
   fun getTooltip(point: Point): TooltipInfo? {
     return if (boxRect.contains(point))
-      timelineUnit?.let {
-        TooltipInfo(
-          it.propertyLabel,
-          "${if (grouped) it.unit?.toString() else it.unit?.toString(componentId)}",
-        )
-      }
+      timelineUnit?.let { TooltipInfo(it.propertyLabel, "${if (grouped) it.unit?.toString() else it.unit?.toString(componentId)}") }
     else null
   }
 
@@ -60,13 +51,7 @@ class BoxedLabel(
   private var boxRect = Rectangle(0, 0, 0, 0)
 
   /** Paint a label with a box on background. */
-  private fun paintBoxedLabel(
-    g: Graphics2D,
-    timelineUnit: AnimationUnit.TimelineUnit,
-    componentId: Int,
-    grouped: Boolean,
-    point: Point,
-  ) {
+  private fun paintBoxedLabel(g: Graphics2D, timelineUnit: AnimationUnit.TimelineUnit, componentId: Int, grouped: Boolean, point: Point) {
     //       Property label
     //       |       (Optional) Colored box for a [ComposeUnit.Color] properties
     //       |       |    Value of the property
@@ -95,34 +80,19 @@ class BoxedLabel(
     //   \______________________________________/
 
     val label = "${timelineUnit.propertyLabel} :  "
-    val value =
-      if (grouped) timelineUnit.unit.toString() else timelineUnit.unit.toString(componentId)
-    val color =
-      if (timelineUnit.unit is AnimationUnit.Color<*, *>) timelineUnit.unit.color else null
+    val value = if (grouped) timelineUnit.unit.toString() else timelineUnit.unit.toString(componentId)
+    val color = if (timelineUnit.unit is AnimationUnit.Color<*, *>) timelineUnit.unit.color else null
     g.font = JBFont.medium()
     val labelLayout = TextLayout(label, g.font, g.fontRenderContext)
     val valueLayout = TextLayout(value, g.font, g.fontRenderContext)
     val textBoxHeight = (labelLayout.bounds.height + boxedLabelOffset * 2).toInt()
-    val extraColorOffset =
-      if (color != null) boxedLabelColorBoxSize.width() + boxedLabelOffset else 0
-    val textBoxWidth =
-      (labelLayout.bounds.width +
-          valueLayout.bounds.width +
-          boxedLabelOffset * 3 +
-          extraColorOffset)
-        .toInt()
+    val extraColorOffset = if (color != null) boxedLabelColorBoxSize.width() + boxedLabelOffset else 0
+    val textBoxWidth = (labelLayout.bounds.width + valueLayout.bounds.width + boxedLabelOffset * 3 + extraColorOffset).toInt()
     boxRect = Rectangle(point.x - boxedLabelOffset, point.y, textBoxWidth, textBoxHeight)
 
     // Background box
     g.color = InspectorColors.BOXED_LABEL_BACKGROUND
-    g.fillRoundRect(
-      boxRect.x,
-      boxRect.y,
-      boxRect.width,
-      boxRect.height,
-      boxedLabelOffset,
-      boxedLabelOffset,
-    )
+    g.fillRoundRect(boxRect.x, boxRect.y, boxRect.width, boxRect.height, boxedLabelOffset, boxedLabelOffset)
     // Label
     g.color = InspectorColors.BOXED_LABEL_NAME_COLOR
     val prevAntiAliasHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)

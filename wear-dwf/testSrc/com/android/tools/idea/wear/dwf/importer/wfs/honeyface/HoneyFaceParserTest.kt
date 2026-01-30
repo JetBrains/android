@@ -30,8 +30,7 @@ class HoneyFaceParserTest {
 
   @Test
   fun `parses honeyface example file successfully`() {
-    val honeyfaceFile =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/honeyface.json").toFile()
+    val honeyfaceFile = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/honeyface.json").toFile()
     assertThat(honeyfaceFile).exists()
 
     val honeyface = parser.parse(honeyfaceFile)

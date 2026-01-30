@@ -58,9 +58,7 @@ internal open class PreviewPickerTracker : BaseComposePickerTracker() {
     )
   }
 
-  override fun convertModificationsToTrackerActions(
-    modifications: List<PickerModification>
-  ): List<EditorPickerAction> {
+  override fun convertModificationsToTrackerActions(modifications: List<PickerModification>): List<EditorPickerAction> {
     return modifications.map { pickerModification ->
       val trackerParameter =
         when (pickerModification.propertyName) {
@@ -95,9 +93,7 @@ internal open class PreviewPickerTracker : BaseComposePickerTracker() {
         // 'groupDevices' will assign our one device to a non-empty group, so we filter out any
         // group with empty device list
         val resultingGroup =
-          groupDevices(listOfNotNull(device)).entries.firstNotNullOfOrNull { (group, devices) ->
-            if (devices.isEmpty()) null else group
-          }
+          groupDevices(listOfNotNull(device)).entries.firstNotNullOfOrNull { (group, devices) -> if (devices.isEmpty()) null else group }
         return@run when (resultingGroup) {
           DeviceGroup.NEXUS,
           DeviceGroup.NEXUS_XL -> DeviceType.PHONE

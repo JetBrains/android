@@ -31,8 +31,7 @@ class VcsUtilsHeavyTest {
 
   @Test
   fun `can locate repo`() {
-    val repoInfo =
-      RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+    val repoInfo = RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
 
     // Act
     val found = repoInfo.locateRepository(projectRule.project)
@@ -57,8 +56,7 @@ class VcsUtilsHeavyTest {
   @Test
   fun `can not locate repo due to no Git support`() {
     // ... as in our test setup, we only registered [MockVcsForAppInsights].
-    val repoInfo =
-      RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+    val repoInfo = RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
 
     // Act
     val found = repoInfo.locateRepository(projectRule.project)
@@ -70,8 +68,7 @@ class VcsUtilsHeavyTest {
   @Test
   fun `create vcs document`() {
     val file = projectRule.fixture.configureByText("Foo.kt", "class Foo {}")
-    val document =
-      createVcsDocument(VCS_CATEGORY.TEST_VCS, file.virtualFile, "1", projectRule.project)
+    val document = createVcsDocument(VCS_CATEGORY.TEST_VCS, file.virtualFile, "1", projectRule.project)
 
     assertThat(document).isNotNull()
     assertThat(document!!.text).isEqualTo("class Foo {}")

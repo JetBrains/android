@@ -22,16 +22,13 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import net.jcip.annotations.ThreadSafe
 
 /**
- * Service that owns an atomic counter for how many times the view binding setting is changed. This
- * allows it to provide a [com.intellij.openapi.util.ModificationTracker] which is used by IntelliJ
- * for knowing when to clear caches, etc.
+ * Service that owns an atomic counter for how many times the view binding setting is changed. This allows it to provide a
+ * [com.intellij.openapi.util.ModificationTracker] which is used by IntelliJ for knowing when to clear caches, etc.
  */
 @ThreadSafe
 @Service(Service.Level.APP)
 class ViewBindingEnabledTrackingService : SimpleModificationTracker() {
   companion object {
-    @JvmStatic
-    fun getInstance(): ViewBindingEnabledTrackingService =
-      ApplicationManager.getApplication().service()
+    @JvmStatic fun getInstance(): ViewBindingEnabledTrackingService = ApplicationManager.getApplication().service()
   }
 }

@@ -36,8 +36,7 @@ class WearMarginAnalyzerComposeTest {
   @Test
   fun testNoIssue() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -67,8 +66,7 @@ class WearMarginAnalyzerComposeTest {
   @Test
   fun testIssue() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -93,9 +91,6 @@ class WearMarginAnalyzerComposeTest {
       )
     val issues = WearMarginAnalyzer.findIssues(result, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
-    Assert.assertEquals(
-      "The view TextView is too close to the side of the device",
-      issues[0].message,
-    )
+    Assert.assertEquals("The view TextView is too close to the side of the device", issues[0].message)
   }
 }

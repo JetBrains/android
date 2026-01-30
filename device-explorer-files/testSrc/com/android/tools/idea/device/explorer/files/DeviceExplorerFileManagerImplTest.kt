@@ -25,14 +25,14 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.util.concurrency.EdtExecutorService
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
-import java.nio.file.Path
-import java.nio.file.Paths
 
 class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
@@ -75,9 +75,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     foo2Bar1Entry = foo2DirEntry.addFile("bar1")
     foo2Bar2Entry = foo2DirEntry.addFile("bar2")
 
-    fooBar1LocalPath = Paths.get(
-      FileUtilRt.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
-    )
+    fooBar1LocalPath = Paths.get(FileUtilRt.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1"))
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
     tempDirTestFixture.setUp()
@@ -97,22 +95,23 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     assertTrue(FileUtil.toSystemIndependentName(defaultLocalPath.toString()).endsWith("/fileSystem/foo/bar1"))
   }
 
-  fun testDownloadFileEntry() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
-    // Setup
-    val downloadProgress = mock(DownloadProgress::class.java)
-    val orderVerifier = inOrder(downloadProgress)
+  fun testDownloadFileEntry() =
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      // Setup
+      val downloadProgress = mock(DownloadProgress::class.java)
+      val orderVerifier = inOrder(downloadProgress)
 
-    // Act
-    val virtualFile = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
+      // Act
+      val virtualFile = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
 
-    // Assert
-    assertTrue(virtualFile.path.endsWith("/foo/bar1"))
+      // Assert
+      assertTrue(virtualFile.path.endsWith("/foo/bar1"))
 
-    orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
-    orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
-    verifyNoMoreInteractions(downloadProgress)
-  }
+      orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
+      orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
+      orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
+      verifyNoMoreInteractions(downloadProgress)
+    }
 
   fun testDeleteFile() = runDispatching {
     // Prepare

@@ -58,7 +58,7 @@ class AddLibraryDependencyDialog(private val context: PsContext, module: PsModul
 
   override fun getInstructions(): String =
     "Use the form below to find the library to add. This form uses the repositories specified in the project's build files " +
-    "(${libraryDependenciesForm?.repositories?.joinToString(", ") { it.name }})"
+      "(${libraryDependenciesForm?.repositories?.joinToString(", ") { it.name }})"
 
   override fun getDimensionServiceKey(): String = "psd.add.library.dependency.panel.dimension"
 
@@ -79,12 +79,15 @@ class AddLibraryDependencyDialog(private val context: PsContext, module: PsModul
 
     val searchErrors = libraryDependenciesForm!!.searchErrors
     if (!searchErrors.isEmpty()) {
-      return ValidationInfo(buildString {
-        searchErrors.forEach {
-          append(getErrorMessage(it))
-          append("\n")
-        }
-      }, libraryDependenciesForm!!.preferredFocusedComponent)
+      return ValidationInfo(
+        buildString {
+          searchErrors.forEach {
+            append(getErrorMessage(it))
+            append("\n")
+          }
+        },
+        libraryDependenciesForm!!.preferredFocusedComponent,
+      )
     }
 
     return ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)

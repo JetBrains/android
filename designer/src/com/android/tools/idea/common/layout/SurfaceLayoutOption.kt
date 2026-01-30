@@ -24,8 +24,7 @@ import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManag
  * Wrapper class to define the options available for layout.
  *
  * @param displayName Name to be shown for this option.
- * @param createLayoutManager creates [SurfaceLayoutManager] to switch to when this option is
- *   selected.
+ * @param createLayoutManager creates [SurfaceLayoutManager] to switch to when this option is selected.
  * @param organizationEnabled if layout has organization
  * @param sceneViewAlignment scenes alignment
  * @param shouldStoreScale if true, stores the current scale in the settings preferences.

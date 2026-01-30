@@ -29,11 +29,8 @@ import java.awt.event.MouseEvent
 import org.jetbrains.android.AndroidTestCase
 
 internal object EmptyModelsProvider : VisualizationModelsProvider {
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> = emptyList()
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> =
+    emptyList()
 }
 
 class VisualizationActionManagerTest : AndroidTestCase() {
@@ -48,11 +45,7 @@ class VisualizationActionManagerTest : AndroidTestCase() {
   }
 
   fun testPopupMenuActions() {
-    val popupMenuGroup =
-      actionManager.getPopupMenuActions(
-        null,
-        MouseEvent(surface, MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true),
-      )
+    val popupMenuGroup = actionManager.getPopupMenuActions(null, MouseEvent(surface, MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true))
     val actions = popupMenuGroup.getChildren(ActionManager.getInstance())
     assertTrue(actions[0] is ZoomInAction)
     assertTrue(actions[1] is ZoomOutAction)

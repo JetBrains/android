@@ -80,14 +80,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     val previousPairedPhone = phoneDevice.copy(deviceID = "id4")
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking(workerThread) {
-      WearPairingManager.getInstance()
-        .createPairedDeviceBridge(
-          previousPairedPhone,
-          iDevice,
-          wearDevice,
-          iDevice,
-          connect = false,
-        )
+      WearPairingManager.getInstance().createPairedDeviceBridge(previousPairedPhone, iDevice, wearDevice, iDevice, connect = false)
     }
 
     val fakeUi = createNewConnectionAlertStepUi()

@@ -31,13 +31,12 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.ui.components.JBTextField
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
-import org.junit.Assume
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import kotlin.reflect.KProperty
-
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Assume
 
 typealias Model = Unit
 
@@ -53,33 +52,47 @@ class StringPropertyEditorTest : UsefulTestCase() {
   private var wellKnownValuesFuture: ListenableFuture<List<ValueDescriptor<String>>> = Futures.immediateFuture(listOf())
 
   private val property
-    get() = object : ModelPropertyBase<Model, String>(), ModelSimpleProperty<Model, String> {
-      override val parser: (String) -> Annotated<ParsedValue<String>>
-        get() = { value ->
-          ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
-        }
-      override val formatter: (String) -> String get() = { it }
-      override val knownValuesGetter: (Model) -> ListenableFuture<List<ValueDescriptor<String>>> get() = { wellKnownValuesFuture }
-      override val description: String = "Description"
+    get() =
+      object : ModelPropertyBase<Model, String>(), ModelSimpleProperty<Model, String> {
+        override val parser: (String) -> Annotated<ParsedValue<String>>
+          get() = { value -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated() }
 
-      override fun bind(model: Model): ModelPropertyCore<String> = object : ModelPropertyCore<String> {
+        override val formatter: (String) -> String
+          get() = { it }
+
+        override val knownValuesGetter: (Model) -> ListenableFuture<List<ValueDescriptor<String>>>
+          get() = { wellKnownValuesFuture }
+
         override val description: String = "Description"
-        override fun getParsedValue(): Annotated<ParsedValue<String>> = parsedModel.value
-        override fun setParsedValue(value: ParsedValue<String>) {
-          parsedModel.value = value.annotated()
-        }
 
-        override fun getResolvedValue(): ResolvedValue<String> = throw UnsupportedOperationException()
+        override fun bind(model: Model): ModelPropertyCore<String> =
+          object : ModelPropertyCore<String> {
+            override val description: String = "Description"
 
-        override val defaultValueGetter: (() -> String?)? get() = defaultValue?.let { { it } }
-        override val variableScope: (() -> PsVariablesScope?)? get() = { null }
-        override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
-        override val isModified: Boolean? get() = false
+            override fun getParsedValue(): Annotated<ParsedValue<String>> = parsedModel.value
+
+            override fun setParsedValue(value: ParsedValue<String>) {
+              parsedModel.value = value.annotated()
+            }
+
+            override fun getResolvedValue(): ResolvedValue<String> = throw UnsupportedOperationException()
+
+            override val defaultValueGetter: (() -> String?)?
+              get() = defaultValue?.let { { it } }
+
+            override val variableScope: (() -> PsVariablesScope?)?
+              get() = { null }
+
+            override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
+
+            override val isModified: Boolean?
+              get() = false
+          }
+
+        override fun getValue(thisRef: Model, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
+
+        override fun setValue(thisRef: Model, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
       }
-
-      override fun getValue(thisRef: Model, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
-      override fun setValue(thisRef: Model, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
-    }
 
   override fun setUp() {
     super.setUp()
@@ -97,10 +110,8 @@ class StringPropertyEditorTest : UsefulTestCase() {
     editor.dispose()
     try {
       editor.commitTestText("abc")
-      fail("updateProperty should throw exception when disposed");
-    }
-    catch (_: IllegalStateException) {
-    }
+      fail("updateProperty should throw exception when disposed")
+    } catch (_: IllegalStateException) {}
     Assert.assertThat(parsedModel.value, CoreMatchers.equalTo("value".asAnnotatedParsed()))
   }
 
@@ -111,11 +122,11 @@ class StringPropertyEditorTest : UsefulTestCase() {
     editor.getFocusListeners().forEach { it.focusLost(FocusEvent(editor.component, 0)) }
     Assert.assertThat(parsedModel.value, CoreMatchers.equalTo("abc".asAnnotatedParsed()))
   }
-
 }
 
-private fun String.asAnnotatedParsed(): Annotated<ParsedValue<String>> = ParsedValue.Set.Parsed(value = this,
-                                                                                                dslText = DslText.Literal).annotated()
+private fun String.asAnnotatedParsed(): Annotated<ParsedValue<String>> =
+  ParsedValue.Set.Parsed(value = this, dslText = DslText.Literal).annotated()
+
 private fun StringPropertyEditor<*>.commitTestText(text: String) {
   setTestText(text)
   updateProperty()
@@ -125,4 +136,4 @@ private fun StringPropertyEditor<*>.setTestText(text: String) {
   (component as JBTextField).text = text
 }
 
-private fun StringPropertyEditor<*>.getFocusListeners():Array<FocusListener> = (component as JBTextField).focusListeners
+private fun StringPropertyEditor<*>.getFocusListeners(): Array<FocusListener> = (component as JBTextField).focusListeners

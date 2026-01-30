@@ -33,10 +33,8 @@ import java.awt.CardLayout
 import javax.swing.JPanel
 
 /** View to display detailed information of an interception rule or connection. */
-internal class NetworkInspectorDetailsPanel(
-  inspectorView: NetworkInspectorView,
-  usageTracker: NetworkInspectorTracker,
-) : JPanel(BorderLayout()) {
+internal class NetworkInspectorDetailsPanel(inspectorView: NetworkInspectorView, usageTracker: NetworkInspectorTracker) :
+  JPanel(BorderLayout()) {
 
   val connectionDataDetailsView: ConnectionDataDetailsView
   val ruleDetailsView: RuleDetailsView
@@ -56,15 +54,9 @@ internal class NetworkInspectorDetailsPanel(
 
     cardLayoutView = JPanel(cardLayout)
     connectionDataDetailsView = ConnectionDataDetailsView(inspectorView, usageTracker)
-    val getRuleNames: () -> Set<String> = {
-      inspectorView.rulesView.tableModel.items.mapTo(HashSet()) { it.name }
-    }
+    val getRuleNames: () -> Set<String> = { inspectorView.rulesView.tableModel.items.mapTo(HashSet()) { it.name } }
     ruleDetailsView =
-      RuleDetailsView(
-        getRuleNames,
-        RuleVariablesStateComponent.getInstance(inspectorView.project).state.ruleVariables,
-        usageTracker,
-      )
+      RuleDetailsView(getRuleNames, RuleVariablesStateComponent.getInstance(inspectorView.project).state.ruleVariables, usageTracker)
     cardLayoutView.add(connectionDataDetailsView, CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model
@@ -72,20 +64,14 @@ internal class NetworkInspectorDetailsPanel(
       isVisible = model.detailContent != NetworkInspectorModel.DetailContent.EMPTY
       cardLayout.show(cardLayoutView, model.detailContent.name)
     }
-    model.aspect.addDependency(aspectObserver).onChange(
-      NetworkInspectorAspect.SELECTED_CONNECTION
-    ) {
+    model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       usageTracker.trackConnectionDetailsSelected()
       model.selectedConnection?.let { setConnectionData(it) }
       repaint()
     }
-    model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_RULE) {
-      model.selectedRule?.let { setRule(it) }
-    }
+    model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_RULE) { model.selectedRule?.let { setRule(it) } }
 
-    val closeButton = CloseButton {
-      model.detailContent = NetworkInspectorModel.DetailContent.EMPTY
-    }
+    val closeButton = CloseButton { model.detailContent = NetworkInspectorModel.DetailContent.EMPTY }
     // Add a wrapper to move the close button center vertically.
     val closeButtonWrapper = JPanel(BorderLayout())
     closeButtonWrapper.add(closeButton, BorderLayout.CENTER)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeProductFlavorContainer: IdeSourceProviderContainer {
+interface IdeProductFlavorContainer : IdeSourceProviderContainer {
   /**
    * The Product Flavor itself.
    *

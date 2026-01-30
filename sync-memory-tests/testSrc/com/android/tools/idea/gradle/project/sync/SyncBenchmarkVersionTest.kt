@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -46,9 +46,9 @@ class SyncBenchmarkVersionTest {
     Truth.assertThat(benchmarkVersions.resolvedAgpVersion() >= latestVersions.resolvedAgpVersion()).isTrue()
     Truth.assertThat(benchmarkVersions.resolvedGradleVersion() >= latestVersions.resolvedGradleVersion()).isTrue()
     Truth.assertThat(
-      benchmarkVersions.resolvedKotlinVersion().ignorePreviewVersion()
-      >= latestVersions.resolvedKotlinVersion().ignorePreviewVersion()
-    ).isTrue()
+        benchmarkVersions.resolvedKotlinVersion().ignorePreviewVersion() >= latestVersions.resolvedKotlinVersion().ignorePreviewVersion()
+      )
+      .isTrue()
   }
 
   private fun AgpVersionSoftwareEnvironment.resolvedAgpVersion() =
@@ -57,10 +57,8 @@ class SyncBenchmarkVersionTest {
   private fun AgpVersionSoftwareEnvironment.resolvedGradleVersion() =
     GradleVersion.version(gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION)
 
-  private fun AgpVersionSoftwareEnvironment.resolvedKotlinVersion() =
-    Version.parse(kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS)
+  private fun AgpVersionSoftwareEnvironment.resolvedKotlinVersion() = Version.parse(kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS)
 
   /** Removes the preview part of the version (e.g., given "2.1.0-dev-6784" or "2.1.0-Beta1", return "2.1.0"). */
   private fun Version.ignorePreviewVersion(): Version = Version.parse(toString().substringBefore("-"))
-
 }

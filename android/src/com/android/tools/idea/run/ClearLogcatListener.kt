@@ -17,14 +17,11 @@ package com.android.tools.idea.run
 
 import com.intellij.util.messages.Topic
 
-/**
- * Listener of events requesting that Logcat panels for a specific device should be cleared.
- */
+/** Listener of events requesting that Logcat panels for a specific device should be cleared. */
 fun interface ClearLogcatListener {
   fun clearLogcat(serialNumber: String)
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to clear logcat panels", ClearLogcatListener::class.java)
+    @JvmField val TOPIC = Topic("Command to clear logcat panels", ClearLogcatListener::class.java)
   }
 }

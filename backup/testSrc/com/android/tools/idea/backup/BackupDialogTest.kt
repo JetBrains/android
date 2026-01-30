@@ -52,32 +52,32 @@ import org.mockito.kotlin.verify
 
 private val WARNING_DTD_HTML =
   """
-    <html>
-      <head>
-        
-      </head>
-      <body>
-        App-data won't be backed up as allowBackup property is false.<br>Backup 
-        may contain Restore Keys, if present for the app.<br>(<a href="learn-more">Learn 
-        more</a>, <a href="enable-backup">Enable in manifest</a>)
-      </body>
-    </html>
-"""
+  <html>
+    <head>
+      
+    </head>
+    <body>
+      App-data won't be backed up as allowBackup property is false.<br>Backup 
+      may contain Restore Keys, if present for the app.<br>(<a href="learn-more">Learn 
+      more</a>, <a href="enable-backup">Enable in manifest</a>)
+    </body>
+  </html>
+  """
     .trimIndent()
 
 private val WARNING_CLOUD_HTML =
   """
-    <html>
-      <head>
-        
-      </head>
-      <body>
-        App-data won't be backed up as allowBackup property is false.<br>Restore 
-        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="learn-more">Learn 
-        more</a>, <a href="enable-backup">Enable in manifest</a>)
-      </body>
-    </html>
-"""
+  <html>
+    <head>
+      
+    </head>
+    <body>
+      App-data won't be backed up as allowBackup property is false.<br>Restore 
+      Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="learn-more">Learn 
+      more</a>, <a href="enable-backup">Enable in manifest</a>)
+    </body>
+  </html>
+  """
     .trimIndent()
 
 /** Tests for [BackupDialog] */
@@ -137,10 +137,7 @@ class BackupDialogTest {
       disposableRule.disposable,
     )
 
-    createDialog(
-      initialApplication = "app2",
-      debuggableApps = listOf("app4", "app3", "app2", "app1"),
-    ) {
+    createDialog(initialApplication = "app2", debuggableApps = listOf("app4", "app3", "app2", "app1")) {
       val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
       assertThat(applicationComboBox.getItemAt(0)).isEqualTo("app1")
       assertThat(applicationComboBox.getItemAt(1)).isEqualTo("app2")
@@ -161,10 +158,7 @@ class BackupDialogTest {
       disposableRule.disposable,
     )
 
-    createDialog(
-      initialApplication = "app2",
-      debuggableApps = listOf("app4", "app3", "app2", "app1"),
-    ) {
+    createDialog(initialApplication = "app2", debuggableApps = listOf("app4", "app3", "app2", "app1")) {
       val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
       assertThat(applicationComboBox.item).isEqualTo("app2")
     }
@@ -182,10 +176,7 @@ class BackupDialogTest {
       disposableRule.disposable,
     )
 
-    createDialog(
-      initialApplication = "app4",
-      debuggableApps = listOf("app4", "app3", "app2", "app1"),
-    ) {
+    createDialog(initialApplication = "app4", debuggableApps = listOf("app4", "app3", "app2", "app1")) {
       val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
       assertThat(applicationComboBox.item).isEqualTo("app4")
     }
@@ -203,13 +194,9 @@ class BackupDialogTest {
       disposableRule.disposable,
     )
 
-    createDialog(
-      initialApplication = "non-project-app",
-      debuggableApps = listOf("installed-project-app", "non-project-app"),
-    ) {
+    createDialog(initialApplication = "non-project-app", debuggableApps = listOf("installed-project-app", "non-project-app")) {
       val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
-      assertThat(applicationComboBox.items())
-        .containsExactly("installed-project-app", "non-project-app")
+      assertThat(applicationComboBox.items()).containsExactly("installed-project-app", "non-project-app")
     }
   }
 
@@ -229,13 +216,10 @@ class BackupDialogTest {
     createDialog {
       val typeHelpIcon = it.findComponent<JLabel>("typeHelpIcon")
 
-      typeHelpIcon.mouseListeners.forEach { listener ->
-        listener.mouseReleased(MouseEvent(typeHelpIcon, 0, 0, 0, 0, 0, 0, false))
-      }
+      typeHelpIcon.mouseListeners.forEach { listener -> listener.mouseReleased(MouseEvent(typeHelpIcon, 0, 0, 0, 0, 0, 0, false)) }
 
       assertThat(typeHelpIcon.toolTipText).isEqualTo("Show help contents")
-      verify(mockBrowserLauncher)
-        .browse("https://d.android.com//r/studio-ui/backup-restore/help/backup-type")
+      verify(mockBrowserLauncher).browse("https://d.android.com//r/studio-ui/backup-restore/help/backup-type")
     }
   }
 
@@ -387,10 +371,7 @@ class BackupDialogTest {
     isBackupEnabled: Boolean = true,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
-    createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication, debuggableApps.associateWith { isBackupEnabled })::
-        show
-    ) {
+    createModalDialogAndInteractWithIt(BackupDialog(project, initialApplication, debuggableApps.associateWith { isBackupEnabled })::show) {
       dialogInteractor(it as BackupDialog)
     }
   }

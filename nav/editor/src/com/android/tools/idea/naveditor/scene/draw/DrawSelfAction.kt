@@ -29,12 +29,8 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import java.awt.Color
 
-class DrawSelfAction(
-  private val rectangle: SwingRectangle,
-  scale: Scale,
-  color: Color,
-  isPopAction: Boolean,
-) : DrawActionBase(scale, color, isPopAction) {
+class DrawSelfAction(private val rectangle: SwingRectangle, scale: Scale, color: Color, isPopAction: Boolean) :
+  DrawActionBase(scale, color, isPopAction) {
   override fun buildAction(): Action {
     val points = selfActionPoints(rectangle, scale)
     val path = SwingPath()
@@ -55,6 +51,5 @@ class DrawSelfAction(
     return Action(path, SwingRectangle(x, y, width, height), ArrowDirection.UP)
   }
 
-  override fun getPopIconRectangle(): SwingRectangle =
-    getSelfActionIconRect(getStartPoint(rectangle), scale)
+  override fun getPopIconRectangle(): SwingRectangle = getSelfActionIconRect(getStartPoint(rectangle), scale)
 }

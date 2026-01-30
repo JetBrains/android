@@ -39,8 +39,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 // TODO(b/329254843): remove mentioning of compose from common component
-private const val LEARN_MORE_LINK =
-  "https://developer.android.com/jetpack/compose/tooling/animation-preview"
+private const val LEARN_MORE_LINK = "https://developer.android.com/jetpack/compose/tooling/animation-preview"
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
 class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
@@ -57,10 +56,7 @@ class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
   }
 
   private val labelPosition =
-    Point(
-      minX + InspectorLayout.labelOffset - InspectorLayout.boxedLabelOffset,
-      rowMinY + InspectorLayout.labelOffset / 2,
-    )
+    Point(minX + InspectorLayout.labelOffset - InspectorLayout.boxedLabelOffset, rowMinY + InspectorLayout.labelOffset / 2)
 
   private val label = LabelPanel.findOrCreateNew(parent).apply { this.location = labelPosition }
 
@@ -77,16 +73,11 @@ class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
     JBUIScale.removeUserScaleChangeListener(scaleChangeListener)
   }
 
-  private class LabelPanel private constructor(parent: JComponent) :
-    JPanel(TabularLayout("Fit,5px,Fit,5px,Fit", "Fit")) {
+  private class LabelPanel private constructor(parent: JComponent) : JPanel(TabularLayout("Fit,5px,Fit,5px,Fit", "Fit")) {
 
     companion object {
       fun findOrCreateNew(parent: JComponent): LabelPanel {
-        val search =
-          parent.components
-            .filterIsInstance<LabelPanel>()
-            .firstOrNull { !it.isVisible }
-            .apply { this?.isVisible = true }
+        val search = parent.components.filterIsInstance<LabelPanel>().firstOrNull { !it.isVisible }.apply { this?.isVisible = true }
         return search ?: LabelPanel(parent).apply { parent.add(this) }
       }
     }
@@ -104,14 +95,7 @@ class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
 
     override fun paintComponent(g: Graphics?) {
       g?.color = InspectorColors.BOXED_LABEL_BACKGROUND
-      g?.fillRoundRect(
-        0,
-        0,
-        width,
-        height,
-        InspectorLayout.boxedLabelColorBoxArc.width,
-        InspectorLayout.boxedLabelColorBoxArc.height,
-      )
+      g?.fillRoundRect(0, 0, width, height, InspectorLayout.boxedLabelColorBoxArc.width, InspectorLayout.boxedLabelColorBoxArc.height)
     }
 
     init {

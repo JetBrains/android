@@ -50,18 +50,12 @@ class LambdaParameterItemTest {
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(popupRule)
-      .around(fileOpenCaptureRule)
-      .around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun before() {
     val fixture = projectRule.fixture
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
   }
 
@@ -69,11 +63,7 @@ class LambdaParameterItemTest {
   fun testLambdaLookup() {
     val item = createParameterItem("MyCompose.kt", 17, 17)
     item.link.actionPerformed(mockEvent())
-    fileOpenCaptureRule.checkEditor(
-      "MyCompose.kt",
-      17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
-    )
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     assertThat(popupRule.fakePopupFactory.balloonCount).isEqualTo(0)
   }
 
@@ -83,8 +73,7 @@ class LambdaParameterItemTest {
 
     val disposable = Disposer.newDisposable()
     Disposer.register(projectRule.testRootDisposable, disposable)
-    ApplicationManager.getApplication()
-      .replaceService(FileDocumentManager::class.java, mock(), disposable)
+    ApplicationManager.getApplication().replaceService(FileDocumentManager::class.java, mock(), disposable)
 
     item.link.actionPerformed(mockEvent())
     waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.balloonCount > 0 }
@@ -106,11 +95,7 @@ class LambdaParameterItemTest {
     fileOpenCaptureRule.checkNoNavigation()
   }
 
-  private fun createParameterItem(
-    fileName: String,
-    startLineNumber: Int,
-    endLineNumber: Int,
-  ): LambdaParameterItem {
+  private fun createParameterItem(fileName: String, startLineNumber: Int, endLineNumber: Int): LambdaParameterItem {
     val lookup =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
@@ -139,8 +124,7 @@ class LambdaParameterItemTest {
 
   private fun mockEvent(): AnActionEvent {
     val event: AnActionEvent = mock()
-    val context =
-      SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, JPanel())
+    val context = SimpleDataContext.getSimpleContext(PlatformCoreDataKeys.CONTEXT_COMPONENT, JPanel())
     whenever(event.dataContext).thenReturn(context)
     return event
   }

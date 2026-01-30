@@ -24,9 +24,7 @@ enum class GenerateErrorReason(val message: String) {
   NO_VALID_GIT_FOUND(
     "The Android Gradle Plugin was unable to read the Git repository at the root project level. '.git/HEAD' or '.git/refs/heads/${'$'}{branch}' were not found or unreadable."
   ),
-  UNSPECIFIED(
-    "The Android Gradle Plugin was unable to save version control information for an unknown reason."
-  );
+  UNSPECIFIED("The Android Gradle Plugin was unable to save version control information for an unknown reason.");
 
   companion object {
     fun fromProto(proto: BuildStamp.GenerateErrorReason): GenerateErrorReason {

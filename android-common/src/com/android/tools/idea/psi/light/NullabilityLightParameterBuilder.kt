@@ -20,11 +20,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightParameter
 
-/**
- * A [LightParameter] with nullability support.
- */
-class NullabilityLightParameterBuilder(name: String, type: PsiType, declartionScope: PsiElement, language: Language, isNonNull: Boolean)
-  : LightParameter(name, type, declartionScope, language) {
+/** A [LightParameter] with nullability support. */
+class NullabilityLightParameterBuilder(name: String, type: PsiType, declartionScope: PsiElement, language: Language, isNonNull: Boolean) :
+  LightParameter(name, type, declartionScope, language) {
   init {
     setModifierList(ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull))
   }

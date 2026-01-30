@@ -43,8 +43,7 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
   }
 
   private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
-    val androidStudioEvent =
-      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
+    val androidStudioEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
 
     deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
 
@@ -55,20 +54,16 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
 
       val failureType = it.failureType?.toProtoEnum()
       if (failureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType =
-          failureType
+        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType = failureType
       }
       val previousFailureType = it.previousFailureType?.toProtoEnum()
       if (previousFailureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType =
-          previousFailureType
+        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType = previousFailureType
       }
     }
 
     appInfoProcessPropertiesCollector?.let {
-      androidStudioEvent.adbUsageEventBuilder.appInfoProcessPropertiesEventBuilder.setEventType(
-        it.eventType.toProtoEnum()
-      )
+      androidStudioEvent.adbUsageEventBuilder.appInfoProcessPropertiesEventBuilder.setEventType(it.eventType.toProtoEnum())
     }
 
     adbDeviceStateChange?.let { deviceStateChange ->
@@ -81,21 +76,14 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
     return androidStudioEvent
   }
 
-  private fun AdbUsageTracker.DeviceState.toProtoEnum():
-    AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState {
+  private fun AdbUsageTracker.DeviceState.toProtoEnum(): AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState {
     return when (this) {
-      AdbUsageTracker.DeviceState.BOOTLOADER ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.BOOTLOADER
-      AdbUsageTracker.DeviceState.AUTHORIZING ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.AUTHORIZING
-      AdbUsageTracker.DeviceState.CONNECTING ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.CONNECTING
-      AdbUsageTracker.DeviceState.OFFLINE ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OFFLINE
-      AdbUsageTracker.DeviceState.ONLINE ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE
-      AdbUsageTracker.DeviceState.DISCONNECTED ->
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED
+      AdbUsageTracker.DeviceState.BOOTLOADER -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.BOOTLOADER
+      AdbUsageTracker.DeviceState.AUTHORIZING -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.AUTHORIZING
+      AdbUsageTracker.DeviceState.CONNECTING -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.CONNECTING
+      AdbUsageTracker.DeviceState.OFFLINE -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OFFLINE
+      AdbUsageTracker.DeviceState.ONLINE -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE
+      AdbUsageTracker.DeviceState.DISCONNECTED -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED
       AdbUsageTracker.DeviceState.OTHER -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OTHER
     }
   }
@@ -137,16 +125,14 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
   private fun AdbUsageTracker.DeviceInfo.toProto(): DeviceInfo {
     val mdnsConnectionType =
       when {
-        isMdnsAutoConnectUnencrypted(serialNumber) ->
-          DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+        isMdnsAutoConnectUnencrypted(serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
         isMdnsAutoConnectTls(serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
         else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
       }
 
     // TODO: Fix classification of `CLOUD_EMULATOR` and `CLOUD_PHYSICAL` device types
     val deviceType =
-      if (LOCAL_EMULATOR_REGEX.matches(serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR
-      else DeviceInfo.DeviceType.LOCAL_PHYSICAL
+      if (LOCAL_EMULATOR_REGEX.matches(serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL
 
     return DeviceInfo.newBuilder()
       .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))

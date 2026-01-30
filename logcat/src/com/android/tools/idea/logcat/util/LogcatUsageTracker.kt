@@ -28,20 +28,11 @@ import kotlin.time.Duration
 /** A convenience container for usage tracing methods. */
 internal object LogcatUsageTracker {
   fun log(logcatUsageEvent: LogcatUsageEvent.Builder) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setCategory(LOGCAT)
-        .setKind(LOGCAT_USAGE)
-        .setLogcatUsageEvent(logcatUsageEvent)
-    )
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setCategory(LOGCAT).setKind(LOGCAT_USAGE).setLogcatUsageEvent(logcatUsageEvent))
   }
 
   fun logRetrace(result: String) {
-    log(
-      LogcatUsageEvent.newBuilder()
-        .setType(STACK_RETRACED)
-        .setStackRetrace(StackRetraceEvent.newBuilder().setResultString(result))
-    )
+    log(LogcatUsageEvent.newBuilder().setType(STACK_RETRACED).setStackRetrace(StackRetraceEvent.newBuilder().setResultString(result)))
   }
 
   fun logRetraceException(e: Throwable) {
@@ -52,12 +43,7 @@ internal object LogcatUsageTracker {
     )
   }
 
-  fun logRetraceException(
-    e: Throwable,
-    mappingFileSize: Long,
-    isCached: Boolean,
-    mappingType: MappingType,
-  ) {
+  fun logRetraceException(e: Throwable, mappingFileSize: Long, isCached: Boolean, mappingType: MappingType) {
     log(
       LogcatUsageEvent.newBuilder()
         .setType(STACK_RETRACED)
@@ -71,13 +57,7 @@ internal object LogcatUsageTracker {
     )
   }
 
-  fun logRetrace(
-    result: String,
-    duration: Duration,
-    mappingFileSize: Long,
-    isCached: Boolean,
-    mappingType: MappingType,
-  ) {
+  fun logRetrace(result: String, duration: Duration, mappingFileSize: Long, isCached: Boolean, mappingType: MappingType) {
     log(
       LogcatUsageEvent.newBuilder()
         .setType(STACK_RETRACED)

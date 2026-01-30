@@ -20,31 +20,32 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.intellij.openapi.project.Project
-import org.junit.rules.ExternalResource
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.time.Instant
 import javax.management.MBeanServer
 import javax.management.ObjectName
+import org.junit.rules.ExternalResource
 
 class CaptureJfrRule : ExternalResource() {
 
   var counter = 0
   val syncCount = System.getProperty("sync_count_override")?.toIntOrNull() ?: 5
 
-  val listener  = object : GradleSyncListenerWithRoot {
-    // Invoked when each sync attempt starts
-    override fun syncStarted(project: Project, rootProjectPath: String) {
-      counter++
+  val listener =
+    object : GradleSyncListenerWithRoot {
+      // Invoked when each sync attempt starts
+      override fun syncStarted(project: Project, rootProjectPath: String) {
+        counter++
 
-      if (counter == 1 || counter == syncCount + 1) startJavaFlightRecording()
-    }
-    override fun syncSucceeded(project: Project, rootProjectPath: String) {
-      if (counter == 1 || counter == syncCount + 1) stopJavaFlightRecording()
-    }
-  }
+        if (counter == 1 || counter == syncCount + 1) startJavaFlightRecording()
+      }
 
+      override fun syncSucceeded(project: Project, rootProjectPath: String) {
+        if (counter == 1 || counter == syncCount + 1) stopJavaFlightRecording()
+      }
+    }
 
   override fun before() {
     mutateGradleProperties {
@@ -53,9 +54,10 @@ class CaptureJfrRule : ExternalResource() {
   }
 
   override fun after() {
-    File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "jfr" }.forEach { jfrFile ->
-      Files.move(jfrFile.toPath(), TestUtils.getTestOutputDir().resolve(jfrFile.name))
-    }
+    File(OUTPUT_DIRECTORY)
+      .walk()
+      .filter { !it.isDirectory && it.extension == "jfr" }
+      .forEach { jfrFile -> Files.move(jfrFile.toPath(), TestUtils.getTestOutputDir().resolve(jfrFile.name)) }
   }
 
   private fun startJavaFlightRecording() {
@@ -71,15 +73,12 @@ class CaptureJfrRule : ExternalResource() {
     println(server.execute("jfrStop", arrayOf(arrayOf("name=jfr filename=${fileJfr.path}"))))
   }
 
-  private fun MBeanServer.execute(name: String, args: Array<Array<String>?> = arrayOf(null)) = invoke(
-    ObjectName("com.sun.management:type=DiagnosticCommand"),
-    name,
-    args,
-    arrayOf(Array<String>::class.java.name)
-  ).toString()
+  private fun MBeanServer.execute(name: String, args: Array<Array<String>?> = arrayOf(null)) =
+    invoke(ObjectName("com.sun.management:type=DiagnosticCommand"), name, args, arrayOf(Array<String>::class.java.name)).toString()
 
   companion object {
     fun shouldEnable() = System.getProperty("capture_jfr").toBoolean()
+
     fun shouldEnableDaemon() = System.getProperty("capture_jfr_daemon").toBoolean()
   }
 }

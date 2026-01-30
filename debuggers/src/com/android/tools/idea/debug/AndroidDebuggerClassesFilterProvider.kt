@@ -18,14 +18,7 @@ package com.android.tools.idea.debug
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.ui.classFilter.DebuggerClassFilterProvider
 
-private val FILTERS = listOf(
-  "^android.*",
-  "^com.android.*",
-  "^androidx.*",
-  "^libcore.*",
-  "^dalvik.*",
-).map { ClassFilter(it) }
-
+private val FILTERS = listOf("^android.*", "^com.android.*", "^androidx.*", "^libcore.*", "^dalvik.*").map { ClassFilter(it) }
 
 class AndroidDebuggerClassesFilterProvider : DebuggerClassFilterProvider {
 

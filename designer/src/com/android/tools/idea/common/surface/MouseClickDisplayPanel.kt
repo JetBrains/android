@@ -35,12 +35,11 @@ private const val DEFAULT_START_RADIUS = 10
 private const val DEFAULT_END_RADIUS = DEFAULT_START_RADIUS + 10
 
 /**
- * A panel that displays the mouse clicks when contained in the coordinates of this panel. After
- * creation, [enableMouseClickDisplay] needs to be called to enable the bubble display. By default,
- * the component is disabled. Enable it by calling [setEnabled].
+ * A panel that displays the mouse clicks when contained in the coordinates of this panel. After creation, [enableMouseClickDisplay] needs
+ * to be called to enable the bubble display. By default, the component is disabled. Enable it by calling [setEnabled].
  *
- * @param parentDisposable Required [Disposable] to attach this [MouseClickDisplayPanel]. When the
- *   parent is disposed, the listeners used by this panel will be removed.
+ * @param parentDisposable Required [Disposable] to attach this [MouseClickDisplayPanel]. When the parent is disposed, the listeners used by
+ *   this panel will be removed.
  * @param durationMs Duration of the ripple animation in seconds.
  * @param decorationColor Color of the ripple.
  * @param startRadius Start radius for the ripple.
@@ -89,9 +88,7 @@ constructor(
     isEnabled = false
   }
 
-  /**
-   * Starts the mouse click display. If there is a click within the bounds, the click will be drawn.
-   */
+  /** Starts the mouse click display. If there is a click within the bounds, the click will be drawn. */
   private fun enableMouseClickDisplay() {
     if (!isMouseTrackingEnabled) {
       // We do not use addMouseListener to avoid the component intercepting clicks that are meant

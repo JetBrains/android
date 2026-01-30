@@ -28,7 +28,7 @@ import com.intellij.execution.Executor
 import com.intellij.openapi.project.Project
 import java.io.File
 
-/** Holds the context data required to run an Android application.  */
+/** Holds the context data required to run an Android application. */
 class BazelAndroidRunContext(
   val consoleProvider: ConsoleProvider,
   val deployInfo: BlazeAndroidDeployInfo,
@@ -36,29 +36,20 @@ class BazelAndroidRunContext(
   val apkProvider: BazelApkProvider,
   val applicationProjectContext: BazelApplicationProjectContext,
   val executor: Executor,
-  val profileState: ProfilerState?
+  val profileState: ProfilerState?,
 )
 
-/** Holds the pre-calculated application IDs for a launched app.  */
-class BazelApplicationIdProvider(
-  private val packageName: String,
-  private val testPackageName: String?
-) : ApplicationIdProvider {
-  /**
-   * Returns the application ID of the main app (for android_binary targets) or the app under test
-   * (for android_test targets).
-   */
+/** Holds the pre-calculated application IDs for a launched app. */
+class BazelApplicationIdProvider(private val packageName: String, private val testPackageName: String?) : ApplicationIdProvider {
+  /** Returns the application ID of the main app (for android_binary targets) or the app under test (for android_test targets). */
   override fun getPackageName(): String = packageName
 
-  /** Returns the application ID of the test instrumentation APK, or null if none.  */
+  /** Returns the application ID of the test instrumentation APK, or null if none. */
   override fun getTestPackageName(): String? = testPackageName
 }
 
-/** Apk provider from deploy info proto  */
-class BazelApkProvider(
-  val apkInfos: List<ApkInfo>,
-  val symbolFiles: List<File>
-) : ApkProvider {
+/** Apk provider from deploy info proto */
+class BazelApkProvider(val apkInfos: List<ApkInfo>, val symbolFiles: List<File>) : ApkProvider {
   override fun getApks(device: IDevice): Collection<ApkInfo> {
     return apkInfos
   }

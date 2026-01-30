@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.RequiredFeatureDetector
 
 class AndroidLintUnnecessaryRequiredFeatureInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unnecessary.required.feature"),
-    RequiredFeatureDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unnecessary.required.feature"), RequiredFeatureDetector.ISSUE)

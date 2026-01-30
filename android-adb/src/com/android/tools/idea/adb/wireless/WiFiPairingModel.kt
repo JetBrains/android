@@ -56,15 +56,9 @@ interface AdbDevicePairingModelListener {
   /** Invoked when a new QrCode image has been generated */
   fun qrCodeGenerated(newImage: QrCodeImage)
 
-  /**
-   * Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB
-   * server
-   */
+  /** Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB server */
   fun qrCodeServicesDiscovered(services: List<PairingMdnsService>)
 
-  /**
-   * Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB
-   * server
-   */
+  /** Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB server */
   fun pairingCodeServicesDiscovered(services: List<PairingMdnsService>)
 }

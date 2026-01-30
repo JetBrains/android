@@ -99,13 +99,7 @@ class FocusModeTest() {
     val selected = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod1")
     val newSelected = SingleComposePreviewElementInstance.forTesting<Unit>("PreviewMethod3")
     val previewFlowManager =
-      previewFlowManagerFor(
-        listOf(
-          selected,
-          SingleComposePreviewElementInstance.forTesting("PreviewMethod2"),
-          newSelected,
-        )
-      )
+      previewFlowManagerFor(listOf(selected, SingleComposePreviewElementInstance.forTesting("PreviewMethod2"), newSelected))
 
     previewModeManager.setMode(PreviewMode.Focus(selected))
     val (focus, refresh) = setupFocusMode { previewFlowManager }
@@ -121,9 +115,7 @@ class FocusModeTest() {
     assertEquals(newSelected, (previewModeManager.mode.value as PreviewMode.Focus).selected)
   }
 
-  private fun setupFocusMode(
-    previewFlowManager: () -> PreviewFlowManager<PreviewElement<*>>
-  ): Pair<FocusMode, () -> Unit> {
+  private fun setupFocusMode(previewFlowManager: () -> PreviewFlowManager<PreviewElement<*>>): Pair<FocusMode, () -> Unit> {
     val focus = FocusMode(JPanel())
     val tabsToolbar = findFocusModeTabs(focus.component)
     val refresh = {
@@ -141,15 +133,13 @@ class FocusModeTest() {
 
   private fun previewFlowManagerFor(previewElements: Collection<PreviewElement<*>>) =
     object : PreviewFlowManager<PreviewElement<*>> {
-      override val allPreviewElementsFlow =
-        MutableStateFlow(FlowableCollection.Present(previewElements))
+      override val allPreviewElementsFlow = MutableStateFlow(FlowableCollection.Present(previewElements))
       override val previewFlowPaginator: PreviewFlowPaginator<PreviewElement<*>> =
         PreviewFlowPaginator(MutableStateFlow(FlowableCollection.Uninitialized))
 
       override val toRenderPreviewElementsFlow = MutableStateFlow(FlowableCollection.Uninitialized)
 
-      override val renderedPreviewElementsFlow =
-        MutableStateFlow<FlowableCollection<PreviewElement<*>>>(FlowableCollection.Uninitialized)
+      override val renderedPreviewElementsFlow = MutableStateFlow<FlowableCollection<PreviewElement<*>>>(FlowableCollection.Uninitialized)
 
       override val availableGroupsFlow = MutableStateFlow<Set<PreviewGroup.Named>>(setOf())
       override var groupFilter: PreviewGroup = PreviewGroup.All

@@ -22,8 +22,8 @@ enum class KotlinMultiplatformAndroidSourceSetType {
 }
 
 /**
- * Contains the table of android sourceSets existing in a kotlin multiplatform module.
- * Currently, there should be only one sourceSet per [KotlinMultiplatformAndroidSourceSetType].
+ * Contains the table of android sourceSets existing in a kotlin multiplatform module. Currently, there should be only one sourceSet per
+ * [KotlinMultiplatformAndroidSourceSetType].
  */
 data class KotlinMultiplatformAndroidSourceSetData(
   val sourceSetsByGradleProjectPath: Map<String, Map<KotlinMultiplatformAndroidSourceSetType, String>>

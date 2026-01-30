@@ -21,9 +21,5 @@ import java.awt.Rectangle
 interface HitProvider {
   fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer)
 
-  fun intersects(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    @AndroidDpCoordinate rectangle: Rectangle,
-  ): Boolean
+  fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean
 }

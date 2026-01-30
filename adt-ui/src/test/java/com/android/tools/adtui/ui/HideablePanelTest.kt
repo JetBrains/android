@@ -47,10 +47,7 @@ class HideablePanelTest {
   @Test
   fun settingClickableComponentWorksOnTitleOnly() {
     val childPanel = JButton()
-    val panel =
-      HideablePanel.Builder("Title", childPanel)
-        .setClickableComponent(HideablePanel.ClickableComponent.TITLE)
-        .build()
+    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE).build()
     assertThat(childPanel.isVisible).isTrue()
     // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
     val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
@@ -76,10 +73,7 @@ class HideablePanelTest {
   @Test
   fun settingClickableComponentWorksOnTitleBar() {
     val childPanel = JButton()
-    val panel =
-      HideablePanel.Builder("Title", childPanel)
-        .setClickableComponent(HideablePanel.ClickableComponent.TITLE_BAR)
-        .build()
+    val panel = HideablePanel.Builder("Title", childPanel).setClickableComponent(HideablePanel.ClickableComponent.TITLE_BAR).build()
     assertThat(childPanel.isVisible).isTrue()
     // The 0th element is the HideablePanel itself. Not sure why this is returned as a descendant.
     val titleBarPanel = TreeWalker(panel).descendants().filterIsInstance<JPanel>()[1]
@@ -129,11 +123,9 @@ class HideablePanelTest {
   fun testNorthEastComponent() {
     val childPanel = JPanel()
     val northEastPanel = JPanel()
-    val panel =
-      HideablePanel.Builder("Title", childPanel).setNorthEastComponent(northEastPanel).build()
+    val panel = HideablePanel.Builder("Title", childPanel).setNorthEastComponent(northEastPanel).build()
     val treeWalker = TreeWalker(panel)
-    val foundNorthEastComponent =
-      treeWalker.descendantStream().filter { component -> component == northEastPanel }.count()
+    val foundNorthEastComponent = treeWalker.descendantStream().filter { component -> component == northEastPanel }.count()
     assertThat(foundNorthEastComponent).isEqualTo(1)
   }
 
@@ -142,10 +134,7 @@ class HideablePanelTest {
     val childPanel = JPanel()
     val northEastPanel = JPanel()
     val brPattern = Pattern.compile("<html><nobr>(.*)</nobr></html>")
-    val panel =
-      HideablePanel.Builder("My Long Title", childPanel)
-        .setNorthEastComponent(northEastPanel)
-        .build()
+    val panel = HideablePanel.Builder("My Long Title", childPanel).setNorthEastComponent(northEastPanel).build()
     val treeWalker = TreeWalker(panel)
     val label = treeWalker.descendants().filterIsInstance<JLabel>().first()
     val matcher = brPattern.matcher(label.text)

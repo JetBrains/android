@@ -35,14 +35,14 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
-import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
-
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 
 class DeclarativeVersionCatalogReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(PlatformPatterns.psiElement(DeclarativeProperty::class.java),
-                                        DeclarativeVersionCatalogReferenceProvider()
+    registrar.registerReferenceProvider(
+      PlatformPatterns.psiElement(DeclarativeProperty::class.java),
+      DeclarativeVersionCatalogReferenceProvider(),
     )
   }
 }
@@ -53,42 +53,52 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     if (element.parent is DeclarativeProperty || element.parent is DeclarativeAssignment) return emptyArray()
     if (!DeclarativeIdeSupport.isEnabled()) return emptyArray()
     lateinit var fileIdentifier: DeclarativeIdentifier
-    element.accept(object : DeclarativeRecursiveVisitor() {
-      override fun visitBare(o: DeclarativeBare) {
-        fileIdentifier = o.field
-        super.visitBare(o)
+    element.accept(
+      object : DeclarativeRecursiveVisitor() {
+        override fun visitBare(o: DeclarativeBare) {
+          fileIdentifier = o.field
+          super.visitBare(o)
+        }
       }
-    })
+    )
 
-    val aliases = element.module?.let{ getVersionCatalogFiles(it).keys } ?: listOf()
-    if(aliases.isEmpty() || !aliases.contains(fileIdentifier.name)) return arrayOf()
+    val aliases = element.module?.let { getVersionCatalogFiles(it).keys } ?: listOf()
+    if (aliases.isEmpty() || !aliases.contains(fileIdentifier.name)) return arrayOf()
 
     val identifiers: MutableList<DeclarativeIdentifier> = mutableListOf()
-    element.accept(object : DeclarativeRecursiveVisitor() {
-      override fun visitQualified(o: DeclarativeQualified) {
-        identifiers.add(0, o.field)
-        super.visitQualified(o)
+    element.accept(
+      object : DeclarativeRecursiveVisitor() {
+        override fun visitQualified(o: DeclarativeQualified) {
+          identifiers.add(0, o.field)
+          super.visitQualified(o)
+        }
       }
-    })
+    )
     val fileReference = VersionCatalogFileReference(element, fileIdentifier)
     val tableIdentifier = identifiers.getOrNull(0)?.takeIf { setOf("plugins", "versions", "bundles").contains(it.name) }
     val tableReference = tableIdentifier?.let { VersionCatalogTableReference(element, fileIdentifier, it) }
-    val entryIdentifiers = when (tableIdentifier) {
-      null -> identifiers
-      else -> identifiers.drop(1)
-    }
-    val entryReference = entryIdentifiers.takeIf { it.isNotEmpty() }
-      ?.let { VersionCatalogEntryReference(element, fileIdentifier, tableIdentifier, entryIdentifiers) }
+    val entryIdentifiers =
+      when (tableIdentifier) {
+        null -> identifiers
+        else -> identifiers.drop(1)
+      }
+    val entryReference =
+      entryIdentifiers
+        .takeIf { it.isNotEmpty() }
+        ?.let { VersionCatalogEntryReference(element, fileIdentifier, tableIdentifier, entryIdentifiers) }
     return listOfNotNull(fileReference, tableReference, entryReference).toTypedArray()
   }
 
-
-  class VersionCatalogFileReference(private val element: DeclarativeProperty,
-                                    private val identifier: DeclarativeIdentifier) : PsiReference {
+  class VersionCatalogFileReference(private val element: DeclarativeProperty, private val identifier: DeclarativeIdentifier) :
+    PsiReference {
     override fun getElement() = element
+
     override fun getRangeInElement(): TextRange = identifier.textRange.shiftLeft(element.textRange.startOffset)
+
     override fun resolve(): PsiElement? = identifier.getVersionCatalogFile()
+
     override fun getCanonicalText(): String = "gradle/${identifier.name!!}.versions.toml"
+
     override fun handleElementRename(newElementName: String): PsiElement {
       identifier.setName(newElementName)
       return element
@@ -101,20 +111,24 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     }
 
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
+
     override fun isSoft(): Boolean = true
   }
 
   class VersionCatalogTableReference(
     private val element: DeclarativeProperty,
     private val catalogIdentifier: DeclarativeIdentifier,
-    private val identifier: DeclarativeIdentifier
+    private val identifier: DeclarativeIdentifier,
   ) : PsiReference {
     override fun getElement() = element
+
     override fun getRangeInElement(): TextRange = identifier.textRange.shiftLeft(element.textRange.startOffset)
+
     override fun resolve(): PsiElement? =
       catalogIdentifier.getVersionCatalogFile()?.findDescendantOfType<PsiNamedElement> { it.name == identifier.name }
 
     override fun getCanonicalText(): String = identifier.name!!
+
     override fun handleElementRename(newElementName: String): PsiElement {
       identifier.setName(newElementName)
       return element
@@ -127,6 +141,7 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     }
 
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
+
     override fun isSoft(): Boolean = false
   }
 
@@ -134,33 +149,40 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     private val element: DeclarativeProperty,
     private val catalogIdentifier: DeclarativeIdentifier,
     private val tableIdentifier: DeclarativeIdentifier?,
-    private val identifiers: List<DeclarativeIdentifier>
+    private val identifiers: List<DeclarativeIdentifier>,
   ) : PsiReference {
     override fun getElement() = element
-    override fun getRangeInElement(): TextRange = catalogIdentifier.textRange.startOffset.let { offset ->
-      TextRange(identifiers.first().textRange.startOffset, identifiers.last().textRange.endOffset).shiftLeft(offset)
-    }
+
+    override fun getRangeInElement(): TextRange =
+      catalogIdentifier.textRange.startOffset.let { offset ->
+        TextRange(identifiers.first().textRange.startOffset, identifiers.last().textRange.endOffset).shiftLeft(offset)
+      }
 
     override fun resolve(): PsiElement? =
-      catalogIdentifier.getVersionCatalogFile()
+      catalogIdentifier
+        .getVersionCatalogFile()
         ?.findDescendantOfType<PsiNamedElement> { it.name == (tableIdentifier?.name ?: "libraries") }
-        ?.parent?.parent?.parent
+        ?.parent
+        ?.parent
+        ?.parent
         ?.findDescendantOfType<PsiNamedElement> { it.name?.split(Regex("[-_]")) == identifiers.map { i -> i.name } }
 
-    override fun getCanonicalText(): String = StringBuilder().run {
-      append(catalogIdentifier.name)
-      tableIdentifier?.name?.let { append(".$it") }
-      identifiers.joinTo(this, separator = "-", prefix = ".") { it.name!! }
-      toString()
-    }
-
-    override fun handleElementRename(newElementName: String): PsiElement {
-      val string = StringBuilder().run {
+    override fun getCanonicalText(): String =
+      StringBuilder().run {
         append(catalogIdentifier.name)
         tableIdentifier?.name?.let { append(".$it") }
-        newElementName.split(Regex("[-_]")).joinTo(this, separator = "-", prefix = ".")
+        identifiers.joinTo(this, separator = "-", prefix = ".") { it.name!! }
         toString()
       }
+
+    override fun handleElementRename(newElementName: String): PsiElement {
+      val string =
+        StringBuilder().run {
+          append(catalogIdentifier.name)
+          tableIdentifier?.name?.let { append(".$it") }
+          newElementName.split(Regex("[-_]")).joinTo(this, separator = "-", prefix = ".")
+          toString()
+        }
       return element.replace(DeclarativePsiFactory(element.project).createProperty(string))
     }
 
@@ -170,18 +192,15 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     }
 
     override fun isReferenceTo(element: PsiElement): Boolean = resolve() == element
+
     override fun isSoft(): Boolean = false
   }
 
   companion object {
     fun DeclarativeIdentifier.getVersionCatalogFile(): PsiFile? =
-      module?.let {
-        getVersionCatalogFiles(it)[name]?.let { virtualFile ->
-          PsiManager.getInstance(project).findFile(virtualFile)
-        }
-      }
-      private val PsiElement.module
+      module?.let { getVersionCatalogFiles(it)[name]?.let { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) } }
+
+    private val PsiElement.module
       get() = ModuleUtilCore.findModuleForPsiElement(this)
   }
-
 }

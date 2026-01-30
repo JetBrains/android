@@ -19,13 +19,14 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperl
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 
 class AndroidXUsedReporterTest {
   private val expectedUrl = "https://developer.android.com/jetpack/androidx/migrate"
+
   @Test
   fun `expected quick fixes with properties file`() {
     val reporter = AndroidXUsedReporter()

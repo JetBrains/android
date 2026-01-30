@@ -46,23 +46,15 @@ import com.intellij.psi.util.PsiUtil
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * _all is a special BR constant which triggers changes on all observables; it is used to indicate
- * the entire observable changed.
- */
+/** _all is a special BR constant which triggers changes on all observables; it is used to indicate the entire observable changed. */
 private const val ALL_FIELD = "_all"
 
 /**
  * In-memory PSI that represents a data binding BR file.
  *
- * See also:
- * https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
+ * See also: https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
  */
-class LightBrClass(
-  psiManager: PsiManager,
-  private val facet: AndroidFacet,
-  private val qualifiedName: String,
-) :
+class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, private val qualifiedName: String) :
   AndroidLightClassBase(
     psiManager,
     ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL),
@@ -83,10 +75,7 @@ class LightBrClass(
       CachedValuesManager.getManager(project).createCachedValue {
         val variableNamesList = mutableListOf(ALL_FIELD)
         run {
-          val groups =
-            LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf {
-              it.isNotEmpty()
-            } ?: return@run
+          val groups = LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
 
           val variableNamesSet =
             groups
@@ -94,30 +83,21 @@ class LightBrClass(
               .flatMap { layout -> layout.data.variables }
               .map { variable -> variable.name }
               .toMutableSet()
-          collectVariableNamesFromUserBindables()?.let { bindables ->
-            variableNamesSet.addAll(bindables)
-          }
+          collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
 
           variableNamesList.addAll(variableNamesSet.sorted())
         }
 
         val elementFactory = PsiElementFactory.getInstance(project)
-        val psiFields =
-          variableNamesList
-            .map { name -> createPsiField(project, elementFactory, name) }
-            .toTypedArray()
+        val psiFields = variableNamesList.map { name -> createPsiField(project, elementFactory, name) }.toTypedArray()
 
-        CachedValueProvider.Result.create(
-          psiFields,
-          resourcesModifiedTracker,
-          psiManager.modificationTracker,
-        )
+        CachedValueProvider.Result.create(psiFields, resourcesModifiedTracker, psiManager.modificationTracker)
       }
   }
 
   /**
-   * Search for all `@Bindable` annotated fields in user code only, excluding those found in
-   * generated code, since those were `@Bindable` fields were generated FROM variable names.
+   * Search for all `@Bindable` annotated fields in user code only, excluding those found in generated code, since those were `@Bindable`
+   * fields were generated FROM variable names.
    */
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
     val facade = JavaPsiFacade.getInstance(facet.module.project)
@@ -136,9 +116,7 @@ class LightBrClass(
         )
         .findAll()
         // Asserting non-null as we are confident that @Bindable fields exist within a class
-        .filter { element ->
-          PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding
-        }
+        .filter { element -> PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding }
 
     return BrUtil.collectIds(psiElements)
   }
@@ -188,12 +166,8 @@ class LightBrClass(
   }
 
   /** The light field representing elements of BR class */
-  internal class LightBRField(
-    manager: PsiManager,
-    field: PsiField,
-    containingClass: PsiClass,
-    private val containingFile: PsiFile,
-  ) : LightField(manager, field, containingClass), ModificationTracker {
+  internal class LightBRField(manager: PsiManager, field: PsiField, containingClass: PsiClass, private val containingFile: PsiFile) :
+    LightField(manager, field, containingClass), ModificationTracker {
 
     override fun getModificationCount(): Long {
       // See http://b.android.com/212766

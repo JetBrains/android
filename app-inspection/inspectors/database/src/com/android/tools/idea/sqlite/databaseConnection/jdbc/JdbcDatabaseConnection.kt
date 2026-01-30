@@ -39,8 +39,8 @@ import java.util.concurrent.Executor
 /**
  * Implementation of [DatabaseConnection] for a local Sqlite file using the JDBC driver.
  *
- * This class has a [SequentialTaskExecutor] with one thread, that should be used to make sure that
- * operations are executed sequentially, to avoid concurrency issues with the JDBC objects.
+ * This class has a [SequentialTaskExecutor] with one thread, that should be used to make sure that operations are executed sequentially, to
+ * avoid concurrency issues with the JDBC objects.
  */
 class JdbcDatabaseConnection(
   parentDisposable: Disposable,
@@ -56,11 +56,7 @@ class JdbcDatabaseConnection(
     Disposer.register(parentDisposable, this)
   }
 
-  private val sequentialTaskExecutor =
-    SequentialTaskExecutor.createSequentialApplicationPoolExecutor(
-      "Sqlite JDBC service",
-      pooledExecutor,
-    )
+  private val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
 
   override fun close(): ListenableFuture<Unit> =
     sequentialTaskExecutor.executeAsync {
@@ -75,29 +71,18 @@ class JdbcDatabaseConnection(
       while (tables.next()) {
         val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
         val rowIdName = getRowIdName(columns)
-        sqliteTables.add(
-          SqliteTable(
-            tables.getString("TABLE_NAME"),
-            columns,
-            rowIdName,
-            isView = tables.getString("TABLE_TYPE") == "VIEW",
-          )
-        )
+        sqliteTables.add(SqliteTable(tables.getString("TABLE_NAME"), columns, rowIdName, isView = tables.getString("TABLE_TYPE") == "VIEW"))
       }
 
-      SqliteSchema(sqliteTables).apply {
-        logger.info("Successfully read database schema: ${sqliteFile.path}")
-      }
+      SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
     }
 
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val resultSet =
       when (sqliteStatement.statementType) {
-        SqliteStatementType.SELECT ->
-          PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+        SqliteStatementType.SELECT -> PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
         SqliteStatementType.EXPLAIN,
-        SqliteStatementType.PRAGMA_QUERY ->
-          LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+        SqliteStatementType.PRAGMA_QUERY -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
         else ->
           throw IllegalArgumentException(
             "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
@@ -111,9 +96,7 @@ class JdbcDatabaseConnection(
     return sequentialTaskExecutor.executeAsync {
       connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
         preparedStatement.executeUpdate().also {
-          logger.info(
-            "SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success."
-          )
+          logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
         }
       }
       Unit

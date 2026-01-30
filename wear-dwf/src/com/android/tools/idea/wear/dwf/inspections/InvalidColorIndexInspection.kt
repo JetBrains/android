@@ -44,8 +44,7 @@ class InvalidColorIndexXmlInspection : LocalInspectionTool() {
   }
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
-    val watchFaceFile =
-      holder.file as? XmlFile ?: throw IllegalStateException("Missing watch face file")
+    val watchFaceFile = holder.file as? XmlFile ?: throw IllegalStateException("Missing watch face file")
     val colorConfigurationsById = watchFaceFile.getColorConfigurationsById()
 
     return object : XmlElementVisitor() {
@@ -54,10 +53,7 @@ class InvalidColorIndexXmlInspection : LocalInspectionTool() {
         val colorIndexTextRange =
           reference.colorIndex?.let { colorIndex ->
             val colorIndexStartOffset =
-              xmlAttributeValue.value
-                .lastIndexOf(".$colorIndex")
-                .takeIf { it > -1 }
-                ?.let { it + 2 } // skip the " and . characters
+              xmlAttributeValue.value.lastIndexOf(".$colorIndex").takeIf { it > -1 }?.let { it + 2 } // skip the " and . characters
               ?: return@let null
             TextRange(colorIndexStartOffset, colorIndexStartOffset + colorIndex.length)
           }
@@ -78,22 +74,16 @@ class InvalidColorIndexWFFExpressionInspection : LocalInspectionTool() {
   }
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
-    val watchFaceFile =
-      getWatchFaceFile(holder.file) ?: throw IllegalStateException("Missing watch face file")
+    val watchFaceFile = getWatchFaceFile(holder.file) ?: throw IllegalStateException("Missing watch face file")
     val colorConfigurationsById = watchFaceFile.getColorConfigurationsById()
 
     return object : WFFExpressionVisitor() {
       override fun visitLiteralExpr(literalExpr: WFFExpressionLiteralExpr) {
-        val reference =
-          literalExpr.references.filterIsInstance<UserConfigurationReference>().firstOrNull()
-            ?: return
+        val reference = literalExpr.references.filterIsInstance<UserConfigurationReference>().firstOrNull() ?: return
         val colorIndexTextRange =
           reference.colorIndex?.let { colorIndex ->
             val colorIndexStartOffset =
-              literalExpr.text
-                .lastIndexOf(".$colorIndex")
-                .takeIf { it > -1 }
-                ?.let { it + 1 } // skip the . character
+              literalExpr.text.lastIndexOf(".$colorIndex").takeIf { it > -1 }?.let { it + 1 } // skip the . character
               ?: return@let null
             TextRange(colorIndexStartOffset, colorIndexStartOffset + colorIndex.length)
           }
@@ -103,8 +93,7 @@ class InvalidColorIndexWFFExpressionInspection : LocalInspectionTool() {
   }
 }
 
-private fun XmlFile.getColorConfigurationsById() =
-  extractUserConfigurations().filterIsInstance<ColorConfiguration>().associateBy { it.id }
+private fun XmlFile.getColorConfigurationsById() = extractUserConfigurations().filterIsInstance<ColorConfiguration>().associateBy { it.id }
 
 /** Visits a [UserConfigurationReference] and checks that the color index is valid. */
 private fun visitReference(
@@ -117,11 +106,7 @@ private fun visitReference(
   val colorConfiguration = colorConfigurationsById[reference.userConfigurationId] ?: return
 
   if (colorConfiguration.colorIndices.isEmpty()) {
-    holder.registerProblem(
-      reference.element,
-      message("inspection.invalid.color.index.missing.colors"),
-      ProblemHighlightType.ERROR,
-    )
+    holder.registerProblem(reference.element, message("inspection.invalid.color.index.missing.colors"), ProblemHighlightType.ERROR)
     return
   }
 

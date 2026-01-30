@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import java.io.Serializable
 import org.gradle.api.Project
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -23,21 +24,16 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModel
 import org.jetbrains.plugins.gradle.tooling.Message
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
-import java.io.Serializable
 
 enum class TestGradleModelProviderMode {
   IDE_MODELS,
   TEST_GRADLE_MODELS,
-  TEST_EXCEPTION_MODELS
+  TEST_EXCEPTION_MODELS,
 }
 
 class TestGradleModelProvider(private val paramValue: String, val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
 
-  override fun populateModels(
-    controller: BuildController,
-    buildModels: Collection<GradleBuild>,
-    modelConsumer: GradleModelConsumer,
-  ) {
+  override fun populateModels(controller: BuildController, buildModels: Collection<GradleBuild>, modelConsumer: GradleModelConsumer) {
     for (buildModel in buildModels) {
       for (projectModel in buildModel.projects) {
         when (mode) {
@@ -49,11 +45,8 @@ class TestGradleModelProvider(private val paramValue: String, val mode: TestGrad
             }
 
             val testParameterizedGradleModel =
-              controller.findModel(
-                projectModel,
-                TestParameterizedGradleModel::class.java,
-                ModelBuilderService.Parameter::class.java
-              ) { parameter ->
+              controller.findModel(projectModel, TestParameterizedGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+                parameter ->
                 parameter.value = paramValue
               }
             if (testParameterizedGradleModel != null) {
@@ -86,13 +79,14 @@ interface TestExceptionModel {
 }
 
 data class TestGradleModelImpl(override val message: String) : TestGradleModel, Serializable
+
 data class TestParameterizedGradleModelImpl(override val message: String) : TestParameterizedGradleModel, Serializable
+
 data class TestExceptionModelImpl(override val exception: Throwable) : TestExceptionModel, Serializable
 
 class TestModelBuilderService : ModelBuilderService {
   override fun canBuild(modelName: String?): Boolean {
-    return modelName == TestGradleModel::class.java.name ||
-           modelName == TestExceptionModel::class.java.name
+    return modelName == TestGradleModel::class.java.name || modelName == TestExceptionModel::class.java.name
   }
 
   override fun buildAll(modelName: String?, project: Project?): Any {
@@ -104,7 +98,8 @@ class TestModelBuilderService : ModelBuilderService {
   }
 
   override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
-    context.messageReporter.createMessage()
+    context.messageReporter
+      .createMessage()
       .withGroup(this)
       .withKind(Message.Kind.WARNING)
       .withTitle("Gradle import errors")
@@ -122,7 +117,7 @@ class TestParameterizedModelBuilderService : ModelBuilderService.ParameterizedMo
     modelName: String?,
     project: Project?,
     context: ModelBuilderContext,
-    parameter: ModelBuilderService.Parameter?
+    parameter: ModelBuilderService.Parameter?,
   ): Any {
     return TestParameterizedGradleModelImpl("Parameter: ${parameter?.value} BuildDir: ${project?.buildDir}")
   }
@@ -132,7 +127,8 @@ class TestParameterizedModelBuilderService : ModelBuilderService.ParameterizedMo
   }
 
   override fun reportErrorMessage(modelName: String, project: Project, context: ModelBuilderContext, exception: Exception) {
-    context.messageReporter.createMessage()
+    context.messageReporter
+      .createMessage()
       .withGroup(this)
       .withKind(Message.Kind.WARNING)
       .withTitle("Gradle import errors")

@@ -50,28 +50,14 @@ class SyncConfigurationStateTest {
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
   private val dispatcher = UnconfinedTestDispatcher()
 
-  @get:Rule
-  val rules =
-    RuleChain.outerRule(applicationRule)
-      .around(flagRule)
-      .around(disposableRule)
-      .around(composeTestRule)
+  @get:Rule val rules = RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule).around(composeTestRule)
 
   @Before
   fun setup() {
-    ExtensionTestUtil.maskExtensions(
-      LoginFeature.Companion.EP_NAME,
-      listOf(feature),
-      disposableRule.disposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature), disposableRule.disposable, false)
   }
 
-  private suspend fun initWizard(
-    pages: List<WizardPage>,
-    state: WizardState,
-    scope: CoroutineScope,
-  ) {
+  private suspend fun initWizard(pages: List<WizardPage>, state: WizardState, scope: CoroutineScope) {
     val controller = FakeController(pages, state, scope)
 
     composeTestRule.setContent { controller.CurrentComposablePage() }
@@ -87,8 +73,7 @@ class SyncConfigurationStateTest {
       val wizardState =
         WizardState().apply {
           // Make sure we won't skip the page
-          getOrCreateState { GoogleSignInWizard.SignInState() }
-            .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          getOrCreateState { GoogleSignInWizard.SignInState() }.apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
         }
 
       initWizard(pages = listOf(ChooseCategoriesStepPage()), wizardState, this)
@@ -108,8 +93,7 @@ class SyncConfigurationStateTest {
         )
       )
       assertThat(syncUIState.pushOrPull).isEqualTo(PushOrPull.NOT_SPECIFIED)
-      assertThat(syncUIState.configurationOption)
-        .isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
+      assertThat(syncUIState.configurationOption).isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
     }
 
   @Test
@@ -119,8 +103,7 @@ class SyncConfigurationStateTest {
       val wizardState =
         WizardState().apply {
           // Make sure we won't skip the page
-          getOrCreateState { GoogleSignInWizard.SignInState() }
-            .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          getOrCreateState { GoogleSignInWizard.SignInState() }.apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
         }
 
       initWizard(pages = listOf(ChooseCategoriesStepPage()), wizardState, this)
@@ -143,17 +126,14 @@ class SyncConfigurationStateTest {
         )
       )
       assertThat(syncUIState.pushOrPull).isEqualTo(PushOrPull.NOT_SPECIFIED)
-      assertThat(syncUIState.configurationOption)
-        .isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
+      assertThat(syncUIState.configurationOption).isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
     }
 }
 
 internal data class NodeState(val name: String, val state: ToggleableState)
 
 internal fun List<CheckboxNode>.checkSynCategories(expected: List<NodeState>) {
-  val current =
-    flatMap { listOf(it) + it.children }
-      .map { node -> NodeState(name = node.label, state = node.isCheckedState) }
+  val current = flatMap { listOf(it) + it.children }.map { node -> NodeState(name = node.label, state = node.isCheckedState) }
 
   assertThat(current).isEqualTo(expected)
 }

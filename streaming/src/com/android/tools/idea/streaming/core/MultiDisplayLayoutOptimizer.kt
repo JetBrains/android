@@ -22,15 +22,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * This function computes a layout consisting of split panels and up to 4 content panels. Each split
- * panel contains two subpanels, each of which may be either a content or split panel. The subpanels
- * of a split panel are either located side by side ([SplitType.HORIZONTAL]) or one above the other
- * ([SplitType.VERTICAL]). All content panels display their content using the same scale factor.
- * The optimal layout maximizes this scale factor given dimensions of the available screen area.
+ * This function computes a layout consisting of split panels and up to 4 content panels. Each split panel contains two subpanels, each of
+ * which may be either a content or split panel. The subpanels of a split panel are either located side by side ([SplitType.HORIZONTAL]) or
+ * one above the other ([SplitType.VERTICAL]). All content panels display their content using the same scale factor. The optimal layout
+ * maximizes this scale factor given dimensions of the available screen area.
  *
  * @param availableSpace the dimensions of the available screen area
- * @param rectangleSizes dimensions of the rectangles representing contents of all content panels
- *     before scaling. The size of this array may not exceed 4.
+ * @param rectangleSizes dimensions of the rectangles representing contents of all content panels before scaling. The size of this array may
+ *   not exceed 4.
  */
 internal fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
   require(availableSpace.width > 0)
@@ -52,8 +51,7 @@ internal sealed class LayoutNode(val contentSize: Dimension) {
 
   val allocatedSize: Dimension = Dimension()
 
-  fun isSpaceAllocated(): Boolean =
-      allocatedSize.width != 0 || allocatedSize.height != 0
+  fun isSpaceAllocated(): Boolean = allocatedSize.width != 0 || allocatedSize.height != 0
 }
 
 /**
@@ -64,8 +62,7 @@ internal sealed class LayoutNode(val contentSize: Dimension) {
  */
 internal class LeafNode(val rectangleIndex: Int, contentSize: Dimension) : LayoutNode(contentSize) {
 
-  override fun toString(): String =
-      "#$rectangleIndex"
+  override fun toString(): String = "#$rectangleIndex"
 }
 
 /**
@@ -75,24 +72,23 @@ internal class LeafNode(val rectangleIndex: Int, contentSize: Dimension) : Layou
  * @param firstChild the node representing the first subpanel
  * @param secondChild the node representing the second subpanel
  */
-internal class SplitNode(
-  val splitType: SplitType,
-  val firstChild: LayoutNode,
-  val secondChild: LayoutNode)
-: LayoutNode(computeContentSize(splitType, firstChild, secondChild)) {
+internal class SplitNode(val splitType: SplitType, val firstChild: LayoutNode, val secondChild: LayoutNode) :
+  LayoutNode(computeContentSize(splitType, firstChild, secondChild)) {
 
   /** The ratio of the size of the first child to the total size along the split direction. */
   val splitRatio: Double
-    get() = when (splitType) {
-      SplitType.HORIZONTAL -> firstChild.allocatedSize.width.toDouble() / allocatedSize.width
-      SplitType.VERTICAL -> firstChild.allocatedSize.height.toDouble() / allocatedSize.height
-    }
+    get() =
+      when (splitType) {
+        SplitType.HORIZONTAL -> firstChild.allocatedSize.width.toDouble() / allocatedSize.width
+        SplitType.VERTICAL -> firstChild.allocatedSize.height.toDouble() / allocatedSize.height
+      }
 
   override fun toString(): String {
-    val splitChar = when (splitType) {
-      SplitType.HORIZONTAL -> '|'
-      SplitType.VERTICAL -> EM_DASH
-    }
+    val splitChar =
+      when (splitType) {
+        SplitType.HORIZONTAL -> '|'
+        SplitType.VERTICAL -> EM_DASH
+      }
     return when {
       isSpaceAllocated() -> "[$firstChild] $splitChar [$secondChild] ${String.format(Locale.ROOT, "%.2g", splitRatio)}"
       else -> "[$firstChild] $splitChar [$secondChild]"
@@ -103,12 +99,16 @@ internal class SplitNode(
 private fun computeContentSize(splitType: SplitType, firstChild: LayoutNode, secondChild: LayoutNode): Dimension {
   return when (splitType) {
     SplitType.HORIZONTAL -> {
-      Dimension(firstChild.contentSize.width + secondChild.contentSize.width,
-                max(firstChild.contentSize.height, secondChild.contentSize.height))
+      Dimension(
+        firstChild.contentSize.width + secondChild.contentSize.width,
+        max(firstChild.contentSize.height, secondChild.contentSize.height),
+      )
     }
     SplitType.VERTICAL -> {
-      Dimension(max(firstChild.contentSize.width, secondChild.contentSize.width),
-                firstChild.contentSize.height + secondChild.contentSize.height)
+      Dimension(
+        max(firstChild.contentSize.width, secondChild.contentSize.width),
+        firstChild.contentSize.height + secondChild.contentSize.height,
+      )
     }
   }
 }
@@ -121,28 +121,29 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
   private val nodesArraySize = levels.last().offset + levels.last().size
 
   /** Offset of the first child node indexed by the offset of the parent node. */
-  private val childrenOffsetByParentOffset = IntArray(levels.last().offset) { offset ->
-    var multiplier = 1
-    for (i in 1 until levels.size) {
-      val level = levels[i]
-      if (offset < level.offset) {
-        return@IntArray level.offset + (offset - levels[i - 1].offset) * multiplier
+  private val childrenOffsetByParentOffset =
+    IntArray(levels.last().offset) { offset ->
+      var multiplier = 1
+      for (i in 1 until levels.size) {
+        val level = levels[i]
+        if (offset < level.offset) {
+          return@IntArray level.offset + (offset - levels[i - 1].offset) * multiplier
+        }
+        multiplier = level.maxChildren
       }
-      multiplier = level.maxChildren
+      throw AssertionError("Internal error")
     }
-    throw AssertionError("Internal error")
-  }
 
   /** Maximum allowed number of children indexed by the offset of the parent node. */
-  private val maxChildrenByOffset = IntArray(nodesArraySize) { offset ->
-    for (i in 1 until levels.size) {
-      if (offset < levels[i].offset) {
-        return@IntArray levels[i - 1].maxChildren
+  private val maxChildrenByOffset =
+    IntArray(nodesArraySize) { offset ->
+      for (i in 1 until levels.size) {
+        if (offset < levels[i].offset) {
+          return@IntArray levels[i - 1].maxChildren
+        }
       }
+      return@IntArray levels.last().maxChildren
     }
-    return@IntArray levels.last().maxChildren
-  }
-
 
   fun optimize(availableSpace: Dimension): LayoutNode {
     // The layout tree used by this method is stored in an array in a way similar to the heap data structure shown
@@ -217,8 +218,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
         available -= size
         allocateSpace(n, splitType, size, transverse)
       }
-    }
-    else {
+    } else {
       var count = splitParticipants.size
       var previousProgress = true
       while (count > 0) {
@@ -336,8 +336,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
         val partition = partitions.first
         if (partition.size == 1) {
           storage[offset] = Node.Leaf(partition[0], offset)
-        }
-        else {
+        } else {
           storage[offset] = Node.Split(splitType, partition.size, offset)
           var childOffset = childrenOffsetByParentOffset[offset]
           for (index in partition) {
@@ -346,8 +345,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
           }
         }
         childGenerators.fill(null)
-      }
-      else {
+      } else {
         storage[offset] = Node.Split(splitType, 2, offset)
         val childOffset = childrenOffsetByParentOffset[offset]
         for (i in 0 until 2) {
@@ -397,8 +395,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
  * Generates all partitions of the given array into two arrays satisfying the following conditions:
  * 1. The first array always contains the first element of the source array
  * 2. The second array may be empty
- * 3. If the source array contains more than one element, at least one of the generated arrays
- *    contains more than one element
+ * 3. If the source array contains more than one element, at least one of the generated arrays contains more than one element
  */
 private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, IntArray>> {
   var size = array.size
@@ -465,12 +462,7 @@ private fun Dimension.transverseComponent(splitType: SplitType): Int {
 }
 
 private fun Dimension.maxUsableSize(splitType: SplitType, maxSize: Dimension): Int =
-    longitudinalComponent(splitType).scaled(fitScale(maxSize))
+  longitudinalComponent(splitType).scaled(fitScale(maxSize))
 
-/**
- * Returns the maximum scale factor such that a rectangle with [this] dimensions would fit in
- * a rectangle with [maxSize] dimensions.
- */
-private fun Dimension.fitScale(maxSize: Dimension): Double =
-    min(maxSize.width.toDouble() / width, maxSize.height.toDouble() / height)
-
+/** Returns the maximum scale factor such that a rectangle with [this] dimensions would fit in a rectangle with [maxSize] dimensions. */
+private fun Dimension.fitScale(maxSize: Dimension): Double = min(maxSize.width.toDouble() / width, maxSize.height.toDouble() / height)

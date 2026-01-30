@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
-import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
@@ -39,49 +39,48 @@ import com.intellij.openapi.externalSystem.model.project.LibraryLevel
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import java.io.File
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
-import java.io.File
 
 class ResolvedLibraryTableBuilder(
   private val getGradlePathBy: (moduleId: String) -> GradleProjectPath?,
   private val getModuleDataNode: (GradleProjectPath) -> DataNode<out ModuleData>?,
   private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?,
   private val resolveKmpAndroidMainSourceSet: (GradleProjectPath) -> String?,
-  private val ignoreKmpFailures: Boolean = false
+  private val ignoreKmpFailures: Boolean = false,
 ) {
-  fun buildResolvedLibraryTable(
-    ideLibraryTable: IdeUnresolvedLibraryTable,
-  ): IdeResolvedLibraryTableImpl {
+  fun buildResolvedLibraryTable(ideLibraryTable: IdeUnresolvedLibraryTable): IdeResolvedLibraryTableImpl {
     return ideLibraryTable.resolve(
       artifactResolver = { resolveArtifact(it) },
       moduleDependencyExpander = ::resolveAdditionalKmpSourceSets,
       kmpAndroidMainSourceSetResolver = resolveKmpAndroidMainSourceSet,
       logger,
-      ignoreKmpFailures
+      ignoreKmpFailures,
     )
   }
 
   private fun resolveAdditionalKmpSourceSets(sourceSet: GradleSourceSetProjectPath): List<GradleSourceSetProjectPath> {
     return sequence {
-      yield(sourceSet)
-      val targetSourceSetData = getModuleDataNode(sourceSet)
-        ?: let {
-          if(!ignoreKmpFailures) {
-            logger.error("Resolved source set not found for: $sourceSet")
-          }
-          return@sequence
-        }
-      val kmpDependsOn = ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
-      yieldAll(kmpDependsOn.mapNotNull(getGradlePathBy))
-    }
+        yield(sourceSet)
+        val targetSourceSetData =
+          getModuleDataNode(sourceSet)
+            ?: let {
+              if (!ignoreKmpFailures) {
+                logger.error("Resolved source set not found for: $sourceSet")
+              }
+              return@sequence
+            }
+        val kmpDependsOn =
+          ExternalSystemApiUtil.find(targetSourceSetData, KotlinSourceSetData.KEY)?.data?.sourceSetInfo?.dependsOn.orEmpty()
+        yieldAll(kmpDependsOn.mapNotNull(getGradlePathBy))
+      }
       .distinct()
       .filterIsInstance<GradleSourceSetProjectPath>()
       .toList()
   }
 
   private val logger = Logger.getInstance(this.javaClass)
-
 }
 
 private fun IdeUnresolvedLibraryTable.resolve(
@@ -89,40 +88,32 @@ private fun IdeUnresolvedLibraryTable.resolve(
   moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>,
   kmpAndroidMainSourceSetResolver: (GradleProjectPath) -> String?,
   logger: Logger,
-  ignoreKmpFailures: Boolean
+  ignoreKmpFailures: Boolean,
 ): IdeResolvedLibraryTableImpl {
 
   fun resolve(preResolved: IdePreResolvedModuleLibrary): List<IdeModuleLibrary> {
-    val expandedSourceSets = moduleDependencyExpander(
-      GradleSourceSetProjectPath(
-        preResolved.buildId,
-        preResolved.projectPath,
-        preResolved.sourceSet
-      )
-    )
+    val expandedSourceSets =
+      moduleDependencyExpander(GradleSourceSetProjectPath(preResolved.buildId, preResolved.projectPath, preResolved.sourceSet))
     return expandedSourceSets.map {
       IdeModuleLibraryImpl(
         buildId = it.buildRoot,
         projectPath = it.path,
         variant = preResolved.variant,
         lintJar = preResolved.lintJar,
-        sourceSet = it.sourceSet
+        sourceSet = it.sourceSet,
       )
     }
   }
 
   fun resolve(unresolved: IdeUnresolvedKmpAndroidModuleLibrary): List<IdeModuleLibrary> {
-    val mainSourceSet = kmpAndroidMainSourceSetResolver(
-      GradleHolderProjectPath(
-        unresolved.buildId,
-        unresolved.projectPath
-      )
-    ) ?: run {
-      if (!ignoreKmpFailures) {
-        logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module ${unresolved.projectPath}.")
-      }
-      return emptyList()
-    }
+    val mainSourceSet =
+      kmpAndroidMainSourceSetResolver(GradleHolderProjectPath(unresolved.buildId, unresolved.projectPath))
+        ?: run {
+          if (!ignoreKmpFailures) {
+            logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module ${unresolved.projectPath}.")
+          }
+          return emptyList()
+        }
 
     return resolve(
       IdePreResolvedModuleLibraryImpl(
@@ -130,23 +121,15 @@ private fun IdeUnresolvedLibraryTable.resolve(
         projectPath = unresolved.projectPath,
         variant = mainSourceSet,
         lintJar = unresolved.lintJar,
-        sourceSet = IdeModuleSourceSetImpl(mainSourceSet, true)
+        sourceSet = IdeModuleSourceSetImpl(mainSourceSet, true),
       )
     )
   }
 
   fun resolve(unresolved: IdeUnresolvedModuleLibrary): List<IdeLibrary> {
-    val targets = artifactResolver(unresolved.artifact)
-      ?: return listOf(
-        IdeJavaLibraryImpl(
-          unresolved.artifact.path,
-          null,
-          unresolved.artifact.path,
-          unresolved.artifact,
-          listOf(),
-          null,
-        )
-      )
+    val targets =
+      artifactResolver(unresolved.artifact)
+        ?: return listOf(IdeJavaLibraryImpl(unresolved.artifact.path, null, unresolved.artifact.path, unresolved.artifact, listOf(), null))
 
     val unresolvedModuleBuilds = targets.filter { it.buildRoot != unresolved.buildId }
     if (unresolvedModuleBuilds.isNotEmpty()) {
@@ -165,7 +148,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
           projectPath = unresolved.projectPath,
           variant = unresolved.variant,
           lintJar = unresolved.lintJar,
-          sourceSet = it.sourceSet
+          sourceSet = it.sourceSet,
         )
       )
     }

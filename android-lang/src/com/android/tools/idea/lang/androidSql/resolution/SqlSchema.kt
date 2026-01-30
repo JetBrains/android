@@ -46,16 +46,14 @@ internal const val SQLITE_SEQUENCE_SCHEMA_NAME = "sqlite_sequence"
 /**
  * Names of internal tables created by SQLite that we support in editor.
  *
- * In addition to the tables, indexes, views, and triggers created by the application and/or the developer using CREATE statements SQL,
- * the sqlite_master table may contain zero or more tables that are created by SQLite for its own internal use.
+ * In addition to the tables, indexes, views, and triggers created by the application and/or the developer using CREATE statements SQL, the
+ * sqlite_master table may contain zero or more tables that are created by SQLite for its own internal use.
  *
  * See [https://www.sqlite.org/fileformat2.html#intschema]
  */
 internal val SQLITE_INTERNAL_TABLES = setOf(SQLITE_SEQUENCE_SCHEMA_NAME)
 
-/**
- * Describes a bind parameter available in a query, e.g. in `select * from t where id = :id`.
- */
+/** Describes a bind parameter available in a query, e.g. in `select * from t where id = :id`. */
 data class BindParameter(val name: String, val definingElement: PsiElement?)
 
 /** Defines common properties for parts of a SQL schema. */
@@ -71,7 +69,8 @@ interface AndroidSqlDefinition {
    *
    * This may be the same as [definingElement] or an annotation element.
    */
-  val resolveTo: PsiElement get() = definingElement
+  val resolveTo: PsiElement
+    get() = definingElement
 }
 
 /** Describes a SQL table. */
@@ -92,12 +91,8 @@ interface AndroidSqlTable : AndroidSqlDefinition {
  *
  * [name] and [resolveTo] are overridden to point to the alias definition, but all other information comes from the original table.
  */
-class AliasedTable(
-  val delegate: AndroidSqlTable,
-  override val name: String?,
-  override val resolveTo: PsiElement
-) : AndroidSqlTable by delegate
-
+class AliasedTable(val delegate: AndroidSqlTable, override val name: String?, override val resolveTo: PsiElement) :
+  AndroidSqlTable by delegate
 
 /** Describes a SQL column. */
 interface AndroidSqlColumn : AndroidSqlDefinition {
@@ -105,16 +100,19 @@ interface AndroidSqlColumn : AndroidSqlDefinition {
   val type: SqlType?
 
   /**
-   * Other names the column can be referred to. This can be the case with e.g 'rowid' column,
-   * see https://sqlite.org/lang_createtable.html#rowid
+   * Other names the column can be referred to. This can be the case with e.g 'rowid' column, see
+   * https://sqlite.org/lang_createtable.html#rowid
    */
-  val alternativeNames: Set<String> get() = emptySet()
+  val alternativeNames: Set<String>
+    get() = emptySet()
 
   /** Whether the column is a primary key. */
-  val isPrimaryKey: Boolean get() = false
+  val isPrimaryKey: Boolean
+    get() = false
 
   /** Whether this column is implicitly defined by SQLite, e.g. rowid. Such columns are skipped from code completion. */
-  val isImplicit: Boolean get() = false
+  val isImplicit: Boolean
+    get() = false
 }
 
 /**
@@ -122,11 +120,8 @@ interface AndroidSqlColumn : AndroidSqlDefinition {
  *
  * [name] and [resolveTo] are overridden to point to the alias definition, but all other information comes from the original column.
  */
-class AliasedColumn(
-  val delegate: AndroidSqlColumn,
-  override val name: String,
-  override val resolveTo: PsiElement
-) : AndroidSqlColumn by delegate
+class AliasedColumn(val delegate: AndroidSqlColumn, override val name: String, override val resolveTo: PsiElement) :
+  AndroidSqlColumn by delegate
 
 /**
  * Represents columns of sub-queries, defined by arbitrary expressions, e.g. `select 2+2 from foo`.
@@ -135,6 +130,9 @@ class AliasedColumn(
  * provide the name.
  */
 class ExprColumn(override val definingElement: PsiElement) : AndroidSqlColumn {
-  override val name: String? get() = null
-  override val type: SqlType? get() = null
+  override val name: String?
+    get() = null
+
+  override val type: SqlType?
+    get() = null
 }

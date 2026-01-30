@@ -20,12 +20,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.DataExternalizer
-import org.junit.Rule
-import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import org.junit.Rule
+import org.junit.Test
 
 class NavXmlIndexTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
@@ -41,100 +41,100 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/top_level_nav"
-                  app:startDestination="@id/fragment1">
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      android:id="@+id/top_level_nav"
+                      app:startDestination="@id/fragment1">
 
-          <action android:id="@+id/action_to_fragment2"
-                  app:destination="@id/fragment2" />
-
-          <argument android:name="top_level_argument"
-                    app:argType="string"
-                    android:defaultValue="topLevelString" />
-
-          <activity android:id="@+id/activity1"
-                    android:name="test.safeargs.Activity1"
-                    tools:layout="@layout/activity1">
-
-              <action android:id="@+id/action_activity1_to_activity2"
-                      app:destination="@id/activity2" />
-          </activity>
-
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1">
-
-              <action android:id="@+id/action_fragment1_to_fragment2"
+              <action android:id="@+id/action_to_fragment2"
                       app:destination="@id/fragment2" />
 
-              <action android:id="@+id/action_fragment1_to_fragment3"
-                      app:destination="@id/fragment3" />
-          </fragment>
-
-          <fragment android:id="@+id/fragment2"
-                    android:name="test.safeargs.Fragment2"
-                    tools:layout="@layout/fragment2">
-
-              <argument android:name="arg"
+              <argument android:name="top_level_argument"
                         app:argType="string"
-                        android:defaultValue="someString"/>
+                        android:defaultValue="topLevelString" />
 
-              <action android:id="@+id/action_fragment2_to_fragment3"
-                      app:destination="@id/fragment3" />
-          </fragment>
+              <activity android:id="@+id/activity1"
+                        android:name="test.safeargs.Activity1"
+                        tools:layout="@layout/activity1">
 
-          <navigation android:id="@+id/nested_nav"
-                      app:startDestination="@id/fragment3">
-
-              <navigation android:id="@+id/double_nested_nav"
-                          app:startDestination="@id/dialog1">
-                  <dialog android:id="@+id/dialog1"
-                          android:name="test.safeargs.Dialog1"
-                          tools:layout="@layout/dialog1">
-                      <argument android:name="arg1"
-                            app:argType="long"
-                            android:defaultValue="1234"/>
-                      <action android:id="@+id/action_dialog1_to_fragment2"
-                          app:destination="@id/fragment2" />
-                  </dialog>
-              </navigation>
-
-              <activity android:id="@+id/activity2"
-                        android:name="test.safeargs.Activity2"
-                        tools:layout="@layout/activity2">
-
-                  <argument android:name="arg1"
-                            app:argType="string"
-                            android:defaultValue="placeholder"/>
-
-                  <argument android:name="arg2"
-                            app:argType="boolean" />
-
-                  <action android:id="@+id/action_activity2_to_activity1"
-                          app:destination="@id/activity1" />
+                  <action android:id="@+id/action_activity1_to_activity2"
+                          app:destination="@id/activity2" />
               </activity>
 
-              <fragment android:id="@+id/fragment3"
-                        android:name="test.safeargs.Fragment3"
-                        tools:layout="@layout/fragment3">
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1">
 
-                  <argument android:name="arg1"
-                            app:argType="float" />
+                  <action android:id="@+id/action_fragment1_to_fragment2"
+                          app:destination="@id/fragment2" />
 
-                  <argument android:name="arg2"
-                            app:argType="integer" />
-
-                  <action android:id="@+id/action_fragment3_to_fragment1"
-                          app:destination="@id/fragment1" />
-
+                  <action android:id="@+id/action_fragment1_to_fragment3"
+                          app:destination="@id/fragment3" />
               </fragment>
 
-          </navigation>
+              <fragment android:id="@+id/fragment2"
+                        android:name="test.safeargs.Fragment2"
+                        tools:layout="@layout/fragment2">
 
-      </navigation>
-    """
+                  <argument android:name="arg"
+                            app:argType="string"
+                            android:defaultValue="someString"/>
+
+                  <action android:id="@+id/action_fragment2_to_fragment3"
+                          app:destination="@id/fragment3" />
+              </fragment>
+
+              <navigation android:id="@+id/nested_nav"
+                          app:startDestination="@id/fragment3">
+
+                  <navigation android:id="@+id/double_nested_nav"
+                              app:startDestination="@id/dialog1">
+                      <dialog android:id="@+id/dialog1"
+                              android:name="test.safeargs.Dialog1"
+                              tools:layout="@layout/dialog1">
+                          <argument android:name="arg1"
+                                app:argType="long"
+                                android:defaultValue="1234"/>
+                          <action android:id="@+id/action_dialog1_to_fragment2"
+                              app:destination="@id/fragment2" />
+                      </dialog>
+                  </navigation>
+
+                  <activity android:id="@+id/activity2"
+                            android:name="test.safeargs.Activity2"
+                            tools:layout="@layout/activity2">
+
+                      <argument android:name="arg1"
+                                app:argType="string"
+                                android:defaultValue="placeholder"/>
+
+                      <argument android:name="arg2"
+                                app:argType="boolean" />
+
+                      <action android:id="@+id/action_activity2_to_activity1"
+                              app:destination="@id/activity1" />
+                  </activity>
+
+                  <fragment android:id="@+id/fragment3"
+                            android:name="test.safeargs.Fragment3"
+                            tools:layout="@layout/fragment3">
+
+                      <argument android:name="arg1"
+                                app:argType="float" />
+
+                      <argument android:name="arg2"
+                                app:argType="integer" />
+
+                      <action android:id="@+id/action_fragment3_to_fragment1"
+                              app:destination="@id/fragment1" />
+
+                  </fragment>
+
+              </navigation>
+
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -298,16 +298,16 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  app:startDestination="@id/fragment1">
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      app:startDestination="@id/fragment1">
 
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1" />
-      </navigation>
-    """
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1" />
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -332,23 +332,23 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  app:startDestination="@id/fragment1">
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      app:startDestination="@id/fragment1">
 
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1" />
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1" />
 
-          <customDestination android:id="@+id/custom1"
-                             android:name="test.safeargs.Custom1"
-                             tools:layout="@layout/custom1" />
+              <customDestination android:id="@+id/custom1"
+                                 android:name="test.safeargs.Custom1"
+                                 tools:layout="@layout/custom1" />
 
-          <unknownTag /> <!-- Probably breaks compiling but shouldn't break indexing -->
-          
-      </navigation>
-    """
+              <unknownTag /> <!-- Probably breaks compiling but shouldn't break indexing -->
+              
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -362,8 +362,7 @@ class NavXmlIndexTest {
     assertThat(data.root.potentialDestinations).hasSize(3)
     // unknownTag, though potential, doesn't meet destination requirements, so it is stripped out at
     // this time
-    assertThat(data.root.potentialDestinations.mapNotNull { it.toDestination()?.id })
-      .containsExactly("fragment1", "custom1")
+    assertThat(data.root.potentialDestinations.mapNotNull { it.toDestination()?.id }).containsExactly("fragment1", "custom1")
 
     verifySerializationLogic(navXmlIndex.valueExternalizer, data)
   }
@@ -376,19 +375,19 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <!-- Recommend syntax is "camel_case_graph" but "camelCaseGraph" works too -->
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/camelCaseGraph"
-                  app:startDestination="@id/fragment">
+          <!-- Recommend syntax is "camel_case_graph" but "camelCaseGraph" works too -->
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      android:id="@+id/camelCaseGraph"
+                      app:startDestination="@id/fragment">
 
-          <fragment android:id="@+id/fragment"
-                    android:name="test.safeargs.Fragment"
-                    tools:layout="@layout/fragment" />
+              <fragment android:id="@+id/fragment"
+                        android:name="test.safeargs.Fragment"
+                        tools:layout="@layout/fragment" />
 
-      </navigation>
-    """
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -414,12 +413,12 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-        <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.example.nav.safeargs">
-            <application android:label="Safe Args Test" />
-        </manifest>
-    """
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="com.example.nav.safeargs">
+              <application android:label="Safe Args Test" />
+          </manifest>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -440,19 +439,19 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <?xml version="1.0" encoding="utf-8"?>
-      <!-- Comment `1234567890-=~!@#$%^&*()_+,./;'[]<>?:"{}\| -->
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/top_level_nav"
-                  app:startDestination="@id/fragment1">
+          <?xml version="1.0" encoding="utf-8"?>
+          <!-- Comment `1234567890-=~!@#$%^&*()_+,./;'[]<>?:"{}\| -->
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      android:id="@+id/top_level_nav"
+                      app:startDestination="@id/fragment1">
 
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1" />
-      </navigation>
-    """
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1" />
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -478,18 +477,18 @@ class NavXmlIndexTest {
           "navigation/main.xml",
           // language=XML
           """
-      <?xml version="1.0" encoding="utf-8"?>
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/top_level_nav"
-                  app:startDestination="@id/fragment1">
+          <?xml version="1.0" encoding="utf-8"?>
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      android:id="@+id/top_level_nav"
+                      app:startDestination="@id/fragment1">
 
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1" />
-      </navigation>
-    """
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1" />
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -501,18 +500,18 @@ class NavXmlIndexTest {
           "otherDir/main.xml",
           // language=XML
           """
-      <?xml version="1.0" encoding="utf-8"?>
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/top_level_nav"
-                  app:startDestination="@id/fragment1">
+          <?xml version="1.0" encoding="utf-8"?>
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                      xmlns:app="http://schemas.android.com/apk/res-auto"
+                      xmlns:tools="http://schemas.android.com/tools"
+                      android:id="@+id/top_level_nav"
+                      app:startDestination="@id/fragment1">
 
-          <fragment android:id="@+id/fragment1"
-                    android:name="test.safeargs.Fragment1"
-                    tools:layout="@layout/fragment1" />
-      </navigation>
-    """
+              <fragment android:id="@+id/fragment1"
+                        android:name="test.safeargs.Fragment1"
+                        tools:layout="@layout/fragment1" />
+          </navigation>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -523,10 +522,7 @@ class NavXmlIndexTest {
     }
   }
 
-  private fun verifySerializationLogic(
-    valueExternalizer: DataExternalizer<NavXmlData>,
-    data: NavXmlData,
-  ) {
+  private fun verifySerializationLogic(valueExternalizer: DataExternalizer<NavXmlData>, data: NavXmlData) {
     val bytesOut = ByteArrayOutputStream()
     DataOutputStream(bytesOut).use { valueExternalizer.save(it, data) }
 

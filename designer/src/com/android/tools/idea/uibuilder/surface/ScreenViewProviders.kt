@@ -39,22 +39,15 @@ interface ScreenViewProvider {
   val displayName: String
 
   /**
-   * May return another [ScreenViewProvider]. Used to quickly toggle through different types of
-   * [ScreenViewProvider] in the DesignSurface.
+   * May return another [ScreenViewProvider]. Used to quickly toggle through different types of [ScreenViewProvider] in the DesignSurface.
    */
   operator fun next(): ScreenViewProvider? = null
 
   /** The default [ScreenView] to show in the DesignSurface. */
   fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView
 
-  /**
-   * An optional [ScreenView] that may be displayed instead of the primary or side to side in the
-   * DesignSurface.
-   */
-  fun createSecondarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView? = null
+  /** An optional [ScreenView] that may be displayed instead of the primary or side to side in the DesignSurface. */
+  fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
 
   /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
   fun onViewProviderReplaced() {}
@@ -72,49 +65,28 @@ enum class NlScreenViewProvider(
   override val surfaceType: LayoutEditorState.Surfaces,
 ) : ScreenViewProvider {
   RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
-  BLUEPRINT(
-    "Blueprint",
-    ::blueprintProvider,
-    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE,
-  ),
-  RENDER_AND_BLUEPRINT(
-    "Design and Blueprint",
-    ::defaultProvider,
-    ::blueprintProvider,
-    surfaceType = LayoutEditorState.Surfaces.BOTH,
-  ),
+  BLUEPRINT("Blueprint", ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
+  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BOTH),
   RESIZABLE_PREVIEW(
     "Preview",
     { surface, manager, _ ->
-      ScreenView.newBuilder(surface, manager)
-        .resizeable()
-        .decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }
-        .build()
+      ScreenView.newBuilder(surface, manager).resizeable().decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }.build()
     },
     visibleToUser = false,
     surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE,
   ),
-  VISUALIZATION(
-    "Visualization",
-    ::visualizationProvider,
-    visibleToUser = false,
-    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE,
-  );
+  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE);
 
   override operator fun next(): NlScreenViewProvider {
     val values = values().filter { it.visibleToUser }
     return values[(ordinal + 1) % values.size]
   }
 
-  override fun createPrimarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView = primary(surface, manager, false)
+  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
+    primary(surface, manager, false)
 
-  override fun createSecondarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView? = secondary?.invoke(surface, manager, true)?.apply { isSecondary = true }
+  override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? =
+    secondary?.invoke(surface, manager, true)?.apply { isSecondary = true }
 
   companion object {
 
@@ -141,9 +113,7 @@ enum class NlScreenViewProvider(
           // preference.
           // In this case, return the default mode instead.
           Logger.getInstance(NlDesignSurface::class.java)
-            .warn(
-              "The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead"
-            )
+            .warn("The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead")
           DEFAULT_SCREEN_MODE
         }
 
@@ -170,11 +140,7 @@ internal fun defaultProvider(
   @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
 ): ScreenView = ScreenView.newBuilder(surface, manager).resizeable().build()
 
-internal fun blueprintProvider(
-  surface: NlDesignSurface,
-  manager: LayoutlibSceneManager,
-  isSecondary: Boolean,
-): ScreenView =
+internal fun blueprintProvider(surface: NlDesignSurface, manager: LayoutlibSceneManager, isSecondary: Boolean): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .resizeable()
     .withColorSet(BlueprintColorSet())
@@ -207,19 +173,14 @@ internal fun visualizationProvider(
           add(BorderLayer(it, isRotating = { surface.isRotating }))
           add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
           add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
-          add(
-            WarningLayer(it) {
-              IssuePanelService.getInstance(surface.project).isIssuePanelVisible()
-            }
-          )
+          add(WarningLayer(it) { IssuePanelService.getInstance(surface.project).isIssuePanelVisible() })
         }
         .build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
     .decorateContentSizePolicy { wrappedPolicy ->
       object : ContentSizePolicy {
-        override fun measure(screenView: ScreenView, outDimension: Dimension) =
-          wrappedPolicy.measure(screenView, outDimension)
+        override fun measure(screenView: ScreenView, outDimension: Dimension) = wrappedPolicy.measure(screenView, outDimension)
 
         // In visualization view, we always use configuration to decide the size.
         override fun hasContentSize(screenView: ScreenView) = screenView.isVisible

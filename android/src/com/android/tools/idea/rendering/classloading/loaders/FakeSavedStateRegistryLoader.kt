@@ -20,17 +20,14 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 
 private const val FAKE_SAVEDSTATE_REGISTRY_PACKAGE_NAME = "_layoutlib_._internal_.androidx.lifecycle.FakeSavedStateRegistry"
 
-/**
- * Loads the FakeSavedStateRegistry class from a generated JVM code class dump ([FakeSavedStateRegistryClassDump]).
- */
+/** Loads the FakeSavedStateRegistry class from a generated JVM code class dump ([FakeSavedStateRegistryClassDump]). */
 class FakeSavedStateRegistryLoader(private val delegate: DelegatingClassLoader.Loader) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
     // Using the namespace androidx.lifecycle seems common.
     // To avoid possible conflicts we use an invalid package: "_layoutlib_._internal_"
     return if (fqcn == FAKE_SAVEDSTATE_REGISTRY_PACKAGE_NAME) {
       FakeSavedStateRegistryClassDump.lifecycleClassDump
-    }
-    else {
+    } else {
       delegate.loadClass(fqcn)
     }
   }

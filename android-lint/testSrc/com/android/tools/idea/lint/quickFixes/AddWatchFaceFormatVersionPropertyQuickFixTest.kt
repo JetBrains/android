@@ -30,16 +30,16 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
     check(
       manifestContent =
         """
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="test.pkg">
-          <uses-feature android:name="android.hardware.type.watch" />
-          <application
-              android:icon="@mipmap/ic_launcher"
-              android:label="@string/app_name"
-              android:hasCode="false">
-          </application>
-      </manifest>
-    """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="test.pkg">
+            <uses-feature android:name="android.hardware.type.watch" />
+            <application
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:hasCode="false">
+            </application>
+        </manifest>
+        """
           .trimIndent(),
       expectedDiff =
         """
@@ -58,17 +58,17 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
     check(
       manifestContent =
         """
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="test.pkg">
-          <uses-feature android:name="android.hardware.type.watch" />
-          <application
-              android:icon="@mipmap/ic_launcher"
-              android:label="@string/app_name"
-              android:hasCode="false">
-              <property android:name="some other property" android:value="some value" />
-          </application>
-      </manifest>
-    """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="test.pkg">
+            <uses-feature android:name="android.hardware.type.watch" />
+            <application
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:hasCode="false">
+                <property android:name="some other property" android:value="some value" />
+            </application>
+        </manifest>
+        """
           .trimIndent(),
       expectedDiff =
         """
@@ -85,16 +85,12 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
 
   private fun check(@Language("XML") manifestContent: String, expectedDiff: String) {
     myFixture.addFileToProject("res/raw/watch_face.xml", "<WatchFace />")
-    val manifestFile =
-      myFixture.addFileToProjectAndInvalidate(ANDROID_MANIFEST_XML, manifestContent)
+    val manifestFile = myFixture.addFileToProjectAndInvalidate(ANDROID_MANIFEST_XML, manifestContent)
     myFixture.enableInspections(AndroidLintWatchFaceFormatMissingVersionInspection())
     myFixture.configureFromExistingVirtualFile(manifestFile.virtualFile)
 
     myFixture.moveCaret("<application|")
-    val quickFix =
-      myFixture.findSingleIntention(
-        "Add 'com.google.wear.watchface.format.version' property element"
-      )
+    val quickFix = myFixture.findSingleIntention("Add 'com.google.wear.watchface.format.version' property element")
 
     myFixture.launchAction(quickFix)
 

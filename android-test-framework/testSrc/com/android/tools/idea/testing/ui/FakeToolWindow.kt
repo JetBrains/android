@@ -55,8 +55,10 @@ class FakeToolWindow(
 
   var tabActions: List<AnAction> = emptyList()
     private set
+
   var titleActions: List<AnAction> = emptyList()
     private set
+
   private var available = true
   private var visible = false
   private var active = false
@@ -131,12 +133,8 @@ class FakeToolWindow(
   }
 }
 
-private class FakeToolWindowManager(
-  windowFactory: ToolWindowFactory,
-  private val toolWindowId: String,
-  icon: Icon,
-  project: Project,
-) : ToolWindowHeadlessManagerImpl(project) {
+private class FakeToolWindowManager(windowFactory: ToolWindowFactory, private val toolWindowId: String, icon: Icon, project: Project) :
+  ToolWindowHeadlessManagerImpl(project) {
   var toolWindow = FakeToolWindow(windowFactory, icon, this, project)
 
   override fun getToolWindow(id: String?): ToolWindow? {

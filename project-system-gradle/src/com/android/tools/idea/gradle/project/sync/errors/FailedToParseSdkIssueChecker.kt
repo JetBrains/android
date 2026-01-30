@@ -34,14 +34,14 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.SystemProperties.getUserName
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
-open class FailedToParseSdkIssueChecker: GradleIssueChecker {
+open class FailedToParseSdkIssueChecker : GradleIssueChecker {
   private val FAILED_TO_PARSE = "failed to parse SDK"
   private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
 
@@ -54,13 +54,16 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
 
     val buildIssueComposer = BuildIssueComposer(message)
-    val pathOfBrokenSdk = findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
-                          ?: return buildIssueComposer.apply {
-                            addDescriptionOnNewLine("The Android SDK may be missing the directory 'add-ons'.")
-                          }.composeBuildIssue()
+    val pathOfBrokenSdk =
+      findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
+        ?: return buildIssueComposer
+          .apply { addDescriptionOnNewLine("The Android SDK may be missing the directory 'add-ons'.") }
+          .composeBuildIssue()
 
     buildIssueComposer.apply {
-      addDescriptionOnNewLine("The directory '${SdkConstants.FD_ADDONS}', in the Android SDK at '${pathOfBrokenSdk.path}', is either missing or empty")
+      addDescriptionOnNewLine(
+        "The directory '${SdkConstants.FD_ADDONS}', in the Android SDK at '${pathOfBrokenSdk.path}', is either missing or empty"
+      )
       startNewParagraph()
     }
 
@@ -71,25 +74,26 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() && failureCause.contains(FAILED_TO_PARSE)
   }
 
   @VisibleForTesting
-  open fun findPathOfSdkWithoutAddonsFolder(projectPath: String) : File? {
+  open fun findPathOfSdkWithoutAddonsFolder(projectPath: String): File? {
     val androidSdk = AndroidSdks.getInstance()
     if (IdeInfo.getInstance().isAndroidStudio) {
       val sdkPath = IdeSdks.getInstance().androidSdkPath
       if (sdkPath != null && isMissingAddonsFolder(sdkPath)) {
         return sdkPath
       }
-    }
-    else {
+    } else {
       // Try find project form the Gradle path
       // TODO(151215857) : Update here when it's possible to use the Gradle projectPath in sync services.
       var projectFound = false

@@ -26,7 +26,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import java.io.File
 import kotlin.io.path.Path
 
-class GradleJdkPathEditComboBoxBuilderTest: LightPlatformTestCase() {
+class GradleJdkPathEditComboBoxBuilderTest : LightPlatformTestCase() {
 
   fun `test Given empty suggested JDKs, When build ComboBox Then dropdown items contains the embedded JDK`() {
     val jdkComboBox = buildJdkPathEditComboBox(JDK_EMBEDDED_PATH, emptyList())
@@ -34,16 +34,13 @@ class GradleJdkPathEditComboBoxBuilderTest: LightPlatformTestCase() {
   }
 
   fun `test Given different suggested JDKs containing embedded one, When build ComboBox Then dropdown items filtered and sorted by version`() {
-    val jdkComboBox = buildJdkPathEditComboBox(JDK_EMBEDDED_PATH, listOf(
-        JDK_INVALID_PATH, JDK_11_PATH, JDK_EMBEDDED_PATH
-    ))
+    val jdkComboBox = buildJdkPathEditComboBox(JDK_EMBEDDED_PATH, listOf(JDK_INVALID_PATH, JDK_11_PATH, JDK_EMBEDDED_PATH))
     assertJdkItems(jdkComboBox, listOf(JDK_EMBEDDED_PATH, JDK_11_PATH))
   }
 
   fun `test Given suggested JDK been canonical equivalent to embedded JDK, When build ComboBox Then dropdown items contains a single embedded JDK`() {
-    val jdkComboBox = buildJdkPathEditComboBox(JDK_EMBEDDED_PATH, listOf(
-      JDK_EMBEDDED_PATH.replace(File.separator, File.separator + File.separator)
-    ))
+    val jdkComboBox =
+      buildJdkPathEditComboBox(JDK_EMBEDDED_PATH, listOf(JDK_EMBEDDED_PATH.replace(File.separator, File.separator + File.separator)))
     assertJdkItems(jdkComboBox, listOf(JDK_EMBEDDED_PATH))
   }
 
@@ -52,7 +49,7 @@ class GradleJdkPathEditComboBoxBuilderTest: LightPlatformTestCase() {
       currentJdkPath = null,
       embeddedJdkPath = Path(embeddedJdk),
       suggestedJdks = suggestedJdks.map { createMockSdk(it) },
-      hintMessage = ""
+      hintMessage = "",
     )
 
   private fun assertJdkItems(jdkComboBox: GradleJdkPathEditComboBox, expectedJdkPaths: List<String>) {

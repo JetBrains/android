@@ -20,16 +20,13 @@ import com.google.idea.blaze.base.settings.Blaze
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.ex.ActionRuntimeRegistrar
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer
 
 /** Runs on startup. */
 class BlazeHideMakeActions : ActionConfigurationCustomizer {
   override fun customize(actionRegistrar: ActionManager) {
     // The original actions will be visible only on plain IDEA projects.
-    val isBlazeProject: (AnActionEvent) -> Boolean = { e ->
-      e.project?.let { Blaze.isBlazeProject(it) } == true
-    }
+    val isBlazeProject: (AnActionEvent) -> Boolean = { e -> e.project?.let { Blaze.isBlazeProject(it) } == true }
 
     // 'Build' > 'Make Modules' action
     hideAction(actionRegistrar, IdeActions.ACTION_MAKE_MODULE, isBlazeProject)

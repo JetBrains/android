@@ -26,11 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
 internal class OpenDeviceExplorerAction :
-  DumbAwareAction(
-    "Open in Device Explorer",
-    DeviceManagerBundle.message("openDeviceExplorerButton.tooltip"),
-    AllIcons.Actions.MenuOpen,
-  ) {
+  DumbAwareAction("Open in Device Explorer", DeviceManagerBundle.message("openDeviceExplorerButton.tooltip"), AllIcons.Actions.MenuOpen) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -48,8 +44,7 @@ internal class OpenDeviceExplorerAction :
 
     if (!project.isDisposed) {
       DeviceManagerUsageTracker.logDeviceManagerEvent(
-        if (deviceRowData.isVirtual)
-          DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION
+        if (deviceRowData.isVirtual) DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION
         else DeviceManagerEvent.EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION
       )
 

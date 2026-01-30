@@ -19,16 +19,14 @@ import com.intellij.openapi.Disposable
 import java.util.EventListener
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * An object that lazily subscribes a [listener] to respond to file changes after [ensureSubscribed] has been called.
- */
+/** An object that lazily subscribes a [listener] to respond to file changes after [ensureSubscribed] has been called. */
 abstract class LazyFileListenerSubscriber<T : EventListener>(val listener: T, val parent: Disposable) {
   private val subscribed = AtomicBoolean(false)
 
-  /** Subscribes the listener. [ensureSubscribed] guarantees this function will only be called once.*/
+  /** Subscribes the listener. [ensureSubscribed] guarantees this function will only be called once. */
   protected abstract fun subscribe()
 
-  /** Ensures that the [EventListener] is actively listening for file changes.*/
+  /** Ensures that the [EventListener] is actively listening for file changes. */
   fun ensureSubscribed() {
     if (subscribed.compareAndSet(false, true)) {
       subscribe()

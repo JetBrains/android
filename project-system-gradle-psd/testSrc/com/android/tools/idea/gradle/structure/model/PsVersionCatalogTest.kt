@@ -29,8 +29,7 @@ import org.junit.Test
 @RunsInEdt
 class PsVersionCatalogTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testGetBuildScriptVariables() {
@@ -40,13 +39,7 @@ class PsVersionCatalogTest {
       val catalogs = psProject.versionCatalogs
       MatcherAssert.assertThat(
         catalogs.items.map { it.variables.map { v -> v.name to v.value } }.flatten(),
-        CoreMatchers.equalTo(
-          listOf(
-            "constraint-layout" to "1.0.2".asParsed(),
-            "guava" to "19.0".asParsed(),
-            "junit" to "4.12".asParsed()
-          )
-        )
+        CoreMatchers.equalTo(listOf("constraint-layout" to "1.0.2".asParsed(), "guava" to "19.0".asParsed(), "junit" to "4.12".asParsed())),
       )
     }
   }
@@ -54,21 +47,31 @@ class PsVersionCatalogTest {
   @Test
   fun testGetBuildScriptVariablesMultiCatalogs() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
-    preparedProject.root.resolve("settings.gradle").appendText("""
-      dependencyResolutionManagement {
-          versionCatalogs {
-              libs2 {
-                  from(files("addition.versions.toml"))
-              }
-          }
-      }
-    """.trimIndent())
-    preparedProject.root.resolve("addition.versions.toml").writeText("""
-      [versions]
-      log4j = "2.17"
-      [libraries]
-      log4j-core = {module ="org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
-    """.trimIndent())
+    preparedProject.root
+      .resolve("settings.gradle")
+      .appendText(
+        """
+        dependencyResolutionManagement {
+            versionCatalogs {
+                libs2 {
+                    from(files("addition.versions.toml"))
+                }
+            }
+        }
+        """
+          .trimIndent()
+      )
+    preparedProject.root
+      .resolve("addition.versions.toml")
+      .writeText(
+        """
+        [versions]
+        log4j = "2.17"
+        [libraries]
+        log4j-core = {module ="org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
+        """
+          .trimIndent()
+      )
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project)
       val catalogs = psProject.versionCatalogs
@@ -79,9 +82,9 @@ class PsVersionCatalogTest {
             "constraint-layout" to "1.0.2".asParsed(),
             "guava" to "19.0".asParsed(),
             "junit" to "4.12".asParsed(),
-            "log4j" to "2.17".asParsed()
+            "log4j" to "2.17".asParsed(),
           )
-        )
+        ),
       )
     }
   }

@@ -29,8 +29,8 @@ private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
 private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/release"
 
 /**
- * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio. If it
- * succeeds it will save the file to a local path.
+ * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio. If it succeeds it will save the file to a
+ * local path.
  */
 @Service
 class ServerFlagDownloader {
@@ -53,17 +53,11 @@ class ServerFlagDownloader {
      *
      * @param baseUrl: The base url where the download files are located.
      * @param localCacheDirectory: The local directory to store the most recent download.
-     * @param version: The current version of Android Studio. This is used to construct the full
-     *   paths from the first two parameters.
-     * @param tempFileCreator: Callback to create a temporary file for downloading. The resulting
-     *   file will be deleted before this function returns.
+     * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
+     * @param tempFileCreator: Callback to create a temporary file for downloading. The resulting file will be deleted before this function
+     *   returns.
      */
-    fun downloadServerFlagList(
-      baseUrl: String,
-      localCacheDirectory: Path,
-      version: String,
-      tempFileCreator: () -> File?,
-    ) {
+    fun downloadServerFlagList(baseUrl: String, localCacheDirectory: Path, version: String, tempFileCreator: () -> File?) {
       val url = buildUrl(baseUrl, version) ?: return
       val tempFile = tempFileCreator() ?: return
 
@@ -82,11 +76,7 @@ class ServerFlagDownloader {
 
     private fun downloadFile(tempFile: File, url: URL): Boolean {
       return try {
-        url.openStream().use { inputStream ->
-          tempFile.outputStream().use { outputStream ->
-            ByteStreams.copy(inputStream, outputStream)
-          }
-        }
+        url.openStream().use { inputStream -> tempFile.outputStream().use { outputStream -> ByteStreams.copy(inputStream, outputStream) } }
         true
       } catch (e: IOException) {
         false

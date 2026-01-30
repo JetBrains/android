@@ -22,5 +22,5 @@ import java.io.Serializable
 data class IdeTestSuiteSourceImpl(
   override val name: String,
   override val type: IdeTestSuiteSource.SourceType,
-  override val sourceProvider: IdeSourceProvider
-): IdeTestSuiteSource, Serializable
+  override val sourceProvider: IdeSourceProvider,
+) : IdeTestSuiteSource, Serializable

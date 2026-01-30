@@ -19,21 +19,22 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Test
-import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Test
 
 @RunsInEdt
 class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder(includeBuildConfigSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
-  )
-  private lateinit var gradlePropertiesFile : VirtualFile
+  override val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(includeBuildConfigSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
+    )
+  private lateinit var gradlePropertiesFile: VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {
@@ -42,7 +43,6 @@ class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
       assertTrue(gradlePropertiesFile.isWritable)
     }
   }
-
 
   @Test // TODO(xof): fix redirect
   fun testReadMoreUrl() {
@@ -68,7 +68,7 @@ class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.buildconfig=true")
   }
 
-  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+  fun VirtualFile.load(): String = VfsUtilCore.loadText(this).normalize()
 
   fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
 }

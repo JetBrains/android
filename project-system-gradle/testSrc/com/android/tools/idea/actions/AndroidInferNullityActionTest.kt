@@ -45,33 +45,43 @@ class AndroidInferNullityActionTest : AndroidTestCase() {
     super.setUp()
     myFixture.addClass(
       """
-import android.graphics.Color;
+      import android.graphics.Color;
 
-public class TestNullity {
-    public Color myMethod() {
-        Color color = null;
-        return color;
-    }
+      public class TestNullity {
+          public Color myMethod() {
+              Color color = null;
+              return color;
+          }
 
-    public Color myMethod1() {
-        Color color = new Color();
-        return color;
-    }
-}
-""".trimIndent())
+          public Color myMethod1() {
+              Color color = new Color();
+              return color;
+          }
+      }
+      """
+        .trimIndent()
+    )
     myNullityManager = NullableNotNullManager.getInstance(project)
   }
 
   fun testFoundCatalogDependency() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies{
       implementation libs.support
       }
-    """.trimIndent())
-    myFixture.addFileToProject("gradle/libs.versions.toml", """
+      """
+        .trimIndent(),
+    )
+    myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
       [libraries]
       support = "com.android.support:support-annotations:+"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     executeWithoutApplyRunnable {
@@ -87,22 +97,28 @@ public class TestNullity {
 
         // system should not suggest adding dependency via dialog
         verify(testDialog, never()).show(any())
-      }
-      finally {
+      } finally {
         TestDialogManager.setTestDialog(TestDialog.DEFAULT)
       }
     }
   }
 
-
   fun testAddDependencyWithCatalog() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies{
       }
-    """.trimIndent())
-    myFixture.addFileToProject("gradle/libs.versions.toml", """
+      """
+        .trimIndent(),
+    )
+    myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
       [libraries]
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     try {
@@ -122,22 +138,29 @@ public class TestNullity {
       val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
       Truth.assertThat(catalogContent).contains("group = \"androidx.annotation\"")
       Truth.assertThat(catalogContent).contains("name = \"annotation\"")
-    }
-    finally {
+    } finally {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT)
     }
   }
 
   fun testAddAndroidAnnotationWithCatalogFull() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies{
          implementation libs.support.annotation
       }
-    """.trimIndent())
-    myFixture.addFileToProject("gradle/libs.versions.toml", """
+      """
+        .trimIndent(),
+    )
+    myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
       [libraries]
       support-annotation = "com.android.support:support-annotations:+"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
 
     val action = AndroidInferNullityAnnotationAction()
@@ -151,19 +174,22 @@ public class TestNullity {
 
   fun testAddAndroidAnnotationNoCatalogFull() {
     TestDialogManager.setTestDialog(TestDialog.YES)
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies{
          implementation "com.android.support:support-annotations:+"
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
     action.getAdditionalActionSettings(project, null)
     try {
       action.analyze(project, scope)
-    }
-    finally {
+    } finally {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT)
     }
 
@@ -173,19 +199,21 @@ public class TestNullity {
   fun testAddAndroidXAnnotationNoCatalogFull() {
     TestDialogManager.setTestDialog(TestDialog.YES)
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
-    myFixture.addClass("""
+    myFixture.addClass(
+      """
       package androidx.annotation;
       public @interface Nullable {}
       public @interface NonNull {}
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
     action.getAdditionalActionSettings(project, null)
     try {
       action.analyze(project, scope)
-    }
-    finally {
+    } finally {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT)
     }
 
@@ -193,8 +221,8 @@ public class TestNullity {
   }
 
   /**
-   * ApplyRunnable contains all code/annotation changes. To isolate tests from this functionality
-   * we can mock this method to not call existing business logic.
+   * ApplyRunnable contains all code/annotation changes. To isolate tests from this functionality we can mock this method to not call
+   * existing business logic.
    */
   private fun executeWithoutApplyRunnable(f: () -> Unit) {
     Mockito.mockStatic(AndroidInferNullityAnnotationAction::class.java, Mockito.CALLS_REAL_METHODS).use { _ ->
@@ -214,8 +242,7 @@ public class TestNullity {
     TestDialogManager.setTestDialog { NO } // Ignore suggestion to add JetBrains annotations lib.
     try {
       action.analyze(this.project, scope)
-    }
-    finally {
+    } finally {
       TestDialogManager.setTestDialog(DEFAULT)
     }
   }

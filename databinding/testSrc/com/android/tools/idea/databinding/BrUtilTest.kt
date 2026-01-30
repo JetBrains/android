@@ -52,7 +52,6 @@ class BrUtilTest {
     methodsAndFields.addAll(modelClass.fields)
     methodsAndFields.addAll(modelClass.methods)
 
-    assertThat(BrUtil.collectIds(methodsAndFields))
-      .containsExactly("length", "size", "sum", "value", "count", "text", "enabled")
+    assertThat(BrUtil.collectIds(methodsAndFields)).containsExactly("length", "size", "sum", "value", "count", "text", "enabled")
   }
 }

@@ -29,11 +29,9 @@ import org.junit.Test
 
 class GradleSyncSpecialCasesIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun `manifest in build folder`() {
@@ -43,13 +41,17 @@ class GradleSyncSpecialCasesIntegrationTest {
     val newManifestFile = libProjectDir.resolve("build/generated/manifests/AndroidManifest.xml")
     FileUtil.createParentDirs(newManifestFile)
     oldManifestFile.renameTo(newManifestFile)
-    libProjectDir.resolve("build.gradle").appendText("""
+    libProjectDir
+      .resolve("build.gradle")
+      .appendText(
+        """
      android.sourceSets.main.manifest.srcFile '${newManifestFile.absolutePath}'
-    """)
+    """
+      )
     preparedProject.open { project ->
       val manifestVirtualFile = VfsUtil.findFile(newManifestFile.toPath(), false)
       expect.that(manifestVirtualFile).isNotNull()
-      expect.that(manifestVirtualFile?.let { runReadAction {  AndroidFacet.getInstance(it, project) } }).isNotNull()
+      expect.that(manifestVirtualFile?.let { runReadAction { AndroidFacet.getInstance(it, project) } }).isNotNull()
     }
   }
 }

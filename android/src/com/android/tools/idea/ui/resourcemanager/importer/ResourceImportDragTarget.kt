@@ -21,18 +21,16 @@ import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.openapi.util.SystemInfo
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.datatransfer.Transferable
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * A [DnDNativeTarget] which accepts files and try to import them as resources using the available
  * [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter].
  */
-class ResourceImportDragTarget(
-  var facet: AndroidFacet,
-  private val importersProvider: ImportersProvider
-) : DnDNativeTarget, ImportResourceDelegate {
+class ResourceImportDragTarget(var facet: AndroidFacet, private val importersProvider: ImportersProvider) :
+  DnDNativeTarget, ImportResourceDelegate {
 
   override fun update(event: DnDEvent): Boolean {
     // Returns if parent should handle the event. I.e: Returns false when the import can be handled here.
@@ -66,14 +64,10 @@ class ResourceImportDragTarget(
     return false
   }
 
-  /**
-   * Checks if at least one of the file can be imported.
-   */
-  private fun anyFileCanBeImported(files: Sequence<File>) =
-    files.any { file -> hasImporterForFile(file) }
+  /** Checks if at least one of the file can be imported. */
+  private fun anyFileCanBeImported(files: Sequence<File>) = files.any { file -> hasImporterForFile(file) }
 
-  private fun hasImporterForFile(file: File): Boolean =
-    importersProvider.getImportersForExtension(file.extension).isNotEmpty()
+  private fun hasImporterForFile(file: File): Boolean = importersProvider.getImportersForExtension(file.extension).isNotEmpty()
 
   /** Open the [ResourceImportDialog]. */
   private fun drop(files: Sequence<File>) {

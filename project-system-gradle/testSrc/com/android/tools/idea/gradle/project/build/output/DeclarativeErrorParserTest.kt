@@ -33,69 +33,77 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import kotlin.sequences.forEach
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
-import kotlin.sequences.forEach
 
 class DeclarativeErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val edtRule = EdtRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, edtRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, edtRule)
 
   val project by lazy { projectRule.project }
 
   @Test
   @RunsInEdt
   fun testDeclarativeErrorParsed() {
-    doTest("""
-    androidApp {
-      productFlavors {
-        productFlavor("type1") {
-            matchingFallbacks = listOf("a")
+    doTest(
+      """
+      androidApp {
+        productFlavors {
+          productFlavor("type1") {
+              matchingFallbacks = listOf("a")
+          }
         }
       }
-    }
-    """.trimIndent(), ::getDeclarativeBuildOutput) { file, iterator, parentEventId ->
-      verifyIssue(iterator,
-                  parentEventId,
-                  getDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"),
-                  3,
-                  8,
-                  file)
+      """
+        .trimIndent(),
+      ::getDeclarativeBuildOutput,
+    ) { file, iterator, parentEventId ->
+      verifyIssue(iterator, parentEventId, getDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"), 3, 8, file)
     }
   }
 
   @Test
   @RunsInEdt
   fun testDeclarativeTreeError() {
-    doTest("""
-    androidApp {
-      produ{}ctFlavors {
+    doTest(
+      """
+      androidApp {
+        produ{}ctFlavors {
+        }
       }
-    }
-    """.trimIndent(), ::getFailureBuildingLanguageTree) { file, iterator, parentEventId ->
-      verifyIssue(iterator,
-                  parentEventId,
-                  getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"),
-                  1,
-                  9,
-                  file)
+      """
+        .trimIndent(),
+      ::getFailureBuildingLanguageTree,
+    ) { file, iterator, parentEventId ->
+      verifyIssue(
+        iterator,
+        parentEventId,
+        getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"),
+        1,
+        9,
+        file,
+      )
     }
   }
 
   @Test
   @RunsInEdt
   fun testMultipleSubjectErrors() {
-    doTest("""
-    androidApp {
-      bui{}ldFeatures {
+    doTest(
+      """
+      androidApp {
+        bui{}ldFeatures {
+        }
+        namespace = 1
       }
-      namespace = 1
-    }
-    """.trimIndent(), ::getMultipleSubject) { file, iterator, parentEventId ->
+      """
+        .trimIndent(),
+      ::getMultipleSubject,
+    ) { file, iterator, parentEventId ->
       verifyIssue(iterator, parentEventId, getMultipleSubject1(file.path), 1, 9, file)
       verifyIssue(iterator, parentEventId, getMultipleSubject2(file.path), 3, 4, file)
     }
@@ -104,32 +112,35 @@ class DeclarativeErrorParserTest {
   @Test
   @RunsInEdt
   fun testMultipleIssueErrors() {
-    doTest("""
-    androidApp {
-      namespace = 1
-      defaultConfig {
-        minSdk = "24"
+    doTest(
+      """
+      androidApp {
+        namespace = 1
+        defaultConfig {
+          minSdk = "24"
+        }
       }
-    }
-    """.trimIndent(), ::getMultipleIssueOutput) { file, iterator, parentEventId ->
+      """
+        .trimIndent(),
+      ::getMultipleIssueOutput,
+    ) { file, iterator, parentEventId ->
       verifyIssue(iterator, parentEventId, getMultipleIssue1(file.path), 1, 4, file)
       verifyIssue(iterator, parentEventId, getMultipleIssue2(file.path), 3, 8, file)
     }
   }
 
-  private fun doTest(content: String,
-                     buildOutput: (String) -> String,
-                     assert: (VirtualFile, Iterator<MessageEvent>, Any) -> Unit) {
+  private fun doTest(content: String, buildOutput: (String) -> String, assert: (VirtualFile, Iterator<MessageEvent>, Any) -> Unit) {
     val file = createFile("path", "build.gradle.dcl", content)
     val consumer = TestMessageEventConsumer()
 
-    val progressListener = object : BuildProgressListener {
-      override fun onEvent(buildId: Any, event: BuildEvent) {
-        if (event is MessageEvent) {
-          consumer.accept(event)
+    val progressListener =
+      object : BuildProgressListener {
+        override fun onEvent(buildId: Any, event: BuildEvent) {
+          if (event is MessageEvent) {
+            consumer.accept(event)
+          }
         }
       }
-    }
 
     val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
     val parentEventId = "Test Id"
@@ -168,7 +179,8 @@ class DeclarativeErrorParserTest {
   }
 
   companion object {
-    private fun getDeclarativeBuildOutput(absolutePath: String): String = """
+    private fun getDeclarativeBuildOutput(absolutePath: String): String =
+      """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -184,14 +196,18 @@ A problem occurred configuring project ':app'.
 > Get more help at https://help.gradle.org.
 
 * Exception is:
-""".trimIndent()
+"""
+        .trimIndent()
 
-    private fun getDeclarativeBuildIssueDescription(absolutePath: String) = """
+    private fun getDeclarativeBuildIssueDescription(absolutePath: String) =
+      """
     Failed to interpret declarative file '$absolutePath'
           4:9: unresolved reference 'matchingFallbacks'
-    """.trimIndent()
+    """
+        .trimIndent()
 
-    private fun getFailureBuildingLanguageTree(absolutePath: String): String = """
+    private fun getFailureBuildingLanguageTree(absolutePath: String): String =
+      """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -204,11 +220,15 @@ A problem occurred configuring project ':app'.
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
- """""".trimIndent()
-  private fun getFailureBuildingLanguageTreeDescription(absolutePath: String) = """
+ """"""
+        .trimIndent()
+
+    private fun getFailureBuildingLanguageTreeDescription(absolutePath: String) =
+      """
     Failed to interpret declarative file '$absolutePath'
           2:10: unsupported language feature: InfixFunctionCall
-    """.trimIndent()
+    """
+        .trimIndent()
   }
 
   private fun getMultipleSubject(absolutePath: String) =
@@ -228,19 +248,22 @@ A problem occurred configuring project ':app'.
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun getMultipleSubject1(absolutePath: String) =
     """
       Failed to interpret declarative file '$absolutePath'
             2:10: unsupported language feature: InfixFunctionCall
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun getMultipleSubject2(absolutePath: String) =
     """
       Failed to interpret declarative file '$absolutePath'
             4:5: assignment type mismatch, expected 'String', got 'Int'
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun getMultipleIssueOutput(absolutePath: String) =
     """
@@ -258,17 +281,20 @@ A problem occurred configuring project ':app'.
 > Run with --info or --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun getMultipleIssue1(absolutePath: String) =
     """
       Failed to interpret declarative file '$absolutePath'
             2:5: assignment type mismatch, expected 'String', got 'Int'
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun getMultipleIssue2(absolutePath: String) =
     """
       Failed to interpret declarative file '$absolutePath'
             4:9: assignment type mismatch, expected 'Int', got 'String'
-    """.trimIndent()
+    """
+      .trimIndent()
 }

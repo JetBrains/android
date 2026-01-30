@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-/**
- * An [AndroidModulePaths] instance with a name.
- */
+/** An [AndroidModulePaths] instance with a name. */
 data class NamedModuleTemplate(val name: String, val paths: AndroidModulePaths) {
   override fun toString() = name
 }

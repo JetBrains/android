@@ -32,14 +32,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Test for {@link KotlinMultiplatformAndroidTestConfigurationProducer}
- */
+/** Test for {@link KotlinMultiplatformAndroidTestConfigurationProducer} */
 @RunsInEdt
 class KotlinMultiplatformAndroidTestConfigurationProducerTest {
   val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val rule = projectRule.onEdt()
+  @get:Rule val rule = projectRule.onEdt()
 
   @Before
   fun assumeNotWindows() {

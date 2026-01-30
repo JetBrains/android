@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -61,8 +61,7 @@ class UnsignedApkQuickFixTest {
       }
 
     // Release build doesn't have a signing config assigned.
-    val releaseBuildSigningConfig =
-      buildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
+    val releaseBuildSigningConfig = buildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(releaseBuildSigningConfig?.valueAsString()).isNull()
 
     val unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null) { fakeSelector }
@@ -70,8 +69,7 @@ class UnsignedApkQuickFixTest {
     val updatedBuildModel = ProjectBuildModel.get(projectRule.project).getModuleBuildModel(module)!!
 
     // Release build is now assigned the debug signing config.
-    val expectedSigningConfig =
-      updatedBuildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
+    val expectedSigningConfig = updatedBuildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(expectedSigningConfig?.valueAsString()).contains("debug")
   }
 
@@ -102,9 +100,8 @@ class UnsignedApkQuickFixTest {
   }
 
   /**
-   * Tests the case where validation has been run already, but then the {@code
-   * AndroidRunConfigurationEditor} is opened, creating a new QuickFix where the callback would
-   * trigger the editor revalidation.
+   * Tests the case where validation has been run already, but then the {@code AndroidRunConfigurationEditor} is opened, creating a new
+   * QuickFix where the callback would trigger the editor revalidation.
    */
   @Test
   fun nonNullCallbackReCachesIfCurrentlyNull() {
@@ -120,9 +117,8 @@ class UnsignedApkQuickFixTest {
   }
 
   /**
-   * Tests the case where the {@code AndroidRunConfigurationEditor} has already set a revalidation
-   * callback, but a different validation request would have created a new QuickFix. In this case,
-   * we do not want to overwrite the cache.
+   * Tests the case where the {@code AndroidRunConfigurationEditor} has already set a revalidation callback, but a different validation
+   * request would have created a new QuickFix. In this case, we do not want to overwrite the cache.
    */
   @Test
   fun nullCallbackDoesNotReCache() {
@@ -138,9 +134,8 @@ class UnsignedApkQuickFixTest {
   }
 
   /**
-   * Tests the case where a different callback is requested, e.g. if the {@code
-   * AndroidRunConfigurationEditor} dialog is opened again, meaning the new dialog would need to
-   * receive the revalidation request.
+   * Tests the case where a different callback is requested, e.g. if the {@code AndroidRunConfigurationEditor} dialog is opened again,
+   * meaning the new dialog would need to receive the revalidation request.
    */
   @Test
   fun differentCallbackReCaches() {

@@ -17,9 +17,9 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
+import org.jetbrains.org.objectweb.asm.Type
 import org.junit.Assert.fail
 import org.junit.Test
-import org.jetbrains.org.objectweb.asm.Type
 
 class A1
 
@@ -45,9 +45,11 @@ class FilteringClassLoaderTest {
         A2::class.java.name to loadClassBytes(A2::class.java),
         B1::class.java.name to loadClassBytes(B1::class.java),
         B2::class.java.name to loadClassBytes(B2::class.java),
-        com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name to loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A1::class.java),
-        com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name to loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A2::class.java),
-      )
+        com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name to
+          loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A1::class.java),
+        com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name to
+          loadClassBytes(com.android.tools.idea.rendering.classloading.prefix.A2::class.java),
+      ),
     )
 
   @Test
@@ -71,52 +73,35 @@ class FilteringClassLoaderTest {
     allow2ClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name)
 
     // The following will not be found
-    listOf(
-        A2::class.java.name,
-        B2::class.java.name,
-        com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name,
-      )
-      .forEach {
-        try {
-          allow1ClassLoader.loadClass(it)
-          fail("ClassNotFoundException expected for '$it'")
-        } catch (_: ClassNotFoundException) {}
-      }
+    listOf(A2::class.java.name, B2::class.java.name, com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name).forEach {
+      try {
+        allow1ClassLoader.loadClass(it)
+        fail("ClassNotFoundException expected for '$it'")
+      } catch (_: ClassNotFoundException) {}
+    }
 
-    listOf(
-        A1::class.java.name,
-        B1::class.java.name,
-        com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name,
-      )
-      .forEach {
-        try {
-          allow2ClassLoader.loadClass(it)
-          fail("ClassNotFoundException expected for '$it'")
-        } catch (_: ClassNotFoundException) {}
-      }
+    listOf(A1::class.java.name, B1::class.java.name, com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name).forEach {
+      try {
+        allow2ClassLoader.loadClass(it)
+        fail("ClassNotFoundException expected for '$it'")
+      } catch (_: ClassNotFoundException) {}
+    }
   }
 
   @Test
   fun `test prefix filtering allow`() {
     val filteringClassLoader =
-      FilteringClassLoader.allowedPrefixes(
-        parentClassLoader,
-        listOf("com.android.tools.idea.rendering.classloading.prefix.")
-      )
+      FilteringClassLoader.allowedPrefixes(parentClassLoader, listOf("com.android.tools.idea.rendering.classloading.prefix."))
 
     filteringClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name)
     filteringClassLoader.loadClass(com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name)
 
     // The following will not be found
-    listOf(
-        A1::class.java.name,
-        A2::class.java.name,
-      )
-      .forEach {
-        try {
-          filteringClassLoader.loadClass(it)
-          fail("ClassNotFoundException expected for '$it'")
-        } catch (_: ClassNotFoundException) {}
-      }
+    listOf(A1::class.java.name, A2::class.java.name).forEach {
+      try {
+        filteringClassLoader.loadClass(it)
+        fail("ClassNotFoundException expected for '$it'")
+      } catch (_: ClassNotFoundException) {}
+    }
   }
 }

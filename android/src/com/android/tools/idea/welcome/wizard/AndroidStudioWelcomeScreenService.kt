@@ -31,20 +31,16 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.util.net.HttpConnectionUtils
 import com.intellij.util.net.HttpProxyConfigurable
 import com.intellij.util.net.JdkProxyProvider
-import com.intellij.util.net.ProxySettings
 import com.intellij.util.net.editConfigurable
 import java.io.IOException
 
-/**
- * A service responsible for determining whether to show the Android Studio Welcome Screen and, if
- * so, which wizard mode to use.
- */
+/** A service responsible for determining whether to show the Android Studio Welcome Screen and, if so, which wizard mode to use. */
 @Service(Service.Level.APP)
 class AndroidStudioWelcomeScreenService {
 
   /**
-   * Indicates whether the welcome wizard has already been shown in the current IDE session. Used to
-   * prevent the wizard from appearing multiple times.
+   * Indicates whether the welcome wizard has already been shown in the current IDE session. Used to prevent the wizard from appearing
+   * multiple times.
    */
   var wizardWasShown: Boolean = false
 
@@ -54,21 +50,14 @@ class AndroidStudioWelcomeScreenService {
    * @return `true` if the welcome screen should be shown, `false` otherwise.
    */
   fun isAvailable(): Boolean {
-    val isWizardDisabled =
-      GuiTestingService.getInstance().isGuiTestingMode ||
-        java.lang.Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)
+    val isWizardDisabled = GuiTestingService.getInstance().isGuiTestingMode || java.lang.Boolean.getBoolean(SYSTEM_PROPERTY_DISABLE_WIZARD)
     return !wizardWasShown &&
       !isWizardDisabled &&
-      getWizardMode(
-        AndroidFirstRunPersistentData.getInstance(),
-        installerData,
-        AndroidSdks.getInstance(),
-      ) != null
+      getWizardMode(AndroidFirstRunPersistentData.getInstance(), installerData, AndroidSdks.getInstance()) != null
   }
 
   /**
-   * Determines the appropriate mode for the first-run wizard based on current system state and
-   * installation status.
+   * Determines the appropriate mode for the first-run wizard based on current system state and installation status.
    *
    * @param persistentData Persistent data related to Android Studio's first-run configuration.
    * @param installerData Data from the installer, if available. Used for install handoff scenarios.
@@ -93,18 +82,13 @@ class AndroidStudioWelcomeScreenService {
   }
 
   /** Returns true if the handoff data was updated since the last time wizard ran. */
-  private fun isHandoff(
-    persistentData: AndroidFirstRunPersistentData,
-    installerData: InstallerData?,
-  ): Boolean {
+  private fun isHandoff(persistentData: AndroidFirstRunPersistentData, installerData: InstallerData?): Boolean {
     val data = installerData ?: return false
-    return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) &&
-      data.isCurrentVersion
+    return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) && data.isCurrentVersion
   }
 
   /**
-   * Performs a check to see if the IDE can connect to the internet. This is important for
-   * downloading SDK components.
+   * Performs a check to see if the IDE can connect to the internet. This is important for downloading SDK components.
    *
    * @param httpConfigurable The IDE's HTTP settings configurable.
    */
@@ -169,8 +153,6 @@ class AndroidStudioWelcomeScreenService {
 
     @JvmStatic
     val instance: AndroidStudioWelcomeScreenService
-      get() =
-        ApplicationManager.getApplication()
-          .getService(AndroidStudioWelcomeScreenService::class.java)
+      get() = ApplicationManager.getApplication().getService(AndroidStudioWelcomeScreenService::class.java)
   }
 }

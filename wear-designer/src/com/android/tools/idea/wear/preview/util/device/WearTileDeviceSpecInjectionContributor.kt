@@ -27,12 +27,11 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
 class WearTileDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() {
   /**
-   * This function is called as a part of code-format that can be also a part of template execution.
-   * Since it happens right after the user updates PSIs, we cannot run analysis APIs for the PSIs in
-   * advance on a background thread. In this case, we cannot avoid running analysis APIs on the
-   * UI-thread. In addition, the code-format runs on a write-action. This is why this function calls
-   * [KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2]. It is known that calling analysis
-   * APIs on a write-action can cause the UI-freeze, but this is a case we cannot avoid it.
+   * This function is called as a part of code-format that can be also a part of template execution. Since it happens right after the user
+   * updates PSIs, we cannot run analysis APIs for the PSIs in advance on a background thread. In this case, we cannot avoid running
+   * analysis APIs on the UI-thread. In addition, the code-format runs on a write-action. This is why this function calls
+   * [KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2]. It is known that calling analysis APIs on a write-action can cause the
+   * UI-freeze, but this is a case we cannot avoid it.
    */
   override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
     when (psiElement.language) {
@@ -42,8 +41,7 @@ class WearTileDeviceSpecInjectionContributor : DeviceSpecInjectionContributor() 
         } ?: false
       }
       is JavaLanguage -> {
-        psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName(TILE_PREVIEW_ANNOTATION_FQ_NAME)
-          ?: false
+        psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName(TILE_PREVIEW_ANNOTATION_FQ_NAME) ?: false
       }
       else -> false
     }

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.util.EmbeddedDistributionPaths
+import java.io.File
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.File
 
 class ProjectDumperTest {
 
@@ -65,9 +65,21 @@ class ProjectDumperTest {
     fun ProjectDumper.test(src: String) = src.replaceJdkPath()
 
     val dumper = ProjectDumper(offlineRepos = emptyList(), androidSdk = File("/nowhere"))
-    assertEquals("<JDK_PATH-1_8>", dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString()))
-    assertEquals("<JDK_PATH-11>", dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()))
-    assertEquals("<JDK_PATH-17>", dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()))
-    assertEquals("<JDK_PATH>", dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() ))
+    assertEquals(
+      "<JDK_PATH-1_8>",
+      dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString()),
+    )
+    assertEquals(
+      "<JDK_PATH-11>",
+      dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()),
+    )
+    assertEquals(
+      "<JDK_PATH-17>",
+      dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()),
+    )
+    assertEquals(
+      "<JDK_PATH>",
+      dumper.test(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()),
+    )
   }
 }

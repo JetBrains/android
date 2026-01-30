@@ -18,11 +18,11 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.jetbrains.kotlin.idea.codeInsight.inspections.UnusedSymbolInspection as K2UnusedSymbolInspection
 
 class PreviewEntryPointTest {
 
@@ -66,10 +66,7 @@ class PreviewEntryPointTest {
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
       "Function \"NotUsed\" is never used",
-      fixture
-        .doHighlighting()
-        .single { it?.description?.startsWith("Function") ?: false }
-        .description,
+      fixture.doHighlighting().single { it?.description?.startsWith("Function") ?: false }.description,
     )
   }
 
@@ -107,10 +104,7 @@ class PreviewEntryPointTest {
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
       "Function \"NotUsed\" is never used",
-      fixture
-        .doHighlighting()
-        .single { it?.description?.startsWith("Function") ?: false }
-        .description,
+      fixture.doHighlighting().single { it?.description?.startsWith("Function") ?: false }.description,
     )
   }
 }

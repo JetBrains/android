@@ -19,13 +19,12 @@ package com.android.tools.idea.gradle.model.ndk.v2
 import java.io.File
 
 enum class NativeBuildSystem {
-  NDK_BUILD, CMAKE, NINJA
+  NDK_BUILD,
+  CMAKE,
+  NINJA,
 }
 
-/**
- * Response returned by Gradle to Android Studio containing information about an Android module that
- * contains native code.
- */
+/** Response returned by Gradle to Android Studio containing information about an Android module that contains native code. */
 interface IdeNativeModule {
 
   /** The name of the module. For example "HelloWorld.app". */
@@ -37,21 +36,12 @@ interface IdeNativeModule {
   /** The native build system used by this module. */
   val nativeBuildSystem: NativeBuildSystem
 
-  /**
-   * The version of NDK used to build the native part of this module. For example "21.1.6352462".
-   */
+  /** The version of NDK used to build the native part of this module. For example "21.1.6352462". */
   val ndkVersion: String
 
-  /**
-   * The default NDK version used by the Android Gradle Plugin if user has not overridden it. For
-   * example "21.1.6352462".
-   */
+  /** The default NDK version used by the Android Gradle Plugin if user has not overridden it. For example "21.1.6352462". */
   val defaultNdkVersion: String
 
-  /**
-   * The absolute path of the root external build file. For example,
-   * "<project root>/app/src/main/cpp/CMakeLists.txt".
-   */
+  /** The absolute path of the root external build file. For example, "<project root>/app/src/main/cpp/CMakeLists.txt". */
   val externalNativeBuildFile: File
 }
-

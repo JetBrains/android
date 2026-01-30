@@ -34,48 +34,21 @@ class ProportionalImageScalerTest {
 
   @Test
   fun determineScaleFactor_varyingHeights() {
-    assertScaleFactorsMatch(
-      maxAllowedHeight = 5,
-      heightToScaleFactor = mapOf(
-        2 to 1.0,
-        4 to 0.75,
-        6 to 2 / 3.0,
-        8 to 5 / 8.0
-      )
-    )
+    assertScaleFactorsMatch(maxAllowedHeight = 5, heightToScaleFactor = mapOf(2 to 1.0, 4 to 0.75, 6 to 2 / 3.0, 8 to 5 / 8.0))
   }
 
   @Test
   fun determineScaleFactor_minHeightGreaterThanAllowed() {
-    assertScaleFactorsMatch(
-      maxAllowedHeight = 1,
-      heightToScaleFactor = mapOf(
-        2 to 0.125,
-        4 to 0.125,
-        6 to 0.125,
-        8 to 0.125
-      )
-    )
+    assertScaleFactorsMatch(maxAllowedHeight = 1, heightToScaleFactor = mapOf(2 to 0.125, 4 to 0.125, 6 to 0.125, 8 to 0.125))
   }
 
   @Test
   fun determineScaleFactor_minHeightEqualsAllowed() {
-    assertScaleFactorsMatch(
-      maxAllowedHeight = 2,
-      heightToScaleFactor = mapOf(
-        2 to 0.25,
-        4 to 0.25,
-        6 to 0.25,
-        8 to 0.25
-      )
-    )
+    assertScaleFactorsMatch(maxAllowedHeight = 2, heightToScaleFactor = mapOf(2 to 0.25, 4 to 0.25, 6 to 0.25, 8 to 0.25))
   }
 
   @Test
   fun determineScaleFactor_onlyOneHeight() {
-    assertScaleFactorsMatch(
-      maxAllowedHeight = 5,
-      heightToScaleFactor = mapOf(10 to 0.5)
-    )
+    assertScaleFactorsMatch(maxAllowedHeight = 5, heightToScaleFactor = mapOf(10 to 0.5))
   }
 }

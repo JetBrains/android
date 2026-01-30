@@ -17,13 +17,8 @@ package com.android.tools.idea.streaming.uisettings.stats
 
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 
-/**
- * [ChangeListener] that also logs the change.
- */
-internal class LoggingChangeListener<T>(
-  private val listener: ChangeListener<T>,
-  private val logger: () -> Unit
-): ChangeListener<T> {
+/** [ChangeListener] that also logs the change. */
+internal class LoggingChangeListener<T>(private val listener: ChangeListener<T>, private val logger: () -> Unit) : ChangeListener<T> {
   override fun valueChanged(newValue: T) {
     listener.valueChanged(newValue)
     logger()

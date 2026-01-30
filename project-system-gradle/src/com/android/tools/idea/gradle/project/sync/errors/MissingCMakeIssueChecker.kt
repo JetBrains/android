@@ -32,16 +32,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.io.IOException
 import java.util.function.Consumer
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
- * Extended version of the "Revision" class with orAbove semantics.
- * [revision] : The numerical revision requested to be installed.
+ * Extended version of the "Revision" class with orAbove semantics. [revision] : The numerical revision requested to be installed.
  * [orHigher] : If any version above the requested revision can satisfy the request.
  */
 class RevisionOrHigher(val revision: Revision, val orHigher: Boolean)
@@ -57,7 +56,7 @@ private val ourForkCmakeReportedVersion = Revision.parseRevision(FORK_CMAKE_REPO
 /**
  * Finds whether the requested cmake version can be installed from the SDK.
  *
- * @param cmakePackages  Remote CMake packages available in the SDK.
+ * @param cmakePackages Remote CMake packages available in the SDK.
  * @param requestedCmake The CMake version requested by the user.
  * @return The version that best matches the requested version, null if no match was found.
  */
@@ -91,8 +90,7 @@ fun findBestMatch(cmakePackages: Collection<RemotePackage>, requestedCmake: Revi
 fun parseRevisionOrHigher(version: String, firstLine: String): RevisionOrHigher? {
   return try {
     RevisionOrHigher(Revision.parseRevision(version), firstLine.contains("'$version' or higher"))
-  }
-  catch (e: NumberFormatException) {
+  } catch (e: NumberFormatException) {
     // Cannot parse version string.
     null
   }
@@ -102,7 +100,7 @@ fun parseRevisionOrHigher(version: String, firstLine: String): RevisionOrHigher?
  * @param candidateCmake the cmake version that is available in the SDK.
  * @param requestedCmake the cmake version (or the minimum cmake version) that we are looking for.
  * @return true if the version represented by candidateCmake is a good match for the version represented by requestedCmake. The preview
- * version (i.e., 4th component) is always ignored when performing the matching.
+ *   version (i.e., 4th component) is always ignored when performing the matching.
  */
 @VisibleForTesting
 fun versionSatisfies(candidateCmake: Revision, requestedCmake: RevisionOrHigher): Boolean {
@@ -117,16 +115,17 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
 
-    val buildIssueComposer = when {
-       (matchesCannotFindCmake(message) || matchesTriedInstall(message) || matchesCmakeWithVersion(message)) -> {
-         BuildIssueComposer(message)
+    val buildIssueComposer =
+      when {
+        (matchesCannotFindCmake(message) || matchesTriedInstall(message) || matchesCmakeWithVersion(message)) -> {
+          BuildIssueComposer(message)
+        }
+        message.startsWith(FAILED_TO_FIND_CMAKE) || message.startsWith(UNABLE_TO_GET_CMAKE_VERSION) -> {
+          SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
+          BuildIssueComposer("Failed to find CMake.")
+        }
+        else -> return null
       }
-      message.startsWith(FAILED_TO_FIND_CMAKE) || message.startsWith(UNABLE_TO_GET_CMAKE_VERSION) -> {
-        SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
-        BuildIssueComposer("Failed to find CMake.")
-      }
-      else -> return null
-    }
 
     // Get quickFixes.
     val firstLine = message.lines()[0]
@@ -138,14 +137,12 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
     }
 
     // Get the Cmake version to install from the error string; if not found, return as showing the quickFix is useless in such case.
-    val requestedCmake =
-      parseRevisionOrHigher(version, firstLine) ?: return buildIssueComposer.composeBuildIssue()
+    val requestedCmake = parseRevisionOrHigher(version, firstLine) ?: return buildIssueComposer.composeBuildIssue()
 
     val sdkManager = getSdkManager()
     val remoteCmakePackages = sdkManager.packages.getRemotePackagesForPrefix(SdkConstants.FD_CMAKE)
     // Fetch the Cmake version that satisfies the request from the SDK. If no version matches, no need to show the quickFix.
-    val foundCmakeVersion =
-      findBestMatch(remoteCmakePackages, requestedCmake) ?: return buildIssueComposer.composeBuildIssue()
+    val foundCmakeVersion = findBestMatch(remoteCmakePackages, requestedCmake) ?: return buildIssueComposer.composeBuildIssue()
 
     val localCmakePackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_CMAKE)
     val alreadyInstalledCmake = getAlreadyInstalled(localCmakePackages, foundCmakeVersion)
@@ -153,10 +150,12 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
       // A suitable CMake was already installed.
       try {
         // Get the cmake.dir property from locaissueData.error.getRootCause()l.properties. If none exists, prompt the user to set one
-        val cmakeDir= getLocalProperties(issueData.projectPath)
+        val cmakeDir = getLocalProperties(issueData.projectPath)
         if (cmakeDir == null) {
-          buildIssueComposer.addQuickFix("Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",
-                                  SetCmakeDirQuickFix(File(alreadyInstalledCmake)))
+          buildIssueComposer.addQuickFix(
+            "Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",
+            SetCmakeDirQuickFix(File(alreadyInstalledCmake)),
+          )
           return buildIssueComposer.composeBuildIssue()
         }
 
@@ -165,11 +164,12 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
 
         // There is a cmake.dir setting in local.properties, prompt the user replace it with
         // the one we found.
-        buildIssueComposer.addQuickFix("Replace cmake.dir in local.properties with '${alreadyInstalledCmake}' .",
-                                SetCmakeDirQuickFix(File(alreadyInstalledCmake)))
+        buildIssueComposer.addQuickFix(
+          "Replace cmake.dir in local.properties with '${alreadyInstalledCmake}' .",
+          SetCmakeDirQuickFix(File(alreadyInstalledCmake)),
+        )
         return buildIssueComposer.composeBuildIssue()
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         // Couldn't access local.properties for some reason. Don't show a link because we likely won't be able to write to that file.
         return buildIssueComposer.composeBuildIssue()
       }
@@ -181,19 +181,24 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return matchesCannotFindCmake(failureCause) || matchesTriedInstall(failureCause) || matchesCmakeWithVersion(failureCause) ||
-      failureCause.startsWith(FAILED_TO_FIND_CMAKE) || failureCause.startsWith(UNABLE_TO_GET_CMAKE_VERSION)
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
+    return matchesCannotFindCmake(failureCause) ||
+      matchesTriedInstall(failureCause) ||
+      matchesCmakeWithVersion(failureCause) ||
+      failureCause.startsWith(FAILED_TO_FIND_CMAKE) ||
+      failureCause.startsWith(UNABLE_TO_GET_CMAKE_VERSION)
   }
 
   /**
    * @param cmakePackages local CMake installations available in the SDK.
-   * @param cmakeVersion  the cmake version that we are looking for.
+   * @param cmakeVersion the cmake version that we are looking for.
    * @return path to CMake if already installed.
    */
   private fun getAlreadyInstalled(cmakePackages: Collection<LocalPackage>, cmakeVersion: Revision): String? {
@@ -225,8 +230,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
    */
   private fun matchesTriedInstall(message: String): Boolean {
     return (message.startsWith("Failed to install the following Android SDK packages as some licences have not been accepted.") ||
-            message.startsWith("Failed to install the following SDK components:")) &&
-           (message.contains("CMake") || message.contains("cmake"))
+      message.startsWith("Failed to install the following SDK components:")) && (message.contains("CMake") || message.contains("cmake"))
   }
 
   private fun matchesCmakeWithVersion(message: String): Boolean {

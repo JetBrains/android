@@ -69,8 +69,7 @@ class ResizeIntegrationTest {
   private val projectRule = ComposeProjectRule(AndroidProjectRule.withAndroidModel())
   private val popupRule = PopupRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, popupRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_RESIZING, true))
+  @get:Rule val rule = RuleChain(projectRule, popupRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_RESIZING, true))
 
   private lateinit var previewRepresentation: ComposePreviewRepresentation
   private lateinit var surface: NlDesignSurface
@@ -134,22 +133,8 @@ class ResizeIntegrationTest {
     var localPreviewView: ComposePreviewView? = null
 
     val viewProvider =
-      ComposePreviewViewProvider {
-        project,
-        psiFilePointer,
-        statusManager,
-        dataProvider,
-        surfaceBuilder,
-        parentDisposable ->
-        val view =
-          ComposePreviewViewImpl(
-            project,
-            psiFilePointer,
-            statusManager,
-            dataProvider,
-            surfaceBuilder,
-            parentDisposable,
-          )
+      ComposePreviewViewProvider { project, psiFilePointer, statusManager, dataProvider, surfaceBuilder, parentDisposable ->
+        val view = ComposePreviewViewImpl(project, psiFilePointer, statusManager, dataProvider, surfaceBuilder, parentDisposable)
         localPreviewView = view
         localSurface = view.mainSurface
         view
@@ -165,10 +150,7 @@ class ResizeIntegrationTest {
 
     val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, surface) }
 
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      provider,
-      projectRule.testRootDisposable,
-    )
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider, projectRule.testRootDisposable)
 
     withContext(Dispatchers.EDT) {
       fakeUi =
@@ -182,17 +164,9 @@ class ResizeIntegrationTest {
           true,
         )
 
-      projectRule.buildSystemServices.simulateArtifactBuild(
-        ProjectSystemBuildManager.BuildStatus.SUCCESS
-      )
+      projectRule.buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
       previewRepresentation.onActivate()
-      delayUntilCondition(200) {
-        previewRepresentation
-          .renderedPreviewElementsInstancesFlowForTest()
-          .value
-          .asCollection()
-          .isNotEmpty()
-      }
+      delayUntilCondition(200) { previewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().isNotEmpty() }
 
       previewView.updateVisibilityAndNotifications()
       fakeUi.layoutAndDispatchEvents()
@@ -229,12 +203,7 @@ class ResizeIntegrationTest {
   private suspend fun openResizePanel() =
     withContext(Dispatchers.EDT) {
       // The ResizePanel is created when entering Focus mode, so we need to trigger that.
-      val previewElement =
-        previewRepresentation
-          .renderedPreviewElementsInstancesFlowForTest()
-          .value
-          .asCollection()
-          .first()
+      val previewElement = previewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().first()
 
       previewRepresentation.setMode(PreviewMode.Focus(previewElement))
       previewView.updateVisibilityAndNotifications()
@@ -254,11 +223,7 @@ class ResizeIntegrationTest {
 
       widthTextField.value = newWidth
       heightTextField.value = newHeight // Lose focus to trigger the update
-      widthTextField.focusListeners.forEach {
-        it.focusLost(FocusEvent(widthTextField, FocusEvent.FOCUS_LOST))
-      }
-      heightTextField.focusListeners.forEach {
-        it.focusLost(FocusEvent(heightTextField, FocusEvent.FOCUS_LOST))
-      }
+      widthTextField.focusListeners.forEach { it.focusLost(FocusEvent(widthTextField, FocusEvent.FOCUS_LOST)) }
+      heightTextField.focusListeners.forEach { it.focusLost(FocusEvent(heightTextField, FocusEvent.FOCUS_LOST)) }
     }
 }

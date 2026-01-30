@@ -36,18 +36,13 @@ internal class SystemImageFilterState(
 
   var showUnsupportedSystemImages by mutableStateOf(showUnsupportedSystemImages)
 
-  fun filter(
-    images: Iterable<ISystemImage>,
-    baseExtensionLevels: BaseExtensionLevels = BaseExtensionLevels(images),
-  ): List<ISystemImage> {
+  fun filter(images: Iterable<ISystemImage>, baseExtensionLevels: BaseExtensionLevels = BaseExtensionLevels(images)): List<ISystemImage> {
     return images.filter { image ->
       val apiMatches = selectedApi.matches(image.androidVersion)
       val servicesMatches = selectedServices == null || image.getServices() == selectedServices
 
       val isSdkExtensionMatches =
-        showSdkExtensionSystemImages ||
-          image.androidVersion.isPreview ||
-          baseExtensionLevels.isBaseExtension(image.androidVersion)
+        showSdkExtensionSystemImages || image.androidVersion.isPreview || baseExtensionLevels.isBaseExtension(image.androidVersion)
 
       val isSupportedMatches = showUnsupportedSystemImages || image.isSupported()
 
@@ -57,10 +52,9 @@ internal class SystemImageFilterState(
 }
 
 /**
- * Determine the effective base extension level for each API level, within the set of images
- * supplied. This is important for verticals like TV or Auto that may not have any images released
- * at the normal base extension level as defined by [AndroidVersion.ApiBaseExtension]; for these, we
- * want to consider the minimum level among the released images.
+ * Determine the effective base extension level for each API level, within the set of images supplied. This is important for verticals like
+ * TV or Auto that may not have any images released at the normal base extension level as defined by [AndroidVersion.ApiBaseExtension]; for
+ * these, we want to consider the minimum level among the released images.
  */
 internal class BaseExtensionLevels(images: Iterable<ISystemImage>) {
   private val minExtensionLevelMap: Map<AndroidApiLevel, Int?> =

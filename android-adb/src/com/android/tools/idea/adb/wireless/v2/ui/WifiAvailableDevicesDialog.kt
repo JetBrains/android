@@ -91,10 +91,7 @@ import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @OptIn(ExperimentalFoundationApi::class)
-class WifiAvailableDevicesDialog(
-  private val project: Project,
-  private val wifiPairingService: WiFiPairingService,
-) : Disposable {
+class WifiAvailableDevicesDialog(private val project: Project, private val wifiPairingService: WiFiPairingService) : Disposable {
 
   companion object {
     internal const val SEARCH_BAR_TEST_TAG = "deviceSearchBar"
@@ -174,11 +171,7 @@ class WifiAvailableDevicesDialog(
               "Make sure mDNS backend 'default' is selected in ADB Settings.",
             ),
           links =
-            listOf(
-              Urls.openSdkManager to "Open SDK Manager",
-              Urls.openAdbSettings to "Open ADB Settings",
-              Urls.learnMore to "Learn more",
-            ),
+            listOf(Urls.openSdkManager to "Open SDK Manager", Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
         )
       MdnsSupportState.AdbDisabled ->
         ErrorStateDisplay(
@@ -189,8 +182,7 @@ class WifiAvailableDevicesDialog(
               "1. Make sure it is enabled in ADB Settings.",
               "2. Make sure you are not using a manually managed ADB server.",
             ),
-          links =
-            listOf(Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
+          links = listOf(Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
         )
     }
   }
@@ -218,10 +210,7 @@ class WifiAvailableDevicesDialog(
       .map { it.tlsMdnsServices.toSet() }
       .trackSetChanges()
       // It's not possible to pair emulators.
-      .filterNot {
-        it is SetChange.Add &&
-          it.value.service.serviceInstanceName.instance.startsWith("adb-EMULATOR")
-      }
+      .filterNot { it is SetChange.Add && it.value.service.serviceInstanceName.instance.startsWith("adb-EMULATOR") }
       .collect {
         when (it) {
           is SetChange.Remove -> {
@@ -243,11 +232,7 @@ class WifiAvailableDevicesDialog(
   }
 
   @Composable
-  private fun ErrorStateDisplay(
-    title: String,
-    messages: List<String>,
-    links: List<Pair<String, String>>,
-  ) {
+  private fun ErrorStateDisplay(title: String, messages: List<String>, links: List<Pair<String, String>>) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
       Text(
         buildAnnotatedString {
@@ -267,8 +252,7 @@ class WifiAvailableDevicesDialog(
             withLink(
               LinkAnnotation.Url(
                 url = url,
-                styles =
-                  TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+                styles = TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
                 linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(url) },
               )
             ) {
@@ -288,18 +272,12 @@ class WifiAvailableDevicesDialog(
     val textState = rememberTextFieldState(filterState.searchText)
     val searchFieldFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-      snapshotFlow { textState.text.toString() }.collect { filterState.searchText = it }
-    }
+    LaunchedEffect(Unit) { snapshotFlow { textState.text.toString() }.collect { filterState.searchText = it } }
 
     Column(modifier = Modifier.fillMaxSize()) {
       Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            StudioIconsCompose.Avd.ConnectionWifi,
-            contentDescription = "Same Wi-Fi Network",
-            modifier = Modifier.padding(end = 16.dp),
-          )
+          Icon(StudioIconsCompose.Avd.ConnectionWifi, contentDescription = "Same Wi-Fi Network", modifier = Modifier.padding(end = 16.dp))
           Column {
             Text("1. Connect to the Same Network", fontWeight = FontWeight.Bold)
             Text("Ensure your workstation and device are on the same wireless network.")
@@ -318,10 +296,7 @@ class WifiAvailableDevicesDialog(
               buildAnnotatedString {
                 append("On your Android 11+ device, go to Developer Options > Wireless debugging. ")
                 withLink(
-                  LinkAnnotation.Url(
-                    Urls.learnMore,
-                    TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
-                  )
+                  LinkAnnotation.Url(Urls.learnMore, TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)))
                 ) {
                   append("Learn more")
                 }
@@ -337,10 +312,7 @@ class WifiAvailableDevicesDialog(
           SearchBar(
             textState,
             filterState.description,
-            Modifier.weight(1f)
-              .padding(2.dp)
-              .focusRequester(searchFieldFocusRequester)
-              .testTag(SEARCH_BAR_TEST_TAG),
+            Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester).testTag(SEARCH_BAR_TEST_TAG),
           )
         }
       }
@@ -357,18 +329,9 @@ class WifiAvailableDevicesDialog(
             append("If both are correct, your network may be blocking mDNS traffic.")
             pop()
           }
-          Box(Modifier.fillMaxSize()) {
-            Text(
-              emptyText,
-              Modifier.align(Alignment.Center),
-              color = JewelTheme.globalColors.text.info,
-            )
-          }
+          Box(Modifier.fillMaxSize()) { Text(emptyText, Modifier.align(Alignment.Center), color = JewelTheme.globalColors.text.info) }
         } else {
-          EmptyStatePanel(
-            "No devices found for \"${filterState.searchText}\".",
-            Modifier.fillMaxSize(),
-          )
+          EmptyStatePanel("No devices found for \"${filterState.searchText}\".", Modifier.fillMaxSize())
         }
       } else {
         Table<MdnsTlsService>(columns, filteredDevices, { it.service.serviceInstanceName.instance })
@@ -384,8 +347,7 @@ class WifiAvailableDevicesDialog(
     val description = "Search for a device by name"
 
     override fun apply(row: MdnsTlsService): Boolean {
-      return searchText.isBlank() ||
-        buildDeviceNameOrPlaceholder(row.service).contains(searchText.trim(), ignoreCase = true)
+      return searchText.isBlank() || buildDeviceNameOrPlaceholder(row.service).contains(searchText.trim(), ignoreCase = true)
     }
   }
 
@@ -397,10 +359,7 @@ class WifiAvailableDevicesDialog(
             tooltip = { Text("Check for device software updates to improve Wi-Fi pairing.") },
             modifier = Modifier.testTag(WARNING_TOOLTIP_TEST_TAG),
           ) {
-            Icon(
-              StudioIconsCompose.Common.Warning,
-              contentDescription = "device needs update warning icon",
-            )
+            Icon(StudioIconsCompose.Common.Warning, contentDescription = "device needs update warning icon")
           }
         }
       },
@@ -410,17 +369,8 @@ class WifiAvailableDevicesDialog(
         attribute = { buildDeviceNameOrPlaceholder(it.service) },
         maxLines = 2,
       ),
-      TableTextColumn(
-        "IP Address & Port",
-        TableColumnWidth.Weighted(2f),
-        attribute = { "${it.service.ipv4}:${it.service.port}" },
-      ),
-      TableTextColumn<MdnsTlsService>(
-        "API",
-        attribute = {
-          it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown"
-        },
-      ),
+      TableTextColumn("IP Address & Port", TableColumnWidth.Weighted(2f), attribute = { "${it.service.ipv4}:${it.service.port}" }),
+      TableTextColumn<MdnsTlsService>("API", attribute = { it.service.buildVersionSdkFull.takeUnless { it.isNullOrEmpty() } ?: "Unknown" }),
       TableColumn("", TableColumnWidth.Weighted(1f)) { device, _ ->
         OutlinedButton(
           onClick = {
@@ -459,11 +409,9 @@ class WifiAvailableDevicesDialog(
 }
 
 private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String? =
-  mdnsService.givenName.takeUnless { it.isNullOrBlank() }
-    ?: mdnsService.deviceModel.takeUnless { it.isNullOrBlank() }
+  mdnsService.givenName.takeUnless { it.isNullOrBlank() } ?: mdnsService.deviceModel.takeUnless { it.isNullOrBlank() }
 
-private fun buildDeviceNameOrPlaceholder(mdnsService: MdnsTrackServiceInfo): String =
-  buildDeviceName(mdnsService) ?: "Unknown"
+private fun buildDeviceNameOrPlaceholder(mdnsService: MdnsTrackServiceInfo): String = buildDeviceName(mdnsService) ?: "Unknown"
 
 object WifiPairingLinkHandler {
 
@@ -471,16 +419,12 @@ object WifiPairingLinkHandler {
     when (url) {
       Urls.openSdkManager -> {
         ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").let {
-          it.actionPerformed(
-            createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
-          )
+          it.actionPerformed(createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null))
         }
       }
       Urls.openAdbSettings -> {
         ActionManager.getInstance().getAction("Android.AdbSettings").let {
-          it.actionPerformed(
-            createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
-          )
+          it.actionPerformed(createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null))
         }
       }
       else -> {

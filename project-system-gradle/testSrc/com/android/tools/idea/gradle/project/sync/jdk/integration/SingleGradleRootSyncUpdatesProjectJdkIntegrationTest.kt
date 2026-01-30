@@ -34,237 +34,201 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 @RunsInEdt
 class SingleGradleRootSyncUpdatesProjectJdkIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED and not defined projectJdk When synced project successfully Then projectJdk is configured with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED and invalid projectJdk When synced project successfully Then projectJdk is configured with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, ideaProjectJdk = "any"),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED and projectJdk JDK_11 When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = JDK_11
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_11, JDK_11_PATH),
-          Jdk("another JDK_EMBEDDED", JDK_EMBEDDED_PATH),
-          Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
-          Jdk("another JDK_EMBEDDED(2)", JDK_EMBEDDED_PATH)
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, ideaProjectJdk = JDK_11),
+      environment =
+        TestEnvironment(
+          jdkTable =
+            listOf(
+              Jdk(JDK_11, JDK_11_PATH),
+              Jdk("another JDK_EMBEDDED", JDK_EMBEDDED_PATH),
+              Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
+              Jdk("another JDK_EMBEDDED(2)", JDK_EMBEDDED_PATH),
+            ),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
         ),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED and projectJdk JDK_EMBEDDED When synced project successfully Then projectJdk isn't modified`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, ideaProjectJdk = JDK_EMBEDDED),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk JDK_EMBEDDED and not defined projectJdk When synced project successfully Then projectJdk is configured with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED),
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk JDK_EMBEDDED and invalid projectJdk When synced project successfully Then projectJdk is configured with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED, ideaProjectJdk = "any"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk JDK_EMBEDDED and projectJdk JDK_11 When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
-        ideaProjectJdk = JDK_11
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_11, JDK_11_PATH),
-          Jdk("another JDK_EMBEDDED", JDK_EMBEDDED_PATH),
-          Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
-          Jdk("another JDK_EMBEDDED(2)", JDK_EMBEDDED_PATH)
-        )
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED, ideaProjectJdk = JDK_11),
+      environment =
+        TestEnvironment(
+          jdkTable =
+            listOf(
+              Jdk(JDK_11, JDK_11_PATH),
+              Jdk("another JDK_EMBEDDED", JDK_EMBEDDED_PATH),
+              Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH),
+              Jdk("another JDK_EMBEDDED(2)", JDK_EMBEDDED_PATH),
+            )
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk using non expected JDK_EMBEDDED entry When synced project successfully Then projectJdk is updated with specific jdkTable entry created for JDK_EMBEDDED_PATH`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = "jdk entry 1",
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk("jdk entry 1", JDK_EMBEDDED_PATH),
-          Jdk("jdk entry 2", JDK_EMBEDDED_PATH),
-        )
-      )
+      project = SimpleApplication(ideaGradleJdk = "jdk entry 1", ideaProjectJdk = "any"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk("jdk entry 1", JDK_EMBEDDED_PATH), Jdk("jdk entry 2", JDK_EMBEDDED_PATH))),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = "jdk entry 1",
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk and projectJdk JDK_EMBEDDED When synced project successfully Then projectJdk isn't modified`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
-        ideaProjectJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED, ideaProjectJdk = JDK_EMBEDDED),
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH), Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk JDK_EMBEDDED with jdkTable entry but corrupted roots When synced project successfully Then jdkTable entry roots are fixed and projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH, rootsType = INVALID)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, ideaProjectJdk = JDK_EMBEDDED),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH, rootsType = INVALID)),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
   @Test
   fun `Given gradleJdk JDK_EMBEDDED with jdkTable entry but no roots When synced project successfully Then jdkTable entry roots are fixed and projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        ideaProjectJdk = JDK_EMBEDDED
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH, rootsType = DETACHED)),
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, ideaProjectJdk = JDK_EMBEDDED),
+      environment =
+        TestEnvironment(
+          jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH, rootsType = DETACHED)),
+          environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH),
+        ),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
@@ -273,21 +237,13 @@ class SingleGradleRootSyncUpdatesProjectJdkIntegrationTest {
     val tmpJdkFolder = temporaryFolder.newFolder("tmp-jdk")
     FileUtil.copyDir(File(JDK_EMBEDDED_PATH), tmpJdkFolder)
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(
-          Jdk(JDK_EMBEDDED, tmpJdkFolder.path),
-          Jdk("other", JDK_EMBEDDED_PATH)
-        )
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED, ideaProjectJdk = "any"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, tmpJdkFolder.path), Jdk("other", JDK_EMBEDDED_PATH))),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = tmpJdkFolder.path
+        expectedProjectJdkPath = tmpJdkFolder.path,
       )
     }
   }
@@ -295,17 +251,9 @@ class SingleGradleRootSyncUpdatesProjectJdkIntegrationTest {
   @Test
   fun `Given gradleJdk JDK_EMBEDDED with invalid jdkTable entry When sync project failed Then projectJdk isn't updated`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_EMBEDDED,
-        ideaProjectJdk = "any"
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_INVALID_PATH))
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_EMBEDDED, ideaProjectJdk = "any"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_INVALID_PATH))),
     ) {
-      sync(
-        assertOnDiskConfig = { assertProjectJdk("any") },
-        assertOnFailure = { assertException(ExternalSystemJdkException::class) }
-      )
+      sync(assertOnDiskConfig = { assertProjectJdk("any") }, assertOnFailure = { assertException(ExternalSystemJdkException::class) })
     }
 }

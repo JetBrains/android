@@ -29,14 +29,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Dimension
 
 class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
-  ConfigPanel<PsProject>(
-    context,
-    project,
-    null,
-    project,
-    projectPropertiesModel()
-  ),
-  ModelPanel<PsProject> {
+  ConfigPanel<PsProject>(context, project, null, project, projectPropertiesModel()), ModelPanel<PsProject> {
 
   init {
     uiComponent.border = JBUI.Borders.empty(8, 12, 8, 12)
@@ -46,9 +39,13 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
   }
 
   override val title = "Properties"
+
   override fun setHistory(history: History?) = Unit
+
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
+
   override fun queryPlace(place: Place) = Unit
+
   // Currently there are no other tabs in the project perspective and they are not tracked.
   override val topConfigurable: PSDEvent.PSDTopTab? = null
 }

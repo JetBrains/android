@@ -19,15 +19,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * Returns an action to fix the selected issue using an Agent. The issue is provided via DataContext
- * and is expected to be a render issue in Compose Preview. If multiple AI fix providers are found,
- * a warning is logged and only the first one is used.
+ * Returns an action to fix the selected issue using an Agent. The issue is provided via DataContext and is expected to be a render issue in
+ * Compose Preview. If multiple AI fix providers are found, a warning is logged and only the first one is used.
  */
 fun fixWithAiActionProvider(): AnAction? {
   val fixes = IssueFixActionProvider.getAiActions()
   if (fixes.size > 1) {
-    Logger.getInstance("FixWithAiUtils")
-      .warn("Multiple AI fix providers found for issue. Only the first one will be used.")
+    Logger.getInstance("FixWithAiUtils").warn("Multiple AI fix providers found for issue. Only the first one will be used.")
   }
   return fixes.firstOrNull()
 }

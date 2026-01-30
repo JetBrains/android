@@ -19,7 +19,8 @@ data class ExtendedStackNode(
   val className: String,
   val label: String,
   val isDisposedButReferenced: Boolean,
-  val isLoadedWithNominatedLoader: Boolean) {
+  val isLoadedWithNominatedLoader: Boolean,
+) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false

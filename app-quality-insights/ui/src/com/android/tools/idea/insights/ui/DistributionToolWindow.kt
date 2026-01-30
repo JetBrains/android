@@ -30,19 +30,13 @@ object DistributionToolWindow {
     state: Flow<AppInsightsState>,
     tabVisibility: Flow<Boolean>,
   ): AppInsightsToolWindowDefinition {
-    return AppInsightsToolWindowDefinition(
-      "Details",
-      StudioIcons.AppQualityInsights.DETAILS,
-      name,
-      tabVisibility,
-    ) {
+    return AppInsightsToolWindowDefinition("Details", StudioIcons.AppQualityInsights.DETAILS, name, tabVisibility) {
       DetailsToolWindowContent(scope, state)
     }
   }
 }
 
-private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsState>) :
-  ToolContent<AppInsightsToolWindowContext> {
+private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsState>) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {

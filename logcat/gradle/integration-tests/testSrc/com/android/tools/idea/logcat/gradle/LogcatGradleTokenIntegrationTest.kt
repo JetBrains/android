@@ -29,19 +29,14 @@ import org.junit.Test
 
 class LogcatGradleTokenIntegrationTest() {
 
-  @get:Rule
-  val projectRule =
-    AndroidGradleProjectRule(
-      workspaceRelativeTestDataPath = "tools/adt/idea/android/testData/snapshots"
-    )
+  @get:Rule val projectRule = AndroidGradleProjectRule(workspaceRelativeTestDataPath = "tools/adt/idea/android/testData/snapshots")
 
   @Test
   fun testGetR8MappingForApkFile() {
     projectRule.loadProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION) { rootFolder ->
       File(rootFolder, "gradle.properties").appendText("\nandroid.r8.gradual.support=true")
       updateMinSdk(rootFolder)
-      File(rootFolder, "app/build.gradle")
-        .appendText("\nandroid.buildTypes.release.optimization.enable = true")
+      File(rootFolder, "app/build.gradle").appendText("\nandroid.buildTypes.release.optimization.enable = true")
     }
     val project = projectRule.project
     projectRule.invokeTasks(":app:assembleRelease")
@@ -59,10 +54,7 @@ class LogcatGradleTokenIntegrationTest() {
       File(rootFolder, "gradle.properties").appendText("\nandroid.r8.gradual.support=true")
       updateMinSdk(rootFolder)
       File(rootFolder, "app/build.gradle")
-        .appendText(
-          "\nandroid.buildTypes.release.optimization.enable = true" +
-            "\nandroid.buildTypes.debug.optimization.enable = true"
-        )
+        .appendText("\nandroid.buildTypes.release.optimization.enable = true" + "\nandroid.buildTypes.debug.optimization.enable = true")
     }
     val project = projectRule.project
     projectRule.invokeTasks(":app:assembleRelease")

@@ -36,31 +36,26 @@ class AliasInvalidHandler : TomlErrorHandler {
         description.appendLine(problemLine)
 
         val (alias) = match.destructured
-        return extractAliasInformation(
-          alias, description, reader
-        ).let { listOf(it) }
+        return extractAliasInformation(alias, description, reader).let { listOf(it) }
       }
     }
     return listOf()
   }
 
-  private fun extractAliasInformation(alias: String,
-                                      description: StringBuilder,
-                                      reader: BuildOutputInstantReader
-  ): BuildIssueEvent {
+  private fun extractAliasInformation(alias: String, description: StringBuilder, reader: BuildOutputInstantReader): BuildIssueEvent {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE))
 
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-      override fun getNavigatable(project: Project): Navigatable? {
-        for (file in project.findAllCatalogFiles()) {
-          val descriptor = runReadAction { findFirstElement(project, file, "*/$alias") }
-          if (descriptor.offset >= 0) return descriptor
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
+        override fun getNavigatable(project: Project): Navigatable? {
+          for (file in project.findAllCatalogFiles()) {
+            val descriptor = runReadAction { findFirstElement(project, file, "*/$alias") }
+            if (descriptor.offset >= 0) return descriptor
+          }
+          return null
         }
-        return null
       }
-    }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
-
 }

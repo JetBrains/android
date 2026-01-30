@@ -24,16 +24,14 @@ private const val NODE_NAME = "google"
 /**
  * Manages a persistent unique installation ID, scoped to a user-machine pair.
  *
- * This object retrieves a stored UUID from [java.util.Preferences]. If the ID
- * doesn't exist or is not a valid UUID, it generates a new random UUID,
- * persists it, and returns it.
+ * This object retrieves a stored UUID from [java.util.Preferences]. If the ID doesn't exist or is not a valid UUID, it generates a new
+ * random UUID, persists it, and returns it.
  */
 object InstallationId {
-  @JvmStatic
-  fun get() = get(Preferences.userRoot())
+  @JvmStatic fun get() = get(Preferences.userRoot())
 
   fun get(userRoot: Preferences): String {
-    val preferences = userRoot.node(NODE_NAME);
+    val preferences = userRoot.node(NODE_NAME)
     var installationId = preferences.get(INSTALLATION_ID_KEY, "")
 
     if (!installationId.isValidUuid()) {
@@ -49,8 +47,7 @@ private fun String.isValidUuid(): Boolean {
   return try {
     UUID.fromString(this)
     true
-  }
-  catch (_: IllegalArgumentException) {
+  } catch (_: IllegalArgumentException) {
     false
   }
 }

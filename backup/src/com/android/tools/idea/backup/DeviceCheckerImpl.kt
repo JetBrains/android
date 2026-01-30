@@ -23,17 +23,12 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
-internal class DeviceCheckerImpl
-@VisibleForTesting
-constructor(private val deviceProvisioner: DeviceProvisioner) : DeviceChecker {
-  constructor(
-    project: Project
-  ) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
+internal class DeviceCheckerImpl @VisibleForTesting constructor(private val deviceProvisioner: DeviceProvisioner) : DeviceChecker {
+  constructor(project: Project) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
 
   override suspend fun checkDevice(serialNumber: String): String? {
     val deviceHandle =
-      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
-        ?: return "Device not found"
+      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber)) ?: return "Device not found"
     val properties = deviceHandle.state.properties
     val apiLevel = properties.androidVersion?.androidApiLevel?.majorVersion ?: 0
     if (apiLevel < 31) {

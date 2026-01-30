@@ -155,12 +155,10 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
-    waitForCondition(fakeUi, 15) {
-      fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null
-    }
+    waitForCondition(fakeUi, 15) { fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null }
     assertEquals(
       """
-        The Wear OS device is configured for a different companion app. Learn more to manually install the Wear OS companion app and pair the device.
+      The Wear OS device is configured for a different companion app. Learn more to manually install the Wear OS companion app and pair the device.
       """
         .trimIndent(),
       StringUtil.removeHtmlTags(fakeUi.findAllComponents<HtmlLabel>().last().text, true),
@@ -174,12 +172,10 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
-    waitForCondition(fakeUi, 15) {
-      fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null
-    }
+    waitForCondition(fakeUi, 15) { fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null }
     assertEquals(
       """
-        This phone does not support this version of the companion app. Learn more to upgrade to a new Wear OS emulator that uses a newer version of the companion app.
+      This phone does not support this version of the companion app. Learn more to upgrade to a new Wear OS emulator that uses a newer version of the companion app.
       """
         .trimIndent(),
       StringUtil.removeHtmlTags(fakeUi.findAllComponents<HtmlLabel>().last().text, true),
@@ -188,8 +184,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
   @Test
   fun stepShouldEnableGoForwardIfCompanionAppFound() {
-    val iDevice =
-      createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
     phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
@@ -230,9 +225,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     val wizardAction = WizardActionTest()
     val (fakeUi, _) = createDeviceConnectionStepUi(wizardAction)
 
-    waitForCondition(fakeUi, 15) {
-      fakeUi.findComponent<JLabel> { it.text == "My Phone didn't start" } != null
-    }
+    waitForCondition(fakeUi, 15) { fakeUi.findComponent<JLabel> { it.text == "My Phone didn't start" } != null }
 
     fakeUi.layoutAndDispatchEvents()
     fakeUi.findComponent<JButton> { it.text == "Try again" }!!.apply { this.doClick() }
@@ -243,22 +236,18 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldShowErrorIfWatchGsmcoreIsOld() {
-    val iDevice =
-      createTestDevice(companionAppVersion = "versionName=1.0.0", 0) // Simulate Companion App
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0", 0) // Simulate Companion App
     phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
-    waitForCondition(fakeUi, 15) {
-      fakeUi.findComponent<JLabel> { it.text == "Restart pairing" } != null
-    }
+    waitForCondition(fakeUi, 15) { fakeUi.findComponent<JLabel> { it.text == "Restart pairing" } != null }
   }
 
   @Test
   fun shouldShowErrorIfAgpConnectionFails() {
-    val iDevice =
-      createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
     whenever(iDevice.createForward(any(), any())).thenThrow(RuntimeException("Test"))
     phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
@@ -296,10 +285,8 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldShowFactoryResetIfCloudNodeIdDoesntMatchOnOldGmscore() {
     phoneDevice.launch = {
-      createTestDevice(
-        gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
-        companionAppVersion = "versionName=1.0.0",
-      ) { request ->
+      createTestDevice(gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1, companionAppVersion = "versionName=1.0.0") {
+        request ->
         when {
           request.contains("cloud network id:") -> "cloud network id: aaa"
           else -> null
@@ -307,10 +294,8 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
       }
     }
     wearDevice.launch = {
-      createTestDevice(
-        gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1,
-        companionAppVersion = "versionName=1.0.0",
-      ) { request ->
+      createTestDevice(gmscoreVersion = PairingFeature.GET_PAIRING_STATUS.minVersion - 1, companionAppVersion = "versionName=1.0.0") {
+        request ->
         when {
           request.contains("cloud network id:") -> "cloud network id: bbb"
           else -> null
@@ -326,9 +311,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     }
   }
 
-  private fun createDeviceConnectionStepUi(
-    wizardAction: WizardAction = WizardActionTest()
-  ): Pair<FakeUi, ModelWizard> {
+  private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     Disposer.register(testRootDisposable, deviceConnectionStep)
 
@@ -352,9 +335,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
   // The UI loads on asynchronous coroutine, we need to wait
   private fun FakeUi.waitForHeader(text: String) =
-    waitForCondition(this, 5) {
-      findComponent<JBLabel> { it.name == "header" && it.text == text } != null
-    }
+    waitForCondition(this, 5) { findComponent<JBLabel> { it.name == "header" && it.text == text } != null }
 
   private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
     usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING }
@@ -367,8 +348,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     additionalReplies: (request: String) -> String? = { null },
   ): IDevice {
     val iDevice = mock<IDevice>()
-    whenever(iDevice.executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer {
-      invocation ->
+    whenever(iDevice.executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver
 
@@ -394,8 +374,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
 
     whenever(iDevice.isOnline()).thenReturn(true)
     whenever(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
-    whenever(iDevice.getSystemProperty("ro.oem.companion_package"))
-      .thenReturn(Futures.immediateFuture(""))
+    whenever(iDevice.getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
     abis?.let { whenever(iDevice.abis).thenReturn(it) }
 
     return iDevice

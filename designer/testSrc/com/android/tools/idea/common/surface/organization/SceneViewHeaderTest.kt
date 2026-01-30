@@ -125,10 +125,7 @@ class SceneViewHeaderTest {
         size = Dimension(300, 300)
         layout = null
       }
-    val header =
-      SceneViewHeader(parent, OrganizationGroup("Organization", "Name"), { true }) {
-        JBLabel(it.displayName)
-      }
+    val header = SceneViewHeader(parent, OrganizationGroup("Organization", "Name"), { true }) { JBLabel(it.displayName) }
     parent.add(header)
     return parent to header
   }

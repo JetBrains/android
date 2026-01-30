@@ -78,21 +78,13 @@ class DeviceTest {
     val dimension =
       listOf(
         Dimension(DimensionType.DEVICE_BRAND, DimensionValue.StringValue("samsung"), "samsung"),
-        Dimension(
-          DimensionType.DEVICE_MODEL,
-          DimensionValue.StringValue("blqt"),
-          "samsung blqt (Galaxy A7)",
-        ),
+        Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("blqt"), "samsung blqt (Galaxy A7)"),
         Dimension(DimensionType.DEVICE_TYPE, DimensionValue.StringValue("phone"), "phone"),
       )
     val dimensionWithNoMarketingName =
       listOf(
         Dimension(DimensionType.DEVICE_BRAND, DimensionValue.StringValue("google"), "google"),
-        Dimension(
-          DimensionType.DEVICE_MODEL,
-          DimensionValue.StringValue("husky"),
-          "google husky ()",
-        ),
+        Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("husky"), "google husky ()"),
         Dimension(DimensionType.DEVICE_TYPE, DimensionValue.StringValue("phone"), "phone"),
       )
 
@@ -102,11 +94,8 @@ class DeviceTest {
         Dimension(DimensionType.DEVICE_MODEL, DimensionValue.StringValue("unknown"), ""),
       )
 
-    assertThat(Device.fromDimensions(dimension))
-      .isEqualTo(Device("samsung", "blqt", "Galaxy A7", DeviceType("phone")))
-    assertThat(Device.fromDimensions(dimensionWithNoMarketingName))
-      .isEqualTo(Device("google", "husky", "husky", DeviceType("phone")))
-    assertThat(Device.fromDimensions(unknown))
-      .isEqualTo(Device("unknown", "unknown", "", DeviceType("")))
+    assertThat(Device.fromDimensions(dimension)).isEqualTo(Device("samsung", "blqt", "Galaxy A7", DeviceType("phone")))
+    assertThat(Device.fromDimensions(dimensionWithNoMarketingName)).isEqualTo(Device("google", "husky", "husky", DeviceType("phone")))
+    assertThat(Device.fromDimensions(unknown)).isEqualTo(Device("unknown", "unknown", "", DeviceType("")))
   }
 }

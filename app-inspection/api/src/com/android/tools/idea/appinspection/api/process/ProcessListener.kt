@@ -17,9 +17,7 @@ package com.android.tools.idea.appinspection.api.process
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 
-/**
- * Defines a listener that is fired when a process is available or an existing one is disconnected.
- */
+/** Defines a listener that is fired when a process is available or an existing one is disconnected. */
 interface ProcessListener {
   /** Subscribers can use this to filter processes they don't care about. */
   val filter: (ProcessDescriptor) -> Boolean

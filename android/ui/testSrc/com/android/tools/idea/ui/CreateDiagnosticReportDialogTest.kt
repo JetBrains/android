@@ -40,10 +40,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBCheckBox
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -51,6 +47,10 @@ import java.util.zip.ZipFile
 import javax.swing.JButton
 import javax.swing.JScrollPane
 import javax.swing.tree.TreeNode
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private const val ZIP_FILE_NAME = "DiagnosticReport.zip"
 private const val CREATE_BUTTON_TEXT = "Create"
@@ -68,8 +68,7 @@ class CreateDiagnosticReportDialogTest {
   private lateinit var zipFile: File
   private val dialog by lazy { CreateDiagnosticReportDialog(projectRule.project, files) }
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), HeadlessDialogRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, EdtRule(), HeadlessDialogRule(), disposableRule)
 
   @Before
   fun setUp() {
@@ -77,9 +76,7 @@ class CreateDiagnosticReportDialogTest {
 
     val range = (1..3).toList()
 
-    val filePaths = range.map {
-      testDirectoryPath.resolve("file$it.txt")
-    }
+    val filePaths = range.map { testDirectoryPath.resolve("file$it.txt") }
 
     for ((i, filePath) in filePaths.withIndex()) {
       filePath.toFile().writeText("File contents $i")
@@ -92,17 +89,18 @@ class CreateDiagnosticReportDialogTest {
 
     // Override the file choose factory application service. The default file saver
     // dialog does not support being run in headless mode and throws an exception.
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
-        return object : FileSaverDialog {
-          override fun save(baseDir: VirtualFile?, filename: String?) = VirtualFileWrapper(zipFile)
-          override fun save(baseDir: Path?, filename: String?) = VirtualFileWrapper(zipFile)
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
+          return object : FileSaverDialog {
+            override fun save(baseDir: VirtualFile?, filename: String?) = VirtualFileWrapper(zipFile)
+
+            override fun save(baseDir: Path?, filename: String?) = VirtualFileWrapper(zipFile)
+          }
         }
       }
-    }
 
-    ApplicationManager.getApplication()
-      .replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
   }
 
   @After

@@ -34,11 +34,7 @@ class StackTraceConsoleBuilder(project: Project) : TextConsoleBuilderImpl(projec
   }
 }
 
-class StackTraceConsoleView(
-  project: Project,
-  scope: GlobalSearchScope,
-  isViewer: Boolean,
-  usePredefinedMessage: Boolean,
-) : ConsoleViewImpl(project, scope, isViewer, usePredefinedMessage) {
+class StackTraceConsoleView(project: Project, scope: GlobalSearchScope, isViewer: Boolean, usePredefinedMessage: Boolean) :
+  ConsoleViewImpl(project, scope, isViewer, usePredefinedMessage) {
   override fun getPlace() = AQI_CONSOLE_VIEW_PLACE
 }

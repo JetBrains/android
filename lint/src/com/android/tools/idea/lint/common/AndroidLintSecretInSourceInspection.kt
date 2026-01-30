@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.SecretDetector
 
 class AndroidLintSecretInSourceInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.secret.in.source"),
-    SecretDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.secret.in.source"), SecretDetector.ISSUE)

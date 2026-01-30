@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.apk.viewer
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertSame
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class JsonPrettyPrinterTest {
   @Test
   fun prettyPrintAAB_r8json() {
-    val observedText = JsonPrettyPrinter.prettyPrint(
-      String(
-        ApkTestUtils.getApkBytes(
-          "/macrobenchmark-target-release.aab",
-          "BUNDLE-METADATA/com.android.tools/r8.json"
-        ), StandardCharsets.UTF_8)
-    )
+    val observedText =
+      JsonPrettyPrinter.prettyPrint(
+        String(
+          ApkTestUtils.getApkBytes("/macrobenchmark-target-release.aab", "BUNDLE-METADATA/com.android.tools/r8.json"),
+          StandardCharsets.UTF_8,
+        )
+      )
     assertEquals(observedText, ApkTestUtils.getResourceText("/expected-r8-json.txt"))
   }
 

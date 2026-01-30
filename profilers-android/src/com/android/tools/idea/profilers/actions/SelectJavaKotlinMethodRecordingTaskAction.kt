@@ -21,9 +21,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * These profiler task actions are to be performed in a sequential format:
  *
- * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) ->
- * Select dropdown action to SetProfilingStartingPointToNowAction / SetProfilingStartingPointToProcessStartAction ->
- * Set Recording type (Tracing / Sampling) -> StartProfilerTaskAction -> StopProfilerTaskAction
+ * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) -> Select
+ * dropdown action to SetProfilingStartingPointToNowAction / SetProfilingStartingPointToProcessStartAction -> Set Recording type (Tracing /
+ * Sampling) -> StartProfilerTaskAction -> StopProfilerTaskAction
  */
 class SelectJavaKotlinMethodRecordingTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")

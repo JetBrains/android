@@ -36,8 +36,7 @@ import kotlin.properties.Delegates
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
-const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY =
-  "android.ddms.notification.layoutinspector.reboot.live.inspector"
+const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
 const val DECREASE_HALF_TIME = 2000
 const val DECREASE_DELAY = 500L
@@ -67,11 +66,7 @@ class InspectorModel(
   }
 
   fun interface ModificationListener {
-    fun onModification(
-      oldWindow: AndroidWindow?,
-      newWindow: AndroidWindow?,
-      isStructuralChange: Boolean,
-    )
+    fun onModification(oldWindow: AndroidWindow?, newWindow: AndroidWindow?, isStructuralChange: Boolean)
   }
 
   fun interface HoverListener {
@@ -86,16 +81,11 @@ class InspectorModel(
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
-  @VisibleForTesting
-  val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
-  @VisibleForTesting
-  val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
-  @VisibleForTesting
-  val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
-  @VisibleForTesting
-  val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
-  @VisibleForTesting
-  val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
+  @VisibleForTesting val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
+  @VisibleForTesting val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
+  @VisibleForTesting val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
+  @VisibleForTesting val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
+  @VisibleForTesting val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
 
   private var lastInspectorClient: InspectorClient? = null
   private var lastAttachState: DynamicLayoutInspectorErrorInfo.AttachErrorState? = null
@@ -165,10 +155,8 @@ class InspectorModel(
           builder.angle = angle ?: NO_FOLD_ANGLE_VALUE
           builder.orientation =
             when (orientation) {
-              FoldOrientation.VERTICAL ->
-                LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL
-              FoldOrientation.HORIZONTAL ->
-                LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL
+              FoldOrientation.VERTICAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL
+              FoldOrientation.HORIZONTAL -> LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL
             }
         }
         .build()
@@ -202,8 +190,7 @@ class InspectorModel(
 
   /** The dimension of the screen, if available. Otherwise, the dimension of the root node. */
   fun getDisplayDimension(displayId: Int?): Dimension {
-    return resourceLookup.displays.find { it.id == displayId }?.size
-      ?: Dimension(root.layoutBounds.width, root.layoutBounds.height)
+    return resourceLookup.displays.find { it.id == displayId }?.size ?: Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
   private val hiddenNodes = ConcurrentHashMap.newKeySet<ViewNode>()
@@ -217,8 +204,7 @@ class InspectorModel(
   }
 
   /** Get a ViewNode by viewId name */
-  operator fun get(id: String) =
-    ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
+  operator fun get(id: String) = ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
 
   fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
     lastAttachState = state
@@ -230,8 +216,7 @@ class InspectorModel(
    *
    * This could be null if the view isn't in the model for any reason.
    */
-  fun rootFor(view: ViewNode): ViewNode? =
-    ViewNode.readAccess { view.parentSequence.firstOrNull { it.parent === root } }
+  fun rootFor(view: ViewNode): ViewNode? = ViewNode.readAccess { view.parentSequence.firstOrNull { it.parent === root } }
 
   /** Returns the [AndroidWindow] that has [rootView] as its root */
   fun windowFor(rootView: ViewNode): AndroidWindow? {
@@ -252,10 +237,7 @@ class InspectorModel(
     ViewNode.readAccess { root.flatten().forEach { operation(it) } }
   }
 
-  /**
-   * Update [root]'s bounds and children based on any updates to [windows] Also adds a dark layer
-   * between windows if DIM_BEHIND is set.
-   */
+  /** Update [root]'s bounds and children based on any updates to [windows] Also adds a dark layer between windows if DIM_BEHIND is set. */
   private fun updateRoot(allIds: List<*>) {
     ViewNode.writeAccess {
       root.children.forEach { it.parent = null }
@@ -266,12 +248,10 @@ class InspectorModel(
       // coordinate on the two axis. This allows us to handle the case where some windows exist
       // outside others, like in XR.
       val smallestX = windows.values.minOfOrNull { it.root.layoutBounds.x } ?: 0
-      val biggestX =
-        windows.values.maxOfOrNull { it.root.layoutBounds.x + it.root.layoutBounds.width } ?: 0
+      val biggestX = windows.values.maxOfOrNull { it.root.layoutBounds.x + it.root.layoutBounds.width } ?: 0
 
       val smallestY = windows.values.minOfOrNull { it.root.layoutBounds.y } ?: 0
-      val biggestY =
-        windows.values.maxOfOrNull { it.root.layoutBounds.y + it.root.layoutBounds.height } ?: 0
+      val biggestY = windows.values.maxOfOrNull { it.root.layoutBounds.y + it.root.layoutBounds.height } ?: 0
 
       val maxWidth = biggestX - smallestX
       val maxHeight = biggestY - smallestY
@@ -319,16 +299,10 @@ class InspectorModel(
   }
 
   /**
-   * Replaces all subtrees with differing root IDs. Existing views are updated. This removes
-   * drawChildren from all existing [ViewNode]s. [AndroidWindow.refreshImages] must be called on
-   * newWindow after to regenerate them.
+   * Replaces all subtrees with differing root IDs. Existing views are updated. This removes drawChildren from all existing [ViewNode]s.
+   * [AndroidWindow.refreshImages] must be called on newWindow after to regenerate them.
    */
-  fun update(
-    newWindow: AndroidWindow?,
-    allIds: List<*>,
-    generation: Int,
-    notifyUpdateCompleted: () -> Unit = {},
-  ) {
+  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int, notifyUpdateCompleted: () -> Unit = {}) {
     if (windows.isEmpty()) {
       // Reset the recomposition counters if this is a new connection:
       resetRecompositionCounters()
@@ -343,10 +317,7 @@ class InspectorModel(
           structuralChange = structuralChange || (newWindow.isDimBehind != oldWindow?.isDimBehind)
           if (newWindow == oldWindow && !structuralChange) {
             return@writeAccess
-          } else if (
-            newWindow.root.drawId != oldWindow?.root?.drawId ||
-              newWindow.root.qualifiedName != oldWindow.root.qualifiedName
-          ) {
+          } else if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
             windows[newWindow.id] = newWindow
             structuralChange = true
             if (oldWindow == null) {
@@ -453,9 +424,7 @@ class InspectorModel(
         maxHighlight = 0f
       }
     }
-    windows.values.forEach { window ->
-      modificationListeners.forEach { it.onModification(window, window, false) }
-    }
+    windows.values.forEach { window -> modificationListeners.forEach { it.onModification(window, window, false) } }
   }
 
   /** Build draw nodes */
@@ -468,12 +437,8 @@ class InspectorModel(
   }
 
   fun notifyModified(structuralChange: Boolean = false) {
-    if (windows.isEmpty())
-      modificationListeners.forEach { it.onModification(null, null, structuralChange) }
-    else
-      windows.values.forEach { window ->
-        modificationListeners.forEach { it.onModification(window, window, structuralChange) }
-      }
+    if (windows.isEmpty()) modificationListeners.forEach { it.onModification(null, null, structuralChange) }
+    else windows.values.forEach { window -> modificationListeners.forEach { it.onModification(window, window, structuralChange) } }
   }
 
   fun clear() {
@@ -498,11 +463,8 @@ class InspectorModel(
   fun showOnlySubtree(subtreeRoot: ViewNode) {
     hiddenNodes.clear()
     ViewNode.readAccess {
-      @Suppress("JoinDeclarationAndAssignment")
-      lateinit var findNodes: (ViewNode) -> Sequence<ViewNode>
-      findNodes = { node ->
-        node.children.asSequence().filter { it != subtreeRoot }.flatMap { findNodes(it) }.plus(node)
-      }
+      @Suppress("JoinDeclarationAndAssignment") lateinit var findNodes: (ViewNode) -> Sequence<ViewNode>
+      findNodes = { node -> node.children.asSequence().filter { it != subtreeRoot }.flatMap { findNodes(it) }.plus(node) }
       hiddenNodes.addAll(findNodes(root).plus(root))
     }
     notifyModified()
@@ -531,15 +493,8 @@ class InspectorModel(
   fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
   /** Used to update the model when the view changes on the device. */
-  private class Updater(
-    private val oldRoot: ViewNode,
-    private val newRoot: ViewNode,
-    private val access: ViewNode.WriteAccess,
-  ) {
-    private val oldNodes =
-      access.run {
-        oldRoot.flatten().filter { it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
-      }
+  private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode, private val access: ViewNode.WriteAccess) {
+    private val oldNodes = access.run { oldRoot.flatten().filter { it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId } }
 
     fun update(): Boolean {
       return access.run {
@@ -552,15 +507,10 @@ class InspectorModel(
     /**
      * Called when the view has changed on the device.
      *
-     * Attempt to keep the same [ViewNode] instances after a model update. This will allow the
-     * component tree to keep the expanded nodes expanded. We also need to compute the recomposition
-     * changes for each [ComposeViewNode].
+     * Attempt to keep the same [ViewNode] instances after a model update. This will allow the component tree to keep the expanded nodes
+     * expanded. We also need to compute the recomposition changes for each [ComposeViewNode].
      */
-    private fun ViewNode.WriteAccess.update(
-      oldNode: ViewNode,
-      parent: ViewNode?,
-      newNode: ViewNode,
-    ): Boolean {
+    private fun ViewNode.WriteAccess.update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
       oldNode.drawId = newNode.drawId
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
@@ -593,9 +543,7 @@ class InspectorModel(
         // First attempt to identify the oldNode by drawId.
         // If that fails attempt to match by index and name since [ComposeViewNode] may have
         // generated a new drawId e.g. after a live update.
-        val oldChild =
-          oldNodes[newChild.drawId]
-            ?: oldChildren.getOrNull(index)?.takeIf { newChild.isSimilarAndUnused(it) }
+        val oldChild = oldNodes[newChild.drawId] ?: oldChildren.getOrNull(index)?.takeIf { newChild.isSimilarAndUnused(it) }
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           oldNodes.remove(oldChild.drawId)
           modified = update(oldChild, oldNode, newChild) || modified

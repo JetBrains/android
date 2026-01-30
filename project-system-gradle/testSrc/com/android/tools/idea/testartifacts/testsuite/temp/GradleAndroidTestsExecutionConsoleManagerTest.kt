@@ -38,18 +38,17 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PsiTestUtil
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 class GradleAndroidTestsExecutionConsoleManagerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
@@ -58,9 +57,7 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
     stubPreviewAnnotation()
     stubPreviewTestAnnotation()
     createProjectStructureForTest()
-    val screenshotTestDir = requireNotNull(
-      VfsUtil.findFileByIoFile(File(projectRule.project.basePath + "/app/src/screenshotTest"), true)
-    )
+    val screenshotTestDir = requireNotNull(VfsUtil.findFileByIoFile(File(projectRule.project.basePath + "/app/src/screenshotTest"), true))
     PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotTestDir, true)
   }
 
@@ -77,28 +74,36 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
       val methodName = "PreviewMethod"
       val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
       requireNotNull(psiClass) { "PsiClass for $qualifiedName was not found." }
-      val psiMethod = psiClass.methods.firstOrNull{ it.name == methodName }
+      val psiMethod = psiClass.methods.firstOrNull { it.name == methodName }
       requireNotNull(psiMethod) { "PsiMethod for $methodName was not found." }
 
       val runnerAndConfig = createRunnerAndConfigurationSettingsFromPsiElement(project, psiMethod as PsiElement)
       val executor = DefaultRunExecutor.getRunExecutorInstance()
-      val environment = ExecutionEnvironmentBuilder.create(executor, runnerAndConfig).apply {
-        contentToReuse(null)
-        dataContext(null)
-        activeTarget()
-      }.build()
+      val environment =
+        ExecutionEnvironmentBuilder.create(executor, runnerAndConfig)
+          .apply {
+            contentToReuse(null)
+            dataContext(null)
+            activeTarget()
+          }
+          .build()
 
-      ProgramRunnerUtil.executeConfigurationAsync(environment, false, true, object : ProgramRunner.Callback {
-        override fun processStarted(descriptor: RunContentDescriptor) {
-          executionConsole = (descriptor.executionConsole as BuildView).consoleView
-          processStarted = true
-          latch.countDown()
-        }
+      ProgramRunnerUtil.executeConfigurationAsync(
+        environment,
+        false,
+        true,
+        object : ProgramRunner.Callback {
+          override fun processStarted(descriptor: RunContentDescriptor) {
+            executionConsole = (descriptor.executionConsole as BuildView).consoleView
+            processStarted = true
+            latch.countDown()
+          }
 
-        override fun processNotStarted(error: Throwable?) {
-          latch.countDown()
-        }
-      })
+          override fun processNotStarted(error: Throwable?) {
+            latch.countDown()
+          }
+        },
+      )
     }
 
     assertTrue(latch.await(3, TimeUnit.MINUTES))
@@ -106,7 +111,7 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
     assertThat(executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
   }
 
-  private fun createRunnerAndConfigurationSettingsFromPsiElement(project: Project, psiElement: PsiElement) : RunnerAndConfigurationSettings {
+  private fun createRunnerAndConfigurationSettingsFromPsiElement(project: Project, psiElement: PsiElement): RunnerAndConfigurationSettings {
     val context = TestConfigurationTestingUtil.createContext(project, psiElement)
     val settings = requireNotNull(context.configuration)
 
@@ -118,62 +123,68 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
   }
 
   private fun createProjectStructureForTest() {
-    //simple screenshotTest
+    // simple screenshotTest
     createRelativeFileWithContent(
       "app/src/screenshotTest/java/com/example/application/MyScreenshotTest.kt",
       """
-        package com.example.application
+      package com.example.application
 
-        import androidx.compose.runtime.Composable
-        import androidx.compose.ui.tooling.preview.Preview
-        import com.android.tools.screenshot.PreviewTest
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import com.android.tools.screenshot.PreviewTest
 
-        class MyScreenshotTest {
-          @PreviewTest
-          @Preview(showBackground = true)
-          @Composable
-          fun PreviewMethod() {
-          }
-
-          @PreviewTest
-          @Preview(showBackground = true)
-          @Composable
-          fun AnotherPreviewMethod() {
-          }
+      class MyScreenshotTest {
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun PreviewMethod() {
         }
-      """.trimIndent())
+
+        @PreviewTest
+        @Preview(showBackground = true)
+        @Composable
+        fun AnotherPreviewMethod() {
+        }
+      }
+      """
+        .trimIndent(),
+    )
   }
 
   private fun stubPreviewTestAnnotation() {
     createRelativeFileWithContent(
-      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt", """
-    package com.android.tools.screenshot
-    
-    @MustBeDocumented
-    @Retention(AnnotationRetention.BINARY)
-    @Target(
-        AnnotationTarget.FUNCTION
+      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt",
+      """
+      package com.android.tools.screenshot
+
+      @MustBeDocumented
+      @Retention(AnnotationRetention.BINARY)
+      @Target(
+          AnnotationTarget.FUNCTION
+      )
+      annotation class PreviewTest {
+      }
+          
+      """
+        .trimIndent(),
     )
-    annotation class PreviewTest {
-    }
-        
-      """.trimIndent())
   }
 
   private fun stubComposeAnnotation() {
     createRelativeFileWithContent(
       "app/src/screenshotTest/java/androidx/compose/runtime/Composable.kt",
       """
-        package androidx.compose.runtime
-        @Target(
-            AnnotationTarget.FUNCTION,
-            AnnotationTarget.TYPE_USAGE,
-            AnnotationTarget.TYPE,
-            AnnotationTarget.TYPE_PARAMETER,
-            AnnotationTarget.PROPERTY_GETTER
-        )
-        annotation class Composable
-      """.trimIndent()
+      package androidx.compose.runtime
+      @Target(
+          AnnotationTarget.FUNCTION,
+          AnnotationTarget.TYPE_USAGE,
+          AnnotationTarget.TYPE,
+          AnnotationTarget.TYPE_PARAMETER,
+          AnnotationTarget.PROPERTY_GETTER
+      )
+      annotation class Composable
+      """
+        .trimIndent(),
     )
   }
 
@@ -181,52 +192,50 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
     createRelativeFileWithContent(
       "app/src/screenshotTest/java/androidx/compose/ui/tooling/preview/Preview.kt",
       """
-        package androidx.compose.ui.tooling.preview
+      package androidx.compose.ui.tooling.preview
 
-        import kotlin.reflect.KClass
+      import kotlin.reflect.KClass
 
-        object Devices {
-            const val DEFAULT = ""
+      object Devices {
+          const val DEFAULT = ""
 
-            const val NEXUS_7 = "id:Nexus 7"
-            const val NEXUS_10 = "name:Nexus 10"
-        }
+          const val NEXUS_7 = "id:Nexus 7"
+          const val NEXUS_10 = "name:Nexus 10"
+      }
 
-        @Repeatable
-        annotation class Preview(
-          val name: String = "",
-          val group: String = "",
-          val apiLevel: Int = -1,
-          val theme: String = "",
-          val widthDp: Int = -1,
-          val heightDp: Int = -1,
-          val locale: String = "",
-          val fontScale: Float = 1f,
-          val showDecoration: Boolean = false,
-          val showBackground: Boolean = false,
-          val backgroundColor: Long = 0,
-          val uiMode: Int = 0,
-          val device: String = ""
-        )
+      @Repeatable
+      annotation class Preview(
+        val name: String = "",
+        val group: String = "",
+        val apiLevel: Int = -1,
+        val theme: String = "",
+        val widthDp: Int = -1,
+        val heightDp: Int = -1,
+        val locale: String = "",
+        val fontScale: Float = 1f,
+        val showDecoration: Boolean = false,
+        val showBackground: Boolean = false,
+        val backgroundColor: Long = 0,
+        val uiMode: Int = 0,
+        val device: String = ""
+      )
 
-        interface PreviewParameterProvider<T> {
-            val values: Sequence<T>
-            val count get() = values.count()
-        }
+      interface PreviewParameterProvider<T> {
+          val values: Sequence<T>
+          val count get() = values.count()
+      }
 
-        annotation class PreviewParameter(
-            val provider: KClass<out PreviewParameterProvider<*>>,
-            val limit: Int = Int.MAX_VALUE
-        )
-      """.trimIndent()
+      annotation class PreviewParameter(
+          val provider: KClass<out PreviewParameterProvider<*>>,
+          val limit: Int = Int.MAX_VALUE
+      )
+      """
+        .trimIndent(),
     )
   }
 
   private fun createRelativeFileWithContent(relativePath: String, content: String): File {
-    val newFile = File(
-      projectRule.project.basePath,
-      FileUtils.toSystemDependentPath(relativePath)
-    )
+    val newFile = File(projectRule.project.basePath, FileUtils.toSystemDependentPath(relativePath))
     FileUtil.createIfDoesntExist(newFile)
     newFile.writeText(content)
     return newFile

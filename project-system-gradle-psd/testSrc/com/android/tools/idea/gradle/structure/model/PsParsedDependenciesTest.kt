@@ -38,8 +38,8 @@ class PsParsedDependenciesTest : PsdGradleFileModelTestCase() {
         "com.android.support:appcompat-v7:+" to "api",
         "com.example.libs:lib1:1.0" to "implementation",
         "com.example.libs:lib1:1.0" to "debugImplementation",
-        "com.example.libs:lib1:0.9.1" to "releaseImplementation"
-      )
+        "com.example.libs:lib1:0.9.1" to "releaseImplementation",
+      ),
     )
   }
 
@@ -53,8 +53,8 @@ class PsParsedDependenciesTest : PsdGradleFileModelTestCase() {
       hasItems(
         "com.example.libs:lib1:1.0" to "implementation",
         "com.example.libs:lib1:1.0" to "debugImplementation",
-        "com.example.libs:lib1:0.9.1" to "releaseImplementation"
-      )
+        "com.example.libs:lib1:0.9.1" to "releaseImplementation",
+      ),
     )
   }
 }

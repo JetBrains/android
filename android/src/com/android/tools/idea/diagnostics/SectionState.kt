@@ -20,5 +20,5 @@ enum class SectionState {
   Start,
   SectionBody,
   EndOfSection,
-  EOF
+  EOF,
 }

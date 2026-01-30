@@ -23,20 +23,16 @@ import com.intellij.openapi.util.Computable
 
 /**
  * This is a workaround to a problem introduced by the Intellij 2023.3 merge. After the merge, with the new threading model, the UI thread
- * might not have the read lock. When invoking [DumbService#runReadActionInSmartMode] from the UI thread, if it does not have the read lock, the method
- * might decide to wait for smart mode in the UI thread causing a deadlock.
- * [DumbService#runReadActionInSmartMode] checks if the thread has the read lock to avoid a deadlock, but it does not check if the call is
- * happening from the UI thread.
- * Calling [DumbService#runReadActionInSmartMode] from the UI thread should never happen, but we have a number of places where this does happen
- * and freezes the IDE.
- * This method is a workaround to the problem and should not have NEW usages.
+ * might not have the read lock. When invoking [DumbService#runReadActionInSmartMode] from the UI thread, if it does not have the read lock,
+ * the method might decide to wait for smart mode in the UI thread causing a deadlock. [DumbService#runReadActionInSmartMode] checks if the
+ * thread has the read lock to avoid a deadlock, but it does not check if the call is happening from the UI thread. Calling
+ * [DumbService#runReadActionInSmartMode] from the UI thread should never happen, but we have a number of places where this does happen and
+ * freezes the IDE. This method is a workaround to the problem and should not have NEW usages.
  */
 @Deprecated("Do not use this method, you should call DumbService.runReadActionInSmartMode from a worker thread instead")
 fun <T> uiSafeRunReadActionInSmartMode(project: Project, computable: Computable<T>): T {
   if (ApplicationManager.getApplication().isDispatchThread && !ApplicationManager.getApplication().isReadAccessAllowed) {
-    return runReadAction {
-      DumbService.getInstance(project).runReadActionInSmartMode(computable)
-    }
+    return runReadAction { DumbService.getInstance(project).runReadActionInSmartMode(computable) }
   }
 
   return DumbService.getInstance(project).runReadActionInSmartMode(computable)

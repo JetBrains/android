@@ -22,27 +22,22 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 
 /**
- * This is the base action class for all the task actions related to task-based UX.
- * It provides common functionality for all profiler test actions which will be used by task based profiler-integration tests
+ * This is the base action class for all the task actions related to task-based UX. It provides common functionality for all profiler test
+ * actions which will be used by task based profiler-integration tests
  *
  * All Profiler task actions should extend this class.
  */
 abstract class ProfilerTaskActionBase : AnAction() {
 
-  protected fun getProfilerToolWindow(project: Project) =
-    AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)
+  protected fun getProfilerToolWindow(project: Project) = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)
 
-  protected fun getStudioProfilers(project: Project) =
-    getProfilerToolWindow(project)!!.profilers
+  protected fun getStudioProfilers(project: Project) = getProfilerToolWindow(project)!!.profilers
 
-  protected fun getTaskHomeTabModel(project: Project) =
-    getStudioProfilers(project).taskHomeTabModel
+  protected fun getTaskHomeTabModel(project: Project) = getStudioProfilers(project).taskHomeTabModel
 
   protected fun selectTask(project: Project, profilerTask: ProfilerTaskType) {
     val taskHomeTabModel = getTaskHomeTabModel(project)
-    taskHomeTabModel
-      .taskGridModel
-      .onTaskSelection(profilerTask)
+    taskHomeTabModel.taskGridModel.onTaskSelection(profilerTask)
   }
 
   protected fun selectRecordingType(project: Project, recordingType: TaskHomeTabModel.TaskRecordingType) {
@@ -51,7 +46,8 @@ abstract class ProfilerTaskActionBase : AnAction() {
 
   protected fun setProfilingProcessStartingPoint(
     project: Project,
-    profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint) {
+    profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
+  ) {
     val taskHomeTabModel = getTaskHomeTabModel(project)
     taskHomeTabModel.setProfilingProcessStartingPoint(profilingProcessStartingPoint)
   }

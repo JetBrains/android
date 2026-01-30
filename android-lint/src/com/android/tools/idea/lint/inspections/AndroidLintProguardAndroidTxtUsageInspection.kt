@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ProguardAndroidTxtDetector
 
 class AndroidLintProguardAndroidTxtUsageInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.proguard.android.txt.usage"),
-    ProguardAndroidTxtDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.proguard.android.txt.usage"), ProguardAndroidTxtDetector.ISSUE)

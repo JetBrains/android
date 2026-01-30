@@ -47,7 +47,7 @@ abstract class DependenciesHelper {
     @JvmStatic
     fun getDefaultCatalogName(projectModel: ProjectBuildModel): String {
       return projectModel.projectSettingsModel?.dependencyResolutionManagement()?.catalogDefaultName()
-                        ?: VersionCatalogModel.DEFAULT_CATALOG_NAME
+        ?: VersionCatalogModel.DEFAULT_CATALOG_NAME
     }
   }
 }

@@ -36,16 +36,12 @@ class ThemeMenuActionTest {
     val psiFile = projectRule.fixture.addFileToProject("res/layout/foo", "".trimIndent())
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, psiFile.virtualFile)
     val action = ThemeMenuAction()
-    ConfigurationManager.getOrCreateInstance(projectRule.module)
-      .getConfiguration(psiFile.virtualFile)
+    ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(psiFile.virtualFile)
 
     val event =
       TestActionEvent.createTestEvent(
         action,
-        SimpleDataContext.builder()
-          .add(CONFIGURATIONS, listOf(configuration))
-          .add(PlatformDataKeys.PROJECT, projectRule.project)
-          .build(),
+        SimpleDataContext.builder().add(CONFIGURATIONS, listOf(configuration)).add(PlatformDataKeys.PROJECT, projectRule.project).build(),
       )
     action.update(event)
     assertTrue(event.presentation.isEnabled)

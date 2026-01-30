@@ -25,20 +25,13 @@ import com.intellij.openapi.extensions.ExtensionPointName
 interface UIBuilderHandlerToken<P : AndroidProjectSystem> : Token {
   fun getBottomAppBarStyle(projectSystem: P, newChild: NlComponent): String?
 
-  fun showConvertToMotionLayoutComponentsAction(projectSystem: P, viewEditor: ViewEditor): Boolean =
-    true
+  fun showConvertToMotionLayoutComponentsAction(projectSystem: P, viewEditor: ViewEditor): Boolean = true
 
-  fun showAddElementsAction(
-    projectSystem: P,
-    viewEditor: ViewEditor,
-    type: AddElementType,
-  ): Boolean = true
+  fun showAddElementsAction(projectSystem: P, viewEditor: ViewEditor, type: AddElementType): Boolean = true
 
   companion object {
     @JvmField
     val EP_NAME =
-      ExtensionPointName<UIBuilderHandlerToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.uibuilder.handlers.uiBuilderHandlerToken"
-      )
+      ExtensionPointName<UIBuilderHandlerToken<AndroidProjectSystem>>("com.android.tools.idea.uibuilder.handlers.uiBuilderHandlerToken")
   }
 }

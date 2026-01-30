@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
 
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeGoToApiDeclarationHandler
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
@@ -42,8 +42,7 @@ import org.junit.Test
 @Ignore("b/349894866")
 @RunsInEdt
 class DeclarativeGotoApiDeclarationHandlerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
   @Before
   fun onBefore() {
@@ -61,29 +60,26 @@ class DeclarativeGotoApiDeclarationHandlerTest {
     checkUsage(
       "android { aaptOpt|ions { } }",
       "com.android.build.api.dsl.CommonExtension",
-      "fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit): kotlin.Unit"
+      "fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit): kotlin.Unit",
     )
   }
 
   @Test
   fun testGoToAndroidInDcl() {
-    checkUsage(
-      "andr|oid { }",
-      "com.android.build.gradle.internal.dsl.BaseAppModuleExtension",
-      "public open class BaseAppModuleExtension "
-    )
+    checkUsage("andr|oid { }", "com.android.build.gradle.internal.dsl.BaseAppModuleExtension", "public open class BaseAppModuleExtension ")
   }
 
   @Test
   fun testGoToSetterProperty() {
     checkUsage(
       """
-        android {
-          compil|eSdk = 12
-        }
-      """.trimIndent(),
+      android {
+        compil|eSdk = 12
+      }
+      """
+        .trimIndent(),
       "com.android.build.api.dsl.CommonExtension",
-      "public abstract var compileSdk: kotlin.Int?"
+      "public abstract var compileSdk: kotlin.Int?",
     )
   }
 
@@ -91,12 +87,13 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   fun testGoToPropertyInTheMiddle() {
     checkUsage(
       """
-        android{
-            aaptO|ptions { ignoreAssetsPattern = "aaa" }
-        }
-      """.trimIndent(),
+      android{
+          aaptO|ptions { ignoreAssetsPattern = "aaa" }
+      }
+      """
+        .trimIndent(),
       "com.android.build.api.dsl.CommonExtension",
-      "public abstract fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit)"
+      "public abstract fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit)",
     )
   }
 
@@ -104,15 +101,16 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   fun testGoToFromPropertyInComplexContext() {
     checkUsage(
       """
-        plugins {
-        }
-        android {
-          compileSdk = 12
-          aaptO|ptions { ignoreAssetsPattern = "aaa" }
-        }
-      """.trimIndent(),
+      plugins {
+      }
+      android {
+        compileSdk = 12
+        aaptO|ptions { ignoreAssetsPattern = "aaa" }
+      }
+      """
+        .trimIndent(),
       "com.android.build.api.dsl.CommonExtension",
-      "public abstract fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit)"
+      "public abstract fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit)",
     )
   }
 
@@ -122,7 +120,7 @@ class DeclarativeGotoApiDeclarationHandlerTest {
     checkUsage(
       "android { buildTypes { debug { versionN|ameSuffix =\"aaa\" } } }",
       "com.android.build.api.dsl.ApplicationVariantDimension",
-      "var versionNameSuffix: kotlin.String?"
+      "var versionNameSuffix: kotlin.String?",
     )
   }
 
@@ -159,5 +157,4 @@ class DeclarativeGotoApiDeclarationHandlerTest {
     writeText(text)
     findDocument()?.commitToPsi(projectRule.project)
   }
-
 }

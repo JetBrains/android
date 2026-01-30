@@ -38,36 +38,39 @@ import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModifiableRootModel
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle
 import javax.swing.Icon
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * AndroidModuleBuilder integrates the AndroidStudio new project and new module wizards into the IDEA new project and new module wizards.
  *
- * The [ModuleBuilder] base class integrates with the IDEA New Project and New Module UIs. AndroidModuleBuilder extends it to provide
- * an "Android" entry in the list on the left of these UIs (see
+ * The [ModuleBuilder] base class integrates with the IDEA New Project and New Module UIs. AndroidModuleBuilder extends it to provide an
+ * "Android" entry in the list on the left of these UIs (see
  * [the IntelliJ SDK](http://www.jetbrains.org/intellij/sdk/docs/tutorials/project_wizard/module_types.html) for details).
  *
- * If a [ModuleBuilder] also implements [WizardDelegate] then [ProjectTypeStep] will display the [ModuleWizardStep]
- * provided by [ModuleBuilder.getCustomOptionsStep] and then delegate the behaviour of the wizard buttons via [WizardDelegate]'s
- * methods. Doing this bypasses the majority of [ModuleBuilder]'s functionality requiring AndroidModuleBuilder to stub out a few
- * methods. [AndroidModuleBuilder] delegates the implementation of [WizardDelegate] to [IdeaWizardAdapter] which manages the
- * underlying [ModelWizard] instance.
+ * If a [ModuleBuilder] also implements [WizardDelegate] then [ProjectTypeStep] will display the [ModuleWizardStep] provided by
+ * [ModuleBuilder.getCustomOptionsStep] and then delegate the behaviour of the wizard buttons via [WizardDelegate]'s methods. Doing this
+ * bypasses the majority of [ModuleBuilder]'s functionality requiring AndroidModuleBuilder to stub out a few methods. [AndroidModuleBuilder]
+ * delegates the implementation of [WizardDelegate] to [IdeaWizardAdapter] which manages the underlying [ModelWizard] instance.
  */
 class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
-  /**
-   * This adapter class hosts the Android Studio [ModelWizard] instance
-   */
+  /** This adapter class hosts the Android Studio [ModelWizard] instance */
   private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
   override fun getBuilderId(): String = "Android"
+
   override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
+
   override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 
   override fun getNodeIcon(): Icon = StudioIcons.Common.ANDROID_HEAD
+
   override fun getParentGroup(): String = JavaModuleType.JAVA_GROUP
+
   override fun getModuleType(): ModuleType<*> = JavaModuleType.getModuleType()
+
   override fun modifyProjectTypeStep(settingsStep: SettingsStep): ModuleWizardStep? = null // Stubbed out. See class header.
+
   override fun setupRootModel(modifiableRootModel: ModifiableRootModel) {
     // Unused. See class header.
   }
@@ -84,7 +87,11 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
    */
   override fun getCustomOptionsStep(ctx: WizardContext, parentDisposable: Disposable): ModuleWizardStep {
     if (wizardAdapter == null) {
-      createWizardAdaptor(ctx.getUserData(AbstractWizard.KEY)!!, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
+      createWizardAdaptor(
+        ctx.getUserData(AbstractWizard.KEY)!!,
+        if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE,
+        ctx.project,
+      )
     }
 
     return wizardAdapter!!.getCustomOptionsStep()
@@ -110,22 +117,23 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
     when (type) {
       WizardType.MODULE -> {
         val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
-        val chooseModuleWizard =
-          ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+        val chooseModuleWizard = ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
 
-        wizardAdapter = IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
-          chooseModuleWizard.setWizardModelListenerAndFire { modelWizard ->
-            setModelWizard(modelWizard)
+        wizardAdapter =
+          IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
+            chooseModuleWizard.setWizardModelListenerAndFire { modelWizard -> setModelWizard(modelWizard) }
           }
-        }
       }
       WizardType.PROJECT -> {
-        val modelWizard = ModelWizard.Builder().apply {
-          if (IdeSdks.getInstance().androidSdkPath == null) {
-            addStep(ConfigureAndroidSdkStep())
-          }
-          addStep(ChooseAndroidProjectStep(NewProjectModel()))
-        }.build()
+        val modelWizard =
+          ModelWizard.Builder()
+            .apply {
+              if (IdeSdks.getInstance().androidSdkPath == null) {
+                addStep(ConfigureAndroidSdkStep())
+              }
+              addStep(ChooseAndroidProjectStep(NewProjectModel()))
+            }
+            .build()
         wizardAdapter = IdeaWizardAdapter(hostWizard, modelWizard)
       }
     }
@@ -133,6 +141,6 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
 
   private enum class WizardType {
     PROJECT,
-    MODULE
+    MODULE,
   }
 }

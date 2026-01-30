@@ -22,29 +22,32 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 class PsVersionCatalog(override val name: String, override val parent: PsProject) : PsChildModel() {
   override val descriptor by Descriptors
   override val isDeclared: Boolean = parent.isDeclared
-  var parsedModel: GradleVersionCatalogModel? = null ; private set
+  var parsedModel: GradleVersionCatalogModel? = null
+    private set
 
   private var myVariables: PsVariables? = null
 
   val variables: PsVariablesScope
     get() {
-      val prefix = if(parsedModel?.isDefault == true) "Default version catalog:" else "Version catalog:"
+      val prefix = if (parsedModel?.isDefault == true) "Default version catalog:" else "Version catalog:"
       val description = prefix + " $name (${parsedModel?.virtualFile?.name})"
       return myVariables ?: PsVariables(this, description, "Version catalog: $name", null).also { myVariables = it }
     }
 
-  fun init(parsedModel: GradleVersionCatalogModel){
+  fun init(parsedModel: GradleVersionCatalogModel) {
     this.parsedModel = parsedModel
     myVariables?.refresh()
   }
 
   object Descriptors : ModelDescriptor<PsVersionCatalog, Nothing, GradleVersionCatalogModel> {
     override fun getResolved(model: PsVersionCatalog): Nothing? = null
+
     override fun getParsed(model: PsVersionCatalog): GradleVersionCatalogModel? = model.parsedModel
+
     override fun prepareForModification(model: PsVersionCatalog) = Unit
+
     override fun setModified(model: PsVersionCatalog) {
       model.isModified = true
     }
   }
-
 }

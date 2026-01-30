@@ -22,13 +22,23 @@ import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.PseudoLocalesToken
 import com.intellij.openapi.diagnostic.Logger
 
-class GradlePseudoLocalesToken: PseudoLocalesToken, GradleToken {
+class GradlePseudoLocalesToken : PseudoLocalesToken, GradleToken {
   override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState {
     val applicationId = applicationProjectContext.applicationId
-    val context = (applicationProjectContext as? FacetBasedApplicationProjectContext) ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also { Logger.getInstance(GradlePseudoLocalesToken::class.java).debug("Expected FacetBasedApplicationProjectContext, but got ", applicationProjectContext) }
+    val context =
+      (applicationProjectContext as? FacetBasedApplicationProjectContext)
+        ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also {
+          Logger.getInstance(GradlePseudoLocalesToken::class.java)
+            .debug("Expected FacetBasedApplicationProjectContext, but got ", applicationProjectContext)
+        }
     var enabled = false
     var disabled = false
-    val model = GradleAndroidModel.get(context.facet) ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also { Logger.getInstance(GradlePseudoLocalesToken::class.java).warn("Failed to find GradleAndroidModel for ${context.facet.module.name}") }
+    val model =
+      GradleAndroidModel.get(context.facet)
+        ?: return PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also {
+          Logger.getInstance(GradlePseudoLocalesToken::class.java)
+            .warn("Failed to find GradleAndroidModel for ${context.facet.module.name}")
+        }
     for (variant in model.androidProject.basicVariants) {
       if (variant.applicationId != applicationId && variant.testApplicationId != applicationId) continue
       val container = model.getBuildType(variant)
@@ -40,11 +50,13 @@ class GradlePseudoLocalesToken: PseudoLocalesToken, GradleToken {
     }
     return when {
       enabled && disabled -> PseudoLocalesToken.PseudoLocalesState.BOTH
-      enabled ->  PseudoLocalesToken.PseudoLocalesState.ENABLED
+      enabled -> PseudoLocalesToken.PseudoLocalesState.ENABLED
       disabled -> PseudoLocalesToken.PseudoLocalesState.DISABLED
-      else -> PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also { Logger.getInstance(GradlePseudoLocalesToken::class.java).warn("Model is inconsistent, could not find variant for $applicationId in ${applicationProjectContext.facet.module.name} ") }
+      else ->
+        PseudoLocalesToken.PseudoLocalesState.UNKNOWN.also {
+          Logger.getInstance(GradlePseudoLocalesToken::class.java)
+            .warn("Model is inconsistent, could not find variant for $applicationId in ${applicationProjectContext.facet.module.name} ")
+        }
     }
   }
-
-
 }

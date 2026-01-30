@@ -33,13 +33,13 @@ import java.beans.PropertyChangeListener
 import java.io.IOException
 
 /** Synchronizes clipboards between the host and a connected physical or virtual device. */
-internal abstract class AbstractClipboardSynchronizer(
-  disposableParent: Disposable,
-) : CopyPasteManager.ContentChangedListener, Disposable {
+internal abstract class AbstractClipboardSynchronizer(disposableParent: Disposable) : CopyPasteManager.ContentChangedListener, Disposable {
 
   protected var lastClipboardText = ""
-  @Volatile protected var isDisposed = false
+  @Volatile
+  protected var isDisposed = false
     private set
+
   private val copyPasteManager = CopyPasteManager.getInstance()
   private val focusOwnerListener = PropertyChangeListener { event ->
     // CopyPasteManager.ContentChangedListener doesn't receive notifications for all clipboard
@@ -64,8 +64,7 @@ internal abstract class AbstractClipboardSynchronizer(
   }
 
   /**
-   * Sets the device clipboard to have the same content as the host clipboard unless the host
-   * clipboard is empty and [forceSend] is false.
+   * Sets the device clipboard to have the same content as the host clipboard unless the host clipboard is empty and [forceSend] is false.
    */
   @Suppress("WrongThread")
   @AnyThread
@@ -73,8 +72,7 @@ internal abstract class AbstractClipboardSynchronizer(
     val application = ApplicationManager.getApplication()
     if (application.isDispatchThread) {
       application.executeOnPooledThread { doSynchronizeDeviceClipboard(forceSend) }
-    }
-    else {
+    } else {
       doSynchronizeDeviceClipboard(forceSend)
     }
   }
@@ -83,14 +81,11 @@ internal abstract class AbstractClipboardSynchronizer(
   private fun doSynchronizeDeviceClipboard(forceSend: Boolean) {
     val text = copyPasteManager.getContents(DataFlavor.stringFlavor) ?: ""
     if (forceSend || text.isNotEmpty()) {
-      EventQueue.invokeLater {
-        setDeviceClipboard(text, forceSend = forceSend)
-      }
+      EventQueue.invokeLater { setDeviceClipboard(text, forceSend = forceSend) }
     }
   }
 
-  @UiThread
-  abstract fun setDeviceClipboard(text: String, forceSend: Boolean)
+  @UiThread abstract fun setDeviceClipboard(text: String, forceSend: Boolean)
 
   @AnyThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {
@@ -112,11 +107,9 @@ internal abstract class AbstractClipboardSynchronizer(
   private fun Transferable.getText(): String? {
     return try {
       getTransferData(DataFlavor.stringFlavor) as? String
-    }
-    catch (e: UnsupportedFlavorException) {
+    } catch (e: UnsupportedFlavorException) {
       null
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       null
     }
   }

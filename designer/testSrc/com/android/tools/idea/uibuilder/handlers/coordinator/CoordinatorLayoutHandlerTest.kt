@@ -127,11 +127,9 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
     val bottomAppBar =
       MockNlComponent.create(
         ApplicationManager.getApplication().runReadAction<XmlTag> {
-          XmlTagUtil.createTag(
-              project,
-              "<${SdkConstants.BOTTOM_APP_BAR} android:id=\"@+id/bottomAppBar\"/>",
-            )
-            .apply { putUserData(ModuleUtilCore.KEY_MODULE, myModule) }
+          XmlTagUtil.createTag(project, "<${SdkConstants.BOTTOM_APP_BAR} android:id=\"@+id/bottomAppBar\"/>").apply {
+            putUserData(ModuleUtilCore.KEY_MODULE, myModule)
+          }
         }
       )
     val handler = CoordinatorLayoutHandler()
@@ -140,10 +138,8 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
     UIUtil.dispatchAllInvocationEvents()
 
     val fab = myModel.treeReader.find("fab")!!
-    assertThat(fab.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR))
-      .isEqualTo("@id/bottomAppBar")
-    assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY))
-      .isNull()
+    assertThat(fab.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)).isEqualTo("@id/bottomAppBar")
+    assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY)).isNull()
     assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN)).isNull()
   }
 
@@ -156,10 +152,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
     myScreen
       .get("@id/button2")
       .expectXml(
-        "<Button\n" +
-          "    android:id=\"@id/button2\"\n" +
-          "    android:layout_width=\"100dp\"\n" +
-          "    android:layout_height=\"100dp\" />"
+        "<Button\n" + "    android:id=\"@id/button2\"\n" + "    android:layout_width=\"100dp\"\n" + "    android:layout_height=\"100dp\" />"
       )
   }
 
@@ -191,27 +184,15 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
               .height("64dp")
               .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY, "bottom")
               .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "15dp"),
-            component(SdkConstants.LINEAR_LAYOUT)
-              .withBounds(900, 900, 100, 100)
-              .id("@id/linear")
-              .width("100dp")
-              .height("100dp"),
+            component(SdkConstants.LINEAR_LAYOUT).withBounds(900, 900, 100, 100).id("@id/linear").width("100dp").height("100dp"),
             component(SdkConstants.BUTTON)
               .withBounds(900, 900, 100, 100)
               .id("@id/button2")
               .width("100dp")
               .height("100dp")
               .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, "@id/linear")
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-                "bottom|end",
-              ),
-            component(SdkConstants.FRAME_LAYOUT)
-              .withBounds(500, 500, 400, 400)
-              .id("@id/frame")
-              .width("400dp")
-              .height("400dp"),
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, "bottom|end"),
+            component(SdkConstants.FRAME_LAYOUT).withBounds(500, 500, 400, 400).id("@id/frame").width("400dp").height("400dp"),
           ),
       )
     val model = builder.build()

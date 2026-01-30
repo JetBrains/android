@@ -31,7 +31,6 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.Desktop
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
@@ -42,62 +41,64 @@ import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import org.jetbrains.android.util.AndroidBundle
 
 class AndroidSdkCompatibilityDialog(
   val project: Project,
   val recommendedVersion: StudioVersionRecommendation,
   val potentialFallbackVersion: StudioVersionRecommendation?,
-  val modulesViolatingSupportRules: List<Pair<String, AndroidVersion>>
+  val modulesViolatingSupportRules: List<Pair<String, AndroidVersion>>,
 ) : DialogWrapper(project, true, IdeModalityType.MODELESS) {
 
   init {
-    title = if(recommendedVersion.versionReleased.not() && potentialFallbackVersion == null) {
-      AndroidBundle.message("project.upgrade.studio.notification.no.recommendation.title")
-    } else {
-      AndroidBundle.message("project.upgrade.studio.notification.title")
-    }
+    title =
+      if (recommendedVersion.versionReleased.not() && potentialFallbackVersion == null) {
+        AndroidBundle.message("project.upgrade.studio.notification.no.recommendation.title")
+      } else {
+        AndroidBundle.message("project.upgrade.studio.notification.title")
+      }
     isResizable = false
     setCancelButtonText(CommonBundle.getCloseButtonText())
     init()
   }
 
   override fun createCenterPanel(): JComponent {
-    val dialogContent = if (recommendedVersion.versionReleased.not()) {
-      if (potentialFallbackVersion != null) {
-        AndroidBundle.message(
-          "project.upgrade.studio.notification.body.different.channel.recommendation",
-          ApplicationInfo.getInstance().fullVersion,
-          potentialFallbackVersion.buildDisplayName
-        )
+    val dialogContent =
+      if (recommendedVersion.versionReleased.not()) {
+        if (potentialFallbackVersion != null) {
+          AndroidBundle.message(
+            "project.upgrade.studio.notification.body.different.channel.recommendation",
+            ApplicationInfo.getInstance().fullVersion,
+            potentialFallbackVersion.buildDisplayName,
+          )
+        } else {
+          AndroidBundle.message("project.upgrade.studio.notification.body.no.recommendation", ApplicationInfo.getInstance().fullVersion)
+        }
       } else {
         AndroidBundle.message(
-          "project.upgrade.studio.notification.body.no.recommendation",
+          "project.upgrade.studio.notification.body.same.channel.recommendation",
           ApplicationInfo.getInstance().fullVersion,
+          recommendedVersion.buildDisplayName,
         )
       }
-    } else {
-      AndroidBundle.message(
-        "project.upgrade.studio.notification.body.same.channel.recommendation",
-        ApplicationInfo.getInstance().fullVersion,
-        recommendedVersion.buildDisplayName
-      )
-    }
 
-    val documentationLinkLine = JPanel(HorizontalLayout(0)).apply {
-      val (preLink, link) = Pair("For more details, please refer to the ", "Android Studio documentation")
-      val browserLink = BrowserLink(link, ANDROID_STUDIO_DOC_LINK)
-      add(JLabel(preLink), HorizontalLayout.LEFT)
-      add(browserLink, HorizontalLayout.LEFT)
-    }
+    val documentationLinkLine =
+      JPanel(HorizontalLayout(0)).apply {
+        val (preLink, link) = Pair("For more details, please refer to the ", "Android Studio documentation")
+        val browserLink = BrowserLink(link, ANDROID_STUDIO_DOC_LINK)
+        add(JLabel(preLink), HorizontalLayout.LEFT)
+        add(browserLink, HorizontalLayout.LEFT)
+      }
 
-    val panel: JPanel = JPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(htmlTextLabelWithFixedLines(dialogContent, "main-content"))
-      add(JLabel(" ")) // Add an empty line spacing
-      add(documentationLinkLine)
-      add(JLabel(" ")) // Add an empty line spacing
-      add(htmlTextLabelWithFixedLines(getAffectedModules(modulesViolatingSupportRules), "affected-modules"))
-    }
+    val panel: JPanel =
+      JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        add(htmlTextLabelWithFixedLines(dialogContent, "main-content"))
+        add(JLabel(" ")) // Add an empty line spacing
+        add(documentationLinkLine)
+        add(JLabel(" ")) // Add an empty line spacing
+        add(htmlTextLabelWithFixedLines(getAffectedModules(modulesViolatingSupportRules), "affected-modules"))
+      }
 
     return JBUI.Panels.simplePanel(10, 10).apply {
       addToTop(panel)
@@ -115,7 +116,7 @@ class AndroidSdkCompatibilityDialog(
       addHyperlinkListener { e ->
         if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
           if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(e.url.toURI());
+            Desktop.getDesktop().browse(e.url.toURI())
           }
         }
       }
@@ -135,11 +136,7 @@ class AndroidSdkCompatibilityDialog(
       AndroidStudioEvent.newBuilder()
         .withProjectId(project)
         .setKind(AndroidStudioEvent.EventKind.UPGRADE_ANDROID_STUDIO_DIALOG)
-        .setUpgradeAndroidStudioDialog(
-          UpgradeAndroidStudioDialogStats.newBuilder().apply {
-            userAction = action
-          }
-        )
+        .setUpgradeAndroidStudioDialog(UpgradeAndroidStudioDialogStats.newBuilder().apply { userAction = action })
     )
   }
 
@@ -149,9 +146,7 @@ class AndroidSdkCompatibilityDialog(
 
     val content = StringBuilder()
     content.append(
-      "Affected modules: " + modulesToShow.joinToString {
-        "<br/>'${it.first}' (compileSdk=${it.second.apiStringWithoutExtension})"
-      }
+      "Affected modules: " + modulesToShow.joinToString { "<br/>'${it.first}' (compileSdk=${it.second.apiStringWithoutExtension})" }
     )
 
     if (remainingModules.isNotEmpty()) {
@@ -160,7 +155,7 @@ class AndroidSdkCompatibilityDialog(
     return content.toString()
   }
 
-  private inner class DontAskAgainAction: AbstractAction(DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT) {
+  private inner class DontAskAgainAction : AbstractAction(DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT) {
     override fun actionPerformed(e: ActionEvent?) {
       logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
       AndroidSdkCompatibilityChecker.StudioUpgradeReminder(project).apply {

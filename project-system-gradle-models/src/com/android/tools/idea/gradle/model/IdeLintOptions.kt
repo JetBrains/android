@@ -65,9 +65,8 @@ interface IdeLintOptions {
     const val SEVERITY_IGNORE = 5
 
     /**
-     * A severity for lint. This severity means that the severity should be whatever the default
-     * is for this issue (this is used when the DSL just says "enable", and Gradle doesn't know
-     * what the default severity is.)
+     * A severity for lint. This severity means that the severity should be whatever the default is for this issue (this is used when the
+     * DSL just says "enable", and Gradle doesn't know what the default severity is.)
      */
     const val SEVERITY_DEFAULT_ENABLED = 6
   }

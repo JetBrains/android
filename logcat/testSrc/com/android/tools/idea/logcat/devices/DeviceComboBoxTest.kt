@@ -57,21 +57,14 @@ class DeviceComboBoxTest {
     RuleChain(
       projectRule,
       WaitForIndexRule(projectRule),
-      ProjectServiceRule(
-        projectRule,
-        DeviceComboBoxDeviceTrackerFactory::class.java,
-        DeviceComboBoxDeviceTrackerFactory { deviceTracker },
-      ),
+      ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
     )
 
   private val selectionEvents = mutableListOf<Any?>()
 
-  private val device1 =
-    Device.createPhysical("device1", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
-  private val device2 =
-    Device.createPhysical("device2", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
-  private val emulator =
-    Device.createEmulator("emulator-5555", false, "11", AndroidVersion(30, 0), "AVD", "avdPath")
+  private val device1 = Device.createPhysical("device1", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val device2 = Device.createPhysical("device2", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val emulator = Device.createEmulator("emulator-5555", false, "11", AndroidVersion(30, 0), "AVD", "avdPath")
 
   @Test
   fun noDevice_noSelection(): Unit =
@@ -98,16 +91,13 @@ class DeviceComboBoxTest {
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device1))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(DeviceItem(device1), DeviceItem(device2))
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(DeviceItem(device1), DeviceItem(device2)).inOrder()
     }
 
   @Test
   fun withInitialDevice_selectsInitialDevice(): Unit =
     runTest(timeout = 5.seconds) {
-      val deviceComboBox =
-        deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
+      val deviceComboBox = deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
@@ -117,9 +107,7 @@ class DeviceComboBoxTest {
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device2))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(DeviceItem(device1), DeviceItem(device2))
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(DeviceItem(device1), DeviceItem(device2)).inOrder()
     }
 
   @Test
@@ -128,8 +116,7 @@ class DeviceComboBoxTest {
       val fileSystem = createInMemoryFileSystem()
       val path = fileSystem.getPath("file.logcat").apply { writeText("") }
 
-      val deviceComboBox =
-        deviceComboBox(initialItem = FileItem(path), selectionEvents = selectionEvents)
+      val deviceComboBox = deviceComboBox(initialItem = FileItem(path), selectionEvents = selectionEvents)
       val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
       deviceTracker.use {
@@ -138,9 +125,7 @@ class DeviceComboBoxTest {
       }
 
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(FileItem(path), DeviceItem(device1), DeviceItem(device2))
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(FileItem(path), DeviceItem(device1), DeviceItem(device2)).inOrder()
     }
 
   @Test
@@ -154,8 +139,7 @@ class DeviceComboBoxTest {
         advanceUntilIdle()
       }
 
-      assertThat(selectionEvents)
-        .containsExactly(DeviceItem(device2.online()), DeviceItem(device2.offline()))
+      assertThat(selectionEvents).containsExactly(DeviceItem(device2.online()), DeviceItem(device2.offline()))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
       assertThat(deviceComboBox.getItems()).containsExactly(DeviceItem(device2.offline())).inOrder()
     }
@@ -173,9 +157,7 @@ class DeviceComboBoxTest {
 
       assertThat(selectionEvents).containsExactly(DeviceItem(device1))
       assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-      assertThat(deviceComboBox.getItems())
-        .containsExactly(DeviceItem(device1), DeviceItem(device2.offline()))
-        .inOrder()
+      assertThat(deviceComboBox.getItems()).containsExactly(DeviceItem(device1), DeviceItem(device2.offline())).inOrder()
     }
 
   @Test
@@ -218,19 +200,9 @@ class DeviceComboBoxTest {
   fun renderer_minorVersion() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(
-        deviceComboBox.getRenderedText(
-          DeviceItem(device1.copy(apiLevel = AndroidApiLevel(36)).online()),
-          false,
-        )
-      )
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.copy(apiLevel = AndroidApiLevel(36)).online()), false))
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 36.0 [ ]")
-    assertThat(
-        deviceComboBox.getRenderedText(
-          DeviceItem(emulator.copy(apiLevel = AndroidApiLevel(36)).online()),
-          false,
-        )
-      )
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.copy(apiLevel = AndroidApiLevel(36)).online()), false))
       .isEqualTo("AVD (emulator-5555) Android 11, API 36.0 [ ]")
   }
 
@@ -238,20 +210,16 @@ class DeviceComboBoxTest {
   fun renderer_emulator_offline() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.offline()), false))
-      .isEqualTo("AVD Android 11, API 30 [OFFLINE] [ ]")
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.offline()), true))
-      .isEqualTo("AVD Android 11, API 30 [OFFLINE] [x]")
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.offline()), false)).isEqualTo("AVD Android 11, API 30 [OFFLINE] [ ]")
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.offline()), true)).isEqualTo("AVD Android 11, API 30 [OFFLINE] [x]")
   }
 
   @Test
   fun renderer_emulator_online() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.online()), false))
-      .isEqualTo("AVD (emulator-5555) Android 11, API 30 [ ]")
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.online()), true))
-      .isEqualTo("AVD (emulator-5555) Android 11, API 30 [ ]")
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.online()), false)).isEqualTo("AVD (emulator-5555) Android 11, API 30 [ ]")
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.online()), true)).isEqualTo("AVD (emulator-5555) Android 11, API 30 [ ]")
   }
 
   @Test
@@ -280,10 +248,7 @@ class DeviceComboBoxTest {
       assertThat(deviceComboBox.getItems()).containsExactly(FileItem(path)).inOrder()
     }
 
-  private fun deviceComboBox(
-    initialItem: DeviceComboItem? = null,
-    selectionEvents: MutableList<Any?> = mutableListOf(),
-  ): DeviceComboBox {
+  private fun deviceComboBox(initialItem: DeviceComboItem? = null, selectionEvents: MutableList<Any?> = mutableListOf()): DeviceComboBox {
     return DeviceComboBox(projectRule.project, initialItem).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
@@ -300,14 +265,11 @@ private fun Device.offline() = copy(isOnline = false)
 private fun Device.online() = copy(isOnline = true)
 
 private fun DeviceComboBox.getRenderedText(item: DeviceComboItem, isSelected: Boolean): String {
-  val walker =
-    TreeWalker(renderer.getListCellRendererComponent(JBList(model), item, 0, isSelected, false))
+  val walker = TreeWalker(renderer.getListCellRendererComponent(JBList(model), item, 0, isSelected, false))
   val deleteLabel = walker.descendants().first { it is JLabel } as JLabel
-  val deviceComponent =
-    walker.descendants().first { it is SimpleColoredComponent } as SimpleColoredComponent
+  val deviceComponent = walker.descendants().first { it is SimpleColoredComponent } as SimpleColoredComponent
   val deletable = if (deleteLabel.icon == null) " " else "x"
   return "$deviceComponent [$deletable]"
 }
 
-private fun DeviceComboBox.getItems(): List<DeviceComboItem> =
-  (model as CollectionComboBoxModel<DeviceComboItem>).items
+private fun DeviceComboBox.getItems(): List<DeviceComboItem> = (model as CollectionComboBoxModel<DeviceComboItem>).items

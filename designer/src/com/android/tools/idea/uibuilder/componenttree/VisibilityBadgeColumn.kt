@@ -49,13 +49,11 @@ import javax.swing.JPanel
 
 /** A BadgeItem for displaying visibility icons in the 3rd column of the component TreeTable. */
 class VisibilityBadgeColumn(private val badgeUpdated: () -> Unit) : IconColumn("Visibility") {
-  private val unsetIcon =
-    ColoredIconGenerator.generateDeEmphasizedIcon(StudioIcons.LayoutEditor.Properties.VISIBLE)
+  private val unsetIcon = ColoredIconGenerator.generateDeEmphasizedIcon(StudioIcons.LayoutEditor.Properties.VISIBLE)
 
   override fun getIcon(item: Any): Icon? = (item as? NlComponent)?.combinedVisibility?.icon
 
-  override fun getHoverIcon(item: Any): Icon? =
-    if ((item as? NlComponent)?.combinedVisibility == Visibility.NONE) unsetIcon else null
+  override fun getHoverIcon(item: Any): Icon? = if ((item as? NlComponent)?.combinedVisibility == Visibility.NONE) unsetIcon else null
 
   override fun getTooltipText(item: Any): String {
     val component = item as? NlComponent ?: return ""
@@ -119,9 +117,7 @@ private var NlComponent.toolsVisibility: Visibility
     }
   }
   set(value) = runWriteAction {
-    NlWriteCommandActionUtil.run(this, "Update tools visibility") {
-      setAttribute(TOOLS_URI, ATTR_VISIBILITY, value.value)
-    }
+    NlWriteCommandActionUtil.run(this, "Update tools visibility") { setAttribute(TOOLS_URI, ATTR_VISIBILITY, value.value) }
   }
 
 private var NlComponent.androidVisibility: Visibility
@@ -134,9 +130,7 @@ private var NlComponent.androidVisibility: Visibility
     }
   }
   set(value) {
-    NlWriteCommandActionUtil.run(this, "Update visibility") {
-      setAttribute(ANDROID_URI, ATTR_VISIBILITY, value.value)
-    }
+    NlWriteCommandActionUtil.run(this, "Update visibility") { setAttribute(ANDROID_URI, ATTR_VISIBILITY, value.value) }
   }
 
 private val NlComponent.combinedVisibility: Visibility
@@ -145,9 +139,7 @@ private val NlComponent.combinedVisibility: Visibility
     return if (visibility == Visibility.NONE) androidVisibility else visibility
   }
 
-/**
- * The panel used in the popup when changing the visibility of a component in the component tree.
- */
+/** The panel used in the popup when changing the visibility of a component in the component tree. */
 private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () -> Unit) : JPanel() {
   init {
     val android = JPanel()
@@ -195,9 +187,7 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
       }
   }
 
-  /**
-   * Convenience swing component for creating left aligned labels for use in the [VisibilityPanel].
-   */
+  /** Convenience swing component for creating left aligned labels for use in the [VisibilityPanel]. */
   private class VLabel(text: String) : JBLabel(text) {
     init {
       isOpaque = true
@@ -205,12 +195,8 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
     }
   }
 
-  /**
-   * A button swing component that detects hovering and clicks; for setting [Visibility] in the
-   * [VisibilityPanel].
-   */
-  private class VButton(val ref: Ref, val visibility: Visibility) :
-    JBLabel(visibility.icon ?: AllIcons.General.Remove) {
+  /** A button swing component that detects hovering and clicks; for setting [Visibility] in the [VisibilityPanel]. */
+  private class VButton(val ref: Ref, val visibility: Visibility) : JBLabel(visibility.icon ?: AllIcons.General.Remove) {
     private var isHovering = false
 
     init {
@@ -251,10 +237,7 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
 
       try {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.setRenderingHint(
-          RenderingHints.KEY_STROKE_CONTROL,
-          RenderingHints.VALUE_STROKE_NORMALIZE,
-        )
+        g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE)
         g2.color = color
         val arc = DarculaUIUtil.BUTTON_ARC.get()
         g2.fillRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)

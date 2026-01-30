@@ -25,8 +25,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 
 /** [VisualLintIssueProvider] to be used when dealing with View-based layouts. */
-class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
-  VisualLintIssueProvider(parentDisposable) {
+class ViewVisualLintIssueProvider(parentDisposable: Disposable) : VisualLintIssueProvider(parentDisposable) {
 
   override fun customizeIssue(issue: VisualLintRenderIssue) {
     val type = issue.type
@@ -41,28 +40,19 @@ class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
     }
 
     if (!type.isAtfErrorType() && components.isNotEmpty()) {
-      issue.addSuppress(
-        Issue.Suppress(
-          "Suppress",
-          type.toSuppressActionDescription(),
-          ViewVisualLintSuppressTask(type, components),
-        )
-      )
+      issue.addSuppress(Issue.Suppress("Suppress", type.toSuppressActionDescription(), ViewVisualLintSuppressTask(type, components)))
     }
   }
 }
 
 /**
- * Suppress the issue associated with the given [components]. Note that this doesn't suppress all
- * the files under same qualifiers.
+ * Suppress the issue associated with the given [components]. Note that this doesn't suppress all the files under same qualifiers.
  *
- * TODO: Have two different suppress tasks for: (1) a single file, (2) all variant files. We also
- *   needs another project-level suppress task in the future.
+ * TODO: Have two different suppress tasks for: (1) a single file, (2) all variant files. We also needs another project-level suppress task
+ *   in the future.
  */
-class ViewVisualLintSuppressTask(
-  private val typeToSuppress: VisualLintErrorType,
-  private val components: List<NlComponent>,
-) : VisualLintSuppressTask {
+class ViewVisualLintSuppressTask(private val typeToSuppress: VisualLintErrorType, private val components: List<NlComponent>) :
+  VisualLintSuppressTask {
 
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
@@ -83,20 +73,14 @@ class ViewVisualLintSuppressTask(
           } else {
             attributeToAdd
           }
-        component.startAttributeTransaction().apply {
-          setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute)
-        }
+        component.startAttributeTransaction().apply { setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute) }
       }
 
     if (transactions.isNotEmpty()) {
       val project = transactions.first().component.model.project
       val files = transactions.map { it.component.model.file }.toTypedArray()
       VisualLintUsageTracker.getInstance()
-        .trackIssueIgnored(
-          typeToSuppress,
-          VisualLintOrigin.XML_LINTING,
-          transactions.first().component.model.facet,
-        )
+        .trackIssueIgnored(typeToSuppress, VisualLintOrigin.XML_LINTING, transactions.first().component.model.facet)
       // All suppresses should in the same undo/redo action.
       WriteCommandAction.runWriteCommandAction(
         project,

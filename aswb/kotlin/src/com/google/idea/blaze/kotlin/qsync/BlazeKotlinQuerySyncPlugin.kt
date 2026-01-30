@@ -23,7 +23,7 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.kotlin.cli.common.arguments.unfrozen
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder
 
-/** Supports Kotlin.  */
+/** Supports Kotlin. */
 class BlazeKotlinQuerySyncPlugin : BlazeQuerySyncPlugin {
   override fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings) {
     if (languageSettings.kotlin == QuerySyncLanguageSettings.Kotlin.NotSupported) {

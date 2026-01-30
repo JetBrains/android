@@ -60,7 +60,8 @@ class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<St
     instanceSize: Long,
     constants: Array<ConstantPoolEntry>,
     staticFields: Array<StaticFieldEntry>,
-    instanceFields: Array<InstanceFieldEntry>) {
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {
     val refInstanceFields = mutableListOf<InstanceField>()
     val primitiveInstanceFields = mutableListOf<InstanceField>()
     val staticFieldList = mutableListOf<StaticField>()
@@ -71,8 +72,7 @@ class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<St
       if (it.type != Type.OBJECT) {
         primitiveInstanceFields.add(field)
         currentOffset += it.type.size
-      }
-      else {
+      } else {
         refInstanceFields.add(field)
         currentOffset += visitorContext.idSize
       }
@@ -84,18 +84,20 @@ class CreateClassStoreVisitor(private val stringIdMap: Long2ObjectOpenHashMap<St
       val field = StaticField(stringIdMap[it.fieldNameStringId], it.value)
       staticFieldList.add(field)
     }
-    result.put(classId,
-               ClassDefinition(
-                 stringIdMap[classIDToNameStringID[classId]].replace('/', '.'),
-                 classId,
-                 superClassId,
-                 instanceSize.toInt(),
-                 currentOffset,
-                 refInstanceFields.toTypedArray(),
-                 primitiveInstanceFields.toTypedArray(),
-                 constantsArray.toLongArray(),
-                 staticFieldList.toTypedArray()
-               ))
+    result.put(
+      classId,
+      ClassDefinition(
+        stringIdMap[classIDToNameStringID[classId]].replace('/', '.'),
+        classId,
+        superClassId,
+        instanceSize.toInt(),
+        currentOffset,
+        refInstanceFields.toTypedArray(),
+        primitiveInstanceFields.toTypedArray(),
+        constantsArray.toLongArray(),
+        staticFieldList.toTypedArray(),
+      ),
+    )
   }
 
   fun getClassStore(): ClassStore {

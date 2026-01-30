@@ -39,8 +39,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 
 @Deprecated("Use NavTestRule instead")
-abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) :
-  AndroidTestCase() {
+abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) : AndroidTestCase() {
   // The normal test root disposable is disposed after Timer leak checking is done, which can cause
   // problems.
   // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
@@ -49,9 +48,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
 
   public override fun setUp() {
     super.setUp()
-    @Suppress(
-      "ObjectLiteralToLambda"
-    ) // Otherwise a static instance is created and used between tests.
+    @Suppress("ObjectLiteralToLambda") // Otherwise a static instance is created and used between tests.
     myRootDisposable =
       object : Disposable {
         override fun dispose() {}
@@ -60,10 +57,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
     myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet)
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/java", "src")
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/res", "res")
-    myFixture.copyFileToProject(
-      "$projectDirectory/app/src/main/AndroidManifest.xml",
-      "AndroidManifest.xml",
-    )
+    myFixture.copyFileToProject("$projectDirectory/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
@@ -78,8 +72,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
         virtualFileList.add(VfsUtil.findFileByIoFile(resFile, true))
       }
 
-      val library =
-        PsiTestUtil.addProjectLibrary(myModule, libName, virtualFileList, emptyList<VirtualFile>())
+      val library = PsiTestUtil.addProjectLibrary(myModule, libName, virtualFileList, emptyList<VirtualFile>())
       myAdditionalModules.forEach { ModuleRootModificationUtil.addDependency(it, library) }
 
       myFixture.testDataPath = testDataPath

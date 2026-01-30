@@ -18,33 +18,26 @@ package com.android.tools.idea.gradle.model
 /**
  * Test Suites are defined at the project level and targets selected variants.
  *
- * At the project level, you will find information related to the suites like the configured
- * source folders as well as the JUnit engines configured to run the tests.
+ * At the project level, you will find information related to the suites like the configured source folders as well as the JUnit engines
+ * configured to run the tests.
  *
- * At the variant level [IdeTestSuiteVariantTarget] will provide information like which devices are
- * targeted and the Gradle task to run execute the test suite.
+ * At the variant level [IdeTestSuiteVariantTarget] will provide information like which devices are targeted and the Gradle task to run
+ * execute the test suite.
  */
 interface IdeTestSuite {
-  /**
-   * Test suite name.
-   */
+  /** Test suite name. */
   val name: String
 
   /**
    * Configured sources for the test suite.
    *
-   * Each test suite source will be processed by AGP and binaries will be provided to the JUnit
-   * test engines.
+   * Each test suite source will be processed by AGP and binaries will be provided to the JUnit test engines.
    */
   val sources: List<IdeTestSuiteSource>
 
-  /**
-   * JUnit engines configuration
-   */
+  /** JUnit engines configuration */
   val junitEngineInfo: IdeJUnitEngineInfo
 
-  /**
-   * Targeted variants by name.
-   */
+  /** Targeted variants by name. */
   val targetedVariants: Collection<String>
 }

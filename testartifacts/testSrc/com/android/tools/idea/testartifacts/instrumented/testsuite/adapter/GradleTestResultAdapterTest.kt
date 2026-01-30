@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ProjectRule
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +50,6 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import java.io.File
 
 @RunWith(JUnit4::class)
 class GradleTestResultAdapterTest {
@@ -72,20 +72,20 @@ class GradleTestResultAdapterTest {
   }
 
   private fun createAdapter(): GradleTestResultAdapter {
-    return GradleTestResultAdapter(mockDevice1, "testName", null, mockListener) { loggedEvent ->
-      reportedAndroidStudioEvent = loggedEvent
-    }
+    return GradleTestResultAdapter(mockDevice1, "testName", null, mockListener) { loggedEvent -> reportedAndroidStudioEvent = loggedEvent }
   }
 
   @Test
   fun getDevice() {
-    val expectedDevice = AndroidDevice(
-      "mockDevice1SerialNumber",
-      "mockDevice1AvdName",
-      "mockDevice1AvdName",
-      AndroidDeviceType.LOCAL_EMULATOR,
-      AndroidVersion(29),
-      mutableMapOf ("SerialNumber" to "mockDevice1SerialNumber"))
+    val expectedDevice =
+      AndroidDevice(
+        "mockDevice1SerialNumber",
+        "mockDevice1AvdName",
+        "mockDevice1AvdName",
+        AndroidDeviceType.LOCAL_EMULATOR,
+        AndroidVersion(29),
+        mutableMapOf("SerialNumber" to "mockDevice1SerialNumber"),
+      )
 
     val adapter = createAdapter()
 
@@ -100,50 +100,71 @@ class GradleTestResultAdapterTest {
 
     assertThat(adapter.testSuiteStarted).isFalse()
 
-    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-      scheduledTestCaseCount = 1
-    }.build())
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
 
     assertThat(adapter.testSuiteStarted).isTrue()
 
-    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
-    })
+    verify(mockListener)
+      .onTestSuiteStarted(eq(adapter.device), argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null })
 
-    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-      testPackage = "com.example.test"
-      testClass = "ExampleTest"
-      testMethod = "testExample"
-    }.build())
+    adapter.onTestCaseStarted(
+      TestCaseProto.TestCase.newBuilder()
+        .apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
-    })
+    verify(mockListener)
+      .onTestCaseStarted(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.IN_PROGRESS
+        },
+      )
 
-    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-      testCaseBuilder.apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }
-      testStatus = TestStatusProto.TestStatus.PASSED
-    }.build())
+    adapter.onTestCaseFinished(
+      TestResultProto.TestResult.newBuilder()
+        .apply {
+          testCaseBuilder.apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          testStatus = TestStatusProto.TestStatus.PASSED
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.PASSED
+        },
+      )
 
-    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-      testStatus = TestStatusProto.TestStatus.PASSED
-    }.build())
+    adapter.onTestSuiteFinished(
+      TestSuiteResultProto.TestSuiteResult.newBuilder().apply { testStatus = TestStatusProto.TestStatus.PASSED }.build()
+    )
 
     adapter.onGradleTaskFinished()
 
-    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.PASSED
-    })
+    verify(mockListener)
+      .onTestSuiteFinished(
+        eq(adapter.device),
+        argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.PASSED },
+      )
   }
 
   @Test
@@ -152,52 +173,71 @@ class GradleTestResultAdapterTest {
 
     verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
 
-    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-      scheduledTestCaseCount = 1
-    }.build())
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
 
-    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
-    })
+    verify(mockListener)
+      .onTestSuiteStarted(eq(adapter.device), argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null })
 
-    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-      testPackage = "com.example.test"
-      testClass = "ExampleTest"
-      testMethod = "testExample"
-    }.build())
+    adapter.onTestCaseStarted(
+      TestCaseProto.TestCase.newBuilder()
+        .apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
-    })
+    verify(mockListener)
+      .onTestCaseStarted(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.IN_PROGRESS
+        },
+      )
 
-    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-      testCaseBuilder.apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }
-      testStatus = TestStatusProto.TestStatus.FAILED
-      errorBuilder.apply {
-        errorMessage = "ErrorStackTrace"
-      }
-    }.build())
+    adapter.onTestCaseFinished(
+      TestResultProto.TestResult.newBuilder()
+        .apply {
+          testCaseBuilder.apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          testStatus = TestStatusProto.TestStatus.FAILED
+          errorBuilder.apply { errorMessage = "ErrorStackTrace" }
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.FAILED &&
-      errorStackTrace == "ErrorStackTrace"
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.FAILED &&
+            errorStackTrace == "ErrorStackTrace"
+        },
+      )
 
-    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-      testStatus = TestStatusProto.TestStatus.FAILED
-    }.build())
+    adapter.onTestSuiteFinished(
+      TestSuiteResultProto.TestSuiteResult.newBuilder().apply { testStatus = TestStatusProto.TestStatus.FAILED }.build()
+    )
 
     adapter.onGradleTaskFinished()
 
-    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED
-    })
+    verify(mockListener)
+      .onTestSuiteFinished(
+        eq(adapter.device),
+        argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED },
+      )
   }
 
   @Test
@@ -208,71 +248,97 @@ class GradleTestResultAdapterTest {
 
     verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
 
-    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-      scheduledTestCaseCount = 1
-    }.build())
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
 
-    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
-    })
+    verify(mockListener)
+      .onTestSuiteStarted(eq(adapter.device), argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null })
 
-    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-      testPackage = "com.example.test"
-      testClass = "ExampleTest"
-      testMethod = "testExample"
-    }.build())
+    adapter.onTestCaseStarted(
+      TestCaseProto.TestCase.newBuilder()
+        .apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
-    })
+    verify(mockListener)
+      .onTestCaseStarted(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.IN_PROGRESS
+        },
+      )
 
-    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-      testCaseBuilder.apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }
-      testStatus = TestStatusProto.TestStatus.FAILED
-      errorBuilder.apply {
-        errorMessage = "ErrorStackTrace"
-      }
-      addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-        label = LabelProto.Label.newBuilder().apply {
-          namespace = "android"
-          label = "icebox.info"
-        }.build()
-        sourcePath = PathProto.Path.newBuilder().apply {
-          path = iceboxInfoPath
-        }.build()
-      })
-      addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-        label = LabelProto.Label.newBuilder().apply {
-          namespace = "android"
-          label = "icebox.snapshot"
-        }.build()
-        sourcePath = PathProto.Path.newBuilder().apply {
-          path = iceboxSnapshotPath
-        }.build()
-      })
-    }.build())
+    adapter.onTestCaseFinished(
+      TestResultProto.TestResult.newBuilder()
+        .apply {
+          testCaseBuilder.apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          testStatus = TestStatusProto.TestStatus.FAILED
+          errorBuilder.apply { errorMessage = "ErrorStackTrace" }
+          addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().apply {
+              label =
+                LabelProto.Label.newBuilder()
+                  .apply {
+                    namespace = "android"
+                    label = "icebox.info"
+                  }
+                  .build()
+              sourcePath = PathProto.Path.newBuilder().apply { path = iceboxInfoPath }.build()
+            }
+          )
+          addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().apply {
+              label =
+                LabelProto.Label.newBuilder()
+                  .apply {
+                    namespace = "android"
+                    label = "icebox.snapshot"
+                  }
+                  .build()
+              sourcePath = PathProto.Path.newBuilder().apply { path = iceboxSnapshotPath }.build()
+            }
+          )
+        }
+        .build()
+    )
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.FAILED &&
-      errorStackTrace == "ErrorStackTrace" &&
-      retentionInfo?.path == iceboxInfoPath && retentionSnapshot?.path == iceboxSnapshotPath
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.FAILED &&
+            errorStackTrace == "ErrorStackTrace" &&
+            retentionInfo?.path == iceboxInfoPath &&
+            retentionSnapshot?.path == iceboxSnapshotPath
+        },
+      )
 
-    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-      testStatus = TestStatusProto.TestStatus.FAILED
-    }.build())
+    adapter.onTestSuiteFinished(
+      TestSuiteResultProto.TestSuiteResult.newBuilder().apply { testStatus = TestStatusProto.TestStatus.FAILED }.build()
+    )
 
     adapter.onGradleTaskFinished()
 
-    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED
-    })
+    verify(mockListener)
+      .onTestSuiteFinished(
+        eq(adapter.device),
+        argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED },
+      )
   }
 
   @Test
@@ -280,129 +346,179 @@ class GradleTestResultAdapterTest {
     val logcatFile = tempFolder.newFile("logcat-com.example.test.ExampleTest.testExample.txt")
     val logcatPath = logcatFile.absolutePath
     logcatFile.writeText("test logs")
-    val adapter = createAdapter().apply {
-      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build())
-      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }.build())
-      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-        testCaseBuilder.apply {
-          testPackage = "com.example.test"
-          testClass = "ExampleTest"
-          testMethod = "testExample"
-        }
-        testStatus = TestStatusProto.TestStatus.PASSED
-        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-          label = LabelProto.Label.newBuilder().apply {
-            namespace = "android"
-            label = "logcat"
-          }.build()
-          sourcePath = PathProto.Path.newBuilder().apply {
-            path = logcatPath
-          }.build()
-        })
-      }.build())
-    }
+    val adapter =
+      createAdapter().apply {
+        onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
+        onTestCaseStarted(
+          TestCaseProto.TestCase.newBuilder()
+            .apply {
+              testPackage = "com.example.test"
+              testClass = "ExampleTest"
+              testMethod = "testExample"
+            }
+            .build()
+        )
+        onTestCaseFinished(
+          TestResultProto.TestResult.newBuilder()
+            .apply {
+              testCaseBuilder.apply {
+                testPackage = "com.example.test"
+                testClass = "ExampleTest"
+                testMethod = "testExample"
+              }
+              testStatus = TestStatusProto.TestStatus.PASSED
+              addOutputArtifact(
+                TestArtifactProto.Artifact.newBuilder().apply {
+                  label =
+                    LabelProto.Label.newBuilder()
+                      .apply {
+                        namespace = "android"
+                        label = "logcat"
+                      }
+                      .build()
+                  sourcePath = PathProto.Path.newBuilder().apply { path = logcatPath }.build()
+                }
+              )
+            }
+            .build()
+        )
+      }
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
-      && logcat == "test logs"
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.PASSED &&
+            logcat == "test logs"
+        },
+      )
   }
 
   @Test
   fun runTestSuiteWithLogcatFileDoesNotExist() {
     val logcatPath = "path-to-logcat-com.example.test.ExampleTest.testExample.txt"
-    val adapter = createAdapter().apply {
-      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build())
-      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }.build())
-      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-        testCaseBuilder.apply {
-          testPackage = "com.example.test"
-          testClass = "ExampleTest"
-          testMethod = "testExample"
-        }
-        testStatus = TestStatusProto.TestStatus.PASSED
-        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-          label = LabelProto.Label.newBuilder().apply {
-            namespace = "android"
-            label = "logcat"
-          }.build()
-          sourcePath = PathProto.Path.newBuilder().apply {
-            path = logcatPath
-          }.build()
-        })
-      }.build())
-    }
+    val adapter =
+      createAdapter().apply {
+        onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
+        onTestCaseStarted(
+          TestCaseProto.TestCase.newBuilder()
+            .apply {
+              testPackage = "com.example.test"
+              testClass = "ExampleTest"
+              testMethod = "testExample"
+            }
+            .build()
+        )
+        onTestCaseFinished(
+          TestResultProto.TestResult.newBuilder()
+            .apply {
+              testCaseBuilder.apply {
+                testPackage = "com.example.test"
+                testClass = "ExampleTest"
+                testMethod = "testExample"
+              }
+              testStatus = TestStatusProto.TestStatus.PASSED
+              addOutputArtifact(
+                TestArtifactProto.Artifact.newBuilder().apply {
+                  label =
+                    LabelProto.Label.newBuilder()
+                      .apply {
+                        namespace = "android"
+                        label = "logcat"
+                      }
+                      .build()
+                  sourcePath = PathProto.Path.newBuilder().apply { path = logcatPath }.build()
+                }
+              )
+            }
+            .build()
+        )
+      }
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
-      && logcat == ""
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.PASSED &&
+            logcat == ""
+        },
+      )
   }
 
   @Test
   fun runTestSuiteWithBenchmark() {
-    val benchmarkMessageFile = tempFolder.newFile("benchmarkMessage.txt").apply {
-      writeText("benchmarkMessage")
-    }
-    val benchmarkTraceFile = tempFolder.newFile("benchmarkTraceFile.trace").apply {
-      writeText("benchmarkTrace")
-    }
-    val adapter = createAdapter().apply {
-      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build())
-      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }.build())
-      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-        testCaseBuilder.apply {
-          testPackage = "com.example.test"
-          testClass = "ExampleTest"
-          testMethod = "testExample"
-        }
-        testStatus = TestStatusProto.TestStatus.PASSED
-        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-          label = LabelProto.Label.newBuilder().apply {
-            namespace = "android"
-            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
-          }.build()
-          sourcePath = PathProto.Path.newBuilder().apply {
-            path = benchmarkMessageFile.absolutePath
-          }.build()
-        })
-        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-          label = LabelProto.Label.newBuilder().apply {
-            namespace = "android"
-            label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
-          }.build()
-          sourcePath = PathProto.Path.newBuilder().apply {
-            path = benchmarkTraceFile.absolutePath
-          }.build()
-        })
-      }.build())
-    }
+    val benchmarkMessageFile = tempFolder.newFile("benchmarkMessage.txt").apply { writeText("benchmarkMessage") }
+    val benchmarkTraceFile = tempFolder.newFile("benchmarkTraceFile.trace").apply { writeText("benchmarkTrace") }
+    val adapter =
+      createAdapter().apply {
+        onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
+        onTestCaseStarted(
+          TestCaseProto.TestCase.newBuilder()
+            .apply {
+              testPackage = "com.example.test"
+              testClass = "ExampleTest"
+              testMethod = "testExample"
+            }
+            .build()
+        )
+        onTestCaseFinished(
+          TestResultProto.TestResult.newBuilder()
+            .apply {
+              testCaseBuilder.apply {
+                testPackage = "com.example.test"
+                testClass = "ExampleTest"
+                testMethod = "testExample"
+              }
+              testStatus = TestStatusProto.TestStatus.PASSED
+              addOutputArtifact(
+                TestArtifactProto.Artifact.newBuilder().apply {
+                  label =
+                    LabelProto.Label.newBuilder()
+                      .apply {
+                        namespace = "android"
+                        label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
+                      }
+                      .build()
+                  sourcePath = PathProto.Path.newBuilder().apply { path = benchmarkMessageFile.absolutePath }.build()
+                }
+              )
+              addOutputArtifact(
+                TestArtifactProto.Artifact.newBuilder().apply {
+                  label =
+                    LabelProto.Label.newBuilder()
+                      .apply {
+                        namespace = "android"
+                        label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
+                      }
+                      .build()
+                  sourcePath = PathProto.Path.newBuilder().apply { path = benchmarkTraceFile.absolutePath }.build()
+                }
+              )
+            }
+            .build()
+        )
+      }
 
-    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      packageName == "com.example.test" && className == "ExampleTest" &&
-      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
-      && benchmark == "benchmarkMessage"
-    })
+    verify(mockListener)
+      .onTestCaseFinished(
+        eq(adapter.device),
+        any(),
+        argThat {
+          packageName == "com.example.test" &&
+            className == "ExampleTest" &&
+            methodName == "testExample" &&
+            result == AndroidTestCaseResult.PASSED &&
+            benchmark == "benchmarkMessage"
+        },
+      )
 
     assertThat(File(FileUtil.getTempDirectory() + File.separator + "benchmarkTraceFile.trace").exists()).isTrue()
   }
@@ -410,15 +526,17 @@ class GradleTestResultAdapterTest {
   @Test
   fun gradleTaskFinishedOrCancelledBeforeTestSuiteFinishes() {
     createAdapter().apply {
-      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build())
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
 
-      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }.build())
+      onTestCaseStarted(
+        TestCaseProto.TestCase.newBuilder()
+          .apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          .build()
+      )
 
       onGradleTaskFinished()
     }
@@ -427,41 +545,49 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteScheduled(any())
       verify(mockListener).onTestSuiteStarted(any(), any())
       verify(mockListener).onTestCaseStarted(any(), any(), any())
-      verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-        packageName == "com.example.test" &&
-        className == "ExampleTest" &&
-        methodName == "testExample" &&
-        result == AndroidTestCaseResult.CANCELLED &&
-        startTimestampMillis != null &&
-        endTimestampMillis != null
-      })
-      verify(mockListener).onTestSuiteFinished(any(), argThat {
-        id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.CANCELLED
-      })
+      verify(mockListener)
+        .onTestCaseFinished(
+          any(),
+          any(),
+          argThat {
+            packageName == "com.example.test" &&
+              className == "ExampleTest" &&
+              methodName == "testExample" &&
+              result == AndroidTestCaseResult.CANCELLED &&
+              startTimestampMillis != null &&
+              endTimestampMillis != null
+          },
+        )
+      verify(mockListener)
+        .onTestSuiteFinished(
+          any(),
+          argThat { id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.CANCELLED },
+        )
     }
   }
 
   @Test
   fun gradleTaskFinishedOrCancelledBeforeTestSuiteStarts() {
-    createAdapter().apply {
-      onGradleTaskFinished()
-    }
+    createAdapter().apply { onGradleTaskFinished() }
 
     inOrder(mockListener).apply {
       verify(mockListener).onTestSuiteScheduled(any())
       verify(mockListener).onTestSuiteStarted(any(), any())
-      verify(mockListener).onTestSuiteFinished(any(), argThat {
-        id.isNotBlank() && name == "testName" && testCaseCount == 0 && result == AndroidTestSuiteResult.CANCELLED
-      })
+      verify(mockListener)
+        .onTestSuiteFinished(
+          any(),
+          argThat { id.isNotBlank() && name == "testName" && testCaseCount == 0 && result == AndroidTestSuiteResult.CANCELLED },
+        )
     }
   }
 
   @Test
   fun onTestSuiteFinishedIsCalledBeforeTestSuiteEvenStarts() {
-    val adapter = createAdapter().apply {
-      onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.getDefaultInstance())
-      onGradleTaskFinished()
-    }
+    val adapter =
+      createAdapter().apply {
+        onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.getDefaultInstance())
+        onGradleTaskFinished()
+      }
 
     inOrder(mockListener).apply {
       verify(mockListener).onTestSuiteScheduled(any())
@@ -474,21 +600,23 @@ class GradleTestResultAdapterTest {
 
   private fun runAndUtpFailsWithApkInstallationError(): GradleTestResultAdapter {
     return createAdapter().apply {
-      onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-        platformErrorBuilder.apply {
-          addErrorsBuilder().apply {
-            causeBuilder.apply {
-              summaryBuilder.apply {
-                namespaceBuilder.apply {
-                  namespace = "DdmlibAndroidDeviceController"
+      onTestSuiteFinished(
+        TestSuiteResultProto.TestSuiteResult.newBuilder()
+          .apply {
+            platformErrorBuilder.apply {
+              addErrorsBuilder().apply {
+                causeBuilder.apply {
+                  summaryBuilder.apply {
+                    namespaceBuilder.apply { namespace = "DdmlibAndroidDeviceController" }
+                    errorCode = 1
+                    errorName = "INSTALL_FAILED_UPDATE_INCOMPATIBLE"
+                  }
                 }
-                errorCode = 1
-                errorName = "INSTALL_FAILED_UPDATE_INCOMPATIBLE"
               }
             }
           }
-        }
-      }.build())
+          .build()
+      )
     }
   }
 
@@ -504,10 +632,11 @@ class GradleTestResultAdapterTest {
     lateinit var capturedMessage: String
     val adapter = runAndUtpFailsWithApkInstallationError()
 
-    val result = adapter.showRerunWithUninstallIncompatibleApkOptionDialog(projectRule.project) { message ->
-      capturedMessage = message
-      true
-    }
+    val result =
+      adapter.showRerunWithUninstallIncompatibleApkOptionDialog(projectRule.project) { message ->
+        capturedMessage = message
+        true
+      }
 
     assertThat(result).isTrue()
     assertThat(capturedMessage).contains("The device already has an application with the same package but a different signature.")
@@ -527,31 +656,38 @@ class GradleTestResultAdapterTest {
   @Test
   fun testRunEventLogging() {
     createAdapter().apply {
-      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
-        scheduledTestCaseCount = 1
-      }.build())
-      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }.build())
-      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
-        testCaseBuilder.apply {
-          testPackage = "com.example.test"
-          testClass = "ExampleTest"
-          testMethod = "testExample"
-        }
-        testStatus = TestStatusProto.TestStatus.PASSED
-      }.build())
-      onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
-        testStatus = TestStatusProto.TestStatus.PASSED
-      }.build())
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply { scheduledTestCaseCount = 1 }.build())
+      onTestCaseStarted(
+        TestCaseProto.TestCase.newBuilder()
+          .apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          .build()
+      )
+      onTestCaseFinished(
+        TestResultProto.TestResult.newBuilder()
+          .apply {
+            testCaseBuilder.apply {
+              testPackage = "com.example.test"
+              testClass = "ExampleTest"
+              testMethod = "testExample"
+            }
+            testStatus = TestStatusProto.TestStatus.PASSED
+          }
+          .build()
+      )
+      onTestSuiteFinished(
+        TestSuiteResultProto.TestSuiteResult.newBuilder().apply { testStatus = TestStatusProto.TestStatus.PASSED }.build()
+      )
     }
 
     assertThat(reportedAndroidStudioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.TEST_RUN)
     assertThat(reportedAndroidStudioEvent.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(reportedAndroidStudioEvent.hasDeviceInfo()).isTrue()
-    assertThat(reportedAndroidStudioEvent.testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_THROUGH_GRADLE_TEST)
+    assertThat(reportedAndroidStudioEvent.testRun.testInvocationType)
+      .isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_THROUGH_GRADLE_TEST)
     assertThat(reportedAndroidStudioEvent.testRun.numberOfTestsExecuted).isEqualTo(1)
     assertThat(reportedAndroidStudioEvent.testRun.testKind).isEqualTo(TestRun.TestKind.INSTRUMENTATION_TEST)
     assertThat(reportedAndroidStudioEvent.testRun.testExecution).isEqualTo(TestRun.TestExecution.HOST)

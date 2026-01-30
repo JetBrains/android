@@ -16,5 +16,4 @@
 package com.android.tools.idea.adb.wireless
 
 /** Exception thrown when running an ADB command as a child process */
-class AdbCommandException(message: String, val errorCode: Int, val stderr: List<String>) :
-  Exception(message)
+class AdbCommandException(message: String, val errorCode: Int, val stderr: List<String>) : Exception(message)

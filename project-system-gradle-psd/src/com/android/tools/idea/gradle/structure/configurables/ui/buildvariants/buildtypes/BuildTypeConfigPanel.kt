@@ -24,5 +24,5 @@ class BuildTypeConfigPanel(buildType: PsBuildType, context: PsContext) :
     buildType.parent.parent,
     buildType.parent,
     buildType,
-    buildTypePropertiesModel(buildType.parent.isLibrary)
+    buildTypePropertiesModel(buildType.parent.isLibrary),
   )

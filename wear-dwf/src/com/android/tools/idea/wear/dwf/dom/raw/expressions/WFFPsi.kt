@@ -27,7 +27,6 @@ class WFFExpressionTokenType(debugName: String) : IElementType(debugName, WFFExp
 
 class WFFExpressionElementType(debugName: String) : IElementType(debugName, WFFExpressionLanguage)
 
-class WFFExpressionPsiFile(viewProvider: FileViewProvider) :
-  PsiFileBase(viewProvider, WFFExpressionLanguage) {
+class WFFExpressionPsiFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, WFFExpressionLanguage) {
   override fun getFileType(): FileType = WFFExpressionFileType
 }

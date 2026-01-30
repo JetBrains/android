@@ -69,13 +69,9 @@ class RemoveKeysActionTest {
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
     whenever(table.model).thenReturn(model)
-    whenever(model.getKey(anyInt())).thenAnswer {
-      StringResourceKey(it.getArgument<Int>(0).toString())
-    }
+    whenever(model.getKey(anyInt())).thenAnswer { StringResourceKey(it.getArgument<Int>(0).toString()) }
     whenever(model.repository).thenReturn(repository)
-    whenever(repository.getItems(any())).thenAnswer {
-      resourceItems[it.getArgument<StringResourceKey>(0).name.toInt()]
-    }
+    whenever(repository.getItems(any())).thenAnswer { resourceItems[it.getArgument<StringResourceKey>(0).name.toInt()] }
   }
 
   @Test
@@ -117,9 +113,7 @@ class RemoveKeysActionTest {
      * These look like "resource 1a", "resource 1b", ... "resource 2a", "resource 2b", ... ...
      */
     private val resourceItems: List<List<ResourceItem>> =
-      IntRange(0, 10).map { index ->
-        CharRange('a', 'e').map { char -> createFakeStringResourceItem("resource $index$char") }
-      }
+      IntRange(0, 10).map { index -> CharRange('a', 'e').map { char -> createFakeStringResourceItem("resource $index$char") } }
 
     private fun createFakeStringResourceItem(resourceName: String): ResourceItem {
       return object : ResourceItem {

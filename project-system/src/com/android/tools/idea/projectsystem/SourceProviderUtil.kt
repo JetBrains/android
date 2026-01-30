@@ -25,45 +25,47 @@ import java.io.File
 /**
  * Builds [NamedModuleTemplate]'s from [sourceProviders].
  *
- * Each [NamedIdeaSourceProvider] from [sourceProviders] is complemented with
- * any missing production, unit test or android test source providers if missing and available, and the triplet is converted to one
- * [NamedModuleTemplate].
+ * Each [NamedIdeaSourceProvider] from [sourceProviders] is complemented with any missing production, unit test or android test source
+ * providers if missing and available, and the triplet is converted to one [NamedModuleTemplate].
  *
- * For example, `debug` source provider is complemented with `testDebug` and `androidTestDebug` source providers so that
- * the resulting [NamedModuleTemplate] would refer to sources and resources from `debug` provider, unit tests from `testDebug`
- * provider and android tests `androidTestDebug` provider.
+ * For example, `debug` source provider is complemented with `testDebug` and `androidTestDebug` source providers so that the resulting
+ * [NamedModuleTemplate] would refer to sources and resources from `debug` provider, unit tests from `testDebug` provider and android tests
+ * `androidTestDebug` provider.
  */
 fun SourceProviders.buildNamedModuleTemplatesFor(
   moduleRoot: File?,
-  sourceProviders: Collection<NamedIdeaSourceProvider>
+  sourceProviders: Collection<NamedIdeaSourceProvider>,
 ): List<NamedModuleTemplate> {
   val unitTestProviders = this.currentHostTestSourceProviders[CommonTestType.UNIT_TEST]?.associateBy { it.coreName } ?: mapOf()
   val androidTestProviders = this.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.associateBy { it.coreName } ?: mapOf()
 
   return sourceProviders.map { provider ->
-    val srcRoot = if (provider.scopeType == ScopeType.MAIN) provider.getRoot()
-    else null
+    val srcRoot = if (provider.scopeType == ScopeType.MAIN) provider.getRoot() else null
 
     val coreName = provider.coreName // Main source provider should also contain unit tests and Android tests
-    val unitTestRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.UNIT_TEST)
-      unitTestProviders[coreName]?.getRoot()
-    else null
+    val unitTestRoot =
+      if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.UNIT_TEST) unitTestProviders[coreName]?.getRoot()
+      else null
 
     // Main and Unit Test source provider should also contain Android tests
-    val testRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.ANDROID_TEST || provider.scopeType == ScopeType.UNIT_TEST)
-      androidTestProviders[coreName]?.getRoot()
-    else null
+    val testRoot =
+      if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.ANDROID_TEST || provider.scopeType == ScopeType.UNIT_TEST)
+        androidTestProviders[coreName]?.getRoot()
+      else null
 
-    NamedModuleTemplate(provider.name, AndroidModulePathsImpl(
-      moduleRoot = moduleRoot,
-      manifestDirectory = provider.manifestDirectoryUrls.firstOrNull()?.toFile(),
-      srcRoot = srcRoot,
-      unitTestRoot = unitTestRoot,
-      testRoot = testRoot,
-      aidlRoot = provider.aidlDirectoryUrls.firstOrNull()?.toFile(),
-      resDirectories = provider.takeIf { it.scopeType.canHaveAndroidResources }?.resDirectoryUrls?.map { it.toFile() }.orEmpty(),
-      mlModelsDirectories = provider.mlModelsDirectoryUrls.map { it.toFile() }
-    ))
+    NamedModuleTemplate(
+      provider.name,
+      AndroidModulePathsImpl(
+        moduleRoot = moduleRoot,
+        manifestDirectory = provider.manifestDirectoryUrls.firstOrNull()?.toFile(),
+        srcRoot = srcRoot,
+        unitTestRoot = unitTestRoot,
+        testRoot = testRoot,
+        aidlRoot = provider.aidlDirectoryUrls.firstOrNull()?.toFile(),
+        resDirectories = provider.takeIf { it.scopeType.canHaveAndroidResources }?.resDirectoryUrls?.map { it.toFile() }.orEmpty(),
+        mlModelsDirectories = provider.mlModelsDirectoryUrls.map { it.toFile() },
+      ),
+    )
   }
 }
 
@@ -84,6 +86,7 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
   }
 }
 
-private val NamedIdeaSourceProvider.coreName: String get() = name.stripPrefix(scopeType)
+private val NamedIdeaSourceProvider.coreName: String
+  get() = name.stripPrefix(scopeType)
 
 private fun String.toFile(): File = File(VfsUtilCore.urlToPath(this))

@@ -94,8 +94,7 @@ class ToggleIssueActionTest {
 
     assertThat(event.presentation.text).isEqualTo("Close issue")
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description)
-      .isEqualTo("You don't have the necessary permissions to open/close issues.")
+    assertThat(event.presentation.description).isEqualTo("You don't have the necessary permissions to open/close issues.")
   }
 
   @Test
@@ -136,11 +135,9 @@ class ToggleIssueActionTest {
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
-  private fun createToggleIssueAction(issue: AppInsightsIssue) =
-    ToggleIssueAction(mockController, mockAppInsightState, issue)
+  private fun createToggleIssueAction(issue: AppInsightsIssue) = ToggleIssueAction(mockController, mockAppInsightState, issue)
 
-  private fun createAnActionEvent(action: AnAction) =
-    createEvent(action, { _: String -> }, null, "", ActionUiKind.NONE, null)
+  private fun createAnActionEvent(action: AnAction) = createEvent(action, { _: String -> }, null, "", ActionUiKind.NONE, null)
 
   private fun createAppInsightIssue(state: IssueState) =
     AppInsightsIssue(

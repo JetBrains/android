@@ -22,15 +22,16 @@ import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import java.util.Properties
 import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.USE_ANDROIDX_PROPERTY
-import java.util.Properties
 
-class EnableAndroidXHyperlink: SyncIssueNotificationHyperlink(
-  "enable.AndroidX",
-  "Enable AndroidX in project's Gradle properties",
-  AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
-) {
+class EnableAndroidXHyperlink :
+  SyncIssueNotificationHyperlink(
+    "enable.AndroidX",
+    "Enable AndroidX in project's Gradle properties",
+    AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK,
+  ) {
   override fun execute(project: Project) {
     if (project.isDisposed) {
       return

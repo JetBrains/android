@@ -22,14 +22,15 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.SplitButtonAction
 
 /**
- * Action used to select between different types of make in the project: [AssembleGradleProjectWithTestsAction] and [AssembleGradleModuleAction].
+ * Action used to select between different types of make in the project: [AssembleGradleProjectWithTestsAction] and
+ * [AssembleGradleModuleAction].
  */
 class MakeTypeSelectionGroupAction : SplitButtonAction(AllMakeActionsGroup()) {
 
   override fun update(e: AnActionEvent) { // Extract the modules from this update action, as it always gets the right dataContext
     val project = e.project
-    val modulesFromContext: List<String> = if (project == null) emptyList()
-    else Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
+    val modulesFromContext: List<String> =
+      if (project == null) emptyList() else Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
 
     (actionGroup as AllMakeActionsGroup).setModulesFromContext(modulesFromContext)
     super.update(e)
@@ -37,17 +38,16 @@ class MakeTypeSelectionGroupAction : SplitButtonAction(AllMakeActionsGroup()) {
 
   internal class AllMakeActionsGroup : DefaultActionGroup() {
     private val makeModule = AssembleGradleModuleActionFromGroupAction()
-    private val children: Array<AnAction> = arrayOf(makeModule,
-                                                    AssembleGradleProjectWithTestsAction())
+    private val children: Array<AnAction> = arrayOf(makeModule, AssembleGradleProjectWithTestsAction())
 
     override fun getChildren(e: AnActionEvent?): Array<AnAction> {
       return children
     }
 
     /**
-     * Sets the list of modules to build for the [makeModule] action. This is needed as the [SplitButtonAction] has logic which
-     * triggers another [AnActionEvent] update when the split menu is shown, and [AnActionEvent.getDataContext] contains no module info
-     * in that case. Because of that, the parent action group (i.e. [MakeTypeSelectionGroupAction]) sets the list of modules to build.
+     * Sets the list of modules to build for the [makeModule] action. This is needed as the [SplitButtonAction] has logic which triggers
+     * another [AnActionEvent] update when the split menu is shown, and [AnActionEvent.getDataContext] contains no module info in that case.
+     * Because of that, the parent action group (i.e. [MakeTypeSelectionGroupAction]) sets the list of modules to build.
      */
     internal fun setModulesFromContext(selectedModules: List<String>) {
       makeModule.setModuleNamesExternally(selectedModules)

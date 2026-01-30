@@ -17,5 +17,4 @@ package com.android.tools.idea.editors.strings
 
 import com.android.tools.idea.res.StringResourceWriter
 
-internal open class StringResourceWriterDelegate(private val delegate: StringResourceWriter) :
-  StringResourceWriter by delegate
+internal open class StringResourceWriterDelegate(private val delegate: StringResourceWriter) : StringResourceWriter by delegate

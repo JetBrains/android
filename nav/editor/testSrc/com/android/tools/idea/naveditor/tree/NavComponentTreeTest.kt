@@ -48,9 +48,7 @@ class NavComponentTreeTest : NavTestCase() {
             action("action1", destination = "fragment2")
           }
           fragment("fragment2")
-          navigation("subnav") {
-            fragment("fragment3") { action("action2", destination = "fragment3") }
-          }
+          navigation("subnav") { fragment("fragment3") { action("action2", destination = "fragment3") } }
         }
       }
 
@@ -128,10 +126,7 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   fun testScrollToMultiple() {
-    testScrolling(
-      arrayOf("fragment1", "fragment2", "subnav", "action1"),
-      arrayOf("fragment1", "fragment2", "subnav"),
-    )
+    testScrolling(arrayOf("fragment1", "fragment2", "subnav", "action1"), arrayOf("fragment1", "fragment2", "subnav"))
   }
 
   private fun testScrolling(selection: Array<String>, expected: Array<String>) {

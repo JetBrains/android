@@ -26,20 +26,16 @@ import com.intellij.openapi.roots.RootProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.DisposableRule
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 class RootProviderExtensionsTest {
 
-  @Rule
-  @JvmField
-  val projectRule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val projectRule = AndroidProjectRule.inMemory()
 
-  @Rule
-  @JvmField
-  val disposableRule = DisposableRule()
+  @Rule @JvmField val disposableRule = DisposableRule()
 
   @Test
   fun `Given RootProviders with empty roots When compare They are equal`() {
@@ -50,70 +46,54 @@ class RootProviderExtensionsTest {
 
   @Test
   fun `Given RootProviders with same roots When compare They are equal`() {
-    val rootProviderA = createMockRootProvider(
-      Pair(OrderRootType.CLASSES, "class1"),
-      Pair(OrderRootType.CLASSES, "class2"),
-      Pair(OrderRootType.SOURCES, "source"),
-      Pair(OrderRootType.DOCUMENTATION, "documentation"),
-      Pair(AnnotationOrderRootType.getInstance(), "annotation")
-    )
-    val rootProviderB = createMockRootProvider(
-      Pair(OrderRootType.CLASSES, "class1"),
-      Pair(OrderRootType.CLASSES, "class2"),
-      Pair(OrderRootType.SOURCES, "source"),
-      Pair(OrderRootType.DOCUMENTATION, "documentation"),
-      Pair(AnnotationOrderRootType.getInstance(), "annotation")
-    )
+    val rootProviderA =
+      createMockRootProvider(
+        Pair(OrderRootType.CLASSES, "class1"),
+        Pair(OrderRootType.CLASSES, "class2"),
+        Pair(OrderRootType.SOURCES, "source"),
+        Pair(OrderRootType.DOCUMENTATION, "documentation"),
+        Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+      )
+    val rootProviderB =
+      createMockRootProvider(
+        Pair(OrderRootType.CLASSES, "class1"),
+        Pair(OrderRootType.CLASSES, "class2"),
+        Pair(OrderRootType.SOURCES, "source"),
+        Pair(OrderRootType.DOCUMENTATION, "documentation"),
+        Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+      )
     assertTrue(rootProviderA.isEqualTo(rootProviderB))
   }
 
   @Test
   fun `Given RootProviders with different class root When compare They are different`() {
-    val rootProviderA = createMockRootProvider(
-      Pair(OrderRootType.CLASSES, "classA")
-    )
-    val rootProviderB = createMockRootProvider(
-      Pair(OrderRootType.CLASSES, "classB")
-    )
+    val rootProviderA = createMockRootProvider(Pair(OrderRootType.CLASSES, "classA"))
+    val rootProviderB = createMockRootProvider(Pair(OrderRootType.CLASSES, "classB"))
     assertFalse(rootProviderA.isEqualTo(rootProviderB))
   }
 
   @Test
   fun `Given RootProviders with different source root When compare They are different`() {
-    val rootProviderA = createMockRootProvider(
-      Pair(OrderRootType.SOURCES, "sourceA")
-    )
-    val rootProviderB = createMockRootProvider(
-      Pair(OrderRootType.SOURCES, "sourceB")
-    )
+    val rootProviderA = createMockRootProvider(Pair(OrderRootType.SOURCES, "sourceA"))
+    val rootProviderB = createMockRootProvider(Pair(OrderRootType.SOURCES, "sourceB"))
     assertFalse(rootProviderA.isEqualTo(rootProviderB))
   }
 
   @Test
   fun `Given RootProviders with different documentation root When compare They are different`() {
-    val rootProviderA = createMockRootProvider(
-      Pair(OrderRootType.DOCUMENTATION, "documentationA")
-    )
-    val rootProviderB = createMockRootProvider(
-      Pair(OrderRootType.DOCUMENTATION, "documentationB")
-    )
+    val rootProviderA = createMockRootProvider(Pair(OrderRootType.DOCUMENTATION, "documentationA"))
+    val rootProviderB = createMockRootProvider(Pair(OrderRootType.DOCUMENTATION, "documentationB"))
     assertFalse(rootProviderA.isEqualTo(rootProviderB))
   }
 
   @Test
   fun `Given RootProviders with different annotation root When compare They are different`() {
-    val rootProviderA = createMockRootProvider(
-      Pair(AnnotationOrderRootType.getInstance(), "annotationA")
-    )
-    val rootProviderB = createMockRootProvider(
-      Pair(AnnotationOrderRootType.getInstance(), "annotationB")
-    )
+    val rootProviderA = createMockRootProvider(Pair(AnnotationOrderRootType.getInstance(), "annotationA"))
+    val rootProviderB = createMockRootProvider(Pair(AnnotationOrderRootType.getInstance(), "annotationB"))
     assertFalse(rootProviderA.isEqualTo(rootProviderB))
   }
 
-  private fun createMockRootProvider(
-    vararg roots: Pair<OrderRootType, String>
-  ): RootProvider {
+  private fun createMockRootProvider(vararg roots: Pair<OrderRootType, String>): RootProvider {
     val mockSdk = ProjectJdkTable.getInstance().createSdk("name", SimpleJavaSdkType())
     val sdkModificator = mockSdk.sdkModificator
 
@@ -129,9 +109,7 @@ class RootProviderExtensionsTest {
         sdkModificator.commitChanges()
       }
     }
-    (mockSdk as? Disposable)?.let {
-      Disposer.register(disposableRule.disposable, it)
-    }
+    (mockSdk as? Disposable)?.let { Disposer.register(disposableRule.disposable, it) }
     return mockSdk.rootProvider
   }
 }

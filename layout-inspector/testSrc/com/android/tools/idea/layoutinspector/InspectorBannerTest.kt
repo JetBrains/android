@@ -25,9 +25,9 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.ui.UIUtil
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
 
 class InspectorBannerTest {
 
@@ -46,12 +46,7 @@ class InspectorBannerTest {
   fun testVisibleWithStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(disposableRule.disposable, notificationModel)
-    notificationModel.addNotification(
-      "key1",
-      "There is an error somewhere <a>",
-      Status.Error,
-      emptyList(),
-    )
+    notificationModel.addNotification("key1", "There is an error somewhere <a>", Status.Error, emptyList())
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isTrue()
     val label = banner.flatten().filterIsInstance<JLabel>().first()
@@ -62,12 +57,7 @@ class InspectorBannerTest {
   fun testInvisibleAfterEmptyStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(disposableRule.disposable, notificationModel)
-    notificationModel.addNotification(
-      "key1",
-      "There is an error somewhere",
-      Status.Error,
-      emptyList(),
-    )
+    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
     notificationModel.clear()
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isFalse()
@@ -77,12 +67,7 @@ class InspectorBannerTest {
   fun testListenersRemovedOnDispose() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(disposableRule.disposable, notificationModel)
-    notificationModel.addNotification(
-      "key1",
-      "There is an error somewhere",
-      Status.Error,
-      emptyList(),
-    )
+    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
 
     assertThat(notificationModel.notificationListeners).hasSize(1)
 

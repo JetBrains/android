@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.dsl.android.model.android
 
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidSoftwareTypesModel
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.google.common.truth.Truth.assertThat
 import java.io.File
@@ -67,9 +67,9 @@ class AndroidSoftwareTypesModelTest : AndroidGradleFileModelTestCase() {
     val defaults = buildModel.defaults() as AndroidSoftwareTypesModel
     assertNotNull(defaults)
 
-   defaults.androidLibrary().let { library ->
+    defaults.androidLibrary().let { library ->
       assertNotNull(library)
-     library.buildToolsVersion().setValue(22)
+      library.buildToolsVersion().setValue(22)
       assertEquals("buildToolsVersion", 22, library.buildToolsVersion())
     }
 
@@ -103,12 +103,10 @@ class AndroidSoftwareTypesModelTest : AndroidGradleFileModelTestCase() {
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
-    ANDROID_BLOCKS_WITH_STATEMENTS("androidBlocksWithStatements"),
-    ;
+    ANDROID_BLOCKS_WITH_STATEMENTS("androidBlocksWithStatements");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/softwareTypesModel/$path", extension)
     }
   }
-
 }

@@ -17,13 +17,13 @@
 
 package com.android.tools.idea.actions.annotations
 
-import com.android.SdkConstants
-import com.android.SdkConstants.ATTR_VALUE
 import com.android.AndroidXConstants.INT_DEF_ANNOTATION
-import com.android.SdkConstants.KOTLIN_SUPPRESS
 import com.android.AndroidXConstants.LONG_DEF_ANNOTATION
 import com.android.AndroidXConstants.STRING_DEF_ANNOTATION
 import com.android.AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX
+import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_VALUE
+import com.android.SdkConstants.KOTLIN_SUPPRESS
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.annotationNames
@@ -103,6 +103,7 @@ import com.intellij.psi.PsiPostfixExpression
 import com.intellij.psi.PsiPrefixExpression
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.Locale
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtFunction
@@ -128,78 +129,56 @@ import org.jetbrains.uast.UUnknownExpression
 import org.jetbrains.uast.UastFacade
 import org.jetbrains.uast.getContainingUClass
 import org.jetbrains.uast.getParentOfType
-import java.util.Locale
 
-/**
- * Represents the constraints known about a particular [UAnnotated] element
- */
-class InferredConstraints private constructor(
-  /**
-   * The [InferAnnotations] driving the inference, providing settings, PSI
-   * context for lookup etc
-   */
+/** Represents the constraints known about a particular [UAnnotated] element */
+class InferredConstraints
+private constructor(
+  /** The [InferAnnotations] driving the inference, providing settings, PSI context for lookup etc */
   private val inferrer: InferAnnotations,
 
   /** Associated PSI element */
   val psi: PsiElement? = null,
 
   /**
-   * A read-only element is for example a reference to code in a library or
-   * the platform; we can make inferences about these, but we won't write
-   * back out the annotations we've inferred.
+   * A read-only element is for example a reference to code in a library or the platform; we can make inferences about these, but we won't
+   * write back out the annotations we've inferred.
    */
   var readOnly: Boolean,
   /**
-   * An ignored element is one explicitly opted out of inference; in this
-   * case, we won't even add any inferred constraints for it. (This allows
-   * users to specifically exempt via a `@Suppress` annotation a particular
-   * element where the inference is incorrect. This is important because you
-   * can't just delete from the Usages view an incorrect inference since
-   * that inference could then have flowed further to make other invalid
-   * inferences.)
+   * An ignored element is one explicitly opted out of inference; in this case, we won't even add any inferred constraints for it. (This
+   * allows users to specifically exempt via a `@Suppress` annotation a particular element where the inference is incorrect. This is
+   * important because you can't just delete from the Usages view an incorrect inference since that inference could then have flowed further
+   * to make other invalid inferences.)
    */
-  var ignore: Boolean
+  var ignore: Boolean,
 ) {
   /** Applicable settings */
-  private val settings: InferAnnotationsSettings get() = inferrer.settings
+  private val settings: InferAnnotationsSettings
+    get() = inferrer.settings
 
-  /**
-   * Whether we've made any inferences on this element beyond those directly
-   * annotated on it originally.
-   */
+  /** Whether we've made any inferences on this element beyond those directly annotated on it originally. */
   var modified = false
 
   /**
-   * A set of descriptions of the inferences we've made (in a special syntax
-   * where the prefix before `:` denotes the class and member attributes)
+   * A set of descriptions of the inferences we've made (in a special syntax where the prefix before `:` denotes the class and member
+   * attributes)
    */
   private var inferences: MutableList<String>? = null
 
-  /**
-   * A bitmask for all the no-argument annotations that were originally
-   * present on this element. -1 means "initializing".
-   */
+  /** A bitmask for all the no-argument annotations that were originally present on this element. -1 means "initializing". */
   var originalAnnotations: Long = -1
 
-  /**
-   * A bitmask for all the no-argument annotations that were either
-   * explicitly annotated originally or have since been inferred.
-   */
+  /** A bitmask for all the no-argument annotations that were either explicitly annotated originally or have since been inferred. */
   var annotations: Long = 0
 
   /**
-   * Required permission names; these are arguments to the
-   * `@RequiresPermission` attribute in the bit mask. Contains either actual
-   * string values for the permission names, or PSI references to the name
-   * constant fields.
+   * Required permission names; these are arguments to the `@RequiresPermission` attribute in the bit mask. Contains either actual string
+   * values for the permission names, or PSI references to the name constant fields.
    */
   var permissionReferences: MutableSet<Any>? = null
     private set
 
-  /**
-   * Whether *all* the permission names in [permissionReferences] are
-   * required, as opposed to *any*
-   */
+  /** Whether *all* the permission names in [permissionReferences] are required, as opposed to *any* */
   var requireAllPermissions = false
     private set
 
@@ -212,10 +191,7 @@ class InferredConstraints private constructor(
       return isKotlin(psi.language)
     }
 
-  /**
-   * Adds a specific [annotation] into the constraint set, and returns true
-   * if the annotation was not previously present
-   */
+  /** Adds a specific [annotation] into the constraint set, and returns true if the annotation was not previously present */
   fun addAnnotation(annotation: AndroidxName): Boolean {
     return addAnnotation(annotation.newName())
   }
@@ -234,10 +210,7 @@ class InferredConstraints private constructor(
     return false
   }
 
-  /**
-   * Adds a specific [qualifiedName] annotation into the constraint set, and
-   * returns true if the annotation was not previously present.
-   */
+  /** Adds a specific [qualifiedName] annotation into the constraint set, and returns true if the annotation was not previously present. */
   fun addAnnotation(qualifiedName: String): Boolean {
     if (skip(qualifiedName)) {
       return false
@@ -284,10 +257,7 @@ class InferredConstraints private constructor(
     return false
   }
 
-  /**
-   * Removes a specific [qualifiedName] annotation from the constraint set,
-   * and returns true if the annotation was previously present.
-   */
+  /** Removes a specific [qualifiedName] annotation from the constraint set, and returns true if the annotation was previously present. */
   fun removeAnnotation(qualifiedName: String): Boolean {
     if (skip(qualifiedName)) {
       return false
@@ -306,39 +276,27 @@ class InferredConstraints private constructor(
     return (annotations and getAnnotationMask(qualifiedName)) != 0L
   }
 
-  /**
-   * Returns a list of all annotations; if [namesOnly] it will only use
-   * simple names
-   */
+  /** Returns a list of all annotations; if [namesOnly] it will only use simple names */
   fun getAllAnnotations(namesOnly: Boolean): List<String> {
     return getAnnotations(annotations, namesOnly)
   }
 
-  /**
-   * Returns a list of the new annotations added since the original
-   * annotations; if [namesOnly] it will only use simple names
-   */
+  /** Returns a list of the new annotations added since the original annotations; if [namesOnly] it will only use simple names */
   fun getAddedAnnotations(namesOnly: Boolean): List<String> {
     val shared = annotations and originalAnnotations
     return getAnnotations(annotations - shared, namesOnly)
   }
 
-  /**
-   * Returns a list of any annotations that were removed since the original
-   * annotations; if [namesOnly] it will only use simple names
-   */
+  /** Returns a list of any annotations that were removed since the original annotations; if [namesOnly] it will only use simple names */
   fun getRemovedAnnotations(namesOnly: Boolean): List<String> {
     val shared = annotations and originalAnnotations
     return getAnnotations(originalAnnotations - shared, namesOnly)
   }
 
   /**
-   * Given an annotation [qualifiedName], returns this as annotation source
-   * (e.g. including the leading `@` and possibly additional parenthesized
-   * arguments). If [namesOnly] is true, will only use simple names instead
-   * of fully qualified names. Like [Companion.getAnnotationSource], but
-   * will also include specific arguments to annotations stored in this
-   * constraint.
+   * Given an annotation [qualifiedName], returns this as annotation source (e.g. including the leading `@` and possibly additional
+   * parenthesized arguments). If [namesOnly] is true, will only use simple names instead of fully qualified names. Like
+   * [Companion.getAnnotationSource], but will also include specific arguments to annotations stored in this constraint.
    */
   fun getAnnotationSource(qualifiedName: String, namesOnly: Boolean): String {
     return getAnnotationSource(qualifiedName, namesOnly, arguments?.get(qualifiedName), isKotlin)
@@ -350,20 +308,16 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Returns the set of resource type annotations. Note that this includes
-   * more than the plain resource annotations; it also contains related
-   * annotations that are treated the same way such as `@ColorInt`, `@Px` and
-   * `@HalfFloat`.
+   * Returns the set of resource type annotations. Note that this includes more than the plain resource annotations; it also contains
+   * related annotations that are treated the same way such as `@ColorInt`, `@Px` and `@HalfFloat`.
    */
   fun getResourceTypes(): ResourceTypeSet {
     return ResourceTypeSet(annotations and resourceTypeMask)
   }
 
   /**
-   * Given a set of [constraints] from another element, adds any applicable
-   * constraints into this constraint set and invokes the given [callback]
-   * passing back each annotation name, and returns whether at least one
-   * annotation was added.
+   * Given a set of [constraints] from another element, adds any applicable constraints into this constraint set and invokes the given
+   * [callback] passing back each annotation name, and returns whether at least one annotation was added.
    */
   fun addConstraints(constraints: InferredConstraints, filter: (String) -> Boolean, callback: (String) -> Unit): Boolean {
     if (ignore) {
@@ -399,10 +353,7 @@ class InferredConstraints private constructor(
     return added
   }
 
-  /**
-   * Attempt to merge the arguments belonging to the given [qualifiedName]
-   * annotation, and return true if successful.
-   */
+  /** Attempt to merge the arguments belonging to the given [qualifiedName] annotation, and return true if successful. */
   private fun mergeArguments(qualifiedName: String, constraints: InferredConstraints): Boolean {
     when (qualifiedName) {
       INT_RANGE_ANNOTATION.newName(),
@@ -424,10 +375,8 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Given a set of annotation [qualifiedNames], adds any resource types
-   * into this constraint set and invokes the given [callback] passing back
-   * each resource type annotation name, and returns whether at least one
-   * annotation was added.
+   * Given a set of annotation [qualifiedNames], adds any resource types into this constraint set and invokes the given [callback] passing
+   * back each resource type annotation name, and returns whether at least one annotation was added.
    */
   fun addResourceTypes(qualifiedNames: Collection<String>, callback: (String) -> Unit): Boolean {
     if (ignore) {
@@ -453,9 +402,8 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Adds the given annotation to this constraint set; similar to
-   * [addAnnotation] but specifically used for resource type annotations
-   * where we want special handling of the `@AnyRes` annotation.
+   * Adds the given annotation to this constraint set; similar to [addAnnotation] but specifically used for resource type annotations where
+   * we want special handling of the `@AnyRes` annotation.
    */
   fun addResourceAnnotation(annotation: String): Boolean {
     if (skip(annotation)) {
@@ -476,10 +424,8 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Removes all resource-related annotations from the annotations set.
-   * This is used when `@AnyRes` is encountered, and we want to remove all
-   * incompatible or implicit other annotations such as `@StringRes` or
-   * `@DimenRes`.
+   * Removes all resource-related annotations from the annotations set. This is used when `@AnyRes` is encountered, and we want to remove
+   * all incompatible or implicit other annotations such as `@StringRes` or `@DimenRes`.
    */
   fun clearResourceTypes() {
     if (ignore) {
@@ -489,8 +435,7 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Returns the annotations from the given bitmask. If [namesOnly] is true,
-   * returns the simple names instead of the fully qualified names.
+   * Returns the annotations from the given bitmask. If [namesOnly] is true, returns the simple names instead of the fully qualified names.
    */
   private fun getAnnotations(annotations: Long, namesOnly: Boolean): List<String> {
     if (annotations == 0L) {
@@ -524,9 +469,8 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Adds the given [names] as required permissions (and if [all] is set to
-   * true, they're all required) to this constraint set. Returns true if at
-   * least one new name was added to the constraint.
+   * Adds the given [names] as required permissions (and if [all] is set to true, they're all required) to this constraint set. Returns true
+   * if at least one new name was added to the constraint.
    */
   fun addPermissionRequirement(names: Collection<Any>, all: Boolean): Boolean {
     if (ignore) {
@@ -534,9 +478,7 @@ class InferredConstraints private constructor(
     } else if (!settings.permissions) {
       return false
     }
-    val permissionReferences = permissionReferences ?: mutableSetOf<Any>().also {
-      permissionReferences = it
-    }
+    val permissionReferences = permissionReferences ?: mutableSetOf<Any>().also { permissionReferences = it }
     val countBefore = permissionReferences.size
     var added = false
     for (name in names) {
@@ -566,9 +508,8 @@ class InferredConstraints private constructor(
   }
 
   /**
-   * Returns a list of descriptions of the inferences we've made (in a
-   * special syntax where the prefix before `:` denotes the class and member
-   * attributes)
+   * Returns a list of descriptions of the inferences we've made (in a special syntax where the prefix before `:` denotes the class and
+   * member attributes)
    */
   fun getExplanations(): List<String> {
     return inferences ?: emptyList()
@@ -698,10 +639,7 @@ class InferredConstraints private constructor(
     inferences.add(sb.toString())
   }
 
-  /**
-   * Returns true if the given [element] is documented with `@hide` or within
-   * an outer block annotated with `@hide`.
-   */
+  /** Returns true if the given [element] is documented with `@hide` or within an outer block annotated with `@hide`. */
   private fun isHidden(element: UElement): Boolean {
     if (settings.filterHidden && element.sourcePsi !is PsiCompiledElement) {
       var curr = element
@@ -753,25 +691,28 @@ class InferredConstraints private constructor(
         sb.append("=")
         sb.append(if (kotlin) '[' else '{')
         sb.append(
-          permissionReferences.map { permission ->
-            when (permission) {
-              is String -> {
-                "\"$permission\""
-              }
-              is PsiField -> {
-                val name = permission.name
-                val qualifiedName = permission.containingClass?.qualifiedName
-                if (qualifiedName != null) {
-                  "$qualifiedName.$name"
-                } else {
-                  name
+          permissionReferences
+            .map { permission ->
+              when (permission) {
+                is String -> {
+                  "\"$permission\""
+                }
+                is PsiField -> {
+                  val name = permission.name
+                  val qualifiedName = permission.containingClass?.qualifiedName
+                  if (qualifiedName != null) {
+                    "$qualifiedName.$name"
+                  } else {
+                    name
+                  }
+                }
+                else -> {
+                  error("Unexpected permission reference class ${permission.javaClass}")
                 }
               }
-              else -> {
-                error("Unexpected permission reference class ${permission.javaClass}")
-              }
             }
-          }.sorted().joinToString(",")
+            .sorted()
+            .joinToString(",")
         )
         sb.append(if (kotlin) ']' else '}')
         sb.append(')')
@@ -785,34 +726,25 @@ class InferredConstraints private constructor(
   fun getPermissionAnnotationsString(): String {
     val annotations: List<String> = getPermissionAnnotations()
     return if (annotations.isNotEmpty()) {
-      annotations.joinToString("\n") {
-        it.replace(SUPPORT_ANNOTATIONS_PREFIX.newName(), "").replace("android.Manifest", "Manifest")
-      }
+      annotations.joinToString("\n") { it.replace(SUPPORT_ANNOTATIONS_PREFIX.newName(), "").replace("android.Manifest", "Manifest") }
     } else ""
   }
 
   companion object {
-    /**
-     * Creates an [InferredConstraints] object from the given [annotated]
-     * element
-     */
-    fun create(
-      inferrer: InferAnnotations,
-      evaluator: JavaEvaluator,
-      annotated: UAnnotated,
-      element: PsiElement
-    ): InferredConstraints {
+    /** Creates an [InferredConstraints] object from the given [annotated] element */
+    fun create(inferrer: InferAnnotations, evaluator: JavaEvaluator, annotated: UAnnotated, element: PsiElement): InferredConstraints {
       val annotations =
         when (element) {
           is KtAnnotated -> element.annotationEntries.mapNotNull { UastFacade.convertElement(it, null) as? UAnnotation }.toList()
           is PsiAnnotationOwner -> element.annotations.mapNotNull { UastFacade.convertElement(it, null) as? UAnnotation }.toList()
           else -> evaluator.getAllAnnotations(annotated, false)
         }
-      val ignore = annotations.any {
-        val qualifiedName = it.qualifiedName
-        (qualifiedName == KOTLIN_SUPPRESS || qualifiedName == "java.lang.SuppressWarnings") &&
-          it.sourcePsi?.text?.contains("InferAnnotations") == true
-      }
+      val ignore =
+        annotations.any {
+          val qualifiedName = it.qualifiedName
+          (qualifiedName == KOTLIN_SUPPRESS || qualifiedName == "java.lang.SuppressWarnings") &&
+            it.sourcePsi?.text?.contains("InferAnnotations") == true
+        }
       // TODO: Consider looking up @RestrictTo annotations and taking that into consideration for public-ness as well
       val readOnly = inferrer.settings.publicOnly && !isPublic(annotated, element)
       return create(inferrer, element, annotations, readOnly, ignore = ignore)
@@ -833,11 +765,10 @@ class InferredConstraints private constructor(
     fun create(
       inferrer: InferAnnotations,
       evaluator: JavaEvaluator,
-      element: PsiModifierListOwner // Arguably should have used PsiAnnotationOwner instead
+      element: PsiModifierListOwner, // Arguably should have used PsiAnnotationOwner instead
     ): InferredConstraints {
       val annotations = evaluator.getAnnotations(element, false)
-      val readOnly = element is PsiCompiledElement ||
-        inferrer.settings.publicOnly && !element.hasModifierProperty(PsiModifier.PUBLIC)
+      val readOnly = element is PsiCompiledElement || inferrer.settings.publicOnly && !element.hasModifierProperty(PsiModifier.PUBLIC)
       return create(inferrer, element, annotations, readOnly, false).apply {
         // R fields have implicit resource types
         if (element is PsiField) {
@@ -863,16 +794,13 @@ class InferredConstraints private constructor(
       }
     }
 
-    /**
-     * Creates an [InferredConstraints] object from the given list of
-     * [annotations]
-     */
+    /** Creates an [InferredConstraints] object from the given list of [annotations] */
     fun create(
       inferrer: InferAnnotations,
       element: PsiElement,
       annotations: List<UAnnotation>,
       readOnly: Boolean,
-      ignore: Boolean
+      ignore: Boolean,
     ): InferredConstraints {
       // We set ignore=false here even if ignore=true was passed in because we *do* want all the original
       // annotations that are on the element to be processed below; we'll update the ignore flag at the end
@@ -911,8 +839,7 @@ class InferredConstraints private constructor(
 
           val attributeValues = annotation.attributeValues
           if (attributeValues.isNotEmpty()) {
-            val arguments = constraints.arguments ?: HashMap<String, List<UNamedExpression>>()
-              .also { constraints.arguments = it }
+            val arguments = constraints.arguments ?: HashMap<String, List<UNamedExpression>>().also { constraints.arguments = it }
             arguments[qualifiedName] = attributeValues
           }
         }
@@ -970,16 +897,12 @@ class InferredConstraints private constructor(
       return null
     }
 
-    /**
-     * Given an [annotation], returns the annotation qualified name to use in
-     * the constraint set maps
-     */
+    /** Given an [annotation], returns the annotation qualified name to use in the constraint set maps */
     private fun getAnnotationName(annotation: UAnnotation): String? {
       val qualifiedName = annotation.qualifiedName ?: return null
 
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX.oldName())) {
-        return SUPPORT_ANNOTATIONS_PREFIX.newName() + qualifiedName.substring(
-          SUPPORT_ANNOTATIONS_PREFIX.oldName().length)
+        return SUPPORT_ANNOTATIONS_PREFIX.newName() + qualifiedName.substring(SUPPORT_ANNOTATIONS_PREFIX.oldName().length)
       }
 
       if (qualifiedName == DIMENSION_ANNOTATION.newName()) {
@@ -1008,12 +931,15 @@ class InferredConstraints private constructor(
     private const val DIMENSION_DP_PLACEHOLDER = "@dp"
 
     /**
-     * Given an annotation [qualifiedName], returns this as annotation source
-     * (e.g. including the leading `@` and possibly additional parenthesized
-     * arguments). If [namesOnly] is true, will only use simple names instead
-     * of fully qualified names.
+     * Given an annotation [qualifiedName], returns this as annotation source (e.g. including the leading `@` and possibly additional
+     * parenthesized arguments). If [namesOnly] is true, will only use simple names instead of fully qualified names.
      */
-    fun getAnnotationSource(qualifiedName: String, namesOnly: Boolean, arguments: List<UNamedExpression>? = null, kotlin: Boolean = true): String {
+    fun getAnnotationSource(
+      qualifiedName: String,
+      namesOnly: Boolean,
+      arguments: List<UNamedExpression>? = null,
+      kotlin: Boolean = true,
+    ): String {
       return if (qualifiedName == DIMENSION_SP_PLACEHOLDER || qualifiedName == DIMENSION_DP_PLACEHOLDER) {
         val unit = if (qualifiedName == DIMENSION_DP_PLACEHOLDER) "DP" else "SP"
         if (namesOnly) {
@@ -1028,73 +954,83 @@ class InferredConstraints private constructor(
         if (namesOnly) {
           "@${qualifiedName.substringAfterLast('.')}${getAnnotationArgumentSource(arguments, false, kotlin)}"
         } else {
-          "@$qualifiedName${getAnnotationArgumentSource(arguments, true, kotlin)}".let {
-            // In Kotlin, we have to convert constant references in the Float class up to Double and ditto for Integer to Long
-            // because that's the expected type of these annotations' attributes.
-            if (kotlin && (
-              qualifiedName == INT_RANGE_ANNOTATION.newName() || qualifiedName == FLOAT_RANGE_ANNOTATION.newName() ||
-                qualifiedName == SIZE_ANNOTATION.newName()
-              )
-            ) {
-              it.replace("Float.MIN_VALUE", "Float.MIN_VALUE.toDouble()")
-                .replace("Float.MAX_VALUE", "Float.MAX_VALUE.toDouble()")
-                .replace("Integer.MIN_VALUE", "Integer.MIN_VALUE.toLong()")
-                .replace("Integer.MAX_VALUE", "Integer.MAX_VALUE.toLong()")
-            } else {
-              it
+          "@$qualifiedName${getAnnotationArgumentSource(arguments, true, kotlin)}"
+            .let {
+              // In Kotlin, we have to convert constant references in the Float class up to Double and ditto for Integer to Long
+              // because that's the expected type of these annotations' attributes.
+              if (
+                kotlin &&
+                  (qualifiedName == INT_RANGE_ANNOTATION.newName() ||
+                    qualifiedName == FLOAT_RANGE_ANNOTATION.newName() ||
+                    qualifiedName == SIZE_ANNOTATION.newName())
+              ) {
+                it
+                  .replace("Float.MIN_VALUE", "Float.MIN_VALUE.toDouble()")
+                  .replace("Float.MAX_VALUE", "Float.MAX_VALUE.toDouble()")
+                  .replace("Integer.MIN_VALUE", "Integer.MIN_VALUE.toLong()")
+                  .replace("Integer.MAX_VALUE", "Integer.MAX_VALUE.toLong()")
+              } else {
+                it
+              }
             }
-          }
         }
       }
     }
 
     private fun getAnnotationArgumentSource(arguments: List<UNamedExpression>?, fqn: Boolean, kotlin: Boolean): String {
       if (arguments.isNullOrEmpty()) return ""
-      return "(" + arguments.joinToString {
-        val psi = it.sourcePsi
-        if (!fqn && psi != null && psi !is PsiCompiledElement) {
-          psi.text
-        } else {
-          val sb = StringBuilder()
-          sb.append(it.name).append('=')
-          if (psi is PsiCompiledElement && psi is PsiNameValuePair) {
-            val value = psi.value
-            if (value is PsiExpression) {
-              sb.append(value.toSource(kotlin))
-            } else {
-              error("Unsupported annotation literal type $value")
-            }
+      return "(" +
+        arguments.joinToString {
+          val psi = it.sourcePsi
+          if (!fqn && psi != null && psi !is PsiCompiledElement) {
+            psi.text
           } else {
-            sb.append(it.expression.toSource(kotlin))
+            val sb = StringBuilder()
+            sb.append(it.name).append('=')
+            if (psi is PsiCompiledElement && psi is PsiNameValuePair) {
+              val value = psi.value
+              if (value is PsiExpression) {
+                sb.append(value.toSource(kotlin))
+              } else {
+                error("Unsupported annotation literal type $value")
+              }
+            } else {
+              sb.append(it.expression.toSource(kotlin))
+            }
+            sb.toString()
           }
-          sb.toString()
-        }
-      } + ")"
+        } +
+        ")"
     }
 
     private fun Any?.literalSource(kotlin: Boolean): String {
       return when (this) {
         is String -> {
-          (
-            '"' + replace("\\", "\\\\")
-              .replace("\r", "\\r").replace("\n", "\\n")
-              .replace("\t", "\\t").replace("\b", "\\b")
-              .replace("\"", "\\\"") + '"'
-            ).let {
-            if (kotlin) it.replace("$", "\\$") else it
-          }
+          ('"' +
+              replace("\\", "\\\\")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\"", "\\\"") +
+              '"')
+            .let { if (kotlin) it.replace("$", "\\$") else it }
         }
         is Char -> if (this == '\'') "'\''" else "'$this'"
         is Int -> toConstantReference(this) ?: toString()
-        is Double -> toConstantReference(this)
-          // because @FloatRange(to = Float.MAX_VALUE) is valid and gets stored in a double
-          ?: toConstantReference(this.toFloat())
-          ?: toString()
-        is Boolean, is Short, is Byte -> toString()
-        is Long -> toConstantReference(this)
-          // because @IntRange(to = Integer.MAX_VALUE) is valid and gets stored in a long
-          ?: toConstantReference(this.toInt())
-          ?: (toString() + "L")
+        is Double ->
+          toConstantReference(this)
+            // because @FloatRange(to = Float.MAX_VALUE) is valid and gets stored in a double
+            ?: toConstantReference(this.toFloat())
+            ?: toString()
+        is Boolean,
+        is Short,
+        is Byte -> toString()
+        is Long ->
+          toConstantReference(this)
+            // because @IntRange(to = Integer.MAX_VALUE) is valid and gets stored in a long
+            ?: toConstantReference(this.toInt())
+            ?: (toString() + "L")
         is Float -> toConstantReference(this) ?: (toString() + "f")
         null -> "null"
         else -> error("Unexpected literal type")
@@ -1108,7 +1044,8 @@ class InferredConstraints private constructor(
         }
         Integer.MAX_VALUE -> {
           "java.lang.Integer.MAX_VALUE"
-        } else -> null
+        }
+        else -> null
       }
     }
 
@@ -1119,7 +1056,8 @@ class InferredConstraints private constructor(
         }
         Long.MAX_VALUE -> {
           "java.lang.Long.MAX_VALUE"
-        } else -> toConstantReference(long.toInt())
+        }
+        else -> toConstantReference(long.toInt())
       }
     }
 
@@ -1158,10 +1096,8 @@ class InferredConstraints private constructor(
     }
 
     /**
-     * Generate source code to use for annotation argument initialization. This
-     * is not a general UAST to source facility; annotations are limited to
-     * only allow some very basic data types -- primitives, constants and class
-     * literals, and that's all we support here.
+     * Generate source code to use for annotation argument initialization. This is not a general UAST to source facility; annotations are
+     * limited to only allow some very basic data types -- primitives, constants and class literals, and that's all we support here.
      */
     private fun UExpression.toSource(kotlin: Boolean): String {
       when (this) {
@@ -1169,11 +1105,13 @@ class InferredConstraints private constructor(
         is UCallExpression -> {
           val sourcePsi = sourcePsi
           if (sourcePsi is PsiAnnotation) {
-            val annotation = UastFacade.convertElement(sourcePsi, null) as? UAnnotation
-              ?: return sourcePsi.toSource(kotlin).let { if (kotlin) it.removePrefix("@") else it }
-            val parameters = annotation.attributeValues.joinToString {
-              it.name + "=" + it.expression.toSource(kotlin)
-            }.let { if (it.isNotBlank()) "($it)" else "" }
+            val annotation =
+              UastFacade.convertElement(sourcePsi, null) as? UAnnotation
+                ?: return sourcePsi.toSource(kotlin).let { if (kotlin) it.removePrefix("@") else it }
+            val parameters =
+              annotation.attributeValues
+                .joinToString { it.name + "=" + it.expression.toSource(kotlin) }
+                .let { if (it.isNotBlank()) "($it)" else "" }
             return "${if (kotlin) "" else "@"}${annotation.qualifiedName}$parameters"
           }
           val arguments = valueArguments.joinToString { it.toSource(kotlin) }
@@ -1189,8 +1127,7 @@ class InferredConstraints private constructor(
           val resolved = resolve()
           if (resolved is PsiField) {
             val name = resolved.name
-            val cls = resolved.containingClass?.qualifiedName
-              ?: return name
+            val cls = resolved.containingClass?.qualifiedName ?: return name
             return "$cls.$name"
           }
           val psi = sourcePsi
@@ -1225,9 +1162,10 @@ class InferredConstraints private constructor(
           return if (kotlin) "[$arguments]" else "{$arguments}"
         }
         is PsiAnnotation -> {
-          val parameters = parameterList.attributes.joinToString {
-            it.name + "=" + it.value?.toSource(kotlin)
-          }.let { if (it.isNotBlank()) "($it)" else "" }
+          val parameters =
+            parameterList.attributes
+              .joinToString { it.name + "=" + it.value?.toSource(kotlin) }
+              .let { if (it.isNotBlank()) "($it)" else "" }
           return "@$qualifiedName$parameters"
         }
         is PsiPrefixExpression -> {
@@ -1240,8 +1178,7 @@ class InferredConstraints private constructor(
           val resolved = resolve()
           if (resolved is PsiField) {
             val name = resolved.name
-            val cls = resolved.containingClass?.qualifiedName
-              ?: return name
+            val cls = resolved.containingClass?.qualifiedName ?: return name
             return "$cls.$name"
           }
           error("Could not resolve reference $this")
@@ -1254,19 +1191,18 @@ class InferredConstraints private constructor(
       error("Could not generate source for expression $this")
     }
 
-    /**
-     * Returns a lower case description (including an indefinite article) of
-     * this [ResourceType].
-     */
+    /** Returns a lower case description (including an indefinite article) of this [ResourceType]. */
     fun describeResource(qualifiedName: String): String {
       return when (qualifiedName) {
         ANY_RES_ANNOTATION.newName() -> "a resource of any type"
         COLOR_INT_ANNOTATION.newName() -> "a color int"
         HALF_FLOAT_ANNOTATION.newName() -> "a half-precision float"
-        PX_ANNOTATION.newName(), DIMENSION_ANNOTATION.newName() -> "a pixel dimension"
+        PX_ANNOTATION.newName(),
+        DIMENSION_ANNOTATION.newName() -> "a pixel dimension"
         DIMENSION_DP_PLACEHOLDER -> "a density-independent (dp) pixel dimension"
         DIMENSION_SP_PLACEHOLDER -> "a scale-independent (sp) pixel dimension"
-        INT_RANGE_ANNOTATION.newName(), FLOAT_RANGE_ANNOTATION.newName() -> "a range"
+        INT_RANGE_ANNOTATION.newName(),
+        FLOAT_RANGE_ANNOTATION.newName() -> "a range"
         SIZE_ANNOTATION.newName() -> "a size"
         XML_RES_ANNOTATION.newName() -> "an XML resource"
         RAW_RES_ANNOTATION.newName() -> "a raw resource"
@@ -1275,105 +1211,95 @@ class InferredConstraints private constructor(
         else -> {
           val type = ResourceEvaluator.getTypeFromAnnotation(qualifiedName)
           val name = (type?.displayName ?: qualifiedName.substringAfterLast('.')).lowercase(Locale.US)
-          val article = when (name[0]) {
-            // it's more complicated in reality but works for the limited set of ResourceType descriptions
-            'a', 'e', 'i', 'o' -> "an"
-            else -> "a"
-          }
+          val article =
+            when (name[0]) {
+              // it's more complicated in reality but works for the limited set of ResourceType descriptions
+              'a',
+              'e',
+              'i',
+              'o' -> "an"
+              else -> "a"
+            }
           "$article $name"
         }
       }
     }
 
-    /**
-     * The index of the first resource-related annotation in the
-     * [annotationNames] array
-     */
+    /** The index of the first resource-related annotation in the [annotationNames] array */
     val firstResourceAnnotation: Int
 
-    /**
-     * The (inclusive) index of the last resource-related annotation in the
-     * [annotationNames] array
-     */
+    /** The (inclusive) index of the last resource-related annotation in the [annotationNames] array */
     val lastResourceAnnotation: Int
 
-    /**
-     * A bitmask which includes all the bits between [firstResourceAnnotation]
-     * and [lastResourceAnnotation], inclusive.
-     */
+    /** A bitmask which includes all the bits between [firstResourceAnnotation] and [lastResourceAnnotation], inclusive. */
     val resourceTypeMask: Long
 
     /** All annotations that [InferredConstraints] concerns itself with */
-    val annotationNames: Array<String> = arrayOf(
-      // The order matters; this is the order in which we'll list and add annotations into the source,
-      // so make sure it's logical.
+    val annotationNames: Array<String> =
+      arrayOf(
+        // The order matters; this is the order in which we'll list and add annotations into the source,
+        // so make sure it's logical.
 
-      // We also want resource type annotations to all be clustered together since we'll process them
-      // as a particular range. That's why for example the resource types are generally alphabetical but
-      // we list @AnyRes before @AnimatorRes.
+        // We also want resource type annotations to all be clustered together since we'll process them
+        // as a particular range. That's why for example the resource types are generally alphabetical but
+        // we list @AnyRes before @AnimatorRes.
 
-      ANY_RES_ANNOTATION.newName(), // first resource annotation, see firstResourceAnnotation below.
-      ANIMATOR_RES_ANNOTATION.newName(),
-      ANIM_RES_ANNOTATION.newName(),
-      ARRAY_RES_ANNOTATION.newName(),
-      ATTR_RES_ANNOTATION.newName(),
-      BOOL_RES_ANNOTATION.newName(),
-      COLOR_RES_ANNOTATION.newName(),
-      DIMEN_RES_ANNOTATION.newName(),
-      DRAWABLE_RES_ANNOTATION.newName(),
-      FONT_RES_ANNOTATION.newName(),
-      FRACTION_RES_ANNOTATION.newName(),
-      ID_RES_ANNOTATION.newName(),
-      INTEGER_RES_ANNOTATION.newName(),
-      INTERPOLATOR_RES_ANNOTATION.newName(),
-      LAYOUT_RES_ANNOTATION.newName(),
-      MENU_RES_ANNOTATION.newName(),
-      NAVIGATION_RES_ANNOTATION.newName(),
-      PLURALS_RES_ANNOTATION.newName(),
-      RAW_RES_ANNOTATION.newName(),
-      STRING_RES_ANNOTATION.newName(),
-      STYLEABLE_RES_ANNOTATION.newName(),
-      STYLE_RES_ANNOTATION.newName(),
-      TRANSITION_RES_ANNOTATION.newName(),
-      XML_RES_ANNOTATION.newName(),
-      COLOR_INT_ANNOTATION.newName(),
-      PX_ANNOTATION.newName(),
-      DIMENSION_ANNOTATION.newName(),
-      DIMENSION_SP_PLACEHOLDER,
-      DIMENSION_DP_PLACEHOLDER,
-      GRAVITY_INT_ANNOTATION.newName(),
-      HALF_FLOAT_ANNOTATION.newName(), // last resource annotation, see lastResourceAnnotation below
+        ANY_RES_ANNOTATION.newName(), // first resource annotation, see firstResourceAnnotation below.
+        ANIMATOR_RES_ANNOTATION.newName(),
+        ANIM_RES_ANNOTATION.newName(),
+        ARRAY_RES_ANNOTATION.newName(),
+        ATTR_RES_ANNOTATION.newName(),
+        BOOL_RES_ANNOTATION.newName(),
+        COLOR_RES_ANNOTATION.newName(),
+        DIMEN_RES_ANNOTATION.newName(),
+        DRAWABLE_RES_ANNOTATION.newName(),
+        FONT_RES_ANNOTATION.newName(),
+        FRACTION_RES_ANNOTATION.newName(),
+        ID_RES_ANNOTATION.newName(),
+        INTEGER_RES_ANNOTATION.newName(),
+        INTERPOLATOR_RES_ANNOTATION.newName(),
+        LAYOUT_RES_ANNOTATION.newName(),
+        MENU_RES_ANNOTATION.newName(),
+        NAVIGATION_RES_ANNOTATION.newName(),
+        PLURALS_RES_ANNOTATION.newName(),
+        RAW_RES_ANNOTATION.newName(),
+        STRING_RES_ANNOTATION.newName(),
+        STYLEABLE_RES_ANNOTATION.newName(),
+        STYLE_RES_ANNOTATION.newName(),
+        TRANSITION_RES_ANNOTATION.newName(),
+        XML_RES_ANNOTATION.newName(),
+        COLOR_INT_ANNOTATION.newName(),
+        PX_ANNOTATION.newName(),
+        DIMENSION_ANNOTATION.newName(),
+        DIMENSION_SP_PLACEHOLDER,
+        DIMENSION_DP_PLACEHOLDER,
+        GRAVITY_INT_ANNOTATION.newName(),
+        HALF_FLOAT_ANNOTATION.newName(), // last resource annotation, see lastResourceAnnotation below
+        KEEP_ANNOTATION.newName(),
+        CALL_SUPER_ANNOTATION.newName(),
+        CHECK_RESULT_ANNOTATION.newName(),
+        UI_THREAD_ANNOTATION.newName(),
+        MAIN_THREAD_ANNOTATION.newName(),
+        WORKER_THREAD_ANNOTATION.newName(),
+        BINDER_THREAD_ANNOTATION.newName(),
+        ANY_THREAD_ANNOTATION.newName(),
+        VISIBLE_FOR_TESTING_ANNOTATION.newName(),
+        SIZE_ANNOTATION.newName(),
+        FLOAT_RANGE_ANNOTATION.newName(),
+        INT_RANGE_ANNOTATION.newName(),
+        RESTRICT_TO_ANNOTATION.newName(),
+        PERMISSION_ANNOTATION.newName(),
+        PERMISSION_ANNOTATION_READ.newName(),
+        PERMISSION_ANNOTATION_WRITE.newName(),
+        INT_DEF_ANNOTATION.newName(),
+        LONG_DEF_ANNOTATION.newName(),
+        CHECKS_SDK_INT_AT_LEAST_ANNOTATION,
+        DISCOURAGED_ANNOTATION,
+        REQUIRES_API_ANNOTATION.newName(),
+        REQUIRES_FEATURE_ANNOTATION.newName(),
+      )
 
-      KEEP_ANNOTATION.newName(),
-      CALL_SUPER_ANNOTATION.newName(),
-
-      CHECK_RESULT_ANNOTATION.newName(),
-      UI_THREAD_ANNOTATION.newName(),
-      MAIN_THREAD_ANNOTATION.newName(),
-      WORKER_THREAD_ANNOTATION.newName(),
-      BINDER_THREAD_ANNOTATION.newName(),
-      ANY_THREAD_ANNOTATION.newName(),
-      VISIBLE_FOR_TESTING_ANNOTATION.newName(),
-      SIZE_ANNOTATION.newName(),
-      FLOAT_RANGE_ANNOTATION.newName(),
-      INT_RANGE_ANNOTATION.newName(),
-      RESTRICT_TO_ANNOTATION.newName(),
-      PERMISSION_ANNOTATION.newName(),
-      PERMISSION_ANNOTATION_READ.newName(),
-      PERMISSION_ANNOTATION_WRITE.newName(),
-      INT_DEF_ANNOTATION.newName(),
-      LONG_DEF_ANNOTATION.newName(),
-
-      CHECKS_SDK_INT_AT_LEAST_ANNOTATION,
-      DISCOURAGED_ANNOTATION,
-      REQUIRES_API_ANNOTATION.newName(),
-      REQUIRES_FEATURE_ANNOTATION.newName()
-    )
-
-    /**
-     * A map from qualified annotation name back to the corresponding index in
-     * the [annotationNames] array
-     */
+    /** A map from qualified annotation name back to the corresponding index in the [annotationNames] array */
     val annotationToIndex: MutableMap<String, Int> = mutableMapOf()
 
     private fun isResourceAnnotation(qualifiedName: String): Boolean {
@@ -1383,11 +1309,9 @@ class InferredConstraints private constructor(
     }
 
     /**
-     * Whether this annotation is one that does not take any arguments. This
-     * is true for most annotations. These can be treated more simply; we can
-     * simply record their presence in the [annotations] bit array; others
-     * require storing and possibly merging arguments (such as conflicting
-     * `@IntRange` bounds and so on).
+     * Whether this annotation is one that does not take any arguments. This is true for most annotations. These can be treated more simply;
+     * we can simply record their presence in the [annotations] bit array; others require storing and possibly merging arguments (such as
+     * conflicting `@IntRange` bounds and so on).
      */
     fun isMarkerAnnotation(qualifiedName: String): Boolean {
       return when (qualifiedName) {
@@ -1419,10 +1343,7 @@ class InferredConstraints private constructor(
       }
     }
 
-    /**
-     * Whether the given annotation, if returned from a method, implies that we
-     * should place it on the method itself.
-     */
+    /** Whether the given annotation, if returned from a method, implies that we should place it on the method itself. */
     fun transferReturnToMethod(qualifiedName: String): Boolean {
       if (isResourceAnnotation(qualifiedName)) {
         return true
@@ -1438,10 +1359,7 @@ class InferredConstraints private constructor(
       }
     }
 
-    /**
-     * Whether the given annotation, if inferred for an argument, implies that
-     * we should place it on the corresponding parameter itself.
-     */
+    /** Whether the given annotation, if inferred for an argument, implies that we should place it on the corresponding parameter itself. */
     fun transferArgumentToParameter(qualifiedName: String): Boolean {
       if (isResourceAnnotation(qualifiedName)) {
         if (qualifiedName == ANY_RES_ANNOTATION.newName()) {
@@ -1534,8 +1452,8 @@ class InferredConstraints private constructor(
     }
 
     /**
-     * The single bit mask which corresponds to an annotation (identified by
-     * qualified name) in a bitmask such as [InferredConstraints.annotations].
+     * The single bit mask which corresponds to an annotation (identified by qualified name) in a bitmask such as
+     * [InferredConstraints.annotations].
      */
     fun getAnnotationMask(qualifiedName: String): Long {
       val index = annotationToIndex[qualifiedName] ?: error("Unsupported annotation $qualifiedName")
@@ -1543,9 +1461,8 @@ class InferredConstraints private constructor(
     }
 
     /**
-     * The single bit mask which corresponds to an annotation (identified
-     * by the annotation's index in [annotationNames]) in a bitmask such as
-     * [InferredConstraints.annotations].
+     * The single bit mask which corresponds to an annotation (identified by the annotation's index in [annotationNames]) in a bitmask such
+     * as [InferredConstraints.annotations].
      */
     fun getAnnotationMask(annotationIndex: Int): Long {
       return 1L shl annotationIndex
@@ -1553,20 +1470,14 @@ class InferredConstraints private constructor(
   }
 }
 
-/**
- * A set of resource types, using the same bitmask as [InferredConstraints]
- * such that we can easily compare and add resources.
- */
+/** A set of resource types, using the same bitmask as [InferredConstraints] such that we can easily compare and add resources. */
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 inline class ResourceTypeSet(val bits: Long) : Iterable<String> {
   override fun toString(): String {
     return annotations().joinToString(", ") { "@${it.replace(SUPPORT_ANNOTATIONS_PREFIX.newName(), "")}" }
   }
 
-  /**
-   * Returns true if the annotation identified by [qualifiedName] is in this
-   * bit set
-   */
+  /** Returns true if the annotation identified by [qualifiedName] is in this bit set */
   fun contains(qualifiedName: String): Boolean {
     return (bits and InferredConstraints.getAnnotationMask(qualifiedName)) != 0L
   }

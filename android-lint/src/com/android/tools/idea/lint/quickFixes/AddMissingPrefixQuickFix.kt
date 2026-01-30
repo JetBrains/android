@@ -27,8 +27,7 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.xml.XmlNamespaceHelper
 
-class AddMissingPrefixQuickFix(element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class AddMissingPrefixQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   override fun getFamilyName() = "AddMissingPrefixQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
@@ -37,9 +36,7 @@ class AddMissingPrefixQuickFix(element: PsiElement) :
     }
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
-    val attribute =
-      PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false)
-        ?: return ModCommand.nop()
+    val attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java, false) ?: return ModCommand.nop()
     val tag = attribute.parent ?: return ModCommand.nop()
 
     @Suppress("UnstableApiUsage")

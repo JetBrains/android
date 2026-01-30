@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.dsl.android.model.android.packagingOptions
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import java.io.File
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class DexModelTest : AndroidGradleFileModelTestCase() {
 
@@ -34,8 +34,7 @@ class DexModelTest : AndroidGradleFileModelTestCase() {
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
-    PARSE("parse")
-    ;
+    PARSE("parse");
 
     override fun toFile(basePath: String, extension: String): File = super.toFile("$basePath/dexModel/$path", extension)
   }

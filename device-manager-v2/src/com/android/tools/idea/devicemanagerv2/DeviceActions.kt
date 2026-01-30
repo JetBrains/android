@@ -32,14 +32,10 @@ fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -
   updateFromDeviceAction(deviceHandle(), deviceActionProperty)
 
 /** Updates the AnActionEvent's presentation from the given DeviceAction's presentation. */
-fun AnActionEvent.updateFromDeviceTemplateAction(
-  deviceActionProperty: DeviceTemplate.() -> DeviceAction?
-) = updateFromDeviceAction(deviceTemplate(), deviceActionProperty)
+fun AnActionEvent.updateFromDeviceTemplateAction(deviceActionProperty: DeviceTemplate.() -> DeviceAction?) =
+  updateFromDeviceAction(deviceTemplate(), deviceActionProperty)
 
-private fun <T> AnActionEvent.updateFromDeviceAction(
-  handleOrTemplate: T?,
-  deviceActionProperty: T.() -> DeviceAction?,
-) {
+private fun <T> AnActionEvent.updateFromDeviceAction(handleOrTemplate: T?, deviceActionProperty: T.() -> DeviceAction?) {
   when (val deviceAction = handleOrTemplate?.deviceActionProperty()) {
     null -> presentation.isEnabledAndVisible = false
     else -> {
@@ -52,13 +48,10 @@ private fun <T> AnActionEvent.updateFromDeviceAction(
 }
 
 /**
- * Updates the presentation from the given action, except that it is also enabled if the
- * deactivation action is enabled. (This is for Delete and Wipe Data, which are enabled in the UI if
- * it's possible to stop the device in order to wipe / delete it.)
+ * Updates the presentation from the given action, except that it is also enabled if the deactivation action is enabled. (This is for Delete
+ * and Wipe Data, which are enabled in the UI if it's possible to stop the device in order to wipe / delete it.)
  */
-fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
-  deviceActionProperty: DeviceHandle.() -> DeviceAction?
-) {
+fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(deviceActionProperty: DeviceHandle.() -> DeviceAction?) {
   val handle = deviceHandle()
   when (val deviceAction = handle?.deviceActionProperty()) {
     null -> presentation.isEnabledAndVisible = false
@@ -72,16 +65,12 @@ fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
 
 fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
-internal fun AnActionEvent.deviceManagerPanel(): DeviceManagerPanel? =
-  DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
+internal fun AnActionEvent.deviceManagerPanel(): DeviceManagerPanel? = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
 
-internal fun AnActionEvent.deviceHandleFlow(): StateFlow<List<DeviceHandle>>? =
-  DEVICE_HANDLES_FLOW_KEY.getData(dataContext)
+internal fun AnActionEvent.deviceHandleFlow(): StateFlow<List<DeviceHandle>>? = DEVICE_HANDLES_FLOW_KEY.getData(dataContext)
 
-internal fun AnActionEvent.deviceManagerCoroutineScope(): CoroutineScope? =
-  DEVICE_MANAGER_COROUTINE_SCOPE_KEY.getData(dataContext)
+internal fun AnActionEvent.deviceManagerCoroutineScope(): CoroutineScope? = DEVICE_MANAGER_COROUTINE_SCOPE_KEY.getData(dataContext)
 
 internal fun DeviceAction?.isEnabled() = this?.presentation?.value?.enabled == true
 
-internal fun projectFromComponentContext(component: Component) =
-  DataManager.getInstance().getDataContext(component).project
+internal fun projectFromComponentContext(component: Component) = DataManager.getInstance().getDataContext(component).project

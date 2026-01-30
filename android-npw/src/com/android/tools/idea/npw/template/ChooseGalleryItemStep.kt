@@ -53,8 +53,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle.message
 
 /**
- * This step allows the user to select which type of component (Activity, Service, etc.) they want
- * to create.
+ * This step allows the user to select which type of component (Activity, Service, etc.) they want to create.
  *
  * TODO: This class and ChooseModuleTypeStep looks to have a lot in common.
  *
@@ -72,22 +71,11 @@ abstract class ChooseGalleryItemStep(
   private val moduleTemplates: List<NamedModuleTemplate>,
   private val messageKeys: WizardGalleryItemsStepMessageKeys,
   private val emptyItemLabel: String,
-  private val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> =
-    OptionalValueProperty.absent(),
-) :
-  SkippableWizardStep<WizardModel>(
-    BlankModel(),
-    message(messageKeys.addMessage, formFactor.id),
-    formFactor.icon,
-  ) {
+  private val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent(),
+) : SkippableWizardStep<WizardModel>(BlankModel(), message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
   abstract val templateRenderers: List<TemplateRenderer>
-  private val itemGallery =
-    WizardGallery(
-      title,
-      { t: NewTemplateRenderer? -> t!!.icon },
-      { t: NewTemplateRenderer? -> t!!.label },
-    )
+  private val itemGallery = WizardGallery(title, { t: NewTemplateRenderer? -> t!!.icon }, { t: NewTemplateRenderer? -> t!!.label })
   private val validatorPanel =
     ValidatorPanel(this, JBScrollPane(itemGallery), /* hideOnSuccess */ true).also {
       FormScalingUtil.scaleComponentTree(this.javaClass, it)
@@ -105,22 +93,14 @@ abstract class ChooseGalleryItemStep(
     targetDirectory: VirtualFile,
     messageKeys: WizardGalleryItemsStepMessageKeys,
     emptyItemLabel: String,
-  ) : this(
-    renderModel,
-    formFactor,
-    renderModel.androidFacet!!.getModuleTemplates(targetDirectory),
-    messageKeys,
-    emptyItemLabel,
-  )
+  ) : this(renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory), messageKeys, emptyItemLabel)
 
   override fun getComponent(): JComponent = validatorPanel
 
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    listOf(
-      ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates)
-    )
+    listOf(ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates))
 
   override fun dispose() = listeners.releaseAll()
 
@@ -160,22 +140,13 @@ abstract class ChooseGalleryItemStep(
 
     fun AndroidFacet.getModuleInfo() = StudioAndroidModuleInfo.getInstance(this)
 
-    val moduleApiLevel =
-      sdkInfo?.minApiLevel
-        ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel
-        ?: Integer.MAX_VALUE
+    val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
     val project = renderModel.project
     val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      renderModel.newTemplate.validate(
-        moduleApiLevel,
-        isNewModule,
-        isAndroidxProject,
-        renderModel.language.value,
-        messageKeys,
-      )
+      renderModel.newTemplate.validate(moduleApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
     )
 
     if (
@@ -183,18 +154,13 @@ abstract class ChooseGalleryItemStep(
         renderModel.newTemplate.constraints.contains(TemplateConstraint.Compose) &&
         !hasComposeMinAgpVersion(project)
     ) {
-      invalidParameterMessage.set(
-        message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION)
-      )
+      invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
     }
   }
 
   interface TemplateRenderer {
     val label: String
-    /**
-     * Return the image associated with the current template, if it specifies one, or null
-     * otherwise.
-     */
+    /** Return the image associated with the current template, if it specifies one, or null otherwise. */
     val icon: Icon?
     val exists: Boolean
   }
@@ -220,9 +186,7 @@ fun getDefaultSelectedTemplateIndex(
     val defaultTemplateIndex = firstOrNull { templateRenderers[it].label == emptyItemLabel }
     val firstValidTemplateIndex = firstOrNull { templateRenderers[it].exists }
 
-    defaultTemplateIndex
-      ?: firstValidTemplateIndex
-      ?: throw IllegalArgumentException("No valid Template found")
+    defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
   }
 
 @VisibleForTesting
@@ -236,10 +200,8 @@ fun Template.validate(
   when {
     this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
     moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
-    constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject ->
-      message(messageKeys.invalidAndroidX)
-    constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule ->
-      message(messageKeys.invalidNeedsKotlin)
+    constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
+    constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
     else -> ""
   }
 

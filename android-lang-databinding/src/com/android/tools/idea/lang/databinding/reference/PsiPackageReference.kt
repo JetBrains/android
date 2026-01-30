@@ -22,16 +22,15 @@ import com.intellij.psi.PsiPackage
 /**
  * Reference that refers to a [PsiPackage].
  *
- * The [textRange] of this reference should be the range of last id element.
- * Sample: PsiElement representing package "androidx.databinging"
+ * The [textRange] of this reference should be the range of last id element. Sample: PsiElement representing package "androidx.databinging"
  * <pre>
  * PsiElement text: androidx.databinging
  * PsiReferences:   [Ref1--]X[Ref2-----]
  * </pre>
  * where Ref1 would resolve to "androidx" and Ref2 to"androidx.databinging".
  */
-internal class PsiPackageReference(element: PsiDbRefExpr, target: PsiPackage)
-  : DbExprReference(element, target, element.lastChild.textRange.shiftLeft(element.textOffset)) {
+internal class PsiPackageReference(element: PsiDbRefExpr, target: PsiPackage) :
+  DbExprReference(element, target, element.lastChild.textRange.shiftLeft(element.textOffset)) {
   override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
   override val resolvedType: PsiModelClass? = null
 }

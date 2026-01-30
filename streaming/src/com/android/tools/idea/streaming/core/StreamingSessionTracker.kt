@@ -27,14 +27,17 @@ internal abstract class StreamingSessionTracker {
   protected abstract val streamingSessionProto: DeviceMirroringSession
 
   protected val sessionDurationSec: Long
-    @Synchronized get() {
+    @Synchronized
+    get() {
       check(streamingStartTime != 0L)
       return (System.currentTimeMillis() - streamingStartTime) / 1000
     }
+
   protected var streamingStartTime: Long = 0L
 
   /** Records the start of a device streaming session. Has no effect if streaming is already active. */
-  @Synchronized fun streamingStarted() {
+  @Synchronized
+  fun streamingStarted() {
     if (streamingStartTime == 0L) {
       reset()
       streamingStartTime = System.currentTimeMillis()
@@ -42,15 +45,17 @@ internal abstract class StreamingSessionTracker {
   }
 
   /** Records the end of the current device streaming session. Has no effect if streaming is not active. */
-  @Synchronized fun streamingEnded() {
+  @Synchronized
+  fun streamingEnded() {
     if (streamingStartTime == 0L) {
       return
     }
 
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION)
-      .setDeviceInfo(deviceInfoProto)
-      .setDeviceMirroringSession(streamingSessionProto)
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION)
+        .setDeviceInfo(deviceInfoProto)
+        .setDeviceMirroringSession(streamingSessionProto)
 
     UsageTracker.log(studioEvent)
     streamingStartTime = 0

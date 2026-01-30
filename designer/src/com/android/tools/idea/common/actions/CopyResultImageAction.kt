@@ -41,15 +41,11 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
 
   override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
 
-  override fun isDataFlavorSupported(flavor: DataFlavor): Boolean =
-    transferDataFlavors.contains(flavor)
+  override fun isDataFlavorSupported(flavor: DataFlavor): Boolean = transferDataFlavors.contains(flavor)
 }
 
 /** [AnAction] that copies the result image from the given [LayoutlibSceneManager]. */
-class CopyResultImageAction(
-  title: String = "Copy Image",
-  private val actionCompleteText: String = "Image copied",
-) : AnAction(title) {
+class CopyResultImageAction(title: String = "Copy Image", private val actionCompleteText: String = "Image copied") : AnAction(title) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -62,10 +58,7 @@ class CopyResultImageAction(
     val resultImage = getRenderResult(surface)?.renderedImage?.copy ?: return
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
 
-    e.project?.let {
-      Notification(IMAGE_COPIED_ID, actionCompleteText, "", NotificationType.INFORMATION)
-        .notify(e.project)
-    }
+    e.project?.let { Notification(IMAGE_COPIED_ID, actionCompleteText, "", NotificationType.INFORMATION).notify(e.project) }
   }
 
   private fun getRenderResult(surface: NlDesignSurface): RenderResult? {

@@ -64,8 +64,7 @@ class AvdDeviceDataTest {
     assertThat(data.ramStorage().get()).isEqualTo(Storage(8, Storage.Unit.GiB))
   }
 
-  private fun getDevice(id: String) =
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(id, "Google")
+  private fun getDevice(id: String) = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(id, "Google")
 
   @Test
   fun deviceType_automotive() {
@@ -81,8 +80,7 @@ class AvdDeviceDataTest {
   fun deviceType_automotivedistantdisplay() {
     val data = AvdDeviceData(getDevice("automotive_distant_display"), null)
 
-    assertThat(data.deviceType().get().get())
-      .isEqualTo(SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG)
+    assertThat(data.deviceType().get().get()).isEqualTo(SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG)
     assertThat(data.isAutomotive.get()).isTrue()
   }
 

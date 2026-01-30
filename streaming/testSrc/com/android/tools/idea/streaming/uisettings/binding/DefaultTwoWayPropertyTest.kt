@@ -24,8 +24,7 @@ class DefaultTwoWayPropertyTest {
   private var uiChangeCount = 0
   private var uiChangeLastValue = ""
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testSetValueFromUi() {
@@ -63,12 +62,13 @@ class DefaultTwoWayPropertyTest {
     assertThat(property.value).isEqualTo("CTRL-2")
   }
 
-  private fun createProperty() = DefaultTwoWayProperty(initialValue = "initial-value").apply {
-    uiChangeListener = ChangeListener { newValue ->
-      uiChangeCount++
-      uiChangeLastValue = newValue
+  private fun createProperty() =
+    DefaultTwoWayProperty(initialValue = "initial-value").apply {
+      uiChangeListener = ChangeListener { newValue ->
+        uiChangeCount++
+        uiChangeLastValue = newValue
+      }
     }
-  }
 
   private fun TwoWayProperty<String>.createAndAddListener(): Ui {
     val ui = Ui()

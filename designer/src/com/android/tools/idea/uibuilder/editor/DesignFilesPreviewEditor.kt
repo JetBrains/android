@@ -67,15 +67,11 @@ private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 const val DESIGN_FILES_PREVIEW_EDITOR_ID = "android-preview-designer"
 
 /**
- * [DesignerEditor] containing a [NlDesignSurface] without a border layer and a [WorkBench] without
- * any tool windows. It should be used as the preview portion of [DesignToolsSplitEditor] and to
- * open non-editable [DesignerEditorFileType] files, such as fonts and drawables.
+ * [DesignerEditor] containing a [NlDesignSurface] without a border layer and a [WorkBench] without any tool windows. It should be used as
+ * the preview portion of [DesignToolsSplitEditor] and to open non-editable [DesignerEditorFileType] files, such as fonts and drawables.
  */
-class DesignFilesPreviewEditor(
-  file: VirtualFile,
-  project: Project,
-  fileType: DesignerEditorFileType,
-) : DesignerEditor(file, project, fileType) {
+class DesignFilesPreviewEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFileType) :
+  DesignerEditor(file, project, fileType) {
 
   // Used when previewing animated selector file, to provide the required data for
   // AnimatedSelectorToolbar.
@@ -88,19 +84,14 @@ class DesignFilesPreviewEditor(
     val workBench = WorkBench<DesignSurface<*>>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface<*> = {
       NlSurfaceBuilder.builder(myProject, this)
-        .setActionManagerProvider { surface ->
-          PreviewEditorActionManagerProvider(surface as NlDesignSurface, fileType)
-        }
+        .setActionManagerProvider { surface -> PreviewEditorActionManagerProvider(surface as NlDesignSurface, fileType) }
         .build()
         .apply {
           val screenViewProvider =
             when (fileType) {
               is AdaptiveIconFileType,
               is DrawableFileType -> {
-                val lastBackgroundType =
-                  DesignSurfaceSettings.getInstance(project)
-                    .surfaceState
-                    .loadDrawableBackgroundType(project, file!!)
+                val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
                 DrawableScreenViewProvider(lastBackgroundType)
               }
               else -> NlScreenViewProvider.RENDER
@@ -118,9 +109,7 @@ class DesignFilesPreviewEditor(
         }
     }
 
-    val modelProvider =
-      if (fileType is AnimatedStateListFileType) MyAnimatedSelectorModelProvider()
-      else DEFAULT_MODEL_PROVIDER
+    val modelProvider = if (fileType is AnimatedStateListFileType) MyAnimatedSelectorModelProvider() else DEFAULT_MODEL_PROVIDER
 
     return DesignerEditorPanel(
       this,
@@ -144,21 +133,11 @@ class DesignFilesPreviewEditor(
       componentRegistrar: Consumer<NlComponent>,
       file: VirtualFile,
     ): NlModel {
-      val config =
-        ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig(file)
+      val config = ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig(file)
       animatedSelectorModel =
         WriteCommandAction.runWriteCommandAction(
           project,
-          Computable {
-            AnimatedSelectorModel(
-              file,
-              parentDisposable,
-              project,
-              buildTarget,
-              componentRegistrar,
-              config,
-            )
-          },
+          Computable { AnimatedSelectorModel(file, parentDisposable, project, buildTarget, componentRegistrar, config) },
         )
       return animatedSelectorModel!!.getNlModel()
     }
@@ -168,42 +147,18 @@ class DesignFilesPreviewEditor(
     val surface = panel.surface
     val toolbar =
       if (model?.type is AnimatedStateListTempFileType) {
-        AnimatedSelectorToolbar.createToolbar(
-          this,
-          animatedSelectorModel!!,
-          AnimatedSelectorListener(surface),
-          16,
-          0L,
-        )
+        AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
       } else if (model?.type is AnimatedVectorFileType || model?.type is AnimatedImageFileType) {
         // If opening an animated vector or image, add an unlimited animation bar
-        AnimationToolbar.createUnlimitedAnimationToolbar(
-          this,
-          AnimatedDrawableListener(surface),
-          16,
-          0L,
-        )
+        AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimatedDrawableListener(surface), 16, 0L)
       } else if (model?.type is AnimationListFileType) {
         // If opening an animation list, add an animation bar with progress
-        val animationDrawable =
-          (surface.getSceneManager(model) as? LayoutlibSceneManager)?.let {
-            findAnimationDrawable(it)
-          }
+        val animationDrawable = (surface.getSceneManager(model) as? LayoutlibSceneManager)?.let { findAnimationDrawable(it) }
         val maxTimeMs: Long =
-          animationDrawable?.let { drawable ->
-            (0 until drawable.numberOfFrames).sumOf { index ->
-              drawable.getDuration(index).toLong()
-            }
-          } ?: 0L
+          animationDrawable?.let { drawable -> (0 until drawable.numberOfFrames).sumOf { index -> drawable.getDuration(index).toLong() } }
+            ?: 0L
         val oneShotString = animationDrawable?.isOneShot ?: false
-        AnimationToolbar.createAnimationToolbar(
-            this,
-            AnimationListListener(surface),
-            16,
-            0,
-            maxTimeMs,
-          )
-          .apply { setLooping(!oneShotString) }
+        AnimationToolbar.createAnimationToolbar(this, AnimationListListener(surface), 16, 0, maxTimeMs).apply { setLooping(!oneShotString) }
       } else {
         null
       }
@@ -215,18 +170,12 @@ class DesignFilesPreviewEditor(
           FileEditorManagerListener.FILE_EDITOR_MANAGER,
           object : FileEditorManagerListener {
             override fun selectionChanged(event: FileEditorManagerEvent) {
-              if (
-                (event.oldEditor as? DesignToolsSplitEditor)?.designerEditor ==
-                  this@DesignFilesPreviewEditor
-              ) {
+              if ((event.oldEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
                 // pause the animation when this editor loses the focus.
                 if (toolbar.getPlayStatus() == PlayStatus.PLAY) {
                   toolbar.pause()
                 }
-              } else if (
-                (event.newEditor as? DesignToolsSplitEditor)?.designerEditor ==
-                  this@DesignFilesPreviewEditor
-              ) {
+              } else if ((event.newEditor as? DesignToolsSplitEditor)?.designerEditor == this@DesignFilesPreviewEditor) {
                 // Needs to reinflate when grabbing the focus back. This makes sure the elapsed
                 // frame time is correct when animation resuming.
                 toolbar.forceElapsedReset = true
@@ -254,13 +203,11 @@ class DesignFilesPreviewEditor(
 }
 
 /**
- * The [com.android.tools.idea.common.editor.ActionManager] for [DesignFilesPreviewEditor]. This
- * gives the chance to have different actions depends on the give [fileType].
+ * The [com.android.tools.idea.common.editor.ActionManager] for [DesignFilesPreviewEditor]. This gives the chance to have different actions
+ * depends on the give [fileType].
  */
-class PreviewEditorActionManagerProvider(
-  surface: NlDesignSurface,
-  private val fileType: DesignerEditorFileType?,
-) : NlActionManager(surface) {
+class PreviewEditorActionManagerProvider(surface: NlDesignSurface, private val fileType: DesignerEditorFileType?) :
+  NlActionManager(surface) {
   override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> {
     return when (fileType) {
       is AnimatedImageFileType,
@@ -295,10 +242,8 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
   private var modelTimeMap = listOf<Long>()
 
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
-    (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
-      sceneManager ->
-      val imageView =
-        sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView? ?: return
+    (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let { sceneManager ->
+      val imageView = sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView? ?: return
       val animationDrawable = imageView.drawable as? AnimationDrawable ?: return
       if (currentAnimationDrawable != animationDrawable) {
         updateAnimationDrawableInformation(controller, sceneManager)
@@ -311,14 +256,8 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
     }
   }
 
-  /**
-   * Update the maximum time and repeating to toolbar. Pre-process a time map to find the target
-   * Drawable Frame when playing animation.
-   */
-  private fun updateAnimationDrawableInformation(
-    controller: AnimationController,
-    manager: LayoutlibSceneManager,
-  ) {
+  /** Update the maximum time and repeating to toolbar. Pre-process a time map to find the target Drawable Frame when playing animation. */
+  private fun updateAnimationDrawableInformation(controller: AnimationController, manager: LayoutlibSceneManager) {
     val animationDrawable = findAnimationDrawable(manager)
     modelTimeMap =
       if (animationDrawable != null) {
@@ -341,9 +280,8 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
   }
 
   /**
-   * Binary search to find an index which [modelTimeMap].get(index - 1) <= [target] <
-   * [modelTimeMap].get(index)`. If [target] is larger than [modelTimeMap].get([modelTimeMap].size -
-   * 1), then we return [modelTimeMap].size - 1, because AnimationDrawable stays at last image when
+   * Binary search to find an index which [modelTimeMap].get(index - 1) <= [target] < [modelTimeMap].get(index)`. If [target] is larger than
+   * [modelTimeMap].get([modelTimeMap].size - 1), then we return [modelTimeMap].size - 1, because AnimationDrawable stays at last image when
    * animation ends.
    */
   private fun binarySearch(map: List<Long>, target: Long, start: Int, end: Int): Int {
@@ -359,10 +297,7 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
   }
 }
 
-/**
- * Animation listener for <animated-selector> file. <animated-selector> may have embedded
- * <animated-vector> and/or <animation-list>.
- */
+/** Animation listener for <animated-selector> file. <animated-selector> may have embedded <animated-vector> and/or <animation-list>. */
 private class AnimatedSelectorListener(val surface: DesignSurface<*>) : AnimationListener {
   private val animatedVectorDelegate = AnimatedDrawableListener(surface)
   private val animationListDelegate = AnimationListListener(surface)
@@ -373,8 +308,7 @@ private class AnimatedSelectorListener(val surface: DesignSurface<*>) : Animatio
         SdkConstants.TAG_ANIMATED_VECTOR -> {
           animatedVectorDelegate.animateTo(controller, framePositionMs)
         }
-        SdkConstants.TAG_ANIMATION_LIST ->
-          animationListDelegate.animateTo(controller, framePositionMs)
+        SdkConstants.TAG_ANIMATION_LIST -> animationListDelegate.animateTo(controller, framePositionMs)
         else -> {
           it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
           it.requestRender()
@@ -385,8 +319,7 @@ private class AnimatedSelectorListener(val surface: DesignSurface<*>) : Animatio
 }
 
 private fun findAnimationDrawable(sceneManager: LayoutlibSceneManager): AnimationDrawable? {
-  return (sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView?)?.drawable
-    as? AnimationDrawable
+  return (sceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as ImageView?)?.drawable as? AnimationDrawable
 }
 
 fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() =

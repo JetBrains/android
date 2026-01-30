@@ -91,16 +91,13 @@ class StackTraceConsole(
   private val tracker: AppInsightsTracker,
 ) : Disposable {
 
-  private val resolvedInfoCache =
-    InsightsExceptionInfoCache(project, GlobalSearchScope.allScope(project))
+  private val resolvedInfoCache = InsightsExceptionInfoCache(project, GlobalSearchScope.allScope(project))
   private val scope = AndroidCoroutineScope(this)
 
   private val stackTraceConsoleState =
     controller.state
       .mapNotNull { state ->
-        state.selectedIssue?.let { issue ->
-          StackTraceConsoleState(state.connections.selected, state.mode, issue, state.selectedEvent)
-        }
+        state.selectedIssue?.let { issue -> StackTraceConsoleState(state.connections.selected, state.mode, issue, state.selectedEvent) }
       }
       .distinctUntilChanged()
       .stateIn(scope, SharingStarted.Eagerly, StackTraceConsoleState())
@@ -135,10 +132,7 @@ class StackTraceConsole(
           .apply {
             appendText(
               "Stack trace not available",
-              SimpleTextAttributes(
-                SimpleTextAttributes.STYLE_PLAIN,
-                UIUtil.getLabelDisabledForeground(),
-              ),
+              SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getLabelDisabledForeground()),
             )
           }
 
@@ -155,8 +149,7 @@ class StackTraceConsole(
   private val emptyStatusText: AppInsightsStatusText =
     AppInsightsStatusText(emptyStatePane) { true }
       .apply {
-        val regularTextAttr =
-          SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getLabelTextForeground())
+        val regularTextAttr = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getLabelTextForeground())
         appendText("Could not fetch a stack trace for this event. Click ", regularTextAttr)
         appendText("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) { controller.refresh() }
         appendText(" to try again", regularTextAttr)
@@ -172,10 +165,7 @@ class StackTraceConsole(
 
     project.messageBus
       .connect(this)
-      .subscribe(
-        PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() },
-      )
+      .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() })
 
     stackPanel.add(consoleView, CONSOLE_VIEW)
     stackPanel.add(emptyStatePane, EMPTY_STATE_PANEL)
@@ -188,11 +178,7 @@ class StackTraceConsole(
 
   fun updateUI() {
     (consoleView.editor as? EditorEx)?.apply {
-      if (
-        EditorColorsManager.getInstance()
-          .globalScheme
-          .isDefaultForTheme(LafManager.getInstance().currentUIThemeLookAndFeel)
-      ) {
+      if (EditorColorsManager.getInstance().globalScheme.isDefaultForTheme(LafManager.getInstance().currentUIThemeLookAndFeel)) {
         backgroundColor = primaryContentBackground
       } else {
         backgroundColor = EditorColorsManager.getInstance().globalScheme.defaultBackground
@@ -213,17 +199,10 @@ class StackTraceConsole(
   private fun clearResolvedInfoCacheAndRehighlight() {
     resolvedInfoCache.clear()
 
-    DumbService.getInstance(project).smartInvokeLater {
-      synchronized(CONSOLE_LOCK) { consoleView.rehighlightHyperlinksAndFoldings() }
-    }
+    DumbService.getInstance(project).smartInvokeLater { synchronized(CONSOLE_LOCK) { consoleView.rehighlightHyperlinksAndFoldings() } }
   }
 
-  private fun printStack(
-    issue: AppInsightsIssue,
-    event: Event,
-    connection: Connection?,
-    consoleView: ConsoleViewImpl,
-  ) {
+  private fun printStack(issue: AppInsightsIssue, event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
     if (event == currentEvent) {
       return
     }
@@ -249,14 +228,10 @@ class StackTraceConsole(
       }
 
       fun Blames.getConsoleViewContentType() =
-        if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
-        else ConsoleViewContentType.NORMAL_OUTPUT
+        if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT else ConsoleViewContentType.NORMAL_OUTPUT
 
       for (stack in event.stacktraceGroup.exceptions) {
-        consoleView.print(
-          "${stack.rawExceptionMessage}\n",
-          stack.stacktrace.blames.getConsoleViewContentType(),
-        )
+        consoleView.print("${stack.rawExceptionMessage}\n", stack.stacktrace.blames.getConsoleViewContentType())
         val startOffset = consoleView.contentSize
         for (frame in stack.stacktrace.frames) {
           val frameLine = "    ${frame.withReplacedRawSymbolIfNecessary()}\n"
@@ -275,13 +250,7 @@ class StackTraceConsole(
                 return@runBatchFoldingOperation
               }
               val region =
-                consoleView.editor!!
-                  .foldingModel
-                  .addFoldRegion(
-                    startOffset,
-                    endOffset,
-                    "    <${stack.stacktrace.frames.size} frames>",
-                  )
+                consoleView.editor!!.foldingModel.addFoldRegion(startOffset, endOffset, "    <${stack.stacktrace.frames.size} frames>")
               if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
               }
@@ -378,9 +347,7 @@ class ListenerForTracking(
   private fun CoroutineScope.trackClick(hyperlinkInfo: HyperlinkInfo) = launch {
     val metricsEventBuilder =
       AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder().apply {
-        clickLocation =
-          AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
-            .TARGET_FILE_HYPER_LINK
+        clickLocation = AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation.TARGET_FILE_HYPER_LINK
         crashType = stackTraceConsoleState.value.issue?.issueDetails?.fatality?.toCrashType()
         localFile =
           (hyperlinkInfo as? FileHyperlinkInfo)?.descriptor?.file?.let {

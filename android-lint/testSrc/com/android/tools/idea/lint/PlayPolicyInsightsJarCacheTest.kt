@@ -37,11 +37,11 @@ import kotlin.io.path.extension
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
-import org.junit.rules.TemporaryFolder
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -78,16 +78,8 @@ class PlayPolicyInsightsJarCacheTest {
 
         override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
 
-        override fun downloadFully(
-          url: URL,
-          target: Path,
-          checksum: Checksum?,
-          indicator: ProgressIndicator,
-        ) {
-          val data =
-            if (target.extension == "sha256")
-              "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-            else "test"
+        override fun downloadFully(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {
+          val data = if (target.extension == "sha256") "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" else "test"
           target.toFile().writeBytes(data.toByteArray())
         }
       }
@@ -103,12 +95,7 @@ class PlayPolicyInsightsJarCacheTest {
         }
       }
       .whenever(mockRepository)
-      .findVersion(
-        any<String>(),
-        any<String>(),
-        anyOrNull<((Version) -> Boolean)>(),
-        any<Boolean>(),
-      )
+      .findVersion(any<String>(), any<String>(), anyOrNull<((Version) -> Boolean)>(), any<Boolean>())
   }
 
   @After
@@ -124,11 +111,7 @@ class PlayPolicyInsightsJarCacheTest {
       .whenever(mockDeprecationService)
       .getCurrentDeprecationData(any(), any())
     ApplicationManager.getApplication()
-      .replaceService(
-        DevServicesDeprecationDataProvider::class.java,
-        mockDeprecationService,
-        projectRule.disposable,
-      )
+      .replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationService, projectRule.disposable)
   }
 
   @Test
@@ -149,14 +132,7 @@ class PlayPolicyInsightsJarCacheTest {
   @Test
   fun testPlayPolicyInsightsInCanary() = runBlocking {
     configureDeprecationService(false)
-    val cache =
-      PlayPolicyInsightsJarCache(
-        client,
-        temporaryFolder.root.toPath(),
-        downloader,
-        mockRepository,
-        true,
-      )
+    val cache = PlayPolicyInsightsJarCache(client, temporaryFolder.root.toPath(), downloader, mockRepository, true)
     cache.getCustomRuleJars()
     cache.isUpdating.takeWhile { it }.collect()
     val updatedResult = cache.getCustomRuleJars().last()
@@ -166,14 +142,7 @@ class PlayPolicyInsightsJarCacheTest {
   @Test
   fun testPlayPolicyInsightsInStable() = runBlocking {
     configureDeprecationService(false)
-    val cache =
-      PlayPolicyInsightsJarCache(
-        client,
-        temporaryFolder.root.toPath(),
-        downloader,
-        mockRepository,
-        false,
-      )
+    val cache = PlayPolicyInsightsJarCache(client, temporaryFolder.root.toPath(), downloader, mockRepository, false)
     cache.getCustomRuleJars()
     cache.isUpdating.takeWhile { it }.collect()
     val updatedResult = cache.getCustomRuleJars().last()
@@ -185,18 +154,8 @@ class PlayPolicyInsightsJarCacheTest {
     configureDeprecationService()
     StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.override("")
     // Download a library before updating.
-    downloader.downloadFully(
-      mock(),
-      temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar"),
-      null,
-      mock(),
-    )
-    downloader.downloadFully(
-      mock(),
-      temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar.sha256"),
-      null,
-      mock(),
-    )
+    downloader.downloadFully(mock(), temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar"), null, mock())
+    downloader.downloadFully(mock(), temporaryFolder.root.toPath().resolve("insights-lint-7.7.7.jar.sha256"), null, mock())
 
     val cache = PlayPolicyInsightsJarCache(client, temporaryFolder.root.toPath(), downloader)
     cache.getCustomRuleJars()

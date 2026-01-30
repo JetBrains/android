@@ -320,7 +320,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun testIsModifiedDependency2(){
+  fun testIsModifiedDependency2() {
     writeToBuildFile(TestFileNameImpl.PROPERTY_MODIFIED_TEST_FILE2)
 
     val buildModel = gradleBuildModel

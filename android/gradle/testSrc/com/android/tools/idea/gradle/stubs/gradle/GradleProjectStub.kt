@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle
 
+import java.io.File
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
@@ -22,15 +23,9 @@ import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.GradleScript
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet
-import java.io.File
 
-class GradleProjectStub(
-  private val name: String,
-  private val path: String,
-  rootDir: File,
-  projectFile: File,
-  vararg taskNames: String
-) : GradleProject {
+class GradleProjectStub(private val name: String, private val path: String, rootDir: File, projectFile: File, vararg taskNames: String) :
+  GradleProject {
   private val projectIdentifier: ProjectIdentifier
   private val script: GradleScript
   private val tasks: MutableList<GradleTask>
@@ -38,50 +33,71 @@ class GradleProjectStub(
   init {
     script = GradleScript { projectFile }
     val buildIdentifier = BuildIdentifier { rootDir }
-    projectIdentifier = object : ProjectIdentifier {
-      override fun getProjectPath() = path
-      override fun getBuildIdentifier() = buildIdentifier
-    }
+    projectIdentifier =
+      object : ProjectIdentifier {
+        override fun getProjectPath() = path
+
+        override fun getBuildIdentifier() = buildIdentifier
+      }
     tasks = ArrayList()
     for (taskName in taskNames) {
-      val task: GradleTask = object : GradleTask {
-        override fun getProject() = this@GradleProjectStub
-        override fun getPath(): String {
-          throw UnsupportedOperationException()
-        }
-        override fun getBuildTreePath() = throw UnsupportedOperationException()
-        override fun getName() = taskName
-        override fun getDescription() = null
-        override fun getGroup() = null
-        override fun getProjectIdentifier(): ProjectIdentifier {
-          // task.getProjectIdentifier() is only called serialization: if we need a value we could use `projectIdentifier`
-          // but otherwise this is fine.
-          throw UnsupportedOperationException()
-        }
-        override fun getDisplayName() = taskName
+      val task: GradleTask =
+        object : GradleTask {
+          override fun getProject() = this@GradleProjectStub
 
-        override fun isPublic() = true
-      }
+          override fun getPath(): String {
+            throw UnsupportedOperationException()
+          }
+
+          override fun getBuildTreePath() = throw UnsupportedOperationException()
+
+          override fun getName() = taskName
+
+          override fun getDescription() = null
+
+          override fun getGroup() = null
+
+          override fun getProjectIdentifier(): ProjectIdentifier {
+            // task.getProjectIdentifier() is only called serialization: if we need a value we could use `projectIdentifier`
+            // but otherwise this is fine.
+            throw UnsupportedOperationException()
+          }
+
+          override fun getDisplayName() = taskName
+
+          override fun isPublic() = true
+        }
       tasks.add(task)
     }
   }
 
   override fun getTasks(): DomainObjectSet<GradleTask> = ImmutableDomainObjectSet.of(tasks)
+
   override fun getParent() = null
+
   override fun getChildren(): DomainObjectSet<out GradleProject> {
     throw UnsupportedOperationException()
   }
+
   override fun getPath() = path
+
   override fun findByPath(path: String): GradleProject? {
     throw UnsupportedOperationException()
   }
+
   override fun getName() = name
+
   override fun getDescription(): String? {
     throw UnsupportedOperationException()
   }
+
   override fun getBuildScript() = script
+
   override fun getBuildDirectory() = null
+
   override fun getProjectDirectory() = null
+
   override fun getProjectIdentifier() = projectIdentifier
+
   override fun getBuildTreePath(): String? = null
 }

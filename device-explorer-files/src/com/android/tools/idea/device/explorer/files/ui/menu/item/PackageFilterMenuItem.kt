@@ -28,10 +28,7 @@ class PackageFilterMenuItem(listener: DeviceFileExplorerActionListener) : TreeMe
   override fun getText(nodes: List<DeviceFileEntryNode>): String {
     val selectionText = if (isActionSelected) "off" else "on"
     val buttonText = "Turn $selectionText package filter"
-    return if(!shouldBeEnabled)
-      "<html>$buttonText<br>Disabled due to no application IDs found</html>"
-    else
-      buttonText
+    return if (!shouldBeEnabled) "<html>$buttonText<br>Disabled due to no application IDs found</html>" else buttonText
   }
 
   override val icon: Icon
@@ -66,5 +63,6 @@ class PackageFilterMenuItem(listener: DeviceFileExplorerActionListener) : TreeMe
   }
 
   override fun setSelected(selected: Boolean) {}
+
   override fun run(nodes: List<DeviceFileEntryNode>) {}
 }

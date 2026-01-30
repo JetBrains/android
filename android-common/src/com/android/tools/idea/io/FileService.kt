@@ -20,36 +20,24 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 
-/**
- * A service that provides common file operations for temporary files or directories.
- */
+/** A service that provides common file operations for temporary files or directories. */
 abstract class FileService {
   /**
-   * Location of where cached files should live - that is, these files are expected to stick around
-   * for "a while" but could be cleaned up at some point in the future (so their continued
-   * existence shouldn't be assumed).
+   * Location of where cached files should live - that is, these files are expected to stick around for "a while" but could be cleaned up at
+   * some point in the future (so their continued existence shouldn't be assumed).
    */
   abstract val cacheRoot: Path
 
-  /**
-   * Location of where temp files should live - that is, these files will stick around until the
-   * user exits the application.
-   */
+  /** Location of where temp files should live - that is, these files will stick around until the user exits the application. */
   abstract val tmpRoot: Path
 
-  /**
-   * Given a [path] that represents a directory, make sure it is created.
-   */
+  /** Given a [path] that represents a directory, make sure it is created. */
   protected abstract fun createDir(path: Path, deleteOnExit: Boolean)
 
-  /**
-   * Get a directory (ensuring it is created if it does not already exist) underneath the cache root.
-   */
+  /** Get a directory (ensuring it is created if it does not already exist) underneath the cache root. */
   fun getOrCreateCacheDir(name: String): Path = cacheRoot.resolve(name).also { createDir(it, false) }
 
-  /**
-   * Get a directory (ensuring it is created if it does not already exist) underneath the tmp root.
-   */
+  /** Get a directory (ensuring it is created if it does not already exist) underneath the tmp root. */
   fun getOrCreateTempDir(name: String): Path = tmpRoot.resolve(name).also { createDir(it, true) }
 }
 
@@ -73,8 +61,8 @@ abstract class DiskFileService : FileService() {
 /**
  * A service that provides common file operations with locations standardized across the IDE.
  *
- * @param subdir An (optional) additional subdirectory to create all cache / temp files under to
- *   reduce the chance of filename collisions between different areas.
+ * @param subdir An (optional) additional subdirectory to create all cache / temp files under to reduce the chance of filename collisions
+ *   between different areas.
  */
 class IdeFileService(subdir: String = "") : DiskFileService() {
   override val cacheRoot: Path = Paths.get(PathManager.getSystemPath()).resolve(subdir)

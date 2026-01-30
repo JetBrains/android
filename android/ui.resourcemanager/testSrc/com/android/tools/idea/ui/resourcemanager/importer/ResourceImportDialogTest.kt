@@ -41,13 +41,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil.findComponentsOfType
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JComboBox
@@ -62,33 +55,35 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 @RunsInEdt
 class ResourceImportDialogTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private lateinit var resourceImportDialog: ResourceImportDialog
   private lateinit var dialogViewModel: ResourceImportDialogViewModel
 
   @Before
   fun setUp() {
-    val token = object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
-      override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
-        File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
-    }
+    val token =
+      object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
+        override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
+          File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
+      }
     maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable)
     rule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
-    dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!,
-                                                    getAssets(
-                                                      rule.fixture.testDataPath).asSequence())
-    resourceImportDialog = runInEdtAndGet {
-      ResourceImportDialog(dialogViewModel)
-    }
+    dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, getAssets(rule.fixture.testDataPath).asSequence())
+    resourceImportDialog = runInEdtAndGet { ResourceImportDialog(dialogViewModel) }
   }
 
   @Test
@@ -101,17 +96,26 @@ class ResourceImportDialogTest {
     val combos = findComponentsOfType(row0, JComboBox::class.java)
     assertEquals(2, combos.size)
     assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos[0].selectedItem::class))
-    assertEquals(DensityQualifier::class, ((combos[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
+    assertEquals(
+      DensityQualifier::class,
+      ((combos[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class,
+    )
     assertEquals(Density.XHIGH, combos[1].selectedItem)
 
     val row1 = fileRows[1]
     val combos1 = findComponentsOfType(row1, JComboBox::class.java)
     assertEquals(4, combos1.size)
     assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos1[0].selectedItem::class))
-    assertEquals(NightModeQualifier::class, ((combos1[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
+    assertEquals(
+      NightModeQualifier::class,
+      ((combos1[0].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class,
+    )
     assertEquals(NightMode.NIGHT, combos1[1].selectedItem)
     assertEquals(QualifierConfigurationPanel.ResourceQualifierWrapper::class, (combos1[2].selectedItem::class))
-    assertEquals(DensityQualifier::class, ((combos1[2].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class)
+    assertEquals(
+      DensityQualifier::class,
+      ((combos1[2].selectedItem) as QualifierConfigurationPanel.ResourceQualifierWrapper).qualifier!!::class,
+    )
     assertEquals(Density.MEDIUM, combos1[3].selectedItem)
   }
 
@@ -141,8 +145,7 @@ class ResourceImportDialogTest {
     do {
       removeLabel1 = findComponentsOfType(parent, LinkLabel::class.java).firstOrNull { it.text.equals("Do not import", true) }
       removeLabel1?.doClick()
-    }
-    while (removeLabel1 != null)
+    } while (removeLabel1 != null)
 
     // Check that the DesignAssetSet has been removed from the model.
     assertFalse(dialogViewModel.assetSets.contains(firstAssetSet))
@@ -176,8 +179,7 @@ class ResourceImportDialogTest {
     do {
       removeLabel1 = findComponentsOfType(parent, LinkLabel::class.java).firstOrNull { it.text.equals("Do not import", true) }
       removeLabel1?.doClick()
-    }
-    while (removeLabel1 != null)
+    } while (removeLabel1 != null)
 
     // Check that the DesignAssetSet has been removed from the model.
     assertFalse(dialogViewModel.assetSets.contains(firstAssetSet))
@@ -196,9 +198,7 @@ class ResourceImportDialogTest {
     var parent: JComponent? = resourceImportDialog.cancelButton.parent as? JComponent
     var nextButton: JComponent? = null
     while (parent != null && nextButton == null) {
-      nextButton = findComponentsOfType(parent, JButton::class.java).firstOrNull {
-        it.text == "Next"
-      }
+      nextButton = findComponentsOfType(parent, JButton::class.java).firstOrNull { it.text == "Next" }
       parent = parent.parent as? JComponent
     }
     assertNotNull(nextButton)
@@ -209,22 +209,18 @@ class ResourceImportDialogTest {
 
   @After
   fun tearDown() {
-    runInEdtAndWait {
-      Disposer.dispose(resourceImportDialog.disposable)
-    }
+    runInEdtAndWait { Disposer.dispose(resourceImportDialog.disposable) }
   }
 }
 
-
 fun getAssets(path: String): List<DesignAsset> {
-  val mappers = setOf(
-    StaticStringMapper(mapOf(
-      "@2x" to DensityQualifier(Density.XHIGH),
-      "@3x" to DensityQualifier(Density.XXHIGH),
-      "" to DensityQualifier(Density.MEDIUM))),
-    StaticStringMapper(mapOf(
-      "_dark" to NightModeQualifier(NightMode.NIGHT)
-    )))
+  val mappers =
+    setOf(
+      StaticStringMapper(
+        mapOf("@2x" to DensityQualifier(Density.XHIGH), "@3x" to DensityQualifier(Density.XXHIGH), "" to DensityQualifier(Density.MEDIUM))
+      ),
+      StaticStringMapper(mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))),
+    )
   val qualifierMatcher = QualifierMatcher(mappers)
   val directory = VfsUtil.findFileByIoFile(File(path), true)!!
   return getDesignAssets(directory, setOf("png"), directory, qualifierMatcher)
@@ -233,25 +229,23 @@ fun getAssets(path: String): List<DesignAsset> {
 private val staticRule = AndroidProjectRule.onDisk()
 
 fun main(vararg args: String) {
-  val statement: Statement = object: Statement() {
-    override fun evaluate() {
-      staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
-      runInEdt {
-        UIManager.setLookAndFeel(DarculaLaf())
-        JFrame().apply {
-          contentPane = ResourceImportDialog(
-            ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(
-              staticRule.fixture.testDataPath).asSequence())).root
-          pack()
-          isVisible = true
+  val statement: Statement =
+    object : Statement() {
+      override fun evaluate() {
+        staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
+        runInEdt {
+          UIManager.setLookAndFeel(DarculaLaf())
+          JFrame().apply {
+            contentPane =
+              ResourceImportDialog(
+                  ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(staticRule.fixture.testDataPath).asSequence())
+                )
+                .root
+            pack()
+            isVisible = true
+          }
         }
       }
     }
-  }
-  staticRule
-    .apply(
-      statement,
-      Description.createSuiteDescription(ResourceImportDialogTest::class.java)
-    )
-    .evaluate()
+  staticRule.apply(statement, Description.createSuiteDescription(ResourceImportDialogTest::class.java)).evaluate()
 }

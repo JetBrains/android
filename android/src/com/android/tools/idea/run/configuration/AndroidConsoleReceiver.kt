@@ -20,20 +20,16 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 
-open class AndroidConsoleReceiver(private val isCancelledCheck: () -> Boolean,
-                                  private val consoleView: ConsoleView
-) : MultiLineReceiver() {
+open class AndroidConsoleReceiver(private val isCancelledCheck: () -> Boolean, private val consoleView: ConsoleView) : MultiLineReceiver() {
   val output = mutableListOf<String>()
 
   override fun isCancelled() = isCancelledCheck()
 
   override fun processNewLines(lines: Array<String>) {
-    lines.forEach {
-      consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
-    }
+    lines.forEach { consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT) }
     output.addAll(lines)
   }
 }
 
 open class AndroidBackgroundTaskReceiver(console: ConsoleView) :
-  AndroidConsoleReceiver({  ProgressIndicatorProvider.getGlobalProgressIndicator()?.isCanceled == true }, console)
+  AndroidConsoleReceiver({ ProgressIndicatorProvider.getGlobalProgressIndicator()?.isCanceled == true }, console)

@@ -22,20 +22,16 @@ interface IdeProductFlavor : IdeBaseConfig {
    */
   val dimension: String?
 
-  /**
-   * The name of the product flavor. This is only the value set on this product flavor.
-   */
+  /** The name of the product flavor. This is only the value set on this product flavor. */
   val applicationId: String?
 
   /**
-   * The version code associated with this flavor or null if none have been set.
-   * This is only the value set on this product flavor, not necessarily the actual
-   * version code used.
+   * The version code associated with this flavor or null if none have been set. This is only the value set on this product flavor, not
+   * necessarily the actual version code used.
    */
   val versionCode: Int?
 
-  /** The version name. This is only the value set on this product flavor.
-   */
+  /** The version name. This is only the value set on this product flavor. */
   val versionName: String?
 
   /** The minSdkVersion, or null if not specified. This is only the value set on this product flavor. */
@@ -48,27 +44,21 @@ interface IdeProductFlavor : IdeBaseConfig {
   val maxSdkVersion: Int?
 
   /**
-   * Specifies a sorted list of product flavors that the plugin should try to use when a direct
-   * variant match with a local module dependency is not possible.
+   * Specifies a sorted list of product flavors that the plugin should try to use when a direct variant match with a local module dependency
+   * is not possible.
    */
   val matchingFallbacks: List<String>
 
-  /**
-   * Specifies a flavor that the plugin should try to use from a given dimension in a dependency.
-   */
+  /** Specifies a flavor that the plugin should try to use from a given dimension in a dependency. */
   val missingDimensionStrategy: Map<String, List<String>>
 
-  /**
-   * The test application id. This is only the value set on this product flavor.
-   */
+  /** The test application id. This is only the value set on this product flavor. */
   val testApplicationId: String?
 
-  /**
-   * The test instrumentation runner. This is only the value set on this product flavor.
-   */
+  /** The test instrumentation runner. This is only the value set on this product flavor. */
   val testInstrumentationRunner: String?
 
-  /** The arguments for the test instrumentation runner.*/
+  /** The arguments for the test instrumentation runner. */
   val testInstrumentationRunnerArguments: Map<String, String>
 
   /** The handlingProfile value. This is only the value set on this product flavor. */
@@ -86,6 +76,6 @@ interface IdeProductFlavor : IdeBaseConfig {
 
   val vectorDrawables: IdeVectorDrawablesOptions?
 
-  /** Whether this product flavor is specified as a default by the user*/
+  /** Whether this product flavor is specified as a default by the user */
   val isDefault: Boolean?
 }

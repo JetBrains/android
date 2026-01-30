@@ -56,13 +56,10 @@ class AndroidDeclarativeWatchFaceConfigurationTypeTest {
   @Test
   fun `default make task is disabled`() {
     val factory = AndroidDeclarativeWatchFaceConfigurationType().configurationFactories.single()
-    val configSettings = RunManager.getInstance(project)
-      .createConfiguration("test config", factory)
+    val configSettings = RunManager.getInstance(project).createConfiguration("test config", factory)
     val beforeRunTasks = configSettings.configuration.beforeRunTasks
 
-    val makeTasks = beforeRunTasks
-      .filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>()
-      .filter { it.isEnabled }
+    val makeTasks = beforeRunTasks.filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>().filter { it.isEnabled }
     assertThat(makeTasks).isEmpty()
   }
 }

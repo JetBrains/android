@@ -65,10 +65,7 @@ open class AssistantPanelMetricsTracker(private val type: HelpPanelType) {
     )
   }
 
-  private fun createEventBuilder(
-    type: HelpPanelType,
-    action: HelpPanelAction,
-  ): DesignEditorHelpPanelEvent.Builder {
+  private fun createEventBuilder(type: HelpPanelType, action: HelpPanelAction): DesignEditorHelpPanelEvent.Builder {
     val event: DesignEditorHelpPanelEvent.Builder = DesignEditorHelpPanelEvent.newBuilder()
     event.helpPanelType = type
     event.action = action

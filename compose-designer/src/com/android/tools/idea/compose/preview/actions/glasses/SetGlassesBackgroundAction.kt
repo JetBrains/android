@@ -24,24 +24,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /** * An [ToggleAction] to set the [GlassesBackground] in a [NlDesignSurface]. */
-class SetGlassesBackgroundAction(val glassesBackground: GlassesBackground) :
-  ToggleAction(glassesBackground.displayName, null, null) {
+class SetGlassesBackgroundAction(val glassesBackground: GlassesBackground) : ToggleAction(glassesBackground.displayName, null, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
     val composePreviewElementInstance = e.dataContext.previewElement() ?: return false
     val previewElement = composePreviewElementInstance.previewBody ?: return false
     val backgroundManager = BackgroundManager.getInstance(e.project ?: return false)
 
-    return backgroundManager.getBackground(previewElement)?.image ==
-      glassesBackground.imageTransform
+    return backgroundManager.getBackground(previewElement)?.image == glassesBackground.imageTransform
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val composePreviewElementInstance = e.dataContext.previewElement() ?: return
     val previewElement = composePreviewElementInstance.previewBody ?: return
     val backgroundManager = BackgroundManager.getInstance(e.project ?: return)
-    val background =
-      if (state) PreviewDisplaySettings.Background.Image(glassesBackground.imageTransform) else null
+    val background = if (state) PreviewDisplaySettings.Background.Image(glassesBackground.imageTransform) else null
 
     backgroundManager.setBackground(previewElement, background)
   }

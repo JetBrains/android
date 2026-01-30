@@ -99,8 +99,7 @@ internal enum class ConnectionColumn(
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
   TIME("Time", 0.05, java.lang.Long::class.java, visible = true) {
-    override fun getValueFrom(data: ConnectionData) =
-      data.connectionEndTimeUs - data.requestStartTimeUs
+    override fun getValueFrom(data: ConnectionData) = data.connectionEndTimeUs - data.requestStartTimeUs
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = timeRenderer
   },
@@ -112,16 +111,14 @@ internal enum class ConnectionColumn(
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = timeRenderer
   },
   RESPONSE_TIME("Response Time", 0.05, java.lang.Long::class.java, visible = false) {
-    override fun getValueFrom(data: ConnectionData) =
-      data.responseCompleteTimeUs - data.responseStartTimeUs
+    override fun getValueFrom(data: ConnectionData) = data.responseCompleteTimeUs - data.responseStartTimeUs
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = timeRenderer
   },
   TIMELINE("Timeline", 0.5, java.lang.Long::class.java, visible = true) {
     override fun getValueFrom(data: ConnectionData) = data.requestStartTimeUs
 
-    override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) =
-      TimelineRenderer(table, model.timeline)
+    override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = TimelineRenderer(table, model.timeline)
   };
 
   abstract fun getValueFrom(data: ConnectionData): Any

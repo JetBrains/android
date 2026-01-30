@@ -21,28 +21,21 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import javax.swing.JComponent
 
 /**
- * Interface that should be implemented by the view exposing the API that is accessed by the
- * [PreviewRepresentation] implementation for updating the previews for the [PreviewElement]s. This
- * is to bypass the [PreviewViewModel] and use the [PreviewView] directly.
+ * Interface that should be implemented by the view exposing the API that is accessed by the [PreviewRepresentation] implementation for
+ * updating the previews for the [PreviewElement]s. This is to bypass the [PreviewViewModel] and use the [PreviewView] directly.
  */
 interface PreviewRepresentationView {
-  /**
-   * Returns the [JComponent] containing this [PreviewRepresentationView] that can be used to embed
-   * its other panels.
-   */
+  /** Returns the [JComponent] containing this [PreviewRepresentationView] that can be used to embed its other panels. */
   val component: JComponent
 
-  /**
-   * Allows replacing the bottom panel in the [PreviewView]. Used to display the animations
-   * component.
-   */
+  /** Allows replacing the bottom panel in the [PreviewView]. Used to display the animations component. */
   var bottomPanel: JComponent?
 
   val mainSurface: NlDesignSurface
 
   /**
-   * Set if Focus Mode is enabled, null if mode is disabled. In Focus Mode only one preview at a
-   * time is rendered. It is always on for Essentials Mode.
+   * Set if Focus Mode is enabled, null if mode is disabled. In Focus Mode only one preview at a time is rendered. It is always on for
+   * Essentials Mode.
    */
   var focusMode: FocusMode?
 }

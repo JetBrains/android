@@ -46,14 +46,10 @@ val DESIGNER_PREVIEW_FILE_TYPES =
   )
 
 /** Register and accepts types supported by [DesignFilesPreviewEditor]. */
-class DesignFilesPreviewEditorProvider :
-  DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES, DESIGN_FILES_PREVIEW_EDITOR_ID) {
+class DesignFilesPreviewEditorProvider : DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES, DESIGN_FILES_PREVIEW_EDITOR_ID) {
 
-  override fun createDesignEditor(
-    project: Project,
-    file: VirtualFile,
-    fileType: DesignerEditorFileType,
-  ) = DesignFilesPreviewEditor(file, project, fileType)
+  override fun createDesignEditor(project: Project, file: VirtualFile, fileType: DesignerEditorFileType) =
+    DesignFilesPreviewEditor(file, project, fileType)
 
   override fun handleCaretChanged(sceneView: SceneView, views: ImmutableList<NlComponent>) {
     sceneView.selectionModel.setSelection(views)

@@ -22,14 +22,12 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeUnit.DAYS
 
 /**
- * Provides settings for a basic reminder:
- * 1 - Monitors the passing of a specific [timePeriod]
- * 2 - Tracks whether the reminder has been ignored for this project
- * 3 - Tracks whether the reminder has been ignored for every project (for the Application)
- * 4 - If a NotificationGroup is passed, the reminder can be controlled for the application using that group
+ * Provides settings for a basic reminder: 1 - Monitors the passing of a specific [timePeriod] 2 - Tracks whether the reminder has been
+ * ignored for this project 3 - Tracks whether the reminder has been ignored for every project (for the Application) 4 - If a
+ * NotificationGroup is passed, the reminder can be controlled for the application using that group
  *
- * The settings are persisted across instances of this object, as long as two instances were created with the same
- * [settingsPropertyRoot] they will reuse the same information. This reminder is backed by intellij's [PropertiesComponent].
+ * The settings are persisted across instances of this object, as long as two instances were created with the same [settingsPropertyRoot]
+ * they will reuse the same information. This reminder is backed by intellij's [PropertiesComponent].
  */
 open class TimeBasedReminder(
   protected val project: Project,
@@ -38,45 +36,41 @@ open class TimeBasedReminder(
   private val notificationGroupId: String? = null,
   private val defaultNotificationType: NotificationDisplayType = NotificationDisplayType.STICKY_BALLOON,
   private val defaultShouldLog: Boolean = true,
-  private val defaultShouldRead: Boolean = true
+  private val defaultShouldRead: Boolean = true,
 ) {
   private val doNotAskForProjectPropertyString = "$settingsPropertyRoot.do.not.ask.for.project"
   var doNotAskForApplication: Boolean
     get() =
       if (notificationGroupId != null) {
         NotificationsConfiguration.getNotificationsConfiguration().getDisplayType(notificationGroupId) == NotificationDisplayType.NONE
-      }
-      else {
+      } else {
         PropertiesComponent.getInstance().getBoolean("$settingsPropertyRoot.do.not.show.again", false)
       }
     set(value) {
       if (notificationGroupId != null) {
         if (value) {
-          NotificationsConfiguration.getNotificationsConfiguration().changeSettings(notificationGroupId, NotificationDisplayType.NONE,
-                                                                                    /* do not log */ false, /* silence */ false)
+          NotificationsConfiguration.getNotificationsConfiguration()
+            .changeSettings(notificationGroupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false)
+        } else {
+          NotificationsConfiguration.getNotificationsConfiguration()
+            .changeSettings(notificationGroupId, defaultNotificationType, defaultShouldLog, defaultShouldRead)
         }
-        else {
-          NotificationsConfiguration.getNotificationsConfiguration().changeSettings(notificationGroupId, defaultNotificationType,
-                                                                                    defaultShouldLog, defaultShouldRead)
-        }
-      }
-      else {
+      } else {
         PropertiesComponent.getInstance().setValue("$settingsPropertyRoot.do.not.show.again", value)
       }
     }
+
   var doNotAskForProject: Boolean
-    get() =  PropertiesComponent.getInstance(project).getBoolean(doNotAskForProjectPropertyString, false)
+    get() = PropertiesComponent.getInstance(project).getBoolean(doNotAskForProjectPropertyString, false)
     set(value) = PropertiesComponent.getInstance(project).setValue(doNotAskForProjectPropertyString, value)
+
   var lastTimeStamp: Long
-    get() =  PropertiesComponent.getInstance(project).getLong("$settingsPropertyRoot.last.time.stamp", 0L)
+    get() = PropertiesComponent.getInstance(project).getLong("$settingsPropertyRoot.last.time.stamp", 0L)
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.last.time.stamp", value.toString())
 
-  /**
-   * Returns true iff "Do not ask for project" is false and "Do not ask for application" is false and
-   * the given [timePeriod] has passed.
-   */
+  /** Returns true iff "Do not ask for project" is false and "Do not ask for application" is false and the given [timePeriod] has passed. */
   @JvmOverloads
-  open fun shouldAsk(currentTime: Long = System.currentTimeMillis()) : Boolean {
+  open fun shouldAsk(currentTime: Long = System.currentTimeMillis()): Boolean {
     if (doNotAskForApplication || doNotAskForProject) return false
     return (currentTime - lastTimeStamp) >= timePeriod
   }

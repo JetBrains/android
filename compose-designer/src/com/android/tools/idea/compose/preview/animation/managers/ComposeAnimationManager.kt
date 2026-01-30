@@ -19,8 +19,8 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.tools.idea.preview.animation.AnimationManager
 
 /**
- * [ComposeAnimationManager] is handling the state of one subscribed [animation]. Each [animation]
- * is represented by one row in coordination panel.
+ * [ComposeAnimationManager] is handling the state of one subscribed [animation]. Each [animation] is represented by one row in coordination
+ * panel.
  */
 interface ComposeAnimationManager : AnimationManager {
   val animation: ComposeAnimation

@@ -79,15 +79,6 @@ import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
 import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -99,6 +90,15 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
 private const val DIFF_THRESHOLD = 0.01
@@ -164,28 +164,26 @@ class NlComponentTreeDefinitionTest {
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <TextView>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/a
-        @id/b
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+        """
           .trimIndent()
       )
 
     // Change the model by adding another TextView to the ConstraintLayout
     val constraint = model.treeReader.components.first()
-    val newTag =
-      XmlElementFactory.getInstance(model.project)
-        .createTagFromText("<TextView android.text=\"Hello\"/>")
+    val newTag = XmlElementFactory.getInstance(model.project).createTagFromText("<TextView android.text=\"Hello\"/>")
     constraint.addChild(NlComponent(model, newTag))
 
     // Notify the component tree
@@ -195,21 +193,21 @@ class NlComponentTreeDefinitionTest {
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <TextView>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/a
-        @id/b
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-      <TextView>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+          <TextView>
+        """
           .trimIndent()
       )
   }
@@ -223,8 +221,7 @@ class NlComponentTreeDefinitionTest {
     val model = createFlowModel()
     val table = attach(content, model)
     val rowWithInclude = 10
-    assertThat((table.getValueAt(rowWithInclude, 0) as? NlComponent)?.tagName)
-      .isEqualTo(SdkConstants.TAG_INCLUDE)
+    assertThat((table.getValueAt(rowWithInclude, 0) as? NlComponent)?.tagName).isEqualTo(SdkConstants.TAG_INCLUDE)
     val bounds = table.getCellRect(rowWithInclude, 0, true) // <include>
     val ui = FakeUi(table)
     ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.centerY.toInt())
@@ -233,8 +230,7 @@ class NlComponentTreeDefinitionTest {
     // Activating an include component should open the associated layout file: other.xml
     val v1 = ArgumentCaptor.forClass(VirtualFile::class.java)
     val v2 = ArgumentCaptor.forClass(VirtualFile::class.java)
-    verify(LayoutNavigationManager.getInstance(projectRule.project))
-      .pushFile(v1.capture(), v2.capture())
+    verify(LayoutNavigationManager.getInstance(projectRule.project)).pushFile(v1.capture(), v2.capture())
     assertThat(v1.value.path).endsWith("some_layout.xml")
     assertThat(v2.value.path).endsWith("other.xml")
   }
@@ -300,19 +296,19 @@ class NlComponentTreeDefinitionTest {
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/b
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-        <TextView>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+            <TextView>
+        """
           .trimIndent()
       )
   }
@@ -333,33 +329,27 @@ class NlComponentTreeDefinitionTest {
 
     // Move the CheckBox from the linear layout to the Flow before the b reference (the CheckBox
     // itself should move to the ConstraintLayout)
-    tableModel.insert(
-      flow,
-      data,
-      before = referenceB,
-      isMove = true,
-      draggedFromTree = listOf(checkBox),
-    )
+    tableModel.insert(flow, data, before = referenceB, isMove = true, draggedFromTree = listOf(checkBox))
     UIUtil.dispatchAllInvocationEvents()
 
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <TextView>
-      <CheckBox>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/a
-        @id/d
-        @id/b
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <CheckBox>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/d
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+        """
           .trimIndent()
       )
   }
@@ -379,32 +369,26 @@ class NlComponentTreeDefinitionTest {
     assertThat(tableModel.canInsert(flow, data)).isTrue()
 
     // Move the TextView from the Flow before the c reference
-    tableModel.insert(
-      flow,
-      data,
-      before = referenceC,
-      isMove = true,
-      draggedFromTree = listOf(textView),
-    )
+    tableModel.insert(flow, data, before = referenceC, isMove = true, draggedFromTree = listOf(textView))
     UIUtil.dispatchAllInvocationEvents()
 
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <Button>
-      <TextView>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/b
-        @id/a
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <Button>
+          <TextView>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/b
+            @id/a
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+        """
           .trimIndent()
       )
   }
@@ -431,20 +415,20 @@ class NlComponentTreeDefinitionTest {
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <TextView>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/a
-        @id/c
-        @id/b
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/c
+            @id/b
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+        """
           .trimIndent()
       )
   }
@@ -466,8 +450,7 @@ class NlComponentTreeDefinitionTest {
         android:layout_height="wrap_content" />
       """
         .trimIndent()
-    val data =
-      ItemTransferable(DnDTransferItem(DnDTransferComponent(IMAGE_VIEW, imageViewXml, 300, 300)))
+    val data = ItemTransferable(DnDTransferItem(DnDTransferComponent(IMAGE_VIEW, imageViewXml, 300, 300)))
     assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
     assertThat(tableModel.canInsert(linear, data)).isTrue()
     assertThat(tableModel.canInsert(button, data)).isFalse()
@@ -489,21 +472,21 @@ class NlComponentTreeDefinitionTest {
     assertThat(dumpTree(table.tree))
       .isEqualTo(
         """
-    <android.support.constraint.ConstraintLayout>
-      <TextView>
-      <Button>
-      <Switch>
-      <android.support.constraint.helper.Flow>
-        @id/a
-        @id/b
-        @id/c
-        @id/include
-        @id/linear
-      <include>
-      <LinearLayout>
-        <CheckBox>
-        <ImageView>
-    """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+            <ImageView>
+        """
           .trimIndent()
       )
 
@@ -521,16 +504,14 @@ class NlComponentTreeDefinitionTest {
     val linear = model.treeReader.find("linear")!!
     val mapViewXml =
       """
-        <com.google.android.gms.maps.MapView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+      <com.google.android.gms.maps.MapView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"/>
       """
         .trimIndent()
-    val data =
-      ItemTransferable(DnDTransferItem(DnDTransferComponent(MAP_VIEW, mapViewXml, 300, 300)))
+    val data = ItemTransferable(DnDTransferItem(DnDTransferComponent(MAP_VIEW, mapViewXml, 300, 300)))
     assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
-    val projectSystem =
-      TestProjectSystem(projectRule.project, availableDependencies = GOOGLE_PLAY_SERVICES)
+    val projectSystem = TestProjectSystem(projectRule.project, availableDependencies = GOOGLE_PLAY_SERVICES)
     projectSystem.useInTests()
 
     // Check dialog appearances:
@@ -556,7 +537,8 @@ class NlComponentTreeDefinitionTest {
         """
         This operation requires the library com.google.android.gms:play-services-maps.
 
-        Would you like to add this now?"""
+        Would you like to add this now?
+        """
           .trimIndent()
       )
 
@@ -578,7 +560,7 @@ class NlComponentTreeDefinitionTest {
           <LinearLayout>
             <CheckBox>
             <com.google.android.gms.maps.MapView>
-      """
+        """
           .trimIndent()
       )
   }
@@ -604,8 +586,7 @@ class NlComponentTreeDefinitionTest {
     val ui = FakeUi(table)
     val rect = table.getCellRect(1, 1, false)
     ui.mouse.moveTo(rect.midX, rect.midY)
-    assertThat(table.getToolTipText(rect.midX, rect.midY))
-      .isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
     ui.mouse.click(rect.midX, rect.midY)
     verify(issueService).showIssueForComponent(surface, textView)
   }
@@ -637,8 +618,7 @@ class NlComponentTreeDefinitionTest {
       balloon.click(androidButton)
       assertThat(textView.getAttribute(ANDROID_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
       checkPaint(androidButton, "android_${expectedValue ?: "clear"}_set.png")
-      assertThat(table.getToolTipText(rect.midX, rect.midY))
-        .isEqualTo(expectedValue ?: "Visibility not set")
+      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
     }
     for (index in listOf(1, 2, 3, 0)) {
       val toolsButton = toolsButtons[index]
@@ -650,8 +630,7 @@ class NlComponentTreeDefinitionTest {
       balloon.click(toolsButton)
       assertThat(textView.getAttribute(TOOLS_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
       checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_set.png")
-      assertThat(table.getToolTipText(rect.midX, rect.midY))
-        .isEqualTo(expectedValue ?: "Visibility not set")
+      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
     }
   }
 
@@ -667,17 +646,7 @@ class NlComponentTreeDefinitionTest {
 
   private fun TreeTableImpl.getToolTipText(x: Int, y: Int): String? =
     getToolTipText(
-      MouseEvent(
-        this,
-        MouseEvent.MOUSE_MOVED,
-        TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
-        0,
-        x,
-        y,
-        0,
-        false,
-        MouseEvent.BUTTON1,
-      )
+      MouseEvent(this, MouseEvent.MOUSE_MOVED, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()), 0, x, y, 0, false, MouseEvent.BUTTON1)
     )
 
   private fun checkPaint(
@@ -685,11 +654,9 @@ class NlComponentTreeDefinitionTest {
     expected: String,
     // For IntelliJ 2024.1 we are allowing a higher threshold to allow for the 2024.2 golden images
     // to be used. This can be removed after 2024.2 platform has been merged.
-    diffThreshold: Double =
-      if (ApplicationInfo.getInstance().build.baselineVersion == 241) 1.5 else DIFF_THRESHOLD,
+    diffThreshold: Double = if (ApplicationInfo.getInstance().build.baselineVersion == 241) 1.5 else DIFF_THRESHOLD,
   ) {
-    @Suppress("UndesirableClassUsage")
-    val image = BufferedImage(aButton.width, aButton.height, BufferedImage.TYPE_INT_ARGB)
+    @Suppress("UndesirableClassUsage") val image = BufferedImage(aButton.width, aButton.height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
     aButton.paint(graphics)
     graphics.dispose()
@@ -723,76 +690,28 @@ class NlComponentTreeDefinitionTest {
           .matchParentWidth()
           .matchParentHeight()
           .children(
-            component(SdkConstants.TEXT_VIEW)
-              .withBounds(50, 100, 100, 100)
-              .id("@+id/a")
-              .width("100dp")
-              .height("100dp"),
-            component(SdkConstants.BUTTON)
-              .withBounds(50, 200, 100, 100)
-              .id("@+id/b")
-              .width("100dp")
-              .height("100dp"),
-            component(SdkConstants.SWITCH)
-              .withBounds(50, 300, 100, 100)
-              .id("@+id/c")
-              .width("100dp")
-              .height("100dp"),
+            component(SdkConstants.TEXT_VIEW).withBounds(50, 100, 100, 100).id("@+id/a").width("100dp").height("100dp"),
+            component(SdkConstants.BUTTON).withBounds(50, 200, 100, 100).id("@+id/b").width("100dp").height("100dp"),
+            component(SdkConstants.SWITCH).withBounds(50, 300, 100, 100).id("@+id/c").width("100dp").height("100dp"),
             component(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
               .withBounds(50, 100, 100, 500)
               .id("@+id/flow")
               .viewObjectClassName(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
               .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent",
-              )
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent",
-              )
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-                "parent",
-              )
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.CONSTRAINT_REFERENCED_IDS,
-                "a,b,c,include,linear",
-              ),
-            component(SdkConstants.VIEW_INCLUDE)
-              .id("@+id/include")
-              .withAttribute("layout", "@layout/other"),
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS, "a,b,c,include,linear"),
+            component(SdkConstants.VIEW_INCLUDE).id("@+id/include").withAttribute("layout", "@layout/other"),
             component(SdkConstants.LINEAR_LAYOUT)
               .withBounds(0, 500, 1000, 500)
               .id("@+id/linear")
               .matchParentWidth()
               .height("500dp")
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                "parent",
-              )
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                "parent",
-              )
-              .withAttribute(
-                SdkConstants.AUTO_URI,
-                SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-                "parent",
-              )
-              .children(
-                component(SdkConstants.CHECK_BOX)
-                  .withBounds(0, 500, 100, 100)
-                  .id("@+id/d")
-                  .width("100dp")
-                  .height("100dp")
-              ),
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent")
+              .children(component(SdkConstants.CHECK_BOX).withBounds(0, 500, 100, 100).id("@+id/d").width("100dp").height("100dp")),
           ),
       )
       .build()
@@ -800,8 +719,7 @@ class NlComponentTreeDefinitionTest {
         val manager = it.surface.getSceneManager(it) as? SyncLayoutlibSceneManager
         manager?.ignoreRenderRequests = true
         manager?.ignoreModelUpdateRequests = true
-        val issueModel =
-          IssueModel.createForTesting(projectRule.testRootDisposable, projectRule.project)
+        val issueModel = IssueModel.createForTesting(projectRule.testRootDisposable, projectRule.project)
         whenever(it.surface.issueModel).thenReturn(issueModel)
       }
   }
@@ -820,14 +738,7 @@ class NlComponentTreeDefinitionTest {
   }
 
   private fun createToolContent(): ToolContent<DesignSurface<*>> {
-    val definition =
-      NlComponentTreeDefinition(
-        projectRule.project,
-        Side.LEFT,
-        Split.TOP,
-        AutoHide.DOCKED,
-        isPassThroughQueue = true,
-      )
+    val definition = NlComponentTreeDefinition(projectRule.project, Side.LEFT, Split.TOP, AutoHide.DOCKED, isPassThroughQueue = true)
     return definition.factory.apply(projectRule.testRootDisposable)
   }
 

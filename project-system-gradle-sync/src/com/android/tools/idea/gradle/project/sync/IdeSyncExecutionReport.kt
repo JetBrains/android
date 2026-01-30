@@ -17,6 +17,4 @@ package com.android.tools.idea.gradle.project.sync
 
 import java.io.Serializable
 
-data class IdeSyncExecutionReport(
-  val parallelFetchForV2ModelsEnabled: Boolean
-): Serializable
+data class IdeSyncExecutionReport(val parallelFetchForV2ModelsEnabled: Boolean) : Serializable

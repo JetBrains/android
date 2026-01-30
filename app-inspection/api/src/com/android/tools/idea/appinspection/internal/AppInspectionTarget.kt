@@ -24,24 +24,18 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatib
 /** Represents an app-inspection target process (on the device) being connected to from the host. */
 abstract class AppInspectionTarget {
   /**
-   * Launches an inspector in the connected process using the provided [params], returning an
-   * [AppInspectorMessenger] that can be used to communicate with it.
+   * Launches an inspector in the connected process using the provided [params], returning an [AppInspectorMessenger] that can be used to
+   * communicate with it.
    */
-  @WorkerThread
-  internal abstract suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
+  @WorkerThread internal abstract suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 
   /** Disposes all of the clients that were launched on this target. */
   @WorkerThread internal abstract suspend fun dispose()
 
   /**
-   * For each of the provided target, check its version compatibility and returns the result in
-   * [LibraryCompatibilityInfo].
+   * For each of the provided target, check its version compatibility and returns the result in [LibraryCompatibilityInfo].
    *
-   * The version check result can be in several different states. See
-   * [LibraryCompatibilityInfo.Status] for details.
+   * The version check result can be in several different states. See [LibraryCompatibilityInfo.Status] for details.
    */
-  @WorkerThread
-  abstract suspend fun getLibraryVersions(
-    libraryCoordinates: List<LibraryCompatibility>
-  ): List<LibraryCompatibilityInfo>
+  @WorkerThread abstract suspend fun getLibraryVersions(libraryCoordinates: List<LibraryCompatibility>): List<LibraryCompatibilityInfo>
 }

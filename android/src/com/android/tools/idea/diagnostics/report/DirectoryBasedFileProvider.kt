@@ -27,18 +27,14 @@ private val THREAD_DUMP_REGEX = Regex("^${THREAD_DUMP_DIR_PREFIX}.*")
 private val UI_FREEZE_REGEX = Regex("^${UI_FREEZE_DIR_PREFIX}-.*")
 private val HEAP_REPORT_REGEX = Regex("^$HEAP_REPORTS_DIR$")
 
-/**
- * DirectoryBasedFileProvider returns all files under directories
- * that match the specified regex.
- */
-class DirectoryBasedFileProvider(override val name: String,
-                                 private val regex: Regex,
-                                 private val pathProvider: PathProvider) : DiagnosticsSummaryFileProvider {
+/** DirectoryBasedFileProvider returns all files under directories that match the specified regex. */
+class DirectoryBasedFileProvider(override val name: String, private val regex: Regex, private val pathProvider: PathProvider) :
+  DiagnosticsSummaryFileProvider {
 
   override fun getFiles(project: Project?): List<FileInfo> {
     val list = mutableListOf<FileInfo>()
 
-    for(directory in getDirectories()) {
+    for (directory in getDirectories()) {
       for (path in getFilePaths(directory)) {
         list.add(FileInfo(path, Paths.get(pathProvider.logDir).relativize(path)))
       }
@@ -49,28 +45,28 @@ class DirectoryBasedFileProvider(override val name: String,
   /*
   Get all directories that match the specified regex.
    */
-  private fun getDirectories() = sequence<File> {
-    val directories = Paths.get(pathProvider.logDir).toFile().listFiles { dir, name ->
-      name.matches(regex) && File(dir, name).isDirectory
-    } ?: return@sequence
+  private fun getDirectories() =
+    sequence<File> {
+      val directories =
+        Paths.get(pathProvider.logDir).toFile().listFiles { dir, name -> name.matches(regex) && File(dir, name).isDirectory }
+          ?: return@sequence
 
-    for(directory in directories) {
-      yield(directory)
+      for (directory in directories) {
+        yield(directory)
+      }
     }
-  }
 
   /*
   Get all file paths under the specified directory.
    */
-  private fun getFilePaths(directory: File) = sequence<Path> {
-    val files = directory.listFiles { dir, name ->
-      File(dir, name).isFile
-    } ?: return@sequence
+  private fun getFilePaths(directory: File) =
+    sequence<Path> {
+      val files = directory.listFiles { dir, name -> File(dir, name).isFile } ?: return@sequence
 
-    for(file in files) {
-      yield(file.toPath())
+      for (file in files) {
+        yield(file.toPath())
+      }
     }
-  }
 }
 
 val ThreadDumpProvider = DirectoryBasedFileProvider("Thread Dumps", THREAD_DUMP_REGEX, DefaultPathProvider)

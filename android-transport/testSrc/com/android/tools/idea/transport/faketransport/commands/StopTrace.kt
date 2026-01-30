@@ -31,46 +31,54 @@ class StopTrace(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandle
     val endTimestamp = traceId + traceDurationNs
     // Fake StopTrace command for memory profiler assumes successful stop trace status event
     if (command.stopTrace.profilerType == Trace.ProfilerType.MEMORY) {
-      this.stopStatus = Trace.TraceStopStatus.newBuilder().apply {
-        status = Trace.TraceStopStatus.Status.SUCCESS
-      }.build()
+      this.stopStatus = Trace.TraceStopStatus.newBuilder().apply { status = Trace.TraceStopStatus.Status.SUCCESS }.build()
     }
 
-    lastTraceInfo = Trace.TraceInfo.newBuilder()
-      .setTraceId(traceId)
-      .setFromTimestamp(traceId)
-      .setToTimestamp(endTimestamp)
-      .setConfiguration(command.stopTrace.configuration)
-      .setStopStatus(stopStatus)
-      .build()
+    lastTraceInfo =
+      Trace.TraceInfo.newBuilder()
+        .setTraceId(traceId)
+        .setFromTimestamp(traceId)
+        .setToTimestamp(endTimestamp)
+        .setConfiguration(command.stopTrace.configuration)
+        .setStopStatus(stopStatus)
+        .build()
 
-    events.add(Common.Event.newBuilder().apply {
-      groupId = traceId
-      pid = command.pid
-      kind = Common.Event.Kind.TRACE_STATUS
-      timestamp = timer.currentTimeNs
-      commandId = command.commandId
-      traceStatus = Trace.TraceStatusData.newBuilder().apply {
-        traceStopStatus = stopStatus
-      }.build()
-    }.build())
+    events.add(
+      Common.Event.newBuilder()
+        .apply {
+          groupId = traceId
+          pid = command.pid
+          kind = Common.Event.Kind.TRACE_STATUS
+          timestamp = timer.currentTimeNs
+          commandId = command.commandId
+          traceStatus = Trace.TraceStatusData.newBuilder().apply { traceStopStatus = stopStatus }.build()
+        }
+        .build()
+    )
 
     // Only inserts a stop event if there is a matching start event with the same trace id
-    events.find { it.groupId == traceId }?.let {
-      events.add(Common.Event.newBuilder().apply {
-        groupId = traceId
-        pid = command.pid
-        kind = if (command.stopTrace.profilerType == Trace.ProfilerType.CPU) Common.Event.Kind.CPU_TRACE else Common.Event.Kind.MEMORY_TRACE
-        timestamp = endTimestamp
-        isEnded = true
-        traceData = Trace.TraceData.newBuilder().apply {
-          traceEnded = Trace.TraceData.TraceEnded.newBuilder().apply {
-            traceInfo = lastTraceInfo
-          }.build()
-        }.build()
-      }.build())
+    events
+      .find { it.groupId == traceId }
+      ?.let {
+        events.add(
+          Common.Event.newBuilder()
+            .apply {
+              groupId = traceId
+              pid = command.pid
+              kind =
+                if (command.stopTrace.profilerType == Trace.ProfilerType.CPU) Common.Event.Kind.CPU_TRACE
+                else Common.Event.Kind.MEMORY_TRACE
+              timestamp = endTimestamp
+              isEnded = true
+              traceData =
+                Trace.TraceData.newBuilder()
+                  .apply { traceEnded = Trace.TraceData.TraceEnded.newBuilder().apply { traceInfo = lastTraceInfo }.build() }
+                  .build()
+            }
+            .build()
+        )
 
-      addSessionEndedEvent(command, events)
-    }
+        addSessionEndedEvent(command, events)
+      }
   }
 }

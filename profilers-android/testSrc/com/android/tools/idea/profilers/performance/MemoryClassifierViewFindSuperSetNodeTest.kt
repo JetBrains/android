@@ -37,18 +37,17 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.google.common.truth.Truth.assertThat
+import java.lang.management.ManagementFactory
+import kotlin.system.measureTimeMillis
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.lang.management.ManagementFactory
-import kotlin.system.measureTimeMillis
 
 // Context: b/166815924
 class MemoryClassifierViewFindSuperSetNodeTest {
 
-  private val timingBenchmark = Benchmark.Builder("Smallest Superset Node Finding Time (millis)")
-    .setProject("Android Studio Profilers")
-    .build()
+  private val timingBenchmark =
+    Benchmark.Builder("Smallest Superset Node Finding Time (millis)").setProject("Android Studio Profilers").build()
 
   private val ideServices = FakeIdeProfilerServices()
   private val timer = FakeTimer()
@@ -57,41 +56,36 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   private val capture = FakeCaptureObject.Builder().build()
   private lateinit var view: MemoryClassifierView
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel(javaClass.simpleName, FakeTransportService(timer))
+  @get:Rule val grpcChannel = FakeGrpcChannel(javaClass.simpleName, FakeTransportService(timer))
 
   @Before
   fun init() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
-    stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply {
-      setReturnImmediateFuture(true)
-    })
+    stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader().apply { setReturnImmediateFuture(true) })
   }
 
-  @Test
-  fun `find node in flat view`() = benchmark("Flat", ClassGrouping.ARRANGE_BY_CLASS, makeInstances(4, 10, 1, {100}))
+  @Test fun `find node in flat view`() = benchmark("Flat", ClassGrouping.ARRANGE_BY_CLASS, makeInstances(4, 10, 1, { 100 }))
+
+  @Test fun `find node in hierarchical view`() = benchmark("Hier", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(4, 10, 10))
+
+  @Test fun `find node in deep hierarchical view`() = benchmark("Deep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(19, 2, 1))
 
   @Test
-  fun `find node in hierarchical view`() = benchmark("Hier", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(4, 10, 10))
-
-  @Test
-  fun `find node in deep hierarchical view`() = benchmark("Deep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(19, 2, 1))
-
-  @Test
-  fun `find many instances in deep stack`() = benchmark("XDeep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(200, 1, 1) { (200-it) * 10 });
+  fun `find many instances in deep stack`() =
+    benchmark("XDeep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(200, 1, 1) { (200 - it) * 10 })
 
   private fun benchmark(tag: String, grouping: ClassGrouping, instances: List<InstanceObject>) {
     capture.addInstanceObjects(instances.toSet())
-    stage.selectCaptureDuration(CaptureDurationData(1, false, false, CaptureEntry<CaptureObject>(Any()) { capture }),
-                                null)
+    stage.selectCaptureDuration(CaptureDurationData(1, false, false, CaptureEntry<CaptureObject>(Any()) { capture }), null)
     stage.captureSelection.selectHeapSet(capture.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID))
     stage.captureSelection.classGrouping = grouping
 
     // create view late to avoid the significant overhead of UI reacting during setup
-    view = MemoryClassifierView(stage.captureSelection, FakeIdeProfilerComponents()).apply {
-      refreshCapture()
-      refreshGrouping()
-    }
+    view =
+      MemoryClassifierView(stage.captureSelection, FakeIdeProfilerComponents()).apply {
+        refreshCapture()
+        refreshGrouping()
+      }
 
     val root = view.tree!!.model.root as MemoryObjectTreeNode<ClassifierSet>
     val targetInstance = instances.last()
@@ -106,9 +100,14 @@ class MemoryClassifierViewFindSuperSetNodeTest {
     timingBenchmark.log("Find-SuperSet-Node-$tag", elapsedMillis)
   }
 
-  private fun makeInstances(depth: Int, packagesPerNode: Int, classesPerNode: Int, instancesPerClass: (Int) -> Int = {1}): List<InstanceObject> {
+  private fun makeInstances(
+    depth: Int,
+    packagesPerNode: Int,
+    classesPerNode: Int,
+    instancesPerClass: (Int) -> Int = { 1 },
+  ): List<InstanceObject> {
     val nodes = mutableListOf<InstanceObject>()
-    var id = 0L;
+    var id = 0L
     fun makeInstancesAt(prefix: String, depth: Int) {
       (0 until classesPerNode).forEach {
         val className = "$prefix.c$it"
@@ -117,9 +116,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
         }
       }
       if (depth > 0) {
-        (0 until packagesPerNode).forEach {
-          makeInstancesAt("$prefix.p$it", depth - 1)
-        }
+        (0 until packagesPerNode).forEach { makeInstancesAt("$prefix.p$it", depth - 1) }
       }
     }
     makeInstancesAt("root", depth)
@@ -128,6 +125,6 @@ class MemoryClassifierViewFindSuperSetNodeTest {
 }
 
 private fun gc() {
-  repeat (10) { System.gc() }
-  repeat (10) { ManagementFactory.getMemoryMXBean().gc() }
+  repeat(10) { System.gc() }
+  repeat(10) { ManagementFactory.getMemoryMXBean().gc() }
 }

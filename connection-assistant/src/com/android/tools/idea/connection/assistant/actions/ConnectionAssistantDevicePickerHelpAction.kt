@@ -27,4 +27,3 @@ class ConnectionAssistantDevicePickerHelpAction : DevicePickerHelpAction() {
 
   override fun closeDialog() = true
 }
-

@@ -32,27 +32,22 @@ import org.junit.rules.RuleChain
 
 class WrapperVersionChecker {
 
-  val projectRule = AndroidGradleProjectRule();
+  val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   val project: Project
     get() = projectRule.project
 
   @Test
   fun `check gradle versions are mapped to respective sha-256`() {
-    listOf(
-      "9.2.1",
-      "9.2.0",
-      "9.1.0",
-      "9.0.0",
-      "8.14.2",
-    ).forEach {
+    listOf("9.2.1", "9.2.0", "9.1.0", "9.0.0", "8.14.2").forEach {
       val version = GradleVersion.version(it)
       val distributionSha = GradleWrapper.getDistributionSha256(version, true)
-      assertWithMessage("Cannot find SHA-256 for Gradle distribution $version. " +
-                        "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file.")
+      assertWithMessage(
+          "Cannot find SHA-256 for Gradle distribution $version. " +
+            "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file."
+        )
         .that(distributionSha ?: "[no entry found]")
         .hasLength(64)
     }
@@ -76,8 +71,10 @@ class WrapperVersionChecker {
   fun `check if NPW gradle version is found in SHA-256 list`() {
     val version = CompatibleGradleVersion.getCompatibleGradleVersion(AgpVersions.newProject).version
     val distributionSha256 = GradleWrapper.getDistributionSha256(version, true)
-    assertWithMessage("Cannot find SHA-256 for NPW Gradle distribution $version. " +
-                      "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file.")
+    assertWithMessage(
+        "Cannot find SHA-256 for NPW Gradle distribution $version. " +
+          "Run ./update-gradle-sha256-list script to update the 'gradle-sha256-list.txt' file."
+      )
       .that(distributionSha256 ?: "[no entry found]")
       .hasLength(64)
   }
@@ -87,15 +84,13 @@ class WrapperVersionChecker {
   fun `local distribution with a non-standard name gets calculated SHA-256`() {
     val wrapper = GradleWrapper.create(File(project.basePath!!), project)
     wrapper.updateDistribution(
-      File(project.basePath!!, "fork-distribution.zip")
-        .apply {
-          createNewFile()
-          writeText("Demo file content")
-        })
-    assertThat(GradleWrapper.distributionsChecksums.values)
-      .doesNotContain("fork-distribution.zip")
-    assertThat(GradleWrapper.distributionsChecksums.keys)
-      .doesNotContain("128cb5a7d324a4936b0ffbb7770161f72b2f51c676adbb45af792e7679d9672f")
+      File(project.basePath!!, "fork-distribution.zip").apply {
+        createNewFile()
+        writeText("Demo file content")
+      }
+    )
+    assertThat(GradleWrapper.distributionsChecksums.values).doesNotContain("fork-distribution.zip")
+    assertThat(GradleWrapper.distributionsChecksums.keys).doesNotContain("128cb5a7d324a4936b0ffbb7770161f72b2f51c676adbb45af792e7679d9672f")
 
     assertWithMessage("SHA-256 calculated for the local distribution is not as expected")
       .that(wrapper.distributionSha256)
@@ -107,24 +102,21 @@ class WrapperVersionChecker {
   fun `local distribution with a standard name gets correct SHA-256`() {
     val wrapper = GradleWrapper.create(File(project.basePath!!), project)
     wrapper.updateDistribution(
-      File(project.basePath!!, "gradle-9.2.0-bin.zip")
-        .apply {
-          createNewFile()
-          writeText("Demo file content")
-        })
+      File(project.basePath!!, "gradle-9.2.0-bin.zip").apply {
+        createNewFile()
+        writeText("Demo file content")
+      }
+    )
     assertWithMessage("SHA-256 calculated for the local standard distribution is not as expected")
       .that(wrapper.distributionSha256)
       .isEqualTo("df67a32e86e3276d011735facb1535f64d0d88df84fa87521e90becc2d735444")
   }
-
 
   @Test
   @RunsInEdt
   fun `inability to read local distribution file leaves no SHA-256 in wrapper`() {
     val wrapper = GradleWrapper.create(File(project.basePath!!), project)
     wrapper.updateDistribution(File(project.basePath!!, "missing_file.zip"))
-    assertWithMessage("SHA-256 was not expected to be found in wrapper")
-      .that(wrapper.distributionSha256)
-      .isNull()
+    assertWithMessage("SHA-256 was not expected to be found in wrapper").that(wrapper.distributionSha256).isNull()
   }
 }

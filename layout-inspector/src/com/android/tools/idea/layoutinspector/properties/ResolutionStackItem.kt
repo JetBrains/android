@@ -20,14 +20,10 @@ import com.android.ide.common.rendering.api.ResourceReference
 /**
  * Specifies an overridden property value.
  *
- * These value are usually found in styles where the value has been overridden by another style or a
- * direct attribute assignment of the xml tag.
+ * These value are usually found in styles where the value has been overridden by another style or a direct attribute assignment of the xml
+ * tag.
  */
-class ResolutionStackItem(
-  property: InspectorGroupPropertyItem,
-  reference: ResourceReference,
-  value: String?,
-) :
+class ResolutionStackItem(property: InspectorGroupPropertyItem, reference: ResourceReference, value: String?) :
   InspectorPropertyItem(
     property.namespace,
     property.name,

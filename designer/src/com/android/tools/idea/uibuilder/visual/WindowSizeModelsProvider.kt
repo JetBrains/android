@@ -38,11 +38,7 @@ private const val EFFECTIVE_FLAGS =
 
 object WindowSizeModelsProvider : VisualizationModelsProvider {
 
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
@@ -59,12 +55,8 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
     for (device in devices) {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
-      val betterFile =
-        ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
-      val model =
-        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+      val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
+      val model = NlModel.Builder(parentDisposable, buildTarget, betterFile, config).withComponentRegistrar(NlComponentRegistrar).build()
       model.displaySettings.setTooltip(config.toHtmlTooltip())
       model.displaySettings.setDisplayName(device.displayName)
       models.add(model)

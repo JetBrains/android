@@ -32,8 +32,7 @@ class InlayPresentationUtilsKtTest {
 
   private val popupRule = JBPopupRule()
   private val projectRule = ProjectRule()
-  @get:Rule
-  val rules: RuleChain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())
 
   private lateinit var console: ConsoleViewImpl
   private lateinit var inlay: InlayPresentation
@@ -65,11 +64,7 @@ class InlayPresentationUtilsKtTest {
     val popupPanel = getPopupPanel()
     assertThat(popupPanel).isNotNull()
     assertThat(
-        popupPanel!!
-          .contentPanel
-          .flatten()
-          .map { it.toString() }
-          .filter { it.contains("text=<html><div>test tooltip</div></html>") }
+        popupPanel!!.contentPanel.flatten().map { it.toString() }.filter { it.contains("text=<html><div>test tooltip</div></html>") }
       )
       .isNotEmpty()
 
@@ -79,12 +74,10 @@ class InlayPresentationUtilsKtTest {
   }
 
   private fun setUpConsole(): ConsoleViewImpl {
-    return (TextConsoleBuilderFactory.getInstance().createBuilder(projectRule.project).console
-        as ConsoleViewImpl)
-      .apply {
-        Disposer.register(projectRule.disposable, this)
-        component
-      }
+    return (TextConsoleBuilderFactory.getInstance().createBuilder(projectRule.project).console as ConsoleViewImpl).apply {
+      Disposer.register(projectRule.disposable, this)
+      component
+    }
   }
 
   private fun setUpInlayWithTooltip(text: String): InlayPresentation {

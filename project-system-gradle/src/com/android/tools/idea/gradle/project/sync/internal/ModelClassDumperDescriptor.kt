@@ -26,46 +26,35 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaGetter
 
-/**
- * A helper which given a class extracts and holds the list of Kotlin properties and Java property like getters.
- */
+/** A helper which given a class extracts and holds the list of Kotlin properties and Java property like getters. */
 class ModelClassDumperDescriptor(klass: KClass<Any>) {
   class Property(
-    /**
-     * The name of the property which is either the name of a Kotlin property or a name derived from a Java getter method name.
-     */
+    /** The name of the property which is either the name of a Kotlin property or a name derived from a Java getter method name. */
     val name: String,
 
-    /**
-     * A getter to fetch the value of the property.
-     */
-    val getter: (Any) -> Any?
+    /** A getter to fetch the value of the property. */
+    val getter: (Any) -> Any?,
   )
 
   private val allFunctions =
-    klass.memberFunctions.filter {
-      it.visibility == KVisibility.PUBLIC && it.parameters.size == 1
-    }.mapNotNull { function ->
-      maybeMapJavaGetterToKotlinProperty(function)?.let { name -> name to function }
-    }
+    klass.memberFunctions
+      .filter { it.visibility == KVisibility.PUBLIC && it.parameters.size == 1 }
+      .mapNotNull { function -> maybeMapJavaGetterToKotlinProperty(function)?.let { name -> name to function } }
       .toMap()
 
   private val allProperties = klass.memberProperties
 
-  private val allNamedProperties: List<Property> = allProperties.mapNotNull { property ->
-    when {
-      property.visibility == KVisibility.PUBLIC ->
-        Property(property.name, property.apply { isAccessible = true }::get)
-      property.visibility != KVisibility.PUBLIC -> allFunctions[property.name]?.let { function ->
-        Property(property.name, function.apply { isAccessible = true }::call)
+  private val allNamedProperties: List<Property> =
+    allProperties.mapNotNull { property ->
+      when {
+        property.visibility == KVisibility.PUBLIC -> Property(property.name, property.apply { isAccessible = true }::get)
+        property.visibility != KVisibility.PUBLIC ->
+          allFunctions[property.name]?.let { function -> Property(property.name, function.apply { isAccessible = true }::call) }
+        else -> null
       }
-      else -> null
     }
-  }
 
-  /**
-   * Return a property which is can be used to name instances of the class described by this object.
-   */
+  /** Return a property which is can be used to name instances of the class described by this object. */
   val displayNameProperty: Property? =
     allNamedProperties.singleOrNull { it.name == "path" }.takeIf { klass == File::class }
       ?: allNamedProperties.singleOrNull { it.name == "displayName" }
@@ -74,9 +63,7 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
       ?: allNamedProperties.singleOrNull { it.name.endsWith("Id") }
       ?: allNamedProperties.singleOrNull { it.name.endsWith("Name") }
 
-  /**
-   * The list of all properties that should be included in model dumps except [displayNameProperty].
-   */
+  /** The list of all properties that should be included in model dumps except [displayNameProperty]. */
   val namedProperties: List<Property> = allNamedProperties.filter { it.name != displayNameProperty?.name }
 
   companion object {

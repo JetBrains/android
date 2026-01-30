@@ -41,36 +41,25 @@ import org.jetbrains.kotlin.utils.ThreadSafe
 /** Cache of AAR resource repositories. */
 @ThreadSafe
 open class AarResourceRepositoryCache protected constructor() {
-  private val myProtoRepositories =
-    CacheBuilder.newBuilder().softValues().build<Path, AarProtoResourceRepository>()
-  private val mySourceRepositories =
-    CacheBuilder.newBuilder().softValues().build<ResourceFolder, AarSourceResourceRepository>()
+  private val myProtoRepositories = CacheBuilder.newBuilder().softValues().build<Path, AarProtoResourceRepository>()
+  private val mySourceRepositories = CacheBuilder.newBuilder().softValues().build<ResourceFolder, AarSourceResourceRepository>()
 
   /**
    * Returns a cached or a newly created source resource repository.
    *
    * @param library the AAR library
    * @return the resource repository
-   * @throws IllegalArgumentException if `library` doesn't contain resources or its resource folder
-   *   doesn't point to a local file system directory
+   * @throws IllegalArgumentException if `library` doesn't contain resources or its resource folder doesn't point to a local file system
+   *   directory
    */
   fun getSourceRepository(library: ExternalAndroidLibrary): AarSourceResourceRepository {
-    val resFolder =
-      library.resFolder
-        ?: throw IllegalArgumentException("No resources for ${library.libraryName()}")
+    val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for ${library.libraryName()}")
 
     if (resFolder.root.toPath() == null) {
-      throw IllegalArgumentException(
-        "Cannot find resource directory ${resFolder.root} for ${library.libraryName()}"
-      )
+      throw IllegalArgumentException("Cannot find resource directory ${resFolder.root} for ${library.libraryName()}")
     }
     return getRepository(resFolder, mySourceRepositories) {
-      AarSourceResourceRepository.create(
-        resFolder.root,
-        resFolder.resources,
-        library.libraryName(),
-        createCachingData(library),
-      )
+      AarSourceResourceRepository.create(resFolder.root, resFolder.resources, library.libraryName(), createCachingData(library))
     }
   }
 
@@ -79,21 +68,14 @@ open class AarResourceRepositoryCache protected constructor() {
    *
    * @param library the AAR library
    * @return the resource repository
-   * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a
-   *   file on the local file system
+   * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a file on the local file system
    */
   fun getProtoRepository(library: ExternalAndroidLibrary): AarProtoResourceRepository {
-    val resApkPath =
-      library.resApkFile
-        ?: throw IllegalArgumentException("No res.apk for ${library.libraryName()}")
+    val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for ${library.libraryName()}")
 
-    val resApkFile =
-      resApkPath.toPath()
-        ?: throw IllegalArgumentException("Cannot find $resApkPath for ${library.libraryName()}")
+    val resApkFile = resApkPath.toPath() ?: throw IllegalArgumentException("Cannot find $resApkPath for ${library.libraryName()}")
 
-    return getRepository(resApkFile, myProtoRepositories) {
-      AarProtoResourceRepository.create(resApkFile, library.libraryName())
-    }
+    return getRepository(resApkFile, myProtoRepositories) { AarProtoResourceRepository.create(resApkFile, library.libraryName()) }
   }
 
   fun removeProtoRepository(resApkFile: Path) {
@@ -143,8 +125,7 @@ open class AarResourceRepositoryCache protected constructor() {
     val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     val executor =
-      if (ApplicationManager.getApplication().isUnitTestMode) Executor {}
-      else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
+      if (ApplicationManager.getApplication().isUnitTestMode) Executor {} else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
     return CachingData(cacheFile, contentVersion, codeVersion, executor)
   }
 
@@ -154,11 +135,7 @@ open class AarResourceRepositoryCache protected constructor() {
     val instance: AarResourceRepositoryCache
       get() = ApplicationManager.getApplication().getService(AarResourceRepositoryCache::class.java)
 
-    private fun <K : Any, T : AarResourceRepository> getRepository(
-      key: K,
-      cache: Cache<K, T>,
-      factory: () -> T,
-    ): T {
+    private fun <K : Any, T : AarResourceRepository> getRepository(key: K, cache: Cache<K, T>, factory: () -> T): T {
       return cache.getAndUnwrap(key) { factory() }
     }
   }

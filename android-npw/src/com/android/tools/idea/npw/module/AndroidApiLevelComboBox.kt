@@ -55,22 +55,17 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   private fun loadSavedApi() {
     // Check for a saved value for the min api level
     val savedApiLevel =
-      PropertiesComponent.getInstance()
-        .getValue(getPropertiesComponentMinSdkKey(formFactor), formFactor.defaultApi.toString())
+      PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), formFactor.defaultApi.toString())
 
     // If the savedApiLevel is not available, just pick the last target in the list (-1 if the list
     // is empty)
-    selectedIndex =
-      (0 until itemCount).firstOrNull {
-        getItemAt(it)!!.minSdk.apiStringWithExtension == savedApiLevel
-      } ?: (itemCount - 1)
+    selectedIndex = (0 until itemCount).firstOrNull { getItemAt(it)!!.minSdk.apiStringWithExtension == savedApiLevel } ?: (itemCount - 1)
   }
 
   private fun saveSelectedApi(e: ItemEvent) {
     if (e.stateChange == ItemEvent.SELECTED && e.item != null) {
       val item = e.item as VersionItem
-      PropertiesComponent.getInstance()
-        .setValue(getPropertiesComponentMinSdkKey(formFactor), item.minSdk.apiStringWithExtension)
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), item.minSdk.apiStringWithExtension)
     }
   }
 }
@@ -78,15 +73,13 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
 fun getPropertiesComponentMinSdkKey(formFactor: FormFactor): String = formFactor.id + "minApi"
 
 /**
- * Ensures that the saved/persistent API level is at least the recommended version. This is done in
- * a separate method here such that it can be called only from the new project wizard, not for every
- * scenario the API level combo box is used (such as new module wizards.)
+ * Ensures that the saved/persistent API level is at least the recommended version. This is done in a separate method here such that it can
+ * be called only from the new project wizard, not for every scenario the API level combo box is used (such as new module wizards.)
  */
 fun ensureDefaultApiLevelAtLeastRecommended() {
   val key = getPropertiesComponentMinSdkKey(FormFactor.MOBILE)
   val recommended = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
-  val savedApiLevel =
-    PropertiesComponent.getInstance().getValue(key, recommended.toString()).toIntOrNull() ?: return
+  val savedApiLevel = PropertiesComponent.getInstance().getValue(key, recommended.toString()).toIntOrNull() ?: return
   if (savedApiLevel < recommended) {
     PropertiesComponent.getInstance().setValue(key, recommended.toString())
   }

@@ -20,10 +20,9 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
+import java.util.concurrent.LinkedBlockingDeque
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.LinkedBlockingDeque
-
 
 fun mockTransportProxy(): TransportProxy {
   val mockProxy: TransportProxy = mock()

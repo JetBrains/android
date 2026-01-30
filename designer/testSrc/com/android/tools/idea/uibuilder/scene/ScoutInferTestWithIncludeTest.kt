@@ -31,11 +31,7 @@ class ScoutInferTestWithIncludeTest : SceneTest() {
         .width("match_parent")
         .height("match_parent")
         .children(
-          component(SdkConstants.TEXT_VIEW)
-            .id("@+id/textview")
-            .withBounds(900, 980, 200, 40)
-            .width("match_parent")
-            .height("match_parent"),
+          component(SdkConstants.TEXT_VIEW).id("@+id/textview").withBounds(900, 980, 200, 40).width("match_parent").height("match_parent"),
           component(SdkConstants.TAG_INCLUDE)
             .id("@+id/the_include")
             .withAttribute("layout", "@layout/test_layout")
@@ -45,9 +41,7 @@ class ScoutInferTestWithIncludeTest : SceneTest() {
 
   // Regression test for b/219886505
   fun testInferWithIncludeDoesNotThrow() {
-    runWriteCommandAction(myFacet.module.project) {
-      Scout.inferConstraintsAndCommit(myModel.treeReader.components)
-    }
+    runWriteCommandAction(myFacet.module.project) { Scout.inferConstraintsAndCommit(myModel.treeReader.components) }
     myScreen
       .get("@+id/content_main")
       .expectXml(
@@ -73,7 +67,7 @@ class ScoutInferTestWithIncludeTest : SceneTest() {
                 app:layout_constraintStart_toStartOf="@+id/textview"
                 app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
-      """
+        """
           .trimIndent()
       )
   }

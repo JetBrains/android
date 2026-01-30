@@ -34,8 +34,7 @@ import org.mockito.Mockito.verify
 
 @RunWith(JUnit4::class)
 class AndroidProjectRootListenerTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val project by lazy { androidProjectRule.project }
   private val module by lazy { androidProjectRule.fixture.module }
@@ -56,9 +55,7 @@ class AndroidProjectRootListenerTest {
 
     // Simulate sync finishing.
     ApplicationManager.getApplication().invokeAndWait {
-      project.messageBus
-        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
-        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.

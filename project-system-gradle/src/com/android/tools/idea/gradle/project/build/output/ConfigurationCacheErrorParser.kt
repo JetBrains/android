@@ -34,21 +34,24 @@ class ConfigurationCacheErrorParser : FailureDetailsHandler {
     failure: GradleBuildFailureParser.ParsedFailureDetails,
     location: FilePosition?,
     parentEventId: Any,
-    messageConsumer: Consumer<in BuildEvent>
+    messageConsumer: Consumer<in BuildEvent>,
   ): Boolean {
     if (failure.whatWentWrongSectionLines.firstOrNull() == "Configuration cache problems found in this build.") {
-      //TODO Create bug: this should be FileMessage when possible, otherwise it is not presented under file. But this requires refactoring so do separately.
-      val buildIssue = object : ErrorMessageAwareBuildIssue {
-        override val description: String = failure.whatWentWrongSectionText.trimEnd()
-        override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-        override val title: String = BUILD_ISSUE_TITLE
-        override val buildErrorMessage: BuildErrorMessage
-          get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
+      // TODO Create bug: this should be FileMessage when possible, otherwise it is not presented under file. But this requires refactoring
+      // so do separately.
+      val buildIssue =
+        object : ErrorMessageAwareBuildIssue {
+          override val description: String = failure.whatWentWrongSectionText.trimEnd()
+          override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+          override val title: String = BUILD_ISSUE_TITLE
+          override val buildErrorMessage: BuildErrorMessage
+            get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
 
-        override fun getNavigatable(project: Project): Navigatable? = location?.let {
-          return FileNavigatable(project, it)
+          override fun getNavigatable(project: Project): Navigatable? =
+            location?.let {
+              return FileNavigatable(project, it)
+            }
         }
-      }
       messageConsumer.accept(BuildIssueEventImpl(parentEventId, buildIssue, MessageEvent.Kind.ERROR))
       return true
     }

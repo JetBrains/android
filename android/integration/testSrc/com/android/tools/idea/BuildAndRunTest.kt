@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.asdriver.tests.integration.RemoteDeviceManager
-import com.android.tools.idea.diagnostics.crash.LogBuffer
 import com.android.tools.testlib.Emulator
 import com.android.tools.testlib.LogFile
 import com.intellij.openapi.util.SystemInfo
@@ -30,20 +29,21 @@ import org.junit.Rule
 import org.junit.Test
 
 class BuildAndRunTest {
-  @JvmField @Rule
-  val system = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * Verifies that a project can build and deploy on an emulator
+   *
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
+   *
    * <p>
    * TT ID: 579892c4-e1b6-48f7-a5a2-69a12c12ce83
+   *
    * <p>
+   *
    *   <pre>
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module
@@ -75,7 +75,7 @@ class BuildAndRunTest {
         studio.waitForSyncSkippedLog()
         studio.waitForIndexingSkippedLog()
 
-        if(!SystemInfo.isWindows) {
+        if (!SystemInfo.isWindows) {
           emulator?.waitForBoot()
           emulator?.let { adb.waitForDevice(it) }
           logCat = emulator?.logCat!!

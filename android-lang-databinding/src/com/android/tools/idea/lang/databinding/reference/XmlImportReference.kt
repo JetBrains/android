@@ -24,12 +24,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.xml.XmlTag
 
-/**
- * Reference that points to an <import> tag in a layout XML file.
- */
-internal class XmlImportReference(element: PsiElement,
-                                  resolveTo: XmlTag,
-                                  private val import: ImportData) : DbExprReference(element, resolveTo) {
+/** Reference that points to an <import> tag in a layout XML file. */
+internal class XmlImportReference(element: PsiElement, resolveTo: XmlTag, private val import: ImportData) :
+  DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
       val project = element.project

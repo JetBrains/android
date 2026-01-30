@@ -19,10 +19,10 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
 import java.awt.Font
-import javax.swing.LayoutStyle
 import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.LayoutStyle
 
 private const val TITLE = "Take the Android Studio Survey"
 private const val TEXT_1 = "Help us improve Android Studio by taking a survey."
@@ -31,12 +31,9 @@ private const val TEXT_3 = "complete the survey at your convenience."
 private const val ASK_AGAIN_BUTTON_TEXT = "Ask again later"
 private const val OPEN_SURVEY_BUTTON_TEXT = "Open survey"
 
-class BenchmarkSurveyDialog()
-  : DialogWrapper(null) {
+class BenchmarkSurveyDialog() : DialogWrapper(null) {
 
-  private val panel = JPanel().apply {
-    preferredSize = JBDimension(300, 200)
-  }
+  private val panel = JPanel().apply { preferredSize = JBDimension(300, 200) }
 
   init {
     isAutoAdjustable = true
@@ -45,37 +42,28 @@ class BenchmarkSurveyDialog()
     isOKActionEnabled = true
     isModal = true
 
-    val label1 = JBLabel(TEXT_1).apply {
-      font = Font(font.name, Font.BOLD, font.size)
-    }
+    val label1 = JBLabel(TEXT_1).apply { font = Font(font.name, Font.BOLD, font.size) }
     val label2 = JBLabel(TEXT_2)
     val label3 = JBLabel(TEXT_3)
 
-    val groupLayout = GroupLayout(panel).apply {
-      autoCreateContainerGaps = true;
-    }
+    val groupLayout = GroupLayout(panel).apply { autoCreateContainerGaps = true }
 
-    val vGroup = groupLayout.createSequentialGroup()
-      .addComponent(label1)
-      .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-      .addComponent(label2)
-      .addComponent(label3)
+    val vGroup =
+      groupLayout
+        .createSequentialGroup()
+        .addComponent(label1)
+        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(label2)
+        .addComponent(label3)
     groupLayout.setVerticalGroup(vGroup)
 
-    val hGroup = groupLayout.createParallelGroup()
-      .addComponent(label1)
-      .addComponent(label2)
-      .addComponent(label3)
+    val hGroup = groupLayout.createParallelGroup().addComponent(label1).addComponent(label2).addComponent(label3)
     groupLayout.setHorizontalGroup(hGroup)
 
     panel.layout = groupLayout
 
-    setOKButtonText(
-      OPEN_SURVEY_BUTTON_TEXT
-    )
-    setCancelButtonText(
-      ASK_AGAIN_BUTTON_TEXT
-    )
+    setOKButtonText(OPEN_SURVEY_BUTTON_TEXT)
+    setCancelButtonText(ASK_AGAIN_BUTTON_TEXT)
 
     init()
   }

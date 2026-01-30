@@ -26,8 +26,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 private const val REFRESH_CONNECTION_COMMAND =
   "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation refresh-emulator-connection"
-private const val GET_PAIRING_STATUS_COMMAND =
-  "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation get-pairing-status"
+private const val GET_PAIRING_STATUS_COMMAND = "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation get-pairing-status"
 private val LOCAL_NODE_REGEX = "Local:\\[([^\\[\\]]+)]".toRegex()
 private val PEER_NODE_REGEX = "Peer:\\[([^\\[\\],]+),(true|false),(true|false)]".toRegex()
 private const val GMS_PACKAGE = "com.google.android.gms"
@@ -66,8 +65,7 @@ suspend fun IDevice.loadNodeID(): String {
 
 suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String {
   val cloudNetworkIdPattern = "cloud network id: "
-  val output =
-    runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
+  val output = runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
   return output
     .replace(cloudNetworkIdPattern, "")
     .run {
@@ -103,10 +101,7 @@ data class PairingStatus(val nodeId: String?, val connected: Boolean, val enable
 
 private suspend fun IDevice.getPairingStatus(peerNodeId: String): Pair<String?, PairingStatus?> {
   val (localNodeId, pairingStatuses) = getPairingStatus()
-  return Pair(
-    localNodeId,
-    pairingStatuses.firstOrNull { peerNodeId.equals(it.nodeId, ignoreCase = true) },
-  )
+  return Pair(localNodeId, pairingStatuses.firstOrNull { peerNodeId.equals(it.nodeId, ignoreCase = true) })
 }
 
 suspend fun IDevice.getPairingStatus(): Pair<String?, List<PairingStatus>> {
@@ -120,13 +115,7 @@ suspend fun IDevice.getPairingStatus(): Pair<String?, List<PairingStatus>> {
       ?.let { it.subList(2, it.size) }
       ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
       ?.filter { it.size >= 4 }
-      ?.map {
-        PairingStatus(
-          if ("null".equals(it[1], ignoreCase = true)) null else it[1],
-          it[2].toBoolean(),
-          it[3].toBoolean(),
-        )
-      }
+      ?.map { PairingStatus(if ("null".equals(it[1], ignoreCase = true)) null else it[1], it[2].toBoolean(), it[3].toBoolean()) }
   if (localNodeId == null) LOG.error("Unexpected pairing status: $broadcastResult")
   return Pair(localNodeId, peerStatus.orEmpty())
 }
@@ -143,8 +132,7 @@ suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boole
   val phoneDeviceID = phoneDevice.loadNodeID()
   if (phoneDeviceID.isNotEmpty()) {
     val wearPattern = "connection to peer node: $phoneDeviceID"
-    val wearOutput =
-      wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
+    val wearOutput = wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
     return wearOutput.isNotBlank()
   }
   return false

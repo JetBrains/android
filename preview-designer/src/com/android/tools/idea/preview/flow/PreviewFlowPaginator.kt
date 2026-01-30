@@ -29,11 +29,10 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
- * Class to paginate a given [inboundFlow] into different pages and keeping the content of the
- * selected page flowing towards the [currentPageFlow].
+ * Class to paginate a given [inboundFlow] into different pages and keeping the content of the selected page flowing towards the
+ * [currentPageFlow].
  */
-class PreviewFlowPaginator<T>(private val inboundFlow: StateFlow<FlowableCollection<T>>) :
-  PreviewPaginationManager {
+class PreviewFlowPaginator<T>(private val inboundFlow: StateFlow<FlowableCollection<T>>) : PreviewPaginationManager {
 
   /** State flow containing the current page size. */
   private val pageSizeFlow = MutableStateFlow(DEFAULT_PAGE_SIZE)
@@ -53,16 +52,12 @@ class PreviewFlowPaginator<T>(private val inboundFlow: StateFlow<FlowableCollect
 
   override var selectedPage: Int by selectedPageFlow::value
 
-  /**
-   * Flow containing the content of the given [inboundFlow] split in pages according to the current
-   * [pageSize].
-   */
+  /** Flow containing the content of the given [inboundFlow] split in pages according to the current [pageSize]. */
   private val pagesFlow =
     inboundFlow
       .combine(pageSizeFlow) { content, pageSize ->
         val pages =
-          if (StudioFlags.PREVIEW_PAGINATION.get()) content.chunked(pageSize)
-          else content.chunked(maxOf(1, content.sizeOrNull() ?: 1))
+          if (StudioFlags.PREVIEW_PAGINATION.get()) content.chunked(pageSize) else content.chunked(maxOf(1, content.sizeOrNull() ?: 1))
         totalElements = content.sizeOrNull()
         totalPages = pages.sizeOrNull()
         // Set selected page to last page if the previously selected one doesn't exist anymore
@@ -72,16 +67,12 @@ class PreviewFlowPaginator<T>(private val inboundFlow: StateFlow<FlowableCollect
       .distinctUntilChanged()
       .conflate()
 
-  /**
-   * Flow containing the content of the [inboundFlow] corresponding to the currently [selectedPage].
-   */
+  /** Flow containing the content of the [inboundFlow] corresponding to the currently [selectedPage]. */
   val currentPageFlow =
     pagesFlow
       .combine(selectedPageFlow) { pages, index ->
         if (pages is FlowableCollection.Uninitialized) FlowableCollection.Uninitialized
-        else
-          pages.getOrNull(index)?.let { FlowableCollection.Present(it) }
-            ?: FlowableCollection.Present(emptyList())
+        else pages.getOrNull(index)?.let { FlowableCollection.Present(it) } ?: FlowableCollection.Present(emptyList())
       }
       .distinctUntilChanged()
       .conflate()

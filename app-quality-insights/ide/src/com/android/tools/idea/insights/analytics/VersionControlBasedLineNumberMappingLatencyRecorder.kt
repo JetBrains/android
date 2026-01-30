@@ -19,8 +19,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import org.HdrHistogram.SingleWriterRecorder
 
 /**
- * This is to record the latency of version control based line number mapping happens in
- * [AppInsightsExternalAnnotator.doAnnotate].
+ * This is to record the latency of version control based line number mapping happens in [AppInsightsExternalAnnotator.doAnnotate].
  *
  * The total amount of latency has 2 parts:
  * 1) time to take for retrieving historical content
@@ -35,17 +34,11 @@ class VersionControlBasedLineNumberMappingLatencyRecorder {
     recorder.recordValue(latencyMs)
   }
 
-  /**
-   * Returns
-   * [AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency] or
-   * null if nothing to report.
-   */
-  fun reportLatency():
-    AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency? {
+  /** Returns [AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency] or null if nothing to report. */
+  fun reportLatency(): AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency? {
     val histogram = recorder.intervalHistogram.takeIf { it.totalCount != 0L } ?: return null
 
-    return AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency
-      .newBuilder()
+    return AppQualityInsightsUsageEvent.PerformanceStats.VersionControlBasedLineNumberMappingLatency.newBuilder()
       .apply {
         minLatencyMs = histogram.minValue
         p50LatencyMs = histogram.getValueAtPercentile(50.0)

@@ -80,15 +80,7 @@ class OpenWearHealthServicesPanelActionTest {
     doReturn(emulatorConfig).whenever(emulatorController).emulatorConfig
     Disposer.register(projectRule.testRootDisposable, emulatorController)
 
-    emulatorView =
-      EmulatorView(
-        projectRule.testRootDisposable,
-        emulatorController,
-        projectRule.project,
-        0,
-        null,
-        false,
-      )
+    emulatorView = EmulatorView(projectRule.testRootDisposable, emulatorController, projectRule.project, 0, null, false)
 
     val dataContext =
       SimpleDataContext.builder()
@@ -100,21 +92,15 @@ class OpenWearHealthServicesPanelActionTest {
     actionEvent = TestActionEvent.createTestEvent(dataContext)
 
     val deviceProvisionerService: DeviceProvisionerService = mock()
-    projectRule.project.replaceService(
-      DeviceProvisionerService::class.java,
-      deviceProvisionerService,
-      projectRule.testRootDisposable,
-    )
-    whenever(deviceProvisionerService.deviceProvisioner)
-      .thenReturn(deviceProvisionerRule.deviceProvisioner)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.testRootDisposable)
+    whenever(deviceProvisionerService.deviceProvisioner).thenReturn(deviceProvisionerRule.deviceProvisioner)
   }
 
   @Test
   fun `OpenWearHealthServicesPanelAction opens popup`() {
     val action = OpenWearHealthServicesPanelAction()
 
-    whenever(emulatorController.connectionState)
-      .thenReturn(EmulatorController.ConnectionState.CONNECTED)
+    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.CONNECTED)
     action.actionPerformed(actionEvent)
     assertThat(fakePopupRule.fakePopupFactory.balloonCount).isEqualTo(1)
   }
@@ -122,10 +108,8 @@ class OpenWearHealthServicesPanelActionTest {
   @Test
   fun `OpenWearHealthServicesPanelAction is disabled when the emulator is disconnected`() {
     val action = OpenWearHealthServicesPanelAction()
-    val emulator =
-      deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
-    whenever(emulatorController.connectionState)
-      .thenReturn(EmulatorController.ConnectionState.DISCONNECTED)
+    val emulator = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
+    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.DISCONNECTED)
     emulator.stateFlow.update { DeviceState.Disconnected(it.properties) }
 
     action.update(actionEvent)
@@ -136,16 +120,13 @@ class OpenWearHealthServicesPanelActionTest {
   @Test
   fun `OpenWearHealthServicesPanelAction is enabled when the emulator is connected`() {
     val action = OpenWearHealthServicesPanelAction()
-    val emulator =
-      deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
+    val emulator = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(emulatorView.deviceSerialNumber)
     val mockDevice =
       mock<ConnectedDevice>().also {
-        whenever(it.deviceInfoFlow)
-          .thenReturn(MutableStateFlow(DeviceInfo(emulatorView.deviceSerialNumber, ONLINE)))
+        whenever(it.deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(emulatorView.deviceSerialNumber, ONLINE)))
       }
     emulator.stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
-    whenever(emulatorController.connectionState)
-      .thenReturn(EmulatorController.ConnectionState.CONNECTED)
+    whenever(emulatorController.connectionState).thenReturn(EmulatorController.ConnectionState.CONNECTED)
 
     retryUntilPassing(5.seconds) {
       action.update(actionEvent)

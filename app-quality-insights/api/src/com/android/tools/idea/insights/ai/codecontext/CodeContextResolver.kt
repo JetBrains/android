@@ -42,8 +42,7 @@ data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val c
     val EMPTY = CodeContextTrackingInfo(0, 0, 0)
   }
 
-  fun toCodeContextDetailsProto():
-    AppQualityInsightsUsageEvent.InsightFetchDetails.CodeContextDetails.Builder =
+  fun toCodeContextDetailsProto(): AppQualityInsightsUsageEvent.InsightFetchDetails.CodeContextDetails.Builder =
     AppQualityInsightsUsageEvent.InsightFetchDetails.CodeContextDetails.newBuilder().apply {
       fileCount = this@CodeContextTrackingInfo.fileCount.toLong()
       lineCount = this@CodeContextTrackingInfo.lineCount.toLong()
@@ -57,12 +56,7 @@ enum class ContextSharingState {
 
   companion object {
     fun getContextSharingState(project: Project) =
-      if (
-        GeminiPluginApi.getInstance().isAvailable() &&
-          GeminiPluginApi.getInstance().isContextAllowed(project)
-      )
-        ALLOWED
-      else DISABLED
+      if (GeminiPluginApi.getInstance().isAvailable() && GeminiPluginApi.getInstance().isContextAllowed(project)) ALLOWED else DISABLED
   }
 }
 
@@ -74,19 +68,14 @@ data class CodeContextData(
     /** The default experiment state for users who disable context sharing settings. */
     val DISABLED = CodeContextData(emptyList(), contextSharingState = ContextSharingState.DISABLED)
 
-    fun empty(project: Project) =
-      CodeContextData(emptyList(), contextSharingState = getContextSharingState(project))
+    fun empty(project: Project) = CodeContextData(emptyList(), contextSharingState = getContextSharingState(project))
   }
 
   fun isEmpty() = codeContext.isEmpty()
 
   fun getTrackingInfo(): CodeContextTrackingInfo =
     codeContext.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
-      CodeContextTrackingInfo(
-        acc.fileCount + 1,
-        acc.lineCount + context.content.lines().size,
-        acc.charCount + context.content.count(),
-      )
+      CodeContextTrackingInfo(acc.fileCount + 1, acc.lineCount + context.content.lines().size, acc.charCount + context.content.count())
     }
 }
 
@@ -107,10 +96,7 @@ interface CodeContextResolver {
    */
   suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData
 
-  /**
-   * Similar to the above function but works off of the response given by Gemini, which is a list of
-   * names.
-   */
+  /** Similar to the above function but works off of the response given by Gemini, which is a list of names. */
   suspend fun getSource(fileNames: List<String>): CodeContextData
 
   /**
@@ -145,13 +131,8 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       val name = Paths.get(filePath).name
       val candidates = readAction { FilenameIndex.getVirtualFilesByName(name, scope) }
       candidates
-        .filter {
-          it.path.endsWith(filePath) && !GeminiPluginApi.getInstance().isFileExcluded(project, it)
-        }
-        .also { files ->
-          Logger.getInstance(CodeContextResolverImpl::class.java)
-            .debug("Found virtual files ${files.map { it.path }}")
-        }
+        .filter { it.path.endsWith(filePath) && !GeminiPluginApi.getInstance().isFileExcluded(project, it) }
+        .also { files -> Logger.getInstance(CodeContextResolverImpl::class.java).debug("Found virtual files ${files.map { it.path }}") }
     }
 
   private suspend fun getSource(stack: StacktraceGroup): List<CodeContext> {
@@ -161,18 +142,11 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       .flatMap { it.stacktrace.frames }
       .mapNotNull { frame ->
         val parsedException = parseExceptionLine(frame.rawSymbol) ?: return@mapNotNull null
-        val className =
-          frame.rawSymbol.substring(
-            parsedException.classFqnRange.startOffset,
-            parsedException.classFqnRange.endOffset,
-          )
+        val className = frame.rawSymbol.substring(parsedException.classFqnRange.startOffset, parsedException.classFqnRange.endOffset)
         readAction {
           val resolve = exceptionInfoCache.resolveClassOrFile(className, frame.file)
           if (resolve.isInLibrary || resolve.classes.isEmpty()) return@readAction null
-          val file =
-            resolve.classes.keys.firstOrNull {
-              index.isInSource(it) || index.isInGeneratedSources(it)
-            } ?: return@readAction null
+          val file = resolve.classes.keys.firstOrNull { index.isInSource(it) || index.isInGeneratedSources(it) } ?: return@readAction null
           if (GeminiPluginApi.getInstance().isFileExcluded(project, file)) return@readAction null
           CodeContext(file.path, file.readText())
         }

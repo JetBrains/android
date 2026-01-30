@@ -48,10 +48,7 @@ import javax.swing.JPanel
  *
  * @param componentTreePanel The component containing the tree panel.
  */
-class RootPanel(
-  private val parentDisposable: Disposable,
-  private val componentTreePanel: JComponent,
-) : BorderLayoutPanel(), Disposable {
+class RootPanel(private val parentDisposable: Disposable, private val componentTreePanel: JComponent) : BorderLayoutPanel(), Disposable {
   private val isEmbedded
     get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
 
@@ -113,10 +110,7 @@ class RootPanel(
   /** Panel shown when no other panel should be shown . */
   private val defaultPanel =
     createCenterTextPanel(
-      listOf(
-        "Waiting for Layout Inspector to connect.",
-        LayoutInspectorBundle.message("navigate.to.debuggable.application"),
-      )
+      listOf("Waiting for Layout Inspector to connect.", LayoutInspectorBundle.message("navigate.to.debuggable.application"))
     )
   /** Panel used to show a loading indicator. */
   private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
@@ -149,14 +143,12 @@ class RootPanel(
   private fun removeListeners() {
     layoutInspector?.inspectorModel?.removeConnectionListener(connectionListener)
     layoutInspector?.inspectorModel?.removeAttachStageListener(attachProgressProvider)
-    layoutInspector
-      ?.foregroundProcessDetection
-      ?.removeForegroundProcessListener(foregroundProcessListener)
+    layoutInspector?.foregroundProcessDetection?.removeForegroundProcessListener(foregroundProcessListener)
   }
 
   /**
-   * Update the state of the UI. Each time this method is called, all components are removed from
-   * the UI and the desired component is added. Only one component at a time should be visible.
+   * Update the state of the UI. Each time this method is called, all components are removed from the UI and the desired component is added.
+   * Only one component at a time should be visible.
    */
   private fun updateUiState(newUiState: UiState) = invokeLater {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -184,11 +176,8 @@ class RootPanel(
     repaint()
   }
 
-  private fun createLoadingObserver(
-    layoutInspector: LayoutInspector
-  ): LayoutInspectorLoadingObserver {
-    val layoutInspectorLoadingObserver =
-      LayoutInspectorLoadingObserver(parentDisposable, layoutInspector)
+  private fun createLoadingObserver(layoutInspector: LayoutInspector): LayoutInspectorLoadingObserver {
+    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(parentDisposable, layoutInspector)
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {
@@ -206,8 +195,7 @@ class RootPanel(
 }
 
 /**
- * Creates a panel containing text centered vertically and horizontally. The text is wrapped if it
- * doesn't fit in its container.
+ * Creates a panel containing text centered vertically and horizontally. The text is wrapped if it doesn't fit in its container.
  *
  * @param lines Each string is shown on a separate line.
  */

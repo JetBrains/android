@@ -43,8 +43,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 /**
- * Monitor device connection event. If the device is using USB and the negotiated speed is below the
- * max capable speed, we issue a notification.
+ * Monitor device connection event. If the device is using USB and the negotiated speed is below the max capable speed, we issue a
+ * notification.
  */
 class DeviceCableMonitor : ProjectActivity {
 
@@ -76,10 +76,7 @@ class DeviceCableMonitor : ProjectActivity {
   }
 
   private suspend fun monitorDevice(project: Project, handle: DeviceHandle) {
-    val deviceInfo =
-      handle.stateFlow
-        .mapNotNull { it.connectedDevice?.deviceInfo }
-        .first { it.connectionType == DeviceConnectionType.USB }
+    val deviceInfo = handle.stateFlow.mapNotNull { it.connectedDevice?.deviceInfo }.first { it.connectionType == DeviceConnectionType.USB }
 
     // Some older devices have USB controller bugs where they report being able to do USB 3 while
     // only being USB 2 capable. We filter them out via the API level since which they are likely to
@@ -138,9 +135,7 @@ class DeviceCableMonitor : ProjectActivity {
       .getNotificationGroup(NOTIFICATION_GROUP_ID)
       .createNotification(text, NotificationType.WARNING)
       .setTitle("Connection speed warning")
-      .addAction(
-        BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check")
-      )
+      .addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
       .setImportant(true)
   }
 

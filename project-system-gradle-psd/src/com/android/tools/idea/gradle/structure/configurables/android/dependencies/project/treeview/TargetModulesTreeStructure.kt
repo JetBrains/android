@@ -37,7 +37,7 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
 
   fun displayTargetModules(dependencyNodes: List<List<PsBaseDependency>>) {
     // Key: module name, Value: pair of module and version of the dependency used in the module.
-    val models = dependencyNodes.flatMap { it}
+    val models = dependencyNodes.flatMap { it }
     val libraryModels = models.filterIsInstance<PsLibraryAndroidDependency>()
     val moduleModels = models.filterIsInstance<PsModuleAndroidDependency>()
     if (libraryModels.isNotEmpty() && moduleModels.isNotEmpty()) return
@@ -49,38 +49,32 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
       return
     }
 
-    val resolvedLibraryModels = libraryModels.filterIsInstance<PsResolvedLibraryAndroidDependency>()
-      .groupBy { it.artifact.parent.parent }
+    val resolvedLibraryModels = libraryModels.filterIsInstance<PsResolvedLibraryAndroidDependency>().groupBy { it.artifact.parent.parent }
 
-    val declaredLibraryModels = libraryModels.filterIsInstance<PsDeclaredLibraryAndroidDependency>()
-      .groupBy { it.parent }
+    val declaredLibraryModels = libraryModels.filterIsInstance<PsDeclaredLibraryAndroidDependency>().groupBy { it.parent }
 
     fun createModuleNode(module: PsAndroidModule): TargetAndroidModuleNode {
-      val moduleResolvedLibraryModels = resolvedLibraryModels[module]
-        ?.groupBy { it.artifact }
-        .orEmpty()
+      val moduleResolvedLibraryModels = resolvedLibraryModels[module]?.groupBy { it.artifact }.orEmpty()
       val moduleDeclaredLibraryConfigurationNames = declaredLibraryModels[module]?.map { it.configurationName }?.toSet() ?: emptySet()
 
       val artifacts =
         (moduleResolvedLibraryModels.keys +
-         (module.resolvedVariants.flatMap { it.artifacts }.filter { artifact ->
-           moduleDeclaredLibraryConfigurationNames.any {
-             artifact.containsConfigurationName(it)
-           }
-         })
-        ).sortedWith(comparator)
+            (module.resolvedVariants
+              .flatMap { it.artifacts }
+              .filter { artifact -> moduleDeclaredLibraryConfigurationNames.any { artifact.containsConfigurationName(it) } }))
+          .sortedWith(comparator)
 
       fun createArtifactNode(artifact: PsAndroidArtifact): TargetAndroidArtifactNode {
-        val declaredDependencies = declaredLibraryModels[artifact.parent.parent]
-          ?.filter { artifact.containsConfigurationName(it.configurationName) }
-          .orEmpty()
-        val transitiveDependencies = moduleResolvedLibraryModels[artifact]
-          ?.flatMap { it.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>() }
-          .orEmpty()
+        val declaredDependencies =
+          declaredLibraryModels[artifact.parent.parent]?.filter { artifact.containsConfigurationName(it.configurationName) }.orEmpty()
+        val transitiveDependencies =
+          moduleResolvedLibraryModels[artifact]
+            ?.flatMap { it.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>() }
+            .orEmpty()
         return TargetAndroidArtifactNode(artifact, null, uiSettings).apply {
           setChildren(
             declaredDependencies.map { TargetConfigurationNode(Configuration(it.configurationName, artifact.icon), uiSettings) } +
-            transitiveDependencies.map { TargetTransitiveDependencyNode(listOf(it), it.requestingResolvedDependency.spec, uiSettings) }
+              transitiveDependencies.map { TargetTransitiveDependencyNode(listOf(it), it.requestingResolvedDependency.spec, uiSettings) }
           )
         }
       }
@@ -88,12 +82,11 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
       return TargetAndroidModuleNode(rootNode, module, null, artifacts.map { artifact -> createArtifactNode(artifact) })
     }
 
-    val modules = models.map {it.parent}.distinct().sortedBy { it.name }
+    val modules = models.map { it.parent }.distinct().sortedBy { it.name }
     rootNode.setChildren(modules.mapNotNull { module -> (module as? PsAndroidModule)?.let { createModuleNode(it) } })
   }
 }
 
 private val comparator: Comparator<PsAndroidArtifact> =
-  Comparator
-    .comparing(Function<PsAndroidArtifact, String> { it.name })
+  Comparator.comparing(Function<PsAndroidArtifact, String> { it.name })
     .thenComparing(Function<PsAndroidArtifact, String> { it.parent.name })

@@ -19,23 +19,20 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.output.BuildOutputInstantReader
 import java.util.function.Consumer
 
-class GradleBuildMultipleFailuresParser(
-  failureHandlers: List<FailureDetailsHandler>
-) : GradleBuildFailureParser(
-  failureHandlers = failureHandlers,
-  // TODO (b/362959090): Issue checkers also should be adapted to analyze multi-exceptions to support this fully.
-  //      For now it is better to leave them be and post everything that is parsed here.
-  //      There might be duplications but it is better than missing errors.
-  //      For now only allow issue checkers that are verified to generate messages from here
-  //TODO (b/362959090): check for any already suitable issue checkers. Suitable are the ones that use the following call to generate
-  //  events rather than to simply ignore events.
-  knownIssuesCheckers = emptyList()
-) {
+class GradleBuildMultipleFailuresParser(failureHandlers: List<FailureDetailsHandler>) :
+  GradleBuildFailureParser(
+    failureHandlers = failureHandlers,
+    // TODO (b/362959090): Issue checkers also should be adapted to analyze multi-exceptions to support this fully.
+    //      For now it is better to leave them be and post everything that is parsed here.
+    //      There might be duplications but it is better than missing errors.
+    //      For now only allow issue checkers that are verified to generate messages from here
+    // TODO (b/362959090): check for any already suitable issue checkers. Suitable are the ones that use the following call to generate
+    //  events rather than to simply ignore events.
+    knownIssuesCheckers = emptyList(),
+  ) {
 
   /**
-   * See org.gradle.internal.buildevents.BuildExceptionReporter.renderMultipleBuildExceptions
-   * The output pattern is:
-   *
+   * See org.gradle.internal.buildevents.BuildExceptionReporter.renderMultipleBuildExceptions The output pattern is:
    * ```
    * FAILURE: Build completed with N failures.
    *
@@ -57,26 +54,20 @@ class GradleBuildMultipleFailuresParser(
     if (!line.startsWith("FAILURE: Build completed with ")) return false
     if (!reader.readLine().isNullOrBlank()) return false
 
-    val failuresNumber = Regex("FAILURE: Build completed with (\\d+) failures.").matchEntire(line)?.let {
-      it.groups.get(1)?.value?.toIntOrNull()
-    }
+    val failuresNumber =
+      Regex("FAILURE: Build completed with (\\d+) failures.").matchEntire(line)?.let { it.groups.get(1)?.value?.toIntOrNull() }
     if (failuresNumber == null) return false
 
-    val parsedFailures = (1..failuresNumber).map {
-      parseFailureDetails(it, reader)
-    }
+    val parsedFailures = (1..failuresNumber).map { parseFailureDetails(it, reader) }
 
-    val results: List<Boolean> = parsedFailures.filterNotNull().map { parsed ->
-      if (parsed.whatWentWrongSectionLines.isEmpty()) return@map false
+    val results: List<Boolean> =
+      parsedFailures.filterNotNull().map { parsed ->
+        if (parsed.whatWentWrongSectionLines.isEmpty()) return@map false
 
-      val parentId: Any = parsed.taskName ?: reader.parentEventId
+        val parentId: Any = parsed.taskName ?: reader.parentEventId
 
-      return@map processErrorMessage(
-        parentId,
-        parsed,
-        messageConsumer
-      )
-    }
+        return@map processErrorMessage(parentId, parsed, messageConsumer)
+      }
 
     return results.any { it == true }
   }
@@ -91,8 +82,7 @@ class GradleBuildMultipleFailuresParser(
       if (line == null || line == "==============================================================================") break
       if (result.headerToSection.containsKey(line)) {
         currentBuilder = result.headerToSection[line]
-      }
-      else {
+      } else {
         currentBuilder?.add(line)
       }
     }

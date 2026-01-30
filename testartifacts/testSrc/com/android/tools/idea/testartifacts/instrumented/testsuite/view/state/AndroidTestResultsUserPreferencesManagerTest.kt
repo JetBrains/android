@@ -20,6 +20,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -29,32 +30,25 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import kotlin.test.assertEquals
 
-/**
- * Unit tests for [AndroidTestResultsUserPreferencesManager].
- */
+/** Unit tests for [AndroidTestResultsUserPreferencesManager]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class AndroidTestResultsUserPreferencesManagerTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
-  @get:Rule
-  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @Mock
-  lateinit var mockAndroidTestRunConfiguration: AndroidTestRunConfiguration
+  @Mock lateinit var mockAndroidTestRunConfiguration: AndroidTestRunConfiguration
 
   @Test
   fun getUserPreferredColumnWidthWithNoSavedPreferenceReturnsDefaultWidth() {
     whenever(mockAndroidTestRunConfiguration.project).thenReturn(projectRule.project)
-    val androidTestResultsUserPreferencesManager = AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("device1Id"))
+    val androidTestResultsUserPreferencesManager =
+      AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("device1Id"))
     val deviceIds = HashSet<String>()
     deviceIds.add("device1")
 
@@ -65,7 +59,8 @@ class AndroidTestResultsUserPreferencesManagerTest {
   @Test
   fun setUserPreferredColumnWidthAndThenGetUserPreferredColumnWidth() {
     whenever(mockAndroidTestRunConfiguration.project).thenReturn(projectRule.project)
-    val androidTestResultsUserPreferencesManager = AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("device1Id"))
+    val androidTestResultsUserPreferencesManager =
+      AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("device1Id"))
     val deviceIds = HashSet<String>()
     deviceIds.add("device1")
 

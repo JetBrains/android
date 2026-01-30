@@ -19,15 +19,15 @@ import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 
 /**
- * A [DelegatingClassLoader.Loader] that uses the given [binaryCache] to store the returned classes.
- * The given [transformationId] is used to ensure the classes stored have the same transformations applied and they
- * have not been invalidated.
+ * A [DelegatingClassLoader.Loader] that uses the given [binaryCache] to store the returned classes. The given [transformationId] is used to
+ * ensure the classes stored have the same transformations applied and they have not been invalidated.
  *
  * This class only loads from the cache and does not do any writing on the given [binaryCache].
  */
 class ClassBinaryCacheLoader(
   private val delegate: DelegatingClassLoader.Loader,
   private val transformationId: String,
-  private val binaryCache: ClassBinaryCache) : DelegatingClassLoader.Loader {
+  private val binaryCache: ClassBinaryCache,
+) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? = binaryCache.get(fqcn, transformationId) ?: delegate.loadClass(fqcn)
 }

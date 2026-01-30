@@ -18,6 +18,6 @@ package com.android.tools.idea.gradle.dsl.android.parser.android
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 
-class DeclarativeAndroidDslElement(parent: GradleDslElement, name: GradleNameElement): AndroidDslElement(parent, name) {
+class DeclarativeAndroidDslElement(parent: GradleDslElement, name: GradleNameElement) : AndroidDslElement(parent, name) {
   override fun isInsignificantIfEmpty(): Boolean = false
 }

@@ -20,9 +20,8 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.setWriterForTest
 import com.android.tools.analytics.UsageTrackerWriter
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.SurveyResponse
 import com.google.wireless.android.sdk.stats.SentimentSurveyEvent
+import com.google.wireless.android.sdk.stats.SurveyResponse
 import com.google.wireless.android.sdk.stats.UserSentiment
 import org.junit.After
 import org.junit.Before
@@ -47,95 +46,133 @@ class ChoiceLoggerTest {
   fun logSingle() {
     ChoiceLoggerImpl.log("test", 1)
     assertThat(usageTrackerWriter.usages).hasSize(1)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse).isEqualTo(SurveyResponse.newBuilder().apply {
-      name = "test"
-      addAllResponses(listOf(1))
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse)
+      .isEqualTo(
+        SurveyResponse.newBuilder()
+          .apply {
+            name = "test"
+            addAllResponses(listOf(1))
+          }
+          .build()
+      )
   }
 
   @Test
   fun logMultiple() {
     ChoiceLoggerImpl.log("test", listOf(1, 2))
     assertThat(usageTrackerWriter.usages).hasSize(1)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse).isEqualTo(SurveyResponse.newBuilder().apply {
-      name = "test"
-      addAllResponses(listOf(1, 2))
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse)
+      .isEqualTo(
+        SurveyResponse.newBuilder()
+          .apply {
+            name = "test"
+            addAllResponses(listOf(1, 2))
+          }
+          .build()
+      )
   }
 
   @Test
   fun cancel() {
     ChoiceLoggerImpl.cancel("test")
     assertThat(usageTrackerWriter.usages).hasSize(1)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse).isEqualTo(SurveyResponse.newBuilder().apply {
-      name = "test"
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.surveyResponse)
+      .isEqualTo(SurveyResponse.newBuilder().apply { name = "test" }.build())
   }
 
   @Test
   fun legacy_logSingle() {
     LegacyChoiceLogger.log("test", 1)
     assertThat(usageTrackerWriter.usages).hasSize(2)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment).isEqualTo(UserSentiment.newBuilder().apply {
-      state = UserSentiment.SentimentState.POPUP_QUESTION
-      level = UserSentiment.SatisfactionLevel.SATISFIED
-    }.build()
-    )
-    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent).isEqualTo(SentimentSurveyEvent.newBuilder().apply {
-      type = SentimentSurveyEvent.Type.TYPE_INVOKED
-      surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment)
+      .isEqualTo(
+        UserSentiment.newBuilder()
+          .apply {
+            state = UserSentiment.SentimentState.POPUP_QUESTION
+            level = UserSentiment.SatisfactionLevel.SATISFIED
+          }
+          .build()
+      )
+    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent)
+      .isEqualTo(
+        SentimentSurveyEvent.newBuilder()
+          .apply {
+            type = SentimentSurveyEvent.Type.TYPE_INVOKED
+            surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
+          }
+          .build()
+      )
   }
 
   @Test
   fun legacy_logSingle_invalid() {
     LegacyChoiceLogger.log("test", -1)
     assertThat(usageTrackerWriter.usages).hasSize(2)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment).isEqualTo(UserSentiment.newBuilder().apply {
-      state = UserSentiment.SentimentState.POPUP_QUESTION
-      level = UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
-    }.build()
-    )
-    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent).isEqualTo(SentimentSurveyEvent.newBuilder().apply {
-      type = SentimentSurveyEvent.Type.TYPE_INVOKED
-      surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment)
+      .isEqualTo(
+        UserSentiment.newBuilder()
+          .apply {
+            state = UserSentiment.SentimentState.POPUP_QUESTION
+            level = UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
+          }
+          .build()
+      )
+    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent)
+      .isEqualTo(
+        SentimentSurveyEvent.newBuilder()
+          .apply {
+            type = SentimentSurveyEvent.Type.TYPE_INVOKED
+            surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
+          }
+          .build()
+      )
   }
 
   @Test
   fun legacy_logMultiple_onlyFirstScoreIsUsed() {
     LegacyChoiceLogger.log("test", listOf(1, 2))
     assertThat(usageTrackerWriter.usages).hasSize(2)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment).isEqualTo(UserSentiment.newBuilder().apply {
-      state = UserSentiment.SentimentState.POPUP_QUESTION
-      level = UserSentiment.SatisfactionLevel.SATISFIED
-    }.build()
-    )
-    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent).isEqualTo(SentimentSurveyEvent.newBuilder().apply {
-      type = SentimentSurveyEvent.Type.TYPE_INVOKED
-      surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment)
+      .isEqualTo(
+        UserSentiment.newBuilder()
+          .apply {
+            state = UserSentiment.SentimentState.POPUP_QUESTION
+            level = UserSentiment.SatisfactionLevel.SATISFIED
+          }
+          .build()
+      )
+    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent)
+      .isEqualTo(
+        SentimentSurveyEvent.newBuilder()
+          .apply {
+            type = SentimentSurveyEvent.Type.TYPE_INVOKED
+            surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
+          }
+          .build()
+      )
   }
 
   @Test
   fun legacy_cancel() {
     LegacyChoiceLogger.cancel("test")
     assertThat(usageTrackerWriter.usages).hasSize(2)
-    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment).isEqualTo(UserSentiment.newBuilder().apply {
-      state = UserSentiment.SentimentState.POPUP_QUESTION
-      level = UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
-    }.build()
-    )
-    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent).isEqualTo(SentimentSurveyEvent.newBuilder().apply {
-      type = SentimentSurveyEvent.Type.TYPE_CANCELLED
-      surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
-    }.build()
-    )
+    assertThat(usageTrackerWriter.usages[0].studioEvent.userSentiment)
+      .isEqualTo(
+        UserSentiment.newBuilder()
+          .apply {
+            state = UserSentiment.SentimentState.POPUP_QUESTION
+            level = UserSentiment.SatisfactionLevel.UNKNOWN_SATISFACTION_LEVEL
+          }
+          .build()
+      )
+    assertThat(usageTrackerWriter.usages[1].studioEvent.sentimentSurveyEvent)
+      .isEqualTo(
+        SentimentSurveyEvent.newBuilder()
+          .apply {
+            type = SentimentSurveyEvent.Type.TYPE_CANCELLED
+            surveyType = SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
+          }
+          .build()
+      )
   }
 }

@@ -50,15 +50,11 @@ import javax.swing.JPanel
 import kotlin.math.abs
 
 private fun colorDistanceToOrange(color: Color): Int =
-  Ints.max(
-    abs(color.red - Color.ORANGE.red),
-    abs(color.green - Color.ORANGE.green),
-    abs(color.blue - Color.ORANGE.blue),
-  )
+  Ints.max(abs(color.red - Color.ORANGE.red), abs(color.green - Color.ORANGE.green), abs(color.blue - Color.ORANGE.blue))
 
 /**
- * Generate an icon based on the [WARNING_INLINE] icon, where orange pixels are replaced by [color]
- * and all other pixels are made transparent
+ * Generate an icon based on the [WARNING_INLINE] icon, where orange pixels are replaced by [color] and all other pixels are made
+ * transparent
  */
 fun getVisualizationWarningIcon(color: Color) =
   IconLoader.createLazy(
@@ -74,8 +70,7 @@ fun getVisualizationWarningIcon(color: Color) =
               override fun getFilter(): RGBImageFilter =
                 object : RGBImageFilter() {
                   override fun filterRGB(x: Int, y: Int, rgb: Int) =
-                    if (colorDistanceToOrange(Color(rgb, true)) > 50) 0
-                    else (rgb or 0xffffff) and color.rgb
+                    if (colorDistanceToOrange(Color(rgb, true)) > 50) 0 else (rgb or 0xffffff) and color.rgb
                 }
             },
           )
@@ -83,20 +78,15 @@ fun getVisualizationWarningIcon(color: Color) =
     }
   )
 
-class VisualizationActionManager(
-  surface: NlDesignSurface,
-  private val visualizationModelsProvider: () -> VisualizationModelsProvider,
-) : NlActionManager(surface) {
+class VisualizationActionManager(surface: NlDesignSurface, private val visualizationModelsProvider: () -> VisualizationModelsProvider) :
+  NlActionManager(surface) {
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
   private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
 
   override fun registerActionsShortcuts(component: JComponent) = Unit
 
-  override fun getPopupMenuActions(
-    leafComponent: NlComponent?,
-    mouseEvent: MouseEvent,
-  ): DefaultActionGroup {
+  override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup {
     val group = DefaultActionGroup()
     group.add(zoomInAction)
     group.add(zoomOutAction)
@@ -117,8 +107,7 @@ class VisualizationActionManager(
           if (issue is VisualLintRenderIssue) {
             isVisible = issue.shouldHighlight(sceneView.sceneManager.model)
             toolTipText = issue.summary
-          }
-          else {
+          } else {
             isVisible = false
           }
         }
@@ -127,16 +116,14 @@ class VisualizationActionManager(
           isOpaque = true
           background = Color.ORANGE
           isVisible = false
-          val success =
-            Disposer.tryRegister(sceneView) { sceneView.surface.removeIssueListener(issueListener) }
+          val success = Disposer.tryRegister(sceneView) { sceneView.surface.removeIssueListener(issueListener) }
           if (success) {
             sceneView.surface.addIssueListener(issueListener)
           }
         }
 
         override fun isVisible(): Boolean {
-          return super.isVisible() &&
-                 IssuePanelService.getInstance(sceneView.surface.project).isIssuePanelVisible()
+          return super.isVisible() && IssuePanelService.getInstance(sceneView.surface.project).isIssuePanelVisible()
         }
       }
     return JPanel().apply {
@@ -147,18 +134,13 @@ class VisualizationActionManager(
   }
 
   /** Action to delete a custom preview */
-  private class RemoveCustomAction(
-    private val visualizationModelsProvider: () -> VisualizationModelsProvider
-  ) : AnAction("Remove from Configuration Set", null, StudioIcons.Common.CLOSE) {
+  private class RemoveCustomAction(private val visualizationModelsProvider: () -> VisualizationModelsProvider) :
+    AnAction("Remove from Configuration Set", null, StudioIcons.Common.CLOSE) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       val visualizationModel = visualizationModelsProvider() as? CustomModelsProvider ?: return
-      val model =
-        (e.dataContext.getData(CONTEXT_COMPONENT) as? SceneViewPeerPanel)
-          ?.sceneView
-          ?.sceneManager
-          ?.model ?: return
+      val model = (e.dataContext.getData(CONTEXT_COMPONENT) as? SceneViewPeerPanel)?.sceneView?.sceneManager?.model ?: return
       visualizationModel.removeCustomConfigurationAttributes(model)
     }
 

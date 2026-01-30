@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * Class encapsulates logic about result dependency location as it can be in different file that dependency declaration.
- * For example `implementation libs.core` pointing to default versions.toml file.
+ * Class encapsulates logic about result dependency location as it can be in different file that dependency declaration. For example
+ * `implementation libs.core` pointing to default versions.toml file.
  */
 class DependencyResultLocation(val model: ArtifactDependencyModel) {
   private val resultLocation: VirtualFile
@@ -29,5 +29,6 @@ class DependencyResultLocation(val model: ArtifactDependencyModel) {
       val resultModel = model.completeModel().resultModel
       return resultModel.gradleFile
     }
+
   fun matchLocation(model: GradleFileModel?): Boolean = model?.virtualFile == resultLocation
 }

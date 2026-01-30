@@ -20,12 +20,9 @@ import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.toImpl
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
-
 import java.io.Serializable
 
-/**
- * The implementation of IdeLibrary for Android libraries.
- **/
+/** The implementation of IdeLibrary for Android libraries. */
 data class IdeAndroidLibraryImpl(
   override val artifactAddress: String,
   override val component: Component?,
@@ -47,33 +44,34 @@ data class IdeAndroidLibraryImpl(
   override val externalAnnotations: FileImpl,
   override val publicResources: FileImpl,
   override val artifact: FileImpl?,
-  override val symbolFile: FileImpl
+  override val symbolFile: FileImpl,
 ) : IdeUnresolvedAndroidLibrary, Serializable {
   // Used for serialization by the IDE.
   @VisibleForTesting
-  constructor() : this(
-    artifactAddress = "",
-    component = null,
-    name = "",
-    folder = FileImpl(""),
-    manifest = FileImpl(""),
-    compileJarFiles = mutableListOf(),
-    runtimeJarFiles = mutableListOf(),
-    resFolder = FileImpl(""),
-    resStaticLibrary = null,
-    assetsFolder = FileImpl(""),
-    jniFolder = FileImpl(""),
-    aidlFolder = FileImpl(""),
-    renderscriptFolder = FileImpl(""),
-    proguardRules = FileImpl(""),
-    lintJar = FileImpl(""),
-    srcJars = mutableListOf(),
-    docJar = FileImpl(""),
-    externalAnnotations = FileImpl(""),
-    publicResources = FileImpl(""),
-    artifact = FileImpl(""),
-    symbolFile = FileImpl("")
-  )
+  constructor() :
+    this(
+      artifactAddress = "",
+      component = null,
+      name = "",
+      folder = FileImpl(""),
+      manifest = FileImpl(""),
+      compileJarFiles = mutableListOf(),
+      runtimeJarFiles = mutableListOf(),
+      resFolder = FileImpl(""),
+      resStaticLibrary = null,
+      assetsFolder = FileImpl(""),
+      jniFolder = FileImpl(""),
+      aidlFolder = FileImpl(""),
+      renderscriptFolder = FileImpl(""),
+      proguardRules = FileImpl(""),
+      lintJar = FileImpl(""),
+      srcJars = mutableListOf(),
+      docJar = FileImpl(""),
+      externalAnnotations = FileImpl(""),
+      publicResources = FileImpl(""),
+      artifact = FileImpl(""),
+      symbolFile = FileImpl(""),
+    )
 
   companion object {
     fun create(
@@ -98,7 +96,7 @@ data class IdeAndroidLibraryImpl(
       publicResources: String,
       artifact: File?,
       symbolFile: String,
-      deduplicate: String.() -> String
+      deduplicate: String.() -> String,
     ): IdeAndroidLibraryImpl {
       fun File.makeRelativeAndTranslate(): FileImpl = this.relativeToOrSelf(folder).path.translate(folder, deduplicate)
       fun String.makeRelativeAndTranslate(): FileImpl = File(this).makeRelativeAndTranslate()
@@ -124,7 +122,7 @@ data class IdeAndroidLibraryImpl(
         externalAnnotations = externalAnnotations.makeRelativeAndTranslate(),
         publicResources = publicResources.makeRelativeAndTranslate(),
         artifact = artifact?.makeRelativeAndTranslate(),
-        symbolFile = symbolFile.makeRelativeAndTranslate()
+        symbolFile = symbolFile.makeRelativeAndTranslate(),
       )
     }
   }

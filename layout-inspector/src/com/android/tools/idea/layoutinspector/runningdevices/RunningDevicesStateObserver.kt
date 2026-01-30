@@ -35,17 +35,14 @@ import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 
-/**
- * Class responsible for observing the state of Running Devices tabs. Can be used by other classes
- * as source for Running Devices state.
- */
+/** Class responsible for observing the state of Running Devices tabs. Can be used by other classes as source for Running Devices state. */
 @UiThread
 class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   interface Listener {
     /**
-     * Called when the visible tabs in Running Devices change. There can be more than one visible
-     * tab if Running Deices is running in split window mode.
+     * Called when the visible tabs in Running Devices change. There can be more than one visible tab if Running Deices is running in split
+     * window mode.
      */
     fun onVisibleTabsChanged(visibleTabs: List<DeviceId>)
 
@@ -98,9 +95,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
           if (toolWindowListener == null) {
             // Register the listener only once.
             toolWindowListener =
-              RunningDevicesContentManagerListener(toolWindow).also {
-                Disposer.register(this@RunningDevicesStateObserver, it)
-              }
+              RunningDevicesContentManagerListener(toolWindow).also { Disposer.register(this@RunningDevicesStateObserver, it) }
           }
 
           toolWindowManager.invokeLater {
@@ -132,9 +127,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
   /** Returns a list of all content from Running Devices, across all existing ContentManagers. */
   private fun getAllContents(): List<Content> {
     val toolWindow =
-      project
-        .getServiceIfCreated(ToolWindowManager::class.java)
-        ?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return emptyList()
+      project.getServiceIfCreated(ToolWindowManager::class.java)?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return emptyList()
     return toolWindow.contentManagerIfCreated?.contentsRecursively ?: emptyList()
   }
 
@@ -153,8 +146,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
   }
 
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
-  private inner class RunningDevicesContentManagerListener(toolWindow: ToolWindow) :
-    ContentManagerHierarchyAdapter(toolWindow) {
+  private inner class RunningDevicesContentManagerListener(toolWindow: ToolWindow) : ContentManagerHierarchyAdapter(toolWindow) {
     override fun contentAdded(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using
       // invokeLater, they should be executed first.
@@ -188,17 +180,14 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
         .map { it.component }
         .filterIsInstance<UiDataProvider>()
         .mapNotNull { dataProvider ->
-          val dataContext =
-            DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
+          val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
           DEVICE_ID_KEY.getData(dataContext)
         }
 
     return tabIds
   }
 
-  /**
-   * Returns true if Running Devices has a tab containing a device with the desired serial number.
-   */
+  /** Returns true if Running Devices has a tab containing a device with the desired serial number. */
   private fun hasDeviceWithSerialNumber(desiredSerialNumber: String): Boolean {
     val devicesIds = getAllTabsDeviceIds()
     return devicesIds.map { it.serialNumber }.contains(desiredSerialNumber)
@@ -215,7 +204,6 @@ private val Content.deviceId: DeviceId?
     if (component !is UiDataProvider) {
       return null
     }
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
+    val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
     return DEVICE_ID_KEY.getData(dataContext)
   }

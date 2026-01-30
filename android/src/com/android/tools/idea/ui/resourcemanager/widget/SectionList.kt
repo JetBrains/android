@@ -47,13 +47,11 @@ private val EMPTY_SELECTION_ARRAY = IntArray(0)
 /**
  * A Swing component displaying multiple lists organized in [Section]s with a header.
  *
- * The component is divided into two parts: the main component (this instance) which displays
- * the lists in a [JScrollPane] and the section list ([sectionsComponent]) which displays the list of
- * the sections' names.
+ * The component is divided into two parts: the main component (this instance) which displays the lists in a [JScrollPane] and the section
+ * list ([sectionsComponent]) which displays the list of the sections' names.
  *
- * The ScrollPane and the Section list are synchronized: clicking on a section name in the list will scroll
- * the corresponding section in the main component, and scrolling the main component will select the section name of
- * the section visible at the top in the section list.
+ * The ScrollPane and the Section list are synchronized: clicking on a section name in the list will scroll the corresponding section in the
+ * main component, and scrolling the main component will select the section name of the section visible at the top in the section list.
  */
 class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
@@ -63,42 +61,41 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   private val innerListSelectionListener = createListSelectionListener()
   private var content: JComponent = createMultiListPanel(allInnerLists, innerListSelectionListener)
 
-  /**
-   * Gap between lists
-   */
+  /** Gap between lists */
   private val listsGap = JBUI.scale(16)
 
-  /**
-   * Returns the list of [Section] name
-   */
+  /** Returns the list of [Section] name */
   val sectionsComponent = sectionList
 
   private val multiLisLayoutManager = VerticalFlowLayout(true, false)
 
-  private val focusListener = object : FocusAdapter() {
+  private val focusListener =
+    object : FocusAdapter() {
 
-    override fun focusGained(focusEvent: FocusEvent?) {
-      val list = focusEvent?.source as JList<*>
-      if (list.selectedIndex == -1) {
-        list.selectedIndex = 0
-        scrollToSelection()
+      override fun focusGained(focusEvent: FocusEvent?) {
+        val list = focusEvent?.source as JList<*>
+        if (list.selectedIndex == -1) {
+          list.selectedIndex = 0
+          scrollToSelection()
+        }
       }
     }
-  }
 
   init {
-    model.addListDataListener(object : ListDataListener {
-      override fun contentsChanged(e: ListDataEvent?) {
-        allInnerLists.clear()
-        sectionList.selectionModel.clearSelection()
-        content = createMultiListPanel(allInnerLists, innerListSelectionListener)
-        setViewportView(content)
+    model.addListDataListener(
+      object : ListDataListener {
+        override fun contentsChanged(e: ListDataEvent?) {
+          allInnerLists.clear()
+          sectionList.selectionModel.clearSelection()
+          content = createMultiListPanel(allInnerLists, innerListSelectionListener)
+          setViewportView(content)
+        }
+
+        override fun intervalRemoved(e: ListDataEvent?) {}
+
+        override fun intervalAdded(e: ListDataEvent?) {}
       }
-
-      override fun intervalRemoved(e: ListDataEvent?) {}
-
-      override fun intervalAdded(e: ListDataEvent?) {}
-    })
+    )
     sectionList.selectionMode = ListSelectionModel.SINGLE_SELECTION
     sectionList.selectedIndex = 0
     sectionList.cellRenderer = createSectionCellRenderer()
@@ -110,40 +107,32 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     }
 
     verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-    addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(p0: MouseEvent?) {
-        focusInnerList()
+    addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(p0: MouseEvent?) {
+          focusInnerList()
+        }
       }
-    })
+    )
   }
 
-  /**
-   * Focuses the first list with a selected item, or just the first list if there's no selection.
-   */
+  /** Focuses the first list with a selected item, or just the first list if there's no selection. */
   private fun focusInnerList() {
     (allInnerLists.firstOrNull { it.selectedIndex != -1 } ?: allInnerLists.firstOrNull())?.requestFocusInWindow()
   }
 
-  /**
-   * Creates a [ListSelectionListener] that clears the selection of
-   * all lists except the one which is the source of the event.
-   */
+  /** Creates a [ListSelectionListener] that clears the selection of all lists except the one which is the source of the event. */
   private fun createListSelectionListener(): ListSelectionListener {
     return ListSelectionListener { event ->
       if (!listSelectionChanging) {
         listSelectionChanging = true
-        allInnerLists
-          .filterNot { it == event.source }
-          .forEach { it.clearSelection() }
+        allInnerLists.filterNot { it == event.source }.forEach { it.clearSelection() }
         listSelectionChanging = false
       }
     }
   }
 
-  /**
-   * Creates the default [ListCellRenderer] for the section list which just displays the name
-   * of the section in a JLabel
-   */
+  /** Creates the default [ListCellRenderer] for the section list which just displays the name of the section in a JLabel */
   private fun createSectionCellRenderer(): ColoredListCellRenderer<Section<*>> {
     return object : ColoredListCellRenderer<Section<*>>() {
       override fun customizeCellRenderer(
@@ -151,18 +140,15 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
         value: Section<*>?,
         index: Int,
         selected: Boolean,
-        hasFocus: Boolean
+        hasFocus: Boolean,
       ) {
         append(value?.name ?: "")
       }
     }
   }
 
-  private fun createMultiListPanel(
-    allInnerLists: MutableList<JList<*>>,
-    selectionListener: ListSelectionListener
-  ): JComponent {
-    return JPanel(multiLisLayoutManager).apply{
+  private fun createMultiListPanel(allInnerLists: MutableList<JList<*>>, selectionListener: ListSelectionListener): JComponent {
+    return JPanel(multiLisLayoutManager).apply {
       background = this@SectionList.background
       for (section in model.sections) {
         allInnerLists += section.list
@@ -183,27 +169,31 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
   var selectedValue: Any?
     get() = allInnerLists.firstOrNull { it.selectedValue != null }?.selectedValue
-    set(value) = allInnerLists.forEach {
-      listSelectionChanging = true
-      it.setSelectedValue(value, false)
-      listSelectionChanging = false
-    }
+    set(value) =
+      allInnerLists.forEach {
+        listSelectionChanging = true
+        it.setSelectedValue(value, false)
+        listSelectionChanging = false
+      }
 
   /**
    * Represent the selected indices for each inner [JList]
+   *
    * @see JList.getSelectedIndices
    * @see JList.setSelectedIndices
    */
   var selectedIndices: List<IntArray?>
     get() = allInnerLists.map { it.selectedIndices }
-    set(indicesByList) = indicesByList.zip(allInnerLists).forEach { (indices, list) ->
-      listSelectionChanging = true
-      list.selectedIndices = indices ?: EMPTY_SELECTION_ARRAY
-      listSelectionChanging = false
-    }
+    set(indicesByList) =
+      indicesByList.zip(allInnerLists).forEach { (indices, list) ->
+        listSelectionChanging = true
+        list.selectedIndices = indices ?: EMPTY_SELECTION_ARRAY
+        listSelectionChanging = false
+      }
 
   /**
    * Pair of the index of the first selected inner [JList] to its first selected index
+   *
    * @see JList.setSelectedIndex
    * @see JList.getSelectedIndex
    */
@@ -217,8 +207,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
       if (listToIndex != null) {
         val (list, index) = listToIndex
         allInnerLists.getOrNull(list)?.selectedIndex = index
-      }
-      else {
+      } else {
         allInnerLists.forEach { it.selectedIndex = -1 }
       }
     }
@@ -236,18 +225,20 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   }
 
   override fun doLayout() {
-    viewport.view?.takeIf { it is Container }?.let { content ->
-      val contentHeight = multiLisLayoutManager.preferredLayoutSize(content as Container).height
-      val scrollPrefSize = preferredSize
-      if (scrollPrefSize == null || contentHeight != scrollPrefSize.height || contentHeight != maximumSize.height) {
-        // Have scroll pane fit to the height of its contents.
-        preferredSize = Dimension(scrollPrefSize.width, contentHeight)
-        maximumSize = Dimension(Int.MAX_VALUE, contentHeight)
-        // Trigger a layout in the parent for the new dimensions.
-        invokeLater { parent?.revalidate() }
-        return
+    viewport.view
+      ?.takeIf { it is Container }
+      ?.let { content ->
+        val contentHeight = multiLisLayoutManager.preferredLayoutSize(content as Container).height
+        val scrollPrefSize = preferredSize
+        if (scrollPrefSize == null || contentHeight != scrollPrefSize.height || contentHeight != maximumSize.height) {
+          // Have scroll pane fit to the height of its contents.
+          preferredSize = Dimension(scrollPrefSize.width, contentHeight)
+          maximumSize = Dimension(Int.MAX_VALUE, contentHeight)
+          // Trigger a layout in the parent for the new dimensions.
+          invokeLater { parent?.revalidate() }
+          return
+        }
       }
-    }
     super.doLayout()
   }
 }
@@ -293,8 +284,5 @@ interface Section<T> {
   var header: JComponent
 }
 
-class SimpleSection<T>(
-  override var name: String = "",
-  override var list: JList<T>,
-  override var header: JComponent = JLabel(name)
-) : Section<T>
+class SimpleSection<T>(override var name: String = "", override var list: JList<T>, override var header: JComponent = JLabel(name)) :
+  Section<T>

@@ -19,8 +19,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 
 /** Filter that shows rows based on whether they contain text that matches the given [text]. */
 class TextRowFilter(private val text: String) : StringResourceTableRowFilter() {
-  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean =
-      entry.stringValues().any { it.contains(text) }
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean = entry.stringValues().any { it.contains(text) }
 
   override fun getDescription(): String = """Show Keys with Values Containing "$text""""
 }

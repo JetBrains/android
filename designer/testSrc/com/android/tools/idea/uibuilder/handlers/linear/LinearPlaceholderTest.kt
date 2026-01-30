@@ -191,15 +191,13 @@ class LinearPlaceholderTest : SceneTest() {
   @Test
   fun testAddComponentWithoutSnappingToSeparator() {
     val linearLayout = myScene.getSceneComponent("linear")!!
-    val placeholders =
-      linearLayout.nlComponent.getLayoutHandler {}!!.getPlaceholders(linearLayout, emptyList())
+    val placeholders = linearLayout.nlComponent.getLayoutHandler {}!!.getPlaceholders(linearLayout, emptyList())
 
     val left = 50
     val top = 50
 
     val p = Point()
-    val snappedPlaceholders =
-      placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
+    val snappedPlaceholders = placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
 
     assertSize(1, snappedPlaceholders)
     assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
@@ -216,21 +214,9 @@ class LinearPlaceholderTest : SceneTest() {
         .matchParentWidth()
         .matchParentHeight()
         .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(0, 0, 200, 200)
-            .id("@id/myText1")
-            .width("100dp")
-            .height("100dp"),
-          component(SdkConstants.BUTTON)
-            .withBounds(200, 0, 200, 200)
-            .id("@id/button")
-            .width("100dp")
-            .height("100dp"),
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(400, 0, 200, 200)
-            .id("@id/myText2")
-            .width("100dp")
-            .height("100dp"),
+          component(SdkConstants.TEXT_VIEW).withBounds(0, 0, 200, 200).id("@id/myText1").width("100dp").height("100dp"),
+          component(SdkConstants.BUTTON).withBounds(200, 0, 200, 200).id("@id/button").width("100dp").height("100dp"),
+          component(SdkConstants.TEXT_VIEW).withBounds(400, 0, 200, 200).id("@id/myText2").width("100dp").height("100dp"),
         ),
     )
   }

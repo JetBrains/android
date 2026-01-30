@@ -29,14 +29,11 @@ class InteractivePreviewUsageTrackerTest {
 
   private var myLastEventBuilder: AndroidStudioEvent.Builder? = null
 
-  private val myEventLogger = Consumer { event: AndroidStudioEvent.Builder ->
-    myLastEventBuilder = event
-  }
+  private val myEventLogger = Consumer { event: AndroidStudioEvent.Builder -> myLastEventBuilder = event }
 
   @Before
   fun setUp() {
-    myInteractivePreviewUsageTracker =
-      InteractivePreviewUsageTrackerImpl(Executor { command -> command.run() }, myEventLogger)
+    myInteractivePreviewUsageTracker = InteractivePreviewUsageTrackerImpl(Executor { command -> command.run() }, myEventLogger)
   }
 
   @Test
@@ -51,10 +48,7 @@ class InteractivePreviewUsageTrackerTest {
 
     val interactiveEvent = event.interactivePreviewEvent
 
-    assertEquals(
-      interactiveEvent.type,
-      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS,
-    )
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS)
     assertEquals(interactiveEvent.fps, 30)
     assertEquals(interactiveEvent.durationMs, 15000)
     assertEquals(interactiveEvent.actions, 15)
@@ -72,10 +66,7 @@ class InteractivePreviewUsageTrackerTest {
 
     val interactiveEvent = event.interactivePreviewEvent
 
-    assertEquals(
-      interactiveEvent.type,
-      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME,
-    )
+    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME)
     assertEquals(interactiveEvent.startupTimeMs, 500)
     assertEquals(interactiveEvent.peerPreviews, 3)
   }

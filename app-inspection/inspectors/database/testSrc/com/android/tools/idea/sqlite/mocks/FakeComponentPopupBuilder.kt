@@ -29,13 +29,13 @@ import com.intellij.openapi.util.Pair
 import com.intellij.ui.ActiveComponent
 import com.intellij.util.BooleanFunction
 import com.intellij.util.Processor
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
+import org.mockito.Mockito
 
 open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
@@ -121,8 +121,7 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   override fun setKeyEventHandler(handler: BooleanFunction<in KeyEvent>) = this
 
-  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) =
-    this
+  override fun setDimensionServiceKey(project: Project?, key: String?, useForXYLocation: Boolean) = this
 
   override fun setCancelOnMouseOutCallback(shouldCancel: MouseChecker) = this
 

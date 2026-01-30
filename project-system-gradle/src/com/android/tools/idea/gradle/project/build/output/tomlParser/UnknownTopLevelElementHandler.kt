@@ -27,7 +27,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
 class UnknownTopLevelElementHandler : TomlErrorHandler {
-  private val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
+  private val PROBLEM_TOP_LEVEL_PATTERN: Regex =
+    "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
 
   override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
@@ -37,29 +38,27 @@ class UnknownTopLevelElementHandler : TomlErrorHandler {
 
         val (catalog, tableName) = it.destructured
         description.appendLine(problemLine)
-        description.append(
-          readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE)
-        )
+        description.append(readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE))
         return listOf(extractTopLevelAlias(catalog, tableName, description, reader))
       }
     }
     return listOf()
   }
 
-  private fun extractTopLevelAlias(catalog: String,
-                                   alias: String,
-                                   description: StringBuilder,
-                                   reader: BuildOutputInstantReader
+  private fun extractTopLevelAlias(
+    catalog: String,
+    alias: String,
+    description: StringBuilder,
+    reader: BuildOutputInstantReader,
   ): BuildIssueEvent {
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
 
-      override fun getNavigatable(project: Project): Navigatable? {
-        val file = project.findCatalogFile(catalog) ?: return null
-        return runReadAction {
-          findFirstElement(project, file, alias)
+        override fun getNavigatable(project: Project): Navigatable? {
+          val file = project.findCatalogFile(catalog) ?: return null
+          return runReadAction { findFirstElement(project, file, alias) }
         }
       }
-    }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 }

@@ -20,22 +20,19 @@ import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkE
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradlePropertiesJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedGradlePropertiesJavaHome
 import com.intellij.openapi.project.Project
+import java.io.File
+import java.nio.file.Path
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
-import java.io.File
-import java.nio.file.Path
 
 /**
- * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with [USE_GRADLE_JAVA_HOME] macro
- * and the "org.gradle.java.home" field under "gradle.properties" file located on the GRADLE_USER_HOME, project directory or
- * gradle installation directory isn't present, invalid or corrupted.
+ * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with [USE_GRADLE_JAVA_HOME] macro and the
+ * "org.gradle.java.home" field under "gradle.properties" file located on the GRADLE_USER_HOME, project directory or gradle installation
+ * directory isn't present, invalid or corrupted.
  */
-class InvalidGradlePropertiesJavaHomeException(
-  project: Project,
-  gradleRootPath: @SystemIndependent String,
-  resolvedGradleJdkPath: Path?
-): GradleJdkException(project, gradleRootPath) {
+class InvalidGradlePropertiesJavaHomeException(project: Project, gradleRootPath: @SystemIndependent String, resolvedGradleJdkPath: Path?) :
+  GradleJdkException(project, gradleRootPath) {
 
   override val cause =
     if (resolvedGradleJdkPath == null) UndefinedGradlePropertiesJavaHome else InvalidGradlePropertiesJavaHome(resolvedGradleJdkPath)

@@ -51,29 +51,14 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Before
   fun setup() {
-    provider =
-      ServerFlagBasedDevServicesDeprecationDataProvider(testRootDisposable.createCoroutineScope())
-    application.replaceService(
-      ServerFlagService::class.java,
-      fakeServerFlagService,
-      testRootDisposable,
-    )
-    application.replaceService(
-      DynamicServerFlagService::class.java,
-      fakeDynamicServerFlagService,
-      testRootDisposable,
-    )
+    provider = ServerFlagBasedDevServicesDeprecationDataProvider(testRootDisposable.createCoroutineScope())
+    application.replaceService(ServerFlagService::class.java, fakeServerFlagService, testRootDisposable)
+    application.replaceService(DynamicServerFlagService::class.java, fakeDynamicServerFlagService, testRootDisposable)
   }
 
   @Test
   fun `proto missing in ServerFlag returns SUPPORTED`() {
-    assertThat(
-        ServerFlagService.instance.getProtoOrNull(
-          "service",
-          DevServicesDeprecationMetadata.getDefaultInstance(),
-        )
-      )
-      .isNull()
+    assertThat(ServerFlagService.instance.getProtoOrNull("service", DevServicesDeprecationMetadata.getDefaultInstance())).isNull()
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.SUPPORTED)
@@ -82,15 +67,8 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
   @Test
   fun `proto available in ServerFlag returns DEPRECATED`() {
     StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
-    registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
-    )
-    assertThat(
-        ServerFlagService.instance.getProtoOrNull(
-          "dev_services/service",
-          DevServicesDeprecationMetadata.getDefaultInstance(),
-        )
-      )
+    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build())
+    assertThat(ServerFlagService.instance.getProtoOrNull("dev_services/service", DevServicesDeprecationMetadata.getDefaultInstance()))
       .isNotNull()
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
@@ -100,17 +78,9 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
   @Test
   fun `proto with missing values returns DEPRECATED`() {
     StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
-    assertThat(
-        ServerFlagService.instance.getProto(
-          "dev_services/service",
-          DevServicesDeprecationMetadata.getDefaultInstance(),
-        )
-      )
-      .isNotNull()
+    assertThat(ServerFlagService.instance.getProto("dev_services/service", DevServicesDeprecationMetadata.getDefaultInstance())).isNotNull()
 
-    registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
-    )
+    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build())
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
@@ -135,17 +105,13 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
     registerServiceProto(serviceProto)
 
     var deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.description)
-      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
+    assertThat(deprecationData.description).isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.description)
-      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
+    assertThat(deprecationData.description).isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder()
-        .apply { description = "<service_name> will be substituted. So will <date>" }
-        .build()
+      DevServicesDeprecationMetadata.newBuilder().apply { description = "<service_name> will be substituted. So will <date>" }.build()
     )
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
@@ -171,17 +137,13 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
     registerServiceProto(serviceProto)
 
     var deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.header)
-      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
+    assertThat(deprecationData.header).isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.header)
-      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
+    assertThat(deprecationData.header).isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder()
-        .apply { header = "<service_name> will be substituted. So will <date>" }
-        .build()
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "<service_name> will be substituted. So will <date>" }.build()
     )
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
@@ -190,12 +152,8 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `service proto takes precedence over studio proto`() {
-    registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "ServiceProto" }.build()
-    )
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "ServiceProto" }.build())
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.header).isEqualTo("ServiceProto")
@@ -203,9 +161,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `studio proto returned when service proto not available`() {
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.header).isEqualTo("StudioProto")
@@ -249,9 +205,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `deprecation data contains default url when moreInfoUrl not provided`() {
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.moreInfoUrl).isEqualTo(StudioFlags.DEFAULT_MORE_INFO_URL.get())
@@ -259,9 +213,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `registered listener gets notified on register`() = runTest {
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val stateFlow = provider.registerServiceForChange("service", "", testRootDisposable)
     assertThat(stateFlow.value).isEqualTo(DevServicesDeprecationData.EMPTY)
@@ -273,18 +225,14 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
     // Pass test scope to provider to skip delays
     provider = ServerFlagBasedDevServicesDeprecationDataProvider(this)
     val disposable = Disposer.newDisposable()
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val stateFlow = provider.registerServiceForChange("service", "", disposable)
 
     delayUntilCondition(200) { stateFlow.value != DevServicesDeprecationData.EMPTY }
     assertThat(stateFlow.value.header).isEqualTo("StudioProto")
 
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProtoChanged" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProtoChanged" }.build())
     delayUntilCondition(200) { stateFlow.value.header == "StudioProtoChanged" }
     // Need to dispose the disposable because checkJob running in test scope prevents the test from
     // finishing
@@ -296,17 +244,13 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
     // Pass test scope to provider to skip delays
     provider = ServerFlagBasedDevServicesDeprecationDataProvider(this)
     val disposable = Disposer.newDisposable()
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build())
 
     val stateFlow = provider.registerServiceForChange("service", "", disposable)
     delayUntilCondition(200) { stateFlow.value.header == "StudioProto" }
 
     Disposer.dispose(disposable)
-    registerStudioProto(
-      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProtoChanged" }.build()
-    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProtoChanged" }.build())
 
     try {
       waitForCondition(1.seconds) { stateFlow.value.header == "StudioProtoChanged" }
@@ -331,8 +275,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
   private fun withDateFormatOverride(override: String) =
     object : AutoCloseable {
       private val originalPattern = DateTimeFormatManager.getInstance().dateFormatPattern
-      private val originalSystemDateFormatOverride =
-        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat
+      private val originalSystemDateFormatOverride = DateTimeFormatManager.getInstance().isOverrideSystemDateFormat
 
       init {
         DateTimeFormatManager.getInstance().resetFormats()
@@ -341,8 +284,7 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       }
 
       override fun close() {
-        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat =
-          originalSystemDateFormatOverride
+        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat = originalSystemDateFormatOverride
         DateTimeFormatManager.getInstance().dateFormatPattern = originalPattern
       }
     }

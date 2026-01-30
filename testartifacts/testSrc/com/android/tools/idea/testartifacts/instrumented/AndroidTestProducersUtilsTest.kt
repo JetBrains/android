@@ -23,23 +23,15 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 
-/**
- * Unit test for [AndroidTestConfigurationProducer]
- */
+/** Unit test for [AndroidTestConfigurationProducer] */
 class AndroidTestProducerUtilsTest {
 
   @Test
   fun extraOptionsAreAddedByExtension() {
     val extension = mock<TestRunConfigurationOptions>()
-    `when`(extension.getExtraOptions(any())).thenReturn(listOf("-e key_only", "-e key3 value3"))
-      .thenThrow(IllegalStateException())
+    `when`(extension.getExtraOptions(any())).thenReturn(listOf("-e key_only", "-e key3 value3")).thenThrow(IllegalStateException())
 
-    val options = getOptions(
-      existingOptions = "-e key1 value1",
-      mock(),
-      listOf(extension),
-      mock()
-    )
+    val options = getOptions(existingOptions = "-e key1 value1", mock(), listOf(extension), mock())
 
     assertThat(options).isEqualTo("-e key1 value1 -e key_only  -e key3 value3")
   }
@@ -49,15 +41,9 @@ class AndroidTestProducerUtilsTest {
     val mockLogger = mock<Logger>()
 
     val extensionThatThrowsException = mock<TestRunConfigurationOptions>()
-    `when`(extensionThatThrowsException.getExtraOptions(any()))
-      .thenThrow(IllegalStateException())
+    `when`(extensionThatThrowsException.getExtraOptions(any())).thenThrow(IllegalStateException())
 
-    val options = getOptions(
-      existingOptions = "-e key1 value1",
-      mock(),
-      listOf(extensionThatThrowsException),
-      mockLogger,
-    )
+    val options = getOptions(existingOptions = "-e key1 value1", mock(), listOf(extensionThatThrowsException), mockLogger)
 
     verify(mockLogger).error(any(), any<IllegalStateException>())
     assertThat(options).isEqualTo("-e key1 value1")

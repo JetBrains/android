@@ -23,10 +23,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Action to decrement by one the current page value in a [PreviewRepresentation] that supports
- * pagination ([PreviewPaginationManager]).
- */
+/** Action to decrement by one the current page value in a [PreviewRepresentation] that supports pagination ([PreviewPaginationManager]). */
 class PreviousPageAction :
   AnAction(
     PreviewBundle.message("action.preview.pagination.previous.page.name"),

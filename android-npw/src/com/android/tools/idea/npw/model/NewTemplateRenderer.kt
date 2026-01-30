@@ -65,29 +65,17 @@ fun Recipe.actuallyRender(c: RenderingContext) = render(c, DefaultRecipeExecutor
 fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
   val success =
     if (c.project.isInitialized) doRender(c, e)
-    else
-      PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<
-        Boolean
-      > {
-        doRender(c, e)
-      }
+    else PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<Boolean> { doRender(c, e) }
 
   if (!c.dryRun) {
-    ApplicationManager.getApplication().invokeAndWait {
-      PsiDocumentManager.getInstance(c.project).commitAllDocuments()
-    }
+    ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
     ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
 
   return success
 }
 
-fun Recipe.render(
-  c: RenderingContext,
-  e: RecipeExecutor,
-  loggingEvent: TemplateRenderer,
-  metrics: TemplateMetrics? = null,
-): Boolean {
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer, metrics: TemplateMetrics? = null): Boolean {
   return render(c, e).also {
     if (!c.dryRun) {
       logRendering(c.projectTemplateData, c.project, loggingEvent)
@@ -113,11 +101,7 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   } catch (e: IOException) {
     if (c.showErrors) {
       invokeAndWaitIfNeeded {
-        Messages.showErrorDialog(
-          c.project,
-          formatErrorMessage(c.commandName, !c.dryRun, e),
-          "${c.commandName} Failed",
-        )
+        Messages.showErrorDialog(c.project, formatErrorMessage(c.commandName, !c.dryRun, e), "${c.commandName} Failed")
       }
     } else {
       throw RuntimeException(e)
@@ -150,15 +134,8 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   return result.get()
 }
 
-/**
- * If this is not a dry run, we may have created/changed some files and the project may no longer
- * compile. Let the user know about undo.
- */
-fun formatErrorMessage(
-  commandName: String,
-  canCausePartialRendering: Boolean,
-  ex: IOException,
-): String =
+/** If this is not a dry run, we may have created/changed some files and the project may no longer compile. Let the user know about undo. */
+fun formatErrorMessage(commandName: String, canCausePartialRendering: Boolean, ex: IOException): String =
   if (!canCausePartialRendering) ex.message ?: "Unknown IOException occurred"
   else
     """${ex.message}
@@ -189,24 +166,18 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   when (title) {
     "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
     "Android Project" -> TemplateRenderer.ANDROID_PROJECT
-    message("android.wizard.module.new.baselineprofiles.module.app") ->
-      TemplateRenderer.BASELINE_PROFILES_MODULE
-    message("android.wizard.module.new.benchmark.module.app") ->
-      TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+    message("android.wizard.module.new.baselineprofiles.module.app") -> TemplateRenderer.BASELINE_PROFILES_MODULE
+    message("android.wizard.module.new.benchmark.module.app") -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
     message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
     message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
     message("android.wizard.module.new.tv") -> TemplateRenderer.ANDROID_TV_MODULE
-    message("android.wizard.module.new.dynamic.module") ->
-      TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
+    message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
     message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
-    message("android.wizard.module.new.kotlin.multiplatform.library") ->
-      TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
+    message("android.wizard.module.new.kotlin.multiplatform.library") -> TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
     "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
     "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
     "Empty Views Activity" -> TemplateRenderer.EMPTY_ACTIVITY
-    "Blank Activity" ->
-      if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY
-      else TemplateRenderer.BLANK_ACTIVITY
+    "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
     "Login Views Activity" -> TemplateRenderer.LOGIN_ACTIVITY
     "Tabbed Views Activity" -> TemplateRenderer.TABBED_ACTIVITY
     "Scrolling Views Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
@@ -358,8 +329,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
 
 fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer): ModuleType {
   return when (moduleTemplateRenderer) {
-    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER ->
-      ModuleType.NOT_APPLICABLE // Existing module, can't find what type is
+    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER -> ModuleType.NOT_APPLICABLE // Existing module, can't find what type is
     TemplateRenderer.ANDROID_MODULE -> ModuleType.PHONE_TABLET
     TemplateRenderer.ANDROID_LIBRARY -> ModuleType.ANDROID_LIBRARY
     TemplateRenderer.DYNAMIC_FEATURE_MODULE -> ModuleType.DYNAMIC_FEATURE
@@ -376,11 +346,7 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
   }
 }
 
-fun logRendering(
-  projectData: ProjectTemplateData,
-  project: Project,
-  templateRenderer: TemplateRenderer,
-) {
+fun logRendering(projectData: ProjectTemplateData, project: Project, templateRenderer: TemplateRenderer) {
   val aseBuilder =
     AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
@@ -394,9 +360,7 @@ fun logRendering(
   UsageTracker.log(aseBuilder.withProjectId(project))
 
   // Log event if user declined to add kotlin support in a new project
-  if (
-    templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin
-  ) {
+  if (templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin) {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .apply {

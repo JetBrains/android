@@ -19,10 +19,11 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.intellij.openapi.extensions.ExtensionPointName
 
-interface ProfilerProgramRunnerToken<P: AndroidProjectSystem> : Token {
+interface ProfilerProgramRunnerToken<P : AndroidProjectSystem> : Token {
   companion object {
-    val EP_NAME = ExtensionPointName<ProfilerProgramRunnerToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.profilers.profilerProgramRunnerToken")
+    val EP_NAME =
+      ExtensionPointName<ProfilerProgramRunnerToken<AndroidProjectSystem>>("com.android.tools.idea.profilers.profilerProgramRunnerToken")
   }
+
   fun isProfileableBuildSupported(projectSystem: P): Boolean
 }

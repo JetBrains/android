@@ -44,8 +44,7 @@ class ClassPickerCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly("com.app.SQLiteDriver", "org.app.SQLiteDriver")
+    assertThat(fixture.lookupElementStrings).containsExactly("com.app.SQLiteDriver", "org.app.SQLiteDriver")
   }
 
   @Test
@@ -54,8 +53,7 @@ class ClassPickerCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly("com.app.SQLiteConnection", "org.app.SQLiteConnection")
+    assertThat(fixture.lookupElementStrings).containsExactly("com.app.SQLiteConnection", "org.app.SQLiteConnection")
   }
 
   @Test

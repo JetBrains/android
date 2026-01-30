@@ -43,10 +43,7 @@ val HQ_RENDERING_HINTS =
     RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE,
   )
 
-/**
- * Class defining the logic that renders the Layout Inspector device-related components. Eg: images,
- * borders etc.
- */
+/** Class defining the logic that renders the Layout Inspector device-related components. Eg: images, borders etc. */
 class RenderLogic(private val renderModel: RenderModel, val renderSettings: RenderSettings) {
   private val inspectorModel = renderModel.model
 
@@ -57,9 +54,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
 
   /** Render Views borders from the device. */
   fun renderBorders(g: Graphics2D, component: Component, foregroundColor: Color) {
-    renderModel.hitRects.forEach { viewDrawInfo ->
-      renderBorders(g, viewDrawInfo, component, foregroundColor)
-    }
+    renderModel.hitRects.forEach { viewDrawInfo -> renderBorders(g, viewDrawInfo, component, foregroundColor) }
   }
 
   /** Render an overlay image */
@@ -80,12 +75,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
     drawInfo.node.paint(g2, inspectorModel)
   }
 
-  private fun renderBorders(
-    g: Graphics2D,
-    drawInfo: ViewDrawInfo,
-    component: Component,
-    foregroundColor: Color,
-  ) {
+  private fun renderBorders(g: Graphics2D, drawInfo: ViewDrawInfo, component: Component, foregroundColor: Color) {
     val hoveredNode = inspectorModel.hoveredNode
     val drawView = drawInfo.node
     val view = drawView.unfilteredOwner
@@ -101,18 +91,9 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
           renderSettings.drawUntransformedBounds ||
           view == selection ||
           view == hoveredNode ||
-          (renderModel.treeSettings.showRecompositions &&
-            view.recompositions.hasHighlight == true &&
-            inspectorModel.maxHighlight != 0f))
+          (renderModel.treeSettings.showRecompositions && view.recompositions.hasHighlight == true && inspectorModel.maxHighlight != 0f))
     ) {
-      drawView.paintBorder(
-        g2,
-        view == selection,
-        view == hoveredNode,
-        inspectorModel,
-        renderSettings,
-        renderModel.treeSettings,
-      )
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, renderSettings, renderModel.treeSettings)
     }
     // the fold has to be drawn over the View that is select/hovered.
     // This matters only in 3D, where users want to know where the fold is relative to each View.
@@ -123,9 +104,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         renderModel.hitRects.isNotEmpty() &&
         (
         // nothing is selected or hovered: draw on the root
-        (renderModel.hoveredDrawInfo == null &&
-          inspectorModel.selection == null &&
-          drawInfo == renderModel.hitRects.first()) ||
+        (renderModel.hoveredDrawInfo == null && inspectorModel.selection == null && drawInfo == renderModel.hitRects.first()) ||
           // We're hovering over this node
           renderModel.hoveredDrawInfo == drawInfo ||
           // We're not hovering but there is a selection. If the selected ViewNode corresponds to
@@ -151,10 +130,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
     val endX: Float
     val endY: Float
 
-    val angleText =
-      (if (foldInfo.angle == null) "" else foldInfo.angle?.toString() + "°") +
-        " " +
-        foldInfo.posture
+    val angleText = (if (foldInfo.angle == null) "" else foldInfo.angle?.toString() + "°") + " " + foldInfo.posture
     val labelPosition = Point()
     val icon = StudioIcons.LayoutInspector.Toolbar.DEGREE
     // Note this could be AdtUiUtils.DEFAULT_FONT, but since that's a static if it gets initialized
@@ -174,11 +150,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         endY = maxHeight / 2f
         val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
         labelPosition.x =
-          transformed.x.toInt() -
-            labelGraphics.fontMetrics.stringWidth(angleText) -
-            icon.iconWidth -
-            iconTextGap -
-            labelLineGap
+          transformed.x.toInt() - labelGraphics.fontMetrics.stringWidth(angleText) - icon.iconWidth - iconTextGap - labelLineGap
         labelPosition.y = transformed.y.toInt() - icon.iconHeight / 2
       }
       InspectorModel.FoldOrientation.VERTICAL -> {
@@ -187,9 +159,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         startY = -lineExtensionLength
         endY = maxHeight + lineExtensionLength
         val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
-        labelPosition.x =
-          transformed.x.toInt() -
-            (labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap) / 2
+        labelPosition.x = transformed.x.toInt() - (labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap) / 2
         labelPosition.y = transformed.y.toInt() - icon.iconHeight - labelLineGap
       }
     }
@@ -199,10 +169,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
     labelGraphics.fillRoundRect(
       labelPosition.x - labelBorder,
       labelPosition.y - labelBorder,
-      labelGraphics.fontMetrics.stringWidth(angleText) +
-        icon.iconWidth +
-        iconTextGap +
-        labelBorder * 2,
+      labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap + labelBorder * 2,
       icon.iconHeight + labelBorder * 2,
       JBUIScale.scale(5),
       JBUIScale.scale(5),

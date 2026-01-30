@@ -21,22 +21,19 @@ import com.intellij.openapi.actionSystem.DataKey
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Interface used for Preview Representations that support [PreviewGroup]s. It allows filtering
- * [PreviewElement]s based on a list of available [PreviewGroup]s or [PreviewGroup.All] when no
- * filtering should be applied.
+ * Interface used for Preview Representations that support [PreviewGroup]s. It allows filtering [PreviewElement]s based on a list of
+ * available [PreviewGroup]s or [PreviewGroup.All] when no filtering should be applied.
  *
  * @see [GroupSwitchAction]
  */
 interface PreviewGroupManager {
   /**
-   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
-   * and only one will be displayed at a given time.
+   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups and only one will be displayed at a given
+   * time.
    */
   val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>>
 
-  /**
-   * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
-   */
+  /** Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected. */
   var groupFilter: PreviewGroup
 
   companion object {

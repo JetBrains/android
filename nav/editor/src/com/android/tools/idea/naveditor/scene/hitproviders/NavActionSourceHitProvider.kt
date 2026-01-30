@@ -29,16 +29,11 @@ import com.android.tools.idea.naveditor.scene.OUTER_RADIUS_LARGE
  Augments the hit region for destinations which support actions to include the action handle
 */
 object NavActionSourceHitProvider : DefaultHitProvider() {
-  override fun addHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     NavDestinationHitProvider.addHit(component, sceneTransform, picker)
 
     val sceneView = sceneTransform.surface?.focusedSceneView ?: return
-    @SwingCoordinate
-    val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
     @SwingCoordinate var x = drawRectangle.x + drawRectangle.width
     if (component.nlComponent.isFragment) {

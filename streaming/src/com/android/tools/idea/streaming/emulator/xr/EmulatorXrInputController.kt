@@ -44,10 +44,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.math.min
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-/**
- * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
- * Thread safe.
- */
+/** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
 internal class EmulatorXrInputController(private val emulator: EmulatorController) : AbstractXrInputController() {
 
   private val inputEvent = InputEvent.newBuilder()
@@ -62,21 +59,25 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
     suspendCancellableCoroutine { continuation ->
-      val xrOptions = XrOptions.newBuilder()
-        .setPassthroughCoefficient(passthroughCoefficient)
-        .setEnvironment(environment?.let { forNumber(it.ordinal) })
-        .build()
-      emulator.setXrOptions(xrOptions, object : EmptyStreamObserver<Empty>() {
-        override fun onNext(message: Empty) {
-          this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
-          ActivityTracker.getInstance().inc()
-          continuation.resume(Unit)
-        }
+      val xrOptions =
+        XrOptions.newBuilder()
+          .setPassthroughCoefficient(passthroughCoefficient)
+          .setEnvironment(environment?.let { forNumber(it.ordinal) })
+          .build()
+      emulator.setXrOptions(
+        xrOptions,
+        object : EmptyStreamObserver<Empty>() {
+          override fun onNext(message: Empty) {
+            this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient
+            ActivityTracker.getInstance().inc()
+            continuation.resume(Unit)
+          }
 
-        override fun onError(t: Throwable) {
-          continuation.resumeWithException(t)
-        }
-      })
+          override fun onError(t: Throwable) {
+            continuation.resumeWithException(t)
+          }
+        },
+      )
     }
   }
 
@@ -161,8 +162,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
             NavigationKey.MOVE_FORWARD.ordinal -> velocity.z = -VELOCITY
             NavigationKey.MOVE_BACKWARD.ordinal -> velocity.z = VELOCITY
           }
-        }
-        else {
+        } else {
           when (key) {
             NavigationKey.ROTATE_RIGHT.ordinal -> angularVelocity.omegaY = -ANGULAR_VELOCITY
             NavigationKey.ROTATE_LEFT.ordinal -> angularVelocity.omegaY = ANGULAR_VELOCITY
@@ -187,8 +187,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   private fun sendInputEvent(inputEvent: InputEvent) {
     emulator.getOrCreateInputEventSender().onNext(inputEvent)
@@ -196,20 +195,18 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   companion object {
     fun getInstance(project: Project, emulator: EmulatorController): EmulatorXrInputController =
-        project.service<EmulatorXrInputControllerService>().getXrInputController(emulator)
+      project.service<EmulatorXrInputControllerService>().getXrInputController(emulator)
   }
 }
 
 @Service(Service.Level.PROJECT)
-internal class EmulatorXrInputControllerService(project: Project): Disposable {
+internal class EmulatorXrInputControllerService(project: Project) : Disposable {
 
   private val xrControllers = ConcurrentHashMap<EmulatorController, EmulatorXrInputController>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {
     return xrControllers.computeIfAbsent(emulator) {
-      Disposer.register(emulator) {
-        xrControllers.remove(emulator)
-      }
+      Disposer.register(emulator) { xrControllers.remove(emulator) }
       return@computeIfAbsent EmulatorXrInputController(emulator)
     }
   }

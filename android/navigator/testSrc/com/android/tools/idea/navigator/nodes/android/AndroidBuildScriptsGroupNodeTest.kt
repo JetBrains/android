@@ -34,8 +34,7 @@ import org.junit.Test
 
 @RunsInEdt
 class AndroidBuildScriptsGroupNodeTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @After
   fun cleanUp() {
@@ -62,16 +61,18 @@ class AndroidBuildScriptsGroupNodeTest {
     assertTrue(node.contains(gradle_properties.virtualFile))
     assertTrue(node.contains(local_properties.virtualFile))
     assertFalse(node.contains(gradle_other_versions_toml.virtualFile))
-    assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
+    assertFalse(node.contains(app_build_gradle.virtualFile)) // We do not show build files from modules not recognised by sync.
     assertFalse(node.contains(unrelated_txt.virtualFile))
 
-    val expectedChildren = """
+    val expectedChildren =
+      """
       build.gradle (Project: AndroidBuildScriptsGroupNodeTest_rootProjectOnly)
       settings.gradle (Project Settings)
       gradle.properties (Project Properties)
       gradle-wrapper.properties (Gradle Version)
       local.properties (SDK Location)
-    """.trimIndent()
+      """
+        .trimIndent()
     assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }
 
@@ -88,7 +89,7 @@ class AndroidBuildScriptsGroupNodeTest {
     val app_unrelated_txt = projectRule.fixture.addFileToProject("app/unrelated.txt", "")
     val app_libs_versions_toml = projectRule.fixture.addFileToProject("app/libs.versions.toml", "")
     val app_gradle_libs_versions_toml = projectRule.fixture.addFileToProject("app/gradle/libs.versions.toml", "")
-    projectRule.setupProjectFrom(rootModuleBuilder,  AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
+    projectRule.setupProjectFrom(rootModuleBuilder, AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
 
     val project = projectRule.project
     val node = AndroidBuildScriptsGroupNode(project, ViewSettings.DEFAULT)
@@ -104,13 +105,15 @@ class AndroidBuildScriptsGroupNodeTest {
     assertFalse(node.contains(unrelated_txt.virtualFile))
     assertFalse(node.contains(app_unrelated_txt.virtualFile))
 
-    val expectedChildren = """
+    val expectedChildren =
+      """
       build.gradle (Project: AndroidBuildScriptsGroupNodeTest_appProject)
       settings.gradle (Project Settings)
       build.gradle (Module :app)
       proguard-rules.pro (ProGuard Rules for ":app")
       consumer-proguard-rules.pro (ProGuard Rules for ":app")
-    """.trimIndent()
+      """
+        .trimIndent()
     assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
 
     val appModule = project.findAppModule()
@@ -132,7 +135,7 @@ class AndroidBuildScriptsGroupNodeTest {
     val app_unrelated_txt = projectRule.fixture.addFileToProject("app/unrelated.txt", "")
     val app_libs_versions_toml = projectRule.fixture.addFileToProject("app/libs.versions.toml", "")
     val app_gradle_libs_versions_toml = projectRule.fixture.addFileToProject("app/gradle/libs.versions.toml", "")
-    projectRule.setupProjectFrom(rootModuleBuilder,  AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
+    projectRule.setupProjectFrom(rootModuleBuilder, AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
 
     val project = projectRule.project
     val node = AndroidBuildScriptsGroupNode(project, ViewSettings.DEFAULT)
@@ -148,20 +151,24 @@ class AndroidBuildScriptsGroupNodeTest {
     assertFalse(node.contains(unrelated_txt.virtualFile))
     assertFalse(node.contains(app_unrelated_txt.virtualFile))
 
-    val expectedChildren = """
+    val expectedChildren =
+      """
       build.gradle (Project: AndroidBuildScriptsGroupNodeTest_appProjectWithBuildScripts)
       settings.gradle (Project Settings)
-    """.trimIndent()
+      """
+        .trimIndent()
     assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
 
     val appModule = project.findAppModule()
     assertThat(appModule).isNotNull()
     val appNode = AndroidModuleNode(project, appModule, ViewSettings.DEFAULT)
-    val expectedChildrenApp = """
+    val expectedChildrenApp =
+      """
       build.gradle
       proguard-rules.pro
       consumer-proguard-rules.pro
-    """.trimIndent()
+      """
+        .trimIndent()
     assertEquals(expectedChildrenApp, appNode.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }
 
@@ -177,30 +184,34 @@ class AndroidBuildScriptsGroupNodeTest {
     assertTrue(node.contains(build_gradle.virtualFile))
 
     """
-      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
-      settings.gradle (Project Settings)
-    """.trimIndent().let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
+    build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+    settings.gradle (Project Settings)
+    """
+      .trimIndent()
+      .let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
 
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val scripts_build_gradle = projectRule.fixture.addFileToProject("scripts_build.gradle", "")
 
-
     assertTrue(node.contains(setting_gradle.virtualFile))
     assertTrue(node.contains(build_gradle.virtualFile))
-    assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
-    assertFalse(node.contains(scripts_build_gradle.virtualFile))  // Before new getChildren call this should not appear in the tree and contains should return false.
+    assertFalse(node.contains(app_build_gradle.virtualFile)) // We do not show build files from modules not recognised by sync.
+    assertFalse(
+      node.contains(scripts_build_gradle.virtualFile)
+    ) // Before new getChildren call this should not appear in the tree and contains should return false.
 
     """
-      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
-      settings.gradle (Project Settings)
-      scripts_build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
-    """.trimIndent().let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
-
+    build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+    settings.gradle (Project Settings)
+    scripts_build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+    """
+      .trimIndent()
+      .let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
 
     assertTrue(node.contains(setting_gradle.virtualFile))
     assertTrue(node.contains(build_gradle.virtualFile))
-    assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
-    assertTrue(node.contains(scripts_build_gradle.virtualFile))  // After getChildren call tree is updated and this should be true .
+    assertFalse(node.contains(app_build_gradle.virtualFile)) // We do not show build files from modules not recognised by sync.
+    assertTrue(node.contains(scripts_build_gradle.virtualFile)) // After getChildren call tree is updated and this should be true .
   }
 
   private fun printChildren(node: AndroidBuildScriptsGroupNode) =

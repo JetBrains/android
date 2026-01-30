@@ -65,12 +65,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.classpathEntries.add(classpath)
   }
 
-  override fun applyPluginInModule(
-    plugin: String,
-    module: Module,
-    revision: String?,
-    minRev: String?,
-  ) {
+  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     context.plugins.add(plugin)
   }
 
@@ -79,11 +74,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.classpathEntries.add("$classpathModule:$version")
   }
 
-  override fun addClasspathDependency(
-    mavenCoordinate: String,
-    minRev: String?,
-    forceAdding: Boolean,
-  ) {
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
     context.classpathEntries.add(mavenCoordinate)
   }
 
@@ -98,11 +89,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
-  override fun addPlatformDependency(
-    mavenCoordinate: String,
-    configuration: String,
-    enforced: Boolean,
-  ) {
+  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
@@ -116,8 +103,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.targetFiles.add(resolveTargetFile(file))
   }
 
-  private fun resolveTargetFile(file: File): File =
-    if (file.isAbsolute) file else File(context.outputRoot, file.path)
+  private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {}
 
@@ -125,11 +111,9 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun getExtVar(name: String, valueIfNotFound: String): String = valueIfNotFound
 
-  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
-    valueIfNotFound
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
 
-  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
-    valueIfNotFound
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
 
   override fun addIncludeToSettings(moduleName: String) {}
 
@@ -150,6 +134,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   }
 
   override fun useLibrary(name: String) {}
+
   override fun addCompileSdk(androidVersion: AndroidVersion, isKotlinMultiplatform: Boolean) {}
+
   override fun addJourneysTestSuite(testSuiteName: String, targetVariant: String?) {}
 }

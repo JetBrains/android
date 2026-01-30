@@ -46,11 +46,7 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
               enabledFacetsProvider.getDataBindingEnabledFacets().mapNotNull { facet ->
                 LayoutBindingModuleCache.getInstance(facet).lightDataBindingComponentClass
               }
-            CachedValueProvider.Result.create(
-              classes,
-              enabledFacetsProvider,
-              AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project),
-            )
+            CachedValueProvider.Result.create(classes, enabledFacetsProvider, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project))
           },
           false,
         )
@@ -65,8 +61,6 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
   }
 
   private fun check(psiClass: PsiClass?, qualifiedName: String, scope: GlobalSearchScope): Boolean {
-    return psiClass != null &&
-      qualifiedName == psiClass.qualifiedName &&
-      PsiSearchScopeUtil.isInScope(scope, psiClass)
+    return psiClass != null && qualifiedName == psiClass.qualifiedName && PsiSearchScopeUtil.isInScope(scope, psiClass)
   }
 }

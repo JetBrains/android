@@ -17,14 +17,11 @@ package com.android.tools.idea.codenavigation
 
 import com.intellij.pom.Navigatable
 
-/**
- * An interface to get a [Navigatable] for a given [CodeLocation] using a specific strategy (e.g.
- * looking at the APK information).
- */
+/** An interface to get a [Navigatable] for a given [CodeLocation] using a specific strategy (e.g. looking at the APK information). */
 interface NavSource {
   /**
-   * Gets a [Navigatable] for a [CodeLocation] for a specific architecture. [arch] will be CPU
-   * arch as defined in the [Abi] enum. If no [Navigatable] can be found, null will be returned.
+   * Gets a [Navigatable] for a [CodeLocation] for a specific architecture. [arch] will be CPU arch as defined in the [Abi] enum. If no
+   * [Navigatable] can be found, null will be returned.
    */
   fun lookUp(location: CodeLocation, arch: String?): Navigatable?
 }

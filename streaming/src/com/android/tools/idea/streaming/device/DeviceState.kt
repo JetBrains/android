@@ -29,7 +29,7 @@ internal data class DeviceState(
 ) {
 
   fun serialize(stream: Base128OutputStream) {
-    stream.writeInt(id);
+    stream.writeInt(id)
     stream.writeBytes(name.toByteArray())
     stream.writeUInt(systemProperties.toMask())
     stream.writeUInt(physicalProperties.toMask())
@@ -90,5 +90,5 @@ internal data class DeviceState(
 }
 
 private fun Base128InputStream.readUInt(): UInt = readInt().toUInt()
-private fun Base128OutputStream.writeUInt(value: UInt) = writeInt(value.toInt())
 
+private fun Base128OutputStream.writeUInt(value: UInt) = writeInt(value.toInt())

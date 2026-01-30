@@ -22,9 +22,8 @@ import com.intellij.openapi.extensions.ExtensionPointName
 /**
  * Provides a [Filter] that is applicable only to the logcat console.
  *
- * Unlike regular Filter's that operate on lines, logcat specific filters get access to the editor
- * containing the logcat buffer and can hence operate on structured logcat messages by retrieving
- * them from the editor.
+ * Unlike regular Filter's that operate on lines, logcat specific filters get access to the editor containing the logcat buffer and can
+ * hence operate on structured logcat messages by retrieving them from the editor.
  */
 interface LogcatConsoleFilterProvider {
   fun create(editor: EditorEx): Filter

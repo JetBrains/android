@@ -21,12 +21,10 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.xmlb.XmlSerializerUtil
-import org.jetbrains.android.util.AndroidBundle
 import kotlin.reflect.KProperty
+import org.jetbrains.android.util.AndroidBundle
 
-/**
- * Persistent Emulator-related settings.
- */
+/** Persistent Emulator-related settings. */
 @State(name = "Emulator", storages = [Storage("emulator.xml")])
 class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
 
@@ -39,8 +37,8 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   var snapshotAutoDeletionPolicy: SnapshotAutoDeletionPolicy by ChangeNotifyingProperty(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY)
 
   /**
-   * This property indicates whether the balloon advertising moving of some toolbar actions
-   * into the context menu has already been shown and dismissed by the user.
+   * This property indicates whether the balloon advertising moving of some toolbar actions into the context menu has already been shown and
+   * dismissed by the user.
    *
    * It is not reflected in `EmulatorSettingsPage`.
    */
@@ -82,11 +80,12 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   enum class SnapshotAutoDeletionPolicy(@NlsContexts.Label val displayName: String) {
     DELETE_AUTOMATICALLY(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.delete")),
     ASK_BEFORE_DELETING(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ask")),
-    DO_NOT_DELETE(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ignore"))
+    DO_NOT_DELETE(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ignore")),
   }
 
   private inner class ChangeNotifyingProperty<T>(var value: T) {
     operator fun getValue(thisRef: EmulatorSettings, property: KProperty<*>) = value
+
     operator fun setValue(thisRef: EmulatorSettings, property: KProperty<*>, newValue: T) {
       if (value != newValue) {
         value = newValue

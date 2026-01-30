@@ -26,14 +26,12 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.common.artifact.CachedArtifact
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents.Companion.getDefaultInstance
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents.Companion.readFrom
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
-import com.google.idea.blaze.qsync.project.QuerySyncProjectDirectory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -46,9 +44,7 @@ import kotlin.time.measureTimedValue
 /**
  * Performs a single directory update based on a [ArtifactDirectoryContents] proto.
  *
- *
- * Ensures that the directory contents exactly match the proto spec, deleting any entries not
- * listed in there.
+ * Ensures that the directory contents exactly match the proto spec, deleting any entries not listed in there.
  */
 class ArtifactDirectoryUpdate(
   private val name: String,
@@ -58,8 +54,7 @@ class ArtifactDirectoryUpdate(
 ) {
   private val _updatedPaths: MutableSet<Path> = hashSetOf()
 
-  @VisibleForTesting
-  val updatedPaths: Set<Path> = _updatedPaths
+  @VisibleForTesting val updatedPaths: Set<Path> = _updatedPaths
 
   @Throws(IOException::class)
   fun update(context: Context<*>): Set<Label> {
@@ -76,103 +71,88 @@ class ArtifactDirectoryUpdate(
     val exceptions = mutableListOf<Exception>()
 
     return measureTimedValue {
-      val existingContents: ArtifactDirectoryContents =
-        if (Files.exists(contentsProtoPath)) {
+        val existingContents: ArtifactDirectoryContents =
+          if (Files.exists(contentsProtoPath)) {
+            try {
+                Files.newInputStream(contentsProtoPath).use { input -> readFrom(input) }
+              } catch (ex: IOException) {
+                context.output(PrintOutput.error("Failed to load $contentsProtoPath\nIgnoring and trying to rebuild the directory.\n$ex"))
+                getDefaultInstance()
+                // Ignore corrupted contents files. In the worst case we will delete artifact files and won't be able to copy them again as
+                // they
+                // already expired in the cache. This, however,won't prevent syncing/building dependencies as an exception would do.
+              } catch (ex: RuntimeException) {
+                context.output(PrintOutput.error("Failed to load $contentsProtoPath\nIgnoring and trying to rebuild the directory.\n$ex"))
+                getDefaultInstance()
+              }
+              .also {
+                // we delete this now so that if something fails mid way through the below, then we should
+                // recover next time by re-creating the entire contents of the dir.
+                Files.delete(contentsProtoPath)
+              }
+          } else {
+            getDefaultInstance()
+          }
+        val incompleteTargets = mutableSetOf<Label>()
+
+        for (destAndArtifact in contents.contents.entries) {
           try {
-            Files.newInputStream(contentsProtoPath).use { input -> readFrom(input) }
-          }
-          catch (ex: IOException) {
-            context.output(PrintOutput.error("Failed to load $contentsProtoPath\nIgnoring and trying to rebuild the directory.\n$ex"))
-            getDefaultInstance()
-            // Ignore corrupted contents files. In the worst case we will delete artifact files and won't be able to copy them again as they
-            // already expired in the cache. This, however,won't prevent syncing/building dependencies as an exception would do.
-          }
-          catch (ex: RuntimeException) {
-            context.output(PrintOutput.error("Failed to load $contentsProtoPath\nIgnoring and trying to rebuild the directory.\n$ex"))
-            getDefaultInstance()
-          }
-            .also {
-              // we delete this now so that if something fails mid way through the below, then we should
-              // recover next time by re-creating the entire contents of the dir.
-              Files.delete(contentsProtoPath)
-            }
-        }
-        else {
-          getDefaultInstance()
-        }
-      val incompleteTargets = mutableSetOf<Label>()
-
-      for (destAndArtifact in contents.contents.entries) {
-        try {
-          val artifactSource = destAndArtifact.value
-          when (artifactSource) {
-            is ProjectArtifact-> {
-              val existingArtifact = existingContents.contents[destAndArtifact.key] as? ProjectArtifact
-              if (!updateOneFile(
-                  root.resolve(Path.of(destAndArtifact.key)),
-                  existingArtifact,
-                  artifactSource
-                )
-              ) {
-                incompleteTargets.add(artifactSource.target)
-              }
-            }
-            is ProjectProto.ExternalRepository -> {
-              val linkPath = root.resolve(artifactSource.name)
-              if (!Files.isSymbolicLink(linkPath) || Files.readSymbolicLink(linkPath) != artifactSource.bazelRepositoryAbsolutePath) {
-                if (Files.exists(linkPath)) {
-                  MoreFiles.deleteRecursively(linkPath, RecursiveDeleteOption.ALLOW_INSECURE)
+            val artifactSource = destAndArtifact.value
+            when (artifactSource) {
+              is ProjectArtifact -> {
+                val existingArtifact = existingContents.contents[destAndArtifact.key] as? ProjectArtifact
+                if (!updateOneFile(root.resolve(Path.of(destAndArtifact.key)), existingArtifact, artifactSource)) {
+                  incompleteTargets.add(artifactSource.target)
                 }
-                Files.createSymbolicLink(linkPath, artifactSource.bazelRepositoryAbsolutePath)
+              }
+              is ProjectProto.ExternalRepository -> {
+                val linkPath = root.resolve(artifactSource.name)
+                if (!Files.isSymbolicLink(linkPath) || Files.readSymbolicLink(linkPath) != artifactSource.bazelRepositoryAbsolutePath) {
+                  if (Files.exists(linkPath)) {
+                    MoreFiles.deleteRecursively(linkPath, RecursiveDeleteOption.ALLOW_INSECURE)
+                  }
+                  Files.createSymbolicLink(linkPath, artifactSource.bazelRepositoryAbsolutePath)
+                }
               }
             }
+          } catch (e: BuildException) {
+            exceptions.add(e)
+          } catch (e: IOException) {
+            exceptions.add(e)
           }
         }
-        catch (e: BuildException) {
-          exceptions.add(e)
-        }
-        catch (e: IOException) {
-          exceptions.add(e)
-        }
-      }
 
-      // we don't rely on the existing contents proto here so that we clean up properly if something
-      // else has put things in the dir.
-      try {
-        deleteUnnecessaryFiles()
-      }
-      catch (e: IOException) {
-        exceptions.add(e)
-      }
-
-      if (contents.contents.isEmpty()) {
-        // The directory is empty. Delete it.
-        Files.deleteIfExists(contentsProtoPath)
-        Files.deleteIfExists(root)
-        emptySet()
-      }
-      else {
+        // we don't rely on the existing contents proto here so that we clean up properly if something
+        // else has put things in the dir.
         try {
-          Files.newOutputStream(contentsProtoPath, StandardOpenOption.CREATE).use { out ->
-            contents.writeTo(out)
-          }
-        }
-        catch (e: IOException) {
+          deleteUnnecessaryFiles()
+        } catch (e: IOException) {
           exceptions.add(e)
         }
-        incompleteTargets
+
+        if (contents.contents.isEmpty()) {
+          // The directory is empty. Delete it.
+          Files.deleteIfExists(contentsProtoPath)
+          Files.deleteIfExists(root)
+          emptySet()
+        } else {
+          try {
+            Files.newOutputStream(contentsProtoPath, StandardOpenOption.CREATE).use { out -> contents.writeTo(out) }
+          } catch (e: IOException) {
+            exceptions.add(e)
+          }
+          incompleteTargets
+        }
       }
-    }
       .also {
         if (it.duration.inWholeMilliseconds > 500) {
           context.output<PrintOutput?>(PrintOutput.log("Took %s to update %s", it.duration, name))
         }
-      }.value
+      }
+      .value
   }
 
-  private fun needsUpdate(
-    existing: ProjectArtifact?, updated: ProjectArtifact,
-  ): Boolean {
+  private fun needsUpdate(existing: ProjectArtifact?, updated: ProjectArtifact): Boolean {
     if (existing == null) {
       return true
     }
@@ -188,11 +168,7 @@ class ArtifactDirectoryUpdate(
    * @return `false` if the artifact was not present (e.g. expired from the cache).
    */
   @Throws(BuildException::class, IOException::class)
-  private fun updateOneFile(
-    dest: Path,
-    existing: ProjectArtifact?,
-    srcArtifact: ProjectArtifact,
-  ): Boolean {
+  private fun updateOneFile(dest: Path, existing: ProjectArtifact?, srcArtifact: ProjectArtifact): Boolean {
     if (needsUpdate(existing, srcArtifact)) {
       if (Files.exists(dest)) {
         MoreFiles.deleteRecursively(dest, RecursiveDeleteOption.ALLOW_INSECURE)
@@ -202,11 +178,9 @@ class ArtifactDirectoryUpdate(
       Files.createDirectories(dest.parent)
       val src = getCachedArtifact(srcArtifact) ?: return false
       when (srcArtifact.transform) {
-        ArtifactTransform.COPY ->
-          _updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src, dest))
+        ArtifactTransform.COPY -> _updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src, dest))
 
-        ArtifactTransform.UNZIP ->
-          _updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src, dest))
+        ArtifactTransform.UNZIP -> _updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src, dest))
       }
     }
     return true
@@ -216,13 +190,9 @@ class ArtifactDirectoryUpdate(
   private fun getCachedArtifact(artifact: ProjectArtifact): CachedArtifact? {
     // TODO(mathewi) It would probably be better to parallelize this so get better performance
     //   in the case that not all artifacts are ready in the cache.
-    return artifactCache
-      .get(artifact.buildArtifact.digest)
-      .getOrNull()
-      ?.let {
-        runCatching { Uninterruptibles.getUninterruptibly(it) }
-          .getOrElse { throw BuildException("Failed to fetch artifact $artifact", it) }
-      }
+    return artifactCache.get(artifact.buildArtifact.digest).getOrNull()?.let {
+      runCatching { Uninterruptibles.getUninterruptibly(it) }.getOrElse { throw BuildException("Failed to fetch artifact $artifact", it) }
+    }
   }
 
   @Throws(IOException::class)
@@ -232,14 +202,9 @@ class ArtifactDirectoryUpdate(
     }
     val toDelete: List<Path> =
       Files.walk(root).use { fileStream ->
-        val dot =
-          Path.of(".") // Path.of("abc").startsWith(Path.of("")) does not work but with "./abc" and "./" it does.
+        val dot = Path.of(".") // Path.of("abc").startsWith(Path.of("")) does not work but with "./abc" and "./" it does.
         val wanted = contents.contents.keys.asSequence().map { dot.resolve(it) }
-        val present =
-          fileStream.asSequence()
-            .map { root.relativize(it) }
-            .map { dot.resolve(it) }
-            .filter { dot != it }
+        val present = fileStream.asSequence().map { root.relativize(it) }.map { dot.resolve(it) }.filter { dot != it }
         computeFilesToDelete(present, wanted)
       }
     for (p in Lists.reverse(toDelete)) {
@@ -248,11 +213,12 @@ class ArtifactDirectoryUpdate(
   }
 
   companion object {
-    @JvmStatic
-    fun getContentsFile(artifactDir: Path): Path = artifactDir.resolveSibling("${artifactDir.fileName}.state")
+    @JvmStatic fun getContentsFile(artifactDir: Path): Path = artifactDir.resolveSibling("${artifactDir.fileName}.state")
+
     private fun getOldContentsFile(artifactDir: Path) = artifactDir.resolveSibling("${artifactDir.fileName}.contents")
 
-    /****
+    /**
+     * *
      * Returns the list of currently present files/directories that are neither parents nor children of wanted files/directories.
      */
     @VisibleForTesting
@@ -260,8 +226,8 @@ class ArtifactDirectoryUpdate(
       val present = presentStream.sortedWith(::comparePathsByNames).toList()
       val wanted = wantedStream.sortedWith(::comparePathsByNames).toList()
       return buildList {
-        var wantedIndex = 0;
-        var presentIndex = 0;
+        var wantedIndex = 0
+        var presentIndex = 0
 
         while (presentIndex < present.size) {
           val currentWanted = wanted.getOrNull(wantedIndex)
@@ -269,24 +235,22 @@ class ArtifactDirectoryUpdate(
           val cr = if (currentWanted != null) comparePathsByNames(currentWanted, currentPresent) else 1
           if (currentWanted != null && cr < 0) {
             if (currentPresent.startsWith(currentWanted)) {
-              presentIndex++;
+              presentIndex++
+            } else {
+              wantedIndex++
             }
-            else {
-              wantedIndex++;
-            }
-          }
-          else {
+          } else {
             if (currentWanted == null || !currentWanted.startsWith(currentPresent)) {
-              this@buildList.add(currentPresent);
+              this@buildList.add(currentPresent)
             }
-            presentIndex++;
+            presentIndex++
           }
         }
       }
     }
 
     private fun comparePathsByNames(p1: Path, p2: Path): Int {
-      val nc = min(p1.nameCount, p2.nameCount);
+      val nc = min(p1.nameCount, p2.nameCount)
       for (i in (0 until nc)) {
         val c = p1.getName(i) compareTo p2.getName(i)
         if (c != 0) {
@@ -297,4 +261,3 @@ class ArtifactDirectoryUpdate(
     }
   }
 }
-

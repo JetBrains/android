@@ -26,24 +26,38 @@ class DependenciesProcessor(private val projectModel: ProjectBuildModel) {
     val helper = DependenciesHelper.withModel(projectModel)
     for (plugin in config.plugins) {
       // TODO rethink input types in DependenciesConfig
-      PluginsHelper.withModel(projectModel).addPluginOrClasspath(
-        plugin.pluginId,
-        plugin.classpathModule,
-        plugin.version,
-        listOf(moduleModel),
-        { id, version -> config.pluginMatcherFactory(id, version) },
-        config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version),
-        config.pluginInsertionConfig
-      ).also { result = result.appendAll(it) }
+      PluginsHelper.withModel(projectModel)
+        .addPluginOrClasspath(
+          plugin.pluginId,
+          plugin.classpathModule,
+          plugin.version,
+          listOf(moduleModel),
+          { id, version -> config.pluginMatcherFactory(id, version) },
+          config.dependencyMatcherFactory(CLASSPATH, plugin.classpathModule + ":" + plugin.version),
+          config.pluginInsertionConfig,
+        )
+        .also { result = result.appendAll(it) }
     }
     for (dependency in config.dependencies) {
-      helper.addDependency(dependency.configurationName, dependency.dependency, listOf(), moduleModel,
-                           config.dependencyMatcherFactory(dependency.configurationName, dependency.dependency))
+      helper
+        .addDependency(
+          dependency.configurationName,
+          dependency.dependency,
+          listOf(),
+          moduleModel,
+          config.dependencyMatcherFactory(dependency.configurationName, dependency.dependency),
+        )
         .also { result = result.appendAll(it) }
     }
     for (platform in config.platforms) {
-      helper.addPlatformDependency(platform.configurationName, platform.dependency, platform.enforced, moduleModel,
-                                   config.dependencyMatcherFactory(platform.configurationName, platform.dependency))
+      helper
+        .addPlatformDependency(
+          platform.configurationName,
+          platform.dependency,
+          platform.enforced,
+          moduleModel,
+          config.dependencyMatcherFactory(platform.configurationName, platform.dependency),
+        )
         .also { result = result.appendAll(it) }
     }
     return result
@@ -52,12 +66,16 @@ class DependenciesProcessor(private val projectModel: ProjectBuildModel) {
 
 data class ApplyResult(val success: Boolean, val updated: Set<PsiFile>) {
   fun merge(result: ApplyResult) = copy(success = this.success && result.success, updated = this.updated + result.updated)
+
   fun append(file: PsiFile?) = file?.let { appendAll(setOf(it)) } ?: copy()
+
   fun appendAll(files: Set<PsiFile>) = copy(updated = this.updated + files)
+
   fun fail() = copy(false, updated)
 
   companion object {
     fun success(updated: Set<PsiFile>) = ApplyResult(true, updated)
+
     fun failure() = ApplyResult(false, setOf())
   }
 }

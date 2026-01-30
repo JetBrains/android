@@ -18,8 +18,7 @@ package com.android.tools.idea.npw.template.components
 import com.intellij.ui.HyperlinkLabel
 
 /** Provides a [HyperlinkLabel] for an external website. */
-class UrlLinkProvider(private val urlName: String, private val urlAddress: String) :
-  ComponentProvider<HyperlinkLabel>() {
+class UrlLinkProvider(private val urlName: String, private val urlAddress: String) : ComponentProvider<HyperlinkLabel>() {
   override fun createComponent(): HyperlinkLabel =
     HyperlinkLabel().apply {
       setHyperlinkText(urlName)

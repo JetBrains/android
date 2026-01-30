@@ -64,7 +64,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
   private val writer = HprofWriter(dos, idSize, System.currentTimeMillis())
 
-  private var objectFilter: (Any) -> FilterResult = { _ -> FilterResult.INCLUDE_REFERENCES_AND_INSTANCE };
+  private var objectFilter: (Any) -> FilterResult = { _ -> FilterResult.INCLUDE_REFERENCES_AND_INSTANCE }
 
   init {
     addObject(Class::class.java)
@@ -73,8 +73,8 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   }
 
   /**
-   * Static fields are ignored when the class is added to the builder. This method allows to use instance fields of an object to
-   * act as static fields of another class.
+   * Static fields are ignored when the class is added to the builder. This method allows to use instance fields of an object to act as
+   * static fields of another class.
    *
    * @param clazz Class for which static fields will be added
    * @param o Object which instance fields will serve as static fields
@@ -113,12 +113,14 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       stackFrameIds[i] = stackFrameId
       val classObjectId = addObject(Class.forName(ste.className))
       val classSerialNumber = getClassSerialNumber(classObjectId)
-      writer.writeStackFrame(stackFrameId,
-                             addString(ste.className + "." + ste.methodName),
-                             addString("()"),
-                             0,
-                             classSerialNumber,
-                             if (ste.isNativeMethod) -1 else ste.lineNumber)
+      writer.writeStackFrame(
+        stackFrameId,
+        addString(ste.className + "." + ste.methodName),
+        addString("()"),
+        0,
+        classSerialNumber,
+        if (ste.isNativeMethod) -1 else ste.lineNumber,
+      )
     }
     val stackTraceSerialNumber = nextStackTraceSerialNumberID()
     writer.writeStackTrace(stackTraceSerialNumber, thread.id, stackFrameIds)
@@ -131,7 +133,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     }
     val filterResult = objectFilter.invoke(o)
     if (filterResult == FilterResult.TREAT_AS_NULL) {
-      return 0;
+      return 0
     }
     if (objectToIdMap.containsKey(o)) {
       return objectToIdMap.getLong(o)
@@ -183,11 +185,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       curr += elementType.size
     }
 
-    writer.writePrimitiveArrayDump(id,
-                                   0,
-                                   elementType,
-                                   bytes,
-                                   arraySize)
+    writer.writePrimitiveArrayDump(id, 0, elementType, bytes, arraySize)
   }
 
   private fun serializeToBytes(bytes: ByteArray, offset: Int, value: Long, count: Int): Int {
@@ -209,10 +207,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       elements[i] = elementID
     }
 
-    writer.writeObjectArrayDump(id,
-                                0,
-                                arrayClassObjectId,
-                                elements)
+    writer.writeObjectArrayDump(id, 0, arrayClassObjectId, elements)
   }
 
   private fun addInstanceObject(id: Long, o: Any) {
@@ -221,32 +216,33 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     val baos = ByteArrayOutputStream()
     DataOutputStream(baos).use { dos ->
       do {
-        oClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) }.forEach { field ->
-          field.isAccessible = true
+        oClass.declaredFields
+          .filter { !Modifier.isStatic(it.modifiers) }
+          .forEach { field ->
+            field.isAccessible = true
 
-          when (field.type) {
-            java.lang.Long.TYPE -> dos.writeLong(field.getLong(o))
-            Integer.TYPE -> dos.writeInt(field.getInt(o))
-            Short.TYPE -> dos.writeShort(field.getShort(o).toInt())
-            Character.TYPE -> dos.writeChar(field.getChar(o).code)
-            Byte.TYPE -> dos.writeByte(field.getByte(o).toInt())
-            Boolean.TYPE -> dos.writeBoolean(field.getBoolean(o))
-            Double.TYPE -> dos.writeDouble(field.getDouble(o))
-            Float.TYPE -> dos.writeFloat(field.getFloat(o))
-            else -> {
-              val refObject = field.get(o)
-              val refObjectId = addObject(refObject)
-              when (idSize) {
-                8 -> dos.writeLong(refObjectId)
-                4 -> dos.writeInt(refObjectId.toInt())
-                else -> throw IllegalArgumentException()
+            when (field.type) {
+              java.lang.Long.TYPE -> dos.writeLong(field.getLong(o))
+              Integer.TYPE -> dos.writeInt(field.getInt(o))
+              Short.TYPE -> dos.writeShort(field.getShort(o).toInt())
+              Character.TYPE -> dos.writeChar(field.getChar(o).code)
+              Byte.TYPE -> dos.writeByte(field.getByte(o).toInt())
+              Boolean.TYPE -> dos.writeBoolean(field.getBoolean(o))
+              Double.TYPE -> dos.writeDouble(field.getDouble(o))
+              Float.TYPE -> dos.writeFloat(field.getFloat(o))
+              else -> {
+                val refObject = field.get(o)
+                val refObjectId = addObject(refObject)
+                when (idSize) {
+                  8 -> dos.writeLong(refObjectId)
+                  4 -> dos.writeInt(refObjectId.toInt())
+                  else -> throw IllegalArgumentException()
+                }
               }
             }
           }
-        }
         oClass = oClass.superclass ?: break
-      }
-      while (true)
+      } while (true)
     }
     val bytes = baos.toByteArray()
     writer.writeInstanceDump(id, 0, classObjectId, bytes)
@@ -267,30 +263,33 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
     var instanceSize = 0
     val instanceFields = mutableListOf<InstanceFieldEntry>()
-    oClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) }.forEach { field ->
-      instanceSize += when (field.type) {
-        java.lang.Long.TYPE -> 8
-        Integer.TYPE -> 4
-        Short.TYPE -> 2
-        Character.TYPE -> 2
-        Byte.TYPE -> 1
-        Boolean.TYPE -> 1
-        Double.TYPE -> 8
-        Float.TYPE -> 4
-        else -> idSize
+    oClass.declaredFields
+      .filter { !Modifier.isStatic(it.modifiers) }
+      .forEach { field ->
+        instanceSize +=
+          when (field.type) {
+            java.lang.Long.TYPE -> 8
+            Integer.TYPE -> 4
+            Short.TYPE -> 2
+            Character.TYPE -> 2
+            Byte.TYPE -> 1
+            Boolean.TYPE -> 1
+            Double.TYPE -> 8
+            Float.TYPE -> 4
+            else -> idSize
+          }
+        when (field.type) {
+          java.lang.Long.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.LONG))
+          Integer.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.INT))
+          Short.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.SHORT))
+          Character.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.CHAR))
+          Byte.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.BYTE))
+          Boolean.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.BOOLEAN))
+          Double.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.DOUBLE))
+          Float.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.FLOAT))
+          else -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.OBJECT))
+        }
       }
-      when (field.type) {
-        java.lang.Long.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.LONG))
-        Integer.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.INT))
-        Short.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.SHORT))
-        Character.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.CHAR))
-        Byte.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.BYTE))
-        Boolean.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.BOOLEAN))
-        Double.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.DOUBLE))
-        Float.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.FLOAT))
-        else -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.OBJECT))
-      }
-    }
 
     // Constants and static fields not supported yet.
     val constantPool = arrayOf<ConstantPoolEntry>()
@@ -298,31 +297,44 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
     if (classToObjectWithStatics.contains(oClass)) {
       val statics = classToObjectWithStatics[oClass]!!
-      statics.javaClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }.forEach { field ->
-        when (field.type) {
-          java.lang.Long.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.LONG, field.getLong(statics)))
-          Integer.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.INT, field.getInt(statics).toLong()))
-          Short.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.SHORT, field.getShort(statics).toLong()))
-          Character.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.CHAR, field.getChar(statics).toLong()))
-          Byte.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BYTE, field.getByte(statics).toLong()))
-          Boolean.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BOOLEAN, if (field.getBoolean(statics)) 1 else 0))
-          Double.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.DOUBLE, field.getDouble(statics).toRawBits()))
-          Float.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.FLOAT, field.getFloat(statics).toRawBits().toLong()))
-          else -> staticFields.add(StaticFieldEntry(addString(field.name), Type.OBJECT, addObject(field.get(statics))))
+      statics.javaClass.declaredFields
+        .filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }
+        .forEach { field ->
+          when (field.type) {
+            java.lang.Long.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.LONG, field.getLong(statics)))
+            Integer.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.INT, field.getInt(statics).toLong()))
+            Short.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.SHORT, field.getShort(statics).toLong()))
+            Character.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.CHAR, field.getChar(statics).toLong()))
+            Byte.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BYTE, field.getByte(statics).toLong()))
+            Boolean.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BOOLEAN, if (field.getBoolean(statics)) 1 else 0))
+            Double.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.DOUBLE, field.getDouble(statics).toRawBits()))
+            Float.TYPE ->
+              staticFields.add(StaticFieldEntry(addString(field.name), Type.FLOAT, field.getFloat(statics).toRawBits().toLong()))
+            else -> staticFields.add(StaticFieldEntry(addString(field.name), Type.OBJECT, addObject(field.get(statics))))
+          }
         }
-      }
     }
 
-    writer.writeClassDump(id, 0, superClassObjectId, 0, 0, 0,
-                          instanceSize,
-                          constantPool,
-                          staticFields.toTypedArray(),
-                          instanceFields.toTypedArray())
+    writer.writeClassDump(
+      id,
+      0,
+      superClassObjectId,
+      0,
+      0,
+      0,
+      instanceSize,
+      constantPool,
+      staticFields.toTypedArray(),
+      instanceFields.toTypedArray(),
+    )
   }
 
   private fun nextObjectID() = nextObjectId++
+
   private fun nextStackFrameID() = nextStackFrameId++
+
   private fun nextStackTraceSerialNumberID() = nextStackTraceSerialNumberId++
+
   private fun nextClassSerialNumber() = nextClassSerialNumber++
 
   private fun addString(string: String): Long {
@@ -336,14 +348,12 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   enum class FilterResult {
     INCLUDE_REFERENCES_AND_INSTANCE,
     INCLUDE_REFERENCES_ONLY,
-    TREAT_AS_NULL
+    TREAT_AS_NULL,
   }
 
-  /**
-   * Optional filter on objects added to the hprof.
-   */
+  /** Optional filter on objects added to the hprof. */
   fun setObjectFilter(filter: (Any) -> FilterResult) {
-    objectFilter = filter;
+    objectFilter = filter
   }
 
   private fun getClassSerialNumber(classObjectId: Long) = classObjectIdToClassSerialNumber[classObjectId]

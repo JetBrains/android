@@ -33,21 +33,29 @@ import com.intellij.psi.tree.TokenSet
  * Temporary delegate to either the [ActualAgslParserDefinition] or the [PlainTextParserDefinition] based on whether AGSL support is
  * enabled.
  */
-class AgslParserDefinition :
-  ParserDefinition by ActualAgslParserDefinition() {
+class AgslParserDefinition : ParserDefinition by ActualAgslParserDefinition() {
   fun createLexer(): Lexer = AgslLexer()
 }
 
 private class ActualAgslParserDefinition : ParserDefinition {
   fun createLexer(): Lexer = AgslLexer()
+
   override fun createLexer(project: Project): Lexer = createLexer()
+
   override fun createParser(project: Project): PsiParser = AgslParser()
+
   override fun getFileNodeType(): IFileElementType = AGSL_FILE_ELEMENT_TYPE
+
   override fun getWhitespaceTokens(): TokenSet = AgslTokenTypeSets.WHITESPACES
+
   override fun getCommentTokens(): TokenSet = AgslTokenTypeSets.COMMENTS
+
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
+
   override fun createElement(node: ASTNode): PsiElement = AgslTokenTypes.Factory.createElement(node)
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = AgslFile(viewProvider)
+
   override fun spaceExistenceTypeBetweenTokens(left: ASTNode, right: ASTNode): ParserDefinition.SpaceRequirements =
     ParserDefinition.SpaceRequirements.MAY
 }

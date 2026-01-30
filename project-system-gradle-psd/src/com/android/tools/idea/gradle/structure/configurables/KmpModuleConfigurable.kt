@@ -27,19 +27,25 @@ class KmpModuleConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule,
-  val detailedMessage: String = "KMP modules are not currently supported in the Project Structure dialog. Please select another module."
-) :
-  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
+  val detailedMessage: String = "KMP modules are not currently supported in the Project Structure dialog. Please select another module.",
+) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
 
-  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
-    init {
-      add(JBLabel("<HTML><div style='text-align: center;'>This is a shared KMP Module.<br>$detailedMessage</div></HTML>").apply { horizontalAlignment = SwingConstants.CENTER })
+  override fun createPanel(): AbstractMainPanel =
+    object : AbstractMainPanel(context) {
+      init {
+        add(
+          JBLabel("<HTML><div style='text-align: center;'>This is a shared KMP Module.<br>$detailedMessage</div></HTML>").apply {
+            horizontalAlignment = SwingConstants.CENTER
+          }
+        )
+      }
+
+      override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
+
+      override fun restoreUiState() = Unit
+
+      override fun dispose() = Unit
     }
-
-    override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
-    override fun restoreUiState() = Unit
-    override fun dispose() = Unit
-  }
 
   override fun getId(): String = "android.psd.kmp_module." + module.name
 }

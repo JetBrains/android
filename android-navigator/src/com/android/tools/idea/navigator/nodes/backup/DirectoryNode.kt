@@ -18,9 +18,7 @@ package com.android.tools.idea.navigator.nodes.backup
 
 import com.intellij.ide.util.treeView.AbstractTreeNode
 
-/**
- * An interface for a node that has child nodes
- */
+/** An interface for a node that has child nodes */
 internal interface DirectoryNode {
   fun addChild(node: AbstractTreeNode<*>)
 }

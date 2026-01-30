@@ -54,11 +54,11 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.PopupHandler
+import javax.swing.JTree
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
 import org.jetbrains.uast.visitor.UastVisitor
-import javax.swing.JTree
 
 /** Creates a collection of UFiles from a project and scope. */
 fun UastVisitor.visitAll(project: Project, scope: AnalysisScope): Collection<UFile> {
@@ -81,20 +81,13 @@ class ContextualCallPathTreeStructure(
   val graph: ContextualCallGraph,
   element: PsiElement,
   private val reverseEdges: Boolean,
-) :
-  HierarchyTreeStructure(
-    project,
-    CallHierarchyNodeDescriptor(project, null, element, true, false),
-  ) {
+) : HierarchyTreeStructure(project, CallHierarchyNodeDescriptor(project, null, element, true, false)) {
 
-  private val reachableContextualNodes: Multimap<HierarchyNodeDescriptor, ContextualEdge> =
-    HashMultimap.create()
+  private val reachableContextualNodes: Multimap<HierarchyNodeDescriptor, ContextualEdge> = HashMultimap.create()
 
   init {
     val initialEdges =
-      graph.contextualNodes
-        .filter { it.node.target.element.psi == element }
-        .map { ContextualEdge(it, it.node.target.element) }
+      graph.contextualNodes.filter { it.node.target.element.psi == element }.map { ContextualEdge(it, it.node.target.element) }
     reachableContextualNodes.putAll(myBaseDescriptor, initialEdges)
   }
 
@@ -105,9 +98,7 @@ class ContextualCallPathTreeStructure(
         if (reverseEdges) graph.inEdges(it.contextualNode) else graph.outEdges(it.contextualNode)
       }
       .groupBy { it.contextualNode.node }
-      .mapNotNull { (node, contextNodes) ->
-        node.target.element.psi?.let { Pair(it, contextNodes) }
-      }
+      .mapNotNull { (node, contextNodes) -> node.target.element.psi?.let { Pair(it, contextNodes) } }
       .map { (psi, contextNodes) ->
         val nbrDescriptor = CallHierarchyNodeDescriptor(myProject, descriptor, psi, false, false)
         reachableContextualNodes.putAll(nbrDescriptor, contextNodes)
@@ -119,16 +110,10 @@ class ContextualCallPathTreeStructure(
 
 // Note: This class is similar to CallHierarchyBrowser, but supports arbitrary PSI elements (not
 // just PsiMethod).
-open class ContextualCallPathBrowser(
-  project: Project,
-  val graph: ContextualCallGraph,
-  element: PsiElement,
-) : CallHierarchyBrowserBase(project, element) {
+open class ContextualCallPathBrowser(project: Project, val graph: ContextualCallGraph, element: PsiElement) :
+  CallHierarchyBrowserBase(project, element) {
 
-  override fun createHierarchyTreeStructure(
-    kind: String,
-    psiElement: PsiElement,
-  ): HierarchyTreeStructure {
+  override fun createHierarchyTreeStructure(kind: String, psiElement: PsiElement): HierarchyTreeStructure {
     val reverseEdges = kind == getCallerType()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
@@ -138,11 +123,7 @@ open class ContextualCallPathBrowser(
     val kinds = arrayOf(getCalleeType(), getCallerType())
     for (kind in kinds) {
       val tree = createTree(false)
-      PopupHandler.installPopupMenu(
-        tree,
-        IdeActions.GROUP_CALL_HIERARCHY_POPUP,
-        ActionPlaces.CALL_HIERARCHY_VIEW_POPUP,
-      )
+      PopupHandler.installPopupMenu(tree, IdeActions.GROUP_CALL_HIERARCHY_POPUP, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP)
       baseOnThisMethodAction.registerCustomShortcutSet(
         ActionManager.getInstance().getAction(IdeActions.ACTION_CALL_HIERARCHY).shortcutSet,
         tree,
@@ -161,29 +142,20 @@ open class ContextualCallPathBrowser(
       else -> false
     }
 
-  override fun getComparator(): Comparator<NodeDescriptor<*>> =
-    JavaHierarchyUtil.getComparator(myProject)
+  override fun getComparator(): Comparator<NodeDescriptor<*>> = JavaHierarchyUtil.getComparator(myProject)
 }
 
 class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProvider {
 
   override fun getTarget(dataContext: DataContext): PsiElement? {
     val element = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
-    return PsiTreeUtil.getNonStrictParentOfType(
-      element,
-      PsiMethod::class.java,
-      PsiLambdaExpression::class.java,
-      PsiClass::class.java,
-    )
+    return PsiTreeUtil.getNonStrictParentOfType(element, PsiMethod::class.java, PsiLambdaExpression::class.java, PsiClass::class.java)
   }
 
-  override fun createHierarchyBrowser(target: PsiElement) =
-    ContextualCallPathBrowser(target.project, graph, target)
+  override fun createHierarchyBrowser(target: PsiElement) = ContextualCallPathBrowser(target.project, graph, target)
 
   override fun browserActivated(hierarchyBrowser: HierarchyBrowser) {
-    (hierarchyBrowser as ContextualCallPathBrowser).changeView(
-      CallHierarchyBrowserBase.getCalleeType()
-    )
+    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.getCalleeType())
   }
 }
 
@@ -191,8 +163,7 @@ class CallGraphAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    PsiDocumentManager.getInstance(project)
-      .commitAllDocuments() // Prevents problems with smart pointers creation.
+    PsiDocumentManager.getInstance(project).commitAllDocuments() // Prevents problems with smart pointers creation.
 
     ProgressManager.getInstance()
       .run(
@@ -201,12 +172,8 @@ class CallGraphAction : AnAction() {
             ApplicationManager.getApplication().runReadAction {
               val scope = AnalysisScope(project)
               val cha = ClassHierarchyVisitor().apply { visitAll(project, scope) }.classHierarchy
-              val receiverEval =
-                IntraproceduralDispatchReceiverVisitor(cha)
-                  .apply { visitAll(project, scope) }
-                  .receiverEval
-              val callGraph =
-                CallGraphVisitor(receiverEval, cha).apply { visitAll(project, scope) }.callGraph
+              val receiverEval = IntraproceduralDispatchReceiverVisitor(cha).apply { visitAll(project, scope) }.receiverEval
+              val callGraph = CallGraphVisitor(receiverEval, cha).apply { visitAll(project, scope) }.callGraph
               val contextualGraph = callGraph.buildContextualCallGraph(receiverEval)
 
               val provider = ContextualCallPathProvider(contextualGraph)

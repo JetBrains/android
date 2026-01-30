@@ -41,60 +41,69 @@ import java.util.Locale
 
 class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = AlwaysNeeded
 
-  object AgpVersionNotFound: BlockReason(
-    shortDescription = "Cannot find AGP version in build files.",
-    description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
-                  "possibly because the project's build files use features not currently supported by the \n" +
-                  "Upgrade Assistant (for example: using constants defined in buildSrc).\n" +
-                  "If the project was modified externally while this project was open, syncing your project \n" +
-                  "may help locating the currently used AGP version; this window will update once sync finishes.",
-    readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found")
-  )
+  object AgpVersionNotFound :
+    BlockReason(
+      shortDescription = "Cannot find AGP version in build files.",
+      description =
+        "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
+          "possibly because the project's build files use features not currently supported by the \n" +
+          "Upgrade Assistant (for example: using constants defined in buildSrc).\n" +
+          "If the project was modified externally while this project was open, syncing your project \n" +
+          "may help locating the currently used AGP version; this window will update once sync finishes.",
+      readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found"),
+    )
 
-  object Pre80MavenPublish: BlockReason(
-    shortDescription = "Use of implicitly-created components in maven-publish.",
-    description = "Starting with version 8.0, Android Gradle Plugin will no longer implicitly create \n" +
-                  "components for the maven-publish plugin.  You will have to adapt the publishing \n" +
-                  "blocks to use the new API (and mark the project as migrated by adding \n" +
-                  "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
-                  "file).",
-    readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish")
-  )
+  object Pre80MavenPublish :
+    BlockReason(
+      shortDescription = "Use of implicitly-created components in maven-publish.",
+      description =
+        "Starting with version 8.0, Android Gradle Plugin will no longer implicitly create \n" +
+          "components for the maven-publish plugin.  You will have to adapt the publishing \n" +
+          "blocks to use the new API (and mark the project as migrated by adding \n" +
+          "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
+          "file).",
+      readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish"),
+    )
 
-  object UncompressedNativeLibsDisabled: BlockReason(
-    shortDescription = "Uncompressed native libs in bundle is a deprecated property.",
-    // Note: packagingOptions is deprecated in 8.0 but packaging, its replacement, is not available in 7.x, so use
-    // packagingOptions in this snippet as that will work with all relevant AGP versions.
-    description =
-    """
-      Starting with version 8.1, Android Gradle Plugin will no longer support the
-      android.bundle.enableUncompressedNativeLibs flag. To disable uncompressed native
-      libs, add the following to your build.gradle file:
-      android {
-          packagingOptions {
-              jniLibs {
-                  useLegacyPackaging = true
-              }
-          }
-      }
-    """.trimIndent(),
-    readMoreUrl = ReadMoreUrlRedirect("uncompressed-native-libs-false")
-  )
+  object UncompressedNativeLibsDisabled :
+    BlockReason(
+      shortDescription = "Uncompressed native libs in bundle is a deprecated property.",
+      // Note: packagingOptions is deprecated in 8.0 but packaging, its replacement, is not available in 7.x, so use
+      // packagingOptions in this snippet as that will work with all relevant AGP versions.
+      description =
+        """
+        Starting with version 8.1, Android Gradle Plugin will no longer support the
+        android.bundle.enableUncompressedNativeLibs flag. To disable uncompressed native
+        libs, add the following to your build.gradle file:
+        android {
+            packagingOptions {
+                jniLibs {
+                    useLegacyPackaging = true
+                }
+            }
+        }
+        """
+          .trimIndent(),
+      readMoreUrl = ReadMoreUrlRedirect("uncompressed-native-libs-false"),
+    )
 
-  object JcenterUsage: BlockReason(
-    shortDescription = "jcenter is a deprecated property",
-    description =
-      """
-      Starting with version 9.0, Gradle will no longer support jcenter.
-      Usages of jcenter() need to be replaced with mavenCentral().
-    """.trimIndent(),
-    readMoreUrl = ReadMoreUrlRedirect("jcenter-end-of-service")
-  )
+  object JcenterUsage :
+    BlockReason(
+      shortDescription = "jcenter is a deprecated property",
+      description =
+        """
+        Starting with version 9.0, Gradle will no longer support jcenter.
+        Usages of jcenter() need to be replaced with mavenCentral().
+        """
+          .trimIndent(),
+      readMoreUrl = ReadMoreUrlRedirect("jcenter-end-of-service"),
+    )
 
   private var _isPre80MavenPublish: Boolean? = null
   private val isPre80MavenPublish: Boolean
@@ -106,11 +115,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     }
 
   private val isUncompressedNativeLibsDisabled: Boolean =
-    projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
-        ?.firstOrNull { it.name == "android.bundle.enableUncompressedNativeLibs" }
-        ?.run { getValue(STRING_TYPE) }
-        ?.run { lowercase(Locale.US) == "false" }
-      ?: false
+    projectBuildModel.projectBuildModel
+      ?.propertiesModel
+      ?.declaredProperties
+      ?.firstOrNull { it.name == "android.bundle.enableUncompressedNativeLibs" }
+      ?.run { getValue(STRING_TYPE) }
+      ?.run { lowercase(Locale.US) == "false" } ?: false
 
   private val isJcenterUsed: Boolean =
     projectBuildModel.projectBuildModel?.buildscript()?.repositories()?.containsMethodCall("jcenter") == true
@@ -118,11 +128,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   private fun computeIsPre80MavenPublish(): Boolean {
     val mavenPublishUsed = projectBuildModel.allIncludedBuildModels.flatMap { it.plugins() }.any { it.name().toString() == "maven-publish" }
     val disableAutomaticComponentCreation =
-      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
+      projectBuildModel.projectBuildModel
+        ?.propertiesModel
+        ?.declaredProperties
         ?.firstOrNull { it.name == "android.disableAutomaticComponentCreation" }
         ?.run { getValue(STRING_TYPE) }
-        ?.run { lowercase(Locale.US) == "true" }
-      ?: false
+        ?.run { lowercase(Locale.US) == "true" } ?: false
     return mavenPublishUsed && !disableAutomaticComponentCreation
   }
 
@@ -133,11 +144,13 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun blockProcessorReasons(): List<BlockReason> =
     listOfNotNull(
       AgpVersionNotFound.takeIf { isAlwaysNoOpForProject && current != new },
-      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01") },
+      Pre80MavenPublish.takeIf {
+        isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01")
+      },
       UncompressedNativeLibsDisabled.takeIf {
         current < AgpVersion.parse("8.1.0-alpha01") && new >= AgpVersion.parse("8.1.0-alpha01") && isUncompressedNativeLibsDisabled
       },
-      JcenterUsage.takeIf { isJcenterUsed && new >= AgpVersion.parse("9.0.0-alpha01") }
+      JcenterUsage.takeIf { isJcenterUsed && new >= AgpVersion.parse("9.0.0-alpha01") },
     )
 
   override fun findComponentUsages(): Array<UsageInfo> {
@@ -146,21 +159,23 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       if (plugin.name().toString().startsWith("com.android")) {
         val versionString = plugin.version().getValue(STRING_TYPE) ?: return
         val version = AgpVersion.tryParse(versionString) ?: return
-        if (version == current && version < new)  {
-          val resultModel = when (plugin.version().valueType) {
-            GradlePropertyModel.ValueType.INTERPOLATED -> {
-              val interpolatedText = plugin.version().getValue(INTERPOLATED_TEXT_TYPE) ?: return
-              if (interpolatedText.interpolationElements.size != 1) return
-              val element = interpolatedText.interpolationElements.get(0)
-              val reference = element.referenceItem ?: return
-              GradlePropertyModelBuilder.create(reference.referredElement).buildResolved()
+        if (version == current && version < new) {
+          val resultModel =
+            when (plugin.version().valueType) {
+              GradlePropertyModel.ValueType.INTERPOLATED -> {
+                val interpolatedText = plugin.version().getValue(INTERPOLATED_TEXT_TYPE) ?: return
+                if (interpolatedText.interpolationElements.size != 1) return
+                val element = interpolatedText.interpolationElements.get(0)
+                val reference = element.referenceItem ?: return
+                GradlePropertyModelBuilder.create(reference.referredElement).buildResolved()
+              }
+              else -> plugin.version().resultModel
             }
-            else -> plugin.version().resultModel
-          }
-          val psiElement = when (val element = resultModel.rawElement) {
-            null -> return
-            else -> element.psiElement
-          }
+          val psiElement =
+            when (val element = resultModel.rawElement) {
+              null -> return
+              else -> element.psiElement
+            }
           val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
           psiElement?.let {
             usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
@@ -176,12 +191,13 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
         when (isUpdatablePluginDependency(new, dep)) {
           ThreeState.YES -> {
             val resultModel = dep.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
-              null -> return@dep
-              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
-              is FakeArtifactElement -> element.realExpression.psiElement
-              else -> element.psiElement
-            }
+            val psiElement =
+              when (val element = resultModel.rawElement) {
+                null -> return@dep
+                // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+                is FakeArtifactElement -> element.realExpression.psiElement
+                else -> element.psiElement
+              }
             // This text gets used in the `target` display of the preview, and so needs to conform with our user interface
             // (having this be more of a verb than a noun).
             val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
@@ -198,12 +214,13 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
         when {
           moduleRootDir == buildSrcDir && isUpdatablePluginRelatedDependency(new, dep) == ThreeState.YES -> {
             val resultModel = dep.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
-              null -> return@dep
-              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
-              is FakeArtifactElement -> element.realExpression.psiElement
-              else -> element.psiElement
-            }
+            val psiElement =
+              when (val element = resultModel.rawElement) {
+                null -> return@dep
+                // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+                is FakeArtifactElement -> element.realExpression.psiElement
+                else -> element.psiElement
+              }
             // it would be weird for there to be an AGP dependency in buildSrc without there being one in the main project, but just in
             // case...
             val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
@@ -213,11 +230,12 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
           }
           isUpdatableLintRelatedDependency(new, dep) == ThreeState.YES -> {
             val resultModel = dep.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
-              null -> return@dep
-              is FakeArtifactElement -> element.realExpression.psiElement
-              else -> element.psiElement
-            }
+            val psiElement =
+              when (val element = resultModel.rawElement) {
+                null -> return@dep
+                is FakeArtifactElement -> element.realExpression.psiElement
+                else -> element.psiElement
+              }
             val presentableText = AgpUpgradeBundle.message("agpVersionRefactoringProcessor.target.presentableText")
             psiElement?.let {
               val wrappedElement = WrappedPsiElement(it, this, USAGE_TYPE, presentableText)
@@ -244,12 +262,13 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun getShortDescription(): String =
     """
-      Changing the version of the Android Gradle Plugin dependency
-      effectively upgrades the project.  Pre-upgrade steps must be run
-      no later than this version change; post-upgrade steps must be run
-      no earlier, but can be run afterwards by continuing to use this
-      assistant after running the upgrade.
-    """.trimIndent()
+    Changing the version of the Android Gradle Plugin dependency
+    effectively upgrades the project.  Pre-upgrade steps must be run
+    no later than this version change; post-upgrade steps must be run
+    no earlier, but can be run afterwards by continuing to use this
+    assistant after running the upgrade.
+    """
+      .trimIndent()
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.agpVersion"
 
@@ -272,7 +291,7 @@ class AgpVersionUsageInfo(
   element: WrappedPsiElement,
   val current: AgpVersion,
   val new: AgpVersion,
-  private val resultModel: GradlePropertyModel
+  private val resultModel: GradlePropertyModel,
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("agpVersionUsageInfo.tooltipText", current, new)
 
@@ -285,7 +304,7 @@ class LintVersionUsageInfo(
   element: WrappedPsiElement,
   val current: Version,
   val new: Version,
-  private val resultModel: GradlePropertyModel
+  private val resultModel: GradlePropertyModel,
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("lintVersionUsageInfo.tooltipText", current, new)
 

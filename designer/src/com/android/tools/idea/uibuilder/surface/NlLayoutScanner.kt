@@ -27,12 +27,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
-/**
- * Validator for [NlDesignSurface]. It retrieves validation results from the [RenderResult] and
- * update the lint accordingly.
- */
-class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
-  Disposable, LayoutScannerControl {
+/** Validator for [NlDesignSurface]. It retrieves validation results from the [RenderResult] and update the lint accordingly. */
+class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) : Disposable, LayoutScannerControl {
 
   constructor(surface: NlDesignSurface) : this(surface, surface)
 
@@ -40,9 +36,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
     fun lintUpdated(result: ValidatorResult?)
   }
 
-  /**
-   * Parses the layout and store all metadata required for linking issues to source [NlComponent]
-   */
+  /** Parses the layout and store all metadata required for linking issues to source [NlComponent] */
   private val layoutParser = NlScannerLayoutParser()
   /** Helper class for displaying output to lint system */
   private val lintIntegrator = AccessibilityLintIntegrator(surface.issueModel)
@@ -127,8 +121,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
           (it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
             it.mType == ValidatorData.Type.ACCESSIBILITY
         ) {
-          val component =
-            layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
+          val component = layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
           if (component == null) {
             issuesWithoutSources++
           } else {
@@ -171,25 +164,14 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
 
 // For debugging
 fun ValidatorResult.toDetailedString(): String? {
-  val builder: StringBuilder =
-    StringBuilder().append("Result containing ").append(issues.size).append(" issues:\n")
+  val builder: StringBuilder = StringBuilder().append("Result containing ").append(issues.size).append(" issues:\n")
   val var2: Iterator<*> = this.issues.iterator()
   while (var2.hasNext()) {
     val issue = var2.next() as ValidatorData.Issue
     if (issue.mLevel == ValidatorData.Level.ERROR) {
-      builder
-        .append(" - [E::")
-        .append(issue.mLevel.name)
-        .append("] ")
-        .append(issue.mMsg)
-        .append("\n")
+      builder.append(" - [E::").append(issue.mLevel.name).append("] ").append(issue.mMsg).append("\n")
     } else {
-      builder
-        .append(" - [W::")
-        .append(issue.mLevel.name)
-        .append("] ")
-        .append(issue.mMsg)
-        .append("\n")
+      builder.append(" - [W::").append(issue.mLevel.name).append("] ").append(issue.mMsg).append("\n")
     }
   }
   return builder.toString()

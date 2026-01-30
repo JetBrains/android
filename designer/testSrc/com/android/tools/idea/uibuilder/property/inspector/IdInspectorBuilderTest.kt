@@ -63,12 +63,7 @@ class IdInspectorBuilderTest {
   @Test
   fun testNotAvailableForPreferenceTags() {
     for (tagName in PreferenceUtils.VALUES) {
-      val util =
-        InspectorTestUtil(
-          projectRule,
-          tagName,
-          fileName = "${tagName.lowercase(Locale.getDefault())}$DOT_XML",
-        )
+      val util = InspectorTestUtil(projectRule, tagName, fileName = "${tagName.lowercase(Locale.getDefault())}$DOT_XML")
       val builder = IdInspectorBuilder(util.editorProvider)
       util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)
@@ -79,8 +74,7 @@ class IdInspectorBuilderTest {
   @Test
   fun testNotAvailableForMenuTags() {
     for (tagName in arrayOf(TAG_MENU, TAG_ITEM, TAG_GROUP)) {
-      val util =
-        InspectorTestUtil(projectRule, tagName, fileName = "${tagName.lowercase()}$DOT_XML")
+      val util = InspectorTestUtil(projectRule, tagName, fileName = "${tagName.lowercase()}$DOT_XML")
       val builder = IdInspectorBuilder(util.editorProvider)
       util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)

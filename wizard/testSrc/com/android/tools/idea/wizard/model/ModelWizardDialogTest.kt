@@ -23,26 +23,20 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ModelWizardDialogTest {
-  @get:Rule
-  val chain =
-    RuleChain.outerRule(EdtRule())
-      .around(ApplicationRule())
-      .around(HeadlessDialogRule())
+  @get:Rule val chain = RuleChain.outerRule(EdtRule()).around(ApplicationRule()).around(HeadlessDialogRule())
 
   @Test
   fun `check looks for single step wizard`() {
-    val testWizard = ModelWizard.Builder().apply {
-      addStep(createTestStep())
-    }.build()
+    val testWizard = ModelWizard.Builder().apply { addStep(createTestStep()) }.build()
 
     createModalDialogAndInteractWithIt(dialogTrigger = { createDialog(testWizard).show() }) { dialogWrapper ->
       assertThat(dialogWrapper.title).isEqualTo("Test")
@@ -60,10 +54,13 @@ class ModelWizardDialogTest {
 
   @Test
   fun `check looks for multi-step wizard`() {
-    val testWizard = ModelWizard.Builder().apply {
-      addStep(createTestStep(title = "Test Step 1"))
-      addStep(createTestStep(title = "Test Step 2"))
-    }.build()
+    val testWizard =
+      ModelWizard.Builder()
+        .apply {
+          addStep(createTestStep(title = "Test Step 1"))
+          addStep(createTestStep(title = "Test Step 2"))
+        }
+        .build()
 
     val dialog = createDialog(testWizard)
     createModalDialogAndInteractWithIt(dialogTrigger = { dialog.show() }) { dialogWrapper ->
@@ -78,9 +75,10 @@ class ModelWizardDialogTest {
     }
   }
 
-  private fun createTestWizardModel() = object : WizardModel() {
-    override fun handleFinished() = Unit
-  }
+  private fun createTestWizardModel() =
+    object : WizardModel() {
+      override fun handleFinished() = Unit
+    }
 
   private fun createTestStep(model: WizardModel = createTestWizardModel(), title: String = "Test Step"): ModelWizardStep<WizardModel> {
     return object : ModelWizardStep<WizardModel>(model, title) {

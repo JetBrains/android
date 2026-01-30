@@ -33,21 +33,11 @@ internal class FakeGeminiPluginApi : GeminiPluginApi {
 
   override fun isContextAllowed(project: Project) = contextAllowed
 
-  override fun isFileExcluded(project: Project, file: VirtualFile) =
-    excludedFilePaths.contains(file.path)
+  override fun isFileExcluded(project: Project, file: VirtualFile) = excludedFilePaths.contains(file.path)
 
-  override fun sendChatQuery(
-    project: Project,
-    prompt: LlmPrompt,
-    displayText: String?,
-    requestSource: GeminiPluginApi.RequestSource,
-  ) {}
+  override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {}
 
-  override fun stageChatQuery(
-    project: Project,
-    prompt: String,
-    requestSource: GeminiPluginApi.RequestSource,
-  ) {
+  override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
     stagedPrompt = prompt
   }
 }

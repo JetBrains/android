@@ -25,7 +25,7 @@ import com.intellij.openapi.components.StoragePathMacros
 @com.intellij.openapi.components.State(name = "LiveEditAdvancedConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
 class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdvancedConfiguration.State>(State()) {
-  class State: BaseState() {
+  class State : BaseState() {
     var useDebugMode by property(false)
     var allowClassStructuralRedefinition by property(false)
     var refreshRateMs by property(MIN_REFRESH_RATE_MS)
@@ -34,7 +34,7 @@ class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdv
   var useDebugMode
     get() = state.useDebugMode
     set(value) {
-      state.useDebugMode= value
+      state.useDebugMode = value
     }
 
   var allowClassStructuralRedefinition
@@ -52,7 +52,10 @@ class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdv
 
   companion object {
     const val MIN_REFRESH_RATE_MS = 1
-    val REFRESH_RATE_RANGE = MIN_REFRESH_RATE_MS .. 9999
-    @JvmStatic fun getInstance(): LiveEditAdvancedConfiguration = ApplicationManager.getApplication().getService(LiveEditAdvancedConfiguration::class.java)
+    val REFRESH_RATE_RANGE = MIN_REFRESH_RATE_MS..9999
+
+    @JvmStatic
+    fun getInstance(): LiveEditAdvancedConfiguration =
+      ApplicationManager.getApplication().getService(LiveEditAdvancedConfiguration::class.java)
   }
 }

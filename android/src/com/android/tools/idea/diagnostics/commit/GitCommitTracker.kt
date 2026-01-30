@@ -26,9 +26,7 @@ import java.io.InputStreamReader
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-class GitCommitTracker(
-  private val trackedPath: String,
-  private val intervalMinutes: Long = INTERVAL_IN_MINUTES) {
+class GitCommitTracker(private val trackedPath: String, private val intervalMinutes: Long = INTERVAL_IN_MINUTES) {
 
   companion object {
     private val LOG: Logger = Logger.getInstance(GitCommitTracker::class.java)
@@ -60,15 +58,15 @@ class GitCommitTracker(
     val process = processBuilder.start()
     val output = StringBuilder()
 
-    val outputReaderFuture = ApplicationManager.getApplication().executeOnPooledThread {
-      try {
-        val reader = InputStreamReader(process.inputStream)
-        output.append(reader.readText())
+    val outputReaderFuture =
+      ApplicationManager.getApplication().executeOnPooledThread {
+        try {
+          val reader = InputStreamReader(process.inputStream)
+          output.append(reader.readText())
+        } catch (e: Exception) {
+          LOG.error("Error reading process output", e)
+        }
       }
-      catch (e: Exception) {
-        LOG.error("Error reading process output", e)
-      }
-    }
 
     var success = true
     try {
@@ -77,13 +75,11 @@ class GitCommitTracker(
         process.destroy()
         success = false
       }
-    }
-    catch (_: InterruptedException) {
+    } catch (_: InterruptedException) {
       LOG.warn("Process ${processBuilder.command()[0]} interrupted")
 
       success = false
     }
-
 
     if (!success) {
       return null
@@ -98,11 +94,8 @@ class GitCommitTracker(
 
   fun startTracking() {
     LOG.info("Started commit tracking in directory $trackedPath")
-    trackingJob = JobScheduler.getScheduler().scheduleWithFixedDelay(
-      ::trackCommits,
-      INITIAL_DELAY_MINUTES,
-      intervalMinutes,
-      TimeUnit.MINUTES)
+    trackingJob =
+      JobScheduler.getScheduler().scheduleWithFixedDelay(::trackCommits, INITIAL_DELAY_MINUTES, intervalMinutes, TimeUnit.MINUTES)
   }
 
   fun stopTracking() {
@@ -133,8 +126,7 @@ class GitCommitTracker(
         recordCommits(remoteCommits)
         commitTimestampStore.lastRemoteCommitTimestamp = remoteCommits.lastOrNull()?.commitTimestamp
       }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       LOG.error(e)
       return false
     }
@@ -156,7 +148,9 @@ class GitCommitTracker(
                   .setIsFirstCommit(commit.first)
                   .build()
               }
-            )))
+            )
+        )
+    )
   }
 
   private fun getUserGitInfo(): String? {
@@ -164,11 +158,8 @@ class GitCommitTracker(
       val command = listOf("git", "config", "user.email")
       val output = runProcessWithTimeout(command) ?: return null
       val userName = output.trim()
-      if (userName.isNotEmpty())
-        return userName
-    }
-    catch (_: Exception) {
-    }
+      if (userName.isNotEmpty()) return userName
+    } catch (_: Exception) {}
     LOG.warn("Unable to retrieve Git user information")
     return null
   }
@@ -196,8 +187,7 @@ class GitCommitTracker(
       val gitCommand = mutableListOf("git", "log", branchFilter, "--author=$userName", "--pretty=%at %ct")
       if (lastCommitTimestamp != null) {
         gitCommand.addAll(listOf("--since=${lastCommitTimestamp + 1}", "-n", "10"))
-      }
-      else {
+      } else {
         gitCommand.addAll(listOf("-n", "1"))
       }
 
@@ -218,8 +208,7 @@ class GitCommitTracker(
         commits[0] = commits[0].copy(first = true)
       }
       commits.toList()
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       LOG.warn("Error: Unable to retrieve Git log.")
       null
     }

@@ -58,23 +58,12 @@ internal class TestDevice(
           AVD_ROOT.resolve("$avdName.avd").pathString,
           type,
         )
-      else ->
-        Device.createPhysical(
-          serialNumber,
-          state == ONLINE,
-          release,
-          AndroidVersion(sdk, 0),
-          manufacturer,
-          model,
-          type,
-        )
+      else -> Device.createPhysical(serialNumber, state == ONLINE, release, AndroidVersion(sdk, 0), manufacturer, model, type)
     }
   private val deviceProperties =
     when {
       serialNumber.isEmulatorSerial() ->
-        LocalEmulatorProperties.build(
-          makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk, 0))
-        ) {
+        LocalEmulatorProperties.build(makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk, 0))) {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
           deviceType = type
           populateDeviceInfoProto("Test", null, emptyMap(), "connectionId")
@@ -91,12 +80,10 @@ internal class TestDevice(
     }
 
   // Return a new TestDevice with a different serial number
-  fun withSerialNumber(serialNumber: String): TestDevice =
-    TestDevice(serialNumber, state, release, sdk, manufacturer, model, avdName)
+  fun withSerialNumber(serialNumber: String): TestDevice = TestDevice(serialNumber, state, release, sdk, manufacturer, model, avdName)
 
   // Return a new TestDevice with a different state
-  fun withState(state: DeviceState): TestDevice =
-    TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName)
+  fun withState(state: DeviceState): TestDevice = TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName)
 
   suspend fun addDevice(plugin: FakeAdbDeviceProvisionerPlugin): FakeDeviceHandle {
     val handle = plugin.newDevice(serialNumber, deviceProperties)
@@ -112,12 +99,7 @@ internal class TestDevice(
 // Emulator can have a blank serial when it's offline
 private fun String.isEmulatorSerial() = startsWith("emulator") || isBlank()
 
-private fun makeAvdInfo(
-  avdName: String,
-  manufacturer: String,
-  model: String,
-  androidVersion: AndroidVersion,
-): AvdInfo {
+private fun makeAvdInfo(avdName: String, manufacturer: String, model: String, androidVersion: AndroidVersion): AvdInfo {
   val basePath = Path.of("/tmp/fake_avds")
   return AvdInfo(
     iniFile = basePath.resolve("${avdName}.ini"),

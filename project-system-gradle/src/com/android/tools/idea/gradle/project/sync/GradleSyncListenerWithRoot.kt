@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.SystemIndependent
 import java.util.EventListener
+import org.jetbrains.annotations.SystemIndependent
 
 interface GradleSyncListenerWithRoot : EventListener {
   /**
@@ -30,8 +30,9 @@ interface GradleSyncListenerWithRoot : EventListener {
   /**
    * Invoked when the a Gradle project sync has failed. This could be due to many reasons.
    *
-   * @param project the IDEA project created from the Gradle one,  classes that implement this method must deal with
-   * *           the case where the project has been disposed, this can be checked by calling [Project.isDisposed].
+   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with
+   * * the case where the project has been disposed, this can be checked by calling [Project.isDisposed].
+   *
    * @param errorMessage the error message that the Sync failed with.
    */
   fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {}
@@ -39,8 +40,8 @@ interface GradleSyncListenerWithRoot : EventListener {
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
    *
-   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with
-   * the case where the project has been disposed, this can be checked by calling [Project.isDisposed].
+   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with the case where the
+   *   project has been disposed, this can be checked by calling [Project.isDisposed].
    */
   fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {}
 
@@ -48,12 +49,10 @@ interface GradleSyncListenerWithRoot : EventListener {
    * Invoked when the state of a project has been loaded from a disk cache, instead of syncing with Gradle.
    *
    * @param project the project, classes that implement this method must deal with
-   * *           the case where the project has been disposed, this can be checked by calling [Project.isDisposed].
+   * * the case where the project has been disposed, this can be checked by calling [Project.isDisposed].
    */
   fun syncSkipped(project: Project) {}
 
-  /**
-   * Invoked when sync was cancelled.
-   */
-  fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) { }
+  /** Invoked when sync was cancelled. */
+  fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {}
 }

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.utils.appendCapitalized
@@ -32,8 +32,9 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
 
@@ -83,36 +84,48 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       val pluginSet = model.plugins().map { it.name().forceString() }.toSet()
       // TODO(xof): as with the Java8Default refactoring above, we should define and use some kind of API
       //  to determine what kind of a module we have.
-      val applicationSet = setOf(
-        "application", "org.gradle.application", // see Gradle documentation for PluginDependenciesSpec for `org.gradle.` prefix
-        "android", // deprecated but equivalent to com.android.application
-        "com.android.application", "com.android.test", "com.android.instant-app")
-      val librarySet = setOf(
-        "java", "java-library", "org.gradle.java", "org.gradle.java-library",
-        "com.android.base", "com.android.library", "com.android.dynamic-feature", "com.android.feature")
-      val compileReplacement = when {
-        !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
-        pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
-        pluginSet.intersect(librarySet).isNotEmpty() -> "api"
-        else -> return@model
-      }
-
-      model.dependencies().all()
-        .forEach { dependency ->
-          val psiElement = dependency.psiElement ?: model.dependencies().psiElement ?: modelPsiElement
-          maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
+      val applicationSet =
+        setOf(
+          "application",
+          "org.gradle.application", // see Gradle documentation for PluginDependenciesSpec for `org.gradle.` prefix
+          "android", // deprecated but equivalent to com.android.application
+          "com.android.application",
+          "com.android.test",
+          "com.android.instant-app",
+        )
+      val librarySet =
+        setOf(
+          "java",
+          "java-library",
+          "org.gradle.java",
+          "org.gradle.java-library",
+          "com.android.base",
+          "com.android.library",
+          "com.android.dynamic-feature",
+          "com.android.feature",
+        )
+      val compileReplacement =
+        when {
+          !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
+          pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
+          pluginSet.intersect(librarySet).isNotEmpty() -> "api"
+          else -> return@model
         }
+
+      model.dependencies().all().forEach { dependency ->
+        val psiElement = dependency.psiElement ?: model.dependencies().psiElement ?: modelPsiElement
+        maybeAddUsageForDependency(dependency, compileReplacement, psiElement)
+      }
       // Although there might be a buildscript with dependencies, those dependencies cannot be added to a compile/runtime configuration
       // out of the box -- and if somehow a user manages to configure things to have compile/runtime configurations there, there's no
       // guarantee that they mean the same as the deprecated gradle ones.
-      model.configurations().all()
-        .forEach { configuration ->
-          // this PsiElement is used for displaying in the refactoring preview window, rather than for performing the refactoring; it is
-          // therefore appropriate and safe to pass a notional parent Psi if the element is not (yet) on file.
-          // TODO(b/159597456): here and elsewhere, encode this hierarchical logic more declaratively.
-          val psiElement = configuration.psiElement ?: model.configurations().psiElement ?: modelPsiElement
-          maybeAddUsageForConfiguration(configuration, compileReplacement, psiElement)
-        }
+      model.configurations().all().forEach { configuration ->
+        // this PsiElement is used for displaying in the refactoring preview window, rather than for performing the refactoring; it is
+        // therefore appropriate and safe to pass a notional parent Psi if the element is not (yet) on file.
+        // TODO(b/159597456): here and elsewhere, encode this hierarchical logic more declaratively.
+        val psiElement = configuration.psiElement ?: model.configurations().psiElement ?: modelPsiElement
+        maybeAddUsageForConfiguration(configuration, compileReplacement, psiElement)
+      }
     }
     return usages.toTypedArray()
   }
@@ -123,18 +136,19 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     val mandatory = necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
     if (mandatory)
       """
-        Some dependencies have been added to configurations which have been
-        removed.  Those configurations must be replaced with their updated
-        equivalents.
-      """.trimIndent()
+      Some dependencies have been added to configurations which have been
+      removed.  Those configurations must be replaced with their updated
+      equivalents.
+      """
+        .trimIndent()
     else
       """
-        Some dependencies have been added to configurations which have been
-        deprecated.  Those configurations should be replaced with their
-        updated equivalents.
-      """.trimIndent()
+      Some dependencies have been added to configurations which have been
+      deprecated.  Those configurations should be replaced with their
+      updated equivalents.
+      """
+        .trimIndent()
   }
-
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION)
@@ -143,7 +157,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
-      override fun getProcessedElementsHeader(): String = AgpUpgradeBundle.message("compileRuntimeConfigurationRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader(): String =
+        AgpUpgradeBundle.message("compileRuntimeConfigurationRefactoringProcessor.usageView.header")
     }
   }
 
@@ -155,21 +170,24 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     val IMPLEMENTATION_API_INTRODUCED = AgpVersion.parse("3.1.0")
     val COMPILE_REMOVED = AgpVersion.parse("7.0.0-alpha03")
 
-    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
-    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
+    val RENAME_CONFIGURATION_USAGE_TYPE =
+      UsageType(AgpUpgradeBundle.messagePointer("compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
+    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE =
+      UsageType(AgpUpgradeBundle.messagePointer("compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
   }
 }
 
 class ObsoleteConfigurationDependencyUsageInfo(
   element: WrappedPsiElement,
   private val dependency: DependencyModel,
-  private val newConfigurationName: String
+  private val newConfigurationName: String,
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     dependency.setConfigurationName(newConfigurationName)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("obsoleteConfigurationDependencyUsageInfo.tooltipText", dependency.configurationName(), newConfigurationName)
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("obsoleteConfigurationDependencyUsageInfo.tooltipText", dependency.configurationName(), newConfigurationName)
 
   override fun getDiscriminatingValues(): List<Any> = listOf(dependency, newConfigurationName)
 }
@@ -177,13 +195,14 @@ class ObsoleteConfigurationDependencyUsageInfo(
 class ObsoleteConfigurationConfigurationUsageInfo(
   element: WrappedPsiElement,
   private val configuration: ConfigurationModel,
-  private val newConfigurationName: String
+  private val newConfigurationName: String,
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     configuration.rename(newConfigurationName)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("obsoleteConfigurationConfigurationUsageInfo.tooltipText", configuration.name(), newConfigurationName)
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("obsoleteConfigurationConfigurationUsageInfo.tooltipText", configuration.name(), newConfigurationName)
 
   override fun getDiscriminatingValues(): List<Any> = listOf(configuration, newConfigurationName)
 }

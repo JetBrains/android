@@ -52,14 +52,14 @@ import org.junit.rules.TestName
  *
  * The pre-recorded sync results can be found in testData/syncedProjectSnapshots/ *.txt files.
  *
- * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
- * target as "//tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots".
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use target as
+ * "//tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots".
  */
 data class ProjectStructureSnapshotTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
   private val roots: Map<String, File> = emptyMap(),
-  private val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT)
+  private val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT),
 ) : SyncedProjectTestDef {
 
   override val name: String = testProject.projectName
@@ -80,124 +80,111 @@ data class ProjectStructureSnapshotTestDef(
   }
 
   companion object {
-    val tests: List<ProjectStructureSnapshotTestDef> = listOf(
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
-      ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
-      ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
-      ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),
-      ProjectStructureSnapshotTestDef(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE),
-      ProjectStructureSnapshotTestDef(TestProject.TRANSITIVE_DEPENDENCIES),
-      ProjectStructureSnapshotTestDef(TestProject.WITH_GRADLE_METADATA),
-      ProjectStructureSnapshotTestDef(TestProject.TEST_FIXTURES),
-      ProjectStructureSnapshotTestDef(TestProject.TEST_ONLY_MODULE),
-      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
-      ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
-      ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR_SWITCH_VARIANT),
-      ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
-      ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
-      ProjectStructureSnapshotTestDef(TestProject.NEW_SYNC_KOTLIN_TEST),
-      ProjectStructureSnapshotTestDef(TestProject.PSD_SAMPLE_GROOVY),
-      ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
-      ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
-      ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS),
-      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
-      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_WITHJS),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_IOS),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION),
-      ProjectStructureSnapshotTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
-      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_KAPT),
-      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
-      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
-      ProjectStructureSnapshotTestDef(TestProject.API_DEPENDENCY),
-      ProjectStructureSnapshotTestDef(TestProject.LIGHT_SYNC_REFERENCE),
-      ProjectStructureSnapshotTestDef(
-        TestProject.NON_STANDARD_SOURCE_SETS,
-        roots = mapOf(
-          "EXTERNAL_SOURCE_SET" to File("externalRoot"),
-          "EXTERNAL_MANIFEST" to File("externalManifest")
-        )
-      ),
-      ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
-      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
-      ProjectStructureSnapshotTestDef(TestProject.TEST_STATIC_DIR),
-      ProjectStructureSnapshotTestDef(TestProject.TEST_SUITES),
-    )
+    val tests: List<ProjectStructureSnapshotTestDef> =
+      listOf(
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR),
+        ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
+        ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
+        ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
+        ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),
+        ProjectStructureSnapshotTestDef(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE),
+        ProjectStructureSnapshotTestDef(TestProject.TRANSITIVE_DEPENDENCIES),
+        ProjectStructureSnapshotTestDef(TestProject.WITH_GRADLE_METADATA),
+        ProjectStructureSnapshotTestDef(TestProject.TEST_FIXTURES),
+        ProjectStructureSnapshotTestDef(TestProject.TEST_ONLY_MODULE),
+        ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
+        ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
+        ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR_SWITCH_VARIANT),
+        ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
+        ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
+        ProjectStructureSnapshotTestDef(TestProject.NEW_SYNC_KOTLIN_TEST),
+        ProjectStructureSnapshotTestDef(TestProject.PSD_SAMPLE_GROOVY),
+        ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
+        ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
+        ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS),
+        ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
+        ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_WITHJS),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_IOS),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION),
+        ProjectStructureSnapshotTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
+        ProjectStructureSnapshotTestDef(TestProject.KOTLIN_KAPT),
+        ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+        ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
+        ProjectStructureSnapshotTestDef(TestProject.API_DEPENDENCY),
+        ProjectStructureSnapshotTestDef(TestProject.LIGHT_SYNC_REFERENCE),
+        ProjectStructureSnapshotTestDef(
+          TestProject.NON_STANDARD_SOURCE_SETS,
+          roots = mapOf("EXTERNAL_SOURCE_SET" to File("externalRoot"), "EXTERNAL_MANIFEST" to File("externalManifest")),
+        ),
+        ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
+        ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
+        ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT)),
+        ProjectStructureSnapshotTestDef(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED),
+        ProjectStructureSnapshotTestDef(TestProject.TEST_STATIC_DIR),
+        ProjectStructureSnapshotTestDef(TestProject.TEST_SUITES),
+      )
   }
 }
 
-private object LightGradleReferenceTestProject: LightGradleTestProject {
+private object LightGradleReferenceTestProject : LightGradleTestProject {
   override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
-  override val modelBuilders: List<ModuleModelBuilder> = listOf(
-    JavaModuleModelBuilder.rootModuleBuilder.copy(
-      groupId = "",
-      version = "unspecified",
-    ),
-    AndroidModuleModelBuilder(
-      gradlePath = ":app",
-      groupId = "reference",
-      version = "unspecified",
-      selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(
-        androidModuleDependencyList = {
-          listOf(
-            AndroidModuleDependency(
-              ":androidlibrary",
-              "debug"
+  override val modelBuilders: List<ModuleModelBuilder> =
+    listOf(
+      JavaModuleModelBuilder.rootModuleBuilder.copy(groupId = "", version = "unspecified"),
+      AndroidModuleModelBuilder(
+        gradlePath = ":app",
+        groupId = "reference",
+        version = "unspecified",
+        selectedBuildVariant = "debug",
+        projectBuilder =
+          AndroidProjectBuilder(
+              androidModuleDependencyList = { listOf(AndroidModuleDependency(":androidlibrary", "debug")) },
+              namespace = { "com.example.skeleton" },
+              includeShadersSources = { false },
             )
-          )
-        },
-        namespace = { "com.example.skeleton" },
-        includeShadersSources = { false }
-      ).build(),
-    ),
-    AndroidModuleModelBuilder(
-      gradlePath = ":androidlibrary",
-      groupId = "reference",
-      version = "unspecified",
-      selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(
-        projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-        androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
-        namespace = { "com.example.androidlibrary" },
-        includeShadersSources = { false }
-      ).build()
-    ),
-    JavaModuleModelBuilder(
-      ":javalib",
-      groupId = "reference",
-      version = "unspecified",
+            .build(),
+      ),
+      AndroidModuleModelBuilder(
+        gradlePath = ":androidlibrary",
+        groupId = "reference",
+        version = "unspecified",
+        selectedBuildVariant = "debug",
+        projectBuilder =
+          AndroidProjectBuilder(
+              projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+              androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
+              namespace = { "com.example.androidlibrary" },
+              includeShadersSources = { false },
+            )
+            .build(),
+      ),
+      JavaModuleModelBuilder(":javalib", groupId = "reference", version = "unspecified"),
     )
-  )
 }
 
 @RunsInEdt
 @IgnoreWithCondition(reason = "Do not run SnapshotComparisonTest on Windows", condition = OnWindows::class)
 class LightSyncReferenceTest : SnapshotComparisonTest {
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
+  @get:Rule val ignoreTestRule = IgnoreTestRule()
 
-  @get:Rule
-  var testName = TestName()
+  @get:Rule var testName = TestName()
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProjectNoSync(LightGradleReferenceTestProject).named("reference")
+  @get:Rule val projectRule = AndroidProjectRule.testProjectNoSync(LightGradleReferenceTestProject).named("reference")
 
   override fun getName(): String = testName.methodName
+
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
 
   @Test
@@ -209,14 +196,16 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
 
   @Test
   fun compareResults() {
-    val expectedSnapshot = object : SnapshotComparisonTest by this {
-      override fun getName(): String = "LightSyncReference_V2"
-    }
+    val expectedSnapshot =
+      object : SnapshotComparisonTest by this {
+        override fun getName(): String = "LightSyncReference_V2"
+      }
     val (_, expectedSnapshotTest) = expectedSnapshot.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
 
-    val actualSnapshot = object : SnapshotComparisonTest by this {
-      override fun getName(): String = "testLightSyncActual"
-    }
+    val actualSnapshot =
+      object : SnapshotComparisonTest by this {
+        override fun getName(): String = "testLightSyncActual"
+      }
     val (_, actualSnapshotTest) = actualSnapshot.getAndMaybeUpdateSnapshot("", "", doNotUpdate = true)
 
     assertThat(actualSnapshotTest.filterOutProperties()).isEqualTo(expectedSnapshotTest.filterOutProperties())
@@ -224,26 +213,24 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
 }
 
 private fun String.filterOutProperties(): String =
-  this
-    .splitToSequence('\n')
+  this.splitToSequence('\n')
     .nameProperties()
-    .filter { (property, line) ->
-      !PROPERTIES_TO_SKIP_BY_PREFIXES.any { property.startsWith(it) }
-    }
+    .filter { (property, line) -> !PROPERTIES_TO_SKIP_BY_PREFIXES.any { property.startsWith(it) } }
     .map { it.first + " >> " + it.second }
     .joinToString(separator = "\n")
 
 private fun Sequence<String>.nameProperties() = com.android.tools.idea.testing.nameProperties(this)
 
-private val PROPERTIES_TO_SKIP_BY_PREFIXES = setOf(
-  "PROJECT/BUILD_TASKS",
-  "PROJECT/LIBRARY_TABLE",
-  "PROJECT/MODULE/BUILD_TASKS",
-  "PROJECT/MODULE/Classes",
-  "PROJECT/MODULE/COMPILER_MODULE_EXTENSION",
-  "PROJECT/MODULE/LIBRARY",
-  "PROJECT/MODULE/TEST_MODULE_PROPERTIES",
-  "PROJECT/RUN_CONFIGURATION"
-)
+private val PROPERTIES_TO_SKIP_BY_PREFIXES =
+  setOf(
+    "PROJECT/BUILD_TASKS",
+    "PROJECT/LIBRARY_TABLE",
+    "PROJECT/MODULE/BUILD_TASKS",
+    "PROJECT/MODULE/Classes",
+    "PROJECT/MODULE/COMPILER_MODULE_EXTENSION",
+    "PROJECT/MODULE/LIBRARY",
+    "PROJECT/MODULE/TEST_MODULE_PROPERTIES",
+    "PROJECT/RUN_CONFIGURATION",
+  )
 
 private const val PROJECT_STRUCTURE_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/syncedProjects"

@@ -28,69 +28,47 @@ import kotlin.reflect.full.declaredMemberProperties
  * Persistent settings for the annotation inference.
  *
  * Other potential settings:
- * * Number of passes through the source code (currently
- *   [InferAnnotationsAction.Companion.MAX_PASSES])
- * * Whether to flow inference from parameter to call (fun m(@Annotation p:
- *   Int), m(a) => @Annotation on a)
+ * * Number of passes through the source code (currently [InferAnnotationsAction.Companion.MAX_PASSES])
+ * * Whether to flow inference from parameter to call (fun m(@Annotation p: Int), m(a) => @Annotation on a)
  * * Whether to flow inference from call to parameter (fun m(p: Int),
- *   @Annotation var a: Int; m(a) => @Annotation on p)
+ *
+ *     @Annotation var a: Int; m(a) => @Annotation on p)
  */
 class InferAnnotationsSettings {
-  /**
-   * Whether to open up a report listing all the inferences along with their
-   * causes
-   */
+  /** Whether to open up a report listing all the inferences along with their causes */
   var generateReport = true
 
   /**
-   * Whether to include in the report inferences made in code outside of the
-   * project, such as in libraries. These cannot be inserted as annotations,
-   * but it might be useful to include the *reasons* in case these inferences
-   * flow into other constraints in the code.
+   * Whether to include in the report inferences made in code outside of the project, such as in libraries. These cannot be inserted as
+   * annotations, but it might be useful to include the *reasons* in case these inferences flow into other constraints in the code.
    */
   var includeBinaries = false
 
   /** Whether to only suggest annotations for public elements */
   var publicOnly = false
 
-  /**
-   * Whether to analyze the module dependencies and add the annotations
-   * artifact to any modules missing it.
-   */
+  /** Whether to analyze the module dependencies and add the annotations artifact to any modules missing it. */
   var checkDependencies = false
 
   /** Whether to annotate local variables too */
   var annotateLocalVariables = false
 
   /**
-   * Whether we're going to be aggressive or optimistic nad take vague clues
-   * and turn them into annotations, or whether we're going to be careful and
-   * only make suggestions we're certain of.
+   * Whether we're going to be aggressive or optimistic nad take vague clues and turn them into annotations, or whether we're going to be
+   * careful and only make suggestions we're certain of.
    */
   var optimistic = true
 
-  /**
-   * Whether to make inferences around resource types, e.g. a return value of
-   * `R.string.foo` would imply adding `@StringRes`.
-   */
+  /** Whether to make inferences around resource types, e.g. a return value of `R.string.foo` would imply adding `@StringRes`. */
   var resources = true
 
-  /**
-   * Whether to look for reflection calls and for APIs accessed by
-   * reflection, add `@Keep`.
-   */
+  /** Whether to look for reflection calls and for APIs accessed by reflection, add `@Keep`. */
   var reflection = true
 
-  /**
-   * Whether to look for permission checks and if found, add
-   * `@RequiresPermission`.
-   */
+  /** Whether to look for permission checks and if found, add `@RequiresPermission`. */
   var permissions = true
 
-  /**
-   * Whether to look for permission checks and if found, add `@IntDef` or
-   * `StringDef.
-   */
+  /** Whether to look for permission checks and if found, add `@IntDef` or `StringDef. */
   var typedefs = true
 
   /** Whether to look for ranges, and if found, add `@IntRange` or `Size`. */
@@ -99,28 +77,22 @@ class InferAnnotationsSettings {
   /** Whether to look for threading annotations or implied constraints. */
   var threads = true
 
-  /**
-   * Whether for Kotlin we'll add the annotation to *all* applicable
-   * annotation use sites instead of just the getter.
-   */
+  /** Whether for Kotlin we'll add the annotation to *all* applicable annotation use sites instead of just the getter. */
   var allUsageSites = false
 
-  /**
-   * Whether we inherit annotations - e.g. from corresponding parameter and
-   * return annotations on super methods
-   */
+  /** Whether we inherit annotations - e.g. from corresponding parameter and return annotations on super methods */
   var inherit = true
 
   /**
-   * Whether to look for @hide markers in the javadocs and skip annotation
-   * generation from hidden APIs. This is primarily used when this action is
-   * invoked on the framework itself.
+   * Whether to look for @hide markers in the javadocs and skip annotation generation from hidden APIs. This is primarily used when this
+   * action is invoked on the framework itself.
    */
   var filterHidden = true
 
   override fun toString(): String {
     val defaultValues = InferAnnotationsSettings()
-    return InferAnnotationsSettings::class.declaredMemberProperties
+    return InferAnnotationsSettings::class
+      .declaredMemberProperties
       .filter { it.get(this) != it.get(defaultValues) }
       .joinToString(",") { it.name + "=" + it.get(this) }
   }
@@ -132,8 +104,7 @@ class InferAnnotationsSettings {
         val key = assignment.substringBefore('=')
         val value = assignment.substringAfter('=').toBoolean()
         val property = properties.firstOrNull { it.name == key }
-        @Suppress("UNCHECKED_CAST")
-        (property as? KMutableProperty1<InferAnnotationsSettings, Boolean>)?.set(this, value)
+        @Suppress("UNCHECKED_CAST") (property as? KMutableProperty1<InferAnnotationsSettings, Boolean>)?.set(this, value)
       }
     }
   }

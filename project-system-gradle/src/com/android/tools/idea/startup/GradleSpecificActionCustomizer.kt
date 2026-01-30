@@ -96,18 +96,13 @@ class GradleSpecificActionCustomizer : ActionConfigurationCustomizer {
       replaceAction(
         actionManager,
         "WelcomeScreen.Configure.ProjectStructure",
-        AndroidTemplateProjectStructureAction("Default Project Structure...")
+        AndroidTemplateProjectStructureAction("Default Project Structure..."),
       )
-      replaceAction(
-        actionManager,
-        "TemplateProjectStructure",
-        AndroidTemplateProjectStructureAction("Default Project Structure...")
-      )
+      replaceAction(actionManager, "TemplateProjectStructure", AndroidTemplateProjectStructureAction("Default Project Structure..."))
     }
 
     private fun replaceProjectPopupActions(actionManager: ActionManager) {
-      val stack: Deque<Pair<DefaultActionGroup?, AnAction>> =
-        ArrayDeque<Pair<DefaultActionGroup?, AnAction>>()
+      val stack: Deque<Pair<DefaultActionGroup?, AnAction>> = ArrayDeque<Pair<DefaultActionGroup?, AnAction>>()
       stack.add((null as DefaultActionGroup?) to (actionManager.getAction("ProjectViewPopupMenu") ?: return))
       while (!stack.isEmpty()) {
         val (parent, action) = stack.pop()
@@ -121,13 +116,15 @@ class GradleSpecificActionCustomizer : ActionConfigurationCustomizer {
           parent?.remove(action, actionManager)
           parent?.add(
             AndroidActionGroupRemover(action as ActionGroup, "Move Module to Group"),
-            Constraints(Anchor.AFTER, "OpenModuleSettings"), actionManager
+            Constraints(Anchor.AFTER, "OpenModuleSettings"),
+            actionManager,
           )
         } else if (action is MarkRootGroup) {
           parent?.remove(action, actionManager)
           parent?.add(
             AndroidActionGroupRemover(action as ActionGroup, "Mark Directory As"),
-            Constraints(Anchor.AFTER, "OpenModuleSettings"), actionManager
+            Constraints(Anchor.AFTER, "OpenModuleSettings"),
+            actionManager,
           )
         }
       }

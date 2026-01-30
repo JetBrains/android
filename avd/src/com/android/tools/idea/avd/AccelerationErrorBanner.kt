@@ -28,11 +28,7 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun AccelerationErrorBanner(
-  accelerationError: AccelerationErrorCode,
-  refresh: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
+internal fun AccelerationErrorBanner(accelerationError: AccelerationErrorCode, refresh: () -> Unit, modifier: Modifier = Modifier) {
   ErrorBanner(
     accelerationError.problem,
     modifier,
@@ -40,9 +36,7 @@ internal fun AccelerationErrorBanner(
       if (accelerationError.solution == AccelerationErrorSolution.SolutionCode.NONE) {
         AccelerationErrorLink(accelerationError, refresh)
       } else {
-        Tooltip(tooltip = { Text(accelerationError.solutionMessage) }) {
-          AccelerationErrorLink(accelerationError, refresh)
-        }
+        Tooltip(tooltip = { Text(accelerationError.solutionMessage) }) { AccelerationErrorLink(accelerationError, refresh) }
       }
     },
   )
@@ -53,9 +47,7 @@ private fun AccelerationErrorLink(accelerationError: AccelerationErrorCode, refr
   val project = LocalProject.current
   Link(
     accelerationError.solution.description,
-    onClick = {
-      AccelerationErrorSolution.getActionForFix(accelerationError, project, refresh, null).run()
-    },
+    onClick = { AccelerationErrorSolution.getActionForFix(accelerationError, project, refresh, null).run() },
     overflow = TextOverflow.Ellipsis,
   )
 }

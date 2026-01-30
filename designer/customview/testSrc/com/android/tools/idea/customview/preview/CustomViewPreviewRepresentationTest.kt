@@ -52,10 +52,7 @@ class CustomViewPreviewRepresentationTest {
 
     runBlocking {
       val representation =
-        CustomViewPreviewRepresentation(
-          file,
-          buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL },
-        )
+        CustomViewPreviewRepresentation(file, buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL })
       assertNotNull("failed to instantiate CustomViewPreviewRepresentation", representation)
       assertTrue(representation.hasPendingRefresh)
       assertFalse(representation.isActive)
@@ -92,10 +89,7 @@ class CustomViewPreviewRepresentationTest {
 
     runBlocking {
       val representation =
-        CustomViewPreviewRepresentation(
-          file,
-          buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL },
-        )
+        CustomViewPreviewRepresentation(file, buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL })
 
       val provider = CustomViewDeprecationNotificationProvider()
       val fileEditor = Mockito.mock(MultiRepresentationPreview::class.java)
@@ -106,10 +100,7 @@ class CustomViewPreviewRepresentationTest {
       assertNotNull(panelFunc)
       val panel = panelFunc!!.apply(fileEditor)
       assertNotNull(panel)
-      assertEquals(
-        "Custom View preview will be deprecated in the next release, please update your use accordingly.",
-        panel!!.text,
-      )
+      assertEquals("Custom View preview will be deprecated in the next release, please update your use accordingly.", panel!!.text)
 
       Disposer.dispose(representation)
     }

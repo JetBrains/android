@@ -22,19 +22,13 @@ import com.android.tools.idea.streaming.uisettings.data.convertFromLocaleConfig
 import com.android.tools.idea.streaming.uisettings.stats.LoggingChangeListener
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 
-/**
- * A controller for the [UiSettingsPanel] that populates the model and reacts to changes to the model initiated by the UI.
- */
+/** A controller for the [UiSettingsPanel] that populates the model and reacts to changes to the model initiated by the UI. */
 internal abstract class UiSettingsController(
-  /**
-   * The model that this controller is interacting with.
-   */
+  /** The model that this controller is interacting with. */
   protected val model: UiSettingsModel,
 
-  /**
-   * Logger for statistics
-   */
-  private val stats: UiSettingsStats
+  /** Logger for statistics */
+  private val stats: UiSettingsStats,
 ) {
 
   init {
@@ -44,13 +38,14 @@ internal abstract class UiSettingsController(
     model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
     model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
     model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
-    model.debugLayout.uiChangeListener =  LoggingChangeListener(::setDebugLayout, stats::setDebugLayout)
-    model.resetAction = { reset(); stats.reset() }
+    model.debugLayout.uiChangeListener = LoggingChangeListener(::setDebugLayout, stats::setDebugLayout)
+    model.resetAction = {
+      reset()
+      stats.reset()
+    }
   }
 
-  /**
-   * Populate all settings in the model.
-   */
+  /** Populate all settings in the model. */
   abstract suspend fun populateModel()
 
   fun addLanguage(applicationId: String, localeConfig: Set<LocaleQualifier>, selectedLocaleTag: String): Boolean {
@@ -62,53 +57,37 @@ internal abstract class UiSettingsController(
     model.appLanguage.addAll(languages)
     model.appLanguage.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
     model.appLanguage.selection.clearUiChangeListener()
-    model.appLanguage.selection.uiChangeListener = LoggingChangeListener({setAppLanguage(applicationId, it)}, stats::setAppLanguage)
+    model.appLanguage.selection.uiChangeListener = LoggingChangeListener({ setAppLanguage(applicationId, it) }, stats::setAppLanguage)
     return true
   }
 
-  /**
-   * Changes the dark mode on the device/emulator.
-   */
+  /** Changes the dark mode on the device/emulator. */
   protected abstract fun setDarkMode(on: Boolean)
 
-  /**
-   * Changes the font scale on the device/emulator.
-   */
+  /** Changes the font scale on the device/emulator. */
   protected abstract fun setFontScale(percent: Int)
 
-  /**
-   * Changes the screen density on the device/emulator.
-   */
+  /** Changes the screen density on the device/emulator. */
   protected abstract fun setScreenDensity(density: Int)
 
-  /**
-   * Turns TackBack on or off.
-   */
+  /** Turns TackBack on or off. */
   protected abstract fun setTalkBack(on: Boolean)
 
-  /**
-   * Turns Select to Speak on or off.
-   */
+  /** Turns Select to Speak on or off. */
   protected abstract fun setSelectToSpeak(on: Boolean)
 
-  /**
-   * Changes the navigation mode on the device to use gestures instead of buttons.
-   */
+  /** Changes the navigation mode on the device to use gestures instead of buttons. */
   protected abstract fun setGestureNavigation(on: Boolean)
 
-  /**
-   * Turns debug layout boxes on or off.
-   */
+  /** Turns debug layout boxes on or off. */
   protected abstract fun setDebugLayout(on: Boolean)
 
   /**
-   * Changes the application language of the project application on the device/emulator.
-   * A null language means the same as the default AppLanguage.
+   * Changes the application language of the project application on the device/emulator. A null language means the same as the default
+   * AppLanguage.
    */
   protected abstract fun setAppLanguage(applicationId: String, language: AppLanguage?)
 
-  /**
-   * Reset UI settings to factory defaults.
-   */
+  /** Reset UI settings to factory defaults. */
   protected abstract fun reset()
 }

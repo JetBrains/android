@@ -20,8 +20,7 @@ import com.intellij.openapi.project.Project
 /**
  * Overwrites methods in [LayoutBindingTracker] so it can be run in unit tests.
  *
- * Normally we would use dependency injection, but [LayoutBindingTracker] is a project service which
- * gets instantiated by IntelliJ.
+ * Normally we would use dependency injection, but [LayoutBindingTracker] is a project service which gets instantiated by IntelliJ.
  */
 class TestLayoutBindingTracker constructor(project: Project) : LayoutBindingTracker(project) {
   override fun runInBackground(runnable: Runnable) {

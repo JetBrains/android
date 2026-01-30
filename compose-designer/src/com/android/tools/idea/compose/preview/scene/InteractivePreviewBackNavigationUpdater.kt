@@ -26,15 +26,11 @@ import org.jetbrains.annotations.VisibleForTesting
 object InteractivePreviewBackNavigationUpdater {
   /**
    * Sets the `backPressDispatcher` property of the [previewElement] to the ComposeViewAdapter's
-   * FakeOnBackPressedDispatcherOwner#onBackPressedDispatcher() method. This will make sure that
-   * back events triggered in interactive preview will be dispatched to Composable.
+   * FakeOnBackPressedDispatcherOwner#onBackPressedDispatcher() method. This will make sure that back events triggered in interactive
+   * preview will be dispatched to Composable.
    */
   @VisibleForTesting
-  fun update(
-    viewObj: Any,
-    previewManager: PreviewModeManager,
-    previewElement: ComposePreviewElementInstance<*>,
-  ) {
+  fun update(viewObj: Any, previewManager: PreviewModeManager, previewElement: ComposePreviewElementInstance<*>) {
     if (previewManager.mode.value !is PreviewMode.Interactive) return
     try {
       val fakeOnBackPressedDispatcherOwner =
@@ -61,8 +57,7 @@ object InteractivePreviewBackNavigationUpdater {
   }
 
   fun update(previewManager: PreviewModeManager, layoutlibSceneManager: LayoutlibSceneManager) {
-    val previewElementInstance =
-      layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
+    val previewElementInstance = layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
     val viewObj = layoutlibSceneManager.viewObject ?: return
     update(viewObj, previewManager, previewElementInstance)
   }

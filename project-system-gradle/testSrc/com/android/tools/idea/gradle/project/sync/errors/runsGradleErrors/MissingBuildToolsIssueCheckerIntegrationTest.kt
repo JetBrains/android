@@ -27,8 +27,7 @@ import org.junit.Test
 class MissingBuildToolsIssueCheckerIntegrationTest {
   private val missingBuildToolsIssueChecker = MissingBuildToolsIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {

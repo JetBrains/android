@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package com.android.tools.idea.diagnostics.hprof.util
 
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.currentJavaVersion
-import sun.misc.Unsafe
-import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
+import sun.misc.Unsafe
+import sun.nio.ch.DirectBuffer
 
 class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HProfEventBasedParser) :
   AbstractHProfNavigatorReadBuffer(parser) {
@@ -55,8 +56,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
           val unsafe = it.get(unsafeClass) as Unsafe
           invokeCleanerMethod.invoke(unsafe, byteBuffer)
         }
-      }
-      else {
+      } else {
         (byteBuffer as? DirectBuffer)?.cleaner()?.clean()
       }
     } catch (t: Throwable) {
@@ -67,8 +67,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
   override fun position(newPosition: Long) {
     if (newPosition >= bufferOffset && newPosition <= bufferOffset + bufferSize) {
       buffer.position((newPosition - bufferOffset).toInt())
-    }
-    else {
+    } else {
       remapBuffer(newPosition)
     }
   }
@@ -94,8 +93,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
   override fun get(bytes: ByteArray) {
     if (bytes.size <= buffer.remaining()) {
       buffer.get(bytes)
-    }
-    else {
+    } else {
       var remaining = bytes.size
       var offset = 0
       while (remaining > 0) {
@@ -112,8 +110,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
     var useSlice = false
     if (size < buffer.remaining()) {
       useSlice = true
-    }
-    else if (size < bufferSize) {
+    } else if (size < bufferSize) {
       remapBuffer(position())
       useSlice = true
     }
@@ -122,8 +119,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
       slicedBuffer.limit(size)
       skip(size)
       return slicedBuffer.asReadOnlyBuffer()
-    }
-    else {
+    } else {
       val bytes = ByteArray(size)
       get(bytes)
       return ByteBuffer.wrap(bytes)
@@ -157,5 +153,4 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
     }
     return buffer.long
   }
-
 }

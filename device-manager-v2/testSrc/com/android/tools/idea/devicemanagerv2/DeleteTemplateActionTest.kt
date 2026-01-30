@@ -37,8 +37,7 @@ class DeleteTemplateActionTest {
     val template = FakeDeviceTemplate("A")
     val handle = FakeDeviceHandle(handleScope, sourceTemplate = template)
 
-    val actionEvent =
-      actionEvent(dataContext(deviceRowData = DeviceRowData.create(handle, emptyList())))
+    val actionEvent = actionEvent(dataContext(deviceRowData = DeviceRowData.create(handle, emptyList())))
 
     DeleteTemplateAction().update(actionEvent)
 
@@ -52,10 +51,7 @@ class DeleteTemplateActionTest {
   fun deleteTemplate(): Unit = runTest {
     val template = FakeDeviceTemplate("A")
 
-    val actionEvent =
-      actionEvent(
-        dataContext(deviceRowData = DeviceRowData.create(template), coroutineScope = this)
-      )
+    val actionEvent = actionEvent(dataContext(deviceRowData = DeviceRowData.create(template), coroutineScope = this))
 
     DeleteTemplateAction().update(actionEvent)
 
@@ -67,7 +63,6 @@ class DeleteTemplateActionTest {
     advanceUntilIdle()
 
     verify(template.deleteAction).delete()
-    assertThat(usageTrackerRule.deviceManagerEventKinds())
-      .containsExactly(DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION)
+    assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION)
   }
 }

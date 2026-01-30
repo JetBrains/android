@@ -33,36 +33,32 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Tests against various completion scenarios which ensures that [DataBindingCompletionSupportImpl]
- * is covered.
- */
+/** Tests against various completion scenarios which ensures that [DataBindingCompletionSupportImpl] is covered. */
 @RunWith(Parameterized::class)
 class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
-  private val fixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val fixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Before
   fun setUp() {
     fixture.testDataPath = getTestDataPath()
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.langdb">
         <application />
       </manifest>
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = mode
@@ -87,10 +83,11 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingCompletion_autocompleteImportType_inVariableType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -98,7 +95,9 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="map" type="Ma${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -108,10 +107,11 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingCompletion_autocompleteImportAlias_inVariableType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -119,7 +119,9 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="map" type="MyM${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -134,15 +136,18 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="map" type="MyMap" />
         </data>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_autocompleteInnerClass_inVariableType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -150,7 +155,9 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="entry" type="MyMap.En${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -165,22 +172,27 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="entry" type="MyMap.Entry" />
         </data>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_fullyQualifiedInnerClass_inVariableType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name="entry" type="java.util.Map.En${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -194,22 +206,27 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <variable name="entry" type="java.util.Map.Entry" />
         </data>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testDataBindingCompletion_incompletePackage_inVariableType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name="map" type="java.util.${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -226,10 +243,11 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingCompletion_otherAliasesExcluded_inAliasType() {
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -237,7 +255,9 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <import type="My${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
@@ -252,31 +272,35 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
           <import type="My" />
         </data>
       </layout>
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
-
-
 
   @Test
   fun testDataBindingCompletion_topLevelPackage_allClassesFound() {
     fixture.addClass(
       // language=JAVA
-    """
+      """
       package a.b.c.d;
       class Example {}
-    """.trimIndent()
-    )
-    val file = fixture.addFileToProject(
-      "res/layout/test_layout.xml",
-      // language=XML
       """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name="map" type="Ex${caret}" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()

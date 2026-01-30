@@ -29,24 +29,17 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
-/**
- * [SceneComponentHierarchyProvider] for Compose Preview. It provides the ability to sync Compose
- * bounding boxes into SceneComponents.
- */
+/** [SceneComponentHierarchyProvider] for Compose Preview. It provides the ability to sync Compose bounding boxes into SceneComponents. */
 class ComposeSceneComponentProvider : SceneComponentHierarchyProvider {
   private val LOG = Logger.getInstance(ComposeSceneComponentProvider::class.java)
 
-  /**
-   * When true, we will map the existing Composables to SceneComponents. If false, we disable the
-   * mapping.
-   */
+  /** When true, we will map the existing Composables to SceneComponents. If false, we disable the mapping. */
   var enabled = true
   private val hitProvider = DefaultHitProvider()
 
   /**
-   * Maps a [ComposeViewInfo] into one or more [SceneComponent]s. This method will remove
-   * [ComposeViewInfo]s if they have empty bounds or if their bounds are already present in the
-   * hierarchy but it will still process the children.
+   * Maps a [ComposeViewInfo] into one or more [SceneComponent]s. This method will remove [ComposeViewInfo]s if they have empty bounds or if
+   * their bounds are already present in the hierarchy but it will still process the children.
    */
   private fun ComposeViewInfo.mapToSceneComponent(
     manager: SceneManager,
@@ -58,14 +51,8 @@ class ComposeSceneComponentProvider : SceneComponentHierarchyProvider {
     } else {
       listOf(
         SceneComponent(manager.scene, component, hitProvider).also {
-          it.setPosition(
-            Coordinates.pxToDp(manager, bounds.left),
-            Coordinates.pxToDp(manager, bounds.top),
-          )
-          it.setSize(
-            Coordinates.pxToDp(manager, bounds.width),
-            Coordinates.pxToDp(manager, bounds.height),
-          )
+          it.setPosition(Coordinates.pxToDp(manager, bounds.left), Coordinates.pxToDp(manager, bounds.top))
+          it.setSize(Coordinates.pxToDp(manager, bounds.width), Coordinates.pxToDp(manager, bounds.height))
           it.setPrioritizeSelectedDrawState(false)
           boundsSet.add(bounds)
           children
@@ -88,10 +75,7 @@ class ComposeSceneComponentProvider : SceneComponentHierarchyProvider {
       }
     }
 
-  override fun createHierarchy(
-    manager: SceneManager,
-    component: NlComponent,
-  ): List<SceneComponent> {
+  override fun createHierarchy(manager: SceneManager, component: NlComponent): List<SceneComponent> {
     if (!enabled) return listOf()
     val viewInfo = component.viewInfo ?: return listOf()
 
@@ -101,11 +85,7 @@ class ComposeSceneComponentProvider : SceneComponentHierarchyProvider {
       }
     }
 
-    return debugResult(
-      parseViewInfo(viewInfo, logger = LOG).flatMap {
-        it.mapToSceneComponent(manager, component, mutableSetOf())
-      }
-    )
+    return debugResult(parseViewInfo(viewInfo, logger = LOG).flatMap { it.mapToSceneComponent(manager, component, mutableSetOf()) })
   }
 
   // We do not sync information from the NlComponents back to SceneComponents in Compose

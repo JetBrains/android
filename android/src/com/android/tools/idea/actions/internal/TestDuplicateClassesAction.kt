@@ -36,10 +36,7 @@ import kotlin.collections.map
 import kotlin.io.path.extension
 import kotlin.io.path.nameWithoutExtension
 
-/**
- * Test whether any plugins have multiple instances of the same class (by name) in their classloader
- * hierarchy at runtime.
- */
+/** Test whether any plugins have multiple instances of the same class (by name) in their classloader hierarchy at runtime. */
 @Suppress("UnstableApiUsage")
 class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
 
@@ -82,7 +79,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.apache.commons.lang",
           // end b/476501574
           "org.HdrHistogram.packedarray", // b/476488908
-          "org.HdrHistogram",  // b/476488908
+          "org.HdrHistogram", // b/476488908
           "org.objectweb.asm.commons",
           "org.objectweb.asm.signature",
           "org.objectweb.asm.tree.analysis",
@@ -91,8 +88,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
           "org.xmlpull.v1",
           "com.google.errorprone.annotations",
         ),
-      "com.android.tools.design" to
-        setOf("org.json", "com.google.errorprone.annotations", "android.annotation"),
+      "com.android.tools.design" to setOf("org.json", "com.google.errorprone.annotations", "android.annotation"),
       "com.google.tools.ij.aiplugin" to
         setOf(
           "androidx.annotation",
@@ -224,14 +220,9 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
     // Classes from the core classloader are always going to be present for all dependant plugins,
     // so just load them once at the start.
     val coreClassLoader =
-      (plugin.classLoader as PluginClassLoader)
-        .getAllParentsClassLoaders()
-        .filterNot { it is PluginClassLoader }
-        .first()
+      (plugin.classLoader as PluginClassLoader).getAllParentsClassLoaders().filterNot { it is PluginClassLoader }.first()
     val allParentClasses =
-      getAllClasses(coreClassLoader)
-        .associate { (c, j, cl) -> c to JarReference(PluginManagerCore.CORE_ID, j, cl) }
-        .toMutableMap()
+      getAllClasses(coreClassLoader).associate { (c, j, cl) -> c to JarReference(PluginManagerCore.CORE_ID, j, cl) }.toMutableMap()
 
     // Check whether any classes in dependant plugins conflict with classes in this plugin or each
     // other.
@@ -247,9 +238,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
         // Check for conflicts between classes from this plugin and dependant plugins
         parentClasses.keys.intersect(myClassMap.keys).forEach { c ->
           conflictsWithParents
-            .getOrPut(c) {
-              mutableSetOf(JarReference(plugin.pluginId, myClassMap[c]!!, plugin.classLoader))
-            }
+            .getOrPut(c) { mutableSetOf(JarReference(plugin.pluginId, myClassMap[c]!!, plugin.classLoader)) }
             .add(parentClasses[c]!!)
         }
         // Check for conflicts between classes in different dependant plugins
@@ -259,25 +248,16 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
               c.toPackageName() !in
                 (
                 // We also exclude exception classes based on the dependant plugin
-                (exceptions[(parentClasses[c]?.classLoader as PluginClassLoader).pluginId.idString]
-                  ?: setOf()) +
-                  (exceptions[
-                    (allParentClasses[c]?.classLoader as? PluginClassLoader)?.pluginId?.idString
-                      ?: "com.intellij"] ?: setOf()))
+                (exceptions[(parentClasses[c]?.classLoader as PluginClassLoader).pluginId.idString] ?: setOf()) +
+                  (exceptions[(allParentClasses[c]?.classLoader as? PluginClassLoader)?.pluginId?.idString ?: "com.intellij"] ?: setOf()))
           ) {
-            conflictsBetweenParents
-              .getOrPut(c) { mutableSetOf(allParentClasses[c]!!) }
-              .add(parentClasses[c]!!)
+            conflictsBetweenParents.getOrPut(c) { mutableSetOf(allParentClasses[c]!!) }.add(parentClasses[c]!!)
           }
         }
         allParentClasses.putAll(parentClasses)
       }
 
-    if (
-      internalDuplicates.isNotEmpty() ||
-        conflictsWithParents.isNotEmpty() ||
-        conflictsBetweenParents.isNotEmpty()
-    ) {
+    if (internalDuplicates.isNotEmpty() || conflictsWithParents.isNotEmpty() || conflictsBetweenParents.isNotEmpty()) {
       thisLogger().warn("Duplicate classes found in ${plugin.name} (${plugin.pluginId.idString}):")
       if (internalDuplicates.isNotEmpty()) {
         thisLogger().warn("Duplicates within the plugin:\n$internalDuplicates")
@@ -286,9 +266,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
         thisLogger()
           .warn(
             "Conflicts between plugin libs and parent plugins:\n" +
-              conflictsWithParents.entries.take(10).joinToString("\n") { (c, j) ->
-                "$c duplicated in $j"
-              }
+              conflictsWithParents.entries.take(10).joinToString("\n") { (c, j) -> "$c duplicated in $j" }
           )
         if (conflictsWithParents.entries.size > 10) {
           thisLogger().warn("and ${conflictsWithParents.entries.size - 10} more")
@@ -298,9 +276,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
         thisLogger()
           .warn(
             "Conflicts between parent plugins:\n" +
-              conflictsBetweenParents.entries.take(10).joinToString("\n") { (c, j) ->
-                "$c duplicated in $j"
-              }
+              conflictsBetweenParents.entries.take(10).joinToString("\n") { (c, j) -> "$c duplicated in $j" }
           )
         if (conflictsBetweenParents.entries.size > 10) {
           thisLogger().warn("and ${conflictsBetweenParents.entries.size - 10} more")
@@ -314,24 +290,16 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
 
   private val classCache = mutableMapOf<URI, List<String>>()
 
-  /**
-   * Get a list of all class filenames (like /foo/bar/MyClass.class) present in jar referenced by
-   * the given URL.
-   */
+  /** Get a list of all class filenames (like /foo/bar/MyClass.class) present in jar referenced by the given URL. */
   private fun getAllClasses(url: URL): List<String> =
     classCache.getOrPut(url.toURI()) {
       val jarFile = Paths.get(url.toURI())
-      if (
-        url.protocol == "file" && url.file.hasExtensionIgnoreCase("jar") && Files.exists(jarFile)
-      ) {
+      if (url.protocol == "file" && url.file.hasExtensionIgnoreCase("jar") && Files.exists(jarFile)) {
         FileSystems.newFileSystem(jarFile).use { fileSystem: FileSystem ->
           fileSystem.rootDirectories.flatMap { root ->
             Files.walk(root).use { paths ->
               paths
-                .filter {
-                  it.extension == "class" &&
-                    it.fileName.nameWithoutExtension !in setOf("module-info", "package-info")
-                }
+                .filter { it.extension == "class" && it.fileName.nameWithoutExtension !in setOf("module-info", "package-info") }
                 .map { it.toString() }
                 .toList()
             }
@@ -344,9 +312,7 @@ class TestDuplicateClassesAction : DumbAwareAction("Test Duplicate Classes") {
 
   // returns class file path to jar url. Classes can be duplicated.
   private fun getAllClasses(classLoader: ClassLoader): List<Triple<String, URL, ClassLoader>> =
-    (classLoader as? UrlClassLoader)?.urls?.flatMap { url ->
-      getAllClasses(url).map { Triple(it, url, classLoader) }
-    } ?: listOf()
+    (classLoader as? UrlClassLoader)?.urls?.flatMap { url -> getAllClasses(url).map { Triple(it, url, classLoader) } } ?: listOf()
 
   // Map if class file path to jar reference. Note only one jar per class will be reported, and the
   // core classloader is excluded.

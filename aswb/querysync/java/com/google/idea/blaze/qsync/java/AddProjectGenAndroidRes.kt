@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.java
 
 import com.google.idea.blaze.common.Context
-import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
@@ -28,12 +27,12 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
-/**
- * Adds generated Android resource files to the project proto.
- */
+/** Adds generated Android resource files to the project proto. */
 class AddProjectGenAndroidRes : ProjectProtoUpdateOperation {
 
-  override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<com.google.idea.blaze.qsync.artifacts.BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
+  override fun getRequiredArtifacts(
+    forTarget: TargetBuildInfo
+  ): Map<com.google.idea.blaze.qsync.artifacts.BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
     return forTarget.javaInfo().getOrNull()?.genAndroidRes()?.associateWith { emptyList<ArtifactMetadata.Extractor<*>>() } ?: emptyMap()
   }
 

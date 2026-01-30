@@ -32,20 +32,18 @@ import org.junit.Test
 @RunsInEdt
 class KotlinSetupEnvironmentNotificationProviderTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION).onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION).onEdt()
 
   private val project: Project
     get() = androidProjectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = androidProjectRule.fixture
 
   @Test
   fun `Given java project When adding Kotlin file Then configure Kotlin notification is displayed`() {
     createKotlinFile()
-    assertNotificationPanelText(
-      KotlinProjectConfigurationBundle.message("kotlin.not.configured")
-    )
+    assertNotificationPanelText(KotlinProjectConfigurationBundle.message("kotlin.not.configured"))
   }
 
   private fun createKotlinFile() {
@@ -54,10 +52,10 @@ class KotlinSetupEnvironmentNotificationProviderTest {
   }
 
   private fun assertNotificationPanelText(expectedText: String) {
-      val selectedEditor = FileEditorManager.getInstance(project).selectedEditor
-      val notificationData = KotlinSetupEnvironmentNotificationProvider().collectNotificationData(project, selectedEditor?.file!!)
-      val notificationPanel = notificationData?.apply(selectedEditor) as EditorNotificationPanel
+    val selectedEditor = FileEditorManager.getInstance(project).selectedEditor
+    val notificationData = KotlinSetupEnvironmentNotificationProvider().collectNotificationData(project, selectedEditor?.file!!)
+    val notificationPanel = notificationData?.apply(selectedEditor) as EditorNotificationPanel
 
-      Assert.assertEquals(expectedText, notificationPanel.text)
+    Assert.assertEquals(expectedText, notificationPanel.text)
   }
 }

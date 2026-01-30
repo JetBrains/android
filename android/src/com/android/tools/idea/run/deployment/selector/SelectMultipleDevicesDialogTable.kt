@@ -39,19 +39,12 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
 
   fun isSelected(viewRowIndex: Int): Boolean {
     val modelRowIndex = convertRowIndexToModel(viewRowIndex)
-    return dataModel.getValueAt(
-      modelRowIndex,
-      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX,
-    ) as Boolean
+    return dataModel.getValueAt(modelRowIndex, SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX) as Boolean
   }
 
   @VisibleForTesting
   fun setSelected(selected: Boolean, viewRowIndex: Int) {
-    dataModel.setValueAt(
-      selected,
-      convertRowIndexToModel(viewRowIndex),
-      SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX,
-    )
+    dataModel.setValueAt(selected, convertRowIndexToModel(viewRowIndex), SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX)
   }
 
   @get:VisibleForTesting
@@ -66,8 +59,7 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
       return data
     }
 
-  private fun getRowAt(rowIndex: Int): List<Any> =
-    (0 until columnCount).map { columnIndex -> getValueAt(rowIndex, columnIndex) }
+  private fun getRowAt(rowIndex: Int): List<Any> = (0 until columnCount).map { columnIndex -> getValueAt(rowIndex, columnIndex) }
 
   override fun setModel(model: TableModel) {
     super.setModel(model)
@@ -81,17 +73,12 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
   }
 
   private fun setSelectedAndIconColumnMaxWidthsToFit() {
-    setMaxWidthToFit(
-      convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX)
-    )
-    setMaxWidthToFit(
-      convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.TYPE_MODEL_COLUMN_INDEX)
-    )
+    setMaxWidthToFit(convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX))
+    setMaxWidthToFit(convertColumnIndexToView(SelectMultipleDevicesDialogTableModel.TYPE_MODEL_COLUMN_INDEX))
   }
 
   private fun setMaxWidthToFit(viewColumnIndex: Int) {
-    val maxPreferredWidth =
-      (-1 until rowCount).maxOf { rowIndex -> getPreferredWidth(rowIndex, viewColumnIndex) }
+    val maxPreferredWidth = (-1 until rowCount).maxOf { rowIndex -> getPreferredWidth(rowIndex, viewColumnIndex) }
     getColumnModel().getColumn(viewColumnIndex).setMaxWidth(maxPreferredWidth)
   }
 
@@ -99,15 +86,9 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
     val component =
       if (viewRowIndex == -1) {
         val name = getColumnName(viewColumnIndex)
-        getTableHeader()
-          .defaultRenderer
-          .getTableCellRendererComponent(this, name, false, false, -1, viewColumnIndex)
+        getTableHeader().defaultRenderer.getTableCellRendererComponent(this, name, false, false, -1, viewColumnIndex)
       } else {
-        prepareRenderer(
-          getCellRenderer(viewRowIndex, viewColumnIndex),
-          viewRowIndex,
-          viewColumnIndex,
-        )
+        prepareRenderer(getCellRenderer(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex)
       }
     return component.preferredSize.width + JBUI.scale(8)
   }
@@ -124,7 +105,5 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
   }
 
   private fun notAllValuesEqualEmptyString(columnIndex: Int): Boolean =
-    (0 until dataModel.rowCount).any { rowIndex ->
-      dataModel.getValueAt(rowIndex, columnIndex) != ""
-    }
+    (0 until dataModel.rowCount).any { rowIndex -> dataModel.getValueAt(rowIndex, columnIndex) != "" }
 }

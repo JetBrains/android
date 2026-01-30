@@ -55,16 +55,16 @@ class UiSettingsDialogTest {
   private val nameRule = TestName()
   private val projectRule = ProjectRule()
   private val deviceTypeFromTestName: DeviceType
-    get() = when {
-      nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
-      nameRule.methodName.endsWith("Tv") -> DeviceType.TV
-      nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
-      nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
-      else -> DeviceType.HANDHELD
-    }
+    get() =
+      when {
+        nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
+        nameRule.methodName.endsWith("Tv") -> DeviceType.TV
+        nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
+        nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
+        else -> DeviceType.HANDHELD
+      }
 
-  @get:Rule
-  val ruleChain = RuleChain(nameRule, projectRule, EdtRule())
+  @get:Rule val ruleChain = RuleChain(nameRule, projectRule, EdtRule())
 
   @Before
   fun before() {

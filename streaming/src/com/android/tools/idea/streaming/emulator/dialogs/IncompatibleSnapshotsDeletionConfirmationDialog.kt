@@ -25,9 +25,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import java.awt.Component
 
-/**
- * Dialog asking for confirmation before deletion of incompatible emulator snapshots.
- */
+/** Dialog asking for confirmation before deletion of incompatible emulator snapshots. */
 internal class IncompatibleSnapshotsDeletionConfirmationDialog(
   private val incompatibleSnapshotsCount: Int,
   private val incompatibleSnapshotsSize: Long,
@@ -35,30 +33,26 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
 
   var doNotAskAgain: Boolean = false
 
-  /**
-   * Creates contents of the dialog.
-   */
+  /** Creates contents of the dialog. */
   private fun createPanel(): DialogPanel {
     return panel {
       row {
-        val snapshotsClause = if (incompatibleSnapshotsCount == 1) "There is 1 snapshot"
-                              else "There are $incompatibleSnapshotsCount snapshots"
+        val snapshotsClause =
+          if (incompatibleSnapshotsCount == 1) "There is 1 snapshot" else "There are $incompatibleSnapshotsCount snapshots"
         val pronoun = if (incompatibleSnapshotsCount == 1) "it" else "them"
-        text("""
+        text(
+          """
           |  $snapshotsClause incompatible with the current configuration occupying<br>
 |            ${getHumanizedSize(incompatibleSnapshotsSize)} of disk space. Do you want to permanently delete $pronoun?
-|            """.trimMargin())
+|            """
+            .trimMargin()
+        )
       }
-      row {
-        checkBox("Do this from now on without asking")
-          .bindSelected(::doNotAskAgain)
-      }
+      row { checkBox("Do this from now on without asking").bindSelected(::doNotAskAgain) }
     }
   }
 
-  /**
-   * Creates the dialog wrapper.
-   */
+  /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
@@ -70,9 +64,10 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
       createActions = {
         listOf(
           CloseDialogAction(dialogPanel, "Delete", DELETE_EXIT_CODE, isDefault = true),
-          CloseDialogAction(dialogPanel, "Keep", KEEP_EXIT_CODE)
+          CloseDialogAction(dialogPanel, "Keep", KEEP_EXIT_CODE),
         )
-      })
+      },
+    )
   }
 
   companion object {

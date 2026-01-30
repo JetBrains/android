@@ -61,10 +61,7 @@ class CommonIssueNotificationActionTest {
   private var viewModelStatus = TestPreviewViewModelStatus()
   private val dataContext
     get() =
-      SimpleDataContext.builder()
-        .add(PREVIEW_VIEW_MODEL_STATUS, viewModelStatus)
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .build()
+      SimpleDataContext.builder().add(PREVIEW_VIEW_MODEL_STATUS, viewModelStatus).add(CommonDataKeys.PROJECT, projectRule.project).build()
 
   @Test
   fun `check simple states`() {
@@ -79,10 +76,7 @@ class CommonIssueNotificationActionTest {
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Render Issues", event.presentation.text)
-      assertEquals(
-        "Some problems were found while rendering the preview",
-        event.presentation.description,
-      )
+      assertEquals("Some problems were found while rendering the preview", event.presentation.description)
     }
 
     viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
@@ -106,10 +100,7 @@ class CommonIssueNotificationActionTest {
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Paused", event.presentation.text)
-      assertEquals(
-        "The preview will not update while your project contains syntax errors",
-        event.presentation.description,
-      )
+      assertEquals("The preview will not update while your project contains syntax errors", event.presentation.description)
     }
 
     viewModelStatus = TestPreviewViewModelStatus(isRefreshing = true)
@@ -126,26 +117,19 @@ class CommonIssueNotificationActionTest {
       assertTrue(statusInfo.hasRefreshIcon)
       assertEquals(IdeStatus.Presentation.Warning, statusInfo.presentation)
       assertEquals("Render Issues", event.presentation.text)
-      assertEquals(
-        "Some problems were found while rendering the preview",
-        event.presentation.description,
-      )
+      assertEquals("Some problems were found while rendering the preview", event.presentation.description)
     }
   }
 
   @Test
   fun `check state priorities`() {
     val action = CommonIssueNotificationAction(::noPopupFactor)
-    viewModelStatus =
-      TestPreviewViewModelStatus(hasSyntaxErrors = true, hasRenderErrors = true, isOutOfDate = true)
+    viewModelStatus = TestPreviewViewModelStatus(hasSyntaxErrors = true, hasRenderErrors = true, isOutOfDate = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       // Syntax errors take precedence over out of date when Fast Preview is Enabled
       assertEquals("Paused", event.presentation.text)
-      assertEquals(
-        "The preview will not update while your project contains syntax errors",
-        event.presentation.description,
-      )
+      assertEquals("The preview will not update while your project contains syntax errors", event.presentation.description)
     }
 
     try {
@@ -160,26 +144,14 @@ class CommonIssueNotificationActionTest {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
 
-    viewModelStatus =
-      TestPreviewViewModelStatus(
-        hasSyntaxErrors = true,
-        hasRenderErrors = true,
-        isOutOfDate = true,
-        isRefreshing = true,
-      )
+    viewModelStatus = TestPreviewViewModelStatus(hasSyntaxErrors = true, hasRenderErrors = true, isOutOfDate = true, isRefreshing = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Loading...", event.presentation.text)
       assertEquals("The preview is updating...", event.presentation.description)
     }
     // Most other statuses take precedence over runtime errors
-    viewModelStatus =
-      TestPreviewViewModelStatus(
-        hasSyntaxErrors = true,
-        hasRenderErrors = true,
-        isOutOfDate = true,
-        isRefreshing = true,
-      )
+    viewModelStatus = TestPreviewViewModelStatus(hasSyntaxErrors = true, hasRenderErrors = true, isOutOfDate = true, isRefreshing = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Loading...", event.presentation.text)
@@ -202,28 +174,16 @@ class CommonIssueNotificationActionTest {
     viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true, hasSyntaxErrors = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
-      assertEquals(
-        "The preview will not update while your project contains syntax errors",
-        event.presentation.description,
-      )
-      assertEquals(
-        "The preview will not update while your project contains syntax errors",
-        event.presentation.description,
-      )
+      assertEquals("The preview will not update while your project contains syntax errors", event.presentation.description)
+      assertEquals("The preview will not update while your project contains syntax errors", event.presentation.description)
     }
   }
 
   private fun InformationPopup.labelsDescription(): String =
-    popupComponent
-      .findAllDescendants(JLabel::class.java)
-      .map { XmlStringUtil.stripHtml(it.text) }
-      .joinToString("\n")
+    popupComponent.findAllDescendants(JLabel::class.java).map { XmlStringUtil.stripHtml(it.text) }.joinToString("\n")
 
   private fun InformationPopup.linksDescription(): String =
-    popupComponent
-      .findAllDescendants(ActionLink::class.java)
-      .map { it.text.replace("\\(.*\\)".toRegex(), "(SHORTCUT)") }
-      .joinToString("\n")
+    popupComponent.findAllDescendants(ActionLink::class.java).map { it.text.replace("\\(.*\\)".toRegex(), "(SHORTCUT)") }.joinToString("\n")
 
   @Test
   fun `check InformationPopup states`() {
@@ -260,8 +220,7 @@ class CommonIssueNotificationActionTest {
       viewModelStatus =
         TestPreviewViewModelStatus(
           isRefreshing = true,
-          isOutOfDate =
-            true, // Leaving out of date to true to verify it does not take precedence over refresh
+          isOutOfDate = true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is updating...", popup.labelsDescription())
@@ -273,18 +232,15 @@ class CommonIssueNotificationActionTest {
       viewModelStatus =
         TestPreviewViewModelStatus(
           hasSyntaxErrors = true,
-          isOutOfDate =
-            true, // Leaving out of date to true to verify it does not take precedence over refresh
+          isOutOfDate = true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
-      assertEquals(
-        "The preview will not update while your project contains syntax errors",
-        popup.labelsDescription(),
-      )
+      assertEquals("The preview will not update while your project contains syntax errors", popup.labelsDescription())
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
-        View Problems"""
+        View Problems
+        """
           .trimIndent(),
         popup.linksDescription(),
       )
@@ -294,14 +250,12 @@ class CommonIssueNotificationActionTest {
     run {
       viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true)
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
-      assertEquals(
-        "Some problems were found while rendering the preview",
-        popup.labelsDescription(),
-      )
+      assertEquals("Some problems were found while rendering the preview", popup.labelsDescription())
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
-        View Problems"""
+        View Problems
+        """
           .trimIndent(),
         popup.linksDescription(),
       )
@@ -329,12 +283,7 @@ class CommonIssueNotificationActionTest {
       popupRequested++
       fakePopup
     }
-    val event =
-      TestActionEvent.createTestEvent(
-        action,
-        dataContext,
-        MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1),
-      )
+    val event = TestActionEvent.createTestEvent(action, dataContext, MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1))
     action.update(event)
     assertEquals(0, popupRequested)
     action.actionPerformed(event)

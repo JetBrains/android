@@ -17,9 +17,9 @@ package com.android.tools.idea.observable.ui
 
 import com.android.tools.idea.observable.CountListener
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
+import org.junit.Test
 
 class SpinnerLongValuePropertyTest {
 

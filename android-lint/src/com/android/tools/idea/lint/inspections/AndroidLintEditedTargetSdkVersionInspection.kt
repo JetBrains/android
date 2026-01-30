@@ -23,16 +23,8 @@ import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
 
 class AndroidLintEditedTargetSdkVersionInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.edited.target.sdk.version"),
-    GradleDetector.EDITED_TARGET_SDK_VERSION,
-  ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    message: String,
-    fixData: LintFix?,
-  ): Array<LintIdeQuickFix> {
+  AndroidLintInspectionBase(message("android.lint.inspections.edited.target.sdk.version"), GradleDetector.EDITED_TARGET_SDK_VERSION) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
     return arrayOf(LaunchTargetSdkVersionAssistantFix(fixData), IgnoreTargetSdkEditFix())
   }
 }

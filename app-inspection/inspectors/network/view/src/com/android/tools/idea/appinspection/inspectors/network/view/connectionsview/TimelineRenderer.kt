@@ -26,8 +26,8 @@ import javax.swing.event.TableModelListener
 internal class TimelineRenderer(private val table: JTable, timeline: Timeline) :
   TimelineTable.CellRenderer(timeline, true), TableModelListener {
   /**
-   * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the chart to
-   * render, it will be converted from model index to view index.
+   * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the chart to render, it will be converted from model
+   * index to view index.
    */
   private val connectionsCharts = mutableListOf<ConnectionsStateChart>()
 

@@ -36,50 +36,57 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 
 abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnvironment) : AndroidConfigurationExecutor {
-  final override val configuration: AndroidTestRunConfiguration = if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
-    (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
-  } else {
-    env.runProfile as AndroidTestRunConfiguration
-  }
-  private val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException(
-    "Can't get ApplicationIdProvider for AndroidTestRunConfiguration"
-  )
-  protected val packageName get() = try {
-    applicationIdProvider.packageName
-  } catch (e: ApkProvisionException) {
-    throw ExecutionException("Can't get application ID")
-  }
+  final override val configuration: AndroidTestRunConfiguration =
+    if (env.runProfile is ImportAndroidTestMatrixRunProfile) {
+      (env.runProfile as ImportAndroidTestMatrixRunProfile).initialConfiguration
+    } else {
+      env.runProfile as AndroidTestRunConfiguration
+    }
+  private val applicationIdProvider =
+    configuration.applicationIdProvider ?: throw RuntimeException("Can't get ApplicationIdProvider for AndroidTestRunConfiguration")
+  protected val packageName
+    get() =
+      try {
+        applicationIdProvider.packageName
+      } catch (e: ApkProvisionException) {
+        throw ExecutionException("Can't get application ID")
+      }
 
   protected val testPackageName
-    get() = try {
-      applicationIdProvider.testPackageName ?: throw AndroidExecutionException(
-        "EMPTY_TEST_PACKAGE_NAME",
-        "Can't determine test package name"
-      )
-    } catch (e: ApkProvisionException) {
-      throw ExecutionException("Can't get application ID")
-  }
+    get() =
+      try {
+        applicationIdProvider.testPackageName
+          ?: throw AndroidExecutionException("EMPTY_TEST_PACKAGE_NAME", "Can't determine test package name")
+      } catch (e: ApkProvisionException) {
+        throw ExecutionException("Can't get application ID")
+      }
+
   protected val module = configuration.configurationModule.module!!.let { getModuleForAndroidTestRunConfiguration(it) ?: it }
   protected val facet =
     module.androidFacet ?: throw RuntimeException("AndroidTestRunConfigurationExecutorBase shouldn't be invoked for module without facet")
   protected val LOG = Logger.getInstance(this::class.java)
+
   protected suspend fun startDebuggerSession(
     indicator: ProgressIndicator,
     device: IDevice,
     applicationContext: ApplicationProjectContext,
-    console: AndroidTestSuiteView
+    console: AndroidTestSuiteView,
   ): XDebugSessionImpl {
-    val debugger = configuration.androidDebuggerContext.androidDebugger
-      ?: throw ExecutionException("Unable to determine debugger to use for this launch")
+    val debugger =
+      configuration.androidDebuggerContext.androidDebugger
+        ?: throw ExecutionException("Unable to determine debugger to use for this launch")
     LOG.info("Using debugger: " + debugger.id)
-    val debuggerState = configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
-      ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
+    val debuggerState =
+      configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
+        ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
     val executionType = AndroidModel.get(facet)?.testExecutionOption ?: TestExecutionOption.HOST
     indicator.text = "Connecting debugger"
 
     val packageNameForDebug = packageName
     val session =
-      if (TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType) {
+      if (
+        TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType
+      ) {
         val masterAndroidProcessName = MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME[executionType]!!
         DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
           device,
@@ -94,7 +101,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
           },
           indicator,
           console,
-          Long.MAX_VALUE
+          Long.MAX_VALUE,
         )
       } else {
         DebugSessionStarter.attachDebuggerToStartedProcess(
@@ -106,7 +113,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
           destroyRunningProcess = { d -> d.forceStop(packageNameForDebug) },
           indicator,
           console,
-          Long.MAX_VALUE
+          Long.MAX_VALUE,
         )
       }
     return session

@@ -56,9 +56,7 @@ class HyperlinkValidator(model: MarkupModel) {
     index++
     val rest = outputWithMarker()
     index--
-    assertThat(index)
-      .named("Only $index out of ${highlighters.size} regions are accounted for:\n $rest")
-      .isEqualTo(highlighters.size)
+    assertThat(index).named("Only $index out of ${highlighters.size} regions are accounted for:\n $rest").isEqualTo(highlighters.size)
   }
 
   private fun formatActual(): String {

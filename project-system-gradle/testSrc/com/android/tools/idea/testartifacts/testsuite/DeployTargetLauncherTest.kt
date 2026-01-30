@@ -35,8 +35,7 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class DeployTargetLauncherTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   val mockDevice: IDevice = mock()
   val mockDeployTarget: DeployTarget = mock()
@@ -71,8 +70,7 @@ class DeployTargetLauncherTest {
     whenever(mockDevice1.serialNumber).thenReturn("test-device-1")
     val mockDevice2 = mock(IDevice::class.java)
     whenever(mockDevice2.serialNumber).thenReturn("test-device-2")
-    whenever(mockDeployTarget.launchDevices(projectRule.project)).thenReturn(
-      FakeAndroidDevice.forDevices(listOf(mockDevice1, mockDevice2)))
+    whenever(mockDeployTarget.launchDevices(projectRule.project)).thenReturn(FakeAndroidDevice.forDevices(listOf(mockDevice1, mockDevice2)))
 
     val context = DeployTargetContext(listOf(mockDeployTargetProvider))
     val devices = launchDevices(projectRule.project, context)

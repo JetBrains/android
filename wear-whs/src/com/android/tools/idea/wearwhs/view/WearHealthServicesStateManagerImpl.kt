@@ -57,9 +57,7 @@ internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
   private val workerScope: CoroutineScope,
-  @VisibleForTesting
-  private val pollingIntervalMillis: Long =
-    StudioFlags.WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS.get(),
+  @VisibleForTesting private val pollingIntervalMillis: Long = StudioFlags.WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS.get(),
   private val stateStalenessThreshold: Duration = STATE_STALENESS_THRESHOLD,
 ) : WearHealthServicesStateManager, Disposable {
 
@@ -69,9 +67,7 @@ internal class WearHealthServicesStateManagerImpl(
 
   private val capabilityToState =
     capabilitiesList.associateWith {
-      MutableStateFlow<CapabilityUIState>(
-        UpToDateCapabilityUIState(upToDateState = CapabilityState(true, it.dataType.noValue()))
-      )
+      MutableStateFlow<CapabilityUIState>(UpToDateCapabilityUIState(upToDateState = CapabilityState(true, it.dataType.noValue())))
     }
 
   private val _status = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Initializing)
@@ -111,9 +107,7 @@ internal class WearHealthServicesStateManagerImpl(
     }
     workerScope.launch {
       while (true) {
-        _isStateStale.value =
-          JavaDuration.between(lastSuccessfulSync, Instant.now()) >=
-            stateStalenessThreshold.toJavaDuration()
+        _isStateStale.value = JavaDuration.between(lastSuccessfulSync, Instant.now()) >= stateStalenessThreshold.toJavaDuration()
         delay(STALENESS_POLL_UPDATE)
       }
     }
@@ -121,10 +115,7 @@ internal class WearHealthServicesStateManagerImpl(
 
   private suspend fun updateState() {
     runWithStatus(WhsStateManagerStatus.Busy, MAX_WAIT_TIME_FOR_POLL_UPDATE) {
-        val activeExerciseResult =
-          deviceManager.loadActiveExercise().map { activeExercise ->
-            _ongoingExercise.value = activeExercise
-          }
+        val activeExerciseResult = deviceManager.loadActiveExercise().map { activeExercise -> _ongoingExercise.value = activeExercise }
         if (activeExerciseResult.isFailure) {
           // Return early on failure
           activeExerciseResult
@@ -135,8 +126,7 @@ internal class WearHealthServicesStateManagerImpl(
               capabilityToState.forEach { (capability, currentState) ->
                 // If content provider doesn't return a capability, that means the capability
                 // is enabled with no overrides
-                val deviceState =
-                  deviceStates[capability.dataType] ?: CapabilityState.enabled(capability.dataType)
+                val deviceState = deviceStates[capability.dataType] ?: CapabilityState.enabled(capability.dataType)
 
                 currentState.value =
                   currentState.value.let {
@@ -154,23 +144,16 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   /**
-   * Waits until state manager is idle, then executes the given block after setting the state
-   * manager status to [status]. It restores the status to [WhsStateManagerStatus.Idle] after the
-   * block is executed, or [WhsStateManagerStatus.ConnectionLost] if the block throws a
+   * Waits until state manager is idle, then executes the given block after setting the state manager status to [status]. It restores the
+   * status to [WhsStateManagerStatus.Idle] after the block is executed, or [WhsStateManagerStatus.ConnectionLost] if the block throws a
    * [ConnectionLostException].
    */
-  private suspend fun runWithStatus(
-    status: WhsStateManagerStatus,
-    timeout: Duration,
-    block: suspend () -> Result<Unit>,
-  ): Result<Unit> {
+  private suspend fun runWithStatus(status: WhsStateManagerStatus, timeout: Duration, block: suspend () -> Result<Unit>): Result<Unit> {
     return try {
       withTimeout(timeout) {
         _status.takeWhile { !it.idle }.collect {}
         _status.value = status
-        block()
-          .onSuccess { _status.value = WhsStateManagerStatus.Idle }
-          .onFailure { _status.value = WhsStateManagerStatus.ConnectionLost }
+        block().onSuccess { _status.value = WhsStateManagerStatus.Idle }.onFailure { _status.value = WhsStateManagerStatus.ConnectionLost }
       }
     } catch (exception: TimeoutCancellationException) {
       _status.value = WhsStateManagerStatus.Timeout
@@ -179,9 +162,7 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
-      deviceManager.triggerEvent(eventTrigger)
-    }
+    runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) { deviceManager.triggerEvent(eventTrigger) }
 
   override fun loadPreset(preset: Preset): Job {
     this.preset.value = preset
@@ -213,11 +194,7 @@ internal class WearHealthServicesStateManagerImpl(
       val newState = if (enabled) uiState.currentState.enable() else uiState.currentState.disable()
       stateFlow.value =
         if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else
-          PendingUserChangesCapabilityUIState(
-            userState = newState,
-            upToDateState = uiState.upToDateState,
-          )
+        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
     }
 
   override suspend fun setOverrideValue(capability: WhsCapability, value: Number): Unit =
@@ -232,30 +209,20 @@ internal class WearHealthServicesStateManagerImpl(
       val newState = uiState.currentState.override(dataValue)
       stateFlow.value =
         if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else
-          PendingUserChangesCapabilityUIState(
-            userState = newState,
-            upToDateState = uiState.upToDateState,
-          )
+        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
     }
 
   override suspend fun clearOverrideValue(capability: WhsCapability): Unit =
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val uiState = stateFlow.value
-      if (
-        uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled
-      ) {
+      if (uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled) {
         return
       }
       val newState = uiState.currentState.clearOverride()
       stateFlow.value =
         if (newState == uiState.upToDateState) UpToDateCapabilityUIState(uiState.upToDateState)
-        else
-          PendingUserChangesCapabilityUIState(
-            userState = newState,
-            upToDateState = uiState.upToDateState,
-          )
+        else PendingUserChangesCapabilityUIState(userState = newState, upToDateState = uiState.upToDateState)
     }
 
   override suspend fun applyChanges() =
@@ -264,12 +231,8 @@ internal class WearHealthServicesStateManagerImpl(
       val overrideUpdates: List<WhsDataValue>
 
       capabilityUpdatesLock.withLock {
-        capabilityUpdates =
-          capabilityToState.entries.associate {
-            it.key.dataType to it.value.value.currentState.enabled
-          }
-        overrideUpdates =
-          capabilityToState.entries.map { it.value.value.currentState.overrideValue }
+        capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
+        overrideUpdates = capabilityToState.entries.map { it.value.value.currentState.overrideValue }
       }
 
       // Return early if any of the updates fail
@@ -290,8 +253,7 @@ internal class WearHealthServicesStateManagerImpl(
           val uiState = stateFlow.value
           stateFlow.value =
             UpToDateCapabilityUIState(
-              if (ongoingExercise.value)
-                uiState.upToDateState.copy(overrideValue = uiState.currentState.overrideValue)
+              if (ongoingExercise.value) uiState.upToDateState.copy(overrideValue = uiState.currentState.overrideValue)
               else uiState.upToDateState.copy(enabled = uiState.currentState.enabled)
             )
         }
@@ -301,21 +263,17 @@ internal class WearHealthServicesStateManagerImpl(
     }
 
   private suspend fun resetOverrides(): Result<Unit> {
-    val capabilities =
-      capabilityUpdatesLock.withLock { capabilityToState.entries }.map { it.key.dataType.noValue() }
+    val capabilities = capabilityUpdatesLock.withLock { capabilityToState.entries }.map { it.key.dataType.noValue() }
     return deviceManager.overrideValues(capabilities).also {
       if (it.isSuccess) {
-        capabilityToState.forEach { (_, uiState) ->
-          uiState.value = UpToDateCapabilityUIState(uiState.value.upToDateState.clearOverride())
-        }
+        capabilityToState.forEach { (_, uiState) -> uiState.value = UpToDateCapabilityUIState(uiState.value.upToDateState.clearOverride()) }
       }
     }
   }
 
   private suspend fun resetCapabilities(): Result<Unit> {
     loadPreset(preset.value).join()
-    val resetCapabilities =
-      capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
+    val resetCapabilities = capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
     return deviceManager.setCapabilities(resetCapabilities).also {
       if (it.isSuccess) {
         capabilityToState.forEach { (capability, uiState) ->

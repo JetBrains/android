@@ -23,7 +23,6 @@ fun interface SdkInstallListener {
   fun installCompleted(installed: Collection<UpdatablePackage>, uninstalled: Collection<LocalPackage>)
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("SDK Install Listener", SdkInstallListener::class.java)
+    @JvmField val TOPIC = Topic("SDK Install Listener", SdkInstallListener::class.java)
   }
 }

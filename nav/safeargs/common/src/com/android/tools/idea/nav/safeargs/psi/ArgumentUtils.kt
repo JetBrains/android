@@ -55,22 +55,11 @@ object ArgumentUtils {
       }
     }
 
-  /**
-   * Warn if incompatible types of argument exist. We still provide best results though it fails to
-   * compile.
-   */
-  private fun checkArguments(
-    entry: Map.Entry<String, List<NavArgumentData>>,
-    modulePackage: String,
-  ) {
-    val types =
-      entry.value
-        .asSequence()
-        .map { arg -> getPsiTypeStr(modulePackage, arg.type, arg.defaultValue) }
-        .toSet()
+  /** Warn if incompatible types of argument exist. We still provide best results though it fails to compile. */
+  private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>, modulePackage: String) {
+    val types = entry.value.asSequence().map { arg -> getPsiTypeStr(modulePackage, arg.type, arg.defaultValue) }.toSet()
 
-    if (types.size > 1)
-      LOG.warn("Incompatible types of argument ${entry.key}: ${types.joinToString(", ")}.")
+    if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}: ${types.joinToString(", ")}.")
   }
 
   private val LOG = thisLogger()

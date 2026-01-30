@@ -49,13 +49,7 @@ class ScaleTypeViewActionTest : SceneTest() {
         .id("@id/constraint")
         .matchParentWidth()
         .matchParentHeight()
-        .children(
-          component(SdkConstants.IMAGE_VIEW)
-            .withBounds(0, 0, 200, 200)
-            .id("@id/imageView")
-            .width("100dp")
-            .height("100dp")
-        ),
+        .children(component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 200, 200).id("@id/imageView").width("100dp").height("100dp")),
     )
   }
 }

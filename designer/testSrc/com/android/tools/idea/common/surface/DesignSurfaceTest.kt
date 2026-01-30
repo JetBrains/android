@@ -211,14 +211,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testResizeSurfaceRebuildScene() {
-    val builder =
-      model(
-        "relative.xml",
-        component(RELATIVE_LAYOUT)
-          .withBounds(0, 0, 1000, 1000)
-          .matchParentWidth()
-          .matchParentHeight(),
-      )
+    val builder = model("relative.xml", component(RELATIVE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
 
@@ -240,14 +233,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   fun testResizeSurfaceDoesNotChangeScale() {
     // This also checks if the zoom level is same after resizing, because the screen factor of
     // TestDesignSurface is always 1.
-    val builder =
-      model(
-        "relative.xml",
-        component(RELATIVE_LAYOUT)
-          .withBounds(0, 0, 1000, 1000)
-          .matchParentWidth()
-          .matchParentHeight(),
-      )
+    val builder = model("relative.xml", component(RELATIVE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
 
@@ -266,14 +252,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testDesignSurfaceModelOrdering() {
-    val builder =
-      model(
-        "relative.xml",
-        component(RELATIVE_LAYOUT)
-          .withBounds(0, 0, 1000, 1000)
-          .matchParentWidth()
-          .matchParentHeight(),
-      )
+    val builder = model("relative.xml", component(RELATIVE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
     val model3 = builder.buildWithoutSurface()
@@ -339,12 +318,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
-    val surface =
-      TestDesignSurface(
-        project = project,
-        disposable = testRootDisposable,
-        fitScaleProvider = { fitScaleValue },
-      )
+    val surface = TestDesignSurface(project = project, disposable = testRootDisposable, fitScaleProvider = { fitScaleValue })
     surface.addModelsWithoutRender(listOf(model1))
     val zoomController = surface.zoomController as TestDesignSurfaceZoomController
 
@@ -372,12 +346,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
-    val surface =
-      TestDesignSurface(
-        project = project,
-        disposable = testRootDisposable,
-        fitScaleProvider = { fitScaleValue },
-      )
+    val surface = TestDesignSurface(project = project, disposable = testRootDisposable, fitScaleProvider = { fitScaleValue })
     surface.addModelsWithoutRender(listOf(model1))
 
     // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of
@@ -407,12 +376,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
 
-    val surface =
-      TestDesignSurface(
-        project = project,
-        disposable = testRootDisposable,
-        fitScaleProvider = { fitScaleValue },
-      )
+    val surface = TestDesignSurface(project = project, disposable = testRootDisposable, fitScaleProvider = { fitScaleValue })
     surface.addModelsWithoutRender(listOf(model1))
 
     val zoomController = surface.zoomController as TestDesignSurfaceZoomController
@@ -439,12 +403,9 @@ class DesignSurfaceTest : LayoutTestCase() {
     val fitScaleValue = 1.78
 
     val surface =
-      TestDesignSurface(
-          project = project,
-          disposable = testRootDisposable,
-          fitScaleProvider = { fitScaleValue },
-        )
-        .apply { this.setSize(200, 400) }
+      TestDesignSurface(project = project, disposable = testRootDisposable, fitScaleProvider = { fitScaleValue }).apply {
+        this.setSize(200, 400)
+      }
     surface.addModelsWithoutRender(listOf(model1))
 
     // Notify layout creation and DesignSurface resize
@@ -523,28 +484,17 @@ class DesignSurfaceTest : LayoutTestCase() {
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
-  override fun createInteractionOnPressed(
-    mouseX: Int,
-    mouseY: Int,
-    modifiersEx: Int,
-  ): Interaction? = null
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
-    null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
 class TestLayoutManager(scope: CoroutineScope) : PositionableContentLayoutManager(scope) {
-  override fun layoutContainer(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ) {}
+  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
   lateinit var surface: DesignSurface<*>
 
-  override fun preferredLayoutSize(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Dimension {
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension {
     return surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
   }
 
@@ -557,8 +507,7 @@ class TestLayoutManager(scope: CoroutineScope) : PositionableContentLayoutManage
   }
 }
 
-class TestActionHandler<T : SceneManager>(surface: DesignSurface<T>) :
-  DesignSurfaceActionHandler<DesignSurface<T>>(surface) {
+class TestActionHandler<T : SceneManager>(surface: DesignSurface<T>) : DesignSurfaceActionHandler<DesignSurface<T>>(surface) {
   override val pasteTarget: NlComponent? = null
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean = false
@@ -581,10 +530,9 @@ class TestActionHandler<T : SceneManager>(surface: DesignSurface<T>) :
 class TestDesignSurface(
   project: Project,
   disposable: Disposable,
-  val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager =
-    { model, surface ->
-      TestSceneManager(model, surface)
-    },
+  val createSceneManager: suspend (model: NlModel, surface: DesignSurface<*>) -> SceneManager = { model, surface ->
+    TestSceneManager(model, surface)
+  },
   testLayoutManager: TestLayoutManager = TestLayoutManager(disposable.createCoroutineScope()),
   fitScaleProvider: () -> Double = { 1.0 },
 ) :
@@ -624,12 +572,7 @@ class TestDesignSurface(
     get() = emptyList()
 
   private val zoomControllerFake =
-    createDesignSurfaceZoomControllerFake(
-      project = project,
-      disposable = disposable,
-      trackZoom = null,
-      fitScaleProvider = fitScaleProvider,
-    )
+    createDesignSurfaceZoomControllerFake(project = project, disposable = disposable, trackZoom = null, fitScaleProvider = fitScaleProvider)
   override val zoomController: ZoomController
     get() = zoomControllerFake
 }

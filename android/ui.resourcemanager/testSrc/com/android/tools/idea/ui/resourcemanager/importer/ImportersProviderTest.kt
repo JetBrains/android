@@ -19,10 +19,10 @@ import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class ImportersProviderTest {
@@ -31,8 +31,7 @@ class ImportersProviderTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun extensionPointExists() {

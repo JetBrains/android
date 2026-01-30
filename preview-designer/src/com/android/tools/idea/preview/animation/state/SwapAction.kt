@@ -24,11 +24,7 @@ import icons.StudioIcons
 
 /** A button to swap current animation states. */
 class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
-  DumbAwareAction(
-    message("animation.inspector.action.swap.states"),
-    null,
-    StudioIcons.LayoutEditor.Motion.PLAY_YOYO,
-  ) {
+  DumbAwareAction(message("animation.inspector.action.swap.states"), null, StudioIcons.LayoutEditor.Motion.PLAY_YOYO) {
 
   override fun actionPerformed(e: AnActionEvent) {
     swapStates()

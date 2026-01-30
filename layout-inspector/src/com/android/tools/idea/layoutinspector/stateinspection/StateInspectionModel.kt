@@ -103,38 +103,16 @@ internal class StateInspectionModelImpl(
   private val _content = MutableStateFlow(StateInspectionContent())
   override val content = _content.asStateFlow()
 
-  override val prevAction =
-    createAction(
-      AllIcons.Actions.Play_back,
-      PREV_DESCRIPTION_KEY,
-      ::gotoPrevRecomposition,
-      ::hasPrevComposition,
-    )
+  override val prevAction = createAction(AllIcons.Actions.Play_back, PREV_DESCRIPTION_KEY, ::gotoPrevRecomposition, ::hasPrevComposition)
 
-  override val nextAction =
-    createAction(
-      AllIcons.Actions.Play_forward,
-      NEXT_DESCRIPTION_KEY,
-      ::gotoNextRecomposition,
-      ::hasNextComposition,
-    )
+  override val nextAction = createAction(AllIcons.Actions.Play_forward, NEXT_DESCRIPTION_KEY, ::gotoNextRecomposition, ::hasNextComposition)
 
   override val minimizeAction =
-    createAction(
-      AllIcons.General.HideToolWindow,
-      HIDE_DESCRIPTION_KEY,
-      { model.stateReadsModel.stopShowingStateReads() },
-    )
+    createAction(AllIcons.General.HideToolWindow, HIDE_DESCRIPTION_KEY, { model.stateReadsModel.stopShowingStateReads() })
 
   private enum class InactiveState(private val messageId: String, private val detailsId: String) {
-    WAITING(
-      messageId = "layout.inspector.recomposition.waiting",
-      detailsId = "layout.inspector.recomposition.waiting.details",
-    ),
-    VIEW(
-      messageId = "layout.inspector.recomposition.view",
-      detailsId = "layout.inspector.recomposition.view.details",
-    ),
+    WAITING(messageId = "layout.inspector.recomposition.waiting", detailsId = "layout.inspector.recomposition.waiting.details"),
+    VIEW(messageId = "layout.inspector.recomposition.view", detailsId = "layout.inspector.recomposition.view.details"),
     NOT_OBSERVED(
       messageId = "layout.inspector.recomposition.not.observed",
       detailsId = "layout.inspector.recomposition.not.observed.details",
@@ -161,14 +139,8 @@ internal class StateInspectionModelImpl(
         }
       }
     }
-    scope.launch {
-      model.stateReadsModel.stateReads.filterNotNull().collect { result -> showResult(result) }
-    }
-    scope.launch {
-      model.stateReadsModel.observedForStateReads.collect {
-        updateStateOfSelection(model.selection)
-      }
-    }
+    scope.launch { model.stateReadsModel.stateReads.filterNotNull().collect { result -> showResult(result) } }
+    scope.launch { model.stateReadsModel.observedForStateReads.collect { updateStateOfSelection(model.selection) } }
     Disposer.register(parentDisposable) {
       model.removeSelectionListener(listener)
       model.removeModificationListener(updateListener)
@@ -176,8 +148,7 @@ internal class StateInspectionModelImpl(
   }
 
   private fun incrementUpdates() {
-    _content.value =
-      _content.value.let { oldContent -> oldContent.copy(updates = oldContent.updates + 1) }
+    _content.value = _content.value.let { oldContent -> oldContent.copy(updates = oldContent.updates + 1) }
   }
 
   private fun updateStateOfSelection(view: ViewNode?) {
@@ -186,10 +157,7 @@ internal class StateInspectionModelImpl(
       when {
         view !is ComposeViewNode -> showInactiveState(InactiveState.VIEW)
         !model.stateReadsModel.isNodeObserved(view) -> showInactiveState(InactiveState.NOT_OBSERVED)
-        view.anchorHash ==
-          synchronized(lock) {
-            currentKey?.composable?.anchorHash
-          } -> {} // Keep current recomposition
+        view.anchorHash == synchronized(lock) { currentKey?.composable?.anchorHash } -> {} // Keep current recomposition
         else -> loadRecompositionStateReads(view)
       }
     }
@@ -213,10 +181,7 @@ internal class StateInspectionModelImpl(
     resultShown()
   }
 
-  private fun loadRecompositionStateReads(
-    composable: ComposeViewNode,
-    recomposition: Int = composable.recompositions.count,
-  ) {
+  private fun loadRecompositionStateReads(composable: ComposeViewNode, recomposition: Int = composable.recompositions.count) {
     val key = StateReadKey(composable, recomposition)
     if (model.stateReadsModel.stateReadRequested.value != key) {
       model.stateReadsModel.requestStateReadFor(composable, recomposition)
@@ -285,10 +250,7 @@ internal class StateInspectionModelImpl(
   }
 
   private fun generateRecompositionText(key: StateReadKey): String {
-    return LayoutInspectorBundle.message(
-      "layout.inspector.recomposition.number",
-      key.recomposition.toString(),
-    )
+    return LayoutInspectorBundle.message("layout.inspector.recomposition.number", key.recomposition.toString())
   }
 
   private fun generateStateReadsText(readCount: Int): String {
@@ -303,20 +265,14 @@ internal class StateInspectionModelImpl(
       generateStateReadLine(builder, data.value, data.invalidated)
       data.stacktrace.forEach { trace ->
         val fileName = trace.fileName.takeIf { it.isNotEmpty() } ?: "Unknown Source"
-        builder.appendLine(
-          "$STACK_TRACE_START_LINE${trace.declaringClass}.${trace.methodName}($fileName:${trace.lineNumber})"
-        )
+        builder.appendLine("$STACK_TRACE_START_LINE${trace.declaringClass}.${trace.methodName}($fileName:${trace.lineNumber})")
       }
       builder.appendLine()
     }
     return builder.toString()
   }
 
-  private fun generateStateReadLine(
-    builder: StringBuilder,
-    item: ParameterItem,
-    invalidated: Boolean,
-  ) {
+  private fun generateStateReadLine(builder: StringBuilder, item: ParameterItem, invalidated: Boolean) {
     val message = StringBuilder()
     message.append(STATE_READ_START_LINE)
     generateExpression(message, item)
@@ -331,9 +287,7 @@ internal class StateInspectionModelImpl(
       message.append(" $INVALIDATED")
     }
     var read = message.toString()
-    LayoutInspectorStateReadRewriter.EP_NAME.extensionList.forEach {
-      read = it.rewriteStateRead(model.project, read)
-    }
+    LayoutInspectorStateReadRewriter.EP_NAME.extensionList.forEach { read = it.rewriteStateRead(model.project, read) }
     builder.appendLine(read)
 
     // Write the full value if we cut off the end of the value expression:

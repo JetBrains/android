@@ -28,19 +28,20 @@ const val WNA_CACHE_DIR_KEY = "whatsnew"
 open class WhatsNewURLProvider {
   /**
    * Gets URL for config xml for the current version from webserver
+   *
    * @return URL for config xml file
    */
   open fun getWebConfig(version: String): URL {
     return try {
       URL("https://developer.android.com/studio/releases/assistant/$version.xml")
-    }
-    catch (e: MalformedURLException) {
+    } catch (e: MalformedURLException) {
       throw RuntimeException("Could not get path for web WNA xml file")
     }
   }
 
   /**
    * Gets path for config xml for the current version on disk. The file may or may not exist.
+   *
    * @return URL for the local config file where xml will be stored
    */
   open fun getLocalConfig(version: String): Path {
@@ -51,9 +52,7 @@ open class WhatsNewURLProvider {
     return bundleCreator?.javaClass?.getResourceAsStream("/whats-new-assistant.xml")
   }
 
-  /**
-   * @return path to directory where local xml config will be stored
-   */
+  /** @return path to directory where local xml config will be stored */
   private fun getConfigCacheDir(): Path {
     val path = Paths.get(PathUtil.getCanonicalPath(PathManager.getSystemPath()), WNA_CACHE_DIR_KEY)
     path.toFile().mkdirs()

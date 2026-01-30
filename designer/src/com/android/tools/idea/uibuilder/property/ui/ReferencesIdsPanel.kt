@@ -113,10 +113,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       return builder.toString()
     }
 
-    /**
-     * Update the model from a given constraint_referenced_ids string containing views' ids
-     * comma-separated.
-     */
+    /** Update the model from a given constraint_referenced_ids string containing views' ids comma-separated. */
     fun updateModel(referencesString: String?) {
       references.clear()
       if (referencesString != null) {
@@ -183,10 +180,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     }
 
     override fun canImport(info: TransferSupport): Boolean {
-      val valid =
-        info.component === table &&
-          info.isDrop &&
-          info.isDataFlavorSupported(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
+      val valid = info.component === table && info.isDrop && info.isDataFlavorSupported(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
       table.cursor = if (valid) DragSource.DefaultMoveDrop else DragSource.DefaultMoveNoDrop
       return valid
     }
@@ -208,9 +202,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
         targetRowIndex = max
       }
 
-      val payload =
-        (info.transferable.getTransferData(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
-          as Pair<*, *>)
+      val payload = (info.transferable.getTransferData(ReferenceIdTransferable.REFERENCE_ID_FLAVOR) as Pair<*, *>)
       val sourceRowIndex = payload.second as Int
       if (sourceRowIndex != -1 && sourceRowIndex != targetRowIndex) {
         (table.model as DataModel).moveRow(sourceRowIndex, targetRowIndex)
@@ -258,9 +250,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       val component = referencesIds.components[0]
       val helperId = component.id
       val candidates = component.parent?.children
-      candidates?.forEach {
-        it.id?.let { id -> if (id != helperId && !currentIds.contains(id)) ids.add(id) }
-      }
+      candidates?.forEach { it.id?.let { id -> if (id != helperId && !currentIds.contains(id)) ids.add(id) } }
     }
     return ids
   }

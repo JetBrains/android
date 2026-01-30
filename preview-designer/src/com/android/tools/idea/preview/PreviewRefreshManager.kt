@@ -42,10 +42,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Enum re-used from the metrics package to avoid needing to duplicate code and manually map the
- * enum values.
- */
+/** Enum re-used from the metrics package to avoid needing to duplicate code and manually map the enum values. */
 typealias RefreshResult = PreviewRefreshEvent.RefreshResult
 
 interface RefreshType {
@@ -64,9 +61,8 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
   /**
    * Identification used for grouping and cancelling requests.
    *
-   * This provides to the tools using a [PreviewRefreshManager] the ability to define their own
-   * cancellation granularity. For example, a per-file granularity could be implemented by using as
-   * [clientId] the fully qualified name of the file for which a refresh is requested.
+   * This provides to the tools using a [PreviewRefreshManager] the ability to define their own cancellation granularity. For example, a
+   * per-file granularity could be implemented by using as [clientId] the fully qualified name of the file for which a refresh is requested.
    *
    * See [doRefresh] and [onSkip] for more details.
    */
@@ -86,34 +82,30 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
   /**
    * Method called when it is time for this request to actually be executed.
    *
-   * If the returned [Job] is cancelled, either by the [PreviewRefreshManager] or by the user, then
-   * the [PreviewRefreshManager] will cancel all rendering actions for it's
-   * [PreviewRefreshManager.topic].
+   * If the returned [Job] is cancelled, either by the [PreviewRefreshManager] or by the user, then the [PreviewRefreshManager] will cancel
+   * all rendering actions for it's [PreviewRefreshManager.topic].
    *
-   * Note the [PreviewRefreshManager] will cancel this running refresh request when a newer request
-   * comes in with the same client id and with higher than or equal priority to this one.
+   * Note the [PreviewRefreshManager] will cancel this running refresh request when a newer request comes in with the same client id and
+   * with higher than or equal priority to this one.
    */
   fun doRefresh(): Job
 
   /**
-   * Method called when this refresh has completed (i.e. when the [Job] returned by [doRefresh] has
-   * completed).
+   * Method called when this refresh has completed (i.e. when the [Job] returned by [doRefresh] has completed).
    *
-   * The [PreviewRefreshManager] assumes that it is safe to execute another request right after this
-   * method returns, so here is where the cleanup of shared resources between requests should
-   * probably happen.
+   * The [PreviewRefreshManager] assumes that it is safe to execute another request right after this method returns, so here is where the
+   * cleanup of shared resources between requests should probably happen.
    *
    * Note that this will never be used on skipped requests.
    */
   fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?)
 
   /**
-   * Method called when a request is skipped by the [PreviewRefreshManager] due to another request
-   * with the same [clientId] that has higher priority, or that has equal priority but is newer.
+   * Method called when a request is skipped by the [PreviewRefreshManager] due to another request with the same [clientId] that has higher
+   * priority, or that has equal priority but is newer.
    *
-   * Note that this request hasn't started to execute and will never execute after this [onSkip] is
-   * called. This method is used by the [PreviewRefreshManager] to notify this situation to the
-   * corresponding request.
+   * Note that this request hasn't started to execute and will never execute after this [onSkip] is called. This method is used by the
+   * [PreviewRefreshManager] to notify this situation to the corresponding request.
    */
   fun onSkip(replacedBy: PreviewRefreshRequest)
 }
@@ -130,13 +122,11 @@ enum class CommonPreviewRefreshType(override val priority: Int) : RefreshType {
  * A common implementation of [PreviewRefreshRequest].
  *
  * @param clientId see [PreviewRefreshRequest.clientId]
- * @param refreshType a [RefreshType] value used for prioritizing the requests and that could
- *   influence the logic in [delegateRefresh].
+ * @param refreshType a [RefreshType] value used for prioritizing the requests and that could influence the logic in [delegateRefresh].
  * @param delegateRefresh method responsible for performing the refresh
- * @param onRefreshCompleted optional completable that will be completed once the refresh is
- *   completed. If the request is skipped and replaced with another one, then this completable will
- *   be completed when the other one is completed. If the refresh gets cancelled, this completable
- *   will be completed exceptionally.
+ * @param onRefreshCompleted optional completable that will be completed once the refresh is completed. If the request is skipped and
+ *   replaced with another one, then this completable will be completed when the other one is completed. If the refresh gets cancelled, this
+ *   completable will be completed exceptionally.
  * @param refreshEventBuilder see [PreviewRefreshRequest.refreshEventBuilder]
  * @param requestId identifier used for testing and logging/debugging.
  */
@@ -151,54 +141,42 @@ class CommonPreviewRefreshRequest(
   override fun doRefresh(): Job {
     val refreshJob = delegateRefresh(this)
     // If the deferred is cancelled, cancel the refresh Job too
-    onRefreshCompleted?.invokeOnCompletion {
-      if (it is CancellationException) refreshJob.cancel(it)
-    }
+    onRefreshCompleted?.invokeOnCompletion { if (it is CancellationException) refreshJob.cancel(it) }
     return refreshJob
   }
 
   override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
-    onRefreshCompleted?.let {
-      if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
-    }
+    onRefreshCompleted?.let { if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable) }
   }
 
   override fun onSkip(replacedBy: PreviewRefreshRequest) {
     (replacedBy as? CommonPreviewRefreshRequest)?.let {
-      it.onRefreshCompleted =
-        wrapCompletableDeferredCollection(
-          listOfNotNull(replacedBy.onRefreshCompleted, onRefreshCompleted)
-        )
+      it.onRefreshCompleted = wrapCompletableDeferredCollection(listOfNotNull(replacedBy.onRefreshCompleted, onRefreshCompleted))
     }
   }
 }
 
 /**
- * A refresh manager that receives [PreviewRefreshRequest]s for a given [RenderingTopic] and
- * coordinates their execution applying the following rules:
- * - Group the requests by their [PreviewRefreshRequest.clientId], and keep at most 1 request per
- *   client in the queue (see [PreviewRefreshRequest.onSkip]).
- * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh]). When a request is
- *   cancelled, either because it is outdated or because the user cancelled the
- *   [PreviewRefreshRequest.doRefresh] job, all running and pending renders on the manager's
+ * A refresh manager that receives [PreviewRefreshRequest]s for a given [RenderingTopic] and coordinates their execution applying the
+ * following rules:
+ * - Group the requests by their [PreviewRefreshRequest.clientId], and keep at most 1 request per client in the queue (see
+ *   [PreviewRefreshRequest.onSkip]).
+ * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh]). When a request is cancelled, either because it is outdated
+ *   or because the user cancelled the [PreviewRefreshRequest.doRefresh] job, all running and pending renders on the manager's
  *   [RenderingTopic] are cancelled to allow any new refresh request to start straight away.
  * - Delegate prioritization to the requests (see [PreviewRefreshRequest.compareTo])
  */
-class PreviewRefreshManager
-private constructor(private val scope: CoroutineScope, private val topic: RenderingTopic) {
+class PreviewRefreshManager private constructor(private val scope: CoroutineScope, private val topic: RenderingTopic) {
   private val log = Logger.getInstance(PreviewRefreshManager::class.java)
 
-  private val requestsFlow: MutableSharedFlow<Unit> =
-    MutableSharedFlow(replay = 1, extraBufferCapacity = 1)
+  private val requestsFlow: MutableSharedFlow<Unit> = MutableSharedFlow(replay = 1, extraBufferCapacity = 1)
 
   private val requestsLock: ReentrantLock = ReentrantLock()
 
-  @GuardedBy("requestsLock")
-  private val pendingRequestsPerClient: MutableMap<String, PreviewRefreshRequest> = mutableMapOf()
+  @GuardedBy("requestsLock") private val pendingRequestsPerClient: MutableMap<String, PreviewRefreshRequest> = mutableMapOf()
 
   @GuardedBy("requestsLock")
-  private val allPendingRequests: PriorityQueue<PreviewRefreshRequest> =
-    PriorityQueue(Collections.reverseOrder()) // higher first
+  private val allPendingRequests: PriorityQueue<PreviewRefreshRequest> = PriorityQueue(Collections.reverseOrder()) // higher first
 
   @GuardedBy("requestsLock") private var runningRequest: PreviewRefreshRequest? = null
   @GuardedBy("requestsLock") private var runningJob: Job? = null
@@ -206,8 +184,8 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   private val _refreshingTypeFlow = MutableStateFlow<RefreshType?>(null)
 
   /**
-   * This flow indicates the [RefreshType] of the request that is being processed, or it indicates
-   * that no request is being processed when its value is null.
+   * This flow indicates the [RefreshType] of the request that is being processed, or it indicates that no request is being processed when
+   * its value is null.
    */
   val refreshingTypeFlow: StateFlow<RefreshType?> = _refreshingTypeFlow
 
@@ -288,13 +266,12 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   /**
    * Add a [request] to the queue asynchronously.
    *
-   * Returns the job executing the enqueueing of this request, which is not related with how the
-   * refresh manager will later decide to process the request itself.
+   * Returns the job executing the enqueueing of this request, which is not related with how the refresh manager will later decide to
+   * process the request itself.
    *
    * This is only intended to be used for synchronization purposes inside tests.
    */
-  @TestOnly
-  fun requestRefreshForTest(request: PreviewRefreshRequest): Job = doRequestRefresh(request)
+  @TestOnly fun requestRefreshForTest(request: PreviewRefreshRequest): Job = doRequestRefresh(request)
 
   private fun doRequestRefresh(request: PreviewRefreshRequest): Job {
     val enqueueingJob =
@@ -304,11 +281,7 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
           // or equal priority to the new one, then it should be cancelled.
           runningRequest?.let {
             if (it.clientId == request.clientId && it <= request) {
-              runningJob!!.cancel(
-                CancellationException(
-                  "Outdated, a refresh was replaced by a newer one (${request.clientId})"
-                )
-              )
+              runningJob!!.cancel(CancellationException("Outdated, a refresh was replaced by a newer one (${request.clientId})"))
             }
           }
 
@@ -342,12 +315,9 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   @TestOnly fun getTotalRequestsInQueueForTest() = requestsLock.withLock { allPendingRequests.size }
 
   companion object {
-    private val coroutineScope by lazy {
-      AndroidPluginDisposable.getApplicationInstance().createCoroutineScope()
-    }
+    private val coroutineScope by lazy { AndroidPluginDisposable.getApplicationInstance().createCoroutineScope() }
     private val managersByTopicLock = ReentrantLock()
-    @GuardedBy("managersByTopicLock")
-    private val managersByTopic = mutableMapOf<RenderingTopic, PreviewRefreshManager>()
+    @GuardedBy("managersByTopicLock") private val managersByTopic = mutableMapOf<RenderingTopic, PreviewRefreshManager>()
 
     fun getInstance(topic: RenderingTopic): PreviewRefreshManager {
       return managersByTopicLock.withLock {
@@ -356,8 +326,6 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
       }
     }
 
-    @TestOnly
-    fun getInstanceForTest(scope: CoroutineScope, topic: RenderingTopic) =
-      PreviewRefreshManager(scope, topic)
+    @TestOnly fun getInstanceForTest(scope: CoroutineScope, topic: RenderingTopic) = PreviewRefreshManager(scope, topic)
   }
 }

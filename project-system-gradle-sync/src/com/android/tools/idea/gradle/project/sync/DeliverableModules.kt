@@ -21,26 +21,22 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import java.io.Serializable
 import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
-import java.io.Serializable
 
 sealed interface GradleModelCollection {
   fun deliverModels(consumer: GradleModelConsumer)
 }
 
-class GradleProject(
-  private val buildModel: BuildModel,
-  private val ideLibraryTable: IdeUnresolvedLibraryTableImpl
-) : GradleModelCollection {
+class GradleProject(private val buildModel: BuildModel, private val ideLibraryTable: IdeUnresolvedLibraryTableImpl) :
+  GradleModelCollection {
 
   override fun deliverModels(consumer: GradleModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      ideLibraryTable.deliver()
-    }
+    with(ModelConsumer(consumer)) { ideLibraryTable.deliver() }
   }
 
   private inner class ModelConsumer(val buildModelConsumer: GradleModelConsumer) {
@@ -50,13 +46,11 @@ class GradleProject(
   }
 }
 
-/**
- * The final collection of models representing [gradleProject] prepared for consumption by the IDE.
- */
+/** The final collection of models representing [gradleProject] prepared for consumption by the IDE. */
 sealed class DeliverableGradleModule(
   val gradleProject: BasicGradleProject,
   val projectSyncIssues: List<IdeSyncIssue>,
-  val exceptions: List<Throwable>
+  val exceptions: List<Throwable>,
 ) : GradleModelCollection {
 
   final override fun deliverModels(consumer: GradleModelConsumer) {
@@ -88,18 +82,12 @@ class DeliverableAndroidModule(
   val nativeModule: IdeNativeModule?,
   val kotlinGradleModel: KotlinGradleModel?,
   val kaptGradleModel: KaptGradleModel?,
-  val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
+  val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?,
 ) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
 
-    val ideAndroidModels = IdeAndroidModels(
-      androidProject,
-      fetchedVariants,
-      selectedVariantName,
-      selectedAbiName,
-      nativeModule,
-      kaptGradleModel
-    )
+    val ideAndroidModels =
+      IdeAndroidModels(androidProject, fetchedVariants, selectedVariantName, selectedAbiName, nativeModule, kaptGradleModel)
     ideAndroidModels.deliver()
     kotlinGradleModel?.deliver()
     additionalClassifierArtifacts?.deliver()
@@ -111,7 +99,7 @@ class DeliverableJavaModule(
   projectSyncIssues: List<IdeSyncIssue>,
   exceptions: List<Throwable>,
   private val kotlinGradleModel: KotlinGradleModel?,
-  private val kaptGradleModel: KaptGradleModel?
+  private val kaptGradleModel: KaptGradleModel?,
 ) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
     kotlinGradleModel?.deliver()
@@ -119,18 +107,15 @@ class DeliverableJavaModule(
   }
 }
 
-class StandaloneDeliverableModel<T : Serializable>(
-  private val clazz: Class<*>,
-  private val model: T,
-  private val modelFor: BuildModel
-  ) : GradleModelCollection {
+class StandaloneDeliverableModel<T : Serializable>(private val clazz: Class<*>, private val model: T, private val modelFor: BuildModel) :
+  GradleModelCollection {
 
   override fun deliverModels(consumer: GradleModelConsumer) {
     consumer.consumeBuildModel(modelFor, model, clazz)
   }
 
   companion object {
-    inline fun <reified T: Serializable> createModel(model: T, modelFor: BuildModel): StandaloneDeliverableModel<T> {
+    inline fun <reified T : Serializable> createModel(model: T, modelFor: BuildModel): StandaloneDeliverableModel<T> {
       return StandaloneDeliverableModel(T::class.java, model, modelFor)
     }
   }

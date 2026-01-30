@@ -16,23 +16,28 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.google.common.truth.Truth
+import java.io.IOException
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
-import java.io.IOException
 
 class AarDependencyCompatibilityIssueCheckerTest {
   private val MODULE_COMPILED_AGAINST_PATTERN = """<module> is currently compiled against <currentCompileSdk>."""
-  private val COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN = """Recommended action: Update this project to use a newer compileSdk of at least <minCompileSdk>, for example <minCompileSdk>."""
-  private val DEPENDENCY_PATTERN = """Dependency '<dependency>' requires libraries and applications that depend on it to compile against version <minCompileSdk> or later of the Android APIs."""
-  private val COMPILE_SDK_ISSUE_PATTERN = """$DEPENDENCY_PATTERN $MODULE_COMPILED_AGAINST_PATTERN $COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN"""
-  private val UPDATE_LINK = "<a href=\"update.modules.minCompileSdk\">Update minCompileSdk in modules with dependencies that require a higher minCompileSdk.</a>"
+  private val COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN =
+    """Recommended action: Update this project to use a newer compileSdk of at least <minCompileSdk>, for example <minCompileSdk>."""
+  private val DEPENDENCY_PATTERN =
+    """Dependency '<dependency>' requires libraries and applications that depend on it to compile against version <minCompileSdk> or later of the Android APIs."""
+  private val COMPILE_SDK_ISSUE_PATTERN =
+    """$DEPENDENCY_PATTERN $MODULE_COMPILED_AGAINST_PATTERN $COMPILE_SDK_UPDATE_RECOMMENDED_ACTION_PATTERN"""
+  private val UPDATE_LINK =
+    "<a href=\"update.modules.minCompileSdk\">Update minCompileSdk in modules with dependencies that require a higher minCompileSdk.</a>"
 
   private val issueChecker = AarDependencyCompatibilityIssueChecker()
 
   @Test
   fun testAarDependencyCompatibilityIssueCheckerIsKnown() {
-    Truth.assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(AarDependencyCompatibilityIssueChecker::class.java)).isNotEmpty()
+    Truth.assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(AarDependencyCompatibilityIssueChecker::class.java))
+      .isNotEmpty()
   }
 
   @Test
@@ -103,11 +108,9 @@ class AarDependencyCompatibilityIssueCheckerTest {
     Truth.assertThat(modulesWithMinCompileSdk[":app1"]).isEqualTo(33)
   }
 
-
   private fun getRootMessage(moduleName: String, currentCompileSdk: String, minCompileSdk: String, dependency: String) =
-   COMPILE_SDK_ISSUE_PATTERN
-    .replace("<module>", moduleName)
-    .replace("<currentCompileSdk>", currentCompileSdk)
-    .replace("<minCompileSdk>", minCompileSdk)
-    .replace("<dependency>", dependency)
+    COMPILE_SDK_ISSUE_PATTERN.replace("<module>", moduleName)
+      .replace("<currentCompileSdk>", currentCompileSdk)
+      .replace("<minCompileSdk>", minCompileSdk)
+      .replace("<dependency>", dependency)
 }

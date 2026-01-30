@@ -20,17 +20,18 @@ import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 
-/**
- * [PairedBraceMatcher] for AGSL. Makes the IDE insert the matching parenthesis or brace when typing.
- */
+/** [PairedBraceMatcher] for AGSL. Makes the IDE insert the matching parenthesis or brace when typing. */
 class AgslPairMatcher : PairedBraceMatcher {
   override fun getPairs(): Array<BracePair> = parenPair
+
   override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?): Boolean = true
+
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
-private val parenPair = arrayOf(
-  BracePair(AgslTokenTypes.LEFT_PAREN, AgslTokenTypes.RIGHT_PAREN, true),
-  BracePair(AgslTokenTypes.LEFT_BRACE, AgslTokenTypes.RIGHT_BRACE, true),
-  BracePair(AgslTokenTypes.LEFT_BRACKET, AgslTokenTypes.RIGHT_BRACKET, true)
-)
+private val parenPair =
+  arrayOf(
+    BracePair(AgslTokenTypes.LEFT_PAREN, AgslTokenTypes.RIGHT_PAREN, true),
+    BracePair(AgslTokenTypes.LEFT_BRACE, AgslTokenTypes.RIGHT_BRACE, true),
+    BracePair(AgslTokenTypes.LEFT_BRACKET, AgslTokenTypes.RIGHT_BRACKET, true),
+  )

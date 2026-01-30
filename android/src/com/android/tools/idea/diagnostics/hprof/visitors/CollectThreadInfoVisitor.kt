@@ -20,8 +20,10 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectThreadInfoVisitor(private val threadsMap: Long2ObjectOpenHashMap<ThreadInfo>,
-                               private val stringIdMap: Long2ObjectOpenHashMap<String>) : HProfVisitor() {
+class CollectThreadInfoVisitor(
+  private val threadsMap: Long2ObjectOpenHashMap<ThreadInfo>,
+  private val stringIdMap: Long2ObjectOpenHashMap<String>,
+) : HProfVisitor() {
 
   private val stackFrameIdToStringMap = Long2ObjectOpenHashMap<String>()
   private val classSerialNumberToNameMap = Long2ObjectOpenHashMap<String>()
@@ -37,37 +39,40 @@ class CollectThreadInfoVisitor(private val threadsMap: Long2ObjectOpenHashMap<Th
     classSerialNumberToNameMap.put(classSerialNumber, stringIdMap[classNameStringId].replace("/", "."))
   }
 
-  override fun visitStackFrame(stackFrameId: Long,
-                               methodNameStringId: Long,
-                               methodSignatureStringId: Long,
-                               sourceFilenameStringId: Long,
-                               classSerialNumber: Long,
-                               lineNumber: Int) {
-    stackFrameIdToStringMap.put(stackFrameId, getStackFrameString(methodNameStringId, sourceFilenameStringId,
-                                                                  classSerialNumber, lineNumber))
+  override fun visitStackFrame(
+    stackFrameId: Long,
+    methodNameStringId: Long,
+    methodSignatureStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Long,
+    lineNumber: Int,
+  ) {
+    stackFrameIdToStringMap.put(
+      stackFrameId,
+      getStackFrameString(methodNameStringId, sourceFilenameStringId, classSerialNumber, lineNumber),
+    )
   }
 
-  private fun getStackFrameString(methodNameStringId: Long,
-                                  sourceFilenameStringId: Long,
-                                  classSerialNumber: Long,
-                                  lineNumber: Int): String = buildString {
+  private fun getStackFrameString(
+    methodNameStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Long,
+    lineNumber: Int,
+  ): String = buildString {
     if (classSerialNumber != 0L) {
       append(classSerialNumberToNameMap[classSerialNumber])
       append(".")
       if (methodNameStringId != 0L) {
         append(stringIdMap[methodNameStringId])
-      }
-      else {
+      } else {
         append("<unknown method>")
       }
-    }
-    else {
+    } else {
       append("<unknown location>")
     }
     if (lineNumber == -1) {
       append("(Native method)")
-    }
-    else if (sourceFilenameStringId != 0L) {
+    } else if (sourceFilenameStringId != 0L) {
       append("(${stringIdMap[sourceFilenameStringId]}")
       if (lineNumber > 0) {
         append(":$lineNumber")

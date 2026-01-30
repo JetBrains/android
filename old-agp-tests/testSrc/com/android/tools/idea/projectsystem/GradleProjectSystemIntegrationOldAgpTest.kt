@@ -38,7 +38,7 @@ class GradleProjectSystemOldAgpIntegrationTest : GradleProjectSystemIntegrationT
         .filter { it.agpVersion >= AGP_42 }
         .filter {
           it.agpVersion.modelVersion == ModelVersion.V2 && (it as TestDefinition).modelsV2 ||
-          it.agpVersion.modelVersion == ModelVersion.V1 && (it as TestDefinition).modelsV2.not()
+            it.agpVersion.modelVersion == ModelVersion.V1 && (it as TestDefinition).modelsV2.not()
         }
         .map { listOf(it).toTypedArray() }
     }

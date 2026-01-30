@@ -22,26 +22,25 @@ import com.android.tools.idea.gradle.structure.model.getHyperlinkDestination
 import com.android.tools.idea.gradle.structure.model.parents
 import com.intellij.openapi.util.text.StringUtil
 
-class DependencyViewIssueRenderer(
-  private val context: PsContext,
-  private val renderDescription: Boolean
-) : IssueRenderer {
+class DependencyViewIssueRenderer(private val context: PsContext, private val renderDescription: Boolean) : IssueRenderer {
 
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
-    (issue.path.parents + issue.path).asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
-      val parentPathHref = parentPath.getHyperlinkDestination(context)
-      if (parentPathHref != null) {
-        val parentPathText = parentPath.toString().makeTextWrappable()
-        buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
+    (issue.path.parents + issue.path)
+      .asReversed()
+      .takeWhile { it != scope }
+      .asReversed()
+      .forEach { parentPath ->
+        val parentPathHref = parentPath.getHyperlinkDestination(context)
+        if (parentPathHref != null) {
+          val parentPathText = parentPath.toString().makeTextWrappable()
+          buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
+        }
       }
-    }
     buffer.append(issue.text)
     if (issue.quickFixes.isNotEmpty()) {
       buffer.append("<br/>")
     }
-    issue.quickFixes.forEach { quickFix ->
-      buffer.append(" <a href='${quickFix.getHyperlinkDestination()}'>[${quickFix.text}]</a>")
-    }
+    issue.quickFixes.forEach { quickFix -> buffer.append(" <a href='${quickFix.getHyperlinkDestination()}'>[${quickFix.text}]</a>") }
     if (renderDescription) {
       val description = issue.description
       if (StringUtil.isNotEmpty(description)) {

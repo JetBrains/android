@@ -27,14 +27,10 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 
 /**
- * Utility method that waits for the [StateFlow] to turn the [condition] to true or fails with the
- * given message after the [timeout] has expired.
+ * Utility method that waits for the [StateFlow] to turn the [condition] to true or fails with the given message after the [timeout] has
+ * expired.
  */
-suspend fun <T> StateFlow<T>.awaitStatus(
-  message: String? = null,
-  timeout: Duration,
-  condition: (T) -> Boolean,
-) {
+suspend fun <T> StateFlow<T>.awaitStatus(message: String? = null, timeout: Duration, condition: (T) -> Boolean) {
   try {
     withTimeout(timeout) { filter { condition(it) }.first() }
   } catch (e: TimeoutCancellationException) {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.TestResources
@@ -41,17 +40,16 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertFailsWith
-
 
 @Ignore("FakeAdbTestRule hangs")
 class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
@@ -64,18 +62,22 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
   // Expected am commands
   private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
-  private val setComplicationSlot1 = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
-                                     " --ecn component 'com.example.app/com.example.app.Component'" +
-                                     " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
-                                     " --ei slot 1 --ei type 3"
-  private val setComplicationSlot3 = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
-                                     " --ecn component 'com.example.app/com.example.app.Component'" +
-                                     " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
-                                     " --ei slot 3 --ei type 5"
+  private val setComplicationSlot1 =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+      " --ecn component 'com.example.app/com.example.app.Component'" +
+      " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
+      " --ei slot 1 --ei type 3"
+  private val setComplicationSlot3 =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
+      " --ecn component 'com.example.app/com.example.app.Component'" +
+      " --ecn watchface 'com.example.watchface/com.example.watchface.MyWatchFace'" +
+      " --ei slot 3 --ei type 5"
   private val showWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
   private val setDebugAppAm = "set-debug-app -w 'com.example.app'"
-  private val setDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
-  private val unsetComplication = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
+  private val setDebugAppBroadcast =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
+  private val unsetComplication =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component"
   private val unsetWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
   private val clearDebugAppAm = "clear-debug-app"
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
@@ -84,11 +86,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
   @Test
   fun test() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings,
-                                   project)
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
@@ -99,9 +101,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"2\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"2\""
+          )
         setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
@@ -111,34 +115,37 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
-                                 activitiesName = emptyList())
+    val watchFaceApp =
+      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = ComplicationLaunchOptions().apply {
-        watchFaceInfo = TestWatchFaceInfo
-        componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
-        chosenSlots = listOf(
-          AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
-          AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
-        )
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          ComplicationLaunchOptions().apply {
+            watchFaceInfo = TestWatchFaceInfo
+            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+            chosenSlots =
+              listOf(
+                AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
+                AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE),
+              )
+          }
       }
-    }
 
     // Mock installation that returns app.
-    val appInstaller = TestApplicationInstaller(
-      hashMapOf(
-        Pair(appId, app),
-        Pair(TestWatchFaceInfo.appId, watchFaceApp)
+    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
+    val executor =
+      Mockito.spy(
+        AndroidComplicationConfigurationExecutor(
+          env,
+          FakeAndroidDevice.forDevices(listOf(device)),
+          settings,
+          TestApksProvider(appId),
+          TestApplicationProjectContext(appId),
+          appInstaller,
+        )
       )
-    )
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
-        TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
-      )
-    )
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -167,18 +174,20 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
-      .contains("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
-                "affect debugging. To avoid this, please update the Wear OS companion app on your device to the latest version.")
+      .contains(
+        "Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
+          "affect debugging. To avoid this, please update the Wear OS companion app on your device to the latest version."
+      )
   }
 
   @Test
   fun testDebug() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     // Use DefaultDebugExecutor executor.
-    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, configSettings,
-                                   project)
+    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, configSettings, project)
 
     // When Complications are launched for debugging `AndroidComplicationConfigurationExecutor` first starts
     // and immediately stops a Complication in RUN mode.
@@ -195,9 +204,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"2\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"2\""
+          )
         setDebugAppBroadcast -> {
           shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"Set debug app to $appId\"")
         }
@@ -223,33 +234,36 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
-                                 activitiesName = emptyList())
+    val watchFaceApp =
+      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = ComplicationLaunchOptions().apply {
-        watchFaceInfo = TestWatchFaceInfo
-        componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
-        chosenSlots = listOf(
-          AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
-          AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
-        )
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          ComplicationLaunchOptions().apply {
+            watchFaceInfo = TestWatchFaceInfo
+            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+            chosenSlots =
+              listOf(
+                AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
+                AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE),
+              )
+          }
       }
-    }
 
-    val appInstaller = TestApplicationInstaller(
-      hashMapOf(
-        Pair(appId, app),
-        Pair(TestWatchFaceInfo.appId, watchFaceApp)
+    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
+    val executor =
+      Mockito.spy(
+        AndroidComplicationConfigurationExecutor(
+          env,
+          FakeAndroidDevice.forDevices(listOf(device)),
+          settings,
+          TestApksProvider(appId),
+          TestApplicationProjectContext(appId),
+          appInstaller,
+        )
       )
-    )
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
-        TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
-      )
-    )
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -263,7 +277,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     // Check version
     assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
-    //Run and stop one complication
+    // Run and stop one complication
     run {
       // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
       assertThat(receivedAmCommands[1]).isEqualTo(setComplicationSlot1)
@@ -295,8 +309,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
   @Test
   fun testWatchFaceWarning() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project)
 
@@ -309,9 +324,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"2\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"2\""
+          )
         setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         // Unsuccessful show watchface case.
@@ -322,30 +339,32 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
-                                 activitiesName = emptyList())
+    val watchFaceApp =
+      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = ComplicationLaunchOptions().apply {
-        watchFaceInfo = TestWatchFaceInfo
-        componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
-        chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          ComplicationLaunchOptions().apply {
+            watchFaceInfo = TestWatchFaceInfo
+            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+            chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+          }
       }
-    }
 
-    val appInstaller = TestApplicationInstaller(
-      hashMapOf(
-        Pair(appId, app),
-        Pair(TestWatchFaceInfo.appId, watchFaceApp)
+    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
+    val executor =
+      Mockito.spy(
+        AndroidComplicationConfigurationExecutor(
+          env,
+          FakeAndroidDevice.forDevices(listOf(device)),
+          settings,
+          TestApksProvider(appId),
+          TestApplicationProjectContext(appId),
+          appInstaller,
+        )
       )
-    )
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
-        TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
-      )
-    )
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -363,14 +382,14 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
-    assertThat(consoleOutput)
-      .contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
+    assertThat(consoleOutput).contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
   }
 
   @Test
   fun testComponentActivationException() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
     val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project))
     val failedResponse = "Component not found."
@@ -384,9 +403,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
         // Unsuccessful result
         setComplicationSlot1 -> shellCommandOutput.writeStdout(failedResponse)
       }
@@ -394,30 +415,33 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = ComplicationLaunchOptions().apply {
-        watchFaceInfo = TestWatchFaceInfo
-        componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
-        chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          ComplicationLaunchOptions().apply {
+            watchFaceInfo = TestWatchFaceInfo
+            componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
+            chosenSlots = listOf(AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT))
+          }
       }
-    }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
-                                 activitiesName = emptyList())
-    val appInstaller = TestApplicationInstaller(
-      hashMapOf(
-        Pair(appId, app),
-        Pair(TestWatchFaceInfo.appId, watchFaceApp)
-      ))
+    val watchFaceApp =
+      createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName), activitiesName = emptyList())
+    val appInstaller = TestApplicationInstaller(hashMapOf(Pair(appId, app), Pair(TestWatchFaceInfo.appId, watchFaceApp)))
 
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(
-        env, FakeAndroidDevice.forDevices(listOf(device)), settings,
-        TestApksProvider(appId), TestApplicationProjectContext(appId), appInstaller
+    val executor =
+      Mockito.spy(
+        AndroidComplicationConfigurationExecutor(
+          env,
+          FakeAndroidDevice.forDevices(listOf(device)),
+          settings,
+          TestApksProvider(appId),
+          TestApplicationProjectContext(appId),
+          appInstaller,
+        )
       )
-    )
     doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
     doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -428,9 +452,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
   @Test
   fun testGetComplicationSourceTypes() {
-    val types = getComplicationSourceTypes(
-      listOf(ApkInfo(TestResources.getFile("/WearableTestApk.apk"), "com.example.android.wearable.watchface")),
-      "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
+    val types =
+      getComplicationSourceTypes(
+        listOf(ApkInfo(TestResources.getFile("/WearableTestApk.apk"), "com.example.android.wearable.watchface")),
+        "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService",
+      )
     assertThat(types).isEqualTo(listOf("SHORT_TEXT", "LONG_TEXT"))
   }
 }

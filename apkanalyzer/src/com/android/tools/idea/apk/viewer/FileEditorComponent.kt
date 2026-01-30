@@ -20,12 +20,8 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * A [ApkFileEditorComponent] that wraps a [FileEditor]
- */
-internal class FileEditorComponent(
-  @VisibleForTesting val editor: FileEditor,
-) : ApkFileEditorComponent {
+/** A [ApkFileEditorComponent] that wraps a [FileEditor] */
+internal class FileEditorComponent(@VisibleForTesting val editor: FileEditor) : ApkFileEditorComponent {
   override fun getComponent() = editor.component
 
   override fun dispose() {

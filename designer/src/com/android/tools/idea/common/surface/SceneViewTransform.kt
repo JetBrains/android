@@ -24,9 +24,8 @@ import com.android.tools.idea.common.scene.SceneContext
 /**
  * The [SceneContext] based on a [SceneView].
  *
- * TODO: b/140160277 For historical reason we put the Coordinate translation in [SceneContext]
- *   instead of using [SceneView] directly. Maybe we can remove [SceneContext] and just use
- *   [SceneView] only.
+ * TODO: b/140160277 For historical reason we put the Coordinate translation in [SceneContext] instead of using [SceneView] directly. Maybe
+ *   we can remove [SceneContext] and just use [SceneView] only.
  */
 class SceneViewTransform(private val sceneView: SceneView) : SceneContext() {
   override fun getColorSet() = sceneView.colorSet
@@ -36,29 +35,22 @@ class SceneViewTransform(private val sceneView: SceneView) : SceneContext() {
   override fun getScale() = sceneView.scale
 
   @SwingCoordinate
-  override fun getSwingXDip(@AndroidDpCoordinate x: Float) =
-    Coordinates.getSwingX(sceneView, Coordinates.dpToPx(sceneView, x))
+  override fun getSwingXDip(@AndroidDpCoordinate x: Float) = Coordinates.getSwingX(sceneView, Coordinates.dpToPx(sceneView, x))
 
   @SwingCoordinate
-  override fun getSwingYDip(@AndroidDpCoordinate y: Float) =
-    Coordinates.getSwingY(sceneView, Coordinates.dpToPx(sceneView, y))
+  override fun getSwingYDip(@AndroidDpCoordinate y: Float) = Coordinates.getSwingY(sceneView, Coordinates.dpToPx(sceneView, y))
 
-  @SwingCoordinate
-  override fun getSwingX(@AndroidCoordinate x: Int) = Coordinates.getSwingX(sceneView, x)
+  @SwingCoordinate override fun getSwingX(@AndroidCoordinate x: Int) = Coordinates.getSwingX(sceneView, x)
 
-  @SwingCoordinate
-  override fun getSwingY(@AndroidCoordinate y: Int) = Coordinates.getSwingY(sceneView, y)
+  @SwingCoordinate override fun getSwingY(@AndroidCoordinate y: Int) = Coordinates.getSwingY(sceneView, y)
 
-  @AndroidDpCoordinate
-  override fun pxToDp(@AndroidCoordinate px: Int) = Coordinates.pxToDp(sceneView, px).toFloat()
+  @AndroidDpCoordinate override fun pxToDp(@AndroidCoordinate px: Int) = Coordinates.pxToDp(sceneView, px).toFloat()
 
   @SwingCoordinate
   override fun getSwingDimensionDip(@AndroidDpCoordinate dim: Float) =
     Coordinates.getSwingDimension(sceneView, Coordinates.dpToPx(sceneView, dim))
 
-  @SwingCoordinate
-  override fun getSwingDimension(@AndroidCoordinate dim: Int) =
-    Coordinates.getSwingDimension(sceneView, dim)
+  @SwingCoordinate override fun getSwingDimension(@AndroidCoordinate dim: Int) = Coordinates.getSwingDimension(sceneView, dim)
 
   override fun repaint() {
     surface.needsRepaint()

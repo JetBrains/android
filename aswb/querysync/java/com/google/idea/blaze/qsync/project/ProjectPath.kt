@@ -21,20 +21,24 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import org.jetbrains.annotations.TestOnly
 
-/** A path to a project artifact, either in the workspace or the project directory.  */
-sealed interface ProjectPath: ProjectProtoModel {
+/** A path to a project artifact, either in the workspace or the project directory. */
+sealed interface ProjectPath : ProjectProtoModel {
   val innerPath: Path
-  fun resolveChild(child: Path): ProjectPath
-  fun withInnerJarPath(innerPath: Path): ProjectPath
-  @TestOnly
-  fun getTestValue(): String
 
-  sealed interface SourceCodeRepositoryRelativeProjectPath: ProjectPath
+  fun resolveChild(child: Path): ProjectPath
+
+  fun withInnerJarPath(innerPath: Path): ProjectPath
+
+  @TestOnly fun getTestValue(): String
+
+  sealed interface SourceCodeRepositoryRelativeProjectPath : ProjectPath
 
   @JvmRecord
-  data class WorkspaceRelativeProjectPath(val relativePath: Path, override val innerPath: Path): SourceCodeRepositoryRelativeProjectPath {
+  data class WorkspaceRelativeProjectPath(val relativePath: Path, override val innerPath: Path) : SourceCodeRepositoryRelativeProjectPath {
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
+
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
+
     override fun getTestValue(): String = testValue(relativePath, innerPath)
   }
 
@@ -43,29 +47,35 @@ sealed interface ProjectPath: ProjectProtoModel {
     val externalRepositoryName: String,
     val relativePath: Path,
     override val innerPath: Path,
-  ): SourceCodeRepositoryRelativeProjectPath {
+  ) : SourceCodeRepositoryRelativeProjectPath {
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
+
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
+
     override fun getTestValue(): String = testValue(relativePath, innerPath)
   }
 
   @JvmRecord
-  data class ProjectRelativeProjectPath(val relativePath: Path, override val innerPath: Path): ProjectPath{
+  data class ProjectRelativeProjectPath(val relativePath: Path, override val innerPath: Path) : ProjectPath {
     override fun resolveChild(child: Path) = copy(relativePath = relativePath.resolve(child))
+
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
+
     override fun getTestValue(): String = testValue(relativePath, innerPath)
   }
 
   @JvmRecord
-  data class AbsoluteProjectPath(val absolutePath: Path, override val innerPath: Path): ProjectPath{
+  data class AbsoluteProjectPath(val absolutePath: Path, override val innerPath: Path) : ProjectPath {
     override fun resolveChild(child: Path) = copy(absolutePath = absolutePath.resolve(child))
+
     override fun withInnerJarPath(innerPath: Path) = copy(innerPath = innerPath)
+
     override fun getTestValue(): String = testValue(absolutePath, innerPath)
   }
 
   class Resolver(val workspaceRoot: Path, val projectRoot: Path, val projectExternalRepositoriesRoot: Path) {
     fun resolve(projectPath: ProjectPath): Path {
-      return when(projectPath) {
+      return when (projectPath) {
         is WorkspaceRelativeProjectPath -> workspaceRoot.resolve(projectPath.relativePath).normalize()
         is ExternalRepositoryRelativeProjectPath ->
           projectExternalRepositoriesRoot.resolve(projectPath.externalRepositoryName).resolve(projectPath.relativePath).normalize()
@@ -80,7 +90,7 @@ sealed interface ProjectPath: ProjectProtoModel {
         Resolver(
           workspaceRoot = workspaceRoot,
           projectRoot = projectRoot,
-          projectExternalRepositoriesRoot = projectExternalRepositoriesRoot
+          projectExternalRepositoriesRoot = projectExternalRepositoriesRoot,
         )
     }
   }
@@ -88,35 +98,30 @@ sealed interface ProjectPath: ProjectProtoModel {
   interface ExternalRepositoryFinder {
     fun find(name: String): Path?
 
-    companion object{
-      private val known: MutableMap<Path, Boolean> = ConcurrentHashMap();
+    companion object {
+      private val known: MutableMap<Path, Boolean> = ConcurrentHashMap()
+
       @JvmStatic
       fun createAndPrepare(workspaceRoot: Path): ExternalRepositoryFinder {
-        val outputBase = runCatching {
-          // External repositories are supported by Bazel only.
-          // See https://bazel.build/remote/output-directories: bazel-out is a symlink to $output_base/execroot/_main/bazel_out
-          val bazelOut = workspaceRoot.resolve("bazel-out")
-          if (Files.exists(bazelOut))
-            bazelOut.toRealPath().resolve("../../..").toRealPath()
-          else
-            workspaceRoot
-        }.getOrDefault(workspaceRoot)
+        val outputBase =
+          runCatching {
+              // External repositories are supported by Bazel only.
+              // See https://bazel.build/remote/output-directories: bazel-out is a symlink to $output_base/execroot/_main/bazel_out
+              val bazelOut = workspaceRoot.resolve("bazel-out")
+              if (Files.exists(bazelOut)) bazelOut.toRealPath().resolve("../../..").toRealPath() else workspaceRoot
+            }
+            .getOrDefault(workspaceRoot)
 
-        return object: ExternalRepositoryFinder{
+        return object : ExternalRepositoryFinder {
           override fun find(name: String): Path? {
-            return outputBase
-              .resolve("external")
-              .resolve(name)
-              .takeIf { path ->
-                known.computeIfAbsent(path) {
-                  Files.exists(it) &&
+            return outputBase.resolve("external").resolve(name).takeIf { path ->
+              known.computeIfAbsent(path) {
+                Files.exists(it) &&
                   !(
-                    // Paths pointing into the <workspace>/external itself do not need to be redirected through `.external` dir.
-                    Files.isSymbolicLink(path) &&
-                    Files.readSymbolicLink(path) == workspaceRoot.resolve("external").resolve(name)
-                   )
-                }
+                  // Paths pointing into the <workspace>/external itself do not need to be redirected through `.external` dir.
+                  Files.isSymbolicLink(path) && Files.readSymbolicLink(path) == workspaceRoot.resolve("external").resolve(name))
               }
+            }
           }
         }
       }
@@ -124,7 +129,7 @@ sealed interface ProjectPath: ProjectProtoModel {
       @JvmStatic
       @TestOnly
       fun createEmptyForTests(): ExternalRepositoryFinder {
-        return object: ExternalRepositoryFinder {
+        return object : ExternalRepositoryFinder {
           override fun find(name: String): Path? = null
         }
       }
@@ -132,7 +137,7 @@ sealed interface ProjectPath: ProjectProtoModel {
       @JvmStatic
       @TestOnly
       fun createFailingForTests(): ExternalRepositoryFinder {
-        return object: ExternalRepositoryFinder {
+        return object : ExternalRepositoryFinder {
           override fun find(name: String): Path = error("Unexpected in this test. name = $name")
         }
       }
@@ -162,7 +167,7 @@ sealed interface ProjectPath: ProjectProtoModel {
 
     @JvmStatic
     fun projectRelative(relativePath: Path): ProjectRelativeProjectPath {
-        return ProjectRelativeProjectPath(relativePath = relativePath, innerPath = Path.of(""))
+      return ProjectRelativeProjectPath(relativePath = relativePath, innerPath = Path.of(""))
     }
 
     @JvmStatic

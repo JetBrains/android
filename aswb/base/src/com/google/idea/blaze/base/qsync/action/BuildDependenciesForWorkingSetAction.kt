@@ -27,10 +27,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.asDeferred
 
-/**
- * Action to build dependencies and enable analysis for the working set and it's reverse
- * dependencies
- */
+/** Action to build dependencies and enable analysis for the working set and it's reverse dependencies */
 class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
@@ -45,21 +42,21 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
     if (!helper.canEnableAnalysisNow()) {
       return
     }
-    val workingSet = try {
-      helper.workingSet
-    } catch (be: BuildException) {
-      logger.error("Error obtaining working set", be)
-      notifyFailureWorkingSet(project, be)
-      return
-    }
+    val workingSet =
+      try {
+        helper.workingSet
+      } catch (be: BuildException) {
+        logger.error("Error obtaining working set", be)
+        notifyFailureWorkingSet(project, be)
+        return
+      }
     if (workingSet.isEmpty()) {
       logger.error("Empty working set")
       notifyEmptyWorkingSet(project)
       return
     }
 
-    val querySyncActionStats =
-      QuerySyncActionStatsScope.createForPaths(project, javaClass, e, ImmutableSet.copyOf(workingSet))
+    val querySyncActionStats = QuerySyncActionStatsScope.createForPaths(project, javaClass, e, ImmutableSet.copyOf(workingSet))
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = workingSet,
@@ -75,18 +72,12 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
 
   private fun notifyFailureWorkingSet(project: Project, e: Throwable) {
     QuerySyncManager.getInstance(project)
-      .notifyError(
-        "Could not obtain working set",
-        "Encountered error when trying to get working set: ${e.message}"
-      )
+      .notifyError("Could not obtain working set", "Encountered error when trying to get working set: ${e.message}")
   }
 
   private fun notifyEmptyWorkingSet(project: Project) {
     QuerySyncManager.getInstance(project)
-      .notifyWarning(
-        "Nothing to build",
-        "If you have edited project files recently, please re-sync and try again."
-      )
+      .notifyWarning("Nothing to build", "If you have edited project files recently, please re-sync and try again.")
   }
 
   companion object {

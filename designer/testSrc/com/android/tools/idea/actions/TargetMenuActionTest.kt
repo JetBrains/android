@@ -73,21 +73,13 @@ class TargetMenuActionTest : AndroidTestCase() {
 
     val children = menuAction.getChildren(null)
     run {
-      val target =
-        children
-          .filterIsInstance<SetTargetAction>()
-          .map { it.myTarget }
-          .single { it.version.androidApiLevel.majorVersion == 33 }
+      val target = children.filterIsInstance<SetTargetAction>().map { it.myTarget }.single { it.version.androidApiLevel.majorVersion == 33 }
 
       assertThat(target.revision).isEqualTo(2)
     }
 
     run {
-      val target =
-        children
-          .filterIsInstance<SetTargetAction>()
-          .map { it.myTarget }
-          .single { it.version.androidApiLevel.majorVersion == 32 }
+      val target = children.filterIsInstance<SetTargetAction>().map { it.myTarget }.single { it.version.androidApiLevel.majorVersion == 32 }
 
       assertThat(target.version.androidApiLevel.minorVersion).isEqualTo(1)
     }
@@ -158,9 +150,7 @@ class TargetMenuActionTest : AndroidTestCase() {
   }
 
   fun testUpdateApiLevels() {
-    val file = runInEdtAndGet {
-      myFixture.addFileToProject("res/layout/layout.xml", "<LinearLayout/>")
-    }
+    val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "<LinearLayout/>") }
     val manager = createSpiedConfigurationManager()
     val config = spy(ConfigurationForFile(file.virtualFile, manager, FolderConfiguration()))
     val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))

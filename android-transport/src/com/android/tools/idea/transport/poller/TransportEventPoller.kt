@@ -28,20 +28,18 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 /**
- * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement
- * to listen for updates and Events coming in from the pipeline
+ * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement to listen for updates and
+ * Events coming in from the pipeline
  */
 class TransportEventPoller(
   private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
-  private val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp)
+  private val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
 ) {
   private val writeLock = Object()
   private val eventListeners: MutableList<TransportEventListener> = CopyOnWriteArrayList() // Used to preserve insertion order
   private val listenersToLastTimestamp = ConcurrentHashMap<TransportEventListener, Long>()
 
-  /**
-   * Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order.
-   */
+  /** Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order. */
   fun registerListener(listener: TransportEventListener) {
     synchronized(writeLock) {
       eventListeners.add(listener)
@@ -49,9 +47,7 @@ class TransportEventPoller(
     }
   }
 
-  /**
-   * Removes a listener from the list, or do nothing if it is not in the list
-   */
+  /** Removes a listener from the list, or do nothing if it is not in the list */
   fun unregisterListener(listener: TransportEventListener) {
     synchronized(writeLock) {
       eventListeners.remove(listener)
@@ -65,14 +61,15 @@ class TransportEventPoller(
     // Poll for each listener
     for (eventListener in listeners) {
       // Use start/end time if available
-      val startTimestamp = max(listenersToLastTimestamp[eventListener] ?: Long.MIN_VALUE,
-                               eventListener.startTime?.invoke() ?: Long.MIN_VALUE)
+      val startTimestamp =
+        max(listenersToLastTimestamp[eventListener] ?: Long.MIN_VALUE, eventListener.startTime?.invoke() ?: Long.MIN_VALUE)
       val endTimestamp = eventListener.endTime()
 
-      val builder = Transport.GetEventGroupsRequest.newBuilder()
-        .setKind(eventListener.eventKind)
-        .setFromTimestamp(startTimestamp)
-        .setToTimestamp(endTimestamp)
+      val builder =
+        Transport.GetEventGroupsRequest.newBuilder()
+          .setKind(eventListener.eventKind)
+          .setFromTimestamp(startTimestamp)
+          .setToTimestamp(endTimestamp)
       eventListener.streamId?.invoke()?.let { builder.streamId = it }
       eventListener.processId?.invoke()?.let { builder.pid = it }
       eventListener.groupId?.invoke()?.let { builder.groupId = it }
@@ -82,13 +79,14 @@ class TransportEventPoller(
       // Order by timestamp
       val response = transportClient.getEventGroups(request)
       if (response != Transport.GetEventGroupsResponse.getDefaultInstance()) {
-        val filtered = response.groupsList
-          .flatMap { group -> group.eventsList }
-          .sortedWith(sortOrder)
-          .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
+        val filtered =
+          response.groupsList
+            .flatMap { group -> group.eventsList }
+            .sortedWith(sortOrder)
+            .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
         filtered.forEach { event ->
           eventListener.executor.execute {
-            if(eventListener.callback(event)) {
+            if (eventListener.callback(event)) {
               // Previous code collected the flag and unregistered once in the main thread,
               // but there was a concurrency bug if the main thread finishes before the listeners.
               // We unregister from here instead. Unregistering the same listener multiple times is harmless.
@@ -118,27 +116,28 @@ class TransportEventPoller(
       transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
       pollPeriodNs: Long,
       sortOrder: java.util.Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
-      executorServiceForTest: ScheduledExecutorService? = null): TransportEventPoller {
+      executorServiceForTest: ScheduledExecutorService? = null,
+    ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
       startPoller(poller, pollPeriodNs, executorServiceForTest)
       return poller
     }
 
     @JvmStatic
-    fun startPoller(
-      poller: TransportEventPoller,
-      pollPeriodNs: Long,
-      executorServiceForTest: ScheduledExecutorService? = null) {
-      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
-        {
-          try {
-            poller.poll()
-          }
-          catch (t: Throwable) {
-            Logger.getInstance(TransportEventPoller::class.java).warn(t.toString())
-          }
-        },
-        0, pollPeriodNs, TimeUnit.NANOSECONDS)
+    fun startPoller(poller: TransportEventPoller, pollPeriodNs: Long, executorServiceForTest: ScheduledExecutorService? = null) {
+      val scheduledFuture =
+        (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
+          {
+            try {
+              poller.poll()
+            } catch (t: Throwable) {
+              Logger.getInstance(TransportEventPoller::class.java).warn(t.toString())
+            }
+          },
+          0,
+          pollPeriodNs,
+          TimeUnit.NANOSECONDS,
+        )
       myScheduledFutures[poller] = scheduledFuture
     }
 

@@ -24,9 +24,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.testFramework.ApplicationRule
-import org.junit.Assert.fail
-import org.junit.Rule
-import org.junit.Test
 import java.nio.file.FileSystem
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -35,13 +32,13 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import org.junit.Assert.fail
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Test for [StudioProgressManagerAdapter] and [CancellableFileIo].
- */
+/** Test for [StudioProgressManagerAdapter] and [CancellableFileIo]. */
 class StudioProgressManagerAdapterTest {
-  @get:Rule
-  val rule = ApplicationRule()
+  @get:Rule val rule = ApplicationRule()
 
   private val fileSystemProvider = MockFileSystemProvider(createInMemoryFileSystem())
   private val fileSystem = fileSystemProvider.fileSystem
@@ -71,9 +68,7 @@ class StudioProgressManagerAdapterTest {
 
     val writeActionCompleted = CountDownLatch(1)
     // Start a write action asynchronously.
-    ApplicationManager.getApplication().invokeLater {
-      ApplicationManager.getApplication().runWriteAction(writeActionCompleted::countDown)
-    }
+    ApplicationManager.getApplication().invokeLater { ApplicationManager.getApplication().runWriteAction(writeActionCompleted::countDown) }
 
     // Wait until the write action is ready to run.
     while (!(ApplicationManager.getApplication() as ApplicationEx).isWriteActionPending && writeActionCompleted.count > 0) {

@@ -22,10 +22,7 @@ import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
 
-internal class TargetConfigurationNode(
-  configuration: Configuration,
-  uiSettings: PsUISettings
-) : AbstractPsNode(uiSettings){
+internal class TargetConfigurationNode(configuration: Configuration, uiSettings: PsUISettings) : AbstractPsNode(uiSettings) {
   init {
     myName = configuration.name
     icon = configuration.icon

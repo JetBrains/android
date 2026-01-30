@@ -34,8 +34,7 @@ class ChangeDispatcherTest {
       dispatcher.changed()
 
       assertThat(delivered, equalTo(2))
-    }
-    finally {
+    } finally {
       Disposer.dispose(disposable)
     }
   }
@@ -55,8 +54,7 @@ class ChangeDispatcherTest {
 
       assertThat(delivered1, equalTo(1))
       assertThat(delivered2, equalTo(1))
-    }
-    finally {
+    } finally {
       Disposer.dispose(disposable)
     }
   }
@@ -74,16 +72,14 @@ class ChangeDispatcherTest {
         dispatcher.add(disposable2) { delivered2++ }
 
         dispatcher.changed()
-      }
-      finally {
+      } finally {
         Disposer.dispose(disposable2)
       }
       dispatcher.changed()
 
       assertThat(delivered1, equalTo(2))
       assertThat(delivered2, equalTo(1))
-    }
-    finally {
+    } finally {
       Disposer.dispose(disposable1)
     }
   }

@@ -78,24 +78,14 @@ class AddDeeplinkDialogTest : NavTestCase() {
 
   fun testEmptyValidation() {
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
-    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
-      assertNotNull(dialog.doValidate())
-    }
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog -> assertNotNull(dialog.doValidate()) }
   }
 
   fun testInitWithExisting() {
     val model =
       model("nav.xml") {
         navigation {
-          fragment("fragment1") {
-            deeplink(
-              "deepLink",
-              "http://example.com",
-              autoVerify = true,
-              mimeType = "pdf",
-              action = "send",
-            )
-          }
+          fragment("fragment1") { deeplink("deepLink", "http://example.com", autoVerify = true, mimeType = "pdf", action = "send") }
         }
       }
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -145,10 +135,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         NavEditorEvent.newBuilder()
           .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
           .setPropertyInfo(
-            NavPropertyInfo.newBuilder()
-              .setWasEmpty(true)
-              .setProperty(property)
-              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG)
+            NavPropertyInfo.newBuilder().setWasEmpty(true).setProperty(property).setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG)
           )
           .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
           .build()
@@ -166,13 +153,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
     assertThat(ui.elements()).isEmpty()
     field.text = "www.android.com{"
     lookup.showLookup(field.text)
-    assertThat(ui.elements())
-      .containsExactly(
-        "www.android.com{",
-        "www.android.com{foo}",
-        "www.android.com{bar}",
-        "www.android.com{baz}",
-      )
+    assertThat(ui.elements()).containsExactly("www.android.com{", "www.android.com{foo}", "www.android.com{bar}", "www.android.com{baz}")
   }
 
   fun testFieldsHiddenIfNotExtended() {
@@ -182,11 +163,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
 
         override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = false
       }
-    ExtensionTestUtil.maskExtensions(
-      AddDeeplinkDialogToken.EP_NAME,
-      listOf(token),
-      myFixture.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AddDeeplinkDialogToken.EP_NAME, listOf(token), myFixture.testRootDisposable)
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertThat(dialog.myMimeTypeField.isVisible).isFalse()
@@ -197,11 +174,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testFieldsNotHiddenIfNoToken() {
-    ExtensionTestUtil.maskExtensions(
-      AddDeeplinkDialogToken.EP_NAME,
-      listOf(),
-      myFixture.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AddDeeplinkDialogToken.EP_NAME, listOf(), myFixture.testRootDisposable)
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertThat(dialog.myMimeTypeField.isVisible).isTrue()
@@ -218,11 +191,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
 
         override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = false
       }
-    ExtensionTestUtil.maskExtensions(
-      AddDeeplinkDialogToken.EP_NAME,
-      listOf(token),
-      myFixture.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AddDeeplinkDialogToken.EP_NAME, listOf(token), myFixture.testRootDisposable)
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertThat(dialog.myMimeTypeField.isVisible).isTrue()
@@ -239,11 +208,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
 
         override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = true
       }
-    ExtensionTestUtil.maskExtensions(
-      AddDeeplinkDialogToken.EP_NAME,
-      listOf(token),
-      myFixture.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AddDeeplinkDialogToken.EP_NAME, listOf(token), myFixture.testRootDisposable)
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
     AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
       assertThat(dialog.myMimeTypeField.isVisible).isTrue()

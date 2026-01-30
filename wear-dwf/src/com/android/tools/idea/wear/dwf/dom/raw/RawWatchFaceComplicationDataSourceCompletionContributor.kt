@@ -38,12 +38,11 @@ import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 
 /**
- * A [CompletionContributor] that adds complication data sources when completing the `resource`
- * attribute for `<Image>` tags that are under a `<Complication>` tag.
+ * A [CompletionContributor] that adds complication data sources when completing the `resource` attribute for `<Image>` tags that are under
+ * a `<Complication>` tag.
  *
  * @see COMPLICATION_DATA_SOURCES
- * @see <a href="https://developer.android.com/reference/wear-os/wff/group/part/image/image">WFF
- *   Image</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/group/part/image/image">WFF Image</a>
  */
 class RawWatchFaceComplicationDataSourceCompletionContributor : CompletionContributor() {
   init {
@@ -55,13 +54,8 @@ class RawWatchFaceComplicationDataSourceCompletionContributor : CompletionContri
   }
 }
 
-private class ComplicationDataSourceCompletionProvider :
-  CompletionProvider<CompletionParameters>() {
-  override fun addCompletions(
-    parameters: CompletionParameters,
-    context: ProcessingContext,
-    result: CompletionResultSet,
-  ) {
+private class ComplicationDataSourceCompletionProvider : CompletionProvider<CompletionParameters>() {
+  override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
     if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return
     val element = parameters.position.parent as? XmlAttributeValue ?: return
     val xmlFile = element.containingFile as? XmlFile ?: return
@@ -69,8 +63,7 @@ private class ComplicationDataSourceCompletionProvider :
     if (XmlAttributeValuePattern.getLocalName(element) != ATTR_RESOURCE) return
     if (element.parentOfType<XmlTag>()?.name != TAG_IMAGE) return
 
-    val isChildOfComplication =
-      element.parents(false).any { it is XmlTag && it.name == TAG_COMPLICATION }
+    val isChildOfComplication = element.parents(false).any { it is XmlTag && it.name == TAG_COMPLICATION }
     if (!isChildOfComplication) return
 
     for (complicationDataSource in COMPLICATION_DATA_SOURCES) {
@@ -80,19 +73,12 @@ private class ComplicationDataSourceCompletionProvider :
       // Instead, we use a lookup text without the `[`, `]` characters and insert the `[`, `]`
       // characters if needed
       result.addElement(
-        LookupElementBuilder.create(complicationDataSource)
-          .withPresentableText("[$complicationDataSource]")
-          .insertBracketsAroundIfNeeded()
+        LookupElementBuilder.create(complicationDataSource).withPresentableText("[$complicationDataSource]").insertBracketsAroundIfNeeded()
       )
     }
   }
 
   companion object {
-    val COMPLICATION_DATA_SOURCES =
-      arrayOf(
-        "COMPLICATION.MONOCHROMATIC_IMAGE",
-        "COMPLICATION.SMALL_IMAGE",
-        "COMPLICATION.PHOTO_IMAGE",
-      )
+    val COMPLICATION_DATA_SOURCES = arrayOf("COMPLICATION.MONOCHROMATIC_IMAGE", "COMPLICATION.SMALL_IMAGE", "COMPLICATION.PHOTO_IMAGE")
   }
 }

@@ -20,10 +20,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -35,6 +31,10 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.annotations.TestOnly
 
 private val CONNECT_TIMEOUT = 5.seconds
 private val READ_TIMEOUT = 2.minutes
@@ -43,25 +43,14 @@ private val READ_TIMEOUT = 2.minutes
 @Service(Service.Level.PROJECT)
 class UrlFileCache
 @TestOnly
-constructor(
-  coroutineScope: CoroutineScope,
-  ioDispatcher: CoroutineDispatcher,
-  timeSource: TimeSource,
-  clock: Clock,
-) : RemoteFileCache<UrlFileCache.UrlWithHeaders>(coroutineScope, ioDispatcher, timeSource, clock) {
-  constructor(
-    coroutineScope: CoroutineScope
-  ) : this(coroutineScope, Dispatchers.IO, TimeSource.Monotonic, Clock.System)
+constructor(coroutineScope: CoroutineScope, ioDispatcher: CoroutineDispatcher, timeSource: TimeSource, clock: Clock) :
+  RemoteFileCache<UrlFileCache.UrlWithHeaders>(coroutineScope, ioDispatcher, timeSource, clock) {
+  constructor(coroutineScope: CoroutineScope) : this(coroutineScope, Dispatchers.IO, TimeSource.Monotonic, Clock.System)
 
   private val lastModified = mutableMapOf<UrlWithHeaders, String>()
   private val eTags = mutableMapOf<UrlWithHeaders, String>()
 
-  override fun fetchAndFilterLocked(
-    existing: Path?,
-    identifier: UrlWithHeaders,
-    indicator: ProgressIndicator?,
-    start: TimeMark,
-  ): Path {
+  override fun fetchAndFilterLocked(existing: Path?, identifier: UrlWithHeaders, indicator: ProgressIndicator?, start: TimeMark): Path {
     val url = URL(identifier.url) // Will throw if it doesn't parse
     indicator?.text = "Downloading from ${url.host}"
     return HttpRequests.request(identifier.url)
@@ -82,11 +71,7 @@ constructor(
           }
           throw RemoteFileCacheException(
             FetchStats(start.elapsedNow(), success = false, notModified = true),
-            HttpRequests.HttpStatusException(
-              "Received NOT_MODIFIED (304) but nothing in the cache.",
-              304,
-              identifier.url,
-            ),
+            HttpRequests.HttpStatusException("Received NOT_MODIFIED (304) but nothing in the cache.", 304, identifier.url),
           )
         }
         val newFile = getNewWritablePath()
@@ -99,9 +84,7 @@ constructor(
         request.connection.getHeaderField("Last-Modified").let {
           if (it != null) lastModified[identifier] = it else lastModified.remove(identifier)
         }
-        request.connection.getHeaderField("ETag").let {
-          if (it != null) eTags[identifier] = it else eTags.remove(identifier)
-        }
+        request.connection.getHeaderField("ETag").let { if (it != null) eTags[identifier] = it else eTags.remove(identifier) }
         return@connect newFile
       }
   }

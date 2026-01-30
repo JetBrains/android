@@ -45,72 +45,77 @@ import javax.swing.table.TableRowSorter
 class ProcessListTableBuilder {
 
   fun build(tableModel: DeviceMonitorTableModel): JBTable {
-    val table = JBTable(tableModel).apply {
-      showVerticalLines = false
-      showHorizontalLines = false
-      emptyText.text = EMPTY_TREE_TEXT
-      autoCreateColumnsFromModel = false
-      autoCreateRowSorter = true
-      setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION)
-      rowSelectionAllowed = true
-      background = UIUtil.getTableBackground()
-      tableHeader.reorderingAllowed = false
-    }
+    val table =
+      JBTable(tableModel).apply {
+        showVerticalLines = false
+        showHorizontalLines = false
+        emptyText.text = EMPTY_TREE_TEXT
+        autoCreateColumnsFromModel = false
+        autoCreateRowSorter = true
+        setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION)
+        rowSelectionAllowed = true
+        background = UIUtil.getTableBackground()
+        tableHeader.reorderingAllowed = false
+      }
     val tableSpeedSearch = TableSpeedSearch(table)
 
     val columns = getListOfColumns(tableSpeedSearch)
     tableModel.removeOldColumnsAndAddColumns(columns)
-    table.columnModel = DefaultTableColumnModel().apply {
-      for (column in columns) {
-        addColumn(column)
+    table.columnModel =
+      DefaultTableColumnModel().apply {
+        for (column in columns) {
+          addColumn(column)
+        }
       }
-    }
 
-    table.rowSorter = TableRowSorter(tableModel).apply {
-      setComparator(NAME_COLUMN_INDEX, getNameComparator())
-      setComparator(PID_COLUMN_INDEX, getPidComparator())
-      setComparator(ABI_COLUMN_INDEX, getAbiComparator())
-      setComparator(VM_COLUMN_INDEX, getVMComparator())
-      setComparator(USER_ID_COLUMN_INDEX, getUserIdComparator())
-      setComparator(DEBUGGER_COLUMN_INDEX, getStatusComparator())
-    }
+    table.rowSorter =
+      TableRowSorter(tableModel).apply {
+        setComparator(NAME_COLUMN_INDEX, getNameComparator())
+        setComparator(PID_COLUMN_INDEX, getPidComparator())
+        setComparator(ABI_COLUMN_INDEX, getAbiComparator())
+        setComparator(VM_COLUMN_INDEX, getVMComparator())
+        setComparator(USER_ID_COLUMN_INDEX, getUserIdComparator())
+        setComparator(DEBUGGER_COLUMN_INDEX, getStatusComparator())
+      }
 
     table.addKeyListener(getKeyListener(tableModel, table))
 
     return table
   }
 
-  private fun getListOfColumns(tableSpeedSearch: TableSpeedSearch): List<TableColumn> = listOf(
-    TableColumn(NAME_COLUMN_INDEX, 600, nameCellRenderer(tableSpeedSearch), null).apply { headerValue = "Process Name"},
-    TableColumn(PID_COLUMN_INDEX, 150, pidCellRenderer(), null).apply { headerValue = "PID" },
-    TableColumn(ABI_COLUMN_INDEX, 200, abiCellRenderer(), null).apply { headerValue = "ABI" },
-    TableColumn(VM_COLUMN_INDEX, 200, vmIdentifierRenderer(), null).apply { headerValue = "VM" },
-    TableColumn(USER_ID_COLUMN_INDEX, 100, userIdRenderer(), null).apply { headerValue = "User ID" },
-    TableColumn(DEBUGGER_COLUMN_INDEX, 100, statusRenderer(), null).apply { headerValue = "Debugger" }
-  )
+  private fun getListOfColumns(tableSpeedSearch: TableSpeedSearch): List<TableColumn> =
+    listOf(
+      TableColumn(NAME_COLUMN_INDEX, 600, nameCellRenderer(tableSpeedSearch), null).apply { headerValue = "Process Name" },
+      TableColumn(PID_COLUMN_INDEX, 150, pidCellRenderer(), null).apply { headerValue = "PID" },
+      TableColumn(ABI_COLUMN_INDEX, 200, abiCellRenderer(), null).apply { headerValue = "ABI" },
+      TableColumn(VM_COLUMN_INDEX, 200, vmIdentifierRenderer(), null).apply { headerValue = "VM" },
+      TableColumn(USER_ID_COLUMN_INDEX, 100, userIdRenderer(), null).apply { headerValue = "User ID" },
+      TableColumn(DEBUGGER_COLUMN_INDEX, 100, statusRenderer(), null).apply { headerValue = "Debugger" },
+    )
 
-  private fun getKeyListener(tableModel: DeviceMonitorTableModel, table: JBTable) = object : KeyAdapter() {
-    override fun keyPressed(e: KeyEvent?) {
-      e?.let {
-        val copyShortcuts = KeymapManager.getInstance().activeKeymap.getShortcuts("\$Copy")
-        val copyKeyStroke = KeymapUtil.getKeyStroke(CustomShortcutSet(*copyShortcuts))
+  private fun getKeyListener(tableModel: DeviceMonitorTableModel, table: JBTable) =
+    object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent?) {
+        e?.let {
+          val copyShortcuts = KeymapManager.getInstance().activeKeymap.getShortcuts("\$Copy")
+          val copyKeyStroke = KeymapUtil.getKeyStroke(CustomShortcutSet(*copyShortcuts))
 
-        if (KeyStroke.getKeyStroke(it.keyCode, it.modifiersEx).equals(copyKeyStroke)) {
-          copyProcessInfoToClipboard(tableModel, table)
-          it.consume()
-        }
-        /* JTable by default uses ctrl/cmd + c and does not respect keymaps to copy a row.
-        *  It does this by calling toString() on each AbstractTableModel.getColumnClass().
-        *  Since we don't want to keep this default behavior, we are consuming the event.
-        */
-        else if (it.keyCode == KeyEvent.VK_COPY || it.keyCode == KeyEvent.VK_C) {
-          if (it.isControlDown || it.isMetaDown) {
+          if (KeyStroke.getKeyStroke(it.keyCode, it.modifiersEx).equals(copyKeyStroke)) {
+            copyProcessInfoToClipboard(tableModel, table)
             it.consume()
+          }
+          /* JTable by default uses ctrl/cmd + c and does not respect keymaps to copy a row.
+           *  It does this by calling toString() on each AbstractTableModel.getColumnClass().
+           *  Since we don't want to keep this default behavior, we are consuming the event.
+           */
+          else if (it.keyCode == KeyEvent.VK_COPY || it.keyCode == KeyEvent.VK_C) {
+            if (it.isControlDown || it.isMetaDown) {
+              it.consume()
+            }
           }
         }
       }
     }
-  }
 
   private fun copyProcessInfoToClipboard(tableModel: DeviceMonitorTableModel, table: JBTable) {
     var strToCopy = ""
@@ -135,15 +140,10 @@ class ProcessListTableBuilder {
         icon = processIcon
         if (it.isPidOnly || it.processName == null) {
           append(it.safeProcessName, SimpleTextAttributes.ERROR_ATTRIBUTES)
-        }
-        else {
+        } else {
           // Add name fragment (with speed search support)
           val attr = SimpleTextAttributes.REGULAR_ATTRIBUTES
-          SearchUtil.appendFragments(
-            tableSpeedSearch.enteredPrefix, it.processName, attr.style,
-            attr.fgColor,
-            attr.bgColor, this
-          )
+          SearchUtil.appendFragments(tableSpeedSearch.enteredPrefix, it.processName, attr.style, attr.fgColor, attr.bgColor, this)
         }
       }
 
@@ -181,8 +181,7 @@ class ProcessListTableBuilder {
       processInfo?.let {
         if (it.isPidOnly) {
           append("-")
-        }
-        else {
+        } else {
           append(it.abi ?: "-")
         }
       }
@@ -203,8 +202,7 @@ class ProcessListTableBuilder {
       processInfo?.let {
         if (it.isPidOnly) {
           append("-")
-        }
-        else {
+        } else {
           append(it.vmIdentifier ?: "-")
         }
       }
@@ -225,8 +223,7 @@ class ProcessListTableBuilder {
       processInfo?.let {
         if (it.isPidOnly) {
           append("-")
-        }
-        else {
+        } else {
           append(it.userId?.toString() ?: "n/a")
         }
         setTextAlign(SwingConstants.TRAILING)
@@ -245,17 +242,17 @@ class ProcessListTableBuilder {
   private fun statusRenderer() = TableCellRenderer { table, value, isSelected, _, _, _ ->
     val processInfo = value as? ProcessInfo
     SimpleColoredComponent().apply {
-      processInfo?.let{
+      processInfo?.let {
         if (it.isPidOnly) {
           append("-")
-        }
-        else {
-          val status = when (it.debuggerStatus) {
-            ClientData.DebuggerStatus.DEFAULT -> "No"
-            ClientData.DebuggerStatus.WAITING -> "Waiting"
-            ClientData.DebuggerStatus.ATTACHED -> "Attached"
-            ClientData.DebuggerStatus.ERROR -> "<Error>"
-          }
+        } else {
+          val status =
+            when (it.debuggerStatus) {
+              ClientData.DebuggerStatus.DEFAULT -> "No"
+              ClientData.DebuggerStatus.WAITING -> "Waiting"
+              ClientData.DebuggerStatus.ATTACHED -> "Attached"
+              ClientData.DebuggerStatus.ERROR -> "<Error>"
+            }
           append(status)
         }
       }
@@ -273,14 +270,11 @@ class ProcessListTableBuilder {
   private fun compareNullableStrings(str1: String?, str2: String?): Int {
     return if (str1 == null && str2 == null) {
       0
-    }
-    else if (str1 == null) {
+    } else if (str1 == null) {
       1
-    }
-    else if (str2 == null) {
+    } else if (str2 == null) {
       -1
-    }
-    else {
+    } else {
       str1.compareTo(str2)
     }
   }

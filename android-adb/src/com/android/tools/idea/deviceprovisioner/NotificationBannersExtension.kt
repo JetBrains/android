@@ -19,10 +19,5 @@ import com.android.sdklib.deviceprovisioner.Extension
 import com.intellij.ui.EditorNotificationPanel
 import kotlinx.coroutines.flow.StateFlow
 
-/**
- * An [Extension] class that provides a list of notification banners to display on the top of device
- * manager.
- */
-class NotificationBannersExtension(
-  val notificationBanners: StateFlow<List<EditorNotificationPanel>>
-) : Extension
+/** An [Extension] class that provides a list of notification banners to display on the top of device manager. */
+class NotificationBannersExtension(val notificationBanners: StateFlow<List<EditorNotificationPanel>>) : Extension

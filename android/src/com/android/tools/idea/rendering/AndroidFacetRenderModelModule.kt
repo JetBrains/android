@@ -42,25 +42,26 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.getInstance
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.getInstance
 
 /**
- * Studio-specific [RenderModelModule] constructed from a [AndroidBuildTargetReference] that is an [AndroidFacet] wrapper.
- * The facet is then used to retrieve the [RenderModelModule] information.
+ * Studio-specific [RenderModelModule] constructed from a [AndroidBuildTargetReference] that is an [AndroidFacet] wrapper. The facet is then
+ * used to retrieve the [RenderModelModule] information.
  */
 class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetReference) : RenderModelModule {
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
-  private val facet: AndroidFacet get() = buildTarget.facet
+  private val facet: AndroidFacet
+    get() = buildTarget.facet
 
   override fun getIdeaModule(): Module = facet.module
-  override var assetRepository: AssetRepository? = AssetRepositoryBase(
-    StudioAssetFileOpener(facet)
-  )
+
+  override var assetRepository: AssetRepository? = AssetRepositoryBase(StudioAssetFileOpener(facet))
     private set
+
   override val manifest: RenderModelManifest?
     get() =
       if (application.isReadAccessAllowed) getRenderModelManifest()
@@ -72,7 +73,7 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
     } catch (e: InterruptedException) {
       throw ProcessCanceledException(e)
     } catch (e: TimeoutException) {
-      LOG.warn(e);
+      LOG.warn(e)
     } catch (e: ExecutionException) {
       when (val cause = e.cause) {
         is ProcessCanceledException -> throw cause
@@ -86,27 +87,32 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
 
   override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
+
   override val info: AndroidModuleInfo?
     get() = if (facet.isDisposed) null else StudioAndroidModuleInfo.getInstance(facet)
+
   override val androidPlatform: AndroidPlatform?
     get() = getInstance(facet.module)
+
   override val resourceIdManager: ResourceIdManager
     get() = StudioResourceIdManager.get(facet.module)
+
   override val moduleKey: ModuleKey
     get() = ModuleKeyManager.getKey(facet.module)
+
   override val resourcePackage: String?
     get() = facet.module.getModuleSystem().getPackageName()
+
   override val dependencies: ModuleDependencies = facet.getModuleSystem().moduleDependencies
   override val project: Project
     get() = facet.module.project
+
   override val parentDisposable: CheckedDisposable = Disposer.newCheckedDisposable()
   override val isDisposed: Boolean
     get() = parentDisposable.isDisposed || buildTarget.buildTarget.moduleIfNotDisposed == null
 
   init {
-    Disposer.register(parentDisposable) {
-      assetRepository = null
-    }
+    Disposer.register(parentDisposable) { assetRepository = null }
     if (!Disposer.tryRegister(facet, parentDisposable)) {
       Disposer.dispose(parentDisposable)
     }
@@ -114,48 +120,43 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
 
   override val name: String
     get() = nameFromFacet(facet)
+
   override val environment: StudioEnvironmentContext = StudioEnvironmentContext(facet.module)
+
   private fun createModuleRenderContext(): StudioModuleRenderContext {
     return StudioModuleRenderContext.forBuildTargetReference(buildTarget.buildTarget)
   }
 
-  override fun getClassLoaderProvider(
-    privateClassLoader: Boolean
-  ): RenderModelModule.ClassLoaderProvider {
+  override fun getClassLoaderProvider(privateClassLoader: Boolean): RenderModelModule.ClassLoaderProvider {
     val moduleRenderContext = createModuleRenderContext()
     return RenderModelModule.ClassLoaderProvider {
-        parent: ClassLoader?,
-        additionalProjectTransform: ClassTransform,
-        additionalNonProjectTransform: ClassTransform,
-        onNewModuleClassLoader: Runnable,
-      ->
+      parent: ClassLoader?,
+      additionalProjectTransform: ClassTransform,
+      additionalNonProjectTransform: ClassTransform,
+      onNewModuleClassLoader: Runnable ->
       if (privateClassLoader) {
-        environment.getModuleClassLoaderManager().getPrivate(
-          parent,
-          moduleRenderContext,
-          additionalProjectTransform,
-          additionalNonProjectTransform
-        ).also {
-          onNewModuleClassLoader.run()
-        }
+        environment
+          .getModuleClassLoaderManager()
+          .getPrivate(parent, moduleRenderContext, additionalProjectTransform, additionalNonProjectTransform)
+          .also { onNewModuleClassLoader.run() }
       } else {
-        environment.getModuleClassLoaderManager().getShared(
-          parent,
-          moduleRenderContext,
-          additionalProjectTransform,
-          additionalNonProjectTransform,
-          onNewModuleClassLoader
-        )
+        environment
+          .getModuleClassLoaderManager()
+          .getShared(parent, moduleRenderContext, additionalProjectTransform, additionalNonProjectTransform, onNewModuleClassLoader)
       }
     }
   }
 
   companion object {
     private fun nameFromFacet(facet: AndroidFacet): String = facet.module.name
+
     fun loggingId(facet: AndroidFacet): RenderModelModuleLoggingId {
       return object : RenderModelModuleLoggingId {
-        override val isDisposed: Boolean get() = facet.isDisposed || facet.module.isDisposed
-        override val name: String get() = nameFromFacet(facet)
+        override val isDisposed: Boolean
+          get() = facet.isDisposed || facet.module.isDisposed
+
+        override val name: String
+          get() = nameFromFacet(facet)
       }
     }
   }

@@ -26,20 +26,15 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Tracks user interactions and progress within the Android Studio First Run Wizard. This interface
- * allows monitoring key events, such as wizard start/finish, SDK selection and installation
- * progress.
+ * Tracks user interactions and progress within the Android Studio First Run Wizard. This interface allows monitoring key events, such as
+ * wizard start/finish, SDK selection and installation progress.
  *
- * The event containing the metrics is logged when the `trackWizardFinished()` method is called, so
- * it's important to ensure this method is called whenever the wizard is finished or cancelled.
+ * The event containing the metrics is logged when the `trackWizardFinished()` method is called, so it's important to ensure this method is
+ * called whenever the wizard is finished or cancelled.
  */
 @AnyThread
-class FirstRunWizardTracker(
-  private val mode: SetupWizardEvent.SetupWizardMode,
-  private val isDeprecatedWizard: Boolean,
-) {
-  private val eventBuilder =
-    AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.SETUP_WIZARD_EVENT)
+class FirstRunWizardTracker(private val mode: SetupWizardEvent.SetupWizardMode, private val isDeprecatedWizard: Boolean) {
+  private val eventBuilder = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.SETUP_WIZARD_EVENT)
 
   private var wizardStartedTime: Instant? = null
   private var installationMode: InstallationMode = InstallationMode.UNKNOWN_INSTALLATION_MODE
@@ -50,9 +45,7 @@ class FirstRunWizardTracker(
   private var lastStepShown: SetupWizardEvent.WizardStep.WizardStepKind? = null
   private var lastStepShownAtTimeMs = -1L
 
-  /**
-   * Tracks the start of the First Run Wizard. Call this method as soon as the wizard is launched.
-   */
+  /** Tracks the start of the First Run Wizard. Call this method as soon as the wizard is launched. */
   fun trackWizardStarted() {
     if (wizardStartedTime != null) {
       return // We've already tracked the start of the wizard
@@ -61,8 +54,8 @@ class FirstRunWizardTracker(
   }
 
   /**
-   * Tracks when a specific step is shown in the First Run Wizard. This should be called each time a
-   * step's UI is displayed to the user, including when navigating back to a previously shown step.
+   * Tracks when a specific step is shown in the First Run Wizard. This should be called each time a step's UI is displayed to the user,
+   * including when navigating back to a previously shown step.
    */
   fun trackStepShowing(wizardStepKind: SetupWizardEvent.WizardStep.WizardStepKind) {
     if (wizardStepKind == lastStepShown) {
@@ -86,9 +79,7 @@ class FirstRunWizardTracker(
   }
 
   /** Records the set of SDK components selected for installation by the user. */
-  fun trackSdkComponentsToInstall(
-    sdkComponentsToInstall: List<SdkInstallationMetrics.SdkComponentKind>
-  ) {
+  fun trackSdkComponentsToInstall(sdkComponentsToInstall: List<SdkInstallationMetrics.SdkComponentKind>) {
     sdkInstallationMetricsBuilder.clearSdkComponentsToInstall()
     sdkInstallationMetricsBuilder.addAllSdkComponentsToInstall(sdkComponentsToInstall)
   }
@@ -99,9 +90,8 @@ class FirstRunWizardTracker(
   }
 
   /**
-   * Tracks the result of the SDK installation process (Success, Failure, Cancelled). If
-   * `trackInstallingComponentsStarted` was called, then it also tracks the time spent installing
-   * the components.
+   * Tracks the result of the SDK installation process (Success, Failure, Cancelled). If `trackInstallingComponentsStarted` was called, then
+   * it also tracks the time spent installing the components.
    */
   fun trackInstallingComponentsFinished(sdkInstallationResult: SdkInstallationResult) {
     this.sdkInstallationMetricsBuilder.sdkInstallationResult = sdkInstallationResult
@@ -113,9 +103,8 @@ class FirstRunWizardTracker(
   }
 
   /**
-   * Tracks the completion of the First Run Wizard, including whether the user finished or
-   * cancelled. Must be called once when the wizard is finished or cancelled. The underlying event
-   * is logged when this method is called.
+   * Tracks the completion of the First Run Wizard, including whether the user finished or cancelled. Must be called once when the wizard is
+   * finished or cancelled. The underlying event is logged when this method is called.
    */
   fun trackWizardFinished(completionStatus: SetupWizardEvent.CompletionStatus) {
     if (eventBuilder.setupWizardEventBuilder.hasTimeSpentInWizardMs()) {
@@ -140,9 +129,7 @@ class FirstRunWizardTracker(
     if (lastStepShown != null && lastStepShownAtTimeMs != -1L) {
       val timeInPreviousStepMs = System.currentTimeMillis() - lastStepShownAtTimeMs
       eventBuilder.setupWizardEventBuilder.addWizardSteps(
-        SetupWizardEvent.WizardStep.newBuilder()
-          .setWizardStepKind(lastStepShown)
-          .setTimeSpentInStepMs(timeInPreviousStepMs)
+        SetupWizardEvent.WizardStep.newBuilder().setWizardStepKind(lastStepShown).setTimeSpentInStepMs(timeInPreviousStepMs)
       )
     }
   }

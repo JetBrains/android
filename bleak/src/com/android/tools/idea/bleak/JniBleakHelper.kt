@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
-class JniBleakHelper: BleakHelper() {
+class JniBleakHelper : BleakHelper() {
 
   private val Any.isPrimitiveArray: Boolean
     get() = javaClass.isArray && javaClass.componentType.isPrimitive
@@ -43,8 +43,11 @@ class JniBleakHelper: BleakHelper() {
     }
 
     @JvmStatic private external fun allLoadedClasses0(): Array<Any>
+
     @JvmStatic private external fun gcRoots(): Array<Any>
+
     @JvmStatic private external fun pauseThreads0(testThreadName: String)
+
     @JvmStatic private external fun resumeThreads0(testThreadName: String)
   }
 }

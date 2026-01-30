@@ -40,14 +40,14 @@ interface AndroidSqlColumnPsiReference : PsiReference {
   /**
    * Returns [AndroidSqlColumn] for the underlying (referencing) element of the reference.
    *
-   * We find [AndroidSqlColumn] by traversing tables. Sometimes one table is defined through another and so on and it leads to invocation [resolveColumn]
-   * within another [resolveColumn] process.
-   * We want to avoid an infinite [resolveColumn] process (e.g. invalid recursive definitions cause it). In order to do it we maintain [sqlTablesInProcess].
-   * [sqlTablesInProcess] contains tables for which we are currently trying to resolve columns.
+   * We find [AndroidSqlColumn] by traversing tables. Sometimes one table is defined through another and so on and it leads to invocation
+   * [resolveColumn] within another [resolveColumn] process. We want to avoid an infinite [resolveColumn] process (e.g. invalid recursive
+   * definitions cause it). In order to do it we maintain [sqlTablesInProcess]. [sqlTablesInProcess] contains tables for which we are
+   * currently trying to resolve columns.
    *
    * Example: Table A contains all columns of table B and table B contains all column of table C. When we try to resolve column belongs to A
-   * eventually we can invoke [resolveColumn] for column belongs to C; at that moment [sqlTablesInProcess] contains [PsiElement]s
-   * that define table A and table B.
+   * eventually we can invoke [resolveColumn] for column belongs to C; at that moment [sqlTablesInProcess] contains [PsiElement]s that
+   * define table A and table B.
    */
   fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): AndroidSqlColumn?
 
@@ -60,8 +60,8 @@ interface AndroidSqlColumnPsiReference : PsiReference {
       realColumn.resolveTo
     } else {
       /**
-       * Case when we found column by alternative name that user didn't define which means the reference should not be used for renaming
-       * the column e.g "rowid" or "oid" or "_rowid_" columns
+       * Case when we found column by alternative name that user didn't define which means the reference should not be used for renaming the
+       * column e.g "rowid" or "oid" or "_rowid_" columns
        */
       NotRenamableElement(realColumn.resolveTo)
     }
@@ -73,9 +73,8 @@ interface AndroidSqlColumnPsiReference : PsiReference {
  *
  * @see AndroidSqlColumn.resolveTo
  */
-class UnqualifiedColumnPsiReference(
-  columnName: AndroidSqlColumnName
-) : PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
+class UnqualifiedColumnPsiReference(columnName: AndroidSqlColumnName) :
+  PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
 
   override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): AndroidSqlColumn? {
     val processor = FindColumnByNameProcessor(element.nameAsString)
@@ -91,9 +90,8 @@ class UnqualifiedColumnPsiReference(
     if (tablesProcessor.tablesProcessed == 0) {
       // Let's try to be helpful in the common case of a SELECT query with no FROM clause, even though referencing any columns will result
       // in an invalid query for now, until the FROM clause is written.
-      val parentSelect = PsiTreeUtil.getParentOfType(element, AndroidSqlResultColumns::class.java)
-        ?.parent
-        ?.let { it as AndroidSqlSelectCoreSelect }
+      val parentSelect =
+        PsiTreeUtil.getParentOfType(element, AndroidSqlResultColumns::class.java)?.parent?.let { it as AndroidSqlSelectCoreSelect }
 
       if (parentSelect != null && parentSelect.fromClause == null) {
         (element.containingFile as? AndroidSqlFile)?.sqlContext?.processTables(tablesProcessor)
@@ -105,10 +103,8 @@ class UnqualifiedColumnPsiReference(
 }
 
 /** Reference to a column within a known table, e.g. `SELECT user.name FROM user`. */
-class QualifiedColumnPsiReference(
-  columnName: AndroidSqlColumnName,
-  private val tableName: AndroidSqlSelectedTableName
-) : PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
+class QualifiedColumnPsiReference(columnName: AndroidSqlColumnName, private val tableName: AndroidSqlSelectedTableName) :
+  PsiReferenceBase<AndroidSqlColumnName>(columnName), AndroidSqlColumnPsiReference {
   private fun resolveTable() = AndroidSqlSelectedTablePsiReference(tableName).resolveSqlTable()
 
   override fun resolveColumn(sqlTablesInProcess: MutableSet<PsiElement>): AndroidSqlColumn? {
@@ -149,9 +145,8 @@ private fun buildVariants(result: Collection<AndroidSqlColumn>): Array<Any> {
  *
  * @see AndroidSqlTable.resolveTo
  */
-class AndroidSqlSelectedTablePsiReference(
-  tableName: AndroidSqlSelectedTableName
-) : PsiReferenceBase<AndroidSqlSelectedTableName>(tableName) {
+class AndroidSqlSelectedTablePsiReference(tableName: AndroidSqlSelectedTableName) :
+  PsiReferenceBase<AndroidSqlSelectedTableName>(tableName) {
 
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
@@ -168,10 +163,8 @@ class AndroidSqlSelectedTablePsiReference(
   }
 }
 
-class AndroidSqlDefinedTablePsiReference(
-  tableName: AndroidSqlDefinedTableName,
-  private val acceptViews: Boolean = true
-) : PsiReferenceBase<AndroidSqlDefinedTableName>(tableName) {
+class AndroidSqlDefinedTablePsiReference(tableName: AndroidSqlDefinedTableName, private val acceptViews: Boolean = true) :
+  PsiReferenceBase<AndroidSqlDefinedTableName>(tableName) {
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
   fun resolveSqlTable(): AndroidSqlTable? {
@@ -207,7 +200,6 @@ private fun lookupElementForTable(table: AndroidSqlTable): LookupElement {
  * [PsiReference] from a SQL bind parameter to an argument of the query method for this piece of SQL.
  *
  * Example:
- *
  * ```
  * @Query("select * from user where userId = :id")
  * List<User> getById(int id);
@@ -220,20 +212,16 @@ class AndroidSqlParameterReference(parameter: AndroidSqlBindParameter) : PsiRefe
 
   override fun getVariants(): Array<Any> {
     return bindParameters
-             ?.values
-             ?.map { parameter ->
-               val namedElement = parameter.definingElement as? PsiNamedElement
-               if (namedElement != null) LookupElementBuilder.create(namedElement) else LookupElementBuilder.create(parameter.name)
-             }
-             ?.toTypedArray<Any>()
-           ?: ArrayUtil.EMPTY_OBJECT_ARRAY
+      ?.values
+      ?.map { parameter ->
+        val namedElement = parameter.definingElement as? PsiNamedElement
+        if (namedElement != null) LookupElementBuilder.create(namedElement) else LookupElementBuilder.create(parameter.name)
+      }
+      ?.toTypedArray<Any>() ?: ArrayUtil.EMPTY_OBJECT_ARRAY
   }
 
   private val bindParameters: Map<String, BindParameter>?
     get() {
-      return (element.containingFile
-        as? AndroidSqlFile)
-        ?.sqlContext
-        ?.bindParameters
+      return (element.containingFile as? AndroidSqlFile)?.sqlContext?.bindParameters
     }
 }

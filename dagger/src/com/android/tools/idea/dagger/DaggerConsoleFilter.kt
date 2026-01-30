@@ -29,15 +29,12 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PsiNavigateUtil
 
 /**
- * Creates links to PsiElements from strings that matches [FQCN_WITH_METHOD] in build output for
- * Dagger error .
+ * Creates links to PsiElements from strings that matches [FQCN_WITH_METHOD] in build output for Dagger error .
  *
- * Note: Implementation expects that [DaggerConsoleFilterProvider.getDefaultFilters] is called for
- * every new ConsoleView. see [com.intellij.execution.impl.ConsoleViewUtil.computeConsoleFilters].
- * Therefore Filter has internal state [isDaggerMessage].
+ * Note: Implementation expects that [DaggerConsoleFilterProvider.getDefaultFilters] is called for every new ConsoleView. see
+ * [com.intellij.execution.impl.ConsoleViewUtil.computeConsoleFilters]. Therefore Filter has internal state [isDaggerMessage].
  *
- * It also relies on the fact that every Dagger error has [ERROR_PREFIX] in message before any
- * string that needs links
+ * It also relies on the fact that every Dagger error has [ERROR_PREFIX] in message before any string that needs links
  */
 class DaggerConsoleFilter : Filter {
   private var isDaggerMessage = false
@@ -49,8 +46,7 @@ class DaggerConsoleFilter : Filter {
 
     // Matches in groups [full match, fully-qualified-class-name-followed-by-method, method-name,
     // fully-qualified-class-name].
-    private val FQCN_WITH_METHOD =
-      Regex("(?:($FQCN_PATTERN)(?:\\.($ID_PATTERN)\\())|($FQCN_PATTERN)")
+    private val FQCN_WITH_METHOD = Regex("(?:($FQCN_PATTERN)(?:\\.($ID_PATTERN)\\())|($FQCN_PATTERN)")
   }
 
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
@@ -66,11 +62,7 @@ class DaggerConsoleFilter : Filter {
     return null
   }
 
-  private fun collectLinks(
-    line: String,
-    lineStart: Int,
-    results: MutableCollection<Filter.Result>,
-  ) {
+  private fun collectLinks(line: String, lineStart: Int, results: MutableCollection<Filter.Result>) {
     for (match in FQCN_WITH_METHOD.findAll(line).iterator()) {
       val link: HyperlinkInfo
       val start: Int
@@ -123,8 +115,7 @@ private fun createLinkToMethod(fqcn: String, methodName: String): HyperlinkInfo 
 /**
  * Provides filters for console output that applicable for Dagger error messages.
  *
- * Note that it's important that we create new instance of [DaggerConsoleFilter], because it has
- * internal state.
+ * Note that it's important that we create new instance of [DaggerConsoleFilter], because it has internal state.
  */
 class DaggerConsoleFilterProvider : ConsoleFilterProvider {
   override fun getDefaultFilters(project: Project): Array<Filter> {

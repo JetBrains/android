@@ -17,17 +17,17 @@ package com.android.tools.idea.gradle.dsl.android.model.crashlytics
 
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.TestFileName
+import java.io.File
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class FirebaseCrashlyticsModelTest : AndroidGradleFileModelTestCase() {
   @Test
   fun testParseFirebaseCrashlytics() {
     writeToBuildFile(TestFile.PARSE_FIREBASE_CRASHLYTICS)
     val buildModel = gradleBuildModel
-    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics();
+    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics()
     assertEquals("nativeSymbolUploadEnabled", false, firebaseCrashlytics.nativeSymbolUploadEnabled())
   }
 
@@ -40,16 +40,18 @@ class FirebaseCrashlyticsModelTest : AndroidGradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.SET_NATIVE_SYMBOL_UPLOAD_ENABLED_EXPECTED)
 
-    buildModel.android().buildTypes().first { it.name() == "release" }.let {
-      assertEquals("nativeSymbolUploadEnabled", true, it.firebaseCrashlytics().nativeSymbolUploadEnabled())
-    }
+    buildModel
+      .android()
+      .buildTypes()
+      .first { it.name() == "release" }
+      .let { assertEquals("nativeSymbolUploadEnabled", true, it.firebaseCrashlytics().nativeSymbolUploadEnabled()) }
   }
 
   @Test
   fun testRemoveAndApply() {
     writeToBuildFile(TestFile.PARSE_FIREBASE_CRASHLYTICS)
     val buildModel = gradleBuildModel
-    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics();
+    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics()
     assertEquals("nativeSymbolUploadEnabled", false, firebaseCrashlytics.nativeSymbolUploadEnabled())
     firebaseCrashlytics.nativeSymbolUploadEnabled().delete()
 
@@ -57,10 +59,9 @@ class FirebaseCrashlyticsModelTest : AndroidGradleFileModelTestCase() {
     verifyFileContents(myBuildFile, "")
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     PARSE_FIREBASE_CRASHLYTICS("parseFirebaseCrashlytics"),
-    SET_NATIVE_SYMBOL_UPLOAD_ENABLED_EXPECTED("setNativeSymbolUploadEnabledExpected"),
-    ;
+    SET_NATIVE_SYMBOL_UPLOAD_ENABLED_EXPECTED("setNativeSymbolUploadEnabledExpected");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/firebaseCrashlyticsModel/$path", extension)

@@ -31,14 +31,12 @@ interface IdeaSourceProvider {
   val manifestFileUrls: Iterable<String>
   val manifestFiles: Iterable<VirtualFile>
 
-  /**
-   * Parent directory urls of the manifest files listed in [manifestFileUrls].
-   */
+  /** Parent directory urls of the manifest files listed in [manifestFileUrls]. */
   val manifestDirectoryUrls: Iterable<String>
 
   /**
-   * Existing in the file system parent directories of the manifest files listed in [manifestFileUrls] including files which themselves
-   * do not exist in the file system.
+   * Existing in the file system parent directories of the manifest files listed in [manifestFileUrls] including files which themselves do
+   * not exist in the file system.
    */
   val manifestDirectories: Iterable<VirtualFile>
 
@@ -85,7 +83,6 @@ interface IdeaSourceProvider {
 
   /** Map of sourceTypeName to the source roots */
   val custom: Map<String, Custom>
-
 }
 
 /**
@@ -107,10 +104,12 @@ interface BuildConfigurationSourceProvider {
   }
 
   fun getBuildConfigurationFiles(): List<ConfigurationFile>
+
   fun contains(file: VirtualFile): Boolean
 
   object EMPTY : BuildConfigurationSourceProvider {
     override fun getBuildConfigurationFiles(): List<ConfigurationFile> = emptyList()
+
     override fun contains(file: VirtualFile): Boolean = false
   }
 }

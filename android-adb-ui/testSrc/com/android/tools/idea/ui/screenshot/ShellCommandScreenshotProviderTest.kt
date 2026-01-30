@@ -25,17 +25,17 @@ import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import javax.imageio.ImageIO
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Test for [ShellCommandScreenshotProvider]. */
 internal class ShellCommandScreenshotProviderTest {
@@ -43,8 +43,7 @@ internal class ShellCommandScreenshotProviderTest {
   private val projectRule = ProjectRule()
   private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, fakeAdbSessionRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule)
 
   private val deviceServices = fakeAdbSessionRule.adbSession.deviceServices
   private val serialNumber = "123"
@@ -71,7 +70,8 @@ internal class ShellCommandScreenshotProviderTest {
     val testImage = createTestImage(1080, 600, Color.RED)
     deviceServices.configureShellV2Command(device, "screencap -p", testImage.toPngBytes(), emptyByteBuffer, 0)
     val parameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel 9")
-    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceName, PRIMARY_DISPLAY_ID)
+    screenshotProvider =
+      ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceName, PRIMARY_DISPLAY_ID)
     val image = runBlocking { screenshotProvider.captureScreenshot() }
     assertImageSimilar("test image", testImage, image.image)
   }
@@ -103,4 +103,4 @@ internal class ShellCommandScreenshotProviderTest {
 }
 
 private fun getDumpsysOutput(filename: String): String =
-    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
+  Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))

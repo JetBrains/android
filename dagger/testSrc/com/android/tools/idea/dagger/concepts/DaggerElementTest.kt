@@ -100,8 +100,7 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val psiType =
-      myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf= */ true)!!.getReturnedPsiType()
+    val psiType = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -118,10 +117,7 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val psiType =
-      myFixture.elementAtCaret
-        .parentOfType<KtConstructor<*>>(/* withSelf= */ true)!!
-        .getReturnedPsiType()
+    val psiType = myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -142,8 +138,7 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val psiType =
-      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
+    val psiType = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -162,8 +157,7 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val psiType =
-      myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
+    val psiType = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf= */ true)!!.getReturnedPsiType()
     assertThat(psiType.canonicalText).isEqualTo("com.example.Foo")
   }
 
@@ -182,8 +176,7 @@ class DaggerElementTest {
 
     val classElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf= */ true)!!
     assertThat(classElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
-    assertThat((classElement as PsiElement).classToPsiType().canonicalText)
-      .isEqualTo("com.example.Foo")
+    assertThat((classElement as PsiElement).classToPsiType().canonicalText).isEqualTo("com.example.Foo")
   }
 
   @Test
@@ -199,11 +192,9 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val objectElement =
-      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
+    val objectElement = myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
     assertThat(objectElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
-    assertThat((objectElement as PsiElement).classToPsiType().canonicalText)
-      .isEqualTo("com.example.Foo")
+    assertThat((objectElement as PsiElement).classToPsiType().canonicalText).isEqualTo("com.example.Foo")
   }
 
   @Test
@@ -221,8 +212,7 @@ class DaggerElementTest {
 
     val classElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf= */ true)!!
     assertThat(classElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
-    assertThat((classElement as PsiElement).classToPsiType().canonicalText)
-      .isEqualTo("com.example.Foo")
+    assertThat((classElement as PsiElement).classToPsiType().canonicalText).isEqualTo("com.example.Foo")
   }
 
   @Test
@@ -232,10 +222,10 @@ class DaggerElementTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {}
-      """
+        public class Foo {}
+        """
           .trimIndent(),
       )
 
@@ -255,8 +245,7 @@ class DaggerElementTest {
         .trimIndent(),
     )
 
-    val psiElement =
-      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
+    val psiElement = myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf= */ true)!!
 
     val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
@@ -611,10 +600,10 @@ class DaggerElementTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {}
-      """
+        public class Foo {}
+        """
           .trimIndent(),
       )
 

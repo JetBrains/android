@@ -27,11 +27,11 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.testdata.TestData
 import com.google.idea.common.experiments.ExperimentService
 import com.google.idea.common.experiments.MockExperimentService
@@ -53,20 +53,15 @@ import org.mockito.junit.MockitoRule
 class AddProjectGenSrcsTest {
   val buildTimestamp = Instant.now()
 
-  @get:Rule
-  val mockito: MockitoRule = MockitoJUnit.rule()
+  @get:Rule val mockito: MockitoRule = MockitoJUnit.rule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val intellij = IntellijRule()
+    @JvmField @ClassRule val intellij = IntellijRule()
   }
 
-  @Mock
-  lateinit var context: Context<*>
+  @Mock lateinit var context: Context<*>
 
-  private val syncer =
-    TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
 
   private val javaSourcePackageExtractor = JavaSourcePackageExtractor(null)
 
@@ -84,22 +79,18 @@ class AddProjectGenSrcsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(testData.assumedOnlyLabel).toBuilder()
+          JavaArtifactInfo.empty(testData.assumedOnlyLabel)
+            .toBuilder()
             .setGenSrcs(
-                BuildArtifact.create(
-                  "gensrcdigest",
-                  Path.of("output/path/com/org/Class.java"),
-                  testData.assumedOnlyLabel
-                )
-                  .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
+              BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel)
+                .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
             .build(),
-          DependencyBuildContext.create("", buildTimestamp)
+          DependencyBuildContext.create("", buildTimestamp),
         )
       )
 
-    val addGensrcs =
-      AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGensrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -112,14 +103,15 @@ class AddProjectGenSrcsTest {
       .contains(
         ProjectProto.ContentEntry(
           root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
-          sourceFolders = listOf(
-            ProjectProto.SourceFolder(
-              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
-              isGenerated = true,
-              isTest = false,
-              packagePrefix = "",
+          sourceFolders =
+            listOf(
+              ProjectProto.SourceFolder(
+                projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+                isGenerated = true,
+                isTest = false,
+                packagePrefix = "",
+              )
             ),
-          ),
           excludes = listOf(),
         )
       )
@@ -127,15 +119,17 @@ class AddProjectGenSrcsTest {
       .containsEntry(
         ArtifactDirectories.JAVA_GEN_SRC,
         ArtifactDirectoryContents(
-          contents = mapOf(
-            "com/org/Class.java" to ProjectProto.ProjectArtifact(
-              target = testData.assumedOnlyLabel,
-              buildArtifact = ProjectProto.BuildArtifact("gensrcdigest"),
-              fromBuild = buildTimestamp,
-              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+          contents =
+            mapOf(
+              "com/org/Class.java" to
+                ProjectProto.ProjectArtifact(
+                  target = testData.assumedOnlyLabel,
+                  buildArtifact = ProjectProto.BuildArtifact("gensrcdigest"),
+                  fromBuild = buildTimestamp,
+                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                )
             )
-          )
-        )
+        ),
       )
     Mockito.verify(context, Mockito.never())!!.setHasWarnings()
   }
@@ -150,53 +144,36 @@ class AddProjectGenSrcsTest {
 
     val genSrc1 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
+        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1"))
+          .toBuilder()
           .setGenSrcs(
             ImmutableList.of(
-              BuildArtifact.create(
-                "gensrc1",
-                Path.of("output/path/com/org/Class.java"),
-                testLabel.siblingWithName("genSrc1")
-              )
+              BuildArtifact.create("gensrc1", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
           )
           .build(),
-        DependencyBuildContext.create(
-          "abc-def", buildTimestamp.minusSeconds(60)
-        )
+        DependencyBuildContext.create("abc-def", buildTimestamp.minusSeconds(60)),
       )
 
     val genSrc2Label = testData.assumedOnlyLabel.siblingWithName("genSrc2")
     val genSrc2 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
+        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2"))
+          .toBuilder()
           .setGenSrcs(
             ImmutableList.of(
-              BuildArtifact.create(
-                "gensrc2",
-                Path.of("output/otherpath/com/org/Class.java"),
-                genSrc2Label
-              )
+              BuildArtifact.create("gensrc2", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
           )
           .build(),
-        DependencyBuildContext.create("abc-def", buildTimestamp)
+        DependencyBuildContext.create("abc-def", buildTimestamp),
       )
 
-    val artifactState =
-      ArtifactTracker.State.create(
-        ImmutableMap.of(
-          genSrc1.label(),
-          genSrc1,
-          genSrc2.label(),
-          genSrc2
-        ), ImmutableMap.of()
-      )
+    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of())
 
-    val addGenSrcs =
-      AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -210,13 +187,14 @@ class AddProjectGenSrcsTest {
       .contains(
         ProjectProto.ContentEntry(
           root = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
-          sourceFolders = listOf(
-            ProjectProto.SourceFolder(
-              projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
-              isGenerated = true,
-              isTest = false,
-              packagePrefix = "",
-            ),
+          sourceFolders =
+            listOf(
+              ProjectProto.SourceFolder(
+                projectPath = ProjectPath.projectRelative(Path.of(".bazel/gensrc/java")),
+                isGenerated = true,
+                isTest = false,
+                packagePrefix = "",
+              )
             ),
           excludes = listOf(),
         )
@@ -225,15 +203,17 @@ class AddProjectGenSrcsTest {
       .containsEntry(
         ArtifactDirectories.JAVA_GEN_SRC,
         ArtifactDirectoryContents(
-          contents = mapOf(
-            "com/org/Class.java" to ProjectProto.ProjectArtifact(
-              target = genSrc2Label,
-              buildArtifact = ProjectProto.BuildArtifact("gensrc2"),
-              fromBuild = buildTimestamp,
-              transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+          contents =
+            mapOf(
+              "com/org/Class.java" to
+                ProjectProto.ProjectArtifact(
+                  target = genSrc2Label,
+                  buildArtifact = ProjectProto.BuildArtifact("gensrc2"),
+                  fromBuild = buildTimestamp,
+                  transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                )
             )
-          )
-        )
+        ),
       )
     Mockito.verify(context)!!.setHasWarnings()
   }
@@ -247,53 +227,36 @@ class AddProjectGenSrcsTest {
 
     val genSrc1 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
+        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1"))
+          .toBuilder()
           .setGenSrcs(
             ImmutableList.of(
-              BuildArtifact.create(
-                "samedigest",
-                Path.of("output/path/com/org/Class.java"),
-                testLabel.siblingWithName("genSrc1")
-              )
+              BuildArtifact.create("samedigest", Path.of("output/path/com/org/Class.java"), testLabel.siblingWithName("genSrc1"))
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
           )
           .build(),
-        DependencyBuildContext.create(
-          "abc-def", Instant.now().minusSeconds(60)
-        )
+        DependencyBuildContext.create("abc-def", Instant.now().minusSeconds(60)),
       )
 
     val genSrc2Label = testData.assumedOnlyLabel.siblingWithName("genSrc2")
     val genSrc2 =
       TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
+        JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2"))
+          .toBuilder()
           .setGenSrcs(
             ImmutableList.of(
-              BuildArtifact.create(
-                "samedigest",
-                Path.of("output/otherpath/com/org/Class.java"),
-                genSrc2Label
-              )
+              BuildArtifact.create("samedigest", Path.of("output/otherpath/com/org/Class.java"), genSrc2Label)
                 .withMetadata(JavaArtifactMetadata.JavaSourcePackage("com.org"))
             )
           )
           .build(),
-        DependencyBuildContext.create("abc-def", Instant.now())
+        DependencyBuildContext.create("abc-def", Instant.now()),
       )
 
-    val artifactState =
-      ArtifactTracker.State.create(
-        ImmutableMap.of(
-          genSrc1.label(),
-          genSrc1,
-          genSrc2.label(),
-          genSrc2
-        ), ImmutableMap.of()
-      )
+    val artifactState = ArtifactTracker.State.create(ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of())
 
-    val addGenSrcs =
-      AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGenSrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGenSrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -309,23 +272,17 @@ class AddProjectGenSrcsTest {
     val artifactState =
       ArtifactTracker.State.forTargets(
         TargetBuildInfo.forJavaTarget(
-          JavaArtifactInfo.empty(testData.assumedOnlyLabel).toBuilder()
+          JavaArtifactInfo.empty(testData.assumedOnlyLabel)
+            .toBuilder()
             .setGenSrcs(
-              ImmutableList.of(
-                BuildArtifact.create(
-                  "gensrcdigest",
-                  Path.of("output/path/com/org/Class.java"),
-                  testData.assumedOnlyLabel
-                )
-              )
+              ImmutableList.of(BuildArtifact.create("gensrcdigest", Path.of("output/path/com/org/Class.java"), testData.assumedOnlyLabel))
             )
             .build(),
-          DependencyBuildContext.create("", buildTimestamp)
+          DependencyBuildContext.create("", buildTimestamp),
         )
       )
 
-    val addGensrcs =
-      AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
+    val addGensrcs = AddProjectGenSrcs(original.queryData.projectDefinition(), javaSourcePackageExtractor)
 
     val update = ProjectProtoUpdate(original.project)
     addGensrcs.update(update, artifactState, context, ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
@@ -334,15 +291,8 @@ class AddProjectGenSrcsTest {
     val workspace = newProject.modules.single()
     // check our above assumption:
     Truth.assertThat(workspace.name).isEqualTo(".workspace")
-    Truth.assertThat(
-      workspace.contentEntries.values
-        .flatMap { it.sourceFolders }
-        .filter { it.isGenerated })
-      .isEmpty()
-    Truth.assertThat(
-      newProject.artifactDirectories.directoriesMap.values
-        .flatMap { it.contents.entries }
-      .isEmpty())
+    Truth.assertThat(workspace.contentEntries.values.flatMap { it.sourceFolders }.filter { it.isGenerated }).isEmpty()
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.values.flatMap { it.contents.entries }.isEmpty())
     Mockito.verify(context)!!.setHasWarnings()
   }
 }

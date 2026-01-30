@@ -37,8 +37,8 @@ interface NlComponentBackend {
   @Deprecated("Use getTag", ReplaceWith("getTag()")) fun getTagDeprecated(): XmlTag
 
   /**
-   * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer
-   * valid. Has to be called with read access allowed.
+   * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer valid. Has to be called with read access
+   * allowed.
    */
   val tag: XmlTag?
 
@@ -46,22 +46,21 @@ interface NlComponentBackend {
   fun getTagName(): String
 
   /**
-   * Returns the value of an attribute. May block if not run inside a read action. If read access is
-   * not allowed, it'll schedule operations on the read-accessible thread.
+   * Returns the value of an attribute. May block if not run inside a read action. If read access is not allowed, it'll schedule operations
+   * on the read-accessible thread.
    *
    * @return attribute of the string value.
    */
   fun getAttribute(attribute: String, namespace: String?): String?
 
   /**
-   * Precondition : Must be called within undo-transparent action. See [NlWriteCommandActionUtil]
-   * Attempts to set the value of an attribute. May block if not run inside a write action.
+   * Precondition : Must be called within undo-transparent action. See [NlWriteCommandActionUtil] Attempts to set the value of an attribute.
+   * May block if not run inside a write action.
    *
    * @return true if attribute is set. False otherwise.
    * @throws IncorrectOperationException if not called within undo-transparent action
    */
-  @Throws(IncorrectOperationException::class)
-  fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean
+  @Throws(IncorrectOperationException::class) fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean
 
   // TODO: return list later.
   fun getAffectedFile(): VirtualFile?

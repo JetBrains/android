@@ -49,12 +49,7 @@ class InsightsTrackerTest {
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule
-  val rule =
-    RuleChain.outerRule(projectRule)
-      .around(EdtRule())
-      .around(vcsInsightsRule)
-      .around(controllerRule)
+  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule()).around(vcsInsightsRule).around(controllerRule)
 
   private val scope: CoroutineScope
     get() = controllerRule.controller.coroutineScope
@@ -69,28 +64,21 @@ class InsightsTrackerTest {
   fun setUp() {
     tracker = mock()
 
-    console =
-      initConsoleWithFilters(projectRule.project, tracker).apply {
-        Disposer.register(projectRule.testRootDisposable, this)
-      }
+    console = initConsoleWithFilters(projectRule.project, tracker).apply { Disposer.register(projectRule.testRootDisposable, this) }
 
-    val state =
-      MutableStateFlow(
-        StackTraceConsoleState(null, ConnectionMode.ONLINE, ISSUE1, ISSUE1.sampleEvent)
-      )
-    val listenerForTracking =
-      ListenerForTracking(console, tracker, projectRule.project, state, scope)
+    val state = MutableStateFlow(StackTraceConsoleState(null, ConnectionMode.ONLINE, ISSUE1, ISSUE1.sampleEvent))
+    val listenerForTracking = ListenerForTracking(console, tracker, projectRule.project, state, scope)
     editor.addEditorMouseListener(listenerForTracking, projectRule.testRootDisposable)
 
     projectRule.fixture.addClass(
       """
-        package test.simple;
+      package test.simple;
 
-        public class MainActivity {
-            public void onCreate() {
-              //TODO
-            }
-        }
+      public class MainActivity {
+          public void onCreate() {
+            //TODO
+          }
+      }
       """
         .trimIndent()
     )
@@ -106,8 +94,8 @@ class InsightsTrackerTest {
     // Print and apply filters
     console.printAndHighlight(
       """
-        java.lang.NullPointerException:
-            test.simple.MainActivity.onCreate(MainActivity.kt:4)
+      java.lang.NullPointerException:
+          test.simple.MainActivity.onCreate(MainActivity.kt:4)
       """
         .trimIndent()
     )
@@ -129,9 +117,7 @@ class InsightsTrackerTest {
             .apply {
               crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
               localFile = true
-              clickLocation =
-                AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
-                  .TARGET_FILE_HYPER_LINK
+              clickLocation = AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation.TARGET_FILE_HYPER_LINK
             }
             .build()
         ),
@@ -144,8 +130,8 @@ class InsightsTrackerTest {
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, ISSUE1.sampleEvent.appVcsInfo)
     console.printAndHighlight(
       """
-        java.lang.NullPointerException:
-            test.simple.MainActivity.onCreate(MainActivity.kt:4)
+      java.lang.NullPointerException:
+          test.simple.MainActivity.onCreate(MainActivity.kt:4)
       """
         .trimIndent()
     )
@@ -168,8 +154,8 @@ class InsightsTrackerTest {
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, ISSUE1.sampleEvent.appVcsInfo)
     console.printAndHighlight(
       """
-        java.lang.NullPointerException:
-            test.simple.MainActivity.onCreate(MainActivity.kt:4)
+      java.lang.NullPointerException:
+          test.simple.MainActivity.onCreate(MainActivity.kt:4)
       """
         .trimIndent()
     )
@@ -190,11 +176,7 @@ class InsightsTrackerTest {
         isNull(),
         eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
-            .apply {
-              clickLocation =
-                AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
-                  .DIFF_INLAY
-            }
+            .apply { clickLocation = AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation.DIFF_INLAY }
             .build()
         ),
       )

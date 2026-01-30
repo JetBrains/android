@@ -34,26 +34,24 @@ import layout_inspector.LayoutInspector
 /**
  * Class responsible for handling all handshake logic:
  * 1. Starting the handshake for a newly connected device.
- * 3. Periodically repeating the handshake if the device has UNKNOWN support of foreground process
- *    detection.
+ * 3. Periodically repeating the handshake if the device has UNKNOWN support of foreground process detection.
  * 4. Logging handshake metrics.
  *
  * Handshake overview:
  *
- * When a device is connected, Layout Inspector sends a handshake requests to it, which can result
- * in:
+ * When a device is connected, Layout Inspector sends a handshake requests to it, which can result in:
  * 1. SUPPORTED
  * 2. NOT_SUPPORTED
- * 3. UNKNOWN - if the device has no foreground activity (for example the device is locked) or if
- *    foreground process detection is not supported on the device.
+ * 3. UNKNOWN - if the device has no foreground activity (for example the device is locked) or if foreground process detection is not
+ *    supported on the device.
  *
  * When the support is UNKNOWN, the handshake is repeated periodically, until:
  * 1. UNKNOWN converts to SUPPORTED.
  * 2. UNKNOWN converts to NOT_SUPPORTED.
  * 3. The device is disconnected.
  *
- * This class can be re-used to execute multiple handshakes with [device]. For example to
- * double-check that a NOT_SUPPORTED state is not a false negative.
+ * This class can be re-used to execute multiple handshakes with [device]. For example to double-check that a NOT_SUPPORTED state is not a
+ * false negative.
  */
 class HandshakeExecutor(
   private val device: DeviceDescriptor,
@@ -65,9 +63,9 @@ class HandshakeExecutor(
   private val pollingIntervalMs: Long,
 ) {
   /**
-   * Channel used to communicate the handshake state with a coroutine responsible for periodically
-   * starting the handshake protocol. The channel has capacity of 2 to prevent [Channel.send] to be
-   * blocking, which might happen because the channel is read at intervals of [pollingIntervalMs].
+   * Channel used to communicate the handshake state with a coroutine responsible for periodically starting the handshake protocol. The
+   * channel has capacity of 2 to prevent [Channel.send] to be blocking, which might happen because the channel is read at intervals of
+   * [pollingIntervalMs].
    */
   private val stateChannel = Channel<HandshakeState>(2)
 
@@ -120,10 +118,9 @@ class HandshakeExecutor(
   }
 
   /**
-   * Indicates whether the previous handshake for this device terminated with a NOT_SUPPORTED state.
-   * We keep track of this so that if the handshake is executed multiple times for the same device
-   * and the result changes from NOT_SUPPORTED to SUPPORTED, we can log it to our metrics. This can
-   * happen if the NOT_SUPPORTED was a false negative.
+   * Indicates whether the previous handshake for this device terminated with a NOT_SUPPORTED state. We keep track of this so that if the
+   * handshake is executed multiple times for the same device and the result changes from NOT_SUPPORTED to SUPPORTED, we can log it to our
+   * metrics. This can happen if the NOT_SUPPORTED was a false negative.
    */
   private var wasNotSupported = false
 
@@ -206,8 +203,7 @@ class HandshakeExecutor(
           }
           if (wasNotSupported) {
             metrics.logHandshakeConversion(
-              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
-                .FROM_NOT_SUPPORTED_TO_SUPPORTED,
+              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_NOT_SUPPORTED_TO_SUPPORTED,
               device,
               isRecoveryHandshake,
             )
@@ -217,8 +213,7 @@ class HandshakeExecutor(
           metrics.logHandshakeResult(state.transportEvent, device, isRecoveryHandshake)
           if (previousState is HandshakeState.UnknownSupported) {
             metrics.logHandshakeConversion(
-              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
-                .FROM_UNKNOWN_TO_NOT_SUPPORTED,
+              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_NOT_SUPPORTED,
               device,
               isRecoveryHandshake,
             )
@@ -233,8 +228,7 @@ class HandshakeExecutor(
             // For example if a device was plugged in while locked and unplugged before ever being
             // unlocked.
             metrics.logHandshakeConversion(
-              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion
-                .FROM_UNKNOWN_TO_DISCONNECTED,
+              DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion.FROM_UNKNOWN_TO_DISCONNECTED,
               device,
               isRecoveryHandshake,
             )
@@ -247,35 +241,25 @@ class HandshakeExecutor(
     }
 
   /**
-   * Sends the command that initiates the handshake, the device will respond by sending an event of
-   * type LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED.
+   * Sends the command that initiates the handshake, the device will respond by sending an event of type
+   * LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED.
    */
   private fun sendStartHandshakeCommand(stream: Stream) {
-    scope.launch {
-      transportClient.sendCommand(
-        Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
-        stream.streamId,
-      )
-    }
+    scope.launch { transportClient.sendCommand(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED, stream.streamId) }
   }
 }
 
 sealed class HandshakeState {
 
   /**
-   * It's not known if the device supports foreground process detection. When the state is
-   * [UnknownSupported], we keep initiating the handshake periodically until the state converges to
-   * [Supported] or [NotSupported], or the device is unplugged.
+   * It's not known if the device supports foreground process detection. When the state is [UnknownSupported], we keep initiating the
+   * handshake periodically until the state converges to [Supported] or [NotSupported], or the device is unplugged.
    */
-  data class UnknownSupported(
-    val transportEvent: LayoutInspector.TrackingForegroundProcessSupported
-  ) : HandshakeState()
+  data class UnknownSupported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) : HandshakeState()
 
-  data class Supported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) :
-    HandshakeState()
+  data class Supported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) : HandshakeState()
 
-  data class NotSupported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) :
-    HandshakeState()
+  data class NotSupported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) : HandshakeState()
 
   object Connected : HandshakeState()
 

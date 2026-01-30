@@ -30,7 +30,9 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
   private var lastValue: Annotated<ParsedValue<ValueT>>? = null
 
   abstract fun initEditorFor(row: Int): ModelPropertyEditor<ValueT>
+
   abstract fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any
+
   open fun valueEdited() = Unit
 
   override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
@@ -54,9 +56,7 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
         lastValue = currentRowProperty?.getParsedValue()
         currentRow = -1
         currentRowProperty = null
-        lastEditor?.let {
-          Disposer.dispose(it)
-        }
+        lastEditor?.let { Disposer.dispose(it) }
         lastEditor = null
         fireEditingStopped()
         true
@@ -69,9 +69,7 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
     lastValue = null
     currentRow = -1
     currentRowProperty = null
-    lastEditor?.let {
-      Disposer.dispose(it)
-    }
+    lastEditor?.let { Disposer.dispose(it) }
     lastEditor = null
     super.cancelCellEditing()
   }

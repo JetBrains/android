@@ -23,8 +23,8 @@ import javax.swing.JComponent
 /**
  * Abstraction over the UI component used to evaluate user-defined SQL statements.
  *
- * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid
- * direct dependency on the UI implementation.
+ * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid direct dependency on the UI
+ * implementation.
  *
  * @see [SqliteEvaluatorView.Listener] for the listener interface.
  */
@@ -54,8 +54,7 @@ interface SqliteEvaluatorView {
   fun setQueryHistory(queries: List<String>)
 
   /**
-   * Shows a panel that shows [message] to the user. [message] will be rendered on multiple lines if
-   * contains "\n"
+   * Shows a panel that shows [message] to the user. [message] will be rendered on multiple lines if contains "\n"
    *
    * The panel hides the table.
    */

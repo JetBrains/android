@@ -37,15 +37,11 @@ object TestUtils {
   private const val TEST_ELEMENT_HEIGHT = 10
   private const val TEST_ELEMENT_ROW_HEIGHT = 100
 
-  fun TimelinePanel.scanForTooltips(): Set<TooltipInfo> =
-    this.sliderUI.elements.flatMap { it.scanForTooltips(this.size) }.toSet()
+  fun TimelinePanel.scanForTooltips(): Set<TooltipInfo> = this.sliderUI.elements.flatMap { it.scanForTooltips(this.size) }.toSet()
 
   fun TimelineElement.scanForTooltips(dimension: Dimension): Set<TooltipInfo> {
     val set = mutableSetOf<TooltipInfo>()
-    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5) this.getTooltip(
-        Point(x, y)
-      )
-      ?.let { set.add(it) }
+    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5) this.getTooltip(Point(x, y))?.let { set.add(it) }
     return set
   }
 
@@ -54,12 +50,10 @@ object TestUtils {
     private val x: Int,
     private val y: Int,
     valueOffset: Int = 0,
-    frozenState: SupportedAnimationManager.FrozenState =
-      SupportedAnimationManager.FrozenState(false),
+    frozenState: SupportedAnimationManager.FrozenState = SupportedAnimationManager.FrozenState(false),
   ) : TimelineElement(frozenState, x, x + TEST_ELEMENT_WIDTH) {
     override fun contains(x: Int, y: Int): Boolean {
-      return x in this.x + 0..this.x + TEST_ELEMENT_WIDTH &&
-        y in this.y..this.y + TEST_ELEMENT_HEIGHT
+      return x in this.x + 0..this.x + TEST_ELEMENT_WIDTH && y in this.y..this.y + TEST_ELEMENT_HEIGHT
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
@@ -68,8 +62,7 @@ object TestUtils {
       g.fillRect(x, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }
 
-    override fun getTooltip(point: Point): TooltipInfo? =
-      if (contains(point)) TooltipInfo("$x", "$y") else null
+    override fun getTooltip(point: Point): TooltipInfo? = if (contains(point)) TooltipInfo("$x", "$y") else null
   }
 
   /** Create [TimelinePanel] with 300x500 size. */
@@ -86,9 +79,7 @@ object TestUtils {
   }
 
   fun assertBigger(minimumSize: Dimension, actualSize: Dimension) =
-    Assert.assertTrue(
-      minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height
-    )
+    Assert.assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
 
   fun AnimationCard.findExpandButton(): Component {
     return (this.component.components[0] as Container).components[0]
@@ -103,16 +94,10 @@ object TestUtils {
       .first { it.place == place }
   }
 
-  fun createPlaybackPlaceHolder() =
-    JLabel("Playback placeholder").apply { background = JBColor.blue }
+  fun createPlaybackPlaceHolder() = JLabel("Playback placeholder").apply { background = JBColor.blue }
 
-  fun createTimelinePlaceHolder() =
-    JLabel("Timeline placeholder").apply { background = JBColor.pink }
+  fun createTimelinePlaceHolder() = JLabel("Timeline placeholder").apply { background = JBColor.pink }
 
   fun findAllCards(parent: Component): List<Card> =
-    TreeWalker(parent)
-      .descendantStream()
-      .filter { it is Card }
-      .collect(Collectors.toList())
-      .map { it as Card }
+    TreeWalker(parent).descendantStream().filter { it is Card }.collect(Collectors.toList()).map { it as Card }
 }

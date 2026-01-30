@@ -57,10 +57,7 @@ internal class EditVirtualDeviceDialog(
   }
 
   private val deviceNameValidator =
-    DeviceNameValidator.createForAvdManager(
-      avdManager,
-      currentName = avdInfo.displayName.takeIf { mode == Mode.EDIT },
-    )
+    DeviceNameValidator.createForAvdManager(avdManager, currentName = avdInfo.displayName.takeIf { mode == Mode.EDIT })
   private val avdBuilder =
     AvdBuilder.createForExistingDevice(baseDevice, avdInfo).apply {
       if (mode == Mode.DUPLICATE) {
@@ -102,12 +99,9 @@ internal class EditVirtualDeviceDialog(
     suspend fun show(project: Project?, parent: Component?, avdInfo: AvdInfo, mode: Mode): Boolean {
       val skins =
         withContext(AndroidDispatchers.workerThread) {
-          SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
-            .toImmutableList()
+          SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
         }
-      val baseDevice =
-        DeviceManagerConnection.getDefaultDeviceManagerConnection()
-          .getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)
+      val baseDevice = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice(avdInfo.deviceName, avdInfo.deviceManufacturer)
 
       if (baseDevice == null) {
         withContext(AndroidDispatchers.uiThread) {
@@ -120,16 +114,10 @@ internal class EditVirtualDeviceDialog(
         return false
       }
 
-      val systemImageFlow =
-        ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      val systemImageFlow = ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
       val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageFlow, skins)
       return withContext(AndroidDispatchers.uiThread) {
-        val wizard =
-          with(dialog) {
-            ComposeWizard(project, "Edit Device", parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) {
-              Page()
-            }
-          }
+        val wizard = with(dialog) { ComposeWizard(project, "Edit Device", parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { Page() } }
         wizard.showAndGet()
       }
     }

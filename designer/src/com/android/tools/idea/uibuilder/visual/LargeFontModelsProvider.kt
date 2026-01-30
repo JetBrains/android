@@ -42,18 +42,9 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
   // scale factors here matches the framework.
   @VisibleForTesting
   val SCALE_TO_DISPLAY_NAME_PAIRS =
-    mutableListOf(
-      (1f to "Default (100%)"),
-      (0.85f to "Small (85%)"),
-      (1.15f to "Large (115%)"),
-      (1.3f to "Largest (130%)"),
-    )
+    mutableListOf((1f to "Default (100%)"), (0.85f to "Small (85%)"), (1.15f to "Large (115%)"), (1.3f to "Largest (130%)"))
 
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -70,19 +61,12 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel =
-        NlModel.Builder(parentDisposable, buildTarget, virtualFile, fontConfig)
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+        NlModel.Builder(parentDisposable, buildTarget, virtualFile, fontConfig).withComponentRegistrar(NlComponentRegistrar).build()
       fontModel.displaySettings.setTooltip(fontConfig.toHtmlTooltip())
       fontModel.displaySettings.setDisplayName(displayName)
       models.add(fontModel)
 
-      registerModelsProviderConfigurationListener(
-        fontModel,
-        defaultConfig,
-        fontConfig,
-        EFFECTIVE_FLAGS,
-      )
+      registerModelsProviderConfigurationListener(fontModel, defaultConfig, fontConfig, EFFECTIVE_FLAGS)
     }
 
     return models

@@ -27,11 +27,7 @@ data class AppInsightsIssue(
 ) {
   val id: IssueId = issueDetails.id
 
-  fun incrementNotesCount() =
-    copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
+  fun incrementNotesCount() = copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
 
-  fun decrementNotesCount() =
-    copy(
-      issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0))
-    )
+  fun decrementNotesCount() = copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0)))
 }

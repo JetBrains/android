@@ -38,8 +38,7 @@ import org.junit.Test
 class GridLayoutManagerTest {
   private val gridLayoutManager: GridLayoutManager = createGridLayoutManager()
 
-  private val regularPadding =
-    OrganizationPadding(25, 10, 20, 30, 40, { 5 }, { _, _ -> 5 }, { _, _ -> 5 })
+  private val regularPadding = OrganizationPadding(25, 10, 20, 30, 40, { 5 }, { _, _ -> 5 }, { _, _ -> 5 })
 
   @Test
   fun measureEmpty() {
@@ -215,11 +214,7 @@ class GridLayoutManagerTest {
 
     (20..9000 step 30).forEach { size ->
       val fitScale = manager.getFitIntoScale(content, size, size)
-      assertTrue(
-        "fitScale $fitScale should be bigger than prevFitScale $prevFitScale, size $size"
-      ) {
-        fitScale >= prevFitScale
-      }
+      assertTrue("fitScale $fitScale should be bigger than prevFitScale $prevFitScale, size $size") { fitScale >= prevFitScale }
       prevFitScale = fitScale
     }
   }
@@ -256,8 +251,7 @@ class GridLayoutManagerTest {
     val group = OrganizationGroup("1", "1")
     val row1 = (1..3).map { TestPositionableContent(group, Dimension(30, 22)) }
     val row2 = listOf(TestPositionableContent(group, Dimension(30, 22)))
-    val layoutGroup =
-      GridLayoutGroup(HeaderTestPositionableContent(group, Dimension(100, 16)), listOf(row1, row2))
+    val layoutGroup = GridLayoutGroup(HeaderTestPositionableContent(group, Dimension(100, 16)), listOf(row1, row2))
     val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
     assertEquals(Dimension(145, 75), manager.getGroupSize(layoutGroup, { 1.0 }))
     assertEquals(Dimension(100, 45), manager.getGroupSize(layoutGroup, { 0.5 }))
@@ -274,18 +268,10 @@ class GridLayoutManagerTest {
       val initialWidth = 500
       val initialScale = 1.0
       val initialLayoutGroup =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = initialWidth,
-        )
+        gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = initialWidth)
 
       val layoutGroupWithDifferentContent =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = initialWidth,
-        )
+        gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = initialWidth)
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
     }
@@ -301,60 +287,31 @@ class GridLayoutManagerTest {
       val initialWidth = 10
       val initialScale = 1.0
       val initialLayoutGroup =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = initialWidth,
-        )
+        gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = initialWidth)
 
       // Now we are changing width in the surface should change layoutGroup when the
       // SCROLLABLE_ZOOM_ON_GRID
       // flag is enabled
       var widthChange = 60
-      val layoutGroup0 =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = widthChange,
-        )
+      val layoutGroup0 = gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = widthChange)
 
       // We are changing the
       assertNotEquals(initialLayoutGroup, layoutGroup0)
 
       widthChange = 200
-      val layoutGroup1 =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = widthChange,
-        )
+      val layoutGroup1 = gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = widthChange)
       assertNotEquals(layoutGroup0, layoutGroup1)
 
       widthChange = 10
-      val layoutGroup2 =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = widthChange,
-        )
+      val layoutGroup2 = gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = widthChange)
       assertNotEquals(layoutGroup1, layoutGroup2)
 
       widthChange = 2000
-      val layoutGroup3 =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = widthChange,
-        )
+      val layoutGroup3 = gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = widthChange)
       assertNotEquals(layoutGroup2, layoutGroup3)
 
       widthChange = 5000
-      val layoutGroup4 =
-        gridLayoutManager.createLayoutGroups(
-          groups = groups,
-          scaleFunc = { initialScale },
-          availableWidth = widthChange,
-        )
+      val layoutGroup4 = gridLayoutManager.createLayoutGroups(groups = groups, scaleFunc = { initialScale }, availableWidth = widthChange)
       assertNotEquals(layoutGroup3, layoutGroup4)
     }
   }
@@ -450,8 +407,7 @@ class GridLayoutManagerTest {
     // However, we also expect that the height is not smaller than a certain tolerance.
     // Delta value is chosen by the minimum height of the content (headers excluded), if the test
     // fails means fitScale is not properly calculated as there were more space to fill-in.
-    val heightDelta =
-      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    val heightDelta = contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
     assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
 
     // We expect the results to fit the available space, since it is organized in groups we have
@@ -534,8 +490,7 @@ class GridLayoutManagerTest {
     // However, we also expect that the height is not smaller than a certain tolerance.
     // Delta value is chosen by the minimum height of the content (headers excluded), if the test
     // fails means fitScale is not properly calculated as there were more space to fill-in.
-    val heightDelta =
-      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    val heightDelta = contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
     assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
 
     // We expect the results to fit the available space, since we have mixed grouped and ungrouped
@@ -563,15 +518,13 @@ class GridLayoutManagerTest {
 
     assertNull(manager.getCurrentCachedSizeForTestOnly())
 
-    val firstNewSize =
-      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 800)
+    val firstNewSize = manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 800)
 
     val cachedSizeAfterFirstGetSize = manager.getCurrentCachedSizeForTestOnly()
     assertEquals(firstNewSize, cachedSizeAfterFirstGetSize)
 
     // Check cache updates after availableWidth update
-    val newSizeAfterWidthChange =
-      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    val newSizeAfterWidthChange = manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
     val cachedSizeAfterWidthChange = manager.getCurrentCachedSizeForTestOnly()
 
     // The cache has been updated
@@ -580,8 +533,7 @@ class GridLayoutManagerTest {
 
     // Check cache updates after content update
     (contents.first() as TestPositionableContent).setSize(Dimension(10000, 10000))
-    val newSizeAfterContentUpdate =
-      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    val newSizeAfterContentUpdate = manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
     val cachedSizeAfterContentUpdate = manager.getCurrentCachedSizeForTestOnly()
 
     // The cache has been updated
@@ -589,8 +541,7 @@ class GridLayoutManagerTest {
     assertEquals(newSizeAfterContentUpdate, cachedSizeAfterContentUpdate)
 
     // Call getSize with the same values
-    val cachedSize =
-      manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
+    val cachedSize = manager.getSize(content = contents, scaleFunc = { scale }, availableWidth = 700)
     // CachedSize returns the same object of the previously cached value because no cache has been
     // updated
     assertSame(cachedSize, cachedSizeAfterContentUpdate)

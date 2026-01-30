@@ -19,9 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 
-/**
- * Project level root disposable for use by 16 KB alerting.
- */
+/** Project level root disposable for use by 16 KB alerting. */
 @Service(Service.Level.PROJECT)
 class PageAlignDisposable : Disposable {
   companion object {
@@ -30,5 +28,6 @@ class PageAlignDisposable : Disposable {
       return project.getService(PageAlignDisposable::class.java)
     }
   }
-  override fun dispose() { }
+
+  override fun dispose() {}
 }

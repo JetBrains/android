@@ -46,10 +46,11 @@ interface TestSuiteViewAdaptor {
 
       TestEventType.ON_OUTPUT -> {
         val output = GradleXmlTestEventConverter.decode(xml.testEventTest.trim())
-        val outputContentType = when (xml.testEventTestDescription) {
-          "StdOut" -> OutputContentType.STD_OUT
-          else -> OutputContentType.STD_ERR
-        }
+        val outputContentType =
+          when (xml.testEventTestDescription) {
+            "StdOut" -> OutputContentType.STD_OUT
+            else -> OutputContentType.STD_ERR
+          }
         onOutput(testIdentifier, output, outputContentType, executionConsole)
       }
 
@@ -60,20 +61,19 @@ interface TestSuiteViewAdaptor {
   }
 
   fun onBeforeSuite(testIdentifier: TestIdentifier, executionConsole: AndroidTestSuiteView)
+
   fun onBeforeTest(testIdentifier: TestIdentifier, executionConsole: AndroidTestSuiteView)
+
   fun onAfterTest(testIdentifier: TestIdentifier, result: OperationResult, executionConsole: AndroidTestSuiteView)
+
   fun onAfterSuite(testIdentifier: TestIdentifier, result: OperationResult, executionConsole: AndroidTestSuiteView)
+
   fun onOutput(testIdentifier: TestIdentifier, output: String, contentType: OutputContentType, executionConsole: AndroidTestSuiteView)
 
-  data class TestIdentifier(
-    val id: String,
-    val parentId: String,
-    val name: String,
-    val className: String,
-  )
+  data class TestIdentifier(val id: String, val parentId: String, val name: String, val className: String)
 
   enum class OutputContentType {
     STD_OUT,
-    STD_ERR
+    STD_ERR,
   }
 }

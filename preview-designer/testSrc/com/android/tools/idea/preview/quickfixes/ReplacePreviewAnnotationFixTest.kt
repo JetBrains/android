@@ -44,9 +44,9 @@ class ReplacePreviewAnnotationFixTest {
       "src/invalid/Preview.kt",
       // language=kotlin
       """
-        package invalid
+      package invalid
 
-        annotation class Preview(val device: String = "")
+      annotation class Preview(val device: String = "")
       """
         .trimIndent(),
     )
@@ -54,9 +54,9 @@ class ReplacePreviewAnnotationFixTest {
       "src/valid/Preview.kt",
       // language=kotlin
       """
-        package valid
+      package valid
 
-        annotation class Preview(val device: String = "")
+      annotation class Preview(val device: String = "")
       """
         .trimIndent(),
     )
@@ -68,12 +68,12 @@ class ReplacePreviewAnnotationFixTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package test
+      package test
 
-        import invalid.Preview
+      import invalid.Preview
 
-        @Preview
-        fun somePreview() {}
+      @Preview
+      fun somePreview() {}
       """
         .trimIndent(),
     )
@@ -92,12 +92,12 @@ class ReplacePreviewAnnotationFixTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package test
+      package test
 
-        import invalid.Preview
+      import invalid.Preview
 
-        @Preview
-        fun somePreview() {}
+      @Preview
+      fun somePreview() {}
       """
         .trimIndent(),
     )
@@ -107,12 +107,12 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=kotlin
       """
-        package test
+      package test
 
-        import valid.Preview
+      import valid.Preview
 
-        @Preview
-        fun somePreview() {}
+      @Preview
+      fun somePreview() {}
       """
         .trimIndent()
     )
@@ -124,15 +124,15 @@ class ReplacePreviewAnnotationFixTest {
       JavaFileType.INSTANCE,
       // language=java
       """
-        package test;
+      package test;
 
-        import invalid.Preview;
+      import invalid.Preview;
 
-        class Test {
-          @Preview
-          void somePreview() {
-          }
+      class Test {
+        @Preview
+        void somePreview() {
         }
+      }
       """
         .trimIndent(),
     )
@@ -142,15 +142,15 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=java
       """
-        package test;
+      package test;
 
-        import valid.Preview;
+      import valid.Preview;
 
-        class Test {
-          @Preview
-          void somePreview() {
-          }
+      class Test {
+        @Preview
+        void somePreview() {
         }
+      }
       """
         .trimIndent()
     )
@@ -162,12 +162,12 @@ class ReplacePreviewAnnotationFixTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package test
+      package test
 
-        import invalid.Preview
+      import invalid.Preview
 
-        @Preview(device = "some device")
-        fun somePreview() {}
+      @Preview(device = "some device")
+      fun somePreview() {}
       """
         .trimIndent(),
     )
@@ -177,12 +177,12 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=kotlin
       """
-        package test
+      package test
 
-        import valid.Preview
+      import valid.Preview
 
-        @Preview(device = "some device")
-        fun somePreview() {}
+      @Preview(device = "some device")
+      fun somePreview() {}
       """
         .trimIndent()
     )
@@ -194,15 +194,15 @@ class ReplacePreviewAnnotationFixTest {
       JavaFileType.INSTANCE,
       // language=java
       """
-        package test;
+      package test;
 
-        import invalid.Preview;
+      import invalid.Preview;
 
-        class Test {
-          @Preview(device = "some device")
-          void somePreview() {
-          }
+      class Test {
+        @Preview(device = "some device")
+        void somePreview() {
         }
+      }
       """
         .trimIndent(),
     )
@@ -212,15 +212,15 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=java
       """
-        package test;
+      package test;
 
-        import valid.Preview;
+      import valid.Preview;
 
-        class Test {
-          @Preview(device = "some device")
-          void somePreview() {
-          }
+      class Test {
+        @Preview(device = "some device")
+        void somePreview() {
         }
+      }
       """
         .trimIndent()
     )
@@ -232,10 +232,10 @@ class ReplacePreviewAnnotationFixTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package test
+      package test
 
-        @invalid.Preview
-        fun somePreview() {}
+      @invalid.Preview
+      fun somePreview() {}
       """
         .trimIndent(),
     )
@@ -245,12 +245,12 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=kotlin
       """
-        package test
+      package test
 
-        import valid.Preview
+      import valid.Preview
 
-        @Preview
-        fun somePreview() {}
+      @Preview
+      fun somePreview() {}
       """
         .trimIndent()
     )
@@ -262,13 +262,13 @@ class ReplacePreviewAnnotationFixTest {
       JavaFileType.INSTANCE,
       // language=java
       """
-        package test;
+      package test;
 
-        class Test {
-          @invalid.Preview
-          void somePreview() {
-          }
+      class Test {
+        @invalid.Preview
+        void somePreview() {
         }
+      }
       """
         .trimIndent(),
     )
@@ -278,15 +278,15 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=java
       """
-        package test;
+      package test;
 
-        import valid.Preview;
+      import valid.Preview;
 
-        class Test {
-          @Preview
-          void somePreview() {
-          }
+      class Test {
+        @Preview
+        void somePreview() {
         }
+      }
       """
         .trimIndent()
     )
@@ -298,15 +298,15 @@ class ReplacePreviewAnnotationFixTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package test
+      package test
 
-        import invalid.Preview
+      import invalid.Preview
 
-        @Preview
-        fun somePreview() {}
+      @Preview
+      fun somePreview() {}
 
-        @Preview
-        fun anotherPreview() {}
+      @Preview
+      fun anotherPreview() {}
       """
         .trimIndent(),
     )
@@ -316,15 +316,15 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=kotlin
       """
-        package test
+      package test
 
-        import invalid.Preview
+      import invalid.Preview
 
-        @valid.Preview
-        fun somePreview() {}
+      @valid.Preview
+      fun somePreview() {}
 
-        @Preview
-        fun anotherPreview() {}
+      @Preview
+      fun anotherPreview() {}
       """
         .trimIndent()
     )
@@ -336,19 +336,19 @@ class ReplacePreviewAnnotationFixTest {
       JavaFileType.INSTANCE,
       // language=java
       """
-        package test;
+      package test;
 
-        import invalid.Preview;
+      import invalid.Preview;
 
-        class Test {
-          @Preview
-          void somePreview() {
-          }
-
-          @Preview
-          void anotherPreview() {
-          }
+      class Test {
+        @Preview
+        void somePreview() {
         }
+
+        @Preview
+        void anotherPreview() {
+        }
+      }
       """
         .trimIndent(),
     )
@@ -358,19 +358,19 @@ class ReplacePreviewAnnotationFixTest {
     fixture.checkResult(
       // language=java
       """
-        package test;
+      package test;
 
-        import invalid.Preview;
+      import invalid.Preview;
 
-        class Test {
-          @valid.Preview
-          void somePreview() {
-          }
-
-          @Preview
-          void anotherPreview() {
-          }
+      class Test {
+        @valid.Preview
+        void somePreview() {
         }
+
+        @Preview
+        void anotherPreview() {
+        }
+      }
       """
         .trimIndent()
     )
@@ -381,12 +381,7 @@ class ReplacePreviewAnnotationFixTest {
       runReadAction {
         val invalidAnnotation = fixture.findElementByText(searchText, T::class.java)
         ReplacePreviewAnnotationFix(invalidAnnotation, withAnnotationFqn = "valid.Preview").takeIf {
-          it.isAvailable(
-            fixture.project,
-            invalidAnnotation.containingFile,
-            invalidAnnotation,
-            invalidAnnotation,
-          )
+          it.isAvailable(fixture.project, invalidAnnotation.containingFile, invalidAnnotation, invalidAnnotation)
         }
       } ?: return
     WriteCommandAction.runWriteCommandAction(project) { fix.applyFix() }

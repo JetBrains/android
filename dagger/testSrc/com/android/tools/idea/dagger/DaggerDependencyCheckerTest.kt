@@ -39,8 +39,7 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
     super.setUp()
 
     val projectBuilder = JavaTestFixtureFactory.createFixtureBuilder(name)
-    myFixture =
-      JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
 
     val daggerLibFixture = newModule(projectBuilder, "DaggerDependencyCheckerTest_dagger")
     val appModuleFixture = newModule(projectBuilder, "DaggerDependencyCheckerTest_app")
@@ -61,10 +60,7 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
     }
   }
 
-  private fun newModule(
-    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    contentRoot: String,
-  ): ModuleFixture {
+  private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {
     val firstProjectBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder::class.java)
     val tempDirPath = myFixture.tempDirPath
 
@@ -82,10 +78,10 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
         "DaggerDependencyCheckerTest_app/src/test/MyClass.java",
         // language=JAVA
         """
-      package test;
+        package test;
 
-      public class MyClass {}
-      """
+        public class MyClass {}
+        """
           .trimIndent(),
       )
 

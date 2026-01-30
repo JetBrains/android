@@ -47,12 +47,19 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
   private val tables = listOf("versions", "libraries", "plugins", "bundles")
 
   override fun getContext(): BuildModelContext = context
+
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
+
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
+
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
+
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
+
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
+
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = maybeUpdateName(expressionMap)
+
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = maybeUpdateName(element)
 
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? = createDslElement(expressionMap)
@@ -60,7 +67,9 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
   override fun createDslLiteral(literal: GradleDslLiteral) = createDslElement(literal)
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    element.psiElement?.let { return it }
+    element.psiElement?.let {
+      return it
+    }
     val parentPsiElement = ensureParentPsi(element) ?: return null
     val project = parentPsiElement.project
     val factory = TomlPsiFactory(project)
@@ -68,22 +77,26 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
 
     val name = normalizeName(element.fullName)
 
-    val psi = when (element.parent) {
-      is GradleDslFile -> when (element) {
-        is GradleDslExpressionMap -> factory.createTable(name)
-        else -> factory.createKeyValue(name, "\"placeholder\"")
+    val psi =
+      when (element.parent) {
+        is GradleDslFile ->
+          when (element) {
+            is GradleDslExpressionMap -> factory.createTable(name)
+            else -> factory.createKeyValue(name, "\"placeholder\"")
+          }
+        is GradleDslExpressionList ->
+          when (element) {
+            is GradleDslExpressionList -> factory.createArray("")
+            is GradleDslExpressionMap -> factory.createInlineTable(" ")
+            else -> factory.createLiteral("\"placeholder\"")
+          }
+        else ->
+          when (element) {
+            is GradleDslExpressionMap -> factory.createKeyValue(name, "{ }")
+            is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
+            else -> factory.createKeyValue(name, "\"placeholder\"")
+          }
       }
-      is GradleDslExpressionList -> when (element) {
-        is GradleDslExpressionList -> factory.createArray("")
-        is GradleDslExpressionMap -> factory.createInlineTable(" ")
-        else -> factory.createLiteral("\"placeholder\"")
-      }
-      else -> when (element) {
-        is GradleDslExpressionMap -> factory.createKeyValue(name, "{ }")
-        is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
-        else -> factory.createKeyValue(name, "\"placeholder\"")
-      }
-    }
 
     if (psi is TomlTable && name in tables) {
       return insertTable(psi, parentPsiElement, element, factory)
@@ -95,17 +108,20 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
 
     if (anchor != null) {
       when (parentPsiElement) {
-        is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
-        is TomlInlineTable -> when {
-          parentPsiElement.entries.size == 1 -> Unit
-          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> parentPsiElement.addAfter(comma, addedElement)
-          else -> parentPsiElement.addBefore(comma, addedElement)
-        }
-        is TomlArray -> when {
-          parentPsiElement.elements.size == 1 -> Unit
-          anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_BRACKET -> parentPsiElement.addAfter(comma, addedElement)
-          else -> parentPsiElement.addBefore(comma, addedElement)
-        }
+        is TomlTable,
+        is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
+        is TomlInlineTable ->
+          when {
+            parentPsiElement.entries.size == 1 -> Unit
+            anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> parentPsiElement.addAfter(comma, addedElement)
+            else -> parentPsiElement.addBefore(comma, addedElement)
+          }
+        is TomlArray ->
+          when {
+            parentPsiElement.elements.size == 1 -> Unit
+            anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_BRACKET -> parentPsiElement.addAfter(comma, addedElement)
+            else -> parentPsiElement.addBefore(comma, addedElement)
+          }
       }
     }
 
@@ -123,13 +139,15 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
     val parentPsi = ensureParentPsi(element)
     when (parent) {
       is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
-      is GradleDslExpressionMap -> when (parentPsi) {
-        is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
-        is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(element, psiElement, parent)
-      }
-      is GradleDslExpressionList -> when (parentPsi) {
-        is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(element, psiElement, parent)
-      }
+      is GradleDslExpressionMap ->
+        when (parentPsi) {
+          is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+          is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(element, psiElement, parent)
+        }
+      is GradleDslExpressionList ->
+        when (parentPsi) {
+          is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(element, psiElement, parent)
+        }
     }
   }
 
@@ -147,19 +165,17 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
       val addedElement = file.addAfter(psiElement, null)
       if (existingTables.isNotEmpty()) file.addAfter(factory.createNewline(), addedElement)
       addedElement
-    }
-    else {
-      val addedElement = file.addAfter(psiElement, existingTables[position.index-1])
+    } else {
+      val addedElement = file.addAfter(psiElement, existingTables[position.index - 1])
       file.addBefore(factory.createNewline(), addedElement)
       addedElement
     }
   }
 
-
   private fun TomlTable.orderIndex() = tables.indexOf(header.key?.text)
 
   private fun getAnchorPsi(parent: PsiElement, dslAnchor: GradleDslAnchor?): PsiElement? {
-    var anchor = (dslAnchor as? GradleDslAnchor.After)?.let{ findLastPsiElementIn(it.dslElement) }
+    var anchor = (dslAnchor as? GradleDslAnchor.After)?.let { findLastPsiElementIn(it.dslElement) }
     if (anchor == null && (parent is TomlInlineTable || parent is TomlArray)) return parent.firstChild
     if (anchor == null && parent is TomlTable) return parent.header
     while (anchor != null && anchor.parent != parent) {
@@ -208,13 +224,12 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
       oldName.setName(newName)
       element.nameElement.commitNameChange(oldName, this, element.parent)
     }
-
   }
 
   protected inline fun <T : GradlePropertiesDslElement, reified P : TomlElement> deletePsiParentOfTypeFromDslParent(
     element: GradleDslElement,
     psiElement: PsiElement,
-    parent: T
+    parent: T,
   ) {
     val parentElements = parent.originalElements
     val position = parentElements.indexOf(element).also { if (it < 0) return }
@@ -239,6 +254,6 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
   }
 
   protected fun TomlPsiFactory.createDot() = createKey("a.b").children[1]
-  protected fun TomlPsiFactory.createComma() = createInlineTable("a = \"b\", c = \"d\"").children[2]
 
+  protected fun TomlPsiFactory.createComma() = createInlineTable("a = \"b\", c = \"d\"").children[2]
 }

@@ -20,6 +20,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 
 interface SyncAnalyzerManager {
   fun updateSyncStatsData(id: ExternalSystemTaskId?, syncStats: GradleSyncStats.Builder)
+
   fun onSyncStarted(id: ExternalSystemTaskId?)
+
   fun onSyncFinished(id: ExternalSystemTaskId?)
 }

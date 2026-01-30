@@ -23,8 +23,7 @@ import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 
-class GetComposeLayoutInspectorJarGradleToken :
-  GetComposeLayoutInspectorJarToken<GradleProjectSystem>, GradleToken {
+class GetComposeLayoutInspectorJarGradleToken : GetComposeLayoutInspectorJarToken<GradleProjectSystem>, GradleToken {
   override fun getRequiredCompatibility(): LibraryCompatibility = COMPOSE_INSPECTION_COMPATIBILITY
 
   override fun handleCompatibilityAndComputeVersion(

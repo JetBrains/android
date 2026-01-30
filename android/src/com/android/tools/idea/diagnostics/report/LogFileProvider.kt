@@ -24,22 +24,25 @@ import java.nio.file.Paths
 private val JVM_CRASH_REGEX = Regex("^java_error_in_studio_[0-9]+.log$")
 
 /**
- * PathProvider contains various system paths used by the log file provider. It is used as a parameter in
- * order to allow testing of the LogFileProvider class.
+ * PathProvider contains various system paths used by the log file provider. It is used as a parameter in order to allow testing of the
+ * LogFileProvider class.
  */
 data class PathProvider(val logDir: String, val vmOptionsFile: Path?, val customOptionsDir: String?, val homeDir: String?)
 
-val DefaultPathProvider = PathProvider(PathManager.getLogPath(),
-                                       VMOptions.getUserOptionsFile(),
-                                       PathManager.getCustomOptionsDirectory(),
-                                       System.getProperty("user.home"))
+val DefaultPathProvider =
+  PathProvider(
+    PathManager.getLogPath(),
+    VMOptions.getUserOptionsFile(),
+    PathManager.getCustomOptionsDirectory(),
+    System.getProperty("user.home"),
+  )
 
 /**
- * LogFileProvider calculates the paths to various log and debugging files so
- * that they can be included in the diagnostic summary report.
+ * LogFileProvider calculates the paths to various log and debugging files so that they can be included in the diagnostic summary report.
  */
 class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSummaryFileProvider {
   override val name: String = "Logs"
+
   override fun getFiles(project: Project?): List<FileInfo> {
     val fileInfo = mutableListOf<FileInfo>()
 
@@ -48,9 +51,7 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
 
     fileInfo.add(FileInfo(logDirPath.resolve(logPath), logPath))
 
-    pathProvider.vmOptionsFile?.let {
-      fileInfo.add(FileInfo(it, it.fileName))
-    }
+    pathProvider.vmOptionsFile?.let { fileInfo.add(FileInfo(it, it.fileName)) }
 
     pathProvider.customOptionsDir?.let {
       val customOptionsPath = Paths.get(it)
@@ -59,16 +60,12 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
       fileInfo.add(FileInfo(propertiesFilePath, propertiesFileName))
     }
 
-    pathProvider.homeDir?.let {
-      fileInfo.addAll(getFiles(Paths.get(it)))
-    }
+    pathProvider.homeDir?.let { fileInfo.addAll(getFiles(Paths.get(it))) }
 
     return fileInfo
   }
 
-  /**
-   * getFiles returns all files matching the specified pattern within the specified directory
-   */
+  /** getFiles returns all files matching the specified pattern within the specified directory */
   private fun getFiles(root: Path) = sequence {
     val files = root.toFile().listFiles() ?: return@sequence
     for (file in files) {

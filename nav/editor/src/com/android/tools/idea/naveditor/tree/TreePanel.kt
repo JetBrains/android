@@ -58,10 +58,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
         .withComponentName("navComponentTree")
 
     val result = builder.build()
-    componentTree =
-      UiDataProvider.wrapComponent(result.component) { sink ->
-        DataSink.uiDataSnapshot(sink, designSurface)
-      }
+    componentTree = UiDataProvider.wrapComponent(result.component) { sink -> DataSink.uiDataSnapshot(sink, designSurface) }
 
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
@@ -103,8 +100,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
   }
 
   private fun contextSelectionChanged() {
-    componentTreeSelectionModel.currentSelection =
-      designSurface?.selectionModel?.selection ?: emptyList()
+    componentTreeSelectionModel.currentSelection = designSurface?.selectionModel?.selection ?: emptyList()
   }
 
   override fun getComponent() = componentTree
@@ -145,8 +141,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
     override fun textValueOf(node: NlComponent): String? = null
 
-    override fun iconOf(node: NlComponent): Icon =
-      node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
+    override fun iconOf(node: NlComponent): Icon = node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 
     override fun isEnabled(node: NlComponent) = true
 
@@ -154,8 +149,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
     override fun parentOf(node: NlComponent) = node.parent
 
-    override fun childrenOf(node: NlComponent) =
-      node.children.filter { it.isDestination || it.isAction }
+    override fun childrenOf(node: NlComponent) = node.children.filter { it.isDestination || it.isAction }
   }
 
   private inner class NlModelListener : ModelListener {
@@ -163,7 +157,6 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
     override fun modelLiveUpdate(model: NlModel) = updateLater(model)
 
-    private fun updateLater(model: NlModel) =
-      ApplicationManager.getApplication().invokeLater { update(model) }
+    private fun updateLater(model: NlModel) = ApplicationManager.getApplication().invokeLater { update(model) }
   }
 }

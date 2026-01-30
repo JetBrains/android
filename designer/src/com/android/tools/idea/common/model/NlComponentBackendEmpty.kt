@@ -18,10 +18,7 @@ package com.android.tools.idea.common.model
 import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.psi.xml.XmlTag
 
-/**
- * NlComponent backend based on an empty XmlTag. This is to be used for NlComponents that are not
- * associated with an XML tag.
- */
+/** NlComponent backend based on an empty XmlTag. This is to be used for NlComponents that are not associated with an XML tag. */
 class NlComponentBackendEmpty : NlComponentBackend {
   override val tag: XmlTag = EmptyXmlTag.INSTANCE
 

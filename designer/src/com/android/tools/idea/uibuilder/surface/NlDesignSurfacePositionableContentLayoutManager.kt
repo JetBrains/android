@@ -29,14 +29,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * [PositionableContentLayoutManager] for the [NlDesignSurface]. It uses a delegated
- * [SurfaceLayoutManager] to layout the different [PositionableContent]s. The [SurfaceLayoutManager]
- * can be switched at runtime.
+ * [PositionableContentLayoutManager] for the [NlDesignSurface]. It uses a delegated [SurfaceLayoutManager] to layout the different
+ * [PositionableContent]s. The [SurfaceLayoutManager] can be switched at runtime.
  */
-class NlDesignSurfacePositionableContentLayoutManager(
-  scope: CoroutineScope,
-  layoutOption: SurfaceLayoutOption,
-) : PositionableContentLayoutManager(scope), LayoutManagerSwitcher {
+class NlDesignSurfacePositionableContentLayoutManager(scope: CoroutineScope, layoutOption: SurfaceLayoutOption) :
+  PositionableContentLayoutManager(scope), LayoutManagerSwitcher {
 
   lateinit var surface: NlDesignSurface
 
@@ -50,29 +47,17 @@ class NlDesignSurfacePositionableContentLayoutManager(
 
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
-    currentLayout.layout(
-      content,
-      availableSize.width,
-      availableSize.height,
-      surface.isCanvasResizing,
-    )
+    currentLayout.layout(content, availableSize.width, availableSize.height, surface.isCanvasResizing)
   }
 
-  /**
-   * Get the fit into scale value which can display all the [PositionableContent] in the given
-   * [availableSize].
-   */
+  /** Get the fit into scale value which can display all the [PositionableContent] in the given [availableSize]. */
   fun getFitIntoScale(content: Collection<PositionableContent>, availableSize: Dimension): Double {
     return currentLayout.getFitIntoScale(content, availableSize.width, availableSize.height)
   }
 
-  override fun preferredLayoutSize(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Dimension {
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension {
     availableSize.size = surface.extentSize
-    val dimension =
-      currentLayout.getRequiredSize(content, availableSize.width, availableSize.height, null)
+    val dimension = currentLayout.getRequiredSize(content, availableSize.width, availableSize.height, null)
     dimension.setSize(
       max(surface.scrollableViewMinSize.width, dimension.width),
       max(surface.scrollableViewMinSize.height, dimension.height),

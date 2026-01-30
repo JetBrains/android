@@ -18,36 +18,28 @@ package com.android.tools.idea.analytics
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
-import com.android.tools.analytics.NullUsageTracker
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.startup.AndroidStudioAnalyticsImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ConsentOptionsProvider
 import com.intellij.ide.gdpr.ConsentConfigurable
 import com.intellij.ide.gdpr.DataSharingSettingsChangeListener
-import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Ignore
 import javax.swing.JCheckBox
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/**
- * Tests the data sharing checkbox in the settings/preferences ui.
- */
+/** Tests the data sharing checkbox in the settings/preferences ui. */
 @RunsInEdt
 class AnalyticsSettingsUiTest {
   val disposableRule = DisposableRule()
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule()).around(disposableRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule()).around(disposableRule)
 
   @Before
   fun setUp() {
@@ -58,7 +50,7 @@ class AnalyticsSettingsUiTest {
       .connect(disposableRule.disposable)
       .subscribe(DataSharingSettingsChangeListener.TOPIC, AndroidStudioAnalyticsImpl.MyDataSharingSettingsChangeListener())
 
-    System.setProperty("test.release.agreements", "true");
+    System.setProperty("test.release.agreements", "true")
   }
 
   @Test

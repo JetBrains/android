@@ -37,8 +37,7 @@ class ButtonSizeAnalyzerComposeTest {
   @Test
   fun testWideButton() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -52,12 +51,7 @@ class ButtonSizeAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("The button Button is too wide", issues[0].message)
@@ -66,8 +60,7 @@ class ButtonSizeAnalyzerComposeTest {
   @Test
   fun testNarrowButton() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -81,12 +74,7 @@ class ButtonSizeAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }

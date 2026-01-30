@@ -25,10 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 
 class ScrollInteractionTest : SceneTest() {
-  /**
-   * Converts the scene `TextView` components to a text representation that contains the x and y
-   * drawing coordinates as "X Y".
-   */
+  /** Converts the scene `TextView` components to a text representation that contains the x and y drawing coordinates as "X Y". */
   private fun textViewsToString(): String =
     myScene.sceneManager.scene.sceneComponents
       .filter { it.nlComponent.tagName == "TextView" }
@@ -44,12 +41,7 @@ class ScrollInteractionTest : SceneTest() {
         myScene.sceneManager.sceneViews.first(),
         myScene.sceneManager.sceneViews.first().firstComponent!!,
       )!!
-    val event =
-      MouseWheelEventBuilder(0, 0)
-        .withAmount(1)
-        .withScrollType(MouseWheelEvent.WHEEL_UNIT_SCROLL)
-        .withUnitToScroll(5)
-        .build()
+    val event = MouseWheelEventBuilder(0, 0).withAmount(1).withScrollType(MouseWheelEvent.WHEEL_UNIT_SCROLL).withUnitToScroll(5).build()
 
     scrollInteraction.update(MouseWheelMovedEvent(event, InteractionInformation(0, 0, 0)))
     // Unfortunately the render and layout triggered by the scroll will happen asynchronously
@@ -76,12 +68,7 @@ class ScrollInteractionTest : SceneTest() {
             .wrapContentHeight()
             .wrapContentWidth()
             .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withMockView()
-                .id("@id/myText1")
-                .withBounds(0, 0, 40, 1000)
-                .width("40dp")
-                .height("1000dp"),
+              component(SdkConstants.TEXT_VIEW).withMockView().id("@id/myText1").withBounds(0, 0, 40, 1000).width("40dp").height("1000dp"),
               component(SdkConstants.TEXT_VIEW)
                 .withMockView()
                 .id("@id/myText2")

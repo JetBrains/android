@@ -26,23 +26,27 @@ class UnknownHostIssueCheckerTest {
     val unknownHostIssueChecker = UnknownHostIssueChecker()
 
     Truth.assertThat(
-      unknownHostIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Gradle DSL method not found",
-        "java.net.UnknownHostException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        unknownHostIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Gradle DSL method not found",
+          "java.net.UnknownHostException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     Truth.assertThat(
-      unknownHostIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "this doesn't matter as the stacktrace.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(false)
+        unknownHostIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "this doesn't matter as the stacktrace.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(false)
   }
 }

@@ -32,18 +32,16 @@ import org.junit.Assert.assertThat
 
 /**
  * This test covers the same case as [ResolvedDependenciesTreeRootNodeTest] but for older versions of AGP where transitive dependency
- * information is not available in the mode. There should be no change in the resulting dependency tree apart from where the information
- * is being obtained from.
+ * information is not available in the mode. There should be no change in the resulting dependency tree apart from where the information is
+ * being obtained from.
  */
 @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.2"])
 @RunsInEdt
 class OldAgpResolvedDependenciesTreeRootNodeTest : ResolvedDependenciesTreeRootNodeTest() {
   override fun testTreeStructure() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY,
-                                                         agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
-    projectRule.psTestWithProject(preparedProject) {
-      project.runOldAgpTestAndroidTreeStructure()
-    }
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
+    projectRule.psTestWithProject(preparedProject) { project.runOldAgpTestAndroidTreeStructure() }
   }
 
   private fun PsProjectImpl.runOldAgpTestAndroidTreeStructure() {
@@ -51,84 +49,87 @@ class OldAgpResolvedDependenciesTreeRootNodeTest : ResolvedDependenciesTreeRootN
     val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
 
     // Note: indentation matters!
-    val expectedProjectStructure = """
-    app
-        freeDebug
-            mainModule
-                lib1:1.0 (com.example.libs)
-                    lib2:1.0 (com.example.libs)
-                        lib3:1.0 (com.example.jlib)
-                            lib4:1.0 (com.example.jlib)
-                lib3:0.6→1.0 (com.example.jlib)
-                    lib4:1.0 (com.example.jlib)
-        freeDebugAndroidTest
-            freeDebug
-                mainModule
-                    lib1:1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)
-                    lib3:0.6→1.0 (com.example.jlib)
-                        lib4:1.0 (com.example.jlib)
-        freeDebugUnitTest
-            freeDebug
-                mainModule
-                    lib1:1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)
-                    lib3:0.6→1.0 (com.example.jlib)
-                        lib4:1.0 (com.example.jlib)
-        freeRelease
-            mainModule
-                lib1:1.0,0.9.1→1.0 (com.example.libs)
-                    lib2:1.0 (com.example.libs)
-                        lib3:1.0 (com.example.jlib)
-                            lib4:1.0 (com.example.jlib)
-                lib3:0.6→1.0 (com.example.jlib)
-                    lib4:1.0 (com.example.jlib)
-        freeReleaseUnitTest
-            freeRelease
-                mainModule
-                    lib1:1.0,0.9.1→1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)
-                    lib3:0.6→1.0 (com.example.jlib)
-                        lib4:1.0 (com.example.jlib)
-        paidDebug
-            mainModule
-                lib1:1.0 (com.example.libs)
-                    lib2:1.0 (com.example.libs)
-                        lib3:1.0 (com.example.jlib)
-                            lib4:1.0 (com.example.jlib)
-        paidDebugAndroidTest
-            paidDebug
-                mainModule
-                    lib1:1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)
-        paidDebugUnitTest
-            paidDebug
-                mainModule
-                    lib1:1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)
-        paidRelease
-            mainModule
-                lib1:1.0,0.9.1→1.0 (com.example.libs)
-                    lib2:1.0 (com.example.libs)
-                        lib3:1.0 (com.example.jlib)
-                            lib4:1.0 (com.example.jlib)
-        paidReleaseUnitTest
-            paidRelease
-                mainModule
-                    lib1:1.0,0.9.1→1.0 (com.example.libs)
-                        lib2:1.0 (com.example.libs)
-                            lib3:1.0 (com.example.jlib)
-                                lib4:1.0 (com.example.jlib)""".trimIndent()
+    val expectedProjectStructure =
+      """
+      app
+          freeDebug
+              mainModule
+                  lib1:1.0 (com.example.libs)
+                      lib2:1.0 (com.example.libs)
+                          lib3:1.0 (com.example.jlib)
+                              lib4:1.0 (com.example.jlib)
+                  lib3:0.6→1.0 (com.example.jlib)
+                      lib4:1.0 (com.example.jlib)
+          freeDebugAndroidTest
+              freeDebug
+                  mainModule
+                      lib1:1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+                      lib3:0.6→1.0 (com.example.jlib)
+                          lib4:1.0 (com.example.jlib)
+          freeDebugUnitTest
+              freeDebug
+                  mainModule
+                      lib1:1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+                      lib3:0.6→1.0 (com.example.jlib)
+                          lib4:1.0 (com.example.jlib)
+          freeRelease
+              mainModule
+                  lib1:1.0,0.9.1→1.0 (com.example.libs)
+                      lib2:1.0 (com.example.libs)
+                          lib3:1.0 (com.example.jlib)
+                              lib4:1.0 (com.example.jlib)
+                  lib3:0.6→1.0 (com.example.jlib)
+                      lib4:1.0 (com.example.jlib)
+          freeReleaseUnitTest
+              freeRelease
+                  mainModule
+                      lib1:1.0,0.9.1→1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+                      lib3:0.6→1.0 (com.example.jlib)
+                          lib4:1.0 (com.example.jlib)
+          paidDebug
+              mainModule
+                  lib1:1.0 (com.example.libs)
+                      lib2:1.0 (com.example.libs)
+                          lib3:1.0 (com.example.jlib)
+                              lib4:1.0 (com.example.jlib)
+          paidDebugAndroidTest
+              paidDebug
+                  mainModule
+                      lib1:1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+          paidDebugUnitTest
+              paidDebug
+                  mainModule
+                      lib1:1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+          paidRelease
+              mainModule
+                  lib1:1.0,0.9.1→1.0 (com.example.libs)
+                      lib2:1.0 (com.example.libs)
+                          lib3:1.0 (com.example.jlib)
+                              lib4:1.0 (com.example.jlib)
+          paidReleaseUnitTest
+              paidRelease
+                  mainModule
+                      lib1:1.0,0.9.1→1.0 (com.example.libs)
+                          lib2:1.0 (com.example.libs)
+                              lib3:1.0 (com.example.jlib)
+                                  lib4:1.0 (com.example.jlib)
+      """
+        .trimIndent()
     val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))

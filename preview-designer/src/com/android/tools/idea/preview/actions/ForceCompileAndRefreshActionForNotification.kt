@@ -37,16 +37,11 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.util.ui.JBUI
 
 /**
- * [AnAction] that triggers a compilation of the current module. The build will automatically
- * trigger a refresh of the surface. The action visibility is controlled by the
- * [PreviewStatus.hasRefreshIcon]
+ * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface. The action
+ * visibility is controlled by the [PreviewStatus.hasRefreshIcon]
  */
 class ForceCompileAndRefreshActionForNotification private constructor() :
-  AnAction(
-    message("action.build.and.refresh.title"),
-    message("action.build.and.refresh.description"),
-    REFRESH_BUTTON,
-  ),
+  AnAction(message("action.build.and.refresh.title"), message("action.build.and.refresh.description"), REFRESH_BUTTON),
   RightAlignedToolbarAction,
   CustomComponentAction {
 
@@ -54,13 +49,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   companion object {
-    private const val ACTION_ID =
-      "Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
+    private const val ACTION_ID = "Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
 
     @JvmStatic
     fun getInstance(): ForceCompileAndRefreshActionForNotification =
-      ActionManager.getInstance().getAction(ACTION_ID)
-        as ForceCompileAndRefreshActionForNotification
+      ActionManager.getInstance().getAction(ACTION_ID) as ForceCompileAndRefreshActionForNotification
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -78,9 +71,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.
-      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-        surface.project.requestBuildArtifactsForRendering(it)
-      }
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuildArtifactsForRendering(it) }
     }
   }
 
@@ -88,37 +79,22 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
     val presentation = e.presentation
     val isRefreshing =
       e.dataContext.findPreviewManager(PREVIEW_VIEW_MODEL_STATUS)?.let {
-        e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
-          it.isRefreshing
-        }
+        e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) { it.isRefreshing }
       } ?: false
     presentation.isEnabled = !isRefreshing
-    templateText?.let {
-      presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
-    }
+    templateText?.let { presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false) }
 
     val project = e.project ?: return
     getStatusInfo(project, e.dataContext)?.let { e.presentation.isVisible = it.hasRefreshIcon }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place).apply {
-      border = JBUI.Borders.empty(1, 2)
-    }
+    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
 
-  /**
-   * Helper method for action wrappers depending on [ForceCompileAndRefreshActionForNotification] to
-   * have the same style
-   */
+  /** Helper method for action wrappers depending on [ForceCompileAndRefreshActionForNotification] to have the same style */
   fun createCustomComponent(action: AnAction, presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(action, presentation, place).apply {
-      border = JBUI.Borders.empty(1, 2)
-    }
+    ActionButtonWithToolTipDescription(action, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
 
   private fun requestBuildForSurface(surface: DesignSurface<*>) =
-    surface.models
-      .map { it.virtualFile }
-      .distinct()
-      .also { surface.project.requestBuildArtifactsForRendering(it) }
-      .isNotEmpty()
+    surface.models.map { it.virtualFile }.distinct().also { surface.project.requestBuildArtifactsForRendering(it) }.isNotEmpty()
 }

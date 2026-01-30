@@ -25,9 +25,7 @@ import com.intellij.openapi.actionSystem.Toggleable
 import java.util.stream.Collectors
 import javax.swing.Icon
 
-/**
- * A popup menu item that works for both single and multi-element selections.
- */
+/** A popup menu item that works for both single and multi-element selections. */
 abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : PopupMenuItem {
   override val text: String
     get() {
@@ -53,37 +51,36 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
       return isVisible(nodes)
     }
 
-  override val action: AnAction = object : ToggleAction() {
-    override fun update(e: AnActionEvent) {
-      val presentation = e.presentation
-      presentation.text = text
-      presentation.isEnabled = isEnabled
-      presentation.isVisible = isVisible
-      presentation.icon = icon
-      Toggleable.setSelected(presentation, isSelected(e))
-    }
+  override val action: AnAction =
+    object : ToggleAction() {
+      override fun update(e: AnActionEvent) {
+        val presentation = e.presentation
+        presentation.text = text
+        presentation.isEnabled = isEnabled
+        presentation.isVisible = isVisible
+        presentation.icon = icon
+        Toggleable.setSelected(presentation, isSelected(e))
+      }
 
-    override fun actionPerformed(e: AnActionEvent) {
-      run()
-      setSelected(e, !isSelected())
-    }
+      override fun actionPerformed(e: AnActionEvent) {
+        run()
+        setSelected(e, !isSelected())
+      }
 
-    override fun isSelected(e: AnActionEvent): Boolean {
-      return isSelected()
-    }
+      override fun isSelected(e: AnActionEvent): Boolean {
+        return isSelected()
+      }
 
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      setSelected(state)
-    }
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        setSelected(state)
+      }
 
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
-  }
+      override fun getActionUpdateThread() = ActionUpdateThread.EDT
+    }
 
   override fun run() {
     var nodes = listener.selectedNodes ?: return
-    nodes = nodes.stream().filter { node: DeviceFileEntryNode ->
-      this.isEnabled(node)
-    }.collect(Collectors.toList())
+    nodes = nodes.stream().filter { node: DeviceFileEntryNode -> this.isEnabled(node) }.collect(Collectors.toList())
     if (nodes.isNotEmpty()) {
       run(nodes)
     }
@@ -103,6 +100,7 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
 
   abstract fun run(nodes: List<DeviceFileEntryNode>)
 
-  abstract fun isSelected():Boolean
+  abstract fun isSelected(): Boolean
+
   abstract fun setSelected(selected: Boolean)
 }

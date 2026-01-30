@@ -25,8 +25,8 @@ import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
- * Abstraction used by [com.android.tools.idea.sqlite.controllers.DatabaseInspectorController] to
- * avoid direct dependency on the UI implementation.
+ * Abstraction used by [com.android.tools.idea.sqlite.controllers.DatabaseInspectorController] to avoid direct dependency on the UI
+ * implementation.
  *
  * @see [Listener] for the listener interface.
  */
@@ -42,12 +42,10 @@ interface DatabaseInspectorView {
   fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>)
 
   /**
-   * Updates the UI for an existing database, by adding and removing tables from its schema and
-   * columns from its tables.
+   * Updates the UI for an existing database, by adding and removing tables from its schema and columns from its tables.
    *
    * @param viewDatabase The database that needs to be updated.
-   * @param diffOperations List of operations to perform the diff of [viewDatabase]'s schema in the
-   *   view.
+   * @param diffOperations List of operations to perform the diff of [viewDatabase]'s schema in the view.
    */
   fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 
@@ -68,15 +66,10 @@ interface DatabaseInspectorView {
   /** If [state] is false, it prevents the refresh button from ever becoming enabled */
   fun setRefreshButtonState(state: Boolean)
 
-  /**
-   * Shows a panel on the right side of the view that serves as loading indicator for offline mode
-   */
+  /** Shows a panel on the right side of the view that serves as loading indicator for offline mode */
   fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int)
 
-  /**
-   * Shows a panel containing a message and a link to learn more about why offline might be
-   * unavailable
-   */
+  /** Shows a panel containing a message and a link to learn more about why offline might be unavailable */
   fun showOfflineModeUnavailablePanel()
 
   fun setForceOpen(forceOpen: Boolean)
@@ -111,41 +104,20 @@ data class IndexedSqliteTable(val sqliteTable: SqliteTable, val index: Int)
 /** Class containing a [SqliteColumn] and its index among other columns in the table. */
 data class IndexedSqliteColumn(val sqliteColumn: SqliteColumn, val index: Int)
 
-/**
- * Subclasses of this class represent operations to do in the UI in order to perform the diff of a
- * database's schema
- */
+/** Subclasses of this class represent operations to do in the UI in order to perform the diff of a database's schema */
 sealed class SchemaDiffOperation
 
-data class AddTable(
-  val indexedSqliteTable: IndexedSqliteTable,
-  val columns: List<IndexedSqliteColumn>,
-) : SchemaDiffOperation()
+data class AddTable(val indexedSqliteTable: IndexedSqliteTable, val columns: List<IndexedSqliteColumn>) : SchemaDiffOperation()
 
 data class RemoveTable(val tableName: String) : SchemaDiffOperation()
 
-data class AddColumns(
-  val tableName: String,
-  val columns: List<IndexedSqliteColumn>,
-  val newTable: SqliteTable,
-) : SchemaDiffOperation()
+data class AddColumns(val tableName: String, val columns: List<IndexedSqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
 
-data class RemoveColumns(
-  val tableName: String,
-  val columnsToRemove: List<SqliteColumn>,
-  val newTable: SqliteTable,
-) : SchemaDiffOperation()
+data class RemoveColumns(val tableName: String, val columnsToRemove: List<SqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
 
-/**
- * Subclasses of this class represent operations to do in the UI in order to perform the diff of
- * visible databases
- */
+/** Subclasses of this class represent operations to do in the UI in order to perform the diff of visible databases */
 sealed class DatabaseDiffOperation {
-  data class AddDatabase(
-    val viewDatabase: ViewDatabase,
-    val schema: SqliteSchema?,
-    val index: Int,
-  ) : DatabaseDiffOperation()
+  data class AddDatabase(val viewDatabase: ViewDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
 
   data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()
 }

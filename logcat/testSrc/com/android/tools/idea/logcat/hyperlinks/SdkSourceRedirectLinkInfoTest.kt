@@ -45,13 +45,7 @@ class SdkSourceRedirectLinkInfoTest {
   private val fakeFileNavigator = FakeFileNavigator()
 
   @get:Rule
-  val rule =
-    RuleChain(
-      androidProjectRule,
-      popupRule,
-      ApplicationServiceRule(FileNavigator::class.java, fakeFileNavigator),
-      EdtRule(),
-    )
+  val rule = RuleChain(androidProjectRule, popupRule, ApplicationServiceRule(FileNavigator::class.java, fakeFileNavigator), EdtRule())
 
   private val project
     get() = androidProjectRule.project
@@ -70,14 +64,7 @@ class SdkSourceRedirectLinkInfoTest {
     info.navigate(project)
 
     assertThat(fakeFileNavigator.navigationRequests)
-      .containsExactly(
-        NavigationRequest(
-          "sources/android-27/android/view/View.java",
-          line = 10,
-          offset = 366,
-          requestFocus = true,
-        )
-      )
+      .containsExactly(NavigationRequest("sources/android-27/android/view/View.java", line = 10, offset = 366, requestFocus = true))
   }
 
   @Test
@@ -101,13 +88,7 @@ class SdkSourceRedirectLinkInfoTest {
   fun navigate_multipleFiles_selectFile1() {
     val file1 = getNonSdkFile("Foo.java").virtualFile
     val file2 = getNonSdkFile("Bar.java").virtualFile
-    val info =
-      SdkSourceRedirectLinkInfo(
-        project,
-        listOf(file1, file2),
-        OpenFileDescriptor(project, file1, 1, 0),
-        AndroidApiLevel(27),
-      )
+    val info = SdkSourceRedirectLinkInfo(project, listOf(file1, file2), OpenFileDescriptor(project, file1, 1, 0), AndroidApiLevel(27))
 
     info.navigate(project)
 
@@ -122,13 +103,7 @@ class SdkSourceRedirectLinkInfoTest {
   fun navigate_multipleFiles_selectFile2() {
     val file1 = getNonSdkFile("Foo.java").virtualFile
     val file2 = getNonSdkFile("Bar.java").virtualFile
-    val info =
-      SdkSourceRedirectLinkInfo(
-        project,
-        listOf(file1, file2),
-        OpenFileDescriptor(project, file1, 1, 0),
-        AndroidApiLevel(27),
-      )
+    val info = SdkSourceRedirectLinkInfo(project, listOf(file1, file2), OpenFileDescriptor(project, file1, 1, 0), AndroidApiLevel(27))
 
     info.navigate(project)
 
@@ -143,12 +118,7 @@ class SdkSourceRedirectLinkInfoTest {
   fun navigate_descriptorWithOffset() {
     val file = getNonSdkFile("Foo.java")
     val info =
-      SdkSourceRedirectLinkInfo(
-        project,
-        listOf(file.virtualFile),
-        OpenFileDescriptor(project, file.virtualFile, 7),
-        AndroidApiLevel(27),
-      )
+      SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), OpenFileDescriptor(project, file.virtualFile, 7), AndroidApiLevel(27))
 
     info.navigate(project)
 
@@ -156,22 +126,15 @@ class SdkSourceRedirectLinkInfoTest {
       .containsExactly(NavigationRequest("/Foo.java", line = -1, offset = 7, requestFocus = true))
   }
 
-  /**
-   * [SdkSourceRedirectLinkInfo] must be a [FileHyperlinkInfo] in order for
-   * `LogcatOccurrenceNavigator` to work.
-   */
+  /** [SdkSourceRedirectLinkInfo] must be a [FileHyperlinkInfo] in order for `LogcatOccurrenceNavigator` to work. */
   @Test
   fun isFileHyperlinkInfo() {
-    assertThat(
-        FileHyperlinkInfo::class.java.isAssignableFrom(SdkSourceRedirectLinkInfo::class.java)
-      )
-      .isTrue()
+    assertThat(FileHyperlinkInfo::class.java.isAssignableFrom(SdkSourceRedirectLinkInfo::class.java)).isTrue()
   }
 
   @Suppress("SameParameterValue")
   private fun getSdkFile(name: String): PsiFile {
-    val psiClass =
-      PositionManagerImpl.findClass(project, name, GlobalSearchScope.allScope(project), true)
+    val psiClass = PositionManagerImpl.findClass(project, name, GlobalSearchScope.allScope(project), true)
     return psiClass?.containingFile ?: fail("Failed to get file for $name")
   }
 
@@ -182,18 +145,13 @@ class SdkSourceRedirectLinkInfoTest {
         name,
         JavaLanguage.INSTANCE,
         """
-      Line 1
-      Line 2
-      """
+        Line 1
+        Line 2
+        """
           .trimIndent(),
       )
 
-  private data class NavigationRequest(
-    val file: String,
-    val line: Int,
-    val offset: Int,
-    val requestFocus: Boolean,
-  )
+  private data class NavigationRequest(val file: String, val line: Int, val offset: Int, val requestFocus: Boolean)
 
   private class FakeFileNavigator : FileNavigator {
     val navigationRequests = mutableListOf<NavigationRequest>()
@@ -202,12 +160,7 @@ class SdkSourceRedirectLinkInfoTest {
       val path = descriptor.file.path
       val trim = path.lastIndexOf("sources/")
       navigationRequests.add(
-        NavigationRequest(
-          if (trim < 0) path else path.substring(trim),
-          descriptor.line,
-          descriptor.offset,
-          requestFocus,
-        )
+        NavigationRequest(if (trim < 0) path else path.substring(trim), descriptor.line, descriptor.offset, requestFocus)
       )
     }
 

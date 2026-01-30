@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.BuildListDetector
 
 class AndroidLintBuildListAddsInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.build.list.adds"),
-    BuildListDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.build.list.adds"), BuildListDetector.ISSUE)

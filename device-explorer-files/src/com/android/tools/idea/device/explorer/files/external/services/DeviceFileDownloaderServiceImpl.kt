@@ -29,29 +29,32 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
+import java.nio.file.Path
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import java.nio.file.Path
 
 @UiThread
-class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
-  private val deviceFileSystemManager: DeviceFileSystemManager,
-  private val fileManager: DeviceExplorerFileManager
-) : DeviceFileDownloaderService {
+class DeviceFileDownloaderServiceImpl
+@NonInjectable
+@TestOnly
+constructor(private val deviceFileSystemManager: DeviceFileSystemManager, private val fileManager: DeviceExplorerFileManager) :
+  DeviceFileDownloaderService {
 
-  constructor(project: Project) : this (
+  constructor(
+    project: Project
+  ) : this(
     DeviceFileSystemManagerImpl(project.service<DeviceProvisionerService>().deviceProvisioner),
-    DeviceExplorerFileManager.getInstance(project)
+    DeviceExplorerFileManager.getInstance(project),
   )
 
   override suspend fun downloadFiles(
     deviceSerialNumber: String,
     onDevicePaths: List<String>,
     downloadProgress: DownloadProgress,
-    localDestinationDirectory: Path
+    localDestinationDirectory: Path,
   ): Map<String, VirtualFile> {
     if (onDevicePaths.isEmpty()) {
       return emptyMap()
@@ -72,23 +75,22 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     deviceFileSystem: DeviceFileSystem,
     onDevicePaths: List<String>,
     downloadProgress: DownloadProgress,
-    localDestinationDirectory: Path
+    localDestinationDirectory: Path,
   ): Map<String, VirtualFile> {
     val entries = mapPathsToEntries(deviceFileSystem, onDevicePaths)
-    val entryToDeferredFile = withContext(diskIoThread) {
-      entries.associate { entry ->
-        val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
-        FileUtils.mkdirs(localPath.parent.toFile())
-        entry.fullPath to async { fileManager.downloadFileEntry(entry, localPath, downloadProgress) }
+    val entryToDeferredFile =
+      withContext(diskIoThread) {
+        entries.associate { entry ->
+          val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
+          FileUtils.mkdirs(localPath.parent.toFile())
+          entry.fullPath to async { fileManager.downloadFileEntry(entry, localPath, downloadProgress) }
+        }
       }
-    }
     entryToDeferredFile.values.awaitAll()
     return entryToDeferredFile.mapValues { e -> e.value.await() }
   }
 
-  /**
-   * Maps each on-device path to a [DeviceFileEntry]. If the entry doesn't exist the path is skipped.
-   */
+  /** Maps each on-device path to a [DeviceFileEntry]. If the entry doesn't exist the path is skipped. */
   private suspend fun mapPathsToEntries(deviceFileSystem: DeviceFileSystem, onDevicePaths: List<String>): List<DeviceFileEntry> {
     if (haveSameParent(onDevicePaths)) {
       val parentPath = AdbPathUtil.getParentPath(onDevicePaths[0])
@@ -102,23 +104,26 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       return getEntriesFromCommonParent(parentEntry, onDevicePaths)
     } else {
       return coroutineScope {
-        onDevicePaths.map {
-          async {
-            try {
-              deviceFileSystem.getEntry(it)
-            } catch (e: IllegalArgumentException) {
-              // if the path is not found, getEntry fails with IllegalArgumentException; return null and filter below
-              null
+        onDevicePaths
+          .map {
+            async {
+              try {
+                deviceFileSystem.getEntry(it)
+              } catch (e: IllegalArgumentException) {
+                // if the path is not found, getEntry fails with IllegalArgumentException; return null and filter below
+                null
+              }
             }
           }
-        }.awaitAll().filterNotNull()
+          .awaitAll()
+          .filterNotNull()
       }
     }
   }
 
   /**
-   * Maps all the paths passed as argument to children of the given [DeviceFileEntry] node.
-   * If a path doesn't have a corresponding child, it is skipped.
+   * Maps all the paths passed as argument to children of the given [DeviceFileEntry] node. If a path doesn't have a corresponding child, it
+   * is skipped.
    */
   private suspend fun getEntriesFromCommonParent(parent: DeviceFileEntry, paths: List<String>): List<DeviceFileEntry> {
     val entries = parent.entries()
@@ -126,9 +131,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
     return entries.filter { pathSet.contains(it.fullPath) }
   }
 
-  /**
-   * Returns true if the files corresponding to the paths passed as argument are in the same directory.
-   */
+  /** Returns true if the files corresponding to the paths passed as argument are in the same directory. */
   private fun haveSameParent(paths: List<String>): Boolean {
     if (paths.isEmpty()) return false
 

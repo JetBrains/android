@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssue
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -44,8 +44,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class DexDisabledIssueCheckerIntegrationTest {
   val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  @get:Rule val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
   val project by lazy { projectRule.project }
 
   @Test
@@ -68,16 +67,15 @@ class DexDisabledIssueCheckerIntegrationTest {
     addJarDependency(dependency)
 
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
-      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
-        generatedExceptions.add(exception)
+    val taskNotificationListener =
+      object : ExternalSystemTaskNotificationListener {
+        override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
+          generatedExceptions.add(exception)
+        }
       }
-    }
     val projectPath = project.basePath.orEmpty()
     val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
-    val settings = GradleExecutionSettings().apply {
-      tasks = listOf(":app:assembleDebug")
-    }
+    val settings = GradleExecutionSettings().apply { tasks = listOf(":app:assembleDebug") }
     try {
       AndroidGradleTaskManager().executeTasks(projectPath, id, settings, taskNotificationListener)
     } catch (_: ExternalSystemException) {
@@ -96,11 +94,17 @@ class DexDisabledIssueCheckerIntegrationTest {
       val existingContent = gradlePropertiesFile.contentsToByteArray().toString(Charsets.UTF_8)
       // The built-in Kotlin plugin, enabled by default in AGP 9.0+, does not support JVM target 7. Disable
       // it to allow this test to run with Java 7.
-      gradlePropertiesFile.setBinaryContent((existingContent + "\n" + """
+      gradlePropertiesFile.setBinaryContent(
+        (existingContent +
+            "\n" +
+            """
           org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
           android.uniquePackageNames=false
           android.builtInKotlin=false
-      """.trimIndent()).toByteArray(Charsets.UTF_8))
+      """
+              .trimIndent())
+          .toByteArray(Charsets.UTF_8)
+      )
     }
 
     val appModule = project.findAppModule()
@@ -112,10 +116,6 @@ class DexDisabledIssueCheckerIntegrationTest {
     val dependencyFile = projectRule.fixture.copyFileToProject("desugaringErrors/$dependency", "jarDependencies/$dependency")
     assertThat(dependencyFile).isNotNull()
     buildModel.dependencies().addFile("implementation", dependencyFile.path)
-    ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(project) {
-        projectModel.applyChanges()
-      }
-    }
+    ApplicationManager.getApplication().invokeAndWait { WriteCommandAction.runWriteCommandAction(project) { projectModel.applyChanges() } }
   }
 }

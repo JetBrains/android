@@ -38,14 +38,8 @@ class FontEnumSupportTest {
     val fixture = projectRule.fixture
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("android") + "/testData"
     fixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
-    fixture.copyFileToProject(
-      "fonts/my_circular_font_family_1.xml",
-      "res/font/my_circular_font_family_1.xml",
-    )
-    fixture.copyFileToProject(
-      "fonts/my_circular_font_family_2.xml",
-      "res/font/my_circular_font_family_2.xml",
-    )
+    fixture.copyFileToProject("fonts/my_circular_font_family_1.xml", "res/font/my_circular_font_family_1.xml")
+    fixture.copyFileToProject("fonts/my_circular_font_family_2.xml", "res/font/my_circular_font_family_2.xml")
     file = fixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml")
   }
 
@@ -55,8 +49,7 @@ class FontEnumSupportTest {
   }
 
   private fun createEnumSupport(): FontEnumSupport {
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(file!!)
+    val configuration = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(file!!)
     val resourceResolver = configuration.resourceResolver
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     return FontEnumSupport(facet, resourceResolver)
@@ -99,12 +92,7 @@ class FontEnumSupportTest {
     assertThat((enumValue as HeaderEnumValue).header).isEqualTo(header)
   }
 
-  private fun checkEnumValue(
-    enumValue: EnumValue,
-    value: String,
-    display: String,
-    indented: Boolean = true,
-  ) {
+  private fun checkEnumValue(enumValue: EnumValue, value: String, display: String, indented: Boolean = true) {
     assertThat(enumValue.value).isEqualTo(value)
     assertThat(enumValue.display).isEqualTo(display)
     assertThat(enumValue.indented).isEqualTo(indented)

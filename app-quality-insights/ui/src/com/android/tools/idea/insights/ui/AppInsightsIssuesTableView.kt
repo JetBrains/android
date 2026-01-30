@@ -76,17 +76,12 @@ class AppInsightsIssuesTableView(
 
     tableMouseListener?.let { table.addMouseListener(tableMouseListener) }
 
-    TableSpeedSearch.installOn(table) {
-      if (it is AppInsightsIssue) convertToSearchText(it) else it.toString()
-    }
+    TableSpeedSearch.installOn(table) { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() }
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
     tableHeader.preferredSize = Dimension(0, commonToolbarHeight())
     loadingPanel.add(table.tableHeader, TabularLayout.Constraint(0, 0))
-    loadingPanel.add(
-      ScrollPaneFactory.createScrollPane(table, true),
-      TabularLayout.Constraint(1, 0),
-    )
+    loadingPanel.add(ScrollPaneFactory.createScrollPane(table, true), TabularLayout.Constraint(1, 0))
     changeListener = ListSelectionListener {
       if (!it.valueIsAdjusting) {
         controller.selectIssue(table.selection.firstOrNull(), IssueSelectionSource.LIST)
@@ -113,16 +108,8 @@ class AppInsightsIssuesTableView(
                 table.tableEmptyText.apply {
                   clear()
                   appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
-                  appendLine(
-                    "No issues found within the selected time range and filters.",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null,
-                  )
-                  appendLine(
-                    "It can take 24-48 hours for issues to appear.",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null,
-                  )
+                  appendLine("No issues found within the selected time range and filters.", EMPTY_STATE_TEXT_FORMAT, null)
+                  appendLine("It can take 24-48 hours for issues to appear.", EMPTY_STATE_TEXT_FORMAT, null)
                 }
               }
               if (model.items != issues.value.value.items) {
@@ -144,9 +131,7 @@ class AppInsightsIssuesTableView(
                 // To avoid this we suppress the change listener since as the model change was the
                 // source of this event,
                 // and we don't need to fire an issue change event.
-                suppressListener(table) {
-                  table.selection = listOfNotNull(issues.value.value.selected)
-                }
+                suppressListener(table) { table.selection = listOfNotNull(issues.value.value.selected) }
                 table.scrollRectToVisible(table.getCellRect(table.selectedRow, 0, true))
               } else {
                 LOGGER.info("Issue not changed: ${table.selectedObject?.issueDetails?.id}.")
@@ -162,9 +147,7 @@ class AppInsightsIssuesTableView(
                 appendText(" the request", EMPTY_STATE_TEXT_FORMAT)
                 appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
                 appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
-                appendText("Offline Mode", EMPTY_STATE_LINK_FORMAT) {
-                  controller.enterOfflineMode()
-                }
+                appendText("Offline Mode", EMPTY_STATE_LINK_FORMAT) { controller.enterOfflineMode() }
                 appendText(".", EMPTY_STATE_TEXT_FORMAT)
               }
               model.items = emptyList()
@@ -176,33 +159,21 @@ class AppInsightsIssuesTableView(
                   table.tableEmptyText.apply {
                     clear()
                     appendText("No types selected", EMPTY_STATE_TITLE_FORMAT)
-                    appendSecondaryText(
-                      "No event types are selected. Enable a type above to see issues.",
-                      EMPTY_STATE_TEXT_FORMAT,
-                      null,
-                    )
+                    appendSecondaryText("No event types are selected. Enable a type above to see issues.", EMPTY_STATE_TEXT_FORMAT, null)
                   }
                 }
                 is NoVersionsSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
                     appendText("No versions selected", EMPTY_STATE_TITLE_FORMAT)
-                    appendSecondaryText(
-                      "No versions are selected. Enable a version above to see issues.",
-                      EMPTY_STATE_TEXT_FORMAT,
-                      null,
-                    )
+                    appendSecondaryText("No versions are selected. Enable a version above to see issues.", EMPTY_STATE_TEXT_FORMAT, null)
                   }
                 }
                 is NoDevicesSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
                     appendText("No devices selected", EMPTY_STATE_TITLE_FORMAT)
-                    appendSecondaryText(
-                      "No devices are selected. Enable a device above to see issues.",
-                      EMPTY_STATE_TEXT_FORMAT,
-                      null,
-                    )
+                    appendSecondaryText("No devices are selected. Enable a device above to see issues.", EMPTY_STATE_TEXT_FORMAT, null)
                   }
                 }
                 is NoOperatingSystemsSelectedException -> {
@@ -227,20 +198,13 @@ class AppInsightsIssuesTableView(
                         clear()
                         // Too many results. Choose a shorter time range or add other filters.
                         appendText("Too many results.", EMPTY_STATE_TEXT_FORMAT)
-                        appendLine(
-                          "Choose a shorter time range or add other filters.",
-                          EMPTY_STATE_TEXT_FORMAT,
-                          null,
-                        )
+                        appendLine("Choose a shorter time range or add other filters.", EMPTY_STATE_TEXT_FORMAT, null)
                       }
                     }
                   } else {
                     table.tableEmptyText.apply {
                       clear()
-                      appendText(
-                        issues.message ?: "An unknown failure occurred",
-                        EMPTY_STATE_TITLE_FORMAT,
-                      )
+                      appendText(issues.message ?: "An unknown failure occurred", EMPTY_STATE_TITLE_FORMAT)
                     }
                   }
                 }
@@ -270,14 +234,11 @@ class AppInsightsIssuesTableView(
 
   override fun dispose() = Unit
 
-  inner class IssuesTableView(model: AppInsightsIssuesTableModel) :
-    TableView<AppInsightsIssue>(model) {
-    val tableEmptyText =
-      AppInsightsStatusText(this) { (isEmpty && !loadingPanel.isLoading).also { updateTimer(it) } }
+  inner class IssuesTableView(model: AppInsightsIssuesTableModel) : TableView<AppInsightsIssue>(model) {
+    val tableEmptyText = AppInsightsStatusText(this) { (isEmpty && !loadingPanel.isLoading).also { updateTimer(it) } }
 
     // This is required to force the spinner icon to animate in the status text.
-    private val repaintTimer =
-      TimerUtil.createNamedTimer("AppInsightsIssuesTableView", 10) { repaint() }
+    private val repaintTimer = TimerUtil.createNamedTimer("AppInsightsIssuesTableView", 10) { repaint() }
 
     init {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -323,32 +284,20 @@ class AppInsightsIssuesTableView(
       is CancellableTimeoutException -> {
         table.tableEmptyText.apply {
           clear()
-          appendLine(
-            AnimatedIcon.Default(),
-            "Fetching issues is taking longer than expected.",
-            EMPTY_STATE_TITLE_FORMAT,
-            null,
-          )
+          appendLine(AnimatedIcon.Default(), "Fetching issues is taking longer than expected.", EMPTY_STATE_TITLE_FORMAT, null)
           appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
           appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { controller.refresh() }
           appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
-          appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
-            controller.enterOfflineMode()
-          }
+          appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) { controller.enterOfflineMode() }
           appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
         }
       }
       else -> {
         table.tableEmptyText.apply {
           clear()
-          appendText(
-            failure.message ?: revertibleCause?.message ?: "An unknown failure occurred",
-            EMPTY_STATE_TITLE_FORMAT,
-          )
+          appendText(failure.message ?: revertibleCause?.message ?: "An unknown failure occurred", EMPTY_STATE_TITLE_FORMAT)
           if (cause.snapshot != null) {
-            appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) {
-              controller.revertToSnapshot(cause.snapshot as AppInsightsState)
-            }
+            appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) { controller.revertToSnapshot(cause.snapshot as AppInsightsState) }
           }
         }
       }

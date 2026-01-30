@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:Suppress("unused")
+
 package com.android.tools.idea.streaming.device
 
 // Key codes.

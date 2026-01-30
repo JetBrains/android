@@ -63,14 +63,9 @@ class DesignToolsSplitEditorTest {
   @Before
   fun setUp() {
     val nlModel =
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor("LinearLayout"),
-        )
-        .build()
-        .apply { Disposer.register(projectRule.testRootDisposable, this) }
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor("LinearLayout")).build().apply {
+        Disposer.register(projectRule.testRootDisposable, this)
+      }
 
     val project = projectRule.project
     val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
@@ -157,16 +152,13 @@ class DesignToolsSplitEditorTest {
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isNull()
 
     splitEditor.selectDesignMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
 
     splitEditor.selectSplitMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
 
     splitEditor.selectTextMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   @Test
@@ -196,9 +188,7 @@ class DesignToolsSplitEditorTest {
 
   @Test
   fun testKeyboardShortcuts() {
-    val modifiers =
-      (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or
-        InputEvent.SHIFT_DOWN_MASK
+    val modifiers = (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or InputEvent.SHIFT_DOWN_MASK
     val focusManager = mock(KeyboardFocusManager::class.java)
     val component = splitEditor.component
     whenever(focusManager.focusOwner).thenReturn(component)
@@ -208,34 +198,22 @@ class DesignToolsSplitEditorTest {
     splitEditor.selectSplitMode(true)
     // The circular sequence is ... Code <-> Split <-> Design <-> Code <-> Split <-> Design <-> Code
     // ...
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
     assertThat(splitEditor.isSplitMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(
-      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
-    )
+    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
     assertThat(splitEditor.isSplitMode()).isTrue()
   }
 }

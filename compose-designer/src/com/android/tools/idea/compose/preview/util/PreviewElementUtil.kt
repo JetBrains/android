@@ -19,9 +19,6 @@ import com.android.tools.idea.preview.PsiPreviewElement
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiFile
 
-/**
- * [PsiFile] containing this PreviewElement. null if there is no source file, like in synthetic
- * preview elements.
- */
+/** [PsiFile] containing this PreviewElement. null if there is no source file, like in synthetic preview elements. */
 val PsiPreviewElement.containingFile: PsiFile?
   get() = runReadAction { previewBody?.containingFile ?: previewElementDefinition?.containingFile }

@@ -24,10 +24,7 @@ import com.intellij.psi.impl.compiled.ClsFileImpl
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 
-/**
- * Substitutes a workspace source file in place of a decompiled class file for non-project
- * dependencies with sources in the workspace.
- */
+/** Substitutes a workspace source file in place of a decompiled class file for non-project dependencies with sources in the workspace. */
 class ProtoSrcJarQuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
 
   override fun getNavigationElement(clsFile: ClsFileImpl): PsiElement? {
@@ -42,7 +39,7 @@ class ProtoSrcJarQuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
       Result.create(
         ProtoFileJavaSourceFinder(clsFile).findSourceFile(),
         clsFile,
-        QuerySyncManager.getInstance(project).projectModificationTracker
+        QuerySyncManager.getInstance(project).projectModificationTracker,
       )
     }
   }

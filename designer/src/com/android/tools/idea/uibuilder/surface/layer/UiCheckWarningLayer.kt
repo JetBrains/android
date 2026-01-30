@@ -38,13 +38,11 @@ private const val BORDER_WIDTH_MIN = 1
 private val borderColor = JBColor(0xffaf0f, 0xf2c55c)
 private val transparentBorderColor = ColorUtil.withAlpha(borderColor, 0.0)
 
-class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) :
-  WarningLayer(screenView, shouldDisplay) {
+class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) : WarningLayer(screenView, shouldDisplay) {
 
   private var isAnimating = false
   private var borderWidth: Int = BORDER_WIDTH_MAX
-  private val animator =
-    BorderAnimator().apply { Disposer.register(this@UiCheckWarningLayer, { dispose() }) }
+  private val animator = BorderAnimator().apply { Disposer.register(this@UiCheckWarningLayer, { dispose() }) }
 
   private val borderUpdateListener =
     object : IssueListener {
@@ -62,13 +60,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
 
   override fun paint(gc: Graphics2D) {
     if (isAnimating) {
-      val borderPainter =
-        BorderPainter(
-          JBUI.scale(borderWidth),
-          borderColor,
-          transparentBorderColor,
-          useHighQuality = false,
-        )
+      val borderPainter = BorderPainter(JBUI.scale(borderWidth), borderColor, transparentBorderColor, useHighQuality = false)
       componentsToHighlight.forEach {
         val swingX = Coordinates.getSwingX(screenView, it.x)
         val swingY = Coordinates.getSwingY(screenView, it.y)
@@ -93,8 +85,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
     super.dispose()
   }
 
-  private inner class BorderAnimator :
-    Animator("BorderAnimator", TOTAL_FRAMES, ANIMATION_TIME_MILLIS, false) {
+  private inner class BorderAnimator : Animator("BorderAnimator", TOTAL_FRAMES, ANIMATION_TIME_MILLIS, false) {
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
       borderWidth = BORDER_WIDTH_MAX - (BORDER_WIDTH_MAX - BORDER_WIDTH_MIN) * frame / totalFrames
       screenView.surface.repaint()

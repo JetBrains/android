@@ -45,14 +45,8 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 
-/**
- * Model for handling Gradle properties in the Project Structure Dialog
- */
-class PsVariable(
-  override val parent: PsModel,
-  val scopePsVariables: PsVariablesScope,
-  val refreshCollection: () -> Unit
-) : PsChildModel() {
+/** Model for handling Gradle properties in the Project Structure Dialog */
+class PsVariable(override val parent: PsModel, val scopePsVariables: PsVariablesScope, val refreshCollection: () -> Unit) : PsChildModel() {
 
   fun init(property: GradlePropertyModel) {
     this.property = property
@@ -71,15 +65,22 @@ class PsVariable(
   private var myListItems: ListVariableEntries? = null
   private var pendingListItemContainer: ResolvedPropertyModel? = null
   val listItems: PsKeyedModelCollection<Int, PsVariable> = myListItems ?: ListVariableEntries(this).also { myListItems = it }
-  val isList: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.LIST
+  val isList: Boolean
+    get() = property?.valueType == GradlePropertyModel.ValueType.LIST
+
   private var myMapEntries: MapVariableEntries? = null
-  val mapEntries: PsKeyedModelCollection<String, PsVariable> = myMapEntries ?: MapVariableEntries(this).also {myMapEntries = it }
-  val isMap: Boolean get() = property?.valueType == GradlePropertyModel.ValueType.MAP
-  override val name: String get() = property?.name ?: ""
+  val mapEntries: PsKeyedModelCollection<String, PsVariable> = myMapEntries ?: MapVariableEntries(this).also { myMapEntries = it }
+  val isMap: Boolean
+    get() = property?.valueType == GradlePropertyModel.ValueType.MAP
+
+  override val name: String
+    get() = property?.name ?: ""
+
   override val isDeclared: Boolean = true
   var value by Descriptors.variableValue
 
   fun convertToEmptyList() = resolvedProperty!!.convertToEmptyList()
+
   fun convertToEmptyMap() = resolvedProperty!!.convertToEmptyMap()
 
   fun delete() {
@@ -98,8 +99,7 @@ class PsVariable(
     if (!isList) throw IllegalStateException("addListValue can only be called for list variables")
     return if (value === ParsedValue.NotSet) {
       PsVariable(this, scopePsVariables, { myListItems?.refresh() }).also { it.initNewListItem(resolvedProperty!!) }
-    }
-    else {
+    } else {
       val listValue = this.property!!.addListValue()?.resolve()
       listValue?.setParsedValue({ setValue(it) }, {}, value)
       parent.isModified = true
@@ -119,14 +119,15 @@ class PsVariable(
     return mapEntries.findElement(key)!!
   }
 
-  /**
-   * Binds a new property to the underlying Gradle property using the binding configuration from the [prototype].
-   */
+  /** Binds a new property to the underlying Gradle property using the binding configuration from the [prototype]. */
   @Suppress("UNCHECKED_CAST")
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
-  // Note: the as? test is only to test whether the interface is implemented.
-  // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { block -> block() ; parent.isModified = true }
+    // Note: the as? test is only to test whether the interface is implemented.
+    // If it is, the generic type arguments will match.
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { block ->
+      block()
+      parent.isModified = true
+    }
 
   object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
     override fun getResolved(model: PsVariable): Nothing? = null
@@ -148,66 +149,70 @@ class PsVariable(
 
     override fun setModified(model: PsVariable) = Unit
 
-    val variableValue: SimpleProperty<PsVariable, Any> = property(
-      "Value",
-      defaultValueGetter = null,
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this },
-      getter = { asAny() },
-      setter = { setValue(it) },
-      parser = ::parseAny,
-      formatter = ::formatAny,
-      knownValuesGetter = ::variableKnownValues,
-      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-    )
+    val variableValue: SimpleProperty<PsVariable, Any> =
+      property(
+        "Value",
+        defaultValueGetter = null,
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this },
+        getter = { asAny() },
+        setter = { setValue(it) },
+        parser = ::parseAny,
+        formatter = ::formatAny,
+        knownValuesGetter = ::variableKnownValues,
+        variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
+      )
 
+    val variableStringValue: SimpleProperty<PsVariable, String> =
+      property(
+        "Value",
+        defaultValueGetter = null,
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+        formatter = ::formatAny,
+        variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
+      )
 
-    val variableStringValue: SimpleProperty<PsVariable, String> = property(
-      "Value",
-      defaultValueGetter = null,
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString,
-      formatter = ::formatAny,
-      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-    )
+    val variableListValue: ListProperty<PsVariable, Any> =
+      listProperty(
+        "Value",
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this },
+        getter = { asAny() },
+        setter = { setValue(it) },
+        parser = ::parseAny,
+        knownValuesGetter = ::variableKnownValues,
+        variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
+      )
 
-    val variableListValue: ListProperty<PsVariable, Any> = listProperty(
-      "Value",
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this },
-      getter = { asAny() },
-      setter = { setValue(it) },
-      parser = ::parseAny,
-      knownValuesGetter = ::variableKnownValues,
-      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-    )
-
-    val variableMapValue: MapProperty<PsVariable, Any> = mapProperty(
-      "Value",
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this },
-      getter = { asAny() },
-      setter = { setValue(it) },
-      parser = ::parseAny,
-      knownValuesGetter = ::variableKnownValues,
-      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
-    )
+    val variableMapValue: MapProperty<PsVariable, Any> =
+      mapProperty(
+        "Value",
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this },
+        getter = { asAny() },
+        setter = { setValue(it) },
+        parser = ::parseAny,
+        knownValuesGetter = ::variableKnownValues,
+        variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
+      )
 
     fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
       val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
       val collector = variable.ReferenceContextCollector()
       potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
-      return Futures
-        .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
-        .transform(directExecutor()) { it.filterNotNull().combineKnownValues() }
+      return Futures.successfulAsList(collector.collectedReferences.map { it.getKnownValues() }).transform(directExecutor()) {
+        it.filterNotNull().combineKnownValues()
+      }
     }
   }
 
   private inner class ReferenceContextCollector : PsModelDescriptor.PropertyReceiver {
     val collectedReferences = mutableListOf<ModelPropertyContext<out Any>>()
+
     override fun <T : PsModel> receive(model: T, property: ModelProperty<T, *, *, *>) {
       try {
         val value = property.getValue(model, ::FAKE_PROPERTY)
@@ -218,14 +223,15 @@ class PsVariable(
         while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE && propertyModel.dependencies.isNotEmpty()) {
           if (!seen.add(propertyModel)) return
           propertyModel = propertyModel.dependencies[0]!!
-          if (resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&
-              resolvedProperty?.gradleFile?.path == propertyModel.gradleFile.path) {
+          if (
+            resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&
+              resolvedProperty?.gradleFile?.path == propertyModel.gradleFile.path
+          ) {
             collectedReferences.add(property.bindContext(model))
             return
           }
         }
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         LOG.warn(e)
       }
     }
@@ -240,6 +246,7 @@ class PsVariable(
       parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.MAP }?.toMap()?.keys ?: setOf()
 
     override fun create(key: String): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+
     override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key)!!)
   }
 
@@ -252,13 +259,12 @@ class PsVariable(
       parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.LIST }?.toList()?.let { 0 until it.size }?.toSet() ?: setOf()
 
     override fun create(key: Int): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
+
     override fun update(key: Int, model: PsVariable) = model.init(parent.property!!.getValue(GradlePropertyModel.LIST_TYPE)!![key])
   }
 }
 
-/**
- * Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values.
- */
+/** Combines multiple [KnownValues] instances by intersecting non-empty sets of known-values. */
 private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() =
   map { it.literals.toSet() }
     .fold(setOf<ValueDescriptor<T>>()) { acc, v ->

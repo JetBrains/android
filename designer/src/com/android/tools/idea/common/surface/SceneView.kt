@@ -36,11 +36,8 @@ import java.awt.Shape
 import java.util.function.Consumer
 
 /** View of a [Scene] used in a [DesignSurface]. */
-abstract class SceneView(
-  open val surface: DesignSurface<*>,
-  open val sceneManager: SceneManager,
-  private val myShapePolicy: ShapePolicy,
-) : Disposable {
+abstract class SceneView(open val surface: DesignSurface<*>, open val sceneManager: SceneManager, private val myShapePolicy: ShapePolicy) :
+  Disposable {
 
   private val layersCacheLock = Any()
 
@@ -74,9 +71,7 @@ abstract class SceneView(
   val firstComponent: NlComponent?
     get() = sceneManager.model.treeReader.components.firstOrNull()
 
-  /**
-   * If Layers are not exist, they will be created by [.createLayers]. This should happen only once.
-   */
+  /** If Layers are not exist, they will be created by [.createLayers]. This should happen only once. */
   private fun getLayers(): ImmutableList<Layer> {
     if (Disposer.isDisposed(surface)) {
       // Do not try to re-create the layers for a disposed surface
@@ -92,11 +87,10 @@ abstract class SceneView(
   }
 
   /**
-   * Returns the current size of the view content, excluding margins. This is the same as
-   * [.getContentSize] but accounts for the current zoom level
+   * Returns the current size of the view content, excluding margins. This is the same as [.getContentSize] but accounts for the current
+   * zoom level
    *
-   * @param dimension optional existing [Dimension] instance to be reused. If not null, the values
-   *   will be set and this instance returned.
+   * @param dimension optional existing [Dimension] instance to be reused. If not null, the values will be set and this instance returned.
    */
   @SwingCoordinate
   fun getScaledContentSize(dimension: Dimension?): Dimension {
@@ -105,8 +99,8 @@ abstract class SceneView(
   }
 
   /**
-   * Returns the current size of the view content, excluding margins. This is the same as
-   * [.getContentSize] but accounts for the current zoom level
+   * Returns the current size of the view content, excluding margins. This is the same as [.getContentSize] but accounts for the current
+   * zoom level
    */
   @get:SwingCoordinate
   val scaledContentSize: Dimension
@@ -120,10 +114,7 @@ abstract class SceneView(
   val selectionModel: SelectionModel
     get() = surface.selectionModel
 
-  /**
-   * Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear
-   * etc)
-   */
+  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
   val screenShape: Shape?
     get() = myShapePolicy.getShape(this)
 
@@ -138,18 +129,12 @@ abstract class SceneView(
     y = screenY
   }
 
-  /**
-   * Custom translation to apply when converting between android coordinate space and swing
-   * coordinate space.
-   */
+  /** Custom translation to apply when converting between android coordinate space and swing coordinate space. */
   @get:SwingCoordinate
   open val contentTranslationX: Int
     get() = 0
 
-  /**
-   * Custom translation to apply when converting between android coordinate space and swing
-   * coordinate space.
-   */
+  /** Custom translation to apply when converting between android coordinate space and swing coordinate space. */
   @get:SwingCoordinate
   open val contentTranslationY: Int
     get() = 0
@@ -194,8 +179,8 @@ abstract class SceneView(
   }
 
   /**
-   * Returns whether this [SceneView] knows the content size. Some [SceneView] might not know its
-   * content size while it's rendering or if the rendering is failure.
+   * Returns whether this [SceneView] knows the content size. Some [SceneView] might not know its content size while it's rendering or if
+   * the rendering is failure.
    */
   open fun hasContentSize(): Boolean {
     return isVisible
@@ -203,18 +188,12 @@ abstract class SceneView(
 
   override fun dispose() {}
 
-  /**
-   * Called by the [DesignSurface] on mouse hover. The coordinates might be outside of the
-   * boundaries of this [SceneView]
-   */
+  /** Called by the [DesignSurface] on mouse hover. The coordinates might be outside of the boundaries of this [SceneView] */
   fun onHover(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int) {
     getLayers().forEach { it.onHover(mouseX, mouseY) }
   }
 
-  /**
-   * Called by the [DesignSurface] when caret moved and landed on a line that has a preview of a
-   * component.
-   */
+  /** Called by the [DesignSurface] when caret moved and landed on a line that has a preview of a component. */
   fun highlighBox(@SwingCoordinate x: Int, @SwingCoordinate y: Int, width: Int, height: Int) {
 
     getLayers().forEach { if (it is HighlightLayer) it.highlight(x, y, width, height) }
@@ -226,8 +205,7 @@ abstract class SceneView(
   }
 
   /**
-   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on
-   * mouse hover
+   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on mouse hover
    *
    * @param value if true, force painting
    */

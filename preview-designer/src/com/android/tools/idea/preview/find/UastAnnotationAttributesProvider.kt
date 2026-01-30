@@ -20,7 +20,6 @@ import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
-import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -59,20 +58,19 @@ class UastAnnotationAttributesProvider(
     annotation.findDeclaredAttributeValue(attributeName)?.getValueOfType() as T? as T? ?: findAttributeConstantValue(attributeName) as? T
 
   override fun findClassNameValue(name: String): String? =
-    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
-    ?: findAttributeClassLiteralClassId(name)
+    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText ?: findAttributeClassLiteralClassId(name)
 
   /**
-   * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from
-   * the `analyze` block, as this can lead to serious memory leaks.
+   * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from the `analyze` block, as this can lead to
+   * serious memory leaks.
    */
   private inline fun <T> findAttributeValue(attributeName: String, f: (KaAnnotationValue) -> T): T? {
     val context = ktResolveContext?.sourcePsi as? KtElement ?: return null
     val entry = annotation.sourcePsi as? KtAnnotationEntry ?: return null
     val declaration = entry.parent.parent as? KtDeclaration ?: return null
     return analyze(context) {
-      val argument = declaration.symbol.annotations.singleOrNull { it.psi == entry }?.arguments
-        ?.singleOrNull { it.name.asString() == attributeName }
+      val argument =
+        declaration.symbol.annotations.singleOrNull { it.psi == entry }?.arguments?.singleOrNull { it.name.asString() == attributeName }
       argument?.expression?.let(f)
     }
   }

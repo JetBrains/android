@@ -21,17 +21,14 @@ import kotlinx.coroutines.Deferred
 private fun <T> CompletableDeferred<T>.completeFromOtherDeferred(other: Deferred<T>) =
   other.invokeOnCompletion { throwable ->
     if (!isCompleted) {
-      if (throwable == null)
-        complete(other.getCompleted())
-      else
-        completeExceptionally(throwable)
+      if (throwable == null) complete(other.getCompleted()) else completeExceptionally(throwable)
     }
   }
 
 /**
- * Wraps all the given [collection] [CompletableDeferred]s into one. When the returned one completes, all the [CompletableDeferred]s
- * in the collection will also complete.
- * When the returned completable completes or any of the collection elements completes, all of them will be completed.
+ * Wraps all the given [collection] [CompletableDeferred]s into one. When the returned one completes, all the [CompletableDeferred]s in the
+ * collection will also complete. When the returned completable completes or any of the collection elements completes, all of them will be
+ * completed.
  *
  * This method might return the same [CompletableDeferred] if only one is passed.
  */
@@ -39,10 +36,11 @@ fun <T> wrapCompletableDeferredCollection(collection: Collection<CompletableDefe
   when {
     collection.isEmpty() -> CompletableDeferred()
     collection.size == 1 -> collection.single()
-    else -> CompletableDeferred<T>().also { parentDeferred ->
-      collection.forEach { singleCompletableDeferred ->
-        singleCompletableDeferred.completeFromOtherDeferred(parentDeferred)
-        parentDeferred.completeFromOtherDeferred(singleCompletableDeferred)
+    else ->
+      CompletableDeferred<T>().also { parentDeferred ->
+        collection.forEach { singleCompletableDeferred ->
+          singleCompletableDeferred.completeFromOtherDeferred(parentDeferred)
+          parentDeferred.completeFromOtherDeferred(singleCompletableDeferred)
+        }
       }
-    }
   }

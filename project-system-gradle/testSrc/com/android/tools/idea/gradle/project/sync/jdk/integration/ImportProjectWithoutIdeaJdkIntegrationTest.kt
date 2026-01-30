@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.gradle.project.importing.GradleJdkConfigurationInitializer
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationWithoutIdea
-import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -64,17 +64,13 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
     }
   }
 
-  @get:Rule
-  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
+  @get:Rule val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
@@ -88,13 +84,11 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
 
   @Test
   fun `Given not configured project When import project Then was configured with #GRADLE_LOCAL_JAVA_HOME and Embedded JDK`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplicationWithoutIdea()
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplicationWithoutIdea()) {
       syncWithAssertion(
         expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
 
@@ -103,14 +97,15 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
   fun `Given not configured project and valid pre-config JDK When import project Then was configured with #GRADLE_LOCAL_JAVA_HOME and user selected pre-config JDK`() {
     GradleDefaultJdkPathStore.jdkPath = JDK_11_PATH
     jdkIntegrationTest.run(
-      project = SimpleApplicationWithoutIdea(
-        agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
-      )
+      project =
+        SimpleApplicationWithoutIdea(
+          agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+        )
     ) {
       syncWithAssertion(
         expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME,
         expectedProjectJdkName = JDK_11,
-        expectedProjectJdkPath = JDK_11_PATH
+        expectedProjectJdkPath = JDK_11_PATH,
       )
     }
   }
@@ -118,13 +113,11 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
   @Test
   fun `Given not configured project and invalid pre-config JDK When import project Then was configured with #GRADLE_LOCAL_JAVA_HOME and Embedded JDK`() {
     GradleDefaultJdkPathStore.jdkPath = JDK_INVALID_PATH
-    jdkIntegrationTest.run(
-      project = SimpleApplicationWithoutIdea()
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplicationWithoutIdea()) {
       syncWithAssertion(
         expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME,
         expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH,
       )
     }
   }
@@ -134,15 +127,8 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
     Registry.get("gradle.daemon.jvm.criteria.new.project").setValue(true)
     GradleJdkConfigurationInitializer.getInstance().canInitializeDaemonJvmCriteria = true
     StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.override("8.10")
-    jdkIntegrationTest.run(
-      project = SimpleApplicationWithoutIdea(
-        gradleDaemonToolchain = GradleDaemonToolchain("17")
-      )
-    ) {
-      syncWithAssertion(
-        expectedProjectJdkName = JDK_17,
-        expectedProjectJdkPath = JDK_17_PATH
-      )
+    jdkIntegrationTest.run(project = SimpleApplicationWithoutIdea(gradleDaemonToolchain = GradleDaemonToolchain("17"))) {
+      syncWithAssertion(expectedProjectJdkName = JDK_17, expectedProjectJdkPath = JDK_17_PATH)
     }
   }
 
@@ -152,14 +138,8 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
     GradleJdkConfigurationInitializer.getInstance().canInitializeDaemonJvmCriteria = true
     StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.override("8.10")
 
-    jdkIntegrationTest.run(
-      project = SimpleApplicationWithoutIdea()
-    ) {
-      sync(
-        assertOnDiskConfig = {
-          assertGradleDaemonJvmCriteria(JDK_EMBEDDED_VERSION)
-        }
-      )
+    jdkIntegrationTest.run(project = SimpleApplicationWithoutIdea()) {
+      sync(assertOnDiskConfig = { assertGradleDaemonJvmCriteria(JDK_EMBEDDED_VERSION) })
     }
   }
 }

@@ -49,10 +49,7 @@ private fun tryCreateHash(revision: String): Hash? {
 
 // Copied from GitShowCommitInLogAction#jumpToRevision
 internal fun jumpToRevision(project: Project, hash: Hash) {
-  runInMainLog(
-    project,
-    Consumer { logUi: MainVcsLogUi -> jumpToRevisionUnderProgress(project, logUi, hash) },
-  )
+  runInMainLog(project, Consumer { logUi: MainVcsLogUi -> jumpToRevisionUnderProgress(project, logUi, hash) })
 }
 
 // Copied from GitShowCommitInLogAction#jumpToRevision
@@ -61,18 +58,11 @@ private fun jumpToRevisionUnderProgress(project: Project, logUi: VcsLogUiEx, has
   if (!future.isDone) {
     ProgressManager.getInstance()
       .run(
-        object :
-          Task.Backgroundable(
-            project,
-            "Searching for Revision ${hash.asString()}",
-            false,
-            ALWAYS_BACKGROUND,
-          ) {
+        object : Task.Backgroundable(project, "Searching for Revision ${hash.asString()}", false, ALWAYS_BACKGROUND) {
           override fun run(indicator: ProgressIndicator) {
             try {
               future.get()
-            } catch (ignored: CancellationException) {} catch (
-              ignored: InterruptedException) {} catch (e: ExecutionException) {
+            } catch (ignored: CancellationException) {} catch (ignored: InterruptedException) {} catch (e: ExecutionException) {
               LOG.warn(e)
             }
           }

@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.rendering.RenderResult
 
 /**
- * Controller for layout scanner that checks the layout and produces lint checks. It controls when
- * to run/pause/resume Accessibility Testing Framework. By default scanner is enabled/resumed.
+ * Controller for layout scanner that checks the layout and produces lint checks. It controls when to run/pause/resume Accessibility Testing
+ * Framework. By default scanner is enabled/resumed.
  */
 interface LayoutScannerControl {
 
@@ -45,9 +45,8 @@ interface LayoutScannerConfiguration {
   var isLayoutScannerEnabled: Boolean
 
   /**
-   * Determines default behaviour on whether the scanner result should be integrated with issue
-   * panel. If true, it'll be integrated automatically. If false, results will not be used for
-   * anything.
+   * Determines default behaviour on whether the scanner result should be integrated with issue panel. If true, it'll be integrated
+   * automatically. If false, results will not be used for anything.
    */
   var isIntegrateWithDefaultIssuePanel: Boolean
 

@@ -44,14 +44,8 @@ class RecipeUtilsTest {
     val dependencies: SetMultimap<String, String> = LinkedHashMultimap.create()
     val renderingContext = mock<RenderingContext>()
     whenever(renderingContext.dependencies).thenReturn(dependencies)
-    dependencies.put(
-      SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION,
-      "my.implementation.dependency",
-    )
-    dependencies.put(
-      SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION,
-      "my.test.dependency",
-    )
+    dependencies.put(SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION, "my.implementation.dependency")
+    dependencies.put(SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION, "my.test.dependency")
     dependencies.put(SdkConstants.GRADLE_API_CONFIGURATION, "my.api.dependency")
 
     val metadata = RecipeMetadata(mock(), mock())

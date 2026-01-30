@@ -31,9 +31,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.Processor
 
-/**
- * A short names cache for finding any [LightArgsBuilderClass] instances by their unqualified name.
- */
+/** A short names cache for finding any [LightArgsBuilderClass] instances by their unqualified name. */
 class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val enabledFacetsProvider = SafeArgsEnabledFacetsProjectService.getInstance(project)
   private val lightClassesCache: CachedValue<List<LightArgsBuilderClass>>
@@ -73,19 +71,11 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
 
-  override fun getMethodsByNameIfNotMoreThan(
-    name: String,
-    scope: GlobalSearchScope,
-    maxCount: Int,
-  ): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  override fun processMethodsWithName(
-    name: String,
-    scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>,
-  ): Boolean {
+  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<in PsiMethod>): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
     return getMethodsByName(name, scope).all { method -> processor.process(method) }
@@ -95,11 +85,7 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
 
-  override fun getFieldsByNameIfNotMoreThan(
-    name: String,
-    scope: GlobalSearchScope,
-    maxCount: Int,
-  ): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 }

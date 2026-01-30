@@ -53,38 +53,27 @@ import org.jetbrains.jewel.ui.icon.IconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /**
- * A panel showing a summary of a [DeviceProfile] and (optionally) a system image. Contains a
- * diagram of the screen, along with various metadata in a tabular format.
+ * A panel showing a summary of a [DeviceProfile] and (optionally) a system image. Contains a diagram of the screen, along with various
+ * metadata in a tabular format.
  */
 @Composable
-fun DeviceDetails(
-  device: DeviceProfile,
-  modifier: Modifier = Modifier,
-  systemImage: ISystemImage? = null,
-) {
+fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier, systemImage: ISystemImage? = null) {
   VerticallyScrollableContainer(modifier) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-      Text(
-        device.name,
-        fontWeight = FontWeight.Bold,
-        fontSize = LocalTextStyle.current.fontSize * 1.2,
-      )
+      Text(device.name, fontWeight = FontWeight.Bold, fontSize = LocalTextStyle.current.fontSize * 1.2)
 
       DeviceScreenDiagram(
         device.resolution.width,
         device.resolution.height,
         diagonalLength = device.diagonalLengthString(),
         round = device.isRound,
-        modifier =
-          Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
+        modifier = Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
       )
 
       if (systemImage != null && systemImage is RemoteSystemImage) {
         val imageSize = (systemImage.`package` as? RemotePackage)?.archive?.complete?.size
         InfoBanner(
-          text =
-            (if (imageSize == null) "System" else Storage(imageSize).toUiString() + " system") +
-              " image will be downloaded",
+          text = (if (imageSize == null) "System" else Storage(imageSize).toUiString() + " system") + " image will be downloaded",
           AllIconsKeys.Actions.Download,
           Modifier.padding(vertical = 4.dp),
         )
@@ -123,13 +112,11 @@ internal val ISystemImage.services: String
       else -> "Android Open Source"
     }
 
-private fun Range<Int>.isSingleton(): Boolean =
-  hasLowerBound() && hasUpperBound() && lowerEndpoint() == upperEndpoint()
+private fun Range<Int>.isSingleton(): Boolean = hasLowerBound() && hasUpperBound() && lowerEndpoint() == upperEndpoint()
 
 internal fun Range<Int>.firstAndLastApiLevel(): String =
   if (hasUpperBound()) {
-    if (lowerEndpoint() == upperEndpoint()) "${lowerEndpoint()}"
-    else "${lowerEndpoint()}\u2013${upperEndpoint()}"
+    if (lowerEndpoint() == upperEndpoint()) "${lowerEndpoint()}" else "${lowerEndpoint()}\u2013${upperEndpoint()}"
   } else "${lowerEndpoint()}+"
 
 @Composable
@@ -148,10 +135,7 @@ private fun InfoBanner(text: String, iconKey: IconKey, modifier: Modifier = Modi
   val backgroundColor = JBUI.CurrentTheme.Banner.INFO_BACKGROUND.toComposeColor()
   Column(modifier.fillMaxWidth()) {
     Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = borderColor)
-    Row(
-      modifier = Modifier.background(backgroundColor).padding(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Row(modifier = Modifier.background(backgroundColor).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
       Icon(iconKey, contentDescription = null)
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = text)
@@ -163,9 +147,7 @@ private fun InfoBanner(text: String, iconKey: IconKey, modifier: Modifier = Modi
 @Composable
 private fun LabeledValue(label: String, value: String) {
   Row {
-    Column(Modifier.weight(0.5f).alignByBaseline()) {
-      Text(label, color = JewelTheme.globalColors.text.info)
-    }
+    Column(Modifier.weight(0.5f).alignByBaseline()) { Text(label, color = JewelTheme.globalColors.text.info) }
     Spacer(Modifier.size(4.dp))
     Column(Modifier.weight(0.5f).alignByBaseline()) { Text(value) }
   }
@@ -174,5 +156,4 @@ private fun LabeledValue(label: String, value: String) {
 private val diagonalLengthFormat = DecimalFormat(".##")
 
 private fun DeviceProfile.diagonalLengthString() =
-  if (displayDiagonalLength > 0) diagonalLengthFormat.format(displayDiagonalLength) + '\u2033'
-  else ""
+  if (displayDiagonalLength > 0) diagonalLengthFormat.format(displayDiagonalLength) + '\u2033' else ""

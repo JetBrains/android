@@ -38,23 +38,24 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.registerServiceInstance
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 @Ignore("FakeAdbTestRule hangs")
 class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
   // Expected commands am commands
   private val forceStop = "force-stop com.example.app"
   private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
-  private val setWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component"
+  private val setWatchFace =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component"
   private val showWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
   private val unsetWatchFace = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface"
   private val setDebugAppAm = "set-debug-app -w 'com.example.app'"
@@ -62,8 +63,9 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run WatchFace", AndroidWatchFaceConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run WatchFace", AndroidWatchFaceConfigurationType().configurationFactories.single())
     // Use debug executor
     return ExecutionEnvironment(executorInstance, DefaultStudioProgramRunner(), configSettings, project)
   }
@@ -82,41 +84,45 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
 
-        setWatchFace -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+        setWatchFace ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+          )
       }
     }
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
-        componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          WatchFaceLaunchOptions().apply { componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName }
       }
-    }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(
-      env,
-      deviceFutures,
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidWatchFaceConfigurationExecutor(
+        env,
+        deviceFutures,
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
-
 
     // check WatchFace API version.
     assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
@@ -141,9 +147,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
         // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
         clearDebugAppAm -> {
           shellCommandOutput.writeStdout("")
@@ -153,7 +161,8 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
           deviceState.startClient(1234, 1235, appId, true)
           shellCommandOutput.writeStdout(
             "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-            "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+              "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+          )
         }
 
         unsetWatchFace -> {
@@ -165,24 +174,25 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
-        componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          WatchFaceLaunchOptions().apply { componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName }
       }
-    }
 
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device)),
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidWatchFaceConfigurationExecutor(
+        env,
+        FakeAndroidDevice.forDevices(listOf(device)),
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
 
@@ -191,7 +201,6 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     processTerminatedLatch.await(1, TimeUnit.SECONDS)
 
     // Verify commands sent to device.
-
 
     // check WatchFace API version.
     assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
@@ -227,28 +236,30 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
-        componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          WatchFaceLaunchOptions().apply { componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName }
       }
-    }
 
     // Executor we test.
     val app = mock<App>()
     val appInstaller = TestApplicationInstaller(appId, app)
     val activator = mock<Activator>()
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(activator).activate(any(), any(), any<AppComponent.Mode>(), any(), any())
+      .whenever(activator)
+      .activate(any(), any(), any<AppComponent.Mode>(), any(), any())
 
-    val executor = AndroidWatchFaceConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device)),
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidWatchFaceConfigurationExecutor(
+        env,
+        FakeAndroidDevice.forDevices(listOf(device)),
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
     val spyExecutor = Mockito.spy(executor)
     Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
@@ -281,9 +292,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
           deviceState.stopClient(1234)
           processTerminatedLatch.countDown()
         }
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
         // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
         clearDebugAppAm -> {
           shellCommandOutput.writeStdout("")
@@ -293,7 +306,8 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
           deviceState.startClient(1234, 1235, appId, true)
           shellCommandOutput.writeStdout(
             "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-            "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
+              "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\""
+          )
         }
 
         unsetWatchFace -> {
@@ -306,33 +320,30 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
-        componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          WatchFaceLaunchOptions().apply { componentName = this@AndroidWatchFaceConfigurationExecutorTest.componentName }
       }
-    }
 
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device)),
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidWatchFaceConfigurationExecutor(
+        env,
+        FakeAndroidDevice.forDevices(listOf(device)),
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.
     assertFailsWith<ExecutionException>("Exception on debug start") {
-      getRunContentDescriptorForTests {
-        executor.debug(
-          EmptyProgressIndicator()
-        )
-      }
+      getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     }
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated after debugger failed to connect")

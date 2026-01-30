@@ -24,12 +24,10 @@ import java.io.File
 /**
  * An action to import tests from the run history XML file.
  *
- * In addition to the standard history file, this class supports
- * AndroidTestMatrix data format and show them in AndroidTestSuiteView
- * instead of the standard IntelliJ SMTestRunnerResultsForm.
+ * In addition to the standard history file, this class supports AndroidTestMatrix data format and show them in AndroidTestSuiteView instead
+ * of the standard IntelliJ SMTestRunnerResultsForm.
  */
-class ImportTestsFromHistoryAction(project: Project, historyXmlFile: File)
-  : ImportTestsFromHistoryAction(project, historyXmlFile.name) {
+class ImportTestsFromHistoryAction(project: Project, historyXmlFile: File) : ImportTestsFromHistoryAction(project, historyXmlFile.name) {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val virtualFile = getFile(project) ?: return
@@ -39,4 +37,3 @@ class ImportTestsFromHistoryAction(project: Project, historyXmlFile: File)
     }
   }
 }
-

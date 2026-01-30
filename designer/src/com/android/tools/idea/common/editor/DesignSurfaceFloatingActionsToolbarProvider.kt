@@ -39,9 +39,7 @@ class DesignSurfaceFloatingActionsToolbarProvider(
   init {
     scope.launch { designSurface.zoomChanged.collect { zoomChanged() } }
     scope.launch { designSurface.panningChanged.collect { panningChanged() } }
-    scope.launch {
-      designSurface.modelChanged.collect { withContext(uiThread) { updateToolbar() } }
-    }
+    scope.launch { designSurface.modelChanged.collect { withContext(uiThread) { updateToolbar() } } }
     updateToolbar()
   }
 

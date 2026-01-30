@@ -169,7 +169,7 @@ private val SAMPLE_DEVICE_DISTRIBUTION =
       }
     }
   }
-"""
+  """
     .trimIndent()
 
 private val SAMPLE_VERSIONS =
@@ -224,7 +224,7 @@ private val SAMPLE_VERSIONS =
       }
     }
   }
-"""
+  """
     .trimIndent()
 
 private const val METRIC_TYPE = "___METRIC_TYPE___"
@@ -236,44 +236,25 @@ class FakeErrorsService(
   private val clock: Clock,
   private val requestChannel: SendChannel<GeneratedMessageV3>? = null,
 ) : VitalsErrorsServiceGrpc.VitalsErrorsServiceImplBase() {
-  override fun searchErrorReports(
-    request: SearchErrorReportsRequest,
-    responseObserver: StreamObserver<SearchErrorReportsResponse>,
-  ) {
+  override fun searchErrorReports(request: SearchErrorReportsRequest, responseObserver: StreamObserver<SearchErrorReportsResponse>) {
     requestChannel?.trySend(request)
     val regex = Regex("errorReportId = (\\w+)")
     val errorReportId = regex.findAll(request.filter).map { it.groupValues[1] }.toSet()
     responseObserver.onNext(
       SearchErrorReportsResponse.newBuilder()
-        .apply {
-          addErrorReports(
-            ErrorReport.newBuilder().apply {
-              addAllErrorReports(database.getReportsForIds(errorReportId))
-            }
-          )
-        }
+        .apply { addErrorReports(ErrorReport.newBuilder().apply { addAllErrorReports(database.getReportsForIds(errorReportId)) }) }
         .build()
     )
     responseObserver.onCompleted()
   }
 
-  override fun searchErrorIssues(
-    request: SearchErrorIssuesRequest,
-    responseObserver: StreamObserver<SearchErrorIssuesResponse>,
-  ) {
+  override fun searchErrorIssues(request: SearchErrorIssuesRequest, responseObserver: StreamObserver<SearchErrorIssuesResponse>) {
     requestChannel?.trySend(request)
-    responseObserver.onNext(
-      SearchErrorIssuesResponse.newBuilder()
-        .apply { addAllErrorIssues(database.getIssues()) }
-        .build()
-    )
+    responseObserver.onNext(SearchErrorIssuesResponse.newBuilder().apply { addAllErrorIssues(database.getIssues()) }.build())
     responseObserver.onCompleted()
   }
 
-  override fun getErrorCountMetricSet(
-    request: GetErrorCountMetricSetRequest,
-    responseObserver: StreamObserver<ErrorCountMetricSet>,
-  ) {
+  override fun getErrorCountMetricSet(request: GetErrorCountMetricSetRequest, responseObserver: StreamObserver<ErrorCountMetricSet>) {
     requestChannel?.trySend(request)
     responseObserver.onNext(
       ErrorCountMetricSet.newBuilder()
@@ -312,11 +293,7 @@ class FakeErrorsService(
         SAMPLE_DEVICE_DISTRIBUTION
       } else ""
     val metricType = request.getMetrics(0)
-    val response =
-      TextFormat.parse(
-        responseText.replace(METRIC_TYPE, metricType),
-        QueryErrorCountMetricSetResponse::class.java,
-      )
+    val response = TextFormat.parse(responseText.replace(METRIC_TYPE, metricType), QueryErrorCountMetricSetResponse::class.java)
 
     responseObserver.onNext(response)
     responseObserver.onCompleted()

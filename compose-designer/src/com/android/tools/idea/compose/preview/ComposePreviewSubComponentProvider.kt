@@ -24,9 +24,8 @@ import java.awt.Point
 import java.awt.Rectangle
 
 /**
- * Provides the bounding [Rectangle] of the smallest subcomponent at the given (x, y) coordinates
- * within the [sceneView]. If no specific subcomponent is found, it returns the bounding box of the
- * entire [sceneView].
+ * Provides the bounding [Rectangle] of the smallest subcomponent at the given (x, y) coordinates within the [sceneView]. If no specific
+ * subcomponent is found, it returns the bounding box of the entire [sceneView].
  *
  * @param sceneView The [SceneView] to search within.
  * @param x The x-coordinate in swing dimensions.
@@ -41,9 +40,7 @@ fun subComponentProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): 
     return Rectangle(Point(0, 0), sceneView.scaledContentSize)
   }
   if (smallestViewInfos.size > 1) {
-    logger.warn(
-      "Expected 1 view to zoom to, but found ${smallestViewInfos.size}, choosing the last one."
-    )
+    logger.warn("Expected 1 view to zoom to, but found ${smallestViewInfos.size}, choosing the last one.")
   }
   return findSubComponent(smallestViewInfos.last(), sceneView)
 }
@@ -56,15 +53,7 @@ fun subComponentProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): 
  */
 fun findSubComponent(deepestViewInfo: ComposeViewInfo, sceneView: SceneView): Rectangle =
   deepestViewInfo.bounds.let {
-    val topLeftCorner =
-      Point(
-        Coordinates.getSwingDimension(sceneView, it.left),
-        Coordinates.getSwingDimension(sceneView, it.top),
-      )
-    val size =
-      Dimension(
-        Coordinates.getSwingDimension(sceneView, it.width),
-        Coordinates.getSwingDimension(sceneView, it.height),
-      )
+    val topLeftCorner = Point(Coordinates.getSwingDimension(sceneView, it.left), Coordinates.getSwingDimension(sceneView, it.top))
+    val size = Dimension(Coordinates.getSwingDimension(sceneView, it.width), Coordinates.getSwingDimension(sceneView, it.height))
     return java.awt.Rectangle(topLeftCorner, size)
   }

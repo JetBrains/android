@@ -32,9 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import java.util.regex.Pattern
 
-/**
- * Adds quick fixes e.g [SuppressByProguardR8CommentFix] for suppressing ProguardR8***Inspection.
- */
+/** Adds quick fixes e.g [SuppressByProguardR8CommentFix] for suppressing ProguardR8***Inspection. */
 class ProguardR8InspectionSuppressor : InspectionSuppressor {
   private val suppressPattern = Pattern.compile("#${SuppressionUtil.COMMON_SUPPRESS_REGEXP}")
 
@@ -53,33 +51,31 @@ class ProguardR8InspectionSuppressor : InspectionSuppressor {
     return matcher.matches() && SuppressionUtil.isInspectionToolIdMentioned(matcher.group(1), toolId)
   }
 
-  private fun getCommentsBefore(element: PsiElement) = generateSequence(
-    PsiTreeUtil.getPrevSiblingOfType<PsiComment>(element, PsiComment::class.java)) {
-    PsiTreeUtil.getPrevSiblingOfType<PsiComment>(it, PsiComment::class.java)
-  }
+  private fun getCommentsBefore(element: PsiElement) =
+    generateSequence(PsiTreeUtil.getPrevSiblingOfType<PsiComment>(element, PsiComment::class.java)) {
+      PsiTreeUtil.getPrevSiblingOfType<PsiComment>(it, PsiComment::class.java)
+    }
 }
 
-/**
- * Suppress ProguardR8 inspections by comment.
- */
+/** Suppress ProguardR8 inspections by comment. */
 private class SuppressByProguardR8CommentFix(element: PsiElement, toolId: String) : SuppressByCommentFix(toolId, element::class.java) {
   override fun getContainer(context: PsiElement?): PsiElement? {
     if (context == null) return null
-    //If we are inside class specification body, comment should be above ProguardR8JavaRule.
+    // If we are inside class specification body, comment should be above ProguardR8JavaRule.
     if (context.parentOfType<ProguardR8ClassSpecificationBody>() != null) {
       return context.parentOfType<ProguardR8JavaRule>()
     }
-    //If we are not inside class specification body, comment should be above ProguardR8Rule/ProguardR8RuleWithClassSpecification.
+    // If we are not inside class specification body, comment should be above ProguardR8Rule/ProguardR8RuleWithClassSpecification.
     return context.parentOfType(ProguardR8Rule::class, ProguardR8RuleWithClassSpecification::class)
   }
 
   override fun createSuppression(project: Project, element: PsiElement, container: PsiElement) {
-    //To safe indent before container, hopefully we will get rid of this after http://b/145126304
+    // To safe indent before container, hopefully we will get rid of this after http://b/145126304
     val oldIndent = if (container.prevSibling is PsiWhiteSpace) getIndent(container.prevSibling as PsiWhiteSpace) else ""
-    //Add suppression comment before container.
+    // Add suppression comment before container.
     super.createSuppression(project, element, container)
     val parserFacade = PsiParserFacade.getInstance(project)
-    //Add new line and old indent after suppression comment.
+    // Add new line and old indent after suppression comment.
     val newLine = parserFacade.createWhiteSpaceFromText("\n" + oldIndent)
     container.parent.addAfter(newLine, container.prevSibling)
   }

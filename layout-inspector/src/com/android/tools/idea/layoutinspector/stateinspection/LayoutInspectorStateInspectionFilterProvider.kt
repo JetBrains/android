@@ -20,8 +20,8 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.extensions.ExtensionPointName
 
 /**
- * Provides a [Filter] that is applicable only to the state inspection in the Layout Inspector. A
- * [Filter] is used by EditorHyperlinkSupport to format certain text sequences as hyperlinks.
+ * Provides a [Filter] that is applicable only to the state inspection in the Layout Inspector. A [Filter] is used by EditorHyperlinkSupport
+ * to format certain text sequences as hyperlinks.
  */
 interface LayoutInspectorStateInspectionFilterProvider {
 
@@ -30,8 +30,6 @@ interface LayoutInspectorStateInspectionFilterProvider {
 
   companion object {
     val EP_NAME: ExtensionPointName<LayoutInspectorStateInspectionFilterProvider> =
-      ExtensionPointName.create(
-        "com.android.tools.idea.layoutinspector.stateinspection.filterProvider"
-      )
+      ExtensionPointName.create("com.android.tools.idea.layoutinspector.stateinspection.filterProvider")
   }
 }

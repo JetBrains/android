@@ -20,9 +20,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import java.io.File
 import java.io.FileOutputStream
 
-/**
- * (Test-only action) Exports the currently selected recording to the project base path as `ExportedTraceFile`
- */
+/** (Test-only action) Exports the currently selected recording to the project base path as `ExportedTraceFile` */
 class ExportRecordingAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
@@ -30,8 +28,10 @@ class ExportRecordingAction : ProfilerTaskActionBase() {
     val sessionArtifact = profilers.pastRecordingsTabModel.recordingListModel.exportableArtifact
     val exportableArtifact = sessionArtifact as ExportableArtifact
     val pathToSaveTheRecording = "${e.project?.basePath}/ExportedTraceFile.${exportableArtifact.exportExtension}"
-    profilers.ideServices
-      .saveFile(File(pathToSaveTheRecording),
-                {outputStream: FileOutputStream -> sessionArtifact.export(outputStream)}, null)
+    profilers.ideServices.saveFile(
+      File(pathToSaveTheRecording),
+      { outputStream: FileOutputStream -> sessionArtifact.export(outputStream) },
+      null,
+    )
   }
 }

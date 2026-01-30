@@ -24,9 +24,9 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Perfgate test for measuring the memory overhead of loading / parsing a perfetto capture with TraceProcessorService backend.
- * Note: This test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references
- * impact the memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
+ * Perfgate test for measuring the memory overhead of loading / parsing a perfetto capture with TraceProcessorService backend. Note: This
+ * test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references impact the
+ * memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
  */
 class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   lateinit var traceProcessorService: TraceProcessorServiceImpl
@@ -34,8 +34,9 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Before
   fun setUp() {
     // Use a real instance of TPD Service instead of the fake one.
-    class TestIdeServices: FakeIdeProfilerServices() {
-      override val traceProcessorService get() = this@CpuProfilerPerfettoCaptureTest.traceProcessorService
+    class TestIdeServices : FakeIdeProfilerServices() {
+      override val traceProcessorService
+        get() = this@CpuProfilerPerfettoCaptureTest.traceProcessorService
     }
     traceProcessorService = TraceProcessorServiceImpl()
     myIdeServices = TestIdeServices()
@@ -49,28 +50,18 @@ class CpuProfilerPerfettoCaptureTest : CpuProfilerMemoryLoadTestBase() {
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_10s() {
-    loadCaptureAndReport(
-      "Perfetto-TPD-10-sec",
-      getTraceFile("performance/perfetto_10s_tanks.trace"),
-      "com.google.android.tanks", 7366)
+    loadCaptureAndReport("Perfetto-TPD-10-sec", getTraceFile("performance/perfetto_10s_tanks.trace"), "com.google.android.tanks", 7366)
   }
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_60s() {
     myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
-    loadCaptureAndReport(
-      "Perfetto-TPD-60-sec",
-      getTraceFile("performance/perfetto_60s_tanks.trace"),
-      "com.google.android.tanks", 9796)
+    loadCaptureAndReport("Perfetto-TPD-60-sec", getTraceFile("performance/perfetto_60s_tanks.trace"), "com.google.android.tanks", 9796)
   }
 
   @Test
   fun measureMemoryOfImportPerfettoWithTPD_120s() {
     myIdeServices.setShouldProceedYesNoDialog(true) // Because the trace file is larger than 100 Mb, it triggers the dialog
-    loadCaptureAndReport(
-      "Perfetto-TPD-120-sec",
-      getTraceFile("performance/perfetto_120s_tanks.trace"),
-      "com.google.android.tanks", 10679)
+    loadCaptureAndReport("Perfetto-TPD-120-sec", getTraceFile("performance/perfetto_120s_tanks.trace"), "com.google.android.tanks", 10679)
   }
 }
-

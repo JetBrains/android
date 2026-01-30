@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.WrongGradleMethodDetector
 
 class AndroidLintWrongGradleMethodInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.wrong.gradle.method"),
-    WrongGradleMethodDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.wrong.gradle.method"), WrongGradleMethodDetector.ISSUE)

@@ -21,21 +21,27 @@ import java.security.InvalidParameterException
 abstract class HProfReadBuffer : AutoCloseable {
   var idSize: Int = 0
     set(value) {
-      if (idSize != 0)
-        throw IllegalStateException("ID size cannot be reassigned.")
-      if (value != 1 && value != 2 && value != 4 && value != 8)
-        throw InvalidParameterException("ID size can only be 1, 2, 4 or 8.")
+      if (idSize != 0) throw IllegalStateException("ID size cannot be reassigned.")
+      if (value != 1 && value != 2 && value != 4 && value != 8) throw InvalidParameterException("ID size can only be 1, 2, 4 or 8.")
       field = value
     }
 
   abstract fun position(newPosition: Long)
+
   abstract fun isEof(): Boolean
+
   abstract fun position(): Long
+
   abstract fun get(bytes: ByteArray)
+
   abstract fun getByteBuffer(size: Int): ByteBuffer
+
   abstract fun get(): Byte
+
   abstract fun getShort(): Short
+
   abstract fun getInt(): Int
+
   abstract fun getLong(): Long
 
   open fun getId(): Long {
@@ -53,7 +59,9 @@ abstract class HProfReadBuffer : AutoCloseable {
   }
 
   fun getUnsignedByte(): Int = java.lang.Byte.toUnsignedInt(get())
+
   fun getUnsignedShort(): Int = java.lang.Short.toUnsignedInt(getShort())
+
   fun getUnsignedInt(): Long = java.lang.Integer.toUnsignedLong(getInt())
 
   fun getUTF8String(): String {

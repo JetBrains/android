@@ -82,10 +82,7 @@ class FastPreviewManagerGradleTest {
   @Before
   fun setUp() {
     FastPreviewConfiguration.getInstance().isEnabled = true
-    val mainFile =
-      projectRule.project
-        .guessProjectDir()!!
-        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    val mainFile = projectRule.project.guessProjectDir()!!.findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     fastPreviewManager = FastPreviewManager.getInstance(projectRule.project)
     runInEdtAndWait {
@@ -114,8 +111,7 @@ class FastPreviewManagerGradleTest {
   fun testSingleFileCompileSuccessfully() {
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
-      val (result, _) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
@@ -123,15 +119,13 @@ class FastPreviewManagerGradleTest {
   @Test
   fun testFastPreviewDoesNotInlineRIds() {
     // Force the use of final resource ids
-    File(projectRule.project.guessProjectDir()!!.toIoFile(), "gradle.properties")
-      .appendText("android.nonFinalResIds=false")
+    File(projectRule.project.guessProjectDir()!!.toIoFile(), "gradle.properties").appendText("android.nonFinalResIds=false")
     projectRule.requestSyncAndWait()
     projectRule.buildAndAssertIsSuccessful()
 
     typeAndSaveDocument("Text(stringResource(R.string.greeting))\n")
     runBlocking {
-      val (result, outputPath) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
 
       // Decompile the generated Preview code
@@ -139,13 +133,9 @@ class FastPreviewManagerGradleTest {
         withContext(Dispatchers.IO) {
           File(outputPath).toPath().toFileNameSet().joinToString("\n") {
             try {
-              val reader =
-                ClassReader(
-                  Files.readAllBytes(Paths.get(outputPath, "google/simpleapplication/$it"))
-                )
+              val reader = ClassReader(Files.readAllBytes(Paths.get(outputPath, "google/simpleapplication/$it")))
               val outputTrace = StringWriter()
-              val classOutputWriter =
-                TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
+              val classOutputWriter = TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
               reader.accept(classOutputWriter, 0)
               outputTrace.toString()
             } catch (t: Throwable) {
@@ -164,10 +154,7 @@ class FastPreviewManagerGradleTest {
           "GETSTATIC google/simpleapplication/R.string\\.greeting : I\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
           RegexOption.MULTILINE,
         )
-      val matches =
-        sequenceOf(k1StringResourceCallPattern, k2StringResourceCallPattern).flatMap {
-          it.findAll(decompiledOutput)
-        }
+      val matches = sequenceOf(k1StringResourceCallPattern, k2StringResourceCallPattern).flatMap { it.findAll(decompiledOutput) }
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
     }
   }
@@ -176,14 +163,12 @@ class FastPreviewManagerGradleTest {
   fun testDaemonIsRestartedAutomatically() {
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
-      val (result, _) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       fastPreviewManager.stopAllDaemons().join()
     }
     runBlocking {
-      val (result, _) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
@@ -195,18 +180,15 @@ class FastPreviewManagerGradleTest {
         "google.simpleapplication.MainActivityKt.TwoElementsPreview"
       )
     val appFacet = projectRule.androidFacet(":app")
-    val mainActivityFile =
-      appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val initialState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
 
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val buildTargetReference = BuildTargetReference.from(psiMainFile)!!
-      val (result, outputPath) =
-        fastPreviewManager.compileRequest(psiMainFile, buildTargetReference)
+      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, buildTargetReference)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      ModuleClassLoaderOverlays.getInstance(buildTargetReference)
-        .pushOverlayPath(File(outputPath).toPath())
+      ModuleClassLoaderOverlays.getInstance(buildTargetReference).pushOverlayPath(File(outputPath).toPath())
     }
     val finalState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
     assertTrue(
@@ -219,20 +201,14 @@ class FastPreviewManagerGradleTest {
   fun testMultipleFilesCompileSuccessfully() {
     val psiSecondFile = runReadAction {
       val vFile =
-        projectRule.project
-          .guessProjectDir()!!
-          .findFileByRelativePath("app/src/main/java/google/simpleapplication/OtherPreviews.kt")!!
+        projectRule.project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/google/simpleapplication/OtherPreviews.kt")!!
       PsiManager.getInstance(projectRule.project).findFile(vFile)!!
     }
     runBlocking {
       val (result, outputPath) =
-        fastPreviewManager.compileRequest(
-          listOf(psiMainFile, psiSecondFile),
-          BuildTargetReference.from(psiMainFile)!!,
-        )
+        fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      val generatedFilesSet =
-        withContext(Dispatchers.IO) { File(outputPath).toPath().toFileNameSet() }
+      val generatedFilesSet = withContext(Dispatchers.IO) { File(outputPath).toPath().toFileNameSet() }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
     }
   }
@@ -249,8 +225,7 @@ class FastPreviewManagerGradleTest {
       while (compile) {
         typeAndSaveDocument("Text(\"Hello 3\")\n")
         runBlocking {
-          val (result, _) =
-            fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+          val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
           if (result.isSuccess) previewCompilations.incrementAndGet()
         }
       }
@@ -270,8 +245,7 @@ class FastPreviewManagerGradleTest {
             .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))
           deviceCompilations.incrementAndGet()
         } catch (e: LiveEditUpdateException) {
-          Logger.getInstance(FastPreviewManagerGradleTest::class.java)
-            .warn("Live edit compilation failed ", e)
+          Logger.getInstance(FastPreviewManagerGradleTest::class.java).warn("Live edit compilation failed ", e)
         }
       }
     }

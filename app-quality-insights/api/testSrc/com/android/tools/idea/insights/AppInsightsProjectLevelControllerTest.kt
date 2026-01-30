@@ -56,8 +56,7 @@ class AppInsightsProjectLevelControllerTest {
   private val executorsRule = AndroidExecutorsRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(controllerRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(controllerRule)!!
 
   private val client: TestAppInsightsClient
     get() = controllerRule.client
@@ -66,52 +65,47 @@ class AppInsightsProjectLevelControllerTest {
     get() = controllerRule.clock
 
   @Test
-  fun `when controller is initialized it emits a loading state and starts an issue fetch`() =
-    runBlocking {
-      controllerRule.updateConnections(listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION))
-      val model = controllerRule.consumeNext()
-      assertThat(model)
-        .isEqualTo(
-          AppInsightsState(
-            Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
-            TEST_FILTERS,
-            LoadingState.Loading,
-          )
-        )
-
-      client.completeIssuesCallWith(
-        LoadingState.Ready(
-          IssueResponse(
-            emptyList(),
-            listOf(DEFAULT_FETCHED_VERSIONS),
-            listOf(DEFAULT_FETCHED_DEVICES),
-            listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
+  fun `when controller is initialized it emits a loading state and starts an issue fetch`() = runBlocking {
+    controllerRule.updateConnections(listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION))
+    val model = controllerRule.consumeNext()
+    assertThat(model)
+      .isEqualTo(
+        AppInsightsState(
+          Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
+          TEST_FILTERS,
+          LoadingState.Loading,
         )
       )
 
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          AppInsightsState(
-            connections =
-              Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
-            filters =
-              TEST_FILTERS.copy(
-                versions =
-                  MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
-                devices =
-                  MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
-                operatingSystems =
-                  MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-              ),
-            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
-            permission = Permission.FULL,
-          )
+    client.completeIssuesCallWith(
+      LoadingState.Ready(
+        IssueResponse(
+          emptyList(),
+          listOf(DEFAULT_FETCHED_VERSIONS),
+          listOf(DEFAULT_FETCHED_DEVICES),
+          listOf(DEFAULT_FETCHED_OSES),
+          DEFAULT_FETCHED_PERMISSIONS,
         )
-      verify(client).listTopOpenIssues(any(), any(), any(), any())
-      return@runBlocking
-    }
+      )
+    )
+
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        AppInsightsState(
+          connections = Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
+          filters =
+            TEST_FILTERS.copy(
+              versions = MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
+              devices = MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
+              operatingSystems = MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
+            ),
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
+          permission = Permission.FULL,
+        )
+      )
+    verify(client).listTopOpenIssues(any(), any(), any(), any())
+    return@runBlocking
+  }
 
   @Test
   fun `when placeholder connection gets selected it propagates to the model`() = runBlocking {
@@ -172,12 +166,9 @@ class AppInsightsProjectLevelControllerTest {
           connections = model.connections.select(CONNECTION2),
           filters =
             TEST_FILTERS.copy(
-              versions =
-                MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
-              devices =
-                MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
-              operatingSystems =
-                MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
+              versions = MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
+              devices = MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
+              operatingSystems = MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
               signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
           issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
@@ -185,11 +176,7 @@ class AppInsightsProjectLevelControllerTest {
       )
     verify(client)
       .listTopOpenIssues(
-        argThat {
-          connection == CONNECTION2 &&
-            filters.versions == setOf(Version.ALL) &&
-            filters.interval.duration == Duration.ofDays(30)
-        },
+        argThat { connection == CONNECTION2 && filters.versions == setOf(Version.ALL) && filters.interval.duration == Duration.ofDays(30) },
         any(),
         any(),
         any(),
@@ -198,103 +185,85 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  fun `when connections get changed it propagates to the model, active connection remains`() =
-    runBlocking {
-      // discard initial loading state, already tested above
-      val model = controllerRule.consumeInitialState()
+  fun `when connections get changed it propagates to the model, active connection remains`() = runBlocking {
+    // discard initial loading state, already tested above
+    val model = controllerRule.consumeInitialState()
 
-      // Ensure the initial state.
-      assertThat(model.connections)
-        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
+    // Ensure the initial state.
+    assertThat(model.connections).isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
 
-      // Available connections get changed but active connection remains, thus no new fetch.
-      controllerRule.updateConnections(listOf((CONNECTION1)))
+    // Available connections get changed but active connection remains, thus no new fetch.
+    controllerRule.updateConnections(listOf((CONNECTION1)))
 
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          model.copy(
-            connections = Selection(CONNECTION1, listOf(CONNECTION1)),
-            filters =
-              TEST_FILTERS.copy(
-                versions =
-                  MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
-                devices =
-                  MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
-                operatingSystems =
-                  MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-              ),
-            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
-          )
-        )
-
-      return@runBlocking
-    }
-
-  @Test
-  fun `when connections get changed it propagates to the model, active connection is changed`() =
-    runBlocking {
-      // discard initial loading state, already tested above
-      val model = controllerRule.consumeInitialState()
-
-      // Ensure the initial state.
-      assertThat(model.connections)
-        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
-
-      // Available connections get changed. Since "VARIANT1" has been removed from the available
-      // connections list, active connection falls to "VARIANT2". Thus, new fetch.
-      controllerRule.updateConnections(listOf(CONNECTION2))
-
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          model.copy(
-            connections = Selection(CONNECTION2, listOf(CONNECTION2)),
-            issues = LoadingState.Loading,
-            filters = TEST_FILTERS,
-          )
-        )
-      client.completeIssuesCallWith(
-        LoadingState.Ready(
-          IssueResponse(
-            emptyList(),
-            listOf(DEFAULT_FETCHED_VERSIONS),
-            listOf(DEFAULT_FETCHED_DEVICES),
-            listOf(DEFAULT_FETCHED_OSES),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        model.copy(
+          connections = Selection(CONNECTION1, listOf(CONNECTION1)),
+          filters =
+            TEST_FILTERS.copy(
+              versions = MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
+              devices = MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
+              operatingSystems = MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
+            ),
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
         )
       )
 
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          model.copy(
-            connections = Selection(CONNECTION2, listOf(CONNECTION2)),
-            filters =
-              TEST_FILTERS.copy(
-                versions =
-                  MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
-                devices =
-                  MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
-                operatingSystems =
-                  MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-              ),
-            issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
-          )
+    return@runBlocking
+  }
+
+  @Test
+  fun `when connections get changed it propagates to the model, active connection is changed`() = runBlocking {
+    // discard initial loading state, already tested above
+    val model = controllerRule.consumeInitialState()
+
+    // Ensure the initial state.
+    assertThat(model.connections).isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
+
+    // Available connections get changed. Since "VARIANT1" has been removed from the available
+    // connections list, active connection falls to "VARIANT2". Thus, new fetch.
+    controllerRule.updateConnections(listOf(CONNECTION2))
+
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        model.copy(connections = Selection(CONNECTION2, listOf(CONNECTION2)), issues = LoadingState.Loading, filters = TEST_FILTERS)
+      )
+    client.completeIssuesCallWith(
+      LoadingState.Ready(
+        IssueResponse(
+          emptyList(),
+          listOf(DEFAULT_FETCHED_VERSIONS),
+          listOf(DEFAULT_FETCHED_DEVICES),
+          listOf(DEFAULT_FETCHED_OSES),
+          DEFAULT_FETCHED_PERMISSIONS,
         )
-      verify(client)
-        .listTopOpenIssues(
-          argThat {
-            connection == CONNECTION2 &&
-              filters.versions == setOf(Version.ALL) &&
-              filters.interval.duration == Duration.ofDays(30)
-          },
-          any(),
-          any(),
-          any(),
+      )
+    )
+
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        model.copy(
+          connections = Selection(CONNECTION2, listOf(CONNECTION2)),
+          filters =
+            TEST_FILTERS.copy(
+              versions = MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
+              devices = MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
+              operatingSystems = MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
+            ),
+          issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
         )
-      return@runBlocking
-    }
+      )
+    verify(client)
+      .listTopOpenIssues(
+        argThat { connection == CONNECTION2 && filters.versions == setOf(Version.ALL) && filters.interval.duration == Duration.ofDays(30) },
+        any(),
+        any(),
+        any(),
+      )
+    return@runBlocking
+  }
 
   @Test
   fun `correct selection is inferred when connections are updated`() = runBlocking {
@@ -312,8 +281,7 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections =
-            Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
+          connections = Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
           issues = LoadingState.Loading,
           filters = TEST_FILTERS,
         )
@@ -333,16 +301,12 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections =
-            Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
+          connections = Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
           filters =
             TEST_FILTERS.copy(
-              versions =
-                MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
-              devices =
-                MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
-              operatingSystems =
-                MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
+              versions = MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), listOf(DEFAULT_FETCHED_VERSIONS)),
+              devices = MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), listOf(DEFAULT_FETCHED_DEVICES)),
+              operatingSystems = MultiSelection(setOf(DEFAULT_FETCHED_OSES), listOf(DEFAULT_FETCHED_OSES)),
               signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
             ),
           issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())),
@@ -351,9 +315,7 @@ class AppInsightsProjectLevelControllerTest {
     verify(client)
       .listTopOpenIssues(
         argThat {
-          connection == preferredConnection &&
-            filters.versions == setOf(Version.ALL) &&
-            filters.interval.duration == Duration.ofDays(30)
+          connection == preferredConnection && filters.versions == setOf(Version.ALL) && filters.interval.duration == Duration.ofDays(30)
         },
         any(),
         any(),
@@ -363,34 +325,31 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  fun `when connections get changed it propagates to the model, placeholder connection is selected`() =
-    runBlocking {
-      // discard initial loading state, already tested above
-      val model = controllerRule.consumeInitialState()
+  fun `when connections get changed it propagates to the model, placeholder connection is selected`() = runBlocking {
+    // discard initial loading state, already tested above
+    val model = controllerRule.consumeInitialState()
 
-      // Ensure the initial state.
-      assertThat(model.connections)
-        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
+    // Ensure the initial state.
+    assertThat(model.connections).isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
 
-      // Available connections get changed. Since "VARIANT1" and "VARIANT2" have been removed
-      // from the available connections list, active connection falls to the placeholder one,
-      // thus no fetch (it's filtered out by [SafeFiltersAdapter]).
-      controllerRule.updateConnections(listOf(PLACEHOLDER_CONNECTION))
+    // Available connections get changed. Since "VARIANT1" and "VARIANT2" have been removed
+    // from the available connections list, active connection falls to the placeholder one,
+    // thus no fetch (it's filtered out by [SafeFiltersAdapter]).
+    controllerRule.updateConnections(listOf(PLACEHOLDER_CONNECTION))
 
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          model.copy(
-            connections = Selection(PLACEHOLDER_CONNECTION, listOf(PLACEHOLDER_CONNECTION)),
-            issues =
-              LoadingState.UnknownFailure(
-                message =
-                  "Currently selected app is not configured with the current insights tool.",
-                cause = UnconfiguredAppException,
-              ),
-            filters = TEST_FILTERS,
-          )
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        model.copy(
+          connections = Selection(PLACEHOLDER_CONNECTION, listOf(PLACEHOLDER_CONNECTION)),
+          issues =
+            LoadingState.UnknownFailure(
+              message = "Currently selected app is not configured with the current insights tool.",
+              cause = UnconfiguredAppException,
+            ),
+          filters = TEST_FILTERS,
         )
-    }
+      )
+  }
 
   @Test
   fun `when version gets selected it propagates to the model`() = runBlocking {
@@ -410,8 +369,7 @@ class AppInsightsProjectLevelControllerTest {
       )
 
     controllerRule.selectVersions(setOf(newVersion.value))
-    assertThat(controllerRule.consumeNext())
-      .isEqualTo(model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Loading))
+    assertThat(controllerRule.consumeNext()).isEqualTo(model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Loading))
 
     client.completeIssuesCallWith(
       LoadingState.Ready(
@@ -426,9 +384,7 @@ class AppInsightsProjectLevelControllerTest {
     )
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
-        model
-          .selectVersions(setOf(newVersion.value))
-          .copy(issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())))
+        model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())))
       )
     verify(client)
       .listTopOpenIssues(
@@ -464,8 +420,7 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.selectVersions(setOf(newVersion.value))
 
     val model = controllerRule.consumeNext()
-    assertThat(model)
-      .isEqualTo(model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Loading))
+    assertThat(model).isEqualTo(model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Loading))
 
     client.completeIssuesCallWith(
       LoadingState.Ready(
@@ -482,19 +437,13 @@ class AppInsightsProjectLevelControllerTest {
     val fetchedModel = controllerRule.consumeNext()
     assertThat(fetchedModel)
       .isEqualTo(
-        model
-          .selectVersions(setOf(newVersion.value))
-          .copy(issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())))
+        model.selectVersions(setOf(newVersion.value)).copy(issues = LoadingState.Ready(Timed(Selection.emptySelection(), clock.instant())))
       )
 
     controllerRule.selectTimeInterval(TimeIntervalFilter.ONE_DAY)
 
     assertThat(controllerRule.consumeNext())
-      .isEqualTo(
-        fetchedModel
-          .selectTimeInterval(TimeIntervalFilter.ONE_DAY)
-          .copy(issues = LoadingState.Loading)
-      )
+      .isEqualTo(fetchedModel.selectTimeInterval(TimeIntervalFilter.ONE_DAY).copy(issues = LoadingState.Loading))
 
     val anotherFetchedVersion = WithCount(11, Version("3", "3.0"))
     client.completeIssuesCallWith(
@@ -515,13 +464,7 @@ class AppInsightsProjectLevelControllerTest {
           filters =
             model.filters
               .withTimeInterval(TimeIntervalFilter.ONE_DAY)
-              .copy(
-                versions =
-                  MultiSelection(
-                    emptySet(),
-                    listOf(DEFAULT_FETCHED_VERSIONS, anotherFetchedVersion),
-                  )
-              ),
+              .copy(versions = MultiSelection(emptySet(), listOf(DEFAULT_FETCHED_VERSIONS, anotherFetchedVersion))),
           issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException),
         )
       )
@@ -529,9 +472,7 @@ class AppInsightsProjectLevelControllerTest {
     verify(client)
       .listTopOpenIssues(
         argThat {
-          connection == CONNECTION1 &&
-            filters.versions == setOf(newVersion.value) &&
-            filters.interval.duration == Duration.ofDays(1)
+          connection == CONNECTION1 && filters.versions == setOf(newVersion.value) && filters.interval.duration == Duration.ofDays(1)
         },
         any(),
         any(),
@@ -544,9 +485,7 @@ class AppInsightsProjectLevelControllerTest {
   fun `refresh() should fetch new data`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(emptyList(), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-      )
+      LoadingState.Ready(IssueResponse(emptyList(), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     controllerRule.controller.refresh()
@@ -558,13 +497,7 @@ class AppInsightsProjectLevelControllerTest {
     val fetchedOs = WithCount(10, OperatingSystemInfo("11", "Android (11)"))
     client.completeIssuesCallWith(
       LoadingState.Ready(
-        IssueResponse(
-          emptyList(),
-          listOf(fetchedVersion),
-          listOf(fetchedDevice),
-          listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS,
-        )
+        IssueResponse(emptyList(), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), DEFAULT_FETCHED_PERMISSIONS)
       )
     )
 
@@ -593,27 +526,13 @@ class AppInsightsProjectLevelControllerTest {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
       LoadingState.Ready(
-        IssueResponse(
-          emptyList(),
-          listOf(fetchedVersion),
-          listOf(fetchedDevice),
-          listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS,
-        )
+        IssueResponse(emptyList(), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), DEFAULT_FETCHED_PERMISSIONS)
       )
     )
 
     val newModel = controllerRule.refreshAndConsumeLoadingState()
     client.completeIssuesCallWith(
-      LoadingState.Ready(
-        IssueResponse(
-          emptyList(),
-          listOf(fetchedVersion),
-          listOf(fetchedDevice),
-          listOf(fetchedOs),
-          Permission.FULL,
-        )
-      )
+      LoadingState.Ready(IssueResponse(emptyList(), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), Permission.FULL))
     )
     controllerRule.consumeNext()
 
@@ -621,13 +540,7 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.refreshAndConsumeLoadingState()
     client.completeIssuesCallWith(
       LoadingState.Ready(
-        IssueResponse(
-          emptyList(),
-          listOf(fetchedVersion),
-          listOf(fetchedDevice),
-          listOf(fetchedOs),
-          DEFAULT_FETCHED_PERMISSIONS,
-        )
+        IssueResponse(emptyList(), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), DEFAULT_FETCHED_PERMISSIONS)
       )
     )
 
@@ -677,9 +590,7 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
-    controllerRule.geminiToolkit.completeFetchInsightCallWith(
-      LoadingState.Ready(DEFAULT_AI_INSIGHT)
-    )
+    controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
     controllerRule.consumeNext()
 
     controllerRule.refreshAndConsumeLoadingState()
@@ -703,12 +614,10 @@ class AppInsightsProjectLevelControllerTest {
       )
       .isEqualTo(
         model.copy(
-          issues =
-            LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentEvents =
-            LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           permission = Permission.FULL,
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
@@ -737,11 +646,9 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.toggleFatality(FailureType.NON_FATAL)
     controllerRule.consumeNext()
     controllerRule.toggleFatality(FailureType.ANR)
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoTypesSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoTypesSelectedException))
     controllerRule.selectVersions(emptySet())
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
     return@runBlocking
   }
 
@@ -761,11 +668,9 @@ class AppInsightsProjectLevelControllerTest {
       )
     )
     controllerRule.selectVersions(emptySet())
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
     controllerRule.toggleFatality(FailureType.FATAL)
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoVersionsSelectedException))
     return@runBlocking
   }
 
@@ -785,11 +690,9 @@ class AppInsightsProjectLevelControllerTest {
       )
     )
     controllerRule.selectDevices(emptySet())
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoDevicesSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoDevicesSelectedException))
     controllerRule.toggleFatality(FailureType.FATAL)
-    assertThat(controllerRule.consumeNext().issues)
-      .isEqualTo(LoadingState.UnknownFailure(null, NoDevicesSelectedException))
+    assertThat(controllerRule.consumeNext().issues).isEqualTo(LoadingState.UnknownFailure(null, NoDevicesSelectedException))
     return@runBlocking
   }
 
@@ -798,22 +701,12 @@ class AppInsightsProjectLevelControllerTest {
     // discard initial loading state, already tested above
     val model =
       controllerRule.consumeInitialState(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1, ISSUE2),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        )
+        LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS))
       )
 
     assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
-    assertThat((model.issues as LoadingState.Ready).value.value)
-      .isEqualTo(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)))
-    assertThat(model.currentIssueVariants)
-      .isEqualTo(LoadingState.Ready(Selection(null, emptyList())))
+    assertThat((model.issues as LoadingState.Ready).value.value).isEqualTo(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)))
+    assertThat(model.currentIssueVariants).isEqualTo(LoadingState.Ready(Selection(null, emptyList())))
     assertThat(model.currentEvents).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentNotes).isEqualTo(LoadingState.Ready(emptyList<Note>()))
@@ -844,17 +737,14 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
-    controllerRule.geminiToolkit.completeFetchInsightCallWith(
-      LoadingState.Ready(DEFAULT_AI_INSIGHT)
-    )
+    controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
 
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
           currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT))),
-          currentEvents =
-            LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
@@ -879,17 +769,12 @@ class AppInsightsProjectLevelControllerTest {
       controllerRule.consumeInitialState(issuesResponse)
 
       controllerRule.toggleFatality(FailureType.FATAL)
-      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       client.completeIssuesCallWith(issuesResponse)
-      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       verify(client)
         .listTopOpenIssues(
-          argThat {
-            filters.eventTypes.size == 2 &&
-              filters.eventTypes.containsAll(listOf(FailureType.ANR, FailureType.NON_FATAL))
-          },
+          argThat { filters.eventTypes.size == 2 && filters.eventTypes.containsAll(listOf(FailureType.ANR, FailureType.NON_FATAL)) },
           any(),
           any(),
           any(),
@@ -898,110 +783,87 @@ class AppInsightsProjectLevelControllerTest {
       controllerRule.toggleFatality(FailureType.NON_FATAL)
       client.completeIssuesCallWith(issuesResponse)
       controllerRule.consumeNext()
-      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.ANR)
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).containsExactly(FailureType.ANR)
 
       controllerRule.toggleFatality(FailureType.ANR)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).isEmpty()
-      verify(client, never())
-        .listTopOpenIssues(argThat { filters.eventTypes.isEmpty() }, any(), any(), any())
+      verify(client, never()).listTopOpenIssues(argThat { filters.eventTypes.isEmpty() }, any(), any(), any())
 
       controllerRule.toggleFatality(FailureType.FATAL)
       client.completeIssuesCallWith(issuesResponse)
-      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.FATAL)
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).containsExactly(FailureType.FATAL)
       verify(client)
-        .listTopOpenIssues(
-          argThat {
-            filters.eventTypes.size == 1 && filters.eventTypes.contains(FailureType.FATAL)
-          },
-          any(),
-          any(),
-          any(),
-        )
+        .listTopOpenIssues(argThat { filters.eventTypes.size == 1 && filters.eventTypes.contains(FailureType.FATAL) }, any(), any(), any())
     }
 
   @Test
-  fun `successful fetches should save snapshots, and persist them through failures`() =
-    runBlocking {
-      val fetchedVersion = WithCount(42, Version("1", "1.0"))
-      val fetchedDevice = WithCount(10, Device("Google", "Pixel 2"))
-      val fetchedOs = WithCount(10, OperatingSystemInfo("11", "Android (11)"))
-      // discard initial loading state, already tested above
-      controllerRule.consumeInitialState(
-        LoadingState.Ready(
-          IssueResponse(
-            emptyList(),
-            listOf(fetchedVersion),
-            listOf(fetchedDevice),
-            listOf(fetchedOs),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
+  fun `successful fetches should save snapshots, and persist them through failures`() = runBlocking {
+    val fetchedVersion = WithCount(42, Version("1", "1.0"))
+    val fetchedDevice = WithCount(10, Device("Google", "Pixel 2"))
+    val fetchedOs = WithCount(10, OperatingSystemInfo("11", "Android (11)"))
+    // discard initial loading state, already tested above
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(
+        IssueResponse(emptyList(), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), DEFAULT_FETCHED_PERMISSIONS)
+      )
+    )
+
+    controllerRule.controller.refresh()
+    var newModel = controllerRule.consumeNext()
+    assertThat(newModel.issues).isEqualTo(LoadingState.Loading)
+    client.completeIssuesCallWith(
+      LoadingState.Ready(
+        IssueResponse(listOf(ISSUE1), listOf(fetchedVersion), listOf(fetchedDevice), listOf(fetchedOs), DEFAULT_FETCHED_PERMISSIONS)
+      )
+    )
+
+    newModel = controllerRule.consumeNext()
+    assertThat(newModel)
+      .isEqualTo(
+        newModel.copy(
+          filters =
+            TEST_FILTERS.copy(
+              versions = MultiSelection(setOf(fetchedVersion), listOf(fetchedVersion)),
+              devices = MultiSelection(setOf(fetchedDevice), listOf(fetchedDevice)),
+              operatingSystems = MultiSelection(setOf(fetchedOs), listOf(fetchedOs)),
+              signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
+            ),
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
+          currentIssueDetails = LoadingState.Loading,
+          currentNotes = LoadingState.Loading,
         )
       )
 
-      controllerRule.controller.refresh()
-      var newModel = controllerRule.consumeNext()
-      assertThat(newModel.issues).isEqualTo(LoadingState.Loading)
-      client.completeIssuesCallWith(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1),
-            listOf(fetchedVersion),
-            listOf(fetchedDevice),
-            listOf(fetchedOs),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
+    client.completeDetailsCallWith(LoadingState.Ready(ISSUE1_DETAILS))
+    controllerRule.consumeNext()
+    client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
+    newModel = controllerRule.consumeNext()
+
+    assertThat(newModel)
+      .isEqualTo(
+        newModel.copy(
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
+          currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
+          currentNotes = LoadingState.Ready(emptyList()),
         )
       )
 
-      newModel = controllerRule.consumeNext()
-      assertThat(newModel)
-        .isEqualTo(
-          newModel.copy(
-            filters =
-              TEST_FILTERS.copy(
-                versions = MultiSelection(setOf(fetchedVersion), listOf(fetchedVersion)),
-                devices = MultiSelection(setOf(fetchedDevice), listOf(fetchedDevice)),
-                operatingSystems = MultiSelection(setOf(fetchedOs), listOf(fetchedOs)),
-                signal = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
-              ),
-            issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
-            currentIssueDetails = LoadingState.Loading,
-            currentNotes = LoadingState.Loading,
-          )
+    controllerRule.refreshAndConsumeLoadingState()
+    client.completeIssuesCallWith(LoadingState.UnknownFailure(null))
+
+    assertThat(controllerRule.consumeNext())
+      .isEqualTo(
+        newModel.copy(
+          issues = LoadingState.UnknownFailure(null),
+          currentIssueVariants = LoadingState.Ready(null),
+          currentEvents = LoadingState.Ready(null),
+          currentIssueDetails = LoadingState.Ready(null),
+          currentNotes = LoadingState.Ready(null),
+          currentInsight = LoadingState.Ready(null),
         )
-
-      client.completeDetailsCallWith(LoadingState.Ready(ISSUE1_DETAILS))
-      controllerRule.consumeNext()
-      client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
-      newModel = controllerRule.consumeNext()
-
-      assertThat(newModel)
-        .isEqualTo(
-          newModel.copy(
-            issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
-            currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
-            currentNotes = LoadingState.Ready(emptyList()),
-          )
-        )
-
-      controllerRule.refreshAndConsumeLoadingState()
-      client.completeIssuesCallWith(LoadingState.UnknownFailure(null))
-
-      assertThat(controllerRule.consumeNext())
-        .isEqualTo(
-          newModel.copy(
-            issues = LoadingState.UnknownFailure(null),
-            currentIssueVariants = LoadingState.Ready(null),
-            currentEvents = LoadingState.Ready(null),
-            currentIssueDetails = LoadingState.Ready(null),
-            currentNotes = LoadingState.Ready(null),
-            currentInsight = LoadingState.Ready(null),
-          )
-        )
-      return@runBlocking
-    }
+      )
+    return@runBlocking
+  }
 
   @Test
   fun `snapshots can be loaded`() = runBlocking {
@@ -1070,11 +932,7 @@ class AppInsightsProjectLevelControllerTest {
 
   @Test
   fun `state is cancellableTimeoutException`() {
-    val state =
-      LoadingState.UnknownFailure(
-        null,
-        cause = RevertibleException(snapshot = null, CancellableTimeoutException),
-      )
+    val state = LoadingState.UnknownFailure(null, cause = RevertibleException(snapshot = null, CancellableTimeoutException))
     assertThat(state.isCancellableTimeoutException()).isTrue()
   }
 
@@ -1082,15 +940,7 @@ class AppInsightsProjectLevelControllerTest {
   fun `when issue gets closed or opened it propagates to the model`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.READ_ONLY,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     controllerRule.controller.closeIssue(ISSUE1)
@@ -1103,8 +953,7 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(controllerRule.consumeNext().selectedIssue).isEqualTo(closedIssue)
 
     controllerRule.controller.openIssue(closedIssue)
-    assertThat(controllerRule.consumeNext().selectedIssue)
-      .isEqualTo(ISSUE1.copy(state = IssueState.OPENING))
+    assertThat(controllerRule.consumeNext().selectedIssue).isEqualTo(ISSUE1.copy(state = IssueState.OPENING))
 
     client.completeUpdateIssueStateCallWith(LoadingState.Ready(Unit))
     assertThat(controllerRule.consumeNext().selectedIssue).isEqualTo(ISSUE1)
@@ -1126,8 +975,7 @@ class AppInsightsProjectLevelControllerTest {
       )
 
     controllerRule.selectSignal(SignalType.SIGNAL_FRESH)
-    assertThat(controllerRule.consumeNext())
-      .isEqualTo(model.selectSignal(SignalType.SIGNAL_FRESH).copy(issues = LoadingState.Loading))
+    assertThat(controllerRule.consumeNext()).isEqualTo(model.selectSignal(SignalType.SIGNAL_FRESH).copy(issues = LoadingState.Loading))
 
     client.completeIssuesCallWith(
       LoadingState.Ready(
@@ -1146,10 +994,7 @@ class AppInsightsProjectLevelControllerTest {
         model
           .selectSignal(SignalType.SIGNAL_FRESH)
           .copy(
-            issues =
-              LoadingState.Ready(
-                Timed(Selection(selected = ISSUE1, listOf(ISSUE1)), clock.instant())
-              ),
+            issues = LoadingState.Ready(Timed(Selection(selected = ISSUE1, listOf(ISSUE1)), clock.instant())),
             currentIssueVariants = LoadingState.Loading,
             currentEvents = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
@@ -1165,15 +1010,7 @@ class AppInsightsProjectLevelControllerTest {
   fun `when new note gets created and deleted it propagates to the model`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.FULL,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL))
     )
 
     // Create a new note and check the state of the current notes.
@@ -1206,16 +1043,7 @@ class AppInsightsProjectLevelControllerTest {
   @Test
   fun `permission denied when creating a new note, rollback`() = runBlocking {
     controllerRule.consumeInitialState(
-      state =
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1, ISSUE2),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.FULL,
-          )
-        ),
+      state = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL)),
       // Ensure we have notes fetched before the following "add" or "delete" actions.
       notesState = LoadingState.Ready(listOf(NOTE1)),
     )
@@ -1226,12 +1054,7 @@ class AppInsightsProjectLevelControllerTest {
     (newModel.currentNotes as LoadingState.Ready)
       .value!!
       .map { it.body to it.state }
-      .let {
-        assertThat(it)
-          .containsExactlyElementsIn(
-            listOf(NOTE2_BODY to NoteState.CREATING, NOTE1_BODY to NoteState.CREATED)
-          )
-      }
+      .let { assertThat(it).containsExactlyElementsIn(listOf(NOTE2_BODY to NoteState.CREATING, NOTE1_BODY to NoteState.CREATED)) }
     client.completeCreateNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
     newModel = controllerRule.consumeNext()
@@ -1243,16 +1066,7 @@ class AppInsightsProjectLevelControllerTest {
   fun `permission denied when deleting a note, rollback`() = runBlocking {
     // Ensure we have notes fetched before the following "add" or "delete" actions.
     controllerRule.consumeInitialState(
-      state =
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1, ISSUE2),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.FULL,
-          )
-        ),
+      state = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL)),
       notesState = LoadingState.Ready(listOf(NOTE2, NOTE1)),
     )
 
@@ -1262,12 +1076,7 @@ class AppInsightsProjectLevelControllerTest {
     (newModel.currentNotes as LoadingState.Ready)
       .value!!
       .map { it.body to it.state }
-      .let {
-        assertThat(it)
-          .containsExactlyElementsIn(
-            listOf(NOTE2_BODY to NoteState.CREATED, NOTE1_BODY to NoteState.DELETING)
-          )
-      }
+      .let { assertThat(it).containsExactlyElementsIn(listOf(NOTE2_BODY to NoteState.CREATED, NOTE1_BODY to NoteState.DELETING)) }
 
     client.completeDeleteNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
@@ -1280,15 +1089,7 @@ class AppInsightsProjectLevelControllerTest {
   fun `enter offline mode puts AppInsightsState into offline mode`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.READ_ONLY,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     controllerRule.enterOfflineMode()
@@ -1304,81 +1105,45 @@ class AppInsightsProjectLevelControllerTest {
   fun `network failure in fetching issues propagates to model`() = runBlocking {
     // discard initial loading state, already tested above
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.READ_ONLY,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     controllerRule.refreshAndConsumeLoadingState()
     client.completeIssuesCallWith(LoadingState.NetworkFailure("test"))
-    assertThat(controllerRule.consumeNext().issues)
-      .isInstanceOf(LoadingState.NetworkFailure::class.java)
+    assertThat(controllerRule.consumeNext().issues).isInstanceOf(LoadingState.NetworkFailure::class.java)
   }
 
   @Test
-  fun `refresh performs a hard fetch and puts AppInsightsState in online mode if successful`() =
-    runBlocking {
-      // discard initial loading state, already tested above
-      controllerRule.consumeInitialState(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1, ISSUE2),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.READ_ONLY,
-          )
-        )
+  fun `refresh performs a hard fetch and puts AppInsightsState in online mode if successful`() = runBlocking {
+    // discard initial loading state, already tested above
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
+    )
+
+    controllerRule.enterOfflineMode()
+    assertThat(controllerRule.consumeNext().mode).isEqualTo(ConnectionMode.OFFLINE)
+
+    with(
+      controllerRule.consumeFetchState(
+        LoadingState.Ready(IssueResponse(listOf(ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
       )
-
-      controllerRule.enterOfflineMode()
-      assertThat(controllerRule.consumeNext().mode).isEqualTo(ConnectionMode.OFFLINE)
-
-      with(
-        controllerRule.consumeFetchState(
-          LoadingState.Ready(
-            IssueResponse(
-              listOf(ISSUE2),
-              emptyList(),
-              emptyList(),
-              emptyList(),
-              Permission.READ_ONLY,
-            )
-          )
-        )
-      ) {
-        assertThat(mode).isEqualTo(ConnectionMode.OFFLINE)
-        assertThat(issues)
-          .isEqualTo(LoadingState.Ready(Timed(Selection(ISSUE2, listOf(ISSUE2)), clock.instant())))
-      }
-
-      clock.advanceTimeBy(10)
-      controllerRule.refreshAndConsumeLoadingState()
-      with(
-        controllerRule.consumeFetchState(
-          LoadingState.Ready(
-            IssueResponse(
-              listOf(ISSUE1),
-              emptyList(),
-              emptyList(),
-              emptyList(),
-              Permission.READ_ONLY,
-            )
-          ),
-          isTransitionToOnlineMode = true,
-        )
-      ) {
-        assertThat(mode).isEqualTo(ConnectionMode.ONLINE)
-        assertThat(issues)
-          .isEqualTo(LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())))
-      }
+    ) {
+      assertThat(mode).isEqualTo(ConnectionMode.OFFLINE)
+      assertThat(issues).isEqualTo(LoadingState.Ready(Timed(Selection(ISSUE2, listOf(ISSUE2)), clock.instant())))
     }
+
+    clock.advanceTimeBy(10)
+    controllerRule.refreshAndConsumeLoadingState()
+    with(
+      controllerRule.consumeFetchState(
+        LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)),
+        isTransitionToOnlineMode = true,
+      )
+    ) {
+      assertThat(mode).isEqualTo(ConnectionMode.ONLINE)
+      assertThat(issues).isEqualTo(LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())))
+    }
+  }
 
   @Test
   fun `add and delete note triggers offline mode on network failure`() =
@@ -1387,16 +1152,7 @@ class AppInsightsProjectLevelControllerTest {
       // discard initial loading state, already tested above
       var state =
         controllerRule.consumeInitialState(
-          state =
-            LoadingState.Ready(
-              IssueResponse(
-                listOf(testIssue),
-                emptyList(),
-                emptyList(),
-                emptyList(),
-                Permission.FULL,
-              )
-            ),
+          state = LoadingState.Ready(IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)),
           notesState = LoadingState.Ready(listOf(NOTE1)),
         )
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
@@ -1411,10 +1167,7 @@ class AppInsightsProjectLevelControllerTest {
       state = controllerRule.consumeNext()
       assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
       controllerRule.consumeFetchState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
+        state = LoadingState.Ready(IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)),
         notesState = LoadingState.Ready(listOf(NOTE1)),
       )
 
@@ -1422,16 +1175,7 @@ class AppInsightsProjectLevelControllerTest {
       controllerRule.refreshAndConsumeLoadingState()
       state =
         controllerRule.consumeFetchState(
-          state =
-            LoadingState.Ready(
-              IssueResponse(
-                listOf(testIssue),
-                emptyList(),
-                emptyList(),
-                emptyList(),
-                Permission.FULL,
-              )
-            ),
+          state = LoadingState.Ready(IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)),
           notesState = LoadingState.Ready(listOf(NOTE1)),
           isTransitionToOnlineMode = true,
         )
@@ -1440,18 +1184,14 @@ class AppInsightsProjectLevelControllerTest {
       // Delete note and fail the call
       controllerRule.controller.deleteNote(NOTE1)
       state = controllerRule.consumeNext()
-      assertThat((state.currentNotes as LoadingState.Ready).value)
-        .containsExactly(NOTE1.copy(state = NoteState.DELETING))
+      assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1.copy(state = NoteState.DELETING))
       client.completeDeleteNoteCallWith(LoadingState.NetworkFailure("failed"))
       state = controllerRule.consumeNext()
       assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1)
       state = controllerRule.consumeNext()
       assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
       controllerRule.consumeFetchState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
+        state = LoadingState.Ready(IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)),
         notesState = LoadingState.Ready(listOf(NOTE1)),
       )
     }
@@ -1482,31 +1222,16 @@ class AppInsightsProjectLevelControllerTest {
     model = controllerRule.consumeNext()
     assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
     assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
-    assertThat(model.issues.map { it.value })
-      .isEqualTo(LoadingState.Ready(Selection<AppInsightsIssue>(null, emptyList())))
+    assertThat(model.issues.map { it.value }).isEqualTo(LoadingState.Ready(Selection<AppInsightsIssue>(null, emptyList())))
 
-    verify(client)
-      .listTopOpenIssues(
-        argThat { filters.visibilityType == VisibilityType.USER_PERCEIVED },
-        any(),
-        any(),
-        any(),
-      )
+    verify(client).listTopOpenIssues(argThat { filters.visibilityType == VisibilityType.USER_PERCEIVED }, any(), any(), any())
     return@runBlocking
   }
 
   @Test
   fun `next and previous events propagates state changes to model`() = runBlocking {
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.READ_ONLY,
-        )
-      ),
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)),
       eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), "")),
     )
 
@@ -1520,27 +1245,18 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  fun `next event triggers querying of next page of events when token is available`() =
-    runBlocking {
-      controllerRule.consumeInitialState(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1, ISSUE2),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.READ_ONLY,
-          )
-        ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2")), "abc")),
-      )
+  fun `next event triggers querying of next page of events when token is available`() = runBlocking {
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)),
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2")), "abc")),
+    )
 
-      controllerRule.controller.nextEvent()
-      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("3")), "")))
-      val state = controllerRule.consumeNext()
+    controllerRule.controller.nextEvent()
+    client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("3")), "")))
+    val state = controllerRule.consumeNext()
 
-      assertThat(state.selectedEvent).isEqualTo(Event("2"))
-    }
+    assertThat(state.selectedEvent).isEqualTo(Event("2"))
+  }
 
   @Test
   fun `default to using issue sample event when in offline mode`() = runBlocking {
@@ -1551,13 +1267,10 @@ class AppInsightsProjectLevelControllerTest {
 
     val state =
       controllerRule.consumeFetchState(
-        LoadingState.Ready(
-          IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-        )
+        LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
       )
 
-    assertThat(state.currentEvents)
-      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
+    assertThat(state.currentEvents).isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
     assertThat(state.selectedEvent).isEqualTo(ISSUE1.sampleEvent)
   }
 
@@ -1566,15 +1279,7 @@ class AppInsightsProjectLevelControllerTest {
     var state =
       controllerRule.consumeInitialState(
         state =
-          LoadingState.Ready(
-            IssueResponse(
-              listOf(ISSUE1, ISSUE2),
-              emptyList(),
-              emptyList(),
-              emptyList(),
-              DEFAULT_FETCHED_PERMISSIONS,
-            )
-          ),
+          LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
         eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
       )
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
@@ -1594,15 +1299,7 @@ class AppInsightsProjectLevelControllerTest {
     var state =
       controllerRule.consumeInitialState(
         state =
-          LoadingState.Ready(
-            IssueResponse(
-              listOf(ISSUE1, ISSUE2),
-              emptyList(),
-              emptyList(),
-              emptyList(),
-              DEFAULT_FETCHED_PERMISSIONS,
-            )
-          ),
+          LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)),
         eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
         insightState = LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)),
       )
@@ -1618,11 +1315,7 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
 
     try {
-      withTimeout(1000) {
-        controllerRule.geminiToolkit.completeFetchInsightCallWith(
-          LoadingState.Ready(DEFAULT_AI_INSIGHT)
-        )
-      }
+      withTimeout(1000) { controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT)) }
     } catch (_: TimeoutCancellationException) {}
 
     // Assert that the insight did not change
@@ -1634,11 +1327,7 @@ class AppInsightsProjectLevelControllerTest {
 
     controllerRule.controller.refreshInsight(false)
     try {
-      withTimeout(1000) {
-        controllerRule.geminiToolkit.completeFetchInsightCallWith(
-          LoadingState.Ready(DEFAULT_AI_INSIGHT)
-        )
-      }
+      withTimeout(1000) { controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT)) }
     } catch (_: TimeoutCancellationException) {}
 
     state = controllerRule.consumeNext()
@@ -1650,25 +1339,15 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.consumeInitialState(
       state =
         LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1.copy(sampleEvent = Event("1"))),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
+          IssueResponse(listOf(ISSUE1.copy(sampleEvent = Event("1"))), emptyList(), emptyList(), emptyList(), DEFAULT_FETCHED_PERMISSIONS)
         ),
       eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
     )
     controllerRule.controller.refreshInsight(false)
     val state = controllerRule.consumeNext()
 
-    assertThat(state.currentInsight)
-      .isEqualTo(
-        LoadingState.UnsupportedOperation("Insights cannot be generated for empty stacktrace")
-      )
+    assertThat(state.currentInsight).isEqualTo(LoadingState.UnsupportedOperation("Insights cannot be generated for empty stacktrace"))
   }
 }
 
-private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() =
-  (this as LoadingState.Ready).value.value.selected!!
+private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() = (this as LoadingState.Ready).value.value.selected!!

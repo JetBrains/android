@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.stats
 
+import java.util.Calendar
+import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.Calendar
-import java.util.TimeZone
-import java.util.concurrent.TimeUnit
 
 private class TestTimeProvider {
   var currentTime: Long
@@ -42,8 +42,7 @@ class EventsLimiterTest {
 
   @Test
   fun tryAcquireSingleShot() {
-    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), true,
-                                timeProvider::currentTime)
+    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), true, timeProvider::currentTime)
     assertFalse(limiter.tryAcquire())
     timeProvider.addTime(10, TimeUnit.SECONDS)
     assertFalse(limiter.tryAcquire())
@@ -57,8 +56,7 @@ class EventsLimiterTest {
 
   @Test
   fun tryAcquireMultipleShots() {
-    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), false,
-                                timeProvider::currentTime)
+    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), false, timeProvider::currentTime)
     for (i in 1..10) {
       assertFalse(limiter.tryAcquire())
       timeProvider.addTime(10, TimeUnit.SECONDS)
@@ -71,8 +69,7 @@ class EventsLimiterTest {
 
   @Test
   fun tryAcquireTooSlow() {
-    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), false,
-                                timeProvider::currentTime)
+    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), false, timeProvider::currentTime)
     for (i in 1..10) {
       assertFalse(limiter.tryAcquire())
       timeProvider.addTime(65, TimeUnit.SECONDS)
@@ -81,8 +78,7 @@ class EventsLimiterTest {
 
   @Test
   fun tryAcquireGetsMoreFrequent() {
-    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), true,
-                                timeProvider::currentTime)
+    val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), true, timeProvider::currentTime)
     var delay = 120L
     while (delay > 0) {
       timeProvider.addTime(delay, TimeUnit.SECONDS)
@@ -94,5 +90,4 @@ class EventsLimiterTest {
     // First time it should fire: [...], Event, 30s, Event, 25s, Event
     assertEquals(25, delay)
   }
-
 }

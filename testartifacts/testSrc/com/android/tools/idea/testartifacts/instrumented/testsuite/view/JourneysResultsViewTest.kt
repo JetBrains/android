@@ -37,8 +37,7 @@ import org.mockito.kotlin.inOrder
 
 class JourneysResultsViewTest {
 
-  @get:Rule
-  val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
   fun journeyTextArtifactsAreDisplayed() {
@@ -47,21 +46,11 @@ class JourneysResultsViewTest {
 
     val artifact = JourneyActionArtifacts("Performed an action", "This is a test", "")
     composeTestRule.setContent {
-      JourneysResultsView(
-        modifier = Modifier,
-        artifact = artifact,
-        index = 0,
-        numEntries = 3,
-        onImageDoubleClicked = {}
-      )
+      JourneysResultsView(modifier = Modifier, artifact = artifact, index = 0, numEntries = 3, onImageDoubleClicked = {})
     }
 
-    composeTestRule
-      .onNodeWithText("Performed an action")
-      .assertIsDisplayed()
-    composeTestRule
-      .onNodeWithText("This is a test")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Performed an action").assertIsDisplayed()
+    composeTestRule.onNodeWithText("This is a test").assertIsDisplayed()
   }
 
   @Test
@@ -71,18 +60,10 @@ class JourneysResultsViewTest {
 
     val artifact = JourneyActionArtifacts("Performed an action", "This is a test", "path_to_image_that_doesnt_exist.png")
     composeTestRule.setContent {
-      JourneysResultsView(
-        modifier = Modifier,
-        artifact = artifact,
-        index = 0,
-        numEntries = 3,
-        onImageDoubleClicked = {}
-      )
+      JourneysResultsView(modifier = Modifier, artifact = artifact, index = 0, numEntries = 3, onImageDoubleClicked = {})
     }
 
-    composeTestRule
-      .onNodeWithTag("ScreenshotError", useUnmergedTree = true)
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("ScreenshotError", useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
@@ -100,7 +81,7 @@ class JourneysResultsViewTest {
         artifact = JourneyActionArtifacts("Performed an action", "This is a test", screenshotImage = screenshotPath),
         index = 0,
         numEntries = 1,
-        onImageDoubleClicked = currentCallbackState.value
+        onImageDoubleClicked = currentCallbackState.value,
       )
     }
 
@@ -135,15 +116,14 @@ class JourneysResultsViewTest {
   }
 
   internal fun createTempScreenshotFile(): String {
-    val bufferedImage = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
-      with(createGraphics()) {
-        color = Color(0x012345)
-        fillRect(0, 0, 100, 100)
+    val bufferedImage =
+      BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
+        with(createGraphics()) {
+          color = Color(0x012345)
+          fillRect(0, 0, 100, 100)
+        }
       }
-    }
-    return File.createTempFile("screenshot", ".png").apply {
-      ImageIO.write(bufferedImage, "png", this)
-    }.absolutePath
+    return File.createTempFile("screenshot", ".png").apply { ImageIO.write(bufferedImage, "png", this) }.absolutePath
   }
 
   // TODO(414753403): Write more tests

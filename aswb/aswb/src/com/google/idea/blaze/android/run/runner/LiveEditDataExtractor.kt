@@ -21,15 +21,9 @@ import com.google.idea.blaze.base.command.BlazeCommand
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 
-/**
- * An entity that knows how to instrument Bazel build and how to collect data required for Live Edit from the build results.
- */
+/** An entity that knows how to instrument Bazel build and how to collect data required for Live Edit from the build results. */
 interface LiveEditDataExtractor {
-  fun prepareInvocation(
-    context: BlazeContext,
-    buildInvoker: BuildSystem.BuildInvoker,
-    commandBuilder: BlazeCommand.Builder,
-  )
+  fun prepareInvocation(context: BlazeContext, buildInvoker: BuildSystem.BuildInvoker, commandBuilder: BlazeCommand.Builder)
 
   fun blockingExtract(context: BlazeContext, buildOutputs: BlazeBuildOutputs)
 

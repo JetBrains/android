@@ -20,15 +20,13 @@ import com.android.ide.common.signing.KeytoolException
 import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
 import com.google.common.io.BaseEncoding
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -36,12 +34,13 @@ import java.security.GeneralSecurityException
 import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.cert.Certificate
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 
-/**
- * Functions for dealing with singing configurations and keystore files.
- */
+/** Functions for dealing with singing configurations and keystore files. */
 object KeystoreUtils {
-  private val log: Logger get() = logger<KeystoreUtils>()
+  private val log: Logger
+    get() = logger<KeystoreUtils>()
 
   @Throws(KeytoolException::class, AndroidLocationsException::class)
   @JvmStatic
@@ -49,7 +48,6 @@ object KeystoreUtils {
     val debugLocation = KeystoreHelper.defaultDebugKeystoreLocation(AndroidLocationsSingleton)
     if (!debugLocation.exists()) {
       val keystoreDirectory = AndroidLocationsSingleton.prefsLocation
-
 
       if (!CancellableFileIo.isWritable(keystoreDirectory)) {
         throw AndroidLocationsException("Could not create debug keystore because \"$keystoreDirectory\" is not writable")
@@ -70,12 +68,11 @@ object KeystoreUtils {
     return debugLocation
   }
 
-  fun getSha1DebugKeystoreSilently(androidFacet: AndroidFacet?, valueIfNotFound: String = "YOUR_SHA1_KEY_STORE") : String {
+  fun getSha1DebugKeystoreSilently(androidFacet: AndroidFacet?, valueIfNotFound: String = "YOUR_SHA1_KEY_STORE"): String {
     try {
       val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
       return sha1(sha1File)
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       log.warn(ex)
     }
 
@@ -96,10 +93,8 @@ object KeystoreUtils {
     }
 
     val state = facet.configuration.state
-    return if (!Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH))
-      File(state.CUSTOM_DEBUG_KEYSTORE_PATH)
-    else
-      getOrCreateDefaultDebugKeystore()
+    return if (!Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH)) File(state.CUSTOM_DEBUG_KEYSTORE_PATH)
+    else getOrCreateDefaultDebugKeystore()
   }
 
   /**
@@ -117,8 +112,7 @@ object KeystoreUtils {
     val debugStoreFile = File(debugStorePath)
     if (debugStoreFile.isAbsolute) {
       return debugStoreFile
-    }
-    else {
+    } else {
       // Path is relative
       val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(facet.module) ?: return debugStoreFile
       return File(moduleRoot, debugStorePath)
@@ -129,44 +123,45 @@ object KeystoreUtils {
    * Get the SHA1 hash of a signing certificate inside a keystore, encoded as base16 (each byte separated by ':').
    *
    * @param keyStoreFile the keystore file. Must be readable.
-   * @param keyAlias     the certificate alias to digest or null to indicate the first certificate in the keyStore
+   * @param keyAlias the certificate alias to digest or null to indicate the first certificate in the keyStore
    * @throws Exception when the sha1 couldn't be computed for any reason.
    */
   @Throws(Exception::class)
   @JvmStatic
   @JvmOverloads
-  fun sha1(keyStoreFile: File,
-           keyAlias:/*When requesting the first certificate sha1*/ String? = null,
-           keyStorePassword:/*When default android keystore password should be used*/ String? = null): String {
+  fun sha1(
+    keyStoreFile: File,
+    keyAlias: /*When requesting the first certificate sha1*/ String? = null,
+    keyStorePassword: /*When default android keystore password should be used*/ String? = null,
+  ): String {
     val signingCert = getCertificate(keyStoreFile, keyAlias, keyStorePassword)
     try {
       val certBytes = MessageDigest.getInstance("SHA1").digest(signingCert.encoded)
       // Add a separator every 2 characters (i.e. every byte from hash)
       return BaseEncoding.base16().withSeparator(":", 2).encode(certBytes)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       throw Exception("Could not compute SHA1 hash from certificate", e)
     }
   }
 
   /**
-   * Returns the [Certificate] specified by the `certificateAlias` in the specified `keystoreFile`. When a null
-   * `certificateAlias` is supplied then the first certificate read from the file is returned.
+   * Returns the [Certificate] specified by the `certificateAlias` in the specified `keystoreFile`. When a null `certificateAlias` is
+   * supplied then the first certificate read from the file is returned.
    */
   @Throws(Exception::class)
-  private fun getCertificate(keyStoreFile: File,
-                             certificateAlias:/*When requesting the first certificate sha1*/ String?,
-                             keyStorePassword:/*When default android keystore password should be used*/ String?): Certificate {
+  private fun getCertificate(
+    keyStoreFile: File,
+    certificateAlias: /*When requesting the first certificate sha1*/ String?,
+    keyStorePassword: /*When default android keystore password should be used*/ String?,
+  ): Certificate {
     try {
       val keyStore = KeyStore.getInstance("JKS")
       keyStore.load(FileInputStream(keyStoreFile), (keyStorePassword ?: "android").toCharArray())
 
       return keyStore.getCertificate(certificateAlias ?: keyStore.aliases().nextElement())
-    }
-    catch (exception: GeneralSecurityException) {
+    } catch (exception: GeneralSecurityException) {
       throw Exception("Could not extract certificate from file.", exception)
-    }
-    catch (exception: IOException) {
+    } catch (exception: IOException) {
       throw Exception("Could not extract certificate from file.", exception)
     }
   }

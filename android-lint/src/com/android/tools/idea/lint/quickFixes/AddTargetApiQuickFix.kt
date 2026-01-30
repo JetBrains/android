@@ -60,7 +60,6 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import java.util.Locale
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class. */
 @Suppress("UnstableApiUsage")
@@ -82,33 +81,19 @@ class AddTargetApiQuickFix(
         // usually the better solution. So instead of "Add tools:targetApi" we use a label
         // which sorts later alphabetically.
         "Suppress with tools:targetApi attribute"
-      !requiresApi ->
-        AndroidLintBundle.message(
-          "android.lint.fix.add.target.api",
-          getVersionField(first.min(), false),
-        )
+      !requiresApi -> AndroidLintBundle.message("android.lint.fix.add.target.api", getVersionField(first.min(), false))
       requirements.size > 1 ->
-        if (requirements.any { it.sdkId == ANDROID_SDK_ID })
-          AndroidLintBundle.message("android.lint.fix.add.both.annotations")
+        if (requirements.any { it.sdkId == ANDROID_SDK_ID }) AndroidLintBundle.message("android.lint.fix.add.both.annotations")
         else AndroidLintBundle.message("android.lint.fix.add.sdk.annotation")
       requiresApi && (first.sdkId != ANDROID_SDK_ID) -> {
         // minor will always be 0 here; minor versions are only supported for the Android SDK
         val fieldName = ExtensionSdk.getSdkExtensionField(first.sdkId, false)
-        AndroidLintBundle.message(
-          "android.lint.fix.add.requires.sdk.extension",
-          fieldName,
-          first.minString(),
-        )
+        AndroidLintBundle.message("android.lint.fix.add.requires.sdk.extension", fieldName, first.minString())
       }
       else ->
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.api",
-          getVersionField(
-            first.fromInclusive(),
-            first.fromInclusiveMinor(),
-            false,
-            requireFull = false,
-          ),
+          getVersionField(first.fromInclusive(), first.fromInclusiveMinor(), false, requireFull = false),
         )
     }
   }
@@ -176,8 +161,7 @@ class AddTargetApiQuickFix(
     val annotationText: String
     if (requiresApi && sdkId == ANDROID_SDK_ID) {
       fqcn = REQUIRES_API_ANNOTATION.newName()
-      annotationText =
-        "@" + fqcn + "(api=" + getVersionField(api, minor, true, requireFull = false) + ")"
+      annotationText = "@" + fqcn + "(api=" + getVersionField(api, minor, true, requireFull = false) + ")"
     } else if (requiresApi) {
       fqcn = REQUIRES_EXTENSION_ANNOTATION
       annotationText = "@$fqcn(extension=${getSdkId(container.project, sdkId)}, version=$api)"
@@ -205,12 +189,7 @@ class AddTargetApiQuickFix(
       // (see myHasApplicableAnnotations in AddAnnotationPsiFix), so we work around this
       // by adding it directly.
       val owner = container.modifierList
-      val inserted =
-        AddAnnotationPsiFix.addPhysicalAnnotationTo(
-          fqcn,
-          newAnnotation.parameterList.attributes,
-          owner,
-        )
+      val inserted = AddAnnotationPsiFix.addPhysicalAnnotationTo(fqcn, newAnnotation.parameterList.attributes, owner)
       if (inserted != null) {
         JavaCodeStyleManager.getInstance(inserted.project).shortenClassReferences(inserted)
       }
@@ -269,12 +248,7 @@ class AddTargetApiQuickFix(
     return ApiLookup.getSdkExtensionField(lookup, sdkId, true)
   }
 
-  private fun addAnnotationKotlin(
-    annotationContainer: PsiElement,
-    fqn: String,
-    inner: String,
-    replace: Boolean,
-  ) {
+  private fun addAnnotationKotlin(annotationContainer: PsiElement, fqn: String, inner: String, replace: Boolean) {
     if (annotationContainer is KtModifierListOwner) {
       val whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " "
       annotationContainer.addAnnotation(
@@ -298,13 +272,7 @@ class AddTargetApiQuickFix(
             PsiTreeUtil.getParentOfType(element, PsiMethod::class.java, PsiClass::class.java)
           }
         while (container != null && container is PsiAnonymousClass) {
-          container =
-            PsiTreeUtil.getParentOfType(
-              container,
-              PsiMethod::class.java,
-              true,
-              PsiClass::class.java,
-            )
+          container = PsiTreeUtil.getParentOfType(container, PsiMethod::class.java, true, PsiClass::class.java)
         }
 
         container
@@ -313,17 +281,13 @@ class AddTargetApiQuickFix(
         PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
       }
       KotlinLanguage.INSTANCE -> {
-        PsiTreeUtil.findFirstParent(element) {
-          if (requiresApi) it.isAnnotationTarget() else it.isTargetApiAnnotationValidTarget()
-        }
+        PsiTreeUtil.findFirstParent(element) { if (requiresApi) it.isAnnotationTarget() else it.isTargetApiAnnotationValidTarget() }
       }
       else -> null
     }
   }
 
   private fun PsiElement.isTargetApiAnnotationValidTarget(): Boolean {
-    return this is KtClassOrObject ||
-      (this is KtFunction && this !is KtFunctionLiteral) ||
-      this is KtPropertyAccessor
+    return this is KtClassOrObject || (this is KtFunction && this !is KtFunctionLiteral) || this is KtPropertyAccessor
   }
 }

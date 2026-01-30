@@ -23,11 +23,11 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.intellij.openapi.application.ApplicationManager
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 
 class GradleBlockModelDefaultsTest : GradleFileModelTestCase() {
 
@@ -83,7 +83,6 @@ class GradleBlockModelDefaultsTest : GradleFileModelTestCase() {
     val myTestModel = defaults.getModel(MyTestDslModel::class.java)
     val myNestedTestDslModel = myTestModel.getNestedModel(MyNestedDslModel::class.java)
     assertEquals("Qwerty", myNestedTestDslModel.getValue())
-
   }
 
   @Test
@@ -99,7 +98,6 @@ class GradleBlockModelDefaultsTest : GradleFileModelTestCase() {
     settingsMode.reparse()
     verifyFileContents(mySettingsFile, TestFile.PARSE_NESTED)
   }
-
 
   @Test
   fun testBlockModelsRegisteredForDefaultsBlock() {
@@ -122,15 +120,16 @@ class GradleBlockModelDefaultsTest : GradleFileModelTestCase() {
     assertThrows(
       java.lang.IllegalArgumentException::class.java,
       "Block model for interface com.android.tools.idea.gradle.dsl.model.MyNestedDslModel is" +
-      " not registered in class com.android.tools.idea.gradle.dsl.android.model.android.AndroidSoftwareTypesModelImpl"
-    ) { defaults.getModel(MyNestedDslModel::class.java) }
+        " not registered in class com.android.tools.idea.gradle.dsl.android.model.android.AndroidSoftwareTypesModelImpl",
+    ) {
+      defaults.getModel(MyNestedDslModel::class.java)
+    }
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     PARSE("parseDefaults"),
     PARSE_NESTED("parseNestedDefaults"),
-    WRITE_EXPECTED("writeExpectedDefaults"),
-    ;
+    WRITE_EXPECTED("writeExpectedDefaults");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/pluggableBlock/$path", extension)
@@ -152,17 +151,16 @@ class MyTestModelDefaultsProviderExtension : BlockModelProvider<SoftwareTypesMod
   }
 
   companion object {
-    private val ROOT_MODELS = listOf(
-      object : BlockModelBuilder<MyTestDslModel, DefaultsDslElement> {
-        override fun modelClass() = MyTestDslModel::class.java
-        override fun create(parent: DefaultsDslElement) = MyTestDslModelImpl(
-          parent.ensurePropertyElement(MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC))
-      }
-    )
+    private val ROOT_MODELS =
+      listOf(
+        object : BlockModelBuilder<MyTestDslModel, DefaultsDslElement> {
+          override fun modelClass() = MyTestDslModel::class.java
 
-    private val ROOT_ELEMENTS_MAP = mapOf(
-      "myTestDslElement" to MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC
-    )
+          override fun create(parent: DefaultsDslElement) =
+            MyTestDslModelImpl(parent.ensurePropertyElement(MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC))
+        }
+      )
 
+    private val ROOT_ELEMENTS_MAP = mapOf("myTestDslElement" to MyTestDslElement.MY_TEST_DSL_ELEMENT_DESC)
   }
 }

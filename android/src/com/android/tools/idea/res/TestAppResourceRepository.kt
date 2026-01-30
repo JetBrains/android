@@ -26,8 +26,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-class TestAppResourceRepository
-private constructor(private val facet: AndroidFacet, parentDisposable: Disposable) :
+class TestAppResourceRepository private constructor(private val facet: AndroidFacet, parentDisposable: Disposable) :
   MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name) {
 
   init {
@@ -40,16 +39,10 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
   }
 
   companion object {
-    @JvmStatic
-    @Slow
-    fun create(facet: AndroidFacet, parentDisposable: Disposable) =
-      TestAppResourceRepository(facet, parentDisposable)
+    @JvmStatic @Slow fun create(facet: AndroidFacet, parentDisposable: Disposable) = TestAppResourceRepository(facet, parentDisposable)
 
-    private fun computeLocalRepositories(
-      facet: AndroidFacet
-    ): List<LocalResourceRepository<VirtualFile>> {
-      val moduleTestResources =
-        StudioResourceRepositoryManager.getInstance(facet).testModuleResources
+    private fun computeLocalRepositories(facet: AndroidFacet): List<LocalResourceRepository<VirtualFile>> {
+      val moduleTestResources = StudioResourceRepositoryManager.getInstance(facet).testModuleResources
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
       val holderModule = androidModuleSystem.getHolderModule()
@@ -64,9 +57,7 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
       if (facet.configuration.isLibraryProject) {
         // In library projects, there's only one APK when testing and the test R class contains all
         // resources.
-        facet.getProductionAndroidModule().androidFacet?.let {
-          localRepositories += StudioResourceRepositoryManager.getAppResources(it)
-        }
+        facet.getProductionAndroidModule().androidFacet?.let { localRepositories += StudioResourceRepositoryManager.getAppResources(it) }
       }
 
       return localRepositories
@@ -76,9 +67,7 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
       val androidModuleSystem = facet.getModuleSystem()
       val aarCache = AarResourceRepositoryCache.instance
 
-      return androidModuleSystem
-        .getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST)
-        .map { aarCache.getSourceRepository(it) }
+      return androidModuleSystem.getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST).map { aarCache.getSourceRepository(it) }
     }
   }
 }

@@ -114,11 +114,7 @@ private fun createCenterPanel(
     add(
       panel {
         twoColumnsRow(
-          {
-            label(message("wear.whs.panel.sensor")).also {
-              it.component.font = it.component.font.deriveFont(Font.BOLD)
-            }
-          },
+          { label(message("wear.whs.panel.sensor")).also { it.component.font = it.component.font.deriveFont(Font.BOLD) } },
           {
             label(message("wear.whs.panel.override"))
               .also {
@@ -137,9 +133,7 @@ private fun createCenterPanel(
               label.preferredSize = Dimension(0, 25)
               val plainFont = label.font.deriveFont(Font.PLAIN)
               val italicFont = label.font.deriveFont(Font.ITALIC)
-              combine(stateManager.getState(capability), stateManager.ongoingExercise) {
-                  uiState,
-                  ongoingExercise ->
+              combine(stateManager.getState(capability), stateManager.ongoingExercise) { uiState, ongoingExercise ->
                   if (uiState.hasUserChanges(ongoingExercise)) {
                     label.font = italicFont
                     label.text = "${message(capability.label)}*"
@@ -153,11 +147,7 @@ private fun createCenterPanel(
           val checkBox =
             JCheckBox().also { checkBox ->
               elementsToDisableDuringExercise.add(checkBox)
-              checkBox.addActionListener {
-                workerScope.launch {
-                  stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
-                }
-              }
+              checkBox.addActionListener { workerScope.launch { stateManager.setCapabilityEnabled(capability, checkBox.isSelected) } }
             }
 
           val textField =
@@ -169,8 +159,7 @@ private fun createCenterPanel(
                   val overrideValueAsText = state.overrideValue.asText().trim()
                   when {
                     !state.enabled -> textField.text = ""
-                    !textField.isFocusOwner && textField.text.trim() != overrideValueAsText ->
-                      textField.text = overrideValueAsText
+                    !textField.isFocusOwner && textField.text.trim() != overrideValueAsText -> textField.text = overrideValueAsText
                   }
                 }
                 .launchIn(uiScope)
@@ -191,16 +180,12 @@ private fun createCenterPanel(
               }
             }
 
-          combine(stateManager.getState(capability), stateManager.ongoingExercise) {
-              uiState,
-              ongoingExercise ->
+          combine(stateManager.getState(capability), stateManager.ongoingExercise) { uiState, ongoingExercise ->
               // When an exercise is ongoing, we want to reflect the capability state of the device,
               // not any pending user changes
               val isCapabilityEnabled =
                 if (ongoingExercise) uiState.upToDateState.enabled
-                else
-                  (uiState as? PendingUserChangesCapabilityUIState)?.userState?.enabled
-                    ?: uiState.upToDateState.enabled
+                else (uiState as? PendingUserChangesCapabilityUIState)?.userState?.enabled ?: uiState.upToDateState.enabled
               checkBox.isSelected = isCapabilityEnabled
               label.isEnabled = !ongoingExercise || isCapabilityEnabled
             }
@@ -245,9 +230,7 @@ private fun createHeader(
       addActionListener { reset() }
     }
   canMakeChangesFlow.onEach { resetButton.isEnabled = it }.launchIn(uiScope)
-  row(
-    JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
-  ) {
+  row(JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }) {
     cell(resetButton).align(AlignX.RIGHT)
   }
   separator()
@@ -260,16 +243,10 @@ private fun createHeader(
       // set the icon pre-emptively so the width is calculated properly and the label is not cropped
       icon = if (stateManager.isStateStale.value) staleDataIcon else freshDataIcon
 
-      combine(stateManager.ongoingExercise, stateManager.isStateStale) {
-          ongoingExercise,
-          isStateStale ->
-          ongoingExercise to isStateStale
-        }
+      combine(stateManager.ongoingExercise, stateManager.isStateStale) { ongoingExercise, isStateStale -> ongoingExercise to isStateStale }
         .onEach { (isActiveExercise, isStateStale) ->
           icon = if (isStateStale) staleDataIcon else freshDataIcon
-          text =
-            if (isActiveExercise) message("wear.whs.panel.exercise.active")
-            else message("wear.whs.panel.exercise.inactive")
+          text = if (isActiveExercise) message("wear.whs.panel.exercise.active") else message("wear.whs.panel.exercise.inactive")
           toolTipText =
             when {
               isStateStale -> message("wear.whs.panel.stale.data")
@@ -299,14 +276,11 @@ private fun createApplyButton(
     stateManager.ongoingExercise
       .onEach {
         toolTipText =
-          if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
-          else message("wear.whs.panel.apply.tooltip.no.exercise")
+          if (it) message("wear.whs.panel.apply.tooltip.during.exercise") else message("wear.whs.panel.apply.tooltip.no.exercise")
       }
       .launchIn(uiScope)
 
-    stateManager.status
-      .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
-      .launchIn(uiScope)
+    stateManager.status.onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }.launchIn(uiScope)
 
     addActionListener { applyChanges() }
 
@@ -321,11 +295,7 @@ private fun createApplyButton(
     )
   }
 
-private fun createFooter(
-  applyButton: JButton,
-  informationLabelFlow: Flow<String>,
-  uiScope: CoroutineScope,
-): JPanel {
+private fun createFooter(applyButton: JButton, informationLabelFlow: Flow<String>, uiScope: CoroutineScope): JPanel {
   // Display current state e.g. we encountered an error, if there's work in progress, or if an
   // action was successful
   val informationLabel = JLabel()
@@ -362,8 +332,7 @@ internal fun createWearHealthServicesPanel(
 ): WearHealthServicesPanel {
   val canMakeChangesFlow =
     combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
-      status !is WhsStateManagerStatus.Syncing &&
-        (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
+      status !is WhsStateManagerStatus.Syncing && (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
     }
 
   val content =
@@ -382,9 +351,8 @@ internal fun createWearHealthServicesPanel(
                     ?: stateManager.clearOverrideValue(capability)
                 }
                 else -> {
-                  overrideValue.toFloatOrNull()?.let {
-                    stateManager.setOverrideValue(capability, it)
-                  } ?: stateManager.clearOverrideValue(capability)
+                  overrideValue.toFloatOrNull()?.let { stateManager.setOverrideValue(capability, it) }
+                    ?: stateManager.clearOverrideValue(capability)
                 }
               }
             }
@@ -394,19 +362,9 @@ internal fun createWearHealthServicesPanel(
     }
 
   val applyButton =
-    createApplyButton(
-      stateManager = stateManager,
-      canMakeChangesFlow = canMakeChangesFlow,
-      uiScope = uiScope,
-      applyChanges = applyChanges,
-    )
+    createApplyButton(stateManager = stateManager, canMakeChangesFlow = canMakeChangesFlow, uiScope = uiScope, applyChanges = applyChanges)
 
-  val footer =
-    createFooter(
-      applyButton = applyButton,
-      informationLabelFlow = informationLabelFlow,
-      uiScope = uiScope,
-    )
+  val footer = createFooter(applyButton = applyButton, informationLabelFlow = informationLabelFlow, uiScope = uiScope)
 
   val header =
     createHeader(
@@ -441,12 +399,9 @@ private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit)
         eventTriggerGroup.eventTriggers.map { eventTrigger ->
           createEventTriggerAction(eventTrigger = eventTrigger, triggerEvent = { triggerEvent(it) })
         }
-      DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply {
-        addAll(eventTriggerActions)
-      }
+      DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply { addAll(eventTriggerActions) }
     }
-  val eventTriggerGroups =
-    DropDownAction(null, null, AllIcons.Actions.More).apply { addAll(eventTriggerGroupActions) }
+  val eventTriggerGroups = DropDownAction(null, null, AllIcons.Actions.More).apply { addAll(eventTriggerGroupActions) }
 
   return ActionButton(
       eventTriggerGroups,
@@ -462,10 +417,7 @@ private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit)
     }
 }
 
-private fun createEventTriggerAction(
-  eventTrigger: EventTrigger,
-  triggerEvent: (EventTrigger) -> Unit,
-) =
+private fun createEventTriggerAction(eventTrigger: EventTrigger, triggerEvent: (EventTrigger) -> Unit) =
   object : AnAction(eventTrigger.eventLabel, null, null) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -474,17 +426,12 @@ private fun createEventTriggerAction(
     }
   }
 
-private fun createLoadCapabilityPresetComboBox(
-  stateManager: WearHealthServicesStateManager,
-  uiScope: CoroutineScope,
-): ComboBox<Preset> {
+private fun createLoadCapabilityPresetComboBox(stateManager: WearHealthServicesStateManager, uiScope: CoroutineScope): ComboBox<Preset> {
   val presetComboBox = ComboBox<Preset>(DefaultComboBoxModel(Preset.entries.toTypedArray()))
   presetComboBox.selectedItem = stateManager.preset.value
   presetComboBox.isEnabled = !stateManager.ongoingExercise.value
 
-  presetComboBox.addActionListener {
-    stateManager.loadPreset(presetComboBox.selectedItem as Preset)
-  }
+  presetComboBox.addActionListener { stateManager.loadPreset(presetComboBox.selectedItem as Preset) }
 
   // ignore the first one as we don't want to trigger an action for the pre-existing value
   stateManager.preset.drop(1).onEach { presetComboBox.selectedItem = it }.launchIn(uiScope)
@@ -492,8 +439,7 @@ private fun createLoadCapabilityPresetComboBox(
     .onEach {
       presetComboBox.isEnabled = !it
       presetComboBox.toolTipText =
-        if (it) message("wear.whs.panel.disabled.during.exercise")
-        else message("wear.whs.panel.load.preset.tooltip")
+        if (it) message("wear.whs.panel.disabled.during.exercise") else message("wear.whs.panel.load.preset.tooltip")
     }
     .launchIn(uiScope)
   return presetComboBox
@@ -522,16 +468,8 @@ private fun createTextField(onValidInput: (String) -> Unit) =
           return true
         }
 
-        override fun insertString(
-          fb: FilterBypass,
-          offset: Int,
-          text: String,
-          attr: AttributeSet?,
-        ) {
-          val newValue =
-            fb.document.getText(0, offset) +
-              text +
-              fb.document.getText(offset, fb.document.length - offset)
+        override fun insertString(fb: FilterBypass, offset: Int, text: String, attr: AttributeSet?) {
+          val newValue = fb.document.getText(0, offset) + text + fb.document.getText(offset, fb.document.length - offset)
 
           if (validate(newValue)) {
             super.insertString(fb, offset, text, attr)
@@ -540,17 +478,8 @@ private fun createTextField(onValidInput: (String) -> Unit) =
           }
         }
 
-        override fun replace(
-          fb: FilterBypass,
-          offset: Int,
-          length: Int,
-          text: String,
-          attr: AttributeSet?,
-        ) {
-          val newValue =
-            fb.document.getText(0, offset) +
-              text +
-              fb.document.getText(offset + length, fb.document.length - offset - length)
+        override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String, attr: AttributeSet?) {
+          val newValue = fb.document.getText(0, offset) + text + fb.document.getText(offset + length, fb.document.length - offset - length)
 
           if (validate(newValue)) {
             super.replace(fb, offset, length, text, attr)
@@ -560,9 +489,7 @@ private fun createTextField(onValidInput: (String) -> Unit) =
         }
 
         override fun remove(fb: FilterBypass, offset: Int, length: Int) {
-          val newValue =
-            fb.document.getText(0, offset) +
-              fb.document.getText(offset + length, fb.document.length - offset - length)
+          val newValue = fb.document.getText(0, offset) + fb.document.getText(offset + length, fb.document.length - offset - length)
 
           if (validate(newValue)) {
             super.remove(fb, offset, length)

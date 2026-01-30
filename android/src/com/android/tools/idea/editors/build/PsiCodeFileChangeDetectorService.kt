@@ -51,15 +51,12 @@ private fun isInKotlinAnnotation(element: PsiElement): Boolean {
 }
 
 /**
- * A [PsiTreeChangeListener] that filters out changes to elements like comments and calls
- * [onCodeChange] when a file has been modified. A [fileFilter] can be passed to ignore certain
- * files, for example, if we are not interested in checking a file anymore after it has been
+ * A [PsiTreeChangeListener] that filters out changes to elements like comments and calls [onCodeChange] when a file has been modified. A
+ * [fileFilter] can be passed to ignore certain files, for example, if we are not interested in checking a file anymore after it has been
  * modified.
  */
-private class CodePsiTreeChangeAdapter(
-  private val fileFilter: (PsiFile) -> Boolean,
-  private val onCodeChange: (PsiFile) -> Unit,
-) : PsiTreeChangeListener {
+private class CodePsiTreeChangeAdapter(private val fileFilter: (PsiFile) -> Boolean, private val onCodeChange: (PsiFile) -> Unit) :
+  PsiTreeChangeListener {
   override fun beforeChildAddition(event: PsiTreeChangeEvent) = handleEvent(event)
 
   override fun beforeChildRemoval(event: PsiTreeChangeEvent) = handleEvent(event)
@@ -92,8 +89,7 @@ private class CodePsiTreeChangeAdapter(
    * - A top level method
    * - A top level expression (like top level properties)
    *
-   * We intentionally ignore changes in comments and annotations since we do not consider them to
-   * affect the code.
+   * We intentionally ignore changes in comments and annotations since we do not consider them to affect the code.
    */
   private fun isCodeElement(element: PsiElement): Boolean {
     var current: PsiElement? = element
@@ -122,24 +118,23 @@ private class CodePsiTreeChangeAdapter(
 
     if (!fileFilter(file)) return
 
-    val element =
-      psiEvent.newChild ?: psiEvent.child ?: psiEvent.newParent ?: psiEvent.parent ?: return
+    val element = psiEvent.newChild ?: psiEvent.child ?: psiEvent.newParent ?: psiEvent.parent ?: return
 
     if (isCodeElement(element)) onCodeChange(file)
   }
 }
 
 /**
- * Returns whether this file is an actual file or a fake one. Fake files are not backed by a real
- * file system and they are in memory representations.
+ * Returns whether this file is an actual file or a fake one. Fake files are not backed by a real file system and they are in memory
+ * representations.
  */
 private fun PsiFile.isFakeFile(): Boolean = virtualFile?.fileSystem is NonPhysicalFileSystem
 
 /**
  * A service that knows which sources files are currently out-of-date.
  *
- * Files become out-of-date on any meaningful code change and are marked as up-to-date via
- * [PsiCodeFileUpToDateStatusRecorder] in response to build and fast source compilation events.
+ * Files become out-of-date on any meaningful code change and are marked as up-to-date via [PsiCodeFileUpToDateStatusRecorder] in response
+ * to build and fast source compilation events.
  */
 interface PsiCodeFileOutOfDateStatusReporter {
   val fileUpdatesFlow: StateFlow<Set<PsiFile>>
@@ -148,52 +143,39 @@ interface PsiCodeFileOutOfDateStatusReporter {
   val outOfDateFiles: Set<PsiFile>
 
   companion object {
-    fun getInstance(project: Project): PsiCodeFileOutOfDateStatusReporter =
-      project.getService(PsiCodeFileChangeDetectorService::class.java)
+    fun getInstance(project: Project): PsiCodeFileOutOfDateStatusReporter = project.getService(PsiCodeFileChangeDetectorService::class.java)
   }
 }
 
 /**
- * A service that knows how to remove source files recently built for the purpose of "rendering"
- * from the set of currently out-of-date files, which is accessible via
- * [PsiCodeFileOutOfDateStatusReporter].
+ * A service that knows how to remove source files recently built for the purpose of "rendering" from the set of currently out-of-date
+ * files, which is accessible via [PsiCodeFileOutOfDateStatusReporter].
  */
 interface PsiCodeFileUpToDateStatusRecorder {
-  /**
-   * An action that knows the set of out-of-date files at the moment of its instantiation and can be
-   * used to mark them as up-to-date.
-   */
+  /** An action that knows the set of out-of-date files at the moment of its instantiation and can be used to mark them as up-to-date. */
   fun interface MarkUpToDateAction {
-    /**
-     * Marks files that both were out-of-date when the action was created and are in the [scope] now
-     * as up-to-date.
-     */
+    /** Marks files that both were out-of-date when the action was created and are in the [scope] now as up-to-date. */
     fun markUpToDate(scope: GlobalSearchScope)
   }
 
   /**
    * Returns an action (a callback) that marks currently out-of-date files as being up-to-date
    *
-   * This method is supposed to be invoked when a new build starts to record the current set of
-   * out-of-date files and the returned action is supposed to be invoked when the build completes
-   * successfully.
+   * This method is supposed to be invoked when a new build starts to record the current set of out-of-date files and the returned action is
+   * supposed to be invoked when the build completes successfully.
    *
    * The files marked as up-to-date will remain as up-to-date until the next change.
    */
   fun prepareMarkUpToDate(): MarkUpToDateAction
 
-  /**
-   * Marks the given [files] as being up-to-date. They will remain as up to date until the next
-   * change.
-   */
+  /** Marks the given [files] as being up-to-date. They will remain as up to date until the next change. */
   fun markAsUpToDate(files: Collection<PsiFile>)
 
   /** Mark one file as out of date. This method is only meant to be used during testing. */
   @TestOnly fun markFileAsOutOfDateForTests(file: PsiFile)
 
   companion object {
-    fun getInstance(project: Project): PsiCodeFileUpToDateStatusRecorder =
-      project.getService(PsiCodeFileChangeDetectorService::class.java)
+    fun getInstance(project: Project): PsiCodeFileUpToDateStatusRecorder = project.getService(PsiCodeFileChangeDetectorService::class.java)
   }
 }
 
@@ -217,10 +199,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
       // Listen to all code changes but ignore changes for files that are already out of date or for
       // code that is not part of the file system.
       // We ignore fake files since we do not care a bout in-memory modifications.
-      CodePsiTreeChangeAdapter(
-        { !fileUpdatesFlow.value.contains(it) && !it.isFakeFile() && psiManager.isInProject(it) },
-        ::onCodeChange,
-      ),
+      CodePsiTreeChangeAdapter({ !fileUpdatesFlow.value.contains(it) && !it.isFakeFile() && psiManager.isInProject(it) }, ::onCodeChange),
       this,
     )
   }
@@ -244,10 +223,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     }
   }
 
-  /**
-   * Marks the given [files] as being up to date. They will remain as up to date until the next
-   * change.
-   */
+  /** Marks the given [files] as being up to date. They will remain as up to date until the next change. */
   override fun markAsUpToDate(files: Collection<PsiFile>) {
     _fileUpdatesFlow.value -= files
   }

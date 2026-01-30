@@ -41,7 +41,7 @@ internal class LogcatFilterColorSettingsPage : ColorSettingsPage {
     // Note that the selected line does not show background color
 
     tag:foo bar line~:Foo|Bar level:DEBUG
-  """
+    """
       .trimIndent()
 
   override fun getAttributeDescriptors() = DESCRIPTORS
@@ -50,6 +50,5 @@ internal class LogcatFilterColorSettingsPage : ColorSettingsPage {
 
   override fun getDisplayName() = "Logcat Filter"
 
-  override fun getAdditionalHighlightingTagToDescriptorMap():
-    MutableMap<String, TextAttributesKey>? = null
+  override fun getAdditionalHighlightingTagToDescriptorMap(): MutableMap<String, TextAttributesKey>? = null
 }

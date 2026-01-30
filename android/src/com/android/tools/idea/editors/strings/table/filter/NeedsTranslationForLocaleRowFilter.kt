@@ -19,13 +19,11 @@ import com.android.ide.common.resources.Locale
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 
 /** Filter that shows only rows that are missing a translation for the given [locale]. */
-class NeedsTranslationForLocaleRowFilter(private val locale: Locale) :
-    StringResourceTableRowFilter() {
+class NeedsTranslationForLocaleRowFilter(private val locale: Locale) : StringResourceTableRowFilter() {
   override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean {
     val resource = entry.model.getStringResourceAt(entry.identifier)
     return resource.isTranslatable && resource.getTranslationAsString(locale).isEmpty()
   }
 
-  override fun getDescription(): String =
-      "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
+  override fun getDescription(): String = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
 }

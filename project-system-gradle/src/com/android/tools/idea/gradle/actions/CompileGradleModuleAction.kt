@@ -36,8 +36,7 @@ import org.jetbrains.kotlin.idea.base.util.isGradleModule
 /** Action added to the "Build" menu. If the new UI is used, it is also added to the toolbar. */
 class CompileGradleModuleAction : AbstractCompileGradleModuleAction()
 
-abstract class AbstractCompileGradleModuleAction :
-  AndroidStudioGradleAction("Compile Module(s)") {
+abstract class AbstractCompileGradleModuleAction : AndroidStudioGradleAction("Compile Module(s)") {
 
   private var previouslySelectedModules: List<String> = emptyList()
 
@@ -47,7 +46,7 @@ abstract class AbstractCompileGradleModuleAction :
     Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
 
   final override fun doUpdate(e: AnActionEvent, project: Project) {
-    val modules = getModuleNamesToBuild(e, project).ifEmpty {  getPreviouslySelectedNamesIfValid(project) }
+    val modules = getModuleNamesToBuild(e, project).ifEmpty { getPreviouslySelectedNamesIfValid(project) }
     previouslySelectedModules = modules
 
     updatePresentation(e, project, modules)
@@ -64,8 +63,8 @@ abstract class AbstractCompileGradleModuleAction :
     getPreviouslySelectedModulesIfValid(project).map { it.name }
 
   /**
-   * Returns previously selected modules, if entire selection is still valid (module exists and it is not disposed).
-   * In cases when focus is lost (e.g. by opening tools window), we should try to maintain the previous modules selection.
+   * Returns previously selected modules, if entire selection is still valid (module exists and it is not disposed). In cases when focus is
+   * lost (e.g. by opening tools window), we should try to maintain the previous modules selection.
    *
    * In case there is no previous selection, we choose [getDefaultModuleToBuild].
    */
@@ -74,22 +73,21 @@ abstract class AbstractCompileGradleModuleAction :
     val selectedModules = arrayOfNulls<Module>(previouslySelectedModules.size)
     var id = 0
 
-    val allValid = previouslySelectedModules.all {
-      val selectedModule = moduleManager.findModuleByName(it)
-      if (selectedModule == null || selectedModule.isDisposed) {
-        false
+    val allValid =
+      previouslySelectedModules.all {
+        val selectedModule = moduleManager.findModuleByName(it)
+        if (selectedModule == null || selectedModule.isDisposed) {
+          false
+        } else {
+          selectedModules[id++] = selectedModule
+          true
+        }
       }
-      else {
-        selectedModules[id++] = selectedModule
-        true
-      }
-    }
 
     return if (allValid && selectedModules.isNotEmpty()) {
       @Suppress("UNCHECKED_CAST")
       selectedModules as Array<Module>
-    }
-    else {
+    } else {
       getDefaultModuleToBuild(project)?.let { arrayOf(it) } ?: arrayOf()
     }
   }
@@ -99,15 +97,21 @@ abstract class AbstractCompileGradleModuleAction :
   }
 
   /**
-   *  When the project is opened, there will not be selected modules until user trigger a focus action.
-   *  In order not to have this action disabled, we try to select the first application.
+   * When the project is opened, there will not be selected modules until user trigger a focus action. In order not to have this action
+   * disabled, we try to select the first application.
    */
   private fun getDefaultModuleToBuild(project: Project): Module? {
-    return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val firstApp =
-        project.modules.firstOrNull { it.isMainModule() && it.isGradleModule && it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP }
-      return@CachedValueProvider CachedValueProvider.Result(firstApp, ProjectSyncModificationTracker.getInstance(project))
-    })
+    return CachedValuesManager.getManager(project)
+      .getCachedValue(
+        project,
+        CachedValueProvider {
+          val firstApp =
+            project.modules.firstOrNull {
+              it.isMainModule() && it.isGradleModule && it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP
+            }
+          return@CachedValueProvider CachedValueProvider.Result(firstApp, ProjectSyncModificationTracker.getInstance(project))
+        },
+      )
   }
 
   companion object {

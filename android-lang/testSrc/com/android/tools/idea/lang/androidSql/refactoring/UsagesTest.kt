@@ -34,8 +34,7 @@ import org.junit.runners.JUnit4
 @RunsInEdt
 class UsagesTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val myFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -53,16 +52,19 @@ class UsagesTest {
     myFixture.moveCaret("public class Wo|rd {")
 
     val usagesRepresentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(usagesRepresentation).contains(
-      """
-      |  Referenced in SQL query (2)
-      |   app (2)
-      |    main.java.com.example.roomsampleproject.dao (2)
-      |     WordDao (2)
-      |      deleteAll() (1)
-      |       15DELETE from word_table
-      |      getAlphabetizedWords() (1)
-      |       18SELECT * FROM  word_table ORDER By word Asc
-      """.trimMargin())
+    assertThat(usagesRepresentation)
+      .contains(
+        """
+        |  Referenced in SQL query (2)
+        |   app (2)
+        |    main.java.com.example.roomsampleproject.dao (2)
+        |     WordDao (2)
+        |      deleteAll() (1)
+        |       15DELETE from word_table
+        |      getAlphabetizedWords() (1)
+        |       18SELECT * FROM  word_table ORDER By word Asc
+        """
+          .trimMargin()
+      )
   }
 }

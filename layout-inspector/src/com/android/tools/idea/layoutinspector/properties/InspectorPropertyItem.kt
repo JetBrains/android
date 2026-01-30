@@ -92,8 +92,7 @@ open class InspectorPropertyItem(
   /**
    * The integer value of a dimension or -1 for other types.
    *
-   * Note: for a DIMENSION_FLOAT this value should be converted using
-   * Float.fromBits(dimensionValue).
+   * Note: for a DIMENSION_FLOAT this value should be converted using Float.fromBits(dimensionValue).
    */
   var dimensionValue: Int = computeDimensionValue(initialType)
     private set
@@ -123,8 +122,7 @@ open class InspectorPropertyItem(
       dimensionValue = computeDimensionValue(type)
     }
 
-  override fun hashCode(): Int =
-    HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
+  override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
 
   override fun equals(other: Any?): Boolean =
     other is InspectorPropertyItem &&
@@ -174,11 +172,7 @@ open class InspectorPropertyItem(
     val resourceLookup = lookup.resourceLookup
     // If we are unable to get the dpi from the device, just show pixels
     val dpi = resourceLookup.dpi ?: return "${formatFloat(pixels)}px"
-    if (
-      name == ATTR_TEXT_SIZE &&
-        resourceLookup.fontScale != 0.0f &&
-        PropertiesSettings.dimensionUnits == DimensionUnits.DP
-    ) {
+    if (name == ATTR_TEXT_SIZE && resourceLookup.fontScale != 0.0f && PropertiesSettings.dimensionUnits == DimensionUnits.DP) {
       val spFactor = pixelsToSpFactor
       if (spFactor != null) {
         return "${DecimalFormat("0.0", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(pixels * spFactor)}sp"
@@ -230,17 +224,12 @@ open class InspectorPropertyItem(
     }
 
   private fun formatFloat(value: Float): String =
-    if (value == 0.0f) "0"
-    else DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value)
+    if (value == 0.0f) "0" else DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value)
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {
-    if (
-      (type == PropertyType.INT32 || type == PropertyType.FLOAT) &&
-        lookup.resourceLookup.isDimension(view, name)
-    ) {
-      type =
-        if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
+    if ((type == PropertyType.INT32 || type == PropertyType.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
+      type = if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
     }
   }
 }

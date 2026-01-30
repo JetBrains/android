@@ -36,17 +36,16 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.usages.UsageView
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class ResourceDataManagerTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
@@ -62,9 +61,12 @@ class ResourceDataManagerTest {
     val colorAttributeAsset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
 
     runReadAction {
-      PlatformDataKeys.COPY_PROVIDER.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
-        dataManager.uiDataSnapshot(sink, listOf(colorAttributeAsset))
-      })?.performCopy(DataContext.EMPTY_CONTEXT)
+      PlatformDataKeys.COPY_PROVIDER.getData(
+          CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
+            dataManager.uiDataSnapshot(sink, listOf(colorAttributeAsset))
+          }
+        )
+        ?.performCopy(DataContext.EMPTY_CONTEXT)
 
       val resourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
       Truth.assertThat(resourceUrl).isNotNull()
@@ -74,9 +76,10 @@ class ResourceDataManagerTest {
       ResourceFile.createSingle(File("sample"), toolsResource, "")
       val drawableSample = Asset.fromResourceItem(toolsResource, ResourceType.DRAWABLE)
 
-      PlatformDataKeys.COPY_PROVIDER.getData(CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
-        dataManager.uiDataSnapshot(sink, listOf(drawableSample))
-      })?.performCopy(DataContext.EMPTY_CONTEXT)
+      PlatformDataKeys.COPY_PROVIDER.getData(
+          CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink -> dataManager.uiDataSnapshot(sink, listOf(drawableSample)) }
+        )
+        ?.performCopy(DataContext.EMPTY_CONTEXT)
 
       val sampleResourceUrl = CopyPasteManager.getInstance().getContents<ResourceUrl>(RESOURCE_URL_FLAVOR)
       Truth.assertThat(sampleResourceUrl).isNotNull()
@@ -87,16 +90,16 @@ class ResourceDataManagerTest {
   @Test
   fun getColorPsiElement() {
     rule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
-    val colorItem = StudioResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
-      .appResources
-      .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
-      .first()
+    val colorItem =
+      StudioResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
+        .appResources
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
+        .first()
     val colorAsset = Asset.fromResourceItem(colorItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
-      dataManager.uiDataSnapshot(sink, listOf(colorAsset))
-    }
+    val context =
+      CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink -> dataManager.uiDataSnapshot(sink, listOf(colorAsset)) }
     runReadAction {
       val psiArray = LangDataKeys.PSI_ELEMENT_ARRAY.getData(context)!!
       assertEquals("colorPrimary", (psiArray[0] as XmlAttributeValue).value)
@@ -118,9 +121,8 @@ class ResourceDataManagerTest {
     val colorAsset = Asset.fromResourceItem(pngItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
-      dataManager.uiDataSnapshot(sink, listOf(colorAsset))
-    }
+    val context =
+      CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink -> dataManager.uiDataSnapshot(sink, listOf(colorAsset)) }
     runReadAction {
       val psiArray = LangDataKeys.PSI_ELEMENT_ARRAY.getData(context)!!
       assertEquals(pngItem.getSourceAsVirtualFile(), PsiUtil.getVirtualFile(psiArray[0].containingFile)!!)

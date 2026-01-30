@@ -22,16 +22,11 @@ import java.awt.geom.AffineTransform
 import kotlinx.coroutines.CoroutineScope
 
 /** Panel responsible for rendering Layout Inspector UI for standalone Layout Inspector V2. */
-class StandaloneRendererPanel(
-  disposable: Disposable,
-  scope: CoroutineScope,
-  renderModel: EmbeddedRendererModel,
-) : AbstractStudioRendererPanel(disposable, scope, renderModel) {
+class StandaloneRendererPanel(disposable: Disposable, scope: CoroutineScope, renderModel: EmbeddedRendererModel) :
+  AbstractStudioRendererPanel(disposable, scope, renderModel) {
 
   /** The rectangle delimiting the drawing area */
-  private val drawRectangleProvider: () -> Rectangle = {
-    renderModel.inspectorModel.root.layoutBounds
-  }
+  private val drawRectangleProvider: () -> Rectangle = { renderModel.inspectorModel.root.layoutBounds }
 
   private val scaleProvider: () -> Double = { renderModel.renderSettings.scaleFraction }
 
@@ -66,9 +61,6 @@ class StandaloneRendererPanel(
 
     // Change the size of the panel according to the size of the rendered bounds. This is useful to
     // trigger scrollbars when this panel is wrapped in a scrollable panel.
-    return Dimension(
-      contentWidth + insets.left + insets.right,
-      contentHeight + insets.top + insets.bottom,
-    )
+    return Dimension(contentWidth + insets.left + insets.right, contentHeight + insets.top + insets.bottom)
   }
 }

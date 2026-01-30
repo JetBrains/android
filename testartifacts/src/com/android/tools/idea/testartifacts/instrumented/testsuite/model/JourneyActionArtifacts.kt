@@ -31,21 +31,15 @@ data class JourneyActionArtifacts(
     /**
      * Extracts Journey-related artifacts from a map of additional test artifacts.
      *
-     * This function looks for a key named "Journeys.Step" in the provided map. The value associated
-     * with this key is expected to be a Base64 encoded string of a `Step` proto. This `Step` proto
-     * contains a list of `Turn` objects, each representing an action within a test journey.
-     * `JourneyActionArtifacts` objects are then created from the `Turn` objects within the `Step`
-     * proto.
+     * This function looks for a key named "Journeys.Step" in the provided map. The value associated with this key is expected to be a
+     * Base64 encoded string of a `Step` proto. This `Step` proto contains a list of `Turn` objects, each representing an action within a
+     * test journey. `JourneyActionArtifacts` objects are then created from the `Turn` objects within the `Step` proto.
      *
-     * @param additionalTestArtifacts A map of key-value pairs representing additional test
-     *   artifacts.
-     * @return A list of [JourneyActionArtifacts] parsed from the input map, or an empty list if no
-     *   valid journey artifacts are found.
-     *   The returned list is ordered by the sequence of turns in the `Step` proto.
+     * @param additionalTestArtifacts A map of key-value pairs representing additional test artifacts.
+     * @return A list of [JourneyActionArtifacts] parsed from the input map, or an empty list if no valid journey artifacts are found. The
+     *   returned list is ordered by the sequence of turns in the `Step` proto.
      */
-    fun parseFromAdditionalTestArtifacts(
-      additionalTestArtifacts: Map<String, String>
-    ): List<JourneyActionArtifacts> {
+    fun parseFromAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>): List<JourneyActionArtifacts> {
       val encodedJourneyStepResult = additionalTestArtifacts["Journeys.Step"] ?: return emptyList()
       val journeyStepResult = decodeStepResult(encodedJourneyStepResult)
       return journeyStepResult.turnsList.map {
@@ -53,7 +47,7 @@ data class JourneyActionArtifacts(
           it.description?.nullIfEmpty(),
           it.reasoning?.nullIfEmpty(),
           getScreenshot(it),
-          it.interactionsList.map { interaction -> formatInteraction(interaction) }
+          it.interactionsList.map { interaction -> formatInteraction(interaction) },
         )
       }
     }

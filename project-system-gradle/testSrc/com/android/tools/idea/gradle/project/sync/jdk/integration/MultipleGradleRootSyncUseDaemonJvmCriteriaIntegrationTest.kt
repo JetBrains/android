@@ -33,32 +33,34 @@ import org.junit.rules.TemporaryFolder
 @RunsInEdt
 class MultipleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given multiple roots with Daemon Jvm criteria When synced project successfully Then daemon JVM was configured with expected JDK`() =
     jdkIntegrationTest.run(
-      project = SimpleApplicationMultipleRoots(
-        roots = listOf(
-          GradleRoot("project_root1", gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains")),
-          GradleRoot("project_root2", gradleDaemonToolchain = GradleDaemonToolchain("21", "Jetbrains"))
-        ),
-      ),
+      project =
+        SimpleApplicationMultipleRoots(
+          roots =
+            listOf(
+              GradleRoot("project_root1", gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains")),
+              GradleRoot("project_root2", gradleDaemonToolchain = GradleDaemonToolchain("21", "Jetbrains")),
+            )
+        )
     ) {
       syncWithAssertion(
-        expectedGradleRoots = mapOf(
-          "project_root1" to ExpectedGradleRoot(gradleExecutionDaemonJdkPath = JDK_17_PATH),
-          "project_root2" to ExpectedGradleRoot(gradleExecutionDaemonJdkPath = JDK_21_PATH),
-        ), null, null
+        expectedGradleRoots =
+          mapOf(
+            "project_root1" to ExpectedGradleRoot(gradleExecutionDaemonJdkPath = JDK_17_PATH),
+            "project_root2" to ExpectedGradleRoot(gradleExecutionDaemonJdkPath = JDK_21_PATH),
+          ),
+        null,
+        null,
       )
     }
 }

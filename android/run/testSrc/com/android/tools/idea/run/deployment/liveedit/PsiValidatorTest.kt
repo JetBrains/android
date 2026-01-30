@@ -28,8 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class PsiValidatorTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   private val fakeBuildSystemLiveEditServices = FakeBuildSystemLiveEditServices()
 
@@ -41,16 +40,19 @@ class PsiValidatorTest {
 
   @Test
   fun `modify initial property value`() {
-    val exceptions = testCase(
-      """
-      val x = 100
-      val y = 100
-      """.trimIndent(),
-      """
-      val x = 999
-      val y = 100
-      """.trimIndent(),
-    )
+    val exceptions =
+      testCase(
+        """
+        val x = 100
+        val y = 100
+        """
+          .trimIndent(),
+        """
+        val x = 999
+        val y = 100
+        """
+          .trimIndent(),
+      )
 
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED)
@@ -59,17 +61,21 @@ class PsiValidatorTest {
 
   @Test
   fun `modify property value in delegate`() {
-    val exceptions = testCase(
-      """
-      val x: Int by lazy {
-        100
-      }
-      """.trimIndent(),
-      """
-      val x: Int by lazy {
-        999
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        val x: Int by lazy {
+          100
+        }
+        """
+          .trimIndent(),
+        """
+        val x: Int by lazy {
+          999
+        }
+        """
+          .trimIndent(),
+      )
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED)
     assertTrue(exceptions.single().details.contains("modified property"))
@@ -77,22 +83,26 @@ class PsiValidatorTest {
 
   @Test
   fun `add enum entry`() {
-    val exceptions = testCase(
-      """
-      enum class Simple {
-        VALUE_A,
-        VALUE_B,
-        VALUE_C
-      }
-      """.trimIndent(),
-      """
-      enum class Simple {
-        VALUE_A,
-        VALUE_B,
-        VALUE_C,
-        VALUE_D
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        enum class Simple {
+          VALUE_A,
+          VALUE_B,
+          VALUE_C
+        }
+        """
+          .trimIndent(),
+        """
+        enum class Simple {
+          VALUE_A,
+          VALUE_B,
+          VALUE_C,
+          VALUE_D
+        }
+        """
+          .trimIndent(),
+      )
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
     assertTrue(exceptions.single().details.contains("added enum entry"))
@@ -100,20 +110,24 @@ class PsiValidatorTest {
 
   @Test
   fun `remove enum entry`() {
-    val exceptions = testCase(
-      """
-      enum class Simple {
-        VALUE_A,
-        VALUE_B,
-        VALUE_C
-      }
-      """.trimIndent(),
-      """
-      enum class Simple {
-        VALUE_A,
-        VALUE_B,
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        enum class Simple {
+          VALUE_A,
+          VALUE_B,
+          VALUE_C
+        }
+        """
+          .trimIndent(),
+        """
+        enum class Simple {
+          VALUE_A,
+          VALUE_B,
+        }
+        """
+          .trimIndent(),
+      )
 
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
@@ -122,21 +136,25 @@ class PsiValidatorTest {
 
   @Test
   fun `modify enum initializer`() {
-    val exceptions = testCase(
-      """
-      enum class Complex(x: String = "") {
-        VALUE_A("Hello"),
-        VALUE_B,
-        VALUE_C("Goodbye"),
-      }
-      """.trimIndent(),
-      """
-      enum class Complex(x: String = "") {
-        VALUE_A("Hello"),
-        VALUE_B("CHANGED"),
-        VALUE_C("Goodbye"),
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        enum class Complex(x: String = "") {
+          VALUE_A("Hello"),
+          VALUE_B,
+          VALUE_C("Goodbye"),
+        }
+        """
+          .trimIndent(),
+        """
+        enum class Complex(x: String = "") {
+          VALUE_A("Hello"),
+          VALUE_B("CHANGED"),
+          VALUE_C("Goodbye"),
+        }
+        """
+          .trimIndent(),
+      )
 
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
@@ -145,21 +163,25 @@ class PsiValidatorTest {
 
   @Test
   fun `modify enum order`() {
-    val exceptions = testCase(
-      """
-      enum class Complex(x: String = "") {
-        VALUE_A("Hello"),
-        VALUE_B,
-        VALUE_C("Goodbye"),
-      }
-      """.trimIndent(),
-      """
-      enum class Complex(x: String = "") {
-        VALUE_A("Hello"),
-        VALUE_C("Goodbye"),
-        VALUE_B,
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        enum class Complex(x: String = "") {
+          VALUE_A("Hello"),
+          VALUE_B,
+          VALUE_C("Goodbye"),
+        }
+        """
+          .trimIndent(),
+        """
+        enum class Complex(x: String = "") {
+          VALUE_A("Hello"),
+          VALUE_C("Goodbye"),
+          VALUE_B,
+        }
+        """
+          .trimIndent(),
+      )
 
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
@@ -168,19 +190,23 @@ class PsiValidatorTest {
 
   @Test
   fun `modify constructor`() {
-    val exceptions = testCase(
-      """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0)
-        constructor(a: Double, b: Double): this(0, 0)
-      }
-      """.trimIndent(),
-      """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0)
-        constructor(a: Double, b: Double): this(1, 1)
-      }
-      """.trimIndent())
+    val exceptions =
+      testCase(
+        """
+        class Foo(val a: Int, val b: Int) {
+          constructor(a: String, b: String): this(0, 0)
+          constructor(a: Double, b: Double): this(0, 0)
+        }
+        """
+          .trimIndent(),
+        """
+        class Foo(val a: Int, val b: Int) {
+          constructor(a: String, b: String): this(0, 0)
+          constructor(a: Double, b: Double): this(1, 1)
+        }
+        """
+          .trimIndent(),
+      )
     assertEquals(1, exceptions.size)
     assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR)
     assertTrue(exceptions.single().details.contains("modified constructor"))
@@ -188,27 +214,31 @@ class PsiValidatorTest {
 
   @Test
   fun `validator should ignore newlines and comments`() {
-    val exceptions = testCase(
-      """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0) {}
-        val foo: Int by lazy {
-          100
+    val exceptions =
+      testCase(
+        """
+        class Foo(val a: Int, val b: Int) {
+          constructor(a: String, b: String): this(0, 0) {}
+          val foo: Int by lazy {
+            100
+          }
         }
-      }
-      """.trimIndent(),
-      """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0) {
-        
-        
+        """
+          .trimIndent(),
+        """
+        class Foo(val a: Int, val b: Int) {
+          constructor(a: String, b: String): this(0, 0) {
+          
+          
+          }
+          val foo: Int by lazy {
+            // Comment
+            100
+          }
         }
-        val foo: Int by lazy {
-          // Comment
-          100
-        }
-      }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     assertEquals(0, exceptions.size)
   }
 

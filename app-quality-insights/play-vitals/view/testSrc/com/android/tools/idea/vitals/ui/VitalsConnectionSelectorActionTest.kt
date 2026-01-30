@@ -41,7 +41,6 @@ class VitalsConnectionSelectorActionTest {
 
     stateFlow.value = Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2))
     action.update(event)
-    assertThat(event.presentation.text)
-      .isEqualTo("${TEST_CONNECTION_1.displayName} [${TEST_CONNECTION_1.appId}]")
+    assertThat(event.presentation.text).isEqualTo("${TEST_CONNECTION_1.displayName} [${TEST_CONNECTION_1.appId}]")
   }
 }

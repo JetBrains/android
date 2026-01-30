@@ -34,8 +34,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Base interface for render quality management. Any RenderQualityManager should fulfill the three
- * following responsibilities:
+ * Base interface for render quality management. Any RenderQualityManager should fulfill the three following responsibilities:
  * - Detect UI changes that might derive in a need of changing the render quality of some previews.
  * - Provide the target quality for a given preview ([getTargetQuality]).
  * - Discern whether a specific preview needs a quality change ([needsQualityChange]).
@@ -45,15 +44,14 @@ interface RenderQualityManager {
 
   fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean
 
-  fun needsQualityChange(surface: NlDesignSurface) =
-    surface.sceneManagers.any { needsQualityChange(it) }
+  fun needsQualityChange(surface: NlDesignSurface) = surface.sceneManagers.any { needsQualityChange(it) }
 }
 
 /**
  * Base interface needed for using a [DefaultRenderQualityManager].
  *
- * This policy intends to provide a way of easily tweaking the behaviour of a
- * [DefaultRenderQualityManager] according to what each tool needs.
+ * This policy intends to provide a way of easily tweaking the behaviour of a [DefaultRenderQualityManager] according to what each tool
+ * needs.
  */
 interface RenderQualityPolicy {
   val acceptedErrorMargin: Float
@@ -63,19 +61,16 @@ interface RenderQualityPolicy {
   fun getTargetQuality(scale: Double, isVisible: Boolean): Float
 }
 
-fun getDefaultPreviewQuality() =
-  if (PreviewEssentialsModeManager.isEssentialsModeEnabled) 0.75f else 0.95f
+fun getDefaultPreviewQuality() = if (PreviewEssentialsModeManager.isEssentialsModeEnabled) 0.75f else 0.95f
 
 /**
- * Default [RenderQualityManager] implementation, configurable by a [RenderQualityPolicy], that
- * given a [NlDesignSurface], it detects its scroll, zoom and resize changes, and delegates the
- * corresponding render quality preview updates to [onQualityChangeMightBeNeeded].
+ * Default [RenderQualityManager] implementation, configurable by a [RenderQualityPolicy], that given a [NlDesignSurface], it detects its
+ * scroll, zoom and resize changes, and delegates the corresponding render quality preview updates to [onQualityChangeMightBeNeeded].
  *
- * Note that, as its name suggests, when [onQualityChangeMightBeNeeded] is executed, it may happen
- * that no quality change is actually needed, it is each tool's responsibility to check this before
- * refreshing its previews. This is because doing such check would probably be expensive and the
- * quality changes are likely to be low priority, so each tool may schedule them for later, for
- * example by using a low priority [PreviewRefreshRequest].
+ * Note that, as its name suggests, when [onQualityChangeMightBeNeeded] is executed, it may happen that no quality change is actually
+ * needed, it is each tool's responsibility to check this before refreshing its previews. This is because doing such check would probably be
+ * expensive and the quality changes are likely to be low priority, so each tool may schedule them for later, for example by using a low
+ * priority [PreviewRefreshRequest].
  */
 class DefaultRenderQualityManager(
   private val mySurface: NlDesignSurface,
@@ -85,21 +80,18 @@ class DefaultRenderQualityManager(
   private val scope = mySurface.createCoroutineScope()
 
   private val uiDataLock = ReentrantLock()
-  @GuardedBy("uiDataLock")
-  private val sceneViewRectangles: WeakHashMap<SceneView, Rectangle?> = WeakHashMap()
+  @GuardedBy("uiDataLock") private val sceneViewRectangles: WeakHashMap<SceneView, Rectangle?> = WeakHashMap()
   @GuardedBy("uiDataLock") private var scrollRectangle: Rectangle? = null
   @GuardedBy("uiDataLock") private var isUiDataUpToDate = false
 
   init {
     scope.launch {
-      merge(mySurface.panningChanged, mySurface.zoomChanged, mySurface.modelChanged)
-        .debounce(myPolicy.debounceTimeMillis)
-        .collect {
-          // Mark the ui data as outdated,
-          // but don't refresh it now as it may not be needed until later
-          uiDataLock.withLock { isUiDataUpToDate = false }
-          onQualityChangeMightBeNeeded()
-        }
+      merge(mySurface.panningChanged, mySurface.zoomChanged, mySurface.modelChanged).debounce(myPolicy.debounceTimeMillis).collect {
+        // Mark the ui data as outdated,
+        // but don't refresh it now as it may not be needed until later
+        uiDataLock.withLock { isUiDataUpToDate = false }
+        onQualityChangeMightBeNeeded()
+      }
     }
   }
 
@@ -108,9 +100,7 @@ class DefaultRenderQualityManager(
       // A null scrollRectangle should be caused by a not-scrollable surface, and in such case
       // all previews are considered to be visible
       scrollRectangle == null ||
-        sceneManager.sceneViews.any {
-          sceneViewRectangles.getOrDefault(it, null)?.intersects(scrollRectangle!!) == true
-        }
+        sceneManager.sceneViews.any { sceneViewRectangles.getOrDefault(it, null)?.intersects(scrollRectangle!!) == true }
     }
   }
 
@@ -126,10 +116,7 @@ class DefaultRenderQualityManager(
         isUiDataUpToDate = true
       }
     }
-    return myPolicy.getTargetQuality(
-      mySurface.zoomController.scale,
-      isSceneManagerVisible(sceneManager),
-    )
+    return myPolicy.getTargetQuality(mySurface.zoomController.scale, isSceneManagerVisible(sceneManager))
   }
 
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
@@ -139,18 +126,15 @@ class DefaultRenderQualityManager(
       // - The current target quality is substantially different to the one used in the last
       //   successful render or the last render was cancelled.
       it.renderResult.isCancellationException() ||
-        (!it.renderResult.isErrorResult() &&
-          abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
+        (!it.renderResult.isErrorResult() && abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
     }
 
-  @TestOnly
-  internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) =
-    sceneViewRectangles.containsKey(sceneView)
+  @TestOnly internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) = sceneViewRectangles.containsKey(sceneView)
 }
 
 /**
- * A [RenderQualityManager] that doesn't detect the need of changing quality and delegates the
- * target quality calculation to a [qualityProvider].
+ * A [RenderQualityManager] that doesn't detect the need of changing quality and delegates the target quality calculation to a
+ * [qualityProvider].
  */
 class SimpleRenderQualityManager(private val qualityProvider: () -> Float) : RenderQualityManager {
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {

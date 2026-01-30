@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
 
 class AndroidLintBomWithoutPlatformInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.bom.without.platform"),
-    GradleDetector.BOM_WITHOUT_PLATFORM,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.bom.without.platform"), GradleDetector.BOM_WITHOUT_PLATFORM)

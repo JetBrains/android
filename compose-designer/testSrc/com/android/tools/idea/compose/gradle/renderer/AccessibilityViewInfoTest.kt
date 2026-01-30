@@ -22,32 +22,29 @@ import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.scene.getAccessibilityText
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AccessibilityViewInfoTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   /**
-   * Tests that passing [accessibilityBasedHierarchyParser] to a render task for Compose correctly
-   * creates a [ViewInfo] hierarchy from the [AccessibilityNodeInfo] tree.
+   * Tests that passing [accessibilityBasedHierarchyParser] to a render task for Compose correctly creates a [ViewInfo] hierarchy from the
+   * [AccessibilityNodeInfo] tree.
    */
   @Test
   fun testAccessibilityViewInfo() {
     val facet = projectRule.androidFacet(":app")
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val renderTaskFuture =
       createRenderTaskFuture(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"),
         false,
       )
     val renderTask = renderTaskFuture.future.get(1, TimeUnit.MINUTES)

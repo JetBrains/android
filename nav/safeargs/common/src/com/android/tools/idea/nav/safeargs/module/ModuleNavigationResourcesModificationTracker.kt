@@ -25,11 +25,10 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
- * A module-wide modification tracker whose modification count is a value incremented by any
- * modifications of corresponding navigation resource files.
+ * A module-wide modification tracker whose modification count is a value incremented by any modifications of corresponding navigation
+ * resource files.
  */
-class ModuleNavigationResourcesModificationTracker(val module: Module) :
-  ModificationTracker, Disposable {
+class ModuleNavigationResourcesModificationTracker(val module: Module) : ModificationTracker, Disposable {
   private val navigationModificationTracker = SimpleModificationTracker()
 
   init {
@@ -46,19 +45,14 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) :
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(module: Module) =
-      module.getService(ModuleNavigationResourcesModificationTracker::class.java)!!
+    @JvmStatic fun getInstance(module: Module) = module.getService(ModuleNavigationResourcesModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount
 
   override fun dispose() {}
 
-  /**
-   * This is invoked when NavigationModificationListener detects a navigation file has been changed
-   * or added or deleted for this module
-   */
+  /** This is invoked when NavigationModificationListener detects a navigation file has been changed or added or deleted for this module */
   private fun navigationChanged() {
     navigationModificationTracker.incModificationCount()
     logger<ModuleNavigationResourcesModificationTracker>().debug {

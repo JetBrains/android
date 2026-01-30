@@ -24,17 +24,15 @@ import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.google.common.util.concurrent.ListenableFuture
 
-/**
- * Supports string with dots properties
- */
+/** Supports string with dots properties */
 class TestModelPropertyContext : ModelPropertyContext<String> {
-  override fun parse(value: String): Annotated<ParsedValue<String>> = when {
-    value.contains(".") -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
-    else -> ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(value)).annotateWithError("invalid")
-  }
+  override fun parse(value: String): Annotated<ParsedValue<String>> =
+    when {
+      value.contains(".") -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
+      else -> ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(value)).annotateWithError("invalid")
+    }
 
   override fun format(value: String): String = throw UnsupportedOperationException()
 
-  override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
-    throw UnsupportedOperationException()
+  override fun getKnownValues(): ListenableFuture<KnownValues<String>> = throw UnsupportedOperationException()
 }

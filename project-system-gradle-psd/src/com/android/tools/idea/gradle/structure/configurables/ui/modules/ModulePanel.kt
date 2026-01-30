@@ -22,11 +22,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 
 const val MODULE_PLACE_NAME = "android.psd.module"
-class ModulePanel(
-    context: PsContext,
-    module: PsAndroidModule,
-    signingConfigsTreeModel: ConfigurablesTreeModel
-) : AbstractTabbedMainPanel(context, placeName = MODULE_PLACE_NAME) {
+
+class ModulePanel(context: PsContext, module: PsAndroidModule, signingConfigsTreeModel: ConfigurablesTreeModel) :
+  AbstractTabbedMainPanel(context, placeName = MODULE_PLACE_NAME) {
 
   private val modulePropertiesConfigPanel = ModulePropertiesConfigPanel(module, context)
   private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module.defaultConfig, context)

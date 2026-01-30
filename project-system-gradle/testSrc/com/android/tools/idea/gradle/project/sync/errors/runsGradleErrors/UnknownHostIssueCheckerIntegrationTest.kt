@@ -21,17 +21,16 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQu
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import java.net.UnknownHostException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Rule
 import org.junit.Test
-import java.net.UnknownHostException
 
 class UnknownHostIssueCheckerIntegrationTest {
   private val unknownHostIssueChecker = UnknownHostIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {

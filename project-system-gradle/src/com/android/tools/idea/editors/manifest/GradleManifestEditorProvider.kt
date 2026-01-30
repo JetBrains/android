@@ -36,13 +36,17 @@ class GradleManifestEditorProvider : AsyncFileEditorProvider, DumbAware {
   }
 
   override fun acceptRequiresReadAction(): Boolean = true
+
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     thisLogger().warn("GradleManifestEditorProvider.createEditor should not be called")
     return createEditorAsync(project, file).build() // Why do I need to implement this?
   }
+
   override fun createEditorAsync(project: Project, file: VirtualFile): AsyncFileEditorProvider.Builder {
-    val module: Module = ModuleUtilCore.findModuleForFile(file, project) ?: throw IllegalStateException("Unable to find module for file: ${file.path}")
-    val facet: AndroidFacet = AndroidFacet.getInstance(module) ?: throw IllegalStateException("Unable to find Android Facet for module: ${module.name}")
+    val module: Module =
+      ModuleUtilCore.findModuleForFile(file, project) ?: throw IllegalStateException("Unable to find module for file: ${file.path}")
+    val facet: AndroidFacet =
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Unable to find Android Facet for module: ${module.name}")
     return ManifestEditorBuilder(facet, file)
   }
 

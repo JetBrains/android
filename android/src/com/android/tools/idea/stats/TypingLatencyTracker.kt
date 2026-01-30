@@ -36,10 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.HdrHistogram.SingleWriterRecorder
 
-/**
- * Tracks typing latency across all file types. To log an [AndroidStudioEvent] with the collected
- * data, call [reportTypingLatency].
- */
+/** Tracks typing latency across all file types. To log an [AndroidStudioEvent] with the collected data, call [reportTypingLatency]. */
 @Service(Service.Level.APP)
 class TypingLatencyTracker(private val coroutineScope: CoroutineScope) : Disposable {
 
@@ -61,10 +58,7 @@ class TypingLatencyTracker(private val coroutineScope: CoroutineScope) : Disposa
     reportTypingLatency()
   }
 
-  /**
-   * Maps file types to latency recorders. We use [SingleWriterRecorder] to allow thread-safe read
-   * access from background threads.
-   */
+  /** Maps file types to latency recorders. We use [SingleWriterRecorder] to allow thread-safe read access from background threads. */
   private val latencyRecorders = ConcurrentHashMap<EditorFileType, SingleWriterRecorder>()
 
   private inner class Listener : LatencyListener {
@@ -83,14 +77,13 @@ class TypingLatencyTracker(private val coroutineScope: CoroutineScope) : Disposa
   }
 
   /**
-   * Logs an [AndroidStudioEvent] with typing latency information. Resets statistics so that
-   * latencies are not double-counted in the next report.
+   * Logs an [AndroidStudioEvent] with typing latency information. Resets statistics so that latencies are not double-counted in the next
+   * report.
    */
   private fun reportTypingLatency() {
     val allStats = TypingLatencyStats.newBuilder()
     for ((fileType, recorder) in latencyRecorders) {
-      val histogram =
-        recorder.intervalHistogram // Automatically resets statistics for this recorder.
+      val histogram = recorder.intervalHistogram // Automatically resets statistics for this recorder.
       if (histogram.totalCount == 0L) {
         continue
       }

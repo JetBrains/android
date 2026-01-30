@@ -34,9 +34,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.PsiTreeUtil
 
-/**
- * Base class for SQL inspections that only do something when running on a PSI file with a known [AndroidSqlContext].
- */
+/** Base class for SQL inspections that only do something when running on a PSI file with a known [AndroidSqlContext]. */
 abstract class AndroidSqlKnownContextInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
@@ -46,9 +44,7 @@ abstract class AndroidSqlKnownContextInspection : LocalInspectionTool() {
   private fun isContextKnown(session: LocalInspectionToolSession) = (session.file as? AndroidSqlFile)?.sqlContext != null
 }
 
-/**
- * Reports unresolved SQL references.
- */
+/** Reports unresolved SQL references. */
 class AndroidSqlUnresolvedReferenceInspection : AndroidSqlKnownContextInspection() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
@@ -91,17 +87,16 @@ class AndroidSqlUnresolvedReferenceInspection : AndroidSqlKnownContextInspection
         }
       }
 
-      /**
-       * Checks if we have understood the given query type enough to highlight unresolved references.
-       */
-      private fun isWellUnderstood(stmt: PsiElement): Boolean = when (stmt) {
-        is AndroidSqlSelectStatement,
-        is AndroidSqlUpdateStatement,
-        is AndroidSqlInsertStatement,
-        is AndroidSqlDeleteStatement,
-        is AndroidSqlWithClauseStatement -> true
-        else -> false
-      }
+      /** Checks if we have understood the given query type enough to highlight unresolved references. */
+      private fun isWellUnderstood(stmt: PsiElement): Boolean =
+        when (stmt) {
+          is AndroidSqlSelectStatement,
+          is AndroidSqlUpdateStatement,
+          is AndroidSqlInsertStatement,
+          is AndroidSqlDeleteStatement,
+          is AndroidSqlWithClauseStatement -> true
+          else -> false
+        }
     }
   }
 }

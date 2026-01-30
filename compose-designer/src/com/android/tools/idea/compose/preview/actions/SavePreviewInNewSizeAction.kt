@@ -56,8 +56,8 @@ import org.jetbrains.kotlin.psi.KtImportAlias
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
- * Saves the current preview state (dimensions, decorations etc.) by creating a new `@Preview`
- * annotation with a unique name for the same composable function.
+ * Saves the current preview state (dimensions, decorations etc.) by creating a new `@Preview` annotation with a unique name for the same
+ * composable function.
  *
  * @param dispatcher on which we are going to launch switching to the new preview.
  */
@@ -87,8 +87,7 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
         val targetFile = previewMethod.containingFile as? KtFile ?: return@runWriteCommandAction
         val ktPsiFactory = KtPsiFactory(project)
 
-        val newAnnotationText =
-          buildAnnotationText(previewElement, configuration, nameForNewPreview, targetFile)
+        val newAnnotationText = buildAnnotationText(previewElement, configuration, nameForNewPreview, targetFile)
         val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
         val addedAnnotation = previewMethod.addAnnotationEntry(newAnnotationEntry)
 
@@ -122,25 +121,20 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
   }
 
   /**
-   * Ensures that any constants used in the generated [newAnnotationText] are properly imported in
-   * the [targetFile].
+   * Ensures that any constants used in the generated [newAnnotationText] are properly imported in the [targetFile].
    *
    * This function scans the [newAnnotationText] for fully-qualified names of constants, such as
-   * `android.content.res.Configuration.UI_MODE_NIGHT_YES` or
-   * `androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE`.
+   * `android.content.res.Configuration.UI_MODE_NIGHT_YES` or `androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE`.
    *
-   * For each found constant, it checks if its container class (e.g.,
-   * `android.content.res.Configuration`) has already been imported with a wildcard (`import
-   * android.content.res.Configuration`). If the container class is not imported, this function adds
-   * a specific import for the constant (e.g., `import
-   * android.content.res.Configuration.UI_MODE_NIGHT_YES`).
+   * For each found constant, it checks if its container class (e.g., `android.content.res.Configuration`) has already been imported with a
+   * wildcard (`import android.content.res.Configuration`). If the container class is not imported, this function adds a specific import for
+   * the constant (e.g., `import android.content.res.Configuration.UI_MODE_NIGHT_YES`).
    *
-   * This pre-emptive import ensures that the subsequent call to [ShortenReferencesFacility] can
-   * correctly resolve and shorten the fully-qualified names used in the new annotation text.
+   * This pre-emptive import ensures that the subsequent call to [ShortenReferencesFacility] can correctly resolve and shorten the
+   * fully-qualified names used in the new annotation text.
    *
    * @param targetFile The Kotlin file where the new annotation is being added.
-   * @param newAnnotationText The string representation of the new annotation, which may contain
-   *   fully-qualified names.
+   * @param newAnnotationText The string representation of the new annotation, which may contain fully-qualified names.
    */
   private fun handleImportsForNewAnnotation(targetFile: KtFile, newAnnotationText: String) {
     val uiModeContainerFqn = FqName(SdkConstants.CLASS_CONFIGURATION)
@@ -150,72 +144,50 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
     val hasWallpaperContainerImport = targetFile.hasImport(wallpaperContainerFqn)
 
     /**
-     * Add imports for uiMode and wallpaper FQNs. If the file already imports the entire class
-     * (e.g., `import.android.content.res.Configuration`), we don't need to import the specific
-     * members (e.g., `import.android.content.res.Configuration.UI_MODE_NIGHT_YES`), as they will be
-     * resolved correctly.
+     * Add imports for uiMode and wallpaper FQNs. If the file already imports the entire class (e.g.,
+     * `import.android.content.res.Configuration`), we don't need to import the specific members (e.g.,
+     * `import.android.content.res.Configuration.UI_MODE_NIGHT_YES`), as they will be resolved correctly.
      */
     if (!hasUiModeContainerImport) {
       val uiModeRegex = Regex("(${SdkConstants.CLASS_CONFIGURATION}\\.UI_MODE_[A-Z_]+)")
-      uiModeRegex.findAll(newAnnotationText).forEach { match ->
-        targetFile.addImport(FqName(match.value))
-      }
+      uiModeRegex.findAll(newAnnotationText).forEach { match -> targetFile.addImport(FqName(match.value)) }
     }
     if (!hasWallpaperContainerImport) {
       val wallpaperRegex = Regex("($COMPOSE_WALLPAPERS_CLASS_FQN\\.[A-Z_]+)")
-      wallpaperRegex.findAll(newAnnotationText).forEach { match ->
-        targetFile.addImport(FqName(match.value))
-      }
+      wallpaperRegex.findAll(newAnnotationText).forEach { match -> targetFile.addImport(FqName(match.value)) }
     }
   }
 
-  private fun logResizeSaved(
-    e: AnActionEvent,
-    previewElement: PreviewElement<*>,
-    configuration: Configuration,
-  ) {
+  private fun logResizeSaved(e: AnActionEvent, previewElement: PreviewElement<*>, configuration: Configuration) {
     val showDecorations = previewElement.displaySettings.showDecoration
     val deviceState = configuration.deviceState ?: error("Device state should not be null")
     val (widthDp, heightDp) = configuration.deviceSizeDp()
     val mode =
-      if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
-      else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
+      if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
     val dpi = deviceState.hardware.screen.pixelDensity.dpiValue
-    ComposeResizeToolingUsageTracker.logResizeSaved(
-      DESIGN_SURFACE.getData(e.dataContext),
-      mode,
-      widthDp,
-      heightDp,
-      dpi,
-    )
+    ComposeResizeToolingUsageTracker.logResizeSaved(DESIGN_SURFACE.getData(e.dataContext), mode, widthDp, heightDp, dpi)
   }
 
   private fun KtFile.hasImport(fqName: FqName): Boolean {
-    return importDirectives.any {
-      it.importedFqName == fqName && !it.isAllUnder && it.aliasName == null
-    }
+    return importDirectives.any { it.importedFqName == fqName && !it.isAllUnder && it.aliasName == null }
   }
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
     val sceneManager = e.getSceneManagerInFocusMode() ?: return
     val configuration = sceneManager.model.configuration
-    e.presentation.isEnabledAndVisible =
-      e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)?.hasBeenResized == true
+    e.presentation.isEnabledAndVisible = e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)?.hasBeenResized == true
 
     if (e.presentation.isEnabledAndVisible) {
-      e.presentation.text =
-        message("action.save.preview.current.size.title", createNewName(configuration))
-      e.presentation.description =
-        message("action.save.preview.current.size.description", createNewName(configuration))
+      e.presentation.text = message("action.save.preview.current.size.title", createNewName(configuration))
+      e.presentation.description = message("action.save.preview.current.size.description", createNewName(configuration))
       e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
 
   /**
-   * Sets up the switching to the newly created preview after the action is performed. It observes
-   * the flow of all preview elements and, once the new preview with the given name is found,
-   * switches the [PreviewModeManager] to [PreviewMode.Focus] on that preview.
+   * Sets up the switching to the newly created preview after the action is performed. It observes the flow of all preview elements and,
+   * once the new preview with the given name is found, switches the [PreviewModeManager] to [PreviewMode.Focus] on that preview.
    */
   private fun setUpSwitchingToNewPreview(e: AnActionEvent, nameForNewPreview: String) {
     val allPreviewFlow = e.dataContext.getData(PreviewFlowManager.KEY)
@@ -229,26 +201,21 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
         // drop(1).
         val currentPreviews = allPreviewFlow.allPreviewElementsFlow.drop(1).first()
 
-        val newPreview =
-          currentPreviews.asCollection().find { preview ->
-            preview.originalNameFromParameter() == nameForNewPreview
-          }
+        val newPreview = currentPreviews.asCollection().find { preview -> preview.originalNameFromParameter() == nameForNewPreview }
 
         newPreview?.let { modeManager.setMode(PreviewMode.Focus(it)) }
       }
     }
   }
 
-  private fun PreviewElement<*>.originalNameFromParameter() =
-    displaySettings.parameterName?.substringBefore(" - ")?.trim()
+  private fun PreviewElement<*>.originalNameFromParameter() = displaySettings.parameterName?.substringBefore(" - ")?.trim()
 }
 
 /**
  * Returns the [LayoutlibSceneManager] associated with the current [AnActionEvent].
  *
- * If the current mode is [PreviewMode.Focus], it retrieves the scene manager from the
- * [DESIGN_SURFACE]. Returns `null` if the mode is not Focus or if the scene manager cannot be
- * found.
+ * If the current mode is [PreviewMode.Focus], it retrieves the scene manager from the [DESIGN_SURFACE]. Returns `null` if the mode is not
+ * Focus or if the scene manager cannot be found.
  */
 internal fun AnActionEvent.getSceneManagerInFocusMode(): LayoutlibSceneManager? {
   val mode = getData(PreviewModeManager.KEY)?.mode?.value ?: return null
@@ -259,13 +226,11 @@ internal fun AnActionEvent.getSceneManagerInFocusMode(): LayoutlibSceneManager? 
 }
 
 /**
- * Generates a new name for the saved preview. If the device is a standard device, use its display
- * name. Otherwise, use the dimensions in dp.
+ * Generates a new name for the saved preview. If the device is a standard device, use its display name. Otherwise, use the dimensions in
+ * dp.
  */
 private fun createNewName(configuration: Configuration): String {
-  val targetDevice =
-    configuration.device
-      ?: error("Device should not be null, because it's required for rendering preview")
+  val targetDevice = configuration.device ?: error("Device should not be null, because it's required for rendering preview")
 
   if (targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
     return targetDevice.displayName

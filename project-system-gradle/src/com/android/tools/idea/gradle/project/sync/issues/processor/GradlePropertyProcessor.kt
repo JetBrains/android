@@ -32,13 +32,16 @@ import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.annotations.VisibleForTesting
 
-class GradlePropertyProcessor(val project: Project, val propertyName: String, val propertyValue: String) : BaseRefactoringProcessor(project) {
+class GradlePropertyProcessor(val project: Project, val propertyName: String, val propertyValue: String) :
+  BaseRefactoringProcessor(project) {
   public override fun getCommandName() = "Updating or adding $propertyName gradle property"
 
   public override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptor {
       override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+
       override fun getProcessedElementsHeader() = "Updating or adding $propertyName gradle property"
+
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int) =
         "References to be updated or added: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
     }
@@ -50,10 +53,11 @@ class GradlePropertyProcessor(val project: Project, val propertyName: String, va
     if (gradlePropertiesVirtualFile != null && gradlePropertiesVirtualFile.exists()) {
       val gradlePropertiesPsiFile = PsiManager.getInstance(myProject).findFile(gradlePropertiesVirtualFile)
       if (gradlePropertiesPsiFile is PropertiesFile) {
-        val psiElement = when(val property = gradlePropertiesPsiFile.findPropertyByKey(propertyName)) {
-          null -> gradlePropertiesPsiFile
-          else -> property.psiElement
-        }
+        val psiElement =
+          when (val property = gradlePropertiesPsiFile.findPropertyByKey(propertyName)) {
+            null -> gradlePropertiesPsiFile
+            else -> property.psiElement
+          }
         return arrayOf(UsageInfo(psiElement))
       }
     } else if (baseDir.exists()) {
@@ -68,21 +72,22 @@ class GradlePropertyProcessor(val project: Project, val propertyName: String, va
   @VisibleForTesting
   fun updateProjectBuildModel(usages: Array<UsageInfo>) {
     usages.forEach { usage ->
-      val propertiesFile = when (val element = usage.element) {
-        is PsiFile -> element as? PropertiesFile
-        is PsiDirectory -> (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile(FN_GRADLE_PROPERTIES)).let {
-          (it as? PropertiesFile ?: return@forEach)
-        }
+      val propertiesFile =
+        when (val element = usage.element) {
+          is PsiFile -> element as? PropertiesFile
+          is PsiDirectory ->
+            (element.findFile(FN_GRADLE_PROPERTIES) ?: element.createFile(FN_GRADLE_PROPERTIES)).let {
+              (it as? PropertiesFile ?: return@forEach)
+            }
 
-        is PsiElement -> element.containingFile as? PropertiesFile
-        else -> return@forEach
-      }
+          is PsiElement -> element.containingFile as? PropertiesFile
+          else -> return@forEach
+        }
 
       val existing = propertiesFile?.findPropertyByKey(propertyName)
       if (existing != null) {
         existing.setValue(propertyValue)
-      }
-      else {
+      } else {
         propertiesFile?.addProperty(propertyName, propertyValue)
       }
     }
@@ -91,14 +96,9 @@ class GradlePropertyProcessor(val project: Project, val propertyName: String, va
     projectBuildModel.applyChanges()
   }
 
-
-
   public override fun performRefactoring(usages: Array<UsageInfo>) {
     updateProjectBuildModel(usages)
 
     project.getSyncManager().requestSyncProject(TRIGGER_PROJECT_MODIFIED.toReason())
   }
-
-
-
 }

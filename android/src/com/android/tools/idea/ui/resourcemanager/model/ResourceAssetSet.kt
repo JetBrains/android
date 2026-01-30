@@ -22,38 +22,24 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * Represents a set of resource assets grouped by base name.
  *
- * For example, fr/icon@2x.png, fr/icon.jpg  and en/icon.png will be
- * gathered in the same DesignAssetSet under the name "icon"
+ * For example, fr/icon@2x.png, fr/icon.jpg and en/icon.png will be gathered in the same DesignAssetSet under the name "icon"
  */
-data class ResourceAssetSet(
-  val name: String,
-  var assets: List<Asset>
-) {
+data class ResourceAssetSet(val name: String, var assets: List<Asset>) {
 
-  /**
-   * Return the asset in this set with the highest density
-   */
+  /** Return the asset in this set with the highest density */
   fun getHighestDensityAsset(): Asset {
     return designAssets.maxByOrNull { asset ->
-      asset.qualifiers
-        .filterIsInstance<DensityQualifier>()
-        .map { densityQualifier -> densityQualifier.value.dpiValue }
-        .singleOrNull() ?: 0
+      asset.qualifiers.filterIsInstance<DensityQualifier>().map { densityQualifier -> densityQualifier.value.dpiValue }.singleOrNull() ?: 0
     } ?: assets[0]
   }
 }
-
 
 /**
  * Find all the [ResourceAssetSet] in the given directory
  *
  * @param supportedTypes The file types supported for importation
  */
-fun getAssetSets(
-  directory: VirtualFile,
-  supportedTypes: Set<String>,
-  qualifierMatcher: QualifierMatcher
-): List<ResourceAssetSet> {
+fun getAssetSets(directory: VirtualFile, supportedTypes: Set<String>, qualifierMatcher: QualifierMatcher): List<ResourceAssetSet> {
   return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
     .groupBy { designAsset -> designAsset.name }
     .map { (drawableName, designAssets) -> ResourceAssetSet(drawableName, designAssets) }

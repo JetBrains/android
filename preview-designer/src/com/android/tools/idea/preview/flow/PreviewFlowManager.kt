@@ -23,9 +23,8 @@ import com.intellij.openapi.actionSystem.DataKey
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Interface used for [PreviewRepresentation]s to manage flows of [PreviewElement]s. It allows
- * retrieving all preview elements available for a [PreviewRepresentation], as well as the same
- * elements but filtered, to be used for rendering purposes.
+ * Interface used for [PreviewRepresentation]s to manage flows of [PreviewElement]s. It allows retrieving all preview elements available for
+ * a [PreviewRepresentation], as well as the same elements but filtered, to be used for rendering purposes.
  *
  * @see [FlowableCollection]
  */
@@ -34,31 +33,25 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
-  /**
-   * Paginator responsible for paginating the filtered [T]s from [allPreviewElementsFlow] into
-   * different pages.
-   */
+  /** Paginator responsible for paginating the filtered [T]s from [allPreviewElementsFlow] into different pages. */
   val previewFlowPaginator: PreviewFlowPaginator<T>
 
   /**
-   * Flow containing the corresponding page from the [previewFlowPaginator] that is expected to be
-   * rendered. The content of this flow should differ from [renderedPreviewElementsFlow] iff there
-   * is a pending refresh to be done. These filtered [T]s are already sorted.
+   * Flow containing the corresponding page from the [previewFlowPaginator] that is expected to be rendered. The content of this flow should
+   * differ from [renderedPreviewElementsFlow] iff there is a pending refresh to be done. These filtered [T]s are already sorted.
    */
   val toRenderPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
-   * Flow containing all the [T]s that have completed rendering. These are all the
-   * [toRenderPreviewElementsFlow] that have rendered.
+   * Flow containing all the [T]s that have completed rendering. These are all the [toRenderPreviewElementsFlow] that have rendered.
    *
    * This flow must be updated by calling [updateRenderedPreviews].
    */
   val renderedPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
-   * Selects a single [T] preview element. If the value is non-null, then
-   * [toRenderPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
-   * the value is null, then the single filter is removed.
+   * Selects a single [T] preview element. If the value is non-null, then [toRenderPreviewElementsFlow] will be a flow of a singleton
+   * containing that preview element. If the value is null, then the single filter is removed.
    */
   fun setSingleFilter(previewElement: T?)
 

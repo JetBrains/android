@@ -40,31 +40,27 @@ import org.jetbrains.plugins.gradle.model.GradleLightProject
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
 internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): Set<SourceSetData> {
-  val (buildType, flavors) = basicAndroidProject.variants
-    .singleOrNull { it.name == variantName }
-    .let { (it?.buildType) to it?.productFlavors.orEmpty() }
+  val (buildType, flavors) =
+    basicAndroidProject.variants.singleOrNull { it.name == variantName }.let { (it?.buildType) to it?.productFlavors.orEmpty() }
 
   // TODO(b/384022658): Handle test fixtures and any other potentially relevant sources
-  return (
-    getSourceSetDataForBasicAndroidProject(variantName, buildType, flavors) +
-    getSourceSetDataForAndroidProject(variantName)
-  ).deduplicate().onEach { addSourceSetToIndex(it) }
+  return (getSourceSetDataForBasicAndroidProject(variantName, buildType, flavors) + getSourceSetDataForAndroidProject(variantName))
+    .deduplicate()
+    .onEach { addSourceSetToIndex(it) }
 }
-
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
 internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroidProject(
   variantName: String,
   buildTypeForVariant: String?,
-  productFlavorsForVariant: List<String>): List<SourceSetData> {
+  productFlavorsForVariant: List<String>,
+): List<SourceSetData> {
 
   val sourceSets = mutableListOf<SourceSetData>()
   val containers =
     basicAndroidProject.mainSourceSet?.let { listOf(it) }.orEmpty() +
-    basicAndroidProject.buildTypeSourceSets
-      .filter { it.sourceProvider?.name == buildTypeForVariant } +
-    basicAndroidProject.productFlavorSourceSets
-      .filter { it.sourceProvider?.name in productFlavorsForVariant }
+      basicAndroidProject.buildTypeSourceSets.filter { it.sourceProvider?.name == buildTypeForVariant } +
+      basicAndroidProject.productFlavorSourceSets.filter { it.sourceProvider?.name in productFlavorsForVariant }
 
   fun processBasicArtifact(artifact: BasicArtifact, name: IdeArtifactName, isProduction: Boolean) {
     artifact.variantSourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(name, it, isProduction, versions) }
@@ -109,7 +105,6 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroi
               sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.UNIT_TEST, it, isProduction = false, versions)
             }
           }
-
         }
       }
       it.testFixturesArtifact?.let {
@@ -136,13 +131,18 @@ internal fun SyncContributorAndroidProjectContext.getTestSuiteSourceSetDataForBa
 }
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
-internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
+internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData> {
   val sourceSets = mutableListOf<SourceSetData>()
 
   androidProject.variants
     .filter { it.name == selectedVariantName }
     .forEach { variant ->
-      sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.MAIN, variant.mainArtifact, isProduction = basicAndroidProject.projectType != ProjectType.TEST)
+      sourceSets +=
+        createSourceSetDataForAndroidArtifact(
+          IdeArtifactName.MAIN,
+          variant.mainArtifact,
+          isProduction = basicAndroidProject.projectType != ProjectType.TEST,
+        )
       if (testArtifactsAndSourceSetsInMaps) {
         variant.deviceTestArtifacts.entries.forEach { (name, artifact) ->
           sourceSets += createSourceSetDataForAndroidArtifact(convertArtifactName(name), artifact, isProduction = false)
@@ -150,14 +150,11 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
         variant.hostTestArtifacts.entries.forEach { (name, artifact) ->
           sourceSets += createSourceSetDataForTestJavaArtifact(convertArtifactName(name), artifact)
         }
-      }
-      else {
+      } else {
         variant.androidTestArtifact?.let {
           sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.ANDROID_TEST, it, isProduction = false)
         }
-        variant.unitTestArtifact?.let {
-          sourceSets += createSourceSetDataForTestJavaArtifact(IdeArtifactName.UNIT_TEST, it)
-        }
+        variant.unitTestArtifact?.let { sourceSets += createSourceSetDataForTestJavaArtifact(IdeArtifactName.UNIT_TEST, it) }
       }
       variant.testFixturesArtifact?.let {
         sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.TEST_FIXTURES, it, isProduction = false)
@@ -168,12 +165,17 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
 
 internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sourceSetArtifactName: IdeArtifactName): AbstractArtifact? {
   val selectedVariant = androidProject.variants.singleOrNull { it.name == variantName } ?: error("Can't determine the selected variant")
-  return when(sourceSetArtifactName) {
+  return when (sourceSetArtifactName) {
     IdeArtifactName.MAIN -> selectedVariant.mainArtifact
     IdeArtifactName.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
-    IdeArtifactName.UNIT_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_UNIT_TEST] else selectedVariant.unitTestArtifact
-    IdeArtifactName.ANDROID_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST] else selectedVariant.androidTestArtifact
-    IdeArtifactName.SCREENSHOT_TEST -> if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST] else error("ScreenshotTest are not available")
+    IdeArtifactName.UNIT_TEST ->
+      if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_UNIT_TEST] else selectedVariant.unitTestArtifact
+    IdeArtifactName.ANDROID_TEST ->
+      if (testArtifactsAndSourceSetsInMaps) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST]
+      else selectedVariant.androidTestArtifact
+    IdeArtifactName.SCREENSHOT_TEST ->
+      if (testArtifactsAndSourceSetsInMaps) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST]
+      else error("ScreenshotTest are not available")
   }
 }
 
@@ -187,86 +189,91 @@ private fun SyncContributorAndroidProjectContext.createTestSuiteSourceSetData(
   return sourceSetData
 }
 
-private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourceProvider(name: IdeArtifactName,
-                                                 provider: SourceProvider,
-                                                 isProduction: Boolean,
-                                                 versions: ModelVersions): List<SourceSetData> {
-  val sourceDirectories = (
-    provider.javaDirectories +
-    provider.kotlinDirectories +
-    provider.aidlDirectories.orEmpty() +
-    provider.renderscriptDirectories.orEmpty() +
-    provider.shadersDirectories.orEmpty() +
-      (
-        if (versions[ModelFeature.HAS_KEEP_RULES_SOURCES])
-          provider.keepRulesDirectories.orEmpty()
-        else
-          emptySet()
-      )
-    ).toSet()
+private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourceProvider(
+  name: IdeArtifactName,
+  provider: SourceProvider,
+  isProduction: Boolean,
+  versions: ModelVersions,
+): List<SourceSetData> {
+  val sourceDirectories =
+    (provider.javaDirectories +
+        provider.kotlinDirectories +
+        provider.aidlDirectories.orEmpty() +
+        provider.renderscriptDirectories.orEmpty() +
+        provider.shadersDirectories.orEmpty() +
+        (if (versions[ModelFeature.HAS_KEEP_RULES_SOURCES]) provider.keepRulesDirectories.orEmpty() else emptySet()))
+      .toSet()
 
   // TODO(b/384022658): Handle custom directories
   val resourceDirectories =
     provider.resourcesDirectories.toSet() +
-    provider.resDirectories.orEmpty() +
-    provider.mlModelsDirectories.orEmpty() +
-    provider.assetsDirectories.orEmpty() + (
-      if (versions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES])
-        provider.baselineProfileDirectories.orEmpty()
-      else
-        emptySet()
-                                           ) - sourceDirectories // exclude source directories in case they are shared
+      provider.resDirectories.orEmpty() +
+      provider.mlModelsDirectories.orEmpty() +
+      provider.assetsDirectories.orEmpty() +
+      (if (versions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES]) provider.baselineProfileDirectories.orEmpty() else emptySet()) -
+      sourceDirectories // exclude source directories in case they are shared
 
   return listOf(
-    name to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST)
-        to sourceDirectories,
-      (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE)
-        to resourceDirectories,
-    ) +  provider.manifestFile?.parentFile?.takeUnless { it.path == projectModel.projectDirectory.path }?.let { mapOf(null to setOf(it)) }.orEmpty()
+    name to
+      mapOf(
+        (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST) to sourceDirectories,
+        (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE) to resourceDirectories,
+      ) +
+        provider.manifestFile
+          ?.parentFile
+          ?.takeUnless { it.path == projectModel.projectDirectory.path }
+          ?.let { mapOf(null to setOf(it)) }
+          .orEmpty()
   )
 }
 
 private fun SyncContributorAndroidProjectContext.createSourceSetDataForAndroidArtifact(
   name: IdeArtifactName,
   artifact: AndroidArtifact,
-  isProduction: Boolean
+  isProduction: Boolean,
 ): List<SourceSetData> {
   return generatedSourceFoldersToUseForArtifact(name, artifact, basicAndroidProject.buildFolder).map {
-    name to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.TEST_GENERATED) to setOf(it)
-    )
-  } + artifact.generatedResourceFolders.map {
-    name to mapOf(
-      (if (isProduction) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.TEST_RESOURCE_GENERATED) to setOf(it)
-    )
-  }
+    name to mapOf((if (isProduction) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.TEST_GENERATED) to setOf(it))
+  } +
+    artifact.generatedResourceFolders.map {
+      name to
+        mapOf(
+          (if (isProduction) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.TEST_RESOURCE_GENERATED) to setOf(it)
+        )
+    }
 }
 
-private fun SyncContributorAndroidProjectContext.createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact):
-  List<SourceSetData> {
+private fun SyncContributorAndroidProjectContext.createSourceSetDataForTestJavaArtifact(
+  name: IdeArtifactName,
+  artifact: JavaArtifact,
+): List<SourceSetData> {
   return generatedSourceFoldersToUseForArtifact(name, artifact, basicAndroidProject.buildFolder).map {
-    name to mapOf(
-      ExternalSystemSourceType.TEST_GENERATED to setOf(it)
-    )
+    name to mapOf(ExternalSystemSourceType.TEST_GENERATED to setOf(it))
   }
 }
 
-private fun SyncContributorAndroidProjectContext.generatedSourceFoldersToUseForArtifact(name: IdeArtifactName, artifact: AbstractArtifact, buildFolder: File): Set<File> =
-  artifact.generatedSourceFolders.filter {
-    !isAaptGeneratedSourcesFolder(it, buildFolder) &&
-    !isDataBindingGeneratedBaseClassesFolder(it, buildFolder) &&
-    !isSafeArgGeneratedSourcesFolder(it, buildFolder)
-  }.toSet() + findGeneratedSourcesForKapt(name)
+private fun SyncContributorAndroidProjectContext.generatedSourceFoldersToUseForArtifact(
+  name: IdeArtifactName,
+  artifact: AbstractArtifact,
+  buildFolder: File,
+): Set<File> =
+  artifact.generatedSourceFolders
+    .filter {
+      !isAaptGeneratedSourcesFolder(it, buildFolder) &&
+        !isDataBindingGeneratedBaseClassesFolder(it, buildFolder) &&
+        !isSafeArgGeneratedSourcesFolder(it, buildFolder)
+    }
+    .toSet() + findGeneratedSourcesForKapt(name)
 
 private fun SyncContributorAndroidProjectContext.findGeneratedSourcesForKapt(name: IdeArtifactName): Set<File> {
   if (kaptGradleModel == null || !kaptGradleModel.isEnabled) return emptySet()
 
-  val suffix = if (name == IdeArtifactName.MAIN) {
-    ""
-  } else {
-    name.toPrintableName()
-  }
+  val suffix =
+    if (name == IdeArtifactName.MAIN) {
+      ""
+    } else {
+      name.toPrintableName()
+    }
   val sourceSet = kaptGradleModel.sourceSets.find { it.sourceSetName == variantName + suffix } ?: return emptySet()
   return setOfNotNull(sourceSet.generatedSourcesDirFile, sourceSet.generatedKotlinSourcesDirFile)
 }
@@ -274,14 +281,12 @@ private fun SyncContributorAndroidProjectContext.findGeneratedSourcesForKapt(nam
 /** Sometimes the same source set can be provided via multiple means, so deduplicating is necessary */
 private fun List<SourceSetData>.deduplicate(): Set<SourceSetData> {
   val seen = mutableSetOf<File>()
-  return this.map {(artifactName, filesMap) ->
-    // Remove all but first occurrence of each file and then filter out any elements with empty maps
-    artifactName to filesMap.mapValues { (_, files) ->
-      files.minus(seen).also {
-        seen.addAll(files)
-      }
-    }.filterValues { it.isNotEmpty() }
-  }.filter { it.second.isNotEmpty() }.toSet()
+  return this.map { (artifactName, filesMap) ->
+      // Remove all but first occurrence of each file and then filter out any elements with empty maps
+      artifactName to filesMap.mapValues { (_, files) -> files.minus(seen).also { seen.addAll(files) } }.filterValues { it.isNotEmpty() }
+    }
+    .filter { it.second.isNotEmpty() }
+    .toSet()
 }
 
 internal fun GradleLightProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)

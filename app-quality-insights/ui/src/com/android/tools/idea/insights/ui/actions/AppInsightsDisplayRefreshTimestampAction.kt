@@ -33,13 +33,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 /** A display only action for showing timestamp for issues fetch/refresh from last. */
-class AppInsightsDisplayRefreshTimestampAction(
-  timestamp: Flow<Timestamp>,
-  private val clock: Clock,
-  scope: CoroutineScope,
-) : AnAction() {
-  private val lastModifiedTimestamp: AtomicReference<Timestamp> =
-    AtomicReference(Timestamp.UNINITIALIZED)
+class AppInsightsDisplayRefreshTimestampAction(timestamp: Flow<Timestamp>, private val clock: Clock, scope: CoroutineScope) : AnAction() {
+  private val lastModifiedTimestamp: AtomicReference<Timestamp> = AtomicReference(Timestamp.UNINITIALIZED)
 
   @VisibleForTesting
   val displayText: String

@@ -49,11 +49,7 @@ internal class ConnectionDataDetailsView(
     tabs.add(OverviewTabContent())
     tabs.add(ResponseTabContent())
     tabs.add(RequestTabContent())
-    tabs.add(
-      CallStackTabContent(
-        inspectorView.componentsProvider.createStackView(inspectorView.model.stackTraceModel)
-      )
-    )
+    tabs.add(CallStackTabContent(inspectorView.componentsProvider.createStackView(inspectorView.model.stackTraceModel)))
     tabs.forEach { tab -> addTab(tab.title, null, tab.component) }
   }
 

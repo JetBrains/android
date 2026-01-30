@@ -17,10 +17,10 @@ package com.android.tools.idea.execution.common.debug
 
 import com.android.fakeadbserver.FakeAdbServer
 import com.google.common.base.Stopwatch
+import java.util.concurrent.TimeUnit
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.util.concurrent.TimeUnit
 
 /**
  * A test rule that ensures that "JDI. *" debugger threads terminate before the test completes.
@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit
  * should result in the project rule being outer to the fake ADB rule and the fake ADB rule being outer to the `DebuggerThreadCleanupRule`.
  *
  * Sample:
- *
  * ```
  *   @get:Rule(order = 0)
  *   val projectRule = ProjectRule()
@@ -44,14 +43,13 @@ import java.util.concurrent.TimeUnit
  *
  * ```
  */
-class DebuggerThreadCleanupRule(private val fakeAdbServer: () -> FakeAdbServer): TestRule {
+class DebuggerThreadCleanupRule(private val fakeAdbServer: () -> FakeAdbServer) : TestRule {
   override fun apply(base: Statement, description: Description): Statement {
-    return object: Statement() {
+    return object : Statement() {
       override fun evaluate() {
         try {
           base.evaluate()
-        }
-        finally {
+        } finally {
           stopFakeAdbAndWaitForDebuggerThreadsToTerminate(fakeAdbServer())
         }
       }
@@ -59,9 +57,7 @@ class DebuggerThreadCleanupRule(private val fakeAdbServer: () -> FakeAdbServer):
   }
 }
 
-/**
- * Stops the [fakeAdbServer] and waits until all "JDI .*" debugger threads terminate.
- */
+/** Stops the [fakeAdbServer] and waits until all "JDI .*" debugger threads terminate. */
 fun stopFakeAdbAndWaitForDebuggerThreadsToTerminate(fakeAdbServer: FakeAdbServer) {
   fakeAdbServer.stop()
   fakeAdbServer.awaitServerTermination(1, TimeUnit.SECONDS)
@@ -72,7 +68,7 @@ fun stopFakeAdbAndWaitForDebuggerThreadsToTerminate(fakeAdbServer: FakeAdbServer
   val jdiThreads = threads.take(n).filterNotNull().filter { it.name.startsWith("JDI ") }
 
   if (jdiThreads.any()) {
-    println("Waiting for JDI threads to terminate...");
+    println("Waiting for JDI threads to terminate...")
 
     fun anyRunningDebuggerThreads(): Boolean {
       val activeThreads = jdiThreads.filter { it.isAlive }
@@ -88,10 +84,9 @@ fun stopFakeAdbAndWaitForDebuggerThreadsToTerminate(fakeAdbServer: FakeAdbServer
       jdiThreads.filter { it.isAlive }.forEach { it.interrupt() }
     } while (stopwatch.elapsed(TimeUnit.SECONDS) < 2 && anyRunningDebuggerThreads())
     if (anyRunningDebuggerThreads()) {
-      println("Giving up waiting ...");
+      println("Giving up waiting ...")
     } else {
       println("Done waiting for JDI threads to terminate.")
     }
   }
 }
-

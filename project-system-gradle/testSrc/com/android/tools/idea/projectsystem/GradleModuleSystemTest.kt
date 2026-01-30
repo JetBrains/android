@@ -29,15 +29,19 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 
 /**
- * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
- * what dependencies are available to test with, go to that folder and look at the group-indices.
+ * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see what dependencies are available to test
+ * with, go to that folder and look at the group-indices.
  */
 class GradleModuleSystemTest : AndroidTestCase() {
   private var _gradleDependencyManager: GradleDependencyManager? = null
   private var _gradleModuleSystem: GradleModuleSystem? = null
   private var androidProject: IdeAndroidProject? = null
-  private val gradleDependencyManager get() = _gradleDependencyManager!!
-  private val gradleModuleSystem get() = _gradleModuleSystem!!
+  private val gradleDependencyManager
+    get() = _gradleDependencyManager!!
+
+  private val gradleModuleSystem
+    get() = _gradleModuleSystem!!
+
   private val moduleHierarchyProviderStub = object : ModuleHierarchyProvider {}
 
   override fun setUp() {
@@ -52,8 +56,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
       _gradleDependencyManager = null
       _gradleModuleSystem = null
       androidProject = null
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }

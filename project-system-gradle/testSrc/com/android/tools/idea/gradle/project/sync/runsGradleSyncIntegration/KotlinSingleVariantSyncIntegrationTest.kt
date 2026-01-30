@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.runsGradleSyncIntegration
 
-import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKotlinModel
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
@@ -32,18 +31,17 @@ import org.junit.Test
 
 @RunsInEdt
 class KotlinSingleVariantSyncIntegrationTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule var expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun kotlinSingleVariantSync() {
     registerTestHelperProjectResolver(CapturePlatformModelsProjectResolverExtension.IdeModels(), projectRule.testRootDisposable)
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
     preparedProject.open { project ->
-      expect.that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+      expect
+        .that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
         .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
     }
   }

@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-/**
- * Describes special sync modes used in tests only. It should always be set to PRODUCTION when not testing Gradle sync itself.
- */
+/** Describes special sync modes used in tests only. It should always be set to PRODUCTION when not testing Gradle sync itself. */
 enum class SyncTestMode {
   PRODUCTION,
   TEST_EXCEPTION_HANDLING,
-  TEST_EXCEPTION_WITH_UNRESOLVED_MODULE
+  TEST_EXCEPTION_WITH_UNRESOLVED_MODULE,
 }

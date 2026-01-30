@@ -64,8 +64,7 @@ class RenderingComponentsTest {
       )
 
     val fakeForegroundProcessDetection = FakeForegroundProcessDetection()
-    val inspectorModel =
-      model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) {} }
+    val inspectorModel = model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) {} }
 
     layoutInspector =
       LayoutInspector(
@@ -113,8 +112,7 @@ class RenderingComponentsTest {
     val displayView1 = displayViewRule.newEmulatorView()
     var isRenderingComponentsDisposed1 = false
 
-    val renderingComponents1 =
-      createRenderingComponents(disposable = disposable1, displayView = displayView1)
+    val renderingComponents1 = createRenderingComponents(disposable = disposable1, displayView = displayView1)
     Disposer.register(renderingComponents1) { isRenderingComponentsDisposed1 = true }
 
     // Rendering components should be disposed when the parent disposable (the tab) is disposed.
@@ -125,8 +123,7 @@ class RenderingComponentsTest {
     val displayView2 = displayViewRule.newEmulatorView()
     var isRenderingComponentsDisposed2 = false
 
-    val renderingComponents2 =
-      createRenderingComponents(disposable = disposable2, displayView = displayView2)
+    val renderingComponents2 = createRenderingComponents(disposable = disposable2, displayView = displayView2)
     Disposer.register(renderingComponents2) { isRenderingComponentsDisposed2 = true }
 
     // Rendering components should be disposed when the display view is disposed.
@@ -136,10 +133,7 @@ class RenderingComponentsTest {
 
   @Test
   fun testOnDeviceRenderingIsLoggedToMetrics() {
-    val xrDisplay =
-      displayViewRule.newEmulatorView(
-        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
-      )
+    val xrDisplay = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
     val fakeSessionStats = FakeSessionStats()
     createRenderingComponents(
       disposable = displayViewRule.disposable,
@@ -153,14 +147,8 @@ class RenderingComponentsTest {
 
   @Test
   fun testOnDeviceRenderingSharesBetweenDifferentRenderers() {
-    val xrDisplay1 =
-      displayViewRule.newEmulatorView(
-        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
-      )
-    val xrDisplay2 =
-      displayViewRule.newEmulatorView(
-        avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) }
-      )
+    val xrDisplay1 = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
+    val xrDisplay2 = displayViewRule.newEmulatorView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })
 
     val fakeSessionStats = FakeSessionStats()
     val renderingComponents =
@@ -180,11 +168,6 @@ class RenderingComponentsTest {
     displayView: AbstractDisplayView,
     disposable: Disposable = displayViewRule.disposable,
   ): RenderingComponents {
-    return createRenderingComponents(
-        disposable = disposable,
-        displayList = listOf(displayView),
-        layoutInspector = layoutInspector,
-      )
-      .first()
+    return createRenderingComponents(disposable = disposable, displayList = listOf(displayView), layoutInspector = layoutInspector).first()
   }
 }

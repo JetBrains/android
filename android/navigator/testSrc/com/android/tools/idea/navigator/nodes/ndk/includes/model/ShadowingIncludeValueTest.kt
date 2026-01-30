@@ -22,7 +22,6 @@ class ShadowingIncludeValueTest {
   @Test
   fun testEqualsHash() {
     val equalsVerifier = EqualsVerifier.forClass(ShadowingIncludeValue::class.java)
-    equalsVerifier
-      .verify()
+    equalsVerifier.verify()
   }
 }

@@ -24,13 +24,11 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
- * Base class for Wear Tile Preview inspections. This base class implements [isAvailableForFile] by
- * checking that [StudioFlags.WEAR_TILE_PREVIEW] flag is on, the file's language is either
- * [JavaLanguage] or [KotlinLanguage], and that the file is either a unit test file or not depending
- * on [isUnitTestInspection].
+ * Base class for Wear Tile Preview inspections. This base class implements [isAvailableForFile] by checking that
+ * [StudioFlags.WEAR_TILE_PREVIEW] flag is on, the file's language is either [JavaLanguage] or [KotlinLanguage], and that the file is either
+ * a unit test file or not depending on [isUnitTestInspection].
  */
-abstract class WearTilePreviewInspectionBase(private val isUnitTestInspection: Boolean = false) :
-  AbstractBaseUastLocalInspectionTool() {
+abstract class WearTilePreviewInspectionBase(private val isUnitTestInspection: Boolean = false) : AbstractBaseUastLocalInspectionTool() {
   override fun isAvailableForFile(file: PsiFile): Boolean {
     return StudioFlags.WEAR_TILE_PREVIEW.get() &&
       isUnitTestFile(file.project, file.virtualFile) == isUnitTestInspection &&

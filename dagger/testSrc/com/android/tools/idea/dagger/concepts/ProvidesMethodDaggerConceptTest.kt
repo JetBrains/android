@@ -58,9 +58,7 @@ class ProvidesMethodDaggerConceptTest {
 
   private fun runIndexer(wrapper: DaggerIndexMethodWrapper): Map<String, Set<IndexValue>> =
     mutableMapOf<String, MutableSet<IndexValue>>().also { indexEntries ->
-      ProvidesMethodDaggerConcept.indexers.methodIndexers.forEach {
-        it.addIndexEntries(wrapper, indexEntries)
-      }
+      ProvidesMethodDaggerConcept.indexers.methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
     }
 
   @Test
@@ -237,16 +235,8 @@ class ProvidesMethodDaggerConceptTest {
         setOf(ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater")),
         "ElectricHeater",
         setOf(
-          ProvidesMethodParameterIndexValue(
-            HEATER_MODULE_COMPANION_ID,
-            "provideHeater",
-            "electricHeater",
-          ),
-          ProvidesMethodParameterIndexValue(
-            HEATER_MODULE_COMPANION_ID,
-            "provideHeater",
-            "electricHeater2",
-          ),
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater", "electricHeater"),
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater", "electricHeater2"),
         ),
       )
   }
@@ -351,8 +341,7 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -399,8 +388,7 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -445,8 +433,7 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -488,23 +475,17 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val indexValue1 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
-    val indexValue2 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
-    val indexValue3 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
+    val indexValue1 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
+    val indexValue2 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
+    val indexValue3 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
 
-    val electricHeaterProvidesParameter: KtParameter =
-      myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
+    val electricHeaterProvidesParameter: KtParameter = myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
 
-    val electricHeaterBindsParameter: KtParameter =
-      myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
+    val electricHeaterBindsParameter: KtParameter = myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
@@ -542,31 +523,17 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val indexValue1 =
-      ProvidesMethodParameterIndexValue(
-        HEATER_MODULE_COMPANION_ID,
-        "provideHeater",
-        "electricHeater",
-      )
-    val indexValue2 =
-      ProvidesMethodParameterIndexValue(
-        HEATER_MODULE_COMPANION_ID,
-        "dontProvideHeater",
-        "electricHeater",
-      )
-    val indexValue3 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "bindHeater", "electricHeater")
+    val indexValue1 = ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater", "electricHeater")
+    val indexValue2 = ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "dontProvideHeater", "electricHeater")
+    val indexValue3 = ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "bindHeater", "electricHeater")
 
-    val electricHeaterProvidesParameter: KtParameter =
-      myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
+    val electricHeaterProvidesParameter: KtParameter = myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
 
-    val electricHeaterBindsParameter: KtParameter =
-      myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
+    val electricHeaterBindsParameter: KtParameter = myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
@@ -602,30 +569,23 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val indexValue1 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
-    val indexValue2 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
-    val indexValue3 =
-      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
+    val indexValue1 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
+    val indexValue2 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
+    val indexValue3 = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
 
-    val electricHeaterProvidesParameter: PsiParameter =
-      myFixture.findParentElement("provideHeater(ElectricHeater elec|tricHeater")
+    val electricHeaterProvidesParameter: PsiParameter = myFixture.findParentElement("provideHeater(ElectricHeater elec|tricHeater")
 
-    val electricHeaterBindsParameter: PsiParameter =
-      myFixture.findParentElement("bindHeater(ElectricHeater elec|tricHeater")
+    val electricHeaterBindsParameter: PsiParameter = myFixture.findParentElement("bindHeater(ElectricHeater elec|tricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
 
   companion object {
     private val HEATER_MODULE_ID = ClassId.fromString("com/example/HeaterModule")
-    private val HEATER_MODULE_COMPANION_ID =
-      ClassId.fromString("com/example/HeaterModule.Companion")
+    private val HEATER_MODULE_COMPANION_ID = ClassId.fromString("com/example/HeaterModule.Companion")
   }
 }

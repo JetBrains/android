@@ -9,9 +9,9 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TestDataFile
 import com.intellij.testFramework.TestDataPath
 import com.intellij.util.PathUtil
+import java.io.File
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import java.io.File
 
 @TestDataPath("\$PROJECT_ROOT/android-kotlin")
 class FindViewByIdQuickFixTest : KotlinAndroidTestCase() {
@@ -89,10 +89,11 @@ class FindViewByIdQuickFixTest : KotlinAndroidTestCase() {
 
     private fun doTest(path: String) {
         val fileText = FileUtil.loadFile(File(testDataPath, path), true)
-        val intentionText = DirectiveBasedActionUtils.findStringWithPrefixesByFrontend(fileText, "// INTENTION_TEXT: ")
-                            ?: error("Empty intention text")
-        val mainInspectionClassName = DirectiveBasedActionUtils.findStringWithPrefixesByFrontend(fileText, "// INSPECTION_CLASS: ")
-                                      ?: error("No inspection class specified")
+        val intentionText =
+            DirectiveBasedActionUtils.findStringWithPrefixesByFrontend(fileText, "// INTENTION_TEXT: ") ?: error("Empty intention text")
+        val mainInspectionClassName =
+            DirectiveBasedActionUtils.findStringWithPrefixesByFrontend(fileText, "// INSPECTION_CLASS: ")
+                ?: error("No inspection class specified")
         val dependency = DirectiveBasedActionUtils.findStringWithPrefixesByFrontend(fileText, "// DEPENDENCY: ")
         val intentionAvailable = !DirectiveBasedActionUtils.isDirectiveDefinedForFrontend(fileText, "// INTENTION_NOT_AVAILABLE")
 
@@ -108,16 +109,14 @@ class FindViewByIdQuickFixTest : KotlinAndroidTestCase() {
         }
 
         if (intentionAvailable) {
-            val oldLabel = intentionText
-              .replace(": Add @SuppressLint(\"", " ")
-              .replace("\") annotation", " with an annotation")
-            val intention = myFixture.getAvailableIntention(intentionText)
-                            ?: myFixture.getAvailableIntention(oldLabel)
-                            ?: error("Failed to find intention")
+            val oldLabel = intentionText.replace(": Add @SuppressLint(\"", " ").replace("\") annotation", " with an annotation")
+            val intention =
+                myFixture.getAvailableIntention(intentionText)
+                    ?: myFixture.getAvailableIntention(oldLabel)
+                    ?: error("Failed to find intention")
             myFixture.launchAction(intention)
             myFixture.checkResultByFile("$path.expected")
-        }
-        else {
+        } else {
             assertNull("Intention should not be available", myFixture.availableIntentions.find { it.text == intentionText })
         }
     }

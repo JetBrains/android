@@ -51,32 +51,25 @@ import com.android.tools.idea.ui.resourcemanager.InputParam
 import com.android.tools.idea.ui.resourcemanager.IntParam
 import java.util.EnumSet
 
-
-/**
- * Valid range for screen sizes.
- * We don't have devices with more than 100 000 pixels (yet).
- */
+/** Valid range for screen sizes. We don't have devices with more than 100 000 pixels (yet). */
 private val SCREEN_SIZE_RANGE = 1..100_000
 
-/**
- * Valid range for the CountryCodeQualifier
- */
+/** Valid range for the CountryCodeQualifier */
 private val COUNTRY_CODE_RANGE = 101..999
 
-/**
- * Valid range for the NetworkCodeQualifier.
- */
+/** Valid range for the NetworkCodeQualifier. */
 private val NETWORK_CODE_RANGE = 0..1000
 
 private typealias QualifierConfigurationPair = Pair<ResourceQualifier, QualifierConfiguration?>
 
-/**
- * ViewModel for [com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationPanel].
- */
+/** ViewModel for [com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationPanel]. */
 class QualifierConfigurationViewModel(private val folderConfiguration: FolderConfiguration = FolderConfiguration()) {
 
   var onConfigurationUpdated: ((FolderConfiguration) -> Unit)? = null
-  private val availableQualifiers = FolderConfiguration.createDefault().qualifiers.toMutableSet() // Cannot use a set because of the hashCode() implementation of some qualifiers
+  private val availableQualifiers =
+    FolderConfiguration.createDefault()
+      .qualifiers
+      .toMutableSet() // Cannot use a set because of the hashCode() implementation of some qualifiers
   private val usedQualifiers = mutableMapOf<ResourceQualifier, QualifierConfiguration?>()
 
   init {
@@ -87,18 +80,12 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
     }
   }
 
-  /**
-   * Return true if no qualifier is currently being configured and there is still some qualifier
-   * available.
-   */
+  /** Return true if no qualifier is currently being configured and there is still some qualifier available. */
   fun canAddQualifier() = availableQualifiers.isNotEmpty()
 
   fun applyConfiguration(): FolderConfiguration {
     folderConfiguration.reset()
-    usedQualifiers.values
-      .filterNotNull()
-      .map(QualifierConfiguration::buildQualifier)
-      .forEach { folderConfiguration.addQualifier(it) }
+    usedQualifiers.values.filterNotNull().map(QualifierConfiguration::buildQualifier).forEach { folderConfiguration.addQualifier(it) }
 
     onConfigurationUpdated?.invoke(folderConfiguration)
     return folderConfiguration
@@ -107,18 +94,14 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
   fun getAvailableQualifiers() = availableQualifiers.sortedBy(ResourceQualifier::getName)
 
   /**
-   * Return a list of pairs of [ResourceQualifier] to a [QualifierConfiguration] corresponding
-   * the [FolderConfiguration].
+   * Return a list of pairs of [ResourceQualifier] to a [QualifierConfiguration] corresponding the [FolderConfiguration].
    *
-   * What this means is that for each qualifier already set in the [FolderConfiguration], a new [QualifierConfiguration]
-   * is returned and the qualifier is removed from the list returned by [getAvailableQualifiers].
+   * What this means is that for each qualifier already set in the [FolderConfiguration], a new [QualifierConfiguration] is returned and the
+   * qualifier is removed from the list returned by [getAvailableQualifiers].
    */
   fun getCurrentConfigurations(): List<QualifierConfigurationPair> = usedQualifiers.map { it.toPair() }
 
-  /**
-   * Return the suitable [QualifierConfiguration] for the provided [qualifier] or null if the [qualifier]
-   * is not supported.
-   */
+  /** Return the suitable [QualifierConfiguration] for the provided [qualifier] or null if the [qualifier] is not supported. */
   private fun createQualifierConfiguration(qualifier: ResourceQualifier): QualifierConfiguration? {
     return when (qualifier) {
       is LocaleQualifier -> LocaleQualifierConfiguration(qualifier.language, qualifier.region)
@@ -150,8 +133,8 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
   }
 
   /**
-   * Remove [resourceQualifier] from the [FolderConfiguration] and
-   * mark it as unused.
+   * Remove [resourceQualifier] from the [FolderConfiguration] and mark it as unused.
+   *
    * @see selectQualifier
    */
   fun deselectQualifier(resourceQualifier: ResourceQualifier) {
@@ -161,8 +144,8 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
   }
 
   /**
-   * Return the suitable [QualifierConfiguration] for the provided [resourceQualifier] and
-   * mark it as used.
+   * Return the suitable [QualifierConfiguration] for the provided [resourceQualifier] and mark it as used.
+   *
    * @see deselectQualifier
    */
   fun selectQualifier(resourceQualifier: ResourceQualifier): QualifierConfiguration? {
@@ -175,46 +158,35 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
 }
 
 /**
- * Represent the parameter needed to build a given [ResourceQualifier] type.
- * The view is responsible to generate the UI component that will allow the configuration of this object.
+ * Represent the parameter needed to build a given [ResourceQualifier] type. The view is responsible to generate the UI component that will
+ * allow the configuration of this object.
  */
 interface QualifierConfiguration {
 
-  /**
-   * The [InputParam] needed to build a new instance of the desired [ResourceQualifier].
-   */
+  /** The [InputParam] needed to build a new instance of the desired [ResourceQualifier]. */
   val parameters: List<InputParam<*>>
 
-  /**
-   * Returns a new instance of a [ResourceQualifier] using [parameters] if needed.
-   */
+  /** Returns a new instance of a [ResourceQualifier] using [parameters] if needed. */
   fun buildQualifier(): ResourceQualifier?
 }
 
-/**
- * [QualifierConfiguration] to build a [LocaleQualifier]
- */
+/** [QualifierConfiguration] to build a [LocaleQualifier] */
 internal class LocaleQualifierConfiguration(language: String?, region: String?) : QualifierConfiguration {
 
-  /**
-   * List of the available region for the selected language.
-   */
-  private val regionList = CollectionParam(listOf(region), "Any region").apply {
-    paramValue = region
-  }
+  /** List of the available region for the selected language. */
+  private val regionList = CollectionParam(listOf(region), "Any region").apply { paramValue = region }
 
-  private val languageList = CollectionParam(LocaleManager.getLanguageCodes(true), "Language").apply {
-    // Add an observer to update the region list each time the language list is updated
-    addObserver { _, selectedLanguage -> regionList.values = getAvailableRegion(selectedLanguage as String?) }
-    parser = { code -> code?.let { LocaleManager.getLanguageName(it) } }
-    paramValue = language
-  }
+  private val languageList =
+    CollectionParam(LocaleManager.getLanguageCodes(true), "Language").apply {
+      // Add an observer to update the region list each time the language list is updated
+      addObserver { _, selectedLanguage -> regionList.values = getAvailableRegion(selectedLanguage as String?) }
+      parser = { code -> code?.let { LocaleManager.getLanguageName(it) } }
+      paramValue = language
+    }
 
   override val parameters: List<InputParam<String?>> = listOf(languageList, regionList)
 
-  /**
-   * Returns a new [LocaleQualifier] using the selected language and the optionally selected region.
-   */
+  /** Returns a new [LocaleQualifier] using the selected language and the optionally selected region. */
   override fun buildQualifier(): LocaleQualifier? {
     val language = languageList.paramValue ?: return null
     val region = regionList.paramValue
@@ -222,40 +194,28 @@ internal class LocaleQualifierConfiguration(language: String?, region: String?) 
   }
 
   private fun getAvailableRegion(language: String?) =
-    listOf(null) +
-    (language?.let { LocaleManager.getRelevantRegions(it) } ?: LocaleManager.getRegionCodes(true))
+    listOf(null) + (language?.let { LocaleManager.getRelevantRegions(it) } ?: LocaleManager.getRegionCodes(true))
 }
 
-/**
- * Utility method to build an [EnumBasedResourceQualifier].
- */
+/** Utility method to build an [EnumBasedResourceQualifier]. */
 private inline fun <Qualifier : EnumBasedResourceQualifier, reified E> enumConfiguration(
   noinline factory: (E) -> Qualifier,
-  default: E?
+  default: E?,
 ): EnumQualifierConfiguration<E, Qualifier> where E : ResourceEnum, E : Enum<E> =
   EnumQualifierConfiguration(EnumSet.allOf(E::class.java), factory, default)
 
 /**
- * Utility method to build [IntConfiguration] for width/height qualifiers. It's guaranteed to produce a valid ResourceQualifier when
- * using default FolderConfiguration qualifiers.
+ * Utility method to build [IntConfiguration] for width/height qualifiers. It's guaranteed to produce a valid ResourceQualifier when using
+ * default FolderConfiguration qualifiers.
  */
-private fun screenDimensionQualifier(
-  qualifierFactory: (Int) -> ResourceQualifier,
-  defaultValue: Int
-): QualifierConfiguration =
-  IntConfiguration(
-    qualifierFactory = qualifierFactory,
-    range = SCREEN_SIZE_RANGE,
-    default = defaultValue.coerceIn(SCREEN_SIZE_RANGE)
-  )
+private fun screenDimensionQualifier(qualifierFactory: (Int) -> ResourceQualifier, defaultValue: Int): QualifierConfiguration =
+  IntConfiguration(qualifierFactory = qualifierFactory, range = SCREEN_SIZE_RANGE, default = defaultValue.coerceIn(SCREEN_SIZE_RANGE))
 
-/**
- * Configuration to build all subclass of [EnumBasedResourceQualifier].
- */
+/** Configuration to build all subclass of [EnumBasedResourceQualifier]. */
 internal class EnumQualifierConfiguration<E : ResourceEnum, out Qualifier : EnumBasedResourceQualifier>(
   enumSet: Collection<E>,
   private val qualifierFactory: (E) -> Qualifier,
-  default: E?
+  default: E?,
 ) : QualifierConfiguration {
 
   override val parameters = listOf(CollectionParam(enumSet) { enum -> enum?.longDisplayValue }.apply { paramValue = default })
@@ -263,40 +223,35 @@ internal class EnumQualifierConfiguration<E : ResourceEnum, out Qualifier : Enum
   override fun buildQualifier(): Qualifier? = parameters.first().paramValue?.let { qualifierFactory(it) }
 }
 
-/**
- * A [QualifierConfiguration] for [ResourceQualifier] that can be build with a single int
- */
-internal class IntConfiguration(
-  private val qualifierFactory: (Int) -> ResourceQualifier,
-  range: IntRange,
-  default: Int?
-) : QualifierConfiguration {
+/** A [QualifierConfiguration] for [ResourceQualifier] that can be build with a single int */
+internal class IntConfiguration(private val qualifierFactory: (Int) -> ResourceQualifier, range: IntRange, default: Int?) :
+  QualifierConfiguration {
   override val parameters: List<IntParam> = listOf(IntParam(range).apply { paramValue = default })
+
   override fun buildQualifier(): ResourceQualifier? = parameters.first().paramValue?.let { qualifierFactory(it) }
 }
 
 /**
- * A [QualifierConfiguration] to build a [VersionQualifier]. The available versions are provided using a
- * [CollectionParam] which contains Api version from [SdkVersionInfo.LOWEST_ACTIVE_API] to [SdkVersionInfo.HIGHEST_KNOWN_API]
+ * A [QualifierConfiguration] to build a [VersionQualifier]. The available versions are provided using a [CollectionParam] which contains
+ * Api version from [SdkVersionInfo.LOWEST_ACTIVE_API] to [SdkVersionInfo.HIGHEST_KNOWN_API]
  */
 internal class VersionQualifierConfiguration(version: Int) : QualifierConfiguration {
-  override val parameters = listOf(
-    CollectionParam((SdkVersionInfo.LOWEST_ACTIVE_API..SdkVersionInfo.HIGHEST_KNOWN_API)
-                      .toSortedSet()
-                      .reversed())
-      .apply { paramValue = version }
-  )
+  override val parameters =
+    listOf(
+      CollectionParam((SdkVersionInfo.LOWEST_ACTIVE_API..SdkVersionInfo.HIGHEST_KNOWN_API).toSortedSet().reversed()).apply {
+        paramValue = version
+      }
+    )
 
   override fun buildQualifier(): VersionQualifier? = parameters.first().paramValue?.let { VersionQualifier(it) }
 }
 
-/**
- * A [QualifierConfiguration] to build a [ScreenDimensionConfiguration] if both width and height are provided.
- */
+/** A [QualifierConfiguration] to build a [ScreenDimensionConfiguration] if both width and height are provided. */
 internal class ScreenDimensionConfiguration(value1: Int, value2: Int) : QualifierConfiguration {
   private val widthParam = IntParam(SCREEN_SIZE_RANGE).apply { paramValue = value1 }
   private val heightParam = IntParam(SCREEN_SIZE_RANGE).apply { paramValue = value2 }
   override val parameters = listOf(widthParam, heightParam)
+
   override fun buildQualifier(): ScreenDimensionQualifier? {
     val width = widthParam.paramValue ?: return null
     val height = heightParam.paramValue ?: return null
@@ -306,6 +261,7 @@ internal class ScreenDimensionConfiguration(value1: Int, value2: Int) : Qualifie
 
 internal class DensityConfiguration(value: Density) : QualifierConfiguration {
   override val parameters = listOf(CollectionParam(Density.values().toList()).apply { paramValue = value })
+
   override fun buildQualifier(): DensityQualifier? {
     val density = parameters.first().paramValue ?: return null
     return DensityQualifier(density)

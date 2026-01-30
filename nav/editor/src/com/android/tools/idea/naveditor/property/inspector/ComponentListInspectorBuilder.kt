@@ -43,26 +43,19 @@ import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 
 /**
- * Adds a ComponentList component to an [InspectorPanel] to display groups of subtags in a list
- * format within an expandable title. Assumes that the currently selected component is a
- * destination. Parameters: [tagName]: the tag name of the child elements to be displayed [title]:
- * the caption for the expandable title [cellRenderer]: the cell renderer to be used for the list
- * items
+ * Adds a ComponentList component to an [InspectorPanel] to display groups of subtags in a list format within an expandable title. Assumes
+ * that the currently selected component is a destination. Parameters: [tagName]: the tag name of the child elements to be displayed
+ * [title]: the caption for the expandable title [cellRenderer]: the cell renderer to be used for the list items
  */
-abstract class ComponentListInspectorBuilder(
-  val tagName: String,
-  private val cellRenderer: ColoredListCellRenderer<NlComponent>,
-) : InspectorBuilder<NlPropertyItem> {
+abstract class ComponentListInspectorBuilder(val tagName: String, private val cellRenderer: ColoredListCellRenderer<NlComponent>) :
+  InspectorBuilder<NlPropertyItem> {
   abstract fun title(component: NlComponent): String
 
   protected open fun addActionText(component: NlComponent): String = "Add Component"
 
   protected open fun deleteActionText(component: NlComponent): String = "Delete Component"
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!isApplicable(component)) {
       return
@@ -122,10 +115,7 @@ abstract class ComponentListInspectorBuilder(
         override fun caretPositionChanged(event: CaretEvent) {
           val nlModel = component.model
           val offset = event.caret?.offset ?: return
-          val view =
-            nlModel.treeReader.findByOffset(offset).firstOrNull()
-              ?: nlModel.treeReader.components.firstOrNull()
-              ?: return
+          val view = nlModel.treeReader.findByOffset(offset).firstOrNull() ?: nlModel.treeReader.components.firstOrNull() ?: return
           list.setSelectedValue(view, true)
           if (list.selectedIndex >= 0 && !titleModel.expanded) {
             // If the section is collapsed we need to try again once it's open.
@@ -143,13 +133,10 @@ abstract class ComponentListInspectorBuilder(
     val initCaret = { editor: TextEditor ->
       editor.editor.caretModel.addCaretListener(caretListener)
       val currentCaret = editor.editor.caretModel.currentCaret
-      caretListener.caretAdded(
-        CaretEvent(currentCaret, currentCaret.logicalPosition, currentCaret.logicalPosition)
-      )
+      caretListener.caretAdded(CaretEvent(currentCaret, currentCaret.logicalPosition, currentCaret.logicalPosition))
     }
 
-    val textEditor =
-      DataManager.getInstance().getDataContext(componentList).getData(SPLIT_TEXT_EDITOR_KEY)
+    val textEditor = DataManager.getInstance().getDataContext(componentList).getData(SPLIT_TEXT_EDITOR_KEY)
     if (textEditor != null) {
       initCaret(textEditor)
     } else {
@@ -159,10 +146,7 @@ abstract class ComponentListInspectorBuilder(
       hierarchyListener = HierarchyListener { event ->
         if (event.changeFlags and HierarchyEvent.PARENT_CHANGED.toLong() > 0) {
           list.removeHierarchyListener(hierarchyListener)
-          DataManager.getInstance()
-            .getDataContext(componentList)
-            .getData(SPLIT_TEXT_EDITOR_KEY)
-            ?.let { initCaret(it) }
+          DataManager.getInstance().getDataContext(componentList).getData(SPLIT_TEXT_EDITOR_KEY)?.let { initCaret(it) }
         }
       }
       list.addHierarchyListener(hierarchyListener)

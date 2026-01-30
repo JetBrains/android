@@ -45,15 +45,11 @@ class SpecificActivityLaunch : LaunchOption<SpecificActivityLaunch.State>() {
   }
 
   open class State : ActivityLaunchOptionState() {
-    @JvmField
-    var ACTIVITY_CLASS = ""
+    @JvmField var ACTIVITY_CLASS = ""
 
-    @JvmField
-    var SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false
+    @JvmField var SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false
 
-    @JvmField
-    var SKIP_ACTIVITY_VALIDATION = false
-
+    @JvmField var SKIP_ACTIVITY_VALIDATION = false
 
     override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
       return try {
@@ -61,18 +57,14 @@ class SpecificActivityLaunch : LaunchOption<SpecificActivityLaunch.State>() {
           getActivityLocator(facet).validate()
         }
         ImmutableList.of()
-      }
-      catch (e: ActivityLocatorException) {
+      } catch (e: ActivityLocatorException) {
         // The launch will probably fail, but we allow the user to continue in case we are looking at stale data.
-        ImmutableList.of(
-          ValidationError.warning(
-            e.message!!
-          )
-        )
+        ImmutableList.of(ValidationError.warning(e.message!!))
       }
     }
 
     override fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String) = ACTIVITY_CLASS
+
     override val id = "SPECIFIC_ACTIVITY"
 
     @VisibleForTesting
@@ -84,7 +76,6 @@ class SpecificActivityLaunch : LaunchOption<SpecificActivityLaunch.State>() {
   }
 
   companion object {
-    @JvmField
-    val INSTANCE = SpecificActivityLaunch()
+    @JvmField val INSTANCE = SpecificActivityLaunch()
   }
 }

@@ -73,11 +73,7 @@ class DeviceCheckerImplTest {
     assertThat(result).isEqualTo("Device of type TV is not supported")
   }
 
-  private suspend fun connectDevice(
-    serial: String,
-    apiLevel: Int = 36,
-    characteristics: String = "",
-  ): DeviceState {
+  private suspend fun connectDevice(serial: String, apiLevel: Int = 36, characteristics: String = ""): DeviceState {
     return fakeAdbProvider.fakeAdb.fakeAdbServer
       .connectDevice(
         deviceId = serial,
@@ -93,16 +89,8 @@ class DeviceCheckerImplTest {
   }
 
   private fun createDeviceProvisioner(): DeviceProvisioner {
-    val coroutineScope =
-      adbSession.scope.createChildScope(
-        isSupervisor = true,
-        parentDisposable = projectRule.disposable,
-      )
+    val coroutineScope = adbSession.scope.createChildScope(isSupervisor = true, parentDisposable = projectRule.disposable)
 
-    return DeviceProvisioner.create(
-      coroutineScope,
-      adbSession,
-      listOf(DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)),
-    )
+    return DeviceProvisioner.create(coroutineScope, adbSession, listOf(DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)))
   }
 }

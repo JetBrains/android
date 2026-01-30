@@ -34,23 +34,21 @@ interface IdeBuildType : IdeBaseConfig {
   /**
    * Specifies whether to enable code shrinking for this build type.
    *
-   * By default, when you enable code shrinking by setting this property to `true`,
-   * the Android plugin uses ProGuard.
+   * By default, when you enable code shrinking by setting this property to `true`, the Android plugin uses ProGuard.
    *
-   * To learn more, read
-   * [Shrink Your Code and Resources](https://developer.android.com/studio/build/shrink-code.html).
+   * To learn more, read [Shrink Your Code and Resources](https://developer.android.com/studio/build/shrink-code.html).
    */
   val isMinifyEnabled: Boolean
 
   /** Whether zipalign is enabled for this build type. */
   val isZipAlignEnabled: Boolean
 
-  /** Whether this build type is specified as a default by the user*/
+  /** Whether this build type is specified as a default by the user */
   val isDefault: Boolean?
 
   /**
-   * Specifies a sorted list of build types that the plugin should try to use when a direct
-   * variant match with a local module dependency is not possible.
+   * Specifies a sorted list of build types that the plugin should try to use when a direct variant match with a local module dependency is
+   * not possible.
    */
   val matchingFallbacks: List<String>
 }

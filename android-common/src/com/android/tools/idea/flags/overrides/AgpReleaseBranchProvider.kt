@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.flags.overrides
 
+import com.android.Version
 import com.android.flags.Flag
 import com.android.flags.FlagValueProvider
-import com.android.tools.idea.flags.StudioFlags
-import com.android.Version
 import com.android.tools.idea.flags.FeatureConfiguration
+import com.android.tools.idea.flags.StudioFlags
 
 class AgpReleaseBranchProvider : FlagValueProvider {
   override fun get(flag: Flag<*>): String? {
     if (flag == StudioFlags.USE_ALONGSIDE_AGP) {
       return (releasedWithAgp()).toString()
     }
-    return null;
+    return null
   }
 
   private fun releasedWithAgp(): Boolean = Version.IS_AGP_RELEASE_BRANCH || FeatureConfiguration.current < FeatureConfiguration.COMPLETE
 
   override fun toString(): String {
-    return "AgpReleaseBranchProvider(releasedWithAgp=" + releasedWithAgp() + ")";
+    return "AgpReleaseBranchProvider(releasedWithAgp=" + releasedWithAgp() + ")"
   }
 }

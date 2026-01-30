@@ -42,8 +42,8 @@ class StartDestinationToolbarActionTest : NavTestCase() {
 
     assertEquals(
       """
-        NlComponent{tag=<navigation>, instance=0}
-            NlComponent{tag=<fragment>, instance=1}
+      NlComponent{tag=<navigation>, instance=0}
+          NlComponent{tag=<fragment>, instance=1}
       """
         .trimIndent(),
       NlTreeDumper().toTree(model.treeReader.components),
@@ -74,10 +74,10 @@ class StartDestinationToolbarActionTest : NavTestCase() {
 
     assertEquals(
       """
-        NlComponent{tag=<navigation>, instance=0}
-            NlComponent{tag=<fragment>, instance=1}
-            NlComponent{tag=<activity>, instance=2}
-            NlComponent{tag=<fragment>, instance=3}
+      NlComponent{tag=<navigation>, instance=0}
+          NlComponent{tag=<fragment>, instance=1}
+          NlComponent{tag=<activity>, instance=2}
+          NlComponent{tag=<fragment>, instance=3}
       """
         .trimIndent(),
       NlTreeDumper().toTree(model.treeReader.components),

@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
-import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDebugInfoImpl
+import java.io.File
+import java.net.URLClassLoader
+import java.time.Instant
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -31,9 +33,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
-import java.io.File
-import java.net.URLClassLoader
-import java.time.Instant
 
 /**
  * An entry point for Android Gradle sync.
@@ -44,18 +43,15 @@ import java.time.Instant
  * To avoid interference with Java serialization this class redirects calls to its methods to a non-serializable
  * [AndroidExtraModelProviderImpl], which is instantiated on demand and the reference is stored in a Java-serialization-transitive property.
  */
-class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions, private val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
+class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions, private val cachedModels: ModelProviderCachedData) :
+  ProjectImportModelProvider {
 
-  @Transient
-  private var _impl: AndroidExtraModelProviderImpl? = null
+  @Transient private var _impl: AndroidExtraModelProviderImpl? = null
 
-  private val impl: AndroidExtraModelProviderImpl get() = _impl ?: AndroidExtraModelProviderImpl(syncOptions).also { _impl = it }
+  private val impl: AndroidExtraModelProviderImpl
+    get() = _impl ?: AndroidExtraModelProviderImpl(syncOptions).also { _impl = it }
 
-  override fun populateModels(
-    controller: BuildController,
-    buildModels: Collection<GradleBuild>,
-    modelConsumer: GradleModelConsumer,
-  ) {
+  override fun populateModels(controller: BuildController, buildModels: Collection<GradleBuild>, modelConsumer: GradleModelConsumer) {
     if (!cachedModels.shouldRunLegacyModelProviders) {
       return
     }
@@ -70,8 +66,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions, priv
 private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompositeBuildMapImpl)
 
 /**
- * The actual implementation of [AndroidExtraModelProvider], which does not require its properties to be [Transient] and allows
- * initializers (without having these values serialized).
+ * The actual implementation of [AndroidExtraModelProvider], which does not require its properties to be [Transient] and allows initializers
+ * (without having these values serialized).
  */
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
 
@@ -80,20 +76,14 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
 
   private val syncCounters = SyncCounters()
 
-  fun populateBuildModels(
-    controller: BuildController,
-    buildModel: GradleBuild,
-    consumer: GradleModelConsumer
-  ) {
+  fun populateBuildModels(controller: BuildController, buildModel: GradleBuild, consumer: GradleModelConsumer) {
     recordCheckpointData(MeasurementCheckpoint.ANDROID_STARTED)
     // Flatten the platform's handling of included builds. We need all models together to resolve cross `includeBuild` dependencies
     // correctly. This, unfortunately, makes assumptions about the order in which these methods are invoked. If broken it will be caught
     // by any test attempting to sync a composite build.
-    val buildModelsAndMap = this.buildModelsAndMap ?: syncCounters.buildInfoPhase {
-      buildModelsAndMap(buildModel, controller)
-    }.also {
-      this.buildModelsAndMap = it
-    }
+    val buildModelsAndMap =
+      this.buildModelsAndMap
+        ?: syncCounters.buildInfoPhase { buildModelsAndMap(buildModel, controller) }.also { this.buildModelsAndMap = it }
 
     if (!seenBuildModels.add(buildModel)) {
       error("Included build ${buildModel.buildIdentifier.rootDir} appears for the second time")
@@ -103,24 +93,26 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     }
     if (buildModelsAndMap.models.size == seenBuildModels.size) {
       AndroidExtraModelProviderWorker(
-        controller,
-        syncCounters,
-        syncOptions,
-        BuildInfo(
-          buildModelsAndMap.models.toList(),
-          // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
-          // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
-          // reported against the last included build.
-          buildModelsAndMap.map,
-          ModelConverter.populateModuleBuildDirs(controller),
-        ),
-        consumer
-      ).populateBuildModels()
+          controller,
+          syncCounters,
+          syncOptions,
+          BuildInfo(
+            buildModelsAndMap.models.toList(),
+            // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request
+            // all
+            // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
+            // reported against the last included build.
+            buildModelsAndMap.map,
+            ModelConverter.populateModuleBuildDirs(controller),
+          ),
+          consumer,
+        )
+        .populateBuildModels()
       recordCheckpointData(MeasurementCheckpoint.ANDROID_FINISHED)
       if (syncOptions.flags.studioDebugMode) {
         populateDebugInfo(buildModel, consumer)
       }
-   }
+    }
   }
 
   private fun recordCheckpointData(checkpoint: MeasurementCheckpoint) {
@@ -136,38 +128,35 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
       if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
         captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, checkpoint)
-      }
-      else {
+      } else {
         analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, checkpoint)
       }
     }
   }
 
-  fun populateProjectModels(
-    controller: BuildController,
-    projectModels: Set<BasicGradleProject>,
-    modelConsumer: GradleModelConsumer) {
-    val modelsToFetch = listOf(
-      GradlePluginModel::class.java,
-      DeclaredDependencies::class.java
-    )
-    controller.run(projectModels.map { projectModel ->
-      BuildAction {
-        modelsToFetch.mapNotNull { fetchedClass ->
-            controller.findModel(projectModel, fetchedClass)?.let { fetchedModel ->
-              // We have to consume models in a single threaded context (i.e. outside the build action), so need to juggle this data around.
-              Triple(projectModel, fetchedModel, fetchedClass)
+  fun populateProjectModels(controller: BuildController, projectModels: Set<BasicGradleProject>, modelConsumer: GradleModelConsumer) {
+    val modelsToFetch = listOf(GradlePluginModel::class.java, DeclaredDependencies::class.java)
+    controller
+      .run(
+        projectModels.map { projectModel ->
+          BuildAction {
+            modelsToFetch.mapNotNull { fetchedClass ->
+              controller.findModel(projectModel, fetchedClass)?.let { fetchedModel ->
+                // We have to consume models in a single threaded context (i.e. outside the build action), so need to juggle this data
+                // around.
+                Triple(projectModel, fetchedModel, fetchedClass)
+              }
             }
           }
         }
-    }).flatten().forEach { (projectModel, fetchedModel, fetchedClass) ->
-      modelConsumer.consumeProjectModel(projectModel, fetchedModel, fetchedClass)
-    }
+      )
+      .flatten()
+      .forEach { (projectModel, fetchedModel, fetchedClass) -> modelConsumer.consumeProjectModel(projectModel, fetchedModel, fetchedClass) }
   }
 
   private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
-    if(classLoader is URLClassLoader) {
+    if (classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
       val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
       consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)
@@ -175,31 +164,28 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
   }
 }
 
-private fun buildModelsAndMap(
-  buildModel: GradleBuild,
-  controller: BuildController
-): BuildModelsAndMap {
+private fun buildModelsAndMap(buildModel: GradleBuild, controller: BuildController): BuildModelsAndMap {
   val gradleSupportsBuildSrcAsCompositeMember = checkGradleVersionIsAtLeast(controller, buildModel, GradleVersion.version("8.0"))
   val buildModels =
     flattenDag(
-      root = buildModel,
-      getId = { it.buildIdentifier.rootDir },
-      getChildren = {
-        runCatching {
-          if (gradleSupportsBuildSrcAsCompositeMember) {
-            val builds = it.editableBuilds.all
-            if (builds.isEmpty()) {
-              it.includedBuilds.all
+        root = buildModel,
+        getId = { it.buildIdentifier.rootDir },
+        getChildren = {
+          runCatching {
+              if (gradleSupportsBuildSrcAsCompositeMember) {
+                val builds = it.editableBuilds.all
+                if (builds.isEmpty()) {
+                  it.includedBuilds.all
+                } else {
+                  builds
+                }
+              } else {
+                it.includedBuilds.all
+              }
             }
-            else {
-              builds
-            }
-          } else {
-            it.includedBuilds.all
-          }
-        }.getOrDefault(/* old Gradle? */ emptyList())
-      }
-    )
+            .getOrDefault(/* old Gradle? */ emptyList())
+        },
+      )
       .toSet()
   val buildMap = buildCompositeBuildMap(controller, buildModel, buildModels)
   return BuildModelsAndMap(buildModels, buildMap)
@@ -208,41 +194,40 @@ private fun buildModelsAndMap(
 private fun buildCompositeBuildMap(
   controller: BuildController,
   buildModel: GradleBuild,
-  buildModels: Set<GradleBuild>
+  buildModels: Set<GradleBuild>,
 ): IdeCompositeBuildMapImpl {
   val gradleSupportsDirectTaskInvocationInComposites = checkGradleVersionIsAtLeast(controller, buildModel, GradleVersion.version("6.8"))
   return IdeCompositeBuildMapImpl(
-    builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
-      buildModels
-        .mapNotNull { build -> controller.findModel(build.rootProject, BuildMap::class.java) }
-        .flatMap { buildNames -> buildNames.buildIdMap.entries.map { IdeBuildImpl(it.key, it.value) } }
-        .distinct(),
-    gradleSupportsDirectTaskInvocation = gradleSupportsDirectTaskInvocationInComposites
+    builds =
+      listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
+        buildModels
+          .mapNotNull { build -> controller.findModel(build.rootProject, BuildMap::class.java) }
+          .flatMap { buildNames -> buildNames.buildIdMap.entries.map { IdeBuildImpl(it.key, it.value) } }
+          .distinct(),
+    gradleSupportsDirectTaskInvocation = gradleSupportsDirectTaskInvocationInComposites,
   )
 }
 
-private fun checkGradleVersionIsAtLeast(controller: BuildController,
-                                        buildModel: GradleBuild,
-                                        version: GradleVersion): Boolean {
-  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
-                         ?: error("Cannot get BuildEnvironment model")
+private fun checkGradleVersionIsAtLeast(controller: BuildController, buildModel: GradleBuild, version: GradleVersion): Boolean {
+  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java) ?: error("Cannot get BuildEnvironment model")
   val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
   return parsedGradleVersion >= version
 }
 
-private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
-  val seen = HashSet<Any>()
-  val queue = ArrayDeque(listOf(root))
+private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> =
+  sequence {
+      val seen = HashSet<Any>()
+      val queue = ArrayDeque(listOf(root))
 
-  while (queue.isNotEmpty()) {
-    val item = queue.removeFirst()
-    if (seen.add(getId(item))) {
-      queue.addAll(getChildren(item))
-      yield(item)
+      while (queue.isNotEmpty()) {
+        val item = queue.removeFirst()
+        if (seen.add(getId(item))) {
+          queue.addAll(getChildren(item))
+          yield(item)
+        }
+      }
     }
-  }
-}
-  .toList()
+    .toList()
 
 private fun writeStatsToFile(directory: String, syncCounters: SyncCounters) {
   File(directory).resolve("${Instant.now().toEpochMilli()}_sync_stats").writeText(syncCounters.toString())

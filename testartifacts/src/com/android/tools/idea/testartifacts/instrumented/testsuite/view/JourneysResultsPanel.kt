@@ -45,8 +45,7 @@ import javax.swing.JPanel
 
 class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()) {
 
-  private val journeyArtifacts: MutableState<List<JourneyActionArtifacts>> =
-    mutableStateOf(emptyList())
+  private val journeyArtifacts: MutableState<List<JourneyActionArtifacts>> = mutableStateOf(emptyList())
   private val shouldResetScroll: MutableState<Boolean> = mutableStateOf(false)
 
   init {
@@ -84,10 +83,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
               )
             }
           }
-          VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(listState),
-            modifier = Modifier.fillMaxHeight(),
-          )
+          VerticalScrollbar(adapter = rememberScrollbarAdapter(listState), modifier = Modifier.fillMaxHeight())
         }
       },
       BorderLayout.CENTER,
@@ -102,9 +98,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
     journeyArtifacts.value = artifacts
   }
 
-  private fun List<JourneyActionArtifacts>.contentEquals(
-    other: List<JourneyActionArtifacts>
-  ): Boolean {
+  private fun List<JourneyActionArtifacts>.contentEquals(other: List<JourneyActionArtifacts>): Boolean {
     if (this.size != other.size) return false
     return this.zip(other).all { (a, b) -> a == b }
   }
@@ -112,12 +106,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
   private fun openImageInEditor(imageFile: File) {
     val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(imageFile)
     if (virtualFile == null) {
-      JOptionPane.showMessageDialog(
-        this,
-        "Image file not found: " + imageFile.absolutePath,
-        "Error",
-        JOptionPane.ERROR_MESSAGE,
-      )
+      JOptionPane.showMessageDialog(this, "Image file not found: " + imageFile.absolutePath, "Error", JOptionPane.ERROR_MESSAGE)
       return
     }
 

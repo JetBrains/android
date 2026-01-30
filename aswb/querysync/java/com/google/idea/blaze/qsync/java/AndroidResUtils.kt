@@ -17,35 +17,20 @@ package com.google.idea.blaze.qsync.java
 
 import java.nio.file.Path
 
-/**
- * Utility for identifying Android resource directories.
- */
+/** Utility for identifying Android resource directories. */
 object AndroidResUtils {
   /**
-   * Standard Android resource directory prefixes.
-   * See https://developer.android.com/guide/topics/resources/providing-resources#ResourceTypes
+   * Standard Android resource directory prefixes. See
+   * https://developer.android.com/guide/topics/resources/providing-resources#ResourceTypes
    */
-  private val RESOURCE_TYPES = setOf(
-    "anim",
-    "animator",
-    "color",
-    "drawable",
-    "font",
-    "layout",
-    "menu",
-    "mipmap",
-    "navigation",
-    "raw",
-    "transition",
-    "values",
-    "xml"
-  )
+  private val RESOURCE_TYPES =
+    setOf("anim", "animator", "color", "drawable", "font", "layout", "menu", "mipmap", "navigation", "raw", "transition", "values", "xml")
 
   /**
    * Identifies Android resource roots from a collection of file paths.
    *
-   * A file is identified as a resource if its immediate parent directory matches
-   * a standard Android resource type (e.g., `values`, `layout`).
+   * A file is identified as a resource if its immediate parent directory matches a standard Android resource type (e.g., `values`,
+   * `layout`).
    *
    * Following AAPT2 structure: `path/resource-type[-config]/file`
    */

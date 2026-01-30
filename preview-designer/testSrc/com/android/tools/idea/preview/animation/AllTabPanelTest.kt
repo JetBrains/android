@@ -51,13 +51,7 @@ class AllTabPanelTest {
   @Before
   fun setUp() {
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
     surface.addModelsWithoutRender(listOf(model))
@@ -78,12 +72,9 @@ class AllTabPanelTest {
 
   @Test
   fun `add and remove cards`() {
-    val cardOne =
-      AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
-    val cardTwo =
-      AnimationCard(surface, "Two", emptyList(), NoopAnimationTracker).apply { setDuration(222) }
-    val cardThree =
-      AnimationCard(surface, "Three", emptyList(), NoopAnimationTracker).apply { setDuration(333) }
+    val cardOne = AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
+    val cardTwo = AnimationCard(surface, "Two", emptyList(), NoopAnimationTracker).apply { setDuration(222) }
+    val cardThree = AnimationCard(surface, "Three", emptyList(), NoopAnimationTracker).apply { setDuration(333) }
 
     panel.apply { setSize(1000, 800) }
 
@@ -157,12 +148,9 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui`() {
-    val cardOne =
-      AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
-    val cardTwo =
-      AnimationCard(surface, "Two", emptyList(), NoopAnimationTracker).apply { setDuration(222) }
-    val cardThree =
-      AnimationCard(surface, "Three", emptyList(), NoopAnimationTracker).apply { setDuration(333) }
+    val cardOne = AnimationCard(surface, "One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
+    val cardTwo = AnimationCard(surface, "Two", emptyList(), NoopAnimationTracker).apply { setDuration(222) }
+    val cardThree = AnimationCard(surface, "Three", emptyList(), NoopAnimationTracker).apply { setDuration(333) }
 
     panel.apply {
       setSize(1000, 800)
@@ -184,18 +172,9 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui with mixed cards`() {
-    val cardOne =
-      AnimationCard(surface, "AnimationCard One", emptyList(), NoopAnimationTracker).apply {
-        setDuration(111)
-      }
-    val cardTwo =
-      AnimationCard(surface, "AnimationCard Two", emptyList(), NoopAnimationTracker).apply {
-        setDuration(222)
-      }
-    val cardThree =
-      AnimationCard(surface, "AnimationCard Three", emptyList(), NoopAnimationTracker).apply {
-        setDuration(333)
-      }
+    val cardOne = AnimationCard(surface, "AnimationCard One", emptyList(), NoopAnimationTracker).apply { setDuration(111) }
+    val cardTwo = AnimationCard(surface, "AnimationCard Two", emptyList(), NoopAnimationTracker).apply { setDuration(222) }
+    val cardThree = AnimationCard(surface, "AnimationCard Three", emptyList(), NoopAnimationTracker).apply { setDuration(333) }
     val labelCardOne = LabelCard("LabelCard One")
     val labelCardTwo = LabelCard("LabelCard Two")
     val labelCardThree = LabelCard("LabelCard Three)")
@@ -229,11 +208,7 @@ class AllTabPanelTest {
       addTimeline(TestUtils.createTimelinePlaceHolder())
     }
     for (i in 0..10) {
-      panel.addCard(
-        AnimationCard(surface, "card $i", emptyList(), NoopAnimationTracker).apply {
-          setDuration(i * 10)
-        }
-      )
+      panel.addCard(AnimationCard(surface, "card $i", emptyList(), NoopAnimationTracker).apply { setDuration(i * 10) })
     }
 
     ApplicationManager.getApplication().invokeAndWait {
@@ -262,11 +237,7 @@ class AllTabPanelTest {
       addTimeline(TestUtils.createTimelinePlaceHolder())
     }
     for (i in 0..10) {
-      panel.addCard(
-        AnimationCard(surface, "card $i", emptyList(), NoopAnimationTracker).apply {
-          setDuration(i * 10)
-        }
-      )
+      panel.addCard(AnimationCard(surface, "card $i", emptyList(), NoopAnimationTracker).apply { setDuration(i * 10) })
     }
 
     ApplicationManager.getApplication().invokeAndWait {
@@ -314,11 +285,8 @@ class AllTabPanelTest {
 
   /** First panel inside splitter of [AllTabPanel]. */
   private val AllTabPanel.scrollableCardsPanel
-    get() =
-      ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent
-        as JBScrollPane
+    get() = ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent as JBScrollPane
 
   /** Returns the amount of cards in the [scrollableCardsPanel]. */
-  private fun AllTabPanel.getNumberOfCards() =
-    (scrollableCardsPanel.viewport.components[0] as JPanel).componentCount
+  private fun AllTabPanel.getNumberOfCards() = (scrollableCardsPanel.viewport.components[0] as JPanel).componentCount
 }

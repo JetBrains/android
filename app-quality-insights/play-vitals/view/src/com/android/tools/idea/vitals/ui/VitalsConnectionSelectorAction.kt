@@ -39,10 +39,7 @@ class VitalsConnectionSelectorAction(
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.setText(
-      flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "No apps available",
-      false,
-    )
+    e.presentation.setText(flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "No apps available", false)
     e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 

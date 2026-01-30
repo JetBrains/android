@@ -34,18 +34,18 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.ui.NamedColorUtil
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyBuildIssue
 import java.io.File
 import java.util.function.Consumer
 import java.util.regex.Pattern
 import kotlin.math.max
 import kotlin.text.startsWith
 import kotlin.text.trimStart
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyBuildIssue
 
 abstract class GradleBuildFailureParser(
   val failureHandlers: List<FailureDetailsHandler>,
-  val knownIssuesCheckers: List<GradleIssueChecker>
+  val knownIssuesCheckers: List<GradleIssueChecker>,
 ) : BuildOutputParser {
 
   class ParsedFailureDetails {
@@ -54,43 +54,60 @@ abstract class GradleBuildFailureParser(
     private val trySection = mutableListOf<String>()
     private val exceptionSection = mutableListOf<String>()
 
-    val headerToSection = mapOf(
-      "* Where:" to whereSection,
-      "* What went wrong:" to whatWentWrongSection,
-      "* Try:" to trySection,
-      "* Exception is:" to exceptionSection,
-    )
+    val headerToSection =
+      mapOf(
+        "* Where:" to whereSection,
+        "* What went wrong:" to whatWentWrongSection,
+        "* Try:" to trySection,
+        "* Exception is:" to exceptionSection,
+      )
 
-    val whereSectionLines: List<String> get() = whereSection
-    val whatWentWrongSectionLines: List<String> get() = whatWentWrongSection
-    val whatWentWrongSectionText: String get() = whatWentWrongSection.joinToString(separator = "\n").trim()
-    val trySectionText: String get() = trySection.joinToString(separator = "\n").trim()
-    val exceptionSectionText: String get() = exceptionSection.joinToString(separator = "\n").trim()
+    val whereSectionLines: List<String>
+      get() = whereSection
 
-    val locationLine: String? get() = whereSectionLines.firstOrNull()
-    private val filter: GradleConsoleFilter? get() {
-      val locationLine = locationLine ?: return null
-      return GradleConsoleFilter(null)
-        .takeIf { it.applyFilter(locationLine, locationLine.length) != null }
-    }
-    val location: FilePosition? get() = filter?.let { fileFilter ->
-      FilePosition(File(fileFilter.filteredFileName), fileFilter.filteredLineNumber - 1, 0)
-    }
-    val description: String get() = buildString {
-      if (!locationLine.isNullOrBlank()) {
-        appendLine(locationLine).appendLine()
+    val whatWentWrongSectionLines: List<String>
+      get() = whatWentWrongSection
+
+    val whatWentWrongSectionText: String
+      get() = whatWentWrongSection.joinToString(separator = "\n").trim()
+
+    val trySectionText: String
+      get() = trySection.joinToString(separator = "\n").trim()
+
+    val exceptionSectionText: String
+      get() = exceptionSection.joinToString(separator = "\n").trim()
+
+    val locationLine: String?
+      get() = whereSectionLines.firstOrNull()
+
+    private val filter: GradleConsoleFilter?
+      get() {
+        val locationLine = locationLine ?: return null
+        return GradleConsoleFilter(null).takeIf { it.applyFilter(locationLine, locationLine.length) != null }
       }
-      append(whatWentWrongSectionText)
-    }
 
-    val reasonLine: String get() = whatWentWrongSectionLines
-      .lastOrNull { it.trimStart().startsWith("> ") }
-      ?.substringAfter("> ")?.trimEnd('.')
-      ?: whatWentWrongSectionLines.first()
+    val location: FilePosition?
+      get() = filter?.let { fileFilter -> FilePosition(File(fileFilter.filteredFileName), fileFilter.filteredLineNumber - 1, 0) }
 
-    val taskName: String? get() = whatWentWrongSectionLines.firstOrNull { it.startsWith("Execution failed for task '") }
-      ?.substringAfter("Execution failed for task '")
-      ?.substringBefore("'.")
+    val description: String
+      get() = buildString {
+        if (!locationLine.isNullOrBlank()) {
+          appendLine(locationLine).appendLine()
+        }
+        append(whatWentWrongSectionText)
+      }
+
+    val reasonLine: String
+      get() =
+        whatWentWrongSectionLines.lastOrNull { it.trimStart().startsWith("> ") }?.substringAfter("> ")?.trimEnd('.')
+          ?: whatWentWrongSectionLines.first()
+
+    val taskName: String?
+      get() =
+        whatWentWrongSectionLines
+          .firstOrNull { it.startsWith("Execution failed for task '") }
+          ?.substringAfter("Execution failed for task '")
+          ?.substringBefore("'.")
   }
 
   interface FailureDetailsHandler {
@@ -98,15 +115,11 @@ abstract class GradleBuildFailureParser(
       failure: ParsedFailureDetails,
       location: FilePosition?,
       parentEventId: Any,
-      messageConsumer: Consumer<in BuildEvent>
+      messageConsumer: Consumer<in BuildEvent>,
     ): Boolean
   }
 
-  protected fun processErrorMessage(
-    parentId: Any,
-    parsedMessage: ParsedFailureDetails,
-    messageConsumer: Consumer<in BuildEvent>
-  ): Boolean {
+  protected fun processErrorMessage(parentId: Any, parsedMessage: ParsedFailureDetails, messageConsumer: Consumer<in BuildEvent>): Boolean {
     val trySuggestions = parsedMessage.trySectionText
     val exception = parsedMessage.exceptionSectionText
     val filePosition = parsedMessage.location
@@ -141,28 +154,26 @@ abstract class GradleBuildFailureParser(
     }
 
     if (filePosition != null) {
-      messageConsumer.accept(object : FileMessageEventImpl(
-        parentId, MessageEvent.Kind.ERROR, null, reasonLine, detailedMessage.toString(), filePosition), DuplicateMessageAware {} //NON-NLS
+      messageConsumer.accept(
+        object :
+          FileMessageEventImpl(parentId, MessageEvent.Kind.ERROR, null, reasonLine, detailedMessage.toString(), filePosition),
+          DuplicateMessageAware {} // NON-NLS
       )
-    }
-    else {
+    } else {
       val unresolvedMessageEvent = checkUnresolvedDependencyError(reasonLine, errorText, parentId)
       if (unresolvedMessageEvent != null) {
         messageConsumer.accept(unresolvedMessageEvent)
-      }
-      else {
-        messageConsumer.accept(object : MessageEventImpl(parentId, MessageEvent.Kind.ERROR, null, reasonLine,
-                                                         detailedMessage.toString()), DuplicateMessageAware {}) //NON-NLS
+      } else {
+        messageConsumer.accept(
+          object :
+            MessageEventImpl(parentId, MessageEvent.Kind.ERROR, null, reasonLine, detailedMessage.toString()), DuplicateMessageAware {}
+        ) // NON-NLS
       }
     }
     return true
   }
 
-  protected open fun handleCompilationFailure(
-    parentId: Any,
-    errorText: String,
-    messageConsumer: Consumer<in BuildEvent>
-  ) {
+  protected open fun handleCompilationFailure(parentId: Any, errorText: String, messageConsumer: Consumer<in BuildEvent>) {
     // In GradleBuildScriptErrorParser in case of single failure parsing is just aborted
     // giving chance to other compilation parsers to parse the following lines.
     // However, this is wrong to do, there are two reasons:
@@ -176,7 +187,7 @@ abstract class GradleBuildFailureParser(
     val reader = LinesBuildOutputInstantReader(errorText, parentId)
     while (true) {
       val line = reader.readLine() ?: return
-      if(parser.parse(line, reader, messageConsumer)) return
+      if (parser.parse(line, reader, messageConsumer)) return
     }
   }
 
@@ -185,13 +196,14 @@ abstract class GradleBuildFailureParser(
     val couldNotFindPrefix = "Could not find "
     val cannotResolvePrefix = "Cannot resolve external dependency "
     val cannotDownloadPrefix = "Could not download "
-    val prefix = when {
-                   reason.startsWith(noCachedVersionPrefix) -> noCachedVersionPrefix
-                   reason.startsWith(couldNotFindPrefix) -> couldNotFindPrefix
-                   reason.startsWith(cannotResolvePrefix) -> cannotResolvePrefix
-                   reason.startsWith(cannotDownloadPrefix) -> cannotDownloadPrefix
-                   else -> null
-                 } ?: return null
+    val prefix =
+      when {
+        reason.startsWith(noCachedVersionPrefix) -> noCachedVersionPrefix
+        reason.startsWith(couldNotFindPrefix) -> couldNotFindPrefix
+        reason.startsWith(cannotResolvePrefix) -> cannotResolvePrefix
+        reason.startsWith(cannotDownloadPrefix) -> cannotDownloadPrefix
+        else -> null
+      } ?: return null
     val indexOfSuffix = reason.indexOf(" available for offline mode")
     val dependencyName = if (indexOfSuffix > 0) reason.substring(prefix.length, indexOfSuffix) else reason.substring(prefix.length)
     val unresolvedDependencyIssue = UnresolvedDependencyBuildIssue(dependencyName, description, indexOfSuffix > 0)
@@ -199,9 +211,8 @@ abstract class GradleBuildFailureParser(
   }
 
   /**
-   * Copy of GradleConsoleFilter in org.jetbrains.plugins.gradle.execution (revision
-   * ff7e3e097c65956cd94769488b9f4bbb8b06ca6d), migrated to Kotlin.
-   * TODO (b/362959090): submit to IJ and remove
+   * Copy of GradleConsoleFilter in org.jetbrains.plugins.gradle.execution (revision ff7e3e097c65956cd94769488b9f4bbb8b06ca6d), migrated to
+   * Kotlin. TODO (b/362959090): submit to IJ and remove
    */
   private class GradleConsoleFilter(private val myProject: Project?) : Filter {
     var filteredFileName: String? = null
@@ -257,8 +268,7 @@ abstract class GradleBuildFailureParser(
 
       val fileName = fileAndLineNumber.substring(0, linePrefixIndex)
       this.filteredFileName = fileName
-      var lineNumberStr =
-        fileAndLineNumber.substring(linePrefixIndex + linePrefix.length).trim { it <= ' ' }
+      var lineNumberStr = fileAndLineNumber.substring(linePrefixIndex + linePrefix.length).trim { it <= ' ' }
       var lineNumberEndIndex = 0
       for (i in 0..<lineNumberStr.length) {
         if (Character.isDigit(lineNumberStr.get(i))) {
@@ -281,8 +291,7 @@ abstract class GradleBuildFailureParser(
         return null
       }
 
-      val file =
-        LocalFileSystem.getInstance().findFileByPath(fileName.replace(File.separatorChar, '/'))
+      val file = LocalFileSystem.getInstance().findFileByPath(fileName.replace(File.separatorChar, '/'))
       if (file == null) {
         return null
       }
@@ -302,9 +311,7 @@ abstract class GradleBuildFailureParser(
         info = OpenFileHyperlinkInfo(myProject, file, max(lineNumber - 1, 0), columnNumber)
       }
       val attributes = HYPERLINK_ATTRIBUTES.clone()
-      if (
-        myProject != null && !ProjectRootManager.getInstance(myProject).fileIndex.isInContent(file)
-      ) {
+      if (myProject != null && !ProjectRootManager.getInstance(myProject).fileIndex.isInContent(file)) {
         val color = NamedColorUtil.getInactiveTextColor()
         attributes.foregroundColor = color
         attributes.effectColor = color
@@ -316,9 +323,7 @@ abstract class GradleBuildFailureParser(
       val LINE_AND_COLUMN_PATTERN: Pattern = Pattern.compile("line (\\d+), column (\\d+)\\.")
 
       private val HYPERLINK_ATTRIBUTES: TextAttributes =
-        EditorColorsManager.getInstance()
-          .globalScheme
-          .getAttributes(CodeInsightColors.HYPERLINK_ATTRIBUTES)
+        EditorColorsManager.getInstance().globalScheme.getAttributes(CodeInsightColors.HYPERLINK_ATTRIBUTES)
     }
   }
 }

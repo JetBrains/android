@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.google.common.truth.Truth.assertThat
+import java.time.Duration
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,11 +30,8 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Duration
 
-/**
- * Unit tests for [AndroidTestResults].
- */
+/** Unit tests for [AndroidTestResults]. */
 @RunWith(JUnit4::class)
 class AndroidTestResultsTest {
 
@@ -90,9 +88,8 @@ class AndroidTestResultsTest {
   }
 }
 
-class TestAndroidTestResults(override val methodName: String,
-                             override val className: String,
-                             override val packageName: String) : AndroidTestResults {
+class TestAndroidTestResults(override val methodName: String, override val className: String, override val packageName: String) :
+  AndroidTestResults {
   override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
 
   override fun getTestResultSummary(): AndroidTestCaseResult {

@@ -90,10 +90,7 @@ class RuleDetailsView(
   }
 
   private fun updateRuleInfo(detailsPanel: ScrollablePanel, rule: RuleData) {
-    val namePanel =
-      textFieldWithWarning(rule.name, "Enter rule name", "name", { validateRuleName(it, rule) }) {
-        rule.name = it
-      }
+    val namePanel = textFieldWithWarning(rule.name, "Enter rule name", "name", { validateRuleName(it, rule) }) { rule.name = it }
     val nameCategoryPanel = createCategoryPanel(null, JBLabel("Name:") to namePanel)
     detailsPanel.add(nameCategoryPanel)
 
@@ -103,22 +100,16 @@ class RuleDetailsView(
 
     val validator: (ListTableModel<TransformationRuleData>) -> String? = { model ->
       val string = buildString {
-        (1 until model.columnCount).forEach { col ->
-          repeat(model.rowCount) { row -> append(model.getValueAt(row, col)) }
-        }
+        (1 until model.columnCount).forEach { col -> repeat(model.rowCount) { row -> append(model.getValueAt(row, col)) } }
       }
       validateVariables(string)
     }
 
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Header rules"))
-    detailsPanel.add(
-      ruleTableWithWarning(rule.headerRuleTableModel, "headerRules", usageTracker, validator)
-    )
+    detailsPanel.add(ruleTableWithWarning(rule.headerRuleTableModel, "headerRules", usageTracker, validator))
 
     @Suppress("DialogTitleCapitalization") detailsPanel.add(TitledSeparator("Body rules"))
-    detailsPanel.add(
-      ruleTableWithWarning(rule.bodyRuleTableModel, "bodyRules", usageTracker, validator)
-    )
+    detailsPanel.add(ruleTableWithWarning(rule.bodyRuleTableModel, "bodyRules", usageTracker, validator))
 
     TreeWalker(detailsPanel).descendantStream().forEach { (it as? JComponent)?.isOpaque = false }
     detailsPanel.background = primaryContentBackground
@@ -167,8 +158,7 @@ class RuleDetailsView(
           warning
         },
       ) {
-        data.isActive =
-          doReplace.isSelected && !parent.findDescendantByName("newCodeWarningLabel").isVisible
+        data.isActive = doReplace.isSelected && !parent.findDescendantByName("newCodeWarningLabel").isVisible
         if (data.findCode != it) {
           data.findCode = it
           usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
@@ -187,8 +177,7 @@ class RuleDetailsView(
           warning
         },
       ) {
-        data.isActive =
-          doReplace.isSelected && !parent.findDescendantByName("findCodeWarningLabel").isVisible
+        data.isActive = doReplace.isSelected && !parent.findDescendantByName("findCodeWarningLabel").isVisible
         if (data.newCode != it) {
           data.newCode = it
           usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
@@ -238,12 +227,7 @@ class RuleDetailsView(
       }
 
     val urlPanel =
-      textFieldWithWarning(
-        criteria.host,
-        "www.google.com",
-        "url",
-        { validateHostInput(protocolComboBox.selectedItem as Protocol, it) },
-      ) {
+      textFieldWithWarning(criteria.host, "www.google.com", "url", { validateHostInput(protocolComboBox.selectedItem as Protocol, it) }) {
         if (criteria.host != it) {
           criteria.host = it
           usageTracker.trackRuleUpdated(InterceptionCriteria.URL_HOST)
@@ -324,10 +308,7 @@ class RuleDetailsView(
     return intInput in lowerBound..upperBound
   }
 
-  /**
-   * Validate the input in text field to be a valid host. Compare the host field of the `url]` to
-   * the [host].
-   */
+  /** Validate the input in text field to be a valid host. Compare the host field of the `url]` to the [host]. */
   private fun validateHostInput(protocol: Protocol, host: String): String? {
     val warning = validateVariables(host)
     if (warning != null) {
@@ -345,11 +326,7 @@ class RuleDetailsView(
 
   private fun validateVariables(value: String): String? {
     val names = ruleVariables.mapTo(hashSetOf()) { it.name }
-    val invalidArgs =
-      VARIABLE_REGEX.findAll(value)
-        .map { it.groupValues[1] }
-        .filter { !names.contains(it) }
-        .toList()
+    val invalidArgs = VARIABLE_REGEX.findAll(value).map { it.groupValues[1] }.filter { !names.contains(it) }.toList()
     if (invalidArgs.isEmpty()) {
       return null
     }
@@ -369,8 +346,7 @@ class RuleDetailsView(
     name: String,
     usageTracker: NetworkInspectorTracker,
     validate: (ListTableModel<TransformationRuleData>) -> String?,
-  ): RuleTableWithWarning =
-    RuleTableWithWarning(model, name, usageTracker, validate).also { validators.add(it) }
+  ): RuleTableWithWarning = RuleTableWithWarning(model, name, usageTracker, validate).also { validators.add(it) }
 }
 
 private fun Container.findDescendantByName(name: String): Component {

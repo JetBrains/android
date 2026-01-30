@@ -18,19 +18,13 @@ package com.android.tools.idea.device.explorer.files.fs
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 
-/**
- * Progress indicator for downloading multiple entries from a device.
- */
+/** Progress indicator for downloading multiple entries from a device. */
 interface DownloadProgress {
-  @AnyThread
-  fun isCancelled(): Boolean
+  @AnyThread fun isCancelled(): Boolean
 
-  @UiThread
-  fun onStarting(entryFullPath: String)
+  @UiThread fun onStarting(entryFullPath: String)
 
-  @UiThread
-  fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long)
+  @UiThread fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long)
 
-  @UiThread
-  fun onCompleted(entryFullPath: String)
+  @UiThread fun onCompleted(entryFullPath: String)
 }

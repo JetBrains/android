@@ -35,9 +35,8 @@ import kotlinx.coroutines.guava.asDeferred
 /**
  * Action to build dependencies and enable analysis.
  *
- *
- * It can operate on a source file, BUILD file or package. See [ ][BuildGraphDataImpl.getProjectTargets] for a
- * description of what targets dependencies aren built for in each case.
+ * It can operate on a source file, BUILD file or package. See [ ][BuildGraphDataImpl.getProjectTargets] for a description of what targets
+ * dependencies aren built for in each case.
  */
 class BuildDependenciesAction : BlazeProjectAction() {
   override fun querySyncSupport(): QuerySyncStatus = QuerySyncStatus.REQUIRED
@@ -46,10 +45,12 @@ class BuildDependenciesAction : BlazeProjectAction() {
     val presentation = e.presentation
     presentation.setIcon(AllIcons.Actions.Compile)
     presentation.setText(if (e.place == ActionPlaces.MAIN_MENU) "$NAME for Current File" else NAME)
-    val vfs = e.getVirtualFiles() ?: let {
-      presentation.setEnabled(false)
-      return
-    }
+    val vfs =
+      e.getVirtualFiles()
+        ?: let {
+          presentation.setEnabled(false)
+          return
+        }
     val helper = BuildDependenciesHelper(project)
     // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
     // they should automatically trigger sync.
@@ -74,15 +75,11 @@ class BuildDependenciesAction : BlazeProjectAction() {
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
-      QuerySyncManager.getInstance(project)
-        .enableAnalysis(labels, querySyncActionStats, TaskOrigin.USER_ACTION)
-        .asDeferred()
+      QuerySyncManager.getInstance(project).enableAnalysis(labels, querySyncActionStats, TaskOrigin.USER_ACTION).asDeferred()
     }
   }
 
   companion object {
-    val NAME: String = UCharacter.toTitleCase(
-      Locale.US, QuerySync.BUILD_DEPENDENCIES_ACTION_NAME, BreakIterator.getWordInstance()
-    )
+    val NAME: String = UCharacter.toTitleCase(Locale.US, QuerySync.BUILD_DEPENDENCIES_ACTION_NAME, BreakIterator.getWordInstance())
   }
 }

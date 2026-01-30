@@ -23,8 +23,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 /** Action to simulate a back press while in interactive preview. */
-class BackNavigationAction() :
-  DumbAwareAction(message("action.navigate.back"), null, StudioIcons.Emulator.Toolbar.BACK) {
+class BackNavigationAction() : DumbAwareAction(message("action.navigate.back"), null, StudioIcons.Emulator.Toolbar.BACK) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -34,14 +33,9 @@ class BackNavigationAction() :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val selectedPreview =
-      e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value?.selected ?: return
+    val selectedPreview = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value?.selected ?: return
     val backPressDispatcher = selectedPreview.backPressedDispatcher ?: return
-    backPressDispatcher::class
-      .java
-      .declaredMethods
-      .single { it.name == "onBackPressed" }
-      .invoke(backPressDispatcher)
+    backPressDispatcher::class.java.declaredMethods.single { it.name == "onBackPressed" }.invoke(backPressDispatcher)
   }
 
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */

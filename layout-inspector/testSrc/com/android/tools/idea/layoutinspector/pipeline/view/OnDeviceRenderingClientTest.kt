@@ -63,8 +63,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testHandleSelectionEvent() = runTest {
-    val selectionEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
+    val selectionEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
 
     // Launch collector coroutine, these events are ephemeral so it needs to be started before
     // sending the event.
@@ -80,8 +79,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testHandleHoverEvent() = runTest {
-    val touchEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
+    val touchEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
 
     // Launch collector coroutine, these events are ephemeral so it needs to be started before
     // sending the event.
@@ -97,8 +95,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testHandleRightClickEvent() = runTest {
-    val rightClickEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
+    val rightClickEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
 
     // Launch collector coroutine, these events are ephemeral so it needs to be started before
     // sending the event.
@@ -114,8 +111,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testHandleDoubleClickEvent() = runTest {
-    val doubleClickEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.DOUBLE_CLICK)
+    val doubleClickEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.DOUBLE_CLICK)
 
     // Launch collector coroutine, these events are ephemeral so it needs to be started before
     // sending the event.
@@ -131,8 +127,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testOldSelectionEventsAreNotReceived() = runTest {
-    val selectionEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
+    val selectionEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)
 
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(selectionEventProto)
@@ -147,8 +142,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testOldHoverEventsAreNotReceived() = runTest {
-    val hoverEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
+    val hoverEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.HOVER)
 
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(hoverEventProto)
@@ -163,8 +157,7 @@ class OnDeviceRenderingClientTest {
 
   @Test
   fun testOldRightClickEventsAreNotReceived() = runTest {
-    val rightClickEventProto =
-      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
+    val rightClickEventProto = buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.RIGHT_CLICK)
 
     // Send event before the collector is started.
     onDeviceRenderingClient.handleEvent(rightClickEventProto)
@@ -218,14 +211,7 @@ class OnDeviceRenderingClientTest {
   @Test
   fun testDrawHoveredNode(): Unit = runTest {
     val drawInstructions =
-      DrawInstruction(
-        rootViewId = 1L,
-        bounds = Rectangle(),
-        color = 1,
-        label = null,
-        strokeThickness = 1f,
-        outlineColor = null,
-      )
+      DrawInstruction(rootViewId = 1L, bounds = Rectangle(), color = 1, label = null, strokeThickness = 1f, outlineColor = null)
     onDeviceRenderingClient.drawHoveredNode(drawInstructions)
 
     val expectedCommand =
@@ -245,14 +231,7 @@ class OnDeviceRenderingClientTest {
   @Test
   fun testDrawVisibleNodes(): Unit = runTest {
     val drawInstructions =
-      DrawInstruction(
-        rootViewId = 1L,
-        bounds = Rectangle(),
-        color = 1,
-        label = null,
-        strokeThickness = 1f,
-        outlineColor = null,
-      )
+      DrawInstruction(rootViewId = 1L, bounds = Rectangle(), color = 1, label = null, strokeThickness = 1f, outlineColor = null)
     onDeviceRenderingClient.drawVisibleNodes(listOf(drawInstructions))
 
     val expectedCommand =
@@ -272,14 +251,7 @@ class OnDeviceRenderingClientTest {
   @Test
   fun testDrawRecomposingNodes(): Unit = runTest {
     val drawInstructions =
-      DrawInstruction(
-        rootViewId = 1L,
-        bounds = Rectangle(),
-        color = 1,
-        label = null,
-        strokeThickness = 1f,
-        outlineColor = null,
-      )
+      DrawInstruction(rootViewId = 1L, bounds = Rectangle(), color = 1, label = null, strokeThickness = 1f, outlineColor = null)
     onDeviceRenderingClient.drawRecomposingNodes(listOf(drawInstructions))
 
     val expectedCommand =
@@ -377,10 +349,7 @@ class OnDeviceRenderingClientTest {
     val expectedCommand =
       Command.newBuilder()
         .apply {
-          interceptTouchEventsCommand =
-            LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder()
-              .setIntercept(true)
-              .build()
+          interceptTouchEventsCommand = LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder().setIntercept(true).build()
         }
         .build()
         .toByteArray()
@@ -397,8 +366,7 @@ class OnDeviceRenderingClientTest {
       Command.newBuilder()
         .apply {
           val byteString = ByteString.copyFrom(ByteArray(1))
-          drawOverlayCommand =
-            LayoutInspectorViewProtocol.DrawOverlayCommand.newBuilder().setImage(byteString).build()
+          drawOverlayCommand = LayoutInspectorViewProtocol.DrawOverlayCommand.newBuilder().setImage(byteString).build()
         }
         .build()
         .toByteArray()
@@ -430,10 +398,7 @@ class OnDeviceRenderingClientTest {
 
     val expectedCommand =
       Command.newBuilder()
-        .apply {
-          setOverlayAlphaCommand =
-            LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(1f).build()
-        }
+        .apply { setOverlayAlphaCommand = LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(1f).build() }
         .build()
         .toByteArray()
 

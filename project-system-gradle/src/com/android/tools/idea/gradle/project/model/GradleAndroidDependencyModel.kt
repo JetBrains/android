@@ -30,50 +30,43 @@ import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
-sealed interface GradleAndroidDependencyModel: GradleAndroidModel {
+sealed interface GradleAndroidDependencyModel : GradleAndroidModel {
   fun getArtifactForScreenshotTest(): IdeJavaArtifact?
+
   val selectedAndroidTestCompileDependencies: IdeDependencies?
   val mainArtifactWithDependencies: IdeAndroidArtifact
   val selectedVariantWithDependencies: IdeVariant
   val variantsWithDependencies: List<IdeVariant>
+
   fun getArtifactForAndroidTest(): IdeAndroidArtifact?
 
   companion object {
-    @JvmStatic
-    fun get(module: Module): GradleAndroidDependencyModel? =
-      AndroidModel.get(module) as? GradleAndroidDependencyModel
+    @JvmStatic fun get(module: Module): GradleAndroidDependencyModel? = AndroidModel.get(module) as? GradleAndroidDependencyModel
 
     @JvmStatic
-    fun get(androidFacet: AndroidFacet): GradleAndroidDependencyModel? =
-      AndroidModel.get(androidFacet) as? GradleAndroidDependencyModel
+    fun get(androidFacet: AndroidFacet): GradleAndroidDependencyModel? = AndroidModel.get(androidFacet) as? GradleAndroidDependencyModel
 
-    fun createWithSingleVariant(
-      coreModel: GradleAndroidModelImpl,
-      resolvedVariant: IdeVariantImpl
-    ): GradleAndroidDependencyModel = GradleAndroidDependencyModelImpl(coreModel, listOf(resolvedVariant))
+    fun createWithSingleVariant(coreModel: GradleAndroidModelImpl, resolvedVariant: IdeVariantImpl): GradleAndroidDependencyModel =
+      GradleAndroidDependencyModelImpl(coreModel, listOf(resolvedVariant))
 
     @JvmStatic
-    fun createWithAllVariants(
-      data: GradleAndroidModelData,
-      resolver: IdeLibraryModelResolverImpl,
-    ): GradleAndroidDependencyModel {
+    fun createWithAllVariants(data: GradleAndroidModelData, resolver: IdeLibraryModelResolverImpl): GradleAndroidDependencyModel {
       val coreModel = GradleAndroidModelImpl(data)
-      return GradleAndroidDependencyModelImpl(coreModel, coreModel.variants.map {
-        IdeVariantImpl(it, resolver)
-      })
+      return GradleAndroidDependencyModelImpl(coreModel, coreModel.variants.map { IdeVariantImpl(it, resolver) })
     }
   }
 }
 
 @VisibleForTesting
-class GradleAndroidDependencyModelImpl(
-  val coreModel: GradleAndroidModel,
-  resolvedVariants: List<IdeVariantImpl>
-): GradleAndroidDependencyModel, GradleAndroidModel by coreModel {
+class GradleAndroidDependencyModelImpl(val coreModel: GradleAndroidModel, resolvedVariants: List<IdeVariantImpl>) :
+  GradleAndroidDependencyModel, GradleAndroidModel by coreModel {
   private val resolvedVariantsByName = resolvedVariants.associateBy { it.name }
-  override val selectedVariantWithDependencies: IdeVariantImpl get () = resolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val selectedVariantWithDependencies: IdeVariantImpl
+    get() = resolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+
   override val variantsWithDependencies: List<IdeVariantImpl>
     get() = resolvedVariantsByName.values.toList()
+
   /** Returns the artifact used for instrumented testing. For test-only modules this is the main artifact. */
   override fun getArtifactForAndroidTest(): IdeAndroidArtifactImpl? {
     return when (androidProject.projectType) {
@@ -81,14 +74,17 @@ class GradleAndroidDependencyModelImpl(
       else -> selectedVariantWithDependencies.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     }
   }
+
   /** Returns the artifact used for screenshot testing. For screenshot test-only modules this is the main artifact. */
   override fun getArtifactForScreenshotTest(): IdeJavaArtifactImpl? {
     return selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
   }
 
-  override val selectedAndroidTestCompileDependencies: IdeDependencies? get() = getArtifactForAndroidTest()?.compileClasspath
+  override val selectedAndroidTestCompileDependencies: IdeDependencies?
+    get() = getArtifactForAndroidTest()?.compileClasspath
 
-  override val mainArtifactWithDependencies: IdeAndroidArtifactImpl get() = selectedVariantWithDependencies.mainArtifact
+  override val mainArtifactWithDependencies: IdeAndroidArtifactImpl
+    get() = selectedVariantWithDependencies.mainArtifact
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

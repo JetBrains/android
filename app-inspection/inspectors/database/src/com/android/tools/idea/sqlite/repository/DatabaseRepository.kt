@@ -50,24 +50,15 @@ import org.jetbrains.ide.PooledThreadExecutor
 
 /** Classed used to access the database */
 interface DatabaseRepository {
-  suspend fun addDatabaseConnection(
-    databaseId: SqliteDatabaseId,
-    databaseConnection: DatabaseConnection,
-  )
+  suspend fun addDatabaseConnection(databaseId: SqliteDatabaseId, databaseConnection: DatabaseConnection)
 
   suspend fun closeDatabase(databaseId: SqliteDatabaseId)
 
   suspend fun fetchSchema(databaseId: SqliteDatabaseId): SqliteSchema
 
-  fun runQuery(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<SqliteResultSet>
+  fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
 
-  fun executeStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit>
+  fun executeStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit>
 
   fun updateTable(
     databaseId: SqliteDatabaseId,
@@ -77,25 +68,14 @@ interface DatabaseRepository {
     newValue: SqliteValue,
   ): ListenableFuture<Unit>
 
-  fun removeRows(
-    databaseId: SqliteDatabaseId,
-    targetTable: SqliteTable,
-    targetRows: List<SqliteRow>,
-  ): ListenableFuture<Unit>
+  fun removeRows(databaseId: SqliteDatabaseId, targetTable: SqliteTable, targetRows: List<SqliteRow>): ListenableFuture<Unit>
 
-  fun selectOrdered(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-    orderBy: OrderBy,
-  ): ListenableFuture<SqliteResultSet>
+  fun selectOrdered(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement, orderBy: OrderBy): ListenableFuture<SqliteResultSet>
 
   suspend fun clear()
 }
 
-class DatabaseRepositoryImpl(
-  private val project: Project,
-  taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
-) : DatabaseRepository {
+class DatabaseRepositoryImpl(private val project: Project, taskExecutor: Executor = PooledThreadExecutor.INSTANCE) : DatabaseRepository {
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
   private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
   private val scope = AndroidCoroutineScope(parentDisposable, workerDispatcher)
@@ -136,13 +116,8 @@ class DatabaseRepositoryImpl(
     }
   }
 
-  override suspend fun addDatabaseConnection(
-    databaseId: SqliteDatabaseId,
-    databaseConnection: DatabaseConnection,
-  ) =
-    withContext(workerDispatcher) {
-      repositoryChannel.send(RepositoryActions.AddConnection(databaseId, databaseConnection))
-    }
+  override suspend fun addDatabaseConnection(databaseId: SqliteDatabaseId, databaseConnection: DatabaseConnection) =
+    withContext(workerDispatcher) { repositoryChannel.send(RepositoryActions.AddConnection(databaseId, databaseConnection)) }
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId) =
     withContext(workerDispatcher) {
@@ -157,19 +132,13 @@ class DatabaseRepositoryImpl(
       databaseConnection.readSchema().await()
     }
 
-  override fun runQuery(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<SqliteResultSet> =
+  override fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> =
     scope.future {
       val databaseConnection = getDatabaseConnection(databaseId)
       databaseConnection.query(sqliteStatement).await()
     }
 
-  override fun executeStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit> =
+  override fun executeStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> =
     scope.future {
       val databaseConnection = getDatabaseConnection(databaseId)
       databaseConnection.execute(sqliteStatement).await()
@@ -184,8 +153,7 @@ class DatabaseRepositoryImpl(
   ): ListenableFuture<Unit> =
     scope.future {
       val databaseConnection = getDatabaseConnection(databaseId)
-      val whereExpression =
-        getWhereExpression(targetTable, targetRow) ?: error("No primary keys or rowid column")
+      val whereExpression = getWhereExpression(targetTable, targetRow) ?: error("No primary keys or rowid column")
 
       val updateStatement =
         "UPDATE ${AndroidSqlLexer.getValidName(targetTable.name)} " +
@@ -193,21 +161,12 @@ class DatabaseRepositoryImpl(
           "WHERE ${whereExpression.expression}"
 
       withContext(uiThread) {
-        val sqliteStatement =
-          createSqliteStatement(
-            project,
-            updateStatement,
-            listOf(newValue) + whereExpression.parameters,
-          )
+        val sqliteStatement = createSqliteStatement(project, updateStatement, listOf(newValue) + whereExpression.parameters)
         withContext(workerDispatcher) { databaseConnection.execute(sqliteStatement).await() }
       }
     }
 
-  override fun removeRows(
-    databaseId: SqliteDatabaseId,
-    targetTable: SqliteTable,
-    targetRows: List<SqliteRow>,
-  ): ListenableFuture<Unit> =
+  override fun removeRows(databaseId: SqliteDatabaseId, targetTable: SqliteTable, targetRows: List<SqliteRow>): ListenableFuture<Unit> =
     scope.future {
       val databaseConnection = getDatabaseConnection(databaseId)
       val whereExpressions = targetRows.mapNotNull { getWhereExpression(targetTable, it) }
@@ -217,8 +176,7 @@ class DatabaseRepositoryImpl(
       val whereExpression = whereExpressions.joinToString(" OR ") { "(${it.expression})" }
       val whereParameters = whereExpressions.flatMap { it.parameters }
 
-      val statement =
-        "DELETE FROM ${AndroidSqlLexer.getValidName(targetTable.name)} " + "WHERE $whereExpression"
+      val statement = "DELETE FROM ${AndroidSqlLexer.getValidName(targetTable.name)} " + "WHERE $whereExpression"
 
       withContext(Dispatchers.EDT) {
         val sqliteStatement = createSqliteStatement(project, statement, whereParameters)
@@ -261,34 +219,23 @@ class DatabaseRepositoryImpl(
     }
 
   private fun getWhereExpression(targetTable: SqliteTable, targetRow: SqliteRow): WhereExpression? {
-    val rowIdColumnValue =
-      targetRow.values.firstOrNull { it.columnName == targetTable.rowIdName?.stringName }
+    val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == targetTable.rowIdName?.stringName }
 
     return if (rowIdColumnValue != null) {
       // use rowid
-      WhereExpression(
-        "${AndroidSqlLexer.getValidName(rowIdColumnValue.columnName)} = ?",
-        listOf(rowIdColumnValue.value),
-      )
+      WhereExpression("${AndroidSqlLexer.getValidName(rowIdColumnValue.columnName)} = ?", listOf(rowIdColumnValue.value))
     } else {
       // use primary key
-      val tablePrimaryKeyColumnNames =
-        targetTable.columns.filter { it.inPrimaryKey }.map { it.name }
-      val targetRowPrimaryKeyColumnNames =
-        targetRow.values.filter { it.columnName in tablePrimaryKeyColumnNames }
+      val tablePrimaryKeyColumnNames = targetTable.columns.filter { it.inPrimaryKey }.map { it.name }
+      val targetRowPrimaryKeyColumnNames = targetRow.values.filter { it.columnName in tablePrimaryKeyColumnNames }
 
-      if (
-        tablePrimaryKeyColumnNames.isEmpty() ||
-          tablePrimaryKeyColumnNames.size != targetRowPrimaryKeyColumnNames.size
-      ) {
+      if (tablePrimaryKeyColumnNames.isEmpty() || tablePrimaryKeyColumnNames.size != targetRowPrimaryKeyColumnNames.size) {
         return null
       }
 
       val parameters = targetRowPrimaryKeyColumnNames.map { it.value }
       val expression =
-        targetRowPrimaryKeyColumnNames.joinToString(separator = " AND ") {
-          "${AndroidSqlLexer.getValidName(it.columnName)} = ?"
-        }
+        targetRowPrimaryKeyColumnNames.joinToString(separator = " AND ") { "${AndroidSqlLexer.getValidName(it.columnName)} = ?" }
 
       WhereExpression(expression, parameters)
     }
@@ -298,29 +245,20 @@ class DatabaseRepositoryImpl(
     withContext(workerDispatcher) {
       val completableDeferred = CompletableDeferred<DatabaseConnection?>()
       repositoryChannel.send(RepositoryActions.GetConnection(databaseId, completableDeferred))
-      completableDeferred.await()
-        ?: throw DatabaseIdNotFoundException("Database '$databaseId not found")
+      completableDeferred.await() ?: throw DatabaseIdNotFoundException("Database '$databaseId not found")
     }
 
   private data class WhereExpression(val expression: String, val parameters: List<SqliteValue>)
 
   private sealed class RepositoryActions {
-    data class GetConnection(
-      val databaseId: SqliteDatabaseId,
-      val deferredConnection: CompletableDeferred<DatabaseConnection?>,
-    ) : RepositoryActions()
-
-    data class AddConnection(
-      val databaseId: SqliteDatabaseId,
-      val databaseConnection: DatabaseConnection,
-    ) : RepositoryActions()
-
-    data class CloseConnection(
-      val databaseId: SqliteDatabaseId,
-      val deferredDatabaseClosed: CompletableDeferred<Unit>,
-    ) : RepositoryActions()
-
-    data class CloseAllConnections(val deferredAllClosed: CompletableDeferred<Unit>) :
+    data class GetConnection(val databaseId: SqliteDatabaseId, val deferredConnection: CompletableDeferred<DatabaseConnection?>) :
       RepositoryActions()
+
+    data class AddConnection(val databaseId: SqliteDatabaseId, val databaseConnection: DatabaseConnection) : RepositoryActions()
+
+    data class CloseConnection(val databaseId: SqliteDatabaseId, val deferredDatabaseClosed: CompletableDeferred<Unit>) :
+      RepositoryActions()
+
+    data class CloseAllConnections(val deferredAllClosed: CompletableDeferred<Unit>) : RepositoryActions()
   }
 }

@@ -45,28 +45,23 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.quality.Strictness
 
-/**
- * Unit tests for [GradleAndroidTestRunConfigurationExecutor].
- */
+/** Unit tests for [GradleAndroidTestRunConfigurationExecutor]. */
 @RunWith(JUnit4::class)
 class GradleAndroidTestRunConfigurationExecutorTest {
-  @get:Rule
-  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
+  @get:Rule val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
 
-  @get:Rule
-  val usageTrackerRule = UsageTrackerRule()
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
-  @Mock
-  lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
+  @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
 
   private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
   private fun getEnv(executor: Executor): ExecutionEnvironment {
-    val configSettings = RunManager.getInstance(projectRule.project).createConfiguration("run test",
-                                                                                         AndroidTestRunConfigurationType.getInstance().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(projectRule.project)
+        .createConfiguration("run test", AndroidTestRunConfigurationType.getInstance().configurationFactories.single())
     val androidTestRunConfiguration = configSettings.configuration as AndroidTestRunConfiguration
     androidTestRunConfiguration.setModule(projectRule.module)
 
@@ -88,24 +83,33 @@ class GradleAndroidTestRunConfigurationExecutorTest {
   fun testTaskReturnsSuccessForAllInModuleTest() {
     val stats = RunStatsService.get(projectRule.project).create()
 
-    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance()).apply {
-      putUserData(RunStats.KEY, stats)
-    }
+    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance()).apply { putUserData(RunStats.KEY, stats) }
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
+    val executor =
+      object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
+        override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
+      }
 
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
     stats.success()
     assertTaskPresentedInStats(usageTrackerRule.usages, "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK")
 
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq(""), eq(""), eq(""),
-                                                                eq("testRegex"), any())
+    verify(mockGradleConnectedAndroidTestInvoker)
+      .runGradleTask(
+        eq(projectRule.project),
+        eq(listOf(device)),
+        eq("applicationId"),
+        any(),
+        any(), /*waitForDebugger*/
+        eq(false),
+        eq(""),
+        eq(""),
+        eq(""),
+        eq("testRegex"),
+        any(),
+      )
   }
 
   @Test
@@ -113,15 +117,26 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    val executor =
+      object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
+        override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
+      }
+    ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq("com.example.test"), eq(""), eq(""),
-                                                                eq(""), any())
+    verify(mockGradleConnectedAndroidTestInvoker)
+      .runGradleTask(
+        eq(projectRule.project),
+        eq(listOf(device)),
+        eq("applicationId"),
+        any(),
+        any(), /*waitForDebugger*/
+        eq(false),
+        eq("com.example.test"),
+        eq(""),
+        eq(""),
+        eq(""),
+        any(),
+      )
   }
 
   @Test
@@ -129,15 +144,26 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    val executor =
+      object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
+        override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
+      }
+    ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq(""),
-                                                                eq("com.example.test.TestClass"), eq(""), eq(""), any())
+    verify(mockGradleConnectedAndroidTestInvoker)
+      .runGradleTask(
+        eq(projectRule.project),
+        eq(listOf(device)),
+        eq("applicationId"),
+        any(),
+        any(), /*waitForDebugger*/
+        eq(false),
+        eq(""),
+        eq("com.example.test.TestClass"),
+        eq(""),
+        eq(""),
+        any(),
+      )
   }
 
   @Test
@@ -145,14 +171,25 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
-      override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
-    }
-    ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    val executor =
+      object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
+        override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
+      }
+    ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
-    verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
-                                                                any(),/*waitForDebugger*/ eq(false), eq(""),
-                                                                eq("com.example.test.TestClass"), eq("testMethod"), eq(""), any())
+    verify(mockGradleConnectedAndroidTestInvoker)
+      .runGradleTask(
+        eq(projectRule.project),
+        eq(listOf(device)),
+        eq("applicationId"),
+        any(),
+        any(), /*waitForDebugger*/
+        eq(false),
+        eq(""),
+        eq("com.example.test.TestClass"),
+        eq("testMethod"),
+        eq(""),
+        any(),
+      )
   }
 }

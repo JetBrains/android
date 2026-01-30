@@ -34,13 +34,9 @@ class ResolutionStackEditorProvider(
   private val baseTypeProvider = BaseTypeProvider(controlTypeProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, baseTypeProvider)
   private val resolutionStackModel = ResolutionStackModel(model)
-  private val linkEditorTypes =
-    listOf(PropertyType.LAMBDA, PropertyType.FUNCTION_REFERENCE, PropertyType.SHOW_MORE_LINK)
+  private val linkEditorTypes = listOf(PropertyType.LAMBDA, PropertyType.FUNCTION_REFERENCE, PropertyType.SHOW_MORE_LINK)
 
-  override fun createEditor(
-    property: InspectorPropertyItem,
-    context: EditorContext,
-  ): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: InspectorPropertyItem, context: EditorContext): Pair<PropertyEditorModel, JComponent> {
     // Use EditorContext.TABLE_RENDERER such that text will always be rendered as a PropertyLabel.
     // This will eliminate flickering from the table row being resized when a PropertyTextField is
     // used for editing.
@@ -64,9 +60,8 @@ class ResolutionStackEditorProvider(
  *
  * This [ControlTypeProvider] will produce the [ControlType] of the base editor.
  */
-private class BaseTypeProvider(
-  private val controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
-) : ControlTypeProvider<InspectorPropertyItem> {
+private class BaseTypeProvider(private val controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>) :
+  ControlTypeProvider<InspectorPropertyItem> {
 
   override fun invoke(property: InspectorPropertyItem): ControlType =
     when (val type = controlTypeProvider.invoke(property)) {

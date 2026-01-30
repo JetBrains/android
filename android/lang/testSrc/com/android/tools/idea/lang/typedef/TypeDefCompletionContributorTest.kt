@@ -60,8 +60,8 @@ const val FUNCTION_DEFINITION_PACKAGE = "function.definition"
 const val COMPLETION_PACKAGE = "completion.pkg"
 
 /**
- * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs,
- * annotations, and usages that are all part of the project source.
+ * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations, and usages that are all part of the
+ * project source.
  */
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorSourceTest(
@@ -70,9 +70,7 @@ class TypeDefCompletionContributorSourceTest(
   private val completionType: CompletionType,
 ) {
   init {
-    require(!completionType.isNamedCompletion() || usageLanguage == KOTLIN) {
-      "Cannot use named arguments with non-Kotlin methods."
-    }
+    require(!completionType.isNamedCompletion() || usageLanguage == KOTLIN) { "Cannot use named arguments with non-Kotlin methods." }
   }
 
   @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
@@ -86,13 +84,10 @@ class TypeDefCompletionContributorSourceTest(
     @JvmStatic
     fun data(): List<Array<Any>> {
       val langPairs =
-        SourceLanguage.values().flatMap { typeDefLang ->
-          SourceLanguage.values().map { usageLang -> typeDefLang to usageLang }
-        }
+        SourceLanguage.values().flatMap { typeDefLang -> SourceLanguage.values().map { usageLang -> typeDefLang to usageLang } }
       return langPairs.flatMap {
         CompletionType.values().mapNotNull { completionType ->
-          if (completionType.isNamedCompletion() && it.second != KOTLIN) null
-          else arrayOf(it.first, it.second, completionType)
+          if (completionType.isNamedCompletion() && it.second != KOTLIN) null else arrayOf(it.first, it.second, completionType)
         }
       }
     }
@@ -122,10 +117,7 @@ class TypeDefCompletionContributorSourceTest(
     // Add source for the usages of the annotations (e.g. fun myFunction(@Fruit param: Int) )
     for (usage in typeDefUsages) {
       fixture
-        .addFileToProject(
-          usage.toAnnotationUsageFilename(usageLanguage),
-          usage.toAnnotationUsage(usageLanguage, typeDefLanguage)
-        )
+        .addFileToProject(usage.toAnnotationUsageFilename(usageLanguage), usage.toAnnotationUsage(usageLanguage, typeDefLanguage))
         .also(addedFiles::add)
     }
   }
@@ -183,11 +175,7 @@ class TypeDefCompletionContributorSourceTest(
     typeDefUsages.forEach {
       val contents =
         when (completionType) {
-          JAVA_METHOD ->
-            it.toJavaMethodCompletionSrc(
-              prefix = "Integer.",
-              explicitCompanion = usageLanguage == KOTLIN
-            )
+          JAVA_METHOD -> it.toJavaMethodCompletionSrc(prefix = "Integer.", explicitCompanion = usageLanguage == KOTLIN)
           JAVA_CONSTRUCTOR -> it.toJavaConstructorCompletionSrc(prefix = "Integer.")
           KOTLIN_FUNCTION_POSITIONAL -> it.toKotlinFunctionCompletionSrc(prefix = "Int.")
           KOTLIN_FUNCTION_NAMED -> it.toKotlinFunctionCompletionSrc(prefix = "param = Int.")
@@ -196,10 +184,7 @@ class TypeDefCompletionContributorSourceTest(
         }
       val file = fixture.loadNewFile(it.toCompletionFilename(completionType.language), contents)
 
-      assertThat(
-          fixture.completeBasic().map(LookupElement::getLookupString).filter(it.names::contains)
-        )
-        .isEmpty()
+      assertThat(fixture.completeBasic().map(LookupElement::getLookupString).filter(it.names::contains)).isEmpty()
 
       // Clean up so the next time through the `forEach`, this file is gone.
       VfsTestUtil.deleteFile(file.virtualFile)
@@ -208,8 +193,8 @@ class TypeDefCompletionContributorSourceTest(
 }
 
 /**
- * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs,
- * annotations, and usages that are part of the source of a loaded JAR library.
+ * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations, and usages that are part of the
+ * source of a loaded JAR library.
  */
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorLibraryTest(private val completionType: CompletionType) {
@@ -220,43 +205,36 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
   private val addedLibraries: MutableList<Library> = mutableListOf()
 
   companion object {
-    @Parameters(name = "libraryCompletion_{0}")
-    @JvmStatic
-    fun data(): List<Array<Any>> = CompletionType.values().map { arrayOf(it) }
+    @Parameters(name = "libraryCompletion_{0}") @JvmStatic fun data(): List<Array<Any>> = CompletionType.values().map { arrayOf(it) }
   }
 
   @Before
   fun setUp() {
     val jarRoot =
-      JarFileSystem.getInstance()
-        .refreshAndFindFileByPath(
-          AndroidTestBase.getTestDataPath() + "/libs/lang/typedef/Library.jar!/"
-        )!!
+      JarFileSystem.getInstance().refreshAndFindFileByPath(AndroidTestBase.getTestDataPath() + "/libs/lang/typedef/Library.jar!/")!!
     // Analysis APIs are stricter regarding module structure, i.e., source/binary roots.
     // Merged roots may cause inconsistent module error (like b/279943223#comment2).
-    val (classesRoot, sourceRoot) = if (completionType.language == JAVA) {
-      listOf(jarRoot) to listOf(jarRoot)
-    } else {
-      val extensions = listOf("kt", "java", "class")
-      val filter = VirtualFileFilter { file ->
-        file.isDirectory || file.extension in extensions
-      }
-      val classesRoot = mutableListOf<VirtualFile>()
-      val sourceRoot = mutableListOf<VirtualFile>()
-      VfsUtilCore.iterateChildrenRecursively(jarRoot, filter) { file ->
-        if (!file.isDirectory) {
-          when (file.extension) {
-            "class" -> classesRoot.add(file)
-            "java",
-            "kt" -> sourceRoot.add(file)
+    val (classesRoot, sourceRoot) =
+      if (completionType.language == JAVA) {
+        listOf(jarRoot) to listOf(jarRoot)
+      } else {
+        val extensions = listOf("kt", "java", "class")
+        val filter = VirtualFileFilter { file -> file.isDirectory || file.extension in extensions }
+        val classesRoot = mutableListOf<VirtualFile>()
+        val sourceRoot = mutableListOf<VirtualFile>()
+        VfsUtilCore.iterateChildrenRecursively(jarRoot, filter) { file ->
+          if (!file.isDirectory) {
+            when (file.extension) {
+              "class" -> classesRoot.add(file)
+              "java",
+              "kt" -> sourceRoot.add(file)
+            }
           }
+          true
         }
-        true
+        classesRoot to sourceRoot
       }
-      classesRoot to sourceRoot
-    }
-    PsiTestUtil.addProjectLibrary(fixture.module, "mylib", classesRoot, sourceRoot)
-      .also(addedLibraries::add)
+    PsiTestUtil.addProjectLibrary(fixture.module, "mylib", classesRoot, sourceRoot).also(addedLibraries::add)
   }
 
   @After
@@ -279,8 +257,7 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
           KOTLIN_FUNCTION_POSITIONAL -> toKotlinFunctionCompletionSrc(funcDefPkg)
           KOTLIN_FUNCTION_NAMED -> toKotlinFunctionCompletionSrc(funcDefPkg, prefix = "param = ")
           KOTLIN_CONSTRUCTOR_POSITIONAL -> toKotlinConstructorCompletionSrc(funcDefPkg)
-          KOTLIN_CONSTRUCTOR_NAMED ->
-            toKotlinConstructorCompletionSrc(funcDefPkg, prefix = "param = ")
+          KOTLIN_CONSTRUCTOR_NAMED -> toKotlinConstructorCompletionSrc(funcDefPkg, prefix = "param = ")
         }
       val file = fixture.loadNewFile(toCompletionFilename(completionType.language), contents)
       val results = fixture.completeBasic()
@@ -314,31 +291,21 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
 }
 
 private val guitar = TypeDefUsage(INT, "Guitar", "FENDER" to "0", "GIBSON" to "1", "MARTIN" to "2")
-private val microphone =
-  TypeDefUsage(INT, "Microphone", "SHURE" to "0", "BLUE" to "1", "RØDE" to "2")
-private val amplifier =
-  TypeDefUsage(INT, "Amplifier", "PEAVEY" to "0", "ORANGE" to "1", "MARSHALL" to "2")
+private val microphone = TypeDefUsage(INT, "Microphone", "SHURE" to "0", "BLUE" to "1", "RØDE" to "2")
+private val amplifier = TypeDefUsage(INT, "Amplifier", "PEAVEY" to "0", "ORANGE" to "1", "MARSHALL" to "2")
 private val fruit = TypeDefUsage(LONG, "Fruit", "APPLE" to "0L", "BANANA" to "1L", "CHERRY" to "2L")
-private val mushroom =
-  TypeDefUsage(LONG, "Mushroom", "PORTOBELLO" to "0L", "CHANTERELLE" to "1L", "MOREL" to "2L")
-private val vegetable =
-  TypeDefUsage(LONG, "Vegetable", "ASPARAGUS" to "0L", "BROCCOLI" to "1L", "CARROT" to "2L")
+private val mushroom = TypeDefUsage(LONG, "Mushroom", "PORTOBELLO" to "0L", "CHANTERELLE" to "1L", "MOREL" to "2L")
+private val vegetable = TypeDefUsage(LONG, "Vegetable", "ASPARAGUS" to "0L", "BROCCOLI" to "1L", "CARROT" to "2L")
 private val urbanistChannel =
   TypeDefUsage(
     STRING,
     "UrbanistChannel",
     "STRONG_TOWNS" to "Chuck Marohn",
     "CLIMATE_TOWN" to "Rollie Williams",
-    "NOT_JUST_BIKES" to "Jason Slaughter"
+    "NOT_JUST_BIKES" to "Jason Slaughter",
   )
 private val transportationMode =
-  TypeDefUsage(
-    STRING,
-    "TransportationMode",
-    "BIKE" to "bicycle",
-    "BUS" to "bus",
-    "LIGHT_RAIL" to "light-rail"
-  )
+  TypeDefUsage(STRING, "TransportationMode", "BIKE" to "bicycle", "BUS" to "bus", "LIGHT_RAIL" to "light-rail")
 private val electricUnicycle =
   TypeDefUsage(
     STRING,
@@ -346,13 +313,12 @@ private val electricUnicycle =
     "INMOTION" to "inmotion",
     "BEGODE" to "gotway",
     "KING_SONG" to "king-song",
-    "VETERAN" to "leaperkim"
+    "VETERAN" to "leaperkim",
   )
 
 // Arbitrarily chosen. Make sure this is even so we can do one with "value = " syntax and one
 // without.
-private val kotlinTypeDefUsages =
-  listOf(guitar, microphone, fruit, mushroom, urbanistChannel, transportationMode)
+private val kotlinTypeDefUsages = listOf(guitar, microphone, fruit, mushroom, urbanistChannel, transportationMode)
 private val javaTypeDefUsages = listOf(amplifier, vegetable, electricUnicycle)
 
 private fun typeDefUsages(typeDefLanguage: SourceLanguage) =
@@ -362,33 +328,21 @@ private fun typeDefUsages(typeDefLanguage: SourceLanguage) =
   }
 
 private fun Array<LookupElement>.willPass(usage: TypeDefUsage, typeDefUsagePkg: String): Boolean {
-  val startsWith =
-    slice(usage.names.indices).containsOnce(usage.annotationName, usage.names, typeDefUsagePkg)
+  val startsWith = slice(usage.names.indices).containsOnce(usage.annotationName, usage.names, typeDefUsagePkg)
   val containsOnce = toList().containsOnce(usage.annotationName, usage.names, typeDefUsagePkg)
   return startsWith && containsOnce
 }
 
-private fun List<LookupElement>.containsOnce(
-  annotationName: String,
-  elements: List<String>,
-  typeDefUsagePkg: String
-): Boolean {
+private fun List<LookupElement>.containsOnce(annotationName: String, elements: List<String>, typeDefUsagePkg: String): Boolean {
   if ((elements - map(LookupElement::getLookupString).toSet()).isNotEmpty()) return false
   return filter { it.lookupString in elements }
     .map { LookupElementPresentation().also(it::renderElement) }
-    .all {
-      it.typeText == "@$annotationName" && it.tailText == " ($typeDefUsagePkg)" && it.isItemTextBold
-    }
+    .all { it.typeText == "@$annotationName" && it.tailText == " ($typeDefUsagePkg)" && it.isItemTextBold }
 }
 
-private fun List<LookupElement>.assertContainsOnce(
-  annotationName: String,
-  elements: List<String>,
-  typeDefUsagePkg: String
-) {
+private fun List<LookupElement>.assertContainsOnce(annotationName: String, elements: List<String>, typeDefUsagePkg: String) {
   // Check text of completions.
-  assertThat(map(LookupElement::getLookupString).filter(elements::contains))
-    .containsExactlyElementsIn(elements)
+  assertThat(map(LookupElement::getLookupString).filter(elements::contains)).containsExactlyElementsIn(elements)
   // Check formatting.
   filter { it.lookupString in elements }
     .map { LookupElementPresentation().also(it::renderElement) }
@@ -399,29 +353,17 @@ private fun List<LookupElement>.assertContainsOnce(
     }
 }
 
-private fun Array<LookupElement>.checkContainsOnce(
-  annotationName: String,
-  elements: List<String>,
-  typeDefUsagePkg: String
-) {
+private fun Array<LookupElement>.checkContainsOnce(annotationName: String, elements: List<String>, typeDefUsagePkg: String) {
   toList().assertContainsOnce(annotationName, elements, typeDefUsagePkg)
 }
 
-private fun Array<LookupElement>.checkStartsWith(
-  annotationName: String,
-  elements: List<String>,
-  typeDefUsagePkg: String
-) {
+private fun Array<LookupElement>.checkStartsWith(annotationName: String, elements: List<String>, typeDefUsagePkg: String) {
   slice(elements.indices).assertContainsOnce(annotationName, elements, typeDefUsagePkg)
 }
 
-private fun CodeInsightTestFixture.addTypeDefSource(type: TypeDef.Type): PsiFile =
-  addFileToProject(type.toFilename(), type.toSrc())
+private fun CodeInsightTestFixture.addTypeDefSource(type: TypeDef.Type): PsiFile = addFileToProject(type.toFilename(), type.toSrc())
 
-private fun CodeInsightTestFixture.addKotlinTypeDefUsage(
-  usage: TypeDefUsage,
-  useNamedArgument: Boolean = false
-): PsiFile {
+private fun CodeInsightTestFixture.addKotlinTypeDefUsage(usage: TypeDefUsage, useNamedArgument: Boolean = false): PsiFile {
   val filename = "/src/${TYPE_DEF_USAGE_PACKAGE.replace('.', '/')}/${usage.annotationName}.kt"
   val contents = usage.toKotlinAnnotationDefinition(useNamedArgument)
   return addFileToProject(filename, contents)
@@ -453,16 +395,8 @@ private fun TypeDef.Type.toSrc() =
 private fun TypeDef.Type.toFilename() = "/src/androidx/annotation/$annotationName.kt"
 
 /** Represents usage of a TypeDef. Just for convenience and to avoid repetition. */
-private data class TypeDefUsage(
-  val type: TypeDef.Type,
-  val annotationName: String,
-  val values: List<Pair<String, String>>
-) {
-  constructor(
-    type: TypeDef.Type,
-    annotationName: String,
-    vararg values: Pair<String, String>
-  ) : this(type, annotationName, values.toList())
+private data class TypeDefUsage(val type: TypeDef.Type, val annotationName: String, val values: List<Pair<String, String>>) {
+  constructor(type: TypeDef.Type, annotationName: String, vararg values: Pair<String, String>) : this(type, annotationName, values.toList())
 
   val names: List<String> = values.map { it.first }
 
@@ -470,7 +404,7 @@ private data class TypeDefUsage(
     usageLanguage: SourceLanguage,
     typeDefLanguage: SourceLanguage,
     usagePkg: String = TYPE_DEF_USAGE_PACKAGE,
-    defPkg: String = FUNCTION_DEFINITION_PACKAGE
+    defPkg: String = FUNCTION_DEFINITION_PACKAGE,
   ): String =
     when (usageLanguage) {
       JAVA -> toJavaAnnotationUsage(typeDefLanguage, usagePkg, defPkg)
@@ -496,7 +430,7 @@ private data class TypeDefUsage(
   fun toJavaAnnotationUsage(
     typeDefLanguage: SourceLanguage,
     usagePkg: String = TYPE_DEF_USAGE_PACKAGE,
-    defPkg: String = FUNCTION_DEFINITION_PACKAGE
+    defPkg: String = FUNCTION_DEFINITION_PACKAGE,
   ): String {
     // Java definition requires an outer class.
     val annotationImport =
@@ -520,8 +454,7 @@ private data class TypeDefUsage(
   fun toJavaMethodCompletionSrc(
     funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE,
     prefix: String = nonTypeDefArgs,
-    explicitCompanion: Boolean =
-      false, // TODO(b/275626083) remove when companion methods resolve correctly
+    explicitCompanion: Boolean = false, // TODO(b/275626083) remove when companion methods resolve correctly
   ): String =
     // language=java
     """
@@ -535,10 +468,7 @@ private data class TypeDefUsage(
     """
       .trimIndent()
 
-  fun toJavaConstructorCompletionSrc(
-    funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE,
-    prefix: String = nonTypeDefArgs,
-  ): String =
+  fun toJavaConstructorCompletionSrc(funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE, prefix: String = nonTypeDefArgs): String =
     // language=java
     """
     package $COMPLETION_PACKAGE;
@@ -554,20 +484,13 @@ private data class TypeDefUsage(
   /**
    * Returns Kotlin code of this usage.
    *
-   * The only restriction for typedef values is that they are const. So we construct it in all
-   * possible ways.
+   * The only restriction for typedef values is that they are const. So we construct it in all possible ways.
    */
-  fun toKotlinAnnotationDefinition(
-    useNamedArgument: Boolean,
-    pkg: String = TYPE_DEF_USAGE_PACKAGE
-  ): String {
+  fun toKotlinAnnotationDefinition(useNamedArgument: Boolean, pkg: String = TYPE_DEF_USAGE_PACKAGE): String {
     require(values.size >= 3) { "Cannot generate Kotlin code without at least 3 values." }
 
-    val holderObjectName =
-      "${CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, values[1].first)}Holder"
-    val names =
-      listOf(values[0].first, "$holderObjectName.${values[1].first}") +
-        values.drop(2).map { "$annotationName.${it.first}" }
+    val holderObjectName = "${CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, values[1].first)}Holder"
+    val names = listOf(values[0].first, "$holderObjectName.${values[1].first}") + values.drop(2).map { "$annotationName.${it.first}" }
     val nameList = names.joinToString(", ")
     val typeDefArgument = if (useNamedArgument) "value = [$nameList]" else nameList
     // language=kotlin
@@ -591,7 +514,7 @@ private data class TypeDefUsage(
   fun toKotlinAnnotationUsage(
     typeDefLanguage: SourceLanguage,
     usagePkg: String = TYPE_DEF_USAGE_PACKAGE,
-    defPkg: String = FUNCTION_DEFINITION_PACKAGE
+    defPkg: String = FUNCTION_DEFINITION_PACKAGE,
   ): String {
     // Java definition requires an outer class.
     val annotationImport =
@@ -614,10 +537,7 @@ private data class TypeDefUsage(
       .trimIndent()
   }
 
-  fun toKotlinFunctionCompletionSrc(
-    funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE,
-    prefix: String = nonTypeDefArgs
-  ): String =
+  fun toKotlinFunctionCompletionSrc(funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE, prefix: String = nonTypeDefArgs): String =
     // language=kotlin
     """
       package $COMPLETION_PACKAGE
@@ -628,10 +548,7 @@ private data class TypeDefUsage(
       """
       .trimIndent()
 
-  fun toKotlinConstructorCompletionSrc(
-    funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE,
-    prefix: String = nonTypeDefArgs
-  ): String =
+  fun toKotlinConstructorCompletionSrc(funcDefPkg: String = FUNCTION_DEFINITION_PACKAGE, prefix: String = nonTypeDefArgs): String =
     // language=kotlin
     """
       package $COMPLETION_PACKAGE
@@ -648,8 +565,7 @@ private data class TypeDefUsage(
   fun toCompletionFilename(lang: SourceLanguage): String =
     "/src/${COMPLETION_PACKAGE.replace('.', '/')}/${annotationName}Completion.${lang.extension}"
 
-  private fun Pair<String, String>.toJavaDeclaration() =
-    "public static final ${type.javaTypeName} $first = $maybeQuotedSecond;"
+  private fun Pair<String, String>.toJavaDeclaration() = "public static final ${type.javaTypeName} $first = $maybeQuotedSecond;"
 
   private fun Pair<String, String>.toKotlinDeclaration() = "const val $first = $maybeQuotedSecond"
 

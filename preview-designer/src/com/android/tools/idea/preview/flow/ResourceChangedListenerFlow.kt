@@ -42,12 +42,9 @@ fun resourceChangedFlow(
           logger?.warn("AndroidFacet not found for $module. Notifications will be ignored")
           return@disposableCallbackFlow
         }
-    val resourceChangeListener =
-      ResourceNotificationManager.ResourceChangeListener { reason -> trySend(reason) }
+    val resourceChangeListener = ResourceNotificationManager.ResourceChangeListener { reason -> trySend(reason) }
     val resourceNotificationManager = ResourceNotificationManager.getInstance(module.project)
-    Disposer.register(this.disposable) {
-      resourceNotificationManager.removeListener(resourceChangeListener, facet, null, null)
-    }
+    Disposer.register(this.disposable) { resourceNotificationManager.removeListener(resourceChangeListener, facet, null, null) }
     resourceNotificationManager.addListener(resourceChangeListener, facet, null, null)
 
     onConnected?.let { launch(Dispatchers.Default) { it() } }

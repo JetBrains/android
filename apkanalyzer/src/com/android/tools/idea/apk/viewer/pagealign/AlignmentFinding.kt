@@ -28,32 +28,17 @@ import com.google.common.annotations.VisibleForTesting
 import javax.swing.tree.TreePath
 
 /**
- * Convenience shortcut to allow toggling this feature just for APK viewer.
- * Enabled by default, no server flag required.
- * To re-enable dependency on the server flag, set:
- * val IS_PAGE_ALIGN_ENABLED =
- * com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled()
+ * Convenience shortcut to allow toggling this feature just for APK viewer. Enabled by default, no server flag required. To re-enable
+ * dependency on the server flag, set: val IS_PAGE_ALIGN_ENABLED = com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled()
  */
 const val IS_PAGE_ALIGN_ENABLED = true
 
-/**
- * Information to display in the Alignment column.
- */
-data class AlignmentFinding(
-  val text : String,
-  val hasWarning : Boolean,
-  val problems: List<AlignmentProblem>?)
+/** Information to display in the Alignment column. */
+data class AlignmentFinding(val text: String, val hasWarning: Boolean, val problems: List<AlignmentProblem>?)
 
-/**
- * Compute the value of the "Alignment" column.
- */
-fun ArchiveEntry.getAlignmentFinding(extractNativeLibs: Boolean?) = getAlignmentFinding(
-  "$path",
-  extractNativeLibs ?: false,
-  elfAlignmentProblems,
-  selfOrChild16kbIncompatible,
-  fileAlignment
-)
+/** Compute the value of the "Alignment" column. */
+fun ArchiveEntry.getAlignmentFinding(extractNativeLibs: Boolean?) =
+  getAlignmentFinding("$path", extractNativeLibs ?: false, elfAlignmentProblems, selfOrChild16kbIncompatible, fileAlignment)
 
 @VisibleForTesting
 fun getAlignmentFinding(
@@ -61,8 +46,8 @@ fun getAlignmentFinding(
   extractNativeLibs: Boolean,
   elfAlignmentProblems: List<AlignmentProblem>?,
   selfOrChildLoadSectionIncompatible: Boolean,
-  zipAlignment: Alignment
-) : AlignmentFinding {
+  zipAlignment: Alignment,
+): AlignmentFinding {
   val sb = StringBuilder()
   var hasWarning = false
 
@@ -84,25 +69,26 @@ fun getAlignmentFinding(
     // We maintain the existing heuristic: !isZipAligned triggers if alignment is 4K (or worse).
     val isZipAligned = zipAlignment != Alignment.ALIGNMENT_4K || extractNativeLibs
 
-    val warning = when {
-      // Don't say "APK" in this message because it could be AAB, ZIP, or even AAR.
-      path == "/" -> "Does not support 16 KB devices"
-      elfAlignmentProblems == null -> "" // Not a valid ELF context
+    val warning =
+      when {
+        // Don't say "APK" in this message because it could be AAB, ZIP, or even AAR.
+        path == "/" -> "Does not support 16 KB devices"
+        elfAlignmentProblems == null -> "" // Not a valid ELF context
 
-      // Mixed Zip + Load failure
-      loadSectionIssue != null && !isZipAligned -> "$zipAlignText zip and $pageAlignText LOAD section, but 16 KB is required for both"
+        // Mixed Zip + Load failure
+        loadSectionIssue != null && !isZipAligned -> "$zipAlignText zip and $pageAlignText LOAD section, but 16 KB is required for both"
 
-      // Specific failures
-      loadSectionIssue != null -> loadSectionIssue.toString()
-      !isZipAligned -> "${zipAlignment.text} zip alignment, but 16 KB is required"
+        // Specific failures
+        loadSectionIssue != null -> loadSectionIssue.toString()
+        !isZipAligned -> "${zipAlignment.text} zip alignment, but 16 KB is required"
 
-      // RELRO failures (checked after Load/Zip as they are less common blocking issues)
-      (relroStartIssue != null) && (relroEndIssue != null) -> "RELRO start and end are not 16 KB aligned"
-      relroStartIssue != null -> relroStartIssue.toString()
-      relroEndIssue != null -> relroEndIssue.toString()
+        // RELRO failures (checked after Load/Zip as they are less common blocking issues)
+        (relroStartIssue != null) && (relroEndIssue != null) -> "RELRO start and end are not 16 KB aligned"
+        relroStartIssue != null -> relroStartIssue.toString()
+        relroEndIssue != null -> relroEndIssue.toString()
 
-      else -> ""
-    }
+        else -> ""
+      }
     if (warning.isNotEmpty()) {
       sb.append(warning)
       hasWarning = true
@@ -118,15 +104,13 @@ fun getAlignmentFinding(
   return AlignmentFinding("$sb", hasWarning, elfAlignmentProblems)
 }
 
-/**
- * Find paths with warns so that they can be expanded.
- */
-fun findPageAlignWarningsPaths(root : ArchiveNode, extractNativeLibs : Boolean?): List<TreePath> {
+/** Find paths with warns so that they can be expanded. */
+fun findPageAlignWarningsPaths(root: ArchiveNode, extractNativeLibs: Boolean?): List<TreePath> {
   val expand = mutableListOf<TreePath>()
-  fun findPageAlignWarningsPaths(path : TreePath, node : ArchiveNode) {
+  fun findPageAlignWarningsPaths(path: TreePath, node: ArchiveNode) {
     val alignment = node.data.getAlignmentFinding(extractNativeLibs)
     if (alignment.hasWarning) expand.add(path)
-    for(child in node.children) findPageAlignWarningsPaths(path.pathByAddingChild(child), child)
+    for (child in node.children) findPageAlignWarningsPaths(path.pathByAddingChild(child), child)
   }
   findPageAlignWarningsPaths(TreePath(root), root)
   return expand

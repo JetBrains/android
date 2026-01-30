@@ -67,46 +67,45 @@ class AddArgumentDialogTest : NavTestCase() {
 
   fun testValidation() {
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
-    AddArgumentDialog(null, model.treeReader.find("fragment1")!!, testClassChooserFactory)
-      .runAndClose { dialog ->
-        assertNotNull(dialog.doValidate())
+    AddArgumentDialog(null, model.treeReader.find("fragment1")!!, testClassChooserFactory).runAndClose { dialog ->
+      assertNotNull(dialog.doValidate())
 
-        dialog.name = "myArgument"
-        assertNull(dialog.doValidate())
+      dialog.name = "myArgument"
+      assertNull(dialog.doValidate())
 
-        dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.BOOLEAN
-        assertNull(dialog.doValidate())
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.BOOLEAN
+      assertNull(dialog.doValidate())
 
-        dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.LONG
-        dialog.defaultValue = "1234"
-        assertNull(dialog.doValidate())
-        dialog.defaultValue = "abcdL"
-        assertNotNull(dialog.doValidate())
-        dialog.defaultValue = "1234L"
-        assertNull(dialog.doValidate())
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.LONG
+      dialog.defaultValue = "1234"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "abcdL"
+      assertNotNull(dialog.doValidate())
+      dialog.defaultValue = "1234L"
+      assertNull(dialog.doValidate())
 
-        dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.FLOAT
-        dialog.defaultValue = "1.5"
-        assertNull(dialog.doValidate())
-        dialog.defaultValue = "1.5f"
-        assertNull(dialog.doValidate())
-        dialog.defaultValue = "123"
-        assertNull(dialog.doValidate())
-        dialog.defaultValue = "1234L"
-        assertNotNull(dialog.doValidate())
-        dialog.defaultValue = "abcd"
-        assertNotNull(dialog.doValidate())
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.FLOAT
+      dialog.defaultValue = "1.5"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "1.5f"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "123"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "1234L"
+      assertNotNull(dialog.doValidate())
+      dialog.defaultValue = "abcd"
+      assertNotNull(dialog.doValidate())
 
-        dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.REFERENCE
-        dialog.defaultValue = "1234"
-        assertNotNull(dialog.doValidate())
-        dialog.defaultValue = "@id/bad_id"
-        assertNotNull(dialog.doValidate())
-        dialog.defaultValue = "@id/progressBar"
-        assertNull(dialog.doValidate())
-        dialog.defaultValue = "@layout/activity_main"
-        assertNull(dialog.doValidate())
-      }
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.REFERENCE
+      dialog.defaultValue = "1234"
+      assertNotNull(dialog.doValidate())
+      dialog.defaultValue = "@id/bad_id"
+      assertNotNull(dialog.doValidate())
+      dialog.defaultValue = "@id/progressBar"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "@layout/activity_main"
+      assertNull(dialog.doValidate())
+    }
   }
 
   fun testInitWithExisting() {
@@ -121,24 +120,21 @@ class AddArgumentDialogTest : NavTestCase() {
         }
       }
     val fragment1 = model.treeReader.find("fragment1")!!
-    AddArgumentDialog(fragment1.getChild(0), fragment1, testClassChooserFactory).runAndClose {
-      dialog ->
+    AddArgumentDialog(fragment1.getChild(0), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument", dialog.name)
       assertEquals("integer", dialog.type)
       assertFalse(dialog.isNullable)
       assertEquals("1234", dialog.defaultValue)
     }
 
-    AddArgumentDialog(fragment1.getChild(1), fragment1, testClassChooserFactory).runAndClose {
-      dialog ->
+    AddArgumentDialog(fragment1.getChild(1), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument2", dialog.name)
       assertEquals("custom.Parcelable", dialog.type)
       assertTrue(dialog.isNullable)
       assertTrue(dialog.defaultValue.isNullOrEmpty())
     }
 
-    AddArgumentDialog(fragment1.getChild(2), fragment1, testClassChooserFactory).runAndClose {
-      dialog ->
+    AddArgumentDialog(fragment1.getChild(2), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument3", dialog.name)
       assertNull(dialog.type)
       assertFalse(dialog.isNullable)
@@ -148,14 +144,9 @@ class AddArgumentDialogTest : NavTestCase() {
 
   fun testDefaultValueEditor() {
     val model =
-      model("nav.xml") {
-        NavModelBuilderUtil.navigation {
-          fragment("fragment1") { argument("myArgument", type = "custom.Parcelable") }
-        }
-      }
+      model("nav.xml") { NavModelBuilderUtil.navigation { fragment("fragment1") { argument("myArgument", type = "custom.Parcelable") } } }
     val fragment1 = model.treeReader.find("fragment1")!!
-    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose {
-      dialog ->
+    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertTrue(dialog.dialogUI.myDefaultValueComboBox.isVisible)
       assertFalse(dialog.dialogUI.myDefaultValueTextField.isVisible)
 
@@ -203,8 +194,7 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose {
-      dialog ->
+    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.STRING
       assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
 
@@ -247,8 +237,7 @@ class AddArgumentDialogTest : NavTestCase() {
         assertTrue(dialog.dialogUI.myArrayCheckBox.isEnabled)
       }
 
-      for (t in
-        listOf(AddArgumentDialog.Type.REFERENCE, AddArgumentDialog.Type.CUSTOM_ENUM, null)) {
+      for (t in listOf(AddArgumentDialog.Type.REFERENCE, AddArgumentDialog.Type.CUSTOM_ENUM, null)) {
         dialog.dialogUI.myTypeComboBox.selectedItem = t
         assertFalse(dialog.dialogUI.myArrayCheckBox.isEnabled)
       }

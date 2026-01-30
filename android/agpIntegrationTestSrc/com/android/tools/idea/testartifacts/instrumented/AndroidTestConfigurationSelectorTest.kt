@@ -40,13 +40,10 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
-/**
- * Test for run configuration selector {@link RunExternalSystemTaskAction}
- */
+/** Test for run configuration selector {@link RunExternalSystemTaskAction} */
 @RunsInEdt
 class AndroidTestConfigurationSelectorTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   @Before
@@ -56,11 +53,8 @@ class AndroidTestConfigurationSelectorTest {
   }
 
   private class TestRunExternalSystemTaskAction : RunExternalSystemTaskAction() {
-    fun performDelegator(project: Project,
-                projectSystemId: ProjectSystemId,
-                taskData: TaskData,
-                e: AnActionEvent) {
-      this.perform(project, projectSystemId, taskData, e);
+    fun performDelegator(project: Project, projectSystemId: ProjectSystemId, taskData: TaskData, e: AnActionEvent) {
+      this.perform(project, projectSystemId, taskData, e)
     }
   }
 
@@ -77,8 +71,8 @@ class AndroidTestConfigurationSelectorTest {
     val mockActionEvent = mock(AnActionEvent::class.java)
     `when`(mockActionEvent.dataContext).thenReturn(context.dataContext)
     `when`(mockActionEvent.place).thenReturn(context.place)
-    val testTaskData = TaskData(mockProjectSystemId, "testAndroidTestConfig", project.projectFilePath.toString(),
-                                "Run configurtation selector test")
+    val testTaskData =
+      TaskData(mockProjectSystemId, "testAndroidTestConfig", project.projectFilePath.toString(), "Run configurtation selector test")
     TestRunExternalSystemTaskAction().performDelegator(project, mockProjectSystemId, testTaskData, mockActionEvent)
 
     val runConfig = context.runManager.selectedConfiguration!!.configuration as AndroidTestRunConfiguration

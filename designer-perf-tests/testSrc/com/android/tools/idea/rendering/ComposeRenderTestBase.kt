@@ -35,17 +35,13 @@ open class ComposeRenderTestBase(val testProject: String = SIMPLE_COMPOSE_PROJEC
   open fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
-    val baseTestPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
+    val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
     projectRule.load(testProject, AGP_CURRENT.withCompileSdk(AndroidApiLevel(35)))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue(
-        "The project must compile correctly for the test to pass",
-        isBuildSuccessful,
-      )
+      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)

@@ -29,10 +29,10 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.PathUtil
-import org.jetbrains.annotations.VisibleForTesting
-import org.xml.sax.InputSource
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
+import org.jetbrains.annotations.VisibleForTesting
+import org.xml.sax.InputSource
 
 private val GSON = Gson()
 private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -40,12 +40,10 @@ private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 /**
  * An action that opens a popup dialog containing embedded JSON/XML from the log message
  *
- * Embedded is a complete snippet of XML/JSON embedded in the message. We detect a snippet by
- * extracting the text between the first `{` or `<` and the last `}` or `>` and running it through a
- * parser.
+ * Embedded is a complete snippet of XML/JSON embedded in the message. We detect a snippet by extracting the text between the first `{` or
+ * `<` and the last `}` or `>` and running it through a parser.
  *
- * TODO(b/235501148): Add the ability to include even partial XML/JSON, as in, a snippet that
- *   doesn't full parse.
+ * TODO(b/235501148): Add the ability to include even partial XML/JSON, as in, a snippet that doesn't full parse.
  */
 internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File from JSON/XML") {
   private val scratchRootType = ScratchRootType.getInstance()
@@ -57,8 +55,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
     val (_, language) = e.findEmbeddedData() ?: return
-    e.presentation.text =
-      LogcatBundle.message("logcat.open.embedded.data.text", language.displayName)
+    e.presentation.text = LogcatBundle.message("logcat.open.embedded.data.text", language.displayName)
     e.presentation.icon = language.associatedFileType?.icon
     e.presentation.isVisible = true
   }
@@ -70,18 +67,11 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     val formatted = ScratchFileCreationHelper.reformat(project, language, text)
     val fileExtension = language.associatedFileType?.defaultExtension ?: ""
     val fileName = PathUtil.makeFileName("logcat", fileExtension)
-    val file =
-      scratchRootType.createScratchFile(project, fileName, language, formatted, create_new_always)
-        ?: return
+    val file = scratchRootType.createScratchFile(project, fileName, language, formatted, create_new_always) ?: return
     navigationSupport.createNavigatable(project, file, 0).navigate(true)
   }
 
-  private enum class EmbeddedLanguage(
-    val language: Language,
-    val startChar: Char,
-    val endChar: Char,
-    val isValid: (String) -> Boolean,
-  ) {
+  private enum class EmbeddedLanguage(val language: Language, val startChar: Char, val endChar: Char, val isValid: (String) -> Boolean) {
     @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used
     JSON(JsonLanguage.INSTANCE, '{', '}', { isJson(it) }),
     @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used

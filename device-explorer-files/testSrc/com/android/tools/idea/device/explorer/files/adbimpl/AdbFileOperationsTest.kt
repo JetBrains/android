@@ -24,6 +24,7 @@ import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
+import java.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -37,20 +38,14 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.time.Duration
 
 @RunWith(Parameterized::class)
 class AdbFileOperationsTest(private val testDevice: TestDevices) {
-  @get:Rule
-  val thrown = ExpectedException.none()
+  @get:Rule val thrown = ExpectedException.none()
 
   val shellCommands = TestShellCommands()
 
-  @JvmField
-  @Rule
-  val fakeAdbRule = FakeAdbServerProviderRule {
-    installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
-  }
+  @JvmField @Rule val fakeAdbRule = FakeAdbServerProviderRule { installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands)) }
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   val scope = CoroutineScope(dispatcher)
@@ -65,8 +60,13 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
     testDevice.addCommands(shellCommands)
 
     fakeAdbRule.fakeAdb.connectDevice(
-      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
-      hostConnectionType = DeviceState.HostConnectionType.USB)
+      deviceId = "test_device_01",
+      manufacturer = "Google",
+      deviceModel = "Pixel 10",
+      release = "8.0",
+      sdk = AndroidApiLevel(31),
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
 
     val device = runBlocking {
       withTimeout(Duration.ofSeconds(5).toMillis()) {
@@ -99,9 +99,8 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
       fileOperations.createNewFileRunAs(
         "/data/data/com.example.rpaquay.myapplication",
         "NewTextFile.txt",
-        "com.example.rpaquay.myapplication"
+        "com.example.rpaquay.myapplication",
       )
-
 
     // Assert
     assertThat(result).isEqualTo(Unit)
@@ -166,12 +165,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
 
     // Act
     val result =
-      fileOperations.createNewDirectoryRunAs(
-        "/data/data/com.example.rpaquay.myapplication",
-        "foo-dir",
-        "com.example.rpaquay.myapplication"
-      )
-
+      fileOperations.createNewDirectoryRunAs("/data/data/com.example.rpaquay.myapplication", "foo-dir", "com.example.rpaquay.myapplication")
 
     // Assert
     assertThat(result).isEqualTo(Unit)
@@ -244,11 +238,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
 
     // Act
     val result =
-      fileOperations.deleteFileRunAs(
-        "/data/data/com.example.rpaquay.myapplication/NewTextFile.txt",
-        "com.example.rpaquay.myapplication"
-      )
-
+      fileOperations.deleteFileRunAs("/data/data/com.example.rpaquay.myapplication/NewTextFile.txt", "com.example.rpaquay.myapplication")
 
     // Assert
     assertThat(result).isEqualTo(Unit)
@@ -293,11 +283,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
 
     // Act
     val result =
-      fileOperations.deleteRecursiveRunAs(
-        "/data/data/com.example.rpaquay.myapplication/foo-dir",
-        "com.example.rpaquay.myapplication"
-      )
-
+      fileOperations.deleteRecursiveRunAs("/data/data/com.example.rpaquay.myapplication/foo-dir", "com.example.rpaquay.myapplication")
 
     // Assert
     assertThat(result).isEqualTo(Unit)
@@ -329,12 +315,9 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
   companion object {
     @SuppressWarnings("unused")
     @JvmStatic
-    @Parameterized.Parameters(name="{0}")
-    fun data(): List<Array<Any>> =
-      listOf(arrayOf(TestDevices.EMULATOR_API10), arrayOf(TestDevices.NEXUS_7_API23))
+    @Parameterized.Parameters(name = "{0}")
+    fun data(): List<Array<Any>> = listOf(arrayOf(TestDevices.EMULATOR_API10), arrayOf(TestDevices.NEXUS_7_API23))
 
-    @JvmField
-    @ClassRule
-    var ourLoggerRule = DebugLoggerRule()
+    @JvmField @ClassRule var ourLoggerRule = DebugLoggerRule()
   }
 }

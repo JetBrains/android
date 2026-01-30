@@ -31,28 +31,21 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * This test is done outside of [TemplateDiffTest] as it does not support API 36 yet (at time of
- * writing the test).
+ * This test is done outside of [TemplateDiffTest] as it does not support API 36 yet (at time of writing the test).
  *
  * It is also used to check that the template renders for API levels < 36 once API 36 is supported.
  */
 class ComposeWearActivityTemplateTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
 
-  private val withSpecificKotlin: ProjectStateCustomizer =
-    withKotlin(RenderTemplateModel.getComposeKotlinVersion())
+  private val withSpecificKotlin: ProjectStateCustomizer = withKotlin(RenderTemplateModel.getComposeKotlinVersion())
 
   @Test
   fun testApi35() {
     val template = TemplateResolver.getTemplateByName("Empty Wear App")!!
     val renderer = ProjectDiffer(template, goldenDirName = "testNewComposeWearActivity")
 
-    renderer.renderProject(
-      projectRule.project,
-      getPinnedAgpVersion(),
-      withSpecificKotlin,
-      withApi(35),
-    )
+    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withSpecificKotlin, withApi(35))
   }
 
   @Test
@@ -60,23 +53,15 @@ class ComposeWearActivityTemplateTest {
     val template = TemplateResolver.getTemplateByName("Empty Wear App")!!
     val renderer = ProjectDiffer(template, goldenDirName = "testNewComposeWearActivityApi36")
 
-    renderer.renderProject(
-      projectRule.project,
-      getPinnedAgpVersion(),
-      withSpecificKotlin,
-      withApi(36),
-    )
+    renderer.renderProject(projectRule.project, getPinnedAgpVersion(), withSpecificKotlin, withApi(36))
   }
 
   private fun withApi(api: Int): ProjectStateCustomizer = { moduleData, projectData ->
     val apiVersion = AndroidVersion(api, 0)
-    moduleData.apis =
-      moduleData.apis!!.copy(buildApi = apiVersion, targetApi = apiVersion.majorVersion)
+    moduleData.apis = moduleData.apis!!.copy(buildApi = apiVersion, targetApi = apiVersion.majorVersion)
   }
 
-  private fun withKotlin(
-    kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
-  ): ProjectStateCustomizer =
+  private fun withKotlin(kotlinVersion: String = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS): ProjectStateCustomizer =
     { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       // Use the Kotlin version for tests

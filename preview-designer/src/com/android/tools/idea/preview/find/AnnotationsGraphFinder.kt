@@ -34,8 +34,7 @@ data class UAnnotationSubtreeInfo(
 )
 
 /**
- * Specific implementation of [NodeInfo] that populates a [UAnnotationSubtreeInfo.children] field
- * before each child is traversed.
+ * Specific implementation of [NodeInfo] that populates a [UAnnotationSubtreeInfo.children] field before each child is traversed.
  *
  * The [onTraversal] parameter is invoked for each child, after it is traversed.
  */
@@ -62,13 +61,9 @@ private class UAnnotationNodeInfo(
  *
  * The [onTraversal] parameter is invoked after each node's child is traversed.
  */
-private class UAnnotationNodeInfoFactory(
-  private val onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null
-) : NodeInfoFactory<UAnnotationSubtreeInfo> {
-  override suspend fun create(
-    parent: NodeInfo<UAnnotationSubtreeInfo>?,
-    curElement: UElement,
-  ): NodeInfo<UAnnotationSubtreeInfo> {
+private class UAnnotationNodeInfoFactory(private val onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null) :
+  NodeInfoFactory<UAnnotationSubtreeInfo> {
+  override suspend fun create(parent: NodeInfo<UAnnotationSubtreeInfo>?, curElement: UElement): NodeInfo<UAnnotationSubtreeInfo> {
     return UAnnotationNodeInfo(
       parent = parent,
       element = curElement,
@@ -83,8 +78,7 @@ private class UAnnotationNodeInfoFactory(
 }
 
 /**
- * [ResultFactory] that creates a [NodeInfo] of type [UAnnotationSubtreeInfo] for each annotation
- * that matches a given [filter] predicate.
+ * [ResultFactory] that creates a [NodeInfo] of type [UAnnotationSubtreeInfo] for each annotation that matches a given [filter] predicate.
  */
 private class UAnnotationResultFactory(private val filter: suspend (UAnnotation) -> Boolean) :
   ResultFactory<UAnnotationSubtreeInfo, NodeInfo<UAnnotationSubtreeInfo>> {
@@ -99,15 +93,14 @@ private class UAnnotationResultFactory(private val filter: suspend (UAnnotation)
 }
 
 /**
- * Given an [UElement] used as the root element to search from, this method searches all reachable
- * annotations in the annotation graph and returns a list of [NodeInfo] of type
- * [UAnnotationSubtreeInfo] containing all annotations matching the [filter] predicate.
+ * Given an [UElement] used as the root element to search from, this method searches all reachable annotations in the annotation graph and
+ * returns a list of [NodeInfo] of type [UAnnotationSubtreeInfo] containing all annotations matching the [filter] predicate.
  *
- * The parameter [shouldTraverse] can be provided to determine which [UAnnotation]s in the graph
- * should be traversed. By default, all [UAnnotation]s are traversed.
+ * The parameter [shouldTraverse] can be provided to determine which [UAnnotation]s in the graph should be traversed. By default, all
+ * [UAnnotation]s are traversed.
  *
- * The [onTraversal] parameter, if provided, is invoked for each node that is traversed in the
- * graph. The traversal and invocation of this method is done post-order, see [ResultFactory].
+ * The [onTraversal] parameter, if provided, is invoked for each node that is traversed in the graph. The traversal and invocation of this
+ * method is done post-order, see [ResultFactory].
  *
  * Note: [UAnnotation]s matching the [filter] predicate act as leaves when traversing the graph.
  */
@@ -117,11 +110,7 @@ fun UElement.findAllAnnotationsInGraph(
   onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
   filter: suspend (UAnnotation) -> Boolean,
 ): Flow<NodeInfo<UAnnotationSubtreeInfo>> {
-  val annotationsGraph =
-    AnnotationsGraph(
-      UAnnotationNodeInfoFactory(onTraversal),
-      UAnnotationResultFactory { filter(it) },
-    )
+  val annotationsGraph = AnnotationsGraph(UAnnotationNodeInfoFactory(onTraversal), UAnnotationResultFactory { filter(it) })
   return annotationsGraph.traverse(
     listOf(this),
     annotationFilter = { _, annotation -> shouldTraverse(annotation) || filter(annotation) },
@@ -130,32 +119,26 @@ fun UElement.findAllAnnotationsInGraph(
 }
 
 /**
- * In Multipreview, every annotation is traversed in the DFS for finding Previews. This list is used
- * as an optimization to avoid traversing annotations which fqcn starts with any of these prefixes,
- * as those annotations will never lead to a Preview.
+ * In Multipreview, every annotation is traversed in the DFS for finding Previews. This list is used as an optimization to avoid traversing
+ * annotations which fqcn starts with any of these prefixes, as those annotations will never lead to a Preview.
  */
 private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx.", "java.")
 
 /**
  * Returns true if one of the following is true:
- * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
- *    contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or
- *    'package androidx.preview.example')
- * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
- *    [NON_MULTIPREVIEW_PREFIXES].
+ * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it contains 'preview' as one of its
+ *    subpackages (e.g. 'package androidx.example.preview' or 'package androidx.preview.example')
+ * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in [NON_MULTIPREVIEW_PREFIXES].
  */
 @Slow
 private suspend fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
   return readAction { this.qualifiedName }
     ?.let { fqcn ->
-      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
-      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.") else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
     } == true
 }
 
-/**
- * Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation.
- */
+/** Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation. */
 @Slow
 private suspend fun shouldTraverse(annotation: UAnnotation): Boolean =
   readAction { annotation.isPsiValid } && annotation.couldBeMultiPreviewAnnotation()

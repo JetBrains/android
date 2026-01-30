@@ -17,9 +17,7 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 
-/**
- * Definition of the view (in the context of a Model-View-Controller pattern) used to pair devices
- */
+/** Definition of the view (in the context of a Model-View-Controller pattern) used to pair devices */
 @UiThread
 interface WiFiPairingView {
   val model: WiFiPairingModel

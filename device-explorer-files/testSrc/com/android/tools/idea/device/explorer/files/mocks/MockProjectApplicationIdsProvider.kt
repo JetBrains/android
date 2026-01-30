@@ -21,10 +21,8 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Compan
 import com.intellij.openapi.project.Project
 
 /** Test implementation of [ProjectApplicationIdsProvider] */
-internal class MockProjectApplicationIdsProvider(
-  private val project: Project,
-  vararg initialValue: String,
-) : ProjectApplicationIdsProvider {
+internal class MockProjectApplicationIdsProvider(private val project: Project, vararg initialValue: String) :
+  ProjectApplicationIdsProvider {
   private var applicationIds = initialValue.toSet()
 
   @UiThread

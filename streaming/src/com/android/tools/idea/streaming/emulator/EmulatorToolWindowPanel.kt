@@ -71,17 +71,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
-private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
+private val LOG
+  get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 
-/**
- * Provides view of one AVD in the Running Devices tool window.
- */
-internal class EmulatorToolWindowPanel(
-  disposableParent: Disposable,
-  private val project: Project,
-  val emulator: EmulatorController
-) : StreamingDevicePanel<EmulatorDisplayPanel>(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
-    ConnectionStateListener {
+/** Provides view of one AVD in the Running Devices tool window. */
+internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val project: Project, val emulator: EmulatorController) :
+  StreamingDevicePanel<EmulatorDisplayPanel>(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID), ConnectionStateListener {
 
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
@@ -132,8 +127,7 @@ internal class EmulatorToolWindowPanel(
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
 
-  @get:TestOnly
-  var lastUiState: EmulatorUiState? = null
+  @get:TestOnly var lastUiState: EmulatorUiState? = null
 
   init {
     Disposer.register(disposableParent, this)
@@ -160,9 +154,7 @@ internal class EmulatorToolWindowPanel(
     ActivityTracker.getInstance().inc()
   }
 
-  /**
-   * Populates the emulator panel with content.
-   */
+  /** Populates the emulator panel with content. */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     if (contentDisposable != null) {
       LOG.error(IllegalStateException("$title: content already exists"))
@@ -174,40 +166,39 @@ internal class EmulatorToolWindowPanel(
     Disposer.register(this, disposable)
     contentDisposable = disposable
 
-    val primaryDisplayPanel = createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
-      EmulatorDisplayPanel(disposable, emulator, project, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
-    }
+    val primaryDisplayPanel =
+      createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
+        EmulatorDisplayPanel(disposable, emulator, project, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
+      }
     val emulatorView = primaryDisplayPanel.displayView
     primaryDisplayView = emulatorView
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
-    emulatorView.addPostureListener(object: PostureListener {
-      override fun postureChanged(posture: PostureDescriptor) {
-        ActivityTracker.getInstance().inc()
+    emulatorView.addPostureListener(
+      object : PostureListener {
+        override fun postureChanged(posture: PostureDescriptor) {
+          ActivityTracker.getInstance().inc()
+        }
       }
-    })
+    )
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdId)
     if (multiDisplayState?.isInitialized() == true) {
       try {
         displayConfigurator.buildLayout(multiDisplayState)
-      }
-      catch (e: RuntimeException) {
+      } catch (e: RuntimeException) {
         LOG.error("Corrupted multi-display state", e)
         // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
-    }
-    else {
+    } else {
       centerPanel.addToCenter(primaryDisplayPanel)
     }
 
     mainToolbar.targetComponent = emulatorView
     secondaryToolbar.targetComponent = emulatorView
-    emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
-      ActivityTracker.getInstance().inc()
-    }
+    emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) { ActivityTracker.getInstance().inc() }
 
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
     val zoomScrollState = uiState.zoomScrollState
@@ -229,9 +220,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
-  /**
-   * Destroys content of the emulator panel and returns its state for later recreation.
-   */
+  /** Destroys content of the emulator panel and returns its state for later recreation. */
   override fun destroyContent(): EmulatorUiState {
     val uiState = EmulatorUiState()
     val disposable = contentDisposable ?: return uiState
@@ -249,13 +238,15 @@ internal class EmulatorToolWindowPanel(
     manageSnapshotsDialog?.close(DialogWrapper.CLOSE_EXIT_CODE)
 
     if (connected) {
-      emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
-        override fun onNext(message: ExtendedControlsStatus) {
-          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            uiState.extendedControlsShown = message.visibilityChanged
+      emulator.closeExtendedControls(
+        object : EmptyStreamObserver<ExtendedControlsStatus>() {
+          override fun onNext(message: ExtendedControlsStatus) {
+            EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+              uiState.extendedControlsShown = message.visibilityChanged
+            }
           }
         }
-      })
+      )
     }
 
     emulator.removeConnectionStateListener(this)
@@ -281,8 +272,7 @@ internal class EmulatorToolWindowPanel(
   private fun getScreenRecorderParameters(): ScreenRecordingParameters? {
     return if (emulator.connectionState == ConnectionState.CONNECTED) {
       ScreenRecordingParameters(emulatorId.serialNumber, emulatorId.avdName, emulator.emulatorConfig.api, emulator, emulatorId.avdFolder)
-    }
-    else {
+    } else {
       null
     }
   }
@@ -295,27 +285,27 @@ internal class EmulatorToolWindowPanel(
     override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?) {
       if (displayConfigs == null) {
         refreshDisplayConfiguration()
-      }
-      else {
+      } else {
         displayConfigurationReceived(displayConfigs)
       }
     }
 
     @AnyThread
     fun refreshDisplayConfiguration() {
-      emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
-        override fun onNext(message: DisplayConfigurations) {
-          if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-            LOG.info("Display configurations: " + shortDebugString(message))
-          }
-          else {
-            LOG.debug("Display configurations: " + shortDebugString(message))
-          }
-          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            displayConfigurationReceived(message.displaysList)
+      emulator.getDisplayConfigurations(
+        object : EmptyStreamObserver<DisplayConfigurations>() {
+          override fun onNext(message: DisplayConfigurations) {
+            if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+              LOG.info("Display configurations: " + shortDebugString(message))
+            } else {
+              LOG.debug("Display configurations: " + shortDebugString(message))
+            }
+            EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+              displayConfigurationReceived(message.displaysList)
+            }
           }
         }
-      })
+      )
     }
 
     private fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
@@ -366,8 +356,7 @@ internal class EmulatorToolWindowPanel(
           firstComponent = buildLayout(splitPanelState.firstComponent, displayDescriptors)
           secondComponent = buildLayout(splitPanelState.secondComponent, displayDescriptors)
         }
-      }
-      else {
+      } else {
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
         createDisplayPanelIfAbsent(displayId) {
@@ -393,8 +382,7 @@ internal class EmulatorToolWindowPanel(
         .map {
           if (it.display == PRIMARY_DISPLAY_ID) {
             DisplayDescriptor(PRIMARY_DISPLAY_ID, emulatorView.displaySizeWithFrame)
-          }
-          else {
+          } else {
             it.toDisplayDescriptor()
           }
         }
@@ -418,10 +406,7 @@ internal class EmulatorToolWindowPanel(
     val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
   }
 
-  /**
-   * Persistent multi-display state corresponding to a single AVD.
-   * The no-argument constructor is used by the XML deserializer.
-   */
+  /** Persistent multi-display state corresponding to a single AVD. The no-argument constructor is used by the XML deserializer. */
   class MultiDisplayState() {
 
     lateinit var displayDescriptors: MutableList<DisplayDescriptor>
@@ -451,8 +436,7 @@ internal class EmulatorToolWindowPanel(
   @State(name = "EmulatorDisplays", storages = [Storage("emulatorDisplays.xml")])
   class MultiDisplayStateStorage : PersistentStateComponent<MultiDisplayStateStorage> {
 
-    @get:Property(surroundWithTag = true)
-    var displayStateByAvdFolder = mutableMapOf<String, MultiDisplayState>()
+    @get:Property(surroundWithTag = true) var displayStateByAvdFolder = mutableMapOf<String, MultiDisplayState>()
 
     private val updaters = mutableListOf<Runnable>()
 
@@ -480,8 +464,7 @@ internal class EmulatorToolWindowPanel(
     fun setMultiDisplayState(avdId: String, state: MultiDisplayState?) {
       if (state == null) {
         displayStateByAvdFolder.remove(avdId)
-      }
-      else {
+      } else {
         displayStateByAvdFolder[avdId] = state
       }
     }
@@ -495,5 +478,4 @@ internal class EmulatorToolWindowPanel(
   }
 }
 
-private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor =
-    DisplayDescriptor(display, width, height)
+private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor = DisplayDescriptor(display, width, height)

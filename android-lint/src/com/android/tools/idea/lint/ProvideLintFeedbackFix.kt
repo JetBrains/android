@@ -47,10 +47,7 @@ class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
       )
   }
 
-  override fun generatePreview(
-    project: Project,
-    previewDescriptor: ProblemDescriptor,
-  ): IntentionPreviewInfo {
+  override fun generatePreview(project: Project, previewDescriptor: ProblemDescriptor): IntentionPreviewInfo {
     return IntentionPreviewInfo.EMPTY
   }
 

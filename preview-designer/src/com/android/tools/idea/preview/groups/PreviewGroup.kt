@@ -24,14 +24,8 @@ sealed interface PreviewGroup {
   val icon: Icon?
   val name: String?
 
-  /**
-   * A [PreviewGroup] defined by the user. These can only be created as part of [PreviewElement]s.
-   */
-  data class Named(
-    override val displayName: String,
-    override val icon: Icon?,
-    override val name: String?,
-  ) : PreviewGroup
+  /** A [PreviewGroup] defined by the user. These can only be created as part of [PreviewElement]s. */
+  data class Named(override val displayName: String, override val icon: Icon?, override val name: String?) : PreviewGroup
 
   /** [PreviewGroup] to be used when no filtering is to be applied to the preview. */
   object All : PreviewGroup {
@@ -43,7 +37,6 @@ sealed interface PreviewGroup {
   }
 
   companion object {
-    fun namedGroup(displayName: String, icon: Icon? = null, name: String = displayName): Named =
-      Named(displayName, icon, name)
+    fun namedGroup(displayName: String, icon: Icon? = null, name: String = displayName): Named = Named(displayName, icon, name)
   }
 }

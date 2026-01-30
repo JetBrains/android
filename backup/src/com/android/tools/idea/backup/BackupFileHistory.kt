@@ -47,8 +47,7 @@ internal class BackupFileHistory(private val project: Project) {
   }
 
   private fun setProperty(value: List<String>) {
-    PropertiesComponent.getInstance(project)
-      .setValue(FILE_HISTORY_PROPERTY, value.joinToString("\n") { it })
+    PropertiesComponent.getInstance(project).setValue(FILE_HISTORY_PROPERTY, value.joinToString("\n") { it })
   }
 
   private fun List<String>.filterValid() =

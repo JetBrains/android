@@ -29,8 +29,7 @@ import com.intellij.util.containers.ContainerUtil.createConcurrentList
 /**
  * ToggleAction for hardware input.
  *
- * When hardware input is enabled, Android Studio forwards unaltered mouse and keyboard events to
- * the device.
+ * When hardware input is enabled, Android Studio forwards unaltered mouse and keyboard events to the device.
  */
 internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
@@ -58,7 +57,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private fun getHardwareInputStateStorage(event: AnActionEvent): HardwareInputStateStorage? =
-      event.project?.service<HardwareInputStateStorage>()
+    event.project?.service<HardwareInputStateStorage>()
 
   companion object {
     const val ACTION_ID = "android.streaming.hardware.input"
@@ -70,8 +69,7 @@ internal class HardwareInputStateStorage {
 
   private val enabledDevices = createConcurrentList<String>()
 
-  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean =
-      enabledDevices.contains(deviceId.storageKey)
+  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean = enabledDevices.contains(deviceId.storageKey)
 
   fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
     if (enabled) {
@@ -82,8 +80,9 @@ internal class HardwareInputStateStorage {
   }
 
   private val DeviceId.storageKey: String
-    get() = when (this) {
-      is DeviceId.EmulatorDeviceId -> emulatorId.avdId
-      is DeviceId.PhysicalDeviceId -> serialNumber
-    }
+    get() =
+      when (this) {
+        is DeviceId.EmulatorDeviceId -> emulatorId.avdId
+        is DeviceId.PhysicalDeviceId -> serialNumber
+      }
 }

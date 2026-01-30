@@ -40,21 +40,21 @@ import org.mockito.kotlin.whenever
 // lines 14, characters 344
 private val ANDROID_LIBRARY_CLASS_CONTENT =
   """
-   package com.example.mylibrary;
+  package com.example.mylibrary;
 
-   public class AndroidLibraryClass {
-       private static int count = 0;
-       public static void createCrashInAndroidLibrary()  {
-           if (count == 1) {
-               throw new ExceptionInInitializerError ("Android Library crash");
-           }
-       }
+  public class AndroidLibraryClass {
+      private static int count = 0;
+      public static void createCrashInAndroidLibrary()  {
+          if (count == 1) {
+              throw new ExceptionInInitializerError ("Android Library crash");
+          }
+      }
 
-       public static void incrementCount() {
-           count ++;
-       }
-   }
-                             """
+      public static void incrementCount() {
+          count ++;
+      }
+  }
+  """
     .trimIndent()
 
 // lines 7, characters 174
@@ -67,7 +67,7 @@ private val MAIN_ACTIVITY_CONTENT =
          super.onCreate(savedInstanceState)
      }
   }
-"""
+  """
     .trimIndent()
 // lines 18, characters 527
 private val PARTIAL_ACTIVITY_CONTENT =
@@ -90,7 +90,7 @@ private val PARTIAL_ACTIVITY_CONTENT =
          }
      }
   }
-"""
+  """
     .trimIndent()
 // lines 14, characters 264
 private val CIRCLE_ACTIVITY_CONTENT =
@@ -109,7 +109,7 @@ private val CIRCLE_ACTIVITY_CONTENT =
         // Do something fun
      }
   }
-"""
+  """
     .trimIndent()
 
 private val EXCLUDED_ACTIVITY_CONTENT =
@@ -121,7 +121,7 @@ private val EXCLUDED_ACTIVITY_CONTENT =
          super.onCreate(savedInstanceState)
      }
   }
-"""
+  """
     .trimIndent()
 
 private val STACKTRACE =
@@ -130,19 +130,14 @@ private val STACKTRACE =
       ExceptionStack(
         stacktrace =
           Stacktrace(
-            caption =
-              Caption(
-                title = "javax.net.ssl.SSLHandshakeException",
-                subtitle = "Trust anchor for certification path not found.",
-              ),
+            caption = Caption(title = "javax.net.ssl.SSLHandshakeException", subtitle = "Trust anchor for certification path not found."),
             blames = Blames.NOT_BLAMED,
             frames =
               listOf(
                 Frame(
                   line = 362,
                   file = "SSLUtils.java",
-                  rawSymbol =
-                    "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
+                  rawSymbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
                   symbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException",
                   offset = 23,
                   address = 0,
@@ -162,8 +157,7 @@ private val STACKTRACE =
                 Frame(
                   line = 7,
                   file = "AndroidLibraryClass.kt",
-                  rawSymbol =
-                    "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary(AndroidLibraryClass.kt:7)",
+                  rawSymbol = "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary(AndroidLibraryClass.kt:7)",
                   symbol = "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary",
                   offset = 31,
                   address = 0,
@@ -204,17 +198,13 @@ private val STACKTRACE =
           ),
         type = "javax.net.ssl.SSLHandshakeException",
         exceptionMessage = "Trust anchor for certification path not found ",
-        rawExceptionMessage =
-          "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+        rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
       ),
       ExceptionStack(
         stacktrace =
           Stacktrace(
             caption =
-              Caption(
-                title = "java.security.cert.CertPathValidatorException",
-                subtitle = "Trust anchor for certification path not found.",
-              ),
+              Caption(title = "java.security.cert.CertPathValidatorException", subtitle = "Trust anchor for certification path not found."),
             blames = Blames.BLAMED,
             frames =
               listOf(
@@ -231,8 +221,7 @@ private val STACKTRACE =
                 Frame(
                   line = 320,
                   file = "RealConnection.java",
-                  rawSymbol =
-                    "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
+                  rawSymbol = "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
                   symbol = "okhttp3.internal.connection.RealConnection.connectTls",
                   offset = 31,
                   address = 0,
@@ -242,8 +231,7 @@ private val STACKTRACE =
                 Frame(
                   line = 7,
                   file = "AndroidLibraryClass.kt",
-                  rawSymbol =
-                    "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary(AndroidLibraryClass.kt:7)",
+                  rawSymbol = "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary(AndroidLibraryClass.kt:7)",
                   symbol = "com.example.mylibrary.AndroidLibraryClass.createCrashInAndroidLibrary",
                   offset = 31,
                   address = 0,
@@ -254,25 +242,17 @@ private val STACKTRACE =
           ),
         type = "javax.net.ssl.SSLHandshakeException",
         exceptionMessage = "Trust anchor for certification path not found ",
-        rawExceptionMessage =
-          "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+        rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
       ),
     )
   )
 
 private val EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT =
-  CodeContext(
-    "/src/src/com/example/mylibrary/AndroidLibraryClass.kt",
-    ANDROID_LIBRARY_CLASS_CONTENT,
-  )
-private val EXPECTED_MAIN_ACTIVITY_CONTEXT =
-  CodeContext("/src/src/com/example/myapp/MainActivity.kt", MAIN_ACTIVITY_CONTENT)
-private val EXPECTED_PARTIAL_ACTIVITY_CONTEXT =
-  CodeContext("/src/src/com/example/myapp/PartialActivity.kt", PARTIAL_ACTIVITY_CONTENT)
-private val EXPECTED_CIRCLE_ACTIVITY_CONTEXT =
-  CodeContext("/src/src/com/example/myapp/CircleActivity.kt", CIRCLE_ACTIVITY_CONTENT)
-private val EXCLUDED_ACTIVITY_CONTEXT =
-  CodeContext("/src/src/com/example/myapp/ExcludedActivity.kt", EXCLUDED_ACTIVITY_CONTENT)
+  CodeContext("/src/src/com/example/mylibrary/AndroidLibraryClass.kt", ANDROID_LIBRARY_CLASS_CONTENT)
+private val EXPECTED_MAIN_ACTIVITY_CONTEXT = CodeContext("/src/src/com/example/myapp/MainActivity.kt", MAIN_ACTIVITY_CONTENT)
+private val EXPECTED_PARTIAL_ACTIVITY_CONTEXT = CodeContext("/src/src/com/example/myapp/PartialActivity.kt", PARTIAL_ACTIVITY_CONTENT)
+private val EXPECTED_CIRCLE_ACTIVITY_CONTEXT = CodeContext("/src/src/com/example/myapp/CircleActivity.kt", CIRCLE_ACTIVITY_CONTENT)
+private val EXCLUDED_ACTIVITY_CONTEXT = CodeContext("/src/src/com/example/myapp/ExcludedActivity.kt", EXCLUDED_ACTIVITY_CONTENT)
 
 private val EXPECTED_CONTEXT =
   CodeContextData(
@@ -296,10 +276,7 @@ class CodeContextResolverTest {
 
   @Before
   fun setUp() {
-    fixture.addFileToProject(
-      "src/com/example/mylibrary/AndroidLibraryClass.kt",
-      ANDROID_LIBRARY_CLASS_CONTENT,
-    )
+    fixture.addFileToProject("src/com/example/mylibrary/AndroidLibraryClass.kt", ANDROID_LIBRARY_CLASS_CONTENT)
     fixture.addFileToProject("src/com/example/myapp/MainActivity.kt", MAIN_ACTIVITY_CONTENT)
     fixture.addFileToProject("src/com/example/myapp/PartialActivity.kt", PARTIAL_ACTIVITY_CONTENT)
     fixture.addFileToProject("src/com/example/myapp/CircleActivity.kt", CIRCLE_ACTIVITY_CONTENT)
@@ -307,11 +284,7 @@ class CodeContextResolverTest {
 
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.excludedFilePaths = setOf(EXCLUDED_ACTIVITY_CONTEXT.filePath)
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.testRootDisposable)
   }
 
   @Test
@@ -324,13 +297,12 @@ class CodeContextResolverTest {
   }
 
   @Test
-  fun `resolve code context returns empty list when Connection does not match project`() =
-    runBlocking {
-      val resolver = CodeContextResolverImpl(projectRule.project)
-      val contexts = resolver.getSource(mock(), STACKTRACE)
+  fun `resolve code context returns empty list when Connection does not match project`() = runBlocking {
+    val resolver = CodeContextResolverImpl(projectRule.project)
+    val contexts = resolver.getSource(mock(), STACKTRACE)
 
-      assertThat(contexts.codeContext).isEmpty()
-    }
+    assertThat(contexts.codeContext).isEmpty()
+  }
 
   @Test
   fun `resolve context from file names`() = runBlocking {

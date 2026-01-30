@@ -19,21 +19,18 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
 
-/**
- * Determines Java package prefixes for directories that contain source files.
- */
+/** Determines Java package prefixes for directories that contain source files. */
 interface JavaPackagePrefixReader {
   /**
-   * Concurrently reads the package name for each package in the provided [PackageSet] to
-   * determine the package prefix for each source directory.
+   * Concurrently reads the package name for each package in the provided [PackageSet] to determine the package prefix for each source
+   * directory.
    *
-   * For each package, this method scans its subdirectories to find source files. It then reads the
-   * package declaration from a representative file in each directory that contains sources. This
-   * correctly discovers all distinct subpackages that should be treated as source roots.
+   * For each package, this method scans its subdirectories to find source files. It then reads the package declaration from a
+   * representative file in each directory that contains sources. This correctly discovers all distinct subpackages that should be treated
+   * as source roots.
    *
-   * @return A map where keys are the workspace-relative paths of directories containing source
-   *   files (i.e., subpackages), and values are the corresponding Java/Kotlin package names, which
-   *   serve as the prefix.
+   * @return A map where keys are the workspace-relative paths of directories containing source files (i.e., subpackages), and values are
+   *   the corresponding Java/Kotlin package names, which serve as the prefix.
    */
   suspend fun readPrefixes(context: Context<*>, packages: PackageSet, sourceFiles: Collection<Path>): Map<Path, String>
 }

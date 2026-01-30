@@ -55,13 +55,10 @@ internal class VirtualDevice(
   // These properties are derivative of deviceProfile; they are exposed only for testing
   val hasPlaystore: Boolean = deviceProfile.hasPlayStore(),
   val isFoldable: Boolean = deviceProfile.defaultHardware.screen.isFoldable,
-  val cameraLocations: Collection<CameraLocation> =
-    deviceProfile.defaultHardware.cameras.map(Camera::getLocation),
+  val cameraLocations: Collection<CameraLocation> = deviceProfile.defaultHardware.cameras.map(Camera::getLocation),
   val formFactor: String = deviceProfile.formFactor,
-  val defaultRam: StorageCapacity =
-    EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity(),
-  val defaultVmHeapSize: StorageCapacity =
-    EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity(),
+  val defaultRam: StorageCapacity = EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity(),
+  val defaultVmHeapSize: StorageCapacity = EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity(),
 ) {
   var name: String by mutableStateOf("")
   var image: ISystemImage? by mutableStateOf(null)
@@ -84,25 +81,18 @@ internal class VirtualDevice(
   var preferredAbi: String? by mutableStateOf(null)
 
   /**
-   * The value of the [skin] property after it is initialized by [ConfigurationPage] via
-   * [ConfigureDevicePanelState]. [ConfigureDevicePanelState] uses this to reset [skin] to the
-   * default when a user selects a Play system image. It also uses this to generate the restricted
-   * list of skins for the skin drop down for Play.
+   * The value of the [skin] property after it is initialized by [ConfigurationPage] via [ConfigureDevicePanelState].
+   * [ConfigureDevicePanelState] uses this to reset [skin] to the default when a user selects a Play system image. It also uses this to
+   * generate the restricted list of skins for the skin drop down for Play.
    *
    * It's its own property for ease of testing, like [VirtualDevice.hasPlaystore], [isFoldable], etc
    */
   var defaultSkin: Skin by mutableStateOf(skin)
 
   val isValid
-    get() =
-      image != null &&
-        internalStorage != null &&
-        expandedStorage != null &&
-        ram != null &&
-        vmHeapSize != null
+    get() = image != null && internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
 
-  fun hasPlayStore(image: ISystemImage) =
-    hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
+  fun hasPlayStore(image: ISystemImage) = hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
   fun isEnvironmentAllowed(): Boolean = formFactor == FormFactors.AI_GLASSES
 
@@ -155,11 +145,9 @@ internal class VirtualDevice(
   }
 }
 
-private fun Device.hasFrontCamera() =
-  defaultHardware.cameras.any { it.location == CameraLocation.FRONT }
+private fun Device.hasFrontCamera() = defaultHardware.cameras.any { it.location == CameraLocation.FRONT }
 
-private fun Device.hasRearCamera() =
-  defaultHardware.cameras.any { it.location == CameraLocation.BACK }
+private fun Device.hasRearCamera() = defaultHardware.cameras.any { it.location == CameraLocation.BACK }
 
 internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   this.device = device.deviceProfile

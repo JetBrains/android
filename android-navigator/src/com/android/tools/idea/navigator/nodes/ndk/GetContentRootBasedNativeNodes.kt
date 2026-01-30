@@ -28,27 +28,28 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiManager
 
 /** Gets nodes for project view and Android view populated by native content roots. */
-fun getContentRootBasedNativeNodes(module: Module,
-                                   settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+fun getContentRootBasedNativeNodes(module: Module, settings: ViewSettings): Collection<AbstractTreeNode<*>> {
   val project = module.project
   val sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(NativeSourceRootType)
   val psiManager = PsiManager.getInstance(project)
   val sourceRootPsiDirs = sourceRoots.mapNotNull { sourceRoot -> psiManager.findDirectory(sourceRoot) }
 
   val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
-  var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map {
-    val folderLabel = null // We don't want to label ndk content root nodes
-    AndroidPsiDirectoryNode(project, it, settings, folderLabel, it) { item ->
-      nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
+  var sourceRootNodes: Collection<AbstractTreeNode<*>> =
+    sourceRootPsiDirs.map {
+      val folderLabel = null // We don't want to label ndk content root nodes
+      AndroidPsiDirectoryNode(project, it, settings, folderLabel, it) { item ->
+        nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
+      }
     }
-  }
 
-  val additionalFiles = nativeWorkspaceService.getAdditionalNativeFiles(module).mapNotNull { vf ->
-    if (!nativeWorkspaceService.shouldShowInProjectView(module, vf.toIoFile())) {
-      return@mapNotNull null
+  val additionalFiles =
+    nativeWorkspaceService.getAdditionalNativeFiles(module).mapNotNull { vf ->
+      if (!nativeWorkspaceService.shouldShowInProjectView(module, vf.toIoFile())) {
+        return@mapNotNull null
+      }
+      PsiFileNode(project, psiManager.findFile(vf) ?: return@mapNotNull null, settings)
     }
-    PsiFileNode(project, psiManager.findFile(vf) ?: return@mapNotNull null, settings)
-  }
 
   if (sourceRootNodes.size == 1 && additionalFiles.isEmpty()) {
     sourceRootNodes = sourceRootNodes.first().children
@@ -56,4 +57,3 @@ fun getContentRootBasedNativeNodes(module: Module,
 
   return sourceRootNodes + listOfNotNull(IncludesViewNodeV2.create(module, settings)) + additionalFiles
 }
-

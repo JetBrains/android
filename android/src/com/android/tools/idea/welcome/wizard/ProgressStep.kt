@@ -21,10 +21,9 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.progress.ProgressIndicator
 
 /**
- * This interface facilitates migration from the deprecated {@link
- * com.android.tools.idea.welcome.wizard.deprecated.ProgressStep} step to the new {@link
- * com.android.tools.idea.welcome.wizard.ProgressStep} step. It can be removed once the migration is
- * complete and the deprecated class has been removed.
+ * This interface facilitates migration from the deprecated {@link com.android.tools.idea.welcome.wizard.deprecated.ProgressStep} step to
+ * the new {@link com.android.tools.idea.welcome.wizard.ProgressStep} step. It can be removed once the migration is complete and the
+ * deprecated class has been removed.
  */
 interface ProgressStep {
   /** Returns true if the operation associated with this progress step has been cancelled. */
@@ -39,12 +38,10 @@ interface ProgressStep {
   @AnyThread fun print(s: String, contentType: ConsoleViewContentType)
 
   /**
-   * Executes a runnable under a progress indicator, allocating a specific portion of the overall
-   * progress to this runnable.
+   * Executes a runnable under a progress indicator, allocating a specific portion of the overall progress to this runnable.
    *
    * @param runnable The code to execute.
-   * @param progressPortion The fraction of the overall progress bar to allocate to this runnable
-   *   (between 0.0 and 1.0).
+   * @param progressPortion The fraction of the overall progress bar to allocate to this runnable (between 0.0 and 1.0).
    */
   @AnyThread fun run(runnable: Runnable, progressPortion: Double)
 

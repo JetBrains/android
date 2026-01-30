@@ -125,8 +125,7 @@ class SavePreviewInNewSizeActionTest {
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Save New Preview (500dp x 500dp)")
     assertThat(event.presentation.text).isEqualTo("Save New Preview (500dp x 500dp)")
-    assertThat(event.presentation.description)
-      .isEqualTo("Add the @Preview annotation with the current preview size (500dp x 500dp)")
+    assertThat(event.presentation.description).isEqualTo("Add the @Preview annotation with the current preview size (500dp x 500dp)")
   }
 
   private fun getDataContext(): DataContext =
@@ -188,23 +187,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-                import androidx.compose.ui.tooling.preview.Preview
-                import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-                @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
-                @Composable
-                fun MyComposable() {
-                }
-                """
+        @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
@@ -220,8 +214,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -231,33 +224,24 @@ class SavePreviewInNewSizeActionTest {
 
     action.actionPerformed(event)
 
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     assertThat(previewElements.size).isEqualTo(2)
     val newAnnotation =
-      previewElements
-        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
-        .find { it.text != originalAnnotation.text }!!
+      previewElements.map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }.find { it.text != originalAnnotation.text }!!
 
     // We expect a device spec
     val deviceSpec = newAnnotation.getValueForArgument("device")
-    assertThat(deviceSpec)
-      .isEqualTo(
-        "\"spec:width=${biggerSide}dp,height=${smallerSide}dp,dpi=${DEFAULT_DENSITY},orientation=landscape\""
-      )
+    assertThat(deviceSpec).isEqualTo("\"spec:width=${biggerSide}dp,height=${smallerSide}dp,dpi=${DEFAULT_DENSITY},orientation=landscape\"")
     assertThat(newAnnotation.text)
       .isEqualTo(
         """
-          @Preview(
-              name = "200dp x 100dp",
-              group = "MyGroup",
-              showSystemUi = true,
-              device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
-          )
+        @Preview(
+            name = "200dp x 100dp",
+            group = "MyGroup",
+            showSystemUi = true,
+            device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
+        )
         """
           .trimIndent()
       )
@@ -270,23 +254,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-                import androidx.compose.ui.tooling.preview.Preview
-                import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-                @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
-                @Composable
-                fun MyComposable() {
-                }
-                """
+        @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
@@ -299,8 +278,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -310,27 +288,21 @@ class SavePreviewInNewSizeActionTest {
 
     action.actionPerformed(event)
 
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     assertThat(previewElements.size).isEqualTo(2)
     val newAnnotation =
-      previewElements
-        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
-        .find { it.text != originalAnnotation.text }!!
+      previewElements.map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }.find { it.text != originalAnnotation.text }!!
 
     assertThat(newAnnotation.text)
       .isEqualTo(
         """
-          @Preview(
-              name = "Pixel 9",
-              group = "MyGroup",
-              showSystemUi = true,
-              device = "id:Pixel_9"
-          )
+        @Preview(
+            name = "Pixel 9",
+            group = "MyGroup",
+            showSystemUi = true,
+            device = "id:Pixel_9"
+        )
         """
           .trimIndent()
       )
@@ -343,23 +315,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-            import androidx.compose.ui.tooling.preview.Preview
-            import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-            @Preview(name = "MyPreview", group = "MyGroup", showBackground = true)
-            @Composable
-            fun MyComposable() {
-            }
-            """
+        @Preview(name = "MyPreview", group = "MyGroup", showBackground = true)
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
@@ -374,8 +341,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -385,30 +351,24 @@ class SavePreviewInNewSizeActionTest {
 
     action.actionPerformed(event)
 
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     assertThat(previewElements.size).isEqualTo(2)
     val newAnnotation =
-      previewElements
-        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
-        .find { it.text != originalAnnotation.text }!!
+      previewElements.map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }.find { it.text != originalAnnotation.text }!!
 
     assertThat(newAnnotation.getValueForArgument("widthDp")).isEqualTo("$newWidth")
     assertThat(newAnnotation.getValueForArgument("heightDp")).isEqualTo("$newHeight")
     assertThat(newAnnotation.text)
       .isEqualTo(
         """
-          @Preview(
-              name = "100dp x 200dp",
-              group = "MyGroup",
-              showBackground = true,
-              widthDp = 100,
-              heightDp = 200
-          )
+        @Preview(
+            name = "100dp x 200dp",
+            group = "MyGroup",
+            showBackground = true,
+            widthDp = 100,
+            heightDp = 200
+        )
         """
           .trimIndent()
       )
@@ -423,23 +383,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-            import androidx.compose.ui.tooling.preview.Preview
-            import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-            @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
-            @Composable
-            fun MyComposable() {
-            }
-            """
+        @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
 
     val configuration = createConfiguration(500, 600)
@@ -453,8 +408,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -466,18 +420,13 @@ class SavePreviewInNewSizeActionTest {
 
     val eventAnalytics =
       usageTrackerRule.usages
-        .find {
-          it.studioEvent.resizeComposePreviewEvent.eventType ==
-            ResizeComposePreviewEvent.EventType.RESIZE_SAVED
-        }!!
+        .find { it.studioEvent.resizeComposePreviewEvent.eventType == ResizeComposePreviewEvent.EventType.RESIZE_SAVED }!!
         .studioEvent
         .resizeComposePreviewEvent
     assertThat(eventAnalytics.deviceWidthDp).isEqualTo(newWidth)
     assertThat(eventAnalytics.deviceHeightDp).isEqualTo(newHeight)
-    assertThat(eventAnalytics.dpi)
-      .isEqualTo(configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue)
-    assertThat(eventAnalytics.resizeMode)
-      .isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
+    assertThat(eventAnalytics.dpi).isEqualTo(configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue)
+    assertThat(eventAnalytics.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }
 
   @Test
@@ -487,30 +436,25 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-          import androidx.compose.runtime.Composable
-          import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-          @Preview(name = "phone", device = "spec:width=360dp,height=640dp,dpi=480")
-          @Preview(name = "landscape", device = "spec:width=640dp,height=360dp,dpi=480")
-          annotation class DevicePreviews
+        @Preview(name = "phone", device = "spec:width=360dp,height=640dp,dpi=480")
+        @Preview(name = "landscape", device = "spec:width=640dp,height=360dp,dpi=480")
+        annotation class DevicePreviews
 
-          @DevicePreviews
-          @Composable
-          fun MyComposable(text: String) {
-          }
-          """
+        @DevicePreviews
+        @Composable
+        fun MyComposable(text: String) {
+        }
+        """
           .trimIndent(),
       )
 
-    var previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    var previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     val phonePreviewElement: PsiComposePreviewElement =
-      previewElements.find { it.displaySettings.name == "phone - MyComposable" }
-        as PsiComposePreviewElement
+      previewElements.find { it.displaySettings.name == "phone - MyComposable" } as PsiComposePreviewElement
     assertThat(phonePreviewElement).isNotNull()
 
     phonePreviewElement.previewElementDefinition!!.element as KtAnnotationEntry
@@ -518,16 +462,14 @@ class SavePreviewInNewSizeActionTest {
     modeManager.setMode(PreviewMode.Focus(phonePreviewElement))
 
     // Simulate a resize
-    val configuration =
-      createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
+    val configuration = createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
     configuration.updateScreenSize(845, 360) // Ensure internal state is updated
 
     `when`(resizePanel.hasBeenResized).thenReturn(true)
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            phonePreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = phonePreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -537,18 +479,12 @@ class SavePreviewInNewSizeActionTest {
 
     action.actionPerformed(event)
 
-    previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     assertThat(previewElements.size).isEqualTo(3)
     val newAnnotation =
-      previewElements
-        .find { it.configuration.width == 845 && it.configuration.height == 360 }
-        ?.previewElementDefinition!!
-        .element as KtAnnotationEntry
+      previewElements.find { it.configuration.width == 845 && it.configuration.height == 360 }?.previewElementDefinition!!.element
+        as KtAnnotationEntry
 
     assertThat(newAnnotation.text)
       .isEqualTo(
@@ -582,7 +518,7 @@ class SavePreviewInNewSizeActionTest {
       @Composable
       fun MyComposable(text: String) {
       }
-    """
+      """
         .trimIndent()
 
     assertThat(newAnnotation.containingFile.text).isEqualTo(expectedContent)
@@ -596,23 +532,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-                import androidx.compose.ui.tooling.preview.Preview
-                import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-                @Preview(name = "MyPreview", group = "MyGroup")
-                @Composable
-                fun MyComposable() {
-                }
-                """
+        @Preview(name = "MyPreview", group = "MyGroup")
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
 
     val mockFlowManager = mock<PreviewFlowManager<PsiComposePreviewElement>>()
     val previewElementFlow = MutableStateFlow(FlowableCollection.Present(listOf(previewElement)))
@@ -624,8 +555,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     val configuration = createConfiguration(100, 200)
@@ -652,11 +582,7 @@ class SavePreviewInNewSizeActionTest {
     assertThat(modeManager.mode.value).isEqualTo(modeBeforeAction)
 
     // Act (Part 2 - simulate the file refresh that finds the new preview)
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
     assertThat(previewElements.size).isEqualTo(2)
     previewElementFlow.value = FlowableCollection.Present(previewElements)
     advanceUntilIdle()
@@ -677,10 +603,10 @@ class SavePreviewInNewSizeActionTest {
     projectRule.fixture.addFileToProject(
       "src/some/other/package/Preview.kt", // Path matching the package
       """
-                package some.other.package
+      package some.other.package
 
-                class Preview // This is the conflicting class named 'Preview'
-                """
+      class Preview // This is the conflicting class named 'Preview'
+      """
         .trimIndent(),
     )
 
@@ -699,16 +625,11 @@ class SavePreviewInNewSizeActionTest {
         @Composable
         fun MyComposable() {
         }
-                """
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
 
     val configuration = createConfiguration(300, 400)
@@ -718,8 +639,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -747,126 +667,119 @@ class SavePreviewInNewSizeActionTest {
       @Composable
       fun MyComposable() {
       }
-                """
+      """
         .trimIndent()
 
     assertThat(composeTest.text).isEqualTo(expectedContent)
   }
 
   @Test
-  fun `add new annotation uses FQN with custom MultiPreview annotation from separate file and conflicting import`() =
-    runTest {
-      // 1. Add the conflicting class file
-      @Language("kotlin")
-      val conflictingPreviewFile =
-        projectRule.fixture.addFileToProject(
-          "src/some/other/package/Preview.kt", // Path matching the package
-          """
-                package some.other.package
-
-                class Preview // This is the conflicting class named 'Preview'
-                """
-            .trimIndent(),
-        )
-
-      // 2. Add the custom MultiPreview annotation in a separate file
-      @Language("kotlin")
-      val fontScalePreviewsFile =
-        projectRule.fixture.addFileToProject(
-          "src/com/example/multipreview/FontScalePreviews.kt",
-          """
-                package com.example.multipreview
-
-                import androidx.compose.ui.tooling.preview.Preview
-
-                @Preview(name = "small font", group = "font scales", fontScale = 0.5f)
-                @Preview(name = "large font", group = "font scales", fontScale = 1.5f)
-                annotation class FontScalePreviews
-                """
-            .trimIndent(),
-        )
-
-      // 3. Main Compose Test file
-      @Language("kotlin")
-      val composeTest =
-        projectRule.fixture.addFileToProject(
-          "src/Test.kt",
-          """
-                package com.example
-
-                import androidx.compose.runtime.Composable
-                import com.example.multipreview.FontScalePreviews
-                import some.other.package.Preview // This import creates a name conflict for 'Preview'
-
-                @FontScalePreviews
-                @Composable
-                fun MyComposable() {
-                }
-                """
-            .trimIndent(),
-        )
-
-      // Select one of the previews from the MultiPreview for resizing (e.g., "MyComposable - small
-      // font")
-      var previewElements =
-        AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-
-      val selectedPreviewElement =
-        previewElements.first { it.displaySettings.name == "small font - MyComposable" }
-          as PsiComposePreviewElement
-      assertThat(selectedPreviewElement).isNotNull()
-
-      modeManager.setMode(PreviewMode.Focus(selectedPreviewElement))
-
-      // Simulate a resize to a new configuration
-      val newWidth = 250
-      val newHeight = 400
-      val configuration = createConfiguration(newWidth, newHeight)
-      configuration.updateScreenSize(newWidth, newHeight)
-
-      `when`(resizePanel.hasBeenResized).thenReturn(true)
-      `when`(model.dataProvider)
-        .thenReturn(
-          object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-            override fun getData(dataId: String) =
-              selectedPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
-          }
-        )
-      `when`(model.configuration).thenReturn(configuration)
-
-      val action = SavePreviewInNewSizeAction()
-      val event = TestActionEvent.createTestEvent(getDataContext())
-
-      action.actionPerformed(event)
-
-      @Language("kotlin")
-      val expectedContent =
+  fun `add new annotation uses FQN with custom MultiPreview annotation from separate file and conflicting import`() = runTest {
+    // 1. Add the conflicting class file
+    @Language("kotlin")
+    val conflictingPreviewFile =
+      projectRule.fixture.addFileToProject(
+        "src/some/other/package/Preview.kt", // Path matching the package
         """
-                package com.example
+        package some.other.package
 
-                import androidx.compose.runtime.Composable
-                import com.example.multipreview.FontScalePreviews
-                import some.other.package.Preview // This import creates a name conflict for 'Preview'
+        class Preview // This is the conflicting class named 'Preview'
+        """
+          .trimIndent(),
+      )
 
-                @androidx.compose.ui.tooling.preview.Preview(
-                    name = "250dp x 400dp",
-                    group = "font scales",
-                    fontScale = 0.5f,
-                    widthDp = 250,
-                    heightDp = 400
-                )
-                @FontScalePreviews
-                @Composable
-                fun MyComposable() {
-                }
-                """
-          .trimIndent()
+    // 2. Add the custom MultiPreview annotation in a separate file
+    @Language("kotlin")
+    val fontScalePreviewsFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/multipreview/FontScalePreviews.kt",
+        """
+        package com.example.multipreview
 
-      assertThat(composeTest.text).isEqualTo(expectedContent)
-    }
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Preview(name = "small font", group = "font scales", fontScale = 0.5f)
+        @Preview(name = "large font", group = "font scales", fontScale = 1.5f)
+        annotation class FontScalePreviews
+        """
+          .trimIndent(),
+      )
+
+    // 3. Main Compose Test file
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+        package com.example
+
+        import androidx.compose.runtime.Composable
+        import com.example.multipreview.FontScalePreviews
+        import some.other.package.Preview // This import creates a name conflict for 'Preview'
+
+        @FontScalePreviews
+        @Composable
+        fun MyComposable() {
+        }
+        """
+          .trimIndent(),
+      )
+
+    // Select one of the previews from the MultiPreview for resizing (e.g., "MyComposable - small
+    // font")
+    var previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
+
+    val selectedPreviewElement =
+      previewElements.first { it.displaySettings.name == "small font - MyComposable" } as PsiComposePreviewElement
+    assertThat(selectedPreviewElement).isNotNull()
+
+    modeManager.setMode(PreviewMode.Focus(selectedPreviewElement))
+
+    // Simulate a resize to a new configuration
+    val newWidth = 250
+    val newHeight = 400
+    val configuration = createConfiguration(newWidth, newHeight)
+    configuration.updateScreenSize(newWidth, newHeight)
+
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) = selectedPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    action.actionPerformed(event)
+
+    @Language("kotlin")
+    val expectedContent =
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import com.example.multipreview.FontScalePreviews
+      import some.other.package.Preview // This import creates a name conflict for 'Preview'
+
+      @androidx.compose.ui.tooling.preview.Preview(
+          name = "250dp x 400dp",
+          group = "font scales",
+          fontScale = 0.5f,
+          widthDp = 250,
+          heightDp = 400
+      )
+      @FontScalePreviews
+      @Composable
+      fun MyComposable() {
+      }
+      """
+        .trimIndent()
+
+    assertThat(composeTest.text).isEqualTo(expectedContent)
+  }
 
   @Test
   fun `add new annotation uses existing alias for Preview`() = runTest {
@@ -888,12 +801,7 @@ class SavePreviewInNewSizeActionTest {
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
 
     val configuration = createConfiguration(300, 400)
@@ -903,8 +811,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -945,10 +852,10 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/some/other/package/Preview.kt", // Path matching the package
         """
-                package some.other.package
+        package some.other.package
 
-                class Preview
-                """
+        class Preview
+        """
           .trimIndent(),
       )
 
@@ -958,26 +865,21 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-                package com.example
+        package com.example
 
-                import androidx.compose.runtime.Composable
-                import androidx.compose.ui.tooling.preview.Preview as MyCustomPreviewAlias
-                import some.other.package.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview as MyCustomPreviewAlias
+        import some.other.package.Preview
 
-                @MyCustomPreviewAlias(name = "ExistingAliasedPreview")
-                @Composable
-                fun MyComposable() {
-                }
-                """
+        @MyCustomPreviewAlias(name = "ExistingAliasedPreview")
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
 
     val configuration = createConfiguration(300, 400)
@@ -987,8 +889,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -1001,22 +902,22 @@ class SavePreviewInNewSizeActionTest {
     @Language("kotlin")
     val expectedContent =
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.runtime.Composable
-        import androidx.compose.ui.tooling.preview.Preview as MyCustomPreviewAlias
-        import some.other.package.Preview
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview as MyCustomPreviewAlias
+      import some.other.package.Preview
 
-        @MyCustomPreviewAlias(
-            name = "300dp x 400dp",
-            widthDp = 300,
-            heightDp = 400
-        )
-        @MyCustomPreviewAlias(name = "ExistingAliasedPreview")
-        @Composable
-        fun MyComposable() {
-        }
-                """
+      @MyCustomPreviewAlias(
+          name = "300dp x 400dp",
+          widthDp = 300,
+          heightDp = 400
+      )
+      @MyCustomPreviewAlias(name = "ExistingAliasedPreview")
+      @Composable
+      fun MyComposable() {
+      }
+      """
         .trimIndent()
 
     assertThat(composeTest.text).isEqualTo(expectedContent)
@@ -1029,23 +930,18 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-            import androidx.compose.ui.tooling.preview.Preview
-            import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
 
-            @Preview("Article screen", showBackground = true, backgroundColor = 0xFF000000)
-            @Composable
-            fun MyComposable() {
-            }
-            """
+        @Preview("Article screen", showBackground = true, backgroundColor = 0xFF000000)
+        @Composable
+        fun MyComposable() {
+        }
+        """
           .trimIndent(),
       )
 
-    val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first()
+    val previewElement = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
     modeManager.setMode(PreviewMode.Focus(previewElement))
     val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
 
@@ -1055,8 +951,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -1066,29 +961,23 @@ class SavePreviewInNewSizeActionTest {
 
     action.actionPerformed(event)
 
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
     assertThat(previewElements.size).isEqualTo(2)
     val newAnnotation =
-      previewElements
-        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
-        .find { it.text != originalAnnotation.text }!!
+      previewElements.map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }.find { it.text != originalAnnotation.text }!!
 
     assertThat(newAnnotation.text)
       .isEqualTo(
         """
-            @Preview(
-                name = "300dp x 400dp",
-                showBackground = true,
-                backgroundColor = 0xFF000000,
-                widthDp = 300,
-                heightDp = 400
-            )
-            """
+        @Preview(
+            name = "300dp x 400dp",
+            showBackground = true,
+            backgroundColor = 0xFF000000,
+            widthDp = 300,
+            heightDp = 400
+        )
+        """
           .trimIndent()
       )
   }
@@ -1099,16 +988,16 @@ class SavePreviewInNewSizeActionTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/multipreview/PreviewLightDark.kt",
       """
-            package com.example.multipreview
+      package com.example.multipreview
 
-            import android.content.res.Configuration.UI_MODE_NIGHT_YES
-            import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-            import androidx.compose.ui.tooling.preview.Preview
-            import androidx.compose.ui.tooling.preview.Wallpapers
+      import android.content.res.Configuration.UI_MODE_NIGHT_YES
+      import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Wallpapers
 
-            @Preview(name = "Light")
-            @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
-            annotation class PreviewLightDark
+      @Preview(name = "Light")
+      @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
+      annotation class PreviewLightDark
       """
         .trimIndent(),
     )
@@ -1118,35 +1007,29 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/com/example/MyPreviews.kt",
         """
-              package com.example
+        package com.example
 
-              import androidx.compose.runtime.Composable
-              import com.example.multipreview.PreviewLightDark
+        import androidx.compose.runtime.Composable
+        import com.example.multipreview.PreviewLightDark
 
-              @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
-              @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+        @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+        @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
 
-              @PreviewLightDark
-              @Composable
-              fun My2dContentPreview() {
-                  XRAppTheme {
-                      My2DContent(onRequestFullSpaceMode = {})
-                  }
-              }
+        @PreviewLightDark
+        @Composable
+        fun My2dContentPreview() {
+            XRAppTheme {
+                My2DContent(onRequestFullSpaceMode = {})
+            }
+        }
         """
           .trimIndent(),
       )
 
     // 3. Find the "Dark" preview element, which has uiMode set
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
-    val darkPreviewElement =
-      previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" }
-        as PsiComposePreviewElement
+    val darkPreviewElement = previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" } as PsiComposePreviewElement
 
     modeManager.setMode(PreviewMode.Focus(darkPreviewElement))
 
@@ -1160,8 +1043,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -1214,16 +1096,16 @@ class SavePreviewInNewSizeActionTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/multipreview/PreviewLightDark.kt",
       """
-            package com.example.multipreview
+      package com.example.multipreview
 
-            import android.content.res.Configuration.UI_MODE_NIGHT_YES
-            import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-            import androidx.compose.ui.tooling.preview.Preview
-            import androidx.compose.ui.tooling.preview.Wallpapers
+      import android.content.res.Configuration.UI_MODE_NIGHT_YES
+      import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Wallpapers
 
-            @Preview(name = "Light")
-            @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
-            annotation class PreviewLightDark
+      @Preview(name = "Light")
+      @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
+      annotation class PreviewLightDark
       """
         .trimIndent(),
     )
@@ -1233,37 +1115,31 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/com/example/MyPreviews.kt",
         """
-              package com.example
+        package com.example
 
-              import android.content.res.Configuration
-              import androidx.compose.runtime.Composable
-              import androidx.compose.ui.tooling.preview.Wallpapers
-              import com.example.multipreview.PreviewLightDark
+        import android.content.res.Configuration
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Wallpapers
+        import com.example.multipreview.PreviewLightDark
 
-              @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
-              @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+        @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+        @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
 
-              @PreviewLightDark
-              @Composable
-              fun My2dContentPreview() {
-                  XRAppTheme {
-                      My2DContent(onRequestFullSpaceMode = {})
-                  }
-              }
+        @PreviewLightDark
+        @Composable
+        fun My2dContentPreview() {
+            XRAppTheme {
+                My2DContent(onRequestFullSpaceMode = {})
+            }
+        }
         """
           .trimIndent(),
       )
 
     // 3. Find the "Dark" preview element, which has uiMode set
-    val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-        projectRule.project,
-        composeTest.virtualFile,
-      )
+    val previewElements = AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile)
 
-    val darkPreviewElement =
-      previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" }
-        as PsiComposePreviewElement
+    val darkPreviewElement = previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" } as PsiComposePreviewElement
 
     modeManager.setMode(PreviewMode.Focus(darkPreviewElement))
 
@@ -1277,8 +1153,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
     `when`(model.configuration).thenReturn(configuration)
@@ -1331,27 +1206,24 @@ class SavePreviewInNewSizeActionTest {
       projectRule.fixture.addFileToProject(
         "src/com/example/MyPreviews.kt",
         """
-              package com.example
+        package com.example
 
-              import android.content.res.Configuration.UI_MODE_NIGHT_YES
-              import androidx.compose.runtime.Composable
-              import androidx.compose.ui.tooling.preview.Preview
+        import android.content.res.Configuration.UI_MODE_NIGHT_YES
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-              @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
-              @Composable
-              fun MyComposable() {
-              }
+        @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
+        @Composable
+        fun MyComposable() {
+        }
         """
           .trimIndent(),
       )
 
     // 2. Find the "Dark" preview element
     val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTest.virtualFile,
-        )
-        .first() as PsiComposePreviewElement
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTest.virtualFile).first()
+        as PsiComposePreviewElement
 
     modeManager.setMode(PreviewMode.Focus(previewElement))
 
@@ -1366,8 +1238,7 @@ class SavePreviewInNewSizeActionTest {
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-          override fun getData(dataId: String) =
-            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
       )
 
@@ -1403,25 +1274,17 @@ class SavePreviewInNewSizeActionTest {
     assertThat(updatedText).isEqualTo(expectedContent)
 
     // Check that there is only one import for UI_MODE_NIGHT_YES
-    val importCount =
-      updatedText.lines().count {
-        it.contains("import android.content.res.Configuration.UI_MODE_NIGHT_YES")
-      }
+    val importCount = updatedText.lines().count { it.contains("import android.content.res.Configuration.UI_MODE_NIGHT_YES") }
     assertThat(importCount).isEqualTo(1)
   }
 
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {
-    val valueArgument =
-      valueArgumentList!!.arguments.find { it.getArgumentName()?.asName?.identifier == name }
+    val valueArgument = valueArgumentList!!.arguments.find { it.getArgumentName()?.asName?.identifier == name }
     val matchResult = Regex(".*?=\\s*(.*)").find(valueArgument!!.text)
     return matchResult?.groups?.get(1)?.value
   }
 
-  private fun createConfiguration(
-    width: Int,
-    height: Int,
-    orientation: ScreenOrientation = ScreenOrientation.PORTRAIT,
-  ): Configuration {
+  private fun createConfiguration(width: Int, height: Int, orientation: ScreenOrientation = ScreenOrientation.PORTRAIT): Configuration {
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val configuration = Configuration.create(manager, FolderConfiguration())
     configuration.setDevice(device(width, height, orientation), true)
@@ -1429,12 +1292,7 @@ class SavePreviewInNewSizeActionTest {
     return configuration
   }
 
-  private fun device(
-    width: Int,
-    height: Int,
-    orientation: ScreenOrientation,
-    id: String = Configuration.CUSTOM_DEVICE_ID,
-  ): Device =
+  private fun device(width: Int, height: Int, orientation: ScreenOrientation, id: String = Configuration.CUSTOM_DEVICE_ID): Device =
     Device.Builder()
       .apply {
         setTagId("")

@@ -33,8 +33,8 @@ import org.jetbrains.android.util.AndroidBundle
 /**
  * Return raw complications types from Manifest for given [complicationName] or null if [MergedManifestSnapshot] is not ready.
  *
- * If this method is called while the read lock is being held the method might return null if the Merged Manifest is not ready yet.
- * This is to avoid dead-locks and it's the callers responsibility to retry the call later.
+ * If this method is called while the read lock is being held the method might return null if the Merged Manifest is not ready yet. This is
+ * to avoid dead-locks and it's the callers responsibility to retry the call later.
  */
 @WorkerThread
 fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String>? {
@@ -47,17 +47,14 @@ fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module,
     return null
   }
 
-  return extractSupportedComplicationTypes(
-    snapshotFuture.get(),
-    complicationName)
+  return extractSupportedComplicationTypes(snapshotFuture.get(), complicationName)
 }
 
 internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
   return supportedTypesStr.mapNotNull {
     try {
       Complication.ComplicationType.valueOf(it)
-    }
-    catch (e: IllegalArgumentException) {
+    } catch (e: IllegalArgumentException) {
       null // Ignore unrecognised types, a warning is shows by the [checkRawComplicationTypes] method.
     }
   }
@@ -67,8 +64,7 @@ internal fun checkRawComplicationTypes(supportedTypesStr: List<String>) {
   for (typeStr in supportedTypesStr) {
     try {
       Complication.ComplicationType.valueOf(typeStr)
-    }
-    catch (e: IllegalArgumentException) {
+    } catch (e: IllegalArgumentException) {
       throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.invalid.error", typeStr))
     }
   }
@@ -89,10 +85,11 @@ private fun extractServiceXmlNodeFromApks(apks: Collection<ApkInfo>, componentNa
       if (!ext.endsWith(".apk")) {
         continue
       }
-      val parsedXml = ZipRepo(file.absolutePath).use { repo ->
-        val manifestEntry = repo.getInputStream(SdkConstants.FN_ANDROID_MANIFEST_XML)
-        manifestEntry.use { inputStream -> BinaryXmlParser.parse(inputStream) }
-      }
+      val parsedXml =
+        ZipRepo(file.absolutePath).use { repo ->
+          val manifestEntry = repo.getInputStream(SdkConstants.FN_ANDROID_MANIFEST_XML)
+          manifestEntry.use { inputStream -> BinaryXmlParser.parse(inputStream) }
+        }
       val application = getChildrenWithName(parsedXml, "application").singleOrNull() ?: continue
       val serviceNode = getChildrenWithName(application, "service").find { it.attributes()["name"] == componentName }
       if (serviceNode != null) {
@@ -111,9 +108,9 @@ private fun extractSupportedComplicationTypes(service: XmlNode): List<String> {
 }
 
 internal fun extractSupportedComplicationTypes(snapshot: MergedManifestSnapshot, complicationServiceName: String): List<String> {
-  val complicationTag = snapshot.services.find {
-    complicationServiceName == it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
-  } ?: return emptyList()
+  val complicationTag =
+    snapshot.services.find { complicationServiceName == it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) }
+      ?: return emptyList()
   val metaDataTags = complicationTag.getElementsByTagName(SdkConstants.TAG_META_DATA)
   metaDataTags.forEach {
     val metaDataType = it.attributes.getNamedItemNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.nodeValue

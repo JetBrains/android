@@ -33,16 +33,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
-internal class GlanceAppWidgetAdapterLightVirtualFile(
-  name: String,
-  content: String,
-  originFile: VirtualFile,
-) : InMemoryLayoutVirtualFile(name, content, originFile)
+internal class GlanceAppWidgetAdapterLightVirtualFile(name: String, content: String, originFile: VirtualFile) :
+  InMemoryLayoutVirtualFile(name, content, originFile)
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
 class AppWidgetPreviewRepresentationProvider(
-  private val filePreviewElementFinder: FilePreviewElementFinder<PsiGlancePreviewElement> =
-    AppWidgetPreviewElementFinder
+  private val filePreviewElementFinder: FilePreviewElementFinder<PsiGlancePreviewElement> = AppWidgetPreviewElementFinder
 ) : PreviewRepresentationProvider {
 
   private object GlanceAppWidgetEditorFileType :
@@ -57,19 +53,17 @@ class AppWidgetPreviewRepresentationProvider(
   }
 
   /**
-   * Checks if the input [psiFile] contains glance app widget services and therefore can be provided
-   * with the [PreviewRepresentation] of them.
+   * Checks if the input [psiFile] contains glance app widget services and therefore can be provided with the [PreviewRepresentation] of
+   * them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     if (DumbService.isDumb(project)) return false
     val virtualFile = psiFile.virtualFile
     if (!virtualFile.isKotlinFileType()) return false
     // App Widget previews are only supported in Android modules.
-    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true)
-      return false
+    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
 
-    return StudioFlags.GLANCE_APP_WIDGET_PREVIEW.get() &&
-      filePreviewElementFinder.hasPreviewElements(project, virtualFile)
+    return StudioFlags.GLANCE_APP_WIDGET_PREVIEW.get() && filePreviewElementFinder.hasPreviewElements(project, virtualFile)
   }
 
   /** Creates a [AppWidgetPreviewRepresentation] for the input [psiFile]. */

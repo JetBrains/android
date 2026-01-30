@@ -27,16 +27,7 @@ class DataHandlerTest {
     val range = Range(9.secondsInMicros, 20.secondsInMicros)
     val id = 1L
 
-    handler.handleHttpConnectionEvent(
-      httpRequestStarted(
-        id,
-        10.secondsInNanos,
-        "url",
-        "method",
-        listOf(httpHeader("field", "1")),
-        "trace",
-      )
-    )
+    handler.handleHttpConnectionEvent(httpRequestStarted(id, 10.secondsInNanos, "url", "method", listOf(httpHeader("field", "1")), "trace"))
     var expected =
       HttpData.createHttpData(
         id = id,
@@ -49,24 +40,19 @@ class DataHandlerTest {
       )
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    handler.handleHttpConnectionEvent(
-      httpThread(id, 11.secondsInNanos, threadId = 1, threadName = "1")
-    )
+    handler.handleHttpConnectionEvent(httpThread(id, 11.secondsInNanos, threadId = 1, threadName = "1"))
     expected = expected.copy(updateTimeUs = 11000000, threads = listOf(JavaThread(1, "1")))
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
     handler.handleHttpConnectionEvent(httpRequestPayload(id, 12.secondsInNanos, "request-payload"))
-    expected =
-      expected.copy(updateTimeUs = 12000000, requestPayload = "request-payload".toByteString())
+    expected = expected.copy(updateTimeUs = 12000000, requestPayload = "request-payload".toByteString())
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
     handler.handleHttpConnectionEvent(httpRequestCompleted(id, 13.secondsInNanos))
     expected = expected.copy(updateTimeUs = 13000000, requestCompleteTimeUs = 13000000)
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    handler.handleHttpConnectionEvent(
-      httpResponseStarted(id, 14.secondsInNanos, 200, listOf(httpHeader("null", "HTTP/1.1 200")))
-    )
+    handler.handleHttpConnectionEvent(httpResponseStarted(id, 14.secondsInNanos, 200, listOf(httpHeader("null", "HTTP/1.1 200"))))
     expected =
       expected.copy(
         updateTimeUs = 14000000,
@@ -76,11 +62,8 @@ class DataHandlerTest {
       )
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    handler.handleHttpConnectionEvent(
-      httpResponsePayload(id, 15.secondsInNanos, "response-payload")
-    )
-    expected =
-      expected.copy(updateTimeUs = 15000000, responsePayload = "response-payload".toByteString())
+    handler.handleHttpConnectionEvent(httpResponsePayload(id, 15.secondsInNanos, "response-payload"))
+    expected = expected.copy(updateTimeUs = 15000000, responsePayload = "response-payload".toByteString())
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
     handler.handleHttpConnectionEvent(httpResponseCompleted(id, 16.secondsInNanos))
@@ -108,18 +91,8 @@ class DataHandlerTest {
 
     assertThat(handler.getHttpDataForRange(range))
       .containsExactly(
-        HttpData.createHttpData(
-          id = 1,
-          updateTimeUs = 12000000,
-          requestStartTimeUs = 10000000,
-          connectionEndTimeUs = 12000000,
-        ),
-        HttpData.createHttpData(
-          id = 2,
-          updateTimeUs = 13000000,
-          requestStartTimeUs = 11000000,
-          connectionEndTimeUs = 13000000,
-        ),
+        HttpData.createHttpData(id = 1, updateTimeUs = 12000000, requestStartTimeUs = 10000000, connectionEndTimeUs = 12000000),
+        HttpData.createHttpData(id = 2, updateTimeUs = 13000000, requestStartTimeUs = 11000000, connectionEndTimeUs = 13000000),
       )
       .inOrder()
   }
@@ -136,20 +109,8 @@ class DataHandlerTest {
       httpClosed(id1, 12.secondsInNanos, true),
       httpClosed(id2, 13.secondsInNanos, true),
     )
-    val data1 =
-      HttpData.createHttpData(
-        id = 1,
-        updateTimeUs = 12000000,
-        requestStartTimeUs = 10000000,
-        connectionEndTimeUs = 12000000,
-      )
-    val data2 =
-      HttpData.createHttpData(
-        id = 2,
-        updateTimeUs = 13000000,
-        requestStartTimeUs = 11000000,
-        connectionEndTimeUs = 13000000,
-      )
+    val data1 = HttpData.createHttpData(id = 1, updateTimeUs = 12000000, requestStartTimeUs = 10000000, connectionEndTimeUs = 12000000)
+    val data2 = HttpData.createHttpData(id = 2, updateTimeUs = 13000000, requestStartTimeUs = 11000000, connectionEndTimeUs = 13000000)
 
     assertThat(handler.getHttpDataForRangeSec(8..9)).isEmpty()
     assertThat(handler.getHttpDataForRangeSec(8..10)).containsExactly(data1)
@@ -189,8 +150,7 @@ class DataHandlerTest {
    * * Exactly one zero speed-event
    * * Zero or more out-of-band speed-events
    *
-   * We expect the results from `handleSpeedEvent` to have `updateTimeline == true` only for
-   * non-out-band speed-events.
+   * We expect the results from `handleSpeedEvent` to have `updateTimeline == true` only for non-out-band speed-events.
    */
   @Test
   fun handleSpeedEvent_updateTimeline_singleConnection() {
@@ -296,14 +256,7 @@ class DataHandlerTest {
     val id = 1L
 
     handler.handleGrpcEvent(
-      grpcCallStarted(
-        id,
-        10.secondsInNanos,
-        "service",
-        "method",
-        listOf(grpcMetadata("request-field-1", "1")),
-        "trace",
-      )
+      grpcCallStarted(id, 10.secondsInNanos, "service", "method", listOf(grpcMetadata("request-field-1", "1")), "trace")
     )
     var expected: GrpcData =
       GrpcData.createGrpcData(
@@ -321,15 +274,7 @@ class DataHandlerTest {
     expected = expected.copy(updateTimeUs = 11000000, threads = listOf(JavaThread(1, "1")))
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
-    handler.handleGrpcEvent(
-      grpcMessageSent(
-        id,
-        12.secondsInNanos,
-        "request-bytes".toByteString(),
-        "request-type",
-        "request-text",
-      )
-    )
+    handler.handleGrpcEvent(grpcMessageSent(id, 12.secondsInNanos, "request-bytes".toByteString(), "request-type", "request-text"))
     expected =
       expected.copy(
         updateTimeUs = 12000000,
@@ -340,14 +285,7 @@ class DataHandlerTest {
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
-    handler.handleGrpcEvent(
-      grpcStreamCreated(
-        id,
-        13.secondsInNanos,
-        "address",
-        listOf(grpcMetadata("request-field-2", "2")),
-      )
-    )
+    handler.handleGrpcEvent(grpcStreamCreated(id, 13.secondsInNanos, "address", listOf(grpcMetadata("request-field-2", "2"))))
     expected =
       expected.copy(
         updateTimeUs = 13000000,
@@ -357,25 +295,11 @@ class DataHandlerTest {
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
-    handler.handleGrpcEvent(
-      grpcResponseHeaders(id, 14.secondsInNanos, listOf(grpcMetadata("response-field", "1")))
-    )
-    expected =
-      expected.copy(
-        updateTimeUs = 14000000,
-        responseHeaders = mapOf("response-field" to listOf("1")),
-      )
+    handler.handleGrpcEvent(grpcResponseHeaders(id, 14.secondsInNanos, listOf(grpcMetadata("response-field", "1"))))
+    expected = expected.copy(updateTimeUs = 14000000, responseHeaders = mapOf("response-field" to listOf("1")))
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
-    handler.handleGrpcEvent(
-      grpcMessageReceived(
-        id,
-        14.secondsInNanos,
-        "response-bytes".toByteString(),
-        "response-type",
-        "response-text",
-      )
-    )
+    handler.handleGrpcEvent(grpcMessageReceived(id, 14.secondsInNanos, "response-bytes".toByteString(), "response-type", "response-text"))
     expected =
       expected.copy(
         updateTimeUs = 14000000,
@@ -386,15 +310,7 @@ class DataHandlerTest {
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 
-    handler.handleGrpcEvent(
-      grpcCallEnded(
-        id,
-        15.secondsInNanos,
-        "status",
-        "error",
-        listOf(grpcMetadata("trailer-field", "foo")),
-      )
-    )
+    handler.handleGrpcEvent(grpcCallEnded(id, 15.secondsInNanos, "status", "error", listOf(grpcMetadata("trailer-field", "foo"))))
     expected =
       expected.copy(
         updateTimeUs = 15000000,
@@ -422,18 +338,8 @@ class DataHandlerTest {
 
     assertThat(handler.getGrpcDataForRange(range))
       .containsExactly(
-        GrpcData.createGrpcData(
-          id = 1,
-          updateTimeUs = 12000000,
-          requestStartTimeUs = 10000000,
-          connectionEndTimeUs = 12000000,
-        ),
-        GrpcData.createGrpcData(
-          id = 2,
-          updateTimeUs = 13000000,
-          requestStartTimeUs = 11000000,
-          connectionEndTimeUs = 13000000,
-        ),
+        GrpcData.createGrpcData(id = 1, updateTimeUs = 12000000, requestStartTimeUs = 10000000, connectionEndTimeUs = 12000000),
+        GrpcData.createGrpcData(id = 2, updateTimeUs = 13000000, requestStartTimeUs = 11000000, connectionEndTimeUs = 13000000),
       )
       .inOrder()
   }
@@ -460,20 +366,8 @@ class DataHandlerTest {
       grpcCallEnded(id1, 12.secondsInNanos),
       grpcCallEnded(id2, 13.secondsInNanos),
     )
-    val data1 =
-      GrpcData.createGrpcData(
-        id = 1,
-        updateTimeUs = 12000000,
-        requestStartTimeUs = 10000000,
-        connectionEndTimeUs = 12000000,
-      )
-    val data2 =
-      GrpcData.createGrpcData(
-        id = 2,
-        updateTimeUs = 13000000,
-        requestStartTimeUs = 11000000,
-        connectionEndTimeUs = 13000000,
-      )
+    val data1 = GrpcData.createGrpcData(id = 1, updateTimeUs = 12000000, requestStartTimeUs = 10000000, connectionEndTimeUs = 12000000)
+    val data2 = GrpcData.createGrpcData(id = 2, updateTimeUs = 13000000, requestStartTimeUs = 11000000, connectionEndTimeUs = 13000000)
 
     assertThat(handler.getGrpcDataForRangeSec(8..9)).isEmpty()
     assertThat(handler.getGrpcDataForRangeSec(8..10)).containsExactly(data1)

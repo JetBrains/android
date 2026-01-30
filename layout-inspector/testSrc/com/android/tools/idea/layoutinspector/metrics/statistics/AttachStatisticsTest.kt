@@ -68,9 +68,7 @@ class AttachStatisticsTest {
 
     mutableClock.advanceTimeBySeconds(2)
 
-    attachStatistics.attachError(
-      DynamicLayoutInspectorErrorInfo.AttachErrorCode.TRANSPORT_UNKNOWN_ERROR
-    )
+    attachStatistics.attachError(DynamicLayoutInspectorErrorInfo.AttachErrorCode.TRANSPORT_UNKNOWN_ERROR)
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     attachStatistics.save { data.attachBuilder }
@@ -102,8 +100,7 @@ class AttachStatisticsTest {
   }
 }
 
-private class MutableClock(private var currentInstant: Instant, private val zone: ZoneId) :
-  Clock() {
+private class MutableClock(private var currentInstant: Instant, private val zone: ZoneId) : Clock() {
   fun advanceTimeBySeconds(seconds: Long) {
     currentInstant = currentInstant.plusSeconds(seconds)
   }

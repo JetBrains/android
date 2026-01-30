@@ -85,10 +85,7 @@ class WorkEntryTest {
 
     val workRemovedEvent =
       WorkManagerInspectorProtocol.Event.newBuilder()
-        .apply {
-          workRemoved =
-            WorkManagerInspectorProtocol.WorkRemovedEvent.newBuilder().apply { id = "1" }.build()
-        }
+        .apply { workRemoved = WorkManagerInspectorProtocol.WorkRemovedEvent.newBuilder().apply { id = "1" }.build() }
         .build()
 
     val entry = WorkEntry("1")

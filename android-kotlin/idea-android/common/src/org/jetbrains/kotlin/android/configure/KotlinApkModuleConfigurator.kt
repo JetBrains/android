@@ -31,10 +31,12 @@ class KotlinApkModuleConfigurator : KotlinProjectConfigurator {
     override val presentableText = "Android APK"
     override val targetPlatform = JvmPlatforms.defaultJvmPlatform
 
-    override fun changeGeneralFeatureConfiguration(module: Module,
-                                                   feature: LanguageFeature,
-                                                   state: LanguageFeature.State,
-                                                   forTests: Boolean) {
+    override fun changeGeneralFeatureConfiguration(
+        module: Module,
+        feature: LanguageFeature,
+        state: LanguageFeature.State,
+        forTests: Boolean,
+    ) {
         return
     }
 
@@ -43,21 +45,23 @@ class KotlinApkModuleConfigurator : KotlinProjectConfigurator {
     }
 
     override fun getStatus(moduleSourceRootGroup: ModuleSourceRootGroup) =
-      when {
-          isApplicable(moduleSourceRootGroup.baseModule) -> ConfigureKotlinStatus.CONFIGURED
-          else -> ConfigureKotlinStatus.NON_APPLICABLE
-      }
+        when {
+            isApplicable(moduleSourceRootGroup.baseModule) -> ConfigureKotlinStatus.CONFIGURED
+            else -> ConfigureKotlinStatus.NON_APPLICABLE
+        }
 
     // TODO(b/320447078): this might be better either as a Project System call of some kind (though testing for identity is not something
     //  generally supported), or, like in KotlinWithGradleConfigurator, maybe should test for the name of the facet ("APK" in this case).
     //  We will have to revisit this as and when the ApkProjectSystem is integrated.
     override fun isApplicable(module: Module) = FacetManager.getInstance(module).allFacets.any { it is ApkFacet }
 
-    override fun updateLanguageVersion(module: Module,
-                                       languageVersion: String?,
-                                       apiVersion: String?,
-                                       requiredStdlibVersion: ApiVersion,
-                                       forTests: Boolean) {
+    override fun updateLanguageVersion(
+        module: Module,
+        languageVersion: String?,
+        apiVersion: String?,
+        requiredStdlibVersion: ApiVersion,
+        forTests: Boolean,
+    ) {
         return
     }
 }

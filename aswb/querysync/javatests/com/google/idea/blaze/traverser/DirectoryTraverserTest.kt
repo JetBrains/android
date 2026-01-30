@@ -29,26 +29,25 @@ class DirectoryTraverserTest {
   @Test
   fun testTraverseIncludedDirectories() {
     runBlocking {
-    val processedDirs = ConcurrentHashMap.newKeySet<Path>()
-    val structure =
-      mapOf(
-        "root" to listOf("a", "b"),
-        "a" to listOf("c", "b"), // "b" is repeated
-        "b" to listOf("d"),
-        "c" to emptyList(),
-        "d" to emptyList(),
-      )
+      val processedDirs = ConcurrentHashMap.newKeySet<Path>()
+      val structure =
+        mapOf(
+          "root" to listOf("a", "b"),
+          "a" to listOf("c", "b"), // "b" is repeated
+          "b" to listOf("d"),
+          "c" to emptyList(),
+          "d" to emptyList(),
+        )
 
-    val processor = DirectoryProcessor { currentDir ->
-      processedDirs.add(currentDir)
-      val subDirs = structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
-      DirectoryContents(emptyList(), subDirs)
-    }
+      val processor = DirectoryProcessor { currentDir ->
+        processedDirs.add(currentDir)
+        val subDirs = structure[currentDir.toString()]?.map { Path.of(it) } ?: emptyList()
+        DirectoryContents(emptyList(), subDirs)
+      }
 
-    traverseIncludedDirectories(listOf(Path.of("root")), processor)
+      traverseIncludedDirectories(listOf(Path.of("root")), processor)
 
-    assertThat(processedDirs)
-      .containsExactly(Path.of("root"), Path.of("a"), Path.of("b"), Path.of("c"), Path.of("d"))
+      assertThat(processedDirs).containsExactly(Path.of("root"), Path.of("a"), Path.of("b"), Path.of("c"), Path.of("d"))
     }
   }
 }

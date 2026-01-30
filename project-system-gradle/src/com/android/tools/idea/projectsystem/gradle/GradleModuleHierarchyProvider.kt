@@ -41,17 +41,24 @@ class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val p
   init {
     // Project systems are not currently disposable and live until their project is disposed. Thus we subscribe to events for the
     // project lifetime.
-    project.messageBus.connect().subscribe(ModuleRootListener.TOPIC, object : ModuleRootListener {
-      // Typically should not take time, but may be slower if another thread is building the map (unlikely to occur unless project roots are
-      // changed frequently which itself is a bigger problem).
-      override fun rootsChanged(event: ModuleRootEvent) = reset()
-    })
+    project.messageBus
+      .connect()
+      .subscribe(
+        ModuleRootListener.TOPIC,
+        object : ModuleRootListener {
+          // Typically should not take time, but may be slower if another thread is building the map (unlikely to occur unless project roots
+          // are
+          // changed frequently which itself is a bigger problem).
+          override fun rootsChanged(event: ModuleRootEvent) = reset()
+        },
+      )
   }
 
-  val forProject = object : ModuleHierarchyProvider {
-    override val submodules: Collection<Module>
-      get() = getSubmodules(project)
-  }
+  val forProject =
+    object : ModuleHierarchyProvider {
+      override val submodules: Collection<Module>
+        get() = getSubmodules(project)
+    }
 
   fun createForModule(module: Module): ModuleHierarchyProvider {
     return object : ModuleHierarchyProvider {
@@ -111,13 +118,11 @@ class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val p
     }
 
     val emptyOnlyRootModule =
-      hierarchyIdToSubmodulesMap[projectRootHierarchyId]
-        ?.singleOrNull()
-        ?.takeIf {
-          // If there is only one top level module and it is empty, flatten it. In module per source the top level module will be empty of
-          // sources so we also need to check that is has no facets before we flatten.
-          ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && AndroidFacet.getInstance(it) == null
-        }
+      hierarchyIdToSubmodulesMap[projectRootHierarchyId]?.singleOrNull()?.takeIf {
+        // If there is only one top level module and it is empty, flatten it. In module per source the top level module will be empty of
+        // sources so we also need to check that is has no facets before we flatten.
+        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && AndroidFacet.getInstance(it) == null
+      }
 
     if (emptyOnlyRootModule != null) {
       val onlyRootModuleHierarchyId = moduleHierarchyId(emptyOnlyRootModule)
@@ -128,8 +133,8 @@ class GradleModuleHierarchyProvider @VisibleForTesting constructor(private val p
       ?.takeIf { it.size > 1 }
       ?.removeIf {
         ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() &&
-        hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true &&
-        moduleHierarchyId(it)?.size == 1
+          hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true &&
+          moduleHierarchyId(it)?.size == 1
       }
     return hierarchyIdToSubmodulesMap.mapKeys<List<String>, List<Module>, ComponentManager> { hierarchyIdToModuleMap[it.key] ?: project }
   }

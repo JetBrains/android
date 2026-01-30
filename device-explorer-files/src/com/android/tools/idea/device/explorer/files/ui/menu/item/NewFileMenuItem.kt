@@ -26,8 +26,7 @@ class NewFileMenuItem(listener: DeviceFileExplorerActionListener) : SingleSelect
   override val icon: Icon
     get() = AllIcons.FileTypes.Text
 
-  override fun isVisible(node: DeviceFileEntryNode): Boolean =
-     node.entry.isDirectory || node.isSymbolicLinkToDirectory
+  override fun isVisible(node: DeviceFileEntryNode): Boolean = node.entry.isDirectory || node.isSymbolicLinkToDirectory
 
   override fun run(node: DeviceFileEntryNode) {
     listener.newFile(node)

@@ -52,12 +52,11 @@ const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
 
 /**
- * Creates the toolbar used by Embedded Layout Inspector. This toolbar is the same as the one used
- * by the Standalone Layout Inspector, but the toolbar also contains a label with the name of the
- * tool.
+ * Creates the toolbar used by Embedded Layout Inspector. This toolbar is the same as the one used by the Standalone Layout Inspector, but
+ * the toolbar also contains a label with the name of the tool.
  *
- * @param targetComponent used as data context provider. It is necessary because some of the actions
- *   in the toolbar get LayoutInspector from [LayoutInspectorRootPanel] data context.
+ * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
+ *   [LayoutInspectorRootPanel] data context.
  * @param showTitleLabel Whether to show the "Layout Inspector" title label.
  * @param leftAlignToolbar Aligns toolbar actions on the left, otherwise on the right.
  * @param firstGroupExtraActions Actions to be added to before the first separator.
@@ -124,8 +123,8 @@ fun createEmbeddedLayoutInspectorToolbar(
 /**
  * Creates the toolbar used by Standalone Layout Inspector.
  *
- * @param targetComponent used as data context provider. It is necessary because some of the actions
- *   in the toolbar get LayoutInspector from [LayoutInspectorRootPanel] data context.
+ * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
+ *   [LayoutInspectorRootPanel] data context.
  * @param firstGroupExtraActions Actions to be added to before the first separator.
  * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
@@ -164,8 +163,8 @@ fun createStandaloneLayoutInspectorToolbar(
 /**
  * Private helper to create the common [ActionToolbar] and set up its listeners.
  *
- * @param targetComponent used as data context provider. It is necessary because some of the actions
- *   in the toolbar get LayoutInspector from [LayoutInspectorRootPanel] data context.
+ * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
+ *   [LayoutInspectorRootPanel] data context.
  */
 private fun createLayoutInspectorToolbarInternal(
   parentDisposable: Disposable,
@@ -173,9 +172,7 @@ private fun createLayoutInspectorToolbarInternal(
   layoutInspector: LayoutInspector,
   actionGroup: ActionGroup,
 ): ActionToolbar {
-  val actionToolbar =
-    ActionManager.getInstance()
-      .createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
+  val actionToolbar = ActionManager.getInstance().createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
   ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
@@ -186,15 +183,10 @@ private fun createLayoutInspectorToolbarInternal(
   actionToolbar.isReservePlaceAutoPopupIcon = false
   actionToolbar.orientation = SwingConstants.HORIZONTAL
 
-  val modificationListener =
-    InspectorModel.ModificationListener { _, _, _ ->
-      invokeLater { actionToolbar.updateActionsAsync() }
-    }
+  val modificationListener = InspectorModel.ModificationListener { _, _, _ -> invokeLater { actionToolbar.updateActionsAsync() } }
   layoutInspector.inspectorModel.addModificationListener(modificationListener)
 
-  Disposer.register(parentDisposable) {
-    layoutInspector.inspectorModel.removeModificationListener(modificationListener)
-  }
+  Disposer.register(parentDisposable) { layoutInspector.inspectorModel.removeModificationListener(modificationListener) }
 
   return actionToolbar
 }
@@ -233,7 +225,7 @@ private class LayoutInspectorActionGroup(
     }
 
     // second group
-      if (middleGroupExtraActions.isNotEmpty()) {
+    if (middleGroupExtraActions.isNotEmpty()) {
       add(Separator.getInstance())
       middleGroupExtraActions.forEach { add(it) }
     }

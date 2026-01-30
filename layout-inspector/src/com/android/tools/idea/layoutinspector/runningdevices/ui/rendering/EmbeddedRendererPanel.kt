@@ -26,17 +26,13 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * Panel responsible for rendering Layout Inspector UI for embedded Layout Inspector.
  *
- * @param displayRectangleProvider Returns the rectangle of the device screen. In physical pixels.
- *   If used for rendering it needs to be scaled to logical pixels. A Physical pixel corresponds to
- *   a real pixel on the display. A logical pixel corresponds to a physical pixels * screen scale.
- *   For example on a Retina display a logical pixel is a physical pixel * 2.
- * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on
- *   a Retina display.
- * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be
- *   applied to the Layout Inspector's rendering in order to match the rendering from Running
- *   Devices.
- * @param deviceDisplayDimensionProvider Returns the dimension of the device display, as known by
- *   Layout Inspector.
+ * @param displayRectangleProvider Returns the rectangle of the device screen. In physical pixels. If used for rendering it needs to be
+ *   scaled to logical pixels. A Physical pixel corresponds to a real pixel on the display. A logical pixel corresponds to a physical
+ *   pixels * screen scale. For example on a Retina display a logical pixel is a physical pixel * 2.
+ * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on a Retina display.
+ * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be applied to the Layout Inspector's
+ *   rendering in order to match the rendering from Running Devices.
+ * @param deviceDisplayDimensionProvider Returns the dimension of the device display, as known by Layout Inspector.
  */
 class EmbeddedRendererPanel(
   disposable: Disposable,
@@ -83,14 +79,13 @@ class EmbeddedRendererPanel(
   }
 
   /**
-   * Scale and translate the view bounds from Layout Inspector to match the display rendering from
-   * Running Devices. This function assumes the rendering from LI starts a coordinates (0, 0).
+   * Scale and translate the view bounds from Layout Inspector to match the display rendering from Running Devices. This function assumes
+   * the rendering from LI starts a coordinates (0, 0).
    */
   private fun calculateTransform(displayRectangle: Rectangle): AffineTransform {
     val deviceDisplayDimension = deviceDisplayDimensionProvider()
     // The rectangle containing LI rendering, in device scale.
-    val layoutInspectorDisplayRectangle =
-      Rectangle(0, 0, deviceDisplayDimension.width, deviceDisplayDimension.height)
+    val layoutInspectorDisplayRectangle = Rectangle(0, 0, deviceDisplayDimension.width, deviceDisplayDimension.height)
 
     val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
     val orientationQuadrant = orientationQuadrantProvider()
@@ -129,19 +124,15 @@ class EmbeddedRendererPanel(
 }
 
 /**
- * Calculate the scale difference between [displayRectangle] and [layoutInspectorDisplayRectangle].
- * This function assumes that the two rectangles are the same rectangle, at different scale.
+ * Calculate the scale difference between [displayRectangle] and [layoutInspectorDisplayRectangle]. This function assumes that the two
+ * rectangles are the same rectangle, at different scale.
  */
-private fun calculateScaleDifference(
-  displayRectangle: Rectangle,
-  layoutInspectorDisplayRectangle: Rectangle,
-): Double {
+private fun calculateScaleDifference(displayRectangle: Rectangle, layoutInspectorDisplayRectangle: Rectangle): Double {
   // Get the biggest side of both rectangles and use them to calculate the difference in scale.
   // Using the biggest side makes sure that if the rotation of the two rectangles is not the same,
   // the scale difference is not affected.
   val displayMaxSide = max(displayRectangle.width, displayRectangle.height)
-  val layoutInspectorDisplayMaxSide =
-    max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
+  val layoutInspectorDisplayMaxSide = max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
 
   return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
 }

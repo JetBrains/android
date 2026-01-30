@@ -24,43 +24,40 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * IssuesReporter for C/C++ configuration.
- */
+/** IssuesReporter for C/C++ configuration. */
 class CxxConfigurationIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
 
-  override fun getDeduplicationKey(issue: IdeSyncIssue) : Any = classifySyncIssue(issue)
+  override fun getDeduplicationKey(issue: IdeSyncIssue): Any = classifySyncIssue(issue)
 
   override fun getSupportedIssueType() = IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 
-  override fun getCustomLinks(project: Project,
-                              syncIssues: List<IdeSyncIssue>,
-                              affectedModules: List<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
-    return when(classifySyncIssue(syncIssues[0])) {
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: List<IdeSyncIssue>,
+    affectedModules: List<Module>,
+    buildFileMap: MutableMap<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> {
+    return when (classifySyncIssue(syncIssues[0])) {
       MISSING_NDK_WITH_PREFERRED_VERSION ->
         // Recognize missing NDK sync issue and offer to install the preferred version.
         // If there are multiple, then choose the NDK with the highest version number.
-        syncIssues.asSequence().mapNotNull { syncIssue ->
-          tryExtractPreferredNdkDownloadVersion(syncIssue.message)
-        }
-        .sortedByDescending { revision -> revision }
-        .take(1)
-        .map { preferredVersion ->
-          InstallNdkHyperlink(preferredVersion.toString(), buildFileMap.values.toList())
-        }.toList()
+        syncIssues
+          .asSequence()
+          .mapNotNull { syncIssue -> tryExtractPreferredNdkDownloadVersion(syncIssue.message) }
+          .sortedByDescending { revision -> revision }
+          .take(1)
+          .map { preferredVersion -> InstallNdkHyperlink(preferredVersion.toString(), buildFileMap.values.toList()) }
+          .toList()
       NOT_ACTIONABLE -> listOf()
     }
   }
 
   private enum class Classification {
     MISSING_NDK_WITH_PREFERRED_VERSION,
-    NOT_ACTIONABLE
+    NOT_ACTIONABLE,
   }
 
-  /**
-   * Determine which action, if any, is available to address this issue.
-   */
+  /** Determine which action, if any, is available to address this issue. */
   private fun classifySyncIssue(issue: IdeSyncIssue) =
     when {
       tryExtractPreferredNdkDownloadVersion(issue.message) != null -> MISSING_NDK_WITH_PREFERRED_VERSION

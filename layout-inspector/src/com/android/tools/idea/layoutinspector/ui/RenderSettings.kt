@@ -106,13 +106,11 @@ interface RenderSettings {
 
 class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override val modificationListeners = mutableListOf<RenderSettings.Listener>()
-  override var scalePercent: Int by
-    Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
+  override var scalePercent: Int by Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
 
   override var drawBorders: Boolean by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
-  override var drawUntransformedBounds: Boolean by
-    Delegates.observable(false) { _, _, _ -> invokeListeners() }
+  override var drawUntransformedBounds: Boolean by Delegates.observable(false) { _, _, _ -> invokeListeners() }
 
   override var drawLabel by Delegates.observable(true) { _, _, _ -> invokeListeners() }
 
@@ -132,8 +130,7 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override val modificationListeners = mutableListOf<RenderSettings.Listener>()
 
   /** Scale of the view in percentage: 100 = 100% */
-  override var scalePercent: Int by
-    Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
+  override var scalePercent: Int by Delegates.observable(scalePercent) { _, _, _ -> invokeListeners() }
 
   override var drawBorders: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
@@ -169,15 +166,11 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override val outlineColor = OUTLINE_COLOR_ARGB
 
   override var recompositionColor: Int
-    get() =
-      PropertiesComponent.getInstance().getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
+    get() = PropertiesComponent.getInstance().getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
     set(value) {
-      val old =
-        PropertiesComponent.getInstance()
-          .getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
+      val old = PropertiesComponent.getInstance().getInt(RECOMPOSITION_COLOR_KEY, RECOMPOSITION_DEFAULT_COLOR)
       if (old != value) {
-        PropertiesComponent.getInstance()
-          .setValue(RECOMPOSITION_COLOR_KEY, value, RECOMPOSITION_DEFAULT_COLOR)
+        PropertiesComponent.getInstance().setValue(RECOMPOSITION_COLOR_KEY, value, RECOMPOSITION_DEFAULT_COLOR)
         invokeListeners()
       }
     }

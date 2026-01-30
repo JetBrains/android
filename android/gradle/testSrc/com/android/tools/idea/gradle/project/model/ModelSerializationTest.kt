@@ -18,11 +18,15 @@ package com.android.tools.idea.gradle.project.model
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
@@ -30,18 +34,14 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
-import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
@@ -69,20 +69,19 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.Test
 import java.io.File
 import java.io.Serializable
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
+import org.junit.Test
 
 /**
- * This test ensures that all model classes within sdk-common.gradle.model can be serialized and deserialized using Intellijs
- * serialization mechanisms for DataNodes. This is used to cache the results of sync when we load the project structure from cache.
+ * This test ensures that all model classes within sdk-common.gradle.model can be serialized and deserialized using Intellijs serialization
+ * mechanisms for DataNodes. This is used to cache the results of sync when we load the project structure from cache.
  */
 class ModelSerializationTest {
   val projectRule = ProjectRule()
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   val project by lazy { projectRule.project }
   val projectFolderPath by lazy { File(project.basePath!!) }
@@ -92,21 +91,22 @@ class ModelSerializationTest {
    */
 
   @Test
-  fun testGradleModuleModel() = assertSerializable(disableEqualsCheck = true) {
-    GradleModuleModel(
-      "testName",
-      listOf("testTask1"),
-      listOf("testTask1"),
-      ":gradle:path",
-      FileImpl("/some/fake/root/dir"),
-      FileImpl("/some/fake/build/file"),
-      "4.1.10",
-      "3.6.0-dev",
-      false,
-      false,
-      false
-    )
-  }
+  fun testGradleModuleModel() =
+    assertSerializable(disableEqualsCheck = true) {
+      GradleModuleModel(
+        "testName",
+        listOf("testTask1"),
+        listOf("testTask1"),
+        ":gradle:path",
+        FileImpl("/some/fake/root/dir"),
+        FileImpl("/some/fake/build/file"),
+        "4.1.10",
+        "3.6.0-dev",
+        false,
+        false,
+        false,
+      )
+    }
 
   @Test
   @RunsInEdt
@@ -116,23 +116,19 @@ class ModelSerializationTest {
       Projects.getBaseDirPath(project),
       true,
       JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        ":moduleName", null, "3.6.0", "debug", AndroidProjectBuilder())
+      AndroidModuleModelBuilder(":moduleName", null, "3.6.0", "debug", AndroidProjectBuilder()),
     )
 
     val module = project.gradleModule(":moduleName")
     Truth.assertThat(module).isNotNull()
 
-    val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(
-      project, GradleConstants.SYSTEM_ID, projectFolderPath.path
-    )
+    val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, projectFolderPath.path)
     Truth.assertThat(externalInfo).named("Initial import failed").isNotNull()
     val projectStructure = externalInfo!!.externalProjectStructure
     Truth.assertThat(projectStructure).named("No project structure was found").isNotNull()
 
-    val androidModelNode = ExternalSystemApiUtil.findFirstRecursively(projectStructure!!) { node ->
-      AndroidProjectKeys.ANDROID_MODEL == node.key
-    }
+    val androidModelNode =
+      ExternalSystemApiUtil.findFirstRecursively(projectStructure!!) { node -> AndroidProjectKeys.ANDROID_MODEL == node.key }
 
     androidModelNode!!.data as GradleAndroidModelData
   }
@@ -141,7 +137,8 @@ class ModelSerializationTest {
   fun testV2NdkModel() = assertSerializable {
     V2NdkModel(
       "agpVersion",
-      IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile")))
+      IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile")),
+    )
   }
 
   @Test
@@ -153,8 +150,15 @@ class ModelSerializationTest {
       "x86",
       V2NdkModel(
         "4.2.0",
-        IdeNativeModuleImpl("name", emptyList(), NativeBuildSystem.CMAKE, "ndkVersion", "defaultNdkVersion", File("externalNativeBuildFile"))
-      )
+        IdeNativeModuleImpl(
+          "name",
+          emptyList(),
+          NativeBuildSystem.CMAKE,
+          "ndkVersion",
+          "defaultNdkVersion",
+          File("externalNativeBuildFile"),
+        ),
+      ),
     )
   }
 
@@ -187,92 +191,72 @@ class ModelSerializationTest {
       "publicResources",
       File("artifactFile"),
       "symbolFile",
-      deduplicate = { this }
+      deduplicate = { this },
     )
   }
 
-  @Test
-  fun testLevel2JavaLibrary() = Truth.assertThat(IdeJavaLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testLevel2JavaLibrary() = Truth.assertThat(IdeJavaLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testLevel2ModuleLibrary() = Truth.assertThat(IdePreResolvedModuleLibraryImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testDependencyCores() = Truth.assertThat(IdeDependenciesCoreImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testDependencyCores() = Truth.assertThat(IdeDependenciesCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   /*
    * END LEVEL2 DEPENDENCY MODELS
    * BEGIN OTHER SHARED (IDE+LINT) MODELS
    */
 
-  @Test
-  fun testAaptOptions() = Truth.assertThat(IdeAaptOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testAaptOptions() = Truth.assertThat(IdeAaptOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testAndroidArtifactCore() = Truth.assertThat(IdeAndroidArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testAndroidArtifactCore() = Truth.assertThat(IdeAndroidArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testAndroidArtifactOutput() = Truth.assertThat(IdeAndroidArtifactOutputImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testAndroidProject() = Truth.assertThat(IdeAndroidProjectImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testAndroidProject() = Truth.assertThat(IdeAndroidProjectImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testApiVersion() = Truth.assertThat(IdeApiVersionImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testBuildType() = Truth.assertThat(IdeBuildTypeImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testFilterData() = Truth.assertThat(IdeFilterDataImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testJavaArtifactCore() = Truth.assertThat(IdeJavaArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testJavaCompileOptions() = Truth.assertThat(IdeJavaCompileOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
+
+  @Test fun testLintOptions() = Truth.assertThat(IdeLintOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
-  fun testApiVersion() = Truth.assertThat(IdeApiVersionImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testAndroidGradlePluginProjectFlags() =
+    Truth.assertThat(IdeAndroidGradlePluginProjectFlagsImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testBuildType() = Truth.assertThat(IdeBuildTypeImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testNativeAbi() = Truth.assertThat(IdeNativeAbiImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testFilterData() = Truth.assertThat(IdeFilterDataImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testNativeVariant() = Truth.assertThat(IdeNativeVariantImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testJavaArtifactCore() = Truth.assertThat(IdeJavaArtifactCoreImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testJavaCompileOptions() = Truth.assertThat(IdeJavaCompileOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testLintOptions() = Truth.assertThat(IdeLintOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testAndroidGradlePluginProjectFlags() = Truth.assertThat(IdeAndroidGradlePluginProjectFlagsImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeAbi() = Truth.assertThat(IdeNativeAbiImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testNativeVariant() = Truth.assertThat(IdeNativeVariantImpl::class.java).isAssignableTo(Serializable::class.java)
-
-  @Test
-  fun testProductFlavor() = Truth.assertThat(IdeProductFlavorImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testProductFlavor() = Truth.assertThat(IdeProductFlavorImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testProductFlavorContainer() = Truth.assertThat(IdeProductFlavorContainerImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testSigningConfig() = Truth.assertThat(IdeSigningConfigImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testSigningConfig() = Truth.assertThat(IdeSigningConfigImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testSourceProviderContainer() = Truth.assertThat(IdeSourceProvider::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testSourceProviderContainer() = Truth.assertThat(IdeSourceProvider::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testTestedTargetVariant() = Truth.assertThat(IdeTestedTargetVariantImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testTestedTargetVariant() = Truth.assertThat(IdeTestedTargetVariantImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testTestOptions() = Truth.assertThat(IdeTestOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testTestOptions() = Truth.assertThat(IdeTestOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testBasicVariant() = Truth.assertThat(IdeBasicVariantImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testBasicVariant() = Truth.assertThat(IdeBasicVariantImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testVariantCore() = Truth.assertThat(IdeVariantCoreImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testVariantCore() = Truth.assertThat(IdeVariantCoreImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testVectorDrawablesOptions() = Truth.assertThat(IdeVectorDrawablesOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
-  @Test
-  fun testViewBindingOptions() = Truth.assertThat(IdeViewBindingOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
+  @Test fun testViewBindingOptions() = Truth.assertThat(IdeViewBindingOptionsImpl::class.java).isAssignableTo(Serializable::class.java)
 
   @Test
   fun testSerializableIdeBuildTypeContainer() {
@@ -299,25 +283,13 @@ class ModelSerializationTest {
    * BEGIN MISC TESTS
    */
 
-  @Test
-  fun testMap() = assertSerializable {
-    TestData(1, mapOf<String, Any>("1" to 1))
-  }
+  @Test fun testMap() = assertSerializable { TestData(1, mapOf<String, Any>("1" to 1)) }
 
-  @Test
-  fun testVersion() = assertSerializable {
-    Version.parse("1.2.3-alpha04-SNAPSHOT")
-  }
+  @Test fun testVersion() = assertSerializable { Version.parse("1.2.3-alpha04-SNAPSHOT") }
 
-  @Test
-  fun testVersionBigInteger() = assertSerializable {
-    Version.parse("202306061221.31415926535897932385")
-  }
+  @Test fun testVersionBigInteger() = assertSerializable { Version.parse("202306061221.31415926535897932385") }
 
-  @Test
-  fun testComponent() = assertSerializable {
-    Component.parse("com.example:example:00.3.17-rC")
-  }
+  @Test fun testComponent() = assertSerializable { Component.parse("com.example:example:00.3.17-rC") }
 
   /*
    * END MISC TESTS
@@ -327,11 +299,7 @@ class ModelSerializationTest {
 
   private inline fun <reified T : Any> assertSerializable(disableEqualsCheck: Boolean = false, factory: () -> T) {
     val value = factory()
-    val configuration = WriteConfiguration(
-      allowAnySubTypes = true,
-      binary = false,
-      filter = SkipNullAndEmptySerializationFilter
-    )
+    val configuration = WriteConfiguration(allowAnySubTypes = true, binary = false, filter = SkipNullAndEmptySerializationFilter)
     val bytes = ObjectSerializer.instance.writeAsBytes(value, configuration)
     val o = ObjectSerializer.instance.read(T::class.java, bytes, ReadConfiguration(allowAnySubTypes = true))
     val bytes2 = ObjectSerializer.instance.writeAsBytes(o, configuration)

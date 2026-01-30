@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -27,12 +28,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.childrenOfType
+import com.intellij.util.containers.addAllIfNotNull
+import java.io.File
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
-import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
-import com.intellij.util.containers.addAllIfNotNull
-import java.io.File
 
 internal fun getElementLineAndColumn(element: PsiElement): Pair<Int, Int>? {
   val document = element.containingFile.viewProvider.document ?: return null
@@ -51,27 +51,24 @@ internal fun Project.findAllCatalogFiles(): List<VirtualFile> {
   val result = mutableListOf<VirtualFile>()
   // add libs first
   result.addAllIfNotNull(map["libs"]?.let { VfsUtil.findFile(File(it).toPath(), true) })
-  map.forEach { entry ->
-    if (entry.key != "libs")
-      result.addAllIfNotNull(VfsUtil.findFile(File(entry.value).toPath(), true))
-  }
+  map.forEach { entry -> if (entry.key != "libs") result.addAllIfNotNull(VfsUtil.findFile(File(entry.value).toPath(), true)) }
   return if (result.isEmpty()) {
     defaultCatalog()?.let { listOf(it) } ?: listOf()
-  }
-  else result
+  } else result
 }
-private fun Project.findCatalog(prefix: String):VirtualFile? =
-  VfsUtil.findFile(Projects.getBaseDirPath(this).toPath(), true)
-    ?.findChild("gradle")
-    ?.findChild("$prefix.versions.toml")
 
-private fun Project.defaultCatalog():VirtualFile? =
-  findCatalog("libs")
+private fun Project.findCatalog(prefix: String): VirtualFile? =
+  VfsUtil.findFile(Projects.getBaseDirPath(this).toPath(), true)?.findChild("gradle")?.findChild("$prefix.versions.toml")
 
-internal fun TomlInlineTable.findKeyValue(key: String, value: String):Boolean =
+private fun Project.defaultCatalog(): VirtualFile? = findCatalog("libs")
+
+internal fun TomlInlineTable.findKeyValue(key: String, value: String): Boolean =
   entries.any { it.key.text == key && it.value?.text == "\"$value\"" }
 
-internal enum class ReferenceSource { LIBRARY, PLUGIN }
+internal enum class ReferenceSource {
+  LIBRARY,
+  PLUGIN,
+}
 
 internal fun readUntilLine(reader: BuildOutputInstantReader, stopLine: String, lineCallback: (String) -> Unit = {}): String {
   val result = StringBuffer()
@@ -89,39 +86,39 @@ abstract class TomlErrorMessageAwareIssue(_description: String) : ErrorMessageAw
   override val quickFixes: List<BuildIssueQuickFix> = emptyList()
   override val title: String = TomlErrorParser.BUILD_ISSUE_TOML_TITLE
   override val buildErrorMessage: BuildErrorMessage
-    get() = BuildErrorMessage.newBuilder().apply {
-      errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
-      fileLocationIncluded = true
-      fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-      lineLocationIncluded = true
-    }.build()
+    get() =
+      BuildErrorMessage.newBuilder()
+        .apply {
+          errorShownType = BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION
+          fileLocationIncluded = true
+          fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+          lineLocationIncluded = true
+        }
+        .build()
 }
 
-/**
- * Path contains at most three elements tableName/aliasName
- * Any elements can be represented as * - means all
- */
-internal fun findFirstElement(project: Project, virtualFile: VirtualFile, path:String): OpenFileDescriptor {
+/** Path contains at most three elements tableName/aliasName Any elements can be represented as * - means all */
+internal fun findFirstElement(project: Project, virtualFile: VirtualFile, path: String): OpenFileDescriptor {
   val fileDescriptor = OpenFileDescriptor(project, virtualFile)
   val paths = path.split("/")
   val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
-  if(paths.isEmpty()) return fileDescriptor
+  if (paths.isEmpty()) return fileDescriptor
 
-  val tablePredicate = { table:TomlTable -> if (paths[0] != "*") table.header.key?.text == paths[0] else true }
+  val tablePredicate = { table: TomlTable -> if (paths[0] != "*") table.header.key?.text == paths[0] else true }
 
-  if(paths.size == 1){
-    val result = psiFile.childrenOfType<TomlTable>().find (tablePredicate)?.let {
-      getDescriptor(it, project, virtualFile)
-    }
+  if (paths.size == 1) {
+    val result = psiFile.childrenOfType<TomlTable>().find(tablePredicate)?.let { getDescriptor(it, project, virtualFile) }
     return result ?: fileDescriptor
   }
 
   val aliasName = paths[1]
 
-  val tables = psiFile.childrenOfType<TomlTable>()
-    .filter (tablePredicate)
-  val alias = tables.flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-    .find { if (aliasName != "*") it.key.text == aliasName else true }?.let { getDescriptor(it, project, virtualFile) }
+  val tables = psiFile.childrenOfType<TomlTable>().filter(tablePredicate)
+  val alias =
+    tables
+      .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+      .find { if (aliasName != "*") it.key.text == aliasName else true }
+      ?.let { getDescriptor(it, project, virtualFile) }
 
   return alias ?: fileDescriptor
 }
@@ -131,7 +128,4 @@ fun getDescriptor(psiElement: PsiElement, project: Project, virtualFile: Virtual
   return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
 }
 
-internal val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
-                                        "version" to "versions",
-                                        "library" to "libraries",
-                                        "plugin" to "plugins")
+internal val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles", "version" to "versions", "library" to "libraries", "plugin" to "plugins")

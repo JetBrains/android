@@ -30,9 +30,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 
-/**
- * Unit-test for [AndroidSourceSetTemplateContextType]
- */
+/** Unit-test for [AndroidSourceSetTemplateContextType] */
 class AndroidSourceSetTemplateContextTypeTest {
   private val context = AndroidSourceSetTemplateContextType()
 

@@ -23,20 +23,13 @@ import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.project.Project
 
 fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
-  return createLogger(
-    project,
-    StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(),
-    ShowFixFactory,
-    ::StudioHtmlLinkManager,
-  )
+  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory, ::StudioHtmlLinkManager)
 }
 
 /**
- * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask] with
- * HTML rendering of issues and fix actions.
+ * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask] with HTML rendering of issues and fix actions.
  */
 fun RenderService.taskBuilderWithHtmlLogger(
   buildTarget: AndroidBuildTargetReference,
   configuration: Configuration,
-): RenderService.RenderTaskBuilder =
-  taskBuilder(buildTarget, configuration, createHtmlLogger(buildTarget.project))
+): RenderService.RenderTaskBuilder = taskBuilder(buildTarget, configuration, createHtmlLogger(buildTarget.project))

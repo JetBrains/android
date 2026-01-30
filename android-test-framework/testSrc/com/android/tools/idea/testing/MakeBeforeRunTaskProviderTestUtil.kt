@@ -63,8 +63,7 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
   try {
     val makeBeforeRunTask = beforeRunTasks.filterIsInstance<MakeBeforeRunTask>().single()
     val factory = factory!!
-    val runnerAndConfigurationSettings =
-      RunManager.getInstance(project).createConfiguration(this, factory)
+    val runnerAndConfigurationSettings = RunManager.getInstance(project).createConfiguration(this, factory)
 
     // Set up ExecutionTarget infrastructure.
     ApplicationManager.getApplication().invokeAndWait {
@@ -78,11 +77,9 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
 
           override fun getAvailableDeviceCount(): Int = deviceFutures?.devices?.size ?: 0
 
-          override fun getRunningDevices(): Collection<IDevice> =
-            deviceFutures?.get()?.map { it.get() } ?: emptyList()
+          override fun getRunningDevices(): Collection<IDevice> = deviceFutures?.get()?.map { it.get() } ?: emptyList()
 
-          override fun canRun(configuration: RunConfiguration): Boolean =
-            configuration === this@executeMakeBeforeRunStepInTest
+          override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest
         }
       ExecutionTargetManager.getInstance(this.project).activeTarget = target
     }
@@ -105,15 +102,8 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       }
 
     val executionEnvironment =
-      ExecutionEnvironment(
-        DefaultRunExecutor.getRunExecutorInstance(),
-        programRunner,
-        runnerAndConfigurationSettings,
-        project,
-      )
-    deviceFutures?.let {
-      executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
-    }
+      ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), programRunner, runnerAndConfigurationSettings, project)
+    deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
     try {
       ProgressManager.getInstance()
         .runProcessWithProgressSynchronously(
@@ -137,29 +127,20 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
   }
 }
 
-fun <T : RunConfiguration?> createRunConfigurationFromClass(
-  project: Project,
-  qualifiedName: String,
-  expectedType: Class<T>,
-): T? {
+fun <T : RunConfiguration?> createRunConfigurationFromClass(project: Project, qualifiedName: String, expectedType: Class<T>): T? {
   val element =
-    JavaPsiFacade.getInstance(project)
-      .findClass(qualifiedName, GlobalSearchScope.projectScope(project))
-      ?.children
-      ?.firstOrNull { it is PsiIdentifier } ?: error("$qualifiedName class not found")
+    JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))?.children?.firstOrNull {
+      it is PsiIdentifier
+    } ?: error("$qualifiedName class not found")
 
   val runConfiguration = createRunConfigurationFromPsiElement(project, element)
   return if (expectedType.isInstance(runConfiguration)) expectedType.cast(runConfiguration)
   else error("Wrong type of run configuration created: ${runConfiguration::class}")
 }
 
-private fun createRunConfigurationFromPsiElement(
-  project: Project,
-  psiElement: PsiElement,
-): RunConfiguration {
+private fun createRunConfigurationFromPsiElement(project: Project, psiElement: PsiElement): RunConfiguration {
   val context = TestConfigurationTestingUtil.createContext(project, psiElement)
-  val settings =
-    context.configuration ?: return error("Failed to get/create run configuration settings")
+  val settings = context.configuration ?: return error("Failed to get/create run configuration settings")
   // Save the run configuration in the project.
   val runManager = RunManager.getInstance(project)
   runManager.addConfiguration(settings)
@@ -173,8 +154,7 @@ fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int?
   whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")
   whenever(device.isOnline).thenReturn(true)
-  whenever(device.services())
-    .thenReturn(if (androidVersion.apiLevel >= 33) mapOf("sdk_sandbox" to null) else emptyMap())
+  whenever(device.services()).thenReturn(if (androidVersion.apiLevel >= 33) mapOf("sdk_sandbox" to null) else emptyMap())
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

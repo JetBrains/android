@@ -41,9 +41,7 @@ fun RecipeExecutor.generateAndroidModule(
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.apiLevel >= 31
   val isMaterial3 = data.isMaterial3
-  check(data.category != Category.Compose || data.isCompose) {
-    "Template in Compose category must have isCompose set"
-  }
+  check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -62,8 +60,7 @@ fun RecipeExecutor.generateAndroidModule(
     themesXmlNight =
       if (isMaterial3) androidModuleThemesNightMaterial3(data.themesData.main.name)
       else androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    colorsXml =
-      if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
+    colorsXml = if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard,
     useVersionCatalog = useVersionCatalog,

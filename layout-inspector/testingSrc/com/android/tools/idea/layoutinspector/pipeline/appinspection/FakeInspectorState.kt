@@ -44,10 +44,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Paramet
 
 // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more
 // scattered.
-class FakeInspectorState(
-  private val viewInspector: FakeViewLayoutInspector,
-  private val composeInspector: FakeComposeLayoutInspector,
-) {
+class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector, private val composeInspector: FakeComposeLayoutInspector) {
 
   private val viewStrings =
     listOf(
@@ -282,13 +279,7 @@ class FakeInspectorState(
               namespace = 100
               type = LayoutInspectorViewProtocol.Property.Type.RESOURCE
               source = ViewResource(207, 210, 212)
-              addAllResolutionStack(
-                listOf(
-                  ViewResource(207, 210, 212),
-                  ViewResource(208, 210, 214),
-                  ViewResource(208, 210, 215),
-                )
-              )
+              addAllResolutionStack(listOf(ViewResource(207, 210, 212), ViewResource(208, 210, 214), ViewResource(208, 210, 215)))
               resourceValue = ViewResource(206, 210, 211)
             }
             Property {
@@ -429,9 +420,7 @@ class FakeInspectorState(
       ComposableString(205, "MyLineClass"),
     )
 
-  private fun createComposeRoot(
-    withoutSourceInformation: Boolean
-  ): LayoutInspectorComposeProtocol.ComposableRoot = ComposableRoot {
+  private fun createComposeRoot(withoutSourceInformation: Boolean): LayoutInspectorComposeProtocol.ComposableRoot = ComposableRoot {
     viewId = 6
     ComposableNode {
       id = -2 // -1 reserved by inspectorModel
@@ -496,8 +485,7 @@ class FakeInspectorState(
   // Composable tree that lives under ComposeView
   private val composableRoot = createComposeRoot(withoutSourceInformation = false)
 
-  private val composableRootWithoutSourceInformation =
-    createComposeRoot(withoutSourceInformation = true)
+  private val composableRootWithoutSourceInformation = createComposeRoot(withoutSourceInformation = true)
 
   // Composable tree that lives under ComposeView
   private val composableRootWithoutSemantics = ComposableRoot {
@@ -763,10 +751,7 @@ class FakeInspectorState(
 
   /** Map of responses to expected [GetParameterDetailsCommand]s. */
   private val parameterDetailsCommands =
-    mutableMapOf<
-      GetParameterDetailsCommand,
-      LayoutInspectorComposeProtocol.GetParameterDetailsResponse,
-    >()
+    mutableMapOf<GetParameterDetailsCommand, LayoutInspectorComposeProtocol.GetParameterDetailsResponse>()
 
   init {
     parameterDetailsCommands[
@@ -854,16 +839,9 @@ class FakeInspectorState(
   fun createFakeViewTree() {
     viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
       // Send all root IDs, which always happens before we send our first layout capture
-      viewInspector.connection.sendEvent {
-        rootsEventBuilder.apply { layoutTrees.forEach { tree -> addIds(tree.id) } }
-      }
+      viewInspector.connection.sendEvent { rootsEventBuilder.apply { layoutTrees.forEach { tree -> addIds(tree.id) } } }
 
-      layoutTrees.forEach { tree ->
-        triggerLayoutCapture(
-          rootId = tree.id,
-          isLastCapture = !command.startFetchCommand.continuous,
-        )
-      }
+      layoutTrees.forEach { tree -> triggerLayoutCapture(rootId = tree.id, isLastCapture = !command.startFetchCommand.continuous) }
 
       LayoutInspectorViewProtocol.Response.newBuilder()
         .setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance())
@@ -885,10 +863,7 @@ class FakeInspectorState(
                       layoutBuilder
                         .apply {
                           addAllStrings(viewStrings)
-                          this.rootView =
-                            LayoutInspectorViewProtocol.RootView.newBuilder()
-                              .apply { node = rootNode }
-                              .build()
+                          this.rootView = LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootNode }.build()
                           configurationBuilder.apply {
                             density = Density.HIGH.dpiValue
                             fontScale = 1.5f
@@ -896,11 +871,7 @@ class FakeInspectorState(
                           appContextBuilder.apply {
                             theme = ViewResource(208, 210, 223)
                             val display =
-                              LayoutInspectorViewProtocol.Display.newBuilder()
-                                .setId(0)
-                                .setWidth(800)
-                                .setHeight(1600)
-                                .setOrientation(90)
+                              LayoutInspectorViewProtocol.Display.newBuilder().setId(0).setWidth(800).setHeight(1600).setOrientation(90)
                             addDisplayInfo(display)
                           }
                           propertiesBuilder.apply {
@@ -927,14 +898,10 @@ class FakeInspectorState(
 
   fun createFakeViewAttributes() {
     viewInspector.interceptWhen({ it.hasGetPropertiesCommand() }) { command ->
-      getPropertiesRequestCount.compute(command.getPropertiesCommand.viewId) { _, prev ->
-        (prev ?: 0) + 1
-      }
+      getPropertiesRequestCount.compute(command.getPropertiesCommand.viewId) { _, prev -> (prev ?: 0) + 1 }
 
       val propertyGroup =
-        propertyGroups[command.getPropertiesCommand.rootViewId]!!.firstOrNull {
-          it.viewId == command.getPropertiesCommand.viewId
-        }
+        propertyGroups[command.getPropertiesCommand.rootViewId]!!.firstOrNull { it.viewId == command.getPropertiesCommand.viewId }
           // As this test data is hand defined, treat undefined view IDs as views with an empty
           // properties group
           ?: PropertyGroup { viewId = command.getPropertiesCommand.viewId }
@@ -960,12 +927,9 @@ class FakeInspectorState(
     when (property.type) {
       LayoutInspectorViewProtocol.Property.Type.STRING ->
         property.int32Value = if (property.int32Value == secondaryId) tertiaryId else secondaryId
-      LayoutInspectorViewProtocol.Property.Type.FLOAT ->
-        property.floatValue = if (property.floatValue == 4.0f) 6.7f else 4.0f
-      LayoutInspectorViewProtocol.Property.Type.BOOLEAN ->
-        property.int32Value = if (property.int32Value == 0) 1 else 0
-      LayoutInspectorViewProtocol.Property.Type.INT32 ->
-        property.int32Value = if (property.int32Value == 500) 100 else 500
+      LayoutInspectorViewProtocol.Property.Type.FLOAT -> property.floatValue = if (property.floatValue == 4.0f) 6.7f else 4.0f
+      LayoutInspectorViewProtocol.Property.Type.BOOLEAN -> property.int32Value = if (property.int32Value == 0) 1 else 0
+      LayoutInspectorViewProtocol.Property.Type.INT32 -> property.int32Value = if (property.int32Value == 500) 100 else 500
       else -> {}
     }
     propertyGroup.setProperty(propertyIndex, property)
@@ -990,11 +954,7 @@ class FakeInspectorState(
     parameterGroups[groupIndex] = group.build()
   }
 
-  fun createFakeComposeTree(
-    withSemantics: Boolean = true,
-    withSourceInformation: Boolean = true,
-    latch: CommandLatch? = null,
-  ) {
+  fun createFakeComposeTree(withSemantics: Boolean = true, withSourceInformation: Boolean = true, latch: CommandLatch? = null) {
     composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
       latch?.incomingCommand()
       LayoutInspectorComposeProtocol.Response.newBuilder()
@@ -1053,17 +1013,14 @@ class FakeInspectorState(
 
   fun createFakeComposeGetParameterResponse() {
     composeInspector.interceptWhen({ it.hasGetParametersCommand() }) { command ->
-      getParametersRequestCount.compute(command.getParametersCommand.composableId) { _, prev ->
-        (prev ?: 0) + 1
-      }
+      getParametersRequestCount.compute(command.getParametersCommand.composableId) { _, prev -> (prev ?: 0) + 1 }
       LayoutInspectorComposeProtocol.Response.newBuilder()
         .apply {
           getParametersResponseBuilder.apply {
             parameterGroups
               .firstOrNull { it.composableId == command.getParametersCommand.composableId }
               ?.let { group ->
-                assertThat(100L - command.getParametersCommand.anchorHash)
-                  .isEqualTo(command.getParametersCommand.composableId)
+                assertThat(100L - command.getParametersCommand.anchorHash).isEqualTo(command.getParametersCommand.composableId)
                 addAllStrings(composeStrings)
                 parameterGroup = group
               }
@@ -1092,11 +1049,7 @@ class FakeInspectorState(
   fun createFakeComposeGetParameterDetailResponses() {
     composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
       LayoutInspectorComposeProtocol.Response.newBuilder()
-        .apply {
-          getParameterDetailsResponse =
-            parameterDetailsCommands[command.getParameterDetailsCommand]
-              ?: error("Unexpected command")
-        }
+        .apply { getParameterDetailsResponse = parameterDetailsCommands[command.getParameterDetailsCommand] ?: error("Unexpected command") }
         .build()
     }
   }
@@ -1104,10 +1057,7 @@ class FakeInspectorState(
   fun simulateComposeVersionWithoutUpdateSettingsCommand() {
     composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder()
-        .apply {
-          unknownCommandResponse =
-            LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance()
-        }
+        .apply { unknownCommandResponse = LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance() }
         .build()
     }
   }
@@ -1135,20 +1085,15 @@ class FakeInspectorState(
   }
 
   /**
-   * The real inspector triggers occasional captures as the UI changes, but for tests, we'll expose
-   * this method so it can be triggered manually.
+   * The real inspector triggers occasional captures as the UI changes, but for tests, we'll expose this method so it can be triggered
+   * manually.
    */
-  fun triggerLayoutCapture(
-    rootId: Long,
-    isLastCapture: Boolean = false,
-    excludeConfiguration: Boolean = false,
-  ) {
+  fun triggerLayoutCapture(rootId: Long, isLastCapture: Boolean = false, excludeConfiguration: Boolean = false) {
     val rootView = layoutTrees.first { it.id == rootId }
     viewInspector.connection.sendEvent {
       layoutEventBuilder.apply {
         addAllStrings(viewStrings)
-        this.rootView =
-          LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
+        this.rootView = LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = rootView }.build()
         if (!excludeConfiguration) {
           configurationBuilder.apply {
             density = Density.HIGH.dpiValue
@@ -1156,12 +1101,7 @@ class FakeInspectorState(
           }
           appContextBuilder.apply {
             theme = ViewResource(208, 210, 223)
-            val display =
-              LayoutInspectorViewProtocol.Display.newBuilder()
-                .setId(0)
-                .setWidth(800)
-                .setHeight(1600)
-                .setOrientation(90)
+            val display = LayoutInspectorViewProtocol.Display.newBuilder().setId(0).setWidth(800).setHeight(1600).setOrientation(90)
             addDisplayInfo(display)
           }
         }

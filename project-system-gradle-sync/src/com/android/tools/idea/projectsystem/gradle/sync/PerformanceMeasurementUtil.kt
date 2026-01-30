@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
  * multiple times.
  *
  * NOTE: Measuring CPU time is relatively expensive operation, and it should not be used to measure performance of relatively simple code
- *       (like dictionary lookup) running millions of times in a loop.
+ * (like dictionary lookup) running millions of times in a loop.
  */
 class Counter internal constructor(val name: String) {
 
@@ -36,11 +36,20 @@ class Counter internal constructor(val name: String) {
   private val maxWall = AtomicLong()
   private val count = AtomicInteger()
 
-  val totalCpuNanos: Long get() = totalCpu.get()
-  val maxCpuNanos: Long get() = maxCpu.get()
-  val totalWallNanos: Long get() = totalWall.get()
-  val maxWallNanos: Long get() = maxWall.get()
-  val totalCount: Int get() = count.get()
+  val totalCpuNanos: Long
+    get() = totalCpu.get()
+
+  val maxCpuNanos: Long
+    get() = maxCpu.get()
+
+  val totalWallNanos: Long
+    get() = totalWall.get()
+
+  val maxWallNanos: Long
+    get() = maxWall.get()
+
+  val totalCount: Int
+    get() = count.get()
 
   // Resets the counter.
   // Note, the counters are reset individually, so that if a call to this method coincides with a call to [time] method
@@ -93,12 +102,15 @@ class Counter internal constructor(val name: String) {
     }
   }
 
-  operator fun <R> invoke (block: () -> R): R = time(block)
+  operator fun <R> invoke(block: () -> R): R = time(block)
 }
 
 private val formatter: DecimalFormat = DecimalFormat("#,##0.00")
+
 fun Double.format(): String = formatter.format(this).padStart(15)
 
 private val threadMx = ManagementFactory.getThreadMXBean()
-private val currentTimeNano: Long get() = System.nanoTime()
-private val currentThreadCpuTime: Long get() = runCatching { threadMx.currentThreadCpuTime }.getOrDefault(0)
+private val currentTimeNano: Long
+  get() = System.nanoTime()
+private val currentThreadCpuTime: Long
+  get() = runCatching { threadMx.currentThreadCpuTime }.getOrDefault(0)

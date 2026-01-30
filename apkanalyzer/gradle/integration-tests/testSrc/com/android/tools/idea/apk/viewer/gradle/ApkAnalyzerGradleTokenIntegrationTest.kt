@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.applicableAgpVersions
 import com.android.tools.idea.testing.buildAndAssertSuccess
 import com.android.tools.idea.testing.gradleModule
-
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -35,13 +34,13 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class ApkAnalyzerGradleTokenIntegrationTest(private val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testGetDefaultApkFile() {
-    projectRule.prepareTestProject(ApkAnalyzerTestProject.SIMPLE_APPLICATION, agpVersion = agpVersion).open(
-      { it.copy(disableForcedAgpUpgradeDialog = true)} ) {
+    projectRule.prepareTestProject(ApkAnalyzerTestProject.SIMPLE_APPLICATION, agpVersion = agpVersion).open({
+      it.copy(disableForcedAgpUpgradeDialog = true)
+    }) {
       project.buildAndAssertSuccess { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!)) }
       val defaultApkFile = ApkAnalyzerToken.getDefaultApkToAnalyze(project)
       assertThat(defaultApkFile).isNotNull()
@@ -54,7 +53,9 @@ class ApkAnalyzerGradleTokenIntegrationTest(private val agpVersion: AgpVersionSo
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun tests(): Collection<AgpVersionSoftwareEnvironmentDescriptor> {
-      return applicableAgpVersions().filter { it in AgpVersionSoftwareEnvironmentDescriptor.AGP_73..AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13 } // not supported before AGP 7.3 in IJ
+      return applicableAgpVersions().filter {
+        it in AgpVersionSoftwareEnvironmentDescriptor.AGP_73..AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
+      } // not supported before AGP 7.3 in IJ
     }
   }
 }

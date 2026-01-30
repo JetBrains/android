@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
+import java.io.File
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
@@ -35,35 +36,33 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
 import org.jetbrains.plugins.gradle.util.gradlePathOrNull
 import org.jetbrains.plugins.gradle.util.isIncludedBuild
-import java.io.File
 
 sealed class GradleProjectPath {
   abstract val buildRoot: @SystemIndependent String
   abstract val path: String
 }
 
-data class GradleHolderProjectPath constructor(
-  override val buildRoot: @SystemIndependent String,
-  override val path: String
-) : GradleProjectPath()
+data class GradleHolderProjectPath constructor(override val buildRoot: @SystemIndependent String, override val path: String) :
+  GradleProjectPath()
 
-data class GradleSourceSetProjectPath constructor(
-  override val buildRoot: @SystemIndependent String,
-  override val path: String,
-  val sourceSet: IdeModuleSourceSet
-) : GradleProjectPath()
+data class GradleSourceSetProjectPath
+constructor(override val buildRoot: @SystemIndependent String, override val path: String, val sourceSet: IdeModuleSourceSet) :
+  GradleProjectPath()
 
-val GradleProjectPath.buildRootDir: File get() = File(buildRoot)
+val GradleProjectPath.buildRootDir: File
+  get() = File(buildRoot)
+
 fun GradleProjectPath.toHolder(): GradleHolderProjectPath = GradleHolderProjectPath(buildRoot, path)
 
 fun GradleProjectPath.resolve(absoluteOrRelativeGradlePath: String): GradleHolderProjectPath {
   return GradleHolderProjectPath(
     buildRoot = buildRoot,
-    path = when {
-      absoluteOrRelativeGradlePath.startsWith(":") -> absoluteOrRelativeGradlePath
-      path == ":" -> ":$absoluteOrRelativeGradlePath"
-      else -> "$path:$absoluteOrRelativeGradlePath"
-    }
+    path =
+      when {
+        absoluteOrRelativeGradlePath.startsWith(":") -> absoluteOrRelativeGradlePath
+        path == ":" -> ":$absoluteOrRelativeGradlePath"
+        else -> "$path:$absoluteOrRelativeGradlePath"
+      },
   )
 }
 
@@ -82,10 +81,7 @@ private fun Module.getGradleBuildIdentityPath(): String? {
   }
 
   return CachedValuesManager.getManager(this.project).getCachedValue(this) {
-    CachedValueProvider.Result.create(
-      computeValue(),
-      gradleProjectPathModificationTrackers(this.project)
-    )
+    CachedValueProvider.Result.create(computeValue(), gradleProjectPathModificationTrackers(this.project))
   }
 }
 
@@ -93,7 +89,7 @@ private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
   val gradleBuildName = this.getGradleBuildIdentityPath() ?: return null
   val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return null
   val buildRootModule = this.project.findGradleBuildRoot(externalRootProjectPath, gradleBuildName) ?: return null
-  val buildRootFolder = ExternalSystemApiUtil.getExternalProjectPath(buildRootModule)?.let { File(it)} ?: return null
+  val buildRootFolder = ExternalSystemApiUtil.getExternalProjectPath(buildRootModule)?.let { File(it) } ?: return null
   // The external system projectId is:
   // :<projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
   // :gradle:path for a non-root module of a main or only build in a composite build
@@ -110,40 +106,33 @@ private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
 
 private fun Project.findGradleBuildRoot(externalRootProjectPath: String, gradleBuildRootIdentityPath: String): Module? {
   // Ensure that externalRootProjectPath is part of the key as we can have multiple linked Gradle projects in a single IDE Project
-  return CachedValuesManager.getManager(this).getCachedValue(this) {
-    val moduleMap = ModuleManager.getInstance(this)
-      .modules
-      .mapNotNull {
-        val data = CachedModuleDataFinder.getGradleModuleData(it) ?: return@mapNotNull null
-        val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(it) ?: return@mapNotNull null
-        val gradlePath = data.moduleData.gradlePathOrNull ?: return@mapNotNull null
-        val gradleIdentityPath = data.moduleData.gradleIdentityPathOrNull ?: return@mapNotNull null
+  return CachedValuesManager.getManager(this)
+    .getCachedValue(this) {
+      val moduleMap =
+        ModuleManager.getInstance(this)
+          .modules
+          .mapNotNull {
+            val data = CachedModuleDataFinder.getGradleModuleData(it) ?: return@mapNotNull null
+            val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(it) ?: return@mapNotNull null
+            val gradlePath = data.moduleData.gradlePathOrNull ?: return@mapNotNull null
+            val gradleIdentityPath = data.moduleData.gradleIdentityPathOrNull ?: return@mapNotNull null
 
-        return@mapNotNull if (gradlePath == ":") (externalRootProjectPath + gradleIdentityPath) to it
-        else null
-      }.toMap()
+            return@mapNotNull if (gradlePath == ":") (externalRootProjectPath + gradleIdentityPath) to it else null
+          }
+          .toMap()
 
-    CachedValueProvider.Result.create(
-      moduleMap,
-      gradleProjectPathModificationTrackers(this)
-    )
-  }[externalRootProjectPath + gradleBuildRootIdentityPath]
+      CachedValueProvider.Result.create(moduleMap, gradleProjectPathModificationTrackers(this))
+    }[externalRootProjectPath + gradleBuildRootIdentityPath]
 }
 
 @VisibleForTesting
-fun createGradleProjectPath(
-  gradlePath: String,
-  externalSystemId: String,
-  isSourceSet: Boolean,
-  buildRootFolder: File
-): GradleProjectPath? {
+fun createGradleProjectPath(gradlePath: String, externalSystemId: String, isSourceSet: Boolean, buildRootFolder: File): GradleProjectPath? {
   val buildRoot = FileUtils.toSystemIndependentPath(buildRootFolder.path)
 
   return if (isSourceSet) {
     val sourceSetName = externalSystemId.substringAfterLast(':', "").nullize() ?: return null
     GradleSourceSetProjectPath(buildRoot, gradlePath, IdeModuleSourceSetImpl.wellKnownOrCreate(sourceSetName))
-  }
-  else {
+  } else {
     GradleHolderProjectPath(buildRoot, gradlePath)
   }
 }
@@ -155,31 +144,20 @@ fun Module.getGradleIdentityPath(): String? {
 
 fun Module.getGradleProjectPath(): GradleProjectPath? {
   return CachedValuesManager.getManager(project).getCachedValue(this) {
-    CachedValueProvider.Result.create(
-      internalGetGradleProjectPath(),
-      gradleProjectPathModificationTrackers(project)
-    )
+    CachedValueProvider.Result.create(internalGetGradleProjectPath(), gradleProjectPathModificationTrackers(project))
   }
 }
 
 fun Project.findModule(gradleProjectPath: GradleProjectPath): Module? {
-  return CachedValuesManager.getManager(this).getCachedValue(this) {
-    val moduleMap = ModuleManager.getInstance(this)
-      .modules
-      .mapNotNull {
-        (it.getGradleProjectPath() ?: return@mapNotNull null) to it
-      }
-      .toMap()
-    CachedValueProvider.Result.create(
-      moduleMap,
-      gradleProjectPathModificationTrackers(this)
-    )
-  }[gradleProjectPath]
+  return CachedValuesManager.getManager(this)
+    .getCachedValue(this) {
+      val moduleMap =
+        ModuleManager.getInstance(this).modules.mapNotNull { (it.getGradleProjectPath() ?: return@mapNotNull null) to it }.toMap()
+      CachedValueProvider.Result.create(moduleMap, gradleProjectPathModificationTrackers(this))
+    }[gradleProjectPath]
 }
 
 fun GradleProjectPath.resolveIn(project: Project): Module? = project.findModule(this)
 
-private fun gradleProjectPathModificationTrackers(project: Project) = listOf(
-  ProjectRootModificationTracker.getInstance(project),
-  ProjectSyncModificationTracker.getInstance(project)
-)
+private fun gradleProjectPathModificationTrackers(project: Project) =
+  listOf(ProjectRootModificationTracker.getInstance(project), ProjectSyncModificationTracker.getInstance(project))

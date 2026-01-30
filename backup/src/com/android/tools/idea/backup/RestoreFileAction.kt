@@ -64,12 +64,7 @@ internal class RestoreFileAction(
 
     project.coroutineScope.launch {
       when (val restoreInfo = e.getRestoreInfo()) {
-        is Invalid ->
-          dialogFactory.showDialog(
-            project,
-            message("restore.file.action.error.title"),
-            restoreInfo.reason,
-          )
+        is Invalid -> dialogFactory.showDialog(project, message("restore.file.action.error.title"), restoreInfo.reason)
         is Valid -> restoreInfo.restore(project)
       }
     }
@@ -77,20 +72,15 @@ internal class RestoreFileAction(
 
   private suspend fun AnActionEvent.getRestoreInfo(): RestoreInfo {
     val project = project ?: throw IllegalStateException("Missing project")
-    val applicationId =
-      actionHelper.getApplicationId(project)
-        ?: return Invalid(message("error.incompatible.run.config"))
-    val backupFile =
-      getData(VIRTUAL_FILE)?.toNioPath() ?: throw IllegalStateException("Missing file")
+    val applicationId = actionHelper.getApplicationId(project) ?: return Invalid(message("error.incompatible.run.config"))
+    val backupFile = getData(VIRTUAL_FILE)?.toNioPath() ?: throw IllegalStateException("Missing file")
     val backupManager = BackupManager.getInstance(project)
 
     // Check application id
     val fileApplicationId = backupManager.getMetadata(backupFile)?.applicationId
     when {
-      fileApplicationId == null ->
-        return Invalid(message("error.invalid.file", backupFile.pathString))
-      fileApplicationId != applicationId ->
-        return Invalid(message("error.wrong.package", fileApplicationId, applicationId))
+      fileApplicationId == null -> return Invalid(message("error.invalid.file", backupFile.pathString))
+      fileApplicationId != applicationId -> return Invalid(message("error.wrong.package", fileApplicationId, applicationId))
     }
 
     val targetCount = actionHelper.getDeployTargetCount(project)
@@ -101,9 +91,7 @@ internal class RestoreFileAction(
 
     // TODO(b/348406593) Validate GMS version
 
-    val serialNumber =
-      actionHelper.getDeployTargetSerial(project)
-        ?: return Invalid(message("error.device.not.running"))
+    val serialNumber = actionHelper.getDeployTargetSerial(project) ?: return Invalid(message("error.device.not.running"))
     return Valid(backupFile, serialNumber)
   }
 
@@ -114,8 +102,6 @@ internal class RestoreFileAction(
   }
 
   private suspend fun Valid.restore(project: Project) {
-    withContext(uiThread) {
-      BackupManager.getInstance(project).restoreModal(serialNumber, backupFile, PROJECT_VIEW)
-    }
+    withContext(uiThread) { BackupManager.getInstance(project).restoreModal(serialNumber, backupFile, PROJECT_VIEW) }
   }
 }

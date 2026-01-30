@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("GridPasteUtils")
+
 package com.android.tools.idea.editors.strings.table
 
 import it.unimi.dsi.fastutil.ints.IntArrayList
@@ -21,15 +22,13 @@ import it.unimi.dsi.fastutil.ints.IntArrayList
 /**
  * Splits a string to a grid mimicking the behavior of pasting to a spreadsheet.
  *
- * Newline and tab characters are treated as row and cell delimiters respectively unless they are
- * located inside segments enclosed in double quotes (`'"'`). Two consecutive double quotes inside
- * a quoted segment are interpreted as one double quote.
+ * Newline and tab characters are treated as row and cell delimiters respectively unless they are located inside segments enclosed in double
+ * quotes (`'"'`). Two consecutive double quotes inside a quoted segment are interpreted as one double quote.
  *
- * The result is always a rectangular grid, which in some cases requires adding empty cells. If any
- * empty cells had to be added to produce a rectangular grid, the method considered alternative
- * interpretations of the input string, where some newline and tab characters are treated as row
- * and cell delimiters despite being located inside quoted segments. An interpretation that
- * minimizes the number of added empty cells is preferred.
+ * The result is always a rectangular grid, which in some cases requires adding empty cells. If any empty cells had to be added to produce a
+ * rectangular grid, the method considered alternative interpretations of the input string, where some newline and tab characters are
+ * treated as row and cell delimiters despite being located inside quoted segments. An interpretation that minimizes the number of added
+ * empty cells is preferred.
  *
  * See `GridParseUtilsTest` for examples of input strings and the produced grids.
  */
@@ -51,9 +50,8 @@ private class Parser(val str: String) {
   private var quotedDelimiterCountAtSegmentStart = 0
   private var maxQuotedDelimiterCount = 0
   /**
-   * Determines the set of newline and/or tab characters located inside quoted segments that are
-   * treated as row and cell delimiters. This is triggered when quotedDelimiterCount is equal to
-   * one of the elements in the list.
+   * Determines the set of newline and/or tab characters located inside quoted segments that are treated as row and cell delimiters. This is
+   * triggered when quotedDelimiterCount is equal to one of the elements in the list.
    */
   private var alternativeInterpretations = IntArrayList()
 
@@ -103,12 +101,12 @@ private class Parser(val str: String) {
           if (insideQuotedSegment) {
             insideQuotedSegment = false
             openingQuoteAccepted = true
-          }
-          else if (openingQuoteAccepted) {
+          } else if (openingQuoteAccepted) {
             insideQuotedSegment = true
           }
         }
-        '\t', '\n' -> processDelimiter(c)
+        '\t',
+        '\n' -> processDelimiter(c)
         else -> openingQuoteAccepted = false
       }
       offset++
@@ -129,8 +127,7 @@ private class Parser(val str: String) {
         offset = segmentStart - 1
         openingQuoteAccepted = false
         quotedDelimiterCount = quotedDelimiterCountAtSegmentStart
-      }
-      else {
+      } else {
         when (delimiter) {
           '\t' -> {
             addCell()
@@ -180,13 +177,12 @@ private class Parser(val str: String) {
   }
 
   /**
-   * Enumerates all possible contents of the alternativeInterpretations list by generating them
-   * one at a time. Every produced alternativeInterpretations list contains elements in strictly
-   * monotonically increasing order. All elements are kept below maxQuotedDelimiterCount. All
-   * single-element possibilities are enumerated before two-element ones and so forth.
+   * Enumerates all possible contents of the alternativeInterpretations list by generating them one at a time. Every produced
+   * alternativeInterpretations list contains elements in strictly monotonically increasing order. All elements are kept below
+   * maxQuotedDelimiterCount. All single-element possibilities are enumerated before two-element ones and so forth.
    *
-   * Returns true if the next alternativeInterpretations content was produced, or false if all
-   * possible combinations have been already exhausted.
+   * Returns true if the next alternativeInterpretations content was produced, or false if all possible combinations have been already
+   * exhausted.
    */
   private fun nextAlternative(): Boolean {
     with(alternativeInterpretations) {
@@ -220,11 +216,9 @@ private class Parser(val str: String) {
   }
 }
 
-private fun String.isQuoted() =
-  length >= 2 && first() == '"' && last() == '"'
+private fun String.isQuoted() = length >= 2 && first() == '"' && last() == '"'
 
-private fun String.unquote(): String =
-  if (isQuoted()) substring(1, length - 1).replace("\"\"", "\"") else this
+private fun String.unquote(): String = if (isQuoted()) substring(1, length - 1).replace("\"\"", "\"") else this
 
 private fun <T> MutableList<T>.expandToSize(desiredSize: Int, value: T) {
   while (size < desiredSize) {

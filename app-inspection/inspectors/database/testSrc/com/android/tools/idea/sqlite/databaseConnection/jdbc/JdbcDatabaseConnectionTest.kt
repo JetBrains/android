@@ -46,18 +46,13 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    sqliteUtil =
-      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
     databaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          sqliteFile,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
   }
 
@@ -124,9 +119,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Act
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
-      )!!
+      pumpEventsAndWaitForFuture(databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
@@ -152,11 +145,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
     // Act
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        databaseConnection.query(
-          SqliteStatement(SqliteStatementType.SELECT, "SELECT book_id FROM Book")
-        )
-      )!!
+      pumpEventsAndWaitForFuture(databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT book_id FROM Book")))!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
@@ -181,36 +170,23 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     // Prepare
 
     // Act/Assert
-    pumpEventsAndWaitForFuture(
-      databaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE Book"))
-    )
-    pumpEventsAndWaitForFutureException(
-      databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
-    )
+    pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE Book")))
+    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))
   }
 
   fun testExecuteQueryFailsWhenIncorrectTableName() {
     // Prepare
 
     // Act/Assert
-    pumpEventsAndWaitForFutureException(
-      databaseConnection.execute(
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM wrongName")
-      )
-    )
+    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM wrongName")))
   }
 
   fun test_rowid_IsAssignedCorrectly() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2"))
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -222,15 +198,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testRowidIsAssignedCorrectly() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_"))
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -242,19 +213,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testOidIsAssignedCorrectly() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase(
-        "rowidDb",
-        "testTable",
-        listOf("col1", "col2", "_rowid_", "rowid"),
-      )
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_", "rowid"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -266,19 +228,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testRowIdIsNull() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase(
-        "rowidDb",
-        "testTable",
-        listOf("col1", "col2", "rowid", "oid", "_rowid_"),
-      )
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "rowid", "oid", "_rowid_"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -290,21 +243,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testPrimaryKeyInWithoutRowIdTable() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase(
-        "rowidDb",
-        "testTable",
-        listOf("col1"),
-        listOf("pk"),
-        true,
-      )
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -318,21 +260,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testMultiplePrimaryKeys() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase(
-        "rowidDb",
-        "testTable",
-        listOf("col1"),
-        listOf("pk1", "pk2"),
-        false,
-      )
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk1", "pk2"), false)
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -348,19 +279,11 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   fun testAffinity() {
     // Prepare
     customSqliteFile =
-      sqliteUtil.createTestSqliteDatabaseWithConfigurableTypes(
-        "affinityDb",
-        "testTable",
-        listOf("int", "text", "blob", "real", "numeric"),
-      )
+      sqliteUtil.createTestSqliteDatabaseWithConfigurableTypes("affinityDb", "testTable", listOf("int", "text", "blob", "real", "numeric"))
 
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -377,21 +300,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testNotNull() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase(
-        "rowidDb",
-        "testTable",
-        listOf("col1"),
-        listOf("pk"),
-        true,
-      )
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
@@ -406,15 +318,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table''Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table''Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -429,15 +336,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping1() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table'Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table'Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -451,15 +353,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping2() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table`Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table`Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -473,15 +370,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping3() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table\'Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\'Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -495,15 +387,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping4() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table\"Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\"Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -517,15 +404,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaTabNameRequiresEscaping5() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "table Name", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table Name", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -539,15 +421,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaColNameRequiresEscaping() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col''Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col''Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -561,15 +438,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaColNameRequiresEscaping1() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col'Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col'Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -582,15 +454,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   fun testReadSchemaColNameRequiresEscaping2() {
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col`Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col`Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -604,15 +471,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testReadSchemaColNameRequiresEscaping3() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\'Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\'Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -625,15 +487,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   fun testReadSchemaColNameRequiresEscaping4() {
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\"Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\"Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -646,15 +503,10 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   fun testReadSchemaColNameRequiresEscaping5() {
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col Name"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col Name"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
@@ -668,22 +520,15 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testInsertNullValueWorks() {
     // Prepare
-    val customSqliteFile =
-      sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     // Act
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(
-        SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t1 (c1 text, c2 text)")
-      )
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t1 (c1 text, c2 text)"))
     )
 
     pumpEventsAndWaitForFuture(
@@ -697,10 +542,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       )
     )
 
-    val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-      )
+    val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
@@ -710,127 +552,68 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testUpdateStatement() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createAdHocSqliteDatabase(
-        "db",
-        "create table t1 (c1 int)",
-        "insert into t1 values (42)",
-      )
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(
-        SqliteStatement(SqliteStatementType.UPDATE, "UPDATE t1 SET c1 = 0 WHERE c1 == 42")
-      )
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UPDATE, "UPDATE t1 SET c1 = 0 WHERE c1 == 42"))
     )
 
     // Assert
-    val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-      )
+    val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows.first().values.first().value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testInsertStatement() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createAdHocSqliteDatabase(
-        "db",
-        "create table t1 (c1 int)",
-        "insert into t1 values (42)",
-      )
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
-    pumpEventsAndWaitForFuture(
-      customConnection!!.execute(
-        SqliteStatement(SqliteStatementType.INSERT, "insert into t1 values (0)")
-      )
-    )
+    pumpEventsAndWaitForFuture(customConnection!!.execute(SqliteStatement(SqliteStatementType.INSERT, "insert into t1 values (0)")))
 
     // Assert
-    val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-      )
+    val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows.last().values.first().value).isEqualTo(SqliteValue.fromAny(0))
   }
 
   fun testCreateTable() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createAdHocSqliteDatabase(
-        "db",
-        "create table t1 (c1 int)",
-        "insert into t1 values (42)",
-      )
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
-    pumpEventsAndWaitForFuture(
-      customConnection!!.execute(
-        SqliteStatement(SqliteStatementType.UNKNOWN, "create table t2 (c1 int)")
-      )
-    )
+    pumpEventsAndWaitForFuture(customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "create table t2 (c1 int)")))
 
     // Assert
-    val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2"))
-      )
+    val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t2")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows).isEmpty()
   }
 
   fun testExplainStatement() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createAdHocSqliteDatabase(
-        "db",
-        "create table t1 (c1 int)",
-        "insert into t1 values (42)",
-      )
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(
-          SqliteStatement(SqliteStatementType.EXPLAIN, "explain select * from t1")
-        )
-      )
+      pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.EXPLAIN, "explain select * from t1")))
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
@@ -839,28 +622,15 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
 
   fun testPragmaStatement() {
     // Prepare
-    customSqliteFile =
-      sqliteUtil.createAdHocSqliteDatabase(
-        "db",
-        "create table t1 (c1 int)",
-        "insert into t1 values (42)",
-      )
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase("db", "create table t1 (c1 int)", "insert into t1 values (42)")
     customConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile!!,
-          FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
       )
 
     // Act
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        customConnection!!.query(
-          SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "PRAGMA cache_size")
-        )
-      )
+      pumpEventsAndWaitForFuture(customConnection!!.query(SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "PRAGMA cache_size")))
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
@@ -868,10 +638,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity): Boolean {
-    return pumpEventsAndWaitForFuture(this.columns)
-      .find { it.name == name }
-      ?.affinity
-      ?.equals(affinity) ?: false
+    return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.affinity?.equals(affinity) ?: false
   }
 
   private fun SqliteTable.hasColumn(name: String, affinity: SqliteAffinity): Boolean {

@@ -25,18 +25,17 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import javax.swing.JEditorPane
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [DeviceScreenRecordingSettingsPage]. */
 @RunsInEdt
 internal class DeviceScreenRecordingSettingsPageTest {
 
   private val projectRule = ProjectRule()
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   private val project: Project
     get() = projectRule.project
@@ -46,12 +45,10 @@ internal class DeviceScreenRecordingSettingsPageTest {
     val provider = DeviceScreenRecordingSettingsPage.Provider(project)
     assertThat(provider.canCreateConfigurable()).isTrue()
     val settingsPage = provider.createConfigurable()
-    Disposer.register(project) {
-      settingsPage.disposeUIResources()
-    }
+    Disposer.register(project) { settingsPage.disposeUIResources() }
     val component = settingsPage.createComponent()!!
     val previewField = component.getDescendant<JEditorPane>()
     assertThat(extractTextFromHtml(previewField.text).substringAfterLast(File.separatorChar))
-        .matches("Screen_recording_\\d{8}_\\d{6}\\.mp4")
+      .matches("Screen_recording_\\d{8}_\\d{6}\\.mp4")
   }
 }

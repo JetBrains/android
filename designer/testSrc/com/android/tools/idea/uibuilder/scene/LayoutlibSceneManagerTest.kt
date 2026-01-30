@@ -122,10 +122,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
     myLayoutlibSceneManager.requestRenderAndWait()
     myLayoutlibSceneManager.renderResult!!.let {
       assertFalse("broken render should have failed", it.renderResult.isSuccess)
-      assertTrue(
-        "image should be still valid because of a previous successful render",
-        it.renderedImage.isValid,
-      )
+      assertTrue("image should be still valid because of a previous successful render", it.renderedImage.isValid)
       assertEquals(768, it.rootViewDimensions.width)
       assertEquals(1280, it.rootViewDimensions.height)
     }
@@ -162,10 +159,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
     return model(
       FD_RES_XML,
       "preference.xml",
-      component(PREFERENCE_SCREEN)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight(),
+      component(PREFERENCE_SCREEN).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
     )
   }
 }

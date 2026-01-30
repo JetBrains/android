@@ -23,6 +23,5 @@ const val BUNDLE_NAME = "messages.WearDwfBundle"
 internal object WearDwfBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
 
-  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
-    bundleRef.message(key, *params)
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
 }

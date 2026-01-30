@@ -52,57 +52,49 @@ import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumnModel
 
-/**
- * A base for editors of properties which are collections of values of type [ValueT].
- */
+/** A base for editors of properties which are collections of values of type [ValueT]. */
 abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionPropertyCore<*>, ValueT : Any>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   protected val editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   variablesScope: PsVariablesScope?,
-  private val logValueEdited: () -> Unit
+  private val logValueEdited: () -> Unit,
 ) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesScope) {
 
-  override val component: JPanel = JPanel(BorderLayout()).apply {
-    isFocusable = false
-  }
+  override val component: JPanel = JPanel(BorderLayout()).apply { isFocusable = false }
   open val statusComponent: JComponent? = null
 
   private var beingLoaded = false
-  protected var tableModel: DefaultTableModel? = null; private set
+  protected var tableModel: DefaultTableModel? = null
+    private set
+
   private val formatter = propertyContext.valueFormatter()
   private val knownValueRenderers: ListenableFuture<Map<ParsedValue<ValueT>, ValueRenderer>> =
-    propertyContext.getKnownValues()
+    propertyContext
+      .getKnownValues()
       .transform(MoreExecutors.directExecutor()) { buildKnownValueRenderers(it, formatter, null) }
+      .also { it.whenCompletedInvokeOnEdt { UiUtil.revalidateAndRepaint(component) } }
+
+  protected val table: JBTable =
+    JBTable()
+      .apply { rowHeight = calculateMinRowHeight() }
       .also {
-        it.whenCompletedInvokeOnEdt {
-          UiUtil.revalidateAndRepaint(component)
-        }
+        component.add(
+          ToolbarDecorator.createDecorator(it)
+            .setAddAction {
+              addItem()
+              logValueEdited()
+            }
+            .setRemoveAction {
+              removeItem()
+              logValueEdited()
+            }
+            .setPreferredSize(Dimension(450, it.rowHeight * 3))
+            .setToolbarPosition(ActionToolbarPosition.RIGHT)
+            .createPanel()
+        )
       }
-
-
-  protected val table: JBTable = JBTable()
-    .apply {
-      rowHeight = calculateMinRowHeight()
-    }
-    .also {
-      component.add(
-        ToolbarDecorator.createDecorator(it)
-          .setAddAction {
-            addItem()
-            logValueEdited()
-          }
-          .setRemoveAction {
-            removeItem()
-            logValueEdited()
-          }
-          .setPreferredSize(Dimension(450, it.rowHeight * 3))
-          .setToolbarPosition(ActionToolbarPosition.RIGHT)
-          .createPanel()
-      )
-    }.also {
-      it.patchScrolling()
-    }
+      .also { it.patchScrolling() }
 
   protected fun loadValue() {
     beingLoaded = true
@@ -110,23 +102,29 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
       tableModel = createTableModel()
       table.model = tableModel
       table.columnModel = createColumnModel()
-    }
-    finally {
+    } finally {
       beingLoaded = false
     }
   }
 
   protected abstract fun createTableModel(): DefaultTableModel
+
   protected abstract fun createColumnModel(): TableColumnModel
+
   abstract fun addItem()
+
   protected abstract fun removeItem()
+
   protected abstract fun getPropertyAt(row: Int): ModelPropertyCore<ValueT>
 
   protected fun getValueAt(row: Int): Annotated<ParsedValue<ValueT>> = getPropertyAt(row).getParsedValue()
+
   protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
+
   private fun calculateMinRowHeight() = JBUI.scale(24)
 
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
+
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
 
   fun addFocusListener(listener: FocusListener) {
@@ -134,8 +132,8 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   }
 
   /**
-   * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
-   * in [MyCellEditor].
+   * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation in
+   * [MyCellEditor].
    */
   protected inner class Value(val value: Annotated<ParsedValue<ValueT>>) {
     override fun toString(): String = buildString {
@@ -147,22 +145,23 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     }
   }
 
-  inner class MyCellRenderer: TableCellRenderer {
-    override fun getTableCellRendererComponent(table: JTable?,
-                                               value: Any?,
-                                               isSelected: Boolean,
-                                               hasFocus: Boolean,
-                                               row: Int,
-                                               column: Int): Component {
+  inner class MyCellRenderer : TableCellRenderer {
+    override fun getTableCellRendererComponent(
+      table: JTable?,
+      value: Any?,
+      isSelected: Boolean,
+      hasFocus: Boolean,
+      row: Int,
+      column: Int,
+    ): Component {
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
       return SimpleColoredComponent().also {
-        parsedValue
-          .renderTo(
-            it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus),
-            formatter,
-            knownValueRenderers.getDoneOrNull() ?: emptyMap()
-          )
+        parsedValue.renderTo(
+          it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus),
+          formatter,
+          knownValueRenderers.getDoneOrNull() ?: emptyMap(),
+        )
         if (isSelected) it.background = getListSelectionBackground(hasFocus)
       }
     }
@@ -170,9 +169,9 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   inner class MyCellEditor : PropertyCellEditor<ValueT>() {
     override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
+
     override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> =
-        editor(getPropertyAt(row), propertyContext, variablesScope, this)
-            .also { table.addTabKeySupportTo(it.component) }
+      editor(getPropertyAt(row), propertyContext, variablesScope, this).also { table.addTabKeySupportTo(it.component) }
   }
 }
 
@@ -180,18 +179,36 @@ private fun JComponent.patchScrolling() {
   fun Component.parentScrollPane() = generateSequence<Component>(parent) { it.parent }.mapNotNull { it as? JScrollPane }.firstOrNull()
   var lastKnownPosition = 0
   val patchedScrollPane = parentScrollPane()
-  patchedScrollPane?.addMouseWheelListener(MouseWheelListener { e ->
-    val verticalBar = patchedScrollPane.verticalScrollBar
-    if (verticalBar.value == lastKnownPosition
-        && (e.wheelRotation < 0 && verticalBar.value == 0 || verticalBar.value == verticalBar.maximum - verticalBar.visibleAmount)) {
-      val parentScrollPane = patchedScrollPane.parentScrollPane()
-      if (parentScrollPane != null) {
-        parentScrollPane.dispatchEvent(
-          MouseWheelEvent(parentScrollPane, e.id, e.`when`, e.modifiers, e.xOnScreen - parentScrollPane.locationOnScreen.x,
-                          e.yOnScreen - parentScrollPane.locationOnScreen.y, e.xOnScreen, e.yOnScreen, e.clickCount, e.isPopupTrigger,
-                          e.scrollType, e.scrollAmount, e.wheelRotation, e.preciseWheelRotation))
+  patchedScrollPane?.addMouseWheelListener(
+    MouseWheelListener { e ->
+      val verticalBar = patchedScrollPane.verticalScrollBar
+      if (
+        verticalBar.value == lastKnownPosition &&
+          (e.wheelRotation < 0 && verticalBar.value == 0 || verticalBar.value == verticalBar.maximum - verticalBar.visibleAmount)
+      ) {
+        val parentScrollPane = patchedScrollPane.parentScrollPane()
+        if (parentScrollPane != null) {
+          parentScrollPane.dispatchEvent(
+            MouseWheelEvent(
+              parentScrollPane,
+              e.id,
+              e.`when`,
+              e.modifiers,
+              e.xOnScreen - parentScrollPane.locationOnScreen.x,
+              e.yOnScreen - parentScrollPane.locationOnScreen.y,
+              e.xOnScreen,
+              e.yOnScreen,
+              e.clickCount,
+              e.isPopupTrigger,
+              e.scrollType,
+              e.scrollAmount,
+              e.wheelRotation,
+              e.preciseWheelRotation,
+            )
+          )
+        }
       }
+      lastKnownPosition = verticalBar.value
     }
-    lastKnownPosition = verticalBar.value
-  })
+  )
 }

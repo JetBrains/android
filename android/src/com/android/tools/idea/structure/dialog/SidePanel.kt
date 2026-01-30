@@ -66,143 +66,148 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     val separator: String?,
     val presentation: Presentation,
     val countProvider: (() -> ProblemStats)?,
-    val validationErrorsProvider: (() -> Boolean)? // false for no errors
+    val validationErrorsProvider: (() -> Boolean)?, // false for no errors
   )
 
   private val listModel: DefaultListModel<PlaceData> = DefaultListModel()
 
   @VisibleForTesting
-  val descriptor: ListItemDescriptor<PlaceData> = object : ListItemDescriptor<PlaceData> {
-    override fun getTextFor(place: PlaceData): String? = place.presentation.text
-    override fun getTooltipFor(place: PlaceData): String? = null
-    override fun getIconFor(place: PlaceData): Icon = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
-    override fun hasSeparatorAboveOf(value: PlaceData): Boolean = value.separator != null
-    override fun getCaptionAboveOf(value: PlaceData): String? = value.separator
-  }
+  val descriptor: ListItemDescriptor<PlaceData> =
+    object : ListItemDescriptor<PlaceData> {
+      override fun getTextFor(place: PlaceData): String? = place.presentation.text
 
-  private val cellRenderer: ListCellRenderer<PlaceData> = object : GroupedItemsListRenderer<PlaceData>(descriptor) {
-    var extraPanel: JPanel? = null
-    var eastPanel: JPanel? = null
-    var countLabel: JLabel? = null
-    var validationError: JLabel? = null
-    private var containsValidationErrors: Boolean = false
-    private var containsErrors: Boolean = false
-    private var isSelected: Boolean = false
-    private val textBorders = JBUI.Borders.empty(2, 5, 2, 6 + 6)
-    private val errorBorders = JBUI.Borders.empty(2, 5, 2, 6)
+      override fun getTooltipFor(place: PlaceData): String? = null
 
-    private val emptyBorders = JBUI.Borders.empty()
+      override fun getIconFor(place: PlaceData): Icon = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
 
-    init {
-      mySeparatorComponent.setCaptionCentered(false)
+      override fun hasSeparatorAboveOf(value: PlaceData): Boolean = value.separator != null
+
+      override fun getCaptionAboveOf(value: PlaceData): String? = value.separator
     }
 
-    override fun getForeground(): Color = JBColor(Gray._60, Gray._140)
+  private val cellRenderer: ListCellRenderer<PlaceData> =
+    object : GroupedItemsListRenderer<PlaceData>(descriptor) {
+      var extraPanel: JPanel? = null
+      var eastPanel: JPanel? = null
+      var countLabel: JLabel? = null
+      var validationError: JLabel? = null
+      private var containsValidationErrors: Boolean = false
+      private var containsErrors: Boolean = false
+      private var isSelected: Boolean = false
+      private val textBorders = JBUI.Borders.empty(2, 5, 2, 6 + 6)
+      private val errorBorders = JBUI.Borders.empty(2, 5, 2, 6)
 
-    override fun createSeparator(): SeparatorWithText = SidePanelSeparator()
+      private val emptyBorders = JBUI.Borders.empty()
 
-    override fun layout() {
-      countLabel?.border = if (countLabel?.text.isNullOrEmpty()) emptyBorders else textBorders
-      val extraPanel = extraPanel ?: return
-      val eastPanel = eastPanel ?: return
-      myRendererComponent.add(mySeparatorComponent, BorderLayout.NORTH)
-      extraPanel.add(getItemComponent(), BorderLayout.CENTER)
-      extraPanel.add(eastPanel, BorderLayout.EAST)
-      eastPanel.add(countLabel)
-      eastPanel.add(validationError)
-      myRendererComponent.add(this.extraPanel, BorderLayout.CENTER)
-    }
+      init {
+        mySeparatorComponent.setCaptionCentered(false)
+      }
 
-    override fun getListCellRendererComponent(
-      list: JList<out PlaceData>,
-      value: PlaceData,
-      index: Int,
-      isSelected: Boolean,
-      cellHasFocus: Boolean
-    ): Component {
-      val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-      updateCountLabel(isSelected, value)
-      updateValidationErrorLabel(value)
+      override fun getForeground(): Color = JBColor(Gray._60, Gray._140)
 
-      layout()
-      if (ClientProperty.isTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
-        val bounds = list.getCellBounds(index, index)
-        bounds.setSize(component.preferredSize.getWidth().toInt(), bounds.getHeight().toInt())
-        extraPanel?.let {
-          AbstractExpandableItemsHandler.setRelativeBounds(component, bounds, it, validationParent)
-          it.setSize(it.preferredSize.getWidth().toInt(), it.height)
-          it.putClientProperty(ExpandableItemsHandler.USE_RENDERER_BOUNDS, true)
-          return it
+      override fun createSeparator(): SeparatorWithText = SidePanelSeparator()
+
+      override fun layout() {
+        countLabel?.border = if (countLabel?.text.isNullOrEmpty()) emptyBorders else textBorders
+        val extraPanel = extraPanel ?: return
+        val eastPanel = eastPanel ?: return
+        myRendererComponent.add(mySeparatorComponent, BorderLayout.NORTH)
+        extraPanel.add(getItemComponent(), BorderLayout.CENTER)
+        extraPanel.add(eastPanel, BorderLayout.EAST)
+        eastPanel.add(countLabel)
+        eastPanel.add(validationError)
+        myRendererComponent.add(this.extraPanel, BorderLayout.CENTER)
+      }
+
+      override fun getListCellRendererComponent(
+        list: JList<out PlaceData>,
+        value: PlaceData,
+        index: Int,
+        isSelected: Boolean,
+        cellHasFocus: Boolean,
+      ): Component {
+        val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+        updateCountLabel(isSelected, value)
+        updateValidationErrorLabel(value)
+
+        layout()
+        if (ClientProperty.isTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
+          val bounds = list.getCellBounds(index, index)
+          bounds.setSize(component.preferredSize.getWidth().toInt(), bounds.getHeight().toInt())
+          extraPanel?.let {
+            AbstractExpandableItemsHandler.setRelativeBounds(component, bounds, it, validationParent)
+            it.setSize(it.preferredSize.getWidth().toInt(), it.height)
+            it.putClientProperty(ExpandableItemsHandler.USE_RENDERER_BOUNDS, true)
+            return it
+          }
+        }
+
+        return component
+      }
+
+      override fun createItemComponent(): JComponent {
+        extraPanel = NonOpaquePanel(BorderLayout())
+        eastPanel = NonOpaquePanel(FlowLayout(CENTER, 0, 0))
+        validationError = JLabel().apply { icon = AllIcons.General.BalloonError }
+
+        countLabel =
+          object : JLabel() {
+            init {
+              font = UIUtil.getListFont().deriveFont(Font.BOLD)
+            }
+
+            override fun paintComponent(g: Graphics) {
+              g.color = UIUtil.SIDE_PANEL_BACKGROUND
+              g.fillRect(0, 0, width, height)
+              if (StringUtil.isEmpty(text)) return
+              val deepBlue = JBColor(Color(0x97A4B2), Color(92, 98, 113))
+              g.color = if (containsErrors) JBColor.RED.darker() else deepBlue
+              val config = GraphicsUtil.setupAAPainting(g)
+              g.fillRoundRect(0, 3, width - 6 - 1, height - 6, height - 6, height - 6)
+              config.restore()
+              foreground = UIUtil.getListForeground(true, true)
+              super.paintComponent(g)
+            }
+          }
+
+        val component = super.createItemComponent()
+
+        myTextLabel.foreground = Gray._240
+        myTextLabel.isOpaque = true
+
+        return component
+      }
+
+      override fun getBackground(): Color = SIDE_PANEL_BACKGROUND
+
+      private fun updateValidationErrorLabel(value: PlaceData) {
+        containsValidationErrors = value.validationErrorsProvider?.invoke() ?: false
+
+        validationError?.run {
+          isVisible = containsValidationErrors
+          border = if (isVisible) errorBorders else emptyBorders
         }
       }
 
-      return component
-    }
+      private fun updateCountLabel(isSelected: Boolean, value: PlaceData) {
+        val countLabel = countLabel ?: return
+        val problemStats = value.countProvider?.invoke()
+        val count = problemStats?.count ?: 0
 
-    override fun createItemComponent(): JComponent {
-      extraPanel = NonOpaquePanel(BorderLayout())
-      eastPanel = NonOpaquePanel(FlowLayout(CENTER, 0, 0))
-      validationError = JLabel().apply {
-        icon = AllIcons.General.BalloonError
-      }
-
-      countLabel = object : JLabel() {
-        init {
-          font = UIUtil.getListFont().deriveFont(Font.BOLD)
-        }
-
-        override fun paintComponent(g: Graphics) {
-          g.color = UIUtil.SIDE_PANEL_BACKGROUND
-          g.fillRect(0, 0, width, height)
-          if (StringUtil.isEmpty(text)) return
-          val deepBlue = JBColor(Color(0x97A4B2), Color(92, 98, 113))
-          g.color = if (containsErrors) JBColor.RED.darker() else deepBlue
-          val config = GraphicsUtil.setupAAPainting(g)
-          g.fillRoundRect(0, 3, width - 6 - 1, height - 6, height - 6, height - 6)
-          config.restore()
-          foreground = UIUtil.getListForeground(true, true)
-          super.paintComponent(g)
-        }
-      }
-
-      val component = super.createItemComponent()
-
-      myTextLabel.foreground = Gray._240
-      myTextLabel.isOpaque = true
-
-      return component
-    }
-
-    override fun getBackground(): Color = SIDE_PANEL_BACKGROUND
-
-    private fun updateValidationErrorLabel(value: PlaceData) {
-      containsValidationErrors = value.validationErrorsProvider?.invoke() ?: false
-
-      validationError?.run {
-        isVisible = containsValidationErrors
-        border = if (isVisible) errorBorders else emptyBorders
+        this.isSelected = isSelected
+        containsErrors = problemStats?.containsErrors ?: false
+        countLabel.text =
+          when {
+            count == 0 -> ""
+            count > 100 -> "100+"
+            else -> count.toString()
+          }
       }
     }
-
-
-    private fun updateCountLabel(isSelected: Boolean, value: PlaceData) {
-      val countLabel = countLabel ?: return
-      val problemStats = value.countProvider?.invoke()
-      val count = problemStats?.count ?: 0
-
-      this.isSelected = isSelected
-      containsErrors = problemStats?.containsErrors ?: false
-      countLabel.text = when {
-        count == 0 -> ""
-        count > 100 -> "100+"
-        else -> count.toString()
-      }
-    }
-  }
 
   val validationParent = CellRendererPane()
-  val list: JBList<PlaceData> = JBList(listModel)
-    .also {
+  val list: JBList<PlaceData> =
+    JBList(listModel).also {
       it.background = SIDE_PANEL_BACKGROUND
       it.border = EmptyBorder(5, 0, 0, 0)
       it.selectionMode = SINGLE_SELECTION
@@ -211,9 +216,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
       it.addListSelectionListener { e ->
         if (e.valueIsAdjusting) return@addListSelectionListener
-        it.selectedValue?.let { value ->
-          myNavigator.navigateTo(value.place, false)
-        }
+        it.selectedValue?.let { value -> myNavigator.navigateTo(value.place, false) }
       }
     }
 
@@ -227,7 +230,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     place: Place,
     presentation: Presentation,
     counterProvider: (() -> ProblemStats)?,
-    validationErrorsProvider: (() -> Boolean)?
+    validationErrorsProvider: (() -> Boolean)?,
   ) {
     listModel.addElement(PlaceData(place, pendingSeparator, presentation, counterProvider, validationErrorsProvider))
     pendingSeparator = null

@@ -16,29 +16,24 @@
 package com.android.tools.idea.templates.diff
 
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRoot
-import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import kotlin.io.path.Path
 import kotlin.test.assertContentEquals
+import org.junit.Test
 
 class LintReportParserTest {
   /**
-   * Runs LintReportParser on an example Lint report (generated from Basic Views Activity), in case
-   * the report format changes in the future
+   * Runs LintReportParser on an example Lint report (generated from Basic Views Activity), in case the report format changes in the future
    */
   @Test
   fun parseExampleReport() {
-    val exampleReport =
-      getTestDataRoot().resolve("lintReportParser").resolve("lint-results-debug.txt")
+    val exampleReport = getTestDataRoot().resolve("lintReportParser").resolve("lint-results-debug.txt")
 
     val byteStream = ByteArrayOutputStream()
     val lintReportParser = LintReportParser(PrintStream(byteStream))
 
-    lintReportParser.parseLintReport(
-      Path("C:\\Windows\\fakeProjectDir\\testNewBasicViewsActivity_VALIDATING_"),
-      exampleReport
-    )
+    lintReportParser.parseLintReport(Path("C:\\Windows\\fakeProjectDir\\testNewBasicViewsActivity_VALIDATING_"), exampleReport)
 
     val expected =
       """1 FragmentTagUsage from androidx.fragment issues:
@@ -54,7 +49,8 @@ class LintReportParserTest {
     [...]\Template test module\src\main\res\layout\activity_main.xml:24: Error: Missing contentDescription attribute on image [ContentDescription]
 
 6 errors, 0 warnings
-""".split("\r\n", "\n")
+"""
+        .split("\r\n", "\n")
 
     // Splitting takes care of both Windows line endings and also makes the assertion error easier to read
     assertContentEquals(expected, byteStream.toString().split("\r\n", "\n"))
@@ -62,20 +58,17 @@ class LintReportParserTest {
 
   @Test
   fun parseNoIssuesReport() {
-    val exampleReport =
-      getTestDataRoot().resolve("lintReportParser").resolve("lint-results-debug-empty.txt")
+    val exampleReport = getTestDataRoot().resolve("lintReportParser").resolve("lint-results-debug-empty.txt")
 
     val byteStream = ByteArrayOutputStream()
     val lintReportParser = LintReportParser(PrintStream(byteStream))
 
-    lintReportParser.parseLintReport(
-      Path("C:\\Windows\\fakeProjectDir\\testNewBasicViewsActivity_VALIDATING_"),
-      exampleReport
-    )
+    lintReportParser.parseLintReport(Path("C:\\Windows\\fakeProjectDir\\testNewBasicViewsActivity_VALIDATING_"), exampleReport)
 
     val expected =
       """No issues found.
-""".split("\r\n", "\n")
+"""
+        .split("\r\n", "\n")
 
     // Splitting takes care of both Windows line endings and also makes the assertion error easier to read
     assertContentEquals(expected, byteStream.toString().split("\r\n", "\n"))

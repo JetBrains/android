@@ -32,9 +32,7 @@ class ShapeArgumentMatcher(private val expected: Shape) : ArgumentMatcher<Shape>
   }
 
   private fun matchLine(line: Line2D.Float): Boolean {
-    return (expected as? Line2D.Float)?.let {
-      it.x1 == line.x1 && it.x2 == line.x2 && it.y1 == line.y1 && it.y2 == line.y2
-    } ?: false
+    return (expected as? Line2D.Float)?.let { it.x1 == line.x1 && it.x2 == line.x2 && it.y1 == line.y1 && it.y2 == line.y2 } ?: false
   }
 
   private fun matchRoundRectangle(rectangle: RoundRectangle2D.Float): Boolean {

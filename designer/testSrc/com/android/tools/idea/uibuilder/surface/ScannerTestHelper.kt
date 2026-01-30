@@ -35,10 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-/**
- * Helper class for testing [NlLayoutScanner]. It generates/mocks appropriate data needed for
- * testing.
- */
+/** Helper class for testing [NlLayoutScanner]. It generates/mocks appropriate data needed for testing. */
 class ScannerTestHelper {
 
   private var viewId = 0
@@ -49,10 +46,7 @@ class ScannerTestHelper {
 
   private var validatorIssueId = 0L
 
-  /**
-   * Returns [ValidatorData.Issue.mSrcId] that is used by the last issue created by the helper thru
-   * [generateResult].
-   */
+  /** Returns [ValidatorData.Issue.mSrcId] that is used by the last issue created by the helper thru [generateResult]. */
   val lastUsedIssueId
     get() = validatorIssueId
 
@@ -65,8 +59,7 @@ class ScannerTestHelper {
     val nlModel =
       model
         ?: Mockito.mock(NlModel::class.java).apply {
-          whenever(displaySettings)
-            .thenReturn(DisplaySettings().apply { setDisplayName("displayName") })
+          whenever(displaySettings).thenReturn(DisplaySettings().apply { setDisplayName("displayName") })
           val mockFile = Mockito.mock(VirtualFile::class.java)
           whenever(virtualFile).thenReturn(mockFile)
         }
@@ -91,8 +84,7 @@ class ScannerTestHelper {
   }
 
   /**
-   * Generate the [RenderResult] with appropriate [ViewInfo] as well as matching [ValidatorResult]
-   * based on [NlModel].
+   * Generate the [RenderResult] with appropriate [ViewInfo] as well as matching [ValidatorResult] based on [NlModel].
    *
    * It creates a [ValidatorData.Issue] per [NlModel.treeReader.flattenComponents]
    */
@@ -122,10 +114,7 @@ class ScannerTestHelper {
     return result
   }
 
-  /**
-   * Creates a mocked [NlMode] with [size] number of [NlComponent]s. The created model has 1 root,
-   * and 1-[size] children.
-   */
+  /** Creates a mocked [NlMode] with [size] number of [NlComponent]s. The created model has 1 root, and 1-[size] children. */
   fun buildModel(size: Int): NlModel {
     val model = Mockito.mock(NlModel::class.java)
     val builder = ImmutableList.Builder<NlComponent>()
@@ -162,14 +151,8 @@ class ScannerTestHelper {
     return model
   }
 
-  /**
-   * Create a scanner(aka validator) result derived from the passed components. Created result will
-   * have source map created.
-   */
-  fun generateResult(
-    component: NlComponent,
-    builder: ValidatorResult.Builder? = null,
-  ): ValidatorResult.Builder {
+  /** Create a scanner(aka validator) result derived from the passed components. Created result will have source map created. */
+  fun generateResult(component: NlComponent, builder: ValidatorResult.Builder? = null): ValidatorResult.Builder {
     val builder = builder ?: ValidatorResult.Builder()
     validatorIssueId += 1L
     builder.mSrcMap[validatorIssueId] = component.viewInfo?.viewObject as View

@@ -30,19 +30,20 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class ModulesPerspectiveConfigurableTest  {
+class ModulesPerspectiveConfigurableTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testModulesTreeWithBasicSingleModuleProject() {
     val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.BASIC)
     // Note: indentation matters!
-    val expectedStructure = """
+    val expectedStructure =
+      """
       root
           project
-      """.trimIndent()
+      """
+        .trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
@@ -51,11 +52,13 @@ class ModulesPerspectiveConfigurableTest  {
   fun testModulesTreeWhenPluginInTheRootWithSubmodules() {
     val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.NESTED_MODULE)
     // Note: indentation matters!
-    val expectedStructure = """
+    val expectedStructure =
+      """
       root
           project
               app
-      """.trimIndent()
+      """
+        .trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
@@ -64,7 +67,8 @@ class ModulesPerspectiveConfigurableTest  {
   fun testModulesTreeWhenPluginInSubmodulesOnly() {
     val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     // Note: indentation matters!
-    val expectedStructure = """
+    val expectedStructure =
+      """
       root
           app
           dyn_feature
@@ -76,7 +80,8 @@ class ModulesPerspectiveConfigurableTest  {
               deep
               trans
                   deep2
-      """.trimIndent()
+      """
+        .trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
@@ -84,11 +89,11 @@ class ModulesPerspectiveConfigurableTest  {
   private fun getModulesTreeStructureFromConfigurableForProject(testProject: TestProjectDefinition): TestTree {
     val preparedProject = projectRule.prepareTestProject(testProject)
     return projectRule.psTestWithContext(preparedProject, disableAnalysis = true, resolveModels = false) {
-
-      val configurable = ModulesPerspectiveConfigurable(context).also {
-        Disposer.register(context, it)
-        it.reset()
-      }
+      val configurable =
+        ModulesPerspectiveConfigurable(context).also {
+          Disposer.register(context, it)
+          it.reset()
+        }
 
       (configurable.tree.model as ConfigurablesTreeModel).rootNode.testStructure()
     }

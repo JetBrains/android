@@ -29,50 +29,29 @@ private constructor(
   sourceElement: PsiElement?,
   url: String,
   localJavaDocInfo: String?,
-) :
-  AndroidSdkMemberDocumentationTarget<PsiField>(
-    targetElement,
-    containingClass,
-    sourceElement,
-    url,
-    localJavaDocInfo,
-  ) {
+) : AndroidSdkMemberDocumentationTarget<PsiField>(targetElement, containingClass, sourceElement, url, localJavaDocInfo) {
   override fun create(
     targetElement: PsiField,
     containingClass: PsiClass,
     sourceElement: PsiElement?,
     url: String,
     localJavaDocInfo: String?,
-  ) =
-    AndroidSdkFieldDocumentationTarget(
-      targetElement,
-      containingClass,
-      sourceElement,
-      url,
-      localJavaDocInfo,
-    )
+  ) = AndroidSdkFieldDocumentationTarget(targetElement, containingClass, sourceElement, url, localJavaDocInfo)
 
   companion object {
     /**
-     * Creates [DocumentationTarget] representing a field in the Android SDK. [targetElement] points
-     * to the field in the Android SDK that needs documentation, and [sourceElement] represents the
-     * original reference to that field from which the user is requesting the documentation.
+     * Creates [DocumentationTarget] representing a field in the Android SDK. [targetElement] points to the field in the Android SDK that
+     * needs documentation, and [sourceElement] represents the original reference to that field from which the user is requesting the
+     * documentation.
      */
     fun create(targetElement: PsiField, sourceElement: PsiElement?): DocumentationTarget? {
       val containingClass = targetElement.containingClass ?: return null
       val classUrl = containingClass.documentationUrl() ?: return null
       val url = "$classUrl#${targetElement.name}"
 
-      val localJavaDocInfo =
-        JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(listOf(url))
+      val localJavaDocInfo = JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(listOf(url))
 
-      return AndroidSdkFieldDocumentationTarget(
-        targetElement,
-        containingClass,
-        sourceElement,
-        url,
-        localJavaDocInfo,
-      )
+      return AndroidSdkFieldDocumentationTarget(targetElement, containingClass, sourceElement, url, localJavaDocInfo)
     }
   }
 }

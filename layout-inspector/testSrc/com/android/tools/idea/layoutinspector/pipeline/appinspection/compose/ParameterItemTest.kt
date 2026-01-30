@@ -147,18 +147,7 @@ class ParameterItemTest {
   ): ParameterGroupItem {
     val children = mutableListOf<ParameterItem>()
     block(children)
-    return ParameterGroupItem(
-      name,
-      type,
-      value,
-      section,
-      viewId,
-      lookup,
-      rootId,
-      index,
-      reference,
-      children,
-    )
+    return ParameterGroupItem(name, type, value, section, viewId, lookup, rootId, index, reference, children)
   }
 
   private val ParameterItem.children: List<ParameterItem>

@@ -85,10 +85,7 @@ fun showViewContextMenu(
           result.add(ShowAllAction(inspectorModel))
           result.add(Separator.create())
         }
-        if (
-          selectedView is ComposeViewNode &&
-            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get()
-        ) {
+        if (selectedView is ComposeViewNode && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.get()) {
           val stateReadGroup = createStateReadMenuGroup(selectedView, inspectorModel)
           result.add(stateReadGroup)
         }
@@ -107,9 +104,7 @@ fun showViewContextMenu(
       object : PopupMenuListenerAdapter() {
         override fun popupMenuWillBecomeVisible(unuxed: PopupMenuEvent?) {
           ApplicationManager.getApplication().invokeLater {
-            val subMenu =
-              popupComponent.subElements.firstOrNull()?.subElements?.firstOrNull() as? JPopupMenu
-                ?: return@invokeLater
+            val subMenu = popupComponent.subElements.firstOrNull()?.subElements?.firstOrNull() as? JPopupMenu ?: return@invokeLater
             subMenu.addPopupMenuListener(
               object : PopupMenuListenerAdapter() {
                 override fun popupMenuWillBecomeVisible(unused: PopupMenuEvent) {
@@ -131,8 +126,7 @@ fun showViewContextMenu(
   popupComponent.show(source, x, y)
 }
 
-private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) :
-  AnAction("Open Chrome DevTools") {
+private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) : AnAction("Open Chrome DevTools") {
 
   override fun actionPerformed(e: AnActionEvent) {
     ChromeDevTools.navigateTo()
@@ -141,13 +135,9 @@ private class BrowseChromeDevToolsAction(private val selectedView: ViewNode?) :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU.get() &&
-        selectedView?.isDerivedFromWebView ?: false
+    e.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_CHROME_DEVTOOLS_MENU.get() && selectedView?.isDerivedFromWebView ?: false
     e.presentation.isEnabled = ChromeDevTools.isChromeAvailable
-    e.presentation.text =
-      if (ChromeDevTools.isChromeAvailable) templateText
-      else "$templateText (Chrome is not installed)"
+    e.presentation.text = if (ChromeDevTools.isChromeAvailable) templateText else "$templateText (Chrome is not installed)"
   }
 }
 
@@ -163,11 +153,8 @@ private class ShowAllAction(private val inspectorModel: InspectorModel) : AnActi
   }
 }
 
-private class HideSubtreeAction(
-  val inspectorModel: InspectorModel,
-  val client: InspectorClient,
-  val viewNode: ViewNode,
-) : AnAction("Hide Subtree") {
+private class HideSubtreeAction(val inspectorModel: InspectorModel, val client: InspectorClient, val viewNode: ViewNode) :
+  AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -183,11 +170,8 @@ private class HideSubtreeAction(
   }
 }
 
-private class ShowOnlySubtreeAction(
-  val inspectorModel: InspectorModel,
-  val client: InspectorClient,
-  val viewNode: ViewNode,
-) : AnAction("Show Only Subtree") {
+private class ShowOnlySubtreeAction(val inspectorModel: InspectorModel, val client: InspectorClient, val viewNode: ViewNode) :
+  AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -198,11 +182,8 @@ private class ShowOnlySubtreeAction(
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
-private class ShowOnlyParentsAction(
-  val inspectorModel: InspectorModel,
-  val client: InspectorClient,
-  val viewNode: ViewNode,
-) : AnAction("Show Only Parents") {
+private class ShowOnlyParentsAction(val inspectorModel: InspectorModel, val client: InspectorClient, val viewNode: ViewNode) :
+  AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
     if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -213,11 +194,8 @@ private class ShowOnlyParentsAction(
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
-private class ShowSubtreeAction(
-  val inspectorModel: InspectorModel,
-  val client: InspectorClient,
-  val viewNode: ViewNode,
-) : AnAction("Show Subtree") {
+private class ShowSubtreeAction(val inspectorModel: InspectorModel, val client: InspectorClient, val viewNode: ViewNode) :
+  AnAction("Show Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     if (canUseSkp()) {
       client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
@@ -233,8 +211,7 @@ private class ShowSubtreeAction(
   }
 }
 
-private fun generateText(viewNode: ViewNode) =
-  viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
+private fun generateText(viewNode: ViewNode) = viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
 
 @VisibleForTesting
 class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :

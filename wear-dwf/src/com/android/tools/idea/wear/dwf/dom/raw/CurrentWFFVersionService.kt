@@ -27,37 +27,30 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 
 /**
- * Represents the current [WFFVersion] used in the editor. [isFallback] is true if the version in
- * the merged manifest was invalid or missing.
+ * Represents the current [WFFVersion] used in the editor. [isFallback] is true if the version in the merged manifest was invalid or
+ * missing.
  */
 data class CurrentWFFVersion(val wffVersion: WFFVersion, val isFallback: Boolean)
 
 @Service
-class CurrentWFFVersionService(
-  private val wffVersionExtractor: WFFVersionExtractor = WFFVersionExtractor()
-) {
+class CurrentWFFVersionService(private val wffVersionExtractor: WFFVersionExtractor = WFFVersionExtractor()) {
   /**
    * Returns a [CurrentWFFVersion] for a given [Module].
    *
-   * If there is no merged manifest, the method will return `null`. If the version specified in the
-   * merged manifest is missing or invalid, it will return a fallback version.
+   * If there is no merged manifest, the method will return `null`. If the version specified in the merged manifest is missing or invalid,
+   * it will return a fallback version.
    *
    * @see getFallbackVersion
    */
   fun getCurrentWFFVersion(module: Module): CurrentWFFVersion? {
-    val manifestDocument =
-      MergedManifestManager.getMergedManifestSupplier(module).now?.document ?: return null
+    val manifestDocument = MergedManifestManager.getMergedManifestSupplier(module).now?.document ?: return null
     val manifestVersion = wffVersionExtractor.extractFromManifest(manifestDocument)
-    return CurrentWFFVersion(
-      wffVersion = manifestVersion ?: getFallbackVersion(module),
-      isFallback = manifestVersion == null,
-    )
+    return CurrentWFFVersion(wffVersion = manifestVersion ?: getFallbackVersion(module), isFallback = manifestVersion == null)
   }
 
   private fun getFallbackVersion(module: Module): WFFVersion {
     val minSdk = AndroidModel.get(module)?.minSdkVersion
-    return if (minSdk?.isAtLeast(AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE) == true) WFFVersion2
-    else WFFVersion1
+    return if (minSdk?.isAtLeast(AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE) == true) WFFVersion2 else WFFVersion1
   }
 
   companion object {

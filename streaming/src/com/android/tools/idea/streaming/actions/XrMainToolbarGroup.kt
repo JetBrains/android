@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.actions;
+package com.android.tools.idea.streaming.actions
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -24,7 +24,7 @@ class XrMainToolbarGroup : DefaultActionGroup() {
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabledAndVisible =
-        !service<FloatingXrToolbarState>().floatingXrToolbarEnabled && getXrInputController(event)?.isXrInputAvailable == true
+      !service<FloatingXrToolbarState>().floatingXrToolbarEnabled && getXrInputController(event)?.isXrInputAvailable == true
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

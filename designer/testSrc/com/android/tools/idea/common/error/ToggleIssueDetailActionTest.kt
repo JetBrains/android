@@ -44,24 +44,17 @@ class ToggleIssueDetailActionTest {
   @Before
   fun setup() {
     rule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
-    rule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
     HeadlessDataManager.fallbackToProductionDataManager(rule.testRootDisposable)
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    runInEdtAndWait {
-      ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
-    }
+    runInEdtAndWait { ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project)) }
   }
 
   @Test
   fun testUpdate() {
     val action = ToggleIssueDetailAction()
-    val dataContext = runInEdtAndGet {
-      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
-    }
+    val dataContext = runInEdtAndGet { DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component) }
 
     val sharedPanel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     sharedPanel.sidePanelVisible = false
@@ -74,9 +67,7 @@ class ToggleIssueDetailActionTest {
 
     sharedPanel.sidePanelVisible = true
     TestActionEvent.createTestEvent(
-        CustomizedDataContext.withSnapshot(dataContext) { sink ->
-          sink[PlatformDataKeys.SELECTED_ITEM] = TestNode()
-        }
+        CustomizedDataContext.withSnapshot(dataContext) { sink -> sink[PlatformDataKeys.SELECTED_ITEM] = TestNode() }
       )
       .let { event ->
         action.update(event)
@@ -86,9 +77,7 @@ class ToggleIssueDetailActionTest {
       }
 
     TestActionEvent.createTestEvent(
-        CustomizedDataContext.withSnapshot(dataContext) { sink ->
-          sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
-        }
+        CustomizedDataContext.withSnapshot(dataContext) { sink -> sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue()) }
       )
       .let { event ->
         action.update(event)
@@ -101,9 +90,7 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testIsSelected() {
     val action = ToggleIssueDetailAction()
-    val dataContext = runInEdtAndGet {
-      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
-    }
+    val dataContext = runInEdtAndGet { DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component) }
     val event =
       TestActionEvent.createTestEvent(
         CustomizedDataContext.withSnapshot(dataContext) { sink ->
@@ -122,9 +109,7 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testSelect() {
     val action = ToggleIssueDetailAction()
-    val dataContext = runInEdtAndGet {
-      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
-    }
+    val dataContext = runInEdtAndGet { DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component) }
     val event = TestActionEvent.createTestEvent(dataContext)
 
     val sharedPanel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!

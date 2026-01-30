@@ -17,14 +17,15 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_TEST
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.intellij.openapi.module.Module
 
 class AndroidRunConfigurationGradleToken : AndroidRunConfigurationToken<GradleProjectSystem>, GradleToken {
   override fun getModuleForAndroidRunConfiguration(projectSystem: GradleProjectSystem, module: Module) = module.getMainModule()
+
   override fun getModuleForAndroidTestRunConfiguration(projectSystem: GradleProjectSystem, module: Module) =
     when (module.getModuleSystem().type) {
       TYPE_TEST -> module.getMainModule()

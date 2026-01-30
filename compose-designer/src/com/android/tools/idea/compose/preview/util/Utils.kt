@@ -44,13 +44,9 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
-fun Segment?.containsOffset(offset: Int) =
-  this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
+fun Segment?.containsOffset(offset: Int) = this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
 
-/**
- * For a SceneView that contains a valid Compose Preview, get its root component, that must be a
- * ComposeViewAdapter.
- */
+/** For a SceneView that contains a valid Compose Preview, get its root component, that must be a ComposeViewAdapter. */
 fun SceneView.getRootComponent(): NlComponent? {
   val root = sceneManager.model.treeReader.components.firstOrNull()
   assert(root == null || root.tagName == COMPOSE_VIEW_ADAPTER_FQN) {
@@ -63,37 +59,28 @@ fun SceneView.getSmallestViewInfos(x: Int, y: Int, logger: Logger): Collection<C
   val androidX = Coordinates.getAndroidX(this, x)
   val androidY = Coordinates.getAndroidY(this, y)
   val deepestViewInfos =
-    this.scene.root
-      ?.nlComponent
-      ?.viewInfo
-      ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
-      ?.findSmallestHit(androidX, androidY)
+    this.scene.root?.nlComponent?.viewInfo?.let { viewInfo -> parseViewInfo(viewInfo, logger) }?.findSmallestHit(androidX, androidY)
 
   return deepestViewInfos
 }
 
 /** Returns true if the ComposeViewAdapter component of this SceneView is currently selected. */
-fun SceneView.isRootComponentSelected() =
-  getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
+fun SceneView.isRootComponentSelected() = getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
 
 /**
- * Whether fast preview is available. In addition to checking its normal availability from
- * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
- * should not be available in this case.
+ * Whether fast preview is available. In addition to checking its normal availability from [FastPreviewManager], we also verify that
+ * essentials mode is not enabled, because fast preview should not be available in this case.
  */
 fun isFastPreviewAvailable(project: Project) =
-  FastPreviewManager.getInstance(project).isAvailable &&
-    !PreviewEssentialsModeManager.isEssentialsModeEnabled
+  FastPreviewManager.getInstance(project).isAvailable && !PreviewEssentialsModeManager.isEssentialsModeEnabled
 
-fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
-  getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+fun DataContext.previewElement(): PsiComposePreviewElementInstance? = getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
-fun NlDataProvider.previewElement(): PsiComposePreviewElementInstance? =
-  getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+fun NlDataProvider.previewElement(): PsiComposePreviewElementInstance? = getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
 /**
- * Whether this function is not in a test file and is properly annotated with
- * [COMPOSE_PREVIEW_ANNOTATION_FQN], and validating the location of Previews.
+ * Whether this function is not in a test file and is properly annotated with [COMPOSE_PREVIEW_ANNOTATION_FQN], and validating the location
+ * of Previews.
  *
  * @see [isValidPreviewLocation]
  */
@@ -102,14 +89,11 @@ internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isInAndroidOrCommonModule() &&
     isValidPreviewLocation() &&
-    annotationEntries.any { annotation ->
-      (annotation.toUElement() as? UAnnotation)?.isPreviewAnnotation() == true
-    }
+    annotationEntries.any { annotation -> (annotation.toUElement() as? UAnnotation)?.isPreviewAnnotation() == true }
 
 private fun KtNamedFunction.isInAndroidOrCommonModule(): Boolean {
   val module = ModuleUtilCore.findModuleForFile(containingFile) ?: return false
   return module.isAndroidModule() || module.isCommonWithAndroidModule()
 }
 
-private fun KtNamedFunction.isInTestFile() =
-  isTestFile(this.project, this.containingFile.virtualFile)
+private fun KtNamedFunction.isInTestFile() = isTestFile(this.project, this.containingFile.virtualFile)

@@ -52,8 +52,7 @@ class StreamingToolWindowManagerMultiProjectTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val project2Rule = ProjectRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
-  @get:Rule
-  val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
+  @get:Rule val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow1: FakeToolWindow by lazy { createToolWindow(project1) }
@@ -63,14 +62,26 @@ class StreamingToolWindowManagerMultiProjectTest {
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
 
-  private val project1: Project get() = agentRule.project
-  private val project2: Project get() = project2Rule.project
-  private val mirroringManager1 get() = project1.service<MirroringManager>()
-  private val mirroringManager2 get() = project2.service<MirroringManager>()
-  private val deviceProvisioner1 get() = project1.service<DeviceProvisionerService>().deviceProvisioner
-  private val deviceProvisioner2 get() = project2.service<DeviceProvisionerService>().deviceProvisioner
+  private val project1: Project
+    get() = agentRule.project
 
-  private val testRootDisposable get() = agentRule.disposable
+  private val project2: Project
+    get() = project2Rule.project
+
+  private val mirroringManager1
+    get() = project1.service<MirroringManager>()
+
+  private val mirroringManager2
+    get() = project2.service<MirroringManager>()
+
+  private val deviceProvisioner1
+    get() = project1.service<DeviceProvisionerService>().deviceProvisioner
+
+  private val deviceProvisioner2
+    get() = project2.service<DeviceProvisionerService>().deviceProvisioner
+
+  private val testRootDisposable
+    get() = agentRule.disposable
 
   @Before
   fun setUp() {
@@ -151,5 +162,5 @@ class StreamingToolWindowManagerMultiProjectTest {
   }
 
   private fun createToolWindow(project: Project): FakeToolWindow =
-    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project,testRootDisposable)
+    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project, testRootDisposable)
 }

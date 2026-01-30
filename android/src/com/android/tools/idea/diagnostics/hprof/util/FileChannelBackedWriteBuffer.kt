@@ -19,10 +19,7 @@ import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 
-class FileChannelBackedWriteBuffer(
-  private val channel: FileChannel,
-  private val closeOutput: Boolean = false
-) : Closeable {
+class FileChannelBackedWriteBuffer(private val channel: FileChannel, private val closeOutput: Boolean = false) : Closeable {
   private val tempBuf = ByteBuffer.allocateDirect(70 * 1024)
 
   private var position: Int = 0
@@ -33,8 +30,7 @@ class FileChannelBackedWriteBuffer(
       closed = true
       try {
         flushBuffer()
-      }
-      finally {
+      } finally {
         if (closeOutput) {
           channel.close()
         }
@@ -90,14 +86,12 @@ class FileChannelBackedWriteBuffer(
         b = b or 0x80
       }
       writeByte(b.toByte())
-    }
-    while (v != 0)
+    } while (v != 0)
   }
 
   fun writeString(s: String) {
     val bytes = s.toByteArray(Charsets.UTF_8)
-    if (bytes.size > Short.MAX_VALUE)
-      throw IllegalArgumentException("String too long.")
+    if (bytes.size > Short.MAX_VALUE) throw IllegalArgumentException("String too long.")
     writeShort(s.length.toShort())
     if (tempBuf.remaining() < bytes.size) {
       flushBuffer()
@@ -109,5 +103,4 @@ class FileChannelBackedWriteBuffer(
   fun position(): Int {
     return position
   }
-
 }

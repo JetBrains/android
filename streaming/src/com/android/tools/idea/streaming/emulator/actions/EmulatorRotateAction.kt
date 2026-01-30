@@ -24,42 +24,38 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.EventQueue
 
-/**
- * Rotates the emulator left or right.
- */
-sealed class EmulatorRotateAction(
-  private val rotationQuadrants: Int,
-) : AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && it.deviceType == DeviceType.HANDHELD }) {
+/** Rotates the emulator left or right. */
+sealed class EmulatorRotateAction(private val rotationQuadrants: Int) :
+  AbstractEmulatorAction(configFilter = { it.hasOrientationSensors && it.deviceType == DeviceType.HANDHELD }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
     val rotationQuadrants = (emulatorView.displayOrientationQuadrants + rotationQuadrants) and 0x03
-    val angle = when (rotationQuadrants) {
-      1 -> 90F
-      2 -> -180F
-      3 -> -90F
-      else -> 0F
-    }
-    val parameters = ParameterValue.newBuilder()
-      .addData(0F)
-      .addData(0F)
-      .addData(angle)
-    val rotationModel = PhysicalModelValue.newBuilder()
-      .setTarget(PhysicalModelValue.PhysicalType.ROTATION)
-      .setValue(parameters)
-      .build()
-    emulatorController.setPhysicalModel(rotationModel, object : EmptyStreamObserver<Empty>() {
-      override fun onCompleted() {
-        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          emulatorView.displayOrientationQuadrants = rotationQuadrants
-        }
+    val angle =
+      when (rotationQuadrants) {
+        1 -> 90F
+        2 -> -180F
+        3 -> -90F
+        else -> 0F
       }
-    })
+    val parameters = ParameterValue.newBuilder().addData(0F).addData(0F).addData(angle)
+    val rotationModel = PhysicalModelValue.newBuilder().setTarget(PhysicalModelValue.PhysicalType.ROTATION).setValue(parameters).build()
+    emulatorController.setPhysicalModel(
+      rotationModel,
+      object : EmptyStreamObserver<Empty>() {
+        override fun onCompleted() {
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+            emulatorView.displayOrientationQuadrants = rotationQuadrants
+          }
+        }
+      },
+    )
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   class Left : EmulatorRotateAction(1)
+
   class Right : EmulatorRotateAction(3)
 }

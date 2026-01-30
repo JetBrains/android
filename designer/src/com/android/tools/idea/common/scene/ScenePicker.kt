@@ -31,18 +31,6 @@ object ScenePicker {
 
     fun addCircle(e: Any, range: Int, x1: Int, y1: Int, r: Int)
 
-    fun addCurveTo(
-      e: Any,
-      range: Int,
-      x1: Int,
-      y1: Int,
-      x2: Int,
-      y2: Int,
-      x3: Int,
-      y3: Int,
-      x4: Int,
-      y4: Int,
-      width: Int,
-    )
+    fun addCurveTo(e: Any, range: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int, x4: Int, y4: Int, width: Int)
   }
 }

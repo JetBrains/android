@@ -18,8 +18,8 @@ package com.android.tools.idea.common.model
 import com.intellij.openapi.Disposable
 
 /**
- * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate
- * a model with a [PreviewElement] through a [NlDataProvider].
+ * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate a model with a [PreviewElement] through
+ * a [NlDataProvider].
  */
 interface NlDataProviderHolder : Disposable {
   var dataProvider: NlDataProvider?

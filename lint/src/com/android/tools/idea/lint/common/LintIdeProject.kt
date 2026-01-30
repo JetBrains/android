@@ -36,8 +36,8 @@ import com.intellij.util.ArrayUtil
 import java.io.File
 
 /**
- * An [LintIdeProject] represents a lint project, which typically corresponds to a [Module], but can
- * also correspond to a library "project" such as an android library.
+ * An [LintIdeProject] represents a lint project, which typically corresponds to a [Module], but can also correspond to a library "project"
+ * such as an android library.
  */
 open class LintIdeProject protected constructor(client: LintClient, dir: File, referenceDir: File) :
   com.android.tools.lint.detector.api.Project(client, dir, referenceDir) {
@@ -79,8 +79,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     }
 
     /**
-     * Creates a project for a single file. Also, optionally creates a main project for the file, if
-     * applicable.
+     * Creates a project for a single file. Also, optionally creates a main project for the file, if applicable.
      *
      * @param client the lint client
      * @param file the file to create a project for
@@ -91,10 +90,7 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
       client: LintIdeClient,
       file: VirtualFile?,
       module: Module,
-    ): Pair<
-      com.android.tools.lint.detector.api.Project,
-      com.android.tools.lint.detector.api.Project,
-    > {
+    ): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
       // TODO: Can make this method even more lightweight: we don't need to
       //    initialize anything in the project (source paths etc) other than the
       //    metadata necessary for this file's type
@@ -115,9 +111,8 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     }
 
     /**
-     * Recursively add lint projects for the given module, and any other module or library it
-     * depends on, and also populate the reverse maps so we can quickly map from a lint project to a
-     * corresponding module/library (used by the lint client
+     * Recursively add lint projects for the given module, and any other module or library it depends on, and also populate the reverse maps
+     * so we can quickly map from a lint project to a corresponding module/library (used by the lint client
      */
     private fun addProjects(
       client: LintClient,
@@ -180,14 +175,10 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     }
 
     /**
-     * Checks whether we have a file filter (e.g. a set of specific files to check in the module
-     * rather than all files, and if so, and if all the files have been found, returns true)
+     * Checks whether we have a file filter (e.g. a set of specific files to check in the module rather than all files, and if so, and if
+     * all the files have been found, returns true)
      */
-    fun processFileFilter(
-      module: Module,
-      files: List<VirtualFile>?,
-      project: com.android.tools.lint.detector.api.Project,
-    ): Boolean {
+    fun processFileFilter(module: Module, files: List<VirtualFile>?, project: com.android.tools.lint.detector.api.Project): Boolean {
       if (!files.isNullOrEmpty()) {
         val allMatched =
           ApplicationManager.getApplication()
@@ -248,12 +239,8 @@ open class LintIdeProject protected constructor(client: LintClient, dir: File, r
     return super.getIdeaProject()
   }
 
-  open class LintModuleProject(
-    client: LintClient,
-    dir: File,
-    referenceDir: File,
-    private val module: Module,
-  ) : LintIdeProject(client, dir, referenceDir) {
+  open class LintModuleProject(client: LintClient, dir: File, referenceDir: File, private val module: Module) :
+    LintIdeProject(client, dir, referenceDir) {
     override fun isAndroidProject(): Boolean {
       return false
     }

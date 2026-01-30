@@ -71,11 +71,12 @@ class LiveEditNotificationAction : IssueNotificationAction(::getStatusInfo, ::cr
       presentation.isEnabledAndVisible = false
       return
     }
-    presentation.icon = when (status.redeployMode) {
-      LiveEditStatus.RedeployMode.REFRESH -> REFRESH_BUTTON
-      LiveEditStatus.RedeployMode.RERUN -> AllIcons.Actions.Restart
-      LiveEditStatus.RedeployMode.NONE -> status.icon
-    }
+    presentation.icon =
+      when (status.redeployMode) {
+        LiveEditStatus.RedeployMode.REFRESH -> REFRESH_BUTTON
+        LiveEditStatus.RedeployMode.RERUN -> AllIcons.Actions.Restart
+        LiveEditStatus.RedeployMode.NONE -> status.icon
+      }
     presentation.description = status.description
     val notificationPanel = NotificationHolderPanel.fromDataContext(e)
     if (notificationPanel != null) {
@@ -128,17 +129,18 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
   // Only show for running devices tool window.
   val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
   val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
-  val bridge = AdbService.getInstance().getDebugBridge(project).let {
-    if (!it.isDone || it.isCancelled) {
-      null
-    } else {
-      try {
-        it.get()
-      } catch (_: Exception) {
+  val bridge =
+    AdbService.getInstance().getDebugBridge(project).let {
+      if (!it.isDone || it.isCancelled) {
         null
+      } else {
+        try {
+          it.get()
+        } catch (_: Exception) {
+          null
+        }
       }
     }
-  }
   val device = bridge?.devices?.find { it.serialNumber == serial } ?: return true
   // Hide status when the device doesn't support Live Edit.
   if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
@@ -152,38 +154,43 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
   return LiveEditApplicationConfiguration.getInstance().isLiveEdit
 }
 
-/**
- * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
- * things like the current editor.
- */
-private fun createInformationPopup(project: Project, dataContext: DataContext) : InformationPopup? {
+/** Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for things like the current editor. */
+private fun createInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   return getStatusInfo(project, dataContext).let { status ->
     if (shouldHideImpl(status, dataContext)) {
       return@let null
     }
 
-    val redeployActionId = when (status.redeployMode) {
-      LiveEditStatus.RedeployMode.REFRESH -> "Compose.Live.Edit.Refresh"
-      LiveEditStatus.RedeployMode.RERUN -> "Run"
-      else -> null
-    }
+    val redeployActionId =
+      when (status.redeployMode) {
+        LiveEditStatus.RedeployMode.REFRESH -> "Compose.Live.Edit.Refresh"
+        LiveEditStatus.RedeployMode.RERUN -> "Run"
+        else -> null
+      }
     val redeployLink: AnActionLink? = redeployActionId?.let { createActionLink(it) }
 
-    val statusActionId = when (status.actionId) {
-      null, redeployActionId -> null
-      REFRESH_ACTION_ID -> getRefreshActionId()
-      else -> status.actionId
-    }
+    val statusActionId =
+      when (status.actionId) {
+        null,
+        redeployActionId -> null
+        REFRESH_ACTION_ID -> getRefreshActionId()
+        else -> status.actionId
+      }
     val statusActionLink = statusActionId?.let { createActionLink(it) }
 
     val upgradeAssistant =
-      if (status.title == LiveEditStatus.OutOfDate.title &&
-          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message)) {
-        AnActionLink("View Upgrade Assistant", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {
-            ActionUtil.invokeAction(ActionManager.getInstance().getAction("AgpUpgrade"), e, null)
-          }
-        })
+      if (
+        status.title == LiveEditStatus.OutOfDate.title &&
+          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message)
+      ) {
+        AnActionLink(
+          "View Upgrade Assistant",
+          object : AnAction() {
+            override fun actionPerformed(e: AnActionEvent) {
+              ActionUtil.invokeAction(ActionManager.getInstance().getAction("AgpUpgrade"), e, null)
+            }
+          },
+        )
       } else {
         null
       }
@@ -198,26 +205,26 @@ private fun createInformationPopup(project: Project, dataContext: DataContext) :
     val configureLiveEditAction = ConfigureLiveEditAction()
 
     return@let InformationPopupImpl(
-      null,
-      if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
-      emptyList(),
-      listOfNotNull(
-        redeployLink,
-        statusActionLink,
-        upgradeAssistant,
-        vibeEditAgent,
-        AnActionLink("View Docs",
-                     BrowserHelpAction("Live Edit Docs",
-                                       "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
-        AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
-          setDropDownLinkIcon()
-          configureLiveEditAction.parentComponent = this
-          putUserData(POPUP_ACTION, true)
-        }
+        null,
+        if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
+        emptyList(),
+        listOfNotNull(
+          redeployLink,
+          statusActionLink,
+          upgradeAssistant,
+          vibeEditAgent,
+          AnActionLink(
+            "View Docs",
+            BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit"),
+          ),
+          AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
+            setDropDownLinkIcon()
+            configureLiveEditAction.parentComponent = this
+            putUserData(POPUP_ACTION, true)
+          },
+        ),
       )
-    ).also { newPopup ->
-      configureLiveEditAction.parentDisposable = newPopup
-    }
+      .also { newPopup -> configureLiveEditAction.parentDisposable = newPopup }
   }
 }
 

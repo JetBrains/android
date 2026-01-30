@@ -25,16 +25,11 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-internal class DeviceAndSnapshotComboBoxTarget(
-  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service
-) : DeployTarget {
+internal class DeviceAndSnapshotComboBoxTarget(private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service) :
+  DeployTarget {
   override fun hasCustomRunProfileState(executor: Executor) = false
 
-  override fun getRunProfileState(
-    executor: Executor,
-    environment: ExecutionEnvironment,
-    state: DeployTargetState,
-  ): RunProfileState {
+  override fun getRunProfileState(executor: Executor, environment: ExecutionEnvironment, state: DeployTargetState): RunProfileState {
     throw UnsupportedOperationException()
   }
 
@@ -49,8 +44,6 @@ internal class DeviceAndSnapshotComboBoxTarget(
   }
 
   override fun getAndroidDevices(project: Project): List<AndroidDevice> {
-    return devicesSelectedService(project).devicesAndTargets.selectedTargets.map {
-      it.device.androidDevice
-    }
+    return devicesSelectedService(project).devicesAndTargets.selectedTargets.map { it.device.androidDevice }
   }
 }

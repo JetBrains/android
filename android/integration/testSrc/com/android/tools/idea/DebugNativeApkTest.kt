@@ -18,14 +18,12 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.testlib.Emulator
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
 class DebugNativeApkTest {
-  @JvmField
-  @Rule
-  val system : AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun debugNativeApkTest() {
@@ -51,9 +49,9 @@ class DebugNativeApkTest {
 
         system.runStudioFromApk(project) { studio ->
           studio.waitForIndex()
-          println("Finished waiting for index");
+          println("Finished waiting for index")
 
-          studio.waitForProjectInit();
+          studio.waitForProjectInit()
 
           println("Opening a file")
           val srcPath: Path = project.targetProject.resolve("minnativeapp/src/main/cpp/minnativeapp.cpp")

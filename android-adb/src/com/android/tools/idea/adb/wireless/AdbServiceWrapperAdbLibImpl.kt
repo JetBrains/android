@@ -78,9 +78,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     return try {
       val result = hostServices.mdnsServices()
       result.errors.forEach { errorLine ->
-        log.error(
-          "'${errorLine.message}' error while parsing 'mdns services' output line: '${errorLine.rawLineText}'"
-        )
+        log.error("'${errorLine.message}' error while parsing 'mdns services' output line: '${errorLine.rawLineText}'")
       }
 
       // Recreate stdout from parsed result
@@ -88,9 +86,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/client/commandline.cpp;l=1948
       // and
       // https://cs.android.com/android/platform/superproject/+/3a52886262ae22477a7d8ffb12adba64daf6aafa:packages/modules/adb/client/transport_mdns.cpp;l=302;drc=3a52886262ae22477a7d8ffb12adba64daf6aafa
-      val stdout =
-        listOf("List of discovered mdns services") +
-          result.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
+      val stdout = listOf("List of discovered mdns services") + result.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
       AdbCommandResult(0, stdout, listOf())
     } catch (e: AdbFailResponseException) {
       AdbCommandResult(ADB_FAILED_COMMAND_ERROR_CODE, listOf(), listOf(e.failMessage))
@@ -117,16 +113,10 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
         val deviceListFlow = hostServices.trackDevices(AdbHostServices.DeviceInfoFormat.LONG_FORMAT)
 
         // This essentially "loops" until we get a list of device containing the paired device
-        val pairedDeviceInfo =
-          deviceListFlow.mapNotNull { it.getPairedDevice(pairingResult) }.first()
+        val pairedDeviceInfo = deviceListFlow.mapNotNull { it.getPairedDevice(pairingResult) }.first()
         createAdbOnlineDevice(pairedDeviceInfo)
       }
-    }
-      ?: throw AdbCommandException(
-        "Device did not connect within specified timeout",
-        -1,
-        emptyList(),
-      )
+    } ?: throw AdbCommandException("Device did not connect within specified timeout", -1, emptyList())
   }
 
   override suspend fun getServerStatus(): ServerStatus {
@@ -154,14 +144,12 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
 
   private suspend fun getDeviceProperties(device: DeviceInfo): Map<String, String> {
     val deviceServices = AdbLibService.getSession(project).deviceServices
-    val props =
-      deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(device.serialNumber)).all()
+    val props = deviceServices.deviceProperties(DeviceSelector.fromSerialNumber(device.serialNumber)).all()
     return props.associate { it.name to it.value }
   }
 
   private fun sameDevice(device: DeviceInfo, pairingResult: PairingResult): Boolean {
-    return sameIpAddress(device, pairingResult.ipAddress) ||
-      sameMdnsService(device, pairingResult.mdnsServiceId)
+    return sameIpAddress(device, pairingResult.ipAddress) || sameMdnsService(device, pairingResult.mdnsServiceId)
   }
 
   private fun sameMdnsService(device: DeviceInfo, mdnsServiceId: String): Boolean {

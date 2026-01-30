@@ -193,25 +193,13 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
     surfaceState.saveOrganizationGroupState(file, "method3", false)
     surfaceState.saveOrganizationGroupState(file, "method4", false)
     surfaceState.saveOrganizationGroupState(file, "method5", false)
-    surfaceState.revalidateOrganizationGroups(
-      file,
-      setOf("method1", "method2", "method3", "method4", "method5"),
-    )
+    surfaceState.revalidateOrganizationGroups(file, setOf("method1", "method2", "method3", "method4", "method5"))
     assertEquals(
-      mapOf(
-        "method1" to true,
-        "method2" to true,
-        "method3" to false,
-        "method4" to false,
-        "method5" to false,
-      ),
+      mapOf("method1" to true, "method2" to true, "method3" to false, "method4" to false, "method5" to false),
       surfaceState.getOrganizationGroupState(file),
     )
     surfaceState.revalidateOrganizationGroups(file, setOf("method4", "method5"))
-    assertEquals(
-      mapOf("method4" to false, "method5" to false),
-      surfaceState.getOrganizationGroupState(file),
-    )
+    assertEquals(mapOf("method4" to false, "method5" to false), surfaceState.getOrganizationGroupState(file))
   }
 
   fun testRemoveFileFromProject() {

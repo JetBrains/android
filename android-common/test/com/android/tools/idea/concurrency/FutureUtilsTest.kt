@@ -19,14 +19,12 @@ import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
-import org.junit.Assert.fail
-import org.junit.Test
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
+import org.junit.Assert.fail
+import org.junit.Test
 
-/**
- * Tests for [com.android.tools.idea.concurrency.FutureUtils].
- */
+/** Tests for [com.android.tools.idea.concurrency.FutureUtils]. */
 class FutureUtilsTest {
   @Test
   fun testTransform() {
@@ -73,8 +71,7 @@ class FutureUtilsTest {
     try {
       result.get()
       fail("Future should have thrown")
-    } catch (expected: ExecutionException) {
-    }
+    } catch (expected: ExecutionException) {}
   }
 
   @Test
@@ -86,8 +83,7 @@ class FutureUtilsTest {
     try {
       result.get()
       fail("Future should have thrown")
-    } catch (expected: ExecutionException) {
-    }
+    } catch (expected: ExecutionException) {}
   }
 
   @Test
@@ -113,10 +109,15 @@ class FutureUtilsTest {
   @Test
   fun testCatching() {
     val future = SettableFuture.create<Int>()
-    val result = future.catching(directExecutor(), RuntimeException::class.java, { t ->
-      Truth.assertThat(t.message).isEqualTo("my error")
-      42
-    })
+    val result =
+      future.catching(
+        directExecutor(),
+        RuntimeException::class.java,
+        { t ->
+          Truth.assertThat(t.message).isEqualTo("my error")
+          42
+        },
+      )
     future.setException(RuntimeException("my error"))
 
     Truth.assertThat(result.get()).isEqualTo(42)
@@ -147,8 +148,7 @@ class FutureUtilsTest {
     try {
       future.get()
       fail("Future should have thrown")
-    } catch (expected: ExecutionException) {
-    }
+    } catch (expected: ExecutionException) {}
   }
 
   @Test

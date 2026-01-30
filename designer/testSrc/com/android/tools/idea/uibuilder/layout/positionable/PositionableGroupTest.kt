@@ -66,12 +66,7 @@ class PositionableGroupTest {
     val group0 = OrganizationGroup("0", "0")
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("2", "2")
-    val content =
-      listOf(
-        TestPositionableContent(group0),
-        TestPositionableContent(group1),
-        TestPositionableContent(group2),
-      )
+    val content = listOf(TestPositionableContent(group0), TestPositionableContent(group1), TestPositionableContent(group2))
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(1)
     assertThat(groups[0].content).containsExactly(content[0], content[1], content[2])
@@ -149,11 +144,7 @@ class PositionableGroupTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("2", "2")
     val content =
-      listOf(
-        HeaderTestPositionableContent(group0),
-        HeaderTestPositionableContent(group1),
-        HeaderTestPositionableContent(group2),
-      )
+      listOf(HeaderTestPositionableContent(group0), HeaderTestPositionableContent(group1), HeaderTestPositionableContent(group2))
     val groups = GROUP_BY_BASE_COMPONENT(content)
     assertThat(groups).hasSize(3)
     assertThat(groups[0].content).isEmpty()

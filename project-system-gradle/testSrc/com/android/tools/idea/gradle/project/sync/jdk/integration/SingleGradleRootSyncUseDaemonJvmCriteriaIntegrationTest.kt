@@ -37,51 +37,33 @@ import org.junit.rules.TemporaryFolder
 @RunsInEdt
 class SingleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
 
-  @get:Rule
-  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
+  @get:Rule val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given invalid Daemon Jvm criteria and valid Gradle JDK configuration When import project Then sync fails prioritizing criteria`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-        gradleDaemonToolchain = GradleDaemonToolchain("invalid")
-      ),
-      environment = TestEnvironment(
-        environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME, gradleDaemonToolchain = GradleDaemonToolchain("invalid")),
+      environment = TestEnvironment(environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)),
     ) {
       sync(
         assertOnFailure = {
           assertException(BuildIssueException::class, "Value 'invalid' given for toolchainVersion is an invalid Java version")
         },
-        assertSyncEvents = {
-          assertExceptionMessage("Invalid Gradle Daemon JVM Criteria")
-        }
+        assertSyncEvents = { assertExceptionMessage("Invalid Gradle Daemon JVM Criteria") },
       )
     }
 
   @Test
   fun `Given valid Daemon Jvm criteria as 17 version and Jetbrains vendor When import project Then projectJdk is configured with matching criteria JDK`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains")
-      )
-    ) {
-      syncWithAssertion(
-        expectedProjectJdkName = JDK_17,
-        expectedProjectJdkPath = JDK_17_PATH
-      )
+    jdkIntegrationTest.run(project = SimpleApplication(gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains"))) {
+      syncWithAssertion(expectedProjectJdkName = JDK_17, expectedProjectJdkPath = JDK_17_PATH)
     }
 }

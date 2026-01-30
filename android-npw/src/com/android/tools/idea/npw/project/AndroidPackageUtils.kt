@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * A handful of utility methods useful for suggesting package names when creating new files inside an Android project.
- */
+/** A handful of utility methods useful for suggesting package names when creating new files inside an Android project. */
 @file:JvmName("AndroidPackageUtils")
 
 package com.android.tools.idea.npw.project
@@ -28,9 +26,7 @@ import com.intellij.openapi.roots.PackageIndex
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Return the package associated with the target directory.
- */
+/** Return the package associated with the target directory. */
 fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, targetDirectory: VirtualFile): String? {
   val moduleSystem = this.getModuleSystem()
   if (moduleTemplates.isEmpty()) {
@@ -53,8 +49,6 @@ fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, t
   return moduleSystem.getPackageName()
 }
 
-/**
- * Convenience method to get [NamedModuleTemplate]s from the current project.
- */
+/** Convenience method to get [NamedModuleTemplate]s from the current project. */
 fun AndroidFacet.getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
   module.getModuleSystem().getModuleTemplates(targetDirectory)

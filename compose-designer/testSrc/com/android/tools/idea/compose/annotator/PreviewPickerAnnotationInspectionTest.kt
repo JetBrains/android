@@ -87,8 +87,7 @@ Parameter: isRound should be one of: true, false.
 Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
-      replaceWithMessage =
-        "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp",
+      replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp",
     )
   }
 
@@ -123,11 +122,7 @@ Parameter: height should have Float(dp/px) value.""",
     )
   }
 
-  private fun checkInspectionErrorAndApplyFix(
-    affectedText: String,
-    errorDescription: String,
-    replaceWithMessage: String,
-  ) {
+  private fun checkInspectionErrorAndApplyFix(affectedText: String, errorDescription: String, replaceWithMessage: String) {
     val info = annotateAndGetLintInfo()
     assertEquals(affectedText, info!!.text)
     assertEquals(errorDescription, info.description)
@@ -135,9 +130,7 @@ Parameter: height should have Float(dp/px) value.""",
     val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action }
     assertEquals(replaceWithMessage, fixAction.text)
 
-    runUndoTransparentWriteAction {
-      fixAction.invoke(fixture.project, fixture.editor, fixture.file)
-    }
+    runUndoTransparentWriteAction { fixAction.invoke(fixture.project, fixture.editor, fixture.file) }
 
     // There should be no more errors
     assertNull(annotateAndGetLintInfo())

@@ -25,12 +25,7 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.issue.IssueVariant
 
 data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVariant>>) : ChangeEvent {
-  override fun transition(
-    state: AppInsightsState,
-    tracker: AppInsightsTracker,
-    provider: InsightsProvider,
-    cache: AppInsightsCache,
-  ) =
+  override fun transition(state: AppInsightsState, tracker: AppInsightsTracker, provider: InsightsProvider, cache: AppInsightsCache) =
     StateTransition(
       state.copy(
         currentIssueVariants =

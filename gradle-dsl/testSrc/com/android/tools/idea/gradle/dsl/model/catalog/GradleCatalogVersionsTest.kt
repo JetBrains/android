@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.dsl.model.catalog
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import java.io.File
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class GradleCatalogVersionsTest : GradleFileModelTestCase() {
 
@@ -35,7 +35,7 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
 
     val versions = catalogModel.getVersionCatalogModel("libs")!!.versionDeclarations().getAll()
     assertSize(9, versions.toList())
-   run {
+    run {
       val version = versions.toList()[0].second
       assertThat(version.getSpec().compactNotation(), equalTo("1.5.0"))
       assertThat(version.getSpec().getRequire(), equalTo("1.5.0"))
@@ -124,9 +124,20 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
 
     val versions = catalogModel.getVersionCatalogModel("libs")!!.versionDeclarations().getAllAliases()
     assertSize(9, versions.toList())
-    assertEquals(versions, setOf("literalVersion", "literalVersion2", "literalVersion3",
-                                 "mapVersion", "mapVersion2", "mapVersion3",
-                                 "illegalVersion", "illegalVersion2", "illegalVersion3"))
+    assertEquals(
+      versions,
+      setOf(
+        "literalVersion",
+        "literalVersion2",
+        "literalVersion3",
+        "mapVersion",
+        "mapVersion2",
+        "mapVersion3",
+        "illegalVersion",
+        "illegalVersion2",
+        "illegalVersion3",
+      ),
+    )
   }
 
   @Test
@@ -161,10 +172,14 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     declarations.addDeclaration("core", "1.0.0")
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
+    verifyFileContents(
+      myVersionCatalogFile,
+      """
       [versions]
       core = "1.0.0"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
@@ -180,21 +195,28 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     declarations.addDeclaration("ui-composition", "3.0.0")
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
+    verifyFileContents(
+      myVersionCatalogFile,
+      """
       [versions]
       "api.core" = "1.0.0"
       test_test = "2.0.0"
       ui-composition = "3.0.0"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testUpdateVersionAsLiteral() {
     writeToBuildFile("")
-    writeToVersionCatalogFile("""
+    writeToVersionCatalogFile(
+      """
       [versions]
       core = "1.0.0"
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
@@ -202,19 +224,26 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     val versionModel = declarations.getAll()["core"]!!
     versionModel.require().setValue("1.1.0")
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
+    verifyFileContents(
+      myVersionCatalogFile,
+      """
       [versions]
       core = "1.1.0"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testUpdateVersionAsMap() {
     writeToBuildFile("")
-    writeToVersionCatalogFile("""
+    writeToVersionCatalogFile(
+      """
       [versions]
       core = { required = "1.0.0", prefer = "1.0.1" }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
@@ -222,19 +251,26 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     val versionModel = declarations.getAll()["core"]!!
     versionModel.prefer().setValue("1.1.0")
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
+    verifyFileContents(
+      myVersionCatalogFile,
+      """
       [versions]
       core = { required = "1.0.0", prefer = "1.1.0" }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testUpdateVersionAsLiteral2() {
     writeToBuildFile("")
-    writeToVersionCatalogFile("""
+    writeToVersionCatalogFile(
+      """
       [versions]
       core = "[0.0.1,1.0.0]!!1.0.0"
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
@@ -242,12 +278,15 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     val versionModel = declarations.getAll()["core"]!!
     versionModel.strictly().setValue("[0.0.1,2.0.0]")
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
+    verifyFileContents(
+      myVersionCatalogFile,
+      """
       [versions]
       core = "[0.0.1,2.0.0]!!1.0.0"
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
-
 
   @Test
   fun testRemoveNonExistent() {
@@ -264,9 +303,8 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     assertSize(9, versions.getAll().toList())
   }
 
-
   internal enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    GET_ALL_DECLARATIONS("allVersions.versions.toml"), ;
+    GET_ALL_DECLARATIONS("allVersions.versions.toml");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/versionCatalogVersionDeclarationModel/$path", extension)

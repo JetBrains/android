@@ -31,9 +31,6 @@ internal fun TimeGranularity.toProto(): AggregationPeriod {
     TimeGranularity.HOURLY -> AggregationPeriod.HOURLY
     TimeGranularity.DAILY -> AggregationPeriod.DAILY
     TimeGranularity.FULL_RANGE -> AggregationPeriod.FULL_RANGE
-    else ->
-      throw IllegalStateException(
-        "$this is not mapped to any item in ${AggregationPeriod.values()}."
-      )
+    else -> throw IllegalStateException("$this is not mapped to any item in ${AggregationPeriod.values()}.")
   }
 }

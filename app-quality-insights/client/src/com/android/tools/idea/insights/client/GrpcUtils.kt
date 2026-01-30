@@ -55,11 +55,10 @@ private fun log() = Logger.getLogger("GrpcUtils")
 /**
  * Performs [rpcCall] with retry strategy if applicable or no retry if [maxRetries] < 1.
  * - The initial retry attempt will occur at random(0, [initialBackoff]).
- * - The nth attempt will occur at random(0, min([initialBackoff] *[backoffMultiplier]**(n-1),
- *   [maxBackoff])).
+ * - The nth attempt will occur at random(0, min([initialBackoff] *[backoffMultiplier]**(n-1), [maxBackoff])).
  *
- * This is targeting those transient faults, so please wrap this method around the lowest level of
- * the rpc call to ensure the accurate management of retrying here.
+ * This is targeting those transient faults, so please wrap this method around the lowest level of the rpc call to ensure the accurate
+ * management of retrying here.
  */
 suspend fun <T> retryRpc(
   name: String = getName(),
@@ -81,12 +80,7 @@ suspend fun <T> retryRpc(
       }
 
       Random.Default.nextLong(currentDelay)
-        .also {
-          log()
-            .warning(
-              "Retry attempt #${count + 1} for rpc call - $name, retrying in ${it / 1000.0} second(s)..."
-            )
-        }
+        .also { log().warning("Retry attempt #${count + 1} for rpc call - $name, retrying in ${it / 1000.0} second(s)...") }
         .apply { delay(this) }
 
       currentDelay = (currentDelay * backoffMultiplier).toLong().coerceAtMost(maxBackoff)
@@ -139,17 +133,13 @@ suspend fun <T> runGrpcCatching(
 
         else -> {
           val parsed = StatusProto.fromThrowable(exception)
-          log()
-            .warning(
-              "$name - Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)"
-            )
+          log().warning("$name - Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
           LoadingState.UnknownFailure(exception.message, exception, parsed)
         }
       }
     } catch (exception: IOException) {
       when (exception) {
-        is TokenResponseException ->
-          LoadingState.Unauthorized("$SUGGEST_FOR_UNAUTHORIZED ${exception.message}", exception)
+        is TokenResponseException -> LoadingState.Unauthorized("$SUGGEST_FOR_UNAUTHORIZED ${exception.message}", exception)
 
         is UnknownHostException,
         is SocketException -> LoadingState.NetworkFailure(exception.message, exception)

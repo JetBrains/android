@@ -29,31 +29,29 @@ import com.intellij.openapi.project.Project
  *
  * It tracks name, execution time, result (success or not) and execution thread.
  *
- * All "heavy" bit's of code in execution code path should be wrapped into this function.
- * The main goal of this is to monitor all pieces that we add to the run pipeline.
+ * All "heavy" bit's of code in execution code path should be wrapped into this function. The main goal of this is to monitor all pieces
+ * that we add to the run pipeline.
  *
- * For now, it also allows to fill other fields of LaunchTaskDetail.Builder as artifacts, but it's only for Deployer tasks, and it will be deprecated.
+ * For now, it also allows to fill other fields of LaunchTaskDetail.Builder as artifacts, but it's only for Deployer tasks, and it will be
+ * deprecated.
  */
 inline fun <T> RunStats.track(taskId: String, task: LaunchTaskDetail.Builder.() -> T): T {
   val customTask = beginCustomTask(taskId)
   return try {
-    task(customTask.builder)
-  }
-  catch (t: Throwable) {
-    endCustomTask(customTask, t)
-    throw t
-  }.also {
-    endCustomTask(customTask, null)
-  }
+      task(customTask.builder)
+    } catch (t: Throwable) {
+      endCustomTask(customTask, t)
+      throw t
+    }
+    .also { endCustomTask(customTask, null) }
 }
-
 
 /**
  * ** This is a temporary workaround **
  *
- * Find a DeviceHandle for IDevice by comparing serial numbers
- * and get the DeviceInfo from the handle. If not found, fall
- * back to getting DeviceInfo from IDevice.
+ * Find a DeviceHandle for IDevice by comparing serial numbers and get the DeviceInfo from the handle. If not found, fall back to getting
+ * DeviceInfo from IDevice.
+ *
  * @param device the device for which DeviceInfo is required
  * @return DeviceInfo for the device
  */

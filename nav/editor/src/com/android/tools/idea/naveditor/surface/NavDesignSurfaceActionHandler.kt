@@ -55,10 +55,7 @@ class NavDesignSurfaceActionHandler(surface: DesignSurface<NavSceneManager>) :
               surface.getSceneManager(model)?.performUndoablePositionAction(component)
               val parent = component.parent ?: continue
               model.treeWriter.delete(
-                parent
-                  .flatten()
-                  .filter { it.isAction && it.actionDestination == component }
-                  .collect(Collectors.toList())
+                parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList())
               )
               if (component.isStartDestination) {
                 parent.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION)
@@ -75,14 +72,12 @@ class NavDesignSurfaceActionHandler(surface: DesignSurface<NavSceneManager>) :
 
   override fun canDeleteElement(dataContext: DataContext): Boolean {
     val surface = surfaceOrNull as? NavDesignSurface ?: return false
-    return super.canDeleteElement(dataContext) &&
-      !surface.selectionModel.selection.contains(surface.currentNavigation)
+    return super.canDeleteElement(dataContext) && !surface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
   override fun isCutEnabled(dataContext: DataContext): Boolean {
     val surface = surfaceOrNull as? NavDesignSurface ?: return false
-    return super.isCutEnabled(dataContext) &&
-      !surface.selectionModel.selection.contains(surface.currentNavigation)
+    return super.isCutEnabled(dataContext) && !surface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
   override val pasteTarget: NlComponent?
@@ -97,8 +92,7 @@ class NavDesignSurfaceActionHandler(surface: DesignSurface<NavSceneManager>) :
     // Actions can be children of anything selectable. Destinations are children of navigations, but
     // won't get pasted into a subnav
     // that's selected (unless it's also the current nav).
-    return (pasted.all { it.isAction } && component.supportsActions) ||
-      component == surface.currentNavigation
+    return (pasted.all { it.isAction } && component.supportsActions) || component == surface.currentNavigation
   }
 
   // Determine the next component to be selected after the current selection is deleted

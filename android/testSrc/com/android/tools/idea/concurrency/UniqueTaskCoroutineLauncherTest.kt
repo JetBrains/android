@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import kotlin.test.assertEquals
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -27,7 +28,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class UniqueTaskCoroutineLauncherTest {
   private var myTasksCompletedCount: Int = 0

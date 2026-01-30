@@ -26,7 +26,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
-class InvalidAliasHandler: TomlErrorHandler {
+class InvalidAliasHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
 
   override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
@@ -38,32 +38,29 @@ class InvalidAliasHandler: TomlErrorHandler {
 
         val (catalog, type, alias) = match.destructured
         val tomlTableName = TYPE_NAMING_PARSING[type] ?: return listOf()
-        return extractAliasInformation(
-          catalog, tomlTableName, alias, description, reader
-        ).let { listOf(it) }
+        return extractAliasInformation(catalog, tomlTableName, alias, description, reader).let { listOf(it) }
       }
     }
     return listOf()
   }
 
-  private fun extractAliasInformation(catalog: String,
-                                      type: String,
-                                      alias: String,
-                                      description: StringBuilder,
-                                      reader: BuildOutputInstantReader
+  private fun extractAliasInformation(
+    catalog: String,
+    type: String,
+    alias: String,
+    description: StringBuilder,
+    reader: BuildOutputInstantReader,
   ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE))
 
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-      override fun getNavigatable(project: Project): Navigatable? {
-        val file = project.findCatalogFile(catalog) ?: return null
-        return runReadAction {
-          findFirstElement(project,file,"$type/$alias")
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
+        override fun getNavigatable(project: Project): Navigatable? {
+          val file = project.findCatalogFile(catalog) ?: return null
+          return runReadAction { findFirstElement(project, file, "$type/$alias") }
         }
       }
-    }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
-
 }

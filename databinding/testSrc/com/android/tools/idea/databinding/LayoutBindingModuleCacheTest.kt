@@ -39,19 +39,13 @@ class LayoutBindingModuleCacheTest {
       object : BindingLayoutToken<AndroidProjectSystem> {
         override fun isTestModule(projectSystem: AndroidProjectSystem, module: Module) = false
 
-        override fun additionalModulesForLightBindingScope(
-          projectSystem: AndroidProjectSystem,
-          module: Module,
-        ): List<Module> = listOf(module)
+        override fun additionalModulesForLightBindingScope(projectSystem: AndroidProjectSystem, module: Module): List<Module> =
+          listOf(module)
 
         override fun isApplicable(projectSystem: AndroidProjectSystem) = true
       }
 
-    ExtensionTestUtil.maskExtensions(
-      BindingLayoutToken.EP_NAME,
-      listOf(recursiveBindingLayoutToken),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(BindingLayoutToken.EP_NAME, listOf(recursiveBindingLayoutToken), projectRule.testRootDisposable)
 
     val androidFacet = assertNotNull(projectRule.module.androidFacet)
     val moduleCache = LayoutBindingModuleCache.getInstance(androidFacet)

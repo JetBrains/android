@@ -43,8 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private const val EXPECTED_CONTEXT_DOCUMENTATION =
-  "<html><body><b>context</b><br/><br/></body></html>"
+private const val EXPECTED_CONTEXT_DOCUMENTATION = "<html><body><b>context</b><br/><br/></body></html>"
 private const val EXPECTED_TEXT_DOCUMENTATION =
   "<html><body><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</body></html>"
 private const val EXPECTED_SCROLLBARS_DOCUMENTATION =
@@ -52,13 +51,11 @@ private const val EXPECTED_SCROLLBARS_DOCUMENTATION =
 
 class NlPropertyDocumentationTargetTest {
   private val projectRule = AndroidProjectRule.withSdk()
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
 
   @Test
   fun testTextProperty() = runBlocking {
-    val (presentation, data) =
-      checkDocumentation { util -> util.properties[ANDROID_URI, ATTR_TEXT] }
+    val (presentation, data) = checkDocumentation { util -> util.properties[ANDROID_URI, ATTR_TEXT] }
     assertThat(presentation.presentableText).isEqualTo(ATTR_TEXT)
     assertThat(presentation.icon).isNull()
     assertThat(presentation.containerText).isNull()
@@ -71,9 +68,7 @@ class NlPropertyDocumentationTargetTest {
     val (presentation, data) =
       checkDocumentation { util ->
         // A single flag will display help for the corresponding NlFlagsPropertyItem:
-        (util.properties[ANDROID_URI, ATTR_SCROLLBARS] as NlFlagsPropertyItem).flag(
-          VALUE_HORIZONTAL
-        )
+        (util.properties[ANDROID_URI, ATTR_SCROLLBARS] as NlFlagsPropertyItem).flag(VALUE_HORIZONTAL)
       }
     assertThat(presentation.presentableText).isEqualTo(ATTR_SCROLLBARS)
     assertThat(presentation.icon).isEqualTo(StudioIcons.LayoutEditor.Properties.FLAG)
@@ -84,8 +79,7 @@ class NlPropertyDocumentationTargetTest {
 
   @Test
   fun testToolsProperty() = runBlocking {
-    val (presentation, data) =
-      checkDocumentation { util -> util.properties[TOOLS_URI, ATTR_CONTEXT] }
+    val (presentation, data) = checkDocumentation { util -> util.properties[TOOLS_URI, ATTR_CONTEXT] }
     assertThat(presentation.presentableText).isEqualTo(ATTR_CONTEXT)
     assertThat(presentation.icon).isEqualTo(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
     assertThat(presentation.containerText).isNull()
@@ -103,9 +97,7 @@ class NlPropertyDocumentationTargetTest {
     assertThat(data.html).isEqualTo(EXPECTED_TEXT_DOCUMENTATION)
   }
 
-  private suspend fun checkDocumentation(
-    property: (InspectorTestUtil) -> PTableItem
-  ): Pair<TargetPresentation, DocumentationData> {
+  private suspend fun checkDocumentation(property: (InspectorTestUtil) -> PTableItem): Pair<TargetPresentation, DocumentationData> {
     val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
     util.model.surface?.selectionModel?.setSelection(util.components)
     readAction { util.loadProperties() }
@@ -115,15 +107,12 @@ class NlPropertyDocumentationTargetTest {
     assertThat(navigatable).isInstanceOf(XmlTag::class.java)
     assertThat((navigatable as XmlTag).name).isEqualTo("TextView")
     val presentation = target.computePresentation()
-    val result =
-      target.computeDocumentation().toResult { error("Something went wrong") }.asNullable
-        as? AsyncDocumentation
+    val result = target.computeDocumentation().toResult { error("Something went wrong") }.asNullable as? AsyncDocumentation
     val data = result?.supplier?.invoke() as? DocumentationData ?: error("No Documentation found")
     return Pair(presentation, data)
   }
 
-  private class FabricatedProperty(override val namespace: String, override val name: String) :
-    PropertyItem {
+  private class FabricatedProperty(override val namespace: String, override val name: String) : PropertyItem {
     override var value: String? = null
   }
 }

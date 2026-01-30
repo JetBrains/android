@@ -40,7 +40,6 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-
 /**
  * A per-project subscription to the [ProjectSystemBuildManager] (see [createBuildListener]) managing all the client subscriptions made via
  * [setupBuildListener]. This way we only have at most one subscription to each [Project].
@@ -52,95 +51,89 @@ private class ProjectSubscription {
 
 private val projectSubscriptionsLock = ReentrantLock()
 
-@GuardedBy("projectSubscriptionsLock")
-private val projectSubscriptions = WeakHashMap<Project, ProjectSubscription>()
+@GuardedBy("projectSubscriptionsLock") private val projectSubscriptions = WeakHashMap<Project, ProjectSubscription>()
 
-/**
- * Executes [method] against all the non-disposed subscriptions for the [project]. Removes disposed subscriptions.
- */
+/** Executes [method] against all the non-disposed subscriptions for the [project]. Removes disposed subscriptions. */
 private fun forEachNonDisposedBuildListener(project: Project, method: (BuildListener) -> Unit) {
-  projectSubscriptionsLock.withLock {
-    projectSubscriptions[project]?.let { subscription ->
-      // Clear disposed
-      subscription.listenersMap.keys.removeIf { Disposer.isDisposed(it) }
-      if (subscription.listenersMap.isEmpty()) {
-        Disposer.dispose(subscription.projectSystemListenerDisposable)
-        projectSubscriptions.remove(project)
-      }
+  projectSubscriptionsLock
+    .withLock {
+      projectSubscriptions[project]?.let { subscription ->
+        // Clear disposed
+        subscription.listenersMap.keys.removeIf { Disposer.isDisposed(it) }
+        if (subscription.listenersMap.isEmpty()) {
+          Disposer.dispose(subscription.projectSystemListenerDisposable)
+          projectSubscriptions.remove(project)
+        }
 
-      ArrayList<BuildListener>(subscription.listenersMap.values)
-    } ?: emptyList()
-  }.forEach(method)
+        ArrayList<BuildListener>(subscription.listenersMap.values)
+      } ?: emptyList()
+    }
+    .forEach(method)
 }
 
 interface BuildListener {
   /**
-   * Called when the [BuildListener] is fully setup. Other methods in the [BuildListener] might be
-   * called before this method if the build is already completed when calling [setupBuildListener].
+   * Called when the [BuildListener] is fully setup. Other methods in the [BuildListener] might be called before this method if the build is
+   * already completed when calling [setupBuildListener].
    *
    * This method must not be block.
    */
   fun startedListening() {}
 
-  /**
-   * Called when a build has completed except for clean builds.
-   */
+  /** Called when a build has completed except for clean builds. */
   fun buildSucceeded() {}
 
-  /**
-   * Called when a build has failed.
-   */
+  /** Called when a build has failed. */
   fun buildFailed() {}
 
-  /**
-   * Called when a build is started, except for clean builds.
-   */
+  /** Called when a build is started, except for clean builds. */
   fun buildStarted() {}
 
-  /**
-   * Called when a clean build completes.
-   */
+  /** Called when a clean build completes. */
   fun buildCleaned() {
     // By default, we assume that a cleaned build means destroying the state we had and we treat it as a failed build.
     buildFailed()
   }
 }
 
-private fun Project.createBuildListener() = object : BuildSystemFilePreviewServices.BuildListener {
-  val project = this@createBuildListener
-  @UiThread
-  override fun buildStarted(
-    buildMode: BuildMode,
-    buildResult: ListenableFuture<BuildSystemFilePreviewServices.BuildListener.BuildResult>
-  ) {
-    val isCleanBuild = buildMode == BuildMode.CLEAN
-    if (!isCleanBuild) {
-      forEachNonDisposedBuildListener(project, BuildListener::buildStarted)
+private fun Project.createBuildListener() =
+  object : BuildSystemFilePreviewServices.BuildListener {
+    val project = this@createBuildListener
+
+    @UiThread
+    override fun buildStarted(
+      buildMode: BuildMode,
+      buildResult: ListenableFuture<BuildSystemFilePreviewServices.BuildListener.BuildResult>,
+    ) {
+      val isCleanBuild = buildMode == BuildMode.CLEAN
+      if (!isCleanBuild) {
+        forEachNonDisposedBuildListener(project, BuildListener::buildStarted)
+      }
+
+      // Using directExecutor() since both this code runs on the EDT and the future is completed on the EDT.
+      buildResult.addCallback(
+        directExecutor(),
+        object : FutureCallback<BuildSystemFilePreviewServices.BuildListener.BuildResult> {
+          override fun onSuccess(result: BuildSystemFilePreviewServices.BuildListener.BuildResult) {
+            val eventMethod =
+              when {
+                isCleanBuild -> BuildListener::buildCleaned
+                !isCleanBuild && result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS -> BuildListener::buildSucceeded
+                else -> BuildListener::buildFailed
+              }
+            forEachNonDisposedBuildListener(project, eventMethod)
+          }
+
+          override fun onFailure(t: Throwable) {
+            if (t !is CancellationException) {
+              thisLogger().error(t)
+            }
+            forEachNonDisposedBuildListener(project, BuildListener::buildFailed)
+          }
+        },
+      )
     }
-
-    // Using directExecutor() since both this code runs on the EDT and the future is completed on the EDT.
-    buildResult.addCallback(directExecutor(), object : FutureCallback<BuildSystemFilePreviewServices.BuildListener.BuildResult> {
-      override fun onSuccess(result: BuildSystemFilePreviewServices.BuildListener.BuildResult) {
-        val eventMethod = when {
-          isCleanBuild -> BuildListener::buildCleaned
-          !isCleanBuild && result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS -> BuildListener::buildSucceeded
-          else -> BuildListener::buildFailed
-        }
-        forEachNonDisposedBuildListener(project, eventMethod)
-      }
-
-      override fun onFailure(t: Throwable) {
-        if (t !is CancellationException) {
-          thisLogger().error(t)
-        }
-        forEachNonDisposedBuildListener(
-          project,
-          BuildListener::buildFailed
-        )
-      }
-    })
   }
-}
 
 /**
  * This sets up a listener that receives updates every time a build starts or finishes. On successful build, it calls
@@ -151,11 +144,7 @@ private fun Project.createBuildListener() = object : BuildSystemFilePreviewServi
  * build changes. This set up should be called in the constructor the last, so that all other members are initialized as it could call
  * [BuildListener.buildSucceeded] method straight away.
  */
-fun setupBuildListener(
-  buildTargetReference: BuildTargetReference,
-  buildable: BuildListener,
-  parentDisposable: Disposable,
-) {
+fun setupBuildListener(buildTargetReference: BuildTargetReference, buildable: BuildListener, parentDisposable: Disposable) {
   val project = buildTargetReference.project
   val previewServices = project.getProjectSystem().getBuildSystemFilePreviewServices()
   if (Disposer.isDisposed(parentDisposable)) {
@@ -182,12 +171,17 @@ fun setupBuildListener(
     }
 
     projectSubscriptionsLock.withLock {
-      val subscription = projectSubscriptions.computeIfAbsent(project) {
-        val projectSubscription = ProjectSubscription()
-        // If we are not yet subscribed to this project, we should subscribe.
-        previewServices.subscribeBuildListener(project, projectSubscription.projectSystemListenerDisposable, project.createBuildListener())
-        projectSubscription
-      }
+      val subscription =
+        projectSubscriptions.computeIfAbsent(project) {
+          val projectSubscription = ProjectSubscription()
+          // If we are not yet subscribed to this project, we should subscribe.
+          previewServices.subscribeBuildListener(
+            project,
+            projectSubscription.projectSystemListenerDisposable,
+            project.createBuildListener(),
+          )
+          projectSubscription
+        }
       subscription.listenersMap[parentDisposable] = buildable
       buildable.startedListening()
       Disposer.register(parentDisposable) {
@@ -203,26 +197,29 @@ fun setupBuildListener(
     }
   }
 
-  /**
-   * Setup listener. This method does not make assumptions about the project sync and smart status.
-   */
+  /** Setup listener. This method does not make assumptions about the project sync and smart status. */
   fun setupListener() {
     if (Disposer.isDisposed(parentDisposable)) return
     // We are not registering before the constructor finishes, so we should be safe here
-    project.runWhenSmartAndSyncedOnEdt(parentDisposable, { result ->
-      if (result.isSuccessful) {
-        setupListenerWhenSmartAndSynced()
-      }
-      else {
-        // The project failed to sync, run initialization when the project syncs correctly
-        project.listenUntilNextSync(parentDisposable, object : ProjectSystemSyncManager.SyncResultListener {
-          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-            // Sync has completed but we might not be in smart mode so re-run the initialization
-            setupListener()
-          }
-        })
-      }
-    })
+    project.runWhenSmartAndSyncedOnEdt(
+      parentDisposable,
+      { result ->
+        if (result.isSuccessful) {
+          setupListenerWhenSmartAndSynced()
+        } else {
+          // The project failed to sync, run initialization when the project syncs correctly
+          project.listenUntilNextSync(
+            parentDisposable,
+            object : ProjectSystemSyncManager.SyncResultListener {
+              override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+                // Sync has completed but we might not be in smart mode so re-run the initialization
+                setupListener()
+              }
+            },
+          )
+        }
+      },
+    )
   }
 
   setupListener()

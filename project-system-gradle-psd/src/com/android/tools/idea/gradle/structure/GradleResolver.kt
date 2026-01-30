@@ -35,38 +35,37 @@ import com.intellij.openapi.util.Disposer
 import org.jetbrains.plugins.gradle.model.ExternalProject
 
 class GradleResolver {
-  /**
-   * Requests Gradle models without updating IDE projects and returns the [ListenableFuture] of the requested models.
-   */
+  /** Requests Gradle models without updating IDE projects and returns the [ListenableFuture] of the requested models. */
   fun requestProjectResolved(project: Project, disposable: Disposable): ListenableFuture<List<PsResolvedModuleModel>> {
-    val future = ListenableFutureTask.create {
-      GradleSyncInvoker
-        .getInstance()
-        .fetchGradleModels(project)
-        .let { gradleProjectModels ->
-          val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
-            (gradleProjectModels.libraries ?: return@let emptyList()),
-            gradleProjectModels.kmpLibraries
-          )
+    val future =
+      ListenableFutureTask.create {
+        GradleSyncInvoker.getInstance().fetchGradleModels(project).let { gradleProjectModels ->
+          val libraryResolver =
+            IdeLibraryModelResolverImpl.fromLibraryTables(
+              (gradleProjectModels.libraries ?: return@let emptyList()),
+              gradleProjectModels.kmpLibraries,
+            )
           gradleProjectModels.modules.mapNotNull {
-            findModel(it) {
-              GradleAndroidDependencyModel.createWithAllVariants(it, libraryResolver)
-            }
+            findModel(it) { GradleAndroidDependencyModel.createWithAllVariants(it, libraryResolver) }
           }
         }
-    }
-    object : Task.Backgroundable(project, "Fetching build models", true) {
-      override fun run(indicator: ProgressIndicator) {
-        future.run()
       }
-    }.queue()
+    object : Task.Backgroundable(project, "Fetching build models", true) {
+        override fun run(indicator: ProgressIndicator) {
+          future.run()
+        }
+      }
+      .queue()
 
     Disposer.register(disposable, Disposable { future.cancel(true) })
     return future
   }
 }
 
-private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidModelData) -> GradleAndroidDependencyModel): PsResolvedModuleModel? {
+private fun findModel(
+  module: GradleModuleModels,
+  modelFactory: (GradleAndroidModelData) -> GradleAndroidDependencyModel,
+): PsResolvedModuleModel? {
   val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
   // TODO(b/149203281): Verify support for composite builds if needed here.
   val externalProject = module.findModel(ExternalProject::class.java) ?: return null
@@ -81,7 +80,7 @@ private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidMo
       gradleModuleModel.buildFilePath?.absolutePath,
       modelFactory(androidModelData),
       nativeModel,
-      syncIssues
+      syncIssues,
     )
   }
 
@@ -94,7 +93,7 @@ private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidMo
       gradleModuleModel.buildFilePath?.absolutePath,
       javaModel,
       projectDependencies,
-      syncIssues
+      syncIssues,
     )
   }
 

@@ -35,56 +35,30 @@ class DebugViewAttributesTest {
 
   @Test
   fun testEnableSettingSuccess() = runBlocking {
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings get global debug_view_attributes",
-      "0",
-    )
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings put global debug_view_attributes 1",
-      "",
-    )
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings get global debug_view_attributes", "0")
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings put global debug_view_attributes 1", "")
 
-    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
-      .isEqualTo(SetFlagResult.Set(false))
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isEqualTo(SetFlagResult.Set(false))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings get global debug_view_attributes")
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings put global debug_view_attributes 1")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings put global debug_view_attributes 1")
   }
 
   @Test
   fun testEnableSettingFailure() = runBlocking {
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings get global debug_view_attributes",
-      "0",
-    )
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings put global debug_view_attributes 1",
-      "",
-      "error",
-    )
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings get global debug_view_attributes", "0")
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings put global debug_view_attributes 1", "", "error")
 
     assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
       .isEqualTo(SetFlagResult.Failure(SetFlagResult.Failure.Reason.UNKNOWN))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings get global debug_view_attributes")
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings put global debug_view_attributes 1")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings put global debug_view_attributes 1")
   }
 
   @Test
   fun testEnableSettingSecurityException() = runBlocking {
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings get global debug_view_attributes",
-      "0",
-    )
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings get global debug_view_attributes", "0")
     adbSession.deviceServices.configureShellCommand(
       deviceSelector,
       "settings put global debug_view_attributes 1",
@@ -95,29 +69,17 @@ class DebugViewAttributesTest {
     assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
       .isEqualTo(SetFlagResult.Failure(SetFlagResult.Failure.Reason.SECURITY_EXCEPTION))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings get global debug_view_attributes")
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings put global debug_view_attributes 1")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings put global debug_view_attributes 1")
   }
 
   @Test
   fun testSettingIsNotEnabledIfAlreadyEnabled() = runBlocking {
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings get global debug_view_attributes",
-      "1",
-    )
-    adbSession.deviceServices.configureShellCommand(
-      deviceSelector,
-      "settings put global debug_view_attributes 1",
-      "",
-    )
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings get global debug_view_attributes", "1")
+    adbSession.deviceServices.configureShellCommand(deviceSelector, "settings put global debug_view_attributes 1", "")
 
-    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
-      .isEqualTo(SetFlagResult.Set(true))
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isEqualTo(SetFlagResult.Set(true))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(1)
-    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
-      .isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command).isEqualTo("settings get global debug_view_attributes")
   }
 }

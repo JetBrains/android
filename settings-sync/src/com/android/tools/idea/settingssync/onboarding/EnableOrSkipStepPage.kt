@@ -35,11 +35,8 @@ import com.google.gct.wizard.WizardState
 import org.jetbrains.jewel.ui.component.Text
 
 internal class EnableOrSkipStepPage : WizardPage() {
-  override val description: String =
-    "Backup & Sync step1: enable or skip if the just logged-in user has already configured the feature."
-  override val composableContent: @Composable WizardState.() -> Unit = {
-    EnableOrSkipComposableContent()
-  }
+  override val description: String = "Backup & Sync step1: enable or skip if the just logged-in user has already configured the feature."
+  override val composableContent: @Composable WizardState.() -> Unit = { EnableOrSkipComposableContent() }
   override val controlProvider: (WizardState) -> WizardPageControl = { state ->
     object : WizardPageControl() {
       override suspend fun shouldShow(): Boolean {
@@ -76,10 +73,7 @@ internal fun WizardState.EnableOrSkipComposableContent() {
 
   InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
-      Text(
-        "Switch Backup & Sync to ${signInState.signedInUser.email}?",
-        fontWeight = FontWeight.Bold,
-      )
+      Text("Switch Backup & Sync to ${signInState.signedInUser.email}?", fontWeight = FontWeight.Bold)
       Spacer(modifier = Modifier.height(8.dp))
       Text(
         "${configurationState.activeSyncUser} is currently being used with Backup and Sync," +
@@ -94,17 +88,12 @@ internal fun WizardState.EnableOrSkipComposableContent() {
             AnnotatedString.Builder()
               .apply {
                 append("Sync settings to")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                  append(" ${signInState.signedInUser.email}")
-                }
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(" ${signInState.signedInUser.email}") }
                 append(" instead.")
               }
               .toAnnotatedString(),
-          selected =
-            configurationState.configurationOption == SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT,
-          onSelect = {
-            configurationState.configurationOption = SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT
-          },
+          selected = configurationState.configurationOption == SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT,
+          onSelect = { configurationState.configurationOption = SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT },
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -114,17 +103,12 @@ internal fun WizardState.EnableOrSkipComposableContent() {
             AnnotatedString.Builder()
               .apply {
                 append("Continue to sync my settings to")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                  append(" ${configurationState.activeSyncUser}")
-                }
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(" ${configurationState.activeSyncUser}") }
                 append(".")
               }
               .toAnnotatedString(),
-          selected =
-            configurationState.configurationOption == SyncConfigurationOption.USE_EXISTING_SETTINGS,
-          onSelect = {
-            configurationState.configurationOption = SyncConfigurationOption.USE_EXISTING_SETTINGS
-          },
+          selected = configurationState.configurationOption == SyncConfigurationOption.USE_EXISTING_SETTINGS,
+          onSelect = { configurationState.configurationOption = SyncConfigurationOption.USE_EXISTING_SETTINGS },
         )
       }
     }

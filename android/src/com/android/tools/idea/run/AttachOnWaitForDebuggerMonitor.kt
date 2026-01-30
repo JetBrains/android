@@ -58,8 +58,8 @@ class AttachOnWaitForDebuggerMonitor(val host: DebuggerHost) : Disposable {
     }
 
     open fun enabled(config: AndroidRunConfigurationBase, debugger: AndroidDebugger<out AndroidDebuggerState>): Boolean {
-      return config.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>(debugger.id)?.ATTACH_ON_WAIT_FOR_DEBUGGER == true &&
-             !project.getSyncManager().isSyncNeeded()
+      return config.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>(debugger.id)?.ATTACH_ON_WAIT_FOR_DEBUGGER ==
+        true && !project.getSyncManager().isSyncNeeded()
     }
 
     open fun canDebugRun(project: Project, config: AndroidRunConfigurationBase): Boolean {
@@ -71,11 +71,16 @@ class AttachOnWaitForDebuggerMonitor(val host: DebuggerHost) : Disposable {
     open fun anyActiveDebugSessions(project: Project, device: IDevice, applicationId: String): Boolean {
       return ExecutionManager.getInstance(project).getRunningProcesses().any { process ->
         (process as? AndroidRemoteDebugProcessHandler)?.isPackageRunning(device, applicationId) == true &&
-        !(process.isProcessTerminating || process.isProcessTerminated)
+          !(process.isProcessTerminating || process.isProcessTerminated)
       }
     }
 
-    open fun attachAction(project: Project, debugger: AndroidDebugger<out AndroidDebuggerState>, client: Client, config: AndroidRunConfigurationBase) {
+    open fun attachAction(
+      project: Project,
+      debugger: AndroidDebugger<out AndroidDebuggerState>,
+      client: Client,
+      config: AndroidRunConfigurationBase,
+    ) {
       AndroidConnectDebugger.closeOldSessionAndRun(project, debugger, client, config)
     }
   }
@@ -83,32 +88,35 @@ class AttachOnWaitForDebuggerMonitor(val host: DebuggerHost) : Disposable {
   constructor(project: Project) : this(DebuggerHost(project))
 
   @VisibleForTesting
-  val listener = object: AndroidDebugBridge.IClientChangeListener {
-    override fun clientChanged(client: Client, changeMask: Int) {
-      if (!StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
-        return
+  val listener =
+    object : AndroidDebugBridge.IClientChangeListener {
+      override fun clientChanged(client: Client, changeMask: Int) {
+        if (!StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
+          return
+        }
+
+        val config = host.runConfig ?: return
+        val debugger = host.debugger(config) ?: return
+
+        if (
+          (changeMask and Client.CHANGE_DEBUGGER_STATUS) != Client.CHANGE_DEBUGGER_STATUS ||
+            client.clientData.debuggerConnectionStatus != ClientData.DebuggerStatus.WAITING
+        ) {
+          return
+        }
+
+        if (!host.enabled(config, debugger)) {
+          return
+        }
+
+        val applicationId = config.applicationIdProvider?.packageName ?: return
+        if (!host.canDebugRun(host.project, config) || host.anyActiveDebugSessions(host.project, client.device, applicationId)) {
+          return
+        }
+
+        host.attachAction(host.project, debugger, client, config)
       }
-
-      val config = host.runConfig ?: return
-      val debugger = host.debugger(config) ?: return
-
-      if ((changeMask and Client.CHANGE_DEBUGGER_STATUS) != Client.CHANGE_DEBUGGER_STATUS ||
-          client.clientData.debuggerConnectionStatus != ClientData.DebuggerStatus.WAITING) {
-        return
-      }
-
-      if (!host.enabled(config, debugger)) {
-        return
-      }
-
-      val applicationId = config.applicationIdProvider?.packageName ?: return
-      if (!host.canDebugRun(host.project, config) || host.anyActiveDebugSessions(host.project, client.device, applicationId)) {
-        return
-      }
-
-      host.attachAction(host.project, debugger, client, config)
     }
-  }
 
   init {
     AndroidDebugBridge.addClientChangeListener(listener)

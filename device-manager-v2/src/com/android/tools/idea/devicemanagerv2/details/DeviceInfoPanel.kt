@@ -145,9 +145,7 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
       .addComponent(copyPropertiesButton)
       .addComponent(propertiesSection)
     verticalGroup
-      .addGroup(
-        layout.createParallelGroup().addComponent(summarySection).addComponent(screenDiagram)
-      )
+      .addGroup(layout.createParallelGroup().addComponent(summarySection).addComponent(screenDiagram))
       .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
       .addComponent(copyPropertiesButton)
       .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
@@ -161,8 +159,7 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
   }
 }
 
-internal class InfoSection(heading: String, private val labeledValues: List<LabeledValue>) :
-  JBPanel<InfoSection>() {
+internal class InfoSection(heading: String, private val labeledValues: List<LabeledValue>) : JBPanel<InfoSection>() {
   private val headingLabel = headingLabel(heading)
 
   init {
@@ -178,9 +175,7 @@ internal class InfoSection(heading: String, private val labeledValues: List<Labe
     for (labeledValue in labeledValues) {
       val label = labeledValue.label
       val value = labeledValue.value
-      horizontalGroup.addGroup(
-        layout.createSequentialGroup().addComponent(label).addComponent(value)
-      )
+      horizontalGroup.addGroup(layout.createSequentialGroup().addComponent(label).addComponent(value))
       verticalGroup.addGroup(layout.createParallelGroup().addComponent(label).addComponent(value))
     }
 
@@ -236,8 +231,7 @@ class LabeledValue(label: String) {
 
 internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   apiLevel = properties.androidVersion?.apiStringWithExtension ?: "Unknown"
-  preferredAbi =
-    properties.preferredAbi?.toString() ?: properties.primaryAbi?.toString() ?: "Unknown"
+  preferredAbi = properties.preferredAbi?.toString() ?: properties.primaryAbi?.toString() ?: "Unknown"
   abiList = properties.abiList.joinToString(",").ifBlank { "Unknown" }
   resolution = properties.resolution?.toString() ?: "Unknown"
   val resolutionDp = properties.resolutionDp
@@ -247,9 +241,7 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
 
   if (properties is LocalEmulatorProperties) {
     val avdConfigProperties =
-      properties.avdConfigProperties.filterNotTo(TreeMap(Collator.getInstance())) {
-        it.key in EXCLUDED_LOCAL_AVD_PROPERTIES
-      }
+      properties.avdConfigProperties.filterNotTo(TreeMap(Collator.getInstance())) { it.key in EXCLUDED_LOCAL_AVD_PROPERTIES }
     if (avdConfigProperties.isNotEmpty()) {
       val values = avdConfigProperties.map { LabeledValue(it.key, it.value) }
       val section = InfoSection("Properties", values)
@@ -262,8 +254,7 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
 internal suspend fun DeviceInfoPanel.populateSizeOnDiskLabel(properties: DeviceProperties) {
   if (properties is LocalEmulatorProperties) {
     try {
-      sizeOnDisk =
-        withContext(diskIoThread) { getHumanizedSize(properties.avdPath.recursiveSize()) }
+      sizeOnDisk = withContext(diskIoThread) { getHumanizedSize(properties.avdPath.recursiveSize()) }
     } catch (e: IOException) {
       logger<DeviceInfoPanel>().warn("Unable to compute size of device ${properties.avdName}")
     }
@@ -304,16 +295,11 @@ private val EXCLUDED_LOCAL_AVD_PROPERTIES =
 
 /** Launches a coroutine to monitor the device properties and update details when they change. */
 internal fun DeviceInfoPanel.trackDeviceProperties(scope: CoroutineScope, handle: DeviceHandle) {
-  scope.launch(uiThread) {
-    handle.stateFlow.map { it.properties }.distinctUntilChanged().collect { populateDeviceInfo(it) }
-  }
+  scope.launch(uiThread) { handle.stateFlow.map { it.properties }.distinctUntilChanged().collect { populateDeviceInfo(it) } }
 }
 
 /** Launches coroutines to monitor the state of the device power, storage, and size on disk. */
-internal fun DeviceInfoPanel.trackDevicePowerAndStorage(
-  scope: CoroutineScope,
-  handle: DeviceHandle,
-) {
+internal fun DeviceInfoPanel.trackDevicePowerAndStorage(scope: CoroutineScope, handle: DeviceHandle) {
   scope.launch(uiThread) {
     handle.stateFlow
       .distinctUntilChangedBy { it.connectedDevice }
@@ -357,24 +343,19 @@ private suspend fun LabeledValue.update(updater: suspend () -> String) {
 
 private suspend fun readDeviceStorage(device: ConnectedDevice): String {
   val output = device.shellStdoutLines("df /data")
-  val kilobytes =
-    DF_OUTPUT_REGEX.matchEntire(output[1])?.groupValues?.get(1)?.toIntOrNull() ?: return "Unknown"
+  val kilobytes = DF_OUTPUT_REGEX.matchEntire(output[1])?.groupValues?.get(1)?.toIntOrNull() ?: return "Unknown"
   return MB_FORMATTER.format(kilobytes / 1024).toString()
 }
 
 private suspend fun readDevicePower(device: ConnectedDevice): String {
   val output =
-    device.session.deviceServices
-      .shellAsText(device.selector, "dumpsys battery", commandTimeout = Duration.ofSeconds(5))
-      .stdout
-      .trim()
+    device.session.deviceServices.shellAsText(device.selector, "dumpsys battery", commandTimeout = Duration.ofSeconds(5)).stdout.trim()
 
   return when {
     output.contains("Wireless powered: true") -> "Wireless"
     output.contains("USB powered: true") -> "USB"
     output.contains("AC powered: true") -> "AC"
-    else ->
-      Regex("level: (\\d+)").find(output)?.groupValues?.get(1)?.let { "Battery: $it" } ?: "Unknown"
+    else -> Regex("level: (\\d+)").find(output)?.groupValues?.get(1)?.let { "Battery: $it" } ?: "Unknown"
   }
 }
 
@@ -389,8 +370,7 @@ private suspend fun ConnectedDevice.shellStdoutLines(command: String): List<Stri
     }
     .toList()
 
-internal fun headingLabel(heading: String) =
-  JBLabel(heading).apply { font = font.deriveFont(Font.BOLD) }
+internal fun headingLabel(heading: String) = JBLabel(heading).apply { font = font.deriveFont(Font.BOLD) }
 
 private val DF_OUTPUT_REGEX = Regex(""".+\s+\d+\s+\d+\s+(\d+)\s+.+\s+.+""")
 private val MB_FORMATTER = NumberFormatter.withLocale(Locale.US).unit(MeasureUnit.MEGABYTE)

@@ -33,10 +33,7 @@ import org.junit.rules.RuleChain
 class ViewBindingShortNameCacheTest {
   private val projectRule =
     AndroidProjectRule.withAndroidModel(
-      AndroidProjectBuilder(
-        namespace = { "test.db" },
-        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
-      )
+      AndroidProjectBuilder(namespace = { "test.db" }, viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) })
     )
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
@@ -57,7 +54,7 @@ class ViewBindingShortNameCacheTest {
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """
+      """
         .trimIndent(),
     )
 

@@ -25,32 +25,24 @@ import com.intellij.psi.util.PsiTreeUtil
 class DeclarativePsiFactory(private val project: Project) {
   fun createFile(text: CharSequence): DeclarativeFile =
     PsiFileFactory.getInstance(project)
-      .createFileFromText(
-        "placeholder.dcl",
-        DeclarativeFileType.INSTANCE,
-        text,
-        System.currentTimeMillis(),
-        false
-      ) as DeclarativeFile
+      .createFileFromText("placeholder.dcl", DeclarativeFileType.INSTANCE, text, System.currentTimeMillis(), false) as DeclarativeFile
 
-  private inline fun <reified T : DeclarativeElement> createFromText(code: String): T? =
-    createFile(code).descendantOfType()
+  private inline fun <reified T : DeclarativeElement> createFromText(code: String): T? = createFile(code).descendantOfType()
 
-  private inline fun <reified T : PsiElement> PsiElement.descendantOfType(): T? =
-    PsiTreeUtil.findChildOfType(this, T::class.java, false)
+  private inline fun <reified T : PsiElement> PsiElement.descendantOfType(): T? = PsiTreeUtil.findChildOfType(this, T::class.java, false)
 
   fun createLiteralFromText(value: String): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative literal from text \"$value\"")
 
   // second should be a scalar value
   fun createPair(first: String, second: Any?): DeclarativePair {
-    return createFromText("placeholder = ${createLiteral(first).text} to ${createLiteral(second).text}") ?: error(
-      "Failed to create Declarative pair from `$first to $second`")
+    return createFromText("placeholder = ${createLiteral(first).text} to ${createLiteral(second).text}")
+      ?: error("Failed to create Declarative pair from `$first to $second`")
   }
 
   fun createPair(first: String, second: DeclarativeElement): DeclarativePair {
-    return createFromText("placeholder = ${createLiteral(first).text} to ${second.text}") ?: error(
-      "Failed to create Declarative pair from `$first to $second`")
+    return createFromText("placeholder = ${createLiteral(first).text} to ${second.text}")
+      ?: error("Failed to create Declarative pair from `$first to $second`")
   }
 
   fun createLiteral(value: Any?): DeclarativeLiteral =
@@ -82,10 +74,11 @@ class DeclarativePsiFactory(private val project: Project) {
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Double from $value")
 
   fun createLongLiteral(value: Long): DeclarativeLiteral {
-    val text = when (value) {
-      in Int.MIN_VALUE..Int.MAX_VALUE -> "${value}L"
-      else -> "$value"
-    }
+    val text =
+      when (value) {
+        in Int.MIN_VALUE..Int.MAX_VALUE -> "${value}L"
+        else -> "$value"
+      }
     return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
   }
 
@@ -93,10 +86,11 @@ class DeclarativePsiFactory(private val project: Project) {
     createFromText("placeholder = ${value}U") ?: error("Failed to create Declarative Int from $value")
 
   fun createULongLiteral(value: ULong): DeclarativeLiteral {
-    val text = when (value) {
-      in UInt.MIN_VALUE..UInt.MAX_VALUE -> "${value}UL"
-      else -> "${value}UL"
-    }
+    val text =
+      when (value) {
+        in UInt.MIN_VALUE..UInt.MAX_VALUE -> "${value}UL"
+        else -> "${value}UL"
+      }
     return createFromText("placeholder = $text") ?: error("Failed to create Declarative Long from $value")
   }
 
@@ -106,10 +100,10 @@ class DeclarativePsiFactory(private val project: Project) {
   fun createNewline(): PsiElement = createToken("\n")
 
   fun createComma(): LeafPsiElement = createFile(",").descendantOfType()!!
+
   fun createDot(): LeafPsiElement = createFile(".").descendantOfType()!!
 
-  private fun createToken(token: String): PsiElement =
-    PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
+  private fun createToken(token: String): PsiElement = PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
 
   fun createIdentifier(identifier: String): DeclarativeIdentifier {
     val id = identifier.maybeAddBackticks()
@@ -137,22 +131,18 @@ class DeclarativePsiFactory(private val project: Project) {
     return list
   }
 
-  private fun String.maybeAddBackticks(): String =
-    if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
+  private fun String.maybeAddBackticks(): String = if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
 
   fun createPrefixedFactory(): DeclarativeFactoryReceiver {
-    val prefixedFactory: DeclarativeFactoryReceiver = createFromText("fun().fun()") ?: error(
-      "Failed to create DeclarativeReceiverPrefixedFactory")
+    val prefixedFactory: DeclarativeFactoryReceiver =
+      createFromText("fun().fun()") ?: error("Failed to create DeclarativeReceiverPrefixedFactory")
     prefixedFactory.children.forEach { it.delete() }
     return prefixedFactory
   }
 
   fun createArgument(value: DeclarativeValue, identifier: String? = null): DeclarativeArgument =
-    (if (identifier == null)
-      createFromText("function(${value.text})")
-    else
-      createFromText("function($identifier = ${value.text})"))
-    ?: error("Failed to create DeclarativeArgument `$identifier = ${value.text}`")
+    (if (identifier == null) createFromText("function(${value.text})") else createFromText("function($identifier = ${value.text})"))
+      ?: error("Failed to create DeclarativeArgument `$identifier = ${value.text}`")
 
   fun createProperty(value: String): DeclarativeProperty =
     createFromText("placeholder = $value") ?: error("Failed to create DeclarativeProperty `$value`")
@@ -170,15 +160,11 @@ class DeclarativePsiFactory(private val project: Project) {
     return factory ?: error("Failed to create createFactory `$id($param){}`")
   }
 
-  fun createOneParameterFactory(identifier: String,
-                                plainParameter: Any,
-                                parameterIdentifier: String? = null): DeclarativeSimpleFactory {
+  fun createOneParameterFactory(identifier: String, plainParameter: Any, parameterIdentifier: String? = null): DeclarativeSimpleFactory {
     val id = identifier.maybeAddBackticks()
     val factory =
-      if (parameterIdentifier == null)
-        createFromText<DeclarativeSimpleFactory>("$id($plainParameter)")
-      else
-        createFromText<DeclarativeSimpleFactory>("$id($parameterIdentifier = $plainParameter)")
+      if (parameterIdentifier == null) createFromText<DeclarativeSimpleFactory>("$id($plainParameter)")
+      else createFromText<DeclarativeSimpleFactory>("$id($parameterIdentifier = $plainParameter)")
 
     return factory ?: error("Failed to create createFactory `$id($plainParameter)`")
   }

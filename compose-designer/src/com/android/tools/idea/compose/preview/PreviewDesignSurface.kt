@@ -33,14 +33,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 
-private val COMPOSE_SUPPORTED_ACTIONS =
-  ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+private val COMPOSE_SUPPORTED_ACTIONS = ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
- * Creates a [NlSurfaceBuilder] with a common setup for the design surfaces in Compose preview.
- * [isInteractive] should return when the Preview is in interactive mode. When it is, the
- * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
- * issue panel ("E").
+ * Creates a [NlSurfaceBuilder] with a common setup for the design surfaces in Compose preview. [isInteractive] should return when the
+ * Preview is in interactive mode. When it is, the [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or
+ * toggle issue panel ("E").
  */
 private fun createPreviewDesignSurfaceBuilder(
   project: Project,
@@ -56,18 +54,11 @@ private fun createPreviewDesignSurfaceBuilder(
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       // listenToRenderChanges is false to avoid re-rendering when resource changes
-      LayoutlibSceneManager(
-          model,
-          surface,
-          sceneComponentProvider = sceneComponentProvider,
-          listenToResourceChanges = false,
-        )
-        .also {
-          it.sceneRenderConfiguration.layoutScannerConfig.isLayoutScannerEnabled = false
-          it.updateAndRenderWhenActivated = false // don't re-render on activation
-          it.sceneRenderConfiguration.renderingTopic =
-            RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
-        }
+      LayoutlibSceneManager(model, surface, sceneComponentProvider = sceneComponentProvider, listenToResourceChanges = false).also {
+        it.sceneRenderConfiguration.layoutScannerConfig.isLayoutScannerEnabled = false
+        it.updateAndRenderWhenActivated = false // don't re-render on activation
+        it.sceneRenderConfiguration.renderingTopic = RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
+      }
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
@@ -75,17 +66,15 @@ private fun createPreviewDesignSurfaceBuilder(
     .setDelegateUiDataProvider(uiDataProvider)
     .setSelectionModel(DefaultSelectionModel())
     .setZoomControlsPolicy(ZoomControlsPolicy.AUTO_HIDE)
-    .setSupportedActionsProvider {
-      if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
-    }
+    .setSupportedActionsProvider { if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of() }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
 /**
- * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]
- * should return when the Preview is in interactive mode. When it is, the [NlDesignSurface] will
- * disable the interception of global shortcuts like refresh ("R") or toggle issue panel ("E").
+ * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive] should return when the Preview is in
+ * interactive mode. When it is, the [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle issue
+ * panel ("E").
  */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,

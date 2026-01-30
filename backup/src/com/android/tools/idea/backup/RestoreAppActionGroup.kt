@@ -29,8 +29,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /** A Restore App popup [ActionGroup] containing recently used backup files and a browse action */
-internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = ActionHelperImpl()) :
-  ActionGroup() {
+internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = ActionHelperImpl()) : ActionGroup() {
 
   override fun getActionUpdateThread() = BGT
 
@@ -48,10 +47,7 @@ internal class RestoreAppActionGroup(private val actionHelper: ActionHelper = Ac
     e.presentation.isVisible = showGroup(project)
     e.presentation.isEnabled = false
 
-    if (
-      (e.place == "MainToolbar" || e.place == "MainMenu") &&
-        actionHelper.getDeployTargetCount(project) != 1
-    ) {
+    if ((e.place == "MainToolbar" || e.place == "MainMenu") && actionHelper.getDeployTargetCount(project) != 1) {
       return e.presentation.enableRichTooltip(this, message("error.multiple.devices"))
     }
 

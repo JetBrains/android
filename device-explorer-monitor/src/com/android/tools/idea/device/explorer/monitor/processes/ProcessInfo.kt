@@ -17,50 +17,31 @@ package com.android.tools.idea.device.explorer.monitor.processes
 
 import com.android.ddmlib.ClientData
 
-/**
- * Snapshot of data related to a process of a [Device].
- */
+/** Snapshot of data related to a process of a [Device]. */
 data class ProcessInfo(
-  /**
-   * The [Device] this entry belongs to.
-   */
+  /** The [Device] this entry belongs to. */
   val device: Device,
 
-  /**
-   * The process ID on the device
-   */
+  /** The process ID on the device */
   val pid: Int,
 
-  /**
-   * The application ID
-   */
+  /** The application ID */
   val packageName: String? = null,
 
-  /**
-   * The name of this process.
-   */
+  /** The name of this process. */
   val processName: String? = null,
 
-  /**
-   * The user ID for this process, or `null` if this property is not supported (i.e. older APIs).
-   */
+  /** The user ID for this process, or `null` if this property is not supported (i.e. older APIs). */
   val userId: Int? = null,
-
   val vmIdentifier: String? = null,
-
   val abi: String? = null,
-
   val debuggerStatus: ClientData.DebuggerStatus = ClientData.DebuggerStatus.DEFAULT,
-
-  val killAction: (() -> Unit)? = null
+  val killAction: (() -> Unit)? = null,
 )
 
-/**
- * Return `true` if the only valid field is [ProcessInfo.pid], everything else is unknown about the process.
- */
+/** Return `true` if the only valid field is [ProcessInfo.pid], everything else is unknown about the process. */
 val ProcessInfo.isPidOnly: Boolean
   get() = processName == null
-
 
 val ProcessInfo.safeProcessName: String
   get() = processName ?: "<unknown-$pid>"

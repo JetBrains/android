@@ -29,31 +29,29 @@ import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Processor to add the Compose Compiler Gradle plugin dependency to the [project] and apply the
- * plugin to the modules that required it (the [affectedModules]).
+ * Processor to add the Compose Compiler Gradle plugin dependency to the [project] and apply the plugin to the modules that required it (the
+ * [affectedModules]).
  */
-class AddComposeCompilerGradlePluginProcessor(
-  val project: Project,
-  val affectedModules: List<Module>,
-  val kotlinVersion: String
-): BaseRefactoringProcessor(project) {
+class AddComposeCompilerGradlePluginProcessor(val project: Project, val affectedModules: List<Module>, val kotlinVersion: String) :
+  BaseRefactoringProcessor(project) {
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptor {
-    override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor =
+    object : UsageViewDescriptor {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
-    override fun getProcessedElementsHeader(): String = "Apply the Compose Compiler Gradle plugin"
+      override fun getProcessedElementsHeader(): String = "Apply the Compose Compiler Gradle plugin"
 
-    override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
-      val fileOrFiles = if (filesCount == 1) "file" else "files"
-      return "Build $fileOrFiles to apply the Compose Compiler Gradle plugin to ($filesCount $fileOrFiles found)"
+      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
+        val fileOrFiles = if (filesCount == 1) "file" else "files"
+        return "Build $fileOrFiles to apply the Compose Compiler Gradle plugin to ($filesCount $fileOrFiles found)"
+      }
     }
-  }
 
   public override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     val projectBuildModel = ProjectBuildModel.get(myProject)
     for (module in affectedModules) {
-      projectBuildModel.getModuleBuildModel(module)?.psiFile?.let {usages.add(UsageInfo(it)) }
+      projectBuildModel.getModuleBuildModel(module)?.psiFile?.let { usages.add(UsageInfo(it)) }
     }
     return usages.toTypedArray()
   }
@@ -73,7 +71,7 @@ class AddComposeCompilerGradlePluginProcessor(
         "org.jetbrains.kotlin.plugin.compose",
         "org.jetbrains.kotlin:compose-compiler-gradle-plugin",
         kotlinVersion,
-        moduleBuildModels
+        moduleBuildModels,
       )
 
     projectBuildModel.applyChanges()

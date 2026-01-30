@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 
-/** Application-level service for creating gRPC channels.  */
+/** Application-level service for creating gRPC channels. */
 internal interface GrpcChannelBuilderFactory {
 
   fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*>

@@ -25,42 +25,40 @@ import com.intellij.util.containers.ContainerUtil
 internal val AndroidSqlDefinedTableName.isInternalTable: Boolean
   get() = SQLITE_INTERNAL_TABLES.contains(this.nameAsString)
 
-/**
- * Returns [AndroidSqlTable] that corresponds to an internal SQLite table with [tableNameElement] name.
- */
-internal fun getInternalTable(tableNameElement: AndroidSqlDefinedTableName) = when (tableNameElement.nameAsString) {
-  SQLITE_SEQUENCE_SCHEMA_NAME -> InternalTable(tableNameElement, SQLITE_SEQUENCE_COLUMNS)
-  else -> null
-}
+/** Returns [AndroidSqlTable] that corresponds to an internal SQLite table with [tableNameElement] name. */
+internal fun getInternalTable(tableNameElement: AndroidSqlDefinedTableName) =
+  when (tableNameElement.nameAsString) {
+    SQLITE_SEQUENCE_SCHEMA_NAME -> InternalTable(tableNameElement, SQLITE_SEQUENCE_COLUMNS)
+    else -> null
+  }
 
 private val SQLITE_SEQUENCE_COLUMNS: Map<String, SqlType> by lazy {
-  mapOf(
-    "name" to JavaFieldSqlType("String"),
-    "seq" to JavaFieldSqlType("long")
-  )
+  mapOf("name" to JavaFieldSqlType("String"), "seq" to JavaFieldSqlType("long"))
 }
 
 /**
  * Creates an AndroidSqlTable for a table created by SQLite for its own internal use.
  *
  * User can use such a table in @Query. [InternalTable] allows to provide a code completion for columns in such table and prevents
- * highlighting a table and it's columns as "Unresolvable reference".
- * [InternalTable] will not appear in code completion for table names.
+ * highlighting a table and it's columns as "Unresolvable reference". [InternalTable] will not appear in code completion for table names.
  *
- * For an example of an internal table see [SQLITE_SEQUENCE_SCHEMA_NAME].
- * For more details about internal see [https://www.sqlite.org/fileformat2.html#intschema]
+ * For an example of an internal table see [SQLITE_SEQUENCE_SCHEMA_NAME]. For more details about internal see
+ * [https://www.sqlite.org/fileformat2.html#intschema]
  */
 internal class InternalTable(tableNameElement: AndroidSqlDefinedTableName, val columns: Map<String, SqlType>) : AndroidSqlTable {
   private class PredefinedTableColumn(
     tableNameElement: AndroidSqlDefinedTableName,
     override val name: String,
-    override val type: SqlType?
+    override val type: SqlType?,
   ) : AndroidSqlColumn {
-    override val definingElement = object : FakePsiElement() {
-      override fun getParent() = tableNameElement
-      override fun canNavigate(): Boolean = false
-      override fun getName(): String = this@PredefinedTableColumn.name
-    }
+    override val definingElement =
+      object : FakePsiElement() {
+        override fun getParent() = tableNameElement
+
+        override fun canNavigate(): Boolean = false
+
+        override fun getName(): String = this@PredefinedTableColumn.name
+      }
   }
 
   private val androidSqlColumns = columns.map { PredefinedTableColumn(tableNameElement, it.key, it.value) }

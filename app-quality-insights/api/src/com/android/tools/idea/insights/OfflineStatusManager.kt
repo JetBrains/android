@@ -29,8 +29,7 @@ interface OfflineStatusManager {
 }
 
 class OfflineStatusManagerImpl : OfflineStatusManager {
-  private val _offlineStatus =
-    MutableSharedFlow<ConnectionMode>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val _offlineStatus = MutableSharedFlow<ConnectionMode>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   override val offlineStatus = _offlineStatus.distinctUntilChanged()
 

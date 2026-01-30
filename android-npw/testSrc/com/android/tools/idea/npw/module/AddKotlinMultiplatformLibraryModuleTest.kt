@@ -36,11 +36,7 @@ class AddKotlinMultiplatformLibraryModuleTest {
 
       val project = projectRule.project
       val model =
-        NewKotlinMultiplatformLibraryModuleModel(
-            project = project,
-            moduleParent = ":",
-            projectSyncInvoker = emptyProjectSyncInvoker,
-          )
+        NewKotlinMultiplatformLibraryModuleModel(project = project, moduleParent = ":", projectSyncInvoker = emptyProjectSyncInvoker)
           .apply {
             packageName.set("com.example.shared")
             agpVersionSelector.set(AgpVersionSelector.FixedVersion(AgpVersion(8, 1, 0)))
@@ -72,8 +68,7 @@ class AddKotlinMultiplatformLibraryModuleTest {
       }
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewKotlinMultiplatformLibraryModuleTest() {

@@ -53,12 +53,12 @@ class DaggerIndexParameterWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(arg: Bat): Baz {}
-      }
-      """
+        class Foo {
+          fun bar(arg: Bat): Baz {}
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -76,12 +76,12 @@ class DaggerIndexParameterWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(arg): Baz {}
-      }
-      """
+        class Foo {
+          fun bar(arg): Baz {}
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -99,12 +99,12 @@ class DaggerIndexParameterWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(: Int): Baz {}
-      }
-      """
+        class Foo {
+          fun bar(: Int): Baz {}
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -122,12 +122,12 @@ class DaggerIndexParameterWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {
-        public Baz bar(Bat arg) {}
-      }
-      """
+        public class Foo {
+          public Baz bar(Bat arg) {}
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 

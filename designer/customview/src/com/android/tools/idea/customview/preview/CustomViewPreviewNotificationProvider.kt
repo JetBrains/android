@@ -40,10 +40,7 @@ private const val BUILD_AND_REFRESH = "Build & Refresh"
 
 internal class CustomViewPreviewNotificationProvider : EditorNotificationProvider {
 
-  override fun collectNotificationData(
-    project: Project,
-    file: VirtualFile,
-  ): Function<FileEditor, EditorNotificationPanel?>? {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
     return Function { fileEditor ->
       val previewManager = fileEditor.getCustomViewPreviewManager() ?: return@Function null
       when (previewManager.notificationsState) {
@@ -71,19 +68,13 @@ internal class CustomViewPreviewNotificationProvider : EditorNotificationProvide
 
 @VisibleForTesting
 class CustomViewDeprecationNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(
-    project: Project,
-    file: VirtualFile,
-  ): Function<FileEditor, EditorNotificationPanel?>? {
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
     return Function { fileEditor ->
       if (fileEditor.getCustomViewPreviewManager() == null) return@Function null
       EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).apply {
-        text =
-          "Custom View preview will be deprecated in the next release, please update your use accordingly."
+        text = "Custom View preview will be deprecated in the next release, please update your use accordingly."
         createActionLabel("Learn more") {
-          BrowserUtil.browse(
-            "https://developer.android.com/studio/preview/features#custom-view-preview-deprecation"
-          )
+          BrowserUtil.browse("https://developer.android.com/studio/preview/features#custom-view-preview-deprecation")
         }
       }
     }
@@ -94,12 +85,8 @@ internal fun requestBuildForSurface(surface: DesignSurface<*>) {
   surface.project.requestBuildArtifactsForRendering(surface.models.map { it.virtualFile })
 }
 
-/**
- * [AnAction] that triggers a compilation of the current module. The build will automatically
- * trigger a refresh of the surface.
- */
-internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
-  AnAction(BUILD_AND_REFRESH, null, REFRESH_BUTTON) {
+/** [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface. */
+internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) : AnAction(BUILD_AND_REFRESH, null, REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

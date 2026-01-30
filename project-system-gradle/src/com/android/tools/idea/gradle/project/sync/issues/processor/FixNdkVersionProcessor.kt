@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
@@ -30,17 +30,11 @@ import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Tool to rewrite build.gradle file to add or update android.ndkVersion section.
- */
-class FixNdkVersionProcessor(
-  private val project: Project,
-  private val buildFiles: List<VirtualFile>,
-  private val version: String) : BaseRefactoringProcessor(project) {
+/** Tool to rewrite build.gradle file to add or update android.ndkVersion section. */
+class FixNdkVersionProcessor(private val project: Project, private val buildFiles: List<VirtualFile>, private val version: String) :
+  BaseRefactoringProcessor(project) {
 
-  /**
-   * Produce usage display information.
-   */
+  /** Produce usage display information. */
   public override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptor {
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
@@ -62,14 +56,11 @@ class FixNdkVersionProcessor(
    *
    * There are two cases:
    *
-   * (1) There is no pre-existing android.ndkVersion. In this case the PSI element for
-   *     the 'android' block is returned.
+   * (1) There is no pre-existing android.ndkVersion. In this case the PSI element for the 'android' block is returned.
    *
-   * (2) There is a pre-existing android.ndkVersion. In this case the PSI element for
-   *     the 'ndkVersion' is returned.
+   * (2) There is a pre-existing android.ndkVersion. In this case the PSI element for the 'ndkVersion' is returned.
    *
-   * Usages are only returned when there is a valid externalNativeBuild block in the
-   * build.gradle file.
+   * Usages are only returned when there is a valid externalNativeBuild block in the build.gradle file.
    */
   public override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
@@ -101,10 +92,7 @@ class FixNdkVersionProcessor(
     return usages.toTypedArray()
   }
 
-  /**
-   * Performs the actual refactoring on each build.gradle file.
-   * Once all build.gradle files have been modified, the project is synced.
-   */
+  /** Performs the actual refactoring on each build.gradle file. Once all build.gradle files have been modified, the project is synced. */
   public override fun performRefactoring(usages: Array<UsageInfo>) {
     updateProjectBuildModel()
 
@@ -128,9 +116,7 @@ class FixNdkVersionProcessor(
     projectBuildModel.applyChanges()
   }
 
-  /**
-   * Description of this refactoring.
-   */
+  /** Description of this refactoring. */
   public override fun getCommandName(): String {
     return "Update Android NDK Version"
   }

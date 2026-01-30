@@ -52,10 +52,7 @@ class StackTraceConsoleTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  private val fetchState =
-    LoadingState.Ready(
-      IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL)
-    )
+  private val fetchState = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL))
 
   private lateinit var stackTraceConsole: StackTraceConsole
 
@@ -67,14 +64,11 @@ class StackTraceConsoleTest {
   fun setUp() {
     stackTraceConsole =
       runBlocking(AndroidDispatchers.uiThread) {
-        StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker)
-          .apply {
-            ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach {
-              consoleView.addMessageFilter(it)
-            }
+        StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker).apply {
+          ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach { consoleView.addMessageFilter(it) }
 
-            (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
-          }
+          (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
+        }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
   }
@@ -82,10 +76,7 @@ class StackTraceConsoleTest {
   @Test
   fun `when issue is selected, correct stack trace is printed`() = executeWithErrorProcessor {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-      controllerRule.consumeInitialState(
-        fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")),
-      )
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")))
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
@@ -93,12 +84,12 @@ class StackTraceConsoleTest {
       assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
         .isEqualTo(
           """
-            javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
-                com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)
-                com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)
-            Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
-                com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)
-                okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)
+          javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+              com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)
+              com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)
+          Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+              com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)
+              okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)
           """
             .trimIndent()
         )
@@ -139,19 +130,16 @@ class StackTraceConsoleTest {
                               blame = Blames.NOT_BLAMED,
                             ),
                             Frame(
-                              symbol =
-                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind",
+                              symbol = "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind",
                               file = "ReleaseDataBinder.kt",
                               line = 196,
                               offset = 196,
                               library = "dev.firebase.appdistribution",
                               blame = Blames.BLAMED,
-                              rawSymbol =
-                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)",
+                              rawSymbol = "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)",
                             ),
                             Frame(
-                              symbol =
-                                "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder",
+                              symbol = "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder",
                               file = "AppDetailRecyclerViewAdapter.kt",
                               line = 124,
                               offset = 124,
@@ -182,8 +170,7 @@ class StackTraceConsoleTest {
                               line = 104944,
                               offset = 184,
                               library = "libutils.so",
-                              rawSymbol =
-                                "#01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)",
+                              rawSymbol = "#01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)",
                             ),
                           ),
                       ),
@@ -191,10 +178,7 @@ class StackTraceConsoleTest {
                 )
             )
         )
-      controllerRule.consumeInitialState(
-        fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(anr), "")),
-      )
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(anr), "")))
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
@@ -202,14 +186,14 @@ class StackTraceConsoleTest {
       assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
         .isEqualTo(
           """
-            main
-                #00 pc 0x04DF5C libc.so (syscall + 28)
-                android.widget.TextView.setText(TextView.java:6406)
-                dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)
-                dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder(AppDetailRecyclerViewAdapter.kt:124)
-            WifiManagerThread
-                #00 pc 0xd9258 libc.so (__epoll_pwait + 8)
-                #01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)
+          main
+              #00 pc 0x04DF5C libc.so (syscall + 28)
+              android.widget.TextView.setText(TextView.java:6406)
+              dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)
+              dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder(AppDetailRecyclerViewAdapter.kt:124)
+          WifiManagerThread
+              #00 pc 0xd9258 libc.so (__epoll_pwait + 8)
+              #01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)
           """
             .trimIndent()
         )
@@ -222,23 +206,20 @@ class StackTraceConsoleTest {
       projectRule.fixture.addFileToProject(
         "src/ResponseWrapper.kt",
         """
-            package dev.firebase.appdistribution.api_service
-            class ResponseWrapper {
-              companion object
-               {
-                  fun build()
-               }
-            }
-          """
+        package dev.firebase.appdistribution.api_service
+        class ResponseWrapper {
+          companion object
+           {
+              fun build()
+           }
+        }
+        """
           .trimIndent(),
       )
 
     executeWithErrorProcessor {
       runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        controllerRule.consumeInitialState(
-          fetchState,
-          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
-        )
+        controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")))
 
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
         stackTraceConsole.consoleView.waitAllRequests()
@@ -260,15 +241,10 @@ class StackTraceConsoleTest {
 
         WriteAction.run<RuntimeException>(file::delete)
         // Sync and then the console will be re-highlighted: no hyperlinks anymore.
-        projectRule.project.messageBus
-          .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
-          .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+        projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         dispatchAllInvocationEventsInIdeEventQueue()
 
-        delayUntilCondition(200) {
-          hyperlinks.findAllHyperlinksOnLine(1).isEmpty() &&
-            hyperlinks.findAllHyperlinksOnLine(2).isEmpty()
-        }
+        delayUntilCondition(200) { hyperlinks.findAllHyperlinksOnLine(1).isEmpty() && hyperlinks.findAllHyperlinksOnLine(2).isEmpty() }
       }
     }
   }
@@ -276,10 +252,7 @@ class StackTraceConsoleTest {
   @Test
   fun `when event is EMPTY, error message is printed`() = executeWithErrorProcessor {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-      controllerRule.consumeInitialState(
-        fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(Event.EMPTY), "")),
-      )
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(Event.EMPTY), "")))
       stackTraceConsole.consoleView.waitAllRequests()
 
       assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
@@ -291,10 +264,7 @@ class StackTraceConsoleTest {
   @Test
   fun `when stacktrace is empty, no stack trace panel shown`() = executeWithErrorProcessor {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-      controllerRule.consumeInitialState(
-        fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
-      )
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")))
       stackTraceConsole.consoleView.waitAllRequests()
 
       assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
@@ -306,10 +276,7 @@ class StackTraceConsoleTest {
   @Test
   fun `when frame line is 0, colon 0 is not printed`() = executeWithErrorProcessor {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-      controllerRule.consumeInitialState(
-        fetchState,
-        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
-      )
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")))
       stackTraceConsole.consoleView.waitAllRequests()
 
       assertThat(stackTraceConsole.consoleView.text.trim())
@@ -319,43 +286,36 @@ class StackTraceConsoleTest {
               com.example.someapp.MainActivity.onCreate${'$'}lambda${'$'}0(MainActivity.java:359)
               com.example.someapp.MainActivity.${'$'}r8${'$'}lambda${'$'}4oWG6U3SJNFRfpZuiYxu7QrLG2Q
               com.example.someapp.MainActivity${'$'}${'$'}ExternalSyntheticLambda0.onClick(D8${'$'}${'$'}SyntheticClass)
-        """
+          """
             .trimIndent()
         )
     }
   }
 
   @Test
-  fun `clearStackTrace clears the console text and refills on refresh`() =
-    executeWithErrorProcessor {
-      runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        controllerRule.consumeInitialState(
-          fetchState,
-          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
-        )
-        stackTraceConsole.consoleView.waitAllRequests()
+  fun `clearStackTrace clears the console text and refills on refresh`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")))
+      stackTraceConsole.consoleView.waitAllRequests()
 
-        stackTraceConsole.clearStackTrace()
+      stackTraceConsole.clearStackTrace()
 
-        assertThat(stackTraceConsole.consoleView.text).isEmpty()
+      assertThat(stackTraceConsole.consoleView.text).isEmpty()
 
-        controllerRule.controller.refresh()
-        controllerRule.consumeFetchState(
-          fetchState,
-          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
-        )
-        delayUntilCondition(200) { stackTraceConsole.consoleView.text.isNotEmpty() }
-        stackTraceConsole.consoleView.waitAllRequests()
-        assertThat(stackTraceConsole.consoleView.text.trim())
-          .isEqualTo(
-            """
+      controllerRule.controller.refresh()
+      controllerRule.consumeFetchState(fetchState, eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")))
+      delayUntilCondition(200) { stackTraceConsole.consoleView.text.isNotEmpty() }
+      stackTraceConsole.consoleView.waitAllRequests()
+      assertThat(stackTraceConsole.consoleView.text.trim())
+        .isEqualTo(
+          """
           java.lang.RuntimeException: Test Crash
               com.example.someapp.MainActivity.onCreate${'$'}lambda${'$'}0(MainActivity.java:359)
               com.example.someapp.MainActivity.${'$'}r8${'$'}lambda${'$'}4oWG6U3SJNFRfpZuiYxu7QrLG2Q
               com.example.someapp.MainActivity${'$'}${'$'}ExternalSyntheticLambda0.onClick(D8${'$'}${'$'}SyntheticClass)
-        """
-              .trimIndent()
-          )
-      }
+          """
+            .trimIndent()
+        )
     }
+  }
 }

@@ -30,17 +30,14 @@ class LiveEditHelper {
     env: ExecutionEnvironment,
     applicationProjectContext: ApplicationProjectContext,
     apkInfos: Collection<ApkInfo>,
-    device: IDevice
+    device: IDevice,
   ) {
     var buildSystemMinSdkLevels = mutableSetOf<MinApiLevel>()
     if (COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING.get()) {
-      apkInfos.forEach { apkInfo ->
-        apkInfo.minSdkVersionForDexing?.let { buildSystemMinSdkLevels.add(it) }
-      }
+      apkInfos.forEach { apkInfo -> apkInfo.minSdkVersionForDexing?.let { buildSystemMinSdkLevels.add(it) } }
     }
     val liveEditApp = LiveEditApp(getApkPaths(apkInfos, device), device.getVersion().getApiLevel(), buildSystemMinSdkLevels)
     liveEditService.notifyAppDeploy(env.runProfile, env.executor, applicationProjectContext, device, liveEditApp)
-
   }
 
   fun getApkPaths(apkInfos: Collection<ApkInfo>, device: IDevice): Set<Path> {

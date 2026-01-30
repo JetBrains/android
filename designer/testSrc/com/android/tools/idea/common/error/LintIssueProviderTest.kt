@@ -56,18 +56,8 @@ class LintIssueProviderTest {
     val modQuickFix = ModCommandLintQuickFix(action)
     val lintAnnotationsModel = LintAnnotationsModel()
     val nlModel =
-      NlModelBuilderUtil.model(
-          projectRule,
-          SdkConstants.FD_RES_LAYOUT,
-          "model.xml",
-          ComponentDescriptor("LinearLayout"),
-        )
-        .build()
-    MockIssueFactory.addLintIssue(
-      lintAnnotationsModel,
-      HighlightDisplayLevel.ERROR,
-      NlComponent(nlModel, 0),
-    )
+      NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "model.xml", ComponentDescriptor("LinearLayout")).build()
+    MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR, NlComponent(nlModel, 0))
     waitUntilIndexesAreReady(projectRule.project)
     val wrapper = LintIssueProvider.LintIssueWrapper(lintAnnotationsModel.issues[0])
     val fix = wrapper.createQuickFixPair(modQuickFix)

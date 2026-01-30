@@ -46,22 +46,20 @@ import kotlin.sequences.orEmpty
  */
 class ApkAnalyzerGradleToken : ApkAnalyzerToken<GradleProjectSystem>, GradleToken {
   override fun getDefaultApkToAnalyze(projectSystem: GradleProjectSystem): VirtualFile? {
-    return ModuleManager.getInstance(projectSystem.project).modules.asSequence()
+    return ModuleManager.getInstance(projectSystem.project)
+      .modules
+      .asSequence()
       .mapNotNull { GradleAndroidModel.get(it) }
       .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .filter { AgpVersion.parse(it.androidProject.agpVersion) >= AgpVersion.parse("4.1.0") } // b/191146142
       .flatMap { androidModel ->
         if (androidModel.features.isBuildOutputFileSupported) {
-          androidModel
-            .selectedVariant
-            .mainArtifact
-            .buildInformation
+          androidModel.selectedVariant.mainArtifact.buildInformation
             .getOutputListingFile(OutputType.Apk)
             ?.let { getOutputFilesFromListingFile(it) }
             ?.asSequence()
             .orEmpty()
-        }
-        else {
+        } else {
           emptySequence()
         }
       }
@@ -69,5 +67,4 @@ class ApkAnalyzerGradleToken : ApkAnalyzerToken<GradleProjectSystem>, GradleToke
       .find { it.exists() }
       ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
-
 }

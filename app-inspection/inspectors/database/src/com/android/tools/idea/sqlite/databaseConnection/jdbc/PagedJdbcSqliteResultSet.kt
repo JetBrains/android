@@ -23,11 +23,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.sql.Connection
 import java.util.concurrent.Executor
 
-class PagedJdbcSqliteResultSet(
-  taskExecutor: Executor,
-  connection: Connection,
-  private val sqliteStatement: SqliteStatement,
-) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
+class PagedJdbcSqliteResultSet(taskExecutor: Executor, connection: Connection, private val sqliteStatement: SqliteStatement) :
+  JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
     get() =
       getRowCount(sqliteStatement.toRowCountStatement()) {
@@ -38,9 +35,7 @@ class PagedJdbcSqliteResultSet(
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return getRowBatch(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)) {
-      resultSet,
-      columns ->
+    return getRowBatch(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)) { resultSet, columns ->
       val rows = ArrayList<SqliteRow>()
       while (resultSet.next()) {
         rows.add(createCurrentRow(resultSet, columns))

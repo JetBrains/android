@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class LiveEditAppTest {
   @Test
-  fun testFallbackMinApp(){
+  fun testFallbackMinApp() {
     val expectedMinApi = 24
     val liveEditApp = LiveEditApp(emptySet(), expectedMinApi)
     val actualMinApi = liveEditApp.minAPI

@@ -19,21 +19,15 @@ import com.google.common.collect.HashMultiset
 import javax.swing.Icon
 import javax.swing.table.AbstractTableModel
 
-internal class SelectMultipleDevicesDialogTableModel(devices: List<DeploymentTargetDevice>) :
-  AbstractTableModel() {
-  private val rows =
-    devices.flatMap { device -> device.targets.map(::SelectMultipleDevicesDialogTableModelRow) }
+internal class SelectMultipleDevicesDialogTableModel(devices: List<DeploymentTargetDevice>) : AbstractTableModel() {
+  private val rows = devices.flatMap { device -> device.targets.map(::SelectMultipleDevicesDialogTableModelRow) }
   private val deviceNames = devices.mapTo(HashMultiset.create()) { it.name }
 
   var selectedTargets: List<DeploymentTarget>
     get() = rows.filter { it.isSelected }.map { it.target }
     set(selectedTargets) {
       for (rowIndex in 0 until rows.size) {
-        setValueAt(
-          selectedTargets.contains(rows[rowIndex].target),
-          rowIndex,
-          SELECTED_MODEL_COLUMN_INDEX,
-        )
+        setValueAt(selectedTargets.contains(rows[rowIndex].target), rowIndex, SELECTED_MODEL_COLUMN_INDEX)
       }
     }
 

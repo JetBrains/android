@@ -35,15 +35,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorLoadingObserverTest {
 
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule =
-    AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val inspectorRule =
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
@@ -51,12 +49,7 @@ class LayoutInspectorLoadingObserverTest {
       isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(projectRule)
-      .around(appInspectorRule)
-      .around(inspectorRule)
-      .around(EdtRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(EdtRule())
 
   @Before
   fun before() {
@@ -73,8 +66,7 @@ class LayoutInspectorLoadingObserverTest {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
 
-    val layoutInspectorLoadingObserver =
-      LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
+    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
     val listenerInvocations = mutableListOf<Boolean>()
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
@@ -111,8 +103,7 @@ class LayoutInspectorLoadingObserverTest {
   fun testDispose() {
     val modificationListenersCountBefore = inspectorRule.inspectorModel.modificationListeners.size()
     val selectedProcessListenersCountBefore = inspectorRule.processes.selectedProcessListeners.size
-    val layoutInspectorLoadingObserver =
-      LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
+    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {}
@@ -125,10 +116,8 @@ class LayoutInspectorLoadingObserverTest {
 
     Disposer.dispose(layoutInspectorLoadingObserver)
 
-    assertThat(inspectorRule.inspectorModel.modificationListeners.size())
-      .isEqualTo(modificationListenersCountBefore)
-    assertThat(inspectorRule.processes.selectedProcessListeners)
-      .hasSize(selectedProcessListenersCountBefore)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(modificationListenersCountBefore)
+    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(selectedProcessListenersCountBefore)
 
     assertThat(layoutInspectorLoadingObserver.listeners.size()).isEqualTo(0)
     assertThat(inspectorRule.inspector.stopInspectorListeners).isEmpty()

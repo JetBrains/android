@@ -34,8 +34,8 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
 
 /**
- * Test which verifies that enabling view binding in a Gradle project causes its layout's light
- * classes to start getting generated at that time.
+ * Test which verifies that enabling view binding in a Gradle project causes its layout's light classes to start getting generated at that
+ * time.
  */
 @RunsInEdt
 class ViewBindingEnabledTest {
@@ -49,8 +49,7 @@ class ViewBindingEnabledTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -90,43 +89,23 @@ class ViewBindingEnabledTest {
     var lastModificationCount = ViewBindingEnabledTrackingService.getInstance().modificationCount
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    assertThat(
-        fixture.findClass(
-          "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context,
-        )
-      )
-      .isNull()
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNull()
 
     enableViewBinding(buildFile, true)
     projectRule.requestSyncAndWait()
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     assertThat(facet.isViewBindingEnabled()).isTrue()
-    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)
-      .isGreaterThan(lastModificationCount)
+    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount).isGreaterThan(lastModificationCount)
     lastModificationCount = ViewBindingEnabledTrackingService.getInstance().modificationCount
-    assertThat(
-        fixture.findClass(
-          "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context,
-        )
-      )
-      .isNotNull()
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNotNull()
 
     enableViewBinding(buildFile, false)
     projectRule.requestSyncAndWait()
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount)
-      .isGreaterThan(lastModificationCount)
-    assertThat(
-        fixture.findClass(
-          "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context,
-        )
-      )
-      .isNull()
+    assertThat(ViewBindingEnabledTrackingService.getInstance().modificationCount).isGreaterThan(lastModificationCount)
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNull()
   }
 }

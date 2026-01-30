@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.AssertDetector
 
 class AndroidLintAssertionSideEffectInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.assertion.side.effect"),
-    AssertDetector.SIDE_EFFECT,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.assertion.side.effect"), AssertDetector.SIDE_EFFECT)

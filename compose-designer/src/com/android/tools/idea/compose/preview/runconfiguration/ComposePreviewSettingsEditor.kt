@@ -30,19 +30,13 @@ import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-/**
- * Represents the UI for editing and creating instances of [ComposePreviewRunConfiguration] in the
- * run configurations edit panel.
- */
-class ComposePreviewSettingsEditor(
-  private val project: Project,
-  private val config: ComposePreviewRunConfiguration,
-) : SettingsEditor<ComposePreviewRunConfiguration>() {
+/** Represents the UI for editing and creating instances of [ComposePreviewRunConfiguration] in the run configurations edit panel. */
+class ComposePreviewSettingsEditor(private val project: Project, private val config: ComposePreviewRunConfiguration) :
+  SettingsEditor<ComposePreviewRunConfiguration>() {
   private val panel: JPanel
   private val debuggerTab: AndroidDebuggerPanel?
   private val modulesComboBox = ModulesComboBox()
-  private val composableField =
-    JBTextField().apply { emptyText.text = message("run.configuration.composable.empty.text") }
+  private val composableField = JBTextField().apply { emptyText.text = message("run.configuration.composable.empty.text") }
 
   init {
     Disposer.register(project, this)
@@ -59,19 +53,11 @@ class ComposePreviewSettingsEditor(
     val tab = JPanel(TabularLayout("Fit,*", "Fit,Fit"))
     modulesComboBox.allowEmptySelection(message("run.configuration.no.module.selected"))
     tab.add(
-      LabeledComponent.create(
-        modulesComboBox,
-        message("run.configuration.module.label"),
-        BorderLayout.WEST,
-      ),
+      LabeledComponent.create(modulesComboBox, message("run.configuration.module.label"), BorderLayout.WEST),
       TabularLayout.Constraint(0, 0),
     )
     tab.add(
-      LabeledComponent.create(
-        composableField,
-        message("run.configuration.composable.label"),
-        BorderLayout.WEST,
-      ),
+      LabeledComponent.create(composableField, message("run.configuration.composable.label"), BorderLayout.WEST),
       TabularLayout.Constraint(1, 0, 2),
     )
     return tab
@@ -79,9 +65,7 @@ class ComposePreviewSettingsEditor(
 
   private fun createDebuggerTab(): AndroidDebuggerPanel? {
     val debuggerContext = config.androidDebuggerContext
-    return if (debuggerContext.androidDebuggers.size > 1)
-      AndroidDebuggerPanel(config, debuggerContext)
-    else null
+    return if (debuggerContext.androidDebuggers.size > 1) AndroidDebuggerPanel(config, debuggerContext) else null
   }
 
   private fun resetComboBoxModules() {

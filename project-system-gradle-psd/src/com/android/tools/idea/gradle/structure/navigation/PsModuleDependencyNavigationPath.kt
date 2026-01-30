@@ -22,10 +22,8 @@ import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
 import com.intellij.ui.navigation.Place
 
-
 data class PsModuleDependencyNavigationPath(override val parent: PsDependenciesNavigationPath, val name: String) : PsPlaceBasedPath() {
-  constructor (dependency: PsModuleDependency) :
-    this(PsDependenciesNavigationPath(PsModulePath(dependency.parent)), dependency.name)
+  constructor(dependency: PsModuleDependency) : this(PsDependenciesNavigationPath(PsModulePath(dependency.parent)), dependency.name)
 
   override fun queryPlace(place: Place, context: PsContext) {
     parent.queryPlace(place, context)

@@ -126,8 +126,7 @@ object NavModelBuilderUtil {
     return descriptor
   }
 
-  class NavigationComponentDescriptor(id: String?, startDestination: String?, label: String?) :
-    NavComponentDescriptor(TAG_NAVIGATION) {
+  class NavigationComponentDescriptor(id: String?, startDestination: String?, label: String?) : NavComponentDescriptor(TAG_NAVIGATION) {
 
     init {
       id?.let { id("@+id/" + it) }
@@ -160,12 +159,7 @@ object NavModelBuilderUtil {
       destination.apply(f)
     }
 
-    fun activity(
-      id: String,
-      layout: String? = null,
-      name: String? = null,
-      f: ActivityComponentDescriptor.() -> Unit = {},
-    ) {
+    fun activity(id: String, layout: String? = null, name: String? = null, f: ActivityComponentDescriptor.() -> Unit = {}) {
       val activity = ActivityComponentDescriptor(id, layout, name)
       addChild(activity, null)
       activity.apply(f)
@@ -176,44 +170,23 @@ object NavModelBuilderUtil {
       addChild(include, null)
     }
 
-    fun navigation(
-      id: String,
-      startDestination: String? = null,
-      label: String? = null,
-      f: NavigationComponentDescriptor.() -> Unit = {},
-    ) {
+    fun navigation(id: String, startDestination: String? = null, label: String? = null, f: NavigationComponentDescriptor.() -> Unit = {}) {
       val navigation = NavigationComponentDescriptor(id, startDestination, label)
       addChild(navigation, null)
       navigation.apply(f)
     }
 
-    fun action(
-      id: String,
-      destination: String? = null,
-      popUpTo: String? = null,
-      f: ActionComponentDescriptor.() -> Unit = {},
-    ) {
+    fun action(id: String, destination: String? = null, popUpTo: String? = null, f: ActionComponentDescriptor.() -> Unit = {}) {
       val action = ActionComponentDescriptor(id, destination, popUpTo)
       addChild(action, null)
       action.apply(f)
     }
 
-    fun deeplink(
-      id: String,
-      uri: String,
-      autoVerify: Boolean = false,
-      mimeType: String? = null,
-      action: String? = null,
-    ) {
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
       addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
-    fun argument(
-      name: String,
-      type: String? = null,
-      nullable: Boolean? = null,
-      value: String? = null,
-    ) {
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
       addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
@@ -221,13 +194,8 @@ object NavModelBuilderUtil {
   class FragmentComponentDescriptor(id: String, layout: String?, name: String?, label: String?) :
     FragmentlikeComponentDescriptor(TAG_FRAGMENT, id, layout, name, label)
 
-  open class FragmentlikeComponentDescriptor(
-    tag: String,
-    id: String,
-    layout: String?,
-    name: String?,
-    label: String?,
-  ) : NavComponentDescriptor(tag) {
+  open class FragmentlikeComponentDescriptor(tag: String, id: String, layout: String?, name: String?, label: String?) :
+    NavComponentDescriptor(tag) {
     init {
       id("@+id/$id")
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, "@layout/$it") }
@@ -247,32 +215,17 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(
-      id: String,
-      uri: String,
-      autoVerify: Boolean = false,
-      mimeType: String? = null,
-      action: String? = null,
-    ) {
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
       addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
-    fun argument(
-      name: String,
-      type: String? = null,
-      nullable: Boolean? = null,
-      value: String? = null,
-    ) {
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
       addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
 
-  class ActionComponentDescriptor(
-    id: String,
-    destination: String?,
-    popUpTo: String? = null,
-    popUpToInclusive: Boolean = false,
-  ) : NavComponentDescriptor(TAG_ACTION) {
+  class ActionComponentDescriptor(id: String, destination: String?, popUpTo: String? = null, popUpToInclusive: Boolean = false) :
+    NavComponentDescriptor(TAG_ACTION) {
     init {
       id("@+id/" + id)
       destination?.let { withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/$it") }
@@ -287,30 +240,18 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ActivityComponentDescriptor(id: String, layout: String?, name: String?) :
-    NavComponentDescriptor(TAG_ACTIVITY) {
+  class ActivityComponentDescriptor(id: String, layout: String?, name: String?) : NavComponentDescriptor(TAG_ACTIVITY) {
     init {
       id("@+id/$id")
       name?.let { withAttribute(ANDROID_URI, ATTR_NAME, it) }
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
     }
 
-    fun deeplink(
-      id: String,
-      uri: String,
-      autoVerify: Boolean = false,
-      mimeType: String? = null,
-      action: String? = null,
-    ) {
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
       addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
-    fun argument(
-      name: String,
-      type: String? = null,
-      nullable: Boolean? = null,
-      value: String? = null,
-    ) {
+    fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
       addChild(ArgumentComponentDescriptor(name, type, nullable, value), null)
     }
   }
@@ -321,13 +262,8 @@ object NavModelBuilderUtil {
     }
   }
 
-  class DeepLinkComponentDescriptor(
-    id: String,
-    uri: String,
-    autoVerify: Boolean,
-    mimeType: String?,
-    action: String?,
-  ) : NavComponentDescriptor(TAG_DEEP_LINK) {
+  class DeepLinkComponentDescriptor(id: String, uri: String, autoVerify: Boolean, mimeType: String?, action: String?) :
+    NavComponentDescriptor(TAG_DEEP_LINK) {
     init {
       id("@+id/$id")
       withAttribute(AUTO_URI, ATTR_URI, uri)
@@ -339,12 +275,8 @@ object NavModelBuilderUtil {
     }
   }
 
-  class ArgumentComponentDescriptor(
-    name: String,
-    type: String?,
-    nullable: Boolean?,
-    value: String?,
-  ) : NavComponentDescriptor(TAG_ARGUMENT) {
+  class ArgumentComponentDescriptor(name: String, type: String?, nullable: Boolean?, value: String?) :
+    NavComponentDescriptor(TAG_ARGUMENT) {
     init {
       withAttribute(ANDROID_URI, SdkConstants.ATTR_NAME, name)
       value?.let { withAttribute(ANDROID_URI, NavigationSchema.ATTR_DEFAULT_VALUE, it) }

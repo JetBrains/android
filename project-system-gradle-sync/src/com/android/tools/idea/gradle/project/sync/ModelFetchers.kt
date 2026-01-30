@@ -42,47 +42,30 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
-/**
- * Gets the [V2AndroidProject] or [ModelVersions] (based on [modelType]) for the given [BasicGradleProject].
- */
-internal fun <T> BuildController.findNonParameterizedV2Model(
-  project: BasicGradleProject,
-  modelType: Class<T>
-): T? {
+/** Gets the [V2AndroidProject] or [ModelVersions] (based on [modelType]) for the given [BasicGradleProject]. */
+internal fun <T> BuildController.findNonParameterizedV2Model(project: BasicGradleProject, modelType: Class<T>): T? {
   return findModel(project, modelType)
 }
 
-/**
- * Gets the [AndroidProject] for the given [BasicGradleProject].
- */
+/** Gets the [AndroidProject] for the given [BasicGradleProject]. */
 internal fun <T> BuildController.findParameterizedAndroidModel(
   project: BasicGradleProject,
   modelType: Class<T>,
-  shouldBuildVariant: Boolean
+  shouldBuildVariant: Boolean,
 ): T? {
   if (!shouldBuildVariant) {
     try {
-      val model = getModel(project, modelType, ModelBuilderParameter::class.java) { parameter ->
-        parameter.shouldBuildVariant = false
-      }
+      val model = getModel(project, modelType, ModelBuilderParameter::class.java) { parameter -> parameter.shouldBuildVariant = false }
       if (model != null) return model
-    }
-    catch (e: UnsupportedVersionException) {
+    } catch (e: UnsupportedVersionException) {
       // Using old version of Gradle. Fall back to all variants sync for this module.
     }
   }
   return findModel(project, modelType)
 }
 
-internal fun BuildController.findVariantModel(
-  module: AndroidModule,
-  variantName: String
-): Variant? {
-  return findModel(
-    module.findModelRoot,
-    Variant::class.java,
-    ModelBuilderParameter::class.java
-  ) { parameter ->
+internal fun BuildController.findVariantModel(module: AndroidModule, variantName: String): Variant? {
+  return findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
     parameter.setVariantName(variantName)
   }
 }
@@ -99,43 +82,34 @@ internal fun parameterMutatorForProject(
       it.buildOnlyTestRuntimeClasspaths(
         buildUnitTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryUnitTests,
         buildScreenshotTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryScreenshotTests,
-        additionalArtifactsInModel
+        additionalArtifactsInModel,
       )
     else -> it.buildAllRuntimeClasspaths(additionalArtifactsInModel)
   }
 }
 
-/**
- * Valid only for [VariantDependencies] using model parameter for the given [BasicGradleProject] using .
- */
+/** Valid only for [VariantDependencies] using model parameter for the given [BasicGradleProject] using . */
 internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
   modelVersions: ModelVersions,
   variantName: String,
   useFlatDependencyGraphModel: Boolean,
-  parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit
+  parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit,
 ): VariantDependenciesCompat? {
-  fun <T> findModel(clazz: Class<T>, parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit) = findModel(
-    project,
-    clazz,
-    com.android.builder.model.v2.models.ModelBuilderParameter::class.java
-  ) {
-    it.variantName = variantName
-    parameterMutator(it)
-  }
+  fun <T> findModel(clazz: Class<T>, parameterMutator: (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit) =
+    findModel(project, clazz, com.android.builder.model.v2.models.ModelBuilderParameter::class.java) {
+      it.variantName = variantName
+      parameterMutator(it)
+    }
 
   return if (useFlatDependencyGraphModel) {
-    findModel(VariantDependenciesFlatList::class.java, parameterMutator)?.let {
-      VariantDependenciesCompat.FlatList(it, modelVersions)
-    }
+    findModel(VariantDependenciesFlatList::class.java, parameterMutator)?.let { VariantDependenciesCompat.FlatList(it, modelVersions) }
   } else if (modelVersions[ModelFeature.HAS_ADJACENCY_LIST_DEPENDENCY_GRAPH]) {
     findModel(VariantDependenciesAdjacencyList::class.java, parameterMutator)?.let {
       VariantDependenciesCompat.AdjacencyList(it, modelVersions)
     }
   } else {
-    findModel(VariantDependencies::class.java, parameterMutator)?.let {
-      VariantDependenciesCompat.GraphItemList(it, modelVersions)
-    }
+    findModel(VariantDependencies::class.java, parameterMutator)?.let { VariantDependenciesCompat.GraphItemList(it, modelVersions) }
   }
 }
 
@@ -143,27 +117,24 @@ internal fun BuildController.findNativeVariantAbiModel(
   modelCache: ModelCache.V1,
   module: AndroidModule,
   variantName: String,
-  abiToRequest: String
+  abiToRequest: String,
 ): NativeVariantAbiResult {
   return if (module.nativeModelVersion == AndroidModule.NativeModelVersion.V2) {
     // V2 model is available, trigger the sync with V2 API
     // NOTE: Even though we drop the value returned the side effects of this code are important. Native sync creates file on the disk
     // which are later used.
-    val model = findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) { parameter ->
-      parameter.variantsToGenerateBuildInformation = listOf(variantName)
-      parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
-    }
+    val model =
+      findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) { parameter ->
+        parameter.variantsToGenerateBuildInformation = listOf(variantName)
+        parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
+      }
     if (model != null) NativeVariantAbiResult.V2(abiToRequest) else NativeVariantAbiResult.None
-  }
-  else {
+  } else {
     NativeVariantAbiResult.None
   }
 }
 
-internal fun BuildController.findNativeModuleModel(
-  project: BasicGradleProject,
-  syncAllVariantsAndAbis: Boolean
-): NativeModule? {
+internal fun BuildController.findNativeModuleModel(project: BasicGradleProject, syncAllVariantsAndAbis: Boolean): NativeModule? {
   return try {
     if (!syncAllVariantsAndAbis) {
       // With single variant mode, we first only collect basic project information. The more complex information will be collected later
@@ -172,16 +143,14 @@ internal fun BuildController.findNativeModuleModel(
         it.variantsToGenerateBuildInformation = emptyList()
         it.abisToGenerateBuildInformation = emptyList()
       }
-    }
-    else {
+    } else {
       // If single variant is not enabled, we sync all variant and ABIs at once.
       getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
         it.variantsToGenerateBuildInformation = null
         it.abisToGenerateBuildInformation = null
       }
     }
-  }
-  catch (e: UnsupportedVersionException) {
+  } catch (e: UnsupportedVersionException) {
     // Using old version of Gradle that does not support V2 models.
     null
   }
@@ -193,12 +162,14 @@ internal val androidArtifactSuffixes = listOf("", "unitTest", "androidTest", "sc
 internal data class AllKotlinModels(val kotlinModel: KotlinGradleModel?, val kaptModel: KaptGradleModel?)
 
 internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, variantName: String): AllKotlinModels {
-  val kotlinModel = findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
-    it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
-  }
-  val kaptModel = findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
-    it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
-  }
+  val kotlinModel =
+    findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+      it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
+    }
+  val kaptModel =
+    findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+      it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
+    }
   return AllKotlinModels(kotlinModel, kaptModel)
 }
 
@@ -210,121 +181,120 @@ sealed class VariantDependenciesCompat(
   val testFixturesArtifact: ArtifactDependenciesCompat?,
   val libraries: Map<String, Library>,
 ) {
-  class FlatList(variantDependencies: VariantDependenciesFlatList, modelVersions: ModelVersions) : VariantDependenciesCompat(
-    ArtifactDependenciesCompat.FlatList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.deviceTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
-      }.toMap()
-    } else {
-      emptyMap()
-    },
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.hostTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v)
-      }.toMap()
-    } else {
-      emptyMap()
-    },
-    emptyMap(),
-    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.FlatList(it) },
-    variantDependencies.libraries
-  )
+  class FlatList(variantDependencies: VariantDependenciesFlatList, modelVersions: ModelVersions) :
+    VariantDependenciesCompat(
+      ArtifactDependenciesCompat.FlatList(variantDependencies.mainArtifact),
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.deviceTestArtifacts.map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v) }.toMap()
+      } else {
+        emptyMap()
+      },
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.hostTestArtifacts.map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.FlatList(v) }.toMap()
+      } else {
+        emptyMap()
+      },
+      emptyMap(),
+      variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.FlatList(it) },
+      variantDependencies.libraries,
+    )
 
-
-  class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList, modelVersions: ModelVersions) : VariantDependenciesCompat(
-    ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.deviceTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
-      }.toMap()
-    } else {
-      variantDependencies.androidTestArtifact?.let {
-        mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
-                                                   } ?: emptyMap()
-    },
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.hostTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v)
-      }.toMap()
-    } else {
-      variantDependencies.unitTestArtifact?.let {
-        mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
-      }?: emptyMap()
-    },
-    if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
-      variantDependencies.testSuiteArtifacts.mapValues { it.value.sourcesDependencies.map { sourceDependency ->
-          ArtifactDependenciesCompat.AdjacencyList(sourceDependency.artifactDependencies)
-        }
-      }
-    } else emptyMap(),
-    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
-    variantDependencies.libraries
-  )
-  class GraphItemList(variantDependencies: VariantDependencies, modelVersions: ModelVersions) : VariantDependenciesCompat(
-    ArtifactDependenciesCompat.GraphItemList(variantDependencies.mainArtifact),
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.deviceTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
-      }.toMap()
-    } else {
-      variantDependencies.androidTestArtifact?.let {
-        mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.GraphItemList(it))
-      } ?: emptyMap()
-
-    },
-    if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
-      variantDependencies.hostTestArtifacts.map { (k, v) ->
-        convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v)
-      }.toMap()
-    } else {
-      variantDependencies.unitTestArtifact?.let {
-        mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.GraphItemList(it))
-      }?: emptyMap()
-    },
-    if (modelVersions[ModelFeature.HAS_TEST_SUITES])
+  class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList, modelVersions: ModelVersions) :
+    VariantDependenciesCompat(
+      ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.deviceTestArtifacts
+          .map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v) }
+          .toMap()
+      } else {
+        variantDependencies.androidTestArtifact?.let { mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.AdjacencyList(it)) }
+          ?: emptyMap()
+      },
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.hostTestArtifacts
+          .map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.AdjacencyList(v) }
+          .toMap()
+      } else {
+        variantDependencies.unitTestArtifact?.let { mapOf(IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.AdjacencyList(it)) }
+          ?: emptyMap()
+      },
+      if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
         variantDependencies.testSuiteArtifacts.mapValues {
-        it.value.sourcesDependencies.map {
-          ArtifactDependenciesCompat.GraphItemList(it.artifactDependencies)
+          it.value.sourcesDependencies.map { sourceDependency ->
+            ArtifactDependenciesCompat.AdjacencyList(sourceDependency.artifactDependencies)
+          }
         }
-       } else emptyMap(),
-    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
-    variantDependencies.libraries,
-  )
+      } else emptyMap(),
+      variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
+      variantDependencies.libraries,
+    )
+
+  class GraphItemList(variantDependencies: VariantDependencies, modelVersions: ModelVersions) :
+    VariantDependenciesCompat(
+      ArtifactDependenciesCompat.GraphItemList(variantDependencies.mainArtifact),
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.deviceTestArtifacts
+          .map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v) }
+          .toMap()
+      } else {
+        variantDependencies.androidTestArtifact?.let { mapOf(IdeArtifactName.ANDROID_TEST to ArtifactDependenciesCompat.GraphItemList(it)) }
+          ?: emptyMap()
+      },
+      if (modelVersions[ModelFeature.TEST_ARTIFACTS_AND_SOURCE_SETS_IN_MAPS]) {
+        variantDependencies.hostTestArtifacts
+          .map { (k, v) -> convertArtifactName(k) to ArtifactDependenciesCompat.GraphItemList(v) }
+          .toMap()
+      } else {
+        variantDependencies.unitTestArtifact?.let { mapOf(IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.GraphItemList(it)) }
+          ?: emptyMap()
+      },
+      if (modelVersions[ModelFeature.HAS_TEST_SUITES])
+        variantDependencies.testSuiteArtifacts.mapValues {
+          it.value.sourcesDependencies.map { ArtifactDependenciesCompat.GraphItemList(it.artifactDependencies) }
+        }
+      else emptyMap(),
+      variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
+      variantDependencies.libraries,
+    )
 }
 
-sealed class ArtifactDependenciesCompat(val compileDependencies: DependencyGraphCompat,
-                                        val runtimeDependencies: DependencyGraphCompat?,
-                                        val unresolvedDependencies: List<UnresolvedDependency>) {
-  class FlatList(artifactDependencies: ArtifactDependenciesFlatList) : ArtifactDependenciesCompat(
-    DependencyGraphCompat.FlatList(artifactDependencies.compileDependencies),
-    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.FlatList(it)},
-    artifactDependencies.unresolvedDependencies
-  )
+sealed class ArtifactDependenciesCompat(
+  val compileDependencies: DependencyGraphCompat,
+  val runtimeDependencies: DependencyGraphCompat?,
+  val unresolvedDependencies: List<UnresolvedDependency>,
+) {
+  class FlatList(artifactDependencies: ArtifactDependenciesFlatList) :
+    ArtifactDependenciesCompat(
+      DependencyGraphCompat.FlatList(artifactDependencies.compileDependencies),
+      artifactDependencies.runtimeDependencies?.let { DependencyGraphCompat.FlatList(it) },
+      artifactDependencies.unresolvedDependencies,
+    )
 
+  class AdjacencyList(artifactDependencies: ArtifactDependenciesAdjacencyList) :
+    ArtifactDependenciesCompat(
+      DependencyGraphCompat.AdjacencyList(artifactDependencies.compileDependencies),
+      artifactDependencies.runtimeDependencies?.let { DependencyGraphCompat.AdjacencyList(it) },
+      artifactDependencies.unresolvedDependencies,
+    )
 
-  class AdjacencyList(artifactDependencies: ArtifactDependenciesAdjacencyList) : ArtifactDependenciesCompat(
-    DependencyGraphCompat.AdjacencyList(artifactDependencies.compileDependencies),
-    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.AdjacencyList(it)},
-    artifactDependencies.unresolvedDependencies
-  )
-  class GraphItemList(artifactDependencies: ArtifactDependencies) : ArtifactDependenciesCompat(
-    DependencyGraphCompat.GraphItemList(artifactDependencies.compileDependencies),
-    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.GraphItemList(it)},
-    artifactDependencies.unresolvedDependencies
-  )
+  class GraphItemList(artifactDependencies: ArtifactDependencies) :
+    ArtifactDependenciesCompat(
+      DependencyGraphCompat.GraphItemList(artifactDependencies.compileDependencies),
+      artifactDependencies.runtimeDependencies?.let { DependencyGraphCompat.GraphItemList(it) },
+      artifactDependencies.unresolvedDependencies,
+    )
 }
 
 sealed class DependencyGraphCompat {
   data class FlatList(val libraryKeys: List<String>) : DependencyGraphCompat()
+
   data class AdjacencyList(val edges: List<Edge>) : DependencyGraphCompat()
+
   data class GraphItemList(val graphItems: List<GraphItem>) : DependencyGraphCompat()
 }
 
 /** Utility method for setting the parameters */
-fun com.android.builder.model.v2.models.ModelBuilderParameter.buildAllRuntimeClasspaths(
-  addAdditionalArtifactsInModel: Boolean,
-) {
+fun com.android.builder.model.v2.models.ModelBuilderParameter.buildAllRuntimeClasspaths(addAdditionalArtifactsInModel: Boolean) {
   dontBuildRuntimeClasspath = false
   dontBuildUnitTestRuntimeClasspath = false
   dontBuildScreenshotTestRuntimeClasspath = false
@@ -344,6 +314,7 @@ fun com.android.builder.model.v2.models.ModelBuilderParameter.buildOnlyTestRunti
   dontBuildScreenshotTestRuntimeClasspath = !buildScreenshotTestsRuntime
   dontBuildAndroidTestRuntimeClasspath = false
   dontBuildTestFixtureRuntimeClasspath = true
-  dontBuildHostTestRuntimeClasspath = mapOf("UnitTest" to dontBuildUnitTestRuntimeClasspath, "ScreenshotTest" to dontBuildScreenshotTestRuntimeClasspath)
+  dontBuildHostTestRuntimeClasspath =
+    mapOf("UnitTest" to dontBuildUnitTestRuntimeClasspath, "ScreenshotTest" to dontBuildScreenshotTestRuntimeClasspath)
   additionalArtifactsInModel = addAdditionalArtifactsInModel
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import org.mockito.Mockito.mockStatic
-
 import com.android.ide.common.repository.AgpVersion.Companion.parse
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -26,8 +24,9 @@ import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockedStatic
+import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 @RunsInEdt
@@ -35,8 +34,7 @@ class RecommendedPluginVersionUpgradeSuppressionTest : UpgradeGradleFileModelTes
 
   override val projectRule = AndroidProjectRule.withAndroidModel()
 
-  @Mock
-  private lateinit var pluginInfo: AndroidPluginInfo
+  @Mock private lateinit var pluginInfo: AndroidPluginInfo
 
   @Before
   fun setup() {

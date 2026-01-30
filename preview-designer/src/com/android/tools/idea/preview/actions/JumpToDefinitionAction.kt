@@ -27,9 +27,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
 
 /**
- * [AnAction] that navigates to a UI component, and that is visible at the position where the mouse
- * is located, at the moment the action is created. For Compose Previews, for example, this means
- * the deepest Composable that is part of the project.
+ * [AnAction] that navigates to a UI component, and that is visible at the position where the mouse is located, at the moment the action is
+ * created. For Compose Previews, for example, this means the deepest Composable that is part of the project.
  */
 class JumpToDefinitionAction(
   @SwingCoordinate private val x: Int,
@@ -38,8 +37,7 @@ class JumpToDefinitionAction(
 ) : AnAction(message("action.jump.to.definition")) {
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible =
-      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+    e.presentation.isEnabledAndVisible = (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -50,13 +48,7 @@ class JumpToDefinitionAction(
     val sceneView = e.getData(SCENE_VIEW) ?: return
     sceneView.createCoroutineScope().launch {
       navigationHandler
-        .findNavigatablesWithCoordinates(
-          sceneView = sceneView,
-          x = x,
-          y = y,
-          requestFocus = true,
-          shouldFindAllNavigatables = false,
-        )
+        .findNavigatablesWithCoordinates(sceneView = sceneView, x = x, y = y, requestFocus = true, shouldFindAllNavigatables = false)
         .map { it.navigatable }
         .firstOrNull()
         ?.let {

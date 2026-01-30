@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -47,7 +48,6 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
-import javax.swing.JComponent
 
 private val toolbarSpacing = 6.dp
 private const val descriptionOpened = "Hide preview group"
@@ -83,13 +83,11 @@ fun OrganizationHeader(group: OrganizationGroup, onScrollEvent: (MouseEvent) -> 
       }
   ) {
     IconButton(
-      modifier =
-        Modifier.testTag("openButton").height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
+      modifier = Modifier.testTag("openButton").height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
       onClick = { group.setOpened(!opened.value) },
     ) {
       Row(verticalAlignment = Alignment.CenterVertically) {
-        if (opened.value)
-          Icon(AllIconsKeys.General.ChevronDown, contentDescription = descriptionOpened)
+        if (opened.value) Icon(AllIconsKeys.General.ChevronDown, contentDescription = descriptionOpened)
         else Icon(AllIconsKeys.General.ChevronRight, contentDescription = descriptionClosed)
 
         Spacer(Modifier.width(toolbarSpacing))
@@ -119,9 +117,7 @@ fun OrganizationHeader(group: OrganizationGroup, onScrollEvent: (MouseEvent) -> 
 fun createOrganizationHeader(group: OrganizationGroup): JComponent {
   enableNewSwingCompositing()
   var component: JComponent? = null
-  component = StudioComposePanel {
-    OrganizationHeader(group, onScrollEvent = { e -> component?.dispatchEvent(e) })
-  }
+  component = StudioComposePanel { OrganizationHeader(group, onScrollEvent = { e -> component?.dispatchEvent(e) }) }
   return component
 }
 

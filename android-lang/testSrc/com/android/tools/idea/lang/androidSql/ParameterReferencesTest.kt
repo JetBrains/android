@@ -30,18 +30,22 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testReference_single() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :<caret>nameToLookFor")
-          List<User> getByName(String nameToLookFor);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :<caret>nameToLookFor")
+        List<User> getByName(String nameToLookFor);
+      }
+      """
+        .trimIndent(),
+    )
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(PsiParameter::class.java)
@@ -49,35 +53,42 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
     (elementAtCaret as NavigatablePsiElement).navigate(true)
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :nameToLookFor")
-          List<User> getByName(String <caret>nameToLookFor);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :nameToLookFor")
+        List<User> getByName(String <caret>nameToLookFor);
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testReference_multiple() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE age BETWEEN :min AND :<caret>max")
-          List<User> findByAge(int min, int max);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE age BETWEEN :min AND :<caret>max")
+        List<User> findByAge(int min, int max);
+      }
+      """
+        .trimIndent(),
+    )
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(PsiParameter::class.java)
@@ -85,67 +96,81 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
     (elementAtCaret as NavigatablePsiElement).navigate(true)
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE age BETWEEN :min AND :max")
-          List<User> findByAge(int min, int <caret>max);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE age BETWEEN :min AND :max")
+        List<User> findByAge(int min, int <caret>max);
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCompletionAfterColon_single() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :n<caret>")
-          List<User> getByName(String nameToLookFor);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :n<caret>")
+        List<User> getByName(String nameToLookFor);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :nameToLookFor")
-          List<User> getByName(String nameToLookFor);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :nameToLookFor")
+        List<User> getByName(String nameToLookFor);
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCompletionAfterColon_none() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :<caret>")
-          List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :<caret>")
+        List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.completeBasic()).isEmpty()
   }
@@ -153,21 +178,25 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testCompletionAfterColon_multiple() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user")
-          List<User> someOtherMethod(String otherArg);
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user")
+        List<User> someOtherMethod(String otherArg);
 
-          @Query("SELECT * FROM user WHERE age BETWEEN :<caret>")
-          List<User> findByAge(int min, int max);
-        }
-    """.trimIndent())
+        @Query("SELECT * FROM user WHERE age BETWEEN :<caret>")
+        List<User> findByAge(int min, int max);
+      }
+      """
+        .trimIndent(),
+    )
 
     val lookupElements = myFixture.completeBasic()
 
@@ -178,21 +207,25 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testCompletionNoColon() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user")
-          List<User> someOtherMethod(String otherArg);
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user")
+        List<User> someOtherMethod(String otherArg);
 
-          @Query("SELECT * FROM user WHERE <caret>")
-          List<User> findByAge(int min, int max);
-        }
-    """.trimIndent())
+        @Query("SELECT * FROM user WHERE <caret>")
+        List<User> findByAge(int min, int max);
+      }
+      """
+        .trimIndent(),
+    )
 
     val lookupElements = myFixture.completeBasic()
 
@@ -203,32 +236,39 @@ class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testRename() {
     myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE age BETWEEN :min AND :<caret>max")
-          List<User> findByAge(int min, int max);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE age BETWEEN :min AND :<caret>max")
+        List<User> findByAge(int min, int max);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("high")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE age BETWEEN :min AND :high")
-          List<User> findByAge(int min, int high);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE age BETWEEN :min AND :high")
+        List<User> findByAge(int min, int high);
+      }
+      """
+        .trimIndent()
+    )
   }
 }

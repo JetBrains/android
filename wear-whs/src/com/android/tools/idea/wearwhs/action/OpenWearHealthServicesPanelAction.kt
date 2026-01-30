@@ -41,17 +41,12 @@ import com.intellij.ui.awt.RelativePoint
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 
-private val PANEL_CONTROLLER_KEY =
-  Key.create<WearHealthServicesPanelController>("WearHealthServicesPanelController")
+private val PANEL_CONTROLLER_KEY = Key.create<WearHealthServicesPanelController>("WearHealthServicesPanelController")
 
 /** Opens the Wear Health Services Tool Window */
 class OpenWearHealthServicesPanelAction :
   AbstractEmulatorAction(
-    configFilter = {
-      StudioFlags.WEAR_HEALTH_SERVICES_PANEL.get() &&
-        it.deviceType == DeviceType.WEAR &&
-        it.api >= 33
-    }
+    configFilter = { StudioFlags.WEAR_HEALTH_SERVICES_PANEL.get() && it.deviceType == DeviceType.WEAR && it.api >= 33 }
   ) {
 
   override fun isEnabled(event: AnActionEvent): Boolean {
@@ -87,11 +82,7 @@ class OpenWearHealthServicesPanelAction :
             Disposer.register(emulatorController, it)
             it.serialNumber = serialNumber
           }
-        WearHealthServicesPanelController(
-          stateManager = stateManager,
-          workerScope = workerScope,
-          uiScope = uiScope,
-        )
+        WearHealthServicesPanelController(stateManager = stateManager, workerScope = workerScope, uiScope = uiScope)
       }
 
     // Show the UI settings popup relative to the ActionButton.
@@ -106,16 +97,14 @@ class OpenWearHealthServicesPanelAction :
 
 /**
  * Returns the point for displaying the balloon.
- * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard)
- *   returns the point NW of the [component]
+ * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard) returns the point NW of the [component]
  * - If [component] is in a popup itself, converts the point relative to the [displayView]
  * - Otherwise, returns the center of the button that was pressed
  */
 fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
   return when {
     component is AbstractDisplayView -> RelativePoint.getNorthWestOf(component)
-    PopupUtil.getPopupContainerFor(component) != null ->
-      RelativePoint.getCenterOf(component).getPointOn(displayView)
+    PopupUtil.getPopupContainerFor(component) != null -> RelativePoint.getCenterOf(component).getPointOn(displayView)
     else -> RelativePoint.getCenterOf(component)
   }
 }

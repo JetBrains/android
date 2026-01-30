@@ -19,16 +19,15 @@ import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.DependenciesInserter
 import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
-
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
-import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES_VERSION_CATALOG
 import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES
+import com.android.tools.idea.testing.TestProjectPaths.TEST_SUITES_VERSION_CATALOG
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth.assertThat
@@ -44,306 +43,337 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class DependenciesHelperTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
-  private val fixture get() = projectRule.fixture
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule()
+  private val fixture
+    get() = projectRule.fixture
+
+  private val project
+    get() = projectRule.project
 
   @Test
   fun testSimpleAddWithCatalog() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
-             assertThat(updates.size).isEqualTo(2)
-           },
-           {
-             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
-               .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
-             assertThat(project.getTextForFile("app/build.gradle"))
-               .contains("api libs.lib2")
-           })
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(2)
+      },
+      {
+        assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+          .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
+        assertThat(project.getTextForFile("app/build.gradle")).contains("api libs.lib2")
+      },
+    )
   }
 
   @Test
   fun testSimpleAddNoCatalog() {
-    doTest(SIMPLE_APPLICATION,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
-             assertThat(updates.size).isEqualTo(1)
-           },
-           {
-             assertThat(project.getTextForFile("app/build.gradle"))
-               .contains("api \'com.example.libs:lib2:1.0\'")
-           })
+    doTest(
+      SIMPLE_APPLICATION,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      { assertThat(project.getTextForFile("app/build.gradle")).contains("api \'com.example.libs:lib2:1.0\'") },
+    )
   }
 
   @Test
   fun testAddDependencyWithExceptions() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("api",
-                                                "com.example.libs:lib2:1.0",
-                                                listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                                moduleModel,
-                                                ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
-             assertThat(updates.size).isEqualTo(2)
-           },
-           {
-             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
-               .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("api libs.lib2")
-             assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
-           })
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val updates =
+          helper.addDependency(
+            "api",
+            "com.example.libs:lib2:1.0",
+            listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+            moduleModel,
+            ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"),
+          )
+        assertThat(updates.size).isEqualTo(2)
+      },
+      {
+        assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+          .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(buildFileContent).contains("api libs.lib2")
+        assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
+      },
+    )
   }
 
   @Test
   fun testAddToBuildScriptWithNoVersion() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
-             assertThat(updates.size).isEqualTo(2)
-           },
-           {
-             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
-               .contains("{ group = \"com.example.libs\", name = \"lib2\"")
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("implementation libs.lib2")
-           })
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
+        assertThat(updates.size).isEqualTo(2)
+      },
+      {
+        assertThat(project.getTextForFile("gradle/libs.versions.toml")).contains("{ group = \"com.example.libs\", name = \"lib2\"")
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(buildFileContent).contains("implementation libs.lib2")
+      },
+    )
   }
 
   /**
-   * In this test we verify that with GroupName matcher we ignore version when looking for
-   * suitable dependency in toml catalog file.
-   * So we'll switch to existing junit declaration
+   * In this test we verify that with GroupName matcher we ignore version when looking for suitable dependency in toml catalog file. So
+   * we'll switch to existing junit declaration
    */
   @Test
   fun testAddToBuildScriptWithExistingDependency() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("implementation",
-                                                "junit:junit:999",
-                                                listOf(),
-                                                moduleModel,
-                                                GroupNameDependencyMatcher("implementation", "junit:junit:999")
-             )
-             assertThat(updates.size).isEqualTo(1)
-           },
-           {
-             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
-               .doesNotContain("= \"999\"")
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("implementation libs.junit")
-           })
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val updates =
+          helper.addDependency(
+            "implementation",
+            "junit:junit:999",
+            listOf(),
+            moduleModel,
+            GroupNameDependencyMatcher("implementation", "junit:junit:999"),
+          )
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        assertThat(project.getTextForFile("gradle/libs.versions.toml")).doesNotContain("= \"999\"")
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(buildFileContent).contains("implementation libs.junit")
+      },
+    )
   }
 
   @Test
   fun testSimpleAddNoCatalogWithExceptions() {
-    doTest(SIMPLE_APPLICATION,
-           { _, moduleModel, helper ->
-             val updates = helper.addDependency("api",
-                                                "com.example.libs:lib2:1.0",
-                                                listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                                moduleModel,
-                                                ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
-             assertThat(updates.size).isEqualTo(1)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("api \'com.example.libs:lib2:1.0\'")
-             assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
-           })
+    doTest(
+      SIMPLE_APPLICATION,
+      { _, moduleModel, helper ->
+        val updates =
+          helper.addDependency(
+            "api",
+            "com.example.libs:lib2:1.0",
+            listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+            moduleModel,
+            ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"),
+          )
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(buildFileContent).contains("api \'com.example.libs:lib2:1.0\'")
+        assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedPlatformDependencyWithCatalog() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { projectBuildModel, moduleModel, helper ->
-             val projectModel = projectBuildModel.projectBuildModel
-             assertThat(projectModel).isNotNull()
-             val matcher = GroupNameDependencyMatcher("implementation", "com.google.protobuf:protobuf-bom:3.21.8")
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { projectBuildModel, moduleModel, helper ->
+        val projectModel = projectBuildModel.projectBuildModel
+        assertThat(projectModel).isNotNull()
+        val matcher = GroupNameDependencyMatcher("implementation", "com.google.protobuf:protobuf-bom:3.21.8")
 
-             helper.addPlatformDependency("implementation",
-                                  "com.google.protobuf:protobuf-bom:3.21.8",
-                                  false,
-                                  moduleModel,
-                                  matcher)
-             helper.addPlatformDependency("implementation",
-                                  "com.google.protobuf:protobuf-bom:3.21.8",
-                                  false,
-                                  moduleModel,
-                                  matcher)
-           },
-           {
-             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
-             assertThat(countMatches(catalogContent, "= \"3.21.8\"")).isEqualTo(1)
-             assertThat(countMatches(catalogContent,"= { group = \"com.google.protobuf\", name = \"protobuf-bom\"")).isEqualTo(1)
+        helper.addPlatformDependency("implementation", "com.google.protobuf:protobuf-bom:3.21.8", false, moduleModel, matcher)
+        helper.addPlatformDependency("implementation", "com.google.protobuf:protobuf-bom:3.21.8", false, moduleModel, matcher)
+      },
+      {
+        val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+        assertThat(countMatches(catalogContent, "= \"3.21.8\"")).isEqualTo(1)
+        assertThat(countMatches(catalogContent, "= { group = \"com.google.protobuf\", name = \"protobuf-bom\"")).isEqualTo(1)
 
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent,"implementation platform(libs.protobuf.bom)")).isEqualTo(1)
-           })
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "implementation platform(libs.protobuf.bom)")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedPlatformDependencyNoCatalog() {
-    doTest(SIMPLE_APPLICATION,
-           { projectBuildModel, moduleModel, helper ->
-             val projectModel = projectBuildModel.projectBuildModel
-             assertThat(projectModel).isNotNull()
-             val dependency = "com.google.protobuf:protobuf-bom:3.21.8"
-             val matcher = GroupNameDependencyMatcher("implementation", dependency)
+    doTest(
+      SIMPLE_APPLICATION,
+      { projectBuildModel, moduleModel, helper ->
+        val projectModel = projectBuildModel.projectBuildModel
+        assertThat(projectModel).isNotNull()
+        val dependency = "com.google.protobuf:protobuf-bom:3.21.8"
+        val matcher = GroupNameDependencyMatcher("implementation", dependency)
 
-             helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
-             helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent,"implementation platform('com.google.protobuf:protobuf-bom:3.21.8')")).isEqualTo(1)
-           })
+        helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
+        helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "implementation platform('com.google.protobuf:protobuf-bom:3.21.8')")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedDependencyWithCatalog() {
-    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { projectBuildModel, moduleModel, helper ->
-             val projectModel = projectBuildModel.projectBuildModel
-             assertThat(projectModel).isNotNull()
-             val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
+    doTest(
+      SIMPLE_APPLICATION_VERSION_CATALOG,
+      { projectBuildModel, moduleModel, helper ->
+        val projectModel = projectBuildModel.projectBuildModel
+        assertThat(projectModel).isNotNull()
+        val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
 
-             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
-             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
-           },
-           {
-             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
-             assertThat(countMatches(catalogContent, "{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")).isEqualTo(1)
+        helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+        helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+      },
+      {
+        val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+        assertThat(countMatches(catalogContent, "{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")).isEqualTo(1)
 
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent,"api libs.lib2")).isEqualTo(1)
-           })
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "api libs.lib2")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedDependencyNoCatalog() {
-    doTest(SIMPLE_APPLICATION,
-           { projectBuildModel, moduleModel, helper ->
-             val projectModel = projectBuildModel.projectBuildModel
-             assertThat(projectModel).isNotNull()
-             val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
+    doTest(
+      SIMPLE_APPLICATION,
+      { projectBuildModel, moduleModel, helper ->
+        val projectModel = projectBuildModel.projectBuildModel
+        assertThat(projectModel).isNotNull()
+        val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
 
-             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
-             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent,"api 'com.example.libs:lib2:1.0'")).isEqualTo(1)
-           })
+        helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+        helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "api 'com.example.libs:lib2:1.0'")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddTestSuiteEngineDependencyWithCatalog() {
-    doTest(TEST_SUITES_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
-             assertThat(updates.size).isEqualTo(2)
-           },
-           {
-             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
-             assertThat(catalogContent).contains("junit-platform-launcher = \"1.13.4\"")
-             assertThat(catalogContent).contains(
-               "{ group = \"org.junit.platform\", name = \"junit-platform-launcher\", version.ref = \"junit-platform-launcher\" }")
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("enginesDependencies(libs.junit.platform.launcher)")
-           })
+    doTest(
+      TEST_SUITES_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
+        assertThat(updates.size).isEqualTo(2)
+      },
+      {
+        val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+        assertThat(catalogContent).contains("junit-platform-launcher = \"1.13.4\"")
+        assertThat(catalogContent)
+          .contains("{ group = \"org.junit.platform\", name = \"junit-platform-launcher\", version.ref = \"junit-platform-launcher\" }")
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(buildFileContent).contains("enginesDependencies(libs.junit.platform.launcher)")
+      },
+    )
   }
 
   @Test
   fun testAddTestSuiteEngineDependencyNoCatalog() {
-    doTest(TEST_SUITES,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
-             assertThat(updates.size).isEqualTo(1)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
-             assertThat(buildFileContent).contains("enginesDependencies(\"org.junit.platform:junit-platform-launcher:1.13.4\")")
-           })
+    doTest(
+      TEST_SUITES,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "org.junit.platform:junit-platform-launcher:1.13.4")
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+        assertThat(buildFileContent).contains("enginesDependencies(\"org.junit.platform:junit-platform-launcher:1.13.4\")")
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedTestSuiteEngineDependencyWithCatalog() {
-    doTest(TEST_SUITES_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
-             assertThat(updates.size).isEqualTo(0)
-           },
-           {
-             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
-             assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
-           })
+    doTest(
+      TEST_SUITES_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
+        assertThat(updates.size).isEqualTo(0)
+      },
+      {
+        val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+        assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDuplicatedTestSuiteEngineDependencyNoCatalog() {
-    doTest(TEST_SUITES,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
-             assertThat(updates.size).isEqualTo(0)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
-             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
-           })
+    doTest(
+      TEST_SUITES,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.12")
+        assertThat(updates.size).isEqualTo(0)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+        assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDifferentVersionTestSuiteEngineDependencyWithCatalog() {
-    doTest(TEST_SUITES_VERSION_CATALOG,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
-             assertThat(updates.size).isEqualTo(0)
-           },
-           {
-             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
-             assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
-             assertThat(countMatches(catalogContent, "junit = \"4.12\"")).isEqualTo(1)
-             val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
-           })
+    doTest(
+      TEST_SUITES_VERSION_CATALOG,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
+        assertThat(updates.size).isEqualTo(0)
+      },
+      {
+        val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+        assertThat(countMatches(catalogContent, "{ module = \"junit:junit\", version.ref = \"junit\" }")).isEqualTo(1)
+        assertThat(countMatches(catalogContent, "junit = \"4.12\"")).isEqualTo(1)
+        val buildFileContent = project.getTextForFile("app/build.gradle")
+        assertThat(countMatches(buildFileContent, "enginesDependencies(libs.junit)")).isEqualTo(1)
+      },
+    )
   }
 
   @Test
   fun testAddDifferentVersionTestSuiteEngineDependencyNoCatalog() {
-    doTest(TEST_SUITES,
-           { _, moduleModel, helper ->
-             val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
-             val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
-             assertThat(updates.size).isEqualTo(0)
-           },
-           {
-             val buildFileContent = project.getTextForFile("app/build.gradle.kts")
-             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
-             assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.13\")")).isEqualTo(0)
-           })
+    doTest(
+      TEST_SUITES,
+      { _, moduleModel, helper ->
+        val testSuiteModel = moduleModel.android().testOptions().suites().find { it.name() == "test" }!!
+        val updates = helper.addTestSuiteEngineDependency(testSuiteModel, "junit:junit:4.13")
+        assertThat(updates.size).isEqualTo(0)
+      },
+      {
+        val buildFileContent = project.getTextForFile("app/build.gradle.kts")
+        assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.12\")")).isEqualTo(1)
+        assertThat(countMatches(buildFileContent, "enginesDependencies(\"junit:junit:4.13\")")).isEqualTo(0)
+      },
+    )
   }
 
-  private fun doTest(projectPath: String,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
-                     assert: () -> Unit) {
+  private fun doTest(
+    projectPath: String,
+    change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
+    assert: () -> Unit,
+  ) {
     doTest(projectPath, {}, change, assert)
   }
 
-  private fun doTest(projectPath: String,
-                     updateFiles: () -> Unit,
-                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
-                     assert: () -> Unit) {
-    projectRule.loadProject(projectPath){ projectRoot ->
+  private fun doTest(
+    projectPath: String,
+    updateFiles: () -> Unit,
+    change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
+    assert: () -> Unit,
+  ) {
+    projectRule.loadProject(projectPath) { projectRoot ->
       updateFiles()
       VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true))
     }

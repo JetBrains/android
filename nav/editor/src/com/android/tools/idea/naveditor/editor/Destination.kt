@@ -76,10 +76,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
 
   abstract val label: String
 
-  abstract fun thumbnail(
-    iconCallback: (VirtualFile, Dimension) -> ImageIcon,
-    component: Component,
-  ): Image
+  abstract fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image
 
   abstract val typeLabel: String
   abstract val destinationOrder: DestinationOrder
@@ -111,9 +108,8 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       get() {
         val model = parent.model
         val screenSize =
-          model.configuration.deviceState?.orientation?.let {
-            model.configuration.cachedDevice?.getScreenSize(it)
-          } ?: error("No device in configuration!")
+          model.configuration.deviceState?.orientation?.let { model.configuration.cachedDevice?.getScreenSize(it) }
+            ?: error("No device in configuration!")
         val ratio = THUMBNAIL_MAX_DIMENSION / maxOf(screenSize.height, screenSize.width)
         return Dimension(
           (screenSize.width * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt(),
@@ -121,10 +117,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
         )
       }
 
-    override fun thumbnail(
-      iconCallback: (VirtualFile, Dimension) -> ImageIcon,
-      component: Component,
-    ): Image {
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image {
       val model = parent.model
 
       val result =
@@ -240,11 +233,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
         }
       }
 
-    override val label =
-      destinationLabel
-        ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) }
-        ?: destinationClass.name
-        ?: tag
+    override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: destinationClass.name ?: tag
 
     override fun addToGraph() {
       val newComponent = createComponent(tag) ?: return
@@ -258,16 +247,14 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       }
       layoutFile?.let {
         // TODO: do this the right way
-        val layoutId =
-          "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
+        val layoutId = "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
         newComponent.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, layoutId)
       }
       component = newComponent
     }
   }
 
-  data class IncludeDestination(val graph: String, override val parent: NlComponent) :
-    Destination(parent) {
+  data class IncludeDestination(val graph: String, override val parent: NlComponent) : Destination(parent) {
     override fun addToGraph() {
       val newComponent = createComponent(TAG_INCLUDE) ?: return
 
@@ -284,10 +271,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
     override val label = graph
 
     // TODO: update
-    override fun thumbnail(
-      iconCallback: (VirtualFile, Dimension) -> ImageIcon,
-      component: Component,
-    ): Image {
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image {
       return iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED)
         .getScaledInstance(INCLUDE_ICON_WIDTH, INCLUDE_ICON_HEIGHT, Image.SCALE_SMOOTH)
     }
@@ -300,8 +284,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
     override val inProject = true
   }
 
-  data class PlaceholderDestination(override val parent: NlComponent) :
-    ScreenShapedDestination(parent) {
+  data class PlaceholderDestination(override val parent: NlComponent) : ScreenShapedDestination(parent) {
     override fun addToGraph() {
       val newComponent = createComponent("fragment") ?: return
 

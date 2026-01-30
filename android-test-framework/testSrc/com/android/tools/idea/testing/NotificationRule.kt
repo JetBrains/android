@@ -31,14 +31,12 @@ import org.junit.rules.ExternalResource
 /**
  * A rule that allows verification of [Notification]s posted during a test.
  *
- * The rule subscribes to the [com.intellij.util.messages.MessageBus] and collects posted
- * notifications in a list of data objects that encapsulate the fields of a [Notification] that a
- * test might care about. The project message bus if used when [projectProvider] is provided.
- * Otherwise, the application message bus is used.
+ * The rule subscribes to the [com.intellij.util.messages.MessageBus] and collects posted notifications in a list of data objects that
+ * encapsulate the fields of a [Notification] that a test might care about. The project message bus if used when [projectProvider] is
+ * provided. Otherwise, the application message bus is used.
  *
- * Note that the [Notification] class itself is not good for us because it doesn't have an equals()
- * method, and it contains fields we definitely do not want to assert on for example,
- * [Notification.id].
+ * Note that the [Notification] class itself is not good for us because it doesn't have an equals() method, and it contains fields we
+ * definitely do not want to assert on for example, [Notification.id].
  */
 class NotificationRule(private val projectProvider: (() -> Project)? = null) : ExternalResource() {
 

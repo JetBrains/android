@@ -94,20 +94,10 @@ class BindsInstanceDaggerConceptTest {
         "Foo",
         setOf(
           BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "foo"),
-          BindsInstanceFactoryMethodParameterIndexValue(
-            MY_COMPONENT_FACTORY_ID,
-            "newMyComponent",
-            "foo",
-          ),
+          BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo"),
         ),
         "Foo2",
-        setOf(
-          BindsInstanceFactoryMethodParameterIndexValue(
-            MY_COMPONENT_FACTORY_ID,
-            "newMyComponent",
-            "foo2",
-          )
-        ),
+        setOf(BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo2")),
       )
   }
 
@@ -150,9 +140,7 @@ class BindsInstanceDaggerConceptTest {
     )
 
     val fooProviderDaggerElement =
-      ProviderDaggerElement(
-        myFixture.findParentElement<KtParameter>("@BindsInstance fun fooFunction(fo|o: Foo)")
-      )
+      ProviderDaggerElement(myFixture.findParentElement<KtParameter>("@BindsInstance fun fooFunction(fo|o: Foo)"))
 
     // Expected to resolve
     assertThat(
@@ -173,9 +161,7 @@ class BindsInstanceDaggerConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertThat(
-          BindsInstanceBuilderMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
+          BindsInstanceBuilderMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList()
         )
         .isEmpty()
     }
@@ -214,9 +200,7 @@ class BindsInstanceDaggerConceptTest {
     )
 
     val fooProviderDaggerElement =
-      ProviderDaggerElement(
-        myFixture.findParentElement<PsiParameter>("@BindsInstance void fooFunction(Foo f|oo);")
-      )
+      ProviderDaggerElement(myFixture.findParentElement<PsiParameter>("@BindsInstance void fooFunction(Foo f|oo);"))
 
     // Expected to resolve
     assertThat(
@@ -237,9 +221,7 @@ class BindsInstanceDaggerConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertThat(
-          BindsInstanceBuilderMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
+          BindsInstanceBuilderMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList()
         )
         .isEmpty()
     }
@@ -247,8 +229,7 @@ class BindsInstanceDaggerConceptTest {
 
   @Test
   fun bindsInstanceFactoryMethodParameterIndexValue_serialization() {
-    val indexValue =
-      BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "def", "ghi")
+    val indexValue = BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "def", "ghi")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -284,16 +265,11 @@ class BindsInstanceDaggerConceptTest {
         .trimIndent(),
     )
 
-    val fooProviderDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtParameter>("f|oo: Foo"))
+    val fooProviderDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtParameter>("f|oo: Foo"))
 
     // Expected to resolve
     assertThat(
-        BindsInstanceFactoryMethodParameterIndexValue(
-            MY_COMPONENT_FACTORY_ID,
-            "newMyComponent",
-            "foo",
-          )
+        BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo")
           .resolveToDaggerElements(myProject, myProject.projectScope())
           .toList()
       )
@@ -349,16 +325,11 @@ class BindsInstanceDaggerConceptTest {
         .trimIndent(),
     )
 
-    val fooProviderDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<PsiParameter>("Foo fo|o,"))
+    val fooProviderDaggerElement = ProviderDaggerElement(myFixture.findParentElement<PsiParameter>("Foo fo|o,"))
 
     // Expected to resolve
     assertThat(
-        BindsInstanceFactoryMethodParameterIndexValue(
-            MY_COMPONENT_FACTORY_ID,
-            "newMyComponent",
-            "foo",
-          )
+        BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo")
           .resolveToDaggerElements(myProject, myProject.projectScope())
           .toList()
       )

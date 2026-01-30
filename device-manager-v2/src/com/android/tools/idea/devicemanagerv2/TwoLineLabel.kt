@@ -40,8 +40,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
         .addComponent(line1Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         .addComponent(line2Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 
-    val verticalGroup =
-      layout.createSequentialGroup().addComponent(line1Label).addComponent(line2Label)
+    val verticalGroup = layout.createSequentialGroup().addComponent(line1Label).addComponent(line2Label)
 
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
@@ -51,10 +50,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
     this.layout = layout
   }
 
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation,
-  ) {
+  override fun updateTablePresentation(manager: TablePresentationManager, presentation: TablePresentation) {
     presentation.applyColors(this)
     manager.applyPresentation(line1Label, presentation)
     manager.applyPresentation(

@@ -20,7 +20,6 @@ interface IdeAaptOptions {
     /**
      * Resources are not namespaced.
      *
-     *
      * They are merged at the application level, as was the behavior with AAPT1
      */
     DISABLED,
@@ -28,15 +27,13 @@ interface IdeAaptOptions {
     /**
      * Resources must be namespaced.
      *
-     *
      * Each library is compiled in to an AAPT2 static library with its own namespace.
-     *
      *
      * Projects using this *cannot* consume non-namespaced dependencies.
      */
-    REQUIRED
+    REQUIRED,
   }
 
-  /** Returns the resource namespacing strategy for this sub-project  */
+  /** Returns the resource namespacing strategy for this sub-project */
   val namespacing: Namespacing
 }

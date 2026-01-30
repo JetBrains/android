@@ -26,8 +26,9 @@ import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Element
 
 class NdkFacetConfiguration : FacetConfiguration {
-  override fun createEditorTabs(editorContext: FacetEditorContext,
-                                validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> = emptyArray()
+  override fun createEditorTabs(editorContext: FacetEditorContext, validatorsManager: FacetValidatorsManager): Array<FacetEditorTab> =
+    emptyArray()
+
   var selectedVariantAbi: VariantAbi? = null
 
   @Throws(InvalidDataException::class)
@@ -43,10 +44,7 @@ class NdkFacetConfiguration : FacetConfiguration {
     XmlSerializer.serializeInto(serializedVariantAbi, element)
   }
 
-  private class SerializedVariantAbi @JvmOverloads constructor(
-    var SELECTED_VARIANT: String? = null,
-    var SELECTED_ABI: String? = null
-  ) {
+  private class SerializedVariantAbi @JvmOverloads constructor(var SELECTED_VARIANT: String? = null, var SELECTED_ABI: String? = null) {
     fun toVariantAbi(): VariantAbi? {
       val selectedVariant = SELECTED_VARIANT ?: return null
       val selectedAbi = SELECTED_ABI ?: return null

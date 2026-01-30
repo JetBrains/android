@@ -31,7 +31,8 @@ class AidlGoToDeclarationTest : AndroidTestCase() {
                   @nullable double aDouble, String aString, inout List<String> list, String test,
                   ParcelFileDescriptor descriptor);
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     checkGoToDeclaration("Li|st<String>", "List in java/util/List.class")
@@ -42,9 +43,8 @@ class AidlGoToDeclarationTest : AndroidTestCase() {
   private fun checkGoToDeclaration(caret: String, expected: String) {
     myFixture.moveCaret(caret)
     val elements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
-    val actual = elements.joinToString("\n") {
-      (it as PsiClass).name + " in " + it.containingFile.virtualFile.path.substringAfterLast("jar!/")
-    }
+    val actual =
+      elements.joinToString("\n") { (it as PsiClass).name + " in " + it.containingFile.virtualFile.path.substringAfterLast("jar!/") }
     assertEquals(expected, actual)
   }
 }

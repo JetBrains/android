@@ -51,12 +51,7 @@ class InspectionWithQuickFixesTest : JavaCodeInsightFixtureTestCase() {
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(source.virtualFile)
-    ApplicationManager.getApplication()
-      .replaceService(
-        LintIdeSupport::class.java,
-        TestInspectionLintIdeSupport(),
-        testRootDisposable,
-      )
+    ApplicationManager.getApplication().replaceService(LintIdeSupport::class.java, TestInspectionLintIdeSupport(), testRootDisposable)
     myFixture.enableInspections(TestInspection())
 
     // We should have a dozen intentions available, including creating subclass, making the class
@@ -101,9 +96,7 @@ class TestDetector : Detector(), SourceCodeScanner {
     val location = context.getLocation(node.sourcePsi?.containingFile)
 
     val fixes =
-      listOf("First Fix", "Second Fix", "Third Fix").map {
-        create().name(it).replace().range(location).text("fix").with("b0rk").build()
-      }
+      listOf("First Fix", "Second Fix", "Third Fix").map { create().name(it).replace().range(location).text("fix").with("b0rk").build() }
     val fix = create().alternatives(*fixes.toTypedArray())
 
     context.report(ISSUE, method, location, "N/A", fix)

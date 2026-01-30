@@ -33,16 +33,13 @@ import java.awt.Rectangle
  */
 class CanvasResizeLayer
 @JvmOverloads
-constructor(
-  private val screenView: ScreenView,
-  private val repaint: () -> Unit,
-  private val isVisibleCustom: () -> Boolean = { true },
-) : Layer() {
+constructor(private val screenView: ScreenView, private val repaint: () -> Unit, private val isVisibleCustom: () -> Boolean = { true }) :
+  Layer() {
   private var isHovering = false
 
   /**
-   * Sets the state of this layer according to the mouse hovering at point (x, y). Returns whether
-   * that required any modification to the state of the layer.
+   * Sets the state of this layer according to the mouse hovering at point (x, y). Returns whether that required any modification to the
+   * state of the layer.
    */
   override fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
     val oldHovering = isHovering
@@ -66,8 +63,7 @@ constructor(
     val y = screenView.y
     val graphics = g2d.create() as Graphics2D
     graphics.stroke = NlConstants.SOLID_STROKE
-    graphics.color =
-      if (isHovering) NlConstants.RESIZING_CORNER_COLOR else NlConstants.RESIZING_CUE_COLOR
+    graphics.color = if (isHovering) NlConstants.RESIZING_CORNER_COLOR else NlConstants.RESIZING_CUE_COLOR
     graphics.drawLine(
       x + size.width + NlConstants.BOUNDS_RECT_DELTA,
       y + size.height + 4,

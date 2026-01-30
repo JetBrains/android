@@ -42,11 +42,9 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 class BuildOutputErrorsListenerTest {
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
-  @Mock
-  private lateinit var myProject: Project
+  @Mock private lateinit var myProject: Project
   private lateinit var buildId: ExternalSystemTaskId
   private val listenerDisposable = Disposer.newCheckedDisposable(BuildOutputErrorsListenerTest::class.java.name)
   private var collectedFailures: List<BuildErrorMessage>? = null
@@ -64,11 +62,13 @@ class BuildOutputErrorsListenerTest {
     buildOutputErrorsListener = BuildOutputErrorsListener(buildId, listenerDisposable) { collectedFailures = it }
   }
 
-  private fun checkSentMetricsData(sentMetricsData: BuildErrorMessage,
-                                   errorType: BuildErrorMessage.ErrorType,
-                                   fileType: BuildErrorMessage.FileType,
-                                   fileIncluded: Boolean,
-                                   lineIncluded: Boolean) {
+  private fun checkSentMetricsData(
+    sentMetricsData: BuildErrorMessage,
+    errorType: BuildErrorMessage.ErrorType,
+    fileType: BuildErrorMessage.FileType,
+    fileIncluded: Boolean,
+    lineIncluded: Boolean,
+  ) {
     assertThat(sentMetricsData).isNotNull()
     assertThat(sentMetricsData.errorShownType).isEquivalentAccordingToCompareTo(errorType)
     assertThat(sentMetricsData.fileIncludedType).isEquivalentAccordingToCompareTo(fileType)
@@ -79,14 +79,35 @@ class BuildOutputErrorsListenerTest {
   @Test
   fun testMetricsReporting() {
     val folder = temporaryFolder.newFolder("test")
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Compiler", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
+    messageEvent =
+      FileMessageEventImpl(
+        buildId,
+        MessageEvent.Kind.ERROR,
+        "Compiler",
+        "error message",
+        "error message",
+        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2),
+      )
     buildOutputErrorsListener.onEvent(buildId, messageEvent)
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "D8 errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "build", "intermediates", "res", "tmp"), -1, -1))
+    messageEvent =
+      FileMessageEventImpl(
+        buildId,
+        MessageEvent.Kind.ERROR,
+        "D8 errors",
+        "error message",
+        "error message",
+        FilePosition(FileUtils.join(folder, "build", "intermediates", "res", "tmp"), -1, -1),
+      )
     buildOutputErrorsListener.onEvent(buildId, messageEvent)
-    messageEvent = FileMessageEventImpl(buildId, MessageEvent.Kind.ERROR, "AAPT errors", "error message", "error message",
-                                        FilePosition(FileUtils.join(folder, "build", "generated", "merged", "res", "merged.xml"), -1, -1))
+    messageEvent =
+      FileMessageEventImpl(
+        buildId,
+        MessageEvent.Kind.ERROR,
+        "AAPT errors",
+        "error message",
+        "error message",
+        FilePosition(FileUtils.join(folder, "build", "generated", "merged", "res", "merged.xml"), -1, -1),
+      )
     buildOutputErrorsListener.onEvent(buildId, messageEvent)
     messageEvent = MessageEventImpl(buildId, MessageEvent.Kind.ERROR, "Android Gradle Plugin errors", "error message", "error message")
     buildOutputErrorsListener.onEvent(buildId, messageEvent)
@@ -94,29 +115,59 @@ class BuildOutputErrorsListenerTest {
     buildOutputErrorsListener.onEvent(buildId, messageEvent)
     assertThat(listenerDisposable.isDisposed).isFalse()
     assertThat(collectedFailures).isNull()
-    buildOutputErrorsListener.onEvent(buildId, FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "failed", FailureResultImpl()))
+    buildOutputErrorsListener.onEvent(
+      buildId,
+      FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "failed", FailureResultImpl()),
+    )
     assertThat(listenerDisposable.isDisposed).isTrue()
     assertThat(collectedFailures).isNotNull()
     val messages = collectedFailures!!
     assertThat(messages).hasSize(5)
-    checkSentMetricsData(messages[0], BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.FileType.PROJECT_FILE,
-                         fileIncluded = true, lineIncluded = true)
-    checkSentMetricsData(messages[1], BuildErrorMessage.ErrorType.D8, BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
-                         fileIncluded = true, lineIncluded = false)
-    checkSentMetricsData(messages[2], BuildErrorMessage.ErrorType.AAPT, BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
-                         fileIncluded = true, lineIncluded = false)
-    checkSentMetricsData(messages[3], BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
-                         BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
-                         fileIncluded = false, lineIncluded = false)
-    checkSentMetricsData(messages[4], BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE, BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
-                         fileIncluded = false, lineIncluded = false)
+    checkSentMetricsData(
+      messages[0],
+      BuildErrorMessage.ErrorType.JAVA_COMPILER,
+      BuildErrorMessage.FileType.PROJECT_FILE,
+      fileIncluded = true,
+      lineIncluded = true,
+    )
+    checkSentMetricsData(
+      messages[1],
+      BuildErrorMessage.ErrorType.D8,
+      BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
+      fileIncluded = true,
+      lineIncluded = false,
+    )
+    checkSentMetricsData(
+      messages[2],
+      BuildErrorMessage.ErrorType.AAPT,
+      BuildErrorMessage.FileType.BUILD_GENERATED_FILE,
+      fileIncluded = true,
+      lineIncluded = false,
+    )
+    checkSentMetricsData(
+      messages[3],
+      BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
+      BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
+      fileIncluded = false,
+      lineIncluded = false,
+    )
+    checkSentMetricsData(
+      messages[4],
+      BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE,
+      BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE,
+      fileIncluded = false,
+      lineIncluded = false,
+    )
   }
 
   @Test
   fun testNoErrorFoundMetricsReporting() {
     assertThat(listenerDisposable.isDisposed).isFalse()
     assertThat(collectedFailures).isNull()
-    buildOutputErrorsListener.onEvent(buildId, FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "failed", FailureResultImpl()))
+    buildOutputErrorsListener.onEvent(
+      buildId,
+      FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "failed", FailureResultImpl()),
+    )
     assertThat(listenerDisposable.isDisposed).isTrue()
     assertThat(collectedFailures).isEmpty()
   }
@@ -125,7 +176,10 @@ class BuildOutputErrorsListenerTest {
   fun testNothingReportedOnSuccessfulBuild() {
     assertThat(listenerDisposable.isDisposed).isFalse()
     assertThat(collectedFailures).isNull()
-    buildOutputErrorsListener.onEvent(buildId, FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "finished", SuccessResultImpl()))
+    buildOutputErrorsListener.onEvent(
+      buildId,
+      FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "finished", SuccessResultImpl()),
+    )
     assertThat(listenerDisposable.isDisposed).isTrue()
     assertThat(collectedFailures).isNull()
   }

@@ -49,10 +49,7 @@ interface CancellationToken {
 
 /** Represents multiple [CancellationToken]s under a single one. */
 class CompositeCancellationToken(private val tokens: List<CancellationToken>) : CancellationToken {
-  override val action: Action by
-    lazy(LazyThreadSafetyMode.PUBLICATION) {
-      tokens.fold(Action.NONE) { acc, token -> acc and token.action }
-    }
+  override val action: Action by lazy(LazyThreadSafetyMode.PUBLICATION) { tokens.fold(Action.NONE) { acc, token -> acc and token.action } }
 
   override fun cancel(reason: Action): CancellationToken? {
     val result = tokens.mapNotNull { it.cancel(reason) }
@@ -65,8 +62,7 @@ class CompositeCancellationToken(private val tokens: List<CancellationToken>) : 
 }
 
 /** A token backed by Kotlin's [Job]. */
-class JobCancellationToken(private val job: Job, override val action: Action.Single) :
-  CancellationToken {
+class JobCancellationToken(private val job: Job, override val action: Action.Single) : CancellationToken {
 
   override fun cancel(reason: Action): JobCancellationToken? {
     if (job.isCompleted) return null

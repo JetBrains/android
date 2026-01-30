@@ -21,16 +21,15 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import java.nio.file.Paths
+import kotlin.io.path.name
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.io.path.name
 
 @RunWith(JUnit4::class)
 class GoToDeclarationTest {
-  @get:Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @get:Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @Test
   fun goToDeclaration() {
@@ -39,7 +38,7 @@ class GoToDeclarationTest {
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/languagehighlighting_deps.manifest"))
-    system.getInstallation().copySystemDir(projectArtifactsPath);
+    system.getInstallation().copySystemDir(projectArtifactsPath)
     system.runStudio(project).use { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

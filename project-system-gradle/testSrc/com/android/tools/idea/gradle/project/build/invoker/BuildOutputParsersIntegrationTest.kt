@@ -55,6 +55,9 @@ import com.intellij.testFramework.fixtures.BuildViewTestFixture
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.tree.TreeUtil
+import java.io.File
+import java.util.function.Predicate
+import javax.swing.tree.DefaultMutableTreeNode
 import junit.framework.TestCase.assertEquals
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
@@ -69,28 +72,17 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import java.io.File
-import java.util.function.Predicate
-import javax.swing.tree.DefaultMutableTreeNode
 
 @RunWith(Parameterized::class)
 class BuildOutputParsersIntegrationTest {
 
   companion object {
-    @JvmStatic
-    @Parameters(name = "additionalQuickfixProviderAvailable={0}")
-    fun parameters() = listOf(
-      arrayOf(true),
-      arrayOf(false),
-    )
+    @JvmStatic @Parameters(name = "additionalQuickfixProviderAvailable={0}") fun parameters() = listOf(arrayOf(true), arrayOf(false))
   }
 
-  @Parameter
-  @JvmField
-  var additionalQuickfixProviderAvailable: Boolean? = null
+  @Parameter @JvmField var additionalQuickfixProviderAvailable: Boolean? = null
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var testDataPath: String
 
@@ -101,8 +93,7 @@ class BuildOutputParsersIntegrationTest {
   private lateinit var myTracker: TestUsageTracker
   private lateinit var buildViewTestFixture: BuildViewTestFixture
 
-  @Mock
-  private lateinit var myFileDocumentManager: FileDocumentManager
+  @Mock private lateinit var myFileDocumentManager: FileDocumentManager
 
   @Before
   fun setUp() {
@@ -118,25 +109,32 @@ class BuildOutputParsersIntegrationTest {
     buildViewTestFixture = BuildViewTestFixture(projectRule.project)
     buildViewTestFixture.setUp()
 
-    val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
-      override fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
-        if (additionalQuickfixProviderAvailable != true) return null
-        if (buildEvent !is MessageEvent) return null
-        return object: DescribedBuildIssueQuickFix {
-          override val description: String
-            get() = "Additional quickfix link"
-          override val id: String
-            get() = "com.plugin.gradle.quickfix"
+    val gradleErrorQuickFixProvider =
+      object : GradleErrorQuickFixProvider {
+        override fun createBuildIssueAdditionalQuickFix(
+          buildEvent: BuildEvent,
+          taskId: ExternalSystemTaskId,
+        ): DescribedBuildIssueQuickFix? {
+          if (additionalQuickfixProviderAvailable != true) return null
+          if (buildEvent !is MessageEvent) return null
+          return object : DescribedBuildIssueQuickFix {
+            override val description: String
+              get() = "Additional quickfix link"
+
+            override val id: String
+              get() = "com.plugin.gradle.quickfix"
+          }
+        }
+
+        override fun createSyncMessageAdditionalLink(
+          syncMessage: SyncMessage,
+          affectedModules: List<Module>,
+          buildFileMap: Map<Module, VirtualFile>,
+          rootProjectPath: @SystemIndependent String,
+        ): SyncMessageHyperlink? {
+          error("Should not be called in this test")
         }
       }
-
-      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage,
-                                                   affectedModules: List<Module>,
-                                                   buildFileMap: Map<Module, VirtualFile>,
-                                                   rootProjectPath: @SystemIndependent String): SyncMessageHyperlink? {
-        error("Should not be called in this test")
-      }
-    }
     ApplicationManager.getApplication()
       .registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
   }
@@ -151,12 +149,7 @@ class BuildOutputParsersIntegrationTest {
   private fun replayGradleOutput(myTaskId: ExternalSystemTaskId, output: String, exception: Exception?) {
     val myRequest = GradleBuildInvoker.Request.builder(projectRule.project, File(basePath)).setTaskId(myTaskId).build()
     val buildListener =
-      GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
-        projectRule.project,
-        myFileDocumentManager,
-        myRequest,
-        ""
-      )
+      GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(projectRule.project, myFileDocumentManager, myRequest, "")
     buildListener.onStart(basePath, myTaskId)
     output.lines().forEach { line ->
       if (line.startsWith("> Task :")) {
@@ -164,12 +157,14 @@ class BuildOutputParsersIntegrationTest {
         // which work in parallel, and it is important to mimic this process fully.
         val taskName = line.removePrefix("> Task ").substringBefore(' ')
         val eventId = "[root build id] > [Task $taskName]"
-        //See org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConverter.convertTaskProgressEventResult for real conversion
-        val result = when {
-          line.endsWith(" FAILED") -> FailureResultImpl(null, null)
-          line.endsWith(" UP-TO-DATE") -> SuccessResultImpl(/* isUpToDate = */ true)
-          else -> SuccessResultImpl(/* isUpToDate = */ false)
-        }
+        // See org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConverter.convertTaskProgressEventResult for real
+        // conversion
+        val result =
+          when {
+            line.endsWith(" FAILED") -> FailureResultImpl(null, null)
+            line.endsWith(" UP-TO-DATE") -> SuccessResultImpl(/* isUpToDate= */ true)
+            else -> SuccessResultImpl(/* isUpToDate= */ false)
+          }
         buildListener.onStatusChange(
           ExternalSystemBuildEvent(myTaskId, StartEventImpl(eventId, myTaskId, System.currentTimeMillis(), taskName))
         )
@@ -181,8 +176,7 @@ class BuildOutputParsersIntegrationTest {
     buildListener.onTaskOutput(myTaskId, output, ProcessOutputType.STDOUT)
     if (exception != null) {
       buildListener.onFailure(basePath, myTaskId, exception)
-    }
-    else {
+    } else {
       buildListener.onSuccess(basePath, myTaskId)
     }
     buildListener.onEnd(basePath, myTaskId)
@@ -197,7 +191,7 @@ class BuildOutputParsersIntegrationTest {
     errorType: BuildErrorMessage.ErrorType,
     fileType: BuildErrorMessage.FileType,
     fileIncluded: Boolean,
-    lineIncluded: Boolean
+    lineIncluded: Boolean,
   ) {
     assertThat(errorShownType).isEquivalentAccordingToCompareTo(errorType)
     assertThat(fileIncludedType).isEquivalentAccordingToCompareTo(fileType)
@@ -205,9 +199,7 @@ class BuildOutputParsersIntegrationTest {
     assertThat(lineLocationIncluded).isEqualTo(lineIncluded)
   }
 
-  private fun getMatchingNodesConsoleContent(
-    nameFilter: Predicate<String>
-  ): String {
+  private fun getMatchingNodesConsoleContent(nameFilter: Predicate<String>): String {
     val buildView = projectRule.project.getService(BuildViewManager::class.java).getBuildView(myTaskId)!!
     val eventView = buildView.getView(BuildTreeConsoleView::class.java.name, BuildTreeConsoleView::class.java)
     eventView!!.addFilter { true }
@@ -216,10 +208,12 @@ class BuildOutputParsersIntegrationTest {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       PlatformTestUtil.waitWhileBusy(tree)
 
-      TreeUtil.treeNodeTraverser(tree.model.root as DefaultMutableTreeNode).filter {
-        val userObject = (it as DefaultMutableTreeNode).userObject
-        userObject is ExecutionNode && nameFilter.test(userObject.name)
-      }.toList()
+      TreeUtil.treeNodeTraverser(tree.model.root as DefaultMutableTreeNode)
+        .filter {
+          val userObject = (it as DefaultMutableTreeNode).userObject
+          userObject is ExecutionNode && nameFilter.test(userObject.name)
+        }
+        .toList()
     }
 
     val result = mutableListOf<String>()
@@ -233,8 +227,7 @@ class BuildOutputParsersIntegrationTest {
             PlatformTestUtil.waitWhileBusy(tree)
             tree.selectionPath!!.lastPathComponent
           }
-        }
-        else {
+        } else {
           tree.selectionPath!!.lastPathComponent
         }
       if (node != selectedPathComponent) {
@@ -243,18 +236,21 @@ class BuildOutputParsersIntegrationTest {
       val selectedNodeConsole = runInEdtAndGet { eventView.selectedNodeConsole }
 
       val executionNode = (node as DefaultMutableTreeNode).userObject as ExecutionNode
-      val kind = when {
-        executionNode.isFailed -> "ERROR"
-        executionNode.hasWarnings() -> "WARNING"
-        else -> ""
-      }
+      val kind =
+        when {
+          executionNode.isFailed -> "ERROR"
+          executionNode.hasWarnings() -> "WARNING"
+          else -> ""
+        }
 
-      result.add(buildString {
-        appendLine(tree.selectionPath!!.path.joinToString(prefix = "Path:", separator = " > ") { it.toString() })
-        appendLine(kind)
-        appendLine((selectedNodeConsole as? ConsoleViewImpl)?.text)
-        append("---")
-      })
+      result.add(
+        buildString {
+          appendLine(tree.selectionPath!!.path.joinToString(prefix = "Path:", separator = " > ") { it.toString() })
+          appendLine(kind)
+          appendLine((selectedNodeConsole as? ConsoleViewImpl)?.text)
+          append("---")
+        }
+      )
     }
     return result.joinToString(separator = "\n")
   }
@@ -269,7 +265,7 @@ class BuildOutputParsersIntegrationTest {
   private fun runChecks(
     expectedTreeStructure: String,
     consoleContentCheckers: List<Pair<Predicate<String>, String>>,
-    buildErrorMessageAssertions: List<(BuildErrorMessage) -> Unit>?
+    buildErrorMessageAssertions: List<(BuildErrorMessage) -> Unit>?,
   ) {
     // Check BuildOutputWindow messages
     buildViewTestFixture.assertBuildViewTreeEquals(expectedTreeStructure)
@@ -279,16 +275,18 @@ class BuildOutputParsersIntegrationTest {
       assertThat(consolesDump).isEqualTo(expectedConsoleContent)
     }
 
-    val buildOutputWindowEvents = myTracker.usages.filter {
-      it.studioEvent.hasBuildOutputWindowStats()
-    }
+    val buildOutputWindowEvents = myTracker.usages.filter { it.studioEvent.hasBuildOutputWindowStats() }
 
     if (buildErrorMessageAssertions == null) {
       assertThat(buildOutputWindowEvents).isEmpty()
-    }
-    else {
+    } else {
       assertThat(buildOutputWindowEvents).hasSize(1)
-      buildOutputWindowEvents.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList.checkSentMetricsData(buildErrorMessageAssertions)
+      buildOutputWindowEvents
+        .first()
+        .studioEvent
+        .buildOutputWindowStats
+        .buildErrorMessagesList
+        .checkSentMetricsData(buildErrorMessageAssertions)
     }
   }
 
@@ -299,33 +297,28 @@ class BuildOutputParsersIntegrationTest {
     val absolutePath = path.absolutePath
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("androidGradlePluginErrors")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$absolutePath" to absolutePath))
-    //TODO (b/372180686): extra `Android resource linking failed` message is currently generated
+    // TODO (b/372180686): extra `Android resource linking failed` message is currently generated
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$stylesXmlPath" to absolutePath))
-    }
-    else {
-      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$stylesXmlPath" to absolutePath))
-    }
+    val expectedConsoleContent =
+      if (additionalQuickfixProviderAvailable == true) {
+        testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$stylesXmlPath" to absolutePath))
+      } else {
+        testDir.readTestFile("expectedConsoleContent.txt", listOf("\$stylesXmlPath" to absolutePath))
+      }
 
-    replayGradleOutput(
-      myTaskId = myTaskId,
-      output = gradleOutput,
-      exception = RuntimeException("fake exception for test")
-    )
+    replayGradleOutput(myTaskId = myTaskId, output = gradleOutput, exception = RuntimeException("fake exception for test"))
 
     runChecks(
       expectedTreeStructure = expectedTreeStructure,
-      consoleContentCheckers = listOf(
-        Predicate<String> { it == "Android resource linking failed" } to expectedConsoleContent
-      ),
-      buildErrorMessageAssertions = listOf(
-        { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
-        { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
-        { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
-        { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
-        { it.checkBuildErrorMessage(UNKNOWN_ERROR_TYPE, UNKNOWN_FILE_TYPE, fileIncluded = false, lineIncluded = false) },
-      )
+      consoleContentCheckers = listOf(Predicate<String> { it == "Android resource linking failed" } to expectedConsoleContent),
+      buildErrorMessageAssertions =
+        listOf(
+          { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
+          { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
+          { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
+          { it.checkBuildErrorMessage(AAPT, PROJECT_FILE, fileIncluded = true, lineIncluded = true) },
+          { it.checkBuildErrorMessage(UNKNOWN_ERROR_TYPE, UNKNOWN_FILE_TYPE, fileIncluded = false, lineIncluded = false) },
+        ),
     )
   }
 
@@ -335,27 +328,20 @@ class BuildOutputParsersIntegrationTest {
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("xmlParsingError")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$path" to path))
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
-    }
-    else {
-      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
-    }
+    val expectedConsoleContent =
+      if (additionalQuickfixProviderAvailable == true) {
+        testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
+      } else {
+        testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
+      }
 
-    replayGradleOutput(
-      myTaskId = myTaskId,
-      output = gradleOutput,
-      exception = RuntimeException("fake exception for test")
-    )
+    replayGradleOutput(myTaskId = myTaskId, output = gradleOutput, exception = RuntimeException("fake exception for test"))
 
     runChecks(
       expectedTreeStructure = expectedTreeStructure,
-      consoleContentCheckers = listOf(
-        Predicate<String> { it.startsWith("Attribute name ") } to expectedConsoleContent
-      ),
-      buildErrorMessageAssertions = listOf(
-        { it.checkBuildErrorMessage(XML_PARSER, UNKNOWN_FILE_TYPE, fileIncluded = false, lineIncluded = false) },
-      )
+      consoleContentCheckers = listOf(Predicate<String> { it.startsWith("Attribute name ") } to expectedConsoleContent),
+      buildErrorMessageAssertions =
+        listOf({ it.checkBuildErrorMessage(XML_PARSER, UNKNOWN_FILE_TYPE, fileIncluded = false, lineIncluded = false) }),
     )
   }
 
@@ -364,25 +350,19 @@ class BuildOutputParsersIntegrationTest {
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("xmlParsingErrorsDuringSync")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt")
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (additionalQuickfixProviderAvailable == true) {
-      testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
-    }
-    else {
-      testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
-    }
+    val expectedConsoleContent =
+      if (additionalQuickfixProviderAvailable == true) {
+        testDir.readTestFile("expectedConsoleContent-withQuickfixProvider.txt", listOf("\$basePath" to basePath))
+      } else {
+        testDir.readTestFile("expectedConsoleContent.txt", listOf("\$basePath" to basePath))
+      }
 
-    replayGradleOutput(
-      myTaskId = myTaskId,
-      output = gradleOutput,
-      exception = null
-    )
+    replayGradleOutput(myTaskId = myTaskId, output = gradleOutput, exception = null)
 
     runChecks(
       expectedTreeStructure = expectedTreeStructure,
-      consoleContentCheckers = listOf(
-        Predicate<String> { it.startsWith("cvc-complex-type.2.4.") } to expectedConsoleContent
-      ),
-      buildErrorMessageAssertions = null // We don't report anything if it is not a failure
+      consoleContentCheckers = listOf(Predicate<String> { it.startsWith("cvc-complex-type.2.4.") } to expectedConsoleContent),
+      buildErrorMessageAssertions = null, // We don't report anything if it is not a failure
     )
   }
 }

@@ -32,9 +32,7 @@ class DeadlockUIThreadWithSynchronized : AnAction(), DumbAware {
     synchronized(lock2) {
       semaphore2.release()
       semaphore1.tryAcquire()
-      synchronized(lock1) {
-        println("Deadlock before reaching this line.")
-      }
+      synchronized(lock1) { println("Deadlock before reaching this line.") }
     }
   }
 
@@ -43,9 +41,7 @@ class DeadlockUIThreadWithSynchronized : AnAction(), DumbAware {
     synchronized(lock1) {
       semaphore2.acquire()
       semaphore1.release()
-      synchronized(lock2) {
-        println("Deadlock before reaching this line.")
-      }
+      synchronized(lock2) { println("Deadlock before reaching this line.") }
     }
   }
 }

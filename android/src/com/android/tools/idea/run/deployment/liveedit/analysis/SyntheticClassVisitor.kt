@@ -24,6 +24,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 class SyntheticClassVisitor(val className: String) : ClassVisitor {
   var requiresReinit = false
     private set
+
   var modifiedMethods: List<MethodDiff> = emptyList()
     private set
 

@@ -49,7 +49,7 @@ private val missingSourcesFileContentsFormat =
    * Android SDK source code for this API level cannot be found.
    ********************************************************************
 
-"""
+  """
     .trimIndent()
 
 private const val MISSING_SOURCES_FILE_NAME = "android-%s/UnavailableSource"
@@ -57,13 +57,9 @@ private const val MISSING_SOURCES_FILE_NAME = "android-%s/UnavailableSource"
 /**
  * Finds a [SourcePosition] for a specific API level
  *
- * If the sources are not downloaded, creates a stub file and displays a banner offering user to
- * download the sources.
+ * If the sources are not downloaded, creates a stub file and displays a banner offering user to download the sources.
  */
-internal class SdkSourceFinderForApiLevel(
-  val project: Project,
-  private val apiLevel: AndroidApiLevel,
-) {
+internal class SdkSourceFinderForApiLevel(val project: Project, private val apiLevel: AndroidApiLevel) {
   private val missingSourcesFile: PsiFile by lazy(SYNCHRONIZED) { createMissingSourcesFile() }
 
   fun getSourcePosition(file: PsiFile, lineNumber: Int): SourcePosition {
@@ -73,23 +69,18 @@ internal class SdkSourceFinderForApiLevel(
   private fun getSourceFileForApiLevel(file: PsiFile, lineNumber: Int): SourcePosition? {
     val relPath = getRelPathForJavaSource(file)
     if (relPath == null) {
-      thisLogger()
-        .debug("getApiSpecificPsi returned null because relPath is null for file: " + file.name)
+      thisLogger().debug("getApiSpecificPsi returned null because relPath is null for file: " + file.name)
       return null
     }
 
     val sourceFolder = createSourcePackageForApiLevel() ?: return null
     val virtualFile = sourceFolder.findFileByRelativePath(relPath)
     if (virtualFile == null) {
-      thisLogger()
-        .debug(
-          "getSourceForApiLevel returned null because $relPath is not present in $sourceFolder"
-        )
+      thisLogger().debug("getSourceForApiLevel returned null because $relPath is not present in $sourceFolder")
       return null
     }
 
-    val apiSpecificSourceFile =
-      runReadAction { PsiManager.getInstance(project).findFile(virtualFile) } ?: return null
+    val apiSpecificSourceFile = runReadAction { PsiManager.getInstance(project).findFile(virtualFile) } ?: return null
 
     return SourcePosition.createFromLine(apiSpecificSourceFile, lineNumber)
   }
@@ -100,9 +91,7 @@ internal class SdkSourceFinderForApiLevel(
         // When the compilation SDK sources are present, they are indexed and the incoming PsiFile
         // is a JavaFileType that refers to them.
         // The relative path for the same file in target SDK sources can be directly determined.
-        val sourceRoot = runReadAction {
-          ProjectFileIndex.getInstance(project).getSourceRootForFile(file.virtualFile)
-        }
+        val sourceRoot = runReadAction { ProjectFileIndex.getInstance(project).getSourceRootForFile(file.virtualFile) }
         if (sourceRoot == null) {
           thisLogger().debug("Could not determine source root for file: " + file.virtualFile.path)
           null
@@ -117,8 +106,7 @@ internal class SdkSourceFinderForApiLevel(
         // assumption that the java file will have the
         // same path.
         val virtualFile = file.virtualFile
-        val relativeClassPath =
-          VfsUtilCore.getRelativePath(virtualFile, VfsUtilCore.getRootFile(virtualFile))
+        val relativeClassPath = VfsUtilCore.getRelativePath(virtualFile, VfsUtilCore.getRootFile(virtualFile))
 
         // The class file should end in ".class", but we're interested in the corresponding java
         // file.
@@ -130,15 +118,12 @@ internal class SdkSourceFinderForApiLevel(
 
   private fun createSourcePackageForApiLevel(): VirtualFile? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val sdkManager =
-      sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
 
-    for (sourcePackage in
-      sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)) {
+    for (sourcePackage in sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)) {
       val typeDetails = sourcePackage.typeDetails
       if (typeDetails !is DetailsTypes.ApiDetailsType) {
-        thisLogger()
-          .warn("Unable to get type details for source package @ " + sourcePackage.location)
+        thisLogger().warn("Unable to get type details for source package @ " + sourcePackage.location)
         continue
       }
       if (apiLevel == typeDetails.androidVersion.androidApiLevel) {
@@ -159,10 +144,7 @@ internal class SdkSourceFinderForApiLevel(
   private fun createMissingSourcesFile(): PsiFile {
     val content = String.format(Locale.getDefault(), missingSourcesFileContentsFormat, apiLevel)
     val name = MISSING_SOURCES_FILE_NAME.format(apiLevel)
-    val psiFile = runReadAction {
-      PsiFileFactory.getInstance(project)
-        .createFileFromText(name, JavaLanguage.INSTANCE, content, true, true)
-    }
+    val psiFile = runReadAction { PsiFileFactory.getInstance(project).createFileFromText(name, JavaLanguage.INSTANCE, content, true, true) }
     val file = psiFile.virtualFile
 
     // Technically, VirtualFile.setWritable() can throw, but we will have a LightVirtualFile which
@@ -191,6 +173,4 @@ internal class SdkSourceFinderForApiLevel(
 }
 
 fun String.changeClassExtensionToJava() =
-  if (endsWith(SdkConstants.DOT_CLASS))
-    substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA
-  else this
+  if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this

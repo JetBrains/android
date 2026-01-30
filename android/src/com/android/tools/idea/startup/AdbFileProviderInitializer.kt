@@ -22,8 +22,8 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 // Note: The reason this code need to live in the "android-core" module
 // is that it depends on [AndroidSdkUtils] which has many dependencies
@@ -42,9 +42,12 @@ internal abstract class AdbFileProviderBase(private val project: Project?, priva
       // Log error only once per application or project
       if (userData.getUserData(LOG_ERROR_KEY) != true) {
         userData.putUserData(LOG_ERROR_KEY, true)
-        thisLogger().warn("Location of ADB could not be determined for ${project ?: "application"}.\n" +
-                          "The following paths were searched:\n" +
-                          result.searchedPaths.joinToString("\n"))
+        thisLogger()
+          .warn(
+            "Location of ADB could not be determined for ${project ?: "application"}.\n" +
+              "The following paths were searched:\n" +
+              result.searchedPaths.joinToString("\n")
+          )
       }
     }
 

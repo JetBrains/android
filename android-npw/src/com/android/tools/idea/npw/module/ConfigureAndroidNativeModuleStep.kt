@@ -27,16 +27,13 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
+import org.jetbrains.android.util.AndroidBundle.message
 
-class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
-                                       minSdkLevel: Int,
-                                       basePackage: String?,
-                                       title: String) :
+class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel, minSdkLevel: Int, basePackage: String?, title: String) :
   ConfigureModuleStep<NewAndroidNativeModuleModel>(model, FormFactor.MOBILE, minSdkLevel, basePackage, title) {
 
   private val appName: JTextField = JBTextField(model.applicationName.get())
@@ -49,29 +46,21 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
 
   override fun getPreferredFocusComponent(): JComponent? = appName
 
-  override fun createMainPanel(): JPanel = panel {
-    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).align(AlignX.FILL)
-    }
+  override fun createMainPanel(): JPanel =
+    panel {
+        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-    row("Package name") {
-      cell(packageName).align(AlignX.FILL)
-    }
+        row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-    row("Language") {
-      cell(languageCombo).align(AlignX.FILL)
-    }
+        row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-    row("C++ Standard") {
-      cell(cppStandard).align(AlignX.FILL)
-    }
+        row("C++ Standard") { cell(cppStandard).align(AlignX.FILL) }
 
-    row("Minimum SDK") {
-      cell(apiLevelCombo).align(AlignX.FILL)
-    }
+        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-    }
-  }.withBorder(JBUI.Borders.empty(6))
+        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+        }
+      }
+      .withBorder(JBUI.Borders.empty(6))
 }

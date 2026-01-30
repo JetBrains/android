@@ -72,9 +72,8 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 
   /**
-   * Returns visibility and whether the visibility is from tools attribute. If tools attribute is
-   * not none, it returns tools attribute visibility and true If tools attribute is none, it returns
-   * android attribute visibility and false
+   * Returns visibility and whether the visibility is from tools attribute. If tools attribute is not none, it returns tools attribute
+   * visibility and true If tools attribute is none, it returns android attribute visibility and false
    */
   fun getCurrentVisibility(): Visibility {
     if (isToolsAttrAvailable()) {
@@ -83,10 +82,7 @@ class NlVisibilityModel(val component: NlComponent) {
     return androidVisibility
   }
 
-  /**
-   * Returns true if there's tools attribute visibility that can override android visibility
-   * attribute.
-   */
+  /** Returns true if there's tools attribute visibility that can override android visibility attribute. */
   fun isToolsAttrAvailable(): Boolean {
     return toolsVisibility != Visibility.NONE
   }
@@ -102,22 +98,18 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 }
 
-private fun determineVisibility(
-  childVisibility: Visibility,
-  parentVisibility: Visibility,
-): Visibility {
+private fun determineVisibility(childVisibility: Visibility, parentVisibility: Visibility): Visibility {
   return when (parentVisibility) {
     Visibility.NONE -> childVisibility
     Visibility.VISIBLE -> childVisibility
-    Visibility.INVISIBLE ->
-      if (childVisibility == Visibility.GONE) Visibility.GONE else Visibility.INVISIBLE
+    Visibility.INVISIBLE -> if (childVisibility == Visibility.GONE) Visibility.GONE else Visibility.INVISIBLE
     Visibility.GONE -> Visibility.GONE
   }
 }
 
 /**
- * Loops thru all of its parents and return the actual visibility of the component like in Android
- * Device. It takes into account the tools visibility.
+ * Loops thru all of its parents and return the actual visibility of the component like in Android Device. It takes into account the tools
+ * visibility.
  */
 fun getVisibilityFromParents(component: NlComponent): Visibility {
   var visibility = NlVisibilityModel(component).getCurrentVisibility()

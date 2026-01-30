@@ -50,9 +50,7 @@ class AppInsightsContentPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
   private val fakeToolWindowList =
     mutableListOf<AppInsightsToolWindowDefinition>().apply {
@@ -122,8 +120,7 @@ class AppInsightsContentPanelTest {
     assertThat(workBench.restoreDefaultLayoutCounter).isEqualTo(1)
   }
 
-  private class FakeWorkBench<T>(project: Project, name: String, disposable: Disposable) :
-    WorkBench<T>(project, name, null, disposable) {
+  private class FakeWorkBench<T>(project: Project, name: String, disposable: Disposable) : WorkBench<T>(project, name, null, disposable) {
     var restoreDefaultLayoutCounter = 0
       private set
 
@@ -132,11 +129,7 @@ class AppInsightsContentPanelTest {
 
     private val tools = mutableListOf<ToolWindowDefinition<T>>()
 
-    override fun init(
-      context: T & Any,
-      definitions: MutableList<ToolWindowDefinition<T>>,
-      minimizedWindows: Boolean,
-    ) {
+    override fun init(context: T & Any, definitions: MutableList<ToolWindowDefinition<T>>, minimizedWindows: Boolean) {
       super.init(context, definitions, minimizedWindows)
       tools.addAll(definitions)
     }

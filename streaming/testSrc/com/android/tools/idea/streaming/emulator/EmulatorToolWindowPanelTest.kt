@@ -135,27 +135,37 @@ import org.mockito.kotlin.whenever
 class EmulatorToolWindowPanelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val iconRule = IconLoaderRule()
+    @JvmField @ClassRule val iconRule = IconLoaderRule()
   }
 
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
-                            PortableUiFontRule(), EdtRule())
+  val ruleChain =
+    RuleChain(
+      projectRule,
+      DataManagerRule(projectRule),
+      emulatorRule,
+      ClipboardSynchronizationDisablementRule(),
+      PortableUiFontRule(),
+      EdtRule(),
+    )
 
   private var nullableEmulator: FakeEmulator? = null
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
-    set(value) { nullableEmulator = value }
+    set(value) {
+      nullableEmulator = value
+    }
 
   private lateinit var panel: EmulatorToolWindowPanel
   private lateinit var fakeUi: FakeUi
-  private val project get() = projectRule.project
-  private val testRootDisposable get() = projectRule.disposable
+  private val project
+    get() = projectRule.project
+
+  private val testRootDisposable
+    get() = projectRule.disposable
 
   @Before
   fun setUp() {
@@ -195,21 +205,23 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
-    val goldenImageName = when {
-      StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "AppearanceAndToolbarActionsCollapsibleToolbar1"
-      else -> "AppearanceAndToolbarActions1"
-    }
+    val goldenImageName =
+      when {
+        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "AppearanceAndToolbarActionsCollapsibleToolbar1"
+        else -> "AppearanceAndToolbarActions1"
+      }
     assertAppearance(goldenImageName, maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
     // Check push button actions.
-    val pushButtonCases = listOf(
-      Pair("Power", "Power"),
-      Pair("Volume Up", "AudioVolumeUp"),
-      Pair("Volume Down", "AudioVolumeDown"),
-      Pair("Back", "GoBack"),
-      Pair("Home", "GoHome"),
-      Pair("Overview", "AppSwitch"),
-    )
+    val pushButtonCases =
+      listOf(
+        Pair("Power", "Power"),
+        Pair("Volume Up", "AudioVolumeUp"),
+        Pair("Volume Down", "AudioVolumeDown"),
+        Pair("Back", "GoBack"),
+        Pair("Home", "GoHome"),
+        Pair("Overview", "AppSwitch"),
+      )
     var streamInputCall: GrpcCallRecord? = null
     for (case in pushButtonCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
@@ -429,14 +441,15 @@ class EmulatorToolWindowPanelTest {
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
-    val modes = mapOf(
-      "Interact with Apps" to XrInputMode.INTERACTION,
-      "Hand Tracking" to XrInputMode.HAND,
-      "Eye Tracking" to XrInputMode.EYE,
-      "View Direction" to XrInputMode.VIEW_DIRECTION,
-      "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
-      "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
-    )
+    val modes =
+      mapOf(
+        "Interact with Apps" to XrInputMode.INTERACTION,
+        "Hand Tracking" to XrInputMode.HAND,
+        "Eye Tracking" to XrInputMode.EYE,
+        "View Direction" to XrInputMode.VIEW_DIRECTION,
+        "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+        "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+      )
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
@@ -468,10 +481,11 @@ class EmulatorToolWindowPanelTest {
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
-    val goldenImageName = when {
-      StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrToolbarActionsCollapsibleToolbar2"
-      else -> "XrToolbarActions2"
-    }
+    val goldenImageName =
+      when {
+        StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get() -> "XrToolbarActionsCollapsibleToolbar2"
+        else -> "XrToolbarActions2"
+      }
     assertAppearance(goldenImageName, maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     panel.destroyContent()
@@ -544,11 +558,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 600 height: 565")
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
-    val testCases = mapOf(
-      XrInputMode.HAND to "xr_hand_event",
-      XrInputMode.EYE to "xr_eye_event",
-      XrInputMode.INTERACTION to "mouse_event",
-    )
+    val testCases = mapOf(XrInputMode.HAND to "xr_hand_event", XrInputMode.EYE to "xr_eye_event", XrInputMode.INTERACTION to "mouse_event")
     var streamInputCall: GrpcCallRecord? = null
     for ((inputMode, expectedEvent) in testCases) {
       xrInputController.inputMode = inputMode
@@ -593,14 +603,15 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keypress key: \"Enter\" }")
     fakeUi.keyboard.release(VK_ENTER)
 
-    val velocityKeys = mapOf(
-      VK_W to "xr_head_velocity_event { z: -1.0 }",
-      VK_A to "xr_head_velocity_event { x: -1.0 }",
-      VK_S to "xr_head_velocity_event { z: 1.0 }",
-      VK_D to "xr_head_velocity_event { x: 1.0 }",
-      VK_Q to "xr_head_velocity_event { y: -1.0 }",
-      VK_E to "xr_head_velocity_event { y: 1.0 }",
-    )
+    val velocityKeys =
+      mapOf(
+        VK_W to "xr_head_velocity_event { z: -1.0 }",
+        VK_A to "xr_head_velocity_event { x: -1.0 }",
+        VK_S to "xr_head_velocity_event { z: 1.0 }",
+        VK_D to "xr_head_velocity_event { x: 1.0 }",
+        VK_Q to "xr_head_velocity_event { y: -1.0 }",
+        VK_E to "xr_head_velocity_event { y: 1.0 }",
+      )
     for ((k, event) in velocityKeys) {
       fakeUi.keyboard.press(k)
       assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo(event)
@@ -608,16 +619,17 @@ class EmulatorToolWindowPanelTest {
       assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
     }
 
-    val angularVelocityKeys = mapOf(
-      VK_RIGHT to "xr_head_angular_velocity_event { omega_y: -0.5235988 }",
-      VK_LEFT to "xr_head_angular_velocity_event { omega_y: 0.5235988 }",
-      VK_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 }",
-      VK_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 }",
-      VK_PAGE_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: -0.5235988 }",
-      VK_PAGE_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: -0.5235988 }",
-      VK_HOME to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: 0.5235988 }",
-      VK_END to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: 0.5235988 }",
-    )
+    val angularVelocityKeys =
+      mapOf(
+        VK_RIGHT to "xr_head_angular_velocity_event { omega_y: -0.5235988 }",
+        VK_LEFT to "xr_head_angular_velocity_event { omega_y: 0.5235988 }",
+        VK_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 }",
+        VK_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 }",
+        VK_PAGE_UP to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: -0.5235988 }",
+        VK_PAGE_DOWN to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: -0.5235988 }",
+        VK_HOME to "xr_head_angular_velocity_event { omega_x: 0.5235988 omega_y: 0.5235988 }",
+        VK_END to "xr_head_angular_velocity_event { omega_x: -0.5235988 omega_y: 0.5235988 }",
+      )
     for ((k, event) in angularVelocityKeys) {
       fakeUi.keyboard.press(k)
       assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo(event)
@@ -679,7 +691,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     fakeUi.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_rotation_event { x: -2.264211 y: 1.1321055 }")
+      .isEqualTo("xr_head_rotation_event { x: -2.264211 y: 1.1321055 }")
   }
 
   @Test
@@ -713,7 +725,7 @@ class EmulatorToolWindowPanelTest {
     fakeUi.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     fakeUi.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_movement_event { delta_x: 1.4414415 delta_y: 2.882883 }")
+      .isEqualTo("xr_head_movement_event { delta_x: 1.4414415 delta_y: 2.882883 }")
     fakeUi.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -797,16 +809,22 @@ class EmulatorToolWindowPanelTest {
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible }
+    waitForCondition(2.seconds) {
+      foldingGroup.update(event)
+      event.presentation.isVisible
+    }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
-    assertThat(foldingActions).asList().containsExactly(
-      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0)),
-      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0)),
-      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0)),
-      Separator.getInstance(),
-      ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID))
+    assertThat(foldingActions)
+      .asList()
+      .containsExactly(
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0)),
+        Separator.getInstance(),
+        ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID),
+      )
     for (action in foldingActions) {
       action.update(event)
       assertThat(event.presentation.isEnabled).isTrue()
@@ -834,16 +852,22 @@ class EmulatorToolWindowPanelTest {
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible }
+    waitForCondition(2.seconds) {
+      foldingGroup.update(event)
+      event.presentation.isVisible
+    }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
-    assertThat(foldingActions).asList().containsExactly(
+    assertThat(foldingActions)
+      .asList()
+      .containsExactly(
         EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0)),
         EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0)),
         EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0)),
         Separator.getInstance(),
-        ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID))
+        ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID),
+      )
     for (action in foldingActions) {
       action.update(event)
       assertThat(event.presentation.isEnabled).isTrue()
@@ -857,7 +881,10 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 296")
-    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
+    waitForCondition(2.seconds) {
+      foldingGroup.update(event)
+      event.presentation.text == "Fold/Unfold (currently Closed)"
+    }
     panel.waitForFrame(++frameNumber, 2.seconds)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
 
@@ -1050,8 +1077,12 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
 
     runBlocking {
-      emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
-                                              DisplayConfiguration.newBuilder().setDisplay(2).setWidth(3840).setHeight(2160).build()))
+      emulator.changeSecondaryDisplays(
+        listOf(
+          DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
+          DisplayConfiguration.newBuilder().setDisplay(2).setWidth(3840).setHeight(2160).build(),
+        )
+      )
     }
 
     waitForCondition(2.seconds) { fakeUi.findAllComponents<EmulatorView>().size == 3 }
@@ -1142,13 +1173,16 @@ class EmulatorToolWindowPanelTest {
     // Check that the notification changes when Shift is pressed.
     fakeUi.keyboard.press(VK_SHIFT)
     assertThat(fakeUi.findComponent<EditorNotificationPanel>()?.text)
-        .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
+      .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
 
     // Check camera movement.
     val velocityExpectations =
-        mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
-    val callFilter = FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamClipboard",
-                                                         "android.emulation.control.EmulatorController/streamScreenshot")
+      mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
+    val callFilter =
+      FakeEmulator.DEFAULT_CALL_FILTER.or(
+        "android.emulation.control.EmulatorController/streamClipboard",
+        "android.emulation.control.EmulatorController/streamScreenshot",
+      )
     for ((key, expected) in velocityExpectations) {
       fakeUi.keyboard.press(key.code)
 
@@ -1170,10 +1204,17 @@ class EmulatorToolWindowPanelTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
 
-    val rotationExpectations = mapOf(VK_LEFT to "y: 0.08726646", VK_RIGHT to "y: -0.08726646",
-                                     VK_UP to "x: 0.08726646", VK_DOWN to "x: -0.08726646",
-                                     VK_HOME to "x: 0.08726646 y: 0.08726646", VK_END to "x: -0.08726646 y: 0.08726646",
-                                     VK_PAGE_UP to "x: 0.08726646 y: -0.08726646", VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646")
+    val rotationExpectations =
+      mapOf(
+        VK_LEFT to "y: 0.08726646",
+        VK_RIGHT to "y: -0.08726646",
+        VK_UP to "x: 0.08726646",
+        VK_DOWN to "x: -0.08726646",
+        VK_HOME to "x: 0.08726646 y: 0.08726646",
+        VK_END to "x: -0.08726646 y: 0.08726646",
+        VK_PAGE_UP to "x: 0.08726646 y: -0.08726646",
+        VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646",
+      )
     for ((key, expected) in rotationExpectations) {
       fakeUi.keyboard.pressAndRelease(key)
       call = emulator.getNextGrpcCall(2.seconds, callFilter)
@@ -1277,21 +1318,23 @@ class EmulatorToolWindowPanelTest {
     return emulatorView.frameNumber
   }
 
-  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
-      emulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
+  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord = emulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
 
-  private fun assertAppearance(goldenImageName: String,
-                               maxPercentDifferentLinux: Double = 0.0003,
-                               maxPercentDifferentMac: Double = 0.0003,
-                               maxPercentDifferentWindows: Double = 0.0003) {
+  private fun assertAppearance(
+    goldenImageName: String,
+    maxPercentDifferentLinux: Double = 0.0003,
+    maxPercentDifferentMac: Double = 0.0003,
+    maxPercentDifferentWindows: Double = 0.0003,
+  ) {
     fakeUi.updateToolbarsIfNecessary()
     val image = fakeUi.render()
     val scaledImage = ImageUtils.scale(image, 0.5)
-    val maxPercentDifferent = when {
-      SystemInfo.isMac -> maxPercentDifferentMac
-      SystemInfo.isWindows -> maxPercentDifferentWindows
-      else -> maxPercentDifferentLinux
-    }
+    val maxPercentDifferent =
+      when {
+        SystemInfo.isMac -> maxPercentDifferentMac
+        SystemInfo.isWindows -> maxPercentDifferentWindows
+        else -> maxPercentDifferentLinux
+      }
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), scaledImage, maxPercentDifferent)
   }
 

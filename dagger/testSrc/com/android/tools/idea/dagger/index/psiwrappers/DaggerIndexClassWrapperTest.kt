@@ -55,10 +55,10 @@ class DaggerIndexClassWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {}
-      """
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -76,8 +76,8 @@ class DaggerIndexClassWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      class Foo {}
-      """
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -95,13 +95,13 @@ class DaggerIndexClassWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import dagger.*
+        package com.example
+        import dagger.*
 
-      @Module
-      @javax.inject.Inject
-      class Foo {}
-      """
+        @Module
+        @javax.inject.Inject
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -121,10 +121,10 @@ class DaggerIndexClassWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo<A, B> {}
-      """
+        class Foo<A, B> {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -194,32 +194,23 @@ class DaggerIndexClassWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val foo1 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|1"))
+    val foo1 = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|1"))
     val foo1Companion =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo1Companion"))
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo1Companion"))
     assertThat(foo1.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
-    assertThat(foo1Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT))
-      .isFalse()
+    assertThat(foo1Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
 
-    val foo2 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|2"))
+    val foo2 = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|2"))
     val foo2Companion =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo2Companion"))
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo2Companion"))
     assertThat(foo2.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
-    assertThat(foo2Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT))
-      .isTrue()
+    assertThat(foo2Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
 
-    val foo3 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|3"))
+    val foo3 = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|3"))
     val foo3Companion =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo3Companion"))
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo3Companion"))
     assertThat(foo3.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
-    assertThat(foo3Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT))
-      .isTrue()
+    assertThat(foo3Companion.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
   }
 
   @Test
@@ -229,9 +220,9 @@ class DaggerIndexClassWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {}
-      """
+        package com.example;
+        public class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -249,8 +240,8 @@ class DaggerIndexClassWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      public class Foo {}
-      """
+        public class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -268,15 +259,15 @@ class DaggerIndexClassWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import dagger.*;
+        import dagger.*;
 
-      @Binds
-      @Module()
-      @Component(true)
-      public class Foo {}
-      """
+        @Binds
+        @Module()
+        @Component(true)
+        public class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -297,10 +288,10 @@ class DaggerIndexClassWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo<A, B> {}
-      """
+        public class Foo<A, B> {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -345,28 +336,19 @@ class DaggerIndexClassWrapperTest {
           .trimIndent(),
       ) as PsiJavaFile
 
-    val foo1 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|1"))
-    val inner1 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.findParentElement<PsiClass>("Inner|1"))
+    val foo1 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|1"))
+    val inner1 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Inner|1"))
     assertThat(foo1.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
     assertThat(inner1.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
 
-    val foo2 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|2"))
-    val inner2 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.findParentElement<PsiClass>("Inner|2"))
+    val foo2 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|2"))
+    val inner2 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Inner|2"))
     assertThat(foo2.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
     // Inner class is not a Companion, so this is false.
     assertThat(inner2.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
 
-    val foo3 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|3"))
-    val inner3 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.findParentElement<PsiClass>("Inner|3"))
+    val foo3 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|3"))
+    val inner3 = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Inner|3"))
     assertThat(foo3.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isFalse()
     assertThat(inner3.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
   }

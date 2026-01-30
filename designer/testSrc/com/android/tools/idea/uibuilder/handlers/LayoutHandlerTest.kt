@@ -33,10 +33,7 @@ class LayoutHandlerTest : SceneTest() {
   @Test
   fun testRegion() {
     val layoutComponent = myScene.root!!
-    val ph =
-      layoutComponent.nlComponent
-        .getViewHandler {}!!
-        .getPlaceholders(layoutComponent, emptyList())[0]
+    val ph = layoutComponent.nlComponent.getViewHandler {}!!.getPlaceholders(layoutComponent, emptyList())[0]
 
     val sceneView = myScreen.screen
     val size = sceneView.scaledContentSize
@@ -48,10 +45,7 @@ class LayoutHandlerTest : SceneTest() {
   @Test
   fun testSnapSucceed() {
     val layoutComponent = myScene.root!!
-    val ph =
-      layoutComponent.nlComponent
-        .getViewHandler {}!!
-        .getPlaceholders(layoutComponent, emptyList())[0]
+    val ph = layoutComponent.nlComponent.getViewHandler {}!!.getPlaceholders(layoutComponent, emptyList())[0]
     val p = Point()
     mySceneManager.update()
     assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), p))
@@ -62,10 +56,7 @@ class LayoutHandlerTest : SceneTest() {
   @Test
   fun testSnapFailed() {
     val layoutComponent = myScene.root!!
-    val ph =
-      layoutComponent.nlComponent
-        .getViewHandler {}!!
-        .getPlaceholders(layoutComponent, emptyList())[0]
+    val ph = layoutComponent.nlComponent.getViewHandler {}!!.getPlaceholders(layoutComponent, emptyList())[0]
     val p = Point()
     assertFalse(ph.snap(SnappingInfo(600, 600, 700, 700), p))
   }
@@ -77,12 +68,7 @@ class LayoutHandlerTest : SceneTest() {
           "layout2.xml",
           component(SdkConstants.TAG_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
-            .children(
-              component(SdkConstants.LINEAR_LAYOUT)
-                .withBounds(0, 0, 1000, 1000)
-                .width("500dp")
-                .height("500dp")
-            ),
+            .children(component(SdkConstants.LINEAR_LAYOUT).withBounds(0, 0, 1000, 1000).width("500dp").height("500dp")),
         )
         .build()
 
@@ -96,9 +82,7 @@ class LayoutHandlerTest : SceneTest() {
     val model =
       model(
           "layout2.xml",
-          component(SdkConstants.TAG_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .children(component(SdkConstants.TAG_DATA).withBounds(0, 0, 0, 0)),
+          component(SdkConstants.TAG_LAYOUT).withBounds(0, 0, 1000, 1000).children(component(SdkConstants.TAG_DATA).withBounds(0, 0, 0, 0)),
         )
         .build()
 
@@ -107,6 +91,5 @@ class LayoutHandlerTest : SceneTest() {
     assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
   }
 
-  override fun createModel(): ModelBuilder =
-    model("layout.xml", component(SdkConstants.TAG_LAYOUT).withBounds(0, 0, 1000, 1000))
+  override fun createModel(): ModelBuilder = model("layout.xml", component(SdkConstants.TAG_LAYOUT).withBounds(0, 0, 1000, 1000))
 }

@@ -27,6 +27,6 @@ interface ExperimentalSettingsContributor {
 
   companion object {
     @JvmField
-    val EP_NAME = ExtensionPointName<ExperimentalSettingsContributor>("com.android.tools.idea.flags.experimentalSettingsContributor");
+    val EP_NAME = ExtensionPointName<ExperimentalSettingsContributor>("com.android.tools.idea.flags.experimentalSettingsContributor")
   }
 }

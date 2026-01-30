@@ -16,22 +16,19 @@
 package com.android.tools.idea.configurations
 
 import com.android.tools.idea.IdeInfo
-import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RegistryKeyRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.jcef.JBCefApp
+import kotlin.test.assertEquals
 import org.assertj.core.api.Assumptions.assumeThat
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class AndroidStudioJCefTest {
 
-  @get:Rule
-  val rules = RuleChain(ApplicationRule(), RegistryKeyRule("ide.browser.jcef.headless.enabled", true))
+  @get:Rule val rules = RuleChain(ApplicationRule(), RegistryKeyRule("ide.browser.jcef.headless.enabled", true))
 
   @Before
   fun setUp() {
@@ -40,6 +37,6 @@ class AndroidStudioJCefTest {
 
   @Test
   fun androidStudioDoesNotCurrentlySupportJCef() {
-    assertEquals(false, JBCefApp.isSupported() )
+    assertEquals(false, JBCefApp.isSupported())
   }
 }

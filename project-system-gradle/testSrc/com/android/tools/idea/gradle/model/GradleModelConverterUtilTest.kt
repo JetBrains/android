@@ -17,49 +17,47 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.ide.common.gradle.Component
-import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.google.common.truth.Expect
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-/**
- * Tests for [GradleModelConverterUtil].
- */
+/** Tests for [GradleModelConverterUtil]. */
 class GradleModelConverterUtilTest {
 
-    @get:Rule
-    val expect = Expect.createAndEnableStackTrace();
+  @get:Rule val expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testConvertAndroidLibrary() {
-    val original = IdeAndroidLibraryImpl.create(
-      artifactAddress = "artifact:address:1.0",
-      component = Component.parse("artifact:address:1.0"),
-      name = "artifact:address:1.0",
-      folder = File("libraryFolder"),
-      manifest = "manifest.xml",
-      compileJarFiles = listOf("file.jar"),
-      runtimeJarFiles = listOf("api.jar"),
-      resFolder = "res",
-      resStaticLibrary = File("libraryFolder/res.apk"),
-      assetsFolder = "assets",
-      jniFolder = "jni",
-      aidlFolder = "aidl",
-      renderscriptFolder = "renderscriptFolder",
-      proguardRules = "proguardRules",
-      lintJar = "lint.jar",
-      srcJars = listOf("src.jar", "samples.jar"),
-      docJar = "doc.jar",
-      externalAnnotations = "externalAnnotations",
-      publicResources = "publicResources",
-      artifact = File("artifactFile"),
-      symbolFile = "symbolFile",
-      deduplicate = { this }
-    )
+    val original =
+      IdeAndroidLibraryImpl.create(
+        artifactAddress = "artifact:address:1.0",
+        component = Component.parse("artifact:address:1.0"),
+        name = "artifact:address:1.0",
+        folder = File("libraryFolder"),
+        manifest = "manifest.xml",
+        compileJarFiles = listOf("file.jar"),
+        runtimeJarFiles = listOf("api.jar"),
+        resFolder = "res",
+        resStaticLibrary = File("libraryFolder/res.apk"),
+        assetsFolder = "assets",
+        jniFolder = "jni",
+        aidlFolder = "aidl",
+        renderscriptFolder = "renderscriptFolder",
+        proguardRules = "proguardRules",
+        lintJar = "lint.jar",
+        srcJars = listOf("src.jar", "samples.jar"),
+        docJar = "doc.jar",
+        externalAnnotations = "externalAnnotations",
+        publicResources = "publicResources",
+        artifact = File("artifactFile"),
+        symbolFile = "symbolFile",
+        deduplicate = { this },
+      )
     val result = convertLibraryToExternalLibrary(original)
 
     with(original) {

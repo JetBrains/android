@@ -26,15 +26,11 @@ class EndReservationAction : AnAction() {
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabledAndVisible =
       event.reservationAction() != null &&
-        event.deviceHandle()?.state?.reservation?.state?.takeIf {
-          it != ReservationState.COMPLETE && it != ReservationState.ERROR
-        } != null
+        event.deviceHandle()?.state?.reservation?.state?.takeIf { it != ReservationState.COMPLETE && it != ReservationState.ERROR } != null
   }
 
   override fun actionPerformed(event: AnActionEvent) {
     val handle = event.deviceHandle() ?: return
-    handle.launchCatchingDeviceActionException(project = event.project) {
-      reservationAction?.endReservation()
-    }
+    handle.launchCatchingDeviceActionException(project = event.project) { reservationAction?.endReservation() }
   }
 }

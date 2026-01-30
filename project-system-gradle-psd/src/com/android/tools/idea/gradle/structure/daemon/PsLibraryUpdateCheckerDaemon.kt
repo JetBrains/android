@@ -46,16 +46,17 @@ import kotlin.concurrent.withLock
 class PsLibraryUpdateCheckerDaemon(
   parentDisposable: Disposable,
   private val project: PsProject,
-  private val repositorySearchFactory: RepositorySearchFactory
+  private val repositorySearchFactory: RepositorySearchFactory,
 ) : PsDaemon(parentDisposable) {
   val availableLibraryUpdateStorage = AvailableLibraryUpdateStorage.getInstance(project.ideProject)
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Update Checker", null)
-  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Available Update Results Updater", MergingUpdateQueue.ANY_COMPONENT)
+  override val resultsUpdaterQueue: MergingUpdateQueue =
+    createQueue("Project Structure Available Update Results Updater", MergingUpdateQueue.ANY_COMPONENT)
 
   private val eventDispatcher = EventDispatcher.create(AvailableUpdatesListener::class.java)
   private val beingSearchedKeys: MutableSet<PsLibraryKey> = Collections.newSetFromMap(ConcurrentHashMap())
   @field:GuardedBy("runningLock") private val runningSearches: MutableSet<Future<*>> = mutableSetOf()
-  private val runningLock: Lock = ReentrantLock()  // Guards runningSearches and persistent storage (in memory copy).
+  private val runningLock: Lock = ReentrantLock() // Guards runningSearches and persistent storage (in memory copy).
 
   fun queueUpdateCheck() {
     mainQueue.queue(RefreshAvailableUpdates())
@@ -64,70 +65,60 @@ class PsLibraryUpdateCheckerDaemon(
   fun add(@UiThread listener: () -> Unit, parentDisposable: Disposable) {
     eventDispatcher.addListener(
       object : AvailableUpdatesListener {
-        @UiThread
-        override fun availableUpdates() = listener()
-      }, parentDisposable)
+        @UiThread override fun availableUpdates() = listener()
+      },
+      parentDisposable,
+    )
   }
 
   override fun dispose() {
     super.dispose()
-    runningLock.withLock {
-      runningSearches.forEach { it.cancel(true) }
-    }
+    runningLock.withLock { runningSearches.forEach { it.cancel(true) } }
   }
 
   @Slow
-  private fun search(
-    repositories: Collection<ArtifactRepository>,
-    keys: Collection<PsLibraryKey>
-  ) {
+  private fun search(repositories: Collection<ArtifactRepository>, keys: Collection<PsLibraryKey>) {
     val updateStorage = availableLibraryUpdateStorage
 
     val currentTimeMillis = System.currentTimeMillis()
-    val existingUpdateKeys = updateStorage
-      .retainAll {
-        val searchTimeMillis = it.lastSearchTimeMillis
-        (searchTimeMillis > 0 && TimeUnit.MILLISECONDS.toDays(currentTimeMillis - searchTimeMillis) < 3 &&
-         keys.contains(it.toLibraryKey()))
-      }
-      .associateBy { it.toLibraryKey() }
+    val existingUpdateKeys =
+      updateStorage
+        .retainAll {
+          val searchTimeMillis = it.lastSearchTimeMillis
+          (searchTimeMillis > 0 &&
+            TimeUnit.MILLISECONDS.toDays(currentTimeMillis - searchTimeMillis) < 3 &&
+            keys.contains(it.toLibraryKey()))
+        }
+        .associateBy { it.toLibraryKey() }
 
-    val requests =
-      keys
-        .filter { !existingUpdateKeys.containsKey(it) && beingSearchedKeys.add(it) }
-        .toSet()
+    val requests = keys.filter { !existingUpdateKeys.containsKey(it) && beingSearchedKeys.add(it) }.toSet()
 
     val searcher = repositorySearchFactory.create(repositories)
-    val resultFutures = runningLock.withLock {
-      if (isStopped) return@search
-      // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
-      requests.map { key ->
-        val future = searcher.search(SearchRequest(SingleModuleSearchQuery(key.group, key.name), 1, 0))
-        runningSearches.add(future)
-        key to future
+    val resultFutures =
+      runningLock.withLock {
+        if (isStopped) return@search
+        // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
+        requests.map { key ->
+          val future = searcher.search(SearchRequest(SingleModuleSearchQuery(key.group, key.name), 1, 0))
+          runningSearches.add(future)
+          key to future
+        }
       }
-    }
 
-    val searchResults = resultFutures.map {
-      it.first to it.second.getResultSafely()
-    }
+    val searchResults = resultFutures.map { it.first to it.second.getResultSafely() }
 
-    runningLock.withLock {
-      runningSearches.removeAll(resultFutures.map { it.second })
-    }
+    runningLock.withLock { runningSearches.removeAll(resultFutures.map { it.second }) }
 
     val foundArtifacts =
-      searchResults
-        .flatMap {
-          it.second?.artifacts?.nullize() ?: run {
+      searchResults.flatMap {
+        it.second?.artifacts?.nullize()
+          ?: run {
             val key = it.first
             val result = it.second
             if (result?.errors?.isEmpty() == true) listOf(FoundArtifact("", key.group, key.name, listOf())) else listOf()
           }
-        }
-    searchResults.forEach {
-      beingSearchedKeys.remove(it.first)
-    }
+      }
+    searchResults.forEach { beingSearchedKeys.remove(it.first) }
     runningLock.withLock {
       // Under the lock to prevent stop/dispose from exiting while updating storage.
       if (!isStopped) {
@@ -145,18 +136,12 @@ class PsLibraryUpdateCheckerDaemon(
         if (isDisposed || isStopped) return@invokeAndWaitIfNeeded
         project.modules.forEach { module ->
           repositories.addAll(module.getArtifactRepositories())
-          keys.addAll(
-            module
-              .dependencies
-              .libraries
-              .map { it.spec.toLibraryKey() }
-          )
+          keys.addAll(module.dependencies.libraries.map { it.spec.toLibraryKey() })
         }
       }
       if (!repositories.isEmpty() && !keys.isEmpty()) {
         search(repositories, keys)
-      }
-      else {
+      } else {
         resultsUpdaterQueue.queue(UpdatesAvailable())
       }
     }
@@ -170,7 +155,6 @@ class PsLibraryUpdateCheckerDaemon(
   }
 
   private interface AvailableUpdatesListener : EventListener {
-    @UiThread
-    fun availableUpdates()
+    @UiThread fun availableUpdates()
   }
 }

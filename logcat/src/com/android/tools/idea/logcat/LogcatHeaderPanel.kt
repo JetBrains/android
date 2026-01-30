@@ -57,8 +57,7 @@ internal class LogcatHeaderPanel(
   initialItem: DeviceComboItem?,
 ) : JPanel() {
   val deviceComboBox = DeviceComboBox(project, initialItem)
-  private val filterTextField =
-    FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
+  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
   private val scope = logcatPresenter.createCoroutineScope()
 
@@ -86,9 +85,7 @@ internal class LogcatHeaderPanel(
     }
 
     filterTextField.onFilterUpdate(BUFFER_RELOAD_DELAY) {
-      withContext(Dispatchers.EDT) {
-        logcatPresenter.applyFilter(filterParser.parse(it.filter, it.matchCase))
-      }
+      withContext(Dispatchers.EDT) { logcatPresenter.applyFilter(filterParser.parse(it.filter, it.matchCase)) }
     }
 
     val fileReloadDelay = StudioFlags.LOGCAT_FILE_RELOAD_DELAY_MS.get()
@@ -119,18 +116,8 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout
         .createSequentialGroup()
-        .addComponent(
-          deviceComboBox,
-          ComboBox<String>().minimumSize.width,
-          GroupLayout.DEFAULT_SIZE,
-          JBUI.scale(400),
-        )
-        .addComponent(
-          filterTextField,
-          JBUI.scale(350),
-          GroupLayout.DEFAULT_SIZE,
-          GroupLayout.DEFAULT_SIZE,
-        )
+        .addComponent(deviceComboBox, ComboBox<String>().minimumSize.width, GroupLayout.DEFAULT_SIZE, JBUI.scale(400))
+        .addComponent(filterTextField, JBUI.scale(350), GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
         .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
@@ -151,34 +138,19 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout
         .createParallelGroup()
-        .addGroup(
-          layout
-            .createSequentialGroup()
-            .addComponent(deviceComboBox, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
-        )
-        .addGroup(
-          layout
-            .createSequentialGroup()
-            .addComponent(filterTextField, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
-        )
+        .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE))
+        .addGroup(layout.createSequentialGroup().addComponent(filterTextField, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE))
     )
     layout.setVerticalGroup(
       layout
         .createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(
-          layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField)
-        )
+        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
     )
     return layout
   }
 
-  private fun FilterTextField.onFilterUpdate(
-    delay: Duration,
-    block: suspend (FilterUpdated) -> Unit,
-  ) {
-    scope.launch {
-      @Suppress("OPT_IN_USAGE") trackFilterUpdates().debounce(delay).collect { block(it) }
-    }
+  private fun FilterTextField.onFilterUpdate(delay: Duration, block: suspend (FilterUpdated) -> Unit) {
+    scope.launch { @Suppress("OPT_IN_USAGE") trackFilterUpdates().debounce(delay).collect { block(it) } }
   }
 }

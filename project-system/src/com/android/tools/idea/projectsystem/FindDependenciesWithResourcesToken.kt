@@ -24,7 +24,9 @@ interface FindDependenciesWithResourcesToken<P : AndroidModuleSystem> : Token {
 
   companion object {
     @JvmStatic
-    val EP_NAME = ExtensionPointName<FindDependenciesWithResourcesToken<AndroidModuleSystem>>(
-      "com.android.tools.idea.projectsystem.findDependenciesWithResourcesToken")
+    val EP_NAME =
+      ExtensionPointName<FindDependenciesWithResourcesToken<AndroidModuleSystem>>(
+        "com.android.tools.idea.projectsystem.findDependenciesWithResourcesToken"
+      )
   }
 }

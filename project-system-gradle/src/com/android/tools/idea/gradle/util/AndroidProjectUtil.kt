@@ -18,4 +18,5 @@ package com.android.tools.idea.gradle.util
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.project.Project
 
-internal val Project.isAndroidProject: Boolean get() = CommonAndroidUtil.getInstance().isAndroidProject(this)
+internal val Project.isAndroidProject: Boolean
+  get() = CommonAndroidUtil.getInstance().isAndroidProject(this)

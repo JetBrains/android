@@ -25,8 +25,6 @@ interface VersionDeclarationSpec {
 
   override fun toString(): String
 
-  /**
-   * Returns null in case there is no compact notation (string representation) for such version
-   */
+  /** Returns null in case there is no compact notation (string representation) for such version */
   fun compactNotation(): String?
 }

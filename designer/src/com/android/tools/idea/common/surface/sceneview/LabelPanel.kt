@@ -34,9 +34,9 @@ import kotlinx.coroutines.withContext
 /**
  * This label displays the [SceneView] model label.
  *
- * If [partOfOrganizationGroup] then label will display [DisplaySettings.parameterName] (or
- * modelDisplayName if [DisplaySettings.parameterName] is null). If [partOfOrganizationGroup] is not
- * enabled then [DisplaySettings.modelDisplayName] is displayed.
+ * If [partOfOrganizationGroup] then label will display [DisplaySettings.parameterName] (or modelDisplayName if
+ * [DisplaySettings.parameterName] is null). If [partOfOrganizationGroup] is not enabled then [DisplaySettings.modelDisplayName] is
+ * displayed.
  */
 open class LabelPanel(
   private val displaySettings: DisplaySettings,
@@ -53,10 +53,7 @@ open class LabelPanel(
       val parameter = displaySettings.parameterName.value
       val display = displaySettings.modelDisplayName.value
       val name =
-        parameter?.takeIf { partOfOrganizationGroup.value }
-          ?: displaySettings.fileName.value?.let { "$it.$display" }
-          ?: display
-          ?: ""
+        parameter?.takeIf { partOfOrganizationGroup.value } ?: displaySettings.fileName.value?.let { "$it.$display" } ?: display ?: ""
       text = name
       toolTipText = displaySettings.tooltip.value ?: name
       isVisible = text.isNotBlank()
@@ -83,10 +80,7 @@ open class LabelPanel(
         }
 
       val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
-      messageBusConnection.subscribe(
-        UISettingsListener.TOPIC,
-        UISettingsListener { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) },
-      )
+      messageBusConnection.subscribe(UISettingsListener.TOPIC, UISettingsListener { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) })
     }
   }
 

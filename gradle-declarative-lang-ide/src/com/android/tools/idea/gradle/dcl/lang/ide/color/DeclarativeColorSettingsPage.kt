@@ -29,7 +29,8 @@ class DeclarativeColorSettingsPage : ColorSettingsPage {
 
   private val attributesDescriptors = DeclarativeColor.entries.map { it.attributesDescriptor }.toTypedArray()
   private val tagToDescriptorMap = DeclarativeColor.entries.associateBy({ it.name }, { it.textAttributesKey })
-  private val highlighterDemoText = """
+  private val highlighterDemoText =
+    """
     <COMMENT>// one line comment</COMMENT>
     <BLOCK_COMMENT>/* block comment */</BLOCK_COMMENT>
     android {
@@ -42,13 +43,20 @@ class DeclarativeColorSettingsPage : ColorSettingsPage {
            languageVersion = JavaLanguageVersion.of(<NULL>null</NULL>)
        }
     }
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun getDisplayName(): String = DeclarativeLanguage.getInstance().displayName
+
   override fun getHighlighter(): SyntaxHighlighter = DeclarativeHighlighter()
+
   override fun getIcon(): Icon? = DeclarativeFileType.INSTANCE.icon
+
   override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> = tagToDescriptorMap
+
   override fun getAttributeDescriptors(): Array<AttributesDescriptor> = attributesDescriptors
+
   override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
+
   override fun getDemoText(): String = highlighterDemoText
 }

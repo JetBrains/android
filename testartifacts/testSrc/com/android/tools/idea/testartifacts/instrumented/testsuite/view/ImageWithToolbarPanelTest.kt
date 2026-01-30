@@ -19,6 +19,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLabel
+import java.awt.Dimension
+import java.awt.GraphicsEnvironment
+import java.awt.event.ComponentEvent
+import java.awt.image.BufferedImage
+import javax.swing.JFrame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -26,19 +31,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import java.awt.GraphicsEnvironment
-import java.awt.event.ComponentEvent
-import java.awt.image.BufferedImage
-import javax.swing.JFrame
 
 @RunsInEdt
 class ImageWithToolbarPanelTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun testSetImageWhenNotDisplayable() {
@@ -64,23 +62,23 @@ class ImageWithToolbarPanelTest {
     val frame = JFrame()
 
     try {
-        frame.add(panel)
-        frame.addNotify()
+      frame.add(panel)
+      frame.addNotify()
 
-        assertTrue("Panel should be displayable", panel.isDisplayable)
+      assertTrue("Panel should be displayable", panel.isDisplayable)
 
-        // Should perform update actions (implicitly tested by lack of exception and state change)
-        val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
-        panel.setImage(image)
+      // Should perform update actions (implicitly tested by lack of exception and state change)
+      val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+      panel.setImage(image)
 
-        assertTrue(panel.hasImage())
+      assertTrue(panel.hasImage())
 
-        panel.setImage(null)
-        assertFalse(panel.hasImage())
+      panel.setImage(null)
+      assertFalse(panel.hasImage())
     } catch (e: java.awt.HeadlessException) {
-        println("Skipping displayable test due to HeadlessException")
+      println("Skipping displayable test due to HeadlessException")
     } finally {
-        frame.dispose()
+      frame.dispose()
     }
   }
 
@@ -168,20 +166,20 @@ class ImageWithToolbarPanelTest {
 
   @Test
   fun testActionEnablement() {
-     val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
-     val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
-     panel.setImage(image)
+    val panel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = true)
+    val image = BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB)
+    panel.setImage(image)
 
-     assertTrue(panel.canZoomIn())
-     assertTrue(panel.canZoomOut())
+    assertTrue(panel.canZoomIn())
+    assertTrue(panel.canZoomOut())
 
-     // Zoom in until max
-     for (i in 0..50) panel.zoomIn()
-     assertFalse(panel.canZoomIn())
+    // Zoom in until max
+    for (i in 0..50) panel.zoomIn()
+    assertFalse(panel.canZoomIn())
 
-     // Zoom out until min
-     for (i in 0..50) panel.zoomOut()
-     assertFalse(panel.canZoomOut())
+    // Zoom out until min
+    for (i in 0..50) panel.zoomOut()
+    assertFalse(panel.canZoomOut())
   }
 
   @Test
@@ -260,7 +258,7 @@ class ImageWithToolbarPanelTest {
 
     // Try to zoom out below min
     var steps = 0
-    while(panel.canZoomOut() && steps < 100) {
+    while (panel.canZoomOut() && steps < 100) {
       panel.zoomOut()
       steps++
     }
@@ -270,7 +268,7 @@ class ImageWithToolbarPanelTest {
 
     // Try to zoom in beyond max
     steps = 0
-    while(panel.canZoomIn() && steps < 100) {
+    while (panel.canZoomIn() && steps < 100) {
       panel.zoomIn()
       steps++
     }

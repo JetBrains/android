@@ -40,10 +40,7 @@ internal object BackupUsageTracker {
         .setBackupUsageEvent(
           BackupUsageEvent.newBuilder()
             .setBackup(
-              BackupEvent.newBuilder()
-                .setTypeString(type.name)
-                .setSourceString(source.name)
-                .setResultString(result.getErrorCode())
+              BackupEvent.newBuilder().setTypeString(type.name).setSourceString(source.name).setResultString(result.getErrorCode())
             )
         )
     )
@@ -55,11 +52,7 @@ internal object BackupUsageTracker {
         .setKind(BACKUP_USAGE)
         .setBackupUsageEvent(
           BackupUsageEvent.newBuilder()
-            .setRestore(
-              RestoreEvent.newBuilder()
-                .setSourceString(source.name)
-                .setResultString(result.getErrorCode())
-            )
+            .setRestore(RestoreEvent.newBuilder().setSourceString(source.name).setResultString(result.getErrorCode()))
         )
     )
   }

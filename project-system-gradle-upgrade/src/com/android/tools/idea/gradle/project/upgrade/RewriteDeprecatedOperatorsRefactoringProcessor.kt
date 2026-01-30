@@ -20,61 +20,60 @@ import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usages.impl.rules.UsageType
 
-val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
-  optionalFromVersion = AgpVersion.parse("7.1.0-alpha06"),
-  requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
-  commandNameSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
-  shortDescriptionSupplier = {
-    """
+val REWRITE_DEPRECATED_OPERATORS =
+  PropertiesOperationsRefactoringInfo(
+    optionalFromVersion = AgpVersion.parse("7.1.0-alpha06"),
+    requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.commandName"),
+    shortDescriptionSupplier = {
+      """
       A number of Dsl operators and methods have been deprecated for removal in
       AGP 9.0.0, replaced by simpler property operations.
-    """.trimIndent()
-  },
-  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
-  componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REWRITE_DEPRECATED_OPERATORS,
-  propertiesOperationInfos = listOf(
-    RewriteObsoletePropertiesInfo(
-      propertyModelListGetter = {
-        listOf(
-          android().buildToolsVersion(),
-          // TODO(b/205806471) android().compileSdkVersion(),
-          android().flavorDimensions()) +
-        android().defaultConfig().let {
-          listOf(
-            it.manifestPlaceholders(),
-            it.matchingFallbacks(),
-            // TODO(b/205806471) it.maxSdkVersion(),
-            // TODO(b/205806471) it.minSdkVersion(),
-            it.resConfigs(),
-            // TODO(b/205806471) it.targetSdkVersion(),
-            it.testFunctionalTest(),
-            it.testHandleProfiling(),
-            it.testInstrumentationRunnerArguments(),
-          )
-        } +
-        android().buildTypes().flatMap {
-          listOf(
-            it.manifestPlaceholders(),
-            it.matchingFallbacks(),
-          )
-        } +
-        android().productFlavors().flatMap {
-          listOf(
-            it.dimension(),
-            it.manifestPlaceholders(),
-            it.matchingFallbacks(),
-            // TODO(b/205806471) it.maxSdkVersion(),
-            // TODO(b/205806471) it.minSdkVersion(),
-            it.resConfigs(),
-            // TODO(b/205806471) it.targetSdkVersion(),
-            it.testFunctionalTest(),
-            it.testHandleProfiling(),
-            it.testInstrumentationRunnerArguments(),
-          )
-        }
-      },
-      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("deprecatedOperatorUsageInfo.rewrite.tooltipText"),
-      usageType = UsageType(AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
-    )
+      """
+        .trimIndent()
+    },
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.usageView.header"),
+    componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REWRITE_DEPRECATED_OPERATORS,
+    propertiesOperationInfos =
+      listOf(
+        RewriteObsoletePropertiesInfo(
+          propertyModelListGetter = {
+            listOf(
+              android().buildToolsVersion(),
+              // TODO(b/205806471) android().compileSdkVersion(),
+              android().flavorDimensions(),
+            ) +
+              android().defaultConfig().let {
+                listOf(
+                  it.manifestPlaceholders(),
+                  it.matchingFallbacks(),
+                  // TODO(b/205806471) it.maxSdkVersion(),
+                  // TODO(b/205806471) it.minSdkVersion(),
+                  it.resConfigs(),
+                  // TODO(b/205806471) it.targetSdkVersion(),
+                  it.testFunctionalTest(),
+                  it.testHandleProfiling(),
+                  it.testInstrumentationRunnerArguments(),
+                )
+              } +
+              android().buildTypes().flatMap { listOf(it.manifestPlaceholders(), it.matchingFallbacks()) } +
+              android().productFlavors().flatMap {
+                listOf(
+                  it.dimension(),
+                  it.manifestPlaceholders(),
+                  it.matchingFallbacks(),
+                  // TODO(b/205806471) it.maxSdkVersion(),
+                  // TODO(b/205806471) it.minSdkVersion(),
+                  it.resConfigs(),
+                  // TODO(b/205806471) it.targetSdkVersion(),
+                  it.testFunctionalTest(),
+                  it.testHandleProfiling(),
+                  it.testInstrumentationRunnerArguments(),
+                )
+              }
+          },
+          tooltipTextSupplier = AgpUpgradeBundle.messagePointer("deprecatedOperatorUsageInfo.rewrite.tooltipText"),
+          usageType = UsageType(AgpUpgradeBundle.messagePointer("rewriteDeprecatedOperatorsRefactoringProcessor.rewrite.usageType")),
+        )
+      ),
   )
-)

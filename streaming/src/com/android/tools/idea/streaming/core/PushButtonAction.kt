@@ -29,65 +29,54 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
 /**
- * An action represented by a push button that may do two different things when the button is
- * pressed and when the button is released. Classes implementing this interface should not do
- * anything in the `actionPerformed` method since it is never called. The [buttonPressed] and
- * [buttonReleased] methods are used instead.
+ * An action represented by a push button that may do two different things when the button is pressed and when the button is released.
+ * Classes implementing this interface should not do anything in the `actionPerformed` method since it is never called. The [buttonPressed]
+ * and [buttonReleased] methods are used instead.
  */
 interface PushButtonAction : CustomComponentAction {
 
-  /**
-   * Called when the left mouse button is pressed over the corresponding toolbar button.
-   */
+  /** Called when the left mouse button is pressed over the corresponding toolbar button. */
   fun buttonPressed(event: AnActionEvent)
 
-  /**
-   * Called when the left mouse button is released.
-   */
+  /** Called when the left mouse button is released. */
   fun buttonReleased(event: AnActionEvent)
 
-  /**
-   * Called when the action is invoked by a keyboard shortcut.
-   */
+  /** Called when the action is invoked by a keyboard shortcut. */
   fun buttonPressedAndReleased(event: AnActionEvent)
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return MyActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 
-  /**
-   * Implementations of this interface must call this method from their `actionPerformed` methods.
-   */
+  /** Implementations of this interface must call this method from their `actionPerformed` methods. */
   fun actionPerformedImpl(event: AnActionEvent) {
     if (!event.isFromActionToolbar) { // Invocation from toolbar goes through buttonPressed/buttonReleased.
       buttonPressedAndReleased(event)
     }
   }
 
-  private class MyActionButton(
-    action: PushButtonAction,
-    presentation: Presentation,
-    place: String,
-    minimumSize: Dimension
-  ) : ActionButton(action as AnAction, presentation, place, minimumSize) {
+  private class MyActionButton(action: PushButtonAction, presentation: Presentation, place: String, minimumSize: Dimension) :
+    ActionButton(action as AnAction, presentation, place, minimumSize) {
 
     init {
       // Pressing the SPACE key is the same as clicking the button.
-      addKeyListener(object : KeyAdapter() {
-        override fun keyPressed(keyEvent: KeyEvent) {
-          if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
-            action.buttonPressed(event)
+      addKeyListener(
+        object : KeyAdapter() {
+          override fun keyPressed(keyEvent: KeyEvent) {
+            if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+              val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
+              action.buttonPressed(event)
+            }
           }
-        }
 
-        override fun keyReleased(keyEvent: KeyEvent) {
-          if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
-            val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
-            action.buttonReleased(event)
+          override fun keyReleased(keyEvent: KeyEvent) {
+            if (keyEvent.modifiersEx == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+              val event = AnActionEvent.createEvent(myAction, dataContext, presentation, myPlace, ActionUiKind.TOOLBAR, keyEvent)
+              action.buttonReleased(event)
+            }
           }
         }
-      })
+      )
     }
 
     override fun onMousePressed(mouseEvent: MouseEvent) {

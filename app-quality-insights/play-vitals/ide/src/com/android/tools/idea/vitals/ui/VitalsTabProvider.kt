@@ -57,11 +57,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   private var populateTabJob: Job? = null
 
-  override fun populateTab(
-    project: Project,
-    tabPanel: AppInsightsTabPanel,
-    activeTabFlow: Flow<Boolean>,
-  ) {
+  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel, activeTabFlow: Flow<Boolean>) {
     val scope = tabPanel.createCoroutineScope()
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     tabPanel.setComponent(placeholderContent())
@@ -87,9 +83,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
               runInEdt {
                 tabPanel.clearDeprecatedBanner()
                 tabPanel.setComponent(
-                  ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {
-                    UpdateChecker.updateAndShowResult(project)
-                  }
+                  ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) { UpdateChecker.updateAndShowResult(project) }
                 )
               }
             }
@@ -105,8 +99,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     activeTabFlow: Flow<Boolean>,
   ) {
     populateTabJob?.cancel()
-    populateTabJob =
-      launch(Dispatchers.EDT) { launchPopulateTabJob(project, tracker, tabPanel, activeTabFlow) }
+    populateTabJob = launch(Dispatchers.EDT) { launchPopulateTabJob(project, tracker, tabPanel, activeTabFlow) }
   }
 
   private suspend fun launchPopulateTabJob(
@@ -116,8 +109,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     activeTabFlow: Flow<Boolean>,
   ) =
     try {
-      val configManager =
-        withContext(Dispatchers.IO) { project.service<VitalsConfigurationService>().manager }
+      val configManager = withContext(Dispatchers.IO) { project.service<VitalsConfigurationService>().manager }
       // Combine with active user flow to get the logged out -> logged in + not authorized
       // update
       val loginService = GoogleLoginService.instance
@@ -129,11 +121,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             AppInsightsModel.Unauthenticated -> {
               tracker.logZeroState(
                 AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
-                  .apply {
-                    emptyState =
-                      AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
-                        .NO_LOGIN
-                  }
+                  .apply { emptyState = AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState.NO_LOGIN }
                   .build()
               )
               tabPanel.setComponent(loggedOutErrorStateComponent())
@@ -144,15 +132,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                 shouldRefresh = false
                 appInsightsModel.controller.refresh()
               }
-              tabPanel.setComponent(
-                VitalsTab(
-                  appInsightsModel.controller,
-                  project,
-                  Clock.systemDefaultZone(),
-                  tracker,
-                  activeTabFlow,
-                )
-              )
+              tabPanel.setComponent(VitalsTab(appInsightsModel.controller, project, Clock.systemDefaultZone(), tracker, activeTabFlow))
             }
             is AppInsightsModel.InitializationFailed -> {
               tabPanel.setComponent(initializationFailedComponent(configManager))
@@ -165,8 +145,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
       populateTabJob = null
     }
 
-  override fun getConfigurationManager(project: Project) =
-    project.service<VitalsConfigurationService>().manager
+  override fun getConfigurationManager(project: Project) = project.service<VitalsConfigurationService>().manager
 
   private fun placeholderContent(): JPanel =
     object : JPanel() {
@@ -175,11 +154,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             override fun isStatusVisible() = true
           }
           .also {
-            it.appendLine(
-              "Waiting for initial sync...",
-              SimpleTextAttributes.GRAYED_ATTRIBUTES,
-              null,
-            )
+            it.appendLine("Waiting for initial sync...", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
             it.attachTo(this)
           }
 
@@ -196,34 +171,17 @@ class VitalsTabProvider : AppInsightsTabProvider {
           override fun isStatusVisible() = true
         }
         .apply {
-          appendLine(
-            StudioIllustrations.Common.PLAY_CONSOLE,
-            "",
-            SimpleTextAttributes.REGULAR_ATTRIBUTES,
-            null,
-          )
-          appendLine(
-            "See insights from Play Console with Android Vitals",
-            SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-            null,
-          )
+          appendLine(StudioIllustrations.Common.PLAY_CONSOLE, "", SimpleTextAttributes.REGULAR_ATTRIBUTES, null)
+          appendLine("See insights from Play Console with Android Vitals", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, null)
           if (GoogleLoginService.instance.isLoggedIn()) {
-            appendLine("Authorize", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              LoginFeature.feature<VitalsLoginFeature>().logInBlocking()
-            }
+            appendLine("Authorize", SimpleTextAttributes.LINK_ATTRIBUTES) { LoginFeature.feature<VitalsLoginFeature>().logInBlocking() }
             appendText(" Android Studio to connect to your Play Console account.")
           } else {
-            appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              LoginFeature.feature<VitalsLoginFeature>().logInBlocking()
-            }
+            appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) { LoginFeature.feature<VitalsLoginFeature>().logInBlocking() }
             appendText(" to Android Studio to connect to your Play Console account.")
           }
           appendLine("")
-          appendLine(
-            AllIcons.General.ContextHelp,
-            "More Info",
-            SimpleTextAttributes.LINK_ATTRIBUTES,
-          ) {
+          appendLine(AllIcons.General.ContextHelp, "More Info", SimpleTextAttributes.LINK_ATTRIBUTES) {
             BrowserUtil.browse("https://d.android.com/r/studio-ui/debug/aqi-android-vitals")
           }
         }
@@ -240,18 +198,14 @@ class VitalsTabProvider : AppInsightsTabProvider {
     }
   }
 
-  private fun initializationFailedComponent(
-    configurationManager: AppInsightsConfigurationManager
-  ): JPanel {
+  private fun initializationFailedComponent(configurationManager: AppInsightsConfigurationManager): JPanel {
     val failureText =
       object : StatusText() {
           override fun isStatusVisible() = true
         }
         .apply {
           appendLine("Failed to query for accessible Android Vitals apps.")
-          appendLine("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            configurationManager.refreshConfiguration()
-          }
+          appendLine("Refresh", SimpleTextAttributes.LINK_ATTRIBUTES) { configurationManager.refreshConfiguration() }
         }
 
     return object : JPanel() {

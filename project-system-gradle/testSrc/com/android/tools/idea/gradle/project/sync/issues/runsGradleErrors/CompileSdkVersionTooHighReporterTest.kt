@@ -42,16 +42,14 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-
 @RunsInEdt
 class CompileSdkVersionTooHighReporterTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val reporter = CompileSdkVersionTooHighReporter()
 
   @Before
-  fun setUp(){
+  fun setUp() {
     MockitoAnnotations.initMocks(this)
   }
 
@@ -76,18 +74,22 @@ class CompileSdkVersionTooHighReporterTest {
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
-          Some random text
-          <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
-          Affected Modules: app
-        """.trimIndent(),
-        notification.message
+        Some random text
+        <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
+        Affected Modules: app
+        """
+          .trimIndent(),
+        notification.message,
       )
       assertEquals(MessageType.INFO, notification.type)
 
       val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
-      assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(
+        "android.suppressUnsupportedCompileSdk=UpsideDownCake",
+        (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty,
+      )
       assertEquals(listOf(module), messages[0].affectedModules)
     }
   }
@@ -113,18 +115,22 @@ class CompileSdkVersionTooHighReporterTest {
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
-          Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here
-          <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
-          Affected Modules: app
-        """.trimIndent(),
-        notification.message
+        Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here
+        <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
+        Affected Modules: app
+        """
+          .trimIndent(),
+        notification.message,
       )
       assertEquals(MessageType.INFO, notification.type)
 
       val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
-      assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(
+        "android.suppressUnsupportedCompileSdk=UpsideDownCake",
+        (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty,
+      )
       assertEquals(listOf(module), messages[0].affectedModules)
       mock.close()
     }
@@ -151,10 +157,11 @@ class CompileSdkVersionTooHighReporterTest {
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
-          Some random text only and nothing to extract
-          Affected Modules: app
-        """.trimIndent(),
-        notification.message
+        Some random text only and nothing to extract
+        Affected Modules: app
+        """
+          .trimIndent(),
+        notification.message,
       )
       assertEquals(MessageType.INFO, notification.type)
 
@@ -171,7 +178,7 @@ class CompileSdkVersionTooHighReporterTest {
       severity = IdeSyncIssue.SEVERITY_WARNING,
       message = syncMessage,
       type = IdeSyncIssue.TYPE_COMPILE_SDK_VERSION_TOO_HIGH,
-      multiLineMessage = null
+      multiLineMessage = null,
     )
   }
 }

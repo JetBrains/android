@@ -27,36 +27,37 @@ import com.android.tools.idea.stats.ManifestMergerStatsTracker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.Executors
 import jdk.jfr.consumer.RecordedEvent
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 object JfrManifestMergerReports {
   private const val MAX_REPORT_LENGTH_BYTES = 200_000
   private const val CALL_TREES_FIELD = "callTrees"
-  @VisibleForTesting
-  internal val REPORTING_THRESHOLD = 5.seconds
+  @VisibleForTesting internal val REPORTING_THRESHOLD = 5.seconds
 
   const val REPORT_TYPE = "JFR-ManifestMerger"
   val FIELDS = listOf(CALL_TREES_FIELD)
 
   @JvmStatic
-  fun createReportManager(parentDisposable: Disposable): JfrReportManager<*> = JfrReportManager.create(::MyReportGenerator) {
-    val coroutineScope = AndroidCoroutineScope(parentDisposable,
-                                               Executors.newSingleThreadScheduledExecutor().asCoroutineDispatcher())
-    val listener = MyMergedManifestSnapshotComputeListener(::startCapture, ::stopCapture, coroutineScope)
-    ApplicationManager.getApplication().messageBus.connect(parentDisposable)
-      .subscribe(MergedManifestSnapshotComputeListener.TOPIC, listener)
-  }
+  fun createReportManager(parentDisposable: Disposable): JfrReportManager<*> =
+    JfrReportManager.create(::MyReportGenerator) {
+      val coroutineScope = AndroidCoroutineScope(parentDisposable, Executors.newSingleThreadScheduledExecutor().asCoroutineDispatcher())
+      val listener = MyMergedManifestSnapshotComputeListener(::startCapture, ::stopCapture, coroutineScope)
+      ApplicationManager.getApplication()
+        .messageBus
+        .connect(parentDisposable)
+        .subscribe(MergedManifestSnapshotComputeListener.TOPIC, listener)
+    }
 
-  private class MyReportGenerator : JfrReportGenerator(
-    REPORT_TYPE, EventFilter.CPU_SAMPLES, startOffsetMs = -REPORTING_THRESHOLD.inWholeMilliseconds) {
+  private class MyReportGenerator :
+    JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES, startOffsetMs = -REPORTING_THRESHOLD.inWholeMilliseconds) {
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
 
     override fun accept(e: RecordedEvent, c: Capture) {
@@ -68,15 +69,11 @@ object JfrManifestMergerReports {
     }
 
     override fun generateReport(): Map<String, String> {
-      return mapOf(
-        CALL_TREES_FIELD to callTreeAggregator.generateReport(MAX_REPORT_LENGTH_BYTES),
-      )
+      return mapOf(CALL_TREES_FIELD to callTreeAggregator.generateReport(MAX_REPORT_LENGTH_BYTES))
     }
   }
 
-  /**
-   * Listens to manifest merge start and end events, and starts a JFR report if a merge takes longer than the defined threshold.
-   */
+  /** Listens to manifest merge start and end events, and starts a JFR report if a merge takes longer than the defined threshold. */
   @VisibleForTesting
   internal class MyMergedManifestSnapshotComputeListener(
     private val startCapture: () -> Unit,
@@ -90,9 +87,7 @@ object JfrManifestMergerReports {
     }
 
     @AnyThread
-    override fun snapshotCreationEnded(token: Any,
-                                       duration: Duration,
-                                       result: ManifestMergerStatsTracker.MergeResult) {
+    override fun snapshotCreationEnded(token: Any, duration: Duration, result: ManifestMergerStatsTracker.MergeResult) {
       coroutineScope.launch { handleSnapshotCreationEnded(token) }
     }
 
@@ -105,10 +100,11 @@ object JfrManifestMergerReports {
 
     @WorkerThread
     private fun handleSnapshotCreationStarted(token: Any) {
-      startReportTimeouts[token] = coroutineScope.launch {
-        delay(REPORTING_THRESHOLD)
-        handleSnapshotReportingTimeout(token)
-      }
+      startReportTimeouts[token] =
+        coroutineScope.launch {
+          delay(REPORTING_THRESHOLD)
+          handleSnapshotReportingTimeout(token)
+        }
     }
 
     @WorkerThread

@@ -31,10 +31,8 @@ import com.google.wireless.android.sdk.stats.SetupWizardEvent
  * Install Android SDK components for developing apps targeting Android platform.
  *
  * Default selection logic:
- * * If the component of this kind are already installed, they cannot be unchecked (e.g. the wizard
- *   will not uninstall them)
- * * If SDK does not have any platforms installed (or this is a new SDK installation), then only the
- *   latest platform will be installed.
+ * * If the component of this kind are already installed, they cannot be unchecked (e.g. the wizard will not uninstall them)
+ * * If SDK does not have any platforms installed (or this is a new SDK installation), then only the latest platform will be installed.
  */
 class AndroidPlatformSdkComponentTreeNode(
   name: String,
@@ -53,8 +51,7 @@ class AndroidPlatformSdkComponentTreeNode(
   override val optionalSdkPackages: Collection<String>
     get() = listOf(DetailsTypes.getSourcesPath(myVersion))
 
-  override fun sdkComponentsMetricKind() =
-    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_PLATFORM
+  override fun sdkComponentsMetricKind() = SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_PLATFORM
 
   private fun findLatestCompatibleBuildTool(): String? {
     var revision: Revision? = null
@@ -64,9 +61,7 @@ class AndroidPlatformSdkComponentTreeNode(
         continue
       }
       val testRevision = remote.version
-      if (
-        testRevision.major == myVersion.apiLevel && (revision == null || testRevision > revision)
-      ) {
+      if (testRevision.major == myVersion.apiLevel && (revision == null || testRevision > revision)) {
         revision = testRevision
         path = remote.path
       }
@@ -103,13 +98,7 @@ class AndroidPlatformSdkComponentTreeNode(
       val version = AndroidVersion(api).withBaseExtensionLevel()
       val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
       val description = "Android platform libraries for targeting platform: $versionName"
-      return AndroidPlatformSdkComponentTreeNode(
-        versionName,
-        description,
-        version,
-        !version.isPreview,
-        installUpdates,
-      )
+      return AndroidPlatformSdkComponentTreeNode(versionName, description, version, !version.isPreview, installUpdates)
     }
 
     private fun getInstalledPlatformVersions(handler: AndroidSdkHandler?): List<AndroidVersion> {
@@ -117,9 +106,7 @@ class AndroidPlatformSdkComponentTreeNode(
       if (handler != null) {
         val packages =
           handler
-            .getRepoManagerAndLoadSynchronously(
-              StudioLoggerProgressIndicator(AndroidPlatformSdkComponentTreeNode::class.java)
-            )
+            .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(AndroidPlatformSdkComponentTreeNode::class.java))
             .packages
         for (p in packages.localPackages.values) {
           if (p.typeDetails is DetailsTypes.PlatformDetailsType) {

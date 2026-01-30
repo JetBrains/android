@@ -32,8 +32,7 @@ class AppInspectionTargetManagerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
@@ -48,31 +47,17 @@ class AppInspectionTargetManagerTest {
   @Test
   fun disposesClientsForProject() =
     runBlocking<Unit> {
-      val terminatedProcess =
-        FakeTransportService.FAKE_PROCESS.toBuilder().setName("dispose").setPid(1).build()
-      val terminateProcessDescriptor =
-        AppInspectionTestUtils.createFakeProcessDescriptor(process = terminatedProcess)
+      val terminatedProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("dispose").setPid(1).build()
+      val terminateProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = terminatedProcess)
 
-      val otherProcess =
-        FakeTransportService.FAKE_PROCESS.toBuilder().setName("normal").setPid(2).build()
-      val otherProcessDescriptor =
-        AppInspectionTestUtils.createFakeProcessDescriptor(process = otherProcess)
+      val otherProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("normal").setPid(2).build()
+      val otherProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = otherProcess)
 
       val target = appInspectionRule.launchTarget(otherProcessDescriptor, TEST_PROJECT)
       val disposeTarget = appInspectionRule.launchTarget(terminateProcessDescriptor, "dispose")
-      target.launchInspector(
-        AppInspectionTestUtils.createFakeLaunchParameters(
-          otherProcessDescriptor,
-          project = TEST_PROJECT,
-        )
-      )
+      target.launchInspector(AppInspectionTestUtils.createFakeLaunchParameters(otherProcessDescriptor, project = TEST_PROJECT))
       val disposeClient =
-        disposeTarget.launchInspector(
-          AppInspectionTestUtils.createFakeLaunchParameters(
-            terminateProcessDescriptor,
-            project = "dispose",
-          )
-        )
+        disposeTarget.launchInspector(AppInspectionTestUtils.createFakeLaunchParameters(terminateProcessDescriptor, project = "dispose"))
 
       assertThat(appInspectionRule.targetManager.targets).hasSize(2)
 
@@ -80,8 +65,7 @@ class AppInspectionTargetManagerTest {
       disposeClient.awaitForDisposal()
 
       assertThat(appInspectionRule.targetManager.targets).hasSize(1)
-      assertThat(appInspectionRule.targetManager.targets.values.first().targetDeferred.await())
-        .isSameAs(target)
+      assertThat(appInspectionRule.targetManager.targets.values.first().targetDeferred.await()).isSameAs(target)
     }
 
   @Test

@@ -14,8 +14,7 @@ class PsiXmlTag(private val tag: XmlTag) : RenderXmlTag {
   override fun getAttribute(name: String, namespace: String): RenderXmlAttribute? =
     tag.getAttribute(name, namespace)?.let { PsiXmlAttribute(it) }
 
-  override fun getAttribute(name: String): RenderXmlAttribute? =
-    tag.getAttribute(name)?.let { PsiXmlAttribute(it) }
+  override fun getAttribute(name: String): RenderXmlAttribute? = tag.getAttribute(name)?.let { PsiXmlAttribute(it) }
 
   override val name: String
     get() = tag.name
@@ -62,16 +61,16 @@ class PsiXmlTag(private val tag: XmlTag) : RenderXmlTag {
     return tag.hashCode()
   }
 
-  override fun equals(other: Any?): Boolean = when (other) {
-    is PsiXmlTag -> this.tag == other.tag
-    else -> false
-  }
+  override fun equals(other: Any?): Boolean =
+    when (other) {
+      is PsiXmlTag -> this.tag == other.tag
+      else -> false
+    }
 
   val psiXmlTag: XmlTag
     get() = tag
 
   companion object {
-    @JvmStatic
-    fun create(xmlTag: XmlTag?): PsiXmlTag? = xmlTag?.let { PsiXmlTag(it) }
+    @JvmStatic fun create(xmlTag: XmlTag?): PsiXmlTag? = xmlTag?.let { PsiXmlTag(it) }
   }
 }

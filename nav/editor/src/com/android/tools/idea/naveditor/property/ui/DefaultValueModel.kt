@@ -70,6 +70,5 @@ class DefaultValueModel(argument: NlComponent, private val parent: NlComponent) 
       )
     }
 
-  private fun getComponent() =
-    parent.children.firstOrNull { it.isArgument && it.argumentName == name }
+  private fun getComponent() = parent.children.firstOrNull { it.isArgument && it.argumentName == name }
 }

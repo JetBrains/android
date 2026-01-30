@@ -28,6 +28,11 @@ interface EmulatorLogListener {
   }
 
   enum class Severity {
-    VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL
+    VERBOSE,
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    FATAL,
   }
 }

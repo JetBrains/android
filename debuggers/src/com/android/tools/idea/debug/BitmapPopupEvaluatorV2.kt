@@ -30,12 +30,12 @@ import com.sun.jdi.ArrayType
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.ObjectReference
 import com.sun.jdi.Value
-import org.intellij.images.editor.impl.ImageEditorManagerImpl
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingConstants.CENTER
+import org.intellij.images.editor.impl.ImageEditorManagerImpl
 
 /**
  * A [CustomPopupFullValueEvaluator] for Bitmap and BitmapDrawable values.
@@ -97,8 +97,9 @@ internal class BitmapPopupEvaluatorV2(private val evaluationContext: EvaluationC
   }
 
   private fun ObjectReference.getPixels(width: Int, height: Int): List<Int> {
-    val method = DebuggerUtils.findMethod(referenceType(), "getPixels", "([IIIIIII)V")
-      ?: throw RuntimeException("Method getPixels not found in ${type().name()}")
+    val method =
+      DebuggerUtils.findMethod(referenceType(), "getPixels", "([IIIIIII)V")
+        ?: throw RuntimeException("Method getPixels not found in ${type().name()}")
 
     val vm = virtualMachine()
     val intArrayType = vm.classesByName("int[]").first() as ArrayType
@@ -119,14 +120,16 @@ internal class BitmapPopupEvaluatorV2(private val evaluationContext: EvaluationC
   private fun ObjectReference.getHeight() = getInt("getHeight")
 
   private fun ObjectReference.getInt(methodName: String): Int {
-    val method = DebuggerUtils.findMethod(referenceType(), methodName, "()I")
-      ?: throw RuntimeException("Method $methodName not found in ${type().name()}")
+    val method =
+      DebuggerUtils.findMethod(referenceType(), methodName, "()I")
+        ?: throw RuntimeException("Method $methodName not found in ${type().name()}")
     val value = evaluationContext.debugProcess.invokeMethod(evaluationContext, this, method, emptyList<Value>()) as IntegerValue
     return value.value()
   }
 
   internal sealed class ImageResult {
     class Success(val image: BufferedImage) : ImageResult()
+
     object Error : ImageResult()
   }
 }

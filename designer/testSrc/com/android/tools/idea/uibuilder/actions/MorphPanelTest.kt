@@ -38,45 +38,26 @@ class MorphPanelTest {
   fun testTagValidation() = runBlocking {
     @Suppress("UnstableApiUsage")
     val morphPanel = edtWriteAction {
-      MorphPanel(
-        projectRule.module.androidFacet!!,
-        projectRule.project,
-        "InitialTag",
-        listOf("SuggestionA", "SuggestionB"),
-      )
+      MorphPanel(projectRule.module.androidFacet!!, projectRule.project, "InitialTag", listOf("SuggestionA", "SuggestionB"))
     }
     withContext(uiThread) {
       val fakeUi =
-        FakeUi(
-            morphPanel,
-            createFakeWindow = true,
-            parentDisposable = projectRule.testRootDisposable,
-          )
-          .apply {
-            root.size = Dimension(400, 400)
-            layout()
-            render()
-          }
+        FakeUi(morphPanel, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable).apply {
+          root.size = Dimension(400, 400)
+          layout()
+          render()
+        }
 
       val inputText = fakeUi.findComponent<TextFieldWithCompletion>()!!
       val button = fakeUi.findComponent<JButton>()!!
       assertEquals("First suggestion expected to be pre-populated", "SuggestionA", inputText.text)
-      assertTrue(
-        "Accept expected to be enabled for a valid suggestion 'SuggestionA'",
-        button.isEnabled,
-      )
+      assertTrue("Accept expected to be enabled for a valid suggestion 'SuggestionA'", button.isEnabled)
 
       inputText.text = "Invalid suggestion_"
-      assertFalse(
-        "Accept expected to be disabled for an invalid suggestion 'Invalid suggestion_'",
-        button.isEnabled,
-      )
+      assertFalse("Accept expected to be disabled for an invalid suggestion 'Invalid suggestion_'", button.isEnabled)
 
       inputText.text = "a.valid.Tag"
-      assertTrue(
-        "Accept expected to be enabled for a valid suggestion 'a.valid.Tag'",
-        button.isEnabled,
-      )
+      assertTrue("Accept expected to be enabled for a valid suggestion 'a.valid.Tag'", button.isEnabled)
     }
   }
 }

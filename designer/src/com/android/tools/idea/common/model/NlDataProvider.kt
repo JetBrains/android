@@ -25,11 +25,11 @@ abstract class NlDataProvider(val keys: Set<DataKey<*>>) : UiDataProvider {
   abstract fun getData(dataId: String): Any?
 
   open fun <T> getData(key: DataKey<T>): T? {
-    @Suppress("UNCHECKED_CAST") return getData(key.name) as T?
+    @Suppress("UNCHECKED_CAST")
+    return getData(key.name) as T?
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
-    @Suppress("UNCHECKED_CAST")
-    keys.forEach { key -> getData(key as DataKey<Any>)?.let { sink[key] = it } }
+    @Suppress("UNCHECKED_CAST") keys.forEach { key -> getData(key as DataKey<Any>)?.let { sink[key] = it } }
   }
 }

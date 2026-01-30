@@ -23,14 +23,14 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.google.common.truth.Truth.assertThat
-import org.junit.After
-import org.junit.Test
-import org.mockito.Mockito.mock
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.function.BiFunction
+import org.junit.After
+import org.junit.Test
+import org.mockito.Mockito.mock
 
 class LegacyAllocationCommandHandlerTest {
   @Test
@@ -44,67 +44,88 @@ class LegacyAllocationCommandHandlerTest {
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
     val filePathCache = HashMap<String, String>()
-    val commandHandler = LegacyAllocationCommandHandler(device,
-                                                        eventQueue,
-                                                        filePathCache,
-                                                        Executor { it.run() },
-                                                        BiFunction { _, _ -> allocTracker })
+    val commandHandler =
+      LegacyAllocationCommandHandler(device, eventQueue, filePathCache, Executor { it.run() }, BiFunction { _, _ -> allocTracker })
 
-    val startTrackCommand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.START_ALLOC_TRACKING
-      commandId = 1
-      startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
-    }.build()
+    val startTrackCommand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.START_ALLOC_TRACKING
+          commandId = 1
+          startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
+        }
+        .build()
     commandHandler.execute(startTrackCommand)
 
     assertThat(eventQueue).hasSize(2)
-    val startStatusEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
-      commandId = 1
-      timestamp = time1
-      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
-        status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build()
-      }.build()
-    }.build()
-    val startTrackingEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-      groupId = time1
-      timestamp = time1
-      memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-        info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build()
-      }.build()
-    }.build()
+    val startStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
+          commandId = 1
+          timestamp = time1
+          memoryAllocTrackingStatus =
+            Memory.MemoryAllocTrackingStatusData.newBuilder()
+              .apply { status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build() }
+              .build()
+        }
+        .build()
+    val startTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+          groupId = time1
+          timestamp = time1
+          memoryAllocTracking =
+            Memory.MemoryAllocTrackingData.newBuilder()
+              .apply { info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(startTrackingEvent, startStatusEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents
     assertThat(filePathCache).isEmpty()
 
     eventQueue.clear()
-    val stopTrackComand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
-      commandId = 2
-      stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
-    }.build()
+    val stopTrackComand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+          commandId = 2
+          stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
+        }
+        .build()
     commandHandler.execute(stopTrackComand)
 
     assertThat(eventQueue).hasSize(2)
-    val stopStatusEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
-      commandId = 2
-      timestamp = time2
-      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
-        status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build()
-      }.build()
-    }.build()
-    val stopTrackingEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-      groupId = time1
-      timestamp = time2
-      isEnded = true
-      memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-        info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setLegacy(true).setSuccess(true).build()
-      }.build()
-    }.build()
+    val stopStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
+          commandId = 2
+          timestamp = time2
+          memoryAllocTrackingStatus =
+            Memory.MemoryAllocTrackingStatusData.newBuilder()
+              .apply { status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build() }
+              .build()
+        }
+        .build()
+    val stopTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+          groupId = time1
+          timestamp = time2
+          isEnded = true
+          memoryAllocTracking =
+            Memory.MemoryAllocTrackingData.newBuilder()
+              .apply {
+                info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setLegacy(true).setSuccess(true).build()
+              }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(stopTrackingEvent, stopStatusEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents until the fake tracker returns
@@ -129,74 +150,98 @@ class LegacyAllocationCommandHandlerTest {
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
     val filePathCache = HashMap<String, String>()
-    val commandHandler = LegacyAllocationCommandHandler(device,
-                                                        eventQueue,
-                                                        filePathCache,
-                                                        Executor { it.run() },
-                                                        BiFunction { _, _ -> allocTracker })
+    val commandHandler =
+      LegacyAllocationCommandHandler(device, eventQueue, filePathCache, Executor { it.run() }, BiFunction { _, _ -> allocTracker })
 
-    val startTrackCommand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.START_ALLOC_TRACKING
-      commandId = 1
-      startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
-    }.build()
+    val startTrackCommand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.START_ALLOC_TRACKING
+          commandId = 1
+          startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
+        }
+        .build()
     commandHandler.execute(startTrackCommand)
 
     assertThat(eventQueue).hasSize(2)
-    val expectedStartStatusEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
-      commandId = 1
-      timestamp = time1
-      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
-        status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build()
-      }.build()
-    }.build()
-    val expectedStartTrackingEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-      groupId = time1
-      timestamp = time1
-      memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-        info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build()
-      }.build()
-    }.build()
+    val expectedStartStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
+          commandId = 1
+          timestamp = time1
+          memoryAllocTrackingStatus =
+            Memory.MemoryAllocTrackingStatusData.newBuilder()
+              .apply { status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build() }
+              .build()
+        }
+        .build()
+    val expectedStartTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+          groupId = time1
+          timestamp = time1
+          memoryAllocTracking =
+            Memory.MemoryAllocTrackingData.newBuilder()
+              .apply { info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(expectedStartStatusEvent, expectedStartTrackingEvent)
 
     // Verify that query for bytes on at ongoing session does not return any byte contents
     assertThat(filePathCache).isEmpty()
 
     eventQueue.clear()
-    val stopTrackComand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
-      commandId = 2
-      stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
-    }.build()
+    val stopTrackComand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+          commandId = 2
+          stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
+        }
+        .build()
     commandHandler.execute(stopTrackComand)
 
     assertThat(eventQueue).hasSize(3)
-    val stopStatusEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
-      commandId = 2
-      timestamp = time2
-      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
-        status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build()
-      }.build()
-    }.build()
-    val stopTrackingEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-      groupId = time1
-      timestamp = time2
-      isEnded = true
-      memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-        info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setLegacy(true).setSuccess(true).build()
-      }.build()
-    }.build()
-    val endSessionEvent = Common.Event.newBuilder().apply {
-      kind = Common.Event.Kind.SESSION
-      groupId = stopTrackComand.sessionId
-      timestamp = 10
-      pid = stopTrackComand.pid
-      isEnded = true
-    }.build()
+    val stopStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
+          commandId = 2
+          timestamp = time2
+          memoryAllocTrackingStatus =
+            Memory.MemoryAllocTrackingStatusData.newBuilder()
+              .apply { status = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(time1).build() }
+              .build()
+        }
+        .build()
+    val stopTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+          groupId = time1
+          timestamp = time2
+          isEnded = true
+          memoryAllocTracking =
+            Memory.MemoryAllocTrackingData.newBuilder()
+              .apply {
+                info = Memory.AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setLegacy(true).setSuccess(true).build()
+              }
+              .build()
+        }
+        .build()
+    val endSessionEvent =
+      Common.Event.newBuilder()
+        .apply {
+          kind = Common.Event.Kind.SESSION
+          groupId = stopTrackComand.sessionId
+          timestamp = 10
+          pid = stopTrackComand.pid
+          isEnded = true
+        }
+        .build()
 
     assertThat(eventQueue).containsExactly(stopTrackingEvent, stopStatusEvent, endSessionEvent)
 
@@ -220,24 +265,27 @@ class LegacyAllocationCommandHandlerTest {
     val device = mock(IDevice::class.java)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
     val filePathCache = HashMap<String, String>()
-    val commandHandler = LegacyAllocationCommandHandler(device,
-                                                        eventQueue,
-                                                        filePathCache,
-                                                        Executor { it.run() },
-                                                        BiFunction { _, _ -> allocTracker})
+    val commandHandler =
+      LegacyAllocationCommandHandler(device, eventQueue, filePathCache, Executor { it.run() }, BiFunction { _, _ -> allocTracker })
 
-    val startTrackCommand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.START_ALLOC_TRACKING
-      commandId = 1
-      startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
-    }.build()
+    val startTrackCommand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.START_ALLOC_TRACKING
+          commandId = 1
+          startAllocTracking = Memory.StartAllocTracking.newBuilder().setRequestTime(time1).build()
+        }
+        .build()
     commandHandler.execute(startTrackCommand)
 
-    val stopTrackComand = Commands.Command.newBuilder().apply {
-      type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
-      commandId = 2
-      stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
-    }.build()
+    val stopTrackComand =
+      Commands.Command.newBuilder()
+        .apply {
+          type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+          commandId = 2
+          stopAllocTracking = Memory.StopAllocTracking.newBuilder().setRequestTime(time2).build()
+        }
+        .build()
     commandHandler.execute(stopTrackComand)
 
     // Mock completion of the parsing process and the resulting data.

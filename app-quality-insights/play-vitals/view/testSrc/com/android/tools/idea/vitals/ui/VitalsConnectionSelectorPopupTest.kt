@@ -51,13 +51,7 @@ class VitalsConnectionSelectorPopupTest {
 
   @Test
   fun `popup shows both suggested and all apps`() = runTest {
-    val stateFlow =
-      MutableStateFlow(
-        Selection(
-          TEST_CONNECTION_1,
-          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
-        )
-      )
+    val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)))
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
     val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
     action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
@@ -70,17 +64,14 @@ class VitalsConnectionSelectorPopupTest {
     assertThat(lists[0].model.getElementAt(1)).isEqualTo(TEST_CONNECTION_2)
     assertThat(lists[1].model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
 
-    val labels =
-      fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
+    val labels = fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
     assertThat(labels).hasSize(2)
-    assertThat(labels.map { it.toString() })
-      .containsExactly("Suggested apps for this project", "Other apps")
+    assertThat(labels.map { it.toString() }).containsExactly("Suggested apps for this project", "Other apps")
   }
 
   @Test
   fun `popup shows empty other app when all connections are associated with a variant`() = runTest {
-    val stateFlow =
-      MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2)))
+    val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2)))
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
     val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
     action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
@@ -91,32 +82,27 @@ class VitalsConnectionSelectorPopupTest {
     assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_1)
     assertThat(list.model.getElementAt(1)).isEqualTo(TEST_CONNECTION_2)
 
-    val labels =
-      fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
+    val labels = fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
     assertThat(labels).hasSize(3)
-    assertThat(labels.map { it.toString() })
-      .containsExactly("Suggested apps for this project", "Other apps", "No apps accessible to you")
+    assertThat(labels.map { it.toString() }).containsExactly("Suggested apps for this project", "Other apps", "No apps accessible to you")
   }
 
   @Test
-  fun `popup shows empty suggested apps when no connections are associated with a variant`() =
-    runTest {
-      val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_3, listOf(TEST_CONNECTION_3)))
-      val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
-      val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
-      action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
+  fun `popup shows empty suggested apps when no connections are associated with a variant`() = runTest {
+    val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_3, listOf(TEST_CONNECTION_3)))
+    val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
+    val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
+    action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
 
-      val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
-      val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
-      val list = fakeUi.findComponent<JBList<VitalsConnection>>() ?: fail("List not found")
-      assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
+    val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
+    val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
+    val list = fakeUi.findComponent<JBList<VitalsConnection>>() ?: fail("List not found")
+    assertThat(list.model.getElementAt(0)).isEqualTo(TEST_CONNECTION_3)
 
-      val labels =
-        fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
-      assertThat(labels).hasSize(3)
-      assertThat(labels.map { it.toString() })
-        .containsExactly("Suggested apps for this project", "No suggested apps", "All apps")
-    }
+    val labels = fakeUi.findAllComponents<SimpleColoredComponent> { it !is ResizedSimpleColoredComponent }
+    assertThat(labels).hasSize(3)
+    assertThat(labels.map { it.toString() }).containsExactly("Suggested apps for this project", "No suggested apps", "All apps")
+  }
 
   @Test
   fun `popup shows empty state message when there are no apps at all`() = runTest {
@@ -130,19 +116,12 @@ class VitalsConnectionSelectorPopupTest {
     val banner = fakeUi.findComponent<NoAvailableAppsBanner>() ?: fail("Banner panel not found")
     val bannerFakeUi = FakeUi(banner)
     val textPane = bannerFakeUi.findComponent<JTextArea>() ?: fail("Text area not found")
-    assertThat(textPane.text)
-      .isEqualTo("Your Play Console account does not have access to Android Vitals for any app.")
+    assertThat(textPane.text).isEqualTo("Your Play Console account does not have access to Android Vitals for any app.")
   }
 
   @Test
   fun `search term narrows down connections in the list`() = runTest {
-    val stateFlow =
-      MutableStateFlow(
-        Selection(
-          TEST_CONNECTION_1,
-          listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3),
-        )
-      )
+    val stateFlow = MutableStateFlow(Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)))
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
     val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
     action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))

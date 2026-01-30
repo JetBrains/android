@@ -20,11 +20,10 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import java.awt.Dimension
 
 /**
- * [ImageContentSizePolicy] that obtains the size from the image render result if available. If not
- * available, it obtains the size from the given delegate.
+ * [ImageContentSizePolicy] that obtains the size from the image render result if available. If not available, it obtains the size from the
+ * given delegate.
  */
-class ImageContentSizePolicy(private val sizePolicyDelegate: ContentSizePolicy) :
-  ContentSizePolicy {
+class ImageContentSizePolicy(private val sizePolicyDelegate: ContentSizePolicy) : ContentSizePolicy {
   private var cachedDimension: Dimension? = null
 
   override fun measure(screenView: ScreenView, outDimension: Dimension) {
@@ -33,10 +32,7 @@ class ImageContentSizePolicy(private val sizePolicyDelegate: ContentSizePolicy) 
 
     if (contentSize != null) {
       try {
-        outDimension.setSize(
-          Coordinates.pxToDp(screenView, contentSize.width),
-          Coordinates.pxToDp(screenView, contentSize.height),
-        )
+        outDimension.setSize(Coordinates.pxToDp(screenView, contentSize.width), Coordinates.pxToDp(screenView, contentSize.height))
 
         // Save in case a future render fails. This way we can keep a constant size for failed
         // renders.

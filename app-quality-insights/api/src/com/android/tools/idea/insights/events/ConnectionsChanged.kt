@@ -27,10 +27,7 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.model.connection.Connection
 
 /** Any change to the available connections is propagated here. */
-data class ConnectionsChanged(
-  val connections: List<Connection>,
-  private val defaultFilters: Filters,
-) : ChangeEvent {
+data class ConnectionsChanged(val connections: List<Connection>, private val defaultFilters: Filters) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,
@@ -54,10 +51,7 @@ data class ConnectionsChanged(
         action = Action.Fetch(FetchSource.PROJECT_SELECTION),
       )
     } else {
-      StateTransition(
-        state.copy(connections = Selection(activeConnection, connections)),
-        action = Action.NONE,
-      )
+      StateTransition(state.copy(connections = Selection(activeConnection, connections)), action = Action.NONE)
     }
   }
 

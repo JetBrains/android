@@ -21,8 +21,7 @@ import org.jetbrains.annotations.TestOnly
 object DeclarativeIdeSupport {
   private fun getRegistryValue() = Registry.get("gradle.declarative.ide.support")
 
-  @JvmStatic
-  fun isEnabled(): Boolean = getRegistryValue().asBoolean()
+  @JvmStatic fun isEnabled(): Boolean = getRegistryValue().asBoolean()
 
   @TestOnly
   @JvmStatic

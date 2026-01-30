@@ -21,10 +21,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.NotNullLazyKey
 import com.intellij.psi.PsiFile
 
-/**
- * Suppresses error highlighting in Android SDK sources
- * (since android.jar has many false-positive unresolved references).
- */
+/** Suppresses error highlighting in Android SDK sources (since android.jar has many false-positive unresolved references). */
 class SdkHighlightFilter : HighlightInfoFilter {
 
   override fun accept(highlightInfo: HighlightInfo, file: PsiFile?): Boolean {
@@ -33,8 +30,7 @@ class SdkHighlightFilter : HighlightInfoFilter {
 
   companion object {
     /** Memoization for AndroidSdks.isInAndroidSdk(). The result is stored in the user data of the given PsiFile. */
-    private val IS_IN_ANDROID_SDK = NotNullLazyKey.createLazyKey<Boolean, PsiFile>("IS_IN_ANDROID_SDK") { file ->
-      AndroidSdks.getInstance().isInAndroidSdk(file)
-    }
+    private val IS_IN_ANDROID_SDK =
+      NotNullLazyKey.createLazyKey<Boolean, PsiFile>("IS_IN_ANDROID_SDK") { file -> AndroidSdks.getInstance().isInAndroidSdk(file) }
   }
 }

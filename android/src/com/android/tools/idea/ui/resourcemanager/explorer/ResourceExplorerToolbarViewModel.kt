@@ -56,25 +56,20 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
+import kotlin.properties.Delegates
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
-import kotlin.properties.Delegates
 
-/**
- * View model for the [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar].
- */
+/** View model for the [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar]. */
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
   initialResourceType: ResourceType,
   private val importersProvider: ImportersProvider,
-  private val filterOptions: FilterOptions)
-  : DataSnapshotProvider, IdeView {
+  private val filterOptions: FilterOptions,
+) : DataSnapshotProvider, IdeView {
 
-  /**
-   * Callback added by the view to be called when data of this
-   * view model changes.
-   */
+  /** Callback added by the view to be called when data of this view model changes. */
   var updateUICallback = {}
 
   /** Called when a new facet is selected. */
@@ -86,11 +81,12 @@ class ResourceExplorerToolbarViewModel(
   /** Callback for when a request to refresh resources previews is made. */
   var refreshResourcesPreviewsCallback: () -> Unit = {}
 
-  var resourceType: ResourceType by Delegates.observable(initialResourceType) { _, oldValue, newValue ->
-    if (newValue != oldValue) {
-      updateUICallback()
+  var resourceType: ResourceType by
+    Delegates.observable(initialResourceType) { _, oldValue, newValue ->
+      if (newValue != oldValue) {
+        updateUICallback()
+      }
     }
-  }
 
   var facet: AndroidFacet = facet
     set(newFacet) {
@@ -100,43 +96,40 @@ class ResourceExplorerToolbarViewModel(
       }
     }
 
-  /**
-   * Name of the module currently selected
-   */
+  /** Name of the module currently selected */
   val currentModuleName
     get() = facet.module.name
 
   val addActions
-    get() = DefaultActionGroup().apply {
-      val actionManager = ActionManager.getInstance()
+    get() =
+      DefaultActionGroup().apply {
+        val actionManager = ActionManager.getInstance()
 
-      actionManager.createNewResourceFileAction()?.let { add(it) }
+        actionManager.createNewResourceFileAction()?.let { add(it) }
 
-      when (resourceType) {
-        ResourceType.MIPMAP,
-        ResourceType.DRAWABLE -> {
-          actionManager.getAction("NewAndroidImageAsset")?.let { add(it) }
-          ?: thisLogger().warn("No action associated with id: \"NewAndroidImageAsset\".")
+        when (resourceType) {
+          ResourceType.MIPMAP,
+          ResourceType.DRAWABLE -> {
+            actionManager.getAction("NewAndroidImageAsset")?.let { add(it) }
+              ?: thisLogger().warn("No action associated with id: \"NewAndroidImageAsset\".")
 
-          actionManager.getAction("NewAndroidVectorAsset")?.let { add(it) }
-          ?: thisLogger().warn("No action associated with id: \"NewAndroidVectorAsset\".")
+            actionManager.getAction("NewAndroidVectorAsset")?.let { add(it) }
+              ?: thisLogger().warn("No action associated with id: \"NewAndroidVectorAsset\".")
 
-          add(Separator())
-          add(ImportResourceAction())
+            add(Separator())
+            add(ImportResourceAction())
+          }
+          ResourceType.BOOL,
+          ResourceType.COLOR,
+          ResourceType.DIMEN,
+          ResourceType.INTEGER,
+          ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+          ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+          else -> {}
         }
-        ResourceType.BOOL,
-        ResourceType.COLOR,
-        ResourceType.DIMEN,
-        ResourceType.INTEGER,
-        ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
-        ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
-        else -> {}
       }
-    }
 
-  /**
-   * Returns the [AnAction] to open the available [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter]s.
-   */
+  /** Returns the [AnAction] to open the available [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter]s. */
   fun getImportersActions(): List<AnAction> {
     return customImporters.map { importer ->
       object : DumbAwareAction(importer.presentableName) {
@@ -148,8 +141,8 @@ class ResourceExplorerToolbarViewModel(
   }
 
   /**
-   * Open the [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter] at the provided index in
-   * the [ImportersProvider.importers] list.
+   * Open the [com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter] at the provided index in the [ImportersProvider.importers]
+   * list.
    */
   private fun invokeImporter(importer: ResourceImporter) {
     val files = chooseFile(importer.getSupportedFileTypes(), importer.supportsBatchImport)
@@ -162,8 +155,8 @@ class ResourceExplorerToolbarViewModel(
    * @return filePath or null if user cancels the operation
    */
   private fun chooseFile(supportedFileTypes: Set<String>, supportsBatchImport: Boolean): Collection<String> {
-    val fileChooserDescriptor = FileChooserDescriptor(true, true, false, false, false, supportsBatchImport)
-      .withFileFilter { file ->
+    val fileChooserDescriptor =
+      FileChooserDescriptor(true, true, false, false, false, supportsBatchImport).withFileFilter { file ->
         supportedFileTypes.any { Comparing.equal(file.extension, it, file.isCaseSensitive) }
       }
     return FileChooser.chooseFiles(fileChooserDescriptor, facet.module.project, null)
@@ -171,7 +164,8 @@ class ResourceExplorerToolbarViewModel(
       .map(FileUtilRt::toSystemDependentName)
   }
 
-  private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
+  private val customImporters
+    get() = importersProvider.importers.filter { it.hasCustomImport }
 
   var isShowModuleDependencies: Boolean
     get() = filterOptions.isShowModuleDependencies
@@ -199,11 +193,12 @@ class ResourceExplorerToolbarViewModel(
 
   var typeFiltersModel: TypeFiltersModel = filterOptions.typeFiltersModel
 
-  var searchString: String by Delegates.observable("") { _, old, new ->
-    if (new != old) {
-      filterOptions.searchString = new
+  var searchString: String by
+    Delegates.observable("") { _, old, new ->
+      if (new != old) {
+        filterOptions.searchString = new
+      }
     }
-  }
 
   /**
    * Implementation of [IdeView.getDirectories] that returns the main resource directories of the current facet.
@@ -211,24 +206,20 @@ class ResourceExplorerToolbarViewModel(
    * Needed for AssetStudio.
    */
   override fun getDirectories(): Array<PsiDirectory> =
-    SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories?.mapNotNull {
-      runReadAction<PsiDirectory?> {
-        PsiManager.getInstance(facet.module.project).findDirectory(it)
-      }
-    }?.toTypedArray() ?: emptyArray()
+    SourceProviderManager.getInstance(facet)
+      .mainIdeaSourceProvider
+      ?.resDirectories
+      ?.mapNotNull { runReadAction<PsiDirectory?> { PsiManager.getInstance(facet.module.project).findDirectory(it) } }
+      ?.toTypedArray() ?: emptyArray()
 
   override fun getOrChooseDirectory() = DirectoryChooserUtil.getOrChooseDirectory(this)
 
-  /**
-   * Implementation of [DataSnapshotProvider] needed for [CreateResourceFileAction]
-   */
+  /** Implementation of [DataSnapshotProvider] needed for [CreateResourceFileAction] */
   override fun dataSnapshot(sink: DataSink) {
     sink[CommonDataKeys.PROJECT] = facet.module.project
     sink[PlatformCoreDataKeys.MODULE] = facet.module
     sink[LangDataKeys.IDE_VIEW] = this
-    sink.lazy(CommonDataKeys.PSI_ELEMENT) {
-      getPsiDirForResourceType()
-    }
+    sink.lazy(CommonDataKeys.PSI_ELEMENT) { getPsiDirForResourceType() }
   }
 
   /**
@@ -238,9 +229,10 @@ class ResourceExplorerToolbarViewModel(
    */
   private fun getPsiDirForResourceType(): PsiDirectory? {
     val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider?.resDirectories ?: emptyList()
-    val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
-      getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
-    }
+    val subDir =
+      FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
+        getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+      }
     return (subDir ?: resDirs.firstOrNull())?.let { PsiManager.getInstance(facet.module.project).findDirectory(it) }
   }
 
@@ -248,24 +240,18 @@ class ResourceExplorerToolbarViewModel(
     resourceUpdaterCallback?.invoke(name, type)
   }
 
-  /**
-   * Return the [AnAction]s to switch to another module.
-   * This method only returns Android modules.
-   */
+  /** Return the [AnAction]s to switch to another module. This method only returns Android modules. */
   fun getAvailableModules(): List<String> = findCompatibleFacets(facet.module.project).map { it.module.name }.sorted()
 
-  /**
-   * Calls [facetUpdaterCallback] when a new module is selected in the ComboBox.
-   */
+  /** Calls [facetUpdaterCallback] when a new module is selected in the ComboBox. */
   fun onModuleSelected(moduleName: String?) {
     getFacetForModuleName(moduleName, facet.module.project)?.run(facetUpdaterCallback)
   }
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-        ResourceManagerTracking.logAssetAddedViaButton(facet)
-        ResourceImportDialog(
-          ResourceImportDialogViewModel(facet, emptySequence(), importersProvider = importersProvider)).show()
+      ResourceManagerTracking.logAssetAddedViaButton(facet)
+      ResourceImportDialog(ResourceImportDialogViewModel(facet, emptySequence(), importersProvider = importersProvider)).show()
     }
   }
 
@@ -276,8 +262,7 @@ class ResourceExplorerToolbarViewModel(
 
     return if (resourceFileActionGroup.createResourceFileAction.subactions.any { it.resourceFolderType == resourceFolderType }) {
       NewResourceFileAction(resourceType, resourceFolderType, facet)
-    }
-    else {
+    } else {
       null
     }
   }

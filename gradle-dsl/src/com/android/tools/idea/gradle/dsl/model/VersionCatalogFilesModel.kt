@@ -16,26 +16,25 @@
 package com.android.tools.idea.gradle.dsl.model
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 
 /**
- * This interface should be implemented by extension that knows about project version catalog files
- * from some external sources like IDE or Gradle. That means it's likely get information from sync
+ * This interface should be implemented by extension that knows about project version catalog files from some external sources like IDE or
+ * Gradle. That means it's likely get information from sync
  */
 interface VersionCatalogFilesModel {
   fun getCatalogNameToFileMapping(project: Project): Map<String, String>
+
   fun getCatalogNameToFileMapping(module: Module): Map<String, String>
 }
 
 /**
- * We iterate over all extensions that knows about catalogs from external sources and
- * put all information in one map.
+ * We iterate over all extensions that knows about catalogs from external sources and put all information in one map.
  *
  * This is the only source we can get imported catalogs file path from.
  *
- * In case no extension or additional data - result will be empty.
- * That is - no default catalog information.
+ * In case no extension or additional data - result will be empty. That is - no default catalog information.
  */
 fun getGradleVersionCatalogFiles(project: Project): Map<String, String> {
   val result = mutableMapOf<String, String>()

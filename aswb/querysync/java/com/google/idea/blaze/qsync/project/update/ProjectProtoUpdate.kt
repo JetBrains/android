@@ -28,30 +28,33 @@ import java.nio.file.Path
 /**
  * Helper class for making a number of updates to the project proto.
  *
- *
- * This class provides a convenient way of accessing and updating various interesting parts of
- * the project proto, such as the `.workspace` module and libraries by name.
+ * This class provides a convenient way of accessing and updating various interesting parts of the project proto, such as the `.workspace`
+ * module and libraries by name.
  */
 class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
-  /**
-   * A library is a target external to the project scope.
-   */
+  /** A library is a target external to the project scope. */
   interface LibraryUpdater {
     fun addClassJars(jars: Collection<ProjectPath>)
+
     fun addSourceJars(jars: Collection<ProjectPath>)
   }
 
-  /**
-   * A module is a target in the scope of the project.
-   */
+  /** A module is a target in the scope of the project. */
   interface ModuleUpdater {
     fun markAsAndroidModule()
+
     fun addAndroidResourceJavaPackage(pkg: String)
+
     fun addAndroidCustomPackage(customPackage: String)
+
     fun addAndroidResourceDirectories(directories: Collection<ProjectPath>)
+
     fun addLanguages(languages: Collection<QuerySyncLanguage>)
+
     fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary)
+
     fun addKotlinCompilerFlags(flags: Collection<String>)
+
     fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit)
   }
 
@@ -62,22 +65,21 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
    */
   interface ContentEntryUpdater {
     fun addSourceRoot(root: ProjectPath, javaPackage: String, isTest: Boolean, isGenerated: Boolean)
+
     fun addExcludes(excludes: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>)
   }
 
-  /**
-   * A CcWorkspace holds configuration of native targets.
-   */
+  /** A CcWorkspace holds configuration of native targets. */
   interface CcWorkspaceUpdater {
     fun target(target: Label, updater: CcTargetUpdater.() -> Unit)
+
     fun putFlagSets(flagSetId: String, flagSet: ProjectProto.CcCompilerFlagSet)
   }
 
-  /**
-   * A CcTarget represents a native build target that may have different configurations (compilation contexts).
-   */
+  /** A CcTarget represents a native build target that may have different configurations (compilation contexts). */
   interface CcTargetUpdater {
     fun addSourceFile(file: ProjectProto.CcSourceFile)
+
     fun addContext(context: ProjectProto.CcCompilationContext)
   }
 
@@ -93,182 +95,171 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
       transform: ProjectProto.ProjectArtifact.ArtifactTransform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
     ): ProjectPath.ProjectRelativeProjectPath?
 
-    fun addExternalRepository(
-      repositoryName: String,
-      absolutePath: Path,
-      buildContext: DependencyBuildContext,
-    )
+    fun addExternalRepository(repositoryName: String, absolutePath: Path, buildContext: DependencyBuildContext)
   }
 
   private val project: ProjectProto.Project.Builder = existingProject.toBuilder()
   private val workspaceModule: ProjectProto.Module.Builder = getWorkspaceModuleBuilder(project)
 
-  /** Gets a builder for a library, creating it if it doesn't already exist.  */
+  /** Gets a builder for a library, creating it if it doesn't already exist. */
   fun library(name: Label, updater: LibraryUpdater.() -> Unit) {
     object : LibraryUpdater {
-      private fun update(name: Label, updater: ProjectProto.Library.() -> ProjectProto.Library) {
-        project.libraries.compute(name) { key, library ->
-          updater((library ?: ProjectProto.Library(key, listOf(), listOf())))
+        private fun update(name: Label, updater: ProjectProto.Library.() -> ProjectProto.Library) {
+          project.libraries.compute(name) { key, library -> updater((library ?: ProjectProto.Library(key, listOf(), listOf()))) }
+        }
+
+        override fun addClassJars(jars: Collection<ProjectPath>) {
+          if (jars.isEmpty()) return
+          update(name) { copy(classesJarList = classesJarList + jars) }
+        }
+
+        override fun addSourceJars(jars: Collection<ProjectPath>) {
+          if (jars.isEmpty()) return
+          update(name) { copy(sourcesList = sourcesList + jars) }
         }
       }
-
-      override fun addClassJars(jars: Collection<ProjectPath>) {
-        if (jars.isEmpty()) return
-        update(name) { copy(classesJarList = classesJarList + jars) }
-      }
-
-      override fun addSourceJars(jars: Collection<ProjectPath>) {
-        if (jars.isEmpty()) return
-        update(name) { copy(sourcesList = sourcesList + jars) }
-      }
-    }.updater()
+      .updater()
   }
 
   fun module(name: Label, updater: ModuleUpdater.() -> Unit) {
-    object: ModuleUpdater {
-      override fun markAsAndroidModule() {
-        workspaceModule.isAndroidModule = true
-      }
+    object : ModuleUpdater {
+        override fun markAsAndroidModule() {
+          workspaceModule.isAndroidModule = true
+        }
 
-      override fun addAndroidResourceJavaPackage(pkg: String) {
-        workspaceModule.androidSourcePackages += pkg
-      }
+        override fun addAndroidResourceJavaPackage(pkg: String) {
+          workspaceModule.androidSourcePackages += pkg
+        }
 
-      override fun addAndroidCustomPackage(customPackage: String) {
-        workspaceModule.androidCustomPackages += customPackage
-      }
+        override fun addAndroidCustomPackage(customPackage: String) {
+          workspaceModule.androidCustomPackages += customPackage
+        }
 
-      override fun addAndroidResourceDirectories(directories: Collection<ProjectPath>) {
-        workspaceModule.androidResourceDirectories += directories
-      }
+        override fun addAndroidResourceDirectories(directories: Collection<ProjectPath>) {
+          workspaceModule.androidResourceDirectories += directories
+        }
 
-      override fun addLanguages(languages: Collection<QuerySyncLanguage>) {
-        project.activeLanguages += languages
-      }
+        override fun addLanguages(languages: Collection<QuerySyncLanguage>) {
+          project.activeLanguages += languages
+        }
 
-      override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
-        workspaceModule.androidExternalLibraries += externalAndroidLibrary
-      }
+        override fun addExternalAndroidLibrary(externalAndroidLibrary: ProjectProto.ExternalAndroidLibrary) {
+          workspaceModule.androidExternalLibraries += externalAndroidLibrary
+        }
 
-      override fun addKotlinCompilerFlags(flags: Collection<String>) {
-        workspaceModule.kotlinCompilerFlags += flags
-      }
+        override fun addKotlinCompilerFlags(flags: Collection<String>) {
+          workspaceModule.kotlinCompilerFlags += flags
+        }
 
-      override fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit) {
-        // This is a linear scan but it is fine for now since we don't have many content entries and we add each one only once.
-        var contentEntryBuilder =
-          workspaceModule
-            .contentEntries
-            .getOrPut(root) { ProjectProto.ContentEntry(root = root, sourceFolders = listOf(), excludes = listOf()) }
-        object: ContentEntryUpdater {
-          override fun addSourceRoot(
-            root: ProjectPath,
-            javaPackage: String,
-            isTest: Boolean,
-            isGenerated: Boolean,
-          ) {
-            contentEntryBuilder = contentEntryBuilder.copy(
-              sourceFolders = contentEntryBuilder.sourceFolders +
-                              ProjectProto.SourceFolder(
-                                projectPath = root,
-                                isGenerated = isGenerated,
-                                isTest = isTest,
-                                packagePrefix = javaPackage,
-                              )
-            )
-          }
+        override fun contentEntry(root: ProjectPath, updater: ContentEntryUpdater.() -> Unit) {
+          // This is a linear scan but it is fine for now since we don't have many content entries and we add each one only once.
+          var contentEntryBuilder =
+            workspaceModule.contentEntries.getOrPut(root) {
+              ProjectProto.ContentEntry(root = root, sourceFolders = listOf(), excludes = listOf())
+            }
+          object : ContentEntryUpdater {
+              override fun addSourceRoot(root: ProjectPath, javaPackage: String, isTest: Boolean, isGenerated: Boolean) {
+                contentEntryBuilder =
+                  contentEntryBuilder.copy(
+                    sourceFolders =
+                      contentEntryBuilder.sourceFolders +
+                        ProjectProto.SourceFolder(
+                          projectPath = root,
+                          isGenerated = isGenerated,
+                          isTest = isTest,
+                          packagePrefix = javaPackage,
+                        )
+                  )
+              }
 
-          override fun addExcludes(excludes: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>) {
-            contentEntryBuilder = contentEntryBuilder.copy(
-              excludes = contentEntryBuilder.excludes + excludes
-            )
-          }
-        }.updater()
-        workspaceModule.contentEntries[root] = contentEntryBuilder
+              override fun addExcludes(excludes: Collection<ProjectPath.SourceCodeRepositoryRelativeProjectPath>) {
+                contentEntryBuilder = contentEntryBuilder.copy(excludes = contentEntryBuilder.excludes + excludes)
+              }
+            }
+            .updater()
+          workspaceModule.contentEntries[root] = contentEntryBuilder
+        }
       }
-    }.updater()
+      .updater()
   }
 
   fun ccWorkspace(updater: CcWorkspaceUpdater.() -> Unit) {
     val targets = project.ccWorkspace.targets.toMutableMap()
     val flagSets = project.ccWorkspace.flagSets.toMutableMap()
-    object: CcWorkspaceUpdater {
-      override fun target(
-        target: Label,
-        updater: CcTargetUpdater.() -> Unit,
-      ) {
-        val existing = targets[target]
-        val sources = existing?.sources?.toMutableMap() ?: mutableMapOf()
-        val contexts = existing?.contexts?.toMutableMap() ?: mutableMapOf()
-        object: CcTargetUpdater {
-          override fun addSourceFile(file: ProjectProto.CcSourceFile) {
-            sources[file.workspacePath] = file
-          }
+    object : CcWorkspaceUpdater {
+        override fun target(target: Label, updater: CcTargetUpdater.() -> Unit) {
+          val existing = targets[target]
+          val sources = existing?.sources?.toMutableMap() ?: mutableMapOf()
+          val contexts = existing?.contexts?.toMutableMap() ?: mutableMapOf()
+          object : CcTargetUpdater {
+              override fun addSourceFile(file: ProjectProto.CcSourceFile) {
+                sources[file.workspacePath] = file
+              }
 
-          override fun addContext(context: ProjectProto.CcCompilationContext) {
-            contexts[context.id] = context
-          }
-        }.updater()
-        targets[target] = ProjectProto.CcTarget(target, sources, contexts)
-      }
+              override fun addContext(context: ProjectProto.CcCompilationContext) {
+                contexts[context.id] = context
+              }
+            }
+            .updater()
+          targets[target] = ProjectProto.CcTarget(target, sources, contexts)
+        }
 
-      override fun putFlagSets(flagSetId: String, flagSet: ProjectProto.CcCompilerFlagSet) {
-        flagSets[flagSetId] = flagSet
+        override fun putFlagSets(flagSetId: String, flagSet: ProjectProto.CcCompilerFlagSet) {
+          flagSets[flagSetId] = flagSet
+        }
       }
-    }.updater()
+      .updater()
     project.ccWorkspace = ProjectProto.CcWorkspace(targets.toMap(), flagSets.toMap())
   }
 
   fun artifactDirectory(path: ProjectPath.ProjectRelativeProjectPath, updater: ArtifactDirectoryUpdater.() -> Unit) {
     var updated = false
     val contents = project.artifactDirectories.directoriesMap[path]?.contents?.toMutableMap() ?: mutableMapOf()
-    object: ArtifactDirectoryUpdater {
-      override fun addIfNewer(
-        artifactPath: Path,
-        artifact: BuildArtifact,
-        buildContext: DependencyBuildContext,
-        transform: ProjectProto.ProjectArtifact.ArtifactTransform,
-      ): ProjectPath.ProjectRelativeProjectPath? {
-        val relativePath = artifactPath.toString()
-        val existing = contents[relativePath]
-        if (existing != null && existing.fromBuild > buildContext.startTime()) {
-          // we already have the same artifact from a more recent build.
-          return null
+    object : ArtifactDirectoryUpdater {
+        override fun addIfNewer(
+          artifactPath: Path,
+          artifact: BuildArtifact,
+          buildContext: DependencyBuildContext,
+          transform: ProjectProto.ProjectArtifact.ArtifactTransform,
+        ): ProjectPath.ProjectRelativeProjectPath? {
+          val relativePath = artifactPath.toString()
+          val existing = contents[relativePath]
+          if (existing != null && existing.fromBuild > buildContext.startTime()) {
+            // we already have the same artifact from a more recent build.
+            return null
+          }
+          contents[relativePath] =
+            ProjectProto.ProjectArtifact(
+              target = artifact.target(),
+              buildArtifact = ProjectProto.BuildArtifact(artifact.digest()),
+              fromBuild = buildContext.startTime(),
+              transform = transform,
+            )
+          updated = true
+          return path.resolveChild(artifactPath)
         }
-        contents[relativePath] =
-          ProjectProto.ProjectArtifact(
-            target = artifact.target(),
-            buildArtifact = ProjectProto.BuildArtifact(artifact.digest()),
-            fromBuild = buildContext.startTime(),
-            transform = transform
-          )
-        updated = true
-        return path.resolveChild(artifactPath)
-      }
 
-      override fun addExternalRepository(
-        repositoryName: String,
-        absolutePath: Path,
-        buildContext: DependencyBuildContext,
-      ) {
-        val existing = contents[repositoryName]
-        if (existing != null && existing.fromBuild > buildContext.startTime()) {
-          // we already have the same artifact from a more recent build.
-          return
+        override fun addExternalRepository(repositoryName: String, absolutePath: Path, buildContext: DependencyBuildContext) {
+          val existing = contents[repositoryName]
+          if (existing != null && existing.fromBuild > buildContext.startTime()) {
+            // we already have the same artifact from a more recent build.
+            return
+          }
+          contents[repositoryName] =
+            ProjectProto.ExternalRepository(
+              name = repositoryName,
+              bazelRepositoryAbsolutePath = absolutePath,
+              fromBuild = buildContext.startTime(),
+            )
+          updated = true
         }
-        contents[repositoryName] =
-          ProjectProto.ExternalRepository(
-            name = repositoryName,
-            bazelRepositoryAbsolutePath = absolutePath,
-            fromBuild = buildContext.startTime()
-          )
-        updated = true
       }
-    }.updater()
+      .updater()
     if (updated) {
       project.artifactDirectories =
         project.artifactDirectories.copy(
-          directoriesMap = project.artifactDirectories.directoriesMap.with(path, ProjectProto.ArtifactDirectoryContents(contents)))
+          directoriesMap = project.artifactDirectories.directoriesMap.with(path, ProjectProto.ArtifactDirectoryContents(contents))
+        )
     }
   }
 
@@ -281,10 +272,8 @@ class ProjectProtoUpdate(existingProject: ProjectProto.Project) {
 
   companion object {
     private fun getWorkspaceModuleBuilder(project: ProjectProto.Project.Builder): ProjectProto.Module.Builder {
-      return project
-               .modules
-               .firstOrNull { it.name == BlazeProjectDataStorage.WORKSPACE_MODULE_NAME }
-             ?: ProjectProto.Module.Builder(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also { project.modules.add(it) }
+      return project.modules.firstOrNull { it.name == BlazeProjectDataStorage.WORKSPACE_MODULE_NAME }
+        ?: ProjectProto.Module.Builder(BlazeProjectDataStorage.WORKSPACE_MODULE_NAME).also { project.modules.add(it) }
     }
   }
 }

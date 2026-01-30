@@ -47,15 +47,11 @@ class DeclarativeWatchFaceUsageTrackerTest {
       .containsExactly(
         DeclarativeWatchFaceEvent.newBuilder()
           .setType(XML_SCHEMA_USED)
-          .setWffVersion(
-            DeclarativeWatchFaceEvent.WFFVersion.newBuilder().setVersion("3").setIsFallback(false)
-          )
+          .setWffVersion(DeclarativeWatchFaceEvent.WFFVersion.newBuilder().setVersion("3").setIsFallback(false))
           .build(),
         DeclarativeWatchFaceEvent.newBuilder()
           .setType(XML_SCHEMA_USED)
-          .setWffVersion(
-            DeclarativeWatchFaceEvent.WFFVersion.newBuilder().setVersion("2").setIsFallback(true)
-          )
+          .setWffVersion(DeclarativeWatchFaceEvent.WFFVersion.newBuilder().setVersion("2").setIsFallback(true))
           .build(),
       )
   }

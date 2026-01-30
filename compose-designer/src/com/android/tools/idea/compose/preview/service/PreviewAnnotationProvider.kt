@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
@@ -51,13 +50,11 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.types.Variance
 
 /**
- * A project service that provides a cached, cancellable, and auto-updating [Flow] of all preview
- * annotations in a project.
+ * A project service that provides a cached, cancellable, and auto-updating [Flow] of all preview annotations in a project.
  *
- * This service finds all direct and indirect usages of the `@Preview` annotation, including custom
- * annotations and type aliases. The [allPreviewAnnotationsFlow] is the primary entry point,
- * providing a [StateFlow] that always holds the most up-to-date set of preview annotation FQNs. The
- * flow automatically updates in response to relevant PSI and module dependency modifications.
+ * This service finds all direct and indirect usages of the `@Preview` annotation, including custom annotations and type aliases. The
+ * [allPreviewAnnotationsFlow] is the primary entry point, providing a [StateFlow] that always holds the most up-to-date set of preview
+ * annotation FQNs. The flow automatically updates in response to relevant PSI and module dependency modifications.
  */
 @Service(Service.Level.PROJECT)
 class PreviewAnnotationProvider(private val project: Project, scope: CoroutineScope) {
@@ -67,10 +64,9 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
   /**
    * A [StateFlow] that provides a complete, up-to-date set of all preview-defining annotation FQNs.
    *
-   * This flow listens for both Kotlin code modifications and module root changes. Upon triggering,
-   * it first checks for the existence of the `@Preview` annotation. If it exists, it performs an
-   * efficient, indexed-based search for all direct and indirect usages. If not, it emits an empty
-   * set.
+   * This flow listens for both Kotlin code modifications and module root changes. Upon triggering, it first checks for the existence of the
+   * `@Preview` annotation. If it exists, it performs an efficient, indexed-based search for all direct and indirect usages. If not, it
+   * emits an empty set.
    */
   @OptIn(FlowPreview::class)
   val allPreviewAnnotationsFlow: StateFlow<Set<String>> =
@@ -85,17 +81,13 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
       .mapLatest {
         val previewExists =
           smartReadAction(project) {
-            JavaPsiFacade.getInstance(project)
-              .findClass(COMPOSE_PREVIEW_ANNOTATION_FQN, GlobalSearchScope.allScope(project)) !=
-              null
+            JavaPsiFacade.getInstance(project).findClass(COMPOSE_PREVIEW_ANNOTATION_FQN, GlobalSearchScope.allScope(project)) != null
           }
 
         if (previewExists) {
           var previews: Set<String>
           val duration = measureTimeMillis { previews = getAllPreviewAnnotations() }
-          logger.debug(
-            "PreviewAnnotationProvider calculation took ${duration}ms. Found ${previews.size} previews."
-          )
+          logger.debug("PreviewAnnotationProvider calculation took ${duration}ms. Found ${previews.size} previews.")
           previews
         } else {
           logger.debug("Preview annotation does not exist. Emitting empty set.")
@@ -106,14 +98,11 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
       .stateIn(scope, SharingStarted.Eagerly, initialValue = emptySet())
 
   /**
-   * Finds the fully-qualified names (FQNs) of all annotation classes that are themselves annotated
-   * with a specific annotation.
+   * Finds the fully-qualified names (FQNs) of all annotation classes that are themselves annotated with a specific annotation.
    *
-   * This function is crucial for discovering "multi-preview" annotations, which are custom
-   * annotations that bundle one or more `@Preview` annotations. For example, if a user defines
-   * `@LandscapePreview` and annotates it with `@Preview`, this function will find
-   * `com.example.LandscapePreview` when searching for annotations annotated with
-   * `androidx.compose.ui.tooling.preview.Preview`.
+   * This function is crucial for discovering "multi-preview" annotations, which are custom annotations that bundle one or more `@Preview`
+   * annotations. For example, if a user defines `@LandscapePreview` and annotates it with `@Preview`, this function will find
+   * `com.example.LandscapePreview` when searching for annotations annotated with `androidx.compose.ui.tooling.preview.Preview`.
    *
    * @param annotatedWith The FQN of the annotation to search for.
    * @return A set of FQNs of annotation classes that are annotated with [annotatedWith].
@@ -130,13 +119,7 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
         continue // Not annotating an annotation, skip immediately.
       }
       analyze(candidate) {
-        val resolvedFqn =
-          candidate
-            .resolveToCall()
-            ?.singleConstructorCallOrNull()
-            ?.symbol
-            ?.containingClassId
-            ?.asFqNameString()
+        val resolvedFqn = candidate.resolveToCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
         if (resolvedFqn == annotatedWith) {
           parentClass.fqName?.asString()?.let { fqn -> definitions.add(fqn) }
         }
@@ -148,11 +131,9 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
   /**
    * Finds the fully-qualified names (FQNs) of all type aliases that expand to a specific FQN.
    *
-   * This is important for cases where developers use `typealias` to create shorter or more
-   * descriptive names for preview annotations. For example, if a user defines `typealias BigPreview
-   * = androidx.compose.ui.tooling.preview.Preview`, this function will find
-   * `com.example.BigPreview` when searching for type aliases that expand to
-   * `androidx.compose.ui.tooling.preview.Preview`.
+   * This is important for cases where developers use `typealias` to create shorter or more descriptive names for preview annotations. For
+   * example, if a user defines `typealias BigPreview = androidx.compose.ui.tooling.preview.Preview`, this function will find
+   * `com.example.BigPreview` when searching for type aliases that expand to `androidx.compose.ui.tooling.preview.Preview`.
    *
    * @param expandingTo The FQN that the type alias should expand to.
    * @return A set of FQNs of type aliases that expand to [expandingTo].
@@ -162,17 +143,12 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
     val definitions = mutableSetOf<String>()
     val shortName = expandingTo.substringAfterLast('.')
 
-    val aliasCandidates =
-      KotlinTypeAliasByExpansionShortNameIndex[shortName, project, project.projectScope()]
+    val aliasCandidates = KotlinTypeAliasByExpansionShortNameIndex[shortName, project, project.projectScope()]
     for (alias in aliasCandidates) {
       ProgressManager.checkCanceled()
       analyze(alias) {
         val aliasSymbol = alias.symbol
-        val rightSideType =
-          aliasSymbol.expandedType.render(
-            KaTypeRendererForSource.WITH_QUALIFIED_NAMES,
-            Variance.INVARIANT,
-          )
+        val rightSideType = aliasSymbol.expandedType.render(KaTypeRendererForSource.WITH_QUALIFIED_NAMES, Variance.INVARIANT)
 
         if (rightSideType == expandingTo) {
           alias.fqName?.asString()?.let { fqn -> definitions.add(fqn) }
@@ -185,9 +161,8 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
   /**
    * The core, uncached implementation of the annotation search.
    *
-   * This function performs a breadth-first search to find all preview annotations in the project.
-   * It starts with the base `@Preview` annotation and iteratively finds all annotations and type
-   * aliases that are directly or indirectly annotated with it.
+   * This function performs a breadth-first search to find all preview annotations in the project. It starts with the base `@Preview`
+   * annotation and iteratively finds all annotations and type aliases that are directly or indirectly annotated with it.
    *
    * @return A set of FQNs of all preview annotations.
    */
@@ -207,8 +182,7 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
 
       // Find all annotations and type aliases that are directly annotated with or expand to the
       // current FQN.
-      val directAnnotations =
-        smartReadAction(project) { findMultipreviewAnnotationClasses(currentFqn) }
+      val directAnnotations = smartReadAction(project) { findMultipreviewAnnotationClasses(currentFqn) }
       val directAliases = smartReadAction(project) { findTypeAliases(currentFqn) }
 
       (directAnnotations + directAliases).forEach { fqn ->

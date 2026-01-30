@@ -95,32 +95,33 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private val DEFAULT_LIST_MODE_WIDTH get() = JBUI.scale(60)
-private val MAX_CELL_WIDTH get() = JBUI.scale(300)
-private val LIST_CELL_SIZE get() = JBUI.scale(60)
-private val MIN_CELL_WIDTH get() = JBUI.scale(150)
-private val DEFAULT_CELL_WIDTH get() = LIST_CELL_SIZE
-private val SECTION_HEADER_SECONDARY_COLOR get() = JBColor.border()
+private val DEFAULT_LIST_MODE_WIDTH
+  get() = JBUI.scale(60)
+private val MAX_CELL_WIDTH
+  get() = JBUI.scale(300)
+private val LIST_CELL_SIZE
+  get() = JBUI.scale(60)
+private val MIN_CELL_WIDTH
+  get() = JBUI.scale(150)
+private val DEFAULT_CELL_WIDTH
+  get() = LIST_CELL_SIZE
+private val SECTION_HEADER_SECONDARY_COLOR
+  get() = JBColor.border()
 
 private val SECTION_HEADER_BORDER
-  get() = BorderFactory.createCompoundBorder(
-    JBUI.Borders.empty(4, 4, 8, 4),
-    JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
-  )
+  get() =
+    BorderFactory.createCompoundBorder(JBUI.Borders.empty(4, 4, 8, 4), JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0))
 
-private val SECTION_LIST_BORDER get() = JBUI.Borders.empty()
+private val SECTION_LIST_BORDER
+  get() = JBUI.Borders.empty()
 
 private val SECTION_HEADER_LABEL_FONT
-  get() = JBUI.Fonts.label().deriveFont(mapOf(
-    TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
-    TextAttribute.SIZE to JBUI.scaleFontSize(14f)
-  ))
+  get() =
+    JBUI.Fonts.label()
+      .deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD, TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
 
 private val TOOLBAR_BORDER
-  get() = BorderFactory.createCompoundBorder(
-    JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
-    JBUI.Borders.empty(4, 2)
-  )
+  get() = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), JBUI.Borders.empty(4, 2))
 
 private val GRID_MODE_BACKGROUND = UIUtil.getPanelBackground()
 private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
@@ -128,8 +129,8 @@ private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 /**
  * Delay to wait for before showing the "Loading" state.
  *
- * If we don't delay showing the loading state, user might see a quick flickering
- * when switching tabs because of the quick change from old resources to loading view to new resources.
+ * If we don't delay showing the loading state, user might see a quick flickering when switching tabs because of the quick change from old
+ * resources to loading view to new resources.
  */
 private const val MS_DELAY_BEFORE_LOADING_STATE = 100L // ms
 private val UNIT_DELAY_BEFORE_LOADING_STATE = TimeUnit.MILLISECONDS
@@ -148,7 +149,7 @@ class ResourceExplorerListView(
   withMultiModuleSearch: Boolean = true,
   private val summaryView: DetailedPreview?,
   private val withDetailView: Boolean = true,
-  private val multiSelection: Boolean = true
+  private val multiSelection: Boolean = true,
 ) : JPanel(BorderLayout()), Disposable, UiDataProvider {
 
   private var updatePending = false
@@ -167,22 +168,19 @@ class ResourceExplorerListView(
       if (value != field) {
         PropertiesComponent.getInstance().setValue(PREVIEW_SIZE, value, DEFAULT_CELL_WIDTH)
         field = value
-        sectionList.getLists().forEach {
-          (it as AssetListView).thumbnailWidth = previewSize
-        }
+        sectionList.getLists().forEach { (it as AssetListView).thumbnailWidth = previewSize }
       }
     }
 
-  private var gridMode: Boolean by Delegates.observable(PropertiesComponent.getInstance().getBoolean(GRID_MODE)) { _, _, newValue ->
-    PropertiesComponent.getInstance().setValue(GRID_MODE, newValue)
-    val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
-    centerPanel.background = backgroundColor
-    sectionList.background = backgroundColor
-    moduleSearchView?.backgroundColor = backgroundColor
-    sectionList.getLists().forEach {
-      (it as AssetListView).isGridMode = newValue
+  private var gridMode: Boolean by
+    Delegates.observable(PropertiesComponent.getInstance().getBoolean(GRID_MODE)) { _, _, newValue ->
+      PropertiesComponent.getInstance().setValue(GRID_MODE, newValue)
+      val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+      centerPanel.background = backgroundColor
+      sectionList.background = backgroundColor
+      moduleSearchView?.backgroundColor = backgroundColor
+      sectionList.getLists().forEach { (it as AssetListView).isGridMode = newValue }
     }
-  }
 
   private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
@@ -194,54 +192,59 @@ class ResourceExplorerListView(
   private val validDragTargets = listOf("Drawable", "Mip Map")
   private val dragHandler = resourceDragHandler(resourceImportDragTarget) { validDragTargets.contains(viewModel.selectedTabName) }
 
-  private val topActionsPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    isOpaque = false
-  }
+  private val topActionsPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      isOpaque = false
+    }
 
-  private val sectionList: SectionList = SectionList(sectionListModel).apply {
-    border = SECTION_LIST_BORDER
-    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
-    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-    addMouseWheelListener { event ->
-      val modifierKey = if (ClientSystemInfo.isMac()) InputEvent.META_MASK else InputEvent.CTRL_MASK
-      val modifierPressed = (event.modifiers and modifierKey) == modifierKey
-      if (modifierPressed && gridMode) {
-        previewSize = max(MIN_CELL_WIDTH, min(
-          MAX_CELL_WIDTH, (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()))
+  private val sectionList: SectionList =
+    SectionList(sectionListModel).apply {
+      border = SECTION_LIST_BORDER
+      background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+      horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+      verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+      addMouseWheelListener { event ->
+        val modifierKey = if (ClientSystemInfo.isMac()) InputEvent.META_MASK else InputEvent.CTRL_MASK
+        val modifierPressed = (event.modifiers and modifierKey) == modifierKey
+        if (modifierPressed && gridMode) {
+          previewSize = max(MIN_CELL_WIDTH, min(MAX_CELL_WIDTH, (previewSize * (1 - event.preciseWheelRotation * 0.1)).roundToInt()))
+        }
       }
     }
-  }
 
-  private val contentSeparator = JSeparator().apply {
-    isVisible = false
-    minimumSize = Dimension(JBUI.scale(10), JBUI.scale(4))
-    maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(10))
-  }
+  private val contentSeparator =
+    JSeparator().apply {
+      isVisible = false
+      minimumSize = Dimension(JBUI.scale(10), JBUI.scale(4))
+      maximumSize = Dimension(Integer.MAX_VALUE, JBUI.scale(10))
+    }
 
   /** A view to hold clickable labels to change modules when filtering resources. */
-  private val moduleSearchView = if (withMultiModuleSearch) LinkLabelSearchView().apply {
-    backgroundColor = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
-  } else null
+  private val moduleSearchView =
+    if (withMultiModuleSearch)
+      LinkLabelSearchView().apply { backgroundColor = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND }
+    else null
 
-  private val centerPanel = JPanel().apply {
-    layout = BoxLayout(this@apply, BoxLayout.Y_AXIS)
-    background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
-    add(sectionList)
-    if (moduleSearchView != null) {
-      add(contentSeparator)
-      add(moduleSearchView)
+  private val centerPanel =
+    JPanel().apply {
+      layout = BoxLayout(this@apply, BoxLayout.Y_AXIS)
+      background = if (gridMode) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
+      add(sectionList)
+      if (moduleSearchView != null) {
+        add(contentSeparator)
+        add(moduleSearchView)
+      }
     }
-  }
 
-  private val footerPanel = JPanel(BorderLayout()).apply {
-    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
+  private val footerPanel =
+    JPanel(BorderLayout()).apply {
+      border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
 
-    val bottomToolbar = ActionManager.getInstance().createActionToolbar("resourceExplorer", createBottomActions(), true)
-    bottomToolbar.targetComponent = this@ResourceExplorerListView
-    add(bottomToolbar.component, BorderLayout.EAST)
-  }
+      val bottomToolbar = ActionManager.getInstance().createActionToolbar("resourceExplorer", createBottomActions(), true)
+      bottomToolbar.targetComponent = this@ResourceExplorerListView
+      add(bottomToolbar.component, BorderLayout.EAST)
+    }
 
   private val contentPanel: JPanel =
     JPanel(BorderLayout()).apply {
@@ -253,67 +256,70 @@ class ResourceExplorerListView(
   /**
    * Mouse listener to invoke the popup menu.
    *
-   * This custom implementation is needed to ensure that the clicked element is selected
-   * before invoking the menu.
+   * This custom implementation is needed to ensure that the clicked element is selected before invoking the menu.
    */
-  private val popupHandler = object : PopupHandler() {
-    val actionManager = ActionManager.getInstance()
-    val group = DefaultActionGroup().apply {
-      add(RefreshDesignAssetAction { assets ->
-        assets.forEach { viewModel.clearImageCache(it) }
-        repaint()
-      })
-      addSeparator()
-      add(actionManager.getAction("ResourceExplorer") as ActionGroup)
-    }
+  private val popupHandler =
+    object : PopupHandler() {
+      val actionManager = ActionManager.getInstance()
+      val group =
+        DefaultActionGroup().apply {
+          add(
+            RefreshDesignAssetAction { assets ->
+              assets.forEach { viewModel.clearImageCache(it) }
+              repaint()
+            }
+          )
+          addSeparator()
+          add(actionManager.getAction("ResourceExplorer") as ActionGroup)
+        }
 
-    override fun invokePopup(comp: Component?, x: Int, y: Int) {
-      val list = comp as JList<*>
-      // Select the element before invoking the popup menu
-      val clickedIndex = list.locationToIndex(Point(x, y))
-      if (!list.isSelectedIndex(clickedIndex)) {
-        list.selectedIndex = clickedIndex
+      override fun invokePopup(comp: Component?, x: Int, y: Int) {
+        val list = comp as JList<*>
+        // Select the element before invoking the popup menu
+        val clickedIndex = list.locationToIndex(Point(x, y))
+        if (!list.isSelectedIndex(clickedIndex)) {
+          list.selectedIndex = clickedIndex
+        }
+        val popupMenu = actionManager.createActionPopupMenu("ResourceExplorer", group)
+        popupMenu.setTargetComponent(list)
+        val menu = popupMenu.component
+        menu.show(comp, x, y)
       }
-      val popupMenu = actionManager.createActionPopupMenu("ResourceExplorer", group)
-      popupMenu.setTargetComponent(list)
-      val menu = popupMenu.component
-      menu.show(comp, x, y)
     }
-  }
 
   /**
-   * A mouse listener that opens a [ResourceDetailView] when double clicking
-   * on an item from the list.
+   * A mouse listener that opens a [ResourceDetailView] when double clicking on an item from the list.
+   *
    * @see doSelectAssetAction
    */
-  private val mouseClickListener = object : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-      if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
-        return
-      }
-      WriteIntentReadAction.run {
-        val assetListView = e.source as AssetListView
-        val index = assetListView.locationToIndex(e.point)
-        if (index >= 0) {
-          val designAssetSet = assetListView.model.getElementAt(index)
-          doSelectAssetAction(designAssetSet)
+  private val mouseClickListener =
+    object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (!(e.clickCount == 2 && e.button == MouseEvent.BUTTON1)) {
+          return
+        }
+        WriteIntentReadAction.run {
+          val assetListView = e.source as AssetListView
+          val index = assetListView.locationToIndex(e.point)
+          if (index >= 0) {
+            val designAssetSet = assetListView.model.getElementAt(index)
+            doSelectAssetAction(designAssetSet)
+          }
         }
       }
     }
-  }
 
-  private val keyListener = object : KeyAdapter() {
-    override fun keyPressed(e: KeyEvent) {
-      if (KeyEvent.VK_ENTER == e.keyCode) {
-        val assetListView = e.source as AssetListView
-        doSelectAssetAction(assetListView.selectedValue)
+  private val keyListener =
+    object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (KeyEvent.VK_ENTER == e.keyCode) {
+          val assetListView = e.source as AssetListView
+          doSelectAssetAction(assetListView.selectedValue)
+        }
       }
     }
-  }
 
-  /**
-   * Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet].
-   */
+  /** Replace the content of the view with a [ResourceDetailView] for the provided [designAssetSet]. */
   private fun doSelectAssetAction(designAssetSet: ResourceAssetSet) {
     if (designAssetSet.assets.isNotEmpty()) {
       val asset = designAssetSet.assets.first()
@@ -330,10 +336,11 @@ class ResourceExplorerListView(
   private fun showDetailView(designAssetSet: ResourceAssetSet) {
     val previousSelectedValue = sectionList.selectedValue
 
-    val detailView = ResourceDetailView(designAssetSet, viewModel) {
-      setContentPanel()
-      sectionList.selectedValue = previousSelectedValue
-    }
+    val detailView =
+      ResourceDetailView(designAssetSet, viewModel) {
+        setContentPanel()
+        sectionList.selectedValue = previousSelectedValue
+      }
 
     removeAll()
     add(detailView)
@@ -342,10 +349,7 @@ class ResourceExplorerListView(
     detailView.requestFocusInWindow()
   }
 
-  /**
-   * Update the [summaryView] panel.
-   * May populate the icon, the metadata and/or a [configuration, value] map.
-   */
+  /** Update the [summaryView] panel. May populate the icon, the metadata and/or a [configuration, value] map. */
   private fun updateSummaryPreview() {
     if (summaryView == null) return
     val resourceAssetSet = sectionList.selectedValue as? ResourceAssetSet ?: return
@@ -354,20 +358,22 @@ class ResourceExplorerListView(
     summaryView.apply {
       val summaryMapFuture = viewModel.getResourceSummaryMap(resourceAssetSet)
       val configurationMapFuture = viewModel.getResourceConfigurationMap(resourceAssetSet)
-      CompletableFuture.allOf(summaryMapFuture, configurationMapFuture).whenCompleteAsync(BiConsumer { _, _ ->
-        data = summaryMapFuture.join()
-        values = configurationMapFuture.join()
-        validate()
-        repaint()
-      }, EdtExecutorService.getInstance())
+      CompletableFuture.allOf(summaryMapFuture, configurationMapFuture)
+        .whenCompleteAsync(
+          BiConsumer { _, _ ->
+            data = summaryMapFuture.join()
+            values = configurationMapFuture.join()
+            validate()
+            repaint()
+          },
+          EdtExecutorService.getInstance(),
+        )
     }
   }
 
-  /**
-   * Update the icon in the [summaryView] panel, if any. Also used for the refresh callback in the preview provider.
-   */
+  /** Update the icon in the [summaryView] panel, if any. Also used for the refresh callback in the preview provider. */
   private fun updateSummaryPreviewIcon() {
-    val assetSet = (sectionList.selectedValue as? ResourceAssetSet)?: return
+    val assetSet = (sectionList.selectedValue as? ResourceAssetSet) ?: return
     val assetForPreview = assetSet.getHighestDensityAsset()
     summaryView?.let {
       if (assetForPreview !is DesignAsset) {
@@ -377,15 +383,16 @@ class ResourceExplorerListView(
         return
       }
       val previewProvider = viewModel.summaryPreviewManager.getPreviewProvider(assetForPreview.type)
-      summaryView.icon = if (previewProvider !is DefaultIconProvider) previewProvider.getIcon(
-        assetForPreview,
-        JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
-        JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
-        this,
-        refreshCallback = {
-          updateSummaryPreviewIcon()
-        }
-      ) else null
+      summaryView.icon =
+        if (previewProvider !is DefaultIconProvider)
+          previewProvider.getIcon(
+            assetForPreview,
+            JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
+            JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
+            this,
+            refreshCallback = { updateSummaryPreviewIcon() },
+          )
+        else null
       summaryView.repaint()
     }
   }
@@ -414,8 +421,8 @@ class ResourceExplorerListView(
     populateSearchLinkLabels()
     viewModel.speedSearch.addChangeListener {
       sectionList.getLists().filterIsInstance<AssetListView>().forEach { assetListView -> assetListView.refilter() }
-      sectionList.getSections().filterIsInstance<AssetSection<AssetListView>>().forEach {
-        section -> section.updateHeaderName((section.list as? AssetListView)?.getFilteredSize())
+      sectionList.getSections().filterIsInstance<AssetSection<AssetListView>>().forEach { section ->
+        section.updateHeaderName((section.list as? AssetListView)?.getFilteredSize())
       }
       centerPanel.validate()
       centerPanel.repaint()
@@ -424,11 +431,12 @@ class ResourceExplorerListView(
 
     setContentPanel()
     isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-      override fun getFirstComponent(p0: Container?): Component {
-        return sectionList.getLists().firstOrNull() ?: this@ResourceExplorerListView
+    focusTraversalPolicy =
+      object : LayoutFocusTraversalPolicy() {
+        override fun getFirstComponent(p0: Container?): Component {
+          return sectionList.getLists().firstOrNull() ?: this@ResourceExplorerListView
+        }
       }
-    }
   }
 
   private fun setContentPanel() {
@@ -442,10 +450,7 @@ class ResourceExplorerListView(
   }
 
   private fun getSelectedAssets(): List<Asset> {
-    return sectionList.getLists()
-      .flatMap { it.selectedValuesList }
-      .filterIsInstance<ResourceAssetSet>()
-      .flatMap(ResourceAssetSet::assets)
+    return sectionList.getLists().flatMap { it.selectedValuesList }.filterIsInstance<ResourceAssetSet>().flatMap(ResourceAssetSet::assets)
   }
 
   private fun populateExternalActions() {
@@ -473,10 +478,13 @@ class ResourceExplorerListView(
 
     val filter = viewModel.speedSearch.filter
     if (filter.isNotBlank()) {
-      searchFuture = viewModel.getOtherModulesResourceLists()
-        .whenCompleteAsync(BiConsumer { resourceLists, _ ->
-          displaySearchLinkLabels(resourceLists, filter)
-        }, EdtExecutorService.getInstance())
+      searchFuture =
+        viewModel
+          .getOtherModulesResourceLists()
+          .whenCompleteAsync(
+            BiConsumer { resourceLists, _ -> displaySearchLinkLabels(resourceLists, filter) },
+            EdtExecutorService.getInstance(),
+          )
     }
     centerPanel.revalidate()
   }
@@ -492,22 +500,29 @@ class ResourceExplorerListView(
     val search = viewModel.speedSearch
     search.setEnabled(true)
     resourceSections.forEach { section ->
-      val filteringModel = NameFilteringListModel(CollectionListModel(section.assetSets), { it.name }, search::shouldBeShowing,
-                                                  { StringUtil.notNullize(filter) })
+      val filteringModel =
+        NameFilteringListModel(
+          CollectionListModel(section.assetSets),
+          { it.name },
+          search::shouldBeShowing,
+          { StringUtil.notNullize(filter) },
+        )
       filteringModel.refilter()
       val resourcesCount = filteringModel.size
       if (resourcesCount > 0) {
-        // TODO: Get the facet when the module is being set in ResourceExplorerViewModel by passing the module name instead of the actual facet.
+        // TODO: Get the facet when the module is being set in ResourceExplorerViewModel by passing the module name instead of the actual
+        // facet.
         // I.e: This class should not be fetching module objects.
-        findCompatibleFacets(viewModel.facet.module.project).firstOrNull {
-          it.module.name == section.libraryName
-        }?.let { facetToChange ->
-          // Create [LinkLabel]s that when clicking them, changes the working module to the module in the given [AndroidFacet].
-          moduleSearchView.addLabel(
-            "$resourcesCount ${StringUtil.pluralize("resource", resourcesCount)} found in '${facetToChange.module.name}'") {
-            viewModel.facetUpdated(facetToChange)
+        findCompatibleFacets(viewModel.facet.module.project)
+          .firstOrNull { it.module.name == section.libraryName }
+          ?.let { facetToChange ->
+            // Create [LinkLabel]s that when clicking them, changes the working module to the module in the given [AndroidFacet].
+            moduleSearchView.addLabel(
+              "$resourcesCount ${StringUtil.pluralize("resource", resourcesCount)} found in '${facetToChange.module.name}'"
+            ) {
+              viewModel.facetUpdated(facetToChange)
+            }
           }
-        }
       }
     }
     contentSeparator.isVisible = moduleSearchView.isVisible
@@ -516,12 +531,10 @@ class ResourceExplorerListView(
   }
 
   /**
-   * Update the [sectionList] to show the current lists of resource. By default, the scroll
-   * position will be reset to the top.
+   * Update the [sectionList] to show the current lists of resource. By default, the scroll position will be reset to the top.
    *
-   * @param keepScrollPosition: when true, the updated list will be automatically scrolled to
-   *  the position it had before. This is the desired behaviour in some particular scenarios,
-   *  and it is the caller's responsibility to decide depending on the context.
+   * @param keepScrollPosition: when true, the updated list will be automatically scrolled to the position it had before. This is the
+   *   desired behaviour in some particular scenarios, and it is the caller's responsibility to decide depending on the context.
    */
   private fun populateResourcesLists(keepScrollPosition: Boolean = false) {
     val selectedValue = sectionList.selectedValue
@@ -529,20 +542,28 @@ class ResourceExplorerListView(
     val scrollPosition = getScrollPosition()
     updatePending = true
     populateResourcesFuture?.cancel(true)
-    populateResourcesFuture = viewModel.getCurrentModuleResourceLists()
-      .whenCompleteAsync(BiConsumer { resourceLists, _ ->
-        updatePending = false
-        displayResources(resourceLists)
-        if (keepScrollPosition) setScrollPosition(scrollPosition)
-        selectIndicesIfNeeded(selectedValue, selectedIndices)
-      }, EdtExecutorService.getInstance())
+    populateResourcesFuture =
+      viewModel
+        .getCurrentModuleResourceLists()
+        .whenCompleteAsync(
+          BiConsumer { resourceLists, _ ->
+            updatePending = false
+            displayResources(resourceLists)
+            if (keepScrollPosition) setScrollPosition(scrollPosition)
+            selectIndicesIfNeeded(selectedValue, selectedIndices)
+          },
+          EdtExecutorService.getInstance(),
+        )
 
     if (populateResourcesFuture?.isDone == false) {
       if (showLoadingFuture == null) {
-        showLoadingFuture = JobScheduler.getScheduler().schedule(
-          { ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), this::displayLoading) },
-          MS_DELAY_BEFORE_LOADING_STATE,
-          UNIT_DELAY_BEFORE_LOADING_STATE)
+        showLoadingFuture =
+          JobScheduler.getScheduler()
+            .schedule(
+              { ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), this::displayLoading) },
+              MS_DELAY_BEFORE_LOADING_STATE,
+              UNIT_DELAY_BEFORE_LOADING_STATE,
+            )
       }
     }
   }
@@ -558,34 +579,36 @@ class ResourceExplorerListView(
 
   private fun displayResources(resourceLists: List<ResourceSection>) {
     sectionListModel.clear()
-    val sections = resourceLists
-      .filterNot { it.assetSets.isEmpty() }
-      .map(this::createSection)
-      .toList()
+    val sections = resourceLists.filterNot { it.assetSets.isEmpty() }.map(this::createSection).toList()
     if (sections.isNotEmpty()) {
       sectionListModel.addSections(sections)
-    }
-    else {
+    } else {
       sectionListModel.addSection(createEmptySection())
     }
     sectionList.validate()
     sectionList.repaint()
   }
 
-  private fun createLoadingSection() = AssetSection<ResourceAssetSet>(
-    viewModel.facet.module.name, null,
-    AssetListView(emptyList(), null).apply {
-      setPaintBusy(true)
-      setEmptyText("Loading...")
-      background = this@ResourceExplorerListView.background
-    })
+  private fun createLoadingSection() =
+    AssetSection<ResourceAssetSet>(
+      viewModel.facet.module.name,
+      null,
+      AssetListView(emptyList(), null).apply {
+        setPaintBusy(true)
+        setEmptyText("Loading...")
+        background = this@ResourceExplorerListView.background
+      },
+    )
 
-  private fun createEmptySection() = AssetSection<ResourceAssetSet>(
-    viewModel.facet.module.name, null,
-    AssetListView(emptyList(), null).apply {
-      setEmptyText("No ${viewModel.selectedTabName.lowercase(Locale.US)} available")
-      background = this@ResourceExplorerListView.background
-    })
+  private fun createEmptySection() =
+    AssetSection<ResourceAssetSet>(
+      viewModel.facet.module.name,
+      null,
+      AssetListView(emptyList(), null).apply {
+        setEmptyText("No ${viewModel.selectedTabName.lowercase(Locale.US)} available")
+        background = this@ResourceExplorerListView.background
+      },
+    )
 
   private fun selectIndicesIfNeeded(selectedValue: Any?, selectedIndices: List<IntArray?>) {
     val finalFileToSelect = fileToSelect
@@ -593,12 +616,10 @@ class ResourceExplorerListView(
     if (finalFileToSelect != null) {
       // Attempt to select resource by file, if it was pending.
       selectAsset(finalFileToSelect)
-    }
-    else if (finalResourceToSelect != null) {
+    } else if (finalResourceToSelect != null) {
       // Attempt to select resource by name, if it was pending.
       selectAsset(finalResourceToSelect, recentlyAdded = false)
-    }
-    else if (selectedValue != null) {
+    } else if (selectedValue != null) {
       // Attempt to reselect the previously selected element
       // If the value still exist in the list, just reselect it
       sectionList.selectedValue = selectedValue
@@ -632,11 +653,8 @@ class ResourceExplorerListView(
 
     if (updatePending) {
       fileToSelect = virtualFile
-    }
-    else {
-      doSelectAsset { assetSet ->
-        assetSet.designAssets.any { it.file == virtualFile }.also { if (it) fileToSelect = null }
-      }
+    } else {
+      doSelectAsset { assetSet -> assetSet.designAssets.any { it.file == virtualFile }.also { if (it) fileToSelect = null } }
     }
   }
 
@@ -662,38 +680,35 @@ class ResourceExplorerListView(
   }
 
   private fun doSelectAsset(isDesiredAssetSet: (ResourceAssetSet) -> Boolean) {
-    sectionList.getLists()
-      .filterIsInstance<AssetListView>()
-      .forEachIndexed { listIndex, list ->
-        for (assetIndex in 0 until list.model.size) {
-          if (isDesiredAssetSet(list.model.getElementAt(assetIndex))) {
-            sectionList.selectedIndex = listIndex to assetIndex
-            sectionList.scrollToSelection()
-            list.requestFocusInWindow()
-            return
-          }
+    sectionList.getLists().filterIsInstance<AssetListView>().forEachIndexed { listIndex, list ->
+      for (assetIndex in 0 until list.model.size) {
+        if (isDesiredAssetSet(list.model.getElementAt(assetIndex))) {
+          sectionList.selectedIndex = listIndex to assetIndex
+          sectionList.scrollToSelection()
+          list.requestFocusInWindow()
+          return
         }
       }
+    }
   }
 
   private fun createSection(section: ResourceSection): AssetSection<ResourceAssetSet> {
-    val assetList = AssetListView(section.assetSets, viewModel.speedSearch).apply {
-      cellRenderer = DesignAssetCellRenderer(viewModel.assetPreviewManager)
-      dragHandler.registerSource(this)
-      addMouseListener(popupHandler)
-      addMouseListener(mouseClickListener)
-      addKeyListener(keyListener)
-      selectionMode = if (multiSelection) ListSelectionModel.MULTIPLE_INTERVAL_SELECTION else ListSelectionModel.SINGLE_SELECTION
-      this.addListSelectionListener {
-        listeners.forEach { listener ->
-          listener.onDesignAssetSetSelected(sectionList.selectedValue as? ResourceAssetSet)
+    val assetList =
+      AssetListView(section.assetSets, viewModel.speedSearch).apply {
+        cellRenderer = DesignAssetCellRenderer(viewModel.assetPreviewManager)
+        dragHandler.registerSource(this)
+        addMouseListener(popupHandler)
+        addMouseListener(mouseClickListener)
+        addKeyListener(keyListener)
+        selectionMode = if (multiSelection) ListSelectionModel.MULTIPLE_INTERVAL_SELECTION else ListSelectionModel.SINGLE_SELECTION
+        this.addListSelectionListener {
+          listeners.forEach { listener -> listener.onDesignAssetSetSelected(sectionList.selectedValue as? ResourceAssetSet) }
+          (sectionList.selectedValue as? ResourceAssetSet)?.let { viewModel.updateSelectedAssetSet(it) }
+          updateSummaryPreview()
         }
-        (sectionList.selectedValue as? ResourceAssetSet)?.let { viewModel.updateSelectedAssetSet(it) }
-        updateSummaryPreview()
+        thumbnailWidth = this@ResourceExplorerListView.previewSize
+        isGridMode = this@ResourceExplorerListView.gridMode
       }
-      thumbnailWidth = this@ResourceExplorerListView.previewSize
-      isGridMode = this@ResourceExplorerListView.gridMode
-    }
     return AssetSection(section.libraryName, assetList.getFilteredSize(), assetList)
   }
 
@@ -706,16 +721,13 @@ class ResourceExplorerListView(
     fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?)
   }
 
-  private class AssetSection<T>(
-    override var name: String,
-    size: Int?,
-    override var list: JList<T>
-  ) : Section<T> {
+  private class AssetSection<T>(override var name: String, size: Int?, override var list: JList<T>) : Section<T> {
 
-    private val headerNameLabel = JBLabel(buildName(size)).apply {
-      font = SECTION_HEADER_LABEL_FONT
-      border = JBUI.Borders.empty(8, 0)
-    }
+    private val headerNameLabel =
+      JBLabel(buildName(size)).apply {
+        font = SECTION_HEADER_LABEL_FONT
+        border = JBUI.Borders.empty(8, 0)
+      }
 
     override var header: JComponent = createHeaderComponent()
 
@@ -723,27 +735,30 @@ class ResourceExplorerListView(
       headerNameLabel.text = buildName(newSize)
     }
 
-    private fun createHeaderComponent() = JPanel(BorderLayout()).apply {
-      isOpaque = false
+    private fun createHeaderComponent() =
+      JPanel(BorderLayout()).apply {
+        isOpaque = false
 
-      val expandAction = object : ExpandAction() {
-        override fun actionPerformed(e: AnActionEvent) {
-          super.actionPerformed(e)
-          list.isVisible = expanded
-          // Clear selection to avoid interaction issues.
-          list.selectionModel.clearSelection()
-        }
+        val expandAction =
+          object : ExpandAction() {
+            override fun actionPerformed(e: AnActionEvent) {
+              super.actionPerformed(e)
+              list.isVisible = expanded
+              // Clear selection to avoid interaction issues.
+              list.selectionModel.clearSelection()
+            }
+          }
+
+        val toolbar =
+          ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
+            layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
+          }
+        toolbar.targetComponent = this@apply
+
+        add(headerNameLabel, BorderLayout.WEST)
+        add(toolbar.component, BorderLayout.EAST)
+        border = SECTION_HEADER_BORDER
       }
-
-      val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
-        layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
-      }
-      toolbar.targetComponent = this@apply
-
-      add(headerNameLabel, BorderLayout.WEST)
-      add(toolbar.component, BorderLayout.EAST)
-      border = SECTION_HEADER_BORDER
-    }
 
     private fun buildName(size: Int?): String {
       val itemNumber = size?.let { " ($it)" } ?: ""
@@ -763,20 +778,11 @@ class ResourceExplorerListView(
   }
 
   private fun createBottomActions(): DefaultActionGroup {
-    return DefaultActionGroup(
-      ListModeButton(),
-      GridModeButton(),
-      Separator(),
-      ZoomMinus(),
-      ZoomPlus()
-    )
+    return DefaultActionGroup(ListModeButton(), GridModeButton(), Separator(), ZoomMinus(), ZoomPlus())
   }
 
-  /**
-   * Button to enable the list view
-   */
-  private inner class ListModeButton
-    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW), DumbAware {
+  /** Button to enable the list view */
+  private inner class ListModeButton : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW), DumbAware {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun isSelected(e: AnActionEvent) = !gridMode
@@ -790,12 +796,8 @@ class ResourceExplorerListView(
     }
   }
 
-  /**
-   * Button to enable the grid view
-   */
-  private inner class GridModeButton
-    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW),
-      DumbAware {
+  /** Button to enable the grid view */
+  private inner class GridModeButton : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW), DumbAware {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun isSelected(e: AnActionEvent) = gridMode
@@ -809,9 +811,7 @@ class ResourceExplorerListView(
     }
   }
 
-  /**
-   * Button to scale down the icons. It is only enabled in grid mode.
-   */
+  /** Button to scale down the icons. It is only enabled in grid mode. */
   private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.Graph.ZoomOut), DumbAware {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -824,9 +824,7 @@ class ResourceExplorerListView(
     }
   }
 
-  /**
-   * Button to scale up the icons. It is only enabled in grid mode.
-   */
+  /** Button to scale up the icons. It is only enabled in grid mode. */
   private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.Graph.ZoomIn), DumbAware {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

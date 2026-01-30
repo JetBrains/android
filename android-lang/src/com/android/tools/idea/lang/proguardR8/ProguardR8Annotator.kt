@@ -33,16 +33,19 @@ import com.intellij.psi.util.parentOfType
 class ProguardR8Annotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (holder.isBatchMode()) return
-    if (element is LeafPsiElement &&
+    if (
+      element is LeafPsiElement &&
         (JAVA_KEY_WORDS.contains(element.elementType) || JAVA_PRIMITIVE.contains(element.elementType)) &&
         !isPartOfName(element)
     ) {
-      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).enforcedTextAttributes(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes).create()
+      holder
+        .newSilentAnnotation(HighlightSeverity.INFORMATION)
+        .enforcedTextAttributes(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
+        .create()
     }
   }
 
   private fun isPartOfName(element: PsiElement): Boolean {
-    return element.parentOfType<ProguardR8QualifiedName>() != null ||
-           element.parentOfType<ProguardR8ClassMemberName>() != null
+    return element.parentOfType<ProguardR8QualifiedName>() != null || element.parentOfType<ProguardR8ClassMemberName>() != null
   }
 }

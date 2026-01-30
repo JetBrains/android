@@ -30,14 +30,16 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         setUpSourceZip(
           "prebuilts/studio/buildbenchmarks/JetNews.49f1048b/src.zip",
           "tools/adt/idea/ide-perf-tests/testData/JetNews",
-          DiffSpec("prebuilts/studio/buildbenchmarks/JetNews.49f1048b/setupForIdeTest.diff", 0))
+          DiffSpec("prebuilts/studio/buildbenchmarks/JetNews.49f1048b/setupForIdeTest.diff", 0),
+        )
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/JetNews.49f1048b/repo.zip")
 
         // Updated SantaTracker project with Kotlin sources
         setUpSourceZip(
           "prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/src.zip",
           "tools/adt/idea/ide-perf-tests/testData/SantaTrackerKotlin",
-          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0))
+          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0),
+        )
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
         linkIntoOfflineMavenRepo("tools/base/build-system/gradle-runtime-maven.manifest")
@@ -54,8 +56,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         perfData.addBenchmark(FullProjectBenchmark.completionBenchmark)
         perfData.addBenchmark(FullProjectBenchmark.lintInspectionBenchmark)
         perfData.commit()
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         System.err.println("ERROR: Failed to initialize test suite, tests will likely fail following this error")
         e.printStackTrace()
       }

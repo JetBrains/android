@@ -19,61 +19,89 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
 class DeclarativeEditingExperienceTest : BasePlatformTestCase() {
   fun testQuotes() {
-    myFixture.configureByText("build.gradle.dcl", """
-    androidApplication {
-        namespace = <caret>
-    }
-    """.trimIndent())
+    myFixture.configureByText(
+      "build.gradle.dcl",
+      """
+      androidApplication {
+          namespace = <caret>
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('"')
 
-    myFixture.checkResult("""
-        androidApplication {
-            namespace = "<caret>"
-        }
-    """.trimIndent())
+    myFixture.checkResult(
+      """
+      androidApplication {
+          namespace = "<caret>"
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testTripleQuotes() {
-    myFixture.configureByText("build.gradle.dcl", """
-    androidApplication {
-        namespace = <caret>
-    }
-    """.trimIndent())
+    myFixture.configureByText(
+      "build.gradle.dcl",
+      """
+      androidApplication {
+          namespace = <caret>
+      }
+      """
+        .trimIndent(),
+    )
     val tripleQuote = "\"\"\""
     myFixture.type(tripleQuote)
 
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
         androidApplication {
             namespace = ${tripleQuote}<caret>${tripleQuote}
         }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   fun testBlockIntentOnEnter() {
-    myFixture.configureByText("build.gradle.dcl", """
-    androidApplication {<caret>
-    }
-    """.trimIndent())
+    myFixture.configureByText(
+      "build.gradle.dcl",
+      """
+      androidApplication {<caret>
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('\n')
 
-    myFixture.checkResult("""
-    androidApplication {
-        <caret>
-    }
-    """.trimIndent())
+    myFixture.checkResult(
+      """
+      androidApplication {
+          <caret>
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testBraces() {
-    myFixture.configureByText("build.gradle.dcl", """
-    androidApplication <caret>
-    """.trimIndent())
+    myFixture.configureByText(
+      "build.gradle.dcl",
+      """
+      androidApplication <caret>
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('{')
 
-    myFixture.checkResult("""
-    androidApplication {<caret>}
-    """.trimIndent())
+    myFixture.checkResult(
+      """
+      androidApplication {<caret>}
+      """
+        .trimIndent()
+    )
   }
 }

@@ -20,6 +20,5 @@ import java.io.Serializable
 
 data class IdeVariantBuildInformationImpl(
   override val variantName: String,
-  override val buildInformation: IdeBuildTasksAndOutputInformationImpl
+  override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
 ) : IdeVariantBuildInformation, Serializable
-

@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.src
 
 import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 
-fun exampleIosMain(packageName: String) = """
+fun exampleIosMain(packageName: String) =
+  """
   package ${escapeKotlinIdentifier(packageName)}
 
   actual fun platform() = "iOS"

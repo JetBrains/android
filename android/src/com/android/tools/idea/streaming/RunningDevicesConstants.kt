@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 @file:JvmName("RunningDevicesConstants")
+
 package com.android.tools.idea.streaming
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Constants for the Running Devices tool window. */
-
 const val RUNNING_DEVICES_TOOL_WINDOW_ID = "Running Devices"
 
 @JvmField val SERIAL_NUMBER_KEY = DataKey.create<String>("SerialNumber")

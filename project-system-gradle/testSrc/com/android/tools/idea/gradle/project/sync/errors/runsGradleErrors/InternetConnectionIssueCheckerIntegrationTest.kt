@@ -28,8 +28,7 @@ import org.junit.Test
 class InternetConnectionIssueCheckerIntegrationTest {
   private val internetConnectionIssueChecker = InternetConnectionIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {

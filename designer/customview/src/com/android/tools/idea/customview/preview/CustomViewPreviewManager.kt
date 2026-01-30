@@ -16,10 +16,7 @@
 package com.android.tools.idea.customview.preview
 
 interface CustomViewPreviewManager {
-  /**
-   * A state exposed to the CustomViewPreviewManager clients to know what type of notifications to
-   * display.
-   */
+  /** A state exposed to the CustomViewPreviewManager clients to know what type of notifications to display. */
   enum class NotificationsState {
     /** Awaiting for build to finish. */
     BUILDING,

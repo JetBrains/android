@@ -36,10 +36,7 @@ import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_ORIENTATION
 import java.util.Locale as JavaUtilLocale
 
-/**
- * A set of device IDs corresponding to `ReferenceDevice`s. These devices are for tooling and should
- * not be saved by their ID.
- */
+/** A set of device IDs corresponding to `ReferenceDevice`s. These devices are for tooling and should not be saved by their ID. */
 private val referenceDeviceIds = ReferenceDevice.getWindowSizeDevices().map { it.id }.toSet()
 
 // region uiModeToString conversion
@@ -60,10 +57,7 @@ private enum class NightMode(val classConstant: String, val resolvedValue: Int) 
   }
 }
 
-/**
- * Converts a `uiMode` integer value into a human-readable string of its constant parts by using the
- * [UiMode] and [NightMode] enums.
- */
+/** Converts a `uiMode` integer value into a human-readable string of its constant parts by using the [UiMode] and [NightMode] enums. */
 private fun uiModeToString(uiMode: Int): String {
   if (uiMode == UNSET_UI_MODE_VALUE) return ""
 
@@ -111,8 +105,7 @@ private fun wallpaperToString(wallpaperValue: Int): String {
 // endregion
 
 /** Appends a parameter-value pair to the StringBuilder. */
-private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
-  append("$parameterName=${value}")
+private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder = append("$parameterName=${value}")
 
 /** Appends a separator to the StringBuilder. */
 private fun StringBuilder.appendSeparator(): StringBuilder = append(Preview.DeviceSpec.SEPARATOR)
@@ -149,10 +142,7 @@ internal fun createDeviceSpec(configuration: Configuration): String {
     builder.appendParamValue(Preview.DeviceSpec.PARAMETER_IS_ROUND, "true")
     if (currentDeviceConfig.chinSize != DEFAULT_CHIN_SIZE_ZERO.toFloat()) {
       builder.appendSeparator()
-      builder.appendParamValue(
-        Preview.DeviceSpec.PARAMETER_CHIN_SIZE,
-        "${currentDeviceConfig.chinSize.toInt()}dp",
-      )
+      builder.appendParamValue(Preview.DeviceSpec.PARAMETER_CHIN_SIZE, "${currentDeviceConfig.chinSize.toInt()}dp")
     }
   }
   if (currentDeviceConfig.cutout != Cutout.none) {
@@ -161,24 +151,19 @@ internal fun createDeviceSpec(configuration: Configuration): String {
   }
   if (currentDeviceConfig.navigation != Navigation.gesture) {
     builder.appendSeparator()
-    builder.appendParamValue(
-      Preview.DeviceSpec.PARAMETER_NAVIGATION,
-      currentDeviceConfig.navigation.name,
-    )
+    builder.appendParamValue(Preview.DeviceSpec.PARAMETER_NAVIGATION, currentDeviceConfig.navigation.name)
   }
 
   return builder.toString()
 }
 
 /**
- * Converts the given [ConfigurablePreviewElement]'s display settings and configuration into a
- * `@Preview` annotation string, incorporating the current configuration's dimensions and a new
- * [name].
+ * Converts the given [ConfigurablePreviewElement]'s display settings and configuration into a `@Preview` annotation string, incorporating
+ * the current configuration's dimensions and a new [name].
  *
  * This function always returns the @Preview annotation with its Fully Qualified Name (i.e.,
- * `@androidx.compose.ui.tooling.preview.Preview(...)`). Callers should be aware that they might
- * need to use facilities like `ShortenReferencesFacility` or string manipulation if they intend to
- * use a shorter, unqualified name for the annotation.
+ * `@androidx.compose.ui.tooling.preview.Preview(...)`). Callers should be aware that they might need to use facilities like
+ * `ShortenReferencesFacility` or string manipulation if they intend to use a shorter, unqualified name for the annotation.
  *
  * Parameters are only added if their value is different from their default.
  *
@@ -186,11 +171,7 @@ internal fun createDeviceSpec(configuration: Configuration): String {
  * @param configuration The [Configuration] containing device and display settings.
  * @param name The desired name for the new preview.
  */
-internal fun toPreviewAnnotationText(
-  previewElement: ComposePreviewElementInstance<*>,
-  configuration: Configuration,
-  name: String,
-): String {
+internal fun toPreviewAnnotationText(previewElement: ComposePreviewElementInstance<*>, configuration: Configuration, name: String): String {
   val displaySettings = previewElement.displaySettings
   val previewConfig = previewElement.configuration
 
@@ -263,17 +244,10 @@ internal fun toPreviewAnnotationText(
     } else {
       val deviceSpec = createDeviceSpec(configuration)
 
-      if (
-        displaySettings.showDecoration ||
-          isReferenceDevice ||
-          (targetDevice != null && ConfigurationManager.isAvdDevice(targetDevice))
-      ) {
+      if (displaySettings.showDecoration || isReferenceDevice || (targetDevice != null && ConfigurationManager.isAvdDevice(targetDevice))) {
         params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
       } else {
-        if (
-          previewConfig.deviceSpec != NO_DEVICE_SPEC &&
-            previewConfig.deviceSpec != "Devices.DEFAULT"
-        ) {
+        if (previewConfig.deviceSpec != NO_DEVICE_SPEC && previewConfig.deviceSpec != "Devices.DEFAULT") {
           // if original configuration had device non-default spec we should update it
           params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
         }

@@ -60,9 +60,10 @@ class BackgroundTaskEntriesViewTest {
 
   @get:Rule val rule = RuleChain(projectRule, usageTrackerRule, disposableRule)
 
-  private val scope =
-    CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-  private val uiDispatcher get() = Dispatchers.EDT as CoroutineDispatcher
+  private val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
+  private val uiDispatcher
+    get() = Dispatchers.EDT as CoroutineDispatcher
+
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var tab: BackgroundTaskInspectorTab
@@ -72,8 +73,7 @@ class BackgroundTaskEntriesViewTest {
   @Before
   fun setUp() = runBlocking {
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger =
-        BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       client =
         BackgroundTaskInspectorClient(
@@ -110,8 +110,7 @@ class BackgroundTaskEntriesViewTest {
 
       graphViewAction.actionPerformed(TestActionEvent.createTestEvent())
 
-      assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type })
-        .containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED)
+      assertThat(usageTrackerRule.backgroundInspectorEvents().map { it.type }).containsExactly(WORK_SELECTED, GRAPH_MODE_SELECTED)
     }
   }
 
@@ -145,6 +144,4 @@ private fun BackgroundTaskInspectorTab.getAction(title: String) =
     .first { it.templatePresentation.text == title }
 
 private fun UsageTrackerRule.backgroundInspectorEvents(): List<BackgroundTaskInspectorEvent> =
-  usages
-    .filter { it.studioEvent.kind == APP_INSPECTION }
-    .map { it.studioEvent.appInspectionEvent.backgroundTaskInspectorEvent }
+  usages.filter { it.studioEvent.kind == APP_INSPECTION }.map { it.studioEvent.appInspectionEvent.backgroundTaskInspectorEvent }

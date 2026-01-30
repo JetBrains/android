@@ -37,12 +37,9 @@ constructor(
 ) : AndroidModel {
 
   companion object {
-    @JvmStatic
-    fun namespaced(facet: AndroidFacet) = TestAndroidModel(namespacing = Namespacing.REQUIRED)
+    @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(namespacing = Namespacing.REQUIRED)
 
-    @JvmStatic
-    fun lintRuleJars(lintRuleJars: ImmutableList<File>) =
-      TestAndroidModel(lintRuleJarsOverride = lintRuleJars)
+    @JvmStatic fun lintRuleJars(lintRuleJars: ImmutableList<File>) = TestAndroidModel(lintRuleJarsOverride = lintRuleJars)
   }
 
   override val minSdkVersion = minSdkVersion ?: AndroidVersion(1)

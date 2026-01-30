@@ -27,47 +27,45 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerExtension
 import com.intellij.util.messages.MessageBus
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import java.io.File
+import org.mockito.kotlin.whenever
 
 class TransportFileManagerTest {
-  @get:Rule
-  val timeout: Timeout = Timeout.seconds(60)
+  @get:Rule val timeout: Timeout = Timeout.seconds(60)
 
-  @JvmField
-  @Rule
-  val temporaryFolder = TemporaryFolder()
+  @JvmField @Rule val temporaryFolder = TemporaryFolder()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var mockDevice: IDevice
   private lateinit var fileManager: TransportFileManager
 
   @Before
   fun setUp() {
-    val fakeExtension = object : TransportConfigContributor {
-      override fun customizeProxyService(proxy: TransportProxy) { }
-      override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) { }
-      override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
-    }
+    val fakeExtension =
+      object : TransportConfigContributor {
+        override fun customizeProxyService(proxy: TransportProxy) {}
+
+        override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
+
+        override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) {}
+      }
 
     ApplicationManager.getApplication().registerExtension(TransportConfigContributor.EP_NAME, fakeExtension, disposableRule.disposable)
 
@@ -82,13 +80,14 @@ class TransportFileManagerTest {
       newFile("dev/perfa.jar")
     }
 
-    val hostFile = DeployableFile.Builder("perfa.jar")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setExecutable(false)
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("perfa.jar")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setExecutable(false)
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
     val hostPathCaptor = argumentCaptor<String>()
     val devicePathCaptor = argumentCaptor<String>()
@@ -98,12 +97,11 @@ class TransportFileManagerTest {
     verify(mockDevice, times(1)).executeShellCommand(eq("chmod 444 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
     verify(mockDevice, times(1)).executeShellCommand(eq("chown shell:shell ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
 
-    val expectedPaths = listOf(
-      Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
-    ).map { (host, device) ->
-      // maps from relative paths to absolute paths
-      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
-    }
+    val expectedPaths =
+      listOf(Pair("dev" + File.separator + "perfa.jar", "perfa.jar")).map { (host, device) ->
+        // maps from relative paths to absolute paths
+        Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
+      }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
@@ -114,31 +112,32 @@ class TransportFileManagerTest {
     temporaryFolder.apply {
       newFolder("dev")
 
-      listOf(Abi.X86, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFolder("dev", it.toString())
-      }
-      listOf(Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFile("dev/$it/transport")
-      }
+      listOf(Abi.X86, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFolder("dev", it.toString()) }
+      listOf(Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFile("dev/$it/transport") }
     }
 
-    val hostFile = DeployableFile.Builder("transport")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setExecutable(true)
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("transport")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setExecutable(true)
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
-    whenever(mockDevice.abis).thenReturn(listOf(
-      // it will be ignored, because there is no perfd under it.
-      Abi.X86,
-      // it will be used.
-      Abi.ARMEABI_V7A,
-      // it will be ignored, because we only need one ABI. |IDevice#getAbis| are sorted in preferred order,
-      // so it should choose |Abi.ARMEABI_V7A| instead.
-      Abi.ARMEABI
-    ).map { it.toString() })
+    whenever(mockDevice.abis)
+      .thenReturn(
+        listOf(
+            // it will be ignored, because there is no perfd under it.
+            Abi.X86,
+            // it will be used.
+            Abi.ARMEABI_V7A,
+            // it will be ignored, because we only need one ABI. |IDevice#getAbis| are sorted in preferred order,
+            // so it should choose |Abi.ARMEABI_V7A| instead.
+            Abi.ARMEABI,
+          )
+          .map { it.toString() }
+      )
 
     val hostPathCaptor = argumentCaptor<String>()
     val devicePathCaptor = argumentCaptor<String>()
@@ -146,12 +145,11 @@ class TransportFileManagerTest {
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
-    val expectedPaths = listOf(
-      Pair("dev" + File.separator + Abi.ARMEABI_V7A + File.separator + "transport", "transport")
-    ).map { (host, device) ->
-      // maps from relative paths to absolute paths
-      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
-    }
+    val expectedPaths =
+      listOf(Pair("dev" + File.separator + Abi.ARMEABI_V7A + File.separator + "transport", "transport")).map { (host, device) ->
+        // maps from relative paths to absolute paths
+        Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
+      }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
@@ -164,34 +162,35 @@ class TransportFileManagerTest {
     temporaryFolder.apply {
       newFolder("dev")
 
-      listOf(Abi.X86, Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFolder("dev", it.toString())
-      }
-      listOf(Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFile("dev/${it}/simpleperf")
-      }
+      listOf(Abi.X86, Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFolder("dev", it.toString()) }
+      listOf(Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFile("dev/${it}/simpleperf") }
     }
 
-    val hostFile = DeployableFile.Builder("simpleperf")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setExecutable(true)
-      .setOnDeviceAbiFileNameFormat("simpleperf_%s")
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("simpleperf")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setExecutable(true)
+        .setOnDeviceAbiFileNameFormat("simpleperf_%s")
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
-    whenever(mockDevice.abis).thenReturn(listOf(
-      // it will be ignored, because there is no simpleperf under it.
-      Abi.X86,
-      // it will be used.
-      Abi.ARMEABI,
-      // it will be ignored, because we only need one ABI per CPU arch.
-      // It should choose |Abi.ARMEABI| instead, because it is more preferred and has the same CPU arch.
-      Abi.ARMEABI_V7A,
-      // it will be used.
-      Abi.X86_64
-    ).map { it.toString() })
+    whenever(mockDevice.abis)
+      .thenReturn(
+        listOf(
+            // it will be ignored, because there is no simpleperf under it.
+            Abi.X86,
+            // it will be used.
+            Abi.ARMEABI,
+            // it will be ignored, because we only need one ABI per CPU arch.
+            // It should choose |Abi.ARMEABI| instead, because it is more preferred and has the same CPU arch.
+            Abi.ARMEABI_V7A,
+            // it will be used.
+            Abi.X86_64,
+          )
+          .map { it.toString() }
+      )
 
     val hostPathCaptor = argumentCaptor<String>()
     val devicePathCaptor = argumentCaptor<String>()
@@ -199,14 +198,10 @@ class TransportFileManagerTest {
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
-    val expectedAbis = listOf(
-      Abi.ARMEABI,
-      Abi.X86_64
-    )
+    val expectedAbis = listOf(Abi.ARMEABI, Abi.X86_64)
 
-    val expectedHostPaths = expectedAbis.map {
-      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "simpleperf"
-    }
+    val expectedHostPaths =
+      expectedAbis.map { temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "simpleperf" }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}simpleperf_${it.cpuArch}" }
@@ -218,48 +213,45 @@ class TransportFileManagerTest {
     temporaryFolder.apply {
       newFolder("dev")
 
-      listOf(Abi.X86, Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFolder("dev", it.toString())
-      }
-      listOf(Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFile("dev/${it}/perfetto")
-      }
+      listOf(Abi.X86, Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFolder("dev", it.toString()) }
+      listOf(Abi.X86_64, Abi.ARMEABI, Abi.ARMEABI_V7A).forEach { newFile("dev/${it}/perfetto") }
     }
 
-    val hostFile = DeployableFile.Builder("perfetto")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setExecutable(true)
-      .setOnDeviceAbiFileNameFormat("%s/perfetto")
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("perfetto")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setExecutable(true)
+        .setOnDeviceAbiFileNameFormat("%s/perfetto")
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
-    whenever(mockDevice.abis).thenReturn(listOf(
-      // it will be ignored, because there is no simpleperf under it.
-      Abi.X86,
-      // it will be used.
-      Abi.ARMEABI,
-      // it will be ignored, because we only need one ABI per CPU arch.
-      // It should choose |Abi.ARMEABI| instead, because it is more preferred and has the same CPU arch.
-      Abi.ARMEABI_V7A,
-      // it will be used.
-      Abi.X86_64
-    ).map { it.toString() })
+    whenever(mockDevice.abis)
+      .thenReturn(
+        listOf(
+            // it will be ignored, because there is no simpleperf under it.
+            Abi.X86,
+            // it will be used.
+            Abi.ARMEABI,
+            // it will be ignored, because we only need one ABI per CPU arch.
+            // It should choose |Abi.ARMEABI| instead, because it is more preferred and has the same CPU arch.
+            Abi.ARMEABI_V7A,
+            // it will be used.
+            Abi.X86_64,
+          )
+          .map { it.toString() }
+      )
 
     val hostPathCaptor = argumentCaptor<String>()
     val devicePathCaptor = argumentCaptor<String>()
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
-    val expectedAbis = listOf(
-      Abi.ARMEABI,
-      Abi.X86_64
-    )
+    val expectedAbis = listOf(Abi.ARMEABI, Abi.X86_64)
 
-    val expectedHostPaths = expectedAbis.map {
-      temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "perfetto"
-    }
+    val expectedHostPaths =
+      expectedAbis.map { temporaryFolder.root.absolutePath + File.separator + "dev" + File.separator + it + File.separator + "perfetto" }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }

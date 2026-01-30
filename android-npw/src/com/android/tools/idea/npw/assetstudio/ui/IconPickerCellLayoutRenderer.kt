@@ -36,14 +36,11 @@ import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
 /**
- * [TableCellRenderer] used in [IconPickerDialog], uses a [JBLabel] to render the icons used in the
- * picker with the correct Look and Feel.
+ * [TableCellRenderer] used in [IconPickerDialog], uses a [JBLabel] to render the icons used in the picker with the correct Look and Feel.
  *
  * This CellRenderer expects [MaterialSymbolsVirtualFile]s in the [JTable] model.
  */
-class IconPickerCellLayoutRenderer(
-  private val slowResourcePreviewManager: SlowResourcePreviewManager
-) : TableCellRenderer {
+class IconPickerCellLayoutRenderer(private val slowResourcePreviewManager: SlowResourcePreviewManager) : TableCellRenderer {
 
   private val label = IconPickerCellComponentXML()
 
@@ -80,8 +77,7 @@ private class IconPickerCellComponentXML : JBLabel() {
   /** Background color for selected icons */
   private val backgroundFocusedColor = JBColor(Color(0x1a1886f7, true), Color(0x1a9ccdff, true))
 
-  private val selectedFocusedBorder =
-    IdeBorderFactory.createRoundedBorder(JBUI.scale(ARC_SIZE), JBUI.scale(BORDER_SIZE))
+  private val selectedFocusedBorder = IdeBorderFactory.createRoundedBorder(JBUI.scale(ARC_SIZE), JBUI.scale(BORDER_SIZE))
 
   init {
     isOpaque = false
@@ -141,14 +137,7 @@ private class IconPickerCellComponentXML : JBLabel() {
 
         g.color = backgroundFocusedColor
         val offset = JBUI.scale(BORDER_SIZE)
-        g.fillRoundRect(
-          0,
-          0,
-          width - offset,
-          height - offset,
-          JBUI.scale(ARC_SIZE),
-          JBUI.scale(ARC_SIZE),
-        )
+        g.fillRoundRect(0, 0, width - offset, height - offset, JBUI.scale(ARC_SIZE), JBUI.scale(ARC_SIZE))
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldAntialiasing)
         if (isFocused) {

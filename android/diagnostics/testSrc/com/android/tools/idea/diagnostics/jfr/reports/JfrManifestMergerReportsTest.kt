@@ -19,6 +19,10 @@ import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports.M
 import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports.REPORTING_THRESHOLD
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.google.common.truth.Truth.assertThat
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -26,10 +30,6 @@ import kotlinx.coroutines.test.TestScope
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
@@ -42,6 +42,7 @@ class JfrManifestMergerReportsTest {
   private var stopCaptureCalls = 0
 
   private val listener = MyMergedManifestSnapshotComputeListener({ ++startCaptureCalls }, { ++stopCaptureCalls }, testScope)
+
   @Test
   fun snapshotComputeListener_computeEndsBeforeThreshold() {
     // Start the merge
@@ -97,7 +98,7 @@ class JfrManifestMergerReportsTest {
   fun snapshotComputeListener_multipleSequentialComputes() {
     // Merge 0: below threshold
     val token0 = Any()
-    listener.snapshotCreationStarted(token0,)
+    listener.snapshotCreationStarted(token0)
     scheduler.advanceTimeBy(REPORTING_THRESHOLD - 1.milliseconds)
     listener.snapshotCreationEnded(token0, REPORTING_THRESHOLD - 1.milliseconds, MergeResult.SUCCESS)
     scheduler.advanceTimeBy(1.seconds)

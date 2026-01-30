@@ -71,9 +71,7 @@ class NlEnumSupportProviderTest {
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
     assertThat(enumSupport.values.map { it.value }).containsExactly("0dp", WRAP_CONTENT)
-    assertThat(enumSupport.values.map { it.display })
-      .containsExactly(MATCH_CONSTRAINT, WRAP_CONTENT)
-      .inOrder()
+    assertThat(enumSupport.values.map { it.display }).containsExactly(MATCH_CONSTRAINT, WRAP_CONTENT).inOrder()
   }
 
   @Test
@@ -122,9 +120,7 @@ class NlEnumSupportProviderTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_TYPEFACE, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map { it.value })
-      .containsExactly("normal", "sans", "serif", "monospace")
-      .inOrder()
+    assertThat(enumSupport.values.map { it.value }).containsExactly("normal", "sans", "serif", "monospace").inOrder()
   }
 
   @Test
@@ -143,19 +139,7 @@ class NlEnumSupportProviderTest {
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
     assertThat(enumSupport.values.map { it.value })
-      .containsExactly(
-        "8sp",
-        "10sp",
-        "12sp",
-        "14sp",
-        "16sp",
-        "20sp",
-        "24sp",
-        "34sp",
-        "48sp",
-        "60sp",
-        "96sp",
-      )
+      .containsExactly("8sp", "10sp", "12sp", "14sp", "16sp", "20sp", "24sp", "34sp", "48sp", "60sp", "96sp")
       .inOrder()
   }
 
@@ -184,9 +168,7 @@ class NlEnumSupportProviderTest {
     val property = util.makeProperty(ANDROID_URI, attributeName, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map { it.value })
-      .containsExactly("match_parent", WRAP_CONTENT)
-      .inOrder()
+    assertThat(enumSupport.values.map { it.value }).containsExactly("match_parent", WRAP_CONTENT).inOrder()
   }
 
   @Test
@@ -206,8 +188,6 @@ class NlEnumSupportProviderTest {
     val property = util.makeProperty(ANDROID_URI, definition, NlPropertyType.ENUM)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map { it.value })
-      .containsExactly("visible", "invisible", "gone")
-      .inOrder()
+    assertThat(enumSupport.values.map { it.value }).containsExactly("visible", "invisible", "gone").inOrder()
   }
 }

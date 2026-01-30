@@ -67,9 +67,7 @@ import javax.swing.JLabel
 
 private const val IS_TOOLBAR_HORIZONTAL = true
 
-/**
- * Provides view of one Android device in the Running Devices tool window.
- */
+/** Provides view of one Android device in the Running Devices tool window. */
 abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   val id: DeviceId,
   mainToolbarId: String,
@@ -96,25 +94,25 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   private val displayPanelsMap = Int2ObjectRBTreeMap<T>()
   protected val displayPanels: Collection<T>
     get() = displayPanelsMap.values
+
   private val displayListeners = createLockFreeCopyOnWriteList<DeviceDisplayListener>()
 
-  private val displayInfoProvider = object : DisplayInfoProvider {
+  private val displayInfoProvider =
+    object : DisplayInfoProvider {
 
-    override fun getIdsOfAllDisplays(): IntArray =
-        displayPanelsMap.keys.toIntArray()
+      override fun getIdsOfAllDisplays(): IntArray = displayPanelsMap.keys.toIntArray()
 
-    override fun getDisplaySize(displayId: Int): Dimension =
-      displayPanelsMap[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
+      override fun getDisplaySize(displayId: Int): Dimension =
+        displayPanelsMap[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
 
-    override fun getDisplayOrientation(displayId: Int): Int =
-      displayPanelsMap[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
+      override fun getDisplayOrientation(displayId: Int): Int =
+        displayPanelsMap[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
 
-    override fun getScreenshotRotation(displayId: Int): Int =
-      displayPanelsMap[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
+      override fun getScreenshotRotation(displayId: Int): Int =
+        displayPanelsMap[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
 
-    override fun getSkin(displayId: Int): SkinDefinition? =
-      (displayPanelsMap[displayId]?.displayView as? EmulatorView)?.getSkin()
-  }
+      override fun getSkin(displayId: Int): SkinDefinition? = (displayPanelsMap[displayId]?.displayView as? EmulatorView)?.getSkin()
+    }
 
   init {
     background = primaryPanelBackground
@@ -132,8 +130,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
       addToTop(toolbarPanel)
-    }
-    else {
+    } else {
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.RIGHT)
@@ -150,8 +147,8 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   }
 
   /**
-   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make
-   * sure that the notification is removed when the action is executed.
+   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make sure that the notification is removed
+   * when the action is executed.
    */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
     findNotificationHolderPanel()?.addNotification(notificationPanel)
@@ -175,8 +172,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     for (listener in displayListeners) {
       try {
         listener.displayAdded(displayView)
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         thisLogger().error(e)
       }
     }
@@ -187,18 +183,16 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     for (listener in displayListeners) {
       try {
         listener.displayRemoved(displayView)
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         thisLogger().error(e)
       }
     }
   }
 
-  protected fun findDisplayPanel(displayId: Int): T? =
-      displayPanelsMap[displayId]
+  protected fun findDisplayPanel(displayId: Int): T? = displayPanelsMap[displayId]
 
   protected fun createDisplayPanelIfAbsent(displayId: Int, displayPanelCreator: (Int) -> T): T =
-      displayPanelsMap.computeIfAbsent(displayId) { displayPanelCreator(displayId).also { notifyListenersDisplayAdded(it) } }
+    displayPanelsMap.computeIfAbsent(displayId) { displayPanelCreator(displayId).also { notifyListenersDisplayAdded(it) } }
 
   protected fun removeDisplayPanels(filter: (T) -> Boolean): Boolean {
     return displayPanelsMap.int2ObjectEntrySet().removeIf { (_, displayPanel) ->
@@ -206,15 +200,16 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
         notifyListenersDisplayRemoved(displayPanel)
         Disposer.dispose(displayPanel)
         true
-      }
-      else {
+      } else {
         false
       }
     }
   }
 
   internal abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
+
   internal abstract fun destroyContent(): UiState
+
   internal abstract fun setDeviceFrameVisible(visible: Boolean)
 
   override fun uiDataSnapshot(sink: DataSink) {
@@ -231,9 +226,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     destroyContent()
   }
 
-  /**
-   * Shows a context menu advertisement if the context menu is enabled and the advertisement has not been shown yet.
-   */
+  /** Shows a context menu advertisement if the context menu is enabled and the advertisement has not been shown yet. */
   protected fun showContextMenuAdvertisementIfNecessary(disposableParent: Disposable) {
     if (StudioFlags.RUNNING_DEVICES_CONTEXT_MENU.get() && !EmulatorSettings.getInstance().contextMenuAdvertisementShown) {
       EventQueue.invokeLater {
@@ -244,10 +237,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     }
   }
 
-  /**
-   * Shows a balloon advertising moving of some toolbar actions into the context menu.
-   * The balloon is shown below the main toolbar.
-   */
+  /** Shows a balloon advertising moving of some toolbar actions into the context menu. The balloon is shown below the main toolbar. */
   private fun showContextMenuAdvertisement(disposableParent: Disposable, toolbarComponent: JComponent) {
     val disposable = Disposer.newDisposable(disposableParent)
     val advertisementCloser = StreamingContextMenuAdvertisementCloser {
@@ -255,65 +245,67 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
       EmulatorSettings.getInstance().contextMenuAdvertisementShown = true
     }
 
-    val balloon = JBPopupFactory.getInstance()
-      .createBalloonBuilder(JLabel("Some toolbar buttons have been moved to a context menu. Use right-click to access."))
-      .setDisposable(disposable)
-      .setClickHandler({ advertisementCloser.closeContextMenuAdvertisement() }, true)
-      .setShadow(true)
-      .setHideOnAction(false)
-      .setHideOnClickOutside(false)
-      .setBlockClicksThroughBalloon(true)
-      //.setAnimationCycle(200)
-      .setFillColor(HintUtil.getWarningColor())
-      .setBorderColor(HintUtil.getWarningColor())
-      .createBalloon()
+    val balloon =
+      JBPopupFactory.getInstance()
+        .createBalloonBuilder(JLabel("Some toolbar buttons have been moved to a context menu. Use right-click to access."))
+        .setDisposable(disposable)
+        .setClickHandler({ advertisementCloser.closeContextMenuAdvertisement() }, true)
+        .setShadow(true)
+        .setHideOnAction(false)
+        .setHideOnClickOutside(false)
+        .setBlockClicksThroughBalloon(true)
+        // .setAnimationCycle(200)
+        .setFillColor(HintUtil.getWarningColor())
+        .setBorderColor(HintUtil.getWarningColor())
+        .createBalloon()
 
-    val positionTracker = object : PositionTracker<Balloon>(toolbarComponent), ComponentListener, ContainerListener {
-      private var lastToolbarButton: Component? = null
+    val positionTracker =
+      object : PositionTracker<Balloon>(toolbarComponent), ComponentListener, ContainerListener {
+        private var lastToolbarButton: Component? = null
 
-      init {
-        toolbarComponent.addContainerListener(this)
-        Disposer.register(this) {
-          lastToolbarButton?.removeComponentListener(this)
-          toolbarComponent.removeContainerListener(this)
+        init {
+          toolbarComponent.addContainerListener(this)
+          Disposer.register(this) {
+            lastToolbarButton?.removeComponentListener(this)
+            toolbarComponent.removeContainerListener(this)
+          }
+        }
+
+        override fun recalculateLocation(balloon: Balloon): RelativePoint {
+          val button = toolbarComponent.components.findLast { it.isVisible && it.width != 0 }
+          if (button !== lastToolbarButton) {
+            lastToolbarButton?.removeComponentListener(this)
+            button?.addComponentListener(this)
+            lastToolbarButton = button
+          }
+          val p = button?.let { Point(it.x + it.width, it.y + it.height) } ?: Point()
+          return RelativePoint(component, p)
+        }
+
+        override fun componentResized(e: ComponentEvent) {
+          revalidate()
+        }
+
+        override fun componentMoved(e: ComponentEvent) {
+          revalidate()
+        }
+
+        override fun componentShown(e: ComponentEvent) {
+          revalidate()
+        }
+
+        override fun componentHidden(e: ComponentEvent) {
+          revalidate()
+        }
+
+        override fun componentAdded(event: ContainerEvent) {
+          revalidate()
+        }
+
+        override fun componentRemoved(event: ContainerEvent) {
+          revalidate()
         }
       }
-
-      override fun recalculateLocation(balloon: Balloon): RelativePoint {
-        val button = toolbarComponent.components.findLast { it.isVisible && it.width != 0 }
-        if (button !== lastToolbarButton) {
-          lastToolbarButton?.removeComponentListener(this)
-          button?.addComponentListener(this)
-          lastToolbarButton = button
-        }
-        val p = button?.let { Point(it.x + it.width, it.y + it.height) } ?: Point()
-        return RelativePoint(component, p)
-      }
-
-      override fun componentResized(e: ComponentEvent) {
-        revalidate()
-      }
-
-      override fun componentMoved(e: ComponentEvent) {
-        revalidate()
-      }
-
-      override fun componentShown(e: ComponentEvent) {
-        revalidate()
-      }
-
-      override fun componentHidden(e: ComponentEvent) {
-        revalidate()
-      }
-
-      override fun componentAdded(event: ContainerEvent) {
-        revalidate()
-      }
-
-      override fun componentRemoved(event: ContainerEvent) {
-        revalidate()
-      }
-    }
 
     balloon.show(positionTracker, Balloon.Position.below)
 
@@ -332,8 +324,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     return toolbar
   }
 
-  private fun findNotificationHolderPanel() =
-      primaryDisplayView?.getParentOfType<NotificationHolderPanel>()
+  private fun findNotificationHolderPanel() = primaryDisplayView?.getParentOfType<NotificationHolderPanel>()
 
   internal interface UiState
 }

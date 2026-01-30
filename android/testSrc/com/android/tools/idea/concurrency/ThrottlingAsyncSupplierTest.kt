@@ -20,21 +20,20 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.lang.RuntimeException
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import kotlin.test.fail
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ThrottlingAsyncSupplierTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private fun <V : Disposable> V.disposeAfterTest(): V {
     Disposer.register(disposableRule.disposable, this)
@@ -42,14 +41,16 @@ class ThrottlingAsyncSupplierTest {
   }
 
   /**
-   * Creates a simple [ThrottlingAsyncSupplier] with the given [isUpToDate] function whose
-   * compute function returns the next positive integer each time it's called.
+   * Creates a simple [ThrottlingAsyncSupplier] with the given [isUpToDate] function whose compute function returns the next positive
+   * integer each time it's called.
    */
-  private fun createPositiveIntegerSupplier(isUpToDate: (Int) -> Boolean) = ThrottlingAsyncSupplier(
-    compute = generateSequence(1) { it + 1 }.iterator()::next,
-    isUpToDate = isUpToDate,
-    mergingPeriod = Duration.ofMillis(1)
-  ).disposeAfterTest()
+  private fun createPositiveIntegerSupplier(isUpToDate: (Int) -> Boolean) =
+    ThrottlingAsyncSupplier(
+        compute = generateSequence(1) { it + 1 }.iterator()::next,
+        isUpToDate = isUpToDate,
+        mergingPeriod = Duration.ofMillis(1),
+      )
+      .disposeAfterTest()
 
   private fun <T> Future<T>.assertCompletesExceptionally(cause: Throwable) {
     try {
@@ -79,27 +80,21 @@ class ThrottlingAsyncSupplierTest {
     assertThat(supplier.modificationCount).isEqualTo(lastModificationCount)
 
     supplier.get().get()
-    lastModificationCount = supplier.modificationCount.also {
-      assertThat(it).isGreaterThan(lastModificationCount)
-    }
+    lastModificationCount = supplier.modificationCount.also { assertThat(it).isGreaterThan(lastModificationCount) }
 
     supplier.now
     assertThat(supplier.modificationCount).isEqualTo(lastModificationCount)
 
     supplier.get().get()
-    lastModificationCount = supplier.modificationCount.also {
-      assertThat(it).isGreaterThan(lastModificationCount)
-    }
+    lastModificationCount = supplier.modificationCount.also { assertThat(it).isGreaterThan(lastModificationCount) }
   }
 
   @Test
   fun get_propagatesException() {
     val computeError = RuntimeException("computation failed")
-    val supplier = ThrottlingAsyncSupplier<Any>(
-      compute = { throw computeError },
-      isUpToDate = { false },
-      mergingPeriod = Duration.ofMillis(1)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier<Any>(compute = { throw computeError }, isUpToDate = { false }, mergingPeriod = Duration.ofMillis(1))
+        .disposeAfterTest()
 
     supplier.get().assertCompletesExceptionally(computeError)
     assertThat(supplier.now).isNull()
@@ -122,17 +117,17 @@ class ThrottlingAsyncSupplierTest {
 
   @Test
   fun get_mergesSuccessiveRequests() {
-    val supplier = ThrottlingAsyncSupplier(
-      compute = generateSequence(System::currentTimeMillis).iterator()::next,
-      isUpToDate = { false },
-      mergingPeriod = Duration.ofMillis(100)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier(
+          compute = generateSequence(System::currentTimeMillis).iterator()::next,
+          isUpToDate = { false },
+          mergingPeriod = Duration.ofMillis(100),
+        )
+        .disposeAfterTest()
 
     // Ideally we wouldn't rely on the assumption that we can call get() several times before
     // the Alarm is finished waiting, but there doesn't seem to be a good way to get around this.
-    val merged = Futures.allAsList(
-      (1..5).map { supplier.get() }
-    ).get()
+    val merged = Futures.allAsList((1..5).map { supplier.get() }).get()
     val timeBetweenComputations = supplier.get().get() - merged[0]
 
     // All the futures returned by get() during the first merging period should end up with the same value.
@@ -154,16 +149,12 @@ class ThrottlingAsyncSupplierTest {
       }
       System.currentTimeMillis()
     }
-    val supplier = ThrottlingAsyncSupplier(
-      compute = getTime,
-      isUpToDate = { false },
-      mergingPeriod = Duration.ofMillis(100)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier(compute = getTime, isUpToDate = { false }, mergingPeriod = Duration.ofMillis(100)).disposeAfterTest()
 
     // The successive calls to get() should be merged into a single invocation
     //  of getTime() which completes exceptionally.
-    (1..5).map { supplier.get() }
-      .forEach { it.assertCompletesExceptionally(computeError) }
+    (1..5).map { supplier.get() }.forEach { it.assertCompletesExceptionally(computeError) }
 
     // Ensure that we wait the full merging period before invoking getTime() again.
     val timeBetweenComputations = supplier.get().get() - firstComputeTime!!
@@ -175,15 +166,17 @@ class ThrottlingAsyncSupplierTest {
     val firstComputationStarted = CountDownLatch(1)
     val secondComputationRequested = CountDownLatch(1)
     val positiveIntegers = generateSequence(1) { it + 1 }.iterator()
-    val supplier = ThrottlingAsyncSupplier(
-      compute = {
-        firstComputationStarted.countDown()
-        secondComputationRequested.await()
-        return@ThrottlingAsyncSupplier positiveIntegers.next()
-      },
-      isUpToDate = { true },
-      mergingPeriod = Duration.ofMillis(1)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier(
+          compute = {
+            firstComputationStarted.countDown()
+            secondComputationRequested.await()
+            return@ThrottlingAsyncSupplier positiveIntegers.next()
+          },
+          isUpToDate = { true },
+          mergingPeriod = Duration.ofMillis(1),
+        )
+        .disposeAfterTest()
 
     val firstComputation = supplier.get()
     firstComputationStarted.await()
@@ -203,15 +196,17 @@ class ThrottlingAsyncSupplierTest {
     val firstComputationStarted = CountDownLatch(1)
     val secondComputationRequested = CountDownLatch(1)
     val positiveIntegers = generateSequence(1) { it + 1 }.iterator()
-    val supplier = ThrottlingAsyncSupplier(
-      compute = {
-        firstComputationStarted.countDown()
-        secondComputationRequested.await()
-        return@ThrottlingAsyncSupplier positiveIntegers.next()
-      },
-      isUpToDate = { false },
-      mergingPeriod = Duration.ofMillis(1)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier(
+          compute = {
+            firstComputationStarted.countDown()
+            secondComputationRequested.await()
+            return@ThrottlingAsyncSupplier positiveIntegers.next()
+          },
+          isUpToDate = { false },
+          mergingPeriod = Duration.ofMillis(1),
+        )
+        .disposeAfterTest()
 
     val firstComputation = supplier.get()
     firstComputationStarted.await()
@@ -229,18 +224,20 @@ class ThrottlingAsyncSupplierTest {
   @Test
   fun runScheduledComputation_ignoresAlreadyCheckedCachedValue() {
     var isUpToDateCalled = false
-    val supplier = ThrottlingAsyncSupplier(
-      compute = generateSequence(1) { it + 1 }.iterator()::next,
-      isUpToDate = {
-        if (!isUpToDateCalled) {
-          isUpToDateCalled = true
-          return@ThrottlingAsyncSupplier false
-        } else {
-          fail()
-        }
-      },
-      mergingPeriod = Duration.ofMillis(1)
-    ).disposeAfterTest()
+    val supplier =
+      ThrottlingAsyncSupplier(
+          compute = generateSequence(1) { it + 1 }.iterator()::next,
+          isUpToDate = {
+            if (!isUpToDateCalled) {
+              isUpToDateCalled = true
+              return@ThrottlingAsyncSupplier false
+            } else {
+              fail()
+            }
+          },
+          mergingPeriod = Duration.ofMillis(1),
+        )
+        .disposeAfterTest()
     // On the first call to get, we always compute the value without calling isUpToDate()
     supplier.get().get()
     // Since the first computation has already finished, the cached value will remain the same

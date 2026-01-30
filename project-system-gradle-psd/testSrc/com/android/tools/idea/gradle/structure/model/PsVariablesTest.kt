@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.testFramework.RunsInEdt
+import java.math.BigDecimal
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -34,13 +35,11 @@ import org.junit.Assume.assumeThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.math.BigDecimal
 
 @RunsInEdt
 class PsVariablesTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Before
   fun assumeNotWindows() {
@@ -60,9 +59,9 @@ class PsVariablesTest {
             "scriptVar1" to 1.asParsed(),
             "scriptVar2" to "2".asParsed(),
             "scriptBool" to true.asParsed(),
-            "agpVersionX" to "3.4.x".asParsed()
+            "agpVersionX" to "3.4.x".asParsed(),
           )
-        )
+        ),
       )
     }
   }
@@ -85,9 +84,9 @@ class PsVariablesTest {
             "listProp" to listOf(15.asParsed(), 16.asParsed(), 45.asParsed()).asParsed(),
             "mapProp" to mapOf("key1" to "val1".asParsed(), "key2" to "val2".asParsed()).asParsed(),
             "boolRoot" to true.asParsed(),
-            "dependencyVersion" to "28.0.0".asParsed()
+            "dependencyVersion" to "28.0.0".asParsed(),
           )
-        )
+        ),
       )
     }
   }
@@ -115,9 +114,9 @@ class PsVariablesTest {
             "valVersion",
             "versionVal",
             "moreVariable",
-            "mapVariable"
+            "mapVariable",
           )
-        )
+        ),
       )
     }
   }
@@ -133,15 +132,12 @@ class PsVariablesTest {
 
       assertThat(
         listVariable.listItems.map { it.value },
-        equalTo(listOf("proguard-rules.txt".asParsed<Any>(), "proguard-rules2.txt".asParsed<Any>()))
+        equalTo(listOf("proguard-rules.txt".asParsed<Any>(), "proguard-rules2.txt".asParsed<Any>())),
       )
 
       listVariable.listItems.findElement(0)!!.delete()
 
-      assertThat(
-        listVariable.listItems.map { it.value },
-        equalTo(listOf("proguard-rules2.txt".asParsed<Any>()))
-      )
+      assertThat(listVariable.listItems.map { it.value }, equalTo(listOf("proguard-rules2.txt".asParsed<Any>())))
     }
   }
 
@@ -209,7 +205,7 @@ class PsVariablesTest {
       mapVar.addMapValue("b")?.value = 2.asParsed()
       assertThat(
         mapVar.mapEntries.entries.map { it.key to it.value.value },
-        equalTo(listOf("a" to 1.asParsed<Any>(), "b" to 2.asParsed<Any>()))
+        equalTo(listOf("a" to 1.asParsed<Any>(), "b" to 2.asParsed<Any>())),
       )
     }
   }
@@ -225,14 +221,14 @@ class PsVariablesTest {
 
       assertThat(
         mapVariable.mapEntries.entries.mapValues { it.value.value },
-        equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "b" to "'single' quotes".asParsed<Any>()))
+        equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "b" to "'single' quotes".asParsed<Any>())),
       )
 
       mapVariable.mapEntries.findElement("b")!!.setName("Z")
 
       assertThat(
         mapVariable.mapEntries.entries.mapValues { it.value.value },
-        equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "Z" to "'single' quotes".asParsed<Any>()))
+        equalTo(mapOf("a" to "\"double\" quotes".asParsed<Any>(), "Z" to "'single' quotes".asParsed<Any>())),
       )
     }
   }
@@ -283,9 +279,9 @@ class PsVariablesTest {
               ("localMap.KTSApp" to "com.example.text.KTSApp").asParsed().annotated(),
               ("localMap.LocalApp" to "com.android.localApp").asParsed().annotated(),
               ("versionVal" to "28.0.0").asParsed().annotated(),
-              ("dependencyVersion" to "28.0.0").asParsed().annotated()
+              ("dependencyVersion" to "28.0.0").asParsed().annotated(),
             )
-          )
+          ),
         )
       }
     }
@@ -303,11 +299,8 @@ class PsVariablesTest {
       assertThat(
         variables,
         equalTo(
-          setOf(
-            ("versions.anotherVersion" to "0.9.2").asParsed().annotated(),
-            ("versions.coreVersion" to "0.9.1").asParsed().annotated()
-          )
-        )
+          setOf(("versions.anotherVersion" to "0.9.2").asParsed().annotated(), ("versions.coreVersion" to "0.9.1").asParsed().annotated())
+        ),
       )
     }
   }
@@ -319,14 +312,8 @@ class PsVariablesTest {
       val psProject = PsProjectImpl(project)
       val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
       val scopes = psAppModule.variables.getVariableScopes()
-      assertThat(
-        scopes.map { it.name },
-        equalTo(listOf("project (build script)", "project (project)", ":app"))
-      )
-      assertThat(
-        scopes.map { it.title },
-        equalTo(listOf("Build Script: project", "Project: project", "Module: app"))
-      )
+      assertThat(scopes.map { it.name }, equalTo(listOf("project (build script)", "project (project)", ":app")))
+      assertThat(scopes.map { it.title }, equalTo(listOf("Build Script: project", "Project: project", "Module: app")))
     }
   }
 
@@ -369,12 +356,8 @@ class PsVariablesTest {
       val otherVariables = PsVariables(psProject, "other", "other", null)
 
       assumeThat(
-        otherVariables.entries.keys, equalTo(
-          setOf(
-            "someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
-            "mapProp", "boolRoot", "dependencyVersion"
-          )
-        )
+        otherVariables.entries.keys,
+        equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
       )
 
       val someVar = variables.getVariable("someVar")
@@ -384,30 +367,18 @@ class PsVariablesTest {
       val tmp999 = variables.getOrCreateVariable("tmp999")
       tmp999.value = 999.asParsed()
       assertThat(
-        variables.map { it.name }.toSet(), equalTo(
-          setOf(
-            "tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
-            "mapProp", "boolRoot", "dependencyVersion"
-          )
-        )
+        variables.map { it.name }.toSet(),
+        equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
       )
 
       assumeThat(
-        otherVariables.entries.keys, equalTo(
-          setOf(
-            "someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
-            "mapProp", "boolRoot", "dependencyVersion"
-          )
-        )
+        otherVariables.entries.keys,
+        equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
       )
       otherVariables.refresh()
       assertThat(
-        otherVariables.entries.keys, equalTo(
-          setOf(
-            "tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
-            "mapProp", "boolRoot", "dependencyVersion"
-          )
-        )
+        otherVariables.entries.keys,
+        equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
       )
     }
   }

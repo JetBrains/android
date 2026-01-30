@@ -36,14 +36,10 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 private const val UNNAMED_COMPONENT = "<unnamed>"
 private const val MULTIPLE_COMPONENTS = "<multiple>"
 
-class SelectedComponentBuilder(private val model: NlPropertiesModel) :
-  InspectorBuilder<NlPropertyItem> {
+class SelectedComponentBuilder(private val model: NlPropertiesModel) : InspectorBuilder<NlPropertyItem> {
   private val hiddenTags = setOf(TAG_DEEP_LINK, TAG_ARGUMENT)
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val components = properties.first?.components ?: emptyList()
     if (components.isEmpty()) {
       return
@@ -70,10 +66,7 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) :
         private var currentListener: ValueChangedListener? = null
         val modelListener =
           object : PropertiesModelListener<NlPropertyItem> {
-            override fun propertyValuesChanged(
-              model: PropertiesModel<NlPropertyItem>,
-              childElementChanges: Boolean,
-            ) {
+            override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
               val newId = id
               if (newId != lastId) {
                 lastId = newId
@@ -83,8 +76,7 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) :
           }
         override val id: String
           get() {
-            return if (components.size == 1)
-              model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
+            return if (components.size == 1) model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
             else MULTIPLE_COMPONENTS
           }
 

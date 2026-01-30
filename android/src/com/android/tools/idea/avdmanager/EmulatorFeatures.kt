@@ -24,9 +24,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 
-/**
- * Extension method for getting the emulator features for the current release channel.
- */
+/** Extension method for getting the emulator features for the current release channel. */
 fun EmulatorPackage?.getEmulatorFeatures(): Set<String> =
   this?.getEmulatorFeatures(
     LogWrapper(EmulatorPackage::class.java),

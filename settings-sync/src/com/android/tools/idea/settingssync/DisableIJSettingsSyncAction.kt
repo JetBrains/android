@@ -22,8 +22,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 /**
  * This is to hide the IJ feature action behind the feature flag.
  *
- * If users explicitly enable the feature plugin from the JetBrains Marketplace, this action will
- * still be visible.
+ * If users explicitly enable the feature plugin from the JetBrains Marketplace, this action will still be visible.
  */
 class DisableIJSettingsSyncAction : AppLifecycleListener {
   override fun appFrameCreated(commandLineArgs: List<String?>) {

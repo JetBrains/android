@@ -23,8 +23,8 @@ import javax.swing.Icon
 /**
  * A model controlling a [com.android.tools.idea.uibuilder.property.ui.ToggleButtonPropertyEditor]
  *
- * Which is a toggle button i.e. the user can select/un-select the button. The model implements a
- * [selected] property which uses the values specified for [trueValue] and [falseValue].
+ * Which is a toggle button i.e. the user can select/un-select the button. The model implements a [selected] property which uses the values
+ * specified for [trueValue] and [falseValue].
  */
 class ToggleButtonPropertyEditorModel(
   val description: String,

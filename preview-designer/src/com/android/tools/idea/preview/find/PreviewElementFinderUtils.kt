@@ -70,12 +70,11 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
 }
 
 /**
- * Returns the number of preview annotations attached to this element. This method does not count
- * preview annotations that are indirectly referenced through the annotation graph.
+ * Returns the number of preview annotations attached to this element. This method does not count preview annotations that are indirectly
+ * referenced through the annotation graph.
  */
-suspend fun UElement.directPreviewChildrenCount(
-  isPreviewAnnotation: suspend UElement?.() -> Boolean
-) = getUAnnotations().count { it.isPreviewAnnotation() }
+suspend fun UElement.directPreviewChildrenCount(isPreviewAnnotation: suspend UElement?.() -> Boolean) =
+  getUAnnotations().count { it.isPreviewAnnotation() }
 
 /**
  * Class that helps to build a Preview's name and parameter name.
@@ -85,10 +84,7 @@ suspend fun UElement.directPreviewChildrenCount(
  * @see buildParameterName
  */
 class AnnotationPreviewNameHelper
-private constructor(
-  private val methodName: String,
-  private val parentAnnotationInfo: ParentAnnotationInfo?,
-) {
+private constructor(private val methodName: String, private val parentAnnotationInfo: ParentAnnotationInfo?) {
   private data class ParentAnnotationInfo(
     val annotationName: String?,
     val traversedPreviewChildrenCount: Int,
@@ -96,8 +92,8 @@ private constructor(
   )
 
   /**
-   * Create the name to be displayed for a Preview by using the [methodName] and the [nameParameter]
-   * when available, or otherwise trying to use some information from the [ParentAnnotationInfo].
+   * Create the name to be displayed for a Preview by using the [methodName] and the [nameParameter] when available, or otherwise trying to
+   * use some information from the [ParentAnnotationInfo].
    */
   fun buildPreviewName(nameParameter: String? = null): String {
     return if (nameParameter != null) "$nameParameter - $methodName"
@@ -105,11 +101,10 @@ private constructor(
   }
 
   /**
-   * Create the name to be displayed for a Preview by using the [nameParameter] when available, or
-   * otherwise trying to use some information from the [ParentAnnotationInfo].
+   * Create the name to be displayed for a Preview by using the [nameParameter] when available, or otherwise trying to use some information
+   * from the [ParentAnnotationInfo].
    */
-  fun buildParameterName(nameParameter: String? = null): String? =
-    nameParameter ?: buildParentAnnotationInfo()
+  fun buildParameterName(nameParameter: String? = null): String? = nameParameter ?: buildParentAnnotationInfo()
 
   private fun buildParentAnnotationInfo(): String? =
     parentAnnotationInfo?.let {
@@ -118,15 +113,13 @@ private constructor(
 
   companion object {
     /**
-     * Method that builds a [AnnotationPreviewNameHelper] from a given [NodeInfo], [methodName] and
-     * [isPreviewAnnotation].
+     * Method that builds a [AnnotationPreviewNameHelper] from a given [NodeInfo], [methodName] and [isPreviewAnnotation].
      *
-     * @param node contains the [NodeInfo] that will be used to retrieve extra information that will
-     *   be used to build the preview and parameter name whenever a nameParameter is not available
+     * @param node contains the [NodeInfo] that will be used to retrieve extra information that will be used to build the preview and
+     *   parameter name whenever a nameParameter is not available
      * @param methodName the name of the method that is annotated with the preview annotation
-     * @param isPreviewAnnotation a method used to identify which [UElement]s are considered
-     *   previews. The method is `suspendable` to allow for non-blocking read actions and can be
-     *   slow.
+     * @param isPreviewAnnotation a method used to identify which [UElement]s are considered previews. The method is `suspendable` to allow
+     *   for non-blocking read actions and can be slow.
      * @see AnnotationPreviewNameHelper
      */
     suspend fun create(
@@ -138,27 +131,20 @@ private constructor(
         node?.parent?.let { parent ->
           val parentAnnotation = parent.element as? UAnnotation ?: return@let null
           ParentAnnotationInfo(
-            annotationName = readAction {
-              (parentAnnotation.tryResolve() as? PsiClass)?.name
-              ?: parentAnnotation.resolveKaAnnotationName()
-            },
-            traversedPreviewChildrenCount =
-              parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0,
-            directPreviewChildrenCount =
-              parentAnnotation.directPreviewChildrenCount(isPreviewAnnotation),
+            annotationName =
+              readAction { (parentAnnotation.tryResolve() as? PsiClass)?.name ?: parentAnnotation.resolveKaAnnotationName() },
+            traversedPreviewChildrenCount = parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0,
+            directPreviewChildrenCount = parentAnnotation.directPreviewChildrenCount(isPreviewAnnotation),
           )
         }
-      return AnnotationPreviewNameHelper(
-        methodName = methodName,
-        parentAnnotationInfo = parentAnnotationInfo,
-      )
+      return AnnotationPreviewNameHelper(methodName = methodName, parentAnnotationInfo = parentAnnotationInfo)
     }
   }
 }
 
 /**
- * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from
- * the `analyze` block, as this can lead to serious memory leaks.
+ * Be aware not to get some [org.jetbrains.kotlin.analysis.api.lifetime.KaLifetimeOwner] from the `analyze` block, as this can lead to
+ * serious memory leaks.
  */
 private inline fun <T> UElement.analyzeAnnotationClassSymbol(f: KaClassLikeSymbol.() -> T): T? {
   val ktAnnotationEntry = sourcePsi as? KtAnnotationEntry ?: return null
@@ -170,8 +156,8 @@ private inline fun <T> UElement.analyzeAnnotationClassSymbol(f: KaClassLikeSymbo
   }
 }
 
-private fun UElement.resolveKaAnnotationName(): String? =
-  analyzeAnnotationClassSymbol { name?.asString() }
+private fun UElement.resolveKaAnnotationName(): String? = analyzeAnnotationClassSymbol { name?.asString() }
 
-internal fun UElement.resolveKaAnnotationAnnotations(): List<UAnnotation>? =
-  analyzeAnnotationClassSymbol { annotations.mapNotNull { it.psi.toUElementOfType<UAnnotation>() } }
+internal fun UElement.resolveKaAnnotationAnnotations(): List<UAnnotation>? = analyzeAnnotationClassSymbol {
+  annotations.mapNotNull { it.psi.toUElementOfType<UAnnotation>() }
+}

@@ -18,23 +18,16 @@ package com.android.tools.idea.gradle.model
 /**
  * Test suite variant configuration.
  *
- * Test suite definition is obtained at the project level using [IdeAndroidProject.testSuites].
- * Here you will find the list of targets defined for this variant. Each target have an associated
- * test task.
+ * Test suite definition is obtained at the project level using [IdeAndroidProject.testSuites]. Here you will find the list of targets
+ * defined for this variant. Each target have an associated test task.
  */
 interface IdeTestSuiteVariantTarget {
-  /**
-   * Name of the test suite.
-   */
+  /** Name of the test suite. */
   val suiteName: String
 
-  /**
-   * Name of the targeted variant.
-   */
+  /** Name of the targeted variant. */
   val targetedVariantName: String
 
-  /**
-   * List of defined targets for this test suite in the current variant context.
-   */
+  /** List of defined targets for this test suite in the current variant context. */
   val targets: Collection<IdeTestSuiteTarget>
 }

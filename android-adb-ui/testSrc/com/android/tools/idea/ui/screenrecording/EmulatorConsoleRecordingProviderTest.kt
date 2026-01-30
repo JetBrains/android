@@ -19,41 +19,31 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [EmulatorConsoleRecordingProvider].
- */
+/** Tests for [EmulatorConsoleRecordingProvider]. */
 class EmulatorConsoleRecordingProviderTest {
   @Test
   fun getRecorderOptions() {
-    val options = ScreenRecorderOptions(
-        displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 300)
+    val options =
+      ScreenRecorderOptions(
+        displayId = PRIMARY_DISPLAY_ID,
+        width = 600,
+        height = 400,
+        bitrateMbps = 6,
+        showTouches = true,
+        timeLimitSec = 300,
+      )
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 
-    assertThat(args).asList().containsExactly(
-      "--size",
-      "600x400",
-      "--bit-rate",
-      "6000000",
-      "--time-limit",
-      "300",
-    ).inOrder()
+    assertThat(args).asList().containsExactly("--size", "600x400", "--bit-rate", "6000000", "--time-limit", "300").inOrder()
   }
 
   @Test
   fun getRecorderOptionsDefaultTimeLimitSecondaryDisplay() {
-    val options = ScreenRecorderOptions(
-        displayId = 7, width = 800, height = 500, bitrateMbps = 8, showTouches = true, timeLimitSec = 0)
+    val options = ScreenRecorderOptions(displayId = 7, width = 800, height = 500, bitrateMbps = 8, showTouches = true, timeLimitSec = 0)
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 
-    assertThat(args).asList().containsExactly(
-      "--display",
-      "7",
-      "--size",
-      "800x500",
-      "--bit-rate",
-      "8000000",
-    ).inOrder()
+    assertThat(args).asList().containsExactly("--display", "7", "--size", "800x500", "--bit-rate", "8000000").inOrder()
   }
 }

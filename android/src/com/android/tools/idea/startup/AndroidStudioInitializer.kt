@@ -39,8 +39,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
  *
- * **Note:** Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use
- * GradleSpecificInitializer instead.
+ * **Note:** Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use GradleSpecificInitializer
+ * instead.
  */
 class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : ApplicationInitializedListener {
 
@@ -50,9 +50,7 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     setupAnalytics()
 
     // Initialize System Health Monitor after Analytics.
-    coroutineScope.launch {
-      AndroidStudioSystemHealthMonitor.getInstance()?.start()
-    }
+    coroutineScope.launch { AndroidStudioSystemHealthMonitor.getInstance()?.start() }
 
     // We need to start the system info monitoring even in case when user never
     // runs a single emulator instance: e.g., incompatible hypervisor might be
@@ -63,17 +61,17 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     HighlightingStats.getInstance().startRecording()
 
     // Android Studio Merge: ignore vendor dependencies
-    //StudioCodeVersionAdapter.initialize()
+    // StudioCodeVersionAdapter.initialize()
 
     setupAndroidSdkForTests()
     // these clutter the UX by suggesting paid JetBrains' products to users. As an example see b/409203679
     removePluginSuggestionProviderExtension()
   }
 
-  /** Sets up collection of Android Studio specific analytics.  */
+  /** Sets up collection of Android Studio specific analytics. */
   private fun setupAnalytics() {
     // Disabled because JetBrains wants to run an Android Studio build without Google Analytics
-    //AndroidStudioAnalyticsImpl.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
+    // AndroidStudioAnalyticsImpl.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
     AnalyticsSettings.disable()
     UsageTracker.disable()
 
@@ -92,9 +90,7 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     val androidSdkPath = IdeSdks.getInstance().androidSdkPath ?: return
 
     thisLogger().info("Automatically creating an Android platform using SDK path $androidSdkPath and SDK version $androidPlatformToCreate")
-    invokeLater {
-      AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
-    }
+    invokeLater { AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString()) }
   }
 
   private fun removePluginSuggestionProviderExtension() {

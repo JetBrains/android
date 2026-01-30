@@ -18,9 +18,7 @@ package com.android.tools.idea.streaming.device.settings
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 
-/**
- * Provider for the Device Mirroring settings page.
- */
+/** Provider for the Device Mirroring settings page. */
 class DeviceMirroringConfigurableProvider : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable = DeviceMirroringSettingsPage()

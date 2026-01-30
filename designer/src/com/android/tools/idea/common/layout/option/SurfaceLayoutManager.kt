@@ -21,31 +21,21 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import java.awt.Point
 
-/**
- * Interface used to layout and measure the size of [PositionableContent]s in
- * [com.android.tools.idea.common.surface.DesignSurface].
- */
+/** Interface used to layout and measure the size of [PositionableContent]s in [com.android.tools.idea.common.surface.DesignSurface]. */
 interface SurfaceLayoutManager {
 
-  /**
-   * false by default, override it to true if the [SurfaceLayoutManager] contains resizable
-   * [PositionableContent]s.
-   */
+  /** false by default, override it to true if the [SurfaceLayoutManager] contains resizable [PositionableContent]s. */
   val containsResizableContent: Boolean
     get() = false
 
   /**
-   * Get the total content size of the given [PositionableContent]s when available display size is
-   * [availableWidth] x [availableHeight]. Not like [getPreferredSize], this considers the current
-   * zoom level of the given [PositionableContent]s.
+   * Get the total content size of the given [PositionableContent]s when available display size is [availableWidth] x [availableHeight]. Not
+   * like [getPreferredSize], this considers the current zoom level of the given [PositionableContent]s.
    *
    * @param content all [PositionableContent]s to be measured.
-   * @param availableWidth the width of current visible area, which doesn't include the hidden part
-   *   in the scroll view.
-   * @param availableHeight the height of current visible area, which doesn't include the hidden
-   *   part in the scroll view.
-   * @param dimension used to store the result size. The new [Dimension] instance is created if the
-   *   given instance is null.
+   * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
+   * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
+   * @param dimension used to store the result size. The new [Dimension] instance is created if the given instance is null.
    * @see [getPreferredSize]
    */
   fun getRequiredSize(
@@ -56,8 +46,7 @@ interface SurfaceLayoutManager {
   ): Dimension
 
   /**
-   * Get the fit into scale value which can display all the [PositionableContent] in the given
-   * [availableWidth] x [availableHeight] range.
+   * Get the fit into scale value which can display all the [PositionableContent] in the given [availableWidth] x [availableHeight] range.
    *
    * @param content The [PositionableContent]s shown in the layout.
    * @param availableWidth The available width size to show the [PositionableContent]s
@@ -71,17 +60,14 @@ interface SurfaceLayoutManager {
   ): Double
 
   /**
-   * Measure the given [PositionableContent]s in the proper positions by using
-   * [PositionableContent.setLocation]. Note that it doesn't change the locations of
-   * [PositionableContent]s, it returns a map of [PositionableContent] to the measured positions.
+   * Measure the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]. Note that it doesn't
+   * change the locations of [PositionableContent]s, it returns a map of [PositionableContent] to the measured positions.
    *
    * @param content all [PositionableContent]s to be laid out.
-   * @param availableWidth the width of current visible area, which doesn't include the hidden part
-   *   in the scroll view.
-   * @param availableHeight the height of current visible area, which doesn't include the hidden
-   *   part in the scroll view.
-   * @param keepPreviousPadding true if all padding values should be the same as current one. This
-   *   happens when resizing the [PositionableContent].
+   * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
+   * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
+   * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing the
+   *   [PositionableContent].
    */
   fun measure(
     content: Collection<PositionableContent>,
@@ -92,17 +78,14 @@ interface SurfaceLayoutManager {
 }
 
 /**
- * Place the given [PositionableContent]s in the proper positions by using
- * [PositionableContent.setLocation] Note that it only changes the locations of
- * [PositionableContent]s but doesn't change their sizes.
+ * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation] Note that it only changes the
+ * locations of [PositionableContent]s but doesn't change their sizes.
  *
  * @param content all [PositionableContent]s to be laid out.
- * @param availableWidth the width of current visible area, which doesn't include the hidden part in
- *   the scroll view.
- * @param availableHeight the height of current visible area, which doesn't include the hidden part
- *   in the scroll view.
- * @param keepPreviousPadding true if all padding values should be the same as current one. This
- *   happens when resizing the [PositionableContent].
+ * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing the
+ *   [PositionableContent].
  */
 fun SurfaceLayoutManager.layout(
   content: Collection<PositionableContent>,

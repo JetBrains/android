@@ -21,11 +21,16 @@ import com.intellij.testFramework.VfsTestUtil
 import org.gradle.util.GradleVersion
 
 fun Project.createWrapperPropertiesFile(version: GradleVersion) {
-  VfsTestUtil.createFile(guessProjectDir()!!, "gradle/wrapper/gradle-wrapper.properties", """
+  VfsTestUtil.createFile(
+    guessProjectDir()!!,
+    "gradle/wrapper/gradle-wrapper.properties",
+    """
       distributionBase=PROJECT
       distributionPath=wrapper/dists
       distributionUrl=https\://services.gradle.org/distributions/gradle-${version.version}-bin.zip
       zipStoreBase=PROJECT
       zipStorePath=wrapper/dists
-    """.trimIndent())
+    """
+      .trimIndent(),
+  )
 }

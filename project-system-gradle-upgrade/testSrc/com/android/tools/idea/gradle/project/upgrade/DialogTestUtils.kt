@@ -25,11 +25,11 @@ fun <T : DialogWrapper> HeavyPlatformTestCase.registerDialogDisposable(dialog: T
   dialog.also { Disposer.register(testRootDisposable, dialog.disposable) }
 
 /**
- * Our dialog tests often construct the dialog in order to inspect it or its effect on its constructor arguments, without then
- * interacting with the test in any way.  This leads to the dialog not being disposed, which in turn leads to the memory leak detector
- * in the wider test suite firing at the end of a bazel run (but *not* when tests are run from the IDE, nor in a way that is obvious
- * from presubmit reports).  Putting this function in the tearDown() method of a test class involving dialogs (after super.tearDown())
- * causes the test to fail if any dialogs are not disposed (for arranging disposal, consider using [registerDialogDisposable])
+ * Our dialog tests often construct the dialog in order to inspect it or its effect on its constructor arguments, without then interacting
+ * with the test in any way. This leads to the dialog not being disposed, which in turn leads to the memory leak detector in the wider test
+ * suite firing at the end of a bazel run (but *not* when tests are run from the IDE, nor in a way that is obvious from presubmit reports).
+ * Putting this function in the tearDown() method of a test class involving dialogs (after super.tearDown()) causes the test to fail if any
+ * dialogs are not disposed (for arranging disposal, consider using [registerDialogDisposable])
  */
 internal fun checkNoUndisposedDialogs() {
   // DialogWrappers themselves are not disposable, but define an anonymous nested class to implement their Disposable needs.  We use this

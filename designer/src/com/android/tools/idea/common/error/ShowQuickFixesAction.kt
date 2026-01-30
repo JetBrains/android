@@ -70,10 +70,8 @@ class ShowQuickFixesAction : AnAction() {
         }
         .createPopup()
 
-    val mouse =
-      event.inputEvent as? MouseEvent ?: return popup.showInBestPositionFor(event.dataContext)
-    val button =
-      mouse.source as? ActionButton ?: return popup.showInBestPositionFor(event.dataContext)
+    val mouse = event.inputEvent as? MouseEvent ?: return popup.showInBestPositionFor(event.dataContext)
+    val button = mouse.source as? ActionButton ?: return popup.showInBestPositionFor(event.dataContext)
     popup.showUnderneathOf(button)
   }
 }

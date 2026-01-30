@@ -26,10 +26,7 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.google.common.collect.ImmutableBiMap
 
-/**
- * Parse the layout for Accessibility Testing Framework. Builds the metadata required to link a11y
- * lints to the source [NlComponent].
- */
+/** Parse the layout for Accessibility Testing Framework. Builds the metadata required to link a11y lints to the source [NlComponent]. */
 class NlScannerLayoutParser {
 
   @VisibleForTesting val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
@@ -52,10 +49,7 @@ class NlScannerLayoutParser {
     componentCount++
     val className = root.tagName
     if (className == SdkConstants.VIEW_INCLUDE) {
-      if (
-        root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) !=
-          SdkConstants.ATTR_IGNORE_A11Y_LINTS
-      ) {
+      if (root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) != SdkConstants.ATTR_IGNORE_A11Y_LINTS) {
         _includeComponents.add(root)
         return
       }
@@ -81,8 +75,7 @@ class NlScannerLayoutParser {
   }
 
   /**
-   * Look for the root view with appropriate view information from the immediate children. Returns
-   * itself if it cannot find one.
+   * Look for the root view with appropriate view information from the immediate children. Returns itself if it cannot find one.
    *
    * This is done to support views with data binding.
    */

@@ -20,9 +20,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHy
 import com.google.common.truth.Truth
 import org.junit.Test
 
-/**
- * Tests for [AgpUsedJavaTooLowReporter]
- */
+/** Tests for [AgpUsedJavaTooLowReporter] */
 class AgpUsedJavaTooLowReporterTest {
   @Test
   fun `expected type`() {

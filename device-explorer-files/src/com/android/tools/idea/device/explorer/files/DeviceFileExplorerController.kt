@@ -20,6 +20,8 @@ import javax.swing.JComponent
 
 interface DeviceFileExplorerController {
   fun setup()
+
   fun setActiveConnectedDevice(fileSystem: DeviceFileSystem?)
+
   fun getViewComponent(): JComponent
 }

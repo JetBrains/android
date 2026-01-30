@@ -48,15 +48,13 @@ import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 /**
  * Flow of events, happening when some data for languages gets changed.
  *
- * We are using it here as a workaround to track [KotlinAnnotationsIndex] changes, otherwise we are
- * failing to collect annotated methods right after a [Project] is created and is in Smart mode but
- * indexes are not yet prepared.
+ * We are using it here as a workaround to track [KotlinAnnotationsIndex] changes, otherwise we are failing to collect annotated methods
+ * right after a [Project] is created and is in Smart mode but indexes are not yet prepared.
  */
 private fun languageModificationFlow(project: Project, languages: Set<Language>) =
   disposableCallbackFlow("${languages.joinToString(", ") { it.displayName }} modification flow") {
     val connection = project.messageBus.connect(this.disposable)
-    val modificationTracker =
-      PsiModificationTracker.getInstance(project).forLanguages { it in languages }
+    val modificationTracker = PsiModificationTracker.getInstance(project).forLanguages { it in languages }
     connection.subscribe<PsiModificationTracker.Listener>(
       PsiModificationTracker.TOPIC,
       object : PsiModificationTracker.Listener {
@@ -80,9 +78,8 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
   }
 
 /**
- * Creates a new [Flow] returning all the [PreviewElement]s from a given [PreviewElementProvider]
- * any time a file changes. This flow takes into account any changes in any Kotlin files since
- * Multi-Preview can cause previews to be altered in this file.
+ * Creates a new [Flow] returning all the [PreviewElement]s from a given [PreviewElementProvider] any time a file changes. This flow takes
+ * into account any changes in any Kotlin files since Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
 fun <T : PreviewElement<SmartPsiElementPointer<PsiElement>>> previewElementsOnFileChangesFlow(
@@ -130,8 +127,8 @@ fun createModuleRootListenerFlow(project: Project): Flow<Unit> = callbackFlow {
 /**
  * Creates a [Flow] that emits a [Unit] value for any relevant Kotlin code modification.
  *
- * It specifically listens for "out-of-block" modifications, which include changes to top-level
- * declarations, class signatures, and annotations.
+ * It specifically listens for "out-of-block" modifications, which include changes to top-level declarations, class signatures, and
+ * annotations.
  */
 @OptIn(KaPlatformInterface::class)
 fun createKotlinModificationFlow(project: Project): Flow<Unit> = callbackFlow {

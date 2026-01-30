@@ -49,8 +49,7 @@ object JdkUtils {
   @JvmStatic
   fun overrideProjectGradleJdkPathWithVersion(gradleRootProject: File, jdkVersion: JavaSdkVersion) {
     val configProperties = GradleConfigProperties(gradleRootProject)
-    val currentJdkVersion =
-      configProperties.javaHome?.toPath()?.let { Jdks.getInstance().findVersion(it) }
+    val currentJdkVersion = configProperties.javaHome?.toPath()?.let { Jdks.getInstance().findVersion(it) }
     if (currentJdkVersion != jdkVersion) {
       getEmbeddedJdkPathWithVersion(jdkVersion).also {
         configProperties.javaHome = it
@@ -66,9 +65,7 @@ object JdkUtils {
         .`fun`(Pair(project, project.guessProjectDir()?.path))
     }
     @Suppress("UnstableApiUsage")
-    val sdk =
-      ExternalSystemJdkProvider.getInstance()
-        .createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
+    val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
     if (sdk is Disposable) {
       Disposer.register(parent, sdk)
     }

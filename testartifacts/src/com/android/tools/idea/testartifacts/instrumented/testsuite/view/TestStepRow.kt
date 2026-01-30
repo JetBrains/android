@@ -55,37 +55,32 @@ class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, Filterabl
   }
 
   override fun getTotalDuration(): Duration {
-    return Duration.ofMillis(myTestSteps.values.asSequence().map {
-      val start = it.startTimestampMillis ?: return@map 0L
-      val end = it.endTimestampMillis ?: System.currentTimeMillis()
-      max(end - start, 0L)
-    }.sum())
+    return Duration.ofMillis(
+      myTestSteps.values
+        .asSequence()
+        .map {
+          val start = it.startTimestampMillis ?: return@map 0L
+          val end = it.endTimestampMillis ?: System.currentTimeMillis()
+          max(end - start, 0L)
+        }
+        .sum()
+    )
   }
 
-  /**
-   * Returns an error stack for a given [device].
-   */
+  /** Returns an error stack for a given [device]. */
   override fun getErrorStackTrace(device: AndroidDevice): String = myTestSteps[device.id]?.errorStackTrace ?: ""
 
-  /**
-   * Returns the additional test artifacts.
-   */
-  override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = myTestSteps[device.id]?.additionalTestArtifacts
-                                                                                        ?: mapOf()
+  /** Returns the additional test artifacts. */
+  override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> =
+    myTestSteps[device.id]?.additionalTestArtifacts ?: mapOf()
 
-  /**
-   * Returns an aggregated test result.
-   */
+  /** Returns an aggregated test result. */
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
 
-  /**
-   * Returns an aggregated test result for the given devices.
-   */
+  /** Returns an aggregated test result for the given devices. */
   override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = getResultStats(devices).getSummaryResult()
 
-  /**
-   * Returns a one liner test result summary string for the given devices.
-   */
+  /** Returns a one liner test result summary string for the given devices. */
   override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
     val stats = getResultStats(devices)
     return when {
@@ -100,9 +95,7 @@ class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, Filterabl
   }
 
   override fun getResultStats(): AndroidTestResultStats {
-    return myTestSteps.values.fold(AndroidTestResultStats()) { acc, androidTestCase ->
-      acc.addTestCaseResult(androidTestCase.result)
-    }
+    return myTestSteps.values.fold(AndroidTestResultStats()) { acc, androidTestCase -> acc.addTestCaseResult(androidTestCase.result) }
   }
 
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
@@ -111,17 +104,13 @@ class TestStepRow(val testStep: AndroidTestStep) : AndroidTestResults, Filterabl
   }
 
   override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats {
-    return devices.fold(AndroidTestResultStats()) { acc, device ->
-      acc.addTestCaseResult(getTestCaseResult(device))
-    }
+    return devices.fold(AndroidTestResultStats()) { acc, device -> acc.addTestCaseResult(getTestCaseResult(device)) }
   }
 
   fun addTestStep(testStep: AndroidTestStep, device: AndroidDevice) {
     myTestSteps[device.id] = testStep
   }
 
-  /**
-   * Returns a list of all test cases. A test step does not contain test cases, so this is always empty.
-   */
+  /** Returns a list of all test cases. A test step does not contain test cases, so this is always empty. */
   override fun getAllTestCases(): List<AndroidTestCase> = emptyList()
 }

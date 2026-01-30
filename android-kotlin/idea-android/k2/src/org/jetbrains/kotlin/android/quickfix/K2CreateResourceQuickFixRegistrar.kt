@@ -24,16 +24,14 @@ import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesL
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 class K2CreateResourceQuickFixRegistrar : KotlinQuickFixRegistrar() {
-    override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-        registerFactory(FACTORY)
-    }
+    override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix { registerFactory(FACTORY) }
 
     companion object {
-        private val FACTORY = KotlinQuickFixFactory.IntentionBased { diagnostic: UnresolvedReference ->
-            val ref = diagnostic.psi as? KtSimpleNameExpression
-                      ?: return@IntentionBased emptyList<IntentionAction>()
+        private val FACTORY =
+            KotlinQuickFixFactory.IntentionBased { diagnostic: UnresolvedReference ->
+                val ref = diagnostic.psi as? KtSimpleNameExpression ?: return@IntentionBased emptyList<IntentionAction>()
 
-            getCreateResourceQuickFixActions(ref)
-        }
+                getCreateResourceQuickFixActions(ref)
+            }
     }
 }

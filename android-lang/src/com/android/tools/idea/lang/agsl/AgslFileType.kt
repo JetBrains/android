@@ -17,15 +17,14 @@ package com.android.tools.idea.lang.agsl
 
 import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.StudioIcons
-import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
+import org.jetbrains.annotations.NonNls
 
 /**
- * File type registration for AGSL. We don't actually intend to support developing AGSL as separate
- * source files, with their own dedicated source set in Gradle etc. However, IntelliJ appears to
- * bind syntax highlighting to file types. If we don't register this file type, then the nested
- * syntax highlighting for AGSL will **not** call [AgslSyntaxHighlighter.getTokenHighlights], and
- * many of the keywords are not highlighted.
+ * File type registration for AGSL. We don't actually intend to support developing AGSL as separate source files, with their own dedicated
+ * source set in Gradle etc. However, IntelliJ appears to bind syntax highlighting to file types. If we don't register this file type, then
+ * the nested syntax highlighting for AGSL will **not** call [AgslSyntaxHighlighter.getTokenHighlights], and many of the keywords are not
+ * highlighted.
  */
 class AgslFileType private constructor() : LanguageFileType(AgslLanguage.INSTANCE) {
   @NonNls

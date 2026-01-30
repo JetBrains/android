@@ -34,12 +34,12 @@ class AndroidStudioBrowserLauncher : BrowserLauncherImpl() {
   companion object {
     @VisibleForTesting
     fun addUtmParameters(urlString: String): String {
-      val uriBuilder = try {
-        URIBuilder(urlString)
-      }
-      catch (_: URISyntaxException) {
-        return urlString
-      }
+      val uriBuilder =
+        try {
+          URIBuilder(urlString)
+        } catch (_: URISyntaxException) {
+          return urlString
+        }
 
       val scheme = uriBuilder.scheme
       if (scheme !in SUPPORTED_SCHEMES) {

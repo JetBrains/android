@@ -34,25 +34,15 @@ class PreviewElementProviderTest {
   fun testFilteredProvider() = runBlocking {
     val staticPreviewProvider =
       StaticPreviewProvider(
-        listOf(
-          TestPreviewElement("PreviewMethod1"),
-          TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod"),
-        )
+        listOf(TestPreviewElement("PreviewMethod1"), TestPreviewElement("PreviewMethod2"), TestPreviewElement("AMethod"))
       )
 
     var filterWord = "AM"
-    val filtered =
-      FilteredPreviewElementProvider(staticPreviewProvider) {
-        !it.displaySettings.name.contains(filterWord)
-      }
+    val filtered = FilteredPreviewElementProvider(staticPreviewProvider) { !it.displaySettings.name.contains(filterWord) }
 
     Assert.assertEquals(3, staticPreviewProvider.previewElements().count())
     // The filtered provider contains all elements without the word internal
-    Assert.assertEquals(
-      listOf("PreviewMethod1", "PreviewMethod2"),
-      filtered.previewElements().map { it.displaySettings.name }.toList(),
-    )
+    Assert.assertEquals(listOf("PreviewMethod1", "PreviewMethod2"), filtered.previewElements().map { it.displaySettings.name }.toList())
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
@@ -63,11 +53,7 @@ class PreviewElementProviderTest {
   fun testMemoized() = runBlocking {
     var staticPreviewProvider =
       StaticPreviewProvider(
-        listOf(
-          TestPreviewElement("PreviewMethod1"),
-          TestPreviewElement("PreviewMethod2"),
-          TestPreviewElement("AMethod"),
-        )
+        listOf(TestPreviewElement("PreviewMethod1"), TestPreviewElement("PreviewMethod2"), TestPreviewElement("AMethod"))
       )
 
     val modificationTracker = SimpleModificationTracker()
@@ -99,8 +85,7 @@ class PreviewElementProviderTest {
 
     val previewElements = listOf(TestPreviewElement(), TestPreviewElement())
     val filePreviewElementFinder = mock<FilePreviewElementFinder<TestPreviewElement>>()
-    whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile))
-      .thenReturn(previewElements)
+    whenever(filePreviewElementFinder.findPreviewElements(project, virtualFile)).thenReturn(previewElements)
 
     val provider = FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder)
     assertEquals(previewElements, provider.previewElements().toList())

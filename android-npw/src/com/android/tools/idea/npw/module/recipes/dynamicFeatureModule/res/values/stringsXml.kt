@@ -16,10 +16,8 @@
 
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values
 
-fun stringsXml(
-  dynamicFeatureTitle: String,
-  projectSimpleName: String
-) = """
+fun stringsXml(dynamicFeatureTitle: String, projectSimpleName: String) =
+  """
   <resources>
     <string name="title_${projectSimpleName}">${dynamicFeatureTitle}</string>
 </resources>

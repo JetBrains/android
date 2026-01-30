@@ -22,20 +22,17 @@ import com.google.idea.blaze.base.logging.EventLoggingService
 import com.google.idea.blaze.base.logging.GenericEvent
 import com.google.idea.blaze.base.logging.HighlightStats
 import com.google.idea.blaze.base.logging.LoggedEvent
-import com.google.idea.blaze.base.logging.SyncStats
 import com.google.idea.blaze.base.logging.QuerySyncActionStats
 import com.google.idea.blaze.base.logging.QuerySyncAutoConversionStats
+import com.google.idea.blaze.base.logging.SyncStats
 import com.google.idea.testing.ServiceHelper
 import com.intellij.openapi.Disposable
 
-/**
- * Provides a [EventLoggingService] for integration tests.
- */
+/** Provides a [EventLoggingService] for integration tests. */
 class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingService() {
   private val syncStats: MutableList<SyncStats> = mutableListOf()
   private val querySyncStats: MutableList<QuerySyncActionStats> = mutableListOf()
-  private val querySyncAutoConversionStats: MutableList<QuerySyncAutoConversionStats> =
-      mutableListOf()
+  private val querySyncAutoConversionStats: MutableList<QuerySyncAutoConversionStats> = mutableListOf()
   private val aiEventStats: MutableList<AiEventStats> = mutableListOf()
 
   init {
@@ -46,13 +43,12 @@ class MockEventLoggingService(parentDisposable: Disposable) : EventLoggingServic
 
   fun getQuerySyncStats(): ImmutableList<QuerySyncActionStats> = ImmutableList.copyOf(querySyncStats)
 
-  fun getQuerySyncAutoConversionStats(): ImmutableList<QuerySyncAutoConversionStats> =
-      ImmutableList.copyOf(querySyncAutoConversionStats)
+  fun getQuerySyncAutoConversionStats(): ImmutableList<QuerySyncAutoConversionStats> = ImmutableList.copyOf(querySyncAutoConversionStats)
 
   fun aiEvents(): ImmutableList<AiEventStats> = ImmutableList.copyOf(aiEventStats)
 
   override fun log(loggedEvent: LoggedEvent) {
-    when(loggedEvent) {
+    when (loggedEvent) {
       is SyncStats -> syncStats.add(loggedEvent)
       is QuerySyncActionStats -> querySyncStats.add(loggedEvent)
       is QuerySyncAutoConversionStats -> querySyncAutoConversionStats.add(loggedEvent)

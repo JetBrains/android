@@ -47,8 +47,7 @@ import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.LEADING
 import kotlin.io.path.pathString
 
-internal class PostBackupDialog(private val project: Project, private val backupPath: Path) :
-  DialogWrapper(project) {
+internal class PostBackupDialog(private val project: Project, private val backupPath: Path) : DialogWrapper(project) {
   private enum class Mode {
     EXISTING_CONFIG,
     NEW_CONFIG,
@@ -111,8 +110,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
   }
 
   private fun showNotification(settings: RunnerAndConfigurationSettings) {
-    val notification =
-      Notification(NOTIFICATION_GROUP, "Updated run configuration '${settings.name}'", INFORMATION)
+    val notification = Notification(NOTIFICATION_GROUP, "Updated run configuration '${settings.name}'", INFORMATION)
     notification.addAction(
       object : AnAction("Open") {
         override fun actionPerformed(e: AnActionEvent) {
@@ -125,8 +123,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun addNewRunConfigSetting(): RunnerAndConfigurationSettings {
     val runManager = RunManager.getInstance(project)
-    val settings =
-      runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
+    val settings = runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
     val applicationId = BackupService.getMetadata(backupPath).applicationId
     val module = project.findHolderModule(applicationId)
@@ -160,8 +157,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun RunnerAndConfigurationSettings.isApplicable(applicationId: String): Boolean {
     val configuration = configuration as? AndroidRunConfiguration ?: return false
-    return !configuration.isComposePreview() &&
-      configuration.applicationIdProvider?.packageName == applicationId
+    return !configuration.isComposePreview() && configuration.applicationIdProvider?.packageName == applicationId
   }
 
   private class RunConfigSettingRenderer : ListCellRenderer<RunnerAndConfigurationSettings?> {
@@ -182,5 +178,4 @@ internal class PostBackupDialog(private val project: Project, private val backup
 }
 
 // See `ComposePreviewRunConfiguration`
-private fun AndroidRunConfiguration.isComposePreview() =
-  isLaunchingActivity("androidx.compose.ui.tooling.PreviewActivity")
+private fun AndroidRunConfiguration.isComposePreview() = isLaunchingActivity("androidx.compose.ui.tooling.PreviewActivity")

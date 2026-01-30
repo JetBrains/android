@@ -1,18 +1,18 @@
 /*
-* Copyright (C) 2022 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.Client
@@ -59,7 +59,7 @@ class BasicAndroidMonitorTest {
 
   private var clients: Array<Client> = arrayOf()
 
-  private val appId = "com.test";
+  private val appId = "com.test"
 
   private val gradleSyncString = "Gradle sync needs to be performed. Sync and rerun the app."
 
@@ -67,13 +67,11 @@ class BasicAndroidMonitorTest {
 
   private val device: IDevice = mock()
 
-  @get:Rule
-  var projectRule = AndroidProjectRule.onDisk()
+  @get:Rule var projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
-    Logger.getInstance(
-      LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
     client = mock()
     whenever(client.device).thenReturn(device)
@@ -102,7 +100,7 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
-  fun upToDateTest(){
+  fun upToDateTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
     val status = service.editStatus(device)
 
@@ -141,13 +139,13 @@ class BasicAndroidMonitorTest {
 
   @Test
   fun unknownDeviceTest() {
-    val unknownDevice : IDevice = mock()
+    val unknownDevice: IDevice = mock()
     val status = monitor.status(unknownDevice)
     assertThat(status).isEqualTo(LiveEditStatus.Disabled)
   }
 
   @After
-  fun dispose(){
+  fun dispose() {
     Disposer.dispose(service)
   }
 }

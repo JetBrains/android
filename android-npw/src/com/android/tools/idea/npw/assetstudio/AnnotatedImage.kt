@@ -17,7 +17,5 @@ package com.android.tools.idea.npw.assetstudio
 
 import java.awt.image.BufferedImage
 
-/**
- * An image with an optional error message. The message describes the error, if any, encountered when producing the image.
- */
+/** An image with an optional error message. The message describes the error, if any, encountered when producing the image. */
 class AnnotatedImage @JvmOverloads internal constructor(val image: BufferedImage, val errorMessage: String? = null)

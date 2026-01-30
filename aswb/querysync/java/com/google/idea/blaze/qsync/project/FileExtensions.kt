@@ -16,8 +16,7 @@
 package com.google.idea.blaze.qsync.project
 
 /**
- * Data class to hold sets of file extensions and names relevant for project structure analysis.
- * This allows for easy injection and testing.
+ * Data class to hold sets of file extensions and names relevant for project structure analysis. This allows for easy injection and testing.
  *
  * @property jvmExtensions Extensions for Java and Kotlin source files.
  * @property ccSourceExtensions Extensions for C/C++ source files.

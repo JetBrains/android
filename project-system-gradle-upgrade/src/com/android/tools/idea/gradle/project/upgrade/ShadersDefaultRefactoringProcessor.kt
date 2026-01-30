@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.util.androidFacet
@@ -36,18 +36,17 @@ import com.intellij.usages.impl.rules.UsageType
  * android.defaults.buildFeatures.shaders to true if the upgrade assistant detects that the project has shaders folders.
  */
 class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
 
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(AgpVersion.parse("8.4.0-alpha10"), AgpVersion.parse("9.0.0-alpha01"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     val explicitProperty =
-      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
-        ?.any { it.name == "android.defaults.buildfeatures.shaders" }
-      ?: false
+      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties?.any { it.name == "android.defaults.buildfeatures.shaders" }
+        ?: false
     if (explicitProperty) return UsageInfo.EMPTY_ARRAY
     val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
     modules.forEach module@{ module ->
@@ -66,9 +65,8 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
       if (!isShadersUsed) return@module
 
       val buildFeaturesOrHigherPsiElement =
-        listOf(buildModel.android().buildFeatures(), buildModel.android(), buildModel)
-          .firstNotNullOfOrNull { it.psiElement }
-        ?: return@module
+        listOf(buildModel.android().buildFeatures(), buildModel.android(), buildModel).firstNotNullOfOrNull { it.psiElement }
+          ?: return@module
       val psiElement = WrappedPsiElement(buildFeaturesOrHigherPsiElement, this, INSERT_SHADERS_DIRECTIVE)
       usages.add(ShadersEnableUsageInfo(psiElement, shadersModel))
     }
@@ -93,15 +91,12 @@ class ShadersDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcess
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("shaders-default")
 
   companion object {
-    val INSERT_SHADERS_DIRECTIVE =
-      UsageType(AgpUpgradeBundle.messagePointer("shadersDefaultRefactoringProcessor.enable.usageType"))
+    val INSERT_SHADERS_DIRECTIVE = UsageType(AgpUpgradeBundle.messagePointer("shadersDefaultRefactoringProcessor.enable.usageType"))
   }
 }
 
-class ShadersEnableUsageInfo(
-  element: WrappedPsiElement,
-  private val resultModel: GradlePropertyModel,
-): GradleBuildModelUsageInfo(element) {
+class ShadersEnableUsageInfo(element: WrappedPsiElement, private val resultModel: GradlePropertyModel) :
+  GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("shadersBuildFeature.enable.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

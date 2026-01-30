@@ -24,5 +24,5 @@ class ProductFlavorConfigPanel(productFlavor: PsProductFlavor, context: PsContex
     productFlavor.parent.parent,
     productFlavor.parent,
     productFlavor,
-    productFlavorPropertiesModel(productFlavor.parent.isLibrary)
+    productFlavorPropertiesModel(productFlavor.parent.isLibrary),
   )

@@ -40,18 +40,9 @@ class EventsChangedTest {
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(eventList, "")))
     val transition =
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
-    assertThat(transition.newState.currentEvents)
-      .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
-    assertThat(transition.action)
-      .isEqualTo(
-        Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, eventList.first())
-      )
+      event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
+    assertThat(transition.newState.currentEvents).isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
+    assertThat(transition.action).isEqualTo(Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, eventList.first()))
   }
 
   @Test
@@ -66,16 +57,9 @@ class EventsChangedTest {
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event2")), "")))
     val transition =
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
+      event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
     assertThat(transition.newState.currentEvents)
-      .isEqualTo(
-        LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 0, ""))
-      )
+      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
   }
 
@@ -91,14 +75,8 @@ class EventsChangedTest {
     val failure = LoadingState.NetworkFailure("failed")
     val event = EventsChanged(failure)
     val transition =
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
+      event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
     assertThat(transition.newState.currentEvents).isEqualTo(failure)
-    assertThat(transition.action)
-      .isEqualTo(Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, Event.EMPTY))
+    assertThat(transition.action).isEqualTo(Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, Event.EMPTY))
   }
 }

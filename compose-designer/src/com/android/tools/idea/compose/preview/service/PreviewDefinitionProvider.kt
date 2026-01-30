@@ -48,47 +48,36 @@ import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/**
- * A project service that provides a hot [StateFlow] of all resolved [PreviewDefinition]s in the
- * project.
- */
+/** A project service that provides a hot [StateFlow] of all resolved [PreviewDefinition]s in the project. */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @Service(Service.Level.PROJECT)
 class PreviewDefinitionProvider(private val project: Project, scope: CoroutineScope) {
   val logger = Logger.getInstance(PreviewDefinitionProvider::class.java)
 
   val previews: StateFlow<Map<KtNamedFunction, List<PreviewDefinition>>> =
-    combine(
-        createPreviewInvalidationFlow(project),
-        project.service<PreviewAnnotationProvider>().allPreviewAnnotationsFlow,
-      ) { _, allPreviewAnnotationFqns ->
+    combine(createPreviewInvalidationFlow(project), project.service<PreviewAnnotationProvider>().allPreviewAnnotationsFlow) {
+        _,
+        allPreviewAnnotationFqns ->
         allPreviewAnnotationFqns
       }
       .mapLatest { allPreviewAnnotationFqns ->
-        val (previews, duration) =
-          measureTimedValue { computeAllPreviews(allPreviewAnnotationFqns) }
-        logger.debug(
-          "PreviewProvider calculation took ${duration.inWholeMilliseconds}ms. Found ${previews.size} previews."
-        )
+        val (previews, duration) = measureTimedValue { computeAllPreviews(allPreviewAnnotationFqns) }
+        logger.debug("PreviewProvider calculation took ${duration.inWholeMilliseconds}ms. Found ${previews.size} previews.")
         previews
       }
       .stateIn(scope, SharingStarted.Eagerly, initialValue = emptyMap())
 
   /**
-   * Finds all `@Composable` functions with a `@Preview` annotation (either directly or through a
-   * multi-preview annotation) and resolves them into a map of [PreviewDefinition]s.
+   * Finds all `@Composable` functions with a `@Preview` annotation (either directly or through a multi-preview annotation) and resolves
+   * them into a map of [PreviewDefinition]s.
    *
    * The "computation" is a multi-step process:
-   * 1. It uses the Kotlin index to quickly find all functions that are potentially annotated with a
-   *    preview.
+   * 1. It uses the Kotlin index to quickly find all functions that are potentially annotated with a preview.
    * 2. It then resolves each of these functions to confirm they have a valid preview annotation.
-   * 3. For each valid function, it recursively expands any multi-preview annotations to find all
-   *    the leaf `@Preview` annotations.
+   * 3. For each valid function, it recursively expands any multi-preview annotations to find all the leaf `@Preview` annotations.
    * 4. Finally, it builds a [PreviewDefinition] for each leaf annotation.
    */
-  private suspend fun computeAllPreviews(
-    allPreviewAnnotationFqns: Set<String>
-  ): Map<KtNamedFunction, List<PreviewDefinition>> {
+  private suspend fun computeAllPreviews(allPreviewAnnotationFqns: Set<String>): Map<KtNamedFunction, List<PreviewDefinition>> {
     if (allPreviewAnnotationFqns.isEmpty()) {
       return emptyMap()
     }
@@ -111,21 +100,15 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
     }
   }
 
-  /**
-   * Finds all functions in the project that are annotated with any of the given preview annotation
-   * FQNs.
-   */
-  private suspend fun findAnnotatedFunctions(
-    allPreviewAnnotationFqns: Set<String>
-  ): Set<KtNamedFunction> =
+  /** Finds all functions in the project that are annotated with any of the given preview annotation FQNs. */
+  private suspend fun findAnnotatedFunctions(allPreviewAnnotationFqns: Set<String>): Set<KtNamedFunction> =
     smartReadAction(project) {
       val functionsToInspect = mutableSetOf<KtNamedFunction>()
       val uniqueShortNames = allPreviewAnnotationFqns.map { it.substringAfterLast('.') }.toSet()
 
       for (shortName in uniqueShortNames) {
         ProgressManager.checkCanceled()
-        val annotationEntries =
-          KotlinAnnotationsIndex[shortName, project, GlobalSearchScope.projectScope(project)]
+        val annotationEntries = KotlinAnnotationsIndex[shortName, project, GlobalSearchScope.projectScope(project)]
 
         for (entry in annotationEntries) {
           ProgressManager.checkCanceled()
@@ -137,11 +120,7 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
           // resolve it to be sure it's the right one.
           analyze(entry) {
             val functionSymbol = function.symbol
-            if (
-              functionSymbol.annotations.any {
-                it.classId?.asFqNameString() in allPreviewAnnotationFqns
-              }
-            ) {
+            if (functionSymbol.annotations.any { it.classId?.asFqNameString() in allPreviewAnnotationFqns }) {
               functionsToInspect.add(function)
             }
           }
@@ -150,13 +129,8 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
       functionsToInspect
     }
 
-  /**
-   * Resolves all [PreviewDefinition]s for a given [KtNamedFunction] by expanding its annotations.
-   */
-  private fun resolveFunctionPreviews(
-    function: KtNamedFunction,
-    multiPreviewExpander: MultiPreviewExpander,
-  ): List<PreviewDefinition> {
+  /** Resolves all [PreviewDefinition]s for a given [KtNamedFunction] by expanding its annotations. */
+  private fun resolveFunctionPreviews(function: KtNamedFunction, multiPreviewExpander: MultiPreviewExpander): List<PreviewDefinition> {
     val resolvedPreviews = mutableListOf<PreviewDefinition>()
     analyze(function) {
       val functionSymbol = function.symbol
@@ -165,9 +139,7 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
         val leafPreviews = multiPreviewExpander.expandAnnotationToLeafPreviews(this, annotation)
         leafPreviews.forEach { leafAnnotation ->
           val leafName = extractNameArgument(leafAnnotation)
-          resolvedPreviews.add(
-            PreviewDefinition.create(function, leafAnnotation.psi as KtAnnotationEntry, leafName)
-          )
+          resolvedPreviews.add(PreviewDefinition.create(function, leafAnnotation.psi as KtAnnotationEntry, leafName))
         }
       }
     }
@@ -189,15 +161,14 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
 }
 
 /**
- * Handles the logic of recursively expanding a [KaAnnotation] to its leaf `@Preview` annotations.
- * This class is designed to be used for a single, top-level preview resolution pass, and it caches
- * the results of the expansion to avoid re-computation and handle recursive multi-preview
- * definitions.
+ * Handles the logic of recursively expanding a [KaAnnotation] to its leaf `@Preview` annotations. This class is designed to be used for a
+ * single, top-level preview resolution pass, and it caches the results of the expansion to avoid re-computation and handle recursive
+ * multi-preview definitions.
  */
 private class MultiPreviewExpander(private val allPreviewAnnotationFqns: Set<String>) {
   /**
-   * Cache for the results of expanding multi-preview annotations to their leaf `@Preview`s. This is
-   * crucial for performance and to handle recursive multi-preview definitions.
+   * Cache for the results of expanding multi-preview annotations to their leaf `@Preview`s. This is crucial for performance and to handle
+   * recursive multi-preview definitions.
    */
   private val expansionCache = mutableMapOf<String, List<KaAnnotation>>()
 
@@ -207,10 +178,7 @@ private class MultiPreviewExpander(private val allPreviewAnnotationFqns: Set<Str
    * @param annotation The annotation to expand.
    * @return A list of leaf `@Preview` [KaAnnotation]s.
    */
-  fun expandAnnotationToLeafPreviews(
-    session: KaSession,
-    annotation: KaAnnotation,
-  ): List<KaAnnotation> {
+  fun expandAnnotationToLeafPreviews(session: KaSession, annotation: KaAnnotation): List<KaAnnotation> {
     val fqn = annotation.classId?.asFqNameString() ?: return emptyList()
 
     // The base @Preview annotation is the leaf of the recursion. It should not be cached,
@@ -234,11 +202,8 @@ private class MultiPreviewExpander(private val allPreviewAnnotationFqns: Set<Str
     expansionCache[fqn] = emptyList()
 
     // This is a multi-preview annotation, so we need to expand it.
-    val annotationClassSymbol =
-      session.run { annotation.constructorSymbol?.containingSymbol as? KaClassSymbol }
-        ?: return emptyList()
-    val result =
-      annotationClassSymbol.annotations.flatMap { expandAnnotationToLeafPreviews(session, it) }
+    val annotationClassSymbol = session.run { annotation.constructorSymbol?.containingSymbol as? KaClassSymbol } ?: return emptyList()
+    val result = annotationClassSymbol.annotations.flatMap { expandAnnotationToLeafPreviews(session, it) }
 
     // Cache the final, computed result.
     expansionCache[fqn] = result
@@ -248,6 +213,4 @@ private class MultiPreviewExpander(private val allPreviewAnnotationFqns: Set<Str
 
 @OptIn(FlowPreview::class)
 private fun createPreviewInvalidationFlow(project: Project) =
-  merge(createKotlinModificationFlow(project), createModuleRootListenerFlow(project))
-    .debounce(250)
-    .onStart { emit(Unit) }
+  merge(createKotlinModificationFlow(project), createModuleRootListenerFlow(project)).debounce(250).onStart { emit(Unit) }

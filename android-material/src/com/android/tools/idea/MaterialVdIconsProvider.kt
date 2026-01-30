@@ -54,10 +54,7 @@ class MaterialVdIconsProvider {
 
   /** Enum to indicate the status of this provider class to the given UI callback. */
   enum class Status {
-    /**
-     * There are still more icons to load, it is expected that there will be more invocations to the
-     * ui-callback.
-     */
+    /** There are still more icons to load, it is expected that there will be more invocations to the ui-callback. */
     LOADING,
     /** There are no more icons to load, it should be the last call to the ui-callback. */
     FINISHED,
@@ -66,19 +63,15 @@ class MaterialVdIconsProvider {
   companion object {
     @JvmStatic
     /**
-     * Gets [MaterialIconsMetadata] and handles calls to [MaterialVdIconsLoader]. Invokes the given
-     * ui-callback when more icons are loaded.
+     * Gets [MaterialIconsMetadata] and handles calls to [MaterialVdIconsLoader]. Invokes the given ui-callback when more icons are loaded.
      *
-     * @param refreshUiCallback Called whenever more icons are loaded, with the updated
-     *   [MaterialVdIcons] object and a [Status] to indicate whether to expect more calls with more
-     *   icons.
-     * @param parentDisposable When disposed, the background thread used for
-     *   loading/copying/downloading icons is shutdown.
+     * @param refreshUiCallback Called whenever more icons are loaded, with the updated [MaterialVdIcons] object and a [Status] to indicate
+     *   whether to expect more calls with more icons.
+     * @param parentDisposable When disposed, the background thread used for loading/copying/downloading icons is shutdown.
      * @param metadataUrlProvider Url provider for the metadata file.
      * @param iconsUrlProvider Url provider for [MaterialVdIconsLoader].
-     * @param onNewIconsAvailable this method might trigger a metadata update even after the local
-     *   icons have been loaded. After the download finishes, this method will be called if the
-     *   metadata does not match the local copy and a UI update is needed.
+     * @param onNewIconsAvailable this method might trigger a metadata update even after the local icons have been loaded. After the
+     *   download finishes, this method will be called if the metadata does not match the local copy and a UI update is needed.
      */
     fun loadMaterialVdIcons(
       refreshUiCallback: @UiThread (MaterialVdIcons, Status) -> Unit,
@@ -88,14 +81,9 @@ class MaterialVdIconsProvider {
       onNewIconsAvailable: @UiThread () -> Unit = {},
     ) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
-      val metadataParseResult =
-        metadataUrl?.let { MaterialIconsMetadata.parse(it) }
-          ?: Result.success(MaterialIconsMetadata.EMPTY)
+      val metadataParseResult = metadataUrl?.let { MaterialIconsMetadata.parse(it) } ?: Result.success(MaterialIconsMetadata.EMPTY)
 
-      if (
-        metadataParseResult.isSuccess &&
-          metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY
-      ) {
+      if (metadataParseResult.isSuccess && metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY) {
         LOG.warn("Empty metadata for material icons.")
         refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
       }
@@ -153,9 +141,7 @@ private fun loadMaterialVdIcons(
       }
 
       // Invoke the ui-callback with the loaded icons and current status value.
-      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-        refreshUiCallback(icons, status)
-      }
+      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) { refreshUiCallback(icons, status) }
     }
 
     var iconsUpdated = false
@@ -174,9 +160,7 @@ private fun loadMaterialVdIcons(
       }
     }
     if (iconsUpdated) {
-      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-        onNewIconsAvailable()
-      }
+      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) { onNewIconsAvailable() }
     }
   }
 }
@@ -209,20 +193,14 @@ private fun copyBundledIcons(metadata: MaterialIconsMetadata, loadedIcons: Mater
 
 /** Returns true if any icons were updated. */
 @WorkerThread
-private fun updateMetadataAndIcons(
-  existingMetadata: MaterialIconsMetadata,
-  iconsUrlProvider: MaterialIconsUrlProvider,
-): Boolean {
+private fun updateMetadataAndIcons(existingMetadata: MaterialIconsMetadata, iconsUrlProvider: MaterialIconsUrlProvider): Boolean {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't download any material icons.")
     return false
   }
   val newMetadata =
-    ApplicationManager.getApplication()
-      .getService(MaterialIconsMetadataDownloadCacheService::class.java)
-      .getMetadata()
-      .getCancellable()
+    ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java).getMetadata().getCancellable()
 
   return updateIconsAtDir(existingMetadata, newMetadata, targetPath.toPath(), iconsUrlProvider)
 }

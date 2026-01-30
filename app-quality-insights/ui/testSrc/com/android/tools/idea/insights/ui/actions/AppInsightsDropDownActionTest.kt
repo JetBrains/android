@@ -73,15 +73,7 @@ class AppInsightsDropDownActionTest {
   fun `icons for entries are correctly set when available`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
       val flow = MutableStateFlow(selectionOf(TestValues.ONE))
-      val dropdown =
-        AppInsightsDropDownAction(
-          "testName",
-          null,
-          null,
-          flow,
-          { value -> if (value == TestValues.TWO) ICON else null },
-          {},
-        )
+      val dropdown = AppInsightsDropDownAction("testName", null, null, flow, { value -> if (value == TestValues.TWO) ICON else null }, {})
 
       val fakeUi = initUi(dropdown)
 
@@ -101,8 +93,7 @@ class AppInsightsDropDownActionTest {
       assertThat(dropdown.childrenCount).isEqualTo(3)
       for (children in dropdown.getChildren(TestActionEvent())) {
         val presentation = children.templatePresentation
-        if (presentation.text == TestValues.TWO.toString())
-          assertThat(presentation.icon).isEqualTo(ICON)
+        if (presentation.text == TestValues.TWO.toString()) assertThat(presentation.icon).isEqualTo(ICON)
         else assertThat(presentation.icon).isNull()
       }
     }
@@ -111,10 +102,7 @@ class AppInsightsDropDownActionTest {
     val panel = JPanel(BorderLayout())
     val fakeUi = FakeUi(panel)
     val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-        targetComponent = panel
-      }
+    val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
     panel.add(toolbar.component, BorderLayout.CENTER)
     fakeUi.updateToolbars()
     return fakeUi

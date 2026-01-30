@@ -22,7 +22,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-class ExceptionSyncIssuesReporter: SimpleDeduplicatingSyncIssueReporter() {
+class ExceptionSyncIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
   companion object {
     const val SYNC_SUPPRESSED_EXCEPTION_GROUP = "Suppressed sync exceptions"
   }
@@ -31,11 +31,13 @@ class ExceptionSyncIssuesReporter: SimpleDeduplicatingSyncIssueReporter() {
     return MessageType.ERROR
   }
 
-  override fun setupSyncMessage(project: Project,
-                                syncIssues: List<IdeSyncIssue>,
-                                affectedModules: List<Module?>,
-                                buildFileMap: Map<Module?, VirtualFile?>,
-                                type: MessageType): SyncMessage {
+  override fun setupSyncMessage(
+    project: Project,
+    syncIssues: List<IdeSyncIssue>,
+    affectedModules: List<Module?>,
+    buildFileMap: Map<Module?, VirtualFile?>,
+    type: MessageType,
+  ): SyncMessage {
     var syncMessage = super.setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type)
     val issueMessages = "$SYNC_SUPPRESSED_EXCEPTION_GROUP\n\n" + syncIssues.joinToString("\n") { it.toDisplayMessage() }
     return SyncMessage(SYNC_SUPPRESSED_EXCEPTION_GROUP, syncMessage.type, syncMessage.navigatable, issueMessages)

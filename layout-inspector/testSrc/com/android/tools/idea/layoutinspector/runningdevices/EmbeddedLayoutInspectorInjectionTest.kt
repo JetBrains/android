@@ -96,15 +96,7 @@ class EmbeddedLayoutInspectorInjectionTest {
 
     val coroutineScope = disposable.createCoroutineScope()
     val launcher =
-      InspectorClientLauncher(
-        processModel,
-        emptyList(),
-        project,
-        notificationModel,
-        coroutineScope,
-        disposable,
-        metrics = mock(),
-      )
+      InspectorClientLauncher(processModel, emptyList(), project, notificationModel, coroutineScope, disposable, metrics = mock())
 
     val fakeForegroundProcessDetection = FakeForegroundProcessDetection()
 
@@ -150,15 +142,11 @@ class EmbeddedLayoutInspectorInjectionTest {
   private fun createUi(): Pair<StreamingDevicePanel<EmulatorDisplayPanel>, SelectedTabState> {
     val panel = emulatorViewRule.newEmulatorToolWindowPanel()
 
-    val context =
-      CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink ->
-        panel.uiDataSnapshot(sink)
-      }
+    val context = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT) { sink -> panel.uiDataSnapshot(sink) }
     val streamingContent = STREAMING_CONTENT_PANEL_KEY.getData(context)
     assertThat(streamingContent).isNotNull()
 
-    val tabComponents =
-      TabComponents(disposable = panel, tabContentPanel = streamingContent!!, displayOwner = panel)
+    val tabComponents = TabComponents(disposable = panel, tabContentPanel = streamingContent!!, displayOwner = panel)
 
     val selectedTabState =
       SelectedTabState(
@@ -172,10 +160,7 @@ class EmbeddedLayoutInspectorInjectionTest {
     return panel to selectedTabState
   }
 
-  private fun renderAndAssertImageSimilarity(
-    panel: StreamingDevicePanel<EmulatorDisplayPanel>,
-    tabComponents: TabComponents,
-  ) {
+  private fun renderAndAssertImageSimilarity(panel: StreamingDevicePanel<EmulatorDisplayPanel>, tabComponents: TabComponents) {
     val rootPanel = BorderLayoutPanel()
     rootPanel.size = Dimension(screenDimension.width, screenDimension.height)
     rootPanel.addToCenter(panel)
@@ -186,17 +171,9 @@ class EmbeddedLayoutInspectorInjectionTest {
     assertSimilar(image, testName.methodName)
   }
 
-  private fun assertSimilar(
-    renderImage: BufferedImage,
-    imageName: String,
-    maxDiff: Double = DIFF_THRESHOLD,
-  ) {
+  private fun assertSimilar(renderImage: BufferedImage, imageName: String, maxDiff: Double = DIFF_THRESHOLD) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
-    ImageDiffUtil.assertImageSimilar(
-      resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
-      renderImage,
-      maxDiff,
-    )
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, maxDiff)
   }
 
   /** Wait until the displays have rendered their UI */

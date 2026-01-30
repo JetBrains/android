@@ -29,9 +29,9 @@ import org.junit.Test
 
 /** Tests for [VersionCatalogGoToDeclarationHandler]. */
 class VersionCatalogGoToDeclarationHandlerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule()
+  private val project
+    get() = projectRule.project
 
   @Test
   fun testGoToDeclarationInToml() {
@@ -41,38 +41,30 @@ class VersionCatalogGoToDeclarationHandlerTest {
     // Check Go To Declaration within the TOML file
 
     // Navigate from version.ref string to corresponding version variable
-    checkUsage(
-      "gradle/libs.versions.toml",
-      "version.ref = \"gua|va\"",
-      "guava = \"19.0\""
-    )
+    checkUsage("gradle/libs.versions.toml", "version.ref = \"gua|va\"", "guava = \"19.0\"")
 
     // Same, but for a variable with dashes
-    checkUsage(
-      "gradle/libs.versions.toml",
-      "version.ref = \"cons|traint-layout\"",
-      "constraint-layout = \"1.0.2\""
-    )
+    checkUsage("gradle/libs.versions.toml", "version.ref = \"cons|traint-layout\"", "constraint-layout = \"1.0.2\"")
 
     // Navigate from library name in a bundle array to corresponding library
     checkUsage(
       "gradle/libs.versions.toml",
       "both = [\"constraint-layout\", \"|guava\"]",
-      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
+      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }",
     )
 
     // Same, but for a library variable with dashes
     checkUsage(
       "gradle/libs.versions.toml",
       "both = [\"const|raint-layout\", \"guava\"]",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
     // Same, but for a library variable with dashes
     checkUsage(
       "gradle/libs.versions.toml",
       "both = [\"const|raint-layout\", \"guava\"]",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
   }
 
@@ -81,17 +73,13 @@ class VersionCatalogGoToDeclarationHandlerTest {
     disableKtsIndexing(project, projectRule.fixture.testRootDisposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
-    checkUsage(
-      "app/build.gradle.kts",
-      "api(libs.|guava)",
-      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
-    )
+    checkUsage("app/build.gradle.kts", "api(libs.|guava)", "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }")
 
     // Navigate from KTS catalog reference to TOML library, with a dotted name (mapped to dashed name in TOML)
     checkUsage(
       "app/build.gradle.kts",
       "libs.constraint.la|yout",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
     // Same, but clicking on an earlier part in the reference; there isn't an exact TOML library for the group, so we
@@ -99,49 +87,41 @@ class VersionCatalogGoToDeclarationHandlerTest {
     checkUsage(
       "app/build.gradle.kts",
       "libs.cons|traint.layout",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
     // Navigate to the appropriate plugin in TOML
     checkUsage(
       "app/build.gradle.kts",
       "alias(libs.plu|gins.kotlinAndroid)",
-      "kotlinAndroid = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlinVersion\" }"
+      "kotlinAndroid = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlinVersion\" }",
     )
 
     // Navigate from a KTS plugin reference to the plugin in the TOML file
     checkUsage(
       "app/build.gradle.kts",
       "alias(libs.plugins.android.appli|cation)",
-      "android-application = { id = \"com.android.application\", version.ref = \"agpVersion\" }"
+      "android-application = { id = \"com.android.application\", version.ref = \"agpVersion\" }",
     )
 
     // Navigate to the appropriate bundle in TOML
-    checkUsage(
-      "app/build.gradle.kts",
-      "api(libs.b|undles.both)",
-      "both = [\"constraint-layout\", \"guava\"]"
-    )
+    checkUsage("app/build.gradle.kts", "api(libs.b|undles.both)", "both = [\"constraint-layout\", \"guava\"]")
 
     // Navigate to the appropriate bundle in TOML
-    checkUsage(
-      "app/build.gradle.kts",
-      "api(libs.bundles.|both)",
-      "both = [\"constraint-layout\", \"guava\"]"
-    )
+    checkUsage("app/build.gradle.kts", "api(libs.bundles.|both)", "both = [\"constraint-layout\", \"guava\"]")
 
     // Navigate from a KTS to second catalog
     checkUsage(
       "app/build.gradle.kts",
       "testImplementation(libsTest.j|unit)",
-      "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
+      "junit = { module = \"junit:junit\", version.ref = \"junit\" }",
     )
 
     // Navigate special case when first letter after delimiter is capital case
     checkUsage(
       "app/build.gradle.kts",
       "api(libs.guava.co|mmon)",
-      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
+      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }",
     )
   }
 
@@ -149,17 +129,13 @@ class VersionCatalogGoToDeclarationHandlerTest {
   fun testGotoCatalogDeclarationInGroovy() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
     // Navigate from groovy catalog reference to TOML library
-    checkUsage(
-      "app/build.gradle",
-      "api libs.|guava",
-      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
-    )
+    checkUsage("app/build.gradle", "api libs.|guava", "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }")
 
     // Navigate from groovy catalog reference to TOML library, with a dotted name (mapped to dashed name in TOML)
     checkUsage(
       "app/build.gradle",
       "libs.constraint.la|yout",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
     // Same, but clicking on an earlier part in the reference; there isn't an exact TOML library for the group, so we
@@ -167,55 +143,39 @@ class VersionCatalogGoToDeclarationHandlerTest {
     checkUsage(
       "app/build.gradle",
       "libs.cons|traint.layout",
-      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
     )
 
     // Navigate to the appropriate plugin in TOML
-   checkUsage(
+    checkUsage(
       "app/build.gradle",
       "alias libs.plug|ins.android.application",
-      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }"
+      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }",
     )
 
     // Navigate from a ksp plugin reference to the plugin in the TOML file
     checkUsage(
       "app/build.gradle",
       "alias libs.plugins.andr|oid.application",
-      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }"
+      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }",
     )
 
     // Navigate to the appropriate bundle in TOML
-    checkUsage(
-      "app/build.gradle",
-      "api libs.b|undles.both",
-      "both = [\"constraint-layout\", \"guava\"]"
-    )
+    checkUsage("app/build.gradle", "api libs.b|undles.both", "both = [\"constraint-layout\", \"guava\"]")
 
     // Navigate to the appropriate bundle in TOML
-    checkUsage(
-      "app/build.gradle",
-      "api libs.bundles.|both",
-      "both = [\"constraint-layout\", \"guava\"]"
-    )
+    checkUsage("app/build.gradle", "api libs.bundles.|both", "both = [\"constraint-layout\", \"guava\"]")
 
     // Navigate from a groovy build file to another catalog
-    checkUsage(
-      "app/build.gradle",
-      "testImplementation libsTest.j|unit",
-      "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
-    )
+    checkUsage("app/build.gradle", "testImplementation libsTest.j|unit", "junit = { module = \"junit:junit\", version.ref = \"junit\" }")
 
-    checkUsage(
-      "app/build.gradle",
-      "testImplementation libsTest.bund|les.junit",
-      "junit = [\"junit\"]"
-    )
+    checkUsage("app/build.gradle", "testImplementation libsTest.bund|les.junit", "junit = [\"junit\"]")
 
     // Navigate special case when first letter after delimiter is capital case
     checkUsage(
       "app/build.gradle",
       "api libs.guava.co|mmon",
-      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
+      "guava-Common = { module = \"com.google.guava:guava\", version.ref = \"guava\" }",
     )
   }
 

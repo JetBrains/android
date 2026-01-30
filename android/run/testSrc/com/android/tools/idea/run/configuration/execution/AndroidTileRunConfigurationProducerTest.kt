@@ -34,8 +34,7 @@ import org.mockito.kotlin.whenever
 
 class AndroidTileRunConfigurationProducerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Before
   fun setUp() {
@@ -45,16 +44,19 @@ class AndroidTileRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val tileFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTileService.kt",
-      """
-      package com.example.myapplication
+    val tileFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTileService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.TileService
 
-      class MyTestTile : TileService() {
-      }
-      """.trimIndent())
+        class MyTestTile : TileService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = tileFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -67,16 +69,19 @@ class AndroidTileRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val tileFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTileService.java",
-      """
-      package com.example.myapplication;
+    val tileFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTileService.java",
+        """
+        package com.example.myapplication;
 
-      import androidx.wear.tiles.TileService;
-        
-      public class MyTileService extends TileService {
-      }
-      """.trimIndent())
+        import androidx.wear.tiles.TileService;
+          
+        public class MyTileService extends TileService {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = tileFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -89,16 +94,19 @@ class AndroidTileRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val tileFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTileService.kt",
-      """
-      package com.example.myapplication
+    val tileFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTileService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.TileService
 
-      class MyTestTile : TileService() {
-      }
-      """.trimIndent())
+        class MyTestTile : TileService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = tileFile.findElementByText("class")
     val context = mock<ConfigurationContext>()

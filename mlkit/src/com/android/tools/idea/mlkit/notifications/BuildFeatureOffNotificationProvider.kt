@@ -38,14 +38,10 @@ import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
 import java.util.function.Function
 
-/**
- * Notifies users that build feature flag mlModelBinding is off.
- */
+/** Notifies users that build feature flag mlModelBinding is off. */
 class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
 
-  private val addBuildFeatureRecipe: Recipe = {
-    setBuildFeature("mlModelBinding", true)
-  }
+  private val addBuildFeatureRecipe: Recipe = { setBuildFeature("mlModelBinding", true) }
 
   override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
     if (TfliteModelFileType.TFLITE_EXTENSION != file.extension) return null
@@ -61,10 +57,16 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
       val panel = EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning)
       panel.text = BANNER_MESSAGE
       panel.createActionLabel("Enable Now") {
-        if (Messages.OK == Messages.showOkCancelDialog(
-            project, DIALOG_MESSAGE, DIALOG_TITLE,
-            Messages.getOkButton(), Messages.getCancelButton(), Messages.getInformationIcon()
-          )
+        if (
+          Messages.OK ==
+            Messages.showOkCancelDialog(
+              project,
+              DIALOG_MESSAGE,
+              DIALOG_TITLE,
+              Messages.getOkButton(),
+              Messages.getCancelButton(),
+              Messages.getInformationIcon(),
+            )
         ) {
           addBuildFeature(module)
           project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
@@ -79,17 +81,20 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
   }
 
   private fun addBuildFeature(module: Module) {
-    val renderingContext = RenderingContext(
-      module.project,
-      module,
-      "Add build feature mlModelBinding",
-      getExistingModuleTemplateDataBuilder(module).build(),
-      showErrors = true,
-      dryRun = false,
-      moduleRoot = null
-    )
+    val renderingContext =
+      RenderingContext(
+        module.project,
+        module,
+        "Add build feature mlModelBinding",
+        getExistingModuleTemplateDataBuilder(module).build(),
+        showErrors = true,
+        dryRun = false,
+        moduleRoot = null,
+      )
     addBuildFeatureRecipe.render(
-      renderingContext, DefaultRecipeExecutor(renderingContext), TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION
+      renderingContext,
+      DefaultRecipeExecutor(renderingContext),
+      TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     )
   }
 
@@ -97,10 +102,11 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
     private val HIDDEN_KEY = Key.create<String>("ml.build.feature.off.notification.panel.hidden")
     private const val BANNER_MESSAGE = "ML Model Binding build feature not enabled."
     private const val DIALOG_TITLE = "Enable Build Feature"
-    private const val DIALOG_MESSAGE = "This operation adds the below build feature\n\n" +
-                                       "buildFeatures {\n" +
-                                       "    mlModelBinding true\n" +
-                                       "}\n\n" +
-                                       "Would you like to add this now?"
+    private const val DIALOG_MESSAGE =
+      "This operation adds the below build feature\n\n" +
+        "buildFeatures {\n" +
+        "    mlModelBinding true\n" +
+        "}\n\n" +
+        "Would you like to add this now?"
   }
 }

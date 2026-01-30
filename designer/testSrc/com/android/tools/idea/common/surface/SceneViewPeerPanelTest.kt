@@ -48,38 +48,26 @@ class SceneViewPeerPanelTest {
 
   @Test
   fun `top panel is visible when label is hidden and actions are present`() {
-    val sceneViewPeerPanel =
-      createSceneViewPeerPanel(
-        disposableRule.disposable,
-        "",
-        toolbarOverflowActions = listOf(anAction()),
-      )
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = listOf(anAction()))
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.isVisible)
   }
 
   @Test
   fun `top panel is visible when label is visible and no actions`() {
-    val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", isLabelPanelVisible = true)
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "", isLabelPanelVisible = true)
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.isVisible)
   }
 
   @Test
   fun `toolbar is not created when no actions`() {
-    val sceneViewPeerPanel =
-      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = emptyList())
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = emptyList())
     println(sceneViewPeerPanel.sceneViewTopPanel.components)
     assertFalse(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
   }
 
   @Test
   fun `toolbar is created when actions are present`() {
-    val sceneViewPeerPanel =
-      createSceneViewPeerPanel(
-        disposableRule.disposable,
-        "",
-        toolbarOverflowActions = listOf(anAction()),
-      )
+    val sceneViewPeerPanel = createSceneViewPeerPanel(disposableRule.disposable, "", toolbarOverflowActions = listOf(anAction()))
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
   }
 
@@ -87,12 +75,7 @@ class SceneViewPeerPanelTest {
   fun `toolbar contains is visible if no name and regular actions are available`() {
     val anAction = anAction()
     val sceneViewPeerPanel =
-      createSceneViewPeerPanel(
-        disposableRule.disposable,
-        "",
-        toolbarActions = listOf(anAction),
-        toolbarOverflowActions = listOf(),
-      )
+      createSceneViewPeerPanel(disposableRule.disposable, "", toolbarActions = listOf(anAction), toolbarOverflowActions = listOf())
     assertTrue(sceneViewPeerPanel.isVisible)
     assertTrue(sceneViewPeerPanel.sceneViewTopPanel.components.any { it is ActionToolbar })
     val toolbarActions = sceneViewPeerPanel.getTopToolbarActions()
@@ -101,9 +84,7 @@ class SceneViewPeerPanelTest {
 }
 
 private fun SceneViewPeerPanel.getTopToolbarActions(): List<AnAction> {
-  val toolbar =
-    sceneViewTopPanel.components.filterIsInstance<ActionToolbar>().singleOrNull()
-      ?: return emptyList()
+  val toolbar = sceneViewTopPanel.components.filterIsInstance<ActionToolbar>().singleOrNull() ?: return emptyList()
   return toolbar.actionGroup.getChildren(null).asList()
 }
 
@@ -118,12 +99,9 @@ private fun createSceneView(parentDisposable: Disposable, modelName: String): Sc
   val model =
     Mockito.mock(NlModel::class.java).apply {
       Mockito.`when`(this.organizationGroup).then { null }
-      Mockito.`when`(this.displaySettings).then {
-        DisplaySettings().apply { setDisplayName(modelName) }
-      }
+      Mockito.`when`(this.displaySettings).then { DisplaySettings().apply { setDisplayName(modelName) } }
     }
-  val sceneManager =
-    Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
+  val sceneManager = Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
   Disposer.register(parentDisposable, sceneManager)
   return TestSceneView(100, 100, sceneManager)
 }

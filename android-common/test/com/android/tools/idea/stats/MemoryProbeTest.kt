@@ -53,11 +53,8 @@ class MemoryProbeTest {
   }
 
   private fun check(value: Any): Long {
-    val includedPackagePrefixes = listOf(
-      "sun.awt.image.",
-      Chain::class.java.`package`.name + ".",
-      java.awt.Image::class.java.`package`.name + "."
-    )
+    val includedPackagePrefixes =
+      listOf("sun.awt.image.", Chain::class.java.`package`.name + ".", java.awt.Image::class.java.`package`.name + ".")
     val checker = MemoryProbe(includedPackagePrefixes, excludeStaticFields = true)
     return checker.check(value)
   }

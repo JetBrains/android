@@ -20,19 +20,15 @@ import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import java.nio.file.Path
 
 /**
- * An abstract [AdbDeviceFileEntry] that goes through another [AdbDeviceFileEntry]
- * (see [.getForwardedFileEntry]) for its file operations.
+ * An abstract [AdbDeviceFileEntry] that goes through another [AdbDeviceFileEntry] (see [.getForwardedFileEntry]) for its file operations.
  *
- * This class should be extended by [AdbDeviceFileEntry] implementations that override
- * only a subset of the abstract methods, using another instance of [AdbDeviceFileEntry]
- * as the default implementation of the non-overridden methods.
+ * This class should be extended by [AdbDeviceFileEntry] implementations that override only a subset of the abstract methods, using another
+ * instance of [AdbDeviceFileEntry] as the default implementation of the non-overridden methods.
  */
-abstract class AdbDeviceForwardingFileEntry(
-  private val forwardedFileEntry: AdbDeviceFileEntry
-) : AdbDeviceFileEntry(forwardedFileEntry.fileSystem, forwardedFileEntry.myEntry, forwardedFileEntry.parent) {
+abstract class AdbDeviceForwardingFileEntry(private val forwardedFileEntry: AdbDeviceFileEntry) :
+  AdbDeviceFileEntry(forwardedFileEntry.fileSystem, forwardedFileEntry.myEntry, forwardedFileEntry.parent) {
 
-  override suspend fun entries(): List<DeviceFileEntry> =
-    forwardedFileEntry.entries()
+  override suspend fun entries(): List<DeviceFileEntry> = forwardedFileEntry.entries()
 
   override suspend fun delete() {
     return forwardedFileEntry.delete()
@@ -46,8 +42,7 @@ abstract class AdbDeviceForwardingFileEntry(
     return forwardedFileEntry.createNewDirectory(directoryName)
   }
 
-  override suspend fun isSymbolicLinkToDirectory(): Boolean =
-    forwardedFileEntry.isSymbolicLinkToDirectory()
+  override suspend fun isSymbolicLinkToDirectory(): Boolean = forwardedFileEntry.isSymbolicLinkToDirectory()
 
   override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) {
     forwardedFileEntry.downloadFile(localPath, progress)

@@ -25,22 +25,18 @@ import java.util.concurrent.Executor
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Model class that owns a list of active [ProcessDescriptor] targets with listeners that trigger
- * when one is added or removed.
+ * Model class that owns a list of active [ProcessDescriptor] targets with listeners that trigger when one is added or removed.
  *
- * The constructor takes an [executor] which gives it affinity to a particular thread (defaulting to
- * the current thread mainly for testing, but in production, an EDT executor is more likely to be
- * useful for UI-related work). This executor will be used to respond to external process updates.
+ * The constructor takes an [executor] which gives it affinity to a particular thread (defaulting to the current thread mainly for testing,
+ * but in production, an EDT executor is more likely to be useful for UI-related work). This executor will be used to respond to external
+ * process updates.
  *
- * Additionally, [selectedProcess] offers a thread-safe way to set and get the currently selected
- * process.
+ * Additionally, [selectedProcess] offers a thread-safe way to set and get the currently selected process.
  *
- * Finally, there's support for stopping the model, which both terminates the current
- * [selectedProcess] (if set) and prevents further updates from being accepted, until the model is
- * resumed.
+ * Finally, there's support for stopping the model, which both terminates the current [selectedProcess] (if set) and prevents further
+ * updates from being accepted, until the model is resumed.
  *
- * @param acceptProcess A filter which affects which processes are added to the model. If not
- *   specified, all processes are accepted.
+ * @param acceptProcess A filter which affects which processes are added to the model. If not specified, all processes are accepted.
  */
 class ProcessesModel(
   private val executor: Executor,
@@ -80,13 +76,12 @@ class ProcessesModel(
     get() = synchronized(lock) { _processes.toSet() }
 
   /**
-   * Setting the currently selected process the side effect of firing listeners that the selected
-   * process changed.
+   * Setting the currently selected process the side effect of firing listeners that the selected process changed.
    *
    * You may set the selected process to null to clear it.
    *
-   * Setting this value is a no-op if have previously called [stopIfSelected] on this model. Ideally
-   * this should be accessed within the callback from the selectedProcessListeners
+   * Setting this value is a no-op if have previously called [stopIfSelected] on this model. Ideally this should be accessed within the
+   * callback from the selectedProcessListeners
    */
   var selectedProcess: ProcessDescriptor?
     get() = synchronized(lock) { _selectedProcess }
@@ -113,9 +108,7 @@ class ProcessesModel(
     synchronized(lock) { _selectedProcessListeners.remove(listener) }
   }
 
-  @TestOnly
-  fun addSelectedProcessListeners(listener: () -> Unit) =
-    addSelectedProcessListeners(MoreExecutors.directExecutor(), listener)
+  @TestOnly fun addSelectedProcessListeners(listener: () -> Unit) = addSelectedProcessListeners(MoreExecutors.directExecutor(), listener)
 
   private val processListener =
     object : SimpleProcessListener() {
@@ -161,13 +154,8 @@ class ProcessesModel(
     processDiscovery.removeProcessListener(processListener)
   }
 
-  fun isProcessPreferred(
-    processDescriptor: ProcessDescriptor?,
-    includeDead: Boolean = false,
-  ): Boolean {
-    return processDescriptor != null &&
-      (processDescriptor.isRunning || includeDead) &&
-      isPreferred(processDescriptor)
+  fun isProcessPreferred(processDescriptor: ProcessDescriptor?, includeDead: Boolean = false): Boolean {
+    return processDescriptor != null && (processDescriptor.isRunning || includeDead) && isPreferred(processDescriptor)
   }
 
   @GuardedBy("lock")

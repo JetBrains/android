@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBox
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBoxBuilder
-import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -31,13 +31,11 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
- * An [AndroidDefaultGradleSystemSettingsControlBuilder] exposing settings allowing to configure
- * the default JDK used for gradle builds/sync process on new created projects.
+ * An [AndroidDefaultGradleSystemSettingsControlBuilder] exposing settings allowing to configure the default JDK used for gradle builds/sync
+ * process on new created projects.
  */
-class AndroidDefaultGradleJdkControlBuilder(
-  initialSettings: GradleSettings,
-  disposable: Disposable
-) : AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings, disposable) {
+class AndroidDefaultGradleJdkControlBuilder(initialSettings: GradleSettings, disposable: Disposable) :
+  AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings, disposable) {
 
   private lateinit var defaultGradleJdkComboBox: GradleJdkPathEditComboBox
 
@@ -55,7 +53,8 @@ class AndroidDefaultGradleJdkControlBuilder(
   override fun validate(settings: GradleSettings): Boolean {
     if (!ExternalSystemJdkUtil.isValidJdk(defaultGradleJdkComboBox.selectedJdkPath)) {
       throw ConfigurationException(
-        AndroidBundle.message("gradle.settings.jdk.invalid.path.error", defaultGradleJdkComboBox.selectedJdkPath))
+        AndroidBundle.message("gradle.settings.jdk.invalid.path.error", defaultGradleJdkComboBox.selectedJdkPath)
+      )
     }
     return super.validate(settings)
   }
@@ -79,9 +78,7 @@ class AndroidDefaultGradleJdkControlBuilder(
       currentJdkPath = GradleDefaultJdkPathStore.jdkPath,
       embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
       suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
-      hintMessage = AndroidBundle.message("gradle.settings.jdk.default.override.path.hint")
+      hintMessage = AndroidBundle.message("gradle.settings.jdk.default.override.path.hint"),
     )
   }
 }
-
-

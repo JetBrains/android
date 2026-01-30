@@ -26,26 +26,23 @@ import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import kotlin.test.assertTrue
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
-import kotlin.test.assertTrue
 
 @RunsInEdt
 @Suppress("UnstableApiUsage")
 class GradleSyncCorruptedJdkIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
   private lateinit var jdkTemporaryDir: File
@@ -61,18 +58,11 @@ class GradleSyncCorruptedJdkIntegrationTest {
   fun `Given a project using JDK without java executable When sync project Then throw exception with expected message`() {
     deleteExecutableFromJdk(jdkTemporaryDir, "java")
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME,
-        gradleLocalJavaHome = jdkTemporaryDir.absolutePath
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME, gradleLocalJavaHome = jdkTemporaryDir.absolutePath)
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(jdkTemporaryDir.toPath()))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(jdkTemporaryDir.toPath())) },
       )
     }
   }
@@ -81,18 +71,11 @@ class GradleSyncCorruptedJdkIntegrationTest {
   fun `Given a project using JDK without javac executable When sync project Then throw exception with expected message`() {
     deleteExecutableFromJdk(jdkTemporaryDir, "javac")
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME,
-        gradleLocalJavaHome = jdkTemporaryDir.absolutePath
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME, gradleLocalJavaHome = jdkTemporaryDir.absolutePath)
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(jdkTemporaryDir.toPath()))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(jdkTemporaryDir.toPath())) },
       )
     }
   }

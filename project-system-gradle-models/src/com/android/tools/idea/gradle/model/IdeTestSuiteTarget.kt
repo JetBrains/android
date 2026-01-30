@@ -15,22 +15,14 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * Test suite target information.
- */
+/** Test suite target information. */
 interface IdeTestSuiteTarget {
-  /**
-   * Target name as defined using the AGP DSL.
-   */
+  /** Target name as defined using the AGP DSL. */
   val targetName: String
 
-  /**
-   * Gradle Test task name to run the test suite for that variant's target.
-   */
+  /** Gradle Test task name to run the test suite for that variant's target. */
   val testTaskName: String
 
-  /**
-   * Targeted devices, possibly empty to use the connected devices.
-   */
+  /** Targeted devices, possibly empty to use the connected devices. */
   val targetedDevices: Collection<String>
 }

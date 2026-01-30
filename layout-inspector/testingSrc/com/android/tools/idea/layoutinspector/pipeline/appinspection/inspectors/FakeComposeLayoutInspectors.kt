@@ -34,31 +34,17 @@ class FakeComposeLayoutInspector : FakeInspector<Command, Response, Nothing>(Dis
   override fun handleCommandImpl(command: Command): Response {
     return when (command.specializedCase) {
       Command.SpecializedCase.GET_COMPOSABLES_COMMAND ->
-        Response.newBuilder()
-          .setGetComposablesResponse(GetComposablesResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setGetComposablesResponse(GetComposablesResponse.getDefaultInstance()).build()
       Command.SpecializedCase.GET_PARAMETERS_COMMAND ->
-        Response.newBuilder()
-          .setGetParametersResponse(GetParametersResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setGetParametersResponse(GetParametersResponse.getDefaultInstance()).build()
       Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND ->
-        Response.newBuilder()
-          .setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance()).build()
       Command.SpecializedCase.UPDATE_SETTINGS_COMMAND ->
-        Response.newBuilder()
-          .setUpdateSettingsResponse(UpdateSettingsResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setUpdateSettingsResponse(UpdateSettingsResponse.getDefaultInstance()).build()
       Command.SpecializedCase.GET_PARAMETER_DETAILS_COMMAND ->
-        Response.newBuilder()
-          .setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance()).build()
       Command.SpecializedCase.GET_RECOMPOSITION_STATE_READ_COMMAND ->
-        Response.newBuilder()
-          .setGetRecompositionStateReadResponse(
-            GetRecompositionStateReadResponse.getDefaultInstance()
-          )
-          .build()
+        Response.newBuilder().setGetRecompositionStateReadResponse(GetRecompositionStateReadResponse.getDefaultInstance()).build()
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }

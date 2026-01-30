@@ -33,18 +33,14 @@ internal sealed class ConsumerDaggerElementBase : DaggerElement() {
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String
 
-  /**
-   * Returns a string indicated which resource to use when describing related items for this
-   * element.
-   */
+  /** Returns a string indicated which resource to use when describing related items for this element. */
   abstract val relationDescriptionKey: String
 
   /** Type being consumer, as specified in code. */
   protected abstract val rawType: PsiType
 
   /** Gets info for any @Qualifier annotations on this element. */
-  internal val qualifierInfo by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
+  internal val qualifierInfo by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
 
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
   val consumedType: PsiType
@@ -59,10 +55,8 @@ internal sealed class ConsumerDaggerElementBase : DaggerElement() {
     resolveCandidate is ProviderDaggerElementBase && resolveCandidate.canProvideFor(this)
 }
 
-internal data class ConsumerDaggerElement(
-  override val psiElement: PsiElement,
-  override val rawType: PsiType,
-) : ConsumerDaggerElementBase() {
+internal data class ConsumerDaggerElement(override val psiElement: PsiElement, override val rawType: PsiType) :
+  ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtParameter) : this(psiElement, psiElement.psiType!!.unboxed)
 
@@ -80,7 +74,6 @@ internal data class ConsumerDaggerElement(
   override val relationDescriptionKey: String = "navigate.to.provider"
 
   companion object {
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>("ConsumerDaggerElement_RelatedElements")
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("ConsumerDaggerElement_RelatedElements")
   }
 }

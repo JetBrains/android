@@ -27,16 +27,9 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlToken
 
-
 class DataBindingFoldingBuilder : FoldingBuilderEx() {
 
-  private val escapeFolds = mapOf(
-    "&lt;" to "<",
-    "&gt;" to ">",
-    "&amp;" to "&",
-    "&quot;" to "\"",
-    "&apos;" to "'"
-  )
+  private val escapeFolds = mapOf("&lt;" to "<", "&gt;" to ">", "&amp;" to "&", "&quot;" to "\"", "&apos;" to "'")
 
   override fun getPlaceholderText(node: ASTNode): String? {
     return escapeFolds[node.text]
@@ -48,11 +41,13 @@ class DataBindingFoldingBuilder : FoldingBuilderEx() {
     PsiTreeUtil.findChildrenOfType(root, XmlToken::class.java)
       .filter { escapeFolds.containsKey(it.text) && (isDbExpression(it) || isVariableType(it)) }
       .forEach {
-        descriptors.add(object : FoldingDescriptor(it.node, it.textRange, null) {
-          override fun getPlaceholderText(): String? {
-            return escapeFolds[it.text]
+        descriptors.add(
+          object : FoldingDescriptor(it.node, it.textRange, null) {
+            override fun getPlaceholderText(): String? {
+              return escapeFolds[it.text]
+            }
           }
-        })
+        )
       }
     return descriptors.toTypedArray()
   }
@@ -61,18 +56,13 @@ class DataBindingFoldingBuilder : FoldingBuilderEx() {
     return true
   }
 
-
-  /**
-   * @return true if the xmlToken is inside data binding expression.
-   */
+  /** @return true if the xmlToken is inside data binding expression. */
   private fun isDbExpression(xmlToken: XmlToken): Boolean {
     val xmlAttributeValue = xmlToken.parent as? XmlAttributeValue ?: return false
     return isBindingExpression(xmlAttributeValue.value)
   }
 
-  /**
-   * @return true if the xmlToken is inside data binding variable type.
-   */
+  /** @return true if the xmlToken is inside data binding variable type. */
   private fun isVariableType(xmlToken: XmlToken): Boolean {
     val xmlAttributeValue = xmlToken.parent as? XmlAttributeValue ?: return false
     val typeAttribute = xmlAttributeValue.parent as? XmlAttribute ?: return false

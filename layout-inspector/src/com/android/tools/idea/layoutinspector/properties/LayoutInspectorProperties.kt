@@ -48,8 +48,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
     properties.component.name = PROPERTIES_COMPONENT_NAME
     properties.addView(componentView)
     val infoPanel = JPanel(BorderLayout())
-    val text =
-      HtmlEscapers.htmlEscaper().escape(LayoutInspectorBundle.message("no.selection.no.properties"))
+    val text = HtmlEscapers.htmlEscaper().escape(LayoutInspectorBundle.message("no.selection.no.properties"))
     val infoText = createCenterTextPanel(listOf(text))
     infoText.name = INFO_TEXT
     infoPanel.add(infoText, BorderLayout.CENTER)
@@ -91,12 +90,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   private fun createFilterKeyListener() =
     object : KeyAdapter() {
       override fun keyPressed(event: KeyEvent) {
-        if (
-          properties.filter.isNotEmpty() &&
-            event.keyCode == KeyEvent.VK_ENTER &&
-            event.modifiers == 0 &&
-            properties.enterInFilter()
-        ) {
+        if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
           event.consume()
         }
       }

@@ -128,11 +128,7 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
 
   private fun findChildIdsOf(parent: NlComponent?, omit: List<NlComponent>): List<EnumValue> {
     val values = mutableListOf<EnumValue>()
-    parent
-      ?.children
-      ?.filter { !omit.contains(it) }
-      ?.mapNotNull { it.id }
-      ?.mapTo(values) { EnumValue.item(ID_PREFIX + it) }
+    parent?.children?.filter { !omit.contains(it) }?.mapNotNull { it.id }?.mapTo(values) { EnumValue.item(ID_PREFIX + it) }
     property.definition?.values?.mapTo(values) { EnumValue.item(it) }
     return values
   }
@@ -165,8 +161,7 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
   }
 
   private fun findConstraintSetIds(): List<EnumValue> {
-    @Suppress("UNCHECKED_CAST")
-    val tagPointer = property.optionalValue1 as? SmartPsiElementPointer<XmlTag>
+    @Suppress("UNCHECKED_CAST") val tagPointer = property.optionalValue1 as? SmartPsiElementPointer<XmlTag>
     val tag = tagPointer?.element
     return tag
       ?.parentTag

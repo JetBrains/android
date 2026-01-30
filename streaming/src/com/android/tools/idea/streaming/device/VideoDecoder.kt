@@ -98,7 +98,8 @@ import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
 import org.jetbrains.annotations.VisibleForTesting
 
-class VideoDecoder internal constructor(
+class VideoDecoder
+internal constructor(
   private val videoChannel: SuspendingSocketChannel,
   private val decoderScope: CoroutineScope,
   private val deviceProperties: DeviceProperties,
@@ -107,14 +108,13 @@ class VideoDecoder internal constructor(
 
   private val decodingContexts = ConcurrentHashMap<Int, DecodingContext>()
   private val codec = CompletableDeferred<AVCodec>()
-  @Volatile
-  private var endOfVideoStream = false
+  @Volatile private var endOfVideoStream = false
   private val logger
     get() = thisLogger()
 
   /**
-   * Enables video decoding for the given display unless it is already active.
-   * Returns true if video decoding was enabled after being inactive.
+   * Enables video decoding for the given display unless it is already active. Returns true if video decoding was enabled after being
+   * inactive.
    */
   fun enableDecodingForDisplay(displayId: Int): Boolean {
     var decodingContextAdded = false
@@ -129,12 +129,8 @@ class VideoDecoder internal constructor(
     return decodingContextAdded
   }
 
-  /**
-   * Disables video decoding for the given display if it is active.
-   * Returns true if video decoding was disabled after being active.
-   */
-  fun disableDecodingForDisplay(displayId: Int): Boolean =
-      decodingContexts.remove(displayId)?.closeAsynchronously() != null
+  /** Disables video decoding for the given display if it is active. Returns true if video decoding was disabled after being active. */
+  fun disableDecodingForDisplay(displayId: Int): Boolean = decodingContexts.remove(displayId)?.closeAsynchronously() != null
 
   fun addFrameListener(displayId: Int, listener: FrameListener) {
     if (!endOfVideoStream) {
@@ -152,9 +148,8 @@ class VideoDecoder internal constructor(
   }
 
   /**
-   * Starts reading the video channel and returns. The decoder will continue to run until the video channel
-   * is disconnected or [decoderScope] is canceled. If the [enableDecodingForPrimaryDisplay] parameter
-   * is true, decoding is enabled for primary display.
+   * Starts reading the video channel and returns. The decoder will continue to run until the video channel is disconnected or
+   * [decoderScope] is canceled. If the [enableDecodingForPrimaryDisplay] parameter is true, decoding is enabled for primary display.
    */
   fun start(enableDecodingForPrimaryDisplay: Boolean) {
     if (enableDecodingForPrimaryDisplay) {
@@ -168,18 +163,11 @@ class VideoDecoder internal constructor(
         while (true) {
           packetReader.readAndProcessPacket()
         }
-      }
-      catch (_: ClosedChannelException) {
-      }
-      catch (_: EOFException) {
-      }
-      catch (e: CancellationException) {
+      } catch (_: ClosedChannelException) {} catch (_: EOFException) {} catch (e: CancellationException) {
         throw e
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         logger.error(e)
-      }
-      finally {
+      } finally {
         endOfVideoStream = true
         for (decodingContext in decodingContexts.values) {
           decodingContext.close()
@@ -195,17 +183,20 @@ class VideoDecoder internal constructor(
     videoChannel.readFully(header)
     val codecName = String(header.array(), UTF_8).trim()
     logger.debug { "Receiving $codecName video stream" }
-    val ffmpegCodecName = when (codecName) {
-      "av01" -> "av1"
-      "avc" -> "h264"
-      else -> codecName
-    }
+    val ffmpegCodecName =
+      when (codecName) {
+        "av01" -> "av1"
+        "avc" -> "h264"
+        else -> codecName
+      }
     codec.complete(avcodec_find_decoder_by_name(ffmpegCodecName) ?: throw VideoDecoderException("$ffmpegCodecName decoder not found"))
   }
 
   interface FrameListener {
     fun onNewFrameAvailable()
+
     fun onEndOfVideoStream()
+
     /** Called when the decoder rejected a video frame. */
     fun onInvalidFrame(e: InvalidFrameException)
   }
@@ -239,8 +230,7 @@ class VideoDecoder internal constructor(
       if (packetSize == 0) {
         // Zero size packet is interpreted as a black screen.
         decodingContexts[header.displayId]?.processEmptyPacket(header)
-      }
-      else {
+      } else {
         try {
           if (av_new_packet(packet, packetSize) != 0) {
             throw VideoDecoderException("Display ${header.displayId}: could not allocate packet of $packetSize bytes")
@@ -250,8 +240,7 @@ class VideoDecoder internal constructor(
 
           packet.pts(if (presentationTimestampUs == 0L) AV_NOPTS_VALUE else presentationTimestampUs)
           decodingContexts[header.displayId]?.processPacket(packet, header)
-        }
-        finally {
+        } finally {
           av_packet_unref(packet)
         }
       }
@@ -264,8 +253,10 @@ class VideoDecoder internal constructor(
 
   private inner class DecodingContext(val displayId: Int) : AutoCloseable {
 
-    @GuardedBy("imageLock") var displayFrame: VideoFrame? = null
+    @GuardedBy("imageLock")
+    var displayFrame: VideoFrame? = null
       private set
+
     private val imageLock = Any()
     @GuardedBy("this") private lateinit var codecContext: AVCodecContext
     @GuardedBy("this") private lateinit var decodingFrame: AVFrame
@@ -283,9 +274,7 @@ class VideoDecoder internal constructor(
       // Prevent avcodec_send_packet from returning -1094995529.
       av_log_set_level(AV_LOG_QUIET) // Suggested in https://github.com/mpromonet/webrtc-streamer/issues/89.
 
-      decoderScope.launch {
-        ensureInitialized(codec.await())
-      }
+      decoderScope.launch { ensureInitialized(codec.await()) }
     }
 
     @Synchronized
@@ -298,16 +287,15 @@ class VideoDecoder internal constructor(
       var codecContext: AVCodecContext? = null
       var parserContext: AVCodecParserContext? = null
       try {
-        codecContext = avcodec_alloc_context3(codec) ?:
-            throw VideoDecoderException("Display $displayId: could not allocate decoder context")
-        parserContext = av_parser_init(codec.id())?.apply {
-          flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)
-        } ?: throw VideoDecoderException("Display $displayId: could not initialize parser")
+        codecContext =
+          avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Display $displayId: could not allocate decoder context")
+        parserContext =
+          av_parser_init(codec.id())?.apply { flags(flags() or PARSER_FLAG_COMPLETE_FRAMES) }
+            ?: throw VideoDecoderException("Display $displayId: could not initialize parser")
         if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0) {
           throw VideoDecoderException("Display $displayId: could not open codec ${codec.name()}")
         }
-      }
-      catch (e: VideoDecoderException) {
+      } catch (e: VideoDecoderException) {
         av_parser_close(parserContext)
         avcodec_free_context(codecContext)
         throw e
@@ -329,15 +317,11 @@ class VideoDecoder internal constructor(
     }
 
     fun consumeDisplayFrame(consumer: Consumer<VideoFrame>) {
-      synchronized(imageLock) {
-        displayFrame?.let { consumer.accept(it) }
-      }
+      synchronized(imageLock) { displayFrame?.let { consumer.accept(it) } }
     }
 
     fun closeAsynchronously() {
-      ApplicationManager.getApplication().executeOnPooledThread {
-        close()
-      }
+      ApplicationManager.getApplication().executeOnPooledThread { close() }
     }
 
     @Synchronized
@@ -401,11 +385,9 @@ class VideoDecoder internal constructor(
 
         try {
           processDataPacket(packetToProcess, header)
-        }
-        catch (e: InvalidFrameException) {
+        } catch (e: InvalidFrameException) {
           onInvalidFrame(e)
-        }
-        finally {
+        } finally {
           if (hasPendingPacket) {
             // The pending packet must be discarded.
             hasPendingPacket = false
@@ -431,7 +413,7 @@ class VideoDecoder internal constructor(
       val outData = BytePointer()
       val outLen = IntPointer(0)
       val ret =
-          av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
+        av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
       assert(ret == packet.size()) // Due to PARSER_FLAG_COMPLETE_FRAMES.
       assert(outLen.get() == packet.size())
       if (parserContext.key_frame() == 1) {
@@ -445,7 +427,8 @@ class VideoDecoder internal constructor(
       val ret = avcodec_send_packet(codecContext, packet)
       if (ret < 0) {
         throw InvalidFrameException(
-            "Display $displayId: video packet was rejected by the decoder: $ret ${packet.toDebugString()} header: $header")
+          "Display $displayId: video packet was rejected by the decoder: $ret ${packet.toDebugString()} header: $header"
+        )
       }
 
       if (avcodec_receive_frame(codecContext, decodingFrame) != 0) {
@@ -466,8 +449,15 @@ class VideoDecoder internal constructor(
         throw RuntimeException("av_frame_make_writable failed")
       }
 
-      sws_scale(getSwsContext(renderingFrame), decodingFrame.data(), decodingFrame.linesize(), 0, frameHeight,
-                renderingFrame.data(), renderingFrame.linesize())
+      sws_scale(
+        getSwsContext(renderingFrame),
+        decodingFrame.data(),
+        decodingFrame.linesize(),
+        0,
+        frameHeight,
+        renderingFrame.data(),
+        renderingFrame.linesize(),
+      )
 
       val numBytes = av_image_get_buffer_size(renderingFrame.format(), frameWidth, frameHeight, 1)
       val framePixels = renderingFrame.data().get().asByteBufferOfSize(numBytes).asIntBuffer()
@@ -490,15 +480,14 @@ class VideoDecoder internal constructor(
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
           pixels?.get(imagePixels, 0, height * width) ?: image.fill(Color.BLACK)
           image = ImageUtils.rotateByQuadrants(image, header.displayOrientationCorrection)
-        }
-        else if (pixels == null) {
-          image = when (header.displayOrientationCorrection.mod(2)) {
-            0 -> BufferedImage(width, height, TYPE_INT_ARGB)
-            else -> BufferedImage(height, width, TYPE_INT_ARGB)
-          }
+        } else if (pixels == null) {
+          image =
+            when (header.displayOrientationCorrection.mod(2)) {
+              0 -> BufferedImage(width, height, TYPE_INT_ARGB)
+              else -> BufferedImage(height, width, TYPE_INT_ARGB)
+            }
           image.fill(Color.BLACK)
-        }
-        else {
+        } else {
           val imagePixels = IntArray(width * height)
           pixels.get(imagePixels, 0, height * width)
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
@@ -510,8 +499,16 @@ class VideoDecoder internal constructor(
         if (displayIsRound) {
           image = ellipticalClip(image, null)
         }
-        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
-                                  displayIsRound, header.frameNumber, header.originationTimestampUs / 1000)
+        displayFrame =
+          VideoFrame(
+            image,
+            header.displaySize,
+            header.displayOrientation,
+            header.displayOrientationCorrection,
+            displayIsRound,
+            header.frameNumber,
+            header.originationTimestampUs / 1000,
+          )
       }
 
       onNewFrameAvailable()
@@ -521,8 +518,7 @@ class VideoDecoder internal constructor(
           BitRateManager.getInstance().bitRateReduced(header.bitRate, deviceProperties)
           framesAtBitRate = 1
           logger.info("${deviceProperties.title} bit rate: ${header.bitRate}")
-        }
-        else {
+        } else {
           if (++framesAtBitRate % BIT_RATE_STABILITY_FRAME_COUNT == 0) {
             BitRateManager.getInstance().bitRateStable(header.bitRate, deviceProperties)
           }
@@ -531,10 +527,20 @@ class VideoDecoder internal constructor(
     }
 
     private fun getSwsContext(renderingFrame: AVFrame): SwsContext {
-      val context = sws_getCachedContext(swsContext, decodingFrame.width(), decodingFrame.height(), decodingFrame.format(),
-                                         renderingFrame.width(), renderingFrame.height(), renderingFrame.format(),
-                                         SWS_BILINEAR, null, null, null as DoublePointer?) ?:
-          throw VideoDecoderException("Display $displayId: could not allocate SwsContext")
+      val context =
+        sws_getCachedContext(
+          swsContext,
+          decodingFrame.width(),
+          decodingFrame.height(),
+          decodingFrame.format(),
+          renderingFrame.width(),
+          renderingFrame.height(),
+          renderingFrame.format(),
+          SWS_BILINEAR,
+          null,
+          null,
+          null as DoublePointer?,
+        ) ?: throw VideoDecoderException("Display $displayId: could not allocate SwsContext")
       swsContext = context
       return context
     }
@@ -566,7 +572,8 @@ class VideoDecoder internal constructor(
     }
   }
 
-  private class VideoPacketHeader private constructor(
+  private class VideoPacketHeader
+  private constructor(
     val displayId: Int,
     val displaySize: Dimension,
     val displayOrientation: Int,
@@ -582,6 +589,7 @@ class VideoDecoder internal constructor(
 
     val isDisplayRound: Boolean
       get() = (flags and FLAG_DISPLAY_ROUND) != 0
+
     val isBitRateReduced: Boolean
       get() = (flags and FLAG_BIT_RATE_REDUCED) != 0
 
@@ -593,7 +601,7 @@ class VideoDecoder internal constructor(
       private const val FLAG_BIT_RATE_REDUCED = 0x02
 
       private const val WIRE_SIZE =
-          4 + // displayId
+        4 + // displayId
           4 + // width
           4 + // height
           1 + // displayOrientation
@@ -603,7 +611,7 @@ class VideoDecoder internal constructor(
           4 + // frameNumber
           8 + // originationTimestampUs
           8 + // presentationTimestampUs
-          4   // packetSize
+          4 // packetSize
 
       fun deserialize(buffer: ByteBuffer): VideoPacketHeader {
         val displayId = buffer.getInt()
@@ -617,36 +625,44 @@ class VideoDecoder internal constructor(
         val originationTimestampUs = buffer.getLong()
         val presentationTimestampUs = buffer.getLong()
         val packetSize = buffer.getInt()
-        return VideoPacketHeader(displayId, Dimension(width, height), displayOrientation, displayOrientationCorrection, flags,
-                                 bitRate, frameNumber, originationTimestampUs, presentationTimestampUs, packetSize)
+        return VideoPacketHeader(
+          displayId,
+          Dimension(width, height),
+          displayOrientation,
+          displayOrientationCorrection,
+          flags,
+          bitRate,
+          frameNumber,
+          originationTimestampUs,
+          presentationTimestampUs,
+          packetSize,
+        )
       }
 
-      fun createBuffer(): ByteBuffer =
-          ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
+      fun createBuffer(): ByteBuffer = ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
     }
 
     override fun toString(): String {
       return "PacketHeader(" +
-             "displayId=$displayId, " +
-             "displaySize=${displaySize.width}x${displaySize.height}, " +
-             "displayOrientation=$displayOrientation, " +
-             "displayOrientationCorrection=$displayOrientationCorrection, " +
-             "flags=$flags, " +
-             "frameNumber=$frameNumber, " +
-             "packetSize=$packetSize)"
+        "displayId=$displayId, " +
+        "displaySize=${displaySize.width}x${displaySize.height}, " +
+        "displayOrientation=$displayOrientation, " +
+        "displayOrientationCorrection=$displayOrientationCorrection, " +
+        "flags=$flags, " +
+        "frameNumber=$frameNumber, " +
+        "packetSize=$packetSize)"
     }
   }
 }
 
 open class VideoDecoderException(message: String) : RuntimeException(message)
+
 class InvalidFrameException(message: String) : VideoDecoderException(message)
 
-private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
-  BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
+private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer = BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
 
 private fun AVPacket.toDebugString(): String =
   "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
-
 
 /** Fills image with the given color. */
 private fun BufferedImage.fill(color: Color) {
@@ -663,5 +679,5 @@ internal var BIT_RATE_STABILITY_FRAME_COUNT = 1000
 
 private val ZERO_POINT = Point()
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
-private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                           32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
+private val COLOR_MODEL =
+  DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), 32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)

@@ -29,8 +29,8 @@ class StartSystemTraceAction : AnAction() {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
     val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = PerfettoSystemTraceConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
-                                                                                        StudioFlags.PROFILER_TRACEBOX.get())
+    stage.profilerConfigModel.profilingConfiguration =
+      PerfettoSystemTraceConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(), StudioFlags.PROFILER_TRACEBOX.get())
     profilers.stage = stage
     stage.recordingModel.start()
   }

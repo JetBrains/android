@@ -28,14 +28,14 @@ import java.time.Instant
 
 /** Implementation of Settings > Tools > Screenshots & Screen Recordings > Screenshots settings page. */
 internal class DeviceScreenshotSettingsPage(private val project: Project) :
-    BoundConfigurable(message("device.screenshot.text")), SearchableConfigurable {
+  BoundConfigurable(message("device.screenshot.text")), SearchableConfigurable {
 
   private val state = DeviceScreenshotSettings.getInstance()
 
   override fun getId() = "device.screenshot"
 
   override fun createPanel(): DialogPanel =
-      SaveConfigurationPanel(state.saveConfig, EXT_PNG, Instant.now(), state.screenshotCount + 1, project).createPanel()
+    SaveConfigurationPanel(state.saveConfig, EXT_PNG, Instant.now(), state.screenshotCount + 1, project).createPanel()
 
   class Provider(private val project: Project) : ConfigurableProvider() {
 

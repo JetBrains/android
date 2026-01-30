@@ -58,21 +58,18 @@ sealed class LoadingState<out T> {
     abstract val message: String?
     open val cause: Throwable? = null
 
-    fun getCauseMessageOrDefault(default: String = "An unknown failure occurred") =
-      cause?.message ?: message ?: default
+    fun getCauseMessageOrDefault(default: String = "An unknown failure occurred") = cause?.message ?: message ?: default
   }
 
   /** Currently signed-in user does not have sufficient access. */
-  data class Unauthorized(override val message: String?, override val cause: Throwable? = null) :
-    Failure() {
+  data class Unauthorized(override val message: String?, override val cause: Throwable? = null) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): Unauthorized {
       return this
     }
   }
 
   /** Encountered network failure while fetching issues. */
-  data class NetworkFailure(override val message: String?, override val cause: Throwable? = null) :
-    Failure() {
+  data class NetworkFailure(override val message: String?, override val cause: Throwable? = null) : Failure() {
     init {
       Logger.getLogger("NetworkFailure").warning("Got network failure: $message. ($cause)")
     }
@@ -83,21 +80,15 @@ sealed class LoadingState<out T> {
   }
 
   /** Insufficient permissions while fetching issues or updating issues. */
-  data class PermissionDenied(
-    override val message: String?,
-    override val cause: Throwable? = null,
-  ) : Failure() {
+  data class PermissionDenied(override val message: String?, override val cause: Throwable? = null) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): PermissionDenied {
       return this
     }
   }
 
   /** Server returns an error. */
-  data class ServerFailure(override val message: String?, override val cause: Throwable? = null) :
-    Failure() {
-    constructor(
-      jsonException: GoogleJsonResponseException
-    ) : this(jsonException.getMessage(), jsonException)
+  data class ServerFailure(override val message: String?, override val cause: Throwable? = null) : Failure() {
+    constructor(jsonException: GoogleJsonResponseException) : this(jsonException.getMessage(), jsonException)
 
     override fun <U> map(fn: (Nothing) -> U): ServerFailure {
       return this
@@ -115,27 +106,19 @@ sealed class LoadingState<out T> {
     override fun <U> map(fn: (Nothing) -> U) = this
   }
 
-  data class UnsupportedOperation(
-    override val message: String?,
-    override val cause: Throwable? = null,
-  ) : Failure() {
+  data class UnsupportedOperation(override val message: String?, override val cause: Throwable? = null) : Failure() {
     override fun <U> map(fn: (Nothing) -> U) = this
   }
 
   /** Generic(catch all) failure. */
-  data class UnknownFailure(
-    override val message: String?,
-    override val cause: Throwable? = null,
-    val status: Status? = null,
-  ) : Failure() {
+  data class UnknownFailure(override val message: String?, override val cause: Throwable? = null, val status: Status? = null) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): UnknownFailure {
       return this
     }
   }
 
   /**
-   * If the value is [Ready], returns a new [Ready] with the value of type [U] obtained by
-   * transforming the original [T] value with [fn].
+   * If the value is [Ready], returns a new [Ready] with the value of type [U] obtained by transforming the original [T] value with [fn].
    */
   abstract fun <U> map(fn: (T) -> U): LoadingState<U>
 

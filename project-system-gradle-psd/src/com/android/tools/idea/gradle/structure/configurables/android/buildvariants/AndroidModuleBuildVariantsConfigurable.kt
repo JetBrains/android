@@ -29,17 +29,15 @@ import com.intellij.openapi.util.Disposer
 class AndroidModuleBuildVariantsConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
-  module: PsAndroidModule
+  module: PsAndroidModule,
 ) : AbstractModuleConfigurable<PsAndroidModule, BuildVariantsPanel>(context, perspectiveConfigurable, module), Disposable {
 
   private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module, context).also { Disposer.register(this, it) })
   private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(this, it) })
 
   override fun getId() = "android.psd.build_variants." + displayName
-  override fun createPanel() =
-      BuildVariantsPanel(context, module, buildTypesModel, productFlavorsModel)
+
+  override fun createPanel() = BuildVariantsPanel(context, module, buildTypesModel, productFlavorsModel)
 
   override fun dispose() = Unit
 }
-
-

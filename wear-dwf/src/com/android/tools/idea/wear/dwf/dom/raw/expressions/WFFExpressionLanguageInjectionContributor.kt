@@ -40,14 +40,12 @@ private val EXPRESSION_ATTRIBUTES_BY_TAG =
 private const val EXPRESSION_TAG = "Expression"
 
 /**
- * [LanguageInjectionContributor] that injects the [WFFExpressionLanguage] into attributes and
- * [XmlText] in Declarative Watch Face files.
+ * [LanguageInjectionContributor] that injects the [WFFExpressionLanguage] into attributes and [XmlText] in Declarative Watch Face files.
  *
- * The expected attributes that support [WFFExpressionLanguage] and their associated parent XML Tag
- * name are listed in [EXPRESSION_ATTRIBUTES_BY_TAG].
+ * The expected attributes that support [WFFExpressionLanguage] and their associated parent XML Tag name are listed in
+ * [EXPRESSION_ATTRIBUTES_BY_TAG].
  *
- * Otherwise, we expect the language to be present in the [XmlText] of XML Tags with the
- * [EXPRESSION_TAG] tag name.
+ * Otherwise, we expect the language to be present in the [XmlText] of XML Tags with the [EXPRESSION_TAG] tag name.
  */
 class WFFExpressionLanguageInjectionContributor : LanguageInjectionContributor {
 

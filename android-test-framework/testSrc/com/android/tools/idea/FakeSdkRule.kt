@@ -34,15 +34,12 @@ import org.mockito.Mockito.spy
 import org.mockito.kotlin.whenever
 
 /**
- * Beginning of an attempt to allow the Sdk to be mocked out with one that contains only the given
- * components.
+ * Beginning of an attempt to allow the Sdk to be mocked out with one that contains only the given components.
  *
  * TODO: combine this and com.android.sdklib.TempSdkManager
  */
-class FakeSdkRule(
-  val projectRule: AndroidProjectRule,
-  val sdkPath: Path = createInMemoryFileSystemAndFolder("sdk"),
-) : NamedExternalResource() {
+class FakeSdkRule(val projectRule: AndroidProjectRule, val sdkPath: Path = createInMemoryFileSystemAndFolder("sdk")) :
+  NamedExternalResource() {
 
   var packages: RepositoryPackages = RepositoryPackages()
   val localPackages = mutableListOf<LocalPackage>()
@@ -57,11 +54,7 @@ class FakeSdkRule(
   fun withRemotePackage(remotePackage: RemotePackage) = apply { remotePackages.add(remotePackage) }
 
   fun addLocalPackage(path: String, location: String) {
-    packages.setLocalPkgInfos(
-      packages.localPackages.values.plus(
-        FakePackage.FakeLocalPackage(path, sdkPath.resolve(location))
-      )
-    )
+    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path, sdkPath.resolve(location))))
   }
 
   override fun before(description: Description) {
@@ -75,8 +68,7 @@ class FakeSdkRule(
 
     val androidSdks = spy(AndroidSdks.getInstance())
     whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
-    IdeComponents(projectRule.fixture)
-      .replaceApplicationService(AndroidSdks::class.java, androidSdks)
+    IdeComponents(projectRule.fixture).replaceApplicationService(AndroidSdks::class.java, androidSdks)
   }
 
   override fun after(description: Description) {}

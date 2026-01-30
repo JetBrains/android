@@ -23,12 +23,7 @@ import com.android.tools.idea.deviceprovisioner.DefaultDeviceProvisionerFactory
 import com.intellij.openapi.ui.FrameWrapper
 
 class DeviceManagerWelcomeScreenFrame :
-  FrameWrapper(
-    null,
-    "com.android.tools.idea.devicemanagerv2.DeviceManagerWelcomeScreenFrame",
-    false,
-    "Device Manager",
-  ) {
+  FrameWrapper(null, "com.android.tools.idea.devicemanagerv2.DeviceManagerWelcomeScreenFrame", false, "Device Manager") {
   init {
     closeOnEsc()
     val scope = AndroidCoroutineScope(this)
@@ -39,10 +34,7 @@ class DeviceManagerWelcomeScreenFrame :
         DeviceProvisioner.create(
           scope,
           session,
-          listOf(
-            DefaultDeviceProvisionerFactory().create(scope),
-            LocalEmulatorProvisionerFactory().create(scope, session, null),
-          ),
+          listOf(DefaultDeviceProvisionerFactory().create(scope), LocalEmulatorProvisionerFactory().create(scope, session, null)),
         ),
         deviceFilter = { it.isVirtual == true && it.isRemote != true },
       )

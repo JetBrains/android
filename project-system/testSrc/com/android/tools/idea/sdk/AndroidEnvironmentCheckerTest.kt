@@ -16,17 +16,17 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [AndroidEnvironmentChecker]
- */
+/** Tests for [AndroidEnvironmentChecker] */
 class AndroidEnvironmentCheckerTest {
   private val projectRule = ProjectRule()
-  private val project get() = projectRule.project
-  private val disposableRule = DisposableRule()
-  private val disposable get() = disposableRule.disposable
+  private val project
+    get() = projectRule.project
 
-  @get:Rule
-  val rule = RuleChain(projectRule, disposableRule)
+  private val disposableRule = DisposableRule()
+  private val disposable
+    get() = disposableRule.disposable
+
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   private val mockIdeInfo by lazy { Mockito.spy(IdeInfo.getInstance()) }
   private val mockProjectFacetManager by lazy { Mockito.spy(ProjectFacetManager.getInstance(project)) }

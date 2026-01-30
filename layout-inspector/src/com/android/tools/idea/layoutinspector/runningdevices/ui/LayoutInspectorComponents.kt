@@ -75,10 +75,9 @@ class ToolbarState(val showTitle: Boolean = true, val leftAlightToolbar: Boolean
  * Creates the main Layout Inspector panel.
  *
  * @param uiConfig defines the configuration of the panel - where to place the main and side panels.
- * @param centerPanel optional center panel rendered in the workbench. When null the workbench only
- *   has the side panels.
- * @param toolbarPanel optional panel contain the toolbar. Can be null if callers prefer to place
- *   the toolbar outside the [LayoutInspectorRootPanel].
+ * @param centerPanel optional center panel rendered in the workbench. When null the workbench only has the side panels.
+ * @param toolbarPanel optional panel contain the toolbar. Can be null if callers prefer to place the toolbar outside the
+ *   [LayoutInspectorRootPanel].
  */
 fun createLayoutInspectorPanel(
   project: Project,
@@ -142,8 +141,7 @@ fun createLayoutInspectorPanel(
  * Creates the Layout Inspector panel containing toolbar and the workbench.
  *
  * @param uiConfig defines the configuration of the panel - where to place the main and side panels.
- * @param centerPanel optional center panel rendered in the workbench. When null the workbench only
- *   has the side panels.
+ * @param centerPanel optional center panel rendered in the workbench. When null the workbench only has the side panels.
  * @param toolbarPanel the panel containing the toolbar.
  */
 private fun createToolsPanel(
@@ -154,8 +152,7 @@ private fun createToolsPanel(
   centerPanel: JComponent?,
   toolbarPanel: JPanel?,
 ): JPanel {
-  val workBench =
-    createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
+  val workBench = createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
   workBench.isFocusCycleRoot = false
 
   // Split panel used for inspection of State Reads in Compose.
@@ -179,8 +176,8 @@ private fun createToolsPanel(
 /**
  * Creates a Layout Inspector toolbar.
  *
- * @param targetComponent used as data context provider. It is necessary because some of the actions
- *   in the toolbar get LayoutInspector from [LayoutInspectorRootPanel] data context.
+ * @param targetComponent used as data context provider. It is necessary because some of the actions in the toolbar get LayoutInspector from
+ *   [LayoutInspectorRootPanel] data context.
  * @param processPicker optional process/device picker.
  * @param extraActions list of extra actions to add to the toolbar.
  * @param toolbarState contains the state of some toolbar actions.
@@ -236,23 +233,15 @@ private fun createLayoutInspectorWorkbench(
 }
 
 /** Creates the [ToolWindowDefinition] to use as side panels in Layout Inspector workbench. */
-private fun createToolsDefinitions(
-  uiConfig: UiConfig
-): List<ToolWindowDefinition<LayoutInspector>> {
+private fun createToolsDefinitions(uiConfig: UiConfig): List<ToolWindowDefinition<LayoutInspector>> {
   return when (uiConfig) {
     UiConfig.HORIZONTAL,
     UiConfig.VERTICAL -> {
-      listOf(
-        createTreePanel(Side.LEFT, Split.BOTTOM),
-        createPropertiesPanel(Side.RIGHT, Split.BOTTOM),
-      )
+      listOf(createTreePanel(Side.LEFT, Split.BOTTOM), createPropertiesPanel(Side.RIGHT, Split.BOTTOM))
     }
     UiConfig.VERTICAL_SWAP,
     UiConfig.HORIZONTAL_SWAP -> {
-      listOf(
-        createTreePanel(Side.RIGHT, Split.BOTTOM),
-        createPropertiesPanel(Side.LEFT, Split.BOTTOM),
-      )
+      listOf(createTreePanel(Side.RIGHT, Split.BOTTOM), createPropertiesPanel(Side.LEFT, Split.BOTTOM))
     }
     UiConfig.LEFT_VERTICAL -> {
       listOf(createTreePanel(Side.LEFT, Split.TOP), createPropertiesPanel(Side.LEFT, Split.BOTTOM))
@@ -261,16 +250,10 @@ private fun createToolsDefinitions(
       listOf(createTreePanel(Side.LEFT, Split.BOTTOM), createPropertiesPanel(Side.LEFT, Split.TOP))
     }
     UiConfig.RIGHT_VERTICAL -> {
-      listOf(
-        createTreePanel(Side.RIGHT, Split.TOP),
-        createPropertiesPanel(Side.RIGHT, Split.BOTTOM),
-      )
+      listOf(createTreePanel(Side.RIGHT, Split.TOP), createPropertiesPanel(Side.RIGHT, Split.BOTTOM))
     }
     UiConfig.RIGHT_VERTICAL_SWAP -> {
-      listOf(
-        createTreePanel(Side.RIGHT, Split.BOTTOM),
-        createPropertiesPanel(Side.RIGHT, Split.TOP),
-      )
+      listOf(createTreePanel(Side.RIGHT, Split.BOTTOM), createPropertiesPanel(Side.RIGHT, Split.TOP))
     }
   }
 }
@@ -286,10 +269,7 @@ private fun createTreePanel(side: Side, split: Split): LayoutInspectorTreePanelD
   )
 }
 
-private fun createPropertiesPanel(
-  side: Side,
-  split: Split,
-): LayoutInspectorPropertiesPanelDefinition {
+private fun createPropertiesPanel(side: Side, split: Split): LayoutInspectorPropertiesPanelDefinition {
   return LayoutInspectorPropertiesPanelDefinition(
     showGearAction = false,
     showHideAction = false,

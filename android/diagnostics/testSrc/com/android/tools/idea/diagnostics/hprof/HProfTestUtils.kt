@@ -20,12 +20,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 object HProfTestUtils {
-  fun createHProfOnFile(file: File,
-                  scenario: HProfBuilder.() -> Unit,
-                  classNameMapping: ((Class<*>) -> String)) {
-    FileOutputStream(file).use { fos ->
-      HProfBuilder(DataOutputStream(fos), classNameMapping).apply(scenario).create()
-    }
+  fun createHProfOnFile(file: File, scenario: HProfBuilder.() -> Unit, classNameMapping: ((Class<*>) -> String)) {
+    FileOutputStream(file).use { fos -> HProfBuilder(DataOutputStream(fos), classNameMapping).apply(scenario).create() }
   }
-
 }

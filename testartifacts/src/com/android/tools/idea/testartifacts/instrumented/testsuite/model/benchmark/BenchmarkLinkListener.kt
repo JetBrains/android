@@ -36,7 +36,7 @@ private val BENCHMARK_TRACE_FILE_PREFIX_V3 = "uri://"
 class BenchmarkLinkListener(
   private val project: Project,
   private val isPerfettoWebLoaderEnabled: Boolean = Registry.`is`(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false),
-  private val openTraceInPerfettoWebLoader: (file: File, queryParams: String?) -> Unit = PerfettoTraceWebLoader::loadTrace
+  private val openTraceInPerfettoWebLoader: (file: File, queryParams: String?) -> Unit = PerfettoTraceWebLoader::loadTrace,
 ) : HyperlinkListener {
   override fun hyperlinkClicked(link: String) {
     when {
@@ -48,8 +48,8 @@ class BenchmarkLinkListener(
         val fileName = link.drop(BENCHMARK_TRACE_FILE_PREFIX_V3.length).replace(Regex("\\?.*"), "") // drop query params (and the prefix)
         val localFile = File(FileUtil.getTempDirectory() + File.separator + fileName)
         if (!localFile.exists()) {
-          AndroidNotification.getInstance(project).showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})",
-                                                               NotificationType.WARNING)
+          AndroidNotification.getInstance(project)
+            .showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})", NotificationType.WARNING)
           // TODO (gijosh): Check if we have a task that is currently pulling the file
           return
         }
@@ -79,11 +79,12 @@ class BenchmarkLinkListener(
   // TODO(b/b/376667704): confirm if perf traces are also supported (and add to supported extensions)
   private fun isUiPerfettoDevSupportedFile(fileName: String) = fileName.endsWith(".perfetto-trace")
 
-  private fun convertLinkToV3Format(link: String): String = when {
-    link.startsWith(BENCHMARK_TRACE_FILE_PREFIX_V2) -> BENCHMARK_TRACE_FILE_PREFIX_V3 + link.drop(BENCHMARK_TRACE_FILE_PREFIX_V2.length)
-    link.startsWith(BENCHMARK_TRACE_FILE_PREFIX_V3) -> link // no-op
-    else -> error("Unsupported Benchmark link format: $link")
-  }
+  private fun convertLinkToV3Format(link: String): String =
+    when {
+      link.startsWith(BENCHMARK_TRACE_FILE_PREFIX_V2) -> BENCHMARK_TRACE_FILE_PREFIX_V3 + link.drop(BENCHMARK_TRACE_FILE_PREFIX_V2.length)
+      link.startsWith(BENCHMARK_TRACE_FILE_PREFIX_V3) -> link // no-op
+      else -> error("Unsupported Benchmark link format: $link")
+    }
 
   private fun VirtualFile.toIoFile(): File = VfsUtil.virtualToIoFile(this)
 }

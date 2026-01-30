@@ -18,8 +18,7 @@ package com.android.tools.idea.compose.pickers.common.enumsupport
 import com.android.tools.property.panel.api.EnumValue
 
 /**
- * [EnumValue] that sets the parameter value to a constant of an specific class. While importing the
- * needed class.
+ * [EnumValue] that sets the parameter value to a constant of an specific class. While importing the needed class.
  *
  * E.g: For `MyClass.MY_CONSTANT`
  *

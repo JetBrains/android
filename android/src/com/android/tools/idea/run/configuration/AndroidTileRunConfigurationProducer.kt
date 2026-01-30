@@ -17,9 +17,7 @@ package com.android.tools.idea.run.configuration
 
 import com.intellij.psi.PsiElement
 
-/**
- * Producer of [AndroidTileConfiguration] for classes that extend `androidx.wear.tiles.TileService`.
- */
+/** Producer of [AndroidTileConfiguration] for classes that extend `androidx.wear.tiles.TileService`. */
 class AndroidTileRunConfigurationProducer :
   AndroidWearRunConfigurationProducer<AndroidTileConfiguration>(AndroidTileConfigurationType::class.java) {
 

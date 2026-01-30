@@ -18,31 +18,18 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 
-fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
-  compactNotation: String,
-  configuration: String? = null
-): List<T>?
-  where T : PsDeclaredDependency,
-        T : PsLibraryDependency =
+fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(compactNotation: String, configuration: String? = null): List<T>?
+  where T : PsDeclaredDependency, T : PsLibraryDependency =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
-    findLibraryDependencies(
-      spec.group,
-      spec.name
-    )
+    findLibraryDependencies(spec.group, spec.name)
       .filter { it.spec.version == spec.version && it.configurationName == (configuration ?: it.configurationName) }
       .let { it.ifEmpty { null } }
   }
 
 fun <T> PsResolvedDependencyCollection<*, *, T, *, *>.findLibraryDependency(compactNotation: String): List<T>?
-  where T : PsResolvedDependency,
-        T : PsLibraryDependency =
+  where T : PsResolvedDependency, T : PsLibraryDependency =
   PsArtifactDependencySpec.create(compactNotation)?.let { spec ->
-    findLibraryDependencies(
-      spec.group,
-      spec.name
-    )
-      .filter { it.spec.version == spec.version }
-      .let { it.ifEmpty { null } }
+    findLibraryDependencies(spec.group, spec.name).filter { it.spec.version == spec.version }.let { it.ifEmpty { null } }
   }
 
 fun List<PsResolvedDependency>?.testMatchingScopes(): List<String> =
@@ -51,5 +38,7 @@ fun List<PsResolvedDependency>?.testMatchingScopes(): List<String> =
 fun List<PsDeclaredDependency>?.testDeclaredScopes(): List<String> = orEmpty().map { it.parsedModel.configurationName() }
 
 fun List<PsModel>?.testDeclared(): List<Boolean> = orEmpty().map { it.isDeclared }
+
 fun List<PsResolvedLibraryDependency>?.testHasPromotedVersion(): List<Boolean> = orEmpty().map { it.hasPromotedVersion() }
+
 fun <T : Any> T.asParsed() = ParsedValue.Set.Parsed(this, DslText.Literal)

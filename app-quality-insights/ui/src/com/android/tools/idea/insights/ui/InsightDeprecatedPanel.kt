@@ -165,11 +165,7 @@ class InsightDeprecatedPanel(
       add(label)
     }
 
-  private fun logEvent(
-    userNotified: Boolean? = null,
-    userClickedMoreInfo: Boolean? = null,
-    userClickedUpdate: Boolean? = null,
-  ) =
+  private fun logEvent(userNotified: Boolean? = null, userClickedMoreInfo: Boolean? = null, userClickedUpdate: Boolean? = null) =
     tracker.logServiceDeprecated(
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL,
       DevServiceDeprecationInfo.DeliveryType.PANEL,

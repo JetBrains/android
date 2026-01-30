@@ -23,12 +23,12 @@ object JsonPrettyPrinter {
   @JvmStatic
   fun prettyPrint(jsonContent: String): String {
     val gson = GsonBuilder().setPrettyPrinting().create()
-    val jsonElement = try {
-      JsonParser.parseString(jsonContent)
-    }
-    catch (_: JsonParseException) {
-      return jsonContent // abort
-    }
+    val jsonElement =
+      try {
+        JsonParser.parseString(jsonContent)
+      } catch (_: JsonParseException) {
+        return jsonContent // abort
+      }
     return gson.toJson(jsonElement)
   }
 }

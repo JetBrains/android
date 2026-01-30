@@ -38,9 +38,7 @@ class DesignAssetImporterTest {
 
   lateinit var disposable: Disposable
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.onDisk()
+  @Rule @JvmField val rule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
@@ -51,9 +49,7 @@ class DesignAssetImporterTest {
   @Test
   fun importSingleDesignAsset() {
     val file = rule.fixture.tempDirFixture.createFile("file1.png", "/n")
-    val designAssetSet = ResourceAssetSet("set1", listOf(
-      DesignAsset(file, listOf(DensityQualifier(Density.XHIGH)), ResourceType.DRAWABLE)
-    ))
+    val designAssetSet = ResourceAssetSet("set1", listOf(DesignAsset(file, listOf(DensityQualifier(Density.XHIGH)), ResourceType.DRAWABLE)))
 
     val facet = AndroidFacet.getInstance(rule.module)!!
 
@@ -67,14 +63,17 @@ class DesignAssetImporterTest {
 
   @Test
   fun importDesignAssetsInProject() {
-    val designAssets = arrayOf("file0.png", "file1.jpg", "file2.xml")
-      .map { rule.fixture.tempDirFixture.createFile(it, "/n") }
-      .zip(arrayOf(DensityQualifier(Density.XHIGH),
-                   ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
-                   NightModeQualifier(NightMode.NIGHT)))
-      .map { (file, qualifier) ->
-        DesignAsset(file, listOf(qualifier), ResourceType.DRAWABLE, "resource")
-      }
+    val designAssets =
+      arrayOf("file0.png", "file1.jpg", "file2.xml")
+        .map { rule.fixture.tempDirFixture.createFile(it, "/n") }
+        .zip(
+          arrayOf(
+            DensityQualifier(Density.XHIGH),
+            ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
+            NightModeQualifier(NightMode.NIGHT),
+          )
+        )
+        .map { (file, qualifier) -> DesignAsset(file, listOf(qualifier), ResourceType.DRAWABLE, "resource") }
 
     val designAssetSet = ResourceAssetSet("resource", designAssets)
     val facet = AndroidFacet.getInstance(rule.module)!!
@@ -97,7 +96,6 @@ class DesignAssetImporterTest {
     Truth.assertThat(items[i].resourceValue?.value).endsWith("drawable-xhdpi/resource.png")
   }
 
-
   @Test
   fun importLightVirtualFileInProject() {
     val lightVirtualFile = LightVirtualFile("vector.xml")
@@ -113,6 +111,5 @@ class DesignAssetImporterTest {
 
     Truth.assertThat(item.name).isEqualTo("resource")
     Truth.assertThat(item.resourceValue?.value).endsWith("drawable/resource.xml")
-
   }
 }

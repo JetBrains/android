@@ -31,6 +31,7 @@ import com.intellij.psi.tree.TokenSet
 
 class DeclarativeParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?) = DeclarativeLexer()
+
   override fun createParser(project: Project?): PsiParser = DeclarativeParser()
 
   override fun getFileNodeType(): IFileElementType = FILE_ELEMENT_TYPE

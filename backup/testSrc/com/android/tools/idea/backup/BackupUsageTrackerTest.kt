@@ -50,11 +50,7 @@ class BackupUsageTrackerTest {
       PROJECT_VIEW,
       Error(
         BMGR_ERROR_BACKUP,
-        BackupException(
-          BMGR_ERROR_BACKUP,
-          "error",
-          BmgrException("command", "out", listOf(BmgrError("e1", "m1"), BmgrError("e2", "m2"))),
-        ),
+        BackupException(BMGR_ERROR_BACKUP, "error", BmgrException("command", "out", listOf(BmgrError("e1", "m1"), BmgrError("e2", "m2")))),
       ),
     )
 
@@ -65,8 +61,7 @@ class BackupUsageTrackerTest {
   fun error_unexpectedTopLevel() {
     BackupUsageTracker.logBackup(CLOUD, PROJECT_VIEW, Error(UNEXPECTED_ERROR, RuntimeException()))
 
-    assertThat(usageTrackerRule.usages.map { it.backupResult() })
-      .containsExactly("RuntimeException")
+    assertThat(usageTrackerRule.usages.map { it.backupResult() }).containsExactly("RuntimeException")
   }
 
   @Test
@@ -77,20 +72,14 @@ class BackupUsageTrackerTest {
       Error(UNEXPECTED_ERROR, BackupException(UNEXPECTED_ERROR, "error", RuntimeException())),
     )
 
-    assertThat(usageTrackerRule.usages.map { it.backupResult() })
-      .containsExactly("RuntimeException")
+    assertThat(usageTrackerRule.usages.map { it.backupResult() }).containsExactly("RuntimeException")
   }
 
   @Test
   fun error_unexpectedWithoutCause() {
-    BackupUsageTracker.logBackup(
-      CLOUD,
-      PROJECT_VIEW,
-      Error(UNEXPECTED_ERROR, BackupException(UNEXPECTED_ERROR, "error")),
-    )
+    BackupUsageTracker.logBackup(CLOUD, PROJECT_VIEW, Error(UNEXPECTED_ERROR, BackupException(UNEXPECTED_ERROR, "error")))
 
-    assertThat(usageTrackerRule.usages.map { it.backupResult() })
-      .containsExactly("UNEXPECTED_ERROR")
+    assertThat(usageTrackerRule.usages.map { it.backupResult() }).containsExactly("UNEXPECTED_ERROR")
   }
 }
 

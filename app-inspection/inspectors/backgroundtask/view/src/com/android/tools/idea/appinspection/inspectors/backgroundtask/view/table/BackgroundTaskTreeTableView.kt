@@ -65,9 +65,7 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting
 val CLASS_NAME_COMPARATOR =
   Comparator<DefaultMutableTreeNode> { o1, o2 ->
-    (o1.userObject as BackgroundTaskEntry)
-      .className
-      .compareTo((o2.userObject as BackgroundTaskEntry).className)
+    (o1.userObject as BackgroundTaskEntry).className.compareTo((o2.userObject as BackgroundTaskEntry).className)
   }
 
 @VisibleForTesting
@@ -77,13 +75,9 @@ val STATUS_COMPARATOR =
     val right = o2.userObject as BackgroundTaskEntry
     assert(left.javaClass == right.javaClass)
     when (left) {
-      is AlarmEntry ->
-        AlarmEntry.State.valueOf(left.status).compareTo(AlarmEntry.State.valueOf(right.status))
-      is JobEntry ->
-        JobEntry.State.valueOf(left.status).compareTo(JobEntry.State.valueOf(right.status))
-      is WakeLockEntry ->
-        WakeLockEntry.State.valueOf(left.status)
-          .compareTo(WakeLockEntry.State.valueOf(right.status))
+      is AlarmEntry -> AlarmEntry.State.valueOf(left.status).compareTo(AlarmEntry.State.valueOf(right.status))
+      is JobEntry -> JobEntry.State.valueOf(left.status).compareTo(JobEntry.State.valueOf(right.status))
+      is WakeLockEntry -> WakeLockEntry.State.valueOf(left.status).compareTo(WakeLockEntry.State.valueOf(right.status))
       is WorkEntry ->
         WorkManagerInspectorProtocol.WorkInfo.State.valueOf(left.status)
           .compareTo(WorkManagerInspectorProtocol.WorkInfo.State.valueOf(right.status))
@@ -94,17 +88,13 @@ val STATUS_COMPARATOR =
 @VisibleForTesting
 val START_TIME_COMPARATOR =
   Comparator<DefaultMutableTreeNode> { o1, o2 ->
-    ((o1.userObject as BackgroundTaskEntry).startTimeMs -
-        (o2.userObject as BackgroundTaskEntry).startTimeMs)
-      .toInt()
+    ((o1.userObject as BackgroundTaskEntry).startTimeMs - (o2.userObject as BackgroundTaskEntry).startTimeMs).toInt()
   }
 
 private val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
 private val TABLE_ROW_BORDER: Border = JBUI.Borders.emptyLeft(10)
 
-/**
- * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
- */
+/** A [JBScrollPane] that consists of a tree table with basic information of all background tasks. */
 class BackgroundTaskTreeTableView(
   tab: BackgroundTaskInspectorTab,
   client: BackgroundTaskInspectorClient,
@@ -156,9 +146,7 @@ class BackgroundTaskTreeTableView(
           val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
           if (tableBounds.contains(e.point)) {
             val path = tree.getPathForRow(row)
-            if (
-              (path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is BackgroundTaskEntry
-            ) {
+            if ((path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is BackgroundTaskEntry) {
               tab.isDetailsViewVisible = true
             }
           }
@@ -168,8 +156,7 @@ class BackgroundTaskTreeTableView(
 
     tree.addTreeSelectionListener { event ->
       if (event.isAddedPath) {
-        val node =
-          event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
+        val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
         val entry = node.userObject as? BackgroundTaskEntry ?: return@addTreeSelectionListener
         selectionModel.selectedEntry = entry
         when (entry) {
@@ -181,10 +168,7 @@ class BackgroundTaskTreeTableView(
               client.tracker.trackJobUnderWorkSelected()
             }
           }
-          is WorkEntry ->
-            client.tracker.trackWorkSelected(
-              AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT
-            )
+          is WorkEntry -> client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT)
           // TODO(b/196583048): distinguish between standalone wake locks and wake lock under job.
           is WakeLockEntry -> client.tracker.trackWakeLockSelected()
         }
@@ -297,11 +281,7 @@ class BackgroundTaskTreeTableView(
   }
 }
 
-private fun newColumn(
-  name: String,
-  comparator: Comparator<*>,
-  renderer: SimpleColoredComponent.(Any, Boolean) -> Unit,
-): ColumnBuilder {
+private fun newColumn(name: String, comparator: Comparator<*>, renderer: SimpleColoredComponent.(Any, Boolean) -> Unit): ColumnBuilder {
   return ColumnBuilder()
     .setName(name)
     .setHeaderAlignment(SwingConstants.LEFT)

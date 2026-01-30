@@ -34,9 +34,7 @@ open class ComposeResolver(val project: Project) {
 
   @Slow
   fun findComposableNavigatable(node: ComposeViewNode): Navigatable? {
-    val ktFile =
-      findKotlinFile(node.composeFilename) { packageNameHash(it) == node.composePackageHash }
-        ?: return null
+    val ktFile = findKotlinFile(node.composeFilename) { packageNameHash(it) == node.composePackageHash } ?: return null
     val vFile = ktFile.virtualFile ?: return null
     return PsiNavigationSupport.getInstance().createNavigatable(project, vFile, node.composeOffset)
   }
@@ -60,11 +58,7 @@ open class ComposeResolver(val project: Project) {
     return findKotlinFileInScope(GlobalSearchScope.allScope(project), fileName, packageNameMatcher)
   }
 
-  private fun findKotlinFileInScope(
-    scope: GlobalSearchScope,
-    fileName: String,
-    packageNameMatcher: (String) -> Boolean,
-  ): KtFile? {
+  private fun findKotlinFileInScope(scope: GlobalSearchScope, fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
     val files = FilenameIndex.getVirtualFilesByName(fileName, scope)
     val psiManager = PsiManager.getInstance(project)
     val sourceFiles: List<PsiFileSystemItem> =
@@ -75,8 +69,6 @@ open class ComposeResolver(val project: Project) {
           else -> psiManager.findFile(it)
         }
       }
-    return sourceFiles.filterIsInstance<KtFile>().find {
-      packageNameMatcher(it.packageFqName.asString())
-    }
+    return sourceFiles.filterIsInstance<KtFile>().find { packageNameMatcher(it.packageFqName.asString()) }
   }
 }

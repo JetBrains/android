@@ -31,8 +31,7 @@ import org.junit.Test
 @Ignore("390226821")
 @RunsInEdt
 class DeclarativeUnresolvedReferenceTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
   @Before
   fun setUp() {
@@ -48,11 +47,16 @@ class DeclarativeUnresolvedReferenceTest {
   @Test
   fun testWrongReference() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
-    val file = projectRule.fixture.createFile(FN_BUILD_GRADLE_DECLARATIVE, """
-      dependencies {
-        implementation(libs.<warning descr="Cannot resolve symbol 'libs.some-guava'">some.guava</warning>)
-      }
-    """.trimIndent())
+    val file =
+      projectRule.fixture.createFile(
+        FN_BUILD_GRADLE_DECLARATIVE,
+        """
+        dependencies {
+          implementation(libs.<warning descr="Cannot resolve symbol 'libs.some-guava'">some.guava</warning>)
+        }
+        """
+          .trimIndent(),
+      )
     projectRule.fixture.openFileInEditor(file)
     projectRule.fixture.checkHighlighting()
   }

@@ -26,8 +26,7 @@ class DeprecatedLibraryTargetSdkRefactoringProcessorTest : UpgradeGradleFileMode
   fun testTargetSdkIsRemovedFromLibraryBuildFile() {
     writeToBuildFile(TestFileName("RemoveLibraryBaseFlavorTargetSdk/LibraryWithTargetSdk"))
 
-    val processor = DeprecatedLibraryTargetSdkRefactoringProcessor(
-      project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    val processor = DeprecatedLibraryTargetSdkRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveLibraryBaseFlavorTargetSdk/LibraryWithTargetSdkExpected"))
@@ -37,8 +36,7 @@ class DeprecatedLibraryTargetSdkRefactoringProcessorTest : UpgradeGradleFileMode
   fun testTargetSdkIsNotRemovedFromApplicationBuildFile() {
     writeToBuildFile(TestFileName("RemoveLibraryBaseFlavorTargetSdk/ApplicationWithTargetSdk"))
 
-    val processor = DeprecatedLibraryTargetSdkRefactoringProcessor(
-      project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    val processor = DeprecatedLibraryTargetSdkRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveLibraryBaseFlavorTargetSdk/ApplicationWithTargetSdk"))

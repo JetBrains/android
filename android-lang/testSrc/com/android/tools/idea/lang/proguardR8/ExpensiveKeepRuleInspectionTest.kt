@@ -41,71 +41,56 @@ abstract class ExpensiveKeepRuleTestCase : JavaCodeInsightFixtureAdtTestCase() {
     super.setUp()
     affectedClassesProjectService = mock()
     whenever(
-      methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
-        qualifiedName = any<ProguardR8QualifiedName>(),
-        limit = any<Int>()
+        methodCall =
+          affectedClassesProjectService.affectedClassesForQualifiedName(qualifiedName = any<ProguardR8QualifiedName>(), limit = any<Int>())
       )
-    ).thenReturn(CLASSES_AFFECTED_LIMIT + 1) // Return 1 more than what we allow.
+      .thenReturn(CLASSES_AFFECTED_LIMIT + 1) // Return 1 more than what we allow.
     // Only turn on expensive keep rule inspections
     myFixture.enableInspections(ExpensiveKeepRuleInspection::class.java)
-    project.registerServiceInstance(
-      serviceInterface = AffectedClassesProjectService::class.java,
-      instance = affectedClassesProjectService
-    )
+    project.registerServiceInstance(serviceInterface = AffectedClassesProjectService::class.java, instance = affectedClassesProjectService)
   }
 }
 
 @RunWith(Parameterized::class)
-class ExpensiveKeepRuleInspectionTest(private val fileType: LanguageFileType)  : ExpensiveKeepRuleTestCase() {
+class ExpensiveKeepRuleInspectionTest(private val fileType: LanguageFileType) : ExpensiveKeepRuleTestCase() {
   companion object {
     @Suppress("unused")
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
   }
+
   @Test
   fun testOverlyBroadKeepRules() {
-    val rules = listOf(
-      "-keep class **",
-      "-keep class **.*",
-      "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
-      "-keep class **.* { **; }",
-      "-keep class com.** { <fields>; }",
-      "-keep class com.** { <methods>; }",
-      "-keep class com.** { **; }",
-      "-keep class **.internal.** { **; }"
-    )
+    val rules =
+      listOf(
+        "-keep class **",
+        "-keep class **.*",
+        "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
+        "-keep class **.* { **; }",
+        "-keep class com.** { <fields>; }",
+        "-keep class com.** { <methods>; }",
+        "-keep class com.** { **; }",
+        "-keep class **.internal.** { **; }",
+      )
 
     rules.forEach { rule ->
-      val highlight = rule.highlightedAs(
-        level = WARNING,
-        message = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
-      )
+      val highlight = rule.highlightedAs(level = WARNING, message = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION)
 
-      myFixture.configureByText(
-        /* fileType = */ fileType,
-        /* text = */ highlight
-      )
+      myFixture.configureByText(/* fileType= */ fileType, /* text= */ highlight)
 
       myFixture.checkHighlighting()
     }
   }
+
   @Test
   fun testRulesWithNegation() {
-    val rules = listOf(
-      "-keep class !com.**.*"
-    )
+    val rules = listOf("-keep class !com.**.*")
 
     rules.forEach { rule ->
-      val highlight = rule.highlightedAs(
-        level = WARNING,
-        message = RULE_USES_NEGATION_DESCRIPTION
-      )
+      val highlight = rule.highlightedAs(level = WARNING, message = RULE_USES_NEGATION_DESCRIPTION)
 
-      myFixture.configureByText(
-        /* fileType = */ fileType,
-        /* text = */ highlight
-      )
+      myFixture.configureByText(/* fileType= */ fileType, /* text= */ highlight)
 
       myFixture.checkHighlighting()
     }
@@ -113,51 +98,46 @@ class ExpensiveKeepRuleInspectionTest(private val fileType: LanguageFileType)  :
 
   @Test
   fun testOverlyBroadKeepRulesWithZeroAffectedClasses() {
-    val rules = listOf(
-      "-keep class **",
-      "-keep class **.*",
-      "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
-      "-keep class **.* { **; }",
-      "-keep class com.** { <fields>; }",
-      "-keep class com.** { <methods>; }",
-      "-keep class com.** { **; }",
-      "-keep class **.internal.** { **; }"
-    )
+    val rules =
+      listOf(
+        "-keep class **",
+        "-keep class **.*",
+        "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
+        "-keep class **.* { **; }",
+        "-keep class com.** { <fields>; }",
+        "-keep class com.** { <methods>; }",
+        "-keep class com.** { **; }",
+        "-keep class **.internal.** { **; }",
+      )
 
     // We reduce the number of affected classes to make sure we don't end up highlighting
     // these rules.
     whenever(
-      methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
-        qualifiedName = any<ProguardR8QualifiedName>(),
-        limit = any<Int>()
+        methodCall =
+          affectedClassesProjectService.affectedClassesForQualifiedName(qualifiedName = any<ProguardR8QualifiedName>(), limit = any<Int>())
       )
-    ).thenReturn(0) // 100 is the limit on the number of affected classes
+      .thenReturn(0) // 100 is the limit on the number of affected classes
 
     rules.forEach { rule ->
-      myFixture.configureByText(
-        /* fileType = */ fileType,
-        /* text = */rule
-      )
+      myFixture.configureByText(/* fileType= */ fileType, /* text= */ rule)
       myFixture.checkHighlighting()
     }
   }
 
   @Test
   fun testGoodRules() {
-    val rules = listOf(
-      "-keepclassmembers **.*",
-      "-keep class **.* { <init>(...); }",
-      "-keep class something.internal.*",
-      "-keep class * extends android.app.Activity { <init>(...); }",
-      "-keep @proguard.annotation.Keep class **.*",
-      "-keep class **.R$* { <fields>; }" // Intentionally allowing these kinds of rules for now.
-    )
+    val rules =
+      listOf(
+        "-keepclassmembers **.*",
+        "-keep class **.* { <init>(...); }",
+        "-keep class something.internal.*",
+        "-keep class * extends android.app.Activity { <init>(...); }",
+        "-keep @proguard.annotation.Keep class **.*",
+        "-keep class **.R$* { <fields>; }", // Intentionally allowing these kinds of rules for now.
+      )
 
     rules.forEach { rule ->
-      myFixture.configureByText(
-        /* fileType = */ fileType,
-        /* text = */rule
-      )
+      myFixture.configureByText(/* fileType= */ fileType, /* text= */ rule)
       myFixture.checkHighlighting()
     }
   }

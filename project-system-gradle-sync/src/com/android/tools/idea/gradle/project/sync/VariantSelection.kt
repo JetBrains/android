@@ -21,28 +21,23 @@ import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 
-internal sealed class SyncVariantResult(
-  val moduleConfiguration: ModuleConfiguration,
-  val module: AndroidModule
-)
+internal sealed class SyncVariantResult(val moduleConfiguration: ModuleConfiguration, val module: AndroidModule)
 
 internal class SyncVariantResultSuccess(
   moduleConfiguration: ModuleConfiguration,
   module: AndroidModule,
   val ideVariant: IdeVariantWithPostProcessor,
   val nativeVariantAbi: NativeVariantAbiResult,
-  val unresolvedDependencies: List<IdeUnresolvedDependency>
+  val unresolvedDependencies: List<IdeUnresolvedDependency>,
 ) : SyncVariantResult(moduleConfiguration, module)
 
-internal class SyncVariantResultFailure(
-  moduleConfiguration: ModuleConfiguration,
-  module: AndroidModule,
-) : SyncVariantResult(moduleConfiguration, module)
+internal class SyncVariantResultFailure(moduleConfiguration: ModuleConfiguration, module: AndroidModule) :
+  SyncVariantResult(moduleConfiguration, module)
 
 internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   selectedVariants: SelectedVariants,
   androidModulesById: Map<String, AndroidModule>,
-  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary,
 ): List<ModuleConfiguration> {
   val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
 
@@ -50,20 +45,21 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   // when intermediate modules do not have native code.
   val abiToPropagate = nativeVariantAbi.abi ?: moduleConfiguration.abi
 
-  val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant.variant, nativeVariantAbi.abi)
+  val newlySelectedVariantDetails =
+    createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant.variant, nativeVariantAbi.abi)
   val variantDiffChange =
     VariantSelectionChange.extractVariantSelectionChange(to = newlySelectedVariantDetails, from = selectedVariantDetails)
-
 
   fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
     val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
     val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
     val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
 
-    val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-      variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
-    )
-      ?: return null
+    val newSelectedVariantDetails =
+      dependencyModuleSelectedVariantDetails?.applyChange(
+        variantDiffChange ?: VariantSelectionChange.EMPTY,
+        applyAbiMode = ApplyAbiSelectionMode.ALWAYS,
+      ) ?: return null
 
     // Make sure the variant name we guessed in fact exists.
     if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
@@ -72,21 +68,19 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   }
 
   fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
-    return (ideVariant.mainArtifact.compileClasspathCore.dependencies
-            + ideVariant.hostTestArtifacts.map { it.compileClasspathCore.dependencies }.flatten()
-            + ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore?.dependencies.orEmpty()
-            + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
-      )
+    return (ideVariant.mainArtifact.compileClasspathCore.dependencies +
+        ideVariant.hostTestArtifacts.map { it.compileClasspathCore.dependencies }.flatten() +
+        ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore?.dependencies.orEmpty() +
+        ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty())
       .distinct()
-      .mapNotNull{ libraryResolver(it.target) as? IdePreResolvedModuleLibrary }
+      .mapNotNull { libraryResolver(it.target) as? IdePreResolvedModuleLibrary }
       .mapNotNull { moduleDependency ->
         val dependencyProject = moduleDependency.projectPath
         val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
         val dependencyVariant = moduleDependency.variant
         if (dependencyVariant != null) {
           ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate, isRoot = false)
-        }
-        else {
+        } else {
           propagateVariantSelectionChangeFallback(dependencyModuleId)
         }
       }
@@ -94,8 +88,8 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   }
 
   /**
-   * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
-   * real dependencies of each feature module variant are we can only guess.
+   * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the real
+   * dependencies of each feature module variant are we can only guess.
    */
   fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
     val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
@@ -110,9 +104,10 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
         // Fallbacks are added just in case there is an invalid project configuration
         // 1st fallback: variant selected by the user
         // 2nd fallback: alphabetically first
-        appSelectedVariant ?: featureSelectedVariant  ?: return@mapNotNull propagateVariantSelectionChangeFallback(featureModuleId),
+        appSelectedVariant ?: featureSelectedVariant ?: return@mapNotNull propagateVariantSelectionChangeFallback(featureModuleId),
         abiToPropagate,
-        isRoot = false)
+        isRoot = false,
+      )
     }
   }
 

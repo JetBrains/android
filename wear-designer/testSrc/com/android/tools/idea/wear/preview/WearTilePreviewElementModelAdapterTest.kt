@@ -82,17 +82,18 @@ class WearTilePreviewElementModelAdapterTest {
   @Test
   fun testWearTilesXml() {
     Assert.assertEquals(
-      """<androidx.wear.tiles.tooling.TileServiceViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#ff000000"
-    android:minWidth="1px"
-    android:minHeight="1px"
-    tools:tilePreviewMethodFqn="foo" />
+      """
+      <androidx.wear.tiles.tooling.TileServiceViewAdapter
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:background="#ff000000"
+          android:minWidth="1px"
+          android:minHeight="1px"
+          tools:tilePreviewMethodFqn="foo" />
 
-"""
+      """
         .trimIndent(),
       WearTilePreviewElementModelAdapter<TestModel>()
         .toXml(

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_API
 import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_COMPILE
 import com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
@@ -30,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -37,17 +37,16 @@ import com.intellij.icons.AllIcons.Modules.TestRoot
 import com.intellij.icons.AllIcons.Nodes.Artifact
 import com.intellij.openapi.util.text.StringUtil.capitalize
 import icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT
-import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
+import org.jetbrains.annotations.NonNls
 
-class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArtifactName)
-  : PsChildModel() {
+class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArtifactName) : PsChildModel() {
 
   override val name: String
   override val icon: Icon
   var resolvedModel: IdeBaseArtifact? = null
 
-  constructor(parent: PsVariant, resolvedName: IdeArtifactName, resolvedModel: IdeBaseArtifact?): this(parent, resolvedName) {
+  constructor(parent: PsVariant, resolvedName: IdeArtifactName, resolvedModel: IdeBaseArtifact?) : this(parent, resolvedName) {
     init(resolvedModel)
   }
 
@@ -76,7 +75,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
 
       IdeArtifactName.SCREENSHOT_TEST -> {
         name = "ScreenshotTest"
-        icon = TestRoot  // TODO(karimai): Add support for this artifact on PSD
+        icon = TestRoot // TODO(karimai): Add support for this artifact on PSD
       }
     }
     this.name = name
@@ -112,19 +111,12 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
   }
 }
 
-@NonNls
-private const val API_SUFFIX = "Api"
-@NonNls
-private const val COMPILE_SUFFIX = "Compile"
-@NonNls
-private const val IMPLEMENTATION_SUFFIX = "Implementation"
+@NonNls private const val API_SUFFIX = "Api"
+@NonNls private const val COMPILE_SUFFIX = "Compile"
+@NonNls private const val IMPLEMENTATION_SUFFIX = "Implementation"
 
 @VisibleForTesting
-fun getPossibleConfigurationNames(
-  resolvedName: IdeArtifactName,
-  buildTypeName: String,
-  productFlavorNames: List<String>
-): List<String> {
+fun getPossibleConfigurationNames(resolvedName: IdeArtifactName, buildTypeName: String, productFlavorNames: List<String>): List<String> {
   val configurationNames = mutableListOf<String>()
   when (resolvedName) {
     IdeArtifactName.MAIN -> {
@@ -188,7 +180,7 @@ fun getPossibleConfigurationNames(
         configurationNames.add("testFixtures" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
       }
 
-      IdeArtifactName.SCREENSHOT_TEST -> {}  //TODO(karimai): add support here.
+      IdeArtifactName.SCREENSHOT_TEST -> {} // TODO(karimai): add support here.
     }
   }
   return configurationNames

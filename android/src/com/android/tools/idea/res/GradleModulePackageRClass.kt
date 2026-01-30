@@ -65,15 +65,10 @@ class ModuleRClass(
       // if the values used by the Light R class are inlined by the Live Edit compiler, they remain
       // valid and map to
       // the values from the last compilation.
-      getRClassResources(packageName) {
-          facet.getModuleSystem().moduleClassFileFinder.findClassFile(it)?.content
-        }
+      getRClassResources(packageName) { facet.getModuleSystem().moduleClassFileFinder.findClassFile(it)?.content }
         ?.let { lightVirtualFile.putUserData(BACKING_CLASS, it) }
     }
-    lightVirtualFile.putUserData(
-      MODULE_POINTER_KEY,
-      ModulePointerManager.getInstance(project).create(facet.module),
-    )
+    lightVirtualFile.putUserData(MODULE_POINTER_KEY, ModulePointerManager.getInstance(project).create(facet.module))
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ModuleRClass::class.java)
     lightVirtualFile.putUserData(TRANSITIVITY_KEY, transitivity)
     lightVirtualFile.putUserData(FILE_SOURCE_SET_KEY, sourceSet)
@@ -92,8 +87,7 @@ class ModuleRClass(
     private val transitivity: Transitivity,
     val _fieldModifier: AndroidLightField.FieldModifier,
   ) : ResourcesSource {
-    override fun getResourceNamespace() =
-      StudioResourceRepositoryManager.getInstance(facet).namespace
+    override fun getResourceNamespace() = StudioResourceRepositoryManager.getInstance(facet).namespace
 
     override fun getFieldModifier() = _fieldModifier
 

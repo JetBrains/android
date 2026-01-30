@@ -25,7 +25,6 @@ interface SdkSync {
   fun syncIdeAndProjectAndroidSdks(localProperties: LocalProperties, project: Project? = null)
 
   companion object {
-    @JvmStatic
-    fun getInstance(): SdkSync = service()
+    @JvmStatic fun getInstance(): SdkSync = service()
   }
 }

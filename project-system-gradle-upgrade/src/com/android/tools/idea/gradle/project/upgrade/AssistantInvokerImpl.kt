@@ -40,8 +40,10 @@ class AssistantInvokerImpl : AssistantInvoker {
     val recommended = AgpVersions.latestKnown
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
-    val runProcessor = showAndGetDeprecatedConfigurationsUpgradeDialog(
-      processor, element) { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) }
+    val runProcessor =
+      showAndGetDeprecatedConfigurationsUpgradeDialog(processor, element) { p ->
+        AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p)
+      }
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }
@@ -52,10 +54,10 @@ class AssistantInvokerImpl : AssistantInvoker {
   fun showAndGetDeprecatedConfigurationsUpgradeDialog(
     processor: AgpUpgradeRefactoringProcessor,
     element: PsiElement,
-    dialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog
+    dialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog,
   ): Boolean {
-    val compileRuntimeProcessor = processor.componentRefactoringProcessors
-      .firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }
+    val compileRuntimeProcessor =
+      processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }
     if (compileRuntimeProcessor == null) {
       LOG.error("no CompileRuntimeConfiguration processor found in AGP Upgrade Processor")
     }
@@ -63,10 +65,11 @@ class AssistantInvokerImpl : AssistantInvoker {
     val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor!!, null, "Upgrading deprecated configurations")
     processor.targets.add(wrappedElement)
     processor.ensureParsedModels()
-    val runProcessor = invokeAndWaitIfNeeded(ModalityState.nonModal()) {
-      val dialog = dialogFactory(processor)
-      dialog.showAndGet()
-    }
+    val runProcessor =
+      invokeAndWaitIfNeeded(ModalityState.nonModal()) {
+        val dialog = dialogFactory(processor)
+        dialog.showAndGet()
+      }
     return runProcessor
   }
 
@@ -77,8 +80,7 @@ class AssistantInvokerImpl : AssistantInvoker {
         val published = IdeGoogleMavenRepository.getAgpVersions()
         if (shouldForcePluginUpgrade(project, currentAgpVersion, latestKnown, published)) {
           performForcedPluginUpgrade(project, currentAgpVersion)
-        }
-        else {
+        } else {
           val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
           if (recommendation.upgrade) recommendPluginUpgrade(project, currentAgpVersion, recommendation.strongly)
         }
@@ -87,25 +89,26 @@ class AssistantInvokerImpl : AssistantInvoker {
   }
 
   override fun expireProjectUpgradeNotifications(project: Project) {
-    NotificationsManager
-      .getNotificationsManager()
-      .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
-      .forEach { it.expire(false) }
+    NotificationsManager.getNotificationsManager().getNotificationsOfType(ProjectUpgradeNotification::class.java, project).forEach {
+      it.expire(false)
+    }
   }
 
   override fun displayForceUpdatesDisabledMessage(project: Project) {
-    val msg = "Forced upgrades are disabled, errors seen may be due to incompatibilities between " +
-              "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
-              "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
-              "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
-    val notification = NotificationGroupManager.getInstance().getNotificationGroup(AGP_UPGRADE_NOTIFICATION_GROUP_ID)?.createNotification(msg, MessageType.WARNING)
+    val msg =
+      "Forced upgrades are disabled, errors seen may be due to incompatibilities between " +
+        "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
+        "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
+        "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
+    val notification =
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup(AGP_UPGRADE_NOTIFICATION_GROUP_ID)
+        ?.createNotification(msg, MessageType.WARNING)
     notification?.notify(project)
   }
 
   override fun performRecommendedPluginUpgrade(project: Project) {
-    executeOnPooledThread {
-      com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade(project)
-    }
+    executeOnPooledThread { com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade(project) }
   }
 
   @Slow

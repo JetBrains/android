@@ -10,8 +10,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidGradleDisableAutoImportTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
   @Test
   fun testAutoImportDisabled() {

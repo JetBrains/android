@@ -24,7 +24,6 @@ import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.platform.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -36,25 +35,20 @@ import java.nio.file.Path
 import kotlin.math.max
 
 /**
- * Lists the available Android versions from local and statically-defined sources. The list can be
- * filtered by min sdk level and form factor. It is also possible to query the list of packages that
- * the system needs to install to satisfy the requirements of an API level.
+ * Lists the available Android versions from local and statically-defined sources. The list can be filtered by min sdk level and form
+ * factor. It is also possible to query the list of packages that the system needs to install to satisfy the requirements of an API level.
  */
-class AndroidVersionsInfo(
-  private val targetProvider: () -> Array<IAndroidTarget> = { loadInstalledCompilationTargets() }
-) {
+class AndroidVersionsInfo(private val targetProvider: () -> Array<IAndroidTarget> = { loadInstalledCompilationTargets() }) {
   /**
-   * The list of known Android versions: 1..HIGHEST_KNOWN_STABLE_API, plus any versions found in
-   * [targetProvider]. No remote network connection is needed.
+   * The list of known Android versions: 1..HIGHEST_KNOWN_STABLE_API, plus any versions found in [targetProvider]. No remote network
+   * connection is needed.
    */
   private val knownTargetVersions: List<VersionItem> by lazy {
     // Load the local definitions of the android compilation targets.
     val installedPlatformTargets = targetProvider.invoke().filter { it.isPlatform }
-    val (installedStableTargets, installedPreviewTargets) =
-      installedPlatformTargets.partition { !it.version.isPreview }
+    val (installedStableTargets, installedPreviewTargets) = installedPlatformTargets.partition { !it.version.isPreview }
     buildList {
-      val maxInstalledStableVersion =
-        installedStableTargets.maxOfOrNull { it.version.androidApiLevel.majorVersion } ?: 0
+      val maxInstalledStableVersion = installedStableTargets.maxOfOrNull { it.version.androidApiLevel.majorVersion } ?: 0
       val maxStableVersion = max(HIGHEST_KNOWN_STABLE_API, maxInstalledStableVersion)
       for (i in 1..maxStableVersion) {
         add(VersionItem.fromStableVersion(i))
@@ -64,18 +58,12 @@ class AndroidVersionsInfo(
     }
   }
 
-  /**
-   * Gets the list of known Android versions for the given form factor that are greater than or
-   * equal to [minSdkLevel].
-   */
+  /** Gets the list of known Android versions for the given form factor that are greater than or equal to [minSdkLevel]. */
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): List<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
-    val maxSdkLevel =
-      if (formFactor.hasUpperLimitForMinimumSdkSelection) formFactor.maxOfflineApiLevel
-      else Int.MAX_VALUE
+    val maxSdkLevel = if (formFactor.hasUpperLimitForMinimumSdkSelection) formFactor.maxOfflineApiLevel else Int.MAX_VALUE
     return knownTargetVersions.filter {
-      (formFactor.isSupported(it.minApiLevel) && it.minApiLevel in minSdkLevel..maxSdkLevel) ||
-        it.isPreview
+      (formFactor.isSupported(it.minApiLevel) && it.minApiLevel in minSdkLevel..maxSdkLevel) || it.isPreview
     }
   }
 
@@ -115,20 +103,16 @@ class AndroidVersionsInfo(
         // By default, compileSdk is the newest supported SDK, but if the specified version is newer
         // or a preview, use it.
         val newProjectsCompileSdkVersion = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get())
-        val compileApi =
-          if (minApi.isPreview || minApi > newProjectsCompileSdkVersion) minApi
-          else newProjectsCompileSdkVersion
+        val compileApi = if (minApi.isPreview || minApi > newProjectsCompileSdkVersion) minApi else newProjectsCompileSdkVersion
         return VersionItem(minSdk = minApi, compileSdk = compileApi)
       }
 
-      fun fromStableVersion(minSdkVersion: Int): VersionItem =
-        fromAndroidVersion(AndroidVersion(minSdkVersion, 0))
+      fun fromStableVersion(minSdkVersion: Int): VersionItem = fromAndroidVersion(AndroidVersion(minSdkVersion, 0))
     }
   }
 }
 
-private val REPO_LOG: ProgressIndicator =
-  StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
+private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidVersionsInfo::class.java)
 
 val sdkManagerLocalPath: Path?
   get() = IdeSdks.getInstance().androidSdkPath?.toPath()
@@ -142,13 +126,9 @@ private fun loadInstalledCompilationTargets(): Array<IAndroidTarget> =
     .filter { it.isPlatform || it.additionalLibraries.isNotEmpty() }
     .toTypedArray()
 
-private fun getPackageList(
-  requestedPaths: Collection<String>,
-  sdkHandler: AndroidSdkHandler,
-): List<UpdatablePackage> {
+private fun getPackageList(requestedPaths: Collection<String>, sdkHandler: AndroidSdkHandler): List<UpdatablePackage> {
   val packages = sdkHandler.getRepoManagerAndLoadSynchronously(REPO_LOG).packages
-  val requestedPackages =
-    requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
+  val requestedPackages = requestedPaths.mapNotNull { packages.consolidatedPkgs[it] }.filter { it.hasRemote() }
 
   return try {
     SdkQuickfixUtils.resolve(requestedPackages, packages)

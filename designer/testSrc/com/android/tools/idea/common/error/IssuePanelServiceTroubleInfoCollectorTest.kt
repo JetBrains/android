@@ -30,10 +30,7 @@ class IssuePanelServiceTroubleInfoCollectorTest {
 
   @Before
   fun setup() {
-    projectRule.replaceProjectService(
-      ToolWindowManager::class.java,
-      TestToolWindowManager(projectRule.project),
-    )
+    projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(projectRule.project))
     val manager = ToolWindowManager.getInstance(projectRule.project)
     manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
   }

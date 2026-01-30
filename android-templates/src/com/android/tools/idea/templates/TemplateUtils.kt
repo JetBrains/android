@@ -76,8 +76,8 @@ object TemplateUtils {
   }
 
   /**
-   * Returns the contents of `file`, or `null` if an [IOException] occurs. If an [IOException]
-   * occurs and `warnIfNotExists` is `true`, logs a warning.
+   * Returns the contents of `file`, or `null` if an [IOException] occurs. If an [IOException] occurs and `warnIfNotExists` is `true`, logs
+   * a warning.
    *
    * @throws AssertionError if `file` is not absolute
    */
@@ -96,8 +96,7 @@ object TemplateUtils {
   }
 
   /**
-   * Reads the given file as text (or the current contents of the edited buffer of the file, if open
-   * and not saved).
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved).
    *
    * @param file The file to read.
    * @return the contents of the file as text, or null if for some reason it couldn't be read
@@ -114,8 +113,7 @@ object TemplateUtils {
   }
 
   /**
-   * Reads the given file as text (or the current contents of the edited buffer of the file, if open
-   * and not saved).
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved).
    *
    * @param file The file to read.
    * @return the contents of the file as text, or null if for some reason it couldn't be read
@@ -143,9 +141,8 @@ object TemplateUtils {
     WriteCommandAction.runWriteCommandAction(
       null,
       ThrowableComputable<VirtualFile, IOException> {
-        VfsUtil.createDirectoryIfMissing(directory.absolutePath)
-          ?: throw IOException("Unable to create " + directory.absolutePath)
-      }
+        VfsUtil.createDirectoryIfMissing(directory.absolutePath) ?: throw IOException("Unable to create " + directory.absolutePath)
+      },
     )
 
   /**
@@ -166,8 +163,8 @@ object TemplateUtils {
   }
 
   /**
-   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory
-   * even if it already exists. This is an undo-friendly replacement.
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists. This is an
+   * undo-friendly replacement.
    *
    * Note: this method should be run inside write action.
    */
@@ -177,7 +174,7 @@ object TemplateUtils {
   fun copyDirectory(
     src: VirtualFile,
     dest: File,
-    copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile
+    copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile,
   ) {
     VfsUtilCore.visitChildrenRecursively(
       src,
@@ -190,7 +187,7 @@ object TemplateUtils {
           }
         }
       },
-      IOException::class.java
+      IOException::class.java,
     )
   }
 
@@ -220,8 +217,7 @@ object TemplateUtils {
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 
   /**
-   * Gets the Java version used by the Gradle JVM as a String for build.gradle files, for example
-   * JavaVersion.VERSION_17
+   * Gets the Java version used by the Gradle JVM as a String for build.gradle files, for example JavaVersion.VERSION_17
    *
    * @param project the project
    * @param defaultVersion the default version to return if the JVM can't be found
@@ -230,10 +226,7 @@ object TemplateUtils {
   @JvmStatic
   suspend fun getJavaVersion(project: Project, defaultVersion: String = "JavaVersion.VERSION_17"): String {
     // The user can set Gradle JDK in Settings > Build, Execution, Deployment > Build Tools > Gradle
-    val jvmPath =
-      project.basePath?.let {
-        AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, it)
-      }
+    val jvmPath = project.basePath?.let { AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, it) }
     val javaVersion = jvmPath?.let { SdkVersionUtil.getJdkVersionInfo(it)?.version }
 
     return javaVersion?.let { convertJavaVersionToGradleString(it) } ?: defaultVersion
@@ -246,41 +239,31 @@ object TemplateUtils {
     val languageLevel = LanguageLevel.parse(javaVersion.toString())
 
     // ... so that it can be converted to a Gradle string
-    return languageLevel?.let {
-      LanguageLevelUtil.convertToGradleString(it, "JavaVersion.VERSION_17").toString()
-    }
+    return languageLevel?.let { LanguageLevelUtil.convertToGradleString(it, "JavaVersion.VERSION_17").toString() }
   }
 }
 
 /**
- * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository,
- * returning a Dependency object with the version replaced with a concrete (required) version, if
- * found, or the minimum revision, if provided. If no version is found or provided, the given
- * identifier is returned as a Dependency. If a version is found and the minimum is provided, the
- * found version is used if it is accepted by the minimum.
+ * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository, returning a Dependency object with the
+ * version replaced with a concrete (required) version, if found, or the minimum revision, if provided. If no version is found or provided,
+ * the given identifier is returned as a Dependency. If a version is found and the minimum is provided, the found version is used if it is
+ * accepted by the minimum.
  *
  * @param minRev the minimum revision to accept
  * @see RepositoryUrlManager.resolveDependency
  */
-fun resolveDependency(
-  repo: RepositoryUrlManager,
-  dependencyIdentifier: String,
-  minRev: String? = null
-): Dependency {
+fun resolveDependency(repo: RepositoryUrlManager, dependencyIdentifier: String, minRev: String? = null): Dependency {
   val dependency = Dependency.parse(dependencyIdentifier)
   val group = dependency.group
   val version = dependency.version
-  if (group == null || version == null)
-    throw InvalidParameterException("Invalid dependency: $dependency")
+  if (group == null || version == null) throw InvalidParameterException("Invalid dependency: $dependency")
 
   val resolvedVersion = repo.resolveDependency(dependency, null, null)?.version
   val minRichVersion = minRev?.let { RichVersion.parse(it) }
   return when {
-    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) }
-        ?: dependency
+    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) } ?: dependency
     minRichVersion == null -> dependency.copy(version = RichVersion.require(resolvedVersion))
-    minRichVersion.accepts(resolvedVersion) ->
-      dependency.copy(version = RichVersion.require(resolvedVersion))
+    minRichVersion.accepts(resolvedVersion) -> dependency.copy(version = RichVersion.require(resolvedVersion))
     else -> dependency.copy(version = minRichVersion)
   }
 }

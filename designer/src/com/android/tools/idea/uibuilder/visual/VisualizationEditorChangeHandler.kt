@@ -42,19 +42,13 @@ interface VisualizationEditorChangeHandler {
 }
 
 /** Handle the editor change and file close event synchronously. */
-class SyncVisualizationEditorChangeHandler(
-  private val contentProvider: VisualizationContentProvider
-) : VisualizationEditorChangeHandler {
+class SyncVisualizationEditorChangeHandler(private val contentProvider: VisualizationContentProvider) : VisualizationEditorChangeHandler {
 
   private var toolWindowContent: VisualizationContent? = null
   override val visualizationContent: VisualizationContent?
     get() = toolWindowContent
 
-  override fun onFileEditorChange(
-    newEditor: FileEditor?,
-    project: Project,
-    toolWindow: ToolWindow,
-  ) {
+  override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
     if (toolWindow.isDisposed) {
       return
     }
@@ -70,10 +64,7 @@ class SyncVisualizationEditorChangeHandler(
               if (project.isDisposed) {
                 return
               }
-              if (
-                VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen &&
-                  toolWindow is ToolWindowEx
-              ) {
+              if (VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen && toolWindow is ToolWindowEx) {
                 val width = toolWindow.getComponent().width
                 toolWindow.stretchWidth(DEFAULT_WINDOW_WIDTH - width)
               }
@@ -117,11 +108,7 @@ class SyncVisualizationEditorChangeHandler(
         // This hack is a workaround that sets the focus back to editor.
         // Note, that this may be wrong in certain circumstances, but should be OK for most
         // scenarios.
-        restoreFocus = Runnable {
-          IdeFocusManager.getInstance(project).doWhenFocusSettlesDown {
-            restoreFocusToEditor(newEditor)
-          }
-        }
+        restoreFocus = Runnable { IdeFocusManager.getInstance(project).doWhenFocusSettlesDown { restoreFocusToEditor(newEditor) } }
       }
       toolWindow.activate(restoreFocus, false, false)
     }

@@ -45,8 +45,7 @@ class PairWearableDeviceAction : DumbAwareAction("Pair Wearable") {
       e.presentation.isVisible = true
       // Enabled if the device can be paired at the moment: it's online, or we can make it be online
       e.presentation.isEnabled =
-        deviceRowData.status == DeviceRowData.Status.ONLINE ||
-          deviceRowData.handle?.activationAction?.presentation?.value?.enabled == true
+        deviceRowData.status == DeviceRowData.Status.ONLINE || deviceRowData.handle?.activationAction?.presentation?.value?.enabled == true
     }
   }
 
@@ -104,8 +103,8 @@ class UnpairWearableDeviceAction() : DumbAwareAction("Unpair Device") {
 }
 
 /**
- * Updates the presentation for actions that involve a paired device: invisible if the device
- * doesn't support pairing at all or is unpaired, and enabled if the device is paired.
+ * Updates the presentation for actions that involve a paired device: invisible if the device doesn't support pairing at all or is unpaired,
+ * and enabled if the device is paired.
  */
 private fun AnActionEvent.updatePairedDeviceActionPresentation() {
   presentation.isEnabledAndVisible =
@@ -115,5 +114,4 @@ private fun AnActionEvent.updatePairedDeviceActionPresentation() {
     }
 }
 
-private fun wearPairingId(e: AnActionEvent): String? =
-  DEVICE_ROW_DATA_KEY.getData(e.dataContext)?.wearPairingId
+private fun wearPairingId(e: AnActionEvent): String? = DEVICE_ROW_DATA_KEY.getData(e.dataContext)?.wearPairingId

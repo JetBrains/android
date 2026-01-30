@@ -55,8 +55,7 @@ interface FileDatabaseManager {
 class FileDatabaseManagerImpl(
   private val project: Project,
   private val edtDispatcher: CoroutineDispatcher,
-  private val deviceFileDownloaderService: DeviceFileDownloaderService =
-    DeviceFileDownloaderService.getInstance(project),
+  private val deviceFileDownloaderService: DeviceFileDownloaderService = DeviceFileDownloaderService.getInstance(project),
 ) : FileDatabaseManager {
   private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
 
@@ -85,17 +84,12 @@ class FileDatabaseManagerImpl(
           )
         }
       } catch (e: IllegalArgumentException) {
-        throw DeviceNotFoundException(
-          "Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.",
-          e,
-        )
+        throw DeviceNotFoundException("Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.", e)
       } catch (e: DeviceFileDownloaderService.FileDownloadFailedException) {
         throw FileDatabaseException(e.message, e)
       }
 
-    val mainFile =
-      files[path]
-        ?: throw FileDatabaseException("Can't download database '${databaseToDownload.path}'")
+    val mainFile = files[path] ?: throw FileDatabaseException("Can't download database '${databaseToDownload.path}'")
     val shmFile = files["$path-shm"]
     val walFile = files["$path-wal"]
 
@@ -104,21 +98,18 @@ class FileDatabaseManagerImpl(
   }
 
   override suspend fun cleanUp(databaseFileData: DatabaseFileData) {
-    val filesToClose =
-      (listOf(databaseFileData.mainFile) + databaseFileData.walFiles).filter { it.exists() }
+    val filesToClose = (listOf(databaseFileData.mainFile) + databaseFileData.walFiles).filter { it.exists() }
     deviceFileDownloaderService.deleteFiles(filesToClose)
   }
 
-  private class DisposableDownloadProgress(private val coroutineJob: Job) :
-    DownloadProgress, Disposable {
+  private class DisposableDownloadProgress(private val coroutineJob: Job) : DownloadProgress, Disposable {
     private var isDisposed = false
 
     @AnyThread override fun isCancelled() = isDisposed || coroutineJob.isCancelled
 
     @UiThread override fun onStarting(entryFullPath: String) {}
 
-    @UiThread
-    override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {}
+    @UiThread override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {}
 
     @UiThread override fun onCompleted(entryFullPath: String) {}
 
@@ -128,10 +119,6 @@ class FileDatabaseManagerImpl(
   }
 }
 
-class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) :
-  RuntimeException()
+class FileDatabaseException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
 
-class DeviceNotFoundException(
-  override val message: String?,
-  override val cause: Throwable? = null,
-) : RuntimeException()
+class DeviceNotFoundException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()

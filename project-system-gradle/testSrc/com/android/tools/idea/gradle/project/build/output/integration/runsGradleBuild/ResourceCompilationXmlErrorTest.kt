@@ -28,7 +28,8 @@ class ResourceCompilationXmlErrorTest : BuildOutputIntegrationTestBase() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.root.resolve("app/src/main/res/layout/activity_my.xml").let {
       // Missing 'xmlns:android=' entry, see b/280524982
-      it.writeText("""
+      it.writeText(
+        """
         <RelativeLayout
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
@@ -45,22 +46,33 @@ class ResourceCompilationXmlErrorTest : BuildOutputIntegrationTestBase() {
                 android:layout_height="wrap_content" />
 
         </RelativeLayout>
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
     }
     val projectRoot = preparedProject.root
     preparedProject.open { project ->
       val buildEvents = project.buildCollectingEvents(expectSuccess = false)
 
-      val errorTreePath = "root > [Task :app:mergeDebugResources] > ERROR:'Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]'"
+      val errorTreePath =
+        "root > [Task :app:mergeDebugResources] > ERROR:'Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]'"
 
       // b/439843451: The build output may contain unrelated warning (e.g. about deprecated Java versions)
       // we should look into this.
-      assertThat(buildEvents.printEvents()).contains("""
+      assertThat(buildEvents.printEvents())
+        .contains(
+          """
 $errorTreePath
 root > 'failed'
-""".trimIndent())
-      sequenceOf(errorTreePath).map { buildEvents.findBuildEvent(it) }.forEach { event ->
-        assertThat(event.description).startsWith("""
+"""
+            .trimIndent()
+        )
+      sequenceOf(errorTreePath)
+        .map { buildEvents.findBuildEvent(it) }
+        .forEach { event ->
+          assertThat(event.description)
+            .startsWith(
+              """
 Execution failed for task ':app:mergeDebugResources'.
 > A failure occurred while executing com.android.build.gradle.internal.res.ResourceCompilerRunnable
    > Resource compilation failed (Failed to compile resource file: $projectRoot/app/src/main/res/layout/activity_my.xml: . Cause: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[9,33]
@@ -71,9 +83,11 @@ Execution failed for task ':app:mergeDebugResources'.
 > Run with --debug option to get more log output.
 > Run with --scan to generate a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
-      """.trimIndent())
-        assertThat(event.description).doesNotContain("BUILD FAILED in ")
-      }
+      """
+                .trimIndent()
+            )
+          assertThat(event.description).doesNotContain("BUILD FAILED in ")
+        }
 
       // Failure should be filtered from BOW finish event, it contains useless information for this error.
       assertThat(buildEvents.finishEventFailures()).isEmpty()

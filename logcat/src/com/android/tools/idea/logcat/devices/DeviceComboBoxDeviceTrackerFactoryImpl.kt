@@ -18,11 +18,8 @@ package com.android.tools.idea.logcat.devices
 import com.intellij.openapi.project.Project
 
 /** Creates a [DeviceComboBoxDeviceTracker] in production code. */
-internal class DeviceComboBoxDeviceTrackerFactoryImpl(private val project: Project) :
-  DeviceComboBoxDeviceTrackerFactory {
-  override fun createDeviceComboBoxDeviceTracker(
-    preexistingDevice: Device?
-  ): IDeviceComboBoxDeviceTracker {
+internal class DeviceComboBoxDeviceTrackerFactoryImpl(private val project: Project) : DeviceComboBoxDeviceTrackerFactory {
+  override fun createDeviceComboBoxDeviceTracker(preexistingDevice: Device?): IDeviceComboBoxDeviceTracker {
     return DeviceComboBoxDeviceTracker(project, preexistingDevice)
   }
 }

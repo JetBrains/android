@@ -18,11 +18,10 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceRotateAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorRotateAction
 
-/**
- * Rotates device left or right.
- */
+/** Rotates device left or right. */
 internal sealed class StreamingRotateAction {
 
   class Left : StreamingAction(EmulatorRotateAction.Left(), DeviceRotateAction.Left())
+
   class Right : StreamingAction(EmulatorRotateAction.Right(), DeviceRotateAction.Right())
 }

@@ -25,8 +25,8 @@ interface DisplayInfoProvider {
   fun getIdsOfAllDisplays(): IntArray
 
   /**
-   * Returns size in pixels of the display with the given logical ID. A zero returned size is
-   * an indication that the display size is not yet known.
+   * Returns size in pixels of the display with the given logical ID. A zero returned size is an indication that the display size is not yet
+   * known.
    *
    * @throws IllegalArgumentException if the display does not exist.
    */
@@ -40,8 +40,7 @@ interface DisplayInfoProvider {
   fun getDisplayOrientation(displayId: Int): Int
 
   /**
-   * Returns the additional rotation in quadrants that has to be applied to display screenshots
-   * to make them match the display orientation.
+   * Returns the additional rotation in quadrants that has to be applied to display screenshots to make them match the display orientation.
    *
    * @throws IllegalArgumentException if the display does not exist.
    */

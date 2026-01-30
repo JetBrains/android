@@ -43,12 +43,10 @@ class KeepRulesR8FileType private constructor() : LanguageFileType(ProguardR8Lan
   }
 
   companion object {
-    @JvmField
-    val INSTANCE = KeepRulesR8FileType()
+    @JvmField val INSTANCE = KeepRulesR8FileType()
 
     val EXT_KEEP = "keep"
 
-    @JvmField
-    val DOT_KEEP = ".$EXT_KEEP"
+    @JvmField val DOT_KEEP = ".$EXT_KEEP"
   }
 }

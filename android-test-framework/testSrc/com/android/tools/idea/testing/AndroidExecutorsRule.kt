@@ -33,8 +33,7 @@ import org.mockito.kotlin.whenever
  *
  * Registers AndroidExecutors with its dependency [AndroidIoManager].
  *
- * This rule also allows tests to inject custom executors by passing optional replacements in the
- * constructor.
+ * This rule also allows tests to inject custom executors by passing optional replacements in the constructor.
  */
 class AndroidExecutorsRule(
   private val workerThreadExecutor: Executor? = null,

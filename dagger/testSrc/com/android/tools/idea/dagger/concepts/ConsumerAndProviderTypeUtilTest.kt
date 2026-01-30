@@ -104,15 +104,15 @@ class ConsumerAndProviderTypeUtilTest {
           "src/com/example/Foo.kt",
           // language=kotlin
           """
-        package com.example
+          package com.example
 
-        class Foo
+          class Foo
 
-        fun func(
-          foo: Foo,
-          integer: Int,
-        )
-        """
+          fun func(
+            foo: Foo,
+            integer: Int,
+          )
+          """
             .trimIndent(),
         )
         .virtualFile

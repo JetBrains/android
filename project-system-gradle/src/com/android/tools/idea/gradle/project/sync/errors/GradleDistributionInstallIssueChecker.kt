@@ -23,20 +23,19 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.issue.quickfix.GradleWrapperSettingsOpenQuickFix
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
 @JvmField val COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX = "Could not install Gradle distribution from "
 
 class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.findCauseMessage {
-      message?.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX) == true
-    } ?: return null
+    val message =
+      issueData.error.findCauseMessage { message?.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX) == true } ?: return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
@@ -47,16 +46,29 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
       buildIssueComposer.addDescriptionOnNewLine("Reason: $rootCause")
       buildIssueComposer.startNewParagraph()
       if (rootCause is java.net.UnknownHostException || rootCause is java.net.ConnectException) {
-        buildIssueComposer.addQuickFix("Please ensure ", "gradle distribution url", " is correct.",
-                                       GradleWrapperSettingsOpenQuickFix(issueData.projectPath, "distributionUrl"))
-        buildIssueComposer.addQuickFix("If you are behind an HTTP proxy, please ", "configure the proxy settings", ".",
-                                       OpenStudioProxySettingsQuickFix())
+        buildIssueComposer.addQuickFix(
+          "Please ensure ",
+          "gradle distribution url",
+          " is correct.",
+          GradleWrapperSettingsOpenQuickFix(issueData.projectPath, "distributionUrl"),
+        )
+        buildIssueComposer.addQuickFix(
+          "If you are behind an HTTP proxy, please ",
+          "configure the proxy settings",
+          ".",
+          OpenStudioProxySettingsQuickFix(),
+        )
       }
-      if (rootCause is java.lang.RuntimeException && rootCause.message?.startsWith("Could not create parent directory for lock file") == true) {
-        buildIssueComposer.addDescriptionOnNewLine("""
+      if (
+        rootCause is java.lang.RuntimeException && rootCause.message?.startsWith("Could not create parent directory for lock file") == true
+      ) {
+        buildIssueComposer.addDescriptionOnNewLine(
+          """
           Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
           You can also change Gradle home directory in Gradle Settings.
-        """.trimIndent())
+          """
+            .trimIndent()
+        )
         buildIssueComposer.startNewParagraph()
         buildIssueComposer.addQuickFix("Open Gradle Settings", UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix())
         buildIssueComposer.addQuickFix("Open Gradle wrapper settings", GradleWrapperSettingsOpenQuickFix(issueData.projectPath, null))
@@ -66,12 +78,14 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)
   }
 }

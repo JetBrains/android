@@ -30,17 +30,13 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
 
   override fun toXml(previewElement: TestPreviewElement) = ""
 
-  override fun applyToConfiguration(
-    previewElement: TestPreviewElement,
-    configuration: Configuration,
-  ) {}
+  override fun applyToConfiguration(previewElement: TestPreviewElement, configuration: Configuration) {}
 
   override fun createDataProvider(previewElement: TestPreviewElement): NlDataProvider? = null
 
   override fun toLogString(previewElement: TestPreviewElement) = ""
 
-  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
-    LightVirtualFile()
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) = LightVirtualFile()
 }
 
 class PreviewElementAffinityTest {
@@ -76,12 +72,7 @@ class PreviewElementAffinityTest {
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result =
-        matchElementsToModels(
-          listOf(model1, model2, model3),
-          listOf(element1, element2, element3),
-          adapter,
-        )
+      val result = matchElementsToModels(listOf(model1, model2, model3), listOf(element1, element2, element3), adapter)
 
       assertEquals(listOf(1, 2, 0), result)
     }
@@ -91,8 +82,7 @@ class PreviewElementAffinityTest {
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result =
-        matchElementsToModels(listOf(model2, model3), listOf(element1, element2, element3), adapter)
+      val result = matchElementsToModels(listOf(model2, model3), listOf(element1, element2, element3), adapter)
 
       assertEquals(listOf(-1, 0, 1), result)
     }
@@ -102,8 +92,7 @@ class PreviewElementAffinityTest {
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result =
-        matchElementsToModels(listOf(model1, model2, model3), listOf(element2, element3), adapter)
+      val result = matchElementsToModels(listOf(model1, model2, model3), listOf(element2, element3), adapter)
 
       assertEquals(listOf(1, 2), result)
     }
@@ -113,12 +102,7 @@ class PreviewElementAffinityTest {
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result =
-        matchElementsToModels(
-          listOf(model1, model2, model3),
-          listOf(element1, element2, element3),
-          adapter,
-        )
+      val result = matchElementsToModels(listOf(model1, model2, model3), listOf(element1, element2, element3), adapter)
 
       assertEquals(listOf(2, 0, 1), result)
     }
@@ -128,8 +112,7 @@ class PreviewElementAffinityTest {
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result =
-        matchElementsToModels(listOf(model1, model2), listOf(element1, element2), adapter)
+      val result = matchElementsToModels(listOf(model1, model2), listOf(element1, element2), adapter)
 
       assertEquals(listOf(0, 1), result)
     }

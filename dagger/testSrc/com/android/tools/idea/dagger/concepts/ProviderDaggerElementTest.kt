@@ -69,17 +69,14 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val providerPsiElement: KtConstructor<*> =
-      myFixture.findParentElement("Foo @Inject const|ructor")
+    val providerPsiElement: KtConstructor<*> = myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     val consumerPsiElement: KtParameter = myFixture.findParentElement("fo|o: Foo")
     val consumerDaggerElement = ConsumerDaggerElement(consumerPsiElement)
 
     assertThat(providerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(consumerDaggerElement, "Consumers", "navigate.to.consumer", "Bar")
-      )
+      .containsExactly(DaggerRelatedElement(consumerDaggerElement, "Consumers", "navigate.to.consumer", "Bar"))
   }
 
   @Test
@@ -111,43 +108,24 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val providerPsiElement: KtConstructor<*> =
-      myFixture.findParentElement("Foo @Inject const|ructor")
+    val providerPsiElement: KtConstructor<*> = myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     val consumerOfLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|LazyFoo")
     val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
 
-    val consumerOfProviderFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|ProviderFoo")
+    val consumerOfProviderFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|ProviderFoo")
     val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
 
-    val consumerOfProviderLazyFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|ProviderLazyFoo")
-    val consumerOfProviderLazyFooDaggerElement =
-      ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
+    val consumerOfProviderLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|ProviderLazyFoo")
+    val consumerOfProviderLazyFooDaggerElement = ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
 
     val relatedElements = providerDaggerElement.getRelatedDaggerElements()
     assertThat(relatedElements)
       .containsExactly(
-        DaggerRelatedElement(
-          consumerOfLazyFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfProviderFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfProviderLazyFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
+        DaggerRelatedElement(consumerOfLazyFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfProviderFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfProviderLazyFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
       )
   }
 
@@ -184,43 +162,24 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val providerPsiElement: KtConstructor<*> =
-      myFixture.findParentElement("Foo @Inject const|ructor")
+    val providerPsiElement: KtConstructor<*> = myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     val consumerOfLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|LazyFoo")
     val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
 
-    val consumerOfProviderFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|ProviderFoo")
+    val consumerOfProviderFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|ProviderFoo")
     val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
 
-    val consumerOfProviderLazyFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|ProviderLazyFoo")
-    val consumerOfProviderLazyFooDaggerElement =
-      ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
+    val consumerOfProviderLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|ProviderLazyFoo")
+    val consumerOfProviderLazyFooDaggerElement = ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
 
     val relatedElements = providerDaggerElement.getRelatedDaggerElements()
     assertThat(relatedElements)
       .containsExactly(
-        DaggerRelatedElement(
-          consumerOfLazyFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfProviderFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfProviderLazyFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
+        DaggerRelatedElement(consumerOfLazyFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfProviderFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfProviderLazyFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
       )
   }
 
@@ -274,54 +233,32 @@ class ProviderDaggerElementTest {
     val provideFooPsiElement: KtFunction = myFixture.findParentElement("provide|Foo")
     val provideFooDaggerElement = ProviderDaggerElement(provideFooPsiElement)
 
-    val provideNullableFooPsiElement: KtFunction =
-      myFixture.findParentElement("provide|NullableFoo")
+    val provideNullableFooPsiElement: KtFunction = myFixture.findParentElement("provide|NullableFoo")
     val provideNullableFooDaggerElement = ProviderDaggerElement(provideNullableFooPsiElement)
 
-    val provideMyNullableFooPsiElement: KtFunction =
-      myFixture.findParentElement("provide|MyNullableFoo")
+    val provideMyNullableFooPsiElement: KtFunction = myFixture.findParentElement("provide|MyNullableFoo")
     val provideMyNullableFooDaggerElement = ProviderDaggerElement(provideMyNullableFooPsiElement)
 
     val consumerOfFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|Foo")
     val consumerOfFooDaggerElement = ConsumerDaggerElement(consumerOfFooPsiElement)
 
-    val consumerOfNullableFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|NullableFoo")
+    val consumerOfNullableFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|NullableFoo")
     val consumerOfNullableFooDaggerElement = ConsumerDaggerElement(consumerOfNullableFooPsiElement)
 
-    val consumerOfMyNullableFooPsiElement: KtParameter =
-      myFixture.findParentElement("consumerOf|MyNullableFoo")
-    val consumerOfMyNullableFooDaggerElement =
-      ConsumerDaggerElement(consumerOfMyNullableFooPsiElement)
+    val consumerOfMyNullableFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|MyNullableFoo")
+    val consumerOfMyNullableFooDaggerElement = ConsumerDaggerElement(consumerOfMyNullableFooPsiElement)
 
     val provideFooRelatedElements = provideFooDaggerElement.getRelatedDaggerElements()
     assertThat(provideFooRelatedElements)
       .containsExactly(
-        DaggerRelatedElement(
-          consumerOfFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfNullableFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfMyNullableFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
+        DaggerRelatedElement(consumerOfFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfNullableFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfMyNullableFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
       )
 
-    assertThat(provideNullableFooDaggerElement.getRelatedDaggerElements())
-      .containsExactlyElementsIn(provideFooRelatedElements)
+    assertThat(provideNullableFooDaggerElement.getRelatedDaggerElements()).containsExactlyElementsIn(provideFooRelatedElements)
 
-    assertThat(provideMyNullableFooDaggerElement.getRelatedDaggerElements())
-      .containsExactlyElementsIn(provideFooRelatedElements)
+    assertThat(provideMyNullableFooDaggerElement.getRelatedDaggerElements()).containsExactlyElementsIn(provideFooRelatedElements)
   }
 
   @Test
@@ -409,88 +346,39 @@ class ProviderDaggerElementTest {
 
     IndexingTestUtil.waitUntilIndexesAreReady(myFixture.project)
 
-    val bindOptionalFooDaggerElement =
-      BindsOptionalOfProviderDaggerElement(
-        myFixture.findParentElement<KtFunction>("bindOptional|Foo")
-      )
-    val provideJavaOptionalFooDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideJavaOptional|Foo"))
-    val provideGuavaOptionalFooDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideGuavaOptional|Foo"))
-    val provideMyOptionalFooDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideMyOptional|Foo"))
-    val provideFooDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|Foo"))
+    val bindOptionalFooDaggerElement = BindsOptionalOfProviderDaggerElement(myFixture.findParentElement<KtFunction>("bindOptional|Foo"))
+    val provideJavaOptionalFooDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideJavaOptional|Foo"))
+    val provideGuavaOptionalFooDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideGuavaOptional|Foo"))
+    val provideMyOptionalFooDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideMyOptional|Foo"))
+    val provideFooDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|Foo"))
 
     val consumerOfJavaOptionalFooDaggerElement =
       ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|JavaOptionalFoo"))
     val consumerOfGuavaOptionalFooDaggerElement =
       ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|GuavaOptionalFoo"))
-    val consumerOfMyOptionalFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|MyOptionalFoo"))
-    val consumerOfFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
+    val consumerOfMyOptionalFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|MyOptionalFoo"))
+    val consumerOfFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
     val consumerOfJavaOptionalLazyFooDaggerElement =
-      ConsumerDaggerElement(
-        myFixture.findParentElement<KtParameter>("consumerOfJavaOptionalLazy|Foo")
-      )
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOfJavaOptionalLazy|Foo"))
 
     assertThat(bindOptionalFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          consumerOfJavaOptionalFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfGuavaOptionalFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
-        DaggerRelatedElement(
-          consumerOfJavaOptionalLazyFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        ),
+        DaggerRelatedElement(consumerOfJavaOptionalFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfGuavaOptionalFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
+        DaggerRelatedElement(consumerOfJavaOptionalLazyFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"),
       )
 
     assertThat(provideJavaOptionalFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          consumerOfJavaOptionalFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(consumerOfJavaOptionalFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"))
 
     assertThat(provideGuavaOptionalFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          consumerOfGuavaOptionalFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(consumerOfGuavaOptionalFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"))
 
     assertThat(provideMyOptionalFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          consumerOfMyOptionalFooDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Bar",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(consumerOfMyOptionalFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"))
 
     assertThat(provideFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(consumerOfFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar")
-      )
+      .containsExactly(DaggerRelatedElement(consumerOfFooDaggerElement, "Consumers", "navigate.to.consumer", "Bar"))
   }
 
   @Test
@@ -557,91 +445,37 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val unqualifiedIntConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedInt|Consumer"))
-    val bertIntConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertInt|Consumer"))
-    val ernieIntConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieInt|Consumer"))
-    val unqualifiedBarConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedBar|Consumer"))
-    val bertBarConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertBar|Consumer"))
-    val ernieBarConsumerDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieBar|Consumer"))
+    val unqualifiedIntConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedInt|Consumer"))
+    val bertIntConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertInt|Consumer"))
+    val ernieIntConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieInt|Consumer"))
+    val unqualifiedBarConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedBar|Consumer"))
+    val bertBarConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertBar|Consumer"))
+    val ernieBarConsumerDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieBar|Consumer"))
 
-    val provideUnqualifiedIntDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedInt"))
-    val providerBertIntDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertInt"))
-    val provideErnieIntDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieInt"))
-    val provideUnqualifiedBarDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedBar"))
-    val provideBertBarDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertBar"))
-    val provideErnieBarDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
+    val provideUnqualifiedIntDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedInt"))
+    val providerBertIntDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertInt"))
+    val provideErnieIntDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieInt"))
+    val provideUnqualifiedBarDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedBar"))
+    val provideBertBarDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertBar"))
+    val provideErnieBarDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
 
     assertThat(provideUnqualifiedIntDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          unqualifiedIntConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(unqualifiedIntConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
 
     assertThat(providerBertIntDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          bertIntConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(bertIntConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
 
     assertThat(provideErnieIntDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          ernieIntConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(ernieIntConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
 
     assertThat(provideUnqualifiedBarDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          unqualifiedBarConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(unqualifiedBarConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
 
     assertThat(provideBertBarDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          bertBarConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(bertBarConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
 
     assertThat(provideErnieBarDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          ernieBarConsumerDaggerElement,
-          "Consumers",
-          "navigate.to.consumer",
-          "Foo",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(ernieBarConsumerDaggerElement, "Consumers", "navigate.to.consumer", "Foo"))
   }
 
   @Test
@@ -680,8 +514,7 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val kotlinConsumer =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ar|g: () -> String"))
+    val kotlinConsumer = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ar|g: () -> String"))
 
     myFixture.openFileInEditor(
       myFixture
@@ -704,8 +537,7 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val javaConsumer =
-      ConsumerDaggerElement(myFixture.findParentElement<PsiParameter>("Function0<String> ar|g"))
+    val javaConsumer = ConsumerDaggerElement(myFixture.findParentElement<PsiParameter>("Function0<String> ar|g"))
 
     myFixture.openFileInEditor(
       myFixture
@@ -729,17 +561,11 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val providerElement =
-      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("fun getFunction|Type()"))
+    val providerElement = ProviderDaggerElement(myFixture.findParentElement<KtFunction>("fun getFunction|Type()"))
 
     assertThat(providerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          kotlinConsumer,
-          "Consumers",
-          "navigate.to.consumer",
-          "MyKotlinConsumer",
-        ),
+        DaggerRelatedElement(kotlinConsumer, "Consumers", "navigate.to.consumer", "MyKotlinConsumer"),
         DaggerRelatedElement(javaConsumer, "Consumers", "navigate.to.consumer", "MyJavaConsumer"),
       )
   }
@@ -770,15 +596,10 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val fooProviderDaggerElement =
-      ProviderDaggerElement(
-        myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
-      )
+    val fooProviderDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor"))
 
-    val consumerOfFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
-    val consumerOfIntDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Int"))
+    val consumerOfFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
+    val consumerOfIntDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Int"))
 
     assertThat(fooProviderDaggerElement.canProvideFor(consumerOfFooDaggerElement)).isTrue()
     assertThat(fooProviderDaggerElement.canProvideFor(consumerOfIntDaggerElement)).isFalse()
@@ -813,17 +634,11 @@ class ProviderDaggerElementTest {
         .virtualFile
     )
 
-    val fooProviderDaggerElement =
-      ProviderDaggerElement(
-        myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
-      )
+    val fooProviderDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor"))
 
-    val lazyFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("lazy|Foo"))
-    val providerFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("provider|Foo"))
-    val providerLazyFooDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("providerLazy|Foo"))
+    val lazyFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("lazy|Foo"))
+    val providerFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("provider|Foo"))
+    val providerLazyFooDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("providerLazy|Foo"))
 
     assertThat(fooProviderDaggerElement.canProvideFor(lazyFooDaggerElement)).isTrue()
     assertThat(fooProviderDaggerElement.canProvideFor(providerFooDaggerElement)).isTrue()

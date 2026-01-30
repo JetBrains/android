@@ -68,8 +68,8 @@ fun processDefinedSqlTables(start: PsiElement, processor: Processor<AndroidSqlTa
  * The implementation is similar to a DFS traversal of a PSI subgraph, where the next nodes to visit are chosen based on the current node
  * type and the direction from which we've arrived.
  *
- * @see pushNextElements
  * @return false if the [processor] is finished, true otherwise.
+ * @see pushNextElements
  */
 fun processSelectedSqlTables(start: PsiElement, processor: Processor<AndroidSqlTable>): Boolean {
 
@@ -97,12 +97,7 @@ private data class NextStep(val next: PsiElement, val previous: PsiElement?)
  *
  * @see processSelectedSqlTables
  */
-private fun pushNextElements(
-  stack: Stack<NextStep>,
-  element: PsiElement,
-  previous: PsiElement?,
-  walkingDown: Boolean
-) {
+private fun pushNextElements(stack: Stack<NextStep>, element: PsiElement, previous: PsiElement?, walkingDown: Boolean) {
   fun nextStep(next: PsiElement, newPrevious: PsiElement? = element) = NextStep(next, previous = newPrevious)
   fun PsiElement.pushOnStack() = stack.push(nextStep(this))
 
@@ -119,8 +114,7 @@ private fun pushNextElements(
       is AndroidSqlFromClause -> element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
       else -> element.children.forEach { stack.push(nextStep(it)) }
     }
-  }
-  else {
+  } else {
     // Stop walking up, no point leaving the SQL tree.
     if (element is AndroidSqlFile) return
 
@@ -142,7 +136,8 @@ private fun pushNextElements(
       }
       is AndroidSqlSelectStatement -> {
         if (previous == element.orderClause) {
-          // We need to process only first selectCore because the column names of the first query determine the column names of the combined result set.
+          // We need to process only first selectCore because the column names of the first query determine the column names of the combined
+          // result set.
           // Look at https://www.sqlite.org/lang_select.html#orderby
           val selectCore = element.selectCoreList.firstOrNull()
           selectCore?.selectCoreSelect?.resultColumns?.pushOnStack()
@@ -171,12 +166,15 @@ private fun pushNextElements(
 }
 
 /**
- * Returns corresponding [AndroidSqlColumn] if column is defined by [AndroidSqlExpression] otherwise (SELECT *, tablename.* FROM ...) returns null.
+ * Returns corresponding [AndroidSqlColumn] if column is defined by [AndroidSqlExpression] otherwise (SELECT *, tablename.* FROM ...)
+ * returns null.
  *
- * We use this function within some of [AndroidSqlTable.processColumns] implementations, when we process column from [AndroidSqlResultColumn] section of query.
+ * We use this function within some of [AndroidSqlTable.processColumns] implementations, when we process column from
+ * [AndroidSqlResultColumn] section of query.
  *
- * In order to avoid infinite resolving process we keep track of tables that we already started the resolution process for in [sqlTablesInProcess].
- * In can happen because we invoke [AndroidSqlColumnPsiReference.resolveColumn] in this function.
+ * In order to avoid infinite resolving process we keep track of tables that we already started the resolution process for in
+ * [sqlTablesInProcess]. In can happen because we invoke [AndroidSqlColumnPsiReference.resolveColumn] in this function.
+ *
  * @see AndroidSqlColumnPsiReference.resolveColumn
  */
 fun computeSqlColumn(resultColumn: AndroidSqlResultColumn, sqlTablesInProcess: MutableSet<PsiElement>): AndroidSqlColumn? {
@@ -190,14 +188,15 @@ fun computeSqlColumn(resultColumn: AndroidSqlResultColumn, sqlTablesInProcess: M
     if (resultColumn.expression is AndroidSqlColumnRefExpression) { // "SELECT id FROM ..."
       val columnRefExpr = resultColumn.expression as AndroidSqlColumnRefExpression
       val referencedColumn = columnRefExpr.columnName.reference.resolveColumn(sqlTablesInProcess)
-      val sqlColumn = when {
-        referencedColumn != null -> referencedColumn
-        resultColumn.columnAliasName != null -> {
-          // We have an invalid reference which is given a name, we can still define a named column so that errors don't propagate.
-          ExprColumn(columnRefExpr.columnName)
+      val sqlColumn =
+        when {
+          referencedColumn != null -> referencedColumn
+          resultColumn.columnAliasName != null -> {
+            // We have an invalid reference which is given a name, we can still define a named column so that errors don't propagate.
+            ExprColumn(columnRefExpr.columnName)
+          }
+          else -> return null
         }
-        else -> return null
-      }
 
       return wrapInAlias(sqlColumn, resultColumn.columnAliasName)
     }

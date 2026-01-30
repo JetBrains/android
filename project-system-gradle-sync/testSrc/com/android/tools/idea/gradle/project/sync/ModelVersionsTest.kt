@@ -24,47 +24,47 @@ class ModelVersionsTest {
   @Test
   fun checkModelConsumerVersionOrdering() {
     // Descriptions are not part of the ordering
-    val ordered = listOf(
-      ModelConsumerVersion(Int.MIN_VALUE, Int.MIN_VALUE, "z"),
-      ModelConsumerVersion(0,0, "y"),
-      ModelConsumerVersion(0,1, "z"),
-      ModelConsumerVersion(0,2, "w"),
-      ModelConsumerVersion(1,0, "v"),
-      ModelConsumerVersion(1,1, "u"),
-      ModelConsumerVersion(1,2, "t"),
-      ModelConsumerVersion(2,0, "s"),
-      ModelConsumerVersion(Int.MAX_VALUE, Int.MAX_VALUE, "a"),
-    )
-    assertThat(ordered.reversed().sorted())
-      .containsExactlyElementsIn(ordered)
-      .inOrder()
+    val ordered =
+      listOf(
+        ModelConsumerVersion(Int.MIN_VALUE, Int.MIN_VALUE, "z"),
+        ModelConsumerVersion(0, 0, "y"),
+        ModelConsumerVersion(0, 1, "z"),
+        ModelConsumerVersion(0, 2, "w"),
+        ModelConsumerVersion(1, 0, "v"),
+        ModelConsumerVersion(1, 1, "u"),
+        ModelConsumerVersion(1, 2, "t"),
+        ModelConsumerVersion(2, 0, "s"),
+        ModelConsumerVersion(Int.MAX_VALUE, Int.MAX_VALUE, "a"),
+      )
+    assertThat(ordered.reversed().sorted()).containsExactlyElementsIn(ordered).inOrder()
   }
 
   @Test
   fun checkModelVersionOrdering() {
     // Descriptions are not part of the ordering
-    val ordered = listOf(
-      ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, "z"),
-      ModelVersion(0,0, "y"),
-      ModelVersion(0,1, "z"),
-      ModelVersion(0,2, "w"),
-      ModelVersion(1,0, "v"),
-      ModelVersion(1,1, "u"),
-      ModelVersion(1,2, "t"),
-      ModelVersion(2,0, "s"),
-      ModelVersion(Int.MAX_VALUE, Int.MAX_VALUE, "a"),
-    )
-    assertThat(ordered.reversed().sorted())
-      .containsExactlyElementsIn(ordered)
-      .inOrder()
+    val ordered =
+      listOf(
+        ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, "z"),
+        ModelVersion(0, 0, "y"),
+        ModelVersion(0, 1, "z"),
+        ModelVersion(0, 2, "w"),
+        ModelVersion(1, 0, "v"),
+        ModelVersion(1, 1, "u"),
+        ModelVersion(1, 2, "t"),
+        ModelVersion(2, 0, "s"),
+        ModelVersion(Int.MAX_VALUE, Int.MAX_VALUE, "a"),
+      )
+    assertThat(ordered.reversed().sorted()).containsExactlyElementsIn(ordered).inOrder()
   }
 
   @Test
   fun checkSupportsParallelSync() {
-    fun supportsParallelSync(agpVersion: String) = ModelVersions(
-      agp = AgpVersion.parse(agpVersion),
-      modelVersion = ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, ""),
-      minimumModelConsumer = null)[ModelFeature.SUPPORTS_PARALLEL_SYNC]
+    fun supportsParallelSync(agpVersion: String) =
+      ModelVersions(
+        agp = AgpVersion.parse(agpVersion),
+        modelVersion = ModelVersion(Int.MIN_VALUE, Int.MIN_VALUE, ""),
+        minimumModelConsumer = null,
+      )[ModelFeature.SUPPORTS_PARALLEL_SYNC]
 
     fun assertSupportsParallelSync(agpVersion: String) {
       return assertThat(supportsParallelSync(agpVersion)).named("AGP %s supports parallel sync", agpVersion).isTrue()
@@ -82,5 +82,4 @@ class ModelVersionsTest {
     assertSupportsParallelSync(agpVersion = "7.3.0-alpha04")
     assertSupportsParallelSync(agpVersion = "7.3.0")
   }
-
 }

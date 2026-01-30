@@ -63,11 +63,7 @@ class ImportWatchFaceStudioFileActionTest {
   @Before
   fun setup() {
     whenever(importer.supportedFileTypes).thenReturn(setOf("aab", "apk"))
-    projectRule.project.replaceService(
-      WatchFaceStudioFileImporter::class.java,
-      importer,
-      projectRule.fixture.testRootDisposable,
-    )
+    projectRule.project.replaceService(WatchFaceStudioFileImporter::class.java, importer, projectRule.fixture.testRootDisposable)
     action = ImportWatchFaceStudioFileAction()
   }
 
@@ -82,10 +78,7 @@ class ImportWatchFaceStudioFileActionTest {
 
   @Test
   fun `the action is disabled if the flag is disabled`() {
-    StudioFlags.WATCH_FACE_STUDIO_FILE_IMPORT.overrideForTest(
-      false,
-      projectRule.fixture.testRootDisposable,
-    )
+    StudioFlags.WATCH_FACE_STUDIO_FILE_IMPORT.overrideForTest(false, projectRule.fixture.testRootDisposable)
 
     val event = TestActionEvent.createTestEvent()
     action.update(event)
@@ -106,8 +99,7 @@ class ImportWatchFaceStudioFileActionTest {
   @Test
   fun `the file's path is imported when the file is selected`() = runTest {
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val action =
-      ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
+    val action = ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
     val path = Path("selected/file/path")
     val file = mock<VirtualFile>()
     whenever(file.toNioPath()).thenReturn(path)
@@ -120,8 +112,7 @@ class ImportWatchFaceStudioFileActionTest {
     verify(importer).import(path)
     val successNotification =
       notificationRule.notifications.find {
-        it.type == NotificationType.INFORMATION &&
-          it.content == "The Watch Face Studio file was imported successfully"
+        it.type == NotificationType.INFORMATION && it.content == "The Watch Face Studio file was imported successfully"
       }
     assertThat(successNotification).isNotNull()
   }
@@ -129,8 +120,7 @@ class ImportWatchFaceStudioFileActionTest {
   @Test
   fun `action notifies of an error`() = runTest {
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val action =
-      ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
+    val action = ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
     val path = Path("selected/file/path")
     val file = mock<VirtualFile>()
     whenever(file.toNioPath()).thenReturn(path)
@@ -142,8 +132,7 @@ class ImportWatchFaceStudioFileActionTest {
 
     val errorNotification =
       notificationRule.notifications.find {
-        it.type == NotificationType.ERROR &&
-          it.content == "An error occurred while importing the Watch Face Studio file"
+        it.type == NotificationType.ERROR && it.content == "An error occurred while importing the Watch Face Studio file"
       }
     assertThat(errorNotification).isNotNull()
   }
@@ -162,18 +151,13 @@ class ImportWatchFaceStudioFileActionTest {
   private fun fakeFileChooser(fileToSelect: VirtualFile?) {
     val fileChooserFactory =
       object : FileChooserFactoryImpl() {
-        override fun createFileChooser(
-          descriptor: FileChooserDescriptor,
-          project: Project?,
-          parent: Component?,
-        ) = FileChooserDialog { project, toSelect -> arrayOf(fileToSelect) }
+        override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?) =
+          FileChooserDialog { project, toSelect ->
+            arrayOf(fileToSelect)
+          }
       }
 
     ApplicationManager.getApplication()
-      .replaceService(
-        FileChooserFactory::class.java,
-        fileChooserFactory,
-        projectRule.fixture.testRootDisposable,
-      )
+      .replaceService(FileChooserFactory::class.java, fileChooserFactory, projectRule.fixture.testRootDisposable)
   }
 }

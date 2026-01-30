@@ -63,13 +63,15 @@ import org.jetbrains.annotations.TestOnly
 
 class DefaultProjectSystemProvider : AndroidProjectSystemProvider {
   override val id: String = ""
+
   override fun isApplicable(project: Project) = false
+
   override fun projectSystemFactory(project: Project) = DefaultProjectSystem(project)
 }
 
 /**
- * This implementation of AndroidProjectSystem is used for projects where the build system is not
- * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
+ * This implementation of AndroidProjectSystem is used for projects where the build system is not recognized. It provides a minimal set of
+ * capabilities and opts out of most optional behaviors.
  */
 class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem {
   override fun isAndroidProject(): Boolean {
@@ -80,36 +82,39 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
 
   override fun allowsFileCreation() = false
 
-  override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
-    override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
-      AppUIUtil.invokeLaterIfProjectAlive(project) {
-        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+  override fun getSyncManager(): ProjectSystemSyncManager =
+    object : ProjectSystemSyncManager {
+      override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+        AppUIUtil.invokeLaterIfProjectAlive(project) {
+          project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+        }
+        return Futures.immediateFuture(SyncResult.SUCCESS)
       }
-      return Futures.immediateFuture(SyncResult.SUCCESS)
+
+      override fun isSyncInProgress() = false
+
+      override fun isSyncNeeded() = false
+
+      override fun getLastSyncResult() = SyncResult.SUCCESS
     }
 
-    override fun isSyncInProgress() = false
-    override fun isSyncNeeded() = false
-    override fun getLastSyncResult() = SyncResult.SUCCESS
-  }
-
   override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
+
   private val moduleCache: MutableMap<Module, AndroidModuleSystem> = IdentityHashMap()
-  override fun getModuleSystem(module: Module): AndroidModuleSystem = synchronized(moduleCache) {
-    moduleCache.getOrPut(module) { DefaultModuleSystem(module) }
-  }
+
+  override fun getModuleSystem(module: Module): AndroidModuleSystem =
+    synchronized(moduleCache) { moduleCache.getOrPut(module) { DefaultModuleSystem(module) } }
 
   @TestOnly
   fun setModuleSystem(module: Module, moduleSystem: AndroidModuleSystem) {
-    synchronized(moduleCache) {
-      moduleCache[module] = moduleSystem
-    }
+    synchronized(moduleCache) { moduleCache[module] = moduleSystem }
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
     val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
     return NonGradleApplicationIdProvider(
-      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}")
+    )
   }
 
   override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
@@ -121,7 +126,7 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
       return NonGradleApkProvider(facet, applicationIdProvider, null)
     }
     val apkFacet = if (ENABLE_APK_PROJECT_SYSTEM.get()) null else ApkFacet.getInstance(module)
-    return when  {
+    return when {
       apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
       runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
       else -> null
@@ -136,7 +141,7 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     return listOf(
       AndroidInnerClassFinder.INSTANCE,
       AndroidManifestClassPsiElementFinder.getInstance(project),
-      AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+      AndroidResourceClassPsiElementFinder(getLightResourceClassService()),
     )
   }
 
@@ -145,11 +150,12 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   override val submodules: Collection<Module>
     get() = getSubmodules(project, null)
 
-  override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
-      return createSourceProvidersForLegacyModule(facet)
+  override fun getSourceProvidersFactory(): SourceProvidersFactory =
+    object : SourceProvidersFactory {
+      override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+        return createSourceProvidersForLegacyModule(facet)
+      }
     }
-  }
 
   override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
     // TODO(b/148300410)
@@ -178,22 +184,25 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   }
 
   private val AndroidFacet.applicationId: String?
-    get() = if (properties.USE_CUSTOM_MANIFEST_PACKAGE) {
-      properties.CUSTOM_MANIFEST_PACKAGE
-    } else {
-      getModuleSystem().getPackageName()?.takeIf { it.isNotEmpty() }
-    }
+    get() =
+      if (properties.USE_CUSTOM_MANIFEST_PACKAGE) {
+        properties.CUSTOM_MANIFEST_PACKAGE
+      } else {
+        getModuleSystem().getPackageName()?.takeIf { it.isNotEmpty() }
+      }
 
   override fun getKnownApplicationIds(): Set<String> =
     ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().mapNotNull { it.applicationId }.toImmutableSet()
 
   override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
-    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence()
+    ProjectFacetManager.getInstance(project)
+      .getFacets(AndroidFacet.ID)
+      .asSequence()
       .filter { applicationId == it.applicationId }
       .map { it.module }
       .toImmutableList()
 }
 
-interface DefaultToken: ProjectSystemToken {
+interface DefaultToken : ProjectSystemToken {
   override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem is DefaultProjectSystem
 }

@@ -24,18 +24,14 @@ import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [SdkSourcePositionFinderImpl]
- */
+/** Tests for [SdkSourcePositionFinderImpl] */
 class SdkSourcePositionFinderImplTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk()
 
-  private val project get() = androidProjectRule.project
+  private val project
+    get() = androidProjectRule.project
 
-  /**
-   * Indirectly tests that the internal SdkSourceFinderForApiLevel is cached rather than created for each call.
-   */
+  /** Indirectly tests that the internal SdkSourceFinderForApiLevel is cached rather than created for each call. */
   @Test
   fun getSourcePosition_missingSourcesFileIsCreatedOnlyOnce() {
     val file = runInEdtAndGet { PsiFileFactory.getInstance(project).createFileFromText("View.java", JavaLanguage.INSTANCE, "") }

@@ -69,10 +69,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val elementAtCaret = myFixture.elementAtCaret
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
-    checkFileDeclarations(
-      fakePsiElement,
-      arrayOf("drawable/icon.png", "drawable-hdpi/icon.png", "drawable-xhdpi/icon.png"),
-    )
+    checkFileDeclarations(fakePsiElement, arrayOf("drawable/icon.png", "drawable-hdpi/icon.png", "drawable-xhdpi/icon.png"))
   }
 
   fun testLayoutFileResource() {
@@ -151,14 +148,10 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     checkFileDeclarations(fakePsiElement, arrayOf("mipmap/icon.png"))
   }
 
-  private fun checkFileDeclarations(
-    fakePsiElement: ResourceReferencePsiElement,
-    expectedFileNames: Array<String>,
-  ) {
+  private fun checkFileDeclarations(fakePsiElement: ResourceReferencePsiElement, expectedFileNames: Array<String>) {
     val context = myFixture.file.findElementAt(myFixture.caretOffset)!!
     val fileBasedResources =
-      AndroidResourceToPsiResolver.getInstance()
-        .getGotoDeclarationFileBasedTargets(fakePsiElement.resourceReference, context)
+      AndroidResourceToPsiResolver.getInstance().getGotoDeclarationFileBasedTargets(fakePsiElement.resourceReference, context)
     assertThat(fileBasedResources).hasLength(expectedFileNames.size)
     val fileNames = fileBasedResources.map { it.containingDirectory.name + "/" + it.name }
     assertThat(fileNames).containsExactlyElementsIn(expectedFileNames)
@@ -194,9 +187,9 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
       "res/values/strings.xml",
       // language=XML
       """
-        <resources>
-            <string name="app_name">Captures Application</string>
-        </resources>
+      <resources>
+          <string name="app_name">Captures Application</string>
+      </resources>
       """
         .trimIndent(),
     )
@@ -204,9 +197,9 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
       "$dynamicFeatureModuleName/res/values/strings.xml",
       // language=XML
       """
-        <resources>
-            <string name="dynamic_name">Captures Application</string>
-        </resources>
+      <resources>
+          <string name="dynamic_name">Captures Application</string>
+      </resources>
       """
         .trimIndent(),
     )
@@ -219,30 +212,18 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
         <resources>
             <string name="references">context<caret></string>
         </resources>
-      """
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     return myFixture.elementAtCaret
   }
 
-  private fun addDynamicFeatureModule(
-    moduleName: String,
-    module: Module,
-    fixture: JavaCodeInsightTestFixture,
-  ) {
+  private fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCodeInsightTestFixture) {
     val project = module.project
     val dynamicFeatureModule =
-      PsiTestUtil.addModule(
-        project,
-        JavaModuleType.getModuleType(),
-        moduleName,
-        fixture.tempDirFixture.findOrCreateDir(moduleName),
-      )
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "$moduleName/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
-    )
+      PsiTestUtil.addModule(project, JavaModuleType.getModuleType(), moduleName, fixture.tempDirFixture.findOrCreateDir(moduleName))
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "$moduleName/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
     addAndroidFacetAndSdk(dynamicFeatureModule)
     enableNamespacing(dynamicFeatureModule.androidFacet!!, "p1.p2.dynamic")
     val newModuleSystem =
@@ -269,45 +250,28 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
   override fun setUp() {
     super.setUp()
 
-    MAIN_MODULE_COLOR_FILE =
-      myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
+    MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
     MAIN_MODULE_USAGE_COLOR_FILE =
       myFixture
         .addFileToProject(
           "/res/values/morecolors.xml",
           // language=XML
           """
-      <resources>
-          <color name="newColor">@color/testColor</color>
-      </resources>
-      """
+          <resources>
+              <color name="newColor">@color/testColor</color>
+          </resources>
+          """
             .trimIndent(),
         )
         .virtualFile
     MODULE_WITH_DEPENDENCY_COLOR_FILE =
-      myFixture
-        .addFileToProject(
-          getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml",
-          COLORS_XML,
-        )
-        .virtualFile
+      myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITH_DEPENDENCY) + "/res/values/colors.xml", COLORS_XML).virtualFile
     MODULE_WITHOUT_DEPENDENCY_COLOR_FILE =
-      myFixture
-        .addFileToProject(
-          getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
-          COLORS_XML,
-        )
-        .virtualFile
+      myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml", COLORS_XML).virtualFile
 
     enableNamespacing("p1.p2")
-    enableNamespacing(
-      getAdditionalModuleByName(MODULE_WITH_DEPENDENCY)!!.androidFacet!!,
-      "p1.p2.module_with_dep",
-    )
-    enableNamespacing(
-      getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY)!!.androidFacet!!,
-      "p1.p2.module_without_dep",
-    )
+    enableNamespacing(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY)!!.androidFacet!!, "p1.p2.module_with_dep")
+    enableNamespacing(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY)!!.androidFacet!!, "p1.p2.module_without_dep")
   }
 
   private val COLORS_XML =
@@ -323,27 +287,11 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
     modules: MutableList<MyAdditionalModuleData>,
   ) {
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      MODULE_WITHOUT_DEPENDENCY,
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      false,
-    )
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      MODULE_WITH_DEPENDENCY,
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true,
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITHOUT_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, false)
+    addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
   }
 
-  private fun checkScopePerModuleForOpenFile(
-    mainModule: Boolean,
-    moduleWithDependency: Boolean,
-    moduleWithoutDependency: Boolean,
-  ) {
+  private fun checkScopePerModuleForOpenFile(mainModule: Boolean, moduleWithDependency: Boolean, moduleWithoutDependency: Boolean) {
     val scope =
       ResourceRepositoryToPsiResolver.getResourceSearchScope(
         (myFixture.elementAtCaret as ResourceReferencePsiElement).resourceReference,
@@ -351,42 +299,25 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       )
     assertThat(scope.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
     assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
-    assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE))
-      .isEqualTo(moduleWithoutDependency)
+    assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithoutDependency)
   }
 
   fun testResourceScoping() {
     myFixture.configureFromExistingVirtualFile(MODULE_WITH_DEPENDENCY_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    checkScopePerModuleForOpenFile(
-      mainModule = true,
-      moduleWithDependency = true,
-      moduleWithoutDependency = false,
-    )
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = true, moduleWithoutDependency = false)
 
     myFixture.configureFromExistingVirtualFile(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    checkScopePerModuleForOpenFile(
-      mainModule = false,
-      moduleWithDependency = false,
-      moduleWithoutDependency = true,
-    )
+    checkScopePerModuleForOpenFile(mainModule = false, moduleWithDependency = false, moduleWithoutDependency = true)
 
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_USAGE_COLOR_FILE)
     myFixture.moveCaret("@color/test|Color")
-    checkScopePerModuleForOpenFile(
-      mainModule = true,
-      moduleWithDependency = false,
-      moduleWithoutDependency = false,
-    )
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
 
     myFixture.configureFromExistingVirtualFile(MAIN_MODULE_COLOR_FILE)
     myFixture.moveCaret("name=\"testCo|lor\"")
-    checkScopePerModuleForOpenFile(
-      mainModule = true,
-      moduleWithDependency = false,
-      moduleWithoutDependency = false,
-    )
+    checkScopePerModuleForOpenFile(mainModule = true, moduleWithDependency = false, moduleWithoutDependency = false)
   }
 
   fun testDynamicFeatureModuleResource() {
@@ -401,16 +332,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
           elementAtCaret.androidFacet!!,
         )
     assertThat(appNameReference).isNotEmpty()
-    with((appNameReference[0].element as ResourceReferencePsiElement).resourceReference) {
-      assertThat(this.name).isEqualTo("app_name")
-    }
+    with((appNameReference[0].element as ResourceReferencePsiElement).resourceReference) { assertThat(this.name).isEqualTo("app_name") }
     val dynamicNameReference =
       AndroidResourceToPsiResolver.getInstance()
-        .resolveReference(
-          ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
-          elementAtCaret,
-          elementAtCaret.androidFacet!!,
-        )
+        .resolveReference(ResourceValue.referenceTo('@', null, "string", "dynamic_name"), elementAtCaret, elementAtCaret.androidFacet!!)
     assertThat(dynamicNameReference).isEmpty()
     val appNameReferenceIncluded =
       AndroidResourceToPsiResolver.getInstance()
@@ -431,9 +356,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
           elementAtCaret.androidFacet!!,
         )
     assertThat(dynamicNameReferenceIncluded).isNotEmpty()
-    with(
-      (dynamicNameReferenceIncluded[0].element as ResourceReferencePsiElement).resourceReference
-    ) {
+    with((dynamicNameReferenceIncluded[0].element as ResourceReferencePsiElement).resourceReference) {
       assertThat(this.name).isEqualTo("dynamic_name")
     }
   }
@@ -476,7 +399,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       <resources>
         <string name="example">String Example</string>
       </resources>
-    """
+      """
         .trimIndent()
     myFixture.addFileToProject("res/values/strings.xml", stringsContent)
     myFixture.addFileToProject("res/values-no/strings.xml", stringsContent)
@@ -525,10 +448,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
           folderConfiguration,
         )!!
         .containingFile
-    assertThat(
-        defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name
-      )
-      .isEqualTo(expectedFileName)
+    assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
   }
 
   private fun checkDensityConfiguration(
@@ -546,9 +466,6 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
           folderConfiguration,
         )!!
         .containingFile
-    assertThat(
-        defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name
-      )
-      .isEqualTo(expectedFileName)
+    assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
   }
 }

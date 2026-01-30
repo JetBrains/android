@@ -40,41 +40,27 @@ interface ModelDescriptor<in ModelT, out ResolvedT, out ParsedT> {
    */
   fun getParsed(model: ModelT): ParsedT?
 
-  /**
-   * Notifies the PSD that a [model] is about to be modified.
-   */
+  /** Notifies the PSD that a [model] is about to be modified. */
   fun prepareForModification(model: ModelT)
 
-  /**
-   * Notifies the PSD that a [model] has been modified and that the changes need to be saved.
-   */
+  /** Notifies the PSD that a [model] has been modified and that the changes need to be saved. */
   fun setModified(model: ModelT)
 
-
-  /**
-   * Enumerates the models directly contained by [model].
-   */
+  /** Enumerates the models directly contained by [model]. */
   fun enumerateModels(model: ModelT): Collection<PsModel> = listOf()
 
-
-  /**
-   * Returns the properties described by this descriptor.
-   */
-  val properties: Collection<ModelProperty<ModelT, *, *, *>> get() = listOf()
+  /** Returns the properties described by this descriptor. */
+  val properties: Collection<ModelProperty<ModelT, *, *, *>>
+    get() = listOf()
 }
 
-
-/**
- * A helper operator to implement models' descriptor property as: descriptor by Descriptor.
- */
+/** A helper operator to implement models' descriptor property as: descriptor by Descriptor. */
 operator fun <T : PsModel> ModelDescriptor<T, *, *>.getValue(model: T, property: KProperty<*>): PsModelDescriptor =
   object : PsModelDescriptor {
     override fun enumerateContainedModels(): Collection<PsModel> =
       enumerateModels(model).let { it + it.flatMap { contained -> contained.descriptor.enumerateContainedModels() } }
 
     override fun enumerateProperties(receiver: PsModelDescriptor.PropertyReceiver) {
-      this@getValue.properties.forEach {
-        receiver.receive(model, it)
-      }
+      this@getValue.properties.forEach { receiver.receive(model, it) }
     }
   }

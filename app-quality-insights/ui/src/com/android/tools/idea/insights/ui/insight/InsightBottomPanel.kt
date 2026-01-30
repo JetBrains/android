@@ -55,10 +55,7 @@ class InsightBottomPanel(
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   private val parentDisposable: Disposable,
   private val insightFixTransformationDeterminer: CodeTransformationDeterminer =
-    CodeTransformationDeterminerImpl(
-      controller.project,
-      CodeContextResolverImpl(controller.project),
-    ),
+    CodeTransformationDeterminerImpl(controller.project, CodeContextResolverImpl(controller.project)),
 ) : JPanel(BorderLayout()) {
 
   private val scope = parentDisposable.createCoroutineScope()
@@ -79,10 +76,7 @@ class InsightBottomPanel(
       val contextChecker =
         AppExecutorUtil.getAppScheduledExecutorService()
           .scheduleWithFixedDelay(
-            {
-              fixInsightButton.isEnabled =
-                GeminiPluginApi.getInstance().isContextAllowed(controller.project)
-            },
+            { fixInsightButton.isEnabled = GeminiPluginApi.getInstance().isContextAllowed(controller.project) },
             CONTEXT_CHECK_INITIAL_DELAY_MILLIS,
             CONTEXT_CHECK_DELAY_MILLIS,
             TimeUnit.MILLISECONDS,
@@ -113,10 +107,7 @@ class InsightBottomPanel(
     leftPanel.add(fixInsightButton)
     add(leftPanel, BorderLayout.CENTER)
 
-    add(
-      InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback),
-      BorderLayout.EAST,
-    )
+    add(InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback), BorderLayout.EAST)
 
     border = SideBorder(JBColor.border(), SideBorder.TOP)
   }
@@ -125,9 +116,7 @@ class InsightBottomPanel(
     abandonCurrentTransformation()
     if (text != null) {
       currentTransformation =
-        insightFixTransformationDeterminer.getApplicableTransformation(text).also {
-          Disposer.register(parentDisposable, it)
-        }
+        insightFixTransformationDeterminer.getApplicableTransformation(text).also { Disposer.register(parentDisposable, it) }
     }
     setFixButtonState(currentTransformation)
   }

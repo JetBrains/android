@@ -60,47 +60,34 @@ import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
 
 /**
- * A mapping to keep track of the cache [Key]s for the annotation combinations. Each [Key] instance
- * is unique by implementation and [Key] declares [hashCode] and [equals] methods as final. Thus,
- * this mapping allows to reuse the same [Key] instance for the same [localKey].
+ * A mapping to keep track of the cache [Key]s for the annotation combinations. Each [Key] instance is unique by implementation and [Key]
+ * declares [hashCode] and [equals] methods as final. Thus, this mapping allows to reuse the same [Key] instance for the same [localKey].
  */
 @Service(Level.PROJECT)
 class CacheKeysManager() {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): CacheKeysManager =
-      project.getService(CacheKeysManager::class.java)
+    @JvmStatic fun getInstance(project: Project): CacheKeysManager = project.getService(CacheKeysManager::class.java)
   }
 
   private val annotationCacheKeys = ConcurrentHashMap<Any, Key<out CachedValue<out Any>>>()
 
   fun <T : Any> getKey(localKey: Any): Key<CachedValue<T>> {
-    return annotationCacheKeys.getOrPut(localKey) { Key<CachedValue<T>>(localKey.toString()) }
-      as Key<CachedValue<T>>
+    return annotationCacheKeys.getOrPut(localKey) { Key<CachedValue<T>>(localKey.toString()) } as Key<CachedValue<T>>
   }
 
   @VisibleForTesting fun map() = annotationCacheKeys
 }
 
-fun <T> CachedValuesManager.getCachedValue(
-  dataHolder: UserDataHolder,
-  key: Key<CachedValue<T>>,
-  provider: CachedValueProvider<T>,
-): T = this.getCachedValue(dataHolder, key, provider, false)
+fun <T> CachedValuesManager.getCachedValue(dataHolder: UserDataHolder, key: Key<CachedValue<T>>, provider: CachedValueProvider<T>): T =
+  this.getCachedValue(dataHolder, key, provider, false)
 
 /** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
 @RequiresReadLock
 @VisibleForTesting
-internal fun findAnnotations(
-  project: Project,
-  vFile: VirtualFile,
-  shortAnnotationName: String,
-): Collection<UAnnotation> {
+internal fun findAnnotations(project: Project, vFile: VirtualFile, shortAnnotationName: String): Collection<UAnnotation> {
   if (DumbService.isDumb(project)) {
     Logger.getInstance(AnnotatedMethodsFinder::class.java)
-      .debug(
-        "findAnnotations for @$shortAnnotationName called while indexing. No annotations will be found"
-      )
+      .debug("findAnnotations for @$shortAnnotationName called while indexing. No annotations will be found")
     return emptyList()
   }
 
@@ -112,29 +99,21 @@ internal fun findAnnotations(
     val scope = GlobalSearchScope.fileScope(project, vFile)
     val annotations =
       if (psiFile.language == KotlinLanguage.INSTANCE) {
-        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence().map {
-          it.psiOrParent
-        }
+        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence().map { it.psiOrParent }
       } else {
-        JavaAnnotationIndex.getInstance()
-          .getAnnotations(shortAnnotationName, project, scope)
-          .asSequence()
+        JavaAnnotationIndex.getInstance().getAnnotations(shortAnnotationName, project, scope).asSequence()
       }
 
-    CachedValueProvider.Result.create(
-      annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(),
-      psiFile,
-    )
+    CachedValueProvider.Result.create(annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(), psiFile)
   }
 }
 
 /**
- * A [ModificationTracker] that tracks a [Promise] and can be used as a dependency for
- * [CachedValuesManager.getCachedValue]. [CachedValuesManager.getCachedValue] can use objects
- * implementing some interfaces (see [com.intellij.util.CachedValueBase.getTimeStamp] for the
- * interfaces list) as dependencies to invalidate the cache when the interface methods indicate so.
- * Here we implement one of the interfaces, namely [ModificationTracker]. If the promise is rejected
- * or fails, the count is updated, the cache is invalidated, and the result is not cached.
+ * A [ModificationTracker] that tracks a [Promise] and can be used as a dependency for [CachedValuesManager.getCachedValue].
+ * [CachedValuesManager.getCachedValue] can use objects implementing some interfaces (see [com.intellij.util.CachedValueBase.getTimeStamp]
+ * for the interfaces list) as dependencies to invalidate the cache when the interface methods indicate so. Here we implement one of the
+ * interfaces, namely [ModificationTracker]. If the promise is rejected or fails, the count is updated, the cache is invalidated, and the
+ * result is not cached.
  */
 private class PromiseModificationTracker(private val promise: Promise<*>) : ModificationTracker {
   private var modificationCount = 0L
@@ -152,8 +131,8 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
 }
 
 /**
- * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method,
- * or if the method is not also annotated with [annotationFqn].
+ * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method, or if the method is not also annotated
+ * with [annotationFqn].
  */
 @RequiresReadLock
 fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? {
@@ -161,14 +140,12 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
   // read lock are left to this method.
   // The method is tagged RequiresReadLock so it should never be called without the read lock.
   fun getContainingUMethodWithReadLock(): UMethod? {
-    val uMethod =
-      getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
+    val uMethod = getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
     return if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
   }
 
   if (!ApplicationManager.getApplication().isReadAccessAllowed) {
-    Logger.getInstance(AnnotatedMethodsFinder::class.java)
-      .error("getContainingUMethodAnnotatedWith called without read lock")
+    Logger.getInstance(AnnotatedMethodsFinder::class.java).error("getContainingUMethodAnnotatedWith called without read lock")
     return runReadAction { getContainingUMethodWithReadLock() }
   }
 
@@ -176,10 +153,9 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
 }
 
 /**
- * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with
- * [annotationFqn] and [shortAnnotationName], from [vFile] of [project]. Technically, this function
- * could just return a collection of methods, but [toValues] might be slow to calculate so caching
- * the values rather than methods is more useful. To benefit from caching make sure the same
+ * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with [annotationFqn] and
+ * [shortAnnotationName], from [vFile] of [project]. Technically, this function could just return a collection of methods, but [toValues]
+ * might be slow to calculate so caching the values rather than methods is more useful. To benefit from caching make sure the same
  * parameters are passed to the function call as all the parameters constitute the key.
  */
 private fun <T> findAnnotatedMethodsCachedValues(
@@ -222,12 +198,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
       lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
     }
   val dumbModificationTracker = DumbService.getInstance(project).modificationTracker
-  CachedValueProvider.Result.create(
-    deferred,
-    kotlinJavaModificationTracker,
-    dumbModificationTracker,
-    PromiseModificationTracker(promise),
-  )
+  CachedValueProvider.Result.create(deferred, kotlinJavaModificationTracker, dumbModificationTracker, PromiseModificationTracker(promise))
 }
 
 private data class CachedValuesKey<T>(
@@ -237,8 +208,8 @@ private data class CachedValuesKey<T>(
 )
 
 /**
- * Finds all the values calculated by [toValues] associated with the methods annotated with
- * [annotationFqn] and [shortAnnotationName] from [vFile] in [project].
+ * Finds all the values calculated by [toValues] associated with the methods annotated with [annotationFqn] and [shortAnnotationName] from
+ * [vFile] in [project].
  */
 suspend fun <T> findAnnotatedMethodsValues(
   project: Project,
@@ -253,15 +224,8 @@ suspend fun <T> findAnnotatedMethodsValues(
       CachedValuesManager.getManager(project)
         .getCachedValue(
           psiFile,
-          CacheKeysManager.getInstance(project)
-            .getKey(CachedValuesKey(annotationFqn, shortAnnotationName, toValues)),
-          findAnnotatedMethodsCachedValues(
-            project,
-            vFile,
-            annotationFqn,
-            shortAnnotationName,
-            toValues,
-          ),
+          CacheKeysManager.getInstance(project).getKey(CachedValuesKey(annotationFqn, shortAnnotationName, toValues)),
+          findAnnotatedMethodsCachedValues(project, vFile, annotationFqn, shortAnnotationName, toValues),
         )
     try {
       return@withContext promiseResult.await()

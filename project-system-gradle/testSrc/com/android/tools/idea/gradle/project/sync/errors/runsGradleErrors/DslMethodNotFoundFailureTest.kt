@@ -26,33 +26,35 @@ import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
 
-class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
+class DslMethodNotFoundFailureTest : AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
     expectedErrorNodeNameVerifier: (String) -> Unit,
     expectedPhases: String,
-    expectedFailureDetailsString: String
-  ) = runSyncAndCheckGeneralFailure(
-    preparedProject = preparedProject,
-    verifySyncViewEvents = { _, buildEvents ->
-      // Expect single MessageEvent on Sync Output
-      buildEvents.filterIsInstance<MessageEvent>().let { events ->
-        expect.that(events).hasSize(1)
-        events.firstOrNull()?.let { expectedErrorNodeNameVerifier(it.message) }
-      }
-      // Make sure no additional error build issue events are generated
-      expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
-      expect.that(buildEvents.finishEventFailures()).isEmpty()
-    },
-    verifyFailureReported = {
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND)
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-      expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhases)
-      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
-    },
-  )
+    expectedFailureDetailsString: String,
+  ) =
+    runSyncAndCheckGeneralFailure(
+      preparedProject = preparedProject,
+      verifySyncViewEvents = { _, buildEvents ->
+        // Expect single MessageEvent on Sync Output
+        buildEvents.filterIsInstance<MessageEvent>().let { events ->
+          expect.that(events).hasSize(1)
+          events.firstOrNull()?.let { expectedErrorNodeNameVerifier(it.message) }
+        }
+        // Make sure no additional error build issue events are generated
+        expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
+        expect.that(buildEvents.finishEventFailures()).isEmpty()
+      },
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND)
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+          .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+        expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhases)
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
+      },
+    )
 
   @Test
   fun testCheckIssueWithMethodNotFoundInSettingsFile() {
@@ -64,14 +66,20 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo(
-          "Could not find method incude() for arguments [:app] on settings 'project' of type org.gradle.initialization.DefaultSettings")
+        expect
+          .that(it)
+          .isEqualTo(
+            "Could not find method incude() for arguments [:app] on settings 'project' of type org.gradle.initialization.DefaultSettings"
+          )
       },
       // When settings.gradle file is broken GRADLE_CONFIGURE_ROOT_BUILD is not reported.
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -82,7 +90,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -96,14 +105,16 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo(
-          "Could not find method abdd() for arguments [] on root project 'project' of type org.gradle.api.Project")
+        expect.that(it).isEqualTo("Could not find method abdd() for arguments [] on root project 'project' of type org.gradle.api.Project")
       },
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -116,7 +127,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -132,11 +144,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo("Could not set unknown property 'abdd' for root project 'project' of type org.gradle.api.Project")
       },
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -149,7 +164,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#setMissingProperty
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -165,11 +181,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedErrorNodeNameVerifier = {
         expect.that(it).isEqualTo("Could not get unknown property 'abdd' for root project 'project' of type org.gradle.api.Project")
       },
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -182,7 +201,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#getMissingProperty
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -200,11 +220,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
         expect.that(it).startsWith("Could not find method abdd() for arguments [")
         expect.that(it).endsWith("] on extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension")
       },
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -217,7 +240,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -231,14 +255,20 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo(
-          "Could not set unknown property 'abdd' for extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension")
+        expect
+          .that(it)
+          .isEqualTo(
+            "Could not set unknown property 'abdd' for extension 'android' of type com.android.build.gradle.internal.dsl.BaseAppModuleExtension"
+          )
       },
-      expectedPhases = """
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent(),
-      expectedFailureDetailsString = """
+      expectedPhases =
+        """
+        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+        FAILURE : SYNC_TOTAL
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -251,7 +281,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
               at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#setMissingProperty
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 }

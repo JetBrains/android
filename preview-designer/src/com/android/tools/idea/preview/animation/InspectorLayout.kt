@@ -20,10 +20,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Stroke
 
-/**
- * Layout sizes for Animation Inspector. All sizes are in px. TODO Check how layout is resized and
- * scale it appropriately if needed.
- */
+/** Layout sizes for Animation Inspector. All sizes are in px. TODO Check how layout is resized and scale it appropriately if needed. */
 @Suppress("JbUiStored")
 object InspectorLayout {
 
@@ -36,14 +33,7 @@ object InspectorLayout {
     boxedLabelOffset = JBUI.scale(6)
     labelOffset = JBUI.scale(10)
     dashedStroke =
-      BasicStroke(
-        JBUI.scale(1).toFloat(),
-        BasicStroke.CAP_BUTT,
-        BasicStroke.JOIN_BEVEL,
-        0f,
-        floatArrayOf(JBUI.scale(3).toFloat()),
-        0f,
-      )
+      BasicStroke(JBUI.scale(1).toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f, floatArrayOf(JBUI.scale(3).toFloat()), 0f)
     simpleStroke = BasicStroke(JBUI.scale(1).toFloat())
     freezeLineStroke = BasicStroke(JBUI.scale(3).toFloat())
     colorButtonOffset = JBUI.scale(5)
@@ -87,16 +77,10 @@ object InspectorLayout {
   /** Scaled offset from the bottom of the row to the curve. */
   fun curveBottomOffset() = JBUI.scale(CURVE_BOTTOM_OFFSET)
 
-  /**
-   * Height of the animation inspector timeline header, i.e. Transition Properties panel title and
-   * timeline labels.
-   */
+  /** Height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels. */
   const val TIMELINE_HEADER_HEIGHT = 25
 
-  /**
-   * Scaled height of the animation inspector timeline header, i.e. Transition Properties panel
-   * title and timeline labels.
-   */
+  /** Scaled height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels. */
   fun timelineHeaderHeightScaled() = JBUI.scale(TIMELINE_HEADER_HEIGHT)
 
   /** Vertical margin for labels. */

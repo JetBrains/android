@@ -39,33 +39,25 @@ import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [AddComposeCompilerGradlePluginProcessor]
- */
+/** Tests for [AddComposeCompilerGradlePluginProcessor] */
 class AddComposeCompilerGradlePluginProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
-  /**
-   * Test case when the Compose Compiler Gradle plugin is added to the buildscript classpath
-   */
+  /** Test case when the Compose Compiler Gradle plugin is added to the buildscript classpath */
   @Test
   fun testBuildscriptClasspath() {
     projectRule.loadProject(SIMPLE_APPLICATION)
     val module = project.findAppModule()
-    val processor =
-      AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
+    val processor = AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
     // Check that the plugin has not already been added to buildscript classpath
     var projectBuildModel = ProjectBuildModel.get(project)
-    var pluginFromBuildscriptClasspath =
-      getPluginFromBuildscriptClasspath(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
+    var pluginFromBuildscriptClasspath = getPluginFromBuildscriptClasspath(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
     assertThat(pluginFromBuildscriptClasspath).isNull()
     // Check that the plugin has not already been applied to the app module
-    var pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    var pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNull()
 
     // Run processor and verify expected usages
@@ -73,34 +65,27 @@ class AddComposeCompilerGradlePluginProcessorTest {
 
     // Assert that the dependency was added to the buildscript classpath
     projectBuildModel = ProjectBuildModel.get(project)
-    pluginFromBuildscriptClasspath =
-      getPluginFromBuildscriptClasspath(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
+    pluginFromBuildscriptClasspath = getPluginFromBuildscriptClasspath(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
     assertThat(pluginFromBuildscriptClasspath).isNotNull()
     // Assert that the plugin was applied to the app module
-    pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNotNull()
   }
 
-  /**
-   * Test case when the Compose Compiler Gradle plugin is added to the root build file's plugins
-   * block.
-   */
+  /** Test case when the Compose Compiler Gradle plugin is added to the root build file's plugins block. */
   @Test
   fun testPluginsBlock() {
     projectRule.loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
 
     val module = project.findAppModule()
-    val processor =
-      AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
+    val processor = AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
     // Check that the plugin has not already been added to the plugins block
     var projectBuildModel = ProjectBuildModel.get(project)
     var pluginFromPluginsBlock = getPluginFromPluginsBlock(projectBuildModel)
     assertThat(pluginFromPluginsBlock).isNull()
     // Check that the plugin has not already been applied to the app module
-    var pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    var pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNull()
 
     // Run processor and verify expected usages
@@ -108,41 +93,30 @@ class AddComposeCompilerGradlePluginProcessorTest {
 
     // Assert that the dependency was added to the plugins block
     projectBuildModel = ProjectBuildModel.get(project)
-    pluginFromPluginsBlock =
-      getPluginFromPluginsBlock(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
+    pluginFromPluginsBlock = getPluginFromPluginsBlock(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
     assertThat(pluginFromPluginsBlock).isNotNull()
     // Assert that the plugin was applied to the app module
-    pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNotNull()
   }
 
-  /**
-   * Test case when the Compose Compiler Gradle plugin is added to the root build file's plugins
-   * block and version catalog is used.
-   */
+  /** Test case when the Compose Compiler Gradle plugin is added to the root build file's plugins block and version catalog is used. */
   @Test
   fun testPluginsBlockWithVersionCatalog() {
     projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG)
 
     val module = project.findAppModule()
-    val processor =
-      AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
+    val processor = AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
     // Check that the plugin has not already been added to the plugins block
     var projectBuildModel = ProjectBuildModel.get(project)
     var pluginsFromPluginsBlock = getPluginFromPluginsBlock(projectBuildModel)
     assertThat(pluginsFromPluginsBlock).isNull()
     // Check that the plugin has not already been applied to the app module
-    var pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    var pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNull()
     // Check that the plugin has not already been added to the version catalog
-    checkVersionCatalog(
-      projectBuildModel,
-      expectedKotlinVersion = null,
-      shouldHaveComposeCompilerGradlePlugin = false
-    )
+    checkVersionCatalog(projectBuildModel, expectedKotlinVersion = null, shouldHaveComposeCompilerGradlePlugin = false)
 
     // Run processor and verify expected usages
     runProcessor(processor)
@@ -152,21 +126,13 @@ class AddComposeCompilerGradlePluginProcessorTest {
     pluginsFromPluginsBlock = getPluginFromPluginsBlock(projectBuildModel)
     assertThat(pluginsFromPluginsBlock).isNotNull()
     // Assert that the plugin was applied to the app module
-    pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNotNull()
     // Assert that the version catalog has been updated
-    checkVersionCatalog(
-      projectBuildModel,
-      expectedKotlinVersion = KOTLIN_VERSION_FOR_TESTS,
-      shouldHaveComposeCompilerGradlePlugin = true
-    )
+    checkVersionCatalog(projectBuildModel, expectedKotlinVersion = KOTLIN_VERSION_FOR_TESTS, shouldHaveComposeCompilerGradlePlugin = true)
   }
 
-  /**
-   * Test case when the Compose Compiler Gradle plugin is added to the root settings file's
-   * pluginManagement block.
-   */
+  /** Test case when the Compose Compiler Gradle plugin is added to the root settings file's pluginManagement block. */
   @Test
   fun testPluginManagementBlock() {
     projectRule.loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
@@ -177,21 +143,17 @@ class AddComposeCompilerGradlePluginProcessorTest {
       .pluginManagement()
       .plugins()
       .applyPlugin("org.jetbrains.kotlin.android", KOTLIN_VERSION_FOR_TESTS, apply = false)
-    WriteCommandAction.runWriteCommandAction(project) {
-      projectBuildModel.applyChanges()
-    }
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
 
     val module = project.findAppModule()
-    val processor =
-      AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
+    val processor = AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
     // Check that the plugin has not already been added to the pluginManagement block
     projectBuildModel = ProjectBuildModel.get(project)
     var pluginFromPluginManagement = getPluginFromPluginManagementBlock(projectBuildModel)
     assertThat(pluginFromPluginManagement).isNull()
     // Check that the plugin has not already been applied to the app module
-    var pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    var pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNull()
 
     // Run processor and verify expected usages
@@ -199,18 +161,14 @@ class AddComposeCompilerGradlePluginProcessorTest {
 
     // Assert that the dependency was added to the pluginManagement block
     projectBuildModel = ProjectBuildModel.get(project)
-    pluginFromPluginManagement =
-      getPluginFromPluginManagementBlock(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
+    pluginFromPluginManagement = getPluginFromPluginManagementBlock(projectBuildModel, KOTLIN_VERSION_FOR_TESTS)
     assertThat(pluginFromPluginManagement).isNotNull()
     // Assert that the plugin was applied to the app module
-    pluginFromModule =
-      projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
+    pluginFromModule = projectBuildModel.getModuleBuildModel(module)?.let { getPluginFromModule(it) }
     assertThat(pluginFromModule).isNotNull()
   }
 
-  /**
-   * Run the processor and verify expected usages
-   */
+  /** Run the processor and verify expected usages */
   private fun runProcessor(processor: AddComposeCompilerGradlePluginProcessor) {
     // Verify expected usages
     val usages = runReadAction { processor.findUsages() }
@@ -218,112 +176,70 @@ class AddComposeCompilerGradlePluginProcessorTest {
 
     // Perform refactoring
     var synced = false
-    GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        synced = true
-      }
-    }, projectRule.fixture.testRootDisposable)
-    WriteCommandAction.runWriteCommandAction(project) {
-      processor.updateProjectBuildModel()
-    }
+    GradleSyncState.subscribe(
+      project,
+      object : GradleSyncListener {
+        override fun syncSucceeded(project: Project) {
+          synced = true
+        }
+      },
+      projectRule.fixture.testRootDisposable,
+    )
+    WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel() }
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN)
 
     // Assert that sync succeeded
     assertThat(synced).isTrue()
   }
 
-  /**
-   * Return the Compose Compiler Gradle plugin model if it's been added to the
-   * top-level plugins block, or null if not
-   */
+  /** Return the Compose Compiler Gradle plugin model if it's been added to the top-level plugins block, or null if not */
   private fun getPluginFromPluginsBlock(projectBuildModel: ProjectBuildModel): PluginModel? =
-    projectBuildModel.projectBuildModel!!
-      .plugins()
-      .firstOrNull { it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" }
+    projectBuildModel.projectBuildModel!!.plugins().firstOrNull { it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" }
 
   /**
-   * Return the Compose Compiler Gradle plugin model if it's been added to the
-   * top-level plugins block with the given version, or null if not
+   * Return the Compose Compiler Gradle plugin model if it's been added to the top-level plugins block with the given version, or null if
+   * not
    */
-  private fun getPluginFromPluginsBlock(
-    projectBuildModel: ProjectBuildModel,
-    version: String
-  ): PluginModel? =
-    projectBuildModel.projectBuildModel!!
-      .plugins()
-      .firstOrNull {
-        it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" &&
-        it.version().valueAsString() == version
-      }
+  private fun getPluginFromPluginsBlock(projectBuildModel: ProjectBuildModel, version: String): PluginModel? =
+    projectBuildModel.projectBuildModel!!.plugins().firstOrNull {
+      it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" && it.version().valueAsString() == version
+    }
+
+  /** Return the Compose Compiler Gradle plugin model if it's been added to the pluginManagement block, or null if not */
+  private fun getPluginFromPluginManagementBlock(projectBuildModel: ProjectBuildModel): PluginModel? =
+    projectBuildModel.projectSettingsModel!!.pluginManagement().plugins().plugins().firstOrNull {
+      it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose"
+    }
 
   /**
-   * Return the Compose Compiler Gradle plugin model if it's been added to the
-   * pluginManagement block, or null if not
+   * Return the Compose Compiler Gradle plugin model if it's been added to the pluginManagement block with the given version, or null if not
    */
-  private fun getPluginFromPluginManagementBlock(
-    projectBuildModel: ProjectBuildModel
-  ): PluginModel? =
-    projectBuildModel.projectSettingsModel!!
-      .pluginManagement()
-      .plugins()
-      .plugins()
-      .firstOrNull { it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" }
+  private fun getPluginFromPluginManagementBlock(projectBuildModel: ProjectBuildModel, version: String): PluginModel? =
+    projectBuildModel.projectSettingsModel!!.pluginManagement().plugins().plugins().firstOrNull {
+      it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" && it.version().valueAsString() == version
+    }
 
-  /**
-   * Return the Compose Compiler Gradle plugin model if it's been added to the
-   * pluginManagement block with the given version, or null if not
-   */
-  private fun getPluginFromPluginManagementBlock(
-    projectBuildModel: ProjectBuildModel,
-    version: String
-  ): PluginModel? =
-    projectBuildModel.projectSettingsModel!!
-      .pluginManagement()
-      .plugins()
-      .plugins()
-      .firstOrNull {
-        it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" &&
-        it.version().valueAsString() == version
-      }
-
-  /**
-   * Return the Compose Compiler Gradle plugin dependency model if it's been added to the
-   * buildscript classpath, or null if not
-   */
-  private fun getPluginFromBuildscriptClasspath(
-    projectBuildModel: ProjectBuildModel,
-    version: String
-  ): ArtifactDependencyModel? =
-    projectBuildModel.projectBuildModel!!
-      .buildscript()
-      .dependencies()
-      .artifacts("classpath")
-      .firstOrNull {
-        it.group().valueAsString() == "org.jetbrains.kotlin" &&
+  /** Return the Compose Compiler Gradle plugin dependency model if it's been added to the buildscript classpath, or null if not */
+  private fun getPluginFromBuildscriptClasspath(projectBuildModel: ProjectBuildModel, version: String): ArtifactDependencyModel? =
+    projectBuildModel.projectBuildModel!!.buildscript().dependencies().artifacts("classpath").firstOrNull {
+      it.group().valueAsString() == "org.jetbrains.kotlin" &&
         it.name().valueAsString() == "compose-compiler-gradle-plugin" &&
         it.version().unresolvedModel.valueAsString() == version
-      }
+    }
 
-  /**
-   * Return the Compose Compiler Gradle plugin model if it's applied to the module, or null if not
-   */
+  /** Return the Compose Compiler Gradle plugin model if it's applied to the module, or null if not */
   private fun getPluginFromModule(moduleBuildModel: GradleBuildModel): PluginModel? =
-    moduleBuildModel.appliedPlugins()
-      .firstOrNull { it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" }
+    moduleBuildModel.appliedPlugins().firstOrNull { it.name().valueAsString() == "org.jetbrains.kotlin.plugin.compose" }
 
-  /**
-   * Verify version catalog
-   */
+  /** Verify version catalog */
   private fun checkVersionCatalog(
     projectBuildModel: ProjectBuildModel,
     expectedKotlinVersion: String?,
-    shouldHaveComposeCompilerGradlePlugin: Boolean
+    shouldHaveComposeCompilerGradlePlugin: Boolean,
   ) {
     val versionCatalogModel = DependenciesHelper.getDefaultCatalogModel(projectBuildModel)
-    assertThat(versionCatalogModel?.versionDeclarations()?.getAll()?.get("kotlin")?.compactNotation())
-      .isEqualTo(expectedKotlinVersion)
-    val composeCompilerGradlePlugin =
-      versionCatalogModel?.pluginDeclarations()?.getAll()?.get("kotlin-compose")
+    assertThat(versionCatalogModel?.versionDeclarations()?.getAll()?.get("kotlin")?.compactNotation()).isEqualTo(expectedKotlinVersion)
+    val composeCompilerGradlePlugin = versionCatalogModel?.pluginDeclarations()?.getAll()?.get("kotlin-compose")
     assertThat(composeCompilerGradlePlugin != null).isEqualTo(shouldHaveComposeCompilerGradlePlugin)
   }
 }

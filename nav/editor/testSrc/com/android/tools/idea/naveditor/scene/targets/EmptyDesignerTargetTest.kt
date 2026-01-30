@@ -50,8 +50,7 @@ class EmptyDesignerTargetTest : NavTestCase() {
     whenever(actionManager.getPopupMenuActions(any(), any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList()))
-      .thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
 
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!

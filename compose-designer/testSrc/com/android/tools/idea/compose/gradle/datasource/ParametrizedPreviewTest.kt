@@ -43,7 +43,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
@@ -78,48 +77,36 @@ class ParametrizedPreviewTest {
     val project = projectRule.project
 
     val parametrizedPreviews =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        project.guessProjectDir(),
-      ) ?: throw RuntimeException("Cannot find relative file")
+      VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path, project.guessProjectDir())
+        ?: throw RuntimeException("Cannot find relative file")
 
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestWithProvider" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestWithProvider"
+            }
           )
           .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
-        assertTrue(
-          renderPreviewElementForResult(facet, parametrizedPreviews, it)
-            .future
-            .get()
-            ?.renderResult
-            ?.isSuccess ?: false
-        )
+        assertTrue(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get()?.renderResult?.isSuccess ?: false)
       }
     }
 
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestWithProviderInExpression" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestWithProviderInExpression"
+            }
           )
           .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
-        assertTrue(
-          renderPreviewElementForResult(facet, parametrizedPreviews, it)
-            .future
-            .get()
-            ?.renderResult
-            ?.isSuccess ?: false
-        )
+        assertTrue(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get()?.renderResult?.isSuccess ?: false)
       }
     }
 
@@ -127,20 +114,15 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestLorem" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestLorem"
+            }
           )
           .resolve()
       assertEquals(1, elements.count())
 
       elements.forEach {
-        assertTrue(
-          renderPreviewElementForResult(facet, parametrizedPreviews, it)
-            .future
-            .get()
-            ?.renderResult
-            ?.isSuccess ?: false
-        )
+        assertTrue(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get()?.renderResult?.isSuccess ?: false)
       }
     }
 
@@ -148,8 +130,9 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestFailingProvider" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestFailingProvider"
+            }
           )
           .resolve()
       assertEquals(1, elements.count())
@@ -158,10 +141,7 @@ class ParametrizedPreviewTest {
         // Check that we create a SingleComposePreviewElementInstance that fails to render because
         // we'll try to render a composable
         // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
-        assertEquals(
-          "google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD",
-          it.methodFqn,
-        )
+        assertEquals("google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD", it.methodFqn)
         assertTrue(it is SingleComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get())
       }
@@ -171,26 +151,18 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestLargeProvider" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestLargeProvider"
+            }
           )
           .resolve()
 
       assertEquals(11, elements.count())
 
-      assertEquals(
-        listOf("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"),
-        getEnumerationNumberFromPreviewName(elements),
-      )
+      assertEquals(listOf("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"), getEnumerationNumberFromPreviewName(elements))
 
       elements.forEach {
-        assertTrue(
-          renderPreviewElementForResult(facet, parametrizedPreviews, it)
-            .future
-            .get()
-            ?.renderResult
-            ?.isSuccess ?: false
-        )
+        assertTrue(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get()?.renderResult?.isSuccess ?: false)
       }
     }
 
@@ -198,8 +170,9 @@ class ParametrizedPreviewTest {
     run {
       val elements =
         StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestEmptyProvider" }
+            AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+              it.displaySettings.name == "TestEmptyProvider"
+            }
           )
           .resolve()
           .toList()
@@ -213,10 +186,7 @@ class ParametrizedPreviewTest {
         // Check that we create a ParametrizedComposePreviewElementInstance that fails to render
         // because
         // we'll try to render a composable with an empty sequence defined in ParametrizedPreviews
-        assertEquals(
-          "google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider",
-          it.methodFqn,
-        )
+        assertEquals("google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider", it.methodFqn)
         assertTrue(it is ParametrizedComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(facet, parametrizedPreviews, it).future.get())
       }
@@ -228,40 +198,31 @@ class ParametrizedPreviewTest {
     val project = projectRule.project
 
     val parametrizedPreviews =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        project.guessProjectDir(),
-      ) ?: throw RuntimeException("Cannot find relative file")
+      VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path, project.guessProjectDir())
+        ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
     val elements =
       StaticPreviewProvider(
-          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-            .filter { it.displaySettings.name == "TestWithProvider" }
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+            it.displaySettings.name == "TestWithProvider"
+          }
         )
         .resolve()
     assertEquals(3, elements.count())
 
-    val mainSurface =
-      NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
+    val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-        composeView
-      }
+    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
 
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance<*>
-    composeView.runAndWaitForRefresh {
-      preview.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
-    }
+    composeView.runAndWaitForRefresh { preview.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))) }
 
-    assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
-      preview.uiCheckFilterFlow.value
-    )
+    assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(preview.uiCheckFilterFlow.value)
 
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
@@ -295,40 +256,34 @@ class ParametrizedPreviewTest {
       )
       .inOrder()
 
-    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
-      "Failed waiting to start UI check mode",
-      5.seconds,
-    ) {
+    preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed waiting to start UI check mode", 5.seconds) {
       val stringValue =
-        it
-          .asCollection()
-          .filterIsInstance<ParametrizedComposePreviewElementInstance<*>>()
-          .joinToString("\n") {
-            "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
-          }
+        it.asCollection().filterIsInstance<ParametrizedComposePreviewElementInstance<*>>().joinToString("\n") {
+          "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
+        }
 
       stringValue ==
         """
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
-          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
         """
           .trimIndent()
     }
@@ -342,20 +297,14 @@ class ParametrizedPreviewTest {
     val project = projectRule.project
 
     val parametrizedPreviews =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        project.guessProjectDir(),
-      ) ?: throw RuntimeException("Cannot find relative file")
+      VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path, project.guessProjectDir())
+        ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
-    val mainSurface =
-      NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
+    val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-        composeView
-      }
+    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -363,10 +312,9 @@ class ParametrizedPreviewTest {
 
     val elements =
       StaticPreviewProvider(
-          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-            .filter {
-              it.displaySettings.organizationName == "TestWithProviderMultiplePreviewsAnnotation"
-            }
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+            it.displaySettings.organizationName == "TestWithProviderMultiplePreviewsAnnotation"
+          }
         )
         .resolve()
     assertEquals(6, elements.count())
@@ -374,9 +322,7 @@ class ParametrizedPreviewTest {
     assertThat(
         preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
           .asCollection()
-          .filter {
-            it.displaySettings.organizationName == "TestWithProviderMultiplePreviewsAnnotation"
-          }
+          .filter { it.displaySettings.organizationName == "TestWithProviderMultiplePreviewsAnnotation" }
           .map { it.displaySettings.name }
       )
       .containsExactly(
@@ -395,28 +341,23 @@ class ParametrizedPreviewTest {
     val project = projectRule.project
 
     val parametrizedPreviews =
-      VfsUtil.findRelativeFile(
-        SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
-        project.guessProjectDir(),
-      ) ?: throw RuntimeException("Cannot find relative file")
+      VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path, project.guessProjectDir())
+        ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
     val elements =
       StaticPreviewProvider(
-          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews)
-            .filter { it.displaySettings.organizationName == "TestWithProviderMultiplePreviews" }
+          AnnotationFilePreviewElementFinder.findPreviewElements(project, parametrizedPreviews).filter {
+            it.displaySettings.organizationName == "TestWithProviderMultiplePreviews"
+          }
         )
         .resolve()
     assertEquals(6, elements.count())
 
-    val mainSurface =
-      NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
+    val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-        composeView
-      }
+    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -439,10 +380,8 @@ class ParametrizedPreviewTest {
       .inOrder()
   }
 
-  private suspend fun PreviewElementProvider<PsiComposePreviewElement>.resolve() =
-    this.previewElements().flatMap { it.resolve() }.toList()
+  private suspend fun PreviewElementProvider<PsiComposePreviewElement>.resolve() = this.previewElements().flatMap { it.resolve() }.toList()
 
-  private fun getEnumerationNumberFromPreviewName(
-    elements: List<ComposePreviewElementInstance<*>>
-  ) = elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }
+  private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance<*>>) =
+    elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }
 }

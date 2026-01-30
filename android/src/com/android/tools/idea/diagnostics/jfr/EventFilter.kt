@@ -23,14 +23,16 @@ interface EventFilter {
   companion object {
     val SAMPLING_EVENT_NAMES = setOf("jdk.ExecutionSample", "jdk.NativeMethodSample")
 
-    val CPU_SAMPLES = object: EventFilter {
-      override fun accepts(event: RecordedEvent): Boolean {
-        return event.eventType.name in SAMPLING_EVENT_NAMES
+    val CPU_SAMPLES =
+      object : EventFilter {
+        override fun accepts(event: RecordedEvent): Boolean {
+          return event.eventType.name in SAMPLING_EVENT_NAMES
+        }
       }
-    }
 
-    val ALL = object: EventFilter {
-      override fun accepts(event: RecordedEvent) = true
-    }
+    val ALL =
+      object : EventFilter {
+        override fun accepts(event: RecordedEvent) = true
+      }
   }
 }

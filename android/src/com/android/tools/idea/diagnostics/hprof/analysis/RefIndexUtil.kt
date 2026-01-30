@@ -20,9 +20,7 @@ import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
 
 object RefIndexUtil {
 
-  fun getFieldDescription(refIndex: Int,
-                          classDefinition: ClassDefinition?,
-                          classStore: ClassStore): String? {
+  fun getFieldDescription(refIndex: Int, classDefinition: ClassDefinition?, classStore: ClassStore): String? {
     return when (refIndex) {
       ROOT -> "(root)"
       SOFT_REFERENCE -> "(soft)"

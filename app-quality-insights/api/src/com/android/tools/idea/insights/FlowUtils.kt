@@ -18,11 +18,10 @@ package com.android.tools.idea.insights
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-fun <T, R> Flow<T>.fold(initial: R, operation: suspend (accumulator: R, value: T) -> R): Flow<R> =
-  flow {
-    var accumulator: R = initial
-    collect { value ->
-      accumulator = operation(accumulator, value)
-      emit(accumulator)
-    }
+fun <T, R> Flow<T>.fold(initial: R, operation: suspend (accumulator: R, value: T) -> R): Flow<R> = flow {
+  var accumulator: R = initial
+  collect { value ->
+    accumulator = operation(accumulator, value)
+    emit(accumulator)
   }
+}

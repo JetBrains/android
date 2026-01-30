@@ -38,9 +38,7 @@ class CodeEditingActionTest {
     }
 
     for (simpleAction in CodeEditingAction.SimpleCodeEditingAction::class.sealedSubclasses) {
-      val instance =
-        simpleAction.objectInstance
-          ?: throw AssertionError("${simpleAction.simpleName} must be a singleton object")
+      val instance = simpleAction.objectInstance ?: throw AssertionError("${simpleAction.simpleName} must be a singleton object")
       assertThat(instance.getCodeEditedEvents(ADDED, REMOVED))
         .containsExactly(CodeEdited(ADDED.length, REMOVED.length, instance.toSource()))
     }
@@ -57,9 +55,6 @@ class CodeEditingActionTest {
     assertThat(CodeEditingAction.NewLine.getCodeEditedEvents(ADDED, REMOVED))
       .containsExactly(CodeEdited(ADDED.length, REMOVED.length, Source.IDE_ACTION))
     assertThat(CodeEditingAction.NewLine.getCodeEditedEvents("\n$ADDED", REMOVED))
-      .containsExactly(
-        CodeEdited(1, REMOVED.length, Source.TYPING),
-        CodeEdited(ADDED.length, 0, Source.IDE_ACTION),
-      )
+      .containsExactly(CodeEdited(1, REMOVED.length, Source.TYPING), CodeEdited(ADDED.length, 0, Source.IDE_ACTION))
   }
 }

@@ -20,10 +20,7 @@ import com.intellij.openapi.application.ApplicationInfo
 import java.awt.Dimension
 import layoutinspector.snapshots.Metadata
 
-/**
- * Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used
- * for metrics logging.
- */
+/** Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used for metrics logging. */
 class SnapshotMetadata(
   val snapshotVersion: ProtocolVersion,
   val apiLevel: Int? = null,
@@ -82,8 +79,7 @@ class SnapshotMetadata(
 
 /** Convert from the proto saved in a snapshot to a normal object. */
 fun Metadata.convert(version: ProtocolVersion): SnapshotMetadata {
-  val screenDimension =
-    Dimension(screenWidth, screenHeight).takeIf { screenWidth > 0 && screenHeight > 0 }
+  val screenDimension = Dimension(screenWidth, screenHeight).takeIf { screenWidth > 0 && screenHeight > 0 }
   return SnapshotMetadata(
     version,
     apiLevel,

@@ -20,8 +20,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 class ResValuesDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.RES_VALUES_DEFAULT
   override val propertyKey = "android.defaults.buildfeatures.resvalues"
@@ -34,15 +35,20 @@ class ResValuesDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefac
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("res-values-default")
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.resValuesDefault"
+
   override fun getCommandName() = AgpUpgradeBundle.message("resValuesDefaultRefactoringProcessor.commandName")
-  override fun getShortDescription() =  """
-  The default value for buildfeatures.resvalues is changing, meaning that
-    the Android Gradle Plugin will no longer generate resValues by default.
-    This processor adds a directive to preserve the previous behavior of generating
-    resValues for all modules; if this project does not use resValues, you
-    can remove the android.defaults.buildfeatures.resvalues property from the
-    project's gradle.properties file after this upgrade.
-  """.trimIndent()
+
+  override fun getShortDescription() =
+    """
+    The default value for buildfeatures.resvalues is changing, meaning that
+      the Android Gradle Plugin will no longer generate resValues by default.
+      This processor adds a directive to preserve the previous behavior of generating
+      resValues for all modules; if this project does not use resValues, you
+      can remove the android.defaults.buildfeatures.resvalues property from the
+      project's gradle.properties file after this upgrade.
+    """
+      .trimIndent()
+
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")
   }

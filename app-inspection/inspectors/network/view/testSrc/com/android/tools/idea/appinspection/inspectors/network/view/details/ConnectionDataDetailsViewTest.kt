@@ -71,11 +71,7 @@ import studio.network.inspection.NetworkInspectorProtocol.StartInspectionRespons
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private val FAKE_RESPONSE_HEADERS =
-  listOf(
-    header("null", "HTTP/1.1 302 Found"),
-    header("Content-Type", "111"),
-    header("Content-Length", "222"),
-  )
+  listOf(header("null", "HTTP/1.1 302 Found"), header("Content-Type", "111"), header("Content-Length", "222"))
 
 val DEFAULT_DATA =
   createFakeHttpData(
@@ -91,10 +87,7 @@ val DEFAULT_DATA =
     method = "GET",
   )
 
-/**
- * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in
- * sorted order.
- */
+/** Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in sorted order. */
 private val TEST_HEADERS =
   mapOf(
     "car" to listOf("car-value"),
@@ -117,11 +110,9 @@ private fun <T : TabContent?> ConnectionDataDetailsView.findTab(tabClass: Class<
 class ConnectionDataDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    override suspend fun startInspection(): StartInspectionResponse =
-      StartInspectionResponse.getDefaultInstance()
+    override suspend fun startInspection(): StartInspectionResponse = StartInspectionResponse.getDefaultInstance()
 
-    override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
-      Unit
+    override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
   }
 
   @get:Rule val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
@@ -145,13 +136,7 @@ class ConnectionDataDetailsViewTest {
     client = TestNetworkInspectorClient()
     tracker = TestNetworkInspectorUsageTracker()
     Disposer.register(disposable, tracker)
-    services =
-      TestNetworkInspectorServices(
-        codeNavigationProvider,
-        timer,
-        client,
-        IdeNetworkInspectorTracker(projectRule.project),
-      )
+    services = TestNetworkInspectorServices(codeNavigationProvider, timer, client, IdeNetworkInspectorTracker(projectRule.project))
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
       NetworkInspectorModel(
@@ -162,26 +147,14 @@ class ConnectionDataDetailsViewTest {
           private val dataList = listOf(DEFAULT_DATA)
 
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-            return dataList.filter {
-              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
-                it.requestStartTimeUs <= timeCurrentRangeUs.max
-            }
+            return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
           }
         },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
 
-    inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        disposable,
-      )
+    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, disposable)
     parentPanel.add(inspectorView.component)
     detailsView = inspectorView.detailsPanel.connectionDataDetailsView
   }
@@ -194,34 +167,21 @@ class ConnectionDataDetailsViewTest {
 
   @Test
   fun viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
-    assertThat(
-        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
-      )
-      .isNull()
+    assertThat(findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())).isNull()
     detailsView.setConnectionData(DEFAULT_DATA)
-    assertThat(
-        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
-      )
-      .isNotNull()
+    assertThat(findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())).isNotNull()
   }
 
   @Test
   fun viewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
     val data = DEFAULT_DATA.copy(requestPayload = ByteString.EMPTY)
     detailsView.setConnectionData(data)
-    assertThat(
-        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
-      )
-      .isNull()
+    assertThat(findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())).isNull()
   }
 
   @Test
   fun requestPayloadHasBothParsedViewAndRawDataView() {
-    val data =
-      createFakeHttpData(
-        1,
-        requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded")),
-      )
+    val data = createFakeHttpData(1, requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded")))
     detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
@@ -233,11 +193,7 @@ class ConnectionDataDetailsViewTest {
     val data =
       createFakeHttpData(
         1,
-        responseHeaders =
-          listOf(
-            header("null", "HTTP/1.1 302 Found"),
-            header("Content-Type", "application/x-www-form-urlencoded"),
-          ),
+        responseHeaders = listOf(header("null", "HTTP/1.1 302 Found"), header("Content-Type", "application/x-www-form-urlencoded")),
       )
     detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
@@ -248,17 +204,14 @@ class ConnectionDataDetailsViewTest {
   @Test
   fun viewerExistsWhenPayloadIsPresent() {
     val data = DEFAULT_DATA
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer())
-      .isNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer()).isNull()
     detailsView.setConnectionData(data)
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer())
-      .isNotNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer()).isNotNull()
   }
 
   @Test
   fun contentTypeHasProperValueFromData() {
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
-      .isNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue()).isNull()
     val data = DEFAULT_DATA
     detailsView.setConnectionData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue()!!
@@ -268,18 +221,15 @@ class ConnectionDataDetailsViewTest {
   @Test
   fun contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
     detailsView.setConnectionData(DEFAULT_DATA.copy(responseHeaders = emptyMap()))
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
-      .isNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue()).isNull()
   }
 
   @Test
   fun initiatingThreadFieldIsPresent() {
     detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(DEFAULT_DATA.threads).hasSize(1)
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findInitiatingThreadValue())
-      .isNotNull()
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue())
-      .isNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findInitiatingThreadValue()).isNotNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue()).isNull()
   }
 
   @Test
@@ -287,8 +237,7 @@ class ConnectionDataDetailsViewTest {
     val data = DEFAULT_DATA.copy(threads = FAKE_THREAD_LIST + listOf(JavaThread(2, "thread2")))
     assertThat(data.threads).hasSize(2)
     detailsView.setConnectionData(data)
-    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue())
-      .isNotNull()
+    assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue()).isNotNull()
   }
 
   @Test
@@ -305,8 +254,7 @@ class ConnectionDataDetailsViewTest {
     val data = DEFAULT_DATA.copy(responsePayload = ByteString.copyFromUtf8("Response payload"))
     detailsView.setConnectionData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()!!
-    assertThat(value.text)
-      .isEqualTo(NumberFormatter.formatFileSize(data.responsePayload.size().toLong()))
+    assertThat(value.text).isEqualTo(NumberFormatter.formatFileSize(data.responsePayload.size().toLong()))
   }
 
   @Test
@@ -342,20 +290,12 @@ class ConnectionDataDetailsViewTest {
   fun expectedDisplayNameForContentTypes() {
     assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType(""))).isEqualTo("")
     assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType(" "))).isEqualTo("")
-    assertThat(
-        HttpDataComponentFactory.getDisplayName(
-          HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")
-        )
-      )
+    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")))
       .isEqualTo("Form Data")
-    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("text/html")))
-      .isEqualTo("HTML")
-    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("application/json")))
-      .isEqualTo("JSON")
-    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("image/jpeg")))
-      .isEqualTo("Image")
-    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("audio/webm")))
-      .isEqualTo("Audio")
+    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("text/html"))).isEqualTo("HTML")
+    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("application/json"))).isEqualTo("JSON")
+    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("image/jpeg"))).isEqualTo("Image")
+    assertThat(HttpDataComponentFactory.getDisplayName(HttpData.ContentType("audio/webm"))).isEqualTo("Audio")
   }
 
   @Test
@@ -363,9 +303,7 @@ class ConnectionDataDetailsViewTest {
     val observer = AspectObserver()
     val stackFramesChangedCount = intArrayOf(0)
     val stackTraceView = detailsView.findTab(CallStackTabContent::class.java)!!.stackTraceView
-    stackTraceView.model.addDependency(observer).onChange(StackTraceModel.Aspect.STACK_FRAMES) {
-      stackFramesChangedCount[0]++
-    }
+    stackTraceView.model.addDependency(observer).onChange(StackTraceModel.Aspect.STACK_FRAMES) { stackFramesChangedCount[0]++ }
     assertThat(stackFramesChangedCount[0]).isEqualTo(0)
     assertThat(stackTraceView.model.codeLocations).hasSize(0)
     detailsView.setConnectionData(DEFAULT_DATA)
@@ -379,20 +317,8 @@ class ConnectionDataDetailsViewTest {
   @Test
   fun sentReceivedLegendRendersCorrectly() {
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, 0, "*", "*")
-    assertExpectedTimingLegends(
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      0,
-      "0 ms",
-      "*",
-    )
-    assertExpectedTimingLegends(
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      TimeUnit.MILLISECONDS.toMicros(2500),
-      0,
-      "1 s 500 ms",
-      "*",
-    )
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(1000), 0, "0 ms", "*")
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(2500), 0, "1 s 500 ms", "*")
     assertExpectedTimingLegends(
       TimeUnit.MILLISECONDS.toMicros(1000),
       TimeUnit.MILLISECONDS.toMicros(3000),
@@ -407,48 +333,21 @@ class ConnectionDataDetailsViewTest {
       "2 s",
       "1 s 234 ms",
     )
-    assertExpectedTimingLegends(
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      0,
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      "0 ms",
-      "0 ms",
-    )
-    assertExpectedTimingLegends(
-      TimeUnit.MILLISECONDS.toMicros(1000),
-      0,
-      TimeUnit.MILLISECONDS.toMicros(2000),
-      "1 s",
-      "0 ms",
-    )
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0 ms", "0 ms")
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1 s", "0 ms")
   }
 
   @Test
   fun trackConnectionComponentSelections() {
-    assertThat(
-        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
-      )
-      .isNull()
+    assertThat(findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())).isNull()
     model.setSelectedConnection(DEFAULT_DATA)
-    tracker.verifyLatestEvent {
-      assertThat(it.type)
-        .isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CONNECTION_DETAIL_SELECTED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CONNECTION_DETAIL_SELECTED) }
     detailsView.selectedIndex = 1
-    tracker.verifyLatestEvent {
-      assertThat(it.type)
-        .isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.RESPONSE_TAB_SELECTED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.RESPONSE_TAB_SELECTED) }
     detailsView.selectedIndex = 2
-    tracker.verifyLatestEvent {
-      assertThat(it.type)
-        .isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.REQUEST_TAB_SELECTED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.REQUEST_TAB_SELECTED) }
     detailsView.selectedIndex = 3
-    tracker.verifyLatestEvent {
-      assertThat(it.type)
-        .isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(AppInspectionEvent.NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED) }
   }
 
   private fun assertExpectedTimingLegends(
@@ -458,16 +357,7 @@ class ConnectionDataDetailsViewTest {
     sentLegend: String,
     receivedLegend: String,
   ) {
-    val data =
-      createFakeHttpData(
-        0,
-        startTimeUs,
-        startTimeUs,
-        downloadingTimeUs,
-        endTimeUs,
-        endTimeUs,
-        url = "unusedUrl",
-      )
+    val data = createFakeHttpData(0, startTimeUs, startTimeUs, downloadingTimeUs, endTimeUs, endTimeUs, url = "unusedUrl")
     detailsView.setConnectionData(data)
     val legendComponent = firstDescendantWithType(detailsView, LegendComponent::class.java)
     val legends: List<Legend> = legendComponent.model.legends
@@ -477,15 +367,11 @@ class ConnectionDataDetailsViewTest {
 }
 
 private fun header(key: String, vararg values: String) =
-  NetworkInspectorProtocol.HttpConnectionEvent.Header.newBuilder()
-    .setKey(key)
-    .addAllValues(values.asList())
-    .build()
+  NetworkInspectorProtocol.HttpConnectionEvent.Header.newBuilder().setKey(key).addAllValues(values.asList()).build()
 
 /**
- * Search for the payload [DataViewer] inside a component returned by [.createBodyComponent]. If
- * this returns `null`, that means no payload viewer was created for it, e.g. the http data instance
- * didn't have a payload and a "No data found" label was returned instead.
+ * Search for the payload [DataViewer] inside a component returned by [.createBodyComponent]. If this returns `null`, that means no payload
+ * viewer was created for it, e.g. the http data instance didn't have a payload and a "No data found" label was returned instead.
  */
 private fun findPayloadViewer(body: JComponent?): JComponent? {
   return if (body == null) {

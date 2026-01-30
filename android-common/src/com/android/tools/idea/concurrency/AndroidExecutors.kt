@@ -31,7 +31,9 @@ import java.util.concurrent.ExecutorService
  * Instances are provided by PicoContainer from calls to [getInstance].
  */
 @Service
-class AndroidExecutors @NonInjectable constructor(
+class AndroidExecutors
+@NonInjectable
+constructor(
   /** Used to schedule work on the UI thread, following IntelliJ threading rules. */
   val uiThreadExecutor: (ModalityState, Runnable) -> Unit,
 
@@ -43,13 +45,14 @@ class AndroidExecutors @NonInjectable constructor(
    *
    * @see AndroidIoManager
    */
-  val diskIoThreadExecutor: Executor
+  val diskIoThreadExecutor: Executor,
 ) {
-  constructor() : this(
-    uiThreadExecutor = { modalityState, code -> ApplicationManager.getApplication().invokeLater(code, modalityState) },
-    workerThreadExecutor = AppExecutorUtil.getAppExecutorService(),
-    diskIoThreadExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
-  )
+  constructor() :
+    this(
+      uiThreadExecutor = { modalityState, code -> ApplicationManager.getApplication().invokeLater(code, modalityState) },
+      workerThreadExecutor = AppExecutorUtil.getAppExecutorService(),
+      diskIoThreadExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor(),
+    )
 
   companion object {
     fun getInstance() = ApplicationManager.getApplication().getService(AndroidExecutors::class.java)!!

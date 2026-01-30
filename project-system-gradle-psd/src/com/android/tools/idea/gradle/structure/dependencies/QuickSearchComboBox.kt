@@ -27,19 +27,13 @@ import com.intellij.ui.LanguageTextField
 import com.intellij.ui.TextFieldWithAutoCompletion
 import com.intellij.util.textCompletion.TextCompletionUtil
 
-fun createQuickSearchComboBox(
-  ideProject: Project,
-  choices: List<String>,
-  importantChoices: List<String>
-)
-  : EditorComboBox {
-  val completionProvider = object : TextFieldWithAutoCompletion.StringsCompletionProvider(choices, null) {
-    override fun createPrefixMatcher(prefix: String): PrefixMatcher = CamelHumpMatcher(
-      prefix)
-  }
+fun createQuickSearchComboBox(ideProject: Project, choices: List<String>, importantChoices: List<String>): EditorComboBox {
+  val completionProvider =
+    object : TextFieldWithAutoCompletion.StringsCompletionProvider(choices, null) {
+      override fun createPrefixMatcher(prefix: String): PrefixMatcher = CamelHumpMatcher(prefix)
+    }
   val documentCreator = TextCompletionUtil.DocumentWithCompletionCreator(completionProvider, true)
-  val document = LanguageTextField.createDocument("", PlainTextLanguage.INSTANCE, ideProject,
-                                                  documentCreator)
+  val document = LanguageTextField.createDocument("", PlainTextLanguage.INSTANCE, ideProject, documentCreator)
   val initialSelection = importantChoices.firstOrNull()
   return object : EditorComboBox(document, ideProject, PlainTextFileType.INSTANCE) {
     // we respond to documentChanged events to set the selected item immediately (see below), since we need the notion of selected item
@@ -55,14 +49,16 @@ fun createQuickSearchComboBox(
     init {
       selectedItem = initialSelection
       importantChoices.forEach { addItem(it) }
-      addDocumentListener(object : DocumentListener {
-        // this documentChanged method keeps the selected item of the Combo in sync with the text in the editor, and has the added effect
-        // of firing an actionPerformed event whenever the document is changed.  (This isn't quite the same behaviour as the JComboBox,
-        // but for our purposes it is adequate).
-        override fun documentChanged(event: DocumentEvent) {
-          selectedItem = text
+      addDocumentListener(
+        object : DocumentListener {
+          // this documentChanged method keeps the selected item of the Combo in sync with the text in the editor, and has the added effect
+          // of firing an actionPerformed event whenever the document is changed.  (This isn't quite the same behaviour as the JComboBox,
+          // but for our purposes it is adequate).
+          override fun documentChanged(event: DocumentEvent) {
+            selectedItem = text
+          }
         }
-      })
+      )
     }
   }
 }

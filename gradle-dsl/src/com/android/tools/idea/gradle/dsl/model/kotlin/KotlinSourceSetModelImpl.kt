@@ -21,12 +21,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 
-class KotlinSourceSetModelImpl(
-  dslElement: KotlinSourceSetDslElement
-) : GradleDslBlockModel(dslElement), KotlinSourceSetModel {
+class KotlinSourceSetModelImpl(dslElement: KotlinSourceSetDslElement) : GradleDslBlockModel(dslElement), KotlinSourceSetModel {
 
   override fun name(): String = myDslElement.name
-
 
   override fun dependencies(): DependenciesModel {
     val dependenciesDslElement = myDslElement.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES)
@@ -34,8 +31,6 @@ class KotlinSourceSetModelImpl(
   }
 
   override fun removeDependencies() {
-    DependenciesDslElement.DEPENDENCIES.name?.let {
-      myDslElement.removeProperty(it)
-    }
+    DependenciesDslElement.DEPENDENCIES.name?.let { myDslElement.removeProperty(it) }
   }
 }

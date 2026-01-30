@@ -23,41 +23,30 @@ data class VariantDetails(
   val name: String,
   val buildType: String,
 
-  /**
-   * Dimension name to flavor name pairs in the dimension order. emptyList() if there is no flavors or dimensions defined.
-   */
+  /** Dimension name to flavor name pairs in the dimension order. emptyList() if there is no flavors or dimensions defined. */
   val flavors: List<Pair<String, String>>,
 
-  /**
-   * The abi or null if there is no native code in the module.
-   */
-  val abi: String?
+  /** The abi or null if there is no native code in the module. */
+  val abi: String?,
 ) : Serializable
 
 data class VariantSelectionChange(
-  /**
-   * The name of the build type in the diffed variant if different from the build type name in the base variant.
-   */
+  /** The name of the build type in the diffed variant if different from the build type name in the base variant. */
   val buildType: String? = null,
 
-  /**
-   * Pairs of the dimension and flavor names which are different in the diffed variant when compared with the base variant.
-   */
+  /** Pairs of the dimension and flavor names which are different in the diffed variant when compared with the base variant. */
   val flavors: Map<String, String> = emptyMap(),
 
-  /**
-   * The abi if changed.
-   */
-  val abi: String? = null
+  /** The abi if changed. */
+  val abi: String? = null,
 ) {
-  val isEmpty: Boolean get() = buildType == null && flavors.isEmpty()
+  val isEmpty: Boolean
+    get() = buildType == null && flavors.isEmpty()
 
   companion object {
     val EMPTY = VariantSelectionChange()
 
-    /**
-     * Extracts the dimensions and values that differ between two compatible variants [from] and [to].
-     */
+    /** Extracts the dimensions and values that differ between two compatible variants [from] and [to]. */
     fun extractVariantSelectionChange(to: VariantDetails, from: VariantDetails?): VariantSelectionChange? {
       // We cannot process variant changes when variant definitions changed.
       if (to.flavors.map { it.first } != from?.flavors?.map { it.first }) return null
@@ -66,7 +55,7 @@ data class VariantSelectionChange(
       return VariantSelectionChange(
         buildType = to.buildType.takeUnless { it == from.buildType },
         flavors = to.flavors.filter { (dimension, newFlavor) -> otherFlavors[dimension] != newFlavor }.toMap(),
-        abi = to.abi.takeUnless { it == from.abi }
+        abi = to.abi.takeUnless { it == from.abi },
       )
     }
   }
@@ -77,21 +66,19 @@ fun createVariantDetailsFrom(dimensions: Collection<String>, variant: IdeVariant
     variant.name,
     variant.buildType,
     if (dimensions.size == variant.productFlavors.size) dimensions.zip(variant.productFlavors) else emptyList(),
-    abi
+    abi,
   )
 
-enum class ApplyAbiSelectionMode { ALWAYS, OVERRIDE_ONLY }
+enum class ApplyAbiSelectionMode {
+  ALWAYS,
+  OVERRIDE_ONLY,
+}
 
 fun VariantDetails.applyChange(selectionChange: VariantSelectionChange, applyAbiMode: ApplyAbiSelectionMode): VariantDetails {
   val newBuildType = selectionChange.buildType ?: buildType
   val newFlavors = flavors.map { (dimension, flavor) -> dimension to (selectionChange.flavors[dimension] ?: flavor) }
   val newAbi = selectionChange.abi?.takeIf { applyAbiMode == ApplyAbiSelectionMode.ALWAYS || abi != null } ?: abi
-  return VariantDetails(
-    buildVariantName(newBuildType, newFlavors.asSequence().map { it.second }),
-    newBuildType,
-    newFlavors,
-    newAbi
-  )
+  return VariantDetails(buildVariantName(newBuildType, newFlavors.asSequence().map { it.second }), newBuildType, newFlavors, newAbi)
 }
 
 fun buildVariantName(buildType: String, flavors: Sequence<String>): String {

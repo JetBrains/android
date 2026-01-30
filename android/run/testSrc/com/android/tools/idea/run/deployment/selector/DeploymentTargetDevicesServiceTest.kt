@@ -33,6 +33,7 @@ import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import icons.StudioIcons
+import java.util.EnumSet
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,7 +46,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.Test
 import org.mockito.kotlin.mock
-import java.util.EnumSet
 
 class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestCase() {
   companion object {
@@ -64,19 +64,11 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
     val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
     val templatesFlow = MutableStateFlow(emptyList<DeviceTemplate>())
     val clock = TestClock()
-    val ddmlibDeviceLookupFlow =
-      MutableStateFlow(mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>())
+    val ddmlibDeviceLookupFlow = MutableStateFlow(mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>())
     val launchCompatibilityCheckerFlow = MutableSharedFlow<LaunchCompatibilityChecker>(replay = 1)
 
     internal val devicesService =
-      DeploymentTargetDevicesService(
-        scope,
-        devicesFlow,
-        templatesFlow,
-        clock,
-        ddmlibDeviceLookupFlow,
-        launchCompatibilityCheckerFlow,
-      )
+      DeploymentTargetDevicesService(scope, devicesFlow, templatesFlow, clock, ddmlibDeviceLookupFlow, launchCompatibilityCheckerFlow)
 
     suspend fun sendLaunchCompatibility() {
       launchCompatibilityCheckerFlow.emit(
@@ -142,17 +134,14 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
   fun deviceHandleActivationActionState() = runTestWithFixture {
     val id = handleId("1")
     val deviceHandle = FakeDeviceHandle(scope, null, id)
-    deviceHandle.activationAction.presentation.update {
-      it.copy(enabled = false, detail = "Error 12")
-    }
+    deviceHandle.activationAction.presentation.update { it.copy(enabled = false, detail = "Error 12") }
     devicesFlow.value = listOf(deviceHandle)
     sendLaunchCompatibility()
 
     var device = devicesService.loadedDevices.first { it.isNotEmpty() }.first()
     assertThat(device.id).isEqualTo(id)
     assertThat(device.connectionTime).isNull()
-    assertThat(device.launchCompatibility)
-      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 12"))
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 12"))
 
     deviceHandle.activationAction.presentation.update { it.copy(enabled = true, detail = null) }
     testScope.advanceUntilIdle()
@@ -177,27 +166,20 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
     val handle = FakeDeviceHandle(scope, template, id)
     devicesFlow.value = listOf(handle)
 
-    devices =
-      devicesService.loadedDevices.first {
-        it.any { it.androidDevice is DeviceHandleAndroidDevice }
-      }
+    devices = devicesService.loadedDevices.first { it.any { it.androidDevice is DeviceHandleAndroidDevice } }
     assertThat(devices).hasSize(1)
     device = devices.first()
     assertThat(device.id).isEqualTo(id)
     assertThat(device.templateId).isEqualTo(templateId)
   }
 
-  private data class TestDeviceError(
-    override val severity: DeviceError.Severity,
-    override val message: String,
-  ) : DeviceError
+  private data class TestDeviceError(override val severity: DeviceError.Severity, override val message: String) : DeviceError
 
   @Test
   fun deviceTemplateState() = runTestWithFixture {
     val templateId = templateId("1")
     val template = FakeDeviceTemplate(templateId)
-    template.stateFlow.value =
-      TemplateState(error = TestDeviceError(DeviceError.Severity.ERROR, "Error"))
+    template.stateFlow.value = TemplateState(error = TestDeviceError(DeviceError.Severity.ERROR, "Error"))
     templatesFlow.value = listOf(template)
     sendLaunchCompatibility()
 
@@ -227,8 +209,7 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
     var devices = devicesService.loadedDevices.first { it.isNotEmpty() }
     var device = devices.first()
     assertThat(device.id).isEqualTo(templateId)
-    assertThat(device.launchCompatibility)
-      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 42"))
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Error 42"))
 
     // Clear the error; launch compatibility should become OK
     template.activationAction.presentation.update { it.copy(enabled = true, detail = null) }
@@ -238,14 +219,11 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
     assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility.YES)
 
     // Now the user launches the device; it becomes not runnable momentarily
-    template.activationAction.presentation.update {
-      it.copy(enabled = false, detail = "Already activating")
-    }
+    template.activationAction.presentation.update { it.copy(enabled = false, detail = "Already activating") }
     testScope.advanceUntilIdle()
 
     device = devicesService.loadedDevices.first().first()
-    assertThat(device.launchCompatibility)
-      .isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Already activating"))
+    assertThat(device.launchCompatibility).isEqualTo(LaunchCompatibility(LaunchCompatibility.State.ERROR, "Already activating"))
 
     // Once the template state flow updates to reflect that it is activating, it becomes OK again
     template.stateFlow.update { it.copy(isActivating = true) }

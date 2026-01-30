@@ -27,8 +27,7 @@ import org.junit.Test
 
 class InvalidComplicationDataSourceLocationInspectionTest {
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private val fixture
@@ -38,8 +37,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
     fixture.enableInspections(inspection)
   }
 
@@ -55,7 +53,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="[COMPLICATION.RANGED_VALUE_MAX]" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -74,7 +72,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         <WatchFace>
           <Parameter expression="<error descr="Complication data sources must be used within a <Complication> tag">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -96,7 +94,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -117,7 +115,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -138,7 +136,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="<error descr="This complication data source can only be used in complications with the following type(s): \"RANGED_VALUE\"">[COMPLICATION.RANGED_VALUE_MAX]</error>" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -149,10 +147,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
 
   @Test
   fun `errors are not reported when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     val watchFaceFile =
       fixture.addFileToProject(
         "res/raw/watch_face.xml",
@@ -161,7 +156,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
         <WatchFace>
           <Parameter expression="[COMPLICATION.RANGED_VALUE_MAX]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -189,7 +184,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -210,7 +205,7 @@ class InvalidComplicationDataSourceLocationInspectionTest {
             <Parameter expression="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
           </Complication>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 

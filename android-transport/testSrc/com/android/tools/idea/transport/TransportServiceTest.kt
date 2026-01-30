@@ -20,25 +20,20 @@ import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
-import com.android.tools.idea.transport.TransportServiceUtils
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
-import java.io.File
-import org.junit.Rule
-import org.junit.rules.Timeout
 import java.io.IOException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
+import org.junit.Rule
+import org.junit.rules.Timeout
 
-/**
- * Extends PlatformTestCase as initialization of TransportService is dependent on IJ's Application instance.
- */
+/** Extends PlatformTestCase as initialization of TransportService is dependent on IJ's Application instance. */
 class TransportServiceTest : LightPlatformTestCase() {
 
   private lateinit var service: TransportService
 
-  @get:Rule
-  val timeout: Timeout = Timeout.seconds(60)
+  @get:Rule val timeout: Timeout = Timeout.seconds(60)
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -47,43 +42,51 @@ class TransportServiceTest : LightPlatformTestCase() {
     Disposer.register(testRootDisposable, service)
   }
 
-  /**
-   * Validate that events and bytes can be sent from a custom stream to the database, which can then be queried via a client.
-   */
+  /** Validate that events and bytes can be sent from a custom stream to the database, which can then be queried via a client. */
   fun testRegisterStreamServer() {
-    val event1 = Common.Event.newBuilder().apply {
-      pid = 1
-      kind = Common.Event.Kind.ECHO
-      echo = Echo.EchoData.newBuilder().setData("event1").build()
-    }.build()
-    val event2 = Common.Event.newBuilder().apply {
-      pid = 2
-      kind = Common.Event.Kind.ECHO
-      echo = Echo.EchoData.newBuilder().setData("event2").build()
-    }.build()
-    val event3 = Common.Event.newBuilder().apply {
-      pid = 3
-      kind = Common.Event.Kind.ECHO
-      echo = Echo.EchoData.newBuilder().setData("event3").build()
-    }.build()
+    val event1 =
+      Common.Event.newBuilder()
+        .apply {
+          pid = 1
+          kind = Common.Event.Kind.ECHO
+          echo = Echo.EchoData.newBuilder().setData("event1").build()
+        }
+        .build()
+    val event2 =
+      Common.Event.newBuilder()
+        .apply {
+          pid = 2
+          kind = Common.Event.Kind.ECHO
+          echo = Echo.EchoData.newBuilder().setData("event2").build()
+        }
+        .build()
+    val event3 =
+      Common.Event.newBuilder()
+        .apply {
+          pid = 3
+          kind = Common.Event.Kind.ECHO
+          echo = Echo.EchoData.newBuilder().setData("event3").build()
+        }
+        .build()
 
     val testStreamServer = EventStreamServer("testRegisterStreamServer")
     testStreamServer.eventDeque.offer(event1)
     try {
       testStreamServer.start()
-    }
-    catch (ignored: IOException) {
-    }
+    } catch (ignored: IOException) {}
 
     val stream = service.registerStreamServer(Common.Stream.Type.FILE, testStreamServer)
     waitForQueueDrained(testStreamServer.eventDeque)
 
     // Validates that we can query all events from the database.
     val client = TransportClient(TransportService.channelName)
-    val request = Transport.GetEventGroupsRequest.newBuilder().apply {
-      streamId = stream.streamId
-      kind = Common.Event.Kind.ECHO
-    }.build()
+    val request =
+      Transport.GetEventGroupsRequest.newBuilder()
+        .apply {
+          streamId = stream.streamId
+          kind = Common.Event.Kind.ECHO
+        }
+        .build()
 
     // Retry to avoid a race condition where the events are drained from the deque but yet to be inserted into the database.
     val retryCount = 10
@@ -96,9 +99,7 @@ class TransportServiceTest : LightPlatformTestCase() {
       }
       try {
         Thread.sleep(10)
-      }
-      catch (ignored: InterruptedException) {
-      }
+      } catch (ignored: InterruptedException) {}
     }
     assertThat(eventsFound).isTrue()
 
@@ -115,9 +116,7 @@ class TransportServiceTest : LightPlatformTestCase() {
       }
       try {
         Thread.sleep(10)
-      }
-      catch (ignored: InterruptedException) {
-      }
+      } catch (ignored: InterruptedException) {}
     }
     assertThat(eventsFound).isTrue()
 
@@ -125,10 +124,10 @@ class TransportServiceTest : LightPlatformTestCase() {
     val testBytes = ByteString.copyFrom("DeadBeef".toByteArray())
     val tempFile = TransportServiceUtils.createTempFile("transport", ".dat", testBytes)
     testStreamServer.filePathCache["test"] = tempFile.absolutePath
-    assertThat(client.transportStub
-                   .getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test").build())
-                   .filePath)
-                   .isEqualTo(tempFile.absolutePath)
+    assertThat(
+        client.transportStub.getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test").build()).filePath
+      )
+      .isEqualTo(tempFile.absolutePath)
 
     // Validates that bytes can't be queried after server stopped.
     service.unregisterStreamServer(stream.streamId)
@@ -136,10 +135,10 @@ class TransportServiceTest : LightPlatformTestCase() {
     val tempFile2 = TransportServiceUtils.createTempFile("transport2", ".dat", testBytes2)
     // Note: The server is unregistered, but we add to its cache anyway to prove the client can't reach it.
     testStreamServer.filePathCache["test2"] = tempFile2.absolutePath
-    assertThat(client.transportStub
-                 .getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build())
-                 .filePath)
-                  .isEmpty()
+    assertThat(
+        client.transportStub.getFile(Transport.BytesRequest.newBuilder().setStreamId(stream.streamId).setId("test2").build()).filePath
+      )
+      .isEmpty()
 
     client.shutdown()
   }
@@ -148,21 +147,18 @@ class TransportServiceTest : LightPlatformTestCase() {
   private fun waitForQueueDrained(deque: BlockingDeque<Common.Event>) {
     val doneLatch = CountDownLatch(1)
     Thread {
-      while (!deque.isEmpty()) {
-        try {
-          Thread.sleep(100)
+        while (!deque.isEmpty()) {
+          try {
+            Thread.sleep(100)
+          } catch (ignored: InterruptedException) {}
         }
-        catch (ignored: InterruptedException) {
-        }
-      }
 
-      doneLatch.countDown()
-    }.start()
+        doneLatch.countDown()
+      }
+      .start()
 
     try {
       doneLatch.await()
-    }
-    catch (ignored: InterruptedException) {
-    }
+    } catch (ignored: InterruptedException) {}
   }
 }

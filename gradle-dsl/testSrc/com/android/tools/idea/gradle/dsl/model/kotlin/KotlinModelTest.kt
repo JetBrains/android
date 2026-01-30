@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.kotlin
 
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.truth.Truth
 import com.intellij.pom.java.LanguageLevel
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class KotlinModelTest : GradleFileModelTestCase() {
   @Test
@@ -245,8 +245,7 @@ class KotlinModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED("addAndApplySourceSetBlockExpected"),
     ADD_AND_APPLY_EXISTING_SOURCE_SET_BLOCK_EXPECTED("addAndApplyExistingSourceSetBlockExpected"),
     REMOVE_AND_APPLY_SOURCE_SET_BLOCK("removeAndApplySourceSetBlock"),
-    REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED("removeAndApplySourceSetBlockExpected"),
-    ;
+    REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED("removeAndApplySourceSetBlockExpected");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/kotlinModel/$path", extension)

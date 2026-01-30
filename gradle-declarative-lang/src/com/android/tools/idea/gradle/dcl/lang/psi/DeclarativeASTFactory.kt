@@ -21,20 +21,20 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.EMBEDDED_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.IDENTIFIER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR_OPERATOR
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_LITERAL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR_OPERATOR
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignableBareImpl
@@ -45,9 +45,9 @@ import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareReceiverIm
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockGroupImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeEmbeddedFactoryImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryPropertyReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeIdentifierImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeLiteralImpl
-import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryPropertyReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativePairImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativePairOperatorImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedImpl
@@ -60,27 +60,28 @@ import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
 
 class DeclarativeASTFactory : ASTFactory() {
-  override fun createComposite(type: IElementType): CompositeElement = when (type) {
-    ARGUMENTS_LIST -> DeclarativeArgumentsListImpl(type)
-    ASSIGNABLE_BARE -> DeclarativeAssignableBareImpl(type)
-    ASSIGNABLE_QUALIFIED -> DeclarativeAssignableQualifiedImpl(type)
-    ASSIGNMENT -> DeclarativeAssignmentImpl(type)
-    BARE -> DeclarativeBareImpl(type)
-    BARE_RECEIVER -> DeclarativeBareReceiverImpl(type)
-    BLOCK -> DeclarativeBlockImpl(type)
-    BLOCK_GROUP -> DeclarativeBlockGroupImpl(type)
-    FACTORY_PROPERTY_RECEIVER -> DeclarativeFactoryPropertyReceiverImpl(type)
-    SIMPLE_FACTORY -> DeclarativeSimpleFactoryImpl(type)
-    QUALIFIED_RECEIVER -> DeclarativeQualifiedReceiverImpl(type)
-    RECEIVER_PREFIXED_FACTORY -> DeclarativeReceiverPrefixedFactoryImpl(type)
-    EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
-    IDENTIFIER -> DeclarativeIdentifierImpl(type)
-    PAIR -> DeclarativePairImpl(type)
-    LITERAL -> DeclarativeLiteralImpl(type)
-    QUALIFIED -> DeclarativeQualifiedImpl(type)
-    ARGUMENT -> DeclarativeArgumentImpl(type)
-    SIMPLE_LITERAL -> DeclarativeSimpleLiteralImpl(type)
-    PAIR_OPERATOR -> DeclarativePairOperatorImpl(type)
-    else -> error("Unknown Declarative element type: `$type`")
-  }
+  override fun createComposite(type: IElementType): CompositeElement =
+    when (type) {
+      ARGUMENTS_LIST -> DeclarativeArgumentsListImpl(type)
+      ASSIGNABLE_BARE -> DeclarativeAssignableBareImpl(type)
+      ASSIGNABLE_QUALIFIED -> DeclarativeAssignableQualifiedImpl(type)
+      ASSIGNMENT -> DeclarativeAssignmentImpl(type)
+      BARE -> DeclarativeBareImpl(type)
+      BARE_RECEIVER -> DeclarativeBareReceiverImpl(type)
+      BLOCK -> DeclarativeBlockImpl(type)
+      BLOCK_GROUP -> DeclarativeBlockGroupImpl(type)
+      FACTORY_PROPERTY_RECEIVER -> DeclarativeFactoryPropertyReceiverImpl(type)
+      SIMPLE_FACTORY -> DeclarativeSimpleFactoryImpl(type)
+      QUALIFIED_RECEIVER -> DeclarativeQualifiedReceiverImpl(type)
+      RECEIVER_PREFIXED_FACTORY -> DeclarativeReceiverPrefixedFactoryImpl(type)
+      EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
+      IDENTIFIER -> DeclarativeIdentifierImpl(type)
+      PAIR -> DeclarativePairImpl(type)
+      LITERAL -> DeclarativeLiteralImpl(type)
+      QUALIFIED -> DeclarativeQualifiedImpl(type)
+      ARGUMENT -> DeclarativeArgumentImpl(type)
+      SIMPLE_LITERAL -> DeclarativeSimpleLiteralImpl(type)
+      PAIR_OPERATOR -> DeclarativePairOperatorImpl(type)
+      else -> error("Unknown Declarative element type: `$type`")
+    }
 }

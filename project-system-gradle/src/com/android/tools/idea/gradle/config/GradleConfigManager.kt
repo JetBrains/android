@@ -16,28 +16,24 @@
 package com.android.tools.idea.gradle.config
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import java.io.File
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.SystemIndependent
-import java.io.File
 
-/**
- * Manager class for the [GradleConfigProperties] that will expose necessary
- * methods in order to handle the different defined properties
- */
+/** Manager class for the [GradleConfigProperties] that will expose necessary methods in order to handle the different defined properties */
 object GradleConfigManager {
 
   fun initializeJavaHome(project: Project, rootProjectPath: @SystemIndependent String) {
     val configProperties = GradleConfigProperties(File(rootProjectPath))
     if (configProperties.javaHome != null) return
 
-    val jdkPathCandidatesSortedByPriority = getJdkCandidates(project)
-      .filter { it.isNotEmpty() && ExternalSystemJdkUtil.isValidJdk(it) }
+    val jdkPathCandidatesSortedByPriority = getJdkCandidates(project).filter { it.isNotEmpty() && ExternalSystemJdkUtil.isValidJdk(it) }
 
     jdkPathCandidatesSortedByPriority.firstOrNull()?.let { jdkPath ->
       configProperties.javaHome = File(jdkPath)
@@ -47,13 +43,14 @@ object GradleConfigManager {
 
   private fun getJdkCandidates(project: Project): List<@NonNls String> {
     return buildList {
-      add(ProjectRootManager.getInstance(project).projectSdk?.homePath)
-      add(GradleDefaultJdkPathStore.jdkPath)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        add(IdeSdks.getInstance().embeddedJdkPath.toString())
-      } else {
-        IdeSdks.getInstance().jdkPath?.let { add(it.toString()) }
+        add(ProjectRootManager.getInstance(project).projectSdk?.homePath)
+        add(GradleDefaultJdkPathStore.jdkPath)
+        if (IdeInfo.getInstance().isAndroidStudio) {
+          add(IdeSdks.getInstance().embeddedJdkPath.toString())
+        } else {
+          IdeSdks.getInstance().jdkPath?.let { add(it.toString()) }
+        }
       }
-    }.filterNotNull()
+      .filterNotNull()
   }
 }

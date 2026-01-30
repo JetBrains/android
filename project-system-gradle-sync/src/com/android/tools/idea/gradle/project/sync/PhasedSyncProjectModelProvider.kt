@@ -27,7 +27,6 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.composites.BuildMap
 import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
@@ -47,19 +46,21 @@ import org.jetbrains.plugins.gradle.model.GradleTaskModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
-
-class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
-   /**
-    * This is just indicating which phase the provider will  on. To match the names it can technically run on
-    * [GradleModelFetchPhase.PROJECT_MODEL_PHASE] but we populate source sets with this information, so it's kept in the source set phase.
-    * The source of the clash is the mismatch between the platform models and our models. Platform models for the projects don't have source
-    * set information whereas Android models do, so some sort of inconsistency will always be there with the current definition of phases.
+class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cachedModels: ModelProviderCachedData) :
+  ProjectImportModelProvider {
+  /**
+   * This is just indicating which phase the provider will on. To match the names it can technically run on
+   * [GradleModelFetchPhase.PROJECT_MODEL_PHASE] but we populate source sets with this information, so it's kept in the source set phase.
+   * The source of the clash is the mismatch between the platform models and our models. Platform models for the projects don't have source
+   * set information whereas Android models do, so some sort of inconsistency will always be there with the current definition of phases.
    */
   override fun getPhase(): GradleModelFetchPhase = GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE
 
-  override fun populateModels(controller: BuildController,
-                              buildModels: MutableCollection<out GradleBuild>,
-                              modelConsumer: ProjectImportModelProvider.GradleModelConsumer) {
+  override fun populateModels(
+    controller: BuildController,
+    buildModels: MutableCollection<out GradleBuild>,
+    modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+  ) {
     val exceptionsPerProject = mutableListOf<Pair<BasicGradleProject, Throwable>>()
     // .first call seems a bit silly, but it's what we do on the other side too
     val rootBuildId = BuildId(buildModels.first().buildIdentifier.rootDir)
@@ -68,100 +69,118 @@ class PhasedSyncProjectModelProvider(val syncOptions: SyncActionOptions, val cac
     val buildRootDirectory = null
     val internedModels = InternedModels(buildRootDirectory)
     // Run a check for all subprojects in parallel to check if they are all supported.
-    val allSubProjectsSupported = controller.all(buildModels.flatMap { buildModel ->
-      buildModel.projects.mapNotNull { gradleProject ->
-        BuildAction {
-          val versions = controller.findModel(gradleProject, Versions::class.java)
-            // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
-            ?.takeIf { it.isAtLeastAgp8() }
+    val allSubProjectsSupported =
+      controller.all(
+        buildModels.flatMap { buildModel ->
+          buildModel.projects.mapNotNull { gradleProject ->
+            BuildAction {
+              val versions =
+                controller
+                  .findModel(gradleProject, Versions::class.java)
+                  // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models
+                  // twice
+                  ?.takeIf { it.isAtLeastAgp8() }
 
-          val supported =
-            // sub-projects without any android models are considered supported by the platform
-            (versions?.hasV2Modules() ?: return@BuildAction true) &&
-            !gradleProject.hasKotlinMultiplatformPlugin(controller) &&
-            !gradleProject.hasNativeModels(controller)
-          if (supported) {
-            cachedModels.versions[gradleProject] = versions
+              val supported =
+                // sub-projects without any android models are considered supported by the platform
+                (versions?.hasV2Modules() ?: return@BuildAction true) &&
+                  !gradleProject.hasKotlinMultiplatformPlugin(controller) &&
+                  !gradleProject.hasNativeModels(controller)
+              if (supported) {
+                cachedModels.versions[gradleProject] = versions
+              }
+              supported
+            }
           }
-          supported
         }
-      }
-    })
+      )
     if (allSubProjectsSupported) {
       cachedModels.markAllProjectsSupportedByPhasedSync()
     }
-    controller.run(buildModels.flatMap { buildModel ->
-      buildModel.projects.mapNotNull { gradleProject ->
-        BuildAction {
-          runCatching {
-            val versions = cachedModels.versions[gradleProject] ?: return@BuildAction null
-            val modelVersions = versions.convert()
-            val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
-            val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
-            val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
-            val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
+    controller
+      .run(
+        buildModels.flatMap { buildModel ->
+          buildModel.projects.mapNotNull { gradleProject ->
+            BuildAction {
+              runCatching {
+                  val versions = cachedModels.versions[gradleProject] ?: return@BuildAction null
+                  val modelVersions = versions.convert()
+                  val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)!!
+                  val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)!!
+                  val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)!!
+                  val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)!!
 
-          val selectedVariantName = computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl) ?: return@BuildAction null
+                  val selectedVariantName =
+                    computeVariantNameToBeSynced(syncOptions, gradleProject.moduleId(), basicAndroidProject, androidDsl)
+                      ?: return@BuildAction null
 
-          val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
+                  val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = syncOptions.syncTestMode)
 
-            val ideAndroidProject = modelCache.androidProjectFrom(
-              rootBuildId,
-              buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
-              basicAndroidProject,
-              androidProject,
-              modelVersions,
-              androidDsl,
-              legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
-              gradlePropertiesModel,
-              defaultVariantName = null // Is this actually needed now?
-            ).let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
-            gradleProject to AndroidProjectData(
-              versions,
-              modelVersions,
-              basicAndroidProject,
-              androidProject,
-              androidDsl,
-              controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
-              controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
-              controller.findModel(gradleProject, GradleTaskModel ::class.java)!!,
-              controller.fetchModel<KaptGradleModel>(gradleProject, selectedVariantName),
-              ideAndroidProject,
-              selectedVariantName,
-              shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel)
-            )
-          }.onFailure {
-            exceptionsPerProject += gradleProject to it
-          }.getOrNull()
+                  val ideAndroidProject =
+                    modelCache
+                      .androidProjectFrom(
+                        rootBuildId,
+                        buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
+                        basicAndroidProject,
+                        androidProject,
+                        modelVersions,
+                        androidDsl,
+                        legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
+                        gradlePropertiesModel,
+                        defaultVariantName = null, // Is this actually needed now?
+                      )
+                      .let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
+                  gradleProject to
+                    AndroidProjectData(
+                      versions,
+                      modelVersions,
+                      basicAndroidProject,
+                      androidProject,
+                      androidDsl,
+                      controller.findModel(gradleProject, DeclaredDependencies::class.java)!!,
+                      controller.findModel(gradleProject, GradlePluginModel::class.java)!!,
+                      controller.findModel(gradleProject, GradleTaskModel::class.java)!!,
+                      controller.fetchModel<KaptGradleModel>(gradleProject, selectedVariantName),
+                      ideAndroidProject,
+                      selectedVariantName,
+                      shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
+                    )
+                }
+                .onFailure { exceptionsPerProject += gradleProject to it }
+                .getOrNull()
+            }
+          }
         }
-      }
-    }).filterNotNull().forEach { (gradleProject, data) ->
-      // Required models
-      modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.gradleTaskModel, GradleTaskModel::class.java)
-      modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
-
-      // Optional models
-      data.kaptGradleModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KaptGradleModel::class.java) }
-      cachedModels.data[gradleProject] = CachedAndroidProjectData(
-        data.modelVersions,
-        data.selectedVariantName,
-        data.ideAndroidProject,
-        data.shouldSkipRuntimeClassPathForLibraries,
-        data.declaredDependencies.allOutgoingProjectDependencies
       )
-    }
+      .filterNotNull()
+      .forEach { (gradleProject, data) ->
+        // Required models
+        modelConsumer.consumeProjectModel(gradleProject, data.versions, Versions::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.gradlePluginModel, GradlePluginModel::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.gradleTaskModel, GradleTaskModel::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
+
+        // Optional models
+        data.kaptGradleModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KaptGradleModel::class.java) }
+        cachedModels.data[gradleProject] =
+          CachedAndroidProjectData(
+            data.modelVersions,
+            data.selectedVariantName,
+            data.ideAndroidProject,
+            data.shouldSkipRuntimeClassPathForLibraries,
+            data.declaredDependencies.allOutgoingProjectDependencies,
+          )
+      }
     populateGradleProjectModel(controller, buildModels, modelConsumer, exceptionsPerProject)
     populateIdeaModuleModel(controller, buildModels, modelConsumer)
 
     exceptionsPerProject
-      .groupBy ({ it.first }) { it.second }
-      .filter { (_, exceptions) -> exceptions.isNotEmpty()}
+      .groupBy({ it.first }) { it.second }
+      .filter { (_, exceptions) -> exceptions.isNotEmpty() }
       .forEach { (gradleProject, exceptions) ->
         // TODO: Explicitly fetch sync issues as well
         val issuesAndExceptions = IdeAndroidSyncIssuesAndExceptions(syncIssues = emptyList(), exceptions = exceptions)
@@ -174,62 +193,67 @@ private fun populateGradleProjectModel(
   controller: BuildController,
   buildModels: MutableCollection<out GradleBuild>,
   modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
-  exceptionsPerProject: MutableList<Pair<BasicGradleProject, Throwable>>
+  exceptionsPerProject: MutableList<Pair<BasicGradleProject, Throwable>>,
 ) {
-  buildModels.map { it.rootProject }.distinct().forEach { projectModel ->
-    runCatching {
-      val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
+  buildModels
+    .map { it.rootProject }
+    .distinct()
+    .forEach { projectModel ->
+      runCatching {
+          val basicModelsMap = projectModel.getAllChildren { it.children.toList() }.associateBy { it.path }
 
-      controller.findModel(projectModel, GradleProject::class.java)?.let {
-        it.getAllChildren { it.children.toList() }.forEach {
-          modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java)
+          controller.findModel(projectModel, GradleProject::class.java)?.let {
+            it
+              .getAllChildren { it.children.toList() }
+              .forEach { modelConsumer.consumeProjectModel(basicModelsMap[it.path]!!, it, GradleProject::class.java) }
+          }
         }
-      }
-    }.onFailure {
-      exceptionsPerProject += projectModel to it
+        .onFailure { exceptionsPerProject += projectModel to it }
     }
-  }
 }
 
 private fun populateIdeaModuleModel(
   controller: BuildController,
   buildModels: MutableCollection<out GradleBuild>,
-  modelConsumer: ProjectImportModelProvider.GradleModelConsumer
+  modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
 ) {
   buildModels.mapNotNull { buildModel ->
-    val modulesByPathMap = controller.findModel(buildModel, IdeaProject::class.java)?.let {
-      it.getAllChildren().associateBy { it.gradleProject.path }
-    } ?: return@mapNotNull null
+    val modulesByPathMap =
+      controller.findModel(buildModel, IdeaProject::class.java)?.let { it.getAllChildren().associateBy { it.gradleProject.path } }
+        ?: return@mapNotNull null
 
     buildModel.getAllChildren().forEach { gradleProject ->
-      modulesByPathMap[gradleProject.path]?.let {
-        modelConsumer.consumeProjectModel(gradleProject, it, IdeaModule::class.java)
-      }
+      modulesByPathMap[gradleProject.path]?.let { modelConsumer.consumeProjectModel(gradleProject, it, IdeaModule::class.java) }
     }
   }
 }
 
-
-
 private val LOG = logger<PhasedSyncProjectModelProvider>()
 
 /** Use [Modules.createUniqueModuleId] to provide module id. */
-fun computeVariantNameToBeSynced(syncOptions: SyncActionOptions, moduleId: String, basicAndroidProject: BasicAndroidProject, androidDsl: AndroidDsl): String? =
+fun computeVariantNameToBeSynced(
+  syncOptions: SyncActionOptions,
+  moduleId: String,
+  basicAndroidProject: BasicAndroidProject,
+  androidDsl: AndroidDsl,
+): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
       // newly user-selected variant
-      syncOptions.switchVariantRequest.takeIf { it?.moduleId == moduleId }?.variantName?.also {
-        LOG.debug("Picked user-selected variant $it for $moduleId")
-      }
-      // variants selected by the last sync, only if it still exists
-      ?: syncOptions.selectedVariants.getSelectedVariant(moduleId).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }?.also {
-        LOG.debug("Picked selected variant from last sync $it for $moduleId")
-      }
+      syncOptions.switchVariantRequest
+        .takeIf { it?.moduleId == moduleId }
+        ?.variantName
+        ?.also { LOG.debug("Picked user-selected variant $it for $moduleId") }
+        // variants selected by the last sync, only if it still exists
+        ?: syncOptions.selectedVariants
+          .getSelectedVariant(moduleId)
+          .takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
+          ?.also { LOG.debug("Picked selected variant from last sync $it for $moduleId") }
     else -> null
   } // default variant as specified by the build script (computation could still end up being null)
   ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors).also {
-    LOG.debug("Picked the default variant $it for $moduleId")
-  }
+      LOG.debug("Picked the default variant $it for $moduleId")
+    }
 
 private fun Versions.isAtLeastAgp8() = AgpVersion.parse(agp).isAtLeast(8, 0, 0)
 
@@ -247,7 +271,7 @@ private data class AndroidProjectData(
   val kaptGradleModel: KaptGradleModel?,
   val ideAndroidProject: IdeAndroidProjectImpl,
   val selectedVariantName: String,
-  val shouldSkipRuntimeClassPathForLibraries: Boolean
+  val shouldSkipRuntimeClassPathForLibraries: Boolean,
 )
 
 internal inline fun <reified T> BuildController.fetchModel(gradleProject: BasicGradleProject, selectedVariantName: String?) =
@@ -257,26 +281,24 @@ internal inline fun <reified T> BuildController.fetchModel(gradleProject: BasicG
       T::class.java,
       ModelBuilderService.Parameter::class.java,
       {
-        it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix ->
-          selectedVariantName.appendCapitalized(artifactSuffix)
-        }
-      }
+        it.value =
+          androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> selectedVariantName.appendCapitalized(artifactSuffix) }
+      },
     )
-  }
-  else {
+  } else {
     findModel(gradleProject, T::class.java)
   }
 
-private fun IdeaProject.getAllChildren() = modules.flatMap { it.getAllChildren { it.children.filterIsInstance<IdeaModule>().toList() }}
+private fun IdeaProject.getAllChildren() = modules.flatMap { it.getAllChildren { it.children.filterIsInstance<IdeaModule>().toList() } }
 
 private fun GradleBuild.getAllChildren() = rootProject.getAllChildren { it.children.toList() }
 
 fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> {
   val result = mutableListOf<T>(this)
   val stack = ArrayDeque<T>(result)
-  while(stack.isNotEmpty()) {
+  while (stack.isNotEmpty()) {
     val next = stack.removeLast()
-    val children  = childrenFunction(next)
+    val children = childrenFunction(next)
     result.addAll(children)
     stack.addAll(children)
   }
@@ -284,10 +306,16 @@ fun <T> T.getAllChildren(childrenFunction: (T) -> List<out T>): List<T> {
 }
 
 private fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
-  !AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_COMPILE_RUNTIME_CLASSPATH_ALIGNMENT.getValue(flags, true) || // true because we always used to align
-  AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(flags, gradlePropertiesModel.excludeLibraryComponentsFromConstraints)
+  !AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_COMPILE_RUNTIME_CLASSPATH_ALIGNMENT.getValue(
+    flags,
+    true,
+  ) || // true because we always used to align
+    AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(
+      flags,
+      gradlePropertiesModel.excludeLibraryComponentsFromConstraints,
+    )
 
-private fun BasicGradleProject.hasKotlinMultiplatformPlugin(controller: BuildController)  =
+private fun BasicGradleProject.hasKotlinMultiplatformPlugin(controller: BuildController) =
   controller.findModel(this, GradlePluginModel::class.java)?.hasKotlinMultiPlatform() == true
 
 private fun BasicGradleProject.hasNativeModels(controller: BuildController) =

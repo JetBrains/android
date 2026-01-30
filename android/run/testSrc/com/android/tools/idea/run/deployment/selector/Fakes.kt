@@ -47,13 +47,13 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlin.time.Instant
 import java.nio.file.Paths
 import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Instant
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -74,8 +74,7 @@ internal class FakeDeviceHandle(
     },
   hasSnapshots: Boolean = false,
 ) : DeviceHandle {
-  override val stateFlow =
-    MutableStateFlow<DeviceState>(DeviceState.Disconnected(initialProperties))
+  override val stateFlow = MutableStateFlow<DeviceState>(DeviceState.Disconnected(initialProperties))
 
   /**
    * Updates the state of the device to Connected, using a mock ConnectedDevice.
@@ -84,8 +83,7 @@ internal class FakeDeviceHandle(
    */
   fun connectToMockDevice(): ConnectedDevice =
     mock<ConnectedDevice>().also { mockDevice ->
-      whenever(mockDevice.deviceInfoFlow)
-        .thenReturn(MutableStateFlow(DeviceInfo("SN1234", com.android.adblib.DeviceState.ONLINE)))
+      whenever(mockDevice.deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo("SN1234", com.android.adblib.DeviceState.ONLINE)))
       stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
     }
 
@@ -94,16 +92,14 @@ internal class FakeDeviceHandle(
   inner class FakeActivationAction : ActivationAction {
     override suspend fun activate() {}
 
-    override val presentation =
-      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+    override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
   }
 
   override val coldBootAction =
     object : ColdBootAction {
       override suspend fun activate() {}
 
-      override val presentation =
-        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+      override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
     }
 
   override val bootSnapshotAction: BootSnapshotAction? =
@@ -111,11 +107,9 @@ internal class FakeDeviceHandle(
       object : BootSnapshotAction {
         override suspend fun activate(snapshot: Snapshot) {}
 
-        override suspend fun snapshots(): List<Snapshot> =
-          listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap-1")))
+        override suspend fun snapshots(): List<Snapshot> = listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap-1")))
 
-        override val presentation =
-          MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+        override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
       }
     else null
 }
@@ -141,8 +135,7 @@ internal class FakeDeviceTemplate(
     }
 
     override val durationUsed: Boolean = false
-    override val presentation =
-      MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+    override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
   }
 
   override val editAction: EditTemplateAction? = null
@@ -170,14 +163,9 @@ internal fun createDevice(
     )
   val device =
     DeploymentTargetDevice(
-      DeviceHandleAndroidDevice(
-        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
-        handle,
-        handle.state,
-      ),
+      DeviceHandleAndroidDevice(mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(), handle, handle.state),
       connectionTime,
-      if (hasSnapshots) listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap")))
-      else emptyList(),
+      if (hasSnapshots) listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap"))) else emptyList(),
       launchCompatibility,
     )
   return device
@@ -192,11 +180,7 @@ internal fun createTemplate(
   val handle = FakeDeviceTemplate(DeviceId("Test", true, id))
   val device =
     DeploymentTargetDevice(
-      DeviceTemplateAndroidDevice(
-        scope,
-        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
-        handle,
-      ),
+      DeviceTemplateAndroidDevice(scope, mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(), handle),
       connectionTime,
       emptyList(),
       launchCompatibility,

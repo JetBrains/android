@@ -17,9 +17,7 @@ package com.android.tools.idea.streaming.uisettings.binding
 
 import com.android.tools.idea.util.ListenerCollection
 
-/**
- * Standard implementation of a [TwoWayProperty].
- */
+/** Standard implementation of a [TwoWayProperty]. */
 internal open class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   private val listeners = ListenerCollection.createWithDirectExecutor<ChangeListener<T>>()
   private var actualValue = initialValue

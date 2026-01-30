@@ -24,15 +24,15 @@ interface VersionDeclarationModel : PsiElementHolder, GradleDslElementModel {
 
   fun getSpec(): VersionDeclarationSpec
 
-  fun require (): ResolvedPropertyModel
+  fun require(): ResolvedPropertyModel
 
   fun strictly(): ResolvedPropertyModel
 
   fun prefer(): ResolvedPropertyModel
 
   // TODO add following implementation
-  //fun reject(): ResolvedPropertyModel
-  //fun rejectAll(): ResolvedPropertyModel
+  // fun reject(): ResolvedPropertyModel
+  // fun rejectAll(): ResolvedPropertyModel
 
   fun completeModel(): ResolvedPropertyModel?
 }

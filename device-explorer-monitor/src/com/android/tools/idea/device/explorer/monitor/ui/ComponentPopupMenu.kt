@@ -24,9 +24,7 @@ import com.intellij.ui.PopupHandler
 import javax.swing.JComponent
 import javax.swing.JTable
 
-/**
- * Utility class for building and installing a popup menu for a given [JComponent].
- */
+/** Utility class for building and installing a popup menu for a given [JComponent]. */
 class ComponentPopupMenu(private val table: JTable) {
   private val myGroup = DefaultActionGroup()
 

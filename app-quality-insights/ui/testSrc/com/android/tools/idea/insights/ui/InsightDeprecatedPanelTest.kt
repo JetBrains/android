@@ -45,14 +45,7 @@ class InsightDeprecatedPanelTest {
   private val tracker = mock<AppInsightsTracker>()
   private val scope = CoroutineScope(EmptyCoroutineContext)
   private val insightVisibilityFlow = MutableStateFlow(false)
-  private var deprecationData =
-    DevServicesDeprecationData(
-      "header",
-      "description",
-      "url",
-      true,
-      DevServicesDeprecationStatus.UNSUPPORTED,
-    )
+  private var deprecationData = DevServicesDeprecationData("header", "description", "url", true, DevServicesDeprecationStatus.UNSUPPORTED)
 
   @Test
   fun `userNotified is logged only once`() {
@@ -61,27 +54,13 @@ class InsightDeprecatedPanelTest {
 
     insightVisibilityFlow.value = true
     verify(tracker, timeout(5000).times(1))
-      .logServiceDeprecated(
-        eq(INSIGHTS_PANEL),
-        eq(PANEL),
-        eq(createDevServiceInfo(userNotified = true)),
-      )
+      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(createDevServiceInfo(userNotified = true)))
 
     insightVisibilityFlow.value = false
-    verify(tracker)
-      .logServiceDeprecated(
-        eq(INSIGHTS_PANEL),
-        anyOrNull(),
-        eq(createDevServiceInfo(userNotified = true)),
-      )
+    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), anyOrNull(), eq(createDevServiceInfo(userNotified = true)))
 
     insightVisibilityFlow.value = true
-    verify(tracker)
-      .logServiceDeprecated(
-        eq(INSIGHTS_PANEL),
-        anyOrNull(),
-        eq(createDevServiceInfo(userNotified = true)),
-      )
+    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), anyOrNull(), eq(createDevServiceInfo(userNotified = true)))
   }
 
   @Test
@@ -90,12 +69,7 @@ class InsightDeprecatedPanelTest {
     val moreInfoLabel = panel.findDescendant<HyperlinkLabel>() ?: fail("More info label not found")
     moreInfoLabel.doClick()
 
-    verify(tracker)
-      .logServiceDeprecated(
-        eq(INSIGHTS_PANEL),
-        eq(PANEL),
-        eq(createDevServiceInfo(userClickedMoreInfo = true)),
-      )
+    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(createDevServiceInfo(userClickedMoreInfo = true)))
   }
 
   @Test
@@ -104,33 +78,15 @@ class InsightDeprecatedPanelTest {
     val updateLabel = panel.findDescendant<JButton>() ?: fail("Update label not found")
     updateLabel.doClick()
 
-    verify(tracker)
-      .logServiceDeprecated(
-        eq(INSIGHTS_PANEL),
-        eq(PANEL),
-        eq(createDevServiceInfo(userClickedUpdate = true)),
-      )
+    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(createDevServiceInfo(userClickedUpdate = true)))
   }
 
-  private fun createPanel() =
-    InsightDeprecatedPanel(
-      scope,
-      projectRule.project,
-      deprecationData,
-      insightVisibilityFlow,
-      tracker,
-    )
+  private fun createPanel() = InsightDeprecatedPanel(scope, projectRule.project, deprecationData, insightVisibilityFlow, tracker)
 
   private fun createDevServiceInfo(
     userNotified: Boolean? = null,
     userClickedMoreInfo: Boolean? = null,
     userClickedUpdate: Boolean? = null,
   ) =
-    DevServiceDeprecationInfoBuilder(
-      DevServicesDeprecationStatus.UNSUPPORTED,
-      PANEL,
-      userNotified,
-      userClickedMoreInfo,
-      userClickedUpdate,
-    )
+    DevServiceDeprecationInfoBuilder(DevServicesDeprecationStatus.UNSUPPORTED, PANEL, userNotified, userClickedMoreInfo, userClickedUpdate)
 }

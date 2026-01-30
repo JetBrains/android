@@ -18,19 +18,18 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view.state
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.openapi.project.Project
+import com.intellij.util.xmlb.XmlSerializerUtil
 
 /**
  * Project-level service for storing user preferences for how test results are displayed in the Test Matrix.
  * AndroidTestResultsUserPreferencesManager should be used to interact with this class.
  */
-@State(name="AndroidTestResultsUserPreferences", storages = [Storage("androidTestResultsUserPreferences.xml")])
-class AndroidTestResultsUserPreferences private constructor(): PersistentStateComponent<AndroidTestResultsUserPreferences> {
+@State(name = "AndroidTestResultsUserPreferences", storages = [Storage("androidTestResultsUserPreferences.xml")])
+class AndroidTestResultsUserPreferences private constructor() : PersistentStateComponent<AndroidTestResultsUserPreferences> {
   // Maps a hash of the current test's AndroidTestRunConfiguration and the deviceIds of selected devices to details about the user's
   // preferred state of the AndroidTestResultsTable.
-  @JvmField
-  var androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> = HashMap()
+  @JvmField var androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> = HashMap()
 
   override fun getState(): AndroidTestResultsUserPreferences {
     return this

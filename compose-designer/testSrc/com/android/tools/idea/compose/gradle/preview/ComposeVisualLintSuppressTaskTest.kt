@@ -42,7 +42,6 @@ import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.util.concurrency.AppExecutorUtil
 import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -62,8 +61,7 @@ class ComposeVisualLintSuppressTaskTest {
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val (targetFile, previewElement) =
       runBlocking {
-        val psiFile =
-          getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
+        val psiFile = getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
           smartReadAction(projectRule.project) {
@@ -76,16 +74,9 @@ class ComposeVisualLintSuppressTaskTest {
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }
-            .first {
-              it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
-            }
+            .first { it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview" }
       }
-    val file =
-      ComposeAdapterLightVirtualFile(
-        "compose-model.xml",
-        previewElement.toPreviewXml().buildString(),
-        targetFile,
-      )
+    val file = ComposeAdapterLightVirtualFile("compose-model.xml", previewElement.toPreviewXml().buildString(), targetFile)
     val renderResultFuture =
       createRenderResultFuture(
         facet = facet,
@@ -99,16 +90,10 @@ class ComposeVisualLintSuppressTaskTest {
 
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     nlModel.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
     nlModel.setModelUpdater(AccessibilityModelUpdater())
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
@@ -130,24 +115,12 @@ class ComposeVisualLintSuppressTaskTest {
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(2, issueProvider.getUnsuppressedIssues().size)
 
-    ComposeVisualLintSuppressTask(
-        facet,
-        projectRule.project,
-        previewElement,
-        VisualLintErrorType.BUTTON_SIZE,
-      )
-      .run()
+    ComposeVisualLintSuppressTask(facet, projectRule.project, previewElement, VisualLintErrorType.BUTTON_SIZE).run()
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(1, issueProvider.getUnsuppressedIssues().size)
     assertEquals(VisualLintErrorType.TEXT_FIELD_SIZE, issueProvider.getUnsuppressedIssues()[0].type)
 
-    ComposeVisualLintSuppressTask(
-        facet,
-        projectRule.project,
-        previewElement,
-        VisualLintErrorType.TEXT_FIELD_SIZE,
-      )
-      .run()
+    ComposeVisualLintSuppressTask(facet, projectRule.project, previewElement, VisualLintErrorType.TEXT_FIELD_SIZE).run()
     assertEquals(2, issueProvider.getIssues().size)
     assertEquals(0, issueProvider.getUnsuppressedIssues().size)
   }
@@ -158,8 +131,7 @@ class ComposeVisualLintSuppressTaskTest {
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
     val (targetFile, previewElement) =
       runBlocking {
-        val psiFile =
-          getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
+        val psiFile = getPsiFile(projectRule.project, SimpleComposeAppPaths.APP_VISUAL_LINT_PREVIEW.path)
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
           smartReadAction(projectRule.project) {
@@ -172,16 +144,9 @@ class ComposeVisualLintSuppressTaskTest {
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }
-            .first {
-              it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
-            }
+            .first { it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview" }
       }
-    val file =
-      ComposeAdapterLightVirtualFile(
-        "compose-model.xml",
-        previewElement.toPreviewXml().buildString(),
-        targetFile,
-      )
+    val file = ComposeAdapterLightVirtualFile("compose-model.xml", previewElement.toPreviewXml().buildString(), targetFile)
     val renderResultFuture =
       createRenderResultFuture(
         facet = facet,
@@ -195,16 +160,10 @@ class ComposeVisualLintSuppressTaskTest {
 
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     nlModel.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-        override fun getData(dataId: String): Any? =
-          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
 
     nlModel.setModelUpdater(AccessibilityModelUpdater())
@@ -229,9 +188,7 @@ class ComposeVisualLintSuppressTaskTest {
       assertEquals(1, buttonSuppressTasks.size)
     }
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      previewElement.previewElementDefinition!!.element?.delete()
-    }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { previewElement.previewElementDefinition!!.element?.delete() }
     run {
       val buttonSuppressTasks = buttonIssues[0].suppresses.toList()
       assertEquals(0, buttonSuppressTasks.size)

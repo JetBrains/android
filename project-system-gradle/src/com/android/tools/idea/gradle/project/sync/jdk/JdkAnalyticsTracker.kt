@@ -22,8 +22,8 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_DAEMON_JVM_CRITERIA_ERROR_EVENT
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_CONFIGURATION
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent
 import com.google.wireless.android.sdk.stats.GradleJdkConfigurationEvent
 import com.google.wireless.android.sdk.stats.GradleJdkConfigurationEvent.GradleJdkConfiguration
@@ -38,9 +38,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 
-/**
- * Analytic tracker util that reports any JDK related events using [UsageTracker]
- */
+/** Analytic tracker util that reports any JDK related events using [UsageTracker] */
 object JdkAnalyticsTracker {
 
   fun reportInvalidJdkException(project: Project, reason: InvalidJdkReason) {
@@ -65,11 +63,12 @@ object JdkAnalyticsTracker {
   }
 
   fun reportGradleJdkConfiguration(project: Project, rootProjectPath: @SystemIndependent String) {
-    val currentGradleJdkConfiguration = when {
-      GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath) -> GradleJdkConfiguration.GRADLE_DAEMON_JVM_CRITERIA
-      IdeSdks.getInstance().isUsingEnvVariableJdk ->  GradleJdkConfiguration.STUDIO_GRADLE_JDK
-      else -> resolveConfigurationFromGradleJvm(project, rootProjectPath)
-    }
+    val currentGradleJdkConfiguration =
+      when {
+        GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath) -> GradleJdkConfiguration.GRADLE_DAEMON_JVM_CRITERIA
+        IdeSdks.getInstance().isUsingEnvVariableJdk -> GradleJdkConfiguration.STUDIO_GRADLE_JDK
+        else -> resolveConfigurationFromGradleJvm(project, rootProjectPath)
+      }
 
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
@@ -80,10 +79,7 @@ object JdkAnalyticsTracker {
     )
   }
 
-  private fun resolveConfigurationFromGradleJvm(
-    project: Project,
-    rootProjectPath: @SystemIndependent String
-  ): GradleJdkConfiguration {
+  private fun resolveConfigurationFromGradleJvm(project: Project, rootProjectPath: @SystemIndependent String): GradleJdkConfiguration {
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     return projectRootSettings?.let {
       when (it.gradleJvm) {

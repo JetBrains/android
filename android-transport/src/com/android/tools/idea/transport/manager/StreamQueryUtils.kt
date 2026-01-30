@@ -21,8 +21,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.TransportServiceGrpc
 
 /**
- * Contains common queries used by both profilers and App Inspection to query
- * for streams and processes.
+ * Contains common queries used by both profilers and App Inspection to query for streams and processes.
  *
  * Only applicable to unified pipeline.
  */
@@ -36,33 +35,32 @@ class StreamQueryUtils {
     @JvmStatic
     fun queryForDevices(client: TransportServiceGrpc.TransportServiceBlockingStub): List<Common.Stream> {
       // Get all streams of all types.
-      val request = GetEventGroupsRequest.newBuilder()
-        .setStreamId(-1) // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-        .setKind(Common.Event.Kind.STREAM)
-        .build()
+      val request =
+        GetEventGroupsRequest.newBuilder()
+          .setStreamId(-1) // DataStoreService.DATASTORE_RESERVED_STREAM_ID
+          .setKind(Common.Event.Kind.STREAM)
+          .build()
       val response = client.getEventGroups(request)
       return response.groupsList.mapNotNull { group ->
         val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
-        val connectedEvent = group.eventsList.lastOrNull { e -> e.hasStream() && e.stream.hasStreamConnected() }
-                             ?: // Ignore stream event groups that do not have the connected event.
-                             return@mapNotNull null
+        val connectedEvent =
+          group.eventsList.lastOrNull { e -> e.hasStream() && e.stream.hasStreamConnected() }
+            ?: // Ignore stream event groups that do not have the connected event.
+            return@mapNotNull null
         val stream = connectedEvent.stream.streamConnected.stream
         // We only want streams of type device to get process information.
         if (stream.type == Common.Stream.Type.DEVICE) {
           if (isStreamDead) {
             // TODO state changes are represented differently in the unified pipeline (with two separate events)
             // remove this once we move complete away from the legacy pipeline.
-            stream.toBuilder().apply {
-              device = stream.device.toBuilder().apply {
-                state = Common.Device.State.DISCONNECTED
-              }.build()
-            }.build()
-          }
-          else {
+            stream
+              .toBuilder()
+              .apply { device = stream.device.toBuilder().apply { state = Common.Device.State.DISCONNECTED }.build() }
+              .build()
+          } else {
             stream
           }
-        }
-        else null
+        } else null
       }
     }
 
@@ -75,12 +73,9 @@ class StreamQueryUtils {
     fun queryForProcesses(
       client: TransportServiceGrpc.TransportServiceBlockingStub,
       streamId: Long,
-      filter: (isAlive: Boolean, lastAliveEvent: Common.Process) -> Boolean
+      filter: (isAlive: Boolean, lastAliveEvent: Common.Process) -> Boolean,
     ): List<Common.Process> {
-      val processRequest = GetEventGroupsRequest.newBuilder()
-        .setStreamId(streamId)
-        .setKind(Common.Event.Kind.PROCESS)
-        .build()
+      val processRequest = GetEventGroupsRequest.newBuilder().setStreamId(streamId).setKind(Common.Event.Kind.PROCESS).build()
       val processResponse = client.getEventGroups(processRequest)
       // A group is a collection of events that happened to a single process.
       return processResponse.groupsList.mapNotNull { groupProcess ->
@@ -90,28 +85,27 @@ class StreamQueryUtils {
         // app's event comes from adb track-jdwp through TransportServiceProxy. Every
         // debuggable app is also profileable, so it will be reported twice, and the order
         // of the two events cannot be predicted.
-        val highExposureProcess = getHighestExposureEventForLastProcess(groupProcess)?.process?.processStarted?.process
-                                  ?: // Ignore process event groups that do not have the started event.
-                                  return@mapNotNull null
+        val highExposureProcess =
+          getHighestExposureEventForLastProcess(groupProcess)?.process?.processStarted?.process
+            ?: // Ignore process event groups that do not have the started event.
+            return@mapNotNull null
         if (filter(isProcessAlive, highExposureProcess)) {
           // TODO state changes are represented differently in the unified pipeline (with two separate events)
           // remove this once we move complete away from the legacy pipeline.
           if (isProcessAlive) {
             highExposureProcess
-          }
-          else {
+          } else {
             highExposureProcess.toBuilder().setState(Common.Process.State.DEAD).build()
           }
-        }
-        else {
+        } else {
           null
         }
       }
     }
 
     /**
-     * Helper method to return the event of the highest exposure level for the last process in an EventGroup.
-     * Note process events are grouped by PIDs, so this method doesn't look beyond the next to last "is-ended" event.
+     * Helper method to return the event of the highest exposure level for the last process in an EventGroup. Note process events are
+     * grouped by PIDs, so this method doesn't look beyond the next to last "is-ended" event.
      */
     @JvmStatic
     fun getHighestExposureEventForLastProcess(group: EventGroup): Common.Event? {
@@ -124,12 +118,14 @@ class StreamQueryUtils {
             break
           }
           hasVisitedEndedEvent = true
-        }
-        else {
-          if (e.hasProcess() && e.process.hasProcessStarted() && e.process.processStarted.hasProcess() &&
+        } else {
+          if (
+            e.hasProcess() &&
+              e.process.hasProcessStarted() &&
+              e.process.processStarted.hasProcess() &&
               (found == null ||
-               e.process.processStarted.process.exposureLevelValue >
-               found.process.processStarted.process.exposureLevelValue)) {
+                e.process.processStarted.process.exposureLevelValue > found.process.processStarted.process.exposureLevelValue)
+          ) {
             found = e
           }
         }

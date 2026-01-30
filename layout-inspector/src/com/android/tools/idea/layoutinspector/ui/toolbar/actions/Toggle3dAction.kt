@@ -38,9 +38,7 @@ private const val ROTATION_TIMEOUT = 10_000L
 private const val DEPRECATION_WARNING = "3d.mode.deprecation.warning"
 
 class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
-  AnAction(StudioIcons.LayoutInspector.Toolbar.MODE_3D),
-  TooltipLinkProvider,
-  TooltipDescriptionProvider {
+  AnAction(StudioIcons.LayoutInspector.Toolbar.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
   @VisibleForTesting var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
   @VisibleForTesting var getCurrentTimeMillis = { System.currentTimeMillis() }
 
@@ -103,8 +101,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
     event.presentation.icon =
-      if (model.isRotated) StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
-      else StudioIcons.LayoutInspector.Toolbar.MODE_3D
+      if (model.isRotated) StudioIcons.LayoutInspector.Toolbar.RESET_VIEW else StudioIcons.LayoutInspector.Toolbar.MODE_3D
     if (
       model.overlayImage == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
@@ -123,8 +120,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
       }
     } else {
       event.presentation.isEnabled = false
-      val isLowerThenApi29 =
-        client != null && client.isConnected && client.process.device.apiLevel.majorVersion < 29
+      val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel.majorVersion < 29
       @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {

@@ -73,23 +73,16 @@ class PlayPolicyCodeInspectionActionTest {
       status = DevServicesDeprecationStatus.UNSUPPORTED,
     )
 
-  private val deprecatedData: DevServicesDeprecationData =
-    unsupportedData.copy(status = DevServicesDeprecationStatus.DEPRECATED)
+  private val deprecatedData: DevServicesDeprecationData = unsupportedData.copy(status = DevServicesDeprecationStatus.DEPRECATED)
 
   private lateinit var mockDeprecationService: DevServicesDeprecationDataProvider
   private lateinit var tracker: TestUsageTracker
 
   fun configureDeprecationService(deprecationProto: DevServicesDeprecationData) {
     mockDeprecationService = mock()
-    doAnswer { deprecationProto }
-      .whenever(mockDeprecationService)
-      .getCurrentDeprecationData(any(), any())
+    doAnswer { deprecationProto }.whenever(mockDeprecationService).getCurrentDeprecationData(any(), any())
     ApplicationManager.getApplication()
-      .replaceService(
-        DevServicesDeprecationDataProvider::class.java,
-        mockDeprecationService,
-        projectRule.disposable,
-      )
+      .replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationService, projectRule.disposable)
   }
 
   @Before
@@ -144,9 +137,7 @@ class PlayPolicyCodeInspectionActionTest {
         assertThat(dialog.isOKActionEnabled).isFalse()
         findDeprecationEvent {
           val info = it.serviceDeprecationInfo.devServiceDeprecationInfo
-          info.deliveryType == DeliveryType.PANEL &&
-            info.userNotified &&
-            info.deprecationStatus == DeprecationStatus.UNSUPPORTED
+          info.deliveryType == DeliveryType.PANEL && info.userNotified && info.deprecationStatus == DeprecationStatus.UNSUPPORTED
         }
         verifyDeprecationInformation(dialog.contentPanel, unsupportedData)
       }
@@ -175,24 +166,19 @@ class PlayPolicyCodeInspectionActionTest {
         assertThat(dialog.isOKActionEnabled).isTrue()
         findDeprecationEvent {
           val info = it.serviceDeprecationInfo.devServiceDeprecationInfo
-          info.deliveryType == DeliveryType.PANEL &&
-            info.userNotified &&
-            info.deprecationStatus == DeprecationStatus.DEPRECATED
+          info.deliveryType == DeliveryType.PANEL && info.userNotified && info.deprecationStatus == DeprecationStatus.DEPRECATED
         }
         verifyDeprecationInformation(dialog.contentPanel, deprecatedData)
       }
     }
   }
 
-  private fun findDeprecationEvent(
-    predicate: (PlayPolicyInsightsUsageEvent) -> Boolean
-  ): PlayPolicyInsightsUsageEvent {
+  private fun findDeprecationEvent(predicate: (PlayPolicyInsightsUsageEvent) -> Boolean): PlayPolicyInsightsUsageEvent {
     var event: PlayPolicyInsightsUsageEvent? = null
     waitForCondition {
       val logEvent =
         tracker.usages.lastOrNull {
-          it.studioEvent.playPolicyInsightsUsageEvent.type ==
-            PlayPolicyInsightsUsageEventType.SERVICE_DEPRECATION
+          it.studioEvent.playPolicyInsightsUsageEvent.type == PlayPolicyInsightsUsageEventType.SERVICE_DEPRECATION
         }
       event = logEvent?.studioEvent?.playPolicyInsightsUsageEvent
       event != null && predicate(event!!)
@@ -200,18 +186,12 @@ class PlayPolicyCodeInspectionActionTest {
     return event!!
   }
 
-  private fun verifyDeprecationInformation(
-    panel: JComponent,
-    deprecationData: DevServicesDeprecationData,
-  ) {
-    val description =
-      panel.findDescendant<JEditorPane> { it.text?.contains(deprecationData.description) == true }
+  private fun verifyDeprecationInformation(panel: JComponent, deprecationData: DevServicesDeprecationData) {
+    val description = panel.findDescendant<JEditorPane> { it.text?.contains(deprecationData.description) == true }
     assertThat(description).isNotNull()
     val components = description!!.parent.components
     assertThat((components[0] as JLabel).icon)
-      .isEqualTo(
-        if (deprecationData.isDeprecated()) AllIcons.General.Warning else AllIcons.General.Error
-      )
+      .isEqualTo(if (deprecationData.isDeprecated()) AllIcons.General.Warning else AllIcons.General.Error)
     assertThat(components[1]).isEqualTo(description)
 
     val updateLabel = components[2] as DslLabel

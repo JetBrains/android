@@ -33,16 +33,13 @@ import org.jetbrains.android.facet.AndroidFacet
 @Service
 class LayoutBindingPackageFactory(val project: Project) {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(LayoutBindingPackageFactory::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(LayoutBindingPackageFactory::class.java)!!
   }
 
   private val layoutBindingPsiPackages = Maps.newConcurrentMap<String, PsiPackage>()
 
   private class FakeDirectory(file: File) : LightVirtualFileBase(file.absolutePath, null, -1) {
-    override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long) =
-      throw NotImplementedError()
+    override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long) = throw NotImplementedError()
 
     override fun getInputStream() = throw NotImplementedError()
 
@@ -54,8 +51,7 @@ class LayoutBindingPackageFactory(val project: Project) {
    *
    * If it does not exist in the cache, a new one is created.
    *
-   * @param facet The facet within which we'll be creating this package, used for finding a root
-   *   source directory.
+   * @param facet The facet within which we'll be creating this package, used for finding a root source directory.
    * @param packageName The qualified package name
    * @return A [PsiPackage] that represents the given qualified name
    */
@@ -81,9 +77,7 @@ class LayoutBindingPackageFactory(val project: Project) {
           // just enough to fool
           // the resolution system.
           // See also: https://issuetracker.google.com/180946610
-          val srcDir =
-            sourceProviderManager.sources.javaDirectories.firstOrNull()?.toIoFile()
-              ?: return emptyArray()
+          val srcDir = sourceProviderManager.sources.javaDirectories.firstOrNull()?.toIoFile() ?: return emptyArray()
           val databindingDir = FakeDirectory(File(srcDir, packageName.replace('.', '/')))
           // The following line creates a PsiDirectory but doesn't actually create a directory on
           // disk

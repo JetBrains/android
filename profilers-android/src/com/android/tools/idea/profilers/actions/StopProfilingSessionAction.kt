@@ -19,7 +19,7 @@ import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class StopProfilingSessionAction : AnAction(){
+class StopProfilingSessionAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers.sessionsManager.endCurrentSession()

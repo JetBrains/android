@@ -94,26 +94,13 @@ class GlancePreviewElementFinderTest {
 
   @Test
   fun testAppWidgetElementsFinder() = runBlocking {
-    Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile)
-    )
-    Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(
-        project,
-        sourceFileAppWidgetsWithSize.virtualFile,
-      )
-    )
-    Assert.assertFalse(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
-    )
+    Assert.assertTrue(AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgets.virtualFile))
+    Assert.assertTrue(AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileAppWidgetsWithSize.virtualFile))
+    Assert.assertFalse(AppWidgetPreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile))
 
     runBlocking {
-      var elements =
-        AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileWidgetKt.Foo31"),
-        elements.map { it.methodFqn },
-      )
+      var elements = AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
+      Assert.assertEquals(listOf("com.android.test.SourceFileWidgetKt.Foo31"), elements.map { it.methodFqn })
       Assert.assertEquals(
         listOf(
           PreviewDisplaySettings(
@@ -129,15 +116,8 @@ class GlancePreviewElementFinderTest {
         ),
         elements.map { it.displaySettings },
       )
-      elements =
-        AppWidgetPreviewElementFinder.findPreviewElements(
-          project,
-          sourceFileAppWidgetsWithSize.virtualFile,
-        )
-      Assert.assertEquals(
-        listOf("com.android.test.SourceFileWidgetWithSizeKt.Foo41"),
-        elements.map { it.methodFqn },
-      )
+      elements = AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgetsWithSize.virtualFile)
+      Assert.assertEquals(listOf("com.android.test.SourceFileWidgetWithSizeKt.Foo41"), elements.map { it.methodFqn })
       Assert.assertEquals(
         listOf(
           PreviewDisplaySettings(
@@ -162,14 +142,14 @@ class GlancePreviewElementFinderTest {
       "com/android/test/SomeGlancePreviews.kt",
       // language=kotlin
       """
-        package com.android.test
+      package com.android.test
 
-        import androidx.glance.preview.Preview
+      import androidx.glance.preview.Preview
 
-        @Preview(widthDp = 1234, heightDp = 5678)
-        @Preview
-        annotation class MultiPreviewFromOtherFile
-        """
+      @Preview(widthDp = 1234, heightDp = 5678)
+      @Preview
+      annotation class MultiPreviewFromOtherFile
+      """
         .trimIndent(),
     )
 
@@ -199,18 +179,12 @@ class GlancePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    Assert.assertTrue(
-      AppWidgetPreviewElementFinder.hasPreviewElements(project, multipreviewTest.virtualFile)
-    )
+    Assert.assertTrue(AppWidgetPreviewElementFinder.hasPreviewElements(project, multipreviewTest.virtualFile))
 
-    val previewElements =
-      AppWidgetPreviewElementFinder.findPreviewElements(project, multipreviewTest.virtualFile)
+    val previewElements = AppWidgetPreviewElementFinder.findPreviewElements(project, multipreviewTest.virtualFile)
 
     Assert.assertEquals(5, previewElements.size)
-    Assert.assertEquals(
-      listOf("com.android.test.MultiPreviewTestKt.GlancePreviewFun"),
-      previewElements.map { it.methodFqn }.distinct(),
-    )
+    Assert.assertEquals(listOf("com.android.test.MultiPreviewTestKt.GlancePreviewFun"), previewElements.map { it.methodFqn }.distinct())
     Assert.assertEquals(
       listOf(
         PreviewDisplaySettings(
@@ -318,7 +292,7 @@ class GlancePreviewElementFinderTest {
         @Many
         fun f(){
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -377,13 +351,7 @@ class GlancePreviewElementFinderTest {
               organizationName = "A",
               organizationGroup = "TestKt.A",
             ),
-            basisSetting.copy(
-              name = "A",
-              baseName = "A",
-              parameterName = null,
-              organizationName = "A",
-              organizationGroup = "TestKt.A",
-            ),
+            basisSetting.copy(name = "A", baseName = "A", parameterName = null, organizationName = "A", organizationGroup = "TestKt.A"),
             basisSetting.copy(
               name = "1 Annot1 - A",
               baseName = "A",

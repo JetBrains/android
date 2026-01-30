@@ -100,12 +100,7 @@ class ModuleTemplateDataBuilder(
    * @param paths Project paths
    * @param packageName Package Name for the module
    */
-  fun setModuleRoots(
-    paths: AndroidModulePaths,
-    projectPath: String,
-    moduleName: String,
-    packageName: String,
-  ) {
+  fun setModuleRoots(paths: AndroidModulePaths, projectPath: String, moduleName: String, packageName: String) {
     val moduleRoot = paths.moduleRoot!!
 
     // Register the resource directories associated with the active source provider
@@ -151,9 +146,7 @@ class ModuleTemplateDataBuilder(
     if (facet.configuration.projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
       val baseFeature =
         DynamicAppUtils.getBaseFeature(facet.module)
-          ?: throw RuntimeException(
-            "Dynamic Feature Module '${facet.module.name}' has no Base Module"
-          )
+          ?: throw RuntimeException("Dynamic Feature Module '${facet.module.name}' has no Base Module")
 
       setBaseFeature(baseFeature)
     }
@@ -173,23 +166,19 @@ class ModuleTemplateDataBuilder(
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
     val baseModuleResourceRootPath =
-      mainSourceProvider?.resDirectories?.firstOrNull()?.path
-        ?: VfsUtilCore.urlToPath(mainSourceProvider?.resDirectoryUrls?.first())
+      mainSourceProvider?.resDirectories?.firstOrNull()?.path ?: VfsUtilCore.urlToPath(mainSourceProvider?.resDirectoryUrls?.first())
 
     this.baseFeature =
       BaseFeature(
         // TODO(b/149203281): Fix support for composite builds.
         baseFeature.getGradleProjectPath()?.path.orEmpty(),
         AndroidRootUtil.findModuleRootFolderPath(baseFeature)!!,
-        File(
-          baseModuleResourceRootPath
-        ), // Put the new resources in any of the available res directories
+        File(baseModuleResourceRootPath), // Put the new resources in any of the available res directories
       )
   }
 
   /**
-   * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the
-   * Module is not created yet.
+   * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the Module is not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
    * @param project Used to find the Gradle Dependencies versions.
@@ -217,16 +206,10 @@ class ModuleTemplateDataBuilder(
     val projectFile = module.project.projectFile ?: return
     val helper = ThemeHelper(module)
     val themeName = helper.appThemeName ?: return
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(module).getConfiguration(projectFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(projectFile)
 
-    fun getDerivedTheme(
-      themeName: String,
-      derivedThemeName: String,
-      useBaseThemeAsDerivedTheme: Boolean,
-    ): ThemeData {
-      val fullThemeName =
-        if (useBaseThemeAsDerivedTheme) themeName else "$themeName.$derivedThemeName"
+    fun getDerivedTheme(themeName: String, derivedThemeName: String, useBaseThemeAsDerivedTheme: Boolean): ThemeData {
+      val fullThemeName = if (useBaseThemeAsDerivedTheme) themeName else "$themeName.$derivedThemeName"
       val exists = ThemeHelper.themeExists(configuration, fullThemeName)
       if (!exists && !helper.isLocalTheme(themeName)) {
         return ThemeData(derivedThemeName, helper.isLocalTheme(derivedThemeName))
@@ -252,9 +235,7 @@ class ModuleTemplateDataBuilder(
   }
 
   fun build(): ModuleTemplateData {
-    check(category != Category.Compose || isCompose) {
-      "Template in Compose category must have isCompose set"
-    }
+    check(category != Category.Compose || isCompose) { "Template in Compose category must have isCompose set" }
 
     return ModuleTemplateData(
       projectTemplateDataBuilder.build(),
@@ -270,8 +251,7 @@ class ModuleTemplateDataBuilder(
       isLibrary!!,
       packageName!!,
       formFactor!!,
-      themesData
-        ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
+      themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
       baseFeature,
       apis!!,
       viewBindingSupport = viewBindingSupport,
@@ -298,32 +278,30 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
         GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module)
           ?: GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
           ?: AgpVersions.newProject.also {
-            Logger.getInstance(ModuleTemplateDataBuilder::class.java)
-              .warn("Unable to determine AGP version for $module in $project")
+            Logger.getInstance(ModuleTemplateDataBuilder::class.java).warn("Unable to determine AGP version for $module in $project")
           }
       topOut = project.guessProjectDir()!!.toIoFile()
       applicationPackage = ""
       overridePathCheck = false
     }
 
-  return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported())
-    .apply {
-      name = "Fake module state"
-      packageName = ""
-      val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, name!!).paths
-      setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
-      isLibrary = false
-      formFactor = FormFactor.Mobile
-      category = Category.Activity
-      themesData = ThemesData(appName = getAppNameForTheme(project.name))
-      val npwCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
-      apis =
-        ApiTemplateData(
-          buildApi = AndroidVersion(npwCompileSdkVersion),
-          targetApi = AndroidMajorVersion(npwCompileSdkVersion),
-          minApi = AndroidMajorVersion(LOWEST_ACTIVE_API),
-          // The highest supported/recommended appCompact version is P(28)
-          appCompatVersion = npwCompileSdkVersion.majorVersion.coerceAtMost(P),
-        )
-    }
+  return ModuleTemplateDataBuilder(projectStateBuilder, true, project.isViewBindingSupported()).apply {
+    name = "Fake module state"
+    packageName = ""
+    val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, name!!).paths
+    setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
+    isLibrary = false
+    formFactor = FormFactor.Mobile
+    category = Category.Activity
+    themesData = ThemesData(appName = getAppNameForTheme(project.name))
+    val npwCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+    apis =
+      ApiTemplateData(
+        buildApi = AndroidVersion(npwCompileSdkVersion),
+        targetApi = AndroidMajorVersion(npwCompileSdkVersion),
+        minApi = AndroidMajorVersion(LOWEST_ACTIVE_API),
+        // The highest supported/recommended appCompact version is P(28)
+        appCompatVersion = npwCompileSdkVersion.majorVersion.coerceAtMost(P),
+      )
+  }
 }

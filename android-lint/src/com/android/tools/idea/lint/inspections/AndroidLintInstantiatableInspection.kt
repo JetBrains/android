@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MissingClassDetector
 
 class AndroidLintInstantiatableInspection :
-  AndroidLintInspectionBase(
-    AndroidLintBundle.message("android.lint.inspections.instantiatable"),
-    MissingClassDetector.INSTANTIATABLE,
-  )
+  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.instantiatable"), MissingClassDetector.INSTANTIATABLE)

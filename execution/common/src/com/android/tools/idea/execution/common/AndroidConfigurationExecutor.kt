@@ -27,29 +27,23 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.progress.ProgressIndicator
 import org.jetbrains.annotations.VisibleForTesting
 
-
 interface AndroidConfigurationExecutor {
-  /**
-   * An extension point to provide custom [AndroidConfigurationExecutor]
-   */
+  /** An extension point to provide custom [AndroidConfigurationExecutor] */
   interface Provider {
-    @Throws(ExecutionException::class)
-    fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor?
+    @Throws(ExecutionException::class) fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor?
 
     companion object {
       @JvmField
-      val EP_NAME: ExtensionPointName<Provider> = ExtensionPointName.create("com.android.tools.idea.execution.common.androidConfigurationExecutorProvider")
+      val EP_NAME: ExtensionPointName<Provider> =
+        ExtensionPointName.create("com.android.tools.idea.execution.common.androidConfigurationExecutorProvider")
     }
   }
 
-
   val configuration: RunConfiguration
 
-  @Throws(ExecutionException::class)
-  fun run(indicator: ProgressIndicator): RunContentDescriptor
+  @Throws(ExecutionException::class) fun run(indicator: ProgressIndicator): RunContentDescriptor
 
-  @Throws(ExecutionException::class)
-  fun debug(indicator: ProgressIndicator): RunContentDescriptor
+  @Throws(ExecutionException::class) fun debug(indicator: ProgressIndicator): RunContentDescriptor
 
   @Throws(ExecutionException::class)
   fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
@@ -68,4 +62,3 @@ class AndroidConfigurationExecutorRunProfileState(@VisibleForTesting val executo
     throw RuntimeException("Unexpected code path")
   }
 }
-

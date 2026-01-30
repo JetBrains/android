@@ -16,8 +16,8 @@
 @file:JvmName("SdkConstants")
 
 /**
- * This file replicates some constants from android.sdk.common: if anything is changed here then it should probably also be
- * changed in that module.
+ * This file replicates some constants from android.sdk.common: if anything is changed here then it should probably also be changed in that
+ * module.
  */
 package com.android.tools.idea.gradle.dsl.utils
 

@@ -80,11 +80,9 @@ class MaterialVdIconsProviderTest {
     )
     assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).containsExactly("Style 1", "Style 2")
-    Truth.assertThat(materialIcons.getCategories("Style 1"))
-      .containsAllIn(materialIcons.getCategories("Style 2"))
+    Truth.assertThat(materialIcons.getCategories("Style 1")).containsAllIn(materialIcons.getCategories("Style 2"))
     val icons = materialIcons.getAllIcons("Style 1")
-    Truth.assertThat(icons.map { it.name })
-      .containsExactly("style1_my_icon_1_24.xml", "style1_my_icon_2_24.xml")
+    Truth.assertThat(icons.map { it.name }).containsExactly("style1_my_icon_1_24.xml", "style1_my_icon_2_24.xml")
   }
 
   @Test
@@ -112,11 +110,10 @@ class MaterialVdIconsProviderTest {
   fun testBadLoaderProviderReturnsEmptyIcons() {
     val latch = CountDownLatch(2) // A call for each style: "Style 1", "Style 2"
     var icons: MaterialVdIcons? = null
-    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit =
-      { materialIcons, _ ->
-        icons = materialIcons
-        latch.countDown()
-      }
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { materialIcons, _ ->
+      icons = materialIcons
+      latch.countDown()
+    }
     MaterialVdIconsProvider.loadMaterialVdIcons(
       uiCallback,
       disposable,
@@ -137,8 +134,7 @@ class MaterialVdIconsProviderTest {
 }
 
 private class MaterialIconsMetadataTestUrlProvider : MaterialIconsMetadataUrlProvider {
-  override fun getMetadataUrl(): URL? =
-    MaterialVdIconsProviderTest::class.java.classLoader.getResource("$TEST_PATH$METADATA_FILE_NAME")
+  override fun getMetadataUrl(): URL? = MaterialVdIconsProviderTest::class.java.classLoader.getResource("$TEST_PATH$METADATA_FILE_NAME")
 }
 
 private class MaterialIconsTestUrlProvider : MaterialIconsUrlProvider {
@@ -147,10 +143,7 @@ private class MaterialIconsTestUrlProvider : MaterialIconsUrlProvider {
   }
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return MaterialVdIconsProviderTest::class
-      .java
-      .classLoader
-      .getResource("${getStylePath(style)}$iconName/$iconFileName")
+    return MaterialVdIconsProviderTest::class.java.classLoader.getResource("${getStylePath(style)}$iconName/$iconFileName")
   }
 
   private fun getStylePath(style: String): String {
@@ -203,8 +196,7 @@ class MaterialVdIconsProviderTestWithSdk {
   fun setup() {
     val testDirectory = FileUtil.createTempDirectory(javaClass.simpleName, null)
     val testSdkDirectory = testDirectory.resolve("FakeSdk").apply { mkdir() }
-    val testMaterialIconsSdkDirectory =
-      testSdkDirectory.resolve("icons").resolve("material").apply { mkdirs() }
+    val testMaterialIconsSdkDirectory = testSdkDirectory.resolve("icons").resolve("material").apply { mkdirs() }
     testMaterialIconsSdkDirectory.resolve("icons_metadata.txt").writeText(SIMPLE_METADATA)
     testMaterialIconsSdkDirectory
       .resolve("style1")
@@ -213,10 +205,8 @@ class MaterialVdIconsProviderTestWithSdk {
       .resolve("style1_my_sdk_icon_24.xml")
       .writeText(SIMPLE_VD)
 
-    val sdkHandler =
-      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
-    whenever(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler())
-      .thenReturn(sdkHandler)
+    val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
+    whenever(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
   }
 
   @Test

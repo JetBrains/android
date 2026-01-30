@@ -22,7 +22,7 @@ import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 
-/** Syncs the project upon startup.  */
+/** Syncs the project upon startup. */
 class BlazeSyncStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     if (!Blaze.isBlazeProject(project)) {
@@ -31,7 +31,6 @@ class BlazeSyncStartupActivity : ProjectActivity {
     BlazeImportSettingsManager.getInstance(project).initProjectView()
 
     // When query sync is not enabled hasProjectData triggers the load
-    QuerySyncManager.getInstance(project)
-      .onStartup(QuerySyncActionStatsScope.create(project, javaClass, null))
+    QuerySyncManager.getInstance(project).onStartup(QuerySyncActionStatsScope.create(project, javaClass, null))
   }
 }

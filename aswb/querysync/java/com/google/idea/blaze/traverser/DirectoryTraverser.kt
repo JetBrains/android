@@ -18,12 +18,12 @@ package com.google.idea.blaze.traverser
 import com.google.idea.blaze.qsync.dispatchers.QuerySyncDispatchers
 import com.google.idea.common.experiments.IntExperiment
 import com.intellij.openapi.diagnostic.thisLogger
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 private val WORKER_COUNT = IntExperiment("aswb.query.sync.structure.worker.count", 50)
 
@@ -57,11 +57,9 @@ suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryPr
       launch(QuerySyncDispatchers.IO) {
         for (dir in directoryChannel) {
           runCatching {
-            val contents = directoryProcessor.processDirectory(dir)
-            contents?.subDirectories?.forEach { subDir ->
-              offerDir(subDir)
+              val contents = directoryProcessor.processDirectory(dir)
+              contents?.subDirectories?.forEach { subDir -> offerDir(subDir) }
             }
-          }
             .getOrElse { t -> thisLogger().error("Failed processing $dir", t) }
           if (activeDirCount.decrementAndGet() == 0) {
             directoryChannel.close()
@@ -70,9 +68,7 @@ suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryPr
       }
     }
     // Seed initial directories
-    includeAbsolute.forEach { rootDir ->
-      offerDir(rootDir)
-    }
+    includeAbsolute.forEach { rootDir -> offerDir(rootDir) }
     // If no directories to start with, close channel
     if (activeDirCount.get() == 0) {
       directoryChannel.close()

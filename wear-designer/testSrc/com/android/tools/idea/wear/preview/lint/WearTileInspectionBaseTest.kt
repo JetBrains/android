@@ -41,19 +41,14 @@ class WearTileInspectionBaseTest(private val isUnitTestInspection: Boolean) {
 
   @get:Rule
   val projectRule =
-    WearTileProjectRule(
-      AndroidProjectRule.withAndroidModels(
-        AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())
-      )
-    )
+    WearTileProjectRule(AndroidProjectRule.withAndroidModels(AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())))
 
   @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
   private val fixture
     get() = projectRule.fixture
 
-  private val inspection =
-    object : WearTilePreviewInspectionBase(isUnitTestInspection = isUnitTestInspection) {}
+  private val inspection = object : WearTilePreviewInspectionBase(isUnitTestInspection = isUnitTestInspection) {}
 
   @Test
   fun isAvailableForKotlinAndJavaFiles() {

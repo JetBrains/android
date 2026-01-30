@@ -57,13 +57,11 @@ object EnvironmentUtils {
     }
     if (environmentVariablesMap.containsKey(JDK_LOCATION_ENV_VARIABLE_NAME)) {
       IdeSdks.getInstance().overrideJdkEnvVariable(environmentVariablesMap[JDK_LOCATION_ENV_VARIABLE_NAME])
-      Disposer.register(disposable) {
-        IdeSdks.getInstance().overrideJdkEnvVariable(null)
-      }
+      Disposer.register(disposable) { IdeSdks.getInstance().overrideJdkEnvVariable(null) }
     }
   }
 
-  private class JavaHomeGradleJvmResolver(private val environmentVariablesMap: Map<String, String>) : GradleJvmResolver()  {
+  private class JavaHomeGradleJvmResolver(private val environmentVariablesMap: Map<String, String>) : GradleJvmResolver() {
 
     override fun canBeResolved(gradleJvm: String) = gradleJvm == USE_JAVA_HOME
 
@@ -71,7 +69,7 @@ object EnvironmentUtils {
       project: Project,
       projectSdk: Sdk?,
       externalProjectPath: String?,
-      sdkLookupProvider: SdkLookupProvider
+      sdkLookupProvider: SdkLookupProvider,
     ): SdkLookupProvider.SdkInfo {
       val jdkPathEnvValue = environmentVariablesMap[JAVA_HOME] ?: return SdkLookupProvider.SdkInfo.Undefined
       return createJdkInfo(JAVA_HOME, jdkPathEnvValue)

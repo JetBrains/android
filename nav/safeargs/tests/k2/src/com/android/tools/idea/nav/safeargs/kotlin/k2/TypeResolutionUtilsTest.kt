@@ -30,11 +30,7 @@ class TypeResolutionUtilsTest {
     override val nullable: String? = null,
   ) : NavArgumentData
 
-  private fun resolve(
-    type: String? = null,
-    defaultValue: String? = null,
-    nullable: String? = null,
-  ): String =
+  private fun resolve(type: String? = null, defaultValue: String? = null, nullable: String? = null): String =
     NavArgumentDataImpl("arg", type, defaultValue, nullable).resolveKotlinType(PACKAGE_NAME)
 
   @Test
@@ -114,10 +110,8 @@ class TypeResolutionUtilsTest {
 
   @Test
   fun escapeClassId() {
-    assertThat(ClassId.fromString("foo/bar/baz.quux").toEscapedString())
-      .isEqualTo("foo.bar.baz.quux")
-    assertThat(ClassId.fromString("true/false/val.var").toEscapedString())
-      .isEqualTo("`true`.`false`.`val`.`var`")
+    assertThat(ClassId.fromString("foo/bar/baz.quux").toEscapedString()).isEqualTo("foo.bar.baz.quux")
+    assertThat(ClassId.fromString("true/false/val.var").toEscapedString()).isEqualTo("`true`.`false`.`val`.`var`")
   }
 
   companion object {

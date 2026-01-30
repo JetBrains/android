@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("PhysicalDisplayIdResolver")
+
 package com.android.tools.idea.ui.util
 
 import com.android.adblib.AdbSession
@@ -22,9 +23,9 @@ import com.android.adblib.shellAsText
 import com.android.tools.idea.ui.screenshot.DumpsysDisplayDeviceInfoParser
 
 /**
- * Returns the physical ID corresponding to a logical display. Throws an exception in case of
- * a device communication error or if the given logical display ID is invalid. It is important to
- * remember that the logical-to-physical display mapping is dynamic and may change over time.
+ * Returns the physical ID corresponding to a logical display. Throws an exception in case of a device communication error or if the given
+ * logical display ID is invalid. It is important to remember that the logical-to-physical display mapping is dynamic and may change over
+ * time.
  */
 suspend fun AdbSession.getPhysicalDisplayId(device: DeviceSelector, displayId: Int): Long {
   val dumpsysOutput = deviceServices.shellAsText(device, "dumpsys display").stdout
@@ -32,10 +33,10 @@ suspend fun AdbSession.getPhysicalDisplayId(device: DeviceSelector, displayId: I
 }
 
 /**
- * Returns the physical ID corresponding to a logical display by parsing output of `adb shell dumpsys display`.
- * Throws an exception if the given logical display ID is not fund in the dumpsys output.
+ * Returns the physical ID corresponding to a logical display by parsing output of `adb shell dumpsys display`. Throws an exception if the
+ * given logical display ID is not fund in the dumpsys output.
  */
 fun getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput: String, displayId: Int): Long {
-  return DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }?.physicalId ?:
-      throw RuntimeException("Unable to find physical id for logical display $displayId")
+  return DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }?.physicalId
+    ?: throw RuntimeException("Unable to find physical id for logical display $displayId")
 }

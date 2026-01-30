@@ -56,23 +56,15 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
  *    }
  * ```
  *
- * Methods on a @Component.Builder and parameters in a method on a @Component.Factory may be marked
- * with this attribute.
+ * Methods on a @Component.Builder and parameters in a method on a @Component.Factory may be marked with this attribute.
  *
  * See https://dagger.dev/api/latest/dagger/BindsInstance.html for full details.
  */
 internal object BindsInstanceDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(BindsInstanceIndexer))
-  override val indexValueReaders =
-    listOf(
-      BindsInstanceBuilderMethodIndexValue.Reader,
-      BindsInstanceFactoryMethodParameterIndexValue.Reader,
-    )
+  override val indexValueReaders = listOf(BindsInstanceBuilderMethodIndexValue.Reader, BindsInstanceFactoryMethodParameterIndexValue.Reader)
   override val daggerElementIdentifiers =
-    DaggerElementIdentifiers.of(
-      BindsInstanceBuilderMethodIndexValue.identifiers,
-      BindsInstanceFactoryMethodParameterIndexValue.identifiers,
-    )
+    DaggerElementIdentifiers.of(BindsInstanceBuilderMethodIndexValue.identifiers, BindsInstanceFactoryMethodParameterIndexValue.identifiers)
 }
 
 private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -107,28 +99,20 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     containingClass: DaggerIndexClassWrapper,
     indexEntries: IndexEntries,
   ) {
-    val bindsInstanceParameters =
-      wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
+    val bindsInstanceParameters = wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
     for (parameter in bindsInstanceParameters) {
       val parameterTypeSimpleName = parameter.getType()?.getSimpleName() ?: continue
       val parameterSimpleName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
         parameterTypeSimpleName,
-        BindsInstanceFactoryMethodParameterIndexValue(
-          containingClass.getClassId(),
-          wrapper.getSimpleName(),
-          parameterSimpleName,
-        ),
+        BindsInstanceFactoryMethodParameterIndexValue(containingClass.getClassId(), wrapper.getSimpleName(), parameterSimpleName),
       )
     }
   }
 }
 
 @VisibleForTesting
-internal data class BindsInstanceBuilderMethodIndexValue(
-  val classId: ClassId,
-  val methodSimpleName: String,
-) : IndexValue() {
+internal data class BindsInstanceBuilderMethodIndexValue(val classId: ClassId, val methodSimpleName: String) : IndexValue() {
 
   override val dataType = Reader.supportedType
 
@@ -140,16 +124,14 @@ internal data class BindsInstanceBuilderMethodIndexValue(
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_INSTANCE_BUILDER_METHOD
 
-    override fun read(input: DataInput) =
-      BindsInstanceBuilderMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = BindsInstanceBuilderMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtFunction): DaggerElement? {
       return if (
         psiElement.hasAnnotation(DaggerAnnotation.BINDS_INSTANCE) &&
-          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotation.COMPONENT_BUILDER) ==
-            true &&
+          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotation.COMPONENT_BUILDER) == true &&
           psiElement.valueParameters.size == 1
       ) {
         // We store the method in the index, but the single parameter is really the provider here.
@@ -180,11 +162,9 @@ internal data class BindsInstanceBuilderMethodIndexValue(
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.methods
-      ?.asSequence()
-      ?.filter { it.name == methodSimpleName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.methods?.asSequence()?.filter {
+      it.name == methodSimpleName
+    } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -208,11 +188,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
     override val supportedType = DataType.BINDS_INSTANCE_FACTORY_METHOD_PARAMETER
 
     override fun read(input: DataInput) =
-      BindsInstanceFactoryMethodParameterIndexValue(
-        input.readClassId(),
-        input.readString(),
-        input.readString(),
-      )
+      BindsInstanceFactoryMethodParameterIndexValue(input.readClassId(), input.readString(), input.readString())
   }
 
   companion object {
@@ -251,9 +227,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
       ?.methods
       ?.asSequence()
       ?.filter { it.name == methodSimpleName }
-      ?.flatMap {
-        it.parameterList.parameters.asSequence().filter { p -> p.name == parameterSimpleName }
-      } ?: emptySequence()
+      ?.flatMap { it.parameterList.parameters.asSequence().filter { p -> p.name == parameterSimpleName } } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

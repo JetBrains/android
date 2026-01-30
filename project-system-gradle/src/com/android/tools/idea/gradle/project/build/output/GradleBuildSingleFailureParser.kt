@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isEndOfBuildOutputLine
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.output.BuildOutputInstantReader
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import java.util.function.Consumer
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 
-class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler>) : GradleBuildFailureParser(
-  failureHandlers = failureHandlers,
-  knownIssuesCheckers = GradleIssueChecker.Companion.getKnownIssuesCheckList()
-) {
+class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler>) :
+  GradleBuildFailureParser(
+    failureHandlers = failureHandlers,
+    knownIssuesCheckers = GradleIssueChecker.Companion.getKnownIssuesCheckList(),
+  ) {
 
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
     if (!line.startsWith("FAILURE: Build failed with an exception.")) return false
@@ -36,11 +37,7 @@ class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler
 
     val parentId: Any = parsed.taskName ?: reader.parentEventId
 
-    processErrorMessage(
-      parentId,
-      parsed,
-      messageConsumer
-    )
+    processErrorMessage(parentId, parsed, messageConsumer)
     return true
   }
 
@@ -52,8 +49,7 @@ class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler
       if (line.isEndOfBuildOutputLine()) break
       if (result.headerToSection.containsKey(line)) {
         currentBuilder = result.headerToSection[line]
-      }
-      else {
+      } else {
         currentBuilder?.add(line)
       }
     }

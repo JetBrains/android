@@ -28,14 +28,11 @@ import java.nio.file.Path
 
 abstract class DiagnosticReport
 @JvmOverloads
-constructor(val type: String,
-            val properties: DiagnosticReportProperties = DiagnosticReportProperties()
-) {
+constructor(val type: String, val properties: DiagnosticReportProperties = DiagnosticReportProperties()) {
 
   abstract fun serializeReportProperties(writer: JsonWriter)
 
-  @Throws(IOException::class)
-  abstract fun asCrashReport(): CrashReport
+  @Throws(IOException::class) abstract fun asCrashReport(): CrashReport
 
   fun serializeReport(outputWriter: Writer) {
     JsonWriter(outputWriter).use {
@@ -81,32 +78,32 @@ constructor(val type: String,
       if (format > MAX_SUPPORTED_FORMAT) {
         return null
       }
-      val baseReportProperties = when (format) {
-        // Version 1 does not support serialized DiagnosticReportProperties()
-        1L -> DiagnosticReportProperties()
-        else -> DiagnosticReportProperties(
-          uptime = uptime,
-          reportTime = reportTime,
-          sessionId = sessionId,
-          studioVersion = studioVersion,
-          kotlinVersion = kotlinVersion
-        )
-      }
+      val baseReportProperties =
+        when (format) {
+          // Version 1 does not support serialized DiagnosticReportProperties()
+          1L -> DiagnosticReportProperties()
+          else ->
+            DiagnosticReportProperties(
+              uptime = uptime,
+              reportTime = reportTime,
+              sessionId = sessionId,
+              studioVersion = studioVersion,
+              kotlinVersion = kotlinVersion,
+            )
+        }
 
       return try {
         when (type) {
           "Freeze" -> FreezeReport.deserialize(baseReportProperties, properties, format)
-          "Histogram" -> HistogramReport.deserialize(baseReportProperties, properties,
-                                                     format)
-          "PerformanceThreadDump" -> PerformanceThreadDumpReport.deserialize(
-            baseReportProperties, properties, format)
+          "Histogram" -> HistogramReport.deserialize(baseReportProperties, properties, format)
+          "PerformanceThreadDump" -> PerformanceThreadDumpReport.deserialize(baseReportProperties, properties, format)
           "UnanalyzedHeap" -> UnanalyzedHeapReport.deserialize(baseReportProperties, properties, format)
-          else -> if (type in typesToFields.keys)
-            GenericReport.deserialize(type!!, baseReportProperties, typesToFields[type]!!, properties, format)
-          else null
+          else ->
+            if (type in typesToFields.keys)
+              GenericReport.deserialize(type!!, baseReportProperties, typesToFields[type]!!, properties, format)
+            else null
         }
-      }
-      catch (ignored: Exception) {
+      } catch (ignored: Exception) {
         null
       }
     }
@@ -119,9 +116,7 @@ constructor(val type: String,
         reader.isLenient = true
         while (reader.hasNext() && reader.peek() != JsonToken.END_DOCUMENT) {
           reader.beginObject()
-          readDiagnosticReport(reader)?.let { report ->
-            result.add(report)
-          }
+          readDiagnosticReport(reader)?.let { report -> result.add(report) }
           reader.endObject()
         }
       }
@@ -129,8 +124,9 @@ constructor(val type: String,
     }
 
     /**
-     * Performance reports are moved to a different directory once UI is responsive again (path contains duration
-     * of the freeze). If the file pointed by `path` doesn't exist, it checks if it exists under such directory.
+     * Performance reports are moved to a different directory once UI is responsive again (path contains duration of the freeze). If the
+     * file pointed by `path` doesn't exist, it checks if it exists under such directory.
+     *
      * @returns Path where such report exists, `null` otherwise
      */
     fun fixDirectoryPathAndCheckIfReadable(path: Path?): Path? {
@@ -142,17 +138,17 @@ constructor(val type: String,
       val directory = path.parent
       try {
         val prefix = "${directory.fileName}-"
-        Files.newDirectoryStream(directory.parent) { it.fileName.toString().startsWith(prefix) }.use { paths ->
-          val iterator = paths.iterator()
-          if (!iterator.hasNext()) {
-            return null
+        Files.newDirectoryStream(directory.parent) { it.fileName.toString().startsWith(prefix) }
+          .use { paths ->
+            val iterator = paths.iterator()
+            if (!iterator.hasNext()) {
+              return null
+            }
+            val newDirectory = iterator.next()
+            val newFile = newDirectory.resolve(path.fileName)
+            return if (Files.isReadable(newFile)) newFile else null
           }
-          val newDirectory = iterator.next()
-          val newFile = newDirectory.resolve(path.fileName)
-          return if (Files.isReadable(newFile)) newFile else null
-        }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         return null
       }
     }

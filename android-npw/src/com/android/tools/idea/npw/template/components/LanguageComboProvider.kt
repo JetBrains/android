@@ -20,23 +20,22 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Provides a combobox which presents the user with a list of Programming Languages.
- */
+/** Provides a combobox which presents the user with a list of Programming Languages. */
 class LanguageComboProvider : ComponentProvider<ComboBox<*>>() {
-  override fun createComponent(): ComboBox<Language> = ComboBox(DefaultComboBoxModel(Language.values())).apply {
-    renderer = object : SimpleListCellRenderer<Language>() {
-      override fun customize(list: JList<out Language>, value: Language?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        text = value.toString()
-      }
+  override fun createComponent(): ComboBox<Language> =
+    ComboBox(DefaultComboBoxModel(Language.values())).apply {
+      renderer =
+        object : SimpleListCellRenderer<Language>() {
+          override fun customize(list: JList<out Language>, value: Language?, index: Int, selected: Boolean, hasFocus: Boolean) {
+            text = value.toString()
+          }
+        }
+      toolTipText = message("android.wizard.language.combo.tooltip")
     }
-    toolTipText = message("android.wizard.language.combo.tooltip")
-  }
 
   override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = SelectedItemProperty<String>(component)
 }
-

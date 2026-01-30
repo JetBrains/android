@@ -24,8 +24,7 @@ import org.junit.Test
 
 class DomainToPackageExpressionTest {
 
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
   @Test
   fun packageNameDeriverSantizesCompanyDomainKey() {

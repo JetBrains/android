@@ -17,8 +17,8 @@ package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Dimension
+import org.junit.Test
 
 class UiSettingsModelTest {
   @Test

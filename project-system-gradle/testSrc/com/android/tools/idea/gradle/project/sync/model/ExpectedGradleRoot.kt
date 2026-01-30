@@ -21,12 +21,14 @@ import org.jetbrains.annotations.SystemIndependent
 
 /**
  * Project expected gradle root representation model
+ *
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
- * @param gradleExecutionDaemonJdkPath The jdk path used to configure the gradle daemon and trigger sync [AndroidStudioGradleInstallationManager.resolveGradleJvmPath]
+ * @param gradleExecutionDaemonJdkPath The jdk path used to configure the gradle daemon and trigger sync
+ *   [AndroidStudioGradleInstallationManager.resolveGradleJvmPath]
  * @param gradleLocalJavaHome The java.home property located on .gradle/config.properties
  */
 data class ExpectedGradleRoot(
   val ideaGradleJdk: String? = null,
   val gradleExecutionDaemonJdkPath: @SystemIndependent String? = null,
-  val gradleLocalJavaHome: @SystemIndependent String? = null
+  val gradleLocalJavaHome: @SystemIndependent String? = null,
 )

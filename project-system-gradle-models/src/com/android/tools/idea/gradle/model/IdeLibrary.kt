@@ -19,9 +19,7 @@ import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSet
 import java.io.File
 
-/**
- * Represent a variant/module/artifact dependency.
- */
+/** Represent a variant/module/artifact dependency. */
 sealed interface IdeLibrary {
   /**
    * Returns the location of the lint jar. The file may not point to an existing file.
@@ -32,141 +30,96 @@ sealed interface IdeLibrary {
 }
 
 sealed interface IdeArtifactLibrary : IdeLibrary {
-  /**
-   * Returns the artifact address in a unique way.
-   */
+  /** Returns the artifact address in a unique way. */
   val artifactAddress: String
 
-  /**
-   * Returns the artifact's Gradle Component information, if known.
-   */
+  /** Returns the artifact's Gradle Component information, if known. */
   val component: Component?
 
-  /**
-   * The name to be used to represent the library in the IDE.
-   */
+  /** The name to be used to represent the library in the IDE. */
   val name: String
 
-  /**
-   * Returns the location of the sources jars(including samples source).
-   */
+  /** Returns the location of the sources jars(including samples source). */
   val srcJars: List<File>
 
-  /**
-   * Returns the location of the java doc jar.
-   */
+  /** Returns the location of the java doc jar. */
   val docJar: File?
 }
 
 sealed interface IdeAndroidLibrary : IdeArtifactLibrary {
-  /** Returns the artifact location.  */
+  /** Returns the artifact location. */
   val artifact: File?
 
-  /**
-   * Returns the location of the unzipped bundle folder.
-   */
+  /** Returns the location of the unzipped bundle folder. */
   val folder: File?
 
-  /**
-   * Returns the location of the manifest relative to the folder.
-   */
+  /** Returns the location of the manifest relative to the folder. */
   val manifest: File
 
-  /**
-   * The list of jar files for compilation.
-   */
+  /** The list of jar files for compilation. */
   val compileJarFiles: List<File>
 
-  /**
-   * The list of jar files for runtime/packaging.
-   * This corresponds to the AAR main jar file and the localJars.
-   */
+  /** The list of jar files for runtime/packaging. This corresponds to the AAR main jar file and the localJars. */
   val runtimeJarFiles: List<File>
 
-  /**
-   * Returns the location of the res folder. The file may not point to an existing folder.
-   */
+  /** Returns the location of the res folder. The file may not point to an existing folder. */
   val resFolder: File
 
   /**
    * Returns the location of the namespaced resources static library (res.apk). Null if the library is not namespaced.
    *
-   * TODO(b/109854607): When rewriting dependencies, this should be populated with the
-   * rewritten artifact, which will not be in the exploded AAR directory.
+   * TODO(b/109854607): When rewriting dependencies, this should be populated with the rewritten artifact, which will not be in the exploded
+   *   AAR directory.
    */
   val resStaticLibrary: File?
 
-  /**
-   * Returns the location of the assets folder. The file may not point to an existing folder.
-   */
+  /** Returns the location of the assets folder. The file may not point to an existing folder. */
   val assetsFolder: File
 
-  /**
-   * Returns the location of the jni libraries folder. The file may not point to an existing folder.
-   */
+  /** Returns the location of the jni libraries folder. The file may not point to an existing folder. */
   val jniFolder: File
 
-  /**
-   * Returns the location of the aidl import folder. The file may not point to an existing folder.
-   */
+  /** Returns the location of the aidl import folder. The file may not point to an existing folder. */
   val aidlFolder: File
 
-  /**
-   * Returns the location of the renderscript import folder. The file may not point to an existing folder.
-   */
+  /** Returns the location of the renderscript import folder. The file may not point to an existing folder. */
   val renderscriptFolder: File
 
-  /**
-   * Returns the location of the proguard files. The file may not point to an existing file.
-   */
+  /** Returns the location of the proguard files. The file may not point to an existing file. */
   val proguardRules: File
 
-  /**
-   * Returns the location of the external annotations zip file (which may not exist).
-   */
+  /** Returns the location of the external annotations zip file (which may not exist). */
   val externalAnnotations: File
 
   /**
-   * Returns the location of an optional file that lists the only resources that should be
-   * considered public. The file may not point to an existing file.
+   * Returns the location of an optional file that lists the only resources that should be considered public. The file may not point to an
+   * existing file.
    */
   val publicResources: File
 
-  /**
-   * Returns the location of the text symbol file
-   */
+  /** Returns the location of the text symbol file */
   val symbolFile: File
 }
 
 sealed interface IdeJavaLibrary : IdeArtifactLibrary {
-  /** Returns the artifact location.  */
+  /** Returns the artifact location. */
   val artifact: File
 }
 
 sealed interface IdeModuleLibrary : IdeLibrary {
-  /**
-   * Returns the gradle path.
-   */
+  /** Returns the gradle path. */
   val projectPath: String
 
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
+  /** Returns an optional variant name if the consumed artifact of the library is associated to one. */
   val variant: String?
 
-  /**
-   * Returns the build id.
-   */
+  /** Returns the build id. */
   val buildId: String
 
-  /**
-   * Returns the sourceSet associated with the library.
-   */
+  /** Returns the sourceSet associated with the library. */
   val sourceSet: IdeModuleSourceSet
 }
 
-sealed interface IdeUnknownLibrary: IdeLibrary {
+sealed interface IdeUnknownLibrary : IdeLibrary {
   val key: String
 }
-

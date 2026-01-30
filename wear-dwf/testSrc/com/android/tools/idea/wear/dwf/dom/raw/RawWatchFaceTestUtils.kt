@@ -63,8 +63,7 @@ fun overrideCurrentWFFVersion(wffVersion: WFFVersion?, disposable: Disposable) {
   val mockCurrentWFFVersionService = mock<CurrentWFFVersionService>()
   whenever(mockCurrentWFFVersionService.getCurrentWFFVersion(any()))
     .thenReturn(wffVersion?.let { CurrentWFFVersion(wffVersion, isFallback = false) })
-  ApplicationManager.getApplication()
-    .replaceService(CurrentWFFVersionService::class.java, mockCurrentWFFVersionService, disposable)
+  ApplicationManager.getApplication().replaceService(CurrentWFFVersionService::class.java, mockCurrentWFFVersionService, disposable)
 }
 
 /** Finds the injected [WFFExpressionLiteralExpr] at the caret offset. */

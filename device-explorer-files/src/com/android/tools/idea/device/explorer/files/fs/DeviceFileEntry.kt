@@ -17,49 +17,35 @@ package com.android.tools.idea.device.explorer.files.fs
 
 import java.nio.file.Path
 
-/**
- * An file or directory entry in a [DeviceFileSystem]
- */
+/** An file or directory entry in a [DeviceFileSystem] */
 interface DeviceFileEntry {
-  /**
-   * The [DeviceFileSystem] this entry belongs to.
-   */
+  /** The [DeviceFileSystem] this entry belongs to. */
   val fileSystem: DeviceFileSystem
 
-  /**
-   * The parent [DeviceFileEntry] or `null` if this is the root directory.
-   */
+  /** The parent [DeviceFileEntry] or `null` if this is the root directory. */
   val parent: DeviceFileEntry?
 
-  /**
-   * The name of this entry in its parent directory.
-   */
+  /** The name of this entry in its parent directory. */
   val name: String
 
-  /**
-   * The full path of the entry in the device file system.
-   */
+  /** The full path of the entry in the device file system. */
   val fullPath: String
 
-  /**
-   * The list of entries contained in this directory.
-   */
+  /** The list of entries contained in this directory. */
   suspend fun entries(): List<DeviceFileEntry>
 
-  /**
-   * Deletes the entry from the device file system.
-   */
+  /** Deletes the entry from the device file system. */
   suspend fun delete()
 
   /**
-   * Creates a new file "`fileName`" in this directory, and returns  when the file is created.
-   * Throws an exception if there is any error creating the file (including the path already exists).
+   * Creates a new file "`fileName`" in this directory, and returns when the file is created. Throws an exception if there is any error
+   * creating the file (including the path already exists).
    */
   suspend fun createNewFile(fileName: String)
 
   /**
-   * Creates a new directory "`directoryName`" in this directory, and returns when the directory is created.
-   * Throws an exception if there is any error creating the directory (including the path already exists).
+   * Creates a new directory "`directoryName`" in this directory, and returns when the directory is created. Throws an exception if there is
+   * any error creating the directory (including the path already exists).
    */
   suspend fun createNewDirectory(directoryName: String)
 
@@ -70,78 +56,44 @@ interface DeviceFileEntry {
    */
   suspend fun isSymbolicLinkToDirectory(): Boolean
 
-  /**
-   * Downloads the contents of the [DeviceFileEntry] to a local file.
-   */
-  suspend fun downloadFile(
-    localPath: Path,
-    progress: FileTransferProgress
-  )
+  /** Downloads the contents of the [DeviceFileEntry] to a local file. */
+  suspend fun downloadFile(localPath: Path, progress: FileTransferProgress)
 
-  /**
-   * Uploads the contents of a local file to a remote [DeviceFileEntry] directory.
-   */
-  suspend fun uploadFile(
-    localPath: Path,
-    progress: FileTransferProgress
-  ) {
+  /** Uploads the contents of a local file to a remote [DeviceFileEntry] directory. */
+  suspend fun uploadFile(localPath: Path, progress: FileTransferProgress) {
     return uploadFile(localPath, localPath.fileName.toString(), progress)
   }
 
-  /**
-   * Uploads the contents of a local file to a remote [DeviceFileEntry] directory.
-   */
-  suspend fun uploadFile(
-    localPath: Path,
-    fileName: String,
-    progress: FileTransferProgress
-  )
+  /** Uploads the contents of a local file to a remote [DeviceFileEntry] directory. */
+  suspend fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress)
 
-  /**
-   * The permissions associated to this entry, similar to unix permissions.
-   */
+  /** The permissions associated to this entry, similar to unix permissions. */
   val permissions: Permissions
 
-  /**
-   * The last modification date & time of this entry
-   */
+  /** The last modification date & time of this entry */
   val lastModifiedDate: DateTime
 
-  /**
-   * The size (in bytes) of this entry, or `-1` if the size is unknown.
-   */
+  /** The size (in bytes) of this entry, or `-1` if the size is unknown. */
   val size: Long
 
-  /**
-   * `true` if the entry is a directory, i.e. it contains entries.
-   */
+  /** `true` if the entry is a directory, i.e. it contains entries. */
   val isDirectory: Boolean
 
-  /**
-   * `true` if the entry is a file, i.e. it has content and does not contain entries.
-   */
+  /** `true` if the entry is a file, i.e. it has content and does not contain entries. */
   val isFile: Boolean
 
-  /**
-   * `true` if the entry is a symbolic link.
-   */
+  /** `true` if the entry is a symbolic link. */
   val isSymbolicLink: Boolean
 
-  /**
-   * The link target of the entry if [.isSymbolicLink] is `true`, `null` otherwise.
-   */
+  /** The link target of the entry if [.isSymbolicLink] is `true`, `null` otherwise. */
   val symbolicLinkTarget: String?
 
-  /**
-   * Permissions associated to a [DeviceFileEntry].
-   */
+  /** Permissions associated to a [DeviceFileEntry]. */
   interface Permissions {
     val text: String
   }
 
-  /**
-   * Date & time associated to a [DeviceFileEntry].
-   */
+  /** Date & time associated to a [DeviceFileEntry]. */
   interface DateTime {
     val text: String
   }

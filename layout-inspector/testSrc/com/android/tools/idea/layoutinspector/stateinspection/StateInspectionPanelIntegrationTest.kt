@@ -54,16 +54,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/stateinspection"
 private const val LINK_OFFSET_X = 50
 private const val LINK_OFFSET_Y = 6
 
 /**
  * Integration test that involves: [StateInspectionPanel], [StateInspectionModel],
- * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient],
- * and
+ * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient], and
  * [com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.RecompositionStateReadCache].
  */
 @RunsInEdt
@@ -71,9 +69,7 @@ class StateInspectionPanelIntegrationTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
-    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
-      it.name == MODERN_PROCESS.name
-    }
+    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
 
   @get:Rule val rule = RuleChain(projectRule, inspectionRule, inspectorRule, EdtRule())
 
@@ -89,10 +85,7 @@ class StateInspectionPanelIntegrationTest {
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     installFakeExtensionPoints(projectRule.testRootDisposable)
     projectRule.fixture.addFileToProject("src/java/androidx/compose/material3/Text.kt", "")
-    projectRule.fixture.addFileToProject(
-      "src/java/com/example/recompositiontest/MainActivity.kt",
-      "",
-    )
+    projectRule.fixture.addFileToProject("src/java/com/example/recompositiontest/MainActivity.kt", "")
   }
 
   @After
@@ -107,9 +100,7 @@ class StateInspectionPanelIntegrationTest {
     state.createFakeStateReads()
 
     val panel = createPanel()
-    waitForCondition(10.seconds) {
-      panel.findAllDescendants<ActionButton>({ true }).toList().size == 3
-    }
+    waitForCondition(10.seconds) { panel.findAllDescendants<ActionButton>({ true }).toList().size == 3 }
 
     val ui = FakeUi(panel, createFakeWindow = true)
     val prev = panel.buttonWithIcon(AllIcons.Actions.Play_back)
@@ -146,9 +137,7 @@ class StateInspectionPanelIntegrationTest {
     val updatedRecompositionCounts =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         compose(COMPOSE1, "Column", composeCount = 104, composeFilename = "MainActivity.kt") {
-          compose(COMPOSE2, "Button", composeCount = 2) {
-            compose(COMPOSE3, "Text", composeCount = 0)
-          }
+          compose(COMPOSE2, "Button", composeCount = 2) { compose(COMPOSE3, "Text", composeCount = 0) }
         }
       }
     inspectorRule.inspectorModel.update(updatedRecompositionCounts, listOf(ROOT), 0)
@@ -238,19 +227,12 @@ class StateInspectionPanelIntegrationTest {
     val window =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         compose(COMPOSE1, "Column", composeCount = 3, composeFilename = "MainActivity.kt") {
-          compose(COMPOSE2, "Button", composeCount = 2) {
-            compose(COMPOSE3, "Text", composeCount = 0)
-          }
+          compose(COMPOSE2, "Button", composeCount = 2) { compose(COMPOSE3, "Text", composeCount = 0) }
         }
       }
     model.update(window, listOf(ROOT), 0)
     val detectorFactory = SynchronousHyperLinkDetectorFactory()
-    val panel =
-      createStateInspectionPanel(
-        inspectorRule.inspector,
-        projectRule.testRootDisposable,
-        detectorFactory,
-      )
+    val panel = createStateInspectionPanel(inspectorRule.inspector, projectRule.testRootDisposable, detectorFactory)
     panel.size = Dimension(800, 600)
     model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
     return panel

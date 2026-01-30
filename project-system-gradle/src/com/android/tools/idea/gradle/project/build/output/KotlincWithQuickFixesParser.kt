@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueEvent
-import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
@@ -31,30 +28,36 @@ import java.util.function.Consumer
 
 const val JVM_TARGET_FIX_BYTECODE = "Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target"
 const val JVM_TARGET_FIX_SPECIFY_OPTION = "Please specify proper '-jvm-target' option"
-const val JVM_TARGET_FIX_STATIC = "Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'"
+const val JVM_TARGET_FIX_STATIC =
+  "Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'"
 const val JAVA_8_SUPPORT_LINK = "https://developer.android.com/studio/write/java8-support"
 
 /**
  * Wrapper class for [KotlincOutputParser] that adds quickfixes based on the error messages.
  *
  * Current quick fixes:
- *   - Errors that contain (JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION) or JVM_TARGET_FIX_STATIC display a [SetJavaLanguageLevelAllQuickFix]
+ * - Errors that contain (JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION) or JVM_TARGET_FIX_STATIC display a
+ *   [SetJavaLanguageLevelAllQuickFix]
  */
 class KotlincWithQuickFixesParser : BuildOutputParser {
   private val myKotlinParser = KotlincOutputParser()
+
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    val wrappedConsumer = Consumer<BuildEvent> {
-      if (it != null) {
-        messageConsumer.accept(addQuickfixes(it))
+    val wrappedConsumer =
+      Consumer<BuildEvent> {
+        if (it != null) {
+          messageConsumer.accept(addQuickfixes(it))
+        }
       }
-    }
     return myKotlinParser.parse(line, reader, wrappedConsumer)
   }
 
   private fun addQuickfixes(originalEvent: BuildEvent): BuildEvent {
     val originalMessage = originalEvent.message
-    if ((originalMessage.contains(JVM_TARGET_FIX_BYTECODE) && originalMessage.contains(JVM_TARGET_FIX_SPECIFY_OPTION)) ||
-        (originalMessage.contains(JVM_TARGET_FIX_STATIC))) {
+    if (
+      (originalMessage.contains(JVM_TARGET_FIX_BYTECODE) && originalMessage.contains(JVM_TARGET_FIX_SPECIFY_OPTION)) ||
+        (originalMessage.contains(JVM_TARGET_FIX_STATIC))
+    ) {
       if (originalEvent is MessageEvent) {
         val additionalDescription = BuildIssueDescriptionComposer("Adding support for Java 8 language features could solve this issue.")
         additionalDescription.newLine()

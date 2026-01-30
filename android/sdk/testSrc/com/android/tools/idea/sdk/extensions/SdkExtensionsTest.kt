@@ -27,22 +27,18 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.DisposableRule
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class SdkExtensionsTest {
 
-  @Rule
-  @JvmField
-  val projectRule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val projectRule = AndroidProjectRule.inMemory()
 
-  @Rule
-  @JvmField
-  val disposableRule = DisposableRule()
+  @Rule @JvmField val disposableRule = DisposableRule()
 
   @Test
   fun `Given Sdks with different naming When compare They are different`() {
@@ -67,14 +63,8 @@ class SdkExtensionsTest {
 
   @Test
   fun `Given Sdks with different roots When compare They are different`() {
-    val sdkA = createMockSdk(roots = listOf(
-      Pair(OrderRootType.CLASSES, "root1"),
-      Pair(OrderRootType.CLASSES, "rootA2"),
-    ))
-    val sdkB = createMockSdk(roots = listOf(
-      Pair(OrderRootType.CLASSES, "root1"),
-      Pair(OrderRootType.CLASSES, "rootB2"),
-    ))
+    val sdkA = createMockSdk(roots = listOf(Pair(OrderRootType.CLASSES, "root1"), Pair(OrderRootType.CLASSES, "rootA2")))
+    val sdkB = createMockSdk(roots = listOf(Pair(OrderRootType.CLASSES, "root1"), Pair(OrderRootType.CLASSES, "rootB2")))
     assertFalse(sdkA.isEqualTo(sdkB))
   }
 
@@ -87,32 +77,36 @@ class SdkExtensionsTest {
 
   @Test
   fun `Given Sdks with same values When compare They are equal`() {
-    val sdkA = createMockSdk(
-      name = "sdk",
-      path = "testPath",
-      version = "testVersion",
-      sdkTpe = KotlinSdkType(),
-      roots = listOf(
-        Pair(OrderRootType.CLASSES, "class1"),
-        Pair(OrderRootType.CLASSES, "class2"),
-        Pair(OrderRootType.SOURCES, "source"),
-        Pair(OrderRootType.DOCUMENTATION, "documentation"),
-        Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+    val sdkA =
+      createMockSdk(
+        name = "sdk",
+        path = "testPath",
+        version = "testVersion",
+        sdkTpe = KotlinSdkType(),
+        roots =
+          listOf(
+            Pair(OrderRootType.CLASSES, "class1"),
+            Pair(OrderRootType.CLASSES, "class2"),
+            Pair(OrderRootType.SOURCES, "source"),
+            Pair(OrderRootType.DOCUMENTATION, "documentation"),
+            Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+          ),
       )
-    )
-    val sdkB = createMockSdk(
-      name = "sdk",
-      path = "testPath",
-      version = "testVersion",
-      sdkTpe = KotlinSdkType(),
-      roots = listOf(
-        Pair(OrderRootType.CLASSES, "class1"),
-        Pair(OrderRootType.CLASSES, "class2"),
-        Pair(OrderRootType.SOURCES, "source"),
-        Pair(OrderRootType.DOCUMENTATION, "documentation"),
-        Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+    val sdkB =
+      createMockSdk(
+        name = "sdk",
+        path = "testPath",
+        version = "testVersion",
+        sdkTpe = KotlinSdkType(),
+        roots =
+          listOf(
+            Pair(OrderRootType.CLASSES, "class1"),
+            Pair(OrderRootType.CLASSES, "class2"),
+            Pair(OrderRootType.SOURCES, "source"),
+            Pair(OrderRootType.DOCUMENTATION, "documentation"),
+            Pair(AnnotationOrderRootType.getInstance(), "annotation"),
+          ),
       )
-    )
     assertTrue(sdkA.isEqualTo(sdkB))
   }
 
@@ -121,7 +115,7 @@ class SdkExtensionsTest {
     path: String = "path",
     version: String = "version",
     sdkTpe: SdkTypeId = SimpleJavaSdkType(),
-    roots: List<Pair<OrderRootType, String>> = emptyList()
+    roots: List<Pair<OrderRootType, String>> = emptyList(),
   ): Sdk {
     val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkTpe)
     val sdkModificator = sdk.sdkModificator
@@ -140,9 +134,7 @@ class SdkExtensionsTest {
         sdkModificator.commitChanges()
       }
     }
-    (sdk as? Disposable)?.let {
-      Disposer.register(disposableRule.disposable, it)
-    }
+    (sdk as? Disposable)?.let { Disposer.register(disposableRule.disposable, it) }
     return sdk
   }
 }

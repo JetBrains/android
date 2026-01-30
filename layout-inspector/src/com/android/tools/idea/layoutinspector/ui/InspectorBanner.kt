@@ -28,10 +28,7 @@ import javax.swing.BoxLayout
 import javax.swing.JPanel
 
 /** A banner for showing notifications in the Layout Inspector. */
-class InspectorBanner(
-  parentDisposable: Disposable,
-  private val notificationModel: NotificationModel,
-) : JPanel(), Disposable {
+class InspectorBanner(parentDisposable: Disposable, private val notificationModel: NotificationModel) : JPanel(), Disposable {
 
   private val notificationListener =
     object : NotificationListener {
@@ -61,9 +58,7 @@ class InspectorBanner(
       notifications.forEach { notification ->
         val panel = EditorNotificationPanel(notification.status)
         panel.text = "<html>${HtmlEscapers.htmlEscaper().escape(notification.message)}</html>"
-        notification.actions.forEach { action ->
-          panel.createActionLabel(action.name) { action.invoke(notification) }
-        }
+        notification.actions.forEach { action -> panel.createActionLabel(action.name) { action.invoke(notification) } }
         add(panel)
       }
       // Update the InspectorBanner height:

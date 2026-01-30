@@ -21,19 +21,15 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
 import com.intellij.openapi.util.SystemInfo
+import java.nio.file.Paths
 import java.util.Map
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Paths
 
 class StartupPerformanceTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun testStartupPerformance() {
@@ -52,8 +48,12 @@ class StartupPerformanceTest {
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()
 
-      studio.openFile(null, "app/src/androidTest/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksScreenTest.kt", false,
-                      true)
+      studio.openFile(
+        null,
+        "app/src/androidTest/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksScreenTest.kt",
+        false,
+        true,
+      )
     }
 
     system.runStudio(project, watcher.dashboardName) { studio ->
@@ -68,8 +68,10 @@ class StartupPerformanceTest {
 
     stats.get("STARTUP_EVENT").findFirst().get().let { benchmark.log("startup_event", it.startupEvent.durationMs.toLong()) }
     stats.get("STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR").findFirst().get().let {
-      benchmark.log("startup_performance_code_loaded_and_visible_in_editor",
-                    it.startupPerformanceCodeLoadedAndVisibleInEditor.durationMs.toLong())
+      benchmark.log(
+        "startup_performance_code_loaded_and_visible_in_editor",
+        it.startupPerformanceCodeLoadedAndVisibleInEditor.durationMs.toLong(),
+      )
     }
     stats.get("STARTUP_PERFORMANCE_FIRST_UI_SHOWN").findFirst().get().let {
       benchmark.log("startup_performance_first_ui_shown", it.startupPerformanceFirstUiShownEvent.durationMs.toLong())
@@ -82,19 +84,32 @@ class StartupPerformanceTest {
     }
 
     // [Linux test const term, Windows test const term]
-    val metricConstTerms = Map.of("pausedTimeInIndexingOrScanning", listOf(6, 6),
-                                   "indexingTimeWithoutPauses", listOf(31, 225),
-                                   "scanningTimeWithoutPauses", listOf(88, 760),
-                                   "startup_performance_code_loaded_and_visible_in_editor", listOf(200, 200),
-                                   "startup_performance_frame_became_visible", listOf(120, 384),
-                                   "startup_performance_frame_became_interactive", listOf(145, 664),
-                                   "startup_event", listOf(5, 300),
-                                   "dumbModeTimeWithPauses", listOf(0, 330),
-                                   "startup_performance_first_ui_shown", listOf(40, 10))
+    val metricConstTerms =
+      Map.of(
+        "pausedTimeInIndexingOrScanning",
+        listOf(6, 6),
+        "indexingTimeWithoutPauses",
+        listOf(31, 225),
+        "scanningTimeWithoutPauses",
+        listOf(88, 760),
+        "startup_performance_code_loaded_and_visible_in_editor",
+        listOf(200, 200),
+        "startup_performance_frame_became_visible",
+        listOf(120, 384),
+        "startup_performance_frame_became_interactive",
+        listOf(145, 664),
+        "startup_event",
+        listOf(5, 300),
+        "dumbModeTimeWithPauses",
+        listOf(0, 330),
+        "startup_performance_first_ui_shown",
+        listOf(40, 10),
+      )
 
     system.installation.indexingMetrics.get(project).forEach {
       // Per-filetype metrics are too volatile and fine-granular. Let's report them without analyzer.
-      if (it.metricLabel.startsWith("processingSpeedAvg_") ||
+      if (
+        it.metricLabel.startsWith("processingSpeedAvg_") ||
           it.metricLabel.startsWith("processingSpeedOfBaseLanguageAvg_") ||
           it.metricLabel.startsWith("processingSpeedWorst_") ||
           it.metricLabel.startsWith("processingSpeedOfBaseLanguageWorst_") ||
@@ -103,7 +118,7 @@ class StartupPerformanceTest {
           // one, or races with other background processes that modify files or request an index refresh).
           it.metricLabel.startsWith("numberOfRunsOfIndexing") ||
           it.metricLabel.startsWith("numberOfIndexedFilesWithNothingToWrite")
-        ) {
+      ) {
         benchmark.logWithoutAnalyzer(it.metricLabel, it.metricValue)
         return
       }

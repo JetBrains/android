@@ -41,7 +41,7 @@ class AndroidActivityRunLineMarkerContributorTest {
 
       open class Activity {}
       """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 
@@ -52,23 +52,21 @@ class AndroidActivityRunLineMarkerContributorTest {
       projectRule.fixture.addFileToProject(
         "src/com/example/myapplication/MyActivity.kt",
         """
-      package com.example.myapplication
+        package com.example.myapplication
 
-      import android.app.Activity
+        import android.app.Activity
 
-      /**
-       */
-      class MyActivity : Activity() {
-      }
-      """
-          .trimIndent()
+        /**
+         */
+        class MyActivity : Activity() {
+        }
+        """
+          .trimIndent(),
       )
 
     val contributor = AndroidActivityRunLineMarkerContributor()
     assertNotNull(contributor.getInfo(activityFile.findElementByText("class")))
-    assertNull(
-      contributor.getInfo(activityFile.findElementByText("package com.example.myapplication"))
-    )
+    assertNull(contributor.getInfo(activityFile.findElementByText("package com.example.myapplication")))
   }
 
   @Test
@@ -78,25 +76,22 @@ class AndroidActivityRunLineMarkerContributorTest {
       projectRule.fixture.addFileToProject(
         "src/com/example/myapplication/MyActivity.java",
         """
-      package com.example.myapplication;
+        package com.example.myapplication;
 
-      import android.app.Activity;
+        import android.app.Activity;
 
-      /**
-       */
-      class MyActivity extends Activity {
-      }
-      """
-          .trimIndent()
+        /**
+         */
+        class MyActivity extends Activity {
+        }
+        """
+          .trimIndent(),
       )
 
     val contributor = AndroidActivityRunLineMarkerContributor()
     assertNotNull(contributor.getInfo(activityFile.findElementByText("class")))
-    assertNull(
-      contributor.getInfo(activityFile.findElementByText("package com.example.myapplication;"))
-    )
+    assertNull(contributor.getInfo(activityFile.findElementByText("package com.example.myapplication;")))
   }
 }
 
-fun PsiFile.findElementByText(text: String): PsiElement =
-  findDescendantOfType { it.node.text == text }!!
+fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!

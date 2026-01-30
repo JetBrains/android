@@ -37,8 +37,7 @@ class ColdBootActionTest {
       advanceUntilIdle()
 
       assertThat(handle.coldBootAction.invoked).isEqualTo(1)
-      assertThat(usageTrackerRule.deviceManagerEventKinds())
-        .containsExactly(DeviceManagerEvent.EventKind.VIRTUAL_COLD_BOOT_NOW_ACTION)
+      assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(DeviceManagerEvent.EventKind.VIRTUAL_COLD_BOOT_NOW_ACTION)
     }
   }
 }

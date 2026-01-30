@@ -89,12 +89,10 @@ class LogcatApplicationSettingsConfigurableTest {
     val configurable = logcatApplicationSettingsConfigurable()
 
     @Suppress("UnstableApiUsage")
-    configurable.cycleBufferSizeTextField.text =
-      (FileSizeLimit.getDefaultContentLoadLimit() / 1024 + 1).toString()
+    configurable.cycleBufferSizeTextField.text = (FileSizeLimit.getDefaultContentLoadLimit() / 1024 + 1).toString()
 
     assertThat(configurable.isModified).isTrue()
-    assertThat(configurable.cyclicBufferSizeWarningLabel.text)
-      .isEqualTo("Warning: large buffer size can cause performance degradation")
+    assertThat(configurable.cyclicBufferSizeWarningLabel.text).isEqualTo("Warning: large buffer size can cause performance degradation")
   }
 
   @Test
@@ -330,7 +328,5 @@ class LogcatApplicationSettingsConfigurableTest {
   private fun logcatApplicationSettingsConfigurable(
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings()
   ): LogcatApplicationSettingsConfigurable =
-    LogcatApplicationSettingsConfigurable(logcatSettings).apply {
-      runInEdtAndWait { createComponent() }
-    }
+    LogcatApplicationSettingsConfigurable(logcatSettings).apply { runInEdtAndWait { createComponent() } }
 }

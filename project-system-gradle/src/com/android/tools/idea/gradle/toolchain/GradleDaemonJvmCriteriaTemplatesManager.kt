@@ -19,12 +19,12 @@ import com.android.tools.idea.gradle.extensions.getPropertyPath
 import com.android.utils.FileUtils
 import com.google.common.io.Resources
 import com.intellij.util.lang.JavaVersion
-import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.CompletableFuture
+import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 
 object GradleDaemonJvmCriteriaTemplatesManager {
 
@@ -33,8 +33,8 @@ object GradleDaemonJvmCriteriaTemplatesManager {
   const val TEMPLATE_RESOURCES_PATH = "/templates/project/toolchain/"
 
   /**
-   * Generates 'gradle/gradle-daemon-jvm.properties' file storing Daemon JVM criteria with exactly same content
-   * format as resulted of executing 'updateDaemonJvm' Gradle task obtained from the template resources
+   * Generates 'gradle/gradle-daemon-jvm.properties' file storing Daemon JVM criteria with exactly same content format as resulted of
+   * executing 'updateDaemonJvm' Gradle task obtained from the template resources
    */
   fun generatePropertiesFile(javaVersion: JavaVersion, externalProjectPath: @SystemIndependent String): CompletableFuture<Boolean> {
     val completableFuture = CompletableFuture<Boolean>()

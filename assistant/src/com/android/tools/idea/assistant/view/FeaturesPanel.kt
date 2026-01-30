@@ -31,8 +31,8 @@ import java.awt.event.ItemListener
 import javax.swing.JPanel
 
 /**
- * Entry point for the complete set of services and tutorials associated with Firebase. Initializes
- * presentation data from xml and arranges into cards for navigation purposes.
+ * Entry point for the complete set of services and tutorials associated with Firebase. Initializes presentation data from xml and arranges
+ * into cards for navigation purposes.
  */
 class FeaturesPanel(
   bundle: TutorialBundleData,
@@ -61,23 +61,15 @@ class FeaturesPanel(
     var hideChooserAndNavigationalBar = false
     if (featureList.size == 1 && featureList[0].tutorials.size == 1) {
       hideChooserAndNavigationalBar = true
-      log.debug(
-        "Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial."
-      )
+      log.debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.")
     } else {
-      addCard(
-        TutorialChooser(this, bundle, myAnalyticsProvider, project),
-        TutorialChooser.NAVIGATION_KEY,
-      )
+      addCard(TutorialChooser(this, bundle, myAnalyticsProvider, project), TutorialChooser.NAVIGATION_KEY)
     }
 
     // Add all tutorial cards.
     bundle.features.forEach { feature ->
       feature.tutorials.forEach { tutorialData ->
-        addCard(
-          TutorialCard(this, tutorialData, feature, hideChooserAndNavigationalBar, bundle),
-          tutorialData.key,
-        )
+        addCard(TutorialCard(this, tutorialData, feature, hideChooserAndNavigationalBar, bundle), tutorialData.key)
       }
     }
 
@@ -110,11 +102,7 @@ class FeaturesPanel(
         // "chooser" card is special cased in {@code #showCard} such that
         // no myOpenTutorial + myTimeTutorialOpened are not set.
         if (myOpenTutorial != null) {
-          myAnalyticsProvider.trackTutorialClosed(
-            myOpenTutorial!!.key,
-            myOpenTutorial!!.readDuration,
-            project,
-          )
+          myAnalyticsProvider.trackTutorialClosed(myOpenTutorial!!.key, myOpenTutorial!!.readDuration, project)
           myOpenTutorial = null
         }
         val key = source.key
@@ -125,8 +113,7 @@ class FeaturesPanel(
       }
       is StatefulButton.ActionButton -> {
         val actionId = source.key
-        val handler =
-          AssistActionHandler.EP_NAME.extensions.first { handler -> handler.id == actionId }
+        val handler = AssistActionHandler.EP_NAME.extensions.first { handler -> handler.id == actionId }
         requireNotNull(handler) { "Unhandled action, no handler found for key \"$actionId\"." }
         handler.handleAction(source.actionData, source.project)
         source.updateState()

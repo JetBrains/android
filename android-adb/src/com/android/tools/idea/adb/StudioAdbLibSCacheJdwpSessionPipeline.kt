@@ -73,21 +73,15 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
     get() = receiveChannelImpl
 
   init {
-    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-      logger.logIOCompletionErrors(throwable)
-    }
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable -> logger.logIOCompletionErrors(throwable) }
 
     // Note: We use a custom exception handler because we handle exceptions, and we don't
     // want them to go to the parent scope handler as "unhandled" exceptions in a `launch` job.
     // Note: We cancel both channels on completion so that we never leave one of the two
     // coroutine running if the other completed.
-    scope
-      .launch(session.ioDispatcher + exceptionHandler) { forwardSendChannelToDebugger() }
-      .invokeOnCompletion { cancelChannels(it) }
+    scope.launch(session.ioDispatcher + exceptionHandler) { forwardSendChannelToDebugger() }.invokeOnCompletion { cancelChannels(it) }
 
-    scope
-      .launch(session.ioDispatcher + exceptionHandler) { forwardDebuggerToReceiveChannel() }
-      .invokeOnCompletion { cancelChannels(it) }
+    scope.launch(session.ioDispatcher + exceptionHandler) { forwardDebuggerToReceiveChannel() }.invokeOnCompletion { cancelChannels(it) }
   }
 
   private fun cancelChannels(throwable: Throwable?) {
@@ -100,11 +94,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
     // 1) callers (i.e. consumer of 'send' and 'receive' channels) get notified of errors
     // 2) both forwarding coroutines always complete together
     val cancellationException =
-      (throwable as? CancellationException)
-        ?: CancellationException(
-          "SCache Debugger pipeline for JDWP session has completed",
-          throwable,
-        )
+      (throwable as? CancellationException) ?: CancellationException("SCache Debugger pipeline for JDWP session has completed", throwable)
     sendChannelImpl.cancel(cancellationException)
     receiveChannelImpl.cancel(cancellationException)
   }
@@ -151,9 +141,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
       .map { it.duplicate() }
       .forEach { packetBuffer ->
         val packet = JdwpPacketView.wrapByteBuffer(packetBuffer)
-        logger.verbose {
-          "Sending packet from SCache to debugger endpoint '$debuggerPipeline': $packet"
-        }
+        logger.verbose { "Sending packet from SCache to debugger endpoint '$debuggerPipeline': $packet" }
         debuggerPipeline.sendPacket(packet)
       }
 

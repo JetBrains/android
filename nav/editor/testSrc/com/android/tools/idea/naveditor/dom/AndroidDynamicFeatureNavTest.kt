@@ -106,12 +106,7 @@ class AndroidDynamicFeatureNavTest {
         .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements =
-      GotoDeclarationAction.findAllTargetElements(
-        myFixture.project,
-        myFixture.editor,
-        myFixture.caretOffset,
-      )
+    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(XmlFile::class.java)
     assertThat((targetElements[0] as XmlFile).name).isEqualTo("dynamicFragment.xml")
@@ -163,16 +158,10 @@ class AndroidDynamicFeatureNavTest {
         .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements =
-      GotoDeclarationAction.findAllTargetElements(
-        myFixture.project,
-        myFixture.editor,
-        myFixture.caretOffset,
-      )
+    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(PsiClass::class.java)
-    assertThat((targetElements[0] as PsiClass).qualifiedName)
-      .isEqualTo("mytest.navtest.dynamicFragment")
+    assertThat((targetElements[0] as PsiClass).qualifiedName).isEqualTo("mytest.navtest.dynamicFragment")
   }
 
   @Test
@@ -193,11 +182,7 @@ class AndroidDynamicFeatureNavTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings)
-      .containsExactly(
-        "mytest.navtest.AbstractActivity",
-        "mytest.navtest.MainActivity",
-        "mytest.navtest.activity1",
-      )
+      .containsExactly("mytest.navtest.AbstractActivity", "mytest.navtest.MainActivity", "mytest.navtest.activity1")
   }
 
   @Test
@@ -218,16 +203,10 @@ class AndroidDynamicFeatureNavTest {
         .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements =
-      GotoDeclarationAction.findAllTargetElements(
-        myFixture.project,
-        myFixture.editor,
-        myFixture.caretOffset,
-      )
+    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(PsiClass::class.java)
-    assertThat((targetElements[0] as PsiClass).qualifiedName)
-      .isEqualTo("mytest.navtest.dynamicActivity")
+    assertThat((targetElements[0] as PsiClass).qualifiedName).isEqualTo("mytest.navtest.dynamicActivity")
   }
 
   private fun addFragment(name: String, moduleName: String?) {

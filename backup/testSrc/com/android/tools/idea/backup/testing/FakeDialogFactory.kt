@@ -25,12 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class FakeDialogFactory : DialogFactory {
   val dialogs = mutableListOf<DialogData>()
 
-  override fun showDialog(
-    project: Project,
-    title: String,
-    message: String,
-    buttons: List<DialogButton>,
-  ) {
+  override fun showDialog(project: Project, title: String, message: String, buttons: List<DialogButton>) {
     dialogs.add(DialogData(title, message, buttons.map { it.text }))
   }
 
@@ -38,9 +33,5 @@ internal class FakeDialogFactory : DialogFactory {
     waitForCondition(5.seconds) { dialogs.size == num }
   }
 
-  data class DialogData(
-    val title: String,
-    val message: String,
-    val buttons: List<String> = listOf("OK"),
-  )
+  data class DialogData(val title: String, val message: String, val buttons: List<String> = listOf("OK"))
 }

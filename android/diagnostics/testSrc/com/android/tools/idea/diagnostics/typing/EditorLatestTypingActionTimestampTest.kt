@@ -25,19 +25,20 @@ import org.junit.Rule
 import org.junit.Test
 
 class EditorLatestTypingActionTimestampTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Test
   fun testEditorHasLastTypedActionTimestampField() {
-    val file = myFixture.addFileToProject(
-      "/src/test/Test.java",
-      //language=JAVA
-      """
+    val file =
+      myFixture.addFileToProject(
+        "/src/test/Test.java",
+        // language=JAVA
+        """
       package test;
-      """)
+      """,
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.type("test")
 

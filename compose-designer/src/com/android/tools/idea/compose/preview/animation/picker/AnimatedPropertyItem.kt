@@ -20,10 +20,7 @@ import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.property.MemoryParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 
-/**
- * A [PsiPropertyItem] that only exists on memory. Listeners should be added to subscribe on changes
- * for this property.
- */
+/** A [PsiPropertyItem] that only exists on memory. Listeners should be added to subscribe on changes for this property. */
 class AnimatedPropertyItem(
   name: String,
   defaultValue: String?,

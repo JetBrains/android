@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run
 
-import com.android.tools.idea.execution.common.AndroidExecutionTarget
-import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
-import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
-import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
+import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
+import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.annotations.VisibleForTesting
@@ -37,7 +37,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.jetbrains.concurrency.Promise
 
-//TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
+// TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
 const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
 
 /**
@@ -53,11 +53,10 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
   @VisibleForTesting
   constructor(
     getSyncManager: (Project) -> ProjectSystemSyncManager,
-    getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
+    getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?,
   ) : super(getAndroidTarget) {
     this.getSyncManager = getSyncManager
   }
-
 
   override fun getRunnerId() = "DefaultStudioProgramRunner"
 
@@ -79,16 +78,21 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     return DefaultRunExecutor.EXECUTOR_ID == executorId
   }
 
-  override val supportedConfigurationTypeIds = listOf(
-    AndroidRunConfigurationType().id,
-    AndroidTestRunConfigurationType().id,
-    AndroidComplicationConfigurationType().id,
-    AndroidWatchFaceConfigurationType().id,
-    AndroidTileConfigurationType().id,
-    composePreviewRunConfigurationId
-  )
+  override val supportedConfigurationTypeIds =
+    listOf(
+      AndroidRunConfigurationType().id,
+      AndroidTestRunConfigurationType().id,
+      AndroidComplicationConfigurationType().id,
+      AndroidWatchFaceConfigurationType().id,
+      AndroidTileConfigurationType().id,
+      composePreviewRunConfigurationId,
+    )
 
-  override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
+  override fun run(
+    environment: ExecutionEnvironment,
+    executor: AndroidConfigurationExecutor,
+    indicator: ProgressIndicator,
+  ): RunContentDescriptor {
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
     return if (swapInfo != null) {
@@ -96,8 +100,7 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
         SwapInfo.SwapType.APPLY_CHANGES -> executor.applyChanges(indicator)
         SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor.applyCodeChanges(indicator)
       }
-    }
-    else {
+    } else {
       when (environment.executor.id) {
         DefaultRunExecutor.EXECUTOR_ID -> executor.run(indicator)
         DefaultDebugExecutor.EXECUTOR_ID -> executor.debug(indicator)

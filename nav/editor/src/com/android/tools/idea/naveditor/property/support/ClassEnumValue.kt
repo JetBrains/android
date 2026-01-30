@@ -34,12 +34,8 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
 
-data class ClassEnumValue(
-  override val value: String,
-  override val display: String,
-  val moduleName: String?,
-  val isInProject: Boolean,
-) : EnumValue {
+data class ClassEnumValue(override val value: String, override val display: String, val moduleName: String?, val isInProject: Boolean) :
+  EnumValue {
   override fun toString() = value
 
   override fun withIndentation() = this
@@ -56,10 +52,7 @@ data class ClassEnumValue(
       .invokeLater(
         Runnable {
           newEnumValue.newValue(value)
-          NlWriteCommandActionUtil.run(
-            property.components,
-            "Set $component.tagName.${property.name} to $value",
-          ) {
+          NlWriteCommandActionUtil.run(property.components, "Set $component.tagName.${property.name} to $value") {
             property.value = value
             property.components.forEach { it.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
             property.components.forEach { it.setAttribute(AUTO_URI, ATTR_MODULE_NAME, moduleName) }
@@ -75,17 +68,13 @@ data class ClassEnumValue(
     val module =
       when (moduleName) {
         null -> component.model.module
-        else ->
-          ModuleManager.getInstance(component.model.project)?.findModuleByName(moduleName)
-            ?: return null
+        else -> ModuleManager.getInstance(component.model.project)?.findModuleByName(moduleName) ?: return null
       }
 
     val resourceManager = LocalResourceManager.getInstance(module) ?: return null
 
     for (resourceFile in
-      resourceManager
-        .findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-        .filterIsInstance<XmlFile>()) {
+      resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
       val contextClass = AndroidUtils.getContextClass(module, resourceFile) ?: continue
       if (contextClass.qualifiedName == className) {
         return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)

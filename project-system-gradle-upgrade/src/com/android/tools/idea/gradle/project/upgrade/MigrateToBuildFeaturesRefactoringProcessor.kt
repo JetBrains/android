@@ -16,37 +16,40 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 
-val VIEW_BINDING_ENABLED_INFO = MovePropertiesInfo(
-  sourceToDestinationPropertyModelGetters = listOf(
-    Pair({ android().viewBinding().enabled() }, { android().buildFeatures().viewBinding() }),
-  ),
-  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("viewBindingEnabledUsageInfo.tooltipText"),
-  usageType = UsageType(AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
-)
+val VIEW_BINDING_ENABLED_INFO =
+  MovePropertiesInfo(
+    sourceToDestinationPropertyModelGetters =
+      listOf(Pair({ android().viewBinding().enabled() }, { android().buildFeatures().viewBinding() })),
+    tooltipTextSupplier = AgpUpgradeBundle.messagePointer("viewBindingEnabledUsageInfo.tooltipText"),
+    usageType = UsageType(AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType")),
+  )
 
-val DATA_BINDING_ENABLED_INFO = MovePropertiesInfo(
-  sourceToDestinationPropertyModelGetters = listOf(
-    Pair({ android().dataBinding().enabled() }, { android().buildFeatures().dataBinding() }),
-  ),
-  tooltipTextSupplier = AgpUpgradeBundle.messagePointer("dataBindingEnabledUsageInfo.tooltipText"),
-  usageType = UsageType(AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
-)
+val DATA_BINDING_ENABLED_INFO =
+  MovePropertiesInfo(
+    sourceToDestinationPropertyModelGetters =
+      listOf(Pair({ android().dataBinding().enabled() }, { android().buildFeatures().dataBinding() })),
+    tooltipTextSupplier = AgpUpgradeBundle.messagePointer("dataBindingEnabledUsageInfo.tooltipText"),
+    usageType = UsageType(AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType")),
+  )
 
-val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
-  optionalFromVersion = AgpVersion.parse("4.0.0-alpha05"),
-  requiredFromVersion = AgpVersion.parse("7.0.0"),
-  commandNameSupplier = AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.commandName"),
-  shortDescriptionSupplier = { """
-    The viewBinding and dataBinding features used to be enabled using
-    a flag in their respective blocks; they are now enabled using an
-    equivalent flag in the buildFeatures block.
-  """.trimIndent() },
-  processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
-  componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES,
-  propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
-)
-
+val MIGRATE_TO_BUILD_FEATURES_INFO =
+  PropertiesOperationsRefactoringInfo(
+    optionalFromVersion = AgpVersion.parse("4.0.0-alpha05"),
+    requiredFromVersion = AgpVersion.parse("7.0.0"),
+    commandNameSupplier = AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.commandName"),
+    shortDescriptionSupplier = {
+      """
+      The viewBinding and dataBinding features used to be enabled using
+      a flag in their respective blocks; they are now enabled using an
+      equivalent flag in the buildFeatures block.
+      """
+        .trimIndent()
+    },
+    processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
+    componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES,
+    propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO),
+  )

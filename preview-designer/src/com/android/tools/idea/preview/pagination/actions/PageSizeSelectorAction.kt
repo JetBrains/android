@@ -26,18 +26,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import javax.swing.JComponent
 
-/**
- * Action to change the size of each page to be used in a [PreviewRepresentation] that supports
- * pagination ([PreviewPaginationManager]).
- */
+/** Action to change the size of each page to be used in a [PreviewRepresentation] that supports pagination ([PreviewPaginationManager]). */
 class PageSizeSelectorAction : ComboBoxAction() {
 
   private val pageSizes = listOf(10, 20, 50, 100, 200)
 
-  override fun createPopupActionGroup(
-    button: JComponent,
-    dataContext: DataContext,
-  ): DefaultActionGroup {
+  override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
     val group = DefaultActionGroup()
     val manager = dataContext.getData(PreviewPaginationManager.Companion.KEY)
 
@@ -78,9 +72,7 @@ class PageSizeSelectorAction : ComboBoxAction() {
     val from = selectedPage * pageSize + 1
     val maxInCurrentPage = from + pageSize - 1
     val to = minOf(maxInCurrentPage, totalElements)
-    presentation.text =
-      PreviewBundle.message("action.preview.pagination.page.range", from, to, totalElements)
-    presentation.description =
-      PreviewBundle.message("action.preview.pagination.page.size.description")
+    presentation.text = PreviewBundle.message("action.preview.pagination.page.range", from, to, totalElements)
+    presentation.description = PreviewBundle.message("action.preview.pagination.page.size.description")
   }
 }

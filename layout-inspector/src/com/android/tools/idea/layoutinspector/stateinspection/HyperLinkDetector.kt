@@ -27,9 +27,5 @@ internal interface HyperLinkDetector {
 
 /** Factory for [HyperLinkDetector]. */
 internal interface HyperLinkDetectorFactory {
-  fun create(
-    editor: EditorEx,
-    scope: CoroutineScope,
-    activatedLink: EditorHyperlinkListener,
-  ): HyperLinkDetector
+  fun create(editor: EditorEx, scope: CoroutineScope, activatedLink: EditorHyperlinkListener): HyperLinkDetector
 }

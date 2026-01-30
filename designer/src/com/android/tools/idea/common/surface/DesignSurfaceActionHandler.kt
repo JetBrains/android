@@ -101,8 +101,7 @@ protected constructor(surface: T, private val myCopyPasteManager: CopyPasteManag
 
   @get:VisibleForTesting abstract val pasteTarget: NlComponent?
 
-  @VisibleForTesting
-  abstract fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean
+  @VisibleForTesting abstract fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean
 
   override fun performPaste(dataContext: DataContext) {
     val generateNewIds = PASTE_WITH_NEW_IDS_KEY.getData(dataContext) ?: true
@@ -114,9 +113,7 @@ protected constructor(surface: T, private val myCopyPasteManager: CopyPasteManag
     return pasteTarget != null && clipboardData != null
   }
 
-  /**
-   * Called by [com.intellij.ide.actions.PasteAction] to check if pasteOperation() should be called
-   */
+  /** Called by [com.intellij.ide.actions.PasteAction] to check if pasteOperation() should be called */
   override fun isPasteEnabled(dataContext: DataContext): Boolean {
     return pasteOperation(true, /* check only */ false /* generate new ides */)
   }
@@ -134,8 +131,7 @@ protected constructor(surface: T, private val myCopyPasteManager: CopyPasteManag
     val transferItem = clipboardData ?: return false
 
     val dragType = if (transferItem.isCut) DragType.MOVE else DragType.PASTE
-    val insertType =
-      model.treeWriter.determineInsertType(dragType, transferItem, checkOnly, generateNewIds)
+    val insertType = model.treeWriter.determineInsertType(dragType, transferItem, checkOnly, generateNewIds)
 
     val pasted = model.treeWriter.createComponents(transferItem, insertType)
 
@@ -156,13 +152,7 @@ protected constructor(surface: T, private val myCopyPasteManager: CopyPasteManag
       return true
     }
     transferItem.consumeCut()
-    model.treeWriter.addComponentsAndSelectedIfCreated(
-      pasted,
-      receiver,
-      before,
-      insertType,
-      surface.selectionModel,
-    )
+    model.treeWriter.addComponentsAndSelectedIfCreated(pasted, receiver, before, insertType, surface.selectionModel)
     if (insertType.isPasteOperation()) {
       surface.selectionModel.setSelection(pasted)
     }

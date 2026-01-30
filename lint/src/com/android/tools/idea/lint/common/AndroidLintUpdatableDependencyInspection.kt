@@ -20,12 +20,8 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
 
-abstract class AndroidLintUpdatableDependencyInspection(displayName: String, issue: Issue) :
-  AndroidLintInspectionBase(displayName, issue) {
-  override fun getIntentions(
-    startElement: PsiElement,
-    endElement: PsiElement,
-  ): Array<out IntentionAction>? {
+abstract class AndroidLintUpdatableDependencyInspection(displayName: String, issue: Issue) : AndroidLintInspectionBase(displayName, issue) {
+  override fun getIntentions(startElement: PsiElement, endElement: PsiElement): Array<out IntentionAction>? {
     val actions = DependencyUpdateProvider.EP_NAME.extensionList.map { it.getUpdateProvider() }
     return actions.union(super.getIntentions(startElement, endElement).toList()).toTypedArray()
   }
@@ -37,8 +33,6 @@ interface DependencyUpdateProvider {
   companion object {
     @JvmStatic
     val EP_NAME: ExtensionPointName<DependencyUpdateProvider> =
-      ExtensionPointName.create<DependencyUpdateProvider>(
-        "com.android.tools.idea.lint.common.updateDepsProvider"
-      )
+      ExtensionPointName.create<DependencyUpdateProvider>("com.android.tools.idea.lint.common.updateDepsProvider")
   }
 }

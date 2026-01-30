@@ -51,11 +51,9 @@ import org.junit.Test
 @RunsInEdt
 class AndroidModuleDescriptorsTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   @Test
   fun testDescriptor() {
@@ -93,7 +91,7 @@ class AndroidModuleDescriptorsTest {
 
       assertThat(
         matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk),
-        equalTo(true)
+        equalTo(true),
       )
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk))
 
@@ -114,11 +112,14 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testGetCompileSdkReleaseBlockKotlin() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle")
-        .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk {\n version = " +
-                                                                    "release(${latestAgpCompileSdk})\n}")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk {\n version = " + "release(${latestAgpCompileSdk})\n}")
+        }
+      )
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject)
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -131,12 +132,17 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testGetCompileSdkReleaseBlockWithMinorAndExtensionKotlin() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle")
-        .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk {\n version = " +
-                                                                    "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" +
-                                                                    "sdkExtension 0\n}\n}")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent(
+              "compileSdkVersion $latestAgpCompileSdk",
+              "compileSdk {\n version = " + "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" + "sdkExtension 0\n}\n}",
+            )
+        }
+      )
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject)
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -149,11 +155,14 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testGetCompileSdkWithExtensionPropertyKotlin() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle")
-        .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk $latestAgpCompileSdk" +
-                                                                    "\ncompileSdkExtension 0")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk $latestAgpCompileSdk" + "\ncompileSdkExtension 0")
+        }
+      )
     preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject)
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -213,9 +222,7 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testSetPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestSetProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestSetProperties(resolvedProject) }
   }
 
   @Test
@@ -243,7 +250,6 @@ class AndroidModuleDescriptorsTest {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-
     // Set reference to a list extra property from same module.
     appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("localList[0]"), value = null)
     // Set reference to a list extra property defined in rootProject build script.
@@ -269,11 +275,7 @@ class AndroidModuleDescriptorsTest {
   fun doTestSetDependencyReferenceVersion(resolvedProject: Project, expectedValues: List<String>) {
     val project = PsProjectImpl(resolvedProject)
     val appModule = project.findModuleByName("app") as PsAndroidModule
-    var existingAgpDependency =
-      appModule
-        .parsedModel
-        ?.dependencies()
-        ?.artifacts()
+    var existingAgpDependency = appModule.parsedModel?.dependencies()?.artifacts()
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
     ReferenceTo.createReferenceFromText("myVariable", existingAgpDependency!![0].version())?.let {
@@ -291,38 +293,32 @@ class AndroidModuleDescriptorsTest {
 
     project.applyChanges()
 
-    existingAgpDependency =
-      appModule
-        .parsedModel
-        ?.dependencies()
-        ?.artifacts()
+    existingAgpDependency = appModule.parsedModel?.dependencies()?.artifacts()
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
     assertThat(existingAgpDependency!![0].compactNotation(), equalTo("com.android.support:appcompat-v7:26.1.0"))
     assertThat(
       existingAgpDependency[0].completeModel().getRawValue(STRING_TYPE),
-      equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
+      equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"),
+    )
 
-    assertThat(
-      existingAgpDependency[1].compactNotation(),
-      equalTo("com.android.support.constraint:constraint-layout:28.0.0"))
+    assertThat(existingAgpDependency[1].compactNotation(), equalTo("com.android.support.constraint:constraint-layout:28.0.0"))
     assertThat(
       existingAgpDependency[1].completeModel().getRawValue(STRING_TYPE),
-      equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"))
+      equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"),
+    )
 
-    assertThat(
-      existingAgpDependency[2].compactNotation(),
-      equalTo("com.android.support.test:runner:26.1.1"))
+    assertThat(existingAgpDependency[2].compactNotation(), equalTo("com.android.support.test:runner:26.1.1"))
     assertThat(
       existingAgpDependency[2].completeModel().getRawValue(STRING_TYPE),
-      equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"))
+      equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"),
+    )
 
-    assertThat(
-      existingAgpDependency[3].compactNotation(),
-      equalTo("com.android.support.test.espresso:espresso-core:28.0.0"))
+    assertThat(existingAgpDependency[3].compactNotation(), equalTo("com.android.support.test.espresso:espresso-core:28.0.0"))
     assertThat(
       existingAgpDependency[3].completeModel().getRawValue(STRING_TYPE),
-      equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
+      equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"),
+    )
   }
 
   @Test
@@ -343,7 +339,7 @@ class AndroidModuleDescriptorsTest {
           "${'$'}myVariable",
           "${'$'}{project.extra[\"versionVal\"]}",
           "${'$'}{localList[0]}",
-          "${'$'}{rootProject.extra[\"dependencyVersion\"]}"
+          "${'$'}{rootProject.extra[\"dependencyVersion\"]}",
         )
       doTestSetDependencyReferenceVersion(resolvedProject, expectedValues)
     }
@@ -352,12 +348,17 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testSetCompileSdkPropertiesCompileSdkBlockKts() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle.kts")
-        .replaceInContent("compileSdkVersion($latestAgpCompileSdk)", "compileSdk {\n version = " +
-                                                                     "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" +
-                                                                     "sdkExtension = 0\n}\n}")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_KOTLIN.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle.kts")
+            .replaceInContent(
+              "compileSdkVersion($latestAgpCompileSdk)",
+              "compileSdk {\n version = " + "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" + "sdkExtension = 0\n}\n}",
+            )
+        }
+      )
     preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetCompileSdkPropertiesCompileSdkBlock(resolvedProject)
     }
@@ -366,18 +367,23 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testSetCompileSdkPropertiesCompileSdkBlockGroovy() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle")
-        .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk {\n version = " +
-                                                                    "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" +
-                                                                    "sdkExtension 0\n}\n}")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_GROOVY.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent(
+              "compileSdkVersion $latestAgpCompileSdk",
+              "compileSdk {\n version = " + "release(${latestAgpCompileSdk}) {\n  minorApiLevel = 0\n" + "sdkExtension 0\n}\n}",
+            )
+        }
+      )
     preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetCompileSdkPropertiesCompileSdkBlock(resolvedProject)
     }
   }
 
-  private fun doTestSetCompileSdkPropertiesCompileSdkBlock(resolvedProject: Project, ) {
+  private fun doTestSetCompileSdkPropertiesCompileSdkBlock(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -403,11 +409,14 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testSetCompileSdkPropertiesCompileSdkOldDslGroovy() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle")
-        .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk $latestAgpCompileSdk" +
-                                                                    "\ncompileSdkExtension 2")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_GROOVY.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle")
+            .replaceInContent("compileSdkVersion $latestAgpCompileSdk", "compileSdk $latestAgpCompileSdk" + "\ncompileSdkExtension 2")
+        }
+      )
     preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetCompileSdkPropertiesCompileSdkOldDsl(resolvedProject)
     }
@@ -416,17 +425,20 @@ class AndroidModuleDescriptorsTest {
   @Test
   fun testSetCompileSdkPropertiesCompileSdkOldDslKts() {
     val latestAgpCompileSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN.withAdditionalPatch { root ->
-      root.resolve("app/build.gradle.kts")
-        .replaceInContent("compileSdkVersion($latestAgpCompileSdk)", "compileSdk = $latestAgpCompileSdk" +
-                                                                    "\ncompileSdkExtension = 2")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.PSD_SAMPLE_KOTLIN.withAdditionalPatch { root ->
+          root
+            .resolve("app/build.gradle.kts")
+            .replaceInContent("compileSdkVersion($latestAgpCompileSdk)", "compileSdk = $latestAgpCompileSdk" + "\ncompileSdkExtension = 2")
+        }
+      )
     preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetCompileSdkPropertiesCompileSdkOldDsl(resolvedProject)
     }
   }
 
-  private fun doTestSetCompileSdkPropertiesCompileSdkOldDsl(resolvedProject: Project, ) {
+  private fun doTestSetCompileSdkPropertiesCompileSdkOldDsl(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -441,7 +453,7 @@ class AndroidModuleDescriptorsTest {
       val config = appModule.parsedModel?.android()?.compileSdkVersion()?.toCompileSdkConfig()
       assertNull(config)
       assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(36))
-      //TODO: test setting compileSdkMinor when possible - minor versions are only supported for compile SDK 36 and above
+      // TODO: test setting compileSdkMinor when possible - minor versions are only supported for compile SDK 36 and above
       assertThat(appModule.parsedModel?.android()?.compileSdkMinor()?.getValue(OBJECT_TYPE), equalTo<Any>(null))
       assertThat(appModule.parsedModel?.android()?.compileSdkExtension()?.getValue(OBJECT_TYPE), equalTo<Any>(2))
     }

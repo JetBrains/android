@@ -23,11 +23,7 @@ import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.TokenType
 
-abstract class AndroidSqlParserTest :
-  AndroidParsingTestCase(
-    AndroidSqlFileType.INSTANCE.defaultExtension,
-    AndroidSqlParserDefinition(),
-  ) {
+abstract class AndroidSqlParserTest : AndroidParsingTestCase(AndroidSqlFileType.INSTANCE.defaultExtension, AndroidSqlParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   override fun setUp() {
@@ -43,11 +39,7 @@ abstract class AndroidSqlParserTest :
     // With the line below we register the right object for the duration of this test and also mak
     // sure its cache gets cleared before
     // EditingTest runs.
-    addExplicitExtension(
-      LanguageBraceMatching.INSTANCE,
-      AndroidSqlLanguage.INSTANCE,
-      AndroidSqlPairedBraceMatcher(),
-    )
+    addExplicitExtension(LanguageBraceMatching.INSTANCE, AndroidSqlLanguage.INSTANCE, AndroidSqlPairedBraceMatcher())
   }
 
   /**
@@ -1110,9 +1102,7 @@ class MiscParserTest : AndroidSqlParserTest() {
 
   // Regression test for b/243679694
   fun testRowValue() {
-    check(
-      "SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)"
-    )
+    check("SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)")
   }
 
   fun testBooleanLiterals() {
@@ -1611,9 +1601,7 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                         PsiElement(IDENTIFIER)('bar')
       """
         .trimIndent(),
-      toParseTreeText(
-        "WITH ids AS (SELECT something stupid WHERE doesnt parse) SELECT foo FROM bar"
-      ),
+      toParseTreeText("WITH ids AS (SELECT something stupid WHERE doesnt parse) SELECT foo FROM bar"),
     )
   }
 
@@ -1677,9 +1665,7 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     PsiElement(NULL)('NULL')
       """
         .trimIndent(),
-      toParseTreeText(
-        "SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.name IS NOT NULL"
-      ),
+      toParseTreeText("SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.name IS NOT NULL"),
     )
   }
 
@@ -1791,9 +1777,7 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                       PsiElement())(')')
       """
         .trimIndent(),
-      toParseTreeText(
-        "SELECT (WITH x AS (VALUES(17)) SELECT x) || (WITH y AS (VALUES(42)) SELECT y)"
-      ),
+      toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) || (WITH y AS (VALUES(42)) SELECT y)"),
     )
     assertEquals(
       """
@@ -1927,9 +1911,7 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                       PsiElement())(')')
       """
         .trimIndent(),
-      toParseTreeText(
-        "SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)"
-      ),
+      toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)"),
     )
   }
 
@@ -2318,9 +2300,7 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
           PsiElement(IDENTIFIER)('ROWID')
       """
         .trimIndent(),
-      toParseTreeText(
-        "CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT ROWID"
-      ),
+      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT ROWID"),
     )
 
     assertEquals(
@@ -2357,16 +2337,13 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
           PsiElement(IDENTIFIER)('MADEUP')
       """
         .trimIndent(),
-      toParseTreeText(
-        "CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT MADEUP"
-      ),
+      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT MADEUP"),
     )
   }
 
   /**
-   * Tests the parsing of the 'window_function_call_expression' rule. These test cases cover various
-   * window functions, including those with and without arguments, with and without frames, and with
-   * various window definition clauses.
+   * Tests the parsing of the 'window_function_call_expression' rule. These test cases cover various window functions, including those with
+   * and without arguments, with and without frames, and with various window definition clauses.
    */
   fun testWindowFunctions_parse() {
     listOf(
@@ -2480,9 +2457,8 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
   }
 
   /**
-   * Tests the parsing of the 'simple_function_call_expression' rule. These test cases cover various
-   * scenarios including different numbers of arguments, nested function calls, and different types
-   * of expressions within the function arguments.
+   * Tests the parsing of the 'simple_function_call_expression' rule. These test cases cover various scenarios including different numbers
+   * of arguments, nested function calls, and different types of expressions within the function arguments.
    */
   fun testSimpleFunctions_parse() {
     listOf(
@@ -2511,9 +2487,8 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
   }
 
   /**
-   * Tests the parsing of aggregate functions. These test cases focus on features specific to
-   * aggregate functions that differentiate them from simple functions, such as DISTINCT, ORDER BY,
-   * and FILTER.
+   * Tests the parsing of aggregate functions. These test cases focus on features specific to aggregate functions that differentiate them
+   * from simple functions, such as DISTINCT, ORDER BY, and FILTER.
    */
   fun testAggregateFunctions_parse() {
     listOf(
@@ -2551,10 +2526,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
   }
 
   /**
-   * Tests the parsing of the 'window_clause' within the 'select_core_select' rule. These test cases
-   * focus on the window_clause itself and do NOT include any actual window functions, ensuring the
-   * parser can handle the window_clause correctly even when no window functions are present in the
-   * query.
+   * Tests the parsing of the 'window_clause' within the 'select_core_select' rule. These test cases focus on the window_clause itself and
+   * do NOT include any actual window functions, ensuring the parser can handle the window_clause correctly even when no window functions
+   * are present in the query.
    */
   fun testWindowClauses_parse() {
     listOf(

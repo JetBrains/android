@@ -56,11 +56,7 @@ internal class ConfigureDevicePanelState(
   }
 
   val isValid
-    get() =
-      device.isValid &&
-        deviceNameError == null &&
-        isSystemImageTableSelectionValid &&
-        isPreferredAbiValid
+    get() = device.isValid && deviceNameError == null && isSystemImageTableSelectionValid && isPreferredAbiValid
 
   fun hasPlayStore(): Boolean {
     val image = systemImageTableSelectionState.selection
@@ -88,8 +84,7 @@ internal class ConfigureDevicePanelState(
     device.skin = if (skin !in skins()) device.defaultSkin else skin
   }
 
-  fun skins(): Iterable<Skin> =
-    if (hasPlayStore()) setOf(NoSkin.INSTANCE, device.defaultSkin) else skins
+  fun skins(): Iterable<Skin> = if (hasPlayStore()) setOf(NoSkin.INSTANCE, device.defaultSkin) else skins
 
   private fun getSkin(path: Path): Skin {
     var skin = skins.firstOrNull { it.path() == path }

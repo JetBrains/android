@@ -16,11 +16,11 @@
 package com.android.tools.idea.streaming.core
 
 import com.google.common.truth.Truth.assertThat
+import java.awt.Color
+import kotlin.test.assertFailsWith
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.Color
-import kotlin.test.assertFailsWith
 
 /** Tests functions in ColorUtils.kt. */
 @RunWith(JUnit4::class)

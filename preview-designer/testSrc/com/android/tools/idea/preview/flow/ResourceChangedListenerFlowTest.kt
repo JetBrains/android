@@ -54,7 +54,7 @@ class ResourceChangedListenerFlowTest {
                 android:fillColor="#FF0000"
                 android:pathData="M0,0 l 100,0 0,100 -100,0 0,-100z" />
         </vector>
-      """
+        """
           .trimIndent(),
       )
 
@@ -62,22 +62,12 @@ class ResourceChangedListenerFlowTest {
       val flowScope = createChildScope(context = Dispatchers.Default)
       val flowConnected = CompletableDeferred<Unit>()
       val resourceChangedFlow =
-        resourceChangedFlow(
-            projectRule.module,
-            projectRule.testRootDisposable,
-            onConnected = { flowConnected.complete(Unit) },
-          )
+        resourceChangedFlow(projectRule.module, projectRule.testRootDisposable, onConnected = { flowConnected.complete(Unit) })
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()
 
-      withContext(AndroidDispatchers.uiThread) {
-        projectRule.fixture.openFileInEditor(resourceFile.virtualFile)
-      }
-      readAndWriteAction {
-        writeAction {
-          projectRule.fixture.editor.executeAndSave { replaceText("#FF0000", "#00FF00") }
-        }
-      }
+      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
+      readAndWriteAction { writeAction { projectRule.fixture.editor.executeAndSave { replaceText("#FF0000", "#00FF00") } } }
       resourceChangedFlow.awaitStatus(timeout = 5.seconds) { it == setOf(Reason.RESOURCE_EDIT) }
       flowScope.cancel()
     }
@@ -90,10 +80,10 @@ class ResourceChangedListenerFlowTest {
         "res/values/strings.xml",
         // language=XML
         """
-        <resources>
-          <string name="app_name">My Application</string>
-      </resources>
-      """
+          <resources>
+            <string name="app_name">My Application</string>
+        </resources>
+        """
           .trimIndent(),
       )
 
@@ -101,22 +91,12 @@ class ResourceChangedListenerFlowTest {
       val flowScope = createChildScope(context = Dispatchers.Default)
       val flowConnected = CompletableDeferred<Unit>()
       val resourceChangedFlow =
-        resourceChangedFlow(
-            projectRule.module,
-            projectRule.testRootDisposable,
-            onConnected = { flowConnected.complete(Unit) },
-          )
+        resourceChangedFlow(projectRule.module, projectRule.testRootDisposable, onConnected = { flowConnected.complete(Unit) })
           .stateIn(flowScope, SharingStarted.Eagerly, emptySet())
       flowConnected.await()
 
-      withContext(AndroidDispatchers.uiThread) {
-        projectRule.fixture.openFileInEditor(resourceFile.virtualFile)
-      }
-      readAndWriteAction {
-        writeAction {
-          projectRule.fixture.editor.executeAndSave { replaceText("app_name", "app_name2") }
-        }
-      }
+      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(resourceFile.virtualFile) }
+      readAndWriteAction { writeAction { projectRule.fixture.editor.executeAndSave { replaceText("app_name", "app_name2") } } }
       resourceChangedFlow.awaitStatus(timeout = 5.seconds) { it == setOf(Reason.RESOURCE_EDIT) }
       flowScope.cancel()
     }

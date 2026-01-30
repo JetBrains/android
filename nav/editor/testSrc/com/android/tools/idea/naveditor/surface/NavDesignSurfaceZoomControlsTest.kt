@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.TestUtils
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -75,8 +75,7 @@ class NavDesignSurfaceZoomControlsTest {
 
   @Before
   fun setup() {
-    androidProjectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/nav/editor/testData").toString()
+    androidProjectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/nav/editor/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
     StudioRenderService.setForTesting(androidProjectRule.project, createNoSecurityRenderService())
   }
@@ -91,9 +90,9 @@ class NavDesignSurfaceZoomControlsTest {
     androidProjectRule.fixture.addFileToProject(
       "src/main/java/androidx/fragment/app/Fragment.kt", // language=kotlin
       """
-        package androidx.fragment.app
+      package androidx.fragment.app
 
-        class Fragment
+      class Fragment
       """
         .trimIndent(),
     )
@@ -102,27 +101,27 @@ class NavDesignSurfaceZoomControlsTest {
     androidProjectRule.fixture.addFileToProject(
       "src/main/java/androidx/navigation/Navigators.kt", // language=kotlin
       """
-        package androidx.navigation
+      package androidx.navigation
 
-        import android.app.Activity
+      import android.app.Activity
 
-        import androidx.fragment.app.Fragment
+      import androidx.fragment.app.Fragment
 
-        open class Navigator<T> {
-          annotation class Name(val value: String)
-        }
+      open class Navigator<T> {
+        annotation class Name(val value: String)
+      }
 
-        class NavGraph {
-        }
+      class NavGraph {
+      }
 
-        @Navigator.Name("navigation")
-        class NavGraphNavigator : Navigator<NavGraph>()
+      @Navigator.Name("navigation")
+      class NavGraphNavigator : Navigator<NavGraph>()
 
-        @Navigator.Name("activity")
-        class ActivityNavigator : Navigator<Activity>()
+      @Navigator.Name("activity")
+      class ActivityNavigator : Navigator<Activity>()
 
-        @Navigator.Name("fragment")
-        class FragmentNavigator : Navigator<Fragment>()
+      @Navigator.Name("fragment")
+      class FragmentNavigator : Navigator<Fragment>()
       """
         .trimIndent(),
     )
@@ -130,24 +129,24 @@ class NavDesignSurfaceZoomControlsTest {
     androidProjectRule.fixture.addFileToProject(
       "src/main/java/com/example/myapplication/FirstFragment.java", // language=Java
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        import androidx.fragment.app.Fragment;
+      import androidx.fragment.app.Fragment;
 
-        public class FirstFragment extends Fragment {
-        }
+      public class FirstFragment extends Fragment {
+      }
       """
         .trimIndent(),
     )
     androidProjectRule.fixture.addFileToProject(
       "src/main/java/com/example/myapplication/SecondFragment.java", // language=Java
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        import androidx.fragment.app.Fragment;
+      import androidx.fragment.app.Fragment;
 
-        public class SecondFragment extends Fragment {
-        }
+      public class SecondFragment extends Fragment {
+      }
       """
         .trimIndent(),
     )
@@ -163,18 +162,18 @@ class NavDesignSurfaceZoomControlsTest {
     androidProjectRule.fixture.addFileToProject(
       "res/layout/test.xml", // language=xml
       """
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="#0000FF"
-              android:padding="30dp"
-              android:orientation="vertical">
-              <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize='40sp'
-                android:text="Hello world"/>
-        </LinearLayout>
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#0000FF"
+            android:padding="30dp"
+            android:orientation="vertical">
+            <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:textSize='40sp'
+              android:text="Hello world"/>
+      </LinearLayout>
       """
         .trimIndent(),
     )
@@ -183,39 +182,38 @@ class NavDesignSurfaceZoomControlsTest {
     androidProjectRule.fixture.addFileToProject(
       "res/navigation/nav_graph.xml", // language=xml
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/nav_graph"
-            app:startDestination="@id/FirstFragment">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:id="@+id/nav_graph"
+          app:startDestination="@id/FirstFragment">
 
-            <fragment
-                android:id="@+id/FirstFragment"
-                android:name="com.example.myapplication.FirstFragment"
-                android:label="First"
-                tools:layout="@layout/test">
+          <fragment
+              android:id="@+id/FirstFragment"
+              android:name="com.example.myapplication.FirstFragment"
+              android:label="First"
+              tools:layout="@layout/test">
 
-                <action
-                    android:id="@+id/action_FirstFragment_to_SecondFragment"
-                    app:destination="@id/SecondFragment" />
-            </fragment>
-            <fragment
-                android:id="@+id/SecondFragment"
-                android:name="com.example.myapplication.SecondFragment"
-                android:label="Second"
-                tools:layout="@layout/test">
-                <action
-                    android:id="@+id/action_SecondFragment_to_FirstFragment"
-                    app:destination="@id/FirstFragment" />
-            </fragment>
-        </navigation>
+              <action
+                  android:id="@+id/action_FirstFragment_to_SecondFragment"
+                  app:destination="@id/SecondFragment" />
+          </fragment>
+          <fragment
+              android:id="@+id/SecondFragment"
+              android:name="com.example.myapplication.SecondFragment"
+              android:label="Second"
+              tools:layout="@layout/test">
+              <action
+                  android:id="@+id/action_SecondFragment_to_FirstFragment"
+                  app:destination="@id/FirstFragment" />
+          </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
 
-  private fun getGoldenImagePath(testName: String) =
-    Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
+  private fun getGoldenImagePath(testName: String) = Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
 
   @Test
   fun testNavDesignSurfaceZoomIn() = runTest {
@@ -225,12 +223,8 @@ class NavDesignSurfaceZoomControlsTest {
     val navGraph = addNavGraph()
 
     waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
-    val configuration =
-      RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
-    val surface =
-      NavDesignSurface(androidProjectRule.project).also {
-        Disposer.register(androidProjectRule.testRootDisposable, it)
-      }
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val surface = NavDesignSurface(androidProjectRule.project).also { Disposer.register(androidProjectRule.testRootDisposable, it) }
 
     surface.activate()
 
@@ -261,14 +255,10 @@ class NavDesignSurfaceZoomControlsTest {
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.
     delayUntilImageSimilar(fakeUi, "zoomFit")
 
-    val zoomActionsToolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
 
-    val event =
-      TestActionEvent.createTestEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-      )
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Verify zoom in
     run {
@@ -301,12 +291,8 @@ class NavDesignSurfaceZoomControlsTest {
     val navGraph = addNavGraph()
 
     waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
-    val configuration =
-      RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
-    val surface =
-      NavDesignSurface(androidProjectRule.project).also {
-        Disposer.register(androidProjectRule.testRootDisposable, it)
-      }
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val surface = NavDesignSurface(androidProjectRule.project).also { Disposer.register(androidProjectRule.testRootDisposable, it) }
 
     surface.activate()
 
@@ -337,15 +323,11 @@ class NavDesignSurfaceZoomControlsTest {
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.
     delayUntilImageSimilar(fakeUi, "zoomFit")
 
-    val zoomActionsToolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
 
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
 
-    val event =
-      TestActionEvent.createTestEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-      )
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Verify zoom out
     run {
@@ -366,12 +348,8 @@ class NavDesignSurfaceZoomControlsTest {
     val navGraph = addNavGraph()
 
     waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
-    val configuration =
-      RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
-    val surface =
-      NavDesignSurface(androidProjectRule.project).also {
-        Disposer.register(androidProjectRule.testRootDisposable, it)
-      }
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val surface = NavDesignSurface(androidProjectRule.project).also { Disposer.register(androidProjectRule.testRootDisposable, it) }
 
     surface.activate()
 
@@ -402,16 +380,12 @@ class NavDesignSurfaceZoomControlsTest {
     // Ensure the initial zoom of NavDesignSurface is zoom-to-fit.
     delayUntilImageSimilar(fakeUi, "zoomFit")
 
-    val zoomActionsToolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
 
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
 
-    val event =
-      TestActionEvent.createTestEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-      )
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Perform zoom-in action twice and make sure NavDesignSurface is not zoom-to-fit anymore.
     zoomInAction.actionPerformed(event)

@@ -31,16 +31,14 @@ interface AssetDataProvider {
 
   /** Returns an [AssetData] for an specific [ResourceAssetSet]. I.e: information about a group of [ResourceAssetSet.assets]. */
   fun getAssetSetData(assetSet: ResourceAssetSet): AssetData
-
 }
 
 /**
- * Provides [AssetData] with the default (most common) information.
- * For [DesignAsset] returns it's concatenated qualifiers, the name of the resource and it's size, if available.
- * For [ResourceAssetSet] returns the resource's name, the type of resource (Eg: Drawable, Layout, Font) and the number of versions
- * available (qualifiers supported for this resource).
+ * Provides [AssetData] with the default (most common) information. For [DesignAsset] returns it's concatenated qualifiers, the name of the
+ * resource and it's size, if available. For [ResourceAssetSet] returns the resource's name, the type of resource (Eg: Drawable, Layout,
+ * Font) and the number of versions available (qualifiers supported for this resource).
  */
-open class DefaultAssetDataProvider: AssetDataProvider {
+open class DefaultAssetDataProvider : AssetDataProvider {
 
   override fun getAssetData(asset: DesignAsset): AssetData {
     val title = asset.qualifiers.getReadableConfigurations()
@@ -58,14 +56,8 @@ open class DefaultAssetDataProvider: AssetDataProvider {
   }
 }
 
-/**
- * Data class to store the information to display in [com.android.tools.idea.ui.resourcemanager.widget.AssetView]
- */
-data class AssetData(
-  val title: String,
-  val subtitle: String,
-  val metadata: String
-)
+/** Data class to store the information to display in [com.android.tools.idea.ui.resourcemanager.widget.AssetView] */
+data class AssetData(val title: String, val subtitle: String, val metadata: String)
 
 private fun String.pluralize(size: Int) = this + (if (size > 1) "s" else "")
 

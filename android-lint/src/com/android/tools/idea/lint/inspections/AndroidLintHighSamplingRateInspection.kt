@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.HighSensorSamplingRateDetector
 
 class AndroidLintHighSamplingRateInspection :
-  AndroidLintInspectionBase(
-    AndroidLintBundle.message("android.lint.inspections.high.sampling.rate"),
-    HighSensorSamplingRateDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.high.sampling.rate"), HighSensorSamplingRateDetector.ISSUE)

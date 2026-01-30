@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.MISMATCH_DOWNLOADED_TOOLCHAIN_WITH_CRITERIA
 import org.jetbrains.plugins.gradle.issue.GradleToolchainDownloadedMismatchCriteriaIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleToolchainDownloadedMismatchCriteriaIssueChecker]
- */
-class GradleToolchainDownloadedMismatchCriteriaIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleToolchainDownloadedMismatchCriteriaIssueChecker(),
-  errorEvent = MISMATCH_DOWNLOADED_TOOLCHAIN_WITH_CRITERIA
-)
+/** Gradle build error analytics tracker for [GradleToolchainDownloadedMismatchCriteriaIssueChecker] */
+class GradleToolchainDownloadedMismatchCriteriaIssueReporter :
+  DaemonJvmCriteriaIssueReporter(
+    checker = GradleToolchainDownloadedMismatchCriteriaIssueChecker(),
+    errorEvent = MISMATCH_DOWNLOADED_TOOLCHAIN_WITH_CRITERIA,
+  )

@@ -46,8 +46,7 @@ import org.junit.Test
 @RunsInEdt
 class DependencyManagementTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testParsedDependencies() {
@@ -338,17 +337,13 @@ class DependencyManagementTest {
       assertThat(lib3!!.size, equalTo(numberOfMatchingDependenciesInJModule))
       var notifications = 0
       module.addDependencyChangedListener(projectRule.testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
-      lib10.forEach {
-        module.removeDependency(it)
-      }
+      lib10.forEach { module.removeDependency(it) }
       assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
       assertThat(notifications, equalTo(numberOfMatchingDependenciesInModule))
 
       notifications = 0
       jModule.addDependencyChangedListener(projectRule.testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
-      lib3.forEach {
-        jModule.removeDependency(it)
-      }
+      lib3.forEach { jModule.removeDependency(it) }
       assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1"), nullValue())
       assertThat(notifications, equalTo(numberOfMatchingDependenciesInJModule))
 
@@ -401,17 +396,13 @@ class DependencyManagementTest {
       assertThat(lib?.size, equalTo(1))
       var notifications = 0
       module.addDependencyChangedListener(projectRule.testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
-      libs?.forEach {
-        module.removeDependency(it)
-      }
+      libs?.forEach { module.removeDependency(it) }
       assertThat(module.dependencies.findJarDependencies("../lib").nullize(), nullValue())
       assertThat(notifications, equalTo(1))
 
       notifications = 0
       jModule.addDependencyChangedListener(projectRule.testRootDisposable) { if (it is PsModule.DependencyRemovedEvent) notifications++ }
-      lib?.forEach {
-        jModule.removeDependency(it)
-      }
+      lib?.forEach { jModule.removeDependency(it) }
       assertThat(jModule.dependencies.findJarDependencies("libs/jarlib-1.1.jar").nullize(), nullValue())
       assertThat(notifications, equalTo(1))
 
@@ -588,7 +579,7 @@ class DependencyManagementTest {
         assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6"), nullValue())
         module.addLibraryDependency(
           ParsedValue.Set.Parsed("com.example.libs:lib1:0.6", DslText.InterpolatedString("com.example.libs:lib1:\$var06")),
-          "implementation"
+          "implementation",
         )
 
         val addedDep = module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6")
@@ -636,7 +627,7 @@ class DependencyManagementTest {
       assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", oldConfig), nullValue())
       assertThat(
         module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", newConfig)?.firstOrNull(),
-        sameInstance(libraryDependency)
+        sameInstance(libraryDependency),
       )
 
       project.applyChanges()
@@ -683,13 +674,22 @@ class DependencyManagementTest {
       }
 
       module.setLibraryDependencyVersion(
-        PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1", updateVariable = false
+        PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!,
+        "implementation",
+        "0.9.1",
+        updateVariable = false,
       )
       module.setLibraryDependencyVersion(
-        PsArtifactDependencySpec.create("com.example.jlib:lib3:0.6")!!, "freeImplementation", "0.9.1", updateVariable = true
+        PsArtifactDependencySpec.create("com.example.jlib:lib3:0.6")!!,
+        "freeImplementation",
+        "0.9.1",
+        updateVariable = true,
       )
       jModule.setLibraryDependencyVersion(
-        PsArtifactDependencySpec.create("com.example.jlib:lib3:0.9.1")!!, "implementation", "1.0", updateVariable = false
+        PsArtifactDependencySpec.create("com.example.jlib:lib3:0.9.1")!!,
+        "implementation",
+        "1.0",
+        updateVariable = false,
       )
 
       assertThat(module.isModified, equalTo(true))
@@ -767,9 +767,7 @@ class DependencyManagementTest {
 
       assertThat(declaredDependency, notNullValue())
       assertThat(declaredDependency?.size, equalTo(1))
-      assertThat(
-        module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), nullValue()
-      )
+      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), nullValue())
 
       assertThat(jDeclaredDependency, notNullValue())
       assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.9.1"), nullValue())
@@ -829,9 +827,7 @@ class DependencyManagementTest {
       jModule = project.findModuleByName("jModuleK") as PsJavaModule
 
       assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "releaseImplementation"), nullValue())
-      assertThat(
-        module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), notNullValue()
-      )
+      assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "releaseImplementation"), notNullValue())
 
       assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.9.1", "implementation"), notNullValue())
       assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib4:0.6", "implementation"), nullValue())
@@ -950,7 +946,11 @@ class DependencyManagementTest {
         is Declared -> dependency.configurationName
         is Transitive -> requestingResolvedDependency.spec.toString()
       },
-      spec.toString(), resolvedSpec.toString(), javaClass.simpleName, isPromoted)
+      spec.toString(),
+      resolvedSpec.toString(),
+      javaClass.simpleName,
+      isPromoted,
+    )
 
   @Test
   fun testReverseDependencies() {
@@ -968,15 +968,21 @@ class DependencyManagementTest {
           equalTo(
             setOf(
               TestReverseDependency(
-                from = "com.example.libs:lib2:1.0", to = "com.example.jlib:lib3:1.0", resolved = "com.example.jlib:lib3:1.0",
-                kind = "Transitive", isPromoted = false
+                from = "com.example.libs:lib2:1.0",
+                to = "com.example.jlib:lib3:1.0",
+                resolved = "com.example.jlib:lib3:1.0",
+                kind = "Transitive",
+                isPromoted = false,
               ),
               TestReverseDependency(
-                from = "freeImplementation", to = "com.example.jlib:lib3:0.6", resolved = "com.example.jlib:lib3:1.0",
-                kind = "Declared", isPromoted = true
-              )
+                from = "freeImplementation",
+                to = "com.example.jlib:lib3:0.6",
+                resolved = "com.example.jlib:lib3:1.0",
+                kind = "Declared",
+                isPromoted = true,
+              ),
             )
-          )
+          ),
         )
 
         assertThat(
@@ -984,11 +990,14 @@ class DependencyManagementTest {
           equalTo(
             setOf(
               TestReverseDependency(
-                from = "com.example.libs:lib1:1.0", to = "com.example.libs:lib2:1.0", resolved = "com.example.libs:lib2:1.0",
-                kind = "Transitive", isPromoted = false
+                from = "com.example.libs:lib1:1.0",
+                to = "com.example.libs:lib2:1.0",
+                resolved = "com.example.libs:lib2:1.0",
+                kind = "Transitive",
+                isPromoted = false,
               )
             )
-          )
+          ),
         )
 
         assertThat(
@@ -996,15 +1005,21 @@ class DependencyManagementTest {
           equalTo(
             setOf(
               TestReverseDependency(
-                from = "implementation", to = "com.example.libs:lib1:1.0", resolved = "com.example.libs:lib1:1.0",
-                kind = "Declared", isPromoted = false
+                from = "implementation",
+                to = "com.example.libs:lib1:1.0",
+                resolved = "com.example.libs:lib1:1.0",
+                kind = "Declared",
+                isPromoted = false,
               ),
               TestReverseDependency(
-                from = "releaseImplementation", to = "com.example.libs:lib1:0.9.1", resolved = "com.example.libs:lib1:1.0",
-                kind = "Declared", isPromoted = true
-              )
+                from = "releaseImplementation",
+                to = "com.example.libs:lib1:0.9.1",
+                resolved = "com.example.libs:lib1:1.0",
+                kind = "Declared",
+                isPromoted = true,
+              ),
             )
-          )
+          ),
         )
       }
     }
@@ -1020,12 +1035,9 @@ class DependencyManagementTest {
       val lib2JarPath = "../lib/libsam2-1.1.jar"
       val libJarPath = "libs/jarlib-1.1.jar"
       fun getResolvedDependenciesOfReleaseArtifactFor(name: String) =
-        (project.findModuleByName(name) as? PsAndroidModule)
-          ?.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
+        (project.findModuleByName(name) as? PsAndroidModule)?.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
 
-      fun getResolvedDependenciesFor(name: String) =
-        (project.findModuleByName(name) as? PsJavaModule)
-          ?.resolvedDependencies
+      fun getResolvedDependenciesFor(name: String) = (project.findModuleByName(name) as? PsJavaModule)?.resolvedDependencies
 
       getResolvedDependenciesOfReleaseArtifactFor("moduleA").let { resolvedDependencies ->
         assertThat(resolvedDependencies?.findJarDependencies(lib1JarPath)?.singleOrNull()?.declaredDependencies?.size, equalTo(1))
@@ -1125,7 +1137,7 @@ class DependencyManagementTest {
       flavorModule = project.findModuleByName("moduleFlavor") as PsAndroidModule
       assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "freeReleaseImplementation" }, notNullValue())
 
-      //TODO(b/134372808): test for not removing a configuration with a user-provided comment (and nothing else) in the block
+      // TODO(b/134372808): test for not removing a configuration with a user-provided comment (and nothing else) in the block
 
       // Basic configurations don't require an entry in the configurations block
       assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "implementation" }, nullValue())

@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.android.model.android
 
-import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.android.api.android.AndroidDeclarativeType
+import com.android.tools.idea.gradle.dsl.android.api.android.AndroidGradleDeclarativeBuildModel
 import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_APP
 import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement.ANDROID_LIBRARY
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 
-class AndroidGradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile): GradleBuildModelImpl(gradleBuildFile),
-                                                                                    AndroidGradleDeclarativeBuildModel {
+class AndroidGradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFile) :
+  GradleBuildModelImpl(gradleBuildFile), AndroidGradleDeclarativeBuildModel {
   override fun existingAndroidElement(): AndroidDeclarativeType? {
     return try {
       when (android().fullyQualifiedName) {
@@ -33,16 +33,14 @@ class AndroidGradleDeclarativeBuildModelImpl(val gradleBuildFile: GradleBuildFil
         ANDROID_LIBRARY.name -> AndroidDeclarativeType.LIBRARY
         else -> null
       }
-    }
-    catch (e: IllegalStateException) {
+    } catch (e: IllegalStateException) {
       null
     }
   }
 
   override fun createAndroidElement(type: AndroidDeclarativeType): AndroidDeclarativeModel =
     when (type) {
-      AndroidDeclarativeType.APPLICATION -> AndroidDeclarativeModelImpl(
-        gradleBuildFile.ensurePropertyElement(ANDROID_APP))
+      AndroidDeclarativeType.APPLICATION -> AndroidDeclarativeModelImpl(gradleBuildFile.ensurePropertyElement(ANDROID_APP))
       AndroidDeclarativeType.LIBRARY -> AndroidDeclarativeModelImpl(gradleBuildFile.ensurePropertyElement(ANDROID_LIBRARY))
     }
 

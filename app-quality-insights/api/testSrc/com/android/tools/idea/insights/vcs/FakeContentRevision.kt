@@ -39,8 +39,7 @@ data class FakeContentRevision(
   }
 }
 
-data class FakeVcsRevisionNumber(private val revision: String) :
-  VcsRevisionNumber, ShortVcsRevisionNumber {
+data class FakeVcsRevisionNumber(private val revision: String) : VcsRevisionNumber, ShortVcsRevisionNumber {
   override fun compareTo(other: VcsRevisionNumber?): Int {
     return 0
   }

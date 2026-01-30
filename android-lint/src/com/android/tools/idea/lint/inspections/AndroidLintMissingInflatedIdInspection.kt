@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MissingInflatedIdDetector
 
 class AndroidLintMissingInflatedIdInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.missing.inflated.id"),
-    MissingInflatedIdDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.missing.inflated.id"), MissingInflatedIdDetector.ISSUE)

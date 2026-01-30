@@ -27,17 +27,13 @@ import com.intellij.util.ui.UIUtil
 class IssuePanelServiceTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val issuePanelService = IssuePanelService.getInstance(project)
-    val allIssues =
-      UIUtil.invokeAndWaitIfNeeded(Computable { issuePanelService.getSharedPanelIssues() })
+    val allIssues = UIUtil.invokeAndWaitIfNeeded(Computable { issuePanelService.getSharedPanelIssues() })
     val output = StringBuilder("IssuePanelService: nIssues=${allIssues.size}")
     val issuePanel = ProblemsView.getToolWindow(project)?.contentManager?.selectedContent
     val selectedIssue =
       UIUtil.invokeAndWaitIfNeeded(
         Computable {
-          val selectedNode =
-            DataManager.getInstance()
-              .getDataContext(issuePanel?.component)
-              .getData(PlatformCoreDataKeys.SELECTED_ITEM)
+          val selectedNode = DataManager.getInstance().getDataContext(issuePanel?.component).getData(PlatformCoreDataKeys.SELECTED_ITEM)
           (selectedNode as? IssueNode)?.issue
         }
       )

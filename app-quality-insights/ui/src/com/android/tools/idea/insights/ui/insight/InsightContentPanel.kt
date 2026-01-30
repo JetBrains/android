@@ -97,11 +97,7 @@ class InsightContentPanel(
   private val insightScrollPanel =
     JPanel(BorderLayout()).apply {
       val scrollPane =
-        ScrollPaneFactory.createScrollPane(
-            insightPanel,
-            JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER,
-          )
+        ScrollPaneFactory.createScrollPane(insightPanel, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
           .apply {
             isOpaque = false
             border = JBUI.Borders.empty()
@@ -112,16 +108,10 @@ class InsightContentPanel(
     }
 
   private val selectedConnectionFlow =
-    controller.state
-      .map { state -> state.connections.selected }
-      .stateIn(scope, SharingStarted.Eagerly, null)
+    controller.state.map { state -> state.connections.selected }.stateIn(scope, SharingStarted.Eagerly, null)
 
   private val enableInsightPanel =
-    EnableInsightPanel(
-      scope,
-      selectedConnectionFlow,
-      controller.aiInsightToolkit.aiInsightOnboardingProvider,
-    )
+    EnableInsightPanel(scope, selectedConnectionFlow, controller.aiInsightToolkit.aiInsightOnboardingProvider)
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
@@ -157,20 +147,14 @@ class InsightContentPanel(
     }
 
   private var isEmptyStateTextVisible = false
-  @VisibleForTesting
-  val emptyStateText = AppInsightsStatusText(emptyOrErrorPanel) { isEmptyStateTextVisible }
+  @VisibleForTesting val emptyStateText = AppInsightsStatusText(emptyOrErrorPanel) { isEmptyStateTextVisible }
 
   init {
     Disposer.register(parentDisposable, this)
     layout = cardLayout
 
     val toolbar =
-      ActionManager.getInstance()
-        .createActionToolbar(
-          "ContextSharingObserver",
-          DefaultActionGroup(geminiOnboardingObserverAction),
-          true,
-        )
+      ActionManager.getInstance().createActionToolbar("ContextSharingObserver", DefaultActionGroup(geminiOnboardingObserverAction), true)
     toolbar.targetComponent = enableInsightPanel
     enableInsightPanel.add(toolbar.component)
 
@@ -191,9 +175,7 @@ class InsightContentPanel(
                 null -> {
                   emptyStateText.apply {
                     clear()
-                    appendText(
-                      "Transient state (\"fetch insight\" action is not fired yet), should recover shortly."
-                    )
+                    appendText("Transient state (\"fetch insight\" action is not fired yet), should recover shortly.")
                   }
                   showEmptyCard()
                 }
@@ -203,11 +185,7 @@ class InsightContentPanel(
                     emptyStateText.apply {
                       clear()
                       appendText("No insights", EMPTY_STATE_TITLE_FORMAT)
-                      appendLine(
-                        "There are no insights available for this issue",
-                        EMPTY_STATE_TEXT_FORMAT,
-                        null,
-                      )
+                      appendLine("There are no insights available for this issue", EMPTY_STATE_TEXT_FORMAT, null)
                     }
                     showEmptyCard()
                   } else {
@@ -228,18 +206,11 @@ class InsightContentPanel(
             }
             // Gemini plugin disabled or scope is not authorized
             is LoadingState.Unauthorized -> {
-              if (
-                LoginFeature.getExtensionByKey("Gemini") == null &&
-                  LoginFeature.getExtensionByKey("GiAS") == null
-              ) {
+              if (LoginFeature.getExtensionByKey("Gemini") == null && LoginFeature.getExtensionByKey("GiAS") == null) {
                 emptyStateText.apply {
                   clear()
                   appendText(GEMINI_NOT_AVAILABLE, EMPTY_STATE_TITLE_FORMAT)
-                  appendLine(
-                    "To see insights, please enable the Gemini plugin in Settings > Plugins",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null,
-                  )
+                  appendLine("To see insights, please enable the Gemini plugin in Settings > Plugins", EMPTY_STATE_TEXT_FORMAT, null)
                 }
                 showEmptyCard()
               } else {
@@ -272,8 +243,7 @@ class InsightContentPanel(
               showEmptyCard()
             }
             is LoadingState.UnknownFailure -> {
-              val detailsMessage =
-                aiInsight.status?.detailsList?.firstOrNull()?.value?.toStringUtf8() ?: ""
+              val detailsMessage = aiInsight.status?.detailsList?.firstOrNull()?.value?.toStringUtf8() ?: ""
               val message =
                 if (detailsMessage.contains(TEMPORARY_KILL_SWITCH_MESSAGE)) {
                   "Insights feature is temporarily unavailable, check back later."
@@ -310,11 +280,9 @@ class InsightContentPanel(
 
   private fun showEmptyCard() = showCard(EMPTY_CARD, false).also { isEmptyStateTextVisible = true }
 
-  private fun showContentCard(startLoading: Boolean = false) =
-    showCard(CONTENT_CARD, startLoading).also { isEmptyStateTextVisible = false }
+  private fun showContentCard(startLoading: Boolean = false) = showCard(CONTENT_CARD, startLoading).also { isEmptyStateTextVisible = false }
 
-  private fun showOnboardingCard() =
-    showCard(ONBOARDING_REQUIRED, false).also { isEmptyStateTextVisible = false }
+  private fun showOnboardingCard() = showCard(ONBOARDING_REQUIRED, false).also { isEmptyStateTextVisible = false }
 
   private fun showCard(card: String, startLoading: Boolean) {
     if (startLoading) {

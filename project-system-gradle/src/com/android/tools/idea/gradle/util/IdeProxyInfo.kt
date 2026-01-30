@@ -21,17 +21,17 @@ import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
 
-class IdeProxyInfo private constructor (val settings: ProxySettings, val credentialStore: ProxyCredentialStore) {
-  fun isHttpProxyExplicitlyConfigured() = when(val config = settings.getProxyConfiguration()) {
-    is StaticProxyConfiguration -> config.protocol == HTTP // no SOCKS for us.  Poor Dobby.
-    is ProxyAutoConfiguration -> config.pacUrl.toString().isNotEmpty()
-    else -> false // we might still be using a proxy but only through JVM variables.
-  }
+class IdeProxyInfo private constructor(val settings: ProxySettings, val credentialStore: ProxyCredentialStore) {
+  fun isHttpProxyExplicitlyConfigured() =
+    when (val config = settings.getProxyConfiguration()) {
+      is StaticProxyConfiguration -> config.protocol == HTTP // no SOCKS for us.  Poor Dobby.
+      is ProxyAutoConfiguration -> config.pacUrl.toString().isNotEmpty()
+      else -> false // we might still be using a proxy but only through JVM variables.
+    }
 
   companion object {
     private val INSTANCE by lazy { IdeProxyInfo(ProxySettings.getInstance(), ProxyCredentialStore.getInstance()) }
 
-    @JvmStatic
-    fun getInstance() = INSTANCE
+    @JvmStatic fun getInstance() = INSTANCE
   }
 }

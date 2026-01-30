@@ -37,9 +37,8 @@ import kotlinx.coroutines.CoroutineScope
  *
  * Key responsibilities include:
  *
- * Loading animation data. Setting up and managing the appropriate state manager for the animation
- * type. Syncing state between the UI (combo boxes) and the underlying animation data. Updating and
- * resetting the animation state.
+ * Loading animation data. Setting up and managing the appropriate state manager for the animation type. Syncing state between the UI (combo
+ * boxes) and the underlying animation data. Updating and resetting the animation state.
  *
  * @param animation The animation object.
  * @param tracker The animation tracker.
@@ -53,8 +52,7 @@ class SupportedWearTileAnimationManager(
   val animation: ProtoAnimation,
   private val tracker: AnimationTracker,
   private val getCurrentTime: () -> Int,
-  private val executeInRenderSession:
-    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
+  private val executeInRenderSession: suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   override val tabTitle: String,
@@ -91,8 +89,7 @@ class SupportedWearTileAnimationManager(
 
   override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
     executeInRenderSession(false, false) {
-      animatedPropertiesAtCurrentTime =
-        listOf(AnimationUnit.TimelineUnit("value", animation.getAnimationUnit()))
+      animatedPropertiesAtCurrentTime = listOf(AnimationUnit.TimelineUnit("value", animation.getAnimationUnit()))
     }
   }
 
@@ -108,9 +105,7 @@ class SupportedWearTileAnimationManager(
   }
 }
 
-private fun ProtoAnimation.createStateManager(
-  tracker: AnimationTracker
-): WearTileAnimationState<*> {
+private fun ProtoAnimation.createStateManager(tracker: AnimationTracker): WearTileAnimationState<*> {
   return when (type) {
     TYPE.INT -> {
       WearTileIntState(tracker, startValueInt, endValueInt)

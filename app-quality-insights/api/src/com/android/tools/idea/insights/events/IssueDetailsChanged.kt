@@ -25,10 +25,7 @@ import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.IssueId
 
 /** Issue details changed. */
-data class IssueDetailsChanged(
-  val issueId: IssueId,
-  val stats: LoadingState.Done<DetailedIssueStats?>,
-) : ChangeEvent {
+data class IssueDetailsChanged(val issueId: IssueId, val stats: LoadingState.Done<DetailedIssueStats?>) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,

@@ -23,9 +23,8 @@ import java.awt.Point
 import java.awt.Rectangle
 
 /**
- * When the view size is changed, use the reference point as the anchor to keep the new scroll
- * position at a distance to the newReferencePoint that is equal to the distance the
- * [oldScrollPosition] had to the [oldReferencePoint].
+ * When the view size is changed, use the reference point as the anchor to keep the new scroll position at a distance to the
+ * newReferencePoint that is equal to the distance the [oldScrollPosition] had to the [oldReferencePoint].
  */
 open class ReferencePointScroller(
   @SwingCoordinate private val oldViewSize: Dimension,
@@ -53,46 +52,27 @@ open class ReferencePointScroller(
     val newViewPositionX =
       if (portSize.width >= newViewSize.width) 0
       else {
-        getNewScrollPosition(
-          oldScrollPosition.x,
-          oldReferencePoint.x,
-          newReferencePoint.x,
-          portSize.width,
-        )
+        getNewScrollPosition(oldScrollPosition.x, oldReferencePoint.x, newReferencePoint.x, portSize.width)
       }
     val newViewPositionY =
       if (portSize.height >= newViewSize.height) 0
       else {
-        getNewScrollPosition(
-          oldScrollPosition.y,
-          oldReferencePoint.y,
-          newReferencePoint.y,
-          portSize.height,
-        )
+        getNewScrollPosition(oldScrollPosition.y, oldReferencePoint.y, newReferencePoint.y, portSize.height)
       }
     port.viewPosition = Point(newViewPositionX, newViewPositionY)
   }
 
-  /**
-   * Calculates the new scroll position for one dimension by trying to keep the same distance with
-   * its reference.
-   */
-  private fun getNewScrollPosition(
-    oldScrollPosition: Int,
-    oldReference: Int,
-    newReference: Int,
-    maxDistance: Int,
-  ): Int {
+  /** Calculates the new scroll position for one dimension by trying to keep the same distance with its reference. */
+  private fun getNewScrollPosition(oldScrollPosition: Int, oldReference: Int, newReference: Int, maxDistance: Int): Int {
     val distance = (oldReference - oldScrollPosition).coerceIn(0, maxDistance)
     return (newReference - distance).coerceAtLeast(0)
   }
 
   /**
-   * The new position in theory should be (x * scaleChange, y * scaleChange) if the content is
-   * scaled by [scaleChange], but this is not the case as some components have minimum sizes and all
-   * of their dimensions also get rounded to integer values. To avoid having a big accumulated error
-   * on low zoom levels or when the viewport contains many components, the position is treated as
-   * relative to its closest [SceneView].
+   * The new position in theory should be (x * scaleChange, y * scaleChange) if the content is scaled by [scaleChange], but this is not the
+   * case as some components have minimum sizes and all of their dimensions also get rounded to integer values. To avoid having a big
+   * accumulated error on low zoom levels or when the viewport contains many components, the position is treated as relative to its closest
+   * [SceneView].
    */
   private fun expectedPositionAfterZoom(x: Int, y: Int): Point {
     var closestSceneView: SceneView? = null

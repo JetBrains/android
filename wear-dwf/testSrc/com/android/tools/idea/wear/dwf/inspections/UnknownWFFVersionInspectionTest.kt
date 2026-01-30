@@ -48,13 +48,13 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version"
-                   <warning descr="Unknown Watch Face Format version">android:value="99"</warning> />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version"
+                  <warning descr="Unknown Watch Face Format version">android:value="99"</warning> />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -67,12 +67,12 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version" android:value="1" />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version" android:value="1" />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -85,12 +85,12 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version" android:value="not-an-integer" />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version" android:value="not-an-integer" />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -104,13 +104,13 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version"
-                  <warning descr="Unknown Watch Face Format version">android:value="${'$'}{wff_version}"</warning> />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version"
+                 <warning descr="Unknown Watch Face Format version">android:value="${'$'}{wff_version}"</warning> />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -124,12 +124,12 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version" android:value="${'$'}{wff_version}" />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version" android:value="${'$'}{wff_version}" />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -143,12 +143,12 @@ class UnknownWFFVersionInspectionTest {
       SdkConstants.ANDROID_MANIFEST_XML,
       // language=XML
       """
-       <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-           <application>
-               <property android:name="com.google.wear.watchface.format.version" android:value="${'$'}{wff_version}" />
-           </application>
-       </manifest>
-    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <application>
+              <property android:name="com.google.wear.watchface.format.version" android:value="${'$'}{wff_version}" />
+          </application>
+      </manifest>
+      """
         .trimIndent(),
     )
 
@@ -161,9 +161,7 @@ class UnknownWFFVersionInspectionTest {
     ApplicationManager.getApplication().invokeAndWait {
       ProjectSystemService.getInstance(project)
         .replaceProjectSystemForTests(
-          projectSystem.withModuleSystem(
-            moduleSystem.withManifestOverrides(ManifestOverrides(placeholders = placeholders))
-          )
+          projectSystem.withModuleSystem(moduleSystem.withManifestOverrides(ManifestOverrides(placeholders = placeholders)))
         )
     }
   }
@@ -171,8 +169,7 @@ class UnknownWFFVersionInspectionTest {
   private fun AndroidProjectSystem.withModuleSystem(moduleSystem: AndroidModuleSystem) =
     object : AndroidProjectSystem by this {
       override fun getModuleSystem(module: Module) =
-        if (module == moduleSystem.module) moduleSystem
-        else this@withModuleSystem.getModuleSystem(module)
+        if (module == moduleSystem.module) moduleSystem else this@withModuleSystem.getModuleSystem(module)
     }
 
   private fun AndroidModuleSystem.withManifestOverrides(manifestOverrides: ManifestOverrides) =

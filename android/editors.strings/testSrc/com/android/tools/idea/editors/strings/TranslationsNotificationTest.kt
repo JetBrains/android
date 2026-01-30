@@ -26,51 +26,56 @@ import org.junit.Test
 
 class TranslationsNotificationTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Test
   fun checkStringsXml() {
-    val psiFile = myFixture.loadNewFile(
-      "src/res/values/strings.xml",
-      // language=xml
-      """
-      <resources>
-          <string name="key_1">key_2_default</string>
-      </resources>
-      """.trimIndent()
-    )
+    val psiFile =
+      myFixture.loadNewFile(
+        "src/res/values/strings.xml",
+        // language=xml
+        """
+        <resources>
+            <string name="key_1">key_2_default</string>
+        </resources>
+        """
+          .trimIndent(),
+      )
     assertThat(canViewTranslations(psiFile)).isTrue()
   }
 
   @Test
   fun checkColorXml() {
-    val psiFile = myFixture.loadNewFile(
-      "src/res/values/colors.xml",
-      // language=xml
-      """
-      <resources>
-          <color name="color2">#008577</color>
-      </resources>
-      """.trimIndent()
-    )
+    val psiFile =
+      myFixture.loadNewFile(
+        "src/res/values/colors.xml",
+        // language=xml
+        """
+        <resources>
+            <color name="color2">#008577</color>
+        </resources>
+        """
+          .trimIndent(),
+      )
     assertThat(canViewTranslations(psiFile)).isFalse()
   }
 
   @Test
   fun checkMiscXml() {
-    val psiFile = myFixture.loadNewFile(
-      "src/res/values/misc.xml",
-      // language=xml
-      """
-      <resources>
-          <color name="color2">#008577</color>
-          <string name="key_2">key_2_default</string>
-      </resources>
-      """.trimIndent()
-    )
+    val psiFile =
+      myFixture.loadNewFile(
+        "src/res/values/misc.xml",
+        // language=xml
+        """
+        <resources>
+            <color name="color2">#008577</color>
+            <string name="key_2">key_2_default</string>
+        </resources>
+        """
+          .trimIndent(),
+      )
     assertThat(canViewTranslations(psiFile)).isTrue()
   }
 

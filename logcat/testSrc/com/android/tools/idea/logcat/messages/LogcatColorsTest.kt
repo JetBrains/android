@@ -18,11 +18,11 @@ package com.android.tools.idea.logcat.messages
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
-import junit.framework.TestCase.fail
-import org.junit.Test
 import java.awt.Color
 import java.util.concurrent.atomic.AtomicInteger
+import junit.framework.TestCase.fail
 import kotlin.concurrent.thread
+import org.junit.Test
 
 /** Tests for [LogcatColors] */
 class LogcatColorsTest {
@@ -36,9 +36,7 @@ class LogcatColorsTest {
   @Test
   fun tagColors_areDiverse() {
     val colors = mutableMapOf<TextAttributes, MutableList<Int>>()
-    repeat(100) {
-      colors.computeIfAbsent(logcatColors.getTagColor("tag$it")) { mutableListOf() }.add(it)
-    }
+    repeat(100) { colors.computeIfAbsent(logcatColors.getTagColor("tag$it")) { mutableListOf() }.add(it) }
 
     assertThat(colors.size).isAtLeast(50)
     colors.forEach { (_, tags) -> assertThat(tags.size).isAtMost(10) }
@@ -54,8 +52,7 @@ class LogcatColorsTest {
 
   @Test
   fun tagColors_doNotHaveBackground() {
-    assertThat(logcatColors.getTagColor("tag").backgroundColor)
-      .isEqualTo(TextAttributes().backgroundColor)
+    assertThat(logcatColors.getTagColor("tag").backgroundColor).isEqualTo(TextAttributes().backgroundColor)
   }
 
   @Test

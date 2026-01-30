@@ -22,10 +22,7 @@ internal data class StorageCapacity(val value: Long, val unit: Unit) : Comparabl
     Math.multiplyExact(value, unit.byteCount)
   }
 
-  /**
-   * Returns an equivalent StorageCapacity with the largest unit with no loss of precision. Returns
-   * 2M for 2048K, for example.
-   */
+  /** Returns an equivalent StorageCapacity with the largest unit with no loss of precision. Returns 2M for 2048K, for example. */
   internal fun withMaxUnit(): StorageCapacity {
     val maxUnit = maxUnit()
     return StorageCapacity(valueIn(maxUnit), maxUnit)

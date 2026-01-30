@@ -9,17 +9,16 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.SimpleConfigurationType
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.ui.RunContentDescriptor
+import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.JPanel
 
 class UtilsKtTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun getProcessHandlersForDevices() {

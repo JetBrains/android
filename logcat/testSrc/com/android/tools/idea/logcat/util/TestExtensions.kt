@@ -29,10 +29,7 @@ internal fun DialogWrapper.getCheckBox(text: String): JCheckBox = getTextCompone
 
 internal fun DialogWrapper.getButton(text: String): JButton = getTextComponent(text) { it.text }
 
-private inline fun <reified T> DialogWrapper.getTextComponent(
-  text: String,
-  getText: (T) -> String,
-): T =
+private inline fun <reified T> DialogWrapper.getTextComponent(text: String, getText: (T) -> String): T =
   TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull { getText(it) == text }
     ?: fail("${T::class.simpleName} '$text' not found")
 

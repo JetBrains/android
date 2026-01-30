@@ -28,8 +28,8 @@ import com.intellij.openapi.actionSystem.DataKey
  * Action that calls the given [refreshAssetsCallback] when there are supported [DesignAsset]s under the [RESOURCE_DESIGN_ASSETS_KEY]
  * [DataKey].
  */
-class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignAsset>) -> Unit)
-  : AnAction("Refresh Preview", "Refresh the preview for the selected resources", null) {
+class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignAsset>) -> Unit) :
+  AnAction("Refresh Preview", "Refresh the preview for the selected resources", null) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val assets = e.getData(RESOURCE_DESIGN_ASSETS_KEY)
@@ -48,8 +48,7 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
   private fun canRefresh(assets: Array<DesignAsset>?): Boolean {
     return if (assets.isNullOrEmpty()) {
       false
-    }
-    else {
+    } else {
       assets.all { it.type.isSlowResource() }
     }
   }

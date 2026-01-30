@@ -19,8 +19,6 @@ import com.android.SdkConstants
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.ui.ApplicationUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 
@@ -31,27 +29,18 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
     """
     The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your apps.
     The setup wizard will update your current Android SDK installation (if necessary) or install a new version.
-  """
+    """
       .trimIndent(),
     installUpdates,
   ) {
   /**
-   * Find latest build tools revision. Versions compatible with the selected platforms will be
-   * installed by the platform components.
+   * Find latest build tools revision. Versions compatible with the selected platforms will be installed by the platform components.
    *
-   * @return The Revision of the latest build tools package, or null if no remote build tools
-   *   packages are available.
+   * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   private val latestCompatibleBuildToolsPath: String?
     get() =
-      sdkHandler!!
-        .getLatestRemotePackageForPrefix(
-          SdkConstants.FD_BUILD_TOOLS,
-          null,
-          false,
-          object : ProgressIndicatorAdapter() {},
-        )
-        ?.path
+      sdkHandler!!.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, null, false, object : ProgressIndicatorAdapter() {})?.path
 
   override val requiredSdkPackages: Collection<String>
     get() = getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated())
@@ -66,13 +55,11 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
       .filterNotNull()
       .toList()
 
-  override fun sdkComponentsMetricKind() =
-    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_SDK
+  override fun sdkComponentsMetricKind() = SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_SDK
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     // Nothing to do, having components installed is enough
   }
 
   override fun isOptionalForSdkLocation(): Boolean = false
-
 }

@@ -32,6 +32,8 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -48,8 +50,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.time.Duration.Companion.seconds
 
 class ComposePreviewElementFlowTest {
   @get:Rule val projectRule = ComposeProjectRule()
@@ -69,7 +69,7 @@ class ComposePreviewElementFlowTest {
         @Preview
         fun Preview1() {
         }
-      """
+        """
           .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
@@ -77,8 +77,7 @@ class ComposePreviewElementFlowTest {
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
     val previousElement = AtomicReference<Collection<ComposePreviewElement<*>>>(emptySet())
-    val previewElementProvider =
-      FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
+    val previewElementProvider = FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
@@ -91,9 +90,7 @@ class ComposePreviewElementFlowTest {
             assertFalse("Duplicated update received", previousValue == newValue)
           }
           .stateIn(flowScope)
-      flow.awaitStatus(timeout = 5.seconds) { elements ->
-        elements.singleOrNull()?.methodFqn == "OtherFileKt.Preview1"
-      }
+      flow.awaitStatus(timeout = 5.seconds) { elements -> elements.singleOrNull()?.methodFqn == "OtherFileKt.Preview1" }
 
       listenersReady.complete(Unit)
 
@@ -101,8 +98,8 @@ class ComposePreviewElementFlowTest {
       flow.awaitStatus(timeout = 5.seconds) { elements ->
         elements.map { it.methodFqn }.sorted().joinToString("\n") ==
           """
-            OtherFileKt.Preview1
-            OtherFileKt.Preview2
+          OtherFileKt.Preview1
+          OtherFileKt.Preview2
           """
             .trimIndent()
       }
@@ -120,13 +117,9 @@ class ComposePreviewElementFlowTest {
     repeat(2) {
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
         projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave { insertText("\n\n// Irrelevant change should not trigger an update\n\n") }
         projectRule.fixture.editor.executeAndSave {
-          insertText("\n\n// Irrelevant change should not trigger an update\n\n")
-        }
-        projectRule.fixture.editor.executeAndSave {
-          insertText(
-            "\n\nfun method$it() {\n// Irrelevant change should not trigger an update\n}\n\n"
-          )
+          insertText("\n\nfun method$it() {\n// Irrelevant change should not trigger an update\n}\n\n")
         }
       }
       // Wait for longer than the debouncing timer to ensure we do not remove the changes just by
@@ -140,10 +133,10 @@ class ComposePreviewElementFlowTest {
         insertText(
           """
 
-            @Composable
-            @Preview
-            fun Preview2() {
-            }
+          @Composable
+          @Preview
+          fun Preview2() {
+          }
 
           """
             .trimIndent()
@@ -164,11 +157,11 @@ class ComposePreviewElementFlowTest {
         "src/Multipreview.kt",
         // language=kotlin
         """
-          import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.ui.tooling.preview.Preview
 
-          @Preview(name = "A")
-          @Preview(name = "B")
-          annotation class MultiPreview
+        @Preview(name = "A")
+        @Preview(name = "B")
+        annotation class MultiPreview
         """
           .trimIndent(),
       )
@@ -184,25 +177,18 @@ class ComposePreviewElementFlowTest {
         @MultiPreview
         fun Preview1() {
         }
-      """
+        """
           .trimIndent(),
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
-    val previewElementProvider =
-      FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
+    val previewElementProvider = FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder)
 
     runBlocking {
       val flowScope = createChildScope()
-      val flow =
-        previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
-          .stateIn(flowScope)
+      val flow = previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }.stateIn(flowScope)
       assertEquals(
         "A - Preview1,B - Preview1",
-        flow
-          .map { it.asCollection() }
-          .filter { it.size == 2 }
-          .first()
-          .joinToString(",") { it.displaySettings.name },
+        flow.map { it.asCollection() }.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name },
       )
 
       // Make change
@@ -218,11 +204,7 @@ class ComposePreviewElementFlowTest {
 
       assertEquals(
         "A - Preview1,B - Preview1,C - Preview1",
-        flow
-          .map { it.asCollection() }
-          .filter { it.size == 3 }
-          .first()
-          .joinToString(",") { it.displaySettings.name },
+        flow.map { it.asCollection() }.filter { it.size == 3 }.first().joinToString(",") { it.displaySettings.name },
       )
 
       // Terminate the flow

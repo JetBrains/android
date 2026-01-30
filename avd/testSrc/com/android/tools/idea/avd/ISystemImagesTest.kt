@@ -51,9 +51,7 @@ class ISystemImagesTest {
   @Test
   fun systemImageFlow_local() {
     with(SdkFixture()) {
-      repoPackages.setLocalPkgInfos(
-        listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34)))
-      )
+      repoPackages.setLocalPkgInfos(listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))))
 
       val imageFlow = ISystemImages.systemImageFlow(sdkHandler)
       runBlocking {
@@ -68,14 +66,10 @@ class ISystemImagesTest {
   @Test
   fun systemImageFlow_download() {
     with(SdkFixture()) {
-      repoPackages.setRemotePkgInfos(
-        listOf(createRemoteSystemImage("google_apis", listOf(), AndroidVersion(34)))
-      )
+      repoPackages.setRemotePkgInfos(listOf(createRemoteSystemImage("google_apis", listOf(), AndroidVersion(34))))
 
       val flowScope = CoroutineScope(EmptyCoroutineContext)
-      val imageFlow =
-        ISystemImages.systemImageFlow(sdkHandler)
-          .stateIn(flowScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
+      val imageFlow = ISystemImages.systemImageFlow(sdkHandler).stateIn(flowScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
 
       runBlocking {
         withTimeout(5.seconds) {
@@ -86,9 +80,7 @@ class ISystemImagesTest {
         }
 
         // Simulate download of the system image
-        repoManager.updateLocalPackages(
-          listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34)))
-        )
+        repoManager.updateLocalPackages(listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))))
 
         withTimeout(5.seconds) {
           // Now the flow should update and it should be represented as a local system image

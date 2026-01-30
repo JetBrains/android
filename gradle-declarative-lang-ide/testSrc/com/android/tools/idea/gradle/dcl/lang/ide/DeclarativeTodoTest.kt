@@ -19,28 +19,42 @@ import com.intellij.editor.TodoItemsTestCase
 
 class DeclarativeTodoTest : TodoItemsTestCase() {
   override fun getFileExtension(): String = "build.dcl"
+
   override fun supportsCStyleMultiLineComments(): Boolean = false
+
   override fun supportsCStyleSingleLineComments(): Boolean = false
 
-  fun `test single line todo`() = testTodos("""
+  fun `test single line todo`() =
+    testTodos(
+      """
         // [TODO first line]
         // second line
-    """)
+    """
+    )
 
-  fun `test single line todo2`() = testTodos("""
+  fun `test single line todo2`() =
+    testTodos(
+      """
         // [TODO first line]
         //  [second line]
-    """)
+    """
+    )
 
-  fun `test block comment todo`() = testTodos("""
+  fun `test block comment todo`() =
+    testTodos(
+      """
        /* [TODO first line]
           next line
        */
-    """)
+    """
+    )
 
-  fun `test block comment todo2`() = testTodos("""
+  fun `test block comment todo2`() =
+    testTodos(
+      """
        /* [TODO first line]
            [next line]
        */
-    """)
+    """
+    )
 }

@@ -19,10 +19,12 @@ import com.android.tools.profiler.proto.Common
 import java.util.concurrent.Executor
 
 /**
- * Individual listeners that handle one event kind each. `TransportEventPoller` subscribers can register
- * multiple listeners to a single poller.
+ * Individual listeners that handle one event kind each. `TransportEventPoller` subscribers can register multiple listeners to a single
+ * poller.
  */
-data class TransportEventListener @JvmOverloads constructor(
+data class TransportEventListener
+@JvmOverloads
+constructor(
   val eventKind: Common.Event.Kind,
   val executor: Executor,
   val filter: (Common.Event) -> Boolean = { true },
@@ -32,4 +34,5 @@ data class TransportEventListener @JvmOverloads constructor(
   val startTime: (() -> Long)? = null,
   val endTime: () -> Long = { Long.MAX_VALUE },
   // Upon completing the callback, whether the listener should be removed.
-  val callback: (Common.Event) -> Boolean)
+  val callback: (Common.Event) -> Boolean,
+)

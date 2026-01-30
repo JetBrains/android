@@ -30,34 +30,32 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
-import org.intellij.lang.annotations.Language
 import java.awt.Cursor
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 import javax.swing.text.DefaultCaret
-
+import org.intellij.lang.annotations.Language
 
 private const val SYNC_LINK = "#sync"
 
 private const val NEW_MODULE_LINK = "#newmodule"
 
 @Language("HTML")
-private val NO_FACET_TEXT = """
+private val NO_FACET_TEXT =
+  """
   |<p>
   |    No Android module has been found.<br/>
   |    <a href="$NEW_MODULE_LINK">Sync project</a>,<br/>
   |    <a href="$SYNC_LINK">Add Android module</a>
   |</p>
-  |""".trimMargin()
+  |"""
+    .trimMargin()
 
 private const val EMPTY_TEXT_LINE_HEIGHT = 1.2
 
-/**
- * Placeholder view shown when no Android facet has been found on the project.
- */
-class NoFacetView(val project: Project)
-  : JPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false)) {
+/** Placeholder view shown when no Android facet has been found on the project. */
+class NoFacetView(val project: Project) : JPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false)) {
 
   private val androidNewModuleAction = ActionManager.getInstance().getAction("NewModule")
 
@@ -71,9 +69,10 @@ class NoFacetView(val project: Project)
       contentType = UIUtil.HTML_MIME
       background = UIUtil.getPanelBackground()
       foreground = NamedColorUtil.getInactiveTextColor()
-      editorKit = HTMLEditorKitBuilder().withGapsBetweenParagraphs().build().also {
-        it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
-      }
+      editorKit =
+        HTMLEditorKitBuilder().withGapsBetweenParagraphs().build().also {
+          it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
+        }
       border = JBUI.Borders.empty(32)
       font = StartupUiUtil.labelFont
       cursor = Cursor.getDefaultCursor()
@@ -81,9 +80,10 @@ class NoFacetView(val project: Project)
       isEditable = false
       isFocusable = true
       isOpaque = false
-      caret = object : DefaultCaret() {
-        override fun isVisible() = false
-      }
+      caret =
+        object : DefaultCaret() {
+          override fun isVisible() = false
+        }
       addHyperlinkListener { e ->
         if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
           when (e.description) {
@@ -111,4 +111,3 @@ class NoFacetView(val project: Project)
     }
   }
 }
-

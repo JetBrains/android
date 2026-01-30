@@ -24,23 +24,17 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 
-/**
- * [DesignAssetRenderer] to display SVGs
- */
+/** [DesignAssetRenderer] to display SVGs */
 class SVGAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile): Boolean = "svg".equals(file.extension, true)
 
-  override fun getImage(file: VirtualFile,
-                        module: Module?,
-                        dimension: Dimension,
-                        context: Any?): CompletableFuture<BufferedImage?> {
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<BufferedImage?> {
     return CompletableFuture.supplyAsync {
       try {
         file.inputStream.use { inputStream ->
           renderSvgWithSize(inputStream = inputStream, width = dimension.width.toFloat(), height = dimension.height.toFloat())
         }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         logFileNotSupported(file, e)
         null
       }
@@ -48,8 +42,7 @@ class SVGAssetRenderer : DesignAssetRenderer {
   }
 
   private fun logFileNotSupported(file: VirtualFile, ex: Exception) {
-    Logger.getInstance(SVGAssetRenderer::class.java).warn(
-      "${file.path} content is not supported by the SVG Loader\n ${ex.localizedMessage}"
-    )
+    Logger.getInstance(SVGAssetRenderer::class.java)
+      .warn("${file.path} content is not supported by the SVG Loader\n ${ex.localizedMessage}")
   }
 }

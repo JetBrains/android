@@ -18,20 +18,16 @@ package com.android.tools.idea.gradle.repositories.search
 sealed class SearchQuery
 
 sealed class GroupArtifactQuery(open val groupId: String?, open val artifactName: String?) : SearchQuery()
+
 sealed class ModuleQuery(open val module: String) : SearchQuery()
 
-data class SingleModuleSearchQuery(
-  override val groupId: String,
-  override val artifactName: String,
-) : GroupArtifactQuery(groupId, artifactName)
+data class SingleModuleSearchQuery(override val groupId: String, override val artifactName: String) :
+  GroupArtifactQuery(groupId, artifactName)
 
-data class ArbitraryModulesSearchQuery(
-  override val groupId: String?,
-  override val artifactName: String?,
-) : GroupArtifactQuery(groupId, artifactName)
+data class ArbitraryModulesSearchQuery(override val groupId: String?, override val artifactName: String?) :
+  GroupArtifactQuery(groupId, artifactName)
 
 // Module is `groupId:artifactName`
 data class ArbitraryModulesSearchByModuleQuery(override val module: String) : ModuleQuery(module)
 
 data class SearchRequest(val query: SearchQuery, val rowCount: Int, val start: Int)
-

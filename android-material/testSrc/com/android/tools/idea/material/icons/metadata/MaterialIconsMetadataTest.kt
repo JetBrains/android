@@ -32,8 +32,7 @@ class MaterialIconsMetadataTest {
 
   @Before
   fun setup() {
-    testDirectory =
-      FileUtil.createTempDirectory(MaterialIconsMetadataTest::class.java.simpleName, null)
+    testDirectory = FileUtil.createTempDirectory(MaterialIconsMetadataTest::class.java.simpleName, null)
     testMetadataFile = testDirectory.resolve("my_metadata_file.txt")
   }
 
@@ -72,8 +71,7 @@ class MaterialIconsMetadataTest {
         "  ]\n" +
         "}"
     )
-    val iconsMetadata =
-      MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile)).getOrThrow()
+    val iconsMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile)).getOrThrow()
     Truth.assertThat(iconsMetadata.families).hasLength(5)
     assertEquals("Material Icons", iconsMetadata.families[0])
     assertEquals("Material Icons Outlined", iconsMetadata.families[1])
@@ -108,22 +106,8 @@ class MaterialIconsMetadataTest {
   fun testParseToStringAndBack() {
     val iconsMetadata =
       arrayOf(
-        MaterialMetadataIcon(
-          "icon_1",
-          1,
-          emptyArray(),
-          arrayOf("category_1"),
-          emptyArray(),
-          unicode = 0,
-        ),
-        MaterialMetadataIcon(
-          "icon_2",
-          1,
-          emptyArray(),
-          arrayOf("category_2"),
-          emptyArray(),
-          unicode = 0,
-        ),
+        MaterialMetadataIcon("icon_1", 1, emptyArray(), arrayOf("category_1"), emptyArray(), unicode = 0),
+        MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray(), unicode = 0),
       )
     // Create an instance of MaterialIconsMetadata
     val metadataObject =

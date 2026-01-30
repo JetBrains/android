@@ -24,12 +24,12 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiField
 import com.intellij.testFramework.ExtensionTestUtil
+import kotlin.test.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertNotNull
 
 private const val PACKAGE_NAME = "com.example"
 private val PERMISSIONS = setOf("GREAT_PERMISSION", "OTHER_GREAT_PERMISSION", "OKAY_PERMISSION")
@@ -43,49 +43,38 @@ class AndroidManifestClassPsiElementFinderTest {
   private val finder by lazy { AndroidManifestClassPsiElementFinder(project) }
   private val facet by lazy { requireNotNull(projectRule.module.androidFacet) }
 
-  private val manifestClassToken = object : ManifestClassToken<AndroidProjectSystem> {
-    var shouldGenerateManifestLightClasses = true
-    override fun shouldGenerateManifestLightClasses(
-      projectSystem: AndroidProjectSystem,
-      module: Module) = shouldGenerateManifestLightClasses
+  private val manifestClassToken =
+    object : ManifestClassToken<AndroidProjectSystem> {
+      var shouldGenerateManifestLightClasses = true
 
-    override fun isApplicable(projectSystem: AndroidProjectSystem) = true
-  }
+      override fun shouldGenerateManifestLightClasses(projectSystem: AndroidProjectSystem, module: Module) =
+        shouldGenerateManifestLightClasses
+
+      override fun isApplicable(projectSystem: AndroidProjectSystem) = true
+    }
 
   @Before
   fun setUp() {
-    ExtensionTestUtil.maskExtensions(
-      ManifestClassToken.EP_NAME,
-      listOf(manifestClassToken),
-      projectRule.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(ManifestClassToken.EP_NAME, listOf(manifestClassToken), projectRule.testRootDisposable)
   }
 
   @Test
   fun getManifestClassForFacet() {
     addManifest(PERMISSIONS)
-    val manifestClass = runReadAction {
-      finder.getManifestClassForFacet(facet)
-    }
+    val manifestClass = runReadAction { finder.getManifestClassForFacet(facet) }
     assertNotNull(manifestClass)
     val permissionClass = manifestClass.findInnerClassByName("permission", false)
     assertNotNull(permissionClass)
-    val allFieldNames = runReadAction {
-      permissionClass.allFields.map(PsiField::getName)
-    }
+    val allFieldNames = runReadAction { permissionClass.allFields.map(PsiField::getName) }
     assertThat(allFieldNames).containsExactlyElementsIn(PERMISSIONS)
 
-    val recomputedManifestClass =
-      runReadAction {
-        finder.getManifestClassForFacet(facet)
-      }
+    val recomputedManifestClass = runReadAction { finder.getManifestClassForFacet(facet) }
     assertThat(recomputedManifestClass).isSameAs(manifestClass)
   }
 
   @Test
   fun getManifestClassForFacet_noManifestFile() {
-    val manifestClass = runReadAction {
-      finder.getManifestClassForFacet(facet)
-    }
+    val manifestClass = runReadAction { finder.getManifestClassForFacet(facet) }
 
     assertThat(manifestClass).isNull()
   }
@@ -96,17 +85,13 @@ class AndroidManifestClassPsiElementFinderTest {
 
     manifestClassToken.shouldGenerateManifestLightClasses = false
 
-    val manifestClass = runReadAction {
-      finder.getManifestClassForFacet(facet)
-    }
+    val manifestClass = runReadAction { finder.getManifestClassForFacet(facet) }
 
     assertThat(manifestClass).isNull()
   }
 
   fun addManifest(permission: Iterable<String>) {
-    val permissionTags = permission.joinToString("\n  ") {
-      "<permission android:name=\"com.example.$it\" />"
-    }
+    val permissionTags = permission.joinToString("\n  ") { "<permission android:name=\"com.example.$it\" />" }
     fixture.addFileToProject(
       "AndroidManifest.xml",
       // language=xml
@@ -116,7 +101,8 @@ class AndroidManifestClassPsiElementFinderTest {
         $permissionTags
         <application />
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 }

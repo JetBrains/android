@@ -28,24 +28,20 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 class DependencyCollectorDependencyModel(
   val dslElement: GradleDslElement,
   val strategy: NotationStrategy,
-  val isVersionCatalogDependency: Boolean
+  val isVersionCatalogDependency: Boolean,
 ) {
-  /**
-   * Returns an [ArtifactDependencySpec] representing the dependency.
-   */
+  /** Returns an [ArtifactDependencySpec] representing the dependency. */
   fun getSpec(): ArtifactDependencySpec {
     return ArtifactDependencySpecImpl(
       strategy.name().toString(),
       strategy.group().toString(),
       strategy.version().toString(),
       strategy.classifier().toString(),
-      strategy.extension().toString()
+      strategy.extension().toString(),
     )
   }
 
-  /**
-   * Returns the compact notation of the dependency.
-   */
+  /** Returns the compact notation of the dependency. */
   fun compactNotation(): String {
     return getSpec().compactNotation()
   }

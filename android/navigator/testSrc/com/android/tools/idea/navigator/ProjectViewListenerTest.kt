@@ -31,17 +31,16 @@ import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ProjectViewTestUtil
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class ProjectViewListenerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val virtualTimeScheduler = VirtualTimeScheduler()
   private val virtualTimeProvider = VirtualTimeDateProvider(virtualTimeScheduler)
@@ -68,10 +67,12 @@ class ProjectViewListenerTest {
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
 
     // Verify metrics sent
-    Truth.assertThat(selectionChangeEvents()).containsExactly(
-      ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID,
-      ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT
-    ).inOrder()
+    Truth.assertThat(selectionChangeEvents())
+      .containsExactly(
+        ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID,
+        ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT,
+      )
+      .inOrder()
   }
 
   @Test
@@ -83,9 +84,11 @@ class ProjectViewListenerTest {
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
 
     // Verify metrics sent
-    Truth.assertThat(selectionChangeEvents()).containsExactly(
-      ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT
-    ).inOrder()
+    Truth.assertThat(selectionChangeEvents())
+      .containsExactly(
+        ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT
+      )
+      .inOrder()
   }
 
   @Test
@@ -99,9 +102,11 @@ class ProjectViewListenerTest {
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
 
     // Verify metrics sent
-    Truth.assertThat(selectionChangeEvents()).containsExactly(
-      ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID
-    ).inOrder()
+    Truth.assertThat(selectionChangeEvents())
+      .containsExactly(
+        ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID
+      )
+      .inOrder()
   }
 
   @Test
@@ -117,15 +122,17 @@ class ProjectViewListenerTest {
     virtualTimeScheduler.advanceBy(11, TimeUnit.SECONDS)
 
     // Verify metrics sent
-    Truth.assertThat(selectionChangeEvents()).containsExactly(
-      ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID,
-      ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT,
-      ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT to ProjectViewSelectionChangeEvent.ProjectViewContent.OTHER
-    ).inOrder()
+    Truth.assertThat(selectionChangeEvents())
+      .containsExactly(
+        ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN to ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID,
+        ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID to ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT,
+        ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT to ProjectViewSelectionChangeEvent.ProjectViewContent.OTHER,
+      )
+      .inOrder()
   }
 
-  private fun selectionChangeEvents() = tracker.usages
-    .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.PROJECT_VIEW_SELECTION_CHANGE_EVENT }
-    .map { it.studioEvent.projectViewSelectionChangeEvent.run { this.viewBeforeChange to this.viewAfterChange } }
-
+  private fun selectionChangeEvents() =
+    tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.PROJECT_VIEW_SELECTION_CHANGE_EVENT }
+      .map { it.studioEvent.projectViewSelectionChangeEvent.run { this.viewBeforeChange to this.viewAfterChange } }
 }

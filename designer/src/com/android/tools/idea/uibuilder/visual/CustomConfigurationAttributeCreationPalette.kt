@@ -62,8 +62,8 @@ private const val HORIZONTAL_BORDER = 12
 private const val FIELD_VERTICAL_BORDER = 3
 
 /**
- * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is
- * created the [createdCallback] is triggered.
+ * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is created the [createdCallback] is
+ * triggered.
  */
 class CustomConfigurationAttributeCreationPalette(
   private val file: VirtualFile,
@@ -172,10 +172,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices =
-      groupDevices(
-        ConfigurationManager.getOrCreateInstance(module).devices.filter { !it.isDeprecated }
-      )
+    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(module).devices.filter { !it.isDeprecated })
 
     val devices = getDeviceGroupsSortedAsMap(groupedDevices).flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
@@ -236,11 +233,7 @@ class CustomConfigurationAttributeCreationPalette(
 
     val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(module).localesInProject
     val boxModel =
-      MyComboBoxModel(
-        locales,
-        { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
-        { Locale.getLocaleLabel(it, false)!! },
-      )
+      MyComboBoxModel(locales, { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) }, { Locale.getLocaleLabel(it, false)!! })
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedLocale = boxModel.selectedValue }
     selectedLocale = boxModel.selectedValue
@@ -254,8 +247,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createThemeOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val themeResolver =
-      ThemeResolver(ConfigurationManager.getOrCreateInstance(module).getConfiguration(file))
+    val themeResolver = ThemeResolver(ConfigurationManager.getOrCreateInstance(module).getConfiguration(file))
     val filter = createFilter(themeResolver, emptySet())
 
     val projectTheme = getProjectThemeNames(themeResolver, filter)
@@ -276,8 +268,7 @@ class CustomConfigurationAttributeCreationPalette(
 
   private fun createUiModeOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val legalUiModes =
-      UiMode.values().filter { (selectedApiTarget?.version?.apiLevel ?: 1) >= it.since() }
+    val legalUiModes = UiMode.values().filter { (selectedApiTarget?.version?.apiLevel ?: 1) >= it.since() }
     val modes = if (legalUiModes.isEmpty()) listOf(UiMode.NORMAL) else legalUiModes
 
     val boxModel = MyComboBoxModel(modes, { it.longDisplayValue!! })
@@ -306,11 +297,9 @@ class CustomConfigurationAttributeCreationPalette(
     return panel
   }
 
-  private fun createFieldNameBorder(): Border =
-    JBUI.Borders.empty(FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER, FIELD_VERTICAL_BORDER, 0)
+  private fun createFieldNameBorder(): Border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER, FIELD_VERTICAL_BORDER, 0)
 
-  private fun createFieldComponentBorder(): Border =
-    JBUI.Borders.empty(FIELD_VERTICAL_BORDER, 0, FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER)
+  private fun createFieldComponentBorder(): Border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER, 0, FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER)
 
   private fun createAddButtonPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
@@ -336,11 +325,8 @@ class CustomConfigurationAttributeCreationPalette(
 }
 
 @Suppress("UNCHECKED_CAST")
-private class MyComboBoxModel<T>(
-  items: List<T>,
-  selectedNameFunc: (T) -> String,
-  optionNameFunc: (T) -> String = selectedNameFunc,
-) : DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
+private class MyComboBoxModel<T>(items: List<T>, selectedNameFunc: (T) -> String, optionNameFunc: (T) -> String = selectedNameFunc) :
+  DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
   init {
     items.forEach { addElement(MyBoxItemWrapper(it, optionNameFunc)) }
   }
@@ -382,16 +368,13 @@ private val deviceGroupOrder =
   )
 
 /**
- * Takes a map of grouped devices and returns a new [SortedMap] where the keys ([DeviceGroup]) are
- * sorted according to the predefined `orderOfOption`.
+ * Takes a map of grouped devices and returns a new [SortedMap] where the keys ([DeviceGroup]) are sorted according to the predefined
+ * `orderOfOption`.
  *
  * @param groupedDevices A map where keys are [DeviceGroup] and values are lists of [Device]s.
- * @return A [SortedMap] containing the same entries as [groupedDevices], but with keys sorted based
- *   on [deviceGroupOrder].
+ * @return A [SortedMap] containing the same entries as [groupedDevices], but with keys sorted based on [deviceGroupOrder].
  */
-fun getDeviceGroupsSortedAsMap(
-  groupedDevices: Map<DeviceGroup, List<Device>>
-): SortedMap<DeviceGroup, List<Device>> {
+fun getDeviceGroupsSortedAsMap(groupedDevices: Map<DeviceGroup, List<Device>>): SortedMap<DeviceGroup, List<Device>> {
   val comparator = compareBy<DeviceGroup> { deviceGroupOrder.indexOf(it) }.thenBy { it.ordinal }
   return groupedDevices.toSortedMap(comparator)
 }

@@ -17,17 +17,16 @@ package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.io.FilePaths
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.jetbrains.jps.util.JpsPathUtil.urlToFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class SourceProviderUtilTest {
 
-  @get:Rule
-  val tempDirectory: TemporaryFolder = TemporaryFolder()
+  @get:Rule val tempDirectory: TemporaryFolder = TemporaryFolder()
 
   private lateinit var main: NamedIdeaSourceProvider
   private lateinit var debug: NamedIdeaSourceProvider
@@ -63,7 +62,7 @@ class SourceProviderUtilTest {
       .isEqualTo(test.javaDirectoryUrls.first().let { urlToFile(it) }.resolve("com/example"))
     assertThat(mainTemplate.paths.getTestDirectory("com.example"))
       .isEqualTo(androidTest.javaDirectoryUrls.first().let { urlToFile(it) }.resolve("com/example"))
-    assertThat(mainTemplate.paths.mlModelsDirectories).isEqualTo(main.mlModelsDirectoryUrls.map { urlToFile(it) } )
+    assertThat(mainTemplate.paths.mlModelsDirectories).isEqualTo(main.mlModelsDirectoryUrls.map { urlToFile(it) })
   }
 
   @Test
@@ -111,7 +110,8 @@ class SourceProviderUtilTest {
       .isEqualTo(androidTest.javaDirectoryUrls.first().let { urlToFile(it) }.resolve("com/example"))
   }
 
-  private val moduleRoot: File get() = tempDirectory.root
+  private val moduleRoot: File
+    get() = tempDirectory.root
 
   private fun createSourceProviders(): SourceProviders =
     SourceProvidersImpl(
@@ -120,15 +120,14 @@ class SourceProviderUtilTest {
       currentHostTestSourceProviders = mapOf(CommonTestType.UNIT_TEST to listOf(test, testDebug)),
       currentDeviceTestSourceProviders = mapOf(CommonTestType.ANDROID_TEST to listOf(androidTest, androidTestDebug)),
       currentTestFixturesSourceProviders = listOf(),
-      allVariantAllArtifactsSourceProviders =
-        listOf(main, debug, release, test, testDebug, testRelease, androidTest, androidTestDebug),
+      allVariantAllArtifactsSourceProviders = listOf(main, debug, release, test, testDebug, testRelease, androidTest, androidTestDebug),
       currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(main, debug, release),
       mainAndFlavorSourceProviders = listOf(main),
       generatedSources = emptySourceProvider(ScopeType.MAIN),
       generatedHostTestSources = mapOf(CommonTestType.UNIT_TEST to emptySourceProvider(ScopeType.UNIT_TEST)),
       generatedDeviceTestSources = mapOf(CommonTestType.ANDROID_TEST to emptySourceProvider(ScopeType.ANDROID_TEST)),
       generatedTestFixturesSources = emptySourceProvider(ScopeType.TEST_FIXTURES),
-      currentTestSuiteSourceProviders = mapOf()
+      currentTestSuiteSourceProviders = mapOf(),
     )
 
   private fun createSourceProviderAt(
@@ -153,23 +152,50 @@ class SourceProviderUtilTest {
     NamedIdeaSourceProviderImpl(
       name,
       scopeType,
-      core = object : NamedIdeaSourceProviderImpl.Core {
-        override val manifestFileUrl: String get() = root.resolve(manifestFile).toIdeaUrl()
-        override val javaDirectoryUrls: Sequence<String> get() = javaDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val kotlinDirectoryUrls: Sequence<String> get() = kotlinDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val resourcesDirectoryUrls: Sequence<String> get() = resourcesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val aidlDirectoryUrls: Sequence<String> get() = aidlDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val renderscriptDirectoryUrls: Sequence<String> get() = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val jniLibsDirectoryUrls: Sequence<String> get() = emptySequence()
-        override val resDirectoryUrls: Sequence<String> get() = resDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val assetsDirectoryUrls: Sequence<String> get() = assetsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val shadersDirectoryUrls: Sequence<String> get() = shadersDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val mlModelsDirectoryUrls: Sequence<String> get() = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val customSourceDirectories: Map<String, Sequence<String>>
-          get() = customSourceDirectories.mapValues { entry -> entry.value.map { root.resolve(it).toIdeaUrl() }.asSequence() }
-        override val baselineProfileDirectoryUrls: Sequence<String> get() = baselineProfileDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-        override val keepRulesDirectoryUrls: Sequence<String> get() = keepRulesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
-      }
+      core =
+        object : NamedIdeaSourceProviderImpl.Core {
+          override val manifestFileUrl: String
+            get() = root.resolve(manifestFile).toIdeaUrl()
+
+          override val javaDirectoryUrls: Sequence<String>
+            get() = javaDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val kotlinDirectoryUrls: Sequence<String>
+            get() = kotlinDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val resourcesDirectoryUrls: Sequence<String>
+            get() = resourcesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val aidlDirectoryUrls: Sequence<String>
+            get() = aidlDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val renderscriptDirectoryUrls: Sequence<String>
+            get() = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val jniLibsDirectoryUrls: Sequence<String>
+            get() = emptySequence()
+
+          override val resDirectoryUrls: Sequence<String>
+            get() = resDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val assetsDirectoryUrls: Sequence<String>
+            get() = assetsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val shadersDirectoryUrls: Sequence<String>
+            get() = shadersDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val mlModelsDirectoryUrls: Sequence<String>
+            get() = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val customSourceDirectories: Map<String, Sequence<String>>
+            get() = customSourceDirectories.mapValues { entry -> entry.value.map { root.resolve(it).toIdeaUrl() }.asSequence() }
+
+          override val baselineProfileDirectoryUrls: Sequence<String>
+            get() = baselineProfileDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+
+          override val keepRulesDirectoryUrls: Sequence<String>
+            get() = keepRulesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        },
     )
 }
 

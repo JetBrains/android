@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.concurrency
 
+import kotlin.random.Random
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.random.Random
 
 class ConflatingFlowTest {
-  /**
-   * Test that ensures that conflateLatest does receive every single element and that
-   * no single item is lost.
-   */
+  /** Test that ensures that conflateLatest does receive every single element and that no single item is lost. */
   @Test
   fun `every element is delivered`() = runBlocking {
     val startNumber = 0
@@ -41,10 +38,11 @@ class ConflatingFlowTest {
     }
 
     var expected = startNumber
-    flow.conflateLatest { waiting, new ->
-      delay(Random.nextLong(0, 10))
-      waiting + new
-    }
+    flow
+      .conflateLatest { waiting, new ->
+        delay(Random.nextLong(0, 10))
+        waiting + new
+      }
       .collect {
         delay(Random.nextLong(0, 100))
         it.forEach { received ->
@@ -78,17 +76,14 @@ class ConflatingFlowTest {
 
     var expected = startNumber
     val outputBuffer = StringBuffer()
-    flow.conflateLatest { waiting, new ->
-      waiting + new
-    }
+    flow
+      .conflateLatest { waiting, new -> waiting + new }
       .collect {
         delay(100)
         if (it.contains(slowElement)) {
           // Add a bunch 4 more permits in one go. This will generate a bunch of inputs
           // very quickly and will allow a batch of 5 to form.
-          repeat(4) {
-            permits.send(Unit)
-          }
+          repeat(4) { permits.send(Unit) }
           // Simulate very slow processing of element 10
           delay(100)
         }
@@ -102,7 +97,8 @@ class ConflatingFlowTest {
         permits.send(Unit)
       }
 
-    assertEquals("""
+    assertEquals(
+      """
       [0]
       [1]
       [2]
@@ -121,6 +117,9 @@ class ConflatingFlowTest {
       [18]
       [19]
       [20]
-    """.trimIndent(), outputBuffer.trim())
+      """
+        .trimIndent(),
+      outputBuffer.trim(),
+    )
   }
 }

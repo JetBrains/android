@@ -68,10 +68,7 @@ class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
         }
       }
     }
-    startDestinationNode?.setProperty(
-      LayeredMetaDataProvider.LAYERING_LAYER_CONSTRAINT,
-      LayerConstraint.FIRST_SEPARATE,
-    )
+    startDestinationNode?.setProperty(LayeredMetaDataProvider.LAYERING_LAYER_CONSTRAINT, LayerConstraint.FIRST_SEPARATE)
 
     RecursiveGraphLayoutEngine().layout(graph, BasicProgressMonitor())
     for (component in destinations.filter { it.nlComponent.isDestination }) {

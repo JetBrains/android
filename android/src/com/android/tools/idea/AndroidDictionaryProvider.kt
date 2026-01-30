@@ -27,11 +27,7 @@ class AndroidDictionaryProvider : RuntimeDictionaryProvider {
 
 private object androidDictionary : Dictionary {
 
-  private val WORDS = setOf(
-    "foldable",
-    "rollable",
-    "wearable"
-  )
+  private val WORDS = setOf("foldable", "rollable", "wearable")
 
   override fun getName(): String = AndroidBundle.message("android.dictionary.name")
 
@@ -40,8 +36,7 @@ private object androidDictionary : Dictionary {
     throw NotImplementedError("Not supposed to be called")
   }
 
-  override fun lookup(word: String): LookupStatus =
-    if (WORDS.contains(word)) LookupStatus.Present else LookupStatus.Absent
+  override fun lookup(word: String): LookupStatus = if (WORDS.contains(word)) LookupStatus.Present else LookupStatus.Absent
 
   override fun getWords() = WORDS
 }

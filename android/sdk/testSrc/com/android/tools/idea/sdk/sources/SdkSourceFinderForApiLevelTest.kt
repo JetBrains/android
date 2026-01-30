@@ -83,8 +83,7 @@ class SdkSourceFinderForApiLevelTest {
     assertThat(sourcePosition.file.fileType).isEqualTo(JavaFileType.INSTANCE)
     assertThat(sourcePosition.file.virtualFile.path).isEqualTo("/android-30/UnavailableSource")
     assertThat(sourcePosition.file.virtualFile).isInstanceOf(LightVirtualFile::class.java)
-    assertThat(sourcePosition.file.virtualFile.getContent())
-      .contains("device under debug has API level 30.")
+    assertThat(sourcePosition.file.virtualFile.getContent()).contains("device under debug has API level 30.")
     assertThat(sourcePosition.file.name).isEqualTo("android-30/UnavailableSource")
     assertThat(sourcePosition.line).isEqualTo(-1)
 
@@ -103,8 +102,7 @@ class SdkSourceFinderForApiLevelTest {
     restoreLocalTargetSdkPackages()
     val newSourcePosition = finder.getSourcePosition(target, lineNumber = 121)
 
-    assertThat(newSourcePosition.file.virtualFile.path)
-      .endsWith("android-28/android/view/View.java")
+    assertThat(newSourcePosition.file.virtualFile.path).endsWith("android-28/android/view/View.java")
     assertThat(newSourcePosition.line).isEqualTo(121)
   }
 
@@ -118,9 +116,7 @@ class SdkSourceFinderForApiLevelTest {
     val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-28"))
     assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isTrue()
 
-    project.messageBus
-      .syncPublisher(SdkInstallListener.TOPIC)
-      .installCompleted(listOf(installedPackage), emptyList())
+    project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
 
     runInEdt { assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isFalse() }
   }
@@ -164,9 +160,7 @@ class SdkSourceFinderForApiLevelTest {
 
   @Suppress("SameParameterValue")
   private fun getFile(fqName: String): PsiFile {
-    val psiClass = runReadAction {
-      PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true)
-    }
+    val psiClass = runReadAction { PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true) }
     return psiClass?.containingFile ?: fail("Failed to get file for $fqName")
   }
 }

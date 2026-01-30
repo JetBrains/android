@@ -28,12 +28,11 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * This is a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with a
- * workaround for https://youtrack.jetbrains.com/issue/IDEA-260055.
+ * This is a slightly modified version of [com.intellij.testFramework.TemporaryDirectory] with a workaround for
+ * https://youtrack.jetbrains.com/issue/IDEA-260055.
  *
- * The fileName argument is not used as is for generated file or dir name - sortable UID is added as
- * suffix. `hello.kt` will be created as `hello_1eSBtxBR5522COEjhRLR6AEz.kt`. `.kt` will be created
- * as `1eSBtxBR5522COEjhRLR6AEz.kt`.
+ * The fileName argument is not used as is for generated file or dir name - sortable UID is added as suffix. `hello.kt` will be created as
+ * `hello_1eSBtxBR5522COEjhRLR6AEz.kt`. `.kt` will be created as `1eSBtxBR5522COEjhRLR6AEz.kt`.
  */
 class TemporaryDirectoryRule : ExternalResource() {
   private val paths = SmartList<Path>()
@@ -45,10 +44,7 @@ class TemporaryDirectoryRule : ExternalResource() {
   companion object {
     @JvmStatic
     @JvmOverloads
-    fun generateTemporaryPath(
-      fileName: String,
-      root: Path = Paths.get(FileUtilRt.getTempDirectory()),
-    ): Path {
+    fun generateTemporaryPath(fileName: String, root: Path = Paths.get(FileUtilRt.getTempDirectory())): Path {
       val path = root.resolve(generateName(fileName))
       if (path.exists()) {
         throw IllegalStateException("Path $path must be unique but already exists")
@@ -60,10 +56,7 @@ class TemporaryDirectoryRule : ExternalResource() {
     fun testNameToFileName(name: String): String {
       // remove prefix `test` or `test `
       // ` symbols causes git tests failures, even if it is a valid symbol for file name
-      return sanitizeFileName(
-        name.removePrefix("test").trimStart(),
-        extraIllegalChars = { it == ' ' || it == '\'' },
-      )
+      return sanitizeFileName(name.removePrefix("test").trimStart(), extraIllegalChars = { it == ' ' || it == '\'' })
     }
 
     @JvmStatic
@@ -194,32 +187,27 @@ class TemporaryDirectoryRule : ExternalResource() {
       fileName = if (fileName.isEmpty()) suffix else "${fileName}_$suffix"
     }
 
-    val path =
-      generateTemporaryPath(fileName, root ?: throw IllegalStateException("not initialized yet"))
+    val path = generateTemporaryPath(fileName, root ?: throw IllegalStateException("not initialized yet"))
     paths.add(path)
     return path
   }
 }
 
-fun VirtualFile.writeChild(relativePath: String, data: String) =
-  VfsTestUtil.createFile(this, relativePath, data)
+fun VirtualFile.writeChild(relativePath: String, data: String) = VfsTestUtil.createFile(this, relativePath, data)
 
-fun VirtualFile.writeChild(relativePath: String, data: ByteArray) =
-  VfsTestUtil.createFile(this, relativePath, data)
+fun VirtualFile.writeChild(relativePath: String, data: ByteArray) = VfsTestUtil.createFile(this, relativePath, data)
 
 fun Path.refreshVfs() {
   // If a temp directory is reused from some previous test run, there might be cached children in
   // its VFS. Ensure they're removed.
-  val virtualFile =
-    (LocalFileSystem.getInstance() ?: return).refreshAndFindFileByNioFile(this) ?: return
+  val virtualFile = (LocalFileSystem.getInstance() ?: return).refreshAndFindFileByNioFile(this) ?: return
   VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile)
 }
 
 private fun generateName(fileName: String): String {
   // use unique postfix sortable by timestamp to avoid stale data in VFS and file exists check
   // (file is not created at the moment of path generation)
-  val nameBuilder =
-    StringBuilder(fileName.length + /* _ separator length */ 1 + Ksuid.MAX_ENCODED_LENGTH)
+  val nameBuilder = StringBuilder(fileName.length + /* _ separator length */ 1 + Ksuid.MAX_ENCODED_LENGTH)
   val extIndex = fileName.lastIndexOf('.')
   if (fileName.isNotEmpty() && extIndex != 0) {
     if (extIndex == -1) {

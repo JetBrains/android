@@ -29,6 +29,7 @@ class OutlineNodeRenderer(private val nodeRenderer: NodeRenderer) : JBPanel<Outl
   private var iconLabel = JLabel()
   private val errorBorders = JBUI.Borders.empty(2, 5, 2, 6 + 6)
   private val emptyBorders = JBUI.Borders.empty()
+
   override fun getTreeCellRendererComponent(
     tree: JTree?,
     value: Any?,
@@ -36,12 +37,11 @@ class OutlineNodeRenderer(private val nodeRenderer: NodeRenderer) : JBPanel<Outl
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     if (value is VariablesTableNode && shouldShowValidationErrors(value, expanded)) {
       showError()
-    }
-    else {
+    } else {
       showNoError()
     }
 
@@ -53,8 +53,7 @@ class OutlineNodeRenderer(private val nodeRenderer: NodeRenderer) : JBPanel<Outl
 
   private fun shouldShowValidationErrors(value: VariablesTableNode, expanded: Boolean): Boolean {
     fun hasInvalidNameRecursive(value: VariablesTableNode): Boolean {
-      return !value.hasValidName() ||
-        value.children().toList().filterIsInstance<VariablesTableNode>().any { hasInvalidNameRecursive(it) }
+      return !value.hasValidName() || value.children().toList().filterIsInstance<VariablesTableNode>().any { hasInvalidNameRecursive(it) }
     }
     // if element itself has invalid name
     if (!value.hasValidName()) return true
@@ -75,5 +74,4 @@ class OutlineNodeRenderer(private val nodeRenderer: NodeRenderer) : JBPanel<Outl
     iconLabel.isVisible = false
     iconLabel.border = emptyBorders
   }
-
 }

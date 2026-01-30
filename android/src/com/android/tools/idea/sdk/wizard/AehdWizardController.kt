@@ -57,14 +57,17 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
       return runInModalWithProgressIndicator("Fetching packages to install") {
         sdkComponentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
       }
-    }
-    catch (e: SdkQuickfixUtils.PackageResolutionException) {
+    } catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)
       return emptyList()
     }
   }
 
-  fun setupAehd(aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, progressStep: ProgressStep, progressIndicator: ProgressIndicator): Boolean {
+  fun setupAehd(
+    aehdSdkComponentTreeNode: AehdSdkComponentTreeNode,
+    progressStep: ProgressStep,
+    progressIndicator: ProgressIndicator,
+  ): Boolean {
     val tmpDir = FileUtil.createTempDirectory(PlatformUtils.getPlatformPrefix(), "AEHD", true)
     val installContext = InstallContext(tmpDir, progressStep)
 
@@ -72,7 +75,11 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
     sdkHandler
       .getRepoManager(progressIndicator)
       .loadSynchronously(
-        RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
+        RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+        progressIndicator,
+        StudioDownloader(),
+        StudioSettingsController.getInstance(),
+      )
     aehdSdkComponentTreeNode.updateState(sdkHandler)
 
     val selectedComponents: Collection<InstallableSdkComponentTreeNode> = Lists.newArrayList(aehdSdkComponentTreeNode)
@@ -82,32 +89,35 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
       configureAehdProgressRatio = 0.5 // leave the first half of the progress to the updates check & install operation
     }
 
-    val configureAehdOperation = wrap(installContext, { input: File ->
-      aehdSdkComponentTreeNode.configure(installContext, sdkHandler)
-      input
-    }, configureAehdProgressRatio)
+    val configureAehdOperation =
+      wrap(
+        installContext,
+        { input: File ->
+          aehdSdkComponentTreeNode.configure(installContext, sdkHandler)
+          input
+        },
+        configureAehdProgressRatio,
+      )
 
     val opChain: InstallOperation<File, File>
     if (aehdSdkComponentTreeNode.installationIntention.isInstall()) {
-      val install =
-        InstallSdkComponentsOperation(installContext, sdkHandler, selectedComponents, sdkComponentInstaller, 0.5)
+      val install = InstallSdkComponentsOperation(installContext, sdkHandler, selectedComponents, sdkComponentInstaller, 0.5)
       opChain = install.then(configureAehdOperation)
-    }
-    else {
+    } else {
       opChain = configureAehdOperation
     }
 
     try {
       opChain.execute(sdkHandler.location!!.toFile())
-    }
-    catch (e: InstallationCancelledException) {
+    } catch (e: InstallationCancelledException) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT)
-    }
-    catch (e: WizardException) {
+    } catch (e: WizardException) {
       throw RuntimeException(e)
-    }
-    finally {
-      if (!aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted && aehdSdkComponentTreeNode.installationIntention != InstallationIntention.UNINSTALL) {
+    } finally {
+      if (
+        !aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted &&
+          aehdSdkComponentTreeNode.installationIntention != InstallationIntention.UNINSTALL
+      ) {
         // The intention was to install AEHD, but the installation failed. Ensure we don't leave the SDK package behind
         sdkHandler.getRepoManager(progressIndicator).reloadLocalIfNeeded(progressIndicator)
         sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progressIndicator)
@@ -128,8 +138,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
           sdkHandler.getRepoManager(progress).reloadLocalIfNeeded(progress)
           sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progress)
         }
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         Messages.showErrorDialog(sdkPackageCleanupFailedMessage(), "Cleanup Error")
         logger.warn("Failed to make sure AEHD SDK package is uninstalled after AEHD wizard was cancelled", e)
       }
@@ -141,23 +150,24 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
   private fun <T> runInModalWithProgressIndicator(title: String, action: (progressIndicator: ProgressIndicator) -> T): T {
     return runWithModalProgressBlocking(ModalTaskOwner.guess(), title, TaskCancellation.nonCancellable()) {
       reportRawProgress { reporter ->
-        val progress = object : ProgressIndicatorAdapter() {
-          override fun setFraction(v: Double) {
-            reporter.fraction(v)
-          }
+        val progress =
+          object : ProgressIndicatorAdapter() {
+            override fun setFraction(v: Double) {
+              reporter.fraction(v)
+            }
 
-          override fun setText(s: String?) {
-            reporter.text(s)
-          }
+            override fun setText(s: String?) {
+              reporter.text(s)
+            }
 
-          override fun setSecondaryText(s: String?) {
-            reporter.details(s)
-          }
+            override fun setSecondaryText(s: String?) {
+              reporter.details(s)
+            }
 
-          override fun setIndeterminate(indeterminate: Boolean) {
-            reporter.fraction(null)
+            override fun setIndeterminate(indeterminate: Boolean) {
+              reporter.fraction(null)
+            }
           }
-        }
 
         action(progress)
       }
@@ -166,8 +176,7 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
 
   private fun sdkPackageCleanupFailedMessage(): String {
     return "AEHD installer cleanup failed. The status of the package in the SDK manager may " +
-           "be reflected incorrectly. Reinstalling the package may solve the issue" +
-           (if (SystemInfo.isWindows) " (is the SDK folder opened in another program?)" else ".")
+      "be reflected incorrectly. Reinstalling the package may solve the issue" +
+      (if (SystemInfo.isWindows) " (is the SDK folder opened in another program?)" else ".")
   }
-
 }

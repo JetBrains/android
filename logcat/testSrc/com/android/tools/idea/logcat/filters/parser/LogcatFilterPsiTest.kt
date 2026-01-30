@@ -35,9 +35,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.text.ParseException
 import org.junit.Rule
 import org.junit.Test
-import java.text.ParseException
 
 private val STRING_KEYS = listOf("tag", "package", "process", "message", "line")
 private val NON_STRING_KEYS = listOf("level", "age", "is", "name")
@@ -49,13 +49,7 @@ class LogcatFilterPsiTest {
 
   @get:Rule
   val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-      EdtRule(),
-      LogcatFilterLanguageRule(),
-      FlagRule(StudioFlags.LOGCAT_IS_FILTER),
-    )
+    RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule(), LogcatFilterLanguageRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun nonStringKeys() {
@@ -157,20 +151,16 @@ class LogcatFilterPsiTest {
   @Test
   fun stringKeys_regex() {
     for (key in STRING_KEYS) {
-      assertThat(parse("$key~: foo|bar").toFilter())
-        .isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
-      assertThat(parse("$key~:foo|bar").toFilter())
-        .isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
+      assertThat(parse("$key~: foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
+      assertThat(parse("$key~:foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
     }
   }
 
   @Test
   fun stringKeys_negateRegex() {
     for (key in STRING_KEYS) {
-      assertThat(parse("-$key~: foo|bar").toFilter())
-        .isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
-      assertThat(parse("-$key~:foo|bar").toFilter())
-        .isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
+      assertThat(parse("-$key~: foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
+      assertThat(parse("-$key~:foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
     }
   }
 
@@ -185,10 +175,8 @@ class LogcatFilterPsiTest {
   @Test
   fun stringKeys_negatedExact() {
     for (key in STRING_KEYS) {
-      assertThat(parse("-$key=: bar").toFilter())
-        .isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
-      assertThat(parse("-$key=:bar").toFilter())
-        .isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
+      assertThat(parse("-$key=: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
+      assertThat(parse("-$key=:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true, isExact = true))
     }
   }
 
@@ -236,34 +224,21 @@ class LogcatFilterPsiTest {
     val psi = parse("level: I foo    bar   tag: bar   package: foobar")
 
     assertThat(psi.toFilter())
-      .isEqualTo(
-        AndFilter(
-          KeyFilter("level", "I"),
-          TopLevelFilter("foo    bar"),
-          KeyFilter("tag", "bar"),
-          KeyFilter("package", "foobar"),
-        )
-      )
+      .isEqualTo(AndFilter(KeyFilter("level", "I"), TopLevelFilter("foo    bar"), KeyFilter("tag", "bar"), KeyFilter("package", "foobar")))
   }
 
   @Test
   fun and() {
     val psi = parse("tag: bar & foo & package: foobar")
 
-    assertThat(psi.toFilter())
-      .isEqualTo(
-        AndFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar"))
-      )
+    assertThat(psi.toFilter()).isEqualTo(AndFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar")))
   }
 
   @Test
   fun or() {
     val psi = parse("tag: bar | foo | package: foobar")
 
-    assertThat(psi.toFilter())
-      .isEqualTo(
-        OrFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar"))
-      )
+    assertThat(psi.toFilter()).isEqualTo(OrFilter(KeyFilter("tag", "bar"), TopLevelFilter("foo"), KeyFilter("package", "foobar")))
   }
 
   @Test
@@ -271,12 +246,7 @@ class LogcatFilterPsiTest {
     val psi = parse("f1 & f2 | f3 & f4")
 
     assertThat(psi.toFilter())
-      .isEqualTo(
-        OrFilter(
-          AndFilter(TopLevelFilter("f1"), TopLevelFilter("f2")),
-          AndFilter(TopLevelFilter("f3"), TopLevelFilter("f4")),
-        )
-      )
+      .isEqualTo(OrFilter(AndFilter(TopLevelFilter("f1"), TopLevelFilter("f2")), AndFilter(TopLevelFilter("f3"), TopLevelFilter("f4"))))
   }
 
   @Test
@@ -284,13 +254,7 @@ class LogcatFilterPsiTest {
     val psi = parse("f1 & ( f2 | f3 ) & f4")
 
     assertThat(psi.toFilter())
-      .isEqualTo(
-        AndFilter(
-          TopLevelFilter("f1"),
-          OrFilter(TopLevelFilter("f2"), TopLevelFilter("f3")),
-          TopLevelFilter("f4"),
-        )
-      )
+      .isEqualTo(AndFilter(TopLevelFilter("f1"), OrFilter(TopLevelFilter("f2"), TopLevelFilter("f3")), TopLevelFilter("f4")))
   }
 
   @Test
@@ -298,26 +262,17 @@ class LogcatFilterPsiTest {
     val psi = parse("f1 & (tag: foo | tag: 'bar') & f4")
 
     assertThat(psi.toFilter())
-      .isEqualTo(
-        AndFilter(
-          TopLevelFilter("f1"),
-          OrFilter(KeyFilter("tag", "foo"), KeyFilter("tag", "bar")),
-          TopLevelFilter("f4"),
-        )
-      )
+      .isEqualTo(AndFilter(TopLevelFilter("f1"), OrFilter(KeyFilter("tag", "foo"), KeyFilter("tag", "bar")), TopLevelFilter("f4")))
   }
 
   @Test
   fun parse_quotedColon() {
-    assertThat(parse("'tag:foo' tag:foo").toFilter())
-      .isEqualTo(AndFilter(TopLevelFilter("tag:foo"), KeyFilter("tag", "foo")))
+    assertThat(parse("'tag:foo' tag:foo").toFilter()).isEqualTo(AndFilter(TopLevelFilter("tag:foo"), KeyFilter("tag", "foo")))
   }
 
   @Test
   fun parse_valuesWithParens() {
-    assertThat(
-        parse("tag:'(foo)' message:\"(foo)\" package~:'(foo)' process~:\"(foo)\" ").toFilter()
-      )
+    assertThat(parse("tag:'(foo)' message:\"(foo)\" package~:'(foo)' process~:\"(foo)\" ").toFilter())
       .isEqualTo(
         AndFilter(
           KeyFilter("tag", "(foo)"),
@@ -332,29 +287,19 @@ class LogcatFilterPsiTest {
   fun bug_257008139() {
     assertThat(parse("message~:'Received (proto|[r|R]esponse)' | message~:'abcd(e|f)'").toFilter())
       .isEqualTo(
-        OrFilter(
-          KeyFilter("message", "Received (proto|[r|R]esponse)", isRegex = true),
-          KeyFilter("message", "abcd(e|f)", isRegex = true),
-        )
+        OrFilter(KeyFilter("message", "Received (proto|[r|R]esponse)", isRegex = true), KeyFilter("message", "abcd(e|f)", isRegex = true))
       )
   }
 
   @Test
   fun bug_238471477() {
     assertThat(parse("""-line~:"WakeLock (aquired|released) by"""").toFilter())
-      .isEqualTo(
-        KeyFilter("line", "WakeLock (aquired|released) by", isRegex = true, isNegated = true)
-      )
+      .isEqualTo(KeyFilter("line", "WakeLock (aquired|released) by", isRegex = true, isNegated = true))
   }
 
   @Test
   fun bug_273971194() {
-    assertThat(
-        parse(
-            """message:"a message with spaces" | tag~:'A (regular expression)|(regex) with parens'"""
-          )
-          .toFilter()
-      )
+    assertThat(parse("""message:"a message with spaces" | tag~:'A (regular expression)|(regex) with parens'""").toFilter())
       .isEqualTo(
         OrFilter(
           KeyFilter("message", "a message with spaces"),
@@ -369,11 +314,9 @@ class LogcatFilterPsiTest {
   }
 
   private fun parse(text: String): PsiFile {
-    val psi =
-      PsiFileFactory.getInstance(project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
+    val psi = PsiFileFactory.getInstance(project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
     if (PsiTreeUtil.hasErrorElements(psi)) {
-      val errorElement =
-        PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
+      val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
       throw IllegalArgumentException(errorElement.errorDescription)
     }
     return psi
@@ -393,14 +336,8 @@ private fun PsiFile.toFilter(): Filter {
 
       // First, group consecutive top level value expressions.
       val grouped =
-        expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) {
-          accumulator,
-          expression ->
-          if (
-            expression.isTopLevelValue() &&
-              accumulator.isNotEmpty() &&
-              accumulator.last().last().isTopLevelValue()
-          ) {
+        expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
+          if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
             accumulator.last().add(expression)
           } else {
             accumulator.add(mutableListOf(expression))
@@ -420,10 +357,8 @@ private fun LogcatFilterExpression.toFilter(): Filter {
   return when (this) {
     is LogcatFilterLiteralExpression -> this.literalToFilter()
     is LogcatFilterParenExpression -> expression!!.toFilter()
-    is LogcatFilterAndExpression ->
-      AndFilter(flattenAndExpression(this).map(LogcatFilterExpression::toFilter))
-    is LogcatFilterOrExpression ->
-      OrFilter(flattenOrExpression(this).map(LogcatFilterExpression::toFilter))
+    is LogcatFilterAndExpression -> AndFilter(flattenAndExpression(this).map(LogcatFilterExpression::toFilter))
+    is LogcatFilterOrExpression -> OrFilter(flattenOrExpression(this).map(LogcatFilterExpression::toFilter))
     else -> throw ParseException("Unexpected element: ${this::class.simpleName}", -1)
   }
 }
@@ -447,8 +382,7 @@ private data class TopLevelFilter(val text: String) : Filter {
       val text =
         expressions.joinToString("") {
           val expression = it as LogcatFilterLiteralExpression
-          expression.firstChild.toText() +
-            if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
+          expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
         }
       return TopLevelFilter(text.trim())
     }
@@ -484,8 +418,7 @@ private data class OrFilter(val filters: List<Filter>) : Filter {
 // A convenience function that makes asserting more clear by flattening nested OR expressions
 private fun flattenOrExpression(expression: LogcatFilterExpression): List<LogcatFilterExpression> =
   if (expression is LogcatFilterOrExpression) {
-    flattenOrExpression(expression.expressionList[0]) +
-      flattenOrExpression(expression.expressionList[1])
+    flattenOrExpression(expression.expressionList[0]) + flattenOrExpression(expression.expressionList[1])
   } else {
     listOf(expression)
   }
@@ -493,8 +426,7 @@ private fun flattenOrExpression(expression: LogcatFilterExpression): List<Logcat
 // A convenience function that makes asserting more clear by flattening nested AND expressions
 private fun flattenAndExpression(expression: LogcatFilterExpression): List<LogcatFilterExpression> =
   if (expression is LogcatFilterAndExpression) {
-    flattenAndExpression(expression.expressionList[0]) +
-      flattenAndExpression(expression.expressionList[1])
+    flattenAndExpression(expression.expressionList[0]) + flattenAndExpression(expression.expressionList[1])
   } else {
     listOf(expression)
   }

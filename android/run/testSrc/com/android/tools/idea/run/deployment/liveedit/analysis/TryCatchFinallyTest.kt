@@ -28,8 +28,7 @@ class TryCatchFinallyTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -44,21 +43,32 @@ class TryCatchFinallyTest {
 
   @Test
   fun testLineNumberChange() {
-    val file = projectRule.createKtFile("A.kt", """
-      class A {
-        fun method(): Int {
-          return 0
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
+        class A {
+          fun method(): Int {
+            return 0
+          }
         }
-      }""".trimIndent())
+        """
+          .trimIndent(),
+      )
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {
         fun method(): Int {
           // This is a comment
           return 0
         }
-      }""".trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
     val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNoChanges(original, new)
@@ -66,7 +76,10 @@ class TryCatchFinallyTest {
 
   @Test
   fun testTryBlock() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       class A {
         fun method(): Int {
           try {
@@ -75,10 +88,13 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+      )
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {
         fun method(): Int {
           try {
@@ -88,7 +104,8 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+    )
     val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertChanges(original, new)
@@ -96,7 +113,10 @@ class TryCatchFinallyTest {
 
   @Test
   fun testCatch() {
-    val file =  projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       class A {
         fun method(): Int {
           try {
@@ -105,10 +125,13 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
-      val original = projectRule.directApiCompileIr(file)["A"]!!
+      }""",
+      )
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-      projectRule.modifyKtFile(file,"""
+    projectRule.modifyKtFile(
+      file,
+      """
         class A {
           fun method(): Int {
             try {
@@ -117,15 +140,19 @@ class TryCatchFinallyTest {
               return 1
             }
           }
-        }""")
-      val new = projectRule.directApiCompileIr(file)["A"]!!
+        }""",
+    )
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
-      assertChanges(original, new)
+    assertChanges(original, new)
   }
 
   @Test
   fun testCatchBlock() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       class A {
         fun method(): Int {
           try {
@@ -134,10 +161,13 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+      )
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {
         fun method(): Int {
           try {
@@ -147,7 +177,8 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+    )
     val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertChanges(original, new)
@@ -155,7 +186,10 @@ class TryCatchFinallyTest {
 
   @Test
   fun testFinallyBlock() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       class A {
         fun method(): Int {
           try {
@@ -164,10 +198,13 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+      )
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {
         fun method(): Int {
           try {
@@ -177,7 +214,8 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""")
+      }""",
+    )
     val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertChanges(original, new)

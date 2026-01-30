@@ -47,9 +47,10 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
       return when (version.methodName) {
         RELEASE_NAME -> CompileSdkReleaseModelImpl(version)
         PREVIEW_NAME -> {
-          val previewProperty = GradlePropertyModelBuilder.create(myDslElement, VERSION)
-            .addTransform(SingleArgumentMethodTransform(PREVIEW_NAME))
-            .buildResolved()
+          val previewProperty =
+            GradlePropertyModelBuilder.create(myDslElement, VERSION)
+              .addTransform(SingleArgumentMethodTransform(PREVIEW_NAME))
+              .buildResolved()
 
           object : CompileSdkPreviewModel {
             override fun toHash(): String? {
@@ -57,8 +58,11 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
                 "android-" + previewProperty.resolve().valueAsString()
               } else null
             }
+
             override fun toInt(): Int? = null
+
             override fun getVersion(): ResolvedPropertyModel = previewProperty
+
             override fun delete() = previewProperty.delete()
           }
         }
@@ -79,12 +83,8 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
       val closure = GradleDslClosure(methodCall, null, GradleNameElement.create(RELEASE_NAME))
       methodCall.setNewClosureElement(closure)
 
-      minorApi?.let {
-        closure.setNewElement(createAssignment(closure, it, "minorApiLevel"))
-      }
-      extension?.let {
-        closure.setNewElement(createAssignment(closure, it, "sdkExtension"))
-      }
+      minorApi?.let { closure.setNewElement(createAssignment(closure, it, "minorApiLevel")) }
+      extension?.let { closure.setNewElement(createAssignment(closure, it, "sdkExtension")) }
     }
   }
 
@@ -139,10 +139,9 @@ class CompileSdkBlockModelImpl(dslElement: GradlePropertiesDslElement) : GradleD
     addArgument(methodCall, apiLevel)
   }
 
-  private fun addArgument(methodCall: GradleDslMethodCall, value: Any){
+  private fun addArgument(methodCall: GradleDslMethodCall, value: Any) {
     val versionLiteral = GradleDslLiteral(methodCall.argumentsElement, GradleNameElement.empty())
     versionLiteral.setValue(value)
     methodCall.addNewArgument(versionLiteral)
   }
-
 }

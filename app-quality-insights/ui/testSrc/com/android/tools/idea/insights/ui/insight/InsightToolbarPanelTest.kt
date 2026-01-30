@@ -70,16 +70,13 @@ class InsightToolbarPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
   private lateinit var copyProvider: FakeCopyProvider
   private lateinit var testEvent: AnActionEvent
   private lateinit var fakeUi: FakeUi
   private val scope = CoroutineScope(EmptyCoroutineContext)
-  private val currentInsightFlow =
-    MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
+  private val currentInsightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
   private lateinit var submittedFeedback: MutableList<InsightFeedback>
 
   @Before
@@ -147,9 +144,7 @@ class InsightToolbarPanelTest {
     downvote.actionPerformed(downvoteEvent)
     downvote.updateAwaitUntil(downvoteEvent) { it.isSelected }
 
-    assertThat(submittedFeedback)
-      .containsExactly(InsightFeedback.THUMBS_UP, InsightFeedback.THUMBS_DOWN)
-      .inOrder()
+    assertThat(submittedFeedback).containsExactly(InsightFeedback.THUMBS_UP, InsightFeedback.THUMBS_DOWN).inOrder()
   }
 
   @RunsInEdt
@@ -158,9 +153,7 @@ class InsightToolbarPanelTest {
     val toolbarPanel = createInsightBottomPanel()
 
     val fakeUi = FakeUi(toolbarPanel)
-    val toolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR }
-        ?: fail("Toolbar not found")
+    val toolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR } ?: fail("Toolbar not found")
     assertThat(toolbar.actions.size).isEqualTo(3)
     val copyAction = toolbar.actions[0]
 
@@ -191,18 +184,14 @@ class InsightToolbarPanelTest {
 
     verify(mockToolbar, never()).updateActionsAsync()
 
-    currentInsightFlow.update {
-      LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP))
-    }
+    currentInsightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP)) }
     verify(mockToolbar, timeout(1000).times(1)).updateActionsAsync()
 
     // Toolbar not updated when insight is loading
     currentInsightFlow.update { LoadingState.Loading }
     verify(mockToolbar, timeout(1000).times(1)).updateActionsAsync()
 
-    currentInsightFlow.update {
-      LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_DOWN))
-    }
+    currentInsightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_DOWN)) }
     verify(mockToolbar, timeout(1000).times(2)).updateActionsAsync()
   }
 
@@ -215,10 +204,7 @@ class InsightToolbarPanelTest {
     action.actionPerformed(e)
   }
 
-  private suspend fun ActionButton.updateAwaitUntil(
-    event: AnActionEvent,
-    condition: (AnActionEvent) -> Boolean,
-  ) {
+  private suspend fun ActionButton.updateAwaitUntil(event: AnActionEvent, condition: (AnActionEvent) -> Boolean) {
     action.update(event)
     while (!condition(event)) {
       delay(200)

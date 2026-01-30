@@ -33,33 +33,27 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 
 /**
- * Quickfix for adding a &lt;uses-feature&gt; element with required="false" to the
- * AndroidManifest.xml
+ * Quickfix for adding a &lt;uses-feature&gt; element with required="false" to the AndroidManifest.xml
  *
- * Note: The quick fix attempts to add the uses-feature tag after tags to adhere to the typical
- * manifest ordering. It finds and adds the element after the following elements if present and
- * skips to the next element up the chain. e.g: if only uses-sdk is present, the new uses-feature
- * tag is added after the uses-sdk
+ * Note: The quick fix attempts to add the uses-feature tag after tags to adhere to the typical manifest ordering. It finds and adds the
+ * element after the following elements if present and skips to the next element up the chain. e.g: if only uses-sdk is present, the new
+ * uses-feature tag is added after the uses-sdk
  * * uses-feature
  * * uses-configuration
  * * uses-sdk
  * * node-permission
  *
- * If none of the above elements are present, then it adds the uses-feature element as the first
- * child of the manifest element.
+ * If none of the above elements are present, then it adds the uses-feature element as the first child of the manifest element.
  */
-class AddUsesFeatureQuickFix(private val myFeatureName: String, element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class AddUsesFeatureQuickFix(private val myFeatureName: String, element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   override fun getFamilyName() = "AddUsesFeatureQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
-    if (PsiTreeUtil.getTopmostParentOfType(element, XmlTag::class.java)?.name == NODE_MANIFEST)
-      Presentation.of("Add uses-feature tag")
+    if (PsiTreeUtil.getTopmostParentOfType(element, XmlTag::class.java)?.name == NODE_MANIFEST) Presentation.of("Add uses-feature tag")
     else null
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
-    val parent =
-      PsiTreeUtil.getTopmostParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
+    val parent = PsiTreeUtil.getTopmostParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
 
     @Suppress("UnstableApiUsage")
     return ModCommand.psiUpdate(parent) { tag, _ ->
@@ -86,8 +80,7 @@ class AddUsesFeatureQuickFix(private val myFeatureName: String, element: PsiElem
       // reverse manifest order for location of uses-feature.
       // The reason this is not a static final is to prevent the array creation at
       // clinit time and delay it to when the fix is applied.
-      val reverseOrderManifestElements =
-        arrayOf(NODE_USES_FEATURE, NODE_USES_CONFIGURATION, NODE_USES_SDK, NODE_PERMISSION)
+      val reverseOrderManifestElements = arrayOf(NODE_USES_FEATURE, NODE_USES_CONFIGURATION, NODE_USES_SDK, NODE_PERMISSION)
       for (elementName in reverseOrderManifestElements) {
         val existingTags = parent.findSubTags(elementName)
         val len = existingTags.size

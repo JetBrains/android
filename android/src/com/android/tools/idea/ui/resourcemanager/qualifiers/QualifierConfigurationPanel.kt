@@ -56,59 +56,56 @@ private val ADD_BUTTON_SIZE = JBUI.size(20)
 
 private const val CLEAR_QUALIFIER_DESC = "Clear qualifier"
 
-/**
- * View to manipulate the [QualifierConfigurationViewModel]. It represents the qualifiers that will be
- * add to a resource.
- */
-class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationViewModel) : JPanel(
-  BorderLayout(1, 0)) {
+/** View to manipulate the [QualifierConfigurationViewModel]. It represents the qualifiers that will be add to a resource. */
+class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationViewModel) : JPanel(BorderLayout(1, 0)) {
 
   private val configurationChanged: (Observable, Any?) -> Unit = { _, _ -> viewModel.applyConfiguration() }
 
   private val qualifierContainer = JPanel(VerticalLayout(0, SwingConstants.LEFT))
 
-  private val addQualifierButton = LinkLabel("Add another qualifier", null, ::onAddQualifierLabelClicked)
-    .also { label ->
+  private val addQualifierButton =
+    LinkLabel("Add another qualifier", null, ::onAddQualifierLabelClicked).also { label ->
       label.border = ADD_BUTTON_BORDER
       label.isEnabled = canAddConfigurationRow()
       label.isFocusable = true
     }
 
-  private val qualifierTypeLabel = JBLabel("QUALIFIER TYPE").apply {
-    preferredSize = QUALIFIER_TYPE_COMBO_SIZE
-    font = JBUI.Fonts.smallFont()
-  }
+  private val qualifierTypeLabel =
+    JBLabel("QUALIFIER TYPE").apply {
+      preferredSize = QUALIFIER_TYPE_COMBO_SIZE
+      font = JBUI.Fonts.smallFont()
+    }
 
-  private val qualifierValueLabel = JBLabel("VALUE").apply {
-    border = JBUI.Borders.emptyLeft(FLOW_LAYOUT_GAP)
-    font = JBUI.Fonts.smallFont()
-  }
+  private val qualifierValueLabel =
+    JBLabel("VALUE").apply {
+      border = JBUI.Borders.emptyLeft(FLOW_LAYOUT_GAP)
+      font = JBUI.Fonts.smallFont()
+    }
 
   init {
     val initialConfigurations = viewModel.getCurrentConfigurations()
     if (initialConfigurations.isEmpty()) {
       addConfigurationRow()
-    }
-    else {
+    } else {
       initialConfigurations
         .map { (qualifier, configuration) -> ConfigurationRow(viewModel, qualifier, configuration) }
         .forEach { qualifierContainer.add(it) }
     }
     addQualifierButton.isEnabled = canAddConfigurationRow()
 
-    add(JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)).apply {
-      add(qualifierTypeLabel)
-      add(qualifierValueLabel)
-    }, BorderLayout.NORTH)
+    add(
+      JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)).apply {
+        add(qualifierTypeLabel)
+        add(qualifierValueLabel)
+      },
+      BorderLayout.NORTH,
+    )
 
     add(qualifierContainer)
     add(addQualifierButton, BorderLayout.SOUTH)
   }
 
-  private fun onAddQualifierLabelClicked(
-    label: LinkLabel<Any?>,
-    @Suppress("UNUSED_PARAMETER") ignored: Any?
-  ) {
+  private fun onAddQualifierLabelClicked(label: LinkLabel<Any?>, @Suppress("UNUSED_PARAMETER") ignored: Any?) {
     viewModel.applyConfiguration()
     addConfigurationRow()
     label.isEnabled = canAddConfigurationRow()
@@ -123,11 +120,8 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
   }
 
   private fun canAddConfigurationRow(): Boolean =
-    viewModel.canAddQualifier()
-    && qualifierContainer.components
-      .filterIsInstance<ConfigurationRow>()
-      .map { it.qualifierCombo }
-      .all { it.selectedIndex != -1 }
+    viewModel.canAddQualifier() &&
+      qualifierContainer.components.filterIsInstance<ConfigurationRow>().map { it.qualifierCombo }.all { it.selectedIndex != -1 }
 
   private fun populateAvailableQualifiers(comboBox: ComboBox<*>) {
     var availableQualifiers: List<ResourceQualifierWrapper> = viewModel.getAvailableQualifiers().map { ResourceQualifierWrapper(it) }
@@ -136,47 +130,52 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       // Prepend the selected element which is not in the available qualifiers.
       availableQualifiers = listOf(selectedItem) + availableQualifiers
     }
-    (comboBox as ComboBox<ResourceQualifierWrapper?>).model = CollectionComboBoxModel(availableQualifiers.toMutableList<ResourceQualifierWrapper?>(), selectedItem)
+    (comboBox as ComboBox<ResourceQualifierWrapper?>).model =
+      CollectionComboBoxModel(availableQualifiers.toMutableList<ResourceQualifierWrapper?>(), selectedItem)
   }
 
   /**
    * A view showing a dropdown to choose a [ResourceQualifier] and the field to set its parameters.
    *
-   * @param viewModel the existing instance of  [QualifierConfigurationViewModel] used in [QualifierConfigurationViewModel].
+   * @param viewModel the existing instance of [QualifierConfigurationViewModel] used in [QualifierConfigurationViewModel].
    * @param qualifier an optional [ResourceQualifier] to pre-populate the [ResourceQualifier] dropdown.
    * @param configuration an optional [QualifierConfiguration] to pre-populate the parameter of the [ResourceQualifier].
    */
-  private inner class ConfigurationRow(val viewModel: QualifierConfigurationViewModel,
-                                       qualifier: ResourceQualifier? = null,
-                                       configuration: QualifierConfiguration? = null)
-    : JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)) {
-
+  private inner class ConfigurationRow(
+    val viewModel: QualifierConfigurationViewModel,
+    qualifier: ResourceQualifier? = null,
+    configuration: QualifierConfiguration? = null,
+  ) : JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0)) {
 
     private val valuePanel = JPanel(FlowLayout(FlowLayout.LEFT, FLOW_LAYOUT_GAP, 0))
 
-    val qualifierCombo = ComboBox(arrayOf(ResourceQualifierWrapper(qualifier))).apply {
-      renderer = getRenderer("Select a type", ResourceQualifierWrapper::toString)
-      preferredSize = QUALIFIER_TYPE_COMBO_SIZE
+    val qualifierCombo =
+      ComboBox(arrayOf(ResourceQualifierWrapper(qualifier))).apply {
+        renderer = getRenderer("Select a type", ResourceQualifierWrapper::toString)
+        preferredSize = QUALIFIER_TYPE_COMBO_SIZE
 
-      addPopupMenuListener(object : PopupMenuListenerAdapter() {
-        override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
-          // Recreate the available qualifiers each time the popup is shown
-          // because the available qualifier might have change if another
-          // comboBox has had its value changed
-          populateAvailableQualifiers(e.source as ComboBox<*>)
-        }
-      })
+        addPopupMenuListener(
+          object : PopupMenuListenerAdapter() {
+            override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
+              // Recreate the available qualifiers each time the popup is shown
+              // because the available qualifier might have change if another
+              // comboBox has had its value changed
+              populateAvailableQualifiers(e.source as ComboBox<*>)
+            }
+          }
+        )
 
-      addItemListener { itemEvent ->
-        when (itemEvent.stateChange) {
-          ItemEvent.DESELECTED -> (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { viewModel.deselectQualifier(it) }
-          ItemEvent.SELECTED -> (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { updateValuePanel(viewModel.selectQualifier(it)) }
+        addItemListener { itemEvent ->
+          when (itemEvent.stateChange) {
+            ItemEvent.DESELECTED -> (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { viewModel.deselectQualifier(it) }
+            ItemEvent.SELECTED ->
+              (itemEvent.item as ResourceQualifierWrapper).qualifier?.let { updateValuePanel(viewModel.selectQualifier(it)) }
+          }
+          addQualifierButton.isEnabled = canAddConfigurationRow()
         }
-        addQualifierButton.isEnabled = canAddConfigurationRow()
+
+        selectedItem = qualifier
       }
-
-      selectedItem = qualifier
-    }
 
     private val deleteButton = createDeleteButton()
 
@@ -188,16 +187,17 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     }
 
     private fun createDeleteButton(): ActionButton {
-      val action = object : DumbAwareAction(CLEAR_QUALIFIER_DESC, CLEAR_QUALIFIER_DESC, StudioIcons.Common.CLOSE) {
+      val action =
+        object : DumbAwareAction(CLEAR_QUALIFIER_DESC, CLEAR_QUALIFIER_DESC, StudioIcons.Common.CLOSE) {
 
-        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+          override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-        override fun actionPerformed(e: AnActionEvent) {
-          (qualifierCombo.selectedItem as? ResourceQualifierWrapper)?.qualifier?.let { viewModel.deselectQualifier(it) }
-          if (parent.componentCount > 1) deleteRow() else reset()
-          addQualifierButton.isEnabled = canAddConfigurationRow()
+          override fun actionPerformed(e: AnActionEvent) {
+            (qualifierCombo.selectedItem as? ResourceQualifierWrapper)?.qualifier?.let { viewModel.deselectQualifier(it) }
+            if (parent.componentCount > 1) deleteRow() else reset()
+            addQualifierButton.isEnabled = canAddConfigurationRow()
+          }
         }
-      }
       return ActionButton(action, action.templatePresentation.clone(), "Resource Explorer", ADD_BUTTON_SIZE).apply { isFocusable = true }
     }
 
@@ -219,23 +219,21 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       valuePanel.removeAll()
       if (qualifierConfiguration != null) {
         addFieldsForParams(qualifierConfiguration)
-      }
-      else {
+      } else {
         valuePanel.add(createDefaultCombo())
       }
       revalidate()
       repaint()
     }
 
-    private fun createDefaultCombo() = ComboBox<Any>().apply {
-      isEnabled = false
-      isEditable = false
-      preferredSize = QUALIFIER_VALUE_COMBO_SIZE
-    }
+    private fun createDefaultCombo() =
+      ComboBox<Any>().apply {
+        isEnabled = false
+        isEditable = false
+        preferredSize = QUALIFIER_VALUE_COMBO_SIZE
+      }
 
-    /**
-     * Adds the UI components corresponding to the provided [qualifierConfiguration] to [valuePanel]
-     */
+    /** Adds the UI components corresponding to the provided [qualifierConfiguration] to [valuePanel] */
     private fun addFieldsForParams(qualifierConfiguration: QualifierConfiguration) {
       val fieldSize = computeFieldSize(qualifierConfiguration.parameters.size)
       qualifierConfiguration.parameters
@@ -255,11 +253,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     }
 
     private fun createTextField(qualifierParam: TextParam): JBTextField {
-      val textField = JBTextField().apply {
-        qualifierParam.placeholder?.let {
-          setTextToTriggerEmptyTextStatus(it)
-        }
-      }
+      val textField = JBTextField().apply { qualifierParam.placeholder?.let { setTextToTriggerEmptyTextStatus(it) } }
       qualifierParam.bind(textField.document)
       return textField
     }
@@ -275,41 +269,38 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     }
 
     private fun createComboBox(qualifierParam: CollectionParam<*>) =
-      (qualifierParam as CollectionParam<Any?>).bind(ComboBox<Any?>().apply {
-        renderer = getRenderer(qualifierParam.placeholder, qualifierParam.parser)
-        selectedItem = qualifierParam.paramValue
-      })
+      (qualifierParam as CollectionParam<Any?>).bind(
+        ComboBox<Any?>().apply {
+          renderer = getRenderer(qualifierParam.placeholder, qualifierParam.parser)
+          selectedItem = qualifierParam.paramValue
+        }
+      )
 
-    /**
-     * Returns the dimension that each component should have so they all fit within [QUALIFIER_VALUE_COMBO_SIZE]
-     */
-    private fun computeFieldSize(paramNumber: Int) = Dimension(
-      QUALIFIER_VALUE_COMBO_SIZE.width() / paramNumber - (FLOW_LAYOUT_GAP / 2 * (paramNumber - 1)),
-      QUALIFIER_VALUE_COMBO_SIZE.height()
-    )
+    /** Returns the dimension that each component should have so they all fit within [QUALIFIER_VALUE_COMBO_SIZE] */
+    private fun computeFieldSize(paramNumber: Int) =
+      Dimension(
+        QUALIFIER_VALUE_COMBO_SIZE.width() / paramNumber - (FLOW_LAYOUT_GAP / 2 * (paramNumber - 1)),
+        QUALIFIER_VALUE_COMBO_SIZE.height(),
+      )
   }
 
   /**
-   * Returns a [ColoredListCellRenderer] that will try to use the provided [textRenderer] to format the list value into a String.
-   * If a value of the list is null, [placeholderValue] will be used instead.
+   * Returns a [ColoredListCellRenderer] that will try to use the provided [textRenderer] to format the list value into a String. If a value
+   * of the list is null, [placeholderValue] will be used instead.
    */
-  private fun <T> getRenderer(placeholderValue: String?, textRenderer: ((T) -> String?)?) = object : ColoredListCellRenderer<T?>() {
-    override fun customizeCellRenderer(list: JList<out T?>,
-                                       value: T?,
-                                       index: Int,
-                                       selected: Boolean,
-                                       hasFocus: Boolean) {
-      when (value) {
-        null -> append(placeholderValue ?: "Select a value...", SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES)
-        else -> append(textRenderer?.let { it(value) } ?: value.toString())
+  private fun <T> getRenderer(placeholderValue: String?, textRenderer: ((T) -> String?)?) =
+    object : ColoredListCellRenderer<T?>() {
+      override fun customizeCellRenderer(list: JList<out T?>, value: T?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        when (value) {
+          null -> append(placeholderValue ?: "Select a value...", SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES)
+          else -> append(textRenderer?.let { it(value) } ?: value.toString())
+        }
       }
     }
-  }
 
   /**
-   * Class to wrap [ResourceQualifier] in order to override the [toString] method to return the qualifier name.
-   * The [toString] method is what is used for keyboard navigation in the combo box, so it is important that it
-   * matches the combo box renderer.
+   * Class to wrap [ResourceQualifier] in order to override the [toString] method to return the qualifier name. The [toString] method is
+   * what is used for keyboard navigation in the combo box, so it is important that it matches the combo box renderer.
    */
   data class ResourceQualifierWrapper(val qualifier: ResourceQualifier?) {
     override fun toString() = qualifier?.name ?: ""

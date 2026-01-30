@@ -17,10 +17,8 @@ package com.android.tools.idea.progress
 
 import com.intellij.platform.util.progress.RawProgressReporter
 
-class RawProgressReporterAdapter(
-  val reporter: RawProgressReporter,
-  cls: Class<*> = RawProgressReporterAdapter::class.java,
-) : StudioLoggerProgressIndicator(cls) {
+class RawProgressReporterAdapter(val reporter: RawProgressReporter, cls: Class<*> = RawProgressReporterAdapter::class.java) :
+  StudioLoggerProgressIndicator(cls) {
 
   private var fraction: Double = 0.0
   private var indeterminate: Boolean = false

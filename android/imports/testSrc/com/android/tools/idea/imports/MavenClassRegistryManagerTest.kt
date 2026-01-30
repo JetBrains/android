@@ -46,8 +46,7 @@ class MavenClassRegistryManagerTest {
   private val testDispatcher = StandardTestDispatcher(testScheduler)
   private val testScope = TestScope(testDispatcher)
 
-  private val gMavenIndexRepositoryListeners: MutableList<GMavenIndexRepositoryListener> =
-    mutableListOf()
+  private val gMavenIndexRepositoryListeners: MutableList<GMavenIndexRepositoryListener> = mutableListOf()
 
   private val mockGMavenIndexRepository: GMavenIndexRepository = mock {
     on { loadIndexFromDisk() } doAnswer { """{ "Index": [] }""".byteInputStream(UTF_8) }
@@ -59,18 +58,12 @@ class MavenClassRegistryManagerTest {
   }
 
   private val mavenClassRegistryManager by lazy {
-    MavenClassRegistryManager(testScope, testDispatcher, testDispatcher).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    MavenClassRegistryManager(testScope, testDispatcher, testDispatcher).also { Disposer.register(projectRule.testRootDisposable, it) }
   }
 
   @Before
   fun setUp() {
-    application.replaceService(
-      GMavenIndexRepository::class.java,
-      mockGMavenIndexRepository,
-      projectRule.testRootDisposable,
-    )
+    application.replaceService(GMavenIndexRepository::class.java, mockGMavenIndexRepository, projectRule.testRootDisposable)
   }
 
   @Test
@@ -131,8 +124,7 @@ class MavenClassRegistryManagerTest {
 
     // Subsequent calls to the various getters should all return the same registry.
     assertThat(mavenClassRegistryManager.tryGetMavenClassRegistry()).isSameAs(registry1)
-    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() })
-      .isSameAs(registry1)
+    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() }).isSameAs(registry1)
     verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
     // Update the index
@@ -149,7 +141,6 @@ class MavenClassRegistryManagerTest {
     // Now there should be a new registry.
     val registry2 = mavenClassRegistryManager.tryGetMavenClassRegistry()
     assertThat(registry2).isNotSameAs(registry1)
-    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() })
-      .isSameAs(registry2)
+    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() }).isSameAs(registry2)
   }
 }

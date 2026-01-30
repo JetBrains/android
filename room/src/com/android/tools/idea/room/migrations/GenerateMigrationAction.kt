@@ -63,23 +63,27 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
         }
       }
 
-
       WriteCommandAction.runWriteCommandAction(project) {
         try {
           val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
-          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationWizard.targetPackage,
-                                                                                migrationWizard.migrationClassDirectory,
-                                                                                migrationWizard.userReviewedDatabaseUpdate)
+          val migrationClass =
+            javaMigrationClassGenerator.createMigrationClass(
+              migrationWizard.targetPackage,
+              migrationWizard.migrationClassDirectory,
+              migrationWizard.userReviewedDatabaseUpdate,
+            )
           if (!migrationClass.qualifiedName.isNullOrEmpty()) {
             val javaMigrationTestGenerator = JavaMigrationTestGenerator(project)
-            javaMigrationTestGenerator.createMigrationTest(migrationWizard.targetPackage,
-                                                           migrationWizard.migrationTestDirectory,
-                                                           databaseClassQualifiedName,
-                                                           migrationClass.qualifiedName!!,
-                                                           databaseUpdate.previousVersion,
-                                                           databaseUpdate.currentVersion)
+            javaMigrationTestGenerator.createMigrationTest(
+              migrationWizard.targetPackage,
+              migrationWizard.migrationTestDirectory,
+              databaseClassQualifiedName,
+              migrationClass.qualifiedName!!,
+              databaseUpdate.previousVersion,
+              databaseUpdate.currentVersion,
+            )
           }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           Messages.showInfoMessage(project, e.message, "Failed to generate a migration")
         }
       }
@@ -87,7 +91,8 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
   }
 
   private fun getMigrationDefaultTargetDirectory(project: Project, module: Module): PsiDirectory? {
-    return module.rootManager.contentEntries.asSequence()
+    return module.rootManager.contentEntries
+      .asSequence()
       .flatMap { it.getSourceFolders(JavaSourceRootType.SOURCE).asSequence() }
       .filterNot { JavaProjectRootsUtil.isForGeneratedSources(it) }
       .mapNotNull { it.file }
@@ -98,7 +103,8 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
   private fun getTestDefaultTargetDirectory(project: Project, module: Module): PsiDirectory? {
     val testScopes = TestArtifactSearchScopes.getInstance(module)
 
-    return module.rootManager.contentEntries.asSequence()
+    return module.rootManager.contentEntries
+      .asSequence()
       .flatMap { it.getSourceFolders(JavaSourceRootType.TEST_SOURCE).asSequence() }
       .filterNot { JavaProjectRootsUtil.isForGeneratedSources(it) }
       .mapNotNull { it.file }
@@ -107,22 +113,20 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       ?.let { PsiManager.getInstance(project).findDirectory(it) }
   }
 
-  private fun getDefaultTargetPackage(databaseFullyQualifiedName : String, project: Project): PsiPackage? {
+  private fun getDefaultTargetPackage(databaseFullyQualifiedName: String, project: Project): PsiPackage? {
     val packageName = StringUtil.getPackageName(databaseFullyQualifiedName)
 
     return JavaPsiFacade.getInstance(project).findPackage(packageName)
   }
 
-  /**
-   * Finds the fully qualified name of the database to be migrated based on a JSON file which contains its schema.
-   */
+  /** Finds the fully qualified name of the database to be migrated based on a JSON file which contains its schema. */
   private fun getDatabaseClassFullyQualifiedName(project: Project, module: Module, schemaJsonFile: VirtualFile): String? {
     if (!schemaJsonFile.parent.isDirectory) {
       return null
     }
-    val databaseClass = JavaPsiFacade.getInstance(project).findClass(schemaJsonFile.parent.name,
-                                                                     module.getModuleWithDependenciesAndLibrariesScope(false))
-                        ?: return null
+    val databaseClass =
+      JavaPsiFacade.getInstance(project).findClass(schemaJsonFile.parent.name, module.getModuleWithDependenciesAndLibrariesScope(false))
+        ?: return null
 
     return databaseClass.qualifiedName
   }

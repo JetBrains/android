@@ -26,47 +26,39 @@ import com.intellij.ui.scale.JBUIScale
 import java.awt.Component
 import java.awt.Dimension
 
-/**
- * Displays a warning about privacy implications of device mirroring.
- */
+/** Displays a warning about privacy implications of device mirroring. */
 internal class MirroringConfirmationDialog(val title: String) {
 
   private val text by lazy {
     "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
-    " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
-    " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
-    " machine since the&nbsp;communication channel between ${ApplicationNamesInfo.getInstance().fullProductName} and" +
-    " the&nbsp;adb server is not encrypted.</p>"
+      " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
+      " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
+      " machine since the&nbsp;communication channel between ${ApplicationNamesInfo.getInstance().fullProductName} and" +
+      " the&nbsp;adb server is not encrypted.</p>"
   }
 
-  /**
-   * Creates contents of the dialog.
-   */
+  /** Creates contents of the dialog. */
   private fun createPanel(): DialogPanel {
-    return panel {
-      row {
-        text(text = text).applyToComponent { minimumSize = Dimension(JBUIScale.scale(540), JBUIScale.scale(200)) }
-      }
-    }
+    return panel { row { text(text = text).applyToComponent { minimumSize = Dimension(JBUIScale.scale(540), JBUIScale.scale(200)) } } }
   }
 
-  /**
-   * Creates the dialog wrapper.
-   */
+  /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
-      title = title,
-      resizable = true,
-      panel = dialogPanel,
-      project = project,
-      parent = parent,
-      createActions = {
-        listOf(
-          CloseDialogAction(dialogPanel, "Acknowledge", ACCEPT_EXIT_CODE, isDefault = true),
-          CloseDialogAction(dialogPanel, "Cancel", REJECT_EXIT_CODE)
-        )
-      }).apply { pack() }
+        title = title,
+        resizable = true,
+        panel = dialogPanel,
+        project = project,
+        parent = parent,
+        createActions = {
+          listOf(
+            CloseDialogAction(dialogPanel, "Acknowledge", ACCEPT_EXIT_CODE, isDefault = true),
+            CloseDialogAction(dialogPanel, "Cancel", REJECT_EXIT_CODE),
+          )
+        },
+      )
+      .apply { pack() }
   }
 
   companion object {

@@ -198,7 +198,6 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair.first.value).isEqualTo("key")
     assertThat(pair.second).isInstanceOf(DeclarativeLiteral::class.java)
     assertThat((pair.second as DeclarativeLiteral).value).isEqualTo("value")
-
   }
 
   fun testPairMultiString() {
@@ -229,7 +228,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair2.text).isEqualTo("\"root\" to \"a\" to \"b\"")
     assertThat(pair2.first.value).isEqualTo("root")
     assertThat(pair2.second).isInstanceOf(DeclarativePair::class.java)
-    assertThat((pair2.second as DeclarativePair).text).isEqualTo("\"a\" to \"b\"" )
+    assertThat((pair2.second as DeclarativePair).text).isEqualTo("\"a\" to \"b\"")
   }
 
   fun testPairOfList() {
@@ -240,7 +239,7 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(pair.text).isEqualTo("\"root\" to listOf()")
     assertThat(pair.first.value).isEqualTo("root")
     assertThat(pair.second).isInstanceOf(DeclarativeSimpleFactory::class.java)
-    assertThat((pair.second as DeclarativeSimpleFactory).text).isEqualTo("listOf()" )
+    assertThat((pair.second as DeclarativeSimpleFactory).text).isEqualTo("listOf()")
   }
 
   fun testAssignment() {

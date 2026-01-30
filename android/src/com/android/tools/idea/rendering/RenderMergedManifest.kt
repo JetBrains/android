@@ -25,5 +25,6 @@ class RenderMergedManifest(private val manifest: MergedManifestSnapshot) : Rende
   override val isRtlSupported: Boolean = manifest.isRtlSupported
   override val applicationLabel: ResourceValue? = manifest.applicationLabel
   override val applicationIcon: ResourceValue? = manifest.applicationIcon
+
   override fun getActivityAttributes(activity: String): ActivityAttributesSnapshot? = manifest.getActivityAttributes(activity)
 }

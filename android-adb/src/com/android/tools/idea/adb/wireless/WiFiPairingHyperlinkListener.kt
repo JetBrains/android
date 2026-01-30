@@ -29,27 +29,11 @@ object WiFiPairingHyperlinkListener : HyperlinkAdapter() {
     if (e.description == Urls.openSdkManager) {
       ActionManager.getInstance()
         .getAction("Android.RunAndroidSdkManager")
-        .actionPerformed(
-          createEvent(
-            { dataId: String -> null },
-            null,
-            ActionPlaces.UNKNOWN,
-            ActionUiKind.NONE,
-            null,
-          )
-        )
+        .actionPerformed(createEvent({ dataId: String -> null }, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null))
     } else if (e.description == Urls.openAdbSettings) {
       ActionManager.getInstance()
         .getAction("Android.AdbSettings")
-        .actionPerformed(
-          createEvent(
-            { dataId: String -> null },
-            null,
-            ActionPlaces.UNKNOWN,
-            ActionUiKind.NONE,
-            null,
-          )
-        )
+        .actionPerformed(createEvent({ dataId: String -> null }, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null))
     } else if (e.url != null) {
       BrowserUtil.browse(e.url)
     }

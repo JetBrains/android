@@ -20,7 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.roots.ProjectRootManager
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-
 class RoomDependencyCheckerTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   fun test_recalculateValue() {
@@ -34,7 +33,8 @@ class RoomDependencyCheckerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       package androidx.room;
 
       public @interface Entity { String tableName() default ""; }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val newValue = RoomDependencyChecker.getInstance(project).isRoomPresent()

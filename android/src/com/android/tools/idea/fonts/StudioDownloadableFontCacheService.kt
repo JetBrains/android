@@ -27,18 +27,20 @@ import com.intellij.openapi.application.ApplicationManager
 import java.io.File
 
 /** Studio specific version of [DownloadableFontCacheService]. */
-class StudioDownloadableFontCacheService : DownloadableFontCacheServiceImpl(
-  object : FontDownloader {
-    override fun download(fontsToDownload: List<FontFamily>, menuFontsOnly: Boolean, success: Runnable?, failure: Runnable?) =
-      FontDownloadService.download(fontsToDownload, menuFontsOnly, success, failure)
+class StudioDownloadableFontCacheService :
+  DownloadableFontCacheServiceImpl(
+    object : FontDownloader {
+      override fun download(fontsToDownload: List<FontFamily>, menuFontsOnly: Boolean, success: Runnable?, failure: Runnable?) =
+        FontDownloadService.download(fontsToDownload, menuFontsOnly, success, failure)
 
-    override fun createFontDirectoryDownloader(fontLoader: FontLoader,
-                                               provider: FontProvider,
-                                               fontCachePath: File): FontDirectoryDownloader =
-      FontDirectoryDownloadService(fontLoader, provider, fontCachePath)
-  },
-  { AndroidSdks.getInstance().tryToChooseSdkHandler().location?.toFile() }
-) {
+      override fun createFontDirectoryDownloader(
+        fontLoader: FontLoader,
+        provider: FontProvider,
+        fontCachePath: File,
+      ): FontDirectoryDownloader = FontDirectoryDownloadService(fontLoader, provider, fontCachePath)
+    },
+    { AndroidSdks.getInstance().tryToChooseSdkHandler().location?.toFile() },
+  ) {
   companion object {
     @JvmStatic
     fun getInstance(): DownloadableFontCacheServiceImpl =

@@ -21,7 +21,7 @@ import java.io.File
 
 enum class ManifestXmlType {
   ANDROID_MANIFEST_XML,
-  NAVIGATION_XML
+  NAVIGATION_XML,
 }
 
 /**
@@ -29,33 +29,34 @@ enum class ManifestXmlType {
  *
  * Used primarily to hold the source library for a manifest, and to help with sorting.
  */
-sealed class ManifestFileWithMetadata(val sortPriority: Int) : Comparable <ManifestFileWithMetadata> {
+sealed class ManifestFileWithMetadata(val sortPriority: Int) : Comparable<ManifestFileWithMetadata> {
   abstract val file: File?
   abstract val isProjectFile: Boolean
+
   override fun compareTo(other: ManifestFileWithMetadata): Int {
     return compareValuesBy(
-      this, other,
+      this,
+      other,
+      { it.sortPriority },
       {
-        it.sortPriority
-      },{
         // Project files first
         !it.isProjectFile
-      },{
-        when(it) {
+      },
+      {
+        when (it) {
           is ManifestXmlWithMetadata -> it.sourceLibrary
           else -> ""
         }
-      },{
-        when(it) {
+      },
+      {
+        when (it) {
           is ManifestXmlWithMetadata -> it.type
           // Anything else has lower priority over any of the enum values
           else -> Int.MAX_VALUE
         }
-      },{
-        it.file?.path?.contains(SdkConstants.EXPLODED_AAR)
-      },{
-        it.file?.path
-      }
+      },
+      { it.file?.path?.contains(SdkConstants.EXPLODED_AAR) },
+      { it.file?.path },
     )
   }
 }
@@ -65,7 +66,7 @@ data class ManifestXmlWithMetadata(
   override val file: File,
   val sourceLibrary: String,
   override val isProjectFile: Boolean,
-  val sourcePosition: SourcePosition
+  val sourcePosition: SourcePosition,
 ) : ManifestFileWithMetadata(sortPriority = 0)
 
 abstract class InjectedFile : ManifestFileWithMetadata(sortPriority = 1)
@@ -74,4 +75,3 @@ object UnknownManifestFile : ManifestFileWithMetadata(sortPriority = 2) {
   override val file = null
   override val isProjectFile = false
 }
-

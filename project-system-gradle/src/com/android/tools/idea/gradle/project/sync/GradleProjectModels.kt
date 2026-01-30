@@ -21,5 +21,5 @@ import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTab
 class GradleProjectModels(
   val modules: List<GradleModuleModels>,
   val libraries: IdeResolvedLibraryTableImpl?,
-  val kmpLibraries: KotlinMultiplatformIdeLibraryTable?
+  val kmpLibraries: KotlinMultiplatformIdeLibraryTable?,
 )

@@ -25,11 +25,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /** A pass-thru event who persists connection and filter settings when they change. */
-data class PersistSettingsAdapter(
-  private val delegate: ChangeEvent,
-  private val project: Project,
-  private val tabId: String,
-) : ChangeEvent {
+data class PersistSettingsAdapter(private val delegate: ChangeEvent, private val project: Project, private val tabId: String) :
+  ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -37,10 +34,7 @@ data class PersistSettingsAdapter(
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     val transition = delegate.transition(state, tracker, provider, cache)
-    if (
-      state.filters != transition.newState.filters ||
-        state.connections.selected != transition.newState.connections.selected
-    ) {
+    if (state.filters != transition.newState.filters || state.connections.selected != transition.newState.connections.selected) {
       project.service<AppInsightsSettings>().setTabSetting(tabId, transition.newState)
     }
     return transition

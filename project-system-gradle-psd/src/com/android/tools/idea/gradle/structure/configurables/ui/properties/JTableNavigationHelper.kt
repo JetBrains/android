@@ -24,7 +24,6 @@ import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 
-
 fun JTable.addTabKeySupportTo(editor: JComponent) {
   editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), TreeTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -43,37 +42,32 @@ private fun JTable.nextCell(e: ActionEvent) {
 private fun JTable.nextCell(e: EventObject, row: Int, col: Int) {
   val editPosition = row to col
   TableUtil.stopEditing(this)
-  generateSequence(editPosition) {
-    (if (it.second >= columnCount - 1) it.first + 1 to 0 else it.first to it.second + 1)
-  }
-      .drop(1)
-      .takeWhile { it.first < rowCount }
-      .firstOrNull { model.isCellEditable(it.first, it.second) == true }
-      ?.let { (row, column) ->
-        selectionModel.setSelectionInterval(row, row)
-        scrollRectToVisible(getCellRect(row, column, true))
-        selectCell(row, column)
-        @Suppress("WrongInvokeLater")
-        SwingUtilities.invokeLater { editCellAt(row, column, null) }
-      }
+  generateSequence(editPosition) { (if (it.second >= columnCount - 1) it.first + 1 to 0 else it.first to it.second + 1) }
+    .drop(1)
+    .takeWhile { it.first < rowCount }
+    .firstOrNull { model.isCellEditable(it.first, it.second) == true }
+    ?.let { (row, column) ->
+      selectionModel.setSelectionInterval(row, row)
+      scrollRectToVisible(getCellRect(row, column, true))
+      selectCell(row, column)
+      @Suppress("WrongInvokeLater") SwingUtilities.invokeLater { editCellAt(row, column, null) }
+    }
 }
 
 private fun JTable.prevCell(e: ActionEvent) {
   val editPosition = editingRow to editingColumn
   TableUtil.stopEditing(this)
   generateSequence(editPosition) {
-    val (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to columnCount - 1 else it.first to it.second - 1
-    nextRow to nextColumn
-  }
-      .drop(1)
-      .takeWhile { it.first >= 0 }
-      .firstOrNull { model.isCellEditable(it.first, it.second) == true }
-      ?.let { (row, column) ->
-        selectionModel.setSelectionInterval(row, row)
-        scrollRectToVisible(getCellRect(row, column, true))
-        selectCell(row, column)
-        @Suppress("WrongInvokeLater")
-        SwingUtilities.invokeLater { editCellAt(row, column, e) }
-      }
+      val (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to columnCount - 1 else it.first to it.second - 1
+      nextRow to nextColumn
+    }
+    .drop(1)
+    .takeWhile { it.first >= 0 }
+    .firstOrNull { model.isCellEditable(it.first, it.second) == true }
+    ?.let { (row, column) ->
+      selectionModel.setSelectionInterval(row, row)
+      scrollRectToVisible(getCellRect(row, column, true))
+      selectCell(row, column)
+      @Suppress("WrongInvokeLater") SwingUtilities.invokeLater { editCellAt(row, column, e) }
+    }
 }
-

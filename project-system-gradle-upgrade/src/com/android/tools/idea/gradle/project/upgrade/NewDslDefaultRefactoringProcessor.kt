@@ -20,12 +20,13 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 /**
- * This processor sets the android.newDsl Gradle property to false in upgrades over the 9.0 boundary, which
- * allows the use of the external Kotlin Gradle plugin to continue to work.
+ * This processor sets the android.newDsl Gradle property to false in upgrades over the 9.0 boundary, which allows the use of the external
+ * Kotlin Gradle plugin to continue to work.
  */
 class NewDslDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey: String = "android.newDsl"
   override val oldDefault: Boolean = false
@@ -34,8 +35,11 @@ class NewDslDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactor
   override val insertPropertyText: String = AgpUpgradeBundle.message("newDsl.usage.name")
   override val tooltip: String = AgpUpgradeBundle.message("newDsl.usage.tooltipText")
   override val usageViewHeader: String = AgpUpgradeBundle.message("newDsl.usageViewHeader")
+
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.android.newDsl.default"
+
   override val necessityInfo: AgpUpgradeComponentNecessityInfo = PointNecessity(DEFAULT_CHANGED)
+
   override fun getCommandName(): String = AgpUpgradeBundle.message("newDsl.commandName")
 
   companion object {

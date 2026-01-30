@@ -22,12 +22,7 @@ import git4idea.commands.GitCommand
 import git4idea.commands.GitLineHandler
 
 // Copied from IJ git4idea test src.
-internal fun git(
-  project: Project,
-  command: GitCommand,
-  parameters: List<String>,
-  workingDir: VirtualFile,
-): String {
+internal fun git(project: Project, command: GitCommand, parameters: List<String>, workingDir: VirtualFile): String {
   val handler = GitLineHandler(project, workingDir, command)
   handler.setWithMediator(false)
   handler.addParameters(parameters)

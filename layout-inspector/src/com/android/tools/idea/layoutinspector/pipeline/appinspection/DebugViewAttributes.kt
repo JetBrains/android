@@ -37,10 +37,7 @@ private const val PER_DEVICE_SETTING = "debug_view_attributes"
 // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on.
 private val debugViewAttributesDisabledConstants = setOf("null", "0")
 
-/**
- * Command that will be run on the device through adb shell. Used to put, delete and get the
- * settings value.
- */
+/** Command that will be run on the device through adb shell. Used to put, delete and get the settings value. */
 private sealed class Command(val setting: String) {
   class Put(setting: String, val value: String) : Command(setting)
 
@@ -85,17 +82,12 @@ sealed class SetFlagResult {
  *
  * Flags should be set and cleared using the same instance of this class.
  *
- * These debug settings, when set, tell the system to expose some debug data (e.g. Composables) that
- * it normally would hide.
+ * These debug settings, when set, tell the system to expose some debug data (e.g. Composables) that it normally would hide.
  *
- * The View inspector works without the flag. The Compose inspector without the flag works in a
- * limited capacity, it can only show images and the bounds of the root views, which on its own is
- * not very useful.
+ * The View inspector works without the flag. The Compose inspector without the flag works in a limited capacity, it can only show images
+ * and the bounds of the root views, which on its own is not very useful.
  */
-class DebugViewAttributes(
-  private val project: Project,
-  private val adbSession: AdbSession = AdbLibService.getSession(project),
-) {
+class DebugViewAttributes(private val project: Project, private val adbSession: AdbSession = AdbLibService.getSession(project)) {
 
   /** Enable debug view attributes for the current process. */
   suspend fun set(device: DeviceDescriptor): SetFlagResult {
@@ -129,11 +121,7 @@ class DebugViewAttributes(
    *
    * @return empty string in case of success, or error message otherwise.
    */
-  private suspend fun executePut(
-    adb: AdbDeviceServices,
-    device: DeviceDescriptor,
-    putCommand: Command.Put,
-  ): AdbCommandResult {
+  private suspend fun executePut(adb: AdbDeviceServices, device: DeviceDescriptor, putCommand: Command.Put): AdbCommandResult {
     val output = adb.shellAsText(DeviceSelector.fromSerialNumber(device.serial), putCommand.get())
     return if (output.stdout.isBlank() && output.stderr.isBlank()) {
       // Empty output means "debug_view_attributes" was set successfully.
@@ -145,34 +133,23 @@ class DebugViewAttributes(
     }
   }
 
-  private suspend fun isPerDeviceSettingOn(
-    adb: AdbDeviceServices,
-    device: DeviceDescriptor,
-  ): Boolean {
-    val output =
-      adb.shellAsText(
-        DeviceSelector.fromSerialNumber(device.serial),
-        Command.Get(PER_DEVICE_SETTING).get(),
-      )
+  private suspend fun isPerDeviceSettingOn(adb: AdbDeviceServices, device: DeviceDescriptor): Boolean {
+    val output = adb.shellAsText(DeviceSelector.fromSerialNumber(device.serial), Command.Get(PER_DEVICE_SETTING).get())
 
     return output.stdout.trim() !in debugViewAttributesDisabledConstants
   }
 }
 
 private const val ACTIVITY_RESTART_KEY = "activity.restart"
-private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION =
-  "failed.to.enable.view.attributes.inspection"
+private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION = "failed.to.enable.view.attributes.inspection"
 private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION =
   "failed.to.enable.view.attributes.inspection.security.exception"
-private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
-  "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
+private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL = "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
 fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
   val learnMoreAction =
-    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
-      BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
-    }
+    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) { BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL) }
 
   notificationModel.addNotification(
     id = ACTIVITY_RESTART_KEY,
@@ -183,22 +160,14 @@ fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
 }
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
-fun showUnableToSetDebugViewAttributesBanner(
-  notificationModel: NotificationModel,
-  reason: SetFlagResult.Failure.Reason,
-) {
+fun showUnableToSetDebugViewAttributesBanner(notificationModel: NotificationModel, reason: SetFlagResult.Failure.Reason) {
   val learnMoreAction =
-    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
-      BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
-    }
+    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) { BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL) }
 
   val text =
     when (reason) {
       UNKNOWN -> LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION)
-      SECURITY_EXCEPTION ->
-        LayoutInspectorBundle.message(
-          FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION
-        )
+      SECURITY_EXCEPTION -> LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION)
     }
 
   notificationModel.addNotification(

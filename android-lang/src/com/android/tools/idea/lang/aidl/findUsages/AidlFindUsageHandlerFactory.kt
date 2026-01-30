@@ -22,9 +22,7 @@ import com.intellij.find.findUsages.FindUsagesHandlerFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 
-/**
- * Find Usage factory for AIDL files. Finds the usages of the corresponding generated Psi elements.
- */
+/** Find Usage factory for AIDL files. Finds the usages of the corresponding generated Psi elements. */
 class AidlFindUsageHandlerFactory : FindUsagesHandlerFactory() {
   override fun canFindUsages(element: PsiElement): Boolean {
     return element is AidlNamedElement

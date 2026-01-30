@@ -17,10 +17,8 @@ package com.android.tools.idea.profilers.capture.unified
 
 import com.android.tools.idea.profilers.capture.PerfettoCaptureFileType
 import com.android.tools.profilers.cpu.CpuCaptureParserUtil
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.intellij.openapi.vfs.VirtualFile
-import java.io.File
 
 interface SupportedFormat {
   fun isSupported(file: VirtualFile): Boolean
@@ -31,18 +29,16 @@ object PerfettoTraceFormat : SupportedFormat {
     if (PerfettoCaptureFileType.EXTENSIONS.contains(file.extension)) {
       return true
     }
-    val ioFile = try {
-      file.toNioPath().toFile()
-    } catch (e: Exception) {
-      // VirtualFile might not be on local disk (e.g. inside a JAR),
-      // in which case we can't use the legacy parser.
-      return false
-    }
+    val ioFile =
+      try {
+        file.toNioPath().toFile()
+      } catch (e: Exception) {
+        // VirtualFile might not be on local disk (e.g. inside a JAR),
+        // in which case we can't use the legacy parser.
+        return false
+      }
     // Content-based trace type
-    val detectedType = CpuCaptureParserUtil.getFileTraceType(
-      ioFile,
-      TraceType.UNSPECIFIED
-    )
+    val detectedType = CpuCaptureParserUtil.getFileTraceType(ioFile, TraceType.UNSPECIFIED)
     return detectedType == TraceType.PERFETTO || detectedType == TraceType.ATRACE
   }
 }

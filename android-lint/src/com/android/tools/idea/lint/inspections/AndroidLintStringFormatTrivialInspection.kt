@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.StringFormatDetector
 
 class AndroidLintStringFormatTrivialInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.string.format.trivial"),
-    StringFormatDetector.TRIVIAL,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.string.format.trivial"), StringFormatDetector.TRIVIAL)

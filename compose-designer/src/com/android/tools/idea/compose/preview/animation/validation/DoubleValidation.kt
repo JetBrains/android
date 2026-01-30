@@ -25,17 +25,13 @@ object DoubleValidation : EditingValidation {
   /**
    * Validates that [editedValue] corresponds to a valid Double number.
    *
-   * @return An [EditingErrorCategory] representing the validation result with its corresponding
-   *   display message [String].
+   * @return An [EditingErrorCategory] representing the validation result with its corresponding display message [String].
    */
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
     return when {
       editedValue.isNullOrBlank() -> EDITOR_NO_ERROR
       editedValue.trim().toDoubleOrNull() == null ->
-        return Pair(
-          EditingErrorCategory.ERROR,
-          message("animation.inspector.picker.validation.double.nan"),
-        )
+        return Pair(EditingErrorCategory.ERROR, message("animation.inspector.picker.validation.double.nan"))
       else -> EDITOR_NO_ERROR
     }
   }

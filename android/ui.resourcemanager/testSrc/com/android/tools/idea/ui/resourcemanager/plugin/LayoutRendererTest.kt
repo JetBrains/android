@@ -38,25 +38,23 @@ import com.intellij.mock.MockVirtualFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
-import org.intellij.lang.annotations.Language
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
 import java.awt.Image
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
 import javax.swing.JLabel
 import kotlin.test.assertTrue
-
+import org.intellij.lang.annotations.Language
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
 
 private val BACKGROUND_COLOR = arrayOf(0xFA, 0xD1, 0x3A, 0xFF)
 private const val BACKGROUND_COLOR_HEX_STRING = "FAD13A"
 
 class LayoutRendererTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.withSdk()
+  @get:Rule val rule = AndroidProjectRule.withSdk()
 
   @Test
   fun renderLayout() {
@@ -84,25 +82,24 @@ class LayoutRendererTest {
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
     lateinit var resourceExplorerListViewModel: ResourceExplorerListViewModel
-      resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
+    resourceExplorerListViewModel =
+      ResourceExplorerListViewModelImpl(
         androidFacet,
         null,
         mock<ResourceResolver>(),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
         ImageCache.createImageCache(rule.fixture.projectDisposable),
-        ImageCache.createImageCache(rule.fixture.projectDisposable)
+        ImageCache.createImageCache(rule.fixture.projectDisposable),
       )
     val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
     val width = 150
     val height = 200
-    (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-      as ImageIcon).image.toBufferedImage()
+    (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() }) as ImageIcon).image.toBufferedImage()
 
     val start = System.currentTimeMillis()
     assertTrue(latch.await(60, TimeUnit.SECONDS))
-    val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-      as ImageIcon).image.toBufferedImage()
+    val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() }) as ImageIcon).image.toBufferedImage()
 
     // Check that we get the correct background color.
     val intArray = IntArray(4)
@@ -117,10 +114,7 @@ class LayoutRendererTest {
 
   @Test
   fun shrinkRenderingModeLowersHeight() {
-    val layoutRenderOptions = LayoutRenderOptions(
-      renderingMode = SessionParams.RenderingMode.SHRINK,
-      disableDecorations = true,
-    )
+    val layoutRenderOptions = LayoutRenderOptions(renderingMode = SessionParams.RenderingMode.SHRINK, disableDecorations = true)
 
     val androidFacet = rule.module.androidFacet!!
     val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest, ImageFuturesManager())
@@ -133,14 +127,15 @@ class LayoutRendererTest {
     val previewProvider = assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
     val width = 100
     val height = 200
-    val bufferedImage = (previewProvider.getIcon(designAsset, width, height, JLabel(), {})
-      as ImageIcon).image.toBufferedImage()
+    val bufferedImage = (previewProvider.getIcon(designAsset, width, height, JLabel(), {}) as ImageIcon).image.toBufferedImage()
 
     assert(bufferedImage.height < height)
   }
 
   private fun createLayoutFile(): XmlFile {
-    @Language("XML") val layoutXml = """<?xml version="1.0" encoding="utf-8" ?>
+    @Language("XML")
+    val layoutXml =
+      """<?xml version="1.0" encoding="utf-8" ?>
   <LinearLayout
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:layout_width="match_parent"
@@ -151,7 +146,8 @@ class LayoutRendererTest {
         android:layout_height="wrap_content"
         android:text="Hello World!"/>
   </LinearLayout>
-      """.trimMargin()
+      """
+        .trimMargin()
     val fileSystem = MockVirtualFileSystem()
     val layoutFile: VirtualFile = fileSystem.file("/layout/layout.xml", layoutXml).refreshAndFindFileByPath("/layout/layout.xml")!!
     val psiFile = AndroidPsiUtils.getPsiFileSafely(rule.project, layoutFile)!!
@@ -159,8 +155,14 @@ class LayoutRendererTest {
   }
 }
 
-private fun createRenderTaskForTest(buildTarget: AndroidBuildTargetReference, xmlFile: XmlFile, configuration: Configuration, renderingOptions: LayoutRenderOptions? = LayoutRenderOptions()) =
-  renderingOptions!!.applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
+private fun createRenderTaskForTest(
+  buildTarget: AndroidBuildTargetReference,
+  xmlFile: XmlFile,
+  configuration: Configuration,
+  renderingOptions: LayoutRenderOptions? = LayoutRenderOptions(),
+) =
+  renderingOptions!!
+    .applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableSecurityManager()

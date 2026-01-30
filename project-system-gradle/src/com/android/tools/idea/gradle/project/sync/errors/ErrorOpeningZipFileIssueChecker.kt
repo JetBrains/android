@@ -22,12 +22,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
-class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
+class ErrorOpeningZipFileIssueChecker : GradleIssueChecker {
   private val ERROR_ZIP_FILE = "error in opening zip file"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -37,19 +37,23 @@ class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
-    return BuildIssueComposer("Failed to open zip file.").apply {
-      addDescriptionOnNewLine("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
-      startNewParagraph()
-      addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
-    }.composeBuildIssue()
+    return BuildIssueComposer("Failed to open zip file.")
+      .apply {
+        addDescriptionOnNewLine("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+        startNewParagraph()
+        addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
+      }
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.contains(ERROR_ZIP_FILE)
   }
 }

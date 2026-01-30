@@ -53,15 +53,10 @@ class NewKotlinMultiplatformLibraryModuleModel(
     wizardContext = NEW_MODULE,
   ) {
 
-  val kgpVersion: OptionalValueProperty<KotlinGradlePluginVersion> =
-    OptionalValueProperty.fromNullable(determineKotlinVersion(project))
+  val kgpVersion: OptionalValueProperty<KotlinGradlePluginVersion> = OptionalValueProperty.fromNullable(determineKotlinVersion(project))
 
   override val androidSdkInfo =
-    OptionalValueProperty(
-      AndroidVersionsInfo()
-        .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
-        .first()
-    )
+    OptionalValueProperty(AndroidVersionsInfo().getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API).first())
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer =
     object : ModuleTemplateRenderer() {
@@ -83,9 +78,7 @@ class NewKotlinMultiplatformLibraryModuleModel(
       }
 
       override val recipe: Recipe
-        get() = { td: TemplateData ->
-          generateMultiplatformModule(data = td as ModuleTemplateData, useKts = true)
-        }
+        get() = { td: TemplateData -> generateMultiplatformModule(data = td as ModuleTemplateData, useKts = true) }
     }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer

@@ -78,8 +78,7 @@ class ConnectionDataModelTest {
     assertThat(httpData.url).isEqualTo(fakeUrl)
     assertThat(httpData.trace).isEqualTo(faceTrace)
     assertThat(httpData.requestPayload).isEqualTo(ByteString.copyFromUtf8("REQUEST_CONTENT"))
-    assertThat(httpData.getReadableResponsePayload())
-      .isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
+    assertThat(httpData.getReadableResponsePayload()).isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
     assertThat(httpData.responseHeaders["connId"]).containsExactly("1")
   }
 

@@ -24,8 +24,7 @@ private const val UNNAMED_COMPONENT = "<unnamed>"
 /**
  * Model for supplying data to a SelectedComponentPanel.
  *
- * For displaying which component is being edited. Intended for being shown at the top of the
- * properties panel.
+ * For displaying which component is being edited. Intended for being shown at the top of the properties panel.
  */
 class SelectedViewModel(selectedView: ViewNode?) : SelectedComponentModel {
 

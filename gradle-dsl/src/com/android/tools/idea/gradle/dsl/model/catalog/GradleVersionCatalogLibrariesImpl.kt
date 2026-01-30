@@ -29,24 +29,25 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 
-class GradleVersionCatalogLibrariesImpl(private val dslElement: GradlePropertiesDslElement) : GradleDslBlockModel(
-  dslElement), GradleVersionCatalogLibraries {
+class GradleVersionCatalogLibrariesImpl(private val dslElement: GradlePropertiesDslElement) :
+  GradleDslBlockModel(dslElement), GradleVersionCatalogLibraries {
   companion object {
     val LOG = Logger.getInstance(GradleVersionCatalogLibrariesImpl::class.java)
   }
 
-  override fun getAllAliases(): Set<String> =
-    dslElement.propertyElements.map { it.key }.toSet()
+  override fun getAllAliases(): Set<String> = dslElement.propertyElements.map { it.key }.toSet()
 
   override fun getAll(): Map<String, LibraryDeclarationModel> =
-    dslElement.allPropertyElements.flatMap { dslProperty ->
-      val alias = dslProperty.nameElement.name()
-      return@flatMap when (dslProperty) {
-        is GradleDslLiteral -> listOf(alias to LiteralLibraryDeclarationModel(dslProperty))
-        is GradleDslExpressionMap -> listOf(alias to MapDependencyDeclarationModel(dslProperty))
-        else -> listOf()
+    dslElement.allPropertyElements
+      .flatMap { dslProperty ->
+        val alias = dslProperty.nameElement.name()
+        return@flatMap when (dslProperty) {
+          is GradleDslLiteral -> listOf(alias to LiteralLibraryDeclarationModel(dslProperty))
+          is GradleDslExpressionMap -> listOf(alias to MapDependencyDeclarationModel(dslProperty))
+          else -> listOf()
+        }
       }
-    }.toMap()
+      .toMap()
 
   override fun addDeclaration(alias: String, compactNotation: String) {
     LiteralLibraryDeclarationModel.createNew(myDslElement, alias, compactNotation)
@@ -81,5 +82,4 @@ class GradleVersionCatalogLibrariesImpl(private val dslElement: GradleProperties
       parent.removeProperty(alias)
     }
   }
-
 }

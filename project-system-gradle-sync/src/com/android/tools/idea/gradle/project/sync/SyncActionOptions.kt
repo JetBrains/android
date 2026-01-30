@@ -19,9 +19,7 @@ import java.io.Serializable
 
 sealed class SyncActionOptions(val flags: GradleSyncStudioFlags, val syncTestMode: SyncTestMode) : Serializable
 
-/**
- * A sync action fetching enough models to set up a project.
- */
+/** A sync action fetching enough models to set up a project. */
 sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags, syncTestMode: SyncTestMode) :
   SyncActionOptions(flags, syncTestMode), Serializable {
   abstract val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
@@ -30,14 +28,10 @@ sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags, syncTestMode
 class AllVariantsSyncActionOptions(
   flags: GradleSyncStudioFlags,
   syncTestMode: SyncTestMode,
-  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
+  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions,
 ) : SyncProjectActionOptions(flags, syncTestMode), Serializable
 
-data class SwitchVariantRequest(
-  val moduleId: String,
-  val variantName: String?,
-  val abi: String?
-): Serializable
+data class SwitchVariantRequest(val moduleId: String, val variantName: String?, val abi: String?) : Serializable
 
 class SingleVariantSyncActionOptions(
   flags: GradleSyncStudioFlags,
@@ -47,16 +41,14 @@ class SingleVariantSyncActionOptions(
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions,
 ) : SyncProjectActionOptions(flags, syncTestMode), Serializable
 
-class AdditionalClassifierArtifactsActionOptions(
-  val cachedLibraries: Collection<String>,
-) : Serializable
+class AdditionalClassifierArtifactsActionOptions(val cachedLibraries: Collection<String>) : Serializable
 
 data class GradleSyncStudioFlags(
   val modelConsumerVersion: ModelConsumerVersion,
   /**
    * The studio latest known AGP version is injected, rather than read from the version jar via the injected classpath, to avoid problems
-   * when the injected jars are cached by gradle using only size and timestamp as the cache key.
-   * See https://issuetracker.google.com/306442910
+   * when the injected jars are cached by gradle using only size and timestamp as the cache key. See
+   * https://issuetracker.google.com/306442910
    */
   val studioLatestKnownAgpVersion: String,
   val studioFlagParallelSyncEnabled: Boolean,
@@ -74,6 +66,5 @@ data class GradleSyncStudioFlags(
   val studioFlagBuildRuntimeClasspathForLibraryScreenshotTests: Boolean,
   val studioFlagSupportFutureAgpVersions: Boolean,
   val studioFlagUseFlatDependencyGraphModel: Boolean,
-  val studioFlagFetchKotlinModelsInParallel: Boolean
+  val studioFlagFetchKotlinModelsInParallel: Boolean,
 ) : Serializable
-

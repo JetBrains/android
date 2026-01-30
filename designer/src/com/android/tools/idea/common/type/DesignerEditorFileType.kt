@@ -23,8 +23,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 
 /**
- * Type of file that can be viewed using a designer editor. If this type of file can also be edited
- * using the editor, implementers should override [isEditable] to make it return true.
+ * Type of file that can be viewed using a designer editor. If this type of file can also be edited using the editor, implementers should
+ * override [isEditable] to make it return true.
  */
 interface DesignerEditorFileType {
   /** Whether a given file can be classified as this type. */
@@ -41,25 +41,20 @@ interface DesignerEditorFileType {
   fun isEditable() = false
 
   /** Returns the toolbar actions that should be present for the given selection. */
-  fun getSelectionContextToolbar(
-    surface: DesignSurface<*>,
-    selection: List<NlComponent>,
-  ): DefaultActionGroup = surface.actionManager.getToolbarActions(selection)
+  fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>): DefaultActionGroup =
+    surface.actionManager.getToolbarActions(selection)
 }
 
 /** [DesignerEditorFileType] for files that are XML based. */
 interface XmlDesignerEditorFileType : DesignerEditorFileType {
   /**
-   * The specific [ResourceFolderType] for this file type. This is used to quickly decide if a given
-   * file can be of this type by looking at the parent folder.
+   * The specific [ResourceFolderType] for this file type. This is used to quickly decide if a given file can be of this type by looking at
+   * the parent folder.
    */
   val resourceFolderType: ResourceFolderType
 }
 
-/**
- * Default [DesignerEditorFileType] that does not match any resource type and returns the default
- * toolbar action groups.
- */
+/** Default [DesignerEditorFileType] that does not match any resource type and returns the default toolbar action groups. */
 object DefaultDesignerFileType : DesignerEditorFileType {
   override fun isResourceTypeOf(file: PsiFile) = false
 
@@ -67,5 +62,4 @@ object DefaultDesignerFileType : DesignerEditorFileType {
 }
 
 fun PsiFile.typeOf(): DesignerEditorFileType =
-  DesignerTypeRegistrar.registeredTypes.find { it.isResourceTypeOf(this) }
-    ?: DefaultDesignerFileType
+  DesignerTypeRegistrar.registeredTypes.find { it.isResourceTypeOf(this) } ?: DefaultDesignerFileType

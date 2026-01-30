@@ -56,18 +56,14 @@ class RuleVariablesDialog(
 
   override fun createCenterPanel(): JComponent {
 
-    val decorator =
-      ToolbarDecorator.createDecorator(table)
-        .setAddAction { addRow() }
-        .setRemoveAction { deleteRow() }
+    val decorator = ToolbarDecorator.createDecorator(table).setAddAction { addRow() }.setRemoveAction { deleteRow() }
 
     ConfigColumnTableAspect.apply(project, table, dialogState.columns)
     val tableDecorator = decorator.createPanel()
 
     val panel = BorderLayoutPanel()
     panel.addToCenter(tableDecorator)
-    val label =
-      JBLabel("Rule variables can be used in rules by referencing them with '\${RULE_NAME}' ")
+    val label = JBLabel("Rule variables can be used in rules by referencing them with '\${RULE_NAME}' ")
     label.border = JBUI.Borders.emptyTop(16)
     panel.addToBottom(label)
     panel.preferredSize = JBUI.size(Dimension(dialogState.dialogWidth, dialogState.dialogHeight))
@@ -85,8 +81,7 @@ class RuleVariablesDialog(
   }
 
   public override fun doValidate(): ValidationInfo? {
-    val dups =
-      tableModel.items.map { it.name }.groupBy { it }.filter { it.value.size > 1 }.map { it.key }
+    val dups = tableModel.items.map { it.name }.groupBy { it }.filter { it.value.size > 1 }.map { it.key }
     if (dups.isEmpty()) {
       return null
     }
@@ -141,8 +136,7 @@ class RuleVariablesDialog(
     }
   }
 
-  private class VariableColumnInfo(name: String, private val getValue: RuleVariable.() -> String) :
-    ColumnInfo<RuleVariable, String>(name) {
+  private class VariableColumnInfo(name: String, private val getValue: RuleVariable.() -> String) : ColumnInfo<RuleVariable, String>(name) {
     override fun valueOf(item: RuleVariable) = item.getValue()
 
     override fun isCellEditable(item: RuleVariable) = true
@@ -153,10 +147,7 @@ class RuleVariablesDialog(
     private val valueColumn = VariableColumnInfo("Value") { value }
 
     val columnConfig =
-      listOf(
-        ConfigColumnTableAspect.ColumnInfo(nameColumn.name, 0.2),
-        ConfigColumnTableAspect.ColumnInfo(valueColumn.name, 0.8),
-      )
+      listOf(ConfigColumnTableAspect.ColumnInfo(nameColumn.name, 0.2), ConfigColumnTableAspect.ColumnInfo(valueColumn.name, 0.8))
   }
 }
 

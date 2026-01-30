@@ -37,28 +37,27 @@ private const val ANDROIDX_DEV_CACHE_DIR_KEY = "androidx.dev"
 private val AGP_PLUGIN_MARKER_MODULE = Module("com.android.application", "com.android.application.gradle.plugin")
 private val ARTIFACT_LINK_PATTERN = Pattern.compile(".*/studio/builds/(\\d+)/artifact.*")
 
-private val Module.path get() = "${group.replace('.', '/')}/$name"
-private val Module.mavenMetadataPath get() = "$path/maven-metadata.xml"
+private val Module.path
+  get() = "${group.replace('.', '/')}/$name"
+private val Module.mavenMetadataPath
+  get() = "$path/maven-metadata.xml"
 
 object IdeAndroidGradlePluginSnapshotRepositoryProvider : AndroidGradlePluginSnapshotRepositoryProvider(getCacheDir()) {
   @Slow
-  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
-    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) = IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 }
 
-abstract class AndroidGradlePluginSnapshotRepositoryProvider(cacheDir: Path?) : NetworkCache(
-  baseUrl = ANDROIDX_DEV_BASE_URL,
-  cacheKey = ANDROIDX_DEV_CACHE_DIR_KEY,
-  cacheDir = cacheDir,
-  networkTimeoutMs = 3000,
-  cacheExpiryHours = 1,
-  networkEnabled = true,
-) {
+abstract class AndroidGradlePluginSnapshotRepositoryProvider(cacheDir: Path?) :
+  NetworkCache(
+    baseUrl = ANDROIDX_DEV_BASE_URL,
+    cacheKey = ANDROIDX_DEV_CACHE_DIR_KEY,
+    cacheDir = cacheDir,
+    networkTimeoutMs = 3000,
+    cacheExpiryHours = 1,
+    networkEnabled = true,
+  ) {
 
-  data class SnapshotRepository(
-    val agpVersions: Set<AgpVersion>,
-    val repositoryURL: URL,
-  )
+  data class SnapshotRepository(val agpVersions: Set<AgpVersion>, val repositoryURL: URL)
 
   override fun readDefaultData(relative: String): InputStream? = null
 
@@ -71,29 +70,33 @@ abstract class AndroidGradlePluginSnapshotRepositoryProvider(cacheDir: Path?) : 
     val indexPageContent = (findData("studio/builds", treatAsDirectory = true) ?: return null).use { it.bufferedReader().readText() }
     val matcher = ARTIFACT_LINK_PATTERN.matcher(indexPageContent)
     if (!matcher.find()) {
-      error(Exception(), "Unable to find latest AGP snapshot build. Failed to parse index page content from ${ANDROIDX_DEV_BASE_URL}studio/builds")
+      error(
+        Exception(),
+        "Unable to find latest AGP snapshot build. Failed to parse index page content from ${ANDROIDX_DEV_BASE_URL}studio/builds",
+      )
       return null
     }
     val buildId = matcher.group(1)
     val repositoryPath = "studio/builds/$buildId/artifacts/artifacts/repository"
     val mavenMetadataPath = repositoryPath + '/' + AGP_PLUGIN_MARKER_MODULE.mavenMetadataPath
-    val versionStrings = (findData(mavenMetadataPath) ?: return null).use { mavenMetadataXml ->
-      try {
-        JDOMUtil.load(mavenMetadataXml).getChild("versioning").getChild("versions").getChildren("version").map { it.text }
+    val versionStrings =
+      (findData(mavenMetadataPath) ?: return null).use { mavenMetadataXml ->
+        try {
+          JDOMUtil.load(mavenMetadataXml).getChild("versioning").getChild("versions").getChildren("version").map { it.text }
+        } catch (e: Exception) {
+          error(e, "Unable to find latest AGP snapshot build. Failed to parse content of $ANDROIDX_DEV_BASE_URL$mavenMetadataPath")
+          return null
+        }
       }
-      catch (e: Exception) {
-        error(e, "Unable to find latest AGP snapshot build. Failed to parse content of $ANDROIDX_DEV_BASE_URL$mavenMetadataPath")
-        return null
+    val versions =
+      versionStrings.mapTo(mutableSetOf()) {
+        try {
+          AgpVersion.parse(it)
+        } catch (e: Exception) {
+          error(e, "Unable to find latest AGP snapshot build. Invalid AGP version '$it' in $ANDROIDX_DEV_BASE_URL$mavenMetadataPath")
+          return null
+        }
       }
-    }
-    val versions = versionStrings.mapTo(mutableSetOf()) {
-      try {
-        AgpVersion.parse(it)
-      } catch (e: Exception) {
-        error(e,"Unable to find latest AGP snapshot build. Invalid AGP version '$it' in $ANDROIDX_DEV_BASE_URL$mavenMetadataPath")
-        return null
-      }
-    }
     return SnapshotRepository(versions.toSet(), URL(ANDROIDX_DEV_BASE_URL + repositoryPath))
   }
 }

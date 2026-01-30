@@ -57,13 +57,10 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
   companion object {
     private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
-      val data =
-        FileBasedIndex.getInstance().getSingleEntryIndexData(BINDING_XML_INDEX_NAME, file, project)
-          ?: return null
+      val data = FileBasedIndex.getInstance().getSingleEntryIndexData(BINDING_XML_INDEX_NAME, file, project) ?: return null
 
       val parentFolderName = file.parent?.name ?: return null
-      if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT)
-        return null
+      if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT) return null
 
       return data
     }
@@ -77,11 +74,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
      *
      * This may return multiple entries as a layout may have multiple configurations.
      */
-    private fun getEntriesForLayout(
-      project: Project,
-      layoutName: String,
-      scope: GlobalSearchScope,
-    ) =
+    private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope) =
       FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).mapNotNull { file ->
         getDataForFile(file, project)?.let { data -> Entry(file, data) }
       }
@@ -90,10 +83,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
       getEntriesForLayout(module.project, layoutName, module.moduleContentWithDependenciesScope)
   }
 
-  /**
-   * Defines the data externalizer handling the serialization/de-serialization of indexed
-   * information.
-   */
+  /** Defines the data externalizer handling the serialization/de-serialization of indexed information. */
   override fun getValueExternalizer(): DataExternalizer<BindingXmlData> {
     return object : DataExternalizer<BindingXmlData> {
       override fun save(out: DataOutput, value: BindingXmlData?) {
@@ -141,24 +131,9 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
         val viewIds = mutableListOf<ViewIdData>()
         for (i in 1..readINT(input)) {
-          viewIds.add(
-            ViewIdData(
-              IOUtil.readUTF(input),
-              IOUtil.readUTF(input),
-              readNullableUTF(input),
-              readNullableUTF(input),
-            )
-          )
+          viewIds.add(ViewIdData(IOUtil.readUTF(input), IOUtil.readUTF(input), readNullableUTF(input), readNullableUTF(input)))
         }
-        return BindingXmlData(
-          layoutType,
-          rootTag,
-          viewBindingIgnore,
-          customBindingName,
-          imports,
-          variables,
-          viewIds,
-        )
+        return BindingXmlData(layoutType, rootTag, viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
 
       private fun readNullableUTF(input: DataInput): String? {
@@ -188,8 +163,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
       // This is checked with a text search rather than in the XML parsing below, since
       // NanoXmlBuilder doesn't get directly called when
       // the parser sees the namespace.
-      private val xmlNamespaceRegex =
-        Regex("""xmlns:android\s*=\s*"http://schemas.android.com/apk/res/android"""")
+      private val xmlNamespaceRegex = Regex("""xmlns:android\s*=\s*"http://schemas.android.com/apk/res/android"""")
 
       override fun computeValue(inputData: FileContent): BindingXmlData? {
         val inputAsText = inputData.contentAsText
@@ -222,13 +196,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           object : NanoXmlBuilder {
             val tags = mutableListOf<TagData>()
 
-            override fun startElement(
-              name: String,
-              nsPrefix: String?,
-              nsURI: String?,
-              systemID: String,
-              lineNr: Int,
-            ) {
+            override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
               tags.add(TagData(name))
               if (name == TAG_LAYOUT) {
                 bindingLayoutType = DATA_BINDING_LAYOUT
@@ -239,13 +207,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
               }
             }
 
-            override fun addAttribute(
-              key: String,
-              nsPrefix: String?,
-              nsURI: String?,
-              value: String,
-              type: String,
-            ) {
+            override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
               val currTag = tags.last() // We are processing a tag so we know there's at least one
               when (currTag.name) {
                 SdkConstants.TAG_DATA ->
@@ -280,10 +242,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                       }
                     }
                   } else if (nsURI == null) {
-                    if (
-                      currTag.name == SdkConstants.VIEW_INCLUDE ||
-                        currTag.name == SdkConstants.VIEW_MERGE
-                    ) {
+                    if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
                       when (key) {
                         SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
                       }
@@ -298,46 +257,31 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
               // If here, it means we're on the root tag
               if (tags.size == 1) {
-                if (
-                  bindingLayoutType == PLAIN_LAYOUT &&
-                    nsURI == SdkConstants.TOOLS_URI &&
-                    key == SdkConstants.ATTR_VIEW_BINDING_IGNORE
-                ) {
+                if (bindingLayoutType == PLAIN_LAYOUT && nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
                   viewBindingIgnore = value.toBoolean()
                 }
               }
             }
 
-            override fun elementAttributesProcessed(
-              name: String,
-              nsPrefix: String?,
-              nsURI: String?,
-            ) {
+            override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
               val currTag = tags.last() // We are processing a tag so we know there's at least one
               when (currTag.name) {
                 SdkConstants.TAG_DATA -> {
                   // Nothing to do here, but case needed to avoid ending up in default branch
                 }
                 SdkConstants.TAG_IMPORT ->
-                  currTag.importType?.let { importType ->
-                    imports.add(ImportData(importType, currTag.importAlias))
-                  }
+                  currTag.importType?.let { importType -> imports.add(ImportData(importType, currTag.importAlias)) }
                 SdkConstants.TAG_VARIABLE ->
                   currTag.variableName?.let { variableName ->
-                    currTag.variableType?.let { variableType ->
-                      variables.add(VariableData(variableName, variableType))
-                    }
+                    currTag.variableType?.let { variableType -> variables.add(VariableData(variableName, variableType)) }
                   }
                 else ->
                   currTag.viewId?.let { viewId ->
                     // Tag should either be something like <TextView>, <Button>, etc.
                     // OR the special-case <view class="path.to.CustomView"/>
-                    val viewName =
-                      if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
+                    val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
                     if (viewName != null) {
-                      viewIds.add(
-                        ViewIdData(viewId, viewName, currTag.viewLayout, currTag.viewTypeOverride)
-                      )
+                      viewIds.add(ViewIdData(viewId, viewName, currTag.viewLayout, currTag.viewTypeOverride))
                     }
                   }
               }
@@ -349,15 +293,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           },
         )
 
-        return BindingXmlData(
-          bindingLayoutType,
-          rootTag.orEmpty(),
-          viewBindingIgnore,
-          customBindingName,
-          imports,
-          variables,
-          viewIds,
-        )
+        return BindingXmlData(bindingLayoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
     }
   }
@@ -373,13 +309,11 @@ private const val COMMENT_END = "-->"
 /**
  * Reader that attempts to escape known codes (e.g. "&lt;") on the fly as it reads.
  *
- * It seems that NanoXml does not itself translate escape characters, instead skipping over them.
- * So, we have to intercept them ourselves. For the attributes we parse, we only care about a subset
- * of all potentially escaped characters -- specifically '<' and '>', which can be used in generic
- * types. The rest, we can skip over, which NanoXml would have done anyway.
+ * It seems that NanoXml does not itself translate escape characters, instead skipping over them. So, we have to intercept them ourselves.
+ * For the attributes we parse, we only care about a subset of all potentially escaped characters -- specifically '<' and '>', which can be
+ * used in generic types. The rest, we can skip over, which NanoXml would have done anyway.
  *
- * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that has
- * an unescaped & inside it.
+ * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that has an unescaped & inside it.
  */
 private class EscapingXmlReader(text: CharSequence) : Reader() {
   /**
@@ -430,11 +364,9 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   /**
-   * Verify the input state is pointing at a valid character, potentially updating it if necessary
-   * (e.g. to skip over comments).
+   * Verify the input state is pointing at a valid character, potentially updating it if necessary (e.g. to skip over comments).
    *
-   * If true is returned, you can safely call [readNextCharInto]; otherwise, you should abort as we
-   * are out of input text.
+   * If true is returned, you can safely call [readNextCharInto]; otherwise, you should abort as we are out of input text.
    */
   private fun prepareNextChar(): Boolean {
     if (state.atEnd()) return false
@@ -450,11 +382,10 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   /**
    * Read the next character out of the input text and write it into the output buffer.
    *
-   * When done, the input state will be pointing at the next character to parse. This may be more
-   * than one character later, if the character that was just read in was escaped (e.g. '&lt;')
+   * When done, the input state will be pointing at the next character to parse. This may be more than one character later, if the character
+   * that was just read in was escaped (e.g. '&lt;')
    *
-   * It's expected that the state is valid before calling this method. In other words, callers
-   * should call [prepareNextChar] first.
+   * It's expected that the state is valid before calling this method. In other words, callers should call [prepareNextChar] first.
    */
   private fun readNextCharInto(output: OutputBuffer) {
     var nextChar: Char? = state.read()
@@ -473,9 +404,8 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
   }
 
   /**
-   * Keep reading characters out of the input text until you hit the [terminal] string or the end of
-   * the text, whichever comes first. Once finished, [buffer] will be populated with all text up to
-   * but not including [terminal]. However, [terminal] will still be consumed.
+   * Keep reading characters out of the input text until you hit the [terminal] string or the end of the text, whichever comes first. Once
+   * finished, [buffer] will be populated with all text up to but not including [terminal]. However, [terminal] will still be consumed.
    */
   private fun readIntoBufferUntil(terminal: String) {
     buffer.clear()
@@ -489,8 +419,7 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
 
   /** Check if the [target] text matches the current input position. */
   private fun isMatch(target: String): Boolean {
-    return (state.srcIndex + target.length <= state.text.length &&
-      target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
+    return (state.srcIndex + target.length <= state.text.length && target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
   }
 
   private fun skipIfMatch(target: String): Boolean {
@@ -506,11 +435,9 @@ private class EscapingXmlReader(text: CharSequence) : Reader() {
 
 @Service(Service.Level.PROJECT)
 class BindingXmlIndexModificationTracker(private val project: Project) : ModificationTracker {
-  override fun getModificationCount() =
-    FileBasedIndex.getInstance().getIndexModificationStamp(BINDING_XML_INDEX_NAME, project)
+  override fun getModificationCount() = FileBasedIndex.getInstance().getIndexModificationStamp(BINDING_XML_INDEX_NAME, project)
 
   companion object {
-    fun getInstance(project: Project): ModificationTracker =
-      project.service<BindingXmlIndexModificationTracker>()
+    fun getInstance(project: Project): ModificationTracker = project.service<BindingXmlIndexModificationTracker>()
   }
 }

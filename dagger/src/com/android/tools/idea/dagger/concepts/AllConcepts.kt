@@ -19,9 +19,8 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexValue
 
 /**
- * Collection of all known [DaggerConcept]s. This is effectively the entry point for external
- * consumers of concepts, since they do not need to know about the individual concepts and instead
- * look at the set of all of them together.
+ * Collection of all known [DaggerConcept]s. This is effectively the entry point for external consumers of concepts, since they do not need
+ * to know about the individual concepts and instead look at the set of all of them together.
  */
 object AllConcepts : DaggerConcept {
   private val CONCEPTS =
@@ -47,8 +46,7 @@ object AllConcepts : DaggerConcept {
       )
     }
 
-  override val indexValueReaders: List<IndexValue.Reader> =
-    CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
+  override val indexValueReaders: List<IndexValue.Reader> = CONCEPTS.flatMap(DaggerConcept::indexValueReaders)
 
   override val daggerElementIdentifiers: DaggerElementIdentifiers =
     DaggerElementIdentifiers.of(CONCEPTS.map(DaggerConcept::daggerElementIdentifiers))

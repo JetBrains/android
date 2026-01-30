@@ -28,9 +28,7 @@ object NewProjectWizardTestUtils {
 
   @JvmStatic
   fun getAgpVersion(): AgpVersionSoftwareEnvironment {
-    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(
-        SDK_VERSION_FOR_NPW_TESTS
-      )
+    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS)
       .withTargetSdk(SDK_VERSION_FOR_NPW_TESTS)
   }
 

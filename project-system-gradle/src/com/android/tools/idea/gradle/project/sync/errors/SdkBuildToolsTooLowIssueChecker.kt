@@ -40,21 +40,21 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 /**
  * This IssueChecker is for olg AGP version where having an old build tools version ends up in a sync issue. For newer AGP (tested for 3.1.0
  * and above, a low build tools version will be ignored and the default minimum version required by the SDK handler will be chosen.
  */
-class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
-  private val SDK_BUILD_TOOLS_TOO_LOW_PATTERN = Pattern.compile(
-    "The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)")
+class SdkBuildToolsTooLowIssueChecker : GradleIssueChecker {
+  private val SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
+    Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)")
 
   @Slow
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -82,10 +82,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 
     // TODO(b/149203281): Fix support for composite projects.
     val modules = listOfNotNull(GradleHolderProjectPath(FileUtil.toSystemIndependentName(projectPath), gradlePath).resolveIn(ideaProject))
-    val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleProjectSystemUtil.getGradleBuildFile(
-      modules[0]
-    )
-    )
+    val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleProjectSystemUtil.getGradleBuildFile(modules[0]))
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
     if (sdkHandler != null) {
@@ -93,16 +90,20 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
       val packages = sdkHandler.getRepoManagerAndLoadSynchronously(progress).packages
       val buildTool = packages.localPackages[DetailsTypes.getBuildToolsPath(Revision.parseRevision(minVersion))]
       if (buildTool == null) {
-        val linkMessage = "Install Build Tools $minVersion " +
-                          if (buildFiles.isNotEmpty()) ", update version in build file and sync project" else " and sync project"
+        val linkMessage =
+          "Install Build Tools $minVersion " +
+            if (buildFiles.isNotEmpty()) ", update version in build file and sync project" else " and sync project"
 
-        buildIssueComposer.addQuickFix(linkMessage,
-                                InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(ideaProject)))
-      }
-      else if(buildFiles.isNotEmpty()) {
+        buildIssueComposer.addQuickFix(
+          linkMessage,
+          InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(ideaProject)),
+        )
+      } else if (buildFiles.isNotEmpty()) {
         val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(ideaProject)
-        buildIssueComposer.addQuickFix("${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
-                                FixBuildToolsVersionQuickFix(minVersion, buildFiles, removeBuildTools))
+        buildIssueComposer.addQuickFix(
+          "${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
+          FixBuildToolsVersionQuickFix(minVersion, buildFiles, removeBuildTools),
+        )
       }
     }
 
@@ -112,12 +113,14 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
     return buildIssueComposer
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(failureCause).matches()
   }
 }
@@ -137,7 +140,8 @@ fun doesAndroidGradlePluginPackageBuildTools(project: Project): Boolean {
 class FixBuildToolsVersionQuickFix(
   private val version: String,
   private val buildFiles: List<VirtualFile>,
-  private val removeBuildTools: Boolean): BuildIssueQuickFix {
+  private val removeBuildTools: Boolean,
+) : BuildIssueQuickFix {
   override val id = "fix.build.tools.version"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {

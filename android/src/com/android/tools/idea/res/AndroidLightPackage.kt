@@ -37,8 +37,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  * @see ProjectSystemPsiElementFinder
  * @see com.android.tools.idea.projectsystem.LightResourceClassService
  */
-class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName: String) :
-  PsiPackageImpl(manager, qualifiedName) {
+class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName: String) : PsiPackageImpl(manager, qualifiedName) {
 
   companion object {
     @JvmStatic
@@ -48,10 +47,9 @@ class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName
   }
 
   /**
-   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage]
-   * instances are only used if the right [PsiElementFinder] decided there are light R classes with
-   * this package name, so the package is valid even if there are no physical files in corresponding
-   * directories.
+   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage] instances are only used if the right
+   * [PsiElementFinder] decided there are light R classes with this package name, so the package is valid even if there are no physical
+   * files in corresponding directories.
    */
   override fun isValid(): Boolean {
     return project.isDisposed.not()
@@ -82,10 +80,7 @@ class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName
     // Find all modules with the required package name that are in the search scope.
     val projectSystem = project.getProjectSystem()
     val modulesInScope =
-      projectSystem
-        .getAndroidFacetsWithPackageName(qualifiedName)
-        .map { it.module }
-        .filter { scope.isSearchInModuleContent(it) }
+      projectSystem.getAndroidFacetsWithPackageName(qualifiedName).map { it.module }.filter { scope.isSearchInModuleContent(it) }
 
     // Return the containing files for `R` classes defined by those modules.
     val lightResourceClassService = projectSystem.getLightResourceClassService()
@@ -95,17 +90,13 @@ class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName
       .toTypedArray()
   }
 
-  /**
-   * Project service responsible for interning instances of [AndroidLightPackage] with a given name.
-   */
+  /** Project service responsible for interning instances of [AndroidLightPackage] with a given name. */
   @Service(Service.Level.PROJECT)
   class InstanceCache(val project: Project) {
 
     /** Cache of [PsiPackage] instances for a given package name. */
-    private val packageCache: Cache<String, PsiPackage> =
-      CacheBuilder.newBuilder().softValues().build()
+    private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
-    fun get(name: String): PsiPackage =
-      packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
+    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
   }
 }

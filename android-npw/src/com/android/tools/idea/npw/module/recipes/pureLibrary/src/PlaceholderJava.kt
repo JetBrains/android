@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.pureLibrary.src
 
-fun placeholderJava(
-  packageName: String,
-  className: String
-) =
-"""
+fun placeholderJava(packageName: String, className: String) =
+  """
 package ${packageName};
 
 public class ${className} {

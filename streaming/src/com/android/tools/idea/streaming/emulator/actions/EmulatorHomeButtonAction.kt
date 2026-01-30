@@ -19,6 +19,8 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 
 /** Simulates pressing the Home button on an Android virtual device. */
 class EmulatorHomeButtonAction :
-    EmulatorPushButtonAction("GoHome",
-                             configFilter = { it.deviceType != DeviceType.AI_GLASSES && (it.deviceType != DeviceType.WEAR || it.api < 28) },
-                             skinOverridesConfigFilter = true)
+  EmulatorPushButtonAction(
+    "GoHome",
+    configFilter = { it.deviceType != DeviceType.AI_GLASSES && (it.deviceType != DeviceType.WEAR || it.api < 28) },
+    skinOverridesConfigFilter = true,
+  )

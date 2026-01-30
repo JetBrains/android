@@ -83,13 +83,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorToolWindowFactoryTest {
 
-  private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) :
-    ToolWindowHeadlessManagerImpl(project) {
+  private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) : ToolWindowHeadlessManagerImpl(project) {
     var notificationText = ""
 
     override fun getToolWindow(id: String?): ToolWindow {
@@ -131,14 +129,9 @@ class LayoutInspectorToolWindowFactoryTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val appInspectionRule = AppInspectionInspectorRule(projectRule)
   private val layoutInspectorRule =
-    LayoutInspectorRule(
-      clientProviders = listOf(appInspectionRule.createInspectorClientProvider()),
-      projectRule,
-    )
+    LayoutInspectorRule(clientProviders = listOf(appInspectionRule.createInspectorClientProvider()), projectRule)
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule).around(appInspectionRule).around(layoutInspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(appInspectionRule).around(layoutInspectorRule)!!
 
   @Before
   fun setUp() {
@@ -219,9 +212,7 @@ class LayoutInspectorToolWindowFactoryTest {
   @Test
   fun isLibraryToolWindow() {
     val toolWindow =
-      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
-        it.id == "Layout Inspector"
-      } ?: fail("Tool window not found")
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Layout Inspector" } ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidProjectChecker::class.qualifiedName)
   }
@@ -258,16 +249,10 @@ class LayoutInspectorToolWindowFactoryTest {
     )
 
     val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
-    projectRule.project.replaceService(
-      LayoutInspectorManager::class.java,
-      mockLayoutInspectorManager,
-      projectRule.testRootDisposable,
-    )
+    projectRule.project.replaceService(LayoutInspectorManager::class.java, mockLayoutInspectorManager, projectRule.testRootDisposable)
 
     // Verify that the tool window is null to begin with.
-    val layoutInspectorToolWindow1 =
-      ToolWindowManager.getInstance(projectRule.project)
-        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    val layoutInspectorToolWindow1 = ToolWindowManager.getInstance(projectRule.project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     assertThat(layoutInspectorToolWindow1).isNull()
 
     registerLayoutInspectorToolWindow(projectRule.project)
@@ -276,27 +261,21 @@ class LayoutInspectorToolWindowFactoryTest {
     verify(mockLayoutInspectorManager).disable()
 
     // Verify that the tool window was added.
-    val layoutInspectorToolWindow2 =
-      ToolWindowManager.getInstance(projectRule.project)
-        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    val layoutInspectorToolWindow2 = ToolWindowManager.getInstance(projectRule.project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     assertThat(layoutInspectorToolWindow2).isNotNull()
 
     unregisterLayoutInspectorToolWindow(projectRule.project)
 
     // Verify that the tool window has been removed.
-    val layoutInspectorToolWindow3 =
-      ToolWindowManager.getInstance(projectRule.project)
-        .getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+    val layoutInspectorToolWindow3 = ToolWindowManager.getInstance(projectRule.project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     assertThat(layoutInspectorToolWindow3).isNull()
   }
 
   @Test
   fun testEmbeddedLayoutInspectorBanner() {
-    val originalService =
-      ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
+    val originalService = ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
     val mockService = mock<ShowSettingsUtil>()
-    ApplicationManager.getApplication()
-      .replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
 
     val notificationModel = NotificationModel(projectRule.project)
 
@@ -314,41 +293,31 @@ class LayoutInspectorToolWindowFactoryTest {
       activateEmbeddedLayoutInspector = { activateEmbeddedLiInvocationsCounter += 1 },
     )
 
-    whenever(
-        mockService.showSettingsDialog(
-          eq(projectRule.project),
-          eq(LayoutInspectorConfigurable::class.java),
-        )
-      )
-      .then {
-        // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
-        testScheduler.advanceUntilIdle()
-        // Simulate the user enabling the setting in the ui
-        LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
-      }
+    whenever(mockService.showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))).then {
+      // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
+      testScheduler.advanceUntilIdle()
+      // Simulate the user enabling the setting in the ui
+      LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+    }
 
     val notification = notificationModel.notifications.first()
     assertThat(notification.id).isEqualTo(BANNER_STRING_ID)
 
-    val doNotShowAgainAction =
-      notification.actions.find { it.name == LayoutInspectorBundle.message("do.not.show.again") }
+    val doNotShowAgainAction = notification.actions.find { it.name == LayoutInspectorBundle.message("do.not.show.again") }
     doNotShowAgainAction!!.invoke(notification)
 
     assertThat(setShouldShowBannerInvocations).containsExactly(false)
 
-    val enableAction =
-      notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
+    val enableAction = notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
     enableAction!!.invoke(notification)
     testScheduler.advanceUntilIdle()
 
-    verify(mockService)
-      .showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
+    verify(mockService).showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
     waitForCondition(10.seconds) { activateEmbeddedLiInvocationsCounter == 1 }
     assertThat(activateEmbeddedLiInvocationsCounter).isEqualTo(1)
 
     // clean up by restoring the original service
-    ApplicationManager.getApplication()
-      .replaceService(ShowSettingsUtil::class.java, originalService, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, originalService, projectRule.testRootDisposable)
   }
 
   @Test
@@ -369,11 +338,9 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun testEmbeddedLayoutInspectorSwitchRemovesBanner() {
-    val originalService =
-      ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
+    val originalService = ApplicationManager.getApplication().getService(ShowSettingsUtil::class.java)
     val mockService = mock<ShowSettingsUtil>()
-    ApplicationManager.getApplication()
-      .replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, mockService, projectRule.testRootDisposable)
 
     // Ensure we start with embedded inspector disabled
     LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
@@ -393,41 +360,28 @@ class LayoutInspectorToolWindowFactoryTest {
         activateEmbeddedLayoutInspector = { activateEmbeddedLiInvocationsCounter += 1 },
       )
 
-      whenever(
-          mockService.showSettingsDialog(
-            eq(projectRule.project),
-            eq(LayoutInspectorConfigurable::class.java),
-          )
-        )
-        .then {
-          // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
-          testScheduler.advanceUntilIdle()
-          // Simulate the user enabling the setting in the ui
-          LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
-        }
+      whenever(mockService.showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))).then {
+        // Wait for the coroutine to start listening to embeddedLayoutInspectorChanges
+        testScheduler.advanceUntilIdle()
+        // Simulate the user enabling the setting in the ui
+        LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+      }
 
       val notification = notificationModel.notifications.first()
       assertThat(notification.id).isEqualTo(BANNER_STRING_ID)
 
-      val enableAction =
-        notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
+      val enableAction = notification.actions.find { it.name == LayoutInspectorBundle.message("enable") }
       enableAction!!.invoke(notification)
       testScheduler.advanceUntilIdle()
 
-      verify(mockService)
-        .showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
+      verify(mockService).showSettingsDialog(eq(projectRule.project), eq(LayoutInspectorConfigurable::class.java))
       waitForCondition(10.seconds) { activateEmbeddedLiInvocationsCounter == 1 }
 
       // The notification should be removed after enabling
       assertThat(notificationModel.notifications).isEmpty()
     } finally {
       LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
-      ApplicationManager.getApplication()
-        .replaceService(
-          ShowSettingsUtil::class.java,
-          originalService,
-          projectRule.testRootDisposable,
-        )
+      ApplicationManager.getApplication().replaceService(ShowSettingsUtil::class.java, originalService, projectRule.testRootDisposable)
     }
   }
 }
@@ -445,17 +399,9 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
   fun testResetSelectedProcessAfterProjectIsClosed() = runBlocking {
     val device = DEVICE_1
     adbRule
-      .connectDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        device.apiLevel,
-        DeviceState.HostConnectionType.USB,
-      )
+      .connectDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel, DeviceState.HostConnectionType.USB)
       .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    ApplicationManager.getApplication()
-      .replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
     val service = AppInspectionDiscoveryService.instance
     val discovery = TestProcessDiscovery()
     val apiServices: AppInspectionApiServices = mock()
@@ -476,21 +422,14 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
       LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
       val component = toolWindow.contentManager.selectedContent?.component!!
-      waitForCondition(25L, TimeUnit.SECONDS) {
-        component.flatten(false).firstOrNull { it is DeviceViewPanel } != null
-      }
-      val deviceViewPanel =
-        component.flatten(false).first { it is DeviceViewPanel } as DeviceViewPanel
-      val deviceViewContentPanel =
-        deviceViewPanel.flatten(false).first { it is DeviceViewContentPanel }
-          as DeviceViewContentPanel
+      waitForCondition(25L, TimeUnit.SECONDS) { component.flatten(false).firstOrNull { it is DeviceViewPanel } != null }
+      val deviceViewPanel = component.flatten(false).first { it is DeviceViewPanel } as DeviceViewPanel
+      val deviceViewContentPanel = deviceViewPanel.flatten(false).first { it is DeviceViewContentPanel } as DeviceViewContentPanel
       val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(project, RecentProcess(device.serial, MODERN_PROCESS.name))
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)
-      deviceViewContentPanel.inspectorModel.addModificationListener { _, _, _ ->
-        modelUpdatedLatch.countDown()
-      }
+      deviceViewContentPanel.inspectorModel.addModificationListener { _, _, _ -> modelUpdatedLatch.countDown() }
       discovery.fireConnected(MODERN_PROCESS)
       modelUpdatedLatch.await(1L, TimeUnit.SECONDS)
 
@@ -522,14 +461,9 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
   }
 
   private fun createProject(): ProjectEx {
-    val projectFile =
-      TemporaryDirectory.generateTemporaryPath(
-        "project_dispose_project${ProjectFileType.DOT_DEFAULT_EXTENSION}"
-      )
-    val options =
-      createTestOpenProjectOptions(runPostStartUpActivities = false).copy(preloadServices = false)
-    return (ProjectManager.getInstance() as TestProjectManager).openProject(projectFile, options)
-      as ProjectEx
+    val projectFile = TemporaryDirectory.generateTemporaryPath("project_dispose_project${ProjectFileType.DOT_DEFAULT_EXTENSION}")
+    val options = createTestOpenProjectOptions(runPostStartUpActivities = false).copy(preloadServices = false)
+    return (ProjectManager.getInstance() as TestProjectManager).openProject(projectFile, options) as ProjectEx
   }
 
   private fun closeProject(project: Project) {

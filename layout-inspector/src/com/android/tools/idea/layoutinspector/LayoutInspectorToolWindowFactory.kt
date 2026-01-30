@@ -135,11 +135,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       .connect(toolWindow.disposable)
       .subscribe(
         ToolWindowManagerListener.TOPIC,
-        LayoutInspectorToolWindowManagerListener(
-          toolWindow,
-          layoutInspector,
-          layoutInspector.launcher!!,
-        ),
+        LayoutInspectorToolWindowManagerListener(toolWindow, layoutInspector, layoutInspector.launcher!!),
       )
 
     showEmbeddedLayoutInspectorBanner(
@@ -149,21 +145,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     )
   }
 
-  private fun createOldStandaloneLayoutInspectorUi(
-    disposable: Disposable,
-    project: Project,
-    layoutInspector: LayoutInspector,
-  ): JPanel {
+  private fun createOldStandaloneLayoutInspectorUi(disposable: Disposable, project: Project, layoutInspector: LayoutInspector): JPanel {
     val devicePanel = createDevicePanel(disposable, layoutInspector)
 
     val workbench =
       WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
-        init(
-          devicePanel,
-          layoutInspector,
-          listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-          false,
-        )
+        init(devicePanel, layoutInspector, listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
       }
 
     val splitPanel =
@@ -199,13 +186,10 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         inspectorModel = layoutInspector.inspectorModel,
         treeSettings = layoutInspector.treeSettings,
         renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = {
-          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-        },
+        navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
       )
 
-    val renderPanel =
-      StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
+    val renderPanel = StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
 
     val container =
       ZoomableContainer(
@@ -215,8 +199,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         setZoomPercent = { layoutInspector.renderSettings.scalePercent = it },
       )
 
-    val emptyStatePanel =
-      EmptyStatePanel(LabelData(TextChunk(LayoutInspectorBundle.message("nothing.to.show"))))
+    val emptyStatePanel = EmptyStatePanel(LabelData(TextChunk(LayoutInspectorBundle.message("nothing.to.show"))))
 
     // Use a card layout to switch between empty state and actual content
     val cardLayout = CardLayout()
@@ -258,15 +241,11 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         toolbarPanel = null,
       )
 
-    scope.launch {
-      toolbarState.isDeepInspectEnabled.collect { renderModel.setInterceptClicks(it) }
-    }
+    scope.launch { toolbarState.isDeepInspectEnabled.collect { renderModel.setInterceptClicks(it) } }
 
     scope.launch { toolbarState.overlayImage.collect { renderModel.setOverlay(it) } }
 
-    scope.launch {
-      toolbarState.overlayTransparency.collect { renderModel.setOverlayTransparency(it) }
-    }
+    scope.launch { toolbarState.overlayTransparency.collect { renderModel.setOverlayTransparency(it) } }
 
     layoutInspector.inspectorModel.addModificationListener { oldWindow, newWindow, _ ->
       if (oldWindow == null && newWindow != null) {
@@ -280,10 +259,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       val client = layoutInspector.currentClient
       if (client.inLiveMode) {
         // The current agent protocol requires bitmaps to be resized based on to the current scale
-        client.updateScreenshotType(
-          type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
-          scale = renderSettings.scaleFraction.toFloat(),
-        )
+        client.updateScreenshotType(type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED, scale = renderSettings.scaleFraction.toFloat())
       }
     }
 
@@ -291,10 +267,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       if (client.isConnected) {
         // Right after connecting the agent has a default scale of 1.0, we should update it to the
         // scale of the rendering
-        client.updateScreenshotType(
-          type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED,
-          scale = renderSettings.scaleFraction.toFloat(),
-        )
+        client.updateScreenshotType(type = AndroidWindow.ImageType.BITMAP_AS_REQUESTED, scale = renderSettings.scaleFraction.toFloat())
       }
 
       if (client.isConnected) {
@@ -307,12 +280,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     return rootPanel
   }
 
-  private fun createDevicePanel(
-    disposable: Disposable,
-    layoutInspector: LayoutInspector,
-  ): DeviceViewPanel {
-    val deviceViewPanel =
-      DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
+  private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
+    val deviceViewPanel = DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
 
     // notify DeviceViewPanel that a new foreground process showed up
     layoutInspector.foregroundProcessDetection?.addForegroundProcessListener { _, _, isDebuggable ->
@@ -372,8 +341,7 @@ class LayoutInspectorToolWindowManagerListener(
 }
 
 private const val showBannerDefaultValue: Boolean = true
-private const val SHOW_BANNER_KEY =
-  "com.android.tools.idea.layoutinspector.try.embedded.layout.inspector.key"
+private const val SHOW_BANNER_KEY = "com.android.tools.idea.layoutinspector.try.embedded.layout.inspector.key"
 
 @VisibleForTesting const val BANNER_STRING_ID = "enable.embedded.layout.inspector.banner"
 
@@ -382,15 +350,9 @@ fun showEmbeddedLayoutInspectorBanner(
   project: Project,
   notificationModel: NotificationModel,
   scope: CoroutineScope,
-  shouldShowBanner: () -> Boolean = {
-    PropertiesComponent.getInstance().getBoolean(SHOW_BANNER_KEY, showBannerDefaultValue)
-  },
-  setShouldShowBanner: (Boolean) -> Unit = {
-    PropertiesComponent.getInstance().setValue(SHOW_BANNER_KEY, it, showBannerDefaultValue)
-  },
-  activateEmbeddedLayoutInspector: (Project) -> Unit = {
-    activateEmbeddedLayoutInspectorToolWindow(project)
-  },
+  shouldShowBanner: () -> Boolean = { PropertiesComponent.getInstance().getBoolean(SHOW_BANNER_KEY, showBannerDefaultValue) },
+  setShouldShowBanner: (Boolean) -> Unit = { PropertiesComponent.getInstance().setValue(SHOW_BANNER_KEY, it, showBannerDefaultValue) },
+  activateEmbeddedLayoutInspector: (Project) -> Unit = { activateEmbeddedLayoutInspectorToolWindow(project) },
 ) {
   if (!shouldShowBanner()) {
     return
@@ -403,8 +365,7 @@ fun showEmbeddedLayoutInspectorBanner(
     sticky = true,
     actions =
       listOf(
-        StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification
-          ->
+        StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
           setShouldShowBanner(false)
           notificationModel.removeNotification(notification.id)
         },
@@ -422,8 +383,7 @@ fun showEmbeddedLayoutInspectorBanner(
           }
 
           // show settings screen
-          ShowSettingsUtil.getInstance()
-            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+          ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
         },
       ),
   )

@@ -45,10 +45,7 @@ class Benchmarker<InputType>(
   //     └──────────┴──────────┴──────────┴──────►│STOPPED│
   //                                              └───────┘
   private val stateMachine =
-    StateMachine.stateMachine(
-      State.INITIALIZED,
-      StateMachine.Config(logger = LOG, timeSource = timeSource),
-    ) {
+    StateMachine.stateMachine(State.INITIALIZED, StateMachine.Config(logger = LOG, timeSource = timeSource)) {
       State.INITIALIZED.transitionsTo(State.GETTING_READY, State.STOPPED)
       State.GETTING_READY {
         transitionsTo(State.SENDING_INPUTS, State.STOPPED)
@@ -167,9 +164,7 @@ class Benchmarker<InputType>(
   class Results<InputType>(val raw: Map<InputType, Duration>) {
     @Suppress("UnstableApiUsage")
     val percentiles: Map<Int, Double> =
-      Quantiles.percentiles()
-        .indexes(IntRange(1, 100).toList())
-        .compute(raw.values.map { it.inWholeMilliseconds })
+      Quantiles.percentiles().indexes(IntRange(1, 100).toList()).compute(raw.values.map { it.inWholeMilliseconds })
   }
 
   /** Callbacks for various stages of benchmarking. */
@@ -220,19 +215,15 @@ class Benchmarker<InputType>(
     /** Callbacks to return data to the [Benchmarker] during benchmarking. */
     interface Callbacks<InputType> {
       /**
-       * Indicates that the given [input] was returned from the object being benchmarked, along with
-       * an [effectiveDispatchTime] that can be used to compute the round-trip from dispatch to
-       * return, minus any processing time.
+       * Indicates that the given [input] was returned from the object being benchmarked, along with an [effectiveDispatchTime] that can be
+       * used to compute the round-trip from dispatch to return, minus any processing time.
        */
       fun inputReturned(input: InputType, effectiveDispatchTime: TimeMark)
 
       /** Indicates that the [Benchmarker] can begin dispatching inputs. */
       fun onReady()
 
-      /**
-       * Indicates that the object failed to become ready to receive inputs and benchmarking cannot
-       * proceed.
-       */
+      /** Indicates that the object failed to become ready to receive inputs and benchmarking cannot proceed. */
       fun onFailedToBecomeReady(msg: String)
     }
   }

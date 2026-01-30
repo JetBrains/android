@@ -16,11 +16,7 @@
 package com.android.tools.idea.insights.model.event
 
 /** Describes a mobile device's OS. */
-data class OperatingSystemInfo(
-  val displayVersion: String,
-  val displayName: String,
-  val filterName: String = displayName,
-) {
+data class OperatingSystemInfo(val displayVersion: String, val displayName: String, val filterName: String = displayName) {
   companion object {
     val ALL = OperatingSystemInfo(displayVersion = "", displayName = "")
   }

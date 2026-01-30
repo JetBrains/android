@@ -55,16 +55,11 @@ import com.android.tools.property.panel.api.PropertiesTable
  *
  * Creates custom UI to organize the parameters and to organize the internal `Device` parameters.
  */
-internal class PreviewPropertiesInspectorBuilder(
-  enumSupportValuesProvider: EnumSupportValuesProvider
-) : PsiPropertiesInspectorBuilder() {
+internal class PreviewPropertiesInspectorBuilder(enumSupportValuesProvider: EnumSupportValuesProvider) : PsiPropertiesInspectorBuilder() {
   override val editorProvider: EditorProvider<PsiPropertyItem> =
     PsiEditorProvider(PsiEnumProvider(enumSupportValuesProvider), PreviewControlTypeProvider)
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<PsiPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
     val allProps = properties.values.associateBy { it.name }.toMutableMap()
     val previewProperties =
       mutableListOf<PsiPropertyItem>().apply {
@@ -78,9 +73,7 @@ internal class PreviewPropertiesInspectorBuilder(
     val deviceProperties =
       mutableMapOf<String, PsiPropertyItem>().apply {
         allProps.remove(PARAMETER_HARDWARE_DEVICE)?.let { put(PARAMETER_HARDWARE_DEVICE, it) }
-        allProps.remove(PARAMETER_HARDWARE_ORIENTATION)?.let {
-          put(PARAMETER_HARDWARE_ORIENTATION, it)
-        }
+        allProps.remove(PARAMETER_HARDWARE_ORIENTATION)?.let { put(PARAMETER_HARDWARE_ORIENTATION, it) }
         allProps.remove(PARAMETER_HARDWARE_DENSITY)?.let { put(PARAMETER_HARDWARE_DENSITY, it) }
         allProps.remove(PARAMETER_HARDWARE_WIDTH)?.let { put(PARAMETER_HARDWARE_WIDTH, it) }
         allProps.remove(PARAMETER_HARDWARE_HEIGHT)?.let { put(PARAMETER_HARDWARE_HEIGHT, it) }
@@ -88,9 +81,7 @@ internal class PreviewPropertiesInspectorBuilder(
         allProps.remove(PARAMETER_HARDWARE_IS_ROUND)?.let { put(PARAMETER_HARDWARE_IS_ROUND, it) }
         allProps.remove(PARAMETER_HARDWARE_CHIN_SIZE)?.let { put(PARAMETER_HARDWARE_CHIN_SIZE, it) }
         allProps.remove(PARAMETER_HARDWARE_CUTOUT)?.let { put(PARAMETER_HARDWARE_CUTOUT, it) }
-        allProps.remove(PARAMETER_HARDWARE_NAVIGATION)?.let {
-          put(PARAMETER_HARDWARE_NAVIGATION, it)
-        }
+        allProps.remove(PARAMETER_HARDWARE_NAVIGATION)?.let { put(PARAMETER_HARDWARE_NAVIGATION, it) }
       }
     val remainingProperties = allProps.values
 

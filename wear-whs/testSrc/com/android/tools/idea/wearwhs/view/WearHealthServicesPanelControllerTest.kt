@@ -53,10 +53,7 @@ class WearHealthServicesPanelControllerTest {
   @get:Rule val chain = RuleChain(projectRule, fakePopupRule, actionMenuRule, EdtRule())
 
   private val notifications
-    get() =
-      NotificationsManager.getNotificationsManager()
-        .getNotificationsOfType(Notification::class.java, projectRule.project)
-        .toList()
+    get() = NotificationsManager.getNotificationsManager().getNotificationsOfType(Notification::class.java, projectRule.project).toList()
 
   private lateinit var uiScope: CoroutineScope
   private lateinit var workerScope: CoroutineScope
@@ -66,31 +63,21 @@ class WearHealthServicesPanelControllerTest {
 
   private val fakeUi: FakeUi
     get() =
-      checkNotNull(
-        fakePopupRule.fakePopupFactory
-          .getBalloon(fakePopupRule.fakePopupFactory.balloonCount - 1)
-          .ui
-      ) {
+      checkNotNull(fakePopupRule.fakePopupFactory.getBalloon(fakePopupRule.fakePopupFactory.balloonCount - 1).ui) {
         "expected fake ui to be created"
       }
 
   @Before
   fun setup() {
     uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    workerScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    workerScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
     deviceManager = FakeDeviceManager()
 
     stateManager =
       WearHealthServicesStateManagerImpl(deviceManager = deviceManager, workerScope = workerScope)
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
-    controller =
-      WearHealthServicesPanelController(
-        stateManager = stateManager,
-        uiScope = uiScope,
-        workerScope = workerScope,
-      )
+    controller = WearHealthServicesPanelController(stateManager = stateManager, uiScope = uiScope, workerScope = workerScope)
   }
 
   @Test
@@ -109,10 +96,7 @@ class WearHealthServicesPanelControllerTest {
     showWhsPopup()
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.apply.capabilities.success") &&
-          it.type == NotificationType.INFORMATION
-      }
+      notifications.any { it.content == message("wear.whs.panel.apply.capabilities.success") && it.type == NotificationType.INFORMATION }
     }
   }
 
@@ -127,85 +111,66 @@ class WearHealthServicesPanelControllerTest {
     showWhsPopup()
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.apply.capabilities.failure") &&
-          it.type == NotificationType.ERROR
-      }
+      notifications.any { it.content == message("wear.whs.panel.apply.capabilities.failure") && it.type == NotificationType.ERROR }
     }
   }
 
   @Test
-  fun `test user is notified of successful apply changes when panel is not showing`(): Unit =
-    runBlocking {
-      showWhsPopup()
+  fun `test user is notified of successful apply changes when panel is not showing`(): Unit = runBlocking {
+    showWhsPopup()
 
-      fakeUi.clickOnApplyButton()
+    fakeUi.clickOnApplyButton()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.capabilities.success") &&
-            it.type == NotificationType.INFORMATION
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.panel.apply.capabilities.success") && it.type == NotificationType.INFORMATION }
     }
+  }
 
   @Test
-  fun `test user is notified of failed apply changes when panel is not showing`(): Unit =
-    runBlocking {
-      deviceManager.failState = true
+  fun `test user is notified of failed apply changes when panel is not showing`(): Unit = runBlocking {
+    deviceManager.failState = true
 
-      showWhsPopup()
+    showWhsPopup()
 
-      fakeUi.clickOnApplyButton()
+    fakeUi.clickOnApplyButton()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.capabilities.failure") &&
-            it.type == NotificationType.ERROR
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.panel.apply.capabilities.failure") && it.type == NotificationType.ERROR }
     }
+  }
 
   @Test
-  fun `test apply notifies about sensor value changes when there is an ongoing exercise`(): Unit =
-    runBlocking {
-      deviceManager.activeExercise = true
-      stateManager.ongoingExercise.waitForValue(true)
+  fun `test apply notifies about sensor value changes when there is an ongoing exercise`(): Unit = runBlocking {
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
 
-      showWhsPopup()
+    showWhsPopup()
 
-      deviceManager.failState = false
-      fakeUi.clickOnApplyButton()
+    deviceManager.failState = false
+    fakeUi.clickOnApplyButton()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.sensor.values.success") &&
-            it.type == NotificationType.INFORMATION
-        }
-      }
-
-      showWhsPopup()
-      deviceManager.failState = true
-      fakeUi.clickOnApplyButton()
-
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.sensor.values.failure") &&
-            it.type == NotificationType.ERROR
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.panel.apply.sensor.values.success") && it.type == NotificationType.INFORMATION }
     }
+
+    showWhsPopup()
+    deviceManager.failState = true
+    fakeUi.clickOnApplyButton()
+
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.panel.apply.sensor.values.failure") && it.type == NotificationType.ERROR }
+    }
+  }
 
   @Test
-  fun `test successful reset shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      showWhsPopup()
+  fun `test successful reset shows in information label when panel is showing`(): Unit = runBlocking {
+    showWhsPopup()
 
-      val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
-      resetButton.doClick()
+    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
+    resetButton.doClick()
 
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.success") }
-    }
+    fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.success") }
+  }
 
   @Test
   fun `test failed reset shows in information label when panel is showing`(): Unit = runBlocking {
@@ -229,10 +194,7 @@ class WearHealthServicesPanelControllerTest {
     resetButton.doClick()
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.reset.success") &&
-          it.type == NotificationType.INFORMATION
-      }
+      notifications.any { it.content == message("wear.whs.panel.reset.success") && it.type == NotificationType.INFORMATION }
     }
   }
 
@@ -250,29 +212,23 @@ class WearHealthServicesPanelControllerTest {
     resetButton.doClick()
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.reset.failure") && it.type == NotificationType.ERROR
-      }
+      notifications.any { it.content == message("wear.whs.panel.reset.failure") && it.type == NotificationType.ERROR }
     }
   }
 
   @Test
-  fun `test user is notified of successful trigger event when panel is showing`(): Unit =
-    runBlocking {
-      showWhsPopup()
+  fun `test user is notified of successful trigger event when panel is showing`(): Unit = runBlocking {
+    showWhsPopup()
 
-      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
+    fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
-      // show popup again as clicking on the trigger event button closes it
-      showWhsPopup()
+    // show popup again as clicking on the trigger event button closes it
+    showWhsPopup()
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.event.trigger.success") &&
-            it.type == NotificationType.INFORMATION
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.event.trigger.success") && it.type == NotificationType.INFORMATION }
     }
+  }
 
   @Test
   fun `test user is notified of failed trigger event when panel is showing`(): Unit = runBlocking {
@@ -285,43 +241,33 @@ class WearHealthServicesPanelControllerTest {
     showWhsPopup()
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.event.trigger.failure") && it.type == NotificationType.ERROR
-      }
+      notifications.any { it.content == message("wear.whs.event.trigger.failure") && it.type == NotificationType.ERROR }
     }
   }
 
   @Test
-  fun `test user is notified of successful trigger event when panel is not showing`(): Unit =
-    runBlocking {
-      showWhsPopup()
+  fun `test user is notified of successful trigger event when panel is not showing`(): Unit = runBlocking {
+    showWhsPopup()
 
-      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
+    fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.event.trigger.success") &&
-            it.type == NotificationType.INFORMATION
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.event.trigger.success") && it.type == NotificationType.INFORMATION }
     }
+  }
 
   @Test
-  fun `test user is notified of failed trigger event when panel is not showing`(): Unit =
-    runBlocking {
-      showWhsPopup()
+  fun `test user is notified of failed trigger event when panel is not showing`(): Unit = runBlocking {
+    showWhsPopup()
 
-      deviceManager.failState = true
+    deviceManager.failState = true
 
-      fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
+    fakeUi.clickOnTriggerEvent({ actionMenuRule.lastPopupActions })
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.event.trigger.failure") &&
-            it.type == NotificationType.ERROR
-        }
-      }
+    waitForCondition(2, TimeUnit.SECONDS) {
+      notifications.any { it.content == message("wear.whs.event.trigger.failure") && it.type == NotificationType.ERROR }
     }
+  }
 
   // Regression test for b/373397938
   @Test
@@ -329,15 +275,11 @@ class WearHealthServicesPanelControllerTest {
     runBlocking<Unit> {
       showWhsPopup()
 
-      val applyButton =
-        fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
+      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
       assertThat(applyButton.isDefaultButton).isTrue()
     }
 
   private fun showWhsPopup() {
-    controller.showWearHealthServicesToolPopup(
-      projectRule.testRootDisposable,
-      RelativePoint(mock(), Point(0, 0)),
-    )
+    controller.showWearHealthServicesToolPopup(projectRule.testRootDisposable, RelativePoint(mock(), Point(0, 0)))
   }
 }

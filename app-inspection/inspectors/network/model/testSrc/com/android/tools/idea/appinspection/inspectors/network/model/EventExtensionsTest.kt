@@ -45,19 +45,14 @@ class EventExtensionsTest {
   }
 }
 
-private fun eventsOf(vararg timestamps: Long) =
-  timestamps.map { Event.newBuilder().setTimestamp(MICROSECONDS.toNanos(it)).build() }
+private fun eventsOf(vararg timestamps: Long) = timestamps.map { Event.newBuilder().setTimestamp(MICROSECONDS.toNanos(it)).build() }
 
 /** Convenience method that handles Micro <-> Nano & Int <-> Long conversions */
 private fun List<Event>.searchRange(range: IntRange) =
-  searchRange(Range(range.first.toDouble(), range.last.toDouble())).map {
-    NANOSECONDS.toMicros(it.timestamp).toInt()
-  }
+  searchRange(Range(range.first.toDouble(), range.last.toDouble())).map { NANOSECONDS.toMicros(it.timestamp).toInt() }
 
 /** Convenience method that handles Micro <-> Nano & Int <-> Long conversions */
-private fun List<Event>.findStartIndex(minUs: Int): Int =
-  findStartIndex(MICROSECONDS.toNanos(minUs.toLong()))
+private fun List<Event>.findStartIndex(minUs: Int): Int = findStartIndex(MICROSECONDS.toNanos(minUs.toLong()))
 
 /** Convenience method that handles Micro <-> Nano & Int <-> Long conversions */
-private fun List<Event>.findEndIndex(minUs: Int): Int =
-  findEndIndex(MICROSECONDS.toNanos(minUs.toLong()))
+private fun List<Event>.findEndIndex(minUs: Int): Int = findEndIndex(MICROSECONDS.toNanos(minUs.toLong()))

@@ -62,8 +62,7 @@ class MaterialVdIconsLoaderTest {
   fun testIllegalArgumentException() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
-    val exception =
-      assertFailsWith<IllegalArgumentException> { loader.loadMaterialVdIcons("style") }
+    val exception = assertFailsWith<IllegalArgumentException> { loader.loadMaterialVdIcons("style") }
     Truth.assertThat(exception.message).isEqualTo("Style: style not part of the metadata.")
   }
 
@@ -126,8 +125,7 @@ class MaterialVdIconsLoaderTest {
         icons = iconsMetadataArray,
         categories = emptyArray(),
       )
-    val icons =
-      MaterialVdIconsLoader(metadata, TempFileUrlProvider("withMissingFile")).loadAll(metadata)
+    val icons = MaterialVdIconsLoader(metadata, TempFileUrlProvider("withMissingFile")).loadAll(metadata)
     // The check should still pass since the non-existing icon shouldn't load and is skipped.
     checkIcons(icons)
   }
@@ -139,8 +137,8 @@ class MaterialVdIconsLoaderTest {
    *
    * Icons and categories should be alphabetically ordered.
    *
-   * The icons loaded should match only the icons listed in the metadata. Note that test resources
-   * intentionally contain extra or misplaced icons.
+   * The icons loaded should match only the icons listed in the metadata. Note that test resources intentionally contain extra or misplaced
+   * icons.
    */
   private fun checkIcons(icons: MaterialVdIcons) {
     Truth.assertThat(icons.styles).hasSize(2)
@@ -182,9 +180,8 @@ class MaterialVdIconsLoaderTest {
 }
 
 /**
- * [MaterialIconsUrlProvider] implementation that returns a [URL] with a mocked [JarFile] for
- * [MaterialIconsUrlProvider.getStyleUrl] and references the test resources for
- * [MaterialIconsUrlProvider.getIconUrl].
+ * [MaterialIconsUrlProvider] implementation that returns a [URL] with a mocked [JarFile] for [MaterialIconsUrlProvider.getStyleUrl] and
+ * references the test resources for [MaterialIconsUrlProvider.getIconUrl].
  */
 private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
 
@@ -196,8 +193,7 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
       Pair("images/material/icons/style2/", null),
     )
 
-  override fun getStyleUrl(style: String): URL? =
-    jarUrls[MaterialIconsUtils.getBundledStyleDirectoryPath(style)]
+  override fun getStyleUrl(style: String): URL? = jarUrls[MaterialIconsUtils.getBundledStyleDirectoryPath(style)]
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
     return MaterialVdIconsLoaderTest::class
@@ -238,17 +234,12 @@ private class TempFileUrlProvider(tempDirPrefix: String) : MaterialIconsUrlProvi
   private val tempDirPath = createTempDirectory(tempDirPrefix)
 
   private val styleToStyleDirUrl: Map<String, URL> =
-    mapOf(
-      Pair("style 1", populateStylePathAndReturnUrl("style1")),
-      Pair("style 2", populateStylePathAndReturnUrl("style2")),
-    )
+    mapOf(Pair("style 1", populateStylePathAndReturnUrl("style1")), Pair("style 2", populateStylePathAndReturnUrl("style2")))
 
   override fun getStyleUrl(style: String): URL? = styleToStyleDirUrl[style]
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return SdkUtils.fileToUrl(
-      tempDirPath.resolve(style.toDirFormat()).resolve(iconName).resolve(iconFileName).toFile()
-    )
+    return SdkUtils.fileToUrl(tempDirPath.resolve(style.toDirFormat()).resolve(iconName).resolve(iconFileName).toFile())
   }
 
   private fun populateStylePathAndReturnUrl(styleDir: String): URL {
@@ -257,21 +248,9 @@ private class TempFileUrlProvider(tempDirPrefix: String) : MaterialIconsUrlProvi
         .resolve(styleDir)
         .apply { createDirectories() }
         .also {
-          it
-            .resolve("my_icon_1")
-            .apply { createDirectory() }
-            .resolve("${styleDir}_my_icon_1_24.xml")
-            .writeText(SIMPLE_VD)
-          it
-            .resolve("my_icon_2")
-            .apply { createDirectory() }
-            .resolve("${styleDir}_my_icon_2_24.xml")
-            .writeText(SIMPLE_VD)
-          it
-            .resolve("my_icon_3")
-            .apply { createDirectory() }
-            .resolve("${styleDir}_my_icon_3_24.xml")
-            .writeText(SIMPLE_VD)
+          it.resolve("my_icon_1").apply { createDirectory() }.resolve("${styleDir}_my_icon_1_24.xml").writeText(SIMPLE_VD)
+          it.resolve("my_icon_2").apply { createDirectory() }.resolve("${styleDir}_my_icon_2_24.xml").writeText(SIMPLE_VD)
+          it.resolve("my_icon_3").apply { createDirectory() }.resolve("${styleDir}_my_icon_3_24.xml").writeText(SIMPLE_VD)
           it.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
         }
     return SdkUtils.fileToUrl(stylePath.toFile())
@@ -280,10 +259,7 @@ private class TempFileUrlProvider(tempDirPrefix: String) : MaterialIconsUrlProvi
 
 private class MaterialIconsTestUrlProvider : MaterialIconsUrlProvider {
   override fun getStyleUrl(style: String): URL? {
-    return MaterialVdIconsLoaderTest::class
-      .java
-      .classLoader
-      .getResource(MaterialIconsUtils.getBundledStyleDirectoryPath(style))
+    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(MaterialIconsUtils.getBundledStyleDirectoryPath(style))
   }
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {

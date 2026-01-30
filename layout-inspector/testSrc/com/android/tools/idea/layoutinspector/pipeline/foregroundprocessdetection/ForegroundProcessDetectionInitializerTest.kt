@@ -51,11 +51,7 @@ class ForegroundProcessDetectionInitializerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer(
-      "ForegroundProcessDetectionInitializerTest",
-      transportService,
-    )
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionInitializerTest", transportService)
   private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
 
   private val device1 = fakeDevice(serial = "1", deviceId = 1)
@@ -80,13 +76,11 @@ class ForegroundProcessDetectionInitializerTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val provisionerServiceRule = DeviceProvisionerServiceCleanUpRule { projectRule.project }
 
-  @get:Rule
-  val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule)
+  @get:Rule val chain = RuleChain(projectRule, grpcServerRule, streamManagerRule, provisionerServiceRule)
 
   @Before
   fun setup() {
-    ApplicationManager.getApplication()
-      .replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
 
     testProcessDiscovery = TestProcessDiscovery()
     processModel = ProcessesModel(testProcessDiscovery)
@@ -109,11 +103,7 @@ class ForegroundProcessDetectionInitializerTest {
   @Test
   fun testNewForegroundProcessSetsSelectedProcess() {
     val foregroundProcessListener =
-      ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(
-        projectRule.testRootDisposable,
-        deviceModel,
-        processModel,
-      )
+      ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(projectRule.testRootDisposable, deviceModel, processModel)
     ForegroundProcessDetectionInitializer.initialize(
       parentDisposable = projectRule.testRootDisposable,
       project = projectRule.project,
@@ -127,38 +117,22 @@ class ForegroundProcessDetectionInitializerTest {
 
     deviceModel.setSelectedDevice(deviceDescriptor1)
 
-    foregroundProcessListener.onNewProcess(
-      deviceDescriptor1,
-      ForegroundProcess(1, "process1"),
-      true,
-    )
+    foregroundProcessListener.onNewProcess(deviceDescriptor1, ForegroundProcess(1, "process1"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
 
-    foregroundProcessListener.onNewProcess(
-      deviceDescriptor1,
-      ForegroundProcess(2, "process2"),
-      true,
-    )
+    foregroundProcessListener.onNewProcess(deviceDescriptor1, ForegroundProcess(2, "process2"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
 
     deviceModel.setSelectedDevice(deviceDescriptor2)
 
-    foregroundProcessListener.onNewProcess(
-      deviceDescriptor2,
-      ForegroundProcess(1, "process1"),
-      true,
-    )
+    foregroundProcessListener.onNewProcess(deviceDescriptor2, ForegroundProcess(1, "process1"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
   }
 
   @Test
   fun testForegroundProcessDetectedBeforeAppInspectionProcessIsAvailable() {
     val foregroundProcessListener =
-      ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(
-        projectRule.testRootDisposable,
-        deviceModel,
-        processModel,
-      )
+      ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(projectRule.testRootDisposable, deviceModel, processModel)
     ForegroundProcessDetectionInitializer.initialize(
       parentDisposable = projectRule.testRootDisposable,
       project = projectRule.project,
@@ -172,11 +146,7 @@ class ForegroundProcessDetectionInitializerTest {
 
     deviceModel.setSelectedDevice(deviceDescriptor1)
 
-    foregroundProcessListener.onNewProcess(
-      deviceDescriptor1,
-      ForegroundProcess(4, "process4"),
-      false,
-    )
+    foregroundProcessListener.onNewProcess(deviceDescriptor1, ForegroundProcess(4, "process4"), false)
     // process4 is not available in app inspection yet, so the selected process should be null.
     assertThat(processModel.selectedProcess).isNull()
 
@@ -201,18 +171,14 @@ class ForegroundProcessDetectionInitializerTest {
     val stopTrackingStreamIds = mutableListOf<Long>()
 
     // fake device handler for handshake request
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED
-    ) { command ->
+    transportService.setCommandHandler(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED) { command ->
       val event =
         Common.Event.newBuilder()
           .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
           .setLayoutInspectorTrackingForegroundProcessSupported(
             Common.Event.newBuilder()
               .layoutInspectorTrackingForegroundProcessSupportedBuilder
-              .setSupportType(
-                LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED
-              )
+              .setSupportType(LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED)
               .build()
           )
           .build()
@@ -229,9 +195,7 @@ class ForegroundProcessDetectionInitializerTest {
     }
 
     // fake device handler for start tracking command
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS
-    ) { command ->
+    transportService.setCommandHandler(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) { command ->
       startTrackingStreamIds.add(command.streamId)
       when (command.streamId) {
         fakeStream1.streamId -> startTrackingReceivedOnDeviceLatch1.countDown()
@@ -240,9 +204,7 @@ class ForegroundProcessDetectionInitializerTest {
       }
     }
     // fake device handler for stop tracking command
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS
-    ) { command ->
+    transportService.setCommandHandler(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS) { command ->
       stopTrackingStreamIds.add(command.streamId)
     }
 
@@ -279,10 +241,7 @@ class ForegroundProcessDetectionInitializerTest {
     assertThat(stopTrackingStreamIds).containsExactly(fakeStream1.streamId)
   }
 
-  private fun Common.Stream.createFakeProcess(
-    name: String? = null,
-    pid: Int = 0,
-  ): ProcessDescriptor {
+  private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
       FakeTransportService.FAKE_PROCESS.toBuilder()
@@ -297,10 +256,7 @@ class ForegroundProcessDetectionInitializerTest {
     return Common.Stream.newBuilder().setStreamId(streamId).setDevice(fakeDevice).build()
   }
 
-  private fun FakeTransportService.setCommandHandler(
-    command: Commands.Command.CommandType,
-    block: (Commands.Command) -> Unit,
-  ) {
+  private fun FakeTransportService.setCommandHandler(command: Commands.Command.CommandType, block: (Commands.Command) -> Unit) {
     setCommandHandler(
       command,
       object : CommandHandler(timer) {

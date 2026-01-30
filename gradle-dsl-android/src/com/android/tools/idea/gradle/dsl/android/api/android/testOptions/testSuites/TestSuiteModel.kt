@@ -20,11 +20,18 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface TestSuiteModel : GradleBlockModel {
   fun name(): String
+
   fun useJunitEngine(): UseJunitEngineModel
+
   fun targetVariants(): ResolvedPropertyModel
+
   fun addTargetVariant(targetVariant: String): ResolvedPropertyModel
+
   fun assets(): AssetsModel
+
   fun addAssets(): AssetsModel
+
   fun targets(): List<TargetModel>
+
   fun addTarget(targetName: String): TargetModel
 }

@@ -23,9 +23,10 @@ import com.intellij.openapi.project.Project
  * Starting with AGP 9.0, the default value of android.useAndroidX is now true. This refactoring adds the property if it was not defined and
  * sets it to false when upgrading from a version lower than 9.0.0-alpha01
  */
-class UseAndroidXDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class UseAndroidXDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.useAndroidX"
   override val oldDefault = false
@@ -35,7 +36,10 @@ class UseAndroidXDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefa
   override val usageViewHeader = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("use-androidx-default")
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.useAndroidX"
+
   override fun getCommandName() = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("useAndroidXDefaultRefactoringProcessor.shortDescription")
 }

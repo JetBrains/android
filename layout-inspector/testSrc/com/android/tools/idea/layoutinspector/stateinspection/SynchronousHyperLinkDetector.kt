@@ -22,19 +22,13 @@ import com.intellij.util.ThrowableRunnable
 import kotlinx.coroutines.CoroutineScope
 
 internal class SynchronousHyperLinkDetectorFactory : HyperLinkDetectorFactory {
-  override fun create(
-    editor: EditorEx,
-    scope: CoroutineScope,
-    activatedLinkListener: EditorHyperlinkListener,
-  ): HyperLinkDetector = SynchronousHyperLinkDetector(editor, scope, activatedLinkListener)
+  override fun create(editor: EditorEx, scope: CoroutineScope, activatedLinkListener: EditorHyperlinkListener): HyperLinkDetector =
+    SynchronousHyperLinkDetector(editor, scope, activatedLinkListener)
 }
 
 /** HyperLinkDetector used in tests with synchronous execution. */
-internal class SynchronousHyperLinkDetector(
-  editor: EditorEx,
-  scope: CoroutineScope,
-  activatedLinkListener: EditorHyperlinkListener,
-) : StateInspectionHyperLinkDetector(editor, scope, activatedLinkListener) {
+internal class SynchronousHyperLinkDetector(editor: EditorEx, scope: CoroutineScope, activatedLinkListener: EditorHyperlinkListener) :
+  StateInspectionHyperLinkDetector(editor, scope, activatedLinkListener) {
 
   override fun detectHyperlinks() {
     // The write action allows the AsyncFilterRunner used by EditorHyperlinkSupport to run all

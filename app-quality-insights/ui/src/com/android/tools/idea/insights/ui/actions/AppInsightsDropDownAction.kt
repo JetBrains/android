@@ -34,8 +34,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import kotlinx.coroutines.flow.StateFlow
 
-private class SimpleAction(title: String, icon: Icon?, private val action: () -> Unit) :
-  AnAction(title, null, icon) {
+private class SimpleAction(title: String, icon: Icon?, private val action: () -> Unit) : AnAction(title, null, icon) {
   override fun actionPerformed(e: AnActionEvent) = action()
 }
 
@@ -53,9 +52,7 @@ open class AppInsightsDropDownAction<T>(
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
     val selection = flow.value
-    selection.items.forEach { item ->
-      add(SimpleAction(item.toString(), getIconForValue?.invoke(item)) { onSelect(item) })
-    }
+    selection.items.forEach { item -> add(SimpleAction(item.toString(), getIconForValue?.invoke(item)) { onSelect(item) }) }
     return true
   }
 
@@ -76,9 +73,6 @@ open class AppInsightsDropDownAction<T>(
     val buttonHeight = button.height.div(2) + button.border.getBorderInsets(button).bottom
     val toolbarHeight = toolbarProvider()?.getTotalHeight() ?: 0
 
-    JBPopupMenu.showAt(
-      RelativePoint(button, Point(0, buttonHeight + toolbarHeight)),
-      popUpMenu.component,
-    )
+    JBPopupMenu.showAt(RelativePoint(button, Point(0, buttonHeight + toolbarHeight)), popUpMenu.component)
   }
 }

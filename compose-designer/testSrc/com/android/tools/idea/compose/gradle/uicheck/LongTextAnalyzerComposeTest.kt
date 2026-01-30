@@ -37,8 +37,7 @@ class LongTextAnalyzerComposeTest {
   @Test
   fun testLongText() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -52,12 +51,7 @@ class LongTextAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
@@ -66,8 +60,7 @@ class LongTextAnalyzerComposeTest {
   @Test
   fun testShortText() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -81,12 +74,7 @@ class LongTextAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }

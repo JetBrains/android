@@ -66,28 +66,16 @@ class AiInsightToolkitTest {
   @Before
   fun setUp() {
     fakeGeminiPluginApi = FakeGeminiPluginApi()
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
 
     scope = AndroidCoroutineScope(projectRule.disposable)
     geminiToolWindow = FakeGeminiToolWindow(projectRule.project)
     val manager = FakeToolWindowManager(projectRule.project, geminiToolWindow)
-    projectRule.project.replaceService(
-      ToolWindowManager::class.java,
-      manager,
-      projectRule.disposable,
-    )
+    projectRule.project.replaceService(ToolWindowManager::class.java, manager, projectRule.disposable)
     deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
     whenever(deprecationDataProvider.getCurrentDeprecationData(any(), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
-    application.replaceService(
-      DevServicesDeprecationDataProvider::class.java,
-      deprecationDataProvider,
-      projectRule.disposable,
-    )
+    application.replaceService(DevServicesDeprecationDataProvider::class.java, deprecationDataProvider, projectRule.disposable)
   }
 
   @Test
@@ -102,14 +90,13 @@ class AiInsightToolkitTest {
   }
 
   @Test
-  fun `code context resolver returns empty result when connection does not match project`() =
-    runBlocking {
-      doReturn(false).whenever(conn).isMatchingProject()
-      val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
-      fakeGeminiPluginApi.contextAllowed = true
+  fun `code context resolver returns empty result when connection does not match project`() = runBlocking {
+    doReturn(false).whenever(conn).isMatchingProject()
+    val toolKit = createToolkit(FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))))
+    fakeGeminiPluginApi.contextAllowed = true
 
-      assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
-    }
+    assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
+  }
 
   @Test
   fun `insight deprecation data checks gemini first`() = runBlocking {

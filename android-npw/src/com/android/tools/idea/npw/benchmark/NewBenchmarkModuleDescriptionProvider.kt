@@ -23,30 +23,25 @@ import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
+import org.jetbrains.android.util.AndroidBundle.message
 
 class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
-    BenchmarkModuleTemplateGalleryEntry(),
-  )
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(BenchmarkModuleTemplateGalleryEntry())
 
   private class BenchmarkModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = StudioIcons.Wizards.Modules.BENCHMARK
     override val name: String = message("android.wizard.module.new.benchmark.module.app")
     override val description: String = message("android.wizard.module.new.benchmark.module.description")
+
     override fun toString(): String = name
+
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
       if (StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE.get()) {
         ConfigureBenchmarkModuleStep(
-          model = NewBenchmarkModuleModel(
-            project = project,
-            moduleParent = moduleParent,
-            projectSyncInvoker = projectSyncInvoker,
-          )
+          model = NewBenchmarkModuleModel(project = project, moduleParent = moduleParent, projectSyncInvoker = projectSyncInvoker)
         )
-      }
-      else {
+      } else {
         val model = NewBenchmarkModuleModel(project = project, moduleParent = moduleParent, projectSyncInvoker = projectSyncInvoker)
         model.benchmarkModuleType.set(BenchmarkModuleType.MICROBENCHMARK)
         ConfigureMicroBenchmarkModuleStep(model, name, LOWEST_ACTIVE_API)

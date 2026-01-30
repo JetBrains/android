@@ -22,11 +22,14 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.Receiver
 
-class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction<Receiver>(
-    text = "Add broadcast receiver to manifest",
-    componentClassName = SdkConstants.CLASS_BROADCASTRECEIVER,
-) {
+class AddBroadcastReceiverToManifest :
+    AbstractRegisterComponentAction<Receiver>(
+        text = "Add broadcast receiver to manifest",
+        componentClassName = SdkConstants.CLASS_BROADCASTRECEIVER,
+    ) {
     override fun Application.getCurrentComponents(): List<Receiver> = receivers
+
     override fun Application.addComponent(): Receiver = addReceiver()
+
     override fun Receiver.getComponentClass(): AndroidAttributeValue<PsiClass> = receiverClass
 }

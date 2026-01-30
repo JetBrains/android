@@ -17,12 +17,12 @@ package com.android.tools.idea.flags
 
 import com.android.flags.BooleanFlag
 import com.android.flags.Flag
-import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider
 import com.android.tools.idea.flags.overrides.FEATURE_FLAGS_FILE
+import com.android.tools.idea.flags.overrides.FeatureConfigurationProvider
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.lang.reflect.Modifier
 import org.junit.Assert.fail
+import org.junit.Test
 
 /**
  * This test validates the content of feature_flags.txt to ensure that we can use it during our release process.
@@ -31,7 +31,6 @@ import org.junit.Assert.fail
  * - the flag entries are sorted. This is critical to diff between releases
  * - there is no entries in the file that have no match in [StudioFlag]. It's just good hygiene
  * - each flag entry with state "STABLE" has a matching date to ensure we can clear out old flags
- *
  */
 class FeatureValidationTest {
 
@@ -48,11 +47,12 @@ class FeatureValidationTest {
 
   @Test
   fun validate_no_obsolete_entries() {
-    val flagsFromFile = readFile().map {
-      // this will not return null but we need to handle it somehow to please the compiler
-      val tokens = FeatureConfigurationProvider.parseLine(it, throwOnInvalidValue = true) ?: return@map null
-      tokens.first
-    }
+    val flagsFromFile =
+      readFile().map {
+        // this will not return null but we need to handle it somehow to please the compiler
+        val tokens = FeatureConfigurationProvider.parseLine(it, throwOnInvalidValue = true) ?: return@map null
+        tokens.first
+      }
     val flagsFromClass = getFields()
 
     // it is ok to have field with no entries in the files (this is how
@@ -65,14 +65,14 @@ class FeatureValidationTest {
 
   @Test
   fun validate_stable_has_date() {
-    val completeFlagsFromFile = readFile().mapNotNull {
-      val tokens = FeatureConfigurationProvider.parseLine(it, removeDate = false, throwOnInvalidValue = true)
-                   ?: return@mapNotNull null
+    val completeFlagsFromFile =
+      readFile().mapNotNull {
+        val tokens = FeatureConfigurationProvider.parseLine(it, removeDate = false, throwOnInvalidValue = true) ?: return@mapNotNull null
 
-      if (!tokens.second.startsWith(FeatureConfiguration.COMPLETE.name)) return@mapNotNull null
+        if (!tokens.second.startsWith(FeatureConfiguration.COMPLETE.name)) return@mapNotNull null
 
-      tokens
-    }
+        tokens
+      }
 
     for (flag in completeFlagsFromFile) {
       if (flag.second == FeatureConfiguration.COMPLETE.name) {
@@ -80,7 +80,9 @@ class FeatureValidationTest {
       }
 
       if (!flag.second.matches(COMPLETE_WITH_DATE_REGEX)) {
-        fail("Flag with ID '${flag.first}' and value ${FeatureConfiguration.COMPLETE} has a malformed date. Make sure the format is STABLE:YYYY")
+        fail(
+          "Flag with ID '${flag.first}' and value ${FeatureConfiguration.COMPLETE} has a malformed date. Make sure the format is STABLE:YYYY"
+        )
       }
     }
   }
@@ -93,11 +95,7 @@ class FeatureValidationTest {
       Truth.assertWithMessage("Check loading of $FEATURE_FLAGS_FILE").that(flagsStream).isNotNull()
       flagsStream!! // to please kotlin compiler
 
-      return flagsStream.use { stream ->
-        stream.reader(Charsets.UTF_8).use { reader ->
-          reader.readLines().filter { !it.startsWith("#") }
-        }
-      }
+      return flagsStream.use { stream -> stream.reader(Charsets.UTF_8).use { reader -> reader.readLines().filter { !it.startsWith("#") } } }
     }
 
     private fun getFields(): List<String> {

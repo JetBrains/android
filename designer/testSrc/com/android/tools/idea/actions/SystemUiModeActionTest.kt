@@ -23,10 +23,10 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import javax.swing.JMenuItem
+import javax.swing.MenuElement
 import javax.swing.MenuSelectionManager
 import junit.framework.Assert
 import org.jetbrains.android.AndroidTestCase
-import javax.swing.MenuElement
 
 class SystemUiModeActionTest : AndroidTestCase() {
 
@@ -61,18 +61,14 @@ class SystemUiModeActionTest : AndroidTestCase() {
   /**
    * Verifies the horizontal navigation logic for dynamic color (wallpaper) items.
    *
-   * This unit test directly calls [handleNavigation] to ensure that selecting adjacent wallpaper
-   * items via keyboard correctly updates the [MenuSelectionManager] state.
+   * This unit test directly calls [handleNavigation] to ensure that selecting adjacent wallpaper items via keyboard correctly updates the
+   * [MenuSelectionManager] state.
    */
   fun testHandleNavigation() {
     val file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml")
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val configuration = manager.getConfiguration(file)
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CONFIGURATIONS, listOf(configuration))
-        .add(CommonDataKeys.PROJECT, project)
-        .build()
+    val dataContext = SimpleDataContext.builder().add(CONFIGURATIONS, listOf(configuration)).add(CommonDataKeys.PROJECT, project).build()
     val systemUiModeAction = SystemUiModeAction()
 
     runInEdtAndWait {
@@ -86,10 +82,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
         }
       }
 
-      assertTrue(
-        "Should have at least 2 wallpaper items for navigation test",
-        wallpaperItems.size >= 2,
-      )
+      assertTrue("Should have at least 2 wallpaper items for navigation test", wallpaperItems.size >= 2)
 
       val selectionManager = MenuSelectionManager.defaultManager()
 
@@ -99,29 +92,17 @@ class SystemUiModeActionTest : AndroidTestCase() {
       // 2. Test horizontal navigation to the right.
       val handledRight = handleNavigation(menu, NavigationDirection.RIGHT, selectionManager)
       assertTrue("Navigation right should be handled", handledRight)
-      assertEquals(
-        "Selection should move to the second item",
-        wallpaperItems[1],
-        selectionManager.selectedPath.last(),
-      )
+      assertEquals("Selection should move to the second item", wallpaperItems[1], selectionManager.selectedPath.last())
 
       // 3. Test horizontal navigation back to the left.
       val handledLeft = handleNavigation(menu, NavigationDirection.LEFT, selectionManager)
       assertTrue("Navigation left should be handled", handledLeft)
-      assertEquals(
-        "Selection should move back to the first item",
-        wallpaperItems[0],
-        selectionManager.selectedPath.last(),
-      )
+      assertEquals("Selection should move back to the first item", wallpaperItems[0], selectionManager.selectedPath.last())
 
       // 4. Test boundary condition: navigating left from the first item should not be handled.
       val handledLeftBoundary = handleNavigation(menu, NavigationDirection.LEFT, selectionManager)
       assertFalse("Navigation left from first item should not be handled", handledLeftBoundary)
-      assertEquals(
-        "Selection should remain on the first item",
-        wallpaperItems[0],
-        selectionManager.selectedPath.last(),
-      )
+      assertEquals("Selection should remain on the first item", wallpaperItems[0], selectionManager.selectedPath.last())
 
       selectionManager.clearSelectedPath()
     }

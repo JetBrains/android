@@ -32,6 +32,11 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.UIUtil
+import javax.swing.JComboBox
+import javax.swing.JList
+import javax.swing.JPanel
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -40,11 +45,6 @@ import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComboBox
-import javax.swing.JList
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @Language("XML")
 private const val COLORS_RESOURCE_FILE_CONTENTS =
@@ -59,13 +59,10 @@ private const val COLORS_RESOURCE_FILE_CONTENTS =
 @RunsInEdt
 class CompactResourcePickerTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   companion object {
-    @ClassRule
-    @JvmField
-    val rule = AndroidProjectRule.withSdk()
+    @ClassRule @JvmField val rule = AndroidProjectRule.withSdk()
 
     @BeforeClass
     @JvmStatic
@@ -106,9 +103,7 @@ class CompactResourcePickerTest {
     val resourcePickerPanel = createAndWaitForResourcePickerPanel { selectedResource = it }
     val searchField = UIUtil.findComponentOfType(resourcePickerPanel, SearchTextField::class.java)!!
 
-    runInEdtAndWait {
-      searchField.text = "Foreground"
-    }
+    runInEdtAndWait { searchField.text = "Foreground" }
     waitAndAssert<JList<in Any>>(resourcePickerPanel) {
       // Wait till the filter is applied
       it != null && it.model.size == 1
@@ -156,21 +151,25 @@ class CompactResourcePickerTest {
     }
   }
 
-  private fun createAndWaitForResourcePickerPanel(resourcePickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
-                                                  onSelectedResource: (String) -> Unit): JPanel {
+  private fun createAndWaitForResourcePickerPanel(
+    resourcePickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
+    onSelectedResource: (String) -> Unit,
+  ): JPanel {
     val facet = AndroidFacet.getInstance(rule.module)!!
-    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(
-      LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
-    val panel = CompactResourcePicker(
-      AndroidFacet.getInstance(rule.module)!!,
-      configuration.file,
-      configuration.resourceResolver,
-      ResourceType.COLOR,
-      resourcePickerSources,
-      onSelectedResource,
-      {},
-      disposable
-    )
+    val configuration =
+      ConfigurationManager.getOrCreateInstance(facet.module)
+        .getConfiguration(LocalFileSystem.getInstance().findFileByPath(rule.project.basePath!!)!!)
+    val panel =
+      CompactResourcePicker(
+        AndroidFacet.getInstance(rule.module)!!,
+        configuration.file,
+        configuration.resourceResolver,
+        ResourceType.COLOR,
+        resourcePickerSources,
+        onSelectedResource,
+        {},
+        disposable,
+      )
 
     runInEdtAndWait {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -178,9 +177,7 @@ class CompactResourcePickerTest {
     }
 
     // Wait for the panel to be populated
-    waitAndAssert<JList<in Any>>(panel) {
-      it != null && it.model.size > 0
-    }
+    waitAndAssert<JList<in Any>>(panel) { it != null && it.model.size > 0 }
     return panel
   }
 }

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.diagnostics
 
-
-import com.google.common.annotations.VisibleForTesting
 import com.android.utils.DateProvider
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 import com.google.common.io.BaseEncoding
@@ -55,52 +54,38 @@ interface StackTrace : Comparable<StackTrace> {
 }
 
 /**
- * The [ExceptionRegistry] can be notified of a collection of exceptions, and it can
- * return all of these, in descending frequency order.
+ * The [ExceptionRegistry] can be notified of a collection of exceptions, and it can return all of these, in descending frequency order.
  *
  * # Data Structure
  *
- * The basic representation of a single throwable is to decompose it into
- * its individual stack frames, and then each frame is represented by a
- * [StackFrame] instance. Instead of using a list to hold the children of
- * a stack frame, it's using "first child" and "next sibling" references
- * instead. This avoids having to guess the number of anticipated children
- * up front when constructing array lists, or having to resize them later
- * if the guess is wrong.
+ * The basic representation of a single throwable is to decompose it into its individual stack frames, and then each frame is represented by
+ * a [StackFrame] instance. Instead of using a list to hold the children of a stack frame, it's using "first child" and "next sibling"
+ * references instead. This avoids having to guess the number of anticipated children up front when constructing array lists, or having to
+ * resize them later if the guess is wrong.
  *
- * In many scenarios, particularly when something is really broken, the same
- * exception will be thrown over and over again. The [StackFrame] also has a count
- * field. This allows us to efficiently represent multiple registrations
- * of the same throwable; we match up the stack frames one by one and
- * increment their counts. This way 10,000 instances of a given throwable
- * takes the same amount of storage as a single one.
+ * In many scenarios, particularly when something is really broken, the same exception will be thrown over and over again. The [StackFrame]
+ * also has a count field. This allows us to efficiently represent multiple registrations of the same throwable; we match up the stack
+ * frames one by one and increment their counts. This way 10,000 instances of a given throwable takes the same amount of storage as a single
+ * one.
  *
- * As a small optimization, since it's quite common for there to only be
- * a single exception, this is special cased: when the first throwable comes
- * in, we simply store the full [Throwable] instance. If somebody queries
- * the top throwables at this point, we just return it. We don't actually
- * create a full tree of the individual frames. If a second throwable comes
- * in on the other hand, at that point we go and first create the tree
- * for the original throwable, and then process the new one.
+ * As a small optimization, since it's quite common for there to only be a single exception, this is special cased: when the first throwable
+ * comes in, we simply store the full [Throwable] instance. If somebody queries the top throwables at this point, we just return it. We
+ * don't actually create a full tree of the individual frames. If a second throwable comes in on the other hand, at that point we go and
+ * first create the tree for the original throwable, and then process the new one.
  *
  * # Retrieving Exceptions
  *
- * In the above data structure, the leaf nodes uniquely identify a reported
- * exception; we can iterate back through the parent references to get the
- * exact chain of stack frames that was originally stored.
+ * In the above data structure, the leaf nodes uniquely identify a reported exception; we can iterate back through the parent references to
+ * get the exact chain of stack frames that was originally stored.
  *
- * To get the sorted exceptions, we simply gather the leaf nodes, then
- * sort them by frequency, and then we can retrieve the full stack frames
- * for each by repeatedly iterating up to the root.
+ * To get the sorted exceptions, we simply gather the leaf nodes, then sort them by frequency, and then we can retrieve the full stack
+ * frames for each by repeatedly iterating up to the root.
  *
  * # Hashes
  *
- * The [ExceptionRegistry] is intended to be used for crash reporting, and
- * we don't currently have a simple way to report the crashes along with
- * frame frequencies. Therefore, we're planning on using fingerprints
- * for each stack frame, and then sending a simple sorted report which
- * lists the various fingerprints and their frequencies. We can then correlate
- * these on the server for the most common exceptions.
+ * The [ExceptionRegistry] is intended to be used for crash reporting, and we don't currently have a simple way to report the crashes along
+ * with frame frequencies. Therefore, we're planning on using fingerprints for each stack frame, and then sending a simple sorted report
+ * which lists the various fingerprints and their frequencies. We can then correlate these on the server for the most common exceptions.
  *
  * @sample sampleUse
  */
@@ -108,8 +93,7 @@ object ExceptionRegistry {
   var count = 0
   private val root: StackFrame = StackFrame(StackTraceElement("ROOT", "", "", 0), null)
   private val leafNodes = mutableListOf<LeafNode>()
-  @VisibleForTesting
-  var dateProvider = DateProvider.SYSTEM!!
+  @VisibleForTesting var dateProvider = DateProvider.SYSTEM!!
 
   /** Registers an exception with the registry */
   fun register(throwable: Throwable): StackTrace {
@@ -122,10 +106,7 @@ object ExceptionRegistry {
   /** The number of reported exceptions */
   fun count(): Int = synchronized(this) { count }
 
-  /**
-   * Returns the most frequently reported exception (if there are multiple with the same highest count,
-   * an arbitrary one is picked)
-   */
+  /** Returns the most frequently reported exception (if there are multiple with the same highest count, an arbitrary one is picked) */
   fun getMostFrequent(): StackTrace? {
     synchronized(this) {
       if (leafNodes.isEmpty()) {
@@ -187,8 +168,7 @@ object ExceptionRegistry {
   }
 
   /**
-   * Represents a single stack frame (class, method, line number). For the leaf frames we use a
-   * [LeafNode] instead which carries extra data.
+   * Represents a single stack frame (class, method, line number). For the leaf frames we use a [LeafNode] instead which carries extra data.
    */
   private open class StackFrame(val frame: StackTraceElement, val parent: StackFrame?) {
     // Linked list of children: first points to first child; nextSibling *in that child* points to next sibling
@@ -199,16 +179,15 @@ object ExceptionRegistry {
     var leafNode: LeafNode? = null
 
     /**
-     * Adds the given stack frame as a child of this one. If already exists, bump its frequency count and return it,
-     * otherwise add it as a new child.
+     * Adds the given stack frame as a child of this one. If already exists, bump its frequency count and return it, otherwise add it as a
+     * new child.
      */
     fun addChild(frame: StackTraceElement): StackFrame {
       if (firstChild == null) {
         val child = StackFrame(frame, this)
         firstChild = child
         return child
-      }
-      else {
+      } else {
         // Try to match
         var prev: StackFrame? = null
         var curr: StackFrame? = firstChild
@@ -227,7 +206,7 @@ object ExceptionRegistry {
     }
 
     /** Adds in a [LeafNode] which marks this [StackFrame] as a last frame. */
-    fun addLeaf(cls: Class<Any>, currentTimestampMs :Long): LeafNode {
+    fun addLeaf(cls: Class<Any>, currentTimestampMs: Long): LeafNode {
       var localLeafFrame = leafNode
       if (localLeafFrame == null) {
         localLeafFrame = LeafNode(cls, this, currentTimestampMs)
@@ -264,16 +243,14 @@ object ExceptionRegistry {
   }
 
   /**
-   * Class used for the leaf frames in a stack tree. This carries extra data, such as the name of the
-   * class, and has methods for operating on the stack trace as a whole (e.g. summarizing it, hashing it, etc.)
+   * Class used for the leaf frames in a stack tree. This carries extra data, such as the name of the class, and has methods for operating
+   * on the stack trace as a whole (e.g. summarizing it, hashing it, etc.)
    */
-  private class LeafNode(
-    val cls: Class<Any>,
-    val parent: StackFrame,
-    val timeOfFirstHitMs : Long) : StackTrace {
+  private class LeafNode(val cls: Class<Any>, val parent: StackFrame, val timeOfFirstHitMs: Long) : StackTrace {
 
     override var count = 1
       private set
+
     override fun timeOfFirstHitMs(): Long = timeOfFirstHitMs
 
     /** Summarizes the stack trace */
@@ -376,8 +353,7 @@ object ExceptionRegistry {
           writer.print(methodName)
           if (lineNumber == -2) {
             writer.print("(Native Method)")
-          }
-          else if (fileName != null) {
+          } else if (fileName != null) {
             writer.print('(')
             writer.print(fileName)
             writer.print(':')
@@ -427,7 +403,5 @@ fun sampleUse() {
   print(stack.md5string())
 
   // Retrieve all exceptions with a frequency >= 10 and print out their full stack traces
-  ExceptionRegistry.getStackTraces(threshold = 10).forEach {
-    print(it.toStackTrace())
-  }
+  ExceptionRegistry.getStackTraces(threshold = 10).forEach { print(it.toStackTrace()) }
 }

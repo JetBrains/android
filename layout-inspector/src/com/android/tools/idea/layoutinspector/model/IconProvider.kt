@@ -41,14 +41,12 @@ const val ROOT_NAME = "root"
 object IconProvider {
 
   fun getIconForView(view: ViewNode): Icon =
-    if (view is ComposeViewNode) getIconForComposeViewNode(view.qualifiedName)
-    else getIconForViewNode(view)
+    if (view is ComposeViewNode) getIconForComposeViewNode(view.qualifiedName) else getIconForViewNode(view)
 
   private fun getIconForViewNode(view: ViewNode): Icon {
     // Remove "AppCompat" and "Material" prefixes from the simple tag name such that we get
     // e.g. the ImageView icon for an AppCompatImageIcon etc.
-    val simpleName =
-      view.qualifiedName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
+    val simpleName = view.qualifiedName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
     return when {
       simpleName == ROOT_NAME -> UNKNOWN_VIEW
       view.isDerivedFromWebView -> WEB_VIEW

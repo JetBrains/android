@@ -31,15 +31,15 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.refactoring.rename.RenameProcessor
 
-class StringResourceData private constructor(
+class StringResourceData
+private constructor(
   val project: Project,
   val repository: StringResourceRepository,
-  private val stringResourceWriter: StringResourceWriter = StringResourceWriter.INSTANCE) {
+  private val stringResourceWriter: StringResourceWriter = StringResourceWriter.INSTANCE,
+) {
 
   private val keyToResourceMap: MutableMap<StringResourceKey, StringResource> =
-    repository.getKeys().associateWith {
-      runReadAction { StringResource(it, this) }
-    }.toMutableMap()
+    repository.getKeys().associateWith { runReadAction { StringResource(it, this) } }.toMutableMap()
 
   fun setKeyName(key: StringResourceKey, name: String): ListenableFuture<Boolean> {
     if (key.name == name || keyToResourceMap.keys.any { it.name == name }) return Futures.immediateFuture(false)
@@ -49,7 +49,7 @@ class StringResourceData private constructor(
     val nameAttribute = checkNotNull(stringElement.getAttribute(SdkConstants.ATTR_NAME))
     val nameAttributeValue = checkNotNull(nameAttribute.valueElement)
 
-    RenameProcessor(project, nameAttributeValue, name, /* isSearchInComments = */ false, /* isSearchTextOccurrences = */ false).run()
+    RenameProcessor(project, nameAttributeValue, name, /* isSearchInComments= */ false, /* isSearchTextOccurrences= */ false).run()
 
     val futureItem = SettableFuture.create<Boolean>()
     val newKey = StringResourceKey(name, key.directory)
@@ -67,8 +67,7 @@ class StringResourceData private constructor(
    * - keyToResourceMap.remove(old)
    * - keyToResourceMap[new.key] = new
    *
-   * But start would insert the new key at the end of the iteration order.
-   * This function tried to maintain the order from before the change.
+   * But start would insert the new key at the end of the iteration order. This function tried to maintain the order from before the change.
    */
   private fun replaceInMap(old: StringResourceKey, new: StringResource) {
     val values = keyToResourceMap.values.toList()
@@ -78,8 +77,7 @@ class StringResourceData private constructor(
       if (value.key == old) {
         keyToResourceMap[new.key] = new
         newAdded = true
-      }
-      else {
+      } else {
         keyToResourceMap[value.key] = value
       }
     }
@@ -96,17 +94,16 @@ class StringResourceData private constructor(
       val localesWithTranslation = stringResource.translatedLocales
       if (!localesWithTranslation.isEmpty()) {
         return "Key '${key.name}' is marked as non translatable, but is translated in " +
-               "${StringUtil.pluralize("locale", localesWithTranslation.size)} ${summarizeLocales(localesWithTranslation)}"
+          "${StringUtil.pluralize("locale", localesWithTranslation.size)} ${summarizeLocales(localesWithTranslation)}"
       }
-    }
-    else { // translatable key
+    } else { // translatable key
       if (stringResource.defaultValueAsResourceItem == null) {
         return "Key '${key.name}' missing default value"
       }
       val missingTranslations = getMissingTranslations(key)
       if (!missingTranslations.isEmpty()) {
         return "Key '${key.name}' has translations missing for " +
-               "${StringUtil.pluralize("locale", missingTranslations.size)} ${summarizeLocales(missingTranslations)}"
+          "${StringUtil.pluralize("locale", missingTranslations.size)} ${summarizeLocales(missingTranslations)}"
       }
     }
 
@@ -130,9 +127,7 @@ class StringResourceData private constructor(
     get() = keyToResourceMap.keys.toList()
 
   val localeList: List<Locale>
-    get() = localeSet
-      .sortedWith(Locale.LANGUAGE_NAME_COMPARATOR)
-      .toList()
+    get() = localeSet.sortedWith(Locale.LANGUAGE_NAME_COMPARATOR).toList()
 
   val localeSet: Set<Locale>
     get() = repository.getTranslatedLocales()
@@ -144,7 +139,8 @@ class StringResourceData private constructor(
    * @return the [XmlFile] to which subsequent write operations should target, or null if there are either no files or multiple files
    */
   fun getDefaultLocaleXml(locale: Locale): XmlFile? {
-    return keyToResourceMap.values.asSequence()
+    return keyToResourceMap.values
+      .asSequence()
       .mapNotNull { it.getTranslationAsResourceItem(locale) }
       .mapNotNull { getItemTag(project, it)?.containingFile as? XmlFile }
       .distinct()
@@ -154,8 +150,7 @@ class StringResourceData private constructor(
   companion object {
     private const val MAX_LOCALE_LABEL_COUNT = 3
 
-    @JvmStatic
-    fun create(project: Project, repository: StringResourceRepository) = StringResourceData(project, repository)
+    @JvmStatic fun create(project: Project, repository: StringResourceRepository) = StringResourceData(project, repository)
 
     @VisibleForTesting
     @JvmStatic
@@ -168,8 +163,7 @@ class StringResourceData private constructor(
       val sorted = locales.getLowest()
       return if (size <= MAX_LOCALE_LABEL_COUNT) {
         "${sorted.subList(0, size - 1).getLabels()} and ${sorted[size - 1].getLabel()}"
-      }
-      else {
+      } else {
         "${sorted.getLabels()} and ${size - MAX_LOCALE_LABEL_COUNT} more"
       }
     }

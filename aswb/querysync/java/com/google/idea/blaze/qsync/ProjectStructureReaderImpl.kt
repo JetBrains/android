@@ -17,10 +17,10 @@ package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
+import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage
-import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.query.PackageSet
 import com.google.idea.blaze.traverser.DirectoryProcessor
 import com.google.idea.blaze.traverser.traverseIncludedDirectories
@@ -31,24 +31,13 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.measureTime
 import kotlinx.coroutines.runBlocking
 
-/**
- * Default implementation of [ProjectStructureReader] that traverses the filesystem to identify
- * project packages and source files.
- */
-internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtensions) :
-  ProjectStructureReader {
+/** Default implementation of [ProjectStructureReader] that traverses the filesystem to identify project packages and source files. */
+internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtensions) : ProjectStructureReader {
 
-  override fun read(
-    context: Context<*>,
-    workspaceRoot: Path,
-    projectDefinition: ProjectDefinition,
-  ): ProjectStructureData {
+  override fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData {
     val includeAbsolute =
-      projectDefinition.projectIncludes
-        .map { workspaceRoot.resolve(it) }
-        .filter { Files.exists(it) && Files.isDirectory(it) }
-    val excludeAbsolute =
-      projectDefinition.projectExcludes.map { workspaceRoot.resolve(it) }.toSet()
+      projectDefinition.projectIncludes.map { workspaceRoot.resolve(it) }.filter { Files.exists(it) && Files.isDirectory(it) }
+    val excludeAbsolute = projectDefinition.projectExcludes.map { workspaceRoot.resolve(it) }.toSet()
 
     if (includeAbsolute.isEmpty()) {
       return ProjectStructureData.EMPTY
@@ -88,9 +77,7 @@ internal class ProjectStructureReaderImpl(private val fileExtensions: FileExtens
       contents
     }
 
-    val duration = measureTime {
-      runBlocking { traverseIncludedDirectories(includeAbsolute, directoryProcessor) }
-    }
+    val duration = measureTime { runBlocking { traverseIncludedDirectories(includeAbsolute, directoryProcessor) } }
 
     val result =
       ProjectStructureData(

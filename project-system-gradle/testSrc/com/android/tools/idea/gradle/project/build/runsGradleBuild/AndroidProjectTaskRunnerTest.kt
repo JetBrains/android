@@ -27,11 +27,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidProjectTaskRunnerTest {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `build app module`() {

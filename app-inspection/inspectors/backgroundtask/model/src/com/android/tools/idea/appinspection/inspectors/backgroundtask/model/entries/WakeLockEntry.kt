@@ -66,10 +66,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
         _isValid = true
         events.add(event)
         _className =
-          getTopExternalClassSimpleName(
-            event.backgroundTaskEvent.stacktrace,
-            "android.os.PowerManager\$WakeLock",
-          ) ?: "WakeLock $id"
+          getTopExternalClassSimpleName(event.backgroundTaskEvent.stacktrace, "android.os.PowerManager\$WakeLock") ?: "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = timestamp
         level = event.backgroundTaskEvent.wakeLockAcquired.level

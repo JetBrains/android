@@ -35,8 +35,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     listOfNotNull(
       MobileModuleTemplateGalleryEntry(),
       AndroidLibraryModuleTemplateGalleryEntry(),
-      if (StudioFlags.NPW_NEW_NATIVE_MODULE.get()) AndroidNativeLibraryModuleTemplateGalleryEntry()
-      else null,
+      if (StudioFlags.NPW_NEW_NATIVE_MODULE.get()) AndroidNativeLibraryModuleTemplateGalleryEntry() else null,
       WearModuleTemplateGalleryEntry(),
       TvModuleTemplateGalleryEntry(),
       AutomotiveModuleTemplateGalleryEntry(),
@@ -53,21 +52,9 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun toString(): String = name
 
-    override fun createStep(
-      project: Project,
-      moduleParent: String,
-      projectSyncInvoker: ProjectSyncInvoker,
-    ): SkippableWizardStep<*> {
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model =
-        NewAndroidModuleModel.fromExistingProject(
-          project,
-          moduleParent,
-          projectSyncInvoker,
-          formFactor,
-          category,
-          isLibrary,
-        )
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, category, isLibrary)
       return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
@@ -113,11 +100,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.new.library.description")
     override val icon: Icon = StudioIcons.Wizards.Modules.ANDROID_LIBRARY
 
-    override fun createStep(
-      project: Project,
-      moduleParent: String,
-      projectSyncInvoker: ProjectSyncInvoker,
-    ): SkippableWizardStep<*> {
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model =
         NewAndroidModuleModel.fromExistingProject(
@@ -134,8 +117,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
   private class AndroidNativeLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.native.library")
-    override val description: String =
-      message("android.wizard.module.new.native.library.description")
+    override val description: String = message("android.wizard.module.new.native.library.description")
     override val icon: Icon = StudioIcons.Wizards.Modules.NATIVE
 
     override fun createStep(
@@ -144,11 +126,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
       projectSyncInvoker: ProjectSyncInvoker,
     ): ConfigureAndroidNativeModuleStep {
       val basePackage = getSuggestedProjectPackage()
-      val model =
-        NewAndroidNativeModuleModel(
-          ExistingProjectModelData(project, projectSyncInvoker),
-          moduleParent,
-        )
+      val model = NewAndroidNativeModuleModel(ExistingProjectModelData(project, projectSyncInvoker), moduleParent)
       return ConfigureAndroidNativeModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }

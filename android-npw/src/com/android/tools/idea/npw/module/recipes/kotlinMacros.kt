@@ -23,8 +23,7 @@ import org.jetbrains.kotlin.config.ApiVersion
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
   if (androidX) {
-    val dependency =
-      if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:+"
+    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:+"
     val minRev = if (targetApi < 31) "1.6.0" else "1.9.0"
     addDependency(dependency, minRev = minRev)
   }
@@ -34,19 +33,11 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
   addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
 }
 
-fun RecipeExecutor.addKotlinIfNeeded(
-  data: ProjectTemplateData,
-  targetApi: Int,
-  noKtx: Boolean = false,
-) {
+fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, targetApi: Int, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
     if (data.agpVersion < AGP_VERSION_WITH_BUILT_IN_KOTLIN) {
-      addPlugin(
-        "org.jetbrains.kotlin.android",
-        "org.jetbrains.kotlin:kotlin-gradle-plugin",
-        data.kotlinVersion,
-      )
+      addPlugin("org.jetbrains.kotlin.android", "org.jetbrains.kotlin:kotlin-gradle-plugin", data.kotlinVersion)
     }
     addKotlinDependencies(data.androidXSupport && !noKtx, targetApi)
 

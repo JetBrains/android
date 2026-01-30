@@ -49,11 +49,7 @@ class ShowLayoutInspectorActionTest {
   @Before
   fun setUp() {
     fakeToolWindowManager = FakeToolWindowManager(projectRule.project)
-    projectRule.project.replaceService(
-      ToolWindowManager::class.java,
-      fakeToolWindowManager,
-      disposableRule.disposable,
-    )
+    projectRule.project.replaceService(ToolWindowManager::class.java, fakeToolWindowManager, disposableRule.disposable)
 
     // This line avoids the error: UnindexedFilesScannerExecutorImpl is initialized during dispose
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
@@ -64,9 +60,7 @@ class ShowLayoutInspectorActionTest {
     withEmbeddedLayoutInspector(false) {
       val showLayoutInspectorAction = ShowLayoutInspectorAction()
       assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isFalse()
-      showLayoutInspectorAction.actionPerformed(
-        createFakeEvent(projectRule.project, showLayoutInspectorAction)
-      )
+      showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
       assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isTrue()
     }
 
@@ -74,9 +68,7 @@ class ShowLayoutInspectorActionTest {
   fun testActivateRunningDevicesToolWindow() = withEmbeddedLayoutInspector {
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isFalse()
-    showLayoutInspectorAction.actionPerformed(
-      createFakeEvent(projectRule.project, showLayoutInspectorAction)
-    )
+    showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isTrue()
   }
 }
@@ -109,8 +101,7 @@ private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManage
   }
 }
 
-private class FakeToolWindow(project: Project) :
-  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+private class FakeToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var isActive = false
 
   override fun activate(runnable: Runnable?) {

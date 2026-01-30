@@ -31,12 +31,8 @@ internal object PickerTrackerHelper {
    * Note that the dpi is converted to one of the common Density buckets.
    */
   fun densityBucketOfDeviceConfig(config: DeviceConfig): PreviewPickerValue {
-    val configCopy =
-      config.toMutableConfig().apply {
-        dimUnit = DimUnit.px
-      } // We need pixel dimensions to calculate density
-    val density =
-      Densities.getScreenDensity(false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
+    val configCopy = config.toMutableConfig().apply { dimUnit = DimUnit.px } // We need pixel dimensions to calculate density
+    val density = Densities.getScreenDensity(false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
     return when (density) {
       Density.LOW -> PreviewPickerValue.DENSITY_LOW
       Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM
@@ -45,8 +41,7 @@ internal object PickerTrackerHelper {
       Density.XXHIGH -> PreviewPickerValue.DENSITY_XX_HIGH
       Density.XXXHIGH -> PreviewPickerValue.DENSITY_XXX_HIGH
       else -> {
-        Logger.getInstance(this::class.java)
-          .warn("Unexpected density bucket: ${density.resourceValue}")
+        Logger.getInstance(this::class.java).warn("Unexpected density bucket: ${density.resourceValue}")
         PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     }

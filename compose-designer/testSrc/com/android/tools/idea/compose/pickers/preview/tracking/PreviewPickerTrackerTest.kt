@@ -32,9 +32,9 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.math.sqrt
 
 internal class PreviewPickerTrackerTest {
 
@@ -68,46 +68,14 @@ internal class PreviewPickerTrackerTest {
   fun testDeviceTracked() {
     val tracker =
       TestTracker().applyValidModifications {
-        registerNameModificationWithDevice(
-          isCustom = true,
-          isGeneric = false,
-          tagId = SystemImageTags.ANDROID_TV_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.ANDROID_TV_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.AUTOMOTIVE_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.WEAR_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.DEFAULT_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = true,
-          tagId = SystemImageTags.DEFAULT_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.DESKTOP_TAG.id,
-        )
-        registerNameModificationWithDevice(
-          isCustom = false,
-          isGeneric = false,
-          tagId = SystemImageTags.XR_HEADSET_TAG.id,
-        )
+        registerNameModificationWithDevice(isCustom = true, isGeneric = false, tagId = SystemImageTags.ANDROID_TV_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.ANDROID_TV_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.AUTOMOTIVE_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.WEAR_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.DEFAULT_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = true, tagId = SystemImageTags.DEFAULT_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.DESKTOP_TAG.id)
+        registerNameModificationWithDevice(isCustom = false, isGeneric = false, tagId = SystemImageTags.XR_HEADSET_TAG.id)
       }
 
     val registeredActions = tracker.lastActionsLogged.toList()
@@ -157,13 +125,8 @@ private class TestTracker : PreviewPickerTracker() {
   }
 }
 
-/**
- * Sets the tracker so that all the modifications done in [runnable] are present in
- * [TestTracker.lastActionsLogged].
- */
-private fun TestTracker.applyValidModifications(
-  runnable: TrackerModificationsWrapper.() -> Unit
-): TestTracker {
+/** Sets the tracker so that all the modifications done in [runnable] are present in [TestTracker.lastActionsLogged]. */
+private fun TestTracker.applyValidModifications(runnable: TrackerModificationsWrapper.() -> Unit): TestTracker {
   pickerShown()
   runnable(TrackerModificationsWrapper(this))
   pickerClosed()
@@ -173,15 +136,10 @@ private fun TestTracker.applyValidModifications(
 
 /** A Class wrapper for [TestTracker] that only allows to register modifications. */
 private class TrackerModificationsWrapper(private val tracker: TestTracker) {
-  fun registerModification(name: String, value: PreviewPickerValue, device: Device?) =
-    tracker.registerModification(name, value, device)
+  fun registerModification(name: String, value: PreviewPickerValue, device: Device?) = tracker.registerModification(name, value, device)
 
   fun registerNameModificationWithDevice(isCustom: Boolean, isGeneric: Boolean, tagId: String) =
-    registerModification(
-      "name",
-      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
-      createDevice(isCustom, isGeneric, tagId),
-    )
+    registerModification("name", PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, createDevice(isCustom, isGeneric, tagId))
 
   fun registerModificationWithCustomDevice(parameterName: String) =
     registerModification(
@@ -226,9 +184,7 @@ private fun createDevice(isCustom: Boolean, isGeneric: Boolean, tagId: String): 
             xDimension = 1080
             yDimension = 1920
             pixelDensity = Density.XXHIGH
-            diagonalLength =
-              sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) /
-                pixelDensity.dpiValue
+            diagonalLength = sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
             screenRound = ScreenRound.NOTROUND
             chin = 0
             size = ScreenSize.getScreenSize(diagonalLength)

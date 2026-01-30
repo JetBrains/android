@@ -51,10 +51,7 @@ class SetColorBlindModeActionTest {
     surface.addModelsWithoutRender(listOf(model))
 
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
-    val event =
-      createTestEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-      )
+    val event = createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     assertEquals(ColorBlindMode.NONE, surface.colorBlindMode)
 

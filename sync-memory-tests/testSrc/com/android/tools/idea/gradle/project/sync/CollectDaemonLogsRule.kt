@@ -16,17 +16,18 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.TestUtils
-import org.junit.rules.ExternalResource
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import org.junit.rules.ExternalResource
 
 class CollectDaemonLogsRule : ExternalResource() {
   override fun after() {
     val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
     val testOutputDir = TestUtils.getTestOutputDir()
     tmpDir
-      .resolve(".gradle/daemon").toFile()
+      .resolve(".gradle/daemon")
+      .toFile()
       .walk()
       .filter { it.name.endsWith("out.log") }
       .forEach {

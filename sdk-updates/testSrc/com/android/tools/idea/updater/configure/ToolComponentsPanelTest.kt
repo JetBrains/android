@@ -18,17 +18,15 @@ package com.android.tools.idea.updater.configure
 import com.android.repository.api.UpdatablePackage
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.ApplicationRule
+import kotlin.test.assertEquals
 import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import kotlin.test.assertEquals
 
 class ToolComponentsPanelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 
   // basic test of tree construction with no packages installed
@@ -48,14 +46,19 @@ class ToolComponentsPanelTest {
     val packages = setOf(foo, bar, buildTools12, buildTools13a1, buildTools1, cmdlineTools1, cmdlineTools12, cmdlineToolsLatest)
     panel.setPackages(packages.map { UpdatablePackage(it) }.toSet())
 
-    assertEquals("""
+    assertEquals(
+      """
       Root
        build-tools;
        cmdline-tools;
        bar
        foo
-    """.trimIndent(), panel.myToolsSummaryRootNode.asString())
-    assertEquals("""
+      """
+        .trimIndent(),
+      panel.myToolsSummaryRootNode.asString(),
+    )
+    assertEquals(
+      """
       Root
        build-tools;
         1.3.0 rc1
@@ -67,7 +70,10 @@ class ToolComponentsPanelTest {
         1
        bar
        foo
-    """.trimIndent(), panel.myToolsDetailsRootNode.asString())
+      """
+        .trimIndent(),
+      panel.myToolsDetailsRootNode.asString(),
+    )
   }
 
   @Test

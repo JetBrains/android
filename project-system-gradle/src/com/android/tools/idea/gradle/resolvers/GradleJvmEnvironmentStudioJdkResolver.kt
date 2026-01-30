@@ -24,21 +24,14 @@ import org.jetbrains.plugins.gradle.resolvers.GradleJvmResolver
 import org.jetbrains.plugins.gradle.service.execution.LocalGradleExecutionAware
 
 /**
- * A [GradleJvmResolver] implementation to resolve the environment variable [JDK_LOCATION_ENV_VARIABLE_NAME] and
- * bypass the gradleJvm validation from [LocalGradleExecutionAware.prepareJvmForExecution] using the specified path instead
+ * A [GradleJvmResolver] implementation to resolve the environment variable [JDK_LOCATION_ENV_VARIABLE_NAME] and bypass the gradleJvm
+ * validation from [LocalGradleExecutionAware.prepareJvmForExecution] using the specified path instead
  */
 @Suppress("UnstableApiUsage")
-class GradleJvmEnvironmentStudioJdkResolver : GradleJvmResolver()  {
+class GradleJvmEnvironmentStudioJdkResolver : GradleJvmResolver() {
 
   override fun canBeResolved(gradleJvm: String) = IdeSdks.getInstance().isUsingEnvVariableJdk
 
-  override fun getResolvedSdkInfo(
-    project: Project,
-    projectSdk: Sdk?,
-    externalProjectPath: String?,
-    sdkLookupProvider: SdkLookupProvider
-  ) = createSdkInfo(
-    name = JDK_LOCATION_ENV_VARIABLE_NAME,
-    homePath = IdeSdks.getInstance().envVariableJdkValue
-  )
+  override fun getResolvedSdkInfo(project: Project, projectSdk: Sdk?, externalProjectPath: String?, sdkLookupProvider: SdkLookupProvider) =
+    createSdkInfo(name = JDK_LOCATION_ENV_VARIABLE_NAME, homePath = IdeSdks.getInstance().envVariableJdkValue)
 }

@@ -54,12 +54,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.SimpleColoredComponent
 import icons.StudioIcons
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
@@ -70,6 +64,12 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [FilterTextField] */
 class FilterTextFieldTest {
@@ -77,26 +77,14 @@ class FilterTextFieldTest {
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-      EdtRule(),
-      usageTrackerRule,
-      disposableRule,
-    )
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule(), usageTrackerRule, disposableRule)
 
   private val project
     get() = projectRule.project
 
   private val filterHistory by lazy { AndroidLogcatFilterHistory.getInstance() }
-  private val fakeLogcatPresenter by lazy {
-    FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) }
-  }
-  private val logcatFilterParser by lazy {
-    LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project))
-  }
+  private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) } }
+  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project)) }
 
   @After
   fun tearDown() {
@@ -141,8 +129,7 @@ class FilterTextFieldTest {
   fun createEditor_putsUserData() {
     val editorFactory = EditorFactory.getInstance()
     val androidProjectDetector = FakeAndroidProjectDetector(true)
-    val filterTextField =
-      filterTextField(project, fakeLogcatPresenter, androidProjectDetector = androidProjectDetector)
+    val filterTextField = filterTextField(project, fakeLogcatPresenter, androidProjectDetector = androidProjectDetector)
 
     val editor = filterTextField.getEditorEx()
 
@@ -173,8 +160,7 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton =
-      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
@@ -187,8 +173,7 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory() {
     val filterTextField = filterTextField()
-    val editorTextField =
-      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -200,11 +185,9 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory_favorite() {
     val filterTextField = filterTextField(initialText = "foo")
-    val editorTextField =
-      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton =
-      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -216,8 +199,7 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun addToHistory_logsUsage() {
     val filterTextField = filterTextField()
-    val editorTextField =
-      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -226,9 +208,7 @@ class FilterTextFieldTest {
       .containsExactly(
         LogcatUsageEvent.newBuilder()
           .setType(FILTER_ADDED_TO_HISTORY)
-          .setLogcatFilter(
-            LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(false)
-          )
+          .setLogcatFilter(LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(false))
           .build()
       )
   }
@@ -238,8 +218,7 @@ class FilterTextFieldTest {
   fun addToHistory_favorite_logsUsage() {
     val filterTextField = filterTextField(initialText = "foo")
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton =
-      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
 
@@ -247,9 +226,7 @@ class FilterTextFieldTest {
       .containsExactly(
         LogcatUsageEvent.newBuilder()
           .setType(FILTER_ADDED_TO_HISTORY)
-          .setLogcatFilter(
-            LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(true)
-          )
+          .setLogcatFilter(LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(true))
           .build()
       )
   }
@@ -261,9 +238,7 @@ class FilterTextFieldTest {
     runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
-      fakeLogcatPresenter.processMessages(
-        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
-      )
+      fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar")))
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
@@ -280,9 +255,7 @@ class FilterTextFieldTest {
     runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
-      fakeLogcatPresenter.processMessages(
-        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
-      )
+      fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar")))
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
@@ -299,9 +272,7 @@ class FilterTextFieldTest {
     runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
-      fakeLogcatPresenter.processMessages(
-        listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar"))
-      )
+      fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "foobar"), logcatMessage(tag = "bar")))
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
       advanceUntilIdle()
@@ -332,9 +303,7 @@ class FilterTextFieldTest {
     runTest(timeout = 5.seconds) {
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
       filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
-      fakeLogcatPresenter.processMessages(
-        listOf(logcatMessage(tag = "Foo"), logcatMessage(tag = "FooBar"))
-      )
+      fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo"), logcatMessage(tag = "FooBar")))
       fakeLogcatPresenter.processMessages(listOf())
 
       val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
@@ -477,8 +446,7 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton =
-      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
     fakeUi.clickOn(favoriteButton)
 
     textField.text = "foo"
@@ -541,19 +509,11 @@ class FilterTextFieldTest {
     matchCase: Boolean? = null,
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
-    FilterTextField(
-        project,
-        logcatPresenter,
-        filterParser,
-        initialText,
-        matchCase,
-        androidProjectDetector,
-      )
-      .apply {
-        addNotify() // Creates editor
-        Disposer.register(disposableRule.disposable) { runInEdtAndWait { removeNotify() } }
-        size = Dimension(100, 100) // Allows FakeUi mouse clicks
-      }
+    FilterTextField(project, logcatPresenter, filterParser, initialText, matchCase, androidProjectDetector).apply {
+      addNotify() // Creates editor
+      Disposer.register(disposableRule.disposable) { runInEdtAndWait { removeNotify() } }
+      size = Dimension(100, 100) // Allows FakeUi mouse clicks
+    }
 
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
 
@@ -561,8 +521,7 @@ class FilterTextFieldTest {
 }
 
 private fun FilterTextField.getNamedComponent(name: String) =
-  TreeWalker(this).descendants().find { it.name == name }
-    ?: fail("Component named '$name' not found")
+  TreeWalker(this).descendants().find { it.name == name } ?: fail("Component named '$name' not found")
 
 private fun HistoryList.renderToStrings(): List<String> {
   return model.asSequence().toList().map {
@@ -577,8 +536,7 @@ private fun JPanel.renderToString(): String {
   return when {
     components[0] is JSeparator -> "----------------------------------"
     layout is GroupLayout -> {
-      val favorite =
-        if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
+      val favorite = if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
       val text = (components[1] as SimpleColoredComponent).toString()
       val count = (components[2] as JLabel).text
       "$favorite: $text ($count)"

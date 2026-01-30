@@ -27,9 +27,7 @@ import com.intellij.troubleshooting.TroubleInfoCollector
 import com.intellij.util.ui.UIUtil
 
 private fun collectEditorInfo(editor: FileEditor): String =
-  UIUtil.invokeAndWaitIfNeeded(
-    Computable { "FileEditor: file=${editor.file.name} isModified=${editor.isModified}" }
-  )
+  UIUtil.invokeAndWaitIfNeeded(Computable { "FileEditor: file=${editor.file.name} isModified=${editor.isModified}" })
 
 private fun collectSceneManagerInfo(sceneManagerInfo: SceneManager?): String =
   sceneManagerInfo?.let { sceneManager ->
@@ -53,11 +51,7 @@ private fun collectSurfaceInfo(surface: DesignSurface<*>?): String {
   val issuePanelService = IssuePanelService.getInstance(surface.project)
   val surfaceContent =
     UIUtil.invokeAndWaitIfNeeded(
-      Computable {
-        StringBuilder(
-          "${surface.javaClass.simpleName}: issuePanelVisible=${issuePanelService.isIssuePanelVisible()}"
-        )
-      }
+      Computable { StringBuilder("${surface.javaClass.simpleName}: issuePanelVisible=${issuePanelService.isIssuePanelVisible()}") }
     )
 
   surface.models
@@ -74,9 +68,7 @@ internal class DesignSurfaceTroubleInfoCollector : TroubleInfoCollector {
     val editorsToSurface =
       editors
         .mapNotNull {
-          val surface =
-            UIUtil.invokeAndWaitIfNeeded(Computable<DesignSurface<*>> { it.getDesignSurface() })
-              ?: return@mapNotNull null
+          val surface = UIUtil.invokeAndWaitIfNeeded(Computable<DesignSurface<*>> { it.getDesignSurface() }) ?: return@mapNotNull null
           it to surface
         }
         .toMap()

@@ -24,6 +24,7 @@ interface GradleProjectImporterExtension {
   fun beforeOpen(project: Project)
 
   companion object {
-    val EP_NAME = ExtensionPointName<GradleProjectImporterExtension>("com.android.tools.idea.gradle.project.importing.gradleProjectImporter")
+    val EP_NAME =
+      ExtensionPointName<GradleProjectImporterExtension>("com.android.tools.idea.gradle.project.importing.gradleProjectImporter")
   }
 }

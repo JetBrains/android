@@ -264,14 +264,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
 
   fun testShortenJava() {
     // Unit test for [LintIdeFixPerformer]'s support for symbol shortening in Java
-    val lintFix =
-      LintFix.create()
-        .replace()
-        .text("new String")
-        .with("new java.util.ArrayList")
-        .shortenNames()
-        .reformat(true)
-        .build()
+    val lintFix = LintFix.create().replace().text("new String").with("new java.util.ArrayList").shortenNames().reformat(true).build()
 
     // Test Java
     @Suppress("StringOperationCanBeSimplified")
@@ -320,14 +313,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
 
   fun testShortenKotlin() {
     // Unit test for [LintIdeFixPerformer]'s support for symbol shortening in Kotlin
-    val lintFix =
-      LintFix.create()
-        .replace()
-        .text("String")
-        .with("java.util.ArrayList")
-        .shortenNames()
-        .reformat(true)
-        .build()
+    val lintFix = LintFix.create().replace().text("String").with("java.util.ArrayList").shortenNames().reformat(true).build()
 
     // Test Java
     @Suppress("StringOperationCanBeSimplified")
@@ -443,14 +429,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
 
   fun testReformatRangeKotlin() {
     // Regression test for b/242557502: reformat just the inserted code.
-    val lintFix =
-      LintFix.create()
-        .replace()
-        .text("ReplaceMe()")
-        .with("p1.p3.myUtilFunction(   )")
-        .shortenNames()
-        .reformat(true)
-        .build()
+    val lintFix = LintFix.create().replace().text("ReplaceMe()").with("p1.p3.myUtilFunction(   )").shortenNames().reformat(true).build()
 
     val file =
       myFixture.addFileToProject(

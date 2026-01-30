@@ -24,9 +24,8 @@ import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 /**
- * Class used to wrap and unwrap [content] inside another component. When unwrapped, the parent of
- * [content] is the original parent. When wrapped, [content] is a descendant of wrapper. And the
- * parent of wrapper is the original parent of [content].
+ * Class used to wrap and unwrap [content] inside another component. When unwrapped, the parent of [content] is the original parent. When
+ * wrapped, [content] is a descendant of wrapper. And the parent of wrapper is the original parent of [content].
  *
  * If wrapped, [content] is unwrapped on disposal.
  */
@@ -40,8 +39,7 @@ class WrapLogic(parentDisposable: Disposable, private val content: JComponent) :
   /**
    * Wraps [content] into a new container.
    *
-   * @param wrap A function that takes [content] and wraps it into a new container. Returns a new
-   *   [JComponent] that contains [content].
+   * @param wrap A function that takes [content] and wraps it into a new container. Returns a new [JComponent] that contains [content].
    */
   fun wrapContent(wrap: (Disposable, JComponent) -> JComponent) {
     check(wrapper == null) { "Can't wrap, content is already wrapped" }
@@ -75,5 +73,4 @@ class WrapLogic(parentDisposable: Disposable, private val content: JComponent) :
   }
 }
 
-private fun Component.getContainedFocusOwner(): Component? =
-  if (isFocusAncestor()) getCurrentKeyboardFocusManager().focusOwner else null
+private fun Component.getContainedFocusOwner(): Component? = if (isFocusAncestor()) getCurrentKeyboardFocusManager().focusOwner else null

@@ -40,31 +40,33 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.regex.Pattern
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import java.util.regex.Pattern
 
-private val MISSING_PLATFORM_PATTERNS = listOf(
-  Pattern.compile("(Cause: )?(F|f)ailed to find target with hash string '(.*)' in: (.*)"),
-  Pattern.compile("(Cause: )?(F|f)ailed to find target (.*) : (.*)"),
-  Pattern.compile("(Cause: )?(F|f)ailed to find target (.*)"))
+private val MISSING_PLATFORM_PATTERNS =
+  listOf(
+    Pattern.compile("(Cause: )?(F|f)ailed to find target with hash string '(.*)' in: (.*)"),
+    Pattern.compile("(Cause: )?(F|f)ailed to find target (.*) : (.*)"),
+    Pattern.compile("(Cause: )?(F|f)ailed to find target (.*)"),
+  )
 
 private val ILLEGAL_STATE_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.IllegalStateException(.*)")
 private val EXTERNAL_SYSTEM_EXCEPTION_PATTERN =
   Pattern.compile("Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException(.*)")
 
-class MissingPlatformIssueChecker: GradleIssueChecker {
+class MissingPlatformIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause  = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
     val missingPlatform = getMissingPlatform(message)
-    if (message.isBlank() || missingPlatform == null ||
-        (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException)) return null
+    if (message.isBlank() || missingPlatform == null || (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException))
+      return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.MISSING_ANDROID_PLATFORM)
@@ -110,18 +112,21 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return stacktrace != null && (ILLEGAL_STATE_TRACE_PATTERN.matcher(stacktrace).find() ||
-                                  EXTERNAL_SYSTEM_EXCEPTION_PATTERN.matcher(stacktrace).find()) && getMissingPlatform(failureCause) != null
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
+    return stacktrace != null &&
+      (ILLEGAL_STATE_TRACE_PATTERN.matcher(stacktrace).find() || EXTERNAL_SYSTEM_EXCEPTION_PATTERN.matcher(stacktrace).find()) &&
+      getMissingPlatform(failureCause) != null
   }
 }
 
-class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>): BuildIssueQuickFix {
+class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>) : BuildIssueQuickFix {
   override val id = "install.android.platform"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -141,7 +146,7 @@ class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>)
   }
 }
 
-class OpenAndroidSdkManagerQuickFix: BuildIssueQuickFix {
+class OpenAndroidSdkManagerQuickFix : BuildIssueQuickFix {
   override val id = "open.android.sdk.manager"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {

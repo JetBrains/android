@@ -20,5 +20,4 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 
 /** A [DatabaseInspectorModel] identical to [DatabaseInspectorModelImpl] but open to extension. */
-@UiThread
-open class OpenDatabaseInspectorModel : DatabaseInspectorModel by DatabaseInspectorModelImpl()
+@UiThread open class OpenDatabaseInspectorModel : DatabaseInspectorModel by DatabaseInspectorModelImpl()

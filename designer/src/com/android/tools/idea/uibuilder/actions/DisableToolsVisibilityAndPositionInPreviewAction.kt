@@ -24,11 +24,10 @@ import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_OFF
 import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_ON
 
 /**
- * [ToggleAction] to enable or disable using 'tools' namespaced 'visibility' and
- * 'layout_editor_absoluteX/Y' attributes in the Layout Editor preview.
+ * [ToggleAction] to enable or disable using 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes in the Layout Editor
+ * preview.
  *
- * Default state (not-selected) means 'visibility' and 'layout_editor_absoluteX/Y' tools attributes
- * are enabled in the Layout file preview.
+ * Default state (not-selected) means 'visibility' and 'layout_editor_absoluteX/Y' tools attributes are enabled in the Layout file preview.
  */
 object DisableToolsVisibilityAndPositionInPreviewAction :
   ToggleAction(
@@ -55,6 +54,5 @@ object DisableToolsVisibilityAndPositionInPreviewAction :
     e.getPreviewHandler()?.previewWithToolsVisibilityAndPosition = !state
   }
 
-  private fun AnActionEvent.getPreviewHandler(): LayoutPreviewHandler? =
-    this.getData(LAYOUT_PREVIEW_HANDLER_KEY)
+  private fun AnActionEvent.getPreviewHandler(): LayoutPreviewHandler? = this.getData(LAYOUT_PREVIEW_HANDLER_KEY)
 }

@@ -22,10 +22,8 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 
-class FakeDatabaseConnection(
-  private val schema: SqliteSchema,
-  private val resultSet: SqliteResultSet = FakeSqliteResultSet(),
-) : DatabaseConnection {
+class FakeDatabaseConnection(private val schema: SqliteSchema, private val resultSet: SqliteResultSet = FakeSqliteResultSet()) :
+  DatabaseConnection {
   override fun close(): ListenableFuture<Unit> = immediateFuture(Unit)
 
   override fun readSchema() = immediateFuture(schema)

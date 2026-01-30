@@ -19,21 +19,21 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.writeText
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Assert.assertEquals
-import org.junit.Test
-import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.writeText
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Test
 
 @RunsInEdt
 class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  private lateinit var gradlePropertiesFile : VirtualFile
+  private lateinit var gradlePropertiesFile: VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {
@@ -43,9 +43,10 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     }
   }
 
-  override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder(includeAidlSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
-  )
+  override val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(includeAidlSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
+    )
 
   @Test
   fun testReadMoreUrl() {
@@ -65,9 +66,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEmptyAidlDirectory() {
     writeToBuildFile(TestFileName("AidlDefault/NoAidlDeclaration"))
-    runWriteAction {
-      projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
-    }
+    runWriteAction { projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl") }
     val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
@@ -141,8 +140,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.aidl=TrUe")
   }
 
-  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+  fun VirtualFile.load(): String = VfsUtilCore.loadText(this).normalize()
 
   fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
-
 }

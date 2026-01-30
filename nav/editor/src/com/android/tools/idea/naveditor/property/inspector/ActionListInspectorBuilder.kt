@@ -27,8 +27,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder(private val model: NlPropertiesModel) :
-  ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NlPropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
   override fun title(component: NlComponent) =
     if (component.isNavigation) {
       "Global Actions"
@@ -81,13 +80,7 @@ class ActionListInspectorBuilder(private val model: NlPropertiesModel) :
   override fun isApplicable(component: NlComponent) = component.supportsActions
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
-    val dialog =
-      AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        component,
-        parent,
-        NavEditorEvent.Source.PROPERTY_INSPECTOR,
-      )
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, component, parent, NavEditorEvent.Source.PROPERTY_INSPECTOR)
     showAndUpdateFromDialog(dialog, parent.model, component != null)
   }
 }

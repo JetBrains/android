@@ -31,82 +31,83 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RuleChain
 import com.intellij.util.text.nullize
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
-import java.io.File
 
 @RunWith(Parameterized::class)
 class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
 
   companion object {
-    @get:Parameters(name="phased:{0}")
-    @get:JvmStatic
-    val phasedSyncValues = listOf(true, false)
+    @get:Parameters(name = "phased:{0}") @get:JvmStatic val phasedSyncValues = listOf(true, false)
   }
 
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
-  val rule = RuleChain(
-    FlagRule(StudioFlags.PHASED_SYNC_ENABLED, phasedSync),
-    FlagRule(StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED, phasedSync),
-    projectRule,
-  )
+  val rule =
+    RuleChain(
+      FlagRule(StudioFlags.PHASED_SYNC_ENABLED, phasedSync),
+      FlagRule(StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED, phasedSync),
+      projectRule,
+    )
 
   @Test
   fun gradleProjectPaths() {
     val preparedProject = projectRule.prepareTestProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
     preparedProject.open { project ->
-      assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
-        """
-            ==> :
-            .aarWrapperLib ==> :aarWrapperLib
-            .app ==> :app
-            .app.androidTest ==> :app/ANDROID_TEST
-            .app.main ==> :app/MAIN
-            .app.unitTest ==> :app/UNIT_TEST
-            .common ==> :common
-            .common.commonMain ==> :common/commonMain
-            .common.commonTest ==> :common/commonTest
-            .common.jvmMain ==> :common/jvmMain
-            .common.jvmTest ==> :common/jvmTest
-            .desktop ==> :desktop
-            .desktop.main ==> :desktop/MAIN
-            .desktop.test ==> :desktop/test
-            .feature-a ==> :feature-a
-            .feature-a.androidTest ==> :feature-a/ANDROID_TEST
-            .feature-a.main ==> :feature-a/MAIN
-            .feature-a.unitTest ==> :feature-a/UNIT_TEST
-            .feature-b ==> :feature-b
-            .feature-b.androidTest ==> :feature-b/ANDROID_TEST
-            .feature-b.main ==> :feature-b/MAIN
-            .feature-b.unitTest ==> :feature-b/UNIT_TEST
-            .jarWrapperLib ==> :jarWrapperLib
-            .javaLibrary ==> :javaLibrary
-            .javaLibrary.main ==> :javaLibrary/MAIN
-            .javaLibrary.test ==> :javaLibrary/test
-            .javaLibrary.testEnv ==> :javaLibrary/testEnv
-            .kmp-java ==> :kmp-java
-            .kmp-java.sample ==> :kmp-java:sample
-            .kmp-java.sample-test ==> :kmp-java:sample-test
-            .kmp-java.sample-test.androidTest ==> :kmp-java:sample-test/ANDROID_TEST
-            .kmp-java.sample-test.main ==> :kmp-java:sample-test/MAIN
-            .kmp-java.sample-test.unitTest ==> :kmp-java:sample-test/UNIT_TEST
-            .kmp-java.sample.commonMain ==> :kmp-java:sample/commonMain
-            .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
-            .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
-            .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
-            .kmp-java.sample.main ==> :kmp-java:sample/MAIN
-            .kmp-java.sample.test ==> :kmp-java:sample/test
-            .lib ==> :lib
-            .lib.androidTest ==> :lib/ANDROID_TEST
-            .lib.main ==> :lib/MAIN
-            .lib.unitTest ==> :lib/UNIT_TEST
-        """.trimIndent()
-      )
+      assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root))
+        .isEqualTo(
+          """
+          ==> :
+          .aarWrapperLib ==> :aarWrapperLib
+          .app ==> :app
+          .app.androidTest ==> :app/ANDROID_TEST
+          .app.main ==> :app/MAIN
+          .app.unitTest ==> :app/UNIT_TEST
+          .common ==> :common
+          .common.commonMain ==> :common/commonMain
+          .common.commonTest ==> :common/commonTest
+          .common.jvmMain ==> :common/jvmMain
+          .common.jvmTest ==> :common/jvmTest
+          .desktop ==> :desktop
+          .desktop.main ==> :desktop/MAIN
+          .desktop.test ==> :desktop/test
+          .feature-a ==> :feature-a
+          .feature-a.androidTest ==> :feature-a/ANDROID_TEST
+          .feature-a.main ==> :feature-a/MAIN
+          .feature-a.unitTest ==> :feature-a/UNIT_TEST
+          .feature-b ==> :feature-b
+          .feature-b.androidTest ==> :feature-b/ANDROID_TEST
+          .feature-b.main ==> :feature-b/MAIN
+          .feature-b.unitTest ==> :feature-b/UNIT_TEST
+          .jarWrapperLib ==> :jarWrapperLib
+          .javaLibrary ==> :javaLibrary
+          .javaLibrary.main ==> :javaLibrary/MAIN
+          .javaLibrary.test ==> :javaLibrary/test
+          .javaLibrary.testEnv ==> :javaLibrary/testEnv
+          .kmp-java ==> :kmp-java
+          .kmp-java.sample ==> :kmp-java:sample
+          .kmp-java.sample-test ==> :kmp-java:sample-test
+          .kmp-java.sample-test.androidTest ==> :kmp-java:sample-test/ANDROID_TEST
+          .kmp-java.sample-test.main ==> :kmp-java:sample-test/MAIN
+          .kmp-java.sample-test.unitTest ==> :kmp-java:sample-test/UNIT_TEST
+          .kmp-java.sample.commonMain ==> :kmp-java:sample/commonMain
+          .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
+          .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
+          .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
+          .kmp-java.sample.main ==> :kmp-java:sample/MAIN
+          .kmp-java.sample.test ==> :kmp-java:sample/test
+          .lib ==> :lib
+          .lib.androidTest ==> :lib/ANDROID_TEST
+          .lib.main ==> :lib/MAIN
+          .lib.unitTest ==> :lib/UNIT_TEST
+          """
+            .trimIndent()
+        )
       assertThatProjectPathsCanBeResolved(project)
     }
   }
@@ -116,8 +117,9 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
       if (phasedSync) {
-        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
-          """
+        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root))
+          .isEqualTo(
+            """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app/ANDROID_TEST
@@ -157,11 +159,13 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             TestCompositeLib4 ==> [TestCompositeLib4]:
             TestCompositeLib4.main ==> [TestCompositeLib4]:/MAIN
             TestCompositeLib4.test ==> [TestCompositeLib4]:/test
-        """.trimIndent()
-        )
+            """
+              .trimIndent()
+          )
       } else {
-        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
-          """
+        assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root))
+          .isEqualTo(
+            """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app/ANDROID_TEST
@@ -201,9 +205,9 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             composite4 ==> [TestCompositeLib4]:
             composite4.main ==> [TestCompositeLib4]:/MAIN
             composite4.test ==> [TestCompositeLib4]:/test
-        """.trimIndent()
-        )
-
+            """
+              .trimIndent()
+          )
       }
 
       assertThatProjectPathsCanBeResolved(project)
@@ -215,8 +219,9 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
     val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
       if (phasedSync) {
-        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
-          """
+        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project))
+          .isEqualTo(
+            """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app
@@ -256,11 +261,13 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             TestCompositeLib4 ==> :TestCompositeLib4
             TestCompositeLib4.main ==> :TestCompositeLib4
             TestCompositeLib4.test ==> :TestCompositeLib4
-        """.trimIndent()
-        )
+            """
+              .trimIndent()
+          )
       } else {
-        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
-          """
+        assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project))
+          .isEqualTo(
+            """
             ==> :
             .app ==> :app
             .app.androidTest ==> :app
@@ -300,9 +307,9 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
             composite4 ==> :TestCompositeLib4
             composite4.main ==> :TestCompositeLib4
             composite4.test ==> :TestCompositeLib4
-        """.trimIndent()
-        )
-
+            """
+              .trimIndent()
+          )
       }
       assertThatProjectPathsCanBeResolved(project)
     }
@@ -327,15 +334,13 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
     root.resolve("app").renameTo(root.resolve("app1"))
     root.resolve("app").mkdir()
     root.resolve("app1").renameTo(root.resolve("app").resolve("main"))
-    root.resolve("settings.gradle").let { settingsFile ->
-      settingsFile.writeText(
-        settingsFile.readText().replace("':app'", "':app:main'")
-      )
-    }
+    root.resolve("settings.gradle").let { settingsFile -> settingsFile.writeText(settingsFile.readText().replace("':app'", "':app:main'")) }
   }
 
   private fun dumpModuleToGradlePathMapping(project: Project, root: File): String {
-    return ModuleManager.getInstance(project).modules.map { it to it.getGradleProjectPath() }
+    return ModuleManager.getInstance(project)
+      .modules
+      .map { it to it.getGradleProjectPath() }
       .sortedWith(compareBy({ it.second?.buildRoot }, { it.first.name }))
       .joinToString("\n") { (module, gradleProjectPath) ->
         val moduleName = module.name.removePrefix(project.name)
@@ -365,8 +370,6 @@ class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
 
   private fun assertThatProjectPathsCanBeResolved(project: Project) {
     val pathMap = ModuleManager.getInstance(project).modules.map { it to it.getGradleProjectPath() }
-    pathMap.forEach { (module, gradlePath) ->
-      if (gradlePath != null) assertThat(gradlePath.resolveIn(project)).isSameAs(module)
-    }
+    pathMap.forEach { (module, gradlePath) -> if (gradlePath != null) assertThat(gradlePath.resolveIn(project)).isSameAs(module) }
   }
 }

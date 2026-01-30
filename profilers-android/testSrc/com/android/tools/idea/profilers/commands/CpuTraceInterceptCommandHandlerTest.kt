@@ -30,6 +30,7 @@ import com.android.tools.profilers.TraceConfigOptionsUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
+import java.nio.charset.Charset
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -37,14 +38,12 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import java.nio.charset.Charset
 
 class CpuTraceInterceptCommandHandlerTest {
   private val timer = FakeTimer()
   private val service = FakeTransportService(timer)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuTraceInterceptCommandHandlerTest", service)
+  @get:Rule var grpcChannel = FakeGrpcChannel("CpuTraceInterceptCommandHandlerTest", service)
   private val channel: ManagedChannel = InProcessChannelBuilder.forName(grpcChannel.name).usePlaintext().directExecutor().build()
 
   @Test
@@ -101,10 +100,11 @@ class CpuTraceInterceptCommandHandlerTest {
     val testPid = 1
     val cmdId = 1
     // Exit code 2 == SDK already enabled.
-    val broadcastFailed = ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
-                           "cmp=androidx.compose.samples.crane/androidx.tracing.perfetto.TracingReceiver }\n" +
-                           "Broadcast completed: result=2, data=\"{\"exitCode\":2,\"requiredVersion\":\"1.0.0-alpha01\"" +
-                           "}\"\n")
+    val broadcastFailed =
+      ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
+        "cmp=androidx.compose.samples.crane/androidx.tracing.perfetto.TracingReceiver }\n" +
+        "Broadcast completed: result=2, data=\"{\"exitCode\":2,\"requiredVersion\":\"1.0.0-alpha01\"" +
+        "}\"\n")
     val commandHandler = setupInterceptForTest(testPid, broadcastFailed)
     val startTrackCommand = buildCommand(cmdId, TraceType.PERFETTO)
     val returnValue = commandHandler.execute(startTrackCommand)
@@ -121,10 +121,11 @@ class CpuTraceInterceptCommandHandlerTest {
   }
 
   private fun setupInterceptForTest(testPid: Int): CpuTraceInterceptCommandHandler {
-    val broadcast = ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
-                     "cmp=androidx.compose.samples.crane/androidx.tracing.perfetto.TracingReceiver }\n" +
-                     "Broadcast completed: result=1, data=\"{\"exitCode\":1,\"requiredVersion\":\"1.0.0-alpha01\"" +
-                     "}\"\n")
+    val broadcast =
+      ("Broadcasting: Intent { act=androidx.tracing.perfetto.action.ENABLE_TRACING flg=0x400000" +
+        "cmp=androidx.compose.samples.crane/androidx.tracing.perfetto.TracingReceiver }\n" +
+        "Broadcast completed: result=1, data=\"{\"exitCode\":1,\"requiredVersion\":\"1.0.0-alpha01\"" +
+        "}\"\n")
     return setupInterceptForTest(testPid, broadcast)
   }
 
@@ -136,22 +137,25 @@ class CpuTraceInterceptCommandHandlerTest {
       val data = broadcast.toByteArray(Charset.defaultCharset())
       shellCaptor.value.addOutput(data, 0, data.size)
     }
-    val commandHandler = CpuTraceInterceptCommandHandler(mockClient.device,
-                                                         TransportServiceGrpc.newBlockingStub(channel))
+    val commandHandler = CpuTraceInterceptCommandHandler(mockClient.device, TransportServiceGrpc.newBlockingStub(channel))
     return commandHandler
   }
 
-  fun buildCommand(cmdId: Int, traceType: TraceType) = Commands.Command.newBuilder().apply {
-    type = Commands.Command.CommandType.START_TRACE
-    commandId = cmdId
-    startTrace = Trace.StartTrace.newBuilder().apply {
-      profilerType = Trace.ProfilerType.CPU
-      val configuration = Trace.TraceConfiguration.newBuilder().apply {
-        abiCpuArch = "FakeAbi"
+  fun buildCommand(cmdId: Int, traceType: TraceType) =
+    Commands.Command.newBuilder()
+      .apply {
+        type = Commands.Command.CommandType.START_TRACE
+        commandId = cmdId
+        startTrace =
+          Trace.StartTrace.newBuilder()
+            .apply {
+              profilerType = Trace.ProfilerType.CPU
+              val configuration = Trace.TraceConfiguration.newBuilder().apply { abiCpuArch = "FakeAbi" }
+              // Add the technology-specific options.
+              TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
+              this.configuration = configuration.build()
+            }
+            .build()
       }
-      // Add the technology-specific options.
-      TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
-      this.configuration = configuration.build()
-    }.build()
-  }.build()
+      .build()
 }

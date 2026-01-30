@@ -18,48 +18,57 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.TestOnly
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import javax.swing.Icon
+import org.jetbrains.annotations.TestOnly
 
 class PsProjectImpl(
   override val ideProject: Project,
-  override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
+  override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory(),
 ) : PsChildModel(), PsProject {
   override val descriptor by PsProjectDescriptors
-  override var parsedModel: ProjectBuildModel = GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
+  override var parsedModel: ProjectBuildModel =
+    GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
     private set
+
   override val buildScriptVariables: PsVariables
   override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
-  val buildScript : PsBuildScript = PsBuildScript(this)
-  private val versionCatalogCollection : PsVersionCatalogCollection
-  override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
+  val buildScript: PsBuildScript = PsBuildScript(this)
+  private val versionCatalogCollection: PsVersionCatalogCollection
+  override val name: String
+    get() = ideProject.name // Supposedly there is no way to rename the project from within the PSD.
 
   override val parent: PsModel? = null
   override val isDeclared: Boolean = true
   override val icon: Icon? = null
 
-  override val modules: PsModelCollection<PsModule> get() = moduleCollection
-  override val versionCatalogs: PsModelCollection<PsVersionCatalog> get() = versionCatalogCollection
-  override val modelCount: Int get() = moduleCollection.size
+  override val modules: PsModelCollection<PsModule>
+    get() = moduleCollection
+
+  override val versionCatalogs: PsModelCollection<PsVersionCatalog>
+    get() = versionCatalogCollection
+
+  override val modelCount: Int
+    get() = moduleCollection.size
+
   override var androidGradlePluginVersion by PsProjectDescriptors.androidGradlePluginVersion
   override var gradleVersion by PsProjectDescriptors.gradleVersion
 
@@ -75,37 +84,23 @@ class PsProjectImpl(
   }
 
   override fun getPluginArtifactRepositories(): Collection<ArtifactRepository> =
-    (parsedModel
-       .projectBuildModel
-       ?.buildscript()
-       ?.repositories()
-       ?.repositories()
-       .orEmpty()
-       .mapNotNull { it.toArtifactRepository() } +
-     parsedModel
-       .projectSettingsModel
-       ?.pluginManagement()
-       ?.repositories()
-       ?.repositories()
-       .orEmpty()
-       .mapNotNull { it.toArtifactRepository() } +
-     listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository())
-    ).toSet()
+    (parsedModel.projectBuildModel?.buildscript()?.repositories()?.repositories().orEmpty().mapNotNull { it.toArtifactRepository() } +
+        parsedModel.projectSettingsModel?.pluginManagement()?.repositories()?.repositories().orEmpty().mapNotNull {
+          it.toArtifactRepository()
+        } +
+        listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository()))
+      .toSet()
 
-  override fun findModuleByName(moduleName: String): PsModule? =
-    moduleCollection.firstOrNull { it -> it.name == moduleName }
+  override fun findModuleByName(moduleName: String): PsModule? = moduleCollection.firstOrNull { it -> it.name == moduleName }
 
-  override fun findModuleByGradlePath(gradlePath: String): PsModule? =
-    moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
+  override fun findModuleByGradlePath(gradlePath: String): PsModule? = moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
     moduleCollection.sortedBy { it.name.lowercase(Locale.US) }.forEach(consumer)
   }
 
   override fun removeModule(gradlePath: String) {
-    findModuleByGradlePath(gradlePath)?.let { module ->
-      moduleCollection.remove(ModuleKey(module.moduleKind, gradlePath))
-    }
+    findModuleByGradlePath(gradlePath)?.let { module -> moduleCollection.remove(ModuleKey(module.moduleKind, gradlePath)) }
   }
 
   override fun applyChanges() {
@@ -131,8 +126,7 @@ class PsProjectImpl(
     return moduleCollection.refreshFuture()
   }
 
-  internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> =
-    internalResolvedModuleModels ?: mapOf()
+  internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> = internalResolvedModuleModels ?: mapOf()
 
   fun applyRunAndReparse(runnable: () -> Boolean) {
     if (isModified) {
@@ -146,7 +140,7 @@ class PsProjectImpl(
       variables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
-      isModified = true  // This is to trigger apply() which in turn will trigger the final sync.
+      isModified = true // This is to trigger apply() which in turn will trigger the final sync.
     }
   }
 
@@ -155,8 +149,7 @@ class PsProjectImpl(
   }
 
   override fun getGradleVersionValue(notApplied: Boolean): String? =
-    if (notApplied && gradleVersionModified) newGradleVersion
-    else GradleWrapper.find(ideProject)?.gradleVersion
+    if (notApplied && gradleVersionModified) newGradleVersion else GradleWrapper.find(ideProject)?.gradleVersion
 
   override fun setGradleVersionValue(value: String) {
     if (value == getGradleVersionValue(notApplied = true).orEmpty()) return

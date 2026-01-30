@@ -78,30 +78,16 @@ class AppInsightsIssuesTableCellRendererTest {
     assertThat(getIcons(AppInsightsIssue(detailsTemplate, mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL)
 
-    assertThat(
-        getIcons(
-          AppInsightsIssue(
-            detailsTemplate.copy(fatality = FailureType.NON_FATAL),
-            mock(),
-            FakeInsightsProvider(),
-          )
-        )
-      )
+    assertThat(getIcons(AppInsightsIssue(detailsTemplate.copy(fatality = FailureType.NON_FATAL), mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.NON_FATAL)
 
-    assertThat(
-        getIcons(
-          AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), FakeInsightsProvider())
-        )
-      )
+    assertThat(getIcons(AppInsightsIssue(detailsTemplate.copy(notesCount = 4), mock(), FakeInsightsProvider())))
       .containsExactly(StudioIcons.AppQualityInsights.FATAL_WITH_NOTE)
 
     assertThat(
         getIcons(
           AppInsightsIssue(
-            detailsTemplate.copy(
-              signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)
-            ),
+            detailsTemplate.copy(signals = setOf(SignalType.SIGNAL_FRESH, SignalType.SIGNAL_REGRESSED)),
             mock(),
             FakeInsightsProvider(),
           )

@@ -48,11 +48,9 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-/**
- * Utility methods to support the recipe.xml merge instruction.
- */
-
-private val LOG: Logger get() = Logger.getInstance("RecipeMergeUtils.kt")
+/** Utility methods to support the recipe.xml merge instruction. */
+private val LOG: Logger
+  get() = Logger.getInstance("RecipeMergeUtils.kt")
 
 private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
@@ -60,6 +58,7 @@ private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
 /**
  * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
+ *
  * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
 fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
@@ -77,12 +76,17 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
     // report.reportString isn't useful, it just says to look at the logs
     // Also, some of the warnings are misleading -- e.g. "missing package declaration";
     // that's deliberate. Users only have to deal with errors to get the manifest merge to succeed.
-    errors = report.loggingRecords.asSequence()
-      .filter { it.severity == MergingReport.Record.Severity.ERROR }
-      .joinToString("") { "* ${it.message}\n\n" }
-      .replace("AndroidManifest.xml", "current AndroidManifest.xml") // Error messages may refer to our internal temp name for the target manifest file
-      .replace("nevercreated.xml", "template AndroidManifest.xml")
-      .trim()
+    errors =
+      report.loggingRecords
+        .asSequence()
+        .filter { it.severity == MergingReport.Record.Severity.ERROR }
+        .joinToString("") { "* ${it.message}\n\n" }
+        .replace(
+          "AndroidManifest.xml",
+          "current AndroidManifest.xml",
+        ) // Error messages may refer to our internal temp name for the target manifest file
+        .replace("nevercreated.xml", "template AndroidManifest.xml")
+        .trim()
     return null
   }
 
@@ -94,36 +98,37 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
   }
 
   return (if (fileName == FN_ANDROID_MANIFEST_XML) mergeManifest() else mergePlainXml())
-         ?: // Just insert into file along with comment, using the "standard" conflict syntax that many tools and editors recognize.
-         wrapWithMergeConflict(targetXml, sourceXml).also {
-           context.warnings.add(
-             "Merge conflict for: ${targetFile.name}\nThis file must be fixed by hand. Errors encountered during the merge:\n\n$errors")
-         }
+    ?: // Just insert into file along with comment, using the "standard" conflict syntax that many tools and editors recognize.
+    wrapWithMergeConflict(targetXml, sourceXml).also {
+      context.warnings.add(
+        "Merge conflict for: ${targetFile.name}\nThis file must be fixed by hand. Errors encountered during the merge:\n\n$errors"
+      )
+    }
 }
 
-/**
- * Merges the given resource file contents into the given resource file
- */
-fun mergeResourceFile(project: Project,
-                      warningsToAdd: MutableCollection<String>,
-                      targetXml: String,
-                      sourceXml: String,
-                      fileName: String,
-                      folderType: ResourceFolderType?): String {
-  val targetPsiFile = PsiFileFactory.getInstance(project)
-    .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml), false, true) as XmlFile
-  val sourcePsiFile = PsiFileFactory.getInstance(project)
-    .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml), false, true) as XmlFile
+/** Merges the given resource file contents into the given resource file */
+fun mergeResourceFile(
+  project: Project,
+  warningsToAdd: MutableCollection<String>,
+  targetXml: String,
+  sourceXml: String,
+  fileName: String,
+  folderType: ResourceFolderType?,
+): String {
+  val targetPsiFile =
+    PsiFileFactory.getInstance(project)
+      .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml), false, true) as XmlFile
+  val sourcePsiFile =
+    PsiFileFactory.getInstance(project)
+      .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml), false, true) as XmlFile
   val root = targetPsiFile.document!!.rootTag ?: error("Cannot find XML root in target: $targetXml")
 
   val attributes = sourcePsiFile.rootTag!!.attributes
-  attributes.filter {it.namespacePrefix == XMLNS_PREFIX}.forEach { root.setAttribute(it.name, it.value) }
+  attributes.filter { it.namespacePrefix == XMLNS_PREFIX }.forEach { root.setAttribute(it.name, it.value) }
 
   if (folderType != ResourceFolderType.VALUES) {
     // In other file types, such as layouts, just append all the new content at the end.
-    sourcePsiFile.rootTag!!.children.filterIsInstance<XmlTag>().forEach {
-      root.addSubTag(it, false)
-    }
+    sourcePsiFile.rootTag!!.children.filterIsInstance<XmlTag>().forEach { root.addSubTag(it, false) }
     return targetPsiFile.text
   }
 
@@ -153,9 +158,7 @@ fun mergeResourceFile(project: Project,
             prependElements.add(indent)
           }
           subTag = root.addSubTag(subTag, false)
-          prependElements.forEach {
-            root.addBefore(it, subTag)
-          }
+          prependElements.forEach { root.addBefore(it, subTag) }
           prependElements.clear()
           continue@loop
         }
@@ -187,7 +190,9 @@ fun mergeResourceFile(project: Project,
             // There are no differences, do not issue a warning.
           }
           else -> // No explicit directive given, preserve the original value by default.
-            warningsToAdd.add("Ignoring conflict for the value: $name wanted: \"%${child.text}\" but it already is: \"%${replace.text}\" in the file: $fileName")
+          warningsToAdd.add(
+              "Ignoring conflict for the value: $name wanted: \"%${child.text}\" but it already is: \"%${replace.text}\" in the file: $fileName"
+            )
         }
         prependElements.clear()
       }
@@ -197,9 +202,7 @@ fun mergeResourceFile(project: Project,
   return targetPsiFile.text
 }
 
-/**
- * Checks if the two XML tags have the same names and the same sets of attributes.
- */
+/** Checks if the two XML tags have the same names and the same sets of attributes. */
 private fun areXmlTagsEquivalent(element1: XmlTag, element2: XmlTag): Boolean {
   if (element1.name != element2.name) {
     return false
@@ -219,33 +222,33 @@ private fun areXmlTagsEquivalent(element1: XmlTag, element2: XmlTag): Boolean {
   return true
 }
 
-/**
- * Merges the given manifest fragment into the given manifest file
- */
-private fun mergeManifest(namespace: String, moduleRoot: File, targetManifest: File,
-                          targetXml: String, mergeText: String): MergingReport? {
+/** Merges the given manifest fragment into the given manifest file */
+private fun mergeManifest(namespace: String, moduleRoot: File, targetManifest: File, targetXml: String, mergeText: String): MergingReport? {
   try {
     val isMasterManifest = FileUtil.filesEqual(moduleRoot, targetManifest.parentFile)
 
     val tempFile2 = File(targetManifest.parentFile, "nevercreated.xml")
     val logger = StdLogger(StdLogger.Level.INFO)
     return ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
-      .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
-                    ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
-                    ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
+      .withFeatures(
+        ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS,
+        ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
+        ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT,
+      )
       .setNamespace(namespace)
       .addFlavorAndBuildTypeManifest(tempFile2)
       .asType(if (isMasterManifest) XmlDocument.Type.MAIN else XmlDocument.Type.OVERLAY)
-      .withFileStreamProvider(object : ManifestMerger2.FileStreamProvider() {
-        @Throws(FileNotFoundException::class)
-        override fun getInputStream(file: File): InputStream {
-          val text = if (FileUtil.filesEqual(file, targetManifest)) targetXml else mergeText
-          return ByteArrayInputStream(text.toByteArray(Charsets.UTF_8))
+      .withFileStreamProvider(
+        object : ManifestMerger2.FileStreamProvider() {
+          @Throws(FileNotFoundException::class)
+          override fun getInputStream(file: File): InputStream {
+            val text = if (FileUtil.filesEqual(file, targetManifest)) targetXml else mergeText
+            return ByteArrayInputStream(text.toByteArray(Charsets.UTF_8))
+          }
         }
-      })
+      )
       .merge()
-  }
-  catch (e: ManifestMerger2.MergeFailureException) {
+  } catch (e: ManifestMerger2.MergeFailureException) {
     LOG.warn(e)
     return null
   }
@@ -253,8 +256,5 @@ private fun mergeManifest(namespace: String, moduleRoot: File, targetManifest: F
 
 private fun getResourceId(tag: XmlTag): String? = tag.getAttributeValue(ATTR_NAME) ?: tag.getAttributeValue(ATTR_ID)
 
-/**
- * Wraps the given strings in the standard conflict syntax
- */
-private fun wrapWithMergeConflict(original: String, added: String): String =
-  "<<<<<<< Original\n$original\n=======\n$added>>>>>>> Added\n"
+/** Wraps the given strings in the standard conflict syntax */
+private fun wrapWithMergeConflict(original: String, added: String): String = "<<<<<<< Original\n$original\n=======\n$added>>>>>>> Added\n"

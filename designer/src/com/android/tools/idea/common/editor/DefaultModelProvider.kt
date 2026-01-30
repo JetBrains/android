@@ -19,15 +19,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.type.getConfiguration
 
-val DEFAULT_MODEL_PROVIDER: ModelProvider =
-  ModelProvider { disposable, project, facet, componentRegistrar, file ->
-    val configuration =
-      file.getConfiguration(ConfigurationManager.getOrCreateInstance(facet.module))
-    val model =
-      NlModel.Builder(disposable, facet, file, configuration)
-        .withComponentRegistrar(componentRegistrar)
-        .build()
-    // For the Layout Editor, set an empty name to enable SceneView toolbars.
-    model.displaySettings.setDisplayName("")
-    model
-  }
+val DEFAULT_MODEL_PROVIDER: ModelProvider = ModelProvider { disposable, project, facet, componentRegistrar, file ->
+  val configuration = file.getConfiguration(ConfigurationManager.getOrCreateInstance(facet.module))
+  val model = NlModel.Builder(disposable, facet, file, configuration).withComponentRegistrar(componentRegistrar).build()
+  // For the Layout Editor, set an empty name to enable SceneView toolbars.
+  model.displaySettings.setDisplayName("")
+  model
+}

@@ -27,9 +27,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
-/**
- * Displays a popup menu of available postures of a foldable or a rollable device.
- */
+/** Displays a popup menu of available postures of a foldable or a rollable device. */
 internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
@@ -42,13 +40,20 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
     val currentPosture = emulatorView.currentPosture
     if (currentPosture == null) {
       ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID).actionPerformed(event)
-    }
-    else {
-      val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
-        { action -> action is EmulatorFoldingAction && action.posture == currentPosture },
-        ActionPlaces.getPopupPlace(EMULATOR_MAIN_TOOLBAR_ID)
-      )
+    } else {
+      val popup =
+        JBPopupFactory.getInstance()
+          .createActionGroupPopup(
+            null,
+            this,
+            event.dataContext,
+            JBPopupFactory.ActionSelectionAid.MNEMONICS,
+            true,
+            null,
+            -1,
+            { action -> action is EmulatorFoldingAction && action.posture == currentPosture },
+            ActionPlaces.getPopupPlace(EMULATOR_MAIN_TOOLBAR_ID),
+          )
       event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
     }
   }
@@ -77,8 +82,8 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     val emulatorView = getEmulatorView(event)
-    val enabled = getEmulatorConfig(event)?.postures?.isNotEmpty() == true &&
-                  emulatorView != null && emulatorView.displayMode?.hasPostures != false
+    val enabled =
+      getEmulatorConfig(event)?.postures?.isNotEmpty() == true && emulatorView != null && emulatorView.displayMode?.hasPostures != false
     val presentation = event.presentation
     presentation.isEnabledAndVisible = enabled
     if (enabled) {

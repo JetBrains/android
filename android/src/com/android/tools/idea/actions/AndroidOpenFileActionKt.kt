@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidOpenFileActionUtils")
+
 package com.android.tools.idea.actions
 
 import com.intellij.ide.impl.OpenProjectTask
@@ -22,7 +23,5 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.PlatformProjectOpenProcessor
 
 fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?): Project? {
-  return PlatformProjectOpenProcessor.doOpenProject(virtualFile.toNioPath(), OpenProjectTask {
-    this.projectToClose = projectToClose
-  })
+  return PlatformProjectOpenProcessor.doOpenProject(virtualFile.toNioPath(), OpenProjectTask { this.projectToClose = projectToClose })
 }

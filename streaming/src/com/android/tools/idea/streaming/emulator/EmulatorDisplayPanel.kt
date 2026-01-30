@@ -27,9 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 
-/**
- * Represents a single Emulator display.
- */
+/** Represents a single Emulator display. */
 class EmulatorDisplayPanel(
   disposableParent: Disposable,
   emulator: EmulatorController,
@@ -57,9 +55,7 @@ class EmulatorDisplayPanel(
   @AnyThread
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
-      UIUtil.invokeLaterIfNeeded {
-        createFloatingToolbar()
-      }
+      UIUtil.invokeLaterIfNeeded { createFloatingToolbar() }
     }
   }
 

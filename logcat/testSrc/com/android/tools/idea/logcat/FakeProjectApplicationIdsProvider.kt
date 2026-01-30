@@ -21,10 +21,8 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Compan
 import com.intellij.openapi.project.Project
 
 /** Test implementation of [ProjectApplicationIdsProvider] */
-internal class FakeProjectApplicationIdsProvider(
-  private val project: Project,
-  vararg initialValue: String,
-) : ProjectApplicationIdsProvider {
+internal class FakeProjectApplicationIdsProvider(private val project: Project, vararg initialValue: String) :
+  ProjectApplicationIdsProvider {
   private var applicationIds = initialValue.toSet()
 
   @UiThread
@@ -32,9 +30,7 @@ internal class FakeProjectApplicationIdsProvider(
     val newIds = value.toSet()
     if (applicationIds != newIds) {
       applicationIds = newIds
-      project.messageBus
-        .syncPublisher(PROJECT_APPLICATION_IDS_CHANGED_TOPIC)
-        .applicationIdsChanged(newIds)
+      project.messageBus.syncPublisher(PROJECT_APPLICATION_IDS_CHANGED_TOPIC).applicationIdsChanged(newIds)
     }
   }
 

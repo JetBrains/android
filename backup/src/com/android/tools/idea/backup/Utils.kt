@@ -32,11 +32,9 @@ internal fun Path.isValid(): Boolean {
   return names.all { fileSystem.isValidName(it) && it.isNotBlank() }
 }
 
-internal fun Project.findModule(applicationId: String) =
-  getProjectSystem().findModulesWithApplicationId(applicationId).firstOrNull()
+internal fun Project.findModule(applicationId: String) = getProjectSystem().findModulesWithApplicationId(applicationId).firstOrNull()
 
-internal fun Project.findHolderModule(applicationId: String) =
-  findModule(applicationId)?.getModuleSystem()?.getHolderModule()
+internal fun Project.findHolderModule(applicationId: String) = findModule(applicationId)?.getModuleSystem()?.getHolderModule()
 
 fun SequentialProgressReporter.onStep(step: Step) {
   nextStep(step.step * 100 / step.totalSteps, step.text)

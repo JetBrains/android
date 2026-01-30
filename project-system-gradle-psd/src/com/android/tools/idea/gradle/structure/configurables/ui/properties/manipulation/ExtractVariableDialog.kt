@@ -29,11 +29,13 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
   project: PsProject,
   scope: PsVariablesScope,
   refactoredProperty: ModelPropertyCoreT,
-  private var editorFactory: ModelPropertyEditorFactory<PropertyT, ModelPropertyCoreT>
+  private var editorFactory: ModelPropertyEditorFactory<PropertyT, ModelPropertyCoreT>,
 ) : DialogWrapper(project.ideProject) {
 
   private var form: ExtractVariableForm? = null
-  private val name: String get() = form?.myNameField?.text ?: ""
+  private val name: String
+    get() = form?.myNameField?.text ?: ""
+
   private val scopes = scope.getVariableScopes().associateBy { it.title }
 
   private val worker = ExtractVariableWorker(refactoredProperty)
@@ -52,9 +54,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
     val defaultScope = scopes.keys.drop(1).firstOrNull() ?: scopes.keys.first()
     configureFormFor(form, defaultScope)
 
-    form.myScopeField.addActionListener {
-      configureFormFor(form, form.myScopeField.selectedItem as String)
-    }
+    form.myScopeField.addActionListener { configureFormFor(form, form.myScopeField.selectedItem as String) }
     form.myScopeField.background = JBColor.background()
 
     this.form = form
@@ -69,8 +69,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
     form.myScopeField.selectedItem = scope
   }
 
-  override fun doValidate(): ValidationInfo? =
-    worker.validate(name)?.let { ValidationInfo(it).withOKEnabled() }
+  override fun doValidate(): ValidationInfo? = worker.validate(name)?.let { ValidationInfo(it).withOKEnabled() }
 
   override fun doCancelAction() {
     super.doCancelAction()

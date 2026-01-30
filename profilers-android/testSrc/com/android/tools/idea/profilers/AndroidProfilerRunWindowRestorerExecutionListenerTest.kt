@@ -32,8 +32,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class AndroidProfilerRunWindowRestorerExecutionListenerTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val mockToolWindowManager = mock<ToolWindowManager>()
   private val mockRunToolWindow = mock<ToolWindow>()
@@ -62,18 +61,14 @@ class AndroidProfilerRunWindowRestorerExecutionListenerTest {
   @Test
   fun `the run tool window is restored on processStartScheduled when the executor is a profiler executor`() {
     for (profilerExecutorId in profileGroupExecutorIds()) {
-      verifyRunToolWindowIsRestoredAfter {
-        listener.processStartScheduled(profilerExecutorId, mockExecutionEnvironment)
-      }
+      verifyRunToolWindowIsRestoredAfter { listener.processStartScheduled(profilerExecutorId, mockExecutionEnvironment) }
     }
   }
 
   @Test
   fun `the run tool window is restored on processStarted when the executor is a profiler executor`() {
     for (profilerExecutorId in profileGroupExecutorIds()) {
-      verifyRunToolWindowIsRestoredAfter {
-        listener.processStarted(profilerExecutorId, mockExecutionEnvironment, mockProcessHandler)
-      }
+      verifyRunToolWindowIsRestoredAfter { listener.processStarted(profilerExecutorId, mockExecutionEnvironment, mockProcessHandler) }
     }
   }
 
@@ -85,6 +80,7 @@ class AndroidProfilerRunWindowRestorerExecutionListenerTest {
     verify(mockRunToolWindow).stripeTitle = "Run"
   }
 
-  private fun profileGroupExecutorIds(): List<String> = requireNotNull(
-    ProfileRunExecutorGroup.getInstance()).childExecutors().map { it.id } + requireNotNull(ProfileRunExecutor.getInstance()).id
+  private fun profileGroupExecutorIds(): List<String> =
+    requireNotNull(ProfileRunExecutorGroup.getInstance()).childExecutors().map { it.id } +
+      requireNotNull(ProfileRunExecutor.getInstance()).id
 }

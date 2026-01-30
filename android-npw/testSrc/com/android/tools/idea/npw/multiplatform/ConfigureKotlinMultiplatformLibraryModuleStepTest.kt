@@ -35,9 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class ConfigureKotlinMultiplatformLibraryModuleStepTest {
-  @get:Rule
-  val projectRule =
-    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion()).onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion()).onEdt()
 
   private lateinit var disposable: Disposable
 
@@ -63,11 +61,7 @@ class ConfigureKotlinMultiplatformLibraryModuleStepTest {
           moduleParent = ":",
           projectSyncInvoker = emptyProjectSyncInvoker,
         )
-      val moduleStep =
-        ConfigureKotlinMultiplatformLibraryModuleStep(
-          title = "Kotlin Multiplatform Library",
-          model = model,
-        )
+      val moduleStep = ConfigureKotlinMultiplatformLibraryModuleStep(title = "Kotlin Multiplatform Library", model = model)
       Disposer.register(disposable, model)
       Disposer.register(disposable, moduleStep)
 

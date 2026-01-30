@@ -76,12 +76,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     modules: MutableList<MyAdditionalModuleData>,
   ) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      "myLibrary",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
   fun testSetupConfigurationFromContext() {
@@ -91,8 +86,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
     // Any PSI children of the KtNamedFunction (e.g. the keyword "fun", the function name, etc.)
     // should produce a run configuration
-    val configurationFromFunctionChildren =
-      createConfigurationFromElement(composableFunction.children.random())
+    val configurationFromFunctionChildren = createConfigurationFromElement(composableFunction.children.random())
     assertEquals("Preview1", configurationFromFunctionChildren.name)
     assertEquals("TestKt.Preview1", configurationFromFunctionChildren.composableMethodFqn)
 
@@ -112,9 +106,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     val runConfiguration = newComposePreviewRunConfiguration()
     val producer = ComposePreviewRunConfigurationProducer()
     // We shouldn't be able to create a configuration from context when essentials mode is enabled.
-    assertFalse(
-      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
-    )
+    assertFalse(producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation)))
   }
 
   fun testParameterProvider() {
@@ -139,14 +131,10 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent(),
       )
 
-    val composableWithParameterProvider =
-      PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val composableWithParameterProvider = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
     val configuration = createConfigurationFromElement(composableWithParameterProvider)
     assertEquals("Preview1", configuration.name)
-    assertEquals(
-      "my.composable.app.TestPreviewParameterKt.Preview1",
-      configuration.composableMethodFqn,
-    )
+    assertEquals("my.composable.app.TestPreviewParameterKt.Preview1", configuration.composableMethodFqn)
     // We should set the providerClassFqn value when running Compose Previews with a
     // @PreviewParameter argument
     assertEquals("my.composable.app.Names", configuration.providerClassFqn)
@@ -175,14 +163,10 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent(),
       )
 
-    val composableLibraryModule =
-      PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val composableLibraryModule = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
     val configuration = createConfigurationFromElement(composableLibraryModule)
     assertEquals("Preview1", configuration.name)
-    assertEquals(
-      "com.example.mylibrary.TestLibraryFileKt.Preview1",
-      configuration.composableMethodFqn,
-    )
+    assertEquals("com.example.mylibrary.TestLibraryFileKt.Preview1", configuration.composableMethodFqn)
   }
 
   fun testSetupConfigurationFromContextMultipreview() {
@@ -207,11 +191,9 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent(),
       )
 
-    val composableWithMultipreview =
-      PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val composableWithMultipreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
     // Creating a configuration for a MultiPreview should not succeed
-    val configuration =
-      createConfigurationFromElement(composableWithMultipreview, setUpShouldSucceed = false)
+    val configuration = createConfigurationFromElement(composableWithMultipreview, setUpShouldSucceed = false)
     assertEquals("", configuration.name)
     assertEquals(null, configuration.composableMethodFqn)
   }
@@ -240,45 +222,27 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           fun NestedPreview() {
           }
         }
-      """
+        """
           .trimIndent(),
       )
 
-    val notPreview =
-      PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first {
-        it.name == "NotAPreview"
-      }
-    val notPreviewConfiguration =
-      createConfigurationFromElement(notPreview, setUpShouldSucceed = false)
+    val notPreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first { it.name == "NotAPreview" }
+    val notPreviewConfiguration = createConfigurationFromElement(notPreview, setUpShouldSucceed = false)
     assertEquals(newComposePreviewRunConfiguration().name, notPreviewConfiguration.name)
-    assertEquals(
-      newComposePreviewRunConfiguration().composableMethodFqn,
-      notPreviewConfiguration.composableMethodFqn,
-    )
+    assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, notPreviewConfiguration.composableMethodFqn)
 
-    val nestedPreview =
-      PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first {
-        it.name == "NestedPreview"
-      }
-    val nestedPreviewConfiguration =
-      createConfigurationFromElement(nestedPreview, setUpShouldSucceed = false)
+    val nestedPreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first { it.name == "NestedPreview" }
+    val nestedPreviewConfiguration = createConfigurationFromElement(nestedPreview, setUpShouldSucceed = false)
     assertEquals(newComposePreviewRunConfiguration().name, nestedPreviewConfiguration.name)
-    assertEquals(
-      newComposePreviewRunConfiguration().composableMethodFqn,
-      nestedPreviewConfiguration.composableMethodFqn,
-    )
+    assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, nestedPreviewConfiguration.composableMethodFqn)
   }
 
   // Regression test for b/266090665
   fun testContextWithNoModule() {
     // Setup should fail gracefully, without any NPE happening
-    val noModuleConfiguration =
-      createConfigurationFromDataContext(DataContext.EMPTY_CONTEXT, setUpShouldSucceed = false)
+    val noModuleConfiguration = createConfigurationFromDataContext(DataContext.EMPTY_CONTEXT, setUpShouldSucceed = false)
     assertEquals(newComposePreviewRunConfiguration().name, noModuleConfiguration.name)
-    assertEquals(
-      newComposePreviewRunConfiguration().composableMethodFqn,
-      noModuleConfiguration.composableMethodFqn,
-    )
+    assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, noModuleConfiguration.composableMethodFqn)
   }
 
   fun testIsConfigurationFromContext() {
@@ -313,17 +277,11 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
-  private fun createConfigurationFromElement(
-    element: PsiElement,
-    setUpShouldSucceed: Boolean = true,
-  ): ComposePreviewRunConfiguration {
+  private fun createConfigurationFromElement(element: PsiElement, setUpShouldSucceed: Boolean = true): ComposePreviewRunConfiguration {
     val context = ConfigurationContext(element)
     val runConfiguration = newComposePreviewRunConfiguration()
     val producer = ComposePreviewRunConfigurationProducer()
-    assertEquals(
-      setUpShouldSucceed,
-      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation)),
-    )
+    assertEquals(setUpShouldSucceed, producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation)))
 
     return runConfiguration
   }
@@ -335,30 +293,19 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     val context = ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN)
     val runConfiguration = newComposePreviewRunConfiguration()
     val producer = ComposePreviewRunConfigurationProducer()
-    assertEquals(
-      setUpShouldSucceed,
-      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation)),
-    )
+    assertEquals(setUpShouldSucceed, producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation)))
 
     return runConfiguration
   }
 
   private fun newComposePreviewRunConfiguration(): ComposePreviewRunConfiguration {
-    val templateConfiguration =
-      ComposePreviewRunConfigurationType()
-        .configurationFactories[0]
-        .createTemplateConfiguration(project)
+    val templateConfiguration = ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(project)
     // Create the configuration with the RunManager to make sure that BeforeRunTasks are loaded
     val runConfiguration =
       RunManager.getInstance(project)
-        .createConfiguration(
-          templateConfiguration,
-          ComposePreviewRunConfigurationType().configurationFactories[0],
-        )
+        .createConfiguration(templateConfiguration, ComposePreviewRunConfigurationType().configurationFactories[0])
         .configuration
-    assertTrue(
-      runConfiguration.beforeRunTasks.none { it is CompileStepBeforeRun.MakeBeforeRunTask }
-    )
+    assertTrue(runConfiguration.beforeRunTasks.none { it is CompileStepBeforeRun.MakeBeforeRunTask })
     return runConfiguration as ComposePreviewRunConfiguration
   }
 }

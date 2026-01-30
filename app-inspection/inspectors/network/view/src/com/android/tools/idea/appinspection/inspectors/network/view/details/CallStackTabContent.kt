@@ -25,8 +25,7 @@ import javax.swing.JComponent
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Tab which shows a stack trace to where a network request was created. */
-internal class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) :
-  TabContent() {
+internal class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) : TabContent() {
   override val title = "Call Stack"
 
   override fun createComponent(): JComponent {

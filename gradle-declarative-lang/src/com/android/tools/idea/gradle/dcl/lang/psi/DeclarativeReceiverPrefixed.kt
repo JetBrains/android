@@ -17,6 +17,6 @@ package com.android.tools.idea.gradle.dcl.lang.psi
 
 // Introduced to simplify navigation to root element.
 // To make sure we read elements from right to left
-interface DeclarativeReceiverPrefixed<T: DeclarativeReceiverPrefixed<T>> : DeclarativeIdentifierOwner {
+interface DeclarativeReceiverPrefixed<T : DeclarativeReceiverPrefixed<T>> : DeclarativeIdentifierOwner {
   fun getReceiver(): T?
 }

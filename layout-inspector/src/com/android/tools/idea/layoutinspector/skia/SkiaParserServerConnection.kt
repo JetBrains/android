@@ -57,45 +57,37 @@ class SkiaParserServerConnection(private val serverPath: Path) {
   private var handler: OSProcessHandler? = null
 
   /**
-   * Start the server if it isn't already running. This must be run before any other operations on
-   * this object.
+   * Start the server if it isn't already running. This must be run before any other operations on this object.
    *
-   * If the server is killed by another process we detect it with process.isAlive. Note that this
-   * will be a sub process of Android Studio and will terminate when Android Studio process is
-   * terminated.
+   * If the server is killed by another process we detect it with process.isAlive. Note that this will be a sub process of Android Studio
+   * and will terminate when Android Studio process is terminated.
    */
   fun runServer() {
     val localPort = createGrpcClient()
     handler =
-      OSProcessHandler.Silent(
-          GeneralCommandLine(serverPath.toAbsolutePath().toString(), localPort.toString())
-        )
-        .apply {
-          addProcessListener(
-            object : ProcessAdapter() {
-              override fun processTerminated(event: ProcessEvent) {
-                if (event.exitCode == 0) {
-                  Logger.getInstance(SkiaParserServerConnection::class.java)
-                    .info("SkiaServer terminated successfully")
-                } else {
-                  Logger.getInstance(SkiaParserServerConnection::class.java)
-                    .warn("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
-                }
-              }
-
-              override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+      OSProcessHandler.Silent(GeneralCommandLine(serverPath.toAbsolutePath().toString(), localPort.toString())).apply {
+        addProcessListener(
+          object : ProcessAdapter() {
+            override fun processTerminated(event: ProcessEvent) {
+              if (event.exitCode == 0) {
+                Logger.getInstance(SkiaParserServerConnection::class.java).info("SkiaServer terminated successfully")
+              } else {
                 Logger.getInstance(SkiaParserServerConnection::class.java)
-                  .debug("SkiaServer willTerminate")
-              }
-
-              override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-                Logger.getInstance(SkiaParserServerConnection::class.java)
-                  .info("SkiaServer Message: ${event.text}")
+                  .warn("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
               }
             }
-          )
-          startNotify()
-        }
+
+            override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+              Logger.getInstance(SkiaParserServerConnection::class.java).debug("SkiaServer willTerminate")
+            }
+
+            override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+              Logger.getInstance(SkiaParserServerConnection::class.java).info("SkiaServer Message: ${event.text}")
+            }
+          }
+        )
+        startNotify()
+      }
   }
 
   @VisibleForTesting
@@ -134,9 +126,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
     )
     if (!lock.await(10, TimeUnit.SECONDS)) {
       Logger.getInstance(SkiaParserServerConnection::class.java)
-        .warn(
-          "Timed out waiting for skia parser shutdown. A skia-grpc-server process could have been orphaned."
-        )
+        .warn("Timed out waiting for skia parser shutdown. A skia-grpc-server process could have been orphaned.")
     }
     channel.shutdownNow()
     channel.awaitTermination(1, TimeUnit.SECONDS)
@@ -145,11 +135,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
 
   @Slow
   @Throws(ParsingFailedException::class, UnsupportedPictureVersionException::class)
-  fun getViewTree(
-    data: ByteArray,
-    requestedNodes: Iterable<RequestedNodeInfo>,
-    scale: Double,
-  ): Pair<InspectorView, Map<Int, ByteString>> {
+  fun getViewTree(data: ByteArray, requestedNodes: Iterable<RequestedNodeInfo>, scale: Double): Pair<InspectorView, Map<Int, ByteString>> {
     ping()
     return getViewTreeImpl(data, requestedNodes, scale)
   }
@@ -236,10 +222,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
     for (offset in data.indices step CHUNK_SIZE) {
       val size = min(CHUNK_SIZE, data.size - offset)
       val requestBuilder =
-        GetViewTreeRequest.newBuilder()
-          .setVersion(2)
-          .setTotalSize(data.size)
-          .setSkp(ByteString.copyFrom(data, offset, size))
+        GetViewTreeRequest.newBuilder().setVersion(2).setTotalSize(data.size).setSkp(ByteString.copyFrom(data, offset, size))
       if (offset + size == data.size) {
         // this is the last request, add the rest of the data
         requestBuilder.addAllRequestedNodes(requestedNodes).scale = scale.toFloat()

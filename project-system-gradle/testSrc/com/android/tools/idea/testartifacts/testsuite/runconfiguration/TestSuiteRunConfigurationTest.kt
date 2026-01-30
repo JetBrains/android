@@ -27,8 +27,7 @@ import org.junit.Test
 
 class TestSuiteRunConfigurationTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
   private lateinit var configuration: TestSuiteRunConfiguration
 

@@ -26,8 +26,6 @@ interface LayoutInspectorStateReadRewriter {
 
   companion object {
     internal val EP_NAME: ExtensionPointName<LayoutInspectorStateReadRewriter> =
-      ExtensionPointName.create(
-        "com.android.tools.idea.layoutinspector.stateinspection.stateReadRewriter"
-      )
+      ExtensionPointName.create("com.android.tools.idea.layoutinspector.stateinspection.stateReadRewriter")
   }
 }

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-/**
- * Provides APIs to control [AndroidTestSuiteView] state.
- */
+/** Provides APIs to control [AndroidTestSuiteView] state. */
 interface AndroidTestSuiteViewController {
   enum class Orientation {
-    VERTICAL, HORIZONTAL
+    VERTICAL,
+    HORIZONTAL,
   }
+
   var orientation: Orientation
 }

@@ -21,9 +21,7 @@ import com.intellij.notification.impl.NotificationSettings
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.testFramework.HeavyPlatformTestCase
 
-/**
- * Tests for [DoNotShowJdkHomeWarningAgainHyperlink].
- */
+/** Tests for [DoNotShowJdkHomeWarningAgainHyperlink]. */
 class DoNotShowJdkHomeWarningAgainHyperlinkTest : HeavyPlatformTestCase() {
   private lateinit var myOriginalSettings: NotificationSettings
 
@@ -35,21 +33,26 @@ class DoNotShowJdkHomeWarningAgainHyperlinkTest : HeavyPlatformTestCase() {
 
   override fun tearDown() {
     // Restore settings
-    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId,
-                                                                              JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayType,
-                                                                              myOriginalSettings.isShouldLog,
-                                                                              myOriginalSettings.isShouldReadAloud)
+    NotificationsConfiguration.getNotificationsConfiguration()
+      .changeSettings(
+        JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId,
+        JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayType,
+        myOriginalSettings.isShouldLog,
+        myOriginalSettings.isShouldReadAloud,
+      )
     super.tearDown()
   }
 
-  /**
-   * Verify that executing the hyperlink disables logging of warning.
-   */
+  /** Verify that executing the hyperlink disables logging of warning. */
   fun testExecute() {
     // Make sure logging is enabled
-    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId,
-                                                                              JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayType,
-                                                                              true /* enable logging */, myOriginalSettings.isShouldReadAloud)
+    NotificationsConfiguration.getNotificationsConfiguration()
+      .changeSettings(
+        JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId,
+        JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayType,
+        true /* enable logging */,
+        myOriginalSettings.isShouldReadAloud,
+      )
     val initialSettings = NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId)
     assertTrue(initialSettings.isShouldLog)
 
@@ -61,4 +64,3 @@ class DoNotShowJdkHomeWarningAgainHyperlinkTest : HeavyPlatformTestCase() {
     assertFalse(changedSettings.isShouldLog)
   }
 }
-

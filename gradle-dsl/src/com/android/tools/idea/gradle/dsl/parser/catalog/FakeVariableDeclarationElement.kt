@@ -24,12 +24,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpres
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 
-class FakeVariableDeclarationElement(private val parent: GradleDslElement,
-                                     name: GradleNameElement,
-                                     private val settableExpression: GradleDslSettableExpression,
-                                     private val getter: (VersionDeclarationSpec) -> String?,
-                                     private val setter: (VersionDeclarationSpecImpl, String) -> Unit,
-                                     canDelete: Boolean) : FakeElement(parent, name, settableExpression, canDelete) {
+class FakeVariableDeclarationElement(
+  private val parent: GradleDslElement,
+  name: GradleNameElement,
+  private val settableExpression: GradleDslSettableExpression,
+  private val getter: (VersionDeclarationSpec) -> String?,
+  private val setter: (VersionDeclarationSpecImpl, String) -> Unit,
+  canDelete: Boolean,
+) : FakeElement(parent, name, settableExpression, canDelete) {
 
   override fun extractValue(): Any? {
     return getSpec()?.let { getter.invoke(it) }

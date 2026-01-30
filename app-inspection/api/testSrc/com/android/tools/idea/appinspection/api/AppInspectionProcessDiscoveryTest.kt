@@ -46,16 +46,13 @@ class AppInspectionProcessDiscoveryTest {
           Common.Event.newBuilder()
             .setKind(Common.Event.Kind.AGENT)
             .setPid(FakeTransportService.FAKE_PROCESS.pid)
-            .setAgentData(
-              Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()
-            )
+            .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
             .build()
         )
       }
     }
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
@@ -82,10 +79,7 @@ class AppInspectionProcessDiscoveryTest {
 
   private fun removeFakeProcess() {
     // Removes process from FakeTransportService's internal cache.
-    transportService.stopProcess(
-      FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS,
-    )
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     advanceTimer()
   }
 
@@ -120,10 +114,7 @@ class AppInspectionProcessDiscoveryTest {
 
   @Test
   fun addListenerReceivesExistingConnections() {
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer),
-    )
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
 
     // Generate a new process.
     launchFakeDevice()
@@ -147,8 +138,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Verify
     assertThat(processesList).hasSize(1)
-    assertThat(processesList[0].device.manufacturer)
-      .isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(processesList[0].device.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
     assertThat(processesList[0].device.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
     assertThat(processesList[0].name).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
@@ -254,23 +244,13 @@ class AppInspectionProcessDiscoveryTest {
     )
 
     // Launch process in stream 1
-    val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel1")
-        .setManufacturer("fakeMan2")
-        .build()
+    val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
     launchFakeDevice(fakeDevice1)
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
-    val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(2)
-        .setModel("fakeModel2")
-        .setManufacturer("fakeMan2")
-        .build()
+    val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
     launchFakeDevice(fakeDevice2)
     launchFakeProcess(fakeDevice2, fakeProcess2)
@@ -293,24 +273,14 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process in stream 1
     val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
     launchFakeDevice(fakeDevice1)
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(2)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("2")
-        .build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
     launchFakeDevice(fakeDevice2)
     launchFakeProcess(fakeDevice2, fakeProcess2)
@@ -393,10 +363,7 @@ class AppInspectionProcessDiscoveryTest {
     val debuggableProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(100).build()
     launchFakeProcess(FakeTransportService.FAKE_DEVICE, debuggableProcess)
     val profileableProcess =
-      FakeTransportService.FAKE_PROCESS.toBuilder()
-        .setPid(200)
-        .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
-        .build()
+      FakeTransportService.FAKE_PROCESS.toBuilder().setPid(200).setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build()
     launchFakeProcess(FakeTransportService.FAKE_DEVICE, profileableProcess)
 
     // Verify discovery host has only notified about the process that's debuggable.
@@ -420,21 +387,11 @@ class AppInspectionProcessDiscoveryTest {
     )
 
     // Launch stream 1
-    val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel1")
-        .setManufacturer("fakeMan2")
-        .build()
+    val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
     launchFakeDevice(fakeDevice1)
 
     // Launch process with same pid in stream 2
-    val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(2)
-        .setModel("fakeModel2")
-        .setManufacturer("fakeMan2")
-        .build()
+    val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
     launchFakeDevice(fakeDevice2)
     launchFakeProcess(fakeDevice2, fakeProcess2)
@@ -442,10 +399,7 @@ class AppInspectionProcessDiscoveryTest {
     processConnectLatch.await()
 
     assertThat(appInspectionRule.processDiscovery.devices.map { it.toString() })
-      .containsExactly(
-        fakeDevice1.toDeviceDescriptor().toString(),
-        fakeDevice2.toDeviceDescriptor().toString(),
-      )
+      .containsExactly(fakeDevice1.toDeviceDescriptor().toString(), fakeDevice2.toDeviceDescriptor().toString())
   }
 
   @Test
@@ -455,9 +409,7 @@ class AppInspectionProcessDiscoveryTest {
 
       appInspectionRule.addProcessListener(
         object : ProcessListener {
-          override val filter: (ProcessDescriptor) -> Boolean = { process ->
-            process.name == "name2"
-          }
+          override val filter: (ProcessDescriptor) -> Boolean = { process -> process.name == "name2" }
 
           override fun onProcessConnected(process: ProcessDescriptor) {
             processConnectedDeferred.complete(process.name)
@@ -469,11 +421,7 @@ class AppInspectionProcessDiscoveryTest {
 
       // Launch stream 1
       val fakeDevice1 =
-        FakeTransportService.FAKE_DEVICE.toBuilder()
-          .setDeviceId(1)
-          .setModel("fakeModel1")
-          .setManufacturer("fakeMan2")
-          .build()
+        FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
       launchFakeDevice(fakeDevice1)
       launchFakeProcess(
         fakeDevice1,
@@ -487,11 +435,7 @@ class AppInspectionProcessDiscoveryTest {
 
       // Launch process with same pid in stream 2
       val fakeDevice2 =
-        FakeTransportService.FAKE_DEVICE.toBuilder()
-          .setDeviceId(2)
-          .setModel("fakeModel2")
-          .setManufacturer("fakeMan2")
-          .build()
+        FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
       launchFakeDevice(fakeDevice2)
       launchFakeProcess(
         fakeDevice2,

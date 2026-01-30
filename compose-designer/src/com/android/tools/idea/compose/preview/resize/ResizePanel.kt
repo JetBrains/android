@@ -86,13 +86,12 @@ import org.jetbrains.annotations.VisibleForTesting
 val RESIZE_PANEL_INSTANCE_KEY = DataKey.create<ResizePanel>("ResizePanel")
 
 /**
- * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
- * displayed in the toolbar of the Compose Preview.
+ * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is displayed in the toolbar of the Compose
+ * Preview.
  *
  * The panel looks like: [ Device Picker ▼ ] [ WidthTF ] x [ HeightTF ] dp [↩]
  */
-class ResizePanel(parentDisposable: Disposable) :
-  JBPanel<ResizePanel>(), Disposable, UiDataProvider {
+class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Disposable, UiDataProvider {
 
   private val log = Logger.getInstance(ResizePanel::class.java)
 
@@ -105,25 +104,20 @@ class ResizePanel(parentDisposable: Disposable) :
   private var originalDeviceSnapshot: Device? = null
   private var originalDeviceStateSnapshot: State? = null
 
-  /**
-   * Indicates whether the preview has been resized using this panel at least once since the panel
-   * was last cleared or initialized.
-   */
+  /** Indicates whether the preview has been resized using this panel at least once since the panel was last cleared or initialized. */
   @Volatile
   var hasBeenResized: Boolean = false
     private set
 
   /**
-   * Listener responsible for reacting to device configuration changes to trigger a re-render of the
-   * preview and update its LayoutParams. This instance is created and managed by ResizePanel for
-   * the current [com.android.tools.idea.common.scene.SceneManager].
+   * Listener responsible for reacting to device configuration changes to trigger a re-render of the preview and update its LayoutParams.
+   * This instance is created and managed by ResizePanel for the current [com.android.tools.idea.common.scene.SceneManager].
    */
   private var renderTriggerListener: ConfigurationResizeListener? = null
 
   /**
-   * Listener responsible for updating ResizePanel's own UI elements (e.g., text fields, visibility)
-   * when the device configuration changes, potentially due to external factors or actions from this
-   * panel itself.
+   * Listener responsible for updating ResizePanel's own UI elements (e.g., text fields, visibility) when the device configuration changes,
+   * potentially due to external factors or actions from this panel itself.
    */
   private val resizePanelUiUpdaterListener = ConfigurationListener { flags ->
     if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
@@ -145,8 +139,7 @@ class ResizePanel(parentDisposable: Disposable) :
   private fun createRevertButton(): JComponent {
     val revertAction = RevertAction()
     val actionGroup = DefaultActionGroup(revertAction)
-    val actionToolbar =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, true)
+    val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, true)
     actionToolbar.targetComponent = this
     actionToolbar.component.isOpaque = false
 
@@ -162,8 +155,7 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   @VisibleForTesting
-  internal inner class RevertAction :
-    DumbAwareAction(message("resize.panel.revert.tooltip"), null, AllIcons.Actions.Rollback) {
+  internal inner class RevertAction : DumbAwareAction(message("resize.panel.revert.tooltip"), null, AllIcons.Actions.Rollback) {
     override fun actionPerformed(e: AnActionEvent) {
       revertResizing()
     }
@@ -189,8 +181,7 @@ class ResizePanel(parentDisposable: Disposable) :
         add(dimensionInputsAction)
       }
 
-    val actionToolbar =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, mainActionGroup, true)
+    val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, mainActionGroup, true)
     actionToolbar.targetComponent = this
     actionToolbar.component.isOpaque = false // Make the toolbar itself transparent
 
@@ -214,8 +205,8 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   /**
-   * Reverts the preview to its original device and state. This is called when the user clicks the
-   * revert button or selects the "Original" device option from the dropdown.
+   * Reverts the preview to its original device and state. This is called when the user clicks the revert button or selects the "Original"
+   * device option from the dropdown.
    */
   private fun revertResizing() {
     dimensionInputsAction.resetErrors()
@@ -245,8 +236,8 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   /**
-   * Handles the selection of a device from the device picker dropdown. Updates the current
-   * configuration's effective device and logs the event.
+   * Handles the selection of a device from the device picker dropdown. Updates the current configuration's effective device and logs the
+   * event.
    *
    * @param selectedItem The selected [Device].
    */
@@ -263,11 +254,10 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   /**
-   * Sets the [LayoutlibSceneManager] for the [ResizePanel], providing context for its operations.
-   * This method is called when the focused preview element (and thus its SceneManager) changes.
+   * Sets the [LayoutlibSceneManager] for the [ResizePanel], providing context for its operations. This method is called when the focused
+   * preview element (and thus its SceneManager) changes.
    *
-   * @param sceneManager The [LayoutlibSceneManager] associated with the currently focused preview,
-   *   or null if none.
+   * @param sceneManager The [LayoutlibSceneManager] associated with the currently focused preview, or null if none.
    */
   fun setSceneManager(sceneManager: LayoutlibSceneManager?) {
     clear()
@@ -283,10 +273,7 @@ class ResizePanel(parentDisposable: Disposable) :
     currentConfiguration?.addListener(resizePanelUiUpdaterListener)
     currentConfiguration?.let { configuration ->
       currentSceneManager?.let { sceneManager ->
-        renderTriggerListener =
-          ConfigurationResizeListener(sceneManager, configuration).also {
-            configuration.addListener(it)
-          }
+        renderTriggerListener = ConfigurationResizeListener(sceneManager, configuration).also { configuration.addListener(it) }
       }
     }
     updatePanelFromConfiguration()
@@ -326,14 +313,12 @@ class ResizePanel(parentDisposable: Disposable) :
   }
 
   /**
-   * An action that displays a device picker dropdown. This action delegates the creation of the
-   * dropdown and the handling of the device selection to a [DeviceMenuAction] to reuse the complex
-   * logic for building the device menu.
+   * An action that displays a device picker dropdown. This action delegates the creation of the dropdown and the handling of the device
+   * selection to a [DeviceMenuAction] to reuse the complex logic for building the device menu.
    */
   @VisibleForTesting
   internal inner class DevicePickerAction :
-    DumbAwareAction("Device", "Select a device to resize the preview", AllIcons.General.ArrowDown),
-    CustomComponentAction {
+    DumbAwareAction("Device", "Select a device to resize the preview", AllIcons.General.ArrowDown), CustomComponentAction {
     private val deviceMenuAction =
       DeviceMenuAction(
         object : DeviceChangeListener {
@@ -352,8 +337,7 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-      val button =
-        ActionButtonWithText(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+      val button = ActionButtonWithText(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
       button.isFocusable = true
       button.setHorizontalTextPosition(SwingConstants.LEADING) // Set text to be before the icon
       return button
@@ -369,10 +353,7 @@ class ResizePanel(parentDisposable: Disposable) :
     }
   }
 
-  /**
-   * A [CustomComponentAction] that creates and manages the dimension input fields (width and
-   * height).
-   */
+  /** A [CustomComponentAction] that creates and manages the dimension input fields (width and height). */
   private inner class DimensionInputsAction : DumbAwareAction(), CustomComponentAction {
     private val widthTextField = createDimensionTextField("Width")
     private val heightTextField = createDimensionTextField("Height")
@@ -436,24 +417,13 @@ class ResizePanel(parentDisposable: Disposable) :
         columns = 4
         (document as? AbstractDocument)?.documentFilter =
           object : DocumentFilter() {
-            override fun insertString(
-              fb: FilterBypass,
-              offset: Int,
-              string: String,
-              attr: AttributeSet?,
-            ) {
+            override fun insertString(fb: FilterBypass, offset: Int, string: String, attr: AttributeSet?) {
               if (string.all { it.isDigit() }) {
                 super.insertString(fb, offset, string, attr)
               }
             }
 
-            override fun replace(
-              fb: FilterBypass,
-              offset: Int,
-              length: Int,
-              text: String?,
-              attrs: AttributeSet?,
-            ) {
+            override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
               if (text?.all { it.isDigit() } != false) {
                 super.replace(fb, offset, length, text, attrs)
               }
@@ -540,10 +510,7 @@ class ResizePanel(parentDisposable: Disposable) :
         log.warn("Cannot update screen size, invalid DPI: $dpi")
         return
       }
-      config.updateScreenSize(
-        ConversionUtil.dpToPx(newWidthDp, dpi),
-        ConversionUtil.dpToPx(newHeightDp, dpi),
-      )
+      config.updateScreenSize(ConversionUtil.dpToPx(newWidthDp, dpi), ConversionUtil.dpToPx(newHeightDp, dpi))
       ComposeResizeToolingUsageTracker.logResizeStopped(
         currentSceneManager?.scene?.designSurface,
         currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,

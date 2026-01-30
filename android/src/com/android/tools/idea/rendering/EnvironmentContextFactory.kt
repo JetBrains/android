@@ -19,14 +19,11 @@ import com.android.tools.rendering.api.EnvironmentContext
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 
-/**
- * Project-level service, responsible for creating [EnvironmentContext] instances.
- */
+/** Project-level service, responsible for creating [EnvironmentContext] instances. */
 interface EnvironmentContextFactory {
   fun createContext(module: Module): EnvironmentContext
 
   companion object {
-    @JvmStatic
-    fun create(module: Module): EnvironmentContext = module.project.service<EnvironmentContextFactory>().createContext(module)
+    @JvmStatic fun create(module: Module): EnvironmentContext = module.project.service<EnvironmentContextFactory>().createContext(module)
   }
 }

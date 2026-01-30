@@ -53,8 +53,6 @@ class GitMetricsStore : SimplePersistentStateComponent<GitMetricsStore.State>(St
     }
 
   companion object {
-    @JvmStatic
-    fun getInstance(): GitMetricsStore = service()
+    @JvmStatic fun getInstance(): GitMetricsStore = service()
   }
-
 }

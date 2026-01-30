@@ -25,6 +25,10 @@ import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
+import java.io.File
+import java.io.InputStream
+import java.net.URL
+import java.util.concurrent.TimeUnit
 import junit.framework.TestCase
 import org.apache.http.concurrent.FutureCallback
 import org.jetbrains.android.AndroidTestCase
@@ -33,10 +37,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
-import java.io.File
-import java.io.InputStream
-import java.net.URL
-import java.util.concurrent.TimeUnit
 
 class WhatsNewSidePanelTest : AndroidTestCase() {
   private val TIMEOUT_MILLISECONDS: Long = 30000
@@ -55,22 +55,17 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     whenever(mockUrlProvider.getResourceFileAsStream(Mockito.any(), Mockito.anyString()))
-      .thenAnswer(Answer<InputStream> {
-        URL("file:" + resourceFile.path).openStream()
-      })
+      .thenAnswer(Answer<InputStream> { URL("file:" + resourceFile.path).openStream() })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.resolve("local-3.3.0.xml")
     whenever(mockUrlProvider.getLocalConfig(Mockito.anyString())).thenReturn(localPath)
   }
 
-  /**
-   * Test that the additional title for Assistant panel displays the same as bundle name
-   */
+  /** Test that the additional title for Assistant panel displays the same as bundle name */
   @Test
   fun testPanelTitle() {
-    val bundleCreator: WhatsNewBundleCreator? = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewBundleCreator::class.java)
+    val bundleCreator: WhatsNewBundleCreator? = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator::class.java)
     bundleCreator!!.setURLProvider(mockUrlProvider)
     bundleCreator.setStudioRevision(studioRevision)
     bundleCreator.setAllowDownload(true)
@@ -80,16 +75,12 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     // Tab title will be set after assistant content finishes loading
     WhatsNewMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
     val assistSidePanel = AssistSidePanel(project)
-    assistSidePanel.showBundle(WhatsNewBundleCreator.BUNDLE_ID) {
-      completeFuture.set(it.name)
-    }
+    assistSidePanel.showBundle(WhatsNewBundleCreator.BUNDLE_ID) { completeFuture.set(it.name) }
     pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }
 
-  /**
-   * Test that the asynchronous loading for Assistant bundle works
-   */
+  /** Test that the asynchronous loading for Assistant bundle works */
   @Test
   fun testAsyncLoadBundle() {
     val mockBundle = mock(DefaultTutorialBundle::class.java)
@@ -98,48 +89,48 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
 
     val completeFuture = SettableFuture.create<Boolean>()
 
-    val callback = object: FutureCallback<TutorialBundleData> {
-      override fun cancelled() {
-        completeFuture.set(false)
-      }
+    val callback =
+      object : FutureCallback<TutorialBundleData> {
+        override fun cancelled() {
+          completeFuture.set(false)
+        }
 
-      override fun completed(result: TutorialBundleData?) {
-        completeFuture.set(true) // Should complete
-      }
+        override fun completed(result: TutorialBundleData?) {
+          completeFuture.set(true) // Should complete
+        }
 
-      override fun failed(ex: Exception?) {
-        completeFuture.set(false)
-        ex?.printStackTrace()
+        override fun failed(ex: Exception?) {
+          completeFuture.set(false)
+          ex?.printStackTrace()
+        }
       }
-    }
 
     AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
     pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertTrue(completeFuture.get())
   }
 
-  /**
-   * Test asynchronous loading for Assistant bundle throwing an exception
-   */
+  /** Test asynchronous loading for Assistant bundle throwing an exception */
   @Test
   fun testAsyncLoadNullBundle() {
     val mockBundleCreator = mock(AssistantBundleCreator::class.java)
 
     val completeFuture = SettableFuture.create<Boolean>()
 
-    val callback = object: FutureCallback<TutorialBundleData> {
-      override fun cancelled() {
-        completeFuture.set(false)
-      }
+    val callback =
+      object : FutureCallback<TutorialBundleData> {
+        override fun cancelled() {
+          completeFuture.set(false)
+        }
 
-      override fun completed(result: TutorialBundleData?) {
-        completeFuture.set(false)
-      }
+        override fun completed(result: TutorialBundleData?) {
+          completeFuture.set(false)
+        }
 
-      override fun failed(ex: Exception?) {
-        completeFuture.set(true) // Should fail
+        override fun failed(ex: Exception?) {
+          completeFuture.set(true) // Should fail
+        }
       }
-    }
 
     AssistantGetBundleTask(project, mockBundleCreator, callback).queue()
     pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)

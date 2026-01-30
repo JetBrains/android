@@ -21,11 +21,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 
 /**
- * An action for each device in the drop down without a snapshot sublist. When a user selects a
- * device, SelectDeviceAction will set a target for the device in DeviceAndSnapshotComboBoxAction.
+ * An action for each device in the drop down without a snapshot sublist. When a user selects a device, SelectDeviceAction will set a target
+ * for the device in DeviceAndSnapshotComboBoxAction.
  */
-class SelectDeviceAction internal constructor(internal val device: DeploymentTargetDevice) :
-  AnAction() {
+class SelectDeviceAction internal constructor(internal val device: DeploymentTargetDevice) : AnAction() {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -33,17 +32,10 @@ class SelectDeviceAction internal constructor(internal val device: DeploymentTar
     val presentation = event.presentation
     val project = requireNotNull(event.project)
     presentation.setIcon(device.icon)
-    presentation.setText(
-      device.disambiguatedName(
-        project.service<DevicesSelectedService>().devicesAndTargets.allDevices
-      ),
-      false,
-    )
+    presentation.setText(device.disambiguatedName(project.service<DevicesSelectedService>().devicesAndTargets.allDevices), false)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    event.project!!
-      .service<DevicesSelectedService>()
-      .setTargetSelectedWithComboBox(device.defaultTarget)
+    event.project!!.service<DevicesSelectedService>().setTargetSelectedWithComboBox(device.defaultTarget)
   }
 }

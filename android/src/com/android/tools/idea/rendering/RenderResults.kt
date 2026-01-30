@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("RenderResults")
+
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
@@ -35,28 +36,31 @@ private val LOG = Logger.getInstance(RenderResult::class.java)
 private fun createErrorResult(file: PsiFile, errorResult: Result, logger: RenderLogger?): RenderResult {
   val module = ReadAction.compute<Module, Throwable> { ModuleUtilCore.findModuleForPsiElement(file) }
   assert(module != null)
-  val errorLogger = logger ?: RenderLogger(module.project).apply {
-    if (errorResult.errorMessage.isNotEmpty() || errorResult.exception != null) {
-      error(null, errorResult.errorMessage, errorResult.exception, null, null)
-    }
-  }
-  val result = RenderResult(
-    { EnvironmentContextFactory.create(module).getOriginalFile(file) },
-    module.project,
-    { module },
-    errorLogger,
-    null,
-    false,
-    errorResult,
-    ImmutableList.of(),
-    ImmutableList.of(),
-    ImagePool.NULL_POOLED_IMAGE,
-    ImmutableMap.of(),
-    ImmutableMap.of(),
-    null,
-    Dimension(0, 0),
-    RenderResultStats.EMPTY
-  )
+  val errorLogger =
+    logger
+      ?: RenderLogger(module.project).apply {
+        if (errorResult.errorMessage.isNotEmpty() || errorResult.exception != null) {
+          error(null, errorResult.errorMessage, errorResult.exception, null, null)
+        }
+      }
+  val result =
+    RenderResult(
+      { EnvironmentContextFactory.create(module).getOriginalFile(file) },
+      module.project,
+      { module },
+      errorLogger,
+      null,
+      false,
+      errorResult,
+      ImmutableList.of(),
+      ImmutableList.of(),
+      ImagePool.NULL_POOLED_IMAGE,
+      ImmutableMap.of(),
+      ImmutableMap.of(),
+      null,
+      Dimension(0, 0),
+      RenderResultStats.EMPTY,
+    )
 
   if (LOG.isDebugEnabled) {
     LOG.debug(result.toString())

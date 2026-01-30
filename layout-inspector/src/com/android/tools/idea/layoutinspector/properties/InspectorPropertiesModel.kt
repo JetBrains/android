@@ -37,25 +37,20 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Layout Inspector Properties Model
  *
- * Holds the [properties] shown in the properties and is responsible for: requesting a new table of
- * properties when needed and notifying the UI for misc updates.
+ * Holds the [properties] shown in the properties and is responsible for: requesting a new table of properties when needed and notifying the
+ * UI for misc updates.
  */
-class InspectorPropertiesModel(parentDisposable: Disposable) :
-  PropertiesModel<InspectorPropertyItem>, Disposable {
-  private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> =
-    ContainerUtil.createConcurrentList()
+class InspectorPropertiesModel(parentDisposable: Disposable) : PropertiesModel<InspectorPropertyItem>, Disposable {
+  private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
   private var provider: PropertiesProvider? = null
-  private val selectionListener: SelectionListener =
-    SelectionListener { oldView, newView, selectionOrigin ->
-      handleNewSelection(oldView, newView, selectionOrigin)
-    }
+  private val selectionListener: SelectionListener = SelectionListener { oldView, newView, selectionOrigin ->
+    handleNewSelection(oldView, newView, selectionOrigin)
+  }
   private val modificationListener =
     InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       handleModelChange(oldWindow, newWindow, isStructuralChange)
     }
-  private val connectionListener: ConnectionListener = ConnectionListener {
-    handleConnectionChange(it)
-  }
+  private val connectionListener: ConnectionListener = ConnectionListener { handleConnectionChange(it) }
   private val propertiesListener = ResultListener { propertiesProvider, viewNode, propertiesTable ->
     updateProperties(propertiesProvider, viewNode, propertiesTable)
   }
@@ -70,9 +65,8 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     @VisibleForTesting set
 
   /**
-   * The [properties] are for the [ViewNode] with a [ViewNode.drawId] equal to
-   * [propertiesForDrawId]. Use this value to determine if we have an update to the current
-   * properties or this is a different but similar node type.
+   * The [properties] are for the [ViewNode] with a [ViewNode.drawId] equal to [propertiesForDrawId]. Use this value to determine if we have
+   * an update to the current properties or this is a different but similar node type.
    */
   private var propertiesForDrawId = 0L
 
@@ -84,11 +78,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun inspectorChanged(
-    property: KProperty<*>,
-    oldInspector: LayoutInspector?,
-    newInspector: LayoutInspector?,
-  ) {
+  private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
     cleanUp(oldInspector)
     newInspector?.inspectorModel?.addSelectionListener(selectionListener)
     newInspector?.inspectorModel?.addModificationListener(modificationListener)
@@ -131,11 +121,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleModelChange(
-    old: AndroidWindow?,
-    new: AndroidWindow?,
-    structuralChange: Boolean,
-  ) {
+  private fun handleModelChange(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
       structuralUpdates++
     }
@@ -148,11 +134,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     provider?.addResultListener(propertiesListener)
   }
 
-  private fun updateProperties(
-    from: PropertiesProvider,
-    view: ViewNode,
-    table: PropertiesTable<InspectorPropertyItem>,
-  ) {
+  private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {
     val selectedView = layoutInspector?.inspectorModel?.selection
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
       return
@@ -175,16 +157,10 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   }
 
   private fun firePropertiesGenerated() {
-    modelListeners.forEach {
-      ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) }
-    }
+    modelListeners.forEach { ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) } }
   }
 
   private fun firePropertyValuesChanged(childElementChanges: Boolean = false) {
-    modelListeners.forEach {
-      ApplicationManager.getApplication().invokeLater {
-        it.propertyValuesChanged(this, childElementChanges)
-      }
-    }
+    modelListeners.forEach { ApplicationManager.getApplication().invokeLater { it.propertyValuesChanged(this, childElementChanges) } }
   }
 }

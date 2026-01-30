@@ -36,8 +36,7 @@ fun checkSimpleLayoutResult(result: RenderResult) {
     val view = views[i]
     TestCase.assertEquals("android.widget.LinearLayout", view.className)
     // Check the coordinates are different for each box
-    val currentCoordinates =
-      String.format("%dx%d - %dx%d", view.top, view.left, view.bottom, view.right)
+    val currentCoordinates = String.format("%dx%d - %dx%d", view.top, view.left, view.bottom, view.right)
     Assert.assertNotEquals(previousCoordinates, currentCoordinates)
     previousCoordinates = currentCoordinates
   }
@@ -97,12 +96,7 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
         }
         metric!!
       }
-    computeAndRecordMetric(
-      "inflate_time_base",
-      "inflate_memory_base",
-      "inflate_layoutlib_native_memory_base",
-      computable,
-    )
+    computeAndRecordMetric("inflate_time_base", "inflate_memory_base", "inflate_layoutlib_native_memory_base", computable)
   }
 
   @Throws(Exception::class)
@@ -110,16 +104,9 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
     val computable =
       ThrowableComputable<PerfgateRenderMetric, Exception> {
         var metric: PerfgateRenderMetric? = null
-        RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
-          metric = getRenderMetric(it, ::checkSimpleLayoutResult)
-        }
+        RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) { metric = getRenderMetric(it, ::checkSimpleLayoutResult) }
         metric!!
       }
-    computeAndRecordMetric(
-      "render_time_base",
-      "render_memory_base",
-      "render_layoutlib_native_memory_base",
-      computable,
-    )
+    computeAndRecordMetric("render_time_base", "render_memory_base", "render_layoutlib_native_memory_base", computable)
   }
 }

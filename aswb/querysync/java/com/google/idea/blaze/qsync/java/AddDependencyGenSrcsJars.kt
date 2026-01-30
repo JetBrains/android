@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java
 
-import kotlin.jvm.JvmField
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
@@ -30,27 +29,28 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.common.experiments.BoolExperiment
 import java.nio.file.Path
+import kotlin.jvm.JvmField
 import kotlin.jvm.optionals.getOrNull
 
 /**
- * Adds generated `.srcjar` files from external dependencies to the `.dependencies`
- * library. This means that when navigating to these dependencies, we see the generated sources
- * rather than decompiled code.
+ * Adds generated `.srcjar` files from external dependencies to the `.dependencies` library. This means that when navigating to these
+ * dependencies, we see the generated sources rather than decompiled code.
  */
 class AddDependencyGenSrcsJars(
   private val projectDefinition: ProjectDefinition,
   private val srcJarPathsMetadata: ArtifactMetadata.Extractor<SrcJarJavaPackageRoots>,
 ) : ProjectProtoUpdateOperation {
   companion object {
-    @JvmField
-    val ENABLED_NAVIGATION_POLICY = BoolExperiment("querysync.navigationpolicy", true)
+    @JvmField val ENABLED_NAVIGATION_POLICY = BoolExperiment("querysync.navigationpolicy", true)
   }
+
   private fun getDependencyGenSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
     val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
 
     return if (projectDefinition.isIncluded(javaInfo.label())) emptyList()
     else javaInfo.genSrcs().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
   }
+
   private fun getProtoSrcJars(target: TargetBuildInfo): Collection<BuildArtifact> {
     val javaInfo = target.javaInfo().getOrNull() ?: return emptyList()
 
@@ -59,9 +59,7 @@ class AddDependencyGenSrcsJars(
     return javaInfo.protoSrcjars().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
   }
 
-  override fun getRequiredArtifacts(
-    forTarget: TargetBuildInfo,
-  ): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
+  override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
     return (getDependencyGenSrcJars(forTarget) + getProtoSrcJars(forTarget)).associateWith { listOf(srcJarPathsMetadata) }
   }
 
@@ -72,30 +70,22 @@ class AddDependencyGenSrcsJars(
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
-    update
-      .artifactDirectory(ArtifactDirectories.DEFAULT) {
-        for (target in artifactState.targets()) {
-          for (protoSrcJar in getProtoSrcJars(target)) {
-            addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext())
-          }
-          val projectPaths = getDependencyGenSrcJars(target)
-            .flatMap { genSrc ->
-              val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
-                                ?: return@flatMap emptyList()
+    update.artifactDirectory(ArtifactDirectories.DEFAULT) {
+      for (target in artifactState.targets()) {
+        for (protoSrcJar in getProtoSrcJars(target)) {
+          addIfNewer(protoSrcJar.artifactPath(), protoSrcJar, target.buildContext())
+        }
+        val projectPaths =
+          getDependencyGenSrcJars(target).flatMap { genSrc ->
+            val projectPath = addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext()) ?: return@flatMap emptyList()
 
-              val innerJavaRoots = genSrc
-                                     .getMetadata(SrcJarJavaPackageRoots::class.java)
-                                     .getOrNull()
-                                     ?.roots()
-                                   ?: setOf(Path.of(""))
-              innerJavaRoots.map { projectPath.withInnerJarPath(it) }
-            }
-          if (!ENABLED_NAVIGATION_POLICY.value) {
-            update.library(target.label()) {
-              addSourceJars(projectPaths)
-            }
+            val innerJavaRoots = genSrc.getMetadata(SrcJarJavaPackageRoots::class.java).getOrNull()?.roots() ?: setOf(Path.of(""))
+            innerJavaRoots.map { projectPath.withInnerJarPath(it) }
           }
+        if (!ENABLED_NAVIGATION_POLICY.value) {
+          update.library(target.label()) { addSourceJars(projectPaths) }
         }
       }
+    }
   }
 }

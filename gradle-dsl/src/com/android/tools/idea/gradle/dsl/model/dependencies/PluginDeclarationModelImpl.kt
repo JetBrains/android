@@ -40,8 +40,7 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
     val LOG = Logger.getInstance(PluginDeclarationModelImpl::class.java)
   }
 
-  override fun getSpec(): PluginDeclarationSpec =
-    PluginDeclarationSpecImpl(id().toString(), version().getSpec())
+  override fun getSpec(): PluginDeclarationSpec = PluginDeclarationSpecImpl(id().toString(), version().getSpec())
 
   override fun compactNotation(): String = getSpec().compactNotation()
 
@@ -56,30 +55,25 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
     }
   }
 
-  /**
-   * Creates VersionDeclarationModel with no DSL element as it does not exist yet
-   * by default we add literal property to map as version
-   */
-  protected fun createVersionDeclarationModel(dslElement: GradleDslElement?,
-                                              holder: GradlePropertiesDslElement,
-                                              alias: String): VersionDeclarationModel {
+  /** Creates VersionDeclarationModel with no DSL element as it does not exist yet by default we add literal property to map as version */
+  protected fun createVersionDeclarationModel(
+    dslElement: GradleDslElement?,
+    holder: GradlePropertiesDslElement,
+    alias: String,
+  ): VersionDeclarationModel {
     val element = dslElement ?: GradleDslLiteral(holder, GradleNameElement.create(alias))
     return createVersionDeclarationModel(element)
   }
 
   class MapPluginDeclarationModel(override val dslElement: GradleDslExpressionMap) : PluginDeclarationModelImpl(dslElement) {
     companion object {
-      /**
-       * Creates plugin declaration as map with in place version
-       */
+      /** Creates plugin declaration as map with in place version */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    dependency: PluginDeclarationSpec): MapPluginDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, dependency: PluginDeclarationSpec): MapPluginDeclarationModel {
         val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
         declaration.getMapValue("id").setValue(dependency.getId())
         dependency.getVersion().let {
-          if(it.compactNotation() == null) {
+          if (it.compactNotation() == null) {
             LOG.warn("Version for dependency ${dependency.getId()} does not have string notation")
           }
           declaration.getMapValue("version").setValue(it.compactNotation() ?: "")
@@ -87,14 +81,9 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
         return MapPluginDeclarationModel(declaration.element as GradleDslExpressionMap)
       }
 
-      /**
-       * Creates plugin declaration as map with version as reference
-       */
+      /** Creates plugin declaration as map with version as reference */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    id: String,
-                    version: ReferenceTo): MapPluginDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, id: String, version: ReferenceTo): MapPluginDeclarationModel {
         val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
         declaration.getMapValue("id").setValue(id)
         declaration.getMapValue("version").setValue(version)
@@ -102,28 +91,20 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
       }
     }
 
-    override fun id(): ResolvedPropertyModel =
-      GradlePropertyModelBuilder.create(dslElement, "id").buildResolved()
+    override fun id(): ResolvedPropertyModel = GradlePropertyModelBuilder.create(dslElement, "id").buildResolved()
 
     override fun version(): VersionDeclarationModel =
       createVersionDeclarationModel(dslElement.getPropertyElement("version"), dslElement, "version")
 
-
-    override fun completeModel(): ResolvedPropertyModel? =
-      GradlePropertyModelBuilder.create(dslElement).buildResolved()
-
+    override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
   }
 
   class LiteralPluginDeclarationModel(override val dslElement: GradleDslLiteral) : PluginDeclarationModelImpl(dslElement) {
 
     companion object {
-      /**
-       * Creates plugin declaration as a literal
-       */
+      /** Creates plugin declaration as a literal */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    compactNotation: String): LiteralPluginDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, compactNotation: String): LiteralPluginDeclarationModel {
         val literal = parent.setNewLiteral(alias, compactNotation)
         return LiteralPluginDeclarationModel(literal)
       }
@@ -132,8 +113,15 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
     override fun id(): ResolvedPropertyModel {
       val element = dslElement
       assert(element.parent != null)
-      val fakeElement: FakeElement = FakePluginDeclarationElement(element.parent!!, GradleNameElement.fake("id"), element, PluginDeclarationSpec::getId,
-                                                                  PluginDeclarationSpecImpl::setId, false)
+      val fakeElement: FakeElement =
+        FakePluginDeclarationElement(
+          element.parent!!,
+          GradleNameElement.fake("id"),
+          element,
+          PluginDeclarationSpec::getId,
+          PluginDeclarationSpecImpl::setId,
+          false,
+        )
       val builder = GradlePropertyModelBuilder.create(fakeElement)
       return builder.addTransform(FakeElementTransform()).buildResolved()
     }
@@ -141,16 +129,18 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
     override fun version(): VersionDeclarationModel {
       val element = dslElement
       assert(element.parent != null)
-      val fakeElement: FakeElement = FakePluginDeclarationElement(element.parent!!,
-                                                                      GradleNameElement.fake("version"),
-                                                                      element,
-                                                                      { spec: PluginDeclarationSpec -> spec.getVersion()?.compactNotation() },
-                                                                      PluginDeclarationSpecImpl::setStringVersion,
-                                                                      false)
+      val fakeElement: FakeElement =
+        FakePluginDeclarationElement(
+          element.parent!!,
+          GradleNameElement.fake("version"),
+          element,
+          { spec: PluginDeclarationSpec -> spec.getVersion()?.compactNotation() },
+          PluginDeclarationSpecImpl::setStringVersion,
+          false,
+        )
       return createVersionDeclarationModel(fakeElement)
     }
 
-    override fun completeModel(): ResolvedPropertyModel? =
-      GradlePropertyModelBuilder.create(dslElement).buildResolved()
+    override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
   }
 }

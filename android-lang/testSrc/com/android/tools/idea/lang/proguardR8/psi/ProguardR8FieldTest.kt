@@ -31,12 +31,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
+class ProguardR8FieldsTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
 
   @Test
   fun testReturnsCorrectType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -44,7 +44,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myInt;
         String myString;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -53,7 +55,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myIn${caret}t;
         java.lang.String myString;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
     var fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(fieldName.type).isNotNull()
     assertThat(fieldName.type!!.matchesPsiType(PsiTypes.intType())).isTrue()
@@ -69,14 +73,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceCorrectPrimitiveType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         int myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -84,7 +90,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         int myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.elementAtCaret
 
@@ -95,7 +103,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceAnyPrimitiveType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -103,7 +111,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myPrimitive;
         String myNotPrimitive;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -112,7 +122,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         % myPrimitive;
         % myNotPrimitive
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.moveCaret("myPrimiti|ve")
     val field = myFixture.elementAtCaret
@@ -129,14 +141,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceAnyType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         StringBuilder myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -144,7 +158,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         *** myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.elementAtCaret
 
@@ -155,14 +171,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceCorrectType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         String myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -170,7 +188,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         java.lang.String myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.elementAtCaret
 
@@ -181,14 +201,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceIncorrectType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         StringBuilder myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -196,7 +218,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         java.lang.String myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.referenceAtCaret.resolve()
 
@@ -206,14 +230,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testFieldReferenceIncorrectPrimitiveType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         long myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -221,7 +247,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         int myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.referenceAtCaret.resolve()
 
@@ -231,7 +259,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testSuggestFieldsPrimitiveType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -240,7 +268,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         boolean myBooleanField2;
         int myNotBooleanField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -248,7 +278,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         boolean ${caret};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.completeBasic()
 
@@ -259,7 +291,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testSuggestFieldsAnyPrimitiveType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -269,7 +301,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myPrimitive3;
         String myNotPrimitive;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -277,7 +311,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         % ${caret};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.completeBasic()
 
@@ -288,7 +324,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testSuggestFieldsAnyType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -298,7 +334,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myPrimitive3;
         String myNotPrimitive;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -306,7 +344,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         *** ${caret};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.completeBasic()
 
@@ -317,7 +357,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testNotSuggestFields() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -327,7 +367,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myPrimitive3;
         String myNotPrimitive;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -335,7 +377,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         long ${caret};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val field = myFixture.completeBasic()
 
@@ -345,14 +389,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testRenameField() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       //package test;
 
       class MyClass {
         int myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -360,31 +406,38 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class MyClass {
         int myFie${caret}ld;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("myFieldNew")
 
     val newField = myFixture.findClass("MyClass").findFieldByName("myFieldNew", false)
     assertThat(newField).isNotNull()
 
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       -keep class MyClass {
         int myFieldNew;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testInspectionOnField() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         boolean myBoolean;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // wrong type
     myFixture.configureByText(
@@ -393,7 +446,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         long ${"myBoolean".highlightedAs(ERROR, "The rule matches no class members")};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -404,7 +459,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         boolean ${"myNotBoolean" highlightedAs ERROR};
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -415,7 +472,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.My* {
         long myBoolean;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     // don't highlight if class is unknown, but super class is known
     myFixture.configureByText(
@@ -424,7 +483,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class * extends test.MyClass {
         foo;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -435,7 +496,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} {
         long myBoolean;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
@@ -446,7 +509,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
         long m*;
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -454,7 +519,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testCodeCompletionWithoutType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -463,14 +528,17 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         int myField2;
         String myFiled3;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
       """
       -keep class test.MyClass {
          $caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     val fields = myFixture.completeBasic()
 
@@ -481,14 +549,16 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testResolveFieldWithoutType() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       class MyClass {
         boolean[] myField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -496,7 +566,8 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
       -keep class test.MyClass {
          my${caret}Field;
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     val fields = (myFixture.referenceAtCaret as PsiPolyVariantReference).multiResolve(false).toList()
 
@@ -507,7 +578,7 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
   @Test
   fun testResolveFieldWithRightAccessModifier() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -517,7 +588,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         private int myPrivate;
         protected int myProtected;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.configureByText(
       fileType,
@@ -532,7 +605,8 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
          !private !protected !public my;
          private !private my;
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.moveCaret("m|y;")
     var fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
@@ -578,7 +652,9 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
         internal var myInternal:Int;
         var myPublic:Int;
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.configureByText(
       fileType,
@@ -593,7 +669,8 @@ class ProguardR8FieldsTest(private val fileType: LanguageFileType)  : ProguardR8
          !private !protected !public my;
          private !private my;
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.moveCaret("m|y;")
     var fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }

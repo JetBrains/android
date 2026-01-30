@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ManifestAttributeDetector
 
 class AndroidLintInvalidManifestAttributeInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.invalid.manifest.attribute"),
-    ManifestAttributeDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.invalid.manifest.attribute"), ManifestAttributeDetector.ISSUE)

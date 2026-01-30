@@ -23,11 +23,11 @@ import com.intellij.openapi.projectRoots.impl.UnknownSdkType
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.testFramework.LightPlatformTestCase
+import kotlin.test.assertContentEquals
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.jetbrains.kotlin.utils.filterIsInstanceMapNotNull
 import org.junit.Test
-import kotlin.test.assertContentEquals
 
 class GradleJdkComboBoxUtilTest : LightPlatformTestCase() {
 
@@ -39,24 +39,18 @@ class GradleJdkComboBoxUtilTest : LightPlatformTestCase() {
   @Test
   fun testCreateJdkComboBoxItemsWithEmptyModel() {
     val sdksModel = ProjectSdksModel()
-    createJdkComboBoxItems(sdksModel).run {
-      assertEmpty(this)
-    }
+    createJdkComboBoxItems(sdksModel).run { assertEmpty(this) }
   }
 
   @Test
   fun testCreateJdkComboBoxItemsItemsWithJavaSdks() {
-    val sdksModel = ProjectSdksModel()
-      .addSdks(javaSdk, javaSdk, javaSdk)
-    createJdkComboBoxItems(sdksModel).run {
-      assertContentEquals(sdksModel.sdks, this)
-    }
+    val sdksModel = ProjectSdksModel().addSdks(javaSdk, javaSdk, javaSdk)
+    createJdkComboBoxItems(sdksModel).run { assertContentEquals(sdksModel.sdks, this) }
   }
 
   @Test
   fun testCreateJdkComboBoxItemsWithMultipleSdkTypes() {
-    val sdksModel = ProjectSdksModel()
-      .addSdks(androidSdk, androidSdk, javaSdk, kotlinSdk, unknownSdk)
+    val sdksModel = ProjectSdksModel().addSdks(androidSdk, androidSdk, javaSdk, kotlinSdk, unknownSdk)
     createJdkComboBoxItems(sdksModel).run {
       assertEquals(1, size)
       assertEquals(javaSdk.name, first().name)
@@ -68,10 +62,7 @@ class GradleJdkComboBoxUtilTest : LightPlatformTestCase() {
   private fun createJdkComboBoxItems(sdksModel: ProjectSdksModel): Array<Sdk> {
     val modelBuilder = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel).modelBuilder
     modelBuilder.reloadSdks()
-    return modelBuilder.buildModel()
-      .items
-      .filterIsInstanceMapNotNull<SdkListItem.SdkItem, Sdk> { it.sdk }
-      .toTypedArray()
+    return modelBuilder.buildModel().items.filterIsInstanceMapNotNull<SdkListItem.SdkItem, Sdk> { it.sdk }.toTypedArray()
   }
 
   private fun ProjectSdksModel.addSdks(vararg sdks: Sdk): ProjectSdksModel {

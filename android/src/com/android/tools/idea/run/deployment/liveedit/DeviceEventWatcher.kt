@@ -29,7 +29,7 @@ enum class DeviceEvent {
 
 typealias DeviceEventListener = BiConsumer<IDevice, DeviceEvent>
 
-class DeviceEventWatcher: AllAdbEventsListener {
+class DeviceEventWatcher : AllAdbEventsListener {
   private var applicationId = ""
   private val listeners = mutableListOf<DeviceEventListener>()
 
@@ -38,6 +38,7 @@ class DeviceEventWatcher: AllAdbEventsListener {
   //  2) Did this device previously have any clients for our app?
   // If both are true, we dispatch an APPLICATION_DISCONNECT event. This set allows us to check condition #2.
   private val devicesWithConnectedClients = mutableSetOf<IDevice>()
+
   override fun deviceConnected(device: IDevice) {}
 
   override fun deviceDisconnected(device: IDevice) {

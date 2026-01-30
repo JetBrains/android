@@ -21,17 +21,13 @@ import java.awt.Color
 
 object Colors {
 
-  /**
-   * Default background used by the surface. This is used to restore the state after exiting the
-   * active modes.
-   */
+  /** Default background used by the surface. This is used to restore the state after exiting the active modes. */
   val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
 
   /**
-   * Background color for the surface while some of the active modes are enabled - for example,
-   * Interactive Preview, Animation Preview, UI Check.
+   * Background color for the surface while some of the active modes are enabled - for example, Interactive Preview, Animation Preview, UI
+   * Check.
    */
   @Suppress("UnstableApiUsage")
-  val ACTIVE_BACKGROUND_COLOR: Color =
-    if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
+  val ACTIVE_BACKGROUND_COLOR: Color = if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 }

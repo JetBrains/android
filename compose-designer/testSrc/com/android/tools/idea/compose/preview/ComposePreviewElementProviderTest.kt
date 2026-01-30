@@ -28,17 +28,14 @@ class ComposePreviewElementProviderTest {
     val staticPreviewProvider =
       StaticPreviewProvider(
         listOf(
-          SingleComposePreviewElementInstance.forTesting<Unit>(
-            "com.sample.TestClass.PreviewMethod1"
-          ),
+          SingleComposePreviewElementInstance.forTesting<Unit>("com.sample.TestClass.PreviewMethod1"),
           SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
           SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod"),
         )
       )
 
     var filterWord = "internal"
-    val filtered =
-      FilteredPreviewElementProvider(staticPreviewProvider) { !it.methodFqn.contains(filterWord) }
+    val filtered = FilteredPreviewElementProvider(staticPreviewProvider) { !it.methodFqn.contains(filterWord) }
 
     assertEquals(3, staticPreviewProvider.previewElements().count())
     // The filtered provider contains all elements without the word internal
@@ -49,9 +46,6 @@ class ComposePreviewElementProviderTest {
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
-    assertEquals(
-      "internal.com.sample.TestClass.AMethod",
-      filtered.previewElements().single().methodFqn,
-    )
+    assertEquals("internal.com.sample.TestClass.AMethod", filtered.previewElements().single().methodFqn)
   }
 }

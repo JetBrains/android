@@ -47,9 +47,7 @@ internal class LocalVirtualDeviceSource(
 
   companion object {
     fun create(sdkHandler: AndroidSdkHandler): LocalVirtualDeviceSource {
-      val skins =
-        SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
-          .toImmutableList()
+      val skins = SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
       return LocalVirtualDeviceSource(
         skins,
         sdkHandler,
@@ -59,10 +57,7 @@ internal class LocalVirtualDeviceSource(
     }
   }
 
-  fun WizardPageScope.selectionUpdated(
-    profile: VirtualDeviceProfile,
-    finish: suspend (VirtualDevice) -> Boolean,
-  ) {
+  fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile, finish: suspend (VirtualDevice) -> Boolean) {
     nextAction = WizardAction {
       pushPage {
         leftSideButtons = emptyList()
@@ -88,10 +83,7 @@ internal class LocalVirtualDeviceSource(
         val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
 
         fun sendDevices() {
-          val profiles =
-            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) {
-              it.toVirtualDeviceProfile()
-            }
+          val profiles = deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) { it.toVirtualDeviceProfile() }
           profiles.sortWith(compareBy(NameComparator()) { it.device })
 
           // Cannot fail due to conflate() below

@@ -21,12 +21,11 @@ import java.awt.Component.LEFT_ALIGNMENT
 import java.awt.Component.RIGHT_ALIGNMENT
 
 /**
- * Alignment for the [SceneView] when its size is less than the minimum size. If the size of the
- * [SceneView] is less than the minimum, this enum describes how to align the content within the
- * rectangle formed by the minimum size.
+ * Alignment for the [SceneView] when its size is less than the minimum size. If the size of the [SceneView] is less than the minimum, this
+ * enum describes how to align the content within the rectangle formed by the minimum size.
  *
- * @param alignmentX The Swing alignment value equivalent to this alignment setting. See
- *   [LEFT_ALIGNMENT], [RIGHT_ALIGNMENT] and [CENTER_ALIGNMENT].
+ * @param alignmentX The Swing alignment value equivalent to this alignment setting. See [LEFT_ALIGNMENT], [RIGHT_ALIGNMENT] and
+ *   [CENTER_ALIGNMENT].
  */
 enum class SceneViewAlignment(val alignmentX: Float) {
   /** Align content to the left within the minimum size bounds. */

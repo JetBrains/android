@@ -43,13 +43,13 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
           "/src/p1/p2/Foo.java",
           // language=JAVA
           """
-      package p1.p2;
-      class Foo {
-        public static void foo() {
-          int n = R.string.app_<caret>name;
-        }
-      }
-      """
+          package p1.p2;
+          class Foo {
+            public static void foo() {
+              int n = R.string.app_<caret>name;
+            }
+          }
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -57,13 +57,10 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
     StudioResourceRepositoryManager.getAppResources(myFacet)
     myFixture.configureFromExistingVirtualFile(file)
 
-    val gotoData =
-      TestGotoImplementationHandler()
-        .createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
+    val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
     val psiElements = gotoData.targets
     assertThat(psiElements).hasLength(1)
-    assertThat(psiElements.first().parent.parent.text)
-      .isEqualTo("<string name=\"app_name\">My Application</string>")
+    assertThat(psiElements.first().parent.parent.text).isEqualTo("<string name=\"app_name\">My Application</string>")
   }
 
   fun testResourceReferenceInXml() {
@@ -84,10 +81,10 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
           "res/values/test.xml",
           // language=XML
           """
-      <resources>
-        <string name="test">@string/app_<caret>name</string>
-      </resources>
-      """
+          <resources>
+            <string name="test">@string/app_<caret>name</string>
+          </resources>
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -95,21 +92,14 @@ class ResourceDefinitionSearchTest : AndroidTestCase() {
     StudioResourceRepositoryManager.getAppResources(myFacet)
     myFixture.configureFromExistingVirtualFile(file)
 
-    val gotoData =
-      TestGotoImplementationHandler()
-        .createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
+    val gotoData = TestGotoImplementationHandler().createDataForSource(myFixture.editor, myFixture.caretOffset, myFixture.elementAtCaret)
     val psiElements = gotoData.targets
     assertThat(psiElements).hasLength(1)
-    assertThat(psiElements.first().parent.parent.text)
-      .isEqualTo("<string name=\"app_name\">My Application</string>")
+    assertThat(psiElements.first().parent.parent.text).isEqualTo("<string name=\"app_name\">My Application</string>")
   }
 
   private class TestGotoImplementationHandler : GotoImplementationHandler() {
-    public override fun createDataForSource(
-      editor: Editor,
-      offset: Int,
-      source: PsiElement,
-    ): GotoData {
+    public override fun createDataForSource(editor: Editor, offset: Int, source: PsiElement): GotoData {
       return super.createDataForSource(editor, offset, source)
     }
   }

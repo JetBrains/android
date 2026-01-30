@@ -23,10 +23,6 @@ fun <T : Number, R : Number> IssueStats<T>.map(mapper: (T) -> R) =
   IssueStats(
     topValue,
     groups.map { group ->
-      StatsGroup(
-        group.groupName,
-        mapper(group.percentage),
-        group.breakdown.map { DataPoint(it.name, mapper(it.percentage)) },
-      )
+      StatsGroup(group.groupName, mapper(group.percentage), group.breakdown.map { DataPoint(it.name, mapper(it.percentage)) })
     },
   )

@@ -25,12 +25,13 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
   private val idToNodeMap = nodes.associateBy { it.threadInfo.threadId }
   var awtDeadlocked = false
     private set
+
   var summary = ""
     private set
 
   enum class Confidence {
     LOW,
-    HIGH
+    HIGH,
   }
 
   data class ThreadNode(val threadInfo: ThreadInfo) {
@@ -40,21 +41,19 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
     fun getThreadNameAndId(): String = "[\"${threadInfo.threadName}\" Id=${threadInfo.threadId}]"
   }
 
-  private fun addEdge(blockedNode: ThreadNode,
-                      blockingNode: ThreadNode,
-                      reason: String,
-                      timed: Boolean,
-                      confidence: Confidence) {
+  private fun addEdge(blockedNode: ThreadNode, blockingNode: ThreadNode, reason: String, timed: Boolean, confidence: Confidence) {
     val edge = BlockedEdge(blockedNode, blockingNode, reason, timed, confidence)
     blockedNode.blockedBy.add(edge)
     blockingNode.blocking.add(edge)
   }
 
-  data class BlockedEdge(val blockedNode: ThreadNode,
-                         val blockingNode: ThreadNode,
-                         val reason: String,
-                         val timed: Boolean,
-                         val confidence: Confidence)
+  data class BlockedEdge(
+    val blockedNode: ThreadNode,
+    val blockingNode: ThreadNode,
+    val reason: String,
+    val timed: Boolean,
+    val confidence: Confidence,
+  )
 
   companion object {
     fun analyzeThreads(threads: List<ThreadInfo>): FreezeGraph {
@@ -76,10 +75,11 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
       if (lockOwnerId != -1L) {
         val blockingNode = idToNodeMap[lockOwnerId] ?: continue
         val lockInfo = info.lockInfo
-        val reason = if (lockInfo is MonitorInfo)
-          "${info.threadState} on monitor ${lockInfo.className}@${lockInfo.identityHashCode} owned by ${blockingNode.getThreadNameAndId()}"
-        else
-          "${info.threadState} on lock ${lockInfo.className}@${lockInfo.identityHashCode} owned by ${blockingNode.getThreadNameAndId()}"
+        val reason =
+          if (lockInfo is MonitorInfo)
+            "${info.threadState} on monitor ${lockInfo.className}@${lockInfo.identityHashCode} owned by ${blockingNode.getThreadNameAndId()}"
+          else
+            "${info.threadState} on lock ${lockInfo.className}@${lockInfo.identityHashCode} owned by ${blockingNode.getThreadNameAndId()}"
         addEdge(node, blockingNode, reason, info.threadState == Thread.State.TIMED_WAITING, Confidence.HIGH)
       }
     }
@@ -91,14 +91,12 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
     for (node in nodes) {
       val threadInfo = node.threadInfo
       val threadState = threadInfo.threadState
-      if (threadState != Thread.State.WAITING &&
-          threadState != Thread.State.TIMED_WAITING) {
+      if (threadState != Thread.State.WAITING && threadState != Thread.State.TIMED_WAITING) {
         continue
       }
       val stackTrace = threadInfo.stackTrace
-      val match = stackTrace.indexOfLast {
-        matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.runWriteAction")
-      }
+      val match =
+        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.runWriteAction") }
       if (match != -1) {
         writerNode = node
         break
@@ -116,31 +114,43 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
       if (node == writerNode) continue
       val threadInfo = node.threadInfo
       val stackTrace = threadInfo.stackTrace
-      val matchReader = max(
-        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ApplicationImpl.runReadAction") },
-        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction") })
-      val matchWaitingForWriter = max(
-        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead") },
-        stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.getReadPermit") })
+      val matchReader =
+        max(
+          stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ApplicationImpl.runReadAction") },
+          stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction") },
+        )
+      val matchWaitingForWriter =
+        max(
+          stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead") },
+          stackTrace.indexOfLast { matchMethod(it, "com.intellij.openapi.application.impl.AnyThreadWriteThreadingSupport.getReadPermit") },
+        )
 
       if (matchReader != -1) {
         val threadState = threadInfo.threadState
-        if (matchWaitingForWriter != -1 && (threadState == Thread.State.WAITING ||
-                                            threadState == Thread.State.TIMED_WAITING)) {
+        if (matchWaitingForWriter != -1 && (threadState == Thread.State.WAITING || threadState == Thread.State.TIMED_WAITING)) {
           readersBlockedByWriter.add(node)
-        }
-        else {
+        } else {
           readersBlockingWriter.add(node)
         }
       }
     }
     for (node in readersBlockedByWriter) {
-      addEdge(node, writerNode, "Reader ${node.threadInfo.threadState} for writer ${writerNode.getThreadNameAndId()}", false,
-              Confidence.HIGH)
+      addEdge(
+        node,
+        writerNode,
+        "Reader ${node.threadInfo.threadState} for writer ${writerNode.getThreadNameAndId()}",
+        false,
+        Confidence.HIGH,
+      )
     }
     for (node in readersBlockingWriter) {
-      addEdge(writerNode, node, "Writer ${writerNode.threadInfo.threadState} for reader ${node.getThreadNameAndId()}", false,
-              Confidence.HIGH)
+      addEdge(
+        writerNode,
+        node,
+        "Writer ${writerNode.threadInfo.threadState} for reader ${node.getThreadNameAndId()}",
+        false,
+        Confidence.HIGH,
+      )
     }
   }
 
@@ -148,14 +158,12 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
     for (node in nodes) {
       val threadInfo = node.threadInfo
       val threadState = threadInfo.threadState
-      if (threadState != Thread.State.WAITING &&
-          threadState != Thread.State.TIMED_WAITING) {
+      if (threadState != Thread.State.WAITING && threadState != Thread.State.TIMED_WAITING) {
         continue
       }
       val stackTrace = threadInfo.stackTrace
       val match1 = stackTrace.indexOfLast { matchMethod(it, "java.util.concurrent.Semaphore.acquire") }
-      if (match1 == -1 || match1 == stackTrace.size - 1)
-        continue
+      if (match1 == -1 || match1 == stackTrace.size - 1) continue
       // Find other threads that might block this. Any thread within same class as the one calling acquire is considered.
       val previousFrame = stackTrace[match1 + 1]
       val className = getOuterClassName(previousFrame)
@@ -168,26 +176,27 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
         val match2 = stackTrace2.find { getOuterClassName(it) == className } ?: continue
         if (DiagnosticUtils.isAwtThread(threadInfo2)) {
           // AWT thread is considered only if there are no other background threads with frames with this class
-          if (foundThread == null)
-            foundThread = node2
-        }
-        else {
+          if (foundThread == null) foundThread = node2
+        } else {
           foundThread = node2
           break
         }
       }
       foundThread?.let {
-        addEdge(node, foundThread,
-                "${node.threadInfo.threadState} for semaphore release ($className), possibly by ${foundThread.getThreadNameAndId()}",
-                threadInfo.threadState == Thread.State.TIMED_WAITING, Confidence.LOW)
+        addEdge(
+          node,
+          foundThread,
+          "${node.threadInfo.threadState} for semaphore release ($className), possibly by ${foundThread.getThreadNameAndId()}",
+          threadInfo.threadState == Thread.State.TIMED_WAITING,
+          Confidence.LOW,
+        )
       }
     }
   }
 
   private fun getOuterClassName(frame: StackTraceElement) = frame.className.substringBefore('$')
 
-  private fun matchMethod(it: StackTraceElement, classAndMethod: String) =
-    (it.className + "." + it.methodName) == classAndMethod
+  private fun matchMethod(it: StackTraceElement, classAndMethod: String) = (it.className + "." + it.methodName) == classAndMethod
 
   private fun analyze() {
     val sb = StringBuilder()
@@ -216,8 +225,7 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
           break
         }
         currentNode = nextNode
-      }
-      else {
+      } else {
         val stackTrace = currentNode.threadInfo.stackTrace
         if (stackTrace.isNotEmpty()) {
           sb.appendLine("  ${currentNode.getThreadNameAndId()} - ${currentNode.threadInfo.threadState} at ${stackTrace[0]}")

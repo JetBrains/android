@@ -26,29 +26,17 @@ interface AndroidMavenImportToken<P : AndroidProjectSystem> : Token {
   /** Returns whether [module] has a (possibly transitive) dependency on [artifact]. */
   fun dependsOn(projectSystem: P, module: Module, artifact: String): Boolean
 
-  /**
-   * Registers a new dependency designated by maven [artifact] (with optional [version]), with
-   * configuration [type], for [module].
-   */
-  fun addDependency(
-    projectSystem: P,
-    module: Module,
-    artifact: String,
-    version: String?,
-    type: DependencyType = IMPLEMENTATION,
-  )
+  /** Registers a new dependency designated by maven [artifact] (with optional [version]), with configuration [type], for [module]. */
+  fun addDependency(projectSystem: P, module: Module, artifact: String, version: String?, type: DependencyType = IMPLEMENTATION)
 
   /**
    * Indicates whether platform-specific dependencies can be referred to by their base version. Eg
-   * "androidx.compose.animation:animation-core-desktop" ->
-   * "androidx.compose.animation:animation-core"
+   * "androidx.compose.animation:animation-core-desktop" -> "androidx.compose.animation:animation-core"
    */
   fun shouldMapKmpArtifacts(module: Module): Boolean
 
   companion object {
     val EP_NAME =
-      ExtensionPointName<AndroidMavenImportToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.imports.androidMavenImportToken"
-      )
+      ExtensionPointName<AndroidMavenImportToken<AndroidProjectSystem>>("com.android.tools.idea.imports.androidMavenImportToken")
   }
 }

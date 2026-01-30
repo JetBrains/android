@@ -18,9 +18,7 @@ package com.android.tools.idea.editors.strings.table
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 
-/**
- * The actions overridden in the 2 tables.
- */
+/** The actions overridden in the 2 tables. */
 enum class ActionType(val actionName: String) {
   FIRST_COLUMN_ACTION("selectFirstColumn"),
   FIRST_COLUMN_EXTEND_SELECTION_ACTION("selectFirstColumnExtendSelection"),
@@ -32,7 +30,6 @@ enum class ActionType(val actionName: String) {
   PREVIOUS_COLUMN_EXTEND_SELECTION_ACTION("selectPreviousColumnExtendSelection"),
   NEXT_COLUMN_CELL_ACTION("selectNextColumnCell"),
   PREVIOUS_COLUMN_CELL_ACTION("selectPreviousColumnCell"),
-
   NEXT_ROW("selectNextRow"),
   NEXT_ROW_CELL("selectNextRowCell"),
   NEXT_ROW_CHANGE_LEAD("selectNextRowChangeLead"),
@@ -47,10 +44,8 @@ enum class ActionType(val actionName: String) {
   CLEAR_SELECTION("clearSelection"),
 }
 
-/**
- * Implementation the actions for each action type.
- */
-class TableAction(private val type: ActionType, private val table: FrozenColumnTable<*>): AbstractAction(type.actionName) {
+/** Implementation the actions for each action type. */
+class TableAction(private val type: ActionType, private val table: FrozenColumnTable<*>) : AbstractAction(type.actionName) {
   override fun actionPerformed(event: ActionEvent) {
     val row = table.selectedRow
     val column = table.selectedColumn

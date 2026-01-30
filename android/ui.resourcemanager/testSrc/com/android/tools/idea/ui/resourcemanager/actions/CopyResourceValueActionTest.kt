@@ -28,16 +28,15 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.TestActionEvent
+import java.awt.datatransfer.DataFlavor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.datatransfer.DataFlavor
 
 internal class CopyResourceValueActionTest {
-  @get:Rule
-  val androidProject = AndroidProjectRule.inMemory()
+  @get:Rule val androidProject = AndroidProjectRule.inMemory()
 
   private fun updateAction(dataContext: DataContext): Pair<CopyResourceValueAction, AnActionEvent> {
     val action = CopyResourceValueAction()
@@ -48,11 +47,16 @@ internal class CopyResourceValueActionTest {
   }
 
   private fun getColorAsset(): DesignAsset {
-    val colorsFile = androidProject.fixture.addFileToProject("res/values/colors.xml", """
-      <resources>
-          <color name="color2">#008577</color>
-      </resources>
-    """.trimIndent())
+    val colorsFile =
+      androidProject.fixture.addFileToProject(
+        "res/values/colors.xml",
+        """
+        <resources>
+            <color name="color2">#008577</color>
+        </resources>
+        """
+          .trimIndent(),
+      )
     val folderRepository = runReadAction {
       ResourceFolderRegistry.getInstance(androidProject.project)
         .get(androidProject.module.androidFacet!!, colorsFile.parent!!.parent!!.virtualFile)

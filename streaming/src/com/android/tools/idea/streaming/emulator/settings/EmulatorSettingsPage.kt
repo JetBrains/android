@@ -31,9 +31,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 
-/**
- * Implementation of the Settings > Tools > Emulator preference page.
- */
+/** Implementation of the Settings > Tools > Emulator preference page. */
 class EmulatorSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
   private val state = EmulatorSettings.getInstance()
@@ -44,54 +42,50 @@ class EmulatorSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableConfigur
     row {
       checkBox("Launch in the Running Devices tool window")
         .bindSelected(state::launchInToolWindow)
-        .comment("When this setting is enabled, virtual devices launched from Device Manager or when running an app will appear in" +
-                 " the Running Devices tool window. Otherwise virtual devices will launch in a standalone Android Emulator application." +
-                 " Virtual devices launched from the Running Devices window will always appear in that window regardless of this" +
-                 " setting.")
-
+        .comment(
+          "When this setting is enabled, virtual devices launched from Device Manager or when running an app will appear in" +
+            " the Running Devices tool window. Otherwise virtual devices will launch in a standalone Android Emulator application." +
+            " Virtual devices launched from the Running Devices window will always appear in that window regardless of this" +
+            " setting."
+        )
     }
     indent {
-      row {
-        checkBox("Open the Running Devices tool window when launching an app")
-          .bindSelected(state::activateOnAppLaunch)
-      }.topGap(TopGap.SMALL)
-      row {
-        checkBox("Open the Running Devices tool window when launching a test")
-          .bindSelected(state::activateOnTestLaunch)
-      }
+      row { checkBox("Open the Running Devices tool window when launching an app").bindSelected(state::activateOnAppLaunch) }
+        .topGap(TopGap.SMALL)
+      row { checkBox("Open the Running Devices tool window when launching a test").bindSelected(state::activateOnTestLaunch) }
     }
-    row {
-      checkBox("Synchronize clipboard")
-        .bindSelected(state::synchronizeClipboard)
-    }.topGap(TopGap.SMALL)
-    row {
-      checkBox("Show camera control prompts")
-        .bindSelected(state::showCameraControlPrompts)
-    }.topGap(TopGap.SMALL)
+    row { checkBox("Synchronize clipboard").bindSelected(state::synchronizeClipboard) }.topGap(TopGap.SMALL)
+    row { checkBox("Show camera control prompts").bindSelected(state::showCameraControlPrompts) }.topGap(TopGap.SMALL)
     row {
       panel {
         row("Velocity control keys for virtual scene camera:") {}
         row {
-          comboBox(EnumComboBoxModel(CameraVelocityControls::class.java),
-                   renderer = textListCellRenderer(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
+          comboBox(
+              EnumComboBoxModel(CameraVelocityControls::class.java),
+              renderer = textListCellRenderer(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label },
+            )
             .bindItem({ state.cameraVelocityControls }, { state.cameraVelocityControls = it!! })
         }
       }
     }
     row {
-      panel {
-        row("When encountering snapshots incompatible with the current configuration:") {}
-        row {
-          comboBox(EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java),
-                   renderer = textListCellRenderer(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
-            .bindItem({ state.snapshotAutoDeletionPolicy }, { state.snapshotAutoDeletionPolicy = it!! })
+        panel {
+          row("When encountering snapshots incompatible with the current configuration:") {}
+          row {
+            comboBox(
+                EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java),
+                renderer = textListCellRenderer(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName },
+              )
+              .bindItem({ state.snapshotAutoDeletionPolicy }, { state.snapshotAutoDeletionPolicy = it!! })
+          }
         }
       }
-    }.topGap(TopGap.SMALL)
+      .topGap(TopGap.SMALL)
   }
 }
 
-private val DISPLAY_NAME = when {
-  IdeInfo.getInstance().isAndroidStudio -> message("android.configurable.EmulatorConfigurable.displayName")
-  else -> "Android Emulator"
-}
+private val DISPLAY_NAME =
+  when {
+    IdeInfo.getInstance().isAndroidStudio -> message("android.configurable.EmulatorConfigurable.displayName")
+    else -> "Android Emulator"
+  }

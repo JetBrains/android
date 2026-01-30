@@ -39,11 +39,8 @@ internal class HoneyFaceParser(
       .registerTypeAdapter(
         Path::class.java,
         object : JsonDeserializer<Path> {
-          override fun deserialize(
-            json: JsonElement,
-            typeOfT: Type,
-            context: JsonDeserializationContext,
-          ) = Path.of(URI.create(json.asString).path)
+          override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext) =
+            Path.of(URI.create(json.asString).path)
         },
       )
       .setPrettyPrinting()

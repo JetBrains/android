@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import java.io.File
-
 import java.io.Serializable
 
 data class IdeNativeAbiImpl(
@@ -27,19 +26,19 @@ data class IdeNativeAbiImpl(
   override val sourceFlagsFile: FileImpl,
   override val symbolFolderIndexFile: FileImpl,
   override val buildFileIndexFile: FileImpl,
-  override val additionalProjectFilesIndexFile: FileImpl?
+  override val additionalProjectFilesIndexFile: FileImpl?,
 ) : IdeNativeAbi, Serializable {
   constructor(
     name: String,
     sourceFlagsFile: File,
     symbolFolderIndexFile: File,
     buildFileIndexFile: File,
-    additionalProjectFilesIndexFile: File?
+    additionalProjectFilesIndexFile: File?,
   ) : this(
     name,
     sourceFlagsFile.toImpl(),
     symbolFolderIndexFile.toImpl(),
     buildFileIndexFile.toImpl(),
-    additionalProjectFilesIndexFile?.toImpl()
+    additionalProjectFilesIndexFile?.toImpl(),
   )
 }

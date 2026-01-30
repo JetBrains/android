@@ -62,82 +62,84 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEdit
   val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
   if (editor != null) {
     val file = FileDocumentManager.getInstance().getFile(editor.document)
-    if (!project.isInitialized ||
-        file == null ||
-        !file.isKotlinFileType() ||
-        !editor.document.isWritable) {
+    if (!project.isInitialized || file == null || !file.isKotlinFileType() || !editor.document.isWritable) {
       return LiveEditStatus.Disabled
     }
 
     val insetDevices = LiveEditDeviceMap.deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
-    return liveEditService.devices()
+    return liveEditService
+      .devices()
       .filter { it !in insetDevices }
       .map { liveEditService.editStatus(it) }
       .fold(LiveEditStatus.Disabled, LiveEditStatus::merge)
-  }
-  else {
+  } else {
     val device = LiveEditDeviceMap.deviceMap[project]?.device(dataContext) ?: return LiveEditStatus.Disabled
     return liveEditService.editStatus(device)
   }
 }
 
-/**
- * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
- * things like the current editor.
- */
-private fun defaultCreateInformationPopup(
-  project: Project,
-  dataContext: DataContext,
-): InformationPopup? {
+/** Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for things like the current editor. */
+private fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   return getStatusInfo(project, dataContext).let { status ->
     if (shouldHideImpl(status, dataContext)) {
       return@let null
     }
 
-    val link = status.actionId?.let {
-      val id = when (it) {
-        REFRESH_ACTION_ID -> if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_SAVE) LiveEditService.PIGGYBACK_ACTION_ID else MANUAL_LIVE_EDIT_ACTION_ID
-        else -> it
+    val link =
+      status.actionId?.let {
+        val id =
+          when (it) {
+            REFRESH_ACTION_ID ->
+              if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_SAVE) LiveEditService.PIGGYBACK_ACTION_ID
+              else MANUAL_LIVE_EDIT_ACTION_ID
+            else -> it
+          }
+        val action = ActionManager.getInstance().getAction(it)
+        val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
+        AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
       }
-      val action = ActionManager.getInstance().getAction(it)
-      val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
-      AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
-    }
 
     val upgradeAssistant =
-      if (status.title == LiveEditStatus.OutOfDate.title &&
-          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message))
-        AnActionLink("View Upgrade Assistant", object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {
-            ActionUtil.invokeAction(
-              ActionManager.getInstance().getAction("AgpUpgrade"),
-              e.dataContext,
-              RUNNING_DEVICES_TOOL_WINDOW_ID,
-              null,
-              null)
-          }
-        })
-      else
-        null
+      if (
+        status.title == LiveEditStatus.OutOfDate.title &&
+          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message)
+      )
+        AnActionLink(
+          "View Upgrade Assistant",
+          object : AnAction() {
+            override fun actionPerformed(e: AnActionEvent) {
+              ActionUtil.invokeAction(
+                ActionManager.getInstance().getAction("AgpUpgrade"),
+                e.dataContext,
+                RUNNING_DEVICES_TOOL_WINDOW_ID,
+                null,
+                null,
+              )
+            }
+          },
+        )
+      else null
 
     val configureLiveEditAction = ConfigureLiveEditAction()
     return@let InformationPopupImpl(
-      null,
-      if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
-      emptyList(),
-      listOfNotNull(
-        link,
-        upgradeAssistant,
-        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
-        AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
-          setDropDownLinkIcon()
-          configureLiveEditAction.parentComponent = this
-          putUserData(POPUP_ACTION, true)
-        }
+        null,
+        if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
+        emptyList(),
+        listOfNotNull(
+          link,
+          upgradeAssistant,
+          AnActionLink(
+            "View Docs",
+            BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit"),
+          ),
+          AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
+            setDropDownLinkIcon()
+            configureLiveEditAction.parentComponent = this
+            putUserData(POPUP_ACTION, true)
+          },
+        ),
       )
-    ).also { newPopup ->
-      configureLiveEditAction.parentDisposable = newPopup
-    }
+      .also { newPopup -> configureLiveEditAction.parentDisposable = newPopup }
   }
 }
 
@@ -146,7 +148,9 @@ private fun defaultCreateInformationPopup(
  */
 internal interface DeviceGetter {
   fun serial(dataContext: DataContext): String?
+
   fun device(dataContext: DataContext): IDevice?
+
   fun devices(): List<IDevice>
 }
 
@@ -202,17 +206,18 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
   // Only show for running devices tool window.
   val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
   val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
-  val bridge = AdbService.getInstance().getDebugBridge(project).let {
-    if (!it.isDone || it.isCancelled) {
-      null
-    } else {
-      try {
-        it.get()
-      } catch (_: Exception) {
+  val bridge =
+    AdbService.getInstance().getDebugBridge(project).let {
+      if (!it.isDone || it.isCancelled) {
         null
+      } else {
+        try {
+          it.get()
+        } catch (_: Exception) {
+          null
+        }
       }
     }
-  }
   val device = bridge?.devices?.find { it.serialNumber == serial } ?: return true
   // Hide status when the device doesn't support Live Edit.
   if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
@@ -226,14 +231,13 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
   return LiveEditApplicationConfiguration.getInstance().isLiveEdit
 }
 
-/**
- * [DefaultActionGroup] that shows the notification chip and the [RedeployAction] button when applicable.
- */
+/** [DefaultActionGroup] that shows the notification chip and the [RedeployAction] button when applicable. */
 class LiveEditNotificationGroup :
   DefaultActionGroup(
     "Live Edit Notification Actions",
     listOf(LiveEditIssueNotificationAction(), RedeployAction(), Separator.getInstance()),
-  ), RightAlignedToolbarAction {
+  ),
+  RightAlignedToolbarAction {
 
   override fun update(event: AnActionEvent) {
     // This check is not strictly necessary because this action group is not used with

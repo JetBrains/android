@@ -24,9 +24,10 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
-class ApkAnalyzerApkToken: ApkAnalyzerToken<ApkProjectSystem>, ApkToken {
+class ApkAnalyzerApkToken : ApkAnalyzerToken<ApkProjectSystem>, ApkToken {
   override fun getDefaultApkToAnalyze(projectSystem: ApkProjectSystem): VirtualFile? {
-    return ProjectFacetManager.getInstance(projectSystem.project).getFacets(ApkFacet.getFacetTypeId())
-      .firstNotNullOfOrNull { facet -> facet?.configuration?.APK_PATH?.let { File(it).toVirtualFile() } }
+    return ProjectFacetManager.getInstance(projectSystem.project).getFacets(ApkFacet.getFacetTypeId()).firstNotNullOfOrNull { facet ->
+      facet?.configuration?.APK_PATH?.let { File(it).toVirtualFile() }
+    }
   }
 }

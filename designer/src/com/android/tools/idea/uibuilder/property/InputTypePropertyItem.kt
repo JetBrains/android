@@ -34,8 +34,8 @@ import java.awt.Point
 /**
  * An InputType property item.
  *
- * This property item contains the flag methods to check and control the mask values of each flag
- * without showing each flag as a child of the property.
+ * This property item contains the flag methods to check and control the mask values of each flag without showing each flag as a child of
+ * the property.
  */
 class InputTypePropertyItem(
   namespace: String,

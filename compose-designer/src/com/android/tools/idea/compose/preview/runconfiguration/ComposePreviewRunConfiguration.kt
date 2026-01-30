@@ -54,21 +54,18 @@ open class ComposePreviewRunConfiguration(
   activityName: String = "androidx.compose.ui.tooling.PreviewActivity",
 ) :
   /**
-   * Compose preview run configuration is considered a test configuration in order to use the test
-   * artifact when performing apk related validations, because non-test configurations use the main
-   * artifact instead, and that would cause validations to fail for library projects, as the main
-   * artifact would produce an .aar file instead of an .apk file, and as a consequence, this run
-   * configuration wouldn't be able to be executed in library projects.
+   * Compose preview run configuration is considered a test configuration in order to use the test artifact when performing apk related
+   * validations, because non-test configurations use the main artifact instead, and that would cause validations to fail for library
+   * projects, as the main artifact would produce an .aar file instead of an .apk file, and as a consequence, this run configuration
+   * wouldn't be able to be executed in library projects.
    */
   AndroidRunConfiguration(project, factory, true) {
 
   /**
-   * To be able to support deploying compose preview to devices for library projects, the android
-   * test artifact and .apk is used. The validations needed to make sure that is possible to provide
-   * this support are already part of [AndroidRunConfigurationBase.validate]
+   * To be able to support deploying compose preview to devices for library projects, the android test artifact and .apk is used. The
+   * validations needed to make sure that is possible to provide this support are already part of [AndroidRunConfigurationBase.validate]
    */
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> =
-    Pair(java.lang.Boolean.TRUE, null)
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> = Pair(java.lang.Boolean.TRUE, null)
 
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
@@ -132,9 +129,7 @@ open class ComposePreviewRunConfiguration(
     element.getChild(CONFIGURATION_ELEMENT_NAME)?.let {
       it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr -> composableMethodFqn = attr.value }
       it.getAttribute(PROVIDER_CLASS_FQN_ATR_NAME)?.let { attr -> providerClassFqn = attr.value }
-      it.getAttribute(PROVIDER_INDEX_ATR_NAME)?.let { attr ->
-        providerIndex = attr.value.toIntOrNull() ?: -1
-      }
+      it.getAttribute(PROVIDER_INDEX_ATR_NAME)?.let { attr -> providerIndex = attr.value.toIntOrNull() ?: -1 }
     }
   }
 
@@ -144,30 +139,21 @@ open class ComposePreviewRunConfiguration(
     val configurationElement = Element(CONFIGURATION_ELEMENT_NAME)
     composableMethodFqn?.let { configurationElement.setAttribute(COMPOSABLE_FQN_ATR_NAME, it) }
     providerClassFqn?.let { configurationElement.setAttribute(PROVIDER_CLASS_FQN_ATR_NAME, it) }
-    providerIndex
-      .takeIf { it >= 0 }
-      ?.let { configurationElement.setAttribute(PROVIDER_INDEX_ATR_NAME, it.toString()) }
+    providerIndex.takeIf { it >= 0 }?.let { configurationElement.setAttribute(PROVIDER_INDEX_ATR_NAME, it.toString()) }
     element.addContent(configurationElement)
   }
 
   override fun validate(executor: Executor?): MutableList<ValidationError> {
     val errors = super.validate(executor)
     if (!isValidComposableSet()) {
-      errors.add(
-        ValidationError.fatal(
-          message("run.configuration.no.valid.composable.set", composableMethodFqn ?: "")
-        )
-      )
+      errors.add(ValidationError.fatal(message("run.configuration.no.valid.composable.set", composableMethodFqn ?: "")))
     }
     return errors
   }
 
   override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 
-  /**
-   * Returns whether [composableMethodFqn] points to a `@Composable` function annotated with
-   * `@Preview`.
-   */
+  /** Returns whether [composableMethodFqn] points to a `@Composable` function annotated with `@Preview`. */
   private fun isValidComposableSet(): Boolean {
     if (ApplicationManager.getApplication().isDispatchThread) {
       // When executing a configuration, ExecutionManagerImpl#executeConfiguration is called. This
@@ -180,9 +166,7 @@ open class ComposePreviewRunConfiguration(
       // The popup will only display if the validation logic takes more than a certain timeout.
       // In the majority of cases we expect the validation logic to run fast enough for the user
       // not to see the popup.
-      return runWithModalProgressBlocking(project, message("run.configuration.validating")) {
-        readAction { computeValidComposableSet() }
-      }
+      return runWithModalProgressBlocking(project, message("run.configuration.validating")) { readAction { computeValidComposableSet() } }
     }
     return computeValidComposableSet()
   }
@@ -194,10 +178,7 @@ open class ComposePreviewRunConfiguration(
     JavaPsiFacade.getInstance(project)
       .findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
       ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
-      ?.forEach { method ->
-        if (method.toUElementOfType<UMethod>()?.hasPreviewElements() == true)
-          return@computeValidComposableSet true
-      }
+      ?.forEach { method -> if (method.toUElementOfType<UMethod>()?.hasPreviewElements() == true) return@computeValidComposableSet true }
 
     return false
   }

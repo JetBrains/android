@@ -27,17 +27,18 @@ import com.intellij.openapi.ui.Messages
 
 /**
  * Quickfix to remove jcenter from project repositories. This can be applied when jcenter method is found in any of the following places:
- *   - Project's build.gradle buildScript.repositories block
- *   - Project's settings.gradle dependencyResolutionManagement.repositories block
- *   - Affected modules build.gradle repositories block
+ * - Project's build.gradle buildScript.repositories block
+ * - Project's settings.gradle dependencyResolutionManagement.repositories block
+ * - Affected modules build.gradle repositories block
  */
-class RemoveJcenterHyperlink(val project: Project, val affectedModules: List<Module>) : SyncIssueNotificationHyperlink(
-  "remove.jcenter.hyperlink",
-  "Remove JCenter from repositories",
-  AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
-) {
+class RemoveJcenterHyperlink(val project: Project, val affectedModules: List<Module>) :
+  SyncIssueNotificationHyperlink(
+    "remove.jcenter.hyperlink",
+    "Remove JCenter from repositories",
+    AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK,
+  ) {
   companion object {
-    fun canBeApplied(project: Project, affectedModules: List<Module>) : Boolean {
+    fun canBeApplied(project: Project, affectedModules: List<Module>): Boolean {
       // There is no build model, quickfix won't be able to remove the repository
       val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return false
 

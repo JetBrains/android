@@ -29,47 +29,44 @@ import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
 /**
- * Provides an implementation of the [WizardDelegate] interface (which plugs in to the IntelliJ IDEA New Project / Module Wizards)
- * that hosts the [ModelWizard] based AndroidStudio New Project and New Module wizards.
+ * Provides an implementation of the [WizardDelegate] interface (which plugs in to the IntelliJ IDEA New Project / Module Wizards) that
+ * hosts the [ModelWizard] based AndroidStudio New Project and New Module wizards.
  *
- * In Android Studio, wizards are hosted in the [ModelWizardDialog] class, however when running as a plugin in IDEA we do not create
- * the hosting dialog, but instead need to embed the wizard inside an existing dialog. This class manages that embedding. The
- * [WizardDelegate] class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the
- * [IdeaWizardAdapter] does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
+ * In Android Studio, wizards are hosted in the [ModelWizardDialog] class, however when running as a plugin in IDEA we do not create the
+ * hosting dialog, but instead need to embed the wizard inside an existing dialog. This class manages that embedding. The [WizardDelegate]
+ * class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the [IdeaWizardAdapter] does not need
+ * to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-class IdeaWizardAdapter(
-  private val ideaWizard: AbstractWizard<*>, private val modelWizard: ModelWizard
-) : ModelWizard.WizardListener, IdeaWizardDelegate {
+class IdeaWizardAdapter(private val ideaWizard: AbstractWizard<*>, private val modelWizard: ModelWizard) :
+  ModelWizard.WizardListener, IdeaWizardDelegate {
   private val listeners = ListenerManager()
   private val customLayout = StudioWizardLayout()
 
-  /**
-   * Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard.
-   */
+  /** Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard. */
   private val proxyStep: ModuleWizardStep
-    get() = object : ModuleWizardStep() {
-      override fun getComponent(): JComponent = customLayout.decorate(modelWizard.titleHeader, modelWizard.contentPanel)
-      override fun updateDataModel() {
-        // Not required as the guest wizard is using its own data model, updated via bindings.
+    get() =
+      object : ModuleWizardStep() {
+        override fun getComponent(): JComponent = customLayout.decorate(modelWizard.titleHeader, modelWizard.contentPanel)
+
+        override fun updateDataModel() {
+          // Not required as the guest wizard is using its own data model, updated via bindings.
+        }
+
+        override fun getHelpId(): String? = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
       }
-      override fun getHelpId(): String? = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
-    }
 
   init {
     modelWizard.addResultListener(this)
-    listeners.listenAll(modelWizard.canGoBack(), modelWizard.canGoForward(), modelWizard.onLastStep())
-      .withAndFire { this.updateButtons() }
+    listeners.listenAll(modelWizard.canGoBack(), modelWizard.canGoForward(), modelWizard.onLastStep()).withAndFire { this.updateButtons() }
 
     Disposer.register(ideaWizard.disposable, this)
     Disposer.register(this, modelWizard)
     Disposer.register(this, customLayout)
   }
 
-  override fun getCustomOptionsStep(): ModuleWizardStep  = proxyStep
+  override fun getCustomOptionsStep(): ModuleWizardStep = proxyStep
 
-  /**
-   * Update the buttons on the host wizard to reflect the state of the guest wizard
-   */
+  /** Update the buttons on the host wizard to reflect the state of the guest wizard */
   override fun updateButtons() {
     ideaWizard.updateButtons(modelWizard.onLastStep().get(), modelWizard.canGoForward().get(), !modelWizard.canGoBack().get())
   }
@@ -108,4 +105,3 @@ class IdeaWizardAdapter(
     modelWizard.removeResultListener(this)
   }
 }
-

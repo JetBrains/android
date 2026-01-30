@@ -42,8 +42,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.BorderLayout
 import java.nio.channels.FileChannel
 import java.nio.file.Files
@@ -62,9 +60,10 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.event.HyperlinkEvent
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.ide.PooledThreadExecutor
 
-class AnalysisRunnable(val report: UnanalyzedHeapReport,
-                       private val deleteAfterAnalysis: Boolean) : Runnable {
+class AnalysisRunnable(val report: UnanalyzedHeapReport, private val deleteAfterAnalysis: Boolean) : Runnable {
 
   companion object {
     private val LOG = Logger.getInstance(AnalysisRunnable::class.java)
@@ -89,14 +88,20 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
       updateNextCheckTimeIfNeeded(report)
 
-      val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(AndroidBundle.message("heap.dump.analysis.exception"),
-                                                                                    NotificationType.INFORMATION)
+      val notification =
+        HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+          AndroidBundle.message("heap.dump.analysis.exception"),
+          NotificationType.INFORMATION,
+        )
       notification.notify(null)
       if (deleteAfterAnalysis) {
         deleteHprofFileAsync()
       }
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-        HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ERROR_DURING_ANALYSIS).build()))
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+          .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ERROR_DURING_ANALYSIS).build())
+      )
     }
 
     private fun deleteHprofFileAsync() {
@@ -104,8 +109,11 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
     }
 
     override fun run(indicator: ProgressIndicator) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-        HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ANALYSIS_STARTED).build()))
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+          .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ANALYSIS_STARTED).build())
+      )
       indicator.isIndeterminate = false
       indicator.text = "Analyze Heap"
       indicator.fraction = 0.0
@@ -113,23 +121,18 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       val openOptions: Set<OpenOption>
       if (deleteAfterAnalysis) {
         openOptions = setOf(StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE)
-      }
-      else {
+      } else {
         openOptions = setOf(StandardOpenOption.READ)
       }
-      val (reportString, summary) = FileChannel.open(report.hprofPath, openOptions).use { channel ->
-        HProfAnalysis(channel, SystemTempFilenameSupplier()).analyze(indicator)
-      }
+      val (reportString, summary) =
+        FileChannel.open(report.hprofPath, openOptions).use { channel ->
+          HProfAnalysis(channel, SystemTempFilenameSupplier()).analyze(indicator)
+        }
       if (deleteAfterAnalysis) {
         deleteHprofFileAsync()
       }
 
-      val analyzedReport = AnalyzedHeapReport(
-        reportString,
-        summary,
-        report.heapProperties,
-        report.properties
-      )
+      val analyzedReport = AnalyzedHeapReport(reportString, summary, report.heapProperties, report.properties)
 
       val heapReportDir = Paths.get(PathManager.getLogPath()).resolve(HEAP_REPORTS_DIR)
       heapReportDir.toFile().mkdirs()
@@ -137,13 +140,18 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       val heapReportFile = heapReportDir.resolve(Paths.get("heapReport$datetime.txt"))
       heapReportFile.toFile().writeText(reportString)
 
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-        HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ANALYSIS_FINISHED).build()))
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+          .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.ANALYSIS_FINISHED).build())
+      )
 
-      val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
-        AndroidBundle.message("heap.dump.analysis.notification.title"),
-        AndroidBundle.message("heap.dump.analysis.notification.ready.content"),
-        NotificationType.INFORMATION)
+      val notification =
+        HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+          AndroidBundle.message("heap.dump.analysis.notification.title"),
+          AndroidBundle.message("heap.dump.analysis.notification.ready.content"),
+          NotificationType.INFORMATION,
+        )
       notification.isImportant = true
       notification.addAction(ReviewReportAction(analyzedReport))
 
@@ -162,23 +170,34 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       UIUtil.invokeLaterIfNeeded {
         notification.expire()
 
-        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_DIALOG_SHOWN).build()))
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+            .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_DIALOG_SHOWN).build())
+        )
         val reportDialog = ShowReportDialog(report)
         val userAgreedToSendReport = reportDialog.showAndGet()
 
         updateNextCheckTimeIfNeeded(report)
 
         if (userAgreedToSendReport) {
-          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_ACCEPTED).build()))
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder()
+              .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+              .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_ACCEPTED).build())
+          )
           uploadReport()
-          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_UPLOADED).build()))
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder()
+              .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+              .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_UPLOADED).build())
+          )
         } else {
-          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_DECLINED).build()))
-
+          UsageTracker.log(
+            AndroidStudioEvent.newBuilder()
+              .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+              .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REVIEW_DECLINED).build())
+          )
         }
       }
     }
@@ -186,26 +205,36 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
     private fun uploadReport() {
       // No need to check for AnalyticsSettings.hasOptedIn() as user agreed to the privacy policy by
       // clicking "Send" in ShowReportDialog.
-      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true)
-        .whenCompleteAsync(BiConsumer<String, Throwable?> { _, throwable ->
-          if (throwable == null) {
-            HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
-              AndroidBundle.message("heap.dump.analysis.notification.title"),
-              AndroidBundle.message("heap.dump.analysis.notification.submitted.content"),
-              NotificationType.INFORMATION
-            ).setImportant(false).notify(null)
-          }
-          else {
-            LOG.error(throwable)
-            UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-              HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_UPLOAD_FAILED).build()))
-            HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
-              AndroidBundle.message("heap.dump.analysis.notification.title"),
-              AndroidBundle.message("heap.dump.analysis.notification.submit.error.content"),
-              NotificationType.ERROR
-            ).setImportant(false).notify(null)
-          }
-        }, PooledThreadExecutor.INSTANCE)
+      StudioCrashReporter.getInstance()
+        .submit(report.asCrashReport(), true)
+        .whenCompleteAsync(
+          BiConsumer<String, Throwable?> { _, throwable ->
+            if (throwable == null) {
+              HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+                  AndroidBundle.message("heap.dump.analysis.notification.title"),
+                  AndroidBundle.message("heap.dump.analysis.notification.submitted.content"),
+                  NotificationType.INFORMATION,
+                )
+                .setImportant(false)
+                .notify(null)
+            } else {
+              LOG.error(throwable)
+              UsageTracker.log(
+                AndroidStudioEvent.newBuilder()
+                  .setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT)
+                  .setHeapReportEvent(HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_UPLOAD_FAILED).build())
+              )
+              HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
+                  AndroidBundle.message("heap.dump.analysis.notification.title"),
+                  AndroidBundle.message("heap.dump.analysis.notification.submit.error.content"),
+                  NotificationType.ERROR,
+                )
+                .setImportant(false)
+                .notify(null)
+            }
+          },
+          PooledThreadExecutor.INSTANCE,
+        )
     }
   }
 }

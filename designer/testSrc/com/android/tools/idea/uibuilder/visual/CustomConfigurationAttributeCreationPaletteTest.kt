@@ -46,15 +46,9 @@ class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
     }
     val mockedConsumer = Mockito.mock(MyConsumer::class.java)
 
-    val palette =
-      CustomConfigurationAttributeCreationPalette(file.virtualFile, myModule) {
-        mockedConsumer.accept(it.name)
-      }
+    val palette = CustomConfigurationAttributeCreationPalette(file.virtualFile, myModule) { mockedConsumer.accept(it.name) }
 
-    val addButton =
-      (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first {
-        it.text == "Add"
-      }
+    val addButton = (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first { it.text == "Add" }
     addButton.action.actionPerformed(Mockito.mock(ActionEvent::class.java))
     Mockito.verify(mockedConsumer).accept("Preview")
   }
@@ -94,14 +88,7 @@ class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
     assertEquals(listOf(otherDevice), sortedMap[DeviceGroup.OTHER])
 
     // 3. Verify that the map keys (DeviceGroup) are sorted according to the predefined order.
-    val expectedKeyOrder =
-      listOf(
-        DeviceGroup.WEAR,
-        DeviceGroup.XR,
-        DeviceGroup.GENERIC,
-        DeviceGroup.NEXUS,
-        DeviceGroup.OTHER,
-      )
+    val expectedKeyOrder = listOf(DeviceGroup.WEAR, DeviceGroup.XR, DeviceGroup.GENERIC, DeviceGroup.NEXUS, DeviceGroup.OTHER)
     val actualKeyOrder = sortedMap.keys.toList()
     assertEquals(expectedKeyOrder, actualKeyOrder)
   }

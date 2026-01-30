@@ -94,10 +94,7 @@ class SelectDeviceAction(
         // if a device is not selected, but a process is, use the process's device
         // this is for the case where ForegroundProcessDetection does not work, and we fall back to
         // having the user selecting the process.
-        DropDownPresentation(
-          createDeviceLabel(selectedProcess.device, selectedProcess),
-          selectedProcess.device.toIcon(),
-        )
+        DropDownPresentation(createDeviceLabel(selectedProcess.device, selectedProcess), selectedProcess.device.toIcon())
       } else if (deviceModel.devices.isEmpty()) {
         DropDownPresentation("No Device Available", null)
       } else {
@@ -140,8 +137,7 @@ class SelectDeviceAction(
 
   /** Action used to detach the inspector. */
   @VisibleForTesting
-  inner class DetachInspectorAction :
-    AnAction(detachPresentation.text, detachPresentation.desc, AllIcons.Run.Stop) {
+  inner class DetachInspectorAction : AnAction(detachPresentation.text, detachPresentation.desc, AllIcons.Run.Stop) {
 
     /** This action is enabled each time a device is selected. */
     @VisibleForTesting
@@ -161,8 +157,7 @@ class SelectDeviceAction(
   }
 
   /** A device which the user can select. */
-  private inner class DeviceAction(private val device: DeviceDescriptor) :
-    ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) : ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -187,8 +182,8 @@ class SelectDeviceAction(
   }
 
   /**
-   * A device with all its debuggable processes, which the user can select. This is shown if
-   * [device] doesn't support foreground process detection.
+   * A device with all its debuggable processes, which the user can select. This is shown if [device] doesn't support foreground process
+   * detection.
    */
   private inner class DeviceProcessPickerAction(private val device: DeviceDescriptor) :
     DropDownAction(
@@ -199,10 +194,7 @@ class SelectDeviceAction(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     init {
-      val processes =
-        deviceModel.processes
-          .sortedBy { it.name }
-          .filter { (it.isRunning) && (it.device.serial == device.serial) }
+      val processes = deviceModel.processes.sortedBy { it.name }.filter { (it.isRunning) && (it.device.serial == device.serial) }
 
       for (process in processes) {
         add(ConnectAction(process))
@@ -219,8 +211,7 @@ class SelectDeviceAction(
     }
   }
 
-  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
-    ToggleAction(processDescriptor.name) {
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction(processDescriptor.name) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == deviceModel.selectedProcess
     }
@@ -235,12 +226,7 @@ class SelectDeviceAction(
   /** Retrieves and updates device icons for the provided list of devices. */
   private suspend fun updateDeviceIcons(devices: Set<DeviceDescriptor>) {
     devices.forEach {
-      val icon =
-        deviceProvisioner
-          .findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)
-          ?.state
-          ?.properties
-          ?.icon
+      val icon = deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)?.state?.properties?.icon
 
       if (icon != null) {
         deviceIcons[it.serial] = icon
@@ -256,10 +242,7 @@ class SelectDeviceAction(
   }
 }
 
-private fun createDeviceLabel(
-  device: DeviceDescriptor,
-  process: ProcessDescriptor? = null,
-): String {
+private fun createDeviceLabel(device: DeviceDescriptor, process: ProcessDescriptor? = null): String {
   return if (process != null) {
     "${device.buildDeviceName()} > ${process.name}"
   } else {

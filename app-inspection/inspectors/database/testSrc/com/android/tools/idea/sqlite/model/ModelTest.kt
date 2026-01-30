@@ -32,8 +32,7 @@ class ModelTest : TestCase() {
     assertThat(SqliteAffinity.fromTypename("int2")).isEqualTo(SqliteAffinity.INTEGER)
     assertThat(SqliteAffinity.fromTypename("int8")).isEqualTo(SqliteAffinity.INTEGER)
     assertThat(SqliteAffinity.fromTypename("charint")).isEqualTo(SqliteAffinity.INTEGER)
-    assertThat(SqliteAffinity.fromTypename("somethingintsomething"))
-      .isEqualTo(SqliteAffinity.INTEGER)
+    assertThat(SqliteAffinity.fromTypename("somethingintsomething")).isEqualTo(SqliteAffinity.INTEGER)
 
     assertThat(SqliteAffinity.fromTypename("char")).isEqualTo(SqliteAffinity.TEXT)
     assertThat(SqliteAffinity.fromTypename("character")).isEqualTo(SqliteAffinity.TEXT)
@@ -90,8 +89,7 @@ class ModelTest : TestCase() {
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIME)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.BINARY)).isEqualTo(SqliteAffinity.NUMERIC)
-    assertThat(SqliteAffinity.fromJDBCType(JDBCType.LONGVARBINARY))
-      .isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.LONGVARBINARY)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.NULL)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.OTHER)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.JAVA_OBJECT)).isEqualTo(SqliteAffinity.NUMERIC)
@@ -104,34 +102,25 @@ class ModelTest : TestCase() {
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.ROWID)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.SQLXML)).isEqualTo(SqliteAffinity.NUMERIC)
     assertThat(SqliteAffinity.fromJDBCType(JDBCType.REF_CURSOR)).isEqualTo(SqliteAffinity.NUMERIC)
-    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE))
-      .isEqualTo(SqliteAffinity.NUMERIC)
-    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE))
-      .isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE)).isEqualTo(SqliteAffinity.NUMERIC)
+    assertThat(SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE)).isEqualTo(SqliteAffinity.NUMERIC)
   }
 
   fun testFileDatabaseNameAndPath() {
     val databaseId =
-      SqliteDatabaseId.fromFileDatabase(
-        DatabaseFileData(MockVirtualFile("someDir/data/data/com.example.package/databases/db-file"))
-      )
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("someDir/data/data/com.example.package/databases/db-file")))
 
     assertThat(databaseId.name).isEqualTo("db-file")
     assertThat(databaseId.path).isEqualTo("/data/data/com.example.package/databases/db-file")
   }
 
   fun testLiveDatabasePathIsConverted() {
-    val databaseId =
-      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
 
     assertThat(databaseId.name).isEqualTo("db-file")
     assertThat(databaseId.path).isEqualTo("/data/data/com.example.package/databases/db-file")
 
-    val databaseIdSdCard =
-      SqliteDatabaseId.fromLiveDatabase(
-        "/storage/emulated/0/com.example.package/databases/db-file",
-        0,
-      )
+    val databaseIdSdCard = SqliteDatabaseId.fromLiveDatabase("/storage/emulated/0/com.example.package/databases/db-file", 0)
 
     assertThat(databaseIdSdCard.name).isEqualTo("db-file")
     assertThat(databaseIdSdCard.path).isEqualTo("/sdcard/com.example.package/databases/db-file")

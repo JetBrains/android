@@ -41,17 +41,13 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
     DesignerTypeRegistrar.register(CustomViewEditorFileType)
   }
 
-  /**
-   * Checks if the input [psiFile] contains custom views and therefore can be provided with the
-   * [PreviewRepresentation] of them.
-   */
+  /** Checks if the input [psiFile] contains custom views and therefore can be provided with the [PreviewRepresentation] of them. */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     val virtualFile = readAction { psiFile.virtualFile }
     if (!virtualFile.isSourceFileType()) return false
     if (DumbService.isDumb(project)) return false
 
-    return readAction { PsiManager.getInstance(project).findFile(virtualFile)!! }
-      .containsViewSuccessor()
+    return readAction { PsiManager.getInstance(project).findFile(virtualFile)!! }.containsViewSuccessor()
   }
 
   /** Creates a [CustomViewPreviewRepresentation] for the input [psiFile]. */

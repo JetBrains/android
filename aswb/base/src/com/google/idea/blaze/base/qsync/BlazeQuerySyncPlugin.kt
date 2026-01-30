@@ -21,19 +21,19 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 
-/** Can plug into the blaze sync system.  */
+/** Can plug into the blaze sync system. */
 interface BlazeQuerySyncPlugin {
-  /** Updates the sdk and language settings for the project  */
+  /** Updates the sdk and language settings for the project */
   fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings) = Unit
 
-  /** Modifies the IDE project structure  */
+  /** Modifies the IDE project structure */
   fun updateProjectStructureForQuerySync(
     project: Project,
     context: Context<*>,
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
     androidSourcePackages: Set<String>,
-    languageSettings: QuerySyncLanguageSettings
+    languageSettings: QuerySyncLanguageSettings,
   ) = Unit
 
   companion object {

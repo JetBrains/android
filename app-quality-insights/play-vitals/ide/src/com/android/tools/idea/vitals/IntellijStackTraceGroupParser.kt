@@ -30,10 +30,7 @@ private const val AT_PREFIX = "at "
 private const val STANDALONE_AT = " at "
 private const val STANDALONE_PC = " pc "
 
-/**
- * Intellij platform based [StackTraceGroupParser]. Uses
- * [ExceptionWorker#parseExceptionLine][parseExceptionLine]
- */
+/** Intellij platform based [StackTraceGroupParser]. Uses [ExceptionWorker#parseExceptionLine][parseExceptionLine] */
 class IntellijStackTraceGroupParser : StackTraceGroupParser {
 
   override fun parseThreadDump(dump: String): StacktraceGroup {
@@ -69,9 +66,8 @@ class IntellijStackTraceGroupParser : StackTraceGroupParser {
   /**
    * Returns a list of structured [ExceptionStack] by parsing the given string.
    *
-   * Here's our best efforts to identify trace groups and extract file name, line number and symbol
-   * from any given trace lines. If it's a native frame, we will still generate a [Frame] but only
-   * the symbol field is meaningful.
+   * Here's our best efforts to identify trace groups and extract file name, line number and symbol from any given trace lines. If it's a
+   * native frame, we will still generate a [Frame] but only the symbol field is meaningful.
    *
    * This is more of a temporary solution to have a working insights support for Play Vitals.
    */
@@ -97,12 +93,7 @@ class IntellijStackTraceGroupParser : StackTraceGroupParser {
       // 3. build "exception stack"
       val exceptionStack =
         ExceptionStack(
-          stacktrace =
-            Stacktrace(
-              caption = caption,
-              blames = Blames.UNKNOWN_BLAMED,
-              frames = frames.reversed(),
-            ),
+          stacktrace = Stacktrace(caption = caption, blames = Blames.UNKNOWN_BLAMED, frames = frames.reversed()),
           type = caption.title,
           exceptionMessage = caption.subtitle,
           rawExceptionMessage = rawTextContent?.value ?: "",
@@ -139,10 +130,7 @@ class IntellijStackTraceGroupParser : StackTraceGroupParser {
             line = parsed.lineNumber.toLong(),
             file = parsed.fileName ?: "",
             rawSymbol = value.trim(),
-            symbol =
-              value
-                .substring(parsed.classFqnRange.startOffset, parsed.methodNameRange.endOffset)
-                .trim(),
+            symbol = value.substring(parsed.classFqnRange.startOffset, parsed.methodNameRange.endOffset).trim(),
             blame = Blames.UNKNOWN_BLAMED,
           )
         } else {
@@ -151,13 +139,7 @@ class IntellijStackTraceGroupParser : StackTraceGroupParser {
               "$value is not in a recognized format and can't be parsed, " +
                 "but we still build a frame for it, then at least we can display it in our stacktrace panel later."
             )
-          Frame(
-            line = 0L,
-            file = "",
-            rawSymbol = value.trim(),
-            symbol = value.trim(),
-            blame = Blames.UNKNOWN_BLAMED,
-          )
+          Frame(line = 0L, file = "", rawSymbol = value.trim(), symbol = value.trim(), blame = Blames.UNKNOWN_BLAMED)
         }
       }
     }

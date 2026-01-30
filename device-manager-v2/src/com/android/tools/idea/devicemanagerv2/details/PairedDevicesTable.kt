@@ -42,11 +42,7 @@ internal data class PairedDeviceData(
   val state: WearPairingManager.PairingState,
 ) {
   companion object {
-    fun create(
-      handle: DeviceHandle,
-      state: DeviceState,
-      pairingState: WearPairingManager.PairingState,
-    ) =
+    fun create(handle: DeviceHandle, state: DeviceState, pairingState: WearPairingManager.PairingState) =
       PairedDeviceData(
         handle,
         state.properties.title,
@@ -71,8 +67,7 @@ internal object PairedDevicesTable {
         override fun value(t: PairedDeviceData) = t.icon
       }
 
-    override val widthConstraint =
-      Column.SizeConstraint.exactly(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE.iconWidth + 5)
+    override val widthConstraint = Column.SizeConstraint.exactly(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE.iconWidth + 5)
 
     override fun createUi(rowValue: PairedDeviceData) = IconLabel(null)
 
@@ -84,16 +79,13 @@ internal object PairedDevicesTable {
   object Name : Column<PairedDeviceData, String, TwoLineLabel> {
     override val name = DeviceManagerBundle.message("column.title.name")
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
-    override val attribute =
-      Attribute.stringAttribute<PairedDeviceData>(isGroupable = false) { it.displayName }
+    override val attribute = Attribute.stringAttribute<PairedDeviceData>(isGroupable = false) { it.displayName }
 
-    override fun createUi(rowValue: PairedDeviceData) =
-      TwoLineLabel().apply { border = JBEmptyBorder(4) }
+    override fun createUi(rowValue: PairedDeviceData) = TwoLineLabel().apply { border = JBEmptyBorder(4) }
 
     override fun updateValue(rowValue: PairedDeviceData, component: TwoLineLabel, value: String) {
       component.line1Label.text = rowValue.displayName
-      component.line2Label.text =
-        rowValue.androidVersion?.toLabelText() ?: "Unknown Android version"
+      component.line2Label.text = rowValue.androidVersion?.toLabelText() ?: "Unknown Android version"
     }
   }
 

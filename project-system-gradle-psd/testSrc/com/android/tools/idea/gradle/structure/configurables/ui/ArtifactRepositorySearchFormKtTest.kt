@@ -36,8 +36,13 @@ import org.junit.Test
 @RunsInEdt
 class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
 
-  private val foundArtifact = FoundArtifact(
-    "repository", "org.example.group.id", "artifact-name", listOf(Version.parse("1.0"), Version.parse("1.1"), Version.parse("2.0")))
+  private val foundArtifact =
+    FoundArtifact(
+      "repository",
+      "org.example.group.id",
+      "artifact-name",
+      listOf(Version.parse("1.0"), Version.parse("1.1"), Version.parse("2.0")),
+    )
 
   private val notExactQuery = ArtifactSearchQuery("group", "name", "9.99", component = null)
   private val exactMatchingQuery =
@@ -45,71 +50,90 @@ class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
       groupId = "org.example.group.id",
       artifactName = "artifact-name",
       version = "9.99",
-      component = Component.parse("org.example.group.id:artifact-name:9.99"))
+      component = Component.parse("org.example.group.id:artifact-name:9.99"),
+    )
 
   @Test
   fun testVersionToLibrary() {
     assertThat(
       versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.0"), DslText.Literal)),
-      equalTo("org.example.group.id:artifact-name:1.0".asParsed()))
+      equalTo("org.example.group.id:artifact-name:1.0".asParsed()),
+    )
     // The actual list of versions does not matter.
     assertThat(
       versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.1.1"), DslText.Literal)),
-      equalTo("org.example.group.id:artifact-name:1.1.1".asParsed()))
+      equalTo("org.example.group.id:artifact-name:1.1.1".asParsed()),
+    )
     // References.
     assertThat<ParsedValue<String>>(
       versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.0"), DslText.Reference("artifactVer"))),
-      equalTo(ParsedValue.Set.Parsed(
-        "org.example.group.id:artifact-name:1.0",
-        DslText.InterpolatedString("org.example.group.id:artifact-name:\${artifactVer}"))))
+      equalTo(
+        ParsedValue.Set.Parsed(
+          "org.example.group.id:artifact-name:1.0",
+          DslText.InterpolatedString("org.example.group.id:artifact-name:\${artifactVer}"),
+        )
+      ),
+    )
   }
 
-  private val stubModel = object : PsModel {
-    override val parent: PsModel? = null
-    override var isModified: Boolean = true
-    override val name: String = "model"
-    override val isDeclared: Boolean = true
-  }
+  private val stubModel =
+    object : PsModel {
+      override val parent: PsModel? = null
+      override var isModified: Boolean = true
+      override val name: String = "model"
+      override val isDeclared: Boolean = true
+    }
 
   @Test
   fun testPrepareArtifactVersionChoices() {
     writeToBuildFile(ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES)
 
-    val variables = object: PsVariables(stubModel, "variables", "variables", null) {
-      override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
-    }
+    val variables =
+      object : PsVariables(stubModel, "variables", "variables", null) {
+        override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
+      }
     val choices = prepareArtifactVersionChoices(notExactQuery, foundArtifact, variables)
-    assertThat(choices, equalTo(listOf(
-      Version.parse("2.0").asParsed().annotated(),
-      (Version.parse("2.0") asVariable "ver20").annotated(),
-      Version.parse("1.1").asParsed().annotated(),
-      (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
-      Version.parse("1.0").asParsed().annotated(),
-      (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
-      (Version.parse("1.0") asVariable "ver10").annotated()
-    )))
+    assertThat(
+      choices,
+      equalTo(
+        listOf(
+          Version.parse("2.0").asParsed().annotated(),
+          (Version.parse("2.0") asVariable "ver20").annotated(),
+          Version.parse("1.1").asParsed().annotated(),
+          (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
+          Version.parse("1.0").asParsed().annotated(),
+          (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
+          (Version.parse("1.0") asVariable "ver10").annotated(),
+        )
+      ),
+    )
 
     val choicesWithNotFound = prepareArtifactVersionChoices(exactMatchingQuery, foundArtifact, variables)
-    assertThat(choicesWithNotFound, equalTo(listOf(
-      Version.parse("9.99").asParsed().annotateWithError("not found"),
-      Version.parse("2.0").asParsed().annotated(),
-      (Version.parse("2.0") asVariable "ver20").annotated(),
-      Version.parse("1.1").asParsed().annotated(),
-      (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
-      Version.parse("1.0").asParsed().annotated(),
-      (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
-      (Version.parse("1.0") asVariable "ver10").annotated()
-    )))
+    assertThat(
+      choicesWithNotFound,
+      equalTo(
+        listOf(
+          Version.parse("9.99").asParsed().annotateWithError("not found"),
+          Version.parse("2.0").asParsed().annotated(),
+          (Version.parse("2.0") asVariable "ver20").annotated(),
+          Version.parse("1.1").asParsed().annotated(),
+          (Version.parse("1.1") asVariable "inTheMap.itemVer11").annotated(),
+          Version.parse("1.0").asParsed().annotated(),
+          (Version.parse("1.0") asVariable "inTheMap.itemVer10").annotated(),
+          (Version.parse("1.0") asVariable "ver10").annotated(),
+        )
+      ),
+    )
   }
-
 }
 
 class ArtifactRepositorySearchFormKtLightTest {
   @Test
   fun testParseArtifactSearchQuery_fullyQualified() {
-    assertThat("com.google.guava:guava:26.0".parseArtifactSearchQuery(),
-               equalTo(ArtifactSearchQuery(
-                 "com.google.guava", "guava", "26.0", Component.parse("com.google.guava:guava:26.0"))))
+    assertThat(
+      "com.google.guava:guava:26.0".parseArtifactSearchQuery(),
+      equalTo(ArtifactSearchQuery("com.google.guava", "guava", "26.0", Component.parse("com.google.guava:guava:26.0"))),
+    )
   }
 
   @Test

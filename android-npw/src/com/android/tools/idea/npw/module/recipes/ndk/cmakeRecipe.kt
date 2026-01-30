@@ -25,4 +25,3 @@ fun RecipeExecutor.generateCMakeFile(data: ModuleTemplateData, nativeSourceName:
     save(cMakeListsTxt(nativeSourceName, nativeLibraryName), resolve("CMakeLists.txt"))
   }
 }
-

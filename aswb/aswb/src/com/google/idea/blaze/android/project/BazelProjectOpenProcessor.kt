@@ -27,18 +27,20 @@ import com.intellij.util.application
 import icons.BlazeIcons
 import javax.swing.Icon
 
-/**
- * Allows directly opening a project (`File` -> `Open folder` in UI).
- */
+/** Allows directly opening a project (`File` -> `Open folder` in UI). */
 class BazelProjectOpenProcessor : ProjectOpenProcessor() {
-  override val name: String get() = Blaze.defaultBuildSystemName() + " Project"
-  override val icon: Icon get() = BlazeIcons.Logo
-  override val isStrongProjectInfoHolder: Boolean    get() = true
+  override val name: String
+    get() = Blaze.defaultBuildSystemName() + " Project"
+
+  override val icon: Icon
+    get() = BlazeIcons.Logo
+
+  override val isStrongProjectInfoHolder: Boolean
+    get() = true
+
   override fun lookForProjectsInDirectory(): Boolean = true
 
-  /**
-   * Check if the project directory contains a blaze project file.
-   */
+  /** Check if the project directory contains a blaze project file. */
   override fun canOpenProject(file: VirtualFile): Boolean {
     return if (file.isDirectory) file.children.any { checkIfProjectFile(it) } else checkIfProjectFile(file)
   }
@@ -47,37 +49,29 @@ class BazelProjectOpenProcessor : ProjectOpenProcessor() {
     return file.path.contains(BLAZEPROJECT) || file.path.contains(BAZELPROJECT)
   }
 
-  override fun doOpenProject(
-    virtualFile: VirtualFile,
-    projectToClose: Project?,
-    forceOpenInNewFrame: Boolean,
-  ): Project? = error("Not expected to be called")
+  override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? =
+    error("Not expected to be called")
 
-  override suspend fun openProjectAsync(
-    virtualFile: VirtualFile,
-    projectToClose: Project?,
-    forceOpenInNewFrame: Boolean,
-  ): Project? {
+  override suspend fun openProjectAsync(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     val file = if (checkIfProjectFile(virtualFile)) virtualFile.parent else virtualFile
-    return ProjectManagerEx.getInstanceEx().openProjectAsync(
-      file.toNioPath(),
-      projectSystemOpenProjectTask(
-        BlazeProjectSystemProvider.ID,
-        forceOpenInNewFrame, projectToClose
-      ) { project ->
-        if (application.isUnitTestMode) {
-          PROJECT_INITIALIZER_FOR_TESTING_EXTENSION_POINT_NAME.extensionList.forEach { it(project) }
-        }
-        true
-      }
-    )
+    return ProjectManagerEx.getInstanceEx()
+      .openProjectAsync(
+        file.toNioPath(),
+        projectSystemOpenProjectTask(BlazeProjectSystemProvider.ID, forceOpenInNewFrame, projectToClose) { project ->
+          if (application.isUnitTestMode) {
+            PROJECT_INITIALIZER_FOR_TESTING_EXTENSION_POINT_NAME.extensionList.forEach { it(project) }
+          }
+          true
+        },
+      )
   }
 
-  fun interface BazelProjectInitializerForTesting: (Project) -> Unit
+  fun interface BazelProjectInitializerForTesting : (Project) -> Unit
 
   companion object {
     @JvmField
-    val PROJECT_INITIALIZER_FOR_TESTING_EXTENSION_POINT_NAME: ExtensionPointName<BazelProjectInitializerForTesting> = ExtensionPointName("com.google.idea.blaze.projectInitializerForTesting")
+    val PROJECT_INITIALIZER_FOR_TESTING_EXTENSION_POINT_NAME: ExtensionPointName<BazelProjectInitializerForTesting> =
+      ExtensionPointName("com.google.idea.blaze.projectInitializerForTesting")
 
     const val BAZELPROJECT: String = ".bazelproject"
     const val BLAZEPROJECT: String = ".blazeproject"

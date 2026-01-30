@@ -24,6 +24,6 @@ class RemoveKeysAction : PanelAction(text = "Remove Keys", description = null, i
   override fun doUpdate(event: AnActionEvent) = event.panel.table.hasSelectedCell()
 
   override fun actionPerformed(event: AnActionEvent) {
-    event.panel.deleteSelectedKeys();
+    event.panel.deleteSelectedKeys()
   }
 }

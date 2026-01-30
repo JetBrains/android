@@ -89,8 +89,7 @@ class TypeDefTest {
     val javaTypeDef = createJavaTypeDef()
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
-    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement).allLookupStrings)
-      .containsExactly("KnocksSongs", "CLASSIC")
+    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement).allLookupStrings).containsExactly("KnocksSongs", "CLASSIC")
   }
 
   @Test
@@ -115,12 +114,9 @@ class TypeDefTest {
   fun decorateAndPrioritize_java_strikesOutDeprecated() {
     val javaTypeDef = createJavaTypeDef()
     val struckOut =
-      javaTypeDef.values
-        .map(LookupElementBuilder::create)
-        .map(javaTypeDef::maybeDecorateAndPrioritize)
-        .map { decorated ->
-          LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
-        }
+      javaTypeDef.values.map(LookupElementBuilder::create).map(javaTypeDef::maybeDecorateAndPrioritize).map { decorated ->
+        LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
+      }
     assertThat(struckOut).containsExactly(true, true, false)
   }
 
@@ -178,12 +174,9 @@ class TypeDefTest {
   fun decorateAndPrioritize_kotlin_strikesOutDeprecated() {
     val kotlinTypeDef = createKotlinTypeDef()
     val struckOut =
-      kotlinTypeDef.values
-        .map(LookupElementBuilder::create)
-        .map(kotlinTypeDef::maybeDecorateAndPrioritize)
-        .map { decorated ->
-          LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
-        }
+      kotlinTypeDef.values.map(LookupElementBuilder::create).map(kotlinTypeDef::maybeDecorateAndPrioritize).map { decorated ->
+        LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
+      }
     assertThat(struckOut).containsExactly(true, false, false)
   }
 
@@ -212,7 +205,7 @@ class TypeDefTest {
           }
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.openFileInEditor(file.virtualFile)
     val annotation = fixture.getEnclosing<KtClass>("RegrettesSong")
@@ -238,7 +231,7 @@ class TypeDefTest {
           public @interface KnocksSong {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
     fixture.openFileInEditor(file.virtualFile)
     val annotation = fixture.getEnclosing<PsiClass>("Knocks|Song ")

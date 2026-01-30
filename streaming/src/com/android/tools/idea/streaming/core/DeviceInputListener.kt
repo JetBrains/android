@@ -21,8 +21,7 @@ import com.android.annotations.concurrency.AnyThread
 interface DeviceInputListener {
 
   /** Called when an input event is sent to the device. All calls for the same device are serialized. */
-  @AnyThread
-  fun eventSent(event: AndroidInputEvent)
+  @AnyThread fun eventSent(event: AndroidInputEvent)
 }
 
 /** The value of [timestamp] is Time in milliseconds since epoch. */
@@ -50,7 +49,8 @@ sealed class AndroidInputEvent(val deviceSerialNumber: String, val display: Disp
   ) : AndroidInputEvent(deviceSerialNumber, display, timestamp) {
 
     enum class KeyEventType {
-      KEY_DOWN, KEY_UP
+      KEY_DOWN,
+      KEY_UP,
     }
   }
 
@@ -64,4 +64,3 @@ sealed class AndroidInputEvent(val deviceSerialNumber: String, val display: Disp
   /** The [width] and [height] properties correspond to the default display orientation. */
   data class DisplayInfo(val displayId: Int, val width: Int, val height: Int, val orientationQuadrants: Int)
 }
-

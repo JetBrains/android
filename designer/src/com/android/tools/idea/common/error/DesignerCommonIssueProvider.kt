@@ -65,12 +65,8 @@ class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filte
   }
 }
 
-operator fun DesignerCommonIssueProvider.Filter.plus(
-  filter: DesignerCommonIssueProvider.Filter
-): DesignerCommonIssueProvider.Filter {
-  return DesignerCommonIssueProvider.Filter { issue ->
-    this@plus.invoke(issue) && filter.invoke(issue)
-  }
+operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssueProvider.Filter): DesignerCommonIssueProvider.Filter {
+  return DesignerCommonIssueProvider.Filter { issue -> this@plus.invoke(issue) && filter.invoke(issue) }
 }
 
 /** [issueFilter] is the filter that always applies for when calling [getFilteredIssues]. */
@@ -99,9 +95,7 @@ class DesignToolsIssueProvider(
 
   init {
     Disposer.register(parentDisposable, this)
-    val topic =
-      if (instanceId == SHARED_ISSUE_PANEL_TAB_ID) IssueProviderListener.TOPIC
-      else IssueProviderListener.UI_CHECK
+    val topic = if (instanceId == SHARED_ISSUE_PANEL_TAB_ID) IssueProviderListener.TOPIC else IssueProviderListener.UI_CHECK
     messageBusConnection.subscribe(
       topic,
       IssueProviderListener { source, issues ->
@@ -110,10 +104,7 @@ class DesignToolsIssueProvider(
         }
         // If in UI Check, only update if issues come from the preview that this provider is
         // associated with
-        if (
-          instanceId != SHARED_ISSUE_PANEL_TAB_ID &&
-            (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId)
-        )
+        if (instanceId != SHARED_ISSUE_PANEL_TAB_ID && (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId))
           return@IssueProviderListener
         synchronized(mapLock) {
           if (issues.isEmpty()) {

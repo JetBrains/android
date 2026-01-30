@@ -22,8 +22,8 @@ import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -37,6 +37,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -44,15 +47,9 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.util.GradleUtil
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
-
-open class GradleAndroidTestRunConfigurationExecutor(
-  env: ExecutionEnvironment,
-  private val deviceFutures: DeviceFutures
-) : AndroidTestRunConfigurationExecutorBase(env) {
+open class GradleAndroidTestRunConfigurationExecutor(env: ExecutionEnvironment, private val deviceFutures: DeviceFutures) :
+  AndroidTestRunConfigurationExecutorBase(env) {
 
   val project = env.project
 
@@ -60,13 +57,13 @@ open class GradleAndroidTestRunConfigurationExecutor(
    * Returns a target Android process ID to be monitored by [AndroidProcessHandler].
    *
    * If this run is instrumentation test without test orchestration, the target Android process ID is simply the application name.
-   * Otherwise, we should monitor the test orchestration process because the orchestrator starts and
-   * kills the target application process per test case which confuses AndroidProcessHandler (b/150320657).
+   * Otherwise, we should monitor the test orchestration process because the orchestrator starts and kills the target application process
+   * per test case which confuses AndroidProcessHandler (b/150320657).
    */
   private fun getMasterAndroidProcessId(): String {
     return MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME.getOrDefault(
       configuration.getTestExecutionOption(AndroidFacet.getInstance(module)),
-      packageName
+      packageName,
     )
   }
 
@@ -80,7 +77,6 @@ open class GradleAndroidTestRunConfigurationExecutor(
     val console = createAndroidTestSuiteView()
     doRun(devices, indicator, console, false)
 
-
     val processId = getMasterAndroidProcessId()
     // AndroidProcessHandler should not be closed even if the target application process is killed. During an
     // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
@@ -92,38 +88,29 @@ open class GradleAndroidTestRunConfigurationExecutor(
     createRunContentDescriptor(processHandler, console, env)
   }
 
-  private suspend fun doRun(
-    devices: List<IDevice>,
-    indicator: ProgressIndicator,
-    console: AndroidTestSuiteView,
-    isDebug: Boolean
-  ) = coroutineScope {
-    RunStats.from(env).apply { setPackage(packageName) }
-    try {
-      printLaunchTaskStartedMessage(console)
-      indicator.text = "Start gradle task"
-      RunStats.from(env).track("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK") {
-        doRunGradleTask(devices, console, isDebug)
-      }
-    } finally {
-      devices.forEach {
-        // Notify listeners of the deployment.
-        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(it.serialNumber, project)
+  private suspend fun doRun(devices: List<IDevice>, indicator: ProgressIndicator, console: AndroidTestSuiteView, isDebug: Boolean) =
+    coroutineScope {
+      RunStats.from(env).apply { setPackage(packageName) }
+      try {
+        printLaunchTaskStartedMessage(console)
+        indicator.text = "Start gradle task"
+        RunStats.from(env).track("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK") { doRunGradleTask(devices, console, isDebug) }
+      } finally {
+        devices.forEach {
+          // Notify listeners of the deployment.
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(it.serialNumber, project)
+        }
       }
     }
-  }
 
-  private suspend fun waitPreviousProcessTermination(
-    devices: List<IDevice>,
-    applicationId: String,
-    indicator: ProgressIndicator
-  ) = coroutineScope {
-    indicator.text = "Terminating the app"
-    val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
-    if (results.any { !it }) {
-      throw ExecutionException("Couldn't terminate previous instance of app")
+  private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
+    coroutineScope {
+      indicator.text = "Terminating the app"
+      val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      if (results.any { !it }) {
+        throw ExecutionException("Couldn't terminate previous instance of app")
+      }
     }
-  }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Start debug tests")
@@ -141,20 +128,21 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
     val device = devices.single()
 
-    val packageNameForDebug = if (
-      GradleAndroidModel.get(facet)?.selectedVariant?.runTestInSeparateProcess == true) {
-      testPackageName
-    } else {
-      packageName
-    }
+    val packageNameForDebug =
+      if (GradleAndroidModel.get(facet)?.selectedVariant?.runTestInSeparateProcess == true) {
+        testPackageName
+      } else {
+        packageName
+      }
 
     val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageNameForDebug, facet), console)
     session.runContentDescriptor
   }
 
-  private suspend fun createAndroidTestSuiteView() = withContext(AndroidDispatchers.uiThread) {
-    AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
-  }
+  private suspend fun createAndroidTestSuiteView() =
+    withContext(AndroidDispatchers.uiThread) {
+      AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
+    }
 
   private fun printLaunchTaskStartedMessage(consoleView: AndroidTestSuiteView) {
     val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
@@ -170,33 +158,65 @@ open class GradleAndroidTestRunConfigurationExecutor(
     when (configuration.TESTING_TYPE) {
       AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", "", "", configuration.TEST_NAME_REGEX,
-          extraInstrumentationOptions
+          project,
+          devices,
+          packageName,
+          androidTestSuiteView,
+          gradleAndroidModel,
+          isDebug,
+          "",
+          "",
+          "",
+          configuration.TEST_NAME_REGEX,
+          extraInstrumentationOptions,
         )
       }
 
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          configuration.PACKAGE_NAME, "", "", "",
-          extraInstrumentationOptions
+          project,
+          devices,
+          packageName,
+          androidTestSuiteView,
+          gradleAndroidModel,
+          isDebug,
+          configuration.PACKAGE_NAME,
+          "",
+          "",
+          "",
+          extraInstrumentationOptions,
         )
       }
 
       AndroidTestRunConfiguration.TEST_CLASS -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", configuration.CLASS_NAME, "", "",
-          extraInstrumentationOptions
+          project,
+          devices,
+          packageName,
+          androidTestSuiteView,
+          gradleAndroidModel,
+          isDebug,
+          "",
+          configuration.CLASS_NAME,
+          "",
+          "",
+          extraInstrumentationOptions,
         )
       }
 
       AndroidTestRunConfiguration.TEST_METHOD -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
-          "", configuration.CLASS_NAME, configuration.METHOD_NAME, "",
-          extraInstrumentationOptions
+          project,
+          devices,
+          packageName,
+          androidTestSuiteView,
+          gradleAndroidModel,
+          isDebug,
+          "",
+          configuration.CLASS_NAME,
+          configuration.METHOD_NAME,
+          "",
+          extraInstrumentationOptions,
         )
       }
 

@@ -43,9 +43,7 @@ internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> =
           }
         },
       )
-      trySendBlocking(
-        if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE
-      )
+      trySendBlocking(if (DumbService.isDumb(project)) DumbModeStatus.DUMB_MODE else DumbModeStatus.SMART_MODE)
       awaitClose { connection.disconnect() }
     }
     .conflate()

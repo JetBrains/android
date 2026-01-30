@@ -59,8 +59,7 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
       action.actionPerformed(event)
     }) {
       // Assert
-      val dialog =
-        SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
+      val dialog = SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
       Truth.assertThat(dialog.title).isEqualTo("Pair devices over Wi-Fi")
       Truth.assertThat(dialog.cancelButtonText).isEqualTo("Close")
       Truth.assertThat(dialog.rootPane).isNotNull()

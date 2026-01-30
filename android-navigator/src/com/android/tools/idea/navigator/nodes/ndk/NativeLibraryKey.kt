@@ -22,12 +22,13 @@ enum class NativeLibraryType {
   OTHER;
 
   val displayText
-    get() = when (this) {
-      SHARED_LIBRARY -> "Shared Library"
-      STATIC_LIBRARY -> "Static Library"
-      OBJECT_LIBRARY -> "Object Library"
-      OTHER -> ""
-    }
+    get() =
+      when (this) {
+        SHARED_LIBRARY -> "Shared Library"
+        STATIC_LIBRARY -> "Static Library"
+        OBJECT_LIBRARY -> "Object Library"
+        OTHER -> ""
+      }
 }
 
 data class NativeLibraryKey(val name: String, val type: NativeLibraryType)

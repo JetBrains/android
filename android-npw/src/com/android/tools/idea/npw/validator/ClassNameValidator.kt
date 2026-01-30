@@ -21,13 +21,10 @@ import com.android.tools.adtui.validation.Validator.Severity
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 
-/**
- * Validates a Java class name
- */
+/** Validates a Java class name */
 class ClassNameValidator : Validator<String> {
   override fun validate(value: String): Result =
     if (value.isEmpty() || '.' in value || !AndroidUtils.isIdentifier(value))
       Result(Severity.ERROR, message("android.wizard.validate.invalid.class.name"))
-    else
-      Result.OK
+    else Result.OK
 }

@@ -92,10 +92,8 @@ class AppInspectionPropertiesProvider(
   /**
    * Complete the properties table with information from the [ViewNode].
    *
-   * The properties were loaded from the agent, but the following cannot be completed before the
-   * [ViewNode] is known:
-   * - The agent does not specify which attributes is a dimension type. Get that from the Studio
-   *   side.
+   * The properties were loaded from the agent, but the following cannot be completed before the [ViewNode] is known:
+   * - The agent does not specify which attributes is a dimension type. Get that from the Studio side.
    * - Add the standard internal attributes from the [ViewNode].
    * - Add a call location to all known object types where the className is known.
    * - Create resolution stack items based on the resolution stack received from the agent.
@@ -119,17 +117,13 @@ class AppInspectionPropertiesProvider(
       propertiesData.classNames
         .cellSet()
         .mapNotNull { cell ->
-          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-            convertToItemWithClassLocation(it, cell.value!!)
-          }
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
         }
         .forEach { properties.put(it) }
       propertiesData.resolutionStacks
         .cellSet()
         .mapNotNull { cell ->
-          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-            convertToResolutionStackItem(it, view, cell.value!!)
-          }
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
         }
         .forEach { properties.put(it) }
     }
@@ -146,17 +140,12 @@ class AppInspectionPropertiesProvider(
   /**
    * Generate items with a classLocation for known object types.
    *
-   * This strictly could have happened up front because the [ViewNode] is not needed for computing
-   * the [SourceLocation] for the class used for this value. However the computation takes time so
-   * this will delay that cost until it is needed to show the properties for the containing
-   * [ViewNode].
+   * This strictly could have happened up front because the [ViewNode] is not needed for computing the [SourceLocation] for the class used
+   * for this value. However the computation takes time so this will delay that cost until it is needed to show the properties for the
+   * containing [ViewNode].
    */
-  private suspend fun convertToItemWithClassLocation(
-    item: InspectorPropertyItem,
-    className: String,
-  ): InspectorPropertyItem? {
-    val classLocation =
-      model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
+  private suspend fun convertToItemWithClassLocation(item: InspectorPropertyItem, className: String): InspectorPropertyItem? {
+    val classLocation = model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
     return InspectorGroupPropertyItem(
         item.namespace,
         item.name,
@@ -178,15 +167,13 @@ class AppInspectionPropertiesProvider(
   /**
    * Generate items for displaying the resolution stack.
    *
-   * Each property may include a resolution stack i.e. places and values in e.g. styles that are
-   * overridden by other attribute or style assignments.
+   * Each property may include a resolution stack i.e. places and values in e.g. styles that are overridden by other attribute or style
+   * assignments.
    *
-   * In the inspector properties table we have chosen to show these as independent values in
-   * collapsible sections for each property. The resolution stack is received as a list of resource
-   * references that may (or may not) set the value of the current attribute. The code below will
-   * lookup the value (from PSI source files) of each possible resource reference. If any values
-   * were found the original property item is replaced with a group item with children consisting of
-   * the available resource references where a value was found.
+   * In the inspector properties table we have chosen to show these as independent values in collapsible sections for each property. The
+   * resolution stack is received as a list of resource references that may (or may not) set the value of the current attribute. The code
+   * below will lookup the value (from PSI source files) of each possible resource reference. If any values were found the original property
+   * item is replaced with a group item with children consisting of the available resource references where a value was found.
    */
   private suspend fun convertToResolutionStackItem(
     item: InspectorPropertyItem,
@@ -194,10 +181,7 @@ class AppInspectionPropertiesProvider(
     resolutionStack: List<ResourceReference>,
   ): InspectorPropertyItem? {
     val map =
-      resolutionStack
-        .associateWith { model.resourceLookup.findAttributeValue(item, view, it) }
-        .filterValues { it != null }
-        .toMutableMap()
+      resolutionStack.associateWith { model.resourceLookup.findAttributeValue(item, view, it) }.filterValues { it != null }.toMutableMap()
     val firstRef = map.keys.firstOrNull()
     if (firstRef != null && firstRef == item.source) {
       map.remove(firstRef)

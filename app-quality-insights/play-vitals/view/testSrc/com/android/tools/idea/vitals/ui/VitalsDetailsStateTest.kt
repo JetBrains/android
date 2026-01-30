@@ -51,11 +51,7 @@ class VitalsDetailsStateTest {
         setOf(Version("version1"), Version("version2")),
         ISSUE1,
         ConnectionMode.ONLINE,
-        setOf(
-          OperatingSystemInfo("os1", "os1"),
-          OperatingSystemInfo("os2", "os2"),
-          OperatingSystemInfo("os3", "os3"),
-        ),
+        setOf(OperatingSystemInfo("os1", "os1"), OperatingSystemInfo("os2", "os2"), OperatingSystemInfo("os3", "os3")),
         setOf(Device("Google", "Pixel 5"), Device("Samsung", "A32")),
         VisibilityType.USER_PERCEIVED,
       )

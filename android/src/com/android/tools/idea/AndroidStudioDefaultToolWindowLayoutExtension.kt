@@ -37,9 +37,7 @@ internal class AndroidStudioDefaultToolWindowLayoutExtension : DefaultToolWindow
         contentUiType = ToolWindowDescriptor.ToolWindowContentUiType.COMBO
       }
       addOrUpdate("Commit") { weight = 0.25f }
-      addOrUpdate("Resources Explorer") {
-        weight = 0.25f
-      }
+      addOrUpdate("Resources Explorer") { weight = 0.25f }
     }
 
     builder.right.apply {

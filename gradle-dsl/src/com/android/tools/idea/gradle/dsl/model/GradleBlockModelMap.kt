@@ -24,49 +24,64 @@ import com.intellij.ide.plugins.DynamicPluginListener
 import com.intellij.ide.plugins.DynamicPluginListener.Companion.TOPIC
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.annotations.ApiStatus
-import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.TestOnly
 
 @ApiStatus.Experimental
 class GradleBlockModelMap internal constructor() {
-  private val blockMapCache: MutableMap<Pair<Class<out GradleDslModel>,GradleDslNameConverter.Kind>, Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>>> =
+  private val blockMapCache:
+    MutableMap<Pair<Class<out GradleDslModel>, GradleDslNameConverter.Kind>, Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>>> =
     ConcurrentHashMap()
-  private val elementMapCache: MutableMap<Pair<Class<out GradlePropertiesDslElement>,GradleDslNameConverter.Kind>, ImmutableMap<String, PropertiesElementDescription<*>>> =
+  private val elementMapCache:
+    MutableMap<
+      Pair<Class<out GradlePropertiesDslElement>, GradleDslNameConverter.Kind>,
+      ImmutableMap<String, PropertiesElementDescription<*>>,
+    > =
     ConcurrentHashMap()
 
   init {
     val connection = ApplicationManager.getApplication().messageBus.connect()
-    connection.subscribe(TOPIC, object : DynamicPluginListener {
-      override fun pluginUnloaded(pluginDescriptor: IdeaPluginDescriptor, isUpdate: Boolean) {
-        resetCache()
-      }
+    connection.subscribe(
+      TOPIC,
+      object : DynamicPluginListener {
+        override fun pluginUnloaded(pluginDescriptor: IdeaPluginDescriptor, isUpdate: Boolean) {
+          resetCache()
+        }
 
-      override fun pluginLoaded(pluginDescriptor: IdeaPluginDescriptor) {
-        resetCache()
-      }
-    })
+        override fun pluginLoaded(pluginDescriptor: IdeaPluginDescriptor) {
+          resetCache()
+        }
+      },
+    )
   }
 
   @Suppress("UNCHECKED_CAST")
   fun <T : GradleDslModel, P : GradleDslModel, PD : GradlePropertiesDslElement> getBlockModel(
     dslElement: PD,
     parentType: Class<out P>,
-    modelInterface: Class<T>
+    modelInterface: Class<T>,
   ): T {
     val kind = dslElement.dslFile.parser.kind
     val blockMap = getOrCreateBlockMap(parentType, kind)
-    val builder = blockMap[modelInterface]?.let { it as BlockModelBuilder<T, PD> }
-                       ?: throw IllegalArgumentException("Block model for $modelInterface is not registered in $parentType")
+    val builder =
+      blockMap[modelInterface]?.let { it as BlockModelBuilder<T, PD> }
+        ?: throw IllegalArgumentException("Block model for $modelInterface is not registered in $parentType")
     return builder.create(dslElement)
   }
 
-  fun getOrCreateElementMap(parentType: Class<out GradlePropertiesDslElement>, kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+  fun getOrCreateElementMap(
+    parentType: Class<out GradlePropertiesDslElement>,
+    kind: GradleDslNameConverter.Kind,
+  ): ImmutableMap<String, PropertiesElementDescription<*>> {
     return elementMapCache.computeIfAbsent(parentType to kind) { calculateElements(it.first, it.second) }
   }
 
-  private fun getOrCreateBlockMap(parentType: Class<out GradleDslModel>, kind: GradleDslNameConverter.Kind): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
+  private fun getOrCreateBlockMap(
+    parentType: Class<out GradleDslModel>,
+    kind: GradleDslNameConverter.Kind,
+  ): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
     return blockMapCache.computeIfAbsent(parentType to kind) { calculateBlocks(it.first, it.second) }
   }
 
@@ -83,7 +98,10 @@ class GradleBlockModelMap internal constructor() {
 
   companion object {
     @JvmStatic
-    fun getElementMap(parentType: Class<out GradlePropertiesDslElement>, kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+    fun getElementMap(
+      parentType: Class<out GradlePropertiesDslElement>,
+      kind: GradleDslNameConverter.Kind,
+    ): ImmutableMap<String, PropertiesElementDescription<*>> {
       return ApplicationManager.getApplication().getService(GradleBlockModelMap::class.java).getOrCreateElementMap(parentType, kind)
     }
 
@@ -91,7 +109,7 @@ class GradleBlockModelMap internal constructor() {
     operator fun <T : GradleDslModel, P : GradleDslModel, PD : GradlePropertiesDslElement> get(
       dslElement: PD,
       parentType: Class<out P>,
-      modelInterface: Class<T>
+      modelInterface: Class<T>,
     ): T {
       return instance.getBlockModel(dslElement, parentType, modelInterface)
     }
@@ -99,7 +117,10 @@ class GradleBlockModelMap internal constructor() {
     val instance: GradleBlockModelMap
       get() = ApplicationManager.getApplication().getService(GradleBlockModelMap::class.java)
 
-    private fun calculateElements(parentType: Class<out GradlePropertiesDslElement>, kind: GradleDslNameConverter.Kind): ImmutableMap<String, PropertiesElementDescription<*>> {
+    private fun calculateElements(
+      parentType: Class<out GradlePropertiesDslElement>,
+      kind: GradleDslNameConverter.Kind,
+    ): ImmutableMap<String, PropertiesElementDescription<*>> {
       val builder = ImmutableMap.builder<String, PropertiesElementDescription<*>>()
       BlockModelProvider.EP.forEachExtensionSafe { p: BlockModelProvider<*, *> ->
         if (!p.parentDslClass.isAssignableFrom(parentType)) {
@@ -111,7 +132,10 @@ class GradleBlockModelMap internal constructor() {
       return builder.build()
     }
 
-    private fun calculateBlocks(parentType: Class<out GradleDslModel>, kind: GradleDslNameConverter.Kind): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
+    private fun calculateBlocks(
+      parentType: Class<out GradleDslModel>,
+      kind: GradleDslNameConverter.Kind,
+    ): Map<Class<out GradleDslModel>, BlockModelBuilder<*, *>> {
       val result: MutableMap<Class<out GradleDslModel>, BlockModelBuilder<*, *>> = HashMap()
       BlockModelProvider.EP.forEachExtensionSafe { p: BlockModelProvider<*, *> ->
         if (!p.parentClass.isAssignableFrom(parentType)) {

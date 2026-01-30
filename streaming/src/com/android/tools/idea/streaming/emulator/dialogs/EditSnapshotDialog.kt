@@ -35,57 +35,53 @@ import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.border.LineBorder
 
-/**
- * Dialog for editing snapshot parameters.
- */
+/** Dialog for editing snapshot parameters. */
 class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var useToBoot: Boolean) {
 
   var snapshotName: String = snapshotName
     get() = field.trim()
+
   var snapshotDescription: String = snapshotDescription
     get() = field.trim()
 
-  /**
-   * Creates contents of the dialog.
-   */
+  /** Creates contents of the dialog. */
   private fun createPanel(): DialogPanel {
     return panel {
-      row {
-        textField()
-          .label(StreamingBundle.message("edit.snapshot.label.name"), LabelPosition.TOP)
-          .bindText(::snapshotName)
-          .align(Align.FILL)
-          .focused()
-          .validationOnInput { if (it.text.isEmpty()) error(StreamingBundle.message("edit.snapshot.enter.name")) else null }
-      }
-      row {
-        textArea()
-          .label(StreamingBundle.message("edit.snapshot.label.description"), LabelPosition.TOP)
-          .rows(7)
-          .bindText(::snapshotDescription.toMutableProperty())
-          .align(Align.FILL)
-          .applyToComponent {
-            lineWrap = true
-            background = JBTextField().background
-            border = TextAreaBorder()
+        row {
+          textField()
+            .label(StreamingBundle.message("edit.snapshot.label.name"), LabelPosition.TOP)
+            .bindText(::snapshotName)
+            .align(Align.FILL)
+            .focused()
+            .validationOnInput { if (it.text.isEmpty()) error(StreamingBundle.message("edit.snapshot.enter.name")) else null }
+        }
+        row {
+            textArea()
+              .label(StreamingBundle.message("edit.snapshot.label.description"), LabelPosition.TOP)
+              .rows(7)
+              .bindText(::snapshotDescription.toMutableProperty())
+              .align(Align.FILL)
+              .applyToComponent {
+                lineWrap = true
+                background = JBTextField().background
+                border = TextAreaBorder()
+              }
           }
-      }.resizableRow()
-      row {
-        checkBox(StreamingBundle.message("edit.snapshot.checkbox.boot.from.this.snapshot")).bindSelected(::useToBoot)
+          .resizableRow()
+        row { checkBox(StreamingBundle.message("edit.snapshot.checkbox.boot.from.this.snapshot")).bindSelected(::useToBoot) }
       }
-    }.apply { minimumSize = Dimension(500, 500) }
+      .apply { minimumSize = Dimension(500, 500) }
   }
 
-  /**
-   * Creates the dialog wrapper.
-   */
+  /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
       title = StreamingBundle.message("edit.snapshot.dialog.title"),
       resizable = true,
       panel = createPanel(),
       project = project,
-      parent = parent)
+      parent = parent,
+    )
   }
 
   private class TextAreaBorder : LineBorder(JBColor.border(), 1) {

@@ -44,8 +44,7 @@ class NeedsTranslationsRowFilterTest {
 
   @Test
   fun getDescription() {
-    assertThat(needsTranslationsRowFilter.getDescription())
-      .isEqualTo("Show Keys Needing Translations")
+    assertThat(needsTranslationsRowFilter.getDescription()).isEqualTo("Show Keys Needing Translations")
   }
 
   @Test

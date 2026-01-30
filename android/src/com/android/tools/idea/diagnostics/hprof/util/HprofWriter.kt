@@ -28,11 +28,7 @@ import java.io.Closeable
 import java.io.DataOutput
 import java.io.DataOutputStream
 
-class HprofWriter(
-  private val dos: DataOutputStream,
-  private val idSize: Int,
-  timestamp: Long
-) : Closeable {
+class HprofWriter(private val dos: DataOutputStream, private val idSize: Int, timestamp: Long) : Closeable {
 
   init {
     if (idSize != 4 && idSize != 8) {
@@ -115,7 +111,7 @@ class HprofWriter(
     instanceSize: Int,
     constantPool: Array<ConstantPoolEntry>,
     staticFields: Array<StaticFieldEntry>,
-    instanceFields: Array<InstanceFieldEntry>
+    instanceFields: Array<InstanceFieldEntry>,
   ) {
     with(subtagsStream) {
       writeHeapDumpRecordHeader(HeapDumpRecordType.ClassDump)
@@ -148,12 +144,7 @@ class HprofWriter(
     }
   }
 
-  fun writeInstanceDump(
-    objectId: Long,
-    stackTraceSerialNumber: Int,
-    classObjectId: Long,
-    bytes: ByteArray
-  ) {
+  fun writeInstanceDump(objectId: Long, stackTraceSerialNumber: Int, classObjectId: Long, bytes: ByteArray) {
     with(subtagsStream) {
       writeHeapDumpRecordHeader(HeapDumpRecordType.InstanceDump)
       writeId(objectId)
@@ -164,21 +155,14 @@ class HprofWriter(
     }
   }
 
-  fun writeObjectArrayDump(
-    arrayObjectId: Long,
-    stackTraceSerialNumber: Int,
-    arrayClassObjectId: Long,
-    elementIds: LongArray
-  ) {
+  fun writeObjectArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Int, arrayClassObjectId: Long, elementIds: LongArray) {
     with(subtagsStream) {
       writeHeapDumpRecordHeader(HeapDumpRecordType.ObjectArrayDump)
       writeId(arrayObjectId)
       writeInt(stackTraceSerialNumber)
       writeInt(elementIds.count())
       writeId(arrayClassObjectId)
-      elementIds.forEach { id ->
-        writeId(id)
-      }
+      elementIds.forEach { id -> writeId(id) }
     }
   }
 
@@ -187,7 +171,7 @@ class HprofWriter(
     stackTraceSerialNumber: Int,
     elementType: Type,
     elements: ByteArray,
-    elementsCount: Int
+    elementsCount: Int,
   ) {
     with(subtagsStream) {
       writeHeapDumpRecordHeader(HeapDumpRecordType.PrimitiveArrayDump)
@@ -213,7 +197,6 @@ class HprofWriter(
     return id
   }
 
-
   private fun writeRecordHeader(recordType: RecordType, length: Int) {
     with(dos) {
       writeByte(recordType.value)
@@ -223,9 +206,7 @@ class HprofWriter(
   }
 
   private fun writeHeapDumpRecordHeader(heapDumpRecordType: HeapDumpRecordType) {
-    with(subtagsStream) {
-      writeByte(heapDumpRecordType.value)
-    }
+    with(subtagsStream) { writeByte(heapDumpRecordType.value) }
   }
 
   fun writeRootGlobalJNI(objectId: Long, jniGlobalRefId: Long) {
@@ -247,8 +228,7 @@ class HprofWriter(
   private fun DataOutputStream.writeValue(value: Long, type: Type) {
     if (type == Type.OBJECT) {
       writeId(value)
-    }
-    else {
+    } else {
       when (type.size) {
         1 -> writeByte(value.toInt())
         2 -> writeShort(value.toInt())
@@ -260,7 +240,7 @@ class HprofWriter(
   }
 
   fun writeStackTrace(stackTraceSerialNumber: Int, threadSerialNumber: Long, stackFrameIds: LongArray) {
-    with (dos) {
+    with(dos) {
       val length = 3 * 4 + idSize * stackFrameIds.size
       writeRecordHeader(RecordType.StackTrace, length)
       writeInt(stackTraceSerialNumber)
@@ -272,15 +252,15 @@ class HprofWriter(
     }
   }
 
-
-  fun writeStackFrame(stackFrameId: Long,
-                       methodNameStringId: Long,
-                       methodSignatureStringId: Long,
-                       sourceFilenameStringId: Long,
-                       classSerialNumber: Int,
-                       lineNumber: Int)
-  {
-    with (dos) {
+  fun writeStackFrame(
+    stackFrameId: Long,
+    methodNameStringId: Long,
+    methodSignatureStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Int,
+    lineNumber: Int,
+  ) {
+    with(dos) {
       val length = (4 * idSize) + (2 * 4)
       writeRecordHeader(RecordType.StackFrame, length)
       writeId(stackFrameId)
@@ -292,4 +272,3 @@ class HprofWriter(
     }
   }
 }
-

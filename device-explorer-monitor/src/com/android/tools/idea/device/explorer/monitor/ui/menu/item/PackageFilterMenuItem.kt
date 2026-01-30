@@ -25,42 +25,40 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import javax.swing.Icon
 
-class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
+class PackageFilterMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(listener) {
   var isActionSelected = false
   var shouldBeEnabled = false
 
   override fun getText(numOfNodes: Int): String {
     val selectionText = if (isActionSelected) "off" else "on"
     val buttonText = "Turn $selectionText package filter"
-    return if(!shouldBeEnabled)
-      "<html>$buttonText<br>Disabled due to no application IDs found</html>"
-    else
-      buttonText
+    return if (!shouldBeEnabled) "<html>$buttonText<br>Disabled due to no application IDs found</html>" else buttonText
   }
 
-  override val action: AnAction = object : ToggleAction() {
-    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override val action: AnAction =
+    object : ToggleAction() {
+      override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-    override fun update(e: AnActionEvent) {
-      val presentation = e.presentation
-      presentation.text = text
-      presentation.isEnabled = isEnabled
-      presentation.isVisible = isVisible
-      presentation.icon = icon
-      Toggleable.setSelected(presentation, isSelected(e))
+      override fun update(e: AnActionEvent) {
+        val presentation = e.presentation
+        presentation.text = text
+        presentation.isEnabled = isEnabled
+        presentation.isVisible = isVisible
+        presentation.icon = icon
+        Toggleable.setSelected(presentation, isSelected(e))
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        run()
+        setSelected(e, !isSelected(e))
+      }
+
+      override fun isSelected(e: AnActionEvent): Boolean {
+        return isActionSelected
+      }
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) {}
     }
-
-    override fun actionPerformed(e: AnActionEvent) {
-      run()
-      setSelected(e, !isSelected(e))
-    }
-
-    override fun isSelected(e: AnActionEvent): Boolean {
-      return isActionSelected
-    }
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {}
-  }
 
   override val icon: Icon
     get() {

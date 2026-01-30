@@ -28,7 +28,5 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Composable
 internal fun InfoOutlineIcon(text: String, modifier: Modifier = Modifier) {
   @OptIn(ExperimentalFoundationApi::class)
-  Tooltip({ Text(text, Modifier.widthIn(max = 300.dp)) }, modifier) {
-    Icon(AllIconsKeys.General.Note, null)
-  }
+  Tooltip({ Text(text, Modifier.widthIn(max = 300.dp)) }, modifier) { Icon(AllIconsKeys.General.Note, null) }
 }

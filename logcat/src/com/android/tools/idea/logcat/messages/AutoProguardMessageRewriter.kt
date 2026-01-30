@@ -53,8 +53,8 @@ private const val MAP_ID_PREFIX = "# pg_map_id: "
 /**
  * Rewrites an obfuscated stack trace automatically
  *
- * Detects a mapping file from a stack trace by extracting a `r8-map-id` from the frame and looks
- * for a corresponding `mapping.txt` file in the project build directory.
+ * Detects a mapping file from a stack trace by extracting a `r8-map-id` from the frame and looks for a corresponding `mapping.txt` file in
+ * the project build directory.
  */
 @Service(PROJECT)
 internal class AutoProguardMessageRewriter(private val project: Project) : Disposable {
@@ -83,25 +83,12 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
           try {
             measureTimedValue { retracer.builder.rewrite(message) }
           } catch (e: Throwable) {
-            LogcatUsageTracker.logRetraceException(
-              e,
-              retracer.mappingSize,
-              retracer.isCached,
-              retracer.mappingType,
-            )
-            LOGGER.warn(
-              "Error while retracing. mappingSize=${retracer.mappingSize} isCached=${retracer.isCached}"
-            )
+            LogcatUsageTracker.logRetraceException(e, retracer.mappingSize, retracer.isCached, retracer.mappingType)
+            LOGGER.warn("Error while retracing. mappingSize=${retracer.mappingSize} isCached=${retracer.isCached}")
             return message
           }
         val result = if (retraced != message) "SUCCESS" else "NOOP"
-        LogcatUsageTracker.logRetrace(
-          result,
-          duration,
-          retracer.mappingSize,
-          retracer.isCached,
-          retracer.mappingType,
-        )
+        LogcatUsageTracker.logRetrace(result, duration, retracer.mappingSize, retracer.isCached, retracer.mappingType)
         return retraced
       } catch (e: Throwable) {
         LogcatUsageTracker.logRetraceException(e)
@@ -113,8 +100,8 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
   }
 
   /**
-   * If the current auto retraces matches the stacktrace id, we use it. Otherwise, we try to find a
-   * matching mapping.txt based on the default project structure:
+   * If the current auto retraces matches the stacktrace id, we use it. Otherwise, we try to find a matching mapping.txt based on the
+   * default project structure:
    * ```
    *    <module-dir>/build/outputs/mapping/<variant>/mapping.txt
    * ```
@@ -144,10 +131,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
 
   private fun rescheduleCachePurge() {
     alarm.cancelAllRequests()
-    alarm.addRequest(
-      { synchronized(lock) { autoRetracer = null } },
-      StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.get(),
-    )
+    alarm.addRequest({ synchronized(lock) { autoRetracer = null } }, StudioFlags.LOGCAT_AUTO_DEOBFUSCATE_CACHE_TIME_MS.get())
   }
 
   private fun findMapping(mapId: String): Result {
@@ -155,8 +139,7 @@ internal class AutoProguardMessageRewriter(private val project: Project) : Dispo
     if (mappingsFiles.isEmpty()) {
       return Error(NO_MAPPING_IN_PROJECT)
     }
-    val mappingsById =
-      mappingsFiles.filter { it.text.exists() }.associateByNotNull { it.text.getMapId() }
+    val mappingsById = mappingsFiles.filter { it.text.exists() }.associateByNotNull { it.text.getMapId() }
     if (mappingsById.isEmpty()) {
       return Error(MAPPINGS_HAVE_NO_MAP_ID)
     }

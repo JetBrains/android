@@ -20,20 +20,20 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
 
-abstract class SyncIssueNotificationHyperlink(
-  url: String,
-  text: String,
-  private val quickFixId: AndroidStudioEvent.GradleSyncQuickFix
-) : SyncMessageHyperlink(url, text) {
-  override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix> get() = listOf(quickFixId)
+abstract class SyncIssueNotificationHyperlink(url: String, text: String, private val quickFixId: AndroidStudioEvent.GradleSyncQuickFix) :
+  SyncMessageHyperlink(url, text) {
+  override val quickFixIds: List<AndroidStudioEvent.GradleSyncQuickFix>
+    get() = listOf(quickFixId)
 }
 
 @TestOnly
-class TestSyncIssueNotificationHyperlink @JvmOverloads constructor(
+class TestSyncIssueNotificationHyperlink
+@JvmOverloads
+constructor(
   url: String,
   private val text: String,
   quickFixId: AndroidStudioEvent.GradleSyncQuickFix,
-  private var handler: (Project) -> Unit = {}
+  private var handler: (Project) -> Unit = {},
 ) : SyncIssueNotificationHyperlink(url, text, quickFixId) {
   override val urls: Collection<String> = listOf(url)
 

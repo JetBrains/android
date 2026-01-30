@@ -37,14 +37,16 @@ internal data class BazelBuildTargetReference internal constructor(val module_: 
 }
 
 internal fun BazelBuildTargetReference.toAllLabels(): Set<Label> {
-  return QuerySyncManager.getInstance(project).getTargetsToBuildByPaths(
-    listOf(getFileWorkspaceRelativePath())).flatMap { it.targets }.toSet()
+  return QuerySyncManager.getInstance(project)
+    .getTargetsToBuildByPaths(listOf(getFileWorkspaceRelativePath()))
+    .flatMap { it.targets }
+    .toSet()
 }
 
 internal fun BazelBuildTargetReference.toPreferredLabel(): Label? {
   val snapshot = QuerySyncManager.getInstance(project).currentSnapshot.getOrNull() ?: return null
   val builds = snapshot.artifactIndex.builtDepsMap()
-  return QuerySyncManager.getInstance(project)
-    .getTargetsToBuildByPaths(listOf(getFileWorkspaceRelativePath()))
-    .toPreferredLabel() { builds.containsKey(it) }
+  return QuerySyncManager.getInstance(project).getTargetsToBuildByPaths(listOf(getFileWorkspaceRelativePath())).toPreferredLabel() {
+    builds.containsKey(it)
+  }
 }

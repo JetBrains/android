@@ -26,23 +26,24 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [DefaultProjectSystem].
- */
+/** Tests for [DefaultProjectSystem]. */
 class DefaultProjectSystemTest {
   private lateinit var myProject: Project
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setUp() {
     myProject = projectRule.project
-    projectRule.fixture.addFileToProject("AndroidManifest.xml", """
+    projectRule.fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.app">
         <application />
       </manifest>
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
@@ -55,9 +56,7 @@ class DefaultProjectSystemTest {
     // This behaviour was never guaranteed 100%, since ProjectSystemService implementation uses tryRunReadAction which
     // in case there are pending write actions it returns a DefaultProjectSystem when the read lock is unavailable.
     // However, with IntelliJ 2025.3 this scenario started to happen for test execution.
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     Truth.assertThat(myProject.getProjectSystem()).isSameAs(myProject.getProjectSystem())
   }
 

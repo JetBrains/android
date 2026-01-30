@@ -31,13 +31,9 @@ import java.io.IOException
 import java.util.Optional
 
 /**
- * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the various sync
- * stages on the testdata query output.
+ * Builds a [QuerySyncProjectSnapshot] for a test project by running the logic from the various sync stages on the testdata query output.
  */
-class TestDataSyncRunner(
-  private val context: Context<*>,
-  private val javaPackagePrefixReader: JavaPackagePrefixReader,
-) {
+class TestDataSyncRunner(private val context: Context<*>, private val javaPackagePrefixReader: JavaPackagePrefixReader) {
   @Throws(IOException::class, BuildException::class)
   fun sync(testProject: TestData): QuerySyncProjectSnapshot {
     val projectDefinition =
@@ -65,26 +61,18 @@ class TestDataSyncRunner(
           querySummary,
           context,
           ImmutableSet.of(),
-          BuildGraphData.ProtoRules.forTests()
+          BuildGraphData.ProtoRules.forTests(),
         )
         .parse()
     val converter =
-      GraphToProjectConverter(
-        javaPackagePrefixReader = javaPackagePrefixReader,
-        context = context,
-        projectDefinition = projectDefinition,
-      )
+      GraphToProjectConverter(javaPackagePrefixReader = javaPackagePrefixReader, context = context, projectDefinition = projectDefinition)
     val update = ProjectProtoUpdate(existingProject = ProjectProto.Project.getDefaultInstance())
     converter.configureProject(
       initializeProjectStructureData(buildGraphData),
       ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
       update,
     )
-    converter.configureProject(
-      buildGraphData,
-      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
-      update,
-    )
+    converter.configureProject(buildGraphData, ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
     val project = update.build()
     return QuerySyncProjectSnapshot(
       queryData = pqsd,
@@ -94,7 +82,7 @@ class TestDataSyncRunner(
             querySummary,
             context,
             ImmutableSet.of(),
-            BuildGraphData.ProtoRules.forTests()
+            BuildGraphData.ProtoRules.forTests(),
           )
           .parse(),
       artifactState = ArtifactTracker.State.EMPTY,

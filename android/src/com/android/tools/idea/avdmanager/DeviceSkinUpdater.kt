@@ -21,7 +21,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.FileUtils
 import com.android.utils.PathUtils
 import com.intellij.openapi.diagnostic.thisLogger
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -29,19 +28,19 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.isDirectory
+import org.jetbrains.annotations.VisibleForTesting
 
 object DeviceSkinUpdater {
 
   /**
-   * Copies device skin from Studio to the SDK if the SDK one is out of date. The [skin] parameter
-   * could be the absolute path to the SDK skin, e.g. "${HOME}/Android/Sdk/skins/pixel_4", a path
-   * relative to the SDK "skins" folder, e.g. "pixel_4", an empty or "_no_skin" path.
+   * Copies device skin from Studio to the SDK if the SDK one is out of date. The [skin] parameter could be the absolute path to the SDK
+   * skin, e.g. "${HOME}/Android/Sdk/skins/pixel_4", a path relative to the SDK "skins" folder, e.g. "pixel_4", an empty or "_no_skin" path.
    *
-   * Returns the SDK skin path. Returns the passed in [skin] path if it is absolute, empty, or equal
-   * "_no_skin". Also returns [skin] if the Studio skins folder and the SDK location are both not
-   * found. Returns the SDK skin path if the Studio skins path is not found. Returns the Studio
-   * skin, e.g. "${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4",
-   * if the SDK is not found or there is an I/O error.
+   * Returns the SDK skin path. Returns the passed in [skin] path if it is absolute, empty, or equal "_no_skin". Also returns [skin] if the
+   * Studio skins folder and the SDK location are both not found. Returns the SDK skin path if the Studio skins path is not found. Returns
+   * the Studio skin, e.g. "${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4", if the SDK is not found or there
+   * is an I/O error.
+   *
    * @see DeviceSkinUpdaterService
    */
   @JvmStatic
@@ -88,8 +87,8 @@ object DeviceSkinUpdater {
   }
 
   /**
-   * Checks if all files under the [sourceDir] directory have their piers under
-   * the [targetDir] directory with timestamps not older than the corresponding source file.
+   * Checks if all files under the [sourceDir] directory have their piers under the [targetDir] directory with timestamps not older than the
+   * corresponding source file.
    */
   @VisibleForTesting
   fun areAllFilesUpToDate(targetDir: Path, sourceDir: Path): Boolean {
@@ -117,8 +116,7 @@ object DeviceSkinUpdater {
     val checker = UpToDateChecker()
     try {
       Files.walkFileTree(sourceDir, checker)
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       return false
     }
 
@@ -138,8 +136,7 @@ object DeviceSkinUpdater {
       PathUtils.deleteRecursivelyIfExists(sdkDeviceSkin)
       FileUtils.copyDirectory(studioDeviceSkin, sdkDeviceSkin, false)
       return sdkDeviceSkin
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       thisLogger().warn(e)
       return studioDeviceSkin
     }

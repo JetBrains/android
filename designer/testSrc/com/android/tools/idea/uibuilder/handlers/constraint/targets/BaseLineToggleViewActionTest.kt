@@ -25,18 +25,9 @@ class BaseLineToggleViewActionTest : SceneTest() {
 
   fun testToggleBaselineAnchor() {
     val textView = myScene.getSceneComponent("textView")!!
-    val topAnchor =
-      textView.targets
-        .filterIsInstance<ConstraintAnchorTarget>()
-        .filter { it.type == AnchorTarget.Type.TOP }[0]
-    val bottomAnchor =
-      textView.targets
-        .filterIsInstance<ConstraintAnchorTarget>()
-        .filter { it.type == AnchorTarget.Type.BOTTOM }[0]
-    val baselineAnchor =
-      textView.targets
-        .filterIsInstance<ConstraintAnchorTarget>()
-        .filter { it.type == AnchorTarget.Type.BASELINE }[0]
+    val topAnchor = textView.targets.filterIsInstance<ConstraintAnchorTarget>().filter { it.type == AnchorTarget.Type.TOP }[0]
+    val bottomAnchor = textView.targets.filterIsInstance<ConstraintAnchorTarget>().filter { it.type == AnchorTarget.Type.BOTTOM }[0]
+    val baselineAnchor = textView.targets.filterIsInstance<ConstraintAnchorTarget>().filter { it.type == AnchorTarget.Type.BASELINE }[0]
     myInteraction.select(textView, true)
 
     assertTrue(topAnchor.isEnabled)
@@ -58,13 +49,7 @@ class BaseLineToggleViewActionTest : SceneTest() {
         .id("@id/constraint")
         .matchParentWidth()
         .matchParentHeight()
-        .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(0, 0, 200, 200)
-            .id("@id/textView")
-            .width("100dp")
-            .height("100dp")
-        ),
+        .children(component(SdkConstants.TEXT_VIEW).withBounds(0, 0, 200, 200).id("@id/textView").width("100dp").height("100dp")),
     )
   }
 }

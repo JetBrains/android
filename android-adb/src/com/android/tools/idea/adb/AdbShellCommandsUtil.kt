@@ -25,9 +25,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
+import java.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.single
-import java.time.Duration
 
 abstract class AdbShellCommandsUtil {
   private val logger = thisLogger()
@@ -40,10 +40,7 @@ abstract class AdbShellCommandsUtil {
     return executeCommandImpl(command, false)
   }
 
-  private suspend fun executeCommandImpl(
-    command: String,
-    errorCheck: Boolean,
-  ): AdbShellCommandResult {
+  private suspend fun executeCommandImpl(command: String, errorCheck: Boolean): AdbShellCommandResult {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
     val fullCommand = if (errorCheck) command + COMMAND_ERROR_CHECK_SUFFIX else command

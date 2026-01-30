@@ -70,16 +70,11 @@ private const val DIFF_THRESHOLD = 0.01
 class ResolutionElementEditorTest {
   // This test is SDK sensitive.
   // Explicitly specify the SDK to avoid failures in SDK upgrades.
-  private val projectRule =
-    AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
+  private val projectRule = AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(IntelliJLafRule())
-      .around(PortableUiFontRule())
-      .around(EdtRule())
-      .around(IconLoaderRule())!!
+    RuleChain.outerRule(projectRule).around(IntelliJLafRule()).around(PortableUiFontRule()).around(EdtRule()).around(IconLoaderRule())!!
 
   @Test
   fun testPaintClosed() = runBlocking {
@@ -145,26 +140,11 @@ class ResolutionElementEditorTest {
   @Test
   fun testHasLinkPanel() = runBlocking {
     val model = runInEdtAndGet {
-      model(
-        projectRule.testRootDisposable,
-        projectRule.project,
-        FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture),
-      )
+      model(projectRule.testRootDisposable, projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     }
     val node = model["title"]!!
-    val item1 =
-      createTestProperty(
-        ATTR_TEXT_COLOR,
-        PropertyType.COLOR,
-        null,
-        node.layout,
-        emptyList(),
-        node,
-        model,
-      )
-    val item2 =
-      createTestProperty(ATTR_ELEVATION, PropertyType.FLOAT, null, null, emptyList(), node, model)
+    val item1 = createTestProperty(ATTR_TEXT_COLOR, PropertyType.COLOR, null, node.layout, emptyList(), node, model)
+    val item2 = createTestProperty(ATTR_ELEVATION, PropertyType.FLOAT, null, null, emptyList(), node, model)
 
     // The "textColor" attribute is defined in the layout file, and we should have a link to the
     // layout definition
@@ -218,39 +198,17 @@ class ResolutionElementEditorTest {
 
   private suspend fun createEditors(): JPanel {
     val model = runInEdtAndGet {
-      model(
-        projectRule.testRootDisposable,
-        projectRule.project,
-        FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture),
-      )
+      model(projectRule.testRootDisposable, projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     }
     val node = model["title"]!!
-    val textStyleMaterial =
-      ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
+    val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     var property =
-      createTestProperty(
-        ATTR_TEXT_COLOR,
-        PropertyType.COLOR,
-        value = null,
-        node.layout,
-        listOf(textStyleMaterial),
-        node,
-        model,
-      )
+      createTestProperty(ATTR_TEXT_COLOR, PropertyType.COLOR, value = null, node.layout, listOf(textStyleMaterial), node, model)
         as InspectorGroupPropertyItem
     val value = model.resourceLookup.findAttributeValue(property, node, property.source!!)
     if (value != null) {
       property =
-        createTestProperty(
-          ATTR_TEXT_COLOR,
-          PropertyType.COLOR,
-          value,
-          node.layout,
-          listOf(textStyleMaterial),
-          node,
-          model,
-        )
+        createTestProperty(ATTR_TEXT_COLOR, PropertyType.COLOR, value, node.layout, listOf(textStyleMaterial), node, model)
           as InspectorGroupPropertyItem
     }
     val editors = JPanel()
@@ -258,13 +216,7 @@ class ResolutionElementEditorTest {
     val propertiesModel = InspectorPropertiesModel(projectRule.testRootDisposable)
     editors.add(createEditor(property, propertiesModel))
     property.children.forEach { editors.add(createEditor(it, propertiesModel)) }
-    editors.add(
-      Filler(
-        Dimension(0, 0),
-        Dimension(Int.MAX_VALUE, Int.MAX_VALUE),
-        Dimension(Int.MAX_VALUE, Int.MAX_VALUE),
-      )
-    )
+    editors.add(Filler(Dimension(0, 0), Dimension(Int.MAX_VALUE, Int.MAX_VALUE), Dimension(Int.MAX_VALUE, Int.MAX_VALUE)))
     editors.background = JBColor.WHITE
     return editors
   }
@@ -273,10 +225,7 @@ class ResolutionElementEditorTest {
     return editors.getComponent(index) as ResolutionElementEditor
   }
 
-  private fun createEditor(
-    property: PropertyItem,
-    propertiesModel: InspectorPropertiesModel,
-  ): ResolutionElementEditor {
+  private fun createEditor(property: PropertyItem, propertiesModel: InspectorPropertiesModel): ResolutionElementEditor {
     val model = ResolutionStackModel(propertiesModel)
     val editorModel = TextFieldPropertyEditorModel(property, true)
     val editorComponent = PropertyTextField(editorModel)
@@ -285,8 +234,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun findFirstLinkComponent(editor: ResolutionElementEditor): JComponent? =
-    editor.flatten(false).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0]
-      as JComponent?
+    editor.flatten(false).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
 }
 
 class IntelliJLafRule : ExternalResource() {

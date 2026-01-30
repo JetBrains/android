@@ -29,15 +29,11 @@ private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultAct
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = it.mode.value is PreviewMode.UiCheck
-    }
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.let { e.presentation.isVisible = it.mode.value is PreviewMode.UiCheck }
   }
 }
 
 /**
- * Makes the given action only visible when the Compose preview is in UI Check mode. Returns an
- * [ActionGroup] that handles the visibility.
+ * Makes the given action only visible when the Compose preview is in UI Check mode. Returns an [ActionGroup] that handles the visibility.
  */
-internal fun AnAction.visibleOnlyInUiCheck(): ActionGroup =
-  ComposePreviewUiCheckWrapper(listOf(this))
+internal fun AnAction.visibleOnlyInUiCheck(): ActionGroup = ComposePreviewUiCheckWrapper(listOf(this))

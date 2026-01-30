@@ -20,7 +20,5 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 
 fun SdkModificator.addRoots(roots: List<Pair<VirtualFile, OrderRootType>>) {
-  roots.forEach { (file, type) ->
-    addRoot(file, type)
-  }
+  roots.forEach { (file, type) -> addRoot(file, type) }
 }

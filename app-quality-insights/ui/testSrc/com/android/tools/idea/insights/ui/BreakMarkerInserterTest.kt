@@ -54,8 +54,7 @@ class BreakMarkerInserterTest {
   fun does_not_break_tokens_shorter_than_custom_min() {
     val input = "This string should not be broken up"
     val expected = "This string should not be broken up"
-    val actual =
-      BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
+    val actual = BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
     assertThat(actual).isEqualTo(expected)
   }
 
@@ -69,28 +68,22 @@ class BreakMarkerInserterTest {
   @Test
   fun breaks_long_tokens_after_custom_min_and_not_before() {
     val input = "This string should-not-be-broken-up"
-    val expected =
-      "This string should-not-${BREAK_MARKER}be-${BREAK_MARKER}broken-${BREAK_MARKER}up"
-    val actual =
-      BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
+    val expected = "This string should-not-${BREAK_MARKER}be-${BREAK_MARKER}broken-${BREAK_MARKER}up"
+    val actual = BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
     assertThat(actual).isEqualTo(expected)
   }
 
   @Test
   fun does_not_break_long_tokens_shorter_than_custom_min() {
     val input = "This string should-not-be-broken-up"
-    val expected =
-      "This string should-not-${BREAK_MARKER}be-${BREAK_MARKER}broken-${BREAK_MARKER}up"
-    val actual =
-      BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
+    val expected = "This string should-not-${BREAK_MARKER}be-${BREAK_MARKER}broken-${BREAK_MARKER}up"
+    val actual = BreakMarkerInserter.insertBreakMarkersInLongTokens(input, minBreakableTokenLength = 10)
     assertThat(actual).isEqualTo(expected)
   }
 
   @Test
   fun breaks_urls_correctly() {
-    val input =
-      "This URL should be broken up correctly: " +
-        "https://developer.android.com/studio/preview/studio-bot?q=hello+world"
+    val input = "This URL should be broken up correctly: " + "https://developer.android.com/studio/preview/studio-bot?q=hello+world"
     val expected =
       "This URL should be broken up correctly: " +
         "https://developer.%%%%%break-goes-here%%%%%android.%%%%%break-goes-here%%%%%com/%%%%%break-goes-here%%%%%studio/%%%%%break-goes-here%%%%%preview/%%%%%break-goes-here%%%%%studio-%%%%%break-goes-here%%%%%bot?%%%%%break-goes-here%%%%%q=%%%%%break-goes-here%%%%%hello+%%%%%break-goes-here%%%%%world"

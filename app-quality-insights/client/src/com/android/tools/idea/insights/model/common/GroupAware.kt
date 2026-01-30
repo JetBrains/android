@@ -18,8 +18,7 @@ package com.android.tools.idea.insights.model.common
 /**
  * Provides a way to customize sorting of groups in the UI.
  *
- * The main use case is to be able to sort Play Tracks so that they appear in the order of
- * importance.
+ * The main use case is to be able to sort Play Tracks so that they appear in the order of importance.
  */
 interface GroupAware<T : GroupAware<T>> : Comparable<T> {
   val groupName: String

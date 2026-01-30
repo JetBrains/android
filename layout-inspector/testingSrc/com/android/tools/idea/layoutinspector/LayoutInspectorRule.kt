@@ -111,8 +111,7 @@ fun DeviceDescriptor.createProcess(
 }
 
 /**
- * Test interface for providing an [InspectorClient] that should get created when connecting to a
- * process.
+ * Test interface for providing an [InspectorClient] that should get created when connecting to a process.
  *
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
@@ -125,15 +124,13 @@ fun interface InspectorClientProvider {
  *
  * This includes things like fake ADB support, process management, and [InspectorClient] setup.
  *
- * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected
- * client. You must first call [TestProcessDiscovery.fireConnected] (with a process that has a
- * preferred process name) or [ProcessesModel.selectedProcess] directly, to trigger a new client to
- * get created.
+ * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected client. You must first call
+ * [TestProcessDiscovery.fireConnected] (with a process that has a preferred process name) or [ProcessesModel.selectedProcess] directly, to
+ * trigger a new client to get created.
  *
  * @param projectRule A rule providing access to a test project.
- * @param isPreferredProcess Optionally provide a process selector that, when connected via
- *   [TestProcessDiscovery], will be automatically attached to. This simulates the experience when
- *   the user presses the "Run" button for example. Otherwise, the test caller must set
+ * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessDiscovery], will be automatically
+ *   attached to. This simulates the experience when the user presses the "Run" button for example. Otherwise, the test caller must set
  *   [ProcessesModel.selectedProcess] directly.
  */
 class LayoutInspectorRule(
@@ -177,8 +174,8 @@ class LayoutInspectorRule(
   }
 
   /**
-   * Set this to false if the test requires the launcher to execute on a different thread. Use
-   * [asyncLaunchLatch] to make sure the thread finished.
+   * Set this to false if the test requires the launcher to execute on a different thread. Use [asyncLaunchLatch] to make sure the thread
+   * finished.
    */
   var launchSynchronously = true
 
@@ -196,9 +193,8 @@ class LayoutInspectorRule(
   val processNotifier = TestProcessDiscovery()
 
   /**
-   * The underlying processes model, automatically affected by [processNotifier] but can be
-   * interacted directly with to force a connection via its [ProcessesModel.selectedProcess]
-   * property.
+   * The underlying processes model, automatically affected by [processNotifier] but can be interacted directly with to force a connection
+   * via its [ProcessesModel.selectedProcess] property.
    */
   val processes = ProcessesModel(processNotifier, isPreferredProcess)
   private lateinit var deviceModel: DeviceModel
@@ -230,14 +226,7 @@ class LayoutInspectorRule(
   /** Notify this rule about a device that it should be aware of. */
   fun attachDevice(device: DeviceDescriptor) {
     adbRule
-      .connectDevice(
-        device.serial,
-        device.manufacturer,
-        device.model,
-        device.version,
-        device.apiLevel,
-        DeviceState.HostConnectionType.USB,
-      )
+      .connectDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel, DeviceState.HostConnectionType.USB)
       .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
   }
 
@@ -252,9 +241,7 @@ class LayoutInspectorRule(
     launcher =
       InspectorClientLauncher(
         processes,
-        clientProviders.map { provider ->
-          ClientFactory { params -> provider.create(params, inspector) }
-        },
+        clientProviders.map { provider -> ClientFactory { params -> provider.create(params, inspector) } },
         project,
         notificationModel,
         layoutInspectorCoroutineScope,
@@ -296,10 +283,7 @@ class LayoutInspectorRule(
       }
     }
 
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      dataProvider,
-      projectRule.fixture.testRootDisposable,
-    )
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(dataProvider, projectRule.fixture.testRootDisposable)
   }
 
   fun disconnect() {
@@ -307,8 +291,7 @@ class LayoutInspectorRule(
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
 
-    launchSynchronously =
-      true // Do not start more threads, since that would cause ConcurrentModificationException
+    launchSynchronously = true // Do not start more threads, since that would cause ConcurrentModificationException
     // below
     asyncLauncherThreads.forEach {
       it.join(1000) // Wait for the thread to finish
@@ -342,8 +325,8 @@ class LayoutInspectorRule(
 }
 
 /**
- * For tests that run with the Default Project System, modify project system structures so that the
- * test environment has a model with this [applicationId].
+ * For tests that run with the Default Project System, modify project system structures so that the test environment has a model with this
+ * [applicationId].
  */
 fun AndroidFacet.setApplicationIdForTest(applicationId: String) {
   AndroidModel.setForTests(this, TestAndroidModel(applicationId))

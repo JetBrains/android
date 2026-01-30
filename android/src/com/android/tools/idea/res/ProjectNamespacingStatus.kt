@@ -26,9 +26,8 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Project service that keeps track of whether the project uses any namespaced modules or not.
  *
- * When namespaces are not used at all, some project-wide functionality may be simplified, e.g.
- * "find usages" doesn't have to look for usages of fields from two R classes (namespaced and
- * non-namespaced). This is mostly to simplify UI, not gain performance.
+ * When namespaces are not used at all, some project-wide functionality may be simplified, e.g. "find usages" doesn't have to look for
+ * usages of fields from two R classes (namespaced and non-namespaced). This is mostly to simplify UI, not gain performance.
  */
 class ProjectNamespacingStatusService(val project: Project) {
   @Volatile
@@ -49,14 +48,10 @@ class ProjectNamespacingStatusService(val project: Project) {
   }
 
   private fun checkNamespacesUsed(): Boolean {
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).any {
-      it.namespacing == Namespacing.REQUIRED
-    }
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).any { it.namespacing == Namespacing.REQUIRED }
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(ProjectNamespacingStatusService::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectNamespacingStatusService::class.java)!!
   }
 }

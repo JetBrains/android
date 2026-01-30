@@ -90,12 +90,9 @@ class OrganizationTest {
     val model =
       Mockito.mock(NlModel::class.java).apply {
         Mockito.`when`(this.organizationGroup).then { organizationGroup }
-        Mockito.`when`(this.displaySettings).then {
-          DisplaySettings().apply { setDisplayName(modelName) }
-        }
+        Mockito.`when`(this.displaySettings).then { DisplaySettings().apply { setDisplayName(modelName) } }
       }
-    val sceneManager =
-      Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
+    val sceneManager = Mockito.mock(SceneManager::class.java).apply { Mockito.`when`(this.model).then { model } }
     return TestSceneView(100, 100, sceneManager)
   }
 }

@@ -63,51 +63,37 @@ class VitalsClientRequestProtoTest {
 
     val errorIssueRequest = events.filterIsInstance<SearchErrorIssuesRequest>().single()
     assertThat(errorIssueRequest.parent).isEqualTo(TEST_CONNECTION_1.clientId)
-    assertThat(errorIssueRequest.interval)
-      .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-    assertThat(errorIssueRequest.filter)
-      .isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
+    assertThat(errorIssueRequest.interval).isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
+    assertThat(errorIssueRequest.filter).isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
 
     val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
-    assertThat(errorReportRequest.interval)
-      .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-    assertThat(errorReportRequest.filter)
-      .isEqualTo("(errorReportId = ${TEST_ISSUE1.issueDetails.sampleEvent.split("/").last()})")
+    assertThat(errorReportRequest.interval).isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
+    assertThat(errorReportRequest.filter).isEqualTo("(errorReportId = ${TEST_ISSUE1.issueDetails.sampleEvent.split("/").last()})")
 
-    val releaseFilteringRequest =
-      events.filterIsInstance<FetchReleaseFilterOptionsRequest>().single()
+    val releaseFilteringRequest = events.filterIsInstance<FetchReleaseFilterOptionsRequest>().single()
     assertThat(releaseFilteringRequest.name).isEqualTo(TEST_CONNECTION_1.clientId)
 
     val getErrorCountMetricSetRequests = events.filterIsInstance<GetErrorCountMetricSetRequest>()
     assertThat(getErrorCountMetricSetRequests).hasSize(3)
     assertThat(getErrorCountMetricSetRequests.toSet())
       .containsExactly(
-        GetErrorCountMetricSetRequest.newBuilder()
-          .apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }
-          .build()
+        GetErrorCountMetricSetRequest.newBuilder().apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }.build()
       )
 
-    val queryErrorCountMetricSetRequests =
-      events.filterIsInstance<QueryErrorCountMetricSetRequest>()
+    val queryErrorCountMetricSetRequests = events.filterIsInstance<QueryErrorCountMetricSetRequest>()
     assertThat(queryErrorCountMetricSetRequests).hasSize(3)
     assertQueryErrorCountMetricSetRequest(
-      queryErrorCountMetricSetRequests.first {
-        it.dimensionsList.contains(DimensionType.API_LEVEL.value)
-      },
+      queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(DimensionType.API_LEVEL.value) },
       request.filters.interval,
       ERROR_REPORT_COUNT,
     )
     assertQueryErrorCountMetricSetRequest(
-      queryErrorCountMetricSetRequests.first {
-        it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
-      },
+      queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value) },
       request.filters.interval,
       ERROR_REPORT_COUNT,
     )
     assertQueryErrorCountMetricSetRequest(
-      queryErrorCountMetricSetRequests.first {
-        it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
-      },
+      queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(DimensionType.VERSION_CODE.value) },
       request.filters.interval,
       ERROR_REPORT_COUNT,
     )
@@ -128,9 +114,7 @@ class VitalsClientRequestProtoTest {
     assertThat(getRequests).hasSize(2)
     assertThat(getRequests.toSet())
       .containsExactly(
-        GetErrorCountMetricSetRequest.newBuilder()
-          .apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }
-          .build()
+        GetErrorCountMetricSetRequest.newBuilder().apply { name = "apps/${TEST_CONNECTION_1.appId}/errorCountMetricSet" }.build()
       )
 
     val queryRequests = events.filterIsInstance<QueryErrorCountMetricSetRequest>()
@@ -167,8 +151,7 @@ class VitalsClientRequestProtoTest {
           .build()
       )
     if (request.dimensionsList.contains(DimensionType.API_LEVEL.value)) {
-      assertThat(request.dimensionsList)
-        .containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.API_LEVEL.value)
+      assertThat(request.dimensionsList).containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.API_LEVEL.value)
     } else if (request.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)) {
       assertThat(request.dimensionsList)
         .containsExactly(
@@ -178,15 +161,11 @@ class VitalsClientRequestProtoTest {
           DimensionType.DEVICE_TYPE.value,
         )
     } else if (request.dimensionsList.contains(DimensionType.VERSION_CODE.value)) {
-      assertThat(request.dimensionsList)
-        .containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.VERSION_CODE.value)
+      assertThat(request.dimensionsList).containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.VERSION_CODE.value)
     } else {
       throw AssertionError("Unexpected dimensions in: ${request.dimensionsList}")
     }
     assertThat(request.metricsList).containsExactly(expectedMetric)
-    assertThat(request.filter)
-      .isEqualTo(
-        "${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = ANR OR reportType = CRASH)"
-      )
+    assertThat(request.filter).isEqualTo("${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = ANR OR reportType = CRASH)")
   }
 }

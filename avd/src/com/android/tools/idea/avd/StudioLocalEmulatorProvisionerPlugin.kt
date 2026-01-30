@@ -113,11 +113,7 @@ class StudioLocalEmulatorProvisionerPlugin(
   override val createDeviceAction =
     object : CreateDeviceAction {
       override val presentation =
-        MutableStateFlow(
-            StudioDefaultDeviceActionPresentation.fromContext()
-              .copy(label = "Create Virtual Device")
-          )
-          .asStateFlow()
+        MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext().copy(label = "Create Virtual Device")).asStateFlow()
 
       override suspend fun create(parent: Component?) {
         if (showAddDeviceDialog(project, parent) != null) {
@@ -153,15 +149,12 @@ class StudioLocalEmulatorDeviceHandle(
     baseDeviceHandle.refreshDevices()
   }
 
-  private val defaultPresentation: DeviceAction.DefaultPresentation =
-    StudioDefaultDeviceActionPresentation
+  private val defaultPresentation: DeviceAction.DefaultPresentation = StudioDefaultDeviceActionPresentation
 
   private suspend fun startAvd(avdInfo: AvdInfo, bootMode: BootMode): Unit =
     // Note: the original DeviceManager does this in UI thread, but this may call
     // @Slow methods so switch
-    withContext(workerThread) {
-      avdManagerConnection.startAvd(project, avdInfo, bootMode = bootMode)
-    }
+    withContext(workerThread) { avdManagerConnection.startAvd(project, avdInfo, bootMode = bootMode) }
 
   override val activationAction =
     object : ActivationAction {
@@ -192,10 +185,7 @@ class StudioLocalEmulatorDeviceHandle(
     override val presentation = defaultPresentation.fromContext().enabledIfActivatable()
 
     override suspend fun snapshots(): List<LocalEmulatorSnapshot> =
-      withContext(Dispatchers.IO) {
-        LocalEmulatorSnapshotReader(adbLogger)
-          .readSnapshots(avdInfo.dataFolderPath.resolve("snapshots"))
-      }
+      withContext(Dispatchers.IO) { LocalEmulatorSnapshotReader(adbLogger).readSnapshots(avdInfo.dataFolderPath.resolve("snapshots")) }
 
     override suspend fun activate(snapshot: Snapshot) {
       baseDeviceHandle.activate {
@@ -209,13 +199,9 @@ class StudioLocalEmulatorDeviceHandle(
     object : DeactivationAction {
       // We could check this with AvdManagerConnection.isAvdRunning, but that's expensive, and if
       // it's not running we should see it from ADB anyway
-      override val presentation =
-        defaultPresentation.fromContext().enabledIf { it is Connected && !it.isTransitioning }
+      override val presentation = defaultPresentation.fromContext().enabledIf { it is Connected && !it.isTransitioning }
 
-      /**
-       * Attempts to stop the AVD. We can either use the emulator console or AvdManager (which uses
-       * a shell command to kill the process)
-       */
+      /** Attempts to stop the AVD. We can either use the emulator console or AvdManager (which uses a shell command to kill the process) */
       override suspend fun deactivate() {
         baseDeviceHandle.deactivate {
           baseDeviceHandle.emulatorConsole?.let {
@@ -248,26 +234,20 @@ class StudioLocalEmulatorDeviceHandle(
   override val repairDeviceAction =
     object : RepairDeviceAction {
       override val presentation =
-        DeviceAction.Presentation(
-            label = "Download system image",
-            icon = AllIcons.Actions.Download,
-            enabled = false,
-          )
-          .enabledIf { (it.error as? AvdDeviceError)?.status == AvdStatus.ERROR_IMAGE_MISSING }
+        DeviceAction.Presentation(label = "Download system image", icon = AllIcons.Actions.Download, enabled = false).enabledIf {
+          (it.error as? AvdDeviceError)?.status == AvdStatus.ERROR_IMAGE_MISSING
+        }
 
       override suspend fun repair() {
         val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
-        withContext(uiThread) {
-          SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
-        }
+        withContext(uiThread) { SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet() }
         refreshDevices()
       }
     }
 
   override val showAction: ShowAction =
     object : ShowAction {
-      override val presentation =
-        MutableStateFlow(defaultPresentation.fromContext().copy(label = "Show on Disk"))
+      override val presentation = MutableStateFlow(defaultPresentation.fromContext().copy(label = "Show on Disk"))
 
       override suspend fun show() {
         RevealFileAction.openDirectory(avdInfo.dataFolderPath)
@@ -337,12 +317,8 @@ class StudioLocalEmulatorDeviceHandle(
         val glassesHandle = this@StudioLocalEmulatorDeviceHandle
         val pairedPhone =
           withContext(Dispatchers.EDT) {
-            GlassesPairingWizard.show(
-              parent,
-              project = project,
-              devicesFlow = deviceHandleFlow,
-              glassesHandle = glassesHandle,
-            ) as? StudioLocalEmulatorDeviceHandle
+            GlassesPairingWizard.show(parent, project = project, devicesFlow = deviceHandleFlow, glassesHandle = glassesHandle)
+              as? StudioLocalEmulatorDeviceHandle
           }
         if (pairedPhone != null) {
           glassesHandle.baseDeviceHandle.updatePairedPhone(pairedPhone.baseDeviceHandle)
@@ -351,9 +327,7 @@ class StudioLocalEmulatorDeviceHandle(
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf {
-          it.properties.deviceType == DeviceType.AI_GLASSES
-        }
+        defaultPresentation.fromContext().enabledIf { it.properties.deviceType == DeviceType.AI_GLASSES }
     }
 
   override val unpairGlassesAction =
@@ -363,15 +337,11 @@ class StudioLocalEmulatorDeviceHandle(
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf {
-          it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null
-        }
+        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null }
     }
 
   private fun DeviceAction.Presentation.enabledIf(condition: (DeviceState) -> Boolean) =
-    stateFlow
-      .map { this.copy(enabled = condition(it)) }
-      .stateIn(scope, SharingStarted.Eagerly, this)
+    stateFlow.map { this.copy(enabled = condition(it)) }.stateIn(scope, SharingStarted.Eagerly, this)
 
   private fun DeviceState.isStopped() = this is Disconnected && !this.isTransitioning
 

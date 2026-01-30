@@ -51,13 +51,9 @@ class SqliteCliClientTest {
   @get:Rule val rule = RuleChain(projectRule, temporaryFolder)
 
   private val sqliteCliSrcPath by lazy { SqliteCliProviderImpl(project).getSqliteCli()!! }
-  private val sqliteCliDstPath by lazy {
-    copySqliteCliToTmpDir("new sqlite3 location with spaces", sqliteCliSrcPath)
-  }
+  private val sqliteCliDstPath by lazy { copySqliteCliToTmpDir("new sqlite3 location with spaces", sqliteCliSrcPath) }
   private val taskExecutor = PooledThreadExecutor.INSTANCE
-  private val client by lazy {
-    SqliteCliClientImpl(sqliteCliDstPath, taskExecutor.asCoroutineDispatcher())
-  }
+  private val client by lazy { SqliteCliClientImpl(sqliteCliDstPath, taskExecutor.asCoroutineDispatcher()) }
   private val databaseFile by lazy { temporaryFolder.newFile(dbPath).toPath() }
 
   private val trickyChars = " ąę  ść źż"
@@ -127,8 +123,7 @@ class SqliteCliClientTest {
   }
 
   /**
-   * Tests a large output printed to std-out which, if not handled property would hang on Windows.
-   * Uses:
+   * Tests a large output printed to std-out which, if not handled property would hang on Windows. Uses:
    * - [SqliteCliArgs.Builder.database]
    * - [SqliteCliArgs.Builder.queryTableContents]
    * - [SqliteCliArgs.Builder.raw]
@@ -140,20 +135,12 @@ class SqliteCliClientTest {
     val expectedOutput = values.joinToString(separator = lineSeparator())
 
     // create table
-    client.runSqliteCliCommand(
-      SqliteCliArgs.builder()
-        .database(databaseFile)
-        .raw("create table '$table1' ('$column1' int);")
-        .build()
-    )
+    client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).raw("create table '$table1' ('$column1' int);").build())
 
     // populate the table with values
     client
       .runSqliteCliCommand(
-        SqliteCliArgs.builder()
-          .database(databaseFile)
-          .apply { values.forEach { raw("insert into '$table1' values ($it);") } }
-          .build()
+        SqliteCliArgs.builder().database(databaseFile).apply { values.forEach { raw("insert into '$table1' values ($it);") } }.build()
       )
       .also {
         assertThat(it.exitCode).isEqualTo(0)
@@ -162,10 +149,7 @@ class SqliteCliClientTest {
 
     // query the database and verify output
     run {
-      val response =
-        client.runSqliteCliCommand(
-          SqliteCliArgs.builder().database(databaseFile).queryTableContents(table1).build()
-        )
+      val response = client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryTableContents(table1).build())
       assertThat(response.exitCode).isEqualTo(0)
       assertThat(response.errOutput).isEmpty()
       assertThat(response.stdOutput).isEqualTo(expectedOutput)
@@ -216,13 +200,7 @@ class SqliteCliClientTest {
     val outputFile1 = temporaryFolder.newFile(outputFile1).toPath().also { it.delete() }
     client
       .runSqliteCliCommand(
-        SqliteCliArgs.builder()
-          .database(databaseFile)
-          .modeCsv()
-          .output(outputFile1)
-          .separator('|')
-          .queryTableContents(table1)
-          .build()
+        SqliteCliArgs.builder().database(databaseFile).modeCsv().output(outputFile1).separator('|').queryTableContents(table1).build()
       )
       .also {
         assertThat(it.exitCode).isEqualTo(0)
@@ -251,9 +229,7 @@ class SqliteCliClientTest {
     assertThat(outputFile1.toLines().toList()).containsExactly("1|2|3", "4|5|6", "7|8|9").inOrder()
 
     // verify content with headers, separator=;
-    assertThat(outputFile2.toLines())
-      .containsExactly("\"$column1\";\"$column2\";\"$column3\"", "1;2;3", "4;5;6", "7;8;9")
-      .inOrder()
+    assertThat(outputFile2.toLines()).containsExactly("\"$column1\";\"$column2\";\"$column3\"", "1;2;3", "4;5;6", "7;8;9").inOrder()
   }
 
   /**
@@ -299,45 +275,39 @@ class SqliteCliClientTest {
       }
 
     // query table list
-    client
-      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryTableList().build())
-      .also {
-        assertThat(it.exitCode).isEqualTo(0)
-        assertThat(it.errOutput).isEmpty()
-        assertThat(it.stdOutput).isEqualTo(table1 + lineSeparator() + table2)
-      }
+    client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryTableList().build()).also {
+      assertThat(it.exitCode).isEqualTo(0)
+      assertThat(it.errOutput).isEmpty()
+      assertThat(it.stdOutput).isEqualTo(table1 + lineSeparator() + table2)
+    }
 
     // query view list
-    client
-      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryViewList().build())
-      .also {
-        assertThat(it.exitCode).isEqualTo(0)
-        assertThat(it.errOutput).isEmpty()
-        assertThat(it.stdOutput).isEqualTo(view1)
-      }
+    client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryViewList().build()).also {
+      assertThat(it.exitCode).isEqualTo(0)
+      assertThat(it.errOutput).isEmpty()
+      assertThat(it.stdOutput).isEqualTo(view1)
+    }
 
     // dump table
-    client
-      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).dumpTable(table1).build())
-      .also {
-        assertThat(it.exitCode).isEqualTo(0)
-        assertThat(it.errOutput).isEmpty()
-        assertThat(it.stdOutput)
-          .ignoringCase()
-          .isEqualTo(
-            "PRAGMA foreign_keys=OFF;" +
-              lineSeparator() +
-              "BEGIN TRANSACTION;" +
-              lineSeparator() +
-              "CREATE TABLE IF NOT EXISTS '$table1' ('$column1' int, '$column2' text, '$column3' float);" +
-              lineSeparator() +
-              "INSERT INTO \"$table1\" VALUES(1,'2',3.0);" +
-              lineSeparator() +
-              "INSERT INTO \"$table1\" VALUES(4,'5',6.0);" +
-              lineSeparator() +
-              "COMMIT;"
-          )
-      }
+    client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).dumpTable(table1).build()).also {
+      assertThat(it.exitCode).isEqualTo(0)
+      assertThat(it.errOutput).isEmpty()
+      assertThat(it.stdOutput)
+        .ignoringCase()
+        .isEqualTo(
+          "PRAGMA foreign_keys=OFF;" +
+            lineSeparator() +
+            "BEGIN TRANSACTION;" +
+            lineSeparator() +
+            "CREATE TABLE IF NOT EXISTS '$table1' ('$column1' int, '$column2' text, '$column3' float);" +
+            lineSeparator() +
+            "INSERT INTO \"$table1\" VALUES(1,'2',3.0);" +
+            lineSeparator() +
+            "INSERT INTO \"$table1\" VALUES(4,'5',6.0);" +
+            lineSeparator() +
+            "COMMIT;"
+        )
+    }
 
     // dump everything
     client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).dump().build()).also {
@@ -372,12 +342,7 @@ class SqliteCliClientTest {
     val databaseClone = temporaryFolder.newFile(dbClonePath).toPath().also { it.delete() }
 
     client
-      .runSqliteCliCommand(
-        SqliteCliArgs.builder()
-          .database(databaseFile)
-          .raw(".clone '${databaseClone.toAbsolutePath()}'")
-          .build()
-      )
+      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).raw(".clone '${databaseClone.toAbsolutePath()}'").build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
         assertThat(it.errOutput).isEmpty()
@@ -396,8 +361,8 @@ class SqliteCliClientTest {
   }
 
   /**
-   * Captures a scenario in which [SqliteCliResponse.exitCode] is `0` despite the command failing.
-   * The error can still be detected by inspecting [SqliteCliResponse.errOutput].
+   * Captures a scenario in which [SqliteCliResponse.exitCode] is `0` despite the command failing. The error can still be detected by
+   * inspecting [SqliteCliResponse.errOutput].
    */
   @Test
   fun testErrorMessageAndExitCodeSuccess() = runBlocking {
@@ -409,44 +374,28 @@ class SqliteCliClientTest {
     val dstPath = temporaryFolder.newFile(dstFileName).toPath()
 
     val response =
-      client.runSqliteCliCommand(
-        SqliteCliArgs.builder()
-          .database(databaseFile)
-          .raw(".clone '${dstPath.toAbsolutePath()}'")
-          .build()
-      )
+      client.runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).raw(".clone '${dstPath.toAbsolutePath()}'").build())
 
-    assertWithMessage(
-        "Inspecting exit code from the command. Expecting error code 0 (counter intuitively)."
-      )
+    assertWithMessage("Inspecting exit code from the command. Expecting error code 0 (counter intuitively).")
       .that(response.exitCode)
       .isEqualTo(0)
 
-    assertWithMessage(
-        "Inspecting response from the command. Expecting an error indication. Actual: $response."
-      )
+    assertWithMessage("Inspecting response from the command. Expecting an error indication. Actual: $response.")
       .that(response.errOutput)
       .contains(dstPath.toString())
   }
 
   /**
-   * Copies `sqliteCli3` tool with its parent folder to a temporary location. This allows for e.g.
-   * inserting a spaces in the new location path to ensure the code works under these circumstances.
+   * Copies `sqliteCli3` tool with its parent folder to a temporary location. This allows for e.g. inserting a spaces in the new location
+   * path to ensure the code works under these circumstances.
    */
-  private fun copySqliteCliToTmpDir(
-    @Suppress("SameParameterValue") dirName: String,
-    sqliteCliSrcPath: Path,
-  ): Path {
+  private fun copySqliteCliToTmpDir(@Suppress("SameParameterValue") dirName: String, sqliteCliSrcPath: Path): Path {
     // Copy directory with content
     val tempDirPath = Paths.get(temporaryFolder.root.path)
     val toolsDstPath = Files.createTempDirectory(tempDirPath, dirName)
     val toolsSrcPath = sqliteCliSrcPath.parent
     val copyingSuccess = toolsSrcPath.toFile().copyRecursively(toolsDstPath.toFile())
-    assertWithMessage(
-        "Verifying if sqlite3 folder was successfully copied. Expecting success = true."
-      )
-      .that(copyingSuccess)
-      .isTrue()
+    assertWithMessage("Verifying if sqlite3 folder was successfully copied. Expecting success = true.").that(copyingSuccess).isTrue()
 
     // Copy sqlite3 executable again, with COPY_ATTRIBUTES enabled to ensure the file is executable.
     // There is no other clean solution for this and the file is small, so no harm to repeat this

@@ -37,7 +37,7 @@ data class GradleSyncLoggedEventsTestDef(
   val namePrefix: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  val verify: GradleSyncLoggedEventsTestDef.(events: List<LoggedUsage>) -> Unit = {}
+  val verify: GradleSyncLoggedEventsTestDef.(events: List<LoggedUsage>) -> Unit = {},
 ) : SyncedProjectTestDef {
 
   override val name: String
@@ -63,24 +63,22 @@ data class GradleSyncLoggedEventsTestDef(
     AnalyticsSettings.optedIn = false
     UsageTracker.cleanAfterTesting()
     if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
-      val events = usages
-        .joinToString("\n") { buildString { TextFormat.printer().print(it.studioEvent, this) } }
+      val events = usages.joinToString("\n") { buildString { TextFormat.printer().print(it.studioEvent, this) } }
       println(events)
     }
     verify(usages)
   }
 
   companion object {
-    val tests = listOf(
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "logged_events",
-        testProject = TestProject.SIMPLE_APPLICATION
-      ) { events ->
-        assertThat(events.dumpGradleSyncEvents()).isEqualTo(
-          buildString {
-            val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
-            appendLine(
-              """
+    val tests =
+      listOf(
+        GradleSyncLoggedEventsTestDef(namePrefix = "logged_events", testProject = TestProject.SIMPLE_APPLICATION) { events ->
+          assertThat(events.dumpGradleSyncEvents())
+            .isEqualTo(
+              buildString {
+                  val expectedMode = if (shouldSupportParallelSync()) "PARALLEL" else "SEQUENTIAL"
+                  appendLine(
+                    """
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_PARALLEL
               |GRADLE_SYNC_SETUP_STARTED
@@ -88,40 +86,49 @@ data class GradleSyncLoggedEventsTestDef(
               |  STUDIO_REQUESTD_$expectedMode
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
-              |  STUDIO_REQUESTD_$expectedMode""".trim()
+              |  STUDIO_REQUESTD_$expectedMode"""
+                      .trim()
+                  )
+                }
+                .trimMargin()
             )
-          }.trimMargin()
-        )
-        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
-          buildString {
-            appendLine(
-              """
+          assertThat(events.dumpGradleDetailEvents())
+            .isEqualTo(
+              buildString {
+                  appendLine(
+                    """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
               |  XML : 16
               |  DOT_CLASS : 0
               |  KOTLIN : 0
-              |  NATIVE : 0""".trim()
+              |  NATIVE : 0"""
+                      .trim()
+                  )
+                }
+                .trimMargin()
             )
-          }.trimMargin()
-        )
-        assertThat(events.dumpReportedSyncPhases()).isEqualTo("""
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
-          SUCCESS : SYNC_TOTAL/PROJECT_SETUP
-          SUCCESS : SYNC_TOTAL
-        """.trimIndent().filterExpectedPhases(agpVersion))
-      },
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "logged_events",
-        testProject = TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC
-      ) { events ->
-        assertThat(events.dumpGradleSyncEvents()).isEqualTo(
-          buildString {
-            appendLine(
+          assertThat(events.dumpReportedSyncPhases())
+            .isEqualTo(
               """
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
+              SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
+              SUCCESS : SYNC_TOTAL/PROJECT_SETUP
+              SUCCESS : SYNC_TOTAL
+              """
+                .trimIndent()
+                .filterExpectedPhases(agpVersion)
+            )
+        },
+        GradleSyncLoggedEventsTestDef(namePrefix = "logged_events", testProject = TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC) { events
+          ->
+          assertThat(events.dumpGradleSyncEvents())
+            .isEqualTo(
+              buildString {
+                  appendLine(
+                    """
               |GRADLE_SYNC_STARTED
               |  USER_REQUESTED_SEQUENTIAL
               |GRADLE_SYNC_SETUP_STARTED
@@ -129,48 +136,50 @@ data class GradleSyncLoggedEventsTestDef(
               |  STUDIO_REQUESTD_SEQUENTIAL
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
-              |  STUDIO_REQUESTD_SEQUENTIAL""".trim()
+              |  STUDIO_REQUESTD_SEQUENTIAL"""
+                      .trim()
+                  )
+                }
+                .trimMargin()
             )
-          }.trimMargin()
-        )
-        assertThat(events.dumpGradleDetailEvents()).isEqualTo(
-          buildString {
-            appendLine(
-              """
+          assertThat(events.dumpGradleDetailEvents())
+            .isEqualTo(
+              buildString {
+                  appendLine(
+                    """
               |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
               |  XML : 16
               |  DOT_CLASS : 0
               |  KOTLIN : 0
-              |  NATIVE : 0""".trim()
+              |  NATIVE : 0"""
+                      .trim()
+                  )
+                }
+                .trimMargin()
             )
-          }.trimMargin()
-        )
-      },
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "module_counts",
-        testProject = TestProject.PSD_SAMPLE_GROOVY
-      ) { events ->
-        assertThat(events.dumpModuleCounts()).isEqualTo(
-          """
-            |Module count: 11
-            |Library count: 48
-            |total_module_count: 11
-            |app_module_count: 1
-            |lib_module_count: 6
-            |dynamic_feature_module_count: 1
-            |test_module_count: 0
-            |kotlin_multiplatform_module_count: 0
-          """.trimMargin()
-        )
-      },
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "module_counts",
-        testProject = TestProject.COMPOSITE_BUILD
-      ) { events ->
-        assertThat(events.dumpModuleCounts()).isEqualTo(
-          """
+        },
+        GradleSyncLoggedEventsTestDef(namePrefix = "module_counts", testProject = TestProject.PSD_SAMPLE_GROOVY) { events ->
+          assertThat(events.dumpModuleCounts())
+            .isEqualTo(
+              """
+              |Module count: 11
+              |Library count: 48
+              |total_module_count: 11
+              |app_module_count: 1
+              |lib_module_count: 6
+              |dynamic_feature_module_count: 1
+              |test_module_count: 0
+              |kotlin_multiplatform_module_count: 0
+              """
+                .trimMargin()
+            )
+        },
+        GradleSyncLoggedEventsTestDef(namePrefix = "module_counts", testProject = TestProject.COMPOSITE_BUILD) { events ->
+          assertThat(events.dumpModuleCounts())
+            .isEqualTo(
+              """
             |Module count: 13
             |Library count: ${
               // In AGP 9.0+, the Kotlin standard library is provided by the built-in Kotlin support
@@ -185,55 +194,58 @@ data class GradleSyncLoggedEventsTestDef(
             |dynamic_feature_module_count: 0
             |test_module_count: 0
             |kotlin_multiplatform_module_count: 0
-          """.trimMargin()
-        )
-        assertThat(events.dumpReportedSyncPhases()).isEqualTo("""
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
-          SUCCESS : SYNC_TOTAL/PROJECT_SETUP
-          SUCCESS : SYNC_TOTAL
-        """.trimIndent().filterExpectedPhases(agpVersion))
-      },
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "kotlin_versions",
-        testProject = TestProject.KOTLIN_KAPT
-      ) { events ->
-        assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion() ?: agpVersion.kotlinVersion)).isEqualTo(
           """
-            |kotlin version: KOTLIN_VERSION_FOR_TESTS
-            |core-ktx version: 1.0.1
-          """.trimMargin()
-        )
-      },
-      GradleSyncLoggedEventsTestDef(
-        namePrefix = "kotlin_versions",
-        testProject = TestProject.SIMPLE_APPLICATION_VERSION_CATALOG
-      ) { events ->
-        assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion())).isEqualTo("""
-            |kotlin version: KOTLIN_VERSION_FOR_TESTS
-        """.trimMargin())
-      }
-    )
+                .trimMargin()
+            )
+          assertThat(events.dumpReportedSyncPhases())
+            .isEqualTo(
+              """
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+              SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
+              SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
+              SUCCESS : SYNC_TOTAL/PROJECT_SETUP
+              SUCCESS : SYNC_TOTAL
+              """
+                .trimIndent()
+                .filterExpectedPhases(agpVersion)
+            )
+        },
+        GradleSyncLoggedEventsTestDef(namePrefix = "kotlin_versions", testProject = TestProject.KOTLIN_KAPT) { events ->
+          assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion() ?: agpVersion.kotlinVersion))
+            .isEqualTo(
+              """
+              |kotlin version: KOTLIN_VERSION_FOR_TESTS
+              |core-ktx version: 1.0.1
+              """
+                .trimMargin()
+            )
+        },
+        GradleSyncLoggedEventsTestDef(namePrefix = "kotlin_versions", testProject = TestProject.SIMPLE_APPLICATION_VERSION_CATALOG) { events
+          ->
+          assertThat(events.dumpKotlinVersions(agpVersion.getBuiltInKotlinVersion()))
+            .isEqualTo(
+              """
+              |kotlin version: KOTLIN_VERSION_FOR_TESTS
+              """
+                .trimMargin()
+            )
+        },
+      )
 
-    private fun List<LoggedUsage>.dumpGradleSyncEvents() = dumpEvents(
-      filterBy = { hasGradleSyncStats() },
-    )
+    private fun List<LoggedUsage>.dumpGradleSyncEvents() = dumpEvents(filterBy = { hasGradleSyncStats() })
 
-    private fun List<LoggedUsage>.dumpGradleDetailEvents() = dumpEvents(
-      filterBy = { hasGradleBuildDetails() || intellijProjectSizeStatsCount > 0 },
-      sortedBy = { kind.name }
-    )
+    private fun List<LoggedUsage>.dumpGradleDetailEvents() =
+      dumpEvents(filterBy = { hasGradleBuildDetails() || intellijProjectSizeStatsCount > 0 }, sortedBy = { kind.name })
 
     private fun List<LoggedUsage>.dumpEvents(
       filterBy: AndroidStudioEvent.() -> Boolean,
-      sortedBy: AndroidStudioEvent.() -> String? = { null }
+      sortedBy: AndroidStudioEvent.() -> String? = { null },
     ): String {
       return map { it.studioEvent }
         .filter { filterBy(it) }
@@ -246,24 +258,23 @@ data class GradleSyncLoggedEventsTestDef(
               if (it.gradleSyncStats.hasStudioRequestedSyncType()) appendLine("  ${it.gradleSyncStats.studioRequestedSyncType}")
               it.gradleSyncIssuesList.forEach { issue ->
                 appendLine("  ${issue.type}")
-                issue.offeredQuickFixesList.forEach { fix ->
-                  appendLine("    $fix")
-                }
+                issue.offeredQuickFixesList.forEach { fix -> appendLine("    $fix") }
               }
             }
-            it.intellijProjectSizeStatsList.forEach {
-              entry -> appendLine("  ${entry.type} : ${entry.count}")
-            }
+            it.intellijProjectSizeStatsList.forEach { entry -> appendLine("  ${entry.type} : ${entry.count}") }
           }
         }
         .trim()
     }
 
     private fun List<LoggedUsage>.dumpReportedSyncPhases(): String {
-      return filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }.map { it.studioEvent.gradleSyncStats }
-        .joinToString("\n---\n") { stats -> stats.gradleSyncPhasesDataList.joinToString("\n") { phase ->
-          phase.phaseResult.name + " : " + phase.phaseStackList.joinToString(separator = "/") { it.name }
-        }}
+      return filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
+        .map { it.studioEvent.gradleSyncStats }
+        .joinToString("\n---\n") { stats ->
+          stats.gradleSyncPhasesDataList.joinToString("\n") { phase ->
+            phase.phaseResult.name + " : " + phase.phaseStackList.joinToString(separator = "/") { it.name }
+          }
+        }
         .trim()
     }
 
@@ -273,9 +284,7 @@ data class GradleSyncLoggedEventsTestDef(
       if (gradleVersion == null || GradleVersionUtil.isGradleAtLeast(gradleVersion, "7.6")) {
         return this
       }
-      return lineSequence()
-        .filterNot { it.contains(" : SYNC_TOTAL/GRADLE_") }
-        .joinToString(separator = "\n")
+      return lineSequence().filterNot { it.contains(" : SYNC_TOTAL/GRADLE_") }.joinToString(separator = "\n")
     }
 
     private fun List<LoggedUsage>.dumpModuleCounts(): String {
@@ -284,15 +293,13 @@ data class GradleSyncLoggedEventsTestDef(
         .map { it.gradleBuildDetails }
         .let {
           buildString {
-            it
-              .forEach { gradleBuildDetails ->
+              it.forEach { gradleBuildDetails ->
                 appendLine("Module count: ${gradleBuildDetails.getModuleCount()}")
                 appendLine("Library count: ${gradleBuildDetails.libCount}")
-                gradleBuildDetails.modulesList.forEach { gradleModule ->
-                  TextFormat.printer().print(gradleModule, this)
-                }
+                gradleBuildDetails.modulesList.forEach { gradleModule -> TextFormat.printer().print(gradleModule, this) }
               }
-          }.trim()
+            }
+            .trim()
         }
     }
 
@@ -304,14 +311,15 @@ data class GradleSyncLoggedEventsTestDef(
         .last()
         .let {
           buildString {
-            if (it.hasKotlinSupportVersion()) {
-              val versionForPrint = it.kotlinSupportVersion.takeIf { it != expectedKotlinVersion } ?: "KOTLIN_VERSION_FOR_TESTS"
-              appendLine("kotlin version: $versionForPrint")
+              if (it.hasKotlinSupportVersion()) {
+                val versionForPrint = it.kotlinSupportVersion.takeIf { it != expectedKotlinVersion } ?: "KOTLIN_VERSION_FOR_TESTS"
+                appendLine("kotlin version: $versionForPrint")
+              }
+              if (it.hasAndroidKtxVersion()) {
+                appendLine("core-ktx version: ${it.androidKtxVersion}")
+              }
             }
-            if (it.hasAndroidKtxVersion()) {
-              appendLine("core-ktx version: ${it.androidKtxVersion}")
-            }
-          }.trim()
+            .trim()
         }
     }
   }

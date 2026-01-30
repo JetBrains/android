@@ -79,26 +79,11 @@ class AssistedInjectConstructorDaggerConceptTest {
         MY_ASSISTED_INJECT_CLASS_ID.asFqNameString(),
         setOf(AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)),
         "Dep1",
-        setOf(
-          AssistedInjectConstructorUnassistedParameterIndexValue(
-            MY_ASSISTED_INJECT_CLASS_ID,
-            "dep1",
-          )
-        ),
+        setOf(AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep1")),
         "Dep2",
-        setOf(
-          AssistedInjectConstructorUnassistedParameterIndexValue(
-            MY_ASSISTED_INJECT_CLASS_ID,
-            "dep2",
-          )
-        ),
+        setOf(AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep2")),
         "Dep3",
-        setOf(
-          AssistedInjectConstructorUnassistedParameterIndexValue(
-            MY_ASSISTED_INJECT_CLASS_ID,
-            "dep3",
-          )
-        ),
+        setOf(AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")),
       )
   }
 
@@ -142,9 +127,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
     val assistedInjectConstructorDaggerElement =
       AssistedInjectConstructorDaggerElement(
-        myFixture.findParentElement<KtConstructor<*>>(
-          "class MyAssistedInjectClass @AssistedInject constru|ctor"
-        )
+        myFixture.findParentElement<KtConstructor<*>>("class MyAssistedInjectClass @AssistedInject constru|ctor")
       )
 
     assertThat(
@@ -199,9 +182,7 @@ class AssistedInjectConstructorDaggerConceptTest {
     )
 
     val assistedInjectConstructorDaggerElement =
-      AssistedInjectConstructorDaggerElement(
-        myFixture.findParentElement<PsiMethod>("MyAssisted|InjectClass(")
-      )
+      AssistedInjectConstructorDaggerElement(myFixture.findParentElement<PsiMethod>("MyAssisted|InjectClass("))
 
     assertThat(
         AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
@@ -220,8 +201,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
   @Test
   fun assistedInjectConstructorUnassistedParameterIndexValue_serialization() {
-    val indexValue =
-      AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "def")
+    val indexValue = AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -257,8 +237,7 @@ class AssistedInjectConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val parameterDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("de|p3: Dep3"))
+    val parameterDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("de|p3: Dep3"))
 
     // Expected to resolve
     assertThat(
@@ -324,8 +303,7 @@ class AssistedInjectConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val parameterDaggerElement =
-      ConsumerDaggerElement(myFixture.findParentElement<PsiParameter>("Dep3 de|p3"))
+    val parameterDaggerElement = ConsumerDaggerElement(myFixture.findParentElement<PsiParameter>("Dep3 de|p3"))
 
     // Expected to resolve
     assertThat(
@@ -385,28 +363,18 @@ class AssistedInjectConstructorDaggerConceptTest {
     )
 
     val assistedInjectConstructorDaggerElement =
-      AssistedInjectConstructorDaggerElement(
-        myFixture.findParentElement<KtConstructor<*>>("CreatedObject @AssistedInject const|ructor")
-      )
+      AssistedInjectConstructorDaggerElement(myFixture.findParentElement<KtConstructor<*>>("CreatedObject @AssistedInject const|ructor"))
 
-    val assistedFactoryMethodDaggerElement =
-      AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun cre|ate"))
+    val assistedFactoryMethodDaggerElement = AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun cre|ate"))
 
     assertThat(assistedInjectConstructorDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          assistedFactoryMethodDaggerElement,
-          "AssistedFactory methods",
-          "navigate.to.assisted.factory",
-          "create",
-        )
+        DaggerRelatedElement(assistedFactoryMethodDaggerElement, "AssistedFactory methods", "navigate.to.assisted.factory", "create")
       )
   }
 
   companion object {
-    private val MY_ASSISTED_INJECT_CLASS_ID =
-      ClassId.fromString("com/example/MyAssistedInjectClass")
-    private val MY_NOT_ASSISTED_INJECT_CLASS_ID =
-      ClassId.fromString("com/example/MyNotAssistedInjectClass")
+    private val MY_ASSISTED_INJECT_CLASS_ID = ClassId.fromString("com/example/MyAssistedInjectClass")
+    private val MY_NOT_ASSISTED_INJECT_CLASS_ID = ClassId.fromString("com/example/MyNotAssistedInjectClass")
   }
 }

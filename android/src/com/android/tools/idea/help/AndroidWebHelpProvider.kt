@@ -18,9 +18,7 @@ package com.android.tools.idea.help
 import com.google.common.base.Verify
 import com.intellij.openapi.help.WebHelpProvider
 
-/**
- * An Android-specific provider which routes help topics to developer.android.com.
- */
+/** An Android-specific provider which routes help topics to developer.android.com. */
 class AndroidWebHelpProvider : WebHelpProvider() {
 
   override fun getHelpPageUrl(helpTopicId: String): String? {

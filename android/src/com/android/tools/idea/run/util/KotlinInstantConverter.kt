@@ -21,6 +21,5 @@ import kotlin.time.Instant
 object KotlinInstantConverter : Converter<Instant>() {
   override fun toString(value: Instant): String = value.toString()
 
-  override fun fromString(value: String): Instant? =
-    runCatching { Instant.parse(value) }.getOrNull()
+  override fun fromString(value: String): Instant? = runCatching { Instant.parse(value) }.getOrNull()
 }

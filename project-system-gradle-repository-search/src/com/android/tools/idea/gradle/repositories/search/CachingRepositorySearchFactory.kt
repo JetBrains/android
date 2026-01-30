@@ -26,24 +26,18 @@ class CachingRepositorySearchFactory : RepositorySearchFactory {
 
   override fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService =
     ArtifactRepositorySearch(
-      synchronized(lock) {
-        repositories
-          .map { artifactRepositorySearchServices.getOrPut(it) { CachingArtifactRepositorySearch(it) } }
-      }
+      synchronized(lock) { repositories.map { artifactRepositorySearchServices.getOrPut(it) { CachingArtifactRepositorySearch(it) } } }
     )
 
-  private class CachingArtifactRepositorySearch(
-    private val artifactRepositorySearch: ArtifactRepositorySearchService
-  ) : ArtifactRepositorySearchService {
+  private class CachingArtifactRepositorySearch(private val artifactRepositorySearch: ArtifactRepositorySearchService) :
+    ArtifactRepositorySearchService {
     private val lock = Any()
 
-    @GuardedBy("lock")
-    private val requestCache = mutableMapOf<SearchRequest, ListenableFuture<SearchResult>>()
+    @GuardedBy("lock") private val requestCache = mutableMapOf<SearchRequest, ListenableFuture<SearchResult>>()
 
     override fun search(request: SearchRequest): ListenableFuture<SearchResult> =
       synchronized(lock) {
-        requestCache[request]?.takeUnless { it.isCancelled }
-        ?: artifactRepositorySearch.search(request).also { requestCache[request] = it }
+        requestCache[request]?.takeUnless { it.isCancelled } ?: artifactRepositorySearch.search(request).also { requestCache[request] = it }
       }
   }
 }

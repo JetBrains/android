@@ -29,25 +29,26 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.whenever
 
 class AssistantInvokerImplTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   val project by lazy { projectRule.project }
 
   @After
   fun tearDown() {
-    invokeAndWaitIfNeeded {
-      JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
-    }
+    invokeAndWaitIfNeeded { JavaAwareProjectJdkTableImpl.removeInternalJdkInTests() }
   }
 
   @Test
   fun testDialogUpgradeAccepted() {
-    projectRule.fixture.addFileToProject("build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies {
         compile 'com.android.tools.build:gradle:4.2.0'
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val assistantInvoker = AssistantInvokerImpl()
     val dialog = mock(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java)
     val element = mock(PsiElement::class.java)
@@ -60,11 +61,15 @@ class AssistantInvokerImplTest {
 
   @Test
   fun testDialogUpgradeRefused() {
-    projectRule.fixture.addFileToProject("build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
       dependencies {
         compile 'com.android.tools.build:gradle:4.2.0'
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val assistantInvoker = AssistantInvokerImpl()
     val dialog = mock(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java)
     val element = mock(PsiElement::class.java)

@@ -42,16 +42,9 @@ interface DatabaseInspectorModel {
 
   @UiThread
   interface Listener {
-    fun onDatabasesChanged(
-      openDatabaseIds: List<SqliteDatabaseId>,
-      closeDatabaseIds: List<SqliteDatabaseId>,
-    )
+    fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>)
 
-    fun onSchemaChanged(
-      databaseId: SqliteDatabaseId,
-      oldSchema: SqliteSchema,
-      newSchema: SqliteSchema,
-    )
+    fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema)
   }
 }
 

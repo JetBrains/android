@@ -39,6 +39,8 @@ import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.content.ContentFactory
+import java.awt.Dimension
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -47,8 +49,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import kotlin.time.Duration.Companion.seconds
 
 private const val SETTINGS_BUTTON_TEXT = "Device UI Shortcuts"
 private const val ITERATION_DELAY_MS = 5L
@@ -59,8 +59,7 @@ class EmulatorAdbReadyServiceTest {
   private val emulatorRule = FakeEmulatorRule()
   private val deviceProvisionerRule = DeviceProvisionerRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, emulatorRule, deviceProvisionerRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, emulatorRule, deviceProvisionerRule)
 
   private val project: Project
     get() = projectRule.project
@@ -142,8 +141,7 @@ class EmulatorAdbReadyServiceTest {
 
   private fun FakeDeviceHandle.connectToMockDevice(serialNumber: String) {
     mock<ConnectedDevice>().also { mockDevice ->
-      whenever(mockDevice.deviceInfoFlow)
-        .thenReturn(MutableStateFlow(DeviceInfo(serialNumber, com.android.adblib.DeviceState.ONLINE)))
+      whenever(mockDevice.deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(serialNumber, com.android.adblib.DeviceState.ONLINE)))
       stateFlow.update { com.android.sdklib.deviceprovisioner.DeviceState.Connected(it.properties, mockDevice) }
     }
   }
@@ -173,7 +171,7 @@ class EmulatorAdbReadyServiceTest {
     panel.size = Dimension(200, 400)
     ui.layoutAndDispatchEvents()
     val content = ContentFactory.getInstance().createContent(panel, "Emulator", false)
-    val toolWindow =  ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!
     toolWindow.contentManager.addContent(content)
     val emulatorView = panel.primaryDisplayView!!
     val frameNumber = emulatorView.frameNumber
@@ -185,10 +183,9 @@ class EmulatorAdbReadyServiceTest {
   private fun waitForFrame(ui: FakeUi, view: EmulatorView, fakeEmulator: FakeEmulator, panel: EmulatorToolWindowPanel) {
     waitForCondition(TIMEOUT) {
       view.emulator.connectionState == EmulatorController.ConnectionState.CONNECTED &&
-      view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
-      view.currentPosture?.posture == fakeEmulator.devicePosture
-      fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber &&
-      settingsButtonIsVisible(ui)
+        view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
+        view.currentPosture?.posture == fakeEmulator.devicePosture
+      fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber && settingsButtonIsVisible(ui)
     }
   }
 

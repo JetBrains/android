@@ -51,10 +51,8 @@ fun isGradleFile(psiFile: PsiFile): Boolean {
   return fileType === PropertiesFileType.INSTANCE &&
     (SdkConstants.FN_GRADLE_PROPERTIES == name ||
       SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name ||
-      (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
-        SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name) ||
-      (GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME == name &&
-       GRADLE_DIR_NAME == psiFile.parent?.name))
+      (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name && SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name) ||
+      (GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME == name && GRADLE_DIR_NAME == psiFile.parent?.name))
 }
 
 internal fun isRelevantFile(file: PsiFile): Boolean {
@@ -73,8 +71,7 @@ internal fun isRelevantFile(file: VirtualFile): Boolean {
   // try to infer the type based on the extension.
   val extension = file.extension
   if (StringUtil.isEmpty(extension)) return false
-  if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension)
-    return false
+  if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension) return false
   if (XmlFileType.DEFAULT_EXTENSION == extension) return true
   if (SdkConstants.FN_ANDROID_MANIFEST_XML == file.name) return true
   if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION == extension) return true
@@ -91,7 +88,5 @@ private fun isRelevantFileType(fileType: FileType): Boolean {
   if (fileType === XmlFileType.INSTANCE) return true
 
   // TODO: ensure that only Android-compatible images are recognized.
-  return fileType.isBinary &&
-    (fileType === ImageFileTypeManager.getInstance().imageFileType ||
-      fileType === FontFileType.INSTANCE)
+  return fileType.isBinary && (fileType === ImageFileTypeManager.getInstance().imageFileType || fileType === FontFileType.INSTANCE)
 }

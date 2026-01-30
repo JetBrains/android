@@ -33,15 +33,15 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.WaitFor
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.dom.resources.ResourceValue
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 import java.awt.Window
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import org.jetbrains.android.dom.resources.ResourceValue
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A [ResourceExplorer] used in a dialog for resource picking.
@@ -49,8 +49,8 @@ import javax.swing.JComponent
  * @param facet The current [AndroidFacet], used to determine the module in the ResourceExplorer.
  * @param initialResourceUrl The resourceUrl (@string/name) of the initial value, if any.
  * @param supportedTypes The supported [ResourceType]s that can be picked.
- * @param preferredType The preferred [ResourceType] to show when the [ResourcePickerDialog] opens, this may be ignored if there's a
- * valid initialResourceUrl given. Eg: "@drawable/foo" will open the dialog in [ResourceType.DRAWABLE].
+ * @param preferredType The preferred [ResourceType] to show when the [ResourcePickerDialog] opens, this may be ignored if there's a valid
+ *   initialResourceUrl given. Eg: "@drawable/foo" will open the dialog in [ResourceType.DRAWABLE].
  * @param showSampleData Includes [ResourceType.SAMPLE_DATA] resources as options to pick.
  * @param currentFile The [VirtualFile] that may have an specific preview configuration.
  */
@@ -61,34 +61,35 @@ class ResourcePickerDialog(
   preferredType: ResourceType?,
   showSampleData: Boolean,
   showThemeAttributes: Boolean,
-  currentFile: VirtualFile?
+  currentFile: VirtualFile?,
 ) : DialogWrapper(facet.module.project) {
 
   @TestOnly // TODO: consider getting this for tests in a better way.
-  val resourceExplorerPanel = kotlin.run {
-    // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
-    // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
-    val resourceValue = initialResourceUrl?.let {
-      ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null }
+  val resourceExplorerPanel =
+    kotlin.run {
+      // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
+      // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
+      val resourceValue =
+        initialResourceUrl?.let { ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null } }
+      // Check if the inferred ResourceType is valid for the supported types, fallback to the preferred type value.
+      val resourceType =
+        resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType?.takeIf { supportedTypes.contains(it) }
+      return@run ResourceExplorer.createResourcePicker(
+        facet,
+        getSortedResourceTypes(supportedTypes),
+        resourceValue?.resourceName,
+        resourceType,
+        showSampleData,
+        showThemeAttributes,
+        currentFile,
+        this::updateSelectedResource,
+        this::doSelectResource,
+      )
     }
-    // Check if the inferred ResourceType is valid for the supported types, fallback to the preferred type value.
-    val resourceType = resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType?.takeIf { supportedTypes.contains(it) }
-    return@run ResourceExplorer.createResourcePicker(facet,
-                                                     getSortedResourceTypes(supportedTypes),
-                                                     resourceValue?.resourceName,
-                                                     resourceType,
-                                                     showSampleData,
-                                                     showThemeAttributes,
-                                                     currentFile,
-                                                     this::updateSelectedResource,
-                                                     this::doSelectResource)
-  }
 
   private var pickedResourceName: String? = null
 
-  private val explorerUpdater = ModalExplorerUpdater(facet) {
-    resourceExplorerPanel.refreshIfOutdated()
-  }
+  private val explorerUpdater = ModalExplorerUpdater(facet) { resourceExplorerPanel.refreshIfOutdated() }
 
   init {
     ResourceManagerTracking.logDialogOpens(facet)
@@ -100,9 +101,8 @@ class ResourcePickerDialog(
     this.isOKActionEnabled = false
   }
 
-  override fun createCenterPanel() = resourceExplorerPanel.apply {
-    border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
-  }
+  override fun createCenterPanel() =
+    resourceExplorerPanel.apply { border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR) }
 
   override fun getPreferredFocusedComponent(): JComponent = resourceExplorerPanel.getPreferredFocusedComponent()
 
@@ -136,8 +136,7 @@ class ResourcePickerDialog(
     val windowInstance: Window? = window
     if (windowInstance != null) {
       runnable(windowInstance)
-    }
-    else if (!ApplicationManager.getApplication().isUnitTestMode) {
+    } else if (!ApplicationManager.getApplication().isUnitTestMode) {
       thisLogger().warn("Window instance is null")
     }
   }
@@ -181,27 +180,29 @@ private fun ResourceItem.getReferenceString(): String {
 private class ModalExplorerUpdater(private val facet: AndroidFacet, private val doRefreshCallback: () -> Unit) : WindowFocusListener {
   private var mayRefresh: Boolean = false
 
-  private val waitForResourcesTask = object : Task.Modal(facet.module.project, "Updating Resources", false) {
-    override fun run(indicator: ProgressIndicator) {
-      assert(!ApplicationManager.getApplication().isDispatchThread)
-      indicator.text = "Updating resources..."
-      indicator.isIndeterminate = true
-      val repoUpdated = AtomicBoolean(false)
+  private val waitForResourcesTask =
+    object : Task.Modal(facet.module.project, "Updating Resources", false) {
+      override fun run(indicator: ProgressIndicator) {
+        assert(!ApplicationManager.getApplication().isDispatchThread)
+        indicator.text = "Updating resources..."
+        indicator.isIndeterminate = true
+        val repoUpdated = AtomicBoolean(false)
 
-      // Commit any pending document changes
-      PsiDocumentManager.getInstance(facet.module.project).commitAllDocumentsUnderProgress()
+        // Commit any pending document changes
+        PsiDocumentManager.getInstance(facet.module.project).commitAllDocumentsUnderProgress()
 
-      StudioResourceRepositoryManager.getInstance(facet).appResources.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
-        // Wait for Resource repository to update
-        repoUpdated.set(true)
-      }
-      object : WaitFor(3000) {
-        override fun condition(): Boolean {
-          return repoUpdated.get()
+        StudioResourceRepositoryManager.getInstance(facet).appResources.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
+          // Wait for Resource repository to update
+          repoUpdated.set(true)
         }
-      }.assertCompleted()
+        object : WaitFor(3000) {
+            override fun condition(): Boolean {
+              return repoUpdated.get()
+            }
+          }
+          .assertCompleted()
+      }
     }
-  }
 
   override fun windowGainedFocus(e: WindowEvent?) {
     if (mayRefresh) {

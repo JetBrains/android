@@ -21,25 +21,22 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.annotations.ApiStatus
 
 /**
- * This extension point is for internal use only.
- * It will be retired once the Gradle test results console view can be customised, see
+ * This extension point is for internal use only. It will be retired once the Gradle test results console view can be customised, see
  * https://youtrack.jetbrains.com/issue/IDEA-368796
  */
 @ApiStatus.Internal
 interface TestSuiteViewAdaptorProvider {
   companion object {
     @JvmStatic
-    val ADAPTOR_PROVIDER_EP_NAME: ExtensionPointName<TestSuiteViewAdaptorProvider> = ExtensionPointName.create(
-      "com.android.tools.idea.testartifacts.testsuite.temp.testSuiteViewAdaptorProvider")
+    val ADAPTOR_PROVIDER_EP_NAME: ExtensionPointName<TestSuiteViewAdaptorProvider> =
+      ExtensionPointName.create("com.android.tools.idea.testartifacts.testsuite.temp.testSuiteViewAdaptorProvider")
 
     @JvmStatic
     fun firstNonNullAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
-      val adaptors = ADAPTOR_PROVIDER_EP_NAME.extensionList.mapNotNull {
-        it.getAdaptor(runConfiguration)
-      }
+      val adaptors = ADAPTOR_PROVIDER_EP_NAME.extensionList.mapNotNull { it.getAdaptor(runConfiguration) }
       if (adaptors.size > 1) {
-        Logger.getInstance(TestSuiteViewAdaptorProvider::class.java).warn(
-          "Multiple 'TestSuiteViewAdaptorProvider's found for $runConfiguration: $adaptors")
+        Logger.getInstance(TestSuiteViewAdaptorProvider::class.java)
+          .warn("Multiple 'TestSuiteViewAdaptorProvider's found for $runConfiguration: $adaptors")
       }
 
       return adaptors.firstOrNull()
@@ -50,8 +47,7 @@ interface TestSuiteViewAdaptorProvider {
    * Provides an [TestSuiteViewAdaptor] for the given [runConfiguration].
    *
    * @param runConfiguration The run configuration for which an adaptor is requested.
-   * @return An instance of [TestSuiteViewAdaptor] if this provider handles
-   *         the given configuration, or `null` otherwise.
+   * @return An instance of [TestSuiteViewAdaptor] if this provider handles the given configuration, or `null` otherwise.
    */
   fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor?
 }

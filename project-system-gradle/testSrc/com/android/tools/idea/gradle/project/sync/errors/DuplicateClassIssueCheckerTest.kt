@@ -25,13 +25,13 @@ import org.junit.Test
 class DuplicateClassIssueCheckerTest {
   private val VALID_MESSAGE_AGP_8_7 =
     "Duplicate class org.intellij.lang.annotations.Identifier found in modules jetified-annotations-12.0 (com.intellij:annotations:12.0) and jetified-annotations-13.0 (org.jetbrains:annotations:13.0)\n" +
-    "\n" +
-    "Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors"
+      "\n" +
+      "Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors"
   // Message before change in 8.7
   private val VALID_MESSAGE_AGP_OLD =
     "Duplicate class org.intellij.lang.annotations.Identifier found in modules jetified-annotations-12.0 (com.intellij:annotations:12.0) and jetified-annotations-13.0 (org.jetbrains:annotations:13.0)\n" +
-    "\n" +
-    "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>."
+      "\n" +
+      "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>."
   private val issueChecker = DuplicateClassIssueChecker()
 
   @Test
@@ -57,7 +57,8 @@ class DuplicateClassIssueCheckerTest {
 
   @Test
   fun `link is replaced with correct message`() {
-    val issueData = GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_8_7)), null, null)
+    val issueData =
+      GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_8_7)), null, null)
     val buildIssue = issueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes).isEmpty()
@@ -66,7 +67,8 @@ class DuplicateClassIssueCheckerTest {
 
   @Test
   fun `link is replaced with correct older message`() {
-    val issueData = GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_OLD)), null, null)
+    val issueData =
+      GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_OLD)), null, null)
     val buildIssue = issueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes).hasSize(1)
@@ -87,23 +89,27 @@ class DuplicateClassIssueCheckerTest {
     But GradleBuildScriptErrorParser does not support empty lines in the description, so the link line is missing in practice.
      */
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Duplicate class  ABC",
-        null,
-        null,
-        ":app:checkDebugDuplicateClasses",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Duplicate class  ABC",
+          null,
+          null,
+          ":app:checkDebugDuplicateClasses",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Duplicate class  ABC",
-        null,
-        null,
-        ":app:compileDebug",
-        TestMessageEventConsumer()
-      )).isEqualTo(false)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Duplicate class  ABC",
+          null,
+          null,
+          ":app:compileDebug",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(false)
   }
 }

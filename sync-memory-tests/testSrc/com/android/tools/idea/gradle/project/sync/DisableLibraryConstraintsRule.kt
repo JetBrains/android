@@ -19,8 +19,6 @@ import org.junit.rules.ExternalResource
 
 class DisableLibraryConstraintsRule : ExternalResource() {
   override fun before() {
-    mutateGradleProperties {
-      this.properties.setProperty("android.dependency.excludeLibraryComponentsFromConstraints", true.toString())
-    }
+    mutateGradleProperties { this.properties.setProperty("android.dependency.excludeLibraryComponentsFromConstraints", true.toString()) }
   }
 }

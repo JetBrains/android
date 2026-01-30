@@ -26,14 +26,10 @@ import java.nio.file.Path
 
 /**
  * A fully sync'd project at a point in time. This consists of:
- *
- *
- *  * The output from the query part of sync, [.queryData].
- *  * Build graph information derived form the sync data, [.graph].
- *  * The output from all dependency builds to date, [.artifactState].
- *  * The IntelliJ project structure derived from the above, presented as a proto, [       ][.project].
- *
- *
+ * * The output from the query part of sync, [.queryData].
+ * * Build graph information derived form the sync data, [.graph].
+ * * The output from all dependency builds to date, [.artifactState].
+ * * The IntelliJ project structure derived from the above, presented as a proto, [ ][.project].
  *
  * This class is immutable, any modifications to the project will yield a new instance.
  */
@@ -42,22 +38,26 @@ data class QuerySyncProjectSnapshot(
   val graph: BuildGraphData,
   val artifactState: ArtifactTracker.State,
   val project: ProjectProto.Project,
-  val incompleteTargets: Set<Label>
-){
-    companion object {
-      @JvmField
-      val EMPTY = QuerySyncProjectSnapshot(
+  val incompleteTargets: Set<Label>,
+) {
+  companion object {
+    @JvmField
+    val EMPTY =
+      QuerySyncProjectSnapshot(
         queryData = PostQuerySyncData.EMPTY,
         graph = BuildGraphData.EMPTY,
         artifactState = ArtifactTracker.State.EMPTY,
         project = ProjectProto.Project.getDefaultInstance(),
-        incompleteTargets = emptySet()
+        incompleteTargets = emptySet(),
       )
   }
 
   fun withQueryData(value: PostQuerySyncData): QuerySyncProjectSnapshot = copy(queryData = value)
+
   fun withGraph(value: BuildGraphData): QuerySyncProjectSnapshot = copy(graph = value)
+
   fun withArtifactState(value: ArtifactTracker.State): QuerySyncProjectSnapshot = copy(artifactState = value)
+
   fun withProject(value: ProjectProto.Project): QuerySyncProjectSnapshot = copy(project = value)
 
   /**
@@ -70,16 +70,16 @@ data class QuerySyncProjectSnapshot(
   }
 
   val allLoadedTargets: Collection<Label>
-    /** Returns mapping of targets to [BuildTarget]  */
+    /** Returns mapping of targets to [BuildTarget] */
     get() = graph.allLoadedTargets()
 
-  val artifactIndex: ArtifactIndex by lazy(LazyThreadSafetyMode.PUBLICATION) {ArtifactIndex.create(artifactState) }
+  val artifactIndex: ArtifactIndex by lazy(LazyThreadSafetyMode.PUBLICATION) { ArtifactIndex.create(artifactState) }
 
   /**
-   * For given project targets, returns all dependency targets that are [ ][BuildGraphDataImpl.projectDeps] external} to the project,
-   * from which build artifacts are needed for the targets sources to be edited fully. This method returns the dependencies for the target
-   * with fewest pending so that if dependencies have been built for one, the empty set will be
-   * returned even if others have pending dependencies.
+   * For given project targets, returns all dependency targets that are [ ][BuildGraphDataImpl.projectDeps] external} to the project, from
+   * which build artifacts are needed for the targets sources to be edited fully. This method returns the dependencies for the target with
+   * fewest pending so that if dependencies have been built for one, the empty set will be returned even if others have pending
+   * dependencies.
    *
    * @param projectTargets The set of project targets which include a given source file.
    */
@@ -98,7 +98,7 @@ data class QuerySyncProjectSnapshot(
       .orEmpty()
   }
 
-  /** Recursively get all the transitive deps outside the project  */
+  /** Recursively get all the transitive deps outside the project */
   fun getPendingTargets(workspaceRelativePath: Path): Set<Label> {
     Preconditions.checkState(!workspaceRelativePath.isAbsolute, workspaceRelativePath)
     return getPendingExternalDeps(getTargetOwners(workspaceRelativePath))

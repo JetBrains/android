@@ -46,10 +46,8 @@ import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 import org.jetbrains.annotations.VisibleForTesting
 
-class AppInsightsGutterIconAction(
-  private val insights: List<AppInsight>,
-  private val itemChosenCallback: (AppInsight) -> Unit,
-) : AnAction() {
+class AppInsightsGutterIconAction(private val insights: List<AppInsight>, private val itemChosenCallback: (AppInsight) -> Unit) :
+  AnAction() {
   private val logger: Logger
     get() = Logger.getInstance(javaClass)
 
@@ -91,28 +89,14 @@ class AppInsightsGutterIconAction(
             val usersTotal = insights.sumOf { it.issue.issueDetails.impactedDevicesCount }
             val eventsComponent =
               ResizedSimpleColoredComponent().apply {
-                icon =
-                  generateColoredIcon(
-                    StudioIcons.GutterIcons.ISSUE,
-                    UIUtil.getLabelDisabledForeground(),
-                  )
-                append(
-                  eventsTotal.formatNumberToPrettyString(),
-                  SimpleTextAttributes.REGULAR_ATTRIBUTES,
-                )
+                icon = generateColoredIcon(StudioIcons.GutterIcons.ISSUE, UIUtil.getLabelDisabledForeground())
+                append(eventsTotal.formatNumberToPrettyString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
               }
 
             val usersComponent =
               ResizedSimpleColoredComponent().apply {
-                icon =
-                  generateColoredIcon(
-                    StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
-                    UIUtil.getLabelDisabledForeground(),
-                  )
-                append(
-                  usersTotal.formatNumberToPrettyString(),
-                  SimpleTextAttributes.REGULAR_ATTRIBUTES,
-                )
+                icon = generateColoredIcon(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE, UIUtil.getLabelDisabledForeground())
+                append(usersTotal.formatNumberToPrettyString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
               }
 
             val countsPanel =
@@ -134,13 +118,8 @@ class AppInsightsGutterIconAction(
       }
   }
 
-  private fun createGroupedJList(
-    renderInstructions: List<RenderInstruction>
-  ): JList<RenderInstruction> {
-    val variableHeightJList =
-      DynamicRendererList.createDynamicRendererList<RenderInstruction>(
-        CollectionListModel(renderInstructions)
-      )
+  private fun createGroupedJList(renderInstructions: List<RenderInstruction>): JList<RenderInstruction> {
+    val variableHeightJList = DynamicRendererList.createDynamicRendererList<RenderInstruction>(CollectionListModel(renderInstructions))
 
     // The PopupChooserBuilder we use overrides the cursor to HAND_CURSOR by default.
     // So we need to update the cursor depending on whether the selection is on
@@ -167,8 +146,7 @@ class AppInsightsGutterIconAction(
       .toSortedMap()
       .mapValues { (displayName, insights) ->
         // Map each insight to a RenderItem and insert a HeaderItem at the head of the list.
-        listOf(HeaderInstruction(displayName)) +
-          insights.map { insight -> InsightInstruction(insight) }
+        listOf(HeaderInstruction(displayName)) + insights.map { insight -> InsightInstruction(insight) }
       }
       .toList()
       .fold(emptyList<RenderInstruction>()) { acc, (_, insightsByProvider) ->
@@ -253,18 +231,12 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
         eventsComponent.apply {
           clear()
           formatListRenderer(StudioIcons.GutterIcons.ISSUE, list, hasFocus)
-          append(
-            issueDetails.eventsCount.formatNumberToPrettyString(),
-            SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-          )
+          append(issueDetails.eventsCount.formatNumberToPrettyString(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
         }
         usersComponent.apply {
           clear()
           formatListRenderer(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE, list, hasFocus)
-          append(
-            issueDetails.impactedDevicesCount.formatNumberToPrettyString(),
-            SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
-          )
+          append(issueDetails.impactedDevicesCount.formatNumberToPrettyString(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
         }
 
         insightPanel.foreground = if (hasFocus) list.selectionForeground else list.foreground

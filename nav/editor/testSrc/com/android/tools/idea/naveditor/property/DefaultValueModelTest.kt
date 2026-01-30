@@ -62,12 +62,7 @@ class DefaultValueModelTest : NavTestCase() {
     }
   }
 
-  private fun assertEquals(
-    defaultValueModel: DefaultValueModel,
-    name: String,
-    type: String,
-    defaultValue: String,
-  ) {
+  private fun assertEquals(defaultValueModel: DefaultValueModel, name: String, type: String, defaultValue: String) {
     assertEquals(defaultValueModel.name, name)
     assertEquals(defaultValueModel.type, type)
     assertEquals(defaultValueModel.defaultValue, defaultValue)

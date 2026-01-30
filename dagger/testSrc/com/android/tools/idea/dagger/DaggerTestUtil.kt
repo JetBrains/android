@@ -31,10 +31,7 @@ private val DAGGER_AND_HILT_LIBRARIES =
     "javax/inject/javax.inject/$JAVAX_INJECT_VERSION/javax.inject-$JAVAX_INJECT_VERSION.jar",
   )
 
-@Deprecated(
-  "Use addDaggerAndHiltClasses(module: Module) instead",
-  ReplaceWith("addDaggerAndHiltClasses(fixture.module)"),
-)
+@Deprecated("Use addDaggerAndHiltClasses(module: Module) instead", ReplaceWith("addDaggerAndHiltClasses(fixture.module)"))
 fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
   addDaggerAndHiltClasses(fixture.module)
 }

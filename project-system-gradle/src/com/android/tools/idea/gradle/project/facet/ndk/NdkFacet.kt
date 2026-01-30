@@ -23,14 +23,13 @@ import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeId
 import com.intellij.facet.FacetTypeRegistry
 import com.intellij.facet.impl.FacetUtil
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.WriteExternalException
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 
-class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguration
-) : Facet<NdkFacetConfiguration?>(facetType, module, name, configuration, null) {
+class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguration) :
+  Facet<NdkFacetConfiguration?>(facetType, module, name, configuration, null) {
   var ndkModuleModel: NdkModuleModel? = null
     private set
 
@@ -49,8 +48,9 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
    * ensures the behavior is stable across (possibly incorrect) changes on ABI filters.
    */
   var selectedVariantAbi: VariantAbi?
-    get() = configuration.selectedVariantAbi.takeIf { it in ndkModuleModel?.allVariantAbis ?: emptySet() }
-            ?: ndkModuleModel?.getDefaultVariantAbi()
+    get() =
+      configuration.selectedVariantAbi.takeIf { it in ndkModuleModel?.allVariantAbis ?: emptySet() }
+        ?: ndkModuleModel?.getDefaultVariantAbi()
     set(value) {
       if (configuration.selectedVariantAbi != value) {
         configuration.selectedVariantAbi = value
@@ -61,8 +61,7 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
   private fun writeConfigurationToDisk() {
     try {
       FacetUtil.saveFacetConfiguration(configuration)
-    }
-    catch (e: WriteExternalException) {
+    } catch (e: WriteExternalException) {
       Logger.getInstance(NdkFacet::class.java).error("Unable to save contents of '$facetName' facet.", e)
     }
   }
@@ -73,14 +72,11 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
   }
 
   companion object {
-    @JvmStatic
-    val facetId: String = "native-android-gradle"
+    @JvmStatic val facetId: String = "native-android-gradle"
 
-    @JvmStatic
-    val facetName: String = "Native-Android-Gradle"
+    @JvmStatic val facetName: String = "Native-Android-Gradle"
 
-    @JvmStatic
-    val facetTypeId = FacetTypeId<NdkFacet>(facetId)
+    @JvmStatic val facetTypeId = FacetTypeId<NdkFacet>(facetId)
 
     @JvmStatic
     fun getInstance(module: Module): NdkFacet? {
@@ -91,8 +87,8 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
         } else {
           val holderModule = module.getHolderModule()
           if (holderModule.isDisposed) {
-            Logger.getInstance(NdkFacet::class.java).warn(
-              "'$facetName' facet is requested on $module but holder module is disposed: $holderModule")
+            Logger.getInstance(NdkFacet::class.java)
+              .warn("'$facetName' facet is requested on $module but holder module is disposed: $holderModule")
             null
           } else {
             FacetManager.getInstance(holderModule).getFacetByType(facetTypeId)

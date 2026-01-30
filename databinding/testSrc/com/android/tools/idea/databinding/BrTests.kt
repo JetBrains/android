@@ -37,8 +37,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Misc. tests that target [LightBrClass], [BrShortNamesCache], and potentially other classes
- * related to verifying / covering code around light BR classes.
+ * Misc. tests that target [LightBrClass], [BrShortNamesCache], and potentially other classes related to verifying / covering code around
+ * light BR classes.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
@@ -59,11 +59,10 @@ class BrTests(private val mode: DataBindingMode) {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can use to
-   * inspect the state of our parsed files. In other cases, it's just fewer characters to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -83,7 +82,7 @@ class BrTests(private val mode: DataBindingMode) {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
@@ -101,7 +100,7 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="aStr" type="String" />
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -109,19 +108,19 @@ class BrTests(private val mode: DataBindingMode) {
       fixture.addClass(
         // language=java
         """
-      package test.db;
+        package test.db;
 
-      import android.app.Activity;
-      import android.os.Bundle;
-      import test.db.BR;
+        import android.app.Activity;
+        import android.os.Bundle;
+        import test.db.BR;
 
-      public class MainActivity extends Activity {
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-          int brValue = BR.aStr;
+        public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+            int brValue = BR.aStr;
+          }
         }
-      }
-    """
+        """
           .trimIndent()
       )
 
@@ -140,7 +139,7 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="aStr" type="String" />
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -149,18 +148,18 @@ class BrTests(private val mode: DataBindingMode) {
         "src/test/db/MainActivity.kt",
         // language=kotlin
         """
-      package test.db
+        package test.db
 
-      import android.app.Activity
-      import android.os.Bundle
-      import test.db.BR
+        import android.app.Activity
+        import android.os.Bundle
+        import test.db.BR
 
-      class MainActivity : Activity() {
-        override fun onCreate(savedInstanceState: Bundle?) {
-          BR.aStr
+        class MainActivity : Activity() {
+          override fun onCreate(savedInstanceState: Bundle?) {
+            BR.aStr
+          }
         }
-      }
-    """
+        """
           .trimIndent(),
       )
 
@@ -181,7 +180,7 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="anObject" type="Object" />
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -223,7 +222,7 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="anObject" type="Object" />
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -233,17 +232,12 @@ class BrTests(private val mode: DataBindingMode) {
 
     val projectScope = projectRule.project.projectScope()
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
-    val cache =
-      PsiShortNamesCache.getInstance(
-        projectRule.project
-      ) // Powered behind the scenes by BrShortNamesCache
+    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by BrShortNamesCache
 
     assertThat(cache.allFieldNames.asIterable()).containsAllOf("_all", "aStr", "anInt", "anObject")
-    assertThat(cache.getFieldsByName("anInt", projectScope).map { it.name })
-      .containsExactly("anInt")
+    assertThat(cache.getFieldsByName("anInt", projectScope).map { it.name }).containsExactly("anInt")
     assertThat(cache.getFieldsByName("anInt", invalidScope)).isEmpty()
-    assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 10).map { it.name })
-      .containsExactly("aStr")
+    assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 10).map { it.name }).containsExactly("aStr")
     assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 0).asIterable()).isEmpty()
     assertThat(cache.allClassNames.asIterable()).contains(DataBindingUtil.BR)
   }

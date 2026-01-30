@@ -23,9 +23,11 @@ import java.util.concurrent.CompletableFuture
 
 object GoogleRepository : GoogleRepositoryBase(IdeGoogleMavenRepository)
 
-open class GoogleRepositoryBase(val repository: IdeGoogleMavenRepositoryBase) : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE) {
+open class GoogleRepositoryBase(val repository: IdeGoogleMavenRepositoryBase) :
+  ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE) {
   override val name: String = "Google"
   override val isRemote: Boolean = true
+
   override fun doSearch(request: SearchRequest): SearchResult {
     fun String?.toFilterPredicate() =
       nullize(true)?.let { Regex(it.replace("*", ".*")) }?.let { { probe: String -> it.matches(probe) } } ?: { true }
@@ -34,17 +36,13 @@ open class GoogleRepositoryBase(val repository: IdeGoogleMavenRepositoryBase) : 
         val groupFilter = request.query.groupId.toFilterPredicate()
         val artifactFilter = request.query.artifactName.toFilterPredicate()
         val groups = repository.getGroups().filter(groupFilter).sorted()
-        SearchResult(
-          getArtifacts(groups) { _, id -> artifactFilter(id) }
-        )
+        SearchResult(getArtifacts(groups) { _, id -> artifactFilter(id) })
       }
 
       is ModuleQuery -> {
         val moduleFilter = request.query.module.toFilterPredicate()
         val groups = repository.getGroups().sorted()
-        SearchResult(
-          getArtifacts(groups) { groupId, id -> moduleFilter("$groupId:$id") }
-        )
+        SearchResult(getArtifacts(groups) { groupId, id -> moduleFilter("$groupId:$id") })
       }
     }
   }
@@ -54,12 +52,18 @@ open class GoogleRepositoryBase(val repository: IdeGoogleMavenRepositoryBase) : 
     val futureArtifacts = groupsToArtifacts.values.toTypedArray()
     CompletableFuture.allOf(*futureArtifacts).get() // load all artifacts repo into index in parallel
 
-    return groupsToArtifacts.map{ (groupId, futureArtifacts) ->
-      futureArtifacts.get().filter { artifactFilter(groupId, it) }.sorted().map{ id ->
-        val versions = repository.getVersions(groupId,id)
-        FoundArtifact(name, groupId, id, versions)
+    return groupsToArtifacts
+      .map { (groupId, futureArtifacts) ->
+        futureArtifacts
+          .get()
+          .filter { artifactFilter(groupId, it) }
+          .sorted()
+          .map { id ->
+            val versions = repository.getVersions(groupId, id)
+            FoundArtifact(name, groupId, id, versions)
+          }
       }
-    }.flatten().toList()
+      .flatten()
+      .toList()
   }
-
 }

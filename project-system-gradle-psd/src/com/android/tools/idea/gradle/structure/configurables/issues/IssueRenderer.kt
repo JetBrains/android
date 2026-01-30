@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.structure.model.PsPath
 
 interface IssueRenderer {
   fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?)
+
   fun renderIssue(issue: PsIssue, scope: PsPath?): String = buildString { renderIssue(this, issue, scope) }
+
   /** Replaces '/' with "/&zero-width-space;" unless "/>" to make long paths wrappable. */
   fun String.makeTextWrappable() = replace("(?<=\\<)/", "/&#x200b;")
 }

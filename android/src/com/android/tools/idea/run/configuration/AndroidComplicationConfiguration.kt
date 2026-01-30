@@ -17,14 +17,14 @@ package com.android.tools.idea.run.configuration
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.ApplicationDeployer
-import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
@@ -41,37 +41,42 @@ class AndroidComplicationConfigurationType :
     ID,
     AndroidBundle.message("android.complication.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Wear.COMPLICATIONS_RUN_CONFIG
-  ), DumbAware {
+    StudioIcons.Wear.COMPLICATIONS_RUN_CONFIG,
+  ),
+  DumbAware {
   companion object {
     const val ID = "AndroidComplicationConfigurationType"
   }
 
   init {
-    addFactory(object : AndroidWearConfigurationFactory(this) {
-      override fun getId() = "AndroidComplicationConfigurationFactory"
-      override fun createTemplateConfiguration(project: Project) = AndroidComplicationConfiguration(project, this)
-    })
+    addFactory(
+      object : AndroidWearConfigurationFactory(this) {
+        override fun getId() = "AndroidComplicationConfigurationFactory"
+
+        override fun createTemplateConfiguration(project: Project) = AndroidComplicationConfiguration(project, this)
+      }
+    )
   }
 }
 
-
 class AndroidComplicationConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
-  data class ChosenSlot(var id: Int,
-                        var type: Complication.ComplicationType?,
-                        @Transient internal var slotFocused: Boolean = false,
-                        @Transient internal var slotTypeFocused: Boolean = false) {
+  data class ChosenSlot(
+    var id: Int,
+    var type: Complication.ComplicationType?,
+    @Transient internal var slotFocused: Boolean = false,
+    @Transient internal var slotTypeFocused: Boolean = false,
+  ) {
     // We need parameterless constructor for correct work of XmlSerializer. See [AndroidWearConfiguration.readExternal]
-    @Suppress("unused")
-    private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
+    @Suppress("unused") private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
   @WorkerThread
   override fun checkConfiguration() {
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
-    val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
-      ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
+    val rawTypes =
+      getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
+        ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
@@ -83,15 +88,14 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
-  override fun getExecutor(environment: ExecutionEnvironment,
-                           deviceFutures: DeviceFutures,
-                           appRunSettings: AppRunSettings,
-                           apkProvider: ApkProvider,
-                           applicationContext: ApplicationProjectContext,
-                           deployer: ApplicationDeployer,
+  override fun getExecutor(
+    environment: ExecutionEnvironment,
+    deviceFutures: DeviceFutures,
+    appRunSettings: AppRunSettings,
+    apkProvider: ApkProvider,
+    applicationContext: ApplicationProjectContext,
+    deployer: ApplicationDeployer,
   ): AndroidConfigurationExecutor {
-    return AndroidComplicationConfigurationExecutor(
-      environment, deviceFutures, appRunSettings, apkProvider, applicationContext,
-      deployer)
+    return AndroidComplicationConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer)
   }
 }

@@ -44,19 +44,12 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
     fun show(project: Project, tabName: String, callback: (() -> Unit)?) {
       val toolWindowManager = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
       toolWindowManager?.show {
-        toolWindowManager.contentManager.setSelectedContent(
-          toolWindowManager.contentManager.findContent(tabName)
-        )
+        toolWindowManager.contentManager.setSelectedContent(toolWindowManager.contentManager.findContent(tabName))
         callback?.invoke()
       }
     }
 
-    fun showBalloon(
-      project: Project,
-      type: MessageType,
-      htmlMsg: String,
-      hyperlinkListener: HyperlinkListener? = null,
-    ) {
+    fun showBalloon(project: Project, type: MessageType, htmlMsg: String, hyperlinkListener: HyperlinkListener? = null) {
       try {
         invokeLater {
           if (project.isDisposed) return@invokeLater
@@ -80,8 +73,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
   private val activeTabFlow = MutableStateFlow("")
 
-  override suspend fun isApplicableAsync(project: Project) =
-    !AndroidProjectInfo.getInstance(project).isApkProject
+  override suspend fun isApplicableAsync(project: Project) = !AndroidProjectInfo.getInstance(project).isApkProject
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createTabs(project, toolWindow)
@@ -93,11 +85,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
     AppInsightsTabProvider.EP_NAME.extensionList.forEach { tabProvider ->
       val tabPanel = AppInsightsTabPanel()
-      tabProvider.populateTab(
-        project,
-        tabPanel,
-        activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged(),
-      )
+      tabProvider.populateTab(project, tabPanel, activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged())
       val tabContent =
         contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
           putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
@@ -120,9 +108,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
 
     toolWindow.setContentUiType(ToolWindowContentUiType.TABBED, null)
     toolWindow.show()
-    toolWindow.contentManager.selectedContent?.let { content ->
-      activeTabFlow.update { content.displayName }
-    }
+    toolWindow.contentManager.selectedContent?.let { content -> activeTabFlow.update { content.displayName } }
     toolWindow.stripeTitle = "App Quality Insights"
   }
 

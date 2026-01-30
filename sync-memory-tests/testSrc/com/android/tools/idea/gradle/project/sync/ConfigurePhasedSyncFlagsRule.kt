@@ -23,10 +23,8 @@ import org.junit.rules.ExternalResource
  *
  * By default, phased sync is enabled without dependency resolution.
  */
-class ConfigurePhasedSyncFlagsRule(
-  val phasedSyncEnabled: Boolean = true,
-  val dependencyResolutionEnabled: Boolean = false
-) : ExternalResource() {
+class ConfigurePhasedSyncFlagsRule(val phasedSyncEnabled: Boolean = true, val dependencyResolutionEnabled: Boolean = false) :
+  ExternalResource() {
   override fun before() {
     StudioFlags.PHASED_SYNC_ENABLED.override(phasedSyncEnabled)
     StudioFlags.PHASED_SYNC_DEPENDENCY_RESOLUTION_ENABLED.override(dependencyResolutionEnabled)

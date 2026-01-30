@@ -26,16 +26,9 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val WEAR_PAIRING_NOTIFICATION_GROUP_ID = "Wear Pairing"
 
 interface WearPairingNotificationManager {
-  fun showReconnectMessageBalloon(
-    phoneWearPair: WearPairingManager.PhoneWearPair,
-    wizardAction: WizardAction?,
-  )
+  fun showReconnectMessageBalloon(phoneWearPair: WearPairingManager.PhoneWearPair, wizardAction: WizardAction?)
 
-  fun showConnectionDroppedBalloon(
-    offlineName: String,
-    phoneWearPair: WearPairingManager.PhoneWearPair,
-    wizardAction: WizardAction?,
-  )
+  fun showConnectionDroppedBalloon(offlineName: String, phoneWearPair: WearPairingManager.PhoneWearPair, wizardAction: WizardAction?)
 
   fun dismissNotifications(phoneWearPair: WearPairingManager.PhoneWearPair)
 
@@ -55,9 +48,7 @@ class WearPairingBalloonNotification(
 ) : Notification(WEAR_PAIRING_NOTIFICATION_GROUP_ID, title, content, NotificationType.INFORMATION) {
   init {
     addAction(
-      NotificationAction.create(
-        AndroidWearPairingBundle.message("wear.assistant.device.connection.balloon.link")
-      ) { action, notification ->
+      NotificationAction.create(AndroidWearPairingBundle.message("wear.assistant.device.connection.balloon.link")) { action, notification ->
         notification.expire()
         wizardAction?.restart(action.project)
       }
@@ -65,8 +56,7 @@ class WearPairingBalloonNotification(
   }
 }
 
-class WearPairingNotificationManagerImpl @VisibleForTesting constructor() :
-  WearPairingNotificationManager {
+class WearPairingNotificationManagerImpl @VisibleForTesting constructor() : WearPairingNotificationManager {
 
   @get:VisibleForTesting
   val pendingNotifications: List<WearPairingBalloonNotification>
@@ -74,16 +64,11 @@ class WearPairingNotificationManagerImpl @VisibleForTesting constructor() :
       ProjectManager.getInstance()
         .openProjects
         .flatMap {
-          NotificationsManager.getNotificationsManager()
-            .getNotificationsOfType(WearPairingBalloonNotification::class.java, it)
-            .toList()
+          NotificationsManager.getNotificationsManager().getNotificationsOfType(WearPairingBalloonNotification::class.java, it).toList()
         }
         .filter { !it.isExpired }
 
-  override fun showReconnectMessageBalloon(
-    phoneWearPair: WearPairingManager.PhoneWearPair,
-    wizardAction: WizardAction?,
-  ) {
+  override fun showReconnectMessageBalloon(phoneWearPair: WearPairingManager.PhoneWearPair, wizardAction: WizardAction?) {
     dismissNotifications(phoneWearPair)
     showMessageBalloon(
       AndroidWearPairingBundle.message("wear.assistant.device.connection.reconnected.title"),

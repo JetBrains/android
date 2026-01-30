@@ -87,11 +87,7 @@ class InsightDisclaimerPanelTest {
     insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.contextAllowed = false
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
     application.replaceService(ShowSettingsUtil::class.java, mock(), projectRule.disposable)
   }
 
@@ -101,71 +97,59 @@ class InsightDisclaimerPanelTest {
   }
 
   @Test
-  fun `context sharing disclaimer is removed and callback is triggered after user shares context`() =
-    runBlocking {
-      val refreshInsightCalled = CompletableDeferred<Boolean>()
-      val disclaimerPanel =
-        createDisclaimerPanel(
-          controller =
-            object : StubAppInsightsProjectLevelController(state = MutableStateFlow(state)) {
-              override fun refreshInsight(regenerateWithContext: Boolean) {
-                refreshInsightCalled.complete(regenerateWithContext)
-              }
+  fun `context sharing disclaimer is removed and callback is triggered after user shares context`() = runBlocking {
+    val refreshInsightCalled = CompletableDeferred<Boolean>()
+    val disclaimerPanel =
+      createDisclaimerPanel(
+        controller =
+          object : StubAppInsightsProjectLevelController(state = MutableStateFlow(state)) {
+            override fun refreshInsight(regenerateWithContext: Boolean) {
+              refreshInsightCalled.complete(regenerateWithContext)
             }
-        )
-      insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
-      waitForCondition(2.seconds) { disclaimerPanel.isVisible }
+          }
+      )
+    insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
+    waitForCondition(2.seconds) { disclaimerPanel.isVisible }
 
-      clickOnLink()
-      fakeGeminiPluginApi.contextAllowed = true
-      fakeUi.updateToolbars()
-      assertThat(refreshInsightCalled.await()).isTrue()
+    clickOnLink()
+    fakeGeminiPluginApi.contextAllowed = true
+    fakeUi.updateToolbars()
+    assertThat(refreshInsightCalled.await()).isTrue()
 
-      insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
-      waitForCondition(2.seconds) { !disclaimerPanel.isVisible }
-    }
+    insightFlow.update { LoadingState.Ready(AiInsight("", ISSUE1.sampleEvent)) }
+    waitForCondition(2.seconds) { !disclaimerPanel.isVisible }
+  }
 
   @Test
   fun `enable context prompt disclaimer is shown when context sharing setting is off and current insight's experiment is unknown`() =
     runBlocking {
-      val disclaimerPanel =
-        createDisclaimerPanel(
-          StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
-        )
+      val disclaimerPanel = createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
       insightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT) }
       waitForCondition(2.seconds) { disclaimerPanel.isVisible }
     }
 
   @Test
-  fun `project mismatch panel shown when context enabled and project different from connection`() =
-    runBlocking {
-      doReturn(false).whenever(conn).isMatchingProject()
-      insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
-      createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+  fun `project mismatch panel shown when context enabled and project different from connection`() = runBlocking {
+    doReturn(false).whenever(conn).isMatchingProject()
+    insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
+    createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
 
-      val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
-      // TextPane text contains html tags. Clean up the spacing in order to match the expected text
-      val text = textPane.text.split("\n").joinToString(" ") { it.trim() }
-      assertThat(text)
-        .contains(
-          "This insight was generated without code context because the currently open project does not appear to match the project selected in Firebase Crashlytics"
-        )
-    }
+    val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
+    // TextPane text contains html tags. Clean up the spacing in order to match the expected text
+    val text = textPane.text.split("\n").joinToString(" ") { it.trim() }
+    assertThat(text)
+      .contains(
+        "This insight was generated without code context because the currently open project does not appear to match the project selected in Firebase Crashlytics"
+      )
+  }
 
   private fun createDisclaimerPanel(
-    controller: AppInsightsProjectLevelController =
-      StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
+    controller: AppInsightsProjectLevelController = StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
   ) = InsightDisclaimerPanel(controller, scope, insightFlow).also { fakeUi = FakeUi(it) }
 
   private fun clickOnLink() =
     fakeUi.findHyperLinkLabel().hyperlinkListeners.forEach {
-      it.hyperlinkUpdate(
-        HyperlinkEvent(
-          fakeUi.findHyperLinkLabel(),
-          HyperlinkEvent.EventType.ACTIVATED,
-          URL("https://www.google.com"),
-        )
-      )
+      it.hyperlinkUpdate(HyperlinkEvent(fakeUi.findHyperLinkLabel(), HyperlinkEvent.EventType.ACTIVATED, URL("https://www.google.com")))
     }
 
   private fun FakeUi.findHyperLinkLabel() = findComponent<JEditorPane>()!!

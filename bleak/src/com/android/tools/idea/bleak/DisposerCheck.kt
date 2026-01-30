@@ -22,13 +22,12 @@ import java.lang.reflect.Field
 data class CountInfo(val count: Int, val delta: Int)
 
 /**
- * [DisposerInfo] tracks child counts by class for each [Disposable]. This class-level granularity is not
- * exposed by the normal Bleak check, and is more robust in the face of removal of unrelated children (that
- * is, if a Disposable loses a child of type A and gains one of type B over the course of one iteration, the
- * growth in the number of B children will be discovered by this check, but Bleak would discard the parent
- * as not growing).
+ * [DisposerInfo] tracks child counts by class for each [Disposable]. This class-level granularity is not exposed by the normal Bleak check,
+ * and is more robust in the face of removal of unrelated children (that is, if a Disposable loses a child of type A and gains one of type B
+ * over the course of one iteration, the growth in the number of B children will be discovered by this check, but Bleak would discard the
+ * parent as not growing).
  */
-class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> = mapOf()) {
+class DisposerInfo private constructor(val growingCounts: Map<Key, CountInfo> = mapOf()) {
 
   class Key(val disposable: Disposable, val klass: Class<*>) {
     override fun equals(other: Any?): Boolean {
@@ -58,13 +57,15 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> =
 
     private fun getClassCountsMap(): MutableMap<Key, CountInfo> {
       val counts = mutableMapOf<Key, CountInfo>()
-      visitTree (object: Visitor {
-        override fun visit(disposable: Disposable) {
-          getChildren(disposable).forEach { child ->
-            counts.compute(Key(disposable, child.javaClass)) { k, v -> if (v == null) CountInfo(1, 0) else CountInfo(v.count + 1, 0) }
+      visitTree(
+        object : Visitor {
+          override fun visit(disposable: Disposable) {
+            getChildren(disposable).forEach { child ->
+              counts.compute(Key(disposable, child.javaClass)) { k, v -> if (v == null) CountInfo(1, 0) else CountInfo(v.count + 1, 0) }
+            }
           }
         }
-      })
+      )
       return counts
     }
 
@@ -86,8 +87,7 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> =
     private fun <T> getFieldValue(field: Field, obj: Any?): T {
       try {
         return field.get(obj) as T
-      }
-      catch (e: IllegalAccessException) {
+      } catch (e: IllegalAccessException) {
         throw Error(e)
       }
     }
@@ -117,24 +117,16 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> =
       val method = childrenObject.javaClass.getDeclaredMethod("getAllNodes")
       method.isAccessible = true
       val childNodes = method.invoke(childrenObject) as Collection<*>
-      return childNodes.map { node ->
-        getFieldValue(OBJECT_NODE_OBJECT_FIELD, node) as Disposable
-      }
+      return childNodes.map { node -> getFieldValue(OBJECT_NODE_OBJECT_FIELD, node) as Disposable }
     }
 
     private fun visitTree(visitor: Visitor) {
-      synchronized(rootNode) {
-        getChildrenOfNode(rootNode).forEach {
-          visitObject(it, visitor)
-        }
-      }
+      synchronized(rootNode) { getChildrenOfNode(rootNode).forEach { visitObject(it, visitor) } }
     }
 
     private fun visitObject(disposable: Disposable, visitor: Visitor) {
       visitor.visit(disposable)
-      getChildren(disposable).forEach {
-        visitObject(it, visitor)
-      }
+      getChildren(disposable).forEach { visitObject(it, visitor) }
     }
 
     private interface Visitor {
@@ -153,7 +145,7 @@ class DisposerLeakInfo(val key: DisposerInfo.Key, val count: Int, val increase: 
   }
 }
 
-class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w) {
+class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()) : BleakCheck<Nothing?, DisposerLeakInfo>(null, w) {
   private var disposerInfo: DisposerInfo? = null
 
   override fun firstIterationFinished() {
@@ -161,7 +153,7 @@ class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<
   }
 
   override fun middleIterationFinished() {
-    disposerInfo = DisposerInfo.propagateFrom(disposerInfo!!);
+    disposerInfo = DisposerInfo.propagateFrom(disposerInfo!!)
   }
 
   override fun lastIterationFinished() = middleIterationFinished()
@@ -173,6 +165,8 @@ class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<
   }
 
   override fun getResults(ignoreList: IgnoreList<DisposerLeakInfo>) =
-    disposerInfo?.growingCounts?.map { (key, value) -> DisposerLeakInfo(key, value.count, value.delta, getSampleRegistrationStack(key)) }
+    disposerInfo
+      ?.growingCounts
+      ?.map { (key, value) -> DisposerLeakInfo(key, value.count, value.delta, getSampleRegistrationStack(key)) }
       ?.filterNot { ignoreList.matches(it) } ?: listOf()
 }

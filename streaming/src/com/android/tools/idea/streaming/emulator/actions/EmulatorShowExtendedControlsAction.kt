@@ -29,9 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.WindowManager
 
-/**
- * Shows the emulator extended controls.
- */
+/** Shows the emulator extended controls. */
 class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -56,9 +54,12 @@ internal fun showExtendedControls(emulatorController: EmulatorController, projec
       .setY(frame.y + frame.height / 2)
   }
 
-  emulatorController.setUiTheme(getEmulatorUiTheme(LafManager.getInstance()), object : EmptyStreamObserver<Empty>() {
-    override fun onCompleted() {
-      emulatorController.showExtendedControls(pane.build())
-    }
-  })
+  emulatorController.setUiTheme(
+    getEmulatorUiTheme(LafManager.getInstance()),
+    object : EmptyStreamObserver<Empty>() {
+      override fun onCompleted() {
+        emulatorController.showExtendedControls(pane.build())
+      }
+    },
+  )
 }

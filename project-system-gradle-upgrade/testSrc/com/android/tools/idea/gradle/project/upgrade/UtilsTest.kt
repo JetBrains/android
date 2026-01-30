@@ -49,12 +49,22 @@ class UtilsTest {
 
   @Test
   fun testDescriptionTestLongModuleNames() {
-    val list = listOf(
-      "application-functionality", "primalibrary", "dualibrary", "trefoilibrary", "quadrilateralibrary",
-      "pentagrammaticalibrary", "hexadecimalibrary")
+    val list =
+      listOf(
+        "application-functionality",
+        "primalibrary",
+        "dualibrary",
+        "trefoilibrary",
+        "quadrilateralibrary",
+        "pentagrammaticalibrary",
+        "hexadecimalibrary",
+      )
     val text = computeDescriptionTextForTests(list)
-    assertThat(text).isEqualTo("application-functionality, primalibrary, dualibrary, trefoilibrary, quadrilateralibrary, \n" +
-                               "pentagrammaticalibrary, and hexadecimalibrary.")
+    assertThat(text)
+      .isEqualTo(
+        "application-functionality, primalibrary, dualibrary, trefoilibrary, quadrilateralibrary, \n" +
+          "pentagrammaticalibrary, and hexadecimalibrary."
+      )
   }
 
   @Test

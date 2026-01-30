@@ -91,9 +91,7 @@ class AddTargetVersionCheckQuickFix(
 
     return when (element.language) {
       JavaLanguage.INSTANCE -> {
-        PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false)?.let {
-          Presentation.of(name)
-        }
+        PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false)?.let { Presentation.of(name) }
       }
       KotlinLanguage.INSTANCE -> {
         getKotlinTargetExpression(element)?.let { Presentation.of(name) }
@@ -115,8 +113,7 @@ class AddTargetVersionCheckQuickFix(
 
     val conditionText =
       if (sdkId == ANDROID_SDK_ID)
-        if (minor > 0)
-          "android.os.Build.VERSION.SDK_INT_FULL >= ${getVersionField(api, minor, true)}"
+        if (minor > 0) "android.os.Build.VERSION.SDK_INT_FULL >= ${getVersionField(api, minor, true)}"
         else "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
       else {
         "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
@@ -126,29 +123,20 @@ class AddTargetVersionCheckQuickFix(
       if (sdkId == ANDROID_SDK_ID)
         if (minor > 0) "\"VERSION.SDK_INT_FULL < ${getVersionField(api, minor, false)}\""
         else "\"VERSION.SDK_INT < ${getVersionField(api, false)}\""
-      else
-        "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\""
+      else "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\""
 
-    return getKotlinSurrounder(targetExpression, conditionText, todoText)
-      .surroundElements(context, arrayOf(targetExpression))
+    return getKotlinSurrounder(targetExpression, conditionText, todoText).surroundElements(context, arrayOf(targetExpression))
   }
 
   private fun getExtensionCheckPrefix(): String {
-    return if (
-      minSdk != ApiConstraint.UNKNOWN &&
-        minSdk.isAtLeast(ApiConstraint.get(AndroidVersion.VersionCodes.R, ANDROID_SDK_ID))
-    )
-      ""
+    return if (minSdk != ApiConstraint.UNKNOWN && minSdk.isAtLeast(ApiConstraint.get(AndroidVersion.VersionCodes.R, ANDROID_SDK_ID))) ""
     else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
   }
 
   private fun handleJava(element: PsiElement, context: ActionContext): ModCommand {
     val project = element.project
-    val expression =
-      PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false)
-        ?: return ModCommand.nop()
-    val anchorStatement =
-      PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return ModCommand.nop()
+    val expression = PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return ModCommand.nop()
+    val anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return ModCommand.nop()
 
     var elements = arrayOf<PsiElement>(anchorStatement)
     val prev = PsiTreeUtil.skipWhitespacesBackward(anchorStatement)
@@ -158,9 +146,7 @@ class AddTargetVersionCheckQuickFix(
 
     val newText =
       if (sdkId == ANDROID_SDK_ID)
-        if (minor > 0)
-          "android.os.Build.VERSION.SDK_INT_FULL >= " +
-            getVersionField(api, minor, true, kotlin = false)
+        if (minor > 0) "android.os.Build.VERSION.SDK_INT_FULL >= " + getVersionField(api, minor, true, kotlin = false)
         else "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
       else
         "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
@@ -192,16 +178,11 @@ class AddTargetVersionCheckQuickFix(
     return current
   }
 
-  private fun getKotlinSurrounder(
-    element: KtElement,
-    conditionText: String,
-    todoText: String,
-  ): KotlinIfSurrounder {
+  private fun getKotlinSurrounder(element: KtElement, conditionText: String, todoText: String): KotlinIfSurrounder {
     val used = analyze(element) { (element as? KtExpression)?.isUsedAsExpression == true }
 
     return object : KotlinIfSurrounder() {
-      override fun getCodeTemplate(): String =
-        if (used) "if (a) { \n} else {\nTODO($todoText)\n}" else super.getCodeTemplate()
+      override fun getCodeTemplate(): String = if (used) "if (a) { \n} else {\nTODO($todoText)\n}" else super.getCodeTemplate()
 
       override fun surroundStatements(
         context: ActionContext,
@@ -215,12 +196,10 @@ class AddTargetVersionCheckQuickFix(
         // so we have to continue editing manually for now...
         val file = container.containingFile
         val document = file.fileDocument
-        PsiDocumentManager.getInstance(container.project)
-          .doPostponedOperationsAndUnblockDocument(document)
+        PsiDocumentManager.getInstance(container.project).doPostponedOperationsAndUnblockDocument(document)
         document.insertString(updater.caretOffset, conditionText)
         PsiDocumentManager.getInstance(container.project).commitDocument(document)
-        ShortenReferencesFacility.getInstance()
-          .shorten(file as KtFile, TextRange.from(updater.caretOffset, conditionText.length))
+        ShortenReferencesFacility.getInstance().shorten(file as KtFile, TextRange.from(updater.caretOffset, conditionText.length))
       }
     }
   }
@@ -238,16 +217,10 @@ class AddTargetVersionCheckQuickFix(
   }
 
   companion object {
-    fun getVersionField(api: Int, fullyQualified: Boolean): String =
-      ExtensionSdk.getAndroidVersionField(api, fullyQualified)
+    fun getVersionField(api: Int, fullyQualified: Boolean): String = ExtensionSdk.getAndroidVersionField(api, fullyQualified)
 
-    fun getVersionField(
-      api: Int,
-      minor: Int,
-      fullyQualified: Boolean,
-      requireFull: Boolean = true,
-      kotlin: Boolean = true,
-    ): String = ExtensionSdk.getAndroidVersionField(api, minor, fullyQualified, requireFull, kotlin)
+    fun getVersionField(api: Int, minor: Int, fullyQualified: Boolean, requireFull: Boolean = true, kotlin: Boolean = true): String =
+      ExtensionSdk.getAndroidVersionField(api, minor, fullyQualified, requireFull, kotlin)
 
     fun getSdkExtensionField(project: Project, sdkId: Int, fullyQualified: Boolean): String {
       val apiLookup = LintIdeClient.getApiLookup(project)

@@ -82,8 +82,7 @@ class SceneViewErrorsPanelTest {
   @Test
   fun testVisibilityIsControlledByConstructorParameter() {
     var panelStyle = SceneViewErrorsPanel.Style.SOLID
-    val sceneViewErrorsPanel =
-      SceneViewErrorsPanel(errorProvider = { emptyList() }, styleProvider = { panelStyle })
+    val sceneViewErrorsPanel = SceneViewErrorsPanel(errorProvider = { emptyList() }, styleProvider = { panelStyle })
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
     assertTrue(sceneViewErrorsPanel.isVisible)
@@ -155,22 +154,14 @@ class SceneViewErrorsPanelTest {
     fakeUi.root.validate()
     fakeUi.updateToolbars()
 
-    val toolbar =
-      (sceneViewErrorsPanel.layout as BorderLayout).getLayoutComponent(BorderLayout.SOUTH)
-        as ActionToolbar
+    val toolbar = (sceneViewErrorsPanel.layout as BorderLayout).getLayoutComponent(BorderLayout.SOUTH) as ActionToolbar
     assertNotNull(toolbar)
-    val action: AnAction? =
-      toolbar.actions.firstOrNull() { it.templatePresentation.text == "Fix with AI" }
+    val action: AnAction? = toolbar.actions.firstOrNull() { it.templatePresentation.text == "Fix with AI" }
     assertNotNull(action)
 
     // Setting up data provider
-    val provider = EdtNoGetDataProvider { sink ->
-      DataSink.uiDataSnapshot(sink, sceneViewErrorsPanel)
-    }
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      provider,
-      disposableRule.disposable,
-    )
+    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, sceneViewErrorsPanel) }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider, disposableRule.disposable)
 
     // Performing action
     action?.actionPerformed(TestActionEvent.createTestEvent(action))
@@ -196,15 +187,12 @@ class SceneViewErrorsPanelTest {
       disposableRule.disposable,
     )
 
-    val sceneViewErrorsPanel =
-      SceneViewErrorsPanel(errorProvider = { listOf(Throwable("Test error")) })
+    val sceneViewErrorsPanel = SceneViewErrorsPanel(errorProvider = { listOf(Throwable("Test error")) })
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     fakeUi.root.validate()
     fakeUi.updateToolbars()
 
-    val toolbar =
-      (sceneViewErrorsPanel.layout as BorderLayout).getLayoutComponent(BorderLayout.SOUTH)
-        as ActionToolbar
+    val toolbar = (sceneViewErrorsPanel.layout as BorderLayout).getLayoutComponent(BorderLayout.SOUTH) as ActionToolbar
     assertNotNull(toolbar)
     assertFalse(toolbar.actions.any { it.templatePresentation.text == "Fix with AI" })
   }

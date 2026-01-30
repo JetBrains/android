@@ -24,8 +24,7 @@ import java.util.UUID
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Same as WebBrowserManager.PREDEFINED_CHROME_ID. This can be removed if a
- * WebBrowserManager.isChrome(@NotNull WebBrowser browser) existed.
+ * Same as WebBrowserManager.PREDEFINED_CHROME_ID. This can be removed if a WebBrowserManager.isChrome(@NotNull WebBrowser browser) existed.
  */
 private val CHROME_ID = UUID.fromString("98CA6316-2F89-46D9-A9E5-FA9E2B0625B3")
 

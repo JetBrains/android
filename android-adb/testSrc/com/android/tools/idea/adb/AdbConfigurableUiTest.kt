@@ -129,9 +129,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
 
   @Test
   fun testFromDisplayText() {
-    AdbServerUsbBackend.values().forEach {
-      assertThat(AdbServerUsbBackend.fromDisplayText(it.displayText)).isEqualTo(it)
-    }
+    AdbServerUsbBackend.values().forEach { assertThat(AdbServerUsbBackend.fromDisplayText(it.displayText)).isEqualTo(it) }
     try {
       AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
       Assert.fail("fromDisplayText did no throw")

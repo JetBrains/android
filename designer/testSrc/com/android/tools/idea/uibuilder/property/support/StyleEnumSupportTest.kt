@@ -79,36 +79,11 @@ class StyleEnumSupportTest {
         "@android:style/Widget.Button.Small",
         "@android:style/Widget.Button.Toggle",
       )
-    val expectedAndroidDisplayValues =
-      listOf("Widget.Button", "Widget.Button.Inset", "Widget.Button.Small", "Widget.Button.Toggle")
+    val expectedAndroidDisplayValues = listOf("Widget.Button", "Widget.Button.Inset", "Widget.Button.Small", "Widget.Button.Toggle")
     var index = 0
-    index =
-      checkSection(
-        values,
-        index,
-        PROJECT_HEADER,
-        3,
-        expectedProjectValues,
-        expectedProjectDisplayValues,
-      )
-    index =
-      checkSection(
-        values,
-        index,
-        APPCOMPAT_HEADER,
-        7,
-        expectedAppCompatValues,
-        expectedAppCompatDisplayValues,
-      )
-    index =
-      checkSection(
-        values,
-        index,
-        ANDROID_HEADER,
-        -40,
-        expectedAndroidValues,
-        expectedAndroidDisplayValues,
-      )
+    index = checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
+    index = checkSection(values, index, APPCOMPAT_HEADER, 7, expectedAppCompatValues, expectedAppCompatDisplayValues)
+    index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
     assertThat(index).isEqualTo(-1)
   }
 }

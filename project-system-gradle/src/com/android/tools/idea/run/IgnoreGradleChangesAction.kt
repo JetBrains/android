@@ -31,9 +31,8 @@ import com.intellij.util.ThreeState
  * This action is equivalent to pressing the "Ignore these changes" button within the
  * [com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel]
  *
- * It will only be enabled when the actual "Ignore these changes" action and its corresponding
- * notification are visible. We use the same conditions that the notification panel uses to
- * determine visibility.
+ * It will only be enabled when the actual "Ignore these changes" action and its corresponding notification are visible. We use the same
+ * conditions that the notification panel uses to determine visibility.
  */
 class IgnoreGradleChangesAction : AnAction(), DumbAware {
 
@@ -41,13 +40,14 @@ class IgnoreGradleChangesAction : AnAction(), DumbAware {
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
-    val isGradleSyncDue = (project.getProjectSystem() is GradleProjectSystem) && GradleSyncState.getInstance(project).isSyncNeeded() == ThreeState.YES
+    val isGradleSyncDue =
+      (project.getProjectSystem() is GradleProjectSystem) && GradleSyncState.getInstance(project).isSyncNeeded() == ThreeState.YES
     e.presentation.isEnabled = isGradleSyncDue && !ProjectSyncStatusNotificationProvider.shouldHideBanner()
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    GradleSyncStateHolder.getInstance(project).ignoreChangedFiles();
+    GradleSyncStateHolder.getInstance(project).ignoreChangedFiles()
     EditorNotifications.getInstance(project).updateAllNotifications()
   }
 }

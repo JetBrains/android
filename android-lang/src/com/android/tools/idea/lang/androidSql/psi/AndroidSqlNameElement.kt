@@ -38,5 +38,6 @@ abstract class AbstractAndroidSqlNameElement(node: ASTNode) : ASTWrapperPsiEleme
       }
     }
 
-  override val nameIsQuoted get() = firstChild.node.elementType != AndroidSqlPsiTypes.IDENTIFIER
+  override val nameIsQuoted
+    get() = firstChild.node.elementType != AndroidSqlPsiTypes.IDENTIFIER
 }

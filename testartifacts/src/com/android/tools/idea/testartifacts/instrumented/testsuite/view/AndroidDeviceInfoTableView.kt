@@ -25,21 +25,19 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import javax.swing.JComponent
 
-/**
- * A table view to display properties of Android device.
- */
+/** A table view to display properties of Android device. */
 class AndroidDeviceInfoTableView {
   private val myModel = AndroidDeviceInfoTableViewModel()
-  @VisibleForTesting val myTableView = TableView(myModel).apply {
-    isFocusable = false
-    rowSelectionAllowed = false
-    tableHeader.reorderingAllowed = false
-  }
+  @VisibleForTesting
+  val myTableView =
+    TableView(myModel).apply {
+      isFocusable = false
+      rowSelectionAllowed = false
+      tableHeader.reorderingAllowed = false
+    }
   private val myTableViewContainer = JBScrollPane(myTableView)
 
-  /**
-   * Returns a root component of the table view.
-   */
+  /** Returns a root component of the table view. */
   @UiThread
   fun getComponent(): JComponent {
     return myTableViewContainer
@@ -51,39 +49,29 @@ class AndroidDeviceInfoTableView {
   }
 }
 
-/**
- * An item of the Android device info table.
- */
-@VisibleForTesting
-data class AndroidDeviceInfoItem(val propertyName: String,
-                                 val propertyValue: String)
+/** An item of the Android device info table. */
+@VisibleForTesting data class AndroidDeviceInfoItem(val propertyName: String, val propertyValue: String)
 
-/**
- * A view model class of [AndroidDeviceInfoTableView].
- */
-private class AndroidDeviceInfoTableViewModel :
-  ListTableModel<AndroidDeviceInfoItem>(DevicePropertyNameColumn, DevicePropertyValueColumn) {
+/** A view model class of [AndroidDeviceInfoTableView]. */
+private class AndroidDeviceInfoTableViewModel : ListTableModel<AndroidDeviceInfoItem>(DevicePropertyNameColumn, DevicePropertyValueColumn) {
   @UiThread
   fun setAndroidDevice(device: AndroidDevice) {
-    val itemsBuilder = mutableListOf(
-      AndroidDeviceInfoItem("Device Name", device.getName()),
-      AndroidDeviceInfoItem("OS Version", device.version.getApiStringWithExtension()))
-    itemsBuilder.addAll(device.additionalInfo.asSequence()
-      .map { (key, value) -> AndroidDeviceInfoItem(key, value) })
+    val itemsBuilder =
+      mutableListOf(
+        AndroidDeviceInfoItem("Device Name", device.getName()),
+        AndroidDeviceInfoItem("OS Version", device.version.getApiStringWithExtension()),
+      )
+    itemsBuilder.addAll(device.additionalInfo.asSequence().map { (key, value) -> AndroidDeviceInfoItem(key, value) })
     items = itemsBuilder
   }
 }
 
-/**
- * A column for displaying a device property name.
- */
+/** A column for displaying a device property name. */
 private object DevicePropertyNameColumn : ColumnInfo<AndroidDeviceInfoItem, String>("Property") {
   override fun valueOf(item: AndroidDeviceInfoItem): String = item.propertyName
 }
 
-/**
- * A column for displaying a device property value.
- */
+/** A column for displaying a device property value. */
 private object DevicePropertyValueColumn : ColumnInfo<AndroidDeviceInfoItem, String>("Description") {
   override fun valueOf(item: AndroidDeviceInfoItem): String = item.propertyValue
 }

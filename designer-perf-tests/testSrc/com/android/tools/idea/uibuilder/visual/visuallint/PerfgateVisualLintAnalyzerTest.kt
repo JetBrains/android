@@ -104,40 +104,17 @@ class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICA
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
     val module = projectRule.getModule("app")
     val facet = projectRule.mainAndroidFacet(":app")
-    val activityLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/activity_main.xml"
-      )!!
-    val dashboardLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_dashboard.xml"
-      )!!
-    val notificationsLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_notifications.xml"
-      )!!
-    val homeLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_home.xml"
-      )!!
+    val activityLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
+    val notificationsLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_notifications.xml")!!
+    val homeLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_home.xml")!!
     val filesToAnalyze = listOf(activityLayout, dashboardLayout, notificationsLayout, homeLayout)
-    val deviceIds =
-      listOf(
-        "_device_class_phone",
-        "_device_class_foldable",
-        "_device_class_tablet",
-        "_device_class_desktop",
-      )
+    val deviceIds = listOf("_device_class_phone", "_device_class_foldable", "_device_class_tablet", "_device_class_desktop")
 
     val modelResultMap = mutableMapOf<NlModel, RenderResult>()
     deviceIds.forEach { deviceId ->
       val configuration =
-        RenderTestUtil.getConfiguration(
-          module,
-          activityLayout,
-          deviceId,
-          "Theme.MaterialComponents.DayNight.DarkActionBar",
-        )
+        RenderTestUtil.getConfiguration(module, activityLayout, deviceId, "Theme.MaterialComponents.DayNight.DarkActionBar")
       filesToAnalyze.forEach { file ->
         val nlModel =
           SyncNlModel.create(
@@ -148,10 +125,7 @@ class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICA
             configuration,
           )
         val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
-        nlModel.syncWithPsi(
-          AndroidPsiUtils.getRootTagSafely(psiFile)!!,
-          emptyList<TagSnapshotTreeNode>(),
-        )
+        nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<TagSnapshotTreeNode>())
         RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
           task.setDecorations(false)
           try {
@@ -173,9 +147,7 @@ class PerfgateVisualLintAnalyzerTest : ComposeRenderTestBase(VISUAL_LINT_APPLICA
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
-      modelResultMap.forEach { (nlModel, renderResult) ->
-        analyzer.findIssues(renderResult, nlModel.configuration)
-      }
+      modelResultMap.forEach { (nlModel, renderResult) -> analyzer.findIssues(renderResult, nlModel.configuration) }
     }
   }
 }

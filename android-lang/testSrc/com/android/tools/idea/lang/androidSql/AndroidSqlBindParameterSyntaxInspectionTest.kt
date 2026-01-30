@@ -31,17 +31,21 @@ class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureA
 
   fun testSanity() {
     // Sanity test: make sure queries with parsing errors are still highlighted.
-    myFixture.configureByText("Utils.java", """
-        package com.example;
+    myFixture.configureByText(
+      "Utils.java",
+      """
+      package com.example;
 
-        import android.database.sqlite.SQLiteDatabase;
+      import android.database.sqlite.SQLiteDatabase;
 
-        class Util {
-          void f(SQLiteDatabase db) {
-            db.rawQuery("SELECT * FROM user WHERE name =<error> </error>::foo", new String[] {"foo"});
-          }
+      class Util {
+        void f(SQLiteDatabase db) {
+          db.rawQuery("SELECT * FROM user WHERE name =<error> </error>::foo", new String[] {"foo"});
         }
-    """.trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -49,51 +53,63 @@ class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureA
   fun testQuestionMark() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">?</error>")
-          List<User> getByName(String name);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">?</error>")
+        List<User> getByName(String name);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">?1</error>")
-          List<User> getByName(String name);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">?1</error>")
+        List<User> getByName(String name);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
 
   fun testQuestionMarkSqliteDatabase() {
-    myFixture.configureByText("Utils.java", """
-        package com.example;
+    myFixture.configureByText(
+      "Utils.java",
+      """
+      package com.example;
 
-        import android.database.sqlite.SQLiteDatabase;
+      import android.database.sqlite.SQLiteDatabase;
 
-        class Util {
-          void f(SQLiteDatabase db) {
-            db.rawQuery("SELECT * FROM user WHERE name = ?", new String[] {"foo"});
-          }
+      class Util {
+        void f(SQLiteDatabase db) {
+          db.rawQuery("SELECT * FROM user WHERE name = ?", new String[] {"foo"});
         }
-    """.trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -101,35 +117,43 @@ class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureA
   fun testAtSign() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">@name</error>")
-          List<User> getByName(String name);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">@name</error>")
+        List<User> getByName(String name);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
 
   fun testAtSignSqliteDatabase() {
-    myFixture.configureByText("Utils.java", """
-        package com.example;
+    myFixture.configureByText(
+      "Utils.java",
+      """
+      package com.example;
 
-        import android.database.sqlite.SQLiteDatabase;
+      import android.database.sqlite.SQLiteDatabase;
 
-        class Util {
-          void f(SQLiteDatabase db) {
-            db.rawQuery("SELECT * FROM user WHERE name = @name", new String[] {"foo"});
-          }
+      class Util {
+        void f(SQLiteDatabase db) {
+          db.rawQuery("SELECT * FROM user WHERE name = @name", new String[] {"foo"});
         }
-    """.trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -137,35 +161,43 @@ class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureA
   fun testColon() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = :name")
-          List<User> getByName(String name);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = :name")
+        List<User> getByName(String name);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
 
   fun testColonSqliteDatabase() {
-    myFixture.configureByText("Utils.java", """
-        package com.example;
+    myFixture.configureByText(
+      "Utils.java",
+      """
+      package com.example;
 
-        import android.database.sqlite.SQLiteDatabase;
+      import android.database.sqlite.SQLiteDatabase;
 
-        class Util {
-          void f(SQLiteDatabase db) {
-            db.rawQuery("SELECT * FROM user WHERE name = :name", new String[] {"foo"});
-          }
+      class Util {
+        void f(SQLiteDatabase db) {
+          db.rawQuery("SELECT * FROM user WHERE name = :name", new String[] {"foo"});
         }
-    """.trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
@@ -173,35 +205,43 @@ class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureA
   fun testDollar() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">${'$'}name</error>")
-          List<User> getByName(String name);
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE name = <error descr="Room only supports named parameters with a leading colon, e.g. :argName.">${'$'}name</error>")
+        List<User> getByName(String name);
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }
 
   fun testDollarSqliteDatabase() {
-    myFixture.configureByText("Utils.java", """
-        package com.example;
+    myFixture.configureByText(
+      "Utils.java",
+      """
+      package com.example;
 
-        import android.database.sqlite.SQLiteDatabase;
+      import android.database.sqlite.SQLiteDatabase;
 
-        class Util {
-          void f(SQLiteDatabase db) {
-            db.rawQuery("SELECT * FROM user WHERE name = ${'$'}name", new String[] {"foo"});
-          }
+      class Util {
+        void f(SQLiteDatabase db) {
+          db.rawQuery("SELECT * FROM user WHERE name = ${'$'}name", new String[] {"foo"});
         }
-    """.trimIndent())
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }

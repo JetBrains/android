@@ -56,8 +56,6 @@ class PreviewStatusIcon : DumbAwareAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val service = IssuePanelService.getInstance(project)
-    service.showSharedIssuePanel {
-      e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
-    }
+    service.showSharedIssuePanel { e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) } }
   }
 }

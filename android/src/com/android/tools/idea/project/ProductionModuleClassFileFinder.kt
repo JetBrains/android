@@ -33,24 +33,20 @@ private fun Logger.debugIfEnabled(msg: String) {
 }
 
 /**
- * The default implementation of [ClassFileFinder] which searches for class files
- * among the transitive production dependencies of its [module], as determined by [ModuleRootManager].
+ * The default implementation of [ClassFileFinder] which searches for class files among the transitive production dependencies of its
+ * [module], as determined by [ModuleRootManager].
  *
- * [ProductionModuleClassFileFinder] only checks the JPS output directory for each module,
- * but subclasses may override [findClassFileInModule] to check other build system-specific
- * outputs.
+ * [ProductionModuleClassFileFinder] only checks the JPS output directory for each module, but subclasses may override
+ * [findClassFileInModule] to check other build system-specific outputs.
  */
-class ProductionModuleClassFileFinder(val module: Module): ClassFileFinder {
+class ProductionModuleClassFileFinder(val module: Module) : ClassFileFinder {
   private val jarManager = JarManager.getInstance(module.project)
 
   override fun findClassFile(fqcn: String): ClassContent? {
     return findClassFile(module, fqcn, mutableSetOf())
   }
 
-  /**
-   * Searches for the class file corresponding to [fqcn] by looking in the given
-   * [module] and its transitive dependencies.
-   */
+  /** Searches for the class file corresponding to [fqcn] by looking in the given [module] and its transitive dependencies. */
   private fun findClassFile(module: Module, fqcn: String, visited: MutableSet<Module>): ClassContent? {
     if (!visited.add(module) || module.isDisposed) return null
 

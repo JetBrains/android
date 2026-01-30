@@ -42,8 +42,7 @@ import com.intellij.util.Processor
 /**
  * [ImplementationViewSessionFactory] for Android resources, for a better "Quick Definition" UI.`
  *
- * Shows a preview of resource declarations for a [ResourceReference] found in the resource
- * repository.
+ * Shows a preview of resource declarations for a [ResourceReference] found in the resource repository.
  */
 class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory {
   override fun createSession(
@@ -59,11 +58,9 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
     val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
     val editor = PsiImplementationViewSession.getEditor(dataContext) ?: return null
     val elementInEditor = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
-    val correctedElement =
-      PsiImplementationViewSession.getElement(project, file, editor, elementInEditor)
+    val correctedElement = PsiImplementationViewSession.getElement(project, file, editor, elementInEditor)
     val contextElement = file.findElementAt(editor.caretModel.offset) ?: return null
-    val resourceReferencePsiElement =
-      getResourceReferencePsiElement(correctedElement, contextElement) ?: return null
+    val resourceReferencePsiElement = getResourceReferencePsiElement(correctedElement, contextElement) ?: return null
     return AndroidImplementationViewSession(resourceReferencePsiElement, contextElement, editor)
   }
 
@@ -80,24 +77,16 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
     if (editor == null || file == null) {
       return null
     }
-    val contextElement =
-      PsiManager.getInstance(project).findFile(file)?.findElementAt(editor.caretModel.offset)
-        ?: return null
-    val resourceReferencePsiElement =
-      getResourceReferencePsiElement(lookupItemObject, contextElement) ?: return null
+    val contextElement = PsiManager.getInstance(project).findFile(file)?.findElementAt(editor.caretModel.offset) ?: return null
+    val resourceReferencePsiElement = getResourceReferencePsiElement(lookupItemObject, contextElement) ?: return null
     return AndroidImplementationViewSession(resourceReferencePsiElement, contextElement, editor)
   }
 
-  private fun getResourceReferencePsiElement(
-    element: Any?,
-    contextElement: PsiElement,
-  ): ResourceReferencePsiElement? {
+  private fun getResourceReferencePsiElement(element: Any?, contextElement: PsiElement): ResourceReferencePsiElement? {
     return when (element) {
       is AndroidXmlDocumentationProvider.ResourceReferenceCompletionElement -> {
         val resourceReference =
-          ResourceUrl.parse(element.resource)
-            ?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
-            ?: return null
+          ResourceUrl.parse(element.resource)?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER) ?: return null
         ResourceReferencePsiElement(contextElement, resourceReference)
       }
       is PsiElement -> ResourceReferencePsiElement.create(element)
@@ -109,8 +98,7 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
 /**
  * [ImplementationViewSession] specific to Android resources
  *
- * Implementations for resources are found via the [AndroidResourceToPsiResolver] resource
- * repositories.
+ * Implementations for resources are found via the [AndroidResourceToPsiResolver] resource repositories.
  */
 class AndroidImplementationViewSession(
   private val resourceReferencePsiElement: ResourceReferencePsiElement,
@@ -127,15 +115,13 @@ class AndroidImplementationViewSession(
           ThrowableComputable {
             runReadAction {
               AndroidResourceToPsiResolver.getInstance()
-                .getGotoDeclarationTargets(
-                  resourceReferencePsiElement.resourceReference,
-                  contextElement,
-                ).map { PsiImplementationViewElement(it) }
-          }
-        },
-        ImplementationSearcher.getSearchingForImplementations(),
-        true,
-        contextElement.project,
+                .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
+                .map { PsiImplementationViewElement(it) }
+            }
+          },
+          ImplementationSearcher.getSearchingForImplementations(),
+          true,
+          contextElement.project,
         )
     }
 
@@ -143,10 +129,7 @@ class AndroidImplementationViewSession(
   override val text: String? = contextElement.text
 
   override val factory: ImplementationViewSessionFactory
-    get() =
-      ImplementationViewSessionFactory.EP_NAME.findExtensionOrFail(
-        AndroidImplementationViewSessionFactory::class.java
-      )
+    get() = ImplementationViewSessionFactory.EP_NAME.findExtensionOrFail(AndroidImplementationViewSessionFactory::class.java)
 
   override val project: Project = resourceReferencePsiElement.project
 

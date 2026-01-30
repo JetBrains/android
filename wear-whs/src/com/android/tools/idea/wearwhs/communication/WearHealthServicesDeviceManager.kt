@@ -65,8 +65,7 @@ internal data class CapabilityState(val enabled: Boolean, val overrideValue: Whs
   }
 
   companion object {
-    fun withNoValue(enabled: Boolean, type: WhsDataType): CapabilityState =
-      if (enabled) enabled(type) else disabled(type)
+    fun withNoValue(enabled: Boolean, type: WhsDataType): CapabilityState = if (enabled) enabled(type) else disabled(type)
 
     fun enabled(type: WhsDataType) = CapabilityState(true, type.noValue())
 
@@ -74,5 +73,4 @@ internal data class CapabilityState(val enabled: Boolean, val overrideValue: Whs
   }
 }
 
-internal class ConnectionLostException(message: String, cause: Throwable? = null) :
-  Exception(message, cause)
+internal class ConnectionLostException(message: String, cause: Throwable? = null) : Exception(message, cause)

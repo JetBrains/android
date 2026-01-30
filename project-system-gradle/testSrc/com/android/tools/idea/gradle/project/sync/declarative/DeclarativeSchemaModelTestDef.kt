@@ -52,10 +52,9 @@ import java.io.File
  *
  * The pre-recorded sync results can be found in testData/snapshots/declarativeSchema/ *.txt files.
  *
- * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
- * target as "//tools/adt/idea/android:intellij.android.core.tests_tests ---test_filter=DeclarativeSchemaModelTestDef".
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use target as
+ * "//tools/adt/idea/android:intellij.android.core.tests_tests ---test_filter=DeclarativeSchemaModelTestDef".
  */
-
 data class DeclarativeSchemaModelTestDef(
   override val testProject: DeclarativeTestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
@@ -69,26 +68,25 @@ data class DeclarativeSchemaModelTestDef(
   }
 
   override fun isCompatible(): Boolean {
-    return agpVersion == AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
-           agpVersion == AGP_CURRENT
+    return agpVersion == AGP_DECLARATIVE_GRADLE_SNAPSHOT || agpVersion == AGP_CURRENT
   }
 
   override fun runTest(root: File, project: Project) {
     val text = project.dumpDeclarativeSchemaModel()
-    val snapshotContext = SnapshotContext(testProject.projectName, agpVersion,
-                                          "tools/adt/idea/android/testData/snapshots/declarativeSchema")
+    val snapshotContext =
+      SnapshotContext(testProject.projectName, agpVersion, "tools/adt/idea/android/testData/snapshots/declarativeSchema")
     snapshotContext.assertIsEqualToSnapshot(text)
   }
 
   companion object {
-    val tests: List<DeclarativeSchemaModelTestDef> = listOf(
-      DeclarativeSchemaModelTestDef(DeclarativeTestProject.DECLARATIVE_ANDROID),
-    )
+    val tests: List<DeclarativeSchemaModelTestDef> = listOf(DeclarativeSchemaModelTestDef(DeclarativeTestProject.DECLARATIVE_ANDROID))
   }
 }
 
 enum class ArrayStatus {
-  NO_ARRAY, FIRST, NEXT
+  NO_ARRAY,
+  FIRST,
+  NEXT,
 }
 
 fun Project.dumpDeclarativeSchemaModel(): String {
@@ -117,10 +115,7 @@ fun Project.dumpDeclarativeSchemaModel(): String {
     }
 
     fun out(key: String, value: String) {
-      if (value.isEmpty())
-        appendLine("$prefix${key.smartPad()}:")
-      else
-        appendLine("$prefix${key.smartPad()}: $value")
+      if (value.isEmpty()) appendLine("$prefix${key.smartPad()}:") else appendLine("$prefix${key.smartPad()}: $value")
       updateArrayStatus()
     }
 
@@ -152,13 +147,13 @@ fun Project.dumpDeclarativeSchemaModel(): String {
           out("$prefix DataClassWithType", fqName.name)
           nest("GenericTypes") {
             typeArgument.forEach {
-                nestArrayElement {
-                  when (it) {
-                    is ConcreteGeneric -> it.reference.dump("ConcreteGeneric")
-                    is StarGeneric -> wildcardGeneric()
-                  }
+              nestArrayElement {
+                when (it) {
+                  is ConcreteGeneric -> it.reference.dump("ConcreteGeneric")
+                  is StarGeneric -> wildcardGeneric()
                 }
               }
+            }
           }
         }
       }
@@ -187,12 +182,14 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       out("MemberFunctionName", simpleName)
       receiver.dump("Receiver")
       nest("Parameters") {
-        parameters.sortedBy { it.name }.forEach {
-          nestArrayElement {
-            out("Name", it.name ?: "N/A")
-            it.type.dump("Value")
+        parameters
+          .sortedBy { it.name }
+          .forEach {
+            nestArrayElement {
+              out("Name", it.name ?: "N/A")
+              it.type.dump("Value")
+            }
           }
-        }
       }
       semantic.dump()
     }
@@ -200,12 +197,14 @@ fun Project.dumpDeclarativeSchemaModel(): String {
     fun SchemaFunction.dump() {
       out("FunctionName", simpleName)
       nest("Parameters") {
-        parameters.sortedBy { it.name }.forEach {
-          nestArrayElement {
-            out("Name", it.name ?: "N/A")
-            it.type.dump("Value")
+        parameters
+          .sortedBy { it.name }
+          .forEach {
+            nestArrayElement {
+              out("Name", it.name ?: "N/A")
+              it.type.dump("Value")
+            }
           }
-        }
       }
       semantic.dump()
     }
@@ -213,26 +212,22 @@ fun Project.dumpDeclarativeSchemaModel(): String {
     fun ClassModel.dump() {
       out("Name", name.name)
       nest("MemberFunctions") { memberFunctions.sortedBy { it.name }.forEach { nestArrayElement { it.dump() } } }
-      nest("Properties") {
-        properties.sortedBy { it.name }.forEach { nestArrayElement { it.dump() } }
-      }
+      nest("Properties") { properties.sortedBy { it.name }.forEach { nestArrayElement { it.dump() } } }
       out("Supertypes", supertypes.joinToString(",") { it.name })
     }
 
     fun EnumModel.dump() {
       out("Name", name.name)
-      nest("EntryNames") { this.entryNames.joinToString (",") }
+      nest("EntryNames") { this.entryNames.joinToString(",") }
     }
 
     fun ParameterizedClassModel.dump() {
       out("Name", name.name)
-      nest("GenericArguments") {
-        arguments.forEach { it.dump() }
-      }
+      nest("GenericArguments") { arguments.forEach { it.dump() } }
     }
 
-    fun ClassType.dump(){
-      when(this){
+    fun ClassType.dump() {
+      when (this) {
         is EnumModel -> dump()
         is ClassModel -> dump()
         is ParameterizedClassModel -> dump()
@@ -241,32 +236,12 @@ fun Project.dumpDeclarativeSchemaModel(): String {
 
     fun BuildDeclarativeSchema.dump() {
       getRootReceiver().dump()
-      nest("DataClassesMap:") {
-        dataClassesByFqName.entries.sortedBy { it.key.name }.forEach {
-          nest(it.key.name) { it.value.dump() }
-        }
-      }
-      nest("RootFunctions:") {
-        topLevelFunctions.entries.sortedBy { it.key }.forEach {
-          nest(it.key) { it.value.dump() }
-        }
-      }
+      nest("DataClassesMap:") { dataClassesByFqName.entries.sortedBy { it.key.name }.forEach { nest(it.key.name) { it.value.dump() } } }
+      nest("RootFunctions:") { topLevelFunctions.entries.sortedBy { it.key }.forEach { nest(it.key) { it.value.dump() } } }
     }
 
-    nest("Projects:") {
-      schema?.projects?.sortedBy { it.getRootReceiver().name.name }?.forEach {
-        nest("ProjectSchema:") {
-          it.dump()
-        }
-      }
-    }
+    nest("Projects:") { schema?.projects?.sortedBy { it.getRootReceiver().name.name }?.forEach { nest("ProjectSchema:") { it.dump() } } }
 
-    nest("Settings:") {
-      schema?.settings?.sortedBy { it.getRootReceiver().name.name }?.forEach {
-        nest("Settings Schema:") {
-          it.dump()
-        }
-      }
-    }
+    nest("Settings:") { schema?.settings?.sortedBy { it.getRootReceiver().name.name }?.forEach { nest("Settings Schema:") { it.dump() } } }
   }
 }

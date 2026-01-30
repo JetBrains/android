@@ -77,8 +77,7 @@ class VitalsConnectionSelectorPopup(
       contentPanel.add(bannerPanel)
     }
 
-    val suggestedContainer =
-      JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5, 5, 0, 5) }
+    val suggestedContainer = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5, 5, 0, 5) }
     val suggestedLabel =
       SimpleColoredComponent().apply {
         append("Suggested apps for this project", SimpleTextAttributes.GRAYED_ATTRIBUTES)
@@ -110,10 +109,7 @@ class VitalsConnectionSelectorPopup(
     val allContainer = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 5) }
     val allLabel =
       SimpleColoredComponent().apply {
-        append(
-          "${if (mainConnections.isNotEmpty()) "Other" else "All"} apps",
-          SimpleTextAttributes.GRAYED_ATTRIBUTES,
-        )
+        append("${if (mainConnections.isNotEmpty()) "Other" else "All"} apps", SimpleTextAttributes.GRAYED_ATTRIBUTES)
         border = VITALS_POPUP_ITEM_BORDER
       }
     val (allApps, allAppsModel) = setUpList()

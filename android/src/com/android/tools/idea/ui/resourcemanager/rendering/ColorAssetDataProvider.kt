@@ -27,10 +27,7 @@ import com.intellij.openapi.project.Project
  *
  * For [ResourceAssetSet] returns its resolved color in the [AssetData.subtitle], or "Multiple colors" for 'state list' colors.
  */
-class ColorAssetDataProvider(
-  private val project: Project,
-  private val resourceResolver: ResourceResolver
-) : DefaultAssetDataProvider() {
+class ColorAssetDataProvider(private val project: Project, private val resourceResolver: ResourceResolver) : DefaultAssetDataProvider() {
 
   override fun getAssetSetData(assetSet: ResourceAssetSet): AssetData {
     val defaultData = super.getAssetSetData(assetSet)

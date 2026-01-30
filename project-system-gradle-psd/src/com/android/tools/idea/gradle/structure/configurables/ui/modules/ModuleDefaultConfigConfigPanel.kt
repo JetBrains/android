@@ -32,13 +32,16 @@ class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig
     defaultConfig.module.parent,
     defaultConfig.module,
     defaultConfig,
-    defaultConfigPropertiesModel(defaultConfig.module.isLibrary)
+    defaultConfigPropertiesModel(defaultConfig.module.isLibrary),
   ),
   ModelPanel<PsAndroidModule> {
 
   override val title = "Default Config"
+
   override fun setHistory(history: History?) = Unit
+
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
+
   override fun queryPlace(place: Place) = Unit
 
   override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_DEFAULT_CONFIG

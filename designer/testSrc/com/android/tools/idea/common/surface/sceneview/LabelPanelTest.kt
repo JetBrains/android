@@ -78,8 +78,7 @@ class LabelPanelTest {
   @Test
   fun `change visibility`() = runInEdt {
     val settings = DisplaySettings().apply { setTooltip("Tooltip") }
-    val label =
-      LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
+    val label = LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
     assertFalse(label.isVisible)
 
     settings.setDisplayName("Name")
@@ -95,8 +94,7 @@ class LabelPanelTest {
         setParameterName("parameterName")
         setTooltip("Tooltip")
       }
-    val label =
-      LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
+    val label = LabelPanel(settings, scope, MutableStateFlow(false)).apply { size = Dimension(250, 50) }
     scope.cancel()
     settings.setDisplayName("New Name")
     // Still old name

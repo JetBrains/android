@@ -25,22 +25,24 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.ide.PooledThreadExecutor
 
-abstract class PsCollectionBase<TModel , TKey, TParent>
-protected constructor(val parent: TParent) :
-  PsKeyedModelCollection<TKey, TModel> {
+abstract class PsCollectionBase<TModel, TKey, TParent> protected constructor(val parent: TParent) : PsKeyedModelCollection<TKey, TModel> {
   private val changedDispatcher = ChangeDispatcher()
   private var batchChangeLevel = 0
   private var batchHasPendingChangeNotifications = false
 
   protected abstract fun getKeys(from: TParent): Set<TKey>
+
   protected abstract fun create(key: TKey): TModel
+
   protected abstract fun update(key: TKey, model: TModel)
 
-  override var entries: Map<TKey, TModel> = mapOf(); protected set
+  override var entries: Map<TKey, TModel> = mapOf()
+    protected set
 
   override fun forEach(consumer: (TModel) -> Unit) = entries.values.forEach(consumer)
 
-  override val items: Collection<TModel> get() = entries.values
+  override val items: Collection<TModel>
+    get() = entries.values
 
   override fun findElement(key: TKey): TModel? = entries[key]
 
@@ -53,11 +55,8 @@ protected constructor(val parent: TParent) :
   fun refresh() = refreshFromKeys(getKeys(parent))
 
   fun refreshFuture(): ListenableFuture<Unit> =
-    if (ApplicationManager.getApplication().isUnitTestMode)
-      Futures.immediateFuture(refresh())
-    else
-      Futures.submitAsync({ Futures.immediateFuture(getKeys(parent)) }, PooledThreadExecutor.INSTANCE)
-        .continueOnEdt(::refreshFromKeys)
+    if (ApplicationManager.getApplication().isUnitTestMode) Futures.immediateFuture(refresh())
+    else Futures.submitAsync({ Futures.immediateFuture(getKeys(parent)) }, PooledThreadExecutor.INSTANCE).continueOnEdt(::refreshFromKeys)
 
   override fun onChange(disposable: Disposable, listener: () -> Unit) = changedDispatcher.add(disposable, listener)
 
@@ -69,8 +68,7 @@ protected constructor(val parent: TParent) :
     beginChange()
     try {
       return block()
-    }
-    finally {
+    } finally {
       endChange()
     }
   }
@@ -81,7 +79,7 @@ protected constructor(val parent: TParent) :
 
   private fun endChange() {
     batchChangeLevel--
-    if (batchChangeLevel == 0){
+    if (batchChangeLevel == 0) {
       if (batchHasPendingChangeNotifications) {
         batchHasPendingChangeNotifications = false
         notifyChanged()
@@ -90,16 +88,14 @@ protected constructor(val parent: TParent) :
   }
 }
 
-abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel> protected constructor(parent: TParent)
-  : PsCollectionBase<TModel, TKey, TParent>(parent) {
+abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel> protected constructor(parent: TParent) :
+  PsCollectionBase<TModel, TKey, TParent>(parent) {
   // return escaped key
   protected abstract fun instantiateNew(key: TKey)
+
   protected abstract fun removeExisting(key: TKey)
 
-  protected open fun checkIfCanAddNew(key: TKey):String? =
-    if (entries.containsKey(key))  ("Duplicate key: $key")
-  else
-    null
+  protected open fun checkIfCanAddNew(key: TKey): String? = if (entries.containsKey(key)) ("Duplicate key: $key") else null
 
   fun addNew(key: TKey): TModel {
     val message = checkIfCanAddNew(key)
@@ -122,7 +118,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
   }
 
   protected fun renamed(model: TModel, newKey: TKey) {
-    entries = entries.entries.map { (k, v) -> if (v === model) newKey to v else k to v}.toMap()
+    entries = entries.entries.map { (k, v) -> if (v === model) newKey to v else k to v }.toMap()
     update(newKey, model)
     parent.isModified = true
     notifyChanged()

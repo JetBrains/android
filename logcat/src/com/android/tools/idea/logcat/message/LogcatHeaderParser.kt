@@ -39,8 +39,8 @@ private val PRIORITY = Regex("(?<priority>[VDIWEAF])")
 private val TAG = Regex("(?<tag>.*?)")
 
 /**
- * Pattern for "logcat -v long" ([ MM-DD HH:MM:SS.mmm PID:TID LEVEL/TAG ]) or "logcat -v long,epoch"
- * header ([ SSSSSSSSSS.mmm PID:TID LEVEL/TAG ]). Example:
+ * Pattern for "logcat -v long" ([ MM-DD HH:MM:SS.mmm PID:TID LEVEL/TAG ]) or "logcat -v long,epoch" header ([ SSSSSSSSSS.mmm PID:TID
+ * LEVEL/TAG ]). Example:
  *
  * `[ 08-18 16:39:11.760 2977: 2988 D/PhoneInterfaceManager ]`
  *
@@ -70,13 +70,10 @@ internal class LogcatHeaderParser(
   }
 
   /**
-   * Parse a header line into a [LogcatHeader] object, or `null` if the input line doesn't match the
-   * expected format.
+   * Parse a header line into a [LogcatHeader] object, or `null` if the input line doesn't match the expected format.
    *
-   * @param line raw text that should be the header line from `logcat -v long` or `logcat -v
-   *   long,epoch`.
-   * @param serialNumber the serial number of the device from which these log messages have been
-   *   received
+   * @param line raw text that should be the header line from `logcat -v long` or `logcat -v long,epoch`.
+   * @param serialNumber the serial number of the device from which these log messages have been received
    * @return a [LogcatHeader] which represents the passed in text or null if text is not a header.
    */
   fun parseHeader(line: String, serialNumber: String): LogcatHeader? {
@@ -105,24 +102,18 @@ internal class LogcatHeaderParser(
   }
 
   /**
-   * Parses the
-   * [priority part of a logcat message header:](https://developer.android.com/studio/command-line/logcat.html)
-   * , the "I" in
+   * Parses the [priority part of a logcat message header:](https://developer.android.com/studio/command-line/logcat.html) , the "I" in
    *
    * `[ 1517949446.554 2848: 2848 I/MainActivity ]`
    *
-   * @return the log level corresponding to the priority. If the argument is not one of the expected
-   *   letters returns LogLevel.WARN.
+   * @return the log level corresponding to the priority. If the argument is not one of the expected letters returns LogLevel.WARN.
    */
   private fun parsePriority(string: String) = LogLevel.getByLetter(string) ?: WARN
 }
 
 private fun MatchResult.getEpochTimestamp(): Instant {
   // We can use `!!.` below because the regex matched so the group must exist
-  return Instant.ofEpochSecond(
-    parseEpochSeconds(groups["epochSec"]!!.value),
-    MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong()),
-  )
+  return Instant.ofEpochSecond(parseEpochSeconds(groups["epochSec"]!!.value), MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong()))
 }
 
 private fun MatchResult.getStandardTimestamp(defaultYear: Int, defaultZoneId: ZoneId): Instant {

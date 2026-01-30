@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class OpenUpgradeAssistantHyperlink: SyncIssueNotificationHyperlink(
-  "openUpgradeAssistant",
-  "Open AGP Upgrade Assistant",
-  AndroidStudioEvent.GradleSyncQuickFix.OPEN_UPGRADE_ASSISTANT_HYPERLINK
-) {
+class OpenUpgradeAssistantHyperlink :
+  SyncIssueNotificationHyperlink(
+    "openUpgradeAssistant",
+    "Open AGP Upgrade Assistant",
+    AndroidStudioEvent.GradleSyncQuickFix.OPEN_UPGRADE_ASSISTANT_HYPERLINK,
+  ) {
 
   override fun execute(project: Project) {
     showUpgradeAssistant(project)

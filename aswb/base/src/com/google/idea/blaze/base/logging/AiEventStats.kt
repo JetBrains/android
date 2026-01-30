@@ -17,9 +17,7 @@ package com.google.idea.blaze.base.logging
 
 import com.intellij.openapi.project.Project
 
-/**
- * Data class for AI event stats.
- */
+/** Data class for AI event stats. */
 data class AiEventStats(
   val project: Project?,
   val completionEvent: CompletionEventMetadata? = null,
@@ -37,28 +35,17 @@ data class AiEventStats(
   }
 }
 
-data class CompletionEventMetadata(
-  val trigger: Trigger,
-  val completionRequestError: CompletionRequestError? = null,
-) {
+data class CompletionEventMetadata(val trigger: Trigger, val completionRequestError: CompletionRequestError? = null) {
   enum class Trigger {
     UNKNOWN_TRIGGER,
     USER,
     AUTOMATIC,
   }
 
-  data class CompletionRequestError(
-    val modelId: String,
-    val status: String,
-  )
+  data class CompletionRequestError(val modelId: String, val status: String)
 }
 
-data class TransformEventMetadata(
-  val kind: Kind,
-  val phase: Phase,
-  val sessionId: String,
-  val transformEvent: TransformEvent,
-) {
+data class TransformEventMetadata(val kind: Kind, val phase: Phase, val sessionId: String, val transformEvent: TransformEvent) {
   enum class Kind {
     UNKNOWN_KIND,
     DOCUMENT,
@@ -84,21 +71,11 @@ data class TransformEventMetadata(
     RUNTIME_EXCEPTION,
   }
 
-  data class Request(
-    val file: String,
-    val selectedLength: Int,
-    val contextLength: Int,
-  )
+  data class Request(val file: String, val selectedLength: Int, val contextLength: Int)
 
-  data class ErrorResponse(
-    val cause: ErrorCause,
-    val exceptionClass: String,
-    val statusCode: Int,
-  )
+  data class ErrorResponse(val cause: ErrorCause, val exceptionClass: String, val statusCode: Int)
 
-  data class SuccessResponse(
-    val latencyMillis: Long,
-  )
+  data class SuccessResponse(val latencyMillis: Long)
 
   data class TransformEvent(
     val transformEventType: TransformEventType? = null,
@@ -180,25 +157,16 @@ data class ChatBotEventMetadata(
     CANCELLED,
   }
 
-  data class BotResponse(
-    val chunkLatenciesMillis: List<Long>,
-    val timeToFirstTokenMillis: Long,
-    val errorStatus: BotResponseErrorStatus,
-  )
+  data class BotResponse(val chunkLatenciesMillis: List<Long>, val timeToFirstTokenMillis: Long, val errorStatus: BotResponseErrorStatus)
 
-  data class UserFeedback(
-    val sentiment: Sentiment,
-    val userInput: UserInput? = null,
-  ) {
+  data class UserFeedback(val sentiment: Sentiment, val userInput: UserInput? = null) {
     enum class Sentiment {
       SENTIMENT_UNSPECIFIED,
       POSITIVE,
       NEGATIVE,
     }
 
-    data class UserInput(
-      val issueType: IssueType,
-    ) {
+    data class UserInput(val issueType: IssueType) {
       enum class IssueType {
         ISSUE_TYPE_UNSPECIFIED,
         TOXIC,
@@ -209,28 +177,13 @@ data class ChatBotEventMetadata(
     }
   }
 
-  data class ToolCallResponse(
-    val toolCallId: String,
-    val toolName: String,
-    val status: ToolCallResponseStatus,
-  )
+  data class ToolCallResponse(val toolCallId: String, val toolName: String, val status: ToolCallResponseStatus)
 }
 
-data class DevAiContext(
-  val conversation: Conversation? = null,
-  val edit: Edit? = null,
-) {
+data class DevAiContext(val conversation: Conversation? = null, val edit: Edit? = null) {
 
-  data class Conversation(
-    val conversationId: String,
-    val turn: Turn,
-  ) {
-    data class Turn(
-      val turnIndex: Int,
-      val edit: List<Edit>,
-      val lastFeedbackProvided: FeedbackProvided,
-      val turnId: String,
-    )
+  data class Conversation(val conversationId: String, val turn: Turn) {
+    data class Turn(val turnIndex: Int, val edit: List<Edit>, val lastFeedbackProvided: FeedbackProvided, val turnId: String)
   }
 
   data class Edit(
@@ -241,15 +194,9 @@ data class DevAiContext(
     val reviewTimeMilliseconds: Long,
     val depotPath: String,
   ) {
-    data class CharactersSuggested(
-      val added: Long,
-      val removed: Long,
-    )
+    data class CharactersSuggested(val added: Long, val removed: Long)
 
-    data class CharactersAccepted(
-      val added: Long,
-      val removed: Long,
-    )
+    data class CharactersAccepted(val added: Long, val removed: Long)
   }
 
   enum class FeedbackProvided {

@@ -67,8 +67,7 @@ abstract class ModuleModel(
   override val isLibrary: Boolean,
   val projectModelData: ProjectModelData,
   _template: NamedModuleTemplate =
-    if (projectModelData.isNewProject) createSampleTemplate()
-    else createDefaultModuleTemplate(projectModelData.project, name),
+    if (projectModelData.isNewProject) createSampleTemplate() else createDefaultModuleTemplate(projectModelData.project, name),
   val moduleParent: String,
   override val wizardContext: WizardUiContext,
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
@@ -84,8 +83,7 @@ abstract class ModuleModel(
     ModuleTemplateDataBuilder(
       projectTemplateDataBuilder = projectTemplateDataBuilder,
       isNewModule = true,
-      viewBindingSupport =
-        projectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE),
+      viewBindingSupport = projectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE),
     )
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
   override val viewBindingSupport = projectModelData.viewBindingSupport
@@ -126,24 +124,14 @@ abstract class ModuleModel(
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
           if (agpVersion == null) {
-            agpVersion =
-              this@ModuleModel.agpVersionSelector
-                .get()
-                .resolveVersion(AgpVersions::getAvailableVersions)
+            agpVersion = this@ModuleModel.agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
           }
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
-        val buildVersion =
-          recommendedBuildSdk?.let { androidSdkInfo.value.withCompileSdk(it) }
-            ?: androidSdkInfo.value
+        val buildVersion = recommendedBuildSdk?.let { androidSdkInfo.value.withCompileSdk(it) } ?: androidSdkInfo.value
         setBuildVersion(buildVersion, project)
-        setModuleRoots(
-          template.get().paths,
-          project.basePath!!,
-          moduleName.get(),
-          this@ModuleModel.packageName.get(),
-        )
+        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary
       }
       useVersionCatalog.set(projectModelData.useVersionCatalog.get())
@@ -158,27 +146,17 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun render() {
-      success =
-        WriteCommandAction.writeCommandAction(project).withName(commandName).compute<
-          Boolean,
-          Exception,
-        > {
-          renderTemplate(false)
-        }
+      success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> { renderTemplate(false) }
 
       if (!success) {
-        log.warn(
-          "A problem occurred while creating a new Module. Please check the log file for possible errors."
-        )
+        log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
       }
     }
 
     @UiThread
     override fun finish() {
       if (success) {
-        DumbService.getInstance(project).smartInvokeLater {
-          TemplateUtils.openEditors(project, createdFiles, true)
-        }
+        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
       }
     }
 
@@ -217,29 +195,21 @@ abstract class ModuleModel(
             moduleType = moduleTemplateRendererToModuleType(loggingEvent),
             minSdk = androidSdkInfo.valueOrNull?.minSdk?.majorVersion,
             targetSdk = androidSdkInfo.valueOrNull?.compileSdk?.majorVersion,
-            bytecodeLevel =
-              (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+            bytecodeLevel = (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
             useGradleKts = useGradleKts.get(),
             useAppCompat = false,
           )
         } else null
 
-      val executor =
-        if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
-      if (
-        StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() &&
-          isNewProject &&
-          useVersionCatalog.get()
-      ) {
+      if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject && useVersionCatalog.get()) {
         // Create a conventional default toml file for the new project because
         // GradleVersionCatalogModel expects
         // the toml file already exists. This needs to be before start rendering the template.
         WriteCommandAction.writeCommandAction(project).run<IOException> {
           executor.copy(
-            File(
-              FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")
-            ),
+            File(FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")),
             File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)),
           )
           if (executor is DefaultRecipeExecutor) {

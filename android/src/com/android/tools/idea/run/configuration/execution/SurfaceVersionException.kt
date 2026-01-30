@@ -20,6 +20,8 @@ import com.intellij.execution.ExecutionException
 class SurfaceVersionException(minVersion: Int, currentVersion: Int, isEmulator: Boolean) :
   ExecutionException(
     "<html><p>Device software is out of date. Check for updates using the <b>Play Store app</b>." +
-    (if (isEmulator) "<br/>You can also check to see if there is an update available for the emulator system image via <b>SDK Manager</b>"
-    else "") + "</html>",
-    IllegalStateException("minVersion: $minVersion currentVersion: $currentVersion"))
+      (if (isEmulator) "<br/>You can also check to see if there is an update available for the emulator system image via <b>SDK Manager</b>"
+      else "") +
+      "</html>",
+    IllegalStateException("minVersion: $minVersion currentVersion: $currentVersion"),
+  )

@@ -32,10 +32,8 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
     val virtualFile = psiFile.virtualFile
     val resFolder = virtualFile?.parent?.parent ?: return
     val facet = AndroidFacet.getInstance(psiFile) ?: return
-    val repository =
-      ResourceFolderRegistry.getInstance(project).getCached(resFolder, facet.namespacing) ?: return
-    val definedInFile =
-      repository.allResources.filter { it.getSourceAsVirtualFile() == virtualFile }
+    val repository = ResourceFolderRegistry.getInstance(project).getCached(resFolder, facet.namespacing) ?: return
+    val definedInFile = repository.allResources.filter { it.getSourceAsVirtualFile() == virtualFile }
     val textOutput =
       definedInFile.joinToString(
         prefix = "Resources defined in ${virtualFile.path}\n\n",

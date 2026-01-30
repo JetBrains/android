@@ -25,16 +25,13 @@ import org.toml.lang.psi.TomlFileType
 /**
  * Runs the FullProjectBenchmark tests on JetNews project.
  *
- * Run locally with:
- * bazel test --test_output=streamed --test_filter=JetNewsK2Benchmark //tools/adt/idea/ide-perf-tests/...
+ * Run locally with: bazel test --test_output=streamed --test_filter=JetNewsK2Benchmark //tools/adt/idea/ide-perf-tests/...
  */
 class JetNewsK2Benchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val GRADLE_PROJECT_NAME = "JetNews"
     private const val PROJECT_NAME = "JetNews_K2"

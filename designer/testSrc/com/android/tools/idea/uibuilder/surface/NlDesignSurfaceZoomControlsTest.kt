@@ -92,8 +92,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   @Before
   fun setup(): Unit = runBlocking {
-    androidProjectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
+    androidProjectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
     StudioRenderService.setForTesting(androidProjectRule.project, createNoSecurityRenderService())
 
@@ -114,16 +113,12 @@ class NlDesignSurfaceZoomControlsTest {
                 android:textSize='40sp'
                 android:text="Hello world"/>
         </LinearLayout>
-      """
+        """
           .trimIndent(),
       )
-    val configuration =
-      RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     surface = invokeAndWaitIfNeeded {
-      NlSurfaceBuilder.builder(
-          androidProjectRule.project,
-          androidProjectRule.fixture.testRootDisposable,
-        )
+      NlSurfaceBuilder.builder(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)
         .setZoomControlsPolicy(ZoomControlsPolicy.VISIBLE)
         .build()
     }
@@ -151,10 +146,7 @@ class NlDesignSurfaceZoomControlsTest {
     // Verify successful render
     assertEquals(1, surface.sceneManagers.size)
     val renderResult = surface.sceneManagers.single().renderResult!!
-    assertTrue(
-      "The render must be successful. It was: $renderResult",
-      renderResult.renderResult.isSuccess,
-    )
+    assertTrue("The render must be successful. It was: $renderResult", renderResult.renderResult.isSuccess)
 
     fakeUi = invokeAndWaitIfNeeded {
       val outerPanel =
@@ -170,9 +162,7 @@ class NlDesignSurfaceZoomControlsTest {
       }
     }
 
-    delayUntilCondition(100, 2.seconds) {
-      fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2
-    }
+    delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2 }
 
     // Try to restore the zoom
     surface.restoreZoomOrZoomToFit()
@@ -188,8 +178,7 @@ class NlDesignSurfaceZoomControlsTest {
     Disposer.dispose(surface)
   }
 
-  private fun getGoldenImagePath(testName: String) =
-    Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
+  private fun getGoldenImagePath(testName: String) = Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
 
   private fun FakeUi.updateToolbardsAndFullRefresh() = invokeAndWaitIfNeeded {
     updateToolbars()
@@ -200,8 +189,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   @Test
   fun testNlDesignSurfaceZoom() {
-    val zoomActionsToolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
@@ -209,18 +197,10 @@ class NlDesignSurfaceZoomControlsTest {
     // Verify zoom to fit on startup
     run {
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(
-        getGoldenImagePath("zoomFit"),
-        asyncDisplayRule.renderInFakeUi(fakeUi),
-        0.1,
-        1,
-      )
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), asyncDisplayRule.renderInFakeUi(fakeUi), 0.1, 1)
     }
 
-    val event =
-      TestActionEvent.createTestEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-      )
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 
@@ -230,12 +210,7 @@ class NlDesignSurfaceZoomControlsTest {
       repeat(3) { zoomInAction.actionPerformed(event) }
       assertTrue(surface.zoomController.scale > originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(
-        getGoldenImagePath("zoomIn"),
-        asyncDisplayRule.renderInFakeUi(fakeUi),
-        0.1,
-        1,
-      )
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), asyncDisplayRule.renderInFakeUi(fakeUi), 0.1, 1)
     }
 
     // Verify zoom to fit
@@ -243,12 +218,7 @@ class NlDesignSurfaceZoomControlsTest {
       zoomToFitAction.actionPerformed(event)
       assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(
-        getGoldenImagePath("zoomFit"),
-        asyncDisplayRule.renderInFakeUi(fakeUi),
-        0.1,
-        1,
-      )
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), asyncDisplayRule.renderInFakeUi(fakeUi), 0.1, 1)
     }
 
     // Verify zoom out
@@ -257,19 +227,13 @@ class NlDesignSurfaceZoomControlsTest {
       repeat(3) { zoomOutAction.actionPerformed(event) }
       assertTrue(surface.zoomController.scale < originalScale)
       fakeUi.updateToolbardsAndFullRefresh()
-      ImageDiffUtil.assertImageSimilar(
-        getGoldenImagePath("zoomOut"),
-        asyncDisplayRule.renderInFakeUi(fakeUi),
-        0.1,
-        1,
-      )
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), asyncDisplayRule.renderInFakeUi(fakeUi), 0.1, 1)
     }
   }
 
   @Test
   fun testZoomControlsKeyboardInteractions() = runBlocking {
-    val zoomActionsToolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
@@ -284,11 +248,7 @@ class NlDesignSurfaceZoomControlsTest {
     // Verify zoom in
     run {
       val originalScale = surface.zoomController.scale
-      val keyStroke =
-        zoomInAction.shortcutSet.shortcuts
-          .filterIsInstance<KeyboardShortcut>()
-          .first()
-          .firstKeyStroke
+      val keyStroke = zoomInAction.shortcutSet.shortcuts.filterIsInstance<KeyboardShortcut>().first().firstKeyStroke
       repeat(3) {
         invokeAndWaitIfNeeded {
           IdeEventQueue.getInstance()
@@ -310,11 +270,7 @@ class NlDesignSurfaceZoomControlsTest {
 
     // Verify zoom to fit
     run {
-      val keyStroke =
-        zoomToFitAction.shortcutSet.shortcuts
-          .filterIsInstance<KeyboardShortcut>()
-          .first()
-          .firstKeyStroke
+      val keyStroke = zoomToFitAction.shortcutSet.shortcuts.filterIsInstance<KeyboardShortcut>().first().firstKeyStroke
       invokeAndWaitIfNeeded {
         IdeEventQueue.getInstance()
           .keyEventDispatcher
@@ -329,19 +285,13 @@ class NlDesignSurfaceZoomControlsTest {
             )
           )
       }
-      delayUntilCondition(10, 100.milliseconds) {
-        abs(zoomToFitScale - surface.zoomController.scale) < 0.01
-      }
+      delayUntilCondition(10, 100.milliseconds) { abs(zoomToFitScale - surface.zoomController.scale) < 0.01 }
     }
 
     // Verify zoom out
     run {
       val originalScale = surface.zoomController.scale
-      val keyStroke =
-        zoomOutAction.shortcutSet.shortcuts
-          .filterIsInstance<KeyboardShortcut>()
-          .first()
-          .firstKeyStroke
+      val keyStroke = zoomOutAction.shortcutSet.shortcuts.filterIsInstance<KeyboardShortcut>().first().firstKeyStroke
       repeat(3) {
         invokeAndWaitIfNeeded {
           IdeEventQueue.getInstance()

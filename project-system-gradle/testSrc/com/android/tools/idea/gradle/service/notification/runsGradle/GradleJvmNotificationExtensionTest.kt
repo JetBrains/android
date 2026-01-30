@@ -30,6 +30,8 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC
 import com.intellij.testFramework.replaceService
+import kotlin.test.assertEquals
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import org.junit.After
 import org.junit.Before
@@ -39,14 +41,10 @@ import org.mockito.Mockito.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import kotlin.test.assertEquals
-import kotlinx.coroutines.runBlocking
 
 class GradleJvmNotificationExtensionTest {
 
-  @JvmField
-  @Rule
-  val gradleProjectRule = AndroidGradleProjectRule()
+  @JvmField @Rule val gradleProjectRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
@@ -60,12 +58,8 @@ class GradleJvmNotificationExtensionTest {
 
   private val invalidGradleJdkErrorText = GradleBundle.message("gradle.jvm.is.invalid")
   private val gradleJvmExtension = GradleJvmNotificationExtension()
-  private val externalProjectPath by lazy {
-    gradleProjectRule.project.basePath.orEmpty()
-  }
-  private val embeddedJdkPath by lazy {
-    IdeSdks.getInstance().embeddedJdkPath.toString()
-  }
+  private val externalProjectPath by lazy { gradleProjectRule.project.basePath.orEmpty() }
+  private val embeddedJdkPath by lazy { IdeSdks.getInstance().embeddedJdkPath.toString() }
 
   @Test
   fun `Given unexpected exception When customize notificationData Then no modification happened`() {
@@ -75,9 +69,17 @@ class GradleJvmNotificationExtensionTest {
     val originalFileLine = 10
     val originalFileColumn = 2
     val originalIsBalloon = true
-    val notificationData = NotificationData(
-      originalTitle, originalMessage, ERROR, PROJECT_SYNC, originalFilePath, originalFileLine, originalFileColumn, originalIsBalloon
-    )
+    val notificationData =
+      NotificationData(
+        originalTitle,
+        originalMessage,
+        ERROR,
+        PROJECT_SYNC,
+        originalFilePath,
+        originalFileLine,
+        originalFileColumn,
+        originalIsBalloon,
+      )
     assertThat(notificationData.registeredListenerIds).isEmpty()
     mockGradleJdkException(originalMessage)
     gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
@@ -96,18 +98,22 @@ class GradleJvmNotificationExtensionTest {
   fun `Given expected exception with quickfixes When customize notificationData Then message was completely overridden`() {
     val originalTitle = "Test error title"
     val messageErrorText = "Test error message"
-    val expectedMessage = """
+    val expectedMessage =
+      """
       |${invalidGradleJdkErrorText}
       |${messageErrorText}
       |<a href="${baseId()}.embedded">Use Embedded JDK ($embeddedJdkPath)</a>
       |<a href="${OpenProjectJdkLocationListener.ID}">Change Gradle JDK location</a>
-    """.trimMargin()
+    """
+        .trimMargin()
 
-    val notificationMessage = """
+    val notificationMessage =
+      """
       |${invalidGradleJdkErrorText}
       |<a href="any.id">Test quick fix</a>
       |<a href="any.id.2">Test quick fix 2</a>
-    """.trimMargin()
+    """
+        .trimMargin()
     val notificationData = NotificationData(originalTitle, notificationMessage, ERROR, PROJECT_SYNC)
     assertThat(notificationData.registeredListenerIds).isEmpty()
     mockGradleJdkException(messageErrorText)
@@ -123,12 +129,14 @@ class GradleJvmNotificationExtensionTest {
   fun `Given expected exception and IdeSdks JDK as embedded When customize notificationData Then message was changed and embedded JDK was suggested`() {
     val originalTitle = "Test error title"
     val messageErrorText = "Test error message"
-    val expectedMessage = """
+    val expectedMessage =
+      """
       |${invalidGradleJdkErrorText}
       |${messageErrorText}
       |<a href="${baseId()}.embedded">Use Embedded JDK ($embeddedJdkPath)</a>
       |<a href="${OpenProjectJdkLocationListener.ID}">Change Gradle JDK location</a>
-    """.trimMargin()
+    """
+        .trimMargin()
 
     val notificationData = NotificationData(originalTitle, invalidGradleJdkErrorText, ERROR, PROJECT_SYNC)
     assertThat(notificationData.registeredListenerIds).isEmpty()
@@ -147,13 +155,15 @@ class GradleJvmNotificationExtensionTest {
 
     val originalTitle = "Test error title"
     val messageErrorText = "Test error message"
-    val expectedMessage = """
+    val expectedMessage =
+      """
       |${invalidGradleJdkErrorText}
       |${messageErrorText}
       |<a href="${baseId()}.embedded">Use Embedded JDK ($embeddedJdkPath)</a>
       |<a href="${baseId()}">Use JDK ${IdeSdks.getInstance().jdk?.name} (${IdeSdks.getInstance().jdk?.homePath})</a>
       |<a href="${OpenProjectJdkLocationListener.ID}">Change Gradle JDK location</a>
-    """.trimMargin()
+    """
+        .trimMargin()
 
     mockGradleJdkException(messageErrorText)
     val notificationData = NotificationData(originalTitle, invalidGradleJdkErrorText, ERROR, PROJECT_SYNC)
@@ -172,6 +182,10 @@ class GradleJvmNotificationExtensionTest {
     whenever(gradleJdkException.message).thenReturn(message)
     val gradleJdkValidationManager = mock<GradleJdkValidationManager>()
     whenever(gradleJdkValidationManager.validateProjectGradleJvmPath(any(), anyString())).thenReturn(gradleJdkException)
-    gradleProjectRule.project.replaceService(GradleJdkValidationManager::class.java, gradleJdkValidationManager, gradleProjectRule.fixture.projectDisposable)
+    gradleProjectRule.project.replaceService(
+      GradleJdkValidationManager::class.java,
+      gradleJdkValidationManager,
+      gradleProjectRule.fixture.projectDisposable,
+    )
   }
 }

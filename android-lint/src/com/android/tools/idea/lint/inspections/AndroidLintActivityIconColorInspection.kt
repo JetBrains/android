@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ActivityIconColorDetector
 
 class AndroidLintActivityIconColorInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.activity.icon.color"),
-    ActivityIconColorDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.activity.icon.color"), ActivityIconColorDetector.ISSUE)

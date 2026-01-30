@@ -26,15 +26,12 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Custom [FileEditorProvider] which allows opening profiler captures in a new editor tab.
- */
+/** Custom [FileEditorProvider] which allows opening profiler captures in a new editor tab. */
 class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     // Fail fast if extension is not supported
-    val isProfilerCaptureFile = (file.fileType is CpuCaptureFileType ||
-                                 PerfettoCaptureFileType.EXTENSIONS.contains(file.extension))
+    val isProfilerCaptureFile = (file.fileType is CpuCaptureFileType || PerfettoCaptureFileType.EXTENSIONS.contains(file.extension))
 
     if (!isProfilerCaptureFile) return false
 

@@ -58,8 +58,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val expected = listOf("none", "fragment3", "navigation1", "fragment2", "root", "fragment1")
     testDisplays(expected, values)
     testValues(expected.map { if (it == "none") null else "@id/$it" }, values)
-    assertThat(support.createValue("@id/text123"))
-      .isEqualTo(EnumValue.item("@id/text123", "text123"))
+    assertThat(support.createValue("@id/text123")).isEqualTo(EnumValue.item("@id/text123", "text123"))
   }
 
   fun testStartDestinations() {
@@ -123,13 +122,9 @@ class NavEnumSupportProviderTest : NavTestCase() {
     testValues(expectedValues, values)
 
     val expectedNames = listOf(null, null, dynamicFeatureModuleName, null, null, null)
-    assertThat(values.map { (it as? ClassEnumValue)?.moduleName })
-      .containsExactlyElementsIn(expectedNames)
-      .inOrder()
+    assertThat(values.map { (it as? ClassEnumValue)?.moduleName }).containsExactlyElementsIn(expectedNames).inOrder()
     assertThat(support.createValue("mytest.navtest.ImportantFragment"))
-      .isEqualTo(
-        EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)")
-      )
+      .isEqualTo(EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)"))
   }
 
   // Regression test for b/321695920
@@ -160,8 +155,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val enumValue =
-      ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
+    val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
     enumValue.select(property) {}
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
@@ -189,12 +183,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     assertThat(values.map { it.value }).containsExactlyElementsIn(expectedValues).inOrder()
   }
 
-  private fun getProperty(
-    namespace: String,
-    name: String,
-    type: NlPropertyType,
-    component: NlComponent,
-  ): NlPropertyItem {
+  private fun getProperty(namespace: String, name: String, type: NlPropertyType, component: NlComponent): NlPropertyItem {
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     return NlPropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
   }

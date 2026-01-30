@@ -36,16 +36,13 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    editorTextField =
-      EditorTextFieldProvider.getInstance()
-        .getEditorField(AndroidSqlLanguage.INSTANCE, project, emptyList())
+    editorTextField = EditorTextFieldProvider.getInstance().getEditorField(AndroidSqlLanguage.INSTANCE, project, emptyList())
     queryHistoryView = QueryHistoryView(editorTextField)
   }
 
   fun testSetQueryHistoryUpdatesList() {
     // Prepare
-    val list =
-      TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
 
     // Act
     queryHistoryView.setQueryHistory(listOf("query1", "query2"))
@@ -66,8 +63,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
   fun testSelectListItemUpdatesEditorText() {
     // Prepare
-    val list =
-      TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
     editorTextField.text = "default text"
 
@@ -86,8 +82,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
   fun testEditorTextRestoredWhenListLosesFocus() {
     // Prepare
-    val list =
-      TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
     list.selectedIndex = 0
@@ -102,8 +97,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
   fun testEnterSetsEditorText() {
     // Prepare
-    val list =
-      TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
     val ui = FakeUi(list)
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
@@ -122,8 +116,7 @@ class QueryHistoryViewTest : LightPlatformTestCase() {
 
   fun testListItemSelectedOnMouseHover() {
     // Prepare
-    val list =
-      TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
+    val list = TreeWalker(queryHistoryView.component).descendants().filterIsInstance<JBList<*>>().first()
     queryHistoryView.setQueryHistory(listOf("query1", "query_2"))
 
     assertThat(list.selectedIndex).isEqualTo(-1)

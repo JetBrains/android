@@ -26,11 +26,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import javax.swing.Icon
 
-class DrawIcon(
-  private val icon: Icon,
-  private val rectangle: SwingRectangle,
-  private val color: Color? = null,
-) : DrawCommandBase() {
+class DrawIcon(private val icon: Icon, private val rectangle: SwingRectangle, private val color: Color? = null) : DrawCommandBase() {
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)

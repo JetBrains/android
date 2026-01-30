@@ -56,15 +56,13 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 @UiThread
-class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) :
-  DatabaseInspectorView {
+class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) : DatabaseInspectorView {
   val listeners = mutableListOf<DatabaseInspectorView.Listener>()
 
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
-  private val workBench: WorkBench<SqliteViewContext> =
-    WorkBench(project, "Database Inspector", null, parentDisposable)
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
   private val tabs = BorderedTabs(project, parentDisposable)
 
   override val component: JComponent = workBench
@@ -77,10 +75,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    addEmptyStatePanel(
-      DatabaseInspectorBundle.message("waiting.for.connection"),
-      databaseInspectorHelpUrl,
-    )
+    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"), databaseInspectorHelpUrl)
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
@@ -116,29 +111,18 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     for (databaseDiffOperation in databaseDiffOperations) {
       when (databaseDiffOperation) {
         is DatabaseDiffOperation.AddDatabase -> {
-          leftPanelView.addDatabaseSchema(
-            databaseDiffOperation.viewDatabase,
-            databaseDiffOperation.schema,
-            databaseDiffOperation.index,
-          )
+          leftPanelView.addDatabaseSchema(databaseDiffOperation.viewDatabase, databaseDiffOperation.schema, databaseDiffOperation.index)
         }
-        is DatabaseDiffOperation.RemoveDatabase ->
-          leftPanelView.removeDatabaseSchema(databaseDiffOperation.viewDatabase)
+        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.viewDatabase)
       }
     }
 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
-      addEmptyStatePanel(
-        DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl,
-      )
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
     }
   }
 
-  override fun updateDatabaseSchema(
-    viewDatabase: ViewDatabase,
-    diffOperations: List<SchemaDiffOperation>,
-  ) {
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
 
@@ -164,10 +148,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabs.removeTab(tab)
 
     if (openTabs.isEmpty()) {
-      addEmptyStatePanel(
-        DatabaseInspectorBundle.message("default.empty.state.message"),
-        databaseInspectorHelpUrl,
-      )
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
     }
   }
 
@@ -216,12 +197,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     resetCenterPanelAndAddView(emptyStatePanel)
   }
 
-  private fun createTab(
-    tabId: TabId,
-    tabName: String,
-    tabIcon: Icon,
-    tabContent: JComponent,
-  ): TabInfo {
+  private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
     tab.setObject(tabId)
 
@@ -298,9 +274,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   data class SqliteViewContext(val component: JComponent)
 
   /**
-   * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs.
-   * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is
-   * only one tab.
+   * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs. The [JBTabsBorder] used by [JBTabsImpl]
+   * does not add a border to the first tab, if there is only one tab.
    */
   private class BorderedTabs(project: Project, parent: Disposable) : JBTabsImpl(project, parent) {
     override fun createTabBorder() = JBEditorTabsBorder(this)

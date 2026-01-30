@@ -22,21 +22,17 @@ import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
 import java.io.Serializable
 import java.nio.file.Path
 
-
 /**
  * Represents an absolute build target label.
  *
- * <p>This class is a simple wrapper around a string and should be used in place of {@link String}
- * whenever appropriate.
+ * <p>This class is a simple wrapper around a string and should be used in place of {@link String} whenever appropriate.
  *
- * <p>It can be considered equivalent to <a href="https://bazel.build/rules/lib/Label>Label</a> in
- * bazel.
+ * <p>It can be considered equivalent to <a href="https://bazel.build/rules/lib/Label>Label</a> in bazel.
  */
-data class Label(val workspace: String, val buildPackage: String, val name: String): Serializable {
+data class Label(val workspace: String, val buildPackage: String, val name: String) : Serializable {
 
   companion object {
-    @JvmField
-    val ROOT_WORKSPACE = "";
+    @JvmField val ROOT_WORKSPACE = ""
 
     @JvmStatic
     fun of(label: String): Label {
@@ -70,27 +66,23 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
     }
 
     sealed interface ParsingResult
-    @JvmInline
-    value class Parsed(val label: Label): ParsingResult
-    class Error(val message: String): ParsingResult
 
-    fun parseLabelSafe(
-      label: String,
-      allowRelativeLabels: Boolean,
-    ): ParsingResult {
+    @JvmInline value class Parsed(val label: Label) : ParsingResult
+
+    class Error(val message: String) : ParsingResult
+
+    fun parseLabelSafe(label: String, allowRelativeLabels: Boolean): ParsingResult {
       if (label.isBlank()) {
         return Error("Empty label")
       }
       val workspacePosition = if (label.startsWith("@")) (if (label.startsWith("@@")) 2 else 1) else 0
-      val (workspaceEnd, buildPackagePosition) = label.indexOf("//", workspacePosition)
-        .let { if (it < 0 && allowRelativeLabels) 0 to 0 else it to it + 2 }
+      val (workspaceEnd, buildPackagePosition) =
+        label.indexOf("//", workspacePosition).let { if (it < 0 && allowRelativeLabels) 0 to 0 else it to it + 2 }
       if (workspaceEnd < workspacePosition) {
         return Error("Invalid label: $label")
       }
-      val (buildPackageEnd, namePosition) = label.indexOf(":", buildPackagePosition)
-        .let {
-          if (it >= 0) it to it + 1 else label.length to label.lastIndexOf('/') + 1
-        }
+      val (buildPackageEnd, namePosition) =
+        label.indexOf(":", buildPackagePosition).let { if (it >= 0) it to it + 1 else label.length to label.lastIndexOf('/') + 1 }
 
       val workspace = label.substring(workspacePosition, workspaceEnd)
       // Bazel 8 states that repo names may contain only A-Z, a-z, 0-9, '-', '_', '.' and '+', but this is not a stable specification
@@ -106,28 +98,27 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
         Label(
           workspace = Interners.STRING.intern(workspace),
           buildPackage = Interners.STRING.intern(buildPackage),
-          name = Interners.STRING.intern(name)
+          name = Interners.STRING.intern(name),
         )
       )
     }
 
     @JvmStatic
     fun fromWorkspacePackageAndName(workspace: String, packagePath: Path, name: Path): Label {
-      return if (workspace.isEmpty())
-        of("//$packagePath:$name")
-      else of("@@$workspace//$packagePath:$name")
+      return if (workspace.isEmpty()) of("//$packagePath:$name") else of("@@$workspace//$packagePath:$name")
     }
 
     @JvmStatic
     fun fromWorkspacePackageAndName(workspace: String, packagePath: Path, name: String): Label {
-      return fromWorkspacePackageAndName(workspace, packagePath, Path.of(name));
+      return fromWorkspacePackageAndName(workspace, packagePath, Path.of(name))
     }
   }
 
   fun getBuildPackagePath(): Path = Path.of(buildPackage)
+
   fun getNamePath(): Path = Path.of(name)
 
-  fun siblingWithName(name: String): Label = fromWorkspacePackageAndName(workspace, getBuildPackagePath(), name);
+  fun siblingWithName(name: String): Label = fromWorkspacePackageAndName(workspace, getBuildPackagePath(), name)
 
   fun siblingWithPathAndName(pathAndName: String): Label {
     val colonPos: Int = pathAndName.indexOf(':')
@@ -135,7 +126,7 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
     return fromWorkspacePackageAndName(
       workspace = workspace,
       packagePath = getBuildPackagePath().resolve(pathAndName.substring(0, colonPos)),
-      name = pathAndName.substring(colonPos + 1)
+      name = pathAndName.substring(colonPos + 1),
     )
   }
 
@@ -156,18 +147,29 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
   }
 }
 
-sealed class TargetName: Serializable {
+sealed class TargetName : Serializable {
   sealed class Wildcard : TargetName()
-  data object AllRules : Wildcard() { override fun toString() = "all" }
-  data object AllTargets : Wildcard() { override fun toString() = "all-targets" }
-  data class Specific(val name: String) : TargetName() { override fun toString() = name }
+
+  data object AllRules : Wildcard() {
+    override fun toString() = "all"
+  }
+
+  data object AllTargets : Wildcard() {
+    override fun toString() = "all-targets"
+  }
+
+  data class Specific(val name: String) : TargetName() {
+    override fun toString() = name
+  }
 
   companion object {
-    fun parse(name: String): TargetName = when (name) {
-      "all", "*" -> AllRules
-      "all-targets" -> AllTargets
-      else -> Specific(name)
-    }
+    fun parse(name: String): TargetName =
+      when (name) {
+        "all",
+        "*" -> AllRules
+        "all-targets" -> AllTargets
+        else -> Specific(name)
+      }
   }
 }
 
@@ -185,21 +187,28 @@ data class TargetPattern(
     buildPackageAbsolutePath: Path,
     includesSubpackages: Boolean,
     targetName: String?,
-    negative: Boolean
+    negative: Boolean,
   ) : this(
     workspace,
     buildPackageAbsolutePath,
     includesSubpackages,
     targetName?.let { TargetName.parse(it) } ?: TargetName.AllRules,
-    negative
+    negative,
   )
 
-  enum class ScopeStatus { NOT_IN_SCOPE, INCLUDED, EXCLUDED }
+  enum class ScopeStatus {
+    NOT_IN_SCOPE,
+    INCLUDED,
+    EXCLUDED,
+  }
 
   fun inScope(target: Label): ScopeStatus {
     if (workspace != target.workspace) return NOT_IN_SCOPE
     val targetBuildPackagePath = rootPath.resolve(target.getBuildPackagePath())
-    if (buildPackageAbsolutePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackageAbsolutePath))) {
+    if (
+      buildPackageAbsolutePath != targetBuildPackagePath &&
+        !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackageAbsolutePath))
+    ) {
       return NOT_IN_SCOPE
     }
     return when (targetName is TargetName.Wildcard || (targetName as? TargetName.Specific)?.name == target.name) {
@@ -247,13 +256,14 @@ data class TargetPattern(
           targetName = TargetName.parse(parsedAsLabel.name).takeUnless { it is TargetName.Specific } ?: TargetName.AllRules,
           negative = negative,
         )
-      else TargetPattern(
-        parsedAsLabel.workspace,
-        parsedBuildPackagePath,
-        includesSubpackages = false,
-        targetName = TargetName.parse(parsedAsLabel.name),
-        negative = negative,
-      )
+      else
+        TargetPattern(
+          parsedAsLabel.workspace,
+          parsedBuildPackagePath,
+          includesSubpackages = false,
+          targetName = TargetName.parse(parsedAsLabel.name),
+          negative = negative,
+        )
     }
 
     @JvmStatic
@@ -263,7 +273,7 @@ data class TargetPattern(
         buildPackageAbsolutePath = rootPath.resolve(packagePath),
         includesSubpackages = true,
         targetName = TargetName.AllRules,
-        negative = false
+        negative = false,
       )
     }
 
@@ -274,16 +284,22 @@ data class TargetPattern(
         buildPackageAbsolutePath = rootPath.resolve(packagePath),
         includesSubpackages = false,
         targetName = TargetName.AllRules,
-        negative = false
+        negative = false,
       )
     }
   }
 }
 
 class TargetPatternCollection(private val root: Node, private val rootScope: ScopeStatus) {
-  class Node(val key: String, val index: Int, var children: MutableMap<String, Node> = mutableMapOf(), var scope: ((Label) -> ScopeStatus)? = null)
+  class Node(
+    val key: String,
+    val index: Int,
+    var children: MutableMap<String, Node> = mutableMapOf(),
+    var scope: ((Label) -> ScopeStatus)? = null,
+  )
 
   data class ScopeStatusAndIndex(val status: ScopeStatus, val index: Int)
+
   fun inScope(target: Label): ScopeStatusAndIndex {
     var node = root
     var lastScope: ((Label) -> ScopeStatus) = { rootScope }
@@ -321,21 +337,22 @@ class TargetPatternCollection(private val root: Node, private val rootScope: Sco
   }
 }
 
-private fun TargetPattern.structuralKeys(): List<String> = buildList(3 + buildPackageAbsolutePath.nameCount) {
-  add(workspace)
-  addAll(buildPackageAbsolutePath.map { it.toString() })
-  if (!includesSubpackages) {
-    add("*") // A dedicated key for all targets under the package.
-    if (targetName is TargetName.Specific) {
-      add(targetName.name)
+private fun TargetPattern.structuralKeys(): List<String> =
+  buildList(3 + buildPackageAbsolutePath.nameCount) {
+    add(workspace)
+    addAll(buildPackageAbsolutePath.map { it.toString() })
+    if (!includesSubpackages) {
+      add("*") // A dedicated key for all targets under the package.
+      if (targetName is TargetName.Specific) {
+        add(targetName.name)
+      }
     }
   }
-}
 
-private fun Label.structuralKeys(): List<String> = buildList(3 + getBuildPackagePath().nameCount) {
-  add(workspace)
-  addAll(getBuildPackagePath().map {it.toString()})
-  add("*") // A dedicated key for all targets under the package.
-  add(name)
-}
-
+private fun Label.structuralKeys(): List<String> =
+  buildList(3 + getBuildPackagePath().nameCount) {
+    add(workspace)
+    addAll(getBuildPackagePath().map { it.toString() })
+    add("*") // A dedicated key for all targets under the package.
+    add(name)
+  }

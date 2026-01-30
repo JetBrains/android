@@ -7,17 +7,15 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [DeviceExplorerToolWindowFactory]
- */
+/** Tests for [DeviceExplorerToolWindowFactory] */
 class DeviceExplorerToolWindowFactoryTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun isLibraryToolWindow() {
-    val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Explorer" }
-                     ?: throw AssertionError("Tool window not found")
+    val toolWindow =
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Explorer" }
+        ?: throw AssertionError("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }

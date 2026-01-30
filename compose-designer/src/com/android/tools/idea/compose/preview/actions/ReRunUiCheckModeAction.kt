@@ -46,26 +46,14 @@ class ReRunUiCheckModeAction : AnAction() {
   override fun update(e: AnActionEvent) {
     val project = e.project
     val uiCheckInstancePreviewDef =
-      project?.let {
-        ProblemsView.getToolWindow(it)
-          ?.contentManager
-          ?.selectedContent
-          ?.getUserData(TAB_PREVIEW_DEFINITION)
-      }
+      project?.let { ProblemsView.getToolWindow(it)?.contentManager?.selectedContent?.getUserData(TAB_PREVIEW_DEFINITION) }
 
-    if (
-      uiCheckInstancePreviewDef == null ||
-        runReadAction { uiCheckInstancePreviewDef.element == null }
-    ) {
+    if (uiCheckInstancePreviewDef == null || runReadAction { uiCheckInstancePreviewDef.element == null }) {
       e.presentation.isVisible = false
       return
     }
-    val editors =
-      FileEditorManager.getInstance(project).getAllEditors(uiCheckInstancePreviewDef.virtualFile)
-    val isUiCheckRunning =
-      editors
-        .mapNotNull { it.getPreviewManager<ComposePreviewManager>() }
-        .any { it.mode.value is PreviewMode.UiCheck }
+    val editors = FileEditorManager.getInstance(project).getAllEditors(uiCheckInstancePreviewDef.virtualFile)
+    val isUiCheckRunning = editors.mapNotNull { it.getPreviewManager<ComposePreviewManager>() }.any { it.mode.value is PreviewMode.UiCheck }
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isUiCheckRunning
     e.presentation.text = if (isUiCheckRunning) DISABLED_TEXT else ENABLED_TEXT
@@ -80,13 +68,9 @@ class ReRunUiCheckModeAction : AnAction() {
     val isWearPreview = selectedContent.getUserData(TAB_IS_WEAR_PREVIEW) ?: return
 
     // Selects or reopens the file containing the preview
-    val editors =
-      FileEditorManager.getInstance(project)
-        .openFile(uiCheckInstancePreviewDef.virtualFile, true, true)
+    val editors = FileEditorManager.getInstance(project).openFile(uiCheckInstancePreviewDef.virtualFile, true, true)
     val relevantEditor =
-      editors.filterIsInstance<SplitEditor<*>>().firstOrNull {
-        it.getPreviewManager<ComposePreviewManager>() != null
-      } ?: return
+      editors.filterIsInstance<SplitEditor<*>>().firstOrNull { it.getPreviewManager<ComposePreviewManager>() != null } ?: return
     if (relevantEditor.isTextMode(e)) {
       relevantEditor.selectSplitMode(false)
     }
@@ -94,9 +78,7 @@ class ReRunUiCheckModeAction : AnAction() {
     val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
     val flowManager =
       relevantEditor.getDesignSurface()?.let {
-        PreviewFlowManager.KEY.getData(
-          DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it)
-        )
+        PreviewFlowManager.KEY.getData(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it))
       } ?: return
     AndroidCoroutineScope(composeManager).launch {
       // Waits for the correct preview to be recreated, and starts UI Check on it

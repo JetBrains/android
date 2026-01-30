@@ -17,10 +17,7 @@ package com.android.tools.idea.editors.fast
 
 private fun Long.toDebugString(): String = if (this > 0) ">0" else this.toString()
 
-class TestFastPreviewTrackerManager(
-  val showTimes: Boolean = true,
-  val onRequestComplete: () -> Unit = {},
-) : FastPreviewTrackerManager {
+class TestFastPreviewTrackerManager(val showTimes: Boolean = true, val onRequestComplete: () -> Unit = {}) : FastPreviewTrackerManager {
   private val outputLog = StringBuilder()
 
   override fun userEnabled() {
@@ -43,39 +40,25 @@ class TestFastPreviewTrackerManager(
       }
 
       override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
-        assert(compilationDurationMs != -1L && compiledFiles != -1) {
-          "compilationFailed can not be called without information"
-        }
+        assert(compilationDurationMs != -1L && compiledFiles != -1) { "compilationFailed can not be called without information" }
         val parameters =
           listOfNotNull(
-            if (showTimes) "compilationDurationMs" to compilationDurationMs.toDebugString()
-            else null,
+            if (showTimes) "compilationDurationMs" to compilationDurationMs.toDebugString() else null,
             "compiledFiles" to compiledFiles,
           )
-        outputLog.appendLine(
-          "compilationFailed (${parameters.joinToString(", ") { "${it.first}=${it.second}" }})"
-        )
+        outputLog.appendLine("compilationFailed (${parameters.joinToString(", ") { "${it.first}=${it.second}" }})")
         onRequestComplete()
       }
 
-      override fun compilationSucceeded(
-        compilationDurationMs: Long,
-        compiledFiles: Int,
-        refreshTimeMs: Long,
-      ) {
-        assert(compilationDurationMs != -1L && compiledFiles != -1) {
-          "compilationSucceeded can not be called without information"
-        }
+      override fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long) {
+        assert(compilationDurationMs != -1L && compiledFiles != -1) { "compilationSucceeded can not be called without information" }
         val parameters =
           listOfNotNull(
-            if (showTimes) "compilationDurationMs" to compilationDurationMs.toDebugString()
-            else null,
+            if (showTimes) "compilationDurationMs" to compilationDurationMs.toDebugString() else null,
             "compiledFiles" to compiledFiles,
             if (showTimes) "refreshTime" to refreshTimeMs.toDebugString() else null,
           )
-        outputLog.appendLine(
-          "compilationSucceeded (${parameters.joinToString(", ") { "${it.first}=${it.second}" }})"
-        )
+        outputLog.appendLine("compilationSucceeded (${parameters.joinToString(", ") { "${it.first}=${it.second}" }})")
         onRequestComplete()
       }
 

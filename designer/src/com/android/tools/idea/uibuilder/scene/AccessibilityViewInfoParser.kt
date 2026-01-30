@@ -26,10 +26,7 @@ import java.util.concurrent.TimeoutException
 
 val LOG = Logger.getInstance("Accessibility")
 
-/**
- * Custom parser to create a [ViewInfo] hierarchy based on the [AccessibilityNodeInfo] tree instead
- * of the [View] tree.
- */
+/** Custom parser to create a [ViewInfo] hierarchy based on the [AccessibilityNodeInfo] tree instead of the [View] tree. */
 val accessibilityBasedHierarchyParser = { view: Any ->
   if (view !is View) {
     emptyList()
@@ -41,34 +38,19 @@ val accessibilityBasedHierarchyParser = { view: Any ->
   }
 }
 
-private fun parseChildren(
-  rootView: View,
-  nodeInfo: AccessibilityNodeInfo,
-  parentX: Int,
-  parentY: Int,
-): List<ViewInfo> {
+private fun parseChildren(rootView: View, nodeInfo: AccessibilityNodeInfo, parentX: Int, parentY: Int): List<ViewInfo> {
   val childCount = nodeInfo.childCount
   val children: MutableList<ViewInfo> = ArrayList(childCount)
   for (i in 0 until childCount) {
     val childNodeInfo = nodeInfo.getChild(i)
     val bounds = childNodeInfo.boundsInScreen
 
-    if (
-      childNodeInfo.availableExtraData.contains(
-        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
-      )
-    ) {
+    if (childNodeInfo.availableExtraData.contains(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY)) {
       val extras = childNodeInfo.extras
       extras.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
-      extras.putInt(
-        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-        childNodeInfo.text.length,
-      )
+      extras.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, childNodeInfo.text.length)
       try {
-        childNodeInfo.refreshWithExtraData(
-          AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-          extras,
-        )
+        childNodeInfo.refreshWithExtraData(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, extras)
       } catch (ex: Exception) {
         Logger.getInstance("AccessibilityViewInfoParser.kt").warn(ex)
       }
@@ -97,16 +79,13 @@ private fun parseChildren(
 }
 
 /**
- * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo], or null
- * if there is no [AccessibilityNodeInfo].
+ * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo], or null if there is no [AccessibilityNodeInfo].
  */
-fun ViewInfo.getAccessibilityText() =
-  (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
+fun ViewInfo.getAccessibilityText() = (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
 
 /**
- * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo]. If the
- * [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates an
- * [AccessibilityNodeInfo] for that [View] first.
+ * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo]. If the [AccessibilityNodeInfo] does not exist,
+ * but viewObject is a [View], this creates an [AccessibilityNodeInfo] for that [View] first.
  */
 fun ViewInfo.getAccessibilitySourceId(): Long =
   if (accessibilityObject != null) {
@@ -115,9 +94,7 @@ fun ViewInfo.getAccessibilitySourceId(): Long =
     try {
       RenderService.getRenderAsyncActionExecutor()
         .runAsyncActionWithTimeout<Long>(250, TimeUnit.MILLISECONDS, RenderingTopic.NOT_SPECIFIED) {
-          val node =
-            (viewObject as? View)?.createAccessibilityNodeInfo()
-              ?: return@runAsyncActionWithTimeout -1
+          val node = (viewObject as? View)?.createAccessibilityNodeInfo() ?: return@runAsyncActionWithTimeout -1
           return@runAsyncActionWithTimeout node.sourceNodeId
         }
         .get()

@@ -27,9 +27,11 @@ import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncExtension
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncPhase
 import org.jetbrains.plugins.gradle.service.syncAction.impl.extensions.GradleBaseSyncExtension
 
-/** When sync is doing the clean-up of modules from previous sync, it's possible the holder module
- * gets deleted, and we are left with dangling source set module. This undesirable and breaks certain
- * project system APIs. Here if we detect such a case we also delete the dangling modules. */
+/**
+ * When sync is doing the clean-up of modules from previous sync, it's possible the holder module gets deleted, and we are left with
+ * dangling source set module. This undesirable and breaks certain project system APIs. Here if we detect such a case we also delete the
+ * dangling modules.
+ */
 @Order(GradleBaseSyncExtension.ORDER + 1)
 class CleanupAndroidGroupSyncExtension : GradleSyncExtension {
 
@@ -45,13 +47,12 @@ class CleanupAndroidGroupSyncExtension : GradleSyncExtension {
         .filterIsInstance<ModuleEntity>()
         .toList() // Materialized to avoid iterating over children entities of the removed modules
         .forEach { moduleEntity ->
-          val androidGroup = moduleEntity.findModule(projectStorage)
-            ?.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) ?: return@forEach
+          val androidGroup = moduleEntity.findModule(projectStorage)?.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) ?: return@forEach
           // If the holder module can't be resolved, make sure to delete this module as well.
           if (projectStorage.resolve(ModuleId(androidGroup.holder.moduleName)) == null) {
             projectStorage.removeEntity(moduleEntity)
           }
-      }
+        }
     }
   }
 }

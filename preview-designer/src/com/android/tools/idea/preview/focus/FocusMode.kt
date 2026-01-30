@@ -31,16 +31,14 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
- * If Focus mode is enabled, one preview at a time is available with dropdown to select between
- * them. Focus mode is always enabled for Essentials mode. To listen for selection changes, use
- * [addSelectionListener].
+ * If Focus mode is enabled, one preview at a time is available with dropdown to select between them. Focus mode is always enabled for
+ * Essentials mode. To listen for selection changes, use [addSelectionListener].
  */
 class FocusMode(rootComponent: JComponent, vararg additionalComponents: JComponent) {
 
   /**
-   * Listener for selection changes in the [FocusModeTabs]. When a new [PreviewElementKey] is
-   * selected, it updates the [PreviewModeManager] to set the mode to [PreviewMode.Focus] with the
-   * selected element.
+   * Listener for selection changes in the [FocusModeTabs]. When a new [PreviewElementKey] is selected, it updates the [PreviewModeManager]
+   * to set the mode to [PreviewMode.Focus] with the selected element.
    */
   private val selectionListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, key ->
     val previewElement = key?.element
@@ -50,14 +48,12 @@ class FocusMode(rootComponent: JComponent, vararg additionalComponents: JCompone
   }
 
   /**
-   * Additional listeners for selection changes in the [FocusModeTabs]. These listeners are notified
-   * after the internal [selectionListener] has been executed.
+   * Additional listeners for selection changes in the [FocusModeTabs]. These listeners are notified after the internal [selectionListener]
+   * has been executed.
    */
   private val additionalSelectionListeners = CopyOnWriteArrayList<(PreviewElement<*>?) -> Unit>()
 
-  /**
-   * Provides the set of available [PreviewElementKey]s based on the current [DataContext].
-   */
+  /** Provides the set of available [PreviewElementKey]s based on the current [DataContext]. */
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
     dataContext
       .findPreviewManager(PreviewFlowManager.KEY)
@@ -68,9 +64,7 @@ class FocusMode(rootComponent: JComponent, vararg additionalComponents: JCompone
       ?.toSet() ?: emptySet()
   }
 
-  /**
-   * Provides the currently selected [PreviewElementKey] based on the current [DataContext].
-   */
+  /** Provides the currently selected [PreviewElementKey] based on the current [DataContext]. */
   private val selectedProvider: (DataContext) -> PreviewElementKey? = { dataContext ->
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
       (previewManager.mode.value as? PreviewMode.Focus)?.selected?.let { PreviewElementKey(it) }
@@ -95,10 +89,7 @@ class FocusMode(rootComponent: JComponent, vararg additionalComponents: JCompone
     additionalComponents.forEach { component.add(it, BorderLayout.CENTER) }
   }
 
-  /**
-   * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
-   * used in tests only.
-   */
+  /** Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be used in tests only. */
   @TestOnly
   fun triggerSelectionChange(context: DataContext, previewElement: PreviewElement<*>) {
     selectionListener(context, PreviewElementKey(previewElement))

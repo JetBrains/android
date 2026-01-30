@@ -18,6 +18,4 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeJUnitEngineInfo
 import java.io.Serializable
 
-class IdeJUnitEngineInfoImpl(
-  override val includedEngines: Set<String>
-): IdeJUnitEngineInfo, Serializable
+class IdeJUnitEngineInfoImpl(override val includedEngines: Set<String>) : IdeJUnitEngineInfo, Serializable

@@ -22,7 +22,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-class AgpUsedJavaTooLowReporter: SimpleDeduplicatingSyncIssueReporter() {
+class AgpUsedJavaTooLowReporter : SimpleDeduplicatingSyncIssueReporter() {
   public override fun getSupportedIssueType(): Int {
     return IdeSyncIssue.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW
   }
@@ -32,10 +32,12 @@ class AgpUsedJavaTooLowReporter: SimpleDeduplicatingSyncIssueReporter() {
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun getCustomLinks(project: Project,
-                              syncIssues: MutableList<IdeSyncIssue>,
-                              affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: MutableList<IdeSyncIssue>,
+    affectedModules: MutableList<Module>,
+    buildFileMap: MutableMap<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> {
     return createQuickFixes()
   }
 

@@ -43,49 +43,43 @@ import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-/**
- * Unit test for [AndroidProcessHandler].
- */
+/** Unit test for [AndroidProcessHandler]. */
 @RunWith(JUnit4::class)
 class AndroidProcessHandlerTest {
   companion object {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   val project
     get() = projectRule.project
 
-  @Mock
-  lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
 
-  @Mock
-  lateinit var mockMonitorManager: AndroidProcessMonitorManager
+  @Mock lateinit var mockMonitorManager: AndroidProcessMonitorManager
 
-  @Mock
-  lateinit var mockProcessListener: ProcessListener
+  @Mock lateinit var mockProcessListener: ProcessListener
 
-  @Mock
-  lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
+  @Mock lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
   private var autoTerminate: Boolean = true
 
   val handler: AndroidProcessHandler by lazy {
     AndroidProcessHandler(
-      TARGET_APP_NAME,
-      { device -> device.forceStop(TARGET_APP_NAME) },
-      autoTerminate,
-      mockAnsiEscapeDecoder,
-      mockDeploymentAppService
-    ) { emitter, listener ->
-      textEmitter = emitter
-      monitorManagerListener = listener
-      mockMonitorManager
-    }.apply {
-      addProcessListener(mockProcessListener)
-      startNotify()
-    }
+        TARGET_APP_NAME,
+        { device -> device.forceStop(TARGET_APP_NAME) },
+        autoTerminate,
+        mockAnsiEscapeDecoder,
+        mockDeploymentAppService,
+      ) { emitter, listener ->
+        textEmitter = emitter
+        monitorManagerListener = listener
+        mockMonitorManager
+      }
+      .apply {
+        addProcessListener(mockProcessListener)
+        startNotify()
+      }
   }
   private lateinit var textEmitter: TextEmitter
   private lateinit var monitorManagerListener: AndroidProcessMonitorManagerListener
@@ -122,7 +116,7 @@ class AndroidProcessHandlerTest {
     monitorManagerListener.onAllTargetProcessesTerminated()
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(true))
     inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
@@ -143,7 +137,7 @@ class AndroidProcessHandlerTest {
     monitorManagerListener.onAllTargetProcessesTerminated()
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(true))
     inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
@@ -165,7 +159,7 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
     inOrder.verify(mockProcessListener).startNotified(any())
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(true))
     inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
@@ -191,13 +185,12 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
 
     inOrder.verify(mockProcessListener).startNotified(any())
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(false))
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(false))
     inOrder.verify(mockProcessListener, timeout(5_000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
   }
-
 
   @Test
   fun processHandlerShouldAutoTerminateWhenAutoTerminateIsEnabled() {
@@ -208,7 +201,7 @@ class AndroidProcessHandlerTest {
 
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
     inOrder(mockProcessListener).apply {
-      verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+      verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(true))
       verify(mockProcessListener, timeout(1000)).processTerminated(any())
       verifyNoMoreInteractions()
     }
@@ -238,7 +231,7 @@ class AndroidProcessHandlerTest {
 
     assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
     inOrder(mockProcessListener).apply {
-      verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(false))
+      verify(mockProcessListener).processWillTerminate(any(), /* willBeDestroyed= */ eq(false))
       verify(mockProcessListener, timeout(1000)).processTerminated(any())
       verifyNoMoreInteractions()
     }

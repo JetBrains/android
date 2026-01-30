@@ -26,36 +26,43 @@ import javax.swing.Icon
 /**
  * This class is a [PsiElement] wrapper with additional fields to store [AgpUpgradeComponentRefactoringProcessor] metadata.
  *
- * We can't use the existing user data slot on the PsiElement, because an upgrade refactoring will in general have multiple
- * Usages with the same PsiElement, and some of the protocol functions offer us nothing but the element to distinguish -- so
- * we can't tell which of the usages a particular call corresponds to without something equivalent to this breaking of object
- * identity.
+ * We can't use the existing user data slot on the PsiElement, because an upgrade refactoring will in general have multiple Usages with the
+ * same PsiElement, and some of the protocol functions offer us nothing but the element to distinguish -- so we can't tell which of the
+ * usages a particular call corresponds to without something equivalent to this breaking of object identity.
  */
 class WrappedPsiElement(
   val realElement: PsiElement,
   val processor: AgpUpgradeComponentRefactoringProcessor,
   val usageType: UsageType?,
-  val presentableText: String = ""
+  val presentableText: String = "",
 ) : PsiElement by realElement, PsiElementNavigationItem {
   // We override this PsiElement method in order to have it stored in the PsiElementUsage (UsageInfo stores the navigation element, not
   // necessarily the element we pass to the UsageInfo constructor).
   override fun getNavigationElement(): PsiElement = this
+
   // We need to make sure that we wrap copies of us.
   override fun copy(): PsiElement = WrappedPsiElement(realElement.copy(), processor, usageType)
+
   // This is not the PsiElement we would get from parsing the text range in the element's file.
   override fun isPhysical(): Boolean = false
 
   // These Navigatable and NavigationItem methods can't just operate by delegation.
   override fun navigate(requestFocus: Boolean) = (realElement as? Navigatable)?.navigate(requestFocus) ?: Unit
+
   override fun canNavigate(): Boolean = (realElement as? Navigatable)?.canNavigate() ?: false
+
   override fun canNavigateToSource(): Boolean = (realElement as? Navigatable)?.canNavigateToSource() ?: false
 
   override fun getName(): String? = (realElement as? NavigationItem)?.getName()
-  override fun getPresentation(): ItemPresentation? = object : ItemPresentation {
-    override fun getPresentableText(): String? = this@WrappedPsiElement.presentableText
-    override fun getLocationString(): String? = (realElement as? NavigationItem)?.presentation?.locationString
-    override fun getIcon(unused: Boolean): Icon? = (realElement as? NavigationItem)?.presentation?.getIcon(unused)
-  }
+
+  override fun getPresentation(): ItemPresentation? =
+    object : ItemPresentation {
+      override fun getPresentableText(): String? = this@WrappedPsiElement.presentableText
+
+      override fun getLocationString(): String? = (realElement as? NavigationItem)?.presentation?.locationString
+
+      override fun getIcon(unused: Boolean): Icon? = (realElement as? NavigationItem)?.presentation?.getIcon(unused)
+    }
 
   // The target of our navigation will be the realElement.
   override fun getTargetElement(): PsiElement = realElement

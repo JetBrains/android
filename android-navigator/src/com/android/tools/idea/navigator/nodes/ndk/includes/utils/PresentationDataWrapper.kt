@@ -19,18 +19,15 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes
 import javax.swing.Icon
 
-/**
- * A simple wrapper over PresentationData that can be used to redirect to a string.
- */
+/** A simple wrapper over PresentationData that can be used to redirect to a string. */
 interface PresentationDataWrapper {
   fun addText(text: String, attributes: SimpleTextAttributes)
+
   fun setIcon(icon: Icon?)
 }
 
-/**
- * Create a pass-through wrapper to an underlying PresentationData.
- */
-fun createPresentationDataWrapper(presentationData : PresentationData): PresentationDataWrapper {
+/** Create a pass-through wrapper to an underlying PresentationData. */
+fun createPresentationDataWrapper(presentationData: PresentationData): PresentationDataWrapper {
   return object : PresentationDataWrapper {
     override fun addText(text: String, attributes: SimpleTextAttributes) {
       presentationData.addText(text, attributes)
@@ -42,16 +39,13 @@ fun createPresentationDataWrapper(presentationData : PresentationData): Presenta
   }
 }
 
-/**
- * Create a wrapper that writes to a StringBuilder. UI elements are ignored.
- */
-fun createPresentationDataWrapper(stringBuilder : StringBuilder): PresentationDataWrapper {
+/** Create a wrapper that writes to a StringBuilder. UI elements are ignored. */
+fun createPresentationDataWrapper(stringBuilder: StringBuilder): PresentationDataWrapper {
   return object : PresentationDataWrapper {
     override fun addText(text: String, attributes: SimpleTextAttributes) {
       stringBuilder.append(text)
     }
 
-    override fun setIcon(icon: Icon?) {
-    }
+    override fun setIcon(icon: Icon?) {}
   }
 }

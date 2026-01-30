@@ -29,8 +29,8 @@ import com.android.tools.idea.ui.DisplayInfoProvider
 import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.async
 import java.awt.Dimension
+import kotlinx.coroutines.async
 
 private val commandTimeout = INFINITE_DURATION
 
@@ -53,18 +53,21 @@ class ShellCommandScreenshotProvider(
   override suspend fun captureScreenshot(): ScreenshotImage {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
-    val dumpsysJob = coroutineScope.async {
-      //TODO: Check for `stderr` and `exitCode` to report errors
-      adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = commandTimeout).stdout
-    }
-
-    val screenshotJob = coroutineScope.async {
-      val physicalDisplayId = when (displayId) {
-        PRIMARY_DISPLAY_ID -> null
-        else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), displayId)
+    val dumpsysJob =
+      coroutineScope.async {
+        // TODO: Check for `stderr` and `exitCode` to report errors
+        adbLibService.session.deviceServices.shellAsText(deviceSelector, "dumpsys display", commandTimeout = commandTimeout).stdout
       }
-      adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
-    }
+
+    val screenshotJob =
+      coroutineScope.async {
+        val physicalDisplayId =
+          when (displayId) {
+            PRIMARY_DISPLAY_ID -> null
+            else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), displayId)
+          }
+        adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
+      }
 
     try {
       val dumpsysOutput = dumpsysJob.await()
@@ -80,8 +83,7 @@ class ShellCommandScreenshotProvider(
       val displayDensity = displayInfo?.density ?: 0
       val isRoundDisplay = displayInfo?.isRound ?: false
       return ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displaySize, displayDensity, isRoundDisplay)
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       throwIfUnchecked(e)
       throw RuntimeException(e)
     }

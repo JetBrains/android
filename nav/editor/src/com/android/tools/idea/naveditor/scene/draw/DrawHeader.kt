@@ -54,17 +54,13 @@ class DrawHeader(
     }
 
     if (hasDeepLink) {
-      val deepLinkRect =
-        SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
+      val deepLinkRect = SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
       list.add(DrawIcon(DEEPLINK, deepLinkRect))
       textWidth -= iconSize + textPadding
     }
 
-    val textRectangle =
-      SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
-    list.add(
-      DrawTruncatedText(text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false)
-    )
+    val textRectangle = SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
+    list.add(DrawTruncatedText(text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
 
     return list
   }

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 interface PsDeclaredDependency : PsBaseDependency {
   val parsedModel: DependencyModel
   val configurationName: String
+
   /**
    * @return a key which can be used to look up this (or semantically-equivalent) dependency using
    * - [PsDependencyCollection.findModuleDependencies]
@@ -31,6 +32,9 @@ interface PsDeclaredDependency : PsBaseDependency {
 
 interface PsResolvedDependency : PsBaseDependency {
   val declaredDependencies: List<PsDeclaredDependency>
+
   fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
-  override val joinedConfigurationNames: String get() = declaredDependencies.joinToString(separator = ", ") { it.configurationName }
+
+  override val joinedConfigurationNames: String
+    get() = declaredDependencies.joinToString(separator = ", ") { it.configurationName }
 }

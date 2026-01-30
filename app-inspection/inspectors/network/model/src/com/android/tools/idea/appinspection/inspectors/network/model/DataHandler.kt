@@ -54,11 +54,9 @@ import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 /**
  * Handles [HttpConnectionEvent]s and [SpeedEvent]s
  *
- * 'HttpConnectionEvent's are assembled into [HttpData] objects and 'SpeedEvent's are collected to a
- * list.
+ * 'HttpConnectionEvent's are assembled into [HttpData] objects and 'SpeedEvent's are collected to a list.
  *
- * The functions [handleSpeedEvent] and [handleHttpConnectionEvent] return a [Result] object
- * containing hints to the caller.
+ * The functions [handleSpeedEvent] and [handleHttpConnectionEvent] return a [Result] object containing hints to the caller.
  */
 internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
   private val logger = thisLogger()
@@ -68,19 +66,16 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
   @GuardedBy("itself") private val grpcDataMap = Long2ObjectLinkedOpenHashMap<GrpcData>()
 
   /**
-   * A collection of all the currently active connections. This is used to determine if a
-   * [SpeedEvent] should extend the timeline or not. The reason this is needed is that we often get
-   * out-of-band (OOB) speed events.
+   * A collection of all the currently active connections. This is used to determine if a [SpeedEvent] should extend the timeline or not.
+   * The reason this is needed is that we often get out-of-band (OOB) speed events.
    *
-   * An OOB speed event is a non-zero speed event that occurs outside a tracked connection. These
-   * can be caused non-HTTP network traffic or HTTP traffic from an unsupported transport layer.
-   * These events cause spikes in the timeline which do not have corresponding connection entries in
-   * the ConnectionView. We should still probably display these in the timeline, but we don't want
-   * to automatically extend the timeline when they arrive.
+   * An OOB speed event is a non-zero speed event that occurs outside a tracked connection. These can be caused non-HTTP network traffic or
+   * HTTP traffic from an unsupported transport layer. These events cause spikes in the timeline which do not have corresponding connection
+   * entries in the ConnectionView. We should still probably display these in the timeline, but we don't want to automatically extend the
+   * timeline when they arrive.
    *
-   * The heuristics for updating the timeline due to a speed event is as follows: Once a connection
-   * is started, all speed events extend the timeline until the first zero-event with a timestamp
-   * later than (greater than) the connection end time.
+   * The heuristics for updating the timeline due to a speed event is as follows: Once a connection is started, all speed events extend the
+   * timeline until the first zero-event with a timestamp later than (greater than) the connection end time.
    */
   private val activeConnections: MutableMap<Long, ActiveConnection> = Long2ObjectOpenHashMap()
 
@@ -171,11 +166,9 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
 
   fun getSpeedForRange(range: Range) = speedData.searchRange(range)
 
-  fun getHttpDataForRange(range: Range) =
-    synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
+  fun getHttpDataForRange(range: Range) = synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
 
-  fun getGrpcDataForRange(range: Range) =
-    synchronized(grpcDataMap) { grpcDataMap.values.filter { it.intersectsRange(range) } }
+  fun getGrpcDataForRange(range: Range) = synchronized(grpcDataMap) { grpcDataMap.values.filter { it.intersectsRange(range) } }
 
   fun reset() {
     speedData.clear()
@@ -215,11 +208,9 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
     }
   }
 
-  private fun findEndedConnections(event: Event) =
-    activeConnections.filter { it.value.endsBefore(event.timestamp) }.keys
+  private fun findEndedConnections(event: Event) = activeConnections.filter { it.value.endsBefore(event.timestamp) }.keys
 
-  private fun hasActiveConnection(event: Event) =
-    activeConnections.values.find { it.contains(event.timestamp) } != null
+  private fun hasActiveConnection(event: Event) = activeConnections.values.find { it.contains(event.timestamp) } != null
 
   /**
    * Contains hints to the caller of [handleSpeedEvent] & [handleHttpConnectionEvent]

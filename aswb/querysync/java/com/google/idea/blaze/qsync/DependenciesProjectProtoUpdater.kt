@@ -26,28 +26,25 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.AddCompiledJavaDeps
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars
 import com.google.idea.blaze.qsync.java.AddDependencySrcJars
+import com.google.idea.blaze.qsync.java.AddProjectGenAndroidRes
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcJars
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcs
 import com.google.idea.blaze.qsync.java.JavaSourcePackageExtractor
 import com.google.idea.blaze.qsync.java.PackageStatementParser
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder
 import com.google.idea.blaze.qsync.java.SrcJarPackageRootsExtractor
-import com.google.idea.blaze.qsync.java.AddProjectGenAndroidRes
 import com.google.idea.blaze.qsync.java.SrcJarPrefixedPackageRootsExtractor
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 
-/**
- * A [ProjectProtoTransform] that adds built artifact information to the project proto, based
- * on all artifacts that have been built.
- */
+/** A [ProjectProtoTransform] that adds built artifact information to the project proto, based on all artifacts that have been built. */
 class DependenciesProjectProtoUpdater(
   projectDefinition: ProjectDefinition,
   pathResolver: ProjectPath.Resolver,
   emptyJarDigests: Set<String>,
-  attachDepsSrcjarsExperiment: Supplier<Boolean>
+  attachDepsSrcjarsExperiment: Supplier<Boolean>,
 ) : ProjectProtoUpdateOperation {
   private val updateOperations: List<ProjectProtoUpdateOperation>
 
@@ -64,18 +61,12 @@ class DependenciesProjectProtoUpdater(
         AddProjectGenAndroidRes(),
         ConfigureCcCompilation(),
       ) +
-      if (attachDepsSrcjarsExperiment.get())
-        listOf(
-          AddDependencySrcJars(
-            projectDefinition,
-            pathResolver,
-            srcJarInnerPathFinder
-          ),
-          AddDependencyGenSrcsJars(
-            projectDefinition, SrcJarPackageRootsExtractor(srcJarInnerPathFinder)
+        if (attachDepsSrcjarsExperiment.get())
+          listOf(
+            AddDependencySrcJars(projectDefinition, pathResolver, srcJarInnerPathFinder),
+            AddDependencyGenSrcsJars(projectDefinition, SrcJarPackageRootsExtractor(srcJarInnerPathFinder)),
           )
-        )
-      else emptyList()
+        else emptyList()
   }
 
   override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {

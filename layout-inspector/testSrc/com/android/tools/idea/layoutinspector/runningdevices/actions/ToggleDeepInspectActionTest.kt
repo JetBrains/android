@@ -72,14 +72,12 @@ class ToggleDeepInspectActionTest {
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
     assertThat(event.presentation.text).isEqualTo("Toggle Deep Inspect")
-    assertThat(event.presentation.description)
-      .isEqualTo("Enable Deep Inspect to select components by clicking on the device.")
+    assertThat(event.presentation.description).isEqualTo("Enable Deep Inspect to select components by clicking on the device.")
   }
 
   @Test
   fun testDeepInspectActionIsDisabledWhenClientIsNotConnected() {
-    val inspectorClient =
-      FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
+    val inspectorClient = FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
         isSelected = { false },
@@ -101,8 +99,7 @@ class ToggleDeepInspectActionTest {
 
   @Test
   fun testDeepInspectActionIsDisabledWhenNotRendering() {
-    val inspectorClient =
-      FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
+    val inspectorClient = FakeInspectorClient(projectRule.project, DEVICE_1.createProcess(), disposableRule.disposable)
     var isRendering = true
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
@@ -131,11 +128,7 @@ class ToggleDeepInspectActionTest {
   }
 }
 
-private open class FakeInspectorClient(
-  project: Project,
-  process: ProcessDescriptor,
-  parentDisposable: Disposable,
-) :
+private open class FakeInspectorClient(project: Project, process: ProcessDescriptor, parentDisposable: Disposable) :
   AbstractInspectorClient(
     DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT,
     project,
@@ -151,10 +144,7 @@ private open class FakeInspectorClient(
 
   override fun refresh() = throw NotImplementedError()
 
-  override suspend fun saveSnapshot(
-    path: Path,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
-  ) = throw NotImplementedError()
+  override suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type) = throw NotImplementedError()
 
   override suspend fun doConnect() {}
 

@@ -122,32 +122,20 @@ class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
-    LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
-      it.name == PROCESS.name
-    }
+    LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
   private val nameRule = TestName()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
   private var updateSettingsCommands = 0
   private var updateSettingsLatch: ReportingCountDownLatch? = null
 
-  @get:Rule
-  val ruleChain =
-    RuleChain(
-      projectRule,
-      appInspectorRule,
-      inspectorRule,
-      fileOpenCaptureRule,
-      nameRule,
-      EdtRule(),
-    )
+  @get:Rule val ruleChain = RuleChain(projectRule, appInspectorRule, inspectorRule, fileOpenCaptureRule, nameRule, EdtRule())
 
   @Before
   fun setUp() {
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
 
@@ -217,8 +205,7 @@ class LayoutInspectorTreePanelTest {
         .setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance())
         .build()
     }
-    val withoutSourceInfo =
-      nameRule.methodName == "testRecompositionColumnVisibilityWhenNoSourceInformationAvailable"
+    val withoutSourceInfo = nameRule.methodName == "testRecompositionColumnVisibilityWhenNoSourceInformationAvailable"
 
     appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder()
@@ -306,9 +293,7 @@ class LayoutInspectorTreePanelTest {
 
       val dispatcher = IdeKeyEventDispatcher(null)
       val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-      dispatcher.dispatchKeyEvent(
-        KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B')
-      )
+      dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
     }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
@@ -384,11 +369,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.getPathForRow(3).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
     assertThat(tree.getPathForRow(4).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
-    model.update(
-      window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) },
-      listOf(ROOT, VIEW2),
-      0,
-    )
+    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 5: the dimmer is drawn but isn't in the tree
     assertThat(tree.rowCount).isEqualTo(5)
@@ -415,11 +396,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(model[VIEW3]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     // ROOT & VIEW4 are system views (no layout, android layout)
-    model.update(
-      window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } },
-      listOf(ROOT),
-      0,
-    )
+    model.update(window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
     assertThat(tree.rowCount).isEqualTo(1)
@@ -432,13 +409,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
-    model.update(
-      window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
-        view(VIEW3, layout = demo)
-      },
-      listOf(ROOT, VIEW2),
-      0,
-    )
+    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
     assertThat(tree.rowCount).isEqualTo(2)
@@ -833,11 +804,7 @@ class LayoutInspectorTreePanelTest {
       window(ROOT, ROOT) {
         compose(2, "App") {
           compose(3, "MaterialTheme")
-          compose(
-            4,
-            "Text",
-            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS,
-          )
+          compose(4, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)
           compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
             compose(6, "Row") {
               compose(7, "Layout") {
@@ -939,9 +906,7 @@ class LayoutInspectorTreePanelTest {
       }
     )
     val model = inspector.inspectorModel
-    model.windows.values.forEach { window ->
-      model.modificationListeners.forEach { it.onModification(window, window, false) }
-    }
+    model.windows.values.forEach { window -> model.modificationListeners.forEach { it.onModification(window, window, false) } }
     assertThat(columnDataChangeCount).isEqualTo(1)
     assertThat(treeChangeCount).isEqualTo(0)
   }
@@ -949,10 +914,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(false, projectRule.testRootDisposable)
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
@@ -989,10 +951,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibilityWithChildCounts() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
-      true,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(true, projectRule.testRootDisposable)
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
@@ -1075,8 +1034,7 @@ class LayoutInspectorTreePanelTest {
     // connect to a process to add the tree to the UI.
     inspectorRule.launchSynchronously = false
     inspectorRule.startLaunch(2)
-    inspectorRule.processes.selectedProcess =
-      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    inspectorRule.processes.selectedProcess = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     inspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { component.uiState == RootPanel.UiState.SHOW_TREE }
@@ -1155,10 +1113,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testStateReadPanelActivation() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.overrideForTest(
-      true,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS.overrideForTest(true, projectRule.testRootDisposable)
     val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
@@ -1191,9 +1146,7 @@ class LayoutInspectorTreePanelTest {
     // Normally the tree would have received structural changes when the mode was loaded.
     // Mimic that here:
     val model = inspector.inspectorModel
-    model.windows.values.forEach { window ->
-      model.modificationListeners.forEach { it.onModification(window, window, true) }
-    }
+    model.windows.values.forEach { window -> model.modificationListeners.forEach { it.onModification(window, window, true) } }
   }
 
   private fun assertTreeStructure(node: TreeViewNode, expected: ViewNode) {

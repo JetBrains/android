@@ -26,28 +26,15 @@ import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 interface AppInsightsTracker {
   fun logZeroState(event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails)
 
-  fun logCrashesFetched(
-    unanonymizedAppId: String,
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails,
-  )
+  fun logCrashesFetched(unanonymizedAppId: String, mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails)
 
   fun logCrashListDetailView(event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails)
 
-  fun logStacktraceClicked(
-    mode: ConnectionMode?,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails,
-  )
+  fun logStacktraceClicked(mode: ConnectionMode?, event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails)
 
-  fun logConsoleLinkClicked(
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
-  )
+  fun logConsoleLinkClicked(mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails)
 
-  fun logError(
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
-  )
+  fun logError(mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails)
 
   fun logIssueStatusChanged(
     unanonymizedAppId: String,
@@ -55,11 +42,7 @@ interface AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails,
   )
 
-  fun logNotesAction(
-    unanonymizedAppId: String,
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails,
-  )
+  fun logNotesAction(unanonymizedAppId: String, mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails)
 
   fun logOfflineTransitionAction(
     unanonymizedAppId: String,
@@ -67,28 +50,13 @@ interface AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   )
 
-  fun logEventViewed(
-    unanonymizedAppId: String,
-    mode: ConnectionMode,
-    issueId: String,
-    eventId: String,
-  )
+  fun logEventViewed(unanonymizedAppId: String, mode: ConnectionMode, issueId: String, eventId: String)
 
-  fun logEventsFetched(
-    unanonymizedAppId: String,
-    issueId: String,
-    crashType: FailureType,
-    isFirstFetch: Boolean,
-  )
+  fun logEventsFetched(unanonymizedAppId: String, issueId: String, crashType: FailureType, isFirstFetch: Boolean)
 
   fun logInsightSentiment(sentiment: Sentiment, crashType: CrashType, insight: AiInsight)
 
-  fun logInsightFetch(
-    unanonymizedAppId: String,
-    crashType: FailureType,
-    insight: AiInsight,
-    contextLimit: Int,
-  )
+  fun logInsightFetch(unanonymizedAppId: String, crashType: FailureType, insight: AiInsight, contextLimit: Int)
 
   fun logServiceDeprecated(
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,

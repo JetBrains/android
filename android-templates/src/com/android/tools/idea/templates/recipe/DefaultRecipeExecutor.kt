@@ -28,10 +28,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.PluginsHelper
+import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
@@ -39,7 +40,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
@@ -52,13 +52,14 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
+import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.android.tools.idea.wizard.template.findResource
+import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 import com.android.tools.idea.wizard.template.withoutSkipLines
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
@@ -82,24 +83,19 @@ import com.intellij.util.lang.UrlClassLoader
 import java.io.File
 import java.net.URL
 import java.util.jar.JarFile
-import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
-import com.android.tools.idea.wizard.template.common.AGP_VERSION_WITH_BUILT_IN_KOTLIN
 
 /**
  * Executor support for recipe instructions.
  *
- * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple
- * merging if it is unavailable.
+ * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple merging if it is unavailable.
  */
 class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   private val project: Project
     get() = context.project
 
-  private val referencesExecutor: FindReferencesRecipeExecutor =
-    FindReferencesRecipeExecutor(context)
+  private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
-  private val readonlyStatusHandler: ReadonlyStatusHandler =
-    ReadonlyStatusHandler.getInstance(project)
+  private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
 
   private val projectTemplateData: ProjectTemplateData
     get() = context.projectTemplateData
@@ -112,42 +108,31 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   @VisibleForTesting
   val projectBuildModel: ProjectBuildModel? by lazy {
     ProjectBuildModel.getOrLog(project)?.also {
-      it.context.agpVersion =
-        AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
+      it.context.agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString())
     }
   }
-  private val projectSettingsModel: GradleSettingsModel? by lazy {
-    projectBuildModel?.projectSettingsModel
-  }
-  private val projectGradleBuildModel: GradleBuildModel? by lazy {
-    projectBuildModel?.projectBuildModel
-  }
+  private val projectSettingsModel: GradleSettingsModel? by lazy { projectBuildModel?.projectSettingsModel }
+  private val projectGradleBuildModel: GradleBuildModel? by lazy { projectBuildModel?.projectBuildModel }
   private val moduleGradleBuildModel: GradleBuildModel? by lazy {
     when {
       context.module != null -> projectBuildModel?.getModuleBuildModel(context.module)
-      context.moduleRoot != null ->
-        getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
+      context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
   }
 
-  /**
-   * Merges the given XML file into the given destination file (or copies it over if the destination
-   * file does not exist).
-   */
+  /** Merges the given XML file into the given destination file (or copies it over if the destination file does not exist). */
   override fun mergeXml(source: String, to: File) {
     val content = source.withoutSkipLines()
     val targetFile = getTargetFile(to)
-    require(hasExtension(targetFile, DOT_XML)) {
-      "Only XML files can be merged at this point: $targetFile"
-    }
+    require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText =
       readTargetText(targetFile)
-      ?: run {
-        save(content, to)
-        return
-      }
+        ?: run {
+          save(content, to)
+          return
+        }
 
     val contents = mergeXmlUtil(context, content, targetText, targetFile)
 
@@ -172,12 +157,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPluginToProjectAndModule(pluginId, classpathModule, version, buildModel)
   }
 
-  override fun applyPluginWithClasspathInModule(
-    pluginId: String,
-    module: Module,
-    classpathModule: String,
-    version: String
-  ) {
+  override fun applyPluginWithClasspathInModule(pluginId: String, module: Module, classpathModule: String, version: String) {
     referencesExecutor.applyPluginInModule(pluginId, module, classpathModule, version)
     val buildModel = projectBuildModel?.getModuleBuildModel(module) ?: return
     applyPluginToProjectAndModule(pluginId, classpathModule, version, buildModel)
@@ -190,35 +170,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPluginToProjectAndModule(plugin, dependency.module.toString(), dependency.version.toString(), buildModel)
   }
 
-  override fun applyPluginInModule(
-    plugin: String,
-    module: Module,
-    revision: String?,
-    minRev: String?,
-  ) {
+  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     referencesExecutor.applyPluginInModule(plugin, module, revision, minRev)
 
     val buildModel = projectBuildModel?.getModuleBuildModel(module) ?: return
     applyPluginInBuildModel(plugin, buildModel, revision, minRev)
   }
 
-  private fun applyPluginToProjectAndModule(
-    plugin: String,
-    classpathModule: String,
-    version: String,
-    buildModel: GradleBuildModel
-  ) {
+  private fun applyPluginToProjectAndModule(plugin: String, classpathModule: String, version: String, buildModel: GradleBuildModel) {
     val projectModel = projectBuildModel ?: return
     val pluginsHelper = PluginsHelper.withModel(projectModel)
     pluginsHelper.addPluginOrClasspath(plugin, classpathModule, version, listOf(buildModel))
   }
 
-  private fun applyPluginInBuildModel(
-    plugin: String,
-    buildModel: GradleBuildModel,
-    revision: String?,
-    minRev: String?,
-  ) {
+  private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
     val projectModel = projectBuildModel ?: return
     val pluginsHelper = PluginsHelper.withModel(projectModel)
     if (revision == null) {
@@ -229,29 +194,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
 
     val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
-    val component =
-      repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
+    val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
     pluginsHelper.findPlaceAndAddPlugin(plugin, resolvedVersion, listOf(buildModel))
   }
 
-  override fun addClasspathDependency(
-    mavenCoordinate: String,
-    minRev: String?,
-    forceAdding: Boolean,
-  ) {
-    if (
-      !forceAdding &&
-      (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null)
-    ) {
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
+    if (!forceAdding && (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null)) {
       // If plugins are being declared on Settings or using plugins block in top-level build.gradle,
       // we skip this since all work is handled in [applyPlugin]
       return
     }
 
-    val resolvedCoordinate =
-      resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
+    val resolvedCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
 
     referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)
 
@@ -278,14 +234,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     toBase: Boolean,
     sourceSetName: String?,
   ) {
-    referencesExecutor.addDependency(
-      configuration,
-      mavenCoordinate,
-      minRev,
-      moduleDir,
-      toBase,
-      sourceSetName,
-    )
+    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase, sourceSetName)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
     val buildModel = getBuildModel(moduleDir, toBase, baseFeature) ?: return
@@ -319,16 +268,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   private fun getResolvedMavenCoordinates(mavenCoordinate: String, minRev: String?): String =
     when (ArtifactDependencySpecImpl.create(mavenCoordinate)?.version) {
       null -> mavenCoordinate
-      else ->
-        resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
-          .toString()
+      else -> resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
     }
 
-  private fun getBuildModel(
-    moduleDir: File?,
-    toBase: Boolean,
-    baseFeature: BaseFeature?,
-  ): GradleBuildModel? {
+  private fun getBuildModel(moduleDir: File?, toBase: Boolean, baseFeature: BaseFeature?): GradleBuildModel? {
     return when {
       moduleDir != null -> projectBuildModel?.getModuleBuildModel(moduleDir)
       baseFeature == null || !toBase -> moduleGradleBuildModel
@@ -336,16 +279,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  override fun addPlatformDependency(
-    mavenCoordinate: String,
-    configuration: String,
-    enforced: Boolean,
-  ) {
+  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
     referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
 
     val buildModel = moduleGradleBuildModel ?: return
-    val resolvedMavenCoordinate =
-      resolveDependency(repositoryUrlManager, mavenCoordinate).toString()
+    val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, mavenCoordinate).toString()
 
     // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM
@@ -363,9 +301,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
-    require(moduleName.isNotEmpty() && moduleName.first() != ':') {
-      "incorrect module name (it should not be empty or include first ':')"
-    }
+    require(moduleName.isNotEmpty() && moduleName.first() != ':') { "incorrect module name (it should not be empty or include first ':')" }
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.dependencies().addModule(configuration, ":$moduleName")
   }
@@ -383,8 +319,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Copies the given source file into the given destination file (where the source is allowed to be
-   * a directory, in which case the whole directory is copied recursively)
+   * Copies the given source file into the given destination file (where the source is allowed to be a directory, in which case the whole
+   * directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
     val contextClass: Class<Any> = context.templateData.javaClass
@@ -402,43 +338,35 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
   }
 
-  /**
-   * Method that queries resource URL based on the [resourcePath]
-   */
+  /** Method that queries resource URL based on the [resourcePath] */
   fun ClassLoader.getAndroidResources(resourcePath: String): Sequence<URL> {
     val result = getResources(resourcePath).asSequence()
     return result + (this as? UrlClassLoader)?.getJarResources(resourcePath).orEmpty()
   }
 
-  /**
-   * Solution to query directory resources URL from jars,
-   * where jar which have directory entries excluded.
-   */
+  /** Solution to query directory resources URL from jars, where jar which have directory entries excluded. */
   fun UrlClassLoader.getJarResources(resourcePath: String): Sequence<URL> {
     val normalizedResourcePath = resourcePath.removePrefix("/")
 
-    return this.urls.mapNotNull<URL, URL> { classLoaderItem: URL ->
-      if (classLoaderItem.protocol != "file") return@mapNotNull null
+    return this.urls
+      .mapNotNull<URL, URL> { classLoaderItem: URL ->
+        if (classLoaderItem.protocol != "file") return@mapNotNull null
 
-      val filePath = File(classLoaderItem.path)
-      val isJarFile = filePath.isFile && filePath.extension == "jar"
-      if (!isJarFile) return@mapNotNull null
+        val filePath = File(classLoaderItem.path)
+        val isJarFile = filePath.isFile && filePath.extension == "jar"
+        if (!isJarFile) return@mapNotNull null
 
-      val jarEntriesSequence = JarFile(filePath).entries().asSequence()
-      if (jarEntriesSequence.any { it.name.startsWith(normalizedResourcePath) }) {
-        URL("jar:$classLoaderItem!/$normalizedResourcePath")
+        val jarEntriesSequence = JarFile(filePath).entries().asSequence()
+        if (jarEntriesSequence.any { it.name.startsWith(normalizedResourcePath) }) {
+          URL("jar:$classLoaderItem!/$normalizedResourcePath")
+        } else {
+          null
+        }
       }
-      else {
-        null
-      }
-    }.asSequence()
+      .asSequence()
   }
 
-  private fun DefaultRecipeExecutor.doCopyFile(
-    sourceFile: VirtualFile,
-    destPath: File,
-    target: File,
-  ) {
+  private fun DefaultRecipeExecutor.doCopyFile(sourceFile: VirtualFile, destPath: File, target: File) {
     when {
       sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
       target.exists() ->
@@ -458,14 +386,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Instantiates the given template file into the given output file. Note: It removes trailing
-   * whitespace both from beginning and end of source. Also, it replaces any 2+ consequent empty
-   * lines with single empty line.
+   * Instantiates the given template file into the given output file. Note: It removes trailing whitespace both from beginning and end of
+   * source. Also, it replaces any 2+ consequent empty lines with single empty line.
    */
   override fun save(source: String, to: File) {
     val targetFile = getTargetFile(to)
-    val content =
-      extractFullyQualifiedNames(to, source.withoutSkipLines()).trim().squishEmptyLines()
+    val content = extractFullyQualifiedNames(to, source.withoutSkipLines()).trim().squishEmptyLines()
 
     if (targetFile.exists()) {
       if (!targetFile.contentEquals(content)) {
@@ -500,18 +426,17 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     val srcDirsModel =
       with(sourceSet) {
-        when (type) {
-          SourceSetType.AIDL -> aidl()
-          SourceSetType.ASSETS -> assets()
-          SourceSetType.JAVA -> java()
-          SourceSetType.JNI -> jni()
-          SourceSetType.RENDERSCRIPT -> renderscript()
-          SourceSetType.RES -> res()
-          SourceSetType.RESOURCES -> resources()
-          SourceSetType.MANIFEST ->
-            throw RuntimeException("manifest should have been handled earlier")
+          when (type) {
+            SourceSetType.AIDL -> aidl()
+            SourceSetType.ASSETS -> assets()
+            SourceSetType.JAVA -> java()
+            SourceSetType.JNI -> jni()
+            SourceSetType.RENDERSCRIPT -> renderscript()
+            SourceSetType.RES -> res()
+            SourceSetType.RESOURCES -> resources()
+            SourceSetType.MANIFEST -> throw RuntimeException("manifest should have been handled earlier")
+          }
         }
-      }
         .srcDirs()
 
     val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == relativeDir }
@@ -541,21 +466,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return property.valueAsString() ?: valueIfNotFound
   }
 
-  override fun getClasspathDependencyVarName(
-    mavenCoordinate: String,
-    valueIfNotFound: String,
-  ): String {
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String): String {
     val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
     check(mavenDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
 
-    val buildScriptDependencies =
-      projectGradleBuildModel?.buildscript()?.dependencies() ?: return valueIfNotFound
+    val buildScriptDependencies = projectGradleBuildModel?.buildscript()?.dependencies() ?: return valueIfNotFound
     val targetDependencyModel =
-      buildScriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
-        mavenDependency.equalsIgnoreVersion(it.spec)
-      }
-    val unresolvedVersionModel =
-      targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
+      buildScriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull { mavenDependency.equalsIgnoreVersion(it.spec) }
+    val unresolvedVersionModel = targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
 
     if (unresolvedVersionModel.valueType == ValueType.REFERENCE) {
       return unresolvedVersionModel.getValue(GradlePropertyModel.STRING_TYPE) ?: valueIfNotFound
@@ -571,8 +489,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val settingsModel: GradleSettingsModel = projectSettingsModel ?: return valueIfNotFound
     val moduleModel: GradleBuildModel = moduleGradleBuildModel ?: return valueIfNotFound
 
-    val moduleList =
-      settingsModel.modulePaths().mapNotNull { settingsModel.moduleModel(it) }.toMutableList()
+    val moduleList = settingsModel.modulePaths().mapNotNull { settingsModel.moduleModel(it) }.toMutableList()
     moduleModel.apply {
       // If the current module is not the first (index is zero), move it to be first.
       val currentModuleIdx = moduleList.map { it.virtualFile }.indexOf(virtualFile)
@@ -585,16 +502,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       moduleList
         .flatMap { gradleBuildModel -> gradleBuildModel.dependencies().artifacts() }
         .asSequence()
-        .filter { artifactDependencyModel ->
-          mavenDependency.equalsIgnoreVersion(artifactDependencyModel.spec)
-        }
+        .filter { artifactDependencyModel -> mavenDependency.equalsIgnoreVersion(artifactDependencyModel.spec) }
         .map { artifactDependencyModel -> artifactDependencyModel.version().unresolvedModel }
-        .filter { unresolvedVersionProperty ->
-          unresolvedVersionProperty.valueType == ValueType.REFERENCE
-        }
-        .mapNotNull { unresolvedVersionModel ->
-          unresolvedVersionModel.getValue(GradlePropertyModel.STRING_TYPE)
-        }
+        .filter { unresolvedVersionProperty -> unresolvedVersionProperty.valueType == ValueType.REFERENCE }
+        .mapNotNull { unresolvedVersionModel -> unresolvedVersionModel.getValue(GradlePropertyModel.STRING_TYPE) }
         .filter { moduleModel.dependencies().isPropertyInScope(it) }
         .firstOrNull()
 
@@ -630,8 +541,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
     addProjectGradleProperty(
       "android.experimental.testSuiteSupport",
-      """# Opt in to AGP test suite support.
-      android.experimental.testSuiteSupport=true
+      """
+      # Opt in to AGP test suite support.
+            android.experimental.testSuiteSupport=true
       """
         .trimIndent(),
     )
@@ -654,16 +566,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       val dependencyHelper = DependenciesHelper.withModel(it)
       dependencyHelper.addTestSuiteEngineDependency(
         testSuite,
-        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP.get()
+        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_LAUNCHER_DEP.get(),
       )
-      dependencyHelper.addTestSuiteEngineDependency(
-        testSuite,
-        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP.get()
-      )
-      dependencyHelper.addTestSuiteEngineDependency(
-        testSuite,
-        StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP.get()
-      )
+      dependencyHelper.addTestSuiteEngineDependency(testSuite, StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JUNIT_PLATFORM_ENGINE_DEP.get())
+      dependencyHelper.addTestSuiteEngineDependency(testSuite, StudioFlags.JOURNEYS_WITH_GEMINI_TEST_SUITE_JOURNEYS_ENGINE_DEP.get())
     }
 
     // Add the target variant to the new (or existing) test suite
@@ -695,10 +601,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  /**
-   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in
-   * kotlinOptions.
-   */
+  /** Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions. */
   @Deprecated("Use setJavaKotlinCompileOptions instead")
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
     var languageLevel = LanguageLevel.parse(version)!!
@@ -710,10 +613,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
-      if (
-        current.valueType == ValueType.NONE ||
-        current.toLanguageLevel()?.isAtLeast(languageLevel) != true
-      ) {
+      if (current.valueType == ValueType.NONE || current.toLanguageLevel()?.isAtLeast(languageLevel) != true) {
         current.setLanguageLevel(languageLevel)
       }
     }
@@ -728,20 +628,19 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
-   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in
-   * kotlinOptions, based on the Gradle JDK version
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions, based on the Gradle JDK
+   * version
    */
   override fun setJavaKotlinCompileOptions(isKotlin: Boolean, moduleDir: File?) {
-    val buildModel = if (moduleDir == null) {
-      moduleGradleBuildModel ?: return
-    }
-    else {
-      projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
-    }
+    val buildModel =
+      if (moduleDir == null) {
+        moduleGradleBuildModel ?: return
+      } else {
+        projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
+      }
     val languageLevel = pickLanguageLevel()
 
-    val agpApplied =
-      buildModel.appliedPlugins().any { it.name().valueAsString()?.contains("android") == true }
+    val agpApplied = buildModel.appliedPlugins().any { it.name().valueAsString()?.contains("android") == true }
 
     // The language level property may already be set in the module if this is, for example, a new
     // activity template
@@ -752,10 +651,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  /**
-   * Picks the lowest reasonable Java version for templates, which later may be based on the Gradle
-   * JDK version
-   */
+  /** Picks the lowest reasonable Java version for templates, which later may be based on the Gradle JDK version */
   private fun pickLanguageLevel(): LanguageLevel {
     return LanguageLevel.JDK_11
   }
@@ -790,8 +686,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         val kmpModel = moduleGradleBuildModel?.kotlin()?.android() ?: return
         val afterElement = kmpModel.namespace().takeIf { it.psiElement != null }
         kmpModel.compileSdkVersion(afterElement)
-      }
-      else {
+      } else {
         val androidModel = moduleGradleBuildModel?.android() ?: return
         val afterElement = androidModel.namespace().takeIf { it.psiElement != null }
         androidModel.compileSdkVersion(afterElement)
@@ -800,16 +695,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (isBlockAllowedAGP) {
       val config = compileSdkModel.toCompileSdkConfig() ?: return
       when {
-        androidVersion.isPreview ->
-          config.setPreviewVersion(androidVersion.apiStringWithExtension)
+        androidVersion.isPreview -> config.setPreviewVersion(androidVersion.apiStringWithExtension)
 
         else -> config.setReleaseVersion(apiLevelMajor, apiLevelMinor, null)
       }
-    }
-    else {
+    } else {
       when {
-        androidVersion.isPreview ->
-          compileSdkModel.setValue(androidVersion.apiStringWithExtension)
+        androidVersion.isPreview -> compileSdkModel.setValue(androidVersion.apiStringWithExtension)
         else -> compileSdkModel.setValue(apiLevelMajor)
       }
     }
@@ -823,23 +715,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   private fun ResolvedPropertyModel.setValueIfNone(value: String) {
     if (valueType == ValueType.NONE) {
-      if (value.startsWith('$'))
-        ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
-      else setValue(value)
+      if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) } else setValue(value)
     }
   }
 
   private fun convertToAndroidX(mavenCoordinate: String): String =
-    if (projectTemplateData.androidXSupport)
-      AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate)
-    else mavenCoordinate
+    if (projectTemplateData.androidXSupport) AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate) else mavenCoordinate
 
   /**
-   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory
-   * even if it already exists. This is an undo-friendly replacement.
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists. This is an
+   * undo-friendly replacement.
    */
-  private fun copyDirectory(src: VirtualFile, dest: File) =
-    TemplateUtils.copyDirectory(src, dest, ::copyFile)
+  private fun copyDirectory(src: VirtualFile, dest: File) = TemplateUtils.copyDirectory(src, dest, ::copyFile)
 
   private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
     val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar)
@@ -861,16 +748,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /** Returns the absolute path to the file which will get written to. */
-  private fun getTargetFile(file: File): File =
-    if (file.isAbsolute) file else File(context.outputRoot, file.path)
+  private fun getTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
   private fun readTextFile(file: File): String? =
-    if (moduleTemplateData?.isNewModule != false) readTextFromDisk(file)
-    else readTextFromDocument(project, file)
+    if (moduleTemplateData?.isNewModule != false) readTextFromDisk(file) else readTextFromDocument(project, file)
 
   /**
-   * Shorten all fully qualified Layout names that belong to the same package as the manifest's
-   * package attribute value.
+   * Shorten all fully qualified Layout names that belong to the same package as the manifest's package attribute value.
    *
    * @See [com.android.manifmerger.ManifestMerger2.extractFqcns]
    */
@@ -879,8 +763,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       return content
     }
 
-    val packageName: String? =
-      projectTemplateData.applicationPackage ?: moduleTemplateData?.packageName
+    val packageName: String? = projectTemplateData.applicationPackage ?: moduleTemplateData?.packageName
 
     val factory = XmlElementFactory.getInstance(project)
     val root = factory.createTagFromText(content)
@@ -905,9 +788,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (project.isInitialized) {
       val toFile = findFileByIoFile(targetFile, true)
       val status = readonlyStatusHandler.ensureFilesWritable(listOf(toFile!!))
-      check(!status.hasReadonlyFiles()) {
-        "Attempt to update file that is readonly: ${targetFile.absolutePath}"
-      }
+      check(!status.hasReadonlyFiles()) { "Attempt to update file that is readonly: ${targetFile.absolutePath}" }
     }
     return readTextFile(targetFile)
   }
@@ -919,26 +800,18 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
   private fun VirtualFile.contentEquals(targetFile: File): Boolean =
     if (fileType.isBinary) this.contentsToByteArray() contentEquals targetFile.readBytes()
-    else
-      ComparisonManager.getInstance()
-        .isEquals(
-          readTextFromDocument(project, this)!!,
-          readTextFile(targetFile)!!,
-          IGNORE_WHITESPACES,
-        )
+    else ComparisonManager.getInstance().isEquals(readTextFromDocument(project, this)!!, readTextFile(targetFile)!!, IGNORE_WHITESPACES)
 
   private infix fun File.contentEquals(content: String): Boolean =
     ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)
 
   private fun addFileAlreadyExistWarning(targetFile: File) =
-    context.warnings.add(
-      "The following file could not be created since it already exists: ${targetFile.path}"
-    )
+    context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
 
   private open class RecipeIO {
     /**
-     * Replaces the contents of the given file with the given string. Outputs text in UTF-8
-     * character encoding. The file is created if it does not already exist.
+     * Replaces the contents of the given file with the given string. Outputs text in UTF-8 character encoding. The file is created if it
+     * does not already exist.
      */
     open fun writeFile(requestor: Any, contents: String?, to: File, project: Project) {
       if (contents == null) {
@@ -946,9 +819,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
 
       val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
-      val vf =
-        LocalFileSystem.getInstance().findFileByIoFile(to)
-        ?: parentDir.createChildData(requestor, to.name)
+      val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
       vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
 
       // ProjectBuildModel uses PSI, let's committed document, since it's illegal to modify PSI on
@@ -1015,23 +886,16 @@ fun CharSequence.squishEmptyLines(): String {
     .joinToString("\n")
 }
 
-fun getBuildModel(
-  buildFile: File,
-  project: Project,
-  projectBuildModel: ProjectBuildModel? = null,
-): GradleBuildModel? {
+fun getBuildModel(buildFile: File, project: Project, projectBuildModel: ProjectBuildModel? = null): GradleBuildModel? {
   if (project.isDisposed || !buildFile.exists()) {
     return null
   }
-  val virtualFile =
-    findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
+  val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
 
   // TemplateUtils.writeTextFile saves Documents but doesn't commit them, since there might not be a
   // Project to speak of yet. ProjectBuildModel uses PSI, so let's make sure the Document is
   // committed, since it's illegal to modify PSI for a file with an uncommitted Document.
-  FileDocumentManager.getInstance()
-    .getCachedDocument(virtualFile)
-    ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
+  FileDocumentManager.getInstance().getCachedDocument(virtualFile)?.let(PsiDocumentManager.getInstance(project)::commitDocument)
 
   val buildModel = projectBuildModel ?: ProjectBuildModel.getOrLog(project)
 

@@ -17,9 +17,9 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Dimension
 import java.nio.file.Files
+import org.junit.Test
 
 /** Tests for [DumpsysDisplayDeviceInfoParser]. */
 class DumpsysDisplayDeviceInfoParserTest {
@@ -27,37 +27,32 @@ class DumpsysDisplayDeviceInfoParserTest {
   @Test
   fun testPixelFold() {
     val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("PixelFold"))
-    assertThat(displayInfo).containsExactly(
-      DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 0, 420, false)
-    )
+    assertThat(displayInfo).containsExactly(DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 0, 420, false))
   }
 
   @Test
   fun testPixelFoldRotated90() {
     val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("PixelFoldRotated90"))
-    assertThat(displayInfo).containsExactly(
-      DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 1, 420, false)
-    )
+    assertThat(displayInfo).containsExactly(DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 1, 420, false))
   }
 
   @Test
   fun testAutomotiveWithDistantDisplays() {
     val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("AutomotiveWithDistantDisplays"))
-    assertThat(displayInfo).containsExactly(
-      DisplayDeviceInfo(0, 4619827259835644672, Dimension(1080, 600), 0, 120, false),
-      DisplayDeviceInfo(2, 4619827551948147201, Dimension(400, 600), 0, 120, false),
-      DisplayDeviceInfo(3, 4619827124781842690, Dimension(3000, 600), 0, 120, false),
-    )
+    assertThat(displayInfo)
+      .containsExactly(
+        DisplayDeviceInfo(0, 4619827259835644672, Dimension(1080, 600), 0, 120, false),
+        DisplayDeviceInfo(2, 4619827551948147201, Dimension(400, 600), 0, 120, false),
+        DisplayDeviceInfo(3, 4619827124781842690, Dimension(3000, 600), 0, 120, false),
+      )
   }
 
   @Test
   fun testRoundWatch() {
     val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("RoundWatch"))
-    assertThat(displayInfo).containsExactly(
-      DisplayDeviceInfo(0, 4619827259835644672, Dimension(454, 454), 0, 320, true)
-    )
+    assertThat(displayInfo).containsExactly(DisplayDeviceInfo(0, 4619827259835644672, Dimension(454, 454), 0, 320, true))
   }
 }
 
 private fun getDumpsysOutput(filename: String): String =
-    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
+  Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))

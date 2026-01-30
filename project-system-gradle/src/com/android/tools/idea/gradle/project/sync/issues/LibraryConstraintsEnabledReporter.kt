@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.VirtualFile
 
-class LibraryConstraintsEnabledReporter: SimpleDeduplicatingSyncIssueReporter() {
+class LibraryConstraintsEnabledReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getSupportedIssueType(): Int {
     return IdeSyncIssue.TYPE_LIBRARY_CONSTRAINTS_SHOULD_BE_DISABLED
   }
@@ -35,16 +35,16 @@ class LibraryConstraintsEnabledReporter: SimpleDeduplicatingSyncIssueReporter() 
     project: Project,
     syncIssues: MutableList<IdeSyncIssue>,
     affectedModules: MutableList<Module>,
-    buildFileMap: MutableMap<Module, VirtualFile>
+    buildFileMap: MutableMap<Module, VirtualFile>,
   ): List<SyncIssueNotificationHyperlink> = listOf(DisableConstraintsHyperlink())
 
   /** We don't want to report this in case the project is small. */
   override fun shouldReport(project: Project): Boolean {
-    return project.modules.size > MODULE_COUNT_THRESHOLD;
+    return project.modules.size > MODULE_COUNT_THRESHOLD
   }
 
   companion object {
     // Roughly ~100 Android projects (assuming main/unitTest/androidTest) modules.
-    private const val MODULE_COUNT_THRESHOLD = 300;
+    private const val MODULE_COUNT_THRESHOLD = 300
   }
 }

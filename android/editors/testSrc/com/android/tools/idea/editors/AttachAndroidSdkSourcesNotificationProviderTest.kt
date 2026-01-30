@@ -72,9 +72,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     val sdkData: AndroidSdkData = mock()
     whenever(sdkData.sdkHandler).thenReturn(sdkHandler)
 
-    repositoryPackages.setRemotePkgInfos(
-      listOf(FakeRemotePackage("sources;android-30"), FakeRemotePackage("sources;android-33"))
-    )
+    repositoryPackages.setRemotePkgInfos(listOf(FakeRemotePackage("sources;android-30"), FakeRemotePackage("sources;android-33")))
 
     val androidSdks = AndroidSdks.getInstance()
     originalAndroidSdkData = androidSdks.tryToChooseAndroidSdk()
@@ -194,9 +192,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   private fun invokeCreateNotificationPanel(
     virtualFile: VirtualFile
   ): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
-    val panelCreationFunction =
-      runReadAction { provider.collectNotificationData(projectRule.project, virtualFile) }
-        ?: return null
+    val panelCreationFunction = runReadAction { provider.collectNotificationData(projectRule.project, virtualFile) } ?: return null
 
     val panel = panelCreationFunction.apply(mockFileEditor)
 
@@ -221,19 +217,12 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     }
   }
 
-  /**
-   * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to
-   * create an SDK download dialog.
-   */
-  private inner class TestAttachAndroidSdkSourcesNotificationProvider :
-    AttachAndroidSdkSourcesNotificationProvider() {
+  /** Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to create an SDK download dialog. */
+  private inner class TestAttachAndroidSdkSourcesNotificationProvider : AttachAndroidSdkSourcesNotificationProvider() {
     var requestedPaths: List<String>? = null
       private set
 
-    override fun createSdkDownloadDialog(
-      project: Project,
-      requestedPaths: List<String>?,
-    ): ModelWizardDialog {
+    override fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog {
       this.requestedPaths = requestedPaths
       return mockModelWizardDialog
     }

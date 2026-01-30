@@ -46,21 +46,14 @@ class NavigatingInteractionHandlerTest {
   @Before
   fun setUp() {
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
 
     model.configuration.setDevice(MutableDeviceConfig().createDeviceInstance(), false)
 
     model.dataProvider =
       object : NlDataProvider(PreviewModeManager.KEY) {
-        override fun getData(dataId: String): Any? =
-          previewModeManager.takeIf { dataId == PreviewModeManager.KEY.name }
+        override fun getData(dataId: String): Any? = previewModeManager.takeIf { dataId == PreviewModeManager.KEY.name }
       }
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
     surface.addModelsWithoutRender(listOf(model))
@@ -91,7 +84,6 @@ class NavigatingInteractionHandlerTest {
 
     previewModeManager.setMode(PreviewMode.Interactive(mock()))
 
-    assertThat(handler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx))
-      .isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+    assertThat(handler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
 }

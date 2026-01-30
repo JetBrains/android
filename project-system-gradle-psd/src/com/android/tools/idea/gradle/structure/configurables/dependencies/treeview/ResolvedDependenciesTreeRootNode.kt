@@ -33,8 +33,7 @@ class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISet
     updateNameAndIcon()
   }
 
-  override fun getChildren(): Array<SimpleNode> =
-    myChildren ?: createChildren().toTypedArray<SimpleNode>().also { myChildren = it }
+  override fun getChildren(): Array<SimpleNode> = myChildren ?: createChildren().toTypedArray<SimpleNode>().also { myChildren = it }
 
   fun reset() {
     myChildren = null
@@ -50,10 +49,7 @@ class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISet
   private fun createChildren(variantsByName: Map<String, PsVariant>): List<AndroidArtifactNode> {
     val childrenNodes = mutableListOf<AndroidArtifactNode>()
 
-    val variants = variantsByName
-      .entries
-      .sortedBy { it.key }
-      .map { it.value }
+    val variants = variantsByName.entries.sortedBy { it.key }.map { it.value }
     for (variant in variants) {
       variant.forEachArtifact { artifact ->
         val artifactNode = AndroidArtifactNode(this, artifact)

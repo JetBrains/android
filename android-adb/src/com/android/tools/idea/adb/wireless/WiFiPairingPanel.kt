@@ -66,15 +66,10 @@ internal class WiFiPairingPanel(
     }
   }
 
-  val qrCodePanel by lazy {
-    QrCodeTabPanel(Runnable { qrCodeScanAgainInvoked() }, parentDisposable, mdnsServiceUnderPairing)
-  }
+  val qrCodePanel by lazy { QrCodeTabPanel(Runnable { qrCodeScanAgainInvoked() }, parentDisposable, mdnsServiceUnderPairing) }
 
   val pairingCodePanel by lazy {
-    PairingCodeTabPanel(
-      Consumer<PairingMdnsService> { service -> pairingCodePairInvoked(service) },
-      mdnsServiceUnderPairing,
-    )
+    PairingCodeTabPanel(Consumer<PairingMdnsService> { service -> pairingCodePairInvoked(service) }, mdnsServiceUnderPairing)
   }
 
   var isLoading: Boolean
@@ -93,9 +88,7 @@ internal class WiFiPairingPanel(
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
   private fun createWarningBanner(): JComponent? {
-    return WarningBanner().takeIf {
-      mdnsServiceUnderPairing != null && mdnsServiceUnderPairing.needsUpdate()
-    }
+    return WarningBanner().takeIf { mdnsServiceUnderPairing != null && mdnsServiceUnderPairing.needsUpdate() }
   }
 
   private fun createHeaderPanel(): JComponent {

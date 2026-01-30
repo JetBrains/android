@@ -26,12 +26,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 
-/**
- * Tests for [AddComposeCompilerGradlePluginHyperlink]
- */
+/** Tests for [AddComposeCompilerGradlePluginHyperlink] */
 class AddComposeCompilerGradlePluginHyperlinkTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Test

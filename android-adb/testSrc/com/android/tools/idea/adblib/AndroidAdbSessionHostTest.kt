@@ -66,20 +66,13 @@ class AndroidAdbSessionHostTest {
     val useShortDelay = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
     // Assert
-    assertEquals(
-      "This test depends on `ApplicationManager.getApplication().isActive` returning `true`",
-      true,
-      useShortDelay,
-    )
+    assertEquals("This test depends on `ApplicationManager.getApplication().isActive` returning `true`", true, useShortDelay)
   }
 
   @Test
   fun propertiesCollectorUseShortDelayIsFalseWhenInactive() {
     // Prepare
-    val publisher =
-      ApplicationManager.getApplication()
-        .messageBus
-        .syncPublisher(ApplicationActivationListener.TOPIC)
+    val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
@@ -93,10 +86,7 @@ class AndroidAdbSessionHostTest {
   @Test
   fun propertiesCollectorUseShortDelayIsTrueWhenReActivated() {
     // Prepare
-    val publisher =
-      ApplicationManager.getApplication()
-        .messageBus
-        .syncPublisher(ApplicationActivationListener.TOPIC)
+    val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
@@ -117,10 +107,7 @@ class AndroidAdbSessionHostTest {
     val duration = Duration.ofMillis(453)
 
     // Act
-    host.delegatePropertyValue(
-      PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT,
-      valueProvider = { duration },
-    )
+    host.delegatePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT, valueProvider = { duration })
 
     // Assert
     assertEquals(duration, host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT))
@@ -167,8 +154,7 @@ class AndroidAdbSessionHostTest {
       return null
     }
 
-    override fun setFrameTitle(title: String?) {
-    }
+    override fun setFrameTitle(title: String?) {}
 
     override fun getComponent(): JComponent {
       return component

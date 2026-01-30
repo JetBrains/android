@@ -41,19 +41,15 @@ import org.junit.Test
 
 @RunsInEdt
 class FixNdkVersionProcessorTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule var expect: Expect = Expect.createAndEnableStackTrace()
 
   @RunsInEdt
   class NonGradle {
-    @get:Rule
-    val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
+    @get:Rule val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
 
-    @get:Rule
-    var expect: Expect = Expect.createAndEnableStackTrace()
+    @get:Rule var expect: Expect = Expect.createAndEnableStackTrace()
 
     @Test
     fun testUsageViewDescriptor() {
@@ -95,16 +91,18 @@ class FixNdkVersionProcessorTest {
 
       val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
       var synced = false
-      GradleSyncState.subscribe(project, object : GradleSyncListener {
-        override fun syncFailed(project: Project, errorMessage: String) {
-          // It fails with 77.7.7.
-          synced = true
-        }
-      }, projectRule.testRootDisposable)
+      GradleSyncState.subscribe(
+        project,
+        object : GradleSyncListener {
+          override fun syncFailed(project: Project, errorMessage: String) {
+            // It fails with 77.7.7.
+            synced = true
+          }
+        },
+        projectRule.testRootDisposable,
+      )
 
-      WriteCommandAction.runWriteCommandAction(project) {
-        processor.updateProjectBuildModel()
-      }
+      WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel() }
 
       GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED)
 
@@ -113,5 +111,4 @@ class FixNdkVersionProcessorTest {
       expect.that(synced).isTrue()
     }
   }
-
 }

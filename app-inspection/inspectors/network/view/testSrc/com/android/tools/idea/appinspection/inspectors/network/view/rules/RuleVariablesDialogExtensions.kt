@@ -39,8 +39,7 @@ fun RuleVariablesDialog.findAction(text: String): AnAction {
 val RuleVariablesDialog.table
   get() = findInstanceOf<JTable>()
 
-inline fun <reified T> RuleVariablesDialog.findInstanceOf(): T =
-  TreeWalker(rootPane).descendants().first { it is T } as T
+inline fun <reified T> RuleVariablesDialog.findInstanceOf(): T = TreeWalker(rootPane).descendants().first { it is T } as T
 
 fun RuleVariablesDialog.clickOk() {
   val ui = FakeUi(rootPane)

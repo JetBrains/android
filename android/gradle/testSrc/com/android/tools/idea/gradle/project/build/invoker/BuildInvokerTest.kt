@@ -38,12 +38,9 @@ import kotlin.concurrent.withLock
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for making sure that [org.gradle.tooling.BuildAction] is run when passed to [GradleBuildInvoker].
- */
+/** Tests for making sure that [org.gradle.tooling.BuildAction] is run when passed to [GradleBuildInvoker]. */
 class BuildInvokerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Test
@@ -72,28 +69,30 @@ class BuildInvokerTest {
               }
             }
             is FinishBuildEvent -> {
-              lock.withLock {
-                buildFinishedEventReceived.signal()
-              }
+              lock.withLock { buildFinishedEventReceived.signal() }
             }
           }
         }
       },
-      projectRule.fixture.testRootDisposable)
+      projectRule.fixture.testRootDisposable,
+    )
 
     projectRule.loadProject(SIMPLE_APPLICATION)
     enabled = true
 
     // Subscribe to GradleBuildState notifications.
-    GradleBuildState.subscribe(project, object : GradleBuildListener {
-      override fun buildStarted(context: BuildContext) {
-        gradleBuildStateBuildStartedNotificationReceived = true
-      }
+    GradleBuildState.subscribe(
+      project,
+      object : GradleBuildListener {
+        override fun buildStarted(context: BuildContext) {
+          gradleBuildStateBuildStartedNotificationReceived = true
+        }
 
-      override fun buildFinished(status: BuildStatus, context: BuildContext) {
-        gradleBuildStateBuildFinishedNotificationReceived = true
-      }
-    })
+        override fun buildFinished(status: BuildStatus, context: BuildContext) {
+          gradleBuildStateBuildFinishedNotificationReceived = true
+        }
+      },
+    )
 
     val invoker = GradleBuildInvoker.getInstance(project) as GradleBuildInvokerImpl
 
@@ -101,18 +100,16 @@ class BuildInvokerTest {
     invoker
       .executeTasks(
         GradleBuildInvoker.Request.Builder(
-          project = project,
-          rootProjectPath = File(project.basePath!!),
-          gradleTasks = listOf("assembleDebug")
-        )
+            project = project,
+            rootProjectPath = File(project.basePath!!),
+            gradleTasks = listOf("assembleDebug"),
+          )
           .setMode(BuildMode.ASSEMBLE)
           .build(),
-        SlowTestBuildAction()
+        SlowTestBuildAction(),
       )
       .addListener({ gradleBuildInvokedExecutedPostBuildTasks = true }, directExecutor())
-    lock.withLock {
-      buildFinishedEventReceived.await(1, TimeUnit.SECONDS)
-    }
+    lock.withLock { buildFinishedEventReceived.await(1, TimeUnit.SECONDS) }
     assertThat(gradleBuildStateBuildStartedNotificationReceived).isTrue()
     assertThat(gradleBuildStateBuildFinishedNotificationReceived).isTrue()
     assertThat(gradleBuildInvokedExecutedPostBuildTasks).isTrue()

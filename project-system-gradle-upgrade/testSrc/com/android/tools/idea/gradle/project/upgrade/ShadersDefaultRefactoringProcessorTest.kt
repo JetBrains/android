@@ -26,9 +26,10 @@ import org.junit.Test
 
 @RunsInEdt
 class ShadersDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder(includeShadersSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
-  )
+  override val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(includeShadersSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
+    )
 
   @Test
   fun testReadMoreUrl() {
@@ -47,9 +48,7 @@ class ShadersDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() 
   @Test
   fun testEmptyShadersDirectory() {
     writeToBuildFile(TestFileName("ShadersDefault/NoShadersDeclaration"))
-    runWriteAction {
-      projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/shaders")
-    }
+    runWriteAction { projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/shaders") }
     val processor = ShadersDefaultRefactoringProcessor(project, AgpVersion.parse("8.4.0-alpha09"), AgpVersion.parse("8.4.0-alpha10"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("ShadersDefault/NoShadersDeclaration"))
@@ -119,13 +118,14 @@ class ShadersDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() 
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("9.0.0-alpha01" to "9.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
-      ("7.0.0" to "8.4.0-alpha09") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("8.4.0-alpha09" to "9.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("8.4.0-alpha10" to "9.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
-      ("8.4.0-alpha09" to "8.4.0-alpha10") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
-      ("8.4.0-alpha10" to "8.5.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+    val expectedNecessitiesMap =
+      mapOf(
+        ("9.0.0-alpha01" to "9.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+        ("7.0.0" to "8.4.0-alpha09") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+        ("8.4.0-alpha09" to "9.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+        ("8.4.0-alpha10" to "9.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
+        ("8.4.0-alpha09" to "8.4.0-alpha10") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
+        ("8.4.0-alpha10" to "8.5.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
       )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = ShadersDefaultRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))

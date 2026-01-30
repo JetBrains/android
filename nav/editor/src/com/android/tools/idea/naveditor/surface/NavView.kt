@@ -27,10 +27,8 @@ import com.google.common.collect.ImmutableList
 import java.awt.Dimension
 
 /** View of a navigation editor [Scene], as part of a [NavDesignSurface]. */
-class NavView(surface: NavDesignSurface, sceneManager: SceneManager) :
-  SceneView(surface, sceneManager, SQUARE_SHAPE_POLICY) {
-  override fun createLayers(): ImmutableList<Layer> =
-    ImmutableList.of(SceneLayer(surface, this, true))
+class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView(surface, sceneManager, SQUARE_SHAPE_POLICY) {
+  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
 
   override val contentTranslationX: Int
     get() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
@@ -46,9 +44,6 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) :
     return result
   }
 
-  /**
-   * This color set does not provide the navigation colors. Navigation-specific colors are defined
-   * in NavColors.
-   */
+  /** This color set does not provide the navigation colors. Navigation-specific colors are defined in NavColors. */
   override val colorSet = ColorSet()
 }

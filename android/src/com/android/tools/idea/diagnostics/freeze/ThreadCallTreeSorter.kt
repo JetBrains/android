@@ -19,35 +19,34 @@ import com.android.tools.idea.diagnostics.util.ThreadCallTree
 
 class ThreadCallTreeSorter(values: MutableCollection<ThreadCallTree>) {
 
-  data class CallTreeWithPriority(val callTree: ThreadCallTree,
-                                  val importance: Int,
-                                  val treeDepth: Int)
+  data class CallTreeWithPriority(val callTree: ThreadCallTree, val importance: Int, val treeDepth: Int)
 
   private val callTrees = values.map(::createCallTreeWithPriority)
 
   fun sort(): List<ThreadCallTree> {
-    val sortedWith = callTrees.sortedWith(
-      compareBy({ -it.importance }, { -it.treeDepth })
-    )
+    val sortedWith = callTrees.sortedWith(compareBy({ -it.importance }, { -it.treeDepth }))
     return sortedWith.map { it.callTree }
   }
 
   companion object {
-    public fun createCallTreeWithPriority(callTree:ThreadCallTree): CallTreeWithPriority {
+    public fun createCallTreeWithPriority(callTree: ThreadCallTree): CallTreeWithPriority {
       val depth = callTree.computeMaxDepth()
       val importance: Int
 
       if (callTree.isAwtThread) {
         importance = 2
       } else {
-        val hasRunReadAction: Boolean = callTree.exists { ste: StackTraceElement ->
-          val methodCallString = ste.className + "." + ste.methodName
-          methodCallString == "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction" || ste.methodName == "runReadAction"
-        }
-        val hasAcquireReadLock: Boolean = callTree.exists { ste: StackTraceElement ->
-          val methodCallString = ste.className + "." + ste.methodName
-          ste.methodName == "acquireReadLock" || methodCallString == "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead"
-        }
+        val hasRunReadAction: Boolean =
+          callTree.exists { ste: StackTraceElement ->
+            val methodCallString = ste.className + "." + ste.methodName
+            methodCallString == "com.intellij.openapi.application.impl.ApplicationImpl.tryRunReadAction" ||
+              ste.methodName == "runReadAction"
+          }
+        val hasAcquireReadLock: Boolean =
+          callTree.exists { ste: StackTraceElement ->
+            val methodCallString = ste.className + "." + ste.methodName
+            ste.methodName == "acquireReadLock" || methodCallString == "com.intellij.openapi.application.impl.ReadMostlyRWLock.startRead"
+          }
         importance = if (!hasAcquireReadLock && hasRunReadAction) 1 else 0
       }
       return CallTreeWithPriority(callTree, importance, depth)

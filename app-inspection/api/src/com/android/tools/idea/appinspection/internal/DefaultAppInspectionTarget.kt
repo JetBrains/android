@@ -52,8 +52,8 @@ import kotlinx.coroutines.cancel
 /**
  * Attaches the transport agent if it is not already.
  *
- * An agent is attached if the latest PROCESS event has is_ended set to false, and the latest AGENT
- * event has status ATTACHED and has a timestamp greater than the PROCESS event.
+ * An agent is attached if the latest PROCESS event has is_ended set to false, and the latest AGENT event has status ATTACHED and has a
+ * timestamp greater than the PROCESS event.
  *
  * After the agent is attached, inspectors can start sending commands and receiving responses.
  */
@@ -113,13 +113,11 @@ internal suspend fun attachAppInspectionTarget(
       eventKind = AGENT,
       startTimeNs = { lastAgentAttachedEventTimestampNs },
       filter = {
-        (it.agentData.status == UNATTACHABLE || it.agentData.status == ATTACHED) &&
-          it.timestamp >= lastAgentAttachedEventTimestampNs
+        (it.agentData.status == UNATTACHABLE || it.agentData.status == ATTACHED) && it.timestamp >= lastAgentAttachedEventTimestampNs
       },
     )
 
-  val streamEventResult =
-    transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
+  val streamEventResult = transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
 
   if (streamEventResult.agentData.status == UNATTACHABLE) {
     throw AppInspectionAgentUnattachableException()
@@ -138,16 +136,9 @@ internal class DefaultAppInspectionTarget(
   @WorkerThread
   override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
     val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
-    val launchMetadata =
-      AppInspection.LaunchMetadata.newBuilder()
-        .setLaunchedByName(params.projectName)
-        .setForce(params.force)
+    val launchMetadata = AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force)
     params.library?.let { launchMetadata.setMinLibrary(it.toLibraryCompatibilityProto()) }
-    val createInspectorCommand =
-      CreateInspectorCommand.newBuilder()
-        .setDexPath(fileDevicePath)
-        .setLaunchMetadata(launchMetadata)
-        .build()
+    val createInspectorCommand = CreateInspectorCommand.newBuilder().setDexPath(fileDevicePath).setLaunchMetadata(launchMetadata).build()
     val commandId = AppInspectionTransport.generateNextCommandId()
     val appInspectionCommand =
       AppInspectionCommand.newBuilder()
@@ -156,21 +147,10 @@ internal class DefaultAppInspectionTarget(
         .setCommandId(commandId)
         .build()
     val eventQuery =
-      transport.createStreamEventQuery(
-        eventKind = APP_INSPECTION_RESPONSE,
-        filter = { it.appInspectionResponse.commandId == commandId },
-      )
+      transport.createStreamEventQuery(eventKind = APP_INSPECTION_RESPONSE, filter = { it.appInspectionResponse.commandId == commandId })
     val event = transport.executeCommand(appInspectionCommand, eventQuery)
-    if (
-      event.appInspectionResponse.createInspectorResponse.status ==
-        AppInspection.CreateInspectorResponse.Status.SUCCESS
-    ) {
-      return AppInspectorConnection(
-        transport,
-        params.inspectorId,
-        event.timestamp,
-        scope.createChildScope(false),
-      )
+    if (event.appInspectionResponse.createInspectorResponse.status == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
+      return AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
     } else {
       throw event.appInspectionResponse.getException(params.inspectorId)
     }
@@ -183,35 +163,20 @@ internal class DefaultAppInspectionTarget(
   }
 
   @WorkerThread
-  override suspend fun getLibraryVersions(
-    libraryCoordinates: List<LibraryCompatibility>
-  ): List<LibraryCompatibilityInfo> {
+  override suspend fun getLibraryVersions(libraryCoordinates: List<LibraryCompatibility>): List<LibraryCompatibilityInfo> {
     val libraryVersions = libraryCoordinates.map { it.toLibraryCompatibilityProto() }
     val getLibraryVersionsCommand =
-      AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder()
-        .addAllTargetLibraries(libraryVersions)
-        .build()
+      AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder().addAllTargetLibraries(libraryVersions).build()
     val commandId = AppInspectionTransport.generateNextCommandId()
     val appInspectionCommand =
-      AppInspectionCommand.newBuilder()
-        .setCommandId(commandId)
-        .setGetLibraryCompatibilityInfoCommand(getLibraryVersionsCommand)
-        .build()
-    val streamQuery =
-      StreamEventQuery(
-        eventKind = APP_INSPECTION_RESPONSE,
-        filter = { it.appInspectionResponse.commandId == commandId },
-      )
+      AppInspectionCommand.newBuilder().setCommandId(commandId).setGetLibraryCompatibilityInfoCommand(getLibraryVersionsCommand).build()
+    val streamQuery = StreamEventQuery(eventKind = APP_INSPECTION_RESPONSE, filter = { it.appInspectionResponse.commandId == commandId })
     val response = transport.executeCommand(appInspectionCommand, streamQuery)
     // The API call should always return a list of the same size.
-    assert(
-      libraryCoordinates.size ==
-        response.appInspectionResponse.getLibraryCompatibilityResponse.responsesCount
-    )
-    return response.appInspectionResponse.getLibraryCompatibilityResponse.responsesList
-      .mapIndexed { i, result ->
-        result.toLibraryCompatibilityInfo(libraryCoordinates[i].coordinate)
-      }
+    assert(libraryCoordinates.size == response.appInspectionResponse.getLibraryCompatibilityResponse.responsesCount)
+    return response.appInspectionResponse.getLibraryCompatibilityResponse.responsesList.mapIndexed { i, result ->
+      result.toLibraryCompatibilityInfo(libraryCoordinates[i].coordinate)
+    }
   }
 }
 
@@ -225,23 +190,14 @@ fun launchInspectorForTest(
   return AppInspectorConnection(transport, inspectorId, connectionStartTimeNs, scope)
 }
 
-/**
- * Maps the ServiceResponse.ErrorType to an [AppInspectionServiceException] and returns the correct
- * exception.
- */
-private fun AppInspection.AppInspectionResponse.getException(
-  inspectorId: String
-): AppInspectionServiceException {
+/** Maps the ServiceResponse.ErrorType to an [AppInspectionServiceException] and returns the correct exception. */
+private fun AppInspection.AppInspectionResponse.getException(inspectorId: String): AppInspectionServiceException {
   val message = "Could not launch inspector ${inspectorId}: ${this.errorMessage}"
   return when (this.createInspectorResponse.status) {
-    AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE ->
-      AppInspectionVersionIncompatibleException(message)
-    AppInspection.CreateInspectorResponse.Status.VERSION_MISSING ->
-      AppInspectionVersionMissingException(message)
-    AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING ->
-      AppInspectionLibraryMissingException(message)
-    AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED ->
-      AppInspectionAppProguardedException(message)
+    AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> AppInspectionVersionIncompatibleException(message)
+    AppInspection.CreateInspectorResponse.Status.VERSION_MISSING -> AppInspectionVersionMissingException(message)
+    AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> AppInspectionLibraryMissingException(message)
+    AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED -> AppInspectionAppProguardedException(message)
     else -> AppInspectionLaunchException(message)
   }
 }
@@ -252,16 +208,11 @@ internal fun AppInspection.LibraryCompatibilityInfo.toLibraryCompatibilityInfo(
 ): LibraryCompatibilityInfo {
   val responseStatus =
     when (status) {
-      AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE ->
-        LibraryCompatibilityInfo.Status.COMPATIBLE
-      AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE ->
-        LibraryCompatibilityInfo.Status.INCOMPATIBLE
-      AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING ->
-        LibraryCompatibilityInfo.Status.VERSION_MISSING
-      AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING ->
-        LibraryCompatibilityInfo.Status.LIBRARY_MISSING
-      AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
-        LibraryCompatibilityInfo.Status.APP_PROGUARDED
+      AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE -> LibraryCompatibilityInfo.Status.COMPATIBLE
+      AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE -> LibraryCompatibilityInfo.Status.INCOMPATIBLE
+      AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING -> LibraryCompatibilityInfo.Status.VERSION_MISSING
+      AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING -> LibraryCompatibilityInfo.Status.LIBRARY_MISSING
+      AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED -> LibraryCompatibilityInfo.Status.APP_PROGUARDED
       else -> LibraryCompatibilityInfo.Status.ERROR
     }
   return LibraryCompatibilityInfo(artifactCoordinate, responseStatus, version, errorMessage)

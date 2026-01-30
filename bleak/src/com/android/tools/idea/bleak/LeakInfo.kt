@@ -15,31 +15,29 @@
  */
 package com.android.tools.idea.bleak
 
-import java.util.IdentityHashMap
 import java.lang.ref.Reference
+import java.util.IdentityHashMap
 
 class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val leaktrace: Leaktrace = leakRoot.getLeaktrace()
   val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
   val prevChildren = prevLeakRoot.children
   val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
-  val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj }}
+  val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj } }
   val retainedByNewChildren = mutableListOf<Node>()
   val retainedByAllChildren = mutableListOf<Node>()
 
   override fun toString() = buildString {
     appendLine(leaktrace)
-    appendLine(" ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
-    addedChildren.take(20).forEach {
-        appendLine("   Added: ${it.objString()}")
-    }
+    appendLine(
+      " ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}"
+    )
+    addedChildren.take(20).forEach { appendLine("   Added: ${it.objString()}") }
     // if many objects are added, print summary information about their most common classes
     if (addedChildren.size > 20) {
       appendLine("   ...")
       appendLine("  Most common classes of added objects: ")
-      mostCommonClassesOf(addedChildren, 5).forEach {
-        appendLine("    ${it.second} ${it.first.name}")
-      }
+      mostCommonClassesOf(addedChildren, 5).forEach { appendLine("    ${it.second} ${it.first.name}") }
     }
 
     // print information about objects retained by the added children:
@@ -47,32 +45,36 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
       appendLine("\nDominator information omitted: timeout exceeded.")
       return@buildString
     }
-    appendLine("\nRetained by new children: ${retainedByNewChildren.size} objects (${retainedByNewChildren.map { it.getApproximateSize() }.sum()} bytes)")
-    mostCommonClassesOf(retainedByNewChildren, 50).forEach {
-      appendLine("    ${it.second} ${it.first.name}")
-    }
+    appendLine(
+      "\nRetained by new children: ${retainedByNewChildren.size} objects (${retainedByNewChildren.map { it.getApproximateSize() }.sum()} bytes)"
+    )
+    mostCommonClassesOf(retainedByNewChildren, 50).forEach { appendLine("    ${it.second} ${it.first.name}") }
 
     // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
     // just looking at the children added in the last iteration, since often the same heavy data structures (Projects, etc.) are held
     // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
     // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
     // actual leak in question.
-    appendLine("\nRetained by all children: ${retainedByAllChildren.size} objects (${retainedByAllChildren.map { it.getApproximateSize() }.sum()} bytes)")
-    mostCommonClassesOf(retainedByAllChildren, 50).forEach {
-      appendLine("    ${it.second} ${it.first.name}")
-    }
+    appendLine(
+      "\nRetained by all children: ${retainedByAllChildren.size} objects (${retainedByAllChildren.map { it.getApproximateSize() }.sum()} bytes)"
+    )
+    mostCommonClassesOf(retainedByAllChildren, 50).forEach { appendLine("    ${it.second} ${it.first.name}") }
   }
 
-  private fun Node.objString() = type.name + ": " + try {
-    val s = if (Reference::class.java.isAssignableFrom(type)) {
-      "-> ${(obj as Reference<*>).get()?.toString()}"
-    } else {
-      obj.toString()
-    }
-    if (s.length > 100) s.take(97) + "..." else s
-  } catch (e: NullPointerException) {
-    "[NPE in toString]"
-  }
+  private fun Node.objString() =
+    type.name +
+      ": " +
+      try {
+        val s =
+          if (Reference::class.java.isAssignableFrom(type)) {
+            "-> ${(obj as Reference<*>).get()?.toString()}"
+          } else {
+            obj.toString()
+          }
+        if (s.length > 100) s.take(97) + "..." else s
+      } catch (e: NullPointerException) {
+        "[NPE in toString]"
+      }
 
   private fun Collection<Any>.uniqueByIdentity(): List<Any> {
     val set = IdentityHashMap<Any, Any>()
@@ -89,5 +91,4 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   private fun mostCommonClassesOf(nodes: Collection<Node>, maxResults: Int): List<Pair<Class<*>, Int>> {
     return classCounts(nodes).toList().sortedByDescending { it.second }.take(maxResults)
   }
-
 }

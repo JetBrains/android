@@ -44,15 +44,12 @@ import org.junit.runners.Parameterized
 @OptIn(KaExperimentalApi::class)
 @RunWith(Parameterized::class)
 @RunsInEdt
-class ArgsClassResolveExtensionTest(
-  @Suppress("UNUSED_PARAMETER") navVersionName: String,
-  private val navVersion: Version,
-) : AbstractSafeArgsResolveExtensionTest() {
+class ArgsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersionName: String, private val navVersion: Version) :
+  AbstractSafeArgsResolveExtensionTest() {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0} ({1})")
-    fun parameters(): Collection<Array<Any>> =
-      KNOWN_SAFE_ARGS_VERSIONS.map { (name, version) -> arrayOf(name, version) }
+    fun parameters(): Collection<Array<Any>> = KNOWN_SAFE_ARGS_VERSIONS.map { (name, version) -> arrayOf(name, version) }
   }
 
   @Before
@@ -81,7 +78,7 @@ class ArgsClassResolveExtensionTest(
               app:argType="string"/>
         </fragment>
       </navigation>
-    """
+      """
         .trimIndent()
     )
 
@@ -95,10 +92,7 @@ class ArgsClassResolveExtensionTest(
     ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
       assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
-      assertThat(symbol.render(RENDERER))
-        .isEqualTo(
-          "data class Fragment1Args(someArgument: kotlin.String) : androidx.navigation.NavArgs"
-        )
+      assertThat(symbol.render(RENDERER)).isEqualTo("data class Fragment1Args(someArgument: kotlin.String) : androidx.navigation.NavArgs")
 
       assertThat(getRenderedMemberFunctions(symbol, RENDERER))
         .containsExactlyElementsIn(
@@ -115,12 +109,12 @@ class ArgsClassResolveExtensionTest(
             """
             @kotlin.jvm.JvmStatic
             fun fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args
-          """
+            """
               .trimIndent(),
             """
             @kotlin.jvm.JvmStatic
             fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): test.safeargs.Fragment1Args
-          """
+            """
               .trimIndent()
               .takeIf { navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE },
           )
@@ -133,21 +127,21 @@ class ArgsClassResolveExtensionTest(
     val xmlFile =
       addNavXml(
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:app="http://schemas.android.com/apk/res-auto"
-          android:id="@+id/main"
-          app:startDestination="@id/fragment1">
-        <fragment
-            android:id="@+id/fragment1"
-            android:name="test.safeargs.Fragment1"
-            android:label="Fragment1">
-          <argument
-              android:name="some_argument"
-              app:argType="string"/>
-        </fragment>
-      </navigation>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <argument
+                android:name="some_argument"
+                app:argType="string"/>
+          </fragment>
+        </navigation>
+        """
           .trimIndent()
       )
 
@@ -185,21 +179,21 @@ class ArgsClassResolveExtensionTest(
     val xmlFile =
       addNavXml(
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:app="http://schemas.android.com/apk/res-auto"
-          android:id="@+id/main"
-          app:startDestination="@id/fragment1">
-        <fragment
-            android:id="@+id/fragment1"
-            android:name="test.safeargs.Fragment1"
-            android:label="Fragment1">
-          <argument
-              android:name="some_argument"
-              app:argType="string"/>
-        </fragment>
-      </navigation>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <argument
+                android:name="some_argument"
+                app:argType="string"/>
+          </fragment>
+        </navigation>
+        """
           .trimIndent()
       )
 
@@ -229,11 +223,7 @@ class ArgsClassResolveExtensionTest(
 
     // This change should be picked up when the mode changes back.
     WriteCommandAction.runWriteCommandAction(safeArgsRule.project) {
-      xmlFile.virtualFile.replaceWithoutSaving(
-        "some_argument",
-        "some_other_argument",
-        safeArgsRule.project,
-      )
+      xmlFile.virtualFile.replaceWithoutSaving("some_argument", "some_other_argument", safeArgsRule.project)
     }
     safeArgsRule.waitForPendingUpdates()
     safeArgsRule.androidFacet.safeArgsMode = SafeArgsMode.KOTLIN
@@ -254,9 +244,9 @@ class ArgsClassResolveExtensionTest(
   fun mapsScalarArgumentTypes() {
     addKotlinSource(
       """
-        package other
+      package other
 
-        enum class ArgEnum { FOO, BAR }
+      enum class ArgEnum { FOO, BAR }
       """
         .trimIndent(),
       fileName = "otherPackage.kt",
@@ -298,7 +288,7 @@ class ArgsClassResolveExtensionTest(
               app:argType="other.ArgEnum"/>
         </fragment>
       </navigation>
-    """
+      """
         .trimIndent()
     )
 
@@ -335,9 +325,9 @@ class ArgsClassResolveExtensionTest(
   fun mapsArrayArgumentTypes() {
     addKotlinSource(
       """
-        package other
+      package other
 
-        enum class ArgEnum { FOO, BAR }
+      enum class ArgEnum { FOO, BAR }
       """
         .trimIndent(),
       fileName = "otherPackage.kt",
@@ -379,7 +369,7 @@ class ArgsClassResolveExtensionTest(
               app:argType="other.ArgEnum[]"/>
         </fragment>
       </navigation>
-    """
+      """
         .trimIndent()
     )
 
@@ -435,7 +425,7 @@ class ArgsClassResolveExtensionTest(
               android:defaultValue="@null"/>
         </fragment>
       </navigation>
-    """
+      """
         .trimIndent()
     )
 
@@ -535,7 +525,7 @@ class ArgsClassResolveExtensionTest(
               app:argType="reference"/>
         </fragment>
       </navigation>
-    """
+      """
         .trimIndent()
     )
 
@@ -547,8 +537,7 @@ class ArgsClassResolveExtensionTest(
       """
         .trimIndent()
     ) { symbol: KaNamedClassSymbol ->
-      val renderedValueParameters =
-        getPrimaryConstructorSymbol(symbol).valueParameters.map { it.render(RENDERER) }
+      val renderedValueParameters = getPrimaryConstructorSymbol(symbol).valueParameters.map { it.render(RENDERER) }
 
       val expectedOrder =
         if (navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
@@ -566,21 +555,21 @@ class ArgsClassResolveExtensionTest(
     val xmlFile =
       addNavXml(
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:app="http://schemas.android.com/apk/res-auto"
-          android:id="@+id/main"
-          app:startDestination="@id/fragment1">
-        <fragment
-            android:id="@+id/fragment1"
-            android:name="test.safeargs.Fragment1"
-            android:label="Fragment1">
-          <argument
-              android:name="arg1"
-              app:argType="integer"/>
-        </fragment>
-      </navigation>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <argument
+                android:name="arg1"
+                app:argType="integer"/>
+          </fragment>
+        </navigation>
+        """
           .trimIndent()
       )
     val fragmentTag = xmlFile.findXmlTagById("fragment1")!!

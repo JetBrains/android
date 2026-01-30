@@ -35,8 +35,7 @@ class CrashReporterRule : ExternalResource() {
     get() = reporter.reports
 
   override fun before() {
-    ApplicationManager.getApplication()
-      .registerOrReplaceServiceInstance(StudioCrashReporter::class.java, reporter, disposable)
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(StudioCrashReporter::class.java, reporter, disposable)
   }
 
   override fun after() {

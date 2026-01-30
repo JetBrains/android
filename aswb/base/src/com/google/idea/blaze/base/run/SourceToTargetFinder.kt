@@ -31,15 +31,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 
-/**
- * Searches through the transitive rdeps map for blaze rules of a certain type which build a given
- * source file.
- */
+/** Searches through the transitive rdeps map for blaze rules of a certain type which build a given source file. */
 interface SourceToTargetFinder {
   companion object {
     @JvmField
-    val EP_NAME: ExtensionPointName<SourceToTargetFinder> =
-      ExtensionPointName.create("com.google.idea.blaze.SourceToTargetFinder")
+    val EP_NAME: ExtensionPointName<SourceToTargetFinder> = ExtensionPointName.create("com.google.idea.blaze.SourceToTargetFinder")
 
     /**
      * Iterates through all [SourceToTargetFinder]s, returning the first non-empty result found.
@@ -47,11 +43,7 @@ interface SourceToTargetFinder {
      * This method blocks until a result is found or all finders have finished.
      */
     @JvmStatic
-    fun findTargetsForSourceFile(
-      project: Project,
-      sourceFile: File,
-      ruleType: Optional<RuleType>,
-    ): Collection<TargetInfo> {
+    fun findTargetsForSourceFile(project: Project, sourceFile: File, ruleType: Optional<RuleType>): Collection<TargetInfo> {
       return findTargetsForSourceFiles(project, setOf(sourceFile), ruleType)
     }
 
@@ -61,11 +53,7 @@ interface SourceToTargetFinder {
      * This method blocks until a result is found or all finders have finished.
      */
     @JvmStatic
-    fun findTargetsForSourceFiles(
-      project: Project,
-      sourceFiles: Set<File>,
-      ruleType: Optional<RuleType>,
-    ): Collection<TargetInfo> {
+    fun findTargetsForSourceFiles(project: Project, sourceFiles: Set<File>, ruleType: Optional<RuleType>): Collection<TargetInfo> {
       val finders = EP_NAME.extensions
       if (finders.isEmpty()) {
         return emptyList()
@@ -76,31 +64,34 @@ interface SourceToTargetFinder {
         val futures = sortedFinders.map { it.targetsForSourceFiles(project, sourceFiles, ruleType) }
 
         // Check for immediately available results in priority order.
-        futures.asSequence()
+        futures
+          .asSequence()
           .filter { it.isDone }
           .mapNotNull { getValueSafe { it.get() } }
           .firstOrNull { it.isNotEmpty() }
-          ?.let { return@runBlockingCancellable it }
+          ?.let {
+            return@runBlockingCancellable it
+          }
 
         // Race the remaining futures.
         channelFlow {
-          futures.forEach { future ->
-            launch {
-              val result = getValueSafe { future.await() }
-              if (!result.isNullOrEmpty()) {
-                send(result)
+            futures.forEach { future ->
+              launch {
+                val result = getValueSafe { future.await() }
+                if (!result.isNullOrEmpty()) {
+                  send(result)
+                }
               }
             }
           }
-        }.firstOrNull() ?: emptyList()
+          .firstOrNull() ?: emptyList()
       }
     }
 
     private inline fun <T> getValueSafe(block: () -> T): T? {
       try {
         return block()
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         if (e is ProcessCanceledException || e is CancellationException || e is InterruptedException) {
           throw e
         }
@@ -111,8 +102,8 @@ interface SourceToTargetFinder {
   }
 
   /**
-   * Finds all rules of the given type 'reachable' from the given source files (i.e. with one of the
-   * sources included in srcs, deps or runtime_deps).
+   * Finds all rules of the given type 'reachable' from the given source files (i.e. with one of the sources included in srcs, deps or
+   * runtime_deps).
    */
   fun targetsForSourceFiles(
     project: Project,
@@ -120,8 +111,6 @@ interface SourceToTargetFinder {
     ruleType: Optional<RuleType>,
   ): ListenableFuture<Collection<TargetInfo>>
 
-  /**
-   * Priority of this finder. Higher priority finders are preferred when multiple finders return results simultaneously.
-   */
+  /** Priority of this finder. Higher priority finders are preferred when multiple finders return results simultaneously. */
   fun priority(): Int = 0
 }

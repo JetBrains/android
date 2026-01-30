@@ -26,14 +26,12 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
 /**
- * Helper function to show the popup menu in [DesignSurface]. The popup menu will appear at the
- * mouse position of [event]. If the source of mouse event is not a [Component] then the popup
- * appears at the given [DesignSurface]. If the given [group] is empty, then nothing happens. The
- * [place] describes the place of popup action, which is passed into
- * [com.intellij.openapi.actionSystem.AnActionEvent] when
- * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
- * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
- * more information. An optional [targetComponent] can be passed for propagating a DataContext.
+ * Helper function to show the popup menu in [DesignSurface]. The popup menu will appear at the mouse position of [event]. If the source of
+ * mouse event is not a [Component] then the popup appears at the given [DesignSurface]. If the given [group] is empty, then nothing
+ * happens. The [place] describes the place of popup action, which is passed into [com.intellij.openapi.actionSystem.AnActionEvent] when
+ * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See [ActionManager.createActionPopupMenu] and
+ * [com.intellij.openapi.actionSystem.ActionPlaces] for more information. An optional [targetComponent] can be passed for propagating a
+ * DataContext.
  */
 fun DesignSurface<*>.showPopup(
   event: MouseEvent,
@@ -46,13 +44,11 @@ fun DesignSurface<*>.showPopup(
 }
 
 /**
- * Show the popup for the [invoker]. The popup menu will appear at ([x], [y]) position in
- * [invoker]'s coordinate system. If the given [group] is empty, then nothing happens. The [place]
- * describes the place of popup action, which is passed into
- * [com.intellij.openapi.actionSystem.AnActionEvent] when
- * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
- * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
- * more information. An optional [targetComponent] can be passed for propagating a DataContext.
+ * Show the popup for the [invoker]. The popup menu will appear at ([x], [y]) position in [invoker]'s coordinate system. If the given
+ * [group] is empty, then nothing happens. The [place] describes the place of popup action, which is passed into
+ * [com.intellij.openapi.actionSystem.AnActionEvent] when [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
+ * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for more information. An optional
+ * [targetComponent] can be passed for propagating a DataContext.
  */
 fun showPopup(
   surface: DesignSurface<*>?,

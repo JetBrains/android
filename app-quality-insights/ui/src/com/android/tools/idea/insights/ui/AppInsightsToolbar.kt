@@ -37,8 +37,7 @@ class AppInsightsToolbar(place: String, group: ActionGroup, horizontal: Boolean)
   override fun getSeparatorHeight() = JBUI.scale(31)
 }
 
-private class InsightsToolbarLayoutStrategy(private val delegate: ToolbarLayoutStrategy) :
-  ToolbarLayoutStrategy by delegate {
+private class InsightsToolbarLayoutStrategy(private val delegate: ToolbarLayoutStrategy) : ToolbarLayoutStrategy by delegate {
   override fun calcPreferredSize(toolbar: ActionToolbar): Dimension {
     val actualDimension = delegate.calcPreferredSize(toolbar)
     val scaledHeight = commonToolbarHeight()

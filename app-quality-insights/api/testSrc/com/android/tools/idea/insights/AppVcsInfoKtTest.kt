@@ -41,8 +41,7 @@ class AppVcsInfoKtTest {
     val original = SAMPLE_ERROR_APP_VCS_INFO_BUILDER.build()
     val textProto = TextFormat.printer().printToString(original)
 
-    assertThat(AppVcsInfo.fromProto(textProto))
-      .isEqualTo(AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND))
+    assertThat(AppVcsInfo.fromProto(textProto)).isEqualTo(AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND))
   }
 
   @Test
@@ -52,15 +51,7 @@ class AppVcsInfoKtTest {
 
     assertThat(AppVcsInfo.fromProto(textProto))
       .isEqualTo(
-        AppVcsInfo.ValidInfo(
-          listOf(
-            RepoInfo(
-              vcsKey = VCS_CATEGORY.GIT,
-              rootPath = PROJECT_ROOT_PREFIX,
-              revision = REVISION_74081e5f,
-            )
-          )
-        )
+        AppVcsInfo.ValidInfo(listOf(RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = REVISION_74081e5f)))
       )
   }
 }
@@ -72,10 +63,7 @@ private val SAMPLE_REPO_BUILDER =
     revision = REVISION_74081e5f
   }
 
-private val SAMPLE_VALID_APP_VCS_INFO_BUILDER =
-  BuildStamp.newBuilder().apply { addRepositories(SAMPLE_REPO_BUILDER.build()) }
+private val SAMPLE_VALID_APP_VCS_INFO_BUILDER = BuildStamp.newBuilder().apply { addRepositories(SAMPLE_REPO_BUILDER.build()) }
 
 private val SAMPLE_ERROR_APP_VCS_INFO_BUILDER =
-  BuildStamp.newBuilder().apply {
-    generateErrorReason = BuildStamp.GenerateErrorReason.NO_VALID_GIT_FOUND
-  }
+  BuildStamp.newBuilder().apply { generateErrorReason = BuildStamp.GenerateErrorReason.NO_VALID_GIT_FOUND }

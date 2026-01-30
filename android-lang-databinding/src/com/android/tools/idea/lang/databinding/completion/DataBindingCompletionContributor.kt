@@ -64,9 +64,7 @@ import com.intellij.util.ProcessingContext
 /**
  * This handles completion in the data binding expressions (inside `@{}`).
  *
- *
- * Completion for everything under `<data>` tag is in
- * [org.jetbrains.android.AndroidXmlCompletionContributor.completeDataBindingTypeAttr].
+ * Completion for everything under `<data>` tag is in [org.jetbrains.android.AndroidXmlCompletionContributor.completeDataBindingTypeAttr].
  */
 open class DataBindingCompletionContributor : CompletionContributor() {
 
@@ -80,71 +78,72 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
     val childElement = context.file.findElementAt(context.startOffset)!!
     when (childElement.parent.parent) {
-      is PsiDbFunctionRefExpr -> tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_ACCEPTED,
-                                                                    DATA_BINDING_CONTEXT_METHOD_REFERENCE)
+      is PsiDbFunctionRefExpr -> tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_ACCEPTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE)
       is PsiDbRefExpr -> tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_ACCEPTED, DATA_BINDING_CONTEXT_LAMBDA)
       else -> tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_ACCEPTED, UNKNOWN_CONTEXT)
     }
   }
 
-  private fun moveCaretInsideMethodParenthesis(lookupElement: LookupElement,
-                                               context: InsertionContext) {
+  private fun moveCaretInsideMethodParenthesis(lookupElement: LookupElement, context: InsertionContext) {
     val psiMethod = lookupElement.psiElement as? PsiMethod
-    if (psiMethod != null
-        && context.file.findElementAt(context.startOffset)?.let { getDataBindingExpressionFromPosition(it) } is PsiDbRefExpr) {
+    if (
+      psiMethod != null && context.file.findElementAt(context.startOffset)?.let { getDataBindingExpressionFromPosition(it) } is PsiDbRefExpr
+    ) {
       ParenthesesInsertHandler.getInstance(psiMethod.hasParameters()).handleInsert(context, lookupElement)
     }
   }
 
   init {
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(), object : CompletionProvider<CompletionParameters>() {
-      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        // During first invocation, only suggest valid options. During subsequent invocations, also suggest invalid options
-        // such as private members or instance methods on class objects.
-        val onlyValidCompletions = parameters.invocationCount <= 1
+    extend(
+      CompletionType.BASIC,
+      PlatformPatterns.psiElement(),
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          // During first invocation, only suggest valid options. During subsequent invocations, also suggest invalid options
+          // such as private members or instance methods on class objects.
+          val onlyValidCompletions = parameters.invocationCount <= 1
 
-        val tracker = DataBindingTracker.getInstance(parameters.editor.project!!)
+          val tracker = DataBindingTracker.getInstance(parameters.editor.project!!)
 
-        val position = parameters.originalPosition ?: parameters.position
+          val position = parameters.originalPosition ?: parameters.position
 
-        val parent = position.parent
-        if (position.parent.references.isEmpty()) {
-          // try to replace parent
-          val dataBindingExpression = getDataBindingExpressionFromPosition(position)
-          if (dataBindingExpression is PsiDbRefExpr) {
-            val ownerExpr = dataBindingExpression.expr
-            if (ownerExpr == null) {
-              autoCompleteVariablesAndUnqualifiedFunctions(getFile(dataBindingExpression), result)
-              return
+          val parent = position.parent
+          if (position.parent.references.isEmpty()) {
+            // try to replace parent
+            val dataBindingExpression = getDataBindingExpressionFromPosition(position)
+            if (dataBindingExpression is PsiDbRefExpr) {
+              val ownerExpr = dataBindingExpression.expr
+              if (ownerExpr == null) {
+                autoCompleteVariablesAndUnqualifiedFunctions(getFile(dataBindingExpression), result)
+                return
+              }
+              result.addAllElements(populatePackageReferenceCompletions(ownerExpr))
+              result.addAllElements(populateInnerClassReferenceCompletions(ownerExpr, onlyValidCompletions))
+              result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions))
+              result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions))
+              tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_LAMBDA)
+            } else if (dataBindingExpression is PsiDbFunctionRefExpr) {
+              result.addAllElements(populateMethodReferenceCompletions(dataBindingExpression.expr, onlyValidCompletions))
+              tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE)
             }
-            result.addAllElements(populatePackageReferenceCompletions(ownerExpr))
-            result.addAllElements(populateInnerClassReferenceCompletions(ownerExpr, onlyValidCompletions))
-            result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions))
-            result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions))
-            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_LAMBDA)
-          }
-          else if (dataBindingExpression is PsiDbFunctionRefExpr) {
-            result.addAllElements(populateMethodReferenceCompletions(dataBindingExpression.expr, onlyValidCompletions))
-            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, DATA_BINDING_CONTEXT_METHOD_REFERENCE)
+          } else {
+            // TODO(b/129497876): improve completion experience for variables and static functions
+            result.addAllElements(populatePackageReferenceCompletions(parent))
+            result.addAllElements(populateInnerClassReferenceCompletions(parent, onlyValidCompletions))
+            result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions))
+            result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions))
+            tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, UNKNOWN_CONTEXT)
           }
         }
-        else {
-          //TODO(b/129497876): improve completion experience for variables and static functions
-          result.addAllElements(populatePackageReferenceCompletions(parent))
-          result.addAllElements(populateInnerClassReferenceCompletions(parent, onlyValidCompletions))
-          result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions))
-          result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions))
-          tracker.trackDataBindingCompletion(DATA_BINDING_COMPLETION_SUGGESTED, UNKNOWN_CONTEXT)
-        }
-      }
-    })
+      },
+    )
   }
 
   /**
    * Returns the parent expression wrapping the target [PsiElement].
    *
-   * Note: [element] is a PsiElement identifier. Its parent is a PsiDbId, which is a child of the overall expression, whose type we use
-   * to choose what kind of completion logic to carry out. For example user types @{model::g<caret>}. Position is the LeafPsiElement "g".
+   * Note: [element] is a PsiElement identifier. Its parent is a PsiDbId, which is a child of the overall expression, whose type we use to
+   * choose what kind of completion logic to carry out. For example user types @{model::g<caret>}. Position is the LeafPsiElement "g".
    * Parent is the PsiDbId "g". Grandparent is the whole expression "model:g".
    */
   private fun getDataBindingExpressionFromPosition(element: PsiElement) = element.parent.parent
@@ -164,34 +163,33 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
     val project = file.project
     val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file) ?: return
-    val variableTagNamePairs = indexEntry.data.variables.map { variable ->
-      variable.name to xmlFile.findVariableTag(variable.name)
-    }
-    val importTagTypePairs = indexEntry.data.imports.map { import ->
-      import.shortName to xmlFile.findImportTag(import.shortName)
-    }
+    val variableTagNamePairs = indexEntry.data.variables.map { variable -> variable.name to xmlFile.findVariableTag(variable.name) }
+    val importTagTypePairs = indexEntry.data.imports.map { import -> import.shortName to xmlFile.findImportTag(import.shortName) }
 
-    result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
-      val xmlTag = nameToTag.second ?: return@mapNotNull null
-      val name = nameToTag.first
-      LookupElementBuilder.create(xmlTag, DataBindingUtil.convertVariableNameToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
-    })
+    result.addAllElements(
+      (variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
+        val xmlTag = nameToTag.second ?: return@mapNotNull null
+        val name = nameToTag.first
+        LookupElementBuilder.create(xmlTag, DataBindingUtil.convertVariableNameToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
+      }
+    )
 
     val module = file.androidFacet?.module ?: return
-    JavaPsiFacade.getInstance(project).findPackage(CommonClassNames.DEFAULT_PACKAGE)
+    JavaPsiFacade.getInstance(project)
+      .findPackage(CommonClassNames.DEFAULT_PACKAGE)
       ?.getClasses(ModulesScope.moduleWithLibrariesScope(module))
-      ?.forEach {
-        result.addElement(JavaLookupElementBuilder.forClass(it, it.name, true).withInsertHandler(onCompletionHandler))
-      }
+      ?.forEach { result.addElement(JavaLookupElementBuilder.forClass(it, it.name, true).withInsertHandler(onCompletionHandler)) }
 
     // Add completions for sub packages from root e.g. "com", "androidx", etc.
-    JavaPsiFacade.getInstance(project).findPackage("")
+    JavaPsiFacade.getInstance(project)
+      .findPackage("")
       ?.getSubPackages(ModulesScope.moduleWithLibrariesScope(module))
       ?.filter { pkg -> pkg.getSubPackages(module.moduleScope).isNotEmpty() || pkg.getClasses(module.moduleScope).isNotEmpty() }
       ?.filter { pkg -> pkg.name?.all { char -> Character.isJavaIdentifierPart(char) } == true }
       ?.forEach {
         result.addElement(
-          LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
+          LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType())
+        )
       }
   }
 
@@ -210,7 +208,8 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       val psiPackage = reference.resolve() as? PsiPackage ?: continue
       for (subPackage in psiPackage.subPackages) {
         completionSuggestionsList.add(
-          LookupElementBuilder.createWithIcon(subPackage).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
+          LookupElementBuilder.createWithIcon(subPackage).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType())
+        )
       }
       for (subClass in psiPackage.classes) {
         completionSuggestionsList.add(LookupElementBuilder.createWithIcon(subClass).withInsertHandler(onCompletionHandler))
@@ -220,9 +219,9 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * Given a data binding expression, return a list of [LookupElement] which are the inner class references of the given expression,
-   * which is particularly useful for resource ids, e.g. `R.string`, `R.drawable`, etc.
-   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
+   * Given a data binding expression, return a list of [LookupElement] which are the inner class references of the given expression, which
+   * is particularly useful for resource ids, e.g. `R.string`, `R.drawable`, etc. If [onlyValidCompletions] is false, private and mismatched
+   * context fields are also suggested.
    */
   private fun populateInnerClassReferenceCompletions(referenceExpression: PsiElement, onlyValidCompletions: Boolean): List<LookupElement> {
     val completionSuggestionsList = mutableListOf<LookupElement>()
@@ -235,17 +234,17 @@ open class DataBindingCompletionContributor : CompletionContributor() {
         if (onlyValidCompletions && !innerClass.hasModifierProperty(PsiModifier.PUBLIC)) {
           continue
         }
-        completionSuggestionsList.add(JavaLookupElementBuilder
-                                        .forClass(innerClass, innerClass.name, true)
-                                        .withInsertHandler(onCompletionHandler))
+        completionSuggestionsList.add(
+          JavaLookupElementBuilder.forClass(innerClass, innerClass.name, true).withInsertHandler(onCompletionHandler)
+        )
       }
     }
     return completionSuggestionsList
   }
 
   /**
-   * Given a data binding expression, return a list of [LookupElement] which are the field references of the given expression.
-   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
+   * Given a data binding expression, return a list of [LookupElement] which are the field references of the given expression. If
+   * [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
    */
   private fun populateFieldReferenceCompletions(referenceExpression: PsiElement, onlyValidCompletions: Boolean): List<LookupElement> {
     val completionSuggestionsList = mutableListOf<LookupElement>()
@@ -266,11 +265,10 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * Given a data binding expression, return a list of [LookupElement] which are method references of the given expression.
-   * If [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
+   * Given a data binding expression, return a list of [LookupElement] which are method references of the given expression. If
+   * [onlyValidCompletions] is false, private and mismatched context fields are also suggested.
    */
-  private fun populateMethodReferenceCompletions(referenceExpression: PsiElement,
-                                                 onlyValidCompletions: Boolean): List<LookupElement> {
+  private fun populateMethodReferenceCompletions(referenceExpression: PsiElement, onlyValidCompletions: Boolean): List<LookupElement> {
     val completionSuggestionsList = mutableListOf<LookupElement>()
     val childReferences = referenceExpression.references
     for (reference in childReferences) {
@@ -281,8 +279,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
           val psiMethod = psiModelMethod.psiMethod
           if (psiMethod.isConstructor) {
             continue
-          }
-          else if (onlyValidCompletions) {
+          } else if (onlyValidCompletions) {
             if (!psiModelMethod.isPublic || !ref.memberAccess.accept(psiModelMethod)) {
               continue
             }
@@ -302,8 +299,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
           }
           if (psiConvertedField == null) {
             completionSuggestionsList.addSuggestion(psiMethod, resolvedType.psiClass, resolvedType.substitutor)
-          }
-          else {
+          } else {
             completionSuggestionsList.addSuggestion(psiConvertedField, resolvedType.psiClass, resolvedType.substitutor, psiMethod)
           }
         }
@@ -313,35 +309,34 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * @param qualifierClass class that is the active context for this lookup, allowing fields in
-   *   the current class (vs. a base class) to be bolded
-   * @param fromMethod optionally, a method that this field was synthetically generated from; if
-   *   present, it will be mentioned in the lookup as the field's source.
+   * @param qualifierClass class that is the active context for this lookup, allowing fields in the current class (vs. a base class) to be
+   *   bolded
+   * @param fromMethod optionally, a method that this field was synthetically generated from; if present, it will be mentioned in the lookup
+   *   as the field's source.
    */
-  private fun MutableList<LookupElement>.addSuggestion(psiField: PsiField,
-                                                       qualifierClass: PsiClass?,
-                                                       substitutor: PsiSubstitutor,
-                                                       fromMethod: PsiMethod? = null) {
-    var lookupBuilder = JavaLookupElementBuilder
-      .forField(psiField, psiField.name, qualifierClass)
-      .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, substitutor))
-      .withInsertHandler(onCompletionHandler)
+  private fun MutableList<LookupElement>.addSuggestion(
+    psiField: PsiField,
+    qualifierClass: PsiClass?,
+    substitutor: PsiSubstitutor,
+    fromMethod: PsiMethod? = null,
+  ) {
+    var lookupBuilder =
+      JavaLookupElementBuilder.forField(psiField, psiField.name, qualifierClass)
+        .withTypeText(PsiFormatUtil.formatVariable(psiField, PsiFormatUtilBase.SHOW_TYPE, substitutor))
+        .withInsertHandler(onCompletionHandler)
 
-    fromMethod?.presentation?.presentableText?.let { methodText ->
-      lookupBuilder = lookupBuilder.withTailText(" (from $methodText)", true)
-    }
+    fromMethod?.presentation?.presentableText?.let { methodText -> lookupBuilder = lookupBuilder.withTailText(" (from $methodText)", true) }
 
     add(lookupBuilder)
   }
 
   /**
-   * @param qualifierClass class that is the active context for this lookup, allowing methods in
-   *   the current class (vs. a base class) to be bolded
+   * @param qualifierClass class that is the active context for this lookup, allowing methods in the current class (vs. a base class) to be
+   *   bolded
    */
   private fun MutableList<LookupElement>.addSuggestion(psiMethod: PsiMethod, qualifierClass: PsiClass?, substitutor: PsiSubstitutor) {
-    val lookupBuilder = JavaLookupElementBuilder
-      .forMethod(psiMethod, psiMethod.name, substitutor, qualifierClass)
-      .withInsertHandler(onCompletionHandler)
+    val lookupBuilder =
+      JavaLookupElementBuilder.forMethod(psiMethod, psiMethod.name, substitutor, qualifierClass).withInsertHandler(onCompletionHandler)
     add(lookupBuilder)
   }
 }

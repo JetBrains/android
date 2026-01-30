@@ -50,53 +50,53 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * For references found inside XML attributes assigned to data binding expression.
- */
+/** For references found inside XML attributes assigned to data binding expression. */
 class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(PlatformPatterns.psiElement(XmlAttribute::class.java), object : PsiReferenceProvider() {
-      override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-        val attribute = element as XmlAttribute
-        val attributeValue = attribute.value ?: return arrayOf()
-        if (!isBindingExpression(attributeValue)) {
-          return arrayOf()
+    registrar.registerReferenceProvider(
+      PlatformPatterns.psiElement(XmlAttribute::class.java),
+      object : PsiReferenceProvider() {
+        override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+          val attribute = element as XmlAttribute
+          val attributeValue = attribute.value ?: return arrayOf()
+          if (!isBindingExpression(attributeValue)) {
+            return arrayOf()
+          }
+          val model = AttributeReferenceModel.getInstance(attribute) ?: return arrayOf()
+          val referenceList = mutableListOf<PsiReference>()
+
+          referenceList.addAll(model.getReferencesFromBindingAdapter())
+          referenceList.addAll(model.getReferencesFromBindingMethods())
+          referenceList.addAll(model.getReferencesFromViewSetter())
+
+          val attributeType = referenceList.filterIsInstance<PsiParameterReference>().firstNotNullOfOrNull { it.resolvedType }?.type
+          if (attributeType != null && DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
+            referenceList.addAll(model.getReferencesFromInverseBindingAdapter())
+            referenceList.addAll(model.getReferencesFromInverseBindingMethods(attributeType))
+            referenceList.addAll(model.getReferencesFromViewGetter())
+          }
+
+          return referenceList.toTypedArray()
         }
-        val model = AttributeReferenceModel.getInstance(attribute) ?: return arrayOf()
-        val referenceList = mutableListOf<PsiReference>()
-
-        referenceList.addAll(model.getReferencesFromBindingAdapter())
-        referenceList.addAll(model.getReferencesFromBindingMethods())
-        referenceList.addAll(model.getReferencesFromViewSetter())
-
-        val attributeType = referenceList.filterIsInstance<PsiParameterReference>().firstNotNullOfOrNull { it.resolvedType }?.type
-        if (attributeType != null && DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
-          referenceList.addAll(model.getReferencesFromInverseBindingAdapter())
-          referenceList.addAll(model.getReferencesFromInverseBindingMethods(attributeType))
-          referenceList.addAll(model.getReferencesFromViewGetter())
-        }
-
-        return referenceList.toTypedArray()
-      }
-    })
+      },
+    )
   }
 
-  private class AttributeReferenceModel private constructor(val attribute: XmlAttribute,
-                                                            val facet: AndroidFacet,
-                                                            facade: JavaPsiFacade,
-                                                            val mode: DataBindingMode,
-                                                            val viewType: PsiType) {
+  private class AttributeReferenceModel
+  private constructor(
+    val attribute: XmlAttribute,
+    val facet: AndroidFacet,
+    facade: JavaPsiFacade,
+    val mode: DataBindingMode,
+    val viewType: PsiType,
+  ) {
     companion object {
       fun getInstance(attribute: XmlAttribute): AttributeReferenceModel? {
         val facet = AndroidFacet.getInstance(attribute) ?: return null
         val facade = JavaPsiFacade.getInstance(facet.module.project)
         val mode = DataBindingUtil.getDataBindingMode(facet)
-        val viewClass = attribute.parentOfType<XmlTag>()
-                          ?.references
-                          ?.firstNotNullOfOrNull { it.resolve() as? PsiClass }
-                        ?: return null
-        val viewType = viewClass.qualifiedName
-                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, attribute) } ?: return null
+        val viewClass = attribute.parentOfType<XmlTag>()?.references?.firstNotNullOfOrNull { it.resolve() as? PsiClass } ?: return null
+        val viewType = viewClass.qualifiedName?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, attribute) } ?: return null
         return AttributeReferenceModel(attribute, facet, facade, mode, viewType)
       }
     }
@@ -130,32 +130,30 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         return listOf()
       }
       val referenceList = mutableListOf<PsiReference>()
-      AnnotatedElementsSearch.searchElements(
-        bindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
-        .findAll()
-        .forEach { annotatedMethod ->
-          val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
-          val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
-          var attributeNameLiterals: Array<PsiElement> = annotationValue.children
-          if (annotationValue is PsiArrayInitializerMemberValue) {
-            attributeNameLiterals = annotationValue.initializers.map { it as PsiElement }.toTypedArray()
-          }
-          val parameters = (annotatedMethod as PsiMethod).parameterList.parameters
-          if (parameters.size == attributeNameLiterals.size + 1 && parameters[0].type.isAssignableFrom(viewType)) {
-            val index = attributeNameLiterals.indexOfFirst { literal ->
-              isAttributeNameMatched(literal.text.trim('"'))
-            }
-            if (index != -1) {
-              referenceList.add(PsiParameterReference(attribute, parameters[index + 1]))
-              val adapterContainingClass = annotatedMethod.containingClass ?: return@forEach
-              referenceList.add(PsiMethodReference(
+      AnnotatedElementsSearch.searchElements(bindingAdapterAnnotation, moduleScope, PsiMethod::class.java).findAll().forEach {
+        annotatedMethod ->
+        val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
+        val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
+        var attributeNameLiterals: Array<PsiElement> = annotationValue.children
+        if (annotationValue is PsiArrayInitializerMemberValue) {
+          attributeNameLiterals = annotationValue.initializers.map { it as PsiElement }.toTypedArray()
+        }
+        val parameters = (annotatedMethod as PsiMethod).parameterList.parameters
+        if (parameters.size == attributeNameLiterals.size + 1 && parameters[0].type.isAssignableFrom(viewType)) {
+          val index = attributeNameLiterals.indexOfFirst { literal -> isAttributeNameMatched(literal.text.trim('"')) }
+          if (index != -1) {
+            referenceList.add(PsiParameterReference(attribute, parameters[index + 1]))
+            val adapterContainingClass = annotatedMethod.containingClass ?: return@forEach
+            referenceList.add(
+              PsiMethodReference(
                 attribute,
                 PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod),
-                PsiMethodReference.Kind.METHOD_REFERENCE
-              ))
-            }
+                PsiMethodReference.Kind.METHOD_REFERENCE,
+              )
+            )
           }
         }
+      }
       return referenceList
     }
 
@@ -170,20 +168,19 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         return listOf()
       }
       val referenceList = mutableListOf<PsiReference>()
-      AnnotatedElementsSearch.searchElements(
-        bindingMethodsAnnotation, moduleScope, PsiClass::class.java)
-        .findAll()
-        .forEach { bindingMethodsAnnotatedElements ->
-          val bindingMethodsAnnotation = AnnotationUtil.findAnnotation(bindingMethodsAnnotatedElements, mode.bindingMethods)
-                                         ?: return@forEach
-          // Find @BindingMethod annotations from  the "value" attribute of @BindingMethods annotation.
-          val bindingMethodAnnotations = bindingMethodsAnnotation.findAttributeValue("value")?.children ?: return@forEach
-          // We do not handle conflict @BindingMethod annotations within the same @BindingMethods annotation.
-          bindingMethodAnnotations.firstOrNull { annotation ->
+      AnnotatedElementsSearch.searchElements(bindingMethodsAnnotation, moduleScope, PsiClass::class.java).findAll().forEach {
+        bindingMethodsAnnotatedElements ->
+        val bindingMethodsAnnotation = AnnotationUtil.findAnnotation(bindingMethodsAnnotatedElements, mode.bindingMethods) ?: return@forEach
+        // Find @BindingMethod annotations from  the "value" attribute of @BindingMethods annotation.
+        val bindingMethodAnnotations = bindingMethodsAnnotation.findAttributeValue("value")?.children ?: return@forEach
+        // We do not handle conflict @BindingMethod annotations within the same @BindingMethods annotation.
+        bindingMethodAnnotations
+          .firstOrNull { annotation ->
             val attributeValue = (annotation as? PsiAnnotation)?.findAttributeValue("attribute") ?: return@firstOrNull false
             val value = (attributeValue as? PsiLiteral)?.value as? String ?: return@firstOrNull false
             isAttributeNameMatched(value)
-          }?.let { bindingMethodAnnotation ->
+          }
+          ?.let { bindingMethodAnnotation ->
             val typeValue = (bindingMethodAnnotation as PsiAnnotation).findAttributeValue("type") ?: return@forEach
             val type = (typeValue as? PsiClassObjectAccessExpression)?.operand?.type ?: return@forEach
             if (type.isAssignableFrom(viewType)) {
@@ -198,7 +195,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               }
             }
           }
-        }
+      }
       return referenceList
     }
 
@@ -223,84 +220,78 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
     /**
      * Provides references from InverseDataBindingAdapter.
      *
-     * Example: `@InverseBindingAdapter(type = android.widget.TextView.class, attribute = "android:text")` that gets value from
-     * attribute `android:text` in TextView.
+     * Example: `@InverseBindingAdapter(type = android.widget.TextView.class, attribute = "android:text")` that gets value from attribute
+     * `android:text` in TextView.
      */
     fun getReferencesFromInverseBindingAdapter(): List<PsiReference> {
       if (inverseBindingAdapterAnnotation == null) {
         return listOf()
       }
       val referenceList = mutableListOf<PsiReference>()
-      AnnotatedElementsSearch.searchElements(
-        inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
-        .findAll()
-        .forEach { annotatedMethod ->
-          val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
-          val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteral)
-                                          ?.value as? String ?: return@forEach
-          if (isAttributeNameMatched(annotationAttributeName) && annotatedMethod.parameterList.parametersCount == 1) {
-            val annotationViewParameter = annotatedMethod.parameterList.parameters[0]
-            annotatedMethod.returnType ?: return@forEach
-            if (!annotationViewParameter.type.isAssignableFrom(viewType)) {
-              return@forEach
-            }
-            val annotationContainingClass = annotatedMethod.containingClass ?: return@forEach
-            referenceList.add(PsiMethodReference(
+      AnnotatedElementsSearch.searchElements(inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java).findAll().forEach {
+        annotatedMethod ->
+        val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
+        val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteral)?.value as? String ?: return@forEach
+        if (isAttributeNameMatched(annotationAttributeName) && annotatedMethod.parameterList.parametersCount == 1) {
+          val annotationViewParameter = annotatedMethod.parameterList.parameters[0]
+          annotatedMethod.returnType ?: return@forEach
+          if (!annotationViewParameter.type.isAssignableFrom(viewType)) {
+            return@forEach
+          }
+          val annotationContainingClass = annotatedMethod.containingClass ?: return@forEach
+          referenceList.add(
+            PsiMethodReference(
               attribute,
               PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(annotationContainingClass), mode), annotatedMethod),
-              PsiMethodReference.Kind.METHOD_CALL
-            ))
-          }
+              PsiMethodReference.Kind.METHOD_CALL,
+            )
+          )
         }
+      }
       return referenceList
     }
 
     /**
      * Provides references from InverseBindingMethods.
      *
-     * Example: `@InverseBindingMethods({@InverseBindingMethod(type = android.widget.TextView.class,attribute = "android:text",
-     * method = "getText"})` that redirects getter of attribute `android:text` to `getText`.
+     * Example: `@InverseBindingMethods({@InverseBindingMethod(type = android.widget.TextView.class,attribute = "android:text", method =
+     * "getText"})` that redirects getter of attribute `android:text` to `getText`.
      */
     fun getReferencesFromInverseBindingMethods(attributeType: PsiType): List<PsiReference> {
       if (inverseBindingMethodsAnnotation == null) {
         return listOf()
       }
       val referenceList = mutableListOf<PsiReference>()
-      AnnotatedElementsSearch.searchElements(
-        inverseBindingMethodsAnnotation, moduleScope, PsiClass::class.java)
-        .findAll()
-        .forEach { inverseBindingMethodsAnnotatedElements ->
-          val inverseBindingMethodsAnnotation = AnnotationUtil.findAnnotation(inverseBindingMethodsAnnotatedElements,
-                                                                              mode.inverseBindingMethods)
-                                                ?: return@forEach
-          // Find @InverseBindingMethod annotations from  the "value" attribute of @InverseBindingMethods annotation.
-          val inverseBindingMethodAnnotations = inverseBindingMethodsAnnotation.findAttributeValue("value")?.children
-                                                ?: return@forEach
-          for (annotation in inverseBindingMethodAnnotations) {
-            val attributeValue = (annotation as? PsiAnnotation)?.findAttributeValue("attribute") ?: continue
-            val annotationAttributeName = (attributeValue as? PsiLiteral)?.value as? String ?: continue
-            if (!isAttributeNameMatched(annotationAttributeName)) {
-              continue
+      AnnotatedElementsSearch.searchElements(inverseBindingMethodsAnnotation, moduleScope, PsiClass::class.java).findAll().forEach {
+        inverseBindingMethodsAnnotatedElements ->
+        val inverseBindingMethodsAnnotation =
+          AnnotationUtil.findAnnotation(inverseBindingMethodsAnnotatedElements, mode.inverseBindingMethods) ?: return@forEach
+        // Find @InverseBindingMethod annotations from  the "value" attribute of @InverseBindingMethods annotation.
+        val inverseBindingMethodAnnotations = inverseBindingMethodsAnnotation.findAttributeValue("value")?.children ?: return@forEach
+        for (annotation in inverseBindingMethodAnnotations) {
+          val attributeValue = (annotation as? PsiAnnotation)?.findAttributeValue("attribute") ?: continue
+          val annotationAttributeName = (attributeValue as? PsiLiteral)?.value as? String ?: continue
+          if (!isAttributeNameMatched(annotationAttributeName)) {
+            continue
+          }
+          val type = (annotation.findAttributeValue("type") as? PsiClassObjectAccessExpression)?.operand?.type ?: continue
+          if (type.isAssignableFrom(viewType)) {
+            val methodAttribute = annotation.findAttributeValue("method") ?: continue
+            var methodName = (methodAttribute as? PsiLiteral)?.value as? String ?: continue
+            // If method isn't provided, the attribute name is used to find its name, either prefixing with "is" or "get".
+            if (methodName.isEmpty()) {
+              val methodPrefix = if (attributeType.isAssignableFrom(PsiTypes.booleanType())) "is" else "get"
+              methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
             }
-            val type = (annotation.findAttributeValue("type") as? PsiClassObjectAccessExpression)?.operand?.type
-                       ?: continue
-            if (type.isAssignableFrom(viewType)) {
-              val methodAttribute = annotation.findAttributeValue("method") ?: continue
-              var methodName = (methodAttribute as? PsiLiteral)?.value as? String ?: continue
-              // If method isn't provided, the attribute name is used to find its name, either prefixing with "is" or "get".
-              if (methodName.isEmpty()) {
-                val methodPrefix = if (attributeType.isAssignableFrom(PsiTypes.booleanType())) "is" else "get"
-                methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
-              }
-              for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
-                if (method.parameterTypes.isEmpty()) {
-                  referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL))
-                  break
-                }
+            for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
+              if (method.parameterTypes.isEmpty()) {
+                referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL))
+                break
               }
             }
           }
         }
+      }
       return referenceList
     }
 
@@ -312,10 +303,9 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
     fun getReferencesFromViewGetter(): List<PsiReference> {
       val getterName = "get" + attribute.name.substringAfter(":").usLocaleCapitalize()
       return PsiModelClass(viewType, mode)
-               .findMethods(getterName, MemberAccess.NON_STATICS_ONLY)
-               .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
-               ?.let { method -> listOf(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL)) }
-             ?: listOf()
+        .findMethods(getterName, MemberAccess.NON_STATICS_ONLY)
+        .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
+        ?.let { method -> listOf(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL)) } ?: listOf()
     }
   }
 }

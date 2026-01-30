@@ -58,9 +58,7 @@ class AgpVersionSelectorTest {
       agpVersion("8.6.1"),
     )
 
-  private fun AgpVersionSelector.resolveVersion(agpVersions: Set<AgpVersion>) = resolveVersion {
-    agpVersions
-  }
+  private fun AgpVersionSelector.resolveVersion(agpVersions: Set<AgpVersion>) = resolveVersion { agpVersions }
 
   @Test
   fun resolveVersionOffline() {
@@ -78,33 +76,26 @@ class AgpVersionSelectorTest {
   @Test
   fun resolveVersionNotYetPublished() {
     val selector = AgpVersionSelector.MaximumPatchVersion(agpVersion("8.5.1"))
-    assertThat(
-        selector.resolveVersion(
-          gmaven8dot5series + gmaven8dot6series - agpVersion("8.5.1") - agpVersion("8.5.2")
-        )
-      )
+    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series - agpVersion("8.5.1") - agpVersion("8.5.2")))
       .isEqualTo(agpVersion("8.5.1"))
   }
 
   @Test
   fun resolveVersionNoFuturePatchAvailable() {
     val selector = AgpVersionSelector.MaximumPatchVersion(agpVersion("8.5.1"))
-    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series - agpVersion("8.5.2")))
-      .isEqualTo(agpVersion("8.5.1"))
+    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series - agpVersion("8.5.2"))).isEqualTo(agpVersion("8.5.1"))
   }
 
   @Test
   fun resolveVersionPatchUpdate() {
     val selector = AgpVersionSelector.MaximumPatchVersion(agpVersion("8.5.1"))
-    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series))
-      .isEqualTo(agpVersion("8.5.2"))
+    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series)).isEqualTo(agpVersion("8.5.2"))
   }
 
   @Test
   fun resolveVersionPreview() {
     val selector = AgpVersionSelector.MaximumPatchVersion(agpVersion("8.5.0-alpha04"))
-    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series))
-      .isEqualTo(agpVersion("8.5.0-alpha04"))
+    assertThat(selector.resolveVersion(gmaven8dot5series + gmaven8dot6series)).isEqualTo(agpVersion("8.5.0-alpha04"))
   }
 
   @Test
@@ -130,7 +121,6 @@ class AgpVersionSelectorTest {
   @Test
   fun fixedVersionDoesNotResolveAgpVersions() {
     val selector = AgpVersionSelector.FixedVersion(agpVersion("8.5.1"))
-    assertThat(selector.resolveVersion { error("Should not be called") })
-      .isEqualTo(agpVersion("8.5.1"))
+    assertThat(selector.resolveVersion { error("Should not be called") }).isEqualTo(agpVersion("8.5.1"))
   }
 }

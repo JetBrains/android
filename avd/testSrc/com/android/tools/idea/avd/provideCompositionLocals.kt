@@ -24,10 +24,5 @@ import org.mockito.kotlin.mock
 
 @Composable
 internal fun provideCompositionLocals(content: @Composable () -> Unit) {
-  CompositionLocalProvider(
-    @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
-    LocalProject provides null,
-  ) {
-    content()
-  }
+  CompositionLocalProvider(@OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(), LocalProject provides null) { content() }
 }

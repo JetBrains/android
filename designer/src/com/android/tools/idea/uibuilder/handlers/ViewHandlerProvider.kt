@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
  * The Layout Editor will only call the providers if no built-in ViewHandler is found.
  */
 interface ViewHandlerProvider {
-  /**
-   * Returns a [ViewHandler] for the given [viewTag] or null if none is available from this provider
-   */
+  /** Returns a [ViewHandler] for the given [viewTag] or null if none is available from this provider */
   fun findHandler(viewTag: String): ViewHandler?
 }

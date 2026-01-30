@@ -20,19 +20,15 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * Holds a pair of string name (e.g. "app_name") and resource directory (e.g. app/src/main/res).
  *
- * A given name can exist in multiple resource directories (e.g. app/src/debug/res) and have
- * different values in each. As such, the translations editor must keep track of both separately.
+ * A given name can exist in multiple resource directories (e.g. app/src/debug/res) and have different values in each. As such, the
+ * translations editor must keep track of both separately.
  */
 data class StringResourceKey
 @JvmOverloads
-constructor(
-    val name: String,
-    val directory: VirtualFile? = null,
-    val isFromDoNotTranslateFile: Boolean = false
-) : Comparable<StringResourceKey> {
+constructor(val name: String, val directory: VirtualFile? = null, val isFromDoNotTranslateFile: Boolean = false) :
+  Comparable<StringResourceKey> {
   override fun compareTo(other: StringResourceKey): Int =
-      compareValuesBy(this, other, { it.name }, { it.directory?.path ?: "" }, { it.isFromDoNotTranslateFile })
+    compareValuesBy(this, other, { it.name }, { it.directory?.path ?: "" }, { it.isFromDoNotTranslateFile })
 
-  override fun toString(): String =
-      "$name${if (directory != null) " ($directory)" else ""} ($isFromDoNotTranslateFile)"
+  override fun toString(): String = "$name${if (directory != null) " ($directory)" else ""} ($isFromDoNotTranslateFile)"
 }

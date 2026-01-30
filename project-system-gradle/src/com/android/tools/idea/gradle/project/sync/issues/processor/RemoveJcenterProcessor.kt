@@ -32,11 +32,11 @@ import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Processor to remove jcenter usages in the following places:
- *   - Project's build.gradle buildScript.repositories block
- *   - Project's settings.gradle dependencyResolutionManagement.repositories block
- *   - Affected modules build.gradle repositories block
+ * - Project's build.gradle buildScript.repositories block
+ * - Project's settings.gradle dependencyResolutionManagement.repositories block
+ * - Affected modules build.gradle repositories block
  */
-class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Module>): BaseRefactoringProcessor(project) {
+class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Module>) : BaseRefactoringProcessor(project) {
   public override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptor {
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
@@ -79,8 +79,7 @@ class RemoveJcenterProcessor(val project: Project, val affectedModules: List<Mod
     val usages: ArrayList<UsageInfo> = ArrayList()
     val jcenterModels = extractJcenterModel(repositories)
     for (model in jcenterModels) {
-      if (model.psiElement == null)
-        continue
+      if (model.psiElement == null) continue
       usages.add(RepositoryUsageInfo(model))
     }
     return usages

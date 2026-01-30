@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.blockOf
+import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -26,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
-import com.android.tools.idea.gradle.dsl.parser.compareWithExpectedPsi
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
@@ -39,18 +39,22 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
 
   fun testAssignmentWithString() {
     val contents = mapOf("key1" to "value1")
-    val expected = """
+    val expected =
+      """
       key1 = "value1"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testAssignmentWithInt() {
     val contents = mapOf("key1" to 123)
-    val expected = """
+    val expected =
+      """
       key1 = 123
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -63,107 +67,124 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
 
   fun testSimpleBlockWithAssignments() {
     val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to "value2"))
-    val expected = """
+    val expected =
+      """
       block {
           key1 = "value1"
           key2 = "value2"
       }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testSimpleBlockWithMixedAssignments() {
     val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to 123, "key3" to true))
-    val expected = """
+    val expected =
+      """
       block {
           key1 = "value1"
           key2 = 123
           key3 = true
       }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithStringArgument() {
     val contents = mapOf("factory" to factoryOf("value1"))
-    val expected = """
+    val expected =
+      """
       factory("value1")
-     """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithNoArguments() {
     val contents = mapOf("factory" to factoryOf<String>())
-    val expected = """
+    val expected =
+      """
       factory()
-     """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithMultipleArguments() {
     val contents = mapOf("factory" to factoryOf<Any>("value1", 123, true))
-    val expected = """
+    val expected =
+      """
       factory("value1", 123, true)
-     """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithEmbeddedMultipleArguments() {
     val contents = mapOf("factory" to factoryOf(mapOf("factory2" to factoryOf<Any>("value1")), 123, true))
-    val expected = """
+    val expected =
+      """
       factory(factory2("value1"), 123, true)
-     """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithEmbeddedMultipleArguments2() {
-    val contents = mapOf("factory" to factoryOf(mapOf("factory2" to factoryOf("value2", mapOf("factory3" to factoryOf<Any>("value3", false)))), 123))
-    val expected = """
+    val contents =
+      mapOf("factory" to factoryOf(mapOf("factory2" to factoryOf("value2", mapOf("factory3" to factoryOf<Any>("value3", false)))), 123))
+    val expected =
+      """
       factory(factory2("value2", factory3("value3", false)), 123)
-     """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithIntArgument() {
     val contents = mapOf("factory" to factoryOf(123))
-    val expected = """
+    val expected =
+      """
       factory(123)
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testFactoryWithBooleanArgument() {
     val contents = mapOf("factory" to factoryOf(true))
-    val expected = """
+    val expected =
+      """
       factory(true)
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   fun testEmbeddedFactory() {
     val contents = mapOf("factory" to factoryOf(mapOf("embeddedFactory" to factoryOf("value"))))
-    val expected = """
+    val expected =
+      """
       factory(embeddedFactory("value"))
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
-  fun testDoubleFunction(){
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "build.gradle.dcl",
-      ""
-    )
+  fun testDoubleFunction() {
+    val file = VfsTestUtil.createFile(project.guessProjectDir()!!, "build.gradle.dcl", "")
     val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
 
@@ -182,26 +203,26 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       dslFile.saveAllChanges()
     }
     val text = VfsUtil.loadText(file).replace("\r", "")
-    assertEquals("""
+    assertEquals(
+      """
       dependenciesDeclarative {
           api(project(":my"))
       }
-    """.trimIndent(), text)
+      """
+        .trimIndent(),
+      text,
+    )
   }
 
-  fun testFunctionChain(){
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "settings.gradle.dcl",
-      ""
-    )
+  fun testFunctionChain() {
+    val file = VfsTestUtil.createFile(project.guessProjectDir()!!, "settings.gradle.dcl", "")
     val dslFile = object : GradleSettingsFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
 
     val plugins = PluginsDslElement(dslFile, GradleNameElement.create("plugins"))
     dslFile.setNewElement(plugins)
 
-    val declaration = GradleDslInfixExpression(plugins,null)
+    val declaration = GradleDslInfixExpression(plugins, null)
     declaration.setNewElement(GradleDslLiteral(declaration, GradleNameElement.create("id")).apply { setValue("org.example") })
     declaration.setNewElement(GradleDslLiteral(declaration, GradleNameElement.create("version")).apply { setValue("1.0") })
     plugins.setNewElement(declaration)
@@ -211,19 +232,19 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       dslFile.saveAllChanges()
     }
     val text = VfsUtil.loadText(file).replace("\r", "")
-    assertEquals("""
+    assertEquals(
+      """
       plugins {
           id("org.example").version("1.0")
       }
-    """.trimIndent(), text)
+      """
+        .trimIndent(),
+      text,
+    )
   }
 
   private fun doTest(contents: Map<String, Any>, expected: String) {
-    val file = VfsTestUtil.createFile(
-      project.guessProjectDir()!!,
-      "build.gradle.dcl",
-      ""
-    )
+    val file = VfsTestUtil.createFile(project.guessProjectDir()!!, "build.gradle.dcl", "")
     val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
@@ -235,5 +256,4 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
     assertEquals(expected, text)
     compareWithExpectedPsi(project, dslFile, expected)
   }
-
 }

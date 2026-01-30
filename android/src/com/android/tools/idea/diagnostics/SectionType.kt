@@ -23,5 +23,5 @@ enum class SectionType {
   Process,
   System,
   Unknown,
-  EOF
+  EOF,
 }

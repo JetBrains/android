@@ -49,7 +49,6 @@ class MultiProjectSameWindowTest {
       project2.setSdkDir(system.installation.sdkDir)
       studio.openProject(projectPath2.toString(), false)
 
-
       // Wait for sync so that the project name reliably is "LiveEditTest".
       // Since other actions might have reset the log, we may accidentally find the first sync
       // result instead of the second. Therefore, this code resets the log (again) and then checks
@@ -59,27 +58,16 @@ class MultiProjectSameWindowTest {
       studio.waitForSync()
 
       // Open file in second project
-      val mainActivityPath2 =
-        project2.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
+      val mainActivityPath2 = project2.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
       studio.openFile("LiveEditTest", mainActivityPath2.toString())
       Thread.sleep(3000)
 
       // Edit file
-      studio.editFile(
-        "LiveEditTest",
-        mainActivityPath2.toString(),
-        "Before editing",
-        "After editing",
-      )
+      studio.editFile("LiveEditTest", mainActivityPath2.toString(), "Before editing", "After editing")
 
       // Verify edit - this is a verification since editing will fail if the search regex can't be
       // found.
-      studio.editFile(
-        "LiveEditTest",
-        mainActivityPath2.toString(),
-        "After editing",
-        "After second editing",
-      )
+      studio.editFile("LiveEditTest", mainActivityPath2.toString(), "After editing", "After second editing")
     }
   }
 }

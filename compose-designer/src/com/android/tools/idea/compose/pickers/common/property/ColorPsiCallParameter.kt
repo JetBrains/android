@@ -29,18 +29,17 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import java.awt.Color
+import javax.swing.Icon
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
-import java.awt.Color
-import javax.swing.Icon
 
 /**
  * A [PsiCallParameterPropertyItem] for Color parameters.
  *
- * Adds the Color picker to the property item and displays color values (Long values) in the proper
- * color format '0xAARRGGBB'.
+ * Adds the Color picker to the property item and displays color values (Long values) in the proper color format '0xAARRGGBB'.
  */
 internal class ColorPsiCallParameter(
   project: Project,

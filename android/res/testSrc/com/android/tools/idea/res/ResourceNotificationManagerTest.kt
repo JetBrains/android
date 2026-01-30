@@ -113,8 +113,7 @@ class ResourceNotificationManagerTest {
 </resources>""",
     )
 
-    val configuration1 =
-      ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout1.virtualFile)
+    val configuration1 = ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout1.virtualFile)
     val manager = ResourceNotificationManager.getInstance(project)
 
     // Make sure that when we're modifying multiple files, with complicated
@@ -125,56 +124,28 @@ class ResourceNotificationManagerTest {
     // hasn't actually been looked up and rendered in a layout. In order to make sure
     // that that optimization doesn't kick in here, we need to look up the value of
     // the resource item first:
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       assertThat(
           configuration1
             .getResourceResolver()
-            .getStyle(
-              com.android.ide.common.rendering.api.ResourceReference(
-                ResourceNamespace.RES_AUTO,
-                ResourceType.STYLE,
-                "AppTheme",
-              )
-            )
+            .getStyle(com.android.ide.common.rendering.api.ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "AppTheme"))
             ?.getItem(ResourceNamespace.ANDROID, "colorBackground")
             ?.getValue()
         )
         .isEqualTo("#ff0000")
-      createValueResource(
-        project,
-        resourceDir,
-        "color2",
-        ResourceType.COLOR,
-        "colors.xml",
-        mutableListOf("values"),
-        "#fa2395",
-      )
+      createValueResource(project, resourceDir, "color2", ResourceType.COLOR, "colors.xml", mutableListOf("values"), "#fa2395")
     }
 
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       val tag = values1.document!!.rootTag!!.subTags[1].subTags[0]
       assertThat(tag.name).isEqualTo("item")
-      WriteCommandAction.runWriteCommandAction(project) {
-        tag.value.setEscapedText("@color/color2")
-      }
+      WriteCommandAction.runWriteCommandAction(project) { tag.value.setEscapedText("@color/color2") }
     }
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
     // and verify that our listeners are called.
     val version1 = manager.getCurrentVersion(facet, layout1, configuration1)
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.EDIT, layout1.virtualFile, configuration1) {
       addText(layout1, "@string/hello^", "_world")
     }
     val version2 = manager.getCurrentVersion(facet, layout1, configuration1)
@@ -183,53 +154,33 @@ class ResourceNotificationManagerTest {
     // Next check: Modify a <string> value definition in a values file
     // and check that those changes are flagged too
     val version3 = manager.getCurrentVersion(facet, layout1, configuration1)
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       addText(values1, "name=\"hello^\"", "_world")
     }
     val version4 = manager.getCurrentVersion(facet, layout1, configuration1)
     assertThat(version4).isNotEqualTo(version3)
 
     // Next check: Modify content in a comment and verify that no changes are fired
-    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) {
-      addText(layout1, "My ^comment", "new ")
-    }
+    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) { addText(layout1, "My ^comment", "new ") }
 
     // Check that editing text in a layout file has no effect
-    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) {
-      addText(layout1, " ^ <TextView", "abc")
-    }
+    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) { addText(layout1, " ^ <TextView", "abc") }
 
     // Make sure that's true for replacements too
-    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) {
-      replaceText(layout1, "^abc", "abc".length, "def")
-    }
+    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) { replaceText(layout1, "^abc", "abc".length, "def") }
 
     // ...and for deletions
-    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) {
-      removeText(layout1, "^def", "def".length)
-    }
+    runEnsuringListenersNotCalled(layout1.virtualFile, configuration1) { removeText(layout1, "^def", "def".length) }
 
     // Check that editing text in a *values file* -does- have an effect
     // Read the value first to ensure that we trigger it as a read (see comment above for previous
     // resource resolver lookup).
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       assertThat(
           configuration1
             .getResourceResolver()
             .getResolvedResource(
-              com.android.ide.common.rendering.api.ResourceReference(
-                ResourceNamespace.RES_AUTO,
-                ResourceType.STRING,
-                "hello_world",
-              )
+              com.android.ide.common.rendering.api.ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "hello_world")
             )!!
             .getValue()
         )
@@ -240,44 +191,18 @@ class ResourceNotificationManagerTest {
 
     // Check that recreating AppResourceRepository object doesn't affect the
     // ResourceNotificationManager.
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
-      createValueResource(
-        project,
-        resourceDir,
-        "color4",
-        ResourceType.COLOR,
-        "colors.xml",
-        mutableListOf("values"),
-        "#ff2300",
-      )
+      createValueResource(project, resourceDir, "color4", ResourceType.COLOR, "colors.xml", mutableListOf("values"), "#ff2300")
     }
 
     // Next check: Mark the lines between <TextView .... /> as comments
     // and verify that our listeners are called.
     val version5 = manager.getCurrentVersion(facet, layout1, configuration1)
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.EDIT, layout1.virtualFile, configuration1) {
       replaceText(layout1, "^<TextView", 9, "<!--<TextView-->")
-      replaceText(
-        layout1,
-        "        ^android:layout_width",
-        35,
-        "<!--android:layout_width=\"match_parent\"-->",
-      )
-      replaceText(
-        layout1,
-        "        ^android:layout_height",
-        36,
-        "<!--android:layout_height=\"match_parent\"-->",
-      )
+      replaceText(layout1, "        ^android:layout_width", 35, "<!--android:layout_width=\"match_parent\"-->")
+      replaceText(layout1, "        ^android:layout_height", 36, "<!--android:layout_height=\"match_parent\"-->")
       replaceText(layout1, "^android:text=", 37, "<!--android:text=\"@string/hello_world\" />-->")
     }
     val version6 = manager.getCurrentVersion(facet, layout1, configuration1)
@@ -287,30 +212,11 @@ class ResourceNotificationManagerTest {
     // commented in previous check)
     // and verify that our listeners are called.
     val version7 = manager.getCurrentVersion(facet, layout1, configuration1)
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.EDIT, layout1.virtualFile, configuration1) {
       replaceText(layout1, "^<!--<TextView-->", 15, "<TextView")
-      replaceText(
-        layout1,
-        "^<!--android:layout_width=\"match_parent\"-->",
-        42,
-        "android:layout_width=\"match_parent\"",
-      )
-      replaceText(
-        layout1,
-        "^<!--android:layout_height=\"match_parent\"-->",
-        43,
-        "android:layout_height=\"match_parent\"",
-      )
-      replaceText(
-        layout1,
-        "^<!--android:text=\"@string/hello_world\" />-->",
-        44,
-        "android:text=\"@string/hello_world\" />",
-      )
+      replaceText(layout1, "^<!--android:layout_width=\"match_parent\"-->", 42, "android:layout_width=\"match_parent\"")
+      replaceText(layout1, "^<!--android:layout_height=\"match_parent\"-->", 43, "android:layout_height=\"match_parent\"")
+      replaceText(layout1, "^<!--android:text=\"@string/hello_world\" />-->", 44, "android:text=\"@string/hello_world\" />")
     }
     val version8 = manager.getCurrentVersion(facet, layout1, configuration1)
     assertNotEquals(version8.toString(), version7, version8)
@@ -347,14 +253,9 @@ class ResourceNotificationManagerTest {
     val resourceDir = layout1.parent!!.parent!!.virtualFile
     assertNotNull(resourceDir)
 
-    val configuration1: Configuration =
-      ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout1.virtualFile)
+    val configuration1: Configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout1.virtualFile)
 
-    runEnsuringListenersCalled(
-      ResourceNotificationManager.Reason.RESOURCE_EDIT,
-      layout1.virtualFile,
-      configuration1,
-    ) {
+    runEnsuringListenersCalled(ResourceNotificationManager.Reason.RESOURCE_EDIT, layout1.virtualFile, configuration1) {
       RenameDialog(project, layout1, null, null).performRename("newLayout")
     }
   }
@@ -367,8 +268,7 @@ class ResourceNotificationManagerTest {
     val resourceDir = javaFile.parent!!.parent!!.virtualFile
     assertNotNull(resourceDir)
 
-    val configuration1: Configuration =
-      ConfigurationManager.getOrCreateInstance(module).getConfiguration(javaFile.virtualFile)
+    val configuration1: Configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(javaFile.virtualFile)
 
     runEnsuringListenersNotCalled(javaFile.virtualFile, configuration1) {
       RenameDialog(project, javaFile, null, null).performRename("newFile.java")
@@ -423,36 +323,20 @@ class ResourceNotificationManagerTest {
         """
           .trimIndent(),
       ) as XmlFile
-    WriteCommandAction.runWriteCommandAction(project) {
-      ReformatUtil.reformatAndRearrange(project, animatedVector)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { ReformatUtil.reformatAndRearrange(project, animatedVector) }
 
     val resourcesHaveChanged = AtomicBoolean(false)
-    val layoutConfiguration: Configuration =
-      ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout.virtualFile)
+    val layoutConfiguration: Configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout.virtualFile)
     UIUtil.dispatchAllInvocationEvents() // Dispatch any pending notifications
     val manager = ResourceNotificationManager.getInstance(projectRule.project)
-    manager.addListener(
-      { resourcesHaveChanged.set(true) },
-      facet,
-      layout.virtualFile,
-      layoutConfiguration,
-    )
-    WriteCommandAction.runWriteCommandAction(project) {
-      ReformatUtil.reformatAndRearrange(project, animatedVector)
-    }
+    manager.addListener({ resourcesHaveChanged.set(true) }, facet, layout.virtualFile, layoutConfiguration)
+    WriteCommandAction.runWriteCommandAction(project) { ReformatUtil.reformatAndRearrange(project, animatedVector) }
     waitForResourceRepositoryUpdates(module, 4, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents() // Dispatch notifications
-    assertWithMessage("Reformat of the vector should not have triggered a change")
-      .that(resourcesHaveChanged.get())
-      .isFalse()
+    assertWithMessage("Reformat of the vector should not have triggered a change").that(resourcesHaveChanged.get()).isFalse()
   }
 
-  private fun runEnsuringListenersNotCalled(
-    file: VirtualFile,
-    configuration: Configuration,
-    runnable: Runnable,
-  ) {
+  private fun runEnsuringListenersNotCalled(file: VirtualFile, configuration: Configuration, runnable: Runnable) {
     runEnsuringListeners(null, file, configuration, false, runnable)
   }
 

@@ -36,12 +36,7 @@ import org.junit.Test
 class ProjectAppMonitorTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-    )
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
 
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 
@@ -61,9 +56,7 @@ class ProjectAppMonitorTest {
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
 
-    assertThat(messages.await())
-      .containsExactly(startedMessage(1, "com.example.app1"), startedMessage(2, "com.example.app2"))
-      .inOrder()
+    assertThat(messages.await()).containsExactly(startedMessage(1, "com.example.app1"), startedMessage(2, "com.example.app2")).inOrder()
   }
 
   @Test
@@ -138,9 +131,7 @@ class ProjectAppMonitorTest {
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
 
-    assertThat(messages.await())
-      .containsExactly(startedMessage(1, "com.example.app1"), endedMessage(1, "com.example.app1"))
-      .inOrder()
+    assertThat(messages.await()).containsExactly(startedMessage(1, "com.example.app1"), endedMessage(1, "com.example.app1")).inOrder()
   }
 
   @Test

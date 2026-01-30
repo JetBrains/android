@@ -28,17 +28,10 @@ class TestStringTable : StringTable {
   private val strings: BiMap<String, Int> = HashBiMap.create()
   override val keys: Set<Int> = strings.values
 
-  fun add(value: String?): Int =
-    value.nullize()?.let { strings.getOrPut(it) { strings.size + 1 } } ?: 0
+  fun add(value: String?): Int = value.nullize()?.let { strings.getOrPut(it) { strings.size + 1 } } ?: 0
 
   fun add(value: ResourceReference?): Resource? =
-    value?.let {
-      Resource(
-        type = add(it.resourceType.getName()),
-        namespace = add(it.namespace.packageName),
-        name = add(it.name),
-      )
-    }
+    value?.let { Resource(type = add(it.resourceType.getName()), namespace = add(it.namespace.packageName), name = add(it.name)) }
 
   fun asEntryList(): List<LayoutInspectorViewProtocol.StringEntry> =
     strings.entries.map {

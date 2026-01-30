@@ -1,11 +1,11 @@
 package com.android.tools.idea.diagnostics.crash
 
 import com.android.testutils.VirtualTimeScheduler
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class ExceptionRateLimiterTest {
 
@@ -18,26 +18,25 @@ class ExceptionRateLimiterTest {
     scheduler = VirtualTimeScheduler()
     scheduler.advanceBy(1L)
 
-    exceptionRateLimiter = ExceptionRateLimiter(
-      maxEventsPerPeriod = 3,
-      periodMs = TimeUnit.MINUTES.toMillis(10),
-      allowancePerSignature = 2,
-      timeProvider = { scheduler.currentTimeMillis }
-    )
+    exceptionRateLimiter =
+      ExceptionRateLimiter(
+        maxEventsPerPeriod = 3,
+        periodMs = TimeUnit.MINUTES.toMillis(10),
+        allowancePerSignature = 2,
+        timeProvider = { scheduler.currentTimeMillis },
+      )
   }
 
-  @After
-  fun tearDown() {
-  }
+  @After fun tearDown() {}
 
   @Test
   fun tryAcquireForSignature_separeteLimitPerException() {
     val permits = mutableListOf<ExceptionRateLimiter.Permit>()
-    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigA"));
-    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigB"));
-    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigC"));
-    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigD"));
-    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigE"));
+    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigA"))
+    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigB"))
+    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigC"))
+    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigD"))
+    permits.add(exceptionRateLimiter.tryAcquireForSignature("sigE"))
 
     permits.forEachIndexed { index, permit ->
       assertEquals(ExceptionRateLimiter.PermissionType.ALLOW, permit.permissionType)
@@ -52,7 +51,7 @@ class ExceptionRateLimiterTest {
     val permits = mutableListOf<ExceptionRateLimiter.Permit>()
 
     for (i in 1..10) {
-      permits.add(exceptionRateLimiter.tryAcquireForSignature("sigA"));
+      permits.add(exceptionRateLimiter.tryAcquireForSignature("sigA"))
       scheduler.advanceBy(10, TimeUnit.SECONDS)
     }
 
@@ -81,7 +80,7 @@ class ExceptionRateLimiterTest {
 
     for (c in 'A'..'C') {
       for (i in 1..3) {
-        permits.add(exceptionRateLimiter.tryAcquireForSignature("sig$c"));
+        permits.add(exceptionRateLimiter.tryAcquireForSignature("sig$c"))
         scheduler.advanceBy(10, TimeUnit.SECONDS)
       }
     }
@@ -107,7 +106,7 @@ class ExceptionRateLimiterTest {
 
     for (c in 'A'..'B') {
       for (i in 1..3) {
-        permits.add(exceptionRateLimiter.tryAcquireForSignature("sig$c"));
+        permits.add(exceptionRateLimiter.tryAcquireForSignature("sig$c"))
         scheduler.advanceBy(10, TimeUnit.SECONDS)
       }
       scheduler.advanceBy(1, TimeUnit.HOURS)
@@ -121,5 +120,4 @@ class ExceptionRateLimiterTest {
     assertEquals(ExceptionRateLimiter.PermissionType.ALLOW, permits[4].permissionType)
     assertEquals(ExceptionRateLimiter.PermissionType.ALLOW, permits[5].permissionType)
   }
-
 }

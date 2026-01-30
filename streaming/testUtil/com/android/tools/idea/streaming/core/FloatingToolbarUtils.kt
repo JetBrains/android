@@ -28,8 +28,7 @@ fun FakeUi.expandFloatingToolbar() {
     // Trigger expansion of the floating toolbar.
     if (StudioFlags.RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS.get()) {
       mouse.click(toolbar.locationOnScreen.x + toolbar.width - toolbar.height / 2, toolbar.locationOnScreen.y + toolbar.height / 2)
-    }
-    else {
+    } else {
       mouse.moveTo(toolbar.locationOnScreen.x + toolbar.width / 2, toolbar.locationOnScreen.y + toolbar.height - toolbar.width / 2)
     }
     layoutAndDispatchEvents()

@@ -29,8 +29,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** [TestRule] that implements the [before] and [after] setup specific for Glance unit tests. */
-private class GlanceProjectRuleImpl(private val projectRule: AndroidProjectRule) :
-  NamedExternalResource() {
+private class GlanceProjectRuleImpl(private val projectRule: AndroidProjectRule) : NamedExternalResource() {
   override fun before(description: Description) {
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
     projectRule.fixture.stubComposableAnnotation()
@@ -40,26 +39,17 @@ private class GlanceProjectRuleImpl(private val projectRule: AndroidProjectRule)
   override fun after(description: Description) {}
 }
 
-/**
- * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for
- * testing Glance preview elements.
- */
-class GlanceProjectRule(
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
-) : TestRule {
+/** A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for testing Glance preview elements. */
+class GlanceProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()) : TestRule {
   val project: Project
     get() = projectRule.project
 
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate =
-    RuleChain.outerRule(TestLoggerRule())
-      .around(projectRule)
-      .around(GlanceProjectRuleImpl(projectRule))
+  private val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(GlanceProjectRuleImpl(projectRule))
 
-  override fun apply(base: Statement, description: Description): Statement =
-    delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 }
 
 fun CodeInsightTestFixture.stubGlancePreviewAnnotation(modulePath: String = "") {

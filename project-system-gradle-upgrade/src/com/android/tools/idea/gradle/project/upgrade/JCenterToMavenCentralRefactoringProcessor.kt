@@ -30,13 +30,14 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.containers.toArray
 
 /**
- * Starting from Gradle 9.0.0 (required by AGP 9.0.0), the `jcenter()` RepositoriesHandler method has been removed.  This processor
- * removes usages of `jcenter()`, and if any was removed, adds `mavenCentral()` if not already present.  The jcenter repository has been
- * redirecting to maven central since 2024 in any case.
+ * Starting from Gradle 9.0.0 (required by AGP 9.0.0), the `jcenter()` RepositoriesHandler method has been removed. This processor removes
+ * usages of `jcenter()`, and if any was removed, adds `mavenCentral()` if not already present. The jcenter repository has been redirecting
+ * to maven central since 2024 in any case.
  */
 class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(SUPPORTED_FROM, GRADLE_SUPPORT_REMOVED)
 
@@ -61,9 +62,7 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
         usages.add(AddMavenCentralRepositoryUsageInfo(wrappedPsiElement, repositoriesModel))
       }
     }
-    projectBuildModel.allIncludedBuildModels.forEach { model ->
-      process(model.repositories())
-    }
+    projectBuildModel.allIncludedBuildModels.forEach { model -> process(model.repositories()) }
     projectBuildModel.projectBuildModel?.buildscript()?.repositories()?.let(::process)
     projectBuildModel.projectSettingsModel?.dependencyResolutionManagement()?.repositories()?.let(::process)
     projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.let(::process)
@@ -76,13 +75,15 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
   @Suppress("DialogTitleCapitalization")
   override fun getCommandName(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.commandName")
 
-  override fun getShortDescription() = """
+  override fun getShortDescription() =
+    """
     As of Gradle 9.0 and the Android Gradle Plugin version 9.0.0, the `jcenter()`
     repository declaration is no longer supported.  The jcenter repository itself
     has been in read-only mode since 2021.  This processor removes uses of `jcenter`
     and, if any of those are found, adds a mavenCentral repository declaration if
     one is not already present.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun getRefactoringId() = "con.android.tools.agp.upgrade.jcenterToMavenCentral"
 
@@ -107,7 +108,11 @@ class JCenterToMavenCentralRefactoringProcessor : AgpUpgradeComponentRefactoring
   }
 }
 
-class RemoveRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private val repositoriesModel: RepositoriesModel, private val repositoryModel: RepositoryModel): GradleBuildModelUsageInfo(wrappedPsiElement) {
+class RemoveRepositoryUsageInfo(
+  wrappedPsiElement: WrappedPsiElement,
+  private val repositoriesModel: RepositoriesModel,
+  private val repositoryModel: RepositoryModel,
+) : GradleBuildModelUsageInfo(wrappedPsiElement) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     repositoriesModel.removeRepository(repositoryModel)
   }
@@ -115,7 +120,8 @@ class RemoveRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private va
   override fun getTooltipText(): String = AgpUpgradeBundle.message("jcenterToMavenCentral.removeJCenter.tooltipText")
 }
 
-class AddMavenCentralRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private val repositoriesModel: RepositoriesModel): GradleBuildModelUsageInfo(wrappedPsiElement) {
+class AddMavenCentralRepositoryUsageInfo(wrappedPsiElement: WrappedPsiElement, private val repositoriesModel: RepositoriesModel) :
+  GradleBuildModelUsageInfo(wrappedPsiElement) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     repositoriesModel.addRepositoryByMethodName("mavenCentral")
   }

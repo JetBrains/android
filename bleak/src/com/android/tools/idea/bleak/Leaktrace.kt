@@ -35,17 +35,18 @@ class Leaktrace(val elements: List<LeaktraceElement>) {
   fun referenceMatches(index: Int, className: String, fieldName: String): Boolean {
     val realIndex = if (index < 0) elements.size - 1 + index else index
     if (realIndex < 0 || realIndex > elements.size - 2) return false
-    return elements[realIndex].typeOrClassName() == className && elements[realIndex+1].referenceLabel == fieldName
+    return elements[realIndex].typeOrClassName() == className && elements[realIndex + 1].referenceLabel == fieldName
   }
 }
 
 class LeaktraceElement(val type: String, val referenceLabel: String, obj: Any?) {
   val className = if (obj is Class<*>) obj.name else null
-  val description = try {
-    obj?.let { it.toString().take(100) }
-  } catch (t: Throwable) {
-    "[EXCEPTION in toString]"
-  }
+  val description =
+    try {
+      obj?.let { it.toString().take(100) }
+    } catch (t: Throwable) {
+      "[EXCEPTION in toString]"
+    }
 
   fun typeOrClassName() = className ?: type
 

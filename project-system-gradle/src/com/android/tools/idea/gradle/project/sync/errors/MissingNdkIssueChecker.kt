@@ -32,18 +32,20 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 
 private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
-private val PREFERRED_VERSION_PATTERNS = listOf(
-  "NDK not configured. Download it with SDK manager. Preferred NDK version is '$VERSION_PATTERN'.*".toRegex(),
-  "No version of NDK matched the requested version $VERSION_PATTERN.*".toRegex())
+private val PREFERRED_VERSION_PATTERNS =
+  listOf(
+    "NDK not configured. Download it with SDK manager. Preferred NDK version is '$VERSION_PATTERN'.*".toRegex(),
+    "No version of NDK matched the requested version $VERSION_PATTERN.*".toRegex(),
+  )
 
-class MissingNdkIssueChecker: GradleIssueChecker {
+class MissingNdkIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = errorMessage(issueData) ?: return null
 
@@ -55,20 +57,18 @@ class MissingNdkIssueChecker: GradleIssueChecker {
     if (preferredVersion != null) {
       // Preferred version can be found in the message, and it is available locally
       localRevision = ideSdks.getSpecificLocalPackage("ndk;$preferredVersion")?.version?.toString()
-    }
-    else if (matchesNdkNotConfigured(message) ||
-          matchesKnownLocatorIssue(message) ||
-          matchesTriedInstall(message)) {
+    } else if (matchesNdkNotConfigured(message) || matchesKnownLocatorIssue(message) || matchesTriedInstall(message)) {
 
       // Error message matches but it does not contain a preferred version, find highest version available locally.
-      localRevision = (ideSdks.getHighestLocalNdkPackage( /* No previews first */false) ?:
-                       ideSdks.getHighestLocalNdkPackage(true /* Then previews */))?.version?.toString()
-    }
-    else {
+      localRevision =
+        (ideSdks.getHighestLocalNdkPackage(/* No previews first */ false) ?: ideSdks.getHighestLocalNdkPackage(true /* Then previews */))
+          ?.version
+          ?.toString()
+    } else {
       return null
     }
 
-    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
+    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion
 
     if (gradleVersion != null && GradleVersionUtil.isGradleOlderOrSameAs(gradleVersion, "6.2")) {
       // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.
@@ -79,36 +79,42 @@ class MissingNdkIssueChecker: GradleIssueChecker {
 
     if (localRevision != null) {
       // Update project if a local version can be used
-      description += appendQuickFix(quickFixes, FixNdkVersionQuickFix(localRevision), "Update NDK version to $localRevision and sync project")
+      description +=
+        appendQuickFix(quickFixes, FixNdkVersionQuickFix(localRevision), "Update NDK version to $localRevision and sync project")
     } else {
       // Otherwise install preferred version (if the message has one, use latest if not))
-      description += appendQuickFix(quickFixes, InstallNdkQuickFix(preferredVersion?.toString()), if (preferredVersion != null)
-        "Install NDK '$preferredVersion' and sync project" else "Install latest NDK and sync project")
+      description +=
+        appendQuickFix(
+          quickFixes,
+          InstallNdkQuickFix(preferredVersion?.toString()),
+          if (preferredVersion != null) "Install NDK '$preferredVersion' and sync project" else "Install latest NDK and sync project",
+        )
     }
 
-    return object: BuildIssue {
+    return object : BuildIssue {
       override val title: String = "NDK not configured."
       override val description: String = description
       override val quickFixes: List<BuildIssueQuickFix> = quickFixes
+
       override fun getNavigatable(project: Project): Navigatable? = null
     }
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return tryExtractPreferredNdkDownloadVersion(failureCause) != null ||
-           matchesNdkNotConfigured(failureCause) ||
-           matchesKnownLocatorIssue(failureCause) ||
-           matchesTriedInstall(failureCause)
+      matchesNdkNotConfigured(failureCause) ||
+      matchesKnownLocatorIssue(failureCause) ||
+      matchesTriedInstall(failureCause)
   }
 
-  private fun appendQuickFix(quickFixes: MutableList<BuildIssueQuickFix>,
-                             quickFix: BuildIssueQuickFix,
-                             message: String): String {
+  private fun appendQuickFix(quickFixes: MutableList<BuildIssueQuickFix>, quickFix: BuildIssueQuickFix, message: String): String {
     quickFixes += quickFix
     return "\n<a href=\"${quickFix.id}\">$message</a>"
   }
@@ -121,21 +127,19 @@ class MissingNdkIssueChecker: GradleIssueChecker {
 
   private fun matchesNdkNotConfigured(errorMessage: String): Boolean {
     return errorMessage.startsWith("NDK not configured.") ||
-           errorMessage.startsWith("NDK location not found.") ||
-           errorMessage.startsWith("Requested NDK version") ||
-           errorMessage.startsWith("No version of NDK matched the requested version")
+      errorMessage.startsWith("NDK location not found.") ||
+      errorMessage.startsWith("Requested NDK version") ||
+      errorMessage.startsWith("No version of NDK matched the requested version")
   }
 
   private fun matchesKnownLocatorIssue(errorMessage: String): Boolean {
-    return (errorMessage.startsWith("Specified android.ndkVersion")
-            && errorMessage.contains("does not have enough precision")) ||
-           (errorMessage.startsWith("Location specified by ndk.dir"))
+    return (errorMessage.startsWith("Specified android.ndkVersion") && errorMessage.contains("does not have enough precision")) ||
+      (errorMessage.startsWith("Location specified by ndk.dir"))
   }
 
   private fun matchesTriedInstall(errorMessage: String): Boolean {
-    return (errorMessage.contains(
-      "Failed to install the following Android SDK packages as some licences have not been accepted.") || errorMessage.contains(
-      "Failed to install the following SDK components:")) && errorMessage.contains("NDK")
+    return (errorMessage.contains("Failed to install the following Android SDK packages as some licences have not been accepted.") ||
+      errorMessage.contains("Failed to install the following SDK components:")) && errorMessage.contains("NDK")
   }
 
   class FixNdkVersionQuickFix(val version: String) : BuildIssueQuickFix {
@@ -151,16 +155,11 @@ class MissingNdkIssueChecker: GradleIssueChecker {
           localProperties.save()
 
           // Rewrite android.ndkVersion.
-          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull {
-            GradleProjectSystemUtil.getGradleBuildFile(
-              it
-            )
-          }
+          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull { GradleProjectSystemUtil.getGradleBuildFile(it) }
           val processor = FixNdkVersionProcessor(project, buildFiles, version)
           processor.run()
           future.complete(null)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           future.completeExceptionally(e)
         }
       }
@@ -168,7 +167,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
     }
   }
 
-  class InstallNdkQuickFix(private val preferredVersion: String?): BuildIssueQuickFix {
+  class InstallNdkQuickFix(private val preferredVersion: String?) : BuildIssueQuickFix {
     override val id: String
       get() = "install.ndk.quickfix"
 
@@ -176,15 +175,10 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       val future = CompletableFuture<Any>()
       ApplicationManager.getApplication().invokeLater {
         try {
-          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull {
-            GradleProjectSystemUtil.getGradleBuildFile(
-              it
-            )
-          }
+          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull { GradleProjectSystemUtil.getGradleBuildFile(it) }
           InstallNdkHyperlink(preferredVersion, buildFiles).execute(project)
           future.complete(null)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           future.completeExceptionally(e)
         }
       }
@@ -193,11 +187,9 @@ class MissingNdkIssueChecker: GradleIssueChecker {
   }
 }
 
-/**
- * Try to recover preferred NDK version from the error message
- */
-fun tryExtractPreferredNdkDownloadVersion(text : String) : Revision? {
-  for(pattern in PREFERRED_VERSION_PATTERNS) {
+/** Try to recover preferred NDK version from the error message */
+fun tryExtractPreferredNdkDownloadVersion(text: String): Revision? {
+  for (pattern in PREFERRED_VERSION_PATTERNS) {
     val result = pattern.matchEntire(text) ?: continue
     val version = result.groups["version"]!!.value
     return Revision.parseRevision(version)

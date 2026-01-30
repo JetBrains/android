@@ -17,9 +17,7 @@ package com.android.tools.idea.lang.databinding.model
 
 import com.intellij.psi.PsiMember
 
-/**
- * PSI wrapper around a [PsiMember] of a Java class (for example, a field or a method).
- */
+/** PSI wrapper around a [PsiMember] of a Java class (for example, a field or a method). */
 interface PsiModelMember {
   val containingClass: PsiModelClass
 

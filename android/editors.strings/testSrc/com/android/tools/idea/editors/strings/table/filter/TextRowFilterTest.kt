@@ -44,8 +44,7 @@ class TextRowFilterTest {
 
   @Test
   fun getDescription() {
-    assertThat(textRowFilter.getDescription())
-      .isEqualTo("""Show Keys with Values Containing "$TEXT"""")
+    assertThat(textRowFilter.getDescription()).isEqualTo("""Show Keys with Values Containing "$TEXT"""")
   }
 
   @Test

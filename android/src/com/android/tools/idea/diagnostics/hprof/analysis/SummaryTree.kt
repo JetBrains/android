@@ -37,19 +37,22 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
     if (node.edges == null || depth >= depthLimit) return n
     for (e in node.edges!!) {
       if (e.value.totalSizeInBytes > sizeThreshold) {
-        n.edges[e.key] = convertToSummary(e.value, e.key, depth+1)
+        n.edges[e.key] = convertToSummary(e.value, e.key, depth + 1)
       }
     }
     return n
   }
 
   fun printTree(context: AnalysisContext, out: StringBuilder) {
-    roots.toList().sortedByDescending { pair -> pair.second.subtreeSize }.forEachIndexed { i, (id, node) ->
-      out.appendLine("Root ${i+1}:")
-      val rootReason = context.navigator.getRootReasonForObjectId(id.toLong())?.description ?: "<Couldn't find root description>"
-      out.appendLine("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   ROOT: $rootReason")
-      node.print(context, out)
-    }
+    roots
+      .toList()
+      .sortedByDescending { pair -> pair.second.subtreeSize }
+      .forEachIndexed { i, (id, node) ->
+        out.appendLine("Root ${i+1}:")
+        val rootReason = context.navigator.getRootReasonForObjectId(id.toLong())?.description ?: "<Couldn't find root description>"
+        out.appendLine("${sizeAndCountString(node.subtreeSize, node.instanceCount)}   ROOT: $rootReason")
+        node.print(context, out)
+      }
   }
 
   private fun sizeAndCountString(size: Long, count: Int): String {
@@ -73,7 +76,7 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
       for (e in edges) {
         for (oe in och) {
           if (e.key == oe.key) {
-            e.value.merge(oe.value, depth+1)
+            e.value.merge(oe.value, depth + 1)
             och.remove(oe)
             break
           }
@@ -81,7 +84,7 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
       }
       for (oe in och) {
         if (oe.value.totalSizeInBytes > sizeThreshold) {
-          edges[oe.key] = convertToSummary(oe.value, oe.key, depth+1)
+          edges[oe.key] = convertToSummary(oe.value, oe.key, depth + 1)
         }
       }
     }
@@ -99,13 +102,15 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
         if (node.edges.size == 1) {
           stack.push(StackEntry(node.edges.values.first(), edge.classDefinition, nextIndent, nextIndent))
         } else {
-          node.edges.entries.sortedBy { e -> e.value.subtreeSize }.forEachIndexed { index, (_, childNode) ->
-            if (index == 0) {
-              stack.push(StackEntry(childNode, edge.classDefinition, "$nextIndent\\-", "$nextIndent  "))
-            } else {
-              stack.push(StackEntry(childNode, edge.classDefinition, "$nextIndent+-", "$nextIndent| "))
+          node.edges.entries
+            .sortedBy { e -> e.value.subtreeSize }
+            .forEachIndexed { index, (_, childNode) ->
+              if (index == 0) {
+                stack.push(StackEntry(childNode, edge.classDefinition, "$nextIndent\\-", "$nextIndent  "))
+              } else {
+                stack.push(StackEntry(childNode, edge.classDefinition, "$nextIndent+-", "$nextIndent| "))
+              }
             }
-          }
         }
       }
     }

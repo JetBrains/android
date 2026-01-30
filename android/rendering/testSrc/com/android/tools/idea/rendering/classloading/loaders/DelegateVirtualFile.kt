@@ -20,21 +20,34 @@ import com.intellij.openapi.vfs.VirtualFileSystem
 import java.io.InputStream
 import java.io.OutputStream
 
-internal open class DelegateVirtualFile(private val delegate: VirtualFile): VirtualFile() {
+internal open class DelegateVirtualFile(private val delegate: VirtualFile) : VirtualFile() {
   override fun getName(): String = delegate.name
+
   override fun getFileSystem(): VirtualFileSystem = delegate.fileSystem
+
   override fun getPath(): String = delegate.path
+
   override fun isWritable(): Boolean = delegate.isWritable
+
   override fun isDirectory(): Boolean = delegate.isDirectory
+
   override fun isValid(): Boolean = delegate.isValid
+
   override fun getParent(): VirtualFile = delegate.parent
+
   override fun getChildren(): Array<VirtualFile> = delegate.children
+
   override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long): OutputStream =
     delegate.getOutputStream(requestor, newModificationStamp, newTimeStamp)
+
   override fun contentsToByteArray(): ByteArray = delegate.contentsToByteArray()
+
   override fun getTimeStamp(): Long = delegate.timeStamp
+
   override fun getLength(): Long = delegate.length
+
   override fun refresh(asynchronous: Boolean, recursive: Boolean, postRunnable: Runnable?) =
     delegate.refresh(asynchronous, recursive, postRunnable)
+
   override fun getInputStream(): InputStream = delegate.inputStream
 }

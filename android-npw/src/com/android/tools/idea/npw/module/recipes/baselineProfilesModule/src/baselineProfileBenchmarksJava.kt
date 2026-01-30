@@ -20,7 +20,7 @@ fun baselineProfileBenchmarksJava(
   className: String,
   packageName: String,
   targetPackageName: String,
-  useInstrumentationArgumentForAppId: Boolean
+  useInstrumentationArgumentForAppId: Boolean,
 ): String {
   return """package $packageName;
 

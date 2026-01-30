@@ -36,8 +36,7 @@ import org.mockito.kotlin.whenever
 @RunInEdt
 class DefaultAndroidTestResultsPsiElementProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private lateinit var applicationTestFile: VirtualFile
   private lateinit var androidTestModule: Module
@@ -46,10 +45,13 @@ class DefaultAndroidTestResultsPsiElementProviderTest {
   fun setUp() {
     projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
 
-    applicationTestFile = requireNotNull(
-      VfsUtil.findFileByIoFile(
-        File(projectRule.project.basePath + "/app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"), true)
-    )
+    applicationTestFile =
+      requireNotNull(
+        VfsUtil.findFileByIoFile(
+          File(projectRule.project.basePath + "/app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"),
+          true,
+        )
+      )
     androidTestModule = ModuleUtilCore.findModuleForFile(applicationTestFile, projectRule.project)!!
   }
 
@@ -97,10 +99,13 @@ class DefaultAndroidTestResultsPsiElementProviderTest {
     val containingClass = runReadAction { psiMethod.containingClass?.name }
     assertThat(containingClass).isEqualTo("ParameterizedTest")
 
-    val expectedContainingFile = requireNotNull(
-      VfsUtil.findFileByIoFile(
-        File(projectRule.project.basePath + "/app/src/androidTest/java/com/example/android/kotlin/ParameterizedTest.kt"), true)
-    )
+    val expectedContainingFile =
+      requireNotNull(
+        VfsUtil.findFileByIoFile(
+          File(projectRule.project.basePath + "/app/src/androidTest/java/com/example/android/kotlin/ParameterizedTest.kt"),
+          true,
+        )
+      )
     assertThat(psiMethod.containingFile.virtualFile).isEqualTo(expectedContainingFile)
   }
 

@@ -42,8 +42,7 @@ interface ServerFlagService {
 
   fun getBoolean(name: String, defaultValue: Boolean): Boolean = getBoolean(name) ?: defaultValue
 
-  fun <T : Message> getProto(name: String, defaultInstance: T) =
-    getProtoOrNull(name, defaultInstance) ?: defaultInstance
+  fun <T : Message> getProto(name: String, defaultInstance: T) = getProtoOrNull(name, defaultInstance) ?: defaultInstance
 
   companion object {
     val instance: ServerFlagService

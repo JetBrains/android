@@ -24,14 +24,11 @@ import javax.swing.RowFilter
 abstract class StringResourceTableRowFilter : RowFilter<StringResourceTableModel, Int>() {
   /** Returns an icon representing the filter, or `null` if none exists. */
   open fun getIcon(): Icon? = null
+
   /** Returns a string description of what the filter does, for use in the UI. */
   abstract fun getDescription(): String
+
   /** Returns a sequence of all text-like values in the row as [String]s. */
-  protected fun Entry<out StringResourceTableModel, out Int>.stringValues(
-      startIndex: Int = 0
-  ): Sequence<String> =
-      (startIndex until valueCount)
-          .asSequence()
-          .filter { it != UNTRANSLATABLE_COLUMN }
-          .map(this::getStringValue)
+  protected fun Entry<out StringResourceTableModel, out Int>.stringValues(startIndex: Int = 0): Sequence<String> =
+    (startIndex until valueCount).asSequence().filter { it != UNTRANSLATABLE_COLUMN }.map(this::getStringValue)
 }

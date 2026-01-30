@@ -69,8 +69,7 @@ class AdbServerStatusRetriever(project: Project) {
 }
 
 /**
- * This activity ensures that AdbServerStatusRetriever service is eagerly initialized to have
- * serverStatus field populated and ready to use.
+ * This activity ensures that AdbServerStatusRetriever service is eagerly initialized to have serverStatus field populated and ready to use.
  */
 class AdbServerStatusRetrieverInitializerActivity : ProjectActivity {
   override suspend fun execute(project: Project) {

@@ -36,8 +36,7 @@ internal class SelectMultipleDevicesDialog(
 ) : DialogWrapper(project) {
 
   private val devicesSelectedService = devicesSelectedServiceSupplier(project)
-  private val model =
-    SelectMultipleDevicesDialogTableModel(devicesSelectedService.devicesAndTargets.allDevices)
+  private val model = SelectMultipleDevicesDialogTableModel(devicesSelectedService.devicesAndTargets.allDevices)
   internal val table =
     SelectMultipleDevicesDialogTable().apply {
       setModel(this@SelectMultipleDevicesDialog.model)
@@ -76,8 +75,7 @@ internal class SelectMultipleDevicesDialog(
 
   override fun postponeValidation() = false
 
-  override fun getDimensionServiceKey() =
-    "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog"
+  override fun getDimensionServiceKey() = "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog"
 
   override fun getPreferredFocusedComponent() = table
 
@@ -87,15 +85,13 @@ internal class SelectMultipleDevicesDialog(
     val ids = Sets.newHashSetWithExpectedSize<DeviceId>(targets.size)
     val duplicateIds = targets.any { !ids.add(it.deviceId) }
     if (duplicateIds) {
-      val message =
-        "Some of the selected targets are for the same device. Each target should be for a different device."
+      val message = "Some of the selected targets are for the same device. Each target should be for a different device."
       return ValidationInfo(message, null)
     }
     if (
       targets.size > 1 &&
-        (targets.any {
-          it.device.androidDevice.appPreferredAbi != null && it.device.androidDevice.abis.size > 1
-        } || targets.distinctBy { it.device.androidDevice.appPreferredAbi }.size != 1)
+        (targets.any { it.device.androidDevice.appPreferredAbi != null && it.device.androidDevice.abis.size > 1 } ||
+          targets.distinctBy { it.device.androidDevice.appPreferredAbi }.size != 1)
     ) {
       val message =
         "Some of the targets have a preferred ABI set. However, the preferred ABI may be ignored when deploying to multiple devices."

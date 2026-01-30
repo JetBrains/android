@@ -87,21 +87,16 @@ open class NlPropertiesModel(
   private val listeners: MutableList<PropertiesModelListener<NlPropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
-  private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? ->
-    usePanel(panel)
+  private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
+  private val accessorySelectionListener = AccessorySelectionListener { panel, type, accessory, selection ->
+    handlePanelSelectionUpdate(panel, type, accessory, selection)
   }
-  private val accessorySelectionListener =
-    AccessorySelectionListener { panel, type, accessory, selection ->
-      handlePanelSelectionUpdate(panel, type, accessory, selection)
-    }
   private var activeSurface: DesignSurface<*>? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
   protected var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
-  private val liveChangeListener: ChangeListener = ChangeListener {
-    firePropertyValueChangeIfNeeded()
-  }
+  private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
   /** [CoroutineScope] to be used by any operations constrained to the lifetime of the model. */
   internal val supervisorScope: CoroutineScope = AndroidCoroutineScope(parentDisposable)
@@ -118,23 +113,13 @@ open class NlPropertiesModel(
   ) : this(
     parentDisposable,
     facet,
-    MergingUpdateQueue(
-      UPDATE_QUEUE_NAME,
-      UPDATE_DELAY_MILLI_SECONDS,
-      true,
-      null,
-      parentDisposable,
-      null,
-      Alarm.ThreadToUse.SWING_THREAD,
-    ),
+    MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD),
   )
 
   var surface: DesignSurface<*>?
     get() = activeSurface
     set(value) {
-      value?.let {
-        Disposer.register(it, WeakReferenceDisposableWrapper { useDesignSurface(null) })
-      }
+      value?.let { Disposer.register(it, WeakReferenceDisposableWrapper { useDesignSurface(null) }) }
       useDesignSurface(value)
     }
 
@@ -201,9 +186,7 @@ open class NlPropertiesModel(
   private fun createResolverCache(surface: DesignSurface<*>?): LazyCachedValue<ResourceResolver?> {
     return LazyCachedValue(
       supervisorScope,
-      loader = {
-        runInterruptible(workerThread) { surface?.model?.configuration?.resourceResolver }
-      },
+      loader = { runInterruptible(workerThread) { surface?.model?.configuration?.resourceResolver } },
       onValueLoaded = { _ ->
         withContext(uiThread) {
           // Trigger refresh of all properties due to the resolver being available
@@ -227,9 +210,7 @@ open class NlPropertiesModel(
   private fun readPropertyValue(property: NlPropertyItem): String? {
     var prev: String? = null
     for (component in property.components) {
-      val value =
-        component.getLiveAttributeWithoutStyleResolution(property.namespace, property.name)
-          ?: return null
+      val value = component.getLiveAttributeWithoutStyleResolution(property.namespace, property.name) ?: return null
       prev = prev ?: value
       if (value != prev) return null
     }
@@ -241,29 +222,18 @@ open class NlPropertiesModel(
     if (property.project.isDisposed || property.components.isEmpty()) {
       return
     }
-    val componentName =
-      if (property.components.size == 1) property.components[0].tagName else "Multiple"
+    val componentName = if (property.components.size == 1) property.components[0].tagName else "Multiple"
 
-    @Suppress("DEPRECATION")
-    property.components.forEach {
-      it.snapshot?.setAttribute(property.name, property.namespace, null, newValue)
-    }
+    @Suppress("DEPRECATION") property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
 
     ApplicationManager.getApplication()
       .invokeLater(
         {
-          NlWriteCommandActionUtil.run(
-            property.components,
-            "Set $componentName.${property.name} to $newValue",
-          ) {
-            property.components.forEach {
-              it.setAttribute(property.namespace, property.name, newValue)
-            }
+          NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
+            property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
             val compatibleAttribute = compatibleMarginAttribute(property)
             if (compatibleAttribute != null) {
-              property.components.forEach {
-                it.setAttribute(property.namespace, compatibleAttribute, newValue)
-              }
+              property.components.forEach { it.setAttribute(property.namespace, compatibleAttribute, newValue) }
             }
             logPropertyValueChanged(property)
             if (property.namespace == TOOLS_URI) {
@@ -292,8 +262,7 @@ open class NlPropertiesModel(
   private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
     if (
       property.namespace != ANDROID_URI ||
-        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >=
-          RtlSupportProcessor.RTL_TARGET_SDK_START
+        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START
     ) {
       return null
     }
@@ -312,9 +281,7 @@ open class NlPropertiesModel(
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
       activeSceneView = surface?.focusedSceneView
-      activeSceneView?.let {
-        Disposer.register(it, WeakReferenceDisposableWrapper { activeSceneView = null })
-      }
+      activeSceneView?.let { Disposer.register(it, WeakReferenceDisposableWrapper { activeSceneView = null }) }
     }
     makeInitialSelection(surface, activePanel)
   }
@@ -351,10 +318,7 @@ open class NlPropertiesModel(
     }
   }
 
-  private fun setAccessorySelectionListener(
-    old: AccessoryPanelInterface?,
-    new: AccessoryPanelInterface?,
-  ) {
+  private fun setAccessorySelectionListener(old: AccessoryPanelInterface?, new: AccessoryPanelInterface?) {
     old?.removeListener(accessorySelectionListener)
     new?.addListener(accessorySelectionListener)
   }
@@ -377,9 +341,7 @@ open class NlPropertiesModel(
   }
 
   private fun getRootComponent(surface: DesignSurface<*>?): List<NlComponent> {
-    return surface?.models?.singleOrNull()?.treeReader?.components?.singleOrNull()?.let {
-      listOf(it)
-    } ?: return emptyList()
+    return surface?.models?.singleOrNull()?.treeReader?.components?.singleOrNull()?.let { listOf(it) } ?: return emptyList()
   }
 
   protected open fun wantSelectionUpdate(
@@ -407,9 +369,7 @@ open class NlPropertiesModel(
   ) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
-    val wantUpdate = {
-      wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory)
-    }
+    val wantUpdate = { wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory) }
     loadProperties(type, accessory, components, wantUpdate)
   }
 
@@ -434,32 +394,12 @@ open class NlPropertiesModel(
     selectedAccessory: Any?,
     components: List<NlComponent>,
   ) {
-    if (
-      wantSelectionUpdate(
-        activeSurface,
-        activeSurface,
-        panel,
-        activePanel,
-        selectedAccessoryType,
-        selectedAccessory,
-      )
-    ) {
-      scheduleSelectionUpdate(
-        activeSurface,
-        panel,
-        selectedAccessoryType,
-        selectedAccessory,
-        components,
-      )
+    if (wantSelectionUpdate(activeSurface, activeSurface, panel, activePanel, selectedAccessoryType, selectedAccessory)) {
+      scheduleSelectionUpdate(activeSurface, panel, selectedAccessoryType, selectedAccessory, components)
     }
   }
 
-  protected open fun loadProperties(
-    type: Any?,
-    accessory: Any?,
-    components: List<NlComponent>,
-    wantUpdate: () -> Boolean,
-  ) {
+  protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean) {
     if (!wantUpdate()) {
       return
     }
@@ -519,24 +459,15 @@ open class NlPropertiesModel(
     val tag = property.firstTag ?: return
     val resourceReference = property.resolveValueAsReference(property.value) ?: return
     val folderConfiguration = property.getFolderConfiguration() ?: return
-    val targetElement =
-      ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
-        resourceReference,
-        tag,
-        folderConfiguration,
-      ) ?: return
+    val targetElement = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(resourceReference, tag, folderConfiguration) ?: return
     if (targetElement is Navigatable) {
       targetElement.navigate(true)
     }
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
-    override fun componentSelectionChanged(
-      surface: DesignSurface<*>,
-      newSelection: List<NlComponent>,
-    ) {
-      val displayedComponents =
-        if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+    override fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {
+      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
       if (activePanel == null && !sameAsTheCurrentLiveListeners(displayedComponents)) {
         scheduleSelectionUpdate(surface, null, null, null, displayedComponents)
       }
@@ -559,16 +490,10 @@ open class NlPropertiesModel(
 
   companion object {
     internal val EP_NAME =
-      ExtensionPointName<NlPropertiesModelProvider>(
-        "com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider"
-      )
+      ExtensionPointName<NlPropertiesModelProvider>("com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider")
   }
 }
 
 interface NlPropertiesModelProvider {
-  fun create(
-    content: NlPropertiesPanelToolContent,
-    facet: AndroidFacet,
-    updateQueue: MergingUpdateQueue,
-  ): NlPropertiesModel
+  fun create(content: NlPropertiesPanelToolContent, facet: AndroidFacet, updateQueue: MergingUpdateQueue): NlPropertiesModel
 }

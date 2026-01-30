@@ -20,8 +20,8 @@ import java.io.File
 /**
  * A Signing Configuration.
  *
- * This is an interface for the gradle tooling api, and should only be used from Android Studio.
- * It is not part of the DSL & API interfaces of the Android Gradle Plugin.
+ * This is an interface for the gradle tooling api, and should only be used from Android Studio. It is not part of the DSL & API interfaces
+ * of the Android Gradle Plugin.
  */
 interface IdeSigningConfig {
   /** Returns the name of the Signing config */

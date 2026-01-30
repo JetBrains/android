@@ -44,21 +44,21 @@ class DumbModeTest {
     val xmlContent =
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment"
-              android:name="test.safeargs.Fragment"
-              android:label="Fragment1">
+        <fragment
+            android:id="@+id/fragment"
+            android:name="test.safeargs.Fragment"
+            android:label="Fragment1">
 
-              <argument
-                  android:name="arg1"
-                  app:argType="string" />
-          </fragment>
-        </navigation>
+            <argument
+                android:name="arg1"
+                app:argType="string" />
+        </fragment>
+      </navigation>
       """
         .trimIndent()
     val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
@@ -71,15 +71,13 @@ class DumbModeTest {
     DumbModeTestUtils.runInDumbModeSynchronously(project) {
       val replaceXmlContent =
         """
-            <argument
-                android:name="arg2"
-                app:argType="integer" />
-          </fragment>
+          <argument
+              android:name="arg2"
+              app:argType="integer" />
+        </fragment>
         """
           .trimIndent()
-      WriteCommandAction.runWriteCommandAction(project) {
-        navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
-      }
+      WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project) }
 
       // Fetching nav info during dumb mode is not allowed
       assertThrows(IndexNotReadyException::class.java) { moduleCache.args }
@@ -89,6 +87,5 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>) =
-    args.sumOf { it.destination.arguments.size }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumOf { it.destination.arguments.size }
 }

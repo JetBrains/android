@@ -24,8 +24,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
-object PreferenceScreenFileType :
-  LayoutEditorFileType("preference_screen"), XmlDesignerEditorFileType {
+object PreferenceScreenFileType : LayoutEditorFileType("preference_screen"), XmlDesignerEditorFileType {
   override val resourceFolderType: ResourceFolderType = ResourceFolderType.XML
 
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.PREFERENCE_SCREEN
@@ -35,10 +34,6 @@ object PreferenceScreenFileType :
       FileDescriptionUtils.isResourceOfTypeWithRootTag(
         file,
         ResourceFolderType.XML,
-        listOf(
-          PREFERENCE_SCREEN,
-          CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
-          CLASS_PREFERENCE_SCREEN_ANDROIDX.newName(),
-        ),
+        listOf(PREFERENCE_SCREEN, CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(), CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()),
       )
 }

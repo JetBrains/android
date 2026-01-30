@@ -25,14 +25,10 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import java.nio.file.Path
 
 /**
- * Builds emulator GeneralCommandLines such as `/home/user/Android/Sdk/emulator/emulator -netdelay
- * none -netspeed full -avd Pixel_4_API_30`.
+ * Builds emulator GeneralCommandLines such as `/home/user/Android/Sdk/emulator/emulator -netdelay none -netspeed full -avd Pixel_4_API_30`.
  */
 class EmulatorCommandBuilder(emulator: Path, val avd: AvdInfo) {
-  /**
-   * The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on
-   * Linux.
-   */
+  /** The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on Linux. */
   private val emulator: Path =
     when (val emulatorBinary = avd.userSettings[UserSettingsKey.EMULATOR_BINARY]) {
       null -> emulator
@@ -57,10 +53,7 @@ class EmulatorCommandBuilder(emulator: Path, val avd: AvdInfo) {
       command.environment.put("ANDROID_HOME", sdkLocation.toString())
     }
 
-    command.addParametersIfParameter2IsntNull(
-      "-netdelay",
-      avd.getProperty(ConfigKey.NETWORK_LATENCY),
-    )
+    command.addParametersIfParameter2IsntNull("-netdelay", avd.getProperty(ConfigKey.NETWORK_LATENCY))
     command.addParametersIfParameter2IsntNull("-netspeed", avd.getProperty(ConfigKey.NETWORK_SPEED))
 
     command.addParameters(bootMode.arguments())
@@ -75,14 +68,10 @@ class EmulatorCommandBuilder(emulator: Path, val avd: AvdInfo) {
     }
 
     command.addParameters(studioEmuParams)
-    avd.userSettings[UserSettingsKey.COMMAND_LINE_OPTIONS]?.let {
-      command.addParameters(parseCommandLineOptions(it))
-    }
+    avd.userSettings[UserSettingsKey.COMMAND_LINE_OPTIONS]?.let { command.addParameters(parseCommandLineOptions(it)) }
 
     if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
-      avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)?.let {
-        command.addParameters(parseCommandLineOptions(it))
-      }
+      avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)?.let { command.addParameters(parseCommandLineOptions(it)) }
     }
     return command
   }
@@ -92,10 +81,7 @@ private fun parseCommandLineOptions(options: String): List<String> {
   return options.trim().split("\\s+".toRegex())
 }
 
-private fun GeneralCommandLine.addParametersIfParameter2IsntNull(
-  parameter1: String,
-  parameter2: Any?,
-) {
+private fun GeneralCommandLine.addParametersIfParameter2IsntNull(parameter1: String, parameter2: Any?) {
   parameter2 ?: return
   addParameters(parameter1, parameter2.toString())
 }

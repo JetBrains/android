@@ -41,9 +41,8 @@ import kotlinx.coroutines.launch
 private const val DEVICE_DOWNLOAD_DIR = "/sdcard/Download"
 
 /**
- * Installs a drop handler that installs .apk files and copies all other files to
- * the `/sdcard/Download` directory of the device. The lifetime of the drop handler
- * is determined by the lifetime of [displayView].
+ * Installs a drop handler that installs .apk files and copies all other files to the `/sdcard/Download` directory of the device. The
+ * lifetime of the drop handler is determined by the lifetime of [displayView].
  *
  * @param dropTarget the drop target component
  * @param displayView the view associated with the device
@@ -64,13 +63,11 @@ fun installFileDropHandler(dropTarget: JComponent, deviceSerialNumber: String, d
     .install()
 }
 
-/**
- * Drop handler that installs .apk files and pushes other files to the device.
- */
+/** Drop handler that installs .apk files and pushes other files to the device. */
 private class DeviceFileDropHandler(
   private val deviceSerialNumber: String,
   private val displayView: AbstractDisplayView,
-  private val project: Project
+  private val project: Project,
 ) : DnDDropHandler {
 
   override fun drop(event: DnDEvent) {
@@ -94,22 +91,18 @@ private class DeviceFileDropHandler(
         try {
           adb.install(deviceSelector, files, listOf("-t", "--user", "current", "--full"))
           notifyOfSuccess("${formatForDisplay("App consisting of ", files)} installed")
-        }
-        catch (e: Throwable) {
-          val message = if (e is InstallException && e.isInvalidCompoundApk() && files.size > 1) {
-            "The ${files.size} files don't belong to the same app"
-          }
-          else {
-            e.message ?: "Installation failed - ${e.javaClass.simpleName}"
-          }
+        } catch (e: Throwable) {
+          val message =
+            if (e is InstallException && e.isInvalidCompoundApk() && files.size > 1) {
+              "The ${files.size} files don't belong to the same app"
+            } else {
+              e.message ?: "Installation failed - ${e.javaClass.simpleName}"
+            }
           notifyOfError(message)
         }
-        UIUtil.invokeLaterIfNeeded {
-          displayView.hideLongRunningOperationIndicator()
-        }
+        UIUtil.invokeLaterIfNeeded { displayView.hideLongRunningOperationIndicator() }
       }
-    }
-    else {
+    } else {
       val fileList = formatForDisplay("", files)
       displayView.showLongRunningOperationIndicator("Copying $fileList")
 
@@ -119,14 +112,11 @@ private class DeviceFileDropHandler(
             adb.syncSend(deviceSelector, file, "$DEVICE_DOWNLOAD_DIR/${file.fileName}", RemoteFileMode.DEFAULT)
           }
           notifyOfSuccess("$fileList copied")
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           val message = e.message ?: "Copying failed"
           notifyOfError(message)
         }
-        UIUtil.invokeLaterIfNeeded {
-          displayView.hideLongRunningOperationIndicator()
-        }
+        UIUtil.invokeLaterIfNeeded { displayView.hideLongRunningOperationIndicator() }
       }
     }
   }
@@ -134,11 +124,12 @@ private class DeviceFileDropHandler(
   /** Checks the files and, if any error is detected, reports it and returns false. */
   private fun checkFiles(files: List<Path>): Boolean {
     for (file in files) {
-      val problemMessage = when {
-        Files.isDirectory(file) -> "is a directory"
-        !Files.isReadable(file) -> "is not readable"
-        else -> continue
-      }
+      val problemMessage =
+        when {
+          Files.isDirectory(file) -> "is a directory"
+          !Files.isReadable(file) -> "is not readable"
+          else -> continue
+        }
       var fileForDisplay = file.toString()
       if (fileForDisplay.length > 30) {
         fileForDisplay = file.fileName.toString()
@@ -150,7 +141,7 @@ private class DeviceFileDropHandler(
   }
 
   private fun formatForDisplay(prefixForPluralCase: String, files: List<Path>): String =
-      if (files.size == 1) files.first().fileNameForDisplay() else "$prefixForPluralCase${files.size} files"
+    if (files.size == 1) files.first().fileNameForDisplay() else "$prefixForPluralCase${files.size} files"
 
   private fun getFileTypes(files: List<Path>): Set<FileType> {
     val types = EnumSet.noneOf(FileType::class.java)
@@ -172,7 +163,7 @@ private class DeviceFileDropHandler(
   }
 
   private fun InstallException.isInvalidCompoundApk() =
-      errorCode == "INSTALL_FAILED_INVALID_APK" && errorMessage.endsWith(" Split null was defined multiple times")
+    errorCode == "INSTALL_FAILED_INVALID_APK" && errorMessage.endsWith(" Split null was defined multiple times")
 
   private fun Path.fileNameForDisplay(): String {
     val filename = fileName.toString()
@@ -181,5 +172,8 @@ private class DeviceFileDropHandler(
     return shortenTextWithEllipsis(filename, 32, suffixLength)
   }
 
-  private enum class FileType { APK, OTHER }
+  private enum class FileType {
+    APK,
+    OTHER,
+  }
 }

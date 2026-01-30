@@ -16,16 +16,14 @@
 package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.gradle.project.Info
-import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.impl.DirectoryIndexExcludePolicy
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
-import org.jetbrains.plugins.gradle.settings.GradleSettings
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
  * A [DirectoryIndexExcludePolicy] that temporarily excludes all directories under a Gradle root from the project while the initial sync
@@ -68,24 +66,15 @@ private fun Project.projectHasAnyExcludeRoots(): Boolean {
 }
 
 private fun Project.getGradleRoots(): List<File> {
-  return GradleSettings.getInstance(this)
-    .linkedProjectsSettings
-    .mapNotNull { File(it.externalProjectPath) }
+  return GradleSettings.getInstance(this).linkedProjectsSettings.mapNotNull { File(it.externalProjectPath) }
 }
 
 private fun getDirectoriesToExcludeUnderGradleRoot(gradleRoot: File): List<File> {
-  val existingDirectoryNames =
-    gradleRoot
-      .listFiles()
-      .orEmpty()
-      .filter { it.isDirectory }
-      .map { it.name }
-      .toSet()
+  val existingDirectoryNames = gradleRoot.listFiles().orEmpty().filter { it.isDirectory }.map { it.name }.toSet()
 
   val wellKnownDirectoryNames = setOf("build", ".gradle")
 
-  return (existingDirectoryNames + wellKnownDirectoryNames)
-    .map { gradleRoot.resolve(it) }
+  return (existingDirectoryNames + wellKnownDirectoryNames).map { gradleRoot.resolve(it) }
 }
 
 private val EXCLUDE_DIRS_KEY: Key<Boolean> = Key.create("temporary_excluded_dirs")

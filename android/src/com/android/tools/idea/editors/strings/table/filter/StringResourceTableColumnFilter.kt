@@ -22,8 +22,10 @@ import javax.swing.Icon
 interface StringResourceTableColumnFilter {
   /** Decides whether to show the column representing the given [locale]. */
   fun include(locale: Locale): Boolean
+
   /** Returns an [Icon] representing the filter's [Locale], if any. */
   fun getIcon(): Icon? = null
+
   /** Returns a text description of what the filter does for use in the UI. */
   fun getDescription(): String
 }

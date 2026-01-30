@@ -27,8 +27,7 @@ import org.junit.rules.TemporaryFolder
 
 /** A test that starts Android Studio with a custom JVM using the STUDIO_JDK env variable */
 internal class StartUpCustomJvmTest {
-  @get:Rule
-  var tempFolder = TemporaryFolder()
+  @get:Rule var tempFolder = TemporaryFolder()
 
   @Test
   fun startUpWithCustomJvmTest() {

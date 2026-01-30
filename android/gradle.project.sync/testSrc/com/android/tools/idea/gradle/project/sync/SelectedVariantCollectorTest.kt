@@ -25,79 +25,67 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class SelectedVariantCollectorTest {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testCreateVariantDetailsFrom() {
-    assertThat(createVariantDetailsFrom(
-      dimensions = listOf("dim1", "dim2"),
-      variant = object : IdeVariantHeader {
-        override val name = "fl1flADebug"
-        override val buildType = "debug"
-        override val productFlavors: List<String> = listOf("fl1", "flA")
-        override val displayName = name
-      },
-      abi = null
-    )).isEqualTo(
-      VariantDetails(
-        name = "fl1flADebug",
-        buildType = "debug",
-        flavors = listOf(
-          "dim1" to "fl1",
-          "dim2" to "flA"
-        ),
-        abi = null
+    assertThat(
+        createVariantDetailsFrom(
+          dimensions = listOf("dim1", "dim2"),
+          variant =
+            object : IdeVariantHeader {
+              override val name = "fl1flADebug"
+              override val buildType = "debug"
+              override val productFlavors: List<String> = listOf("fl1", "flA")
+              override val displayName = name
+            },
+          abi = null,
+        )
       )
-    )
+      .isEqualTo(VariantDetails(name = "fl1flADebug", buildType = "debug", flavors = listOf("dim1" to "fl1", "dim2" to "flA"), abi = null))
   }
 
   @Test
   fun testCreateVariantDetailsFrom_abi() {
-    assertThat(createVariantDetailsFrom(
-      dimensions = listOf("dim1", "dim2"),
-      variant = object : IdeVariantHeader {
-        override val name = "fl1flADebug"
-        override val buildType = "debug"
-        override val productFlavors: List<String> = listOf("fl1", "flA")
-        override val displayName = name
-      },
-      abi = "x86"
-    )).isEqualTo(
-      VariantDetails(
-        name = "fl1flADebug",
-        buildType = "debug",
-        flavors = listOf(
-          "dim1" to "fl1",
-          "dim2" to "flA"
-        ),
-        abi = "x86"
+    assertThat(
+        createVariantDetailsFrom(
+          dimensions = listOf("dim1", "dim2"),
+          variant =
+            object : IdeVariantHeader {
+              override val name = "fl1flADebug"
+              override val buildType = "debug"
+              override val productFlavors: List<String> = listOf("fl1", "flA")
+              override val displayName = name
+            },
+          abi = "x86",
+        )
       )
-    )
+      .isEqualTo(VariantDetails(name = "fl1flADebug", buildType = "debug", flavors = listOf("dim1" to "fl1", "dim2" to "flA"), abi = "x86"))
   }
 
   @Test
   fun testCreateVariantDetailsFrom_missingDimensions() {
-    assertThat(createVariantDetailsFrom(
-      dimensions = emptyList(),
-      variant = object : IdeVariantHeader {
-        override val name = "fl1flADebug"
-        override val buildType = "debug"
-        override val productFlavors: List<String> = listOf("fl1", "flA")
-        override val displayName = name
-      },
-      abi = null
-    )).isEqualTo(
-      VariantDetails(
-        name = "fl1flADebug",
-        buildType = "debug",
-        flavors = emptyList(),
-        abi = null
+    assertThat(
+        createVariantDetailsFrom(
+          dimensions = emptyList(),
+          variant =
+            object : IdeVariantHeader {
+              override val name = "fl1flADebug"
+              override val buildType = "debug"
+              override val productFlavors: List<String> = listOf("fl1", "flA")
+              override val displayName = name
+            },
+          abi = null,
+        )
       )
-    )
+      .isEqualTo(VariantDetails(name = "fl1flADebug", buildType = "debug", flavors = emptyList(), abi = null))
   }
 
-  private enum class TestMode { BOTH, APPLY, EXTRACT }
+  private enum class TestMode {
+    BOTH,
+    APPLY,
+    EXTRACT,
+  }
 
   @Test
   fun testExtractApplyAndName() {
@@ -106,7 +94,7 @@ class SelectedVariantCollectorTest {
       base: VariantDetails,
       selectionChange: VariantSelectionChange?,
       testMode: TestMode = TestMode.BOTH,
-      applyAbiMode: ApplyAbiSelectionMode = ApplyAbiSelectionMode.ALWAYS
+      applyAbiMode: ApplyAbiSelectionMode = ApplyAbiSelectionMode.ALWAYS,
     ) {
       this.expect.that(buildVariantName(base.buildType, base.flavors.asSequence().map { it.second })).isEqualTo(base.name)
       this.expect.that(buildVariantName(target.buildType, target.flavors.asSequence().map { it.second })).isEqualTo(target.name)
@@ -121,20 +109,20 @@ class SelectedVariantCollectorTest {
     expect(
       target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
-      selectionChange = VariantSelectionChange(buildType = "debug")
+      selectionChange = VariantSelectionChange(buildType = "debug"),
     )
 
     expect(
       testMode = TestMode.EXTRACT, /* It is not invertible when the configuration structure changes. */
       target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = "x86"),
-      selectionChange = VariantSelectionChange(buildType = "debug", abi = null/* abi not available after sync */),
+      selectionChange = VariantSelectionChange(buildType = "debug", abi = null /* abi not available after sync */),
     )
 
     expect(
       target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = "x86"),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
-      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
+      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86"),
     )
 
     expect(
@@ -142,49 +130,49 @@ class SelectedVariantCollectorTest {
       applyAbiMode = ApplyAbiSelectionMode.OVERRIDE_ONLY,
       target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
-      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
+      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86"),
     )
 
     expect(
       target = VariantDetails("aDebug", buildType = "debug", flavors = listOf("dim1" to "a"), abi = "x86"),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = "x86_64"),
-      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
+      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86"),
     )
 
     expect(
       target = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
-      selectionChange = VariantSelectionChange()
+      selectionChange = VariantSelectionChange(),
     )
 
     expect(
       target = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
-      selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b"))
+      selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b")),
     )
 
     expect(
       target = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
       base = VariantDetails("aXRelease", buildType = "release", flavors = listOf("dim1" to "a", "dim2" to "x"), abi = null),
-      selectionChange = null
+      selectionChange = null,
     )
 
     expect(
       target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("aXRelease", buildType = "release", flavors = listOf("dim1" to "a", "dim2" to "x"), abi = null),
-      selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b"))
+      selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b")),
     )
 
     expect(
       target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("bYDebug", buildType = "debug", flavors = listOf("dim1" to "b", "dim2" to "y"), abi = null),
-      selectionChange = VariantSelectionChange(buildType = "release", flavors = mapOf("dim2" to "x"))
+      selectionChange = VariantSelectionChange(buildType = "release", flavors = mapOf("dim2" to "x")),
     )
 
     expect(
       target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
-      selectionChange = null
+      selectionChange = null,
     )
   }
 }

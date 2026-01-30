@@ -24,14 +24,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.xml.sax.SAXParseException
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.text.ParseException
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.xml.parsers.DocumentBuilderFactory
+import org.jetbrains.android.facet.AndroidFacet
+import org.xml.sax.SAXParseException
 
 private val LOG = Logger.getInstance(DrawableAssetRenderer::class.java)
 
@@ -49,7 +49,7 @@ private val SUPPORTED_DRAWABLE_TAG =
     SdkConstants.TAG_SELECTOR,
     SdkConstants.TAG_SHAPE,
     SdkConstants.TAG_TRANSITION,
-    SdkConstants.TAG_VECTOR
+    SdkConstants.TAG_VECTOR,
   )
 
 /** [DesignAssetRenderer] to display Vector Drawable. */
@@ -57,10 +57,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
 
   private val documentBuilder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder()
 
-  private fun createRenderer(
-    module: Module,
-    targetFile: VirtualFile,
-  ): CompletableFuture<DrawableRenderer> {
+  private fun createRenderer(module: Module, targetFile: VirtualFile): CompletableFuture<DrawableRenderer> {
     val facet =
       AndroidFacet.getInstance(module)
         ?: return CompletableFuture<DrawableRenderer>().also {
@@ -68,15 +65,15 @@ class DrawableAssetRenderer : DesignAssetRenderer {
         }
 
     return CompletableFuture.supplyAsync(
-      Supplier { return@Supplier DrawableRenderer(facet, targetFile) },
-      AppExecutorUtil.getAppExecutorService()
+      Supplier {
+        return@Supplier DrawableRenderer(facet, targetFile)
+      },
+      AppExecutorUtil.getAppExecutorService(),
     )
   }
 
   override fun isFileSupported(file: VirtualFile): Boolean {
-    if (
-      !FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) || file.length == 0L
-    ) {
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) || file.length == 0L) {
       return false
     }
 
@@ -92,31 +89,22 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     }
   }
 
-  override fun getImage(
-    file: VirtualFile,
-    module: Module?,
-    dimension: Dimension,
-    context: Any?
-  ): CompletableFuture<out BufferedImage?> {
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<out BufferedImage?> {
     try {
       if (module == null) {
         return CompletableFuture<BufferedImage?>().also {
-          it.completeExceptionally(
-            NullPointerException("Module cannot be null to render a Drawable.")
-          )
+          it.completeExceptionally(NullPointerException("Module cannot be null to render a Drawable."))
         }
       }
 
       if (!isFileSupported(file)) {
         return CompletableFuture<BufferedImage?>().also {
-          it.completeExceptionally(
-            ParseException("${file.path} couldn't be parsed as a drawable.", 0)
-          )
+          it.completeExceptionally(ParseException("${file.path} couldn't be parsed as a drawable.", 0))
         }
       }
 
       val contextFile = context as? VirtualFile
-      val targetFile = contextFile ?: file  // A file representing a target that includes required resources.
+      val targetFile = contextFile ?: file // A file representing a target that includes required resources.
       val renderer = createRenderer(module, targetFile)
 
       val xmlContent = String(file.contentsToByteArray())

@@ -68,8 +68,7 @@ class TreeSettingsActionsTest {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  private val studioFlagRule =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
+  private val studioFlagRule = FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_STATE_READS, true)
   private val disposableRule = DisposableRule()
 
   @get:Rule val chain = RuleChain(disposableRule, studioFlagRule)
@@ -90,21 +89,14 @@ class TreeSettingsActionsTest {
     val systemNodeFilterAction = SystemNodeFilterAction { null }
     val event = createEvent()
     systemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
-    systemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) {
-      treeSettings.hideSystemNodes
-    }
+    systemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) { treeSettings.hideSystemNodes }
   }
 
   @Test
   fun testHighlightSemanticsFilterAction() {
     val event = createEvent()
     HighlightSemanticsAction.testActionVisibility(event, Capability.SUPPORTS_SEMANTICS)
-    HighlightSemanticsAction.testToggleAction(
-      event,
-      LayoutInspectorTreePanel::updateSemanticsFiltering,
-    ) {
-      treeSettings.highlightSemantics
-    }
+    HighlightSemanticsAction.testToggleAction(event, LayoutInspectorTreePanel::updateSemanticsFiltering) { treeSettings.highlightSemantics }
   }
 
   @Test
@@ -164,8 +156,7 @@ class TreeSettingsActionsTest {
 
     // Check recomposition not supported in compose inspector:
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.text)
-      .isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
 
     capabilities.remove(Capability.HAS_LINE_NUMBER_INFORMATION)
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
@@ -173,8 +164,7 @@ class TreeSettingsActionsTest {
 
     // Check recomposition no source information:
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.text)
-      .isEqualTo("Show Recomposition Counts (No Source Information Found)")
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts (No Source Information Found)")
 
     capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
     currentClient = snapshotClient
@@ -207,10 +197,7 @@ class TreeSettingsActionsTest {
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
   }
 
-  private fun AnAction.testActionVisibility(
-    event: AnActionEvent,
-    vararg controllingCapabilities: Capability,
-  ) {
+  private fun AnAction.testActionVisibility(event: AnActionEvent, vararg controllingCapabilities: Capability) {
     // All actions should be visible when not connected; no matter the controlling capability:
     isConnected = false
     capabilities.clear()
@@ -292,27 +279,17 @@ class TreeSettingsActionsTest {
 
     return runInEdtAndGet {
       val dataContext =
-        SimpleDataContext.builder()
-          .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
-          .add(LAYOUT_INSPECTOR_DATA_KEY, inspector)
-          .build()
+        SimpleDataContext.builder().add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel).add(LAYOUT_INSPECTOR_DATA_KEY, inspector).build()
       TestActionEvent.createTestEvent(dataContext)
     }
   }
 
   private fun createModel(): InspectorModel {
-    val screenSimple =
-      ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
-    val appcompatScreenSimple =
-      ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val mainLayout =
-      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+    val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     return model(disposableRule.disposable) {
-      view(ROOT) {
-        view(VIEW1, layout = mainLayout) {
-          view(VIEW2, layout = screenSimple) { view(VIEW3, layout = appcompatScreenSimple) }
-        }
-      }
+      view(ROOT) { view(VIEW1, layout = mainLayout) { view(VIEW2, layout = screenSimple) { view(VIEW3, layout = appcompatScreenSimple) } } }
     }
   }
 }

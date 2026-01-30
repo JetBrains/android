@@ -23,11 +23,11 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 class RefreshDesignAssetActionTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -66,13 +66,13 @@ class RefreshDesignAssetActionTest {
     Truth.assertThat(latch.count).isEqualTo(1) // Not called when disabled.
   }
 
-  /**
-   * Returns simple [DesignAsset]s for each of the given [ResourceType]s.
-   */
+  /** Returns simple [DesignAsset]s for each of the given [ResourceType]s. */
   private fun getDesignAssets(types: Array<ResourceType>): Array<DesignAsset> {
-    return types.map { type ->
-      val name = type.getName()
-      DesignAsset(MockVirtualFile("$name.xml"), emptyList(), type, "my_$name")
-    }.toTypedArray()
+    return types
+      .map { type ->
+        val name = type.getName()
+        DesignAsset(MockVirtualFile("$name.xml"), emptyList(), type, "my_$name")
+      }
+      .toTypedArray()
   }
 }

@@ -21,18 +21,22 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import javax.swing.Icon
 
-interface PsModelNode<T: PsModel> {
+interface PsModelNode<T : PsModel> {
   val models: List<T>
-  val firstModel: T get() = models.first()
+  val firstModel: T
+    get() = models.first()
+
   fun nameOf(model: T): String = model.name
 
   fun buildName(): String = models.map { nameOf(it) }.distinct().joinToString(", ")
-  fun buildIcon(): Icon?  = models.firstOrNull()?.icon
+
+  fun buildIcon(): Icon? = models.firstOrNull()?.icon
 }
 
 abstract class AbstractPsModelNode<T : PsModel> : AbstractPsNode, PsModelNode<T> {
 
   protected constructor(parent: AbstractPsNode, uiSettings: PsUISettings) : super(parent, uiSettings)
+
   protected constructor(uiSettings: PsUISettings) : super(uiSettings)
 
   protected fun updateNameAndIcon() {

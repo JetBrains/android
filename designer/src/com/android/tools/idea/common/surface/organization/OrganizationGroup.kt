@@ -27,22 +27,12 @@ import org.jetbrains.jewel.ui.icon.PathIconKey
  * Type of the preview group - for example test preview.
  *
  * @param iconKey icon for this preview
- * @param icon icon for this preview, same as [iconKey], the only difference is that Compose and
- *   Swing needs different format for icons.
- * @param defaultGroupState default [OrganizationGroup.isOpened] state of new created
- *   [OrganizationGroup].
+ * @param icon icon for this preview, same as [iconKey], the only difference is that Compose and Swing needs different format for icons.
+ * @param defaultGroupState default [OrganizationGroup.isOpened] state of new created [OrganizationGroup].
  */
-enum class OrganizationGroupType(
-  val iconKey: PathIconKey?,
-  val icon: Icon?,
-  val defaultGroupState: Boolean,
-) {
+enum class OrganizationGroupType(val iconKey: PathIconKey?, val icon: Icon?, val defaultGroupState: Boolean) {
   Default(null, null, true),
-  Test(
-    PathIconKey("expui/runConfigurations/junit.svg", AllIcons::class.java),
-    AllIcons.RunConfigurations.Junit,
-    false,
-  ),
+  Test(PathIconKey("expui/runConfigurations/junit.svg", AllIcons::class.java), AllIcons.RunConfigurations.Junit, false),
 }
 
 /**

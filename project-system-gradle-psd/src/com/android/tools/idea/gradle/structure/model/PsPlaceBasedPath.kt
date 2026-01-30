@@ -20,13 +20,9 @@ import com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLink
 import com.android.tools.idea.gradle.structure.navigation.Places
 import com.intellij.ui.navigation.Place
 
-/**
- * A navigation path base don UI places.
- */
+/** A navigation path base don UI places. */
 abstract class PsPlaceBasedPath : PsPath {
-  /**
-   * Populate [place] with nagigation path items.
-   */
+  /** Populate [place] with nagigation path items. */
   abstract fun queryPlace(place: Place, context: PsContext)
 
   fun getPlaceDestination(context: PsContext): Place {

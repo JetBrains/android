@@ -38,13 +38,11 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 @RunsInEdt
 class FindUsagesJavaKotlinTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    } as JavaCodeInsightTestFixture
+    androidProjectRule.fixture.apply { testDataPath = resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
+      as JavaCodeInsightTestFixture
   }
 
   @Before
@@ -64,13 +62,16 @@ class FindUsagesJavaKotlinTest {
     assertThat(usageRepresentation).contains("<root> (1)")
 
     // The usage should be in MainActivity.onCreate
-    assertThat(usageRepresentation).contains(
-      """
-      |    com.codegeneration (1)
-      |     MainActivity (1)
-      |      onCreate(Bundle) (1)
-      |       14addNewCar();
-      """.trimMargin())
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |    com.codegeneration (1)
+        |     MainActivity (1)
+        |      onCreate(Bundle) (1)
+        |       14addNewCar();
+        """
+          .trimMargin()
+      )
 
     // Inventory.kt also contains a method names `addNewCar`. It should not be included in results.
     assertThat(usageRepresentation).doesNotContain("Inventory")
@@ -87,22 +88,28 @@ class FindUsagesJavaKotlinTest {
     assertThat(usageRepresentation).contains("<root> (2)")
 
     // One usage should be in Inventory's init
-    assertThat(usageRepresentation).contains(
-      """
-      |    com.codegeneration (1)
-      |     Inventory.kt (1)
-      |      Inventory (1)
-      |       6addNewCar() // function call
-      """.trimMargin())
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |    com.codegeneration (1)
+        |     Inventory.kt (1)
+        |      Inventory (1)
+        |       6addNewCar() // function call
+        """
+          .trimMargin()
+      )
 
     // One usage should be in MainActivity.onCreate
-    assertThat(usageRepresentation).contains(
-      """
-      |    com.codegeneration (1)
-      |     MainActivity (1)
-      |      onCreate(Bundle) (1)
-      |       15new Inventory().addNewCar();
-      """.trimMargin())
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |    com.codegeneration (1)
+        |     MainActivity (1)
+        |      onCreate(Bundle) (1)
+        |       15new Inventory().addNewCar();
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -115,61 +122,71 @@ class FindUsagesJavaKotlinTest {
     // There should be five usages of this class: two in MainActivity.java, two in Car.java, and one usage in Inventory.kt
     assertThat(usageRepresentation).contains("<root> (5)")
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Class static member access (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     MainActivity (1)
-      |      addNewCar() (1)
-      |       19Car car = Car.getInstance();
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Class static member access (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     MainActivity (1)
+        |      addNewCar() (1)
+        |       19Car car = Car.getInstance();
+        """
+          .trimMargin()
+      )
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Local variable declaration (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     MainActivity (1)
-      |      addNewCar() (1)
-      |       19Car car = Car.getInstance();
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Local variable declaration (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     MainActivity (1)
+        |      addNewCar() (1)
+        |       19Car car = Car.getInstance();
+        """
+          .trimMargin()
+      )
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Method return type (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     Car (1)
-      |      getInstance() (1)
-      |       38public static Car getInstance(){
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Method return type (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     Car (1)
+        |      getInstance() (1)
+        |       38public static Car getInstance(){
+        """
+          .trimMargin()
+      )
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  New instance creation (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     Car (1)
-      |      getInstance() (1)
-      |       39return new Car();
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  New instance creation (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     Car (1)
+        |      getInstance() (1)
+        |       39return new Car();
+        """
+          .trimMargin()
+      )
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Nested class/object (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     Inventory.kt (1)
-      |      Inventory (1)
-      |       addNewCar (1)
-      |        10val car = Car.getInstance()
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Nested class/object (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     Inventory.kt (1)
+        |      Inventory (1)
+        |       addNewCar (1)
+        |        10val car = Car.getInstance()
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -182,26 +199,30 @@ class FindUsagesJavaKotlinTest {
     // Two usages within Car.java expected.
     assertThat(usageRepresentation).contains("<root> (2)")
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Value read (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     Car (1)
-      |      getMake() (1)
-      |       10return make;
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Value read (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     Car (1)
+        |      getMake() (1)
+        |       10return make;
+        """
+          .trimMargin()
+      )
 
-    assertThat(usageRepresentation).contains(
-      """
-      |  Value write (1)
-      |   app (1)
-      |    com.codegeneration (1)
-      |     Car (1)
-      |      setMake(String) (1)
-      |       22this.make = (make.equals(""))? "BMW" : make;
-      """.trimMargin()
-    )
+    assertThat(usageRepresentation)
+      .contains(
+        """
+        |  Value write (1)
+        |   app (1)
+        |    com.codegeneration (1)
+        |     Car (1)
+        |      setMake(String) (1)
+        |       22this.make = (make.equals(""))? "BMW" : make;
+        """
+          .trimMargin()
+      )
   }
 }

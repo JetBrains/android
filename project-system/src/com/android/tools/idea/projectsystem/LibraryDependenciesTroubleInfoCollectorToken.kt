@@ -20,18 +20,22 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 
 /**
- * Implementors of this project system [Token] interface are responsible for implementing methods to provide information about
- * a particular module for display to help users (and Android Studio developers) troubleshoot issues through the
- * `Help|Diagnostic Tools|Collect Troubleshooting Information` action.
+ * Implementors of this project system [Token] interface are responsible for implementing methods to provide information about a particular
+ * module for display to help users (and Android Studio developers) troubleshoot issues through the `Help|Diagnostic Tools|Collect
+ * Troubleshooting Information` action.
  */
-interface LibraryDependenciesTroubleInfoCollectorToken<P: AndroidModuleSystem> : Token {
+interface LibraryDependenciesTroubleInfoCollectorToken<P : AndroidModuleSystem> : Token {
   /** return the collection of [ExternalAndroidLibrary]s this module depends on. */
   fun getDependencies(moduleSystem: P, module: Module): Collection<ExternalAndroidLibrary>
+
   /** return a string of key=value properties specific to the project/module system. */
   fun getInfoString(module: Module): String
+
   companion object {
     @JvmStatic
-    val EP_NAME = ExtensionPointName<LibraryDependenciesTroubleInfoCollectorToken<AndroidModuleSystem>>(
-      "com.android.tools.idea.projectsystem.libraryDependenciesTroubleInfoCollectorToken")
+    val EP_NAME =
+      ExtensionPointName<LibraryDependenciesTroubleInfoCollectorToken<AndroidModuleSystem>>(
+        "com.android.tools.idea.projectsystem.libraryDependenciesTroubleInfoCollectorToken"
+      )
   }
 }

@@ -24,7 +24,6 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
 
-
 private const val delimiter = ",,"
 private val defaultConfiguration = QualifierMatcherConfiguration(null, listOf())
 
@@ -32,12 +31,8 @@ private val defaultConfiguration = QualifierMatcherConfiguration(null, listOf())
  * Manager to save and load the importation settings.
  *
  * This class can be used to save a custom configuration to map a file to a qualifier.
- *
  */
-@State(
-  name = "ImportConfigurationManager",
-  storages = [Storage(value = "design_importer.xml")]
-)
+@State(name = "ImportConfigurationManager", storages = [Storage(value = "design_importer.xml")])
 class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConfiguration> {
   // For now, the class is not used and was part of an experiment where user could
   // edit how to map some token on a file path a qualifier via the UI.
@@ -57,12 +52,9 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
 
   fun saveMappers(mappers: Set<StaticStringMapper>) {
     configuration.serializedMatchers =
-        mappers
-          .flatMap { mapper ->
-            mapper.matchers
-              .map { (matchingString, resourceQualifier) -> serializeMatcher(resourceQualifier, matchingString) }
-              .toList()
-          }
+      mappers.flatMap { mapper ->
+        mapper.matchers.map { (matchingString, resourceQualifier) -> serializeMatcher(resourceQualifier, matchingString) }.toList()
+      }
   }
 
   fun loadMappers(): Set<StaticStringMapper> {
@@ -79,16 +71,12 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
   }
 
   /**
-   * Find the [ResourceQualifier] class corresponding to the given [qualifierString] and
-   * associate it to a [MatcherEntry]
-   * built with the value of the [ResourceQualifier] and the [mapperString].
+   * Find the [ResourceQualifier] class corresponding to the given [qualifierString] and associate it to a [MatcherEntry] built with the
+   * value of the [ResourceQualifier] and the [mapperString].
    *
    * @see FolderConfiguration.getConfigFromQualifiers
    */
-  private fun qualifierToMatcherEntry(
-    qualifierString: String,
-    mapperString: String
-  ): Pair<ResourceQualifier, MatcherEntry>? {
+  private fun qualifierToMatcherEntry(qualifierString: String, mapperString: String): Pair<ResourceQualifier, MatcherEntry>? {
     val qualifiers = FolderConfiguration.getConfigFromQualifiers(listOf(qualifierString))?.qualifiers ?: return null
     return if (qualifiers.size == 1) {
       val qualifier = qualifiers[0]
@@ -105,8 +93,8 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
     "${resourceQualifier.folderSegment}$delimiter$matchingString"
 
   /**
-   * Opposite of [serializedMatcher]. Take a string in the form of "qualifier,,matchingString" where
-   * qualifier is the string returned by [ResourceQualifier.getFolderSegment], and returns a
+   * Opposite of [serializedMatcher]. Take a string in the form of "qualifier,,matchingString" where qualifier is the string returned by
+   * [ResourceQualifier.getFolderSegment], and returns a
    */
   private fun deserializeMatcher(serializedMatcher: String): Pair<ResourceQualifier, MatcherEntry>? {
     val (qualifierString, mapperString) = serializedMatcher.split(delimiter, ignoreCase = true, limit = 2)
@@ -116,7 +104,7 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
 
 data class QualifierMatcherConfiguration(
   var designFolder: String? = null,
-  var serializedMatchers: List<String> = mutableListOf()
+  var serializedMatchers: List<String> = mutableListOf(),
   // Mutable list is needed because the intellij deserializer
   // tries to clear it and then populate it. It can't be null either
 )

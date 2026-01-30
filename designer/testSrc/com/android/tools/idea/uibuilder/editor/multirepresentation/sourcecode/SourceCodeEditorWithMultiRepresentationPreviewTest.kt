@@ -42,15 +42,12 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
   @Test
   fun testNavigationMovesToSplitMode() = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
-    val editorProvider =
-      SourceCodeEditorProvider.forTesting(
-        listOf(TestPreviewRepresentationProvider("Representation1", true))
-      )
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
     val editor =
       withContext(uiThread) {
-        (editorProvider.createEditor(file.project, file.virtualFile)
-            as TextEditorWithMultiRepresentationPreview<*>)
-          .also { Disposer.register(projectRule.testRootDisposable, it) }
+        (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>).also {
+          Disposer.register(projectRule.testRootDisposable, it)
+        }
       }
 
     // Wait for representations to be fully initialized
@@ -79,23 +76,15 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
       editor.navigateTo(OpenFileDescriptor(projectRule.project, file.virtualFile, 0))
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     }
-    waitUntil("The editor was expected to switch to split mode when navigating to source") {
-      editor.isSplitMode()
-    }
+    waitUntil("The editor was expected to switch to split mode when navigating to source") { editor.isSplitMode() }
   }
 
   @Test
   fun testToolbarReleasedWhenEditorIsDisposed() = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
-    val editorProvider =
-      SourceCodeEditorProvider.forTesting(
-        listOf(TestPreviewRepresentationProvider("Representation1", true))
-      )
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
     val editor =
-      withContext(uiThread) {
-        (editorProvider.createEditor(file.project, file.virtualFile)
-          as TextEditorWithMultiRepresentationPreview<*>)
-      }
+      withContext(uiThread) { (editorProvider.createEditor(file.project, file.virtualFile) as TextEditorWithMultiRepresentationPreview<*>) }
 
     // Wait for representations to be fully initialized
     waitUntil { editor.preview.representationNames.isNotEmpty() }

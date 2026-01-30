@@ -21,9 +21,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Handles the sync issue when the Compose Compiler Gradle plugin is not applied.
- */
+/** Handles the sync issue when the Compose Compiler Gradle plugin is not applied. */
 class MissingComposeCompilerGradlePluginReporter : SimpleDeduplicatingSyncIssueReporter() {
   public override fun getSupportedIssueType() = IdeSyncIssue.TYPE_MISSING_COMPOSE_COMPILER_GRADLE_PLUGIN
 
@@ -31,7 +29,7 @@ class MissingComposeCompilerGradlePluginReporter : SimpleDeduplicatingSyncIssueR
     project: Project,
     syncIssues: List<IdeSyncIssue>,
     affectedModules: List<Module>,
-    buildFileMap: Map<Module, VirtualFile>
+    buildFileMap: Map<Module, VirtualFile>,
   ): List<SyncIssueNotificationHyperlink> {
     // The data field is the kotlin version
     val kotlinVersions = syncIssues.mapNotNull { it.data }.distinct()

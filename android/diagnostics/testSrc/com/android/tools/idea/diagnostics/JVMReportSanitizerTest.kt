@@ -28,9 +28,7 @@ import org.junit.rules.TemporaryFolder
 
 class JVMReportSanitizerTest {
 
-  @Rule
-  @JvmField
-  val tmpFolder = TemporaryFolder()
+  @Rule @JvmField val tmpFolder = TemporaryFolder()
 
   private fun generateTestFile(path: String): File {
     val reportPath: Path = TestUtils.resolveWorkspacePath(path)
@@ -77,7 +75,8 @@ class JVMReportSanitizerTest {
     assertEquals(missingHeaderSanitizedString, JVMReportSanitizer.sanitize(missingHeaderFile))
 
     val JVMReportMissingMultipleSectionsRelativePath = "tools/adt/idea/android/testData/diagnostics/JVMReportMissingMultipleSections.log"
-    val JVMReportMissingMultipleSectionsSanitizedRelativePath = "tools/adt/idea/android/testData/diagnostics/JVMReportMissingMultipleSectionsSanitized.log"
+    val JVMReportMissingMultipleSectionsSanitizedRelativePath =
+      "tools/adt/idea/android/testData/diagnostics/JVMReportMissingMultipleSectionsSanitized.log"
 
     val missingMultipleSectionsFile: File = generateTestFile(JVMReportMissingMultipleSectionsRelativePath)
     val missingMultipleSectionsSanitizedString = generateSanitizedString(JVMReportMissingMultipleSectionsSanitizedRelativePath)

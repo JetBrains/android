@@ -34,12 +34,11 @@ import com.intellij.psi.PsiTreeChangeListener
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to any
- * module whose sample data directory has been modified (if such a repository exists).
+ * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to any module whose sample data directory has
+ * been modified (if such a repository exists).
  */
 @Service(Service.Level.PROJECT)
-class SampleDataListener(project: Project) :
-  PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener, Disposable {
+class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener, Disposable {
   init {
     VirtualFileManager.getInstance().addVirtualFileListener(this, this)
   }
@@ -48,10 +47,8 @@ class SampleDataListener(project: Project) :
 
   /**
    * A file is relevant to this listener if
-   * 1. There's a SampleDataResourceRepository instance corresponding to the module the file belongs
-   *    to that needs to be invalidated.
-   * 2. The file is actually in the module's sample data directory (as opposed to just having
-   *    FD_SAMPLE_DATA in its path somewhere).
+   * 1. There's a SampleDataResourceRepository instance corresponding to the module the file belongs to that needs to be invalidated.
+   * 2. The file is actually in the module's sample data directory (as opposed to just having FD_SAMPLE_DATA in its path somewhere).
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
     return !facet.isDisposed &&
@@ -60,8 +57,7 @@ class SampleDataListener(project: Project) :
   }
 
   /** Java and XML files have nothing to do with sample data. */
-  override fun isPossiblyRelevant(file: VirtualFile) =
-    file.extension.let { it != "java" && it != "xml" }
+  override fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
     LOG.info("Invalidating SampleDataResourceRepository because $path was modified.")
@@ -110,8 +106,8 @@ class SampleDataListener(project: Project) :
 }
 
 /**
- * Returns true if the given [VirtualFile] is part of the sample data directory associated with this
- * [Module] (or if the file is the sample data directory itself).
+ * Returns true if the given [VirtualFile] is part of the sample data directory associated with this [Module] (or if the file is the sample
+ * data directory itself).
  */
 private fun Module.isSampleDataFile(file: VirtualFile): Boolean {
   val sampleDataDir = getModuleSystem().getSampleDataDirectory() ?: return false

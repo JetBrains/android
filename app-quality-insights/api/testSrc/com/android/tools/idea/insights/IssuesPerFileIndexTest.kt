@@ -40,6 +40,5 @@ class IssuesPerFileIndexTest {
     assertThat(secondIssuesPerFileName.isEmpty).isTrue()
   }
 
-  private fun createIssues(issues: List<AppInsightsIssue>) =
-    LoadingState.Ready(Selection(null, issues))
+  private fun createIssues(issues: List<AppInsightsIssue>) = LoadingState.Ready(Selection(null, issues))
 }

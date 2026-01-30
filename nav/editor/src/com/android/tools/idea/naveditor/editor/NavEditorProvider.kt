@@ -27,17 +27,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 class NavEditorProvider : DesignerEditorProvider(listOf(NavigationFileType), NAV_EDITOR_ID) {
-  override fun createDesignEditor(
-    project: Project,
-    file: VirtualFile,
-    fileType: DesignerEditorFileType,
-  ) = NavEditor(file, project)
+  override fun createDesignEditor(project: Project, file: VirtualFile, fileType: DesignerEditorFileType) = NavEditor(file, project)
 
   override fun handleCaretChanged(sceneView: SceneView, nodes: ImmutableList<NlComponent>) {
     sceneView.selectionModel.setSelection(
-      nodes.mapNotNull { node ->
-        node.parentSequence().firstOrNull { it.isAction || it.isDestination }
-      }
+      nodes.mapNotNull { node -> node.parentSequence().firstOrNull { it.isAction || it.isDestination } }
     )
   }
 }

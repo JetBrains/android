@@ -26,16 +26,12 @@ import javax.swing.Box
 import javax.swing.JPanel
 
 /**
- * A panel that displays notifications or hides itself if there are none. It is intended to be used
- * together with a [FileEditor] and utilizes the mechanism of [EditorNotificationProvider]s
- * extending [epName] extension point to get [EditorNotificationPanel]s to display.
+ * A panel that displays notifications or hides itself if there are none. It is intended to be used together with a [FileEditor] and
+ * utilizes the mechanism of [EditorNotificationProvider]s extending [epName] extension point to get [EditorNotificationPanel]s to display.
  */
-class NotificationPanel(
-  private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotificationProvider>
-) : JPanel(VerticalLayout(0)) {
+class NotificationPanel(private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotificationProvider>) : JPanel(VerticalLayout(0)) {
 
-  private val notificationsPanel: Box =
-    Box.createVerticalBox().apply { name = "NotificationsPanel" }
+  private val notificationsPanel: Box = Box.createVerticalBox().apply { name = "NotificationsPanel" }
 
   // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole
   // panel will be hidden if no notifications

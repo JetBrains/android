@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement
 
-class AndroidGradleDeclarativeSettingsModelImpl(parsedModel: GradleSettingsFile): GradleSettingsModelImpl(parsedModel),
-                                                                                  GradleDeclarativeSettingsModel {
+class AndroidGradleDeclarativeSettingsModelImpl(parsedModel: GradleSettingsFile) :
+  GradleSettingsModelImpl(parsedModel), GradleDeclarativeSettingsModel {
   override fun defaults(): SoftwareTypesModel {
     val defaultsDslElement = myGradleSettingsFile.ensurePropertyElement(DefaultsDslElement.Companion.DEFAULTS_DSL_ELEMENT)
     return AndroidSoftwareTypesModelImpl(defaultsDslElement)

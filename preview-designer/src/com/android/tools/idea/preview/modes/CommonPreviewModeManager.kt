@@ -34,8 +34,8 @@ class CommonPreviewModeManager : PreviewModeManager {
     }
 
   /**
-   * When entering one of the [PreviewMode.SingleItemMode] modes (interactive, animation, etc.), the
-   * previous mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
+   * When entering one of the [PreviewMode.SingleItemMode] modes (interactive, animation, etc.), the previous mode is saved into
+   * [restoreMode]. After exiting the special mode [restoreMode] is set.
    *
    * TODO(b/293257529) Need to restore selected tab as well in Focus mode.
    */
@@ -53,8 +53,7 @@ class CommonPreviewModeManager : PreviewModeManager {
       if (PreviewModeManager.areModesOfDifferentType(currentMode, mode)) {
         // Only set the restore mode for modes that can be used as such. Otherwise, set the restore
         // mode to Default.
-        restoreMode =
-          if (currentMode is PreviewMode.RestorePreviewMode) currentMode else PreviewMode.Default()
+        restoreMode = if (currentMode is PreviewMode.RestorePreviewMode) currentMode else PreviewMode.Default()
       }
       this._mode.value = mode
     }

@@ -18,30 +18,25 @@ package com.android.tools.idea.gradle.model.impl
 /**
  * An Android or Java well-known source set in an IDE module group.
  *
- * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java, Test Suites and KMP worlds source set
- * naming is more flexible. Note tha in case of source set name collision the original intent is assumed.
+ * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java, Test Suites and KMP worlds
+ * source set naming is more flexible. Note tha in case of source set name collision the original intent is assumed.
  */
-enum class IdeModuleWellKnownSourceSet(
-  override val sourceSetName: String,
-  override val canBeConsumed: Boolean
-) : IdeModuleSourceSet {
+enum class IdeModuleWellKnownSourceSet(override val sourceSetName: String, override val canBeConsumed: Boolean) : IdeModuleSourceSet {
   /**
-   * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other
-   * project would depend on unless intentionally changed in the Gradle configuration.
+   * An Android source set or a special source set in Java/KMP, which is built by default Gradle tasks and on which other project would
+   * depend on unless intentionally changed in the Gradle configuration.
    */
   MAIN("main", true),
 
-  /**
-   * A source set with text fixtures supported by the Android Gradle plugin and 'java-test-fixtures' plugin.
-   */
+  /** A source set with text fixtures supported by the Android Gradle plugin and 'java-test-fixtures' plugin. */
   TEST_FIXTURES("testFixtures", true),
-
   UNIT_TEST("unitTest", false),
   ANDROID_TEST("androidTest", false),
   SCREENSHOT_TEST("screenshotTest", false);
 
   companion object {
     private val nameToValue = values().associateBy { it.sourceSetName }
+
     fun fromName(name: String): IdeModuleWellKnownSourceSet? = nameToValue[name]
   }
 }

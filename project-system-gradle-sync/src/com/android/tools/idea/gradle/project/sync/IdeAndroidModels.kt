@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
-import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import java.io.Serializable
+import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 
 class IdeAndroidModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -28,18 +28,19 @@ class IdeAndroidModels(
   val selectedVariantName: String,
   val selectedAbiName: String?,
   val v2NativeModule: IdeNativeModule?,
-  val kaptGradleModel: KaptGradleModel?
+  val kaptGradleModel: KaptGradleModel?,
 ) : Serializable
 
 /**
  * A model to represent sync issues and unexpected exceptions/errors suppressed during sync.
  *
  * In the Gradle phase of sync, if an unexpected exception is suppressed it likely results in invalid/incomplete sync results, however it is
- * likely to be a better outcome for the user than not having any result at all. [IdeAndroidSyncIssuesAndExceptions] module level model is used to
- * report sync exceptions suppressed while building IDE models and sync issues to the IDE process where they are supposed to be logged as errors. The IDE phase
- * of sync should also generate a sync issue notifying the user about potentially incompletely synced state of the project.
+ * likely to be a better outcome for the user than not having any result at all. [IdeAndroidSyncIssuesAndExceptions] module level model is
+ * used to report sync exceptions suppressed while building IDE models and sync issues to the IDE process where they are supposed to be
+ * logged as errors. The IDE phase of sync should also generate a sync issue notifying the user about potentially incompletely synced state
+ * of the project.
  */
-class IdeAndroidSyncIssuesAndExceptions(val syncIssues: List<IdeSyncIssue>, val exceptions: List<Throwable>): Serializable
+class IdeAndroidSyncIssuesAndExceptions(val syncIssues: List<IdeSyncIssue>, val exceptions: List<Throwable>) : Serializable
 
 /**
  * A model to represent a fatal sync error such as one that would normally be passed as an exception. This is necessary to workaround
@@ -51,14 +52,15 @@ class IdeAndroidSyncError(
   val stackTrace: List<String>,
   val buildPath: String? = null,
   val modulePath: String? = null,
-  val syncIssues: List<IdeSyncIssue>? = null
+  val syncIssues: List<IdeSyncIssue>? = null,
 ) : Serializable
 
 @JvmName("ideAndroidSyncErrorToException")
-fun IdeAndroidSyncError.toException(): AndroidSyncException = AndroidSyncException(
-  type = type,
-  message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
-  buildPath = buildPath,
-  modulePath = modulePath,
-  syncIssues = syncIssues
-)
+fun IdeAndroidSyncError.toException(): AndroidSyncException =
+  AndroidSyncException(
+    type = type,
+    message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
+    buildPath = buildPath,
+    modulePath = modulePath,
+    syncIssues = syncIssues,
+  )

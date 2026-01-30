@@ -48,10 +48,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
-/**
- * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
- * data.
- */
+/** Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated data. */
 sealed class DaggerElement {
 
   abstract val psiElement: PsiElement
@@ -63,10 +60,7 @@ sealed class DaggerElement {
   /** Looks up related Dagger elements. */
   fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     return CachedValuesManager.getCachedValue(psiElement, relatedElementsKey) {
-      CachedValueProvider.Result(
-        doGetRelatedDaggerElements(),
-        PsiModificationTracker.MODIFICATION_COUNT,
-      )
+      CachedValueProvider.Result(doGetRelatedDaggerElements(), PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
 
@@ -74,16 +68,15 @@ sealed class DaggerElement {
   protected abstract fun doGetRelatedDaggerElements(): List<DaggerRelatedElement>
 
   /**
-   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
-   * implement the part of [doGetRelatedDaggerElements] that finds items stored in the index.
+   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to implement the part of
+   * [doGetRelatedDaggerElements] that finds items stored in the index.
    */
-  internal inline fun <reified T : DaggerElement> getRelatedDaggerElementsFromIndex(
-    indexKeys: List<String>
-  ): List<T> = getRelatedDaggerElementsFromIndex(setOf(T::class), indexKeys).map { it as T }
+  internal inline fun <reified T : DaggerElement> getRelatedDaggerElementsFromIndex(indexKeys: List<String>): List<T> =
+    getRelatedDaggerElementsFromIndex(setOf(T::class), indexKeys).map { it as T }
 
   /**
-   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
-   * implement the part of [doGetRelatedDaggerElements] that finds items stored in the index.
+   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to implement the part of
+   * [doGetRelatedDaggerElements] that finds items stored in the index.
    */
   internal fun getRelatedDaggerElementsFromIndex(
     relatedItemTypes: Set<KClass<out DaggerElement>>,
@@ -120,25 +113,20 @@ sealed class DaggerElement {
   }
 
   /**
-   * Given a candidate related element that's been resolved from the index, decide if it is actually
-   * applicable. This includes comparing [PsiType]s, although the exact comparison depends on the
-   * relationship between this [DaggerElement] and the candidate.
+   * Given a candidate related element that's been resolved from the index, decide if it is actually applicable. This includes comparing
+   * [PsiType]s, although the exact comparison depends on the relationship between this [DaggerElement] and the candidate.
    */
   protected abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
 
   /**
-   * Gets the index keys associated with the given [PsiType], using the project and project scope
-   * from the current [DaggerElement]'s [PsiElement].
+   * Gets the index keys associated with the given [PsiType], using the project and project scope from the current [DaggerElement]'s
+   * [PsiElement].
    */
-  protected fun PsiType.getIndexKeys() =
-    getIndexKeys(this, psiElement.project, psiElement.project.allScope())
+  protected fun PsiType.getIndexKeys() = getIndexKeys(this, psiElement.project, psiElement.project.allScope())
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {
-  /**
-   * Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used
-   * in the Dagger graph.
-   */
+  /** Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in the Dagger graph. */
   fun getDaggerElement(psiElement: T): DaggerElement?
 }
 
@@ -187,29 +175,18 @@ class DaggerElementIdentifiers(
     }
   }
 
-  private fun <T : PsiElement> List<DaggerElementIdentifier<T>>.getFirstDaggerElement(
-    psiElement: T
-  ): DaggerElement? = this.firstNotNullOfOrNull { it.getDaggerElement(psiElement) }
+  private fun <T : PsiElement> List<DaggerElementIdentifier<T>>.getFirstDaggerElement(psiElement: T): DaggerElement? =
+    this.firstNotNullOfOrNull { it.getDaggerElement(psiElement) }
 }
 
-/**
- * Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in
- * the Dagger graph.
- */
-fun PsiElement.getDaggerElement(): DaggerElement? =
-  AllConcepts.daggerElementIdentifiers.getDaggerElement(this)
+/** Returns a [DaggerElement] representing the given [PsiElement], iff the element is somehow used in the Dagger graph. */
+fun PsiElement.getDaggerElement(): DaggerElement? = AllConcepts.daggerElementIdentifiers.getDaggerElement(this)
 
-/**
- * Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType]
- * of the class being constructed.
- */
+/** Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType] of the class being constructed. */
 internal fun KtFunction.getReturnedPsiType(): PsiType =
   (if (this is KtConstructor<*>) containingClass()?.toPsiType() else psiType)!!.unboxed
 
-/**
- * Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType]
- * of the class being constructed.
- */
+/** Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType] of the class being constructed. */
 internal fun PsiMethod.getReturnedPsiType(): PsiType =
   (if (isConstructor) AndroidPsiUtils.toPsiType(containingClass!!) else returnType)!!.unboxed
 
@@ -241,29 +218,23 @@ internal val PsiElement.kotlinOriginOrSelf: PsiElement
   get() = kotlinOrigin ?: this
 
 /**
- * A [DaggerElement] that is related to some other source [DaggerElement]. For example, if the
- * source is a Consumer of the type `Foo`, this related element may refer to a Provider of that type
- * `Foo`.
+ * A [DaggerElement] that is related to some other source [DaggerElement]. For example, if the source is a Consumer of the type `Foo`, this
+ * related element may refer to a Provider of that type `Foo`.
  */
 data class DaggerRelatedElement(
   /** Related [DaggerElement]. */
   val relatedElement: DaggerElement,
-  /**
-   * Display string for the type of related element. Multiple elements with the same group name can
-   * be displayed together.
-   */
+  /** Display string for the type of related element. Multiple elements with the same group name can be displayed together. */
   val groupName: String,
   /**
-   * Longer-form description of the relationship between a source element and this element. This is
-   * a key and should correspond to a value in DaggerBundle.properties. The value should have {0}
-   * and {1} placeholders, to be filled in by the "from" element and "to" element display names
-   * respectively.
+   * Longer-form description of the relationship between a source element and this element. This is a key and should correspond to a value
+   * in DaggerBundle.properties. The value should have {0} and {1} placeholders, to be filled in by the "from" element and "to" element
+   * display names respectively.
    */
   @PropertyKey(resourceBundle = DaggerBundle.BUNDLE_NAME) val relationDescriptionKey: String,
   /**
-   * A custom display name to use when filling in the "to" element placeholder in
-   * [relationDescriptionKey]. If this is null, a standard presentation of the underlying
-   * [PsiElement] is used.
+   * A custom display name to use when filling in the "to" element placeholder in [relationDescriptionKey]. If this is null, a standard
+   * presentation of the underlying [PsiElement] is used.
    */
   val customDisplayName: String? = null,
 )

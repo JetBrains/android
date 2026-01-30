@@ -23,6 +23,8 @@ import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.nio.ByteBuffer
+import kotlin.time.Duration.Companion.days
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -31,8 +33,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import java.nio.ByteBuffer
-import kotlin.time.Duration.Companion.days
 
 private const val PKG_1 = "come.on.fhqwhgads"
 private const val PKG_2 = "everybody.to.the.limit"
@@ -44,17 +44,12 @@ class ResourceClassRegistryTest {
 
   private val registry = ResourceClassRegistry(1.days) // Not testing the TimeoutCachedValue
   private val disposable = Disposer.newDisposable()
-  private val idManager by lazy {
-    ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp())
-  }
+  private val idManager by lazy { ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp()) }
   private val repository: ResourceRepository = mock()
-  private val disposableRepository: ResourceRepository =
-    mock(extraInterfaces = arrayOf(Disposable::class))
+  private val disposableRepository: ResourceRepository = mock(extraInterfaces = arrayOf(Disposable::class))
   private val manager: ResourceRepositoryManager = mock {
-    on { getAppResourcesForNamespace(PKG_1.namespace) } doReturn
-      listOf(repository, disposableRepository)
-    on { getAppResourcesForNamespace(PKG_2.namespace) } doReturn
-      listOf(repository, disposableRepository)
+    on { getAppResourcesForNamespace(PKG_1.namespace) } doReturn listOf(repository, disposableRepository)
+    on { getAppResourcesForNamespace(PKG_2.namespace) } doReturn listOf(repository, disposableRepository)
   }
 
   @Before
@@ -105,9 +100,7 @@ class ResourceClassRegistryTest {
     registry.addLibrary(repository, idManager, PKG_1, PKG_1.namespace)
     registry.addLibrary(disposableRepository, idManager, PKG_1, PKG_1.namespace)
 
-    Assert.assertThrows(NoClassDefFoundError::class.java) {
-      registry.findClassDefinition("$PKG_1.R\$string", manager)
-    }
+    Assert.assertThrows(NoClassDefFoundError::class.java) { registry.findClassDefinition("$PKG_1.R\$string", manager) }
   }
 
   @Test

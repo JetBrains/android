@@ -15,5 +15,4 @@
  */
 package com.android.tools.idea.diagnostics.hprof.parser
 
-data class InstanceFieldEntry(val fieldNameStringId: Long,
-                              val type: Type)
+data class InstanceFieldEntry(val fieldNameStringId: Long, val type: Type)

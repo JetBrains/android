@@ -27,7 +27,8 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.asDeferred
 
 private val NAME = BuildDependenciesAction.NAME + " for Reverse Dependencies"
-/** Action to build dependencies and enable analysis for a file and it's reverse dependencies  */
+
+/** Action to build dependencies and enable analysis for a file and it's reverse dependencies */
 class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
   override fun querySyncSupport(): QuerySyncStatus = QuerySyncStatus.REQUIRED
 
@@ -43,7 +44,7 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
       return
     }
 
-    if (vfs.all { !helper.canEnableAnalysisFor(it)} ) {
+    if (vfs.all { !helper.canEnableAnalysisFor(it) }) {
       return
     }
 
@@ -54,11 +55,8 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
-      QuerySyncManager.getInstance(project).enableAnalysisForReverseDeps(
-        labels,
-        querySyncActionStats,
-        QuerySyncManager.TaskOrigin.USER_ACTION
-      )
+      QuerySyncManager.getInstance(project)
+        .enableAnalysisForReverseDeps(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
         .asDeferred()
     }
   }

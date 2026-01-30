@@ -39,9 +39,6 @@ class DrawActionHandle(
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircleLerp(center, initialInnerRadius, finalInnerRadius, duration)
-    return listOf(
-      FillShape(outerCircle, outerColor),
-      DrawShape(innerCircle, innerColor, HANDLE_STROKE),
-    )
+    return listOf(FillShape(outerCircle, outerColor), DrawShape(innerCircle, innerColor, HANDLE_STROKE))
   }
 }

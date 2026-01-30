@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.TextConcatDetector
 
 class AndroidLintTextConcatSpaceInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.text.concat.space"),
-    TextConcatDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.text.concat.space"), TextConcatDetector.ISSUE)

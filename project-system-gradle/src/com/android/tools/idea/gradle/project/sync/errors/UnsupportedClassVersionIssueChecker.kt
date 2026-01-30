@@ -18,16 +18,17 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.utils.JavaVersionUtil
 
 /**
- * A [RuntimeJavaCompiledVersionIssueChecker] for [UnsupportedClassVersionError] with messages following this format:
- * "<class> has been compiled by a more recent version of the Java Runtime (class file version <JDK version used in AGP>),
- * this version of the Java Runtime only recognizes class file versions up to <Maximum version supported by Gradle JDK>"
+ * A [RuntimeJavaCompiledVersionIssueChecker] for [UnsupportedClassVersionError] with messages following this format: "<class> has been
+ * compiled by a more recent version of the Java Runtime (class file version <JDK version used in AGP>), this version of the Java Runtime
+ * only recognizes class file versions up to <Maximum version supported by Gradle JDK>"
  */
 class UnsupportedClassVersionIssueChecker : RuntimeJavaCompiledVersionIssueChecker() {
 
-  override val expectedErrorRegex = Regex(
-    ".+ has been compiled by a more recent version of the Java Runtime \\(class file version (\\d+)\\.0\\), this " +
-    "version of the Java Runtime only recognizes class file versions up to (\\d+)\\.\\d+"
-  )
+  override val expectedErrorRegex =
+    Regex(
+      ".+ has been compiled by a more recent version of the Java Runtime \\(class file version (\\d+)\\.0\\), this " +
+        "version of the Java Runtime only recognizes class file versions up to (\\d+)\\.\\d+"
+    )
 
   override fun parseErrorRegexMatch(matchResult: MatchResult): Pair<String, String>? {
     val agpJdk = matchResult.groups[1]?.value?.toInt()

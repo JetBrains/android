@@ -62,8 +62,7 @@ internal const val NO_ANIMATION_TOOLTIP = "There is no animation to play"
  * @param listener [AnimationListener] that will be called in every tick
  * @param tickStepMs Number of milliseconds to advance in every animator tick
  * @param minTimeMs Start milliseconds for the animation
- * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no
- *   time limit
+ * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
  */
 open class AnimationToolbar
 protected constructor(
@@ -89,10 +88,7 @@ protected constructor(
   private var myTimeSliderModel: DefaultBoundedRangeModel? = null
   protected val speedControlButton: ActionButton
 
-  /**
-   * The progress bar to indicate the current progress of animation. User can also click/drag the
-   * indicator to set the progress.
-   */
+  /** The progress bar to indicate the current progress of animation. User can also click/drag the indicator to set the progress. */
   protected var myTimeSlider: JSlider? = null
   private var myTimeSliderChangeModel: ChangeListener? = null
   protected var timeSliderSeparator: JSeparator? = null
@@ -107,10 +103,7 @@ protected constructor(
 
   private var _forceElapsedReset: Boolean = false
 
-  /**
-   * Ticker to control "real-time" animations and the frame control animations (the slider that
-   * allows moving at different speeds)
-   */
+  /** Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds) */
   private var myTicker: ScheduledFuture<*>? = null
   private var myFramePositionMs: Long = 0
   private var myLastTickMs = 0L
@@ -150,13 +143,7 @@ protected constructor(
   }
 
   /** Set the enabled states of all the toolbar controls */
-  protected fun setEnabledState(
-    play: Boolean,
-    pause: Boolean,
-    stop: Boolean,
-    frame: Boolean,
-    speed: Boolean,
-  ) {
+  protected fun setEnabledState(play: Boolean, pause: Boolean, stop: Boolean, frame: Boolean, speed: Boolean) {
     myPlayButton.isEnabled = play
     myPauseButton.isEnabled = pause
     myStopButton.isEnabled = stop
@@ -165,8 +152,7 @@ protected constructor(
   }
 
   /**
-   * Set the visibility of play and pause buttons. Note that this doesn't affect the enabled states
-   * of them.
+   * Set the visibility of play and pause buttons. Note that this doesn't affect the enabled states of them.
    *
    * @see setEnabledState
    */
@@ -229,8 +215,7 @@ protected constructor(
     val calibratedFramePosition =
       when {
         frameMs < myMinTimeMs -> if (myLoopEnabled) myMaxTimeMs else myMinTimeMs
-        !isUnlimitedAnimationToolbar && frameMs > myMaxTimeMs ->
-          if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
+        !isUnlimitedAnimationToolbar && frameMs > myMaxTimeMs -> if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
         else -> frameMs
       }
     myFramePositionMs = calibratedFramePosition
@@ -305,14 +290,7 @@ protected constructor(
       tickStepMs: Long,
       minTimeMs: Long,
     ): AnimationToolbar {
-      return AnimationToolbar(
-        parentDisposable,
-        listener,
-        tickStepMs,
-        minTimeMs,
-        -1,
-        AnimationToolbarType.UNLIMITED,
-      )
+      return AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, -1, AnimationToolbarType.UNLIMITED)
     }
 
     /**
@@ -322,8 +300,7 @@ protected constructor(
      * @param listener [AnimationListener] that will be called in every tick
      * @param tickStepMs Number of milliseconds to advance in every animator tick
      * @param minTimeMs Start milliseconds for the animation
-     * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no
-     *   time limit
+     * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
      */
     fun createAnimationToolbar(
       parentDisposable: Disposable,
@@ -332,14 +309,7 @@ protected constructor(
       minTimeMs: Long,
       initialMaxTimeMs: Long,
     ): AnimationToolbar {
-      return AnimationToolbar(
-        parentDisposable,
-        listener,
-        tickStepMs,
-        minTimeMs,
-        initialMaxTimeMs,
-        AnimationToolbarType.LIMITED,
-      )
+      return AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs, AnimationToolbarType.LIMITED)
     }
   }
 
@@ -351,36 +321,15 @@ protected constructor(
     myMaxTimeMs = initialMaxTimeMs
     this.toolbarType = toolbarType
     myPlayButton =
-      newControlButton(
-        StudioIcons.LayoutEditor.Motion.PLAY,
-        "Play",
-        DEFAULT_PLAY_TOOLTIP,
-        AnimationToolbarAction.PLAY,
-      ) {
-        play()
-      }
+      newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP, AnimationToolbarAction.PLAY) { play() }
     myPlayButton.isEnabled = true
     myPauseButton =
-      newControlButton(
-        StudioIcons.LayoutEditor.Motion.PAUSE,
-        "Pause",
-        DEFAULT_PAUSE_TOOLTIP,
-        AnimationToolbarAction.PAUSE,
-      ) {
-        pause()
-      }
+      newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP, AnimationToolbarAction.PAUSE) { pause() }
     myPauseButton.isEnabled = false
     myPauseButton.isVisible = false
     // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
     myStopButton =
-      newControlButton(
-        StudioIcons.LayoutEditor.Motion.GO_TO_START,
-        "Stop",
-        DEFAULT_STOP_TOOLTIP,
-        AnimationToolbarAction.STOP,
-      ) {
-        stop()
-      }
+      newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Stop", DEFAULT_STOP_TOOLTIP, AnimationToolbarAction.STOP) { stop() }
     controlBar =
       object : JPanel(FlowLayout()) {
         override fun updateUI() {
@@ -438,12 +387,7 @@ protected constructor(
       val frameChange = myTickStepMs * value
       myTicker =
         EdtExecutorService.getScheduledExecutorInstance()
-          .scheduleWithFixedDelay(
-            { onTick(frameChange) },
-            0L,
-            TICKER_STEP.toLong(),
-            TimeUnit.MILLISECONDS,
-          )
+          .scheduleWithFixedDelay({ onTick(frameChange) }, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
     }
 
     myFrameControl.addMouseListener(
@@ -490,8 +434,7 @@ protected constructor(
         val timeSliderModel = myTimeSliderModel
         if (timeSliderModel != null) {
           timeSliderModel.removeChangeListener(myTimeSliderChangeModel)
-          timeSliderModel.value =
-            ((newFrameMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
+          timeSliderModel.value = ((newFrameMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
           timeSliderModel.addChangeListener(myTimeSliderChangeModel)
         }
       }
@@ -502,16 +445,9 @@ protected constructor(
 private fun createPlaySpeedActionButton(callback: (Double) -> Unit): ActionButton {
   val action = AnimationSpeedActionGroup(callback)
   val presentation = PresentationFactory().getPresentation(action)
-  val button =
-    ActionButton(
-      action,
-      presentation,
-      ActionPlaces.TOOLBAR,
-      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-    )
+  val button = ActionButton(action, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   button.addPropertyChangeListener("enabled") {
-    presentation.description =
-      if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
+    presentation.description = if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
     button.update()
   }
   // The button has a down arrow in the bottom-right corner, which is close to the right bounds of

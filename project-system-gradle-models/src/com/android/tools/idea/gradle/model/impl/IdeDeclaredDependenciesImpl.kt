@@ -19,16 +19,15 @@ import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import org.jetbrains.annotations.VisibleForTesting
 
-data class IdeDeclaredDependenciesImpl(
-  override val configurationsToCoordinates: Map<String, List<IdeCoordinatesImpl>>
-): IdeDeclaredDependencies {
-  @VisibleForTesting
-  constructor(list: List<String>): this(mapOf("implementation" to list.map { it.toIdeCoordinates() }))
+data class IdeDeclaredDependenciesImpl(override val configurationsToCoordinates: Map<String, List<IdeCoordinatesImpl>>) :
+  IdeDeclaredDependencies {
+  @VisibleForTesting constructor(list: List<String>) : this(mapOf("implementation" to list.map { it.toIdeCoordinates() }))
 
-  data class IdeCoordinatesImpl(override val group: String?, override val name: String, override val version: String?):
+  data class IdeCoordinatesImpl(override val group: String?, override val name: String, override val version: String?) :
     IdeDeclaredDependencies.IdeCoordinates
 
   companion object {
-    private fun String.toIdeCoordinates() = Dependency.Companion.parse(this).let { IdeCoordinatesImpl(it.group, it.name, it.version?.toString()) }
+    private fun String.toIdeCoordinates() =
+      Dependency.Companion.parse(this).let { IdeCoordinatesImpl(it.group, it.name, it.version?.toString()) }
   }
 }

@@ -21,9 +21,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.util.ClassUtil
 
-/**
- * Uses the class name, method name, and method signature to navigate to a Java/Kotlin method.
- */
+/** Uses the class name, method name, and method signature to navigate to a Java/Kotlin method. */
 class PsiMethod(project: Project) : NavSource {
   private val manager = PsiManager.getInstance(project)
 

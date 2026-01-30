@@ -31,56 +31,68 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
     // TODO(b/234009550): Re-enable this test when fixed.
     return
 
-    val jsonOne = myFixture.addFileToProject(
-      "schemas/com.example.FooDb/1.json",
-      // language=JSON
-      """
-        {
-          "formatVersion": 1,
-          "database": {
-            "version": 2,
-            "identityHash": "99c7946712f93a4d723efbe10a500eb0",
-            "entities": [],
-            "setupQueries": [
-              "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-              "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"99c7946712f93a4d723efbe10a500eb0\")"
-            ]
+    val jsonOne =
+      myFixture
+        .addFileToProject(
+          "schemas/com.example.FooDb/1.json",
+          // language=JSON
+          """
+          {
+            "formatVersion": 1,
+            "database": {
+              "version": 2,
+              "identityHash": "99c7946712f93a4d723efbe10a500eb0",
+              "entities": [],
+              "setupQueries": [
+                "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+                "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"99c7946712f93a4d723efbe10a500eb0\")"
+              ]
+            }
           }
-        }
-      """.trimIndent()
-    ).virtualFile
+          """
+            .trimIndent(),
+        )
+        .virtualFile
 
-    val jsonTwo = myFixture.addFileToProject(
-      "schemas/com.example.FooDb/2.json",
-      // language=JSON
-      """
-        {
-          "formatVersion": 1,
-          "database": {
-            "version": 3,
-            "identityHash": "30a079c09b902b7e6d50fb4eca6380b0",
-            "entities": [],
-            "setupQueries": [
-              "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-              "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"30a079c09b902b7e6d50fb4eca6380b0\")"
-            ]
+    val jsonTwo =
+      myFixture
+        .addFileToProject(
+          "schemas/com.example.FooDb/2.json",
+          // language=JSON
+          """
+          {
+            "formatVersion": 1,
+            "database": {
+              "version": 3,
+              "identityHash": "30a079c09b902b7e6d50fb4eca6380b0",
+              "entities": [],
+              "setupQueries": [
+                "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+                "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"30a079c09b902b7e6d50fb4eca6380b0\")"
+              ]
+            }
           }
-        }
-      """.trimIndent()
-    ).virtualFile
+          """
+            .trimIndent(),
+        )
+        .virtualFile
 
-    myFixture.addClass("""
+    myFixture.addClass(
+      """
       package com.example;
       class FooDb {}
-    """.trimIndent());
+      """
+        .trimIndent()
+    )
 
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
-    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true);
+    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
 
-    val context = SimpleDataContext.builder()
-      .add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(jsonOne, jsonTwo))
-      .add(CommonDataKeys.PROJECT, myFixture.project)
-      .build()
+    val context =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.VIRTUAL_FILE_ARRAY, arrayOf(jsonOne, jsonTwo))
+        .add(CommonDataKeys.PROJECT, myFixture.project)
+        .build()
 
     GenerateRoomMigrationAction().actionPerformed(TestActionEvent.createTestEvent(context))
 

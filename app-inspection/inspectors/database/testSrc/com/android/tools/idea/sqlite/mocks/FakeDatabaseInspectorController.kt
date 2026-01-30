@@ -29,10 +29,8 @@ import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 import kotlinx.coroutines.withContext
 
-open class FakeDatabaseInspectorController(
-  private val repository: DatabaseRepository,
-  val model: DatabaseInspectorModel,
-) : DatabaseInspectorController {
+open class FakeDatabaseInspectorController(private val repository: DatabaseRepository, val model: DatabaseInspectorModel) :
+  DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
@@ -42,10 +40,7 @@ open class FakeDatabaseInspectorController(
   override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) =
     withContext(uiThread) { model.addDatabaseSchema(databaseId, SqliteSchema(emptyList())) }
 
-  override suspend fun runSqlStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ) {}
+  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {}
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit =
     withContext(uiThread) {
@@ -64,10 +59,7 @@ open class FakeDatabaseInspectorController(
     appPackageName: String?,
   ) {}
 
-  override fun stopAppInspectionSession(
-    appPackageName: String?,
-    processDescriptor: ProcessDescriptor,
-  ) {}
+  override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {}
 
   override fun dispose() {}
 }

@@ -24,13 +24,9 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
 
-/**
- * Interface to implement by specific implementations that can talk to compiler daemons.
- */
+/** Interface to implement by specific implementations that can talk to compiler daemons. */
 interface CompilerDaemonClient : Disposable {
-  /**
-   * Returns if this daemon is running. If not, no compileRequests will be handled.
-   */
+  /** Returns if this daemon is running. If not, no compileRequests will be handled. */
   val isRunning: Boolean
 
   /**
@@ -46,6 +42,6 @@ interface CompilerDaemonClient : Disposable {
     files: Collection<PsiFile>,
     contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): CompilationResult
 }

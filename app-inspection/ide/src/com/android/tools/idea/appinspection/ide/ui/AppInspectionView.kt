@@ -83,9 +83,8 @@ import kotlinx.coroutines.withContext
 /**
  * Return true if the process it represents is inspectable.
  *
- * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's
- * debuggable. The latter condition is guaranteed to be true because transport pipeline only
- * provides debuggable processes, so there is no need to check.
+ * Currently, a process is deemed inspectable if the device it's running on is O+ and if it's debuggable. The latter condition is guaranteed
+ * to be true because transport pipeline only provides debuggable processes, so there is no need to check.
  */
 private fun ProcessDescriptor.isInspectable(): Boolean {
   return this.device.apiLevel.majorVersion >= AndroidVersion.VersionCodes.O
@@ -116,8 +115,7 @@ constructor(
   /**
    * This flow emits an event whenever tabs are (re)populated.
    *
-   * In its current form, this API is only designed for use by tests and allows only one flow
-   * consumer.
+   * In its current form, this API is only designed for use by tests and allows only one flow consumer.
    */
   @VisibleForTesting
   val tabsChangedFlow: Flow<Unit> = callbackFlow {
@@ -138,8 +136,7 @@ constructor(
    *
    * This can be useful behavior to toggle when the window is showing vs. minimized.
    *
-   * Modifying this property potentially updates the UI, so it should only be changed on the UI
-   * thread.
+   * Modifying this property potentially updates the UI, so it should only be changed on the UI thread.
    */
   @VisibleForTesting
   @set:UiThread
@@ -149,10 +146,7 @@ constructor(
         field = value
         if (value) {
           processesModel.selectedProcess?.let { process ->
-            if (
-              process.isRunning &&
-                (currentProcess?.isRunning == false || process.pid != currentProcess?.pid)
-            ) {
+            if (process.isRunning && (currentProcess?.isRunning == false || process.pid != currentProcess?.pid)) {
               handleProcessChanged(processesModel.selectedProcess)
             }
           }
@@ -161,15 +155,11 @@ constructor(
     }
 
   private val noInspectorsMessage =
-    EmptyStatePanel(
-      AppInspectionBundle.message("select.process"),
-      "https://d.android.com/r/studio-ui/app-inspector-help",
-    )
+    EmptyStatePanel(AppInspectionBundle.message("select.process"), "https://d.android.com/r/studio-ui/app-inspector-help")
 
   /**
-   * The coroutine scope for launching tabs in the current process. Any activity that causes the
-   * currently inspected process to change will cause this scope to be cancelled and replaced with a
-   * new one.
+   * The coroutine scope for launching tabs in the current process. Any activity that causes the currently inspected process to change will
+   * cause this scope to be cancelled and replaced with a new one.
    */
   private lateinit var tabsLaunchScope: CoroutineScope
 
@@ -191,11 +181,7 @@ constructor(
     isPreferredProcess,
   )
 
-  private fun showCrashNotification(
-    inspectorName: String,
-    process: ProcessDescriptor,
-    tabShell: AppInspectorTabShell,
-  ) {
+  private fun showCrashNotification(inspectorName: String, process: ProcessDescriptor, tabShell: AppInspectorTabShell) {
     ideServices.showNotification(
       AppInspectionBundle.message("notification.crash", inspectorName),
       severity = AppInspectionIdeServices.Severity.ERROR,
@@ -213,13 +199,7 @@ constructor(
 
   init {
     val edtExecutor = EdtExecutorService.getInstance()
-    processesModel =
-      ProcessesModel(
-        edtExecutor,
-        apiServices.processDiscovery,
-        { it.isInspectable() },
-        isPreferredProcess,
-      )
+    processesModel = ProcessesModel(edtExecutor, apiServices.processDiscovery, { it.isInspectable() }, isPreferredProcess)
     Disposer.register(this, processesModel)
     selectProcessAction = SelectProcessAction(processesModel, onStopAction = { stopInspectors() })
     val group = DefaultActionGroup().apply { add(selectProcessAction) }
@@ -244,8 +224,7 @@ constructor(
 
     processesModel.addSelectedProcessListeners(edtExecutor) {
       val newProcess = processesModel.selectedProcess
-      if (newProcess != null && newProcess.isRunning && !autoConnects)
-        return@addSelectedProcessListeners
+      if (newProcess != null && newProcess.isRunning && !autoConnects) return@addSelectedProcessListeners
 
       handleProcessChanged(newProcess)
     }
@@ -259,9 +238,7 @@ constructor(
     ActivityTracker.getInstance().inc()
 
     refreshCoroutineScope()
-    inspectorTabs.forEach { tab ->
-      tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() }
-    }
+    inspectorTabs.forEach { tab -> tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() } }
     if (process != null && !process.isRunning) {
       // If a process was just killed, we'll get notified about that by being sent a dead
       // process. In that case, remove all inspectors except for those that opted-in to stay up
@@ -293,21 +270,16 @@ constructor(
     processesModel.stop()
   }
 
-  private fun hyperlinkClicked(
-    process: ProcessDescriptor,
-    tabShell: AppInspectorTabShell,
-  ): () -> Unit = { restartInspector(process, tabShell) }
+  private fun hyperlinkClicked(process: ProcessDescriptor, tabShell: AppInspectorTabShell): () -> Unit = {
+    restartInspector(process, tabShell)
+  }
 
   private fun restartInspector(process: ProcessDescriptor, tabShell: AppInspectorTabShell) {
     AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
     tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
   }
 
-  private fun CoroutineScope.launchInspectorForTab(
-    process: ProcessDescriptor,
-    tabShell: AppInspectorTabShell,
-    force: Boolean,
-  ) = launch {
+  private fun CoroutineScope.launchInspectorForTab(process: ProcessDescriptor, tabShell: AppInspectorTabShell, force: Boolean) = launch {
     val tabTargets = tabShell.tabJarTargets
     val provider = tabTargets.provider
     try {
@@ -349,11 +321,7 @@ constructor(
       if (messengers.any { it is AppInspectorMessengerTarget.Resolved }) {
         if (provider.launchConfigs.size == 1) {
           launch {
-            waitAndHandleSingleInspectorTermination(
-              messengers.single() as AppInspectorMessengerTarget.Resolved,
-              provider,
-              tabShell,
-            )
+            waitAndHandleSingleInspectorTermination(messengers.single() as AppInspectorMessengerTarget.Resolved, provider, tabShell)
           }
         } else {
           launch { waitAndHandleInspectorTermination(messengers.toList(), provider, tabShell) }
@@ -369,12 +337,7 @@ constructor(
       // In that case, we can safely
       // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
       withContext(uiDispatcher) {
-        tabShell.setComponent(
-          EmptyStatePanel(
-            AppInspectionBundle.message("process.does.not.exist", process.name),
-            provider.learnMoreUrl,
-          )
-        )
+        tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", process.name), provider.learnMoreUrl))
       }
     } catch (e: AppInspectionLaunchException) {
       // This happens if a user is already interacting with an inspector in another window, or if
@@ -385,9 +348,7 @@ constructor(
           EmptyStatePanel(
             AppInspectionBundle.message("inspector.launch.error", provider.displayName),
             null,
-            ActionData(AppInspectionBundle.message("inspector.launch.restart"), null) {
-              hyperlinkClicked(process, tabShell)()
-            },
+            ActionData(AppInspectionBundle.message("inspector.launch.restart"), null) { hyperlinkClicked(process, tabShell)() },
           )
         )
         ideServices.showNotification(
@@ -402,21 +363,15 @@ constructor(
         )
       }
     } catch (e: AppInspectionAppProguardedException) {
-      withContext(uiDispatcher) {
-        tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl))
-      }
+      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl)) }
     } catch (e: Exception) {
       Logger.getInstance(AppInspectionView::class.java).error(e)
     }
   }
 
-  private fun launchInspectorTabsForCurrentProcess(
-    process: ProcessDescriptor,
-    force: Boolean = false,
-  ) {
+  private fun launchInspectorTabsForCurrentProcess(process: ProcessDescriptor, force: Boolean = false) {
     tabsLaunchScope.launch {
-      val launchSupport =
-        AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactService)
+      val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactService)
 
       // Triage the applicable inspector tab providers into those that can be launched, and those
       // that can't.
@@ -431,8 +386,7 @@ constructor(
 
       val tabs =
         tabTargetsList.map { tabTargets ->
-          withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }
-            .also { shell -> launchInspectorForTab(process, shell, force) }
+          withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }.also { shell -> launchInspectorForTab(process, shell, force) }
         }
 
       withContext(uiDispatcher) {
@@ -452,17 +406,13 @@ constructor(
     // Active inspectors are sorted to the front, so make sure one of them gets default focus
     // Use same text colors for both active and inactive tabs, which is consistent with AS
     // components.
-    val inspectorTabsPane =
-      CommonTabbedPane(
-        CommonTabbedPaneUI(CommonTabbedPaneUI.TEXT_COLOR, CommonTabbedPaneUI.TEXT_COLOR)
-      )
+    val inspectorTabsPane = CommonTabbedPane(CommonTabbedPaneUI(CommonTabbedPaneUI.TEXT_COLOR, CommonTabbedPaneUI.TEXT_COLOR))
     inspectorTabs.forEach { tab -> tab.addTo(inspectorTabsPane) }
     // Set the selected tab to the previous tab that was selected if possible. Otherwise, default to
     // the first one.
     inspectorTabsPane.selectedIndex =
       if (inspectorTabs.size > 0 && this::selectedTabName.isInitialized) {
-        inspectorTabs.indexOfFirst { it.provider.displayName == selectedTabName }.takeIf { it >= 0 }
-          ?: 0
+        inspectorTabs.indexOfFirst { it.provider.displayName == selectedTabName }.takeIf { it >= 0 } ?: 0
       } else 0
     // Add after selection has been set to avoid setting off the listener prematurely.
     inspectorTabsPane.addChangeListener { event ->
@@ -480,8 +430,7 @@ constructor(
   @UiThread
   private fun updateUi() {
     inspectorPanel.removeAll()
-    val inspectorComponent =
-      if (inspectorTabs.size > 0) createInspectorTabsPane() else noInspectorsMessage
+    val inspectorComponent = if (inspectorTabs.size > 0) createInspectorTabsPane() else noInspectorsMessage
     inspectorPanel.add(inspectorComponent)
   }
 
@@ -496,16 +445,12 @@ constructor(
       is AppInspectorForcefullyDisposedException -> {
         withContext(uiDispatcher) {
           tabShell.setComponent(
-            EmptyStatePanel(
-              AppInspectionBundle.message("inspector.forcefully.stopped", provider.displayName),
-              provider.learnMoreUrl,
-            )
+            EmptyStatePanel(AppInspectionBundle.message("inspector.forcefully.stopped", provider.displayName), provider.learnMoreUrl)
           )
         }
       }
       is AppInspectionCrashException -> {
-        AppInspectionAnalyticsTrackerService.getInstance(project)
-          .trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
+        AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
         // Wait until AFTER we're disposed before showing the notification. This ensures if
         // the user hits restart, which requests launching a new inspector, it won't reuse
         // the existing client. (Users probably would never hit restart fast enough but it's
@@ -515,10 +460,7 @@ constructor(
       else -> {
         withContext(uiDispatcher) {
           tabShell.setComponent(
-            EmptyStatePanel(
-              AppInspectionBundle.message("inspector.stopped", provider.displayName),
-              provider.learnMoreUrl,
-            )
+            EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl)
           )
         }
       }
@@ -530,18 +472,10 @@ constructor(
     provider: AppInspectorTabProvider,
     tabShell: AppInspectorTabShell,
   ) {
-    messengers.filterIsInstance(AppInspectorMessengerTarget.Resolved::class.java).forEach { target
-      ->
-      target.messenger.awaitForDisposal()
-    }
+    messengers.filterIsInstance(AppInspectorMessengerTarget.Resolved::class.java).forEach { target -> target.messenger.awaitForDisposal() }
 
     withContext(uiDispatcher) {
-      tabShell.setComponent(
-        EmptyStatePanel(
-          AppInspectionBundle.message("inspector.stopped", provider.displayName),
-          provider.learnMoreUrl,
-        )
-      )
+      tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl))
     }
   }
 
@@ -563,9 +497,8 @@ constructor(
 
   fun isTabSelected(inspectorId: String): Boolean {
     val inspectorTabIndex =
-      inspectorTabs
-        .indexOfFirst { tab -> tab.provider.launchConfigs.find { it.id == inspectorId } != null }
-        .takeUnless { it == -1 } ?: return false
+      inspectorTabs.indexOfFirst { tab -> tab.provider.launchConfigs.find { it.id == inspectorId } != null }.takeUnless { it == -1 }
+        ?: return false
     val pane = inspectorPanel.getComponent(0) as? CommonTabbedPane ?: return false
     return pane.selectedIndex == inspectorTabIndex
   }

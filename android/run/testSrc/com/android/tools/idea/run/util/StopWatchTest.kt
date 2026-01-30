@@ -21,7 +21,7 @@ import org.junit.Before
 import org.junit.Test
 
 class StopWatchTest {
-  private  lateinit var testTimeSource: TestTimeSource
+  private lateinit var testTimeSource: TestTimeSource
 
   @Before
   fun setUp() {

@@ -28,13 +28,10 @@ class RemoveAttributeQuickFix(element: PsiElement) : PsiBasedModCommandAction<Ps
   override fun getFamilyName() = "RemoveAttributeQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
-    PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java)?.let {
-      Presentation.of(message("android.lint.fix.remove.attribute"))
-    }
+    PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java)?.let { Presentation.of(message("android.lint.fix.remove.attribute")) }
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
-    val attribute =
-      PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java) ?: return ModCommand.nop()
+    val attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute::class.java) ?: return ModCommand.nop()
 
     @Suppress("UnstableApiUsage")
     return ModCommand.psiUpdate(attribute) { attr, _ -> attr.parent?.setAttribute(attr.name, null) }

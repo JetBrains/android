@@ -33,8 +33,7 @@ import org.mockito.kotlin.whenever
 class PauseLogcatActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  private val device =
-    Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device = Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
   private val mockLogcatPresenter = mock<LogcatPresenter>()
 
   @Test
@@ -105,6 +104,4 @@ class PauseLogcatActionTest {
 }
 
 private fun testEvent(logcatPresenter: LogcatPresenter) =
-  TestActionEvent.createTestEvent(
-    SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build()
-  )
+  TestActionEvent.createTestEvent(SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build())

@@ -64,11 +64,7 @@ abstract class AbstractMarginGroup(
     return name == (other as? AbstractMarginGroup)?.name
   }
 
-  private fun part(
-    property: NlPropertyItem?,
-    override: NlPropertyItem? = null,
-    override2: NlPropertyItem? = null,
-  ): String {
+  private fun part(property: NlPropertyItem?, override: NlPropertyItem? = null, override2: NlPropertyItem? = null): String {
     return override2?.value ?: override?.value ?: property?.value ?: "?"
   }
 }

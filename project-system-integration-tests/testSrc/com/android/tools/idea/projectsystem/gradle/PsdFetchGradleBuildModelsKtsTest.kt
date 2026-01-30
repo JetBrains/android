@@ -17,7 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import org.junit.Test
 
-class PsdFetchGradleBuildModelsKtsTest: PsdFetchGradleBuildModelsTestBase() {
+class PsdFetchGradleBuildModelsKtsTest : PsdFetchGradleBuildModelsTestBase() {
   private val ktsTestProjectPath = "tools/adt/idea/project-system-integration-tests/testData/ktsprojectapp"
   private val ktsTestRepoManifest = "tools/adt/idea/project-system-integration-tests/ktsprojectapp_deps.manifest"
 

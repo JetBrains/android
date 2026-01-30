@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MissingClassDetector
 
 class AndroidLintMissingClassInspection :
-  AndroidLintInspectionBase(
-    AndroidLintBundle.message("android.lint.inspections.missing.class"),
-    MissingClassDetector.MISSING,
-  )
+  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.missing.class"), MissingClassDetector.MISSING)

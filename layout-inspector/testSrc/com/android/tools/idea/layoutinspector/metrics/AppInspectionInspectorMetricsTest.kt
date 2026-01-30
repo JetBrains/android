@@ -54,19 +54,15 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionInspectorMetricsTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
-    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
-      it.name == MODERN_PROCESS.name
-    }
+    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @get:Rule val usageTrackerRule = MetricsTrackerRule()
 
@@ -80,15 +76,12 @@ class AppInspectionInspectorMetricsTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
 
     var usages =
-      usageTrackerRule.testTracker.usages.filter {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-      }
+      usageTrackerRule.testTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
     assertThat(usages).hasSize(2)
 
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
-      assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
       assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
       assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
@@ -96,28 +89,24 @@ class AppInspectionInspectorMetricsTest {
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      assertThat(studioEvent.projectId)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+      assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     }
 
     usages[1].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
-      assertThat(studioEvent.projectId)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+      assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     }
 
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
     usages = waitForEvents(3)
     usages[2].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
-      assertThat(studioEvent.projectId)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+      assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
       assertThat(inspectorEvent.session.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
       assertThat(inspectorEvent.session.attach.success).isTrue()
-      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState)
-        .isEqualTo(AttachErrorState.MODEL_UPDATED)
+      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.MODEL_UPDATED)
     }
 
     assertThat(usages[0].studioEvent.deviceInfo).isEqualTo(usages[1].studioEvent.deviceInfo)
@@ -127,17 +116,14 @@ class AppInspectionInspectorMetricsTest {
   @Test
   fun attachMetricsLoggedAfterProcessFailedToAttach() {
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      LayoutInspectorViewProtocol.Response.newBuilder()
-        .apply { startFetchResponseBuilder.apply { error = "failed to start" } }
-        .build()
+      LayoutInspectorViewProtocol.Response.newBuilder().apply { startFetchResponseBuilder.apply { error = "failed to start" } }.build()
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
 
     val usages = waitForEvents(4)
     usages[0].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
-      assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
       assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
       assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
@@ -145,13 +131,11 @@ class AppInspectionInspectorMetricsTest {
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      assertThat(studioEvent.projectId)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+      assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     }
     usages[1].studioEvent.let { studioEvent ->
       val deviceInfo = studioEvent.deviceInfo
-      assertThat(deviceInfo.anonymizedSerialNumber)
-        .isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
+      assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(DEVICE_1.serial))
       assertThat(deviceInfo.model).isEqualTo(DEVICE_1.model)
       assertThat(deviceInfo.manufacturer).isEqualTo(DEVICE_1.manufacturer)
       assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
@@ -162,30 +146,25 @@ class AppInspectionInspectorMetricsTest {
     usages[2].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
-      assertThat(inspectorEvent.errorInfo.attachErrorState)
-        .isEqualTo(AttachErrorState.START_REQUEST_SENT)
+      assertThat(inspectorEvent.errorInfo.attachErrorState).isEqualTo(AttachErrorState.START_REQUEST_SENT)
     }
     usages[3].studioEvent.let { studioEvent ->
       val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
       assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
       assertThat(inspectorEvent.session.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
       assertThat(inspectorEvent.session.attach.success).isFalse()
-      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState)
-        .isEqualTo(AttachErrorState.START_REQUEST_SENT)
+      assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.START_REQUEST_SENT)
     }
   }
 
   @Test
   fun testInitialRenderLogging() = runBlocking {
     inspectorRule.launchSynchronously = false
-    inspectionRule.viewInspector.listenWhen({ true }) {
-      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
-    }
+    inspectionRule.viewInspector.listenWhen({ true }) { inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1) }
 
     val getUsages = {
       usageTrackerRule.testTracker.usages.filter {
-        it.studioEvent.dynamicLayoutInspectorEvent.type ==
-          DynamicLayoutInspectorEventType.INITIAL_RENDER
+        it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER
       }
     }
 
@@ -195,11 +174,7 @@ class AppInspectionInspectorMetricsTest {
     waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser =
-      mock<SkiaParser>().also {
-        whenever(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer {
-          SkiaViewNode(rootId, listOf())
-        }
-      }
+      mock<SkiaParser>().also { whenever(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) } }
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
 
     // Load the tree with root id 1. The subsequent refreshImages() should generate an initial load
@@ -254,9 +229,7 @@ class AppInspectionInspectorMetricsTest {
     var usages: List<LoggedUsage> = emptyList()
     waitForCondition(10, TimeUnit.SECONDS) {
       usages =
-        usageTrackerRule.testTracker.usages.filter {
-          it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-        }
+        usageTrackerRule.testTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
       usages.size >= expectedLayoutInspectorMetricsEventCount
     }
     return usages
@@ -264,8 +237,7 @@ class AppInspectionInspectorMetricsTest {
 
   private fun createFakeData(
     rootId: Long,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type =
-      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP,
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent =
       LayoutInspectorViewProtocol.LayoutEvent.newBuilder()

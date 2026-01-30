@@ -19,18 +19,15 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Paths
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Paths
 
 class BuildProjectTest {
-  @JvmField @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun buildProjectTest() {
@@ -41,7 +38,7 @@ class BuildProjectTest {
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
-    system.getInstallation().copySystemDir(projectArtifactsPath);
+    system.getInstallation().copySystemDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()

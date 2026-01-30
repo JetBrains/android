@@ -33,9 +33,7 @@ class DeviceAndSnapshotComboBoxActionTest {
   val project
     get() = projectRule.project
 
-  private fun runTestWithFixture(test: suspend Fixture.() -> Unit) = runTest {
-    with(Fixture(project, this)) { runFixture { test() } }
-  }
+  private fun runTestWithFixture(test: suspend Fixture.() -> Unit) = runTest { with(Fixture(project, this)) { runFixture { test() } } }
 
   @Test
   fun update_noRunConfig() = runTestWithFixture {
@@ -78,15 +76,10 @@ class DeviceAndSnapshotComboBoxActionTest {
   @RunsInEdt
   fun setTargetSelectedWithCombobox() = runTestWithFixture {
     RunManager.getInstance(project).createTestConfig()
-    devicesFlow.value =
-      listOf(
-        FakeDeviceHandle(scope, null, handleId("1")),
-        FakeDeviceHandle(scope, null, handleId("2")),
-      )
+    devicesFlow.value = listOf(FakeDeviceHandle(scope, null, handleId("1")), FakeDeviceHandle(scope, null, handleId("2")))
     sendLaunchCompatibility()
 
-    val devices =
-      devicesSelectedService.devicesAndTargetsFlow.first { it.allDevices.size == 2 }.allDevices
+    val devices = devicesSelectedService.devicesAndTargetsFlow.first { it.allDevices.size == 2 }.allDevices
 
     SelectDeviceAction(devices[0]).actionPerformed(actionEvent(dataContext(project)))
     testScope.advanceUntilIdle()
@@ -109,8 +102,7 @@ class DeviceAndSnapshotComboBoxActionTest {
     devicesFlow.value = listOf(FakeDeviceHandle(scope, null, handleId("1"), hasSnapshots = true))
     sendLaunchCompatibility()
 
-    val devices =
-      devicesSelectedService.devicesAndTargetsFlow.first { it.allDevices.size == 1 }.allDevices
+    val devices = devicesSelectedService.devicesAndTargetsFlow.first { it.allDevices.size == 1 }.allDevices
 
     SelectTargetAction(devices[0].targets.last()).actionPerformed(actionEvent(dataContext(project)))
     testScope.advanceUntilIdle()
@@ -118,7 +110,6 @@ class DeviceAndSnapshotComboBoxActionTest {
     val event = actionEvent(dataContext(project), place = ActionPlaces.MAIN_TOOLBAR)
 
     comboBox.update(event)
-    assertThat(event.presentation.text)
-      .isEqualTo("${devices[0].name} - ${devices[0].snapshots[0].name}")
+    assertThat(event.presentation.text).isEqualTo("${devices[0].name} - ${devices[0].snapshots[0].name}")
   }
 }

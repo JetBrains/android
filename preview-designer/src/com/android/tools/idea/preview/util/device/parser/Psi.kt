@@ -29,7 +29,6 @@ class DeviceSpecTokenType(debugName: String) : IElementType(debugName, DeviceSpe
 
 class DeviceSpecElementType(debugName: String) : IElementType(debugName, DeviceSpecLanguage)
 
-class DeviceSpecPsiFile(viewProvider: FileViewProvider) :
-  PsiFileBase(viewProvider, DeviceSpecLanguage) {
+class DeviceSpecPsiFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DeviceSpecLanguage) {
   override fun getFileType(): FileType = DeviceSpecFileType
 }

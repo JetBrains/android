@@ -60,7 +60,8 @@ class LogcatPanelConfigTest {
       {
         'filter': 'tag:ActivityManager ',
         'isSoftWrap': false
-      }"""
+      }
+      """
         .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)).isNull()
@@ -88,7 +89,8 @@ class LogcatPanelConfigTest {
         },
         'filter': 'tag:ActivityManager ',
         'isSoftWrap': false
-      }"""
+      }
+      """
         .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state))
@@ -137,7 +139,8 @@ class LogcatPanelConfigTest {
         },
         'filter': 'tag:ActivityManager ',
         'isSoftWrap': false
-      }"""
+      }
+      """
         .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state))
@@ -177,7 +180,8 @@ class LogcatPanelConfigTest {
         },
         'filter': 'tag:ActivityManager ',
         'isSoftWrap': false
-      }"""
+      }
+      """
         .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state))
@@ -224,13 +228,4 @@ private fun logcatPanelConfig(
   filterMatchCase: Boolean = false,
   isSoftWrap: Boolean = false,
   proguardFile: String? = null,
-) =
-  LogcatPanelConfig(
-    device,
-    file,
-    formattingConfig,
-    filter,
-    filterMatchCase,
-    isSoftWrap,
-    proguardFile,
-  )
+) = LogcatPanelConfig(device, file, formattingConfig, filter, filterMatchCase, isSoftWrap, proguardFile)

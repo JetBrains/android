@@ -53,12 +53,12 @@ internal class DeviceSpecInjectionContributorTest {
       "test/Preview.kt",
       // language=kotlin
       """
-    package test
+      package test
 
-    annotation class Preview(
-      val device: String = ""
-    )
-    """
+      annotation class Preview(
+        val device: String = ""
+      )
+      """
         .trimIndent(),
     )
 
@@ -66,33 +66,19 @@ internal class DeviceSpecInjectionContributorTest {
       object : DeviceSpecInjectionContributor() {
         override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
           when (psiElement.language) {
-            is KotlinLanguage ->
-              psiElement.parentOfType<KtAnnotationEntry>()?.fqNameMatches("test.Preview") ?: false
-            is JavaLanguage ->
-              psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName("test.Preview") ?: false
+            is KotlinLanguage -> psiElement.parentOfType<KtAnnotationEntry>()?.fqNameMatches("test.Preview") ?: false
+            is JavaLanguage -> psiElement.parentOfType<PsiAnnotation>()?.hasQualifiedName("test.Preview") ?: false
             else -> false
           }
       }
-    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
-      KotlinLanguage.INSTANCE,
-      deviceSpecInjectionContributor,
-    )
-    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
-      JavaLanguage.INSTANCE,
-      deviceSpecInjectionContributor,
-    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(KotlinLanguage.INSTANCE, deviceSpecInjectionContributor)
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(JavaLanguage.INSTANCE, deviceSpecInjectionContributor)
   }
 
   @After
   fun tearDown() {
-    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(
-      KotlinLanguage.INSTANCE,
-      deviceSpecInjectionContributor,
-    )
-    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(
-      JavaLanguage.INSTANCE,
-      deviceSpecInjectionContributor,
-    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(KotlinLanguage.INSTANCE, deviceSpecInjectionContributor)
+    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(JavaLanguage.INSTANCE, deviceSpecInjectionContributor)
   }
 
   @Test
@@ -152,22 +138,20 @@ internal class DeviceSpecInjectionContributorTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        import test.Preview
+      import test.Preview
 
-        const val heightDp = "841dp"
-        const val specPref = "spec:"
-        const val heightPx = "1900px"
+      const val heightDp = "841dp"
+      const val specPref = "spec:"
+      const val heightPx = "1900px"
 
-        @Preview(device = "spec:width=673.5dp," + "height=" + heightDp + "" + ""${'"'},chinSize=11dp""${'"'})
-        @Preview(device = specPref + "width=10dp,height=" + heightDp)
-        @Preview(device = "spec:width=1080px," + "height=" + heightPx)
-        fun preview1() {}
+      @Preview(device = "spec:width=673.5dp," + "height=" + heightDp + "" + ""${'"'},chinSize=11dp""${'"'})
+      @Preview(device = specPref + "width=10dp,height=" + heightDp)
+      @Preview(device = "spec:width=1080px," + "height=" + heightPx)
+      fun preview1() {}
       """
         .trimIndent(),
     )
-    val injectedElementsAndTexts = runReadAction {
-      injectionFixture.getAllInjections().map { Pair(it.first.text, it.second.text) }
-    }
+    val injectedElementsAndTexts = runReadAction { injectionFixture.getAllInjections().map { Pair(it.first.text, it.second.text) } }
     assertEquals(3, injectedElementsAndTexts.size)
     // Assert the text of the elements marked for Injection
     assertEquals(""""spec:width=673.5dp,"""", injectedElementsAndTexts[0].first)
@@ -176,10 +160,7 @@ internal class DeviceSpecInjectionContributorTest {
 
     // Assert the contents of the Injected file, should reflect the resolved text in the `device`
     // parameter
-    assertEquals(
-      "spec:width=673.5dp,height=841dp,chinSize=11dp",
-      injectedElementsAndTexts[0].second,
-    )
+    assertEquals("spec:width=673.5dp,height=841dp,chinSize=11dp", injectedElementsAndTexts[0].second)
     assertEquals("spec:width=10dp,height=841dp", injectedElementsAndTexts[1].second)
     assertEquals("spec:width=1080px,height=1900px", injectedElementsAndTexts[2].second)
   }
@@ -214,11 +195,7 @@ internal class DeviceSpecInjectionContributorTest {
       """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 
   @Test
@@ -255,11 +232,7 @@ internal class DeviceSpecInjectionContributorTest {
         """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 
   @Test
@@ -268,11 +241,11 @@ internal class DeviceSpecInjectionContributorTest {
       "anotherpackage/Preview.kt",
       // language=kotlin
       """
-        package anotherpackage
+      package anotherpackage
 
-        annotation class Preview(
-          val device: String = ""
-        )
+      annotation class Preview(
+        val device: String = ""
+      )
       """
         .trimIndent(),
     )
@@ -288,11 +261,7 @@ internal class DeviceSpecInjectionContributorTest {
       """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 
   @Test
@@ -301,11 +270,11 @@ internal class DeviceSpecInjectionContributorTest {
       "anotherpackage/Preview.kt",
       // language=kotlin
       """
-        package anotherpackage
+      package anotherpackage
 
-        annotation class Preview(
-          val device: String = ""
-        )
+      annotation class Preview(
+        val device: String = ""
+      )
       """
         .trimIndent(),
     )
@@ -323,11 +292,7 @@ internal class DeviceSpecInjectionContributorTest {
       """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 
   private fun assertFailsOnPreviewParameter(parameterName: String) {
@@ -344,11 +309,7 @@ internal class DeviceSpecInjectionContributorTest {
       """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 
   private fun assertFailsOnPreviewParameterInJava(parameterName: String) {
@@ -367,10 +328,6 @@ internal class DeviceSpecInjectionContributorTest {
         """
         .trimIndent(),
     )
-    runReadAction {
-      assertThrows(Throwable::class.java) {
-        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-      }
-    }
+    runReadAction { assertThrows(Throwable::class.java) { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) } }
   }
 }

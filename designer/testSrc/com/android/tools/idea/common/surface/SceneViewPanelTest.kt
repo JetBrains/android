@@ -108,9 +108,7 @@ class SceneViewPanelTest {
     panel.updateComponents()
     scope.runCurrent()
     scope.advanceUntilIdle()
-    delayUntilCondition(100, 1.seconds) {
-      panel.findAllDescendants<PositionablePanel>().count() == 0
-    }
+    delayUntilCondition(100, 1.seconds) { panel.findAllDescendants<PositionablePanel>().count() == 0 }
     assertEquals(0, panel.findAllDescendants<SceneViewPeerPanel>().count())
     assertEquals(0, panel.findAllDescendants<SceneViewHeader>().count())
     allSceneViews.forEach { Disposer.dispose(it.sceneManager) }
@@ -176,12 +174,7 @@ class SceneViewPanelTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
     val allSceneViews =
-      listOf(
-        createSceneView { group1 },
-        createSceneView { group1 },
-        createSceneView { group2 },
-        createSceneView { group2 },
-      )
+      listOf(createSceneView { group1 }, createSceneView { group1 }, createSceneView { group2 }, createSceneView { group2 })
     var sceneViews = allSceneViews.toImmutableList()
     val panel =
       SceneViewPanel(
@@ -216,13 +209,7 @@ class SceneViewPanelTest {
   fun groupIsAdded(): Unit = runTest {
     val group1 = OrganizationGroup("1", "1")
     val allSceneViews =
-      listOf(
-        createSceneView(),
-        createSceneView(),
-        createSceneView(),
-        createSceneView { group1 },
-        createSceneView { group1 },
-      )
+      listOf(createSceneView(), createSceneView(), createSceneView(), createSceneView { group1 }, createSceneView { group1 })
     var sceneViews = allSceneViews.dropLast(1).toImmutableList()
     val panel =
       SceneViewPanel(
@@ -263,12 +250,7 @@ class SceneViewPanelTest {
     val group2 = OrganizationGroup("1", "1")
     val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true)
     val sceneViews =
-      mutableListOf(
-        createSceneView { group1 },
-        createSceneView { group1 },
-        createSceneView { group2 },
-        createSceneView { group2 },
-      )
+      mutableListOf(createSceneView { group1 }, createSceneView { group1 }, createSceneView { group2 }, createSceneView { group2 })
 
     val panel =
       SceneViewPanel(
@@ -304,12 +286,7 @@ class SceneViewPanelTest {
     val group2 = OrganizationGroup("1", "1")
     val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = false)
     val sceneViews =
-      mutableListOf(
-        createSceneView { group1 },
-        createSceneView { group1 },
-        createSceneView { group2 },
-        createSceneView { group2 },
-      )
+      mutableListOf(createSceneView { group1 }, createSceneView { group1 }, createSceneView { group2 }, createSceneView { group2 })
 
     val panel =
       SceneViewPanel(
@@ -427,12 +404,7 @@ class SceneViewPanelTest {
   fun collapseGroup() = runTest {
     val newGroup = OrganizationGroup("new", "new")
     var oldGroup = OrganizationGroup("old", "old")
-    val sceneViews =
-      mutableListOf(
-        createSceneView { newGroup },
-        createSceneView { newGroup },
-        createSceneView { oldGroup },
-      )
+    val sceneViews = mutableListOf(createSceneView { newGroup }, createSceneView { newGroup }, createSceneView { oldGroup })
 
     val panel =
       SceneViewPanel(
@@ -464,10 +436,7 @@ class SceneViewPanelTest {
     advanceUntilIdle()
     // Even if organizationGroup was updated later than the panel was created, visibility is still
     // updated.
-    val scenePanel =
-      panel.components.filterIsInstance<SceneViewPeerPanel>().first {
-        it.sceneView == sceneViews[2]
-      } as Component
+    val scenePanel = panel.components.filterIsInstance<SceneViewPeerPanel>().first { it.sceneView == sceneViews[2] } as Component
     assertFalse { scenePanel.isVisible }
     sceneViews.forEach { Disposer.dispose(it.sceneManager) }
   }
@@ -478,12 +447,7 @@ class SceneViewPanelTest {
     val group2 = OrganizationGroup("1", "1")
     val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true)
     val sceneViews =
-      mutableListOf(
-        createSceneView { group1 },
-        createSceneView { group1 },
-        createSceneView { group2 },
-        createSceneView { group2 },
-      )
+      mutableListOf(createSceneView { group1 }, createSceneView { group1 }, createSceneView { group2 }, createSceneView { group2 })
 
     val panel =
       SceneViewPanel(
@@ -514,12 +478,7 @@ class SceneViewPanelTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
     val allSceneViews =
-      listOf(
-        createSceneView { group1 },
-        createSceneView { group1 },
-        createSceneView { group2 },
-        createSceneView { group2 },
-      )
+      listOf(createSceneView { group1 }, createSceneView { group1 }, createSceneView { group2 }, createSceneView { group2 })
     var sceneViews = allSceneViews.toImmutableList()
 
     val panel =
@@ -567,33 +526,17 @@ class SceneViewPanelTest {
 
     override val currentLayoutOption =
       MutableStateFlow(
-        SurfaceLayoutOption(
-          "",
-          { GridLayoutManager() },
-          organizationEnabled,
-          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-        )
+        SurfaceLayoutOption("", { GridLayoutManager() }, organizationEnabled, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid)
       )
 
     fun setOrganization(enabled: Boolean) {
       currentLayoutOption.value =
-        SurfaceLayoutOption(
-          "",
-          { GridLayoutManager() },
-          enabled,
-          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-        )
+        SurfaceLayoutOption("", { GridLayoutManager() }, enabled, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid)
     }
 
-    override fun layoutContainer(
-      content: Collection<PositionableContent>,
-      availableSize: Dimension,
-    ) {}
+    override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
-    override fun preferredLayoutSize(
-      content: Collection<PositionableContent>,
-      availableSize: Dimension,
-    ) = Dimension(300, 300)
+    override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension) = Dimension(300, 300)
 
     override fun getMeasuredPositionableContentPosition(
       content: Collection<PositionableContent>,
@@ -606,9 +549,7 @@ class SceneViewPanelTest {
     val model =
       Mockito.mock(NlModel::class.java).apply {
         Mockito.`when`(this.organizationGroup).then { groupProvider() }
-        Mockito.`when`(this.displaySettings).then {
-          DisplaySettings().apply { setDisplayName("Name") }
-        }
+        Mockito.`when`(this.displaySettings).then { DisplaySettings().apply { setDisplayName("Name") } }
       }
     val sceneManager =
       Mockito.mock(SceneManager::class.java).apply {

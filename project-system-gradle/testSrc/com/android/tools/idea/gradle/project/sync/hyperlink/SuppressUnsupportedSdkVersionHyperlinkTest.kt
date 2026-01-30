@@ -19,16 +19,15 @@ import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 
 class SuppressUnsupportedSdkVersionHyperlinkTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun `test when project is disposed`() {

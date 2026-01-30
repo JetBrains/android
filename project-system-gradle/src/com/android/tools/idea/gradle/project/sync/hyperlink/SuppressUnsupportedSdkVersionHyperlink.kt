@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePropert
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class SuppressUnsupportedSdkVersionHyperlink(val gradleProperty: String) : SyncIssueNotificationHyperlink(
-  "android.suppressUnsupportedCompileSdk",
-  "Update Gradle property to suppress warning",
-  AndroidStudioEvent.GradleSyncQuickFix.SUPPRESS_UNSUPPORTED_SDK_HYPERLINK
-) {
+class SuppressUnsupportedSdkVersionHyperlink(val gradleProperty: String) :
+  SyncIssueNotificationHyperlink(
+    "android.suppressUnsupportedCompileSdk",
+    "Update Gradle property to suppress warning",
+    AndroidStudioEvent.GradleSyncQuickFix.SUPPRESS_UNSUPPORTED_SDK_HYPERLINK,
+  ) {
   public override fun execute(project: Project) {
     if (project.isDisposed) {
       return
@@ -32,10 +33,12 @@ class SuppressUnsupportedSdkVersionHyperlink(val gradleProperty: String) : SyncI
 
     val index = gradleProperty.indexOf("=")
     if (index != -1 && index < gradleProperty.length - 1) {
-      val processor = GradlePropertyProcessor(
-        project,
-        propertyName="android.suppressUnsupportedCompileSdk",
-        propertyValue=gradleProperty.substring(index + 1))
+      val processor =
+        GradlePropertyProcessor(
+          project,
+          propertyName = "android.suppressUnsupportedCompileSdk",
+          propertyValue = gradleProperty.substring(index + 1),
+        )
       processor.setPreviewUsages(true)
       processor.run()
     }

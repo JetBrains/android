@@ -113,8 +113,7 @@ constructor(
 
   constructor(
     project: Project,
-    deviceProvisioner: DeviceProvisioner =
-      project.service<DeviceProvisionerService>().deviceProvisioner,
+    deviceProvisioner: DeviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner,
     deviceFilter: (DeviceProperties) -> Boolean = { true },
   ) : this(
     project,
@@ -147,12 +146,11 @@ constructor(
   )
 
   private val splitter = JBSplitter(true)
-  private val scrollPane =
-    JBScrollPane().apply { border = JBUI.Borders.customLineTop(JBColor.border()) }
+  private val scrollPane = JBScrollPane().apply { border = JBUI.Borders.customLineTop(JBColor.border()) }
 
   /**
-   * Depending on how many ways we have to create devices, this is either null, an AnAction that
-   * creates a device, or a DropDownAction that shows a popup menu of ways to create a device.
+   * Depending on how many ways we have to create devices, this is either null, an AnAction that creates a device, or a DropDownAction that
+   * shows a popup menu of ways to create a device.
    */
   private val addDevice: AnAction? = run {
     val createActionsCount = createDeviceActions.size + createTemplateActions.size
@@ -163,10 +161,7 @@ constructor(
     when (createActionsCount) {
       0 -> null
       1 -> createActions[0]
-      else ->
-        DropDownAction("Add Device", "Add a new device", StudioIcons.Common.ADD).also {
-          it.addAll(createActions)
-        }
+      else -> DropDownAction("Add Device", "Add a new device", StudioIcons.Common.ADD).also { it.addAll(createActions) }
     }
   }
 
@@ -193,8 +188,7 @@ constructor(
 
   private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
 
-  private val pairedDevicesFlow =
-    pairedDevicesFlow.stateIn(panelScope, SharingStarted.Lazily, emptyMap())
+  private val pairedDevicesFlow = pairedDevicesFlow.stateIn(panelScope, SharingStarted.Lazily, emptyMap())
 
   private val toolbar: ActionToolbar = run {
     val groupingActions =
@@ -207,12 +201,9 @@ constructor(
         add(GroupingAction(deviceTable, DeviceTableColumns.HandleType))
       }
 
-    val typeSpecificActions =
-      ActionManager.getInstance().getAction("Android.DeviceManager.TypeSpecificActions")
+    val typeSpecificActions = ActionManager.getInstance().getAction("Android.DeviceManager.TypeSpecificActions")
 
-    createToolbar(
-      listOfNotNull(groupingActions, Separator.create(), addDevice, typeSpecificActions)
-    )
+    createToolbar(listOfNotNull(groupingActions, Separator.create(), addDevice, typeSpecificActions))
   }
 
   private val notificationHolderPanel = JPanel(VerticalLayout(0))
@@ -319,9 +310,7 @@ constructor(
             .pairWithConnectionState()
             .flatMapLatest { (state, _) ->
               pairedDevicesFlow
-                .map { allPairedDevices ->
-                  allPairedDevices[state.properties.wearPairingId] ?: emptyList()
-                }
+                .map { allPairedDevices -> allPairedDevices[state.properties.wearPairingId] ?: emptyList() }
                 .distinctUntilChanged()
                 .map { pairedDevices -> DeviceRowData.create(handle, pairedDevices) }
             }
@@ -357,10 +346,7 @@ constructor(
     }
   }
 
-  private fun <A : DeviceAction> A.toAnAction(
-    action: suspend A.(Component?) -> Unit,
-    isIconEnabled: Boolean = true,
-  ): DumbAwareAction {
+  private fun <A : DeviceAction> A.toAnAction(action: suspend A.(Component?) -> Unit, isIconEnabled: Boolean = true): DumbAwareAction {
     panelScope.launch {
       // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
       // update the AnAction presentation
@@ -385,15 +371,12 @@ constructor(
     }
   }
 
-  private fun CreateDeviceAction.toAnAction(isIconEnabled: Boolean) =
-    toAnAction(CreateDeviceAction::create, isIconEnabled)
+  private fun CreateDeviceAction.toAnAction(isIconEnabled: Boolean) = toAnAction(CreateDeviceAction::create, isIconEnabled)
 
-  private fun CreateDeviceTemplateAction.toAnAction(isIconEnabled: Boolean) =
-    toAnAction(CreateDeviceTemplateAction::create, isIconEnabled)
+  private fun CreateDeviceTemplateAction.toAnAction(isIconEnabled: Boolean) = toAnAction(CreateDeviceTemplateAction::create, isIconEnabled)
 
   private fun createToolbar(actions: List<AnAction>): ActionToolbar {
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, DefaultActionGroup(actions), true)
+    val toolbar = ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, DefaultActionGroup(actions), true)
     toolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
@@ -431,16 +414,8 @@ constructor(
 
   private fun createDetailsPanel(row: DeviceRowData): DeviceDetailsPanel =
     when (row.handle) {
-      null ->
-        DeviceDetailsPanel.create(panelScope.createChildScope(isSupervisor = true), row.template!!)
-      else ->
-        DeviceDetailsPanel.create(
-          project,
-          panelScope.createChildScope(isSupervisor = true),
-          row.handle,
-          devices,
-          pairedDevicesFlow,
-        )
+      null -> DeviceDetailsPanel.create(panelScope.createChildScope(isSupervisor = true), row.template!!)
+      else -> DeviceDetailsPanel.create(project, panelScope.createChildScope(isSupervisor = true), row.handle, devices, pairedDevicesFlow)
     }.apply { addCloseActionListener { deviceDetailsPanelRow = null } }
 
   override fun uiDataSnapshot(sink: DataSink) {
@@ -451,9 +426,7 @@ constructor(
 }
 
 private fun DeviceProvisioner.notificationBanners(): Flow<List<EditorNotificationPanel>> =
-  combine(extensions(NotificationBannersExtension::class.java).map { it.notificationBanners }) {
-    it.flatMap { it }
-  }
+  combine(extensions(NotificationBannersExtension::class.java).map { it.notificationBanners }) { it.flatMap { it } }
 
 @UiThread
 internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
@@ -467,29 +440,19 @@ internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
       }
   }
 
-/**
- * Joins the DeviceState with the nested adblib DeviceState, producing a Flow that updates when
- * either DeviceState changes.
- */
-private fun Flow<DeviceState>.pairWithConnectionState():
-  Flow<Pair<DeviceState, com.android.adblib.DeviceState?>> = flatMapLatest { state ->
-  state.connectedDevice?.deviceInfoFlow?.map { Pair(state, it.deviceState) }
-    ?: flowOf(Pair(state, null))
+/** Joins the DeviceState with the nested adblib DeviceState, producing a Flow that updates when either DeviceState changes. */
+private fun Flow<DeviceState>.pairWithConnectionState(): Flow<Pair<DeviceState, com.android.adblib.DeviceState?>> = flatMapLatest { state ->
+  state.connectedDevice?.deviceInfoFlow?.map { Pair(state, it.deviceState) } ?: flowOf(Pair(state, null))
 }
 
 private const val TOOLBAR_ID = "DeviceManager2"
 
 internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")
-internal val DEVICE_HANDLES_FLOW_KEY =
-  DataKey.create<StateFlow<List<DeviceHandle>>>("DeviceHandleFlow")
-internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY =
-  DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")
+internal val DEVICE_HANDLES_FLOW_KEY = DataKey.create<StateFlow<List<DeviceHandle>>>("DeviceHandleFlow")
+internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY = DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")
 
 @Service(Service.Level.PROJECT)
-@State(
-  name = "DeviceTable",
-  storages = [Storage("deviceManager.xml", roamingType = RoamingType.DISABLED)],
-)
+@State(name = "DeviceTable", storages = [Storage("deviceManager.xml", roamingType = RoamingType.DISABLED)])
 class DeviceTablePersistentStateComponent : CategoryTablePersistentStateComponent() {
   override val serializer =
     CategoryTableStateSerializer(

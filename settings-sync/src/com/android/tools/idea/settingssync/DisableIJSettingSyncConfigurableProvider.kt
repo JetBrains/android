@@ -25,14 +25,12 @@ import com.intellij.openapi.options.ConfigurableEP
 
 private val IJ_SETTINGS_SYNC_PLUGIN_ID = PluginId.getId("com.intellij.settingsSync")
 
-internal fun checkIfFeaturePluginEnabled(): Boolean =
-  PluginManagerCore.getPlugin(IJ_SETTINGS_SYNC_PLUGIN_ID)?.isEnabled == true
+internal fun checkIfFeaturePluginEnabled(): Boolean = PluginManagerCore.getPlugin(IJ_SETTINGS_SYNC_PLUGIN_ID)?.isEnabled == true
 
 /**
  * This is to hide the IJ feature configurable behind the feature flag.
  *
- * If users explicitly enable the feature plugin from the JetBrains Marketplace, this configurable
- * will still be visible.
+ * If users explicitly enable the feature plugin from the JetBrains Marketplace, this configurable will still be visible.
  */
 class DisableIJSettingSyncConfigurableProvider : AppLifecycleListener {
   override fun appFrameCreated(commandLineArgs: List<String?>) {
@@ -47,8 +45,6 @@ class DisableIJSettingSyncConfigurableProvider : AppLifecycleListener {
         it.providerClass == "com.intellij.settingsSync.core.config.SettingsSyncConfigurableProvider"
       } ?: return
 
-    ExtensionPointName<ConfigurableEP<Configurable>>("com.intellij.applicationConfigurable")
-      .point
-      .unregisterExtension(extension)
+    ExtensionPointName<ConfigurableEP<Configurable>>("com.intellij.applicationConfigurable").point.unregisterExtension(extension)
   }
 }

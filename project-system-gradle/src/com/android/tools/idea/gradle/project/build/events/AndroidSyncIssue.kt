@@ -24,8 +24,8 @@ import com.intellij.pom.Navigatable
 class AndroidSyncIssue(
   override val title: String,
   private val notificationData: NotificationData,
-  override val quickFixes: List<BuildIssueQuickFix>
-): BuildIssue {
+  override val quickFixes: List<BuildIssueQuickFix>,
+) : BuildIssue {
   override val description: String = notificationData.message
 
   override fun getNavigatable(project: Project): Navigatable? = notificationData.navigatable

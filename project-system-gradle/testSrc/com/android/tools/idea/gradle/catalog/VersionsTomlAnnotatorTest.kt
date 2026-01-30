@@ -40,8 +40,7 @@ import org.toml.lang.psi.TomlRecursiveVisitor
 @RunsInEdt
 class VersionsTomlAnnotatorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private lateinit var fixture: JavaCodeInsightTestFixture
 
@@ -52,10 +51,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasNamingOneLetter() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"a" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"a" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -63,10 +67,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasNamingStartWithDigit() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"1A" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"1A" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -74,10 +83,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasNamingForTwoLetters() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      aa = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        aa = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -85,11 +99,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkPluginLiteral() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
-      bb = "plugin:version"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+        bb = "plugin:version"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -97,12 +116,17 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkLibraryDeclaration() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [libraries]
-      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
-      bb = "group:name" # assuming BOM is there
-      cc = "group:name:version"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [libraries]
+        aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+        bb = "group:name" # assuming BOM is there
+        cc = "group:name:version"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -110,11 +134,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkLibraryDeclaration2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [libraries]
-      aa = { module = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR} }
-      bb = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [libraries]
+        aa = { module = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR} }
+        bb = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -122,36 +151,45 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkManualIterationThroughTree() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml", """
-      [plugins]
-      aa = "some:plugin"
-      [libraries]
-      lib = "com.example:example:1.9"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        aa = "some:plugin"
+        [libraries]
+        lib = "com.example:example:1.9"
+        """
+          .trimIndent(),
+      )
     val psiFile = file.originalFile
     val annotator = VersionsTomlAnnotator()
     runReadAction {
-      val visitor = object : TomlRecursiveVisitor() {
-        override fun visitElement(element: TomlElement) {
-          CodeInsightTestUtil.testAnnotator(annotator, element)
-          super.visitElement(element as PsiElement)
+      val visitor =
+        object : TomlRecursiveVisitor() {
+          override fun visitElement(element: TomlElement) {
+            CodeInsightTestUtil.testAnnotator(annotator, element)
+            super.visitElement(element as PsiElement)
+          }
         }
-      }
       visitor.visitElement(psiFile)
     }
   }
 
   @Test
   fun checkManualCheckNewElement() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml", """
-      [plugins]
-      aa = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        aa = "some:plugin"
+        """
+          .trimIndent(),
+      )
     val psiFile = file.originalFile
     val annotator = VersionsTomlAnnotator()
-    val libs = runReadAction {
-      TomlPsiFactory(fixture.project).createTable("libraries")
-    }
+    val libs = runReadAction { TomlPsiFactory(fixture.project).createTable("libraries") }
 
     WriteCommandAction.runWriteCommandAction(fixture.project) { psiFile.add(libs) }
 
@@ -162,10 +200,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasNamingWrongSymbol() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"\"wrong+symbol\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"\"wrong+symbol\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -173,10 +216,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkNormalAlias() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      some_Normal-PluginAlias = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        some_Normal-PluginAlias = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -184,10 +232,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkNormalAliasQuoted() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      "some_Normal-PluginAlias" = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        "some_Normal-PluginAlias" = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -195,10 +248,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasFirstCapital() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"Alias" highlightedAs HighlightSeverity.ERROR}= "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"Alias" highlightedAs HighlightSeverity.ERROR}= "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -206,10 +264,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkWrongTableName() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"temp" highlightedAs HighlightSeverity.ERROR}]
-      alias = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"temp" highlightedAs HighlightSeverity.ERROR}]
+        alias = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -217,10 +280,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkWrongTableName2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"plugins.plugins" highlightedAs HighlightSeverity.ERROR}]
-      alias = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"plugins.plugins" highlightedAs HighlightSeverity.ERROR}]
+        alias = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -228,10 +296,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkQuotedTableName() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      ["plugins"]
-      alias = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        ["plugins"]
+        alias = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -239,28 +312,37 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkNormalTableName() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      alias = "some:plugin"
-      [metadata]
-      version = "1.0"
-      [versions]
-      [bundles]
-      [libraries]
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        alias = "some:plugin"
+        [metadata]
+        version = "1.0"
+        [versions]
+        [bundles]
+        [libraries]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
 
-
   @Test
   fun checkDuplicationNames_SimpleCase() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -268,12 +350,17 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkKeyWordsInAlias() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"class_name" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"extensions" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"convention" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"class_name" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"extensions" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"convention" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -281,11 +368,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_MixedNotation() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -293,11 +385,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkNonDefaultTomlNaming_MixedNotation() {
-    val file = fixture.addFileToProject("gradle/dep.versions.toml","""
-      [plugins]
-      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/dep.versions.toml",
+        """
+        [plugins]
+        ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -305,28 +402,37 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationWithBrokenToml() {
-    val file = fixture.addFileToProject("gradle/lib.versions.toml","""
-      [plugins]
-      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      [${"]" highlightedAs HighlightSeverity.ERROR}
-      ${"=" highlightedAs HighlightSeverity.ERROR}
-      "sfdfsdfsf<EOLError descr="'.' or '=' expected, got '\"'"></EOLError>
-      "<EOLError descr="'.' or '=' expected"></EOLError>
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/lib.versions.toml",
+        """
+        [plugins]
+        ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        [${"]" highlightedAs HighlightSeverity.ERROR}
+        ${"=" highlightedAs HighlightSeverity.ERROR}
+        "sfdfsdfsf<EOLError descr="'.' or '=' expected, got '\"'"></EOLError>
+        "<EOLError descr="'.' or '=' expected"></EOLError>
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
 
-
   @Test
   fun checkDuplicationNames_MixedNotation2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -334,12 +440,17 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_MixedNotation3() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"\"some-plugin\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"some-plugin" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -347,15 +458,20 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_WithinSingleTable() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"\"some-alias\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"some_alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"\"some-alias\"" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"some_alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
-    """.trimIndent())
+        [libraries]
+        some_alias = "some:group:1.0"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -363,14 +479,19 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_CheckMessage() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias.")} = "some:plugin"
-      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias.")} = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias.")} = "some:plugin"
+        ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias.")} = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
-    """.trimIndent())
+        [libraries]
+        some_alias = "some:group:1.0"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -378,16 +499,21 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_CheckMessageForThree() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias, some-alias etc.")} = "some:plugin"
-      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
-      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
-      ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"some_alias".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some-alias, some-alias etc.")} = "some:plugin"
+        ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+        ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
+        ${"\"some-alias\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated alias name. Effectively same as some_alias, some-alias etc.")} = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
-    """.trimIndent())
+        [libraries]
+        some_alias = "some:group:1.0"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -395,20 +521,25 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDuplicationNames_InsideAllTables() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [versions]
-      ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
-      ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
-      [plugins]
-      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-      [libraries]
-      ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
-      ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
-      [bundles]
-      ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
-      ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [versions]
+        ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
+        ${"var" highlightedAs HighlightSeverity.ERROR} = "1.0"
+        [plugins]
+        ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        [libraries]
+        ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
+        ${"lib" highlightedAs HighlightSeverity.ERROR} = "group:name:1.0"
+        [bundles]
+        ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
+        ${"bundle" highlightedAs HighlightSeverity.ERROR} = ["lib"]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -416,15 +547,20 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkTableDuplicationNames() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-      alias = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        alias = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
+        [libraries]
+        some_alias = "some:group:1.0"
 
-      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-    """.trimIndent())
+        [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -432,14 +568,19 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkWrongTableNames_withDots() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"plugins.plugins" highlightedAs HighlightSeverity.ERROR}]
-      alias = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"plugins.plugins" highlightedAs HighlightSeverity.ERROR}]
+        alias = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
+        [libraries]
+        some_alias = "some:group:1.0"
 
-    """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -447,14 +588,19 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkWrongTableNames_withDots2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"\"plugins.plugins\"" highlightedAs HighlightSeverity.ERROR}]
-      alias = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"\"plugins.plugins\"" highlightedAs HighlightSeverity.ERROR}]
+        alias = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
+        [libraries]
+        some_alias = "some:group:1.0"
 
-    """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -462,15 +608,20 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkTableDuplicationNames_withQuotationMarks() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"\"plugins\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-      alias = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"\"plugins\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        alias = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
+        [libraries]
+        some_alias = "some:group:1.0"
 
-      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-    """.trimIndent())
+        [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -478,11 +629,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasDuplicationUnicode() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"alias" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"\"\\u0061\\u006c\\u0069\\u0061\\u0073\"" highlightedAs HighlightSeverity.ERROR}= "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"alias" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"\"\\u0061\\u006c\\u0069\\u0061\\u0073\"" highlightedAs HighlightSeverity.ERROR}= "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -490,15 +646,20 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkTableDuplicationNames_Unicode() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [${"\"\\u0070\\u006c\\u0075\\u0067\\u0069\\u006e\\u0073\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-      alias = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [${"\"\\u0070\\u006c\\u0075\\u0067\\u0069\\u006e\\u0073\"".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        alias = "some:plugin"
 
-      [libraries]
-      some_alias = "some:group:1.0"
+        [libraries]
+        some_alias = "some:group:1.0"
 
-      [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
-    """.trimIndent())
+        [${"plugins".highlightedAs(HighlightSeverity.ERROR, "Duplicated table name.")}]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -506,10 +667,15 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkQuotatedAliasWithDotsSpecialCase() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"\"some.alias\".alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"\"some.alias\".alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -519,11 +685,16 @@ class VersionsTomlAnnotatorTest {
   fun checkAliasDuplicationSpecialCase() {
     // This syntax is invalid, but we don't check such case as it's quite rare
     // It must be something like some.id = "..." or some.value = "..."
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      "some_alias".alias = "some:plugin"
-      some.alias.alias = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        "some_alias".alias = "some:plugin"
+        some.alias.alias = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -531,13 +702,18 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasDuplicationSpecialCase2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      alias.id = "id"
-      alias.version = "1.0"
-      ${"alias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"alias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        alias.id = "id"
+        alias.version = "1.0"
+        ${"alias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"alias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -545,13 +721,18 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkAliasDuplicationSpecialCase3() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      alias.id = "id"
-      alias.version = "1.0"
-      ${"alias_A" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"alias_a" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        alias.id = "id"
+        alias.version = "1.0"
+        ${"alias_A" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"alias_a" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -559,13 +740,18 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDoubleUnderscore() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"al-_ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"al_-ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"al-_ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"al__ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"al_-ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -573,12 +759,17 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDoubleUnderscore2() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"al______ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"ali_-_-_-as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"ali------as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"al______ias2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"ali_-_-_-as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"ali------as2" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -586,11 +777,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkTrailingUnderscore() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"alias_" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"alias-" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"alias_" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"alias-" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -598,11 +794,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDigitAfterDelimiter() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      ${"first_4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-      ${"second-4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        ${"first_4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        ${"second-4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -610,11 +811,16 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkDigitAfterDelimiterForVersions() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [versions]
-      ${"first_4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
-      ${"second-4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [versions]
+        ${"first_4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
+        ${"second-4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -622,21 +828,26 @@ class VersionsTomlAnnotatorTest {
 
   @Test
   fun checkGradleNamingConflict() {
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [plugins]
-      bundles = "some:plugin"
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [plugins]
+        bundles = "some:plugin"
 
-      [libraries]
-      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
-      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
-      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+        [libraries]
+        ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+        ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+        ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
 
-      [versions]
-      plugins = "some:plugin"
+        [versions]
+        plugins = "some:plugin"
 
-      [bundles]
-      bundles = "some:plugin"
-    """.trimIndent())
+        [bundles]
+        bundles = "some:plugin"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -646,10 +857,15 @@ class VersionsTomlAnnotatorTest {
   @Test
   fun checkNonVersionsToml() {
     // it's toml - not the .versions.toml
-    val file = fixture.addFileToProject("gradle/nonversions.toml","""
-      [libraries]
-      RANDOM_ALIAS = "some_alias"
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/nonversions.toml",
+        """
+        [libraries]
+        RANDOM_ALIAS = "some_alias"
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -658,13 +874,18 @@ class VersionsTomlAnnotatorTest {
   @Test
   fun checkBundleRefDuplication() {
     // for some reason checkHighlighting interpret warning as error so need to use another verification approach
-    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [bundles]
-      bundle = [
-       "alias_one",
-       "alias-one"
-      ]
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [bundles]
+        bundle = [
+         "alias_one",
+         "alias-one"
+        ]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val inspections =
@@ -673,10 +894,10 @@ class VersionsTomlAnnotatorTest {
         .sortedByDescending { -it.startOffset }
         .joinToString("\n") { highlightInfo ->
           ReadAction.compute<String, Throwable> {
-          "${StringUtil.offsetToLineNumber(highlightInfo.highlighter!!.document.text, highlightInfo.startOffset)}: ${highlightInfo.description}"
-        } }
+            "${StringUtil.offsetToLineNumber(highlightInfo.highlighter!!.document.text, highlightInfo.startOffset)}: ${highlightInfo.description}"
+          }
+        }
 
     assertEquals("3: Duplicate reference to dependency", inspections)
   }
-
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.Executor

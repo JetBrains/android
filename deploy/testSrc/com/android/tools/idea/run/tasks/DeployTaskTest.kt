@@ -51,9 +51,7 @@ class DeployTaskTest {
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    whenever(deployer.install(any(), any(), any())).thenReturn(
-      Deployer.Result(false, false, false, App.fromApks("id", emptyList()))
-    )
+    whenever(deployer.install(any(), any(), any())).thenReturn(Deployer.Result(false, false, false, App.fromApks("id", emptyList())))
     whenever(canceller.cancelled()).thenReturn(false)
   }
 
@@ -64,7 +62,7 @@ class DeployTaskTest {
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
     val deployTask = makeDeployTaskForTesting()
-    deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
+    deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
@@ -141,7 +139,8 @@ class DeployTaskTest {
   fun testDeployToCurrentUserOnly() {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
-    val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallOnUser(InstallOptions.CURRENT_USER).setInstallFullApk().setDontKill().build()
+    val expectedOptions =
+      InstallOptions.builder().setAllowDebuggable().setInstallOnUser(InstallOptions.CURRENT_USER).setInstallFullApk().setDontKill().build()
 
     val deployTask = makeDeployTaskForTesting(installOnAllUsers = false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
@@ -170,13 +169,8 @@ class DeployTaskTest {
 
   @Test
   fun testDeployApkWithRequiredInstallOptionsOnApi30() {
-    val expectedOptions = InstallOptions.builder()
-      .setAllowDebuggable()
-      .setGrantAllPermissions()
-      .setForceQueryable()
-      .setInstallFullApk()
-      .setDontKill()
-      .build()
+    val expectedOptions =
+      InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setForceQueryable().setInstallFullApk().setDontKill().build()
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.R)
 
@@ -186,12 +180,7 @@ class DeployTaskTest {
 
   @Test
   fun testDeployApkWithRequiredInstallOptionsOnApi29() {
-    val expectedOptions = InstallOptions.builder()
-      .setAllowDebuggable()
-      .setGrantAllPermissions()
-      .setInstallFullApk()
-      .setDontKill()
-      .build()
+    val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setInstallFullApk().setDontKill().build()
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.Q)
 
@@ -200,9 +189,7 @@ class DeployTaskTest {
 
   @Test
   fun testDeployApkWithRequiredInstallOptionsOnApi22() {
-    val expectedOptions = InstallOptions.builder()
-      .setAllowDebuggable()
-      .build()
+    val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.LOLLIPOP_MR1)
 
@@ -214,8 +201,8 @@ class DeployTaskTest {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(deviceApiLevel))
     val mockApkInfo = mock(ApkInfo::class.java)
-    whenever(mockApkInfo.requiredInstallOptions).thenReturn(
-      setOf(ApkInfo.AppInstallOption.FORCE_QUERYABLE, ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS))
+    whenever(mockApkInfo.requiredInstallOptions)
+      .thenReturn(setOf(ApkInfo.AppInstallOption.FORCE_QUERYABLE, ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS))
 
     val deployTask = makeDeployTaskForTesting(listOf(mockApkInfo))
     deployTask.perform(device, deployer, mockApkInfo, canceller)
@@ -227,6 +214,6 @@ class DeployTaskTest {
     installOnAllUsers: Boolean = true,
     alwaysInstallWithPm: Boolean = false,
     allowAssumeVerified: Boolean = false,
-    makeBeforeRun: Boolean = true) =
-    DeployTask(project, packages, userInstallOptions, installOnAllUsers, alwaysInstallWithPm, allowAssumeVerified, makeBeforeRun)
+    makeBeforeRun: Boolean = true,
+  ) = DeployTask(project, packages, userInstallOptions, installOnAllUsers, alwaysInstallWithPm, allowAssumeVerified, makeBeforeRun)
 }

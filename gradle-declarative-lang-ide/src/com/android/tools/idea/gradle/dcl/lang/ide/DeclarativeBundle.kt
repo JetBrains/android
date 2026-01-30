@@ -16,16 +16,15 @@
 package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.intellij.DynamicBundle
+import java.util.function.Supplier
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
-import java.util.function.Supplier
 
 object DeclarativeBundle {
   private const val BUNDLE_NAME: @NonNls String = "messages.DeclarativeBundle"
 
   private val BUNDLE: DynamicBundle = DynamicBundle(DeclarativeBundle::class.java, BUNDLE_NAME)
-
 
   fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any): @Nls String {
     return BUNDLE.getMessage(key, *params)

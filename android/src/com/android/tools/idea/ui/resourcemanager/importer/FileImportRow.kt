@@ -31,25 +31,22 @@ private val PREVIEW_SIZE = JBUI.size(100)
 
 class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout()) {
 
-  val preview = JBLabel().apply {
-    horizontalAlignment = JBLabel.CENTER
-  }
+  val preview = JBLabel().apply { horizontalAlignment = JBLabel.CENTER }
 
-  private val previewWrapper = ChessBoardPanel().apply {
-    preferredSize = PREVIEW_SIZE
-    maximumSize = PREVIEW_SIZE
-    border = JBUI.Borders.customLine(JBColor.border(), 1)
-    add(preview)
-  }
+  private val previewWrapper =
+    ChessBoardPanel().apply {
+      preferredSize = PREVIEW_SIZE
+      maximumSize = PREVIEW_SIZE
+      border = JBUI.Borders.customLine(JBColor.border(), 1)
+      add(preview)
+    }
 
   private val fileName = JBLabel(viewModel.fileName)
   private val folderConfiguration = JBLabel(viewModel.qualifiers)
   private val fileSize = JBLabel(viewModel.fileSize)
   private val fileDimension = JBLabel(viewModel.fileDimension)
 
-  private val doNotImportButton = LinkLabel<Any?>("Do not import", null) { _, _ -> removeButtonClicked() }.apply {
-    isFocusable = true
-  }
+  private val doNotImportButton = LinkLabel<Any?>("Do not import", null) { _, _ -> removeButtonClicked() }.apply { isFocusable = true }
 
   private fun removeButtonClicked() {
     parent.let {
@@ -60,33 +57,33 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
     viewModel.removeFile()
   }
 
-  private val middlePane = JPanel(BorderLayout()).apply {
-    add(JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
-      add(fileName)
-      add(separator())
-      add(folderConfiguration)
-      add(separator())
-      add(fileSize)
-      if (fileDimension.text.isNotBlank()) {
-        add(separator())
-        add(fileDimension)
-      }
-    }, BorderLayout.WEST)
-    add(doNotImportButton, BorderLayout.EAST)
+  private val middlePane =
+    JPanel(BorderLayout()).apply {
+      add(
+        JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
+          add(fileName)
+          add(separator())
+          add(folderConfiguration)
+          add(separator())
+          add(fileSize)
+          if (fileDimension.text.isNotBlank()) {
+            add(separator())
+            add(fileDimension)
+          }
+        },
+        BorderLayout.WEST,
+      )
+      add(doNotImportButton, BorderLayout.EAST)
 
-    add(QualifierConfigurationPanel(viewModel.qualifierViewModel), BorderLayout.SOUTH)
-  }
+      add(QualifierConfigurationPanel(viewModel.qualifierViewModel), BorderLayout.SOUTH)
+    }
 
   private fun separator() = Separator(8, 4)
 
   init {
-    add(JPanel().apply {
-      add(previewWrapper)
-    }, BorderLayout.WEST)
+    add(JPanel().apply { add(previewWrapper) }, BorderLayout.WEST)
     add(middlePane)
-    border = BorderFactory.createCompoundBorder(
-      JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
-      JBUI.Borders.empty(0, 4, 2, 4))
+    border = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), JBUI.Borders.empty(0, 4, 2, 4))
     viewModel.updateCallback = ::update
     update()
   }

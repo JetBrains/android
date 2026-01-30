@@ -34,15 +34,12 @@ import org.jetbrains.uast.toUElement
 private val glancePreviewGroupDisplayName = message("inspection.group.name")
 
 private object GlancePreviewAnnotationChecker : PreviewAnnotationChecker {
-  override fun isPreview(importDirective: KtImportDirective) =
-    GLANCE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
+  override fun isPreview(importDirective: KtImportDirective) = GLANCE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
 
-  override fun isPreview(annotation: KtAnnotationEntry) =
-    annotation.fqNameMatches(GLANCE_PREVIEW_ANNOTATION_FQN)
+  override fun isPreview(annotation: KtAnnotationEntry) = annotation.fqNameMatches(GLANCE_PREVIEW_ANNOTATION_FQN)
 
   override fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry) =
-    isPreview(annotation) ||
-      (annotation.toUElement() as? UAnnotation)?.let { isMultiPreviewAnnotation(it) } == true
+    isPreview(annotation) || (annotation.toUElement() as? UAnnotation)?.let { isMultiPreviewAnnotation(it) } == true
 }
 
 class GlancePreviewNeedsComposableAnnotationInspection :
@@ -53,18 +50,10 @@ class GlancePreviewNeedsComposableAnnotationInspection :
   )
 
 class GlancePreviewMustBeTopLevelFunction :
-  PreviewMustBeTopLevelFunction(
-    message("inspection.top.level.function"),
-    glancePreviewGroupDisplayName,
-    GlancePreviewAnnotationChecker,
-  )
+  PreviewMustBeTopLevelFunction(message("inspection.top.level.function"), glancePreviewGroupDisplayName, GlancePreviewAnnotationChecker)
 
 class GlancePreviewNotSupportedInUnitTestFiles :
-  PreviewNotSupportedInUnitTestFiles(
-    message("inspection.unit.test.files"),
-    glancePreviewGroupDisplayName,
-    GlancePreviewAnnotationChecker,
-  )
+  PreviewNotSupportedInUnitTestFiles(message("inspection.unit.test.files"), glancePreviewGroupDisplayName, GlancePreviewAnnotationChecker)
 
 class GlancePreviewDimensionRespectsLimit :
   PreviewDimensionRespectsLimit(

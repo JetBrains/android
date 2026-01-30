@@ -27,10 +27,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
 class DeclarativeFoldingBuilder : CustomFoldingBuilder(), DumbAware {
-  override fun buildLanguageFoldRegions(
-    descriptors: MutableList<FoldingDescriptor>,
-    root: PsiElement, document: Document, quick: Boolean
-  ) {
+  override fun buildLanguageFoldRegions(descriptors: MutableList<FoldingDescriptor>, root: PsiElement, document: Document, quick: Boolean) {
     if (root !is DeclarativeFile) {
       return
     }
@@ -66,15 +63,15 @@ class DeclarativeFoldingBuilder : CustomFoldingBuilder(), DumbAware {
   private fun needFolding(node: ASTNode): Boolean {
     val type = node.elementType
 
-    return type == DeclarativeElementTypeHolder.BLOCK_COMMENT ||
-           type == DeclarativeElementTypeHolder.BLOCK
+    return type == DeclarativeElementTypeHolder.BLOCK_COMMENT || type == DeclarativeElementTypeHolder.BLOCK
   }
 
-  override fun getLanguagePlaceholderText(node: ASTNode, range: TextRange): String = when (node.elementType) {
-    DeclarativeElementTypeHolder.BLOCK_COMMENT -> "/* ... */"
-    DeclarativeElementTypeHolder.BLOCK -> "{...}"
-    else -> "{...}"
-  }
+  override fun getLanguagePlaceholderText(node: ASTNode, range: TextRange): String =
+    when (node.elementType) {
+      DeclarativeElementTypeHolder.BLOCK_COMMENT -> "/* ... */"
+      DeclarativeElementTypeHolder.BLOCK -> "{...}"
+      else -> "{...}"
+    }
 
   override fun isRegionCollapsedByDefault(node: ASTNode): Boolean = false
 }

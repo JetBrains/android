@@ -26,12 +26,8 @@ import com.google.common.collect.ImmutableList
 import java.util.Locale
 
 /** Get the proper attributes for real layout file, which consider minimal SDK and target SDK. */
-internal fun getProperAttributesForLayout(
-  component: SceneComponent,
-  attribute: String?,
-): List<String> {
-  val rtlDirection =
-    if (component.scene.isInRTL) TextDirection.RIGHT_TO_LEFT else TextDirection.LEFT_TO_RIGHT
+internal fun getProperAttributesForLayout(component: SceneComponent, attribute: String?): List<String> {
+  val rtlDirection = if (component.scene.isInRTL) TextDirection.RIGHT_TO_LEFT else TextDirection.LEFT_TO_RIGHT
 
   if (attribute == null) {
     return emptyList()
@@ -78,12 +74,7 @@ internal val SceneComponent.drawCenterY: Int
 
 internal fun Int.toDpString(): String = String.format(Locale.US, SdkConstants.VALUE_N_DP, this)
 
-internal fun updateAlignAttribute(
-  component: SceneComponent,
-  attributes: NlAttributesHolder,
-  value: Int,
-  rules: AlignAttributeRules,
-) {
+internal fun updateAlignAttribute(component: SceneComponent, attributes: NlAttributesHolder, value: Int, rules: AlignAttributeRules) {
   val parent = component.parent!!
   if (attributes.getAndroidAttribute(rules.alignParentAttribute) == SdkConstants.VALUE_TRUE) {
     attributes.setAndroidAttribute(
@@ -111,10 +102,8 @@ internal fun updateAlignAttribute(
  *
  * @param marginAttribute The margin this rule applies for
  * @param alignParentAttribute The constraint of this rule if the applies component is parent
- * @param alignParentRule The function to calculate the value of margin if the applies component is
- *   parent
- * @param alignWidgetRules The list of aligning attributes and their associated function to
- *   calculate the margin value
+ * @param alignParentRule The function to calculate the value of margin if the applies component is parent
+ * @param alignWidgetRules The list of aligning attributes and their associated function to calculate the margin value
  */
 internal class AlignAttributeRules(
   val marginAttribute: String,
@@ -137,10 +126,7 @@ internal val BOTTOM_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
     { parent, coordinateY -> parent.drawBottom - coordinateY },
-    SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM to
-      { aligned, coordinateY ->
-        aligned.drawBottom - coordinateY
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM to { aligned, coordinateY -> aligned.drawBottom - coordinateY },
     SdkConstants.ATTR_LAYOUT_ABOVE to { aligned, coordinateY -> aligned.drawTop - coordinateY },
   )
 
@@ -149,14 +135,8 @@ internal val START_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_START,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START,
     { parent, coordinateX -> coordinateX - parent.drawLeft },
-    SdkConstants.ATTR_LAYOUT_ALIGN_START to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawLeft
-      },
-    SdkConstants.ATTR_LAYOUT_TO_END_OF to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawRight
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_START to { aligned, coordinateX -> coordinateX - aligned.drawLeft },
+    SdkConstants.ATTR_LAYOUT_TO_END_OF to { aligned, coordinateX -> coordinateX - aligned.drawRight },
   )
 
 internal val RTL_START_ATTRIBUTE_RULES =
@@ -164,10 +144,7 @@ internal val RTL_START_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_START,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START,
     { parent, coordinateX -> parent.drawRight - coordinateX },
-    SdkConstants.ATTR_LAYOUT_ALIGN_START to
-      { aligned, coordinateX ->
-        aligned.drawRight - coordinateX
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_START to { aligned, coordinateX -> aligned.drawRight - coordinateX },
     SdkConstants.ATTR_LAYOUT_TO_END_OF to { aligned, coordinateX -> aligned.drawLeft - coordinateX },
   )
 
@@ -176,14 +153,8 @@ internal val LEFT_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT,
     { parent, coordinateX -> coordinateX - parent.drawLeft },
-    SdkConstants.ATTR_LAYOUT_ALIGN_LEFT to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawLeft
-      },
-    SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawRight
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_LEFT to { aligned, coordinateX -> coordinateX - aligned.drawLeft },
+    SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF to { aligned, coordinateX -> coordinateX - aligned.drawRight },
   )
 
 internal val END_ATTRIBUTE_RULES =
@@ -191,14 +162,8 @@ internal val END_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_END,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END,
     { parent, coordinateX -> parent.drawRight - coordinateX },
-    SdkConstants.ATTR_LAYOUT_ALIGN_END to
-      { aligned, coordinateX ->
-        aligned.drawRight - coordinateX
-      },
-    SdkConstants.ATTR_LAYOUT_TO_START_OF to
-      { aligned, coordinateX ->
-        aligned.drawLeft - coordinateX
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_END to { aligned, coordinateX -> aligned.drawRight - coordinateX },
+    SdkConstants.ATTR_LAYOUT_TO_START_OF to { aligned, coordinateX -> aligned.drawLeft - coordinateX },
   )
 
 internal val RTL_END_ATTRIBUTE_RULES =
@@ -206,14 +171,8 @@ internal val RTL_END_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_END,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END,
     { parent, coordinateX -> coordinateX - parent.drawLeft },
-    SdkConstants.ATTR_LAYOUT_ALIGN_END to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawLeft
-      },
-    SdkConstants.ATTR_LAYOUT_TO_START_OF to
-      { aligned, coordinateX ->
-        coordinateX - aligned.drawRight
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_END to { aligned, coordinateX -> coordinateX - aligned.drawLeft },
+    SdkConstants.ATTR_LAYOUT_TO_START_OF to { aligned, coordinateX -> coordinateX - aligned.drawRight },
   )
 
 internal val RIGHT_ATTRIBUTE_RULES =
@@ -221,57 +180,27 @@ internal val RIGHT_ATTRIBUTE_RULES =
     SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
     SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
     { parent, coordinateX -> parent.drawRight - coordinateX },
-    SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT to
-      { aligned, coordinateX ->
-        aligned.drawRight - coordinateX
-      },
-    SdkConstants.ATTR_LAYOUT_TO_LEFT_OF to
-      { aligned, coordinateX ->
-        aligned.drawLeft - coordinateX
-      },
+    SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT to { aligned, coordinateX -> aligned.drawRight - coordinateX },
+    SdkConstants.ATTR_LAYOUT_TO_LEFT_OF to { aligned, coordinateX -> aligned.drawLeft - coordinateX },
   )
 
 internal val TOP_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP,
-    SdkConstants.ATTR_LAYOUT_ALIGN_TOP,
-    SdkConstants.ATTR_LAYOUT_BELOW,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, SdkConstants.ATTR_LAYOUT_ALIGN_TOP, SdkConstants.ATTR_LAYOUT_BELOW)
 
 internal val BOTTOM_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_ABOVE,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM, SdkConstants.ATTR_LAYOUT_ABOVE)
 
 internal val START_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START,
-    SdkConstants.ATTR_LAYOUT_ALIGN_START,
-    SdkConstants.ATTR_LAYOUT_TO_END_OF,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, SdkConstants.ATTR_LAYOUT_ALIGN_START, SdkConstants.ATTR_LAYOUT_TO_END_OF)
 
 internal val LEFT_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT,
-    SdkConstants.ATTR_LAYOUT_ALIGN_LEFT,
-    SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT, SdkConstants.ATTR_LAYOUT_ALIGN_LEFT, SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF)
 
 internal val END_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END,
-    SdkConstants.ATTR_LAYOUT_ALIGN_END,
-    SdkConstants.ATTR_LAYOUT_TO_START_OF,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END, SdkConstants.ATTR_LAYOUT_ALIGN_END, SdkConstants.ATTR_LAYOUT_TO_START_OF)
 
 internal val RIGHT_ALIGN_ATTRIBUTES =
-  arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
-    SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_TO_LEFT_OF,
-  )
+  arrayOf(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT, SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT, SdkConstants.ATTR_LAYOUT_TO_LEFT_OF)
 
 internal val RELATIVE_LAYOUT_ATTRIBUTES =
   TOP_ALIGN_ATTRIBUTES +

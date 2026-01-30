@@ -19,9 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.gradle.tooling.events.ProgressListener
 
-data class BasicBuildAttributionInfo(
-  val agpVersion: AgpVersion?
-)
+data class BasicBuildAttributionInfo(val agpVersion: AgpVersion?)
 
 interface BuildAttributionManager : ProgressListener {
   fun onBuildStart(request: GradleBuildInvoker.Request)

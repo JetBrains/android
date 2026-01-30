@@ -36,46 +36,42 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.regex.Pattern
-
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Add quickfixes for source and target compatibility issues.
- * Looks for a couple of patterns from javac related to using an obsolete or no longer
- * supported language level as either source or target. The messages look like these:
- *    error: Source option 6 is no longer supported. Use 7 or later.
- *    warning: [options] target value 7 is obsolete and will be removed in a future release
+ * Add quickfixes for source and target compatibility issues. Looks for a couple of patterns from javac related to using an obsolete or no
+ * longer supported language level as either source or target. The messages look like these: error: Source option 6 is no longer supported.
+ * Use 7 or later. warning: [options] target value 7 is obsolete and will be removed in a future release
  *
- * Parser tries to parse all these lines from one task as one warning with single set of quickfixes.
- * We currently generate the following list of quickfixes:
- *    - Add java toolchain definition to change JDK used for compilation
- *    - Change java source/target language level in all modules
- *    - Open PSD to have users pick a different compatibility level
- *    - Open Gradle settings to pick a different Gradle JDK
- *    - Open a link to jdks compatibility documentation
+ * Parser tries to parse all these lines from one task as one warning with single set of quickfixes. We currently generate the following
+ * list of quickfixes:
+ * - Add java toolchain definition to change JDK used for compilation
+ * - Change java source/target language level in all modules
+ * - Open PSD to have users pick a different compatibility level
+ * - Open Gradle settings to pick a different Gradle JDK
+ * - Open a link to jdks compatibility documentation
  */
 class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
-  private val obsoletePattern = Pattern.compile(
-    "warning: \\[options] (source|target) value (\\S+) is obsolete and will be removed in a future release")
+  private val obsoletePattern =
+    Pattern.compile("warning: \\[options] (source|target) value (\\S+) is obsolete and will be removed in a future release")
   private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported\\. Use (\\S+) or later\\.")
 
   companion object {
-    //The difference from above is that this is resulting BOW message pattern
+    // The difference from above is that this is resulting BOW message pattern
     val notSupportedMessagePattern = Pattern.compile("(Source|Target) option (\\S+) is no longer supported\\. Use (\\S+) or later\\.")
     // AGP 8.4 Pattern
-    val javaVersionRemovedPattern = Pattern.compile(
-      "Java compiler version (\\d+) has removed support for compiling with source/target version (\\d+)\\.?"
-    )
+    val javaVersionRemovedPattern =
+      Pattern.compile("Java compiler version (\\d+) has removed support for compiling with source/target version (\\d+)\\.?")
 
     fun composeBuildIssue(
       title: String,
       message: String,
       modulePath: String,
       suggestedToolchainVersion: Int?,
-      suggestedLanguageLevel: LanguageLevel
+      suggestedLanguageLevel: LanguageLevel,
     ): BuildIssue {
       val issueComposer = BuildIssueComposer(message, title)
       issueComposer.startNewParagraph()
@@ -91,11 +87,12 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       )
     }
 
-    fun suggestedLanguageLevelForCompiler(compilerVersion: JavaVersion): LanguageLevel = when {
-      compilerVersion.isAtLeast(21) -> LanguageLevel.JDK_11
-      compilerVersion.isAtLeast(17) -> LanguageLevel.JDK_1_8
-      else -> LanguageLevel.JDK_1_8
-    }
+    fun suggestedLanguageLevelForCompiler(compilerVersion: JavaVersion): LanguageLevel =
+      when {
+        compilerVersion.isAtLeast(21) -> LanguageLevel.JDK_11
+        compilerVersion.isAtLeast(17) -> LanguageLevel.JDK_1_8
+        else -> LanguageLevel.JDK_1_8
+      }
 
     fun suggestedLanguageLevelFromCurrentAndMinimum(currentVersion: JavaVersion?, minimumVersion: JavaVersion?): LanguageLevel {
       val minimumLevel = LanguageLevel.parse(minimumVersion.toString())
@@ -107,13 +104,14 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       }
     }
 
-    fun suggestedToolchainVersionFromCurrent(currentVersion: JavaVersion?) = when {
-      currentVersion == null -> null
-      currentVersion.feature == 6 -> 8
-      currentVersion.feature == 7 -> 11
-      currentVersion.feature == 8 -> 17
-      else -> null
-    }
+    fun suggestedToolchainVersionFromCurrent(currentVersion: JavaVersion?) =
+      when {
+        currentVersion == null -> null
+        currentVersion.feature == 6 -> 8
+        currentVersion.feature == 7 -> 11
+        currentVersion.feature == 8 -> 17
+        else -> null
+      }
   }
 
   data class ParsingResult(
@@ -121,25 +119,29 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     val title: String,
     val suggestedToolchainVersion: Int?,
     val suggestedLanguageLevel: LanguageLevel,
-    val modulePath: String
+    val modulePath: String,
   )
 
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
     val parseResult = parseLines(line, reader) ?: return false
-    val issue = composeBuildIssue(parseResult.title, parseResult.title, parseResult.modulePath, parseResult.suggestedToolchainVersion, parseResult.suggestedLanguageLevel)
+    val issue =
+      composeBuildIssue(
+        parseResult.title,
+        parseResult.title,
+        parseResult.modulePath,
+        parseResult.suggestedToolchainVersion,
+        parseResult.suggestedLanguageLevel,
+      )
     messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, issue, parseResult.kind))
     return true
   }
 
-  @VisibleForTesting fun parseLines(firstLine: String, reader: BuildOutputInstantReader): ParsingResult? {
-    fun tryParseErrorLine(line: String): Pair<String?, String?>? = notSupportedPattern
-      .matcher(line)
-      .takeIf { it.matches() }
-      ?.let { Pair(it.group(2), it.group(3)) }
-    fun tryParseWarningLine(line: String): Pair<String?, String?>? = obsoletePattern
-      .matcher(line)
-      .takeIf { it.matches() }
-      ?.let { Pair(it.group(2), null) }
+  @VisibleForTesting
+  fun parseLines(firstLine: String, reader: BuildOutputInstantReader): ParsingResult? {
+    fun tryParseErrorLine(line: String): Pair<String?, String?>? =
+      notSupportedPattern.matcher(line).takeIf { it.matches() }?.let { Pair(it.group(2), it.group(3)) }
+    fun tryParseWarningLine(line: String): Pair<String?, String?>? =
+      obsoletePattern.matcher(line).takeIf { it.matches() }?.let { Pair(it.group(2), null) }
     var matchedKind: MessageEvent.Kind? = null
     var currentVersionFirstLineText: String? = null
     var currentVersionSecondLineText: String? = null
@@ -159,9 +161,7 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       matchedKind = MessageEvent.Kind.WARNING
       currentVersionFirstLineText = firstResult.first
       reader.readLine()?.let { secondLine ->
-        tryParseWarningLine(secondLine)?.also { secondResult ->
-          currentVersionSecondLineText = secondResult.first
-        } ?: reader.pushBack()
+        tryParseWarningLine(secondLine)?.also { secondResult -> currentVersionSecondLineText = secondResult.first } ?: reader.pushBack()
       }
     }
     tryParseErrorLine(firstLine)?.let { firstResult ->
@@ -169,18 +169,18 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       currentVersionFirstLineText = firstResult.first
       minimumVersionFirstLine = JavaVersion.tryParse(firstResult.second)
       reader.readLine()?.let { secondLine ->
-        tryParseWarningLine(secondLine)?.also { secondResult ->
-          currentVersionSecondLineText = secondResult.first
-        } ?: tryParseErrorLine(secondLine)?.also { secondResult ->
-          currentVersionSecondLineText = secondResult.first
-          minimumVersionSecondLine= JavaVersion.tryParse(secondResult.second)
-        } ?: reader.pushBack()
+        tryParseWarningLine(secondLine)?.also { secondResult -> currentVersionSecondLineText = secondResult.first }
+          ?: tryParseErrorLine(secondLine)?.also { secondResult ->
+            currentVersionSecondLineText = secondResult.first
+            minimumVersionSecondLine = JavaVersion.tryParse(secondResult.second)
+          }
+          ?: reader.pushBack()
       }
     }
 
     val kind = matchedKind ?: return null
 
-    //Try to also consume the line about warning suppression
+    // Try to also consume the line about warning suppression
     reader.readLine()?.let {
       if (it != "warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.") {
         reader.pushBack()
@@ -188,29 +188,34 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     }
 
     val suggestedToolchainVersion = suggestedToolchainVersionFromCurrent(JavaVersion.tryParse(currentVersionFirstLineText))
-    val suggestedLanguageLevel = if (currentVersionSecondLineText != null) {
-      suggestedLanguageLevelFromCurrentAndMinimum(JavaVersion.tryParse(currentVersionSecondLineText), minimumVersionSecondLine)
-    }
-    else {
-      suggestedLanguageLevelFromCurrentAndMinimum(JavaVersion.tryParse(currentVersionFirstLineText), minimumVersionFirstLine)
-    }
+    val suggestedLanguageLevel =
+      if (currentVersionSecondLineText != null) {
+        suggestedLanguageLevelFromCurrentAndMinimum(JavaVersion.tryParse(currentVersionSecondLineText), minimumVersionSecondLine)
+      } else {
+        suggestedLanguageLevelFromCurrentAndMinimum(JavaVersion.tryParse(currentVersionFirstLineText), minimumVersionFirstLine)
+      }
     val taskName = extractTaskNameFromId(reader.parentEventId) ?: return null
     val modulePath = GradleProjectSystemUtil.getParentModulePath(taskName)
-    val title = when (kind) {
-      MessageEvent.Kind.ERROR -> "Java compiler has removed support for compiling with source/target compatibility version $currentVersionFirstLineText."
-      MessageEvent.Kind.WARNING -> "Java compiler has deprecated support for compiling with source/target compatibility version $currentVersionFirstLineText."
-      else -> return null
-    }
+    val title =
+      when (kind) {
+        MessageEvent.Kind.ERROR ->
+          "Java compiler has removed support for compiling with source/target compatibility version $currentVersionFirstLineText."
+        MessageEvent.Kind.WARNING ->
+          "Java compiler has deprecated support for compiling with source/target compatibility version $currentVersionFirstLineText."
+        else -> return null
+      }
     return ParsingResult(kind, title, suggestedToolchainVersion, suggestedLanguageLevel, modulePath)
   }
 }
 
 class DeprecatedJavaLanguageLevelFailureHandler : GradleBuildFailureParser.FailureDetailsHandler {
 
-  override fun consumeFailureMessage(failure: GradleBuildFailureParser.ParsedFailureDetails,
-                                     location: FilePosition?,
-                                     parentEventId: Any,
-                                     messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeFailureMessage(
+    failure: GradleBuildFailureParser.ParsedFailureDetails,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
 
     val taskName = failure.taskName ?: return false
     val modulePath = GradleProjectSystemUtil.getParentModulePath(taskName).takeUnless { it.isBlank() } ?: return false
@@ -222,7 +227,14 @@ class DeprecatedJavaLanguageLevelFailureHandler : GradleBuildFailureParser.Failu
         val currentVersion = JavaVersion.tryParse(matcher.group(2)) ?: return false
         val suggestedLanguageLevel = JavaLanguageLevelDeprecationOutputParser.suggestedLanguageLevelForCompiler(compilerVersion)
         val suggestedToolchainVersion = JavaLanguageLevelDeprecationOutputParser.suggestedToolchainVersionFromCurrent(currentVersion)
-        val issue = JavaLanguageLevelDeprecationOutputParser.composeBuildIssue(failureCause, message, modulePath, suggestedToolchainVersion, suggestedLanguageLevel)
+        val issue =
+          JavaLanguageLevelDeprecationOutputParser.composeBuildIssue(
+            failureCause,
+            message,
+            modulePath,
+            suggestedToolchainVersion,
+            suggestedLanguageLevel,
+          )
         messageConsumer.accept(BuildIssueEventImpl(parentEventId, issue, MessageEvent.Kind.ERROR))
         return true
       }
@@ -233,9 +245,11 @@ class DeprecatedJavaLanguageLevelFailureHandler : GradleBuildFailureParser.Failu
 
 class DescribedOpenGradleJdkSettingsQuickfix : DescribedBuildIssueQuickFix {
   val delegate = OpenGradleJdkSettingsQuickfix()
-  override val id: String get() = delegate.id
+  override val id: String
+    get() = delegate.id
 
-  override val description: String get() = "Pick a different JDK to run Gradle..."
+  override val description: String
+    get() = "Pick a different JDK to run Gradle..."
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     return delegate.runQuickFix(project, dataContext)

@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceOverviewButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorOverviewButtonAction
 
-/**
- * Simulates pressing the Overview button on an Android device.
- */
+/** Simulates pressing the Overview button on an Android device. */
 internal class StreamingOverviewButtonAction : StreamingPushButtonAction(EmulatorOverviewButtonAction(), DeviceOverviewButtonAction())

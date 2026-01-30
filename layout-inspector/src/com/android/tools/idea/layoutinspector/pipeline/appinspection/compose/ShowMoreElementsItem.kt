@@ -25,8 +25,8 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 /**
  * [ParameterItem] used to load more elements of a [PropertyType.ITERABLE].
  *
- * When creating the sub elements of a [PropertyType.ITERABLE] this item should be added as the last
- * item if there is a [ParameterGroupItem.reference] present.
+ * When creating the sub elements of a [PropertyType.ITERABLE] this item should be added as the last item if there is a
+ * [ParameterGroupItem.reference] present.
  */
 class ShowMoreElementsItem(val array: ParameterGroupItem) :
   ParameterItem(
@@ -47,8 +47,7 @@ class ShowMoreElementsItem(val array: ParameterGroupItem) :
         val reference = array.reference ?: return
         val startIndex = array.lastRealChildReferenceIndex + 1
         val maxElements = array.children.size - 1
-        lookup.resolve(rootId, reference, startIndex, maxElements) { cachedParameter, modification
-          ->
+        lookup.resolve(rootId, reference, startIndex, maxElements) { cachedParameter, modification ->
           if (cachedParameter != null && table != null) {
             modification?.let { table.updateGroupItems(cachedParameter, it) }
             if (array !== cachedParameter) {

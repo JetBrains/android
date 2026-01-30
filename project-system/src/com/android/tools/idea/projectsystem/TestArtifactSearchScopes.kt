@@ -19,17 +19,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 
-/**
- * Per-module helper for determining if a file is a test and if so, which kind.
- */
+/** Per-module helper for determining if a file is a test and if so, which kind. */
 interface TestArtifactSearchScopes {
-  /** Returns a [GlobalSearchScope] that contains android tests of the given module.  */
+  /** Returns a [GlobalSearchScope] that contains android tests of the given module. */
   val androidTestSourceScope: GlobalSearchScope
 
-  /** Returns a [GlobalSearchScope] that contains unit tests of the given module.  */
+  /** Returns a [GlobalSearchScope] that contains unit tests of the given module. */
   val unitTestSourceScope: GlobalSearchScope
 
-  /** Returns a [GlobalSearchScope] that contains screenshot tests of the given module.  */
+  /** Returns a [GlobalSearchScope] that contains screenshot tests of the given module. */
   val screenshotTestSourceScope: GlobalSearchScope
 
   /** Checks if the given file is an android test. */
@@ -41,14 +39,11 @@ interface TestArtifactSearchScopes {
   /** Checks if the given file is a screenshot test. */
   fun isScreenshotTestSource(file: VirtualFile): Boolean
 
-  /**
-   * Checks if the given file is a test one.
-   */
+  /** Checks if the given file is a test one. */
   fun isTestSource(file: VirtualFile): Boolean
 
   companion object {
     /** Returns a [TestArtifactSearchScopes] instance for a given [module] or null the module doesn't support separate test artifacts. */
-    @JvmStatic
-    fun getInstance(module: Module) = module.getModuleSystem().getTestArtifactSearchScopes()
+    @JvmStatic fun getInstance(module: Module) = module.getModuleSystem().getTestArtifactSearchScopes()
   }
 }

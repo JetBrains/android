@@ -26,6 +26,9 @@ import com.intellij.icons.AllIcons
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons
+import java.time.Duration
+import javax.swing.JLabel
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,13 +40,8 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Duration
-import javax.swing.JLabel
-import javax.swing.JPanel
 
-/**
- * Unit tests for [DetailsViewDeviceSelectorListView].
- */
+/** Unit tests for [DetailsViewDeviceSelectorListView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DetailsViewDeviceSelectorListViewTest {
@@ -83,7 +81,7 @@ class DetailsViewDeviceSelectorListViewTest {
     view.addDevice(device2)
 
     assertThat(view.deviceList.itemsCount).isEqualTo(2)
-    assertThat(view.deviceList.selectedIndices).isEmpty()  // Nothing is selected initially.
+    assertThat(view.deviceList.selectedIndices).isEmpty() // Nothing is selected initially.
 
     view.deviceList.selectedIndex = 0
 
@@ -107,17 +105,20 @@ class DetailsViewDeviceSelectorListViewTest {
   @Test
   fun cellRenderer() {
     val device = device(id = "device id", name = "<device name>")
-    val results = mock<AndroidTestResults>().apply {
-      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234))
-      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.FAILED)
-    }
-    val view = DetailsViewDeviceSelectorListView(mockListener).apply {
-      addDevice(device)
-      setAndroidTestResults(results)
-    }
+    val results =
+      mock<AndroidTestResults>().apply {
+        whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234))
+        whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.FAILED)
+      }
+    val view =
+      DetailsViewDeviceSelectorListView(mockListener).apply {
+        addDevice(device)
+        setAndroidTestResults(results)
+      }
 
-    val rendererComponent = view.deviceList.cellRenderer.getListCellRendererComponent(
-      view.deviceList, view.deviceList.model.getElementAt(0), 0, true, true) as JPanel
+    val rendererComponent =
+      view.deviceList.cellRenderer.getListCellRendererComponent(view.deviceList, view.deviceList.model.getElementAt(0), 0, true, true)
+        as JPanel
     val deviceLabelContainer = rendererComponent.getComponent(0) as JPanel
     val deviceLabel = deviceLabelContainer.getComponent(1) as JLabel
     val statusLabel = rendererComponent.getComponent(1) as JLabel

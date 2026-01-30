@@ -30,14 +30,9 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.border.Border
 
-/**
- * A factory which wraps a target [HttpData] and can create useful, shared UI components for
- * displaying aspects of it.
- */
-internal class HttpDataComponentFactory(
-  httpData: HttpData,
-  private val componentsProvider: UiComponentsProvider,
-) : DataComponentFactory(httpData) {
+/** A factory which wraps a target [HttpData] and can create useful, shared UI components for displaying aspects of it. */
+internal class HttpDataComponentFactory(httpData: HttpData, private val componentsProvider: UiComponentsProvider) :
+  DataComponentFactory(httpData) {
   private val httpData: HttpData
     get() = data as HttpData
 
@@ -59,10 +54,7 @@ internal class HttpDataComponentFactory(
       RESPONSE -> httpData.getResponseContentType().mimeType
     }
 
-  /**
-   * Returns a title which should be shown above the body component created by
-   * [.createBodyComponent].
-   */
+  /** Returns a title which should be shown above the body component created by [.createBodyComponent]. */
   private fun getBodyTitle(type: ConnectionType): String {
     val contentType = getContentType(type)
     return if (contentType.isEmpty) {
@@ -71,10 +63,9 @@ internal class HttpDataComponentFactory(
   }
 
   /**
-   * Returns a payload component which can display the underlying data of the current [HttpData]'s
-   * payload. If the payload is empty, this will return a label to indicate that the target payload
-   * is not set. If the payload is not empty and is supported for parsing, this will return a
-   * component containing both the raw data view and the parsed view.
+   * Returns a payload component which can display the underlying data of the current [HttpData]'s payload. If the payload is empty, this
+   * will return a label to indicate that the target payload is not set. If the payload is not empty and is supported for parsing, this will
+   * return a component containing both the raw data view and the parsed view.
    */
   override fun createBodyComponent(type: ConnectionType): JComponent {
     val payload = getPayload(type)
@@ -117,13 +108,7 @@ internal class HttpDataComponentFactory(
       componentsProvider: UiComponentsProvider,
     ): JComponent {
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
-      val viewer =
-        componentsProvider.createDataViewer(
-          payload.toByteArray(),
-          contentTypeFromMime,
-          DataViewer.Style.RAW,
-          false,
-        )
+      val viewer = componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.RAW, false)
       val viewerComponent = viewer.component
       viewerComponent.name = ID_PAYLOAD_VIEWER
       viewerComponent.border = PAYLOAD_BORDER
@@ -133,8 +118,7 @@ internal class HttpDataComponentFactory(
     }
 
     /**
-     * Creates the parsed data view of given payload, or returns null if the payload is not
-     * applicable for parsing.
+     * Creates the parsed data view of given payload, or returns null if the payload is not applicable for parsing.
      *
      * Assumes the payload is not empty.
      */
@@ -161,12 +145,7 @@ internal class HttpDataComponentFactory(
       }
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
       val viewer: DataViewer =
-        componentsProvider.createDataViewer(
-          payload.toByteArray(),
-          contentTypeFromMime,
-          DataViewer.Style.PRETTY,
-          true,
-        )
+        componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.PRETTY, true)
 
       // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we
       // didn't,
@@ -180,10 +159,7 @@ internal class HttpDataComponentFactory(
       return null
     }
 
-    /**
-     * Returns a user visible display name that represents the target `contentType`, with the first
-     * letter capitalized.
-     */
+    /** Returns a user visible display name that represents the target `contentType`, with the first letter capitalized. */
     @VisibleForTesting
     fun getDisplayName(contentType: HttpData.ContentType): String {
       val mimeType = contentType.mimeType.trim { it <= ' ' }
@@ -194,9 +170,7 @@ internal class HttpDataComponentFactory(
         return "Form Data"
       }
       val typeAndSubType = mimeType.split('/', limit = 2)
-      val showSubType =
-        typeAndSubType.size > 1 &&
-          (typeAndSubType[0] == "text" || typeAndSubType[0] == "application")
+      val showSubType = typeAndSubType.size > 1 && (typeAndSubType[0] == "text" || typeAndSubType[0] == "application")
       val name = if (showSubType) typeAndSubType[1] else typeAndSubType[0]
       return if (name.isEmpty() || showSubType) {
         name.uppercase(Locale.getDefault())

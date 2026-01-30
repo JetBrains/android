@@ -25,17 +25,12 @@ import com.intellij.openapi.project.DumbAwareAction
 private val LOGCAT_FILE_EXTENSIONS = setOf("logcat", "txt", "zip")
 
 internal class ImportLogcatAction :
-  DumbAwareAction(
-    LogcatBundle.message("logcat.import.log.action.text"),
-    null,
-    AllIcons.ToolbarDecorator.Import,
-  ) {
+  DumbAwareAction(LogcatBundle.message("logcat.import.log.action.text"), null, AllIcons.ToolbarDecorator.Import) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
     val descriptor =
-      FileChooserDescriptor(true, false, true, true, false, false)
-        .withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
+      FileChooserDescriptor(true, false, true, true, false, false).withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
     val path =
       FileChooserFactory.getInstance()
         .createFileChooser(descriptor, e.project, null)

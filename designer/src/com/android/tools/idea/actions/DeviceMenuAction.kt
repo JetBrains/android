@@ -71,9 +71,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 
-/**
- * A data class to encapsulate the defining characteristics of a reference device for comparison.
- */
+/** A data class to encapsulate the defining characteristics of a reference device for comparison. */
 private data class ReferenceDeviceMetrics(
   val xDimension: Int,
   val yDimension: Int,
@@ -95,24 +93,22 @@ private fun metricsFor(device: Device): ReferenceDeviceMetrics {
 }
 
 /**
- * An extension function to determine if a device is a "reference" type (e.g., a canonical device
- * like "Medium Phone", a device-class reference like "Foldable", or the "Custom" device), as
- * opposed to a user-created AVD or other specific instance with a stable ID (e.g. "Pixel 7").
+ * An extension function to determine if a device is a "reference" type (e.g., a canonical device like "Medium Phone", a device-class
+ * reference like "Foldable", or the "Custom" device), as opposed to a user-created AVD or other specific instance with a stable ID (e.g.
+ * "Pixel 7").
  *
  * Reference devices must be compared by their characteristics, since they do not have stable IDs.
  */
-private fun Device.isReferenceType(): Boolean =
-  isCanonicalDevice(this) || isReferenceDevice(this) || id == Configuration.CUSTOM_DEVICE_ID
+private fun Device.isReferenceType(): Boolean = isCanonicalDevice(this) || isReferenceDevice(this) || id == Configuration.CUSTOM_DEVICE_ID
 
 /**
  * Compares two [Device] instances.
  *
  * The comparison strategy depends on the device type:
- * - **Reference Devices**: For devices that lack a stable ID (e.g., "Medium Phone", "Foldable", or
- *   the "Custom" device), this function compares their physical characteristics (dimensions,
- *   density, etc.).
- * - **All Other Devices**: For devices that have a stable ID (e.g., AVDs, specific hardware like
- *   "Pixel 7"), this function compares them by their `id`.
+ * - **Reference Devices**: For devices that lack a stable ID (e.g., "Medium Phone", "Foldable", or the "Custom" device), this function
+ *   compares their physical characteristics (dimensions, density, etc.).
+ * - **All Other Devices**: For devices that have a stable ID (e.g., AVDs, specific hardware like "Pixel 7"), this function compares them by
+ *   their `id`.
  */
 private fun isSameDevice(d1: Device?, d2: Device?): Boolean {
   // 1. Handle trivial cases: same instance or nulls.
@@ -134,8 +130,7 @@ private fun isSameDevice(d1: Device?, d2: Device?): Boolean {
   }
 }
 
-private val PIXEL_DEVICE_COMPARATOR =
-  PixelDeviceComparator(VarianceComparator.reversed()).reversed()
+private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
 
 val HAS_BEEN_RESIZED = DataKey.create<Boolean>("has_been_resized")
 
@@ -150,26 +145,16 @@ internal val DEVICE_ID_TO_TOOLTIPS =
 private val EMPTY_DEVICE_CHANGE_LISTENER = object : DeviceChangeListener {}
 
 /**
- * A dropdown menu action that allows the user to select a device for the preview configuration. The
- * menu is dynamically populated with a list of available devices, including reference devices,
- * custom AVDs, and generic devices.
+ * A dropdown menu action that allows the user to select a device for the preview configuration. The menu is dynamically populated with a
+ * list of available devices, including reference devices, custom AVDs, and generic devices.
  *
  * @param deviceChangeListener A listener that is notified when the user selects a new device.
  */
-class DeviceMenuAction(
-  private val deviceChangeListener: DeviceChangeListener = EMPTY_DEVICE_CHANGE_LISTENER
-) :
-  DropDownAction(
-    "Device for Preview",
-    "Device for Preview",
-    StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES,
-  ) {
+class DeviceMenuAction(private val deviceChangeListener: DeviceChangeListener = EMPTY_DEVICE_CHANGE_LISTENER) :
+  DropDownAction("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val button =
-      (e.presentation.getClientProperty(COMPONENT_KEY) as? ActionButton)
-        ?: (e.inputEvent?.component as? ActionButton)
-        ?: return
+    val button = (e.presentation.getClientProperty(COMPONENT_KEY) as? ActionButton) ?: (e.inputEvent?.component as? ActionButton) ?: return
     updateActions(e.dataContext)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
@@ -181,9 +166,7 @@ class DeviceMenuAction(
     getChildren(e.actionManager).forEachIndexed { index, action ->
       val deviceId = (action as? SetDeviceAction)?.device?.id ?: return@forEachIndexed
       DEVICE_ID_TO_TOOLTIPS[deviceId]?.let {
-        (popupMenu.components[index] as? ActionMenuItem)?.let { menuItem ->
-          HelpTooltip().setDescription(it).installOn(menuItem)
-        }
+        (popupMenu.components[index] as? ActionMenuItem)?.let { menuItem -> HelpTooltip().setDescription(it).installOn(menuItem) }
       }
     }
     popupMenu.addPopupMenuListener(
@@ -206,27 +189,21 @@ class DeviceMenuAction(
   }
 
   /**
-   * Finds a device within the nested map that is considered the same as the targetDevice. This
-   * function improves on the previous nested-loop implementation by being more efficient and
-   * readable. It uses `flatMap` to create a single, flat list of all available devices, then uses
-   * `firstOrNull` to find the first match without unnecessary iteration.
+   * Finds a device within the nested map that is considered the same as the targetDevice. This function improves on the previous
+   * nested-loop implementation by being more efficient and readable. It uses `flatMap` to create a single, flat list of all available
+   * devices, then uses `firstOrNull` to find the first match without unnecessary iteration.
    *
    * @param devicesMap A map where values are collections of devices.
    * @param targetDevice The device to find a match for.
    * @return The matching device from the map, or null if no match is found.
    */
-  private fun findMatchingDevice(
-    devicesMap: Map<*, Collection<Device>>,
-    targetDevice: Device?,
-  ): Device? {
+  private fun findMatchingDevice(devicesMap: Map<*, Collection<Device>>, targetDevice: Device?): Device? {
     if (targetDevice == null) {
       return null
     }
     // Flatten the map of device lists into a single sequence of devices,
     // then find the first one that matches the target device.
-    return devicesMap.values
-      .flatMap { it }
-      .firstOrNull { deviceInGroup -> isSameDevice(deviceInGroup, targetDevice) }
+    return devicesMap.values.flatMap { it }.firstOrNull { deviceInGroup -> isSameDevice(deviceInGroup, targetDevice) }
   }
 
   private fun updatePresentation(e: AnActionEvent) {
@@ -273,8 +250,7 @@ class DeviceMenuAction(
     selectionMade = addTvDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addAutomotiveDeviceSection(groupedDevices, currentDevice, selectionMade)
     selectionMade = addXrDeviceSection(groupedDevices, currentDevice, selectionMade)
-    selectionMade =
-      addAvdDeviceSection(configuration.settings.avdDevices, currentDevice, selectionMade)
+    selectionMade = addAvdDeviceSection(configuration.settings.avdDevices, currentDevice, selectionMade)
     selectionMade = addOtherDeviceSection(groupedDevices, currentDevice, selectionMade)
     addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice, selectionMade)
   }
@@ -302,16 +278,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetDeviceAction(
-          getDeviceLabel(device),
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetDeviceAction(getDeviceLabel(device), { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     addSeparator()
     return newSelectionMade
@@ -341,16 +308,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetDeviceAction(
-          getDeviceLabel(device),
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetDeviceAction(getDeviceLabel(device), { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
 
     // Add canonical small and medium phone devices at the top of menu.
@@ -367,9 +325,7 @@ class DeviceMenuAction(
         groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
     newSelectionMade = addDevicesToPopup("Tablets", tabletDevices, currentDevice, newSelectionMade)
 
-    groupedDevices.get(DeviceGroup.DESKTOP)?.let {
-      newSelectionMade = addDevicesToPopup("Desktop", it, currentDevice, newSelectionMade)
-    }
+    groupedDevices.get(DeviceGroup.DESKTOP)?.let { newSelectionMade = addDevicesToPopup("Desktop", it, currentDevice, newSelectionMade) }
     addSeparator()
     return newSelectionMade
   }
@@ -398,16 +354,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetWearDeviceAction(
-          label,
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetWearDeviceAction(label, { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     addSeparator()
     return newSelectionMade
@@ -421,11 +368,7 @@ class DeviceMenuAction(
    * @param selectionMade A boolean indicating whether a selection has already been made.
    * @return A boolean indicating whether a selection was made in this section.
    */
-  private fun addTvDeviceSection(
-    groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?,
-    selectionMade: Boolean,
-  ): Boolean {
+  private fun addTvDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>, currentDevice: Device?, selectionMade: Boolean): Boolean {
     var newSelectionMade = selectionMade
     val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return newSelectionMade
     add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
@@ -436,16 +379,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetDeviceAction(
-          getDeviceLabel(device),
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetDeviceAction(getDeviceLabel(device), { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     addSeparator()
     return newSelectionMade
@@ -466,13 +400,7 @@ class DeviceMenuAction(
   ): Boolean {
     var newSelectionMade = selectionMade
     val automotiveDevices = groupedDevices.get(DeviceGroup.AUTOMOTIVE) ?: return newSelectionMade
-    add(
-      DeviceCategory(
-        "Auto",
-        "Android Auto devices",
-        StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE,
-      )
-    )
+    add(DeviceCategory("Auto", "Android Auto devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE))
     for (device in automotiveDevices) {
       val isMatch = isSameDevice(device, currentDevice)
       var selected = false
@@ -480,16 +408,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetDeviceAction(
-          getDeviceLabel(device),
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetDeviceAction(getDeviceLabel(device), { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     addSeparator()
     return newSelectionMade
@@ -503,16 +422,10 @@ class DeviceMenuAction(
    * @param selectionMade A boolean indicating whether a selection has already been made.
    * @return A boolean indicating whether a selection was made in this section.
    */
-  private fun addXrDeviceSection(
-    groupedDevices: Map<DeviceGroup, List<Device>>,
-    currentDevice: Device?,
-    selectionMade: Boolean,
-  ): Boolean {
+  private fun addXrDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>, currentDevice: Device?, selectionMade: Boolean): Boolean {
     var newSelectionMade = selectionMade
     val xrDevices = groupedDevices.get(DeviceGroup.XR) ?: return newSelectionMade
-    add(
-      DeviceCategory("XR", "Android XR devices", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET)
-    )
+    add(DeviceCategory("XR", "Android XR devices", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET))
     for (device in xrDevices) {
       val isMatch = isSameDevice(device, currentDevice)
       var selected = false
@@ -520,16 +433,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      add(
-        SetDeviceAction(
-          getDeviceLabel(device),
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      add(SetDeviceAction(getDeviceLabel(device), { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     addSeparator()
     return newSelectionMade
@@ -543,20 +447,10 @@ class DeviceMenuAction(
    * @param selectionMade A boolean indicating whether a selection has already been made.
    * @return A boolean indicating whether a selection was made in this section.
    */
-  private fun addAvdDeviceSection(
-    avdDevices: List<Device>,
-    currentDevice: Device?,
-    selectionMade: Boolean,
-  ): Boolean {
+  private fun addAvdDeviceSection(avdDevices: List<Device>, currentDevice: Device?, selectionMade: Boolean): Boolean {
     var newSelectionMade = selectionMade
     if (avdDevices.isNotEmpty()) {
-      add(
-        DeviceCategory(
-          "Virtual Device",
-          "Android Virtual Devices",
-          StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES,
-        )
-      )
+      add(DeviceCategory("Virtual Device", "Android Virtual Devices", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES))
       for (device in avdDevices) {
         val isMatch = currentDevice?.id == device.id
         var selected = false
@@ -565,15 +459,7 @@ class DeviceMenuAction(
           selected = true
         }
         val avdDisplayName = "AVD: " + device.displayName
-        add(
-          SetAvdAction(
-            { updatePresentation(it) },
-            deviceChangeListener,
-            device,
-            avdDisplayName,
-            selected,
-          )
-        )
+        add(SetAvdAction({ updatePresentation(it) }, deviceChangeListener, device, avdDisplayName, selected))
       }
       addSeparator()
     }
@@ -594,8 +480,7 @@ class DeviceMenuAction(
     selectionMade: Boolean,
   ): Boolean {
     val devices = groupedDevices.get(DeviceGroup.GENERIC) ?: return selectionMade
-    val newSelectionMade =
-      addDevicesToPopup("Generic Devices", devices, currentDevice, selectionMade)
+    val newSelectionMade = addDevicesToPopup("Generic Devices", devices, currentDevice, selectionMade)
     add(AddDeviceDefinitionAction())
     return newSelectionMade
   }
@@ -609,12 +494,7 @@ class DeviceMenuAction(
    * @param selectionMade A boolean indicating whether a selection has already been made.
    * @return A boolean indicating whether a selection was made in this group.
    */
-  private fun addDevicesToPopup(
-    title: String,
-    devices: List<Device>,
-    currentDevice: Device?,
-    selectionMade: Boolean,
-  ): Boolean {
+  private fun addDevicesToPopup(title: String, devices: List<Device>, currentDevice: Device?, selectionMade: Boolean): Boolean {
     var newSelectionMade = selectionMade
     val group = DefaultActionGroup(title, true)
     add(group)
@@ -627,16 +507,7 @@ class DeviceMenuAction(
         newSelectionMade = true
         selected = true
       }
-      group.addAction(
-        SetDeviceAction(
-          label,
-          { updatePresentation(it) },
-          deviceChangeListener,
-          device,
-          null,
-          selected,
-        )
-      )
+      group.addAction(SetDeviceAction(label, { updatePresentation(it) }, deviceChangeListener, device, null, selected))
     }
     return newSelectionMade
   }
@@ -691,8 +562,7 @@ class DeviceMenuAction(
   }
 }
 
-private class DeviceCategory(text: String?, description: String?, private val myIcon: Icon?) :
-  AnAction(text, description, null) {
+private class DeviceCategory(text: String?, description: String?, private val myIcon: Icon?) : AnAction(text, description, null) {
   override fun update(e: AnActionEvent) {
     val p = e.presentation
     p.isEnabled = false
@@ -729,14 +599,12 @@ private const val PIXEL_NAME = "Pixel"
 private val GENERATION_REGEX = "\\d+".toRegex()
 
 /**
- * Comparator for sorting pixel devices by the generations and variances. First it sorts the
- * generation, such as: Nexus 5, Nexus 6, Pixel, Pixel 2, Pixel 3, ...
+ * Comparator for sorting pixel devices by the generations and variances. First it sorts the generation, such as: Nexus 5, Nexus 6, Pixel,
+ * Pixel 2, Pixel 3, ...
  *
- * If the compared devices are in the same generation, then use [varianceComparator] to sort their
- * variances.
+ * If the compared devices are in the same generation, then use [varianceComparator] to sort their variances.
  */
-private class PixelDeviceComparator(val varianceComparator: Comparator<String>) :
-  Comparator<Device> {
+private class PixelDeviceComparator(val varianceComparator: Comparator<String>) : Comparator<Device> {
 
   private enum class Series {
     PIXEL,
@@ -817,11 +685,8 @@ private object VarianceComparator : Comparator<String> {
   }
 }
 
-abstract class DeviceAction(
-  title: String?,
-  private val updatePresentationCallback: Consumer<AnActionEvent>,
-  icon: Icon?,
-) : ConfigurationAction(title, icon) {
+abstract class DeviceAction(title: String?, private val updatePresentationCallback: Consumer<AnActionEvent>, icon: Icon?) :
+  ConfigurationAction(title, icon) {
   protected abstract val device: Device?
 
   override fun updatePresentation(event: AnActionEvent) {
@@ -858,8 +723,7 @@ open class SetDeviceAction(
     // (its default) unless of course there is a different layout that is the best fit for that
     // device.
     val prevDevice = configuration.cachedDevice
-    val projectState =
-      ConfigurationManager.getFromConfiguration(configuration).stateManager.projectState
+    val projectState = ConfigurationManager.getFromConfiguration(configuration).stateManager.projectState
     val lastSelectedNonWearStateName = projectState.nonWearDeviceLastSelectedStateName
     val newDefaultStateName: String = device.defaultState.name
     val wantedState: State? = lastSelectedNonWearStateName?.let { getMatchingState(device, it) }
@@ -879,11 +743,7 @@ open class SetDeviceAction(
     deviceChangeListener.onDeviceChanged(prevDevice, device)
   }
 
-  private fun hasBetterMatchingLayoutFile(
-    configuration: Configuration,
-    device: Device,
-    stateName: String,
-  ): Boolean {
+  private fun hasBetterMatchingLayoutFile(configuration: Configuration, device: Device, stateName: String): Boolean {
     if (configuration.virtualFile == null) {
       return false
     }
@@ -903,8 +763,7 @@ open class SetDeviceAction(
   }
 }
 
-private class RevertToOriginalAction(private val deviceChangeListener: DeviceChangeListener) :
-  AnAction("Original") {
+private class RevertToOriginalAction(private val deviceChangeListener: DeviceChangeListener) : AnAction("Original") {
   override fun actionPerformed(e: AnActionEvent) {
     deviceChangeListener.onRevertToOriginal()
   }
@@ -917,15 +776,7 @@ private class SetWearDeviceAction(
   device: Device,
   defaultIcon: Icon?,
   selected: Boolean,
-) :
-  SetDeviceAction(
-    title,
-    updatePresentationCallback,
-    deviceChangeListener,
-    device,
-    defaultIcon,
-    selected,
-  ) {
+) : SetDeviceAction(title, updatePresentationCallback, deviceChangeListener, device, defaultIcon, selected) {
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     val prevDevice = configuration.cachedDevice
     var newState: String? = null
@@ -940,8 +791,7 @@ private class SetWearDeviceAction(
         newState = state.name
         configuration.deviceState = state
       } else {
-        Logger.getLogger(DeviceMenuAction::class.java.name)
-          .warning("A wear chin device must have landscape state")
+        Logger.getLogger(DeviceMenuAction::class.java.name).warning("A wear chin device must have landscape state")
       }
     } else {
       // Round and Square device must be PORTRAIT
@@ -950,8 +800,7 @@ private class SetWearDeviceAction(
         newState = state.name
         configuration.deviceState = state
       } else {
-        Logger.getLogger(DeviceMenuAction::class.java.name)
-          .warning("A wear round or square device must have portrait state")
+        Logger.getLogger(DeviceMenuAction::class.java.name).warning("A wear round or square device must have portrait state")
       }
     }
     if (newState != null) {
@@ -998,8 +847,7 @@ interface DeviceChangeListener {
  * Returns a suitable label to use to display the given device
  *
  * @param device the device to produce a label for
- * @param brief if true, generate a brief label (suitable for a toolbar button), otherwise a fuller
- *   name (suitable for a menu item)
+ * @param brief if true, generate a brief label (suitable for a toolbar button), otherwise a fuller name (suitable for a menu item)
  * @return the label
  */
 fun getDeviceLabel(device: Device?, brief: Boolean): String {

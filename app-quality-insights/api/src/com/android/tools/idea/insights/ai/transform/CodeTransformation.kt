@@ -24,10 +24,7 @@ import kotlinx.coroutines.flow.emptyFlow
 
 /** Represents a single transformation instance. */
 interface CodeTransformation : Disposable {
-  /**
-   * Starts the transformation process. In the IDE, this brings up a diff view in which users can
-   * accept suggested changes.
-   */
+  /** Starts the transformation process. In the IDE, this brings up a diff view in which users can accept suggested changes. */
   fun apply(): Flow<TransformDiffViewerEvent>
 }
 
@@ -37,17 +34,12 @@ object NoopTransformation : CodeTransformation {
   override fun dispose() {}
 }
 
-class CodeTransformationImpl(
-  private val project: Project,
-  val instruction: String,
-  val files: List<VirtualFile>,
-) : CodeTransformation {
+class CodeTransformationImpl(private val project: Project, val instruction: String, val files: List<VirtualFile>) : CodeTransformation {
   override fun apply(): Flow<TransformDiffViewerEvent> {
     if (files.isEmpty()) {
       throw IllegalStateException("Should not call suggestFix on with no target files")
     }
-    return (FixSuggester.EP_NAME.extensionList.firstOrNull()
-        ?: throw IllegalStateException("Cannot find FixSuggester extension point"))
+    return (FixSuggester.EP_NAME.extensionList.firstOrNull() ?: throw IllegalStateException("Cannot find FixSuggester extension point"))
       .suggestFix(project, instruction, files, this)
   }
 

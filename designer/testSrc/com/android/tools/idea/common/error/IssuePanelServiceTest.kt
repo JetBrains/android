@@ -55,22 +55,14 @@ class IssuePanelServiceTest {
 
   @Before
   fun setup() {
-    rule.projectRule.replaceProjectService(
-      ToolWindowManager::class.java,
-      TestToolWindowManager(rule.project),
-    )
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     runInEdtAndWait {
       val contentManager = toolWindow.contentManager
       val content =
-        contentManager.factory
-          .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
-          .apply { isCloseable = false }
+        contentManager.factory.createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true).apply { isCloseable = false }
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
       ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
@@ -126,22 +118,13 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertFalse(
-      ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() ==
-        SHARED_ISSUE_PANEL_TAB_ID
-    )
+    assertFalse(ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() == SHARED_ISSUE_PANEL_TAB_ID)
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertFalse(
-      ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() ==
-        SHARED_ISSUE_PANEL_TAB_ID
-    )
+    assertFalse(ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() == SHARED_ISSUE_PANEL_TAB_ID)
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertFalse(
-      ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() ==
-        SHARED_ISSUE_PANEL_TAB_ID
-    )
+    assertFalse(ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() == SHARED_ISSUE_PANEL_TAB_ID)
   }
 
   @Test
@@ -152,9 +135,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     toolWindow.contentManager.let {
       it.setSelectedContent(it.contents[0])
-      assertTrue(
-        ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() == HighlightingPanel.ID
-      )
+      assertTrue(ProblemsViewToolWindowUtils.getSelectedTab(rule.project)?.getTabId() == HighlightingPanel.ID)
     } // select current file tab.
 
     runInEdtAndWait { service.showSharedIssuePanel() }
@@ -169,8 +150,7 @@ class IssuePanelServiceTest {
       val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
       val layoutFile =
         withContext(uiThread) {
-          val file =
-            rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
+          val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
           rule.fixture.openFileInEditor(file)
           service.showSharedIssuePanel()
           file
@@ -182,25 +162,13 @@ class IssuePanelServiceTest {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
       waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle() == content.displayName }
 
-      messageBus
-        .syncPublisher(IssueProviderListener.TOPIC)
-        .issueUpdated(source, listOf(TestIssue(source = issueSource)))
-      waitUntil(timeout = 1.seconds) {
-        "Layout and Qualifiers".toTabTitle(1) == content.displayName
-      }
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
+      waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle(1) == content.displayName }
 
       messageBus
         .syncPublisher(IssueProviderListener.TOPIC)
-        .issueUpdated(
-          source,
-          listOf(
-            TestIssue(summary = "1", source = issueSource),
-            TestIssue(summary = "2", source = issueSource),
-          ),
-        )
-      waitUntil(timeout = 1.seconds) {
-        "Layout and Qualifiers".toTabTitle(2) == content.displayName
-      }
+        .issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource), TestIssue(summary = "2", source = issueSource)))
+      waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle(2) == content.displayName }
 
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
       waitUntil(timeout = 1.seconds) { "Layout and Qualifiers".toTabTitle() == content.displayName }
@@ -208,17 +176,13 @@ class IssuePanelServiceTest {
   }
 
   /**
-   * Note: This test may fail if
-   * [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the
-   * implementation after merging IDEA. Please disable it and file a bug to fix.
+   * Note: This test may fail if [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the implementation after
+   * merging IDEA. Please disable it and file a bug to fix.
    */
   @Test
   fun testTabNameAndStyleSameAsIntellijProblemsPanel() {
     // Create an IJ's problems panel for comparing the custom tab title and style.
-    val panel =
-      ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) {
-        "Problems"
-      }
+    val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
     Disposer.register(rule.testRootDisposable, panel)
 
     assertEqualsIgnoreSpaces(panel.getName(0), createTabName("Problems", 0))
@@ -241,10 +205,7 @@ class IssuePanelServiceTest {
 
     service.showSharedIssuePanel()
     // It should select the shared issue panel.
-    assertEquals(
-      contentManager.selectedContent,
-      contentManager.findContent("Designer".toTabTitle()),
-    )
+    assertEquals(contentManager.selectedContent, contentManager.findContent("Designer".toTabTitle()))
 
     ProblemsViewToolWindowUtils.removeTab(rule.project, SHARED_ISSUE_PANEL_TAB_ID)
     // It should select the first tab, which is the "Current File" tab.

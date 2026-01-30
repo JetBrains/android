@@ -23,10 +23,9 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.UUID
 
 /**
- * A logger intended to be used in [updatePreviewsAndRefresh] that encapsulates complex debugging
- * logic and abstracts out the [PreviewElement] descendant features that might be used for logging.
- * The users are supposed to inherit from the [PreviewElementDebugLogger] and implement
- * [logPreviewElement] for the specified [PreviewElement] descendant.
+ * A logger intended to be used in [updatePreviewsAndRefresh] that encapsulates complex debugging logic and abstracts out the
+ * [PreviewElement] descendant features that might be used for logging. The users are supposed to inherit from the
+ * [PreviewElementDebugLogger] and implement [logPreviewElement] for the specified [PreviewElement] descendant.
  */
 class PreviewElementDebugLogger(private val log: Logger) {
   private val refreshId = UUID.randomUUID().toString()

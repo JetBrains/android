@@ -35,7 +35,9 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
 
 sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleModelProviderMode) : AbstractProjectResolverExtension() {
   class IdeModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.IDE_MODELS)
+
   class TestGradleModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.TEST_GRADLE_MODELS)
+
   class TestExceptionModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.TEST_EXCEPTION_MODELS)
 
   companion object {
@@ -49,28 +51,43 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     private val testExceptionModels = mutableMapOf<String, TestExceptionModel>()
 
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[getGradleProjectPath(module)]
+
     fun getKotlinModel(gradleProjectPath: @SystemIndependent String): KotlinGradleModel? = kotlinModels[gradleProjectPath]
+
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[getGradleProjectPath(module)]
+
     fun getKaptModel(gradleProjectPath: @SystemIndependent String): KaptGradleModel? = kaptModels[gradleProjectPath]
+
     fun getMppModel(module: Module): KotlinMPPGradleModel? = mppModels[getGradleProjectPath(module)]
+
     fun getMppModel(gradleProjectPath: @SystemIndependent String): KotlinMPPGradleModel? = mppModels[gradleProjectPath]
+
     fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[getGradleProjectPath(module)]
+
     fun getExternalProjectModel(gradleProjectPath: @SystemIndependent String): ExternalProject? = externalProjectModels[gradleProjectPath]
+
     fun getIdeaProjectModel(module: Module): IdeaProject? = ideaProjectModels[getGradleProjectPath(module)]
+
     fun getIdeaProjectModel(gradleProjectPath: @SystemIndependent String): IdeaProject? = ideaProjectModels[gradleProjectPath]
+
     fun getTestGradleModel(module: Module): TestGradleModel? = testGradleModels[getGradleProjectPath(module)]
+
     fun getTestGradleModel(gradleProjectPath: @SystemIndependent String): TestGradleModel? = testGradleModels[gradleProjectPath]
+
     fun getTestParameterizedGradleModel(module: Module): TestParameterizedGradleModel? =
       testParameterizedGradleModels[getGradleProjectPath(module)]
+
     fun getTestParameterizedGradleModel(gradleProjectPath: @SystemIndependent String): TestParameterizedGradleModel? =
       testParameterizedGradleModels[gradleProjectPath]
 
     fun getTestExceptionModel(module: Module): TestExceptionModel? = testExceptionModels[getGradleProjectPath(module)]
+
     fun getTestExceptionModel(gradleProjectPath: @SystemIndependent String): TestExceptionModel? = testExceptionModels[gradleProjectPath]
 
     private fun getGradleProjectPath(module: Module): String? {
-      return ExternalSystemApiUtil.getExternalProjectPath(module)
-        .takeIf { ExternalSystemApiUtil.getExternalModuleType(module) == null } // Return models for holder modules only.
+      return ExternalSystemApiUtil.getExternalProjectPath(module).takeIf {
+        ExternalSystemApiUtil.getExternalModuleType(module) == null
+      } // Return models for holder modules only.
     }
 
     fun reset() {
@@ -84,17 +101,20 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     }
 
     fun registerTestHelperProjectResolver(prototypeInstance: CapturePlatformModelsProjectResolverExtension, disposable: Disposable) {
-      ApplicationManager.getApplication().registerExtension(
-        @Suppress("UnstableApiUsage")
-        EP_NAME,
-        prototypeInstance, // Note: a new instance is created by the external system.
-        disposable
+      ApplicationManager.getApplication()
+        .registerExtension(
+          @Suppress("UnstableApiUsage") EP_NAME,
+          prototypeInstance, // Note: a new instance is created by the external system.
+          disposable,
+        )
+      Disposer.register(
+        disposable,
+        object : Disposable {
+          override fun dispose() {
+            reset()
+          }
+        },
       )
-      Disposer.register(disposable, object : Disposable {
-        override fun dispose() {
-          reset()
-        }
-      })
     }
   }
 
@@ -102,33 +122,19 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     val gradleProjectPath = ideModule.data.linkedExternalProjectPath
     resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)?.let { kotlinModels[gradleProjectPath] = it }
     // The KaptGradleModel is present for Java modules
-    resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let {
-      kaptModels[gradleProjectPath] = it
-    }
-    resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)?.let {
-      mppModels[gradleProjectPath] = it
-    }
+    resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let { kaptModels[gradleProjectPath] = it }
+    resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)?.let { mppModels[gradleProjectPath] = it }
     // For Android modules it is contained within the IdeAndroidModels class
     resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)?.let {
-      it.kaptGradleModel?.let { kaptModel ->
-        kaptModels[gradleProjectPath] = kaptModel
-      }
+      it.kaptGradleModel?.let { kaptModel -> kaptModels[gradleProjectPath] = kaptModel }
     }
-    resolverCtx.getExtraProject(gradleModule, IdeaProject::class.java)?.let {
-      ideaProjectModels[gradleProjectPath] = it
-    }
-    resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)?.let {
-      externalProjectModels[gradleProjectPath] = it
-    }
-    resolverCtx.getExtraProject(gradleModule, TestGradleModel::class.java)?.let {
-      testGradleModels[gradleProjectPath] = it
-    }
+    resolverCtx.getExtraProject(gradleModule, IdeaProject::class.java)?.let { ideaProjectModels[gradleProjectPath] = it }
+    resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)?.let { externalProjectModels[gradleProjectPath] = it }
+    resolverCtx.getExtraProject(gradleModule, TestGradleModel::class.java)?.let { testGradleModels[gradleProjectPath] = it }
     resolverCtx.getExtraProject(gradleModule, TestParameterizedGradleModel::class.java)?.let {
       testParameterizedGradleModels[gradleProjectPath] = it
     }
-    resolverCtx.getExtraProject(gradleModule, TestExceptionModel::class.java)?.let {
-      testExceptionModels[gradleProjectPath] = it
-    }
+    resolverCtx.getExtraProject(gradleModule, TestExceptionModel::class.java)?.let { testExceptionModels[gradleProjectPath] = it }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }
 
@@ -146,4 +152,5 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
 }
 
 fun KotlinGradleModel.testSourceSetNames(): Collection<String> = compilerArgumentsBySourceSet.keys
+
 fun KaptGradleModel.testSourceSetNames(): Collection<String> = sourceSets.map { it.sourceSetName }

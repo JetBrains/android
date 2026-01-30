@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.EmptyExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.EmptyRepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.EmptyGradleBlockModel
 
-class EmptyBuildScriptModel: EmptyGradleBlockModel(), BuildScriptModel {
+class EmptyBuildScriptModel : EmptyGradleBlockModel(), BuildScriptModel {
   override fun dependencies(): DependenciesModel {
     return EmptyDependenciesModelImpl()
   }
@@ -40,5 +40,4 @@ class EmptyBuildScriptModel: EmptyGradleBlockModel(), BuildScriptModel {
   override fun ext(): ExtModel {
     return EmptyExtModelImpl()
   }
-
 }

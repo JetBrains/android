@@ -20,7 +20,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
 @RunsInEdt
-class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class RedundantPropertiesRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testBuildToolsVersion41To42() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion41"))

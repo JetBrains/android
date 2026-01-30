@@ -27,22 +27,13 @@ class AgslAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     when (element) {
       is AgslUnsupportedKeyword -> {
-        holder.newAnnotation(
-          ERROR,
-          "`${element.text}` is not allowed in ${AgslLanguage.INSTANCE.displayName}"
-        ).create()
+        holder.newAnnotation(ERROR, "`${element.text}` is not allowed in ${AgslLanguage.INSTANCE.displayName}").create()
       }
       is AgslReservedKeyword -> {
-        holder.newAnnotation(
-          ERROR,
-          "`${element.text}` is a reserved future keyword"
-        ).create()
+        holder.newAnnotation(ERROR, "`${element.text}` is a reserved future keyword").create()
       }
       is AgslGlslIdentifier -> {
-        holder.newAnnotation(
-          ERROR,
-          "GLSL predefined variables (`gl_*`) are not allowed in ${AgslLanguage.INSTANCE.displayName}"
-        ).create()
+        holder.newAnnotation(ERROR, "GLSL predefined variables (`gl_*`) are not allowed in ${AgslLanguage.INSTANCE.displayName}").create()
       }
     }
   }

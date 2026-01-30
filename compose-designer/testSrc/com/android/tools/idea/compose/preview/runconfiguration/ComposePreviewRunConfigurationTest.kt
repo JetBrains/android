@@ -67,12 +67,7 @@ class ComposePreviewRunConfigurationTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
     val noApksProvider = NoApksProvider()
     runConfiguration.launch(
-      createApp(
-        device,
-        "com.example.myapp",
-        emptyList(),
-        listOf("androidx.compose.ui.tooling.PreviewActivity"),
-      ),
+      createApp(device, "com.example.myapp", emptyList(), listOf("androidx.compose.ui.tooling.PreviewActivity")),
       device,
       AndroidFacet.getInstance(fixture.module)!!,
       "",
@@ -98,20 +93,11 @@ class ComposePreviewRunConfigurationTest {
 
   @Test
   fun testTriggerSourceType() {
-    assertEquals(
-      ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE,
-      runConfiguration.triggerSource.eventType,
-    )
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE, runConfiguration.triggerSource.eventType)
     runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
-    assertEquals(
-      ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER,
-      runConfiguration.triggerSource.eventType,
-    )
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER, runConfiguration.triggerSource.eventType)
     runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
-    assertEquals(
-      ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR,
-      runConfiguration.triggerSource.eventType,
-    )
+    assertEquals(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR, runConfiguration.triggerSource.eventType)
   }
 
   @Test
@@ -123,11 +109,11 @@ class ComposePreviewRunConfigurationTest {
     val testConfig =
       // language=xml
       """
-        <root>
-          <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"
-                                             parameter-provider-class-name="com.example.MyClassKt.MyProvider"
-                                             parameter-provider-index="1"/>
-        </root>
+      <root>
+        <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"
+                                           parameter-provider-class-name="com.example.MyClassKt.MyProvider"
+                                           parameter-provider-index="1"/>
+      </root>
       """
         .trimIndent()
 

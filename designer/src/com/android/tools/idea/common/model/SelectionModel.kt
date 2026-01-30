@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.common.model
 
-/**
- * Interface that provides the functionality to support a secondary selection in the design surface.
- */
+/** Interface that provides the functionality to support a secondary selection in the design surface. */
 interface SecondarySelectionModel {
-  /**
-   * Returns the secondary selection. Users of this api should check the type and treat it as null
-   * if the type is not known.
-   */
+  /** Returns the secondary selection. Users of this api should check the type and treat it as null if the type is not known. */
   val secondarySelection: Any?
 
   /** Clears the secondary selection. */
   fun clearSecondary()
 
   /**
-   * Set the secondary selection. Secondary selections must be associated with a NlComponent which
-   * is considered to be selected
+   * Set the secondary selection. Secondary selections must be associated with a NlComponent which is considered to be selected
    *
    * @param component the parent component of the secondary selection
-   * @param secondary the secondary selection the object can be of any type but should implement
-   *   equals
+   * @param secondary the secondary selection the object can be of any type but should implement equals
    */
   fun setSecondarySelection(component: NlComponent?, secondary: Any?)
 
@@ -43,8 +36,8 @@ interface SecondarySelectionModel {
 }
 
 /**
- * List of components that are selected for highlighting only. It is used for references which are
- * used by constriant helpers in ConstraintLayout.
+ * List of components that are selected for highlighting only. It is used for references which are used by constriant helpers in
+ * ConstraintLayout.
  */
 interface HighlightSelectionModel {
 
@@ -52,11 +45,10 @@ interface HighlightSelectionModel {
   fun isHighlighted(component: NlComponent): Boolean
 
   /**
-   * Set list of components to be highlighted. Highlighted components will behave like unselected,
-   * normal components except they will be drawn highlighted.
+   * Set list of components to be highlighted. Highlighted components will behave like unselected, normal components except they will be
+   * drawn highlighted.
    *
-   * If a component is both selected and highlight-selected, normal selection behaviour will take
-   * higher priority.
+   * If a component is both selected and highlight-selected, normal selection behaviour will take higher priority.
    *
    * It is used for references which are used by constriant helpers in ConstraintLayout.
    *
@@ -94,25 +86,20 @@ interface SelectionModel : SecondarySelectionModel, HighlightSelectionModel {
   /** Sets the selection to the given components and additionally sets the primary selection. */
   fun setSelection(components: List<NlComponent>, primary: NlComponent?)
 
-  /**
-   * Sets the selection to the given components. The primary selection will be set to the first
-   * component in the given list.
-   */
-  fun setSelection(components: List<NlComponent>) =
-    setSelection(components, components.firstOrNull())
+  /** Sets the selection to the given components. The primary selection will be set to the first component in the given list. */
+  fun setSelection(components: List<NlComponent>) = setSelection(components, components.firstOrNull())
 
   /**
-   * Switches the selection for the given [component]. If the component is not selected, it will
-   * select it. If it is, it will be removed from the selection.
+   * Switches the selection for the given [component]. If the component is not selected, it will select it. If it is, it will be removed
+   * from the selection.
    */
   fun toggle(component: NlComponent)
 }
 
 /**
- * Base implementation for Selection Models. This is used as a workaround for Java classes not
- * working with the default methods provided by a Kotlin interface. By using this class for Java
- * implementations, users are not forced to re-implement the default implementations from the
- * interface.
+ * Base implementation for Selection Models. This is used as a workaround for Java classes not working with the default methods provided by
+ * a Kotlin interface. By using this class for Java implementations, users are not forced to re-implement the default implementations from
+ * the interface.
  *
  * Kotlin implementations do not need to inherit from this class.
  */

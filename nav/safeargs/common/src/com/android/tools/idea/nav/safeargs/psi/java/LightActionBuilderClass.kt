@@ -50,17 +50,10 @@ class LightActionBuilderClass(
   private val _constructors by lazy { computeConstructors() }
   private val _methods by lazy { computeMethods() }
   private val _fields by lazy { computeFields() }
-  private val navDirectionsType by lazy {
-    PsiType.getTypeByName(NAV_DIRECTIONS_FQCN, project, this.resolveScope)
-  }
-  private val navDirectionsClass by lazy {
-    JavaPsiFacade.getInstance(project).findClass(NAV_DIRECTIONS_FQCN, this.resolveScope)
-  }
+  private val navDirectionsType by lazy { PsiType.getTypeByName(NAV_DIRECTIONS_FQCN, project, this.resolveScope) }
+  private val navDirectionsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_DIRECTIONS_FQCN, this.resolveScope) }
   private val _navigationElement by lazy {
-    (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(
-      SdkConstants.TAG_ACTION,
-      action.id,
-    )
+    (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
   }
 
   override fun getName() = name
@@ -142,10 +135,7 @@ class LightActionBuilderClass(
         // we search in the target destination tag.
         val targetArgumentTag =
           _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
-            ?: targetDestinationTag?.findChildTagElementByNameAttr(
-              SdkConstants.TAG_ARGUMENT,
-              arg.name,
-            )
+            ?: targetDestinationTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
         createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()

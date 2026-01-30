@@ -15,33 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.exceptions.base
 
-import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
-import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
+import com.android.tools.idea.gradle.util.GradleConfigProperties
+import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
-import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.roots.ProjectRootManager
+import java.io.File
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleBundle
-import java.io.File
+import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 
 /**
- * Base of the founded invalid JDK configuration that provides a cause [InvalidGradleJdkCause]
- * but also allows an easy recovery for the affected gradle root project.
+ * Base of the founded invalid JDK configuration that provides a cause [InvalidGradleJdkCause] but also allows an easy recovery for the
+ * affected gradle root project.
  */
-abstract class GradleJdkException(
-  private val project: Project,
-  private val gradleRootPath: @SystemIndependent String,
-) {
+abstract class GradleJdkException(private val project: Project, private val gradleRootPath: @SystemIndependent String) {
 
   open val jdkPathLocationFile: File? = null
   val message by lazy { cause.description }
@@ -51,20 +48,17 @@ abstract class GradleJdkException(
     getJdkRecoveryCandidates()
       .firstOrNull { ExternalSystemJdkUtil.isValidJdk(it.path) }
       ?.run {
-        gradleJvm?.let {
-          ProjectJdkUtils.updateProjectGradleJvm(project, gradleRootPath, it)
-        } ?: run {
-          GradleJdkConfigurationUtils.setProjectGradleJdk(project, gradleRootPath, path)
-        }
+        gradleJvm?.let { ProjectJdkUtils.updateProjectGradleJvm(project, gradleRootPath, it) }
+          ?: run { GradleJdkConfigurationUtils.setProjectGradleJdk(project, gradleRootPath, path) }
 
-        val jdkVersion = JavaSdk.getInstance().getVersionString(path)  ?: "<unknown>"
+        val jdkVersion = JavaSdk.getInstance().getVersionString(path) ?: "<unknown>"
         showRecoveredGradleJdkNotification(
           project = project,
           gradleRootPath = gradleRootPath,
           errorDescription = cause.description,
-          errorResolution = AndroidBundle.message("project.sync.jdk.recovery.message", origin, jdkVersion)
+          errorResolution = AndroidBundle.message("project.sync.jdk.recovery.message", origin, jdkVersion),
         )
-    }
+      }
   }
 
   protected abstract val cause: InvalidGradleJdkCause
@@ -73,27 +67,34 @@ abstract class GradleJdkException(
     project: Project,
     gradleRootPath: @SystemIndependent String,
     errorDescription: String,
-    errorResolution: String
+    errorResolution: String,
   ) {
     val title = GradleBundle.message("gradle.jvm.is.invalid")
-    val messageBuilder = StringBuilder()
-      .appendLine(errorDescription)
-      .appendLine(errorResolution)
+    val messageBuilder = StringBuilder().appendLine(errorDescription).appendLine(errorResolution)
     val quickFixes = listOfNotNull(SelectJdkFromFileSystemHyperlink.create(project, gradleRootPath))
-    AndroidNotification.getInstance(project).showBalloon(title, messageBuilder.toString(), NotificationType.WARNING, *quickFixes.toTypedArray())
+    AndroidNotification.getInstance(project)
+      .showBalloon(title, messageBuilder.toString(), NotificationType.WARNING, *quickFixes.toTypedArray())
   }
 
-  private fun getJdkRecoveryCandidates() = listOf(
-    JdkRecoveryCandidate(AndroidBundle.message("gradle.local.jdk.name"), GradleConfigProperties(File(gradleRootPath)).javaHome?.absolutePath.orEmpty(), USE_GRADLE_LOCAL_JAVA_HOME),
-    JdkRecoveryCandidate(AndroidBundle.message("gradle.project.jdk.name"), ProjectRootManager.getInstance(project).projectSdk?.homePath.orEmpty()),
-    JdkRecoveryCandidate(AndroidBundle.message("gradle.default.jdk.name"), GradleDefaultJdkPathStore.jdkPath.orEmpty()),
-    JdkRecoveryCandidate(AndroidBundle.message("gradle.embedded.jdk.name"), IdeSdks.getInstance().embeddedJdkPath.toString()),
-  )
+  private fun getJdkRecoveryCandidates() =
+    listOf(
+      JdkRecoveryCandidate(
+        AndroidBundle.message("gradle.local.jdk.name"),
+        GradleConfigProperties(File(gradleRootPath)).javaHome?.absolutePath.orEmpty(),
+        USE_GRADLE_LOCAL_JAVA_HOME,
+      ),
+      JdkRecoveryCandidate(
+        AndroidBundle.message("gradle.project.jdk.name"),
+        ProjectRootManager.getInstance(project).projectSdk?.homePath.orEmpty(),
+      ),
+      JdkRecoveryCandidate(AndroidBundle.message("gradle.default.jdk.name"), GradleDefaultJdkPathStore.jdkPath.orEmpty()),
+      JdkRecoveryCandidate(AndroidBundle.message("gradle.embedded.jdk.name"), IdeSdks.getInstance().embeddedJdkPath.toString()),
+    )
 
   private data class JdkRecoveryCandidate(
     val origin: String,
     val path: String,
     val gradleJvm: String? = null,
-    val displayNotification: Boolean = true
+    val displayNotification: Boolean = true,
   )
 }

@@ -19,9 +19,7 @@ import com.android.tools.idea.run.configuration.execution.ApplicationDeployListe
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 
-/**
- * Listen for build events so that we can respond with 16 KB messages if necessary.
- */
+/** Listen for build events so that we can respond with 16 KB messages if necessary. */
 class PageAlignProjectActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     project.messageBus
@@ -29,4 +27,3 @@ class PageAlignProjectActivity : ProjectActivity {
       .subscribe(ApplicationDeployListener.TOPIC, PageAlignDeployListener(project))
   }
 }
-

@@ -37,16 +37,8 @@ class RefreshInsight(private val regenerateWithContext: Boolean) : ChangeEvent {
       StateTransition(state, Action.NONE)
     } else {
       StateTransition(
-        state.copy(
-          currentInsight =
-            LoadingState.Loading(if (regenerateWithContext) REGENERATING_INSIGHT else "")
-        ),
-        Action.FetchInsight(
-          issue.id,
-          state.selectedVariant?.id,
-          issue.issueDetails.fatality,
-          issue.sampleEvent,
-        ),
+        state.copy(currentInsight = LoadingState.Loading(if (regenerateWithContext) REGENERATING_INSIGHT else "")),
+        Action.FetchInsight(issue.id, state.selectedVariant?.id, issue.issueDetails.fatality, issue.sampleEvent),
       )
     }
   }

@@ -25,13 +25,15 @@ class SdkBuildToolsTooLowIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      sdkBuildToolsTooLowIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "The SDK Build Tools revision (24.0.0) is too low for project 'test'. Minimum required is 29.2.0",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        sdkBuildToolsTooLowIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "The SDK Build Tools revision (24.0.0) is too low for project 'test'. Minimum required is 29.2.0",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

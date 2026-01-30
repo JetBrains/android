@@ -64,8 +64,7 @@ class NumberInputComponentActionTest {
 
   @Test
   fun testFloatInput_InvalidInputDoesNotChangeValue() {
-    val action =
-      FloatInputComponentAction(10f) { throw AssertionError("Value not changed for invalid input") }
+    val action = FloatInputComponentAction(10f) { throw AssertionError("Value not changed for invalid input") }
     val component = action.createCustomComponent(Presentation(), "")
     val inputField = component.components[0] as JTextField
 
@@ -169,8 +168,7 @@ class NumberInputComponentActionTest {
 
   @Test
   fun testIntInput_InvalidInputDoesNotChangeValue() {
-    val action =
-      IntInputComponentAction(10) { throw AssertionError("Value not changed for invalid input") }
+    val action = IntInputComponentAction(10) { throw AssertionError("Value not changed for invalid input") }
     val component = action.createCustomComponent(Presentation(), "")
     val inputField = component.components[0] as JTextField
 
@@ -252,8 +250,7 @@ class NumberInputComponentActionTest {
 
   @Test
   fun testIntInput_NumberWithDecimal() {
-    val action =
-      IntInputComponentAction(10) { throw AssertionError("Value not changed for invalid input") }
+    val action = IntInputComponentAction(10) { throw AssertionError("Value not changed for invalid input") }
     val component = action.createCustomComponent(Presentation(), "")
     val inputField = component.components[0] as JTextField
 

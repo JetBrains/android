@@ -20,11 +20,7 @@ import com.android.tools.idea.wizard.template.renderIf
 
 private val ANDROIDX_DEFAULT_IN_AGP = AgpVersion.parse("9.0.0-alpha01")
 
-fun androidProjectGradleProperties(
-  agpVersion: AgpVersion,
-  generateKotlin: Boolean,
-  overridePathCheck: Boolean?,
-): String {
+fun androidProjectGradleProperties(agpVersion: AgpVersion, generateKotlin: Boolean, overridePathCheck: Boolean?): String {
   val androidXBlock =
     renderIf(agpVersion < ANDROIDX_DEFAULT_IN_AGP) {
       """

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("DisplayInfoKeys")
+
 package com.android.tools.idea.ui
 
 import com.intellij.openapi.actionSystem.DataKey

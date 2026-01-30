@@ -28,7 +28,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-
 class CachingRepositorySearchFactoryTest {
 
   private class TestRepository(val id: String, val onSearch: () -> Unit) : ArtifactRepositorySearchService {

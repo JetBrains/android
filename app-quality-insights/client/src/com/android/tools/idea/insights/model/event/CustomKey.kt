@@ -15,7 +15,5 @@
  */
 package com.android.tools.idea.insights.model.event
 
-/**
- * An optional key-value pair set by the developer and recorded by the app at the time of a crash.
- */
+/** An optional key-value pair set by the developer and recorded by the app at the time of a crash. */
 data class CustomKey(val key: String, val value: String)

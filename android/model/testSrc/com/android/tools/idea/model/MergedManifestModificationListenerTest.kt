@@ -23,10 +23,10 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.io.delete
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidRootUtil
-import java.util.concurrent.TimeUnit
 
 class MergedManifestModificationListenerTest : AndroidTestCase() {
   private lateinit var mergedManifestTracker: MergedManifestModificationTracker
@@ -78,9 +78,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
   }
 
   private fun updatePrimaryManifestXml(update: VirtualFile.() -> Unit) {
-    runWriteCommandAction(project) {
-      AndroidRootUtil.getPrimaryManifestFile(myFacet)?.let { update(it) }
-    }
+    runWriteCommandAction(project) { AndroidRootUtil.getPrimaryManifestFile(myFacet)?.let { update(it) } }
   }
 
   private fun VirtualFile.addPermissionWithoutSaving(permissionName: String) {

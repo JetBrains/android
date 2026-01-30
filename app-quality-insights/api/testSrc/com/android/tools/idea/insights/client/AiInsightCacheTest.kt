@@ -31,28 +31,20 @@ class AiInsightCacheTest {
   fun `get and put AI insights`() {
     val connection = TestConnection("blah", "1234", "project12", "12")
     val cache = AiInsightCache()
-    val context =
-      CodeContextData(
-        listOf(CodeContext("/path", "abc")),
-        contextSharingState = ContextSharingState.ALLOWED,
-      )
+    val context = CodeContextData(listOf(CodeContext("/path", "abc")), contextSharingState = ContextSharingState.ALLOWED)
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED)).isNull()
 
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
-      .isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
-      .isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED)).isNull()
 
     val newInsight = AiInsight("blah", ISSUE1.sampleEvent, codeContextData = context)
     cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
-      .isEqualTo(newInsight.copy(isCached = true))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED)).isEqualTo(newInsight.copy(isCached = true))
 
     cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
     assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))

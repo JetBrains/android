@@ -40,8 +40,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DeclarativeCompletionContributorTest : UsefulTestCase() {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
   private val fixture by lazy { projectRule.fixture }
 
   @Before
@@ -49,237 +48,288 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     DeclarativeIdeSupport.override(true)
   }
 
-  @After
-  fun onAfter() = DeclarativeIdeSupport.clearOverride()
+  @After fun onAfter() = DeclarativeIdeSupport.clearOverride()
 
   @Test
   fun testBasicRootCompletion() {
     doTest("and$caret") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp" to "Block element", "androidLibrary" to "Block element"
-      )
+      Truth.assertThat(suggestions.toList()).containsExactly("androidApp" to "Block element", "androidLibrary" to "Block element")
     }
     doTest("and$caret { }") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp" to "Block element", "androidLibrary" to "Block element"
-      )
+      Truth.assertThat(suggestions.toList()).containsExactly("androidApp" to "Block element", "androidLibrary" to "Block element")
     }
   }
 
   @Test
   fun testInsideBlockCompletion() {
-    doTest("""
+    doTest(
+      """
       androidApp{
         a$caret
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures" to "Block element", "defaultConfig" to "Block element", "getDefaultProguardFile" to "Factory",
-        "namespace" to "String", "productFlavors" to "Block element", "testNamespace" to "String"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "buildFeatures" to "Block element",
+          "defaultConfig" to "Block element",
+          "getDefaultProguardFile" to "Factory",
+          "namespace" to "String",
+          "productFlavors" to "Block element",
+          "testNamespace" to "String",
+        )
     }
   }
 
   @Test
   fun testBeforeOpenBlock() {
-    doNoSuggestionTest("""
+    doNoSuggestionTest(
+      """
       androidApp $caret{
         
       }
-      """)
-    doNoSuggestionTest("""
+      """
+    )
+    doNoSuggestionTest(
+      """
       androidApp$caret{
         
       }
-      """)
+      """
+    )
   }
 
   @Test
   fun testPluginBlockCompletion() {
-    doTest("""
+    doTest(
+      """
       pl$caret
-      """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "pluginManagement" to "Block element", "plugins" to "Block element"
-      )
+      """,
+      "settings.gradle.dcl",
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("pluginManagement" to "Block element", "plugins" to "Block element")
     }
   }
 
   @Test
   fun testInsideApplicationBlockCompletion() {
-    doTest("""
+    doTest(
+      """
       androidApp{
         a$caret
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures" to "Block element", "defaultConfig" to "Block element", "getDefaultProguardFile" to "Factory",
-        "namespace" to "String", "productFlavors" to "Block element", "testNamespace" to "String"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "buildFeatures" to "Block element",
+          "defaultConfig" to "Block element",
+          "getDefaultProguardFile" to "Factory",
+          "namespace" to "String",
+          "productFlavors" to "Block element",
+          "testNamespace" to "String",
+        )
     }
   }
 
   @Test
   fun testAfterPropertyCompletion() {
-    doNoSuggestionTest("""
+    doNoSuggestionTest(
+      """
       androidLibrary {
           compileSdk = 1$caret
-        }""".trimIndent()
+        }"""
+        .trimIndent()
     )
 
-    doNoSuggestionTest("""
+    doNoSuggestionTest(
+      """
       androidLibrary {
           compileSdk = 1${caret}3
-        }""".trimIndent()
+        }"""
+        .trimIndent()
     )
   }
 
   @Test
   fun testInsideApplicationBlockCompletionNoTyping() {
-    doTest("""
+    doTest(
+      """
       androidApp {
         $caret
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
-        "buildFeatures", "buildOutputs", "buildTypes", "bundle", "compileOptions",
-        "compileSdk", "defaultConfig", "dependenciesDcl", "getDefaultProguardFile", "lint", "namespace",
-        "productFlavors", "signingConfigs", "sourceSets", "testBuildType", "testNamespace"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.map { it.first }.toList())
+        .containsExactly(
+          "buildFeatures",
+          "buildOutputs",
+          "buildTypes",
+          "bundle",
+          "compileOptions",
+          "compileSdk",
+          "defaultConfig",
+          "dependenciesDcl",
+          "getDefaultProguardFile",
+          "lint",
+          "namespace",
+          "productFlavors",
+          "signingConfigs",
+          "sourceSets",
+          "testBuildType",
+          "testNamespace",
+        )
     }
   }
 
   @Test
   fun testListProperty() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
             matching$caret
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "matchingFallbacks = listOf()" to "Expression", "matchingFallbacks += listOf()" to "Expression"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly("matchingFallbacks = listOf()" to "Expression", "matchingFallbacks += listOf()" to "Expression")
     }
   }
 
   @Test
   fun testListPropertyEditing() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
             matchingFall${caret}backs += listOf()
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "matchingFallbacks" to "Property"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("matchingFallbacks" to "Property")
     }
   }
 
   @Test
   fun testForLayoutPropertyCompletion() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         fakeFileList = listOf(layo$caret)
       }
-      """, """
+      """,
+      """
       androidApp {
         fakeFileList = listOf(layout.$caret)
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testForPropertyAsFunctionCallArgument() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         fakeFileList = listOf(layout.$caret)
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "projectDirectory" to "Property", "settingsDirectory" to "Property"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("projectDirectory" to "Property", "settingsDirectory" to "Property")
     }
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         fakeFileList = listOf(layout.projectDirectory.$caret)
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "dir" to "Factory", "file" to "Factory"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("dir" to "Factory", "file" to "Factory")
     }
   }
 
   @Test
   fun testCompletionLayoutFileAsArgument() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         fakeFileList = listOf(layout.projectDirectory.f$caret)
       }
-      """, """
+      """,
+      """
       androidApp {
         fakeFileList = listOf(layout.projectDirectory.file($caret))
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testNoSuggestionAfterIllegalAppend() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         compileSdk += ${caret}1
       }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).isEmpty()
     }
   }
 
   @Test
   fun testNoSuggestionAfterIllegalAppend2() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         compileSdk += 1${caret}
       }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).isEmpty()
     }
   }
 
   @Test
   fun testNoSuggestionAfterIllegalAppendPropertyValue() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         bundle  {
           integrityConfigDir += l$caret
         }
       }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).isEmpty()
     }
   }
 
   @Test
   fun testCompletionProjectDirectoryAsArgument() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         fakeFileList = listOf(layout.p$caret)
       }
-      """, """
+      """,
+      """
       androidApp {
         fakeFileList = listOf(layout.projectDirectory.$caret)
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testAssignObjectType() {
-    doTest("""
+    doTest(
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
@@ -287,16 +337,16 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           }
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory")
     }
   }
 
   @Test
   fun testAssignList() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
@@ -304,7 +354,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           }
         }
       }
-      """.trimIndent(), """
+      """
+        .trimIndent(),
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
@@ -312,45 +364,53 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           }
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testAssignMapCompletion() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = ma$caret
         }
       }
-      """.trimIndent(), """
+      """
+        .trimIndent(),
+      """
       androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf($caret)
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testAssignMapSuggestion() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
       androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = $caret
         }
       }
-      """.trimIndent())
-    { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
-      )
+      """
+        .trimIndent()
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory")
     }
   }
 
   @Test
   fun testAppendList() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
@@ -358,7 +418,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           }
         }
       }
-      """.trimIndent(), """
+      """
+        .trimIndent(),
+      """
       androidApp {
         buildTypes{
           buildType("debug"){
@@ -366,54 +428,62 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           }
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testInsideFileCompletionNoTyping() {
-    doTest("""
+    doTest(
+      """
         $caret
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp" to "Block element", "androidLibrary" to "Block element", "listOf" to "Factory", "mapOf" to "Factory"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly("androidApp" to "Block element", "androidLibrary" to "Block element", "listOf" to "Factory", "mapOf" to "Factory")
     }
   }
 
   @Test
   fun testSuggestionOfFactoryBlock() {
-    doTest("""
+    doTest(
+      """
     androidApp {
       buildTypes{
         $caret
       }
     }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly("buildType" to "Factory block")
     }
   }
 
   @Test
   fun testSuggestionRegularFile() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
     androidApp {
       bundle  {
         deviceTarg$caret
       }
     }
-    """ ,"""
+    """,
+      """
     androidApp {
       bundle  {
         deviceTargetingConfig = $caret
       }
     }
-    """
+    """,
     )
   }
 
   @Test
   fun testSuggestionInFactoryBlock() {
-    doTest("""
+    doTest(
+      """
     androidApp {
       buildTypes{
         buildType("new"){
@@ -421,16 +491,25 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
-        "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled", "multiDexEnabled", "versionNameSuffix")
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.map { it.first }.toList())
+        .containsExactly(
+          "applicationIdSuffix",
+          "buildConfigField",
+          "dependencies",
+          "isMinifyEnabled",
+          "multiDexEnabled",
+          "versionNameSuffix",
+        )
     }
   }
 
   @Test
   fun testSuggestionInFactoryBlockWithPatchedSchema() {
     // basically patched version has matchingFallbacks as immutable list instead of mutable list as in AGP
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       buildTypes{
         buildType("new"){
@@ -438,88 +517,107 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
-        "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled",
-        "matchingFallbacks += listOf()", "matchingFallbacks = listOf()", "multiDexEnabled",
-        "proguardFile", "proguardFiles += listOf()", "proguardFiles = listOf()", "versionNameSuffix")
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.map { it.first }.toList())
+        .containsExactly(
+          "applicationIdSuffix",
+          "buildConfigField",
+          "dependencies",
+          "isMinifyEnabled",
+          "matchingFallbacks += listOf()",
+          "matchingFallbacks = listOf()",
+          "multiDexEnabled",
+          "proguardFile",
+          "proguardFiles += listOf()",
+          "proguardFiles = listOf()",
+          "versionNameSuffix",
+        )
     }
   }
 
   @Test
   fun testEnumIsSuggestion() {
-    doTest("""
+    doTest(
+      """
     androidApp {
         compileOptions {
            $caret
         }
       }
     }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       // sourceCompatibility and targetCompatibility are enums
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "encoding" to "String", "isCoreLibraryDesugaringEnabled" to "Boolean",
-        "sourceCompatibility" to "Enum", "targetCompatibility" to "Enum"
-      )
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "encoding" to "String",
+          "isCoreLibraryDesugaringEnabled" to "Boolean",
+          "sourceCompatibility" to "Enum",
+          "targetCompatibility" to "Enum",
+        )
     }
   }
 
   @Test
   fun testLayoutFileFactory() {
     // test first level
-    doTest("""
+    doTest(
+      """
       androidApp {
         bundle {
           deviceTargetingConfig = $caret
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory")
     }
 
     // test second level
-    doTest("""
+    doTest(
+      """
       androidApp {
         bundle {
           deviceTargetingConfig = layout.$caret
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "projectDirectory" to "Property", "settingsDirectory" to "Property"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("projectDirectory" to "Property", "settingsDirectory" to "Property")
     }
     // test last level
-    doTest("""
+    doTest(
+      """
       androidApp {
         bundle {
           deviceTargetingConfig = layout.projectDirectory.$caret
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "dir" to "Factory", "file" to "Factory"
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("dir" to "Factory", "file" to "Factory")
     }
   }
 
   @Test
   fun testCompletionStringProperty() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
       androidApp {
         defaultConfig {
           versionNameS$caret
         }
       }
-      """, """
+      """,
+      """
       androidApp {
         defaultConfig {
           versionNameSuffix = "$caret"
         }
       }
-      """)
+      """,
+    )
   }
 
   @Test
@@ -531,7 +629,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         androidApp {
             $caret
         }
-        """.trimIndent())
+        """
+        .trimIndent(),
+    )
   }
 
   @Test
@@ -542,7 +642,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         androidApp {
               $caret
         }
-        """.trimIndent()) { psiFile ->
+        """
+        .trimIndent(),
+    ) { psiFile ->
       CodeStyle.getIndentOptions(psiFile).INDENT_SIZE = 6
     }
   }
@@ -553,86 +655,106 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """
         androidLibrary {
           dependenci$caret
-        }""".trimIndent(),
+        }"""
+        .trimIndent(),
       """
         androidLibrary {
           dependenciesDcl {
               $caret
           }
-        }""".trimIndent())
+        }"""
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testCompletionInt() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
      androidApp {
        defaultConfig {
          maxSd$caret
        }
      }
-     """, """
+     """,
+      """
      androidApp {
        defaultConfig {
          maxSdk = $caret
        }
      }
-     """)
+     """,
+    )
   }
 
   @Test
   fun testCompletionBoolean() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
     androidLibrary {
       defaultConfig {
         multiDexEnab$caret
       }
     }
-    """, """
+    """,
+      """
     androidLibrary {
       defaultConfig {
         multiDexEnabled = $caret
       }
     }
-    """)
+    """,
+    )
   }
 
   @Test
   fun testCompletionFunction() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
       androidLibrary {
         dependenciesDcl {
           androidTestIm$caret
         }
       }
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
     androidLibrary {
       dependenciesDcl {
         androidTestImplementation($caret)
       }
     }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testCompletionEnum() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
       androidApp {
         compileOptions {
           sourceCom$caret
         }
       }
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
     androidApp {
       compileOptions {
         sourceCompatibility = $caret
       }
     }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testCompletionUriValues() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
      dependencyResolutionManagement {
        repositories {
          maven {
@@ -641,7 +763,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
        }
      }
      """,
-     "settings.gradle.dcl", """
+      "settings.gradle.dcl",
+      """
      dependencyResolutionManagement {
        repositories {
          maven {
@@ -649,12 +772,14 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
          }
        }
      }
-     """)
+     """,
+    )
   }
 
   @Test
   fun testCompletionUriValues2() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
    dependencyResolutionManagement {
      repositories {
        maven {
@@ -662,7 +787,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
        }
      }
    }
-   """, "settings.gradle.dcl", """
+   """,
+      "settings.gradle.dcl",
+      """
    dependencyResolutionManagement {
      repositories {
        maven {
@@ -670,68 +797,81 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
        }
      }
    }
-   """)
+   """,
+    )
   }
 
   @Test
   fun testCompletionEnumValues() {
-    doTest("""
+    doTest(
+      """
       androidApp {
         compileOptions {
           sourceCompatibility = $caret
         }
       }
-      """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsAllIn(
-        listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER").zip((1..5).map { "Enum Constant" })
-      )
+      """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsAllIn(
+          listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER").zip((1..5).map { "Enum Constant" })
+        )
     }
-    doCompletionTest("""
+    doCompletionTest(
+      """
       androidApp {
         compileOptions {
           sourceCompatibility = VERSION_H$caret
         }
       }
-    """, "build.gradle.dcl", """
+    """,
+      "build.gradle.dcl",
+      """
       androidApp {
         compileOptions {
           sourceCompatibility = VERSION_HIGHER$caret
         }
       }
-    """)
-
+    """,
+    )
   }
 
   @Test
   fun testBooleanProperty() {
-    doTest("""
+    doTest(
+      """
       androidApp {
         buildFeatures {
           dataBinding = $caret
         }
       }
-      """) { suggestions ->
+      """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly("true" to "Boolean", "false" to "Boolean")
     }
 
-    doCompletionTest("""
+    doCompletionTest(
+      """
       androidApp {
         buildFeatures {
           dataBinding = tr$caret
         }
       }
-   """, """
+   """,
+      """
       androidApp {
         buildFeatures {
           dataBinding = true$caret
         }
       }
-   """)
+   """,
+    )
   }
 
   @Test
   fun testSuggestionsUriFunction() {
-    doTest("""
+    doTest(
+      """
     dependencyResolutionManagement {
       repositories {
         maven {
@@ -739,16 +879,24 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """, "settings.gradle.dcl") { suggestions ->
+    """,
+      "settings.gradle.dcl",
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList())
-        .containsExactly("layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory",
-                         "rootProject" to "Property", "uri" to "Factory")
+        .containsExactly(
+          "layout" to "Property",
+          "listOf" to "Factory",
+          "mapOf" to "Factory",
+          "rootProject" to "Property",
+          "uri" to "Factory",
+        )
     }
   }
 
   @Test
   fun testSuggestionsFunctionArguments() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -756,15 +904,17 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """) { suggestions ->
-      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
+    """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.map { it.first }.toList())
+        .containsExactly("buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
     }
   }
 
   @Test
   fun testSuggestionsFunctionArgumentsWithAppend() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -772,16 +922,23 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory")
+    """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "buildConfigField" to "Factory",
+          "layout" to "Property",
+          "listOf" to "Factory",
+          "mapOf" to "Factory",
+          "proguardFile" to "Factory",
+        )
     }
   }
 
-
   @Test
   fun testSuggestionsFunctionSecondArgument() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -789,16 +946,23 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory"
-      )
+    """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "buildConfigField" to "Factory",
+          "layout" to "Property",
+          "listOf" to "Factory",
+          "mapOf" to "Factory",
+          "proguardFile" to "Factory",
+        )
     }
   }
 
   @Test
   fun testSuggestionsFunctionSecondArgumentWithAppend() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -806,16 +970,23 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory"
-      )
+    """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList())
+        .containsExactly(
+          "buildConfigField" to "Factory",
+          "layout" to "Property",
+          "listOf" to "Factory",
+          "mapOf" to "Factory",
+          "proguardFile" to "Factory",
+        )
     }
   }
 
   @Test
   fun testCompletionFunctionArguments() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -823,7 +994,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """, """
+    """,
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -831,12 +1003,14 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """)
+    """,
+    )
   }
 
   @Test
   fun testCompletionFunctionSecondArguments() {
-    doCompletionTestPatchedSchema("""
+    doCompletionTestPatchedSchema(
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -844,7 +1018,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """, """
+    """,
+      """
     androidApp {
       buildTypes {
         buildType("debug") {
@@ -852,124 +1027,154 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
     }
-    """)
+    """,
+    )
   }
-
 
   @Test
   fun testSuggestionsPlugins() {
-    doTest("""
+    doTest(
+      """
     plugins {
       id("some").$caret
     }
-    """, "settings.gradle.dcl") { suggestions ->
+    """,
+      "settings.gradle.dcl",
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsAllIn(listOf("version" to "Factory", "apply" to "Factory"))
     }
   }
 
   @Test
   fun testRootProjects() {
-    doTest("""
+    doTest(
+      """
     rootProject.$caret
-    """, "settings.gradle.dcl") { suggestions ->
+    """,
+      "settings.gradle.dcl",
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly("name" to "String")
     }
   }
 
   @Test
   fun testListOfHasLayoutSuggestion() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       fakeFileList = listOf($caret)
     }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret)
     }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       fakeFileList = listOf($caret
     }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
     androidApp {
       fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret
     }
-    """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).contains("layout"  to "Property")
+    """
+    ) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
   }
 
   @Test
   fun testMapOfPair() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
        androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf("a"$caret)
         }
        }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
 
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
        androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf("a" $caret)
         }
        }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
   }
 
   @Test
   fun testMapOfPair2() {
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
        androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf("a" t$caret)
         }
        }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
 
-    doTestOnPatchedSchema("""
+    doTestOnPatchedSchema(
+      """
        androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf("a" t$caret, "c" to mapOf())
         }
        }
-    """) { suggestions ->
+    """
+    ) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
   }
 
   @Test
   fun testRootProject() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
     rootProje$caret
-   """, "settings.gradle.dcl", """
+   """,
+      "settings.gradle.dcl",
+      """
     rootProject.name = "$caret"
-   """)
+   """,
+    )
   }
 
   @Test
   fun testRootProject2() {
-    doCompletionTest("""
+    doCompletionTest(
+      """
     rootProject$caret
-   """, "settings.gradle.dcl", """
+   """,
+      "settings.gradle.dcl",
+      """
     rootProject.name = "$caret"
-   """)
+   """,
+    )
   }
 
   @Test
@@ -989,7 +1194,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         if (type is DataClassRef)
           getNextLevel().forEach { nextLevelElement ->
             (nextLevelElement.entry as? DataProperty)?.let {
-              if(it.valueType is SimpleTypeRef) Truth.assertThat(path + it.name).isIn(knownPaths)
+              if (it.valueType is SimpleTypeRef) Truth.assertThat(path + it.name).isIn(knownPaths)
             }
           }
       }
@@ -997,13 +1202,11 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
 
     fun EntryWithContext.iterate(path: List<String>, seen: List<Entry>) {
       check(path)
-      getNextLevel().forEach {
-        if (!seen.contains(it.entry)) it.iterate(path + it.entry.simpleName,seen + it.entry)
-      }
+      getNextLevel().forEach { if (!seen.contains(it.entry)) it.iterate(path + it.entry.simpleName, seen + it.entry) }
     }
 
     // looking for root properties that has simple props like rootProject.name
-    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry.simpleName),listOf(it.entry)) }
+    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry.simpleName), listOf(it.entry)) }
   }
 
   private fun doTest(declarativeFile: String, check: (List<Pair<String, String>>) -> Unit) {
@@ -1025,41 +1228,41 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   private fun _doTest(declarativeFile: String, fileName: String, check: (List<Pair<String, String>>) -> Unit) {
-    val buildFile = fixture.addFileToProject(
-      fileName, declarativeFile)
+    val buildFile = fixture.addFileToProject(fileName, declarativeFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
-    val list: List<Pair<String, String>> = fixture.lookupElements!!.map {
-      val presentation = LookupElementPresentation()
-      it.renderElement(presentation)
-      it.lookupString to (presentation.typeText ?: "")
-    }
+    val list: List<Pair<String, String>> =
+      fixture.lookupElements!!.map {
+        val presentation = LookupElementPresentation()
+        it.renderElement(presentation)
+        it.lookupString to (presentation.typeText ?: "")
+      }
     check.invoke(list)
   }
 
   private fun doNoSuggestionTest(declarativeFile: String) {
     registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
 
-    val buildFile = fixture.addFileToProject(
-      "build.gradle.dcl", declarativeFile)
+    val buildFile = fixture.addFileToProject("build.gradle.dcl", declarativeFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
     Truth.assertThat(fixture.lookup).isNull()
   }
 
-  private fun doCompletionTest(declarativeFile: String, fileAfter: String, update:(PsiFile) -> Unit = {}) =
-    doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter, update )
+  private fun doCompletionTest(declarativeFile: String, fileAfter: String, update: (PsiFile) -> Unit = {}) =
+    doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter, update)
 
-  private fun doCompletionTestPatchedSchema(declarativeFile: String, fileAfter: String, update:(PsiFile) -> Unit = {}) {
+  private fun doCompletionTestPatchedSchema(declarativeFile: String, fileAfter: String, update: (PsiFile) -> Unit = {}) {
     registerTestDeclarativeServicePatchedSchema(projectRule.project, fixture.testRootDisposable)
     _doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter, update)
   }
 
-  private fun doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update:(PsiFile) -> Unit = {}) {
+  private fun doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update: (PsiFile) -> Unit = {}) {
     registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
     _doCompletionTest(declarativeFile, fileName, fileAfter, update)
   }
-  private fun _doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update:(PsiFile) -> Unit = {}){
+
+  private fun _doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update: (PsiFile) -> Unit = {}) {
     val buildFile = fixture.addFileToProject(fileName, declarativeFile)
     update(buildFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)

@@ -30,11 +30,12 @@ class StaleManifestNotificationProvider : EditorNotificationProvider {
         return@Function null
       }
       EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).also { panel ->
-        panel.text = if (fileEditor.failedToComputeFreshManifest()) {
-          FAILED_TO_RECOMPUTE_MESSAGE
-        } else {
-          RECOMPUTING_MESSAGE
-        }
+        panel.text =
+          if (fileEditor.failedToComputeFreshManifest()) {
+            FAILED_TO_RECOMPUTE_MESSAGE
+          } else {
+            RECOMPUTING_MESSAGE
+          }
       }
     }
   }

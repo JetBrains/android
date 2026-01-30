@@ -50,10 +50,7 @@ class SkiaParserTest {
     } catch (expected: InvalidPictureException) {}
   }
 
-  /**
-   * This is what we get when a view draw before and after it's children: the root, first, and last
-   * child all have the same id.
-   */
+  /** This is what we get when a view draw before and after it's children: the root, first, and last child all have the same id. */
   @Test
   fun testOverUnder() {
     val eventStr =
@@ -84,8 +81,7 @@ class SkiaParserTest {
         """ "
         }"""
           .trim()
-    val tree =
-      InspectorView.newBuilder().also { TextFormat.getParser().merge(eventStr, it) }.build()
+    val tree = InspectorView.newBuilder().also { TextFormat.getParser().merge(eventStr, it) }.build()
 
     val requestedNodes =
       mapOf(
@@ -125,8 +121,7 @@ class SkiaParserTest {
 
 class SkiaParserWithSdkTest {
   val projectRule = AndroidProjectRule.inMemory()
-  private val fakeSdkRule =
-    FakeSdkRule(projectRule).withLocalPackage("skiaparser;1", "skiaparser/1")
+  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1", "skiaparser/1")
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
 
@@ -134,12 +129,7 @@ class SkiaParserWithSdkTest {
   fun testUnsupportedVersion() {
     var called = false
     try {
-      SkiaParserImpl({ called = true })
-        .getViewTree(
-          "skiapict".toByteArray().plus(byteArrayOf(127, 1, 2, 3, 4, 5)),
-          emptyList(),
-          1.0,
-        )
+      SkiaParserImpl({ called = true }).getViewTree("skiapict".toByteArray().plus(byteArrayOf(127, 1, 2, 3, 4, 5)), emptyList(), 1.0)
       fail()
     } catch (expected: UnsupportedPictureVersionException) {}
     assertThat(called).isTrue()
@@ -195,10 +185,7 @@ class SkiaParserIntegrationTest {
     serverThread.join()
   }
 
-  /**
-   * Test that shutdown() and getViewTree() can be called on different threads without interfering
-   * with each other.
-   */
+  /** Test that shutdown() and getViewTree() can be called on different threads without interfering with each other. */
   @Test
   fun testThreadSafety() {
     if (!RUN_MAC_INTEGRATION_TESTS) assumeNotMac()
@@ -251,10 +238,7 @@ class SkiaParserIntegrationTest {
     assertThat(remainingImages).isEmpty()
   }
 
-  private fun assertImagesCorrectInternal(
-    node: InspectorView,
-    remainingImages: MutableMap<Int, ByteString>,
-  ) {
+  private fun assertImagesCorrectInternal(node: InspectorView, remainingImages: MutableMap<Int, ByteString>) {
     if (node.imageId != 0) {
       assertTrue(node.image?.isEmpty != false)
       assertTrue(remainingImages.remove(node.imageId) != null)
@@ -265,18 +249,14 @@ class SkiaParserIntegrationTest {
   private fun assertIdsEqual(expected: Node, root: InspectorView) {
     assertThat(root.id).isEqualTo(expected.id)
     assertThat(root.childrenCount).isEqualTo(expected.children.size)
-    root.childrenList.zip(expected.children).forEach { (actual, expected) ->
-      assertIdsEqual(expected, actual)
-    }
+    root.childrenList.zip(expected.children).forEach { (actual, expected) -> assertIdsEqual(expected, actual) }
   }
 
   private class Node(val id: Int, vararg val children: Node)
 
   companion object {
     init {
-      if (
-        RUN_MAC_INTEGRATION_TESTS || SdkConstants.currentPlatform() != SdkConstants.PLATFORM_DARWIN
-      ) {
+      if (RUN_MAC_INTEGRATION_TESTS || SdkConstants.currentPlatform() != SdkConstants.PLATFORM_DARWIN) {
         // On Mac the dylib must be manually accepted to run in the "Privacy and Security" settings.
         // Do not run these test on mac servers.
         // Set RUN_MAC_INTEGRATION_TESTS to tru to run locally on mac.

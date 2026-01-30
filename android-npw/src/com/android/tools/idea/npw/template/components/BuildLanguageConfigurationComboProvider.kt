@@ -20,28 +20,28 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Provides a combobox which presents the user with a list of build configuration languages.
- */
+/** Provides a combobox which presents the user with a list of build configuration languages. */
 class BuildConfigurationLanguageComboProvider : ComponentProvider<ComboBox<*>>() {
-  override fun createComponent(): ComboBox<BuildConfigurationLanguageForNewModule> = ComboBox(
-    DefaultComboBoxModel(BuildConfigurationLanguageForNewModule.values())).apply {
-    renderer = object : SimpleListCellRenderer<BuildConfigurationLanguageForNewModule>() {
-      override fun customize(list: JList<out BuildConfigurationLanguageForNewModule>,
-                             value: BuildConfigurationLanguageForNewModule?,
-                             index: Int,
-                             selected: Boolean,
-                             hasFocus: Boolean) {
-        text = value.toString()
-      }
+  override fun createComponent(): ComboBox<BuildConfigurationLanguageForNewModule> =
+    ComboBox(DefaultComboBoxModel(BuildConfigurationLanguageForNewModule.values())).apply {
+      renderer =
+        object : SimpleListCellRenderer<BuildConfigurationLanguageForNewModule>() {
+          override fun customize(
+            list: JList<out BuildConfigurationLanguageForNewModule>,
+            value: BuildConfigurationLanguageForNewModule?,
+            index: Int,
+            selected: Boolean,
+            hasFocus: Boolean,
+          ) {
+            text = value.toString()
+          }
+        }
+      toolTipText = message("android.wizard.buildConfigurationLanguage.combo.tooltip")
     }
-    toolTipText = message("android.wizard.buildConfigurationLanguage.combo.tooltip")
-  }
 
   override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = SelectedItemProperty<String>(component)
 }
-

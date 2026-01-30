@@ -28,19 +28,15 @@ import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Extension point for factories of [DeviceProvisionerPlugin]. The factory is necessary to allow
- * plugins to be created with a [Project] argument.
+ * Extension point for factories of [DeviceProvisionerPlugin]. The factory is necessary to allow plugins to be created with a [Project]
+ * argument.
  */
 interface DeviceProvisionerFactory {
   companion object {
     @JvmStatic
-    val EP_NAME: ExtensionPointName<DeviceProvisionerFactory> =
-      ExtensionPointName.create("com.android.tools.idea.deviceProvisioner")
+    val EP_NAME: ExtensionPointName<DeviceProvisionerFactory> = ExtensionPointName.create("com.android.tools.idea.deviceProvisioner")
 
-    fun createProvisioners(
-      coroutineScope: CoroutineScope,
-      project: Project,
-    ): List<DeviceProvisionerPlugin> =
+    fun createProvisioners(coroutineScope: CoroutineScope, project: Project): List<DeviceProvisionerPlugin> =
       EP_NAME.extensionList.filter { it.isEnabled }.map { it.create(coroutineScope, project) }
   }
 
@@ -49,9 +45,8 @@ interface DeviceProvisionerFactory {
   /**
    * Create a [DeviceProvisionerPlugin].
    *
-   * @param coroutineScope the [CoroutineScope] of the
-   *   [com.android.tools.idea.deviceprovisioner.DeviceProvisionerService]. The plugin should use
-   *   this scope or inherit from it.
+   * @param coroutineScope the [CoroutineScope] of the [com.android.tools.idea.deviceprovisioner.DeviceProvisionerService]. The plugin
+   *   should use this scope or inherit from it.
    * @param project the IntelliJ project
    */
   fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin
@@ -71,11 +66,9 @@ class DefaultDeviceProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
     get() = true
 
-  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
-    create(coroutineScope)
+  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin = create(coroutineScope)
 
-  fun create(coroutineScope: CoroutineScope): DeviceProvisionerPlugin =
-    DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)
+  fun create(coroutineScope: CoroutineScope): DeviceProvisionerPlugin = DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)
 }
 
 class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {

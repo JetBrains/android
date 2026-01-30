@@ -26,8 +26,7 @@ internal class TestTempFileFactory : TempFileFactory {
   private val tempFileIndex = AtomicInteger(0)
   private val fileSystem = createInMemoryFileSystem()
 
-  fun getExistingFileNames() =
-    fileSystem.getExistingFiles().map { it.substringAfterLast(File.separatorChar) }
+  fun getExistingFileNames() = fileSystem.getExistingFiles().map { it.substringAfterLast(File.separatorChar) }
 
   override fun createTempFile(prefix: String, suffix: String): Path =
     fileSystem.getPath("$prefix-${tempFileIndex.incrementAndGet()}$suffix")

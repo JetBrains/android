@@ -80,11 +80,11 @@ class ServiceUnsupportedPanel(
     }
 
   inline fun <T> Flow<T>.takeTillFirst(crossinline predicate: (T) -> Boolean): Flow<T> {
-      return this@takeTillFirst.transformWhile {
-          emit(it)
-          !predicate(it)
-        }
+    return this@takeTillFirst.transformWhile {
+      emit(it)
+      !predicate(it)
     }
+  }
 
   private fun createContentPanel() =
     object : JPanel(BorderLayout(JBUI.scale(12), 0)) {
@@ -159,11 +159,7 @@ class ServiceUnsupportedPanel(
       isOpaque = false
     }
 
-  private fun logEvent(
-    userNotified: Boolean? = null,
-    userClickedMoreInfo: Boolean? = null,
-    userClickedUpdate: Boolean? = null,
-  ) =
+  private fun logEvent(userNotified: Boolean? = null, userClickedMoreInfo: Boolean? = null, userClickedUpdate: Boolean? = null) =
     tracker.logServiceDeprecated(
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.TAB_PANEL,
       DevServiceDeprecationInfo.DeliveryType.PANEL,

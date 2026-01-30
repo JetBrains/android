@@ -43,10 +43,11 @@ import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 
 private val PAGE_HEADER_SECONDARY_COLOR = Gray.x66
-private val PAGE_HEADER_BORDER = BorderFactory.createCompoundBorder(
-  BorderFactory.createEmptyBorder(0, 0, 8, 0),
-  JBUI.Borders.customLine(PAGE_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
-)
+private val PAGE_HEADER_BORDER =
+  BorderFactory.createCompoundBorder(
+    BorderFactory.createEmptyBorder(0, 0, 8, 0),
+    JBUI.Borders.customLine(PAGE_HEADER_SECONDARY_COLOR, 0, 0, 1, 0),
+  )
 private val PANEL_SIZE = JBUI.size(600, 400)
 private val ASSET_FIXED_WIDTH = JBUI.scale(150)
 private val ASSET_FIXED_HEIGHT = JBUI.scale(150)
@@ -72,48 +73,46 @@ class SketchImporterView : JPanel(BorderLayout()) {
 
   init {
     preferredSize = PANEL_SIZE
-    add(JScrollPane(resourcesPanel).apply {
-      border = null
-      horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-    })
+    add(
+      JScrollPane(resourcesPanel).apply {
+        border = null
+        horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+      }
+    )
   }
 
   fun addFilterExportableButton(defaultState: Boolean) {
-    val filterExportableButton = JCheckBox(FILTER_EXPORTABLE_CHECKBOX_TEXT).apply {
-      toolTipText = FILTER_EXPORTABLE_TOOLTIP_TEXT
-      isSelected = defaultState
-      horizontalTextPosition = JCheckBox.LEFT
-      horizontalAlignment = JCheckBox.RIGHT
-      addItemListener { event ->
-        presenter.filterExportable(event.stateChange)
+    val filterExportableButton =
+      JCheckBox(FILTER_EXPORTABLE_CHECKBOX_TEXT).apply {
+        toolTipText = FILTER_EXPORTABLE_TOOLTIP_TEXT
+        isSelected = defaultState
+        horizontalTextPosition = JCheckBox.LEFT
+        horizontalAlignment = JCheckBox.RIGHT
+        addItemListener { event -> presenter.filterExportable(event.stateChange) }
       }
-    }
     add(filterExportableButton, BorderLayout.NORTH)
   }
 
-  /**
-   * Adds a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter].
-   */
+  /** Adds a new [PageView] to the [SketchImporterView], associating it to the [pagePresenter]. */
   fun addPageView(pagePresenter: PagePresenter) {
-    val pageView = PageView(DesignAssetCellRenderer(pagePresenter.assetPreviewManager),
-                            ColorAssetCellRenderer())
+    val pageView = PageView(DesignAssetCellRenderer(pagePresenter.assetPreviewManager), ColorAssetCellRenderer())
     pagePresenter.view = pageView
     pageViews.add(pageView)
     resourcesPanel.add(pageView)
   }
 
   fun addDocumentView(documentPresenter: DocumentPresenter) {
-    documentView = DocumentView(
-      DesignAssetCellRenderer(documentPresenter.assetPreviewManager),
-      ColorAssetCellRenderer())
+    documentView = DocumentView(DesignAssetCellRenderer(documentPresenter.assetPreviewManager), ColorAssetCellRenderer())
     documentPresenter.view = documentView
     resourcesPanel.add(documentView)
     resourcesPanel.repaint()
   }
 }
 
-open class ChildView(protected val designAssetCellRenderer: DesignAssetCellRenderer,
-                     protected val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
+open class ChildView(
+  protected val designAssetCellRenderer: DesignAssetCellRenderer,
+  protected val colorAssetCellRenderer: ColorAssetCellRenderer,
+) : JPanel(BorderLayout()) {
   protected var resourcesView = ResourcesView(emptyList(), emptyList(), designAssetCellRenderer, colorAssetCellRenderer)
 
   fun getSelectedDrawables(): List<ResourceAssetSet> {
@@ -125,15 +124,10 @@ open class ChildView(protected val designAssetCellRenderer: DesignAssetCellRende
   }
 }
 
-class PageView(designAssetCellRenderer: DesignAssetCellRenderer,
-               colorAssetCellRenderer: ColorAssetCellRenderer
-) : ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
-  /**
-   * Create/refresh the preview panel associated with the page.
-   */
-  fun refresh(pageName: String,
-              drawableAssets: List<ResourceAssetSet>,
-              colorAssets: List<Pair<Color, String>>) {
+class PageView(designAssetCellRenderer: DesignAssetCellRenderer, colorAssetCellRenderer: ColorAssetCellRenderer) :
+  ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
+  /** Create/refresh the preview panel associated with the page. */
+  fun refresh(pageName: String, drawableAssets: List<ResourceAssetSet>, colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(pageName), BorderLayout.NORTH)
     resourcesView = ResourcesView(drawableAssets, colorAssets, designAssetCellRenderer, colorAssetCellRenderer)
@@ -144,16 +138,13 @@ class PageView(designAssetCellRenderer: DesignAssetCellRenderer,
 }
 
 /**
- * The document view is currently just like a page called "Document", but it is created separately so it can be changed easily in the future.
+ * The document view is currently just like a page called "Document", but it is created separately so it can be changed easily in the
+ * future.
  */
-class DocumentView(designAssetCellRenderer: DesignAssetCellRenderer,
-                   colorAssetCellRenderer: ColorAssetCellRenderer
-) : ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
-  /**
-   * Create/refresh the preview panel associated with the document.
-   */
-  fun refresh(drawableAssets: List<ResourceAssetSet>,
-              colorAssets: List<Pair<Color, String>>) {
+class DocumentView(designAssetCellRenderer: DesignAssetCellRenderer, colorAssetCellRenderer: ColorAssetCellRenderer) :
+  ChildView(designAssetCellRenderer, colorAssetCellRenderer) {
+  /** Create/refresh the preview panel associated with the document. */
+  fun refresh(drawableAssets: List<ResourceAssetSet>, colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(DOCUMENT_HEADER), BorderLayout.NORTH)
     resourcesView = ResourcesView(drawableAssets, colorAssets, designAssetCellRenderer, colorAssetCellRenderer)
@@ -163,9 +154,7 @@ class DocumentView(designAssetCellRenderer: DesignAssetCellRenderer,
   }
 }
 
-/**
- * Create a page header containing the [pageName].
- */
+/** Create a page header containing the [pageName]. */
 private fun createHeader(pageName: String): JComponent {
   return JPanel(BorderLayout()).apply {
     val nameLabel = JBLabel(pageName)
@@ -175,10 +164,11 @@ private fun createHeader(pageName: String): JComponent {
   }
 }
 
-class ResourcesView(drawableAssets: List<ResourceAssetSet>,
-                    colorAssets: List<Pair<Color, String>>,
-                    designAssetCellRenderer: DesignAssetCellRenderer,
-                    colorResourceCellRenderer: ColorAssetCellRenderer
+class ResourcesView(
+  drawableAssets: List<ResourceAssetSet>,
+  colorAssets: List<Pair<Color, String>>,
+  designAssetCellRenderer: DesignAssetCellRenderer,
+  colorResourceCellRenderer: ColorAssetCellRenderer,
 ) : JTabbedPane(JTabbedPane.NORTH) {
   val drawables = createDrawablesPreviewsList(drawableAssets, designAssetCellRenderer)
   val colors = createColorsPreviewsList(colorAssets, colorResourceCellRenderer)
@@ -188,31 +178,26 @@ class ResourcesView(drawableAssets: List<ResourceAssetSet>,
     addTab(ResourceType.DRAWABLE.displayName, createAssetList(drawables))
     addTab(ResourceType.COLOR.displayName, createAssetList(colors))
     addChangeListener { resizeTabbedPane() }
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) = resizeTabbedPane()
-    })
+    addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) = resizeTabbedPane()
+      }
+    )
   }
 
   private fun createAssetList(list: JList<*>?): Component {
-    return JPanel(BorderLayout()).apply {
-      add((list ?: JLabel(NO_VALID_ASSETS_TEXT)) as Component)
-    }
+    return JPanel(BorderLayout()).apply { add((list ?: JLabel(NO_VALID_ASSETS_TEXT)) as Component) }
   }
 }
 
-/**
- * The tabbed pane has to be resized to wrap around the selected content every time a window is resized or a different tab is selected.
- */
+/** The tabbed pane has to be resized to wrap around the selected content every time a window is resized or a different tab is selected. */
 private fun JTabbedPane.resizeTabbedPane() {
-  preferredSize = Dimension(selectedComponent.preferredSize.width,
-                            selectedComponent.preferredSize.height + ui.getTabBounds(this, 0).height)
+  preferredSize = Dimension(selectedComponent.preferredSize.width, selectedComponent.preferredSize.height + ui.getTabBounds(this, 0).height)
   revalidate()
   repaint()
 }
 
-/**
- * Create a [JList] with the rendering of the [assetList] drawable assets.
- */
+/** Create a [JList] with the rendering of the [assetList] drawable assets. */
 private fun createDrawablesPreviewsList(assetList: List<ResourceAssetSet>, designAssetCellRenderer: DesignAssetCellRenderer): JList<*>? {
   if (assetList.isNotEmpty()) {
     return JList<ResourceAssetSet>().apply {
@@ -224,9 +209,7 @@ private fun createDrawablesPreviewsList(assetList: List<ResourceAssetSet>, desig
   return null
 }
 
-/**
- * Create a [JList] with the rendering of the [assetList] color assets.
- */
+/** Create a [JList] with the rendering of the [assetList] color assets. */
 private fun createColorsPreviewsList(assetList: List<Pair<Color, String>>, colorAssetCellRenderer: ColorAssetCellRenderer): JList<*>? {
   if (assetList.isNotEmpty()) {
     return JList<Pair<Color, String>>().apply {
@@ -248,22 +231,23 @@ private fun JList<*>.setUI() {
 
 class ColorAssetCellRenderer : ListCellRenderer<Pair<Color, String>> {
 
-  private val cardView = SingleAssetCard().apply {
-    withChessboard = true
-  }
+  private val cardView = SingleAssetCard().apply { withChessboard = true }
 
-  override fun getListCellRendererComponent(list: JList<out Pair<Color, String>>,
-                                            value: Pair<Color, String>,
-                                            index: Int,
-                                            isSelected: Boolean,
-                                            cellHasFocus: Boolean): Component? {
+  override fun getListCellRendererComponent(
+    list: JList<out Pair<Color, String>>,
+    value: Pair<Color, String>,
+    index: Int,
+    isSelected: Boolean,
+    cellHasFocus: Boolean,
+  ): Component? {
     cardView.title = "#${ColorUtil.toHex(value.first)}"
     cardView.subtitle = value.second
     val thumbnailSize = cardView.thumbnailSize
-    cardView.thumbnail = JPanel(BorderLayout()).apply {
-      background = value.first
-      size = thumbnailSize
-    }
+    cardView.thumbnail =
+      JPanel(BorderLayout()).apply {
+        background = value.first
+        size = thumbnailSize
+      }
     cardView.selected = isSelected
     return cardView
   }

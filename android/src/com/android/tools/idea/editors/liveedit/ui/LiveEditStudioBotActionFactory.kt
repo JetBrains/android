@@ -20,12 +20,10 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 interface LiveEditStudioBotActionFactory {
-   fun vibeEditAgentAction(project: Project): AnAction
+  fun vibeEditAgentAction(project: Project): AnAction
 
   companion object {
     val EP_NAME: ExtensionPointName<LiveEditStudioBotActionFactory> =
-      ExtensionPointName.create(
-        "com.android.tools.idea.run.deployment.liveedit.liveEditStudioBotActionFactory"
-      )
+      ExtensionPointName.create("com.android.tools.idea.run.deployment.liveedit.liveEditStudioBotActionFactory")
   }
 }

@@ -22,14 +22,13 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 /**
  * Find the index of the first event with `timestamp >= minNs
  *
- * The `binarySearch` function has a different behavior depending on whether the item is found or
- * not.
+ * The `binarySearch` function has a different behavior depending on whether the item is found or not.
  *
- * If the item is found, the result is an index of an arbitrary matching value (in case there's more
- * than 1). If the item is not found, the result is the inverted insertion point.
+ * If the item is found, the result is an index of an arbitrary matching value (in case there's more than 1). If the item is not found, the
+ * result is the inverted insertion point.
  *
- * We can "trick" `binarySearch` to always return the inverted insertion point by returning `1` if
- * the item is a match. This forces `binarySearch` to keep looking.
+ * We can "trick" `binarySearch` to always return the inverted insertion point by returning `1` if the item is a match. This forces
+ * `binarySearch` to keep looking.
  */
 internal fun List<Event>.findStartIndex(minNs: Long): Int =
   // `pos` is an `inverted insertion point`. Convert back to insertion point.
@@ -38,15 +37,13 @@ internal fun List<Event>.findStartIndex(minNs: Long): Int =
 /**
  * Find the index of the last event with `timestamp <= maxNs
  *
- * The `binarySearch` function has a different behavior depending on whether the item is found or
- * not.
+ * The `binarySearch` function has a different behavior depending on whether the item is found or not.
  *
- * If the item is found, the result is an index of an arbitrary matching value (in case there's more
- * than 1). If the item is not found, the result is the inverted insertion point (-insertion point -
- * 1).
+ * If the item is found, the result is an index of an arbitrary matching value (in case there's more than 1). If the item is not found, the
+ * result is the inverted insertion point (-insertion point - 1).
  *
- * We can "trick" `binarySearch` to always return the inverted insertion point by returning `-1` if
- * the item is a match. This forces `binarySearch` to keep looking.
+ * We can "trick" `binarySearch` to always return the inverted insertion point by returning `-1` if the item is a match. This forces
+ * `binarySearch` to keep looking.
  */
 internal fun List<Event>.findEndIndex(maxNs: Long): Int =
   // `pos` is an `inverted insertion point`. Convert back to insertion point and subtract 1.

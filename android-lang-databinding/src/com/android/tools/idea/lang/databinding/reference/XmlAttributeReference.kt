@@ -24,11 +24,8 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 
-/**
- * Reference that points to an attribute in a layout XML file.
- */
-internal class XmlAttributeReference(element: PsiElement,
-                                     resolveTo: XmlAttribute) : DbExprReference(element, resolveTo) {
+/** Reference that points to an attribute in a layout XML file. */
+internal class XmlAttributeReference(element: PsiElement, resolveTo: XmlAttribute) : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
       val tag = (resolve() as XmlAttribute).parentOfType<XmlTag>() ?: return null

@@ -51,19 +51,16 @@ import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
 
-/**
- * Handles locating templates and providing template metadata
- */
+/** Handles locating templates and providing template metadata */
 class TemplateManager private constructor() {
   /** Template info needed by the menus, so that we don't need to keep a full instance of [Template] in memory */
   private data class TemplateInfo(val minSdk: Int, val constraints: Collection<TemplateConstraint>)
 
-  /** Lock protecting access to [_categoryTable]  */
+  /** Lock protecting access to [_categoryTable] */
   private val CATEGORY_TABLE_LOCK = Any()
 
-  /** Table mapping (Category, Template Name) -> Template File  */
-  @GuardedBy("CATEGORY_TABLE_LOCK")
-  private var _categoryTable: Table<Category, String, TemplateInfo>? = null
+  /** Table mapping (Category, Template Name) -> Template File */
+  @GuardedBy("CATEGORY_TABLE_LOCK") private var _categoryTable: Table<Category, String, TemplateInfo>? = null
 
   @get:GuardedBy("CATEGORY_TABLE_LOCK")
   private val categoryTable: Table<Category, String, TemplateInfo>?
@@ -83,45 +80,48 @@ class TemplateManager private constructor() {
   }
 
   @Slow
-  fun refreshDynamicTemplateMenu() = synchronized(CATEGORY_TABLE_LOCK) {
-    topGroup.apply {
-      removeAll()
-      addSeparator()
-    }
-
-    val am = ActionManager.getInstance()
-    reloadCategoryTable() // Force reload
-    for (category in categoryTable!!.rowKeySet()) {
-      // Create the menu group item
-      val categoryGroup: NonEmptyActionGroup = object : NonEmptyActionGroup() {
-        override fun update(e: AnActionEvent) {
-          super.update(e)
-          updateAction(e, category.name, e.presentation.isEnabled, false)
-        }
+  fun refreshDynamicTemplateMenu() =
+    synchronized(CATEGORY_TABLE_LOCK) {
+      topGroup.apply {
+        removeAll()
+        addSeparator()
       }
-      categoryGroup.isPopup = true
-      fillCategory(categoryGroup, category, am)
-      topGroup.add(categoryGroup)
-      setPresentation(category, categoryGroup)
+
+      val am = ActionManager.getInstance()
+      reloadCategoryTable() // Force reload
+      for (category in categoryTable!!.rowKeySet()) {
+        // Create the menu group item
+        val categoryGroup: NonEmptyActionGroup =
+          object : NonEmptyActionGroup() {
+            override fun update(e: AnActionEvent) {
+              super.update(e)
+              updateAction(e, category.name, e.presentation.isEnabled, false)
+            }
+          }
+        categoryGroup.isPopup = true
+        fillCategory(categoryGroup, category, am)
+        topGroup.add(categoryGroup)
+        setPresentation(category, categoryGroup)
+      }
     }
-  }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private fun fillCategory(categoryGroup: NonEmptyActionGroup, category: Category, am: ActionManager) {
     val categoryRow = _categoryTable!!.row(category)
 
     fun addCategoryGroup(category: Category, name: String, @PropertyKey(resourceBundle = "messages.AndroidBundle") messageKey: String) {
-      val galleryAction: AnAction = object : AnAction() {
-        override fun update(e: AnActionEvent) {
-          updateAction(e, "Gallery...", true, true)
-        }
+      val galleryAction: AnAction =
+        object : AnAction() {
+          override fun update(e: AnActionEvent) {
+            updateAction(e, "Gallery...", true, true)
+          }
 
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+          override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-        override fun actionPerformed(e: AnActionEvent) {
-          showWizardDialog(e, category.name, message(messageKey, FormFactor.MOBILE.id), "New $name")
+          override fun actionPerformed(e: AnActionEvent) {
+            showWizardDialog(e, category.name, message(messageKey, FormFactor.MOBILE.id), "New $name")
+          }
         }
-      }
       categoryGroup.add(galleryAction)
       categoryGroup.addSeparator()
       setPresentation(category, galleryAction)
@@ -156,18 +156,17 @@ class TemplateManager private constructor() {
   private fun reloadCategoryTable() {
     _categoryTable = TreeBasedTable.create()
 
-    TemplateResolver.getAllTemplates()
-      .filter { WizardUiContext.MenuEntry in it.uiContexts }
-      .forEach { addTemplateToTable(it) }
+    TemplateResolver.getAllTemplates().filter { WizardUiContext.MenuEntry in it.uiContexts }.forEach { addTemplateToTable(it) }
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private fun addTemplateToTable(template: Template) = with(template) {
-    val existingTemplate = _categoryTable!![category, name]
-    if (existingTemplate == null) {
-      _categoryTable!!.put(category, name, TemplateInfo(template.minSdk, template.constraints))
+  private fun addTemplateToTable(template: Template) =
+    with(template) {
+      val existingTemplate = _categoryTable!![category, name]
+      if (existingTemplate == null) {
+        _categoryTable!!.put(category, name, TemplateInfo(template.minSdk, template.constraints))
+      }
     }
-  }
 
   companion object {
     /**
@@ -178,8 +177,7 @@ class TemplateManager private constructor() {
     private const val CATEGORY_FRAGMENT = "Fragment"
     private const val ACTION_ID_PREFIX = "template.create."
 
-    @JvmStatic
-    val instance = TemplateManager()
+    @JvmStatic val instance = TemplateManager()
 
     private fun updateAction(event: AnActionEvent, actionText: String?, notEmpty: Boolean, disableIfNotReady: Boolean) {
       val module = event.getData(PlatformCoreDataKeys.MODULE)
@@ -206,15 +204,13 @@ class TemplateManager private constructor() {
       val moduleTemplates = facet!!.getModuleTemplates(targetDirectory)
       assert(moduleTemplates.isNotEmpty())
       val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
-      val renderModel = fromFacet(
-        facet, initialPackageSuggestion, moduleTemplates[0],
-        commandName, projectSyncInvoker, true, MENU_GALLERY
-      )
-      val chooseTypeStep = when (category) {
-        CATEGORY_ACTIVITY -> ChooseActivityTypeStep.forActivityGallery(renderModel, targetDirectory)
-        CATEGORY_FRAGMENT -> ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
-        else -> throw RuntimeException("Invalid category name: $category")
-      }
+      val renderModel = fromFacet(facet, initialPackageSuggestion, moduleTemplates[0], commandName, projectSyncInvoker, true, MENU_GALLERY)
+      val chooseTypeStep =
+        when (category) {
+          CATEGORY_ACTIVITY -> ChooseActivityTypeStep.forActivityGallery(renderModel, targetDirectory)
+          CATEGORY_FRAGMENT -> ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
+          else -> throw RuntimeException("Invalid category name: $category")
+        }
       val wizard = ModelWizard.Builder().addStep(chooseTypeStep).build()
       val wizardLayout = SimpleStudioWizardLayout()
       StudioWizardDialogBuilder(wizard, dialogTitle).build(wizardLayout).show()

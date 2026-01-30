@@ -21,11 +21,11 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
@@ -69,23 +69,21 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridgeImpl
-import org.jetbrains.android.facet.AndroidFacetConfiguration
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.config.CompilerSettings
-import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.pathString
+import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.CompilerSettings
+import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
 
 fun ProjectDumper.dumpProject(project: Project) {
   println("<PROJECT>     <== ${File(project.basePath!!)}")
   head("PROJECT") { project.name }
   nest(File(project.basePath!!), "PROJECT") {
     head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name?.replaceJdkName() }
-    nest {
-      prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
-    }
+    nest { prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() } }
     ModuleManager.getInstance(project).modules.sortModules().forEach { dump(it) }
     RunManagerEx.getInstanceEx(project).allConfigurationsList.sortedBy { it.name }.forEach { dump(it) }
     val libraries = LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries
@@ -93,10 +91,12 @@ fun ProjectDumper.dumpProject(project: Project) {
       head("LIBRARY_TABLE")
       nest {
         val nonKtsModuleLibraries = getNonKtsModuleLibraries(project)
-        libraries.filterIsInstance<LibraryBridgeImpl>()
+        libraries
+          .filterIsInstance<LibraryBridgeImpl>()
           // Ignore KTS modules since those are out of our control
           .filter { nonKtsModuleLibraries.contains(it) }
-          .sortedBy { it.name }.forEach { dump(it) }
+          .sortedBy { it.name }
+          .forEach { dump(it) }
       }
     }
     @Suppress("UnstableApiUsage")
@@ -125,13 +125,11 @@ fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
-    if(checkObjectIdentity) {
+    if (checkObjectIdentity) {
       prop("JavaObjectId") { System.identityHashCode(module).toString() }
     }
     val groups = ModuleManager.getInstance(module.project).getModuleGroupPath(module)
-    groups?.forEach { group ->
-      prop("- ModuleGroupPath") { group }
-    }
+    groups?.forEach { group -> prop("- ModuleGroupPath") { group } }
     module.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.let { dump(it) }
     val externalPropertyManager = ExternalSystemModulePropertyManager.getInstance(module)
     prop("ExternalModuleGroup") { externalPropertyManager.getExternalModuleGroup() }
@@ -160,26 +158,23 @@ fun ProjectDumper.dump(module: Module) {
     moduleRootModel.contentEntries.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
     val sourceFolderManager = SourceFolderManager.getInstance(module.project) as SourceFolderManagerImpl
     val sourceFolders = sourceFolderManager.state?.sourceFolders?.filter { it.moduleName == module.name }.orEmpty()
-    sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
-      dump(it)
-    }
+    sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
 
     // TODO(b/124658218): Remove sorting if the order can be made stable.
-    moduleRootModel.orderEntries.sortedWith(
-      compareBy({ it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() },
-                { (it as? LibraryOrderEntry)?.scope})).forEach {
-      dump(it)
-    }
+    moduleRootModel.orderEntries
+      .sortedWith(
+        compareBy(
+          { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() },
+          { (it as? LibraryOrderEntry)?.scope },
+        )
+      )
+      .forEach { dump(it) }
     val classes = moduleRootModel.orderEntries().withoutDepModules().withoutLibraries().withoutSdk().classes().urls
     if (classes.isNotEmpty()) {
       head("Classes")
-      nest {
-        classes.forEach {
-          prop("-") { it.replaceKnownPaths() }
-        }
-      }
+      nest { classes.forEach { prop("-") { it.replaceKnownPaths() } } }
     }
-    dumpTasks{ arrayOf(module) }
+    dumpTasks { arrayOf(module) }
   }
 }
 
@@ -189,8 +184,8 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
   nest {
     nest {
       BuildMode.values().forEach { buildMode ->
-        val modules = modulesProvider(buildMode).takeUnless { it.isEmpty()  } ?: return@forEach
-        val expectedRoot = modules.mapNotNull {it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath()}.singleOrNull()
+        val modules = modulesProvider(buildMode).takeUnless { it.isEmpty() } ?: return@forEach
+        val expectedRoot = modules.mapNotNull { it.getGradleProjectPath()?.buildRoot?.let(::File)?.toPath() }.singleOrNull()
 
         fun Map<Path, MutableCollection<String>>.asFirstEntry(): Set<String> {
           if (expectedRoot != null && keys.size > 1) {
@@ -201,10 +196,7 @@ fun ProjectDumper.dumpTasks(modulesProvider: (buildMode: BuildMode) -> Array<Mod
           }
           return entries
             .sortedBy { it.key.pathString.replaceKnownPaths() }
-            .flatMap { (path, tasks) ->
-              if (path == expectedRoot) tasks
-              else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" }
-            }
+            .flatMap { (path, tasks) -> if (path == expectedRoot) tasks else tasks.map { "${path.pathString.replaceKnownPaths()}:$it" } }
             .toSet()
         }
 
@@ -247,11 +239,11 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
     prop("DebuggerType") { runConfiguration.androidDebuggerContext.DEBUGGER_TYPE }
   }
   prop("AdvancedProfilingEnabled") { runConfiguration.profilerState.ADVANCED_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
-  prop(
-    "StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
-  prop(
-    "StartupCpuProfilingConfigurationName") {
-    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless { it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName() }
+  prop("StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
+  prop("StartupCpuProfilingConfigurationName") {
+    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless {
+      it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName()
+    }
   }
 }
 
@@ -266,8 +258,12 @@ private fun ProjectDumper.dump(orderEntry: OrderEntry) {
         nest {
           prop("Scope") { exportable.scope.takeIf { it != COMPILE }?.toString() }
           prop("IsExported") { exportable.isExported.takeIf { it }?.toString() }
-          if (exportable is ModuleOrderEntry){
-            exportable.isProductionOnTestDependency.also {  if (it == true) { prop("isProductionOnTestDependency") {it.toString()} } }
+          if (exportable is ModuleOrderEntry) {
+            exportable.isProductionOnTestDependency.also {
+              if (it == true) {
+                prop("isProductionOnTestDependency") { it.toString() }
+              }
+            }
           }
         }
       }
@@ -298,9 +294,9 @@ private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
   nest {
     prop("LibraryLevel") { library.libraryLevel.takeUnless { it == "project" } }
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
-    prop("Scope") { library.scope.takeIf {it != COMPILE }?.toString () }
-    prop("IsExported") { library.isExported.takeIf{ it}?.toString() }
-    if (forSnapshotComparison || library.libraryLevel != "project" ) {
+    prop("Scope") { library.scope.takeIf { it != COMPILE }?.toString() }
+    prop("IsExported") { library.isExported.takeIf { it }?.toString() }
+    if (forSnapshotComparison || library.libraryLevel != "project") {
       library.library?.let { dump(it) }
     }
   }
@@ -313,22 +309,24 @@ private fun ProjectDumper.dump(library: Library) {
     val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
     orderRootTypes.forEach { type ->
       library
-        .getUrls(type).toList().let {
-          if(forSnapshotComparison) {
+        .getUrls(type)
+        .toList()
+        .let {
+          if (forSnapshotComparison) {
             it
           } else {
-            it.filterNot { file ->
-              // Do not allow sources and java docs coming from cache sources as their content may change.
-              (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
-              (type == OrderRootType.DOCUMENTATION ||
-               type == OrderRootType.SOURCES ||
-               type == JavadocOrderRootType.getInstance())
-            }
-            .filter { file ->
-              !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
-            }
+            it
+              .filterNot { file ->
+                // Do not allow sources and java docs coming from cache sources as their content may change.
+                (file.toPrintablePath().contains("<KONAN>") ||
+                  file.toPrintablePath().contains("<M2>") ||
+                  file.toPrintablePath().contains("<GRADLE>")) &&
+                  (type == OrderRootType.DOCUMENTATION || type == OrderRootType.SOURCES || type == JavadocOrderRootType.getInstance())
+              }
+              .filter { file -> !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance() }
           }
-        }.map { file ->
+        }
+        .map { file ->
           file.toPrintablePath().replaceMatchingVersion(androidVersion).also {
             if (type == OrderRootType.SOURCES || type == OrderRootType.DOCUMENTATION || type == JavadocOrderRootType.getInstance()) {
               println("$file -> $it")
@@ -365,19 +363,16 @@ private fun ProjectDumper.dump(excludeFolder: ExcludeFolder) {
 }
 
 private fun ProjectDumper.dump(sourceFolder: SourceFolder) {
-  prop(
-    sourceFolder.rootType.javaClass.simpleName.removeSuffix("RootType") +
-    if (sourceFolder.isTestSource) " (test)" else ""
-  ) { sourceFolder.url.toPrintablePath() }
-  nest {
-    prop("PackagePrefix") { sourceFolder.packagePrefix.nullize() }
+  prop(sourceFolder.rootType.javaClass.simpleName.removeSuffix("RootType") + if (sourceFolder.isTestSource) " (test)" else "") {
+    sourceFolder.url.toPrintablePath()
   }
+  nest { prop("PackagePrefix") { sourceFolder.packagePrefix.nullize() } }
 }
 
 private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
-    if(checkObjectIdentity) {
+    if (checkObjectIdentity) {
       prop("JavaObjectId") { System.identityHashCode(facet).toString() }
     }
     prop("TypeId") { facet.typeId.toString() }
@@ -398,10 +393,7 @@ private fun ProjectDumper.dump(gradleFacetConfiguration: GradleFacetConfiguratio
 private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfiguration) {
   with(androidFacetConfiguration.state ?: return) {
     prop("SelectedBuildVariant") { SELECTED_BUILD_VARIANT.nullize() }
-    prop("AllowUserConfiguration") {
-      @Suppress("DEPRECATION")
-      ALLOW_USER_CONFIGURATION.toString()
-    }
+    prop("AllowUserConfiguration") { @Suppress("DEPRECATION") ALLOW_USER_CONFIGURATION.toString() }
     prop("GenFolderRelativePathApt") { GEN_FOLDER_RELATIVE_PATH_APT.nullize() }
     prop("GenFolderRelativePathAidl") { GEN_FOLDER_RELATIVE_PATH_AIDL.nullize() }
     prop("ManifestFileRelativePath") { MANIFEST_FILE_RELATIVE_PATH.nullize() }
@@ -455,9 +447,9 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
     prop("TestOutputPath") { testOutputPath?.replaceKnownPaths() }
     prop("UseProjectSettings") { useProjectSettings.toString() }
     prop("Version") { version.toString() }
-    additionalVisibleModuleNames.takeIf { it.isNotEmpty() }?.let {
-      prop("AdditionalVisibleModuleNames") { additionalVisibleModuleNames.sorted().toString() }
-    }
+    additionalVisibleModuleNames
+      .takeIf { it.isNotEmpty() }
+      ?.let { prop("AdditionalVisibleModuleNames") { additionalVisibleModuleNames.sorted().toString() } }
   }
 }
 
@@ -482,8 +474,8 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.phasesToDumpBefore?.forEach { prop("- phasesToDumpBefore") { it } }
     // TODO(b/136991404): Review whether the following sorted() is safe.
     compilerArguments.pluginClasspaths?.map { it.toPrintablePath() }?.sorted()?.forEach { prop("- pluginClasspaths") { it } }
-    compilerArguments.pluginOptions?.forEach { prop("- pluginOptions") {
-      it.nullizePrefixedWith("plugin:org.jetbrains.kotlin.android:configuration=") }
+    compilerArguments.pluginOptions?.forEach {
+      prop("- pluginOptions") { it.nullizePrefixedWith("plugin:org.jetbrains.kotlin.android:configuration=") }
     }
     prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
     prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }
@@ -525,9 +517,7 @@ private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension)
 private fun ProjectDumper.dump(testModuleProperties: TestModuleProperties?) {
   if (testModuleProperties?.productionModuleName == null) return
   head("TEST_MODULE_PROPERTIES") { null }
-  nest {
-    prop("productionModuleName") { testModuleProperties.productionModuleName }
-  }
+  nest { prop("productionModuleName") { testModuleProperties.productionModuleName } }
 }
 
 private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGradleModuleGroup) {
@@ -558,13 +548,13 @@ class DumpProjectAction : InternalDumpAction("Structure") {
     outputFile.writeText(dump)
     FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
-    Logger.getInstance(DumpProjectAction::class.java)
-      .info("Project structure dumped to file: " + outputFile.toURI().toURL())
+    Logger.getInstance(DumpProjectAction::class.java).info("Project structure dumped to file: " + outputFile.toURI().toURL())
   }
 }
 
 private fun getNonKtsModuleLibraries(project: Project): List<Library> {
-  return ModuleManager.getInstance(project).modules
+  return ModuleManager.getInstance(project)
+    .modules
     .filter { !it.isKotlinBuildScript }
     .flatMap { module ->
       val rootManager = ModuleRootManager.getInstance(module)
@@ -574,4 +564,3 @@ private fun getNonKtsModuleLibraries(project: Project): List<Library> {
 
 val Module.isKotlinBuildScript
   get() = name.startsWith("Kotlin Scripts.") || name.startsWith("kotlin.scripts.")
-

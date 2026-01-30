@@ -39,10 +39,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 /** Persistent Wear Pairing Assistant related settings. */
-@State(
-  name = "WearPairing",
-  storages = [Storage(value = "wearPairing.xml", roamingType = RoamingType.DISABLED)],
-)
+@State(name = "WearPairing", storages = [Storage(value = "wearPairing.xml", roamingType = RoamingType.DISABLED)])
 class WearPairingSettings : PersistentStateComponent<WearPairingSettings> {
 
   /** List of all known paired devices. */
@@ -67,10 +64,7 @@ class WearPairingSettings : PersistentStateComponent<WearPairingSettings> {
   }
 }
 
-/**
- * Pairing connection details. One phone can connect to one or more wear devices (if multiple wear
- * connections are supported).
- */
+/** Pairing connection details. One phone can connect to one or more wear devices (if multiple wear connections are supported). */
 class PairingConnectionsState {
   var phoneId: String = "?"
   /** The list has at least one element (wear device ID) */

@@ -87,15 +87,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           usageTracker,
           ideServices,
         )
-      private val networkInspectorTab =
-        NetworkInspectorTab(
-          project,
-          componentsProvider,
-          dataSource,
-          services,
-          scope,
-          parentDisposable,
-        )
+      private val networkInspectorTab = NetworkInspectorTab(project, componentsProvider, dataSource, services, scope, parentDisposable)
       override val component = networkInspectorTab.component
 
       init {

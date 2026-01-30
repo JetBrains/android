@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 
-class MockDeviceMonitorView(project: Project, model: DeviceMonitorModel): DeviceMonitorView {
+class MockDeviceMonitorView(project: Project, model: DeviceMonitorModel) : DeviceMonitorView {
   private val table = ProcessListTableBuilder().build(model.tableModel)
   private val viewImpl = DeviceMonitorViewImpl(project, model, table)
   private val runManager = RunManager.getInstance(project)

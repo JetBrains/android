@@ -66,16 +66,13 @@ private val MAX_FIELD_SIZE = JBUI.scale(150)
 private val BUTTON_SIZE = JBUI.size(22)
 private val GAP_SIZE = JBUI.scale(10)
 private val ACTION_BUTTON_BORDER = JBUI.Borders.empty(1, 2)
-private val ACTION_BTN_SIZE get() = JBUI.scale(32)
+private val ACTION_BTN_SIZE
+  get() = JBUI.scale(32)
 
-/**
- * Toolbar displayed at the top of the resource explorer which allows users
- * to change the module and add resources.
- */
-class ResourceExplorerToolbar private constructor(
-  private val toolbarViewModel: ResourceExplorerToolbarViewModel,
-  private val moduleSelectionCombo: ComboBox<String>)
-  : JPanel(), UiDataProvider {
+/** Toolbar displayed at the top of the resource explorer which allows users to change the module and add resources. */
+class ResourceExplorerToolbar
+private constructor(private val toolbarViewModel: ResourceExplorerToolbarViewModel, private val moduleSelectionCombo: ComboBox<String>) :
+  JPanel(), UiDataProvider {
 
   private val searchAction = createSearchField()
   private val refreshAction = action(RefreshAction(toolbarViewModel))
@@ -87,21 +84,25 @@ class ResourceExplorerToolbar private constructor(
     val separator = com.android.tools.idea.ui.resourcemanager.widget.Separator()
     val filterAction = action(FilterAction(toolbarViewModel))
 
-    val sequentialGroup = groupLayout.createSequentialGroup()
-      .addFixedSizeComponent(addAction, true)
-      .addFixedSizeComponent(refreshAction, true)
-      .addFixedSizeComponent(separator)
-      .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
-      .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
-      .addFixedSizeComponent(filterAction)
+    val sequentialGroup =
+      groupLayout
+        .createSequentialGroup()
+        .addFixedSizeComponent(addAction, true)
+        .addFixedSizeComponent(refreshAction, true)
+        .addFixedSizeComponent(separator)
+        .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
+        .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
+        .addFixedSizeComponent(filterAction)
 
-    val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-      .addFixedSizeComponent(addAction)
-      .addFixedSizeComponent(refreshAction)
-      .addComponent(separator)
-      .addComponent(moduleSelectionCombo)
-      .addComponent(searchAction)
-      .addFixedSizeComponent(filterAction)
+    val verticalGroup =
+      groupLayout
+        .createParallelGroup(GroupLayout.Alignment.CENTER)
+        .addFixedSizeComponent(addAction)
+        .addFixedSizeComponent(refreshAction)
+        .addComponent(separator)
+        .addComponent(moduleSelectionCombo)
+        .addComponent(searchAction)
+        .addFixedSizeComponent(filterAction)
 
     groupLayout.setHorizontalGroup(sequentialGroup)
     groupLayout.setVerticalGroup(verticalGroup)
@@ -122,17 +123,20 @@ class ResourceExplorerToolbar private constructor(
     refreshAction.update()
   }
 
-  private fun createSearchField() = SearchTextField(true).apply {
-    isFocusable = true
-    toolTipText = SEARCH_FIELD_LABEL
-    accessibleContext.accessibleName = SEARCH_FIELD_LABEL
-    textEditor.columns = GAP_SIZE
-    textEditor.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        toolbarViewModel.searchString = e.document.getText(0, e.document.length)
-      }
-    })
-  }
+  private fun createSearchField() =
+    SearchTextField(true).apply {
+      isFocusable = true
+      toolTipText = SEARCH_FIELD_LABEL
+      accessibleContext.accessibleName = SEARCH_FIELD_LABEL
+      textEditor.columns = GAP_SIZE
+      textEditor.document.addDocumentListener(
+        object : DocumentAdapter() {
+          override fun textChanged(e: DocumentEvent) {
+            toolbarViewModel.searchString = e.document.getText(0, e.document.length)
+          }
+        }
+      )
+    }
 
   companion object {
     /**
@@ -148,11 +152,9 @@ class ResourceExplorerToolbar private constructor(
   }
 }
 
-/**
- * Button to add new resources
- */
-private abstract class PopupAction internal constructor(val icon: Icon?, description: String)
-  : AnAction(description, description, icon), DumbAware {
+/** Button to add new resources */
+private abstract class PopupAction internal constructor(val icon: Icon?, description: String) :
+  AnAction(description, description, icon), DumbAware {
 
   override fun actionPerformed(e: AnActionEvent) {
     var x = 0
@@ -167,31 +169,28 @@ private abstract class PopupAction internal constructor(val icon: Icon?, descrip
   }
 
   private fun showAddPopup(component: Component, x: Int, y: Int) {
-    ActionManager.getInstance()
-      .createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, createAddPopupGroup())
-      .component.show(component, x, y)
+    ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, createAddPopupGroup()).component.show(component, x, y)
   }
 
   protected abstract fun createAddPopupGroup(): ActionGroup
 }
 
-private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : PopupAction(AllIcons.General.Add, ADD_BUTTON_LABEL) {
-  override fun createAddPopupGroup() = DefaultActionGroup().apply {
-    addAll(viewModel.addActions)
-    val importersActions = viewModel.getImportersActions()
-    if (importersActions.isNotEmpty()) {
-      add(Separator())
-      addAll(importersActions)
+private class AddAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  PopupAction(AllIcons.General.Add, ADD_BUTTON_LABEL) {
+  override fun createAddPopupGroup() =
+    DefaultActionGroup().apply {
+      addAll(viewModel.addActions)
+      val importersActions = viewModel.getImportersActions()
+      if (importersActions.isNotEmpty()) {
+        add(Separator())
+        addAll(importersActions)
+      }
     }
-  }
 }
 
-/**
- * Action to refresh the previews of a particular type of resources.
- */
-private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
+/** Action to refresh the previews of a particular type of resources. */
+private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
   override fun actionPerformed(e: AnActionEvent) {
     // TODO: update tracking to support this action.
     viewModel.refreshResourcesPreviewsCallback()
@@ -205,8 +204,7 @@ private class RefreshAction internal constructor(val viewModel: ResourceExplorer
       e.presentation.text = templatePresentation.text
       e.presentation.description = templatePresentation.description
       e.presentation.isEnabled = true
-    }
-    else {
+    } else {
       val text = "${viewModel.resourceType.displayName}s refresh automatically"
       e.presentation.text = text // Used for tooltips
       e.presentation.description = text
@@ -215,51 +213,59 @@ private class RefreshAction internal constructor(val viewModel: ResourceExplorer
   }
 }
 
-private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
-  override fun createAddPopupGroup() = DefaultActionGroup().apply {
-    add(ShowModuleDependenciesAction(viewModel))
-    add(ShowLibrariesAction(viewModel))
-    add(ShowFrameworkAction(viewModel))
-    add(ShowThemeAttributesAction(viewModel))
-    addRelatedTypeFilterActions(viewModel)
-  }
+private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
+  override fun createAddPopupGroup() =
+    DefaultActionGroup().apply {
+      add(ShowModuleDependenciesAction(viewModel))
+      add(ShowLibrariesAction(viewModel))
+      add(ShowFrameworkAction(viewModel))
+      add(ShowThemeAttributesAction(viewModel))
+      addRelatedTypeFilterActions(viewModel)
+    }
 }
 
-private class ShowModuleDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : ToggleAction("Show local dependencies") {
+private class ShowModuleDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  ToggleAction("Show local dependencies") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowModuleDependencies = state
     ResourceManagerTracking.logShowLocalDependenciesToggle(viewModel.facet, state)
   }
 }
 
-private class ShowLibrariesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : ToggleAction("Show libraries") {
+private class ShowLibrariesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) : ToggleAction("Show libraries") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowLibraryDependencies = state
     ResourceManagerTracking.logShowLibrariesToggle(viewModel.facet, state)
   }
 }
 
-private class ShowFrameworkAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : ToggleAction("Show android resources") {
+private class ShowFrameworkAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  ToggleAction("Show android resources") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowFrameworkResources = state
     ResourceManagerTracking.logShowFrameworkToggle(viewModel.facet, state)
   }
 }
 
-private class ShowThemeAttributesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : ToggleAction("Show theme attributes") {
+private class ShowThemeAttributesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  ToggleAction("Show theme attributes") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowThemeAttributes = state
     ResourceManagerTracking.logShowThemeAttributesToggle(viewModel.facet, state)
@@ -277,13 +283,15 @@ private val TAG_NAME_PATTERN = Regex("([a-z]+-)+([a-z]+)")
  * @param displayName The name by which the [typeFilters] are grouped. Also used for the action's name.
  * @param typeFilters Related [TypeFilter]s, they will all be toggled together.
  */
-private class TypeFilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel,
-                                                    displayName: String,
-                                                    private val typeFilters: List<TypeFilter>)
-  : ToggleAction(fixFilterDisplayNameForActionText(displayName),
-                 "Filter ${viewModel.resourceType.displayName}s by File extension or Xml root tag.",
-                 null) {
+private class TypeFilterAction
+internal constructor(val viewModel: ResourceExplorerToolbarViewModel, displayName: String, private val typeFilters: List<TypeFilter>) :
+  ToggleAction(
+    fixFilterDisplayNameForActionText(displayName),
+    "Filter ${viewModel.resourceType.displayName}s by File extension or Xml root tag.",
+    null,
+  ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isSelected(e: AnActionEvent): Boolean {
     return typeFilters.any { viewModel.typeFiltersModel.isEnabled(viewModel.resourceType, it) }
   }
@@ -292,19 +300,17 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
     if (state) {
       ResourceManagerTracking.logTypeFilterEnabled(viewModel.facet, viewModel.resourceType)
     }
-    typeFilters.forEach { typeFilter ->
-      viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)
-    }
+    typeFilters.forEach { typeFilter -> viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state) }
   }
 }
 
-/**
- * Action that clears all [TypeFilter]s under the same Resource Type in the [viewModel].
- */
-private class ResetTypeFiltersAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : AnAction("Clear ${viewModel.resourceType.displayName} Filters",
-             "Clear enabled filters for ${viewModel.resourceType.displayName}s.",
-             StudioIcons.Common.CLOSE) {
+/** Action that clears all [TypeFilter]s under the same Resource Type in the [viewModel]. */
+private class ResetTypeFiltersAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel) :
+  AnAction(
+    "Clear ${viewModel.resourceType.displayName} Filters",
+    "Clear enabled filters for ${viewModel.resourceType.displayName}s.",
+    StudioIcons.Common.CLOSE,
+  ) {
   override fun actionPerformed(e: AnActionEvent) {
     viewModel.typeFiltersModel.clearAll(viewModel.resourceType)
   }
@@ -324,8 +330,7 @@ private fun fixFilterDisplayNameForActionText(displayName: String): String {
   return if (displayName.matches(TAG_NAME_PATTERN)) {
     // Fix the name for XmlTags. Eg: "animated-vector" should say "Animated Vector"
     displayName.split('-').joinToString(" ") { it.usLocaleCapitalize() }
-  }
-  else {
+  } else {
     // Anything else just make sure it's capitalized on the first letter.
     displayName.usLocaleCapitalize()
   }
@@ -346,49 +351,45 @@ private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceEx
   }
 }
 
-private fun DefaultActionGroup.addVisibleTypeFilters(viewModel: ResourceExplorerToolbarViewModel,
-                                                     groupedFilters: List<Map.Entry<String, List<TypeFilter>>>) {
-  groupedFilters.forEach { filters ->
-    add(TypeFilterAction(viewModel, filters.key, filters.value))
-  }
+private fun DefaultActionGroup.addVisibleTypeFilters(
+  viewModel: ResourceExplorerToolbarViewModel,
+  groupedFilters: List<Map.Entry<String, List<TypeFilter>>>,
+) {
+  groupedFilters.forEach { filters -> add(TypeFilterAction(viewModel, filters.key, filters.value)) }
 }
 
-private fun DefaultActionGroup.addOtherMenuTypeFilters(viewModel: ResourceExplorerToolbarViewModel,
-                                                       groupedFilters: List<Map.Entry<String, List<TypeFilter>>>) {
+private fun DefaultActionGroup.addOtherMenuTypeFilters(
+  viewModel: ResourceExplorerToolbarViewModel,
+  groupedFilters: List<Map.Entry<String, List<TypeFilter>>>,
+) {
   if (groupedFilters.isNotEmpty()) {
     val otherMenuGroup = DefaultActionGroup("Other", true)
-    groupedFilters.forEach { filters ->
-      otherMenuGroup.add(TypeFilterAction(viewModel, filters.key, filters.value))
-    }
+    groupedFilters.forEach { filters -> otherMenuGroup.add(TypeFilterAction(viewModel, filters.key, filters.value)) }
     add(otherMenuGroup)
   }
 }
 
 private fun action(addAction: AnAction) =
-  ActionButton(addAction, PresentationFactory().getPresentation(addAction), "", BUTTON_SIZE).apply {
-    border = ACTION_BUTTON_BORDER
-  }
+  ActionButton(addAction, PresentationFactory().getPresentation(addAction), "", BUTTON_SIZE).apply { border = ACTION_BUTTON_BORDER }
 
 private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   jComponent: JComponent,
-  baseline: Boolean = false
+  baseline: Boolean = false,
 ): GroupLayout.SequentialGroup {
   val width = jComponent.preferredSize.width
   this.addComponent(baseline, jComponent, width, width, width)
   return this
 }
 
-private fun GroupLayout.ParallelGroup.addFixedSizeComponent(
-  jComponent: JComponent,
-): GroupLayout.ParallelGroup {
+private fun GroupLayout.ParallelGroup.addFixedSizeComponent(jComponent: JComponent): GroupLayout.ParallelGroup {
   val height = jComponent.preferredSize.height
   this.addComponent(jComponent, height, height, height)
   return this
 }
 
 /**
- * Creates a combo box for the [ResourceExplorerToolbar], should contain available modules in the project. Selecting a module should
- * change the working facet in the [ResourceExplorerToolbarViewModel].
+ * Creates a combo box for the [ResourceExplorerToolbar], should contain available modules in the project. Selecting a module should change
+ * the working facet in the [ResourceExplorerToolbarViewModel].
  *
  * @param moduleComboEnabled Sets the isEnabled UI property. I.e: Whether it's allowed for the user to select a different module.
  */
@@ -396,17 +397,12 @@ private fun createModuleSelectionComboBox(toolbarViewModel: ResourceExplorerTool
   ComboBox<String>().apply {
     model = CollectionComboBoxModel(toolbarViewModel.getAvailableModules().toMutableList())
     isEnabled = moduleComboEnabled
-    renderer = object : ColoredListCellRenderer<String>() {
-      override fun customizeCellRenderer(
-        list: JList<out String>,
-        value: String,
-        index: Int,
-        selected: Boolean,
-        hasFocus: Boolean
-      ) {
-        append(MODULE_PREFIX + value)
+    renderer =
+      object : ColoredListCellRenderer<String>() {
+        override fun customizeCellRenderer(list: JList<out String>, value: String, index: Int, selected: Boolean, hasFocus: Boolean) {
+          append(MODULE_PREFIX + value)
+        }
       }
-    }
 
     addItemListener { event ->
       if (event.stateChange == ItemEvent.SELECTED) {
@@ -415,9 +411,11 @@ private fun createModuleSelectionComboBox(toolbarViewModel: ResourceExplorerTool
       }
     }
 
-    addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
-        (model as CollectionComboBoxModel).replaceAll(toolbarViewModel.getAvailableModules())
+    addPopupMenuListener(
+      object : PopupMenuListenerAdapter() {
+        override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
+          (model as CollectionComboBoxModel).replaceAll(toolbarViewModel.getAvailableModules())
+        }
       }
-    })
+    )
   }

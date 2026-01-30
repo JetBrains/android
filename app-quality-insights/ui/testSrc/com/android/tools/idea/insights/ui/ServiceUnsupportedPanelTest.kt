@@ -39,14 +39,7 @@ class ServiceUnsupportedPanelTest {
   private val tracker = mock<AppInsightsTracker>()
   private val scope = CoroutineScope(EmptyCoroutineContext)
   private val activeTabFlow = MutableStateFlow(false)
-  private var deprecationData =
-    DevServicesDeprecationData(
-      "header",
-      "description",
-      "url",
-      true,
-      DevServicesDeprecationStatus.UNSUPPORTED,
-    )
+  private var deprecationData = DevServicesDeprecationData("header", "description", "url", true, DevServicesDeprecationStatus.UNSUPPORTED)
 
   @Test
   fun `userNotified is logged only once`() {
@@ -81,9 +74,7 @@ class ServiceUnsupportedPanelTest {
   @Test
   fun `moreInfo logged when user click more info url`() {
     val panel = createPanel()
-    val moreInfoLabel =
-      panel.findDescendant<HyperlinkLabel> { it.text == "More info" }
-        ?: fail("More info label not found")
+    val moreInfoLabel = panel.findDescendant<HyperlinkLabel> { it.text == "More info" } ?: fail("More info label not found")
     moreInfoLabel.doClick()
 
     verify(tracker)
@@ -97,9 +88,7 @@ class ServiceUnsupportedPanelTest {
   @Test
   fun `userClicked logged when user clicks update`() {
     val panel = createPanel()
-    val updateLabel =
-      panel.findDescendant<HyperlinkLabel> { it.text == "Update Android Studio" }
-        ?: fail("Update label not found")
+    val updateLabel = panel.findDescendant<HyperlinkLabel> { it.text == "Update Android Studio" } ?: fail("Update label not found")
     updateLabel.doClick()
 
     verify(tracker)
@@ -110,6 +99,5 @@ class ServiceUnsupportedPanelTest {
       )
   }
 
-  private fun createPanel() =
-    ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {}
+  private fun createPanel() = ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {}
 }

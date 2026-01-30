@@ -57,18 +57,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private val fetchedVersion =
-  listOf(
-    DEFAULT_FETCHED_VERSIONS,
-    WithCount(42, Version("2", "2.0")),
-    WithCount(33, Version("2.1", "2.1")),
-  )
+private val fetchedVersion = listOf(DEFAULT_FETCHED_VERSIONS, WithCount(42, Version("2", "2.0")), WithCount(33, Version("2.1", "2.1")))
 private val fetchedDevice =
-  listOf(
-    DEFAULT_FETCHED_DEVICES,
-    WithCount(10, Device("Google", "Pixel 2")),
-    WithCount(22, Device("Apple", "iPhone 14")),
-  )
+  listOf(DEFAULT_FETCHED_DEVICES, WithCount(10, Device("Google", "Pixel 2")), WithCount(22, Device("Apple", "iPhone 14")))
 private val fetchedOs =
   listOf(
     DEFAULT_FETCHED_OSES,
@@ -82,45 +73,21 @@ class IssuesChangedTest {
 
   @Before
   fun setUp() {
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(FakeGeminiPluginApi()),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(FakeGeminiPluginApi()), projectRule.disposable)
   }
 
   @Test
   fun `empty issues result in no action`() {
-    val currentState =
-      AppInsightsState(
-        Selection(CONNECTION1, listOf(CONNECTION1)),
-        TEST_FILTERS,
-        LoadingState.Loading,
-      )
+    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            emptyList(),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(emptyList(), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         FakeClock(),
         currentState,
         FetchSource.REFRESH,
       )
 
-    with(
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
-    ) {
+    with(event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))) {
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
       assertThat(newState.currentNotes).isEqualTo(LoadingState.Ready(null))
       assertThat(action).isEqualTo(Action.NONE)
@@ -139,28 +106,13 @@ class IssuesChangedTest {
 
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE2, ISSUE1),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(listOf(ISSUE2, ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         clock,
         currentState,
         FetchSource.REFRESH,
       )
 
-    with(
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
-    ) {
+    with(event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
@@ -187,28 +139,13 @@ class IssuesChangedTest {
 
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE2),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(listOf(ISSUE2), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         clock,
         currentState,
         FetchSource.REFRESH,
       )
 
-    with(
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
-    ) {
+    with(event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE2)
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
@@ -226,54 +163,28 @@ class IssuesChangedTest {
 
   @Test
   fun `issues changed maintains the ALL state of filters if they are currently ALL`() {
-    val currentState =
-      AppInsightsState(
-        Selection(CONNECTION1, listOf(CONNECTION1)),
-        TEST_FILTERS,
-        LoadingState.Loading,
-      )
+    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading)
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(listOf(ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         FakeClock(),
-        AppInsightsState(
-          Selection(CONNECTION1, listOf(CONNECTION1)),
-          TEST_FILTERS,
-          LoadingState.Loading,
-        ),
+        AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
         FetchSource.REFRESH,
       )
 
     val resultState =
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
+      event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     // These filters should remain untouched
     assertThat(resultState.newState.filters.timeInterval).isEqualTo(TEST_FILTERS.timeInterval)
     assertThat(resultState.newState.filters.signal).isEqualTo(TEST_FILTERS.signal)
-    assertThat(resultState.newState.filters.failureTypeToggles)
-      .isEqualTo(TEST_FILTERS.failureTypeToggles)
+    assertThat(resultState.newState.filters.failureTypeToggles).isEqualTo(TEST_FILTERS.failureTypeToggles)
     assertThat(resultState.newState.filters.visibilityType).isEqualTo(TEST_FILTERS.visibilityType)
 
     // These should be ALL
-    assertThat(resultState.newState.filters.versions)
-      .isEqualTo(MultiSelection(fetchedVersion.toSet(), fetchedVersion))
-    assertThat(resultState.newState.filters.devices)
-      .isEqualTo(MultiSelection(fetchedDevice.toSet(), fetchedDevice))
-    assertThat(resultState.newState.filters.operatingSystems)
-      .isEqualTo(MultiSelection(fetchedOs.toSet(), fetchedOs))
+    assertThat(resultState.newState.filters.versions).isEqualTo(MultiSelection(fetchedVersion.toSet(), fetchedVersion))
+    assertThat(resultState.newState.filters.devices).isEqualTo(MultiSelection(fetchedDevice.toSet(), fetchedDevice))
+    assertThat(resultState.newState.filters.operatingSystems).isEqualTo(MultiSelection(fetchedOs.toSet(), fetchedOs))
   }
 
   @Test
@@ -288,54 +199,28 @@ class IssuesChangedTest {
         selectionOf(SignalType.SIGNAL_REGRESSED),
         selectionOf(VisibilityType.USER_PERCEIVED),
       )
-    val currentState =
-      AppInsightsState(
-        Selection(CONNECTION1, listOf(CONNECTION1)),
-        currentFilters,
-        LoadingState.Loading,
-      )
+    val currentState = AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), currentFilters, LoadingState.Loading)
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE1),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(listOf(ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         FakeClock(),
-        AppInsightsState(
-          Selection(CONNECTION1, listOf(CONNECTION1)),
-          TEST_FILTERS,
-          LoadingState.Loading,
-        ),
+        AppInsightsState(Selection(CONNECTION1, listOf(CONNECTION1)), TEST_FILTERS, LoadingState.Loading),
         FetchSource.REFRESH,
       )
 
     val result =
-      event.transition(
-        currentState,
-        TestAppInsightsTracker,
-        FAKE_INSIGHTS_PROVIDER,
-        AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-      )
+      event.transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     // These filters are untouched
     assertThat(result.newState.filters.timeInterval).isEqualTo(currentFilters.timeInterval)
     assertThat(result.newState.filters.signal).isEqualTo(currentFilters.signal)
-    assertThat(result.newState.filters.failureTypeToggles)
-      .isEqualTo(currentFilters.failureTypeToggles)
+    assertThat(result.newState.filters.failureTypeToggles).isEqualTo(currentFilters.failureTypeToggles)
     assertThat(result.newState.filters.visibilityType).isEqualTo(currentFilters.visibilityType)
 
     // Previously selected items should be selected in the new filter
-    assertThat(result.newState.filters.versions)
-      .isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), fetchedVersion))
-    assertThat(result.newState.filters.devices)
-      .isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), fetchedDevice))
-    assertThat(result.newState.filters.operatingSystems)
-      .isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_OSES), fetchedOs))
+    assertThat(result.newState.filters.versions).isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_VERSIONS), fetchedVersion))
+    assertThat(result.newState.filters.devices).isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_DEVICES), fetchedDevice))
+    assertThat(result.newState.filters.operatingSystems).isEqualTo(MultiSelection(setOf(DEFAULT_FETCHED_OSES), fetchedOs))
   }
 
   @Test
@@ -350,15 +235,7 @@ class IssuesChangedTest {
 
     val event =
       IssuesChanged(
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(ISSUE2, ISSUE1),
-            fetchedVersion,
-            fetchedDevice,
-            fetchedOs,
-            DEFAULT_FETCHED_PERMISSIONS,
-          )
-        ),
+        LoadingState.Ready(IssueResponse(listOf(ISSUE2, ISSUE1), fetchedVersion, fetchedDevice, fetchedOs, DEFAULT_FETCHED_PERMISSIONS)),
         clock,
         currentState,
         FetchSource.REFRESH,
@@ -376,12 +253,10 @@ class IssuesChangedTest {
       assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentNotes).isEqualTo(LoadingState.Loading)
-      assertThat(newState.currentEvents)
-        .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
+      assertThat(newState.currentEvents).isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
       assertThat(action)
         .isEqualTo(
-          Action.FetchDetails(ISSUE1.id) and
-            Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+          Action.FetchDetails(ISSUE1.id) and Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
         )
     }
   }

@@ -116,19 +116,11 @@ class AppInsightsTrackerTest {
           deviceFilter &&
             osFilter &&
             versionFilter &&
-            fetchSource !=
-              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
-                .UNKNOWN_SOURCE &&
-            severityFilter ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL &&
-            visibilityFilter ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VisibilityFilter
-                .USER_PERCEIVED &&
-            timeFilter ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter.SIXTY_DAYS &&
-            signalFilter ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter
-                .REGRESSIVE_SIGNAL
+            fetchSource != AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.UNKNOWN_SOURCE &&
+            severityFilter == AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL &&
+            visibilityFilter == AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VisibilityFilter.USER_PERCEIVED &&
+            timeFilter == AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter.SIXTY_DAYS &&
+            signalFilter == AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.REGRESSIVE_SIGNAL
         },
       )
   }
@@ -136,15 +128,7 @@ class AppInsightsTrackerTest {
   @Test
   fun `issue status changes trigger tracking`() = runBlocking {
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.READ_ONLY,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     controllerRule.controller.closeIssue(ISSUE1)
@@ -156,10 +140,7 @@ class AppInsightsTrackerTest {
       .logIssueStatusChanged(
         any(),
         eq(ConnectionMode.ONLINE),
-        argThat {
-          statusChange ==
-            AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.CLOSED
-        },
+        argThat { statusChange == AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.CLOSED },
       )
 
     controllerRule.controller.openIssue(ISSUE1)
@@ -171,25 +152,14 @@ class AppInsightsTrackerTest {
       .logIssueStatusChanged(
         any(),
         eq(ConnectionMode.ONLINE),
-        argThat {
-          statusChange ==
-            AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.OPENED
-        },
+        argThat { statusChange == AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.OPENED },
       )
   }
 
   @Test
   fun `adding and deleting notes causes tracking`() = runBlocking {
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(
-          listOf(ISSUE1, ISSUE2),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          Permission.FULL,
-        )
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL))
     )
 
     controllerRule.controller.addNote(ISSUE1, NOTE1_BODY)
@@ -198,11 +168,7 @@ class AppInsightsTrackerTest {
     controllerRule.consumeNext()
 
     verify(controllerRule.tracker)
-      .logNotesAction(
-        any(),
-        eq(ConnectionMode.ONLINE),
-        argThat { noteEvent == AppQualityInsightsNotesDetails.NoteEvent.ADDED },
-      )
+      .logNotesAction(any(), eq(ConnectionMode.ONLINE), argThat { noteEvent == AppQualityInsightsNotesDetails.NoteEvent.ADDED })
 
     controllerRule.controller.deleteNote(NOTE1)
     controllerRule.consumeNext()
@@ -210,26 +176,18 @@ class AppInsightsTrackerTest {
     controllerRule.consumeNext()
 
     verify(controllerRule.tracker)
-      .logNotesAction(
-        any(),
-        eq(ConnectionMode.ONLINE),
-        argThat { noteEvent == AppQualityInsightsNotesDetails.NoteEvent.REMOVED },
-      )
+      .logNotesAction(any(), eq(ConnectionMode.ONLINE), argThat { noteEvent == AppQualityInsightsNotesDetails.NoteEvent.REMOVED })
   }
 
   @Test
   fun `entering offline or online mode triggers tracking`() = runBlocking {
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
     controllerRule.enterOfflineMode()
     controllerRule.consumeNext()
     controllerRule.consumeFetchState(
-      LoadingState.Ready(
-        IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-      )
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY))
     )
 
     verify(controllerRule.tracker)
@@ -241,9 +199,7 @@ class AppInsightsTrackerTest {
 
     controllerRule.refreshAndConsumeLoadingState()
     controllerRule.consumeFetchState(
-      LoadingState.Ready(
-        IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-      ),
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)),
       isTransitionToOnlineMode = true,
     )
     verify(controllerRule.tracker)
@@ -257,9 +213,7 @@ class AppInsightsTrackerTest {
   @Test
   fun `track event views`() = runBlocking {
     controllerRule.consumeInitialState(
-      LoadingState.Ready(
-        IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
-      ),
+      LoadingState.Ready(IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)),
       eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), "abc")),
     )
 
@@ -275,8 +229,7 @@ class AppInsightsTrackerTest {
     val eventIdCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
     // verify total number of tracking calls
-    verify(controllerRule.tracker, times(2))
-      .logEventViewed(any(), eq(ConnectionMode.ONLINE), eq(ISSUE1.id.value), capture(eventIdCaptor))
+    verify(controllerRule.tracker, times(2)).logEventViewed(any(), eq(ConnectionMode.ONLINE), eq(ISSUE1.id.value), capture(eventIdCaptor))
 
     assertThat(eventIdCaptor.allValues).containsExactly("2", "3").inOrder()
   }
@@ -295,21 +248,13 @@ class AppInsightsTrackerTest {
     val isFetchedCaptor = ArgumentCaptor.forClass(Boolean::class.java)
 
     var eventsChanged = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("1")), "abc")))
-    testState =
-      eventsChanged
-        .transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
-        .newState
+    testState = eventsChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache).newState
 
     eventsChanged = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("2")), "def")))
     eventsChanged.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, cache)
 
     verify(controllerRule.tracker, times(2))
-      .logEventsFetched(
-        any(),
-        eq(ISSUE1.id.value),
-        eq(ISSUE1.issueDetails.fatality),
-        capture(isFetchedCaptor),
-      )
+      .logEventsFetched(any(), eq(ISSUE1.id.value), eq(ISSUE1.issueDetails.fatality), capture(isFetchedCaptor))
 
     assertThat(isFetchedCaptor.allValues).containsExactly(true, false).inOrder()
   }
@@ -333,8 +278,7 @@ class AppInsightsTrackerTest {
       .logCrashListDetailView(
         argThat {
           crashType == ISSUE2.issueDetails.fatality.toCrashType() &&
-            source ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
+            source == AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
         }
       )
 
@@ -344,9 +288,7 @@ class AppInsightsTrackerTest {
       .logCrashListDetailView(
         argThat {
           crashType == ISSUE2.issueDetails.fatality.toCrashType() &&
-            source ==
-              AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource
-                .INSPECTION
+            source == AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.INSPECTION
         }
       )
 
@@ -364,29 +306,12 @@ class AppInsightsTrackerTest {
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
-    val insight =
-      AiInsight(
-        "",
-        ISSUE1.sampleEvent,
-        insightSource = InsightSource.STUDIO_BOT,
-        isCached = true,
-        codeContextData = context,
-      )
+    val insight = AiInsight("", ISSUE1.sampleEvent, insightSource = InsightSource.STUDIO_BOT, isCached = true, codeContextData = context)
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
-    insightFetch.transition(
-      testState,
-      controllerRule.tracker,
-      FAKE_INSIGHTS_PROVIDER,
-      AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-    )
+    insightFetch.transition(testState, controllerRule.tracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     verify(controllerRule.tracker, times(1))
-      .logInsightFetch(
-        any(),
-        eq(ISSUE1.issueDetails.fatality),
-        eq(insight),
-        eq(controllerRule.fakeGeminiPluginApi.MAX_QUERY_CHARS),
-      )
+      .logInsightFetch(any(), eq(ISSUE1.issueDetails.fatality), eq(insight), eq(controllerRule.fakeGeminiPluginApi.MAX_QUERY_CHARS))
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {

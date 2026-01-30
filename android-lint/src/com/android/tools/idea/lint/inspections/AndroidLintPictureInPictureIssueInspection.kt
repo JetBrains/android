@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PictureInPictureDetector
 
 class AndroidLintPictureInPictureIssueInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.picture.in.picture.issue"),
-    PictureInPictureDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.picture.in.picture.issue"), PictureInPictureDetector.ISSUE)

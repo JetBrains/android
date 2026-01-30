@@ -19,15 +19,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 
 /**
- * Instances of this service exist to allow ProjectActivities related to [AndroidGradleProjectStartupActivity] to
- * manage an ordering between them. The StartupManagerImpl runs all ProjectActivity asynchronously,
- * so this service is what allows us to guarantee that some activities run entirely before
- * [AndroidGradleProjectStartupActivity] and some after.
+ * Instances of this service exist to allow ProjectActivities related to [AndroidGradleProjectStartupActivity] to manage an ordering between
+ * them. The StartupManagerImpl runs all ProjectActivity asynchronously, so this service is what allows us to guarantee that some activities
+ * run entirely before [AndroidGradleProjectStartupActivity] and some after.
  */
 abstract class AndroidGradleProjectStartupService<T> {
   private val deferred = CompletableDeferred<T>()
 
-  protected suspend fun runInitialization(action : suspend () -> T): T {
+  protected suspend fun runInitialization(action: suspend () -> T): T {
     deferred.completeWith(runCatching { action() })
     return deferred.await()
   }

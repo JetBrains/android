@@ -39,7 +39,10 @@ class GcPauseWatcher : ProjectActivity {
             val data = notification.userData as CompositeData
             val duration = GcInfo.from(data.get("gcInfo") as CompositeData).duration
             AndroidStudioSystemHealthMonitor.recordGcPauseTime(bean.name, duration)
-           }, null, null)
+          },
+          null,
+          null,
+        )
       }
     }
   }

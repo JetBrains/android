@@ -33,30 +33,14 @@ import com.android.tools.preview.config.Preview.DeviceSpec
  */
 internal object LanguageParameterRule {
 
-  val width =
-    DimensionParameterRule(
-      name = DeviceSpec.PARAMETER_WIDTH,
-      defaultNumber = DeviceSpec.DEFAULT_WIDTH_DP,
-    )
+  val width = DimensionParameterRule(name = DeviceSpec.PARAMETER_WIDTH, defaultNumber = DeviceSpec.DEFAULT_WIDTH_DP)
 
-  val height =
-    DimensionParameterRule(
-      name = DeviceSpec.PARAMETER_HEIGHT,
-      defaultNumber = DeviceSpec.DEFAULT_HEIGHT_DP,
-    )
+  val height = DimensionParameterRule(name = DeviceSpec.PARAMETER_HEIGHT, defaultNumber = DeviceSpec.DEFAULT_HEIGHT_DP)
 
-  val chinSize =
-    DimensionParameterRule(
-      name = DeviceSpec.PARAMETER_CHIN_SIZE,
-      defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_ZERO,
-    )
+  val chinSize = DimensionParameterRule(name = DeviceSpec.PARAMETER_CHIN_SIZE, defaultNumber = DeviceSpec.DEFAULT_CHIN_SIZE_ZERO)
 
   val round =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_IS_ROUND,
-      expectedType = ExpectedStrictBoolean,
-      defaultValue = false.toString(),
-    ) {
+    simpleParameterRule(name = DeviceSpec.PARAMETER_IS_ROUND, expectedType = ExpectedStrictBoolean, defaultValue = false.toString()) {
       it.toBooleanStrictOrNull() != null
     }
 
@@ -70,22 +54,14 @@ internal object LanguageParameterRule {
     }
 
   val dpi =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_DPI,
-      expectedType = ExpectedInteger,
-      defaultValue = DeviceSpec.DEFAULT_DPI.toString(),
-    ) {
+    simpleParameterRule(name = DeviceSpec.PARAMETER_DPI, expectedType = ExpectedInteger, defaultValue = DeviceSpec.DEFAULT_DPI.toString()) {
       it.toIntOrNull() != null
     }
 
   val parent = DeviceIdParameterRule(name = DeviceSpec.PARAMETER_PARENT)
 
   val cutout =
-    simpleParameterRule(
-      name = DeviceSpec.PARAMETER_CUTOUT,
-      expectedType = ExpectedCutout,
-      defaultValue = DeviceSpec.DEFAULT_CUTOUT.name,
-    ) {
+    simpleParameterRule(name = DeviceSpec.PARAMETER_CUTOUT, expectedType = ExpectedCutout, defaultValue = DeviceSpec.DEFAULT_CUTOUT.name) {
       enumValueOfOrNull<Cutout>(it) != null
     }
 

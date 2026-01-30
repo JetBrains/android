@@ -46,13 +46,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.CountDownLatch
@@ -61,6 +54,13 @@ import javax.swing.ImageIcon
 import javax.swing.JLabel
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val timeoutSeconds = 10L
 
@@ -68,8 +68,8 @@ class ResourceExplorerListViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   private val chain = RuleChain(projectRule, EdtRule())
-  @Rule
-  fun getChain() = chain
+
+  @Rule fun getChain() = chain
 
   private lateinit var largeImageCache: ImageCache
   private lateinit var smallImageCache: ImageCache
@@ -148,24 +148,31 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getSampleDataPreview() {
     val latch = CountDownLatch(1)
-    val sampleDataResource = StudioResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
-      // These are bitmap images, preferred for tests.
-      ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "backgrounds/scenic" }
+    val sampleDataResource =
+      StudioResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
+          // These are bitmap images, preferred for tests.
+          ResourceNamespace.TOOLS,
+          ResourceType.SAMPLE_DATA,
+        )
+        .values()
+        .first { it.name == "backgrounds/scenic" }
     Truth.assertThat(sampleDataResource).isNotNull()
     val asset = Asset.fromResourceItem(sampleDataResource!!) as DesignAsset
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
 
     val iconSize = 32 // To compensate the 10% margin around the icon
-    val emptyIcon = viewModel.assetPreviewManager
-      .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
+    val emptyIcon =
+      viewModel.assetPreviewManager
+        .getPreviewProvider(ResourceType.DRAWABLE)
+        .getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
     Truth.assertThat(latch.await(timeoutSeconds, TimeUnit.SECONDS)).isTrue()
     val emptyImage = emptyIcon.image as BufferedImage
     Truth.assertThat(emptyImage.getRGB(0, 0)).isEqualTo(0) // No value in empty icon
 
-    val icon = viewModel.assetPreviewManager
-      .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
+    val icon =
+      viewModel.assetPreviewManager
+        .getPreviewProvider(ResourceType.DRAWABLE)
+        .getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
     Truth.assertThat(image.getRGB(0, 0)).isNotEqualTo(0)
   }
@@ -190,8 +197,11 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getDataBindingLayoutSummary() {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
-    val layoutResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
+    val layoutResource =
+      StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+        .values()
+        .first()
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
@@ -209,8 +219,11 @@ class ResourceExplorerListViewModelImplTest {
 
   @Test
   fun getSampleDataSummary() {
-    val sampleResource = StudioResourceRepositoryManager.getAppResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "avatars" }
+    val sampleResource =
+      StudioResourceRepositoryManager.getAppResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA)
+        .values()
+        .first { it.name == "avatars" }
     val asset = Asset.fromResourceItem(sampleResource, ResourceType.DRAWABLE)
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
@@ -226,8 +239,11 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getThemeAttributeSummary() {
     projectRule.fixture.copyFileToProject("/res/values/colors.xml", "/res/values/colors.xml")
-    val colorResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
-      ResourceNamespace.RES_AUTO, ResourceType.COLOR).values().first { it.name == "colorPrimary" }
+    val colorResource =
+      StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!)
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR)
+        .values()
+        .first { it.name == "colorPrimary" }
     val attrResource = ResourceMergerItem("my_attr", ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, null)
     ResourceFile.createSingle(File("res/values/attrs.xml"), attrResource, "")
     val asset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
@@ -251,8 +267,7 @@ class ResourceExplorerListViewModelImplTest {
 
     runInEdtAndWait {
       addAndroidModule(module2Name, projectRule.project, "com.example.app2") { resourceDir ->
-        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
-                      resourceDir.resolve("values/colors.xml"))
+        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"), resourceDir.resolve("values/colors.xml"))
       }
     }
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
@@ -270,17 +285,19 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getLibrariesResources() {
     val libraryName = "myLibrary"
-    addAarDependency(projectRule.fixture, projectRule.module,
-                     libraryName, "com.resources.test") { resDir ->
+    addAarDependency(projectRule.fixture, projectRule.module, libraryName, "com.resources.test") { resDir ->
       FileUtil.copyDir(File(getTestDataDirectory() + "/res"), resDir)
       // Have only some of these resources to be public.
-      resDir.parentFile.resolve(SdkConstants.FN_PUBLIC_TXT).writeText(
-        """
+      resDir.parentFile
+        .resolve(SdkConstants.FN_PUBLIC_TXT)
+        .writeText(
+          """
           color colorPrimary
           color colorPrimaryDark
           drawable png
-          """.trimIndent()
-      )
+          """
+            .trimIndent()
+        )
     }
 
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
@@ -314,8 +331,7 @@ class ResourceExplorerListViewModelImplTest {
 
     val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
-    Truth.assertThat(values.flatMap { it.assets }
-                       .map { it.resourceItem.resourceValue?.value })
+    Truth.assertThat(values.flatMap { it.assets }.map { it.resourceItem.resourceValue?.value })
       .containsExactly("#3F51B5", "#303F9F", "#9dff00")
   }
 
@@ -338,13 +354,15 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun filterDataBinding() {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
-    projectRule.fixture.addFileToProject("res/layout/linear_layout.xml",
-                                         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                         "    android:orientation=\"vertical\" android:layout_width=\"match_parent\"\n" +
-                                         "    android:layout_height=\"match_parent\">\n" +
-                                         "\n" +
-                                         "</LinearLayout>")
+    projectRule.fixture.addFileToProject(
+      "res/layout/linear_layout.xml",
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:orientation=\"vertical\" android:layout_width=\"match_parent\"\n" +
+        "    android:layout_height=\"match_parent\">\n" +
+        "\n" +
+        "</LinearLayout>",
+    )
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "layout", "data_binding_layout")
   }
@@ -352,20 +370,22 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun filterConstraintLayoutFromDataBinding() {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
-    projectRule.fixture.addFileToProject("res/layout/data_binding_cl.xml",
-                                         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                         "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-                                         "\n" +
-                                         "    <data>\n" +
-                                         "        <variable\n" +
-                                         "            name=\"ViewModel\"\n" +
-                                         "            type=\".Fragment\" />\n" +
-                                         "    </data>\n" +
-                                         "\n" +
-                                         "    <androidx.constraintlayout.widget.ConstraintLayout\n" +
-                                         "        android:layout_width=\"match_parent\"\n" +
-                                         "        android:layout_height=\"match_parent\" />\n" +
-                                         "</layout>")
+    projectRule.fixture.addFileToProject(
+      "res/layout/data_binding_cl.xml",
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+        "\n" +
+        "    <data>\n" +
+        "        <variable\n" +
+        "            name=\"ViewModel\"\n" +
+        "            type=\".Fragment\" />\n" +
+        "    </data>\n" +
+        "\n" +
+        "    <androidx.constraintlayout.widget.ConstraintLayout\n" +
+        "        android:layout_width=\"match_parent\"\n" +
+        "        android:layout_height=\"match_parent\" />\n" +
+        "</layout>",
+    )
     waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "androidx.constraintlayout.widget.ConstraintLayout", "data_binding_cl")
   }
@@ -406,7 +426,7 @@ class ResourceExplorerListViewModelImplTest {
       FilterOptions.createDefault(),
       resourceType,
       largeImageCache,
-      smallImageCache
+      smallImageCache,
     )
   }
 

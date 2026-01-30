@@ -33,9 +33,7 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.parentOfType
 
-/**
- *  Reports unresolved class members in Proguard/R8 files.
- */
+/** Reports unresolved class members in Proguard/R8 files. */
 class ProguardR8ReferenceInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : ProguardR8Visitor() {
@@ -67,9 +65,7 @@ class ProguardR8ReferenceInspection : LocalInspectionTool() {
   }
 }
 
-/**
- * Reports invalid separator between class and inner class in Proguard/R8 files.
- */
+/** Reports invalid separator between class and inner class in Proguard/R8 files. */
 class ProguardR8InnerClassSeparatorInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : ProguardR8Visitor() {
@@ -94,8 +90,7 @@ class ProguardR8ArrayTypeInspection : LocalInspectionTool() {
         super.visitArrayType(o)
         if (o.node.findChildByType(TokenType.WHITE_SPACE) != null) {
           holder.registerProblem(o, "White space is not allowed in array annotation, use 'type[]'")
-        }
-        else if (o.parent.node.findChildByType(TokenType.WHITE_SPACE) != null) {
+        } else if (o.parent.node.findChildByType(TokenType.WHITE_SPACE) != null) {
           holder.registerProblem(o.parent, "White space between type and array annotation is not allowed, use 'type[]'")
         }
       }
@@ -103,9 +98,7 @@ class ProguardR8ArrayTypeInspection : LocalInspectionTool() {
   }
 }
 
-/**
- *  Reports invalid flag, flags that supported neither by R8 nor Proguard.
- */
+/** Reports invalid flag, flags that supported neither by R8 nor Proguard. */
 class ProguardR8InvalidFlagInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : ProguardR8Visitor() {
@@ -120,9 +113,7 @@ class ProguardR8InvalidFlagInspection : LocalInspectionTool() {
   }
 }
 
-/**
- *  Reports flags supported by Proguard, but ignored by R8.
- */
+/** Reports flags supported by Proguard, but ignored by R8. */
 class ProguardR8IgnoredFlagInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : ProguardR8Visitor() {

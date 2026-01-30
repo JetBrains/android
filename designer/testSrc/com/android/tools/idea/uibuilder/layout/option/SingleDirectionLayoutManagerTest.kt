@@ -29,14 +29,7 @@ private class ForcedDirectoryLayoutManager(
   @SwingCoordinate private val verticalViewDelta: Int,
   startBorderAlignment: Alignment,
   private val forceVertical: Boolean,
-) :
-  SingleDirectionLayoutManager(
-    horizontalPadding,
-    verticalPadding,
-    horizontalViewDelta,
-    verticalViewDelta,
-    startBorderAlignment,
-  ) {
+) : SingleDirectionLayoutManager(horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta, startBorderAlignment) {
   override fun isVertical(
     content: Collection<PositionableContent>,
     @SwingCoordinate availableWidth: Int,
@@ -339,55 +332,27 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val paddingY = 20
     val screenDeltaX = 30
     val screenDeltaY = 30
-    val sceneViews =
-      listOf(
-        TestPositionableContent(width = 50, height = 200),
-        TestPositionableContent(width = 100, height = 150),
-      )
+    val sceneViews = listOf(TestPositionableContent(width = 50, height = 200), TestPositionableContent(width = 100, height = 150))
 
     val maxWidth = sceneViews.map { it.width }.maxOrNull()!!
     val minX = (availableWidth / 2) - (maxWidth / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          true,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minX, sceneViews[0].x)
       assertEquals(minX, sceneViews[1].x)
     }
 
     SingleDirectionLayoutManager.Alignment.CENTER.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          true,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableWidth / 2) - (sceneViews[0].width / 2), sceneViews[0].x)
       assertEquals((availableWidth / 2) - (sceneViews[1].width / 2), sceneViews[1].x)
     }
 
     SingleDirectionLayoutManager.Alignment.END.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          true,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableWidth - sceneViews[0].width, sceneViews[0].x)
       assertEquals(availableWidth - sceneViews[1].width, sceneViews[1].x)
@@ -401,55 +366,27 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val paddingY = 20
     val screenDeltaX = 30
     val screenDeltaY = 30
-    val sceneViews =
-      listOf(
-        TestPositionableContent(width = 50, height = 200),
-        TestPositionableContent(width = 100, height = 150),
-      )
+    val sceneViews = listOf(TestPositionableContent(width = 50, height = 200), TestPositionableContent(width = 100, height = 150))
 
     val maxHeight = sceneViews.map { it.height }.maxOrNull()!!
     val minY = (availableHeight / 2) - (maxHeight / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          false,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minY, sceneViews[0].y)
       assertEquals(minY, sceneViews[1].y)
     }
 
     SingleDirectionLayoutManager.Alignment.CENTER.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          false,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableHeight / 2) - (sceneViews[0].height / 2), sceneViews[0].y)
       assertEquals((availableHeight / 2) - (sceneViews[1].height / 2), sceneViews[1].y)
     }
 
     SingleDirectionLayoutManager.Alignment.END.also { alignment ->
-      val manager =
-        ForcedDirectoryLayoutManager(
-          paddingX,
-          paddingY,
-          screenDeltaX,
-          screenDeltaY,
-          alignment,
-          false,
-        )
+      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableHeight - sceneViews[0].height, sceneViews[0].y)
       assertEquals(availableHeight - sceneViews[1].height, sceneViews[1].y)

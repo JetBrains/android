@@ -27,17 +27,21 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.gradle.isTestFixturesModule
 import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.addIfNotNull
+import java.io.File
+import java.nio.file.Path
+import java.util.ArrayDeque
+import java.util.Deque
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
@@ -46,24 +50,22 @@ import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.io.File
-import java.nio.file.Path
-import java.util.ArrayDeque
-import java.util.Deque
 
-class GradleTaskFinderWorker private constructor(
-  private val project: Project,
-  private val requestedModules: List<ModuleAndMode>
-) {
+class GradleTaskFinderWorker private constructor(private val project: Project, private val requestedModules: List<ModuleAndMode>) {
 
-  constructor(project: Project, buildMode: BuildMode, modules: List<Module>, expandModule: Boolean = false):
-    this(
-      project,
-      requestedModules = modules.mapNotNull {
+  constructor(
+    project: Project,
+    buildMode: BuildMode,
+    modules: List<Module>,
+    expandModule: Boolean = false,
+  ) : this(
+    project,
+    requestedModules =
+      modules.mapNotNull {
         if (it.getGradleProjectPath() == null) return@mapNotNull null // Skip any non Gradle projects.
         ModuleAndMode(it, buildMode, expandModule = expandModule)
-      }
-    )
+      },
+  )
 
   fun find(): Map<Path, Collection<String>> {
     val moduleTasks = expandList(requestedModules).mapNotNull { findTasksForModule(it) }
@@ -72,12 +74,7 @@ class GradleTaskFinderWorker private constructor(
     // having e.g. ":a:clean :a:assemble :b:clean :b:assemble" seems to trigger a bug in Gradle (see b/290954881).
     val rootedTasks = moduleTasks.flatMap { it.rootedTasks { cleanTasks } } + moduleTasks.flatMap { it.rootedTasks { tasks } }
 
-    return rootedTasks
-      .groupBy(
-        keySelector = { it.root },
-        valueTransform = { it.taskPath }
-      )
-      .mapValues { it.value.toSet() }
+    return rootedTasks.groupBy(keySelector = { it.root }, valueTransform = { it.taskPath }).mapValues { it.value.toSet() }
   }
 
   /**
@@ -110,26 +107,22 @@ class GradleTaskFinderWorker private constructor(
       IdeAndroidProjectType.PROJECT_TYPE_APP ->
         // AGP does not bring in app's Dynamic Features when running app android test, so no need to expand here
         if (!this.module.isHolderModule() && !this.module.isMainModule()) return emptyList()
-        else androidProject
-          .dynamicFeatures
-          .mapNotNull { GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode) }
+        else
+          androidProject.dynamicFeatures.mapNotNull {
+            GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode)
+          }
 
       IdeAndroidProjectType.PROJECT_TYPE_TEST ->
         if (buildMode != BuildMode.ASSEMBLE && buildMode != BuildMode.REBUILD) emptyList()
-        else androidModel
-          .selectedVariant
-          .testedTargetVariants
-          .map { it.targetProjectPath }
-          .mapNotNull {
-            GradleSourceSetProjectPath(
-              buildRoot,
-              it,
-              IdeModuleWellKnownSourceSet.MAIN
-            ).toModuleAndMode(if (buildMode == BuildMode.REBUILD) BuildMode.ASSEMBLE else buildMode)
-          }
+        else
+          androidModel.selectedVariant.testedTargetVariants
+            .map { it.targetProjectPath }
+            .mapNotNull {
+              GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN)
+                .toModuleAndMode(if (buildMode == BuildMode.REBUILD) BuildMode.ASSEMBLE else buildMode)
+            }
       IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE ->
-        androidProject
-          .baseFeature
+        androidProject.baseFeature
           ?.let {
             listOfNotNull(
               // We should get the baseFeature (APP) and also expand it so we can pull out other dynamic features too that will be needed
@@ -147,12 +140,16 @@ class GradleTaskFinderWorker private constructor(
       moduleToProcess.androidModel != null -> {
         when (moduleToProcess.buildMode) {
           BuildMode.REBUILD ->
-            moduleToProcess.getTasksBy { listOfNotNull(
-              it.assembleTaskName,
-              it.getPrivacySandboxSdkTask(),
-              it.getAdditionalApkSplitTask(),
-              it.getPrivacySandboxSdkLegacyTask())
-            }.copy( cleanTasks = setOf("clean"))
+            moduleToProcess
+              .getTasksBy {
+                listOfNotNull(
+                  it.assembleTaskName,
+                  it.getPrivacySandboxSdkTask(),
+                  it.getAdditionalApkSplitTask(),
+                  it.getPrivacySandboxSdkLegacyTask(),
+                )
+              }
+              .copy(cleanTasks = setOf("clean"))
           // Note, this should eventually include ":clean" tasks, but it is dangerous right now as it might run in a separate but second
           // invocation.
           // TODO(b/235567998): Move all "clean" processing here.
@@ -163,12 +160,10 @@ class GradleTaskFinderWorker private constructor(
                 it.assembleTaskName,
                 it.getPrivacySandboxSdkTask(),
                 it.getAdditionalApkSplitTask(),
-                it.getPrivacySandboxSdkLegacyTask())
+                it.getPrivacySandboxSdkLegacyTask(),
+              )
             }
-          BuildMode.COMPILE_JAVA ->
-            moduleToProcess.getTaskBy {
-                it.compileTaskName
-            }
+          BuildMode.COMPILE_JAVA -> moduleToProcess.getTaskBy { it.compileTaskName }
 
           BuildMode.SOURCE_GEN -> moduleToProcess.getTasksBy { it.ideSetupTaskNames }
           BuildMode.BUNDLE -> {
@@ -176,7 +171,7 @@ class GradleTaskFinderWorker private constructor(
               listOfNotNull(
                 (it as? IdeAndroidArtifactCore)?.buildInformation?.bundleTaskName,
                 it.getPrivacySandboxSdkTask(),
-                it.getPrivacySandboxSdkLegacyTask()
+                it.getPrivacySandboxSdkLegacyTask(),
               ) // Don't need getAdditionalApkSplitTask for bundle deployment
             }
           }
@@ -185,33 +180,39 @@ class GradleTaskFinderWorker private constructor(
               module = moduleToProcess.module,
               cleanTasks = emptySet(),
               tasks =
-              moduleToProcess.getTasksBy {
-                listOfNotNull(
-                  (it as? IdeAndroidArtifactCore)?.buildInformation?.apkFromBundleTaskName,
-                  it.getPrivacySandboxSdkTask(),
-                  it.getPrivacySandboxSdkLegacyTask()
-                ) // Don't need getAdditionalApkSplitTask for bundle deployment
-              }.tasks +
-              if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE &&
-                  (moduleToProcess.module.isAndroidTestModule() || moduleToProcess.module.isHolderModule()))
-                setOfNotNull(
-                  moduleToProcess.androidModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.assembleTaskName
-                )
-              else emptySet()
+                moduleToProcess
+                  .getTasksBy {
+                    listOfNotNull(
+                      (it as? IdeAndroidArtifactCore)?.buildInformation?.apkFromBundleTaskName,
+                      it.getPrivacySandboxSdkTask(),
+                      it.getPrivacySandboxSdkLegacyTask(),
+                    ) // Don't need getAdditionalApkSplitTask for bundle deployment
+                  }
+                  .tasks +
+                  if (
+                    moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE &&
+                      (moduleToProcess.module.isAndroidTestModule() || moduleToProcess.module.isHolderModule())
+                  )
+                    setOfNotNull(
+                      moduleToProcess.androidModel.selectedVariant.deviceTestArtifacts
+                        .find { it.name == IdeArtifactName.ANDROID_TEST }
+                        ?.assembleTaskName
+                    )
+                  else emptySet(),
             )
           }
           BuildMode.BASELINE_PROFILE_GEN -> {
             ModuleTasks(
               module = moduleToProcess.module,
               cleanTasks = emptySet(),
-              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(false))
+              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(false)),
             )
           }
           BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> {
             ModuleTasks(
               module = moduleToProcess.module,
               cleanTasks = emptySet(),
-              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(true))
+              tasks = setOfNotNull(moduleToProcess.androidModel.getGenerateBaselineProfileTaskNameForSelectedVariant(true)),
             )
           }
         }
@@ -227,12 +228,19 @@ class GradleTaskFinderWorker private constructor(
       moduleToProcess.isGradleJavaModule -> {
         ModuleTasks(
           module = moduleToProcess.module,
-          cleanTasks = when (moduleToProcess.buildMode) {
-            BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
-            BuildMode.REBUILD -> setOf(GradleBuilds.CLEAN_TASK_NAME)
-            BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE, BuildMode.BASELINE_PROFILE_GEN, BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> emptySet()
-          },
-          tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.module)
+          cleanTasks =
+            when (moduleToProcess.buildMode) {
+              BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
+              BuildMode.REBUILD -> setOf(GradleBuilds.CLEAN_TASK_NAME)
+              BuildMode.ASSEMBLE,
+              BuildMode.COMPILE_JAVA,
+              BuildMode.SOURCE_GEN,
+              BuildMode.BUNDLE,
+              BuildMode.APK_FROM_BUNDLE,
+              BuildMode.BASELINE_PROFILE_GEN,
+              BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> emptySet()
+            },
+          tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.module),
         )
       }
 
@@ -240,23 +248,19 @@ class GradleTaskFinderWorker private constructor(
     }
   }
 
-  private fun IdeBaseArtifactCore.getPrivacySandboxSdkTask() =
-    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.task
+  private fun IdeBaseArtifactCore.getPrivacySandboxSdkTask() = (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.task
 
   private fun IdeBaseArtifactCore.getAdditionalApkSplitTask() =
     (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.additionalApkSplitTask
 
-  private fun IdeBaseArtifactCore.getPrivacySandboxSdkLegacyTask() =
-    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.taskLegacy
+  private fun IdeBaseArtifactCore.getPrivacySandboxSdkLegacyTask() = (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.taskLegacy
 
-  private fun GradleProjectPath.toModuleAndMode(
-    buildMode: BuildMode,
-    expandModule: Boolean = false
-  ): ModuleAndMode? =
+  private fun GradleProjectPath.toModuleAndMode(buildMode: BuildMode, expandModule: Boolean = false): ModuleAndMode? =
     resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, expandModule = expandModule) }
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
+
 private data class ModuleTasks(val module: Module, val cleanTasks: Set<String>, val tasks: Set<String>)
 
 private fun getTaskRunningInfo(module: Module): Pair<File, String>? {
@@ -273,20 +277,15 @@ private fun getTaskRunningInfo(module: Module): Pair<File, String>? {
 }
 
 private fun ModuleTasks.rootedTasks(taskSelector: ModuleTasks.() -> Set<String>): List<RootedTask> {
-  val (taskExecutionDir, projectPath) = getTaskRunningInfo(module)?.let {
-    it.first.toPath() to it.second.trimEnd(':')
-  } ?: return emptyList()
+  val (taskExecutionDir, projectPath) =
+    getTaskRunningInfo(module)?.let { it.first.toPath() to it.second.trimEnd(':') } ?: return emptyList()
 
   fun toRooted(taskName: String) = RootedTask(taskExecutionDir, "$projectPath:$taskName")
 
   return taskSelector(this).map { toRooted(it) }
 }
 
-private data class ModuleAndMode(
-  val module: Module,
-  val buildMode: BuildMode,
-  val expandModule: Boolean = false
-) {
+private data class ModuleAndMode(val module: Module, val buildMode: BuildMode, val expandModule: Boolean = false) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
   val isKmpModule: Boolean = module.isMultiPlatformModule()
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
@@ -335,32 +334,46 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, module: Module): Set<St
         BuildMode.BASELINE_PROFILE_GEN -> null
         BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> null
       }
-    } else null
+    } else null,
   )
 }
 
-private fun ModuleAndMode.getTasksBy(
-  isClean: Boolean = false,
-  by: (artifact: IdeBaseArtifactCore) -> List<String>
-): ModuleTasks {
-  val tasks: Set<String> = androidModel?.selectedVariant?.let { variant ->
-    val artifacts =
-      mutableListOf<IdeBaseArtifactCore>().apply {
-        addIfNotNull(variant.mainArtifact.takeIf { module.isHolderModule() || module.isMainModule() || (module.isAndroidTestModule() && expandModule) })
-        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
-        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }.takeIf { module.isScreenshotTestModule() || module.isHolderModule() })
-        addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { module.isAndroidTestModule() || module.isHolderModule() })
-        addIfNotNull(variant.testFixturesArtifact.takeIf { module.isTestFixturesModule() || module.isHolderModule() })
+private fun ModuleAndMode.getTasksBy(isClean: Boolean = false, by: (artifact: IdeBaseArtifactCore) -> List<String>): ModuleTasks {
+  val tasks: Set<String> =
+    androidModel
+      ?.selectedVariant
+      ?.let { variant ->
+        val artifacts =
+          mutableListOf<IdeBaseArtifactCore>().apply {
+            addIfNotNull(
+              variant.mainArtifact.takeIf {
+                module.isHolderModule() || module.isMainModule() || (module.isAndroidTestModule() && expandModule)
+              }
+            )
+            addIfNotNull(
+              variant.hostTestArtifacts
+                .find { it.name == IdeArtifactName.UNIT_TEST }
+                .takeIf { module.isUnitTestModule() || module.isHolderModule() }
+            )
+            addIfNotNull(
+              variant.hostTestArtifacts
+                .find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+                .takeIf { module.isScreenshotTestModule() || module.isHolderModule() }
+            )
+            addIfNotNull(
+              variant.deviceTestArtifacts
+                .find { it.name == IdeArtifactName.ANDROID_TEST }
+                .takeIf { module.isAndroidTestModule() || module.isHolderModule() }
+            )
+            addIfNotNull(variant.testFixturesArtifact.takeIf { module.isTestFixturesModule() || module.isHolderModule() })
+          }
+        artifacts.flatMap { by.invoke(it) }.toSet()
       }
-      artifacts.flatMap { by.invoke(it) }.toSet()
-  }.orEmpty()
+      .orEmpty()
   return ModuleTasks(module, tasks.takeIf { isClean }.orEmpty(), tasks.takeUnless { isClean }.orEmpty())
 }
 
-private fun ModuleAndMode.getTaskBy(
-  isClean: Boolean = false,
-  by: (artifact: IdeBaseArtifactCore) -> String?
-): ModuleTasks {
+private fun ModuleAndMode.getTaskBy(isClean: Boolean = false, by: (artifact: IdeBaseArtifactCore) -> String?): ModuleTasks {
   return getTasksBy(isClean, fun(artifact: IdeBaseArtifactCore): List<String> = listOfNotNull(by(artifact)))
 }
 

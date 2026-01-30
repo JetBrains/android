@@ -27,18 +27,11 @@ import com.intellij.openapi.util.Key
 import org.jdom.Element
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
-/**
- * Provides additional options to GradleRunConfiguration editor for showing test results in Android Test Suite view.
- */
+/** Provides additional options to GradleRunConfiguration editor for showing test results in Android Test Suite view. */
 class GradleRunConfigurationExtension :
   ExternalSystemReifiedRunConfigurationExtension<GradleRunConfiguration>(GradleRunConfiguration::class.java) {
 
-  enum class BooleanOptions(
-    val tagId: String,
-    val tagName: String,
-    val tagHint: String,
-    val userDataKey: Key<Boolean>,
-  ) {
+  enum class BooleanOptions(val tagId: String, val tagName: String, val tagHint: String, val userDataKey: Key<Boolean>) {
     SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW(
       tagId = "com.android.tools.idea.testartifacts.testsuite.showTestResultInAndroidTestSuiteView",
       tagName = "Show results in Android Test Suite",
@@ -49,8 +42,8 @@ class GradleRunConfigurationExtension :
       tagId = "com.android.tools.idea.testartifacts.testsuite.useAndroidDevice",
       tagName = "Use Android Device",
       tagHint = "Use Android Device to run this Gradle task",
-      userDataKey = DeployableToDevice.KEY
-    );
+      userDataKey = DeployableToDevice.KEY,
+    ),
   }
 
   override fun isApplicableFor(configuration: ExternalSystemRunConfiguration): Boolean {
@@ -61,8 +54,7 @@ class GradleRunConfigurationExtension :
     return ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()
   }
 
-  override fun SettingsEditorFragmentContainer<GradleRunConfiguration>.configureFragments(
-    configuration: GradleRunConfiguration) {
+  override fun SettingsEditorFragmentContainer<GradleRunConfiguration>.configureFragments(configuration: GradleRunConfiguration) {
     BooleanOptions.entries.forEach {
       addTag(
         id = it.tagId,
@@ -77,11 +69,9 @@ class GradleRunConfigurationExtension :
 
   override fun writeExternal(runConfiguration: ExternalSystemRunConfiguration, element: Element) {
     BooleanOptions.entries.forEach {
-      element.addContent(Element(it.userDataKey.toString()).apply {
-        setText(
-          (runConfiguration.getUserData<Boolean>(it.userDataKey) == true).toString()
-        )
-      })
+      element.addContent(
+        Element(it.userDataKey.toString()).apply { setText((runConfiguration.getUserData<Boolean>(it.userDataKey) == true).toString()) }
+      )
     }
   }
 

@@ -59,8 +59,7 @@ class ResourceActionsTest {
   fun testOpenResourceActionWithInvalidXmlTag() {
     val action = OpenResourceManagerAction
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property =
-      util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
+    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     deleteXmlTag(property)
@@ -75,12 +74,7 @@ class ResourceActionsTest {
   fun testUseColorPicker() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property =
-      util.makeProperty(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.ATTR_TEXT_COLOR,
-        NlPropertyType.COLOR,
-      )
+    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
 
     // Verify that the textColor is not set:
     assertThat(property.value).isNull()
@@ -104,12 +98,7 @@ class ResourceActionsTest {
   fun testUseColorPickerWithNewProperty() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val actualProperty =
-      util.makeProperty(
-        SdkConstants.ANDROID_URI,
-        SdkConstants.ATTR_TEXT_COLOR,
-        NlPropertyType.COLOR,
-      )
+    val actualProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
     val properties: PropertiesTable<NlPropertyItem> =
       PropertiesTableImpl<NlPropertyItem>(HashBasedTable.create()).also { it.put(actualProperty) }
     val property = NlNewPropertyItem(util.model, properties)

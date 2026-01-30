@@ -20,7 +20,10 @@ import com.intellij.util.PlatformIcons
 import javax.swing.Icon
 
 interface PsJarDependency : PsBaseDependency {
-  enum class Kind { FILE, FILE_TREE }
+  enum class Kind {
+    FILE,
+    FILE_TREE,
+  }
 
   override val parent: PsModule
   val kind: Kind
@@ -28,8 +31,11 @@ interface PsJarDependency : PsBaseDependency {
   val includes: List<String>
   val excludes: List<String>
 
-  override val path: PsJarDependencyNavigationPath get() = PsJarDependencyNavigationPath(this)
-  override val icon: Icon get() = PlatformIcons.JAR_ICON
+  override val path: PsJarDependencyNavigationPath
+    get() = PsJarDependencyNavigationPath(this)
+
+  override val icon: Icon
+    get() = PlatformIcons.JAR_ICON
 }
 
 interface PsDeclaredJarDependency : PsJarDependency, PsDeclaredDependency {
@@ -37,7 +43,12 @@ interface PsDeclaredJarDependency : PsJarDependency, PsDeclaredDependency {
 }
 
 interface PsResolvedJarDependency : PsJarDependency, PsResolvedDependency {
-  override val kind: PsJarDependency.Kind get() = PsJarDependency.Kind.FILE
-  override val includes: List<String> get() = listOf()
-  override val excludes: List<String> get() = listOf()
+  override val kind: PsJarDependency.Kind
+    get() = PsJarDependency.Kind.FILE
+
+  override val includes: List<String>
+    get() = listOf()
+
+  override val excludes: List<String>
+    get() = listOf()
 }

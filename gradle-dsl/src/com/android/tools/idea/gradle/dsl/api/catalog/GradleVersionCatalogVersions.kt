@@ -24,9 +24,7 @@ interface GradleVersionCatalogVersions : GradleBlockModel {
 
   fun getAll(): Map<String, VersionDeclarationModel>
 
-  /**
-   * Adds version declaration. Returns null if string has invalid format.
-   */
+  /** Adds version declaration. Returns null if string has invalid format. */
   fun addDeclaration(alias: String, version: String): VersionDeclarationModel?
 
   fun addDeclaration(alias: String, version: VersionDeclarationSpec): VersionDeclarationModel?

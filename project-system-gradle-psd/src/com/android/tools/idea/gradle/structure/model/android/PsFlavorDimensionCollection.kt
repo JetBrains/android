@@ -17,17 +17,16 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 
-class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule)
-  : PsMutableCollectionBase<PsFlavorDimension, String, PsAndroidModule>(parent) {
+class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule) :
+  PsMutableCollectionBase<PsFlavorDimension, String, PsAndroidModule>(parent) {
   init {
     refresh()
   }
 
   override fun getKeys(from: PsAndroidModule): Set<String> =
-    (
-      from.resolvedModel?.androidProject?.flavorDimensions?.map { it }.orEmpty() +
-      from.parsedModel?.android()?.flavorDimensions()?.toList()?.map { it.toString() }.orEmpty()
-    ).toSet()
+    (from.resolvedModel?.androidProject?.flavorDimensions?.map { it }.orEmpty() +
+        from.parsedModel?.android()?.flavorDimensions()?.toList()?.map { it.toString() }.orEmpty())
+      .toSet()
 
   override fun create(key: String): PsFlavorDimension = PsFlavorDimension(parent)
 
@@ -40,10 +39,6 @@ class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun removeExisting(key: String) {
-    parent.parsedModel!!.android().flavorDimensions().let {
-      it.toList()
-        ?.first { it.toString() == key }
-        ?.delete()
-    }
+    parent.parsedModel!!.android().flavorDimensions().let { it.toList()?.first { it.toString() == key }?.delete() }
   }
 }

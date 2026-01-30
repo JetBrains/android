@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.google.common.truth.Truth.assertThat
+import java.util.Properties
 import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.USE_ANDROIDX_PROPERTY
 import org.junit.Test
-import java.util.Properties
 
 class EnableAndroidXHyperlinkTest {
   @Test

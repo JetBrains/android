@@ -48,12 +48,7 @@ class AllAttributesInspectorBuilderTest {
   fun testAllAttributes() {
     addManifest(projectRule.fixture)
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
-    val util =
-      InspectorTestUtil(
-        projectRule,
-        SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
-      )
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
     util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
@@ -203,12 +198,7 @@ class AllAttributesInspectorBuilderVisibilityTest {
 
   @Test
   fun testVisible() {
-    val util =
-      InspectorTestUtil(
-        projectRule,
-        SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
-      )
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)
     InspectorSection.ALL.visible = true
@@ -219,12 +209,7 @@ class AllAttributesInspectorBuilderVisibilityTest {
 
   @Test
   fun testHidden() {
-    val util =
-      InspectorTestUtil(
-        projectRule,
-        SdkConstants.TEXT_VIEW,
-        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName(),
-      )
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)
     InspectorSection.ALL.visible = false

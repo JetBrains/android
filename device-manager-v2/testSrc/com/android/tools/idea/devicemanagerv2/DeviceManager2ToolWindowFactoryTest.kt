@@ -14,13 +14,9 @@ class DeviceManager2ToolWindowFactoryTest {
   @Test
   fun isLibraryToolWindow() {
     val toolWindow =
-      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
-        it.id == "Device Manager 2"
-      } ?: throw AssertionError("Tool window not found")
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Manager 2" }
+        ?: throw AssertionError("Tool window not found")
 
-    Assert.assertEquals(
-      toolWindow.librarySearchClass,
-      AndroidEnvironmentChecker::class.qualifiedName,
-    )
+    Assert.assertEquals(toolWindow.librarySearchClass, AndroidEnvironmentChecker::class.qualifiedName)
   }
 }

@@ -36,6 +36,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
+
 private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode"
 
 fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
@@ -44,64 +45,67 @@ fun ProjectResolverContext.getSyncOptions(project: Project): SyncActionOptions {
   ProgressManager.checkCanceled()
   val projectResolutionMode = settings.getRequestedSyncMode()
 
-  val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get() &&
-                     GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
+  val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get() && GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
 
   val multiVariantArtifactSupport =
     GradleExperimentalSettings.getInstance().USE_MULTI_VARIANT_EXTRA_ARTIFACTS &&
-    StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
+      StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
 
   val modelConsumerVersion = ModelConsumerVersion(74, 1, ApplicationInfo.getInstance().fullApplicationName)
 
-  val studioFlags = GradleSyncStudioFlags(
-    modelConsumerVersion = modelConsumerVersion,
-    studioLatestKnownAgpVersion = AgpVersions.latestKnown.toString(),
-    studioFlagParallelSyncEnabled = parallelSync,
-    studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
-    studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
-    studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
-    studioFlagSyncStatsOutputDirectory = StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.get(),
-    studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
-    studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
-    studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
-    studioFlagMultiVariantAdditionalArtifactSupport = multiVariantArtifactSupport,
-    studioDebugMode =  studioProjectSyncDebugModeEnabled(),
-    studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get()
-                                                 && GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES,
-    studioFlagBuildRuntimeClasspathForLibraryUnitTests = StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_UNIT_TESTS.get(),
-    studioFlagBuildRuntimeClasspathForLibraryScreenshotTests = StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_SCREENSHOT_TESTS.get(),
-    studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
-    studioFlagUseFlatDependencyGraphModel = StudioFlags.USE_FLAT_DEPENDENCY_GRAPH_MODEL.get(),
-    studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get()
-  )
+  val studioFlags =
+    GradleSyncStudioFlags(
+      modelConsumerVersion = modelConsumerVersion,
+      studioLatestKnownAgpVersion = AgpVersions.latestKnown.toString(),
+      studioFlagParallelSyncEnabled = parallelSync,
+      studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
+      studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
+      studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
+      studioFlagSyncStatsOutputDirectory = StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.get(),
+      studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
+      studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
+      studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
+      studioFlagMultiVariantAdditionalArtifactSupport = multiVariantArtifactSupport,
+      studioDebugMode = studioProjectSyncDebugModeEnabled(),
+      studioFlagSkipRuntimeClasspathForLibraries =
+        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get() &&
+          GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES,
+      studioFlagBuildRuntimeClasspathForLibraryUnitTests = StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_UNIT_TESTS.get(),
+      studioFlagBuildRuntimeClasspathForLibraryScreenshotTests =
+        StudioFlags.GRADLE_BUILD_RUNTIME_CLASSPATH_FOR_LIBRARY_SCREENSHOT_TESTS.get(),
+      studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
+      studioFlagUseFlatDependencyGraphModel = StudioFlags.USE_FLAT_DEPENDENCY_GRAPH_MODEL.get(),
+      studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get(),
+    )
 
-  fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
-    LibraryFilePaths.getInstance(project).retrieveCachedLibs(),
-  )
+  fun getAdditionalArtifactsAction() =
+    AdditionalClassifierArtifactsActionOptions(LibraryFilePaths.getInstance(project).retrieveCachedLibs())
 
   return when (projectResolutionMode) {
     SingleVariantSyncProjectMode -> {
       val request = project.getProjectSyncRequest(projectPath)
       // If the variants should be set to defaults, don't select any variants and the project with re-import with the defaults.
-      val selectedVariants = if (request?.importDefaultVariants == true) {
-        SelectedVariants(emptyMap())
-      } else {
-        SelectedVariantCollector(project).collectSelectedVariants()
-      }
+      val selectedVariants =
+        if (request?.importDefaultVariants == true) {
+          SelectedVariants(emptyMap())
+        } else {
+          SelectedVariantCollector(project).collectSelectedVariants()
+        }
       SingleVariantSyncActionOptions(
         studioFlags,
         syncTestMode = request?.syncTestMode ?: SyncTestMode.PRODUCTION,
         selectedVariants,
         request?.requestedVariantChange,
-        getAdditionalArtifactsAction()
+        getAdditionalArtifactsAction(),
       )
     }
-    FetchAllVariantsMode -> AllVariantsSyncActionOptions(
-      studioFlags,
-      SyncTestMode.PRODUCTION, // No request in this mode.
-      getAdditionalArtifactsAction()
-    )
+    FetchAllVariantsMode ->
+      AllVariantsSyncActionOptions(
+        studioFlags,
+        SyncTestMode.PRODUCTION, // No request in this mode.
+        getAdditionalArtifactsAction(),
+      )
   }
 }
 

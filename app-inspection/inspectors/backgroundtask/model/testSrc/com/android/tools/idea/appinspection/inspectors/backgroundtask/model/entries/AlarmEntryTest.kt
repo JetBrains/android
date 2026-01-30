@@ -34,10 +34,7 @@ class AlarmEntryTest {
               .apply {
                 type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
                 triggerMs = 2L
-                listener =
-                  BackgroundTaskInspectorProtocol.AlarmListener.newBuilder()
-                    .apply { tag = "TAG1" }
-                    .build()
+                listener = BackgroundTaskInspectorProtocol.AlarmListener.newBuilder().apply { tag = "TAG1" }.build()
               }
               .build()
         }
@@ -64,8 +61,7 @@ class AlarmEntryTest {
 
     alarmEntry.consumeAndAssert(cancelledEvent, 2) {
       assertThat(status).isEqualTo("CANCELLED")
-      assertThat(callstacks)
-        .containsExactly(BackgroundTaskCallStack(1, "SET"), BackgroundTaskCallStack(2, "CANCELLED"))
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SET"), BackgroundTaskCallStack(2, "CANCELLED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -75,9 +71,9 @@ class AlarmEntryTest {
     val alarmEntry = AlarmEntry("1")
     val stacktrace =
       """
-        android.app.AlarmManager.setImpl(AlarmManager.java:662)
-        android.app.AlarmManager.setRepeating(AlarmManager.java:438)
-        android.com.java.profilertester.taskcategory.AlarmTask.execute(BackgroundTaskCategory.java:159)
+      android.app.AlarmManager.setImpl(AlarmManager.java:662)
+      android.app.AlarmManager.setRepeating(AlarmManager.java:438)
+      android.com.java.profilertester.taskcategory.AlarmTask.execute(BackgroundTaskCategory.java:159)
       """
         .trimIndent()
 
@@ -91,10 +87,7 @@ class AlarmEntryTest {
               .apply {
                 type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
                 triggerMs = 2L
-                listener =
-                  BackgroundTaskInspectorProtocol.AlarmListener.newBuilder()
-                    .apply { tag = "TAG1" }
-                    .build()
+                listener = BackgroundTaskInspectorProtocol.AlarmListener.newBuilder().apply { tag = "TAG1" }.build()
               }
               .build()
         }

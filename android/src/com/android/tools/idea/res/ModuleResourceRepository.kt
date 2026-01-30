@@ -43,9 +43,7 @@ private constructor(
   private val namespace: ResourceNamespace,
   addDynamicResources: Boolean,
   delegates: List<LocalResourceRepository<VirtualFile>>? = null,
-) :
-  MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name),
-  SingleNamespaceResourceRepository {
+) : MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name), SingleNamespaceResourceRepository {
 
   private val registry = ResourceFolderRegistry.getInstance(facet.module.project)
 
@@ -70,24 +68,20 @@ private constructor(
     // We subscribe to EARLY_TOPIC and not TOPIC to ensure that our listeners execute and update the
     // resources before
     // any other ResourceFolderManager listener executes.
-    facet.module.project.messageBus
-      .connect(this)
-      .subscribe(ResourceFolderManager.EARLY_TOPIC, resourceFolderListener)
+    facet.module.project.messageBus.connect(this).subscribe(ResourceFolderManager.EARLY_TOPIC, resourceFolderListener)
   }
 
   /**
    * Returns repositories for the resource directories in the given `facet` in the right order.
    *
-   * Resource directories are fetched from [ResourceFolderManager] and are assumed to be in the
-   * order returned from [SourceProviderManager.getCurrentSourceProviders], which is the inverse of
-   * what we need. The code in [MultiResourceRepository.getMap] gives priority to child repositories
-   * which are earlier in the list, so after creating repositories for every folder, we add them in
+   * Resource directories are fetched from [ResourceFolderManager] and are assumed to be in the order returned from
+   * [SourceProviderManager.getCurrentSourceProviders], which is the inverse of what we need. The code in [MultiResourceRepository.getMap]
+   * gives priority to child repositories which are earlier in the list, so after creating repositories for every folder, we add them in
    * reverse to the list.
    *
    * @param facet [AndroidFacet] that repositories will correspond to
    */
-  private fun computeChildRepositories() =
-    ResourceFolderManager.getInstance(facet).folders.asReversed().map { registry[facet, it] }
+  private fun computeChildRepositories() = ResourceFolderManager.getInstance(facet).folders.asReversed().map { registry[facet, it] }
 
   override fun refreshChildren() {
     // There are no current scenarios where this function will be called on
@@ -118,8 +112,7 @@ private constructor(
 
     // Compute new resource directories (it's possible for just the order to differ, or
     // for resource dirs to have been added and/or removed).
-    val resources: MutableList<LocalResourceRepository<VirtualFile>> =
-      ArrayList(resourceDirectories.size + other.size)
+    val resources: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(resourceDirectories.size + other.size)
     resources.addAll(other)
 
     for (dir in resourceDirectories) {
@@ -146,73 +139,49 @@ private constructor(
 
   override fun toString() = MoreObjects.toStringHelper(this).toString()
 
-  override fun getNamespaces(): MutableSet<ResourceNamespace> =
-    super<MemoryTrackingMultiResourceRepository>.getNamespaces()
+  override fun getNamespaces(): MutableSet<ResourceNamespace> = super<MemoryTrackingMultiResourceRepository>.getNamespaces()
 
   override fun getLeafResourceRepositories(): MutableCollection<SingleNamespaceResourceRepository> =
     super<MemoryTrackingMultiResourceRepository>.getLeafResourceRepositories()
 
-  override fun invalidateCache(
-    repository: SingleNamespaceResourceRepository,
-    vararg types: ResourceType,
-  ) {
+  override fun invalidateCache(repository: SingleNamespaceResourceRepository, vararg types: ResourceType) {
     super.invalidateCache(repository, *types)
 
-    application.invokeLater {
-      runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() }
-    }
+    application.invokeLater { runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() } }
   }
 
   override fun invalidateCache() {
     super.invalidateCache()
 
-    application.invokeLater {
-      runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() }
-    }
+    application.invokeLater { runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() } }
   }
 
   companion object {
     /**
-     * Creates a new resource repository for the given module, **not** including its dependent
-     * modules.
+     * Creates a new resource repository for the given module, **not** including its dependent modules.
      *
-     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable]
-     * parent.
+     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable] parent.
      *
      * @param facet the facet for the module
      * @param namespace the namespace for the repository
      * @return the resource repository
      */
     @JvmStatic
-    fun forMainResources(
-      facet: AndroidFacet,
-      parentDisposable: Disposable,
-      namespace: ResourceNamespace,
-    ) =
-      createIfNotEmpty(
-        facet,
-        parentDisposable,
-        namespace,
-        addDynamicResources = AndroidModel.isRequired(facet),
-      )
+    fun forMainResources(facet: AndroidFacet, parentDisposable: Disposable, namespace: ResourceNamespace) =
+      createIfNotEmpty(facet, parentDisposable, namespace, addDynamicResources = AndroidModel.isRequired(facet))
 
     /**
-     * Creates a new resource repository for the given module, **not** including its dependent
-     * modules.
+     * Creates a new resource repository for the given module, **not** including its dependent modules.
      *
-     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable]
-     * parent.
+     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable] parent.
      *
      * @param facet the facet for the module
      * @param namespace the namespace for the repository
      * @return the resource repository
      */
     @JvmStatic
-    fun forTestResources(
-      facet: AndroidFacet,
-      parentDisposable: Disposable,
-      namespace: ResourceNamespace,
-    ) = createIfNotEmpty(facet, parentDisposable, namespace, addDynamicResources = false)
+    fun forTestResources(facet: AndroidFacet, parentDisposable: Disposable, namespace: ResourceNamespace) =
+      createIfNotEmpty(facet, parentDisposable, namespace, addDynamicResources = false)
 
     private fun createIfNotEmpty(
       facet: AndroidFacet,
@@ -220,11 +189,7 @@ private constructor(
       namespace: ResourceNamespace,
       addDynamicResources: Boolean,
     ): LocalResourceRepository<VirtualFile> =
-      if (
-        !AndroidModel.isRequired(facet) &&
-          ResourceFolderManager.getInstance(facet).folders.isEmpty()
-      )
-        EmptyRepository(namespace)
+      if (!AndroidModel.isRequired(facet) && ResourceFolderManager.getInstance(facet).folders.isEmpty()) EmptyRepository(namespace)
       else ModuleResourceRepository(facet, parentDisposable, namespace, addDynamicResources)
 
     @TestOnly
@@ -246,13 +211,7 @@ private constructor(
         delegates.add(resourceFolderRegistry[facet, dir, namespace])
       }
 
-      return ModuleResourceRepository(
-        facet,
-        parentDisposable = facet,
-        namespace,
-        addDynamicResources = false,
-        delegates,
-      )
+      return ModuleResourceRepository(facet, parentDisposable = facet, namespace, addDynamicResources = false, delegates)
     }
   }
 }

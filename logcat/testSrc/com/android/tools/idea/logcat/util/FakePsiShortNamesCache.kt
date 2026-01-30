@@ -30,16 +30,12 @@ import com.intellij.util.Processor
 /**
  * A fake [PsiShortNamesCache] for tests.
  *
- * Minimal functionality only is provided. We currently only need to class to answer to
- * getFilesByName().
+ * Minimal functionality only is provided. We currently only need to class to answer to getFilesByName().
  */
-internal class FakePsiShortNamesCache(project: Project, filenames: List<String>) :
-  PsiShortNamesCache() {
-  private val files: Map<String, List<FakePsiFile>> =
-    filenames.groupBy({ it.substringAfterLast('/') }) { FakePsiFile(project, it) }
+internal class FakePsiShortNamesCache(project: Project, filenames: List<String>) : PsiShortNamesCache() {
+  private val files: Map<String, List<FakePsiFile>> = filenames.groupBy({ it.substringAfterLast('/') }) { FakePsiFile(project, it) }
 
-  override fun getFilesByName(name: String): Array<PsiFile> =
-    (files[name] ?: emptyList()).toTypedArray()
+  override fun getFilesByName(name: String): Array<PsiFile> = (files[name] ?: emptyList()).toTypedArray()
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     TODO("Not yet implemented")
@@ -53,27 +49,15 @@ internal class FakePsiShortNamesCache(project: Project, filenames: List<String>)
     TODO("Not yet implemented")
   }
 
-  override fun getMethodsByNameIfNotMoreThan(
-    name: String,
-    scope: GlobalSearchScope,
-    maxCount: Int,
-  ): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
     TODO("Not yet implemented")
   }
 
-  override fun getFieldsByNameIfNotMoreThan(
-    name: String,
-    scope: GlobalSearchScope,
-    maxCount: Int,
-  ): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
     TODO("Not yet implemented")
   }
 
-  override fun processMethodsWithName(
-    name: String,
-    scope: GlobalSearchScope,
-    processor: Processor<in PsiMethod>,
-  ): Boolean {
+  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<in PsiMethod>): Boolean {
     TODO("Not yet implemented")
   }
 

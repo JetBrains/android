@@ -28,8 +28,8 @@ abstract class DeclarativeIconProviderService {
   companion object {
     val instance: DeclarativeIconProviderService
       get() {
-        val service: DeclarativeIconProviderService? = ApplicationManager.getApplication().getService(
-          DeclarativeIconProviderService::class.java)
+        val service: DeclarativeIconProviderService? =
+          ApplicationManager.getApplication().getService(DeclarativeIconProviderService::class.java)
         return service ?: StandaloneDeclarativeFileIconProviderService()
       }
   }

@@ -32,8 +32,7 @@ inline fun PsiFile.withTestSqlSchema(schema: AndroidSqlTestSchema, action: () ->
   virtualFile.putUserData(AndroidSqlTestContext.TEST_SQLITE_SCHEMA_KEY, schema)
   try {
     action()
-  }
-  finally {
+  } finally {
     virtualFile.removeUserData(AndroidSqlTestContext.TEST_SQLITE_SCHEMA_KEY)
   }
 }

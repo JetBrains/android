@@ -75,19 +75,14 @@ import org.jetbrains.kotlin.config.KotlinModuleKind
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
 /**
- * An [LintIdeProject] represents a lint project, which typically corresponds to a [Module], but can
- * also correspond to a library "project" such as an [LintModelAndroidLibrary].
+ * An [LintIdeProject] represents a lint project, which typically corresponds to a [Module], but can also correspond to a library "project"
+ * such as an [LintModelAndroidLibrary].
  */
-class AndroidLintIdeProject
-internal constructor(client: LintClient, dir: File, referenceDir: File) :
+class AndroidLintIdeProject internal constructor(client: LintClient, dir: File, referenceDir: File) :
   LintIdeProject(client, dir, referenceDir) {
   companion object {
     /** Creates a set of projects for the given IntelliJ modules */
-    fun create(
-      client: LintIdeClient,
-      files: List<VirtualFile>?,
-      vararg modules: Module,
-    ): List<Project> {
+    fun create(client: LintIdeClient, files: List<VirtualFile>?, vararg modules: Module): List<Project> {
       val projects = ArrayList<Project>()
       val projectMap = Maps.newHashMap<Project, Module>()
       val moduleMap = Maps.newHashMap<Module, Project>()
@@ -119,19 +114,14 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     /**
-     * Creates a project for a single file. Also, optionally creates a main project for the file, if
-     * applicable.
+     * Creates a project for a single file. Also, optionally creates a main project for the file, if applicable.
      *
      * @param client the lint client
      * @param file the file to create a project for
      * @param module the module to create a project for
      * @return a project for the file, as well as a project (or null) for the main Android module
      */
-    fun createForSingleFile(
-      client: LintIdeClient,
-      file: VirtualFile?,
-      module: Module,
-    ): Pair<Project, Project> {
+    fun createForSingleFile(client: LintIdeClient, file: VirtualFile?, module: Module): Pair<Project, Project> {
 
       // TODO: Can make this method even more lightweight: we don't need to
       //    initialize anything in the project (source paths etc) other than the
@@ -180,9 +170,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       return Pair.create(project, main)
     }
 
-    /**
-     * Find an Android module that depends on this module; prefer app modules over library modules
-     */
+    /** Find an Android module that depends on this module; prefer app modules over library modules */
     private fun findAndroidModule(module: Module): Module? {
       if (module.isDisposed) {
         return null
@@ -201,10 +189,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       var androidModule: Module? = null
       val seen = Sets.newHashSet<Module>()
 
-      /**
-       * As a side effect also stores the first Android module it comes across in `androidModule`
-       * (if it's not an app module)
-       */
+      /** As a side effect also stores the first Android module it comes across in `androidModule` (if it's not an app module) */
       fun findAppModule(module: Module): Module? {
         if (!seen.add(module)) {
           return null
@@ -247,9 +232,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     /**
-     * Recursively add lint projects for the given module, and any other module or library it
-     * depends on, and also populate the reverse maps so we can quickly map from a lint project to a
-     * corresponding module/library (used by the lint client
+     * Recursively add lint projects for the given module, and any other module or library it depends on, and also populate the reverse maps
+     * so we can quickly map from a lint project to a corresponding module/library (used by the lint client
      */
     private fun addProjects(
       client: LintClient,
@@ -271,20 +255,9 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         // It's possible for the module to *depend* on Android code, e.g. in a Gradle
         // project there will be a top-level non-Android module
         val dependentModules =
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false)
-            .map { it.module.getMainModule() }
-            .distinct()
+          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module.getMainModule() }.distinct()
         for (dependentModule in dependentModules) {
-          addProjects(
-            client,
-            dependentModule,
-            files,
-            moduleMap,
-            libraryMap,
-            projectMap,
-            projects,
-            true,
-          )
+          addProjects(client, dependentModule, files, moduleMap, libraryMap, projectMap, projects, true)
         }
         return
       }
@@ -304,25 +277,13 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       // No, this shouldn't use getAllAndroidDependencies; we may have
       // non-Android dependencies that this won't include (e.g. Java-only
       // modules)
-      val dependentModules =
-        AndroidDependenciesCache.getAllAndroidDependencies(module, true)
-          .map { it.module.getMainModule() }
-          .distinct()
+      val dependentModules = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map { it.module.getMainModule() }.distinct()
       for (dependentModule in dependentModules) {
         val p = moduleMap[dependentModule]
         if (p != null) {
           dependencies.add(p)
         } else {
-          addProjects(
-            client,
-            dependentModule,
-            files,
-            moduleMap,
-            libraryMap,
-            projectMap,
-            dependencies,
-            true,
-          )
+          addProjects(client, dependentModule, files, moduleMap, libraryMap, projectMap, dependencies, true)
         }
       }
 
@@ -330,11 +291,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     /** Creates a new module project */
-    private fun createModuleProject(
-      client: LintClient,
-      module: Module,
-      shallowModel: Boolean,
-    ): Project? {
+    private fun createModuleProject(client: LintClient, module: Module, shallowModel: Boolean): Project? {
       val androidModule = module.findAndroidModule()
       val facet = AndroidFacet.getInstance(androidModule ?: module)
       val dir = getLintProjectDirectory(module, facet) ?: return null
@@ -344,8 +301,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         if (
           kotlinFacet != null &&
             kotlinFacet.configuration.settings.mppVersion != null &&
-            kotlinFacet.configuration.settings.kind !=
-              KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER
+            kotlinFacet.configuration.settings.kind != KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER
         ) {
           return null
         }
@@ -396,40 +352,22 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       }
     }
 
-    private fun buildModuleModel(
-      facet: AndroidFacet,
-      shallowModel: Boolean,
-    ): Result<LintModelModule> {
+    private fun buildModuleModel(facet: AndroidFacet, shallowModel: Boolean): Result<LintModelModule> {
       val model = GradleAndroidDependencyModel.get(facet)
       checkNotNull(model) { "GradleAndroidModel not available for $facet" }
       val builderModelProject = model.androidProject
       val multiVariantData = builderModelProject.multiVariantData
-      checkNotNull(multiVariantData) {
-        "GradleAndroidModel is expected to support multi variant plugins."
-      }
+      checkNotNull(multiVariantData) { "GradleAndroidModel is expected to support multi variant plugins." }
       val externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(facet.module)
       checkNotNull(externalProjectPath) { "No external project path for " + facet.module }
       val dir = File(externalProjectPath)
-      val module =
-        LintModelFactory()
-          .create(
-            builderModelProject,
-            model.variantsWithDependencies,
-            multiVariantData,
-            dir,
-            !shallowModel,
-          )
+      val module = LintModelFactory().create(builderModelProject, model.variantsWithDependencies, multiVariantData, dir, !shallowModel)
       return Result.create(module, ProjectSyncModificationTracker.getInstance(facet.module.project))
     }
 
     /** Returns the directory lint would use for a project wrapping the given module */
     private fun getLintProjectDirectory(module: Module, facet: AndroidFacet?): File? {
-      if (
-        ExternalSystemApiUtil.isExternalSystemAwareModule(
-          GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
-          module,
-        )
-      ) {
+      if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, module)) {
         val externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module)
         if (!externalProjectPath.isNullOrBlank()) {
           return File(externalProjectPath)
@@ -451,11 +389,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       return dir
     }
 
-    private fun findAndroidFacetInProject(
-      project: com.intellij.openapi.project.Project
-    ): AndroidFacet? {
-      val androidFacetsInRandomOrder =
-        ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+    private fun findAndroidFacetInProject(project: com.intellij.openapi.project.Project): AndroidFacet? {
+      val androidFacetsInRandomOrder = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
       return if (androidFacetsInRandomOrder.isEmpty()) null else androidFacetsInRandomOrder[0]
     }
   }
@@ -466,12 +401,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
   }
 
   /** Wraps an Android module */
-  private open class LintAndroidProject(
-    client: LintClient,
-    dir: File,
-    referenceDir: File,
-    protected val facet: AndroidFacet,
-  ) : LintModuleProject(client, dir, referenceDir, facet.module.getMainModule()) {
+  private open class LintAndroidProject(client: LintClient, dir: File, referenceDir: File, protected val facet: AndroidFacet) :
+    LintModuleProject(client, dir, referenceDir, facet.module.getMainModule()) {
     init {
       gradleProject = false
       library = facet.configuration.isLibraryProject
@@ -550,19 +481,13 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
 
     private fun dependsOn(id: GoogleMavenArtifactId, moduleSystem: AndroidModuleSystem): Boolean? {
       if (moduleSystem.hasResolvedDependency(id)) return true
-      androidxIdOf(id)
-        .takeIf { it != id }
-        ?.let { if (moduleSystem.hasResolvedDependency(it)) return true }
+      androidxIdOf(id).takeIf { it != id }?.let { if (moduleSystem.hasResolvedDependency(it)) return true }
       return null
     }
 
-    private fun dependsOnForGradleProject(
-      artifact: String,
-      moduleSystem: GradleModuleSystem,
-    ): Boolean? {
-      ExternalModule.tryParse(artifact)?.let {
-        if (moduleSystem.getResolvedDependency(it, DependencyScopeType.MAIN) != null) return true
-      } ?: return null
+    private fun dependsOnForGradleProject(artifact: String, moduleSystem: GradleModuleSystem): Boolean? {
+      ExternalModule.tryParse(artifact)?.let { if (moduleSystem.getResolvedDependency(it, DependencyScopeType.MAIN) != null) return true }
+        ?: return null
       if (artifact.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID)) {
         val newArtifact = AndroidxNameUtils.getCoordinateMapping(artifact)
         if (newArtifact == artifact) return null

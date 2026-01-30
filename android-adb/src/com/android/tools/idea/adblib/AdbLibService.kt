@@ -25,9 +25,8 @@ import com.intellij.openapi.project.Project
  *
  * Example: `AdbLibService.getInstance(project).session.hostServices`
  *
- * If a [Project] instance is *not* available, use [AdbLibApplicationService] instead, but
- * [Application] and [Project] could be using different SDKs. A [Project] should only use the ADB
- * provided by the SDK used in the [Project].
+ * If a [Project] instance is *not* available, use [AdbLibApplicationService] instead, but [Application] and [Project] could be using
+ * different SDKs. A [Project] should only use the ADB provided by the SDK used in the [Project].
  */
 interface AdbLibService {
   val session: AdbSession

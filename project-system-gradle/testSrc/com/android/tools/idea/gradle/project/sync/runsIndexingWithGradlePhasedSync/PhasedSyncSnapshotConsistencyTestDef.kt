@@ -28,155 +28,167 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.io.File
 
-private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
-  // TODO(b/384022658): Facet related
-  "/FACET (Kotlin)",
+private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES =
+  setOf(
+    // TODO(b/384022658): Facet related
+    "/FACET (Kotlin)",
 
-  // Individual issues
-  "/Classes" // TODO(b/384022658)
-)
-
+    // Individual issues
+    "/Classes", // TODO(b/384022658)
+  )
 
 // Additional issues with java/kmp modules, as we only operate on Android modules
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
   PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
-  // TODO(b/384022658): There are dependency related issues with non-android modules
-  DEPENDENCY_RELATED_PROPERTIES + setOf(
-    // TODO(b/384022658): Content root watching related
-    "/WATCHED_SOURCE_FOLDER",
-    "/WATCHED_RESOURCE_FOLDER",
-    "/WATCHED_TEST_SOURCE_FOLDER",
-    "/WATCHED_TEST_RESOURCE_FOLDER",
+    // TODO(b/384022658): There are dependency related issues with non-android modules
+    DEPENDENCY_RELATED_PROPERTIES +
+    setOf(
+      // TODO(b/384022658): Content root watching related
+      "/WATCHED_SOURCE_FOLDER",
+      "/WATCHED_RESOURCE_FOLDER",
+      "/WATCHED_TEST_SOURCE_FOLDER",
+      "/WATCHED_TEST_RESOURCE_FOLDER",
 
-    // TODO(b/384022658): JDK related
-    "/JDK",
-    // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-    "/*isInherited",
+      // TODO(b/384022658): JDK related
+      "/JDK",
+      // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
+      "/*isInherited",
 
-    // Individual issues
-    "/COMPILER_MODULE_EXTENSION",
-    "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
+      // Individual issues
+      "/COMPILER_MODULE_EXTENSION",
+      "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
 
-    // TODO(b/384022658): Facet related
-    // Apparently these are currently set up even for Java libraries (and aar wrapper modules)!.
-    // KMP modules are also not setup but that's expected.
-    "/FACET (Android-Gradle)",
-    // These are still present in the KMP holder modules, and not set up by phased sync, so we need to filter them out here
-    "/FACET (Android)",
-    "/EXCLUDE_FOLDER", // TODO(b/384022658)
+      // TODO(b/384022658): Facet related
+      // Apparently these are currently set up even for Java libraries (and aar wrapper modules)!.
+      // KMP modules are also not setup but that's expected.
+      "/FACET (Android-Gradle)",
+      // These are still present in the KMP holder modules, and not set up by phased sync, so we need to filter them out here
+      "/FACET (Android)",
+      "/EXCLUDE_FOLDER", // TODO(b/384022658)
 
-    // Kapt model is not handled correctly for non-Android
-    "</>kaptKotlin</>",
-    "</>kapt</>",
-  )
-
-fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
-  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
-    // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
-    "LINKED_ANDROID_MODULE_GROUP",
-    // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
-    "</>src</>jvmMain",
-    "</>src</>jvmTest",
-    // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
-    "/ORDER_ENTRY (kotlinMultiPlatform.module2", // Close paranthesis left out deliberately to include all sub-modules
-    "/ORDER_ENTRY (NonStandardSourceSetDependencies.common", // Close paranthesis left out deliberately to include all sub-modules
-    "/ORDER_ENTRY (NonStandardSourceSetDependencies.feature-b"
-  ) else -> when(testProject) {
-    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-    TestProject.KOTLIN_KAPT,
-    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-      // TODO(b/384022658): Generated class libraries aren't supported
-      "LIBRARY (Gradle: kaptGeneratedClasses [=])",
-      // TODO(b/384022658): Module level libraries are set up differently in some cases
-      "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/LibraryLevel (module)",
-      "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/IsModuleLevel (true)"
+      // Kapt model is not handled correctly for non-Android
+      "</>kaptKotlin</>",
+      "</>kapt</>",
     )
 
-    TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-      // This is stored in the facet but does actually change correctly when switching, so we need to ignore it here.
-      "/SelectedBuildVariant"
-    )
-    TestProject.MAIN_IN_ROOT -> setOf(
-      // This is incorrectly populated as a content root(!) in old sync
-      "project</>app</>AndroidManifest.xml",
-      // This is incorrectly missing from the old sync content roots
-      "project</>app</>src</>debug"
-    )
-    // TODO:(b/384022658): When syncing an already existing project with iml,
-    //  1. Some external options metadata is different
-    //  2. Holder modules have their directory as a content root (which should be incorrect)
-    TestProject.COMPATIBILITY_TESTS_AS_36 -> setOf(
-      // 1
-      "/ExternalModuleGroup",
-      "/ExternalModuleVersion",
-      // 2
-      "MODULE (AS36.features)/CONENT_ENTRY",
-      "MODULE (AS36.libs)/CONENT_ENTRY",
-      "MODULE (AS36.libs.java_lib)/CONENT_ENTRY",
-      "MODULE (AS36.app)/CONENT_ENTRY",
-      "MODULE (AS36.features.dynamicfeature)/CONENT_ENTRY",
-      "MODULE (AS36.features.dynamicfeature2)/CONENT_ENTRY",
-      "MODULE (AS36.libs.android_library)/CONENT_ENTRY"
-    )
-    TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED -> setOf(
-      // TODO(b/384022658): Generated class libraries aren't supported
-      "LIBRARY (Gradle: buildConfigGeneratedClasses [=])",
-    )
-    TestProject.TEST_SUITES -> setOf(
-      // TODO(b/445376814): Understand why they are different
-      "MODULE (project.app.second)/CONENT_ENTRY"
-    )
-    else -> emptySet()
+fun getProjectSpecificIssues(testProject: TestProject) =
+  when (testProject.template) {
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES ->
+      setOf(
+        // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
+        "LINKED_ANDROID_MODULE_GROUP",
+        // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
+        "</>src</>jvmMain",
+        "</>src</>jvmTest",
+        // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
+        "/ORDER_ENTRY (kotlinMultiPlatform.module2", // Close paranthesis left out deliberately to include all sub-modules
+        "/ORDER_ENTRY (NonStandardSourceSetDependencies.common", // Close paranthesis left out deliberately to include all sub-modules
+        "/ORDER_ENTRY (NonStandardSourceSetDependencies.feature-b",
+      )
+    else ->
+      when (testProject) {
+        // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+        TestProject.KOTLIN_KAPT,
+        TestProject.NEW_SYNC_KOTLIN_TEST ->
+          setOf(
+            // TODO(b/384022658): Generated class libraries aren't supported
+            "LIBRARY (Gradle: kaptGeneratedClasses [=])",
+            // TODO(b/384022658): Module level libraries are set up differently in some cases
+            "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/LibraryLevel (module)",
+            "/LIBRARY (Gradle: org.jetbrains:annotations:13.0 [=])/IsModuleLevel (true)",
+          )
+
+        TestProject.MULTI_FLAVOR_SWITCH_VARIANT ->
+          setOf(
+            // This is stored in the facet but does actually change correctly when switching, so we need to ignore it here.
+            "/SelectedBuildVariant"
+          )
+        TestProject.MAIN_IN_ROOT ->
+          setOf(
+            // This is incorrectly populated as a content root(!) in old sync
+            "project</>app</>AndroidManifest.xml",
+            // This is incorrectly missing from the old sync content roots
+            "project</>app</>src</>debug",
+          )
+        // TODO:(b/384022658): When syncing an already existing project with iml,
+        //  1. Some external options metadata is different
+        //  2. Holder modules have their directory as a content root (which should be incorrect)
+        TestProject.COMPATIBILITY_TESTS_AS_36 ->
+          setOf(
+            // 1
+            "/ExternalModuleGroup",
+            "/ExternalModuleVersion",
+            // 2
+            "MODULE (AS36.features)/CONENT_ENTRY",
+            "MODULE (AS36.libs)/CONENT_ENTRY",
+            "MODULE (AS36.libs.java_lib)/CONENT_ENTRY",
+            "MODULE (AS36.app)/CONENT_ENTRY",
+            "MODULE (AS36.features.dynamicfeature)/CONENT_ENTRY",
+            "MODULE (AS36.features.dynamicfeature2)/CONENT_ENTRY",
+            "MODULE (AS36.libs.android_library)/CONENT_ENTRY",
+          )
+        TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED ->
+          setOf(
+            // TODO(b/384022658): Generated class libraries aren't supported
+            "LIBRARY (Gradle: buildConfigGeneratedClasses [=])"
+          )
+        TestProject.TEST_SUITES ->
+          setOf(
+            // TODO(b/445376814): Understand why they are different
+            "MODULE (project.app.second)/CONENT_ENTRY"
+          )
+        else -> emptySet()
+      }
   }
-}
 
-private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject.template) {
-  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
-    // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
-    "Classpath/module (<PROJECT>-:module2",
-    "Classpath/module (<PROJECT>-:feature-b-MAIN)",
-    "Classpath/module (<PROJECT>-:common-commonMain)"
-  )
-  else -> when(testProject) {
-  TestProject.COMPATIBILITY_TESTS_AS_36,
-  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
-    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
-    "/CurrentVariantReportedVersions"
-  )
-  // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
-  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
-    "/BytecodeTransforms",
-  )
-  TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-      // TODO:(b/384022658): This is a quirk of this project where we have to capture the intermediate state switching variants (essentially
-      // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has completed.
-      "LIBRARY_TABLE"
-    )
-  // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
-  TestProject.PSD_SAMPLE_GROOVY -> setOf("/taskNames (testDebugUnitTest)")
-  TestProject.TWO_JARS -> setOf("/taskNames (test)")
-  else -> emptySet()
-}
-}
+private fun getProjectSpecificIdeModelIssues(testProject: TestProject) =
+  when (testProject.template) {
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES ->
+      setOf(
+        // TODO(b/384022658): Dependencies to kotlin multiplatform modules can't be set up as module set up is not supported by phased sync
+        "Classpath/module (<PROJECT>-:module2",
+        "Classpath/module (<PROJECT>-:feature-b-MAIN)",
+        "Classpath/module (<PROJECT>-:common-commonMain)",
+      )
+    else ->
+      when (testProject) {
+        TestProject.COMPATIBILITY_TESTS_AS_36,
+        TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML ->
+          setOf(
+            // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
+            "/CurrentVariantReportedVersions"
+          )
+        // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
+        TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf("/BytecodeTransforms")
+        TestProject.MULTI_FLAVOR_SWITCH_VARIANT ->
+          setOf(
+            // TODO:(b/384022658): This is a quirk of this project where we have to capture the intermediate state switching variants
+            // (essentially
+            // a second sync). We don't normally expect the library table to be present but in this case it is because a full sync has
+            // completed.
+            "LIBRARY_TABLE"
+          )
+        // The models for phased sync is fetched too early and are missing this, but it's fine as we have the rest of the tasks for variants
+        TestProject.PSD_SAMPLE_GROOVY -> setOf("/taskNames (testDebugUnitTest)")
+        TestProject.TWO_JARS -> setOf("/taskNames (test)")
+        else -> emptySet()
+      }
+  }
 
 fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject): ModuleDumpWithType {
-  val (androidEntries, rest) = projectStructure.partition { line ->
-    androidModuleNames.any { line.contains("MODULE ($it)") }
-  }
+  val (androidEntries, rest) = projectStructure.partition { line -> androidModuleNames.any { line.contains("MODULE ($it)") } }
   val projectSpecificIssues = getProjectSpecificIssues(testProject)
   return copy(
-    projectStructure = androidEntries.filter { line ->
-      (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
-       projectSpecificIssues).none { line.contains(it) }
-    }.asSequence() + rest.filter { line ->
-      (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES +
-       projectSpecificIssues).none { line.contains(it) }
-    },
-    ideModels = ideModels.filter { line ->
-        getProjectSpecificIdeModelIssues(testProject).none { line.contains(it) }
-      }
+    projectStructure =
+      androidEntries
+        .filter { line -> (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES + projectSpecificIssues).none { line.contains(it) } }
+        .asSequence() +
+        rest.filter { line ->
+          (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES + projectSpecificIssues).none { line.contains(it) }
+        },
+    ideModels = ideModels.filter { line -> getProjectSpecificIdeModelIssues(testProject).none { line.contains(it) } },
   )
 }
 
@@ -195,15 +207,22 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     Truth.assertThat(intermediateDump).isNotNull()
 
     val fullDump = project.dumpModules(knownAndroidPaths, checkObjectIdentity = true)
-    val filteredIntermediateDump = intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).let {
-      // These test project contains modules represented as iml files (or otherwise as JPS entities), so filtering them out.
-      if (testProject in setOf(
-          TestProject.COMPATIBILITY_TESTS_AS_36,
-          TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
-          TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS
-      )) it.filterToPhasedSyncModules() else it
-    }
-    val filteredFullDump = fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterToPhasedSyncModules()
+    val filteredIntermediateDump =
+      intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).let {
+        // These test project contains modules represented as iml files (or otherwise as JPS entities), so filtering them out.
+        if (
+          testProject in
+            setOf(
+              TestProject.COMPATIBILITY_TESTS_AS_36,
+              TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
+              TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS,
+            )
+        )
+          it.filterToPhasedSyncModules()
+        else it
+      }
+    val filteredFullDump =
+      fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterToPhasedSyncModules()
 
     aggregateAndThrowIfAny {
       runCatchingAndRecord {
@@ -220,8 +239,6 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     }
   }
 
-
-
   override val name: String = testProject.projectName
 
   override fun toString(): String = testProject.projectName
@@ -235,12 +252,16 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   }
 
   companion object {
-    val tests = phasedSyncTestProjects.filterNot {
-      setOf(
-      // TODO(b/384022658): KMP not supported, we could list out the individual project issues instead
-      // of filtering the entire test, but there are too many inconsistencies as of right now, so it's not very practical/useful
-      TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
-      ).contains(it)
-    }.map { PhasedSyncSnapshotConsistencyTestDef(it) }
+    val tests =
+      phasedSyncTestProjects
+        .filterNot {
+          setOf(
+              // TODO(b/384022658): KMP not supported, we could list out the individual project issues instead
+              // of filtering the entire test, but there are too many inconsistencies as of right now, so it's not very practical/useful
+              TestProject.ANDROID_KOTLIN_MULTIPLATFORM
+            )
+            .contains(it)
+        }
+        .map { PhasedSyncSnapshotConsistencyTestDef(it) }
   }
 }

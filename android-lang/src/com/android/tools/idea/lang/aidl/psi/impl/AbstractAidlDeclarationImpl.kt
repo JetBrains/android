@@ -40,14 +40,18 @@ abstract class AbstractAidlDeclarationImpl(node: ASTNode) : AidlPsiCompositeElem
   }
 
   override fun getQualifiedName(): String {
-    val prefix = when (this) {
-      is AidlMethodDeclaration, is AidlVariableDeclaration, is AidlEnumeratorDeclaration, is AidlConstantDeclaration -> {
-        (this.parent as AidlDeclaration).qualifiedName
+    val prefix =
+      when (this) {
+        is AidlMethodDeclaration,
+        is AidlVariableDeclaration,
+        is AidlEnumeratorDeclaration,
+        is AidlConstantDeclaration -> {
+          (this.parent as AidlDeclaration).qualifiedName
+        }
+        else -> {
+          containingFile.packageName
+        }
       }
-      else -> {
-        containingFile.packageName
-      }
-    }
     return if (prefix.isEmpty()) name else "$prefix.$name"
   }
 
@@ -55,10 +59,8 @@ abstract class AbstractAidlDeclarationImpl(node: ASTNode) : AidlPsiCompositeElem
     val facade = JavaPsiFacade.getInstance(project)
     val module = ModuleUtilCore.findModuleForPsiElement(this) ?: return EMPTY_ARRAY
     val moduleScope = GlobalSearchScope.moduleScope(module)
-    if (this is AidlInterfaceDeclaration ||
-      this is AidlParcelableDeclaration ||
-      this is AidlEnumDeclaration ||
-      this is AidlUnionDeclaration
+    if (
+      this is AidlInterfaceDeclaration || this is AidlParcelableDeclaration || this is AidlEnumDeclaration || this is AidlUnionDeclaration
     ) {
       val declarationClass = facade.findClass(qualifiedName, moduleScope)
       return declarationClass?.let { arrayOf(it) } ?: EMPTY_ARRAY
@@ -92,6 +94,7 @@ abstract class AbstractAidlDeclarationImpl(node: ASTNode) : AidlPsiCompositeElem
   }
 
   private fun String.getter(): String = "get" + this[0].uppercaseChar() + substring(1)
+
   private fun String.setter(): String = "set" + this[0].uppercaseChar() + substring(1)
 
   private fun getNameIdentifier(): PsiElement {

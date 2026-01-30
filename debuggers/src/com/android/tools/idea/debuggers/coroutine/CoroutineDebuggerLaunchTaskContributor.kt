@@ -23,15 +23,15 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
 
-/**
- * Responsible for setting the am start options to start the coroutine debugger agent.
- */
+/** Responsible for setting the am start options to start the coroutine debugger agent. */
 class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
 
-  override fun getAmStartOptions(applicationId: String,
-                                 configuration: AndroidRunConfigurationBase,
-                                 device: IDevice,
-                                 executor: Executor): String {
+  override fun getAmStartOptions(
+    applicationId: String,
+    configuration: AndroidRunConfigurationBase,
+    device: IDevice,
+    executor: Executor,
+  ): String {
     if (!FlagController.isCoroutineDebuggerEnabled) {
       return ""
     }

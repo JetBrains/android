@@ -17,7 +17,7 @@ package com.android.tools.idea.execution.common.debug
 
 import com.intellij.debugger.DebugEnvironment
 
-abstract class AndroidJavaDebugEnvironment: DebugEnvironment {
+abstract class AndroidJavaDebugEnvironment : DebugEnvironment {
   abstract val applicationId: String
   abstract val deviceSerialNumber: String
 }

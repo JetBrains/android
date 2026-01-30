@@ -16,17 +16,15 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
-import org.junit.Assume
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class KotlincWithQuickFixesParserTest : BuildOutputParserTest() {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private lateinit var file: File
 
@@ -39,23 +37,31 @@ class KotlincWithQuickFixesParserTest : BuildOutputParserTest() {
   fun `Cannot inline bytecode with JVM target 8 has correct quickfixes`() {
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = "e: $file: (42, 47): Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option",
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = true,
-        isDuplicateMessageAware = false,
-        group = "Kotlin Compiler",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "${file}:42:47-42:47",
-        description = """
+      gradleOutput =
+        "e: $file: (42, 47): Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option",
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message =
+              "Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = true,
+            isDuplicateMessageAware = false,
+            group = "Kotlin Compiler",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "${file}:42:47-42:47",
+            description =
+              """
         e: $file: (42, 47): Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target 1.6. Please specify proper '-jvm-target' option
         Adding support for Java 8 language features could solve this issue.
 
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="open.more.details">More information...</a>
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -63,23 +69,30 @@ class KotlincWithQuickFixesParserTest : BuildOutputParserTest() {
   fun `Calls to static methods prohibited in JVM target 6 has correct quickfixes`() {
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = "e: $file: (15, 19): Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'",
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = true,
-        isDuplicateMessageAware = false,
-        group = "Kotlin Compiler",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "${file}:15:19-15:19",
-        description = """
+      gradleOutput =
+        "e: $file: (15, 19): Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'",
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = true,
+            isDuplicateMessageAware = false,
+            group = "Kotlin Compiler",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "${file}:15:19-15:19",
+            description =
+              """
         e: $file: (15, 19): Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'
         Adding support for Java 8 language features could solve this issue.
 
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="open.more.details">More information...</a>
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 }

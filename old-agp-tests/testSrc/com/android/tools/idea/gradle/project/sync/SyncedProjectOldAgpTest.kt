@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
@@ -77,33 +76,57 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
 // Convenience test classes to run tests in the IDE. These classes are explicitly excluded from running in bazel in [OldAgpTests] since
 // it relies on [SyncedProjectsAllAgpTest] to run tests in the requested environment.
 
-class SyncProject_AGP_33Test: SyncedProjectTest(agpVersion = AGP_33)
-class SyncProject_AGP_35Test: SyncedProjectTest(agpVersion = AGP_35)
-class SyncProject_AGP_40Test: SyncedProjectTest(agpVersion = AGP_40)
-class SyncProject_AGP_41Test: SyncedProjectTest(agpVersion = AGP_41)
-class SyncProject_AGP_42Test: SyncedProjectTest(agpVersion = AGP_42)
-class SyncProject_AGP_70Test: SyncedProjectTest(agpVersion = AGP_70)
-class SyncProject_AGP_71Test: SyncedProjectTest(agpVersion = AGP_71)
-class SyncProject_AGP_72_V1Test: SyncedProjectTest(agpVersion = AGP_72_V1)
-class SyncProject_AGP_72Test: SyncedProjectTest(agpVersion = AGP_72)
-class SyncProject_AGP_73Test: SyncedProjectTest(agpVersion = AGP_73)
-class SyncProject_AGP_74Test: SyncedProjectTest(agpVersion = AGP_74)
-class SyncProject_AGP_80Test: SyncedProjectTest(agpVersion = AGP_80)
-class SyncProject_AGP_81Test: SyncedProjectTest(agpVersion = AGP_81)
-class SyncProject_AGP_82Test: SyncedProjectTest(agpVersion = AGP_82)
-class SyncProject_AGP_83Test: SyncedProjectTest(agpVersion = AGP_83)
-class SyncProject_AGP_84Test: SyncedProjectTest(agpVersion = AGP_84)
-class SyncProject_AGP_85Test: SyncedProjectTest(agpVersion = AGP_85)
-class SyncProject_AGP_86Test: SyncedProjectTest(agpVersion = AGP_86)
-class SyncProject_AGP_87Test: SyncedProjectTest(agpVersion = AGP_87)
-class SyncProject_AGP_88Test: SyncedProjectTest(agpVersion = AGP_88)
-class SyncProject_AGP_89Test: SyncedProjectTest(agpVersion = AGP_89)
-class SyncProject_AGP_8_10_Test: SyncedProjectTest(agpVersion = AGP_8_10_1)
-class SyncProject_AGP_8_11_Test: SyncedProjectTest(agpVersion = AGP_8_11)
-class SyncProject_AGP_8_12_Test: SyncedProjectTest(agpVersion = AGP_8_12)
-class SyncProject_AGP_8_13_Test: SyncedProjectTest(agpVersion = AGP_8_13)
+class SyncProject_AGP_33Test : SyncedProjectTest(agpVersion = AGP_33)
 
-class OldAgpTestProjectTest: TestProjectTest() {
+class SyncProject_AGP_35Test : SyncedProjectTest(agpVersion = AGP_35)
+
+class SyncProject_AGP_40Test : SyncedProjectTest(agpVersion = AGP_40)
+
+class SyncProject_AGP_41Test : SyncedProjectTest(agpVersion = AGP_41)
+
+class SyncProject_AGP_42Test : SyncedProjectTest(agpVersion = AGP_42)
+
+class SyncProject_AGP_70Test : SyncedProjectTest(agpVersion = AGP_70)
+
+class SyncProject_AGP_71Test : SyncedProjectTest(agpVersion = AGP_71)
+
+class SyncProject_AGP_72_V1Test : SyncedProjectTest(agpVersion = AGP_72_V1)
+
+class SyncProject_AGP_72Test : SyncedProjectTest(agpVersion = AGP_72)
+
+class SyncProject_AGP_73Test : SyncedProjectTest(agpVersion = AGP_73)
+
+class SyncProject_AGP_74Test : SyncedProjectTest(agpVersion = AGP_74)
+
+class SyncProject_AGP_80Test : SyncedProjectTest(agpVersion = AGP_80)
+
+class SyncProject_AGP_81Test : SyncedProjectTest(agpVersion = AGP_81)
+
+class SyncProject_AGP_82Test : SyncedProjectTest(agpVersion = AGP_82)
+
+class SyncProject_AGP_83Test : SyncedProjectTest(agpVersion = AGP_83)
+
+class SyncProject_AGP_84Test : SyncedProjectTest(agpVersion = AGP_84)
+
+class SyncProject_AGP_85Test : SyncedProjectTest(agpVersion = AGP_85)
+
+class SyncProject_AGP_86Test : SyncedProjectTest(agpVersion = AGP_86)
+
+class SyncProject_AGP_87Test : SyncedProjectTest(agpVersion = AGP_87)
+
+class SyncProject_AGP_88Test : SyncedProjectTest(agpVersion = AGP_88)
+
+class SyncProject_AGP_89Test : SyncedProjectTest(agpVersion = AGP_89)
+
+class SyncProject_AGP_8_10_Test : SyncedProjectTest(agpVersion = AGP_8_10_1)
+
+class SyncProject_AGP_8_11_Test : SyncedProjectTest(agpVersion = AGP_8_11)
+
+class SyncProject_AGP_8_12_Test : SyncedProjectTest(agpVersion = AGP_8_12)
+
+class SyncProject_AGP_8_13_Test : SyncedProjectTest(agpVersion = AGP_8_13)
+
+class OldAgpTestProjectTest : TestProjectTest() {
   @Test
   @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.2"])
   override fun testMigratePackageAttribute_agp71() {

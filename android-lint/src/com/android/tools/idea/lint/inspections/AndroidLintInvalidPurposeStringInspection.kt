@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PurposeDeclarationDetector
 
 class AndroidLintInvalidPurposeStringInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.invalid.purpose.string"),
-    PurposeDeclarationDetector.INVALID_PURPOSE_STRING,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.invalid.purpose.string"), PurposeDeclarationDetector.INVALID_PURPOSE_STRING)

@@ -34,9 +34,8 @@ import com.android.tools.property.panel.api.PropertiesTable
 /**
  * A [NlPropertyItem] where it is possible to edit the name of the property.
  *
- * The property is initially created with an empty name and an unknown type. When a name is
- * specified, it is matched against all known attributes. If found this property item will act as a
- * delegate to the matched property.
+ * The property is initially created with an empty name and an unknown type. When a name is specified, it is matched against all known
+ * attributes. If found this property item will act as a delegate to the matched property.
  */
 class NlNewPropertyItem(
   model: NlPropertiesModel,
@@ -80,11 +79,9 @@ class NlNewPropertyItem(
   override val libraryName: String
     get() = delegate?.libraryName ?: ""
 
-  override fun validate(text: String?): Pair<EditingErrorCategory, String> =
-    delegate?.validate(text) ?: super.validate(text)
+  override fun validate(text: String?): Pair<EditingErrorCategory, String> = delegate?.validate(text) ?: super.validate(text)
 
-  override fun getCompletionValues(): List<String> =
-    delegate?.getCompletionValues() ?: super.getCompletionValues()
+  override fun getCompletionValues(): List<String> = delegate?.getCompletionValues() ?: super.getCompletionValues()
 
   override fun isSameProperty(qualifiedName: String): Boolean {
     val (propertyNamespace, propertyName) = parseName(qualifiedName)
@@ -98,8 +95,8 @@ class NlNewPropertyItem(
   override fun hashCode() = 517
 
   /**
-   * When the property name is set to something valid, the [delegate] will be not null. All
-   * remaining properties and functions should delegate to this [delegate] if present.
+   * When the property name is set to something valid, the [delegate] will be not null. All remaining properties and functions should
+   * delegate to this [delegate] if present.
    */
   override var delegate: NlPropertyItem? = null
     private set
@@ -158,9 +155,7 @@ class NlNewPropertyItem(
     }
     val prefix = value.substring(0, prefixIndex)
     val name = value.substring(prefixIndex + 1)
-    val namespace =
-      namespaceResolver.prefixToUri(prefix)
-        ?: if (prefix == TOOLS_PREFIX) TOOLS_URI else ANDROID_URI
+    val namespace = namespaceResolver.prefixToUri(prefix) ?: if (prefix == TOOLS_PREFIX) TOOLS_URI else ANDROID_URI
     return Pair(namespace, name)
   }
 
@@ -185,30 +180,17 @@ class NlNewPropertyItem(
 
   private fun getPropertyNamesWithPrefix(): List<String> {
     val resolver = namespaceResolver
-    val result =
-      properties.values
-        .filter { filter(it) }
-        .map { getPropertyNameWithPrefix(it, resolver) }
-        .toMutableList()
+    val result = properties.values.filter { filter(it) }.map { getPropertyNameWithPrefix(it, resolver) }.toMutableList()
     properties.values
-      .filter {
-        it.designProperty.rawValue == null &&
-          it.name != ATTR_STYLE &&
-          properties.getOrNull(TOOLS_URI, it.name) == null
-      }
+      .filter { it.designProperty.rawValue == null && it.name != ATTR_STYLE && properties.getOrNull(TOOLS_URI, it.name) == null }
       .mapTo(result) { getPropertyNameWithPrefix(it.designProperty, resolver) }
     return result
   }
 
-  private fun getPropertyNameWithPrefix(
-    property: NlPropertyItem,
-    resolver: ResourceNamespace.Resolver,
-  ): String {
+  private fun getPropertyNameWithPrefix(property: NlPropertyItem, resolver: ResourceNamespace.Resolver): String {
     val name = property.name
     val prefixFromResolver = resolver.uriToPrefix(property.namespace)
-    val prefix =
-      if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX
-      else prefixFromResolver
+    val prefix = if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX else prefixFromResolver
     return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
   }
 
@@ -218,10 +200,8 @@ class NlNewPropertyItem(
     val property = findDelegate(propertyNamespace, propertyName)
     return when {
       value.isEmpty() -> EDITOR_NO_ERROR
-      property == null ->
-        Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
-      property.rawValue != null ->
-        Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
+      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
+      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
       else -> EDITOR_NO_ERROR
     }
   }

@@ -60,20 +60,8 @@ class StateMachineTest {
         }
       }
 
-    val config =
-      Config.Builder()
-        .setSelfTransitionBehavior(SelfTransitionBehavior.NOOP)
-        .setLogger(logger)
-        .setTimeSource(timeSource)
-        .build()
-    assertThat(config)
-      .isEqualTo(
-        Config(
-          selfTransitionBehavior = SelfTransitionBehavior.NOOP,
-          logger = logger,
-          timeSource = timeSource,
-        )
-      )
+    val config = Config.Builder().setSelfTransitionBehavior(SelfTransitionBehavior.NOOP).setLogger(logger).setTimeSource(timeSource).build()
+    assertThat(config).isEqualTo(Config(selfTransitionBehavior = SelfTransitionBehavior.NOOP, logger = logger, timeSource = timeSource))
   }
 
   @Test
@@ -91,16 +79,11 @@ class StateMachineTest {
   @Test
   fun illegalTransition_usesProvidedHandler_dsl() {
     val stateMachine =
-      StateMachine.stateMachine(
-        MyGreatFsmState.INITIAL,
-        Config(logger = fakeLogger),
-        StateMachine.IllegalTransitionHandler.warn(),
-      ) {}
+      StateMachine.stateMachine(MyGreatFsmState.INITIAL, Config(logger = fakeLogger), StateMachine.IllegalTransitionHandler.warn()) {}
 
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.warnLogs)
-      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
@@ -118,17 +101,14 @@ class StateMachineTest {
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.AWESOME)
 
-    assertThat(fakeLogger.warnLogs)
-      .containsExactly("Illegal state transition from INITIAL to AWESOME! Allowing anyway.")
+    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME! Allowing anyway.")
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.")
   }
 
   @Test
   fun illegalTransition_doesNotThrow_ignore() {
     val stateMachine =
-      StateMachine.Builder(MyGreatFsmState.INITIAL)
-        .setIllegalTransitionHandler(StateMachine.IllegalTransitionHandler.ignore())
-        .build()
+      StateMachine.Builder(MyGreatFsmState.INITIAL).setIllegalTransitionHandler(StateMachine.IllegalTransitionHandler.ignore()).build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
   }
@@ -141,8 +121,7 @@ class StateMachineTest {
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.warnLogs)
-      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
@@ -153,8 +132,7 @@ class StateMachineTest {
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
-    assertThat(fakeLogger.debugLogs)
-      .containsExactly("Illegal state transition from INITIAL to AWESOME!")
+    assertThat(fakeLogger.debugLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test
@@ -169,14 +147,10 @@ class StateMachineTest {
         .build()
 
     stateMachine.state = MyGreatFsmState.AWESOME
-    assertThat(illegalTransitions)
-      .containsExactly(MyGreatFsmState.INITIAL to MyGreatFsmState.AWESOME)
+    assertThat(illegalTransitions).containsExactly(MyGreatFsmState.INITIAL to MyGreatFsmState.AWESOME)
     stateMachine.state = MyGreatFsmState.AWESOMER
     assertThat(illegalTransitions)
-      .containsExactly(
-        MyGreatFsmState.INITIAL to MyGreatFsmState.AWESOME,
-        MyGreatFsmState.AWESOME to MyGreatFsmState.AWESOMER,
-      )
+      .containsExactly(MyGreatFsmState.INITIAL to MyGreatFsmState.AWESOME, MyGreatFsmState.AWESOME to MyGreatFsmState.AWESOMER)
       .inOrder()
   }
 
@@ -193,11 +167,7 @@ class StateMachineTest {
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.")
     stateMachine.state = MyGreatFsmState.AWESOMER
     assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.AWESOMER)
-    assertThat(fakeLogger.debugLogs)
-      .containsExactly(
-        "Transition from INITIAL to AWESOME.",
-        "Transition from AWESOME to AWESOMER.",
-      )
+    assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.", "Transition from AWESOME to AWESOMER.")
   }
 
   @Test
@@ -242,11 +212,7 @@ class StateMachineTest {
     val stateMachine =
       StateMachine.Builder(MyGreatFsmState.INITIAL)
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME)
-        .addTransitionCallback(
-          MyGreatFsmState.INITIAL,
-          MyGreatFsmState.AWESOME,
-          Runnable { calls++ },
-        )
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME, Runnable { calls++ })
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(calls).isEqualTo(1)
@@ -282,20 +248,14 @@ class StateMachineTest {
       StateMachine.Builder(MyGreatFsmState.INITIAL)
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME)
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME) { calls += "fifth" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) {
-          calls += "third"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "third" }
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME) { calls += "sixth" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "first" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) {
-          calls += "fourth"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "fourth" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "second" }
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
-    assertThat(calls)
-      .containsExactly("first", "second", "third", "fourth", "fifth", "sixth")
-      .inOrder()
+    assertThat(calls).containsExactly("first", "second", "third", "fourth", "fifth", "sixth").inOrder()
   }
 
   @Test
@@ -305,23 +265,13 @@ class StateMachineTest {
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME)
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME, Runnable { calls += "fifth" })
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME, Runnable { calls += "sixth" })
-        .addTransitionCallback(
-          MyGreatFsmState.INITIAL,
-          MyGreatFsmState.AWESOME,
-          Runnable { calls += "third" },
-        )
-        .addTransitionCallback(
-          MyGreatFsmState.INITIAL,
-          MyGreatFsmState.AWESOME,
-          Runnable { calls += "fourth" },
-        )
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME, Runnable { calls += "third" })
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME, Runnable { calls += "fourth" })
         .addTransitionExitCallback(MyGreatFsmState.INITIAL, Runnable { calls += "first" })
         .addTransitionExitCallback(MyGreatFsmState.INITIAL, Runnable { calls += "second" })
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
-    assertThat(calls)
-      .containsExactly("first", "second", "third", "fourth", "fifth", "sixth")
-      .inOrder()
+    assertThat(calls).containsExactly("first", "second", "third", "fourth", "fifth", "sixth").inOrder()
   }
 
   @Test
@@ -331,19 +281,13 @@ class StateMachineTest {
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME)
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME) { calls += "fifth" }
         .addTransitionEnterCallback(MyGreatFsmState.AWESOME) { calls += "sixth" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) {
-          calls += "third"
-        }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) {
-          calls += "fourth"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "third" }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "fourth" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "first" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "second" }
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
-    assertThat(calls)
-      .containsExactly("first", "second", "third", "fourth", "fifth", "sixth")
-      .inOrder()
+    assertThat(calls).containsExactly("first", "second", "third", "fourth", "fifth", "sixth").inOrder()
   }
 
   @Test
@@ -351,9 +295,7 @@ class StateMachineTest {
     val stateMachine =
       StateMachine.Builder(MyGreatFsmState.INITIAL)
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "first" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) {
-          calls += "second"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.AWESOME) { calls += "second" }
         .build()
     stateMachine.state = MyGreatFsmState.AWESOME
     assertThat(calls).containsExactly("first", "second").inOrder()
@@ -362,18 +304,11 @@ class StateMachineTest {
   @Test
   fun selfTransition_noop() {
     val stateMachine =
-      StateMachine.Builder(
-          MyGreatFsmState.INITIAL,
-          Config(selfTransitionBehavior = SelfTransitionBehavior.NOOP, logger = fakeLogger),
-        )
+      StateMachine.Builder(MyGreatFsmState.INITIAL, Config(selfTransitionBehavior = SelfTransitionBehavior.NOOP, logger = fakeLogger))
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "fifth" }
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "sixth" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
-          calls += "third"
-        }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
-          calls += "fourth"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) { calls += "third" }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) { calls += "fourth" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "first" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "second" }
         .build()
@@ -389,20 +324,14 @@ class StateMachineTest {
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL)
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "fifth" }
         .addTransitionEnterCallback(MyGreatFsmState.INITIAL) { calls += "sixth" }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
-          calls += "third"
-        }
-        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
-          calls += "fourth"
-        }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) { calls += "third" }
+        .addTransitionCallback(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) { calls += "fourth" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "first" }
         .addTransitionExitCallback(MyGreatFsmState.INITIAL) { calls += "second" }
         .build()
     stateMachine.state = MyGreatFsmState.INITIAL
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to INITIAL.")
-    assertThat(calls)
-      .containsExactly("first", "second", "third", "fourth", "fifth", "sixth")
-      .inOrder()
+    assertThat(calls).containsExactly("first", "second", "third", "fourth", "fifth", "sixth").inOrder()
   }
 
   @Test
@@ -479,17 +408,13 @@ class StateMachineTest {
       StateMachine.stateMachine(MyGreatFsmState.INITIAL) {
         MyGreatFsmState.INITIAL {
           onExit { calls += "exitInitial" }
-          transitionsTo(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) {
-            calls += "initialToInitial"
-          }
+          transitionsTo(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL) { calls += "initialToInitial" }
           transitionsTo(MyGreatFsmState.AWESOME) { calls += "initialToAwesome" }
         }
         // Also exercise the non-nested syntax.
         MyGreatFsmState.AWESOME.onEnter { calls += "enterAwesome" }
         MyGreatFsmState.AWESOME.onExit { calls += "exitAwesome" }
-        MyGreatFsmState.AWESOME.transitionsTo(MyGreatFsmState.AWESOMER, MyGreatFsmState.INITIAL) {
-          calls += "awesomeToSomethingElse"
-        }
+        MyGreatFsmState.AWESOME.transitionsTo(MyGreatFsmState.AWESOMER, MyGreatFsmState.INITIAL) { calls += "awesomeToSomethingElse" }
       }
 
     stateMachine.state = MyGreatFsmState.INITIAL

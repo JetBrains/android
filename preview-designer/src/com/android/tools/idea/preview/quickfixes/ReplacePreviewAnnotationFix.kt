@@ -37,28 +37,20 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 /**
- * Quick fix that replaces a @Preview that is not [withAnnotationFqn] with [withAnnotationFqn]. This
- * quick fix will also remove the previous @Preview import directive if it is not used elsewhere in
- * the file.
+ * Quick fix that replaces a @Preview that is not [withAnnotationFqn] with [withAnnotationFqn]. This quick fix will also remove the
+ * previous @Preview import directive if it is not used elsewhere in the file.
  *
  * This quick fix supports both Kotlin and Java annotations.
  */
-class ReplacePreviewAnnotationFix(
-  invalidAnnotation: PsiElement,
-  private val withAnnotationFqn: String,
-) : LocalQuickFixOnPsiElement(invalidAnnotation) {
+class ReplacePreviewAnnotationFix(invalidAnnotation: PsiElement, private val withAnnotationFqn: String) :
+  LocalQuickFixOnPsiElement(invalidAnnotation) {
   override fun getFamilyName() = message("inspection.quick.fix.family")
 
   override fun getText() = message("inspection.quick.fix.replace.annotation", withAnnotationFqn)
 
   private var invalidPreviewImportDirectiveFqName: String? = null
 
-  override fun isAvailable(
-    project: Project,
-    file: PsiFile,
-    startElement: PsiElement,
-    endElement: PsiElement,
-  ): Boolean {
+  override fun isAvailable(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement): Boolean {
     return when (file.language) {
       KotlinLanguage.INSTANCE -> {
         val invalidPreviewAnnotation = startElement as? KtAnnotationEntry ?: return false
@@ -75,12 +67,7 @@ class ReplacePreviewAnnotationFix(
     }
   }
 
-  override fun invoke(
-    project: Project,
-    file: PsiFile,
-    startElement: PsiElement,
-    endElement: PsiElement,
-  ) {
+  override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
     when (file.language) {
       KotlinLanguage.INSTANCE -> handleKotlin(file, startElement)
       JavaLanguage.INSTANCE -> handleJava(startElement)
@@ -93,13 +80,7 @@ class ReplacePreviewAnnotationFix(
     val parent = invalidPreviewAnnotation.parentOfType<PsiModifierListOwner>() ?: return
     val annotationAttributes = (invalidPreviewAnnotation.copy() as? PsiAnnotation)?.parameterList?.attributes ?: return
 
-    val delegateFix =
-      AddAnnotationPsiFix(
-        withAnnotationFqn,
-        parent,
-        annotationAttributes,
-        invalidPreviewAnnotationFqn,
-      )
+    val delegateFix = AddAnnotationPsiFix(withAnnotationFqn, parent, annotationAttributes, invalidPreviewAnnotationFqn)
     delegateFix.applyFix()
   }
 
@@ -121,11 +102,7 @@ class ReplacePreviewAnnotationFix(
         .forEach { it.delete() }
     }
 
-    parent.addAnnotation(
-      ClassId.fromString(withAnnotationFqn),
-      innerText,
-      searchForExistingEntry = false,
-    )
+    parent.addAnnotation(ClassId.fromString(withAnnotationFqn), innerText, searchForExistingEntry = false)
     ShortenReferencesFacility.getInstance().shorten(parent)
   }
 }

@@ -17,5 +17,5 @@ package com.android.tools.idea.device.explorer.common
 
 enum class DeviceExplorerTab {
   Files,
-  Processes;
+  Processes,
 }

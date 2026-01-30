@@ -40,14 +40,13 @@ import kotlin.math.abs
  * [ZoomController] for [NavDesignSurface]
  *
  * @param surfaceSizeProvider Provides the size of [NavDesignSurface].
- * @param viewPortProvider Provides the [DesignSurfaceViewport] of [NavDesignSurface] where the zoom
- *   is applied.
+ * @param viewPortProvider Provides the [DesignSurfaceViewport] of [NavDesignSurface] where the zoom is applied.
  * @param sceneManager [SceneManager] for the navigation editor.
  * @param sceneViewDimensionProvider Provides the Dimension of a [SceneView] of [NavDesignSurface].
  * @param analyticsManager Manager to track analytics in [DesignSurface]s
  * @param navSelectionModel The components contained in [NavDesignSurface]
- * @param scenesOwner The of the [Scene]s of the current view. In this is [NavDesignSurface] itself,
- *   such value is used to find the focused scene within the surface.
+ * @param scenesOwner The of the [Scene]s of the current view. In this is [NavDesignSurface] itself, such value is used to find the focused
+ *   scene within the surface.
  */
 class NavDesignSurfaceZoomController(
   private val surfaceSizeProvider: () -> Dimension,
@@ -71,9 +70,7 @@ class NavDesignSurfaceZoomController(
   private var zoomListener: ZoomListener? = null
 
   override fun getFitScale(): Double =
-    getFitContentIntoWindowScale(
-      getFocusedSceneView()?.let { sceneViewDimensionProvider(it) } ?: Dimension()
-    )
+    getFitContentIntoWindowScale(getFocusedSceneView()?.let { sceneViewDimensionProvider(it) } ?: Dimension())
 
   override fun canZoomToFit(): Boolean {
     if (isEmpty()) {
@@ -140,8 +137,7 @@ class NavDesignSurfaceZoomController(
 
     @SwingCoordinate val shiftedX = Coordinates.getSwingXDip(view, androidX)
     @SwingCoordinate val shiftedY = Coordinates.getSwingYDip(view, androidY)
-    viewPort.viewPosition =
-      Point(oldViewPosition.x + shiftedX - newX, oldViewPosition.y + shiftedY - newY)
+    viewPort.viewPosition = Point(oldViewPosition.x + shiftedX - newX, oldViewPosition.y + shiftedY - newY)
 
     return ret
   }

@@ -45,4 +45,3 @@ operator fun <T> (Random.() -> T).plus(that: Any): Random.() -> String = { this@
 
 /** Creates a generator that invokes the given generator and prepend its result with a given object as string. */
 operator fun <T> Any.plus(that: Random.() -> T): Random.() -> String = { this@plus.toString() + that() }
-

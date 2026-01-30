@@ -22,11 +22,11 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.Service
 
-class AddServiceToManifest : AbstractRegisterComponentAction<Service>(
-    text = "Add service to manifest",
-    componentClassName = SdkConstants.CLASS_SERVICE,
-) {
+class AddServiceToManifest :
+    AbstractRegisterComponentAction<Service>(text = "Add service to manifest", componentClassName = SdkConstants.CLASS_SERVICE) {
     override fun Application.getCurrentComponents(): List<Service> = services
+
     override fun Application.addComponent(): Service = addService()
+
     override fun Service.getComponentClass(): AndroidAttributeValue<PsiClass> = serviceClass
 }

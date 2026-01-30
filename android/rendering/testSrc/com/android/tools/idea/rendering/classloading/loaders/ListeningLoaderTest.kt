@@ -25,34 +25,30 @@ import org.junit.Test
 class ListeningLoaderTest {
   @Test
   fun `check listening`() {
-    val classes = mapOf(
-      "a.class1" to ByteArray(1),
-      "a.class2" to ByteArray(2)
-    )
+    val classes = mapOf("a.class1" to ByteArray(1), "a.class2" to ByteArray(2))
     val staticLoader = StaticLoader(classes)
     val loadedClasses = mutableSetOf<String>()
-    val classLoadingDetection = object : DelegatingClassLoader.Loader {
-      override fun loadClass(fqcn: String): ByteArray? {
-        try {
-          return staticLoader.loadClass(fqcn)
-        }
-        finally {
-          loadedClasses.add(fqcn)
+    val classLoadingDetection =
+      object : DelegatingClassLoader.Loader {
+        override fun loadClass(fqcn: String): ByteArray? {
+          try {
+            return staticLoader.loadClass(fqcn)
+          } finally {
+            loadedClasses.add(fqcn)
+          }
         }
       }
-    }
 
-    val loader = ListeningLoader(
-      classLoadingDetection,
-      onBeforeLoad = {
-        assertFalse("onBeforeLoad called after the class was loaded", loadedClasses.contains(it))
-      },
-      onAfterLoad = { fqcn, bytes ->
-        assertTrue("onAfterLoad called before the class was loaded", loadedClasses.contains(fqcn))
-        assertEquals("the contents do not match the loaded class", classes[fqcn], bytes)
-      },
-      onNotFound = { assertEquals("not.found.class", it) }
-    )
+    val loader =
+      ListeningLoader(
+        classLoadingDetection,
+        onBeforeLoad = { assertFalse("onBeforeLoad called after the class was loaded", loadedClasses.contains(it)) },
+        onAfterLoad = { fqcn, bytes ->
+          assertTrue("onAfterLoad called before the class was loaded", loadedClasses.contains(fqcn))
+          assertEquals("the contents do not match the loaded class", classes[fqcn], bytes)
+        },
+        onNotFound = { assertEquals("not.found.class", it) },
+      )
     loader.loadClass("not.found.class")
     loader.loadClass("a.class1")
     loader.loadClass("a.class2")

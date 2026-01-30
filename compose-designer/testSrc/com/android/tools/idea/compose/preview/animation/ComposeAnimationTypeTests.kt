@@ -45,8 +45,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType) :
-  AnimationPreviewTests() {
+class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType) : AnimationPreviewTests() {
 
   companion object {
     @JvmStatic
@@ -78,28 +77,22 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       assertEquals("true", toolbar.components[2].findComboBox().text)
       assertEquals("false", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) {
-        assertEquals("false", toolbar.components[2].findComboBox().text)
-      }
+      retryUntilPassing(5.seconds) { assertEquals("false", toolbar.components[2].findComboBox().text) }
       assertEquals("true", toolbar.components[4].findComboBox().text)
     }
   }
 
   @Test
   fun enumTransitionStates() = runTest {
-    setupAndCheckToolbar(
-      animationPreview,
-      animationType,
-      setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3),
-    ) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, animationType, setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)) {
+      toolbar,
+      ui ->
       // Freeze, swap, from state, label, to state
       assertEquals(5, toolbar.componentCount)
       assertEquals("State1", toolbar.components[2].findComboBox().text)
       assertEquals("State2", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) {
-        assertEquals("State2", toolbar.components[2].findComboBox().text)
-      }
+      retryUntilPassing(5.seconds) { assertEquals("State2", toolbar.components[2].findComboBox().text) }
       assertEquals("State1", toolbar.components[4].findComboBox().text)
     }
   }
@@ -117,19 +110,13 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
 
   @Test
   fun pairTransitionStates() = runTest {
-    setupAndCheckToolbar(
-      animationPreview,
-      animationType,
-      setOf(Pair(1, 1), Pair(2, 3), Pair(3, 4)),
-    ) { toolbar, ui ->
+    setupAndCheckToolbar(animationPreview, animationType, setOf(Pair(1, 1), Pair(2, 3), Pair(3, 4))) { toolbar, ui ->
       // Freeze, swap, from state, label, to state
       assertEquals(5, toolbar.componentCount)
       assertEquals("(1, 1)", toolbar.components[2].findComboBox().text)
       assertEquals("(2, 3)", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) {
-        assertEquals("(2, 3)", toolbar.components[2].findComboBox().text)
-      }
+      retryUntilPassing(5.seconds) { assertEquals("(2, 3)", toolbar.components[2].findComboBox().text) }
       assertEquals("(1, 1)", toolbar.components[4].findComboBox().text)
     }
   }
@@ -142,9 +129,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       assertEquals("false", toolbar.components[2].findComboBox().text)
       assertEquals("true", toolbar.components[4].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      retryUntilPassing(5.seconds) {
-        assertEquals("true", toolbar.components[2].findComboBox().text)
-      }
+      retryUntilPassing(5.seconds) { assertEquals("true", toolbar.components[2].findComboBox().text) }
       assertEquals("false", toolbar.components[4].findComboBox().text)
     }
   }
@@ -155,11 +140,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
 
     val clock =
       object : TestClock() {
-        override fun updateFromAndToStates(
-          animation: ComposeAnimation,
-          fromState: Any,
-          toState: Any,
-        ) {
+        override fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {
           numberOfCalls++
           throw ClassCastException("updateFromAndToStates fails")
         }
@@ -185,14 +166,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       }
     }
     retryUntilPassing(10.seconds) {
-      assertEquals(
-        true,
-        TreeWalker(ui.root)
-          .descendantStream()
-          .filter { it is JPanel && it.name == "Error Panel" }
-          .findFirst()
-          .isPresent,
-      )
+      assertEquals(true, TreeWalker(ui.root).descendantStream().filter { it is JPanel && it.name == "Error Panel" }.findFirst().isPresent)
     }
   }
 
@@ -213,8 +187,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       runCurrent()
       waitForCondition(10.seconds) { numberOfCalls == 1 }
 
-      val sliders =
-        TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
+      val sliders = TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       // Change time
       val timelineSlider = sliders[0] as JSlider

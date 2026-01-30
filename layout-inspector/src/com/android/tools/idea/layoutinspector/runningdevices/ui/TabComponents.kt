@@ -29,25 +29,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Class grouping components from a Running Devices tab. Used to inject Layout Inspector in the tab.
- * These components are disposed as soon as the tab is not visible or is not the main selected tab.
- * For this reason they should not be kept around if they don't belong to the selected tab.
+ * Class grouping components from a Running Devices tab. Used to inject Layout Inspector in the tab. These components are disposed as soon
+ * as the tab is not visible or is not the main selected tab. For this reason they should not be kept around if they don't belong to the
+ * selected tab.
  *
  * @param tabContentPanel The component containing the main content of the tab (the display).
  */
-class TabComponents(
-  val disposable: Disposable,
-  val tabContentPanel: JComponent,
-  private val displayOwner: DisplayOwner,
-) : Disposable {
+class TabComponents(val disposable: Disposable, val tabContentPanel: JComponent, private val displayOwner: DisplayOwner) : Disposable {
 
   private val lock = Any()
 
-  @GuardedBy("lock")
-  private val _displayList = MutableStateFlow<List<AbstractDisplayView>>(emptyList())
+  @GuardedBy("lock") private val _displayList = MutableStateFlow<List<AbstractDisplayView>>(emptyList())
   /**
-   * The list of [AbstractDisplayView] from running devices. Each entry corresponds to a display on
-   * the device. Layout Inspector UI is rendered on top of each display.
+   * The list of [AbstractDisplayView] from running devices. Each entry corresponds to a display on the device. Layout Inspector UI is
+   * rendered on top of each display.
    */
   val displayList = synchronized(lock) { _displayList.asStateFlow() }
 
@@ -67,9 +62,7 @@ class TabComponents(
   init {
     Disposer.register(disposable, this)
 
-    synchronized(lock) {
-      _displayList.value = tabContentPanel.allChildren().filterIsInstance<AbstractDisplayView>()
-    }
+    synchronized(lock) { _displayList.value = tabContentPanel.allChildren().filterIsInstance<AbstractDisplayView>() }
 
     displayOwner.addDeviceDisplayListener(displayListener)
   }

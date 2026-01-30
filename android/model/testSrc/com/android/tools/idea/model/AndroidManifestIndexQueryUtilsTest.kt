@@ -51,20 +51,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     modules: MutableList<MyAdditionalModuleData>,
   ) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      LIB_MODULE1_WITH_DEPENDENCY,
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true,
-    )
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      LIB_MODULE2_WITH_DEPENDENCY,
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true,
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE1_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE2_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
   }
 
   fun testIsMainManifestReady() {
@@ -116,10 +104,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         .trimIndent()
 
     val mainIntentFilter =
-      IntentFilterRawText(
-        actionNames = setOf("android.intent.action.MAIN"),
-        categoryNames = setOf("android.intent.category.DEFAULT"),
-      )
+      IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"), categoryNames = setOf("android.intent.category.DEFAULT"))
 
     val overrides = ManifestOverrides(directOverrides = emptyMap(), placeholders = emptyMap())
 
@@ -183,12 +168,10 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       """
         .trimIndent()
     updateManifestAndWaitForCondition(myModule, FN_ANDROID_MANIFEST_XML, manifestContent) {
-      myFacet.queryCustomPermissionsFromManifestIndex() ==
-        setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP")
+      myFacet.queryCustomPermissionsFromManifestIndex() == setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP")
     }
 
-    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex())
-      .isEqualTo(setOf("custom.permissions.CUSTOM_GROUP"))
+    assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(setOf("custom.permissions.CUSTOM_GROUP"))
 
     // Update the primary manifest file of additional module with dependency.
     // Query results should be the union set of custom permissions and groups declared in primary
@@ -254,11 +237,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       </manifest>
       """
         .trimIndent()
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContentNoAppTheme,
-    ) {
+    updateManifestAndWaitForCondition(myModule, FN_ANDROID_MANIFEST_XML, manifestContentNoAppTheme) {
       myFacet.queryApplicationThemeFromManifestIndex() == null
     }
   }
@@ -277,21 +256,12 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       myFacet.queryPackageNameFromManifestIndex() == "com.example"
     }
 
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContent.replace("example", "changed"),
-    ) {
+    updateManifestAndWaitForCondition(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("example", "changed")) {
       myFacet.queryPackageNameFromManifestIndex() == "com.changed"
     }
   }
 
-  private fun updateManifestAndWaitForCondition(
-    module: Module,
-    relativePath: String,
-    manifestContents: String,
-    condition: () -> Boolean,
-  ) {
+  private fun updateManifestAndWaitForCondition(module: Module, relativePath: String, manifestContents: String, condition: () -> Boolean) {
     deleteManifest(module)
     myFixture.addFileToProject(relativePath, manifestContents)
 
@@ -326,11 +296,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     assertThat(facets).containsExactly(myFacet)
 
     // change package name and see if corresponding modules are found or not
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContent.replace("example", "changed"),
-    ) {
+    updateManifestAndWaitForCondition(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("example", "changed")) {
       facets = queryByPackageName(project, "com.changed", GlobalSearchScope.projectScope(project))
       facets.size == 1
     }
@@ -396,13 +362,11 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       "additionalModules/$LIB_MODULE2_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML",
       manifestContentForLib2,
     ) {
-      facets =
-        queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project))
+      facets = queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project))
       facets.size == 2
     }
 
-    facets =
-      queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project))
+    facets = queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project))
     // manifest files in additional 2 modules are with the same package name
     assertThat(facets).containsExactly(libFacet1, libFacet2)
 
@@ -428,11 +392,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     }
 
     // change required value
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContent.replace("true", "false"),
-    ) {
+    updateManifestAndWaitForCondition(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("true", "false")) {
       myFacet.queryUsedFeaturesFromManifestIndex().singleOrNull() ==
         UsedFeatureRawText(name = "android.hardware.type.watch", required = "false")
     }

@@ -55,10 +55,10 @@ class FlowsTest {
       projectRule.fixture.addFileToProject(
         "src/Test.kt",
         """
-      fun test() {
-      }
-    """
-          .trimIndent()
+        fun test() {
+        }
+        """
+          .trimIndent(),
       )
 
     runBlocking {
@@ -66,13 +66,9 @@ class FlowsTest {
       launch(workerThread) {
         withTimeout(20.seconds) {
           try {
-            psiFileChangeFlow(projectRule.project, this@runBlocking) {
-                flowReady.complete(Unit)
-              }
+            psiFileChangeFlow(projectRule.project, this@runBlocking) { flowReady.complete(Unit) }
               .take(3)
-              .filter {
-                PsiManager.getInstance(projectRule.project).areElementsEquivalent(psiFile, it)
-              }
+              .filter { PsiManager.getInstance(projectRule.project).areElementsEquivalent(psiFile, it) }
               .collect()
           } catch (_: TimeoutCancellationException) {
             fail("Timeout waiting for the changes")
@@ -92,9 +88,7 @@ class FlowsTest {
       WriteCommandAction.runWriteCommandAction(projectRule.project) {
         projectRule.fixture.editor.executeAndSave { insertText("fun test2() {}\n") }
       }
-      WriteCommandAction.runWriteCommandAction(projectRule.project) {
-        projectRule.fixture.editor.executeAndSave { insertText("Broken") }
-      }
+      WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.editor.executeAndSave { insertText("Broken") } }
     }
   }
 
@@ -106,27 +100,16 @@ class FlowsTest {
       val flowReady = CompletableDeferred<Unit>()
       val flowScope = createChildScope()
       val syntaxErrorFlow =
-        syntaxErrorFlow(projectRule.project, projectRule.testRootDisposable) {
-            flowReady.complete(Unit)
-          }
+        syntaxErrorFlow(projectRule.project, projectRule.testRootDisposable) { flowReady.complete(Unit) }
           // Make it a hot-flow so we can collect.s
           .shareIn(flowScope, SharingStarted.Eagerly)
 
       flowReady.await()
 
-      projectRule.project.messageBus
-        .syncPublisher(ProblemListener.TOPIC)
-        .problemsAppeared(psiFile.virtualFile)
-      projectRule.project.messageBus
-        .syncPublisher(ProblemListener.TOPIC)
-        .problemsChanged(psiFile.virtualFile)
-      projectRule.project.messageBus
-        .syncPublisher(ProblemListener.TOPIC)
-        .problemsDisappeared(psiFile.virtualFile)
-      assertEquals(
-        "Appeared,Changed,Disappeared",
-        syntaxErrorFlow.take(3).map { it.javaClass.simpleName }.toList().joinToString(",")
-      )
+      projectRule.project.messageBus.syncPublisher(ProblemListener.TOPIC).problemsAppeared(psiFile.virtualFile)
+      projectRule.project.messageBus.syncPublisher(ProblemListener.TOPIC).problemsChanged(psiFile.virtualFile)
+      projectRule.project.messageBus.syncPublisher(ProblemListener.TOPIC).problemsDisappeared(psiFile.virtualFile)
+      assertEquals("Appeared,Changed,Disappeared", syntaxErrorFlow.take(3).map { it.javaClass.simpleName }.toList().joinToString(","))
       // Stop the flow so runBlocking can finalize
       flowScope.cancel()
     }

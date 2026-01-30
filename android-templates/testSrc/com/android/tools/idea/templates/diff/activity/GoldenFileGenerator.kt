@@ -22,13 +22,12 @@ import java.io.File
 import java.nio.file.Path
 
 /**
- * Generates files from a template and performs checks on them to ensure they're valid and can be
- * checked in as golden files, then copies the validated files to the output directory.
+ * Generates files from a template and performs checks on them to ensure they're valid and can be checked in as golden files, then copies
+ * the validated files to the output directory.
  *
  * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
-class GoldenFileGenerator(template: Template, goldenDirName: String) :
-  ProjectRenderer(template, goldenDirName) {
+class GoldenFileGenerator(template: Template, goldenDirName: String) : ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     val outputDir = TemplateDiffTestUtils.getOutputDir("golden").resolve(moduleName)
 

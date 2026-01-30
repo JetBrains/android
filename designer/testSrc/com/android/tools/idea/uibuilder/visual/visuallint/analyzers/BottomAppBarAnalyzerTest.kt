@@ -32,12 +32,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
           component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
             .withBounds(0, 0, 200, 200)
             .withMockView()
-            .children(
-              component("com.google.android.material.bottomappbar.BottomAppBar")
-                .matchParentWidth()
-                .height("40dp")
-                .withMockView()
-            ),
+            .children(component("com.google.android.material.bottomappbar.BottomAppBar").matchParentWidth().height("40dp").withMockView()),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
@@ -52,12 +47,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
           component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
             .withBounds(0, 0, 200, 200)
             .withMockView()
-            .children(
-              component("com.google.android.material.bottomappbar.BottomAppBar")
-                .matchParentWidth()
-                .height("40dp")
-                .withMockView()
-            ),
+            .children(component("com.google.android.material.bottomappbar.BottomAppBar").matchParentWidth().height("40dp").withMockView()),
         )
         .build()
     val tabletConfig = RenderTestUtil.getConfiguration(myModule, model.virtualFile, "Nexus 9")

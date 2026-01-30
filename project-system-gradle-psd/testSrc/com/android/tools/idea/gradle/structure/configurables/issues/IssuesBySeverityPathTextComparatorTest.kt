@@ -32,7 +32,7 @@ class IssuesBySeverityPathTextComparatorTest {
   private val highPriorityIssue = generateIssue(priority = PsIssue.Priority.HIGH_PRIORITY)
   private val textIssue = generateIssue(text = "_text")
 
-  private class TestPsPath(val path: String): PsPath {
+  private class TestPsPath(val path: String) : PsPath {
     override fun getHyperlinkDestination(context: PsContext): String? {
       return null
     }
@@ -47,15 +47,7 @@ class IssuesBySeverityPathTextComparatorTest {
 
   @Test
   fun `verify compare is by severity, path, priority and text`() {
-    val expectedOrder = listOf(
-      errorIssue,
-      pathIssue,
-      highPriorityIssue,
-      textIssue,
-      warningIssue,
-      updateIssue,
-      infoIssue,
-    )
+    val expectedOrder = listOf(errorIssue, pathIssue, highPriorityIssue, textIssue, warningIssue, updateIssue, infoIssue)
     val comparator = IssuesBySeverityPathTextComparator.INSTANCE
     val failures = mutableListOf<String>()
     for ((index1, issue1) in expectedOrder.withIndex()) {
@@ -63,21 +55,25 @@ class IssuesBySeverityPathTextComparatorTest {
         val compExpected = sign(index1 - index2)
         val compResult = sign(comparator.compare(issue1, issue2))
         if (compResult != compExpected) {
-          failures.add("The expected result when comparing ${issueToText(issue1)} and ${issueToText(issue2)} was $compExpected, but was $compResult")
+          failures.add(
+            "The expected result when comparing ${issueToText(issue1)} and ${issueToText(issue2)} was $compExpected, but was $compResult"
+          )
         }
       }
     }
     assertThat(failures).isEmpty()
   }
 
-  private fun generateIssue(severity: PsIssue.Severity = PsIssue.Severity.WARNING, path: String = "path", priority: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY, text: String = "text"): PsGeneralIssue {
-    return PsGeneralIssue(text, description = "description", TestPsPath(path), PLAY_SDK_INDEX_ISSUE, severity, priority = priority )
+  private fun generateIssue(
+    severity: PsIssue.Severity = PsIssue.Severity.WARNING,
+    path: String = "path",
+    priority: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY,
+    text: String = "text",
+  ): PsGeneralIssue {
+    return PsGeneralIssue(text, description = "description", TestPsPath(path), PLAY_SDK_INDEX_ISSUE, severity, priority = priority)
   }
 
-  private fun sign(value: Int) =
-    if (value < 0) -1
-    else if (value > 0) 1
-    else 0
+  private fun sign(value: Int) = if (value < 0) -1 else if (value > 0) 1 else 0
 
   private fun issueToText(issue: PsIssue) = "[${issue.severity}, ${(issue.path as TestPsPath).path}, ${issue.priority}, ${issue.text}]"
 }

@@ -31,9 +31,7 @@ import javax.swing.JLabel
 /**
  * Build all dependencies for the whole project and enables analysis for all targets.
  *
- *
- * Since this action may cause problems for large projects, warns the users and requests
- * confirmation if the project is large.
+ * Since this action may cause problems for large projects, warns the users and requests confirmation if the project is large.
  */
 class BuildDependenciesForProjectAction : BlazeProjectAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -42,10 +40,7 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent?) {
     val syncMan = getInstance(project)
-    val snapshot =
-      syncMan
-        .currentSnapshot
-        .orElse(null)
+    val snapshot = syncMan.currentSnapshot.orElse(null)
     if (snapshot == null) {
       syncMan.notifyError("Project not loaded", "Cannot enable analysis before project is loaded.")
       return
@@ -59,12 +54,8 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
       }
     }
 
-    val querySyncActionStats =
-      QuerySyncActionStatsScope.create(project,this.javaClass, e)
-    syncMan.enableAnalysisForWholeProject(
-      querySyncActionStats,
-      QuerySyncManager.TaskOrigin.USER_ACTION
-    )
+    val querySyncActionStats = QuerySyncActionStatsScope.create(project, this.javaClass, e)
+    syncMan.enableAnalysisForWholeProject(querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
   }
 
   internal class WarningDialog(project: Project) : DialogWrapper(project) {
@@ -76,8 +67,8 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
 
     override fun createCenterPanel(): JComponent {
       return JLabel(
-        "Your project is large. Enabling analysis for the whole project may fail,\n"
-          + "be very slow, or make the IDE slow to use afterwards. Are you sure?"
+        "Your project is large. Enabling analysis for the whole project may fail,\n" +
+          "be very slow, or make the IDE slow to use afterwards. Are you sure?"
       )
     }
 

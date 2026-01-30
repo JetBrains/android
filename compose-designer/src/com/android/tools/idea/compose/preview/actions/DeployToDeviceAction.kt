@@ -40,8 +40,7 @@ import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.base.util.module
 
 /** Action to run a Compose Preview on a device/emulator. */
-internal class DeployToDeviceAction :
-  AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
+internal class DeployToDeviceAction : AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -56,9 +55,7 @@ internal class DeployToDeviceAction :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val isTestFile =
-      e.dataContext.previewElement()?.previewBody?.let { isTestFile(it.project, it.virtualFile) }
-        ?: false
+    val isTestFile = e.dataContext.previewElement()?.previewBody?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
       val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isTestFile && !isEssentialsModeEnabled
@@ -66,19 +63,13 @@ internal class DeployToDeviceAction :
       description =
         if (isTestFile) message("action.run.description.test.files")
         else {
-          if (isEssentialsModeEnabled) message("action.run.essentials.mode.description")
-          else message("action.run.description")
+          if (isEssentialsModeEnabled) message("action.run.essentials.mode.description") else message("action.run.description")
         }
     }
   }
 
-  private fun runPreviewConfiguration(
-    project: Project,
-    module: Module,
-    previewElement: ComposePreviewElement<*>,
-  ) {
-    val factory =
-      runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
+  private fun runPreviewConfiguration(project: Project, module: Module, previewElement: ComposePreviewElement<*>) {
+    val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
     val composePreviewRunConfiguration =
       ComposePreviewRunConfiguration(project, factory, COMPOSE_PREVIEW_ACTIVITY_FQN).apply {
         name = previewElement.displaySettings.name
@@ -103,22 +94,17 @@ internal class DeployToDeviceAction :
         ?: RunManager.getInstance(project)
           .createConfiguration(composePreviewRunConfiguration, factory)
           .apply { isTemporary = true }
-          .also { configAndSettings ->
-            RunManager.getInstance(project).addConfiguration(configAndSettings)
-          }
+          .also { configAndSettings -> RunManager.getInstance(project).addConfiguration(configAndSettings) }
     (configurationAndSettings.configuration as ComposePreviewRunConfiguration).triggerSource =
       ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
     RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
-    ProgramRunnerUtil.executeConfiguration(
-      configurationAndSettings,
-      DefaultRunExecutor.getRunExecutorInstance(),
-    )
+    ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 }
 
 /**
- * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the
- * provider class FQN and the target value index.
+ * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the provider class FQN and the target value
+ * index.
  */
 private fun ComposePreviewElement<*>.previewProviderClassAndIndex() =
   if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null

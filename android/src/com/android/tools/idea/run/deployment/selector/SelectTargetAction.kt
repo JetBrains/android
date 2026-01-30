@@ -21,8 +21,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 
 /**
- * An item in the [SnapshotActionGroup]. The [DeploymentTarget] determines if the device will be
- * cold booted, quick booted, or booted with a snapshot.
+ * An item in the [SnapshotActionGroup]. The [DeploymentTarget] determines if the device will be cold booted, quick booted, or booted with a
+ * snapshot.
  */
 internal class SelectTargetAction(private val target: DeploymentTarget) : AnAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

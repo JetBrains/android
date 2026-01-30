@@ -23,13 +23,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.pom.Navigatable
 import java.nio.file.Paths
 
-
 internal class ApkMappingNavigable(private val project: Project) : NavSource {
-  /**
-   * [originalPath] is the path found in a debuggable .so file.
-   * [localPath] is the path on the local file system.
-   */
-  private data class LibraryMapping (val originalPath:String, val localPath:String)
+  /** [originalPath] is the path found in a debuggable .so file. [localPath] is the path on the local file system. */
+  private data class LibraryMapping(val originalPath: String, val localPath: String)
 
   // Cache the library mapping to avoid re-constructing it foreach location look-up.
   private val libraryMappings: List<LibraryMapping> = getLibraryMappings(project)
@@ -54,7 +50,7 @@ internal class ApkMappingNavigable(private val project: Project) : NavSource {
       .firstOrNull()
   }
 
-  /** Get all the file mappings that connect the library in the APK with a build machine.  */
+  /** Get all the file mappings that connect the library in the APK with a build machine. */
   private fun getLibraryMappings(project: Project): List<LibraryMapping> {
     // Using a list to preserve order from getSymbolFolderPathMappings and imitate LLDB's behavior.
     val sourceMap: MutableList<LibraryMapping> = ArrayList()
@@ -62,10 +58,12 @@ internal class ApkMappingNavigable(private val project: Project) : NavSource {
     for (apkFacet in ModuleManager.getInstance(project).modules.mapNotNull { ApkFacet.getInstance(it) }) {
       // getSymbolFolderPathMappings() has a lot of path records which are not mapped, they need
       // to be filtered out.
-      sourceMap.addAll(apkFacet.configuration.symbolFolderPathMappings
-                         .filter { it.value.isNotEmpty() }
-                         .filter { it.value != it.key }
-                         .map { LibraryMapping(it.key, it.value) })
+      sourceMap.addAll(
+        apkFacet.configuration.symbolFolderPathMappings
+          .filter { it.value.isNotEmpty() }
+          .filter { it.value != it.key }
+          .map { LibraryMapping(it.key, it.value) }
+      )
     }
 
     return sourceMap

@@ -57,14 +57,10 @@ class DeviceManagerPanelTest {
 
   @Test
   fun initialSortOrder() = runTestWithFixture {
-    assertThat(deviceTable.columnSorters)
-      .containsExactly(ColumnSortOrder(DeviceTableColumns.nameAttribute, SortOrder.ASCENDING))
+    assertThat(deviceTable.columnSorters).containsExactly(ColumnSortOrder(DeviceTableColumns.nameAttribute, SortOrder.ASCENDING))
   }
 
-  /**
-   * When a template is activated, the resulting handle should be just above the (hidden) template,
-   * and selected if the template was.
-   */
+  /** When a template is activated, the resulting handle should be just above the (hidden) template, and selected if the template was. */
   @Test
   fun activateTemplate() = runTestWithFixture {
     val pixel5Template = createTemplate("Pixel 5")
@@ -82,14 +78,10 @@ class DeviceManagerPanelTest {
 
     deviceHandles.send(listOf(pixel5Emulator, pixel6, pixel5Handle))
 
-    val valuesAfterActivation =
-      originalValues.toMutableList().apply { add(indexOf(pixel5Template), pixel5Handle) }
-    assertThat(deviceTable.values.map { it.key() })
-      .containsExactlyElementsIn(valuesAfterActivation)
-      .inOrder()
+    val valuesAfterActivation = originalValues.toMutableList().apply { add(indexOf(pixel5Template), pixel5Handle) }
+    assertThat(deviceTable.values.map { it.key() }).containsExactlyElementsIn(valuesAfterActivation).inOrder()
 
-    assertThat(deviceTable.selection.selectedKeys())
-      .containsExactly(ValueRowKey<DeviceRowData>(pixel5Handle))
+    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel5Handle))
   }
 
   @Test
@@ -200,14 +192,12 @@ class DeviceManagerPanelTest {
 
     assertThat(deviceTable.selection.selectedKeys()).isEmpty()
 
-    val runButton =
-      checkNotNull(fakeUi.findComponent<IconButton> { it.baseIcon == StudioIcons.Avd.RUN })
+    val runButton = checkNotNull(fakeUi.findComponent<IconButton> { it.baseIcon == StudioIcons.Avd.RUN })
     assertThat(runButton.isEnabled).isTrue()
 
     fakeUi.clickOn(runButton)
 
-    assertThat(deviceTable.selection.selectedKeys())
-      .containsExactly(ValueRowKey<DeviceRowData>(pixel4))
+    assertThat(deviceTable.selection.selectedKeys()).containsExactly(ValueRowKey<DeviceRowData>(pixel4))
   }
 
   @Test
@@ -218,16 +208,14 @@ class DeviceManagerPanelTest {
 
     val fakeUi = FakeUi(panel, createFakeWindow = true)
     fakeUi.layout()
-    assertThat((((panel.components[0]) as JPanel).components[0] as JPanel).components[0])
-      .isEqualTo(banner)
+    assertThat((((panel.components[0]) as JPanel).components[0] as JPanel).components[0]).isEqualTo(banner)
 
     // Banner component gets removed with notificationBanners flow.
     notificationBanners.send(listOf())
     yieldUntil { panel.findAllDescendants<EditorNotificationPanel>().none() }
   }
 
-  fun <T : Any> CategoryTable<T>.visibleKeys() =
-    values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
+  fun <T : Any> CategoryTable<T>.visibleKeys() = values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
 
   private fun runTestWithFixture(block: suspend Fixture.() -> Unit) = runTest {
     withContext(uiThread) {

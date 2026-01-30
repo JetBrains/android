@@ -91,14 +91,11 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Form of layout visualization which offers multiple previews for different devices in the same
- * time. It provides a convenient way to user to preview the layout in different devices.
+ * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a convenient way to user
+ * to preview the layout in different devices.
  */
-class VisualizationForm(
-  private val project: Project,
-  parentDisposable: Disposable,
-  private val initializer: ContentInitializer,
-) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener {
+class VisualizationForm(private val project: Project, parentDisposable: Disposable, private val initializer: ContentInitializer) :
+  VisualizationContent, ConfigurationSetListener, ResourceChangeListener {
   private val scope = AndroidCoroutineScope(this)
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
@@ -106,8 +103,7 @@ class VisualizationForm(
   private var myFile: VirtualFile? = null
   private val myResourceNotifyingFilesLock = ReentrantLock()
 
-  @GuardedBy("myResourceNotifyingFilesLock")
-  private val myResourceNotifyingFiles: MutableSet<VirtualFile> = HashSet()
+  @GuardedBy("myResourceNotifyingFilesLock") private val myResourceNotifyingFiles: MutableSet<VirtualFile> = HashSet()
   private var isActive = false
   private var myContentPanel: JComponent? = null
   private val myActionToolbarPanel: JComponent
@@ -115,22 +111,13 @@ class VisualizationForm(
 
   @GuardedBy("myCancelRenderingTaskLock") private var myCancelRenderingTask: Runnable? = null
 
-  /**
-   * Contains the editor that is currently being loaded. Once the file is loaded, myPendingEditor
-   * will be null.
-   */
+  /** Contains the editor that is currently being loaded. Once the file is loaded, myPendingEditor will be null. */
   private var myPendingEditor: FileEditor? = null
   private var myEditor: FileEditor? = null
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
   private val myLayoutOption =
-    SurfaceLayoutOption(
-      "Layout",
-      { GridLayoutManager() },
-      false,
-      SceneViewAlignment.LEFT,
-      SurfaceLayoutOption.LayoutType.OrganizationGrid,
-    )
+    SurfaceLayoutOption("Layout", { GridLayoutManager() }, false, SceneViewAlignment.LEFT, SurfaceLayoutOption.LayoutType.OrganizationGrid)
   private val myUpdateQueue: MergingUpdateQueue
 
   private var myCancelPendingModelLoad = AtomicBoolean(false)
@@ -155,38 +142,28 @@ class VisualizationForm(
 
   init {
     Disposer.register(parentDisposable, this)
-    myCurrentConfigurationSet =
-      VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
+    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
     val config = LayoutScannerEnabled()
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
       NlSurfaceBuilder.builder(project, this@VisualizationForm) { surface, model ->
-          LayoutlibSceneManager(
-              model,
-              surface,
-              layoutScannerConfig = config,
-              listenToResourceChanges = false,
-            )
-            .apply {
-              updateAndRenderWhenActivated = false
-              sceneRenderConfiguration.let {
-                it.showDecorations =
-                  VisualizationToolSettings.getInstance().globalState.showDecoration
-                it.useImagePool = false
-                // 0.5f makes it spend 50% memory.
-                it.quality = 0.5f
-                it.logRenderErrors = false
-              }
+          LayoutlibSceneManager(model, surface, layoutScannerConfig = config, listenToResourceChanges = false).apply {
+            updateAndRenderWhenActivated = false
+            sceneRenderConfiguration.let {
+              it.showDecorations = VisualizationToolSettings.getInstance().globalState.showDecoration
+              it.useImagePool = false
+              // 0.5f makes it spend 50% memory.
+              it.quality = 0.5f
+              it.logRenderErrors = false
             }
+          }
         }
         .setActionManagerProvider { surface: DesignSurface<*> ->
           VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
         }
-        .setInteractionHandlerProvider { surface: DesignSurface<*> ->
-          VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
-        }
+        .setInteractionHandlerProvider { surface: DesignSurface<*> -> VisualizationInteractionHandler(surface) { myCurrentModelsProvider } }
         .setLayoutOption(myLayoutOption)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
         .setDelegateUiDataProvider {
@@ -221,8 +198,7 @@ class VisualizationForm(
 
     scope.launch {
       surface.zoomChanged.collect {
-        VisualizationToolProjectSettings.getInstance(project).projectState.scale =
-          surface.zoomController.scale
+        VisualizationToolProjectSettings.getInstance(project).projectState.scale = surface.zoomController.scale
       }
     }
 
@@ -256,8 +232,7 @@ class VisualizationForm(
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be
     // tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
-    val actionToolbar =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true)
+    val actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true)
     actionToolbar.setTargetComponent(surface)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     val toolbarComponent = actionToolbar.component
@@ -265,8 +240,7 @@ class VisualizationForm(
     toolbarPanel.add(toolbarComponent, BorderLayout.CENTER)
     val lintGroup = DefaultActionGroup()
     lintGroup.add(IssuePanelToggleAction())
-    val lintToolbar =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
+    val lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
     lintToolbar.setTargetComponent(surface)
     ActionToolbarUtil.makeToolbarNavigable(lintToolbar)
     toolbarPanel.add(lintToolbar.component, BorderLayout.EAST)
@@ -295,11 +269,9 @@ class VisualizationForm(
   }
 
   /**
-   * Specifies the next editor the preview should be shown for. The update of the preview may be
-   * delayed.
+   * Specifies the next editor the preview should be shown for. The update of the preview may be delayed.
    *
-   * @return true on success. False if the preview update is not possible (e.g. the file for the
-   *   editor cannot be found).
+   * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   override fun setNextEditor(editor: FileEditor): Boolean {
     if (getFolderType(editor.file) != ResourceFolderType.LAYOUT) {
@@ -339,10 +311,7 @@ class VisualizationForm(
     myWorkBench.setLoadingText("Waiting for build to finish...")
   }
 
-  /**
-   * Called by [VisualizationForm.ContentInitializer] when build was either cancelled or there was
-   * an error.
-   */
+  /** Called by [VisualizationForm.ContentInitializer] when build was either cancelled or there was an error. */
   fun showErrorMessage() {
     myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync")
   }
@@ -370,11 +339,7 @@ class VisualizationForm(
       val facet = if (file != null) AndroidFacet.getInstance(file) else null
       val models =
         facet?.let {
-          myCurrentModelsProvider.createNlModels(
-            this@VisualizationForm,
-            file!!,
-            AndroidBuildTargetReference.from(it, targetFile),
-          )
+          myCurrentModelsProvider.createNlModels(this@VisualizationForm, file!!, AndroidBuildTargetReference.from(it, targetFile))
         } ?: emptyList()
       if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
       if (models.isEmpty() || isRequestCancelled.get()) {
@@ -382,9 +347,7 @@ class VisualizationForm(
       } else {
         myWorkBench.showContent()
         interruptRendering()
-        ApplicationManager.getApplication().invokeLater {
-          surface.registerIndicator(myProgressIndicator)
-        }
+        ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
         // In visualization tool, we add model and layout the scroll pane before rendering
         surface.addModelsWithoutRender(models)
       }
@@ -397,9 +360,7 @@ class VisualizationForm(
       // and the models are added, so it would layout correctly.
       withContext(Dispatchers.EDT) { relayoutAndZoomToFit() }
 
-      ApplicationManager.getApplication().invokeLater {
-        surface.unregisterIndicator(myProgressIndicator)
-      }
+      ApplicationManager.getApplication().invokeLater { surface.unregisterIndicator(myProgressIndicator) }
       if (!isRequestCancelled.get() && facet?.isDisposed == false) {
         withContext(Dispatchers.EDT) { activateEditor(models.isNotEmpty()) }
       } else {
@@ -523,14 +484,10 @@ class VisualizationForm(
         object : Update("update") {
           override fun run() {
             // Show and hide progress indicator during rendering.
-            ApplicationManager.getApplication().invokeLater {
-              surface.registerIndicator(myProgressIndicator)
-            }
+            ApplicationManager.getApplication().invokeLater { surface.registerIndicator(myProgressIndicator) }
             scope.launch {
               renderCurrentModels()
-              ApplicationManager.getApplication().invokeLater {
-                surface.unregisterIndicator(myProgressIndicator)
-              }
+              ApplicationManager.getApplication().invokeLater { surface.unregisterIndicator(myProgressIndicator) }
             }
           }
 
@@ -560,9 +517,7 @@ class VisualizationForm(
       if (!isRenderingCanceled.get()) {
         manager.sceneRenderConfiguration.needsInflation.set(true)
         manager.requestRenderAndWait()
-        scope.launch {
-          visualLintHandler.afterRenderCompleted(manager) { !isActive || isRenderingCanceled.get() }
-        }
+        scope.launch { visualLintHandler.afterRenderCompleted(manager) { !isActive || isRenderingCanceled.get() } }
       }
     }
     surface.issueModel.updateErrorsList()
@@ -601,14 +556,13 @@ class VisualizationForm(
       surface.activate()
       analyticsManager.trackVisualizationToolWindow(true)
       visualLintHandler.onActivate()
-      IssuePanelService.getDesignerCommonIssuePanel(project)
-        ?.addIssueSelectionListener(surface.issueListener, surface)
+      IssuePanelService.getDesignerCommonIssuePanel(project)?.addIssueSelectionListener(surface.issueListener, surface)
     }
   }
 
   /**
-   * Disables the updates for this preview form. Any changes to resources or the layout won't update
-   * this preview until [.activate] is called.
+   * Disables the updates for this preview form. Any changes to resources or the layout won't update this preview until [.activate] is
+   * called.
    */
   override fun deactivate() {
     interruptRendering()
@@ -624,8 +578,7 @@ class VisualizationForm(
     }
     analyticsManager.trackVisualizationToolWindow(false)
     visualLintHandler.onDeactivate()
-    IssuePanelService.getDesignerCommonIssuePanel(project)
-      ?.removeIssueSelectionListener(surface.issueListener)
+    IssuePanelService.getDesignerCommonIssuePanel(project)?.removeIssueSelectionListener(surface.issueListener)
     myFile?.let { FileEditorManager.getInstance(project).getSelectedEditor(it)?.selectNotify() }
   }
 
@@ -633,8 +586,7 @@ class VisualizationForm(
     if (myCurrentConfigurationSet !== newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet
       trackOpenConfigSet(surface, myCurrentConfigurationSet)
-      VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
-        newConfigurationSet
+      VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet = newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
       surface.zoomController.resetZoomToFitSettings(false, surface.size)
@@ -668,8 +620,7 @@ class VisualizationForm(
   }
 
   private inner class ToggleShowDecorationAction : ToggleAction("Show System UI") {
-    override fun isSelected(e: AnActionEvent): Boolean =
-      VisualizationToolSettings.getInstance().globalState.showDecoration
+    override fun isSelected(e: AnActionEvent): Boolean = VisualizationToolSettings.getInstance().globalState.showDecoration
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       VisualizationToolSettings.getInstance().globalState.showDecoration = state
@@ -689,8 +640,7 @@ class VisualizationForm(
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 
-  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface<*>) :
-    DefaultFocusTraversalPolicy() {
+  private class VisualizationTraversalPolicy(private val mySurface: DesignSurface<*>) : DefaultFocusTraversalPolicy() {
     override fun getDefaultComponent(aContainer: Container): Component {
       return mySurface.layeredPane
     }
@@ -716,10 +666,8 @@ class VisualizationForm(
 
   companion object {
     @VisibleForTesting const val VISUALIZATION_DESIGN_SURFACE_NAME = "Layout Validation"
-    private val VISUALIZATION_SUPPORTED_ACTIONS: Set<NlSupportedActions> =
-      ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL)
+    private val VISUALIZATION_SUPPORTED_ACTIONS: Set<NlSupportedActions> = ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
-    @JvmField
-    val VISUALIZATION_FORM = DataKey.create<VisualizationForm>(VisualizationForm::class.java.name)
+    @JvmField val VISUALIZATION_FORM = DataKey.create<VisualizationForm>(VisualizationForm::class.java.name)
   }
 }

@@ -29,8 +29,7 @@ import org.junit.Test
 
 class MetadataHelperKtTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun getMetadata() {
@@ -38,39 +37,48 @@ class MetadataHelperKtTest {
     val png = rule.fixture.copyFileToProject("res/drawable/png.png", "src/res/drawable-hdpi/png.png")
     // Adding Xml file to test project with a String to avoid a file size inconsistency caused by different line endings when running the
     // test in Windows & Windows continuous build.
-    val vector = rule.fixture.addFileToProject(
-      "src/res/drawable-anydpi/vector_drawable.xml",
-      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "        android:width=\"24dp\"\n" +
-      "        android:height=\"24dp\"\n" +
-      "        android:viewportWidth=\"24.0\"\n" +
-      "        android:viewportHeight=\"24.0\"\n" +
-      "        android:tint=\"?attr/colorControlNormal\">\n" +
-      "    <path\n" +
-      "        android:fillColor=\"@android:color/white\"\n" +
-      "        android:pathData=\"M9,16.2L4.8,12l-1.4,1.4L9,19 21,7l-1.4,-1.4L9,16.2z\"/>\n" +
-      "</vector>").virtualFile
+    val vector =
+      rule.fixture
+        .addFileToProject(
+          "src/res/drawable-anydpi/vector_drawable.xml",
+          "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+            "        android:width=\"24dp\"\n" +
+            "        android:height=\"24dp\"\n" +
+            "        android:viewportWidth=\"24.0\"\n" +
+            "        android:viewportHeight=\"24.0\"\n" +
+            "        android:tint=\"?attr/colorControlNormal\">\n" +
+            "    <path\n" +
+            "        android:fillColor=\"@android:color/white\"\n" +
+            "        android:pathData=\"M9,16.2L4.8,12l-1.4,1.4L9,19 21,7l-1.4,-1.4L9,16.2z\"/>\n" +
+            "</vector>",
+        )
+        .virtualFile
 
-    Truth.assertThat(png.getMetadata()).containsExactly(FILE_NAME, "png.png",
-                                                        FILE_TYPE, "PNG",
-                                                        DENSITY, "High Density",
-                                                        FILE_SIZE, "114 B",
-                                                        DIMENSIONS_PX, "32x32",
-                                                        DIMENSIONS_DP, "21x21")
+    Truth.assertThat(png.getMetadata())
+      .containsExactly(
+        FILE_NAME,
+        "png.png",
+        FILE_TYPE,
+        "PNG",
+        DENSITY,
+        "High Density",
+        FILE_SIZE,
+        "114 B",
+        DIMENSIONS_PX,
+        "32x32",
+        DIMENSIONS_DP,
+        "21x21",
+      )
 
-    Truth.assertThat(vector.getMetadata()).containsExactly(FILE_NAME, "vector_drawable.xml",
-                                                           FILE_TYPE, "Vector drawable",
-                                                           DENSITY, "Any Density",
-                                                           FILE_SIZE, "399 B")
+    Truth.assertThat(vector.getMetadata())
+      .containsExactly(FILE_NAME, "vector_drawable.xml", FILE_TYPE, "Vector drawable", DENSITY, "Any Density", FILE_SIZE, "399 B")
   }
 
   @Test
   fun getMetadataFromCorruptFileShouldNotCrash() {
     rule.fixture.testDataPath = getTestDataDirectory()
     val png = rule.fixture.copyFileToProject("res/drawable/png.png", "src/res/drawable-hdpi/png.webp")
-    Truth.assertThat(png.getMetadata()).containsExactly(FILE_NAME, "png.webp",
-                                                        FILE_TYPE, "WEBP",
-                                                        DENSITY, "High Density",
-                                                        FILE_SIZE, "114 B")
+    Truth.assertThat(png.getMetadata())
+      .containsExactly(FILE_NAME, "png.webp", FILE_TYPE, "WEBP", DENSITY, "High Density", FILE_SIZE, "114 B")
   }
 }

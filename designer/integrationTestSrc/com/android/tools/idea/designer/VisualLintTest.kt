@@ -19,11 +19,11 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
 class VisualLintTest {
 
@@ -51,28 +51,17 @@ class VisualLintTest {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val dashboardPath: Path =
-        project.targetProject.resolve("app/src/main/res/layout/fragment_dashboard.xml")
+      val dashboardPath: Path = project.targetProject.resolve("app/src/main/res/layout/fragment_dashboard.xml")
       studio.openFile("visualLintApplication", dashboardPath.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 2 errors found",
-        10,
-        TimeUnit.SECONDS,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 2 errors found", 10, TimeUnit.SECONDS)
 
-      val notificationsPath: Path =
-        project.targetProject.resolve("app/src/main/res/layout/fragment_notifications.xml")
+      val notificationsPath: Path = project.targetProject.resolve("app/src/main/res/layout/fragment_notifications.xml")
       studio.openFile("visualLintApplication", notificationsPath.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 1 error found",
-        10,
-        TimeUnit.SECONDS,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 1 error found", 10, TimeUnit.SECONDS)
 
-      val homePath: Path =
-        project.targetProject.resolve("app/src/main/res/layout/fragment_home.xml")
+      val homePath: Path = project.targetProject.resolve("app/src/main/res/layout/fragment_home.xml")
       studio.openFile("visualLintApplication", homePath.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
       system.installation.ideaLog.waitForMatchingLine(
@@ -80,11 +69,7 @@ class VisualLintTest {
         10,
         TimeUnit.SECONDS,
       )
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 2 errors found",
-        10,
-        TimeUnit.SECONDS,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 2 errors found", 10, TimeUnit.SECONDS)
 
       // Make button 100dp wide instead of 0dp (corresponding to match_parent). That should fix one
       // of the issues.
@@ -94,11 +79,7 @@ class VisualLintTest {
         10,
         TimeUnit.SECONDS,
       )
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 1 error found",
-        60,
-        TimeUnit.SECONDS,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 1 error found", 60, TimeUnit.SECONDS)
     }
   }
 }

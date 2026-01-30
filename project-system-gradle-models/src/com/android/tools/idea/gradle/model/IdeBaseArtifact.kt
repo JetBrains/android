@@ -19,11 +19,10 @@ import java.io.File
 import java.io.Serializable
 
 sealed interface IdeBaseArtifactCore : Serializable {
-  /** Name of the artifact. This should match [ArtifactMetaData.getName].  */
+  /** Name of the artifact. This should match [ArtifactMetaData.getName]. */
   val name: IdeArtifactName
 
-  /** @return the name of the task used to compile the code.
-   */
+  /** @return the name of the task used to compile the code. */
   val compileTaskName: String?
 
   /**
@@ -41,8 +40,7 @@ sealed interface IdeBaseArtifactCore : Serializable {
   val classesFolder: Collection<File>
 
   /**
-   * A SourceProvider specific to the variant. This can be null if there is no flavors as the
-   * "variant" is equal to the build type.
+   * A SourceProvider specific to the variant. This can be null if there is no flavors as the "variant" is equal to the build type.
    *
    * @return the variant specific source provider
    */
@@ -51,10 +49,8 @@ sealed interface IdeBaseArtifactCore : Serializable {
   /**
    * A SourceProvider specific to the flavor combination.
    *
-   *
-   * For instance if there are 2 dimensions, then this would be Flavor1Flavor2, and would be
-   * common to all variant using these two flavors and any of the build type.
-   *
+   * For instance if there are 2 dimensions, then this would be Flavor1Flavor2, and would be common to all variant using these two flavors
+   * and any of the build type.
    *
    * This can be null if there is less than 2 flavors.
    *
@@ -63,15 +59,13 @@ sealed interface IdeBaseArtifactCore : Serializable {
   val multiFlavorSourceProvider: IdeSourceProvider?
 
   /**
-   * Returns names of tasks that need to be run when setting up the IDE project. After these tasks
-   * have run, all the generated source files etc. that the IDE needs to know about should be in
-   * place.
+   * Returns names of tasks that need to be run when setting up the IDE project. After these tasks have run, all the generated source files
+   * etc. that the IDE needs to know about should be in place.
    */
   val ideSetupTaskNames: List<String>
 
   /**
-   * Returns all the source folders that are generated. This is typically folders for the R, the
-   * aidl classes, and the renderscript classes.
+   * Returns all the source folders that are generated. This is typically folders for the R, the aidl classes, and the renderscript classes.
    *
    * @return a list of folders.
    * @since 1.2
@@ -81,10 +75,7 @@ sealed interface IdeBaseArtifactCore : Serializable {
   val unresolvedDependencies: List<IdeUnresolvedDependency>
   val generatedClassPaths: Map<String, File>
 
-  /**
-   * All bytecode transformations done by AGP or 3P plugins. If this information is not provided by AGP,
-   * `null` is returned.
-   */
+  /** All bytecode transformations done by AGP or 3P plugins. If this information is not provided by AGP, `null` is returned. */
   val bytecodeTransforms: Collection<IdeBytecodeTransformation>?
 }
 

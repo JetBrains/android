@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 @file:JvmName("StudioCrash")
+
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.diagnostics.StudioCrashDetails
 import com.android.tools.idea.diagnostics.StudioCrashDetection
 
 private fun isCrashCausedByLayoutlib(crash: StudioCrashDetails): Boolean {
-  return crash.isJvmCrash &&
-         (crash.errorThread.contains("Layoutlib Render Thread") || crash.errorFrame.contains("libandroid_runtime"));
+  return crash.isJvmCrash && (crash.errorThread.contains("Layoutlib Render Thread") || crash.errorFrame.contains("libandroid_runtime"))
 }
 
 /** Detects is any of studio crashes are caused by Layoutlib. */

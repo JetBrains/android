@@ -76,19 +76,7 @@ class HelpActionsTest {
   @Test
   fun testHelpForCustomPropertyWithoutDocumentation() = runBlocking {
     val property =
-      NlPropertyItem(
-        AUTO_URI,
-        "legend",
-        NlPropertyType.BOOLEAN,
-        null,
-        "",
-        "",
-        mock(),
-        mock(),
-        null,
-        null,
-        supervisorScope = this,
-      )
+      NlPropertyItem(AUTO_URI, "legend", NlPropertyType.BOOLEAN, null, "", "", mock(), mock(), null, null, supervisorScope = this)
 
     withContext(uiThread) {
       assertThat(helpTextInPopup(property))
@@ -104,7 +92,7 @@ class HelpActionsTest {
               </div>
              </body>
             </html>
-          """
+            """
               .trimIndent()
           )
         )
@@ -122,17 +110,17 @@ class HelpActionsTest {
         normalizeHtml(
           // language=HTML
           """
-        <html>
-         <head></head>
-         <body>
-          <div class="content">
-           <p><b>android:text</b><br>
-           <br>Formats: string<br>
-           <br>Text to display.</p>
-          </div>
-         </body>
-        </html>
-      """
+          <html>
+           <head></head>
+           <body>
+            <div class="content">
+             <p><b>android:text</b><br>
+             <br>Formats: string<br>
+             <br>Text to display.</p>
+            </div>
+           </body>
+          </html>
+          """
             .trimIndent()
         )
       )
@@ -142,18 +130,13 @@ class HelpActionsTest {
     val context =
       SimpleDataContext.builder()
         .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(
-          DOCUMENTATION_TARGETS,
-          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) }),
-        )
+        .add(DOCUMENTATION_TARGETS, listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) }))
         .build()
     val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     HelpActions.help.actionPerformed(event)
     waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
-    val doc =
-      UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
-        .singleOrNull() ?: error("No doc?")
+    val doc = UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java).singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
 
     return normalizeHtml(doc.text)
@@ -162,41 +145,28 @@ class HelpActionsTest {
   @Test
   fun testFilterRawAttributeComment() {
     val comment = "Here is a\n" + "        comment with an\n" + "        odd formatting."
-    assertThat(HelpActions.filterRawAttributeComment(comment))
-      .isEqualTo("Here is a comment with an odd formatting.")
+    assertThat(HelpActions.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
   }
 
   @Test
   fun testToHelpUrl() {
     assertThat(toHelpUrl(FQCN_IMAGE_VIEW, ATTR_SRC))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src")
 
     assertThat(toHelpUrl(FQCN_TEXT_VIEW, ATTR_FONT_FAMILY))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily")
 
     assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_HEIGHT))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height")
 
     assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_MARGIN_BOTTOM))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom")
 
     assertThat(toHelpUrl(CONSTRAINT_LAYOUT.oldName(), ATTR_LAYOUT_TO_END_OF))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html")
 
     assertThat(toHelpUrl(CONSTRAINT_LAYOUT.newName(), ATTR_LAYOUT_TO_END_OF))
-      .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html"
-      )
+      .isEqualTo("${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html")
 
     assertThat(toHelpUrl("com.company.MyView", "my_attribute")).isNull()
   }

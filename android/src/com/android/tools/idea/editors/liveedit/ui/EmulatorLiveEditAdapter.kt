@@ -25,13 +25,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.util.concurrent.ConcurrentHashMap
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
-/**
- * Maps device serial numbers to IDevice.
- */
-class EmulatorLiveEditAdapter(val project: Project): DeviceGetter {
+/** Maps device serial numbers to IDevice. */
+class EmulatorLiveEditAdapter(val project: Project) : DeviceGetter {
   private var cachedDeviceFutures = ConcurrentHashMap<String, ListenableFuture<IDevice?>>()
 
   fun register(serial: String) {
@@ -63,14 +61,16 @@ class EmulatorLiveEditAdapter(val project: Project): DeviceGetter {
 
     val adbFile = AndroidSdkUtils.findAdb(project).adbPath ?: throw Exception("Could not find adb executable")
     val bridgeFuture: ListenableFuture<AndroidDebugBridge> = AdbService.getInstance().getDebugBridge(adbFile)
-    cachedDeviceFutures[serial] = bridgeFuture.transform(AppExecutorUtil.getAppExecutorService()) { debugBridge ->
-      debugBridge.devices.find { it.serialNumber == serial }
-    }
+    cachedDeviceFutures[serial] =
+      bridgeFuture.transform(AppExecutorUtil.getAppExecutorService()) { debugBridge ->
+        debugBridge.devices.find { it.serialNumber == serial }
+      }
     return null
   }
 
   override fun devices(): List<IDevice> {
-    return cachedDeviceFutures.values.stream()
+    return cachedDeviceFutures.values
+      .stream()
       .filter { it.isDone && !it.isCancelled }
       .map { it.get() }
       .filter { it != null } // filters out nulls

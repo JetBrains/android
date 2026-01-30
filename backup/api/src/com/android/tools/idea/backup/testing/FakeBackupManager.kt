@@ -41,24 +41,12 @@ class FakeBackupManager : BackupManager {
   var backupMetaData: BackupMetadata? = null
 
   @UiThread
-  override fun showBackupDialog(
-    serialNumber: String,
-    applicationId: String?,
-    source: BackupManager.Source,
-    notify: Boolean,
-  ) {
-    showBackupDialogInvocations.add(
-      ShowBackupDialogInvocation(serialNumber, applicationId!!, source, notify)
-    )
+  override fun showBackupDialog(serialNumber: String, applicationId: String?, source: BackupManager.Source, notify: Boolean) {
+    showBackupDialogInvocations.add(ShowBackupDialogInvocation(serialNumber, applicationId!!, source, notify))
   }
 
   @UiThread
-  override fun restoreModal(
-    serialNumber: String,
-    backupFile: Path,
-    source: BackupManager.Source,
-    notify: Boolean,
-  ): BackupResult {
+  override fun restoreModal(serialNumber: String, backupFile: Path, source: BackupManager.Source, notify: Boolean): BackupResult {
     assert(EDT.isCurrentThreadEdt())
     restoreModalInvocations.add(RestoreInvocation(serialNumber, backupFile, source, notify))
     return Success
@@ -114,10 +102,5 @@ class FakeBackupManager : BackupManager {
     val notify: Boolean,
   )
 
-  data class RestoreInvocation(
-    val serialNumber: String,
-    val backupFile: Path,
-    val source: BackupManager.Source,
-    val notify: Boolean,
-  )
+  data class RestoreInvocation(val serialNumber: String, val backupFile: Path, val source: BackupManager.Source, val notify: Boolean)
 }

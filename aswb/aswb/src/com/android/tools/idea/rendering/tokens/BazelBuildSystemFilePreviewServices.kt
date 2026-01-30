@@ -22,15 +22,12 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.tokens.BazelApplicationLiveEditServices
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
-import com.google.idea.blaze.base.qsync.QuerySyncManager
-import com.google.idea.blaze.common.Label
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlin.jvm.optionals.getOrNull
 
-internal class BazelBuildSystemFilePreviewServices
-  : BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
+internal class BazelBuildSystemFilePreviewServices :
+  BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
   override val buildServices: BazelBuildServices = BazelBuildServices()
 
   override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean {
@@ -44,17 +41,18 @@ internal class BazelBuildSystemFilePreviewServices
   override fun getApplicationLiveEditServices(buildTargetReference: BazelBuildTargetReference): ApplicationLiveEditServices {
     return BazelApplicationLiveEditServices(
       project = buildTargetReference.project,
-      buildOutcomeProvider = fun(): BuildOutcome? {
-        val preferredTarget = buildTargetReference.toPreferredLabel() ?: return null
-        return buildServices.getBuildOutcome(preferredTarget)
-      },
+      buildOutcomeProvider =
+        fun(): BuildOutcome? {
+          val preferredTarget = buildTargetReference.toPreferredLabel() ?: return null
+          return buildServices.getBuildOutcome(preferredTarget)
+        },
     )
   }
 
   override fun subscribeBuildListener(
     project: Project,
     parentDisposable: Disposable,
-    listener: BuildSystemFilePreviewServices.BuildListener
+    listener: BuildSystemFilePreviewServices.BuildListener,
   ) {
     buildServices.add(listener)
     Disposer.register(parentDisposable) { buildServices.remove(listener) }

@@ -32,12 +32,13 @@ import com.intellij.openapi.diagnostic.Logger
 /**
  * Performs the deployer action and handles [DeployerException].
  *
- * If the deployer action is successfully performed, it returns a list of [Deployer.Result]. Each APK has its own [Deployer.Result].
- * If the deployer action fails and the resolution action is [DeployerException.ResolutionAction.NONE], it throws an [AndroidExecutionException].
+ * If the deployer action is successfully performed, it returns a list of [Deployer.Result]. Each APK has its own [Deployer.Result]. If the
+ * deployer action fails and the resolution action is [DeployerException.ResolutionAction.NONE], it throws an [AndroidExecutionException].
  * If the resolution action is [DeployerException.ResolutionAction.RETRY] and [automaticallyApplyResolutionAction] is true, it retries once.
  *
- * For any other resolution actions, if [automaticallyApplyResolutionAction] is true, it performs the action and notify user about it; otherwise, it shows a balloon error
- * with a link for performing the action. in both cases throws [CantRunException.CustomProcessedCantRunException] to avoid duplicates in notifications/error balloons.
+ * For any other resolution actions, if [automaticallyApplyResolutionAction] is true, it performs the action and notify user about it;
+ * otherwise, it shows a balloon error with a link for performing the action. in both cases throws
+ * [CantRunException.CustomProcessedCantRunException] to avoid duplicates in notifications/error balloons.
  *
  * Regardless of the resolution action, the function **always** throws an [ExecutionException] if the deployer action is not successful.
  *
@@ -50,7 +51,9 @@ import com.intellij.openapi.diagnostic.Logger
  */
 @Throws(ExecutionException::class)
 fun deployAndHandleError(
-  env: ExecutionEnvironment, deployerAction: () -> List<Deployer.Result>, automaticallyApplyResolutionAction: Boolean = false
+  env: ExecutionEnvironment,
+  deployerAction: () -> List<Deployer.Result>,
+  automaticallyApplyResolutionAction: Boolean = false,
 ): List<Deployer.Result> {
   val LOG = Logger.getInstance(::deployAndHandleError.javaClass)
 
@@ -78,11 +81,13 @@ fun deployAndHandleError(
       callToAction = "Rerun"
       resolutionAction = DeployerException.ResolutionAction.RUN_APP
     }
-    val actionName = when (resolutionAction) {
-      DeployerException.ResolutionAction.APPLY_CHANGES -> ApplyChangesAction.ID
-      DeployerException.ResolutionAction.RUN_APP, DeployerException.ResolutionAction.RETRY -> env.executor.actionName
-      else -> throw RuntimeException("Unknown resolution action: $resolutionAction")
-    }
+    val actionName =
+      when (resolutionAction) {
+        DeployerException.ResolutionAction.APPLY_CHANGES -> ApplyChangesAction.ID
+        DeployerException.ResolutionAction.RUN_APP,
+        DeployerException.ResolutionAction.RETRY -> env.executor.actionName
+        else -> throw RuntimeException("Unknown resolution action: $resolutionAction")
+      }
 
     val actionRunnable = createRunnable(actionName)
 
@@ -91,8 +96,7 @@ fun deployAndHandleError(
       bubbleError.append("$callToAction will be done automatically")
       RunConfigurationNotifier.notifyError(env.project, env.runProfile.name, bubbleError.toString())
       ApplicationManager.getApplication().invokeLater(actionRunnable)
-    }
-    else {
+    } else {
       val notificationAction = NotificationAction.createSimpleExpiring(callToAction!!, actionRunnable)
       bubbleError.append('\n')
       bubbleError.append("Suggested action:")

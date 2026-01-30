@@ -18,8 +18,8 @@ package com.android.tools.idea.preview
 import com.intellij.openapi.actionSystem.DataKey
 
 /**
- * Preview Manager that enables the invalidation of a preview representation. When invalidated, a
- * preview representation will refresh all of its previews.
+ * Preview Manager that enables the invalidation of a preview representation. When invalidated, a preview representation will refresh all of
+ * its previews.
  */
 interface PreviewInvalidationManager {
   /** Invalidates the preview representation, forcing a full refresh of its previews. */

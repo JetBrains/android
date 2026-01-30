@@ -35,22 +35,20 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
-import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JEditorPane
+import org.jetbrains.android.util.AndroidBundle
 
 /**
- * This is a replacement for [Settings | Build, Execution, Deployment | Build Tools] area, which offers IDEA sync project control
- * that we don't use. This configurable exposes control over [AutoSyncBehavior] instead.
+ * This is a replacement for [Settings | Build, Execution, Deployment | Build Tools] area, which offers IDEA sync project control that we
+ * don't use. This configurable exposes control over [AutoSyncBehavior] instead.
  *
- * Hiding of the standard IDEA build tools setting happens via [com.android.tools.idea.gradle.util.AndroidStudioPreferences.unregisterUnnecessaryExtensions]
- * that currently happens in [com.android.tools.idea.gradle.project.AndroidStudioProjectActivity] (for settings once a project is open) and in
+ * Hiding of the standard IDEA build tools setting happens via
+ * [com.android.tools.idea.gradle.util.AndroidStudioPreferences.unregisterUnnecessaryExtensions] that currently happens in
+ * [com.android.tools.idea.gradle.project.AndroidStudioProjectActivity] (for settings once a project is open) and in
  * [com.android.tools.idea.projectsystem.gradle.AndroidStudioSettingsInitializer] (for settings before any project is opened).
  */
-class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
-  message("settings.build.tools.display.name"),
-  "Settings_Build_Tools",
-  "build.tools"
-) {
+class AndroidStudioBuildToolsConfigurable :
+  BoundSearchableConfigurable(message("settings.build.tools.display.name"), "Settings_Build_Tools", "build.tools") {
 
   private lateinit var autoSyncBehaviorComboBox: ComboBox<AutoSyncBehavior>
   private lateinit var autoSyncBehaviorNote: JEditorPane
@@ -71,8 +69,8 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
         trackAutoSyncSettingChanged()
         if (it == AutoSyncBehavior.Default) {
           SyncDueMessage.getProjectsWhereSyncIsDue().forEach { project ->
-            GradleSyncInvoker.getInstance().requestProjectSync(project,
-                                                               GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+            GradleSyncInvoker.getInstance()
+              .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
           }
         }
         autoSyncBehaviorNote.text = SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty()
@@ -96,22 +94,16 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
     super.reset()
   }
 
-
   private fun addAutoSyncControl(panel: Panel) {
     with(panel) {
       row(AndroidBundle.message("gradle.settings.autoSync.settings.label")) {
-        autoSyncBehaviorComboBox = comboBox(AutoSyncBehavior.entries,
-                                            textListCellRenderer("") { AndroidBundle.message(it.labelBundleKey) }).component
+        autoSyncBehaviorComboBox =
+          comboBox(AutoSyncBehavior.entries, textListCellRenderer("") { AndroidBundle.message(it.labelBundleKey) }).component
       }
-      row {
-        autoSyncBehaviorNote = text(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty())
-          .component
-      }
+      row { autoSyncBehaviorNote = text(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty()).component }
     }
     autoSyncBehaviorComboBox.whenItemSelected { newSelection ->
-      autoSyncBehaviorAwaitingSetting = newSelection.takeUnless {
-        it == AutoSyncSettingStore.autoSyncBehavior
-      }
+      autoSyncBehaviorAwaitingSetting = newSelection.takeUnless { it == AutoSyncSettingStore.autoSyncBehavior }
     }
   }
 
@@ -125,12 +117,10 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
             .setChangeSource(AutoSyncSettingChangeEvent.ChangeSource.SETTINGS)
             .build()
         )
-    );
+    )
   }
 
-  /**
-   * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
-   */
+  /** Clears snooze and first dialog flags that are used by Optional Auto Sync feature. */
   private fun clearAutoSyncVariables() {
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE)
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)

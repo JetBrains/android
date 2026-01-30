@@ -39,9 +39,8 @@ import org.mockito.kotlin.mock
 
 internal open class Fixture(val project: Project, val testScope: TestScope) {
   /**
-   * Create a child scope of the TestScope containing all scopes we create for this test, so that we
-   * can cancel them easily when we're done. For the test to terminate properly, the test scope must
-   * not have any remaining child jobs, but it must not be cancelled itself.
+   * Create a child scope of the TestScope containing all scopes we create for this test, so that we can cancel them easily when we're done.
+   * For the test to terminate properly, the test scope must not have any remaining child jobs, but it must not be cancelled itself.
    */
   val scope = testScope.createChildScope()
 
@@ -56,27 +55,14 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
 
   val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
   val templatesFlow = MutableStateFlow(emptyList<DeviceTemplate>())
-  val ddmlibDeviceLookupFlow =
-    MutableStateFlow(mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>())
+  val ddmlibDeviceLookupFlow = MutableStateFlow(mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>())
   val launchCompatibilityCheckerFlow = MutableSharedFlow<LaunchCompatibilityChecker>(replay = 1)
   val clock = TestClock()
 
   open val devicesService: DeploymentTargetDevicesService by lazy {
-    DeploymentTargetDevicesService(
-        scope,
-        devicesFlow,
-        templatesFlow,
-        clock,
-        ddmlibDeviceLookupFlow,
-        launchCompatibilityCheckerFlow,
-      )
-      .also {
-        project.replaceService(
-          DeploymentTargetDevicesService::class.java,
-          it,
-          scope.scopeDisposable(),
-        )
-      }
+    DeploymentTargetDevicesService(scope, devicesFlow, templatesFlow, clock, ddmlibDeviceLookupFlow, launchCompatibilityCheckerFlow).also {
+      project.replaceService(DeploymentTargetDevicesService::class.java, it, scope.scopeDisposable())
+    }
   }
 
   suspend fun sendLaunchCompatibility() {
@@ -100,14 +86,7 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
       }
   }
 
-  val comboBox by lazy {
-    DeviceAndSnapshotComboBoxAction(
-      { devicesService },
-      { devicesSelectedService },
-      Project::service,
-      { runManager },
-    )
-  }
+  val comboBox by lazy { DeviceAndSnapshotComboBoxAction({ devicesService }, { devicesSelectedService }, Project::service, { runManager }) }
 
   open suspend fun runFixture(test: suspend () -> Unit) {
     try {

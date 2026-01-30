@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-interface DeclarativeReceiverBasedFactory<T: DeclarativeReceiverPrefixed<T>> : DeclarativeReceiverPrefixed<T>, DeclarativeAbstractFactory
+interface DeclarativeReceiverBasedFactory<T : DeclarativeReceiverPrefixed<T>> : DeclarativeReceiverPrefixed<T>, DeclarativeAbstractFactory

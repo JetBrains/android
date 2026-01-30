@@ -20,21 +20,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * These profiler task actions are to be performed in a sequential format:
  *
- * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) ->
- * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
- * StartProfilerTaskAction -> StopProfilerTaskAction
+ * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) -> Select
+ * dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) -> StartProfilerTaskAction ->
+ * StopProfilerTaskAction
  */
 class StopProfilerTaskAction : ProfilerTaskActionBase() {
   /**
-   * This action is purely for testing purposes, the action stops the current profiling task, and is only limited to stopping
-   * profiling tasks: System Trace, Callstack sample, Native Allocations, Java/Kotlin trace.
+   * This action is purely for testing purposes, the action stops the current profiling task, and is only limited to stopping profiling
+   * tasks: System Trace, Callstack sample, Native Allocations, Java/Kotlin trace.
    */
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val profilers = getStudioProfilers(e.project!!)
     val currentTask = profilers.sessionsManager.currentTaskType
 
-    //Stop task
+    // Stop task
     profilers.taskHandlers[currentTask]!!.stopTask()
   }
 }

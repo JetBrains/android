@@ -57,10 +57,7 @@ class BlockingDaemonClient : CompilerDaemonClient {
     }
   }
 
-  /**
-   * Completes one pending request. If there are no requests pending, the method will block until
-   * one arrives.
-   */
+  /** Completes one pending request. If there are no requests pending, the method will block until one arrives. */
   fun completeOneRequest() = runBlocking { pendingRequests.receive().complete(Unit) }
 
   override fun dispose() {}

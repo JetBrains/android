@@ -38,19 +38,17 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.android.facet.AndroidFacet
 
 const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
 private const val STRIPE_TITLE = "Resource Manager"
 
-/**
- * Provides the tool explorer panel
- */
+/** Provides the tool explorer panel */
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
 
   override fun init(window: ToolWindow) {
@@ -59,26 +57,17 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.displayLoading()
-    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
-      onCacheClean = {
-        project.runWhenSmartAndSyncedOnEdt(callback = {
-          createContent(toolWindow, project)
-        })
-      },
-      onSourceGenerationError = {
-        toolWindow.displayWaitingForGoodSync()
-      },
-      toolWindow.disposable
-    )
+    ClearResourceCacheAfterFirstBuild.getInstance(project)
+      .runWhenResourceCacheClean(
+        onCacheClean = { project.runWhenSmartAndSyncedOnEdt(callback = { createContent(toolWindow, project) }) },
+        onSourceGenerationError = { toolWindow.displayWaitingForGoodSync() },
+        toolWindow.disposable,
+      )
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 }
 
-private fun connectListeners(
-  toolWindow: ToolWindow,
-  project: Project,
-  resourceExplorer: ResourceExplorer
-) {
+private fun connectListeners(toolWindow: ToolWindow, project: Project, resourceExplorer: ResourceExplorer) {
   val connection = project.messageBus.connect(resourceExplorer)
   connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorListener(project, toolWindow, resourceExplorer))
   connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener(project, resourceExplorer, toolWindow))
@@ -95,22 +84,25 @@ private fun createContent(toolWindow: ToolWindow, project: Project) {
   toolWindow.displayWaitingForGoodSync()
 
   // No existing successful sync, since there's a fair chance of having rendering issues, wait for next successful sync.
-  project.runWhenSmartAndSyncedOnEdt(callback = { result ->
-    if (result.isSuccessful) {
-      displayInToolWindow(facet, toolWindow)
-    } else {
-      project.listenUntilNextSync(listener = object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-          createContent(toolWindow, project)
-        }
-      })
+  project.runWhenSmartAndSyncedOnEdt(
+    callback = { result ->
+      if (result.isSuccessful) {
+        displayInToolWindow(facet, toolWindow)
+      } else {
+        project.listenUntilNextSync(
+          listener =
+            object : ProjectSystemSyncManager.SyncResultListener {
+              override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+                createContent(toolWindow, project)
+              }
+            }
+        )
+      }
     }
-  })
+  )
 }
 
-/**
- * Display the [NoFacetView]. Contains a message and a couple of action links to sync or add an Android Module.
- */
+/** Display the [NoFacetView]. Contains a message and a couple of action links to sync or add an Android Module. */
 private fun displayNoFacetView(project: Project, toolWindow: ToolWindow) {
   val contentManager = toolWindow.contentManager
   val content = contentManager.factory.createContent(NoFacetView(project), null, false)
@@ -125,21 +117,23 @@ private fun displayNoFacetView(project: Project, toolWindow: ToolWindow) {
  */
 private fun ToolWindow.displayWaitingView(message: String, showWarning: Boolean) {
   contentManager.removeAllContents(true)
-  val waitingForSyncPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    val waitingLabel = JBLabel().apply {
-      text = message
-      if (showWarning) {
-        icon = AllIcons.General.Warning
-      }
-      foreground = ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150)
-      alignmentX = JComponent.CENTER_ALIGNMENT
-      alignmentY = JComponent.CENTER_ALIGNMENT
+  val waitingForSyncPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      val waitingLabel =
+        JBLabel().apply {
+          text = message
+          if (showWarning) {
+            icon = AllIcons.General.Warning
+          }
+          foreground = ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150)
+          alignmentX = JComponent.CENTER_ALIGNMENT
+          alignmentY = JComponent.CENTER_ALIGNMENT
+        }
+      add(Box.createVerticalGlue())
+      add(waitingLabel)
+      add(Box.createVerticalGlue())
     }
-    add(Box.createVerticalGlue())
-    add(waitingLabel)
-    add(Box.createVerticalGlue())
-  }
   val content = contentManager.factory.createContent(waitingForSyncPanel, null, false)
   contentManager.addContent(content)
 }
@@ -148,9 +142,7 @@ private fun ToolWindow.displayWaitingForGoodSync() = displayWaitingView("Waiting
 
 private fun ToolWindow.displayLoading() = displayWaitingView("Loading...", false)
 
-/**
- * Display the [ResourceExplorer] in the [ToolWindow].
- */
+/** Display the [ResourceExplorer] in the [ToolWindow]. */
 private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   val resourceExplorer = ResourceExplorer.createForToolWindow(facet)
   val contentManager = toolWindow.contentManager
@@ -163,11 +155,8 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   ResourceManagerTracking.logPanelOpens(facet)
 }
 
-private class MyFileEditorListener(
-  val project: Project,
-  val toolWindow: ToolWindow,
-  val resourceExplorer: ResourceExplorer?
-) : FileEditorManagerListener {
+private class MyFileEditorListener(val project: Project, val toolWindow: ToolWindow, val resourceExplorer: ResourceExplorer?) :
+  FileEditorManagerListener {
 
   override fun selectionChanged(event: FileEditorManagerEvent) {
     val editor = event.newEditor ?: return
@@ -178,14 +167,8 @@ private class MyFileEditorListener(
     editorFocused(source.getSelectedEditor(file) ?: return, project, resourceExplorer)
   }
 
-  private fun editorFocused(
-    editor: FileEditor,
-    project: Project,
-    resourceExplorer: ResourceExplorer?
-  ) {
-    val module = editor.file?.let {
-      ModuleUtilCore.findModuleForFile(it, project)
-    } ?: return
+  private fun editorFocused(editor: FileEditor, project: Project, resourceExplorer: ResourceExplorer?) {
+    val module = editor.file?.let { ModuleUtilCore.findModuleForFile(it, project) } ?: return
 
     toolWindow.contentManager.getContent(0)?.displayName = module.name
     val facet = AndroidFacet.getInstance(module)
@@ -213,7 +196,7 @@ private class MyToolWindowManagerListener(private val project: Project) : ToolWi
 private class SyncResultListener(
   private val project: Project,
   private val resourceExplorer: ResourceExplorer,
-  private val toolWindow: ToolWindow
+  private val toolWindow: ToolWindow,
 ) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     // After sync, if the facet is not found anymore, recreate the view.

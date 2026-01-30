@@ -19,8 +19,8 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createParentDirectories
-import junit.framework.TestCase
 import java.nio.file.Path
+import junit.framework.TestCase
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 

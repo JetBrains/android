@@ -23,8 +23,7 @@ import com.google.wireless.android.sdk.stats.SuggestedImportEvent
 /**
  * Tracks user interaction with suggested import support.
  *
- * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation
- *   of `suggested import`.
+ * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation of `suggested import`.
  */
 internal fun trackSuggestedImport(artifactId: String) {
   val suggestedImportEvent = SuggestedImportEvent.newBuilder().setArtifactId(artifactId)

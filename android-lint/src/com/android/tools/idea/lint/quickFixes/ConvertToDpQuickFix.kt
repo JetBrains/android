@@ -34,36 +34,29 @@ class ConvertToDpQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiEle
   override fun getFamilyName() = "ConvertToDpQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
-    if (PsiTreeUtil.getParentOfType(element, XmlTag::class.java) != null)
-      Presentation.of(message("android.lint.fix.convert.to.dp"))
+    if (PsiTreeUtil.getParentOfType(element, XmlTag::class.java) != null) Presentation.of(message("android.lint.fix.convert.to.dp"))
     else null
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
-    val parentTag =
-      PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
+    val parentTag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()
 
     val densities = Density.values().filter { it.isValidValueForDevice }
-    val defaultValue =
-      densities.firstOrNull { it.dpiValue == Density.DEFAULT_DENSITY } ?: return ModCommand.nop()
+    val defaultValue = densities.firstOrNull { it.dpiValue == Density.DEFAULT_DENSITY } ?: return ModCommand.nop()
     val initialValue =
       if (ApplicationManager.getApplication().isUnitTestMode) defaultValue
       else densities.firstOrNull { it.dpiValue == ourPrevDpi } ?: defaultValue
 
     // First choice is the one selected in batch mode, so pick out the initialValue option.
     val actions = mutableListOf(ConvertToDpAction(initialValue, parentTag))
-    densities
-      .filter { it != initialValue }
-      .forEach { actions.add(ConvertToDpAction(it, parentTag)) }
+    densities.filter { it != initialValue }.forEach { actions.add(ConvertToDpAction(it, parentTag)) }
 
     return ModCommand.chooseAction("Choose Screen Density", actions)
   }
 
-  private class ConvertToDpAction(private val density: Density, private val parentTag: XmlTag) :
-    ModCommandAction {
+  private class ConvertToDpAction(private val density: Density, private val parentTag: XmlTag) : ModCommandAction {
     override fun getFamilyName() = "ConvertToDpQuickFix"
 
-    override fun getPresentation(context: ActionContext) =
-      Presentation.of(getLabelForDensity(density))
+    override fun getPresentation(context: ActionContext) = Presentation.of(getLabelForDensity(density))
 
     override fun perform(context: ActionContext) =
       ModCommand.psiUpdate(parentTag) { tag, _ ->
@@ -88,10 +81,7 @@ class ConvertToDpQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiEle
           }
         }
 
-        if (
-          !ApplicationManager.getApplication().isUnitTestMode &&
-            !IntentionPreviewUtils.isIntentionPreviewActive()
-        ) {
+        if (!ApplicationManager.getApplication().isUnitTestMode && !IntentionPreviewUtils.isIntentionPreviewActive()) {
           // Remember the selection only when the fix was actually applied
           ourPrevDpi = dpi
         }
@@ -99,8 +89,7 @@ class ConvertToDpQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiEle
   }
 
   companion object {
-    private val LOG =
-      Logger.getInstance("#com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix")
+    private val LOG = Logger.getInstance("#com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix")
     private val PX_ATTR_VALUE_PATTERN: Pattern = Pattern.compile("(\\d+)px")
 
     private var ourPrevDpi = Density.DEFAULT_DENSITY
@@ -122,7 +111,6 @@ class ConvertToDpQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiEle
       return newValue
     }
 
-    private fun getLabelForDensity(density: Density) =
-      "${density.shortDisplayValue} (${density.dpiValue})"
+    private fun getLabelForDensity(density: Density) = "${density.shortDisplayValue} (${density.dpiValue})"
   }
 }

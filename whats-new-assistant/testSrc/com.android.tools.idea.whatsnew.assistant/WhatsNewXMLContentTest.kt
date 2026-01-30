@@ -34,12 +34,7 @@ class WhatsNewXMLContentTest {
     val stream = bundleCreator.javaClass.getResourceAsStream("/whats-new-assistant.xml")
 
     // If there is an error in the XML, this will throw a SAXParseException
-    val bundle =
-      DefaultTutorialBundle.parse(
-        stream!!,
-        WhatsNewBundle::class.java,
-        WhatsNewBundleCreator.BUNDLE_ID
-      )
+    val bundle = DefaultTutorialBundle.parse(stream!!, WhatsNewBundle::class.java, WhatsNewBundleCreator.BUNDLE_ID)
     assertNotNull(bundle)
   }
 }

@@ -104,12 +104,7 @@ class QrCodeScanningController(
         view.showQrCodePairingSuccess(pairingMdnsService, device)
       } catch (error: Throwable) {
         if (!isCancelled(error)) {
-          WifiPairingUsageTracker.trackFailure(
-            adbVersion,
-            QR_CODE,
-            error,
-            System.currentTimeMillis() - now,
-          )
+          WifiPairingUsageTracker.trackFailure(adbVersion, QR_CODE, error, System.currentTimeMillis() - now)
           LOG.warn("Error pairing device ${pairingMdnsService}", error)
           state.value = State.PairingError
           view.showQrCodePairingError(pairingMdnsService, error)
@@ -129,8 +124,7 @@ class QrCodeScanningController(
         try {
           val services = service.scanMdnsServices()
           withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-            view.model.pairingCodeServices =
-              services.filter { it.serviceType == ServiceType.PairingCode }
+            view.model.pairingCodeServices = services.filter { it.serviceType == ServiceType.PairingCode }
             view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
           }
         } catch (e: Throwable) {
@@ -218,9 +212,7 @@ class QrCodeScanningController(
       when (state.value) {
         State.PairingError,
         State.PairingSuccess -> {
-          scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
-            startPairingProcess()
-          }
+          scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) { startPairingProcess() }
         }
         else -> {
           // Ignore
@@ -244,9 +236,7 @@ class QrCodeScanningController(
     override fun qrCodeServicesDiscovered(services: List<PairingMdnsService>) {
       LOG.info("${services.size} QR code connect services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info(
-          "  QR code connect service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}"
-        )
+        LOG.info("  QR code connect service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
       }
 
       // If there is a QR Code displayed, look for a mDNS service with the same service name
@@ -263,9 +253,7 @@ class QrCodeScanningController(
     override fun pairingCodeServicesDiscovered(services: List<PairingMdnsService>) {
       LOG.info("${services.size} pairing code pairing services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info(
-          "  Pairing code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}"
-        )
+        LOG.info("  Pairing code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
       }
     }
   }

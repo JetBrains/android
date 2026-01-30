@@ -25,7 +25,7 @@ import org.jetbrains.annotations.SystemIndependent
 
 class TestSyncIssueUsageReporter(
   var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null,
-  var collectedGradleSyncIssue: GradleSyncIssue? = null
+  var collectedGradleSyncIssue: GradleSyncIssue? = null,
 ) : SyncIssueUsageReporter {
 
   override fun collect(issue: GradleSyncIssue) {

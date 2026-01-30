@@ -135,16 +135,7 @@ class NetworkInspectorTab(
         }
       }
 
-    view =
-      NetworkInspectorView(
-        project,
-        model,
-        componentsProvider,
-        component,
-        services,
-        scope,
-        this@NetworkInspectorTab,
-      )
+    view = NetworkInspectorView(project, model, componentsProvider, component, services, scope, this@NetworkInspectorTab)
     stagePanel.add(view.component)
 
     actionsToolBar = JPanel(GridBagLayout())
@@ -168,10 +159,7 @@ class NetworkInspectorTab(
     clearDataButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.DELETE)
     clearDataButton.addActionListener { clearData() }
     val clearDataAction =
-      DefaultContextMenuItem.Builder(CLEAR_DATA)
-        .setContainerComponent(splitter)
-        .setActionRunnable { clearDataButton.doClick(0) }
-        .build()
+      DefaultContextMenuItem.Builder(CLEAR_DATA).setContainerComponent(splitter).setActionRunnable { clearDataButton.doClick(0) }.build()
     clearDataButton.toolTipText = clearDataAction.defaultToolTipText
     actionsToolBar.add(clearDataButton)
 
@@ -217,10 +205,7 @@ class NetworkInspectorTab(
       DefaultContextMenuItem.Builder(RESET_ZOOM)
         .setContainerComponent(splitter)
         .setActionRunnable { resetZoom.doClick(0) }
-        .setKeyStrokes(
-          KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-          KeyStroke.getKeyStroke(KeyEvent.VK_0, 0),
-        )
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0), KeyStroke.getKeyStroke(KeyEvent.VK_0, 0))
         .build()
     resetZoom.toolTipText = resetZoomAction.defaultToolTipText
     actionsToolBar.add(resetZoom)
@@ -228,9 +213,7 @@ class NetworkInspectorTab(
     val zoomToSelection = CommonButton(StudioIcons.Common.ZOOM_SELECT)
     zoomToSelection.name = ZOOM_TO_SELECTION
     zoomToSelection.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT)
-    zoomToSelection.addActionListener {
-      model.timeline.frameViewToRange(model.timeline.selectionRange)
-    }
+    zoomToSelection.addActionListener { model.timeline.frameViewToRange(model.timeline.selectionRange) }
     val zoomToSelectionAction =
       DefaultContextMenuItem.Builder(ZOOM_TO_SELECTION)
         .setContainerComponent(splitter)
@@ -279,16 +262,11 @@ class NetworkInspectorTab(
       }
       goLiveButton.addChangeListener {
         val isSelected: Boolean = goLiveButton.isSelected
-        goLiveButton.icon =
-          if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE
-          else StudioIcons.Profiler.Toolbar.GOTO_LIVE
-        goLiveButton.toolTipText =
-          if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
+        goLiveButton.icon = if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+        goLiveButton.toolTipText = if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
       }
       val streamingTimeline = model.timeline as StreamingTimeline
-      streamingTimeline.addDependency(this@NetworkInspectorTab).onChange(
-        StreamingTimeline.Aspect.STREAMING
-      ) {
+      streamingTimeline.addDependency(this@NetworkInspectorTab).onChange(StreamingTimeline.Aspect.STREAMING) {
         goLiveButton.isSelected = streamingTimeline.isStreaming
       }
       goLiveToolbar.add(goLiveButton)

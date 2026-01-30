@@ -20,8 +20,7 @@ import com.android.tools.idea.vitals.ui.VitalsConfigurationService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-class VitalsSyncResultListener(private val project: Project) :
-  ProjectSystemSyncManager.SyncResultListener {
+class VitalsSyncResultListener(private val project: Project) : ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     project.service<VitalsConfigurationService>().manager.refreshConfiguration()
   }

@@ -23,8 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class DownloadSourceTest {
-  @get:Rule
-  val rule = ApplicationRule()
+  @get:Rule val rule = ApplicationRule()
 
   @Test
   fun testNoGradleAttachSourcesProvider() {

@@ -27,20 +27,16 @@ import com.intellij.ide.wizard.CommitStepException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.options.ConfigurationException
-import org.jetbrains.annotations.TestOnly
 import javax.swing.JComponent
+import org.jetbrains.annotations.TestOnly
 
-@TestOnly
-var logForTesting: Logger? = null
-private val log: Logger get() = logForTesting ?: logger<ModuleWizardStepAdapter>()
+@TestOnly var logForTesting: Logger? = null
+private val log: Logger
+  get() = logForTesting ?: logger<ModuleWizardStepAdapter>()
 
-/**
- * Presents an Idea [ModuleWizardStep] based class as a [ModelWizardStep]
- */
-class ModuleWizardStepAdapter(
-  private val context: WizardContext,
-  private val wrappedStep: ModuleWizardStep
-) : ModelWizardStep<ModuleWizardStepAdapter.AdapterModel>(AdapterModel(wrappedStep), wrappedStep.name) {
+/** Presents an Idea [ModuleWizardStep] based class as a [ModelWizardStep] */
+class ModuleWizardStepAdapter(private val context: WizardContext, private val wrappedStep: ModuleWizardStep) :
+  ModelWizardStep<ModuleWizardStepAdapter.AdapterModel>(AdapterModel(wrappedStep), wrappedStep.name) {
   private val canGoForward: BoolProperty = BoolValueProperty()
 
   init {
@@ -62,8 +58,7 @@ class ModuleWizardStepAdapter(
   private fun updateCanGoForward() {
     try {
       canGoForward.set(wrappedStep.validate())
-    }
-    catch (e: ConfigurationException) {
+    } catch (e: ConfigurationException) {
       canGoForward.set(false)
     }
   }
@@ -75,15 +70,12 @@ class ModuleWizardStepAdapter(
 
   public override fun canGoForward(): ObservableBool = canGoForward
 
-  /**
-   * Model used to trigger onWizardFinished event when Wizard completes
-   */
+  /** Model used to trigger onWizardFinished event when Wizard completes */
   class AdapterModel(private val step: ModuleWizardStep) : WizardModel() {
     public override fun handleFinished() {
       try {
         step.onWizardFinished()
-      }
-      catch (e: CommitStepException) {
+      } catch (e: CommitStepException) {
         log.error(e.message)
       }
     }

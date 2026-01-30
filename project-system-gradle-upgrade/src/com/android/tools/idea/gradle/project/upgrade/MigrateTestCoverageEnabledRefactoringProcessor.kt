@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.android.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.impl.rules.UsageType
@@ -30,26 +30,26 @@ val MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE =
     optionalFromVersion = AgpVersion.parse("7.3.0"),
     requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AgpUpgradeBundle.messagePointer("migrateTestCoverageEnabledRefactoringProcessor.commandName"),
-    shortDescriptionSupplier = { """
+    shortDescriptionSupplier = {
+      """
       Starting with Android Gradle Plugin 7.3.0 testCoverageEnabled has
       been replaced by enableUnitTestCoverage and enableAndroidTestCoverage.
       It will be removed in AGP 9.0.0.
-    """.trimIndent()
+      """
+        .trimIndent()
     },
     processedElementsHeaderSupplier = AgpUpgradeBundle.messagePointer("migrateTestCoverageEnabledRefactoringProcessor.usageView.header"),
     componentKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TEST_COVERAGE_ENABLED,
-    propertiesOperationInfos = listOf(
-      MoveTestCoveragePropertiesInfo(),
-    ),
+    propertiesOperationInfos = listOf(MoveTestCoveragePropertiesInfo()),
   )
 
-private class MoveTestCoveragePropertiesInfo: PropertiesOperationInfo{
+private class MoveTestCoveragePropertiesInfo : PropertiesOperationInfo {
   val usageType = UsageType(AgpUpgradeBundle.messagePointer("migrateTestCoverageEnabledRefactoringProcessor.move.usageType"))
   val tooltipTextSupplier = AgpUpgradeBundle.messagePointer("migrateTestCoverageEnabledRefactoringProcessor.move.tooltipText")
 
   override fun findBuildModelUsages(
     processor: AgpUpgradeComponentRefactoringProcessor,
-    buildModel: GradleBuildModel
+    buildModel: GradleBuildModel,
   ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     buildModel.android().buildTypes().forEach { buildType ->
@@ -72,11 +72,12 @@ private class MoveTestCoveragePropertiesInfo: PropertiesOperationInfo{
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val valueModel = testCoverageEnabled.unresolvedModel
 
-      val value: Any = when (valueModel.valueType) {
-        GradlePropertyModel.ValueType.LIST -> valueModel.getValue(GradlePropertyModel.LIST_TYPE) ?: return
-        GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(GradlePropertyModel.REFERENCE_TO_TYPE) ?: return
-        else -> valueModel.getValue(GradlePropertyModel.OBJECT_TYPE) ?: return
-      }
+      val value: Any =
+        when (valueModel.valueType) {
+          GradlePropertyModel.ValueType.LIST -> valueModel.getValue(GradlePropertyModel.LIST_TYPE) ?: return
+          GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(GradlePropertyModel.REFERENCE_TO_TYPE) ?: return
+          else -> valueModel.getValue(GradlePropertyModel.OBJECT_TYPE) ?: return
+        }
 
       buildType.enableUnitTestCoverage().setValue(value)
       buildType.enableAndroidTestCoverage().setValue(value)

@@ -44,7 +44,8 @@ class UseAndroidXDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     val processor = UseAndroidXDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.useAndroidX=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.useAndroidX=false")
   }
 
   @Test
@@ -52,9 +53,11 @@ class UseAndroidXDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = UseAndroidXDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.useAndroidX=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.useAndroidX=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.useAndroidX=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.useAndroidX=false")
   }
 
   @Test
@@ -63,7 +66,8 @@ class UseAndroidXDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     projectRule.fixture.addFileToProject("gradle.properties", "android.useAndroidX=false")
     val processor = UseAndroidXDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.useAndroidX=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.useAndroidX=false")
   }
 
   @Test
@@ -72,7 +76,8 @@ class UseAndroidXDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     projectRule.fixture.addFileToProject("gradle.properties", "android.useAndroidX=true")
     val processor = UseAndroidXDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.useAndroidX=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.useAndroidX=true")
   }
 
   @Test

@@ -37,11 +37,11 @@ interface TransportService : Disposable {
    * @return The [Common.Stream] instance that was created for the server.
    */
   fun registerStreamServer(streamType: Common.Stream.Type, streamServer: EventStreamServer): Common.Stream
+
   fun unregisterStreamServer(streamId: Long)
 
   companion object {
-    @JvmStatic
-    fun getInstance() = service<TransportService>()
+    @JvmStatic fun getInstance() = service<TransportService>()
 
     var channelName: String = "DataStoreService"
       @JvmStatic get

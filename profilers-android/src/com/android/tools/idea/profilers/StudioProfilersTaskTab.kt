@@ -25,34 +25,36 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
-/**
- * A tab in the Profiler window containing a [TaskProfilersView].
- */
-class StudioProfilersTaskTab(private val profilers: StudioProfilers,
-                             private val window: ToolWindowWrapper,
-                             ideProfilerComponents: IdeProfilerComponents,
-                             project: Project) : AspectObserver(), StudioProfilersTab {
+/** A tab in the Profiler window containing a [TaskProfilersView]. */
+class StudioProfilersTaskTab(
+  private val profilers: StudioProfilers,
+  private val window: ToolWindowWrapper,
+  ideProfilerComponents: IdeProfilerComponents,
+  project: Project,
+) : AspectObserver(), StudioProfilersTab {
   override val view: StudioProfilersView
 
   init {
     // In the Task-Based UX, determining if there is an ongoing task/recording is done via inspection of the selected session.
-    profilers.sessionsManager.addDependency(this)
-      .onChange(SessionAspect.SELECTED_SESSION) { selectedSessionChanged() }
+    profilers.sessionsManager.addDependency(this).onChange(SessionAspect.SELECTED_SESSION) { selectedSessionChanged() }
 
     view = TaskProfilersView(profilers, ideProfilerComponents, this)
 
-    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AndroidProfilerWindowManagerListener(project, profilers, view))
+    project.messageBus
+      .connect(this)
+      .subscribe(ToolWindowManagerListener.TOPIC, AndroidProfilerWindowManagerListener(project, profilers, view))
   }
 
   private fun selectedSessionChanged() {
     // JetBrains patch: use IDE-aware profiler icon instead of the hard-coded Studio icon.
     val icon = getAndroidProfilerToolWindowIcon()
-    window.setIcon(if (profilers.sessionsManager.isSessionAlive) {
-      ExecutionUtil.getLiveIndicator(icon)
-    } else {
-      icon
-    })
+    window.setIcon(
+      if (profilers.sessionsManager.isSessionAlive) {
+        ExecutionUtil.getLiveIndicator(icon)
+      } else {
+        icon
+      }
+    )
   }
 
   override fun dispose() {

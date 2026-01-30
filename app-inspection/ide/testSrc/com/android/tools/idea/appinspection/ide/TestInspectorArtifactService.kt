@@ -21,10 +21,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 class TestInspectorArtifactService : InspectorArtifactService {
-  override suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: RunningArtifactCoordinate,
-    project: Project,
-  ): Path {
+  override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
     return TEST_JAR_PATH
   }
 }

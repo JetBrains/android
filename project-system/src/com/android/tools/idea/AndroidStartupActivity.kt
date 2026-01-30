@@ -20,9 +20,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
-/**
- * A startup activity which should run when an Android project is opened or an already existing project becomes an Android project.
- */
+/** A startup activity which should run when an Android project is opened or an already existing project becomes an Android project. */
 interface AndroidStartupActivity {
   companion object {
     @JvmField
@@ -36,6 +34,5 @@ interface AndroidStartupActivity {
    * project system supports it) or when the project is disposed.
    */
   // TODO(b/150626707): Update the JavaDoc when disposing works as intended.
-  @UiThread
-  fun runActivity(project: Project, disposable: Disposable)
+  @UiThread fun runActivity(project: Project, disposable: Disposable)
 }

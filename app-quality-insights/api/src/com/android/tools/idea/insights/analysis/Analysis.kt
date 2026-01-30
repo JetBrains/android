@@ -23,8 +23,7 @@ data class CrashFrame(val frame: Frame, val cause: Cause)
 /**
  * Represents the "cause" of the stack frame.
  *
- * Any stack frame either has a [previous frame][Cause.Frame] or a [Cause.Throwable] that was thrown
- * at that frame.
+ * Any stack frame either has a [previous frame][Cause.Frame] or a [Cause.Throwable] that was thrown at that frame.
  */
 sealed class Cause {
   data class Frame(val frame: com.android.tools.idea.insights.model.stacktrace.Frame) : Cause()

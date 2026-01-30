@@ -15,12 +15,6 @@
  */
 package com.google.idea.blaze.qsync.project
 
-import com.google.auto.value.AutoValue
-import com.google.auto.value.extension.memoized.Memoized
-import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ListMultimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
@@ -30,27 +24,22 @@ import com.google.idea.blaze.qsync.query.QuerySpec
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Optional
-import java.util.function.Consumer
 import kotlin.streams.asSequence
 
 /**
- * Represents input the the query sync process. This class contains data that is derived from the
- * user project config and is constructed before the sync begins.
+ * Represents input the the query sync process. This class contains data that is derived from the user project config and is constructed
+ * before the sync begins.
  */
 data class ProjectDefinition(
   /**
-   * Project includes, also know as root directories. Taken from the users `.blazeproject`
-   * file. Paths are relative to the workspace root.
+   * Project includes, also know as root directories. Taken from the users `.blazeproject` file. Paths are relative to the workspace root.
    */
   val projectIncludes: Set<Path>,
   /**
-   * Project excludes. Taken from the users `.blazeproject` file. Paths are relative to the
-   * workspace root, and indicate sub-paths from within [.projectIncludes] that are not part
-   * of the project.
+   * Project excludes. Taken from the users `.blazeproject` file. Paths are relative to the workspace root, and indicate sub-paths from
+   * within [.projectIncludes] that are not part of the project.
    */
   val projectExcludes: Set<Path>,
-
 
   /**
    * If set to true, the main scope of the project includes all targets within the whole-project scope, unless modified by `targets:`
@@ -59,47 +48,39 @@ data class ProjectDefinition(
   val deriveTargetsFromDirectories: Boolean,
 
   /**
-   * Target patterns in the main project scope, where the main project scope is a scope to which many query sync operations apply
-   * by default. The empty list means all targets are included.
+   * Target patterns in the main project scope, where the main project scope is a scope to which many query sync operations apply by
+   * default. The empty list means all targets are included.
    */
   val targetPatterns: List<TargetPattern>,
 
-  /**
-   * Indicates whether Android support should be activated in the IDE.
-   */
+  /** Indicates whether Android support should be activated in the IDE. */
   val isAndroidWorkspace: Boolean,
 
-  /**
-   * The languages this workspace supports.
-    */
+  /** The languages this workspace supports. */
   val languageClasses: Set<QuerySyncLanguage>,
 
   /**
-   * Test sources. Taken from the user's `.blazeproject` file. Paths are relative to the
-   * workspace root, and indicate directories that are considered test sources.
+   * Test sources. Taken from the user's `.blazeproject` file. Paths are relative to the workspace root, and indicate directories that are
+   * considered test sources.
    */
   val testSources: Set<String>,
 
   /**
-   * System Excludes. Only available for Bazel projects to avoid scanning the system directories
-   * like bazel-bin, bazel-out, ... for BUILD files before ignoring them in the query invocation.
+   * System Excludes. Only available for Bazel projects to avoid scanning the system directories like bazel-bin, bazel-out, ... for BUILD
+   * files before ignoring them in the query invocation.
    */
   val systemExcludes: Set<Path>,
 ) {
 
-  val effectiveTargetPatterns: TargetPatternCollection by lazy (LazyThreadSafetyMode.PUBLICATION) {
-    TargetPatternCollection.create(
-      if (deriveTargetsFromDirectories) listOf(TargetPattern.parse("//...")) + targetPatterns else targetPatterns
-    )
-  }
+  val effectiveTargetPatterns: TargetPatternCollection by
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
+      TargetPatternCollection.create(
+        if (deriveTargetsFromDirectories) listOf(TargetPattern.parse("//...")) + targetPatterns else targetPatterns
+      )
+    }
 
-  /**
-   * Constructs a query spec from a sync spec. Filters the import roots to those that can be safely
-   * queried.
-   */
-  fun deriveQuerySpec(
-    context: Context<*>, queryStrategy: QuerySpec.QueryStrategy, workspaceRoot: Path
-  ): QuerySpec.Builder {
+  /** Constructs a query spec from a sync spec. Filters the import roots to those that can be safely queried. */
+  fun deriveQuerySpec(context: Context<*>, queryStrategy: QuerySpec.QueryStrategy, workspaceRoot: Path): QuerySpec.Builder {
     val result = QuerySpec.builder(queryStrategy)
     for (include in projectIncludes) {
       if (isValidPathForQuery(context, workspaceRoot.resolve(include))) {
@@ -118,12 +99,13 @@ data class ProjectDefinition(
     return result
   }
 
-  /** Returns the exclude paths by the include path that they fall within.  */
-  val excludesByRootDirectory: Map<Path, List<Path>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+  /** Returns the exclude paths by the include path that they fall within. */
+  val excludesByRootDirectory: Map<Path, List<Path>> by
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
       projectExcludes
         .mapNotNull { exclude ->
-          val rootInclude = projectIncludes.firstOrNull { rootDirectory -> isUnderRootDirectory(rootDirectory, exclude) }
-                            ?: return@mapNotNull null
+          val rootInclude =
+            projectIncludes.firstOrNull { rootDirectory -> isUnderRootDirectory(rootDirectory, exclude) } ?: return@mapNotNull null
           exclude to rootInclude
         }
         .groupBy({ it.second }, { it.first })
@@ -145,12 +127,11 @@ data class ProjectDefinition(
    * Returns the content root containing a workspace-relative path
    *
    * @param workspacePath [Path] relative to the workspace
-   * @return [<] of the content root that contains `workspacePath`. Returns
-   * an empty Optional if no content entry contains `workspacePath` or if `workspacePath` is contained in an excluded directory.
+   * @return [<] of the content root that contains `workspacePath`. Returns an empty Optional if no content entry contains `workspacePath`
+   *   or if `workspacePath` is contained in an excluded directory.
    */
   fun getIncludingContentRoot(workspacePath: Path): Path? {
-    val contentRoot =
-      projectIncludes.firstOrNull { isUnderRootDirectory(it, workspacePath) } ?: return null
+    val contentRoot = projectIncludes.firstOrNull { isUnderRootDirectory(it, workspacePath) } ?: return null
 
     if (isExcluded(workspacePath)) {
       // Path is excluded
@@ -162,33 +143,29 @@ data class ProjectDefinition(
 
   companion object {
     @JvmField
-    val EMPTY: ProjectDefinition = ProjectDefinition(
-      projectIncludes = emptySet(),
-      projectExcludes = emptySet(),
-      deriveTargetsFromDirectories = false,
-      targetPatterns = emptyList(),
-      isAndroidWorkspace = false,
-      languageClasses = emptySet(),
-      testSources = emptySet(),
-      systemExcludes = emptySet()
-    )
+    val EMPTY: ProjectDefinition =
+      ProjectDefinition(
+        projectIncludes = emptySet(),
+        projectExcludes = emptySet(),
+        deriveTargetsFromDirectories = false,
+        targetPatterns = emptyList(),
+        isAndroidWorkspace = false,
+        languageClasses = emptySet(),
+        testSources = emptySet(),
+        systemExcludes = emptySet(),
+      )
 
     /**
-     * Determines if a given absolute path is a valid path to query. A path is valid if it contains a
-     * BUILD file somewhere within it.
-     *
+     * Determines if a given absolute path is a valid path to query. A path is valid if it contains a BUILD file somewhere within it.
      *
      * Emits warnings via context if any issues are found with the path.
      */
     private fun isValidPathForQuery(context: Context<*>, candidate: Path): Boolean {
       return when {
-        Files.exists(candidate.resolve("BUILD")) ||
-        Files.exists(candidate.resolve("BUILD.bazel")) -> true
+        Files.exists(candidate.resolve("BUILD")) || Files.exists(candidate.resolve("BUILD.bazel")) -> true
 
         !Files.isDirectory(candidate) -> {
-          context.output(
-            PrintOutput.output("Directory specified in project does not exist or is not a directory: $candidate")
-          )
+          context.output(PrintOutput.output("Directory specified in project does not exist or is not a directory: $candidate"))
           false
         }
 
@@ -202,9 +179,7 @@ data class ProjectDefinition(
                   valid = valid || validChild
                 } else {
                   if (child.toString().endsWith(".java") || child.toString().endsWith(".kt")) {
-                    context.output(
-                      PrintOutput.log("WARNING: Sources found outside BUILD packages: $child")
-                    )
+                    context.output(PrintOutput.log("WARNING: Sources found outside BUILD packages: $child"))
                   }
                 }
               }
@@ -224,9 +199,8 @@ data class ProjectDefinition(
         return true
       }
       val rootDirectoryString = rootDirectory.toString()
-      return relativePath.startsWith(rootDirectoryString)
-        && (relativePath.toString().length == rootDirectoryString.length
-        || (relativePath.toString()[rootDirectoryString.length] == '/'))
+      return relativePath.startsWith(rootDirectoryString) &&
+        (relativePath.toString().length == rootDirectoryString.length || (relativePath.toString()[rootDirectoryString.length] == '/'))
     }
   }
 }

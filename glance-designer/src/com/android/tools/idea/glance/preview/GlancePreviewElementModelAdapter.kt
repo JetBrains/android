@@ -31,24 +31,18 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "GlancePreview"
-private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<PsiGlancePreviewElement>("$PREFIX.PreviewElement")
+private val PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiGlancePreviewElement>("$PREFIX.PreviewElement")
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
 abstract class GlancePreviewElementModelAdapter<M : NlDataProviderHolder> :
   ConfigurablePreviewElementModelAdapter<PsiGlancePreviewElement, M>,
-  MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(
-    PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE
-  ) {
+  MethodPreviewElementModelAdapter<PsiGlancePreviewElement, M>(PSI_GLANCE_PREVIEW_ELEMENT_INSTANCE) {
 
-  override fun applyToConfiguration(
-    previewElement: PsiGlancePreviewElement,
-    configuration: Configuration,
-  ) = previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
+  override fun applyToConfiguration(previewElement: PsiGlancePreviewElement, configuration: Configuration) =
+    previewElement.applyTo(configuration) { it.settings.getDefaultPreviewDevice() }
 }
 
-internal const val APP_WIDGET_VIEW_ADAPTER =
-  "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
+internal const val APP_WIDGET_VIEW_ADAPTER = "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
 object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   override fun toXml(previewElement: PsiGlancePreviewElement): String {
@@ -64,10 +58,6 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
       .buildString()
   }
 
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long,
-  ): LightVirtualFile =
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile =
     GlanceAppWidgetAdapterLightVirtualFile("model-glance-appwidget-$id.xml", content, backedFile)
 }

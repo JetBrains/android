@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertSize
+import java.io.IOException
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,12 +33,11 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.io.IOException
 
 @RunsInEdt
 class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  private lateinit var gradlePropertiesFile : VirtualFile
-  private lateinit var versionCatalogFile : VirtualFile
+  private lateinit var gradlePropertiesFile: VirtualFile
+  private lateinit var versionCatalogFile: VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {
@@ -103,7 +103,7 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpVersion/NoVersionInLiteral"))
   }
-  
+
   @Test
   fun testVersionInInterpolatedVariable() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInInterpolatedVariable"))
@@ -332,7 +332,7 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testNonsenseInVersionCatalog () {
+  fun testNonsenseInVersionCatalog() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
     writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogNonsense"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
@@ -395,10 +395,7 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("8.1.0"))
     assertTrue(processor.isBlocked)
     assertSize(1, processor.blockProcessorReasons())
-    assertEquals(
-      "Uncompressed native libs in bundle is a deprecated property.",
-      processor.blockProcessorReasons()[0].shortDescription
-    )
+    assertEquals("Uncompressed native libs in bundle is a deprecated property.", processor.blockProcessorReasons()[0].shortDescription)
   }
 
   @Test

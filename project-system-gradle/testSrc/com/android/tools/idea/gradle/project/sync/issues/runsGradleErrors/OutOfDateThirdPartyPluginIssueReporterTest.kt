@@ -36,8 +36,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest {
   private lateinit var reporter: OutOfDateThirdPartyPluginIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
@@ -58,10 +57,10 @@ class OutOfDateThirdPartyPluginIssueReporterTest {
     val notification = messages[0].syncMessage
 
     assertThat(notification.group).isEqualTo("Gradle Sync Issues")
-    assertThat(notification.message).isEqualTo(
-      "This is some message:\npath/one\npath/two\n" +
-      "<a href=\"update.plugins\">Update plugins</a>\n" +
-      "Affected Modules: app")
+    assertThat(notification.message)
+      .isEqualTo(
+        "This is some message:\npath/one\npath/two\n" + "<a href=\"update.plugins\">Update plugins</a>\n" + "Affected Modules: app"
+      )
 
     assertThat(notification.type).isEqualTo(MessageType.WARNING)
 
@@ -77,25 +76,28 @@ class OutOfDateThirdPartyPluginIssueReporterTest {
     assertThat(messages[0].affectedModules).isEqualTo(listOf(module))
 
     assertThat(
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages.map { it.syncMessage }))
-      .isEqualTo(listOf(
-        GradleSyncIssue
-          .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK)
-          .build())
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages.map { it.syncMessage })
+      )
+      .isEqualTo(
+        listOf(
+          GradleSyncIssue.newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK)
+            .build()
+        )
       )
   }
 
-  private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue = object : IdeSyncIssue {
-    override val severity: Int = IdeSyncIssue.SEVERITY_ERROR
+  private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue =
+    object : IdeSyncIssue {
+      override val severity: Int = IdeSyncIssue.SEVERITY_ERROR
 
-    override val type: Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+      override val type: Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
-    override val data: String = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
+      override val data: String = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
 
-    override val message: String = "This is some message"
+      override val message: String = "This is some message"
 
-    override val multiLineMessage: List<String> = listOf(message)
-  }
+      override val multiLineMessage: List<String> = listOf(message)
+    }
 }

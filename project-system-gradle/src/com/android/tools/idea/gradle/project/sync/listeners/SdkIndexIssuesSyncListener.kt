@@ -44,12 +44,9 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Notify users is there is any dependency with blocking issues in the project
- */
+/** Notify users is there is any dependency with blocking issues in the project */
 class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : GradleSyncListenerWithRoot {
-  @VisibleForTesting
-  var wasNotificationShown = false
+  @VisibleForTesting var wasNotificationShown = false
 
   companion object {
     const val SDK_INDEX_NOTIFICATION_GROUP = "Google Play SDK Index Notifications"
@@ -71,8 +68,7 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
           project.service<EventStreamForTesting>().notifications.send(notification)
         }
       }
-    }
-    else {
+    } else {
       wasNotificationShown = false
     }
   }
@@ -95,15 +91,16 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
     if (project.isDisposed) {
       return null
     }
-    val dependencies = project.modules
-      .asSequence()
-      .map { GradleAndroidDependencyModel.get(it) }
-      .filterNotNull()
-      .map { it.mainArtifactWithDependencies.compileClasspath.libraries }
-      .flatten()
-      .filterIsInstance<IdeArtifactLibrary>()
-      .mapNotNull { it.component }
-      .toSet()
+    val dependencies =
+      project.modules
+        .asSequence()
+        .map { GradleAndroidDependencyModel.get(it) }
+        .filterNotNull()
+        .map { it.mainArtifactWithDependencies.compileClasspath.libraries }
+        .flatten()
+        .filterIsInstance<IdeArtifactLibrary>()
+        .mapNotNull { it.component }
+        .toSet()
     var numErrorsAndWarnings = 0
     var numBlockingIssues = 0
     var numPolicyIssues = 0
@@ -111,7 +108,7 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
     var numVulnerabilities = 0
     var numOutdatedIssues = 0
     var numDeprecated = 0
-    dependencies.forEach { library->
+    dependencies.forEach { library ->
       val version = library.version.toString()
       if (sdkIndex.hasLibraryErrorOrWarning(library.group, library.name, version)) {
         numErrorsAndWarnings++
@@ -136,17 +133,28 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       }
     }
     // Report stats even if not presented to user
-    reportProjectStats(project, numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues, numDeprecated)
+    reportProjectStats(
+      project,
+      numErrorsAndWarnings,
+      numBlockingIssues,
+      numPolicyIssues,
+      numCriticalIssues,
+      numVulnerabilities,
+      numOutdatedIssues,
+      numDeprecated,
+    )
     if (numBlockingIssues > 0 && !wasNotificationShown) {
-      val notification = SdkIndexNotification("There are $numBlockingIssues SDKs with warnings that will prevent app release in Google Play Console")
+      val notification =
+        SdkIndexNotification("There are $numBlockingIssues SDKs with warnings that will prevent app release in Google Play Console")
       val psdService = ProjectSettingsService.getInstance(project)
       if (psdService is AndroidProjectSettingsService) {
-        val openSuggestionsAction = object : NotificationAction("Open Project Structure for details") {
-          override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-            notification.expire()
-            psdService.openSuggestions()
+        val openSuggestionsAction =
+          object : NotificationAction("Open Project Structure for details") {
+            override fun actionPerformed(e: AnActionEvent, notification: Notification) {
+              notification.expire()
+              psdService.openSuggestions()
+            }
           }
-        }
         notification.addAction(openSuggestionsAction)
       }
       notification.notify(project)
@@ -154,31 +162,42 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       return notification
     }
     if (numBlockingIssues == 0) {
-      // Since the project now has 0 issues, we would like to notify users as soon as they add one, set states as if we have not shown a notification
+      // Since the project now has 0 issues, we would like to notify users as soon as they add one, set states as if we have not shown a
+      // notification
       wasNotificationShown = false
     }
     return null
   }
 
-  private fun reportProjectStats(project: Project, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int, numDeprecatedIssues: Int) {
-    val event = AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
-      .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_PROJECT_STATS)
-      .withProjectId(project)
-      .setSdkIndexProjectStats(
-        SdkIndexProjectStats.newBuilder()
-          .setNumErrorsAndWarnings(numErrorsAndWarnings)
-          .setNumBlockingIssues(numBlockingIssues)
-          .setNumPolicyIssues(numPolicyIssues)
-          .setNumCriticalIssues(numCriticalIssues)
-          .setNumVulnerabilityIssues(numVulnerabilities)
-          .setNumOutdatedIssues(numOutdatedIssues)
-          .setNumDeprecatedIssues(numDeprecatedIssues)
-      )
+  private fun reportProjectStats(
+    project: Project,
+    numErrorsAndWarnings: Int,
+    numBlockingIssues: Int,
+    numPolicyIssues: Int,
+    numCriticalIssues: Int,
+    numVulnerabilities: Int,
+    numOutdatedIssues: Int,
+    numDeprecatedIssues: Int,
+  ) {
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
+        .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_PROJECT_STATS)
+        .withProjectId(project)
+        .setSdkIndexProjectStats(
+          SdkIndexProjectStats.newBuilder()
+            .setNumErrorsAndWarnings(numErrorsAndWarnings)
+            .setNumBlockingIssues(numBlockingIssues)
+            .setNumPolicyIssues(numPolicyIssues)
+            .setNumCriticalIssues(numCriticalIssues)
+            .setNumVulnerabilityIssues(numVulnerabilities)
+            .setNumOutdatedIssues(numOutdatedIssues)
+            .setNumDeprecatedIssues(numDeprecatedIssues)
+        )
     UsageTracker.log(event)
   }
 
-  class SdkIndexNotification(val message: String): Notification(SDK_INDEX_NOTIFICATION_GROUP, message, NotificationType.WARNING)
+  class SdkIndexNotification(val message: String) : Notification(SDK_INDEX_NOTIFICATION_GROUP, message, NotificationType.WARNING)
 
   @VisibleForTesting
   @Service(Service.Level.PROJECT)

@@ -28,6 +28,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
+import java.util.concurrent.TimeUnit
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.After
 import org.junit.Before
@@ -35,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.MockedStatic
-import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class MissingAndroidPluginIssueCheckerTest {
@@ -44,17 +44,14 @@ class MissingAndroidPluginIssueCheckerTest {
   private lateinit var executor: BoundedTaskExecutor
 
   val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  @get:Rule val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
   val project by lazy { projectRule.project }
 
   @Before
   fun setup() {
     executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("TestService", 1) as BoundedTaskExecutor
     mockAppExecutorUtil = mockStatic()
-    mockAppExecutorUtil.whenever<Any> {
-      AppExecutorUtil.getAppExecutorService()
-    }.thenReturn(executor)
+    mockAppExecutorUtil.whenever<Any> { AppExecutorUtil.getAppExecutorService() }.thenReturn(executor)
   }
 
   @After
@@ -75,7 +72,6 @@ class MissingAndroidPluginIssueCheckerTest {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(AddGoogleMavenRepositoryQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
 
-
     val future = buildIssue.quickFixes[0].runQuickFix(project, SimpleDataContext.getProjectContext(project))
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     executor.waitAllTasksExecuted(1, TimeUnit.SECONDS)
@@ -87,13 +83,15 @@ class MissingAndroidPluginIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      missingAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Could not find com.android.tools.build:gradle:",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Could not find com.android.tools.build:gradle:",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
   }
 }

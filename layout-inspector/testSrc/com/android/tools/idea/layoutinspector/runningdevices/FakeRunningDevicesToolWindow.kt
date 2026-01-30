@@ -76,8 +76,7 @@ data class TabInfo(
   }
 }
 
-class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
-  ToolWindowHeadlessManagerImpl(project) {
+class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) : ToolWindowHeadlessManagerImpl(project) {
   var toolWindow = FakeToolWindow(project, tabs, this)
 
   override fun getToolWindow(id: String?): ToolWindow? {
@@ -101,11 +100,8 @@ class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
   }
 }
 
-class FakeToolWindow(
-  project: Project,
-  tabs: List<TabInfo>,
-  private val manager: ToolWindowManager,
-) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+class FakeToolWindow(project: Project, tabs: List<TabInfo>, private val manager: ToolWindowManager) :
+  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private val fakeContentManager = FakeContentManager()
   private var visible = false
 
@@ -160,8 +156,7 @@ class FakeToolWindow(
       val component = it.component
       if (component !is UiDataProvider) return@find false
 
-      val dataContext =
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
+      val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
 
       SERIAL_NUMBER_KEY.getData(dataContext) == tabInfo.deviceId.serialNumber
     }
@@ -186,9 +181,7 @@ class FakeToolWindow(
   }
 }
 
-/**
- * Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager
- */
+/** Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager */
 class FakeContentManager : ContentManager {
   private val myDispatcher = EventDispatcher.create(ContentManagerListener::class.java)
   private val myContents: MutableList<Content> = ArrayList()
@@ -208,13 +201,7 @@ class FakeContentManager : ContentManager {
       content.manager = this
     }
     Disposer.register(this, content)
-    val e =
-      ContentManagerEvent(
-        this,
-        content,
-        myContents.indexOf(content),
-        ContentManagerEvent.ContentOperation.add,
-      )
+    val e = ContentManagerEvent(this, content, myContents.indexOf(content), ContentManagerEvent.ContentOperation.add)
     myDispatcher.multicaster.contentAdded(e)
     if (mySelected == null) setSelectedContent(content)
   }
@@ -328,8 +315,7 @@ class FakeContentManager : ContentManager {
     }
     val result = myContents.remove(content)
     if (dispose) Disposer.dispose(content)
-    val e =
-      ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.remove)
+    val e = ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.remove)
     myDispatcher.multicaster.contentRemoved(e)
     val item = ContainerUtil.getFirstItem(myContents)
     if (item != null) {
@@ -340,19 +326,13 @@ class FakeContentManager : ContentManager {
     return result
   }
 
-  override fun removeContent(
-    content: Content,
-    dispose: Boolean,
-    requestFocus: Boolean,
-    implicitFocus: Boolean,
-  ): ActionCallback {
+  override fun removeContent(content: Content, dispose: Boolean, requestFocus: Boolean, implicitFocus: Boolean): ActionCallback {
     removeContent(content, dispose)
     return ActionCallback.DONE
   }
 
   private fun fireContentRemoveQuery(content: Content, oldIndex: Int): Boolean {
-    val event =
-      ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.undefined)
+    val event = ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.undefined)
     for (listener in myDispatcher.listeners) {
       listener.contentRemoveQuery(event)
       if (event.isConsumed) {
@@ -367,13 +347,7 @@ class FakeContentManager : ContentManager {
   }
 
   override fun removeFromSelection(content: Content) {
-    val e =
-      ContentManagerEvent(
-        this,
-        content,
-        myContents.indexOf(mySelected),
-        ContentManagerEvent.ContentOperation.remove,
-      )
+    val e = ContentManagerEvent(this, content, myContents.indexOf(mySelected), ContentManagerEvent.ContentOperation.remove)
     myDispatcher.multicaster.selectionChanged(e)
   }
 
@@ -390,13 +364,7 @@ class FakeContentManager : ContentManager {
       removeFromSelection(mySelected!!)
     }
     mySelected = content
-    val e =
-      ContentManagerEvent(
-        this,
-        content,
-        myContents.indexOf(content),
-        ContentManagerEvent.ContentOperation.add,
-      )
+    val e = ContentManagerEvent(this, content, myContents.indexOf(content), ContentManagerEvent.ContentOperation.add)
     myDispatcher.multicaster.selectionChanged(e)
   }
 
@@ -417,20 +385,11 @@ class FakeContentManager : ContentManager {
     setSelectedContent(content)
   }
 
-  override fun setSelectedContentCB(
-    content: Content,
-    requestFocus: Boolean,
-    forcedFocus: Boolean,
-  ): ActionCallback {
+  override fun setSelectedContentCB(content: Content, requestFocus: Boolean, forcedFocus: Boolean): ActionCallback {
     return setSelectedContentCB(content)
   }
 
-  override fun setSelectedContent(
-    content: Content,
-    requestFocus: Boolean,
-    forcedFocus: Boolean,
-    implicit: Boolean,
-  ): ActionCallback {
+  override fun setSelectedContent(content: Content, requestFocus: Boolean, forcedFocus: Boolean, implicit: Boolean): ActionCallback {
     return setSelectedContentCB(content)
   }
 
@@ -457,11 +416,8 @@ class FakeContentManager : ContentManager {
   }
 }
 
-class FakeContent(
-  private val disposable: Disposable,
-  private val contentManager: ContentManager,
-  private val fakeComponent: JComponent,
-) : Content {
+class FakeContent(private val disposable: Disposable, private val contentManager: ContentManager, private val fakeComponent: JComponent) :
+  Content {
   init {
     Disposer.register(disposable, this)
   }
@@ -567,8 +523,7 @@ class FakeContent(
   override fun getExecutionId() = 1L
 }
 
-class FakeRunningDevicesComponent(private val tabInfo: TabInfo) :
-  JPanel(), UiDataProvider, DisplayOwner {
+class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel(), UiDataProvider, DisplayOwner {
   init {
     tabInfo.container.add(tabInfo.content)
   }

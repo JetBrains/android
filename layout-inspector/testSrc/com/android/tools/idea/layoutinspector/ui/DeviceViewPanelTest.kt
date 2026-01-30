@@ -143,16 +143,14 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val process = MODERN_PROCESS
-  private val appInspectorRule =
-    AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val inspectorRule =
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
@@ -188,17 +186,11 @@ class DeviceViewPanelWithFullInspectorTest {
   @Before
   fun before() {
     deviceModel = DeviceModel(projectRule.testRootDisposable, inspectorRule.processes)
-    projectRule.project.replaceService(
-      DeviceProvisionerService::class.java,
-      deviceProvisionerService,
-      projectRule.testRootDisposable,
-    )
-    whenever(deviceProvisionerService.deviceProvisioner)
-      .thenReturn(deviceProvisionerRule.deviceProvisioner)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.testRootDisposable)
+    whenever(deviceProvisionerService.deviceProvisioner).thenReturn(deviceProvisionerRule.deviceProvisioner)
 
     inspectorRule.attachDevice(DEVICE_1)
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
 
     val deviceSelector = DeviceSelector.fromSerialNumber(process.device.serial)
     appInspectorRule.adbSession.deviceServices.configureShellCommand(
@@ -226,14 +218,12 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
     val notificationModel = inspectorRule.notificationModel
-    val renderModel =
-      panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
+    val renderModel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
     panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { toolbar ->
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     }
-    val toggle =
-      panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
+    val toggle = panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
     (toggle.action as Toggle3dAction).executorFactory = { scheduler }
     (toggle.action as Toggle3dAction).getCurrentTimeMillis = { scheduler.currentTimeMillis }
     assertThat(toggle.isEnabled).isTrue()
@@ -259,11 +249,9 @@ class DeviceViewPanelWithFullInspectorTest {
     UIUtil.dispatchAllInvocationEvents()
     assertThat(notificationModel.notifications).hasSize(3)
     val notification1 = notificationModel.notifications[1]
-    assertThat(notification1.message)
-      .isEqualTo(LayoutInspectorBundle.message("3d.mode.deprecation.warning"))
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message("3d.mode.deprecation.warning"))
     val notification2 = notificationModel.notifications[2]
-    assertThat(notification2.message)
-      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
+    assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
     toggle.click()
@@ -274,9 +262,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
     inspectorRule.inspectorModel.hideSubtree(view2)
     val expectedMessage = LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN)
-    waitForCondition(10.seconds) {
-      notificationModel.notifications.any { it.message == expectedMessage }
-    }
+    waitForCondition(10.seconds) { notificationModel.notifications.any { it.message == expectedMessage } }
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
@@ -353,8 +339,7 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val actionEvent = mock<AnActionEvent>()
     whenever(actionEvent.actionManager).thenReturn(mock())
-    val stopAction =
-      dropdownAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
+    val stopAction = dropdownAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
     stopAction?.actionPerformed(mock())
 
     waitForCondition(10, TimeUnit.SECONDS) { !loadingPane.isLoading }
@@ -369,15 +354,12 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testSelectProcessDropDown() = runBlocking {
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
 
-    val selectTargetAction =
-      panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
+    val selectTargetAction = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
     val dropDownAction = selectTargetAction.dropDownAction
     installCommandHandlers()
     connect(process)
     inspectorRule.processNotifier.addDevice(UNSUPPORTED_DEVICE)
-    createFakeProvisionerDevices(
-      listOf(DEVICE_1.serial to ICON_PHONE, UNSUPPORTED_DEVICE.serial to ICON_LEGACY_PHONE)
-    )
+    createFakeProvisionerDevices(listOf(DEVICE_1.serial to ICON_PHONE, UNSUPPORTED_DEVICE.serial to ICON_LEGACY_PHONE))
     if (dropDownAction is SelectProcessAction) {
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -385,18 +367,8 @@ class DeviceViewPanelWithFullInspectorTest {
       assertThat(children).hasLength(4)
       // not alphabetically sorted in SelectProcessAction
       checkDeviceAction(children[0], enabled = true, ICON_PHONE, "Google Modern Model")
-      checkDeviceAction(
-        children[1],
-        enabled = true,
-        ICON_LEGACY_PHONE,
-        "Google Legacy Model (Live inspection disabled for API < 29)",
-      )
-      checkDeviceAction(
-        children[2],
-        enabled = false,
-        ICON_PHONE,
-        "Google Older Legacy Model (Unsupported for API < 23)",
-      )
+      checkDeviceAction(children[1], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
+      checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
       checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     } else if (dropDownAction is SelectDeviceAction) {
       waitForCondition(10.seconds) { dropDownAction.deviceIcons.size == 2 }
@@ -410,12 +382,7 @@ class DeviceViewPanelWithFullInspectorTest {
         ICON_PHONE,
         "Google Modern Model ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
       )
-      checkDeviceAction(
-        children[1],
-        enabled = false,
-        ICON_LEGACY_PHONE,
-        "Google Modern Model (Unsupported for API < 29)",
-      )
+      checkDeviceAction(children[1], enabled = false, ICON_LEGACY_PHONE, "Google Modern Model (Unsupported for API < 29)")
       checkDeviceAction(children[2], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     }
   }
@@ -433,8 +400,7 @@ class DeviceViewPanelWithFullInspectorTest {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
     val notification1 = inspectorRule.notificationModel.notifications[1]
-    assertThat(notification1.message)
-      .isEqualTo("Cannot navigate to source because v3 in the layout demo.xml doesn't have an id.")
+    assertThat(notification1.message).isEqualTo("Cannot navigate to source because v3 in the layout demo.xml doesn't have an id.")
   }
 
   private fun gotoDeclaration(selectedView: Long) {
@@ -469,8 +435,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
     delegateDataProvider(panel)
     val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
-    focusManager.focusOwner =
-      panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().single()
+    focusManager.focusOwner = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().single()
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
 
@@ -498,8 +463,7 @@ class DeviceViewPanelWithFullInspectorTest {
       commands.add(command)
 
       when (command.specializedCase) {
-        UPDATE_SCREENSHOT_TYPE_COMMAND ->
-          lastImageType = command.updateScreenshotTypeCommand.type.toImageType()
+        UPDATE_SCREENSHOT_TYPE_COMMAND -> lastImageType = command.updateScreenshotTypeCommand.type.toImageType()
         else -> {}
       }
       val window =
@@ -517,8 +481,7 @@ class DeviceViewPanelWithFullInspectorTest {
   private fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
     return when (this) {
       LayoutInspectorViewProtocol.Screenshot.Type.SKP -> AndroidWindow.ImageType.SKP
-      LayoutInspectorViewProtocol.Screenshot.Type.BITMAP ->
-        AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+      LayoutInspectorViewProtocol.Screenshot.Type.BITMAP -> AndroidWindow.ImageType.BITMAP_AS_REQUESTED
       else -> AndroidWindow.ImageType.UNKNOWN
     }
   }
@@ -563,24 +526,12 @@ class DeviceViewPanelTest {
 
   @Before
   fun setup() {
-    ApplicationManager.getApplication()
-      .registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
-    projectRule.project.replaceService(
-      DeviceProvisionerService::class.java,
-      deviceProvisionerService,
-      projectRule.disposable,
-    )
-    whenever(deviceProvisionerService.deviceProvisioner)
-      .thenReturn(deviceProvisionerRule.deviceProvisioner)
+    ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, deviceProvisionerService, projectRule.disposable)
+    whenever(deviceProvisionerService.deviceProvisioner).thenReturn(deviceProvisionerRule.deviceProvisioner)
 
-    replaceAdtUiCursorWithPredefinedCursor(
-      AdtUiCursorType.GRAB,
-      Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR),
-    )
-    replaceAdtUiCursorWithPredefinedCursor(
-      AdtUiCursorType.GRABBING,
-      Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR),
-    )
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
   }
 
   @Test
@@ -781,17 +732,14 @@ class DeviceViewPanelTest {
 
       val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
       scrollPane.setSize(200, 300)
-      model.resourceLookup.displays =
-        listOf(Display(id = 0, size = Dimension(200, 300), orientation = 90))
+      model.resourceLookup.displays = listOf(Display(id = 0, size = Dimension(200, 300), orientation = 90))
 
       assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
-      val newWindow1 =
-        viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
+      val newWindow1 = viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
       model.update(newWindow1, listOf(ROOT), 0)
 
-      val newWindow2 =
-        viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
+      val newWindow2 = viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
       model.update(newWindow2, listOf(ROOT, ROOT2), 1)
 
       // now we should be zoomed to fit
@@ -888,8 +836,7 @@ class DeviceViewPanelTest {
     val panel = DeviceViewPanel(inspector, disposableRule.disposable)
 
     val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
-    val contentPanelModel =
-      panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
+    val contentPanelModel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) { image() } }
@@ -935,20 +882,12 @@ class DeviceViewPanelTest {
 
   @Test
   fun testDragWithSpaceFromSnapshot() {
-    testPan(
-      { ui, _ -> ui.keyboard.press(VK_SPACE) },
-      { ui, _ -> ui.keyboard.release(VK_SPACE) },
-      fromSnapshot = true,
-    )
+    testPan({ ui, _ -> ui.keyboard.press(VK_SPACE) }, { ui, _ -> ui.keyboard.release(VK_SPACE) }, fromSnapshot = true)
   }
 
   @Test
   fun testDragInPanModeFromSnapShot() {
-    testPan(
-      { _, panel -> panel.isPanning = true },
-      { _, panel -> panel.isPanning = false },
-      fromSnapshot = true,
-    )
+    testPan({ _, panel -> panel.isPanning = true }, { _, panel -> panel.isPanning = false }, fromSnapshot = true)
   }
 
   @Test
@@ -962,10 +901,7 @@ class DeviceViewPanelTest {
     panButton: Button = Button.LEFT,
     fromSnapshot: Boolean = false,
   ) {
-    val model =
-      model(disposableRule.disposable, projectRule.project) {
-        view(ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) }
-      }
+    val model = model(disposableRule.disposable, projectRule.project) { view(ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) } }
 
     val notificationModel = NotificationModel(projectRule.project)
     val launcher: InspectorClientLauncher = mock()
@@ -984,15 +920,7 @@ class DeviceViewPanelTest {
     if (fromSnapshot) {
       deviceModel = null
       processes = null
-      inspector =
-        LayoutInspector(
-          coroutineScope,
-          clientSettings,
-          client,
-          model,
-          notificationModel,
-          treeSettings,
-        )
+      inspector = LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, treeSettings)
     } else {
       val fakeProcess = createFakeStream().createFakeProcess()
       val latch = CountDownLatch(1)
@@ -1205,9 +1133,7 @@ class MyViewportLayoutManagerTest {
     // Mimic the real location computation which involves the size of the view
     // (DeviceViewContentPanel)
     val modelLocation = Point(-500, 0)
-    rootLocationCompute = {
-      Point(modelLocation).apply { translate(contentPanel.width / 2, contentPanel.height / 2) }
-    }
+    rootLocationCompute = { Point(modelLocation).apply { translate(contentPanel.width / 2, contentPanel.height / 2) } }
 
     // Set the size such that the scrollpane can hold the preferred size of the
     // DeviceViewContentPanel if there
@@ -1243,8 +1169,7 @@ class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.onDisk()
   private val process = MODERN_PROCESS
-  private val appInspectorRule =
-    AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule =
     LayoutInspectorRule(
@@ -1296,8 +1221,7 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
 
-    val deviceViewContentPanel =
-      panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
+    val deviceViewContentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
 
     // false by default
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
@@ -1337,10 +1261,7 @@ class DeviceViewPanelWithNoClientsTest {
 private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
   return TransportProcessDescriptor(
     this,
-    FakeTransportService.FAKE_PROCESS.toBuilder()
-      .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
-      .setPid(pid)
-      .build(),
+    FakeTransportService.FAKE_PROCESS.toBuilder().setName(name ?: FakeTransportService.FAKE_PROCESS_NAME).setPid(pid).build(),
   )
 }
 

@@ -32,9 +32,7 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   // Our safe delete processor should act like a regular android layout safe delete processor with
   // a bit of extra handling for binding references. We can delegate most of the work.
   private val delegateProcessor =
-    SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(
-      AndroidResourceFileSafeDeleteProcessor::class.java
-    )
+    SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(AndroidResourceFileSafeDeleteProcessor::class.java)
 
   override fun handlesElement(element: PsiElement): Boolean {
     if (!delegateProcessor.handlesElement(element)) return false
@@ -64,20 +62,13 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
     val facet = AndroidFacet.getInstance(element)!!
 
     LayoutBindingModuleCache.getInstance(facet)
-      .getLightBindingClasses { group ->
-        group.layouts.any { layout -> layout.file == resourceFile.virtualFile }
-      }
-      .forEach { bindingClass ->
-        SafeDeleteProcessor.findGenericElementUsages(bindingClass, result, allElementsToDelete)
-      }
+      .getLightBindingClasses { group -> group.layouts.any { layout -> layout.file == resourceFile.virtualFile } }
+      .forEach { bindingClass -> SafeDeleteProcessor.findGenericElementUsages(bindingClass, result, allElementsToDelete) }
 
     return delegateProcessor.findUsages(element, allElementsToDelete, result)
   }
 
-  override fun getElementsToSearch(
-    element: PsiElement,
-    allElementsToDelete: Collection<PsiElement>,
-  ): Collection<PsiElement>? {
+  override fun getElementsToSearch(element: PsiElement, allElementsToDelete: Collection<PsiElement>): Collection<PsiElement>? {
     return delegateProcessor.getElementsToSearch(element, allElementsToDelete)
   }
 
@@ -89,10 +80,7 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
     return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete, askUser)
   }
 
-  override fun findConflicts(
-    element: PsiElement,
-    allElementsToDelete: Array<PsiElement>,
-  ): Collection<String>? {
+  override fun findConflicts(element: PsiElement, allElementsToDelete: Array<PsiElement>): Collection<String>? {
     return delegateProcessor.findConflicts(element, allElementsToDelete)
   }
 

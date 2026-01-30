@@ -43,8 +43,7 @@ fun LayoutEvent.Builder.ViewString(id: Int, str: String) {
 }
 
 fun LayoutEvent.Builder.Root(init: ViewNode.Builder.() -> Unit) {
-  rootView =
-    LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = createViewNode(init) }.build()
+  rootView = LayoutInspectorViewProtocol.RootView.newBuilder().apply { node = createViewNode(init) }.build()
 }
 
 // Need to create a helper function to avoid name ambiguity

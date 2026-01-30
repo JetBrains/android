@@ -45,8 +45,7 @@ import java.util.concurrent.Executor
 private val standardDatabases = setOf("androidx.work.workdb")
 
 /**
- * Implementation of the application logic related to running queries and updates on a sqlite
- * database.
+ * Implementation of the application logic related to running queries and updates on a sqlite database.
  *
  * All methods are assumed to run on the UI (EDT) thread.
  */
@@ -71,8 +70,7 @@ class SqliteEvaluatorController(
   }
 
   private var currentTableController: TableController? = null
-  private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener =
-    SqliteEvaluatorViewListenerImpl()
+  private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
 
@@ -87,10 +85,7 @@ class SqliteEvaluatorController(
   private val modelListener =
     object : DatabaseInspectorModel.Listener {
       @UiThread
-      override fun onDatabasesChanged(
-        openDatabaseIds: List<SqliteDatabaseId>,
-        closeDatabaseIds: List<SqliteDatabaseId>,
-      ) {
+      override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
         openDatabases.clear()
         openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
 
@@ -107,11 +102,7 @@ class SqliteEvaluatorController(
       }
 
       @UiThread
-      override fun onSchemaChanged(
-        databaseId: SqliteDatabaseId,
-        oldSchema: SqliteSchema,
-        newSchema: SqliteSchema,
-      ) {
+      override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
         view.schemaChanged(databaseId)
       }
     }
@@ -123,9 +114,7 @@ class SqliteEvaluatorController(
     updateDefaultMessage()
 
     // load query history
-    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach {
-      queryHistory.add(it!!)
-    }
+    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
     view.setQueryHistory(queryHistory.toList())
 
     if (evaluationParams != null) {
@@ -134,8 +123,7 @@ class SqliteEvaluatorController(
       if (evaluationParams.databaseId in openDatabases && statement.isQueryStatement) {
         showAndExecuteSqlStatement(evaluationParams.databaseId!!, statement)
       } else {
-        currentEvaluationParams =
-          currentEvaluationParams.copy(statementText = evaluationParams.statementText)
+        currentEvaluationParams = currentEvaluationParams.copy(statementText = evaluationParams.statementText)
         view.showSqliteStatement(currentEvaluationParams.statementText)
       }
     }
@@ -163,20 +151,12 @@ class SqliteEvaluatorController(
     listeners.remove(listener)
   }
 
-  fun showAndExecuteSqlStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit> {
+  fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
-      return immediateFailedFuture(
-        IllegalStateException(
-          "Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"
-        )
-      )
+      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
     }
 
-    currentEvaluationParams =
-      EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
     view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
     return executeSqlStatement(databaseId, sqliteStatement)
@@ -184,22 +164,15 @@ class SqliteEvaluatorController(
 
   fun saveEvaluationParams(): EvaluationParams {
     // prefer newly entered data over last evaluated
-    val databaseId =
-      lastUsedEvaluationParams
-        ?.takeIf { currentEvaluationParams.statementText == it.statementText }
-        ?.databaseId
+    val databaseId = lastUsedEvaluationParams?.takeIf { currentEvaluationParams.statementText == it.statementText }?.databaseId
     return EvaluationParams(databaseId, currentEvaluationParams.statementText)
   }
 
-  override fun isLiveUpdateEnabled() =
-    currentTableController?.isLiveUpdateEnabled() ?: isLiveUpdatesEnabled
+  override fun isLiveUpdateEnabled() = currentTableController?.isLiveUpdateEnabled() ?: isLiveUpdatesEnabled
 
   override fun getRowBatchSize() = currentTableController?.getRowBatchSize() ?: rowBatchSize
 
-  private fun executeSqlStatement(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit> {
+  private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
 
     // update query history
@@ -215,8 +188,7 @@ class SqliteEvaluatorController(
     // save query history
     PropertiesComponent.getInstance(project).setList(QUERY_HISTORY_KEY, queryHistory)
 
-    lastUsedEvaluationParams =
-      EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {
       view.showTableView()
       runQuery(databaseId, sqliteStatement)
@@ -246,15 +218,11 @@ class SqliteEvaluatorController(
 
   private fun updateRunSqliteStatementButtonState() {
     view.setRunSqliteStatementEnabled(
-      currentEvaluationParams.databaseId != null &&
-        !hasParsingError(project, currentEvaluationParams.statementText)
+      currentEvaluationParams.databaseId != null && !hasParsingError(project, currentEvaluationParams.statementText)
     )
   }
 
-  private fun runQuery(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit> {
+  private fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     currentTableController =
       TableController(
         project = project,
@@ -273,27 +241,16 @@ class SqliteEvaluatorController(
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
     return currentTableController!!
       .setUp()
-      .transform(edtExecutor) {
-        showSuccessfulExecutionNotification(
-          DatabaseInspectorBundle.message("statement.run.successfully")
-        )
-      }
-      .catching(edtExecutor, Throwable::class.java) {
-        view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement"))
-      }
+      .transform(edtExecutor) { showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully")) }
+      .catching(edtExecutor, Throwable::class.java) { view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement")) }
   }
 
-  private fun runUpdate(
-    databaseId: SqliteDatabaseId,
-    sqliteStatement: SqliteStatement,
-  ): ListenableFuture<Unit> {
+  private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     return databaseRepository
       .executeStatement(databaseId, sqliteStatement)
       .transform(edtExecutor) {
         view.showMessagePanel(DatabaseInspectorBundle.message("statement.run.successfully"))
-        showSuccessfulExecutionNotification(
-          DatabaseInspectorBundle.message("statement.run.successfully")
-        )
+        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
       }
       .catching(edtExecutor, Throwable::class.java) { throwable ->
@@ -309,9 +266,7 @@ class SqliteEvaluatorController(
         view.showMessagePanel("Write a query and run it to see results from the selected database.")
       }
       is SqliteDatabaseId.FileSqliteDatabaseId -> {
-        view.showMessagePanel(
-          "The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only."
-        )
+        view.showMessagePanel("The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only.")
       }
       null -> {
         view.showMessagePanel("Select a database from the drop down.")
@@ -325,10 +280,8 @@ class SqliteEvaluatorController(
 
       val connectivityState =
         when (databaseId) {
-          is SqliteDatabaseId.FileSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-          is SqliteDatabaseId.LiveSqliteDatabaseId ->
-            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+          is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+          is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
         }
 
       DatabaseInspectorAnalyticsTracker.getInstance(project)
@@ -337,10 +290,7 @@ class SqliteEvaluatorController(
           AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT,
         )
 
-      executeSqlStatement(
-        databaseId,
-        createSqliteStatement(project, currentEvaluationParams.statementText),
-      )
+      executeSqlStatement(databaseId, createSqliteStatement(project, currentEvaluationParams.statementText))
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
@@ -373,8 +323,6 @@ class SqliteEvaluatorController(
 /**
  * Get default database
  *
- * Get the first non-standard database (for example `androidx.work.workdb`). If only standard
- * databases exist, return the first one.
+ * Get the first non-standard database (for example `androidx.work.workdb`). If only standard databases exist, return the first one.
  */
-private fun List<SqliteDatabaseId>.getDefault() =
-  firstOrNull { it.name !in standardDatabases } ?: firstOrNull()
+private fun List<SqliteDatabaseId>.getDefault() = firstOrNull { it.name !in standardDatabases } ?: firstOrNull()

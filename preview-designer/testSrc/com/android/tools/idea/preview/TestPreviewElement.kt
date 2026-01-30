@@ -52,10 +52,7 @@ class TestBasePreviewElement<T>(
     )
   override val previewBody = null
 
-  override fun createDerivedInstance(
-    displaySettings: PreviewDisplaySettings,
-    config: PreviewConfiguration,
-  ) =
+  override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
     TestBasePreviewElement(
       displayName = displaySettings.name,
       baseName = displaySettings.baseName,

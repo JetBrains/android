@@ -37,11 +37,7 @@ import org.mockito.kotlin.mock
 data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 
 internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
-  return AppInsightsIssue(
-    issueDetails = mock(),
-    sampleEvent = Event(appVcsInfo = appVcsInfo),
-    source = FakeInsightsProvider(),
-  )
+  return AppInsightsIssue(issueDetails = mock(), sampleEvent = Event(appVcsInfo = appVcsInfo), source = FakeInsightsProvider())
 }
 
 internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {
@@ -59,9 +55,7 @@ internal fun withFakedInsights(
   expectedInsightsFromTabProvider1: List<AppInsight>,
   expectedInsightsFromTabProvider2: List<AppInsight> = emptyList(),
 ) {
-  AppInsightsTabProvider.EP_NAME.extensionList.filterIsInstance<TestTabProvider>().forEachIndexed {
-    index,
-    tabProvider ->
+  AppInsightsTabProvider.EP_NAME.extensionList.filterIsInstance<TestTabProvider>().forEachIndexed { index, tabProvider ->
     if (index == 0) {
       tabProvider.returnInsights(expectedInsightsFromTabProvider1)
     } else {
@@ -70,15 +64,11 @@ internal fun withFakedInsights(
   }
 }
 
-internal fun Document.assertHighlightResults(
-  results: List<HighlightInfo>,
-  expectedLineToInsights: List<LineToInsights>,
-) {
+internal fun Document.assertHighlightResults(results: List<HighlightInfo>, expectedLineToInsights: List<LineToInsights>) {
   Truth.assertThat(results.size).isEqualTo(expectedLineToInsights.size)
 
   results.mapIndexed { index, highlightInfo ->
-    Truth.assertThat(highlightInfo.startOffset)
-      .isEqualTo(getLineStartOffset(expectedLineToInsights[index].line))
+    Truth.assertThat(highlightInfo.startOffset).isEqualTo(getLineStartOffset(expectedLineToInsights[index].line))
     Truth.assertThat(highlightInfo.severity).isEqualTo(HighlightSeverity.INFORMATION)
     Truth.assertThat((highlightInfo.gutterIconRenderer as AppInsightsGutterRenderer).insights)
       .isEqualTo(expectedLineToInsights[index].insights)

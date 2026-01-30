@@ -37,34 +37,20 @@ import kotlin.io.path.pathString
 private const val BUGREPORT_LOGCAT_END = " was the duration of 'SYSTEM LOG' ------"
 private const val BUGREPORT_LOGCAT_START = "------ SYSTEM LOG "
 
-internal class LogcatFileParser(
-  private val headerRegex: Regex,
-  private val zoneId: ZoneId = ZoneId.systemDefault(),
-) {
+internal class LogcatFileParser(private val headerRegex: Regex, private val zoneId: ZoneId = ZoneId.systemDefault()) {
 
   fun parseLogcatFile(path: Path, isBugreport: Boolean = false): List<LogcatMessage> {
-    return path.bufferedReader().use {
-      parseLogcatFile(it, path.pathString, path.creationYear(), isBugreport)
-    }
+    return path.bufferedReader().use { parseLogcatFile(it, path.pathString, path.creationYear(), isBugreport) }
   }
 
   fun parseBugreportFile(path: Path): List<LogcatMessage> {
     val zip = ZipFile(path.pathString)
     val entries = zip.entries().asSequence()
-    val entry =
-      entries.find { it.isBugreport() }
-        ?: throw IllegalArgumentException("Bugreport not found in $path")
-    return zip.getInputStream(entry).bufferedReader().use {
-      parseLogcatFile(it, path.pathString, path.creationYear(), true)
-    }
+    val entry = entries.find { it.isBugreport() } ?: throw IllegalArgumentException("Bugreport not found in $path")
+    return zip.getInputStream(entry).bufferedReader().use { parseLogcatFile(it, path.pathString, path.creationYear(), true) }
   }
 
-  private fun parseLogcatFile(
-    reader: BufferedReader,
-    filename: String,
-    year: Int,
-    isBugreport: Boolean,
-  ): List<LogcatMessage> {
+  private fun parseLogcatFile(reader: BufferedReader, filename: String, year: Int, isBugreport: Boolean): List<LogcatMessage> {
     var currentHeader: LogcatHeader? = null
     val currentMessage = StringBuilder()
     val iterator = Iterators.peekingIterator(reader.lineSequence().iterator().withIndex())
@@ -96,14 +82,10 @@ internal class LogcatFileParser(
 
           val result =
             headerRegex.find(line)
-              ?: throw IllegalArgumentException(
-                "Error parsing [$filename:${it.index + 1}]. Invalid logcat line: $line"
-              )
+              ?: throw IllegalArgumentException("Error parsing [$filename:${it.index + 1}]. Invalid logcat line: $line")
           val header = result.toLogcatHeader(year)
           if (header != currentHeader) {
-            currentHeader?.let { logcatHeader ->
-              add(LogcatMessage(logcatHeader, currentMessage.toString()))
-            }
+            currentHeader?.let { logcatHeader -> add(LogcatMessage(logcatHeader, currentMessage.toString())) }
             currentHeader = header
             currentMessage.clear()
           }
@@ -135,22 +117,15 @@ internal class LogcatFileParser(
     val pid = getGroup("pid").toInt()
     val tid = runCatching { groups["tid"]?.value?.toInt() }.getOrNull() ?: 0
     val levelLetter = getGroup("level")
-    val level =
-      LogLevel.getByLetter(levelLetter)
-        ?: throw IllegalArgumentException("Invalid log level: $levelLetter")
+    val level = LogLevel.getByLetter(levelLetter) ?: throw IllegalArgumentException("Invalid log level: $levelLetter")
     val tag = getGroup("tag").trim()
     val processName = "pid-$pid"
-    val timestamp =
-      Instant.from(ZonedDateTime.of(year, month, day, hour, minute, second, nanos, zoneId))
+    val timestamp = Instant.from(ZonedDateTime.of(year, month, day, hour, minute, second, nanos, zoneId))
     return LogcatHeader(level, pid, tid, processName, processName, tag, timestamp)
   }
 
   private fun Path.creationYear(): Int =
-    Files.readAttributes(this, BasicFileAttributes::class.java)
-      .creationTime()
-      .toInstant()
-      .atZone(zoneId)
-      .year
+    Files.readAttributes(this, BasicFileAttributes::class.java).creationTime().toInstant().atZone(zoneId).year
 }
 
 private fun MatchResult.getGroup(group: String): String =

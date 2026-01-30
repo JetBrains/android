@@ -37,13 +37,17 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   }
 
   fun testAgpClasspathDependencyRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       buildscript {
         dependencies {
           classpath 'com.android.tools.build:gradle:3.6.0'
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = AgpVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -53,9 +57,13 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   }
 
   fun testAgpGradleVersionRefactoringProcessor() {
-    myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
+    myFixture.addFileToProject(
+      "gradle/wrapper/gradle-wrapper.properties",
+      """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = GradleVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -65,7 +73,9 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       plugins {
         id 'com.android.application'
       }
@@ -75,7 +85,9 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
       dependencies {
         androidTestCompile 'org.junit:junit:4.11'
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -85,15 +97,19 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   }
 
   fun testMigrateToBuildFeaturesRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       android {
         viewBinding {
           enabled true
         }
       }
-    """.trimIndent())
-    val processor = MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(myFixture.project,
-                                                                        AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
+      """
+        .trimIndent(),
+    )
+    val processor =
+      MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(myFixture.project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -102,7 +118,9 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   }
 
   fun testRemoveSourceSetJniRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       android {
         sourceSets {
           foo {
@@ -112,7 +130,9 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
           }
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(myFixture.project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isEnabled)
@@ -122,9 +142,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
       .containsExactly("Remove jni source directory from sourceSets")
   }
 
-  /**
-   * this mirrors [com.intellij.usages.impl.UsageViewImpl.getActiveGroupingRules]
-   */
+  /** this mirrors [com.intellij.usages.impl.UsageViewImpl.getActiveGroupingRules] */
   private fun getActiveGroupingRules(project: Project): Array<UsageGroupingRule> {
     val providers = UsageGroupingRuleProvider.EP_NAME.extensionList
     val usageViewSettings = UsageViewSettings.instance

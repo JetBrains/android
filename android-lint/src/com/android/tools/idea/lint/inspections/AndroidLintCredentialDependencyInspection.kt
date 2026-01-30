@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.CredentialManagerDependencyDetector
 
 class AndroidLintCredentialDependencyInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.credential.dependency"),
-    CredentialManagerDependencyDetector.CREDENTIAL_DEP,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.credential.dependency"), CredentialManagerDependencyDetector.CREDENTIAL_DEP)

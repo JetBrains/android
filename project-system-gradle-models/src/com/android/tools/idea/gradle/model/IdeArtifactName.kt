@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.model
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 
 enum class IdeArtifactName {
-  MAIN, ANDROID_TEST, UNIT_TEST, TEST_FIXTURES, SCREENSHOT_TEST;
+  MAIN,
+  ANDROID_TEST,
+  UNIT_TEST,
+  TEST_FIXTURES,
+  SCREENSHOT_TEST;
 
   companion object {
     @JvmStatic

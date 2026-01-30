@@ -34,15 +34,12 @@ import com.intellij.openapi.roots.OrderRootType
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler
 
 /**
- * [AndroidGradleOrderEnumeratorHandlerFactory] was introduced to make
- * order entries enumeration of Android modules consistent with the Android gradle importer.
- * Android gradle importer uses first-level dependencies for android modules,
- * and each module has to "export" their dependencies to make them visible to dependent modules.
+ * [AndroidGradleOrderEnumeratorHandlerFactory] was introduced to make order entries enumeration of Android modules consistent with the
+ * Android gradle importer. Android gradle importer uses first-level dependencies for android modules, and each module has to "export" their
+ * dependencies to make them visible to dependent modules.
  *
- *
- * Non-android gradle modules don't have such restriction (there will always be fully resolved dependency graph as a flat list)
- * and should not be affected by the recursive enumeration.
- * Which can lead to unexpected runtime classpath and performance degradation.
+ * Non-android gradle modules don't have such restriction (there will always be fully resolved dependency graph as a flat list) and should
+ * not be affected by the recursive enumeration. Which can lead to unexpected runtime classpath and performance degradation.
  */
 class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.FactoryImpl() {
   override fun isApplicable(module: Module): Boolean {
@@ -65,15 +62,19 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         module: Module,
         androidModel: GradleAndroidModel,
         includeProduction: Boolean,
-        includeTests: Boolean
+        includeTests: Boolean,
       ): List<IdeBaseArtifactCore> {
         return listOfNotNull(
-          androidModel.selectedVariant.mainArtifact.takeIf { includeProduction && module.isMainModule() },
-          androidModel.getArtifactCoreForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
-          androidModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.takeIf { includeTests && module.isUnitTestModule() },
-          androidModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.takeIf { includeTests && module.isScreenshotTestModule() },
-          androidModel.selectedVariant.testFixturesArtifact?.takeIf { includeTests && module.isTestFixturesModule() },
-        )
+            androidModel.selectedVariant.mainArtifact.takeIf { includeProduction && module.isMainModule() },
+            androidModel.getArtifactCoreForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
+            androidModel.selectedVariant.hostTestArtifacts
+              .find { it.name == IdeArtifactName.UNIT_TEST }
+              ?.takeIf { includeTests && module.isUnitTestModule() },
+            androidModel.selectedVariant.hostTestArtifacts
+              .find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+              ?.takeIf { includeTests && module.isScreenshotTestModule() },
+            androidModel.selectedVariant.testFixturesArtifact?.takeIf { includeTests && module.isTestFixturesModule() },
+          )
           .distinct()
       }
 
@@ -82,10 +83,9 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         rootModel: ModuleRootModel,
         result: MutableCollection<String>,
         includeProduction: Boolean,
-        includeTests: Boolean
+        includeTests: Boolean,
       ): Boolean {
-        val androidModel = GradleAndroidModel.get(rootModel.module)
-          ?: return false // `isApplicable()` should have returned false.
+        val androidModel = GradleAndroidModel.get(rootModel.module) ?: return false // `isApplicable()` should have returned false.
         if (type != OrderRootType.CLASSES) {
           return false
         }
@@ -99,20 +99,18 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
   }
 
   companion object {
-    private fun getAndroidCompilerOutputFolders(
-      artifacts: List<IdeBaseArtifactCore>
-    ): Sequence<String> {
+    private fun getAndroidCompilerOutputFolders(artifacts: List<IdeBaseArtifactCore>): Sequence<String> {
       // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
       // if multiple definitions of the same class exist in both the test and the main artifact.
 
-      return artifacts
-        .asSequence()
-        .flatMap {
-          when (it) {
-            is IdeJavaArtifact, is IdeJavaArtifactCore -> addFoldersFromJavaArtifact(it as IdeJavaArtifactCore)
-            is IdeAndroidArtifact, is IdeAndroidArtifactCore -> addFoldersFromAndroidArtifact(it as IdeAndroidArtifactCore)
-          }
+      return artifacts.asSequence().flatMap {
+        when (it) {
+          is IdeJavaArtifact,
+          is IdeJavaArtifactCore -> addFoldersFromJavaArtifact(it as IdeJavaArtifactCore)
+          is IdeAndroidArtifact,
+          is IdeAndroidArtifactCore -> addFoldersFromAndroidArtifact(it as IdeAndroidArtifactCore)
         }
+      }
     }
 
     private fun foldersFromBaseArtifact(artifact: IdeBaseArtifactCore): Sequence<String> {

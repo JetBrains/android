@@ -30,8 +30,8 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.util.toJvmVendor
 
 /**
- * Collection of utils to downloads JBR from Intellij [hosted server](https://download.jetbrains.com/jdk/feed/v1/jdks.json.xz) by
- * using existing platform implementation utils from [com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkDownloadUtil]
+ * Collection of utils to downloads JBR from Intellij [hosted server](https://download.jetbrains.com/jdk/feed/v1/jdks.json.xz) by using
+ * existing platform implementation utils from [com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkDownloadUtil]
  */
 object JdkDownloadUtils {
 

@@ -36,9 +36,9 @@ import org.junit.Test
 @RunsInEdt
 class GradleCachedVersionCatalogTest {
   // we need to have project structure like modules that's the reason of having heavy Gradle rule
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
+  private val project
+    get() = projectRule.project
 
   @Test
   fun testReturnSameInstance() {
@@ -65,9 +65,7 @@ class GradleCachedVersionCatalogTest {
     val start = settingsContent.indexOf("libsTest")
     val finish = settingsContent.indexOf("}", start)
 
-    ApplicationManager.getApplication().runWriteAction {
-      settings.writeTextAndCommit(settingsContent.removeRange(start, finish + 1))
-    }
+    ApplicationManager.getApplication().runWriteAction { settings.writeTextAndCommit(settingsContent.removeRange(start, finish + 1)) }
 
     val catalogsModelAfter = GradleModelSource.getInstance().getCachedVersionCatalogsModel(appModule)
     assertThat(catalogsModelBefore).isNotSameAs(catalogsModelAfter)
@@ -82,9 +80,7 @@ class GradleCachedVersionCatalogTest {
     val catalogsModelBefore = GradleModelSource.getInstance().getCachedVersionCatalogsModel(appModule)
     assertThat(catalogsModelBefore.catalogNames()).containsExactly("libs", "libsTest") // check for catalog updates
     val libsTest = root.findFileByRelativePath("gradle/libsTest.versions.toml")!!
-    ApplicationManager.getApplication().runWriteAction {
-      libsTest.delete(this)
-    }
+    ApplicationManager.getApplication().runWriteAction { libsTest.delete(this) }
 
     val catalogsModelAfter = GradleModelSource.getInstance().getCachedVersionCatalogsModel(appModule)
     assertThat(catalogsModelBefore).isNotSameAs(catalogsModelAfter)
@@ -119,9 +115,7 @@ class GradleCachedVersionCatalogTest {
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val settings = root.findFileByRelativePath("settings.gradle")!!
-    ApplicationManager.getApplication().runWriteAction {
-      settings.delete(this)
-    }
+    ApplicationManager.getApplication().runWriteAction { settings.delete(this) }
     val catalogsModel = GradleModelSource.getInstance().getCachedVersionCatalogsModel(appModule)
     assertThat(catalogsModel.catalogNames()).containsExactly("libs")
   }
@@ -131,5 +125,4 @@ class GradleCachedVersionCatalogTest {
     writeText(text)
     findDocument()?.commitToPsi(projectRule.project)
   }
-
 }

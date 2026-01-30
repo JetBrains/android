@@ -25,6 +25,9 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
+import java.time.Duration
+import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
@@ -37,9 +40,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runners.Parameterized
-import java.time.Duration
-import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 
 class AdbFileListingTest {
   private val deviceName = "Test Device"
@@ -48,14 +48,9 @@ class AdbFileListingTest {
 
   private val commands = TestShellCommands()
 
-  @get:Rule
-  var thrown = ExpectedException.none()
+  @get:Rule var thrown = ExpectedException.none()
 
-  @JvmField
-  @Rule
-  val fakeAdbRule = FakeAdbServerProviderRule {
-    installDeviceHandler(TestShellCommandHandler(SHELL, commands))
-  }
+  @JvmField @Rule val fakeAdbRule = FakeAdbServerProviderRule { installDeviceHandler(TestShellCommandHandler(SHELL, commands)) }
 
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val scope = CoroutineScope(dispatcher)
@@ -75,9 +70,15 @@ class AdbFileListingTest {
     originalTimeout = DdmPreferences.getTimeOut()
     DdmPreferences.setTimeOut(5_000)
 
-    deviceState = fakeAdbRule.fakeAdb.connectDevice(
-      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
-      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
+    deviceState =
+      fakeAdbRule.fakeAdb.connectDevice(
+        deviceId = "test_device_01",
+        manufacturer = "Google",
+        deviceModel = "Pixel 10",
+        release = "8.0",
+        sdk = AndroidApiLevel(31),
+        hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB,
+      )
 
     device = runBlocking {
       withTimeout(Duration.ofSeconds(5).toMillis()) {
@@ -302,17 +303,8 @@ class AdbFileListingTest {
   fun whenLsEscapes(): Unit = runBlocking {
     TestDevices.addWhenLsEscapesCommands(commands)
     val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
-    val dir = AdbFileListingEntry(
-      "/sdcard/dir",
-      EntryKind.DIRECTORY,
-      "drwxrwx--x",
-      "root",
-      "sdcard_rw",
-      "2018-01-10",
-      "12:56",
-      "4096",
-      null
-    )
+    val dir =
+      AdbFileListingEntry("/sdcard/dir", EntryKind.DIRECTORY, "drwxrwx--x", "root", "sdcard_rw", "2018-01-10", "12:56", "4096", null)
     assertThat(listing.getChildrenRunAs(dir, null)[0].name).isEqualTo("dir with spaces")
   }
 
@@ -320,17 +312,8 @@ class AdbFileListingTest {
   fun whenLsDoesNotEscape(): Unit = runBlocking {
     TestDevices.addWhenLsDoesNotEscapeCommands(commands)
     val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
-    val dir = AdbFileListingEntry(
-      "/sdcard/dir",
-      EntryKind.DIRECTORY,
-      "drwxrwx--x",
-      "root",
-      "sdcard_rw",
-      "2018-01-10",
-      "15:00",
-      "4096",
-      null
-    )
+    val dir =
+      AdbFileListingEntry("/sdcard/dir", EntryKind.DIRECTORY, "drwxrwx--x", "root", "sdcard_rw", "2018-01-10", "15:00", "4096", null)
     assertThat(listing.getChildrenRunAs(dir, null)[0].name).isEqualTo("dir with spaces")
   }
 
@@ -355,28 +338,19 @@ class AdbFileListingTest {
   }
 
   companion object {
-    private suspend fun assertDirectoryLink(
-      fileListing: AdbFileListing,
-      entries: List<AdbFileListingEntry>,
-      name: String,
-      value: Boolean
-    ) {
+    private suspend fun assertDirectoryLink(fileListing: AdbFileListing, entries: List<AdbFileListingEntry>, name: String, value: Boolean) {
       val entry = checkNotNull(entries.find { it.name == name })
       assertThat(fileListing.isDirectoryLink(entry)).isEqualTo(value)
     }
 
-    private fun assertEntry(
-      entries: List<AdbFileListingEntry>,
-      name: String,
-      consumer: Consumer<AdbFileListingEntry>
-    ) {
+    private fun assertEntry(entries: List<AdbFileListingEntry>, name: String, consumer: Consumer<AdbFileListingEntry>) {
       val entry = checkNotNull(entries.find { it.name == name })
       consumer.accept(entry)
     }
 
     @SuppressWarnings("unused")
     @JvmStatic
-    @Parameterized.Parameters(name="{0}")
+    @Parameterized.Parameters(name = "{0}")
     fun data(): Array<Any?> = arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB)
   }
 }

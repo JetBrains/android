@@ -36,11 +36,17 @@ internal class SaveConfigurationResolver(private val project: Project) {
   private val userHome: @NonNls String = SystemProperties.getUserHome()
 
   fun expandFilenamePattern(
-      saveLocation: String, filenameTemplate: String, fileExtension: String, timestamp: Instant, sequentialNumber: Int): String {
+    saveLocation: String,
+    filenameTemplate: String,
+    fileExtension: String,
+    timestamp: Instant,
+    sequentialNumber: Int,
+  ): String {
     try {
       val dir = Paths.get(userHome).resolve(expandSaveLocation(saveLocation))
       val time = timestamp.atZone(ZoneId.systemDefault())
-      val filename = filenameTemplate
+      val filename =
+        filenameTemplate
           .replace("<yyyy>", time.get(ChronoField.YEAR).toString())
           .replace("<yy>", time.get(ChronoField.YEAR).toString().takeLast(2))
           .replace("<MM>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.MONTH_OF_YEAR)))
@@ -61,9 +67,13 @@ internal class SaveConfigurationResolver(private val project: Project) {
     val dir = Paths.get(userHome).resolve(saveLocation).normalize()
     val projectDir = project.guessProjectDir()?.toNioPath()
     // Iterate over possible prefix substitutions from the longest to the shortest one.
-    val substitutions = mutableListOf(
-      Pair(projectDir, PROJECT_DIR_MACRO), Pair(getDesktopDirectory(), DESKTOP_DIR_MACRO), Pair(Paths.get(userHome), USER_HOME_MACRO)
-    ).sortedByDescending { it.first?.nameCount }
+    val substitutions =
+      mutableListOf(
+          Pair(projectDir, PROJECT_DIR_MACRO),
+          Pair(getDesktopDirectory(), DESKTOP_DIR_MACRO),
+          Pair(Paths.get(userHome), USER_HOME_MACRO),
+        )
+        .sortedByDescending { it.first?.nameCount }
     for (substitution in substitutions) {
       val prefixPath = substitution.first ?: continue
       if (dir.startsWith(prefixPath)) {
@@ -75,13 +85,13 @@ internal class SaveConfigurationResolver(private val project: Project) {
 
   fun expandSaveLocation(saveLocation: String): String {
     val dir = saveLocation.replace(File.separatorChar, '/')
-    val base = when {
-      saveLocation.startsWithFollowedBySeparator(PROJECT_DIR_MACRO) ->
-          project.guessProjectDir()?.toNioPath() ?: getDesktopDirectory()
-      saveLocation.startsWithFollowedBySeparator(DESKTOP_DIR_MACRO) -> getDesktopDirectory()
-      saveLocation.startsWithFollowedBySeparator(USER_HOME_MACRO) -> Paths.get(userHome)
-      else -> null
-    }
+    val base =
+      when {
+        saveLocation.startsWithFollowedBySeparator(PROJECT_DIR_MACRO) -> project.guessProjectDir()?.toNioPath() ?: getDesktopDirectory()
+        saveLocation.startsWithFollowedBySeparator(DESKTOP_DIR_MACRO) -> getDesktopDirectory()
+        saveLocation.startsWithFollowedBySeparator(USER_HOME_MACRO) -> Paths.get(userHome)
+        else -> null
+      }
     return (base?.resolve(dir.substringAfter('/', "")) ?: saveLocation).toString()
   }
 
@@ -93,6 +103,6 @@ internal class SaveConfigurationResolver(private val project: Project) {
 
     @JvmStatic
     private fun String.startsWithFollowedBySeparator(prefix: String): Boolean =
-        startsWith(prefix) && (length == prefix.length || this[prefix.length] == '/')
+      startsWith(prefix) && (length == prefix.length || this[prefix.length] == '/')
   }
 }

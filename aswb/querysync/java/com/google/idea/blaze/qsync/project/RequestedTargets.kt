@@ -18,11 +18,7 @@ package com.google.idea.blaze.qsync.project
 import com.google.idea.blaze.common.Label
 
 /**
- * A data structure that describes what targets should be requested to be built and what targets
- * (including transitive ones) are expected to be built as a result.
+ * A data structure that describes what targets should be requested to be built and what targets (including transitive ones) are expected to
+ * be built as a result.
  */
-@JvmRecord
-data class RequestedTargets(
-  val targetsToBuild: Set<Label>,
-  val requiredTargets: Set<Label>
-)
+@JvmRecord data class RequestedTargets(val targetsToBuild: Set<Label>, val requiredTargets: Set<Label>)

@@ -37,8 +37,7 @@ class ActivateSelectionActionTest : NavTestCase() {
         }
       }
 
-    val surface =
-      NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
+    val surface = NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val spy = spy(surface)

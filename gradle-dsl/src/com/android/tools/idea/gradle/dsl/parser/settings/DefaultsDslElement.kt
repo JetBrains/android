@@ -25,11 +25,10 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement) : GradleDslBlockElement(parent, name) {
   companion object {
     @JvmField
-    val DEFAULTS_DSL_ELEMENT = PropertiesElementDescription("defaults", DefaultsDslElement::class.java) { parent, name ->
-      DefaultsDslElement(parent, name)
-    }
+    val DEFAULTS_DSL_ELEMENT =
+      PropertiesElementDescription("defaults", DefaultsDslElement::class.java) { parent, name -> DefaultsDslElement(parent, name) }
   }
-  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> = GradleBlockModelMap.getElementMap(
-    DefaultsDslElement::class.java, kind)
-}
 
+  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
+    GradleBlockModelMap.getElementMap(DefaultsDslElement::class.java, kind)
+}

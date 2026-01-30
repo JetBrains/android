@@ -69,9 +69,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
     val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null
     val uElement =
-      (annotationEntry.toUElement() as? UAnnotation)?.takeIf {
-        it.isPreviewAnnotation(includingMultiplatform = false)
-      } ?: return null
+      (annotationEntry.toUElement() as? UAnnotation)?.takeIf { it.isPreviewAnnotation(includingMultiplatform = false) } ?: return null
 
     // Do not show the picker if there are any syntax issues with the annotation
     if (annotationEntry.hasIssues()) return null
@@ -83,22 +81,15 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
           log.warn("Couldn't obtain current module")
           return null
         }
-    val info =
-      createInfo(element, element.textRange, element.project, module, previewElementDefinitionPsi)
-    NavigateAction.setNavigateAction(
-      info,
-      message("picker.preview.annotator.action.title"),
-      null,
-      icon,
-    )
+    val info = createInfo(element, element.textRange, element.project, module, previewElementDefinitionPsi)
+    NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
     return info
   }
 
   /**
-   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for
-   * the @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation
-   * entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also
-   * show the @Preview picker option.
+   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the @Preview annotation, this [LineMarkerInfo]
+   * should be available for the entire annotation entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should
+   * also show the @Preview picker option.
    */
   private fun createInfo(
     element: PsiElement,
@@ -116,13 +107,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
         icon,
         { message("picker.preview.annotator.tooltip") },
         { mouseEvent, _ ->
-          val model =
-            PreviewPickerPropertiesModel.fromPreviewElement(
-              project,
-              module,
-              previewElementDefinitionPsi,
-              PreviewPickerTracker(),
-            )
+          val model = PreviewPickerPropertiesModel.fromPreviewElement(project, module, previewElementDefinitionPsi, PreviewPickerTracker())
           PsiPickerManager.show(
             location = RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint,
             displayTitle = message("picker.preview.title"),

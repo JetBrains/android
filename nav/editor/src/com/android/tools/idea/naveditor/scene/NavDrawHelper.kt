@@ -63,10 +63,7 @@ fun regularFont(scale: Scale, style: Int): SwingFont {
 }
 
 fun scaledFont(scale: Scale, style: Int): SwingFont {
-  val newScale =
-    scale.value.let {
-      Scale(it * (2.0 - min(it, 1.0)))
-    } // keep font size slightly larger at smaller scales
+  val newScale = scale.value.let { Scale(it * (2.0 - min(it, 1.0))) } // keep font size slightly larger at smaller scales
   return regularFont(newScale, style)
 }
 
@@ -84,12 +81,7 @@ fun makeCircle(center: SwingPoint, radius: SwingLength): SwingEllipse {
   return SwingEllipse(x, y, 2 * radius, 2 * radius)
 }
 
-fun makeCircleLerp(
-  center: SwingPoint,
-  initialRadius: SwingLength,
-  finalRadius: SwingLength,
-  duration: Int,
-): LerpEllipse {
+fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
   return LerpEllipse(initialCircle, finalCircle, duration)

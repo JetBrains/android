@@ -78,16 +78,27 @@ class EmulatorScreenshotActionTest {
   private val emulatorRule = FakeEmulatorRule()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
-                            EdtRule(), HeadlessDialogRule())
+  val ruleChain =
+    RuleChain(
+      projectRule,
+      DataManagerRule(projectRule),
+      emulatorRule,
+      ClipboardSynchronizationDisablementRule(),
+      EdtRule(),
+      HeadlessDialogRule(),
+    )
 
   private lateinit var avdFolder: Path
   private val emulator: FakeEmulator by lazy { emulatorRule.newEmulator(avdFolder) }
   private val panel: EmulatorToolWindowPanel by lazy { createWindowPanel() }
   // Fake window is necessary for the toolbars to be rendered.
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
-  private val project get() = projectRule.project
-  private val testRootDisposable get() = projectRule.disposable
+  private val project
+    get() = projectRule.project
+
+  private val testRootDisposable
+    get() = projectRule.disposable
+
   private val settings by lazy { DeviceScreenshotSettings.getInstance() }
 
   @Before
@@ -150,7 +161,6 @@ class EmulatorScreenshotActionTest {
 
     fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
 
-
     val screenshotViewer = waitForScreenshotViewer()
     val ui = FakeUi(screenshotViewer.rootPane)
 
@@ -184,7 +194,8 @@ class EmulatorScreenshotActionTest {
     val displayId = 1
     runBlocking {
       emulator.changeSecondaryDisplays(
-        listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
+        listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build())
+      )
     }
     waitForDisplayViews(2)
 
@@ -192,7 +203,7 @@ class EmulatorScreenshotActionTest {
 
     val screenshotViewerPrimary = waitForScreenshotViewer { !it.title.contains("Display") }
     assertAppearance(screenshotViewerPrimary.waitForUpdateAndGetImage(false), "PrimaryDisplay")
-    assertThat(findScreenshotViewer{ it.title.contains("Display 1") }).isNull()
+    assertThat(findScreenshotViewer { it.title.contains("Display 1") }).isNull()
   }
 
   @Test
@@ -202,7 +213,8 @@ class EmulatorScreenshotActionTest {
     val displayId = 1
     runBlocking {
       emulator.changeSecondaryDisplays(
-          listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
+        listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build())
+      )
     }
     waitForDisplayViews(2)
 
@@ -255,7 +267,7 @@ class EmulatorScreenshotActionTest {
   }
 
   private fun findScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer? =
-      findModelessDialog<ScreenshotViewer> { filter(it) }
+    findModelessDialog<ScreenshotViewer> { filter(it) }
 
   private fun assertAppearance(image: BufferedImage, goldenImageName: String) {
     val scaledDownImage = ImageUtils.scale(image, 0.1)
@@ -263,8 +275,7 @@ class EmulatorScreenshotActionTest {
   }
 
   @Suppress("SameParameterValue")
-  private fun getGoldenFile(name: String): Path =
-      TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
 private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean? = null): BufferedImage {
@@ -296,17 +307,14 @@ private fun BufferedImage.isSame(other: BufferedImage?): Boolean {
   return true
 }
 
-private fun BufferedImage.isCornerTransparent(): Boolean =
-    getRGB(0, 0) == 0
+private fun BufferedImage.isCornerTransparent(): Boolean = getRGB(0, 0) == 0
 
-private fun ScreenshotViewer.fileEditor(): ImageFileEditor =
-    PlatformCoreDataKeys.FILE_EDITOR.getData(this) as ImageFileEditor
+private fun ScreenshotViewer.fileEditor(): ImageFileEditor = PlatformCoreDataKeys.FILE_EDITOR.getData(this) as ImageFileEditor
 
 private fun VirtualFile.readImage(): BufferedImage? {
   return try {
     ImageIO.read(inputStream)
-  }
-  catch (_: IOException) {
+  } catch (_: IOException) {
     null
   }
 }

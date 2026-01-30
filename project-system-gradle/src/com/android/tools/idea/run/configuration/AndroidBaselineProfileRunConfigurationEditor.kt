@@ -34,64 +34,66 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.RowLayout
 import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
+import java.awt.BorderLayout
+import java.awt.Dimension
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidBundle.message
-import java.awt.BorderLayout
-import java.awt.Dimension
 
 class AndroidBaselineProfileRunConfigurationEditor(
   private val project: Project,
-  private val configuration: AndroidBaselineProfileRunConfiguration
+  private val configuration: AndroidBaselineProfileRunConfiguration,
 ) : SettingsEditor<AndroidBaselineProfileRunConfiguration>() {
 
   private val modulesComboBox = ModulesComboBox()
   private var generateAllVariants: Boolean = configuration.generateAllVariants
 
-  private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
-    override fun isModuleAccepted(module: Module?): Boolean {
-      if (module == null || !super.isModuleAccepted(module)) {
-        return false
-      }
-      val facet = AndroidFacet.getInstance(module) ?: return false
-      if (!module.isHolderModule()) return false
-      return when (facet.getModuleSystem().type) {
-        AndroidModuleSystem.Type.TYPE_APP -> true
+  private val moduleSelector =
+    object : ConfigurationModuleSelector(project, modulesComboBox) {
+      override fun isModuleAccepted(module: Module?): Boolean {
+        if (module == null || !super.isModuleAccepted(module)) {
+          return false
+        }
+        val facet = AndroidFacet.getInstance(module) ?: return false
+        if (!module.isHolderModule()) return false
+        return when (facet.getModuleSystem().type) {
+          AndroidModuleSystem.Type.TYPE_APP -> true
 
-        AndroidModuleSystem.Type.TYPE_NON_ANDROID,
-        AndroidModuleSystem.Type.TYPE_LIBRARY,
-        AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY,
-        AndroidModuleSystem.Type.TYPE_TEST,
-        AndroidModuleSystem.Type.TYPE_ATOM,
-        AndroidModuleSystem.Type.TYPE_INSTANTAPP,
-        AndroidModuleSystem.Type.TYPE_FEATURE,
-        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
+          AndroidModuleSystem.Type.TYPE_NON_ANDROID,
+          AndroidModuleSystem.Type.TYPE_LIBRARY,
+          AndroidModuleSystem.Type.TYPE_FUSED_LIBRARY,
+          AndroidModuleSystem.Type.TYPE_TEST,
+          AndroidModuleSystem.Type.TYPE_ATOM,
+          AndroidModuleSystem.Type.TYPE_INSTANTAPP,
+          AndroidModuleSystem.Type.TYPE_FEATURE,
+          AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
+        }
       }
     }
-  }
 
   init {
     Disposer.register(project, this)
 
     modulesComboBox.addActionListener {
       object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
-        override fun run(indicator: ProgressIndicator) {
-          val module = moduleSelector.module
-          if (module == null || DumbService.isDumb(project)) {
-            return
+          override fun run(indicator: ProgressIndicator) {
+            val module = moduleSelector.module
+            if (module == null || DumbService.isDumb(project)) {
+              return
+            }
           }
-        }
 
-        override fun onFinished() {
-          if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
-            component?.parent?.parent?.apply {
-              removeAll()
-              layout = BorderLayout()
-              add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
+          override fun onFinished() {
+            if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+              component?.parent?.parent?.apply {
+                removeAll()
+                layout = BorderLayout()
+                add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
+              }
             }
           }
         }
-      }.queue()
+        .queue()
     }
   }
 
@@ -108,31 +110,24 @@ class AndroidBaselineProfileRunConfigurationEditor(
   }
 
   override fun createEditor() = panel {
-
     row {
-      label(AndroidBundle.message("android.run.configuration.module.label"))
-      cell(modulesComboBox)
-        .align(AlignX.FILL)
-        .applyToComponent {
-          maximumSize = Dimension(400, maximumSize.height)
-        }
-    }.layout(RowLayout.LABEL_ALIGNED)
+        label(AndroidBundle.message("android.run.configuration.module.label"))
+        cell(modulesComboBox).align(AlignX.FILL).applyToComponent { maximumSize = Dimension(400, maximumSize.height) }
+      }
+      .layout(RowLayout.LABEL_ALIGNED)
 
     group(message("android.baseline.profile.run.configuration.group.variants.title"), indent = true) {
       buttonsGroup {
-        row {
-          radioButton(
-            message("android.baseline.profile.run.configuration.group.variants.current"),
-            value = false
-          ).align(AlignX.FILL)
-        }.layout(RowLayout.LABEL_ALIGNED)
-        row {
-          radioButton(
-            message("android.baseline.profile.run.configuration.group.variants.allvariants"),
-            value = true
-          ).align(AlignX.FILL)
-        }.layout(RowLayout.LABEL_ALIGNED)
-      }.bind(::generateAllVariants)
+          row {
+              radioButton(message("android.baseline.profile.run.configuration.group.variants.current"), value = false).align(AlignX.FILL)
+            }
+            .layout(RowLayout.LABEL_ALIGNED)
+          row {
+              radioButton(message("android.baseline.profile.run.configuration.group.variants.allvariants"), value = true).align(AlignX.FILL)
+            }
+            .layout(RowLayout.LABEL_ALIGNED)
+        }
+        .bind(::generateAllVariants)
     }
   }
 }

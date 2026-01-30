@@ -82,6 +82,7 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
+import kotlin.math.min
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.unwrapped
@@ -135,49 +136,35 @@ import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.skipParenthesizedExprDown
 import org.jetbrains.uast.visitor.AbstractUastVisitor
-import kotlin.math.min
 
 /**
- * Infer support annotations, e.g. if a method returns
- * `R.drawable.something`, the method should be annotated with
- * `@DrawableRes`.
- *
- * TODO:
+ * Infer support annotations, e.g. if a method returns `R.drawable.something`, the method should be annotated with `@DrawableRes`.
  * * Control flow analysis on method calls
- * * Check for resource type errors and warn if any are found, since they
- *   will lead to incorrect inferences!
- * * Can I do a custom dialog UI? There I could let you choose things like
- *   whether to infer ranges, control whether to show
- *   a report, and explain issue with false positives
+ * * Check for resource type errors and warn if any are found, since they will lead to incorrect inferences!
+ * * Can I do a custom dialog UI? There I could let you choose things like whether to infer ranges, control whether to show a report, and
+ *   explain issue with false positives
  * * Look at reflection calls and proguard keep rules to add in @Keep
- * * Make sure I flow all annotations not inferred (such as range
- *   annotations)
- * * Check overridden methods: when doing resolve and hitting an interface
- *   I should check what implementations do
- * * When analyzing overriding methods, also see if I find *conflicting*
- *   annotations. For the Nullable/Nonnull scenario for example, it's
- *   possible for an overriding method to have a NonNull return value
- *   whereas that's not true for its super implementation. Make sure
- *   I don't come up with false annotation inferences like that.
- * * Look into inferring @IntDef. Approach: If we have a javadoc which
- *   lists multiple? Or what if we have a getter or setter for a field and
+ * * Make sure I flow all annotations not inferred (such as range annotations)
+ * * Check overridden methods: when doing resolve and hitting an interface I should check what implementations do
+ * * When analyzing overriding methods, also see if I find *conflicting* annotations. For the Nullable/Nonnull scenario for example, it's
+ *   possible for an overriding method to have a NonNull return value whereas that's not true for its super implementation. Make sure I
+ *   don't come up with false annotation inferences like that.
+ * * Look into inferring @IntDef. Approach: If we have a javadoc which lists multiple? Or what if we have a getter or setter for a field and
  *   I can tell how the field is being used wrt bits? How do I name it?
- * * Look into inferring range restrictions. Perhaps have a setting for
- *   this since it can be helpful but not conclusive.
+ * * Look into inferring range restrictions. Perhaps have a setting for this since it can be helpful but not conclusive.
  * * Infer ranges -
  * * * Transitively through passing in calls and return values
  * * * Based on range checking in the method or of the return values
  * * Idea: methods and fields ONLY referenced from tests (or from other
- *   @VisibleFromTesting methods) should
- *   be annotated with @VisibleFromTesting
+ *
+ *     @VisibleFromTesting methods) should be annotated with @VisibleFromTesting
  * * Reflection: Support Kotlin reflection APIs
  * * Support Property objects like View.ALPHA
- * * Hook up the settings flag such that I properly filter out whether to
- *   offer threads, ranges, resource-related things, etc.
- * * Check whether I have to apply any save or commit document operations
- *   afterwards!
- * * Exempt methods like getInt and methods that take an int.class or
- *   Integer.TYPE parameter since they are probably value stores
+ * * Hook up the settings flag such that I properly filter out whether to offer threads, ranges, resource-related things, etc.
+ * * Check whether I have to apply any save or commit document operations afterwards!
+ * * Exempt methods like getInt and methods that take an int.class or Integer.TYPE parameter since they are probably value stores
+ *
+ * TODO:
  */
 class InferAnnotations(val settings: InferAnnotationsSettings, val project: Project) {
   private var numAnnotationsAdded = 0
@@ -198,7 +185,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
   }
 
   class ConstraintUsageInfo constructor(element: PsiElement, val constraints: InferredConstraints) : UsageInfo(element) {
-    val inferred: List<String> get() = constraints.getExplanations()
+    val inferred: List<String>
+      get() = constraints.getExplanations()
 
     // We can't change the presentation of each usage info, so instead we use tooltips to explain
     // why something was annotated the way it is
@@ -206,9 +194,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       if (inferred.isEmpty()) {
         return null
       }
-      return inferred.joinToString("; ") {
-        it.substringAfter(':')
-      }
+      return inferred.joinToString("; ") { it.substringAfter(':') }
     }
   }
 
@@ -229,21 +215,16 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
   fun getConstraints(annotated: UAnnotated): InferredConstraints {
     val element = annotated.getConstraintAnchor()
     val pointer = element.getPointer()
-    return allConstraints[pointer]
-      ?: InferredConstraints.create(this, evaluator, annotated, element).also { allConstraints[pointer] = it }
+    return allConstraints[pointer] ?: InferredConstraints.create(this, evaluator, annotated, element).also { allConstraints[pointer] = it }
   }
 
   fun getConstraints(annotated: PsiModifierListOwner): InferredConstraints {
     val pointer = annotated.getPointer()
-    return allConstraints[pointer]
-      ?: InferredConstraints.create(this, evaluator, annotated).also { allConstraints[pointer] = it }
+    return allConstraints[pointer] ?: InferredConstraints.create(this, evaluator, annotated).also { allConstraints[pointer] = it }
   }
 
   @TestOnly
-  fun apply(
-    settings: InferAnnotationsSettings,
-    project: Project
-  ) {
+  fun apply(settings: InferAnnotationsSettings, project: Project) {
     for ((owner, value) in allConstraints) {
       val element = owner.element ?: continue
       annotateConstraints(settings, project, value, element)
@@ -257,11 +238,11 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     usages: MutableList<UsageInfo>,
     scope: AnalysisScope,
     includeBinaries: Boolean = false,
-    ignoreScope: Boolean = includeBinaries
+    ignoreScope: Boolean = includeBinaries,
   ) {
     for ((pointer, constraints) in allConstraints) {
-      if (!constraints.modified ||
-        constraints.readOnly && (!includeBinaries || settings.publicOnly && constraints.psi !is PsiCompiledElement)
+      if (
+        !constraints.modified || constraints.readOnly && (!includeBinaries || settings.publicOnly && constraints.psi !is PsiCompiledElement)
       ) {
         continue
       }
@@ -293,8 +274,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       prevNumAnnotationsAdded = numAnnotationsAdded
       file.acceptSourceFile(visitor)
       pass++
-    }
-    while (prevNumAnnotationsAdded < numAnnotationsAdded && pass < MAX_PASSES)
+    } while (prevNumAnnotationsAdded < numAnnotationsAdded && pass < MAX_PASSES)
   }
 
   val evaluator = DefaultJavaEvaluator(project, null)
@@ -316,8 +296,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     val type = element.getExpressionType()
 
     if ((type == null || type == UastErrorType) && element is UQualifiedReferenceExpression) {
-      val identifier =
-        (element.selector.skipParenthesizedExprDown() as? USimpleNameReferenceExpression)?.identifier
+      val identifier = (element.selector.skipParenthesizedExprDown() as? USimpleNameReferenceExpression)?.identifier
       if (identifier == "javaPrimitiveType" || identifier == "TYPE" || identifier == "java") {
         return getJavaClassType(element.receiver)
       }
@@ -344,8 +323,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           // Make sure we extract the primitive type (int.class, Integer.TYPE in Java,
           // Int::class.javaPrimitiveType in Kotlin)
           if (element is UQualifiedReferenceExpression) {
-            val identifier =
-              (element.selector.skipParenthesizedExprDown() as? USimpleNameReferenceExpression)?.identifier
+            val identifier = (element.selector.skipParenthesizedExprDown() as? USimpleNameReferenceExpression)?.identifier
             if (identifier == "javaPrimitiveType" || identifier == "TYPE") {
               clazz = it
             }
@@ -367,24 +345,31 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     val isConstructor: Boolean
     val isField: Boolean
     when (callName) {
-      "getDeclaredMethod", "getMethod" -> {
-        isField = false; isConstructor = false
+      "getDeclaredMethod",
+      "getMethod" -> {
+        isField = false
+        isConstructor = false
       }
-      "getDeclaredField", "getField" -> {
-        isField = true; isConstructor = false
+      "getDeclaredField",
+      "getField" -> {
+        isField = true
+        isConstructor = false
       }
-      "getDeclaredConstructor", "getConstructor" -> {
-        isField = false; isConstructor = true
+      "getDeclaredConstructor",
+      "getConstructor" -> {
+        isField = false
+        isConstructor = true
       }
       else -> return null
     }
 
     val getMethodArguments = call.valueArguments
-    val methodName = if (isConstructor) {
-      null
-    } else {
-      getMethodArguments.firstOrNull()?.evaluateString() ?: return null
-    }
+    val methodName =
+      if (isConstructor) {
+        null
+      } else {
+        getMethodArguments.firstOrNull()?.evaluateString() ?: return null
+      }
     val classReceiver = call.receiver
 
     if (classReceiver is UClassLiteralExpression) {
@@ -393,28 +378,29 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       return findReflectiveReference(className, methodName, getMethodArguments, isConstructor, isField)
     }
 
-    val qualifier = if (classReceiver is UQualifiedReferenceExpression) {
-      val receiver = classReceiver.receiver
-      if (receiver is UClassLiteralExpression) {
-        receiver
-      } else {
-        classReceiver.selector
-      }
-    } else if (classReceiver is UReferenceExpression) {
-      val initializer = (classReceiver.resolve() as? PsiVariable)?.let { UastFacade.getInitializerBody(it) }
-      if (initializer is UQualifiedReferenceExpression) {
-        val receiver = initializer.receiver
+    val qualifier =
+      if (classReceiver is UQualifiedReferenceExpression) {
+        val receiver = classReceiver.receiver
         if (receiver is UClassLiteralExpression) {
           receiver
         } else {
-          initializer.selector
+          classReceiver.selector
+        }
+      } else if (classReceiver is UReferenceExpression) {
+        val initializer = (classReceiver.resolve() as? PsiVariable)?.let { UastFacade.getInitializerBody(it) }
+        if (initializer is UQualifiedReferenceExpression) {
+          val receiver = initializer.receiver
+          if (receiver is UClassLiteralExpression) {
+            receiver
+          } else {
+            initializer.selector
+          }
+        } else {
+          initializer
         }
       } else {
-        initializer
+        return null
       }
-    } else {
-      return null
-    }
 
     if (qualifier is UCallExpression) {
       val forNameCall = qualifier.methodName ?: qualifier.methodIdentifier?.name ?: return null
@@ -437,7 +423,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     name: String?,
     arguments: List<UExpression>,
     isConstructor: Boolean,
-    isField: Boolean
+    isField: Boolean,
   ): UAnnotated? {
     className ?: return null
     val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project)) ?: return null
@@ -470,17 +456,15 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
 
   private fun getSecurityException(): PsiClass? {
     return securityException
-      ?: JavaPsiFacade.getInstance(project).findClass(SECURITY_EXCEPTION, GlobalSearchScope.allScope(project))
-        .also { securityException = it }
+      ?: JavaPsiFacade.getInstance(project).findClass(SECURITY_EXCEPTION, GlobalSearchScope.allScope(project)).also {
+        securityException = it
+      }
   }
 
   private inner class InferenceVisitor : AbstractUastVisitor() {
     override fun visitMethod(node: UMethod): Boolean {
       val sourcePsi = node.sourcePsi
-      if (sourcePsi is KtClass ||
-        sourcePsi is KtParameter ||
-        sourcePsi is KtProperty
-      ) {
+      if (sourcePsi is KtClass || sourcePsi is KtParameter || sourcePsi is KtProperty) {
         // Inline class, or constructor property, or class property; in these cases we're not
         // talking about a real method here, but UAST synthetic methods for things like accessors;
         // we don't want to create separate constraints for these
@@ -493,144 +477,159 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       val constraints = getConstraints(annotatedNode)
       if (settings.inherit) {
         val hierarchyAnnotations = evaluator.getAllAnnotations(annotatedNode, true)
-        val hierarchyConstraints = InferredConstraints.create(
-          this@InferAnnotations, annotatedNode.getConstraintAnchor(), annotations = hierarchyAnnotations,
-          readOnly = false, ignore = constraints.ignore
-        )
+        val hierarchyConstraints =
+          InferredConstraints.create(
+            this@InferAnnotations,
+            annotatedNode.getConstraintAnchor(),
+            annotations = hierarchyAnnotations,
+            readOnly = false,
+            ignore = constraints.ignore,
+          )
         val filter: (String) -> Boolean = ::inheritMethodAnnotation
         addConstraints(node, hierarchyConstraints, filter) { "because it extends or is overridden by an annotated method" }
       }
 
       val method = node
-      method.uastBody?.accept(object : AbstractUastVisitor() {
-        private var returnsFromMethod = false
+      method.uastBody?.accept(
+        object : AbstractUastVisitor() {
+          private var returnsFromMethod = false
 
-        override fun visitClass(node: UClass): Boolean {
-          return true
-        }
-
-        override fun visitThrowExpression(node: UThrowExpression): Boolean {
-          returnsFromMethod = true
-          return super.visitThrowExpression(node)
-        }
-
-        override fun visitLambdaExpression(node: ULambdaExpression): Boolean {
-          return true
-        }
-
-        override fun visitReturnExpression(node: UReturnExpression): Boolean {
-          returnsFromMethod = true
-          return super.visitReturnExpression(node)
-        }
-
-        // Visiting calls in the method body
-        override fun visitCallExpression(node: UCallExpression): Boolean {
-          super.visitCallExpression(node)
-          val calledMethod = node.resolve()
-          if (calledMethod != null) {
-            val calledConstraints = getConstraints(calledMethod)
-            val calledPermissionRequirements = calledConstraints.permissionReferences
-            if (calledPermissionRequirements != null && isUnconditionallyReachable(method, node) &&
-              !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION)
-            ) {
-              if (constraints.addPermissionRequirement(calledPermissionRequirements, calledConstraints.requireAllPermissions)) {
-                numAnnotationsAdded++
-                if (!calledConstraints.readOnly || settings.includeBinaries) {
-                  val signature = calledMethod.getSignature()
-                  val explanation = calledConstraints.getPermissionAnnotationsString() + " because it calls " + signature
-                  constraints.addExplanation(method, explanation)
-                }
-              }
-            }
+          override fun visitClass(node: UClass): Boolean {
+            return true
           }
 
-          val reflectiveReference = findReflectiveReference(node)
-          if (reflectiveReference != null) {
-            val reflectedConstraint = getConstraints(reflectiveReference)
-            if (reflectedConstraint.addAnnotation(KEEP_ANNOTATION)) {
-              numAnnotationsAdded++
-              if (!reflectedConstraint.readOnly || settings.includeBinaries) {
-                val signature = method.getSignature()
-                val explanation = "@Keep because it is called reflectively from $signature"
-                reflectedConstraint.addExplanation(reflectiveReference, explanation)
-              }
-            }
+          override fun visitThrowExpression(node: UThrowExpression): Boolean {
+            returnsFromMethod = true
+            return super.visitThrowExpression(node)
           }
 
-          val name = node.methodName ?: node.methodIdentifier?.name
-          if (name != null && name.startsWith("enforce") &&
-            (
-              "enforceCallingOrSelfPermission" == name || "enforceCallingOrSelfUriPermission" == name ||
-                "enforceCallingPermission" == name || "enforceCallingUriPermission" == name ||
-                "enforcePermission" == name || "enforceUriPermission" == name
-              )
-          ) {
-            // TODO: Determine whether this method is reached *unconditionally*
-            // and use that to merge multiple requirements in the method as well as
-            // the permission conditional flag
-            val args = node.valueArguments
-            if (args.isNotEmpty()) {
-              val first = args[0]
-              if (first is UReferenceExpression) {
-                val resolved = first.resolve()
-                if (resolved is PsiField) {
-                  if (resolved.hasModifierProperty(PsiModifier.FINAL) && resolved.hasModifierProperty(PsiModifier.STATIC)) {
-                    if (isUnconditionallyReachable(method, node) && !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION) &&
-                      constraints.addPermissionRequirement(listOf(resolved), true)
-                    ) {
-                      numAnnotationsAdded++
-                      if (!constraints.readOnly || settings.includeBinaries) {
-                        val explanation = constraints.getPermissionAnnotationsString() + " because it calls " + name
-                        constraints.addExplanation(method, explanation)
-                      }
-                    }
-                    return false
-                  }
-                }
-              }
-              val v = first.evaluate()
-              if (v is String) {
-                if (isUnconditionallyReachable(method, node) && !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION) &&
-                  constraints.addPermissionRequirement(listOf(v), true)
-                ) {
+          override fun visitLambdaExpression(node: ULambdaExpression): Boolean {
+            return true
+          }
+
+          override fun visitReturnExpression(node: UReturnExpression): Boolean {
+            returnsFromMethod = true
+            return super.visitReturnExpression(node)
+          }
+
+          // Visiting calls in the method body
+          override fun visitCallExpression(node: UCallExpression): Boolean {
+            super.visitCallExpression(node)
+            val calledMethod = node.resolve()
+            if (calledMethod != null) {
+              val calledConstraints = getConstraints(calledMethod)
+              val calledPermissionRequirements = calledConstraints.permissionReferences
+              if (
+                calledPermissionRequirements != null &&
+                  isUnconditionallyReachable(method, node) &&
+                  !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION)
+              ) {
+                if (constraints.addPermissionRequirement(calledPermissionRequirements, calledConstraints.requireAllPermissions)) {
                   numAnnotationsAdded++
-                  if (!constraints.readOnly || settings.includeBinaries) {
-                    val message = constraints.getPermissionAnnotationsString() + " because it calls " + name
-                    constraints.addExplanation(method, message)
+                  if (!calledConstraints.readOnly || settings.includeBinaries) {
+                    val signature = calledMethod.getSignature()
+                    val explanation = calledConstraints.getPermissionAnnotationsString() + " because it calls " + signature
+                    constraints.addExplanation(method, explanation)
                   }
                 }
               }
             }
-          }
-          return false
-        }
 
-        private fun isUnconditionallyReachable(method: UMethod, expression: UCallExpression): Boolean {
-          if (returnsFromMethod) {
+            val reflectiveReference = findReflectiveReference(node)
+            if (reflectiveReference != null) {
+              val reflectedConstraint = getConstraints(reflectiveReference)
+              if (reflectedConstraint.addAnnotation(KEEP_ANNOTATION)) {
+                numAnnotationsAdded++
+                if (!reflectedConstraint.readOnly || settings.includeBinaries) {
+                  val signature = method.getSignature()
+                  val explanation = "@Keep because it is called reflectively from $signature"
+                  reflectedConstraint.addExplanation(reflectiveReference, explanation)
+                }
+              }
+            }
+
+            val name = node.methodName ?: node.methodIdentifier?.name
+            if (
+              name != null &&
+                name.startsWith("enforce") &&
+                ("enforceCallingOrSelfPermission" == name ||
+                  "enforceCallingOrSelfUriPermission" == name ||
+                  "enforceCallingPermission" == name ||
+                  "enforceCallingUriPermission" == name ||
+                  "enforcePermission" == name ||
+                  "enforceUriPermission" == name)
+            ) {
+              // TODO: Determine whether this method is reached *unconditionally*
+              // and use that to merge multiple requirements in the method as well as
+              // the permission conditional flag
+              val args = node.valueArguments
+              if (args.isNotEmpty()) {
+                val first = args[0]
+                if (first is UReferenceExpression) {
+                  val resolved = first.resolve()
+                  if (resolved is PsiField) {
+                    if (resolved.hasModifierProperty(PsiModifier.FINAL) && resolved.hasModifierProperty(PsiModifier.STATIC)) {
+                      if (
+                        isUnconditionallyReachable(method, node) &&
+                          !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION) &&
+                          constraints.addPermissionRequirement(listOf(resolved), true)
+                      ) {
+                        numAnnotationsAdded++
+                        if (!constraints.readOnly || settings.includeBinaries) {
+                          val explanation = constraints.getPermissionAnnotationsString() + " because it calls " + name
+                          constraints.addExplanation(method, explanation)
+                        }
+                      }
+                      return false
+                    }
+                  }
+                }
+                val v = first.evaluate()
+                if (v is String) {
+                  if (
+                    isUnconditionallyReachable(method, node) &&
+                      !handlesException(node, getSecurityException(), true, SECURITY_EXCEPTION) &&
+                      constraints.addPermissionRequirement(listOf(v), true)
+                  ) {
+                    numAnnotationsAdded++
+                    if (!constraints.readOnly || settings.includeBinaries) {
+                      val message = constraints.getPermissionAnnotationsString() + " because it calls " + name
+                      constraints.addExplanation(method, message)
+                    }
+                  }
+                }
+              }
+            }
             return false
           }
-          var curr = expression.uastParent
-          var prev = curr
-          while (curr != null) {
-            if (curr === method) {
-              return true
-            }
-            if (curr is UIfExpression || curr is USwitchExpression) {
+
+          private fun isUnconditionallyReachable(method: UMethod, expression: UCallExpression): Boolean {
+            if (returnsFromMethod) {
               return false
             }
-            if (curr is UBinaryExpression) {
-              // Check for short circuit evaluation:  A && B && C -- here A is unconditional, B and C is not
-              val binaryExpression = curr
-              if (prev !== binaryExpression.leftOperand && binaryExpression.operator === UastBinaryOperator.LOGICAL_AND) {
+            var curr = expression.uastParent
+            var prev = curr
+            while (curr != null) {
+              if (curr === method) {
+                return true
+              }
+              if (curr is UIfExpression || curr is USwitchExpression) {
                 return false
               }
+              if (curr is UBinaryExpression) {
+                // Check for short circuit evaluation:  A && B && C -- here A is unconditional, B and C is not
+                val binaryExpression = curr
+                if (prev !== binaryExpression.leftOperand && binaryExpression.operator === UastBinaryOperator.LOGICAL_AND) {
+                  return false
+                }
+              }
+              prev = curr
+              curr = curr.uastParent
             }
-            prev = curr
-            curr = curr.uastParent
+            return true
           }
-          return true
         }
-      })
+      )
       return done
     }
 
@@ -656,9 +655,10 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       for ((argument, parameter) in mapping) {
         // Do we know something about the argument? If so, pass it to the parameter.
         val resourceTypeMap = argument.getResourceTypes()
-        if (resourceTypeMap.isNotEmpty() &&
-          // if we're calling into generic code, like Math.abs(x), we don't want to infer anything about x
-          !psiMethod.isGeneralCode()
+        if (
+          resourceTypeMap.isNotEmpty() &&
+            // if we're calling into generic code, like Math.abs(x), we don't want to infer anything about x
+            !psiMethod.isGeneralCode()
         ) {
           // If we see a call to some generic method, such as
           //    prettyPrint(R.id.foo)
@@ -669,8 +669,8 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           // see a method that takes non-integers, or an actual put method
           // (2 parameter method where our target is the second parameter and
           // the name begins with put) we ignore it.
-          if (PsiTypes.intType() != parameter.type ||
-              parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
+          if (
+            PsiTypes.intType() != parameter.type || parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
           ) {
             continue
           }
@@ -691,8 +691,9 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           if (resolved.isGeneralCode()) {
             continue
           }
-          if (resolved is KtParameter &&
-            (resolved.isLambdaParameter || resolved.isFunctionTypeParameter || resolved.isLoopParameter || resolved.isCatchParameter)
+          if (
+            resolved is KtParameter &&
+              (resolved.isLambdaParameter || resolved.isFunctionTypeParameter || resolved.isLoopParameter || resolved.isCatchParameter)
           ) {
             // Kotlin PSI uses KtParameter in a few other places where we shouldn't annotate; skip these
             continue
@@ -732,14 +733,18 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     }
 
     fun PsiElement.isGeneralCode(): Boolean {
-      val psiClass = when (this) {
-        is PsiClass -> this
-        is PsiMember -> containingClass
-        else -> null
-      }
+      val psiClass =
+        when (this) {
+          is PsiClass -> this
+          is PsiMember -> containingClass
+          else -> null
+        }
       val className = psiClass?.qualifiedName ?: return false
-      return className.startsWith("kotlin.") || className.startsWith("java.") || className.startsWith("android.") ||
-             className.contains(".math.") || className.contains(".Math")
+      return className.startsWith("kotlin.") ||
+        className.startsWith("java.") ||
+        className.startsWith("android.") ||
+        className.contains(".math.") ||
+        className.contains(".Math")
     }
 
     fun isResourceField(field: PsiField?): Boolean {
@@ -766,14 +771,17 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           val method = node.getParentOfType<UMethod>() ?: return false // shouldn't happen
           val filter: (String) -> Boolean = ::transferReturnToMethod
           val returnedConstraints = getConstraints(resolved)
-          if (addConstraints(method, returnedConstraints, filter) { type ->
-            when (resolved) {
-              // Parameter: don't use full signature, it's obvious from the context
-              is PsiParameter -> "because it returns ${resolved.name} annotated with ${returnedConstraints.getAnnotationSource(type, true)}"
-              is PsiMethod -> "because it returns ${resolved.getSignature()} annotated with ${returnedConstraints.getAnnotationSource(type, true)}"
-              else -> "because it returns ${returnValue.sourcePsi?.text}, ${describeResource(type)}"
+          if (
+            addConstraints(method, returnedConstraints, filter) { type ->
+              when (resolved) {
+                // Parameter: don't use full signature, it's obvious from the context
+                is PsiParameter ->
+                  "because it returns ${resolved.name} annotated with ${returnedConstraints.getAnnotationSource(type, true)}"
+                is PsiMethod ->
+                  "because it returns ${resolved.getSignature()} annotated with ${returnedConstraints.getAnnotationSource(type, true)}"
+                else -> "because it returns ${returnValue.sourcePsi?.text}, ${describeResource(type)}"
+              }
             }
-          }
           ) {
             return false
           }
@@ -782,30 +790,25 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       val resourceTypeMap = returnValue.getResourceTypes()
       if (resourceTypeMap.isNotEmpty()) {
         val method = node.getParentOfType<UMethod>() ?: return false // shouldn't happen
-        addResourceAnnotations(method, resourceTypeMap) { type ->
-          explain("because it returns", "", resourceTypeMap, type, returnValue)
-        }
+        addResourceAnnotations(method, resourceTypeMap) { type -> explain("because it returns", "", resourceTypeMap, type, returnValue) }
       }
       return false
     }
 
     /**
-     * Given an AST element, returns the inferred resource types that the
-     * element can contain, in a map pointing to the corresponding closest AST
-     * element.
+     * Given an AST element, returns the inferred resource types that the element can contain, in a map pointing to the corresponding
+     * closest AST element.
      */
     private fun UElement.getResourceTypes(): Map<String, UElement> {
       return mutableMapOf<String, UElement>().apply { addResourceTypes(this@getResourceTypes, this) }
     }
 
     /**
-     * Evaluates the given node and returns the resource types applicable to
-     * the node, if any.
+     * Evaluates the given node and returns the resource types applicable to the node, if any.
      *
-     * We can't use the [ResourceEvaluator] directly because we want to (1)
-     * introduce existing constraint lookup into the middle (we don't have
-     * annotations back into PSI during the middle of analysis) and (2) pick
-     * out the specific elements that provide a given resource type.
+     * We can't use the [ResourceEvaluator] directly because we want to (1) introduce existing constraint lookup into the middle (we don't
+     * have annotations back into PSI during the middle of analysis) and (2) pick out the specific elements that provide a given resource
+     * type.
      *
      * @param element the element to compute the types for
      * @return the corresponding resource types
@@ -849,9 +852,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
         if (resolved is PsiModifierListOwner) {
           if (resolved is PsiVariable) {
             val lastAssignment = findLastAssignment(resolved, element)
-            lastAssignment?.let {
-              addResourceTypes(it, map)
-            }
+            lastAssignment?.let { addResourceTypes(it, map) }
           }
 
           getConstraints(resolved).getResourceTypes().forEach { map[it] = element }
@@ -887,7 +888,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       target: UAnnotated,
       newConstraints: InferredConstraints,
       filter: (String) -> Boolean = { true },
-      because: (String) -> String
+      because: (String) -> String,
     ): Boolean {
       val constraints = getConstraints(target)
       var added = false
@@ -913,10 +914,14 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       if (settings.inherit) {
         val parameter = node as UAnnotated
         val hierarchyAnnotations = evaluator.getAllAnnotations(parameter, true)
-        val hierarchyConstraints = InferredConstraints.create(
-          this@InferAnnotations, parameter.getConstraintAnchor(), annotations = hierarchyAnnotations,
-          readOnly = false, ignore = getConstraints(parameter).ignore
-        )
+        val hierarchyConstraints =
+          InferredConstraints.create(
+            this@InferAnnotations,
+            parameter.getConstraintAnchor(),
+            annotations = hierarchyAnnotations,
+            readOnly = false,
+            ignore = getConstraints(parameter).ignore,
+          )
         val filter: (String) -> Boolean = ::inheritParameterAnnotation
         addConstraints(node, hierarchyConstraints, filter) { "because it extends a method with that parameter annotated or inferred" }
       }
@@ -939,22 +944,17 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       val initializer = node.uastInitializer ?: return
       val resourceTypeMap = initializer.getResourceTypes()
       if (resourceTypeMap.isNotEmpty()) {
-        addResourceAnnotations(node, resourceTypeMap) { type ->
-          explain("because it's assigned", "", resourceTypeMap, type, initializer)
-        }
+        addResourceAnnotations(node, resourceTypeMap) { type -> explain("because it's assigned", "", resourceTypeMap, type, initializer) }
       }
     }
   }
 
   /**
-   * Creates an explanation text for why a given AST [element] implied a
-   * given resource [type], by consulting the [resourceTypeMap] returned by
-   * [UElement#getResourceTypes] and by using the given [prefix] and [suffix]
-   * fragments.
+   * Creates an explanation text for why a given AST [element] implied a given resource [type], by consulting the [resourceTypeMap] returned
+   * by [UElement#getResourceTypes] and by using the given [prefix] and [suffix] fragments.
    */
   private fun explain(prefix: String, suffix: String, resourceTypeMap: Map<String, UElement>, type: String, element: UElement): String {
-    val typeText = resourceTypeMap[type]?.sourcePsi?.text ?: element.sourcePsi?.text ?: element.asSourceString()
-      .replace("\n", " ").take(40)
+    val typeText = resourceTypeMap[type]?.sourcePsi?.text ?: element.sourcePsi?.text ?: element.asSourceString().replace("\n", " ").take(40)
 
     val sb = StringBuilder()
     sb.append(prefix).append(' ').append(typeText)
@@ -975,14 +975,11 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
   }
 
   companion object {
-    const val HEADER = "" +
-      "INFER SUPPORT ANNOTATIONS REPORT\n" +
-      "================================\n\n"
+    const val HEADER = "" + "INFER SUPPORT ANNOTATIONS REPORT\n" + "================================\n\n"
 
     /**
-     * Whether to look for @hide markers in the javadocs and skip annotation
-     * generation from hidden APIs. This is primarily used when this action is
-     * invoked on the framework itself.
+     * Whether to look for @hide markers in the javadocs and skip annotation generation from hidden APIs. This is primarily used when this
+     * action is invoked on the framework itself.
      */
     private const val FILTER_HIDDEN = true
 
@@ -990,8 +987,9 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
 
     @JvmStatic
     fun nothingFoundMessage(project: Project?) {
-      ApplicationManager.getApplication()
-        .invokeLater { Messages.showInfoMessage(project, "Did not infer any new annotations", "Infer Support Annotation Results") }
+      ApplicationManager.getApplication().invokeLater {
+        Messages.showInfoMessage(project, "Did not infer any new annotations", "Infer Support Annotation Results")
+      }
     }
 
     @JvmStatic
@@ -1026,7 +1024,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       settings: InferAnnotationsSettings,
       project: Project,
       constraints: InferredConstraints,
-      element: PsiElement?
+      element: PsiElement?,
     ) {
       if (!constraints.modified || constraints.readOnly || element == null || ModuleUtilCore.findModuleForPsiElement(element) == null) {
         return
@@ -1049,12 +1047,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    private fun insertAnnotation(
-      settings: InferAnnotationsSettings,
-      project: Project,
-      element: PsiElement,
-      code: String
-    ) {
+    private fun insertAnnotation(settings: InferAnnotationsSettings, project: Project, element: PsiElement, code: String) {
       if (!FileModificationService.getInstance().preparePsiElementForWrite(element)) {
         return
       }
@@ -1081,10 +1074,11 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
               sites.add(AnnotationUseSiteTarget.PROPERTY_SETTER)
             }
             sites.add(AnnotationUseSiteTarget.PROPERTY_GETTER)
-          } else if (element is KtProperty &&
-            element.parent is KtClassBody &&
-            element.modifierList?.node?.findChildByType(KtTokens.CONST_KEYWORD) == null &&
-            (!element.isPrivate() || element.hasDelegate())
+          } else if (
+            element is KtProperty &&
+              element.parent is KtClassBody &&
+              element.modifierList?.node?.findChildByType(KtTokens.CONST_KEYWORD) == null &&
+              (!element.isPrivate() || element.hasDelegate())
           ) {
             // Class property
             // Insert in reverse order that we want in file: field, setter, parameter
@@ -1103,10 +1097,12 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
             if (getter == null || !(settings.publicOnly && getter.isPrivate())) {
               sites.add(AnnotationUseSiteTarget.PROPERTY_GETTER)
             }
-          } else if (element is KtPropertyAccessor && element.property.findAnnotation(
-              classId,
-              if (element.isGetter) AnnotationUseSiteTarget.PROPERTY_GETTER else AnnotationUseSiteTarget.PROPERTY_SETTER
-            ) != null
+          } else if (
+            element is KtPropertyAccessor &&
+              element.property.findAnnotation(
+                classId,
+                if (element.isGetter) AnnotationUseSiteTarget.PROPERTY_GETTER else AnnotationUseSiteTarget.PROPERTY_SETTER,
+              ) != null
           ) {
             // We're attempting to annotate the getter or setter of a property where the property itself has already been
             // annotated with @get: or @set: for that accessor.
@@ -1133,12 +1129,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    private fun insertJavaAnnotation(
-      project: Project,
-      code: String,
-      element: PsiModifierListOwner,
-      fqn: String
-    ) {
+    private fun insertJavaAnnotation(project: Project, code: String, element: PsiModifierListOwner, fqn: String) {
       val elementFactory = JavaPsiFacade.getInstance(project).elementFactory
       val newAnnotation = elementFactory.createAnnotationFromText(code, element)
       val values = newAnnotation.parameterList.attributes
@@ -1156,25 +1147,24 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       element: KtModifierListOwner,
       classId: ClassId,
       useSite: AnnotationUseSiteTarget?,
-      sameLine: Boolean
+      sameLine: Boolean,
     ): Boolean {
       val index = code.indexOf('(')
       val inner = if (index != -1) code.substring(index + 1, code.lastIndexOf(')')) else null
       var added = false
       WriteCommandAction.runWriteCommandAction(project) {
-        added = element.addAnnotation(
-          classId, inner, useSiteTarget = useSite,
-          whiteSpaceText = if (!sameLine && element.isNewLineNeededForAnnotation()) "\n" else " "
-        )
+        added =
+          element.addAnnotation(
+            classId,
+            inner,
+            useSiteTarget = useSite,
+            whiteSpaceText = if (!sameLine && element.isNewLineNeededForAnnotation()) "\n" else " ",
+          )
       }
       return added
     }
 
-    private fun removeAnnotation(
-      project: Project,
-      element: PsiElement,
-      code: String
-    ) {
+    private fun removeAnnotation(project: Project, element: PsiElement, code: String) {
       var end = code.indexOf('(')
       if (end == -1) {
         end = code.length
@@ -1186,9 +1176,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
       when (element) {
         is PsiModifierListOwner -> {
-          WriteCommandAction.runWriteCommandAction(project) {
-            element.getAnnotation(fqn)?.delete()
-          }
+          WriteCommandAction.runWriteCommandAction(project) { element.getAnnotation(fqn)?.delete() }
         }
         is KtModifierListOwner -> {
           WriteCommandAction.runWriteCommandAction(project) {
@@ -1220,24 +1208,25 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    val signatureSorter = Comparator<String> { o1, o2 ->
-      // Sort outer classes higher than inner classes; this means that "}" beats other characters
-      val l1 = o1.length
-      val l2 = o2.length
-      for (i in 0 until min(l1, l2)) {
-        val c1 = o1[i]
-        val c2 = o2[i]
-        if (c1 == c2) {
-          continue
+    val signatureSorter =
+      Comparator<String> { o1, o2 ->
+        // Sort outer classes higher than inner classes; this means that "}" beats other characters
+        val l1 = o1.length
+        val l2 = o2.length
+        for (i in 0 until min(l1, l2)) {
+          val c1 = o1[i]
+          val c2 = o2[i]
+          if (c1 == c2) {
+            continue
+          }
+          return@Comparator when {
+            c1 == '}' -> -1
+            c2 == '}' -> 1
+            else -> c1 - c2
+          }
         }
-        return@Comparator when {
-          c1 == '}' -> -1
-          c2 == '}' -> 1
-          else -> c1 - c2
-        }
+        l1 - l2
       }
-      l1 - l2
-    }
 
     @JvmStatic
     fun generateReport(infos: Array<UsageInfo>): String {
@@ -1353,8 +1342,7 @@ private fun PsiElement.getSignature(): String {
   }
   when (this) {
     is PsiMethod -> {
-      val cls = this.containingClass
-        ?: return name
+      val cls = this.containingClass ?: return name
       val className = cls.getSignature()
       if (isConstructor) {
         return className
@@ -1421,7 +1409,9 @@ private fun PsiElement.getSignature(): String {
       }
     }
     else -> {
-      error("Unexpected signature element class ${this.javaClass.name}: ${this.text} in ${this.parent.text} in ${this.containingFile.virtualFile.path}")
+      error(
+        "Unexpected signature element class ${this.javaClass.name}: ${this.text} in ${this.parent.text} in ${this.containingFile.virtualFile.path}"
+      )
     }
   }
 }

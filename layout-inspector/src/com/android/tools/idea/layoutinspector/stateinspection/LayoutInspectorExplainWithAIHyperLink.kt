@@ -15,8 +15,5 @@
  */
 package com.android.tools.idea.layoutinspector.stateinspection
 
-/**
- * An interface that LayoutInspectorStateInspectionFilterProvider can use to mark that a
- * HyperLinkInfo is from "Explain with AI".
- */
+/** An interface that LayoutInspectorStateInspectionFilterProvider can use to mark that a HyperLinkInfo is from "Explain with AI". */
 interface LayoutInspectorExplainWithAIHyperLinkInfo

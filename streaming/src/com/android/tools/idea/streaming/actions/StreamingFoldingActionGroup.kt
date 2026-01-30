@@ -20,9 +20,7 @@ import com.android.tools.idea.streaming.device.actions.DeviceFoldingActionGroup
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Displays a popup menu of available folding postures of a foldable or a rollable device.
- */
+/** Displays a popup menu of available folding postures of a foldable or a rollable device. */
 internal class StreamingFoldingActionGroup : StreamingActionGroup(EmulatorFoldingActionGroup(), DeviceFoldingActionGroup()) {
 
   init {

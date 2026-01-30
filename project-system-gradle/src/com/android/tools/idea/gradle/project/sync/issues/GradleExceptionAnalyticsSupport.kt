@@ -28,85 +28,86 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
   constructor() : this(defaultPackagesAllowList)
 
   companion object {
-    private val defaultPackagesAllowList = listOf(
-      "java.",
-      "javax.",
-      "jdk.",
-      "com.sun.",
-      "sun.",
-      "kotlin.",
-      "kotlinx.",
-      //Gradle packages:
-      "org.gradle.",
-      "org.codehaus.groovy.",
-      "groovy.",
-      "groovyjarjar", // There are bunch of jarjar-ed exceptions in groovy package, e.g. groovyjarjarasm., groovyjarjarantlr4.
-      // AGP, Android, Google packages
-      "com.android.",
-      "com.google.",
-      "androidx.",
-      //Used in AGP
-      "io.grpc.",
-      "io.netty.",
-      "net.bytebuddy.asm.",
-      // Jetbrains
-      "org.jetbrains.",
-      "com.intellij.",
-      // used in Gradle
-      "com.github.javaparser.",
-      "org.apache.",
-      "org.bouncycastle.",
-      "org.w3c.dom.",
-      "org.junit.",
-      "org.xml.",
-      // Known Gradle Plugins
-      "butterknife.",
-      "com.apollographql.apollo.",
-      "com.autonomousapps.",
-      "com.bugsnag.",
-      "com.crashlytics.",
-      "com.diffplug.",
-      "com.github.triplet.gradle.",
-      "com.hiya.",
-      "com.jfrog.",
-      "com.newrelic.",
-      "com.onesignal.",
-      "com.squareup.",
-      "com.vanniktech.",
-      "dagger.",
-      "de.mannodermaus.",
-      "de.undercouch.",
-      "io.invertase.",
-      "io.realm.",
-      "io.sentry.",
-      "org.jfrog.",
-      "org.jlleitschuh.",
-      "org.jmailen.",
-      "org.koin.",
-      "org.sonarqube.",
-    )
+    private val defaultPackagesAllowList =
+      listOf(
+        "java.",
+        "javax.",
+        "jdk.",
+        "com.sun.",
+        "sun.",
+        "kotlin.",
+        "kotlinx.",
+        // Gradle packages:
+        "org.gradle.",
+        "org.codehaus.groovy.",
+        "groovy.",
+        "groovyjarjar", // There are bunch of jarjar-ed exceptions in groovy package, e.g. groovyjarjarasm., groovyjarjarantlr4.
+        // AGP, Android, Google packages
+        "com.android.",
+        "com.google.",
+        "androidx.",
+        // Used in AGP
+        "io.grpc.",
+        "io.netty.",
+        "net.bytebuddy.asm.",
+        // Jetbrains
+        "org.jetbrains.",
+        "com.intellij.",
+        // used in Gradle
+        "com.github.javaparser.",
+        "org.apache.",
+        "org.bouncycastle.",
+        "org.w3c.dom.",
+        "org.junit.",
+        "org.xml.",
+        // Known Gradle Plugins
+        "butterknife.",
+        "com.apollographql.apollo.",
+        "com.autonomousapps.",
+        "com.bugsnag.",
+        "com.crashlytics.",
+        "com.diffplug.",
+        "com.github.triplet.gradle.",
+        "com.hiya.",
+        "com.jfrog.",
+        "com.newrelic.",
+        "com.onesignal.",
+        "com.squareup.",
+        "com.vanniktech.",
+        "dagger.",
+        "de.mannodermaus.",
+        "de.undercouch.",
+        "io.invertase.",
+        "io.realm.",
+        "io.sentry.",
+        "org.jfrog.",
+        "org.jlleitschuh.",
+        "org.jmailen.",
+        "org.koin.",
+        "org.sonarqube.",
+      )
 
     private const val hiddenNameReplacement = "<hidden>"
   }
 
   data class GradleException(
     val exceptionClass: String,
-    val topFrame: GradleExceptionStackFrame? = null //TODO remove to enforce
+    val topFrame: GradleExceptionStackFrame? = null, // TODO remove to enforce
   ) {
     fun toAnalyticsMessage(): GradleExceptionInfo {
-      return GradleExceptionInfo
-        .newBuilder()
+      return GradleExceptionInfo.newBuilder()
         .setExceptionClassName(exceptionClass)
         .also { if (topFrame != null) it.setTopFrameInfo(topFrame.toAnalyticsMessage()) }
         .build()
     }
   }
+
   data class GradleExceptionStackFrame(
     val className: String,
     val methodName: String,
     val fileName: String?,
     val lineNumber: Int,
-    val frameIndex: Int
+    val frameIndex: Int,
   ) {
     fun toAnalyticsMessage(): GradleExceptionStackFrameInfo {
       return GradleExceptionStackFrameInfo.newBuilder()
@@ -118,16 +119,20 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
         .build()
     }
   }
+
   data class GradleError(val exceptions: List<GradleException>) {
     fun toAnalyticsMessage(): com.google.wireless.android.sdk.stats.GradleFailureDetails.GradleErrorInfo {
-      return com.google.wireless.android.sdk.stats.GradleFailureDetails.GradleErrorInfo
-        .newBuilder().addAllExceptions(exceptions.map { it.toAnalyticsMessage() }).build()
+      return com.google.wireless.android.sdk.stats.GradleFailureDetails.GradleErrorInfo.newBuilder()
+        .addAllExceptions(exceptions.map { it.toAnalyticsMessage() })
+        .build()
     }
   }
+
   data class GradleFailureDetails(val errors: List<GradleError>) {
     fun toAnalyticsMessage(): com.google.wireless.android.sdk.stats.GradleFailureDetails {
-      return com.google.wireless.android.sdk.stats.GradleFailureDetails
-        .newBuilder().addAllErrors(errors.map { it.toAnalyticsMessage() }).build()
+      return com.google.wireless.android.sdk.stats.GradleFailureDetails.newBuilder()
+        .addAllErrors(errors.map { it.toAnalyticsMessage() })
+        .build()
     }
   }
 
@@ -137,40 +142,39 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
   }
 
   private fun convertError(e: Throwable): List<GradleError> {
-    val frame = e.stackTrace.let { stackTrace ->
-      val frameIndex = stackTrace.indexOfFirst { isClassAllowed(it.className) }
-      return@let if (frameIndex == -1) null else stackTrace[frameIndex].let { frame ->
-        GradleExceptionStackFrame(frame.className, frame.methodName, frame.fileName, frame.lineNumber, frameIndex)
+    val frame =
+      e.stackTrace.let { stackTrace ->
+        val frameIndex = stackTrace.indexOfFirst { isClassAllowed(it.className) }
+        return@let if (frameIndex == -1) null
+        else
+          stackTrace[frameIndex].let { frame ->
+            GradleExceptionStackFrame(frame.className, frame.methodName, frame.fileName, frame.lineNumber, frameIndex)
+          }
       }
-    }
     val exception = GradleException(clearClassName(getClassName(e)), frame)
     val convertedCauses = getConvertedCauses(e)
     if (convertedCauses.isEmpty()) {
       return listOf(GradleError(listOf(exception)))
-    }
-    else {
-      val errors = convertedCauses.map { errorCause ->
-        GradleError(listOf(exception) + errorCause.exceptions)
-      }
+    } else {
+      val errors = convertedCauses.map { errorCause -> GradleError(listOf(exception) + errorCause.exceptions) }
       return errors
     }
   }
 
   private fun getConvertedCauses(e: Throwable): List<GradleError> {
-    return getCauses(e).flatMap { cause ->
-      convertError(cause)
-    }
+    return getCauses(e).flatMap { cause -> convertError(cause) }
   }
 
   private fun getCauses(e: Throwable): List<Throwable> {
     try {
       if (checkIsInstance(e, MultiCauseException::class.java)) {
-        val multiCauses = ReflectionUtil.getMethod(e::class.java, MultiCauseException::getCauses.name)
-          ?.invoke(e)
-          ?.uncheckedCast<List<Throwable>>()
+        val multiCauses =
+          ReflectionUtil.getMethod(e::class.java, MultiCauseException::getCauses.name)?.invoke(e)?.uncheckedCast<List<Throwable>>()
         if (multiCauses != null) return multiCauses
       }
-    } catch (t: Exception) { /* Failed attempt, fallback to usual cause. */ }
+    } catch (t: Exception) {
+      /* Failed attempt, fallback to usual cause. */
+    }
     val cause = e.cause ?: return emptyList()
     return listOf(cause)
   }
@@ -190,12 +194,15 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
   private fun getClassName(e: Throwable): String {
     try {
       if (checkIsInstance(e, PlaceholderExceptionSupport::class.java)) {
-        val exceptionClassName = ReflectionUtil.getMethod(e::class.java, PlaceholderExceptionSupport::getExceptionClassName.name)
-          ?.invoke(e)
-          ?.uncheckedCast<String>()
+        val exceptionClassName =
+          ReflectionUtil.getMethod(e::class.java, PlaceholderExceptionSupport::getExceptionClassName.name)
+            ?.invoke(e)
+            ?.uncheckedCast<String>()
         if (exceptionClassName != null) return exceptionClassName
       }
-    } catch (t: Exception) { /* Failed attempt, fallback to usual name. */ }
+    } catch (t: Exception) {
+      /* Failed attempt, fallback to usual name. */
+    }
     return e::class.java.name
   }
 
@@ -206,5 +213,6 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
     return hiddenNameReplacement
   }
 
-  private fun isClassAllowed(className: String) = packagesAllowList.any { allowedPackagePrefix ->  className.startsWith(allowedPackagePrefix) }
+  private fun isClassAllowed(className: String) =
+    packagesAllowList.any { allowedPackagePrefix -> className.startsWith(allowedPackagePrefix) }
 }

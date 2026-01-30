@@ -17,4 +17,4 @@ package com.android.tools.idea.ui
 
 /** Extracts and returns plain text contained in an HTML string. */
 internal fun extractTextFromHtml(html: String): String =
-    html.replace(Regex("<[^>]+>"), "").trim().replace("&nbsp;", " ").replace(Regex("\\s+"), " ")
+  html.replace(Regex("<[^>]+>"), "").trim().replace("&nbsp;", " ").replace(Regex("\\s+"), " ")

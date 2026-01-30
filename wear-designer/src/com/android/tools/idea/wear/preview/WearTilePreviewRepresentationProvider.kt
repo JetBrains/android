@@ -35,16 +35,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
-internal class WearTileAdapterLightVirtualFile(
-  name: String,
-  content: String,
-  originFile: VirtualFile,
-) : InMemoryLayoutVirtualFile(name, content, originFile)
+internal class WearTileAdapterLightVirtualFile(name: String, content: String, originFile: VirtualFile) :
+  InMemoryLayoutVirtualFile(name, content, originFile)
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
-  private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> =
-    WearTilePreviewElementFinder()
+  private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> = WearTilePreviewElementFinder()
 ) : PreviewRepresentationProvider {
 
   private object WearTileEditorFileType :
@@ -58,20 +54,15 @@ class WearTilePreviewRepresentationProvider(
     DesignerTypeRegistrar.register(WearTileEditorFileType)
   }
 
-  /**
-   * Checks if the input [psiFile] contains wear tile previews and therefore can be provided with
-   * the [PreviewRepresentation] of them.
-   */
+  /** Checks if the input [psiFile] contains wear tile previews and therefore can be provided with the [PreviewRepresentation] of them. */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
     val virtualFile = psiFile.virtualFile
     if (!virtualFile.isSourceFileType()) return false
     if (DumbService.isDumb(project)) return false
     // Wear Tile previews are only supported in Android modules.
-    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true)
-      return false
+    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
 
-    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
-      filePreviewElementFinder.hasPreviewElements(project, virtualFile)
+    return StudioFlags.WEAR_TILE_PREVIEW.get() && filePreviewElementFinder.hasPreviewElements(project, virtualFile)
   }
 
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */

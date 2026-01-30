@@ -87,8 +87,7 @@ internal class BackupManagerImplTest {
   private val project
     get() = projectRule.project
 
-  private val temporaryFolder =
-    TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val temporaryFolder = TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
   private val backupFileHelper = BackupFileHelper(temporaryFolder)
 
   private val usageTrackerRule = UsageTrackerRule()
@@ -114,9 +113,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun backup_success(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val apps = setOf("app1", "app2", "app3")
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("app3"))
@@ -129,18 +126,11 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     createModalDialogAndInteractWithIt({
-      backupManagerImpl.showBackupDialog(
-        serialNumber,
-        "app2",
-        RUN_CONFIG,
-        notify = true,
-        apps.associateWith { true },
-      )
+      backupManagerImpl.showBackupDialog(serialNumber, "app2", RUN_CONFIG, notify = true, apps.associateWith { true })
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog
       val applicationIdComboBox = dialog.findComponent<ComboBox<String>>("applicationIdComboBox")
@@ -153,17 +143,9 @@ internal class BackupManagerImplTest {
       dialog.clickOk()
     }
 
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(CLOUD, RUN_CONFIG, "SUCCESS"))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(backupUsageEvent(CLOUD, RUN_CONFIG, "SUCCESS"))
     assertThat(notificationRule.notifications).hasSize(1)
-    notificationRule.notifications
-      .first()
-      .assert(
-        title = "",
-        "Backup completed successfully",
-        INFORMATION,
-        "ShowPostBackupDialogAction",
-      )
+    notificationRule.notifications.first().assert(title = "", "Backup completed successfully", INFORMATION, "ShowPostBackupDialogAction")
     assertThat(fakeDialogFactory.dialogs).isEmpty()
     verify(mockVirtualFileManager).refreshAndFindFileByNioPath(backupFile)
     backupFile.deleteExisting()
@@ -171,9 +153,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun backup_bmgrFailure(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val app = "app1"
     val adbServicesFactory =
@@ -182,29 +162,22 @@ internal class BackupManagerImplTest {
           Output(
             "bmgr backupnow @pm@ app1 --non-incremental --monitor-verbose",
             """
-                Running non-incremental backup for 2 requested packages.
-                Package @pm@ with result: Success
-                => Event{AGENT / FULL_BACKUP_CANCEL : package = com.example.empty(v1)}
-                Package com.example.empty with result: ERROR1
-                Backup finished with result: ERROR2
-              """
+            Running non-incremental backup for 2 requested packages.
+            Package @pm@ with result: Success
+            => Event{AGENT / FULL_BACKUP_CANCEL : package = com.example.empty(v1)}
+            Package com.example.empty with result: ERROR1
+            Backup finished with result: ERROR2
+            """
               .trimIndent(),
           )
         )
       }
     val backupService = BackupService.getInstance(adbServicesFactory)
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     createModalDialogAndInteractWithIt({
-      backupManagerImpl.showBackupDialog(
-        serialNumber,
-        app,
-        RUN_CONFIG,
-        notify = true,
-        mapOf(app to true),
-      )
+      backupManagerImpl.showBackupDialog(serialNumber, app, RUN_CONFIG, notify = true, mapOf(app to true))
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog
       val fileTextField = dialog.findComponent<TextAccessor>("fileTextField")
@@ -213,19 +186,17 @@ internal class BackupManagerImplTest {
     }
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(
-        backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "FULL_BACKUP_CANCEL ERROR1 ERROR2")
-      )
+      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "FULL_BACKUP_CANCEL ERROR1 ERROR2"))
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
         DialogData(
           "Backup Failed",
           """
-            Failed to backup 'app1`:
-            Backup was cancelled by either the user or backup service lifecycle.
-            Backup failed for package: com.example.empty
-            Backup operation failed.
+          Failed to backup 'app1`:
+          Backup was cancelled by either the user or backup service lifecycle.
+          Backup failed for package: com.example.empty
+          Backup operation failed.
           """
             .trimIndent(),
         )
@@ -234,28 +205,18 @@ internal class BackupManagerImplTest {
 
   @Test
   fun backup_detachesFromDebuggedApp(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     backupFile.toFile().deleteOnExit()
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val mockProcessHandler =
       mock<ProcessHandler>().apply {
         val sessionInfo = AndroidSessionInfo.create(this, emptyList(), "com.app")
         whenever(getUserData(AndroidSessionInfo.KEY)).thenReturn(sessionInfo)
       }
-    val mockExecutionManager =
-      mock<ExecutionManager>().apply {
-        whenever(getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler))
-      }
-    project.replaceService(
-      ExecutionManager::class.java,
-      mockExecutionManager,
-      disposableRule.disposable,
-    )
+    val mockExecutionManager = mock<ExecutionManager>().apply { whenever(getRunningProcesses()).thenReturn(arrayOf(mockProcessHandler)) }
+    project.replaceService(ExecutionManager::class.java, mockExecutionManager, disposableRule.disposable)
 
     backupManagerImpl.doBackup("serial", "com.app", CLOUD, backupFile, RUN_CONFIG, false)
 
@@ -264,18 +225,13 @@ internal class BackupManagerImplTest {
 
   @Test
   fun backup_backupDisabled_withAuth(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("app3") {
           it.addCommandOverride(Output("dumpsys package app3", "pkgFlags=[ DEBUGGABLE ]"))
-          it.addContentOverride(
-            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
-            "valid",
-          )
+          it.addContentOverride("content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup", "valid")
         }
       )
     project.replaceService(
@@ -287,30 +243,19 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
-    val result =
-      backupManagerImpl.doBackup(
-        serialNumber,
-        "app3",
-        DEVICE_TO_DEVICE,
-        backupFile,
-        RUN_CONFIG,
-        true,
-      )
+    val result = backupManagerImpl.doBackup(serialNumber, "app3", DEVICE_TO_DEVICE, backupFile, RUN_CONFIG, true)
 
     assertThat(result).isEqualTo(WithoutAppData)
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "WithoutAppData"))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "WithoutAppData"))
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
       .assert(
         title = "Backup completed successfully",
-        text =
-          "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
+        text = "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
         INFORMATION,
         "ShowPostBackupDialogAction",
         "BackupDisabledLearnMoreAction",
@@ -322,18 +267,13 @@ internal class BackupManagerImplTest {
 
   @Test
   fun backup_backupDisabled_withoutAuth(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("app3") {
           it.addCommandOverride(Output("dumpsys package app3", "pkgFlags=[ DEBUGGABLE ]"))
-          it.addContentOverride(
-            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
-            "",
-          )
+          it.addContentOverride("content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup", "")
         }
       )
     project.replaceService(
@@ -345,31 +285,17 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
-    val result =
-      backupManagerImpl.doBackup(
-        serialNumber,
-        "app3",
-        DEVICE_TO_DEVICE,
-        backupFile,
-        RUN_CONFIG,
-        true,
-      )
+    val result = backupManagerImpl.doBackup(serialNumber, "app3", DEVICE_TO_DEVICE, backupFile, RUN_CONFIG, true)
 
     assertThat(result).isInstanceOf(BackupResult.Error::class.java)
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "BACKUP_NOT_ENABLED"))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "BACKUP_NOT_ENABLED"))
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
-        DialogData(
-          "Backup Failed",
-          "No data was generated in backup since allowBackup property is false",
-          listOf("Learn More", "OK"),
-        )
+        DialogData("Backup Failed", "No data was generated in backup since allowBackup property is false", listOf("Learn More", "OK"))
       )
     assertThat(backupFile.notExists()).isTrue()
   }
@@ -384,8 +310,7 @@ internal class BackupManagerImplTest {
     val result = backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(result).isEqualTo(Success)
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
@@ -400,8 +325,7 @@ internal class BackupManagerImplTest {
     val result = backupManagerImpl.restore(serialNumber, relativePath, RUN_CONFIG, notify = true)
 
     assertThat(result).isEqualTo(Success)
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
@@ -412,9 +336,9 @@ internal class BackupManagerImplTest {
           Output(
             "bmgr restore 9bc1546914997f6c com.app --monitor-verbose",
             """
-                => Event{BACKUP_MANAGER_POLICY / SIGNATURE_MISMATCH : package = com.app(v1)}
-                restoreFinished: -1
-              """
+            => Event{BACKUP_MANAGER_POLICY / SIGNATURE_MISMATCH : package = com.app(v1)}
+            restoreFinished: -1
+            """
               .trimIndent(),
           )
         )
@@ -424,22 +348,19 @@ internal class BackupManagerImplTest {
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
-    val error =
-      backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
-        as BackupResult.Error
+    val error = backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true) as BackupResult.Error
 
     assertThat(error.errorCode).isEqualTo(BMGR_ERROR_RESTORE)
     assertThat(error.throwable.message)
       .isEqualTo(
         """
-      Failed to restore 'com.app`:
-      Signature of the app for which restore is called doesn't match the signature of the app corresponding to the backup.
-      Restore operation failed
-    """
+        Failed to restore 'com.app`:
+        Signature of the app for which restore is called doesn't match the signature of the app corresponding to the backup.
+        Restore operation failed
+        """
           .trimIndent()
       )
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, "SIGNATURE_MISMATCH -1"))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(restoreUsageEvent(RUN_CONFIG, "SIGNATURE_MISMATCH -1"))
   }
 
   @Test
@@ -451,9 +372,9 @@ internal class BackupManagerImplTest {
             Output(
               DUMPSYS_GMSCORE_CMD,
               """
-          Packages:
-              versionCode=50 minSdk=31 targetSdk=34
-        """
+              Packages:
+                  versionCode=50 minSdk=31 targetSdk=34
+              """
                 .trimIndent(),
             )
           )
@@ -465,8 +386,7 @@ internal class BackupManagerImplTest {
 
     backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
@@ -489,18 +409,13 @@ internal class BackupManagerImplTest {
             Output(
               DUMPSYS_GMSCORE_CMD,
               """
-                Packages:
-                    versionCode=50 minSdk=31 targetSdk=34
+              Packages:
+                  versionCode=50 minSdk=31 targetSdk=34
               """
                 .trimIndent(),
             )
           )
-          it.addCommandOverride(
-            Output(
-              "pm resolve-activity market://details?id=com.android.vending",
-              "No activity found\n",
-            )
-          )
+          it.addCommandOverride(Output("pm resolve-activity market://details?id=com.android.vending", "No activity found\n"))
         }
       )
     val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
@@ -509,8 +424,7 @@ internal class BackupManagerImplTest {
 
     backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
-    assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD_NO_PLAY_STORE))
+    assertThat(usageTrackerRule.backupEvents()).containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD_NO_PLAY_STORE))
     assertThat(notificationRule.notifications).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
@@ -522,12 +436,7 @@ internal class BackupManagerImplTest {
       )
   }
 
-  private fun NotificationInfo.assert(
-    title: String,
-    text: String,
-    type: NotificationType,
-    vararg actions: String,
-  ) {
+  private fun NotificationInfo.assert(title: String, text: String, type: NotificationType, vararg actions: String) {
     assertThat(this.groupId).named("group").isEqualTo("Backup")
     assertThat(this.icon).named("icon").isNull()
     assertThat(this.important).named("important").isEqualTo(actions.isNotEmpty())
@@ -536,34 +445,24 @@ internal class BackupManagerImplTest {
     assertThat(this.title).named("title").isEqualTo(title)
     assertThat(this.content).named("content").isEqualTo(text)
     assertThat(this.type).named("type").isEqualTo(type)
-    assertThat(this.actions.map { it::class.java.simpleName })
-      .named("actions")
-      .isEqualTo(actions.asList())
+    assertThat(this.actions.map { it::class.java.simpleName }).named("actions").isEqualTo(actions.asList())
   }
 
   @Test
   fun backup_nonDebuggableApp(): Unit = runBlocking {
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("app"))
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     backupManagerImpl.showBackupDialog(serialNumber, "other-app", RUN_CONFIG, notify = true)
 
     assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(
-        DialogData(
-          "Cannot Backup App Data",
-          "Application \"other-app\" is not debuggable and is not supported.",
-        )
-      )
+      .containsExactly(DialogData("Cannot Backup App Data", "Application \"other-app\" is not debuggable and is not supported."))
   }
 
   @Test
   fun backup_nonProjectApp(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("non-project-app"))
     project.replaceService(
@@ -575,44 +474,26 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
-    val result =
-      backupManagerImpl.doBackup(
-        serialNumber,
-        "non-project-app",
-        DEVICE_TO_DEVICE,
-        backupFile,
-        RUN_CONFIG,
-        true,
-      )
+    val result = backupManagerImpl.doBackup(serialNumber, "non-project-app", DEVICE_TO_DEVICE, backupFile, RUN_CONFIG, true)
 
     assertThat(result).isEqualTo(Success)
     assertThat(notificationRule.notifications).hasSize(1)
-    notificationRule.notifications
-      .first()
-      .assert(title = "", text = "Backup completed successfully", INFORMATION)
+    notificationRule.notifications.first().assert(title = "", text = "Backup completed successfully", INFORMATION)
     backupFile.deleteExisting()
   }
 
   @Test
   fun backup_nonProjectApp_backupDisabled(): Unit = runBlocking {
-    val backupFile =
-      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
-        ?: fail("Project base path unavailable")
+    val backupFile = project.basePath?.let { Path.of(it) }?.resolve("file.backup") ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("non-project-app") {
-          it.addCommandOverride(
-            Output("dumpsys package non-project-app", "pkgFlags=[ DEBUGGABLE ]")
-          )
-          it.addContentOverride(
-            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
-            "valid",
-          )
+          it.addCommandOverride(Output("dumpsys package non-project-app", "pkgFlags=[ DEBUGGABLE ]"))
+          it.addContentOverride("content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup", "valid")
         }
       )
 
@@ -625,19 +506,10 @@ internal class BackupManagerImplTest {
       },
       disposableRule.disposable,
     )
-    val backupManagerImpl =
-      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
-    val result =
-      backupManagerImpl.doBackup(
-        serialNumber,
-        "non-project-app",
-        DEVICE_TO_DEVICE,
-        backupFile,
-        RUN_CONFIG,
-        true,
-      )
+    val result = backupManagerImpl.doBackup(serialNumber, "non-project-app", DEVICE_TO_DEVICE, backupFile, RUN_CONFIG, true)
 
     assertThat(result).isEqualTo(WithoutAppData)
     assertThat(notificationRule.notifications).hasSize(1)
@@ -645,8 +517,7 @@ internal class BackupManagerImplTest {
       .first()
       .assert(
         title = "Backup completed successfully",
-        text =
-          "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
+        text = "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
         INFORMATION,
         "BackupDisabledLearnMoreAction",
       )
@@ -673,23 +544,15 @@ internal class BackupManagerImplTest {
 @Suppress("SameParameterValue")
 private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, result: String) =
   BackupUsageEvent.newBuilder()
-    .setBackup(
-      BackupEvent.newBuilder()
-        .setTypeString(type.name)
-        .setSourceString(source.name)
-        .setResultString(result)
-    )
+    .setBackup(BackupEvent.newBuilder().setTypeString(type.name).setSourceString(source.name).setResultString(result))
     .build()
 
 @Suppress("SameParameterValue")
-private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode) =
-  restoreUsageEvent(source, errorCode.name)
+private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode) = restoreUsageEvent(source, errorCode.name)
 
 @Suppress("SameParameterValue")
 private fun restoreUsageEvent(source: BackupManager.Source, result: String) =
-  BackupUsageEvent.newBuilder()
-    .setRestore(RestoreEvent.newBuilder().setSourceString(source.name).setResultString(result))
-    .build()
+  BackupUsageEvent.newBuilder().setRestore(RestoreEvent.newBuilder().setSourceString(source.name).setResultString(result)).build()
 
 private fun UsageTrackerRule.backupEvents(): List<BackupUsageEvent> =
   usages.filter { it.studioEvent.kind == BACKUP_USAGE }.map { it.studioEvent.backupUsageEvent }

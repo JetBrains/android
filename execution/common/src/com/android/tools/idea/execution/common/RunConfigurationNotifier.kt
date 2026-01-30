@@ -20,51 +20,33 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 
-/**
- * Provides any information to user in balloon while user starts configuration(deploy/launch/connect debugger).
- */
+/** Provides any information to user in balloon while user starts configuration(deploy/launch/connect debugger). */
 object RunConfigurationNotifier {
 
   const val ID = "Run Configuration"
-  fun notifyWarning(
-    project: Project,
-    configurationName: String,
-    text: String
-  ) {
+
+  fun notifyWarning(project: Project, configurationName: String, text: String) {
     NotificationGroupManager.getInstance()
       .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.WARNING)
       .notify(project)
   }
 
-  fun notifyInfo(
-    project: Project,
-    configurationName: String,
-    text: String
-  ) {
+  fun notifyInfo(project: Project, configurationName: String, text: String) {
     NotificationGroupManager.getInstance()
       .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.INFORMATION)
       .notify(project)
   }
 
-  fun notifyError(
-    project: Project,
-    configurationName: String,
-    text: String
-  ) {
+  fun notifyError(project: Project, configurationName: String, text: String) {
     NotificationGroupManager.getInstance()
       .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.ERROR)
       .notify(project)
   }
 
-  fun notifyErrorWithAction(
-    project: Project,
-    configurationName: String,
-    text: String,
-    action: NotificationAction
-  ) {
+  fun notifyErrorWithAction(project: Project, configurationName: String, text: String, action: NotificationAction) {
     NotificationGroupManager.getInstance()
       .getNotificationGroup(ID)
       .createNotification(title = "Run $configurationName", text, NotificationType.ERROR)

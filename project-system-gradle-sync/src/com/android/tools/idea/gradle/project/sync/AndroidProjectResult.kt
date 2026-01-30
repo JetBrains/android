@@ -37,7 +37,7 @@ sealed class AndroidProjectResult {
     override val allVariantNames: Set<String>,
     override val defaultVariantName: String?,
     val syncIssues: Collection<SyncIssue>?,
-    val ndkVersion: String?
+    val ndkVersion: String?,
   ) : AndroidProjectResult() {
     override fun createVariantFetcher(): IdeVariantFetcher = v1VariantFetcher(modelCache, legacyAndroidGradlePluginProperties)
   }
@@ -78,8 +78,7 @@ sealed class AndroidProjectResult {
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<V1Project> {
       val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
-      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
-          ?: allVariantNames.getDefaultOrFirstItem("debug")
+      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null) ?: allVariantNames.getDefaultOrFirstItem("debug")
       val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
         modelCache.androidProjectFrom(
           rootBuildId,
@@ -88,7 +87,7 @@ sealed class AndroidProjectResult {
           androidProject,
           legacyAndroidGradlePluginProperties,
           gradlePropertiesModel,
-          defaultVariantName
+          defaultVariantName,
         )
       return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
         val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") (safeGet(androidProject::getSyncIssues, null))
@@ -100,14 +99,16 @@ sealed class AndroidProjectResult {
           allVariantNames = allVariantNames,
           defaultVariantName = defaultVariantName,
           syncIssues = syncIssues,
-          ndkVersion = ndkVersion
+          ndkVersion = ndkVersion,
         )
       }
     }
 
-    data class RuntimeClasspathBehaviour(val skipRuntimeClasspathForLibraries: Boolean,
-                                         val buildRuntimeClasspathForLibraryUnitTests: Boolean,
-                                         val buildRuntimeClasspathForLibraryScreenshotTests: Boolean)
+    data class RuntimeClasspathBehaviour(
+      val skipRuntimeClasspathForLibraries: Boolean,
+      val buildRuntimeClasspathForLibraryUnitTests: Boolean,
+      val buildRuntimeClasspathForLibraryScreenshotTests: Boolean,
+    )
 
     fun V2Project(
       modelCache: ModelCache.V2,
@@ -125,8 +126,8 @@ sealed class AndroidProjectResult {
     ): ModelResult<V2Project> {
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
-          // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
-          basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
+        // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
+        basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
       val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
         modelCache.androidProjectFrom(
           rootBuildId = rootBuildId,
@@ -137,7 +138,7 @@ sealed class AndroidProjectResult {
           androidDsl = androidDsl,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
           gradlePropertiesModel = gradlePropertiesModel,
-          defaultVariantName = defaultVariantName
+          defaultVariantName = defaultVariantName,
         )
 
       return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
@@ -151,19 +152,16 @@ sealed class AndroidProjectResult {
               basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
               variant = it,
               legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-              testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES])
-                basicAndroidProject.testSuites
-              else emptyList(),
+              testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES]) basicAndroidProject.testSuites else emptyList(),
               androidDsl,
-              basicAndroidProject
-              )
+              basicAndroidProject,
+            )
           }
         }
 
         val allVariantNames: Set<String> = basicVariants.map { it.name }.toSet()
         val v2Variants = v2VariantResults.mapNotNull { it.recordAndGet() }
-        val androidVariantResolver: AndroidVariantResolver =
-          buildVariantNameResolver(ideAndroidProject, v2Variants)
+        val androidVariantResolver: AndroidVariantResolver = buildVariantNameResolver(ideAndroidProject, v2Variants)
 
         V2Project(
           modelCache = modelCache,
@@ -177,7 +175,7 @@ sealed class AndroidProjectResult {
           androidVariantResolver = androidVariantResolver,
           runtimeClasspathBehaviour = runtimeClasspathBehaviour,
           useFlatDependencyGraphModel = useFlatDependencyGraphModel,
-          additionalArtifactsInModel= additionalArtifactsInModel,
+          additionalArtifactsInModel = additionalArtifactsInModel,
         )
       }
     }
@@ -186,33 +184,46 @@ sealed class AndroidProjectResult {
   abstract val ideAndroidProject: IdeAndroidProjectImpl
   abstract val allVariantNames: Set<String>
   abstract val defaultVariantName: String?
+
   abstract fun createVariantFetcher(): IdeVariantFetcher
+
   abstract val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
 }
 
 sealed class NativeVariantAbiResult {
   class V2(val selectedAbiName: String) : NativeVariantAbiResult()
+
   object None : NativeVariantAbiResult()
 
   val abi: String?
-    get() = when (this) {
-      is V2 -> selectedAbiName
-      None -> null
-    }
+    get() =
+      when (this) {
+        is V2 -> selectedAbiName
+        None -> null
+      }
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-private fun v1VariantFetcher(modelCache: ModelCache.V1, legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?): IdeVariantFetcher {
+private fun v1VariantFetcher(
+  modelCache: ModelCache.V1,
+  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     androidProjectPathResolver: AndroidProjectPathResolver,
     module: AndroidModule,
-    configuration: ModuleConfiguration
+    configuration: ModuleConfiguration,
   ): ModelResult<IdeVariantWithPostProcessor> {
     val androidModuleId = module.gradleProject.toModuleId()
     val adjustedVariantName = module.adjustForTestFixturesSuffix(configuration.variant)
     val variant = controller.findVariantModel(module, adjustedVariantName) ?: return ModelResult.create { null }
-    return modelCache.variantFrom(module.androidProject, variant, legacyAndroidGradlePluginProperties, module.modelVersions, androidModuleId)
+    return modelCache.variantFrom(
+      module.androidProject,
+      variant,
+      legacyAndroidGradlePluginProperties,
+      module.modelVersions,
+      androidModuleId,
+    )
   }
 }
 
@@ -232,17 +243,19 @@ private fun v2VariantFetcher(
     configuration: ModuleConfiguration,
   ): ModelResult<IdeVariantWithPostProcessor> {
     // In V2, we get the variants from AndroidModule.v2Variants.
-    val variant = v2Variants.firstOrNull { it.name == configuration.variant }
-      ?: return ModelResult.create { error("Resolved variant '${configuration.variant}' does not exist.") }
+    val variant =
+      v2Variants.firstOrNull { it.name == configuration.variant }
+        ?: return ModelResult.create { error("Resolved variant '${configuration.variant}' does not exist.") }
 
     // Request VariantDependencies model for the variant's dependencies.
-    val variantDependencies = controller.findVariantDependenciesV2Model(
-      module.gradleProject,
-      modelVersions,
-      configuration.variant,
-      useFlatDependencyGraphModel,
-      parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot, additionalArtifactsInModel)
-    ) ?: return ModelResult.create { null }
+    val variantDependencies =
+      controller.findVariantDependenciesV2Model(
+        module.gradleProject,
+        modelVersions,
+        configuration.variant,
+        useFlatDependencyGraphModel,
+        parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot, additionalArtifactsInModel),
+      ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),
       module.gradleProject.projectIdentifier.projectPath,

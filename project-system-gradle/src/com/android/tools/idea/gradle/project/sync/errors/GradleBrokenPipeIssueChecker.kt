@@ -22,10 +22,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
 class GradleBrokenPipeIssueChecker : GradleIssueChecker {
   private val BROKEN_PIPE = "Broken pipe"
@@ -36,20 +36,23 @@ class GradleBrokenPipeIssueChecker : GradleIssueChecker {
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.BROKEN_PIPE)
-    return BuildIssueComposer("Broken pipe.").apply {
-      addDescriptionOnNewLine("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
-      startNewParagraph()
-      addQuickFix(
-        "More info (including workarounds)", OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"))
-    }.composeBuildIssue()
+    return BuildIssueComposer("Broken pipe.")
+      .apply {
+        addDescriptionOnNewLine("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
+        startNewParagraph()
+        addQuickFix("More info (including workarounds)", OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"))
+      }
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.startsWith(BROKEN_PIPE)
   }
 }

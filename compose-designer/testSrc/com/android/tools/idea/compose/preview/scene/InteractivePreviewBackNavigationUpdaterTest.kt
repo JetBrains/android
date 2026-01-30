@@ -54,19 +54,11 @@ class InteractivePreviewBackNavigationUpdaterTest {
   fun `check backDispatcher is only set in interactive mode`() {
     val previewManager = TestComposePreviewManager().apply { setMode(PreviewMode.Default()) }
     val fakeComposeViewAdapter = FakeComposeViewAdapter()
-    InteractivePreviewBackNavigationUpdater.update(
-      fakeComposeViewAdapter,
-      previewManager,
-      composable,
-    )
+    InteractivePreviewBackNavigationUpdater.update(fakeComposeViewAdapter, previewManager, composable)
     assertThat(composable.backPressedDispatcher).isNull()
 
     previewManager.setMode(PreviewMode.Interactive(composable))
-    InteractivePreviewBackNavigationUpdater.update(
-      fakeComposeViewAdapter,
-      previewManager,
-      composable,
-    )
+    InteractivePreviewBackNavigationUpdater.update(fakeComposeViewAdapter, previewManager, composable)
     assertThat(composable.backPressedDispatcher).isNotNull()
   }
 }

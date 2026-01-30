@@ -17,7 +17,7 @@
 package com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest
 
 fun exampleBenchmarkJava(className: String, packageName: String) =
-"""package $packageName;
+  """package $packageName;
 
 import android.util.Log;
 

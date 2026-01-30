@@ -20,9 +20,7 @@ import com.android.tools.apk.analyzer.AndroidApplicationInfo
 import com.android.tools.apk.analyzer.ArchiveEntry
 import com.google.common.util.concurrent.ListenableFuture
 
-/**
- * An interface that provides an [AndroidApplicationInfo]
- */
+/** An interface that provides an [AndroidApplicationInfo] */
 internal fun interface AndroidApplicationInfoProvider {
-  fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry) : ListenableFuture<AndroidApplicationInfo>
+  fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry): ListenableFuture<AndroidApplicationInfo>
 }

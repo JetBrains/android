@@ -24,10 +24,7 @@ import com.intellij.psi.impl.compiled.ClsFileImpl
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 
-/**
- * Substitutes a workspace source file in place of a decompiled class file for non-project
- * dependencies with sources in the workspace.
- */
+/** Substitutes a workspace source file in place of a decompiled class file for non-project dependencies with sources in the workspace. */
 class QuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
 
   override fun getNavigationElement(clsFile: ClsFileImpl): PsiElement? {
@@ -42,10 +39,10 @@ class QuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
     return CachedValuesManager.getCachedValue(clsFile) {
       Result.create(
         ClassFileJavaSourceFinder(clsFile).findSourceFile()
-        ?: ClassFileGenSrcJarJavaSourceFinder(clsFile).findSourceFile()
-        ?: ClassFileSrcJarJavaSourceFinder(clsFile).findSourceFile(),
+          ?: ClassFileGenSrcJarJavaSourceFinder(clsFile).findSourceFile()
+          ?: ClassFileSrcJarJavaSourceFinder(clsFile).findSourceFile(),
         clsFile,
-        QuerySyncManager.getInstance(project).projectModificationTracker
+        QuerySyncManager.getInstance(project).projectModificationTracker,
       )
     }
   }

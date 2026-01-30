@@ -52,8 +52,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     super.update(e)
     val project = e.project
     // Only enable the action if user has opted-in to share context.
-    e.presentation.isEnabled =
-      project != null && GeminiPluginApi.getInstance().isContextAllowed(project)
+    e.presentation.isEnabled = project != null && GeminiPluginApi.getInstance().isContextAllowed(project)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -82,12 +81,8 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     }
   }
 
-  private class ConvertToComposeDialog(
-    private val project: Project,
-    private val xmlFileContent: String,
-  ) : DialogWrapper(project) {
-    private val displayDependencies =
-      JBCheckBox("Include Gradle dependencies in the response", false)
+  private class ConvertToComposeDialog(private val project: Project, private val xmlFileContent: String) : DialogWrapper(project) {
+    private val displayDependencies = JBCheckBox("Include Gradle dependencies in the response", false)
     private val useViewModel = JBCheckBox("Use ViewModel", false)
     private val useCustomView = JBCheckBox("Has custom views", false)
     private val dataTypeGroup = DataTypeButtonGroup()
@@ -104,9 +99,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
           }
         }
       dataTypeButtons[0].isSelected = true
-      useViewModel.addItemListener {
-        dataTypeButtons.forEach { it.isEnabled = useViewModel.isSelected }
-      }
+      useViewModel.addItemListener { dataTypeButtons.forEach { it.isEnabled = useViewModel.isSelected } }
       init()
     }
 
@@ -152,8 +145,7 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     }
   }
 
-  private class DataTypeRadioButton(val dataType: ComposeConverterDataType) :
-    JBRadioButton("Use ${dataType.classFqn}", false)
+  private class DataTypeRadioButton(val dataType: ComposeConverterDataType) : JBRadioButton("Use ${dataType.classFqn}", false)
 
   private class DataTypeButtonGroup : ButtonGroup() {
     fun addDataTypeButton(button: DataTypeRadioButton) {

@@ -34,10 +34,8 @@ import org.mockito.kotlin.whenever
 class NeedsTranslationForLocaleRowFilterTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val needsTranslationForLocaleRowFilterAr =
-    NeedsTranslationForLocaleRowFilter(ARABIC_LOCALE)
-  private val needsTranslationForLocaleRowFilterEs =
-    NeedsTranslationForLocaleRowFilter(US_SPANISH_LOCALE)
+  private val needsTranslationForLocaleRowFilterAr = NeedsTranslationForLocaleRowFilter(ARABIC_LOCALE)
+  private val needsTranslationForLocaleRowFilterEs = NeedsTranslationForLocaleRowFilter(US_SPANISH_LOCALE)
 
   private val model: StringResourceTableModel = mock()
   private val resource: StringResource = mock()
@@ -52,8 +50,7 @@ class NeedsTranslationForLocaleRowFilterTest {
 
   @Test
   fun getDescription() {
-    assertThat(needsTranslationForLocaleRowFilterAr.getDescription())
-      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(needsTranslationForLocaleRowFilterAr.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(needsTranslationForLocaleRowFilterEs.getDescription())
       .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
   }

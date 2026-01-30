@@ -22,14 +22,9 @@ import java.awt.event.MouseMotionListener
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 
-/**
- * A mouse listener that forwards its events to the component provided by [componentProvider] if
- * [shouldForward] returns true.
- */
-internal class ForwardingMouseListener(
-  private val componentProvider: () -> Component,
-  private val shouldForward: () -> Boolean,
-) : MouseListener, MouseWheelListener, MouseMotionListener {
+/** A mouse listener that forwards its events to the component provided by [componentProvider] if [shouldForward] returns true. */
+internal class ForwardingMouseListener(private val componentProvider: () -> Component, private val shouldForward: () -> Boolean) :
+  MouseListener, MouseWheelListener, MouseMotionListener {
   override fun mouseClicked(e: MouseEvent) = forwardEvent(e)
 
   override fun mousePressed(e: MouseEvent) = forwardEvent(e)

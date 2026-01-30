@@ -46,8 +46,7 @@ class ViewBindingNavigationTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -77,9 +76,7 @@ class ViewBindingNavigationTest {
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding =
-      fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)
-        as LightBindingClass
+    val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
@@ -96,9 +93,7 @@ class ViewBindingNavigationTest {
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml.
     val binding =
-      fixture
-        .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
-        .findFieldByName("testId", false)!!
+      fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!.findFieldByName("testId", false)!!
 
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")

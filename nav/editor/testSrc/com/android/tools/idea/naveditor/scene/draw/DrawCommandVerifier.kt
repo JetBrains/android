@@ -88,13 +88,7 @@ fun verifyDrawFragment(
   previewType: PreviewType = PreviewType.PLACEHOLDER,
 ) {
   verifyDrawShape(inOrder, g, rectangle, FRAME_COLOR, FRAME_STROKE)
-  val imageRectangle =
-    Rectangle2D.Float(
-      rectangle.x + 1f,
-      rectangle.y + 1f,
-      rectangle.width - 2f,
-      rectangle.height - 2f,
-    )
+  val imageRectangle = Rectangle2D.Float(rectangle.x + 1f, rectangle.y + 1f, rectangle.width - 2f, rectangle.height - 2f)
   verifyDrawNavScreen(inOrder, g, imageRectangle, previewType)
 
   if (highlightColor != null) {
@@ -124,15 +118,7 @@ fun verifyDrawNestedGraph(
   textColor: Color,
 ) {
   val arcSize = ARC_SIZE * scale.toFloat()
-  val roundRectangle =
-    RoundRectangle2D.Float(
-      rectangle.x,
-      rectangle.y,
-      rectangle.width,
-      rectangle.height,
-      arcSize,
-      arcSize,
-    )
+  val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
   verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
   verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
   verifyDrawTruncatedText(inOrder, g, text, textColor)
@@ -150,15 +136,7 @@ fun verifyDrawActivity(
   previewType: PreviewType = PreviewType.PLACEHOLDER,
 ) {
   val arcSize = ARC_SIZE * scale.toFloat()
-  val roundRectangle =
-    RoundRectangle2D.Float(
-      rectangle.x,
-      rectangle.y,
-      rectangle.width,
-      rectangle.height,
-      arcSize,
-      arcSize,
-    )
+  val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
   verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
   verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
   verifyDrawNavScreen(inOrder, g, imageRectangle, previewType)
@@ -189,8 +167,7 @@ fun verifyDrawHeader(
   }
 
   if (hasDeepLink) {
-    val deepLinkRect =
-      Rectangle2D.Float(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
+    val deepLinkRect = Rectangle2D.Float(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
     verifyDrawIcon(inOrder, g, deepLinkRect)
     textWidth -= iconSize + textPadding
   }
@@ -198,12 +175,7 @@ fun verifyDrawHeader(
   verifyDrawTruncatedText(inOrder, g, text, HEADER_TEXT)
 }
 
-fun verifyDrawNavScreen(
-  inOrder: InOrder,
-  g: Graphics2D,
-  rectangle: Rectangle2D.Float,
-  previewType: PreviewType,
-) {
+fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, previewType: PreviewType) {
   when (previewType) {
     PreviewType.PLACEHOLDER -> verifyDrawPlaceholder(inOrder, g, rectangle)
     PreviewType.LOADING -> verifyDrawNavScreenLoading(inOrder, g, rectangle)
@@ -216,15 +188,7 @@ fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectang
   inOrder.apply {
     verify(g).setRenderingHints(any())
     verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
-    verify(g)
-      .drawImage(
-        any(),
-        eq(rectangle.x.toInt()),
-        eq(rectangle.y.toInt()),
-        anyInt(),
-        anyInt(),
-        eq(null),
-      )
+    verify(g).drawImage(any(), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
     verify(g).dispose()
   }
 }
@@ -243,11 +207,7 @@ fun verifyDrawNavScreenLoading(inOrder: InOrder, g: Graphics2D, rectangle: Recta
   }
 }
 
-fun verifyDrawNavScreenPreviewUnavailable(
-  inOrder: InOrder,
-  g: Graphics2D,
-  rectangle: Rectangle2D.Float,
-) {
+fun verifyDrawNavScreenPreviewUnavailable(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
   inOrder.apply {
     verify(g).setRenderingHints(any())
     verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
@@ -350,13 +310,7 @@ fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float
   }
 }
 
-fun verifyDrawLineToMouse(
-  inOrder: InOrder,
-  g: Graphics2D,
-  center: Point2D.Float,
-  mouseX: Int,
-  mouseY: Int,
-) {
+fun verifyDrawLineToMouse(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, mouseX: Int, mouseY: Int) {
   inOrder.apply {
     verify(g).color = LINE_TO_MOUSE_COLOR
     verify(g).stroke = argThat(StrokeArgumentMatcher(LINE_TO_MOUSE_STROKE))
@@ -431,5 +385,4 @@ fun makeGraphicsMock(): Graphics2D {
   return graphics
 }
 
-private fun makeCircle(center: Point2D.Float, radius: Float) =
-  Ellipse2D.Float(center.x - radius, center.y - radius, 2 * radius, 2 * radius)
+private fun makeCircle(center: Point2D.Float, radius: Float) = Ellipse2D.Float(center.x - radius, center.y - radius, 2 * radius, 2 * radius)

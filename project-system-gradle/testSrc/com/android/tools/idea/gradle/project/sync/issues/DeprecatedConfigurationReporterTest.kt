@@ -22,10 +22,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueT
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
+import java.util.IdentityHashMap
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import java.util.IdentityHashMap
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   private lateinit var module1: Module
@@ -43,26 +43,29 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
   @Test
   fun testDeduplicationInSameModule() {
-    val syncIssue1 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
-    val syncIssue2 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
+    val syncIssue1 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
+    val syncIssue2 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
 
-    val messages = reporter.reportAll(
-      listOf(syncIssue1, syncIssue2),
-      listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
-      mapOf()
-    )
+    val messages =
+      reporter.reportAll(
+        listOf(syncIssue1, syncIssue2),
+        listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
+        mapOf(),
+      )
 
     assertSize(1, messages)
     val message = messages[0]
@@ -74,31 +77,35 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
     assertEquals(
       listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }),
+    )
   }
 
   @Test
   fun testNoDeduplicationInSameModule() {
-    val syncIssue1 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key1",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
-    val syncIssue2 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
+    val syncIssue1 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key1",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
+    val syncIssue2 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
 
-    val messages = reporter.reportAll(
-      listOf(syncIssue1, syncIssue2),
-      listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
-      mapOf()
-    )
+    val messages =
+      reporter.reportAll(
+        listOf(syncIssue1, syncIssue2),
+        listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
+        mapOf(),
+      )
 
     assertSize(2, messages)
     var message = messages[0]
@@ -116,33 +123,37 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertEquals(
       listOf(
         GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
       ),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }),
+    )
   }
 
   @Test
   fun testDeduplicationAcrossModules() {
-    val syncIssue1 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
-    val syncIssue2 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
+    val syncIssue1 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
+    val syncIssue2 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
 
-    val messages = reporter.reportAll(
-      listOf(syncIssue1, syncIssue2),
-      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf()
-    )
+    val messages =
+      reporter.reportAll(
+        listOf(syncIssue1, syncIssue2),
+        listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+        mapOf(),
+      )
 
     assertSize(1, messages)
     val message = messages[0]
@@ -154,31 +165,35 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
     assertEquals(
       listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }),
+    )
   }
 
   @Test
   fun testNoDeduplicationAcrossModules() {
-    val syncIssue1 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key1",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
-    val syncIssue2 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Warning message!",
-      multiLineMessage = null
-    )
+    val syncIssue1 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key1",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
+    val syncIssue2 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Warning message!",
+        multiLineMessage = null,
+      )
 
-    val messages = reporter.reportAll(
-      listOf(syncIssue1, syncIssue2),
-      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf()
-    )
+    val messages =
+      reporter.reportAll(
+        listOf(syncIssue1, syncIssue2),
+        listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+        mapOf(),
+      )
 
     assertSize(2, messages)
     var message = messages[0]
@@ -196,33 +211,37 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertEquals(
       listOf(
         GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
       ),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }),
+    )
   }
 
   @Test
   fun testDeduplicationHandlesErrors() {
-    val syncIssue1 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Error message!",
-      multiLineMessage = null
-    )
-    val syncIssue2 = IdeSyncIssueImpl(
-      severity = IdeSyncIssue.SEVERITY_ERROR,
-      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
-      data = "key",
-      message = "Error message!",
-      multiLineMessage = null
-    )
+    val syncIssue1 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_WARNING,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Error message!",
+        multiLineMessage = null,
+      )
+    val syncIssue2 =
+      IdeSyncIssueImpl(
+        severity = IdeSyncIssue.SEVERITY_ERROR,
+        type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+        data = "key",
+        message = "Error message!",
+        multiLineMessage = null,
+      )
 
-    val messages = reporter.reportAll(
-      listOf(syncIssue1, syncIssue2),
-      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
-      mapOf()
-    )
+    val messages =
+      reporter.reportAll(
+        listOf(syncIssue1, syncIssue2),
+        listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+        mapOf(),
+      )
 
     assertSize(1, messages)
     val message = messages[0]
@@ -234,6 +253,7 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
 
     assertEquals(
       listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages.map { it.syncMessage }),
+    )
   }
 }

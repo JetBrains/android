@@ -174,11 +174,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     RuleChain(
       projectRule,
       disposableRule,
-      ProjectServiceRule(
-        projectRule,
-        DatabaseInspectorAnalyticsTracker::class.java,
-        analyticsTracker,
-      ),
+      ProjectServiceRule(projectRule, DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker),
       EdtRule(),
     )
 
@@ -190,22 +186,16 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   // TODO(aalbert): Maybe replace with `TemporaryFolder` rule. This would require making some
   //  changes regarding use of VirtualFile in production code.
-  private val tempDirTestFixture =
-    IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+  private val tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
   private val exportInProgressListener: (Job) -> Unit = mock()
   private val exportProcessedListener = ExportProcessedListener()
-  private val databaseDownloadTestFixture by lazy {
-    DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath())
-  }
+  private val databaseDownloadTestFixture by lazy { DatabaseDownloadTestFixture(tempDirTestFixture.toNioPath()) }
   private val edtExecutor = EdtExecutorService.getInstance()
   private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val databaseRepository by lazy { OpenDatabaseRepository(project, taskExecutor) }
   private val databaseLockingTestFixture by lazy { DatabaseLockingTestFixture(databaseRepository) }
   private val sqliteCliClient by lazy {
-    SqliteCliClientImpl(
-      SqliteCliProviderImpl(project).getSqliteCli()!!,
-      taskExecutor.asCoroutineDispatcher(),
-    )
+    SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
   }
 
   private val view = FakeExportToFileDialogView()
@@ -258,10 +248,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     val database = createEmptyDatabase(testConfig.databaseType)
     val values = populateDatabase(database, listOf(table1), listOf(view1)).single().content
 
-    val statement =
-      createSqliteStatement(
-        "select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)"
-      )
+    val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
@@ -290,9 +277,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     testExportToSql(
       databaseType = testConfig.databaseType,
       databaseTables = listOf(table1, table2, table3),
-      exportRequestCreator = { database, dstPath ->
-        ExportTableRequest(database, targetTable, SQL, dstPath)
-      },
+      exportRequestCreator = { database, dstPath -> ExportTableRequest(database, targetTable, SQL, dstPath) },
       expectedTableNames = listOf(targetTable),
       expectedOutputDumpCommand = DumpTable(targetTable),
     )
@@ -325,10 +310,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
     val expectedOutput =
       runSqlite3Command(
-          SqliteCliArgs.builder()
-            .database(database.backingFile)
-            .apply { expectedOutputDumpCommand.setOnBuilder(this) }
-            .build()
+          SqliteCliArgs.builder().database(database.backingFile).apply { expectedOutputDumpCommand.setOnBuilder(this) }.build()
         )
         .checkSuccess()
         .stdOutput
@@ -336,22 +318,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         .also { lines ->
           assertThat(lines).isNotEmpty()
           expectedTableNames.forEach { tableName ->
-            assertThat(
-                lines.filter { it.contains("create table ".toRegex(RegexOption.IGNORE_CASE)) }
-              )
-              .hasSize(expectedTableNames.size)
-            assertThat(
-                lines.filter {
-                  it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE))
-                }
-              )
-              .isNotEmpty()
-            assertThat(
-                lines.filter {
-                  it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE))
-                }
-              )
-              .isNotEmpty()
+            assertThat(lines.filter { it.contains("create table ".toRegex(RegexOption.IGNORE_CASE)) }).hasSize(expectedTableNames.size)
+            assertThat(lines.filter { it.contains("create table .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
+            assertThat(lines.filter { it.contains("insert into .*$tableName".toRegex(RegexOption.IGNORE_CASE)) }).isNotEmpty()
           }
         }
 
@@ -366,10 +335,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       expectedOutput = listOf(ExpectedOutputFile(exportRequest.dstPath, expectedValues)), // no-op
     )
 
-  /**
-   * Overload suitable for a general case (provide a [decompress] function if required to get the
-   * underlying output files).
-   */
+  /** Overload suitable for a general case (provide a [decompress] function if required to get the underlying output files). */
   private fun testExport(
     exportRequest: ExportRequest,
     decompress: (Path) -> List<Path>,
@@ -377,12 +343,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     verifyExportCallbacks: (durationMs: Long) -> Unit = { durationMs ->
       assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS)
       assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
-      assertAnalyticsTrackerCall(
-        analyticsTracker,
-        exportRequest,
-        durationMs,
-        Outcome.SUCCESS_OUTCOME,
-      )
+      assertAnalyticsTrackerCall(analyticsTracker, exportRequest, durationMs, Outcome.SUCCESS_OUTCOME)
     },
   ) {
     // then: compare output file(s) with expected output
@@ -394,15 +355,11 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     stopwatch.stop()
 
     verifyExportCallbacks(stopwatch.elapsed(MILLISECONDS))
-    exportRequest.srcDatabase.let { db ->
-      assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId)
-    }
+    exportRequest.srcDatabase.let { db -> assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId) }
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
     assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
-    actualFiles.zip(expectedOutput.sortedBy { it.path }) {
-      actualPath,
-      (expectedPath, expectedValues) ->
+    actualFiles.zip(expectedOutput.sortedBy { it.path }) { actualPath, (expectedPath, expectedValues) ->
       assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)
       assertThat(actualPath.toLines()).isEqualTo(expectedValues)
     }
@@ -440,19 +397,15 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       )
 
     when (sourceCaptor.allValues.single()) {
-      Source.DATABASE_SOURCE ->
-        assertThat(exportRequest).isInstanceOf(ExportDatabaseRequest::class.java)
+      Source.DATABASE_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportDatabaseRequest::class.java)
       Source.TABLE_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportTableRequest::class.java)
-      Source.QUERY_SOURCE ->
-        assertThat(exportRequest).isInstanceOf(ExportQueryResultsRequest::class.java)
+      Source.QUERY_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportQueryResultsRequest::class.java)
       else -> fail()
     }
 
     when (sourceFormatCaptor.allValues.single()) {
-      SourceFormat.FILE_FORMAT ->
-        assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isFalse()
-      SourceFormat.IN_MEMORY_FORMAT ->
-        assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isTrue()
+      SourceFormat.FILE_FORMAT -> assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isFalse()
+      SourceFormat.IN_MEMORY_FORMAT -> assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isTrue()
       else -> fail()
     }
 
@@ -470,17 +423,12 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       }
       Destination.SQL_DESTINATION -> {
         assertThat(format).isEqualTo(SQL)
-        assertThat(exportRequest::class.java)
-          .isAnyOf(ExportDatabaseRequest::class.java, ExportTableRequest::class.java)
+        assertThat(exportRequest::class.java).isAnyOf(ExportDatabaseRequest::class.java, ExportTableRequest::class.java)
       }
       Destination.CSV_DESTINATION -> {
         assertThat(format).isInstanceOf(CSV::class.java)
         assertThat(exportRequest::class.java)
-          .isAnyOf(
-            ExportDatabaseRequest::class.java,
-            ExportTableRequest::class.java,
-            ExportQueryResultsRequest::class.java,
-          )
+          .isAnyOf(ExportDatabaseRequest::class.java, ExportTableRequest::class.java, ExportQueryResultsRequest::class.java)
       }
       else -> fail()
     }
@@ -491,10 +439,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     }
 
     when (connectivityStateCaptor.allValues.single()) {
-      ConnectivityState.CONNECTIVITY_ONLINE ->
-        assertThat(exportRequest.srcDatabase).isInstanceOf(LiveSqliteDatabaseId::class.java)
-      ConnectivityState.CONNECTIVITY_OFFLINE ->
-        assertThat(exportRequest.srcDatabase).isInstanceOf(FileSqliteDatabaseId::class.java)
+      ConnectivityState.CONNECTIVITY_ONLINE -> assertThat(exportRequest.srcDatabase).isInstanceOf(LiveSqliteDatabaseId::class.java)
+      ConnectivityState.CONNECTIVITY_OFFLINE -> assertThat(exportRequest.srcDatabase).isInstanceOf(FileSqliteDatabaseId::class.java)
       else -> fail()
     }
 
@@ -514,8 +460,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       queryIssuedLatch.countDown()
       CoroutineScope(taskExecutor.asCoroutineDispatcher())
         .async<List<SqliteRow>> {
-          CompletableDeferred<SqliteResultSet>()
-            .await() // never going to complete, giving us time to cancel the job
+          CompletableDeferred<SqliteResultSet>().await() // never going to complete, giving us time to cancel the job
           fail() // we never expect to get past the above line
           mock()
         }
@@ -526,13 +471,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
 
     // submit export request
-    val exportRequest =
-      ExportTableRequest(
-        databaseId,
-        "ignored",
-        CSV(SEMICOLON),
-        tempDirTestFixture.toNioPath().resolve(outputFileName),
-      )
+    val exportRequest = ExportTableRequest(databaseId, "ignored", CSV(SEMICOLON), tempDirTestFixture.toNioPath().resolve(outputFileName))
     val stopwatch = Stopwatch.createStarted()
     requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
     submitExportRequest(exportRequest)
@@ -551,23 +490,16 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     stopwatch.stop()
     assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
     assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
-    assertThat(exportProcessedListener.capturedError)
-      .isInstanceOf(CancellationException::class.java)
+    assertThat(exportProcessedListener.capturedError).isInstanceOf(CancellationException::class.java)
 
-    assertAnalyticsTrackerCall(
-      analyticsTracker,
-      exportRequest,
-      stopwatch.elapsed(MILLISECONDS),
-      Outcome.CANCELLED_BY_USER_OUTCOME,
-    )
+    assertAnalyticsTrackerCall(analyticsTracker, exportRequest, stopwatch.elapsed(MILLISECONDS), Outcome.CANCELLED_BY_USER_OUTCOME)
   }
 
   @Test
   fun testExportDatabaseToCsv() {
     // given: a database with a number of tables
     val database = createEmptyDatabase(testConfig.databaseType)
-    val tableValuePairs =
-      populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2))
+    val tableValuePairs = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2))
 
     val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.zip")
     val exportRequest = ExportDatabaseRequest(database, CSV(COMMA), dstPath)
@@ -576,10 +508,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     val decompress: (Path) -> List<Path> = { it.unzipTo(tmpDir.toNioPath()) }
     val expectedOutput =
       tableValuePairs.map { (table, values) ->
-        ExpectedOutputFile(
-          tmpDir.toNioPath().resolve("$table.csv"),
-          values.toCsvOutputLines(exportRequest.delimiter),
-        )
+        ExpectedOutputFile(tmpDir.toNioPath().resolve("$table.csv"), values.toCsvOutputLines(exportRequest.delimiter))
       }
 
     testExport(exportRequest, decompress, expectedOutput)
@@ -595,11 +524,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
     // given: an export request
     val exportRequest = let {
-      val dstPath =
-        tempDirTestFixture
-          .findOrCreateDir("destination-dir")
-          .toNioPath()
-          .resolve("$outputFileName.db")
+      val dstPath = tempDirTestFixture.findOrCreateDir("destination-dir").toNioPath().resolve("$outputFileName.db")
       ExportDatabaseRequest(database, DB, dstPath)
     }
 
@@ -611,18 +536,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       }
 
     val databaseToTextFiles: (Path) -> List<Path> = { path ->
-      runSqlite3Command(
-          SqliteCliArgs.builder().database(path).output(actualTablesPath).queryTableList().build()
-        )
-        .checkSuccess()
-      runSqlite3Command(
-          SqliteCliArgs.builder().database(path).output(actualViewsPath).queryViewList().build()
-        )
-        .checkSuccess()
-      runSqlite3Command(
-          SqliteCliArgs.builder().database(path).output(actualSchemaPath).dump().build()
-        )
-        .checkSuccess()
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualTablesPath).queryTableList().build()).checkSuccess()
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualViewsPath).queryViewList().build()).checkSuccess()
+      runSqlite3Command(SqliteCliArgs.builder().database(path).output(actualSchemaPath).dump().build()).checkSuccess()
       listOf(actualSchemaPath, actualTablesPath, actualViewsPath)
     }
 
@@ -647,10 +563,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     get() =
       when (this) {
         is FileSqliteDatabaseId -> databaseFileData.mainFile.toNioPath()
-        is LiveSqliteDatabaseId ->
-          Paths.get(
-            path
-          ) // we use the fact that in the test setup, live db is backed by a local file
+        is LiveSqliteDatabaseId -> Paths.get(path) // we use the fact that in the test setup, live db is backed by a local file
       }
 
   @Test
@@ -679,19 +592,10 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
         val sqlException =
           generateSequence(exportProcessedListener.capturedError) { it.cause }
-            .firstOrNull {
-              it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
-            }
-        assertWithMessage("Expecting a SQLite exception caused by an invalid query.")
-          .that(sqlException)
-          .isNotNull()
+            .firstOrNull { it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false }
+        assertWithMessage("Expecting a SQLite exception caused by an invalid query.").that(sqlException).isNotNull()
         stopwatch.stop()
-        assertAnalyticsTrackerCall(
-          analyticsTracker,
-          exportRequest,
-          stopwatch.elapsed(MILLISECONDS),
-          Outcome.ERROR_OUTCOME,
-        )
+        assertAnalyticsTrackerCall(analyticsTracker, exportRequest, stopwatch.elapsed(MILLISECONDS), Outcome.ERROR_OUTCOME)
       },
     )
   }
@@ -707,16 +611,12 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   }
 
   /**
-   * By enforcing an empty file at destination (if [shouldExist]) we prevent files from previous
-   * test runs from causing a false positive test outcome.
+   * By enforcing an empty file at destination (if [shouldExist]) we prevent files from previous test runs from causing a false positive
+   * test outcome.
    */
   private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
     // Directory case is unusual, and better to fail than accidentally delete too much data.
-    assertWithMessage(
-        "Export target ($path) is an existing directory. Expecting a file or a new path."
-      )
-      .that(path.isDirectory())
-      .isFalse()
+    assertWithMessage("Export target ($path) is an existing directory. Expecting a file or a new path.").that(path.isDirectory()).isFalse()
 
     when {
       path.exists() ->
@@ -738,9 +638,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   }
 
   @Suppress("SameParameterValue")
-  private fun awaitExportComplete(timeoutMs: Long) = runDispatching {
-    withTimeout(timeoutMs) { controller.lastExportJob!!.join() }
-  }
+  private fun awaitExportComplete(timeoutMs: Long) = runDispatching { withTimeout(timeoutMs) { controller.lastExportJob!!.join() } }
 
   private fun createEmptyDatabase(type: DatabaseType): SqliteDatabaseId {
     val databaseFile = let {
@@ -751,31 +649,23 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     val connection =
       when (type) {
         DatabaseType.File -> createFileDatabaseConnection(databaseFile)
-        DatabaseType.Live ->
-          CliDatabaseConnection(databaseFile.toNioPath(), sqliteCliClient, '|', taskExecutor)
+        DatabaseType.Live -> CliDatabaseConnection(databaseFile.toNioPath(), sqliteCliClient, '|', taskExecutor)
       }
 
     val databaseId =
       when (type) {
         DatabaseType.File -> SqliteDatabaseId.fromFileDatabase(DatabaseFileData(databaseFile))
-        DatabaseType.Live ->
-          SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId())
+        DatabaseType.Live -> SqliteDatabaseId.fromLiveDatabase(databaseFile.toNioPath().toString(), nextConnectionId())
       }
 
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
     return databaseId
   }
 
-  private fun populateDatabase(
-    database: SqliteDatabaseId,
-    tableNames: List<String>,
-    viewNames: List<String>,
-  ): List<Table> {
+  private fun populateDatabase(database: SqliteDatabaseId, tableNames: List<String>, viewNames: List<String>): List<Table> {
     fun createTable(database: SqliteDatabaseId, table: Table) {
       database.execute("create table '${table.name}' ('$column1' int, '$column2' text)")
-      table.content.forEach { (v1, v2) ->
-        database.execute("insert into '${table.name}' values ('$v1', '$v2')")
-      }
+      table.content.forEach { (v1, v2) -> database.execute("insert into '${table.name}' values ('$v1', '$v2')") }
     }
 
     val tableValuePairs =
@@ -787,9 +677,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     tableValuePairs.forEach { createTable(database, it) }
 
     viewNames.forEach { viewName ->
-      database.execute(
-        "create view '$viewName' as select * from '${tableNames.first()}'"
-      ) // to verify if views also get exported
+      database.execute("create view '$viewName' as select * from '${tableNames.first()}'") // to verify if views also get exported
     }
 
     return tableValuePairs
@@ -804,11 +692,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     withContext(edtExecutor.asCoroutineDispatcher()) { createSqliteStatement(project, statement) }
   }
 
-  private fun createFileDatabaseConnection(databaseFile: VirtualFile): DatabaseConnection =
-    runDispatching {
-      getJdbcDatabaseConnection(disposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor))
-        .await()
-    }
+  private fun createFileDatabaseConnection(databaseFile: VirtualFile): DatabaseConnection = runDispatching {
+    getJdbcDatabaseConnection(disposable, databaseFile, FutureCallbackExecutor.wrap(taskExecutor)).await()
+  }
 
   private fun runSqlite3Command(args: List<SqliteCliArg>): SqliteCliResponse = runDispatching {
     withContext(taskExecutor.asCoroutineDispatcher()) { sqliteCliClient.runSqliteCliCommand(args) }
@@ -822,9 +708,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   data class TestConfig(val databaseType: DatabaseType, val targetFileAlreadyExists: Boolean)
 }
 
-private fun SqliteCliResponse.checkSuccess(): SqliteCliResponse = apply {
-  assertThat(this.exitCode).isEqualTo(0)
-}
+private fun SqliteCliResponse.checkSuccess(): SqliteCliResponse = apply { assertThat(this.exitCode).isEqualTo(0) }
 
 private fun TempDirTestFixture.toNioPath() = File(tempDirPath).toPath()
 
@@ -847,8 +731,7 @@ private fun TwoColumnTable.toCsvOutputLines(delimiter: Char): List<String> =
   listOf("$column1$delimiter$column2") + this.map { (v1, v2) -> "$v1$delimiter$v2" }
 
 /** Two columns with increasing numbers (and a non-ascii suffix) */
-private fun IntRange.toTwoColumnTable(): TwoColumnTable =
-  this.map { "$it$nonAsciiSuffix" }.zipWithNext()
+private fun IntRange.toTwoColumnTable(): TwoColumnTable = this.map { "$it$nonAsciiSuffix" }.zipWithNext()
 
 private fun VirtualFile.createChildFile(name: String): VirtualFile {
   if (!isDirectory) throw IllegalStateException("Parent needs to be a directory. Got: $this.")
@@ -873,10 +756,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
     assertThat(deleted.sortedBy(sortKey)).isEqualTo(downloaded.sortedBy(sortKey))
   }
 
-  fun downloadDatabase(
-    db: LiveSqliteDatabaseId,
-    handleError: (String, Throwable?) -> Unit,
-  ): Flow<DownloadProgress> = flow {
+  fun downloadDatabase(db: LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit): Flow<DownloadProgress> = flow {
     try {
       val downloadedDatabase = createDatabaseCopy(db)
       downloaded.add(downloadedDatabase)
@@ -893,10 +773,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
   }
 
   private fun createDatabaseCopy(db: LiveSqliteDatabaseId): DatabaseFileData {
-    val src =
-      Paths.get(
-        db.path
-      ) // in test set up the database will already be on disk (i.e. not on a device)
+    val src = Paths.get(db.path) // in test set up the database will already be on disk (i.e. not on a device)
     val dbFileName = src.fileName.toString()
 
     val mainFile = createFile(dbFileName)
@@ -906,8 +783,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
     return DatabaseFileData(mainFile.toVirtualFile(), listOf(wal1, wal2).map { it.toVirtualFile() })
   }
 
-  private fun createFile(dbFileName: String): Path =
-    downloadFolder.resolve(dbFileName).also { it.createParentDirectories().createFile() }
+  private fun createFile(dbFileName: String): Path = downloadFolder.resolve(dbFileName).also { it.createParentDirectories().createFile() }
 
   private fun Path.toVirtualFile(): VirtualFile = VfsUtil.findFile(this, true)!!
 }
@@ -921,12 +797,10 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
  * - a lock can only be released once,
  * - all locks are released by the time [tearDown] is called.
  */
-private class DatabaseLockingTestFixture(private val databaseRepository: OpenDatabaseRepository) :
-  IdeaTestFixture {
+private class DatabaseLockingTestFixture(private val databaseRepository: OpenDatabaseRepository) : IdeaTestFixture {
   private lateinit var nextLockId: AtomicInteger
   private lateinit var lockIdToDatabase: ConcurrentHashMap<Int, SqliteDatabaseId>
-  private lateinit var lockHistory:
-    ConcurrentHashMap<SqliteDatabaseId, Unit> // using the map as a set
+  private lateinit var lockHistory: ConcurrentHashMap<SqliteDatabaseId, Unit> // using the map as a set
 
   override fun setUp() {
     nextLockId = AtomicInteger(1)
@@ -939,10 +813,7 @@ private class DatabaseLockingTestFixture(private val databaseRepository: OpenDat
   }
 
   fun acquireDatabaseLock(databaseId: Int): Int {
-    val db =
-      databaseRepository.openDatabases.filterIsInstance<LiveSqliteDatabaseId>().single {
-        it.connectionId == databaseId
-      }
+    val db = databaseRepository.openDatabases.filterIsInstance<LiveSqliteDatabaseId>().single { it.connectionId == databaseId }
     val lock = nextLockId.getAndIncrement()
     lockIdToDatabase.put(lock, db) ?: return lock
     throw IllegalStateException()
@@ -950,8 +821,7 @@ private class DatabaseLockingTestFixture(private val databaseRepository: OpenDat
 
   fun releaseDatabaseLock(lockId: Int) {
     val db = lockIdToDatabase.remove(lockId) ?: throw IllegalStateException()
-    lockHistory[db] =
-      Unit // presence of the key in the map is sufficient to indicate that the db was locked
+    lockHistory[db] = Unit // presence of the key in the map is sufficient to indicate that the db was locked
   }
 
   fun wasLocked(db: SqliteDatabaseId): Boolean = lockHistory.containsKey(db)
@@ -977,10 +847,7 @@ private class ExportProcessedListener {
   }
 
   private fun checkOnlyCall() {
-    if (scenario != NOT_CALLED)
-      throw IllegalStateException(
-        "Expected: a single call to a callback method. Actual: more than one call."
-      )
+    if (scenario != NOT_CALLED) throw IllegalStateException("Expected: a single call to a callback method. Actual: more than one call.")
   }
 
   enum class Scenario {

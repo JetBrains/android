@@ -19,8 +19,8 @@ import org.jetbrains.plugins.gradle.settings.GradleSystemSettings
 
 class AndroidStudioGradleSystemSettings : GradleSystemSettings() {
   /**
-   * To avoid downloading project dependencies sources requires additional effort to analyze
-   * potential implications that are going to be done as part of b/315455870
+   * To avoid downloading project dependencies sources requires additional effort to analyze potential implications that are going to be
+   * done as part of b/315455870
    */
   override fun isDownloadSources(): Boolean = true
 }

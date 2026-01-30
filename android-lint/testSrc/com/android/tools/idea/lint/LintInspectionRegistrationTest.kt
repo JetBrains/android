@@ -55,8 +55,8 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
  * <p>
  *
  * TODO: For inspections that have safe fixes, mark the inspections with the interface
- *   com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires it to
- *   provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
+ *   com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires it to provide a LocalInspectionTool via
+ *   getSharedLocalInspectionToolWrapper.
  */
 
 // Set to true locally to directly rewrite sources to include registration.
@@ -106,10 +106,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         return true
       }
 
-      val root =
-        if (UPDATE_IN_PLACE || getBoolean("lint.update-in-place"))
-          TestUtils.getWorkspaceRoot().toFile()
-        else null
+      val root = if (UPDATE_IN_PLACE || getBoolean("lint.update-in-place")) TestUtils.getWorkspaceRoot().toFile() else null
 
       // Spit out registration information for the missing elements
       val sb = StringBuilder(1000)
@@ -141,15 +138,9 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       return false
     }
 
-    private fun insertMissingMessages(
-      sb: StringBuilder,
-      missing: List<Issue>,
-      root: File?,
-      androidSpecific: Boolean,
-    ) {
+    private fun insertMissingMessages(sb: StringBuilder, missing: List<Issue>, root: File?, androidSpecific: Boolean) {
       val suffix =
-        if (androidSpecific)
-          "tools/adt/idea/android-lint/resources/messages/AndroidLintBundle.properties"
+        if (androidSpecific) "tools/adt/idea/android-lint/resources/messages/AndroidLintBundle.properties"
         else "tools/adt/idea/lint/resources/messages/LintBundle.properties"
       if (root == null) {
         sb.append("\nAdd to $suffix (and try to preserve alphabetical order):\n")
@@ -166,12 +157,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
             // isn't a standard Bundle.properties thing, but IntelliJ is specially interpreting
             // these as indicating mnemonics
             .replace("&", "\\&")
-        desc
-          .append("android.lint.inspections.")
-          .append(messageKey)
-          .append("=")
-          .append(escapedMessage)
-          .append("\n")
+        desc.append("android.lint.inspections.").append(messageKey).append("=").append(escapedMessage).append("\n")
         var performed = false
         if (root != null) {
           val insert = desc.toString()
@@ -201,12 +187,7 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
                 performed = true
                 val contents = original.substring(0, begin) + insert + original.substring(begin)
                 propertyFile.writeText(contents, UTF_8)
-                desc
-                  .append(" <automatically updated ")
-                  .append(propertyFile.name)
-                  .append(" in ")
-                  .append(root)
-                  .append(">\n")
+                desc.append(" <automatically updated ").append(propertyFile.name).append(" in ").append(root).append(">\n")
                 break
               }
               begin = end + 1
@@ -219,15 +200,9 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       }
     }
 
-    private fun writeMissingInspectionClasses(
-      sb: StringBuilder,
-      missing: List<Issue>,
-      root: File?,
-      androidSpecific: Boolean,
-    ) {
+    private fun writeMissingInspectionClasses(sb: StringBuilder, missing: List<Issue>, root: File?, androidSpecific: Boolean) {
       val suffix =
-        if (androidSpecific)
-          "tools/adt/idea/android-lint/src/com/android/tools/idea/lint/inspections"
+        if (androidSpecific) "tools/adt/idea/android-lint/src/com/android/tools/idea/lint/inspections"
         else "tools/adt/idea/lint/src/com/android/tools/idea/lint/common"
       if (root == null) {
         sb.append("\nCreate the following classes in $suffix:\n")
@@ -288,32 +263,18 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
             sb.append(" <already exists: ").append(to).append(">\n")
           }
         } else {
-          sb
-            .append(suffix)
-            .append("/")
-            .append(LINT_INSPECTION_PREFIX)
-            .append(id)
-            .append("Inspection.kt")
-            .append(":\n")
+          sb.append(suffix).append("/").append(LINT_INSPECTION_PREFIX).append(id).append("Inspection.kt").append(":\n")
           sb.append(code)
         }
       }
     }
 
-    private fun insertMissingRegistrations(
-      missing: List<Issue>,
-      root: File?,
-      sb: StringBuilder,
-      androidSpecific: Boolean,
-    ) {
+    private fun insertMissingRegistrations(missing: List<Issue>, root: File?, sb: StringBuilder, androidSpecific: Boolean) {
       val suffix =
-        if (androidSpecific)
-          "tools/adt/idea/android-lint/resources/META-INF/android-lint-plugin.xml"
+        if (androidSpecific) "tools/adt/idea/android-lint/resources/META-INF/android-lint-plugin.xml"
         else "tools/adt/idea/lint/resources/META-INF/lint-plugin.xml"
       if (root == null) {
-        sb.append(
-          "\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n"
-        )
+        sb.append("\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n")
       }
       for (issue in missing.sortedBy { it.id.toLowerCaseAsciiOnly() }) {
         if (issue.isAndroidSpecific() != androidSpecific) {
@@ -337,13 +298,10 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
         desc.append(issue.isEnabledByDefault())
         desc.append("\" level=\"")
         val severityString =
-          if (issue.defaultSeverity === Severity.ERROR || issue.defaultSeverity === Severity.FATAL)
-            "ERROR"
+          if (issue.defaultSeverity === Severity.ERROR || issue.defaultSeverity === Severity.FATAL) "ERROR"
           else if (issue.defaultSeverity === Severity.WARNING) "WARNING" else "WEAK WARNING"
         desc.append(severityString)
-        val packagePrefix =
-          if (androidSpecific) "com.android.tools.idea.lint.inspections."
-          else "com.android.tools.idea.lint.common."
+        val packagePrefix = if (androidSpecific) "com.android.tools.idea.lint.inspections." else "com.android.tools.idea.lint.common."
         desc.append("\" implementationClass=\"")
         desc.append(packagePrefix)
         desc.append(LINT_INSPECTION_PREFIX)
@@ -374,8 +332,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
                   trimmed.startsWith("</extensions>") ||
                   !original.contains("<globalInspection")
               ) {
-                val contents =
-                  original.substring(0, begin) + "    " + insert + original.substring(begin)
+                val contents = original.substring(0, begin) + "    " + insert + original.substring(begin)
                 plugin.writeText(contents, UTF_8)
                 sb.append(" <automatically updated $suffix in ").append(root).append(">\n")
                 performed = true
@@ -406,12 +363,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
           provider.javaClass.getDeclaredMethod("getQuickFixes", String::class.java)
         } catch (e1: NoSuchMethodException) {
           try {
-            provider.javaClass.getDeclaredMethod(
-              "getQuickFixes",
-              PsiElement::class.java,
-              PsiElement::class.java,
-              String::class.java,
-            )
+            provider.javaClass.getDeclaredMethod("getQuickFixes", PsiElement::class.java, PsiElement::class.java, String::class.java)
           } catch (e2: NoSuchMethodException) {
             hasQuickFix = false
           }
@@ -446,9 +398,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
         println("import $cls;")
       }
       println()
-      println(
-        "ourStudioFixes = Sets.newHashSet(\n    " + Joiner.on(",\n    ").join(fields) + "\n);\n"
-      )
+      println("ourStudioFixes = Sets.newHashSet(\n    " + Joiner.on(",\n    ").join(fields) + "\n);\n")
     }
 
     /** Returns the known issues that have not been registered as inspections */
@@ -500,9 +450,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
           continue
         }
         if (!allIssueIds.contains(id)) {
-          error(
-            "Unexpected issue registration: $id for ${ep.instantiateTool().javaClass.simpleName}"
-          )
+          error("Unexpected issue registration: $id for ${ep.instantiateTool().javaClass.simpleName}")
         }
       }
 
@@ -517,9 +465,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
             implementation.scope.contains(Scope.ALL_CLASS_FILES) ||
             implementation.scope.contains(Scope.JAVA_LIBRARIES)
         ) {
-          assertFalse(
-            SUPPORT_CLASS_FILES
-          ) // When enabled, adjust this to register class based registrations
+          assertFalse(SUPPORT_CLASS_FILES) // When enabled, adjust this to register class based registrations
           var isOk = false
           for (analysisScope in implementation.analysisScopes) {
             if (
@@ -532,18 +478,14 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
             }
           }
           if (!isOk) {
-            println(
-              "Skipping issue $issue because it requires classfile analysis. Consider rewriting in IDEA."
-            )
+            println("Skipping issue $issue because it requires classfile analysis. Consider rewriting in IDEA.")
             continue
           }
         }
         missing.add(issue)
       }
 
-      missing.sortWith { issue1: Issue, issue2: Issue ->
-        CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id)
-      }
+      missing.sortWith { issue1: Issue, issue2: Issue -> CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id) }
 
       return missing
     }
@@ -561,11 +503,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
     }
 
     /** Makes sure the given [inspection] registration is consistent with the given [issue]] */
-    private fun checkConsistent(
-      issue: Issue,
-      inspection: AndroidLintInspectionBase,
-      inspectionEP: InspectionEP?,
-    ) {
+    private fun checkConsistent(issue: Issue, inspection: AndroidLintInspectionBase, inspectionEP: InspectionEP?) {
       val inspectionEnabled = inspection.isEnabledByDefault
       val inspectionSummary = inspection.displayName.removeSurrounding("\"")
       val inspectionSeverity = inspection.defaultLevel
@@ -577,10 +515,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
 
       val issueEnabled = issue.isEnabledByDefault()
       if (issueEnabled != inspectionEnabled) {
-        error(
-          "ERROR: Inconsistent enabled-by-default status for ${issue.id}; " +
-            "lint=$issueEnabled, inspection=$inspectionEnabled"
-        )
+        error("ERROR: Inconsistent enabled-by-default status for ${issue.id}; " + "lint=$issueEnabled, inspection=$inspectionEnabled")
       }
       val issueSummary = issue.getBriefDescription(TextFormat.TEXT)
       if (
@@ -602,22 +537,15 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       }
       val issueSeverity = issue.defaultSeverity
       if (!sameSeverity(issueSeverity, inspectionSeverity)) {
-        error(
-          "ERROR: Inconsistent severity for ${issue.id}; " +
-            "lint=\"${issueSeverity}\", inspection=\"$inspectionSeverity\""
-        )
+        error("ERROR: Inconsistent severity for ${issue.id}; " + "lint=\"${issueSeverity}\", inspection=\"$inspectionSeverity\"")
       }
       if (
         inspectionEP != null &&
           !sameSeverity(issueSeverity, inspectionEP.defaultLevel) &&
           // Deliberately set to error in the IDE while remaining warning from CI
-          (issue.id != "ExpiringTargetSdkVersion" ||
-            inspectionEP.defaultLevel != HighlightDisplayLevel.ERROR)
+          (issue.id != "ExpiringTargetSdkVersion" || inspectionEP.defaultLevel != HighlightDisplayLevel.ERROR)
       ) {
-        error(
-          "ERROR: Inconsistent severity for ${issue.id}; " +
-            "lint=\"${issueSeverity}\", inspection=\"$${inspectionEP.defaultLevel}\""
-        )
+        error("ERROR: Inconsistent severity for ${issue.id}; " + "lint=\"${issueSeverity}\", inspection=\"$${inspectionEP.defaultLevel}\"")
       }
 
       val issueAndroidSpecific = issue.isAndroidSpecific()
@@ -639,24 +567,17 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
         val category = AndroidLintInspectionBase.getGroupDisplayName(issue.category)
         val inspectionCategory = inspectionEP.groupDisplayName
         if (category != inspectionCategory) {
-          error(
-            "ERROR: Inconsistent issue category for ${issue.id}; " +
-              "lint=\"${category}\", inspection=\"$inspectionCategory\""
-          )
+          error("ERROR: Inconsistent issue category for ${issue.id}; " + "lint=\"${category}\", inspection=\"$inspectionCategory\"")
         }
       }
     }
 
     private fun findInspectionClass(issue: Issue): Class<*>? {
       val base = "com.android.tools.idea.lint"
-      val className =
-        "$base.${if (issue.isAndroidSpecific()) "inspections." else "common."}$LINT_INSPECTION_PREFIX${issue.id}Inspection"
+      val className = "$base.${if (issue.isAndroidSpecific()) "inspections." else "common."}$LINT_INSPECTION_PREFIX${issue.id}Inspection"
       try {
         val c = Class.forName(className)
-        if (
-          AndroidLintInspectionBase::class.java.isAssignableFrom(c) &&
-            c.modifiers and Modifier.ABSTRACT == 0
-        ) {
+        if (AndroidLintInspectionBase::class.java.isAssignableFrom(c) && c.modifiers and Modifier.ABSTRACT == 0) {
           return c
         }
       } catch (ignore: ClassNotFoundException) {}

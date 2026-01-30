@@ -25,8 +25,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 
-class SetScrollViewSizeQuickFix(element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class SetScrollViewSizeQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   override fun getFamilyName() = "SetScrollViewSizeQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
@@ -41,8 +40,7 @@ class SetScrollViewSizeQuickFix(element: PsiElement) :
     @Suppress("UnstableApiUsage")
     return ModCommand.psiUpdate(tag) { tagCopy, _ ->
       val isHorizontal = SdkConstants.HORIZONTAL_SCROLL_VIEW == parentTag.name
-      val attributeName =
-        if (isHorizontal) SdkConstants.ATTR_LAYOUT_WIDTH else SdkConstants.ATTR_LAYOUT_HEIGHT
+      val attributeName = if (isHorizontal) SdkConstants.ATTR_LAYOUT_WIDTH else SdkConstants.ATTR_LAYOUT_HEIGHT
       tagCopy.setAttribute(attributeName, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
     }
   }

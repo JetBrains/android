@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies
 import org.jetbrains.plugins.gradle.model.ExternalProject
 
-/**
- * A sealed wrapper around a gradle model of a module identified by its gradle path.
- */
+/** A sealed wrapper around a gradle model of a module identified by its gradle path. */
 sealed class PsResolvedModuleModel {
   abstract val gradlePath: String
   abstract val buildFile: String?
@@ -33,7 +31,7 @@ sealed class PsResolvedModuleModel {
     override val buildFile: String?,
     val model: GradleAndroidDependencyModel,
     val nativeModel: NdkModuleModel?,
-    val syncIssues: SyncIssues
+    val syncIssues: SyncIssues,
   ) : PsResolvedModuleModel()
 
   data class PsJavaModuleResolvedModel(
@@ -41,6 +39,6 @@ sealed class PsResolvedModuleModel {
     override val buildFile: String?,
     val model: ExternalProject,
     val dependencies: ProjectDependencies?,
-    val syncIssues: SyncIssues
+    val syncIssues: SyncIssues,
   ) : PsResolvedModuleModel()
 }

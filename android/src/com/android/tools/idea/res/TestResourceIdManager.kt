@@ -20,8 +20,7 @@ import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.StubbedResourceIdManager
 import com.intellij.openapi.module.Module
 
-class TestResourceIdManager private constructor(module: Module) :
-  StubbedResourceIdManager(StudioFlags.USE_BYTECODE_R_CLASS_PARSING.get()) {
+class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager(StudioFlags.USE_BYTECODE_R_CLASS_PARSING.get()) {
   private var _finalIdsUsed = true
   override val finalIdsUsed: Boolean
     get() = _finalIdsUsed
@@ -35,7 +34,6 @@ class TestResourceIdManager private constructor(module: Module) :
   }
 
   companion object {
-    fun getManager(module: Module) =
-      module.getService(ResourceIdManager::class.java) as TestResourceIdManager
+    fun getManager(module: Module) = module.getService(ResourceIdManager::class.java) as TestResourceIdManager
   }
 }

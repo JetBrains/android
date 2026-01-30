@@ -27,10 +27,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.containers.map2Array
 
 class AndroidLintNotificationPermissionInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.notification.permission"),
-    NotificationPermissionDetector.ISSUE,
-  ) {
+  AndroidLintInspectionBase(message("android.lint.inspections.notification.permission"), NotificationPermissionDetector.ISSUE) {
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,

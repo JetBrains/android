@@ -39,9 +39,7 @@ fun Configuration.toHtmlTooltip(): String {
     val orientation = deviceState?.orientation ?: device.defaultState.orientation
     val pxSize = device.getScreenSize(orientation)
     val dpi = density.dpiValue
-    pxSize?.let {
-      tooltip.add("Dimensions: ${it.width * 160 / dpi} x ${it.height * 160 / dpi} dp").newline()
-    }
+    pxSize?.let { tooltip.add("Dimensions: ${it.width * 160 / dpi} x ${it.height * 160 / dpi} dp").newline() }
     tooltip.add("Orientation: ${orientation.shortDisplayValue}").newline().newline()
   }
   tooltip.addBold("Display").newline()

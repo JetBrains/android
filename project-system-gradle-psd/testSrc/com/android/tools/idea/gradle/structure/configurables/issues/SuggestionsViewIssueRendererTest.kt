@@ -32,11 +32,12 @@ import org.mockito.MockitoAnnotations.initMocks
 class SuggestionsViewIssueRendererTest {
   @Mock private lateinit var context: PsContext
   private var viewUsagePath = TestPath("/WITH_USAGE", null, "href-dest")
-  private var quickFix = object: PsQuickFix {
-    override fun execute(context: PsContext): Unit = TODO("not implemented")
+  private var quickFix =
+    object : PsQuickFix {
+      override fun execute(context: PsContext): Unit = TODO("not implemented")
 
-    override val text = "text"
-  }
+      override val text = "text"
+    }
   private val testIssuePath = TestPath("/PATH")
   private val testIssueParentPath = TestPath("/PATH", null, "url:parentpath")
   private val testIssueParentedPath = TestPath("/CHILD", testIssueParentPath)
@@ -46,17 +47,17 @@ class SuggestionsViewIssueRendererTest {
     initMocks(this)
   }
 
-  private fun createIssue(testIssuePath: PsPath, quickFix: PsQuickFix? = null) : PsIssue =
+  private fun createIssue(testIssuePath: PsPath, quickFix: PsQuickFix? = null): PsIssue =
     PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, listOfNotNull(quickFix))
 
   data class RenderResult(val header: String?, val details: String?)
 
   private fun renderIssue(renderer: IssueRenderer, psIssue: PsIssue, scope: PsPath?) =
-      "(((?!<br/>).)*)(<br/>(.*))?".toRegex().find(renderer.renderIssue(psIssue, scope)).let {
-        val header = it?.groups?.get(1)?.value.orEmpty()
-        val details = it?.groups?.get(4)?.value.orEmpty()
-        RenderResult(header, details)
-      }
+    "(((?!<br/>).)*)(<br/>(.*))?".toRegex().find(renderer.renderIssue(psIssue, scope)).let {
+      val header = it?.groups?.get(1)?.value.orEmpty()
+      val details = it?.groups?.get(4)?.value.orEmpty()
+      RenderResult(header, details)
+    }
 
   @Test
   fun testRenderIssue() {

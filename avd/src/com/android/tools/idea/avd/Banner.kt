@@ -47,11 +47,7 @@ internal fun WarningBanner(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun ErrorBanner(
-  text: String,
-  modifier: Modifier = Modifier,
-  rightContent: @Composable () -> Unit = {},
-) {
+internal fun ErrorBanner(text: String, modifier: Modifier = Modifier, rightContent: @Composable () -> Unit = {}) {
   Banner(BannerUi.Error, StudioIconsCompose.Common.Error, "Error", text, modifier, rightContent)
 }
 
@@ -66,10 +62,7 @@ private fun Banner(
 ) {
   Column(modifier.fillMaxWidth()) {
     Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = colors.border)
-    Row(
-      modifier = Modifier.background(colors.background).padding(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Row(modifier = Modifier.background(colors.background).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
       Icon(key, contentDescription = contentDescription)
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = text, color = colors.foreground)
@@ -98,14 +91,7 @@ internal fun ProgressIndicatorPanel(text: String, modifier: Modifier = Modifier)
 @Composable
 internal fun ErrorPanel(modifier: Modifier = Modifier, error: String) {
   val shape = RoundedCornerShape(4.dp)
-  Row(
-    modifier
-      .background(BannerUi.Error.background, shape)
-      .border(1.dp, BannerUi.Error.border, shape)
-      .padding(8.dp)
-  ) {
-    Text(error)
-  }
+  Row(modifier.background(BannerUi.Error.background, shape).border(1.dp, BannerUi.Error.border, shape).padding(8.dp)) { Text(error) }
 }
 
 private object BannerUi {

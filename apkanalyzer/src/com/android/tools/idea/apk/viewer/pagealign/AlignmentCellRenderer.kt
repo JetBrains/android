@@ -23,13 +23,15 @@ import javax.swing.JTree
 import javax.swing.SwingConstants
 
 class AlignmentCellRenderer : ColoredTreeCellRenderer() {
-  override fun customizeCellRenderer(tree: JTree,
-                                     value: Any?,
-                                     selected: Boolean,
-                                     expanded: Boolean,
-                                     leaf: Boolean,
-                                     row: Int,
-                                     hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    tree: JTree,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean,
+  ) {
     setTextAlign(SwingConstants.LEFT)
     if (value is ArchiveTreeNode) {
       val model = tree.model as ApkTreeModel

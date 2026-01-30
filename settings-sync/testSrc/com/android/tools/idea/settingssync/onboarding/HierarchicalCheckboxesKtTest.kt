@@ -40,10 +40,7 @@ class HierarchicalCheckboxesKtTest {
 
   @Test
   fun `test ui display`() {
-    val states =
-      mutableStateListOf<CheckboxNode>().apply {
-        addAll(populateCheckboxNodes(SettingsSyncStateHolder()))
-      }
+    val states = mutableStateListOf<CheckboxNode>().apply { addAll(populateCheckboxNodes(SettingsSyncStateHolder())) }
 
     composeTestRule.setContent { HierarchicalCheckboxes(states) }
 
@@ -89,15 +86,11 @@ class HierarchicalCheckboxesKtTest {
 
     // step1: unselect all via clicking on category name
     assertThat(nodes.all { it.isCheckedState == ToggleableState.On }).isTrue()
-    DESCRIPTORS.forEach {
-      composeTestRule.onNodeWithText(it.name, useUnmergedTree = true).performClick()
-    }
+    DESCRIPTORS.forEach { composeTestRule.onNodeWithText(it.name, useUnmergedTree = true).performClick() }
     assertThat(nodes.none { it.isCheckedState == ToggleableState.On }).isTrue()
 
     // step2: select all via clicking on category description
-    DESCRIPTORS.forEach {
-      composeTestRule.onNodeWithText(it.name, useUnmergedTree = true).performClick()
-    }
+    DESCRIPTORS.forEach { composeTestRule.onNodeWithText(it.name, useUnmergedTree = true).performClick() }
     assertThat(nodes.all { it.isCheckedState == ToggleableState.On }).isTrue()
   }
 
@@ -118,12 +111,9 @@ class HierarchicalCheckboxesKtTest {
     val pluginsNode = nodes.findNodeByCategory(SettingsCategory.PLUGINS)
     // verify initial state: parent and children checkboxes are off
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState).isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState).isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState).isEqualTo(ToggleableState.Off)
 
     // click "configure" for plugins
     composeTestRule.onAllNodesWithText("Configure")[1].performClick()
@@ -132,20 +122,16 @@ class HierarchicalCheckboxesKtTest {
 
     // verify that the parent checkbox is "indeterminate".
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.Indeterminate)
-    assertThat(pluginsNode.children.single { it.id == BUNDLED_PLUGINS_ID }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == BUNDLED_PLUGINS_ID }.isCheckedState).isEqualTo(ToggleableState.On)
 
     // select the rest of entries
     composeTestRule.onNodeWithText("Plugin A").assertIsDisplayed().performClick()
     composeTestRule.onNodeWithText("Plugin B").assertIsDisplayed().performClick()
     composeTestRule.onNodeWithText("Plugin C").assertIsDisplayed().performClick()
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState).isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState).isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState).isEqualTo(ToggleableState.On)
   }
 
   @Test
@@ -156,12 +142,9 @@ class HierarchicalCheckboxesKtTest {
     val pluginsNode = nodes.findNodeByCategory(SettingsCategory.PLUGINS)
     // verify initial state: parent and children checkboxes are on
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
-    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState)
-      .isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState).isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState).isEqualTo(ToggleableState.On)
+    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState).isEqualTo(ToggleableState.On)
 
     // click "configure" for plugins
     composeTestRule.onAllNodesWithText("Configure")[1].performClick()
@@ -170,20 +153,16 @@ class HierarchicalCheckboxesKtTest {
 
     // verify that the parent checkbox is "indeterminate".
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.Indeterminate)
-    assertThat(pluginsNode.children.single { it.id == BUNDLED_PLUGINS_ID }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == BUNDLED_PLUGINS_ID }.isCheckedState).isEqualTo(ToggleableState.Off)
 
     // select the rest of entries
     composeTestRule.onNodeWithText("Plugin A").assertIsDisplayed().performClick()
     composeTestRule.onNodeWithText("Plugin B").assertIsDisplayed().performClick()
     composeTestRule.onNodeWithText("Plugin C").assertIsDisplayed().performClick()
     assertThat(pluginsNode.isCheckedState).isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
-    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState)
-      .isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_a" }.isCheckedState).isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_b" }.isCheckedState).isEqualTo(ToggleableState.Off)
+    assertThat(pluginsNode.children.single { it.id == "plugin_c" }.isCheckedState).isEqualTo(ToggleableState.Off)
   }
 
   @Test
@@ -244,26 +223,11 @@ internal fun populateCheckboxNodes(state: SettingsSyncState): List<CheckboxNode>
                       isSubGroupEnd = true,
                     ),
                     // test pluginA
-                    SettingsSyncSubcategoryDescriptor(
-                      name = "Plugin A",
-                      id = "plugin_a",
-                      isSelected = true,
-                      isSubGroupEnd = true,
-                    ),
+                    SettingsSyncSubcategoryDescriptor(name = "Plugin A", id = "plugin_a", isSelected = true, isSubGroupEnd = true),
                     // test pluginA
-                    SettingsSyncSubcategoryDescriptor(
-                      name = "Plugin B",
-                      id = "plugin_b",
-                      isSelected = true,
-                      isSubGroupEnd = true,
-                    ),
+                    SettingsSyncSubcategoryDescriptor(name = "Plugin B", id = "plugin_b", isSelected = true, isSubGroupEnd = true),
                     // test pluginC
-                    SettingsSyncSubcategoryDescriptor(
-                      name = "Plugin C",
-                      id = "plugin_c",
-                      isSelected = true,
-                      isSubGroupEnd = true,
-                    ),
+                    SettingsSyncSubcategoryDescriptor(name = "Plugin C", id = "plugin_c", isSelected = true, isSubGroupEnd = true),
                   )
                 }
               },

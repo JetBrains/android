@@ -36,15 +36,17 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("myUrl\n")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(Location.STATEMENT,
-                                              """import android.content.Intent
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        Location.STATEMENT,
+        """import android.content.Intent
       |import android.net.Uri""",
-                                              """val intent = Intent()
+        """val intent = Intent()
             .setAction(Intent.ACTION_VIEW)
             .setData(Uri.parse(myUrl))
 
-        startActivity(intent)"""
-    )
+        startActivity(intent)""",
+      )
     )
   }
 
@@ -76,7 +78,6 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
 
     // Then:
     myFixture.checkResult(insertIntoPsiFileAt(Location.OBJECT_DECLARATION, "", "private const val KEY_SOME = \"SOME\""))
-
   }
 
   fun testKey_inComment() = testNotInComment(TEMPLATE_KEY)
@@ -98,15 +99,18 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("args.putExtra(foo)")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(Location.TOP_LEVEL, "",
-                                              """fun newInstance(foo: String): MyFragment {
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        Location.TOP_LEVEL,
+        "",
+        """fun newInstance(foo: String): MyFragment {
                                               |    val args = Bundle()
                                               |    args.putExtra(foo)
                                               |    val fragment = MyFragment()
                                               |    fragment.arguments = args
                                               |    return fragment
-                                              |}"""
-    )
+                                              |}""",
+      )
     )
   }
 
@@ -121,16 +125,19 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("args.putExtra(foo)")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(Location.CLASS,
-                                              imports = "",
-                                              content = """fun newInstance(foo: String): MyFragment {
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        Location.CLASS,
+        imports = "",
+        content =
+          """fun newInstance(foo: String): MyFragment {
                                               |        val args = Bundle()
                                               |        args.putExtra(foo)
                                               |        val fragment = MyFragment()
                                               |        fragment.arguments = args
                                               |        return fragment
-                                              |    }"""
-    )
+                                              |    }""",
+      )
     )
   }
 
@@ -155,8 +162,9 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
           val fragment = Fragment()
           fragment.arguments = args
           return fragment
-      }"""
-      ))
+      }""",
+      )
+    )
   }
 
   fun testNewInstance_inComment() = testNotInComment(TEMPLATE_NEW_INSTANCE)
@@ -184,12 +192,7 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("resources\n")
     myFixture.type("foo\n")
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.STATEMENT,
-      imports = "",
-      content = "resources.getString(R.string.foo)"
-    )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.STATEMENT, imports = "", content = "resources.getString(R.string.foo)"))
   }
 
   fun testRgS_inExpression() {
@@ -201,12 +204,7 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("resources\n")
     myFixture.type("foo\n")
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.EXPRESSION,
-      imports = "",
-      content = "resources.getString(R.string.foo)"
-    )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.EXPRESSION, imports = "", content = "resources.getString(R.string.foo)"))
   }
 
   private val TEMPLATE_ROUIT = "rouiT"
@@ -228,15 +226,20 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("val foo = \"bar\"\n")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.STATEMENT,
-      imports = "",
-      content = """activity.runOnUiThread(Runnable() {
-                  |            override fun run() {
-                  |                val foo = "bar"
-                  |            }
-                  |        })""".trimMargin()
-    )
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        Location.STATEMENT,
+        imports = "",
+        content =
+          """
+          |activity.runOnUiThread(Runnable() {
+          |            override fun run() {
+          |                val foo = "bar"
+          |            }
+          |        })
+          """
+            .trimMargin(),
+      )
     )
   }
 
@@ -251,33 +254,50 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("foo")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      location,
-      imports = "",
-      content = if (content.isEmpty()) {
-        """|///////////////////////////////////////////////////////////////////////////
-           |// foo
-           |///////////////////////////////////////////////////////////////////////////""".trimMargin()
-      } else {
-        content
-      }
-    )
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        location,
+        imports = "",
+        content =
+          if (content.isEmpty()) {
+            """
+            |///////////////////////////////////////////////////////////////////////////
+            |// foo
+            |///////////////////////////////////////////////////////////////////////////
+            """
+              .trimMargin()
+          } else {
+            content
+          },
+      )
     )
   }
 
   fun testSbc_inTopLevel() = testSbc(Location.TOP_LEVEL)
 
-  fun testSbc_inClass() = testSbc(Location.CLASS, content =
-  """    |///////////////////////////////////////////////////////////////////////////
-     |    // foo
-     |    ///////////////////////////////////////////////////////////////////////////""".trimMargin()
-  )
+  fun testSbc_inClass() =
+    testSbc(
+      Location.CLASS,
+      content =
+        """
+        |///////////////////////////////////////////////////////////////////////////
+        |    // foo
+        |    ///////////////////////////////////////////////////////////////////////////
+        """
+          .trimMargin(),
+    )
 
-  fun testSbc_inCompanion() = testSbc(Location.OBJECT_DECLARATION, content =
-  """      |///////////////////////////////////////////////////////////////////////////
-     |      // foo
-     |      ///////////////////////////////////////////////////////////////////////////""".trimMargin()
-  )
+  fun testSbc_inCompanion() =
+    testSbc(
+      Location.OBJECT_DECLARATION,
+      content =
+        """
+        |///////////////////////////////////////////////////////////////////////////
+        |      // foo
+        |      ///////////////////////////////////////////////////////////////////////////
+        """
+          .trimMargin(),
+    )
 
   fun testSbc_inComment() = testNotInComment(TEMPLATE_SBC)
 
@@ -297,42 +317,57 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("\"foo\"\n")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      location,
-      imports = if (imports.isEmpty()) "import android.content.Context" else imports,
-      content = if (content.isEmpty()) {
-        """|      @JvmStatic
-           |      fun start(context: Context) {
-           |          val starter = Intent(context, MyClass::class.java)
-           |            .putExtra("foo")
-           |          context.startActivity(starter)
-           |      }
-           |""".trimMargin()
-      }
-      else {
-        content
-      }
-    )
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        location,
+        imports = if (imports.isEmpty()) "import android.content.Context" else imports,
+        content =
+          if (content.isEmpty()) {
+            """
+            |      @JvmStatic
+            |      fun start(context: Context) {
+            |          val starter = Intent(context, MyClass::class.java)
+            |            .putExtra("foo")
+            |          context.startActivity(starter)
+            |      }
+            |"""
+              .trimMargin()
+          } else {
+            content
+          },
+      )
     )
   }
 
-  fun testStarter_inTopLevel() = testStarter(Location.TOP_LEVEL, content =
-      """|@JvmStatic
-         |fun start(context: Context) {
-         |    val starter = Intent(context, MyClass::class.java)
-         |        .putExtra("foo")
-         |    context.startActivity(starter)
-         |}""".trimMargin()
-  )
+  fun testStarter_inTopLevel() =
+    testStarter(
+      Location.TOP_LEVEL,
+      content =
+        """
+        |@JvmStatic
+        |fun start(context: Context) {
+        |    val starter = Intent(context, MyClass::class.java)
+        |        .putExtra("foo")
+        |    context.startActivity(starter)
+        |}
+        """
+          .trimMargin(),
+    )
 
-  fun testStarter_inCompanion() = testStarter(Location.OBJECT_DECLARATION, content =
-      """   |@JvmStatic
-      |      fun start(context: Context) {
-      |          val starter = Intent(context, MyClass::class.java)
-      |              .putExtra("foo")
-      |          context.startActivity(starter)
-      |      }""".trimMargin()
-  )
+  fun testStarter_inCompanion() =
+    testStarter(
+      Location.OBJECT_DECLARATION,
+      content =
+        """
+        |@JvmStatic
+        |      fun start(context: Context) {
+        |          val starter = Intent(context, MyClass::class.java)
+        |              .putExtra("foo")
+        |          context.startActivity(starter)
+        |      }
+        """
+          .trimMargin(),
+    )
 
   fun testStarter_inClass() = testNotInClass(TEMPLATE_STARTER)
 
@@ -362,10 +397,11 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("foo\n")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.STATEMENT,
-      imports = "import android.widget.Toast",
-      content = "Toast.makeText(this, \"foo\", Toast.LENGTH_SHORT).show()"
+    myFixture.checkResult(
+      insertIntoPsiFileAt(
+        Location.STATEMENT,
+        imports = "import android.widget.Toast",
+        content = "Toast.makeText(this, \"foo\", Toast.LENGTH_SHORT).show()",
       )
     )
   }
@@ -386,19 +422,12 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     // Given:
     addPreparedFileToProject(Location.STATEMENT)
 
-
     // When:
     insertTemplate(TEMPLATE_GONE)
     myFixture.type("myView\n")
 
     // Then:
-    myFixture.checkResult(
-      insertIntoPsiFileAt(
-        Location.STATEMENT,
-        "import android.view.View",
-        "myView.visibility = View.GONE"
-      )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.STATEMENT, "import android.view.View", "myView.visibility = View.GONE"))
   }
 
   fun testGone_inExpression() = testNotInExpression(TEMPLATE_GONE)
@@ -422,13 +451,7 @@ class AndroidKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("myView\n")
 
     // Then:
-    myFixture.checkResult(
-      insertIntoPsiFileAt(
-        Location.STATEMENT,
-        "import android.view.View",
-        "myView.visibility = View.VISIBLE"
-      )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.STATEMENT, "import android.view.View", "myView.visibility = View.VISIBLE"))
   }
 
   fun testVisible_inExpression() = testNotInExpression(TEMPLATE_VISIBLE)

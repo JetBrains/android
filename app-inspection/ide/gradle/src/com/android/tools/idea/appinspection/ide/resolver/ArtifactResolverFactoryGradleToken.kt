@@ -21,8 +21,7 @@ import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 
-class ArtifactResolverFactoryGradleToken :
-  ArtifactResolverFactoryToken<GradleProjectSystem>, GradleToken {
+class ArtifactResolverFactoryGradleToken : ArtifactResolverFactoryToken<GradleProjectSystem>, GradleToken {
   override fun getArtifactResolver(
     projectSystem: GradleProjectSystem,
     fileService: FileService,
@@ -30,10 +29,7 @@ class ArtifactResolverFactoryGradleToken :
   ) =
     when {
       StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() ->
-        GradleModuleSystemArtifactResolver(
-          fileService,
-          GradleModuleSystemArtifactFinder(projectSystem),
-        )
+        GradleModuleSystemArtifactResolver(fileService, GradleModuleSystemArtifactFinder(projectSystem))
       else -> httpArtifactResolver
     }
 }

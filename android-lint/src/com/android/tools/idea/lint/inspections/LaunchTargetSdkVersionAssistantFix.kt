@@ -34,15 +34,13 @@ private val maxSdkUpgradeAsstVersion: Int
     val targetOfLatestUpgradePath = StudioFlags.TSDKVUA_API_NEXT.get()
     val latestUpgradePathIsPublic = StudioFlags.TSDKVUA_API_NEXT_ENABLE.get()
     // If the latest upgrade path isn't public then we just decrement
-    val targetOfLatestPublicUpgradePath =
-      if (latestUpgradePathIsPublic) targetOfLatestUpgradePath else targetOfLatestUpgradePath - 1
+    val targetOfLatestPublicUpgradePath = if (latestUpgradePathIsPublic) targetOfLatestUpgradePath else targetOfLatestUpgradePath - 1
     // Once we have the latest public target we can decrement to find the latest public source
     val sourceOfLatestPublicUpgradePath = targetOfLatestPublicUpgradePath - 1
     return sourceOfLatestPublicUpgradePath
   }
 
-class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
-  DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
+class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) : DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
 
   // -1 if there is no valid current target SDK version for some reason
   private val tsdkv: Int = fix?.let { LintFix.getInt(it, "currentTargetSdkVersion", -1) } ?: -1
@@ -50,25 +48,13 @@ class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   private val sdkUpgradeAssistantHasSupport: Boolean
     get() = tsdkv in minSdkUpgradeAsstVersion..maxSdkUpgradeAsstVersion
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean = IdeInfo.getInstance().isAndroidStudio && sdkUpgradeAssistantHasSupport
+  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean =
+    IdeInfo.getInstance().isAndroidStudio && sdkUpgradeAssistantHasSupport
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
+  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     stopFlaggingTargetSdkEditsForSession(startElement.project)
-    OpenAssistSidePanelAction()
-      .openWindow("DeveloperServices.TargetSDKVersionUpgradeAssistant", startElement.project)
+    OpenAssistSidePanelAction().openWindow("DeveloperServices.TargetSDKVersionUpgradeAssistant", startElement.project)
   }
 
-  override fun generatePreview(
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-  ): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
+  override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
 }

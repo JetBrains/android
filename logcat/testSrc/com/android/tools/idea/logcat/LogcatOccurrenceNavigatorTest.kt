@@ -50,22 +50,13 @@ class LogcatOccurrenceNavigatorTest {
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    WaitForIndexRule(projectRule),
-    logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule(), disposableRule)
 
   private val editor
     get() = logcatEditorRule.editor
 
   private val editorHyperlinkDetector by lazy {
-    EditorHyperlinkDetector(
-      projectRule.project,
-      editor,
-      disposableRule.disposable,
-      ModalityState.any(),
-    ).also {
+    EditorHyperlinkDetector(projectRule.project, editor, disposableRule.disposable, ModalityState.any()).also {
       waitForCondition { it.filter.compositeFilter.filters.map { it::class }.contains(SimpleFileLinkFilter::class) }
     }
   }
@@ -83,10 +74,7 @@ class LogcatOccurrenceNavigatorTest {
   @Test
   fun hasOccurrence() {
     val navigator = logcatOccurrenceNavigator(editor)
-    setEditorText(
-      editor,
-      " at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)",
-    )
+    setEditorText(editor, " at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)")
 
     // Regardless of the caret, we should have both next & prev occurrences
     for (line in 0 until editor.document.lineCount) {
@@ -125,9 +113,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -150,9 +136,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -175,9 +159,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -199,9 +181,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -224,9 +204,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -249,9 +227,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -274,9 +250,7 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   @Test
@@ -298,19 +272,16 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
-      .containsExactly("MainActivity.java:19", "Activity.java:8000")
-      .inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly("MainActivity.java:19", "Activity.java:8000").inOrder()
   }
 
   /**
    * This test navigates all the stack frames in order including wrapping around the document.
    *
-   * For each iteration, it verifies that the caret was moved to the proper location and that the
-   * current link only is highlighted with FOLLOWED_HYPERLINK_ATTRIBUTES.
+   * For each iteration, it verifies that the caret was moved to the proper location and that the current link only is highlighted with
+   * FOLLOWED_HYPERLINK_ATTRIBUTES.
    *
-   * It's enough to test goNextOccurence() only because the tested functionality doesn't depend on
-   * direction.
+   * It's enough to test goNextOccurence() only because the tested functionality doesn't depend on direction.
    */
   @Test
   fun goOccurrence_navigate() {
@@ -344,9 +315,7 @@ class LogcatOccurrenceNavigatorTest {
         } else {
           // All other ranges are restored to their original highlight
           assertThat(textAttributes).named("i=$i range=${range.getText()}").isNotNull()
-          assertThat(textAttributes)
-            .named("i=$i range=${range.getText()}")
-            .isNotEqualTo(FOLLOWED_HYPERLINK_ATTRIBUTES)
+          assertThat(textAttributes).named("i=$i range=${range.getText()}").isNotEqualTo(FOLLOWED_HYPERLINK_ATTRIBUTES)
         }
       }
     }
@@ -375,8 +344,7 @@ class LogcatOccurrenceNavigatorTest {
     assertThat(navigator.navigatePrevious()?.occurenceNumber).isEqualTo(4)
   }
 
-  private fun logcatOccurrenceNavigator(editor: Editor) =
-    LogcatOccurrenceNavigator(projectRule.project, editor)
+  private fun logcatOccurrenceNavigator(editor: Editor) = LogcatOccurrenceNavigator(projectRule.project, editor)
 
   private fun setEditorText(editor: Editor, text: String) {
     editor.document.setText(text.replace(CARET, ""))
@@ -389,8 +357,7 @@ class LogcatOccurrenceNavigatorTest {
   }
 }
 
-private fun RangeHighlighter.getText(): String =
-  document.immutableCharSequence.subSequence(startOffset, endOffset).toString()
+private fun RangeHighlighter.getText(): String = document.immutableCharSequence.subSequence(startOffset, endOffset).toString()
 
 private fun LogcatOccurrenceNavigator.navigateNext(): OccurenceNavigator.OccurenceInfo? {
   val occurrenceInfo = goNextOccurence()

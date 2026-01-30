@@ -53,8 +53,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypes
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
- * Extension [PasteProvider] to handle paste of [java.awt.datatransfer.Transferable] providing [RESOURCE_URL_FLAVOR] in
- * intelliJ editors.
+ * Extension [PasteProvider] to handle paste of [java.awt.datatransfer.Transferable] providing [RESOURCE_URL_FLAVOR] in intelliJ editors.
  */
 class ResourcePasteProvider : PasteProvider {
 
@@ -64,7 +63,7 @@ class ResourcePasteProvider : PasteProvider {
     val caret = CommonDataKeys.CARET.getData(dataContext)!!
     val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return
     val psiElement = runReadAction { psiFile.findElementAt(caret.offset) }
-    val project : Project? = CommonDataKeys.PROJECT.getData(dataContext)
+    val project: Project? = CommonDataKeys.PROJECT.getData(dataContext)
 
     when (psiFile.fileType) {
       XmlFileType.INSTANCE -> performForXml(psiElement, dataContext, caret, project)
@@ -73,10 +72,7 @@ class ResourcePasteProvider : PasteProvider {
     }
   }
 
-  private fun performForKotlinCode(psiElement: PsiElement?,
-                                   dataContext: DataContext,
-                                   caret: Caret,
-                                   project: Project?) {
+  private fun performForKotlinCode(psiElement: PsiElement?, dataContext: DataContext, caret: Caret, project: Project?) {
     val resourceUrl = getResourceUrl(dataContext) ?: return
     if (psiElement == null) return
     val resourceCodeReference = resourceUrl.resourceCodeReference
@@ -99,16 +95,11 @@ class ResourcePasteProvider : PasteProvider {
   }
 
   /**
-   * Perform the paste in an XML file context.
-   * The paste operation will be different depending on the psiElement under the caret.
+   * Perform the paste in an XML file context. The paste operation will be different depending on the psiElement under the caret.
    *
-   * For example, if the caret is within an ImageView tag, the `src` attribute will be populated with the
-   * pasted [ResourceUrl].
+   * For example, if the caret is within an ImageView tag, the `src` attribute will be populated with the pasted [ResourceUrl].
    */
-  private fun performForXml(psiElement: PsiElement?,
-                            dataContext: DataContext,
-                            caret: Caret,
-                            project: Project?) {
+  private fun performForXml(psiElement: PsiElement?, dataContext: DataContext, caret: Caret, project: Project?) {
     val resourceUrl = getResourceUrl(dataContext)
     val resourceReference = resourceUrl?.toString() ?: return
 
@@ -119,8 +110,7 @@ class ResourcePasteProvider : PasteProvider {
         if (IMAGE_LIKE_TYPES.contains(resourceUrl.type)) {
           insertImageView(resourceReference, psiElement, caret, isFixedDimension = resourceUrl.type == ResourceType.COLOR)
           return
-        }
-        else if (resourceUrl.type == ResourceType.LAYOUT) {
+        } else if (resourceUrl.type == ResourceType.LAYOUT) {
           insertIncludeTag(resourceReference, psiElement, caret)
           return
         }
@@ -189,23 +179,23 @@ class ResourcePasteProvider : PasteProvider {
     }
   }
 
-  private fun processForTag(xmlTag: XmlTag?,
-                            caret: Caret,
-                            resourceReference: String): Boolean {
+  private fun processForTag(xmlTag: XmlTag?, caret: Caret, resourceReference: String): Boolean {
     return when (xmlTag?.name) {
       SdkConstants.IMAGE_VIEW -> performForImageView(xmlTag, resourceReference)
       else -> false
     }
   }
 
-  private fun processForAttribute(xmlAttribute: XmlAttribute?,
-                                  caret: Caret,
-                                  resourceReference: String): Boolean {
+  private fun processForAttribute(xmlAttribute: XmlAttribute?, caret: Caret, resourceReference: String): Boolean {
     if (xmlAttribute == null) return false
     val replaceStartOffset = runWriteAction {
       val textRange = xmlAttribute.valueElement?.valueTextRange
-      if (textRange != null && xmlAttribute.value?.startsWith("@{") == true
-        && caret.offset > textRange.startOffset + 1 && caret.offset < textRange.endOffset) {
+      if (
+        textRange != null &&
+          xmlAttribute.value?.startsWith("@{") == true &&
+          caret.offset > textRange.startOffset + 1 &&
+          caret.offset < textRange.endOffset
+      ) {
         // If caret is inside databinding, replace only the value inside the bracket
         xmlAttribute.setValue("@{$resourceReference}")
         return@runWriteAction textRange.startOffset + 2
@@ -220,26 +210,25 @@ class ResourcePasteProvider : PasteProvider {
     return true
   }
 
-  private fun processForValue(xmlAttributeValue: XmlAttributeValue?,
-                              caret: Caret,
-                              resourceReference: String): Boolean {
+  private fun processForValue(xmlAttributeValue: XmlAttributeValue?, caret: Caret, resourceReference: String): Boolean {
     if (xmlAttributeValue == null) return false
     processForAttribute(xmlAttributeValue.parent as? XmlAttribute, caret, resourceReference)
     return true
   }
 
-  private fun pasteAtCaret(caret: Caret,
-                           resourceReference: String,
-                           type: ResourceType? = null,
-                           project: Project?) {
-    runWriteAction {
-      caret.editor.document.insertString(caret.offset, resourceReference)
-    }
+  private fun pasteAtCaret(caret: Caret, resourceReference: String, type: ResourceType? = null, project: Project?) {
+    runWriteAction { caret.editor.document.insertString(caret.offset, resourceReference) }
     caret.selectStringFromOffset(resourceReference, caret.offset)
     ResourceManagerTracking.logPasteUrlText(project, type)
   }
 
-  private fun replaceAtCaret(caret: Caret, psiElement: PsiElement, resourceReference: String, type: ResourceType? = null, project: Project?) {
+  private fun replaceAtCaret(
+    caret: Caret,
+    psiElement: PsiElement,
+    resourceReference: String,
+    type: ResourceType? = null,
+    project: Project?,
+  ) {
     runWriteAction {
       caret.editor.document.replaceString(psiElement.textRange.startOffset, psiElement.textRange.endOffset, resourceReference)
     }
@@ -248,8 +237,8 @@ class ResourcePasteProvider : PasteProvider {
   }
 
   /**
-   * Set the src attribute for an ImageView [xmlTag] with the provided [resourceReference].
-   * This method will use the app compat attributes if the module is using AppCompat
+   * Set the src attribute for an ImageView [xmlTag] with the provided [resourceReference]. This method will use the app compat attributes
+   * if the module is using AppCompat
    */
   private fun performForImageView(xmlTag: XmlTag, resourceReference: String): Boolean {
     val dependsOnAppCompat = dependsOnAppCompat(xmlTag)
@@ -262,13 +251,10 @@ class ResourcePasteProvider : PasteProvider {
 
   private fun setSrcAttribute(dependsOnAppCompat: Boolean, xmlTag: XmlTag, resourceReference: String) {
     if (dependsOnAppCompat) {
-      (xmlTag.containingFile as? XmlFile)?.let {
-        ensureNamespaceImported(it, SdkConstants.AUTO_URI)
-      }
+      (xmlTag.containingFile as? XmlFile)?.let { ensureNamespaceImported(it, SdkConstants.AUTO_URI) }
       xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
       xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)
-    }
-    else {
+    } else {
       xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, null)
       xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, resourceReference)
     }
@@ -278,22 +264,19 @@ class ResourcePasteProvider : PasteProvider {
     runReadAction { ModuleUtilCore.findModuleForPsiElement(xmlTag)?.dependsOnAppCompat() } == true
 
   private fun getResourceUrl(dataContext: DataContext): ResourceUrl? =
-    PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
-      ?.produce()
-      ?.getTransferData(RESOURCE_URL_FLAVOR) as ResourceUrl?
+    PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)?.produce()?.getTransferData(RESOURCE_URL_FLAVOR) as ResourceUrl?
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isPastePossible(dataContext: DataContext): Boolean {
-    return PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
-             ?.produce()
-             ?.isDataFlavorSupported(RESOURCE_URL_FLAVOR) ?: false
+    return PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)?.produce()?.isDataFlavorSupported(RESOURCE_URL_FLAVOR) ?: false
   }
 
   override fun isPasteEnabled(dataContext: DataContext) = isPastePossible(dataContext)
 
   /** The most common use case to use resources on code: 'namespace.R.type.name' or just 'R.type.name' for app resources. */
-  private val ResourceUrl.resourceCodeReference get() = "${this.namespace?.let { "$it." } ?: ""}R.${this.type}.${this.name}"
+  private val ResourceUrl.resourceCodeReference
+    get() = "${this.namespace?.let { "$it." } ?: ""}R.${this.type}.${this.name}"
 }
 
 /**
@@ -302,63 +285,60 @@ class ResourcePasteProvider : PasteProvider {
  * @param kotlinElement The specific class of the supported Kotlin [PsiElement]
  */
 @Suppress("unused")
-private enum class SupportedKotlinElement(val kotlinElement: Class<out PsiElement>,
-                                          val processElement: (PsiElement, Caret, String) -> Unit) {
+private enum class SupportedKotlinElement(
+  val kotlinElement: Class<out PsiElement>,
+  val processElement: (PsiElement, Caret, String) -> Unit,
+) {
   /**
    * Kotlin PsiElement that corresponds to an argument in a function, substitutes the element with the given resource reference.
    *
    * Eg: foo(bar1, bar2, **bar3**) -> foo(bar1, bar2, **resourceReference**)
    */
-  ARGUMENT_VALUE(KtValueArgument::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
-    val rangeOffset = psiElement.textRange
-    runWriteAction {
-      caret.editor.document.replaceString(rangeOffset.startOffset, rangeOffset.endOffset, resourceReference)
-    }
-    caret.selectStringFromOffset(resourceReference, rangeOffset.startOffset)
-  }),
+  ARGUMENT_VALUE(
+    KtValueArgument::class.java,
+    { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+      val rangeOffset = psiElement.textRange
+      runWriteAction { caret.editor.document.replaceString(rangeOffset.startOffset, rangeOffset.endOffset, resourceReference) }
+      caret.selectStringFromOffset(resourceReference, rangeOffset.startOffset)
+    },
+  ),
   /**
    * Kotlin PsiElement that corresponds to an element executing a method call, adds the given resource reference to the arguments of the
    * method call.
    *
    * Eg: **foo**(bar1, bar2) -> **foo**(bar1, bar2, **resourceReference**)
    */
-  METHOD_CALL(KtCallExpression::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
-    val methodCallElement = psiElement as KtCallExpression
-    val resourceReferenceArgument = KtPsiFactory(psiElement.project).createArgument(resourceReference)
-    val resultingArgument = runWriteAction {
-      methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument)
-    }
-    (resultingArgument as? PsiElement)?.let {
-      caret.selectStringFromOffset(resourceReference, it.startOffset)
-    }
-  }),
+  METHOD_CALL(
+    KtCallExpression::class.java,
+    { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+      val methodCallElement = psiElement as KtCallExpression
+      val resourceReferenceArgument = KtPsiFactory(psiElement.project).createArgument(resourceReference)
+      val resultingArgument = runWriteAction { methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument) }
+      (resultingArgument as? PsiElement)?.let { caret.selectStringFromOffset(resourceReference, it.startOffset) }
+    },
+  ),
   /**
    * Kotlin PsiElement that corresponds to a property initialization, substitutes the value in the initialization with the given resource
    * reference.
    *
    * Eg: val foo = **bar** -> val foo = **resourceReference**
    */
-  PROPERTY_INIT(KtProperty::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
-    val propertyElement = psiElement as KtProperty
-    runWriteAction {
-      propertyElement.initializer = KtPsiFactory(psiElement.project).createExpression(resourceReference)
-    }
-    (propertyElement.initializer as? PsiElement)?.let {
-      caret.selectStringFromOffset(resourceReference, it.startOffset)
-    }
-  });
+  PROPERTY_INIT(
+    KtProperty::class.java,
+    { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+      val propertyElement = psiElement as KtProperty
+      runWriteAction { propertyElement.initializer = KtPsiFactory(psiElement.project).createExpression(resourceReference) }
+      (propertyElement.initializer as? PsiElement)?.let { caret.selectStringFromOffset(resourceReference, it.startOffset) }
+    },
+  );
 
   companion object {
-    /**
-     * @return The array of all [PsiElement] classes supported for Kotlin
-     */
+    /** @return The array of all [PsiElement] classes supported for Kotlin */
     fun getAllSupportedKotlinElementClasses(): Array<Class<out PsiElement>> {
       return values().map { it.kotlinElement }.toTypedArray()
     }
 
-    /**
-     * @return The equivalent [SupportedKotlinElement] for the given [psiElement], null, if not supported.
-     */
+    /** @return The equivalent [SupportedKotlinElement] for the given [psiElement], null, if not supported. */
     fun toSupportedKotlinElement(psiElement: PsiElement): SupportedKotlinElement? {
       return values().firstOrNull { psiElement.javaClass == it.kotlinElement }
     }

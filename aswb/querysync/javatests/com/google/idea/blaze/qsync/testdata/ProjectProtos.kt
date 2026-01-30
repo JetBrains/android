@@ -29,8 +29,7 @@ import java.io.IOException
 /**
  * Test utility class to build simple project proto instances based on a [TestData] project.
  *
- * The returned project protos may not be fully valid and should be relied upon only to provide the
- * basic structure.
+ * The returned project protos may not be fully valid and should be relied upon only to provide the basic structure.
  */
 object ProjectProtos {
   @Throws(IOException::class, BuildException::class)
@@ -54,16 +53,8 @@ object ProjectProtos {
       )
     val update = ProjectProtoUpdate(ProjectProto.Project.getDefaultInstance())
     val graph = BuildGraphs.forTestProject(project)
-    converter.configureProject(
-      initializeProjectStructureData(graph),
-      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
-      update,
-    )
-    converter.configureProject(
-      graph,
-      ProjectPath.ExternalRepositoryFinder.createEmptyForTests(),
-      update,
-    )
+    converter.configureProject(initializeProjectStructureData(graph), ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
+    converter.configureProject(graph, ProjectPath.ExternalRepositoryFinder.createEmptyForTests(), update)
     return update.build()
   }
 }

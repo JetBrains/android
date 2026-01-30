@@ -48,9 +48,9 @@ class AndroidManifestRefactoringTest {
         "src/p1/p2/MyApplication.java",
         // language=Java
         """
-      package p1.p2;
-      public class MyApplication extends android.app.Application {}
-      """
+        package p1.p2;
+        public class MyApplication extends android.app.Application {}
+        """
           .trimIndent(),
       )
 
@@ -71,10 +71,7 @@ class AndroidManifestRefactoringTest {
     // Act: Move (rename) the Application class.
     val javaPsiFacade = JavaPsiFacade.getInstance(myProject)
     val applicationPsiClass = runReadAction {
-      javaPsiFacade.findClass(
-        "p1.p2.MyApplication",
-        GlobalSearchScope.fileScope(applicationPsiFile),
-      )
+      javaPsiFacade.findClass("p1.p2.MyApplication", GlobalSearchScope.fileScope(applicationPsiFile))
     }
     assertThat(applicationPsiClass).isNotNull()
 
@@ -85,16 +82,8 @@ class AndroidManifestRefactoringTest {
     assertThat(packageDirs).hasLength(1)
 
     val processor = runReadAction {
-      val destination =
-        SingleSourceRootMoveDestination(PackageWrapper.create(p1PsiPackage), packageDirs.single())
-      MoveClassesOrPackagesProcessor(
-        myProject,
-        arrayOf(applicationPsiClass),
-        destination,
-        true,
-        true,
-        null,
-      )
+      val destination = SingleSourceRootMoveDestination(PackageWrapper.create(p1PsiPackage), packageDirs.single())
+      MoveClassesOrPackagesProcessor(myProject, arrayOf(applicationPsiClass), destination, true, true, null)
     }
 
     ApplicationManager.getApplication().invokeAndWait { processor.run() }
@@ -171,11 +160,7 @@ class AndroidManifestRefactoringTest {
   private fun renameClass(newName: String) {
     // Ensure the rename action is available to the user
     val action = RenameElementAction()
-    val actionEvent =
-      TestActionEvent.createTestEvent(
-        action,
-        DataManager.getInstance().getDataContext(myFixture.editor.component),
-      )
+    val actionEvent = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(myFixture.editor.component))
     runReadAction { action.update(actionEvent) }
     assertThat(actionEvent.presentation.isEnabled).isTrue()
     assertThat(actionEvent.presentation.isVisible).isTrue()

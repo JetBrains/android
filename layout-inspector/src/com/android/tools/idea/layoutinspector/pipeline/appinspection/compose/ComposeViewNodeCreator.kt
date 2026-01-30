@@ -59,8 +59,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   /**
    * AndroidViews embedded in this Compose application.
    *
-   * Maps an AndroidView uniqueDrawingId to the [ComposeViewNode] that should be the parent of the
-   * Android View.
+   * Maps an AndroidView uniqueDrawingId to the [ComposeViewNode] that should be the parent of the Android View.
    */
   val androidViews = mutableMapOf<Long, ComposeViewNode>()
 
@@ -72,25 +71,19 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   val viewsToSkip = response.rootsList.associateBy({ it.viewId }, { it.viewsToSkipList })
 
   /**
-   * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes for
-   * any Composable children it may have.
+   * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes for any Composable children it may have.
    *
-   * This can return null if the ID passed in isn't found, either because it's not an
-   * AndroidComposeView or it references a view not referenced by this particular
-   * [GetComposablesResponse].
+   * This can return null if the ID passed in isn't found, either because it's not an AndroidComposeView or it references a view not
+   * referenced by this particular [GetComposablesResponse].
    */
   fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
     androidViews.clear()
-    val result =
-      ViewNode.writeAccess { roots[id]?.map { node -> node.convert(shouldInterrupt, this) } }
+    val result = ViewNode.writeAccess { roots[id]?.map { node -> node.convert(shouldInterrupt, this) } }
     nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
     return result
   }
 
-  private fun ComposableNode.convert(
-    shouldInterrupt: () -> Boolean,
-    access: ViewNode.WriteAccess,
-  ): ComposeViewNode {
+  private fun ComposableNode.convert(shouldInterrupt: () -> Boolean, access: ViewNode.WriteAccess): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
@@ -99,15 +92,11 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
 
     // The Quad coordinates are supplied relative to the View that contains the composables.
     // We need to convert them to the coordinates the inspector works in.
-    val renderBounds =
-      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toPolygon() ?: layoutBounds
-    val actualFlags =
-      if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
+    val renderBounds = bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toPolygon() ?: layoutBounds
+    val actualFlags = if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
     val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
     val ignoreRecompositions =
-      pendingRecompositionCountReset ||
-        (isSystemNode &&
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
+      pendingRecompositionCountReset || (isSystemNode && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
     val node =
       ComposeViewNode(
         id,
@@ -157,10 +146,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     return node
   }
 
-  private fun ViewNode.WriteAccess.addSingleChild(
-    parent: ComposeViewNode,
-    child: ComposeViewNode?,
-  ) {
+  private fun ViewNode.WriteAccess.addSingleChild(parent: ComposeViewNode, child: ComposeViewNode?) {
     if (child != null) {
       child.parent = parent
       parent.children.add(child)

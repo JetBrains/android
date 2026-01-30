@@ -23,9 +23,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
 /**
- * [AppInspectorTabProvider] allows defining multiple inspectors, but it is common for a tab to be
- * associated with only a single inspector, which this class enforces and provides a simplified API
- * for.
+ * [AppInspectorTabProvider] allows defining multiple inspectors, but it is common for a tab to be associated with only a single inspector,
+ * which this class enforces and provides a simplified API for.
  */
 abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
   abstract val inspectorId: String
@@ -42,8 +41,7 @@ abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
     parentDisposable: Disposable,
   ): AppInspectorTab {
     return when (val target = messengerTargets.single()) {
-      is AppInspectorMessengerTarget.Resolved ->
-        createTab(project, ideServices, processDescriptor, target.messenger, parentDisposable)
+      is AppInspectorMessengerTarget.Resolved -> createTab(project, ideServices, processDescriptor, target.messenger, parentDisposable)
       is AppInspectorMessengerTarget.Unresolved -> {
         object : AppInspectorTab {
           override val messengers = emptyList<AppInspectorMessenger>()

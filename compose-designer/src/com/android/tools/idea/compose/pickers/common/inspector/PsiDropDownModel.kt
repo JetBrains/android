@@ -25,10 +25,10 @@ import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.util.concurrent.Futures
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Model for the PsiPropertyDropdown component.
@@ -37,27 +37,19 @@ import javax.swing.event.ListDataListener
  */
 internal class PsiDropDownModel
 @TestOnly
-constructor(
-  property: PsiPropertyItem,
-  private val enumSupport: EnumSupport,
-  private val setSelectedValueCallback: () -> Unit,
-) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+constructor(property: PsiPropertyItem, private val enumSupport: EnumSupport, private val setSelectedValueCallback: () -> Unit) :
+  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   private val syncNewValues = Object()
 
   constructor(property: PsiPropertyItem, enumSupport: EnumSupport) : this(property, enumSupport, {})
 
-  /**
-   * Provisional list used before values are loaded from [enumSupport]. Used to have a Loading
-   * indicator if the loading takes too long.
-   */
+  /** Provisional list used before values are loaded from [enumSupport]. Used to have a Loading indicator if the loading takes too long. */
   private val loading = mutableListOf(EnumValue.LOADING)
 
   /** Reference to the current list of [EnumValue], this is the one reflected in the DropDown. */
   private var values: List<EnumValue> = loading
 
-  /**
-   * Provisional list reference to safely handle the new set of values loaded from [enumSupport].
-   */
+  /** Provisional list reference to safely handle the new set of values loaded from [enumSupport]. */
   @GuardedBy("syncNewValues") private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
     set(value) {
@@ -135,10 +127,9 @@ constructor(
   override fun cancelEditing(): Boolean = true
 
   /**
-   * Call to indicate the model that it should load the values from [enumSupport], considers that
-   * the values might take a noticeable long time to populate, in which case [updatePopup] will be
-   * called to indicate the Component that there are new values on the list, and it should update
-   * the contents of the popup.
+   * Call to indicate the model that it should load the values from [enumSupport], considers that the values might take a noticeable long
+   * time to populate, in which case [updatePopup] will be called to indicate the Component that there are new values on the list, and it
+   * should update the contents of the popup.
    */
   fun popupMenuWillBecomeVisible(updatePopup: () -> Unit): Future<*> {
     var result: Future<*> = Futures.immediateFuture(null)

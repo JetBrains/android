@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -34,15 +34,16 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.gradle.util.GradleVersion
 import java.io.File
+import org.gradle.util.GradleVersion
 import org.gradle.wrapper.WrapperExecutor
 
 class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new) {
     this.compatibleGradleVersion = getCompatibleGradleVersion(new)
   }
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
     compatibleGradleVersion = getCompatibleGradleVersion(processor.new)
   }
@@ -105,7 +106,8 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     """
       Version ${compatibleGradleVersion.version.version} is the minimum version of Gradle compatible
       with Android Gradle Plugin version $new.
-    """.trimIndent()
+    """
+      .trimIndent()
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
@@ -122,11 +124,9 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
   @Suppress("FunctionName")
   companion object {
-    val GRADLE_URL_USAGE_TYPE =
-      UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleUrlUsageType"))
+    val GRADLE_URL_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleUrlUsageType"))
 
-    val GRADLE_SHA_256_USAGE_TYPE =
-      UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleShaUsageType"))
+    val GRADLE_SHA_256_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("gradleVersionRefactoringProcessor.gradleShaUsageType"))
   }
 
   // Handle an apparent annoyance in the Psi PropertiesFile implementation which apparently gives us escaping backslashes
@@ -144,11 +144,8 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
   }
 }
 
-class GradleVersionUsageInfo(
-  element: WrappedPsiElement,
-  private val gradleVersion: GradleVersion,
-  private val updatedUrl: String
-) : GradleBuildModelUsageInfo(element) {
+class GradleVersionUsageInfo(element: WrappedPsiElement, private val gradleVersion: GradleVersion, private val updatedUrl: String) :
+  GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("gradleVersionUsageInfo.tooltipText", gradleVersion.version)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -161,10 +158,7 @@ class GradleVersionUsageInfo(
   fun String.escapeColons() = this.replace(":", "\\:")
 }
 
-class GradleSha256UsageInfo(
-  element: WrappedPsiElement,
-  private val sha256: String?
-) : GradleBuildModelUsageInfo(element) {
+class GradleSha256UsageInfo(element: WrappedPsiElement, private val sha256: String?) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("gradleVersionRefactoringProcessor.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

@@ -23,11 +23,14 @@ import com.intellij.psi.tree.IElementType
 
 class DeclarativePairedBraceMatcher : PairedBraceMatcher {
   override fun getPairs(): Array<BracePair> = parenPair
+
   override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?): Boolean = true
+
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
-private val parenPair = arrayOf(
-  BracePair(DeclarativeElementTypeHolder.OP_LBRACE, DeclarativeElementTypeHolder.OP_RBRACE, true),
-  BracePair(DeclarativeElementTypeHolder.OP_LPAREN, DeclarativeElementTypeHolder.OP_RPAREN, true)
-)
+private val parenPair =
+  arrayOf(
+    BracePair(DeclarativeElementTypeHolder.OP_LBRACE, DeclarativeElementTypeHolder.OP_RBRACE, true),
+    BracePair(DeclarativeElementTypeHolder.OP_LPAREN, DeclarativeElementTypeHolder.OP_RPAREN, true),
+  )

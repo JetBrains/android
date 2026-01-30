@@ -18,8 +18,4 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeClassField
 import java.io.Serializable
 
-data class IdeClassFieldImpl(
-  override val type: String,
-  override val name: String,
-  override val value: String
-) : IdeClassField, Serializable
+data class IdeClassFieldImpl(override val type: String, override val name: String, override val value: String) : IdeClassField, Serializable

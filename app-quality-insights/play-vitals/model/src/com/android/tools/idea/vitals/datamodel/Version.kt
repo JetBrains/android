@@ -39,20 +39,13 @@ internal fun List<Track>.extract(): List<Version> {
   val flattened = flatMap { track ->
     val trackType = track.toPlayTrack() ?: return@flatMap emptyList()
 
-    track.servingReleasesList.flatMap { release ->
-      release.versionCodesList.map { versionCode -> versionCode to trackType }
-    }
+    track.servingReleasesList.flatMap { release -> release.versionCodesList.map { versionCode -> versionCode to trackType } }
   }
 
   return flattened
     .groupBy { it.first }
     .map { (versionCode, tracks) ->
-      Version(
-        buildVersion = versionCode.toString(),
-        displayVersion = "",
-        displayName = "",
-        tracks = tracks.map { it.second }.toSet(),
-      )
+      Version(buildVersion = versionCode.toString(), displayVersion = "", displayName = "", tracks = tracks.map { it.second }.toSet())
     }
 }
 
@@ -61,9 +54,7 @@ fun Version.Companion.fromDimensions(dimensions: List<Dimension>): Version {
     .filter { it.type == DimensionType.VERSION_CODE }
     .map { dimension ->
       val versionCode =
-        when (
-          dimension.value
-        ) { // TODO: either we just pass string around or we know it's of a long type. ?
+        when (dimension.value) { // TODO: either we just pass string around or we know it's of a long type. ?
           is DimensionValue.LongValue -> dimension.value.value.toString()
           is DimensionValue.StringValue -> dimension.value.value
         }
@@ -72,12 +63,7 @@ fun Version.Companion.fromDimensions(dimensions: List<Dimension>): Version {
       // to version code here for now.
       val displayValue = dimension.displayValue.takeUnless { it.isEmpty() } ?: versionCode
 
-      Version(
-        buildVersion = versionCode,
-        displayVersion = displayValue,
-        displayName = displayValue,
-        tracks = emptySet(),
-      )
+      Version(buildVersion = versionCode, displayVersion = displayValue, displayName = displayValue, tracks = emptySet())
     }
     .single()
 }

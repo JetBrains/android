@@ -63,14 +63,13 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.CommonJavaRefactoringUtil
+import java.util.Locale
+import javax.swing.JComponent
 import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.Locale
-import javax.swing.JComponent
-
 
 class AndroidModularizeProcessor(
   project: Project,
@@ -79,8 +78,7 @@ class AndroidModularizeProcessor(
   private val myResources: Set<ResourceItem>,
   private val myManifestEntries: Set<PsiElement>,
   private val myCodeFiles: Set<PsiFile>,
-  @VisibleForTesting
-  val referenceGraph: AndroidCodeAndResourcesGraph
+  @VisibleForTesting val referenceGraph: AndroidCodeAndResourcesGraph,
 ) : BaseRefactoringProcessor(project) {
 
   private lateinit var myTargetModule: Module
@@ -93,42 +91,46 @@ class AndroidModularizeProcessor(
     myTargetModule = module
 
     // Tune default selection behavior: it's safe to select all references only if the target module is depended on (downstream dependency).
-    shouldSelectAllReferences = myRoots.all { root ->
-      AndroidFacet.getInstance(root)?.let { facet ->
-        collectModulesClosure(facet.module, Sets.newHashSet()).contains(myTargetModule)
-      } ?: true
-    }
+    shouldSelectAllReferences =
+      myRoots.all { root ->
+        AndroidFacet.getInstance(root)?.let { facet -> collectModulesClosure(facet.module, Sets.newHashSet()).contains(myTargetModule) }
+          ?: true
+      }
   }
 
   val ktTopLevelDeclarationsCount: Int by lazy {
-      var count = 0
-      for (file in myCodeFiles) {
-        if (file is KtFile) {
-          count += file.declarations.filter { it !is KtClass }.size
-        }
+    var count = 0
+    for (file in myCodeFiles) {
+      if (file is KtFile) {
+        count += file.declarations.filter { it !is KtClass }.size
       }
-      count
+    }
+    count
   }
 
   val classesCount: Int by lazy {
     var count = 0
     for (file in myCodeFiles) {
-      val classes = when (file) {
-        is PsiJavaFile -> file.classes
-        is KtFile -> file.classes
-        else -> continue
-      }
+      val classes =
+        when (file) {
+          is PsiJavaFile -> file.classes
+          is KtFile -> file.classes
+          else -> continue
+        }
       count += classes.size
     }
     count
   }
 
-  val resourcesCount: Int get() = myResources.size
+  val resourcesCount: Int
+    get() = myResources.size
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
     object : UsageViewDescriptor {
       override fun getElements(): Array<PsiElement?> = (usages.map { it.element }).toTypedArray()
+
       override fun getProcessedElementsHeader() = "Items to be moved"
+
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int) =
         String.format(Locale.US, "%1\$d resources in %2\$d files", usagesCount, filesCount)
     }
@@ -145,8 +147,7 @@ class AndroidModularizeProcessor(
       if (getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we won't move the entire file, just its corresponding XmlTag
         getItemTag(myProject, resource)?.let { result.add(ResourceXmlUsageInfo(it, resource)) }
-      }
-      else if (psiFile is PsiBinaryFile) {
+      } else if (psiFile is PsiBinaryFile) {
         // The usage view doesn't handle binaries at all. Work around this (for example,
         // the UsageInfo class asserts in the constructor if the element doesn't have
         // a text range.)
@@ -154,12 +155,14 @@ class AndroidModularizeProcessor(
         val smartPointerManager = SmartPointerManager.getInstance(myProject)
         val smartPointer = smartPointerManager.createSmartPsiElementPointer<PsiElement>(psiFile)
         val smartFileRange = smartPointerManager.createSmartPsiFileRangePointer(psiFile, TextRange.EMPTY_RANGE)
-        result.add(object : ResourceXmlUsageInfo(smartPointer, smartFileRange, resource) {
-          override fun isValid(): Boolean = true
-          override fun getSegment(): Segment? = null
-        })
-      }
-      else if (psiFile != null) {
+        result.add(
+          object : ResourceXmlUsageInfo(smartPointer, smartFileRange, resource) {
+            override fun isValid(): Boolean = true
+
+            override fun getSegment(): Segment? = null
+          }
+        )
+      } else if (psiFile != null) {
         result.add(ResourceXmlUsageInfo(psiFile, resource))
       }
     }
@@ -170,9 +173,7 @@ class AndroidModularizeProcessor(
   override fun previewRefactoring(usages: Array<UsageInfo>) {
     val previewDialog = PreviewDialog(myProject, referenceGraph, usages, shouldSelectAllReferences)
     if (previewDialog.showAndGet()) {
-      TransactionGuard.getInstance().submitTransactionAndWait {
-        execute(previewDialog.selectedUsages)
-      }
+      TransactionGuard.getInstance().submitTransactionAndWait { execute(previewDialog.selectedUsages) }
     }
   }
 
@@ -199,8 +200,7 @@ class AndroidModularizeProcessor(
           getOrCreateTargetDirectory(repo, resource)?.let { targetDir ->
             targetDir.findFile(element.name) ?: MoveFilesOrDirectoriesUtil.doMoveFile(element, targetDir)
           }
-        }
-        else if (element is XmlTag) {
+        } else if (element is XmlTag) {
           // We only move stuff if we can find the destination resource file
           (getOrCreateTargetValueFile(repo, resource) as XmlFile?)?.let { resourceFile ->
             resourceFile.rootTag?.let { rootTag ->
@@ -212,51 +212,55 @@ class AndroidModularizeProcessor(
             }
           }
         }
-      }
-      else if (element is XmlTag) { // This has to be a manifest entry
+      } else if (element is XmlTag) { // This has to be a manifest entry
         (getOrCreateTargetManifestFile(facet) as XmlFile?)?.let {
-          it.acceptChildren(object : XmlRecursiveElementWalkingVisitor() {
-            override fun visitXmlTag(tag: XmlTag) {
-              var applicationTag: XmlTag? = null
-              if (tag.name == TAG_MANIFEST) {
-                for (child in tag.children) {
-                  if (child is XmlTag && child.name == TAG_APPLICATION) {
-                    applicationTag = child
+          it.acceptChildren(
+            object : XmlRecursiveElementWalkingVisitor() {
+              override fun visitXmlTag(tag: XmlTag) {
+                var applicationTag: XmlTag? = null
+                if (tag.name == TAG_MANIFEST) {
+                  for (child in tag.children) {
+                    if (child is XmlTag && child.name == TAG_APPLICATION) {
+                      applicationTag = child
+                      applicationTag.addSubTag(element.copy() as XmlTag, false)
+                      element.delete()
+                      break
+                    }
+                  }
+                  if (applicationTag == null) { // We need to create one; this happens with manifests created by the new module wizard.
+                    applicationTag = XmlElementFactory.getInstance(myProject).createTagFromText("<$TAG_APPLICATION/>")
                     applicationTag.addSubTag(element.copy() as XmlTag, false)
                     element.delete()
-                    break
+                    tag.addSubTag(applicationTag, true)
                   }
+                  touchedXmlFiles.add(it)
+                } else {
+                  super.visitXmlTag(tag)
                 }
-                if (applicationTag == null) { // We need to create one; this happens with manifests created by the new module wizard.
-                  applicationTag = XmlElementFactory.getInstance(myProject).createTagFromText("<$TAG_APPLICATION/>")
-                  applicationTag.addSubTag(element.copy() as XmlTag, false)
-                  element.delete()
-                  tag.addSubTag(applicationTag, true)
-                }
-                touchedXmlFiles.add(it)
-              }
-              else {
-                super.visitXmlTag(tag)
               }
             }
-          })
+          )
         }
-      }
-      else if (element is PsiJavaFile || element is KtFile) {
-        val packageName = when (element) {
-          is PsiJavaFile -> element.packageName
-          is KtFile -> element.packageFqName.toString()
-          else -> null
-        }!!
+      } else if (element is PsiJavaFile || element is KtFile) {
+        val packageName =
+          when (element) {
+            is PsiJavaFile -> element.packageName
+            is KtFile -> element.packageFqName.toString()
+            else -> null
+          }!!
 
-        val targetDir = when (element) {
-          is PsiJavaFile -> javaTargetDir
-          is KtFile -> kotlinTargetDir
-          else -> null
-        }!!
+        val targetDir =
+          when (element) {
+            is PsiJavaFile -> javaTargetDir
+            is KtFile -> kotlinTargetDir
+            else -> null
+          }!!
 
-        val packageDir = CommonJavaRefactoringUtil
-          .createPackageDirectoryInSourceRoot(PackageWrapper(PsiManager.getInstance(myProject), packageName), targetDir)
+        val packageDir =
+          CommonJavaRefactoringUtil.createPackageDirectoryInSourceRoot(
+            PackageWrapper(PsiManager.getInstance(myProject), packageName),
+            targetDir,
+          )
 
         MoveFilesOrDirectoriesUtil.doMoveFile(element as PsiFile, packageDir)
 
@@ -277,9 +281,9 @@ class AndroidModularizeProcessor(
       ResourceFolderType.getFolderType(itemFile.parentFileName!!)?.let { folderType ->
         try {
           return manager.findDirectory(
-            VfsUtil.createDirectoryIfMissing(base.resourceDir, resourceItem.configuration.getFolderName(folderType)))
-        }
-        catch (ex: Exception) {
+            VfsUtil.createDirectoryIfMissing(base.resourceDir, resourceItem.configuration.getFolderName(folderType))
+          )
+        } catch (ex: Exception) {
           LOGGER.debug(ex)
         }
       }
@@ -297,13 +301,12 @@ class AndroidModularizeProcessor(
         if (dir != null) {
           val result = dir.findFile(name)
           return result
-                 ?: AndroidFileTemplateProvider
-                   .createFromTemplate(AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE, name, dir) as PsiFile
+            ?: AndroidFileTemplateProvider.createFromTemplate(AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE, name, dir)
+              as PsiFile
 
           // TODO: How do we make sure the custom templates are applied for new files (license, author, etc) ?
         }
-      }
-      catch (ex: Exception) {
+      } catch (ex: Exception) {
         LOGGER.debug(ex)
       }
     }
@@ -315,16 +318,19 @@ class AndroidModularizeProcessor(
     if (facet.isDisposed) return null
     val manager = PsiManager.getInstance(myProject)
     Iterables.getFirst(SourceProviderManager.getInstance(facet).sources.manifestFileUrls, null)?.let { manifestUrl ->
-      VirtualFileManager.getInstance().findFileByUrl(manifestUrl)?.let { manifestFile -> return manager.findFile(manifestFile) }
+      VirtualFileManager.getInstance().findFileByUrl(manifestUrl)?.let { manifestFile ->
+        return manager.findFile(manifestFile)
+      }
       VfsUtil.getParentDir(manifestUrl)?.let { parentUrl ->
         VirtualFileManager.getInstance().findFileByUrl(parentUrl)?.let { parentDir ->
           manager.findDirectory(parentDir)?.let { psiParentDir ->
             try {
-              return AndroidFileTemplateProvider
-                .createFromTemplate(AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE, SdkConstants.FN_ANDROID_MANIFEST_XML,
-                                    psiParentDir) as PsiFile
-            }
-            catch (ex: Exception) {
+              return AndroidFileTemplateProvider.createFromTemplate(
+                AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE,
+                SdkConstants.FN_ANDROID_MANIFEST_XML,
+                psiParentDir,
+              ) as PsiFile
+            } catch (ex: Exception) {
               LOGGER.debug(ex)
             }
           }
@@ -335,46 +341,38 @@ class AndroidModularizeProcessor(
     return null
   }
 
-  override fun getCommandName(): String =
-    "Moving ${RefactoringUIUtil.calculatePsiElementDescriptionList(myRoots)}"
+  override fun getCommandName(): String = "Moving ${RefactoringUIUtil.calculatePsiElementDescriptionList(myRoots)}"
 
   companion object {
     val LOGGER = Logger.getInstance(AndroidModularizeProcessor::class.java)
 
     private fun collectModulesClosure(module: Module, result: MutableSet<Module>): Set<Module> {
       if (result.add(module)) {
-        ModuleRootManager.getInstance(module).dependencies.forEach { it: Module ->
-          collectModulesClosure(it, result)
-        }
+        ModuleRootManager.getInstance(module).dependencies.forEach { it: Module -> collectModulesClosure(it, result) }
       }
       return result
     }
   }
-
 }
 
 open class ResourceXmlUsageInfo : UsageInfo {
   val resourceItem: ResourceItem
 
-  constructor (element: PsiElement, resourceItem: ResourceItem) : super(element) {
+  constructor(element: PsiElement, resourceItem: ResourceItem) : super(element) {
     this.resourceItem = resourceItem
   }
 
-  constructor (
+  constructor(
     smartPointer: SmartPsiElementPointer<*>,
     psiFileRange: SmartPsiFileRange,
-    resourceItem: ResourceItem
+    resourceItem: ResourceItem,
   ) : super(smartPointer, psiFileRange, false, false) {
     this.resourceItem = resourceItem
   }
 }
 
-class PreviewDialog(
-  project: Project?,
-  graph: AndroidCodeAndResourcesGraph,
-  infos: Array<UsageInfo>,
-  shouldSelectAllReferences: Boolean
-) : DialogWrapper(project, true) {
+class PreviewDialog(project: Project?, graph: AndroidCodeAndResourcesGraph, infos: Array<UsageInfo>, shouldSelectAllReferences: Boolean) :
+  DialogWrapper(project, true) {
 
   private val myPanel = AndroidModularizePreviewPanel(graph, infos, shouldSelectAllReferences)
 
@@ -385,5 +383,6 @@ class PreviewDialog(
 
   override fun createCenterPanel(): JComponent = myPanel.panel
 
-  val selectedUsages: Array<UsageInfo> get() = myPanel.selectedUsages
+  val selectedUsages: Array<UsageInfo>
+    get() = myPanel.selectedUsages
 }

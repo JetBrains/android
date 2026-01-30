@@ -102,13 +102,9 @@ class AppInspectionTreeLoaderTest {
     AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example")
   }
 
-  /**
-   * Generate fake data containing hand-crafted layout information that can be used for generating
-   * trees.
-   */
+  /** Generate fake data containing hand-crafted layout information that can be used for generating trees. */
   private fun createFakeData(
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type =
-      LayoutInspectorViewProtocol.Screenshot.Type.SKP,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP,
     bitmapType: BitmapType = BitmapType.RGB_565,
     pendingRecompositionCountReset: Boolean = true,
     hasScreenshot: Boolean = true,
@@ -129,11 +125,7 @@ class AppInspectionTreeLoaderTest {
             configurationBuilder.apply {
               countryCode = 310
               networkCode = 410
-              screenLayout =
-                SCREENLAYOUT_SIZE_SMALL or
-                  SCREENLAYOUT_LONG_YES or
-                  SCREENLAYOUT_LAYOUTDIR_RTL or
-                  SCREENLAYOUT_ROUND_YES
+              screenLayout = SCREENLAYOUT_SIZE_SMALL or SCREENLAYOUT_LONG_YES or SCREENLAYOUT_LAYOUTDIR_RTL or SCREENLAYOUT_ROUND_YES
               colorMode = COLOR_MODE_WIDE_COLOR_GAMUT_YES or COLOR_MODE_HDR_YES
               touchScreen = TOUCHSCREEN_STYLUS
               keyboard = KEYBOARD_QWERTY
@@ -149,13 +141,7 @@ class AppInspectionTreeLoaderTest {
               screenHeightDp = 800
               grammaticalGender = GRAMMATICAL_GENDER_FEMININE
             }
-            val display =
-              LayoutInspectorViewProtocol.Display.newBuilder()
-                .setWidth(480)
-                .setHeight(800)
-                .setOrientation(90)
-                .setId(1)
-                .build()
+            val display = LayoutInspectorViewProtocol.Display.newBuilder().setWidth(480).setHeight(800).setOrientation(90).setId(1).build()
             addDisplayInfo(display)
             themeBuilder.apply {
               type = 7
@@ -191,11 +177,7 @@ class AppInspectionTreeLoaderTest {
                     id = 4
                     packageName = 2
                     className = 4
-                    bounds =
-                      ViewBounds(
-                        ViewRect(30, 120, 40, 50),
-                        ViewQuad(25, 125, 75, 127, 23, 250, 78, 253),
-                      )
+                    bounds = ViewBounds(ViewRect(30, 120, 40, 50), ViewQuad(25, 125, 75, 127, 23, 250, 78, 253))
                   }
 
                   ViewNode {
@@ -211,15 +193,13 @@ class AppInspectionTreeLoaderTest {
           if (hasScreenshot) {
             screenshotBuilder.apply {
               type = screenshotType
-              bytes =
-                ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
+              bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
             }
           }
         }
         .build()
 
-    val nestedFlag =
-      LayoutInspectorComposeProtocol.ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE
+    val nestedFlag = LayoutInspectorComposeProtocol.ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE
     val composablesResponse =
       LayoutInspectorComposeProtocol.GetComposablesResponse.newBuilder()
         .apply {
@@ -349,10 +329,7 @@ class AppInspectionTreeLoaderTest {
         1,
         listOf(
           SkiaViewNode(1, image1),
-          SkiaViewNode(
-            2,
-            listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3)))),
-          ),
+          SkiaViewNode(2, listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3))))),
           SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
           SkiaViewNode(5, listOf(SkiaViewNode(5, image5))),
         ),
@@ -383,8 +360,7 @@ class AppInspectionTreeLoaderTest {
 
     val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
     val lookup = ResourceLookup(projectRule.project)
-    val (window, generation) =
-      treeLoader.loadComponentTree(data, lookup, DEVICE_1.createProcess())!!
+    val (window, generation) = treeLoader.loadComponentTree(data, lookup, DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
 
     runBlocking { window!!.refreshImages(1.0) }
@@ -445,28 +421,22 @@ class AppInspectionTreeLoaderTest {
       val cNode2 = node6.children[0] as ComposeViewNode
       assertThat(cNode2.drawId).isEqualTo(-2)
       assertThat(cNode2.qualifiedName).isEqualTo("Surface")
-      assertThat(cNode2.recompositions.count)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
-      assertThat(cNode2.recompositions.skips)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode2.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
+      assertThat(cNode2.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode2.children.map { it.drawId }).containsExactly(-3L)
 
       val cNode3 = cNode2.children[0] as ComposeViewNode
       assertThat(cNode3.drawId).isEqualTo(-3)
       assertThat(cNode3.qualifiedName).isEqualTo("Button")
-      assertThat(cNode3.recompositions.count)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
-      assertThat(cNode3.recompositions.skips)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode3.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
+      assertThat(cNode3.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode3.children.map { it.drawId }).containsExactly(-4L)
 
       val cNode4 = cNode3.children[0] as ComposeViewNode
       assertThat(cNode4.drawId).isEqualTo(-4)
       assertThat(cNode4.qualifiedName).isEqualTo("Text")
-      assertThat(cNode4.recompositions.count)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-      assertThat(cNode4.recompositions.skips)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode4.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode4.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode4.children.map { it.drawId }).containsExactly(-5L)
 
       val cNode5 = cNode4.children[0] as ComposeViewNode
@@ -512,19 +482,15 @@ class AppInspectionTreeLoaderTest {
       val cNode10 = cNode9.children[0] as ComposeViewNode
       assertThat(cNode10.drawId).isEqualTo(-10)
       assertThat(cNode10.qualifiedName).isEqualTo("Button")
-      assertThat(cNode10.recompositions.count)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-      assertThat(cNode10.recompositions.skips)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
       assertThat(cNode10.children).hasSize(1)
 
       val cNode11 = cNode10.children[0] as ComposeViewNode
       assertThat(cNode11.drawId).isEqualTo(-11)
       assertThat(cNode11.qualifiedName).isEqualTo("Text")
-      assertThat(cNode11.recompositions.count)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode11.recompositions.skips)
-        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode11.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode11.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
       assertThat(cNode11.children).isEmpty()
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
@@ -539,9 +505,7 @@ class AppInspectionTreeLoaderTest {
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
     val skiaParser: SkiaParser = mock()
-    whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer {
-      skiaAnswer()
-    }
+    whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
     val notificationModel = NotificationModel(projectRule.project)
     val treeLoader =
@@ -550,12 +514,7 @@ class AppInspectionTreeLoaderTest {
         logEvent = { fail() }, // Metrics shouldn't be logged until we come back with a screenshot
         skiaParser,
       )
-    val (window, _) =
-      treeLoader.loadComponentTree(
-        createFakeData(),
-        ResourceLookup(projectRule.project),
-        DEVICE_1.createProcess(),
-      )!!
+    val (window, _) = treeLoader.loadComponentTree(createFakeData(), ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     runBlocking { window!!.refreshImages(1.0) }
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
@@ -565,59 +524,43 @@ class AppInspectionTreeLoaderTest {
 
   @Test
   fun testUnsupportedSkpVersion() {
-    assertExpectedErrorIfSkiaRespondsWith(
-      "No renderer supporting SKP version 123 found. Rotation disabled."
-    ) {
+    assertExpectedErrorIfSkiaRespondsWith("No renderer supporting SKP version 123 found. Rotation disabled.") {
       throw UnsupportedPictureVersionException(123)
     }
   }
 
   @Test
   fun testSkpParsingFailed() {
-    assertExpectedErrorIfSkiaRespondsWith(
-      "Invalid picture data received from device. Rotation disabled."
-    ) {
+    assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
       throw ParsingFailedException()
     }
   }
 
   @Test
   fun testInvalidSkp() {
-    assertExpectedErrorIfSkiaRespondsWith(
-      "Invalid picture data received from device. Rotation disabled."
-    ) {
+    assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
       throw InvalidPictureException()
     }
   }
 
   @Test
   fun testGeneralException() {
-    assertExpectedErrorIfSkiaRespondsWith("Problem launching renderer. Rotation disabled.") {
-      throw Exception()
-    }
+    assertExpectedErrorIfSkiaRespondsWith("Problem launching renderer. Rotation disabled.") { throw Exception() }
   }
 
   @Test
   fun testCanProcessBitmapScreenshots() = runBlocking {
     val skiaParser: SkiaParser = mock()
-    whenever(skiaParser.getViewTree(any(), any(), any(), any()))
-      .thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     val treeLoader =
       AppInspectionTreeLoader(
         NotificationModel(projectRule.project),
-        logEvent = {
-          assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
-        },
+        logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
         skiaParser,
       )
 
     val data = createFakeData(BITMAP)
-    val (window, generation) =
-      treeLoader.loadComponentTree(
-        data,
-        ResourceLookup(projectRule.project),
-        DEVICE_1.createProcess(),
-      )!!
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
 
@@ -625,12 +568,7 @@ class AppInspectionTreeLoaderTest {
     ImageDiffUtil.assertImageSimilar("image1.png", sample565.image, resultImage, 0.01)
 
     val data2 = createFakeData(BITMAP, bitmapType = BitmapType.ARGB_8888)
-    val (window2, _) =
-      treeLoader.loadComponentTree(
-        data2,
-        ResourceLookup(projectRule.project),
-        DEVICE_1.createProcess(),
-      )!!
+    val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     window2!!.refreshImages(1.0)
 
     val resultImage2 = ViewNode.readAccess { (window2.root.drawChildren[0] as DrawViewImage).image }
@@ -640,31 +578,20 @@ class AppInspectionTreeLoaderTest {
   @Test
   fun testCanProcessWithoutScreenshot() {
     val skiaParser: SkiaParser = mock()
-    whenever(skiaParser.getViewTree(any(), any(), any(), any()))
-      .thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     val treeLoader =
       AppInspectionTreeLoader(
         NotificationModel(projectRule.project),
-        logEvent = {
-          assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
-        },
+        logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
         skiaParser,
       )
 
     val data = createFakeData(hasScreenshot = false)
-    val (window, generation) =
-      treeLoader.loadComponentTree(
-        data,
-        ResourceLookup(projectRule.project),
-        DEVICE_1.createProcess(),
-      )!!
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), DEVICE_1.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
     runBlocking { window!!.refreshImages(1.0) }
 
-    val hasDrawViewImage =
-      ViewNode.readAccess {
-        (window!!.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty())
-      }
+    val hasDrawViewImage = ViewNode.readAccess { (window!!.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty()) }
     assertThat(hasDrawViewImage).isFalse()
   }
 }

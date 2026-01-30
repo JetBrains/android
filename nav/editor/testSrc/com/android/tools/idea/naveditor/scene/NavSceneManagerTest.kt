@@ -73,14 +73,7 @@ class NavSceneManagerTest : NavTestCase() {
 
   fun testLandscape() {
     val model =
-      NavModelBuilderUtil.model(
-          "nav.xml",
-          myFacet,
-          myFixture,
-          { navigation { fragment("fragment1") } },
-          "navigation-land",
-        )
-        .build()
+      NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation { fragment("fragment1") } }, "navigation-land").build()
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!
     assertEquals(256, component.drawWidth)
@@ -89,14 +82,7 @@ class NavSceneManagerTest : NavTestCase() {
 
   fun testPortrait() {
     val model =
-      NavModelBuilderUtil.model(
-          "nav.xml",
-          myFacet,
-          myFixture,
-          { navigation { fragment("fragment1") } },
-          "navigation-port",
-        )
-        .build()
+      NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation { fragment("fragment1") } }, "navigation-port").build()
     val scene = model.surface.scene!!
     val component = scene.getSceneComponent("fragment1")!!
     assertEquals(153, component.drawWidth)
@@ -185,16 +171,9 @@ class NavSceneManagerTest : NavTestCase() {
       )
 
     val fragmentClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("android.support.v4.app.Fragment", GlobalSearchScope.allScope(project))!!
+      JavaPsiFacade.getInstance(project).findClass("android.support.v4.app.Fragment", GlobalSearchScope.allScope(project))!!
     listOf("first", "second", "third", "fourth", "fifth").forEach {
-      val destination =
-        Destination.RegularDestination(
-          currentNavigation,
-          "fragment",
-          idBase = it,
-          destinationClass = fragmentClass,
-        )
+      val destination = Destination.RegularDestination(currentNavigation, "fragment", idBase = it, destinationClass = fragmentClass)
       WriteCommandAction.runWriteCommandAction(project) { destination.addToGraph() }
       destination.component!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       sceneManager.update()
@@ -210,8 +189,7 @@ class NavSceneManagerTest : NavTestCase() {
   fun testActivateUpdates() {
     lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
 
-    val modelBuilder =
-      modelBuilder("nav.xml") { navigation { fragment("fragment1") }.also { root = it } }
+    val modelBuilder = modelBuilder("nav.xml") { navigation { fragment("fragment1") }.also { root = it } }
     val model = modelBuilder.build(false)
 
     val sceneManager = model.surface.getSceneManager(model) as NavSceneManager

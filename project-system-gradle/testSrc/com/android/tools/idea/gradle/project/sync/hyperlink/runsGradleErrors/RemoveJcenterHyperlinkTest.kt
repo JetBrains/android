@@ -30,12 +30,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 
-/**
- * Tests for [RemoveJcenterHyperlink]
- */
+/** Tests for [RemoveJcenterHyperlink] */
 class RemoveJcenterHyperlinkTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   val project: Project by lazy { projectRule.project }
 
@@ -59,9 +56,7 @@ class RemoveJcenterHyperlinkTest {
 
     // Add jcenter to project build.gradle
     projectBuildModel.projectBuildModel!!.buildscript().repositories().addRepositoryByMethodName("jcenter")
-    WriteCommandAction.runWriteCommandAction(project) {
-      projectBuildModel.applyChanges()
-    }
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
 
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
     val quickfix = RemoveJcenterHyperlink(project, listOf(module))
@@ -76,9 +71,7 @@ class RemoveJcenterHyperlinkTest {
 
     // Add to settings.gradle
     projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().addRepositoryByMethodName("jcenter")
-    WriteCommandAction.runWriteCommandAction(project) {
-      projectBuildModel.applyChanges()
-    }
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
     val quickfix = RemoveJcenterHyperlink(project, listOf(module))
     quickfix.applyFix(project, mockProcessor)
@@ -92,9 +85,7 @@ class RemoveJcenterHyperlinkTest {
 
     // Add to module build.gradle
     projectBuildModel.getModuleBuildModel(module)!!.repositories().addRepositoryByMethodName("jcenter")
-    WriteCommandAction.runWriteCommandAction(project) {
-      projectBuildModel.applyChanges()
-    }
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
     val quickfix = RemoveJcenterHyperlink(project, listOf(module))
     quickfix.applyFix(project, mockProcessor)

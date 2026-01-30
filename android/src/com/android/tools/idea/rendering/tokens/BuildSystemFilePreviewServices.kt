@@ -40,15 +40,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import java.nio.file.Path
 
-/**
- * A project system specific set of services required by UI tools to manage builds and fetch build artifacts needed for rendering.
- */
+/** A project system specific set of services required by UI tools to manage builds and fetch build artifacts needed for rendering. */
 interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTargetReference> : Token {
   fun isApplicable(buildTargetReference: BuildTargetReference): Boolean
 
   /**
-   * A collection of services used by [BuildTargetReference]'s companion object to obtain build target references from references to
-   * source code in the IDE.
+   * A collection of services used by [BuildTargetReference]'s companion object to obtain build target references from references to source
+   * code in the IDE.
    */
   interface BuildTargets {
     /**
@@ -61,9 +59,7 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
     fun from(module: Module, targetFile: VirtualFile): BuildTargetReference
   }
 
-  /**
-   * A collection of services used by UI tools to query the status and build artifacts required for rendering.
-   */
+  /** A collection of services used by UI tools to query the status and build artifacts required for rendering. */
   interface BuildServices<R : BuildTargetReference> {
     fun getLastCompileStatus(buildTarget: R): ProjectSystemBuildManager.BuildStatus
 
@@ -75,9 +71,7 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
     fun buildArtifacts(buildTargets: Collection<R>)
   }
 
-  /**
-   * A collection of services required to render previews in a [BuildTargetReference] for which it was obtained.
-   */
+  /** A collection of services required to render previews in a [BuildTargetReference] for which it was obtained. */
   interface RenderingServices {
     /**
      * An instance of [ClassFileFinder] that can find classes built by targets within the project scope, i.e. not classes coming from
@@ -92,14 +86,10 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
     val externalLibraries: Iterable<Path>
   }
 
-  /**
-   * An instance of [BuildTargets] services.
-   */
+  /** An instance of [BuildTargets] services. */
   val buildTargets: BuildTargets
 
-  /**
-   * An instance of [BuildServices].
-   */
+  /** An instance of [BuildServices]. */
   val buildServices: BuildServices<R>
 
   /**
@@ -112,18 +102,16 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
    */
   fun getApplicationLiveEditServices(buildTargetReference: R): ApplicationLiveEditServices
 
-  /**
-   * A listener that can be subscribed to receive events related to builds that might affect rendering related build artifacts.
-   */
+  /** A listener that can be subscribed to receive events related to builds that might affect rendering related build artifacts. */
   interface BuildListener {
-    enum class BuildMode { CLEAN, COMPILE }
-    /**
-     * The result of a build.
-     */
+    enum class BuildMode {
+      CLEAN,
+      COMPILE,
+    }
+
+    /** The result of a build. */
     data class BuildResult(
-      /**
-       * The final status of the build.
-       */
+      /** The final status of the build. */
       val status: BuildStatus,
       /**
        * A predicate (a global search scope) that can be used to test whether a virtual file is known to be included in the scope of the
@@ -131,7 +119,7 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
        *
        * Implementations may narrow the scope of a [BuildMode.COMPILE] build if the exact scope is not known.
        */
-      val scope: GlobalSearchScope
+      val scope: GlobalSearchScope,
     )
 
     /**
@@ -139,8 +127,7 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
      *
      * [buildResult] future will complete **on the EDT** when the build completes.
      */
-    @UiThread
-    fun buildStarted(buildMode: BuildMode, buildResult: ListenableFuture<BuildResult>)
+    @UiThread fun buildStarted(buildMode: BuildMode, buildResult: ListenableFuture<BuildResult>)
   }
 
   /**
@@ -159,14 +146,14 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
     /**
      * Returns an instance of [BuildSystemFilePreviewServices] applicable to [this] project system.
      *
-     * Note, that the method returns an interface projection that does not accept [BuildTargetReference]s.
-     * Use [BuildTargetReference.getBuildSystemFilePreviewServices] to get an instance suitable for handling build target references.
+     * Note, that the method returns an interface projection that does not accept [BuildTargetReference]s. Use
+     * [BuildTargetReference.getBuildSystemFilePreviewServices] to get an instance suitable for handling build target references.
      */
     fun AndroidProjectSystem.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, *> {
       return getToken(EP_NAME)
     }
 
-    fun <R: BuildTargetReference> R.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, R> {
+    fun <R : BuildTargetReference> R.getBuildSystemFilePreviewServices(): BuildSystemFilePreviewServices<*, R> {
       @Suppress("UNCHECKED_CAST")
       return EP_NAME.extensionList.singleOrNull { it.isApplicable(this) } as? BuildSystemFilePreviewServices<*, R>
         ?: error("${BuildSystemFilePreviewServices::class.java} token is not available for $this")
@@ -189,11 +176,10 @@ fun Project.requestBuildArtifactsForRendering(file: VirtualFile) = requestBuildA
 fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
   val buildTargetReferences = getBuildTargetReferences(files.distinct()).distinct()
 
-  buildTargetReferences.map { it to it.getBuildSystemFilePreviewServices() }
+  buildTargetReferences
+    .map { it to it.getBuildSystemFilePreviewServices() }
     .groupBy { it.second.buildServices }
-    .forEach { (buildServices, references) ->
-      buildServices.buildArtifacts(buildTargetReferences)
-    }
+    .forEach { (buildServices, references) -> buildServices.buildArtifacts(buildTargetReferences) }
 }
 
 internal fun Project.getBuildTargetReferences(files: Iterable<VirtualFile>): Collection<BuildTargetReference> {
@@ -202,18 +188,14 @@ internal fun Project.getBuildTargetReferences(files: Iterable<VirtualFile>): Col
 
   return runReadAction {
     files
-      .map {
-        @Suppress("UnstableApiUsage")
-        if (it is BackedVirtualFile) it.originFile else it
-      }
+      .map { @Suppress("UnstableApiUsage") if (it is BackedVirtualFile) it.originFile else it }
       .mapNotNull {
         val module = index.getModuleForFile(it)?.findAndroidModule()
 
         if (module == null) {
           thisLogger().error("Cannot find the Android module for $it")
           null
-        }
-        else {
+        } else {
           targets.from(module, it)
         }
       }

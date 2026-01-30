@@ -49,9 +49,7 @@ class InputTypeEditorTest {
     editor.typeModel.selectedItem = "text"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(editor.typeModel.selectedItem).isEqualTo("text")
-    assertThat(editor.typeModel.displayStrings)
-      .containsExactly("text", "number", "datetime", "phone")
-      .inOrder()
+    assertThat(editor.typeModel.displayStrings).containsExactly("text", "number", "datetime", "phone").inOrder()
     assertThat(editor.variationModel.displayStrings)
       .containsExactly(
         "text",
@@ -93,15 +91,9 @@ class InputTypeEditorTest {
     editor.typeModel.selectedItem = "number"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(editor.typeModel.selectedItem).isEqualTo("number")
-    assertThat(editor.typeModel.displayStrings)
-      .containsExactly("text", "number", "datetime", "phone")
-      .inOrder()
-    assertThat(editor.variationModel.displayStrings)
-      .containsExactly("number", "numberPassword")
-      .inOrder()
-    assertThat(editor.flagsModel.flags.map { it.name })
-      .containsExactly("numberDecimal", "numberSigned")
-      .inOrder()
+    assertThat(editor.typeModel.displayStrings).containsExactly("text", "number", "datetime", "phone").inOrder()
+    assertThat(editor.variationModel.displayStrings).containsExactly("number", "numberPassword").inOrder()
+    assertThat(editor.flagsModel.flags.map { it.name }).containsExactly("numberDecimal", "numberSigned").inOrder()
   }
 
   @Test
@@ -111,12 +103,8 @@ class InputTypeEditorTest {
     editor.typeModel.selectedItem = "datetime"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(editor.typeModel.selectedItem).isEqualTo("datetime")
-    assertThat(editor.typeModel.displayStrings)
-      .containsExactly("text", "number", "datetime", "phone")
-      .inOrder()
-    assertThat(editor.variationModel.displayStrings)
-      .containsExactly("datetime", "date", "time")
-      .inOrder()
+    assertThat(editor.typeModel.displayStrings).containsExactly("text", "number", "datetime", "phone").inOrder()
+    assertThat(editor.variationModel.displayStrings).containsExactly("datetime", "date", "time").inOrder()
     assertThat(editor.flagsModel.flags.map { it.name }).isEmpty()
   }
 
@@ -127,9 +115,7 @@ class InputTypeEditorTest {
     editor.typeModel.selectedItem = "phone"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(editor.typeModel.selectedItem).isEqualTo("phone")
-    assertThat(editor.typeModel.displayStrings)
-      .containsExactly("text", "number", "datetime", "phone")
-      .inOrder()
+    assertThat(editor.typeModel.displayStrings).containsExactly("text", "number", "datetime", "phone").inOrder()
     assertThat(editor.variationModel.displayStrings).containsExactly("phone")
     assertThat(editor.flagsModel.flags.map { it.name }).isEmpty()
   }
@@ -185,21 +171,17 @@ class InputTypeEditorTest {
     assertThat(editor.typeModel.selectedItem).isEqualTo("text")
     assertThat(editor.variationModel.selectedItem).isEqualTo("textPersonName")
     val checkBoxes = UIUtil.findComponentsOfType(editor, JCheckBox::class.java)
-    checkBoxes.forEach { checkBox ->
-      assertThat(checkBox.isSelected).isEqualTo(checkBox.text == "textCapWords")
-    }
+    checkBoxes.forEach { checkBox -> assertThat(checkBox.isSelected).isEqualTo(checkBox.text == "textCapWords") }
 
     checkBoxes[0].isSelected = true
     UIUtil.dispatchAllInvocationEvents()
     assertThat(property.value).isEqualTo("text|textPersonName|textAutoComplete|textCapWords")
     checkBoxes[1].isSelected = true
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(property.value)
-      .isEqualTo("text|textPersonName|textAutoComplete|textAutoCorrect|textCapWords")
+    assertThat(property.value).isEqualTo("text|textPersonName|textAutoComplete|textAutoCorrect|textCapWords")
     editor.variationModel.selectedItem = "textLongMessage"
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(property.value)
-      .isEqualTo("text|textLongMessage|textAutoComplete|textAutoCorrect|textCapWords")
+    assertThat(property.value).isEqualTo("text|textLongMessage|textAutoComplete|textAutoCorrect|textCapWords")
     editor.typeModel.selectedItem = "number"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(property.value).isEqualTo("number")
@@ -207,27 +189,13 @@ class InputTypeEditorTest {
 
   private fun createProperty(): InputTypePropertyItem {
     val util = SupportTestUtil(projectRule, createTestLayout())
-    util.waitForPropertiesUpdate(
-      1
-    ) // The layout is selected initially. Wait to avoid exceptions during clean up.
+    util.waitForPropertiesUpdate(1) // The layout is selected initially. Wait to avoid exceptions during clean up.
     val model = util.model
     val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager!!
     val systemAttrDefinitions = frameworkResourceManager.attributeDefinitions!!
-    val definition =
-      systemAttrDefinitions.getAttrDefinition(
-        ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_INPUT_TYPE)
-      )!!
-    return InputTypePropertyItem(
-      ANDROID_URI,
-      ATTR_INPUT_TYPE,
-      NlPropertyType.FLAGS,
-      definition,
-      "",
-      "",
-      model,
-      util.components,
-    )
+    val definition = systemAttrDefinitions.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_INPUT_TYPE))!!
+    return InputTypePropertyItem(ANDROID_URI, ATTR_INPUT_TYPE, NlPropertyType.FLAGS, definition, "", "", model, util.components)
   }
 
   private fun createTestLayout(): ComponentDescriptor =

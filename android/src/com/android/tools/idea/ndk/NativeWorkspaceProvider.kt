@@ -31,11 +31,12 @@ data class NativeHeaderDir(
   /** Whether this header is built-in by Clang compiler. */
   val isBuiltin: Boolean,
   /** Whether this header is specified by user. */
-  val isUser: Boolean)
+  val isUser: Boolean,
+)
 
 enum class NativeLanguageKind {
   C,
-  CPP
+  CPP,
 }
 
 /** Compiler settings for a native source file. */
@@ -46,7 +47,7 @@ data class NativeCompilerSetting(
   val compilerExe: File,
   val compilerWorkingDir: File,
   val compilerFlags: List<String>,
-  val source: VirtualFile
+  val source: VirtualFile,
 )
 
 /** Provider of native configurations. */
@@ -56,22 +57,16 @@ interface NativeWorkspaceProvider {
 
     /** Gets additional native files that are not under any source roots for each module. */
     fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> =
-      EP_NAME.extensionList.asSequence().flatMap {
-        it.getAdditionalNativeFiles(module)
-      }.toSet()
+      EP_NAME.extensionList.asSequence().flatMap { it.getAdditionalNativeFiles(module) }.toSet()
 
     fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
-      EP_NAME.extensionList.asSequence().flatMap {
-        it.getNativeHeaderDirs(project, moduleVariantAbi)
-      }.toSet()
+      EP_NAME.extensionList.asSequence().flatMap { it.getNativeHeaderDirs(project, moduleVariantAbi) }.toSet()
 
     fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> =
-      EP_NAME.extensionList.asSequence().flatMap {
-        it.getCompilerSettings(project, filter).asSequence()
-      }.asStream()
+      EP_NAME.extensionList.asSequence().flatMap { it.getCompilerSettings(project, filter).asSequence() }.asStream()
 
-    fun shouldShowInProjectView(module: Module,
-                                file: File): Boolean = EP_NAME.extensionList.any { it.shouldShowInProjectView(module, file) }
+    fun shouldShowInProjectView(module: Module, file: File): Boolean =
+      EP_NAME.extensionList.any { it.shouldShowInProjectView(module, file) }
   }
 
   /** Gets additional native files that are not under any source roots for each module. */
@@ -85,4 +80,3 @@ interface NativeWorkspaceProvider {
 
   fun shouldShowInProjectView(module: Module, file: File): Boolean
 }
-

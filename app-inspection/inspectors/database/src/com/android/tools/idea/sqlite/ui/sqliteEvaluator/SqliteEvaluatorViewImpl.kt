@@ -71,9 +71,7 @@ class SqliteEvaluatorViewImpl(
   override val tableView: TableView,
   private val schemaProvider: SchemaProvider,
   private val dropPsiCaches: () -> Unit = {
-    ApplicationManager.getApplication().invokeLaterOnWriteThread {
-      PsiManager.getInstance(project).dropPsiCaches()
-    }
+    ApplicationManager.getApplication().invokeLaterOnWriteThread { PsiManager.getInstance(project).dropPsiCaches() }
   },
 ) : SqliteEvaluatorView {
 
@@ -134,8 +132,7 @@ class SqliteEvaluatorViewImpl(
     databaseComboBox.apply {
       addActionListener {
         setSchemaFromSelectedItem()
-        val sqliteDatabaseId =
-          databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+        val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
 
         listeners.forEach { it.onDatabaseSelected(sqliteDatabaseId) }
       }
@@ -155,8 +152,7 @@ class SqliteEvaluatorViewImpl(
               icon =
                 when (sqliteDatabase) {
                   is SqliteDatabaseId.LiveSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE
-                  is SqliteDatabaseId.FileSqliteDatabaseId ->
-                    StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+                  is SqliteDatabaseId.FileSqliteDatabaseId -> StudioIcons.DatabaseInspector.DATABASE_OFFLINE
                 }
               append(sqliteDatabase.name)
             } else {
@@ -185,12 +181,8 @@ class SqliteEvaluatorViewImpl(
     val shortcutsMultiline = active.getShortcuts("Console.Execute.Multiline")
     val keyStrokeMultiline =
       KeymapUtil.getKeyStroke(CustomShortcutSet(*shortcutsMultiline))
-        ?: KeyStroke.getKeyStroke(
-          KeyEvent.VK_ENTER,
-          Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx,
-        )
-    val shortcutText =
-      KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
+        ?: KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx)
+    val shortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
 
     runButton.apply {
       toolTipText = "Run SQLite expression ($shortcutText)"
@@ -246,9 +238,7 @@ class SqliteEvaluatorViewImpl(
     val schema = schemaProvider.getSchema(database)
 
     val fileDocumentManager = FileDocumentManager.getInstance()
-    fileDocumentManager
-      .getFile(editorTextField.document)
-      ?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    fileDocumentManager.getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     // since the schema has changed we need to drop psi caches to re-run reference resolution and
     // highlighting in the editor text field.

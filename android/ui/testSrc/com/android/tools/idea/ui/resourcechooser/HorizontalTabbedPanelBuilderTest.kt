@@ -16,13 +16,13 @@
 package com.android.tools.idea.ui.resourcechooser
 
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.awt.Dimension
 import java.lang.IllegalArgumentException
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
@@ -32,9 +32,7 @@ class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
     run {
       // Test single component case
       val builder = HorizontalTabbedPanelBuilder()
-      val aPanel = JPanel().apply {
-        preferredSize = Dimension(200, 400)
-      }
+      val aPanel = JPanel().apply { preferredSize = Dimension(200, 400) }
       builder.addTab("A", aPanel)
       val tabbedPanel = builder.build()
       val tabHeight = (tabbedPanel as JTabbedPane).getTabComponentAt(0).height
@@ -45,12 +43,8 @@ class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
     run {
       // Test multiple components case. The size is maximum of components.
       val builder = HorizontalTabbedPanelBuilder()
-      val aPanel = JPanel().apply {
-        preferredSize = Dimension(250, 400)
-      }
-      val bPanel = JPanel().apply {
-        preferredSize = Dimension(200, 500)
-      }
+      val aPanel = JPanel().apply { preferredSize = Dimension(250, 400) }
+      val bPanel = JPanel().apply { preferredSize = Dimension(200, 500) }
       builder.addTab("A", aPanel)
       builder.addTab("B", bPanel)
       val tabbedPanel = builder.build()

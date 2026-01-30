@@ -32,41 +32,33 @@ private val DEFAULT_PREVIEW_SIZE = JBUI.scale(50)
 
 private const val DEFAULT_GRID_MODE = false
 
-/**
- * [JList] to display [ResourceAssetSet] and handle switching
- * between grid and list mode.
- */
-class AssetListView(
-  assets: List<ResourceAssetSet>,
-  speedSearch: SpeedSearch? = null
-) : JBList<ResourceAssetSet>() {
+/** [JList] to display [ResourceAssetSet] and handle switching between grid and list mode. */
+class AssetListView(assets: List<ResourceAssetSet>, speedSearch: SpeedSearch? = null) : JBList<ResourceAssetSet>() {
 
-  var isGridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, isGridMode ->
-    if (isGridMode) {
-      layoutOrientation = JList.HORIZONTAL_WRAP
-      assetView = SingleAssetCard()
-      setExpandableItemsEnabled(false)
+  var isGridMode: Boolean by
+    Delegates.observable(DEFAULT_GRID_MODE) { _, _, isGridMode ->
+      if (isGridMode) {
+        layoutOrientation = JList.HORIZONTAL_WRAP
+        assetView = SingleAssetCard()
+        setExpandableItemsEnabled(false)
+      } else {
+        layoutOrientation = JList.VERTICAL
+        assetView = RowAssetView()
+        setExpandableItemsEnabled(true)
+      }
+      updateCellSize()
     }
-    else {
-      layoutOrientation = JList.VERTICAL
-      assetView = RowAssetView()
-      setExpandableItemsEnabled(true)
-    }
-    updateCellSize()
-  }
 
   lateinit var assetView: AssetView
     private set
 
-
-  /**
-   * Width of the [AssetView] thumbnail container
-   */
-  var thumbnailWidth: Int  by Delegates.observable(DEFAULT_PREVIEW_SIZE) { _, oldWidth, newWidth ->
-    if (oldWidth != newWidth) {
-      updateCellSize()
+  /** Width of the [AssetView] thumbnail container */
+  var thumbnailWidth: Int by
+    Delegates.observable(DEFAULT_PREVIEW_SIZE) { _, oldWidth, newWidth ->
+      if (oldWidth != newWidth) {
+        updateCellSize()
+      }
     }
-  }
 
   private val filteringListModel: FilteringListModel<ResourceAssetSet>?
 
@@ -79,16 +71,13 @@ class AssetListView(
       speedSearch.setEnabled(true)
       filteringListModel = ResourceAssetSetFilteringListModel(collectionListModel, speedSearch::shouldBeShowing)
       model = filteringListModel
-    }
-    else {
+    } else {
       filteringListModel = null
       model = collectionListModel
     }
   }
 
-  /**
-   * If a [SpeedSearch] was provided in constructor, filters the list items using the [SpeedSearch.getFilter].
-   */
+  /** If a [SpeedSearch] was provided in constructor, filters the list items using the [SpeedSearch.getFilter]. */
   fun refilter() {
     filteringListModel?.refilter()
   }

@@ -45,17 +45,11 @@ class AnimatedVisibilityManagerTest : AnimationPreviewTests() {
 
   @Test fun swapStatesFromStringEnter() = runTest { swapStates("Enter", "Enter", "Exit") }
 
-  @Test
-  fun swapStatesFromEnter() = runTest {
-    swapStates(TestClock.AnimatedVisibilityState.Enter, "Enter", "Exit")
-  }
+  @Test fun swapStatesFromEnter() = runTest { swapStates(TestClock.AnimatedVisibilityState.Enter, "Enter", "Exit") }
 
   @Test fun swapStateFromStringExit() = runTest { swapStates("Exit", "Exit", "Enter") }
 
-  @Test
-  fun swapStateFromExit() = runTest {
-    swapStates(TestClock.AnimatedVisibilityState.Exit, "Exit", "Enter")
-  }
+  @Test fun swapStateFromExit() = runTest { swapStates(TestClock.AnimatedVisibilityState.Exit, "Exit", "Enter") }
 
   private fun swapStates(initialState: Any, initialText: String, newText: String) = runTest {
     var lastState = initialState
@@ -99,8 +93,7 @@ class AnimatedVisibilityManagerTest : AnimationPreviewTests() {
       runCurrent()
       advanceUntilIdle()
       waitForCondition(60.seconds) { numberOfCalls == 1 }
-      val sliders =
-        TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
+      val sliders = TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       // Change time again.
@@ -125,8 +118,7 @@ class AnimatedVisibilityManagerTest : AnimationPreviewTests() {
       object : ComposeAnimation {
         override val animationObject = Any()
         override val type = ComposeAnimationType.ANIMATED_VISIBILITY
-        override val states =
-          setOf(TestClock.AnimatedVisibilityState.Enter, TestClock.AnimatedVisibilityState.Exit)
+        override val states = setOf(TestClock.AnimatedVisibilityState.Enter, TestClock.AnimatedVisibilityState.Exit)
       }
 
     surface.sceneManagers.forEach { it.requestRenderAndWait() }

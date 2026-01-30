@@ -29,49 +29,57 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
-/**
- * Gradle Task Manager for configuring Android test tasks.
- */
-class GradleAndroidTestsTaskManager(
-  private val deviceLauncher: (project: Project) -> List<String> = ::launchDevices
-) : GradleTaskManagerExtension {
+/** Gradle Task Manager for configuring Android test tasks. */
+class GradleAndroidTestsTaskManager(private val deviceLauncher: (project: Project) -> List<String> = ::launchDevices) :
+  GradleTaskManagerExtension {
 
-  override fun configureTasks(projectPath: String,
-                              id: ExternalSystemTaskId,
-                              settings: GradleExecutionSettings,
-                              gradleVersion: GradleVersion?) {
-    if (ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() &&
-        (settings.getUserData(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) == true)) {
+  override fun configureTasks(
+    projectPath: String,
+    id: ExternalSystemTaskId,
+    settings: GradleExecutionSettings,
+    gradleVersion: GradleVersion?,
+  ) {
+    if (
+      ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() &&
+        (settings.getUserData(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) == true)
+    ) {
       settings.addInitScript(
         "addTestListenerForAndroidTestSuiteView",
-        //language=groovy
+        // language=groovy
         """
-          gradle.taskGraph.whenReady { taskGraph ->
-            taskGraph.allTasks.each { Task task ->
-              if (task instanceof Test) {
-                task.jvmArgs += '-DPreviewScreenshotTestEngineInput.ReportEntrySetting.redirectToStdout=true'
-              }
+        gradle.taskGraph.whenReady { taskGraph ->
+          taskGraph.allTasks.each { Task task ->
+            if (task instanceof Test) {
+              task.jvmArgs += '-DPreviewScreenshotTestEngineInput.ReportEntrySetting.redirectToStdout=true'
             }
           }
-        """.trimIndent())
+        }
+        """
+          .trimIndent(),
+      )
     }
 
-    if ((ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()) &&
-        settings.getUserData(DeployableToDevice.KEY) == true) {
-      id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio }?.let { project ->
-        val deviceSerials = deviceLauncher(project)
-        if (deviceSerials.isEmpty()) {
-          UIUtil.invokeLaterIfNeeded {
-            Messages.showErrorDialog(
-              "To run this configuration, select a device from the dropdown. If no devices are available, please configure a new one.",
-              "No Device Found",
-            )
+    if (
+      (ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.get() || AGP_TEST_SUITES_ENABLED.get()) &&
+        settings.getUserData(DeployableToDevice.KEY) == true
+    ) {
+      id
+        .findProject()
+        ?.takeIf { IdeInfo.getInstance().isAndroidStudio }
+        ?.let { project ->
+          val deviceSerials = deviceLauncher(project)
+          if (deviceSerials.isEmpty()) {
+            UIUtil.invokeLaterIfNeeded {
+              Messages.showErrorDialog(
+                "To run this configuration, select a device from the dropdown. If no devices are available, please configure a new one.",
+                "No Device Found",
+              )
+            }
+            throw ProcessCanceledException() // Stops the execution.
           }
-          throw ProcessCanceledException() // Stops the execution.
-        }
 
-        settings.withEnvironmentVariables(mapOf("ANDROID_SERIAL" to deviceSerials.joinToString(",")))
-      }
+          settings.withEnvironmentVariables(mapOf("ANDROID_SERIAL" to deviceSerials.joinToString(",")))
+        }
     }
   }
 }

@@ -24,13 +24,12 @@ import javax.swing.JButton
 /**
  * A toggle button that can open/close a given issue.
  *
- * It always keeps the state up to date by using the [withIssue] callback(i.e. every time the issue
- * changes, any registered [withIssue] callbacks will be executed).
+ * It always keeps the state up to date by using the [withIssue] callback(i.e. every time the issue changes, any registered [withIssue]
+ * callbacks will be executed).
  *
- * [withIssue] is most likely going to be implemented via a flow collector in an arbitrary scope,
- * the reason [withIssue] is used here is that it avoids having to pass in both the
- * [kotlinx.coroutines.flow.Flow] and the [kotlinx.coroutines.CoroutineScope] which makes using and
- * testing it easier.
+ * [withIssue] is most likely going to be implemented via a flow collector in an arbitrary scope, the reason [withIssue] is used here is
+ * that it avoids having to pass in both the [kotlinx.coroutines.flow.Flow] and the [kotlinx.coroutines.CoroutineScope] which makes using
+ * and testing it easier.
  *
  * ```kotlin
  * val button = ToggleButton(
@@ -75,8 +74,7 @@ fun ToggleButton(
       }
     }
     button.toolTipText =
-      if (state.buttonState.permission != Permission.FULL)
-        "You don't have the necessary permissions to open/close issues."
+      if (state.buttonState.permission != Permission.FULL) "You don't have the necessary permissions to open/close issues."
       else if (state.buttonState.mode == ConnectionMode.OFFLINE) "AQI is offline." else null
   }
 
@@ -93,10 +91,6 @@ fun ToggleButton(
 
 data class ToggleButtonEnabledState(val permission: Permission, val mode: ConnectionMode)
 
-data class ToggleButtonState(
-  val issue: AppInsightsIssue,
-  val buttonState: ToggleButtonEnabledState,
-) {
-  fun shouldBeEnabled() =
-    buttonState.mode == ConnectionMode.ONLINE && buttonState.permission == Permission.FULL
+data class ToggleButtonState(val issue: AppInsightsIssue, val buttonState: ToggleButtonEnabledState) {
+  fun shouldBeEnabled() = buttonState.mode == ConnectionMode.ONLINE && buttonState.permission == Permission.FULL
 }

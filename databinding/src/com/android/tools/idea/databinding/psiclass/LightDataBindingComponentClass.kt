@@ -46,19 +46,14 @@ import org.jetbrains.annotations.NonNls
 /**
  * In-memory PSI for the generated DataBindingComponent class.
  *
- * Note: A DataBindingComponent's purpose is to be (optionally) subclassed in tests, to allow
- * overriding BindingAdapters with test-specific implementations if necessary. It is not expected
- * that a user would grab an instance of and interact with one, so its PSI fields and methods are
- * not implemented here.
+ * Note: A DataBindingComponent's purpose is to be (optionally) subclassed in tests, to allow overriding BindingAdapters with test-specific
+ * implementations if necessary. It is not expected that a user would grab an instance of and interact with one, so its PSI fields and
+ * methods are not implemented here.
  *
  * See also: https://developer.android.com/reference/android/databinding/DataBindingComponent
  */
 class LightDataBindingComponentClass
-private constructor(
-  psiManager: PsiManager,
-  private val facet: AndroidFacet,
-  private val dataBindingMode: DataBindingMode,
-) :
+private constructor(psiManager: PsiManager, private val facet: AndroidFacet, private val dataBindingMode: DataBindingMode) :
   AndroidLightClassBase(
     psiManager,
     setOf(PsiModifier.PUBLIC),
@@ -102,20 +97,11 @@ private constructor(
       JavaPsiFacade.getInstance(project).findClass(dataBindingMode.bindingAdapter, moduleScope)
         ?: return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker)
 
-    val psiElements =
-      AnnotatedElementsSearch.searchElements(
-          aClass,
-          facet.module.moduleScope,
-          PsiMethod::class.java,
-        )
-        .findAll()
+    val psiElements = AnnotatedElementsSearch.searchElements(aClass, facet.module.moduleScope, PsiMethod::class.java).findAll()
     var methodCount = 0
 
     val containingClasses =
-      psiElements
-        .filterIsInstance<PsiMethod>()
-        .filterNot { it.hasModifierProperty(PsiModifier.STATIC) }
-        .mapNotNull { it.containingClass }
+      psiElements.filterIsInstance<PsiMethod>().filterNot { it.hasModifierProperty(PsiModifier.STATIC) }.mapNotNull { it.containingClass }
     for (containingClass in containingClasses) {
       val className = requireNotNull(containingClass.name)
       val set = instanceAdapterClasses.getOrPut(className) { TreeSet() }
@@ -169,14 +155,9 @@ private constructor(
   override fun getModificationCount() = 0L
 
   companion object {
-    private fun createContainingFileInfo(
-      dataBindingMode: DataBindingMode
-    ): ContainingFileProvider.Builder {
+    private fun createContainingFileInfo(dataBindingMode: DataBindingMode): ContainingFileProvider.Builder {
       val normalizedPackageName = dataBindingMode.packageName.removeSuffix(".")
-      return ContainingFileProvider.Builder(
-          normalizedPackageName,
-          SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT,
-        )
+      return ContainingFileProvider.Builder(normalizedPackageName, SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT)
         .setContents(
           // language=Java
           """

@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
-import java.util.concurrent.CompletableFuture
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import kotlinx.coroutines.delay
@@ -73,8 +72,7 @@ object DesignSurfaceTestUtil {
     val pannable = TestPannable()
     whenever(surface.pannable).thenReturn(pannable)
     val interactable = TestInteractable(pannable, JPanel(), surface)
-    whenever(surface.guiInputHandler)
-      .thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
+    whenever(surface.guiInputHandler).thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
       whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
       whenever(surface.actionManager).thenReturn(NlActionManager(surface))
@@ -85,25 +83,17 @@ object DesignSurfaceTestUtil {
           }
         )
     } else {
-      whenever(surface.actionManager)
-        .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
+      whenever(surface.actionManager).thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     }
     Mockito.doAnswer { listeners.add(it.getArgument(0)) }.`when`(surface).addListener(any())
 
-    Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }
-      .whenever(surface)
-      .removeListener(any())
+    Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }.whenever(surface).removeListener(any())
 
-    selectionModel.addListener { _, selection ->
-      listeners.forEach { listener -> listener.componentSelectionChanged(surface, selection) }
-    }
+    selectionModel.addListener { _, selection -> listeners.forEach { listener -> listener.componentSelectionChanged(surface, selection) } }
     return surface
   }
 
-  /**
-   * FIXME(b/194482298): Refactor and remove this function. We don't need to give [SyncNlModel] when
-   * creating [DesignSurface].
-   */
+  /** FIXME(b/194482298): Refactor and remove this function. We don't need to give [SyncNlModel] when creating [DesignSurface]. */
   @JvmStatic
   fun createMockSurfaceWithModel(
     disposableParent: Disposable,
@@ -151,10 +141,7 @@ object DesignSurfaceTestUtil {
 
   @JvmStatic
   @JvmOverloads
-  fun createZoomControllerFake(
-    returnScale: Double = 1.0,
-    onZoom: ((ZoomType) -> Unit)? = null,
-  ): ZoomController =
+  fun createZoomControllerFake(returnScale: Double = 1.0, onZoom: ((ZoomType) -> Unit)? = null): ZoomController =
     object : ZoomController {
       override val scale: Double
         get() = returnScale

@@ -19,9 +19,7 @@ import com.intellij.psi.impl.compiled.ClsClassImpl
 import org.jetbrains.kotlin.analysis.decompiler.psi.file.KtClsFile
 import org.jetbrains.kotlin.asJava.KtClsJavaBasedLightClass
 
-class ClassFileKtSourceFinder(
-  private val ktClsFile: KtClsFile
-) : SourceFileInWorkspaceFinderBase(ktClsFile) {
+class ClassFileKtSourceFinder(private val ktClsFile: KtClsFile) : SourceFileInWorkspaceFinderBase(ktClsFile) {
 
   override fun getSourceFileNamesFromClasses(): Set<String> {
     return ktClsFile.classes

@@ -16,13 +16,9 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeExtraSourceProvider {
-  /**
-   * Returns the name matching `IdeArtifactMetaData.getName`
-   */
+  /** Returns the name matching `IdeArtifactMetaData.getName` */
   val artifactName: String
 
-  /**
-   * Returns the source provider
-   */
+  /** Returns the source provider */
   val sourceProvider: IdeSourceProvider?
 }

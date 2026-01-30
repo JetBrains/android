@@ -27,22 +27,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
 /**
- * This class handles changing [PreviewModeManager.mode] to [PreviewMode.Focus] whenever essentials
- * mode is activated, either through the Android Studio Essentials Mode or the Preview type's
- * specific Essentials mode.
+ * This class handles changing [PreviewModeManager.mode] to [PreviewMode.Focus] whenever essentials mode is activated, either through the
+ * Android Studio Essentials Mode or the Preview type's specific Essentials mode.
  *
- * @param project the project this manager will be attached to. It will be used to listen to
- *   messages on its [Project.getMessageBus].
- * @param lifecycleManager used to ensure the preview is active/in the foreground before running any
- *   updates.
- * @param previewFlowManager when switching to Focus Mode, the first preview returned by
- *   [PreviewFlowManager.allPreviewElementsFlow] will be used as the selected preview element. See
- *   [PreviewFlowManager].
+ * @param project the project this manager will be attached to. It will be used to listen to messages on its [Project.getMessageBus].
+ * @param lifecycleManager used to ensure the preview is active/in the foreground before running any updates.
+ * @param previewFlowManager when switching to Focus Mode, the first preview returned by [PreviewFlowManager.allPreviewElementsFlow] will be
+ *   used as the selected preview element. See [PreviewFlowManager].
  * @param previewModeManager used to switch modes. See [PreviewModeManager].
- * @param onUpdatedFromPreviewEssentialsMode callback that is invoked whenever an update is trigger
- *   by a change to [NlOptionsConfigurable].
- * @param requestRefresh callback used to request a refresh. It is invoked each time there is an
- *   update.
+ * @param onUpdatedFromPreviewEssentialsMode callback that is invoked whenever an update is trigger by a change to [NlOptionsConfigurable].
+ * @param requestRefresh callback used to request a refresh. It is invoked each time there is an update.
  */
 class CommonFocusEssentialsModeManager<T : PreviewElement<*>>(
   project: Project,
@@ -61,23 +55,16 @@ class CommonFocusEssentialsModeManager<T : PreviewElement<*>>(
       )
   }
 
-  /**
-   * Activates the [CommonFocusEssentialsModeManager]. This method should be called from
-   * [PreviewLifecycleManager]'s activate methods.
-   */
+  /** Activates the [CommonFocusEssentialsModeManager]. This method should be called from [PreviewLifecycleManager]'s activate methods. */
   fun activate() {
-    check(lifecycleManager.isActive()) {
-      "This method should be called from PreviewLifecycleManager's activate methods."
-    }
+    check(lifecycleManager.isActive()) { "This method should be called from PreviewLifecycleManager's activate methods." }
     updateFocusMode()
   }
 
   /**
-   * Updates the [PreviewModeManager]'s [PreviewMode] according to the state of Android Studio
-   * (and/or Preview) Essentials Mode.
+   * Updates the [PreviewModeManager]'s [PreviewMode] according to the state of Android Studio (and/or Preview) Essentials Mode.
    *
-   * @param sourceCallback callback for the source that triggered the update. See
-   *   [onUpdatedFromPreviewEssentialsMode].
+   * @param sourceCallback callback for the source that triggered the update. See [onUpdatedFromPreviewEssentialsMode].
    */
   private fun updateFocusMode(sourceCallback: (() -> Unit)? = null) {
     // If Preview is inactive - don't update Focus.
@@ -90,10 +77,9 @@ class CommonFocusEssentialsModeManager<T : PreviewElement<*>>(
       // There is no need to switch back to Default mode as toolbar is available.
       // When exiting Essentials mode - preview will stay in Focus mode.
     } else {
-      (previewFlowManager.allPreviewElementsFlow.value as? FlowableCollection.Present)
-        ?.collection
-        ?.firstOrNull()
-        .let { previewModeManager.setMode(PreviewMode.Focus(it)) }
+      (previewFlowManager.allPreviewElementsFlow.value as? FlowableCollection.Present)?.collection?.firstOrNull().let {
+        previewModeManager.setMode(PreviewMode.Focus(it))
+      }
     }
     sourceCallback?.invoke()
     requestRefresh()

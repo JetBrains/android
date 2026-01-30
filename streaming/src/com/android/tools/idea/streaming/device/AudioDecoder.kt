@@ -69,30 +69,20 @@ import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
 
-internal class AudioDecoder(
-  private val audioChannel: SuspendingSocketChannel,
-  private val decoderScope: CoroutineScope,
-) {
+internal class AudioDecoder(private val audioChannel: SuspendingSocketChannel, private val decoderScope: CoroutineScope) {
 
   private val decodingContext = AtomicReference<DecodingContext?>()
   @Volatile private var endOfAudioStream = false
 
-  /**
-   * Deactivated audio playback if it is active. Returns true if audio playback was not already active.
-   */
-  fun mute(): Boolean =
-    decodingContext.getAndSet(null)?.closeAsynchronously() != null
+  /** Deactivated audio playback if it is active. Returns true if audio playback was not already active. */
+  fun mute(): Boolean = decodingContext.getAndSet(null)?.closeAsynchronously() != null
+
+  /** Activates audio playback unless it is already active. Returns true if audio playback was not already inactive. */
+  fun unmute(): Boolean = decodingContext.getAndUpdate { context -> context ?: DecodingContext() } == null
 
   /**
-   * Activates audio playback unless it is already active. Returns true if audio playback was not already inactive.
-   */
-  fun unmute(): Boolean =
-      decodingContext.getAndUpdate { context -> context ?: DecodingContext() } == null
-
-  /**
-   * Starts reading the audio channel and returns. The decoder will continue to run until the audio channel
-   * is disconnected or [decoderScope] is cancelled. The value of the [playAudio] parameter determines whether
-   * audio playback will be enabled or not.
+   * Starts reading the audio channel and returns. The decoder will continue to run until the audio channel is disconnected or
+   * [decoderScope] is cancelled. The value of the [playAudio] parameter determines whether audio playback will be enabled or not.
    */
   fun start(playAudio: Boolean) {
     if (playAudio) {
@@ -105,12 +95,7 @@ internal class AudioDecoder(
         while (true) {
           packetReader.readAndProcessPacket()
         }
-      }
-      catch (_: ClosedChannelException) {
-      }
-      catch (_: EOFException) {
-      }
-      finally {
+      } catch (_: ClosedChannelException) {} catch (_: EOFException) {} finally {
         endOfAudioStream = true
         decodingContext.getAndSet(null)?.close()
         packetReader.close()
@@ -140,11 +125,9 @@ internal class AudioDecoder(
 
         packet.pts(if (header.isConfig) AV_NOPTS_VALUE else 0)
         decodingContext.get()?.processPacket(packet)
-      }
-      catch (e: AudioDecoderException) {
+      } catch (e: AudioDecoderException) {
         thisLogger().error(e)
-      }
-      finally {
+      } finally {
         av_packet_unref(packet)
       }
     }
@@ -156,22 +139,14 @@ internal class AudioDecoder(
 
   private inner class DecodingContext : AutoCloseable {
 
-    @GuardedBy("this")
-    private var codecContext: AVCodecContext
-    @GuardedBy("this")
-    private val decodingFrame: AVFrame = av_frame_alloc()
-    @GuardedBy("this")
-    private val outFrame: AVFrame = av_frame_alloc()
-    @GuardedBy("this")
-    private var parserContext: AVCodecParserContext
-    @GuardedBy("this")
-    private val pendingPacket: AVPacket = av_packet_alloc()
-    @GuardedBy("this")
-    private var hasPendingPacket = false
-    @GuardedBy("this")
-    private var swrContext = SwrContext()
-    @GuardedBy("this")
-    private var player: AudioPlayer? = null
+    @GuardedBy("this") private var codecContext: AVCodecContext
+    @GuardedBy("this") private val decodingFrame: AVFrame = av_frame_alloc()
+    @GuardedBy("this") private val outFrame: AVFrame = av_frame_alloc()
+    @GuardedBy("this") private var parserContext: AVCodecParserContext
+    @GuardedBy("this") private val pendingPacket: AVPacket = av_packet_alloc()
+    @GuardedBy("this") private var hasPendingPacket = false
+    @GuardedBy("this") private var swrContext = SwrContext()
+    @GuardedBy("this") private var player: AudioPlayer? = null
 
     init {
       val codec = avcodec_find_decoder(AV_CODEC_ID_OPUS) ?: throw AudioDecoderException("Opus decoder not found")
@@ -180,16 +155,16 @@ internal class AudioDecoder(
       var parserContext: AVCodecParserContext? = null
       try {
         codecContext = avcodec_alloc_context3(codec) ?: throw AudioDecoderException("Could not allocate decoder context")
-        //codecContext.request_sample_fmt(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
-        //codecContext.sample_fmt(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
-        parserContext = av_parser_init(codec.id())?.apply { flags(flags() or PARSER_FLAG_COMPLETE_FRAMES) } ?:
-            throw AudioDecoderException("Could not initialize parser")
-        //parserContext.format(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
+        // codecContext.request_sample_fmt(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
+        // codecContext.sample_fmt(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
+        parserContext =
+          av_parser_init(codec.id())?.apply { flags(flags() or PARSER_FLAG_COMPLETE_FRAMES) }
+            ?: throw AudioDecoderException("Could not initialize parser")
+        // parserContext.format(AV_SAMPLE_FMT_S16) //TODO: Figure out why it has no effect.
         if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0) {
           throw AudioDecoderException("Could not open codec ${codec.name()}")
         }
-      }
-      catch (e: AudioDecoderException) {
+      } catch (e: AudioDecoderException) {
         av_parser_close(parserContext)
         avcodec_free_context(codecContext)
         throw e
@@ -200,9 +175,7 @@ internal class AudioDecoder(
     }
 
     fun closeAsynchronously() {
-      ApplicationManager.getApplication().executeOnPooledThread {
-        close()
-      }
+      ApplicationManager.getApplication().executeOnPooledThread { close() }
     }
 
     @Synchronized
@@ -233,8 +206,7 @@ internal class AudioDecoder(
           if (av_grow_packet(pendingPacket, packet.size()) != 0) {
             throw AudioDecoderException("Could not grow packet")
           }
-        }
-        else {
+        } else {
           offset = 0
           if (av_new_packet(pendingPacket, packet.size()) != 0) {
             throw AudioDecoderException("Could not create audio packet")
@@ -257,8 +229,7 @@ internal class AudioDecoder(
         // Data packet.
         try {
           processDataPacket(packetToProcess)
-        }
-        finally {
+        } finally {
           if (hasPendingPacket) {
             // The pending packet must be discarded.
             hasPendingPacket = false
@@ -274,7 +245,7 @@ internal class AudioDecoder(
       val outData = BytePointer()
       val outLen = IntPointer(0)
       val ret =
-          av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
+        av_parser_parse2(parserContext, codecContext, outData, outLen, packet.data(), packet.size(), AV_NOPTS_VALUE, AV_NOPTS_VALUE, -1)
       if (outLen.get() > 0) {
         assert(ret == packet.size()) // Due to PARSER_FLAG_COMPLETE_FRAMES.
         assert(outLen.get() == packet.size())
@@ -364,7 +335,7 @@ internal class AudioDecoder(
       playQueue.drainTo(recycleBin)
     }
 
-    fun getBuffer() : ByteArray {
+    fun getBuffer(): ByteArray {
       return recycleBin.take()
     }
 
@@ -393,8 +364,7 @@ internal class AudioDecoder(
     val packetSize: Int
       get() = encodedPacketSize and 0x7FFFFFFF
 
-    override fun toString(): String =
-        "AudioPacketHeader(isConfig=$isConfig, packetSize=$packetSize)"
+    override fun toString(): String = "AudioPacketHeader(isConfig=$isConfig, packetSize=$packetSize)"
 
     companion object {
 
@@ -405,19 +375,17 @@ internal class AudioDecoder(
         return AudioPacketHeader(encodedPacketSize)
       }
 
-      fun createBuffer(): ByteBuffer =
-          ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
+      fun createBuffer(): ByteBuffer = ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
     }
   }
 }
 
 internal class AudioDecoderException(message: String) : RuntimeException(message)
 
-private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
-    BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
+private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer = BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
 
 private fun AVPacket.toDebugString(): String =
-    "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
+  "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
 
 private const val NUM_BUFFERS = 2
 private const val BYTES_PER_SAMPLE_FMT_S16 = 2

@@ -20,7 +20,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
 @RunsInEdt
-class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class RemoveImplementationPropertiesRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testDynamicFeature420Template() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/DynamicFeature420Template"))

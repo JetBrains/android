@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.ui
 
-import com.android.tools.adtui.FocusableIcon
-import com.android.tools.adtui.TextFieldWithLeftComponent
 import com.android.ide.common.resources.colorToString
 import com.android.ide.common.resources.parseColor
+import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.MaterialColorPaletteProvider
+import com.android.tools.adtui.TextFieldWithLeftComponent
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -59,51 +59,53 @@ fun JTextField.wrapWithColorPickerIcon(defaultColor: Color?): JPanel {
   }
 
   // Listen for whenever a valid color is typed in to the TextField an update the Icon appropriately.
-  this.document.addDocumentListener(object : DocumentAdapter() {
-    override fun textChanged(e: DocumentEvent) {
-      val colorText = this@wrapWithColorPickerIcon.text
-      if (colorText.isNotEmpty() && colorText.startsWith("#") && colorText.length >= 7) {
-        // Supports color values in the format '#rrggbb' and '#aarrggbb'.
-        val colorTyped = parseColor(colorText)
-        if (colorTyped != null) {
-          colorPickerIcon.icon = ColorIcon(JBUI.scale(ICON_SIZE), colorTyped)
-          return
+  this.document.addDocumentListener(
+    object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        val colorText = this@wrapWithColorPickerIcon.text
+        if (colorText.isNotEmpty() && colorText.startsWith("#") && colorText.length >= 7) {
+          // Supports color values in the format '#rrggbb' and '#aarrggbb'.
+          val colorTyped = parseColor(colorText)
+          if (colorTyped != null) {
+            colorPickerIcon.icon = ColorIcon(JBUI.scale(ICON_SIZE), colorTyped)
+            return
+          }
         }
+        colorPickerIcon.icon = StudioIcons.LayoutEditor.Extras.PIPETTE
       }
-      colorPickerIcon.icon = StudioIcons.LayoutEditor.Extras.PIPETTE
     }
-  })
+  )
 
   // The callback whenever the Icon gets clicked. Bring up the color picker and update the Icon and TextField.
   val colorPickerIconCallback: () -> Unit = {
     val popup = LightCalloutPopup()
-    val colorPicker = baseColorPickerBuilder(initialColor)
-      .addOperationPanel(
-        { color ->
-          // 'Ok' option callback.
-          text = colorToString(color)
-          colorPickerIcon.icon = ColorIcon(JBUI.scale(ICON_SIZE), color)
-          popup.close()
-        },
-        {
-          // 'Cancel' option callback.
-          popup.close()
-        })
-      .build().content as JPanel
+    val colorPicker =
+      baseColorPickerBuilder(initialColor)
+        .addOperationPanel(
+          { color ->
+            // 'Ok' option callback.
+            text = colorToString(color)
+            colorPickerIcon.icon = ColorIcon(JBUI.scale(ICON_SIZE), color)
+            popup.close()
+          },
+          {
+            // 'Cancel' option callback.
+            popup.close()
+          },
+        )
+        .build()
+        .content as JPanel
     val relativeLocation = JBPopupFactory.getInstance().guessBestPopupLocation(colorPickerIcon)
     if (canShowBelow(textFieldWithIcon.parent as JComponent, relativeLocation.point, colorPicker)) {
       popup.show(colorPicker, null, relativeLocation.screenPoint)
-    }
-    else {
+    } else {
       // Can't display ColorPicker in the popup, fallback to using a dialog.
       var selectedColor = initialColor
       val colorPickerListener = ColorListener { color, _ ->
         // For the dialog, listen to whenever the color is updated.
         selectedColor = color
       }
-      val colorPickerDialog = baseColorPickerBuilder(initialColor)
-        .addColorListener(colorPickerListener)
-        .build().content as JPanel
+      val colorPickerDialog = baseColorPickerBuilder(initialColor).addColorListener(colorPickerListener).build().content as JPanel
       colorPickerDialog.minimumSize = colorPickerDialog.preferredSize
       val builder = DialogBuilder()
       builder.setTitle("Pick a Color")
@@ -127,7 +129,8 @@ private fun baseColorPickerBuilder(originalColor: Color): ColorPickerBuilder =
     .setOriginalColor(originalColor)
     .addSaturationBrightnessComponent()
     .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
-    .addColorValuePanel().withFocus()
+    .addColorValuePanel()
+    .withFocus()
     .addSeparator()
     .addCustomComponent(MaterialColorPaletteProvider)
     .focusWhenDisplay(true)

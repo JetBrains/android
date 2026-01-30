@@ -17,6 +17,4 @@ package com.android.tools.idea.diagnostics.hprof.histogram
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 
-data class HistogramEntry(val classDefinition: ClassDefinition,
-                          val totalInstances: Long,
-                          val totalBytes: Long)
+data class HistogramEntry(val classDefinition: ClassDefinition, val totalInstances: Long, val totalBytes: Long)

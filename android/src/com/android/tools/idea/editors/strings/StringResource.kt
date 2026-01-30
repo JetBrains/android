@@ -39,13 +39,14 @@ import com.intellij.util.concurrency.SameThreadExecutor
 class StringResource(
   val key: StringResourceKey,
   val data: StringResourceData,
-  private val stringResourceWriter: StringResourceWriter = StringResourceWriter.INSTANCE) {
+  private val stringResourceWriter: StringResourceWriter = StringResourceWriter.INSTANCE,
+) {
 
   private val localeToTranslationMap: MutableMap<Locale, ResourceItemEntry> = mutableMapOf()
 
   var isTranslatable: Boolean = !key.isFromDoNotTranslateFile
 
-  /** Holds the String default value we're in the process of assigning, to prevent duplicates.  */
+  /** Holds the String default value we're in the process of assigning, to prevent duplicates. */
   private var tentativeDefaultValue: String? = null
   private var defaultValue: ResourceItemEntry? = null
 
@@ -64,8 +65,7 @@ class StringResource(
       val qualifier = item.configuration.localeQualifier
       if (qualifier == null) {
         defaultValue = resourceItemEntry
-      }
-      else {
+      } else {
         val locale = Locale.create(qualifier)
         localeToTranslationMap[locale] = resourceItemEntry
       }
@@ -91,16 +91,19 @@ class StringResource(
       }
       tentativeDefaultValue = defaultValue
       val futureItem = createDefaultValue(defaultValue)
-      return Futures.transform(futureItem, { item: ResourceItem? ->
-        tentativeDefaultValue = null
-        if (item == null) {
-          false
-        }
-        else {
-          this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-          true
-        }
-      }, SameThreadExecutor.INSTANCE)
+      return Futures.transform(
+        futureItem,
+        { item: ResourceItem? ->
+          tentativeDefaultValue = null
+          if (item == null) {
+            false
+          } else {
+            this.defaultValue = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+            true
+          }
+        },
+        SameThreadExecutor.INSTANCE,
+      )
     }
 
     if (this.defaultValue!!.string == defaultValue) return Futures.immediateFuture(false)
@@ -119,18 +122,19 @@ class StringResource(
     return Futures.immediateFuture(true)
   }
 
-  /**
-   * Change the value of the translatable attribute and update the default resource item to reflect this change in the model.
-   */
+  /** Change the value of the translatable attribute and update the default resource item to reflect this change in the model. */
   fun changeTranslatable(translatable: Boolean): Boolean {
     val item = defaultValueAsResourceItem ?: return false
     isTranslatable = translatable
 
-    if (!stringResourceWriter.setAttribute(
+    if (
+      !stringResourceWriter.setAttribute(
         project = data.project,
         attribute = SdkConstants.ATTR_TRANSLATABLE,
         value = if (translatable) null else SdkConstants.VALUE_FALSE,
-        item = item)) {
+        item = item,
+      )
+    ) {
       return false
     }
 
@@ -166,15 +170,18 @@ class StringResource(
   fun putTranslation(locale: Locale, translation: String): ListenableFuture<Boolean> {
     SlowOperations.knownIssue("b/401392046").use {
       if (getTranslationAsResourceItem(locale) == null) {
-        return Futures.transform(createTranslationBefore(locale, translation, getAnchor(locale)), { item: ResourceItem? ->
-          if (item == null) {
-            false
-          }
-          else {
-            localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
-            true
-          }
-        }, SameThreadExecutor.INSTANCE)
+        return Futures.transform(
+          createTranslationBefore(locale, translation, getAnchor(locale)),
+          { item: ResourceItem? ->
+            if (item == null) {
+              false
+            } else {
+              localeToTranslationMap[locale] = ResourceItemEntry.create(item, getTextOfTag(getItemTag(data.project, item)))
+              true
+            }
+          },
+          SameThreadExecutor.INSTANCE,
+        )
       }
 
       if (getTranslationAsString(locale) == translation) return Futures.immediateFuture(false)
@@ -223,8 +230,7 @@ class StringResource(
     val file = data.getDefaultLocaleXml(locale)
     if (file != null) {
       stringResourceWriter.addTranslationToFile(project, file, key, value, anchor)
-    }
-    else {
+    } else {
       stringResourceWriter.addTranslation(project, key, value, locale, getDefaultValueFileName(), anchor)
     }
 
@@ -236,8 +242,7 @@ class StringResource(
 
   fun validateTranslation(locale: Locale): String? {
     return when {
-      localeToTranslationMap[locale]?.stringValid == false ->
-        "Invalid XML"
+      localeToTranslationMap[locale]?.stringValid == false -> "Invalid XML"
 
       isTranslatable && isTranslationMissing(locale) ->
         "Key \"${key.name}\" is missing its ${Locale.getLocaleLabel(locale, false)} translation"
@@ -245,8 +250,7 @@ class StringResource(
       !isTranslatable && !isTranslationMissing(locale) ->
         "Key \"${key.name}\" is untranslatable and should not be translated to ${Locale.getLocaleLabel(locale, false)}"
 
-      else ->
-        null
+      else -> null
     }
   }
 
@@ -259,8 +263,7 @@ class StringResource(
       // qualifiers from Locale objects have the language set.
       val language = checkNotNull(locale.qualifier.language)
       isTranslationMissing(localeToTranslationMap[Locale.create(language)])
-    }
-    else {
+    } else {
       isTranslationMissing(item)
     }
   }
@@ -273,11 +276,8 @@ class StringResource(
       fileName
     } ?: DEFAULT_STRING_RESOURCE_FILE_NAME
 
-  private class ResourceItemEntry private constructor(
-    val resourceItem: ResourceItem,
-    val tagText: String,
-    val string: String,
-    val stringValid: Boolean) {
+  private class ResourceItemEntry
+  private constructor(val resourceItem: ResourceItem, val tagText: String, val string: String, val stringValid: Boolean) {
 
     companion object {
       fun create(resourceItem: ResourceItem, tagText: String): ResourceItemEntry {
@@ -288,8 +288,7 @@ class StringResource(
         return try {
           val unescapedString = CharacterDataEscaper.unescape(rawString)
           ResourceItemEntry(resourceItem, tagText, string = unescapedString, stringValid = true)
-        }
-        catch (_: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
           ResourceItemEntry(resourceItem, tagText, string = rawString, stringValid = false)
         }
       }

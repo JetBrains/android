@@ -48,13 +48,11 @@ internal object EmptyIssueSource : IssueSource {
   override val displayText: String = ""
 }
 
-internal class IssueSourceWithFile(file: VirtualFile, override val displayText: String = "") :
-  IssueSource {
+internal class IssueSourceWithFile(file: VirtualFile, override val displayText: String = "") : IssueSource {
   override val files: Set<VirtualFile> = setOf(file)
 }
 
-internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) :
-  DesignerCommonIssueProvider<Any> {
+internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) : DesignerCommonIssueProvider<Any> {
   override var viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
 
   override fun getFilteredIssues(): List<Issue> = issues.filter(viewOptionFilter)
@@ -73,8 +71,7 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
 }
 
 /** For testing the functions which need the parent node. */
-internal class CommonIssueTestParentNode(project: Project) :
-  DesignerCommonIssueNode(project, null) {
+internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssueNode(project, null) {
   override fun updatePresentation(presentation: PresentationData) = Unit
 
   override fun getName(): String = ""

@@ -22,12 +22,20 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyCollectorD
 
 interface UseJunitEngineModel : GradleBlockModel {
   fun inputs(): ResolvedPropertyModel
+
   fun addInput(input: String): ResolvedPropertyModel
+
   fun includeEngines(): ResolvedPropertyModel
+
   fun addIncludeEngine(engine: String): ResolvedPropertyModel
+
   fun enginesDependencies(): List<DependencyCollectorDependencyModel>
+
   fun addEngineDependency(compactNotation: String)
+
   fun hasEngineDependency(compactNotation: String): Boolean
+
   fun addEngineDependency(reference: ReferenceTo)
+
   fun hasEngineDependency(reference: ReferenceTo): Boolean
 }

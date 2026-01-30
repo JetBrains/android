@@ -24,8 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 class EmptySqliteResultSet : SqliteResultSet {
   override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(0)
 
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> =
-    Futures.immediateFuture(emptyList())
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> = Futures.immediateFuture(emptyList())
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult> =
     Futures.immediateFuture(SqliteQueryResult(emptyList()))

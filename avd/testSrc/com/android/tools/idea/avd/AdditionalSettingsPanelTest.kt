@@ -68,8 +68,7 @@ class AdditionalSettingsPanelTest {
     // Arrange
     val device = TestDevices.pixel9Pro()
 
-    val state =
-      configureDevicePanelState(device, listOf(NoSkin.INSTANCE, device.skin).toImmutableList())
+    val state = configureDevicePanelState(device, listOf(NoSkin.INSTANCE, device.skin).toImmutableList())
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
@@ -147,10 +146,7 @@ class AdditionalSettingsPanelTest {
     // This uses the default file system
     val device = TestDevices.pixel6()
 
-    device.image =
-      mock<ISystemImage>().apply {
-        whenever(androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
-      }
+    device.image = mock<ISystemImage>().apply { whenever(androidVersion).thenReturn(AndroidVersion(34, null, 7, true)) }
 
     val fileSystem = createInMemoryFileSystem()
 
@@ -162,11 +158,7 @@ class AdditionalSettingsPanelTest {
     Files.createFile(mySdCardFileImg)
 
     rule.setContent {
-      provideCompositionLocals {
-        CompositionLocalProvider(LocalFileSystem provides fileSystem) {
-          AdditionalSettingsPanel(state)
-        }
-      }
+      provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
     }
 
     // Act
@@ -193,11 +185,7 @@ class AdditionalSettingsPanelTest {
     val state = configureDevicePanelState(device)
 
     rule.setContent {
-      provideCompositionLocals {
-        CompositionLocalProvider(LocalFileSystem provides fileSystem) {
-          AdditionalSettingsPanel(state)
-        }
-      }
+      provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
     }
 
     rule.onNode(hasText("None") and hasTestTag("GlassesEnvironmentDropdown")).assertIsDisplayed()
@@ -391,13 +379,10 @@ private fun configureDevicePanelState(
   maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) = ConfigureDevicePanelState(device, skins, deviceNameValidator, maxCpuCoreCount)
 
-private fun SemanticsNodeInteractionsProvider.onRamTextField() =
-  onNodeWithTag("RamRow").onChildren().filterToOne(hasSetTextAction())
+private fun SemanticsNodeInteractionsProvider.onRamTextField() = onNodeWithTag("RamRow").onChildren().filterToOne(hasSetTextAction())
 
 private fun SemanticsNodeInteractionsProvider.onRamDropdown() =
-  onNodeWithTag("RamRow")
-    .onChildren()
-    .filterToOne(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.DropdownList))
+  onNodeWithTag("RamRow").onChildren().filterToOne(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.DropdownList))
 
 private fun SemanticsNodeInteractionsProvider.onRamDropdownPopupChildren() =
   onNode(isPopup()).onChild().onChildren().filterToOne(hasScrollAction()).onChildren()

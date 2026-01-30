@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.extensions
 
-import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
-import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
-import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.Path
+import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
+import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 
 fun GradleDaemonJvmPropertiesFile.getPropertyPath(externalProjectPath: @SystemIndependent String): Path {
-  return Path(externalProjectPath).resolve(Paths.get(GRADLE_FOLDER, GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME))
-    .toAbsolutePath().normalize()
+  return Path(externalProjectPath).resolve(Paths.get(GRADLE_FOLDER, GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME)).toAbsolutePath().normalize()
 }

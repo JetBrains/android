@@ -67,19 +67,6 @@ import com.intellij.ui.UIBundle
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.tree.TreeModelAdapter
-import org.jetbrains.ide.PooledThreadExecutor
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -105,6 +92,19 @@ import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import kotlin.io.path.invariantSeparatorsPathString
+import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class DeviceFileExplorerControllerTest {
@@ -113,11 +113,9 @@ class DeviceFileExplorerControllerTest {
   // at the end; otherwise, some state will be left over and interfere with other tests.
   // (Specifically, the DeviceNamePropertiesFetcher.DeviceChangeListener will remain in
   // AndroidDebugBridge.)
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
 
-  @get:Rule
-  val threadingCheckRule = ThreadingCheckRule()
+  @get:Rule val threadingCheckRule = ThreadingCheckRule()
 
   private val project: Project
     get() = androidProjectRule.project
@@ -149,20 +147,17 @@ class DeviceFileExplorerControllerTest {
   fun setUp() {
     myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
-    myModel = object : DeviceFileExplorerModel() {
-      override fun setDevice(
-        device: DeviceFileSystem?,
-        treeModel: DefaultTreeModel?,
-        treeSelectionModel: DefaultTreeSelectionModel?
-      ) {
-        if (!myTearingDown) {
-          // We notify the mock view before everything else to avoid having a dependency
-          // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
-          myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel)
+    myModel =
+      object : DeviceFileExplorerModel() {
+        override fun setDevice(device: DeviceFileSystem?, treeModel: DefaultTreeModel?, treeSelectionModel: DefaultTreeSelectionModel?) {
+          if (!myTearingDown) {
+            // We notify the mock view before everything else to avoid having a dependency
+            // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
+            myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel)
+          }
+          super.setDevice(device, treeModel, treeSelectionModel)
         }
-        super.setDevice(device, treeModel, treeSelectionModel)
       }
-    }
     myMockView = MockDeviceExplorerView(project, myModel)
     val downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true)
     myDownloadLocation.set(downloadPath.toPath())
@@ -185,11 +180,8 @@ class DeviceFileExplorerControllerTest {
     myDevice2.root.addDirectory("Foo2")
     myDevice2.root.addFile("foo2File1.txt")
     myDevice2.root.addFile("foo2File2.txt")
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(
-      DeviceExplorerSettings::class.java,
-      DeviceExplorerSettings(),
-      androidProjectRule.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(DeviceExplorerSettings::class.java, DeviceExplorerSettings(), androidProjectRule.testRootDisposable)
     packageNameProvider = MockProjectApplicationIdsProvider(project)
   }
 
@@ -242,7 +234,8 @@ class DeviceFileExplorerControllerTest {
 
     assertEquals(
       "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
-      myDevice1.data.mockEntries.size, rootEntry.childCount
+      myDevice1.data.mockEntries.size,
+      rootEntry.childCount,
     )
   }
 
@@ -290,19 +283,21 @@ class DeviceFileExplorerControllerTest {
     val fooPath = getFileEntryPath(myFoo)
     val futureNodeExpanded = createNodeExpandedFuture(myFoo)
     val futureTreeNodesChanged = SettableFuture.create<MyLoadingNode>()
-    myMockView.tree.model.addTreeModelListener(object : TreeModelAdapter() {
-      override fun treeNodesChanged(event: TreeModelEvent) {
-        if (fooPath.lastPathComponent == event.treePath.lastPathComponent) {
-          val children = event.children
-          if (children != null && children.size == 1) {
-            val child = children[0]
-            if (child is MyLoadingNode) {
-              futureTreeNodesChanged.set(child)
+    myMockView.tree.model.addTreeModelListener(
+      object : TreeModelAdapter() {
+        override fun treeNodesChanged(event: TreeModelEvent) {
+          if (fooPath.lastPathComponent == event.treePath.lastPathComponent) {
+            val children = event.children
+            if (children != null && children.size == 1) {
+              val child = children[0]
+              if (child is MyLoadingNode) {
+                futureTreeNodesChanged.set(child)
+              }
             }
           }
         }
       }
-    })
+    )
 
     // Expand node
     myMockView.tree.expandPath(fooPath)
@@ -426,7 +421,7 @@ class DeviceFileExplorerControllerTest {
     }
     var downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
     assertThat(downloadPath.invariantSeparatorsPathString)
-        .endsWith(myDownloadLocation.get().invariantSeparatorsPathString + "/TestDevice-1/file1.txt")
+      .endsWith(myDownloadLocation.get().invariantSeparatorsPathString + "/TestDevice-1/file1.txt")
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     val changedPath = FileUtil.createTempDirectory("device-explorer-temp-2", "", true).toPath()
@@ -523,7 +518,7 @@ class DeviceFileExplorerControllerTest {
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
     val actions = Arrays.asList(*actionGroup.getChildren(null))
     val e = createContentMenuItemEvent()
-    actions.forEach  { it.update(e) }
+    actions.forEach { it.update(e) }
   }
 
   @Test
@@ -559,21 +554,21 @@ class DeviceFileExplorerControllerTest {
       // Prepare
       // The "Save As" dialog does not work in headless mode, so we register a custom
       // component that simply returns the tempFile we created above.
-      val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-        override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
-          return object : FileSaverDialog {
-            override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper {
-              return VirtualFileWrapper(tempFile)
-            }
+      val factory: FileChooserFactoryImpl =
+        object : FileChooserFactoryImpl() {
+          override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
+            return object : FileSaverDialog {
+              override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper {
+                return VirtualFileWrapper(tempFile)
+              }
 
-            override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper {
-              return VirtualFileWrapper(tempFile)
+              override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper {
+                return VirtualFileWrapper(tempFile)
+              }
             }
           }
         }
-      }
-      ApplicationManager.getApplication().replaceService(
-        FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+      ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
       // Invoke "Save As..." content menu
       val actionGroup = myMockView.fileTreeActionGroup
@@ -623,19 +618,15 @@ class DeviceFileExplorerControllerTest {
     val tempDirectory = FileUtil.createTempDirectory("saveAsDir", "")
     myDevice1.downloadChunkSize = 1000 // download chunks of 1000 bytes at a time
     myDevice1.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
-          callback.consume(listOf(VirtualFileWrapper(tempDirectory).virtualFile))
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+            callback.consume(listOf(VirtualFileWrapper(tempDirectory).virtualFile))
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -651,8 +642,7 @@ class DeviceFileExplorerControllerTest {
     println("SaveAs message: $summaryMessage")
     assertTrue(summaryMessage.contains("Successfully downloaded"))
     val files = checkNotNull(tempDirectory.listFiles())
-    assertThat(files.map { it.name }).containsExactlyElementsIn(
-      listOf(myFooFile1, myFooFile2, myFooLink1, myFooDir).map { it.name })
+    assertThat(files.map { it.name }).containsExactlyElementsIn(listOf(myFooFile1, myFooFile2, myFooLink1, myFooDir).map { it.name })
   }
 
   @Test
@@ -681,22 +671,16 @@ class DeviceFileExplorerControllerTest {
     val tempDirectory = FileUtil.createTempDirectory("saveAsDir", "")
     myDevice1.downloadChunkSize = 1000 // download chunks of 1000 bytes at a time
     myDevice1.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>?> ->
-          val list = listOf(
-            VirtualFileWrapper(tempDirectory).virtualFile
-          )
-          callback.consume(list)
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>?> ->
+            val list = listOf(VirtualFileWrapper(tempDirectory).virtualFile)
+            callback.consume(list)
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -742,22 +726,16 @@ class DeviceFileExplorerControllerTest {
     myDevice1.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
     val downloadErrorMessage = "[test] Error downloading file"
     myDevice1.downloadError = Exception(downloadErrorMessage)
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
-          val list = listOf(
-            VirtualFileWrapper(tempDirectory).virtualFile
-          )
-          callback.consume(list)
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+            val list = listOf(VirtualFileWrapper(tempDirectory).virtualFile)
+            callback.consume(list)
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -817,9 +795,7 @@ class DeviceFileExplorerControllerTest {
     expandEntry(myFoo)
     val fooDirPath = getFileEntryPath(myFooDir)
     myMockView.tree.selectionPath = fooDirPath
-    val fooDirExpandedFuture = createNodeExpandedFuture(
-      myFooDir
-    )
+    val fooDirExpandedFuture = createNodeExpandedFuture(myFooDir)
     val newFileName = "foobar.txt"
     replaceTestInputDialog(newFileName)
 
@@ -833,9 +809,10 @@ class DeviceFileExplorerControllerTest {
     pumpEventsAndWaitForFuture(fooDirExpandedFuture)
 
     // Look for the new file entry in the tree view
-    val newChild = enumerationAsList((fooDirPath.lastPathComponent as DeviceFileEntryNode).children())
-      .filterIsInstance<DeviceFileEntryNode>()
-      .firstOrNull { newFileName == it.entry.name && it.entry.isFile }
+    val newChild =
+      enumerationAsList((fooDirPath.lastPathComponent as DeviceFileEntryNode).children())
+        .filterIsInstance<DeviceFileEntryNode>()
+        .firstOrNull { newFileName == it.entry.name && it.entry.isFile }
     assertNotNull(newChild)
   }
 
@@ -846,9 +823,7 @@ class DeviceFileExplorerControllerTest {
     expandEntry(myFoo)
     val fooDirPath = getFileEntryPath(myFooDir)
     myMockView.tree.selectionPath = fooDirPath
-    val fooDirExpandedFuture = createNodeExpandedFuture(
-      myFooDir
-    )
+    val fooDirExpandedFuture = createNodeExpandedFuture(myFooDir)
     val newDirectoryName = "foobar.txt"
     replaceTestInputDialog(newDirectoryName)
 
@@ -862,9 +837,10 @@ class DeviceFileExplorerControllerTest {
     pumpEventsAndWaitForFuture(fooDirExpandedFuture)
 
     // Look for the new file entry in the tree view
-    val newChild = enumerationAsList((fooDirPath.lastPathComponent as DeviceFileEntryNode).children())
-      .filterIsInstance<DeviceFileEntryNode>()
-      .firstOrNull { newDirectoryName == it.entry.name && it.entry.isDirectory }
+    val newChild =
+      enumerationAsList((fooDirPath.lastPathComponent as DeviceFileEntryNode).children())
+        .filterIsInstance<DeviceFileEntryNode>()
+        .firstOrNull { newDirectoryName == it.entry.name && it.entry.isDirectory }
     checkNotNull(newChild)
   }
 
@@ -899,9 +875,10 @@ class DeviceFileExplorerControllerTest {
     assertTrue(message.contains(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName)))
 
     // Ensure entry does not exist in tree view
-    val newChild = enumerationAsList((fooPath.lastPathComponent as DeviceFileEntryNode).children())
-      .filterIsInstance<DeviceFileEntryNode>()
-      .firstOrNull { newDirectoryName == it.entry.name && it.entry.isDirectory }
+    val newChild =
+      enumerationAsList((fooPath.lastPathComponent as DeviceFileEntryNode).children()).filterIsInstance<DeviceFileEntryNode>().firstOrNull {
+        newDirectoryName == it.entry.name && it.entry.isDirectory
+      }
     assertNull(newChild)
   }
 
@@ -961,7 +938,9 @@ class DeviceFileExplorerControllerTest {
       """
   ${myFile1.fullPath}
   ${myFile2.fullPath}
-  """.trimIndent(), contents.getTransferData(DataFlavor.stringFlavor)
+  """
+        .trimIndent(),
+      contents.getTransferData(DataFlavor.stringFlavor),
     )
   }
 
@@ -1057,19 +1036,15 @@ class DeviceFileExplorerControllerTest {
     Files.write(tempFile.toPath(), ByteArray(10000))
     myDevice1.uploadChunkSize = 500
     myDevice1.uploadChunkIntervalMillis = 20
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
-          callback.consume(listOf(VirtualFileWrapper(tempFile).virtualFile))
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+            callback.consume(listOf(VirtualFileWrapper(tempFile).virtualFile))
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Assert
     assertTrue(e.presentation.isVisible)
@@ -1109,19 +1084,15 @@ class DeviceFileExplorerControllerTest {
     val tempFile = FileUtil.createTempFile("foo", "bar.txt")
     Files.write(tempFile.toPath(), ByteArray(10000))
     myDevice1.uploadChunkSize = 500
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
-          callback.consume(listOf(VirtualFileWrapper(tempFile).virtualFile))
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+            callback.consume(listOf(VirtualFileWrapper(tempFile).virtualFile))
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Give ourselves time to cancel
     myDevice1.uploadChunkIntervalMillis = 1_000
@@ -1158,19 +1129,20 @@ class DeviceFileExplorerControllerTest {
     val handler = myMockView.tree.transferHandler
     assertFalse(handler.canImport(myMockView.tree, arrayOf(DataFlavor.stringFlavor)))
     assertTrue(handler.canImport(myMockView.tree, arrayOf(DataFlavor.javaFileListFlavor)))
-    val transferable: Transferable = object : Transferable {
-      override fun getTransferDataFlavors(): Array<DataFlavor> {
-        return arrayOf(DataFlavor.javaFileListFlavor)
-      }
+    val transferable: Transferable =
+      object : Transferable {
+        override fun getTransferDataFlavors(): Array<DataFlavor> {
+          return arrayOf(DataFlavor.javaFileListFlavor)
+        }
 
-      override fun isDataFlavorSupported(flavor: DataFlavor): Boolean {
-        return flavor.equals(DataFlavor.javaFileListFlavor)
-      }
+        override fun isDataFlavorSupported(flavor: DataFlavor): Boolean {
+          return flavor.equals(DataFlavor.javaFileListFlavor)
+        }
 
-      override fun getTransferData(flavor: DataFlavor): Any {
-        return Arrays.asList(tempFile)
+        override fun getTransferData(flavor: DataFlavor): Any {
+          return Arrays.asList(tempFile)
+        }
       }
-    }
     val support = mock<TransferSupport>()
     val location = mock<TransferHandler.DropLocation>()
     whenever(location.dropPoint).thenReturn(Point(bounds.centerX.toInt(), bounds.centerY.toInt()))
@@ -1220,20 +1192,16 @@ class DeviceFileExplorerControllerTest {
 
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
-          val files = listOf(tempFile, tempDirectory).map { VirtualFileWrapper(it).virtualFile }
-          callback.consume(files)
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+            val files = listOf(tempFile, tempDirectory).map { VirtualFileWrapper(it).virtualFile }
+            callback.consume(files)
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Assert
     assertTrue(e.presentation.isVisible)
@@ -1276,20 +1244,16 @@ class DeviceFileExplorerControllerTest {
 
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createPathChooser(
-        descriptor: FileChooserDescriptor,
-        project: Project?,
-        parent: Component?
-      ): PathChooserDialog {
-        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>?> ->
-          val files = tempFiles.map { VirtualFileWrapper(it).virtualFile }
-          callback.consume(files)
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): PathChooserDialog {
+          return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>?> ->
+            val files = tempFiles.map { VirtualFileWrapper(it).virtualFile }
+            callback.consume(files)
+          }
         }
       }
-    }
-    ApplicationManager.getApplication().replaceService(
-      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Ensure file upload fails
     myDevice1.uploadError = AdbShellCommandException("Permission error")
@@ -1339,14 +1303,8 @@ class DeviceFileExplorerControllerTest {
     // Add 1 files in each expanded directory, check the tree does not show them yet
     myFoo.addFile("NewFile.txt")
     myFooDir.addFile("NewFile.txt")
-    assertEquals(
-      myFoo.mockEntries.size - 1,
-      DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).lastPathComponent)?.childCount
-    )
-    assertEquals(
-      myFooDir.mockEntries.size - 1,
-      DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).lastPathComponent)?.childCount
-    )
+    assertEquals(myFoo.mockEntries.size - 1, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).lastPathComponent)?.childCount)
+    assertEquals(myFooDir.mockEntries.size - 1, DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).lastPathComponent)?.childCount)
     val futureMyFooChanged = createNodeExpandedFuture(myFoo)
     val futureMyFooDirChanged = createNodeExpandedFuture(myFooDir)
 
@@ -1357,23 +1315,15 @@ class DeviceFileExplorerControllerTest {
     pumpEventsAndWaitForFuture(myMockView.synchronizeNodesTracker.consume())
     pumpEventsAndWaitForFuture(futureMyFooChanged)
     pumpEventsAndWaitForFuture(futureMyFooDirChanged)
-    assertEquals(
-      myFoo.mockEntries.size,
-      DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).lastPathComponent)?.childCount
-    )
-    assertEquals(
-      myFooDir.mockEntries.size,
-      DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).lastPathComponent)?.childCount
-    )
+    assertEquals(myFoo.mockEntries.size, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).lastPathComponent)?.childCount)
+    assertEquals(myFooDir.mockEntries.size, DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).lastPathComponent)?.childCount)
   }
 
   @Test
   fun treeNodeOrder() {
     val comparator = CustomComparator({ s -> s }, { s: String -> s.startsWith("D") })
     val l: List<String?> = listOf(null, "Dir3", "B1", "AbC", "abD", null, "Dir1", "DiR2")
-    assertThat(l.sortedWith(comparator))
-      .containsExactly(null, null, "Dir1", "DiR2", "Dir3", "AbC", "abD", "B1")
-      .inOrder()
+    assertThat(l.sortedWith(comparator)).containsExactly(null, null, "Dir1", "DiR2", "Dir3", "AbC", "abD", "B1").inOrder()
   }
 
   @Test
@@ -1440,7 +1390,8 @@ class DeviceFileExplorerControllerTest {
 
     assertEquals(
       "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
-      myDevice1.data.mockEntries.size, rootEntry.childCount
+      myDevice1.data.mockEntries.size,
+      rootEntry.childCount,
     )
   }
 
@@ -1462,7 +1413,8 @@ class DeviceFileExplorerControllerTest {
 
     assertEquals(
       "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
-      myDevice1.data.mockEntries.size, rootEntry.childCount
+      myDevice1.data.mockEntries.size,
+      rootEntry.childCount,
     )
 
     // Act
@@ -1490,16 +1442,19 @@ class DeviceFileExplorerControllerTest {
   }
 
   private fun replaceTestInputDialog(returnValue: String?) {
-    val previousDialog = TestDialogManager.setTestInputDialog(object : TestInputDialog {
-      override fun show(message: String): String? {
-        return show(message, null)
-      }
+    val previousDialog =
+      TestDialogManager.setTestInputDialog(
+        object : TestInputDialog {
+          override fun show(message: String): String? {
+            return show(message, null)
+          }
 
-      override fun show(message: String, validator: InputValidator?): String? {
-        validator?.checkInput(message)
-        return returnValue
-      }
-    })
+          override fun show(message: String, validator: InputValidator?): String? {
+            validator?.checkInput(message)
+            return returnValue
+          }
+        }
+      )
     if (myInitialTestInputDialog == null) {
       myInitialTestInputDialog = previousDialog
     }
@@ -1532,37 +1487,36 @@ class DeviceFileExplorerControllerTest {
     assert(entry.isDirectory)
     val entryPath = getFileEntryPath(entry)
     val isNodeExpandedFuture = SettableFuture.create<TreePath>()
-    val treeModelAdapter: TreeModelAdapter = object : TreeModelAdapter() {
-      override fun process(event: TreeModelEvent, type: EventType) {
-        if (isNodeFullyUpdated(event)) {
-          isNodeExpandedFuture.set(event.treePath)
+    val treeModelAdapter: TreeModelAdapter =
+      object : TreeModelAdapter() {
+        override fun process(event: TreeModelEvent, type: EventType) {
+          if (isNodeFullyUpdated(event)) {
+            isNodeExpandedFuture.set(event.treePath)
+          }
+        }
+
+        private fun isNodeFullyUpdated(event: TreeModelEvent): Boolean {
+          val entryNode = DeviceFileEntryNode.fromNode(entryPath.lastPathComponent)
+          checkNotNull(entryNode)
+
+          // Ensure this is the final event where we have all children (and not just the
+          // "Loading..." child)
+          if (entryNode != event.treePath.lastPathComponent) {
+            return false
+          }
+          if (entryNode.childCount == 1 && entryNode.getChildAt(0) is ErrorNode) {
+            return true
+          }
+          if (entryNode.childCount != entry.mockEntries.size) {
+            return false
+          }
+          val nodes = entryNode.childEntryNodes.map { it.entry.name }.toSet()
+          val entries = entry.mockEntries.map(MockDeviceFileEntry::name).toSet()
+          return nodes == entries
         }
       }
-
-      private fun isNodeFullyUpdated(event: TreeModelEvent): Boolean {
-        val entryNode = DeviceFileEntryNode.fromNode(entryPath.lastPathComponent)
-        checkNotNull(entryNode)
-
-        // Ensure this is the final event where we have all children (and not just the
-        // "Loading..." child)
-        if (entryNode != event.treePath.lastPathComponent) {
-          return false
-        }
-        if (entryNode.childCount == 1 && entryNode.getChildAt(0) is ErrorNode) {
-          return true
-        }
-        if (entryNode.childCount != entry.mockEntries.size) {
-          return false
-        }
-        val nodes = entryNode.childEntryNodes.map { it.entry.name }.toSet()
-        val entries = entry.mockEntries.map(MockDeviceFileEntry::name).toSet()
-        return nodes == entries
-      }
-    }
     myMockView.tree.model.addTreeModelListener(treeModelAdapter)
-    myEdtExecutor.addConsumer(isNodeExpandedFuture) { _, _ ->
-      myMockView.tree.model.removeTreeModelListener(treeModelAdapter)
-    }
+    myEdtExecutor.addConsumer(isNodeExpandedFuture) { _, _ -> myMockView.tree.model.removeTreeModelListener(treeModelAdapter) }
     return isNodeExpandedFuture
   }
 
@@ -1577,7 +1531,8 @@ class DeviceFileExplorerControllerTest {
     pumpEventsAndWaitForFuture(myMockView.treeNodesInsertedTacker.consume())
     assertEquals(
       "mock: ${activeDevice.root.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
-      activeDevice.root.mockEntries.size, rootEntry.childCount
+      activeDevice.root.mockEntries.size,
+      rootEntry.childCount,
     )
   }
 
@@ -1641,18 +1596,22 @@ class DeviceFileExplorerControllerTest {
   private fun createController(
     view: DeviceFileExplorerView = myMockView,
     deviceExplorerFileManager: DeviceExplorerFileManager = myMockFileManager,
-    fileOpener: suspend (Path) -> Unit = myMockFileManager::openFile
+    fileOpener: suspend (Path) -> Unit = myMockFileManager::openFile,
   ): DeviceFileExplorerControllerImpl {
-    return DeviceFileExplorerControllerImpl(project, myModel, view, deviceExplorerFileManager,
-                                            object : DeviceFileExplorerControllerImpl.FileOpener {
-                                      override suspend fun openFile(localPath: Path) { fileOpener(localPath) }
-                                    })
+    return DeviceFileExplorerControllerImpl(
+      project,
+      myModel,
+      view,
+      deviceExplorerFileManager,
+      object : DeviceFileExplorerControllerImpl.FileOpener {
+        override suspend fun openFile(localPath: Path) {
+          fileOpener(localPath)
+        }
+      },
+    )
   }
 
-  /**
-   * Returns the [TreePath] corresponding to a given [DeviceFileEntry].
-   * Throws an exception if the file entry is not found.
-   */
+  /** Returns the [TreePath] corresponding to a given [DeviceFileEntry]. Throws an exception if the file entry is not found. */
   private fun getFileEntryPath(entry: MockDeviceFileEntry): TreePath {
     val entries = getEntryStack(entry)
     val nodes: MutableList<DeviceFileEntryNode> = ArrayList()
@@ -1695,9 +1654,7 @@ class DeviceFileExplorerControllerTest {
     }
 
     private fun getSubGroup(actionGroup: ActionGroup, name: String): ActionGroup? {
-      return actionGroup.getChildren(null)
-          .filterIsInstance<ActionGroup>()
-          .firstOrNull { name == it.templatePresentation.text }
+      return actionGroup.getChildren(null).filterIsInstance<ActionGroup>().firstOrNull { name == it.templatePresentation.text }
     }
 
     private fun getEntryStack(entry: MockDeviceFileEntry): Stack<MockDeviceFileEntry> {

@@ -58,27 +58,25 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.task.ProjectTaskManager
-import org.jetbrains.annotations.SystemIndependent
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.jetbrains.annotations.SystemIndependent
+import org.junit.Rule
+import org.junit.Test
 
 class PlatformIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testModelBuildServiceInCompositeBuilds() {
     val compositeBuild = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD, "project")
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
     compositeBuild.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
@@ -91,7 +89,9 @@ class PlatformIntegrationTest {
           CapturePlatformModelsProjectResolverExtension.getTestParameterizedGradleModel(module)
         expect.that(gradleParameterizedTestModel).named("TestParameterizedGradleModel($module)").isNotNull()
         if (gradleParameterizedTestModel != null) {
-          expect.that(gradleParameterizedTestModel.message).named("TestParameterizedGradleModel($module).message")
+          expect
+            .that(gradleParameterizedTestModel.message)
+            .named("TestParameterizedGradleModel($module).message")
             .isEqualTo("Parameter: EHLO BuildDir: ${ExternalSystemApiUtil.getExternalProjectPath(module)}/build")
         }
       }
@@ -101,9 +101,7 @@ class PlatformIntegrationTest {
   private fun File.resolveVirtualIfCached(relativePath: String): VirtualFile? {
     val baseVirtual = VfsUtil.findFileByIoFile(this, false)
     val relativeTarget = resolve(relativePath).relativeTo(this).toPath()
-    return relativeTarget.fold(baseVirtual) { acc, path ->
-      (acc as? NewVirtualFile)?.findChildIfCached(path.toString())
-    }
+    return relativeTarget.fold(baseVirtual) { acc, path -> (acc as? NewVirtualFile)?.findChildIfCached(path.toString()) }
   }
 
   @Test
@@ -134,16 +132,17 @@ class PlatformIntegrationTest {
     val root = simpleApplication.root
 
     simpleApplication.open { project ->
-      val compilerOutputs = listOf(
-        root.resolve("app/build/intermediates/javac/debug/compileDebugJavaWithJavac"),
-        root.resolve("app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar"),
-      )
+      val compilerOutputs =
+        listOf(
+          root.resolve("app/build/intermediates/javac/debug/compileDebugJavaWithJavac"),
+          root.resolve("app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar"),
+        )
       compilerOutputs.forEach {
-        assertThat(it.exists()).isFalse()  // Verify test assumptions.
+        assertThat(it.exists()).isFalse() // Verify test assumptions.
       }
       ProjectTaskManager.getInstance(project).buildAllModules().blockingGet(1, TimeUnit.MINUTES)
       compilerOutputs.forEach {
-        assertThat(it.exists()).isTrue()  // Verify test assumptions.
+        assertThat(it.exists()).isTrue() // Verify test assumptions.
 
         VfsUtil.findFileByIoFile(it, false).let { vFile ->
           assertThat(vFile).isNotNull()
@@ -156,15 +155,21 @@ class PlatformIntegrationTest {
   @Test
   fun testCorrectSyncEventsPublished_successfulSync() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-    }
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      }
 
-    expect.that(log).isEqualTo("""
-      |started(.)
-      |succeeded(.)
-      |ended: SUCCESS
-      """.trimMargin())
+    expect
+      .that(log)
+      .isEqualTo(
+        """
+        |started(.)
+        |succeeded(.)
+        |ended: SUCCESS
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -174,16 +179,20 @@ class PlatformIntegrationTest {
     simpleApplication.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-    }
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      }
 
-    expect.that(log).isEqualTo(
-      """
-      |skipped
-      |ended: SKIPPED
-      """.trimMargin()
-    )
+    expect
+      .that(log)
+      .isEqualTo(
+        """
+        |skipped
+        |ended: SKIPPED
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -191,22 +200,29 @@ class PlatformIntegrationTest {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
     simpleApplication.root.resolve("settings.gradle").writeText("***BAD FILE***")
 
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
-    }
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+      }
 
-    expect.that(log).startsWith(
-      """
-      |started(.)
-      |failed(.):
-      """.trimMargin()
-    )
+    expect
+      .that(log)
+      .startsWith(
+        """
+        |started(.)
+        |failed(.):
+        """
+          .trimMargin()
+      )
     expect.that(log).contains("***BAD FILE***")
-    expect.that(log).endsWith(
-      """
-      |ended: FAILURE
-      """.trimMargin()
-    )
+    expect
+      .that(log)
+      .endsWith(
+        """
+        |ended: FAILURE
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -215,18 +231,17 @@ class PlatformIntegrationTest {
     preparedProject.open { project -> verifySyncSuccessful(project, projectRule.testRootDisposable) }
 
     // re-open now
-    preparedProject.open({ it.copy(onProjectCreated = {
-      assertThat(getProjectSystem().isAndroidProject()).isTrue()
-    })}, {})
+    preparedProject.open({ it.copy(onProjectCreated = { assertThat(getProjectSystem().isAndroidProject()).isTrue() }) }, {})
   }
 
-  class FailingService: AbstractModuleDataService<ModuleData>() {
+  class FailingService : AbstractModuleDataService<ModuleData>() {
     override fun getTargetDataKey(): Key<ModuleData> = ProjectKeys.MODULE
+
     override fun importData(
       toImport: MutableCollection<out DataNode<ModuleData>>,
       projectData: ProjectData?,
       project: Project,
-      modelsProvider: IdeModifiableModelsProvider
+      modelsProvider: IdeModifiableModelsProvider,
     ): Nothing {
       error("Failed!")
     }
@@ -240,17 +255,20 @@ class PlatformIntegrationTest {
       .registerExtension(FailingService(), projectRule.testRootDisposable)
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
-    }
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+      }
 
-    assertThat(log).isEqualTo(
-      """
-      |started(.)
-      |failed(.): Failed to import project structure
-      |ended: FAILURE
-      """.trimMargin()
-    )
+    assertThat(log)
+      .isEqualTo(
+        """
+        |started(.)
+        |failed(.): Failed to import project structure
+        |ended: FAILURE
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -258,30 +276,33 @@ class PlatformIntegrationTest {
   fun testCorrectSyncEventsPublished_dataImporterCrashesAfterSuccessfulOpen() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
 
-      (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
-        .getExtensionPoint(ProjectDataService.EP_NAME)
-        .registerExtension(FailingService(), projectRule.testRootDisposable)
-      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
-        // Do not check status.
+        (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
+          .getExtensionPoint(ProjectDataService.EP_NAME)
+          .registerExtension(FailingService(), projectRule.testRootDisposable)
+        AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+          // Do not check status.
+        }
+
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
       }
 
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
-    }
-
-    assertThat(log).isEqualTo(
-      """
-     |started(.)
-     |succeeded(.)
-     |ended: SUCCESS
-     |started(.)
-     |failed(.): Failed to import project structure
-     |ended: FAILURE
-      """.trimMargin()
-    )
+    assertThat(log)
+      .isEqualTo(
+        """
+        |started(.)
+        |succeeded(.)
+        |ended: SUCCESS
+        |started(.)
+        |failed(.): Failed to import project structure
+        |ended: FAILURE
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -291,29 +312,36 @@ class PlatformIntegrationTest {
     val root = simpleApplication.root
     root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
 
-    val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
-      if (output.contains("waiting!")) {
-        CoreProgressManager.getCurrentIndicators()
-          .single { it is ProgressWindow }
-          .cancel()
+    val log =
+      simpleApplication.openProjectWithEventLogging(
+        outputHandler = { output ->
+          if (output.contains("waiting!")) {
+            CoreProgressManager.getCurrentIndicators().single { it is ProgressWindow }.cancel()
+          }
+        }
+      ) { project ->
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+        // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
       }
-    }) { project ->
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
-      // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
-    }
 
-    expect.that(log).startsWith(
-      """
-      |started(.)
-      |cancelled(.)
-      """.trimMargin()
-    )
-    expect.that(log).endsWith(
-      """
-      |ended: FAILURE
-      """.trimMargin()
-    )
+    expect
+      .that(log)
+      .startsWith(
+        """
+        |started(.)
+        |cancelled(.)
+        """
+          .trimMargin()
+      )
+    expect
+      .that(log)
+      .endsWith(
+        """
+        |ended: FAILURE
+        """
+          .trimMargin()
+      )
   }
 
   @Test
@@ -322,34 +350,37 @@ class PlatformIntegrationTest {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
     val root = simpleApplication.root
 
-    val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
-      if (output.contains("waiting!")) {
-        CoreProgressManager.getCurrentIndicators()
-          .single { it is ProgressWindow }
-          .cancel()
+    val log =
+      simpleApplication.openProjectWithEventLogging(
+        outputHandler = { output ->
+          if (output.contains("waiting!")) {
+            CoreProgressManager.getCurrentIndicators().single { it is ProgressWindow }.cancel()
+          }
+        }
+      ) { project ->
+        root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
+        AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+          // Do not check status.
+        }
+
+        // Cancelling sync does not change the current state.
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       }
-    }) { project ->
 
-      root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
-      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
-        // Do not check status.
-      }
-
-      // Cancelling sync does not change the current state.
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-    }
-
-    expect.that(log).startsWith(
-      """
-      |started(.)
-      |succeeded(.)
-      |ended: SUCCESS
-      |started(.)
-      |cancelled(.)
-      |ended: SUCCESS
-      """.trimMargin()
-    )
+    expect
+      .that(log)
+      .startsWith(
+        """
+        |started(.)
+        |succeeded(.)
+        |ended: SUCCESS
+        |started(.)
+        |cancelled(.)
+        |ended: SUCCESS
+        """
+          .trimMargin()
+      )
   }
 
   /**
@@ -361,16 +392,16 @@ class PlatformIntegrationTest {
   @Order(BUILTIN_MODULE_DATA_SERVICE_ORDER - 1)
   class CancellingService : AbstractModuleDataService<ModuleData>() {
     override fun getTargetDataKey(): Key<ModuleData> = ProjectKeys.MODULE
+
     override fun importData(
       toImport: MutableCollection<out DataNode<ModuleData>>,
       projectData: ProjectData?,
       project: Project,
-      modelsProvider: IdeModifiableModelsProvider
+      modelsProvider: IdeModifiableModelsProvider,
     ) {
       ProgressManager.getInstance().progressIndicator.cancel()
       ProgressManager.checkCanceled()
     }
-
   }
 
   @Suppress("UnstableApiUsage")
@@ -381,19 +412,22 @@ class PlatformIntegrationTest {
       .registerExtension(CancellingService(), projectRule.testRootDisposable)
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
-      // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
-    }
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
+        // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
+      }
 
-    assertThat(log).isEqualTo(
-      """
-      |started(.)
-      |cancelled(.)
-      |ended: FAILURE
-      """.trimMargin()
-    )
+    assertThat(log)
+      .isEqualTo(
+        """
+        |started(.)
+        |cancelled(.)
+        |ended: FAILURE
+        """
+          .trimMargin()
+      )
   }
 
   @Suppress("UnstableApiUsage")
@@ -401,94 +435,117 @@ class PlatformIntegrationTest {
   fun testCorrectSyncEventsPublished_dataImporterCancelledAfterSuccessfulOpen() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = simpleApplication.openProjectWithEventLogging { project ->
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+    val log =
+      simpleApplication.openProjectWithEventLogging { project ->
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
 
-      (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
-        .getExtensionPoint(ProjectDataService.EP_NAME)
-        .registerExtension(CancellingService(), projectRule.testRootDisposable)
+        (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
+          .getExtensionPoint(ProjectDataService.EP_NAME)
+          .registerExtension(CancellingService(), projectRule.testRootDisposable)
 
-      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
-        // Do not check status.
+        AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+          // Do not check status.
+        }
+
+        // Cancelling sync does not change the current state.
+        expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       }
 
-      // Cancelling sync does not change the current state.
-      expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-    }
-
-    assertThat(log).isEqualTo(
-      """
-      |started(.)
-      |succeeded(.)
-      |ended: SUCCESS
-      |started(.)
-      |cancelled(.)
-      |ended: SUCCESS
-      """.trimMargin()
-    )
+    assertThat(log)
+      .isEqualTo(
+        """
+        |started(.)
+        |succeeded(.)
+        |ended: SUCCESS
+        |started(.)
+        |cancelled(.)
+        |ended: SUCCESS
+        """
+          .trimMargin()
+      )
   }
 
   @Test
   fun testSimpleApplicationNotAtRoot() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
-    val log = preparedProject.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-    }
+    val log =
+      preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      }
 
-    expect.that(log).isEqualTo("""
-      |started(gradle_project)
-      |succeeded(gradle_project)
-      |ended: SUCCESS
-      """.trimMargin())
+    expect
+      .that(log)
+      .isEqualTo(
+        """
+        |started(gradle_project)
+        |succeeded(gradle_project)
+        |ended: SUCCESS
+        """
+          .trimMargin()
+      )
   }
 
   @Test
   fun testSimpleApplicationMultipleRoots() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
-    val log = preparedProject.openProjectWithEventLogging { project ->
-      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-    }
+    val log =
+      preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      }
 
-    expect.that(log).isEqualTo("""
-      |started(gradle_project_1)
-      |succeeded(gradle_project_1)
-      |ended: SUCCESS
-      |started(gradle_project_2)
-      |succeeded(gradle_project_2)
-      |ended: SUCCESS
-      """.trimMargin())
+    expect
+      .that(log)
+      .isEqualTo(
+        """
+        |started(gradle_project_1)
+        |succeeded(gradle_project_1)
+        |ended: SUCCESS
+        |started(gradle_project_2)
+        |succeeded(gradle_project_2)
+        |ended: SUCCESS
+        """
+          .trimMargin()
+      )
   }
 
   @Test
   fun testSimpleApplicationReopened() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     run {
-      val log = preparedProject.openProjectWithEventLogging { project ->
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-      }
+      val log =
+        preparedProject.openProjectWithEventLogging { project ->
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+        }
 
-      expect.that(log).isEqualTo(
-        """
-      |started(.)
-      |succeeded(.)
-      |ended: SUCCESS
-      """.trimMargin()
-      )
+      expect
+        .that(log)
+        .isEqualTo(
+          """
+          |started(.)
+          |succeeded(.)
+          |ended: SUCCESS
+          """
+            .trimMargin()
+        )
     }
 
     run {
-      val log = preparedProject.openProjectWithEventLogging { project ->
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-      }
+      val log =
+        preparedProject.openProjectWithEventLogging { project ->
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+        }
 
-      expect.that(log).isEqualTo(
-        """
-      |skipped
-      |ended: SKIPPED
-      """.trimMargin()
-      )
+      expect
+        .that(log)
+        .isEqualTo(
+          """
+          |skipped
+          |ended: SKIPPED
+          """
+            .trimMargin()
+        )
     }
   }
 
@@ -498,40 +555,47 @@ class PlatformIntegrationTest {
     preparedProject.root.resolve("settings.gradle").writeText("// this build only has a root subproject")
 
     run {
-      val log = preparedProject.openProjectWithEventLogging { project ->
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-      }
+      val log =
+        preparedProject.openProjectWithEventLogging { project ->
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+        }
 
-      expect.that(log).isEqualTo(
-        """
-      |started(.)
-      |succeeded(.)
-      |ended: SUCCESS
-      """.trimMargin()
-      )
+      expect
+        .that(log)
+        .isEqualTo(
+          """
+          |started(.)
+          |succeeded(.)
+          |ended: SUCCESS
+          """
+            .trimMargin()
+        )
     }
 
     run {
-      val log = preparedProject.openProjectWithEventLogging { project ->
-        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-      }
+      val log =
+        preparedProject.openProjectWithEventLogging { project ->
+          expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+        }
 
-      expect.that(log).isEqualTo(
-        """
-      |skipped
-      |ended: SKIPPED
-      """.trimMargin()
-      )
+      expect
+        .that(log)
+        .isEqualTo(
+          """
+          |skipped
+          |ended: SKIPPED
+          """
+            .trimMargin()
+        )
     }
   }
 
   @Test
   fun `exceptions can be deserialized`() {
-    val preparedProject =
-      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.TestExceptionModels(),
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
     preparedProject.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
@@ -548,63 +612,71 @@ class PlatformIntegrationTest {
 
   private fun PreparedTestProject.openProjectWithEventLogging(
     outputHandler: (Project.(String) -> Unit)? = null,
-    body: (Project) -> Unit = {}
+    body: (Project) -> Unit = {},
   ): String {
     val root = root
 
     fun String.toLocalPath(): String = File(this).relativeToOrSelf(root).path.takeUnless { it.isEmpty() } ?: "."
 
     val completedChanged = CountDownLatch(1)
-    val log = buildString {
-      open(
-        updateOptions = {
-          it.copy(
-            verifyOpened = { /* do nothing */ },
-            outputHandler = outputHandler,
-            subscribe = {
-              it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
-                override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
-                  appendLine("started(${rootProjectPath.toLocalPath()})")
-                }
+    val log =
+      buildString {
+          open(
+            updateOptions = {
+              it.copy(
+                verifyOpened = { /* do nothing */ },
+                outputHandler = outputHandler,
+                subscribe = {
+                  it.subscribe(
+                    GRADLE_SYNC_TOPIC,
+                    object : GradleSyncListenerWithRoot {
+                      override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+                        appendLine("started(${rootProjectPath.toLocalPath()})")
+                      }
 
-                override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
-                  appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
-                }
+                      override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
+                        appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
+                      }
 
-                override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-                  appendLine("succeeded(${rootProjectPath.toLocalPath()})")
-                }
+                      override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+                        appendLine("succeeded(${rootProjectPath.toLocalPath()})")
+                      }
 
-                override fun syncSkipped(project: Project) {
-                  appendLine("skipped")
-                }
+                      override fun syncSkipped(project: Project) {
+                        appendLine("skipped")
+                      }
 
-                override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
-                  appendLine("cancelled(${rootProjectPath.toLocalPath()})")
-                }
-              })
-              it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-                override fun syncEnded(result: SyncResult) {
-                  appendLine("ended: $result")
-                  completedChanged.countDown()
-                }
-              })
+                      override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
+                        appendLine("cancelled(${rootProjectPath.toLocalPath()})")
+                      }
+                    },
+                  )
+                  it.subscribe(
+                    PROJECT_SYSTEM_SYNC_TOPIC,
+                    object : ProjectSystemSyncManager.SyncResultListener {
+                      override fun syncEnded(result: SyncResult) {
+                        appendLine("ended: $result")
+                        completedChanged.countDown()
+                      }
+                    },
+                  )
+                },
+              )
             }
-          )
+          ) { project ->
+            // When sync is cancelled, and it is detected by handling `FinishBuildEvent` with `SuccessResult` the `syncCancelled` event
+            // might be
+            // delivered after we reach this point.
+            completedChanged.awaitSecondsOrThrow(10)
+            expect.that(GradleSyncState.getInstance(project).isSyncInProgress).isFalse()
+            body(project)
+          }
         }
-      ) { project ->
-        // When sync is cancelled, and it is detected by handling `FinishBuildEvent` with `SuccessResult` the `syncCancelled` event might be
-        // delivered after we reach this point.
-        completedChanged.awaitSecondsOrThrow(10)
-        expect.that(GradleSyncState.getInstance(project).isSyncInProgress).isFalse()
-        body(project)
-      }
-    }.trim()
+        .trim()
     return log
   }
 }
 
 fun CountDownLatch.awaitSecondsOrThrow(seconds: Long): Boolean {
-  return await(seconds, TimeUnit.SECONDS)
-    .also { if (!it) error("Timeout waiting for $this") }
+  return await(seconds, TimeUnit.SECONDS).also { if (!it) error("Timeout waiting for $this") }
 }

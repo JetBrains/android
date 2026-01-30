@@ -32,8 +32,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** [TestRule] that implements the [before] and [after] setup specific for Compose unit tests. */
-private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) :
-  NamedExternalResource() {
+private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) : NamedExternalResource() {
   val buildSystemServices = FakeBuildSystemFilePreviewServices()
 
   override fun before(description: Description) {
@@ -49,16 +48,13 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
 }
 
 /**
- * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for
- * testing Compose preview elements.
+ * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for testing Compose preview elements.
  *
- * The rule is used by the Compose Preview as a convenience wrapper on top of [AndroidProjectRule].
- * This rule is not intended to test Compose UI elements and should not be used in test that are
- * checking UI state as it depends on IntelliJ infrastructure making the test inherently flaky.
+ * The rule is used by the Compose Preview as a convenience wrapper on top of [AndroidProjectRule]. This rule is not intended to test
+ * Compose UI elements and should not be used in test that are checking UI state as it depends on IntelliJ infrastructure making the test
+ * inherently flaky.
  */
-class ComposeProjectRule(
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
-) : ComposeProjectBasedTestRule {
+class ComposeProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()) : ComposeProjectBasedTestRule {
   override val project: Project
     get() = projectRule.project
 
@@ -76,9 +72,7 @@ class ComposeProjectRule(
   val testRootDisposable
     get() = projectRule.testRootDisposable
 
-  private val delegate: RuleChain =
-    RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
+  private val delegate: RuleChain = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
-  override fun apply(base: Statement, description: Description): Statement =
-    delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 }

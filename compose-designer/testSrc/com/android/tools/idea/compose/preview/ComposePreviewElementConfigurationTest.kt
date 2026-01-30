@@ -99,11 +99,7 @@ private val pixel4Device =
   buildDevice(
     "Pixel 4",
     "pixel_4",
-    states =
-      listOf(
-        buildState("Portrait", 1000, 2000).apply { isDefaultState = true },
-        buildState("Landscape", 1000, 2000),
-      ),
+    states = listOf(buildState("Portrait", 1000, 2000).apply { isDefaultState = true }, buildState("Landscape", 1000, 2000)),
   )
 private val nexus7Device = buildDevice("Nexus 7", "Nexus 7")
 private val nexus10Device = buildDevice("Nexus 10", "Nexus 10")
@@ -112,24 +108,16 @@ private val roundWearOsDevice =
     "Wear OS Round Device",
     "wearos_round",
     "android-wear",
-    states =
-      listOf(
-        buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply {
-          isDefaultState = true
-        }
-      ),
+    states = listOf(buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply { isDefaultState = true }),
   )
 private val deviceWithCustomDensity =
   buildDevice(
     name = "Device with custom density",
     id = "device_with_custom_density",
-    states =
-      listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true }),
+    states = listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true }),
   )
 
-private val deviceProvider: (Configuration) -> Collection<Device> = {
-  listOf(pixel4Device, nexus7Device, nexus10Device, roundWearOsDevice)
-}
+private val deviceProvider: (Configuration) -> Collection<Device> = { listOf(pixel4Device, nexus7Device, nexus10Device, roundWearOsDevice) }
 
 /** Tests checking [ComposePreviewElement] being applied to a [Configuration]. */
 class ComposePreviewElementConfigurationTest {
@@ -346,8 +334,7 @@ class ComposePreviewElementConfigurationTest {
   fun testApiLevel() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null)
+      val previewConfiguration = PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -362,8 +349,7 @@ class ComposePreviewElementConfigurationTest {
   fun testParentId() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, "id:pixel_4", null)
+      val previewConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, "id:pixel_4", null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -395,10 +381,7 @@ class ComposePreviewElementConfigurationTest {
         defaultDeviceProvider = { defaultDevice },
       )
       assertFalse(it.isGestureNav)
-      assertEquals(
-        listOf(FrameworkOverlay.NAV_3_BUTTONS, FrameworkOverlay.CUTOUT_NONE),
-        it.overlays,
-      )
+      assertEquals(listOf(FrameworkOverlay.NAV_3_BUTTONS, FrameworkOverlay.CUTOUT_NONE), it.overlays)
     }
   }
 
@@ -407,16 +390,7 @@ class ComposePreviewElementConfigurationTest {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          "spec:width=100dp,height=200dp,dpi=310",
-          null,
-        )
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, "spec:width=100dp,height=200dp,dpi=310", null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -428,16 +402,7 @@ class ComposePreviewElementConfigurationTest {
 
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          "spec:width=100dp,height=200dp,dpi=310,cutout=corner",
-          null,
-        )
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, "spec:width=100dp,height=200dp,dpi=310,cutout=corner", null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -451,17 +416,7 @@ class ComposePreviewElementConfigurationTest {
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          wallpaperParameterValue,
-        )
+      val previewConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, wallpaperParameterValue)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { null },
@@ -475,8 +430,7 @@ class ComposePreviewElementConfigurationTest {
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, deviceSpec)
+      val previewConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, deviceSpec)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { null },

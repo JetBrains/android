@@ -31,9 +31,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 /**
- * This class acts as a canonical source-of-truth as to what Kotlin/Compose language features we
- * treat as support classes (new instances are proxy objects, minimal restrictions on changes/diffs)
- * and which classes we treat as normal classes.
+ * This class acts as a canonical source-of-truth as to what Kotlin/Compose language features we treat as support classes (new instances are
+ * proxy objects, minimal restrictions on changes/diffs) and which classes we treat as normal classes.
  */
 @RunWith(JUnit4::class)
 class SupportClassTest {
@@ -43,21 +42,23 @@ class SupportClassTest {
   // so not having that available causes a NullPointerException when we call it.
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
     disableLiveEdit()
 
     // Create mocks for the kotlin.jvm to avoid having to bring in the whole dependency
-    projectRule.fixture.configureByText("JvmName.kt", "package kotlin.jvm\n" +
-                                                      "@Target(AnnotationTarget.FILE)\n" +
-                                                      "public annotation class JvmName(val name: String)\n")
+    projectRule.fixture.configureByText(
+      "JvmName.kt",
+      "package kotlin.jvm\n" + "@Target(AnnotationTarget.FILE)\n" + "public annotation class JvmName(val name: String)\n",
+    )
 
-    projectRule.fixture.configureByText("JvmMultifileClass.kt", "package kotlin.jvm\n" +
-                                                                "@Target(AnnotationTarget.FILE)\n" +
-                                                                "public annotation class JvmMultifileClass()")
+    projectRule.fixture.configureByText(
+      "JvmMultifileClass.kt",
+      "package kotlin.jvm\n" + "@Target(AnnotationTarget.FILE)\n" + "public annotation class JvmMultifileClass()",
+    )
   }
 
   @After
@@ -67,7 +68,10 @@ class SupportClassTest {
 
   @Test
   fun `lambdas are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       val x = { i: Int -> i + 1 }
       class A {
         val y = { a: String, b: String -> a + b }
@@ -78,7 +82,8 @@ class SupportClassTest {
           z1()
         }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(2, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["A"])
@@ -93,7 +98,10 @@ class SupportClassTest {
 
   @Test
   fun `SAM classes are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       fun interface I {
         fun f(): Int
       } 
@@ -101,7 +109,8 @@ class SupportClassTest {
         val x = I { 100 }
         return x.f()
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(2, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["I"])
@@ -112,7 +121,10 @@ class SupportClassTest {
 
   @Test
   fun `generic SAM classes are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       fun interface Observer<T> {
         fun onChanged(value: T)
       }
@@ -127,7 +139,8 @@ class SupportClassTest {
         val x = Watchable<String>()
         x.callObserver("hello") { println(it) }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(3, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["Observer"])
@@ -139,12 +152,16 @@ class SupportClassTest {
 
   @Test
   fun `anonymous functions are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       val x = fun(s: String): Int { return s.length }
       fun f() {
         val y = fun(): Int { return 0 }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["FileKt"])
@@ -167,23 +184,29 @@ class SupportClassTest {
   // or removing classes/methods, but it's correct behavior since we *can* support this as-is.
   @Test
   fun `interface default implementations are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       interface I {
         fun a()
         fun b() {}
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["I"])
     Assert.assertEquals(1, output.supportClassesMap.size)
     Assert.assertNotNull(output.supportClassesMap["I\$DefaultImpls"])
-
   }
 
   @Test
   fun `Compose lambdas and singletons are support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable
       fun f(arg: Int) {}
@@ -201,7 +224,8 @@ class SupportClassTest {
         g {
           f(arg)
         }
-      }""")
+      }""",
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["FileKt"])
@@ -222,9 +246,13 @@ class SupportClassTest {
 
   @Test
   fun `facade classes are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       fun f() = 0
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["FileKt"])
@@ -233,13 +261,17 @@ class SupportClassTest {
 
   @Test
   fun `nested classes are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       class A {
         class B() {
           class C() {}
         }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(3, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["A"])
@@ -250,7 +282,10 @@ class SupportClassTest {
 
   @Test
   fun `objects are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       object A {
         object B {
           object C {}
@@ -259,7 +294,8 @@ class SupportClassTest {
           object E {}
         }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(5, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["A"])
@@ -272,10 +308,14 @@ class SupportClassTest {
 
   @Test
   fun `object literals are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       interface I
       val x = object: I {}
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(3, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["FileKt"])
@@ -286,13 +326,17 @@ class SupportClassTest {
 
   @Test
   fun `companion objects are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
       class A {
         companion object {
           fun f() {}
         }
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(2, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["A"])
@@ -302,7 +346,10 @@ class SupportClassTest {
 
   @Test
   fun `local classes are NOT support classes`() {
-    val file = projectRule.createKtFile("File.kt", """
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
         class A() {
           fun f() {
             class B {}
@@ -311,7 +358,8 @@ class SupportClassTest {
         fun g() {
           class C {}
         }
-      """)
+      """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(4, output.classesMap.size)
     Assert.assertNotNull(output.classesMap["A"])

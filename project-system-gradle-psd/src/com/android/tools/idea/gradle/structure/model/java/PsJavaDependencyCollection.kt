@@ -38,62 +38,65 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
 
-interface PsJavaDependencyCollection<out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
-  : PsDependencyCollection<PsJavaModule, LibraryDependencyT, JarDependencyT, ModuleDependencyT>
-  where LibraryDependencyT : PsJavaDependency,
-        LibraryDependencyT : PsLibraryDependency,
-        JarDependencyT : PsJavaDependency,
-        JarDependencyT : PsJarDependency,
-        ModuleDependencyT : PsJavaDependency,
-        ModuleDependencyT : PsModuleDependency {
-  override val items: List<PsJavaDependency> get() = modules + libraries + jars
+interface PsJavaDependencyCollection<out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT> :
+  PsDependencyCollection<PsJavaModule, LibraryDependencyT, JarDependencyT, ModuleDependencyT>
+  where
+    LibraryDependencyT : PsJavaDependency,
+    LibraryDependencyT : PsLibraryDependency,
+    JarDependencyT : PsJavaDependency,
+    JarDependencyT : PsJarDependency,
+    ModuleDependencyT : PsJavaDependency,
+    ModuleDependencyT : PsModuleDependency {
+  override val items: List<PsJavaDependency>
+    get() = modules + libraries + jars
 }
 
-class PsDeclaredJavaDependencyCollection(parent: PsJavaModule)
-  : PsDeclaredDependencyCollection<PsJavaModule, PsDeclaredLibraryJavaDependency,
-  PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency>(parent),
-    PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency> {
+class PsDeclaredJavaDependencyCollection(parent: PsJavaModule) :
+  PsDeclaredDependencyCollection<
+    PsJavaModule,
+    PsDeclaredLibraryJavaDependency,
+    PsDeclaredJarJavaDependency,
+    PsDeclaredModuleJavaDependency,
+  >(parent),
+  PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency> {
 
   override fun createOrUpdateLibraryDependency(
     existing: PsDeclaredLibraryJavaDependency?,
-    artifactDependencyModel: ArtifactDependencyModel
-  ): PsDeclaredLibraryJavaDependency =
-    (existing ?: PsDeclaredLibraryJavaDependency(parent)).apply {init(artifactDependencyModel)}
+    artifactDependencyModel: ArtifactDependencyModel,
+  ): PsDeclaredLibraryJavaDependency = (existing ?: PsDeclaredLibraryJavaDependency(parent)).apply { init(artifactDependencyModel) }
 
   override fun createOrUpdateJarFileDependency(
     existing: PsDeclaredJarJavaDependency?,
-    fileDependencyModel: FileDependencyModel
-  ): PsDeclaredJarJavaDependency =
-    (existing ?: PsDeclaredJarJavaDependency(parent)).apply {init(fileDependencyModel)}
+    fileDependencyModel: FileDependencyModel,
+  ): PsDeclaredJarJavaDependency = (existing ?: PsDeclaredJarJavaDependency(parent)).apply { init(fileDependencyModel) }
 
   override fun createOrUpdateJarFileTreeDependency(
     existing: PsDeclaredJarJavaDependency?,
-    fileTreeDependencyModel: FileTreeDependencyModel
-  ): PsDeclaredJarJavaDependency =
-    (existing ?: PsDeclaredJarJavaDependency(parent)).apply {init(fileTreeDependencyModel)}
+    fileTreeDependencyModel: FileTreeDependencyModel,
+  ): PsDeclaredJarJavaDependency = (existing ?: PsDeclaredJarJavaDependency(parent)).apply { init(fileTreeDependencyModel) }
 
   override fun createOrUpdateModuleDependency(
     existing: PsDeclaredModuleJavaDependency?,
-    moduleDependencyModel: ModuleDependencyModel
-  ): PsDeclaredModuleJavaDependency =
-    (existing ?: PsDeclaredModuleJavaDependency(parent)).apply {init(moduleDependencyModel)}
+    moduleDependencyModel: ModuleDependencyModel,
+  ): PsDeclaredModuleJavaDependency = (existing ?: PsDeclaredModuleJavaDependency(parent)).apply { init(moduleDependencyModel) }
 }
 
-class PsResolvedJavaDependencyCollection(module: PsJavaModule)
-  : PsResolvedDependencyCollection<PsJavaModule, PsJavaModule, PsResolvedLibraryJavaDependency,
-  PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency>(
-  container = module,
-  module = module
-),
-    PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency> {
+class PsResolvedJavaDependencyCollection(module: PsJavaModule) :
+  PsResolvedDependencyCollection<
+    PsJavaModule,
+    PsJavaModule,
+    PsResolvedLibraryJavaDependency,
+    PsResolvedJarJavaDependency,
+    PsResolvedModuleJavaDependency,
+  >(container = module, module = module),
+  PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency> {
 
   override fun collectResolvedDependencies(container: PsJavaModule) {
     val gradleDependencyGraph = parent.resolvedModelDependencies
 
     fun processFile(file: File) {
       val artifactCanonicalFile = file.canonicalFile ?: return
-      val matchingDeclaredDependencies =
-        matchJarDeclaredDependenciesIn(parent.dependencies, artifactCanonicalFile)
+      val matchingDeclaredDependencies = matchJarDeclaredDependenciesIn(parent.dependencies, artifactCanonicalFile)
       val path = parent.relativeFile(artifactCanonicalFile)
       val jarDependency = PsResolvedJarJavaDependency(parent, this, path.path.orEmpty(), matchingDeclaredDependencies)
       addJarDependency(jarDependency)
@@ -108,16 +111,14 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     componentDependencies.compileDependenciesGraph.dependencies.forEach { maybeReference ->
       @Suppress("MoveVariableDeclarationIntoWhen")
       val dependency = if (maybeReference is ReferenceNode) dependencyNodeMap[maybeReference.id] else maybeReference
-      when(dependency) {
+      when (dependency) {
         is ArtifactDependencyNode -> {
           addLibraryDependency(processLibraryNode(dependency, dependencyNodeMap))
         }
         is FileCollectionDependencyNode -> {
           // The format for dependency.path is the same as org.gradle.api.file.FileCollection#getAsPath
           // That is a list of file paths seperated by the path separator
-          dependency.path.split(File.pathSeparator).forEach {
-            processFile(File(it))
-          }
+          dependency.path.split(File.pathSeparator).forEach { processFile(File(it)) }
         }
         is ProjectDependencyNode -> {
           val module = parent.parent.findModuleByGradlePath(dependency.projectPath)
@@ -131,10 +132,9 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     }
   }
 
-
   /**
-   * Traverses the complete tree of dependencies starting at [dependency] and populates all none [ReferenceNode]s
-   * within the [dependencyNodeMap].
+   * Traverses the complete tree of dependencies starting at [dependency] and populates all none [ReferenceNode]s within the
+   * [dependencyNodeMap].
    */
   private fun populateDependencyNodeMap(dependency: DependencyNode, dependencyNodeMap: Long2ObjectMap<DependencyNode>) {
     val queue = ArrayDeque<DependencyNode>()
@@ -148,14 +148,16 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     }
   }
 
-  private fun processLibraryNode(library: ArtifactDependencyNode, dependencyNodeMap: Long2ObjectMap<DependencyNode>): PsResolvedLibraryJavaDependency {
+  private fun processLibraryNode(
+    library: ArtifactDependencyNode,
+    dependencyNodeMap: Long2ObjectMap<DependencyNode>,
+  ): PsResolvedLibraryJavaDependency {
     val parsedDependencies = parent.dependencies
     val group = library.group
     val name = library.module
     val matchingDeclaredDependencies = parsedDependencies.findLibraryDependencies(group, name)
-    val resolvedDependencies = library.dependencies
-      .map { if (it is ReferenceNode) dependencyNodeMap[it.id] else it }
-      .filterIsInstance<ArtifactDependencyNode>()
+    val resolvedDependencies =
+      library.dependencies.map { if (it is ReferenceNode) dependencyNodeMap[it.id] else it }.filterIsInstance<ArtifactDependencyNode>()
     // TODO(b/110774403): Support Java module dependency scopes.
     return PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies) {
       resolvedDependencies.map { processLibraryNode(it, dependencyNodeMap) }.toSet()
@@ -164,10 +166,7 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
 
   private fun addModule(module: PsModule, scope: String) {
     val gradlePath = module.gradlePath
-    val matchingParsedDependencies =
-      parent
-        .dependencies
-        .findModuleDependencies(gradlePath)
+    val matchingParsedDependencies = parent.dependencies.findModuleDependencies(gradlePath)
     addModuleDependency(PsResolvedModuleJavaDependency(parent, gradlePath, scope, module, matchingParsedDependencies))
   }
 }

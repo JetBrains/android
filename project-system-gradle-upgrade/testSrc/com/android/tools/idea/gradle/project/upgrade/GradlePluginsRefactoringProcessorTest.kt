@@ -28,7 +28,7 @@ import org.junit.Test
 
 @RunsInEdt
 class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  private lateinit var versionCatalogFile : VirtualFile
+  private lateinit var versionCatalogFile: VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {

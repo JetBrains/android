@@ -37,13 +37,10 @@ private val DATE_TIME_FORMATTER =
     .toFormatter(Locale.ROOT)
 
 /**
- * A wrapper around LogcatMessage that holds the complete log line as a lazy property, so it doesn't
- * have to be computed for each filter evaluation.
+ * A wrapper around LogcatMessage that holds the complete log line as a lazy property, so it doesn't have to be computed for each filter
+ * evaluation.
  */
-internal class LogcatMessageWrapper(
-  val logcatMessage: LogcatMessage,
-  zoneId: ZoneId = ZoneId.systemDefault(),
-) {
+internal class LogcatMessageWrapper(val logcatMessage: LogcatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
   val logLine by lazy { toLine(zoneId) }
 
   /**

@@ -26,19 +26,16 @@ import java.awt.Graphics
 import javax.swing.Icon
 
 /**
- * Create a reusable [Icon] that is updated each time [getIcon] is called
- * and represent a color or a set of color if the provided [Asset]
- * is a state list.
+ * Create a reusable [Icon] that is updated each time [getIcon] is called and represent a color or a set of color if the provided [Asset] is
+ * a state list.
  */
-class ColorIconProvider(
-  private val project: Project,
-  private val resourceResolver: ResourceResolver
-) : AssetIconProvider {
+class ColorIconProvider(private val project: Project, private val resourceResolver: ResourceResolver) : AssetIconProvider {
 
   override var supportsTransparency: Boolean = true
 
   private val icon = MultipleColorIcon()
-  val colors get() = icon.colors
+  val colors
+    get() = icon.colors
 
   override fun getIcon(
     assetToRender: Asset,
@@ -46,7 +43,7 @@ class ColorIconProvider(
     height: Int,
     component: Component,
     refreshCallback: () -> Unit,
-    shouldBeRendered: () -> Boolean
+    shouldBeRendered: () -> Boolean,
   ): Icon {
     icon.colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(assetToRender), project)
     icon.width = width
@@ -56,8 +53,8 @@ class ColorIconProvider(
 }
 
 /**
- * The icon which displays multiple colors horizontally.
- * Note that there is another [com.intellij.util.ui.ColorsIcon] which displays multiple colors as a grid.
+ * The icon which displays multiple colors horizontally. Note that there is another [com.intellij.util.ui.ColorsIcon] which displays
+ * multiple colors as a grid.
  */
 class MultipleColorIcon : Icon {
   var width: Int = 0

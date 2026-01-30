@@ -47,11 +47,9 @@ import org.junit.Test
 @RunsInEdt
 class PsProductFlavorTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   private fun doTestDescriptor(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -60,18 +58,19 @@ class PsProductFlavorTest {
     assertThat(appModule, notNullValue())
 
     val productFlavor = appModule.findProductFlavor("foo", "paid")
-    assertThat(productFlavor, notNullValue()); productFlavor!!
+    assertThat(productFlavor, notNullValue())
+    productFlavor!!
 
-    assertThat(productFlavor.descriptor.testEnumerateProperties(),
-               equalTo(PsProductFlavor.ProductFlavorDescriptors.testEnumerateProperties()))
+    assertThat(
+      productFlavor.descriptor.testEnumerateProperties(),
+      equalTo(PsProductFlavor.ProductFlavorDescriptors.testEnumerateProperties()),
+    )
   }
 
   @Test
   fun testDescriptorGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestDescriptor(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestDescriptor(resolvedProject) }
   }
 
   @Test
@@ -90,7 +89,8 @@ class PsProductFlavorTest {
 
     run {
       val productFlavor = appModule.findProductFlavor("foo", "paid")
-      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor, notNullValue())
+      productFlavor!!
 
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.bind(productFlavor).getValue()
       val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
@@ -113,8 +113,9 @@ class PsProductFlavorTest {
       val testInstrumentationRunnerArguments =
         PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getValue()
       val editableTestInstrumentationRunnerArguments =
-        PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getEditableValues()
-          .mapValues { it.value.getValue() }
+        PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).getEditableValues().mapValues {
+          it.value.getValue()
+        }
 
       assertThat(dimension.resolved.asTestValue(), equalTo("foo"))
       assertThat(dimension.parsedValue.asTestValue(), equalTo("foo"))
@@ -130,7 +131,8 @@ class PsProductFlavorTest {
 
       assertThat(
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.minSdkVersion()?.valueType,
-        equalTo(GradlePropertyModel.ValueType.INTEGER))
+        equalTo(GradlePropertyModel.ValueType.INTEGER),
+      )
       assertThat(minSdkVersion.resolved.asTestValue(), equalTo("10"))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("10"))
 
@@ -142,7 +144,8 @@ class PsProductFlavorTest {
 
       assertThat(
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
-        equalTo(GradlePropertyModel.ValueType.INTEGER))
+        equalTo(GradlePropertyModel.ValueType.INTEGER),
+      )
       assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.selected.targetSdk))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.selected.targetSdk))
 
@@ -190,7 +193,8 @@ class PsProductFlavorTest {
     }
     run {
       val productFlavor = appModule.findProductFlavor("bar", "bar")
-      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor, notNullValue())
+      productFlavor!!
       val applicationIdSuffix = PsProductFlavor.ProductFlavorDescriptors.applicationIdSuffix.bind(productFlavor).getValue()
 
       assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("barSuffix"))
@@ -198,7 +202,8 @@ class PsProductFlavorTest {
     }
     run {
       val productFlavor = appModule.findProductFlavor("bar", "otherBar")
-      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor, notNullValue())
+      productFlavor!!
       val matchingFallbacks = PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).getValue()
       val resConfigs = PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).getValue()
 
@@ -213,9 +218,7 @@ class PsProductFlavorTest {
   @Test
   fun testPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestProperties(resolvedProject) }
   }
 
   @Test
@@ -235,11 +238,13 @@ class PsProductFlavorTest {
     assertThat(nested2Module, notNullValue())
 
     val productFlavor = appModule.findProductFlavor("foo", "paid")
-    assertThat(productFlavor, notNullValue()); productFlavor!!
+    assertThat(productFlavor, notNullValue())
+    productFlavor!!
 
     assertThat(
       PsProductFlavor.ProductFlavorDescriptors.dimension.bindContext(productFlavor).getKnownValues().get().literals,
-      hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
+      hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")),
+    )
 
     run {
       val appFooDimension = appModule.findFlavorDimension("foo")
@@ -260,9 +265,7 @@ class PsProductFlavorTest {
   @Test
   fun testDimensionsGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestDimensions(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestDimensions(resolvedProject) }
   }
 
   @Test
@@ -280,7 +283,8 @@ class PsProductFlavorTest {
     assertThat(appModule, notNullValue())
 
     val productFlavor = appModule.findProductFlavor("foo", "paid")
-    assertThat(productFlavor, notNullValue()); productFlavor!!
+    assertThat(productFlavor, notNullValue())
+    productFlavor!!
 
     assertThat(productFlavor.configuredDimension, equalTo("foo".asParsed()))
 
@@ -295,9 +299,7 @@ class PsProductFlavorTest {
   @Test
   fun testChangingDimensionsGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestChangingDimensions(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestChangingDimensions(resolvedProject) }
   }
 
   @Test
@@ -316,7 +318,8 @@ class PsProductFlavorTest {
       assertThat(appModule, notNullValue())
 
       val productFlavor = appModule.findProductFlavor("foo", "paid")
-      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor, notNullValue())
+      productFlavor!!
 
       productFlavor.configuredDimension = ParsedValue.NotSet
       assertThat(productFlavor.effectiveDimension, nullValue())
@@ -326,7 +329,8 @@ class PsProductFlavorTest {
       assertThat(nested2Module, notNullValue())
 
       val productFlavor = nested2Module.findProductFlavor("foo", "paid")
-      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor, notNullValue())
+      productFlavor!!
       assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>(ParsedValue.NotSet))
       assertThat(productFlavor.effectiveDimension, equalTo("foo"))
     }
@@ -344,9 +348,7 @@ class PsProductFlavorTest {
   @Test
   fun testEffectiveDimensionsGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestEffectiveDimensions(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestEffectiveDimensions(resolvedProject) }
   }
 
   @Test
@@ -364,7 +366,8 @@ class PsProductFlavorTest {
     assertThat(appModule, notNullValue())
 
     val productFlavor = appModule.findProductFlavor("foo", "paid")
-    assertThat(productFlavor, notNullValue()); productFlavor!!
+    assertThat(productFlavor, notNullValue())
+    productFlavor!!
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
     productFlavor.applicationIdSuffix = "suffix".asParsed()
@@ -382,18 +385,23 @@ class PsProductFlavorTest {
     productFlavor.versionName = "3.0".asParsed()
     productFlavor.versionNameSuffix = "newFoo".asParsed()
     val mySigningConfigDslText = "signingConfigs.myConfig"
-    PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
-      ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)))
+    PsProductFlavor.ProductFlavorDescriptors.signingConfig
+      .bind(productFlavor)
+      .setParsedValue(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)))
     PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())
     PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).run {
       addItem(0).setParsedValue("en".asParsed())
       addItem(1).setParsedValue("fr".asParsed())
     }
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).changeEntryKey("b", "e")
-    PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor)
-      .getEditableValues()["a"]?.setParsedValue("AAA".asParsed())
-    PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor)
-      .getEditableValues()["e"]?.setParsedValue("EEE".asParsed())
+    PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments
+      .bind(productFlavor)
+      .getEditableValues()["a"]
+      ?.setParsedValue("AAA".asParsed())
+    PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments
+      .bind(productFlavor)
+      .getEditableValues()["e"]
+      ?.setParsedValue("EEE".asParsed())
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.bind(productFlavor).deleteEntry("c")
 
     fun verifyValues(productFlavor: PsProductFlavor, afterSync: Boolean = false) {
@@ -406,8 +414,10 @@ class PsProductFlavorTest {
       val signingConfig = PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).getValue()
       val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(productFlavor).getValue()
       val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.bind(productFlavor).getValue()
-      // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
-      // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
+      // TODO(b/70501607): Decide on val testFunctionalTest =
+      // PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
+      // TODO(b/70501607): Decide on val testHandleProfiling =
+      // PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
       val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.bind(productFlavor).getValue()
       val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.bind(productFlavor).getValue()
       val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.bind(productFlavor).getValue()
@@ -429,7 +439,8 @@ class PsProductFlavorTest {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()),
+      )
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
@@ -461,7 +472,7 @@ class PsProductFlavorTest {
         assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
         assertThat(
           testInstrumentationRunnerArguments.parsedValue.asTestValue(),
-          equalTo(testInstrumentationRunnerArguments.resolved.asTestValue())
+          equalTo(testInstrumentationRunnerArguments.resolved.asTestValue()),
         )
         assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
         assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
@@ -481,9 +492,7 @@ class PsProductFlavorTest {
   @Test
   fun testSetPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestSetProperties(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestSetProperties(resolvedProject) }
   }
 
   @Test

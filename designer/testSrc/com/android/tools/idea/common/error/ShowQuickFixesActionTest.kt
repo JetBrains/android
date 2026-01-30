@@ -48,29 +48,19 @@ class ShowQuickFixesActionTest {
     // Test no issue
     val emptyContextEvent = TestActionEvent.createTestEvent(action, DataContext.EMPTY_CONTEXT)
     action.update(emptyContextEvent)
-    assertEquals(
-      ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix",
-      emptyContextEvent.presentation.text,
-    )
+    assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", emptyContextEvent.presentation.text)
     assertFalse(emptyContextEvent.presentation.isEnabled)
 
     // Test issue without the fix
-    val eventWithoutFix =
-      TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(), null) }
+    val eventWithoutFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(), null) }
     action.update(eventWithoutFix)
     assertEquals("No Quick Fix for This Issue", eventWithoutFix.presentation.text)
     assertFalse(eventWithoutFix.presentation.isEnabled)
 
     // Test issue with a fix
-    val eventWithFix =
-      TestActionEvent.createTestEvent(action) {
-        IssueNode(null, TestIssue(fixList = listOf(mock())), null)
-      }
+    val eventWithFix = TestActionEvent.createTestEvent(action) { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
     action.update(eventWithFix)
-    assertEquals(
-      ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix",
-      eventWithFix.presentation.text,
-    )
+    assertEquals(ActionsBundle.actionText("ProblemsView.QuickFixes") ?: "Show Quick Fix", eventWithFix.presentation.text)
     assertTrue(eventWithFix.presentation.isEnabled)
   }
 
@@ -80,19 +70,8 @@ class ShowQuickFixesActionTest {
 
     val sourceButton = ActionButton(action, Presentation(), "", Dimension(1, 1))
     val inputEvent = MouseEvent(sourceButton, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
-    val dataContext =
-      SimpleDataContext.getSimpleContext(
-        SELECTED_ITEM,
-        IssueNode(null, TestIssue(fixList = listOf(mock())), null),
-      )
-    val eventWithFix =
-      AnActionEvent.createEvent(
-        dataContext,
-        action.templatePresentation.clone(),
-        "",
-        ActionUiKind.NONE,
-        inputEvent,
-      )
+    val dataContext = SimpleDataContext.getSimpleContext(SELECTED_ITEM, IssueNode(null, TestIssue(fixList = listOf(mock())), null))
+    val eventWithFix = AnActionEvent.createEvent(dataContext, action.templatePresentation.clone(), "", ActionUiKind.NONE, inputEvent)
     assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
     action.actionPerformed(eventWithFix)
     assertEquals(1, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)

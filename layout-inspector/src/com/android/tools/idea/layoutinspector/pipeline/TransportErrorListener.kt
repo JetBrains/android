@@ -74,10 +74,7 @@ class TransportErrorListener(
 
   override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
 
-  override fun onStartTransportDaemonServerFail(
-    device: Common.Device,
-    exception: FailedToStartServerException,
-  ) {
+  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) {
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true

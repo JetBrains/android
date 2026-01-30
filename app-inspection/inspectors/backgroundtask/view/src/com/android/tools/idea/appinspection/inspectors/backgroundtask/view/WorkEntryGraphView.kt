@@ -141,16 +141,10 @@ class WorkDependencyGraphView(
 
       // Set a proper gap between labels so that works with different depths have the same total
       // width.
-      val gap =
-        (maxWidth - worksWithDepth.sumOf { labelMap[it.id]!!.preferredSize.width }) /
-          ((worksWithDepth.size + 1))
-      val panelWithDepth =
-        JPanel(TabularLayout("${gap}px" + ",Fit,${gap}px".repeat(worksWithDepth.size)))
+      val gap = (maxWidth - worksWithDepth.sumOf { labelMap[it.id]!!.preferredSize.width }) / ((worksWithDepth.size + 1))
+      val panelWithDepth = JPanel(TabularLayout("${gap}px" + ",Fit,${gap}px".repeat(worksWithDepth.size)))
       for (index in worksWithDepth.indices) {
-        panelWithDepth.add(
-          labelMap[worksWithDepth[index].id]!!,
-          TabularLayout.Constraint(0, 1 + index * 2),
-        )
+        panelWithDepth.add(labelMap[worksWithDepth[index].id]!!, TabularLayout.Constraint(0, 1 + index * 2))
       }
       add(panelWithDepth)
     }
@@ -160,8 +154,7 @@ class WorkDependencyGraphView(
   }
 
   private fun estimateWidth(works: List<WorkInfo>): Int {
-    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) +
-      works.sumOf { labelMap[it.id]!!.preferredSize.width }
+    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) + works.sumOf { labelMap[it.id]!!.preferredSize.width }
   }
 
   private fun createLabel(work: WorkInfo): JLabel {
@@ -170,33 +163,17 @@ class WorkDependencyGraphView(
     label.background = GRAPH_LABEL_BACKGROUND_COLOR
     label.isOpaque = true
 
-    val defaultBorder =
-      JBUI.Borders.empty(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
+    val defaultBorder = JBUI.Borders.empty(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
     label.border =
       if (work == selectionModel.selectedWork) {
         BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder(
-            JBUI.scale(2),
-            JBUI.scale(2),
-            JBUI.scale(2),
-            JBUI.scale(2),
-            SELECTED_WORK_BORDER_COLOR,
-          ),
+          BorderFactory.createMatteBorder(JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), SELECTED_WORK_BORDER_COLOR),
           defaultBorder,
         )
       } else {
         BorderFactory.createCompoundBorder(
-          BorderFactory.createMatteBorder(
-            JBUI.scale(1),
-            JBUI.scale(1),
-            JBUI.scale(1),
-            JBUI.scale(1),
-            DEFAULT_WORK_BORDER_COLOR,
-          ),
-          BorderFactory.createCompoundBorder(
-            JBUI.Borders.empty(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
-            defaultBorder,
-          ),
+          BorderFactory.createMatteBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), DEFAULT_WORK_BORDER_COLOR),
+          BorderFactory.createCompoundBorder(JBUI.Borders.empty(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)), defaultBorder),
         )
       }
 
@@ -205,9 +182,7 @@ class WorkDependencyGraphView(
         override fun mousePressed(e: MouseEvent?) {
           client.getEntry(work.id)?.let { nonNullEntry ->
             tab.isDetailsViewVisible = true
-            client.tracker.trackWorkSelected(
-              AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT
-            )
+            client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT)
             selectionModel.selectedEntry = nonNullEntry
           }
         }

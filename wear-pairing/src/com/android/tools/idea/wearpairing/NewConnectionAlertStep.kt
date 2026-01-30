@@ -32,8 +32,7 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class NewConnectionAlertStep(model: WearDevicePairingModel) :
-  ModelWizardStep<WearDevicePairingModel>(model, "") {
+class NewConnectionAlertStep(model: WearDevicePairingModel) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val mainPanel = JPanel()
   private lateinit var errorTitle: String
   private lateinit var errorBody: String
@@ -47,8 +46,7 @@ class NewConnectionAlertStep(model: WearDevicePairingModel) :
     val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
 
     // Check if this wear is already paired
-    val wearPhonePair =
-      WearPairingManager.getInstance().getPairsForDevice(selectedWear.deviceID).firstOrNull()
+    val wearPhonePair = WearPairingManager.getInstance().getPairsForDevice(selectedWear.deviceID).firstOrNull()
     if (wearPhonePair != null && wearPhonePair.phone.deviceID != selectedPhone.deviceID) {
       errorTitle = message("wear.assistant.connection.alert.factory.reset.title")
       errorBody =
@@ -82,10 +80,7 @@ class NewConnectionAlertStep(model: WearDevicePairingModel) :
         JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
         gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER),
       )
-      add(
-        JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)),
-        gridConstraint(x = 0, y = 1),
-      )
+      add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 1))
       add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL))
       add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
 

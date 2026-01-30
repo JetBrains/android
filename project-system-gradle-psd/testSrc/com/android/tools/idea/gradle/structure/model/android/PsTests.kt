@@ -30,8 +30,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 
-internal fun <T> PsDependencyCollection<*, *, *, T>.findModuleDependency(gradlePath: String)
-  where T : PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
+internal fun <T> PsDependencyCollection<*, *, *, T>.findModuleDependency(gradlePath: String) where T : PsModuleDependency =
+  findModuleDependencies(gradlePath).singleOrNull()
 
 internal fun PsAndroidModule.findVariant(name: String): PsVariant? = resolvedVariants.singleOrNull { it.name == name }
 
@@ -40,7 +40,9 @@ class PsTestContext(val resolvedProject: Project, val context: PsContextImpl, va
 interface PsTestProject {
   val resolvedProject: Project
   val project: PsProjectImpl
+
   fun reparse()
+
   fun requestSyncAndWait()
 }
 
@@ -48,7 +50,7 @@ fun <T> IntegrationTestEnvironmentRule.psTestWithContext(
   preparedProject: PreparedTestProject,
   disableAnalysis: Boolean = false,
   resolveModels: Boolean = true,
-  body: PsTestContext.() -> T
+  body: PsTestContext.() -> T,
 ): T {
   return preparedProject.open { resolvedProject ->
     val project = PsProjectImpl(resolvedProject)
@@ -56,13 +58,10 @@ fun <T> IntegrationTestEnvironmentRule.psTestWithContext(
       project.testResolve()
     }
 
-    val context = PsContextImpl(
-      project,
-      testRootDisposable,
-      disableAnalysis = disableAnalysis,
-      disableResolveModels = !resolveModels
-    )
-      .also { Disposer.register(testRootDisposable, it) }
+    val context =
+      PsContextImpl(project, testRootDisposable, disableAnalysis = disableAnalysis, disableResolveModels = !resolveModels).also {
+        Disposer.register(testRootDisposable, it)
+      }
     body(PsTestContext(resolvedProject, context, project))
   }
 }
@@ -71,44 +70,42 @@ fun <T> IntegrationTestEnvironmentRule.psTestWithProject(
   preparedProject: PreparedTestProject,
   resolveModels: Boolean = true,
   expectSyncFailing: Boolean = false,
-  body: PsTestProject.() -> T
+  body: PsTestProject.() -> T,
 ): T {
   fun updateOptions(options: OpenPreparedProjectOptions): OpenPreparedProjectOptions {
-    return options
-      .copy(disableKtsRelatedIndexing = true)
-      .let {
-        if (expectSyncFailing)
-          it.copy(
-            verifyOpened = { project -> assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult().isSuccessful).isFalse() }
-          )
-        else it
-      }
+    return options.copy(disableKtsRelatedIndexing = true).let {
+      if (expectSyncFailing)
+        it.copy(
+          verifyOpened = { project -> assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult().isSuccessful).isFalse() }
+        )
+      else it
+    }
   }
 
-  return preparedProject.open(
-    updateOptions = ::updateOptions
-  ) { resolvedProject ->
+  return preparedProject.open(updateOptions = ::updateOptions) { resolvedProject ->
     var psProject = PsProjectImpl(resolvedProject)
     if (resolveModels) {
       psProject.testResolve()
     }
 
-    body(object: PsTestProject{
-      override val resolvedProject: Project = resolvedProject
-      override val project: PsProjectImpl
-        get() = psProject
+    body(
+      object : PsTestProject {
+        override val resolvedProject: Project = resolvedProject
+        override val project: PsProjectImpl
+          get() = psProject
 
-      override fun reparse() {
-        psProject = PsProjectImpl(resolvedProject)
-        if (resolveModels) {
-          psProject.testResolve()
+        override fun reparse() {
+          psProject = PsProjectImpl(resolvedProject)
+          if (resolveModels) {
+            psProject.testResolve()
+          }
+        }
+
+        override fun requestSyncAndWait() {
+          refreshProjectFiles()
+          resolvedProject.requestSyncAndWait()
         }
       }
-
-      override fun requestSyncAndWait() {
-        refreshProjectFiles()
-        resolvedProject.requestSyncAndWait()
-      }
-    })
+    )
   }
 }

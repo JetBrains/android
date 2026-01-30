@@ -22,15 +22,13 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.project.Project
 
 fun Project.logUsageTopNavigateTo(toSelect: ModelPanel<*>) {
-  val psdEvent = PSDEvent
-    .newBuilder()
-    .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+  val psdEvent = PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
   toSelect.copyIdFieldsTo(psdEvent)
   UsageTracker.log(
-    AndroidStudioEvent
-      .newBuilder()
+    AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
       .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
       .setPsdEvent(psdEvent)
-      .withProjectId(this))
+      .withProjectId(this)
+  )
 }

@@ -55,25 +55,14 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
     assertThat((project as? ProjectImpl)?.isLight).isFalse()
 
     projectBaseDir = getOrCreateProjectBaseDir()
-    projectLevelVcsManager =
-      ProjectLevelVcsManager.getInstance(project) as ProjectLevelVcsManagerImpl
+    projectLevelVcsManager = ProjectLevelVcsManager.getInstance(project) as ProjectLevelVcsManagerImpl
     projectLevelVcsManager.waitForInitialized()
 
     vcs = MockAbstractVcs(project, "MOCK")
     projectLevelVcsManager.registerVcs(vcs)
 
-    ExtensionTestUtil.maskExtensions(
-      VcsRepositoryManager.EP_NAME,
-      listOf(FakeVcsRepositoryCreator(vcs)),
-      testRootDisposable,
-      false,
-    )
-    ExtensionTestUtil.maskExtensions(
-      VcsForAppInsights.EP_NAME,
-      listOf(FakeVcsForAppInsights()),
-      testRootDisposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(VcsRepositoryManager.EP_NAME, listOf(FakeVcsRepositoryCreator(vcs)), testRootDisposable, false)
+    ExtensionTestUtil.maskExtensions(VcsForAppInsights.EP_NAME, listOf(FakeVcsForAppInsights()), testRootDisposable, false)
 
     repositoryManager = VcsRepositoryManager.getInstance(project)
     addNewMappingToRootStructure(projectBaseDir.path, vcs)
@@ -86,8 +75,7 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
 
   fun addNewMappingToRootStructure(path: String, vcs: AbstractVcs): VirtualFile {
     val rootVFile = getOrCreateRootVFile(path)
-    projectLevelVcsManager.directoryMappings =
-      VcsUtil.addMapping(projectLevelVcsManager.directoryMappings, rootVFile.path, vcs.name)
+    projectLevelVcsManager.directoryMappings = VcsUtil.addMapping(projectLevelVcsManager.directoryMappings, rootVFile.path, vcs.name)
 
     repositoryManager.waitForAsyncTaskCompletion()
 
@@ -105,16 +93,13 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
   fun createChangeForPath(path: String, beforeRevision: String, afterRevision: String): Change {
     val file: VirtualFile = VfsTestUtil.createFile(projectBaseDir, path)
     val filePath: FilePath = file.toVcsFilePath()
-    val beforeContentRevision: ContentRevision =
-      FakeContentRevision(filePath, beforeRevision) { "before" }
-    val afterContentRevision: ContentRevision =
-      FakeContentRevision(filePath, afterRevision) { "after" }
+    val beforeContentRevision: ContentRevision = FakeContentRevision(filePath, beforeRevision) { "before" }
+    val afterContentRevision: ContentRevision = FakeContentRevision(filePath, afterRevision) { "after" }
     return Change(beforeContentRevision, afterContentRevision)
   }
 
   private fun getOrCreateRootVFile(path: String): VirtualFile {
-    return if (path == projectBaseDir.path) projectBaseDir
-    else fixture.tempDirFixture.findOrCreateDir(path)
+    return if (path == projectBaseDir.path) projectBaseDir else fixture.tempDirFixture.findOrCreateDir(path)
   }
 
   private fun getOrCreateProjectBaseDir(): VirtualFile {

@@ -33,7 +33,7 @@ class CreateAuxiliaryFilesVisitor(
   private val auxOffsetsChannel: FileChannel,
   private val auxChannel: FileChannel,
   private val classStore: ClassStore,
-  private val parser: HProfEventBasedParser
+  private val parser: HProfEventBasedParser,
 ) : HProfVisitor() {
   private lateinit var offsets: FileChannelBackedWriteBuffer
   private lateinit var aux: FileChannelBackedWriteBuffer
@@ -103,14 +103,16 @@ class CreateAuxiliaryFilesVisitor(
     aux.writeNonNegativeLEB128Int(numberOfElements.toInt())
   }
 
-  override fun visitClassDump(classId: Long,
-                              stackTraceSerialNumber: Long,
-                              superClassId: Long,
-                              classloaderClassId: Long,
-                              instanceSize: Long,
-                              constants: Array<ConstantPoolEntry>,
-                              staticFields: Array<StaticFieldEntry>,
-                              instanceFields: Array<InstanceFieldEntry>) {
+  override fun visitClassDump(
+    classId: Long,
+    stackTraceSerialNumber: Long,
+    superClassId: Long,
+    classloaderClassId: Long,
+    instanceSize: Long,
+    constants: Array<ConstantPoolEntry>,
+    staticFields: Array<StaticFieldEntry>,
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {
     assert(classId <= Int.MAX_VALUE)
     assert(offsets.position() / 4 == classId.toInt())
 
@@ -163,8 +165,7 @@ class CreateAuxiliaryFilesVisitor(
 
           if (value == 0L) {
             aux.writeId(0)
-          }
-          else {
+          } else {
             // bytes are just raw data. IDs have to be mapped manually.
             val reference = parser.remap(value)
             assert(reference != 0L)
@@ -177,23 +178,20 @@ class CreateAuxiliaryFilesVisitor(
           break
         }
         classDef = classStore[classDef.superClassId]
-      }
-      while (true)
+      } while (true)
     }
 
     // DirectByteBuffer class contains additional field with buffer capacity.
     if (objectClass == directByteBufferClass) {
       if (directByteBufferCapacityOffset == -1 || directByteBufferFdOffset == -1) {
         aux.writeNonNegativeLEB128Int(1)
-      }
-      else {
+      } else {
         val directByteBufferCapacity = bytes.getInt(directByteBufferCapacityOffset)
         val directByteBufferFd = bytes.getLong(directByteBufferFdOffset)
         if (directByteBufferFd == 0L) {
           // When fd == 0, the buffer is directly allocated in memory.
           aux.writeNonNegativeLEB128Int(directByteBufferCapacity)
-        }
-        else {
+        } else {
           // File-mapped buffer
           aux.writeNonNegativeLEB128Int(1)
         }
@@ -215,4 +213,3 @@ class CreateAuxiliaryFilesVisitor(
     this.writeNonNegativeLEB128Int(id)
   }
 }
-

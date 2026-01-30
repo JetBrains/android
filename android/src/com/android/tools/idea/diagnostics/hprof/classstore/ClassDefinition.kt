@@ -17,15 +17,17 @@ package com.android.tools.idea.diagnostics.hprof.classstore
 
 import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 
-class ClassDefinition(val name: String,
-                      val id: Long,
-                      val superClassId: Long,
-                      val instanceSize: Int,
-                      val superClassOffset: Int,
-                      val refInstanceFields: Array<InstanceField>,
-                      private val primitiveInstanceFields: Array<InstanceField>,
-                      val constantFields: LongArray,
-                      val staticFields: Array<StaticField>) {
+class ClassDefinition(
+  val name: String,
+  val id: Long,
+  val superClassId: Long,
+  val instanceSize: Int,
+  val superClassOffset: Int,
+  val refInstanceFields: Array<InstanceField>,
+  private val primitiveInstanceFields: Array<InstanceField>,
+  val constantFields: LongArray,
+  val staticFields: Array<StaticField>,
+) {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -53,11 +55,9 @@ class ClassDefinition(val name: String,
     val ARRAY_PREAMBLE_SIZE = 12
 
     fun computePrettyName(name: String): String {
-      if (!name.startsWith('['))
-        return name
+      if (!name.startsWith('[')) return name
       var arraySymbolsCount = 0
-      while (name.length > arraySymbolsCount && name[arraySymbolsCount] == '[')
-        arraySymbolsCount++
+      while (name.length > arraySymbolsCount && name[arraySymbolsCount] == '[') arraySymbolsCount++
       if (name.length <= arraySymbolsCount) {
         // Malformed name
         return name
@@ -94,16 +94,22 @@ class ClassDefinition(val name: String,
 
   fun copyWithRemappedIDs(idMapper: IDMapper): ClassDefinition {
     fun map(id: Long): Long = idMapper.getID(id)
-    val newConstantFields = LongArray(constantFields.size) {
-      map(constantFields[it])
-    }
-    val newStaticFields = Array(staticFields.size) {
-      val oldStaticField = staticFields[it]
-      StaticField(oldStaticField.name, map(oldStaticField.objectId))
-    }
+    val newConstantFields = LongArray(constantFields.size) { map(constantFields[it]) }
+    val newStaticFields =
+      Array(staticFields.size) {
+        val oldStaticField = staticFields[it]
+        StaticField(oldStaticField.name, map(oldStaticField.objectId))
+      }
     return ClassDefinition(
-      name, map(id), map(superClassId), instanceSize, superClassOffset,
-      refInstanceFields, primitiveInstanceFields, newConstantFields, newStaticFields
+      name,
+      map(id),
+      map(superClassId),
+      instanceSize,
+      superClassOffset,
+      refInstanceFields,
+      primitiveInstanceFields,
+      newConstantFields,
+      newStaticFields,
     )
   }
 
@@ -113,8 +119,7 @@ class ClassDefinition(val name: String,
     do {
       result.addAll(currentClass.refInstanceFields.map { it.name })
       currentClass = currentClass.getSuperClass(classStore) ?: break
-    }
-    while (true)
+    } while (true)
     return result
   }
 
@@ -128,12 +133,12 @@ class ClassDefinition(val name: String,
       }
       currentIndex -= size
       currentClass = currentClass.getSuperClass(classStore) ?: throw IndexOutOfBoundsException("$index on class $name")
-    }
-    while (true)
+    } while (true)
   }
 
   /**
    * Computes offset of a given field in the class (including superclasses)
+   *
    * @return Offset of the field, or -1 if the field doesn't exist.
    */
   fun computeOffsetOfField(fieldName: String, classStore: ClassStore): Int {
@@ -149,16 +154,22 @@ class ClassDefinition(val name: String,
       }
       classOffset += currentClass.superClassOffset
       currentClass = currentClass.getSuperClass(classStore) ?: return -1
-    }
-    while (true)
+    } while (true)
   }
 
   fun copyWithName(newName: String): ClassDefinition {
-    return ClassDefinition(newName, id, superClassId, instanceSize, superClassOffset, refInstanceFields, primitiveInstanceFields,
-                           constantFields, staticFields)
+    return ClassDefinition(
+      newName,
+      id,
+      superClassId,
+      instanceSize,
+      superClassOffset,
+      refInstanceFields,
+      primitiveInstanceFields,
+      constantFields,
+      staticFields,
+    )
   }
 
   fun hasRefField(fieldName: String): Boolean = refInstanceFields.any { field -> field.name == fieldName }
 }
-
-

@@ -20,8 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class VersionConstraintTest {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testVersionConstraintEquality() {
@@ -36,8 +35,7 @@ class VersionConstraintTest {
         if (v1 == v2) {
           expect.that(vc1 == vc2).isTrue()
           expect.that(vc1.hashCode() == vc2.hashCode()).isTrue()
-        }
-        else {
+        } else {
           expect.that(vc1 == vc2).isFalse()
         }
       }
@@ -60,8 +58,7 @@ class VersionConstraintTest {
         val v = AndroidGradlePluginVersion.parse(v2)
         if (i > j) {
           expect.that(vc.isOkWith(v)).isFalse()
-        }
-        else {
+        } else {
           expect.that(vc.isOkWith(v)).isTrue()
         }
       }
@@ -78,8 +75,7 @@ class VersionConstraintTest {
         val v = AndroidGradlePluginVersion.parse(v2)
         if (i <= j) {
           expect.that(vc.isOkWith(v)).isFalse()
-        }
-        else {
+        } else {
           expect.that(vc.isOkWith(v)).isTrue()
         }
       }

@@ -62,31 +62,26 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.module
 
 /**
- * Common implementation of a [PreviewFlowManager] of type [T]. The method [initializeFlows] must be
- * invoked for the flows to update themselves and to request refreshes. Refreshes will be requested
- * whenever a file in the project changes and the resulting previews are different from those in
- * [renderedPreviewElementsFlow].
+ * Common implementation of a [PreviewFlowManager] of type [T]. The method [initializeFlows] must be invoked for the flows to update
+ * themselves and to request refreshes. Refreshes will be requested whenever a file in the project changes and the resulting previews are
+ * different from those in [renderedPreviewElementsFlow].
  *
- * When a single non-null preview element is set through [setSingleFilter], that element will be
- * returned by [toRenderPreviewElementsFlow], otherwise the [groupFilter] will be used for
- * filtering.
+ * When a single non-null preview element is set through [setSingleFilter], that element will be returned by [toRenderPreviewElementsFlow],
+ * otherwise the [groupFilter] will be used for filtering.
  */
 class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
   private val log: Logger = Logger.getInstance(CommonPreviewFlowManager::class.java)
 ) : PreviewFlowManager<T> {
 
   /**
-   * Flow containing all the [PsiPreviewElementInstance]s available in the current file. This flow
-   * is only updated when the Preview representation is active.
+   * Flow containing all the [PsiPreviewElementInstance]s available in the current file. This flow is only updated when the Preview
+   * representation is active.
    */
-  override val allPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+  override val allPreviewElementsFlow = MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
-  override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
-    MutableStateFlow(emptySet())
+  override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> = MutableStateFlow(emptySet())
 
-  override val renderedPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+  override val renderedPreviewElementsFlow = MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
   override var groupFilter: PreviewGroup
     get() = getCurrentFilterAsGroup()?.filterGroup ?: PreviewGroup.All
@@ -94,9 +89,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       val currentFilter = filterFlow.value
       // We can only apply a group filter if no filter existed before or if the current one is
       // already a group filter.
-      val canApplyGroupFilter =
-        currentFilter is PreviewElementFilter.Disabled<T> ||
-          currentFilter is PreviewElementFilter.Group<T>
+      val canApplyGroupFilter = currentFilter is PreviewElementFilter.Disabled<T> || currentFilter is PreviewElementFilter.Group<T>
       filterFlow.value =
         if (group is PreviewGroup.Named && canApplyGroupFilter) {
           PreviewElementFilter.Group(group)
@@ -106,43 +99,30 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
     }
 
   /**
-   * Flow containing all the [PsiPreviewElementInstance]s available in the current file. These are
-   * all the previews in [allPreviewElementsFlow] filtered using [filterFlow]. This flow is only
-   * updated when the Preview representation is active.
+   * Flow containing all the [PsiPreviewElementInstance]s available in the current file. These are all the previews in
+   * [allPreviewElementsFlow] filtered using [filterFlow]. This flow is only updated when the Preview representation is active.
    */
-  private val toPaginatePreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+  private val toPaginatePreviewElementsFlow = MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
-  override val previewFlowPaginator: PreviewFlowPaginator<T> =
-    PreviewFlowPaginator(toPaginatePreviewElementsFlow)
+  override val previewFlowPaginator: PreviewFlowPaginator<T> = PreviewFlowPaginator(toPaginatePreviewElementsFlow)
 
   /**
-   * Flow containing all the [PsiPreviewElementInstance]s present in the selected page defined in
-   * the [previewFlowPaginator]. These are the previews expected to be rendered. This flow is only
-   * updated when the Preview representation is active.
+   * Flow containing all the [PsiPreviewElementInstance]s present in the selected page defined in the [previewFlowPaginator]. These are the
+   * previews expected to be rendered. This flow is only updated when the Preview representation is active.
    */
-  override val toRenderPreviewElementsFlow =
-    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+  override val toRenderPreviewElementsFlow = MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+
+  /** Current filter being applied to the preview. The filter allows to select one element or a group of them. */
+  private val filterFlow: MutableStateFlow<PreviewElementFilter<T>> = MutableStateFlow(PreviewElementFilter.Disabled())
 
   /**
-   * Current filter being applied to the preview. The filter allows to select one element or a group
-   * of them.
-   */
-  private val filterFlow: MutableStateFlow<PreviewElementFilter<T>> =
-    MutableStateFlow(PreviewElementFilter.Disabled())
-
-  /**
-   * Preview element provider corresponding to the current state of the Preview. Different modes
-   * might require a different provider to be set, e.g. UI check mode needs a provider that produces
-   * previews with reference devices. When exiting the mode and returning to static preview, the
-   * element provider should be reset to the default [PreviewElementProvider].
+   * Preview element provider corresponding to the current state of the Preview. Different modes might require a different provider to be
+   * set, e.g. UI check mode needs a provider that produces previews with reference devices. When exiting the mode and returning to static
+   * preview, the element provider should be reset to the default [PreviewElementProvider].
    */
   val uiCheckFilterFlow = MutableStateFlow<UiCheckModeFilter<T>>(UiCheckModeFilter.Disabled())
 
-  /**
-   * Filter that can be applied to select a single instance. Setting this filter will trigger a
-   * refresh.
-   */
+  /** Filter that can be applied to select a single instance. Setting this filter will trigger a refresh. */
   override fun setSingleFilter(previewElement: T?) {
     filterFlow.value =
       if (previewElement != null) {
@@ -152,12 +132,8 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       }
   }
 
-  /**
-   * Gets the current value of [filterFlow] as a [PreviewElementFilter.Group] or null if the current
-   * filter is of another type.
-   */
-  fun getCurrentFilterAsGroup(): PreviewElementFilter.Group<T>? =
-    filterFlow.value as? PreviewElementFilter.Group<T>
+  /** Gets the current value of [filterFlow] as a [PreviewElementFilter.Group] or null if the current filter is of another type. */
+  fun getCurrentFilterAsGroup(): PreviewElementFilter.Group<T>? = filterFlow.value as? PreviewElementFilter.Group<T>
 
   override fun updateRenderedPreviews(previewElements: List<T>) {
     renderedPreviewElementsFlow.value = FlowableCollection.Present(previewElements)
@@ -182,8 +158,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
       val project = psiFilePointer.project
       launch(Dispatchers.Default) {
         // Launch all the listeners that are bound to the current activation.
-        val previewElementsFlow =
-          previewElementsOnFileChangesFlow(project) { previewElementProvider }
+        val previewElementsFlow = previewElementsOnFileChangesFlow(project) { previewElementProvider }
 
         // Combine three flows:
         // - Flow containing all the previews that have been found in the files
@@ -204,17 +179,16 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           .map {
             when (it) {
               is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
-              is FlowableCollection.Present ->
-                FlowableCollection.Present(it.collection.sortByDisplayAndSourcePosition())
+              is FlowableCollection.Present -> FlowableCollection.Present(it.collection.sortByDisplayAndSourcePosition())
             }
           }
           .collectLatest {
             val previousElements = allPreviewElementsFlow.value
             allPreviewElementsFlow.value = it
             (previewModeManager.mode.value as? PreviewMode.Focus)?.let { oldMode ->
-              oldMode
-                .newMode(it.asCollection().toSet(), previousElements.asCollection().toSet())
-                .let { newMode -> previewModeManager.setMode(newMode) }
+              oldMode.newMode(it.asCollection().toSet(), previousElements.asCollection().toSet()).let { newMode ->
+                previewModeManager.setMode(newMode)
+              }
             }
           }
       }
@@ -223,17 +197,12 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
         val filteredPreviewsFlow = filteredPreviewElementsFlow(allPreviewElementsFlow, filterFlow)
 
         // Flow for Preview changes
-        combine(allPreviewElementsFlow, filteredPreviewsFlow, uiCheckFilterFlow) {
-            allAvailablePreviews,
-            filteredPreviews,
-            uiCheckFilter ->
+        combine(allPreviewElementsFlow, filteredPreviewsFlow, uiCheckFilterFlow) { allAvailablePreviews, filteredPreviews, uiCheckFilter ->
             // Calculate groups
             val allGroups =
               allAvailablePreviews
                 .asCollection()
-                .mapNotNull {
-                  it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) }
-                }
+                .mapNotNull { it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) } }
                 .toSet()
 
             // UI Check works in the output of one particular instance (similar to interactive
@@ -247,11 +216,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           .collectLatest { toPaginatePreviewElementsFlow.value = it }
       }
 
-      launch(Dispatchers.Default) {
-        previewFlowPaginator.currentPageFlow.collectLatest {
-          toRenderPreviewElementsFlow.value = it
-        }
-      }
+      launch(Dispatchers.Default) { previewFlowPaginator.currentPageFlow.collectLatest { toRenderPreviewElementsFlow.value = it } }
 
       // Trigger refreshes on available previews changes
       launch(Dispatchers.Default) {
@@ -337,25 +302,17 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
               //  - No files are out of date or it's not a relevant file
               //  - Fast Preview is not active, we do not need to detect files having
               // problems removed.
-              .filter {
-                isFastPreviewAvailable() &&
-                  psiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()
-              }
+              .filter { isFastPreviewAvailable() && psiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty() }
               .filter { file ->
                 // We only care about this in Kotlin files when they are out of date.
-                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles
-                  .map { it.virtualFile }
-                  .any { it == file }
+                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles.map { it.virtualFile }.any { it == file }
               },
           )
           .conflate()
           .collect {
             // If Fast Preview is enabled and there are Kotlin files out of date,
             // trigger a compilation. Otherwise, we will just refresh normally.
-            if (
-              isFastPreviewAvailable() &&
-                psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles.isNotEmpty()
-            ) {
+            if (isFastPreviewAvailable() && psiCodeFileOutOfDateStatusReporter.outOfDateKtFiles.isNotEmpty()) {
               try {
                 requestFastPreviewRefresh()
                 return@collect

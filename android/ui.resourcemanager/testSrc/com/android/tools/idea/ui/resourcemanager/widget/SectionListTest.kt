@@ -19,7 +19,6 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.google.common.truth.Truth
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.ImageIcon
 import javax.swing.JFrame
@@ -27,7 +26,7 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import kotlin.test.assertEquals
-
+import org.junit.Test
 
 class SectionListTest {
 
@@ -43,11 +42,12 @@ class SectionListTest {
     sectionList.selectedIndex = 0 to 0
     assertEquals(0, sectionList.getLists()[0].selectedIndex)
 
-    val selection1 = IntArray(3).apply {
-      set(0, 2)
-      set(1, 0)
-      set(2, 1)
-    }
+    val selection1 =
+      IntArray(3).apply {
+        set(0, 2)
+        set(1, 0)
+        set(2, 1)
+      }
 
     val selection2 = IntArray(1) { 1 }
 
@@ -75,10 +75,7 @@ fun main(args: Array<String>) {
     listModel.addSection(
       SimpleSection<String>(
         "Section $i",
-
-        JList(
-          1.rangeTo(10).map { "Element $it" }.toTypedArray()
-        ).also {
+        JList(1.rangeTo(10).map { "Element $it" }.toTypedArray()).also {
           it.layoutOrientation = JList.HORIZONTAL_WRAP
           it.setCellRenderer { list, value, index, isSelected, cellHasFocus ->
             JLabel(value, imageIcon, JLabel.CENTER).apply {
@@ -88,7 +85,7 @@ fun main(args: Array<String>) {
               }
             }
           }
-        }
+        },
       )
     )
   }

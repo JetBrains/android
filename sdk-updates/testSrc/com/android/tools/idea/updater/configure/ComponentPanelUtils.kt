@@ -22,7 +22,7 @@ import com.intellij.openapi.util.text.StringUtil
 
 internal fun UpdaterTreeNode.asString() = printSubTree(this).trim().toString()
 
-private fun printSubTree(node: UpdaterTreeNode, level: Int = 0, result: StringBuilder = StringBuilder()): StringBuilder{
+private fun printSubTree(node: UpdaterTreeNode, level: Int = 0, result: StringBuilder = StringBuilder()): StringBuilder {
   val renderer = UpdaterTreeNode.Renderer()
   node.customizeRenderer(renderer, null, false, false, false, 0, false)
   val nodeDescription = if (node is RootNode) "Root" else renderer.textRenderer.toString()
@@ -39,7 +39,7 @@ internal fun createLocalPackage(
   minor: Int? = null,
   micro: Int? = null,
   preview: Int? = null,
-  typeDetails: TypeDetails? = null
+  typeDetails: TypeDetails? = null,
 ): FakePackage.FakeLocalPackage {
   val fakeLocalPackage = FakePackage.FakeLocalPackage(path)
   fakeLocalPackage.setRevision(Revision(major, minor, micro, preview))
@@ -47,4 +47,3 @@ internal fun createLocalPackage(
   typeDetails?.let { fakeLocalPackage.typeDetails = it }
   return fakeLocalPackage
 }
-

@@ -47,8 +47,7 @@ class DetailsTabbedPaneTest {
 
   @Before
   fun setUp() {
-    stackTraceConsole =
-      StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker)
+    stackTraceConsole = StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker)
     Disposer.register(controllerRule.disposable, stackTraceConsole)
   }
 
@@ -100,18 +99,12 @@ class DetailsTabbedPaneTest {
     checkActionVisibility(tabbedPane, 0, softWrapAction, true)
   }
 
-  private fun checkActionVisibility(
-    tabbedPane: JBTabbedPane,
-    index: Int,
-    action: AnAction,
-    expected: Boolean,
-  ) {
+  private fun checkActionVisibility(tabbedPane: JBTabbedPane, index: Int, action: AnAction, expected: Boolean) {
     tabbedPane.selectedIndex = index
     val event = createTestActionEvent(action)
     action.update(event)
     assertThat(event.presentation.isEnabledAndVisible).isEqualTo(expected)
   }
 
-  private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
-    (getComponentAt(idx) as JComponent).components.last()
+  private fun JBTabbedPane.getComponentAtIdx(idx: Int) = (getComponentAt(idx) as JComponent).components.last()
 }

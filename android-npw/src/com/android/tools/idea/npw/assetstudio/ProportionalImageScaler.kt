@@ -21,16 +21,14 @@ import com.intellij.util.ui.JBUI
 import java.awt.Image
 
 /**
- * Utility for proportionally scaling a collection of images so that none of them
- * exceeds a given height constraint. When possible (depending on the height
- * constraint), the images will be scaled so that none of their heights is smaller
- * than that of the shortest image used to construct the scaler.
+ * Utility for proportionally scaling a collection of images so that none of them exceeds a given height constraint. When possible
+ * (depending on the height constraint), the images will be scaled so that none of their heights is smaller than that of the shortest image
+ * used to construct the scaler.
  */
 class ProportionalImageScaler private constructor(private val minHeight: Int, private val maxHeight: Int) {
   /**
-   * Returns the given image, scaled relative to the other images so that its height does not
-   * exceed [maxAllowedHeight]. The given [image] should be one of the images used to create
-   * the scaler.
+   * Returns the given image, scaled relative to the other images so that its height does not exceed [maxAllowedHeight]. The given [image]
+   * should be one of the images used to create the scaler.
    */
   fun scale(image: Image, maxAllowedHeight: Int): Image {
     if (maxAllowedHeight < 0) {

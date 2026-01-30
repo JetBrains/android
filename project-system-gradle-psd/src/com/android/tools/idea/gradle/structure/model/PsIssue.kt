@@ -48,7 +48,7 @@ interface PsIssue {
     ERROR("Error", "Errors", BalloonError, RED, 0),
     WARNING("Warning", "Warnings", BalloonWarning, warningColor, 1),
     INFO("Information", "Information", BalloonInformation, GRAY, 3),
-    UPDATE("Update", "Updates", Download, GRAY, 2)
+    UPDATE("Update", "Updates", Download, GRAY, 2),
   }
 
   enum class Priority constructor(val priority: Int) {
@@ -59,6 +59,7 @@ interface PsIssue {
 
 interface PsQuickFix : Serializable {
   val text: String
+
   fun execute(context: PsContext)
 
   companion object {
@@ -69,9 +70,7 @@ interface PsQuickFix : Serializable {
 
 fun PsQuickFix.serialize(): String {
   val byteArrayOutputStream = ByteArrayOutputStream()
-  ObjectOutputStream(byteArrayOutputStream).use { objectOutputStream ->
-    objectOutputStream.writeObject(this)
-  }
+  ObjectOutputStream(byteArrayOutputStream).use { objectOutputStream -> objectOutputStream.writeObject(this) }
   return StringUtil.toHexString(byteArrayOutputStream.toByteArray())
 }
 
@@ -84,13 +83,17 @@ data class PsGeneralIssue(
   override val type: PsIssueType,
   override val severity: PsIssue.Severity,
   override val quickFixes: List<PsQuickFix> = listOf(),
-  override val priority: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY
+  override val priority: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY,
 ) : PsIssue {
-  constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFix: PsQuickFix? = null) :
-    this(text, null, path, type, severity, listOfNotNull(quickFix))
+  constructor(
+    text: String,
+    path: PsPath,
+    type: PsIssueType,
+    severity: PsIssue.Severity,
+    quickFix: PsQuickFix? = null,
+  ) : this(text, null, path, type, severity, listOfNotNull(quickFix))
 
   override fun toString(): String = "${severity.name}: $text"
 }
 
-@Suppress("UnregisteredNamedColor")
-private val warningColor = JBColor.namedColor("NewPSD.warning", JBColor(0xF49810, 0xF49810))
+@Suppress("UnregisteredNamedColor") private val warningColor = JBColor.namedColor("NewPSD.warning", JBColor(0xF49810, 0xF49810))

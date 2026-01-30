@@ -81,9 +81,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
   val textState = rememberTextFieldState(filterState.textFilter.searchText)
-  LaunchedEffect(Unit) {
-    snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
-  }
+  LaunchedEffect(Unit) { snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it } }
   val searchFieldFocusRequester = remember { FocusRequester() }
 
   HorizontalSplitLayout(
@@ -93,26 +91,17 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp)) {
           TextField(
             textState,
-            leadingIcon = {
-              Icon(
-                StudioIconsCompose.Common.Search,
-                contentDescription = "Search",
-                Modifier.padding(end = 4.dp),
-              )
-            },
+            leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search", Modifier.padding(end = 4.dp)) },
             trailingIcon =
               (@Composable {
                   Icon(
                     AllIconsKeys.General.CloseSmall,
                     contentDescription = "Clear search",
-                    Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
-                      .pointerHoverIcon(PointerIcon.Default),
+                    Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") }).pointerHoverIcon(PointerIcon.Default),
                   )
                 })
                 .takeIf { textState.text.isNotEmpty() },
-            placeholder = {
-              Text(filterState.textFilter.description, fontWeight = FontWeight.Light)
-            },
+            placeholder = { Text(filterState.textFilter.description, fontWeight = FontWeight.Light) },
             modifier = Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester),
           )
           Tooltip(tooltip = { Text("Show device details") }) {
@@ -121,11 +110,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
               onValueChange = { showDetailsState.visible = it },
               Modifier.align(Alignment.CenterVertically).padding(4.dp),
             ) {
-              Icon(
-                AllIconsKeys.Actions.PreviewDetails,
-                contentDescription = "Details",
-                modifier = Modifier.size(20.dp),
-              )
+              Icon(AllIconsKeys.Actions.PreviewDetails, contentDescription = "Details", modifier = Modifier.size(20.dp))
             }
           }
         }
@@ -133,15 +118,9 @@ fun <DeviceT : DeviceProfile> DeviceTable(
           val filteredDevices = devices.filter(filterState::apply)
           if (filteredDevices.isEmpty()) {
             if (devices.none(filterState.textFilter::apply)) {
-              EmptyStatePanel(
-                "No devices found for \"${filterState.textFilter.searchText}\".",
-                Modifier.fillMaxSize(),
-              )
+              EmptyStatePanel("No devices found for \"${filterState.textFilter.searchText}\".", Modifier.fillMaxSize())
             } else {
-              EmptyStatePanel(
-                "No devices found matching the current filters.",
-                Modifier.fillMaxSize(),
-              )
+              EmptyStatePanel("No devices found matching the current filters.", Modifier.fillMaxSize())
             }
           } else {
             Table(
@@ -156,18 +135,10 @@ fun <DeviceT : DeviceProfile> DeviceTable(
             )
             if (showDetailsState.visible) {
               Divider(orientation = Orientation.Vertical, Modifier.fillMaxHeight())
-              when (
-                val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
-              ) {
+              when (val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }) {
                 null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
                 else ->
-                  DeviceDetails(
-                    selection,
-                    modifier =
-                      Modifier.width(200.dp)
-                        .padding(vertical = 12.dp, horizontal = 8.dp)
-                        .fillMaxHeight(),
-                  )
+                  DeviceDetails(selection, modifier = Modifier.width(200.dp).padding(vertical = 12.dp, horizontal = 8.dp).fillMaxHeight())
               }
             }
           }
@@ -188,18 +159,9 @@ class DeviceTableShowDetailsState {
 }
 
 object DeviceTableColumns {
-  val icon =
-    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { profile, _ ->
-      profile.Icon(Modifier.size(16.dp))
-    }
+  val icon = TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { profile, _ -> profile.Icon(Modifier.size(16.dp)) }
   val oem = TableTextColumn<DeviceProfile>("OEM", attribute = { it.manufacturer })
-  val name =
-    TableTextColumn<DeviceProfile>(
-      "Name",
-      TableColumnWidth.Weighted(2f),
-      attribute = { it.name },
-      maxLines = 2,
-    )
+  val name = TableTextColumn<DeviceProfile>("Name", TableColumnWidth.Weighted(2f), attribute = { it.name }, maxLines = 2)
   val api =
     DefaultSortableTableColumn<DeviceProfile, Int>(
       "API",
@@ -228,18 +190,9 @@ object DeviceTableColumns {
   // Make it just big enough to fit the header plus the sort icon.
   private val widthHeightColumnWidth = TableColumnWidth.ToFit("Height", extraPadding = 16.dp)
 
-  val width =
-    DefaultSortableTableColumn<DeviceProfile, Int>(
-      "Width",
-      width = widthHeightColumnWidth,
-      attribute = { it.resolution.width },
-    )
+  val width = DefaultSortableTableColumn<DeviceProfile, Int>("Width", width = widthHeightColumnWidth, attribute = { it.resolution.width })
   val height =
-    DefaultSortableTableColumn<DeviceProfile, Int>(
-      "Height",
-      width = widthHeightColumnWidth,
-      attribute = { it.resolution.height },
-    )
+    DefaultSortableTableColumn<DeviceProfile, Int>("Height", width = widthHeightColumnWidth, attribute = { it.resolution.height })
   val density =
     TableTextColumn<DeviceProfile>(
       "Density",
@@ -247,19 +200,11 @@ object DeviceTableColumns {
       attribute = { "${it.displayDensity} dpi" },
       comparator = compareBy { it.displayDensity },
     )
-  val type =
-    TableTextColumn<DeviceProfile>(
-      "Type",
-      attribute = { if (it.isVirtual) "Virtual" else "Physical" },
-    )
+  val type = TableTextColumn<DeviceProfile>("Type", attribute = { if (it.isVirtual) "Virtual" else "Physical" })
 }
 
-/**
- * A panel to be used when there is no data to show. Displays text in the center in a lighter color.
- */
+/** A panel to be used when there is no data to show. Displays text in the center in a lighter color. */
 @Composable
 fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
-  Box(modifier) {
-    Text(text, Modifier.align(Alignment.Center), color = JewelTheme.globalColors.text.info)
-  }
+  Box(modifier) { Text(text, Modifier.align(Alignment.Center), color = JewelTheme.globalColors.text.info) }
 }

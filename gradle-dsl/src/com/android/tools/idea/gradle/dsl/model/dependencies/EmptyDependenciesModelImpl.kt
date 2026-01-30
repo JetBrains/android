@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.elements.EmptyGradleBlockModel
 import com.intellij.psi.PsiElement
 
-class EmptyDependenciesModelImpl: EmptyGradleBlockModel(), DependenciesModel {
+class EmptyDependenciesModelImpl : EmptyGradleBlockModel(), DependenciesModel {
   override fun all(): List<DependencyModel> = listOf()
 
   override fun artifacts(configurationName: String): List<ArtifactDependencyModel> = listOf()
@@ -36,35 +36,23 @@ class EmptyDependenciesModelImpl: EmptyGradleBlockModel(), DependenciesModel {
   override fun addArtifact(configurationName: String, compactNotation: String) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun addArtifact(configurationName: String,
-                           compactNotation: String,
-                           excludes: List<ArtifactDependencySpec>) =
+  override fun addArtifact(configurationName: String, compactNotation: String, excludes: List<ArtifactDependencySpec>) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
-
 
   override fun containsArtifact(configurationName: String, dependency: ArtifactDependencySpec): Boolean =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-
-  override fun addArtifact(configurationName: String,
-                           reference: ReferenceTo,
-                           excludes: List<ArtifactDependencySpec>) =
+  override fun addArtifact(configurationName: String, reference: ReferenceTo, excludes: List<ArtifactDependencySpec>) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
-
 
   override fun addArtifact(configurationName: String, reference: ReferenceTo) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-
   override fun addArtifact(configurationName: String, dependency: ArtifactDependencySpec) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-
-  override fun addArtifact(configurationName: String,
-                           dependency: ArtifactDependencySpec,
-                           excludes: List<ArtifactDependencySpec>) =
+  override fun addArtifact(configurationName: String, dependency: ArtifactDependencySpec, excludes: List<ArtifactDependencySpec>) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
-
 
   override fun addPlatformArtifact(configurationName: String, compactNotation: String, enforced: Boolean) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
@@ -75,9 +63,8 @@ class EmptyDependenciesModelImpl: EmptyGradleBlockModel(), DependenciesModel {
   override fun addPlatformArtifact(configurationName: String, dependency: ArtifactDependencySpec, enforced: Boolean) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun replaceArtifactByPsiElement(oldPsiElement: PsiElement, newArtifact: ArtifactDependencySpec?): Boolean  =
+  override fun replaceArtifactByPsiElement(oldPsiElement: PsiElement, newArtifact: ArtifactDependencySpec?): Boolean =
     throw UnsupportedOperationException("Call is not supported for Declarative")
-
 
   override fun modules(): List<ModuleDependencyModel> = listOf()
 
@@ -92,11 +79,7 @@ class EmptyDependenciesModelImpl: EmptyGradleBlockModel(), DependenciesModel {
   override fun addFileTree(configurationName: String, dir: String) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-
-  override fun addFileTree(configurationName: String,
-                           dir: String,
-                           includes: List<String>?,
-                           excludes: List<String>?) =
+  override fun addFileTree(configurationName: String, dir: String, includes: List<String>?, excludes: List<String>?) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun files(): List<FileDependencyModel> = listOf()
@@ -104,7 +87,5 @@ class EmptyDependenciesModelImpl: EmptyGradleBlockModel(), DependenciesModel {
   override fun addFile(configurationName: String, file: String) =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun remove(dependency: DependencyModel) =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
-
+  override fun remove(dependency: DependencyModel) = throw UnsupportedOperationException("Call is not supported for Declarative")
 }

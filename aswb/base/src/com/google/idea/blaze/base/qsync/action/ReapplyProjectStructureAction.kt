@@ -23,14 +23,13 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 
 /**
- * An internal action to purge the build artifact cache, i.e. remove all entries from it. This does
- * not directly affect the project structure.
+ * An internal action to purge the build artifact cache, i.e. remove all entries from it. This does not directly affect the project
+ * structure.
  */
 class ReapplyProjectStructureAction : BlazeProjectAction(), DumbAware {
   override fun querySyncSupport(): QuerySyncStatus = QuerySyncStatus.REQUIRED
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent) {
-    getInstance(project)
-      .reapplyProjectStructure(QuerySyncActionStatsScope.create(project, javaClass, e))
+    getInstance(project).reapplyProjectStructure(QuerySyncActionStatsScope.create(project, javaClass, e))
   }
 }

@@ -45,8 +45,7 @@ class DataBindingPackageFinderTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -71,12 +70,7 @@ class DataBindingPackageFinderTest {
 
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
-    assertThat(
-        fixture.findClass(
-          "com.android.example.viewbinding.databinding.ActivityMainBinding",
-          context,
-        )
-      )
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context))
       .isInstanceOf(LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
   }
@@ -92,18 +86,9 @@ class DataBindingPackageFinderTest {
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
-    assertThat(
-        LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
-      )
-      .isEqualTo(DataBindingMode.ANDROIDX)
-    assertThat(
-        fixture.findClass(
-          "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
-          context,
-        )
-      )
+    assertThat(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
+    assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context))
       .isInstanceOf(LightBindingClass::class.java)
-    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding"))
-      .isNotNull()
+    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()
   }
 }

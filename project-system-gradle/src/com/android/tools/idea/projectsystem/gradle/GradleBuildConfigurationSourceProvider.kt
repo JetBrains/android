@@ -28,10 +28,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import java.util.Comparator
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
 import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
-import java.util.Comparator
 
 private const val BUILD_ORDER_BASE = 1_000_000
 private const val MODULE_ORDER_BASE = 2_000_000
@@ -40,25 +40,23 @@ private const val BUILD_WIDE_ORDER_BASE = 3_000_000
 
 class GradleBuildConfigurationSourceProvider(private val project: Project) : BuildConfigurationSourceProvider {
 
-  private data class ModuleDesc(
-    val module: Module,
-    val projectPath: GradleHolderProjectPath,
-    val gradleIdentityPath: String,
-  ) {
+  private data class ModuleDesc(val module: Module, val projectPath: GradleHolderProjectPath, val gradleIdentityPath: String) {
 
-    val orderBase: Int = when {
-      gradleIdentityPath == ":" -> 0
-      projectPath.path == ":" -> BUILD_ORDER_BASE
-      else -> MODULE_ORDER_BASE
-    }
+    val orderBase: Int =
+      when {
+        gradleIdentityPath == ":" -> 0
+        projectPath.path == ":" -> BUILD_ORDER_BASE
+        else -> MODULE_ORDER_BASE
+      }
 
     val displayPath: String = gradleIdentityPath
 
-    val projectDisplayName: String = when {
-      gradleIdentityPath == ":" -> PROJECT_PREFIX + module.name
-      projectPath.path == ":" -> BUILD_PREFIX + gradleIdentityPath
-      else -> MODULE_PREFIX + displayPath
-    }
+    val projectDisplayName: String =
+      when {
+        gradleIdentityPath == ":" -> PROJECT_PREFIX + module.name
+        projectPath.path == ":" -> BUILD_PREFIX + gradleIdentityPath
+        else -> MODULE_PREFIX + displayPath
+      }
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
@@ -67,34 +65,26 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   }
 
   private val holderModules: List<ModuleDesc> =
-    ModuleManager.getInstance(project).modules
+    ModuleManager.getInstance(project)
+      .modules
       .mapNotNull {
         val gradleHolderProjectPath = it.getGradleProjectPath()?.toHolder() ?: return@mapNotNull null
         val gradleIdentityPath = it.getGradleIdentityPath() ?: return@mapNotNull null
         gradleHolderProjectPath.resolveIn(project)?.let { holderModule ->
-          ModuleDesc(
-            module = holderModule,
-            projectPath = gradleHolderProjectPath,
-            gradleIdentityPath = gradleIdentityPath
-          )
+          ModuleDesc(module = holderModule, projectPath = gradleHolderProjectPath, gradleIdentityPath = gradleIdentityPath)
         }
       }
       .sortedWith(ModuleDesc.CONFIG_FILE_GROUP_COMPARATOR)
 
-  private data class ConfigurationFileImpl(
-    override val file: VirtualFile,
-    override val displayName: String,
-    override val groupOrder: Int
-  ) : BuildConfigurationSourceProvider.ConfigurationFile
+  private data class ConfigurationFileImpl(override val file: VirtualFile, override val displayName: String, override val groupOrder: Int) :
+    BuildConfigurationSourceProvider.ConfigurationFile
 
-  private fun VirtualFile.describe(displayName: String, legacyOrder: Int):ConfigurationFileImpl {
+  private fun VirtualFile.describe(displayName: String, legacyOrder: Int): ConfigurationFileImpl {
     return ConfigurationFileImpl(this, displayName, legacyOrder)
   }
 
   override fun getBuildConfigurationFiles(): List<BuildConfigurationSourceProvider.ConfigurationFile> {
-    return findConfigurationFiles()
-      .groupBy { it.file }
-      .map { it.value.last() }
+    return findConfigurationFiles().groupBy { it.file }.map { it.value.last() }
   }
 
   override fun contains(file: VirtualFile): Boolean {
@@ -119,7 +109,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
             } else {
               module.projectDisplayName
             },
-            (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0
+            (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0,
           )
         )
       }
@@ -128,48 +118,36 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     val projectRootFolder = project.baseDir
     if (projectRootFolder != null) {
 
-      yieldIfNotNull(
-        projectRootFolder.findChild(SdkConstants.FN_GRADLE_PROPERTIES)
-          ?.describe("Project Properties", BUILD_WIDE_ORDER_BASE)
-      )
-
+      yieldIfNotNull(projectRootFolder.findChild(SdkConstants.FN_GRADLE_PROPERTIES)?.describe("Project Properties", BUILD_WIDE_ORDER_BASE))
 
       yieldIfNotNull(
-        projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(
-          GradleProjectSystemUtil.GRADLEW_PROPERTIES_PATH))
+        projectRootFolder
+          .findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleProjectSystemUtil.GRADLEW_PROPERTIES_PATH))
           ?.describe("Gradle Version", BUILD_WIDE_ORDER_BASE)
       )
 
-      yieldIfNotNull(
-        projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE)
-          ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
-      )
+      yieldIfNotNull(projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE)?.describe("Project Settings", BUILD_WIDE_ORDER_BASE))
 
-      yieldIfNotNull(
-        projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)
-          ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
-      )
+      yieldIfNotNull(projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)?.describe("Project Settings", BUILD_WIDE_ORDER_BASE))
 
       if (DeclarativeStudioSupport.isEnabled()) {
         yieldIfNotNull(
-          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE)
-            ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
+          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE)?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
         )
       }
 
-      ModuleManager.getInstance(project).modules.map { getVersionCatalogFiles(it) }.flatMap { it.entries }.toSet().forEach {
-        yield(it.value.describe("Version Catalog \"${it.key}\"", BUILD_WIDE_ORDER_BASE))
-      }
+      ModuleManager.getInstance(project)
+        .modules
+        .map { getVersionCatalogFiles(it) }
+        .flatMap { it.entries }
+        .toSet()
+        .forEach { yield(it.value.describe("Version Catalog \"${it.key}\"", BUILD_WIDE_ORDER_BASE)) }
 
-      yieldIfNotNull(
-        projectRootFolder.findChild(SdkConstants.FN_LOCAL_PROPERTIES)
-          ?.describe("SDK Location", BUILD_WIDE_ORDER_BASE)
-      )
+      yieldIfNotNull(projectRootFolder.findChild(SdkConstants.FN_LOCAL_PROPERTIES)?.describe("SDK Location", BUILD_WIDE_ORDER_BASE))
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
-      val userSettingsFile =
-        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
+      val userSettingsFile = GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       val file = VfsUtil.findFileByIoFile(userSettingsFile, false)
       if (file != null) {
         yield(file.describe("Global Properties", BUILD_WIDE_ORDER_BASE))
@@ -183,22 +161,19 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
     val files = mutableListOf<VirtualFile>()
     for (child in moduleRootFolder.children) {
-      if (!child.isValid ||
-        child.isDirectory ||
-        (
-          !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
+      if (
+        !child.isValid ||
+          child.isDirectory ||
+          (!child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
             !child.isGradleDeclarativeBuildFile() &&
-            child.fileType !== proguardFileType
-          )
+            child.fileType !== proguardFileType)
       ) {
         continue
       }
 
       // When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
-      if (ApplicationManager.getApplication().isUnitTestMode &&
-        (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
-      ) {
+      if (ApplicationManager.getApplication().isUnitTestMode && (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))) {
         continue
       }
       files.add(child)

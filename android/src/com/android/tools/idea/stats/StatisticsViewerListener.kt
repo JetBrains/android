@@ -21,17 +21,12 @@ import com.intellij.openapi.Disposable
 import kotlinx.coroutines.launch
 
 /**
- * Registers a coroutine for notifications on Android Studio Events being logged.
- * This code is in a separate file because StatisticsViewer is written in java
- * which does not support coroutines.
+ * Registers a coroutine for notifications on Android Studio Events being logged. This code is in a separate file because StatisticsViewer
+ * is written in java which does not support coroutines.
  */
 object StatisticsViewerListener {
   @JvmStatic
   fun register(disposable: Disposable, callback: (AndroidStudioEvent.Builder) -> Unit) {
-    AndroidCoroutineScope((disposable)).launch {
-      AndroidStudioUsageTracker.eventLogFlow.collect {
-        callback(it)
-      }
-    }
+    AndroidCoroutineScope((disposable)).launch { AndroidStudioUsageTracker.eventLogFlow.collect { callback(it) } }
   }
 }

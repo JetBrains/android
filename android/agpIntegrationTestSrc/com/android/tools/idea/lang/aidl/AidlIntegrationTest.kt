@@ -46,9 +46,7 @@ class AidlIntegrationTest {
   @Test
   fun kotlinImplementation() {
     fixture.openFileInEditor(
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/com/example/KotlinRemoteInterfaceImpl.kt")!!
+      project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/com/example/KotlinRemoteInterfaceImpl.kt")!!
     )
 
     // Checking highlighting ensures that the AIDL generated code was created and built correctly.
@@ -60,9 +58,7 @@ class AidlIntegrationTest {
   @Test
   fun javaImplementation() {
     fixture.openFileInEditor(
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/com/example/JavaRemoteInterfaceImpl.java")!!
+      project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/com/example/JavaRemoteInterfaceImpl.java")!!
     )
 
     // Checking highlighting ensures that the AIDL generated code was created and built correctly.

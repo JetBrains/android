@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AccessibilityForceFocusDetector
 
 class AndroidLintAccessibilityFocusInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.accessibility.focus"),
-    AccessibilityForceFocusDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.accessibility.focus"), AccessibilityForceFocusDetector.ISSUE)

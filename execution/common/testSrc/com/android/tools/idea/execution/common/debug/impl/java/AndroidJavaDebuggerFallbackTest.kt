@@ -19,10 +19,10 @@ import com.android.ddmlib.Client
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
-import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
+import com.android.tools.idea.execution.common.launchAndWaitForProcess
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,47 +43,32 @@ class AndroidJavaDebuggerFallbackTest {
       AndroidModuleModelBuilder(
         ":",
         "debug",
-        AndroidProjectBuilder(
-          applicationIdFor = { "com.example.different.application.id.than.fake.process" }
-        ),
+        AndroidProjectBuilder(applicationIdFor = { "com.example.different.application.id.than.fake.process" }),
       )
     )
 
   @get:Rule(order = 1) val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule(order = 2)
-  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.adbServer }
+  @get:Rule(order = 2) val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.adbServer }
 
   private lateinit var client: Client
 
   @Before
   fun setUp() = runTest {
-    val deviceState = fakeAdbRule.connectDevice(
-      "test_device_001",
-      "test1",
-      "test2",
-      "model",
-      AndroidApiLevel(26),
-      DeviceState.HostConnectionType.USB)
+    val deviceState =
+      fakeAdbRule.connectDevice("test_device_001", "test1", "test2", "model", AndroidApiLevel(26), DeviceState.HostConnectionType.USB)
     val appId = "com.test.app"
     client = deviceState.launchAndWaitForProcess(1234, 4321, appId, true)
   }
 
-  @After
-  fun tearDown() = runTest {
-    XDebuggerManager.getInstance(projectRule.project).debugSessions.forEach { it.stop() }
-  }
+  @After fun tearDown() = runTest { XDebuggerManager.getInstance(projectRule.project).debugSessions.forEach { it.stop() } }
 
   @Test
   fun testNoMatchingApplicationId() = runTest {
     val session =
-      DebugSessionStarter.attachDebuggerToClientAndShowTab(
-        projectRule.project,
-        client,
-        AndroidJavaDebugger(),
-        AndroidDebuggerState(),
-      )
-    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
+      DebugSessionStarter.attachDebuggerToClientAndShowTab(projectRule.project, client, AndroidJavaDebugger(), AndroidDebuggerState())
+    Thread.sleep(250)
+    // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)

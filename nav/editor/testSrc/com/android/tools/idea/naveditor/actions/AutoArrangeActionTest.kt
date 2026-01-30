@@ -45,12 +45,7 @@ class AutoArrangeActionTest : NavTestCase() {
     val root = scene.root!!
     val manager = spy(surface.getSceneManager(model))!!
     doAnswer {
-        root.children.forEach { component ->
-          TestCase.assertEquals(
-            true,
-            component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT),
-          )
-        }
+        root.children.forEach { component -> TestCase.assertEquals(true, component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT)) }
         CompletableFuture.completedFuture(null)
       }
       .whenever(manager)
@@ -61,9 +56,7 @@ class AutoArrangeActionTest : NavTestCase() {
     val actionEvent = mock<AnActionEvent>()
     whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
     AutoArrangeAction.instance.actionPerformed(actionEvent)
-    root.children.forEach { component ->
-      TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
-    }
+    root.children.forEach { component -> TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT)) }
     verify(manager).requestRender()
     verify(surface.zoomController).zoomToFit()
   }

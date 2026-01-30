@@ -28,16 +28,15 @@ class GradleAndroidModelTest {
 
   @Test
   fun testClassFieldsToDynamicResourceValues() {
-    val input = mapOf(
-      "foo" to IdeClassFieldImpl(type = ResourceType.STRING.getName(), name = "foo", value = "baz"),
-      "foo2" to IdeClassFieldImpl(type = ResourceType.INTEGER.getName(), name = "foo2", value = "123")
-    )
+    val input =
+      mapOf(
+        "foo" to IdeClassFieldImpl(type = ResourceType.STRING.getName(), name = "foo", value = "baz"),
+        "foo2" to IdeClassFieldImpl(type = ResourceType.INTEGER.getName(), name = "foo2", value = "123"),
+      )
     val output = classFieldsToDynamicResourceValues(input)
 
-    val expectedOutput = mapOf(
-      "foo" to DynamicResourceValue(ResourceType.STRING, "baz"),
-      "foo2" to DynamicResourceValue(ResourceType.INTEGER, "123")
-    )
+    val expectedOutput =
+      mapOf("foo" to DynamicResourceValue(ResourceType.STRING, "baz"), "foo2" to DynamicResourceValue(ResourceType.INTEGER, "123"))
 
     assertThat(output).isEqualTo(expectedOutput)
   }

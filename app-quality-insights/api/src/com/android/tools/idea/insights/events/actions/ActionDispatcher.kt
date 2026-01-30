@@ -59,11 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 
-data class ActionContext(
-  val action: Action,
-  val currentState: AppInsightsState,
-  val lastGoodState: AppInsightsState?,
-) {
+data class ActionContext(val action: Action, val currentState: AppInsightsState, val lastGoodState: AppInsightsState?) {
   companion object {
     fun getDefaultState(defaultFilters: Filters) =
       ActionContext(
@@ -118,10 +114,7 @@ class ActionDispatcher(
     if (action::class in currentState.disabledActions) return CancellationToken.noop(Action.NONE)
 
     return when (action) {
-      is Action.Multiple ->
-        CompositeCancellationToken(
-          action.actions.map { doDispatch(ActionContext(it, currentState, lastGoodState)) }
-        )
+      is Action.Multiple -> CompositeCancellationToken(action.actions.map { doDispatch(ActionContext(it, currentState, lastGoodState)) })
       is Action.Fetch -> fetchIssues(currentState, lastGoodState, action.reason, action)
       is Action.FetchDetails -> fetchDetails(currentState, action)
       is Action.Refresh -> fetchIssues(currentState, lastGoodState, FetchSource.REFRESH, action)
@@ -143,9 +136,7 @@ class ActionDispatcher(
   private fun openIssue(connection: Connection, action: Action.OpenIssue): CancellationToken {
     return scope
       .launch {
-        when (
-          val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.OPEN)
-        ) {
+        when (val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.OPEN)) {
           is LoadingState.Failure -> {
             onErrorAction("Unable to open issue: ${result.getCauseMessageOrDefault()}", null)
             eventEmitter(IssueToggled(action.id, IssueState.CLOSED, isUndo = true))
@@ -161,9 +152,7 @@ class ActionDispatcher(
   private fun closeIssue(connection: Connection, action: Action.CloseIssue): CancellationToken {
     return scope
       .launch {
-        when (
-          val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.CLOSED)
-        ) {
+        when (val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.CLOSED)) {
           is LoadingState.Failure -> {
             onErrorAction("Unable to close issue: ${result.getCauseMessageOrDefault()}", null)
             eventEmitter(IssueToggled(action.id, IssueState.OPEN, isUndo = true))
@@ -176,11 +165,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchNotes(
-    connection: Connection,
-    state: AppInsightsState,
-    action: Action.FetchNotes,
-  ): CancellationToken {
+  private fun fetchNotes(connection: Connection, state: AppInsightsState, action: Action.FetchNotes): CancellationToken {
     return scope
       .launch {
         val fetchedNotes = appInsightsClient.listNotes(connection, action.id, state.mode)
@@ -192,17 +177,13 @@ class ActionDispatcher(
   private fun addNote(connection: Connection, action: Action.AddNote): CancellationToken {
     return scope
       .launch {
-        when (
-          val result =
-            appInsightsClient.createNote(connection, action.note.id.issueId, action.note.body)
-        ) {
+        when (val result = appInsightsClient.createNote(connection, action.note.id.issueId, action.note.body)) {
           is LoadingState.Ready -> {
             eventEmitter(NoteAdded(result.value, action.note.id.sessionId!!))
           }
           is LoadingState.Failure -> {
             onErrorAction(
-              "Unable to post this note: ${result.getCauseMessageOrDefault()}" +
-                "<br><a href=\"copy\">Copy note to clipboard</a>",
+              "Unable to post this note: ${result.getCauseMessageOrDefault()}" + "<br><a href=\"copy\">Copy note to clipboard</a>",
               HyperlinkListener {
                 val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                 clipboard.setContents(StringSelection(action.note.body), null)
@@ -237,29 +218,16 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchDetails(
-    state: AppInsightsState,
-    action: Action.FetchDetails,
-  ): CancellationToken {
+  private fun fetchDetails(state: AppInsightsState, action: Action.FetchDetails): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
         if (state.mode == ConnectionMode.OFFLINE) {
           // TODO: fetch cached detailed if available.
-          eventEmitter(
-            IssueDetailsChanged(
-              action.id,
-              LoadingState.NetworkFailure("Distribution data is not available"),
-            )
-          )
+          eventEmitter(IssueDetailsChanged(action.id, LoadingState.NetworkFailure("Distribution data is not available")))
           return@launch
         }
-        eventEmitter(
-          IssueDetailsChanged(
-            action.id,
-            appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId),
-          )
-        )
+        eventEmitter(IssueDetailsChanged(action.id, appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId)))
       }
       .toToken(action)
   }
@@ -278,13 +246,7 @@ class ActionDispatcher(
           delay(10_000L)
           eventEmitter(ErrorThrown(RevertibleException(lastGoodState, CancellableTimeoutException)))
         }
-        val fetchResult =
-          appInsightsClient.listTopOpenIssues(
-            issueRequest,
-            reason,
-            connectionMode,
-            state.permission,
-          )
+        val fetchResult = appInsightsClient.listTopOpenIssues(issueRequest, reason, connectionMode, state.permission)
         timeoutJob.cancelAndJoin()
         when (fetchResult) {
           is LoadingState.Ready -> {
@@ -301,10 +263,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchIssueVariants(
-    state: AppInsightsState,
-    action: Action.FetchIssueVariants,
-  ): CancellationToken {
+  private fun fetchIssueVariants(state: AppInsightsState, action: Action.FetchIssueVariants): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
@@ -324,15 +283,12 @@ class ActionDispatcher(
 
   private fun listEvents(state: AppInsightsState, action: Action.ListEvents): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
-    if (state.selectedIssue?.id != action.id || state.selectedVariant?.id != action.variantId)
-      return CancellationToken.noop(Action.NONE)
+    if (state.selectedIssue?.id != action.id || state.selectedVariant?.id != action.variantId) return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
         eventEmitter(
           if (state.mode == ConnectionMode.OFFLINE) {
-            EventsChanged(
-              LoadingState.Ready(EventPage(listOf(state.selectedIssue!!.sampleEvent), ""))
-            )
+            EventsChanged(LoadingState.Ready(EventPage(listOf(state.selectedIssue!!.sampleEvent), "")))
           } else {
             EventsChanged(
               appInsightsClient.listEvents(
@@ -349,37 +305,23 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchInsight(
-    connection: Connection,
-    state: AppInsightsState,
-    action: Action.FetchInsight,
-  ): CancellationToken {
+  private fun fetchInsight(connection: Connection, state: AppInsightsState, action: Action.FetchInsight): CancellationToken {
     return scope
       .launch {
         val insight =
           when {
-            aiInsightToolkit.insightDeprecationData.isUnsupported() ->
-              LoadingState.ServiceUnsupported
-            !GeminiPluginApi.getInstance().isAvailable() ->
-              LoadingState.Unauthorized("Gemini is not enabled")
+            aiInsightToolkit.insightDeprecationData.isUnsupported() -> LoadingState.ServiceUnsupported
+            !GeminiPluginApi.getInstance().isAvailable() -> LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
             action.event.isStackTraceEmpty() -> {
               if (state.selectedEvent == null) {
                 LoadingState.UnsupportedOperation("Insight requires an event to be selected.")
               } else {
-                LoadingState.UnsupportedOperation(
-                  "Insights cannot be generated for empty stacktrace"
-                )
+                LoadingState.UnsupportedOperation("Insights cannot be generated for empty stacktrace")
               }
             }
             else -> {
-              aiInsightToolkit.fetchInsight(
-                connection,
-                action.id,
-                action.variantId,
-                action.issueFatality,
-                action.event,
-              )
+              aiInsightToolkit.fetchInsight(connection, action.id, action.variantId, action.issueFatality, action.event)
             }
           }
         eventEmitter(AiInsightFetched(insight))
@@ -388,12 +330,7 @@ class ActionDispatcher(
   }
 
   private fun updateInsightFeedback(action: Action.UpdateInsightFeedback): CancellationToken {
-    aiInsightToolkit.updateInsightFeedback(
-      action.connection,
-      action.id,
-      action.variantId,
-      action.feedback,
-    )
+    aiInsightToolkit.updateInsightFeedback(action.connection, action.id, action.variantId, action.feedback)
     return CancellationToken.noop(Action.NONE)
   }
 
@@ -423,10 +360,6 @@ class ActionDispatcher(
 
   private fun ReceiveChannel<ActionContext>.batchWithTimeout(scope: CoroutineScope, timeout: Long) =
     batchFold(scope, timeout, ActionContext.getDefaultState(defaultFilters)) { acc, actionContext ->
-      ActionContext(
-        acc.action and actionContext.action,
-        actionContext.currentState,
-        actionContext.lastGoodState,
-      )
+      ActionContext(acc.action and actionContext.action, actionContext.currentState, actionContext.lastGoodState)
     }
 }

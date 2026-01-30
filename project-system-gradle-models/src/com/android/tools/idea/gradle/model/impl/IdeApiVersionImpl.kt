@@ -18,8 +18,5 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import java.io.Serializable
 
-data class IdeApiVersionImpl(
-  override val apiLevel: Int,
-  override val codename: String?,
-  override val apiString: String
-) : IdeApiVersion, Serializable
+data class IdeApiVersionImpl(override val apiLevel: Int, override val codename: String?, override val apiString: String) :
+  IdeApiVersion, Serializable

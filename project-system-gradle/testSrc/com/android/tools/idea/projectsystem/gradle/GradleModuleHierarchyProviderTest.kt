@@ -26,75 +26,67 @@ import com.google.common.truth.TruthJUnit
 import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import java.io.File
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.io.File
 
 data class GradleModuleHierarchyProviderTest(
   override val name: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  val test: (Project) -> Unit
+  val test: (Project) -> Unit,
 ) : SyncedProjectTestDef {
 
   companion object {
-    val tests: List<GradleModuleHierarchyProviderTest> = listOf(
-      GradleModuleHierarchyProviderTest(
-        name = "testCompositeStructure",
-        TestProject.COMPOSITE_BUILD,
-      ) { project ->
-        val isPhasedSyncEnabled = StudioFlags.PHASED_SYNC_ENABLED.get()
+    val tests: List<GradleModuleHierarchyProviderTest> =
+      listOf(
+        GradleModuleHierarchyProviderTest(name = "testCompositeStructure", TestProject.COMPOSITE_BUILD) { project ->
+          val isPhasedSyncEnabled = StudioFlags.PHASED_SYNC_ENABLED.get()
 
-        val expected = mutableListOf(
-          project.findModule("project.app"),
-          project.findModule("project.lib"),
-          project.findModule(if (isPhasedSyncEnabled) "includedLib1" else  "TestCompositeLib1"),
-          project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib2" else  "composite2"),
-          project.findModule("TestCompositeLib3"),
-          project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib4" else  "composite4"),
-        )
-
-        val projectGradleVersion = GradleSettings.getInstance(project)
-          .linkedProjectsSettings
-          .single()
-          .let { GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current() }
-        val additionalTopLevel = if (GradleVersionUtil.isGradleOlderThan(projectGradleVersion, "8.0")) {
-          // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
-          // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent chain.
-          // This means that resulting hierarchy is different.
-          listOf(
-              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
-              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
+          val expected =
+            mutableListOf(
+              project.findModule("project.app"),
+              project.findModule("project.lib"),
+              project.findModule(if (isPhasedSyncEnabled) "includedLib1" else "TestCompositeLib1"),
+              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib2" else "composite2"),
+              project.findModule("TestCompositeLib3"),
+              project.findModule(if (isPhasedSyncEnabled) "TestCompositeLib4" else "composite4"),
             )
-        } else {
-          emptyList()
-        }
 
-        val provider = GradleModuleHierarchyProvider(project)
-        assertThat(provider.forProject.submodules).containsExactlyElementsIn(expected + additionalTopLevel)
-      },
+          val projectGradleVersion =
+            GradleSettings.getInstance(project).linkedProjectsSettings.single().let {
+              GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current()
+            }
+          val additionalTopLevel =
+            if (GradleVersionUtil.isGradleOlderThan(projectGradleVersion, "8.0")) {
+              // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
+              // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent
+              // chain.
+              // This means that resulting hierarchy is different.
+              listOf(
+                project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_1" else "compositeNest"),
+                project.findModule(if (isPhasedSyncEnabled) "TestCompositeLibNested_3" else "com.test.compositeNest3.compositeNest"),
+              )
+            } else {
+              emptyList()
+            }
 
-      GradleModuleHierarchyProviderTest(
-        name = "testUsualStructure",
-        TestProject.SIMPLE_APPLICATION,
-      ) { project ->
-        val provider = GradleModuleHierarchyProvider(project)
-        val app = project.findAppModule()
-        assertThat(provider.forProject.submodules).containsExactly(app)
-      },
-
-      GradleModuleHierarchyProviderTest(
-        name = "testFirstSyncFailedStructure",
-        TestProject.SIMPLE_APPLICATION_SYNC_FAILED
-      ) {project ->
-        TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)
-        val provider = GradleModuleHierarchyProvider(project)
-        // This case is handled by the AndroidViewProjectNode directly.
-        assertThat(provider.forProject.submodules).isEmpty()
-
-      },
-    )
+          val provider = GradleModuleHierarchyProvider(project)
+          assertThat(provider.forProject.submodules).containsExactlyElementsIn(expected + additionalTopLevel)
+        },
+        GradleModuleHierarchyProviderTest(name = "testUsualStructure", TestProject.SIMPLE_APPLICATION) { project ->
+          val provider = GradleModuleHierarchyProvider(project)
+          val app = project.findAppModule()
+          assertThat(provider.forProject.submodules).containsExactly(app)
+        },
+        GradleModuleHierarchyProviderTest(name = "testFirstSyncFailedStructure", TestProject.SIMPLE_APPLICATION_SYNC_FAILED) { project ->
+          TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)
+          val provider = GradleModuleHierarchyProvider(project)
+          // This case is handled by the AndroidViewProjectNode directly.
+          assertThat(provider.forProject.submodules).isEmpty()
+        },
+      )
   }
 
   override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {

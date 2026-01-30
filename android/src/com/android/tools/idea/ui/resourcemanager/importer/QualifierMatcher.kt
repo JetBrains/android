@@ -25,8 +25,8 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
 
 /**
- * Returns true if the [LocaleQualifier] has a valid region and language. Not having region or language
- * are both acceptable and this method will return true.
+ * Returns true if the [LocaleQualifier] has a valid region and language. Not having region or language are both acceptable and this method
+ * will return true.
  */
 private fun LocaleQualifier.hasValidLanguageAndRegion(): Boolean {
   val validRegion = !hasRegion() || LocaleManager.isValidRegionCode(region!!)
@@ -36,11 +36,12 @@ private fun LocaleQualifier.hasValidLanguageAndRegion(): Boolean {
 }
 
 /**
- * Returns the set of [ResourceQualifier] that are in the specified [names] when parsed as a folder.
- * Returning null means that [names] did not form a valid folder name.
+ * Returns the set of [ResourceQualifier] that are in the specified [names] when parsed as a folder. Returning null means that [names] did
+ * not form a valid folder name.
  */
 private fun getQualifiersFromFolder(names: Iterable<String>): Set<ResourceQualifier>? {
-  return FolderConfiguration.getConfigFromQualifiers(names)?.qualifiers
+  return FolderConfiguration.getConfigFromQualifiers(names)
+    ?.qualifiers
     ?.filter {
       // LocaleQualifier parsing is very leaning and might return values that are not actual
       // languages. Just in case, do not suggest those.
@@ -52,8 +53,8 @@ private fun getQualifiersFromFolder(names: Iterable<String>): Set<ResourceQualif
 /**
  * Lexer that parses a file path and matches tokens to a list of [ResourceQualifier].
  *
- * The token are defined using a set of [Mapper] that map a string to a [ResourceQualifier].
- * The path that did not match any token is then parsed using standard [FolderConfiguration] definition.
+ * The token are defined using a set of [Mapper] that map a string to a [ResourceQualifier]. The path that did not match any token is then
+ * parsed using standard [FolderConfiguration] definition.
  */
 class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emptySet()) {
 
@@ -75,29 +76,26 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     // mappers is important since once a mappers matched the string, we won't go
     // backtrack.
     val matcher = mappers.first().pattern.matcher(path)
-    mappers
-      .forEach {
-        // Apply the current mapper's pattern
-        matcher.usePattern(it.pattern)
-        if (matcher.find()) {
-          val qualifier = it.getQualifier(it.getValue(matcher.toMatchResult()))
-          if (qualifier != null) {
-            qualifiers.add(qualifier)
-            unusedMappers.remove(it)
-          }
-
-          // We add the part of the path currently matched and remove the part
-          // of it that has been matched with a qualifier. We'll end up with a
-          // base name of the path that will be used to group the files with
-          // the same base name
-          matcher.appendReplacement(finalFileName, "")
+    mappers.forEach {
+      // Apply the current mapper's pattern
+      matcher.usePattern(it.pattern)
+      if (matcher.find()) {
+        val qualifier = it.getQualifier(it.getValue(matcher.toMatchResult()))
+        if (qualifier != null) {
+          qualifiers.add(qualifier)
+          unusedMappers.remove(it)
         }
+
+        // We add the part of the path currently matched and remove the part
+        // of it that has been matched with a qualifier. We'll end up with a
+        // base name of the path that will be used to group the files with
+        // the same base name
+        matcher.appendReplacement(finalFileName, "")
       }
+    }
 
     // Add the default qualifiers from the unused mappers
-    unusedMappers
-      .mapNotNull { it.defaultQualifier }
-      .toCollection(qualifiers)
+    unusedMappers.mapNotNull { it.defaultQualifier }.toCollection(qualifiers)
 
     // Append the rest of the path that has not been matched
     matcher.appendTail(finalFileName)
@@ -125,23 +123,16 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     val resourceName = FileUtil.sanitizeFileName(fileName)
     val parent = PathUtil.getFileName(PathUtil.getParentPath(path))
     val parentSplit = parent.split("-").filter { it.isNotBlank() }
-    val qualifiers =
-      getQualifiersFromFolder(parentSplit) ?: getQualifiersFromFolder(parentSplit.drop(1)) ?: emptySet()
+    val qualifiers = getQualifiersFromFolder(parentSplit) ?: getQualifiersFromFolder(parentSplit.drop(1)) ?: emptySet()
     return Result(resourceName, qualifiers)
   }
 
-  /**
-   * Result of a parsing with the lexer.
-   */
+  /** Result of a parsing with the lexer. */
   data class Result(
-    /**
-     * The the name of the resource without the part that have been matched by the lexer
-     */
+    /** The the name of the resource without the part that have been matched by the lexer */
     val resourceName: String,
 
-    /**
-     * The qualifiers that have been matched with the path.
-     */
-    val qualifiers: Set<ResourceQualifier>
+    /** The qualifiers that have been matched with the path. */
+    val qualifiers: Set<ResourceQualifier>,
   )
 }

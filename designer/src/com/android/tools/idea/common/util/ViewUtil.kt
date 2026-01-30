@@ -30,8 +30,7 @@ import android.view.ViewGroup
  * @param heightInPx the height to override the view with in PX.
  */
 fun updateLayoutParams(viewObject: Any, widthInPx: Int?, heightInPx: Int?) {
-  val view =
-    viewObject as? View ?: throw IllegalArgumentException("viewObject is expected to be View")
+  val view = viewObject as? View ?: throw IllegalArgumentException("viewObject is expected to be View")
   val layoutParams = view.layoutParams
   layoutParams.width = widthInPx ?: ViewGroup.LayoutParams.WRAP_CONTENT
   layoutParams.height = heightInPx ?: ViewGroup.LayoutParams.WRAP_CONTENT

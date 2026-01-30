@@ -26,19 +26,21 @@ import org.junit.Test
 class DaemonContextMismatchIssueCheckerTest {
   private val daemonContextMismatchIssueChecker = DaemonContextMismatchIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssueWithErrorForGradlePost_8_8() {
-    val errorMessage = """
+    val errorMessage =
+      """
       The newly created daemon process has a different context than expected.
       It won't be possible to reconnect to this daemon. Context mismatch: 
       JVM is incompatible.
       Wanted: DefaultDaemonContext[uid=null,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=555]
       Actual: DefaultDaemonContext[uid=0f3a0315-c1e6-44d6-962d-9a604d59a158,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=568]
-      """.trimIndent()
-    val expectedNotificationMessage = "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
+      """
+        .trimIndent()
+    val expectedNotificationMessage =
+      "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
 
     val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
     val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
@@ -52,13 +54,15 @@ class DaemonContextMismatchIssueCheckerTest {
 
   @Test
   fun testCheckIssueWithErrorFromBugReport() {
-    val errorMessage = """
+    val errorMessage =
+      """
       The newly created daemon process has a different context than expected.
       It won't be possible to reconnect to this daemon. Context mismatch: 
       Java home is different.
       javaHome=c:\Program Files\Java\jdk,daemonRegistryDir=C:\Users\user.name\.gradle\daemon,pid=7868,idleTimeout=null]
       javaHome=C:\Program Files\Java\jdk\jre,daemonRegistryDir=C:\Users\user.name\.gradle\daemon,pid=4792,idleTimeout=10800000]
-      """.trimIndent()
+      """
+        .trimIndent()
     val expectedNotificationMessage = "Expecting: 'c:\\Program Files\\Java\\jdk' but was: 'C:\\Program Files\\Java\\jdk\\jre'."
 
     val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
@@ -73,14 +77,17 @@ class DaemonContextMismatchIssueCheckerTest {
 
   @Test
   fun testCheckIssueWithErrorFromGradleForum() {
-    val errorMessage = """
+    val errorMessage =
+      """
       The newly created daemon process has a different context than expected.
       It won't be possible to reconnect to this daemon. Context mismatch: 
       Java home is different.
       Wanted: DefaultDaemonContext[uid=null,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=555]
       Actual: DefaultDaemonContext[uid=0f3a0315-c1e6-44d6-962d-9a604d59a158,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=568]
-      """.trimIndent()
-    val expectedNotificationMessage = "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
+      """
+        .trimIndent()
+    val expectedNotificationMessage =
+      "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
 
     val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
     val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
@@ -95,25 +102,29 @@ class DaemonContextMismatchIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
-        "what went wrong: \nJVM is incompatible.\n Please check your build files.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+            "what went wrong: \nJVM is incompatible.\n Please check your build files.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
     // Test for Gradle version before 8.8
     assertThat(
-      daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
-        "what went wrong: \nJava home is different.\n Please check your build files.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+            "what went wrong: \nJava home is different.\n Please check your build files.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
   }
 }

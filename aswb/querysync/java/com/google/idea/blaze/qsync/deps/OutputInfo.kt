@@ -50,10 +50,9 @@ interface OutputInfo {
 
   val buildContext: DependencyBuildContext
 
-  /**
-   * Get the dependencies of the given target as seen by the aspect.
-   */
+  /** Get the dependencies of the given target as seen by the aspect. */
   fun getDependencies(target: Label): List<Label>
+
   fun getCompileDeps(target: Label): CompileJavaDeps
 
   @VisibleForTesting
@@ -72,20 +71,28 @@ interface OutputInfo {
     val logger: Logger = Logger.getLogger(Data::class.java.getName())
     override val allJavaArtifacts: Collection<OutputArtifact>
       get() = OutputGroup.entries.filter { it.usedBySymbolResolution }.flatMap { artifacts[it].orEmpty() }
+
     override val jars: List<OutputArtifact>
       get() = artifacts[OutputGroup.JARS].orEmpty()
+
     override val transitiveRuntimeJars: List<OutputArtifact>
       get() = artifacts[OutputGroup.TRANSITIVE_RUNTIME_JARS].orEmpty()
+
     override val externalTransitiveRuntimeJars: List<OutputArtifact>
       get() = artifacts[OutputGroup.EXTERNAL_TRANSITIVE_RUNTIME_JARS].orEmpty()
+
     override val aars: List<OutputArtifact>
       get() = artifacts[OutputGroup.AARS].orEmpty()
+
     override val generatedSources: List<OutputArtifact>
       get() = artifacts[OutputGroup.GENSRCS].orEmpty()
+
     override val ccGeneratedHeaders: List<OutputArtifact>
       get() = artifacts[OutputGroup.CC_GEN_HEADERS].orEmpty()
+
     override val ccInfoFile: List<OutputArtifact>
       get() = artifacts[OutputGroup.CC_INFO_FILE].orEmpty()
+
     override val isEmpty: Boolean
       get() = artifacts.isEmpty() && ccTargets.isEmpty() && ccToolchains.isEmpty()
 
@@ -99,12 +106,14 @@ interface OutputInfo {
     override fun getCompileDeps(target: Label): CompileJavaDeps {
       return compileJdeps[target]?.let {
         val dependencyJars = (it.dependencyList.map { it.path } + javaArtifactInfo[target]?.jarsList?.map { it.file }.orEmpty()).toSet()
-        val jdeps = dependencyJars.map { jar ->
-          jarToTarget[jar]?.let { label -> label } ?: run {
-            logger.severe("Unknown jar: ${jar}")
-            return@getCompileDeps DepsUnavailable
+        val jdeps =
+          dependencyJars.map { jar ->
+            jarToTarget[jar]?.let { label -> label }
+              ?: run {
+                logger.severe("Unknown jar: ${jar}")
+                return@getCompileDeps DepsUnavailable
+              }
           }
-        }
         return DepsAvailable(jdeps)
       } ?: DepsUnavailable
     }
@@ -145,9 +154,7 @@ interface OutputInfo {
 
       val outputJarToTarget: Map<String, Label> =
         javaArtifacts.values
-          .flatMap { javaInfo ->
-            javaInfo.outputJarsList.map { outputJar -> outputJar.file to Label.of(javaInfo.target) }
-          }
+          .flatMap { javaInfo -> javaInfo.outputJarsList.map { outputJar -> outputJar.file to Label.of(javaInfo.target) } }
           .toMap()
 
       val uniqueCompileJarToTarget: Map<String, Label> =
@@ -159,8 +166,10 @@ interface OutputInfo {
 
       return Data(
         javaArtifactInfo = javaArtifacts.values.associateBy { Label.of(it.target) },
-        compileJdeps = compileJdeps.entries
-          .associate { (jdepsArtifactPathToTarget[it.key] ?: error("Unknown compileJdeps artifact path: ${it.key}")) to it.value },
+        compileJdeps =
+          compileJdeps.entries.associate {
+            (jdepsArtifactPathToTarget[it.key] ?: error("Unknown compileJdeps artifact path: ${it.key}")) to it.value
+          },
         ccTargets = ccInfo.flatMap { it.targetsList }.associateBy { Label.of(it.label) },
         ccToolchains = ccInfo.flatMap { it.toolchainsList }.associateBy { it.id },
         artifacts = allArtifacts.asMap().mapValues { it.value.toList() },
@@ -168,18 +177,18 @@ interface OutputInfo {
         exitCode = exitCode,
         buildContext = buildContext,
         targetsWithErrors = targetWithErrors,
-        jarToTarget = outputJarToTarget + uniqueCompileJarToTarget
+        jarToTarget = outputJarToTarget + uniqueCompileJarToTarget,
       )
     }
 
-    @TestOnly
-    @JvmStatic
-    fun builder(): TestOutputInfoBuilder = TestOutputInfoBuilder()
+    @TestOnly @JvmStatic fun builder(): TestOutputInfoBuilder = TestOutputInfoBuilder()
   }
 }
 
 sealed interface CompileJavaDeps
+
 data class DepsAvailable(val deps: List<Label>) : CompileJavaDeps
+
 object DepsUnavailable : CompileJavaDeps
 
 @TestOnly
@@ -194,11 +203,9 @@ class TestOutputInfoBuilder() {
   }
 
   fun setArtifactInfo(vararg artifactInfos: JavaArtifacts): TestOutputInfoBuilder {
-    this.javaArtifacts = artifactInfos
-      .associate {
-        Label.of(it.target).let { label ->
-          label.getBuildPackagePath().resolve(label.name + ".java-info.txt") to it
-        }
+    this.javaArtifacts =
+      artifactInfos.associate {
+        Label.of(it.target).let { label -> label.getBuildPackagePath().resolve(label.name + ".java-info.txt") to it }
       }
     return this
   }
@@ -221,9 +228,7 @@ class TestOutputInfoBuilder() {
   }
 }
 
-/**
- * Get all transitive dependencies of the given target as seen by the aspect.
- */
+/** Get all transitive dependencies of the given target as seen by the aspect. */
 fun OutputInfo.getTransitiveDependencies(target: Label): List<Label> {
   val queue = ArrayDeque<Label>()
   queue.add(target)

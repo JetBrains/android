@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WearMaterialThemeDetector
 
 class AndroidLintWearMaterialThemeInspection :
-  AndroidLintInspectionBase(
-    AndroidLintBundle.message("android.lint.inspections.wear.material.theme"),
-    WearMaterialThemeDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.wear.material.theme"), WearMaterialThemeDetector.ISSUE)

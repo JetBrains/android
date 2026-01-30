@@ -36,8 +36,8 @@ interface SqliteCliProvider {
   }
 
   /**
-   * Searches for `sqlite3` CLI tool (part of platform-tools). Respects overriding the path through
-   * [SQLITE3_PATH_PROPERTY] system property and [SQLITE3_PATH_ENV] environment variable.
+   * Searches for `sqlite3` CLI tool (part of platform-tools). Respects overriding the path through [SQLITE3_PATH_PROPERTY] system property
+   * and [SQLITE3_PATH_ENV] environment variable.
    *
    * @return path to the tool if able to find it. Otherwise `null`.
    */
@@ -52,15 +52,9 @@ class SqliteCliProviderImpl(private val project: Project) : SqliteCliProvider {
     return getSqliteCli({ key -> System.getProperty(key) }, { key -> System.getenv(key) })
   }
 
-  /**
-   * Overload targeted for testing (allows for injecting system env which otherwise is not possible
-   * from runtime)
-   */
+  /** Overload targeted for testing (allows for injecting system env which otherwise is not possible from runtime) */
   @TestOnly
-  fun getSqliteCli(
-    systemPropertyResolver: (key: String) -> String?,
-    systemEnvResolver: (key: String) -> String?,
-  ): Path? {
+  fun getSqliteCli(systemPropertyResolver: (key: String) -> String?, systemEnvResolver: (key: String) -> String?): Path? {
     // check system property/env overrides
     val overrideFile =
       listOf(systemPropertyResolver(SQLITE3_PATH_PROPERTY), systemEnvResolver(SQLITE3_PATH_ENV))

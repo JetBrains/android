@@ -66,10 +66,7 @@ class LintIdeAnalytics(private val project: Project) {
     UsageTracker.log(event)
   }
 
-  /**
-   * Logs feedback from user on a lint run (either on-the-fly in the editor, or explicit full
-   * inspection run)
-   */
+  /** Logs feedback from user on a lint run (either on-the-fly in the editor, or explicit full inspection run) */
   fun logSession(
     type: LintSession.AnalysisType,
     driver: LintDriver,
@@ -115,8 +112,7 @@ class LintIdeAnalytics(private val project: Project) {
   /**
    * Logs when a QuickFix was invoked by the user on an individual issue.
    *
-   * This is only done when the user has opted into analytics and the issue's vendor is AOSP or
-   * Google.
+   * This is only done when the user has opted into analytics and the issue's vendor is AOSP or Google.
    */
   fun logQuickFixInvocation(issue: Issue, fixDescription: String) {
     if (project.isDisposed) return
@@ -142,10 +138,7 @@ class LintIdeAnalytics(private val project: Project) {
     UsageTracker.log(event)
   }
 
-  /**
-   * Logs the click of a link within a Lint tooltip in the code editor. We only do this for issues
-   * where the vendor is AOSP or Google.
-   */
+  /** Logs the click of a link within a Lint tooltip in the code editor. We only do this for issues where the vendor is AOSP or Google. */
   fun logTooltipLink(url: String, issue: Issue) {
     if (project.isDisposed) return
     if (!AnalyticsSettings.optedIn) return
@@ -177,11 +170,7 @@ class LintIdeAnalytics(private val project: Project) {
       }
       .build()
 
-  private fun recordSeverityOverride(
-    map: HashMap<String, LintIssueId.Builder>,
-    id: String,
-    lintSeverity: LintSeverity,
-  ) {
+  private fun recordSeverityOverride(map: HashMap<String, LintIssueId.Builder>, id: String, lintSeverity: LintSeverity) {
     val builder = map[id]
     if (builder != null) {
       // already got severity from ProblemData entry
@@ -255,10 +244,7 @@ class LintIdeAnalytics(private val project: Project) {
     return map
   }
 
-  private fun recordIssueData(
-    warnings: List<LintProblemData>,
-    map: HashMap<String, LintIssueId.Builder>,
-  ) {
+  private fun recordIssueData(warnings: List<LintProblemData>, map: HashMap<String, LintIssueId.Builder>) {
     for (warning in warnings) {
       val issue = warning.issue
       val id = issue.id
@@ -299,8 +285,7 @@ class LintIdeAnalytics(private val project: Project) {
     return null
   }
 
-  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? =
-    computeProjectId(Paths.get(project.basePath))
+  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? = computeProjectId(Paths.get(project.basePath))
 
   private fun computeProjectId(projectPath: Path?): String? {
     projectPath ?: return null
@@ -309,13 +294,12 @@ class LintIdeAnalytics(private val project: Project) {
   }
 
   /**
-   * Returns true if the issue appears to be from AOSP or Google, based on the vendor name. For
-   * certain analytics, we only target AOSP/Google issues.
+   * Returns true if the issue appears to be from AOSP or Google, based on the vendor name. For certain analytics, we only target
+   * AOSP/Google issues.
    */
   private fun isAospOrGoogleLintIssue(issue: Issue): Boolean {
     val vendorName = issue.vendor?.vendorName ?: issue.registry?.vendor?.vendorName ?: return false
 
-    return vendorName.startsWith(IssueRegistry.AOSP_VENDOR.vendorName!!) ||
-      vendorName.startsWith("Google")
+    return vendorName.startsWith(IssueRegistry.AOSP_VENDOR.vendorName!!) || vendorName.startsWith("Google")
   }
 }

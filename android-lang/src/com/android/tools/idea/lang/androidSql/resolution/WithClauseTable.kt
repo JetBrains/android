@@ -22,9 +22,14 @@ import com.intellij.util.Processor
 
 class WithClauseTable(withClauseTable: AndroidSqlWithClauseTable) : AndroidSqlTable {
   private val tableDefinition = withClauseTable.withClauseTableDef
-  override val name get() = tableDefinition.tableDefinitionName.nameAsString
-  override val definingElement get() = tableDefinition.tableDefinitionName
-  override val isView: Boolean get() = true
+  override val name
+    get() = tableDefinition.tableDefinitionName.nameAsString
+
+  override val definingElement
+    get() = tableDefinition.tableDefinitionName
+
+  override val isView: Boolean
+    get() = true
 
   override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
     for (columnDefinition in tableDefinition.columnDefinitionNameList) {
@@ -35,7 +40,10 @@ class WithClauseTable(withClauseTable: AndroidSqlWithClauseTable) : AndroidSqlTa
   }
 
   private class DefinedColumn(override val definingElement: AndroidSqlColumnDefinitionName) : AndroidSqlColumn {
-    override val name get() = definingElement.nameAsString
-    override val type: SqlType? get() = null
+    override val name
+      get() = definingElement.nameAsString
+
+    override val type: SqlType?
+      get() = null
   }
 }

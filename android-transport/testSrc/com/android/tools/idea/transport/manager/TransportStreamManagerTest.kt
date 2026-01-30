@@ -36,19 +36,12 @@ import org.junit.rules.RuleChain
 class TransportStreamManagerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val fakeDevice2 =
-    FakeTransportService.FAKE_DEVICE.toBuilder()
-      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID + 1)
-      .build()
+  private val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(FakeTransportService.FAKE_DEVICE_ID + 1).build()
   private val offlineFakeDevice2 =
-    FakeTransportService.FAKE_OFFLINE_DEVICE.toBuilder()
-      .setDeviceId(FakeTransportService.FAKE_DEVICE_ID + 1)
-      .build()
-  private val fakeProcess2 =
-    FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(fakeDevice2.deviceId).build()
+    FakeTransportService.FAKE_OFFLINE_DEVICE.toBuilder().setDeviceId(FakeTransportService.FAKE_DEVICE_ID + 1).build()
+  private val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(fakeDevice2.deviceId).build()
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
   private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(streamManagerRule)
@@ -85,8 +78,7 @@ class TransportStreamManagerTest {
     val streamReadyAgainDeferred = CompletableDeferred<Unit>()
     val streamDeadDeferred = CompletableDeferred<Unit>()
     launch {
-      streamManagerRule.streamManager.streamActivityFlow().take(3).collectIndexed { index, activity
-        ->
+      streamManagerRule.streamManager.streamActivityFlow().take(3).collectIndexed { index, activity ->
         if (activity is StreamConnected) {
           if (index == 0) {
             streamReadyDeferred.complete(Unit)
@@ -118,8 +110,7 @@ class TransportStreamManagerTest {
   fun discoverMultipleStreams() = runBlocking {
     val devicesDetected = CompletableDeferred<Unit>()
     launch {
-      streamManagerRule.streamManager.streamActivityFlow().take(4).collectIndexed { index, activity
-        ->
+      streamManagerRule.streamManager.streamActivityFlow().take(4).collectIndexed { index, activity ->
         if (index < 2) {
           assertThat(activity).isInstanceOf(StreamConnected::class.java)
         } else {
@@ -149,12 +140,7 @@ class TransportStreamManagerTest {
   fun streamsWithDifferentClocks() = runBlocking {
     launch {
       streamManagerRule.streamManager.streamActivityFlow().take(2).collect { activity ->
-        launch {
-          activity.streamChannel
-            .eventFlow(StreamEventQuery(Common.Event.Kind.PROCESS))
-            .take(1)
-            .collect()
-        }
+        launch { activity.streamChannel.eventFlow(StreamEventQuery(Common.Event.Kind.PROCESS)).take(1).collect() }
       }
     }
 
@@ -203,9 +189,7 @@ class TransportStreamManagerTest {
     val queryChannel = Channel<List<Common.Process>>(capacity = 1)
 
     streamManagerRule.streamManager.streamActivityFlow().take(1).collect { activity ->
-      queryChannel.send(
-        listOf(FakeTransportService.FAKE_PROCESS, FakeTransportService.FAKE_PROFILEABLE_PROCESS)
-      )
+      queryChannel.send(listOf(FakeTransportService.FAKE_PROCESS, FakeTransportService.FAKE_PROFILEABLE_PROCESS))
       activity.streamChannel
         .processesFlow({ _, _ -> true }) { queryChannel.receive() }
         .take(4)
@@ -218,11 +202,7 @@ class TransportStreamManagerTest {
             }
             2 ->
               assertThat(process)
-                .isEqualTo(
-                  FakeTransportService.FAKE_PROFILEABLE_PROCESS.toBuilder()
-                    .setState(Common.Process.State.DEAD)
-                    .build()
-                )
+                .isEqualTo(FakeTransportService.FAKE_PROFILEABLE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build())
             3 -> assertThat(process).isEqualTo(FakeTransportService.FAKE_OFFLINE_PROCESS)
           }
         }

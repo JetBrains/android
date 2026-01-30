@@ -38,15 +38,11 @@ class GcCommandHandlerTest {
     whenever(device.isOnline).thenReturn(true)
     val gcCommand = GcCommandHandler(device)
 
-    var command = Commands.Command.newBuilder().apply {
-      pid = 2
-    }.build()
+    var command = Commands.Command.newBuilder().apply { pid = 2 }.build()
     gcCommand.execute(command)
     verify(client, times(0)).executeGarbageCollector()
 
-    command = Commands.Command.newBuilder().apply {
-      pid = testPid
-    }.build()
+    command = Commands.Command.newBuilder().apply { pid = testPid }.build()
     gcCommand.execute(command)
     verify(client, times(1)).executeGarbageCollector()
   }

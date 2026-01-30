@@ -21,13 +21,11 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 
 /**
- * Implementation of KotlinResolveScopeEnlarger, used to add additional
- * classes, e.g., light classes, to resolve scopes for a module.
- * For newly create modules, resolving may happen before module files are
- * created, see b/120797515.
+ * Implementation of KotlinResolveScopeEnlarger, used to add additional classes, e.g., light classes, to resolve scopes for a module. For
+ * newly create modules, resolving may happen before module files are created, see b/120797515.
  */
 class AndroidKotlinResolveScopeEnlarger : KotlinResolveScopeEnlarger {
-  override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
-    return AndroidResolveScopeEnlarger.getAdditionalResolveScopeForModule(module, isTestScope)
-  }
+    override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
+        return AndroidResolveScopeEnlarger.getAdditionalResolveScopeForModule(module, isTestScope)
+    }
 }

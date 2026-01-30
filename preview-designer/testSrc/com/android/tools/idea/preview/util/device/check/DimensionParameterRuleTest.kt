@@ -39,8 +39,7 @@ internal class DimensionParameterRuleTest {
   @Test
   fun checkResults() {
     val rule = DimensionParameterRule(name = "foo", defaultNumber = 100)
-    fun getRuleCheckResult(): ParameterCheckResult =
-      DeviceSpecCheckStateKey.getData(dataProvider)?.getCheckResult("foo")!!
+    fun getRuleCheckResult(): ParameterCheckResult = DeviceSpecCheckStateKey.getData(dataProvider)?.getCheckResult("foo")!!
 
     // Non-number value
     assertFalse(rule.checkValue("abc", dataProvider))

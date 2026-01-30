@@ -54,18 +54,14 @@ internal class EditorHyperlinkDetector(
   init {
     Disposer.register(parentDisposable, this)
 
-    LogcatConsoleFilterProvider.EP_NAME.extensionList
-      .map { it.create(editor) }
-      .forEach { filter.addFilter(it) }
+    LogcatConsoleFilterProvider.EP_NAME.extensionList.map { it.create(editor) }.forEach { filter.addFilter(it) }
     if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
       filter.addFilter(DeobfuscatedFilter(editor))
     }
 
     // Add all standard filters
     // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
-    ReadAction.nonBlocking<List<Filter>> {
-        ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project))
-      }
+    ReadAction.nonBlocking<List<Filter>> { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
       .expireWith(parentDisposable)
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
         filters.forEach { filter.addFilter(it) }

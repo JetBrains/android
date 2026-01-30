@@ -19,14 +19,15 @@ import kotlin.system.measureTimeMillis
 
 class PerformanceTracker {
   val map = HashMap<String, Long>()
+
   operator fun get(key: String) = map[key]
 
   fun <T> record(key: String, action: () -> T): T {
-    val returnValue: T;
+    val returnValue: T
     map[key] = measureTimeMillis {
       try {
         returnValue = action()
-      } catch (e : LiveEditUpdateException) {
+      } catch (e: LiveEditUpdateException) {
         throw e
       }
     }

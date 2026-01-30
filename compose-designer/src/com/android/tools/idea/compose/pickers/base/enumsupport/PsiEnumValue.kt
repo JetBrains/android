@@ -24,8 +24,7 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent
 
 /** Base interface for psi pickers, to support tracking assigned values. */
 internal interface PsiEnumValue : EnumValue {
-  val trackableValue:
-    EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
+  val trackableValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 
   override fun select(property: PropertyItem, newEnumValue: NewEnumValueCallback): Boolean =
     if (property is PsiCallParameterPropertyItem) {
@@ -41,15 +40,13 @@ internal interface PsiEnumValue : EnumValue {
       value: String,
       display: String,
       description: String?,
-      trackingValue:
-        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
+      trackingValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
     ) = DescriptionEnumValue(value, display, trackingValue, description)
 
     fun indented(
       value: String,
       display: String,
-      trackingValue:
-        EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
+      trackingValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
     ) =
       object : PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
         override val indented: Boolean = true
@@ -57,22 +54,18 @@ internal interface PsiEnumValue : EnumValue {
   }
 }
 
-/**
- * Base implementation of [PsiEnumValue], should aim to cover most use-cases found in [EnumValue].
- */
+/** Base implementation of [PsiEnumValue], should aim to cover most use-cases found in [EnumValue]. */
 internal open class PsiEnumValueImpl(
   override val value: String?,
   override val display: String,
-  override val trackableValue:
-    EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
+  override val trackableValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
 ) : PsiEnumValue
 
 /** [PsiEnumValue] that includes a description, shown as a tooltip in [PsiEnumValueCellRenderer]. */
 internal data class DescriptionEnumValue(
   override val value: String,
   override val display: String,
-  override val trackableValue:
-    EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
+  override val trackableValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
   val description: String?,
 ) : PsiEnumValue {
   override val indented: Boolean = true

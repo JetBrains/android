@@ -29,20 +29,22 @@ import org.junit.Rule
 import org.junit.Test
 
 class MlModelBindingBenchmark {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+  @get:Rule val gradleRule = AndroidGradleProjectRule()
 
   companion object {
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val benchmark = Benchmark.Builder("Ml Model binding benchmark")
-      .setDescription("Benchmark test for ml model binding project.")
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
+    val benchmark =
+      Benchmark.Builder("Ml Model binding benchmark")
+        .setDescription("Benchmark test for ml model binding project.")
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
 
-    fun doBenchmark(rule: AndroidGradleProjectRule,
-                    filePath: String,
-                    measure: () -> List<Metric.MetricSample>,
-                    processSamples: (List<Metric.MetricSample>) -> Unit = { }) {
+    fun doBenchmark(
+      rule: AndroidGradleProjectRule,
+      filePath: String,
+      measure: () -> List<Metric.MetricSample>,
+      processSamples: (List<Metric.MetricSample>) -> Unit = {},
+    ) {
       disableExpensivePlatformAssertions(rule.fixture)
       enableAllDefaultInspections(rule.fixture)
 
@@ -89,7 +91,7 @@ class MlModelBindingBenchmark {
           action = {
             val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
             assert(info.isEmpty())
-          }
+          },
         )
       },
       { samplesMs ->
@@ -100,7 +102,7 @@ class MlModelBindingBenchmark {
         val metric = Metric("highlighting_latency")
         metric.addSamples(benchmark, *samplesMs.toTypedArray())
         metric.commit()
-      }
+      },
     )
   }
 
@@ -117,9 +119,7 @@ class MlModelBindingBenchmark {
             PsiManager.getInstance(gradleRule.project).dropPsiCaches()
             System.gc()
           },
-          action = {
-            gradleRule.fixture.complete(CompletionType.BASIC)
-          }
+          action = { gradleRule.fixture.complete(CompletionType.BASIC) },
         )
       },
       { samplesMs ->
@@ -130,7 +130,7 @@ class MlModelBindingBenchmark {
         val metric = Metric("completion_latency")
         metric.addSamples(benchmark, *samplesMs.toTypedArray())
         metric.commit()
-      }
+      },
     )
   }
 }

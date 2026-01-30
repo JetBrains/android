@@ -17,4 +17,4 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 
-internal fun List<ProcessInfo>.allHavePackageName() = isNotEmpty() && all { it.packageName!= null }
+internal fun List<ProcessInfo>.allHavePackageName() = isNotEmpty() && all { it.packageName != null }

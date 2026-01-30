@@ -32,15 +32,15 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import org.junit.After
-import org.junit.Rule
 import java.io.File
 import kotlin.system.measureTimeMillis
+import org.junit.After
+import org.junit.Rule
 
 /**
  * Base class for loading the CpuCaptureStageView and measuring the used memory as well as the high water mark. This class starts the
- * CpuCaptureStage and CpuCaptureStageView then reports the memory used and the max memory after entering the stage. The stage enter
- * is triggered by setting the stage on the StudioProfilers.
+ * CpuCaptureStage and CpuCaptureStageView then reports the memory used and the max memory after entering the stage. The stage enter is
+ * triggered by setting the stage on the StudioProfilers.
  */
 abstract class CpuProfilerMemoryLoadTestBase {
   val myMemoryBenchmark = Benchmark.Builder("CpuProfiler Import Trace Memory (kb)").setProject("Android Studio Profilers").build()
@@ -50,17 +50,12 @@ abstract class CpuProfilerMemoryLoadTestBase {
   var myIdeServices = FakeIdeProfilerServices()
   var myProfilersView: StudioProfilersView? = null
 
-  @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuProfilerMemoryLoadTestBase", FakeTransportService(myTimer))
+  @get:Rule val myGrpcChannel = FakeGrpcChannel("CpuProfilerMemoryLoadTestBase", FakeTransportService(myTimer))
 
-  /**
-   * For initializing [com.intellij.ide.HelpTooltip].
-   */
-  @get:Rule
-  val appRule = ApplicationRule()
+  /** For initializing [com.intellij.ide.HelpTooltip]. */
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @After
   fun cleanup() {
@@ -69,11 +64,10 @@ abstract class CpuProfilerMemoryLoadTestBase {
   }
 
   /**
-   * Helper function for setting up the CpuProfilerStage and passing in a file to be parsed as an imported trace.
-   * The name is used as a prefix for the metrics to be recorded. The format is as follows
-   *  [name]-Load-Capture-Used
+   * Helper function for setting up the CpuProfilerStage and passing in a file to be parsed as an imported trace. The name is used as a
+   * prefix for the metrics to be recorded. The format is as follows [name]-Load-Capture-Used
    */
-  protected fun loadCaptureAndReport(name:String, traceFile:File, processNameHint: String, processIdHint: Int) {
+  protected fun loadCaptureAndReport(name: String, traceFile: File, processNameHint: String, processIdHint: Int) {
     // Start as clean as we can.
     val before = getMemoryUsed()
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
@@ -82,12 +76,15 @@ abstract class CpuProfilerMemoryLoadTestBase {
     var cpuCaptureView: CpuCaptureStageView? = null
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myTimingBenchmark.log(name, measureTimeMillis {
-    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
-      // Setting the stage enters the stage and triggers the parsing of the CpuCapture
-      stage.studioProfilers.stage = stage
-      cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)
-    })
+    myTimingBenchmark.log(
+      name,
+      measureTimeMillis {
+        myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
+        // Setting the stage enters the stage and triggers the parsing of the CpuCapture
+        stage.studioProfilers.stage = stage
+        cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)
+      },
+    )
     val after = getMemoryUsed()
     myMemoryBenchmark.log("$name-Load-Capture-Used", (after - before) / 1024)
     // Test the stage view just to hold a reference in case the compiler attempts to be smart.

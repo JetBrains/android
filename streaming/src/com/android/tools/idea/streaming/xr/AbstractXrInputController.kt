@@ -42,20 +42,20 @@ import kotlin.math.PI
 /** Distance of translational movement in meters in response to a discrete user action, e.g. pressing Ctrl+Plus. */
 internal const val TRANSLATION_STEP_SIZE: Float = 0.5F
 
-/**
- * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
- * Thread safe.
- */
+/** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
 internal abstract class AbstractXrInputController : Disposable {
 
-  @Volatile var isXrInputAvailable: Boolean = true
+  @Volatile
+  var isXrInputAvailable: Boolean = true
     set(value) {
       if (field != value) {
         field = value
         ActivityTracker.getInstance().inc()
       }
     }
-  @Volatile var environment: XrEnvironment? = null
+
+  @Volatile
+  var environment: XrEnvironment? = null
     set(value) {
       requireNotNull(value)
       if (field != value) {
@@ -63,7 +63,9 @@ internal abstract class AbstractXrInputController : Disposable {
         ActivityTracker.getInstance().inc()
       }
     }
-  @Volatile var passthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
+
+  @Volatile
+  var passthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
     set(value) {
       require(value >= 0)
       if (field != value) {
@@ -75,8 +77,10 @@ internal abstract class AbstractXrInputController : Disposable {
   open val isPassthroughSupported: Boolean
     get() = true
 
-  @Volatile var inputMode: XrInputMode = XrInputMode.INTERACTION
-    @UiThread set(value) {
+  @Volatile
+  var inputMode: XrInputMode = XrInputMode.INTERACTION
+    @UiThread
+    set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
           pressedKeysMask = 0 // Reset keyboard navigation state.
@@ -114,10 +118,7 @@ internal abstract class AbstractXrInputController : Disposable {
   /** Sends a command to move in the virtual space. The distances are in meters. */
   abstract fun sendTranslation(x: Float, y: Float, z: Float)
 
-  /**
-   * Notifies the controller that a key was pressed.
-   * Returns true if the input event has been consumed.
-   */
+  /** Notifies the controller that a key was pressed. Returns true if the input event has been consumed. */
   @UiThread
   fun keyPressed(event: KeyEvent): Boolean {
     if (!areNavigationKeysEnabled(inputMode)) {
@@ -136,10 +137,7 @@ internal abstract class AbstractXrInputController : Disposable {
     return true
   }
 
-  /**
-   * Notifies the controller that a key was released.
-   * Returns true if the input event has been consumed.
-   */
+  /** Notifies the controller that a key was released. Returns true if the input event has been consumed. */
   @UiThread
   fun keyReleased(event: KeyEvent): Boolean {
     if (!areNavigationKeysEnabled(inputMode)) {
@@ -159,13 +157,11 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that a mouse button was pressed.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that a mouse button was pressed. Returns true if the input event has been consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
   @UiThread
   fun mousePressed(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
@@ -180,13 +176,11 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that a mouse button was released.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that a mouse button was released. Returns true if the input event has been consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
   @UiThread
   fun mouseReleased(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
@@ -201,13 +195,12 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that the mouse entered the panel sending events to this controller.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that the mouse entered the panel sending events to this controller. Returns true if the input event has been
+   * consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
   @UiThread
   fun mouseEntered(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
@@ -222,13 +215,12 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that the mouse exited the panel sending events to this controller.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that the mouse exited the panel sending events to this controller. Returns true if the input event has been
+   * consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
   @UiThread
   fun mouseExited(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
@@ -236,25 +228,20 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that the mouse button was dragged.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that the mouse button was dragged. Returns true if the input event has been consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
-  @UiThread
-  abstract fun mouseDragged(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean
+  @UiThread abstract fun mouseDragged(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean
 
   /**
-   * Notifies the controller that the mouse was moved.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that the mouse was moved. Returns true if the input event has been consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
   @UiThread
   fun mouseMoved(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
@@ -266,20 +253,19 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Notifies the controller that the mouse wheel was moved.
-   * Returns true if the input event has been consumed.
+   * Notifies the controller that the mouse wheel was moved. Returns true if the input event has been consumed.
    *
    * @param event the AWT event
    * @param deviceDisplaySize the size of the device display in pixels
-   * @param scaleFactor the ratio between the size of the device display and the size in logical
-   *        pixels of its projection on the host screen
+   * @param scaleFactor the ratio between the size of the device display and the size in logical pixels of its projection on the host screen
    */
-  @UiThread
-  abstract fun mouseWheelMoved(event: MouseWheelEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean
+  @UiThread abstract fun mouseWheelMoved(event: MouseWheelEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean
 
   private fun areNavigationKeysEnabled(inputMode: XrInputMode): Boolean {
     return when (inputMode) {
-      XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
+      XrInputMode.VIEW_DIRECTION,
+      XrInputMode.LOCATION_IN_SPACE_XY,
+      XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
     }
   }
@@ -290,10 +276,14 @@ internal abstract class AbstractXrInputController : Disposable {
       return 1 shl index
     }
     return when (keyCode) {
-      VK_RIGHT, VK_KP_RIGHT -> NavigationKey.ROTATE_RIGHT.mask
-      VK_LEFT, VK_KP_LEFT -> NavigationKey.ROTATE_LEFT.mask
-      VK_UP, VK_KP_UP -> NavigationKey.ROTATE_UP.mask
-      VK_DOWN, VK_KP_DOWN -> NavigationKey.ROTATE_DOWN.mask
+      VK_RIGHT,
+      VK_KP_RIGHT -> NavigationKey.ROTATE_RIGHT.mask
+      VK_LEFT,
+      VK_KP_LEFT -> NavigationKey.ROTATE_LEFT.mask
+      VK_UP,
+      VK_KP_UP -> NavigationKey.ROTATE_UP.mask
+      VK_DOWN,
+      VK_KP_DOWN -> NavigationKey.ROTATE_DOWN.mask
       VK_PAGE_UP -> NavigationKey.ROTATE_RIGHT_UP.mask
       VK_PAGE_DOWN -> NavigationKey.ROTATE_RIGHT_DOWN.mask
       VK_HOME -> NavigationKey.ROTATE_LEFT_UP.mask
@@ -303,9 +293,9 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   /**
-   * Replaces mask bits corresponding to the diagonal rotation numpad keys by combinations of bits
-   * corresponding to horizontal and vertical rotation keys. Also cancels out keys that act in
-   * opposite directions, e.g. [NavigationKey.ROTATE_RIGHT] and [NavigationKey.ROTATE_LEFT].
+   * Replaces mask bits corresponding to the diagonal rotation numpad keys by combinations of bits corresponding to horizontal and vertical
+   * rotation keys. Also cancels out keys that act in opposite directions, e.g. [NavigationKey.ROTATE_RIGHT] and
+   * [NavigationKey.ROTATE_LEFT].
    */
   private fun pressedKeysMaskToNavigationMask(pressedKeysMask: Int): Int {
     var mask = pressedKeysMask and (NavigationKey.ROTATE_RIGHT_UP.mask - 1)
@@ -322,12 +312,14 @@ internal abstract class AbstractXrInputController : Disposable {
       mask = mask or NavigationKey.ROTATE_LEFT.mask or NavigationKey.ROTATE_DOWN.mask
     }
     // Cancel out keys acting in opposite directions.
-    val opposites = intArrayOf(
+    val opposites =
+      intArrayOf(
         NavigationKey.MOVE_RIGHT.mask or NavigationKey.MOVE_LEFT.mask,
         NavigationKey.MOVE_UP.mask or NavigationKey.MOVE_DOWN.mask,
         NavigationKey.MOVE_BACKWARD.mask or NavigationKey.MOVE_FORWARD.mask,
         NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_LEFT.mask,
-        NavigationKey.ROTATE_UP.mask or NavigationKey.ROTATE_DOWN.mask)
+        NavigationKey.ROTATE_UP.mask or NavigationKey.ROTATE_DOWN.mask,
+      )
     for (m in opposites) {
       if ((mask and m) == m) {
         mask = mask and m.inv()
@@ -340,7 +332,9 @@ internal abstract class AbstractXrInputController : Disposable {
 
   fun isMouseUsedForNavigation(): Boolean {
     return when (inputMode) {
-      XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
+      XrInputMode.VIEW_DIRECTION,
+      XrInputMode.LOCATION_IN_SPACE_XY,
+      XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
     }
   }
@@ -362,22 +356,22 @@ internal abstract class AbstractXrInputController : Disposable {
 
   protected enum class NavigationKey {
     // Translation keys.
-    MOVE_FORWARD,      // W
-    MOVE_LEFT,         // A
-    MOVE_BACKWARD,     // S
-    MOVE_RIGHT,        // D
-    MOVE_DOWN,         // Q
-    MOVE_UP,           // E
+    MOVE_FORWARD, // W
+    MOVE_LEFT, // A
+    MOVE_BACKWARD, // S
+    MOVE_RIGHT, // D
+    MOVE_DOWN, // Q
+    MOVE_UP, // E
     // Rotation keys.
-    ROTATE_RIGHT,      // Right arrow
-    ROTATE_LEFT,       // Left arrow
-    ROTATE_UP,         // Up arrow
-    ROTATE_DOWN,       // Down arrow
+    ROTATE_RIGHT, // Right arrow
+    ROTATE_LEFT, // Left arrow
+    ROTATE_UP, // Up arrow
+    ROTATE_DOWN, // Down arrow
     // Combination rotation keys.
-    ROTATE_RIGHT_UP,   // Page Up
+    ROTATE_RIGHT_UP, // Page Up
     ROTATE_RIGHT_DOWN, // Page Down
-    ROTATE_LEFT_UP,    // Home
-    ROTATE_LEFT_DOWN;  // End
+    ROTATE_LEFT_UP, // Home
+    ROTATE_LEFT_DOWN; // End
 
     val mask: Int = 1 shl ordinal
     val cumulativeMask: Int

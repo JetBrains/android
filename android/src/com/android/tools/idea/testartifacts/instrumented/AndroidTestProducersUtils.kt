@@ -21,27 +21,23 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.diagnostic.Logger
 
 fun getOptions(
-  existingOptions: String, context: ConfigurationContext,
+  existingOptions: String,
+  context: ConfigurationContext,
   extensions: List<TestRunConfigurationOptions>,
-  logger: Logger
-  ): String {
-  val extraOptions = extensions
-    .asSequence()
-    .flatMap {
-      try {
-        it.getExtraOptions(context)
-      } catch (e: Exception) {
-        logger.error(
-          "Failed to retrieve instrumentation test parameters from " +
-          "extension ${it.javaClass.canonicalName}", e)
-        listOf()
+  logger: Logger,
+): String {
+  val extraOptions =
+    extensions
+      .asSequence()
+      .flatMap {
+        try {
+          it.getExtraOptions(context)
+        } catch (e: Exception) {
+          logger.error("Failed to retrieve instrumentation test parameters from " + "extension ${it.javaClass.canonicalName}", e)
+          listOf()
+        }
       }
-    }
-    .map { parseFromString(it) }
-    .flatten()
-  return parseFromString(existingOptions)
-    .merge(extraOptions)
-    .asSequence()
-    .map { "-e " + it.NAME + " " + it.VALUE }
-    .joinToString(" ")
+      .map { parseFromString(it) }
+      .flatten()
+  return parseFromString(existingOptions).merge(extraOptions).asSequence().map { "-e " + it.NAME + " " + it.VALUE }.joinToString(" ")
 }

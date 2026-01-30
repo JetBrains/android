@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.project.messages
 
-import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.GradleSyncNeededReason
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.project.hyperlink.SyncMessageFragment
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix
-import com.intellij.build.BuildProgressListener
 import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildIssueEvent
@@ -45,12 +41,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * This test is for asserting that SyncMessage is converted to BuildEvent in SyncView as expected.
- */
+/** This test is for asserting that SyncMessage is converted to BuildEvent in SyncView as expected. */
 class SyncMessagesIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   val syncViewEvents = mutableListOf<BuildEvent>()
 
@@ -63,7 +56,7 @@ class SyncMessagesIntegrationTest {
           syncViewEvents.add(event)
         }
       },
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
@@ -75,29 +68,33 @@ class SyncMessagesIntegrationTest {
         override val externalSystemTaskId: ExternalSystemTaskId? = taskId
         override val lastSyncFinishedTimeStamp: Long = -1
         override val lastSyncedGradleVersion: GradleVersion? = null
+
         override fun lastSyncFailed(): Boolean = false
+
         override fun isSyncNeeded(): ThreeState = ThreeState.NO
+
         override fun getSyncNeededReason(): GradleSyncNeededReason? = null
+
         override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
           error("Not supported in unit test mode")
         }
       },
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
   }
 
   @Test
   fun multilineIssueDescription() {
-    val message = SyncMessage(
-      "group",
-      MessageType.WARNING,
-      "Line1", "Line2"
-    ).apply {
-      add(object : SyncMessageHyperlink("url", "url text") {
-        override fun execute(project: Project) = Unit
-        override val quickFixIds: List<GradleSyncQuickFix> = emptyList()
-      })
-    }
+    val message =
+      SyncMessage("group", MessageType.WARNING, "Line1", "Line2").apply {
+        add(
+          object : SyncMessageHyperlink("url", "url text") {
+            override fun execute(project: Project) = Unit
+
+            override val quickFixIds: List<GradleSyncQuickFix> = emptyList()
+          }
+        )
+      }
 
     GradleSyncMessages.getInstance(projectRule.project).report(message)
 
@@ -108,11 +105,15 @@ class SyncMessagesIntegrationTest {
       Truth.assertThat(it.message).isEqualTo("Line1")
       val issue = (it as BuildIssueEvent).issue
       Truth.assertThat(issue.title).isEqualTo("Line1")
-      Truth.assertThat(issue.description).isEqualTo("""
-        Line1
-        Line2
-        <a href="url">url text</a>
-      """.trimIndent())
+      Truth.assertThat(issue.description)
+        .isEqualTo(
+          """
+          Line1
+          Line2
+          <a href="url">url text</a>
+          """
+            .trimIndent()
+        )
     }
   }
 }

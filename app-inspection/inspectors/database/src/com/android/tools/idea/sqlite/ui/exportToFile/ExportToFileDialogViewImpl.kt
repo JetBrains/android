@@ -83,8 +83,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
   init {
     val source =
       when (params) {
-        is ExportDatabaseDialogParams ->
-          "Database" // TODO(161081452): use DatabaseInspectorBundle for user facing strings
+        is ExportDatabaseDialogParams -> "Database" // TODO(161081452): use DatabaseInspectorBundle for user facing strings
         is ExportTableDialogParams -> "Table"
         is ExportQueryResultsDialogParams -> "Query Results"
       }
@@ -120,8 +119,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
     formatButtonGroup = ButtonGroup()
     val formatDbRadioButton = createFormatButton(DB)
     val formatSqlRadioButton = createFormatButton(SQL)
-    val formatCsvRadioButton =
-      createFormatButton(CSV(SEMICOLON)) // CSV delimiter choice not affecting the outcome
+    val formatCsvRadioButton = createFormatButton(CSV(SEMICOLON)) // CSV delimiter choice not affecting the outcome
     listOf(formatDbRadioButton, formatSqlRadioButton, formatCsvRadioButton).forEach { button ->
       formatButtonGroup.add(button)
       button.addActionListener {
@@ -139,8 +137,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
 
     // set up destination path selection
     saveLocationTextField = TextFieldWithBrowseButton()
-    val saveLocationLabel =
-      JBLabel(DatabaseInspectorBundle.message("export.dialog.output.location.label"))
+    val saveLocationLabel = JBLabel(DatabaseInspectorBundle.message("export.dialog.output.location.label"))
     saveLocationLabel.labelFor = saveLocationTextField
     createSuggestedPath()?.let { saveLocationTextField.text = it.toString() }
     saveLocationTextField.addActionListener { showSaveFileDialog() }
@@ -160,15 +157,11 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
   }
 
   private fun setUpSaveLocationValidation(locationTextField: JTextField) {
-    /**
-     * @return a [ValidationInfo] object describing the issue with the path in [locationTextField]
-     *   if an issue exists. `null` otherwise.
-     */
+    /** @return a [ValidationInfo] object describing the issue with the path in [locationTextField] if an issue exists. `null` otherwise. */
     fun getValidationError(): ValidationInfo? {
       val path = parseSaveLocationTextFieldPath()
       val pathString = locationTextField.text
-      if (IOUtils.isValidDestinationFilePath(path) && !IOUtils.endsWithSeparatorChar(pathString))
-        return null // no error
+      if (IOUtils.isValidDestinationFilePath(path) && !IOUtils.endsWithSeparatorChar(pathString)) return null // no error
 
       /** TODO(161081452): move strings into [DatabaseInspectorBundle] */
       val errorMessage =
@@ -211,11 +204,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
   // TODO(161081452): consider moving path logic to [ExportToFileController]
   private fun showSaveFileDialog() {
     val dialog: FileSaverDialog =
-      FileChooserFactory.getInstance()
-        .createSaveFileDialog(
-          FileSaverDescriptor("Save As...", "", selectedFormatExtension()),
-          contentPanel,
-        )
+      FileChooserFactory.getInstance().createSaveFileDialog(FileSaverDescriptor("Save As...", "", selectedFormatExtension()), contentPanel)
 
     val pathSuggestion = createSuggestedPath()
     val parent: Path? =
@@ -257,8 +246,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
     delimiterComboBox.isEnabled = enabled
   }
 
-  private fun parseSaveLocationTextFieldPath(): Path? =
-    IOUtils.pathFromText(saveLocationTextField.text)
+  private fun parseSaveLocationTextFieldPath(): Path? = IOUtils.pathFromText(saveLocationTextField.text)
 
   private fun createSuggestedPath(): Path? {
     /** check if anything is already in [saveLocationTextField] */
@@ -317,18 +305,12 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
     return when (buttonText) {
       DB.displayName -> DB
       SQL.displayName -> SQL
-      CSV(SEMICOLON).displayName ->
-        CSV(
-          delimiterFromDisplayName(delimiterComboBox.item)
-        ) // CSV delimiter choice not affecting the outcome
+      CSV(SEMICOLON).displayName -> CSV(delimiterFromDisplayName(delimiterComboBox.item)) // CSV delimiter choice not affecting the outcome
       else -> throw IllegalStateException("Expected an export format to be selected.")
     }
   }
 
-  /**
-   * Combines selected options into an [ExportRequest] formed of all information needed for an
-   * export operation
-   */
+  /** Combines selected options into an [ExportRequest] formed of all information needed for an export operation */
   private fun createExportRequest(): ExportRequest? {
     // gather params
     val dstPath: Path? = parseSaveLocationTextFieldPath()
@@ -342,23 +324,16 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
         !showConfirmOverwriteDialog(project, dstPath)
     )
       return null
-    val path =
-      dstPath.takeIf { it.extension.isNotEmpty() }
-        ?: Path.of("${dstPath.pathString}.${selectedFormatExtension()}")
+    val path = dstPath.takeIf { it.extension.isNotEmpty() } ?: Path.of("${dstPath.pathString}.${selectedFormatExtension()}")
     // return as ExportInstructions
     return when (params) {
       is ExportDatabaseDialogParams -> ExportDatabaseRequest(params.srcDatabase, format, path)
-      is ExportTableDialogParams ->
-        ExportTableRequest(params.srcDatabase, params.srcTable, format, path)
-      is ExportQueryResultsDialogParams ->
-        ExportQueryResultsRequest(params.srcDatabase, params.query, format, path)
+      is ExportTableDialogParams -> ExportTableRequest(params.srcDatabase, params.srcTable, format, path)
+      is ExportQueryResultsDialogParams -> ExportQueryResultsRequest(params.srcDatabase, params.query, format, path)
     }
   }
 
-  /**
-   * Checks if selected destination already exists, and if so asks the user whether they are OK with
-   * overwriting the existing file
-   */
+  /** Checks if selected destination already exists, and if so asks the user whether they are OK with overwriting the existing file */
   private fun showConfirmOverwriteDialog(project: Project, file: Path): Boolean {
     // TODO(161081452): consider moving path logic to [ExportToFileController]
     if (!file.exists()) return true
@@ -397,8 +372,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
         }
       )
 
-  private fun delimiterFromDisplayName(displayName: String): Delimiter =
-    Delimiter.values().first { it.displayName == displayName }
+  private fun delimiterFromDisplayName(displayName: String): Delimiter = Delimiter.values().first { it.displayName == displayName }
 
   private val ExportFormat.fileExtension
     get(): String =
@@ -418,10 +392,7 @@ class ExportToFileDialogViewImpl(val project: Project, private val params: Expor
 }
 
 // TODO(161081452): move to a more suitable location
-/**
- * Provides functions to parse, validate, and resolve paths used in the [ExportToFileDialogViewImpl]
- * code.
- */
+/** Provides functions to parse, validate, and resolve paths used in the [ExportToFileDialogViewImpl] code. */
 private object IOUtils {
   fun pathFromText(text: String): Path? {
     if (text.isBlank()) return null
@@ -435,27 +406,19 @@ private object IOUtils {
   }
 
   /**
-   * Verifies that the path contains an existing parent directory, and a file-name. Since the path
-   * is already parsed (as [Path]) the trailing dir separator character will have been removed, so
-   * we need to check for that case separately with [endsWithSeparatorChar].
+   * Verifies that the path contains an existing parent directory, and a file-name. Since the path is already parsed (as [Path]) the
+   * trailing dir separator character will have been removed, so we need to check for that case separately with [endsWithSeparatorChar].
    */
   fun isValidDestinationFilePath(path: Path?): Boolean =
-    path != null &&
-      !path.isDirectory() &&
-      path.parent != null &&
-      path.parent.isDirectory() &&
-      path.parent.exists()
+    path != null && !path.isDirectory() && path.parent != null && path.parent.isDirectory() && path.parent.exists()
 
   fun endsWithSeparatorChar(path: String) = path.trimEnd().endsWith(File.separatorChar)
 
   /** Resolves "~" in path. If it cannot resolve the home-dir location, it leaves the path as-is. */
   private fun resolveHomeDir(path: Path): Path {
-    val dirs =
-      generateSequence(path) { it.parent }.toList().asReversed() // dir list in natural order
-    if (dirs.firstOrNull()?.toString() != "~")
-      return path // if first dir isn't "~", we have nothing to do
-    val homeDir =
-      getHomeDir() ?: return path // if we can't get home dir location, we can't do anything
+    val dirs = generateSequence(path) { it.parent }.toList().asReversed() // dir list in natural order
+    if (dirs.firstOrNull()?.toString() != "~") return path // if first dir isn't "~", we have nothing to do
+    val homeDir = getHomeDir() ?: return path // if we can't get home dir location, we can't do anything
     return dirs.drop(1).fold(homeDir) { acc, next -> acc.resolve(next.fileName) }
   }
 

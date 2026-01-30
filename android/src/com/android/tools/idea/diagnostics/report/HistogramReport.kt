@@ -21,21 +21,22 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.common.base.Charsets
 import com.google.gson.stream.JsonWriter
 import com.intellij.diagnostic.ThreadDumper
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.mime.MultipartEntityBuilder
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.mime.MultipartEntityBuilder
 
 class HistogramReport
 @JvmOverloads
-constructor(val threadDumpPath: Path?,
-            val histogramPath: Path?,
-            val reason: MemoryReportReason?,
-            val description: String?,
-            baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport(REPORT_TYPE, baseProperties) {
+constructor(
+  val threadDumpPath: Path?,
+  val histogramPath: Path?,
+  val reason: MemoryReportReason?,
+  val description: String?,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
@@ -45,27 +46,21 @@ constructor(val threadDumpPath: Path?,
     return object : DiagnosticCrashReport(type, properties) {
       private val EXCEPTION_TYPE = "com.android.OutOfMemory"
 
-      private val EMPTY_OOM_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                         "\tat " + HistogramReport::class.java.name + ".missingEdtStack(Unknown source)"
+      private val EMPTY_OOM_STACKTRACE =
+        EXCEPTION_TYPE + ": \n" + "\tat " + HistogramReport::class.java.name + ".missingEdtStack(Unknown source)"
 
       override fun serializeTo(builder: MultipartEntityBuilder) {
         super.serializeTo(builder)
 
-        val edtStack = threadDump?.let { ThreadDumper.getEdtStackForCrash(it, EXCEPTION_TYPE) }
-                       ?: EMPTY_OOM_STACKTRACE
+        val edtStack = threadDump?.let { ThreadDumper.getEdtStackForCrash(it, EXCEPTION_TYPE) } ?: EMPTY_OOM_STACKTRACE
 
         GoogleCrashReporter.addBodyToBuilder(builder, StudioExceptionReport.KEY_EXCEPTION_INFO, edtStack)
-        reason?.let {
-          GoogleCrashReporter.addBodyToBuilder(builder, "reason", it.name)
-        }
-        histogram?.let {
-          GoogleCrashReporter.addBodyToBuilder(builder, "histogram", it, ContentType.create("text/plain", Charsets.UTF_8))
-        }
+        reason?.let { GoogleCrashReporter.addBodyToBuilder(builder, "reason", it.name) }
+        histogram?.let { GoogleCrashReporter.addBodyToBuilder(builder, "histogram", it, ContentType.create("text/plain", Charsets.UTF_8)) }
         threadDump?.let {
           GoogleCrashReporter.addBodyToBuilder(builder, "threadDump", it, ContentType.create("text/plain", Charsets.UTF_8))
         }
       }
-
     }
   }
 
@@ -79,22 +74,15 @@ constructor(val threadDumpPath: Path?,
   companion object {
     const val REPORT_TYPE = "Histogram"
 
-    fun deserialize(baseProperties: DiagnosticReportProperties,
-                    properties: Map<String, String>,
-                    format: Long): HistogramReport {
+    fun deserialize(baseProperties: DiagnosticReportProperties, properties: Map<String, String>, format: Long): HistogramReport {
       if (format >= 1L) {
         return HistogramReport(
-          properties["threadDumpPath"]?.let {
-            fixDirectoryPathAndCheckIfReadable(
-              Paths.get(it))
-          },
-          properties["histogramPath"]?.let {
-            fixDirectoryPathAndCheckIfReadable(
-              Paths.get(it))
-          },
+          properties["threadDumpPath"]?.let { fixDirectoryPathAndCheckIfReadable(Paths.get(it)) },
+          properties["histogramPath"]?.let { fixDirectoryPathAndCheckIfReadable(Paths.get(it)) },
           properties["reason"]?.let { MemoryReportReason.valueOf(it) },
           properties["description"],
-          baseProperties)
+          baseProperties,
+        )
       }
       throw IllegalArgumentException("Unrecognized format version: $format")
     }

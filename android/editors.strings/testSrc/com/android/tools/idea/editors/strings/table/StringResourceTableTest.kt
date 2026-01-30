@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.editors.strings.table
 
-
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.fail
 
 /** Test [StringResourceTable]. */
 @RunWith(JUnit4::class)
 class StringResourceTableTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   // This requires ActionManager to be set up before it is constructed.
   private lateinit var stringResourceTable: StringResourceTable
@@ -54,10 +52,12 @@ class StringResourceTableTest {
 
   @Test
   fun setAndGetRowFilter() {
-    val rowFilter = object : StringResourceTableRowFilter() {
-      override fun getDescription() = fail("Not called")
-      override fun include(entry: Entry<out StringResourceTableModel, out Int>?) = fail("Not called")
-    }
+    val rowFilter =
+      object : StringResourceTableRowFilter() {
+        override fun getDescription() = fail("Not called")
+
+        override fun include(entry: Entry<out StringResourceTableModel, out Int>?) = fail("Not called")
+      }
     stringResourceTable.rowFilter = rowFilter
 
     assertThat(stringResourceTable.rowFilter).isEqualTo(rowFilter)
@@ -69,10 +69,12 @@ class StringResourceTableTest {
 
   @Test
   fun setAndGetColumnFilter() {
-    val columnFilter = object : StringResourceTableColumnFilter {
-      override fun getDescription() = fail("Not called")
-      override fun include(locale: Locale) = fail("Not called")
-    }
+    val columnFilter =
+      object : StringResourceTableColumnFilter {
+        override fun getDescription() = fail("Not called")
+
+        override fun include(locale: Locale) = fail("Not called")
+      }
     stringResourceTable.columnFilter = columnFilter
 
     assertThat(stringResourceTable.columnFilter).isEqualTo(columnFilter)
@@ -86,8 +88,6 @@ class StringResourceTableTest {
   fun includeColumn_noFilter() {
     // With no column filter, all columns should be included. Multiply by 2 to get past FIXED_COLUMN_COUNT
     // below which include _always_ returns true.
-    (0 until StringResourceTableModel.FIXED_COLUMN_COUNT * 2).forEach {
-      assertThat(stringResourceTable.includeColumn(it)).isTrue()
-    }
+    (0 until StringResourceTableModel.FIXED_COLUMN_COUNT * 2).forEach { assertThat(stringResourceTable.includeColumn(it)).isTrue() }
   }
 }

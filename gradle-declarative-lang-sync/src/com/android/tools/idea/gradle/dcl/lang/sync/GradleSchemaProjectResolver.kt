@@ -15,26 +15,22 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.sync
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
+import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
-import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 
 @Order(ExternalSystemConstants.UNORDERED)
 class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
 
   companion object {
-    val DECLARATIVE_PROJECT_SCHEMAS = Key.create(
-      ProjectSchemas::class.java, 1 /* not used */
-    )
-    val DECLARATIVE_SETTINGS_SCHEMAS = Key.create(
-      SettingsSchemas::class.java, 1 /* not used */
-    )
+    val DECLARATIVE_PROJECT_SCHEMAS = Key.create(ProjectSchemas::class.java, 1 /* not used */)
+    val DECLARATIVE_SETTINGS_SCHEMAS = Key.create(SettingsSchemas::class.java, 1 /* not used */)
   }
 
   override fun populateProjectExtraModels(gradleProject: IdeaProject, ideProject: DataNode<ProjectData>) {
@@ -52,5 +48,4 @@ class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
     }
     return emptySet()
   }
-
 }

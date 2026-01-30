@@ -41,8 +41,7 @@ import java.util.Date
 import java.util.Locale
 
 object SnapshotAction :
-  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT),
-  TooltipDescriptionProvider {
+  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT), TooltipDescriptionProvider {
   init {
     add(ExportSnapshotAction)
     add(ImportSnapshotAction)
@@ -62,8 +61,7 @@ object ExportSnapshotAction :
   override fun update(event: AnActionEvent) {
     super.update(event)
     val layoutInspector = LayoutInspectorRootPanel.get(event)
-    event.presentation.isEnabled =
-      layoutInspector?.currentClient?.isConnected == true && layoutInspector.renderModel.isActive
+    event.presentation.isEnabled = layoutInspector?.currentClient?.isConnected == true && layoutInspector.renderModel.isActive
   }
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -72,12 +70,7 @@ object ExportSnapshotAction :
     val outputDir = VfsUtil.getUserHomeDir()
 
     // Configure title, description and extension
-    val descriptor =
-      FileSaverDescriptor(
-        "Save Layout Snapshot",
-        "Save layout inspector snapshot",
-        EXT_LAYOUT_INSPECTOR,
-      )
+    val descriptor = FileSaverDescriptor("Save Layout Snapshot", "Save layout inspector snapshot", EXT_LAYOUT_INSPECTOR)
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
     val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
@@ -86,11 +79,7 @@ object ExportSnapshotAction :
     val virtualFile = saveFileResult.getVirtualFile(true)
     val filePath = virtualFile?.toNioPath() ?: return
 
-    runWithModalProgressBlocking(
-      ModalTaskOwner.project(project),
-      "Saving snapshot",
-      TaskCancellation.cancellable(),
-    ) {
+    runWithModalProgressBlocking(ModalTaskOwner.project(project), "Saving snapshot", TaskCancellation.cancellable()) {
       val screenshotType =
         if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_STANDALONE_V2.get()) {
           Screenshot.Type.BITMAP
@@ -99,21 +88,13 @@ object ExportSnapshotAction :
         }
 
       inspector.currentClient.saveSnapshot(filePath, screenshotType)
-      invokeLater {
-        FileEditorManager.getInstance(project)
-          .openEditor(OpenFileDescriptor(project, virtualFile), false)
-      }
+      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, virtualFile), false) }
     }
   }
 }
 
 object ImportSnapshotAction :
-  AnAction(
-    "Import Snapshot",
-    "Import a snapshot, open into an editor.",
-    AllIcons.ToolbarDecorator.Import,
-  ),
-  TooltipDescriptionProvider {
+  AnAction("Import Snapshot", "Import a snapshot, open into an editor.", AllIcons.ToolbarDecorator.Import), TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspectorRootPanel.get(event) ?: return
     val project = inspector.inspectorModel.project
@@ -125,20 +106,13 @@ object ImportSnapshotAction :
         .withDescription("Load layout inspector snapshot")
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
-    val openFileDialog: FileChooserDialog =
-      FileChooserFactory.getInstance().createFileChooser(descriptor, project, null)
+    val openFileDialog: FileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, project, null)
 
     val vFiles = openFileDialog.choose(project, VfsUtil.getUserHomeDir())
     if (vFiles.isEmpty()) return
     val vFile = vFiles[0]
-    runWithModalProgressBlocking(
-      ModalTaskOwner.project(project),
-      "Opening snapshot",
-      TaskCancellation.cancellable(),
-    ) {
-      invokeLater {
-        FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true)
-      }
+    runWithModalProgressBlocking(ModalTaskOwner.project(project), "Opening snapshot", TaskCancellation.cancellable()) {
+      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true) }
     }
   }
 }

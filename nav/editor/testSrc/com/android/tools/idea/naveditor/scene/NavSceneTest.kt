@@ -80,11 +80,7 @@ class NavSceneTest {
             action("action1", destination = "nested")
             action("action2", destination = "activity")
           }
-          navigation("nested") {
-            fragment("fragment2", layout = "activity_main2") {
-              action("action3", destination = "activity")
-            }
-          }
+          navigation("nested") { fragment("fragment2", layout = "activity_main2") { action("action3", destination = "activity") } }
           activity("activity")
         }
       }
@@ -102,33 +98,11 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-      )
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 76.5f, 128f),
-        0.5,
-        previewType = PreviewType.IMAGE,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(580f, 389f, 76.5f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(580f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(580f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "activity")
       verifyDrawActivity(
@@ -167,16 +141,7 @@ class NavSceneTest {
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "navigation.xml",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "navigation.xml", FRAME_COLOR)
     }
   }
 
@@ -247,9 +212,7 @@ class NavSceneTest {
     val modelBuilder =
       navEditorRule.modelBuilder("nav.xml") {
         navigation("root", startDestination = "fragment2") {
-            fragment("fragment1", layout = "activity_main") {
-              action("action1", destination = "fragment2")
-            }
+            fragment("fragment1", layout = "activity_main") { action("action1", destination = "fragment2") }
             fragment("fragment2", layout = "activity_main2")
           }
           .also { root = it }
@@ -283,9 +246,7 @@ class NavSceneTest {
     val model =
       navEditorRule.model("nav.xml") {
         navigation("root", startDestination = "fragment2") {
-          fragment("fragment1", layout = "activity_main") {
-            action("action1", destination = "fragment2")
-          }
+          fragment("fragment1", layout = "activity_main") { action("action1", destination = "fragment2") }
           fragment("fragment2", layout = "activity_main2")
         }
       }
@@ -324,9 +285,7 @@ class NavSceneTest {
       navEditorRule.model("nav.xml") {
         navigation("root", startDestination = "fragment2") {
           fragment("fragment1") { action("action1", destination = "fragment2") }
-          fragment("fragment2", layout = "activity_main2") {
-            action("action2", destination = "fragment3")
-          }
+          fragment("fragment2", layout = "activity_main2") { action("action2", destination = "fragment3") }
           navigation("nested") {
             fragment("fragment3") { action("action3", destination = "fragment4") }
             fragment("fragment4") { action("action4", destination = "fragment1") }
@@ -367,23 +326,14 @@ class NavSceneTest {
 
   @Test
   fun testNonexistentLayout() {
-    val model =
-      navEditorRule.model("nav.xml") {
-        navigation("root") { fragment("fragment1", layout = "activity_nonexistent") }
-      }
+    val model = navEditorRule.model("nav.xml") { navigation("root") { fragment("fragment1", layout = "activity_nonexistent") } }
     val scene = model.surface.scene!!
 
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-        0.5,
-        previewType = PreviewType.UNAVAILABLE,
-      )
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.UNAVAILABLE)
     }
   }
 
@@ -418,9 +368,7 @@ class NavSceneTest {
     val model =
       navEditorRule.model("nav.xml") {
         navigation("root", startDestination = "fragment1") {
-          fragment("fragment1", layout = "activity_main") {
-            action("action1", destination = "fragment1")
-          }
+          fragment("fragment1", layout = "activity_main") { action("action1", destination = "fragment1") }
           navigation("nav1") { action("action2", destination = "nav1") }
         }
       }
@@ -435,33 +383,11 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawAction(inOrder, g, ACTION_COLOR)
 
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-      )
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-        0.5,
-        previewType = PreviewType.IMAGE,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav1")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
     }
   }
 
@@ -470,31 +396,15 @@ class NavSceneTest {
     val model =
       navEditorRule.model("nav.xml") {
         navigation("root", startDestination = "fragment1") {
-          fragment("fragment1", layout = "activity_main") {
-            deeplink("deepLink", "https://www.android.com/")
-          }
+          fragment("fragment1", layout = "activity_main") { deeplink("deepLink", "https://www.android.com/") }
         }
       }
     val scene = model.surface.scene!!
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-        hasDeepLink = true,
-      )
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-        0.5,
-        previewType = PreviewType.IMAGE,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true, hasDeepLink = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.IMAGE)
     }
   }
 
@@ -521,33 +431,11 @@ class NavSceneTest {
 
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
 
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        SELECTED_COLOR,
-      )
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, SELECTED_COLOR)
     }
 
     // now "nested" is in the front
@@ -556,95 +444,27 @@ class NavSceneTest {
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        ACTION_COLOR,
-      )
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        SELECTED_COLOR,
-        2f,
-        "Nested Graph",
-        SELECTED_COLOR,
-      )
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        Point2D.Float(560f, 409.5f),
-        0f,
-        0f,
-        SELECTED_COLOR,
-        HANDLE_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 0f, 0f, SELECTED_COLOR, HANDLE_COLOR)
     }
 
     // test multi select
-    model.surface.selectionModel.setSelection(
-      ImmutableList.of(model.treeReader.find("fragment1")!!, nested)
-    )
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!, nested))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "fragment1",
-        isStart = true,
-      )
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-        0.5,
-        SELECTED_COLOR,
-      )
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        ACTION_COLOR,
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        SELECTED_COLOR,
-        2f,
-        "Nested Graph",
-        SELECTED_COLOR,
-      )
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        Point2D.Float(560f, 409.5f),
-        3.5f,
-        2.5f,
-        SELECTED_COLOR,
-        HANDLE_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 3.5f, 2.5f, SELECTED_COLOR, HANDLE_COLOR)
     }
   }
 
@@ -672,34 +492,11 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        ACTION_COLOR,
-      )
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        Point2D.Float(478.5f, 464f),
-        0f,
-        0f,
-        FRAME_COLOR,
-        HANDLE_COLOR,
-      )
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
     }
 
     scene.mouseHover(transform, 552, 440, 0)
@@ -708,34 +505,11 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        ACTION_COLOR,
-      )
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        Point2D.Float(478.5f, 464f),
-        3.5f,
-        2.5f,
-        FRAME_COLOR,
-        HANDLE_COLOR,
-      )
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 3.5f, 2.5f, FRAME_COLOR, HANDLE_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
     }
 
     scene.mouseHover(transform, 120, 148, 0)
@@ -744,25 +518,10 @@ class NavSceneTest {
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        FRAME_COLOR,
-      )
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, FRAME_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
     }
   }
 
@@ -784,15 +543,7 @@ class NavSceneTest {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        Point2D.Float(478.5f, 464f),
-        0f,
-        0f,
-        FRAME_COLOR,
-        HANDLE_COLOR,
-      )
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
     }
   }
 
@@ -830,32 +581,11 @@ class NavSceneTest {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawAction(inOrder, g, ACTION_COLOR)
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "nested")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(490f, 400f, 70f, 19f),
-        0.5,
-        SELECTED_COLOR,
-        2f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5, SELECTED_COLOR, 2f, "Nested Graph", FRAME_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
-      verifyDrawFragment(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 400f, 76.5f, 128f),
-        0.5,
-        SELECTED_COLOR,
-      )
-      verifyDrawHorizontalAction(
-        inOrder,
-        g,
-        Rectangle2D.Float(384f, 461f, 12f, 6f),
-        0.5,
-        ACTION_COLOR,
-      )
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
       verifyDrawActionHandleDrag(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 2.5f, -1, -1)
     }
   }
@@ -870,20 +600,13 @@ class NavSceneTest {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     list.clear()
-    model.configuration.setDevice(
-      DeviceManagerConnection.getDefaultDeviceManagerConnection()
-        .getDevice("wear_square", "Google"),
-      false,
-    )
+    model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
     surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     list.clear()
-    model.configuration.setDevice(
-      DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"),
-      false,
-    )
+    model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
     surface.getSceneManager(model)!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
@@ -1072,9 +795,7 @@ class NavSceneTest {
     scene.mouseHover(transform, -8, 125, 0)
     assertThat(action1.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      action1.nlComponent.popUpTo = "fragment1"
-    }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { action1.nlComponent.popUpTo = "fragment1" }
 
     scene.mouseHover(transform, -8, 125, 0)
     assertThat(action1.drawState).isEqualTo(SceneComponent.DrawState.HOVER)
@@ -1120,28 +841,10 @@ class NavSceneTest {
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(550f, 400f, 76.5f, 128f), 0.5)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 629f, 76.5f, 11f), 0.5, "nav1")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 640f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(400f, 640f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
 
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(550f, 629f, 76.5f, 11f), 0.5, "nav2")
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        Rectangle2D.Float(550f, 640f, 70f, 19f),
-        0.5,
-        FRAME_COLOR,
-        1f,
-        "Nested Graph",
-        FRAME_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(550f, 640f, 70f, 19f), 0.5, FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
     }
   }
 
@@ -1150,9 +853,7 @@ class NavSceneTest {
     var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
 
     val modelBuilder =
-      navEditorRule.modelBuilder("nav.xml") {
-        navigation("root") { action("action1", destination = "root") }.also { root = it }
-      }
+      navEditorRule.modelBuilder("nav.xml") { navigation("root") { action("action1", destination = "root") }.also { root = it } }
 
     val model = modelBuilder.build()
 
@@ -1164,9 +865,7 @@ class NavSceneTest {
 
     val expectedEmptyNavSceneClick = Point2D.Float(130f, 258f)
     assertThat(sceneManager.isEmpty).isTrue()
-    verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
-    }
+    verifyScene(model.surface) { inOrder, g -> verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick) }
 
     root?.fragment("fragment1")
 
@@ -1183,9 +882,7 @@ class NavSceneTest {
     model.treeWriter.delete(listOf(model.treeReader.find("fragment1")!!))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
-    verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
-    }
+    verifyScene(model.surface) { inOrder, g -> verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick) }
     assertThat(sceneManager.isEmpty).isTrue()
   }
 
@@ -1246,13 +943,7 @@ class NavSceneTest {
     scene.layout(0, SceneContext.get())
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        Rectangle2D.Float(400f, 389f, 76.5f, 11f),
-        0.5,
-        "customComponent",
-      )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "customComponent")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
     }
   }
@@ -1266,14 +957,7 @@ class NavSceneTest {
     dragTarget.mouseRelease(x, y, listOf())
   }
 
-  private fun assertDrawRectEquals(
-    sceneView: SceneView,
-    component: SceneComponent,
-    x: Float,
-    y: Float,
-    width: Float,
-    height: Float,
-  ) {
+  private fun assertDrawRectEquals(sceneView: SceneView, component: SceneComponent, x: Float, y: Float, width: Float, height: Float) {
     val drawRect = getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
     assertThat(drawRect).isEqualTo(Rectangle2D.Float(x, y, width, height))
   }

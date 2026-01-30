@@ -48,10 +48,7 @@ class IssuedFileNodeTest {
     // single issue case
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
     val root =
-      DesignerCommonIssueRoot(
-        null,
-        DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file)))),
-      ) {
+      DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file))))) {
         LayoutValidationNodeFactory
       }
     val node = IssuedFileNode(file, root)
@@ -74,10 +71,7 @@ class IssuedFileNodeTest {
       DesignerCommonIssueRoot(
         null,
         DesignerCommonIssueTestProvider(
-          listOf(
-            TestIssue(source = IssueSourceWithFile(file)),
-            TestIssue(source = IssueSourceWithFile(file)),
-          )
+          listOf(TestIssue(source = IssueSourceWithFile(file)), TestIssue(source = IssueSourceWithFile(file)))
         ),
       ) {
         LayoutValidationNodeFactory

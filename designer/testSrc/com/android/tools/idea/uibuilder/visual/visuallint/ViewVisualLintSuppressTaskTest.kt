@@ -67,8 +67,7 @@ class ViewVisualLintSuppressTaskTest {
     val type = BoundsAnalyzer.type
     val model1 = createModel("test1.xml")
     val model2 = createModel("test2.xml")
-    ViewVisualLintSuppressTask(type, model1.treeReader.components + model2.treeReader.components)
-      .run()
+    ViewVisualLintSuppressTask(type, model1.treeReader.components + model2.treeReader.components).run()
 
     val attrOfModel1 = model1.treeReader.components.first().getAttribute(TOOLS_URI, ATTR_IGNORE)
     assertEquals(type.ignoredAttributeValue, attrOfModel1)
@@ -119,10 +118,7 @@ class ViewVisualLintSuppressTaskTest {
         rule.projectRule,
         SdkConstants.FD_RES_LAYOUT,
         fileName,
-        ComponentDescriptor(LINEAR_LAYOUT)
-          .withBounds(0, 0, 1000, 1000)
-          .matchParentWidth()
-          .matchParentHeight(),
+        ComponentDescriptor(LINEAR_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
       )
       .build()
   }

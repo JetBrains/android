@@ -55,17 +55,13 @@ fun ApiFilter(
     Row {
       Dropdown(
         menuContent = {
-          val apiLevels =
-            apiLevels.map { AndroidVersionSelection(it) } + AndroidVersionSelection(null)
+          val apiLevels = apiLevels.map { AndroidVersionSelection(it) } + AndroidVersionSelection(null)
           repeat(apiLevels.size) { index ->
             // Add a separator before the final "Show All"
             if (index == apiLevels.size - 1) {
               separator()
             }
-            selectableItem(
-              selected = apiLevels[index] == selectedApiLevel,
-              onClick = { onApiLevelChange(apiLevels[index]) },
-            ) {
+            selectableItem(selected = apiLevels[index] == selectedApiLevel, onClick = { onApiLevelChange(apiLevels[index]) }) {
               ApiLevel(apiLevels[index])
             }
           }
@@ -109,15 +105,8 @@ fun ApiFilter(
 @Composable
 fun ApiLevel(apiLevel: AndroidVersionSelection) {
   Row {
-    Text(
-      apiLevel.nameDetails.name,
-      Modifier.padding(end = 4.dp),
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
-    )
-    apiLevel.nameDetails.details?.let {
-      Text(it, fontWeight = FontWeight.Light, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
+    Text(apiLevel.nameDetails.name, Modifier.padding(end = 4.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    apiLevel.nameDetails.details?.let { Text(it, fontWeight = FontWeight.Light, maxLines = 1, overflow = TextOverflow.Ellipsis) }
   }
 }
 
@@ -127,11 +116,8 @@ data class AndroidVersionSelection(private val androidVersion: AndroidVersion?) 
   }
 
   val nameDetails: NameDetails
-    get() =
-      androidVersion?.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
-        ?: NameDetails("Show All", null)
+    get() = androidVersion?.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true) ?: NameDetails("Show All", null)
 
   /** Checks if the given version matches this selection; extension levels are not considered. */
-  fun matches(version: AndroidVersion) =
-    androidVersion == null || androidVersion == version.withBaseExtensionLevel()
+  fun matches(version: AndroidVersion) = androidVersion == null || androidVersion == version.withBaseExtensionLevel()
 }

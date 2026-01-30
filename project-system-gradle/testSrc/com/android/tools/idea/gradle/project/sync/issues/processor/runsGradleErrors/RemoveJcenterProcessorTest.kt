@@ -32,12 +32,9 @@ import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Test for [RemoveJcenterProcessor]
- */
+/** Test for [RemoveJcenterProcessor] */
 class RemoveJcenterProcessorTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Test
@@ -55,16 +52,12 @@ class RemoveJcenterProcessorTest {
     // Add to settings.gradle
     projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().addRepositoryByMethodName("jcenter")
 
-    WriteCommandAction.runWriteCommandAction(project) {
-      projectBuildModel.applyChanges()
-    }
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
 
     // Confirm it is there
     projectBuildModel = ProjectBuildModel.get(project)
-    assertThat(projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter"))
-      .isTrue()
-    assertThat(projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter"))
-      .isTrue()
+    assertThat(projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter")).isTrue()
+    assertThat(projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter")).isTrue()
     assertThat(projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().containsMethodCall("jcenter"))
       .isTrue()
 
@@ -76,25 +69,24 @@ class RemoveJcenterProcessorTest {
 
     // Run processor
     var synced = false
-    GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        synced = true
-      }
-    }, projectRule.fixture.testRootDisposable)
-    WriteCommandAction.runWriteCommandAction(project) {
-      processor.updateProjectBuildModel(usages)
-    }
+    GradleSyncState.subscribe(
+      project,
+      object : GradleSyncListener {
+        override fun syncSucceeded(project: Project) {
+          synced = true
+        }
+      },
+      projectRule.fixture.testRootDisposable,
+    )
+    WriteCommandAction.runWriteCommandAction(project) { processor.updateProjectBuildModel(usages) }
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_REMOVE_JCENTER_FROM_REPOSITORIES)
 
     // Confirm sync was successful and repository was removed
     assertThat(synced).isTrue()
     projectBuildModel = ProjectBuildModel.get(project)
-    assertThat(!projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter"))
-      .isTrue()
-    assertThat(!projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter"))
-      .isTrue()
+    assertThat(!projectBuildModel.projectBuildModel!!.buildscript().repositories().containsMethodCall("jcenter")).isTrue()
+    assertThat(!projectBuildModel.getModuleBuildModel(module)!!.repositories().containsMethodCall("jcenter")).isTrue()
     assertThat(!projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().containsMethodCall("jcenter"))
       .isTrue()
   }
 }
-

@@ -22,32 +22,27 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Encapsulates an extra param of Android instrumentation test.
  *
- * The extra param is a key-value pair. [NAME] is the key and [VALUE] is the value.
- * If a param is originally defined outside of IDE's run configuration such as Gradle's build file,
- * the original value is stored in [ORIGINAL_VALUE] along with the source type [ORIGINAL_VALUE_SOURCE].
+ * The extra param is a key-value pair. [NAME] is the key and [VALUE] is the value. If a param is originally defined outside of IDE's run
+ * configuration such as Gradle's build file, the original value is stored in [ORIGINAL_VALUE] along with the source type
+ * [ORIGINAL_VALUE_SOURCE].
  */
-data class AndroidTestExtraParam @JvmOverloads constructor(
-  /**
-   * The name of this extra param.
-   */
+data class AndroidTestExtraParam
+@JvmOverloads
+constructor(
+  /** The name of this extra param. */
   var NAME: String = "",
 
-  /**
-   * The current value of this extra param.
-   */
+  /** The current value of this extra param. */
   var VALUE: String = "",
 
   /**
-   * The original value of this param which is defined by [ORIGINAL_VALUE_SOURCE].
-   * If [ORIGINAL_VALUE_SOURCE] is [AndroidTestExtraParamSource.NONE], this value is always empty (or
-   * you should ignore this value in case it's not empty).
+   * The original value of this param which is defined by [ORIGINAL_VALUE_SOURCE]. If [ORIGINAL_VALUE_SOURCE] is
+   * [AndroidTestExtraParamSource.NONE], this value is always empty (or you should ignore this value in case it's not empty).
    */
   var ORIGINAL_VALUE: String = "",
 
-  /**
-   * A source of the original value of this extra param.
-   */
-  var ORIGINAL_VALUE_SOURCE: AndroidTestExtraParamSource = AndroidTestExtraParamSource.NONE
+  /** A source of the original value of this extra param. */
+  var ORIGINAL_VALUE_SOURCE: AndroidTestExtraParamSource = AndroidTestExtraParamSource.NONE,
 ) {
   companion object {
     /**
@@ -59,36 +54,30 @@ data class AndroidTestExtraParam @JvmOverloads constructor(
     fun parseFromString(extraParams: String): Sequence<AndroidTestExtraParam> {
       return " $extraParams"
         .splitToSequence(" -e ")
-        .drop(1)  // We split string by "-e", so we need to discard the first element which is a substring before the first "-e".
+        .drop(1) // We split string by "-e", so we need to discard the first element which is a substring before the first "-e".
         .map { it.trim() }
         .filter { it.isNotBlank() }
-        .map { it.split(' ', limit = 2) + "" }  // Pad with empty string for key-only param.
-        .filter { it[0] != "-e" && it[1] != "-e"}
+        .map { it.split(' ', limit = 2) + "" } // Pad with empty string for key-only param.
+        .filter { it[0] != "-e" && it[1] != "-e" }
         .map { (key, value) -> AndroidTestExtraParam(key, value.trim()) }
     }
   }
 }
 
-/**
- * Represents where the param is originally defined.
- */
+/** Represents where the param is originally defined. */
 enum class AndroidTestExtraParamSource {
-  /**
-   * No original source. It means this param is defined in the IDE by user.
-   */
+  /** No original source. It means this param is defined in the IDE by user. */
   NONE,
 
-  /**
-   * The param is defined in Gradle build file.
-   */
-  GRADLE
+  /** The param is defined in Gradle build file. */
+  GRADLE,
 }
 
 /**
  * Merges two [Sequence] of [AndroidTestExtraParam]s.
  *
- * If there are more than one value with the same param name, one with no original source will be prioritized.
- * If both params have the same source, the last one will be used.
+ * If there are more than one value with the same param name, one with no original source will be prioritized. If both params have the same
+ * source, the last one will be used.
  */
 fun Sequence<AndroidTestExtraParam>.merge(params: Sequence<AndroidTestExtraParam>): Collection<AndroidTestExtraParam> {
   return (this + params)
@@ -104,18 +93,14 @@ fun Sequence<AndroidTestExtraParam>.merge(params: Sequence<AndroidTestExtraParam
     .values
 }
 
-/**
- * Retrieves [AndroidTestExtraParam]s from a given [TestOptions].
- */
+/** Retrieves [AndroidTestExtraParam]s from a given [TestOptions]. */
 fun TestOptions?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
   return this?.instrumentationRunnerArguments?.asSequence()?.map { (key, value) ->
     AndroidTestExtraParam(key, value, value, AndroidTestExtraParamSource.GRADLE)
   } ?: emptySequence()
 }
 
-/**
- * Retrieves [AndroidTestExtraParam]s from a given [AndroidFacet].
- */
+/** Retrieves [AndroidTestExtraParam]s from a given [AndroidFacet]. */
 fun AndroidFacet?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
   return this?.let { AndroidModel.get(it)?.testOptions?.getAndroidTestExtraParams() } ?: emptySequence()
 }

@@ -47,8 +47,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val actions = modelsProvider.createActions().getChildren(null)
 
     assertSize(1, actions)
@@ -60,11 +59,9 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
-    val config =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
+    val config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
 
     assertSize(1, nlModels)
     assertEquals(config, nlModels[0].configuration)
@@ -75,8 +72,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
 
@@ -103,8 +99,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     modelsProvider.removeCustomConfigurationAttributes(nlModelsAfterAdded[1])
     assertSize(0, modelsProvider.customConfigSet.customConfigAttributes)
-    val nlModelsAfterRemoved =
-      modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
+    val nlModelsAfterRemoved = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertSize(1, nlModelsAfterRemoved)
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
@@ -115,8 +110,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
@@ -147,8 +141,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
@@ -182,8 +175,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
-    val modelsProvider =
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     // The first NlModel use the sourceConfig. Do not test it.
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget).drop(1)
 

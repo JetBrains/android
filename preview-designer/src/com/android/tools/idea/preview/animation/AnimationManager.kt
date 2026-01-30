@@ -30,12 +30,7 @@ interface AnimationManager {
   val timelineMaximumMs: Int
 
   /** [TimelineElement] for the current transition displayed in the timeline. */
-  fun createTimelineElement(
-    parent: JComponent,
-    minY: Int,
-    forIndividualTab: Boolean,
-    positionProxy: PositionProxy,
-  ): TimelineElement
+  fun createTimelineElement(parent: JComponent, minY: Int, forIndividualTab: Boolean, positionProxy: PositionProxy): TimelineElement
 
   /** Initial setup for this animation before adding it to the panel. */
   suspend fun setup()
@@ -60,11 +55,6 @@ abstract class UnsupportedAnimationManager(final override val tabTitle: String) 
     forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement {
-    return UnsupportedLabel(
-      parent,
-      minY,
-      positionProxy.minimumXPosition(),
-      positionProxy.maximumXPosition(),
-    )
+    return UnsupportedLabel(parent, minY, positionProxy.minimumXPosition(), positionProxy.maximumXPosition())
   }
 }

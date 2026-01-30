@@ -21,25 +21,14 @@ import com.intellij.psi.AbstractElementManipulator
 import com.intellij.psi.impl.source.DummyHolderFactory
 
 class WFFExpressionLiteralExprManipulator : AbstractElementManipulator<WFFExpressionLiteralExpr>() {
-  override fun handleContentChange(
-    element: WFFExpressionLiteralExpr,
-    range: TextRange,
-    newContent: String,
-  ): WFFExpressionLiteralExpr? {
-    val textWithNewContent =
-      element.node.text.replaceRange(IntRange(range.startOffset, range.endOffset - 1), newContent)
+  override fun handleContentChange(element: WFFExpressionLiteralExpr, range: TextRange, newContent: String): WFFExpressionLiteralExpr? {
+    val textWithNewContent = element.node.text.replaceRange(IntRange(range.startOffset, range.endOffset - 1), newContent)
     val newElement = createElementFromText(textWithNewContent, element)
-    return if (newElement != null) element.replace(newElement) as WFFExpressionLiteralExpr
-    else element
+    return if (newElement != null) element.replace(newElement) as WFFExpressionLiteralExpr else element
   }
 
-  private fun createElementFromText(
-    text: String,
-    element: WFFExpressionLiteralExpr,
-  ): WFFExpressionLiteralExpr? {
-    val builder =
-      PsiBuilderFactory.getInstance()
-        .createBuilder(WFFExpressionParserDefinition(), WFFExpressionLexer(), text)
+  private fun createElementFromText(text: String, element: WFFExpressionLiteralExpr): WFFExpressionLiteralExpr? {
+    val builder = PsiBuilderFactory.getInstance().createBuilder(WFFExpressionParserDefinition(), WFFExpressionLexer(), text)
     val ast = WFFExpressionParser().parse(WFFExpressionTypes.LITERAL_EXPR, builder)
     val newElement = ast.psi as? WFFExpressionLiteralExpr ?: return null
     // Give the new PSI element a parent, otherwise it will be invalid.

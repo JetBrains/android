@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_POWER
 
-/**
- * Simulates pressing the Power button on an Android device.
- */
+/** Simulates pressing the Power button on an Android device. */
 internal class DevicePowerButtonAction : DevicePushButtonAction(AKEYCODE_POWER, configFilter = { !it.isWatch })

@@ -21,9 +21,7 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.UiDeviceSettingsEvent
 import com.google.wireless.android.sdk.stats.UiDeviceSettingsEvent.OperationKind
 
-/**
- * Analytics logger for various events from the UI settings panel.
- */
+/** Analytics logger for various events from the UI settings panel. */
 class UiSettingsStats(private val deviceInfo: DeviceInfo?) {
 
   fun setDarkMode() = logUiSettingsChange(OperationKind.DARK_THEME)
@@ -45,9 +43,10 @@ class UiSettingsStats(private val deviceInfo: DeviceInfo?) {
   fun reset() = logUiSettingsChange(OperationKind.RESET)
 
   private fun logUiSettingsChange(operation: OperationKind) {
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.UI_DEVICE_SETTINGS_EVENT)
-      .setUiDeviceSettingsEvent(UiDeviceSettingsEvent.newBuilder().setOperation(operation))
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.UI_DEVICE_SETTINGS_EVENT)
+        .setUiDeviceSettingsEvent(UiDeviceSettingsEvent.newBuilder().setOperation(operation))
     if (deviceInfo != null) {
       studioEvent.setDeviceInfo(deviceInfo)
     }

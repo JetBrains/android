@@ -21,19 +21,20 @@ import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 
-/**
- * [PairedBraceMatcher] for AIDL. Makes the IDE insert the matching parenthesis or brace when typing.
- */
+/** [PairedBraceMatcher] for AIDL. Makes the IDE insert the matching parenthesis or brace when typing. */
 class AidlPairedBraceMatcher : PairedBraceMatcher {
   override fun getPairs(): Array<BracePair> = parenPair
+
   override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?): Boolean = true
+
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
-private val parenPair = arrayOf(
-  BracePair(AidlTokenTypes.LPAREN, AidlTokenTypes.RPAREN, true),
-  BracePair(AidlTokenTypes.LBRACKET, AidlTokenTypes.RBRACKET, true)
-  // not including LBRACE/RBRACE for now because it's interfering with
-  // the keyboard handler, so typing "{" to open a block and hitting
-  // results in unmatched braces
-)
+private val parenPair =
+  arrayOf(
+    BracePair(AidlTokenTypes.LPAREN, AidlTokenTypes.RPAREN, true),
+    BracePair(AidlTokenTypes.LBRACKET, AidlTokenTypes.RBRACKET, true),
+    // not including LBRACE/RBRACE for now because it's interfering with
+    // the keyboard handler, so typing "{" to open a block and hitting
+    // results in unmatched braces
+  )

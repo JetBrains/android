@@ -42,9 +42,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 
 /**
- * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to
- * [ProcessNotifier] and [InspectorLauncher]. The first is used to discover and track processes as
- * they come online. The latter is used to launch inspectors on discovered processes.
+ * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to [ProcessNotifier] and [InspectorLauncher].
+ * The first is used to discover and track processes as they come online. The latter is used to launch inspectors on discovered processes.
  */
 @Service
 class AppInspectionDiscoveryService : Disposable {
@@ -68,19 +67,11 @@ class AppInspectionDiscoveryService : Disposable {
       streamManager,
       scope,
       // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
-      MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor)
-        .asCoroutineDispatcher(),
+      MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor).asCoroutineDispatcher(),
     ) { device ->
       val jarCopier = findDevice(device)?.createJarCopier()
       if (jarCopier == null) {
-        logger.error(
-          AppInspectionBundle.message(
-            "device.not.found",
-            device.manufacturer,
-            device.model,
-            device.serial,
-          )
-        )
+        logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
       }
       jarCopier
     }
@@ -100,8 +91,7 @@ class AppInspectionDiscoveryService : Disposable {
     return object : AppInspectionJarCopier {
       private val delegate = TransportFileManager(this@createJarCopier)
 
-      override fun copyFileToDevice(jar: AppInspectorJar): List<String> =
-        delegate.copyFileToDevice(jar.toDeployableFile())
+      override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
     }
   }
 
@@ -114,9 +104,8 @@ class AppInspectionDiscoveryService : Disposable {
   override fun dispose() = Unit
 
   /**
-   * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return
-   * value is null if bridge is not available, bridge does not detect any devices, or if the
-   * provided [device] does not match any of the devices the bridge is aware of.
+   * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return value is null if bridge is not available,
+   * bridge does not detect any devices, or if the provided [device] does not match any of the devices the bridge is aware of.
    */
   private fun findDevice(device: DeviceDescriptor): IDevice? {
     return AndroidDebugBridge.getBridge()?.devices?.find {

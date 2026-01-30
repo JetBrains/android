@@ -36,15 +36,9 @@ class ZoomCenterScrollerTest {
     val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(viewRect.width)
     whenever(viewportComponent.height).thenReturn(viewRect.height)
-    val viewport =
-      TestDesignSurfaceViewport(
-        Dimension(2000, 2000),
-        viewRect,
-        viewportComponent = viewportComponent,
-      )
+    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
 
-    val scroller =
-      ZoomCenterScroller(Dimension(1000, 1000), Point(viewRect.location), Point(250, 250))
+    val scroller = ZoomCenterScroller(Dimension(1000, 1000), Point(viewRect.location), Point(250, 250))
     scroller.scroll(viewport)
     assertEquals(Point(750, 750), viewport.viewPosition)
   }
@@ -58,12 +52,7 @@ class ZoomCenterScrollerTest {
     val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport =
-      TestDesignSurfaceViewport(
-        Dimension(2000, 2000),
-        viewRect,
-        viewportComponent = viewportComponent,
-      )
+    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
 
     val scroller = ZoomCenterScroller(Dimension(1000, 1000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)
@@ -79,12 +68,7 @@ class ZoomCenterScrollerTest {
     val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport =
-      TestDesignSurfaceViewport(
-        Dimension(1000, 1000),
-        viewRect,
-        viewportComponent = viewportComponent,
-      )
+    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(250, 250))
     scroller.scroll(viewport)
@@ -100,12 +84,7 @@ class ZoomCenterScrollerTest {
     val viewportComponent = mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport =
-      TestDesignSurfaceViewport(
-        Dimension(1000, 1000),
-        viewRect,
-        viewportComponent = viewportComponent,
-      )
+    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)

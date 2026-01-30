@@ -63,26 +63,19 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   // For agp 8.3.0-alpha10 and above, the target application id is passed as instrumentation runner
   // argument.
   // This is because TestVariant#testedApks was introduced in that version.
-  val useInstrumentationArgumentForAppId =
-    targetModuleGradleModel.agpVersion >= AgpVersion.parse("8.3.0-alpha10")
+  val useInstrumentationArgumentForAppId = targetModuleGradleModel.agpVersion >= AgpVersion.parse("8.3.0-alpha10")
   val targetApplicationId =
     chooseReleaseTargetApplicationId(
       basicVariants = targetModuleGradleModel.androidProject.basicVariants,
       defaultValue = targetModuleGradleModel.applicationId,
     )
 
-  addClasspathDependency(
-    "androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+",
-    BASELINE_PROFILES_PLUGIN_MIN_REV,
-  )
+  addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
 
   if (useConfigurationCaching) {
-    append(
-      "org.gradle.configuration-cache=true",
-      newModule.projectTemplateData.rootDir.resolve("gradle.properties"),
-    )
+    append("org.gradle.configuration-cache=true", newModule.projectTemplateData.rootDir.resolve("gradle.properties"))
   }
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
@@ -101,11 +94,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
         useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId,
       ),
     customizeModule = {
-      addPlugin(
-        "androidx.baselineprofile",
-        "androidx.benchmark:benchmark-baseline-profile-gradle-plugin",
-        BASELINE_PROFILES_PLUGIN_MIN_REV,
-      )
+      addPlugin("androidx.baselineprofile", "androidx.benchmark:benchmark-baseline-profile-gradle-plugin", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
       createTestClasses(
         targetModule = targetModule,
@@ -231,10 +220,7 @@ fun RecipeExecutor.createTestClasses(
 
 /** Creates run configurations for each build flavor of the target module. */
 @VisibleForTesting
-fun setupRunConfigurations(
-  targetModule: Module,
-  runManager: RunManager = RunManager.getInstance(targetModule.project),
-) {
+fun setupRunConfigurations(targetModule: Module, runManager: RunManager = RunManager.getInstance(targetModule.project)) {
   val project = targetModule.project
 
   val configFactory = AndroidBaselineProfileRunConfigurationType.getInstance().factory
@@ -246,8 +232,7 @@ fun setupRunConfigurations(
         name = "$RUN_CONFIGURATION_NAME for ${targetModule.getModuleNameForGradleTask()}",
       )
       .also { it.setModule(targetModule) }
-  val runConfigSettingsForSelected =
-    runManager.createConfiguration(runConfigForSelected, configFactory)
+  val runConfigSettingsForSelected = runManager.createConfiguration(runConfigForSelected, configFactory)
   // Persists in .idea folder
   runConfigSettingsForSelected.storeInDotIdeaFolder()
   runManager.addConfiguration(runConfigSettingsForSelected)
@@ -266,27 +251,18 @@ fun Module.getModuleNameForGradleTask(): String {
 
 /** [filterArgument] can be one of [FILTER_ARG_BASELINE_PROFILE], [FILTER_ARG_MACROBENCHMARK] */
 @VisibleForTesting
-fun runConfigurationGradleTask(moduleName: String, flavorName: String?, filterArgument: String?) =
-  buildString {
-    append(":${moduleName}:")
-    append(baselineProfileTaskName(flavorName))
-    // Allows running only Baseline Profile generators (in case Macrobenchmarks are in the same
-    // module)
-    if (filterArgument != null) {
-      append(" -P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}=$filterArgument")
-    }
+fun runConfigurationGradleTask(moduleName: String, flavorName: String?, filterArgument: String?) = buildString {
+  append(":${moduleName}:")
+  append(baselineProfileTaskName(flavorName))
+  // Allows running only Baseline Profile generators (in case Macrobenchmarks are in the same
+  // module)
+  if (filterArgument != null) {
+    append(" -P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}=$filterArgument")
   }
+}
 
 @VisibleForTesting
-fun chooseReleaseTargetApplicationId(
-  basicVariants: Collection<IdeBasicVariant>,
-  defaultValue: String,
-) =
-  basicVariants
-    .sortedBy { it.name }
-    .firstOrNull { it.name.endsWith("Release") || it.name == "release" }
-    ?.applicationId ?: defaultValue
+fun chooseReleaseTargetApplicationId(basicVariants: Collection<IdeBasicVariant>, defaultValue: String) =
+  basicVariants.sortedBy { it.name }.firstOrNull { it.name.endsWith("Release") || it.name == "release" }?.applicationId ?: defaultValue
 
-@VisibleForTesting
-fun baselineProfileTaskName(variantName: String?): String =
-  "generate${variantName?.capitalize() ?: ""}BaselineProfile"
+@VisibleForTesting fun baselineProfileTaskName(variantName: String?): String = "generate${variantName?.capitalize() ?: ""}BaselineProfile"

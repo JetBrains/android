@@ -23,22 +23,22 @@ import com.intellij.openapi.diagnostic.logger
 import java.nio.file.Path
 import java.util.Optional
 
-private val log get() = logger<LicenseAgreementModel>()
+private val log
+  get() = logger<LicenseAgreementModel>()
 
 /**
- * [WizardModel] that stores all the licenses related to the packages the user is about to install
- * and marks them as accepted after the packages are installed so that the user only accepts each license once.
+ * [WizardModel] that stores all the licenses related to the packages the user is about to install and marks them as accepted after the
+ * packages are installed so that the user only accepts each license once.
  */
-class LicenseAgreementModel: WizardModel {
-  val licenses =  hashSetOf<License>()
+class LicenseAgreementModel : WizardModel {
+  val licenses = hashSetOf<License>()
   val sdkRoot: ObservableValue<Optional<Path>>
 
   constructor(sdkLocation: Path?) {
     sdkRoot = OptionalValueProperty()
     if (sdkLocation != null) {
       sdkRoot.setValue(sdkLocation)
-    }
-    else {
+    } else {
       sdkRoot.clear()
     }
   }
@@ -56,8 +56,6 @@ class LicenseAgreementModel: WizardModel {
       return
     }
 
-    licenses.forEach {
-      it.setAccepted(root.get())
-    }
+    licenses.forEach { it.setAccepted(root.get()) }
   }
 }

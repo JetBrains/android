@@ -35,11 +35,7 @@ import org.jetbrains.uast.UMethod
  * @see [isMethodWithTilePreviewSignature] for details on what the signature should be.
  */
 class WearTilePreviewHasValidMethodSignature : WearTilePreviewInspectionBase() {
-  override fun checkMethod(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
+  override fun checkMethod(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
     if (!method.hasTilePreviewAnnotation()) {
       return super.checkMethod(method, manager, isOnTheFly)
     }
@@ -48,37 +44,26 @@ class WearTilePreviewHasValidMethodSignature : WearTilePreviewInspectionBase() {
       return super.checkMethod(method, manager, isOnTheFly)
     }
 
-    return listOfNotNull(
-        invalidReturnTypeError(method, manager, isOnTheFly),
-        invalidParametersError(method, manager, isOnTheFly),
-      )
+    return listOfNotNull(invalidReturnTypeError(method, manager, isOnTheFly), invalidParametersError(method, manager, isOnTheFly))
       .toTypedArray()
   }
 
   override fun getStaticDescription() = message("inspection.invalid.signature")
 
-  private fun invalidParametersError(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): ProblemDescriptor? {
+  private fun invalidParametersError(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): ProblemDescriptor? {
 
     if (method.uastParameters.isEmpty()) {
       return null
     }
 
     val hasSingleContextParameter =
-      method.uastParameters.size == 1 &&
-        method.uastParameters.single().typeReference?.getQualifiedName() ==
-          SdkConstants.CLASS_CONTEXT
+      method.uastParameters.size == 1 && method.uastParameters.single().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
     if (hasSingleContextParameter) {
       return null
     }
 
     val parameterList =
-      method.sourcePsi?.let {
-        it.getChildOfType<KtParameterList>() ?: it.getChildOfType<PsiParameterList>()
-      } ?: return null
+      method.sourcePsi?.let { it.getChildOfType<KtParameterList>() ?: it.getChildOfType<PsiParameterList>() } ?: return null
 
     return manager.createProblemDescriptor(
       parameterList,
@@ -89,11 +74,7 @@ class WearTilePreviewHasValidMethodSignature : WearTilePreviewInspectionBase() {
     )
   }
 
-  private fun invalidReturnTypeError(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): ProblemDescriptor? {
+  private fun invalidReturnTypeError(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): ProblemDescriptor? {
     if (method.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) == true) {
       return null
     }

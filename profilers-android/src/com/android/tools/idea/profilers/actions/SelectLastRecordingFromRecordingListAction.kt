@@ -20,8 +20,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * Test only action, selects the last recording in the past recordings tab.
  *
- * These profiler task actions are to be performed in a sequential format:
- * OpenProfilersPastRecordingsTabAction -> SelectLastRecordingFromRecordingListAction -> Import / Export / Open task.
+ * These profiler task actions are to be performed in a sequential format: OpenProfilersPastRecordingsTabAction ->
+ * SelectLastRecordingFromRecordingListAction -> Import / Export / Open task.
  */
 class SelectLastRecordingFromRecordingListAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")

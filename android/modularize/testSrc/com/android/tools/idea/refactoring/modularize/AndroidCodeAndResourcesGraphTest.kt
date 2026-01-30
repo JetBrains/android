@@ -26,9 +26,7 @@ class AndroidCodeAndResourcesGraphTest {
   fun `only specified roots are included`() {
     val roots = listOf<PsiElement>(mock(), mock(), mock())
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      roots.forEach { addRoot(it) }
-    }.build()
+    val graph = AndroidCodeAndResourcesGraph.Builder().apply { roots.forEach { addRoot(it) } }.build()
 
     assertThat(graph.roots).containsExactlyElementsIn(roots)
   }
@@ -38,9 +36,8 @@ class AndroidCodeAndResourcesGraphTest {
     val sources = listOf<PsiElement>(mock(), mock(), mock())
     val targets = listOf<PsiElement>(mock(), mock(), mock())
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      sources.forEach { s -> targets.forEach { t -> markReference(s, t) } }
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder().apply { sources.forEach { s -> targets.forEach { t -> markReference(s, t) } } }.build()
 
     assertThat(graph.vertices).containsExactlyElementsIn(sources)
   }
@@ -50,11 +47,14 @@ class AndroidCodeAndResourcesGraphTest {
     val source = mock<PsiElement>()
     val target = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReference(source, target)
-      markReference(source, target)
-      markReference(source, target)
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder()
+        .apply {
+          markReference(source, target)
+          markReference(source, target)
+          markReference(source, target)
+        }
+        .build()
 
     assertThat(graph.getFrequency(source, target)).isEqualTo(3)
   }
@@ -65,10 +65,13 @@ class AndroidCodeAndResourcesGraphTest {
     val middle = mock<PsiElement>()
     val target = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReference(source, middle)
-      markReference(middle, target)
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder()
+        .apply {
+          markReference(source, middle)
+          markReference(middle, target)
+        }
+        .build()
 
     assertThat(graph.getFrequency(source, target)).isEqualTo(0)
   }
@@ -98,9 +101,7 @@ class AndroidCodeAndResourcesGraphTest {
   fun `targets of a sink node is the empty set`() {
     val sink = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReference(mock(), sink)
-    }.build()
+    val graph = AndroidCodeAndResourcesGraph.Builder().apply { markReference(mock(), sink) }.build()
 
     assertThat(graph.getTargets(sink)).isEmpty()
   }
@@ -112,12 +113,15 @@ class AndroidCodeAndResourcesGraphTest {
     val direct2 = mock<PsiElement>()
     val indirect = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReference(source, direct1)
-      markReference(source, direct2)
-      markReference(direct1, indirect)
-      markReference(direct2, indirect)
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder()
+        .apply {
+          markReference(source, direct1)
+          markReference(source, direct2)
+          markReference(direct1, indirect)
+          markReference(direct2, indirect)
+        }
+        .build()
 
     assertThat(graph.getTargets(source)).containsExactly(direct1, direct2)
   }
@@ -126,10 +130,13 @@ class AndroidCodeAndResourcesGraphTest {
   fun `root referenced outside scope don't matter`() {
     val root = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      addRoot(root)
-      markReferencedOutsideScope(root)
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder()
+        .apply {
+          addRoot(root)
+          markReferencedOutsideScope(root)
+        }
+        .build()
 
     assertThat(graph.referencedOutsideScope).isEmpty()
   }
@@ -138,9 +145,7 @@ class AndroidCodeAndResourcesGraphTest {
   fun `non-root referenced outside scope do matter`() {
     val nonroot = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReferencedOutsideScope(nonroot)
-    }.build()
+    val graph = AndroidCodeAndResourcesGraph.Builder().apply { markReferencedOutsideScope(nonroot) }.build()
 
     assertThat(graph.referencedOutsideScope).containsExactly(nonroot)
   }
@@ -150,10 +155,13 @@ class AndroidCodeAndResourcesGraphTest {
     val source = mock<PsiElement>()
     val target = mock<PsiElement>()
 
-    val graph = AndroidCodeAndResourcesGraph.Builder().apply {
-      markReferencedOutsideScope(source)
-      markReference(source, target)
-    }.build()
+    val graph =
+      AndroidCodeAndResourcesGraph.Builder()
+        .apply {
+          markReferencedOutsideScope(source)
+          markReference(source, target)
+        }
+        .build()
 
     assertThat(graph.referencedOutsideScope).containsExactly(source, target)
   }

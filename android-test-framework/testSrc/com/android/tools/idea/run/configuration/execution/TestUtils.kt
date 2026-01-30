@@ -31,23 +31,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
-fun createApp(
-  device: IDevice,
-  appId: String,
-  servicesName: List<String> = emptyList(),
-  activitiesName: List<String> = emptyList(),
-): App {
+fun createApp(device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
   return App.fromApk(appId, apk)
 }
 
-private fun createManifestServiceInfo(
-  serviceName: String,
-  appId: String,
-  attrs: Map<String, String> = emptyMap(),
-): ManifestServiceInfo {
+private fun createManifestServiceInfo(serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
   for ((attr, value) in attrs) {
@@ -56,11 +47,7 @@ private fun createManifestServiceInfo(
   return ManifestServiceInfo(node, appId)
 }
 
-private fun createManifestActivityInfo(
-  activityName: String,
-  appId: String,
-  attrs: Map<String, String> = emptyMap(),
-): ManifestActivityInfo {
+private fun createManifestActivityInfo(activityName: String, appId: String, attrs: Map<String, String> = emptyMap()): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
   for ((attr, value) in attrs) {
@@ -111,39 +98,37 @@ class TestApplicationInstaller : ApplicationDeployer {
   }
 }
 
-fun CodeInsightTestFixture
-  .addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was
+fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was
   // added to `build.gradle`
   addFileToProject(
     "src/android/support/wearable/watchface/WatchFaceService.kt",
     """
-      package android.support.wearable.watchface
+    package android.support.wearable.watchface
 
-      open class WatchFaceService
-      """
+    open class WatchFaceService
+    """
       .trimIndent(),
   )
 
   addFileToProject(
     "src/androidx/wear/tiles/TileService.kt",
     """
-      package androidx.wear.tiles
+    package androidx.wear.tiles
 
-      open class TileService
-      """
+    open class TileService
+    """
       .trimIndent(),
   )
 
   addFileToProject(
     "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
     """
-      package androidx.wear.watchface.complications.datasource
+    package androidx.wear.watchface.complications.datasource
 
-      open class ComplicationDataSourceService
-      """
+    open class ComplicationDataSourceService
+    """
       .trimIndent(),
   )
 }
 
-fun PsiFile.findElementByText(text: String): PsiElement =
-  findDescendantOfType { it.node.text == text }!!
+fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!

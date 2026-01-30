@@ -43,18 +43,17 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
 
       return sourceModule.buildTypes.items.asSequence().mapNotNull { sourceBuildType ->
         if (targetBuildTypeExists(sourceBuildType.name)) return@mapNotNull null
-        if (sourceBuildType.matchingFallbacks.maybeValue?.any { fallback ->
-            targetBuildTypeExists(fallback)
-          } == true) return@mapNotNull null
+        if (sourceBuildType.matchingFallbacks.maybeValue?.any { fallback -> targetBuildTypeExists(fallback) } == true)
+          return@mapNotNull null
 
         PsGeneralIssue(
           "No build type in module '${targetModule.path.renderNavigation { buildTypesPath }}' " +
-          "matches build type '${sourceBuildType.path.renderNavigation()}'.",
+            "matches build type '${sourceBuildType.path.renderNavigation()}'.",
           "",
           dependency.path,
           PsIssueType.PROJECT_ANALYSIS,
           PsIssue.Severity.ERROR,
-          listOf(PsMissingBuildTypeQuickFix(targetModule, sourceBuildType), PsMissingBuildTypeFallbackQuickFix(sourceBuildType))
+          listOf(PsMissingBuildTypeQuickFix(targetModule, sourceBuildType), PsMissingBuildTypeFallbackQuickFix(sourceBuildType)),
         )
       }
     }
@@ -63,48 +62,56 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
       return sourceModule.flavorDimensions.asSequence().flatMap forEachDimension@{ sourceDimension ->
         if (targetModule.findFlavorDimension(sourceDimension.name) == null) return@forEachDimension emptySequence<PsIssue>()
 
-        sourceModule.productFlavors.items.asSequence()
+        sourceModule.productFlavors.items
+          .asSequence()
           .filter { it.effectiveDimension == sourceDimension.name }
           .mapNotNull forEachFlavor@{ sourceProductFlavor ->
             if (targetModule.findProductFlavor(sourceDimension.name, sourceProductFlavor.name) != null) return@forEachFlavor null
-            if (sourceProductFlavor.matchingFallbacks.maybeValue?.any { fallback ->
+            if (
+              sourceProductFlavor.matchingFallbacks.maybeValue?.any { fallback ->
                 (targetModule.findProductFlavor(sourceDimension.name, fallback) != null)
-              } == true) return@forEachFlavor null
+              } == true
+            )
+              return@forEachFlavor null
 
             PsGeneralIssue(
               "No product flavor in module '${targetModule.path.renderNavigation { productFlavorsPath }}' " +
-              "matches product flavor '${sourceProductFlavor.path.renderNavigation()}' " +
-              "in dimension '${sourceDimension.path.renderNavigation()}'.",
+                "matches product flavor '${sourceProductFlavor.path.renderNavigation()}' " +
+                "in dimension '${sourceDimension.path.renderNavigation()}'.",
               "",
               dependency.path,
               PsIssueType.PROJECT_ANALYSIS,
               PsIssue.Severity.ERROR,
-              listOf(PsMissingProductFlavorQuickFix(targetModule, sourceProductFlavor),
-                     PsMissingProductFlavorFallbackQuickFix(sourceProductFlavor))
+              listOf(
+                PsMissingProductFlavorQuickFix(targetModule, sourceProductFlavor),
+                PsMissingProductFlavorFallbackQuickFix(sourceProductFlavor),
+              ),
             )
           }
       }
     }
 
     fun analyzeFlavorDimensions(): Sequence<PsGeneralIssue> {
-      return targetModule.flavorDimensions.items.asSequence()
+      return targetModule.flavorDimensions.items
+        .asSequence()
         .filter { targetDimension -> targetModule.productFlavors.items.count { it.effectiveDimension == targetDimension.name } > 1 }
         .filter { targetDimension ->
-          sourceModule.findFlavorDimension(targetDimension.name) == null
-          && (sourceModule.parsedModel?.android()?.defaultConfig()?.missingDimensionStrategies().orEmpty()
-            .all { strategy -> strategy.toList()?.firstOrNull()?.toString() != targetDimension.name })
+          sourceModule.findFlavorDimension(targetDimension.name) == null &&
+            (sourceModule.parsedModel?.android()?.defaultConfig()?.missingDimensionStrategies().orEmpty().all { strategy ->
+              strategy.toList()?.firstOrNull()?.toString() != targetDimension.name
+            })
         }
         .map { targetDimension ->
           PsGeneralIssue(
             "No flavor dimension in module '${sourceModule.path.renderNavigation { productFlavorsPath }}' matches " +
-            "dimension '${targetDimension.path.renderNavigation()}' " +
-            "from module ${targetModule.path.renderNavigation { productFlavorsPath }} on which " +
-            "module '${sourceModule.path.renderNavigation(specificPlace = dependency.path)}' depends.",
+              "dimension '${targetDimension.path.renderNavigation()}' " +
+              "from module ${targetModule.path.renderNavigation { productFlavorsPath }} on which " +
+              "module '${sourceModule.path.renderNavigation(specificPlace = dependency.path)}' depends.",
             dependency.path,
             PsIssueType.PROJECT_ANALYSIS,
             PsIssue.Severity.ERROR,
             // TODO(b/120551319): Uncomment as a secondary fix when "add missing dimension strategy" is implemented.
-            null // PsMissingFlavorDimensionQuickFix(sourceModule, targetDimension)
+            null, // PsMissingFlavorDimensionQuickFix(sourceModule, targetDimension)
           )
         }
     }
@@ -114,107 +121,107 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
 
 fun analyzeProductFlavors(model: PsAndroidModule, pathRenderer: PsPathRenderer): Sequence<PsGeneralIssue> =
   with(pathRenderer) {
-    model.productFlavors.asSequence().filter { it.effectiveDimension == null }.map {
-      val configuredFlavorDimension = it.configuredDimension.maybeValue
-      PsGeneralIssue(
-        when {
-          configuredFlavorDimension.isNullOrEmpty() -> "Flavor '${it.path.renderNavigation()}' has no flavor dimension."
-          else -> "Flavor '${it.path.renderNavigation()}' has unknown dimension '$configuredFlavorDimension'."
-        },
-        it.path,
-        PsIssueType.PROJECT_ANALYSIS,
-        PsIssue.Severity.ERROR,
-        null
-      )
-    }
+    model.productFlavors
+      .asSequence()
+      .filter { it.effectiveDimension == null }
+      .map {
+        val configuredFlavorDimension = it.configuredDimension.maybeValue
+        PsGeneralIssue(
+          when {
+            configuredFlavorDimension.isNullOrEmpty() -> "Flavor '${it.path.renderNavigation()}' has no flavor dimension."
+            else -> "Flavor '${it.path.renderNavigation()}' has unknown dimension '$configuredFlavorDimension'."
+          },
+          it.path,
+          PsIssueType.PROJECT_ANALYSIS,
+          PsIssue.Severity.ERROR,
+          null,
+        )
+      }
   }
 
-
 data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
-  constructor (module: PsAndroidModule, buildType: PsBuildType) : this(module.gradlePath, buildType.name)
+  constructor(module: PsAndroidModule, buildType: PsBuildType) : this(module.gradlePath, buildType.name)
 
-  override val text: String get() = "Add Build Type"
+  override val text: String
+    get() = "Add Build Type"
 
   override fun execute(context: PsContext) {
     val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newBuildType = targetModule.addNewBuildType(buildTypeName)
     ApplicationManager.getApplication().invokeLater {
-      context
-        .mainConfigurable
-        .navigateTo(newBuildType.path.getPlaceDestination(context), true)
+      context.mainConfigurable.navigateTo(newBuildType.path.getPlaceDestination(context), true)
     }
   }
 }
 
 data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
-  constructor (buildType: PsBuildType) : this(buildType.parent.gradlePath, buildType.name)
+  constructor(buildType: PsBuildType) : this(buildType.parent.gradlePath, buildType.name)
 
-  override val text: String get() = "Add Fallback"
+  override val text: String
+    get() = "Add Fallback"
 
   override fun execute(context: PsContext) {
     val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val buildType = sourceModule.findBuildType(buildTypeName) ?: return
     ApplicationManager.getApplication().invokeLater {
-      context
-        .mainConfigurable
-        .navigateTo(
-          buildType.path.property(PsBuildType.BuildTypeDescriptors.matchingFallbacks).getPlaceDestination(context), true)
+      context.mainConfigurable.navigateTo(
+        buildType.path.property(PsBuildType.BuildTypeDescriptors.matchingFallbacks).getPlaceDestination(context),
+        true,
+      )
     }
   }
 }
 
 data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix {
-  constructor (module: PsAndroidModule, dimension: PsFlavorDimension) : this(module.gradlePath, dimension.name)
+  constructor(module: PsAndroidModule, dimension: PsFlavorDimension) : this(module.gradlePath, dimension.name)
 
-  override val text: String get() = "Add Flavor Dimension"
+  override val text: String
+    get() = "Add Flavor Dimension"
 
   override fun execute(context: PsContext) {
     val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newFlavorDimension = targetModule.addNewFlavorDimension(newDimensionName)
     ApplicationManager.getApplication().invokeLater {
-      context
-        .mainConfigurable
-        .navigateTo(newFlavorDimension.path.getPlaceDestination(context), true)
+      context.mainConfigurable.navigateTo(newFlavorDimension.path.getPlaceDestination(context), true)
     }
   }
 }
 
 data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) : PsQuickFix {
-  constructor (module: PsAndroidModule, productFlavor: PsProductFlavor) :
-    this(module.gradlePath, productFlavor.effectiveDimension.orEmpty(), productFlavor.name)
+  constructor(
+    module: PsAndroidModule,
+    productFlavor: PsProductFlavor,
+  ) : this(module.gradlePath, productFlavor.effectiveDimension.orEmpty(), productFlavor.name)
 
-  override val text: String get() = "Add Product Flavor"
+  override val text: String
+    get() = "Add Product Flavor"
 
   override fun execute(context: PsContext) {
     val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newProductFlavor = targetModule.addNewProductFlavor(dimension, productFlavorName)
     ApplicationManager.getApplication().invokeLater {
-      context
-        .mainConfigurable
-        .navigateTo(newProductFlavor.path.getPlaceDestination(context), true)
+      context.mainConfigurable.navigateTo(newProductFlavor.path.getPlaceDestination(context), true)
     }
   }
 }
 
-data class PsMissingProductFlavorFallbackQuickFix(
-  val moduleGradlePath: String,
-  val dimension: String,
-  val productFlavorName: String
-) : PsQuickFix {
-  constructor (productFlavor: PsProductFlavor) : this(productFlavor.parent.gradlePath, productFlavor.effectiveDimension.orEmpty(),
-                                                      productFlavor.name)
+data class PsMissingProductFlavorFallbackQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) :
+  PsQuickFix {
+  constructor(
+    productFlavor: PsProductFlavor
+  ) : this(productFlavor.parent.gradlePath, productFlavor.effectiveDimension.orEmpty(), productFlavor.name)
 
-  override val text: String get() = "Add Fallback"
+  override val text: String
+    get() = "Add Fallback"
 
   override fun execute(context: PsContext) {
     val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val productFlavor = sourceModule.findProductFlavor(dimension, productFlavorName) ?: return
     ApplicationManager.getApplication().invokeLater {
-      context
-        .mainConfigurable
-        .navigateTo(
-          productFlavor.path.property(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks).getPlaceDestination(context), true)
+      context.mainConfigurable.navigateTo(
+        productFlavor.path.property(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks).getPlaceDestination(context),
+        true,
+      )
     }
   }
 }
-

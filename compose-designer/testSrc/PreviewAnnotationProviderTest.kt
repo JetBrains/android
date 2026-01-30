@@ -51,9 +51,7 @@ class PreviewAnnotationProviderTest {
 
     // Launch a background coroutine to collect all subsequent emissions from the flow.
     val job =
-      launch(UnconfinedTestDispatcher(testScheduler)) {
-        provider.allPreviewAnnotationsFlow.collect { set -> collectedPreviews.add(set) }
-      }
+      launch(UnconfinedTestDispatcher(testScheduler)) { provider.allPreviewAnnotationsFlow.collect { set -> collectedPreviews.add(set) } }
 
     // Trigger the first real calculation by adding a new annotation.
     // We then wait for the flow to emit a value containing this new annotation,
@@ -81,15 +79,9 @@ class PreviewAnnotationProviderTest {
     // step.
     assertThat(collectedPreviews).hasSize(3)
     assertThat(collectedPreviews[0]).containsExactly(PREVIEW_ANNOTATION_FQN)
-    assertThat(collectedPreviews[1])
-      .containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyInitialPreview")
+    assertThat(collectedPreviews[1]).containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyInitialPreview")
     assertThat(collectedPreviews[2])
-      .containsExactly(
-        PREVIEW_ANNOTATION_FQN,
-        "com.example.MyInitialPreview",
-        "com.example.MySecondPreview",
-        "com.example.MyThirdPreview",
-      )
+      .containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyInitialPreview", "com.example.MySecondPreview", "com.example.MyThirdPreview")
 
     job.cancel()
   }
@@ -101,12 +93,12 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview
-        annotation class MyMultipreview
+      @Preview
+      annotation class MyMultipreview
       """
         .trimIndent(),
     )
@@ -124,11 +116,11 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Aliases.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        typealias MyPreviewAlias = Preview
+      typealias MyPreviewAlias = Preview
       """
         .trimIndent(),
     )
@@ -146,18 +138,18 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview
-        annotation class Level1
+      @Preview
+      annotation class Level1
 
-        @Level1
-        annotation class Level2
+      @Level1
+      annotation class Level2
 
-        @Level2
-        annotation class Level3
+      @Level2
+      annotation class Level3
       """
         .trimIndent(),
     )
@@ -165,13 +157,7 @@ class PreviewAnnotationProviderTest {
     val provider = projectRule.project.service<PreviewAnnotationProvider>()
     val allPreviews = provider.allPreviewAnnotationsFlow.first { it.size > 1 }
 
-    assertThat(allPreviews)
-      .containsExactly(
-        PREVIEW_ANNOTATION_FQN,
-        "com.example.Level1",
-        "com.example.Level2",
-        "com.example.Level3",
-      )
+    assertThat(allPreviews).containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.Level1", "com.example.Level2", "com.example.Level3")
   }
 
   @Test
@@ -181,13 +167,13 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Aliases.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        typealias Alias1 = Preview
-        typealias Alias2 = Alias1
-        typealias Alias3 = Alias2
+      typealias Alias1 = Preview
+      typealias Alias2 = Alias1
+      typealias Alias3 = Alias2
       """
         .trimIndent(),
     )
@@ -195,13 +181,7 @@ class PreviewAnnotationProviderTest {
     val provider = projectRule.project.service<PreviewAnnotationProvider>()
     val allPreviews = provider.allPreviewAnnotationsFlow.first { it.size > 1 }
 
-    assertThat(allPreviews)
-      .containsExactly(
-        PREVIEW_ANNOTATION_FQN,
-        "com.example.Alias1",
-        "com.example.Alias2",
-        "com.example.Alias3",
-      )
+    assertThat(allPreviews).containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.Alias1", "com.example.Alias2", "com.example.Alias3")
   }
 
   @Test
@@ -211,19 +191,19 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Mixed.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview
-        annotation class Annotation1
+      @Preview
+      annotation class Annotation1
 
-        typealias Alias1 = Annotation1
+      typealias Alias1 = Annotation1
 
-        @Alias1
-        annotation class Annotation2
+      @Alias1
+      annotation class Annotation2
 
-        typealias Alias2 = Annotation2
+      typealias Alias2 = Annotation2
       """
         .trimIndent(),
     )
@@ -248,13 +228,13 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Circular.kt",
       """
-        package com.example
+      package com.example
 
-        @CircularB
-        annotation class CircularA
+      @CircularB
+      annotation class CircularA
 
-        @CircularA
-        annotation class CircularB
+      @CircularA
+      annotation class CircularB
       """
         .trimIndent(),
     )
@@ -272,20 +252,20 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/other/library/Annotations.kt",
       """
-        package com.other.library
+      package com.other.library
 
-        annotation class Preview
+      annotation class Preview
       """
         .trimIndent(),
     )
     projectRule.fixture.addFileToProject(
       "src/com/example/Aliases.kt",
       """
-        package com.example
+      package com.example
 
-        import com.other.library.Preview
+      import com.other.library.Preview
 
-        typealias BogusPreview = Preview
+      typealias BogusPreview = Preview
       """
         .trimIndent(),
     )
@@ -303,14 +283,14 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Nested.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        object MyPreviews {
-          @Preview
-          annotation class NestedPreview
-        }
+      object MyPreviews {
+        @Preview
+        annotation class NestedPreview
+      }
       """
         .trimIndent(),
     )
@@ -318,8 +298,7 @@ class PreviewAnnotationProviderTest {
     val provider = projectRule.project.service<PreviewAnnotationProvider>()
     val allPreviews = provider.allPreviewAnnotationsFlow.first { it.size > 1 }
 
-    assertThat(allPreviews)
-      .containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyPreviews.NestedPreview")
+    assertThat(allPreviews).containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyPreviews.NestedPreview")
   }
 
   @Test
@@ -329,20 +308,20 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Diamond.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview
-        annotation class BaseDevicePreview
+      @Preview
+      annotation class BaseDevicePreview
 
-        @BaseDevicePreview
-        annotation class PhonePreview
+      @BaseDevicePreview
+      annotation class PhonePreview
 
-        @BaseDevicePreview
-        annotation class TabletPreview
+      @BaseDevicePreview
+      annotation class TabletPreview
 
-        typealias WearablePreview = BaseDevicePreview
+      typealias WearablePreview = BaseDevicePreview
       """
         .trimIndent(),
     )
@@ -367,12 +346,12 @@ class PreviewAnnotationProviderTest {
     projectRule.fixture.addFileToProject(
       "src/com/example/Annotations.kt",
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.ui.tooling.preview.Preview as MyPreview
+      import androidx.compose.ui.tooling.preview.Preview as MyPreview
 
-        @MyPreview
-        annotation class MyCustomPreviewWithAlias
+      @MyPreview
+      annotation class MyCustomPreviewWithAlias
       """
         .trimIndent(),
     )
@@ -380,8 +359,7 @@ class PreviewAnnotationProviderTest {
     val provider = projectRule.project.service<PreviewAnnotationProvider>()
     val allPreviews = provider.allPreviewAnnotationsFlow.first { it.size > 1 }
 
-    assertThat(allPreviews)
-      .containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyCustomPreviewWithAlias")
+    assertThat(allPreviews).containsExactly(PREVIEW_ANNOTATION_FQN, "com.example.MyCustomPreviewWithAlias")
   }
 
   private fun CodeInsightTestFixture.addPreviewAnnotation(name: String) {

@@ -33,10 +33,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * A button for starting and stopping a device. Requires an ActivationAction and a
- * DeactivationAction.
- */
+/** A button for starting and stopping a device. Requires an ActivationAction and a DeactivationAction. */
 internal class StartStopButton(
   private val handle: DeviceHandle,
   activationAction: ActivationAction,
@@ -68,16 +65,10 @@ internal class StartStopButton(
             if (handle.state.properties.isVirtual == true) {
               DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_STOP_ACTION)
             }
-            runCatchingDeviceActionException(project, handle.state.properties.title) {
-              deactivationAction.deactivate()
-            }
+            runCatchingDeviceActionException(project, handle.state.properties.title) { deactivationAction.deactivate() }
           }
         repairPresentation?.value?.icon -> {
-          handle.scope.launch {
-            runCatchingDeviceActionException(project, handle.state.properties.title) {
-              repairDeviceAction?.repair()
-            }
-          }
+          handle.scope.launch { runCatchingDeviceActionException(project, handle.state.properties.title) { repairDeviceAction?.repair() } }
         }
         pairGlassesPresentation?.value?.icon -> {
           handle.scope.launch {
@@ -106,14 +97,8 @@ internal class StartStopButton(
                   // activation icon.
                   activationPresentation,
                 )
-              state is Disconnected ->
-                listOfNotNull(pairGlassesPresentation, activationPresentation)
-              else ->
-                listOfNotNull(
-                  deactivationPresentation,
-                  pairGlassesPresentation,
-                  deactivationPresentation,
-                )
+              state is Disconnected -> listOfNotNull(pairGlassesPresentation, activationPresentation)
+              else -> listOfNotNull(deactivationPresentation, pairGlassesPresentation, deactivationPresentation)
             }
           ) {
             it.firstOrNull { it.enabled } ?: it.last()

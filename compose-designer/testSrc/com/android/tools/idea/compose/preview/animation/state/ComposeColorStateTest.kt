@@ -46,12 +46,7 @@ class ComposeColorStateTest {
   @RunsInEdt
   @Test
   fun statesAreCorrect() {
-    val state =
-      ComposeColorState(
-        NoopComposeAnimationTracker,
-        ComposeUnit.Color.create(Color.red),
-        ComposeUnit.Color.create(Color.blue),
-      )
+    val state = ComposeColorState(NoopComposeAnimationTracker, ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
     val (initial, target) = state.state.value
     assertEquals(listOf(1f, 0f, 0f, 1f), initial.components)
     assertEquals(listOf(0f, 0f, 1f, 1f), target.components)
@@ -60,24 +55,14 @@ class ComposeColorStateTest {
   @RunsInEdt
   @Test
   fun createCard() {
-    val state =
-      ComposeColorState(
-        NoopComposeAnimationTracker,
-        ComposeUnit.Color.create(Color.red),
-        ComposeUnit.Color.create(Color.blue),
-      )
+    val state = ComposeColorState(NoopComposeAnimationTracker, ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
 
     val card =
       AnimationCard(
           Mockito.mock(DesignSurface::class.java),
           "Title",
-          listOf(
-            FreezeAction(
-              { 200 },
-              MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
-              NoopAnimationTracker,
-            )
-          ) + state.changeStateActions,
+          listOf(FreezeAction({ 200 }, MutableStateFlow(SupportedAnimationManager.FrozenState(false)), NoopAnimationTracker)) +
+            state.changeStateActions,
           NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }

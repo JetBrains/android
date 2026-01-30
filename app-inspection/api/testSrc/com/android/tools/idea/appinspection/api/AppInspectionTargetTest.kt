@@ -48,8 +48,7 @@ class AppInspectionTargetTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val gRpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
+  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
@@ -58,10 +57,7 @@ class AppInspectionTargetTest {
   fun attachNewAgent() =
     runBlocking<Unit> {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-      transportService.addProcess(
-        FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS,
-      )
+      transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
       appInspectionRule.launchTarget(createFakeProcessDescriptor())
     }
@@ -70,18 +66,13 @@ class AppInspectionTargetTest {
   fun attachExistingAgent() =
     runBlocking<Unit> {
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-      transportService.addProcess(
-        FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS,
-      )
+      transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
       transportService.setCommandHandler(
         Commands.Command.CommandType.ATTACH_AGENT,
         object : CommandHandler(timer) {
           override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-            throw RuntimeException(
-              "App Inspection shouldn't send an ATTACH_AGENT command. Agent is already connected."
-            )
+            throw RuntimeException("App Inspection shouldn't send an ATTACH_AGENT command. Agent is already connected.")
           }
         },
       )
@@ -92,9 +83,7 @@ class AppInspectionTargetTest {
           .setCommandId(123)
           .setPid(FakeTransportService.FAKE_PROCESS.pid)
           .setKind(Common.Event.Kind.AGENT)
-          .setAgentData(
-            Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()
-          )
+          .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
           .setTimestamp(timer.currentTimeNs + 1)
           .build(),
       )
@@ -133,9 +122,7 @@ class AppInspectionTargetTest {
                     AppInspection.AppInspectionResponse.newBuilder()
                       .setCommandId(1324562)
                       .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-                      .setCreateInspectorResponse(
-                        AppInspection.CreateInspectorResponse.getDefaultInstance()
-                      )
+                      .setCreateInspectorResponse(AppInspection.CreateInspectorResponse.getDefaultInstance())
                       .build()
                   )
                   .build()
@@ -153,9 +140,7 @@ class AppInspectionTargetTest {
                     AppInspection.AppInspectionResponse.newBuilder()
                       .setCommandId(command.appInspectionCommand.commandId)
                       .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-                      .setCreateInspectorResponse(
-                        AppInspection.CreateInspectorResponse.getDefaultInstance()
-                      )
+                      .setCreateInspectorResponse(AppInspection.CreateInspectorResponse.getDefaultInstance())
                       .build()
                   )
                   .build()
@@ -165,15 +150,11 @@ class AppInspectionTargetTest {
         },
       )
       // Launch an inspector connection that will never be established (assuming the test passes).
-      val unsuccessfulJob = launch {
-        target.launchInspector(createFakeLaunchParameters(inspectorId = "never_connects"))
-      }
+      val unsuccessfulJob = launch { target.launchInspector(createFakeLaunchParameters(inspectorId = "never_connects")) }
 
       try {
         // Launch an inspector connection that will be successfully established.
-        val successfulJob = launch {
-          target.launchInspector(createFakeLaunchParameters(inspectorId = "connects_successfully"))
-        }
+        val successfulJob = launch { target.launchInspector(createFakeLaunchParameters(inspectorId = "connects_successfully")) }
 
         successfulJob.join()
         assertThat(unsuccessfulJob.isActive).isTrue()
@@ -185,8 +166,7 @@ class AppInspectionTargetTest {
   @Test
   fun processTerminationDisposesClient() =
     runBlocking<Unit> {
-      val target =
-        appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
+      val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
       // Launch an inspector client.
       val client = target.launchInspector(createFakeLaunchParameters())
@@ -216,8 +196,7 @@ class AppInspectionTargetTest {
   @Test
   fun disposeTargetCancelsAllInspectors() =
     runBlocking<Unit> {
-      val target =
-        appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
+      val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
       val clientLaunchParams1 = createFakeLaunchParameters(inspectorId = "a")
       val clientLaunchParams2 = createFakeLaunchParameters(inspectorId = "b")
@@ -242,43 +221,31 @@ class AppInspectionTargetTest {
         listOf(
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
-            .setTargetLibrary(
-              createArtifactCoordinate("1st", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("1st", "file", "1.0.0").toArtifactCoordinateProto())
             .build(),
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
-            .setTargetLibrary(
-              createArtifactCoordinate("2nd", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("2nd", "file", "1.0.0").toArtifactCoordinateProto())
             .setErrorMessage("incompatible")
             .build(),
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING)
-            .setTargetLibrary(
-              createArtifactCoordinate("3rd", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("3rd", "file", "1.0.0").toArtifactCoordinateProto())
             .setErrorMessage("missing")
             .build(),
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED)
-            .setTargetLibrary(
-              createArtifactCoordinate("4rd", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("4rd", "file", "1.0.0").toArtifactCoordinateProto())
             .setErrorMessage("proguarded")
             .build(),
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING)
-            .setTargetLibrary(
-              createArtifactCoordinate("5th", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("5th", "file", "1.0.0").toArtifactCoordinateProto())
             .setErrorMessage("missing")
             .build(),
           AppInspection.LibraryCompatibilityInfo.newBuilder()
             .setStatus(AppInspection.LibraryCompatibilityInfo.Status.SERVICE_ERROR)
-            .setTargetLibrary(
-              createArtifactCoordinate("6th", "file", "1.0.0").toArtifactCoordinateProto()
-            )
+            .setTargetLibrary(createArtifactCoordinate("6th", "file", "1.0.0").toArtifactCoordinateProto())
             .setErrorMessage("error")
             .build(),
         )
@@ -301,8 +268,7 @@ class AppInspectionTargetTest {
                       .setCommandId(command.appInspectionCommand.commandId)
                       .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
                       .setGetLibraryCompatibilityResponse(
-                        AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
-                          .addAllResponses(fakeLibraryVersionsResponse)
+                        AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(fakeLibraryVersionsResponse)
                       )
                       .build()
                   )
@@ -320,19 +286,13 @@ class AppInspectionTargetTest {
           LibraryCompatibility(ArtifactCoordinate("2nd", "file", "1.0.0")),
           LibraryCompatibility(ArtifactCoordinate("3rd", "file", "1.0.0")),
           LibraryCompatibility(ArtifactCoordinate("4th", "file", "1.0.0")),
-          LibraryCompatibility(
-            ArtifactCoordinate("5th", "file", "1.0.0"),
-            listOf("com.example.MyClass"),
-          ),
+          LibraryCompatibility(ArtifactCoordinate("5th", "file", "1.0.0"), listOf("com.example.MyClass")),
           LibraryCompatibility(ArtifactCoordinate("6th", "file", "1.0.0")),
         )
 
       // Add the fake process to transport so we can attach to it via apiServices.attachToProcess
       transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-      transportService.addProcess(
-        FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS,
-      )
+      transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
       val processReadyDeferred = CompletableDeferred<Unit>()
       appInspectionRule.apiServices.processDiscovery.addProcessListener(
         MoreExecutors.directExecutor(),
@@ -347,15 +307,10 @@ class AppInspectionTargetTest {
       processReadyDeferred.await()
 
       // Verify response.
-      val responses =
-        appInspectionRule.apiServices
-          .attachToProcess(process, TEST_PROJECT)
-          .getLibraryVersions(targets)
+      val responses = appInspectionRule.apiServices.attachToProcess(process, TEST_PROJECT).getLibraryVersions(targets)
       assertThat(responses)
         .containsExactlyElementsIn(
-          fakeLibraryVersionsResponse.mapIndexed { i, response ->
-            response.toLibraryCompatibilityInfo(targets[i].coordinate)
-          }
+          fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryCompatibilityInfo(targets[i].coordinate) }
         )
     }
 }

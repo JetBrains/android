@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PageAlignmentDetector
 
 class AndroidLintAligned16KBInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.aligned16.kb"),
-    PageAlignmentDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.aligned16.kb"), PageAlignmentDetector.ISSUE)

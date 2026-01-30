@@ -65,16 +65,20 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "from" to FROM,
       SPACE,
-      "bar" to IDENTIFIER)
+      "bar" to IDENTIFIER,
+    )
 
     assertTokenTypes("select -22", "select" to SELECT, SPACE, "-" to MINUS, "22" to NUMERIC_LITERAL)
   }
 
   fun testWhitespace() {
-    val input = """
-        select a,b
-        from foo
-        where baz >= :arg""".trimIndent()
+    val input =
+      """
+      select a,b
+      from foo
+      where baz >= :arg
+      """
+        .trimIndent()
 
     assertTokenTypes(
       input,
@@ -94,17 +98,12 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       ">=" to GTE,
       SPACE,
-      ":arg" to NAMED_PARAMETER)
+      ":arg" to NAMED_PARAMETER,
+    )
   }
 
   fun testComments() {
-    assertTokenTypes(
-      "select 17 -- hello",
-      "select" to SELECT,
-      SPACE,
-      "17" to NUMERIC_LITERAL,
-      SPACE,
-      "-- hello" to LINE_COMMENT)
+    assertTokenTypes("select 17 -- hello", "select" to SELECT, SPACE, "17" to NUMERIC_LITERAL, SPACE, "-- hello" to LINE_COMMENT)
 
     assertTokenTypes(
       "select 17 -- hello\nfrom bar",
@@ -116,33 +115,16 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       "\n" to TokenType.WHITE_SPACE,
       "from" to FROM,
       SPACE,
-      "bar" to IDENTIFIER)
+      "bar" to IDENTIFIER,
+    )
 
-    assertTokenTypes(
-      "select /* hello */ 17",
-      "select" to SELECT,
-      SPACE,
-      "/* hello */" to COMMENT,
-      SPACE,
-      "17" to NUMERIC_LITERAL)
+    assertTokenTypes("select /* hello */ 17", "select" to SELECT, SPACE, "/* hello */" to COMMENT, SPACE, "17" to NUMERIC_LITERAL)
 
-    assertTokenTypes(
-      "select /* hello",
-      "select" to SELECT,
-      SPACE,
-      "/* hello" to COMMENT)
+    assertTokenTypes("select /* hello", "select" to SELECT, SPACE, "/* hello" to COMMENT)
   }
 
   fun testIdentifiers() {
-    assertTokenTypes(
-      "select * from _table",
-      "select" to SELECT,
-      SPACE,
-      "*" to STAR,
-      SPACE,
-      "from" to FROM,
-      SPACE,
-      "_table" to IDENTIFIER)
+    assertTokenTypes("select * from _table", "select" to SELECT, SPACE, "*" to STAR, SPACE, "from" to FROM, SPACE, "_table" to IDENTIFIER)
 
     assertTokenTypes(
       "select null, nulls, current_time, current_times, current_timestamp",
@@ -160,7 +142,7 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       "current_times" to IDENTIFIER,
       "," to COMMA,
       SPACE,
-      "current_timestamp" to CURRENT_TIMESTAMP
+      "current_timestamp" to CURRENT_TIMESTAMP,
     )
 
     assertTokenTypes(
@@ -173,7 +155,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       ":_p2" to NAMED_PARAMETER,
       SPACE,
       "," to COMMA,
-      ":3p" to NAMED_PARAMETER)
+      ":3p" to NAMED_PARAMETER,
+    )
 
     assertTokenTypes(
       "select :P1, ? from foo",
@@ -186,14 +169,10 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "from" to FROM,
       SPACE,
-      "foo" to IDENTIFIER)
+      "foo" to IDENTIFIER,
+    )
 
-    assertTokenTypes(
-      "select ::P1",
-      "select" to SELECT,
-      SPACE,
-      ":" to BAD_CHARACTER,
-      ":P1" to NAMED_PARAMETER)
+    assertTokenTypes("select ::P1", "select" to SELECT, SPACE, ":" to BAD_CHARACTER, ":P1" to NAMED_PARAMETER)
 
     assertTokenTypes(
       "select [table].[column] from [database].[column]",
@@ -207,7 +186,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "[database]" to BRACKET_LITERAL,
       "." to DOT,
-      "[column]" to BRACKET_LITERAL)
+      "[column]" to BRACKET_LITERAL,
+    )
 
     assertTokenTypes(
       "select `table`.`column` from `database`.`column`",
@@ -221,7 +201,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "`database`" to BACKTICK_LITERAL,
       "." to DOT,
-      "`column`" to BACKTICK_LITERAL)
+      "`column`" to BACKTICK_LITERAL,
+    )
 
     assertTokenTypes(
       "select 11*11.22e33+11e+22-11.22e-33",
@@ -233,7 +214,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       "+" to PLUS,
       "11e+22" to NUMERIC_LITERAL,
       "-" to MINUS,
-      "11.22e-33" to NUMERIC_LITERAL)
+      "11.22e-33" to NUMERIC_LITERAL,
+    )
   }
 
   fun testStrings() {
@@ -245,7 +227,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       "," to COMMA,
       "'foo''bar'" to SINGLE_QUOTE_STRING_LITERAL,
       "," to COMMA,
-      "'foo\"bar'" to SINGLE_QUOTE_STRING_LITERAL)
+      "'foo\"bar'" to SINGLE_QUOTE_STRING_LITERAL,
+    )
 
     assertTokenTypes(
       """CREATE TABLE "TABLE"("#!@""'☺\", "");""",
@@ -260,55 +243,49 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "\"\"" to DOUBLE_QUOTE_STRING_LITERAL,
       ")" to RPAREN,
-      ";" to SEMICOLON)
+      ";" to SEMICOLON,
+    )
 
-    assertTokenTypes(
-      """select x'blob'""",
-      "select" to SELECT,
-      SPACE,
-      "x'blob'" to SINGLE_QUOTE_STRING_LITERAL)
+    assertTokenTypes("""select x'blob'""", "select" to SELECT, SPACE, "x'blob'" to SINGLE_QUOTE_STRING_LITERAL)
 
     assertTokenTypes(
       """select 'unterminated string""",
       "select" to SELECT,
       SPACE,
-      "'unterminated string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL)
+      "'unterminated string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+    )
 
     assertTokenTypes(
       """select 'unterminated '' string""",
       "select" to SELECT,
       SPACE,
-      "'unterminated '' string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL)
+      "'unterminated '' string" to UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+    )
 
     assertTokenTypes(
       """select X"unterminated blob""",
       "select" to SELECT,
       SPACE,
-      "X\"unterminated blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL)
+      "X\"unterminated blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
+    )
 
     assertTokenTypes(
       """select X"unterminated "" blob""",
       "select" to SELECT,
       SPACE,
-      "X\"unterminated \"\" blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL)
+      "X\"unterminated \"\" blob" to UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
+    )
 
-    assertTokenTypes(
-      """select [unterminated bracket""",
-      "select" to SELECT,
-      SPACE,
-      "[unterminated bracket" to UNTERMINATED_BRACKET_LITERAL)
+    assertTokenTypes("""select [unterminated bracket""", "select" to SELECT, SPACE, "[unterminated bracket" to UNTERMINATED_BRACKET_LITERAL)
 
-    assertTokenTypes(
-      "select `foo``bar`",
-      "select" to SELECT,
-      SPACE,
-      "`foo``bar`" to BACKTICK_LITERAL)
+    assertTokenTypes("select `foo``bar`", "select" to SELECT, SPACE, "`foo``bar`" to BACKTICK_LITERAL)
 
     assertTokenTypes(
       """select `unterminated backtick""",
       "select" to SELECT,
       SPACE,
-      "`unterminated backtick" to UNTERMINATED_BACKTICK_LITERAL)
+      "`unterminated backtick" to UNTERMINATED_BACKTICK_LITERAL,
+    )
   }
 
   fun testNeedsQuoting() {
@@ -362,7 +339,8 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "=" to EQ,
       SPACE,
-      "true" to TRUE)
+      "true" to TRUE,
+    )
 
     assertTokenTypes(
       "select foo from bar where baz = false",
@@ -380,6 +358,7 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
       SPACE,
       "=" to EQ,
       SPACE,
-      "false" to FALSE)
+      "false" to FALSE,
+    )
   }
 }

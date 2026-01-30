@@ -29,9 +29,7 @@ import org.junit.Test
 class KotlinPluginTest {
 
   companion object {
-    @ClassRule
-    @JvmField
-    val appRule = ApplicationRule()
+    @ClassRule @JvmField val appRule = ApplicationRule()
   }
 
   @Test

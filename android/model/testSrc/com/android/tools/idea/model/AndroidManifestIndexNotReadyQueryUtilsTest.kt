@@ -24,8 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidManifestIndexNotReadyQueryUtilsTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val facet: AndroidFacet
     get() = projectRule.module.androidFacet!!
 

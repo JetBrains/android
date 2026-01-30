@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
-interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationProjectContext> : Token {
+interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C : ApplicationProjectContext> : Token {
   fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean
 
   fun getApplicationServices(applicationProjectContext: C): ApplicationLiveEditServices
@@ -56,24 +56,22 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
     /**
      * Returns an instance of [BuildSystemLiveEditServices] applicable to [this] project system.
      *
-     * Note, that the method returns an interface projection that does not accept [ApplicationProjectContext]s.
-     * Use [ApplicationProjectContext.getBuildSystemLiveEditServices] to get an instance suitable for handling application contexts.
+     * Note, that the method returns an interface projection that does not accept [ApplicationProjectContext]s. Use
+     * [ApplicationProjectContext.getBuildSystemLiveEditServices] to get an instance suitable for handling application contexts.
      */
     @JvmStatic
     fun AndroidProjectSystem.getBuildSystemLiveEditServices(): BuildSystemLiveEditServices<*, *> {
       return getToken(EP_NAME)
     }
 
-    /**
-     * Returns an instance of [BuildSystemLiveEditServices.ApplicationLiveEditServices] that serves [this] specific instance.
-     */
+    /** Returns an instance of [BuildSystemLiveEditServices.ApplicationLiveEditServices] that serves [this] specific instance. */
     @JvmStatic
     fun ApplicationProjectContext.getApplicationLiveEditServices(): ApplicationLiveEditServices? {
       return getBuildSystemLiveEditServices()?.getApplicationServices(this)
     }
 
     @JvmStatic
-    fun <R: ApplicationProjectContext> R.getBuildSystemLiveEditServices(): BuildSystemLiveEditServices<*, R>? {
+    fun <R : ApplicationProjectContext> R.getBuildSystemLiveEditServices(): BuildSystemLiveEditServices<*, R>? {
       @Suppress("UNCHECKED_CAST")
       return EP_NAME.extensionList.singleOrNull { it.isApplicable(this) } as? BuildSystemLiveEditServices<*, R>
     }
@@ -83,19 +81,18 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
 class BuildSystemBytecodeTransformation(val buildHasTransformation: Boolean, val transformationPoints: List<String>)
 
 sealed interface DesugarConfigs {
-  class NotKnown(val message: String?): DesugarConfigs
-  class Known(val configs: List<Path>): DesugarConfigs
+  class NotKnown(val message: String?) : DesugarConfigs
+
+  class Known(val configs: List<Path>) : DesugarConfigs
 }
 
-/**
- * A collection of services provided by the project system to support live edit in the associated already running Android application.
- */
+/** A collection of services provided by the project system to support live edit in the associated already running Android application. */
 interface ApplicationLiveEditServices {
   /**
    * A descriptor of the dependencies of an original build system compilation unit.
    *
    * Note: Implementations are supposed to support equaility via [Any.equals] and [Any.hashCode] in order to allow the caller to group
-   *       source files/classes from the same compilation unit together.
+   * source files/classes from the same compilation unit together.
    */
   interface CompilationDependencies {
     /**
@@ -104,34 +101,28 @@ interface ApplicationLiveEditServices {
      */
     fun getExternalLibraries(): List<Path>
 
-    /**
-     * Returns the list of all jars on the boot classpath of this compilation unit.
-     */
+    /** Returns the list of all jars on the boot classpath of this compilation unit. */
     fun getBootClasspath(): List<Path>
   }
 
-  /**
-   * Returns dependencies of the compilation unit that includes [file] in the scope of ths application.
-   */
+  /** Returns dependencies of the compilation unit that includes [file] in the scope of ths application. */
   fun getCompilationDependencies(file: PsiFile): CompilationDependencies?
 
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
 
-  @K1Deprecation
-  fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
+  @K1Deprecation fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
 
-  @KaExperimentalApi
-  fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile)
+  @KaExperimentalApi fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile)
 
   fun getDesugarConfigs(): DesugarConfigs
+
   fun getRuntimeVersionString(): String
 
   @TestOnly
-  class LegacyForTests(private val project: Project): ApplicationLiveEditServices {
-    data class CompilationDependenciesImpl(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
+  class LegacyForTests(private val project: Project) : ApplicationLiveEditServices {
+    data class CompilationDependenciesImpl(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
       override fun getExternalLibraries(): List<Path> {
-        return AndroidRootUtil.getExternalLibraries(module)
-          .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+        return AndroidRootUtil.getExternalLibraries(module).map { VfsUtilCore.virtualToIoFile(it).toPath() }
       }
 
       override fun getBootClasspath(): List<Path> {
@@ -146,7 +137,7 @@ interface ApplicationLiveEditServices {
     }
 
     override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
-      return file.module?.let { CompilationDependenciesImpl(it)}
+      return file.module?.let { CompilationDependenciesImpl(it) }
     }
 
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
@@ -167,11 +158,10 @@ interface ApplicationLiveEditServices {
   class ApplicationLiveEditServicesForTests(
     private val classFiles: Map<String, ByteArray>,
     val versionString: String = DEFAULT_RUNTIME_VERSION,
-  ): ApplicationLiveEditServices {
-    data class CompilationDependenciesImpl(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
+  ) : ApplicationLiveEditServices {
+    data class CompilationDependenciesImpl(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
       override fun getExternalLibraries(): List<Path> {
-        return AndroidRootUtil.getExternalLibraries(module)
-          .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+        return AndroidRootUtil.getExternalLibraries(module).map { VfsUtilCore.virtualToIoFile(it).toPath() }
       }
 
       override fun getBootClasspath(): List<Path> {
@@ -184,12 +174,12 @@ interface ApplicationLiveEditServices {
     }
 
     override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
-      return file.module?.let { CompilationDependenciesImpl(it)}
+      return file.module?.let { CompilationDependenciesImpl(it) }
     }
 
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
       return ktFile.module?.let { module -> getCompilerConfiguration(module, ktFile) }
-             ?: error("Cannot get kotlin compiler configuration for $ktFile")
+        ?: error("Cannot get kotlin compiler configuration for $ktFile")
     }
 
     @KaExperimentalApi

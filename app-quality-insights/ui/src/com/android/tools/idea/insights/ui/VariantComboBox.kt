@@ -49,9 +49,7 @@ private const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
 private const val OFFLINE_COMBOBOX_MESSAGE = "Not available offline."
 
 class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable) :
-  CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(
-    DefaultCommonComboBoxModel<Row>("All variants").apply { editable = false }
-  ),
+  CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(DefaultCommonComboBoxModel<Row>("All variants").apply { editable = false }),
   Disposable {
   private var isDisabledIndex = false
   private var currentVariantSelection: Selection<IssueVariant>? = null
@@ -69,11 +67,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
     Disposer.register(parentDisposable, this)
     font = font.deriveFont(JBFont.BOLD).deriveFont(JBFont.ITALIC)
     flow
-      .mapNotNull {
-        (it.issues as? LoadingState.Ready)?.value?.value?.selected?.let { issue ->
-          issue to it.currentIssueVariants
-        }
-      }
+      .mapNotNull { (it.issues as? LoadingState.Ready)?.value?.value?.selected?.let { issue -> issue to it.currentIssueVariants } }
       .distinctUntilChanged()
       .onEach { (issue, variantsLoadingState) ->
         when (variantsLoadingState) {
@@ -127,10 +121,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
           // index == -1 means it's trying to render the title of the combo box
           if (index == -1 && value is VariantRow) {
             return JPanel(HorizontalLayout(5)).apply {
-              add(
-                JBLabel("Variant: ").apply { font = font.deriveFont(JBFont.ITALIC) },
-                HorizontalLayout.LEFT,
-              )
+              add(JBLabel("Variant: ").apply { font = font.deriveFont(JBFont.ITALIC) }, HorizontalLayout.LEFT)
               add(
                 JBLabel(value.name).apply {
                   font = font.deriveFont(JBFont.BOLD or JBFont.ITALIC)
@@ -191,13 +182,6 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
 
 @VisibleForTesting
 fun AppInsightsIssue.toVariantRow(size: Int) =
-  VariantRow(
-    "All${if (size > 1) " ($size variants)" else ""}",
-    issueDetails.eventsCount,
-    issueDetails.impactedDevicesCount,
-    null,
-  )
+  VariantRow("All${if (size > 1) " ($size variants)" else ""}", issueDetails.eventsCount, issueDetails.impactedDevicesCount, null)
 
-@VisibleForTesting
-fun IssueVariant.toVariantRow() =
-  VariantRow(id.takeLast(4), eventsCount, impactedDevicesCount, this)
+@VisibleForTesting fun IssueVariant.toVariantRow() = VariantRow(id.takeLast(4), eventsCount, impactedDevicesCount, this)

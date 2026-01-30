@@ -32,11 +32,10 @@ import org.junit.Test
 
 @RunsInEdt
 class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  private lateinit var manifestFile : VirtualFile
-  private lateinit var androidTestManifestFile : VirtualFile
+  private lateinit var manifestFile: VirtualFile
+  private lateinit var androidTestManifestFile: VirtualFile
 
   @Before
   fun setUpManifestFiles() {
@@ -50,14 +49,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("4.0.0" to "4.2.0") to IRRELEVANT_FUTURE,
-      ("4.1.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
-      ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
-      ("7.0.0" to "8.0.0") to MANDATORY_INDEPENDENT,
-      ("4.1.0" to "8.0.0") to MANDATORY_CODEPENDENT,
-      ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
-    )
+    val expectedNecessitiesMap =
+      mapOf(
+        ("4.0.0" to "4.2.0") to IRRELEVANT_FUTURE,
+        ("4.1.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
+        ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
+        ("7.0.0" to "8.0.0") to MANDATORY_INDEPENDENT,
+        ("4.1.0" to "8.0.0") to MANDATORY_CODEPENDENT,
+        ("8.0.0" to "8.1.0") to IRRELEVANT_PAST,
+      )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)

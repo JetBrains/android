@@ -32,14 +32,11 @@ import org.junit.Test
 
 @RunsInEdt
 class AgpUpgradeRefactoringProcessorShowUsagesTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
 
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
+  @get:Rule val ignoreTests = IgnoreTestRule()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect = Expect.createAndEnableStackTrace()
 
   val project by lazy { projectRule.project }
 
@@ -73,7 +70,7 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
     assertThat(usageView.usagesCount).isEqualTo(1)
   }
 
-  private fun addMinimalBuildGradleToProject() : PsiFile {
+  private fun addMinimalBuildGradleToProject(): PsiFile {
     return projectRule.fixture.addFileToProject(
       "build.gradle",
       """
@@ -82,7 +79,8 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
             classpath 'com.android.tools.build:gradle:$currentAgpVersion'
           }
         }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 }

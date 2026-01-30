@@ -51,13 +51,14 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSampledJava() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-      dualClock = true
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SAMPLED_JAVA
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+        dualClock = true
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
     assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfiguration::class.java)
@@ -71,13 +72,14 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationInstrumentedJava() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-      dualClock = false
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+        dualClock = false
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
     assertThat(profilingConfiguration).isInstanceOf(ArtInstrumentedConfiguration::class.java)
@@ -90,12 +92,13 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSampledNative() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SAMPLED_NATIVE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SAMPLED_NATIVE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
     assertThat(profilingConfiguration).isInstanceOf(SimpleperfConfiguration::class.java)
@@ -107,14 +110,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxEnabledForDeviceM() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(true);
+    StudioFlags.PROFILER_TRACEBOX.override(true)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.M)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -124,14 +128,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxDisabledForDeviceP() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(false);
+    StudioFlags.PROFILER_TRACEBOX.override(false)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -141,14 +146,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxEnabledForDeviceO() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(true);
+    StudioFlags.PROFILER_TRACEBOX.override(true)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.O)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -158,14 +164,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxDisabledForDeviceO() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(false);
+    StudioFlags.PROFILER_TRACEBOX.override(false)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.O)
     assertThat(profilingConfiguration).isInstanceOf(AtraceConfiguration::class.java)
     assertThat((profilingConfiguration as AtraceConfiguration).name).isEqualTo(config.name)
@@ -175,14 +182,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxEnabledForDeviceLessThanM() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(true);
+    StudioFlags.PROFILER_TRACEBOX.override(true)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.LOLLIPOP)
     assertThat(profilingConfiguration).isInstanceOf(AtraceConfiguration::class.java)
     assertThat((profilingConfiguration as AtraceConfiguration).name).isEqualTo(config.name)
@@ -192,14 +200,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxEnabledForDeviceQ() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(true);
+    StudioFlags.PROFILER_TRACEBOX.override(true)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.Q)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -209,14 +218,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTraceWithTraceboxDisabledForDeviceQ() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(false);
+    StudioFlags.PROFILER_TRACEBOX.override(false)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.Q)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -226,12 +236,13 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTracePreP() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.O)
     assertThat(profilingConfiguration).isInstanceOf(AtraceConfiguration::class.java)
@@ -242,14 +253,15 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationSystemTracePAndAbove() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
-    StudioFlags.PROFILER_TRACEBOX.override(false);
+    StudioFlags.PROFILER_TRACEBOX.override(false)
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
     assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
@@ -261,10 +273,11 @@ class CpuProfilerConfigConverterTest {
   fun toProfilingConfigurationUnspecified() {
     // Not going to specify name and technology to trigger CpuProfilerConfig's default constructor.
     // This should default to use sampled java configuration (ART Sampled).
-    val config = CpuProfilerConfig().apply {
-      samplingIntervalUs = 1234
-      bufferSizeMb = 5678
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        samplingIntervalUs = 1234
+        bufferSizeMb = 5678
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
     assertThat(profilingConfiguration).isInstanceOf(ArtSampledConfiguration::class.java)
@@ -278,11 +291,12 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toProfilingConfigurationPerfettoNativeAllocations() {
-    val config = CpuProfilerConfig().apply {
-      name = "MyConfiguration"
-      technology = CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS
-      samplingRateBytes = 1234
-    }
+    val config =
+      CpuProfilerConfig().apply {
+        name = "MyConfiguration"
+        technology = CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS
+        samplingRateBytes = 1234
+      }
 
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
     assertThat(profilingConfiguration).isInstanceOf(PerfettoNativeAllocationsConfiguration::class.java)
@@ -294,9 +308,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigPerfettoNativeAllocations() {
-    val configuration = PerfettoNativeAllocationsConfiguration("MyConfiguration").apply {
-      memorySamplingIntervalBytes = 1234
-    }
+    val configuration = PerfettoNativeAllocationsConfiguration("MyConfiguration").apply { memorySamplingIntervalBytes = 1234 }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
@@ -306,11 +318,12 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigArtSampled() {
-    val configuration = ArtSampledConfiguration("MyConfiguration").apply {
-      profilingSamplingIntervalUs = 1234
-      profilingBufferSizeInMb = 5678
-      dualClock = true
-    }
+    val configuration =
+      ArtSampledConfiguration("MyConfiguration").apply {
+        profilingSamplingIntervalUs = 1234
+        profilingBufferSizeInMb = 5678
+        dualClock = true
+      }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
@@ -322,9 +335,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigArtInstrumented() {
-    val configuration = ArtInstrumentedConfiguration("MyConfiguration").apply {
-      profilingBufferSizeInMb = 1234
-    }
+    val configuration = ArtInstrumentedConfiguration("MyConfiguration").apply { profilingBufferSizeInMb = 1234 }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
@@ -347,9 +358,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun toCpuProfilerConfigSimpleperf() {
-    val configuration = SimpleperfConfiguration("MyConfiguration").apply {
-      profilingSamplingIntervalUs = 1234
-    }
+    val configuration = SimpleperfConfiguration("MyConfiguration").apply { profilingSamplingIntervalUs = 1234 }
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)

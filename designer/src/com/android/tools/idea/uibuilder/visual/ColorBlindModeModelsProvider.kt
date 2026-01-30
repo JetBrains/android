@@ -40,11 +40,7 @@ private const val EFFECTIVE_FLAGS =
 
 object ColorBlindModeModelsProvider : VisualizationModelsProvider {
 
-  override fun createNlModels(
-    parent: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parent: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -58,14 +54,8 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
     for (mode in ColorBlindMode.entries) {
       val config = defaultConfig.clone()
-      config.setImageTransformation(
-        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
-        mode.imageTransform,
-      )
-      val model =
-        NlModel.Builder(parent, buildTarget, virtualFile, config)
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+      config.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, mode.imageTransform)
+      val model = NlModel.Builder(parent, buildTarget, virtualFile, config).withComponentRegistrar(NlComponentRegistrar).build()
       model.displaySettings.setTooltip(defaultConfig.toHtmlTooltip())
       model.displaySettings.setDisplayName(mode.displayName)
       models.add(model)

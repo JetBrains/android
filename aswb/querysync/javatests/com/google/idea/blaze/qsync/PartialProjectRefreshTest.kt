@@ -38,74 +38,48 @@ class PartialProjectRefreshTest {
     val base =
       QuerySummaryImpl.newBuilder()
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package1:Class1.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package1:Class1.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(
-            Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-            listOf()
-          )
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:subpackage/AnotherClass.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf()))
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package2:Class2.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package2:Class2.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf()))
         .build()
-    val baseProject =
-      PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
 
     val delta =
       QuerySummaryImpl.newBuilder()
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:newrule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package1:NewClass.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:newrule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package1:NewClass.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:NewClass.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:NewClass.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf()))
         .build()
 
-    val queryStrategy = PartialProjectRefresh(
-      Path.of("/workspace/root"),
-      baseProject,
-      QuerySyncTestUtils.CLEAN_VCS_STATE,
-      Optional.empty(),  /* modifiedPackages= */
-      ImmutableSet.of(Path.of("my/build/package1")),
-      ImmutableSet.of()
-    )
-    val applied = queryStrategy.applyDelta(delta)
-    Truth.assertThat(applied.rulesMap.keys)
-      .containsExactly(
-        Label.of("//my/build/package1:newrule"), Label.of("//my/build/package2:rule")
+    val queryStrategy =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        QuerySyncTestUtils.CLEAN_VCS_STATE,
+        Optional.empty(),
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+        ImmutableSet.of(),
       )
+    val applied = queryStrategy.applyDelta(delta)
+    Truth.assertThat(applied.rulesMap.keys).containsExactly(Label.of("//my/build/package1:newrule"), Label.of("//my/build/package2:rule"))
     Truth.assertThat(applied.sourceFilesMap.keys)
       .containsExactly(
         Label.of("//my/build/package1:NewClass.java"),
         Label.of("//my/build/package1:BUILD"),
         Label.of("//my/build/package2:Class2.java"),
-        Label.of("//my/build/package2:BUILD")
+        Label.of("//my/build/package2:BUILD"),
       )
   }
 
@@ -114,55 +88,35 @@ class PartialProjectRefreshTest {
     val base =
       QuerySummaryImpl.newBuilder()
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package1:Class1.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package1:Class1.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(
-            Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-            listOf()
-          )
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:subpackage/AnotherClass.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf()))
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package2:Class2.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package2:Class2.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf()))
         .build()
-    val baseProject =
-      PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
 
-    val queryStrategy = PartialProjectRefresh(
-      Path.of("/workspace/root"),
-      baseProject,
-      QuerySyncTestUtils.CLEAN_VCS_STATE,
-      Optional.empty(),
-      ImmutableSet.of(),  /* deletedPackages= */
-      ImmutableSet.of(Path.of("my/build/package1"))
-    )
+    val queryStrategy =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        QuerySyncTestUtils.CLEAN_VCS_STATE,
+        Optional.empty(),
+        ImmutableSet.of(),
+        /* deletedPackages= */ ImmutableSet.of(Path.of("my/build/package1")),
+      )
     Truth8.assertThat(queryStrategy.getQuerySpec()).isEmpty()
     val applied = queryStrategy.applyDelta(QuerySummary.EMPTY)
-    Truth.assertThat(applied.rulesMap.keys)
-      .containsExactly(Label.of("//my/build/package2:rule"))
+    Truth.assertThat(applied.rulesMap.keys).containsExactly(Label.of("//my/build/package2:rule"))
     Truth.assertThat(applied.sourceFilesMap.keys)
-      .containsExactly(
-        Label.of("//my/build/package2:Class2.java"), Label.of("//my/build/package2:BUILD")
-      )
+      .containsExactly(Label.of("//my/build/package2:Class2.java"), Label.of("//my/build/package2:BUILD"))
   }
 
   @Test
@@ -170,79 +124,58 @@ class PartialProjectRefreshTest {
     val base =
       QuerySummaryImpl.newBuilder()
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package1:Class1.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package1:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package1:Class1.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), listOf()))
         .build()
-    val baseProject =
-      PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
     val delta =
       QuerySummaryImpl.newBuilder()
         .putRules(
-          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule")).copy(
-            ruleClass = "java_library",
-            sources = listOf(Label.of("//my/build/package2:Class2.java"))
-          )
+          QueryData.Rule.createForTests(label = Label.of("//my/build/package2:rule"))
+            .copy(ruleClass = "java_library", sources = listOf(Label.of("//my/build/package2:Class2.java")))
         )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf())
-        )
-        .putSourceFiles(
-          QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf())
-        )
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), listOf()))
+        .putSourceFiles(QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), listOf()))
         .build()
 
-    val queryStrategy = PartialProjectRefresh(
-      Path.of("/workspace/root"),
-      baseProject,
-      QuerySyncTestUtils.CLEAN_VCS_STATE,
-      Optional.empty(),  /* modifiedPackages= */
-      ImmutableSet.of(Path.of("my/build/package2")),
-      ImmutableSet.of()
-    )
-    val applied = queryStrategy.applyDelta(delta)
-    Truth.assertThat(applied.rulesMap.keys)
-      .containsExactly(
-        Label.of("//my/build/package1:rule"), Label.of("//my/build/package2:rule")
+    val queryStrategy =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        QuerySyncTestUtils.CLEAN_VCS_STATE,
+        Optional.empty(),
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package2")),
+        ImmutableSet.of(),
       )
+    val applied = queryStrategy.applyDelta(delta)
+    Truth.assertThat(applied.rulesMap.keys).containsExactly(Label.of("//my/build/package1:rule"), Label.of("//my/build/package2:rule"))
     Truth.assertThat(applied.sourceFilesMap.keys)
       .containsExactly(
         Label.of("//my/build/package1:Class1.java"),
         Label.of("//my/build/package1:BUILD"),
         Label.of("//my/build/package2:Class2.java"),
-        Label.of("//my/build/package2:BUILD")
+        Label.of("//my/build/package2:BUILD"),
       )
   }
 
   @Test
   fun testDelta_packagesWithErrors() {
-    val base =
-      QuerySummaryImpl.create(
-        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build()
-      )
-    val baseProject =
-      PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
-    val delta =
-      QuerySummaryImpl.create(
-        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build()
-      )
+    val base = QuerySummaryImpl.create(Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build())
+    val baseProject = PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build()
+    val delta = QuerySummaryImpl.create(Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build())
 
-    val queryStrategy = PartialProjectRefresh(
-      Path.of("/workspace/root"),
-      baseProject,
-      QuerySyncTestUtils.CLEAN_VCS_STATE,
-      Optional.empty(),  /* modifiedPackages= */
-      ImmutableSet.of(Path.of("my/build/package")),
-      ImmutableSet.of()
-    )
+    val queryStrategy =
+      PartialProjectRefresh(
+        Path.of("/workspace/root"),
+        baseProject,
+        QuerySyncTestUtils.CLEAN_VCS_STATE,
+        Optional.empty(),
+        /* modifiedPackages= */ ImmutableSet.of(Path.of("my/build/package")),
+        ImmutableSet.of(),
+      )
     val applied = queryStrategy.applyDelta(delta)
     Truth.assertThat(applied.packagesWithErrors).containsExactly(Path.of("my/build/package"))
   }

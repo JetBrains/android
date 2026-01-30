@@ -35,10 +35,7 @@ import java.io.File
 import java.util.Locale
 import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and
- * renders them in a proper order.
- */
+/** Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order. */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
 
   private val newModuleModel =
@@ -55,29 +52,20 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   @JvmField val formFactor = newModuleModel.formFactor
 
-  /**
-   * A model which is used at the optional step after usual activity configuring. Currently only
-   * used for Android Things.
-   */
+  /** A model which is used at the optional step after usual activity configuring. Currently only used for Android Things. */
   @JvmField
-  val extraRenderTemplateModel =
-    RenderTemplateModel.fromModuleModel(
-      newModuleModel,
-      message("android.wizard.config.activity.title"),
-    )
+  val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, message("android.wizard.config.activity.title"))
 
   @JvmField val newRenderTemplate = OptionalValueProperty<Template>()
 
   @JvmField val hasCompanionApp = BoolValueProperty()
 
-  fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> =
-    newModuleModel.androidSdkInfo
+  fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
   override fun handleFinished() {
     initMainModule()
     val packageName = projectModel.packageName.get()
-    val newRenderTemplateModel =
-      createMainRenderModel().apply { addRenderDefaultTemplateValues(this, packageName) }
+    val newRenderTemplateModel = createMainRenderModel().apply { addRenderDefaultTemplateValues(this, packageName) }
     if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName)
@@ -132,8 +120,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 /**
  * The name of the template to use to construct a companion module.
  *
- * TODO: Consider updating this to the Compose/Material3 "Empty Activity" template if the project is
- *   Kotlin-based
+ * TODO: Consider updating this to the Compose/Material3 "Empty Activity" template if the project is Kotlin-based
  */
 internal const val COMPANION_MODULE_TEMPLATE_NAME = "Empty Views Activity"
 
@@ -158,24 +145,17 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
   return companionModuleModel
 }
 
-private fun createCompanionRenderModel(
-  moduleModel: NewAndroidModuleModel,
-  packageName: String,
-): RenderTemplateModel {
+private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String): RenderTemplateModel {
   val companionRenderModel =
     RenderTemplateModel.fromModuleModel(moduleModel).apply {
-      newTemplate =
-        TemplateResolver.getAllTemplates().first { it.name == COMPANION_MODULE_TEMPLATE_NAME }
+      newTemplate = TemplateResolver.getAllTemplates().first { it.name == COMPANION_MODULE_TEMPLATE_NAME }
     }
   addRenderDefaultTemplateValues(companionRenderModel, packageName)
 
   return companionRenderModel
 }
 
-private fun addRenderDefaultTemplateValues(
-  renderTemplateModel: RenderTemplateModel,
-  packageName: String,
-) =
+private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel, packageName: String) =
   renderTemplateModel.newTemplate.parameters.run {
     filterIsInstance<StringParameter>().forEach { it.value = it.suggest() ?: it.value }
     val packageNameParameter = find { it.name == "Package name" } as StringParameter?

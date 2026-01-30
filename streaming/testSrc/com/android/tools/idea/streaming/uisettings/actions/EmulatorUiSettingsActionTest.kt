@@ -54,6 +54,12 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.ActionLink
+import java.awt.Dimension
+import java.awt.event.MouseEvent
+import javax.swing.JCheckBox
+import javax.swing.JComboBox
+import javax.swing.JSlider
+import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -62,19 +68,12 @@ import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.awt.Dimension
-import java.awt.event.MouseEvent
-import javax.swing.JCheckBox
-import javax.swing.JComboBox
-import javax.swing.JSlider
-import kotlin.time.Duration.Companion.seconds
 
 @RunsInEdt
 class EmulatorUiSettingsActionTest {
   private val uiRule = UiSettingsRule()
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule())
 
   private val testRootDisposable
     get() = uiRule.testRootDisposable
@@ -219,12 +218,8 @@ class EmulatorUiSettingsActionTest {
     return AnActionEvent.createEvent(createTestDataContext(controller, view), presentation, ActionPlaces.TOOLBAR, ActionUiKind.NONE, input)
   }
 
-  private fun createActionButton(action: AnAction) = ActionButton(
-    action,
-    action.templatePresentation.clone(),
-    ActionPlaces.TOOLBAR,
-    Dimension(16, 16)
-  ).apply { size = Dimension(16, 16) }
+  private fun createActionButton(action: AnAction) =
+    ActionButton(action, action.templatePresentation.clone(), ActionPlaces.TOOLBAR, Dimension(16, 16)).apply { size = Dimension(16, 16) }
 
   private fun createEmulatorView(controller: EmulatorController, parentDisposable: Disposable = testRootDisposable): EmulatorView =
     EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)

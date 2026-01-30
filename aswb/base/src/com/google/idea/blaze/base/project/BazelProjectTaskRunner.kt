@@ -27,8 +27,6 @@ import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTarg
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.settings.Bazel.isBazelProject
-import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.task.ModuleBuildTask
@@ -44,59 +42,48 @@ import kotlinx.coroutines.guava.asListenableFuture
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 
-/**
- * A [ProjectTaskRunner] that knows how to perform standard operations like build, re-build, compile a file in Bazel projects.
- */
+/** A [ProjectTaskRunner] that knows how to perform standard operations like build, re-build, compile a file in Bazel projects. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("UnstableApiUsage")
-class BazelProjectTaskRunner: ProjectTaskRunner() {
+class BazelProjectTaskRunner : ProjectTaskRunner() {
   override fun canRun(task: ProjectTask): Boolean = error("not expected")
 
-  override fun canRun(
-    project: Project,
-    projectTask: ProjectTask,
-    context: ProjectTaskContext?,
-  ): Boolean {
+  override fun canRun(project: Project, projectTask: ProjectTask, context: ProjectTaskContext?): Boolean {
     if (!project.isBazelProject()) return false
     fun Module.isOutModule() = findModuleEntity()?.entitySource == BazelEntitySource
-    return when(projectTask) {
+    return when (projectTask) {
       is ModuleFilesBuildTask -> projectTask.module.isOutModule()
       is ModuleBuildTask -> projectTask.module.isOutModule()
       else -> false
     }
   }
 
-  override fun run(
-    project: Project,
-    context: ProjectTaskContext,
-    vararg tasks: ProjectTask,
-  ): Promise<Result> {
+  override fun run(project: Project, context: ProjectTaskContext, vararg tasks: ProjectTask): Promise<Result> {
     return when {
       tasks.any { it is ModuleBuildTask && it !is ModuleFilesBuildTask } -> BlazeBuildService.getInstance(project).buildProject()
-      tasks.any { it is ModuleFilesBuildTask } -> BuildDependenciesHelper(project).determineTargetsAndRun(
-        workspaceRelativePaths = virtualFilesToWorkspaceRelativePaths(
-          project,
-          tasks.filterIsInstance<ModuleFilesBuildTask>().flatMap { it.files.toList() }
-        ),
-        disambiguateTargetPrompt = createDisambiguateTargetPrompt({ it.showCenteredInCurrentWindow(project)}),
-        targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
-        querySyncActionStats = QuerySyncActionStatsScope.create(project, this.javaClass, null)
-      ) {
-        labels -> BlazeBuildService.getInstance(project).buildFileForLabels("", labels).asDeferred()
-      }.asListenableFuture()
+      tasks.any { it is ModuleFilesBuildTask } ->
+        BuildDependenciesHelper(project)
+          .determineTargetsAndRun(
+            workspaceRelativePaths =
+              virtualFilesToWorkspaceRelativePaths(project, tasks.filterIsInstance<ModuleFilesBuildTask>().flatMap { it.files.toList() }),
+            disambiguateTargetPrompt = createDisambiguateTargetPrompt({ it.showCenteredInCurrentWindow(project) }),
+            targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
+            querySyncActionStats = QuerySyncActionStatsScope.create(project, this.javaClass, null),
+          ) { labels ->
+            BlazeBuildService.getInstance(project).buildFileForLabels("", labels).asDeferred()
+          }
+          .asListenableFuture()
       else -> Futures.immediateFailedFuture<Boolean>(IllegalStateException("unexpected"))
     }.toPromise { if (it) TaskRunnerResults.SUCCESS else TaskRunnerResults.FAILURE }
   }
 }
 
-private fun <T: Any, R> ListenableFuture<T>.toPromise(transform: (T) -> R): AsyncPromise<R> {
+private fun <T : Any, R> ListenableFuture<T>.toPromise(transform: (T) -> R): AsyncPromise<R> {
   val result = AsyncPromise<R>()
   this.addCallback(
     directExecutor(),
-    success = { invocationResult ->
-      result.setResult(invocationResult?.let(transform))
-    },
-    failure = { result.setError(it) }
+    success = { invocationResult -> result.setResult(invocationResult?.let(transform)) },
+    failure = { result.setError(it) },
   )
   return result
 }

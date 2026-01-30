@@ -37,8 +37,8 @@ class ExceptionDataConfigurationImpl : ExceptionDataConfiguration {
 
   private val flagService = ServerFlagService.instance
 
-  override fun getConfigurations() = flagService.flagAssignments.keys
-    .filter { it.startsWith(FLAG_NAME_PREFIX) }.associate {
-      it.substring(FLAG_NAME_PREFIX.length) to flagService.getProto(it, ExceptionConfiguration.getDefaultInstance())
-    }
+  override fun getConfigurations() =
+    flagService.flagAssignments.keys
+      .filter { it.startsWith(FLAG_NAME_PREFIX) }
+      .associate { it.substring(FLAG_NAME_PREFIX.length) to flagService.getProto(it, ExceptionConfiguration.getDefaultInstance()) }
 }

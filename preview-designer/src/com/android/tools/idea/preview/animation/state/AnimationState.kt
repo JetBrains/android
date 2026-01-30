@@ -22,16 +22,14 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Interface for managing the states of an animation.
  *
- * Animation states can be singular (e.g., visibility) or more commonly, transitions between initial
- * and target states (e.g., color A to B, int A to B, Compose state A to B). This interface provides
- * access to the current state and actions to modify it.
+ * Animation states can be singular (e.g., visibility) or more commonly, transitions between initial and target states (e.g., color A to B,
+ * int A to B, Compose state A to B). This interface provides access to the current state and actions to modify it.
  */
 interface AnimationState<T> {
   /**
    * A flow representing the current state of the animation.
    *
-   * This flow emits updates whenever the animation state changes, allowing consumers to react to
-   * the new state.
+   * This flow emits updates whenever the animation state changes, allowing consumers to react to the new state.
    */
   val state: StateFlow<T>
 
@@ -42,8 +40,8 @@ interface AnimationState<T> {
 /**
  * Represents the state of an animation that transitions between two values (from and to).
  *
- * This interface extends [AnimationState], specializing it for animations that have distinct start
- * and end states. It exposes a `MutableStateFlow` to manage the current from/to values.
+ * This interface extends [AnimationState], specializing it for animations that have distinct start and end states. It exposes a
+ * `MutableStateFlow` to manage the current from/to values.
  *
  * @param T The type of the animated value (e.g., Int, Float, Color, Compose State).
  */

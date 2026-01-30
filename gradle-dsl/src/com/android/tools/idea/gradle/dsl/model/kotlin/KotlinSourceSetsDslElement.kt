@@ -23,10 +23,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 
-class KotlinSourceSetsDslElement(
-  parent: GradleDslElement,
-  name: GradleNameElement
-) : GradleDslElementMap(parent, name), GradleDslNamedDomainContainer {
+class KotlinSourceSetsDslElement(parent: GradleDslElement, name: GradleNameElement) :
+  GradleDslElementMap(parent, name), GradleDslNamedDomainContainer {
 
   override fun isBlockElement(): Boolean = true
 
@@ -41,17 +39,17 @@ class KotlinSourceSetsDslElement(
   override fun getChildPropertiesElementDescription(converter: GradleDslNameConverter?, name: String?): PropertiesElementDescription<*> =
     KotlinSourceSetDslElement.KOTLIN_SOURCE_SET
 
-
   override fun implicitlyExists(name: String): Boolean = existingSourceSets.contains(name)
 
   companion object {
 
     @JvmField
-    val KOTLIN_SOURCE_SETS = PropertiesElementDescription(
-      "sourceSets",
-      KotlinSourceSetsDslElement::class.java,
-      { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetsDslElement(parent, name) }
-    )
+    val KOTLIN_SOURCE_SETS =
+      PropertiesElementDescription(
+        "sourceSets",
+        KotlinSourceSetsDslElement::class.java,
+        { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetsDslElement(parent, name) },
+      )
 
     private val existingSourceSets = listOf("commonMain", "commonTest")
   }

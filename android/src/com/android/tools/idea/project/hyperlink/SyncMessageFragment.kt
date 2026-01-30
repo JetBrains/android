@@ -22,10 +22,9 @@ import javax.swing.event.HyperlinkEvent
 /**
  * A fragment of the final message rendered from a [com.android.tools.idea.project.messages.SyncMessage].
  *
- *
- * A fragment usually holds both visual representation of an action(s) and the action(s) themselves in a form of [executeHandler].
- * However, the visual part may be omitted if the fragment is used to complement already existing visual representation stored as
- * the `text` property of a [com.android.tools.idea.project.messages.SyncMessage].
+ * A fragment usually holds both visual representation of an action(s) and the action(s) themselves in a form of [executeHandler]. However,
+ * the visual part may be omitted if the fragment is used to complement already existing visual representation stored as the `text` property
+ * of a [com.android.tools.idea.project.messages.SyncMessage].
  */
 interface SyncMessageFragment {
   val urls: Collection<String>

@@ -25,19 +25,26 @@ import com.intellij.util.Processor
  * expression without assigning it a column name, it's assumed to be unnamed and so will be ignored by the processors.
  */
 class SubqueryTable(private val selectStmt: AndroidSqlSelectStatement) : AndroidSqlTable {
-  override val name get() = null
-  override val definingElement get() = selectStmt
-  override val isView: Boolean get() = true
+  override val name
+    get() = null
+
+  override val definingElement
+    get() = selectStmt
+
+  override val isView: Boolean
+    get() = true
 
   override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
-    // We need to process only first selectCore because the column names of the first query determine the column names of the combined result set.
+    // We need to process only first selectCore because the column names of the first query determine the column names of the combined
+    // result set.
     val selectCore = selectStmt.selectCoreList.firstOrNull()
     ProgressManager.checkCanceled()
 
     val resultColumns = selectCore?.selectCoreSelect?.resultColumns?.resultColumnList ?: return true
     columns@ for (resultColumn in resultColumns) {
       when {
-        resultColumn.expression != null -> { // Try to process by [AndroidSqlExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
+        resultColumn.expression !=
+          null -> { // Try to process by [AndroidSqlExpression] e.g. "SELECT id FROM ..."; "SELECT id * 2 FROM ...".
           val column = computeSqlColumn(resultColumn, sqlTablesInProcess)
           // Column can be null. Sometimes we cannot resolve column because we have invalid query (e.g recursive query)
           if (column != null && !processor.process(column)) return false

@@ -18,21 +18,22 @@ package com.android.tools.idea.gradle.project.sync.memory
 import com.android.tools.perflogger.Benchmark
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.createDirectories
-import kotlin.time.Instant
 import java.io.File
+import kotlin.time.Instant
 
-val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size")
-  .setProject("Android Studio Sync Test")
-  .build()
+val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size").setProject("Android Studio Sync Test").build()
 
-val OUTPUT_DIRECTORY: String = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
-  it.deleteRecursively()
-  it.toPath().createDirectories()
-}.absolutePath.let {
-  if (SystemInfo.isWindows) it.replace("\\", "\\\\") else it
-}
+val OUTPUT_DIRECTORY: String =
+  File(System.getenv("TEST_TMPDIR"), "snapshots")
+    .also {
+      it.deleteRecursively()
+      it.toPath().createDirectories()
+    }
+    .absolutePath
+    .let { if (SystemInfo.isWindows) it.replace("\\", "\\\\") else it }
 
 internal typealias Bytes = Long
+
 internal typealias TimestampedMeasurement = Pair<Instant, Bytes>
 
 internal fun File.toTimestamp() = Instant.fromEpochMilliseconds(name.substringBefore('_').toLong())
@@ -41,6 +42,7 @@ internal fun File.toMetricName() = nameWithoutExtension.substringAfter("_").lowe
 
 private fun String.lowercaseEnumName(): String {
   return this.fold(StringBuilder()) { result, char ->
-    result.append(if (result.isEmpty() || result.last() == '_') char.uppercaseChar() else char.lowercaseChar())
-  }.toString()
+      result.append(if (result.isEmpty() || result.last() == '_') char.uppercaseChar() else char.lowercaseChar())
+    }
+    .toString()
 }

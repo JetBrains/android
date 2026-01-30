@@ -24,9 +24,9 @@ import com.android.tools.journeys.proto.Step
 import com.android.tools.journeys.proto.Turn
 import java.util.Base64
 import junit.framework.TestCase.assertTrue
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.Test
 
 class JourneyActionArtifactsTest {
 
@@ -41,52 +41,34 @@ class JourneyActionArtifactsTest {
 
   @Test
   fun parseFromAdditionalTestArtifacts_artifactsParsed() {
-    val step = Step.newBuilder()
-      .setInitialization(
-        Step.Initialization.newBuilder()
-          .setPromptText("Prompt")
-          .build()
-      )
-      .addAllTurns(
-        listOf(
-          buildTurn(
-            "Description 1",
-            "Reasoning 1",
-            listOf(
-              buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/1")
+    val step =
+      Step.newBuilder()
+        .setInitialization(Step.Initialization.newBuilder().setPromptText("Prompt").build())
+        .addAllTurns(
+          listOf(
+            buildTurn(
+              "Description 1",
+              "Reasoning 1",
+              listOf(buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/1")),
+              listOf(buildInteraction("Click", Status.SUCCEEDED), buildInteraction("Swipe", Status.SUCCEEDED)),
             ),
-            listOf(
-              buildInteraction("Click", Status.SUCCEEDED),
-              buildInteraction("Swipe", Status.SUCCEEDED)
-            )
-          ),
-          buildTurn(
-            "Description 2",
-            "Reasoning 2",
-            listOf(
-              buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/2")
+            buildTurn(
+              "Description 2",
+              "Reasoning 2",
+              listOf(buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/2")),
+              listOf(buildInteraction("Click", Status.SUCCEEDED)),
             ),
-            listOf(
-              buildInteraction("Click", Status.SUCCEEDED)
-            )
-          ),
-          buildTurn(
-            "Description 3",
-            "Reasoning 3",
-            listOf(
-              buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/3")
+            buildTurn(
+              "Description 3",
+              "Reasoning 3",
+              listOf(buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/3")),
+              listOf(buildInteraction("Click", Status.FAILED)),
             ),
-            listOf(
-              buildInteraction("Click", Status.FAILED)
-            )
           )
         )
-      )
-      .build()
+        .build()
 
-    val additionalTestArtifacts = mapOf(
-      "Journeys.Step" to encodeStep(step),
-    )
+    val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
     val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
 
@@ -109,35 +91,18 @@ class JourneyActionArtifactsTest {
 
   @Test
   fun parseFromAdditionalTestArtifacts_missingFieldsAllowed() {
-    val step = Step.newBuilder()
-      .setInitialization(
-        Step.Initialization.newBuilder()
-          .setPromptText("Prompt")
-          .build()
-      )
-      .addAllTurns(
-        listOf(
-          buildTurn(
-            "Description 1",
-            null,
-            emptyList(),
-            emptyList()
-          ),
-          buildTurn(
-            null,
-            "Reasoning 2",
-            listOf(
-              buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/2")
-            ),
-            emptyList()
+    val step =
+      Step.newBuilder()
+        .setInitialization(Step.Initialization.newBuilder().setPromptText("Prompt").build())
+        .addAllTurns(
+          listOf(
+            buildTurn("Description 1", null, emptyList(), emptyList()),
+            buildTurn(null, "Reasoning 2", listOf(buildArtifact(ArtifactType.SCREENSHOT, "path/to/screenshot/2")), emptyList()),
           )
         )
-      )
-      .build()
+        .build()
 
-    val additionalTestArtifacts = mapOf(
-      "Journeys.Step" to encodeStep(step),
-    )
+    val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
     val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
 
@@ -156,29 +121,15 @@ class JourneyActionArtifactsTest {
 
   @Test
   fun parseFromAdditionalTestArtifacts_ignoresNonScreenshotArtifacts() {
-    val step = Step.newBuilder()
-      .setInitialization(
-        Step.Initialization.newBuilder()
-          .setPromptText("Prompt")
-          .build()
-      )
-      .addAllTurns(
-        listOf(
-          buildTurn(
-            "Description 1",
-            "Reasoning 1",
-            listOf(
-              buildArtifact(ArtifactType.LOGCAT, "path/to/logcat")
-            ),
-            emptyList()
-          )
+    val step =
+      Step.newBuilder()
+        .setInitialization(Step.Initialization.newBuilder().setPromptText("Prompt").build())
+        .addAllTurns(
+          listOf(buildTurn("Description 1", "Reasoning 1", listOf(buildArtifact(ArtifactType.LOGCAT, "path/to/logcat")), emptyList()))
         )
-      )
-      .build()
+        .build()
 
-    val additionalTestArtifacts = mapOf(
-      "Journeys.Step" to encodeStep(step),
-    )
+    val additionalTestArtifacts = mapOf("Journeys.Step" to encodeStep(step))
 
     val artifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
 
@@ -186,19 +137,10 @@ class JourneyActionArtifactsTest {
     assertNull(artifacts[0].screenshotImage)
   }
 
-  private fun buildTurn(
-    description: String?,
-    reasoning: String?,
-    artifacts: List<Artifact>,
-    interactions: List<Interaction>
-  ): Turn {
+  private fun buildTurn(description: String?, reasoning: String?, artifacts: List<Artifact>, interactions: List<Interaction>): Turn {
     val turnBuilder = Turn.newBuilder()
-    description?.let {
-      turnBuilder.setDescription(it)
-    }
-    reasoning?.let {
-      turnBuilder.setReasoning(reasoning)
-    }
+    description?.let { turnBuilder.setDescription(it) }
+    reasoning?.let { turnBuilder.setReasoning(reasoning) }
     if (artifacts.isNotEmpty()) {
       turnBuilder.addAllArtifactsBefore(artifacts)
     }
@@ -209,26 +151,14 @@ class JourneyActionArtifactsTest {
   }
 
   private fun buildArtifact(type: ArtifactType, uri: String): Artifact {
-    return Artifact.newBuilder()
-      .setType(type)
-      .setUri(uri)
-      .build()
+    return Artifact.newBuilder().setType(type).setUri(uri).build()
   }
 
   private fun buildInteraction(command: String, status: Status): Interaction {
-    return Interaction.newBuilder()
-      .setCommand(command)
-      .setResult(
-        Result.newBuilder()
-          .setStatus(status)
-          .build(),
-      )
-      .build()
+    return Interaction.newBuilder().setCommand(command).setResult(Result.newBuilder().setStatus(status).build()).build()
   }
-
 
   private fun encodeStep(step: Step): String {
     return Base64.getEncoder().encodeToString(step.toByteArray())
   }
-
 }

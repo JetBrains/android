@@ -16,19 +16,22 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis.diffing
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrParameter
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBlock
 
 interface MethodVisitor {
   fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {}
+
   fun visitSignature(old: String?, new: String?) {}
+
   fun visitInstructions(old: IrInstructionList, new: IrInstructionList) {}
 
   /**
    * Visits the changed parameters of this method. Will not be called if no parameters were added, removed, or modified.
+   *
    * @param added the parameters that were added. Can be an empty list.
    * @param removed the parameters that were removed. Can be an empty list.
    * @param modified the diffs of parameters that were modified. Can be an empty list.
@@ -37,6 +40,7 @@ interface MethodVisitor {
 
   /**
    * Visits the changed annotations of this method. Will not be called if no annotations were added, removed, or modified.
+   *
    * @param added the annotations that were added. Can be an empty list.
    * @param removed the annotations that were removed. Can be an empty list.
    * @param modified the diffs of annotations that were modified. Can be an empty list.
@@ -45,6 +49,7 @@ interface MethodVisitor {
 
   /**
    * Visits the changed local variables of this method. Will not be called if no local variables were added, removed, or modified.
+   *
    * @param added the local variables that were added. Can be an empty list.
    * @param removed the local variables that were removed. Can be an empty list.
    * @param modified the diffs of local variables that were modified. Can be an empty list.
@@ -53,6 +58,7 @@ interface MethodVisitor {
 
   /**
    * Visits the changed try/catch blocks of this method. Will not be called if no local variables were added, removed, or modified.
+   *
    * @param added the local variables that were added. Can be an empty list.
    * @param removed the local variables that were removed. Can be an empty list.
    * @param modified the diffs of local variables that were modified. Can be an empty list.

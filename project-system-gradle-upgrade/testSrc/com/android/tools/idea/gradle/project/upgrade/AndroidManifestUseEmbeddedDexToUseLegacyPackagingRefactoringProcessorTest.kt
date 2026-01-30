@@ -29,12 +29,11 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  private lateinit var mainManifestFile : VirtualFile
-  private lateinit var debugManifestFile : VirtualFile
+  private lateinit var mainManifestFile: VirtualFile
+  private lateinit var debugManifestFile: VirtualFile
 
   @Before
   fun setUpManifestFiles() {
@@ -48,23 +47,30 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessorTest:
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("7.0.0" to "7.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("7.1.0" to "8.0.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
-      ("8.0.0" to "8.1.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
-      ("8.0.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
-      ("7.1.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("9.0.0" to "9.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
-    )
+    val expectedNecessitiesMap =
+      mapOf(
+        ("7.0.0" to "7.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+        ("7.1.0" to "8.0.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
+        ("8.0.0" to "8.1.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
+        ("8.0.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
+        ("7.1.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+        ("9.0.0" to "9.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+      )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
+      val processor =
+        AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(
+          project,
+          AgpVersion.parse(t.first),
+          AgpVersion.parse(t.second),
+        )
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
 
   @Test
   fun testReadMoreUrl() {
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     Assert.assertEquals("https://developer.android.com/r/tools/upgrade-assistant/use-embedded-dex-deprecated", processor.getReadMoreUrl())
   }
 
@@ -72,33 +78,48 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessorTest:
   fun testUseEmbeddedDexTrueToUseLegacyPackaging() {
     writeToBuildFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"))
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
 
-    verifyFileContents(buildFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackagingFalseExpected"))
-    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"))
+    verifyFileContents(
+      buildFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackagingFalseExpected"),
+    )
+    verifyManifestFileContents(
+      mainManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"),
+    )
   }
 
   @Test
   fun testUseEmbeddedDexFalseToUseLegacyPackaging() {
     writeToBuildFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"))
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
-    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"))
+    verifyManifestFileContents(
+      mainManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"),
+    )
   }
 
   @Test
   fun testUseEmbeddedDexToUseLegacyPackagingNoValue() {
     writeToBuildFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
-    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
+    verifyManifestFileContents(
+      mainManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"),
+    )
   }
 
   @Test
@@ -106,27 +127,44 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessorTest:
     writeToBuildFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"), debugManifestFile)
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
-    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
+    verifyManifestFileContents(
+      mainManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"),
+    )
     // Only "main" manifest should be changed
-    verifyManifestFileContents(debugManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"))
+    verifyManifestFileContents(
+      debugManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexTrue"),
+    )
   }
 
   @Test
   fun testUseEmbeddedDexFalseToUseLegacyPackagingValueInDebugManifest() {
     writeToBuildFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
     writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
-    writeToManifestFile(TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"), debugManifestFile)
-    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    writeToManifestFile(
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"),
+      debugManifestFile,
+    )
+    val processor =
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/UseEmbeddedDexToUseLegacyPackaging"))
-    verifyManifestFileContents(mainManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"))
+    verifyManifestFileContents(
+      mainManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithoutUseEmbeddedDex"),
+    )
     // Only "main" manifest should be changed
-    verifyManifestFileContents(debugManifestFile, TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"))
+    verifyManifestFileContents(
+      debugManifestFile,
+      TestFileName("AndroidManifestUseEmbeddedDexToUseLegacyPackaging/ManifestWithUseEmbeddedDexFalse"),
+    )
   }
 
   private fun writeToManifestFile(fileName: TestFileName, file: VirtualFile = mainManifestFile) {

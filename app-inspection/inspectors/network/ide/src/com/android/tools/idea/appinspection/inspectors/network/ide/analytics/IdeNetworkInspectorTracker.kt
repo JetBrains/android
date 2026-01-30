@@ -26,59 +26,34 @@ import com.intellij.openapi.project.Project
 
 class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspectorTracker {
   override fun trackMigrationDialogSelected() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.MIGRATION_LINK_SELECTED
-      }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.MIGRATION_LINK_SELECTED })
   }
 
   override fun trackConnectionDetailsSelected() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.CONNECTION_DETAIL_SELECTED
-      }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.CONNECTION_DETAIL_SELECTED })
   }
 
   override fun trackRequestTabSelected() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.REQUEST_TAB_SELECTED
-      }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.REQUEST_TAB_SELECTED })
   }
 
   override fun trackResponseTabSelected() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.RESPONSE_TAB_SELECTED
-      }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.RESPONSE_TAB_SELECTED })
   }
 
   override fun trackCallstackTabSelected() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED
-      }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.CALLSTACK_TAB_SELECTED })
   }
 
   override fun trackRuleCreated() {
-    track(
-      NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.RULE_CREATED }
-    )
+    track(NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.RULE_CREATED })
   }
 
   override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) {
     track(
       NetworkInspectorEvent.newBuilder().apply {
         type = NetworkInspectorEvent.Type.RULE_UPDATED
-        ruleDetailUpdatedBuilder.apply {
-          this.component =
-            RuleUpdatedEvent.Component.values().firstOrNull { it.name == component.name }
-        }
+        ruleDetailUpdatedBuilder.apply { this.component = RuleUpdatedEvent.Component.values().firstOrNull { it.name == component.name } }
       }
     )
   }
@@ -105,14 +80,10 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
 
   private fun track(networkEvent: NetworkInspectorEvent.Builder) {
     val inspectionEvent =
-      AppInspectionEvent.newBuilder()
-        .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
-        .setNetworkInspectorEvent(networkEvent)
+      AppInspectionEvent.newBuilder().setType(AppInspectionEvent.Type.INSPECTOR_EVENT).setNetworkInspectorEvent(networkEvent)
 
     val studioEvent =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-        .setAppInspectionEvent(inspectionEvent)
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.APP_INSPECTION).setAppInspectionEvent(inspectionEvent)
 
     // TODO(b/153270761): Use studioEvent.withProjectId instead, after code is moved out of
     //  monolithic core module

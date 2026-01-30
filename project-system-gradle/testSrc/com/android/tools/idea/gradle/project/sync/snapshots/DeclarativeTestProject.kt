@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
@@ -25,8 +25,8 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import org.jetbrains.android.AndroidTestBase
 
 enum class DeclarativeTestProject(
   override val template: String,
@@ -46,15 +46,12 @@ enum class DeclarativeTestProject(
   override val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)? = null,
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
-  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
+  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null,
 ) : TemplateBasedTestProject {
 
   DECLARATIVE_ANDROID(
     TestProjectToSnapshotPaths.DECLARATIVE_ANDROID,
-    isCompatibleWith = {
-      it == AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
-      it == AGP_CURRENT
-    },
+    isCompatibleWith = { it == AGP_DECLARATIVE_GRADLE_SNAPSHOT || it == AGP_CURRENT },
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

@@ -35,14 +35,12 @@ import org.junit.Test
 class DeployAndHandleErrorKtTest {
   private val ACTIVITY_NAME = "com.example.Activity"
   private val APPLICATION_ID = "com.example"
-  private val deployerResult = Deployer.Result(false, false, false,
-                                               createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+  private val deployerResult = Deployer.Result(false, false, false, createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
 
   val projectRule = AndroidProjectRule.inMemory()
   val notificationRule = NotificationRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, notificationRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, notificationRule)
 
   @Test
   fun deployWithoutException() {
@@ -61,8 +59,7 @@ class DeployAndHandleErrorKtTest {
     try {
       deployAndHandleError(env, { throw exception })
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message!!).contains("The target device's architecture is not supported")
     }
@@ -79,8 +76,7 @@ class DeployAndHandleErrorKtTest {
     try {
       deployAndHandleError(env, { throw exception })
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message!!).contains(detailedReason)
     }
@@ -95,16 +91,20 @@ class DeployAndHandleErrorKtTest {
 
     var invocationCount = 0
 
-    deployAndHandleError(env, {
-      invocationCount++
-      if (invocationCount == 1) {
-        throw exception
-      }
-      if (invocationCount == 2) {
-        return@deployAndHandleError listOf(deployerResult)
-      }
-      throw RuntimeException("Invoked more than 2 times")
-    }, automaticallyApplyResolutionAction = true)
+    deployAndHandleError(
+      env,
+      {
+        invocationCount++
+        if (invocationCount == 1) {
+          throw exception
+        }
+        if (invocationCount == 2) {
+          return@deployAndHandleError listOf(deployerResult)
+        }
+        throw RuntimeException("Invoked more than 2 times")
+      },
+      automaticallyApplyResolutionAction = true,
+    )
   }
 
   @Test
@@ -118,28 +118,32 @@ class DeployAndHandleErrorKtTest {
     var invocationCount = 0
 
     try {
-      deployAndHandleError(env, {
-        invocationCount++
-        if (invocationCount == 1) {
-          throw exception
-        }
-        if (invocationCount == 2) {
-          throw exception
-        }
-        throw RuntimeException("Invoked more than 2 times")
-      }, automaticallyApplyResolutionAction = true)
+      deployAndHandleError(
+        env,
+        {
+          invocationCount++
+          if (invocationCount == 1) {
+            throw exception
+          }
+          if (invocationCount == 2) {
+            throw exception
+          }
+          throw RuntimeException("Invoked more than 2 times")
+        },
+        automaticallyApplyResolutionAction = true,
+      )
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message!!).contains(detailedReason)
     }
 
-    val notificationInfo = notificationRule.notifications.find {
-      it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\nSuggested action:" &&
-      it.actions.single().templateText == "Retry"
-    }
+    val notificationInfo =
+      notificationRule.notifications.find {
+        it.type == NotificationType.ERROR &&
+          it.content == "Installation failed\nSuggested action:" &&
+          it.actions.single().templateText == "Retry"
+      }
 
     assertThat(notificationInfo).isNotNull()
   }
@@ -151,22 +155,21 @@ class DeployAndHandleErrorKtTest {
     val exception = DeployerException.processCrashing(APPLICATION_ID)
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.RUN_APP))
 
-
     try {
       deployAndHandleError(env, { throw exception })
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message).contains("Process 'com.example' has crashed.")
     }
 
-    val notificationInfo = notificationRule.notifications.find {
-      it.type == NotificationType.ERROR &&
-      // b/409616973
-      it.content?.startsWith("Installation failed\n") ?: false &&
-      it.actions.single().templateText == "Reinstall and restart app"
-    }
+    val notificationInfo =
+      notificationRule.notifications.find {
+        it.type == NotificationType.ERROR &&
+          // b/409616973
+          it.content?.startsWith("Installation failed\n") ?: false &&
+          it.actions.single().templateText == "Reinstall and restart app"
+      }
 
     assertThat(notificationInfo).isNotNull()
   }
@@ -178,22 +181,20 @@ class DeployAndHandleErrorKtTest {
     val exception = DeployerException.processCrashing(APPLICATION_ID)
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.RUN_APP))
 
-
     try {
       deployAndHandleError(env, { throw exception }, automaticallyApplyResolutionAction = true)
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message).contains("Process 'com.example' has crashed.")
     }
 
-    val notificationInfo = notificationRule.notifications.find {
-      it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\n" +
-      "Reinstall and restart app will be done automatically" &&
-      it.actions.isEmpty()
-    }
+    val notificationInfo =
+      notificationRule.notifications.find {
+        it.type == NotificationType.ERROR &&
+          it.content == "Installation failed\n" + "Reinstall and restart app will be done automatically" &&
+          it.actions.isEmpty()
+      }
 
     assertThat(notificationInfo).isNotNull()
   }
@@ -206,22 +207,21 @@ class DeployAndHandleErrorKtTest {
     val exception = DeployerException.changedCrashlyticsBuildId("/my/file/path")
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.APPLY_CHANGES))
 
-
     try {
       deployAndHandleError(env, { throw exception })
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message!!).contains("/my/file/path")
     }
 
-    val notificationInfo = notificationRule.notifications.find {
-      it.type == NotificationType.ERROR &&
-      // b/409616973
-      it.content?.startsWith("Installation failed\n") ?: false &&
-      it.actions.single().templateText == "Apply changes and restart activity"
-    }
+    val notificationInfo =
+      notificationRule.notifications.find {
+        it.type == NotificationType.ERROR &&
+          // b/409616973
+          it.content?.startsWith("Installation failed\n") ?: false &&
+          it.actions.single().templateText == "Apply changes and restart activity"
+      }
 
     assertThat(notificationInfo).isNotNull()
   }
@@ -235,22 +235,21 @@ class DeployAndHandleErrorKtTest {
     val exception = DeployerException.changedCrashlyticsBuildId("/other/file/path")
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.APPLY_CHANGES))
 
-
     try {
       deployAndHandleError(env, { throw exception })
       fail()
-    }
-    catch (e: AndroidExecutionException) {
+    } catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
       assertThat(e.message!!).contains("/other/file/path")
     }
 
-    val notificationInfo = notificationRule.notifications.find {
-      it.type == NotificationType.ERROR &&
-      // b/409616973
-      it.content?.startsWith("Installation failed\n") ?: false &&
-      it.actions.single().templateText == "Rerun"
-    }
+    val notificationInfo =
+      notificationRule.notifications.find {
+        it.type == NotificationType.ERROR &&
+          // b/409616973
+          it.content?.startsWith("Installation failed\n") ?: false &&
+          it.actions.single().templateText == "Rerun"
+      }
 
     assertThat(notificationInfo).isNotNull()
   }

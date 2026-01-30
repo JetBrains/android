@@ -23,21 +23,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "WearTilePreview"
-private val PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<PsiWearTilePreviewElement>("$PREFIX.PreviewElement")
+private val PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiWearTilePreviewElement>("$PREFIX.PreviewElement")
 
 internal class WearTilePreviewElementModelAdapter<M : NlDataProviderHolder> :
   ConfigurablePreviewElementModelAdapter<PsiWearTilePreviewElement, M>,
-  MethodPreviewElementModelAdapter<PsiWearTilePreviewElement, M>(
-    PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE
-  ) {
-  override fun toXml(previewElement: PsiWearTilePreviewElement) =
-    previewElement.toPreviewXml().buildString()
+  MethodPreviewElementModelAdapter<PsiWearTilePreviewElement, M>(PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE) {
+  override fun toXml(previewElement: PsiWearTilePreviewElement) = previewElement.toPreviewXml().buildString()
 
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long,
-  ): LightVirtualFile =
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile =
     WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content, backedFile)
 }

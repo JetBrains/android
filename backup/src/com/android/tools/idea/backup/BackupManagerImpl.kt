@@ -92,28 +92,15 @@ internal constructor(
     project: Project
   ) : this(
     project,
-    BackupService.getInstance(
-      AdbLibService.getSession(project),
-      logger,
-      StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get(),
-    ),
+    BackupService.getInstance(AdbLibService.getSession(project), logger, StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get()),
     DeviceCheckerImpl(project),
     DialogFactoryImpl(),
   )
 
   @UiThread
-  override fun showBackupDialog(
-    serialNumber: String,
-    applicationId: String?,
-    source: Source,
-    notify: Boolean,
-  ) {
+  override fun showBackupDialog(serialNumber: String, applicationId: String?, source: Source, notify: Boolean) {
     val dialogData =
-      runWithModalProgressBlocking(
-        ModalTaskOwner.project(project),
-        "Collecting Data",
-        cancellable(),
-      ) {
+      runWithModalProgressBlocking(ModalTaskOwner.project(project), "Collecting Data", cancellable()) {
         reportSequentialProgress { reporter ->
           val steps = if (applicationId == null) 4 else 3
           var step = 0
@@ -140,13 +127,10 @@ internal constructor(
               project.showDialog(message("error.application.not.debuggable", appId))
               return@withContext null
             }
-            @Suppress("AssignedValueIsNeverRead")
-            reporter.onStep(Step(++step, steps, "Checking apps..."))
+            @Suppress("AssignedValueIsNeverRead") reporter.onStep(Step(++step, steps, "Checking apps..."))
             val appIdToBackupEnabledMap =
               withContext(Default) {
-                debuggableApps.withIndex().associate {
-                  it.value to backupService.isBackupEnabled(serialNumber, it.value)
-                }
+                debuggableApps.withIndex().associate { it.value to backupService.isBackupEnabled(serialNumber, it.value) }
               }
 
             return@withContext DialogData(appId, appIdToBackupEnabledMap)
@@ -154,13 +138,7 @@ internal constructor(
         }
       }
     if (dialogData != null) {
-      showBackupDialog(
-        serialNumber,
-        dialogData.applicationId,
-        source,
-        notify,
-        dialogData.appIdToBackupEnabledMap,
-      )
+      showBackupDialog(serialNumber, dialogData.applicationId, source, notify, dialogData.appIdToBackupEnabledMap)
     }
   }
 
@@ -185,18 +163,9 @@ internal constructor(
   }
 
   @UiThread
-  override fun restoreModal(
-    serialNumber: String,
-    backupFile: Path,
-    source: Source,
-    notify: Boolean,
-  ): BackupResult {
+  override fun restoreModal(serialNumber: String, backupFile: Path, source: Source, notify: Boolean): BackupResult {
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
-    return runWithModalProgressBlocking(
-      ModalTaskOwner.project(project),
-      message("restore"),
-      cancellable(),
-    ) {
+    return runWithModalProgressBlocking(ModalTaskOwner.project(project), message("restore"), cancellable()) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
         restore(serialNumber, backupFile, source, listener, notify)
@@ -268,11 +237,7 @@ internal constructor(
   ): BackupResult {
     logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
     // TODO(348406593): Find a way to make the modal dialog be switched to background task
-    return runWithModalProgressBlocking(
-      ModalTaskOwner.project(project),
-      message("backup"),
-      cancellable(),
-    ) {
+    return runWithModalProgressBlocking(ModalTaskOwner.project(project), message("backup"), cancellable()) {
       reportSequentialProgress { reporter ->
         val processes = ExecutionManager.getInstance(project).getRunningProcesses()
         processes.find { it.applicationId == applicationId }?.detachProcess()
@@ -293,15 +258,9 @@ internal constructor(
     }
   }
 
-  private suspend fun BackupResult.notifyBackup(
-    operation: String,
-    backupFile: Path,
-    serialNumber: String,
-    applicationId: String,
-  ) {
+  private suspend fun BackupResult.notifyBackup(operation: String, backupFile: Path, serialNumber: String, applicationId: String) {
     when (this) {
-      is Success ->
-        notifyBackupSuccess(message("notification.success", operation), backupFile, applicationId)
+      is Success -> notifyBackupSuccess(message("notification.success", operation), backupFile, applicationId)
       is WithoutAppData -> notifyBackupSuccessWithoutAppData(backupFile, applicationId)
       is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
     }
@@ -311,8 +270,7 @@ internal constructor(
     when (this) {
       is Success -> notifyRestoreSuccess(message("notification.success", operation))
       is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
-      is WithoutAppData ->
-        throw IllegalArgumentException("Restore should not result in WithoutAppData")
+      is WithoutAppData -> throw IllegalArgumentException("Restore should not result in WithoutAppData")
     }
   }
 
@@ -325,10 +283,7 @@ internal constructor(
   }
 
   private fun notifyBackupSuccessWithoutAppData(backupFile: Path, applicationId: String) {
-    notify(
-      message("notification.without.app.data"),
-      message("notification.success", message("backup")),
-    ) {
+    notify(message("notification.without.app.data"), message("notification.success", message("backup"))) {
       if (isAppInProject(applicationId)) {
         addAction(ShowPostBackupDialogAction(project, backupFile))
       }
@@ -353,11 +308,7 @@ internal constructor(
     val content = throwable.message ?: message("notification.unknown.error")
     val buttons = buildList {
       if (throwable.hasFullErrorDetail()) {
-        add(
-          DialogButton(message("notification.error.button")) {
-            ErrorDetailDialog(title, content, throwable.stackTraceToString()).show()
-          }
-        )
+        add(DialogButton(message("notification.error.button")) { ErrorDetailDialog(title, content, throwable.stackTraceToString()).show() })
       }
       val errorCode = (throwable as? BackupException)?.errorCode
       when (errorCode) {
@@ -383,8 +334,7 @@ internal constructor(
     add(DialogButton(CommonBundle.getOkButtonText()) {})
   }
 
-  private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
-    AnAction("Add to Run Configuration") {
+  private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) : AnAction("Add to Run Configuration") {
     override fun actionPerformed(e: AnActionEvent) {
       PostBackupDialog(project, backupPath).show()
     }
@@ -417,9 +367,7 @@ internal constructor(
             PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
             else -> message("open.play.store.error.unexpected")
           }
-        withContext(Dispatchers.EDT) {
-          Messages.showErrorDialog(project, message, message("open.play.store.error.title"))
-        }
+        withContext(Dispatchers.EDT) { Messages.showErrorDialog(project, message, message("open.play.store.error.title")) }
       }
     }
   }
@@ -443,10 +391,7 @@ internal constructor(
     dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
   }
 
-  private class DialogData(
-    val applicationId: String,
-    val appIdToBackupEnabledMap: Map<String, Boolean>,
-  )
+  private class DialogData(val applicationId: String, val appIdToBackupEnabledMap: Map<String, Boolean>)
 }
 
 private val ProcessHandler.applicationId: String?

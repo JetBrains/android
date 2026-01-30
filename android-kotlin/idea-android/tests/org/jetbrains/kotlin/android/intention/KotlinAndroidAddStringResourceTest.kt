@@ -19,43 +19,43 @@ import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.android.KotlinTestUtils
 
 class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest() {
-  fun testKotlinAndroidAddStringResource_composable_function() {
-    myFixture.stubComposableAnnotation()
-    myFixture.addFileToProject(
-      "src/androidx/compose/ui/res/StringResources.kt",
-      // language=kotlin
-      """
-      package androidx.compose.ui.res
+    fun testKotlinAndroidAddStringResource_composable_function() {
+        myFixture.stubComposableAnnotation()
+        myFixture.addFileToProject(
+            "src/androidx/compose/ui/res/StringResources.kt",
+            // language=kotlin
+            """
+            package androidx.compose.ui.res
 
-      @Composable
-      fun stringResource(id: Int): String = ""
-      """
-        .trimIndent()
-    )
-    val fileName =
-      KotlinTestUtils.navigationMetadata(
-        "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableFunction/function.test"
-      )
-    doTest(fileName)
-  }
+            @Composable
+            fun stringResource(id: Int): String = ""
+            """
+                .trimIndent(),
+        )
+        val fileName =
+            KotlinTestUtils.navigationMetadata(
+                "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableFunction/function.test"
+            )
+        doTest(fileName)
+    }
 
-  fun testKotlinAndroidAddStringResource_composable_lambda() {
-    myFixture.stubComposableAnnotation()
-    myFixture.addFileToProject(
-      "src/androidx/compose/ui/res/StringResources.kt",
-      // language=kotlin
-      """
-      package androidx.compose.ui.res
+    fun testKotlinAndroidAddStringResource_composable_lambda() {
+        myFixture.stubComposableAnnotation()
+        myFixture.addFileToProject(
+            "src/androidx/compose/ui/res/StringResources.kt",
+            // language=kotlin
+            """
+            package androidx.compose.ui.res
 
-      @Composable
-      fun stringResource(id: Int): String = ""
-      """
-        .trimIndent()
-    )
-    val fileName =
-      KotlinTestUtils.navigationMetadata(
-        "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableLambda/function.test"
-      )
-    doTest(fileName)
-  }
+            @Composable
+            fun stringResource(id: Int): String = ""
+            """
+                .trimIndent(),
+        )
+        val fileName =
+            KotlinTestUtils.navigationMetadata(
+                "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableLambda/function.test"
+            )
+        doTest(fileName)
+    }
 }

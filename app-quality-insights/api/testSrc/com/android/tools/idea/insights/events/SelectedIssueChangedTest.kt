@@ -46,16 +46,10 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FAKE_INSIGHTS_PROVIDER,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     with(transition) {
-      assertThat((transition.newState.issues as LoadingState.Ready).value.value)
-        .isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
+      assertThat((transition.newState.issues as LoadingState.Ready).value.value).isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
       assertThat(transition.newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
@@ -83,12 +77,7 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FAKE_INSIGHTS_PROVIDER,
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FAKE_INSIGHTS_PROVIDER, AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
   }
@@ -104,26 +93,18 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(
-          currentState,
-          TestAppInsightsTracker,
-          FakeInsightsProvider("name", false),
-          AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER),
-        )
+        .transition(currentState, TestAppInsightsTracker, FakeInsightsProvider("name", false), AppInsightsCacheImpl(FAKE_INSIGHTS_PROVIDER))
 
     with(transition) {
-      assertThat((transition.newState.issues as LoadingState.Ready).value.value)
-        .isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
+      assertThat((transition.newState.issues as LoadingState.Ready).value.value).isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
       assertThat(transition.newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
-      assertThat(transition.newState.currentEvents)
-        .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")))
+      assertThat(transition.newState.currentEvents).isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")))
 
       assertThat(action)
         .isEqualTo(
-          Action.FetchDetails(ISSUE2.id) and
-            Action.FetchInsight(ISSUE2.id, null, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent)
+          Action.FetchDetails(ISSUE2.id) and Action.FetchInsight(ISSUE2.id, null, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent)
         )
     }
   }

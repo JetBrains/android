@@ -18,7 +18,5 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import java.io.Serializable
 
-data class IdeBytecodeTransformationImpl(
-  override val type: IdeBytecodeTransformation.Type,
-  override val description: String,
-) : IdeBytecodeTransformation, Serializable
+data class IdeBytecodeTransformationImpl(override val type: IdeBytecodeTransformation.Type, override val description: String) :
+  IdeBytecodeTransformation, Serializable

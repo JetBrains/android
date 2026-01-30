@@ -32,8 +32,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.Mockito
 
-private class TestInteractableSurface(private val sceneView: SceneView? = null) :
-  InteractableScenesSurface {
+private class TestInteractableSurface(private val sceneView: SceneView? = null) : InteractableScenesSurface {
   var zoomCounter = 0
   var hoverCounter = 0
 
@@ -57,9 +56,7 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testStartPanningWhenPressingSpace() {
     val handler = LayoutlibInteractionHandler(TestInteractableSurface(), TestPannable())
-    val spaceKeyEvent =
-      KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, DesignSurfaceShortcut.PAN.keyCode.toChar())
-        .build()
+    val spaceKeyEvent = KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, DesignSurfaceShortcut.PAN.keyCode.toChar()).build()
     val interaction = handler.keyPressedWithoutInteraction(spaceKeyEvent)
     assertInstanceOf<PanInteraction>(interaction)
   }
@@ -74,11 +71,7 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testLayoutlibInteractionWhenPressingNonSpaceKeyAndSceneViewExists() {
     val sceneManager = Mockito.mock(SceneManager::class.java)
-    val handler =
-      LayoutlibInteractionHandler(
-        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
-        TestPannable(),
-      )
+    val handler = LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)), TestPannable())
     val aKeyEvent = KeyEventBuilder(KeyEvent.VK_A, 'a').build()
     val interaction = handler.keyPressedWithoutInteraction(aKeyEvent)
     assertInstanceOf<LayoutlibInteraction>(interaction)
@@ -88,11 +81,7 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testLayoutlibInteractionWhenMousePressed() {
     val sceneManager = Mockito.mock(SceneManager::class.java)
-    val handler =
-      LayoutlibInteractionHandler(
-        TestInteractableSurface(TestSceneView(100, 100, sceneManager)),
-        TestPannable(),
-      )
+    val handler = LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)), TestPannable())
     val interaction = handler.createInteractionOnPressed(10, 10, 0)
     assertInstanceOf<LayoutlibInteraction>(interaction)
     Disposer.dispose(sceneManager)

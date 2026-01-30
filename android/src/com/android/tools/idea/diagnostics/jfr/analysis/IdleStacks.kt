@@ -27,14 +27,15 @@ class IdleStacks {
 
     fun isIgnoredThread(threadName: String): Boolean = threadName in listOf("JFR Periodic Tasks")
 
-    private val idlePatterns = listOf(
-      "" to listOf("sun.nio.ch.WindowsSelectorImpl\$SubSelector.poll0", "sun.nio.ch.KQueue.poll", "sun.nio.ch.EPoll.wait"),
-      "fsnotifier.exe" to listOf("java.lang.ProcessImpl.waitForInterruptibly"),
-      "AWT-Windows" to listOf("sun.awt.windows.WToolkit.eventLoop"),
-      "BaseDataReader" to listOf("java.io.FileInputStream.readBytes"),
-      "Monitor" to listOf("sun.nio.ch.FileDispatcherImpl.read0"),
-      "process reaper" to listOf("java.lang.ProcessHandleImpl.waitForProcessExit0"), // ?
-      "AWT-XAWT" to listOf("sun.awt.X11.XToolkit.waitForEvents"),
-    )
+    private val idlePatterns =
+      listOf(
+        "" to listOf("sun.nio.ch.WindowsSelectorImpl\$SubSelector.poll0", "sun.nio.ch.KQueue.poll", "sun.nio.ch.EPoll.wait"),
+        "fsnotifier.exe" to listOf("java.lang.ProcessImpl.waitForInterruptibly"),
+        "AWT-Windows" to listOf("sun.awt.windows.WToolkit.eventLoop"),
+        "BaseDataReader" to listOf("java.io.FileInputStream.readBytes"),
+        "Monitor" to listOf("sun.nio.ch.FileDispatcherImpl.read0"),
+        "process reaper" to listOf("java.lang.ProcessHandleImpl.waitForProcessExit0"), // ?
+        "AWT-XAWT" to listOf("sun.awt.X11.XToolkit.waitForEvents"),
+      )
   }
 }

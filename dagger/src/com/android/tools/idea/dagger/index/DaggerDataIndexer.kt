@@ -62,20 +62,17 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
     val results: IndexEntries = mutableMapOf()
     val (psiFile, visitor) =
       when (inputData.fileType) {
-        KotlinFileType.INSTANCE ->
-          inputData.psiFile to KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
+        KotlinFileType.INSTANCE -> inputData.psiFile to KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
         JavaFileType.INSTANCE -> {
           if (JavaFileElementType.isInSourceContent(inputData.file)) {
-            inputData.psiFile to
-              JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
+            inputData.psiFile to JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
           } else {
             // The incoming psiFile is lazily parsed. When it's not parsed and the file is in a
             // library, doing the parsing can cause calls which cause reentrant indexing of the same
             // file. This can be avoided by running our indexing on a copy instead.
             val psiFile =
               PsiFileFactory.getInstance(inputData.psiFile.project)
-                .createFileFromText(JavaFileType.INSTANCE.language, inputData.contentAsText)
-                as PsiJavaFile
+                .createFileFromText(JavaFileType.INSTANCE.language, inputData.contentAsText) as PsiJavaFile
             psiFile to JavaVisitor(results, conceptIndexers, psiFile)
           }
         }
@@ -86,11 +83,8 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
     return results
   }
 
-  private class KotlinVisitor(
-    private val results: IndexEntries,
-    private val conceptIndexers: DaggerConceptIndexers,
-    ktFile: KtFile,
-  ) : KtTreeVisitorVoid() {
+  private class KotlinVisitor(private val results: IndexEntries, private val conceptIndexers: DaggerConceptIndexers, ktFile: KtFile) :
+    KtTreeVisitorVoid() {
     private val wrapperFactory = DaggerIndexPsiWrapper.KotlinFactory(ktFile)
 
     override fun visitElement(element: PsiElement) {
@@ -166,10 +160,7 @@ private fun hasPotentialDaggerContent(fileContents: CharSequence): Boolean {
   return fileContents.contains("inject")
 }
 
-/**
- * An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the
- * logic is common to Kotlin and Java.
- */
+/** An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the logic is common to Kotlin and Java. */
 fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
   fun addIndexEntries(wrapper: T, indexEntries: IndexEntries)
 

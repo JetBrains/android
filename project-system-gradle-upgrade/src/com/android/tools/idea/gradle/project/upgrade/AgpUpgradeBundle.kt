@@ -32,8 +32,7 @@ class AgpUpgradeBundle private constructor() {
     private var ourBundle: Reference<ResourceBundle>? = null
 
     @JvmStatic
-    fun getBundle(): ResourceBundle =
-      dereference(ourBundle) ?: ResourceBundle.getBundle(BUNDLE_NAME).also { ourBundle = SoftReference(it) }
+    fun getBundle(): ResourceBundle = dereference(ourBundle) ?: ResourceBundle.getBundle(BUNDLE_NAME).also { ourBundle = SoftReference(it) }
 
     @JvmStatic
     fun message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any): @Nls String =

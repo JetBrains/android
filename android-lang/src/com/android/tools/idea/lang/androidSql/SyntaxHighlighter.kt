@@ -192,38 +192,149 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-val KEYWORDS = TokenSet.create(
-  ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, ASC, ATTACH, AUTOINCREMENT, BEFORE, BEGIN, BETWEEN, BY, CASCADE, CASE, CAST,
-  CHECK, COLLATE, COLUMN, COMMIT, CONFLICT, CONSTRAINT, CREATE, CROSS, DATABASE, DEFAULT, DEFERRABLE, DEFERRED, DELETE, DESC, DETACH,
-  DISTINCT, DROP, EACH, ELSE, END, ESCAPE, EXCEPT, EXCLUSIVE, EXISTS, EXPLAIN, FAIL, FALSE, FOR, FOREIGN, FROM, FULL, GLOB, GROUP, HAVING,
-  IF, IGNORE, IMMEDIATE, IN, INDEX, INDEXED, INITIALLY, INNER, INSERT, INSTEAD, INTERSECT, INTO, IS, ISNULL, JOIN, KEY, LEFT, LIKE, LIMIT,
-  MATCH, NATURAL, NO, NOT, NOTNULL, NULL, OF, OFFSET, ON, OR, ORDER, OUTER, PLAN, PRAGMA, PRIMARY, QUERY, RAISE, RECURSIVE, REFERENCES,
-  REGEXP, REINDEX, RELEASE, RENAME, REPLACE, RESTRICT, RIGHT, ROLLBACK, ROW, SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN,
-  TO, TRANSACTION, TRIGGER, TRUE, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW, VIRTUAL, WHEN, WHERE, WITH, WITHOUT
-)
+val KEYWORDS =
+  TokenSet.create(
+    ABORT,
+    ACTION,
+    ADD,
+    AFTER,
+    ALL,
+    ALTER,
+    ANALYZE,
+    AND,
+    AS,
+    ASC,
+    ATTACH,
+    AUTOINCREMENT,
+    BEFORE,
+    BEGIN,
+    BETWEEN,
+    BY,
+    CASCADE,
+    CASE,
+    CAST,
+    CHECK,
+    COLLATE,
+    COLUMN,
+    COMMIT,
+    CONFLICT,
+    CONSTRAINT,
+    CREATE,
+    CROSS,
+    DATABASE,
+    DEFAULT,
+    DEFERRABLE,
+    DEFERRED,
+    DELETE,
+    DESC,
+    DETACH,
+    DISTINCT,
+    DROP,
+    EACH,
+    ELSE,
+    END,
+    ESCAPE,
+    EXCEPT,
+    EXCLUSIVE,
+    EXISTS,
+    EXPLAIN,
+    FAIL,
+    FALSE,
+    FOR,
+    FOREIGN,
+    FROM,
+    FULL,
+    GLOB,
+    GROUP,
+    HAVING,
+    IF,
+    IGNORE,
+    IMMEDIATE,
+    IN,
+    INDEX,
+    INDEXED,
+    INITIALLY,
+    INNER,
+    INSERT,
+    INSTEAD,
+    INTERSECT,
+    INTO,
+    IS,
+    ISNULL,
+    JOIN,
+    KEY,
+    LEFT,
+    LIKE,
+    LIMIT,
+    MATCH,
+    NATURAL,
+    NO,
+    NOT,
+    NOTNULL,
+    NULL,
+    OF,
+    OFFSET,
+    ON,
+    OR,
+    ORDER,
+    OUTER,
+    PLAN,
+    PRAGMA,
+    PRIMARY,
+    QUERY,
+    RAISE,
+    RECURSIVE,
+    REFERENCES,
+    REGEXP,
+    REINDEX,
+    RELEASE,
+    RENAME,
+    REPLACE,
+    RESTRICT,
+    RIGHT,
+    ROLLBACK,
+    ROW,
+    SAVEPOINT,
+    SELECT,
+    SET,
+    TABLE,
+    TEMP,
+    TEMPORARY,
+    THEN,
+    TO,
+    TRANSACTION,
+    TRIGGER,
+    TRUE,
+    UNION,
+    UNIQUE,
+    UPDATE,
+    USING,
+    VACUUM,
+    VALUES,
+    VIEW,
+    VIRTUAL,
+    WHEN,
+    WHERE,
+    WITH,
+    WITHOUT,
+  )
 
-val OPERATORS =
-  TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
+val OPERATORS = TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
 
-val IDENTIFIERS = TokenSet.create(
-  IDENTIFIER,
-  BRACKET_LITERAL,
-  BACKTICK_LITERAL,
-  UNTERMINATED_BRACKET_LITERAL,
-  UNTERMINATED_BACKTICK_LITERAL
-)
+val IDENTIFIERS =
+  TokenSet.create(IDENTIFIER, BRACKET_LITERAL, BACKTICK_LITERAL, UNTERMINATED_BRACKET_LITERAL, UNTERMINATED_BACKTICK_LITERAL)
 
-val STRING_LITERALS = TokenSet.create(
-  SINGLE_QUOTE_STRING_LITERAL,
-  DOUBLE_QUOTE_STRING_LITERAL,
-  UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
-  UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
-)
+val STRING_LITERALS =
+  TokenSet.create(
+    SINGLE_QUOTE_STRING_LITERAL,
+    DOUBLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
+  )
 
 val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
 val COMMENTS = TokenSet.create(COMMENT, LINE_COMMENT)
 val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
-
 
 private enum class AndroidSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
@@ -239,8 +350,7 @@ private enum class AndroidSqlTextAttributes(fallback: TextAttributesKey) {
   COMMA(DefaultLanguageHighlighterColors.COMMA),
   SEMICOLON(DefaultLanguageHighlighterColors.SEMICOLON),
   CONSTANT(DefaultLanguageHighlighterColors.CONSTANT),
-  IDENTIFIER(DefaultLanguageHighlighterColors.IDENTIFIER),
-  ;
+  IDENTIFIER(DefaultLanguageHighlighterColors.IDENTIFIER);
 
   val key = TextAttributesKey.createTextAttributesKey("ANDROID_SQL_$name", fallback)
   val keys = arrayOf(key)
@@ -251,28 +361,28 @@ private val EMPTY_KEYS = emptyArray<TextAttributesKey>()
 class AndroidSqlSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = AndroidSqlLexer()
 
-  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> = when (tokenType) {
-    in KEYWORDS -> AndroidSqlTextAttributes.KEYWORD.keys
-    in OPERATORS -> AndroidSqlTextAttributes.OPERATOR.keys
-    in CONSTANTS -> AndroidSqlTextAttributes.CONSTANT.keys
-    in STRING_LITERALS -> AndroidSqlTextAttributes.STRING.keys
-    in IDENTIFIERS -> AndroidSqlTextAttributes.IDENTIFIER.keys
-    NUMERIC_LITERAL -> AndroidSqlTextAttributes.NUMBER.keys
-    NAMED_PARAMETER -> AndroidSqlTextAttributes.PARAMETER.keys
-    NUMBERED_PARAMETER -> AndroidSqlTextAttributes.NUMBER.keys
-    LINE_COMMENT -> AndroidSqlTextAttributes.LINE_COMMENT.keys
-    COMMENT -> AndroidSqlTextAttributes.BLOCK_COMMENT.keys
-    LPAREN, RPAREN -> AndroidSqlTextAttributes.PARENTHESES.keys
-    DOT -> AndroidSqlTextAttributes.DOT.keys
-    COMMA -> AndroidSqlTextAttributes.COMMA.keys
-    SEMICOLON -> AndroidSqlTextAttributes.SEMICOLON.keys
-    TokenType.BAD_CHARACTER -> AndroidSqlTextAttributes.BAD_CHARACTER.keys
-    else -> EMPTY_KEYS
-  }
-
+  override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> =
+    when (tokenType) {
+      in KEYWORDS -> AndroidSqlTextAttributes.KEYWORD.keys
+      in OPERATORS -> AndroidSqlTextAttributes.OPERATOR.keys
+      in CONSTANTS -> AndroidSqlTextAttributes.CONSTANT.keys
+      in STRING_LITERALS -> AndroidSqlTextAttributes.STRING.keys
+      in IDENTIFIERS -> AndroidSqlTextAttributes.IDENTIFIER.keys
+      NUMERIC_LITERAL -> AndroidSqlTextAttributes.NUMBER.keys
+      NAMED_PARAMETER -> AndroidSqlTextAttributes.PARAMETER.keys
+      NUMBERED_PARAMETER -> AndroidSqlTextAttributes.NUMBER.keys
+      LINE_COMMENT -> AndroidSqlTextAttributes.LINE_COMMENT.keys
+      COMMENT -> AndroidSqlTextAttributes.BLOCK_COMMENT.keys
+      LPAREN,
+      RPAREN -> AndroidSqlTextAttributes.PARENTHESES.keys
+      DOT -> AndroidSqlTextAttributes.DOT.keys
+      COMMA -> AndroidSqlTextAttributes.COMMA.keys
+      SEMICOLON -> AndroidSqlTextAttributes.SEMICOLON.keys
+      TokenType.BAD_CHARACTER -> AndroidSqlTextAttributes.BAD_CHARACTER.keys
+      else -> EMPTY_KEYS
+    }
 }
 
 class AndroidSqlSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
   override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?) = AndroidSqlSyntaxHighlighter()
 }
-

@@ -52,10 +52,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
       AppInspectorLaunchConfig(
         "androidx.work.inspection",
         LibraryInspectorLaunchParams(
-          AppInspectorJar(
-            "workmanager-inspection.jar",
-            developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/",
-          ),
+          AppInspectorJar("workmanager-inspection.jar", developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
           MinimumArtifactCoordinate.WORK_RUNTIME,
         ),
       ),
@@ -84,19 +81,10 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
         is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
       }
     val scope = AndroidCoroutineScope(parentDisposable)
-    val client =
-      BackgroundTaskInspectorClient(
-        btiMessenger,
-        wmiMessengerTarget,
-        scope,
-        IdeBackgroundTaskInspectorTracker(project),
-      )
+    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope, IdeBackgroundTaskInspectorTracker(project))
 
     return object : AppInspectorTab {
-      override val messengers =
-        messengerTargets.mapNotNull { target ->
-          (target as? AppInspectorMessengerTarget.Resolved)?.messenger
-        }
+      override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
       override val component =
         BackgroundTaskInspectorTab(
             client,

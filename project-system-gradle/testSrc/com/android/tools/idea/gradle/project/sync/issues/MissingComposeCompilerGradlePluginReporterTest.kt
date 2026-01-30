@@ -25,9 +25,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [MissingComposeCompilerGradlePluginReporter]
- */
+/** Tests for [MissingComposeCompilerGradlePluginReporter] */
 class MissingComposeCompilerGradlePluginReporterTest {
   @Test
   fun testSupportedIssueType() {
@@ -42,13 +40,7 @@ class MissingComposeCompilerGradlePluginReporterTest {
     val mockModule = mock(Module::class.java)
     val mockIdeSyncIssue = mock(IdeSyncIssue::class.java)
     whenever(mockIdeSyncIssue.data).thenReturn("2.0.0")
-    val quickfixes =
-      reporter.getCustomLinks(
-        mockProject,
-        listOf(mockIdeSyncIssue),
-        listOf(mockModule),
-        buildFileMap = mapOf()
-      )
+    val quickfixes = reporter.getCustomLinks(mockProject, listOf(mockIdeSyncIssue), listOf(mockModule), buildFileMap = mapOf())
     assertThat(quickfixes).hasSize(1)
     assertThat(quickfixes[0]).isInstanceOf(AddComposeCompilerGradlePluginHyperlink::class.java)
   }
@@ -59,13 +51,7 @@ class MissingComposeCompilerGradlePluginReporterTest {
     val mockProject = mock(Project::class.java)
     val mockIdeSyncIssue = mock(IdeSyncIssue::class.java)
     whenever(mockIdeSyncIssue.data).thenReturn("2.0.0")
-    val quickfixes =
-      reporter.getCustomLinks(
-        mockProject,
-        listOf(mockIdeSyncIssue),
-        affectedModules = listOf(),
-        buildFileMap = mapOf()
-      )
+    val quickfixes = reporter.getCustomLinks(mockProject, listOf(mockIdeSyncIssue), affectedModules = listOf(), buildFileMap = mapOf())
     assertThat(quickfixes).hasSize(0)
   }
 
@@ -76,13 +62,7 @@ class MissingComposeCompilerGradlePluginReporterTest {
     val mockModule = mock(Module::class.java)
     val mockIdeSyncIssue = mock(IdeSyncIssue::class.java)
     whenever(mockIdeSyncIssue.data).thenReturn(null)
-    val quickfixes =
-      reporter.getCustomLinks(
-        mockProject,
-        listOf(mockIdeSyncIssue),
-        listOf(mockModule),
-        buildFileMap = mapOf()
-      )
+    val quickfixes = reporter.getCustomLinks(mockProject, listOf(mockIdeSyncIssue), listOf(mockModule), buildFileMap = mapOf())
     assertThat(quickfixes).hasSize(0)
   }
 
@@ -96,12 +76,7 @@ class MissingComposeCompilerGradlePluginReporterTest {
     whenever(mockIdeSyncIssue1.data).thenReturn("1.9.20")
     whenever(mockIdeSyncIssue2.data).thenReturn("2.0.0")
     val quickfixes =
-      reporter.getCustomLinks(
-        mockProject,
-        listOf(mockIdeSyncIssue1, mockIdeSyncIssue2),
-        listOf(mockModule),
-        buildFileMap = mapOf()
-      )
+      reporter.getCustomLinks(mockProject, listOf(mockIdeSyncIssue1, mockIdeSyncIssue2), listOf(mockModule), buildFileMap = mapOf())
     assertThat(quickfixes).hasSize(0)
   }
 }

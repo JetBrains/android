@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PermissionErrorDetector
 
 class AndroidLintKnownPermissionErrorInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.known.permission.error"),
-    PermissionErrorDetector.KNOWN_PERMISSION_ERROR,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.known.permission.error"), PermissionErrorDetector.KNOWN_PERMISSION_ERROR)

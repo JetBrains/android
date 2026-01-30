@@ -28,9 +28,7 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 
-/**
- * [ToolWindowFactory] implementation for the Emulator tool window.
- */
+/** [ToolWindowFactory] implementation for the Emulator tool window. */
 class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -47,7 +45,8 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {
     override fun update(event: AnActionEvent) {
       when (toolWindow.type) {
-        ToolWindowType.FLOATING, ToolWindowType.WINDOWED -> event.presentation.isEnabledAndVisible = false
+        ToolWindowType.FLOATING,
+        ToolWindowType.WINDOWED -> event.presentation.isEnabledAndVisible = false
         else -> {
           super.update(event)
           event.presentation.icon = AllIcons.Actions.MoveToWindow

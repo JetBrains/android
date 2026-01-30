@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AnnotationDetector
 
 class AndroidLintUseRequiresApiInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.use.requires.api"),
-    AnnotationDetector.USE_REQUIRES_API,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.use.requires.api"), AnnotationDetector.USE_REQUIRES_API)

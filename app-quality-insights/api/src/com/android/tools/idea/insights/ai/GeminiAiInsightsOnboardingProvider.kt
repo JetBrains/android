@@ -25,8 +25,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-class GeminiAiInsightsOnboardingProvider(private val project: Project) :
-  InsightsOnboardingProvider {
+class GeminiAiInsightsOnboardingProvider(private val project: Project) : InsightsOnboardingProvider {
   private val studioBotToolWindow: ToolWindow?
     get() = ToolWindowManager.getInstance(project).getToolWindow(GEMINI_TOOL_WINDOW_ID)
 

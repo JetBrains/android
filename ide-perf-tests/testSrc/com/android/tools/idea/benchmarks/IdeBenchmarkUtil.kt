@@ -33,14 +33,12 @@ import kotlin.system.measureTimeMillis
 const val EDITOR_PERFGATE_PROJECT_NAME = "Android Studio Editor"
 
 /**
- * Makes sure that [ApplicationManagerEx.isInStressTest] returns true, which
- * in turns disables some expensive debug assertions in the platform.
- * This gets us closer to a production setup.
+ * Makes sure that [ApplicationManagerEx.isInStressTest] returns true, which in turns disables some expensive debug assertions in the
+ * platform. This gets us closer to a production setup.
  */
 fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
   ApplicationManagerEx.setInStressTest(true)
-  Disposer.register(fixture.testRootDisposable,
-                    Disposable { ApplicationManagerEx.setInStressTest(false) })
+  Disposer.register(fixture.testRootDisposable, Disposable { ApplicationManagerEx.setInStressTest(false) })
 }
 
 /** Enables all inspections which are on by default in production. */
@@ -52,12 +50,10 @@ fun enableAllDefaultInspections(fixture: CodeInsightTestFixture) {
 }
 
 /**
- * Blocks until all pending async VFS refreshes have completed.
- * Must *not* be called from the EDT.
+ * Blocks until all pending async VFS refreshes have completed. Must *not* be called from the EDT.
  *
- * This helps ensure that a VFS refresh does not happen *during* a benchmark, which
- * can trigger assertion failures in the platform and would anyway add noise to the
- * timing samples.
+ * This helps ensure that a VFS refresh does not happen *during* a benchmark, which can trigger assertion failures in the platform and would
+ * anyway add noise to the timing samples.
  */
 fun waitForAsyncVfsRefreshes() {
   assert(!ApplicationManager.getApplication().isDispatchThread) {
@@ -70,11 +66,7 @@ fun waitForAsyncVfsRefreshes() {
 }
 
 /** Runs [action] several times to warm up, and then several times again. */
-fun repeatWithWarmups(
-  warmupIterations: Int,
-  mainIterations: Int,
-  action: (isWarmup: Boolean) -> Unit
-) {
+fun repeatWithWarmups(warmupIterations: Int, mainIterations: Int, action: (isWarmup: Boolean) -> Unit) {
   repeat(warmupIterations) {
     val time = measureElapsedMillis { action(true) }
     println("Warmup phase: $time ms")
@@ -86,8 +78,8 @@ fun repeatWithWarmups(
 }
 
 /**
- * Runs [action] several times to warm up, and then several times again to measure elapsed time.
- * Returns an array containing a [Metric.MetricSample] for each iteration.
+ * Runs [action] several times to warm up, and then several times again to measure elapsed time. Returns an array containing a
+ * [Metric.MetricSample] for each iteration.
  *
  * Note: if you need more control over time measurement, just use [repeatWithWarmups] directly.
  */
@@ -96,7 +88,7 @@ fun measureTimeMs(
   mainIterations: Int,
   setUp: () -> Unit = {},
   action: () -> Unit,
-  tearDown: () -> Unit = {}
+  tearDown: () -> Unit = {},
 ): List<Metric.MetricSample> {
   val samplesMs = ArrayList<Metric.MetricSample>(mainIterations)
   repeatWithWarmups(
@@ -109,7 +101,7 @@ fun measureTimeMs(
         samplesMs.add(Metric.MetricSample(System.currentTimeMillis(), timeMs))
       }
       tearDown()
-    }
+    },
   )
   return samplesMs
 }
@@ -119,7 +111,7 @@ fun <T> runBenchmark(
   runBetweenIterations: () -> Unit,
   commitResults: (List<T>) -> Unit,
   warmupIterations: Int = 100,
-  mainIterations: Int = 100
+  mainIterations: Int = 100,
 ) {
   val samples = mutableListOf<T>()
   runInEdtAndWait {
@@ -150,7 +142,7 @@ fun <T, S> runBenchmark(
   collectElements: () -> List<T>,
   warmupAction: (T) -> Unit,
   benchmarkAction: (T) -> List<S>,
-  commitResults: (List<S>) -> Unit
+  commitResults: (List<S>) -> Unit,
 ) {
   val samples = mutableListOf<S>()
   runInEdtAndWait {
@@ -171,7 +163,7 @@ fun <T, S> runBenchmark(
 /**
  * Like [measureTimeMillis], but uses System.nanoTime() under the hood.
  *
- * Justification: System.currentTimeMillis() is not guaranteed to be monotonic, so
- * measureTimeMillis() is not the most robust way to measure elapsed time.
+ * Justification: System.currentTimeMillis() is not guaranteed to be monotonic, so measureTimeMillis() is not the most robust way to measure
+ * elapsed time.
  */
 inline fun measureElapsedMillis(action: () -> Unit): Long = TimeUnit.NANOSECONDS.toMillis(measureNanoTime(action))

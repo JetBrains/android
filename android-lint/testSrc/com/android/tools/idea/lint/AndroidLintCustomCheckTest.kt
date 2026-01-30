@@ -61,16 +61,12 @@ class AndroidLintCustomCheckTest {
         val buildFile = myProjectRule.project.baseDir.findFileByRelativePath("app/build.gradle")!!
         val doc = FileDocumentManager.getInstance().getDocument(buildFile)!!
         val lineNumber = doc.getLineNumber(doc.text.indexOf("dependencies {"))
-        doc.insertString(
-          doc.getLineEndOffset(lineNumber),
-          "implementation 'com.example.google:library-remote:1.0'",
-        )
+        doc.insertString(doc.getLineEndOffset(lineNumber), "implementation 'com.example.google:library-remote:1.0'")
         FileDocumentManager.getInstance().saveDocument(doc)
       }
 
       myProjectRule.requestSyncAndWait()
-      GradleBuildInvoker.getInstance(myProjectRule.project)
-        .generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
+      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
     }
   }
 
@@ -83,18 +79,14 @@ class AndroidLintCustomCheckTest {
     ApplicationManager.getApplication().invokeAndWait {
       val file = myProjectRule.project.baseDir.findFileByRelativePath(filePath)!!
       myProjectRule.fixture.openFileInEditor(file)
-      val warnings =
-        myProjectRule.fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }
+      val warnings = myProjectRule.fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }
       assertThat(warnings, hasItem(expectedWarning))
     }
   }
 
   @Test
   fun dependencyOnLocalModuleWithLintChecks() {
-    doTest(
-      "app/src/main/java/com/example/app/MyList.java",
-      "Do not implement java.util.List directly",
-    )
+    doTest("app/src/main/java/com/example/app/MyList.java", "Do not implement java.util.List directly")
   }
 
   @Test
@@ -104,10 +96,7 @@ class AndroidLintCustomCheckTest {
 
   @Test
   fun dependencyOnRemoteLibraryExportingLintChecks() {
-    doTest(
-      "app/src/main/java/com/example/app/MySet.java",
-      "Do not implement java.util.Set directly",
-    )
+    doTest("app/src/main/java/com/example/app/MySet.java", "Do not implement java.util.Set directly")
   }
 
   @Test

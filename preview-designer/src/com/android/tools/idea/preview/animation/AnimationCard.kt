@@ -71,15 +71,13 @@ class AnimationCard(
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
   override var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private val firstRow =
-    JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.emptyRight(8) }
+  private val firstRow = JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.emptyRight(8) }
 
   private val secondRow = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
   override fun getCurrentHeight() =
     // Card has a minimum height of TIMELINE_LINE_ROW_HEIGHT.
-    if (expanded.value) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT)
-    else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
+    if (expanded.value) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT) else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   override val expanded = MutableStateFlow(false)
 
@@ -98,12 +96,7 @@ class AnimationCard(
   }
 
   init {
-    val expandButton =
-      createToolbarWithNavigation(
-        rootComponent,
-        "ExpandCollapseAnimationCard",
-        listOf(ExpandAction()),
-      )
+    val expandButton = createToolbarWithNavigation(rootComponent, "ExpandCollapseAnimationCard", listOf(ExpandAction()))
     firstRow.add(expandButton.component, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(title), TabularLayout.Constraint(0, 1))
 
@@ -122,12 +115,7 @@ class AnimationCard(
     }
   }
 
-  private inner class ExpandAction :
-    DumbAwareAction(
-      message("animation.inspector.action.expand"),
-      null,
-      UIUtil.getTreeCollapsedIcon(),
-    ) {
+  private inner class ExpandAction : DumbAwareAction(message("animation.inspector.action.expand"), null, UIUtil.getTreeCollapsedIcon()) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeDependenciesCore {
-  /**
-   * A function that should be used to resolve transitive dependencies obtained from [dependencies]
-   */
+  /** A function that should be used to resolve transitive dependencies obtained from [dependencies] */
   fun lookup(ref: Int): IdeDependencyCore
 
   /**
-   * Returns the dependencies, both direct and transitive. This is the classpath of the containing artifact and as such the
-   * order of these dependencies is relevant and should be kept as provided by Gradle.
+   * Returns the dependencies, both direct and transitive. This is the classpath of the containing artifact and as such the order of these
+   * dependencies is relevant and should be kept as provided by Gradle.
    */
   val dependencies: List<IdeDependencyCore>
 }

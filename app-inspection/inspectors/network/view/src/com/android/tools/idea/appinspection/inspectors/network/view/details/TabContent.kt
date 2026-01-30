@@ -22,20 +22,18 @@ import javax.swing.JTabbedPane
 import kotlin.LazyThreadSafetyMode.NONE
 
 /**
- * Base class for all tabs shown in the [ConnectionDataDetailsView]. To use, construct subclass
- * instances and add their title, icon, and component content to a target [JTabbedPane] using
- * [JTabbedPane.addTab]
+ * Base class for all tabs shown in the [ConnectionDataDetailsView]. To use, construct subclass instances and add their title, icon, and
+ * component content to a target [JTabbedPane] using [JTabbedPane.addTab]
  */
 internal abstract class TabContent {
   /** Return the component associated with this tab. Guaranteed to be the same value every time. */
-  val component: JComponent by
-    lazy(NONE) { createComponent().apply { border = JBUI.Borders.empty() } }
+  val component: JComponent by lazy(NONE) { createComponent().apply { border = JBUI.Borders.empty() } }
 
   abstract val title: String
 
   /**
-   * Populates the contents of this tab with information from the target `data`. This value might,
-   * possibly be `null`, if the user cleared the current selection.
+   * Populates the contents of this tab with information from the target `data`. This value might, possibly be `null`, if the user cleared
+   * the current selection.
    */
   abstract fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory)
 

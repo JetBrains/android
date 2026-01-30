@@ -35,9 +35,7 @@ class RoomResolveColumnInModuleDependentsTest : UsefulTestCase() {
   private lateinit var libModule: Module
   private lateinit var appModule: Module
 
-  /**
-   * Set up with to modules where mySecondModule depends on myFirstModule.
-   */
+  /** Set up with to modules where mySecondModule depends on myFirstModule. */
   override fun setUp() {
     super.setUp()
 
@@ -75,26 +73,27 @@ class RoomResolveColumnInModuleDependentsTest : UsefulTestCase() {
     File(contentRootPath).mkdir()
 
     // Call the builder
-    return firstProjectBuilder
-      .addContentRoot(contentRootPath)
-      .addSourceRoot("src")
-      .fixture
+    return firstProjectBuilder.addContentRoot(contentRootPath).addSourceRoot("src").fixture
   }
 
   fun testRename_dependentModule() {
     createStubRoomClassesInPath(myFixture, "lib/src")
 
-    myFixture.addFileToProject("lib/src/User.java",
-                               """
+    myFixture.addFileToProject(
+      "lib/src/User.java",
+      """
       import androidx.room.Entity;
 
       @Entity
       public class User {
         private int id;
       }
-      """
+      """,
     )
-    val dao = myFixture.addFileToProject("app/src/Dao.java", """
+    val dao =
+      myFixture.addFileToProject(
+        "app/src/Dao.java",
+        """
         import androidx.room.Dao;
         import androidx.room.Query;
 
@@ -102,23 +101,27 @@ class RoomResolveColumnInModuleDependentsTest : UsefulTestCase() {
         public interface UserDao {
           @Query("SELECT i<caret>d FROM User") List<Integer> getIds();
         }
-    """.trimIndent())
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(dao.virtualFile)
 
     myFixture.renameElementAtCaret("user_id")
 
-    myFixture.checkResult("""
-        import androidx.room.Dao;
-        import androidx.room.Query;
+    myFixture.checkResult(
+      """
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT user_id FROM User") List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT user_id FROM User") List<Integer> getIds();
+      }
+      """
+        .trimIndent()
+    )
 
     Truth.assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findField("User", "user_id"))
   }
-
 }

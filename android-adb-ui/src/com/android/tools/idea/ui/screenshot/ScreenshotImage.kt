@@ -43,15 +43,14 @@ class ScreenshotImage(
 
   val width: Int
     get() = image.width
+
   val height: Int
     get() = image.height
 
   val isWear: Boolean
     get() = deviceType == DeviceType.WEAR
 
-  /**
-   * Returns the rotated and scaled screenshot.
-   */
+  /** Returns the rotated and scaled screenshot. */
   fun rotatedAndScaled(rotationQuadrants: Int = 0, scale: Double = 1.0): ScreenshotImage {
     if (rotationQuadrants == 0 && scale == 1.0) {
       return this
@@ -59,8 +58,14 @@ class ScreenshotImage(
     val w: Int
     val h: Int
     when (rotationQuadrants % 2) {
-      0 -> { w = width; h = height }
-      else -> { w = height; h = width }
+      0 -> {
+        w = width
+        h = height
+      }
+      else -> {
+        w = height
+        h = width
+      }
     }
     return ScreenshotImage(
       image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (w * scale).roundToInt(), (h * scale).roundToInt()),
@@ -92,8 +97,7 @@ class ScreenshotImage(
       return decoratedImage
     }
 
-    @Suppress("UndesirableClassUsage")
-    val decoratedImage = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
+    @Suppress("UndesirableClassUsage") val decoratedImage = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
     val graphics = decoratedImage.createGraphics()
     val displayRectangle = Rectangle(0, 0, w, h)
     graphics.drawImageWithRoundedCorners(image, displayRectangle, arcWidth, arcHeight)
@@ -110,9 +114,17 @@ class ScreenshotImage(
 
   private fun Graphics2D.drawImageWithRoundedCorners(image: BufferedImage, displayRectangle: Rectangle, arcWidth: Int, arcHeight: Int) {
     if (arcWidth > 0 && arcHeight > 0) {
-      clip = Area(RoundRectangle2D.Double(displayRectangle.x.toDouble(), displayRectangle.y.toDouble(),
-                                          displayRectangle.width.toDouble(), displayRectangle.height.toDouble(),
-                                          arcWidth.toDouble(), arcHeight.toDouble()))
+      clip =
+        Area(
+          RoundRectangle2D.Double(
+            displayRectangle.x.toDouble(),
+            displayRectangle.y.toDouble(),
+            displayRectangle.width.toDouble(),
+            displayRectangle.height.toDouble(),
+            arcWidth.toDouble(),
+            arcHeight.toDouble(),
+          )
+        )
     }
     drawImage(image, null, displayRectangle.x, displayRectangle.y)
     clip = null

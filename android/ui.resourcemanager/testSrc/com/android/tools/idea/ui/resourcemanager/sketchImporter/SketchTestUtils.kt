@@ -21,15 +21,24 @@ import java.io.FileInputStream
 class SketchTestUtils {
   companion object {
     fun parsePage(path: String): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage {
-      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(FileInputStream(File(path)), com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage::class.java)!!
+      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(
+        FileInputStream(File(path)),
+        com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage::class.java,
+      )!!
     }
 
     fun parseDocument(path: String): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument {
-      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(FileInputStream(File(path)), com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument::class.java)!!
+      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(
+        FileInputStream(File(path)),
+        com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument::class.java,
+      )!!
     }
 
     fun parseMeta(path: String): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta {
-      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(FileInputStream(File(path)), com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta::class.java)!!
+      return com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.parseJson(
+        FileInputStream(File(path)),
+        com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta::class.java,
+      )!!
     }
   }
 }

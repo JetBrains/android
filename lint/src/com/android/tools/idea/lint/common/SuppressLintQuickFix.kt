@@ -70,8 +70,7 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
 import org.toml.lang.TomlLanguage
 
 @Suppress("UnstableApiUsage")
-class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) :
-  ModCommandQuickFix(), SuppressQuickFix {
+class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) : ModCommandQuickFix(), SuppressQuickFix {
   private val label = displayName(element, id)
 
   override fun isAvailable(project: Project, context: PsiElement): Boolean = true
@@ -93,8 +92,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   fun applyFix(element: PsiElement, context: ActionContext): ModCommand {
     // In the simple case, quick fixes don't venture outside the containing file of the PsiElement.
     // ModCommand.psiUpdate takes care of snapshotting the file by calling getWritable().
-    fun simplePsiUpdater(applyFixFun: (PsiElement) -> Unit) =
-      ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
+    fun simplePsiUpdater(applyFixFun: (PsiElement) -> Unit) = ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
 
     return when (element.language) {
       JavaLanguage.INSTANCE -> simplePsiUpdater(::handleJava)
@@ -160,16 +158,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addNoInspectionComment(project, file, offset)
   }
 
-  /**
-   * Given a file and offset of a statement, inserts a //noinspection <id> comment on the
-   * **previous** line.
-   */
-  private fun addNoInspectionComment(
-    project: Project,
-    file: PsiFile,
-    offset: Int,
-    commentPrefix: String = "//",
-  ) {
+  /** Given a file and offset of a statement, inserts a //noinspection <id> comment on the **previous** line. */
+  private fun addNoInspectionComment(project: Project, file: PsiFile, offset: Int, commentPrefix: String = "//") {
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = file.viewProvider.document ?: return
     val line = document.getLineNumber(offset)
@@ -180,10 +170,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       val prevLine = document.getText(TextRange(prevLineStart, prevLineEnd))
       val index = prevLine.indexOf(NO_INSPECTION_PREFIX)
       if (index != -1) {
-        document.insertString(
-          prevLineStart + index + NO_INSPECTION_PREFIX.length,
-          getLintId(id) + ",",
-        )
+        document.insertString(prevLineStart + index + NO_INSPECTION_PREFIX.length, getLintId(id) + ",")
         return
       }
     }
@@ -197,11 +184,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     }
     document.insertString(
       lineStart + nonSpace,
-      commentPrefix +
-        NO_INSPECTION_PREFIX +
-        getLintId(id) +
-        "\n" +
-        linePrefix.substring(0, nonSpace),
+      commentPrefix + NO_INSPECTION_PREFIX + getLintId(id) + "\n" + linePrefix.substring(0, nonSpace),
     )
     documentManager.commitDocument(document)
   }
@@ -269,9 +252,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       val module = ModuleUtilCore.findModuleForPsiElement(context)
       val scope = module?.getModuleWithDependenciesAndLibrariesScope(false)
       return when {
-        scope != null &&
-          JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null ->
-          FQCN_SUPPRESS_LINT
+        scope != null && JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null -> FQCN_SUPPRESS_LINT
         context.language == KotlinLanguage.INSTANCE -> "kotlin.Suppress"
         else -> "java.lang.SuppressWarnings"
       }
@@ -306,12 +287,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     // to add @SuppressWarnings annotations
 
     @Throws(IncorrectOperationException::class)
-    private fun addSuppressAnnotation(
-      project: Project,
-      container: PsiElement,
-      modifierOwner: PsiModifierListOwner,
-      id: String,
-    ) {
+    private fun addSuppressAnnotation(project: Project, container: PsiElement, modifierOwner: PsiModifierListOwner, id: String) {
       val annotationName = getAnnotationClass(container)
       val annotation = AnnotationUtil.findAnnotation(modifierOwner, annotationName)
       val newAnnotation = createNewAnnotation(project, container, annotation, id)
@@ -328,12 +304,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       }
     }
 
-    private fun createNewAnnotation(
-      project: Project,
-      container: PsiElement,
-      annotation: PsiAnnotation?,
-      id: String,
-    ): PsiAnnotation? {
+    private fun createNewAnnotation(project: Project, container: PsiElement, annotation: PsiAnnotation?, id: String): PsiAnnotation? {
       if (annotation != null) {
         val currentSuppressedId = "\"" + id + "\""
         val annotationText = annotation.text
@@ -345,10 +316,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
             else
               JavaPsiFacade.getInstance(project)
                 .elementFactory
-                .createAnnotationFromText(
-                  "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})",
-                  container,
-                )
+                .createAnnotationFromText("@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})", container)
           }
         } else {
           val curlyBraceIndex = annotationText.lastIndexOf('}')
@@ -379,17 +347,13 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         entry.addAfter(newArgList, entry.lastChild)
         args.arguments.isEmpty() -> // replace '()' with a new argument list
         args.replace(newArgList)
-        args.arguments.none { it.textMatches(argument) } ->
-          args.addArgument(newArgList.arguments[0])
+        args.arguments.none { it.textMatches(argument) } -> args.addArgument(newArgList.arguments[0])
       }
 
       return true
     }
 
-    /**
-     * Like [findJavaAnnotationTarget], but also includes other PsiElements where we can place
-     * suppression comments
-     */
+    /** Like [findJavaAnnotationTarget], but also includes other PsiElements where we can place suppression comments */
     private fun findJavaSuppressElement(element: PsiElement): PsiElement? {
       // In addition to valid annotation targets we can also place suppress directives
       // using comments on import or package statements
@@ -424,21 +388,17 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         XMLLanguage.INSTANCE -> LintBundle.message("android.lint.fix.suppress.lint.api.attr", id)
         JavaLanguage.INSTANCE -> {
           val target = findJavaSuppressElement(element)
-          if (target is PsiModifierListOwner)
-            LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
+          if (target is PsiModifierListOwner) LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         KotlinLanguage.INSTANCE -> {
           val target = findKotlinSuppressElement(element)
-          if (element.isKotlinScript())
-            LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
-          else if (target is KtDeclaration)
-            LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
+          if (element.isKotlinScript()) LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+          else if (target is KtDeclaration) LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
-        DeclarativeLanguage.INSTANCE ->
-          LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+        DeclarativeLanguage.INSTANCE -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"
       }
     }

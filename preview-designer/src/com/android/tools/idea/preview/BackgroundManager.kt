@@ -27,27 +27,19 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Service that keeps track of runtime backgrounds using for Compose previews when using
- * [com.android.tools.preview.PreviewDisplaySettings.Background.Image]. This only maintains the
- * information in memory and it's only used when an image background has been explicitly set.
+ * [com.android.tools.preview.PreviewDisplaySettings.Background.Image]. This only maintains the information in memory and it's only used
+ * when an image background has been explicitly set.
  */
 @Service(Service.Level.PROJECT)
 class BackgroundManager(project: Project) {
-  private val background:
-    WeakHashMap<SmartPsiElementPointer<*>, PreviewDisplaySettings.Background.Image> =
-    WeakHashMap()
+  private val background: WeakHashMap<SmartPsiElementPointer<*>, PreviewDisplaySettings.Background.Image> = WeakHashMap()
   private val _modificationTracker = SimpleModificationTracker()
 
-  /**
-   * [com.intellij.openapi.util.ModificationTracker] that changes every time backgrounds are
-   * updated.
-   */
+  /** [com.intellij.openapi.util.ModificationTracker] that changes every time backgrounds are updated. */
   val modificationTracker: ModificationTracker = _modificationTracker
   private val _modificationFlow = MutableStateFlow(_modificationTracker.modificationCount)
 
-  /**
-   * [kotlinx.coroutines.flow.StateFlow] that gets a new value every time that backgrounds are
-   * updated.
-   */
+  /** [kotlinx.coroutines.flow.StateFlow] that gets a new value every time that backgrounds are updated. */
   val modificationFlow: StateFlow<Long> = _modificationFlow
 
   private fun fireModification() {
@@ -56,10 +48,7 @@ class BackgroundManager(project: Project) {
   }
 
   /** Sets a background for the given [element]. */
-  fun setBackground(
-    element: SmartPsiElementPointer<*>,
-    background: PreviewDisplaySettings.Background.Image?,
-  ) {
+  fun setBackground(element: SmartPsiElementPointer<*>, background: PreviewDisplaySettings.Background.Image?) {
     if (background == null) {
       this.background.remove(element)?.also { fireModification() }
     } else {

@@ -28,8 +28,7 @@ import org.junit.Test
 @RunsInEdt
 class PsResolvedVariantCollectionTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testVariants() {
@@ -38,7 +37,8 @@ class PsResolvedVariantCollectionTest {
       val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
 
       assertThat(
-        appModule.resolvedVariants.map { it.key }.toSet(), equalTo(
+        appModule.resolvedVariants.map { it.key }.toSet(),
+        equalTo(
           setOf(
             PsVariantKey("debug", listOf("paid", "bar"), "paidBarDebug"),
             PsVariantKey("release", listOf("paid", "bar"), "paidBarRelease"),
@@ -51,9 +51,9 @@ class PsResolvedVariantCollectionTest {
             PsVariantKey("specialRelease", listOf("basic", "bar"), "basicBarSpecialRelease"),
             PsVariantKey("debug", listOf("basic", "otherBar"), "basicOtherBarDebug"),
             PsVariantKey("release", listOf("basic", "otherBar"), "basicOtherBarRelease"),
-            PsVariantKey("specialRelease", listOf("basic", "otherBar"), "basicOtherBarSpecialRelease")
+            PsVariantKey("specialRelease", listOf("basic", "otherBar"), "basicOtherBarSpecialRelease"),
           )
-        )
+        ),
       )
     }
   }

@@ -30,7 +30,7 @@ class AnalysisContext(
   val sizesList: IntList,
   val visitedList: IntList,
   val refIndexList: UByteList,
-  var histogram: Histogram
+  var histogram: Histogram,
 ) {
   val classStore = navigator.classStore
   val disposedObjectsIDs = IntOpenHashSet()

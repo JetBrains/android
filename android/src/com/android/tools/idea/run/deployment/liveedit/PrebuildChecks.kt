@@ -89,7 +89,6 @@ internal fun checkSupportedFiles(file: PsiFile) {
   if (!virtualFile.exists()) {
     throw virtualFileNotExist(virtualFile, file)
   }
-
 }
 
 internal fun checkKotlinPluginBundled() {
@@ -134,5 +133,4 @@ internal fun readActionPrebuildChecks(project: Project, file: PsiFile) {
       throw LiveEditUpdateException.moduleIsDisposed(module)
     }
   }
-
 }

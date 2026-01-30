@@ -36,13 +36,8 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Return all the [SampleDataResourceItem] representing images in all namespaces accessible from
- * this repository
- */
-fun ResourceRepository.getSampleDataOfType(
-  type: SampleDataResourceItem.ContentType
-): Sequence<SampleDataResourceItem> {
+/** Return all the [SampleDataResourceItem] representing images in all namespaces accessible from this repository */
+fun ResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.ContentType): Sequence<SampleDataResourceItem> {
   val namespaces = this.namespaces.asSequence()
 
   return namespaces
@@ -54,8 +49,7 @@ fun ResourceRepository.getSampleDataOfType(
 /**
  * Get all Drawable resource available for this [SampleDataResourceItem].
  *
- * If this item is does not have the [SampleDataResourceItem.ContentType.IMAGE], an empty list will
- * be return
+ * If this item is does not have the [SampleDataResourceItem.ContentType.IMAGE], an empty list will be return
  */
 fun SampleDataResourceItem.getDrawableResources(): List<ResourceValue> {
   if (this.contentType != SampleDataResourceItem.ContentType.IMAGE) {
@@ -63,13 +57,7 @@ fun SampleDataResourceItem.getDrawableResources(): List<ResourceValue> {
   }
   val value = resourceValue as SampleDataResourceValue
   return value.valueAsLines.map { line ->
-    ResourceValueImpl(
-      referenceToSelf.namespace,
-      ResourceType.DRAWABLE,
-      referenceToSelf.name,
-      line,
-      value.libraryName,
-    )
+    ResourceValueImpl(referenceToSelf.namespace, ResourceType.DRAWABLE, referenceToSelf.name, line, value.libraryName)
   }
 }
 
@@ -89,22 +77,15 @@ private suspend fun loadSampleDataItems(
   return lookupModules
     .mapNotNull { it.getModuleSystem().getSampleDataDirectory().toVirtualFile() }
     .flatMap { it.children.toList() }
-    .mapNotNull {
-      readAction { if (it.isDirectory) psiManager.findDirectory(it) else psiManager.findFile(it) }
-    }
-    .flatMap {
-      withContext(AndroidDispatchers.diskIoThread) {
-        SampleDataResourceItem.getFromPsiFileSystemItem(repository, it)
-      }
-    }
+    .mapNotNull { readAction { if (it.isDirectory) psiManager.findDirectory(it) else psiManager.findFile(it) } }
+    .flatMap { withContext(AndroidDispatchers.diskIoThread) { SampleDataResourceItem.getFromPsiFileSystemItem(repository, it) } }
     .toImmutableList()
 }
 
 /**
- * Loads the [SampleDataResourceItem]s for the given [facet] asynchronously using the given
- * executor. This method returns a [CompletableFuture] that will complete with the result or an
- * exception if there is an error. If the returned [CompletableFuture] is cancelled, the loading
- * task will be interrupted.
+ * Loads the [SampleDataResourceItem]s for the given [facet] asynchronously using the given executor. This method returns a
+ * [CompletableFuture] that will complete with the result or an exception if there is an error. If the returned [CompletableFuture] is
+ * cancelled, the loading task will be interrupted.
  */
 internal fun loadSampleDataItemsAsync(
   facet: AndroidFacet,

@@ -35,10 +35,7 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
 
   private val innerDialogWrapper: DialogWrapperInner by lazy { DialogWrapperInner() }
 
-  /**
-   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or
-   * disposed
-   */
+  /** The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed */
   val disposable = Disposer.newDisposable()
 
   /** The title of the dialog */
@@ -116,8 +113,7 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     innerDialogWrapper.close(exitCode)
   }
 
-  private inner class DialogWrapperInner :
-    DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
+  private inner class DialogWrapperInner : DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
 
     public override fun init() {
       options.cancelButtonText?.let { setCancelButtonText(it) }
@@ -156,8 +152,7 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     override fun createActions(): Array<Action> {
       val helpAction = helpAction
       if (!options.hasOkButton) {
-        return if (helpAction === myHelpAction && helpId == null) arrayOf(cancelAction)
-        else arrayOf(cancelAction, helpAction)
+        return if (helpAction === myHelpAction && helpId == null) arrayOf(cancelAction) else arrayOf(cancelAction, helpAction)
       } else {
         return if (helpAction === myHelpAction && helpId == null) arrayOf(okAction, cancelAction)
         else arrayOf(okAction, cancelAction, helpAction)

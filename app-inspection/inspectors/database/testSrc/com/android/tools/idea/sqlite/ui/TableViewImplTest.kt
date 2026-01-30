@@ -106,8 +106,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     fakeUi = FakeUi(component)
 
-    sqliteUtil =
-      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
   }
 
@@ -163,8 +162,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     assertThat(table.autoResizeMode).isEqualTo(JTable.AUTO_RESIZE_OFF)
 
     assertThat(table.size.width).isGreaterThan(598)
-    assertThat(table.columnModel.getColumn(1).width)
-      .isEqualTo(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH)
+    assertThat(table.columnModel.getColumn(1).width).isEqualTo(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH)
 
     assertThat(jbScrollPane.horizontalScrollBar.model.minimum).isEqualTo(0)
     assertThat(jbScrollPane.horizontalScrollBar.model.maximum).isGreaterThan(598)
@@ -215,8 +213,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows =
-      listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols.toViewColumns())
@@ -356,8 +353,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener)
-      .updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("newValue"))
+    verify(mockListener).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -421,11 +417,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(
-          SqliteColumnValue("col", SqliteValue.StringValue("new val")),
-          0,
-          0,
-        ),
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0),
         RowDiffOperation.RemoveLastRows(1),
       )
     )
@@ -454,37 +446,19 @@ class TableViewImplTest : BasePlatformTestCase() {
     view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
-    view.updateRows(
-      listOf(
-        RowDiffOperation.UpdateCell(
-          SqliteColumnValue("col", SqliteValue.StringValue("new val")),
-          0,
-          0,
-        )
-      )
-    )
+    view.updateRows(listOf(RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0)))
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(
-          SqliteColumnValue("col", SqliteValue.StringValue("new val1")),
-          0,
-          0,
-        ),
-        RowDiffOperation.AddRow(
-          SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))
-        ),
-        RowDiffOperation.AddRow(
-          SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4"))))
-        ),
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val1")), 0, 0),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4"))))),
       )
     )
 
     // Assert
     assertThat(table.model.rowCount).isEqualTo(4)
-    assertThat(getColumnAt(table, 1))
-      .containsExactly("new val1", "val2", "new val3", "new val4")
-      .inOrder()
+    assertThat(getColumnAt(table, 1)).containsExactly("new val1", "val2", "new val3", "new val4").inOrder()
   }
 
   fun testEditTableUsingPrimaryKey() {
@@ -496,17 +470,11 @@ class TableViewImplTest : BasePlatformTestCase() {
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
-    runDispatching {
-      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
-    }
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -536,11 +504,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        realDatabaseConnection!!.query(
-          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
-        )
-      )
+      pumpEventsAndWaitForFuture(realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows).hasSize(1)
     assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
@@ -556,17 +520,11 @@ class TableViewImplTest : BasePlatformTestCase() {
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
-    runDispatching {
-      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
-    }
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -596,11 +554,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        realDatabaseConnection!!.query(
-          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
-        )
-      )
+      pumpEventsAndWaitForFuture(realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows).hasSize(1)
     assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
@@ -616,17 +570,11 @@ class TableViewImplTest : BasePlatformTestCase() {
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
-    runDispatching {
-      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
-    }
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -656,11 +604,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        realDatabaseConnection!!.query(
-          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
-        )
-      )
+      pumpEventsAndWaitForFuture(realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows).hasSize(1)
     assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
@@ -676,17 +620,11 @@ class TableViewImplTest : BasePlatformTestCase() {
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
-    runDispatching {
-      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
-    }
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -716,11 +654,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val resultSet =
-      pumpEventsAndWaitForFuture(
-        realDatabaseConnection!!.query(
-          SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
-        )
-      )
+      pumpEventsAndWaitForFuture(realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")))
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10)).rows
     assertThat(rows).hasSize(1)
     assertThat(rows.first().values[0].value).isEqualTo(SqliteValue.fromAny(42))
@@ -737,16 +671,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val1")), SqliteColumnValue("col2", SqliteValue.StringValue("val2")))
         ),
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val3")), SqliteColumnValue("col2", SqliteValue.StringValue("val4")))
         ),
       )
 
@@ -783,16 +711,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val1")), SqliteColumnValue("col2", SqliteValue.StringValue("val2")))
         ),
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val3")), SqliteColumnValue("col2", SqliteValue.StringValue("val4")))
         ),
       )
 
@@ -832,16 +754,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val1")), SqliteColumnValue("col2", SqliteValue.StringValue("val2")))
         ),
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val3")), SqliteColumnValue("col2", SqliteValue.StringValue("val4")))
         ),
       )
 
@@ -865,9 +781,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(), captor.capture())
     val actions = (captor.value as DefaultActionGroup).getChildren(mockActionManager)
 
-    assertThat(actions.map { it.javaClass.simpleName })
-      .containsExactly("CopyToClipboardAction", "SetNullAction")
-      .inOrder()
+    assertThat(actions.map { it.javaClass.simpleName }).containsExactly("CopyToClipboardAction", "SetNullAction").inOrder()
   }
 
   fun testRightClickOutsideOfTableRows() {
@@ -880,16 +794,10 @@ class TableViewImplTest : BasePlatformTestCase() {
     val rows =
       listOf(
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val2")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val1")), SqliteColumnValue("col2", SqliteValue.StringValue("val2")))
         ),
         SqliteRow(
-          listOf(
-            SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
-            SqliteColumnValue("col2", SqliteValue.StringValue("val4")),
-          )
+          listOf(SqliteColumnValue("col1", SqliteValue.StringValue("val3")), SqliteColumnValue("col2", SqliteValue.StringValue("val4")))
         ),
       )
 
@@ -954,8 +862,7 @@ class TableViewImplTest : BasePlatformTestCase() {
   }
 
   fun testProgressBarIsHiddenByDefault() {
-    val progressBar =
-      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
     assertThat(progressBar.isVisible).isFalse()
   }
 
@@ -965,8 +872,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val progressBar =
-      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertThat(table.emptyText.text).isEqualTo("Waiting for data...")
     assertThat(table.isVisible).isTrue()
@@ -983,8 +889,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
     // Assert
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
-    val progressBar =
-      TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
+    val progressBar = TreeWalker(view.component).descendants().filterIsInstance<JProgressBar>().first()
 
     assertThat(table.emptyText.text).isEqualTo("Table is empty")
     assertThat(table.isVisible).isTrue()
@@ -1001,17 +906,11 @@ class TableViewImplTest : BasePlatformTestCase() {
       )
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          customSqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
-    runDispatching {
-      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
-    }
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!) }
 
     val controller =
       TableController(
@@ -1038,12 +937,9 @@ class TableViewImplTest : BasePlatformTestCase() {
 
   fun testButtonsAreDisabledBeforeAndWhileLoading() {
     // Prepare
-    val pageSizeComboBox =
-      TreeWalker(view.component).descendants().first { it.name == "page-size-combo-box" }
-    val refreshButton =
-      TreeWalker(view.component).descendants().first { it.name == "refresh-button" }
-    val liveUpdatesCheckBox =
-      TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+    val pageSizeComboBox = TreeWalker(view.component).descendants().first { it.name == "page-size-combo-box" }
+    val refreshButton = TreeWalker(view.component).descendants().first { it.name == "refresh-button" }
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
     assertThat(pageSizeComboBox.isEnabled).isFalse()
@@ -1089,8 +985,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     table.model.setValueAt("val1", 0, 1)
 
     // Assert
-    verify(mockListener, times(0))
-      .updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+    verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
   }
 
   fun testRevertLastTableCellEdit() {
@@ -1099,13 +994,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
     view.showTableColumns(listOf(ViewColumn("c1", false, false)))
-    view.updateRows(
-      listOf(
-        RowDiffOperation.AddRow(
-          SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value"))))
-        )
-      )
-    )
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
     view.setEditable(true)
 
     // Act
@@ -1138,13 +1027,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
     view.showTableColumns(listOf(ViewColumn("c1", false, false)))
-    view.updateRows(
-      listOf(
-        RowDiffOperation.AddRow(
-          SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value"))))
-        )
-      )
-    )
+    view.updateRows(listOf(RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("value")))))))
     view.setEditable(true)
 
     // Act
@@ -1162,8 +1045,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
   fun testDisabledLiveUpdates() {
     // Prepare
-    val liveUpdatesCheckBox =
-      TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
 
     // Assert
     assertThat(liveUpdatesCheckBox.isEnabled).isFalse()
@@ -1262,12 +1144,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
   fun testCopyToClipboardAction_singleRow() {
     val copyPasteManager = CopyPasteManager.getInstance()
-    view.prepare(
-      TableData(
-        listOf("col1", "col2"),
-        listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2")),
-      )
-    )
+    view.prepare(TableData(listOf("col1", "col2"), listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2"))))
     val table = view.component.getDescendant<JTable>()
     table.selectionModel.setSelectionInterval(1, 1)
     table.addColumnSelectionInterval(1, 1)
@@ -1280,14 +1157,7 @@ class TableViewImplTest : BasePlatformTestCase() {
   fun testCopyToClipboardAction_multipleRows() {
     val copyPasteManager = CopyPasteManager.getInstance()
     view.prepare(
-      TableData(
-        listOf("col1", "col2"),
-        listOf(
-          listOf("val-1-1", "val-1-2"),
-          listOf("val-2-1", "val-2-2"),
-          listOf("val-3-1", "val-3-2"),
-          ),
-      )
+      TableData(listOf("col1", "col2"), listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2"), listOf("val-3-1", "val-3-2")))
     )
     val table = view.component.getDescendant<JTable>()
     table.selectionModel.addSelectionInterval(0, 0)
@@ -1300,15 +1170,7 @@ class TableViewImplTest : BasePlatformTestCase() {
   }
 
   fun testSetNullAction_singleRow() {
-    view.prepare(
-      TableData(
-        listOf("col1", "col2"),
-        listOf(
-          listOf("val-1-1", "val-1-2"),
-          listOf("val-2-1", "val-2-2"),
-        ),
-      )
-    )
+    view.prepare(TableData(listOf("col1", "col2"), listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2"))))
     val table = view.component.getDescendant<JTable>()
     table.selectionModel.addSelectionInterval(0, 0)
     table.addColumnSelectionInterval(1, 1)
@@ -1321,14 +1183,7 @@ class TableViewImplTest : BasePlatformTestCase() {
 
   fun testSetNullAction_multipleRows() {
     view.prepare(
-      TableData(
-        listOf("col1", "col2"),
-        listOf(
-          listOf("val-1-1", "val-1-2"),
-          listOf("val-2-1", "val-2-2"),
-          listOf("val-3-1", "val-3-2"),
-        ),
-      )
+      TableData(listOf("col1", "col2"), listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2"), listOf("val-3-1", "val-3-2")))
     )
     val table = view.component.getDescendant<JTable>()
     table.selectionModel.addSelectionInterval(0, 0)
@@ -1343,34 +1198,21 @@ class TableViewImplTest : BasePlatformTestCase() {
 }
 
 private fun TableModel.getColumnValues(column: Int): List<Any?> {
-  return buildList {
-    repeat(rowCount) {
-      add(getValueAt(it, column))
-    }
-  }
+  return buildList { repeat(rowCount) { add(getValueAt(it, column)) } }
 }
 
 private data class TableData(val columnNames: List<String>, val values: List<List<String>>)
 
 private fun TableViewImpl.prepare(
-  data: TableData =
-    TableData(
-      listOf("col1", "col2"),
-      listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2")),
-    )
+  data: TableData = TableData(listOf("col1", "col2"), listOf(listOf("val-1-1", "val-1-2"), listOf("val-2-1", "val-2-2")))
 ) {
   assert(data.values.all { it.size == data.columnNames.size })
 
-  val columns =
-    data.columnNames.map { ResultSetSqliteColumn(it, SqliteAffinity.TEXT, true, false) }
+  val columns = data.columnNames.map { ResultSetSqliteColumn(it, SqliteAffinity.TEXT, true, false) }
   showTableColumns(columns.toViewColumns())
   val rows =
     data.values.map {
-      SqliteRow(
-        it.zip(data.columnNames) { value, columnName ->
-          SqliteColumnValue(columnName, SqliteValue.StringValue(value))
-        }
-      )
+      SqliteRow(it.zip(data.columnNames) { value, columnName -> SqliteColumnValue(columnName, SqliteValue.StringValue(value)) })
     }
   updateRows(rows.map { RowDiffOperation.AddRow(it) })
 }

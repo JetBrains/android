@@ -25,15 +25,11 @@ import com.android.resources.base.BasicFileResourceItem
 private const val DEFAULT_CONFIGURATION = "default"
 private const val NO_VALUE = "No value"
 
-/**
- * Returns a simplified string of these configurations. If there's no configurations, returns "default".
- */
+/** Returns a simplified string of these configurations. If there's no configurations, returns "default". */
 fun List<ResourceQualifier>.getReadableConfigurations(): String =
   this.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: DEFAULT_CONFIGURATION
 
-/**
- * Returns a simplified string of the configurations available for this resource. If there's no configurations, returns "default".
- */
+/** Returns a simplified string of the configurations available for this resource. If there's no configurations, returns "default". */
 fun ResourceItem.getReadableConfigurations(): String =
   this.configuration.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: DEFAULT_CONFIGURATION
 
@@ -52,12 +48,12 @@ fun ResourceValue.getReadableValue(): String {
       for (index in plurals.indices) {
         plurals[index] = (this.getQuantity(index) + ": " + this.getValue(index))
       }
-      plurals.joinToString(", ").takeIf { it.isNotBlank() }?: NO_VALUE
+      plurals.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
     }
     // Eg: "Monday, Tuesday, Wednesday"
-    is ArrayResourceValue -> this.joinToString(", ").takeIf { it.isNotBlank() }?: NO_VALUE
+    is ArrayResourceValue -> this.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
     // Eg: "activity_main.xml"
     is BasicFileResourceItem -> this.source.fileName
-    else -> this.value?.takeIf { it.isNotBlank() }?: NO_VALUE
+    else -> this.value?.takeIf { it.isNotBlank() } ?: NO_VALUE
   }
 }

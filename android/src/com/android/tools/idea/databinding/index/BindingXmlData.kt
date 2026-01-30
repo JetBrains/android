@@ -22,8 +22,8 @@ package com.android.tools.idea.databinding.index
  */
 enum class BindingLayoutType {
   /**
-   * The layout XML doesn't contain any data binding information, but a binding class will still be
-   * generated only if view binding is enabled.
+   * The layout XML doesn't contain any data binding information, but a binding class will still be generated only if view binding is
+   * enabled.
    */
   PLAIN_LAYOUT,
 
@@ -37,9 +37,8 @@ data class VariableData(val name: String, val type: String)
 /** Data class for storing information related to <import> tags. */
 data class ImportData(val type: String, val alias: String?) {
   /**
-   * An import's short name is its alias, if present, or its unqualified type. For example: `"Calc"`
-   * for `<import alias='Calc' type='org.example.math.calc.Calculator'>` or `"Map"` for `<import
-   * type='java.util.Map'>`)
+   * An import's short name is its alias, if present, or its unqualified type. For example: `"Calc"` for `<import alias='Calc'
+   * type='org.example.math.calc.Calculator'>` or `"Map"` for `<import type='java.util.Map'>`)
    */
   val shortName
     get() = alias ?: type.substringAfterLast('.')
@@ -51,28 +50,20 @@ data class ImportData(val type: String, val alias: String?) {
  * @param id id of the view.
  * @param viewName name of the view, typically the tag name: `<TextView>`.
  * @param layoutName optional layout attribute, only applicable to `<Merge>` or `<Include>` tags.
- * @param typeOverride optional tools attribute, gives a more specific type hint which can be useful
- *   for layouts with multiple configurations and different types per configuration.
+ * @param typeOverride optional tools attribute, gives a more specific type hint which can be useful for layouts with multiple
+ *   configurations and different types per configuration.
  */
-data class ViewIdData(
-  val id: String,
-  val viewName: String,
-  val layoutName: String?,
-  val typeOverride: String?,
-)
+data class ViewIdData(val id: String, val viewName: String, val layoutName: String?, val typeOverride: String?)
 
 /**
- * Data class for storing the indexed content of layouts we want to generate bindings for, e.g. data
- * binding or view binding candidates.
+ * Data class for storing the indexed content of layouts we want to generate bindings for, e.g. data binding or view binding candidates.
  *
  * For view binding data, many of these fields will be left empty.
  *
  * @param layoutType the type of binding for the target layout.
  * @param rootTag the name of the root xml tag, e.g. `layout`, `LinearLayout`, etc.
- * @param viewBindingIgnore set to true if binding should not be generated for this layout,
- *   currently only used for view binding layouts.
- * @param customBindingName optional value used to override the qualified class name of the
- *   generated binding.
+ * @param viewBindingIgnore set to true if binding should not be generated for this layout, currently only used for view binding layouts.
+ * @param customBindingName optional value used to override the qualified class name of the generated binding.
  * @param imports data binding imports.
  * @param variables data binding variables.
  * @param viewIds ids of views defined in this layout.
@@ -99,8 +90,7 @@ data class BindingXmlData(
   /**
    * Find a variable using its name.
    *
-   * This search is backed by a map and should be preferred over iterating [variables] when
-   * possible.
+   * This search is backed by a map and should be preferred over iterating [variables] when possible.
    */
   fun findVariable(name: String) = variablesMap[name]
 

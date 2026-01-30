@@ -22,20 +22,15 @@ import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils.buildTree
 import com.android.tools.layoutinspector.SkiaViewNode
 
-/**
- * Service for converting a serialized `SkPicture` into a tree of [SkiaViewNode]s with rendered
- * images.
- */
+/** Service for converting a serialized `SkPicture` into a tree of [SkiaViewNode]s with rendered images. */
 interface SkiaParser {
   /**
    * Convert a serialized `SkPicture` into a tree of [SkiaViewNode]s with rendered images.
    *
-   * @param requestedNodes Only the `RenderNode`s in the `SkPicture` with IDs matching those given
-   *   here will have corresponding [SkiaViewNode]s created. Rendering done by a `RenderNode` not
-   *   included in this list will be included in the rendering of the first ancestor that is in the
-   *   list.
-   * @param scale Factor by which the rendered images should be scaled. Should probably be between 0
-   *   and 1.
+   * @param requestedNodes Only the `RenderNode`s in the `SkPicture` with IDs matching those given here will have corresponding
+   *   [SkiaViewNode]s created. Rendering done by a `RenderNode` not included in this list will be included in the rendering of the first
+   *   ancestor that is in the list.
+   * @param scale Factor by which the rendered images should be scaled. Should probably be between 0 and 1.
    * @param isInterrupted Returns `true` if we should immediately cancel any pending operation.
    */
   @Throws(InvalidPictureException::class)
@@ -52,8 +47,7 @@ interface SkiaParser {
 
 class SkiaParserImpl(
   private val failureCallback: () -> Unit,
-  private val connectionFactory: SkiaParserServerConnectionFactory =
-    SkiaParserServerConnectionFactoryImpl,
+  private val connectionFactory: SkiaParserServerConnectionFactory = SkiaParserServerConnectionFactoryImpl,
 ) : SkiaParser {
 
   private val connectionSync = Any()
@@ -74,11 +68,9 @@ class SkiaParserImpl(
           if (connection == null) {
             connection = connectionFactory.createConnection(data)
           }
-          connection?.getViewTree(data, requestedNodes, scale)
-            ?: throw Exception("connection can't be null here")
+          connection?.getViewTree(data, requestedNodes, scale) ?: throw Exception("connection can't be null here")
         }
-      return buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id })
-        ?: throw ParsingFailedException()
+      return buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id }) ?: throw ParsingFailedException()
     } catch (e: Exception) {
       failureCallback()
       throw e

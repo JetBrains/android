@@ -126,19 +126,10 @@ internal class NetworkInspectorView(
 
   @VisibleForTesting val connectionsView = ConnectionsView(project, model)
 
-  @VisibleForTesting
-  val detailsPanel =
-    NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
+  @VisibleForTesting val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
 
   val rulesView =
-    RulesTableView(
-      project,
-      inspectorServices.client,
-      scope,
-      model,
-      detailsPanel.ruleDetailsView,
-      inspectorServices.usageTracker,
-    )
+    RulesTableView(project, inspectorServices.client, scope, model, detailsPanel.ruleDetailsView, inspectorServices.usageTracker)
 
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
@@ -151,25 +142,18 @@ internal class NetworkInspectorView(
     // min/preferred sizes.
     tooltipPanel.background = TOOLTIP_BACKGROUND
     model.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
-    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
-      selectionChanged()
-    }
+    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) { selectionChanged() }
     selectionChanged()
-    tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip
-      ->
+    tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }
-    detailsPanel.minimumSize =
-      Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
+    detailsPanel.minimumSize = Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
     val threadsView = ThreadsView(model, parentPane)
     val leftSplitter = JBSplitter(true, 0.25f)
     leftSplitter.divider.border = DEFAULT_HORIZONTAL_BORDERS
     leftSplitter.firstComponent = buildMonitorUi()
     messageBusConnection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
-    messageBusConnection.subscribe(
-      LafManagerListener.TOPIC,
-      LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() },
-    )
+    messageBusConnection.subscribe(LafManagerListener.TOPIC, LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() })
     val connectionsPanel = JPanel(CardLayout())
     val connectionsTab = CommonTabbedPane()
     val connectionScrollPane = JBScrollPane(connectionsView.component)
@@ -193,13 +177,9 @@ internal class NetworkInspectorView(
                 else NetworkInspectorModel.DetailContent.CONNECTION
             }
           rulesView.component ->
-            if (
-              selectedComponent == connectionScrollPane ||
-                selectedComponent == threadsViewScrollPane
-            ) {
+            if (selectedComponent == connectionScrollPane || selectedComponent == threadsViewScrollPane) {
               model.detailContent =
-                if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY
-                else NetworkInspectorModel.DetailContent.RULE
+                if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY else NetworkInspectorModel.DetailContent.RULE
             }
         }
         selectedComponent = connectionsTab.selectedComponent
@@ -212,10 +192,7 @@ internal class NetworkInspectorView(
     val infoPanel = JPanel(BorderLayout())
     val infoMessage =
       InstructionsPanel.Builder(
-          TextInstruction(
-            UIUtilities.getFontMetrics(infoPanel, H3_FONT),
-            "Network inspector data unavailable",
-          ),
+          TextInstruction(UIUtilities.getFontMetrics(infoPanel, H3_FONT), "Network inspector data unavailable"),
           NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
           TextInstruction(
             UIUtilities.getFontMetrics(infoPanel, STANDARD_FONT),
@@ -311,14 +288,8 @@ internal class NetworkInspectorView(
       selectionMaxUs = (selectionRange.max - timeline.dataRange.min).toLong()
     } else {
       val streamingTimeline = timeline as StreamingTimeline
-      selectionMinUs =
-        streamingTimeline.convertToRelativeTimeUs(
-          TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong())
-        )
-      selectionMaxUs =
-        streamingTimeline.convertToRelativeTimeUs(
-          TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong())
-        )
+      selectionMinUs = streamingTimeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong()))
+      selectionMaxUs = streamingTimeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong()))
     }
     selectionTimeLabel.icon = StudioIcons.Profiler.Toolbar.CLOCK
     if (selectionRange.isPoint) {
@@ -354,10 +325,7 @@ internal class NetworkInspectorView(
     val selection = RangeSelectionComponent(model.rangeSelectionModel)
     selection.setCursorSetter(AdtUiUtils::setTooltipCursor)
     selection.setRangeOcclusionTest { model.timeline.dataRange.isTrivial }
-    val tooltip =
-      RangeTooltipComponent(timeline, tooltipPanel, parentPane) {
-        selection.shouldShowSeekComponent()
-      }
+    val tooltip = RangeTooltipComponent(timeline, tooltipPanel, parentPane) { selection.shouldShowSeekComponent() }
     val layout = TabularLayout("*")
     val panel = JBPanel<Nothing>(layout)
     panel.background = DEFAULT_STAGE_BACKGROUND
@@ -371,9 +339,7 @@ internal class NetworkInspectorView(
     val sb = TimelineScrollbar(timeline, panel)
     panel.add(sb, TabularLayout.Constraint(3, 0))
     val viewAxis =
-      ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
-        .setGlobalRange(timeline.dataRange)
-        .build()
+      ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT).setGlobalRange(timeline.dataRange).build()
     val timeAxis = buildTimeAxis(viewAxis, font)
     panel.add(timeAxis, TabularLayout.Constraint(2, 0))
     val monitorPanel = JBPanel<Nothing>(TabularLayout("*", "*"))
@@ -387,8 +353,7 @@ internal class NetworkInspectorView(
     lineChartPanel.border = JBUI.Borders.emptyTop(Y_AXIS_TOP_MARGIN)
     val usage = model.networkUsage
     val lineChart = LineChart(usage)
-    val receivedConfig =
-      LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
+    val receivedConfig = LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
     lineChart.configure(usage.rxSeries, receivedConfig)
     val sentConfig = LineConfig(NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
     lineChart.configure(usage.txSeries, sentConfig)
@@ -406,11 +371,7 @@ internal class NetworkInspectorView(
     leftAxis.font = font
     axisPanel.add(leftAxis, BorderLayout.WEST)
     val legends = model.legends
-    val legend =
-      LegendComponent.Builder(legends)
-        .setRightPadding(LEGEND_RIGHT_PADDING)
-        .setTextSize(font.size)
-        .build()
+    val legend = LegendComponent.Builder(legends).setRightPadding(LEGEND_RIGHT_PADDING).setTextSize(font.size).build()
     legend.configure(legends.rxLegend, LegendConfig(lineChart.getLineConfig(usage.rxSeries)))
     legend.configure(legends.txLegend, LegendConfig(lineChart.getLineConfig(usage.txSeries)))
     val legendPanel = JBPanel<Nothing>(BorderLayout())
@@ -452,10 +413,7 @@ internal class NetworkInspectorView(
     val minIndex = getInsertPoint(range.min.toLong())
     val maxIndex = getInsertPoint(range.max.toLong())
     return if (minIndex == maxIndex) {
-      minIndex > 0 &&
-        list[minIndex - 1].value > 0 &&
-        minIndex < list.size &&
-        list[minIndex].value > 0
+      minIndex > 0 && list[minIndex - 1].value > 0 && minIndex < list.size && list[minIndex].value > 0
     } else false
   }
 

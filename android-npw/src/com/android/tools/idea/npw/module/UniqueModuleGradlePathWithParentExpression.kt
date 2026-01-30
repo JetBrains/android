@@ -28,14 +28,15 @@ import java.util.Locale
  * if [moduleParent] is provided. (eg: "myapplication", ":libs:myapplication") etc. If application name is already a rooted Gradle path
  * [moduleParent] is ignored.
  *
- * It also makes sure that the module name is unique.
- * Further validation of the module name may be needed, if the name is used to create a directory
+ * It also makes sure that the module name is unique. Further validation of the module name may be needed, if the name is used to create a
+ * directory
+ *
  * @see PathValidator
  */
 data class UniqueModuleGradlePathWithParentExpression(
   private val project: Project,
   private val applicationName: StringProperty,
-  private val moduleParent: String
+  private val moduleParent: String,
 ) : Expression<String>(applicationName) {
   override fun get(): String {
     val moduleValidator = ModuleValidator(project)

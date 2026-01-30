@@ -25,8 +25,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.MessageDialogBuilder
 import icons.StudioIcons
 
-class WipeDataAction :
-  DumbAwareAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.CLEAR) {
+class WipeDataAction : DumbAwareAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.CLEAR) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

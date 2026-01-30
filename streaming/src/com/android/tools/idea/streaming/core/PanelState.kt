@@ -19,8 +19,7 @@ import com.android.utils.HashCodes
 import kotlin.math.roundToInt
 
 /**
- * Persistent state representing a [AbstractDisplayPanel] or a [SplitPanel].
- * The no-argument constructor is used by the XML deserializer.
+ * Persistent state representing a [AbstractDisplayPanel] or a [SplitPanel]. The no-argument constructor is used by the XML deserializer.
  */
 internal class PanelState private constructor() {
 
@@ -48,9 +47,7 @@ internal class PanelState private constructor() {
     return HashCodes.mix(displayId ?: 0, splitPanel?.hashCode() ?: 0)
   }
 
-  /**
-   * Persistent state representing a [SplitPanel]. The no-argument constructor is used by the XML deserializer.
-   */
+  /** Persistent state representing a [SplitPanel]. The no-argument constructor is used by the XML deserializer. */
   class SplitPanelState private constructor() {
 
     var splitType: SplitType = SplitType.HORIZONTAL
@@ -58,8 +55,7 @@ internal class PanelState private constructor() {
     lateinit var firstComponent: PanelState
     lateinit var secondComponent: PanelState
 
-    constructor(splitType: SplitType, proportion: Double, firstComponent: PanelState, secondComponent: PanelState)
-        : this() {
+    constructor(splitType: SplitType, proportion: Double, firstComponent: PanelState, secondComponent: PanelState) : this() {
       this.splitType = splitType
       this.proportion = proportion
       this.firstComponent = firstComponent
@@ -71,8 +67,10 @@ internal class PanelState private constructor() {
       if (javaClass != other?.javaClass) return false
 
       other as SplitPanelState
-      return splitType == other.splitType && proportion == other.proportion &&
-             firstComponent == other.firstComponent && secondComponent == other.secondComponent
+      return splitType == other.splitType &&
+        proportion == other.proportion &&
+        firstComponent == other.firstComponent &&
+        secondComponent == other.secondComponent
     }
 
     override fun hashCode(): Int {

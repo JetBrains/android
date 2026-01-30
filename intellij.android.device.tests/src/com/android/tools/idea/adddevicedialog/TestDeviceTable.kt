@@ -45,5 +45,4 @@ fun TestDeviceTable(profiles: List<TestDevice>) {
   )
 }
 
-val testDeviceTableColumns =
-  with(DeviceTableColumns) { persistentListOf(icon, oem, name, apiRange, width, height, density) }
+val testDeviceTableColumns = with(DeviceTableColumns) { persistentListOf(icon, oem, name, apiRange, width, height, density) }

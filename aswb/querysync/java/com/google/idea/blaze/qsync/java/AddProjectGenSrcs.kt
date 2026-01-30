@@ -24,12 +24,12 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
@@ -39,32 +39,25 @@ import kotlin.jvm.optionals.getOrNull
 /**
  * Adds generated java and kotlin source files to the project proto.
  *
- *
- * This class also resolves conflicts between multiple generated source files that resolve to
- * the same output path, i.e. that have the same java class name.
+ * This class also resolves conflicts between multiple generated source files that resolve to the same output path, i.e. that have the same
+ * java class name.
  */
 class AddProjectGenSrcs(
   private val projectDefinition: ProjectDefinition,
-  private val packageReader: ArtifactMetadata.Extractor<JavaArtifactMetadata.JavaSourcePackage>
+  private val packageReader: ArtifactMetadata.Extractor<JavaArtifactMetadata.JavaSourcePackage>,
 ) : ProjectProtoUpdateOperation {
   private val testSourceMatcher: TestSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
 
   /**
-   * A simple holder class for a build artifact and info about the build that produced it. This is
-   * used to resolve conflicts between source files.
+   * A simple holder class for a build artifact and info about the build that produced it. This is used to resolve conflicts between source
+   * files.
    */
-  private data class ArtifactWithOrigin(
-    val artifact: BuildArtifact,
-    val origin: DependencyBuildContext,
-  ) : Comparable<ArtifactWithOrigin> {
+  private data class ArtifactWithOrigin(val artifact: BuildArtifact, val origin: DependencyBuildContext) : Comparable<ArtifactWithOrigin> {
 
     /**
-     * When we find conflicting generated sources (same java source path), we resolve the conflict
-     * by selecting the per this method.
+     * When we find conflicting generated sources (same java source path), we resolve the conflict by selecting the per this method.
      *
-     *
-     * If the files were produced by different build invocations, select the most recent.
-     * Otherwise, disambiguate using the target string.
+     * If the files were produced by different build invocations, select the most recent. Otherwise, disambiguate using the target string.
      */
     override fun compareTo(other: ArtifactWithOrigin): Int {
       // Note: we do a reverse comparison for start time to ensure the newest build "wins".
@@ -105,17 +98,15 @@ class AddProjectGenSrcs(
         if (genSrcs.isEmpty()) continue
         for (genSrc in genSrcs) {
           val javaPackage =
-            genSrc.getMetadata(JavaArtifactMetadata.JavaSourcePackage::class.java)
+            genSrc
+              .getMetadata(JavaArtifactMetadata.JavaSourcePackage::class.java)
               .map(JavaArtifactMetadata.JavaSourcePackage::name)
               .orElse(null)
           if (javaPackage == null) {
             missingPackageArtifacts.add(genSrc)
-          }
-          else {
-            val finalDest =
-              Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().fileName)
-            srcsByJavaPath.getOrPut(finalDest) { mutableListOf() }
-              .add(ArtifactWithOrigin(genSrc, target.buildContext()))
+          } else {
+            val finalDest = Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().fileName)
+            srcsByJavaPath.getOrPut(finalDest) { mutableListOf() }.add(ArtifactWithOrigin(genSrc, target.buildContext()))
           }
         }
       }
@@ -128,41 +119,40 @@ class AddProjectGenSrcs(
             missingPackageArtifacts.joinToString(
               limit = showSourcesLimit,
               separator = "\n",
-              truncated = "and ${missingPackageArtifacts.size - showSourcesLimit} more"
-            ) { it.artifactPath().toString() }
+              truncated = "and ${missingPackageArtifacts.size - showSourcesLimit} more",
+            ) {
+              it.artifactPath().toString()
+            },
           )
         )
         context.setHasWarnings()
       }
-      val destinationToChosenArtifact = srcsByJavaPath.entries.map { entry ->
-        val finalDest = entry.key
-        val candidates: MutableCollection<ArtifactWithOrigin> = entry.value
-        // before warning, check that the conflicting sources do actually differ. If they're the
-        // same artifact underneath, there's no actual conflict.
-        val uniqueDigests = candidates.map { it.artifact.digest() }.distinct().count()
-        if (uniqueDigests > 1) {
-          context.output(
+      val destinationToChosenArtifact =
+        srcsByJavaPath.entries.map { entry ->
+          val finalDest = entry.key
+          val candidates: MutableCollection<ArtifactWithOrigin> = entry.value
+          // before warning, check that the conflicting sources do actually differ. If they're the
+          // same artifact underneath, there's no actual conflict.
+          val uniqueDigests = candidates.map { it.artifact.digest() }.distinct().count()
+          if (uniqueDigests > 1) {
+            context.output(
               PrintOutput.error(
-                ("WARNING: your project contains conflicting generated java sources for:\n"
-                 + "  %s\n"
-                 + "From:\n"
-                 + "  %s"),
+                ("WARNING: your project contains conflicting generated java sources for:\n" + "  %s\n" + "From:\n" + "  %s"),
                 finalDest,
-                candidates
-                  .joinToString(separator = "\n  ") {
-                    val target = it.artifact.target()
-                    val artifactPath = it.artifact.artifactPath()
-                    val ago = formatDuration(Duration.between(it.origin.startTime(), Instant.now()))
-                    "$artifactPath ($target built $ago ago)"
-                  }
+                candidates.joinToString(separator = "\n  ") {
+                  val target = it.artifact.target()
+                  val artifactPath = it.artifact.artifactPath()
+                  val ago = formatDuration(Duration.between(it.origin.startTime(), Instant.now()))
+                  "$artifactPath ($target built $ago ago)"
+                },
               )
             )
-          context.setHasWarnings()
-        }
+            context.setHasWarnings()
+          }
 
-        val chosen = candidates.minOrNull() ?: error("No candidates")
-        finalDest to chosen
-      }
+          val chosen = candidates.minOrNull() ?: error("No candidates")
+          finalDest to chosen
+        }
 
       val (testSrcs, srcs) =
         destinationToChosenArtifact.partition { (_, chosen) -> testSourceMatcher.matches(chosen.artifact.target().getBuildPackagePath()) }
@@ -173,12 +163,7 @@ class AddProjectGenSrcs(
             addIfNewer(finalDest, chosen.artifact, chosen.origin)
           }
           contentEntry(ArtifactDirectories.JAVA_GEN_SRC) {
-            addSourceRoot(
-              root = ArtifactDirectories.JAVA_GEN_SRC,
-              javaPackage = "",
-              isTest = false,
-              isGenerated = true
-            )
+            addSourceRoot(root = ArtifactDirectories.JAVA_GEN_SRC, javaPackage = "", isTest = false, isGenerated = true)
           }
         }
       }
@@ -189,29 +174,19 @@ class AddProjectGenSrcs(
             addIfNewer(finalDest, chosen.artifact, chosen.origin)
           }
           contentEntry(ArtifactDirectories.JAVA_GEN_TESTSRC) {
-            addSourceRoot(
-              root = ArtifactDirectories.JAVA_GEN_TESTSRC,
-              javaPackage = "",
-              isTest = true,
-              isGenerated = true
-            )
+            addSourceRoot(root = ArtifactDirectories.JAVA_GEN_TESTSRC, javaPackage = "", isTest = true, isGenerated = true)
           }
         }
       }
     }
   }
 
-
   /**
-   * A simple inexact duration format, returning a duration in whichever unit of (days, hours,
-   * minutes, seconds) is the first to get a non-zero figure.
+   * A simple inexact duration format, returning a duration in whichever unit of (days, hours, minutes, seconds) is the first to get a
+   * non-zero figure.
    */
   private fun formatDuration(p: Duration): String {
-    for (unit in listOf(
-      ChronoUnit.DAYS,
-      ChronoUnit.HOURS,
-      ChronoUnit.MINUTES
-    )) {
+    for (unit in listOf(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES)) {
       val durationInUnits = p.seconds / unit.duration.seconds
       if (durationInUnits > 0) {
         return "$durationInUnits $unit"

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS
@@ -23,13 +24,12 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_P
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
-import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.IOException
 import org.junit.Before
 import org.junit.Test
-import java.io.IOException
 
 class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
   private lateinit var compositeRoot: VirtualFile
@@ -46,12 +46,24 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     runWriteAction<Unit, IOException> {
       compositeRoot = myProjectBasePath.createChildDirectory(this, "CompositeBuild")
       assertTrue(compositeRoot.exists())
-      createFileAndWriteContent(compositeRoot.createChildData(this, "settings$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
-      createFileAndWriteContent(compositeRoot.createChildData(this, "build$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
-      createFileAndWriteContent(compositeRoot.createChildData(this, "subApplied$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
+      createFileAndWriteContent(
+        compositeRoot.createChildData(this, "settings$myTestDataExtension"),
+        COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS,
+      )
+      createFileAndWriteContent(
+        compositeRoot.createChildData(this, "build$myTestDataExtension"),
+        COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD,
+      )
+      createFileAndWriteContent(
+        compositeRoot.createChildData(this, "subApplied$myTestDataExtension"),
+        COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED,
+      )
       compositeSub = compositeRoot.createChildDirectory(this, "app")
       assertTrue(compositeSub.exists())
-      createFileAndWriteContent(compositeSub.createChildData(this, "build$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
+      createFileAndWriteContent(
+        compositeSub.createChildData(this, "build$myTestDataExtension"),
+        COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD,
+      )
     }
   }
 
@@ -83,9 +95,8 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     assertMissingProperty(wrongCompositeProp)
 
     // Check applied property in composite subModule
-    val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build$myTestDataExtension")!!)
-      .android()
-      .defaultConfig().applicationId()
+    val appName =
+      compositeModel.getModuleBuildModel(compositeSub.findChild("build$myTestDataExtension")!!).android().defaultConfig().applicationId()
     assertEquals("applicationId", "Super cool app", appName)
   }
 

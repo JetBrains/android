@@ -39,49 +39,42 @@ private const val BEFORE_INIT_STATE = ""
 const val ANDROID_VIEW_ID = ID
 
 /**
- * When project tool window is registered this class sets up a listener to its content manager to track selections.
- * When it detects a selection change it remembers the current state and then schedules a task to run in 10 seconds.
- * If some more changes happen during this time, new task is scheduled to start in 10 seconds. On execution task first check
- * if more events happened since it was scheduled, skipping further execution if so. This way we are waiting for the moment
- * when no more selection changes happening for this time.
- * Once change is settled task reports the change from the initial state to the final current state if the states are different.
+ * When project tool window is registered this class sets up a listener to its content manager to track selections. When it detects a
+ * selection change it remembers the current state and then schedules a task to run in 10 seconds. If some more changes happen during this
+ * time, new task is scheduled to start in 10 seconds. On execution task first check if more events happened since it was scheduled,
+ * skipping further execution if so. This way we are waiting for the moment when no more selection changes happening for this time. Once
+ * change is settled task reports the change from the initial state to the final current state if the states are different.
  */
-class ProjectViewListener(
-  val project: Project,
-  private val scheduler: ScheduledExecutorService,
-  private val dateProvider: DateProvider
-  ) : ToolWindowManagerListener {
+class ProjectViewListener(val project: Project, private val scheduler: ScheduledExecutorService, private val dateProvider: DateProvider) :
+  ToolWindowManagerListener {
 
-  @Suppress("unused")
-  constructor(project: Project) : this(project, EdtExecutorService.getScheduledExecutorInstance(), DateProvider.SYSTEM)
+  @Suppress("unused") constructor(project: Project) : this(project, EdtExecutorService.getScheduledExecutorInstance(), DateProvider.SYSTEM)
 
-  @Volatile
-  private var addEventTimestamp: Long = 0
-  @Volatile
-  private var firstRemovedId: String? = null
+  @Volatile private var addEventTimestamp: Long = 0
+  @Volatile private var firstRemovedId: String? = null
 
-  private val contentManagerListener = object : ContentManagerListener {
-    override fun selectionChanged(event: ContentManagerEvent) {
-      val currentTime = dateProvider.now().time
-      when (event.operation) {
-        ContentManagerEvent.ContentOperation.remove -> {
-          val shouldUpdateFirstId = addEventTimestamp + COOL_DOWN_PERIOD_MS < currentTime
-          addEventTimestamp = currentTime
-          if (shouldUpdateFirstId) {
-            firstRemovedId = ProjectView.getInstance(project).currentViewId
+  private val contentManagerListener =
+    object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        val currentTime = dateProvider.now().time
+        when (event.operation) {
+          ContentManagerEvent.ContentOperation.remove -> {
+            val shouldUpdateFirstId = addEventTimestamp + COOL_DOWN_PERIOD_MS < currentTime
+            addEventTimestamp = currentTime
+            if (shouldUpdateFirstId) {
+              firstRemovedId = ProjectView.getInstance(project).currentViewId
+            }
           }
+          ContentManagerEvent.ContentOperation.add -> {
+            addEventTimestamp = currentTime
+            scheduler.schedule(ReportingRunnable(currentTime), COOL_DOWN_PERIOD_MS, TimeUnit.MILLISECONDS)
+          }
+          else -> Unit
         }
-        ContentManagerEvent.ContentOperation.add -> {
-          addEventTimestamp = currentTime
-          scheduler.schedule(ReportingRunnable(currentTime), COOL_DOWN_PERIOD_MS, TimeUnit.MILLISECONDS)
-        }
-        else -> Unit
       }
     }
-  }
-  private inner class ReportingRunnable(
-    val addingTime: Long
-  ) : Runnable {
+
+  private inner class ReportingRunnable(val addingTime: Long) : Runnable {
     override fun run() {
       if (project.isDisposed) return
       // The order matters here. On 'remove' event we first update time and then save the id.
@@ -108,8 +101,7 @@ class ProjectViewListener(
       scheduler.schedule(ReportingRunnable(currentTime), COOL_DOWN_PERIOD_MS, TimeUnit.MILLISECONDS)
 
       invokeLaterIfNeeded(ModalityState.defaultModalityState(), project.disposed) {
-        toolWindowManager.getToolWindow(ToolWindowId.PROJECT_VIEW)?.contentManager
-          ?.addContentManagerListener(contentManagerListener)
+        toolWindowManager.getToolWindow(ToolWindowId.PROJECT_VIEW)?.contentManager?.addContentManagerListener(contentManagerListener)
       }
     }
   }
@@ -124,19 +116,25 @@ class ProjectViewListener(
     val viewBeforeChangeValue = convertToViewEnum(fromViewId)
     val viewAfterChangeValue = convertToViewEnum(toViewId)
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.PROJECT_VIEW_SELECTION_CHANGE_EVENT
-      projectViewSelectionChangeEvent = ProjectViewSelectionChangeEvent.newBuilder().apply {
-        viewBeforeChange = viewBeforeChangeValue
-        viewAfterChange = viewAfterChangeValue
-      }.build()
-    })
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.PROJECT_VIEW_SELECTION_CHANGE_EVENT
+        projectViewSelectionChangeEvent =
+          ProjectViewSelectionChangeEvent.newBuilder()
+            .apply {
+              viewBeforeChange = viewBeforeChangeValue
+              viewAfterChange = viewAfterChangeValue
+            }
+            .build()
+      }
+    )
   }
 
-  private fun convertToViewEnum(viewId: String): ProjectViewSelectionChangeEvent.ProjectViewContent = when(viewId) {
-    BEFORE_INIT_STATE -> ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN
-    ANDROID_VIEW_ID -> ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID
-    ProjectViewPane.ID -> ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT
-    else -> ProjectViewSelectionChangeEvent.ProjectViewContent.OTHER
-  }
+  private fun convertToViewEnum(viewId: String): ProjectViewSelectionChangeEvent.ProjectViewContent =
+    when (viewId) {
+      BEFORE_INIT_STATE -> ProjectViewSelectionChangeEvent.ProjectViewContent.UNKNOWN
+      ANDROID_VIEW_ID -> ProjectViewSelectionChangeEvent.ProjectViewContent.ANDROID
+      ProjectViewPane.ID -> ProjectViewSelectionChangeEvent.ProjectViewContent.PROJECT
+      else -> ProjectViewSelectionChangeEvent.ProjectViewContent.OTHER
+    }
 }

@@ -53,7 +53,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
       package androidx.room;
 
       class Entity { }
-    """
+      """
         .trimIndent()
     )
 
@@ -64,25 +64,16 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
         model = model,
         fileDatabaseManager = mock(),
         createController = { _, _, _, _ ->
-          FakeDatabaseInspectorController(
-            DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
-            model,
-          )
+          FakeDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model)
         },
       )
 
     ideComponents = IdeComponents(myFixture)
-    ideComponents.replaceProjectService(
-      DatabaseInspectorProjectService::class.java,
-      databaseInspectorProjectService,
-    )
+    ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
-    databaseInspectorProjectService.openSqliteDatabase(
-      sqliteDatabaseId1,
-      getMockLiveDatabaseConnection(),
-    )
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -106,10 +97,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
-    databaseInspectorProjectService.openSqliteDatabase(
-      sqliteDatabaseId1,
-      getMockLiveDatabaseConnection(),
-    )
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -133,10 +121,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
   }
 
   fun testAnnotatorWorksWithKotlin() {
-    databaseInspectorProjectService.openSqliteDatabase(
-      sqliteDatabaseId1,
-      getMockLiveDatabaseConnection(),
-    )
+    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -161,11 +146,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase()
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
     val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope, taskExecutor)
-    return LiveDatabaseConnection(
-      testRootDisposable,
-      databaseInspectorMessenger,
-      0,
-      EdtExecutorService.getInstance(),
-    )
+    return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
   }
 }

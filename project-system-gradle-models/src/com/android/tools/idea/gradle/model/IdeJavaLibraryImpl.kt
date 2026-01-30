@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.model.impl.toImpl
 import java.io.File
 import java.io.Serializable
 
-/**
- * The implementation of IdeLibrary for Java libraries.
- **/
+/** The implementation of IdeLibrary for Java libraries. */
 data class IdeJavaLibraryImpl(
   override val artifactAddress: String,
   override val component: Component?,
@@ -34,14 +32,8 @@ data class IdeJavaLibraryImpl(
 ) : IdeUnresolvedJavaLibrary, Serializable {
 
   // Used for serialization by the IDE.
-  internal constructor() : this(
-    artifactAddress = "",
-    component = null,
-    name = "",
-    artifact = FileImpl(""),
-    srcJars = listOf(),
-    docJar = null,
-  )
+  internal constructor() :
+    this(artifactAddress = "", component = null, name = "", artifact = FileImpl(""), srcJars = listOf(), docJar = null)
 
   constructor(
     artifactAddress: String,
@@ -49,15 +41,8 @@ data class IdeJavaLibraryImpl(
     name: String,
     artifact: File,
     srcJars: List<File>,
-    docJar: File?
-  ) : this(
-    artifactAddress,
-    component,
-    name,
-    artifact.toImpl(),
-    srcJars.toImpl(),
-    docJar?.toImpl()
-  )
+    docJar: File?,
+  ) : this(artifactAddress, component, name, artifact.toImpl(), srcJars.toImpl(), docJar?.toImpl())
 
   override val lintJar: FileImpl?
     get() = null

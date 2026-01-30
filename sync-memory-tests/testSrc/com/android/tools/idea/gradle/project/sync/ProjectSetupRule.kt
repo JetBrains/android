@@ -26,9 +26,9 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.map2Array
-import org.junit.rules.ExternalResource
 import java.io.File
 import java.nio.file.Paths
+import org.junit.rules.ExternalResource
 
 private const val DIRECTORY = "benchmark"
 private val rootDirectory = if (TestUtils.runningFromBazel()) Paths.get("") else TestUtils.getTestOutputDir()
@@ -39,13 +39,13 @@ private const val KMP_PATH = "prebuilts/studio/buildbenchmarks/extra-large-kmp.2
 /**
  * Represents a specific project used for to collect metrics from.
  *
- * It consists of a base path, collections of diffs which will be applied to the project
- * before the benchmark is run and other properties pertaining to the project.
+ * It consists of a base path, collections of diffs which will be applied to the project before the benchmark is run and other properties
+ * pertaining to the project.
  *
  * The base path is expected to by a directory containing the following files
- *   1. src.zip - the bulk of the project which will be extracted and used as a base for other diffs
- *   2. repo.zip - a maven repository containing all the required dependencies for the project
- *   3. diff-properties - a diff which will be applied to the gradle.properties file of the project
+ * 1. src.zip - the bulk of the project which will be extracted and used as a base for other diffs
+ * 2. repo.zip - a maven repository containing all the required dependencies for the project
+ * 3. diff-properties - a diff which will be applied to the gradle.properties file of the project
  *
  * The diffs are all assumed to be paths relative to the base path.
  */
@@ -55,7 +55,7 @@ enum class BenchmarkProject(
   val diffs: List<String> = listOf("diff-properties", "diff-compose-plugin", "diff-built-in-kotlin", "diff-kapt"),
   val extraDiffs: List<String> = emptyList(),
   val automigrateNamespace: Boolean = true,
-  val useAgp813: Boolean = false
+  val useAgp813: Boolean = false,
 ) {
   STANDARD_50(STANDARD_PATH, maxHeapMB = 400, extraDiffs = listOf("diff-50")),
   STANDARD_100(STANDARD_PATH, maxHeapMB = 600, extraDiffs = listOf("diff-100")),
@@ -84,23 +84,27 @@ enum class BenchmarkProject(
   KMP_2000(KMP_PATH, maxHeapMB = 20000, diffs = emptyList(), extraDiffs = listOf("diff-2200"), automigrateNamespace = false),
   MULTI_APP_100(STANDARD_PATH, maxHeapMB = 6000, extraDiffs = listOf("diff-100-apps-1300-modules")),
   MULTI_APP_190(STANDARD_PATH, maxHeapMB = 15300, extraDiffs = listOf("diff-190-apps-2200-modules")),
-  STANDARD_2000_8_13(STANDARD_PATH, maxHeapMB = 15300, useAgp813 = true,
-                     diffs = listOf("diff-properties", "diff-compose-plugin"),
-                     extraDiffs = listOf("diff-2200")
-  );
+  STANDARD_2000_8_13(
+    STANDARD_PATH,
+    maxHeapMB = 15300,
+    useAgp813 = true,
+    diffs = listOf("diff-properties", "diff-compose-plugin"),
+    extraDiffs = listOf("diff-2200"),
+  ),
 }
 
 /**
- * Test rule used to setup a project for metric collection. The [projectName]
- * is generally used as an identifier for any collected metrics whereas the
- * [project] defines which project will be used to collect them.
+ * Test rule used to setup a project for metric collection. The [projectName] is generally used as an identifier for any collected metrics
+ * whereas the [project] defines which project will be used to collect them.
  */
 interface ProjectSetupRule {
   val projectName: String
   val project: BenchmarkProject
   val useLatestGradle: Boolean
   val useLatestKotlin: Boolean
+
   fun openProject(body: (Project) -> Any = {})
+
   fun addListener(listener: GradleSyncListenerWithRoot)
 }
 
@@ -109,7 +113,8 @@ class ProjectSetupRuleImpl(
   override val project: BenchmarkProject,
   override val useLatestGradle: Boolean,
   override val useLatestKotlin: Boolean,
-  testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
+  testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule,
+) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
   val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
 
@@ -122,35 +127,33 @@ class ProjectSetupRuleImpl(
     listeners.add(listener)
   }
 
-  override fun openProject(
-    body: (Project) -> Any
-  ) {
-    testEnvironmentRule.prepareTestProject(
-      testProjectTemplateFromPath(
-        path = DIRECTORY,
-        testDataPath = rootDirectory.toString(),
-        autoMigratePackageAttribute = project.automigrateNamespace
-      ),
-        agpVersion = when {
-          useLatestGradle -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
-          useLatestKotlin -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
-          project.useAgp813 -> AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
-          else -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
-        }
-    ).open(
-      updateOptions = {
-        it.copy(
-          subscribe = { connection ->
-            listeners.forEach {
-              connection.subscribe(GRADLE_SYNC_TOPIC, it)
-            }
+  override fun openProject(body: (Project) -> Any) {
+    testEnvironmentRule
+      .prepareTestProject(
+        testProjectTemplateFromPath(
+          path = DIRECTORY,
+          testDataPath = rootDirectory.toString(),
+          autoMigratePackageAttribute = project.automigrateNamespace,
+        ),
+        agpVersion =
+          when {
+            useLatestGradle -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+            useLatestKotlin -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT
+            project.useAgp813 -> AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13
+            else -> AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
           },
-          // TODO(b/449111235): Properly set up databinding dependencies for AGP 8.13 benchmarks
-          expectedSyncIssues = if(project.useAgp813) setOf(TYPE_UNRESOLVED_DEPENDENCY) else emptySet()
-        )
-      }) {
-      body(it)
-    }
+      )
+      .open(
+        updateOptions = {
+          it.copy(
+            subscribe = { connection -> listeners.forEach { connection.subscribe(GRADLE_SYNC_TOPIC, it) } },
+            // TODO(b/449111235): Properly set up databinding dependencies for AGP 8.13 benchmarks
+            expectedSyncIssues = if (project.useAgp813) setOf(TYPE_UNRESOLVED_DEPENDENCY) else emptySet(),
+          )
+        }
+      ) {
+        body(it)
+      }
   }
 
   companion object : IdeaTestSuiteBase() {
@@ -158,7 +161,7 @@ class ProjectSetupRuleImpl(
       setUpSourceZip(
         "${project.projectPath}/src.zip",
         rootDirectory.resolve(DIRECTORY).toString(),
-        *((project.diffs + project.extraDiffs).map2Array { it.toSpec(project) })
+        *((project.diffs + project.extraDiffs).map2Array { it.toSpec(project) }),
       )
 
       unzipIntoOfflineMavenRepo("${project.projectPath}/repo.zip")

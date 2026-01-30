@@ -37,61 +37,44 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.lang.ref.SoftReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetScopedService
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 
-data class RefinableImage(
-  val image: Image? = null,
-  val refined: CompletableFuture<RefinableImage?>? = null,
-) {
+data class RefinableImage(val image: Image? = null, val refined: CompletableFuture<RefinableImage?>? = null) {
   val lastCompleted
-    get() =
-      generateSequence(this) { if (it.refined?.isDone == true) it.refined.get() else null }.last()
+    get() = generateSequence(this) { if (it.refined?.isDone == true) it.refined.get() else null }.last()
 
   val terminalImage
     get() = generateSequence(this) { it.refined?.get() }.last().image
 }
 
 /** Creates and caches preview images of screens in the nav editor. */
-open class ThumbnailManager protected constructor(facet: AndroidFacet) :
-  AndroidFacetScopedService(facet) {
+open class ThumbnailManager protected constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet) {
 
-  private val myImages =
-    HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>>()
+  private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>>()
   private val myScaledImages =
-    HashBasedTable.create<
-      VirtualFile,
-      Configuration,
-      HashBasedTable<Dimension, ScaleContext, SoftReference<Image>>,
-    >()
-  private val myRenderVersions =
-    HashBasedTable.create<VirtualFile, Configuration, ResourceNotificationManager.ResourceVersion>()
+    HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>>>()
+  private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, ResourceNotificationManager.ResourceVersion>()
   private var myResourceRepository: CacheableResourceRepository? =
     StudioResourceRepositoryManager.getAppResources(facet).apply {
-      (this as? MemoryTrackingMultiResourceRepository)?.let {
-        Disposer.register(it, { myResourceRepository = null })
-      }
+      (this as? MemoryTrackingMultiResourceRepository)?.let { Disposer.register(it, { myResourceRepository = null }) }
     }
 
-  @GuardedBy("disposalLock")
-  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()
+  @GuardedBy("disposalLock") private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()
 
   @GuardedBy("disposalLock") private var myDisposed: Boolean = false
 
   private val disposalLock = Any()
 
-  private fun resourceVersion(
-    xmlFile: XmlFile,
-    configuration: Configuration,
-  ): ResourceNotificationManager.ResourceVersion {
+  private fun resourceVersion(xmlFile: XmlFile, configuration: Configuration): ResourceNotificationManager.ResourceVersion {
     val resourceNotificationManager = ResourceNotificationManager.getInstance(module.project)
     return resourceNotificationManager.getCurrentVersion(facet, xmlFile, configuration)
   }
@@ -113,23 +96,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
     super.onDispose()
   }
 
-  fun getThumbnail(
-    xmlFile: XmlFile,
-    configuration: Configuration,
-    dimensions: Dimension,
-    scaleContext: ScaleContext,
-  ): RefinableImage {
+  fun getThumbnail(xmlFile: XmlFile, configuration: Configuration, dimensions: Dimension, scaleContext: ScaleContext): RefinableImage {
     val file = xmlFile.virtualFile
     val cachedByDimension =
       myScaledImages[file, configuration]
-        ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>().also {
-          myScaledImages.put(file, configuration, it)
-        }
+        ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>().also { myScaledImages.put(file, configuration, it) }
     val cached = cachedByDimension[dimensions, scaleContext]?.get()
-    return if (
-      cached != null &&
-        myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)
-    ) {
+    return if (cached != null && myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)) {
       RefinableImage(cached)
     } else {
       RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions, scaleContext))
@@ -176,8 +149,9 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
               .thenApply { scaled ->
                 val dimensionMap: HashBasedTable<Dimension, ScaleContext, SoftReference<Image>> =
                   myScaledImages[xmlFile.virtualFile, configuration]
-                    ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>()
-                      .also { myScaledImages.put(xmlFile.virtualFile, configuration, it) }
+                    ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>>().also {
+                      myScaledImages.put(xmlFile.virtualFile, configuration, it)
+                    }
                 dimensionMap.put(dimensions, scaleContext, SoftReference(scaled))
                 scaled
               }
@@ -202,16 +176,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
     return result
   }
 
-  private fun getFullImage(
-    configuration: Configuration,
-    xmlFile: XmlFile,
-  ): CompletableFuture<BufferedImage?> {
+  private fun getFullImage(configuration: Configuration, xmlFile: XmlFile): CompletableFuture<BufferedImage?> {
     val file = xmlFile.virtualFile
     val fullSize = myImages[file, configuration]?.get()
-    return if (
-      fullSize != null &&
-        myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)
-    ) {
+    return if (fullSize != null && myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)) {
       CompletableFuture.completedFuture(fullSize)
     } else {
       getImage(xmlFile, file, configuration)
@@ -219,17 +187,12 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
   }
 
   private fun previewScaleImage(image: BufferedImage, dimensions: Dimension): BufferedImage {
-    val scaled =
-      ImageUtil.createImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
+    val scaled = ImageUtil.createImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
     scaled.graphics.drawImage(image, 0, 0, dimensions.width, dimensions.height, null)
     return scaled
   }
 
-  private fun scaleImage(
-    image: BufferedImage,
-    dimensions: Dimension,
-    scaleContext: ScaleContext,
-  ): CompletableFuture<Image> {
+  private fun scaleImage(image: BufferedImage, dimensions: Dimension, scaleContext: ScaleContext): CompletableFuture<Image> {
     val result = CompletableFuture<Image>()
     ApplicationManager.getApplication().executeOnPooledThread {
       var scaledImage = ImageUtil.ensureHiDPI(image, scaleContext)
@@ -242,11 +205,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
 
   // open for testing
   @VisibleForTesting
-  protected open fun getImage(
-    xmlFile: XmlFile,
-    file: VirtualFile,
-    configuration: Configuration,
-  ): CompletableFuture<BufferedImage?> {
+  protected open fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
     val renderService = StudioRenderService.getInstance(module.project)
     val renderTaskFuture = createTask(facet, xmlFile, configuration, renderService)
     return renderTaskFuture
@@ -259,10 +218,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) :
         myRenderVersions.put(file, configuration, version)
         image
       }
-      .whenCompleteAsync(
-        { _, _ -> renderTaskFuture.get()?.dispose() },
-        AppExecutorUtil.getAppExecutorService(),
-      )
+      .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.dispose() }, AppExecutorUtil.getAppExecutorService())
   }
 
   protected open fun createTask(

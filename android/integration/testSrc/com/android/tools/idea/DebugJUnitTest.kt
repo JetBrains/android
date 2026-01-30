@@ -20,17 +20,14 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Paths
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class DebugJUnitTest {
 
-  @get:Rule
-  val system = AndroidSystem.standardWithTmpDir()
+  @get:Rule val system = AndroidSystem.standardWithTmpDir()
 
-  @get:Rule
-  val watcher = MemoryDashboardNameProviderWatcher()
+  @get:Rule val watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun runJUnitDebuggerTest() {

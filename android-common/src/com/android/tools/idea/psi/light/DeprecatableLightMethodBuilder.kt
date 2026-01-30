@@ -20,11 +20,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.light.LightMethodBuilder
 
 /** A [LightMethodBuilder] that supports deprecation. */
-class DeprecatableLightMethodBuilder(
-  manager: PsiManager,
-  language: Language,
-  name: String
-) : NullabilityLightMethodBuilder(manager, language, name) {
+class DeprecatableLightMethodBuilder(manager: PsiManager, language: Language, name: String) :
+  NullabilityLightMethodBuilder(manager, language, name) {
 
   private var deprecated: Boolean = false
 
@@ -35,8 +32,7 @@ class DeprecatableLightMethodBuilder(
   }
 
   override fun equals(other: Any?): Boolean {
-    return super.equals(other) &&
-           (other as? DeprecatableLightMethodBuilder)?.deprecated == deprecated
+    return super.equals(other) && (other as? DeprecatableLightMethodBuilder)?.deprecated == deprecated
   }
 
   override fun hashCode(): Int {

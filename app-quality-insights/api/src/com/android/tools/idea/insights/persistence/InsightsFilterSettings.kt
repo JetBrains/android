@@ -54,8 +54,8 @@ data class InsightsFilterSettings(
   /**
    * Overwrite the [filters] with the stored settings field by field when they are non-null.
    *
-   * Since the persisted settings only stores the previously selected filter values and doesn't care
-   * about counts, restored filters are created with 0 as count.
+   * Since the persisted settings only stores the previously selected filter values and doesn't care about counts, restored filters are
+   * created with 0 as count.
    */
   fun overwriteFilters(filters: Filters): Filters {
     var result = filters
@@ -74,23 +74,16 @@ data class InsightsFilterSettings(
 
     val types = failureTypes?.mapNotNull { enumValueOfOrNull<FailureType>(it) }?.toSet()
     if (!types.isNullOrEmpty()) {
-      result =
-        result.copy(failureTypeToggles = filters.failureTypeToggles.selectMatching { it in types })
+      result = result.copy(failureTypeToggles = filters.failureTypeToggles.selectMatching { it in types })
     }
 
-    signal
-      ?.let { enumValueOfOrNull<SignalType>(it) }
-      ?.let { signal -> result = result.copy(signal = filters.signal.select(signal)) }
+    signal?.let { enumValueOfOrNull<SignalType>(it) }?.let { signal -> result = result.copy(signal = filters.signal.select(signal)) }
     visibilityType
       ?.let { enumValueOfOrNull<VisibilityType>(it) }
-      ?.let { visibility ->
-        result = result.copy(visibilityType = filters.visibilityType.select(visibility))
-      }
+      ?.let { visibility -> result = result.copy(visibilityType = filters.visibilityType.select(visibility)) }
     timeIntervalDays
       ?.let { enumValueOfOrNull<TimeIntervalFilter>(it) }
-      ?.let { interval ->
-        result = result.copy(timeInterval = filters.timeInterval.select(interval))
-      }
+      ?.let { interval -> result = result.copy(timeInterval = filters.timeInterval.select(interval)) }
     return result
   }
 }
@@ -109,20 +102,11 @@ data class ConnectionSetting(
       mobileSdkAppId == connection.mobileSdkAppId
 }
 
-data class DeviceSetting(
-  var manufacturer: String = "",
-  var model: String = "",
-  var displayName: String = "",
-  var deviceType: String = "",
-) {
+data class DeviceSetting(var manufacturer: String = "", var model: String = "", var displayName: String = "", var deviceType: String = "") {
   fun toDevice() = Device(manufacturer, model, displayName, DeviceType(deviceType))
 }
 
-data class OperatingSystemSetting(
-  var displayVersion: String = "",
-  var displayName: String = "",
-  var filterName: String = "",
-) {
+data class OperatingSystemSetting(var displayVersion: String = "", var displayName: String = "", var filterName: String = "") {
   fun toOperatingSystemInfo() = OperatingSystemInfo(displayVersion, displayName, filterName)
 }
 
@@ -149,16 +133,13 @@ data class VersionSetting(
     )
 }
 
-internal fun Connection.toSetting() =
-  ConnectionSetting(appId, projectId, projectNumber, mobileSdkAppId)
+internal fun Connection.toSetting() = ConnectionSetting(appId, projectId, projectNumber, mobileSdkAppId)
 
 internal fun Device.toSetting() = DeviceSetting(manufacturer, model, displayName, deviceType.name)
 
-internal fun OperatingSystemInfo.toSetting() =
-  OperatingSystemSetting(displayVersion, displayName, filterName)
+internal fun OperatingSystemInfo.toSetting() = OperatingSystemSetting(displayVersion, displayName, filterName)
 
-internal fun Version.toSetting() =
-  VersionSetting(buildVersion, displayVersion, displayName, tracks.map { it.name })
+internal fun Version.toSetting() = VersionSetting(buildVersion, displayVersion, displayName, tracks.map { it.name })
 
 internal fun AppInsightsState.toFilterSettings() =
   InsightsFilterSettings(
@@ -172,5 +153,4 @@ internal fun AppInsightsState.toFilterSettings() =
     filters.operatingSystems.mapNotAllSelected { it.value.toSetting() },
   )
 
-private fun <T, R> MultiSelection<T>.mapNotAllSelected(transform: (T) -> R) =
-  takeUnless { it.allSelected() }?.selected?.map(transform)
+private fun <T, R> MultiSelection<T>.mapNotAllSelected(transform: (T) -> R) = takeUnless { it.allSelected() }?.selected?.map(transform)

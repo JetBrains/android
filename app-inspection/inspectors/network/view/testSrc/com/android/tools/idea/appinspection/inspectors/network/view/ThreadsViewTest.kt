@@ -61,13 +61,7 @@ private val FAKE_DATA: ImmutableList<HttpData> =
     .add(newData(12, 115, 120, 14, "threadC"))
     .build()
 
-private fun newData(
-  id: Long,
-  startS: Long,
-  endS: Long,
-  threadId: Long,
-  threadName: String,
-): HttpData {
+private fun newData(id: Long, startS: Long, endS: Long, threadId: Long, threadName: String): HttpData {
   return createFakeHttpData(
     id,
     TimeUnit.SECONDS.toMicros(startS),
@@ -79,8 +73,7 @@ private fun newData(
   )
 }
 
-private fun JTable.getFirstHttpDataAtRow(row: Int): HttpData =
-  (getValueAt(row, 1) as List<*>).first() as HttpData
+private fun JTable.getFirstHttpDataAtRow(row: Int): HttpData = (getValueAt(row, 1) as List<*>).first() as HttpData
 
 @RunsInEdt
 class ThreadsViewTest {
@@ -113,35 +106,19 @@ class ThreadsViewTest {
           private val dataList = FAKE_DATA
 
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-            return dataList.filter {
-              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
-                it.requestStartTimeUs <= timeCurrentRangeUs.max
-            }
+            return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
           }
         },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        disposableRule.disposable,
-      )
+      NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, disposableRule.disposable)
     parentPanel.add(inspectorView.component)
 
     threadsView = ThreadsView(model, component)
     threadsView.component.size = Dimension(300, 50)
-    table =
-      TreeWalker(threadsView.component)
-        .descendantStream()
-        .filter { c -> c is JTable }
-        .findFirst()
-        .get() as JTable
+    table = TreeWalker(threadsView.component).descendantStream().filter { c -> c is JTable }.findFirst().get() as JTable
     table.setUI(HeadlessTableUI())
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
@@ -164,8 +141,7 @@ class ThreadsViewTest {
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()
     assertThat(table.model.rowCount).isEqualTo(2)
     assertThat(table.model.getValueAt(0, 0)).isEqualTo("threadA")
-    assertThat(table.model.getValueAt(0, 1) as List<*>)
-      .containsExactly(FAKE_DATA[0], FAKE_DATA[2], FAKE_DATA[3])
+    assertThat(table.model.getValueAt(0, 1) as List<*>).containsExactly(FAKE_DATA[0], FAKE_DATA[2], FAKE_DATA[3])
     assertThat(table.model.getValueAt(1, 0)).isEqualTo("threadB")
     assertThat(table.model.getValueAt(1, 1) as List<*>).containsExactly(FAKE_DATA[1], FAKE_DATA[4])
   }
@@ -213,23 +189,15 @@ class ThreadsViewTest {
     val selection = model.timeline.selectionRange
     selection[TimeUnit.SECONDS.toMicros(0).toDouble()] = TimeUnit.SECONDS.toMicros(200).toDouble()
     table.rowSorter.toggleSortOrder(table.getColumn("Timeline").modelIndex)
-    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(1))
-    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(100))
-    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(115))
+    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(1))
+    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(100))
+    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(115))
     table.rowSorter.toggleSortOrder(table.getColumn("Timeline").modelIndex)
-    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(115))
-    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(100))
-    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs)
-      .isEqualTo(TimeUnit.SECONDS.toMicros(1))
+    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(115))
+    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(100))
+    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(1))
   }
 
   @Test

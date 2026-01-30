@@ -29,14 +29,15 @@ class UnsupportedClassVersionIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is false when pattern is not present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = "This message should not be consumed",
-      failureCause = "Cause is none",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = "This message should not be consumed",
+        failureCause = "Cause is none",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     assertThat(consumed).isFalse()
     assertThat(testConsumer.messageEvents).isEmpty()
   }
@@ -44,15 +45,17 @@ class UnsupportedClassVersionIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is true when pattern is present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = createErrorMessage(agpCompiled = "61.0", gradleRuntime = "55.0"),
-      failureCause = "com/android/tools/lint/model/LintModelSeverity has been compiled by a more recent version of the Java Runtime " +
-                     "(class file version 61.0), this version of the Java Runtime only recognizes class file versions up to 55.0",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = createErrorMessage(agpCompiled = "61.0", gradleRuntime = "55.0"),
+        failureCause =
+          "com/android/tools/lint/model/LintModelSeverity has been compiled by a more recent version of the Java Runtime " +
+            "(class file version 61.0), this version of the Java Runtime only recognizes class file versions up to 55.0",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     assertThat(consumed).isTrue()
     assertThat(testConsumer.messageEvents).isEmpty()
   }
@@ -85,8 +88,9 @@ class UnsupportedClassVersionIssueCheckerTest {
     val issueData = GradleIssueData("projectFolderPath", Throwable(message), null, null)
     val issue = issueChecker.createBuildIssue(issueData)
     assertThat(issue).isNotNull()
-    val expectedMessage = "This project is configured to use an older Gradle JVM that supports up to version $resolvedGradle but the " +
-                          "current AGP requires a Gradle JVM that supports version $resolvedAgp."
+    val expectedMessage =
+      "This project is configured to use an older Gradle JVM that supports up to version $resolvedGradle but the " +
+        "current AGP requires a Gradle JVM that supports version $resolvedAgp."
     assertThat(issue!!.description).contains(expectedMessage)
     val quickFixes = issue.quickFixes
     assertThat(quickFixes).hasSize(2)
@@ -96,13 +100,13 @@ class UnsupportedClassVersionIssueCheckerTest {
 
   private fun createErrorMessage(agpCompiled: String, gradleRuntime: String) =
     "Build file 'build.gradle' line: 2\n" +
-    "\n" +
-    "An exception occurred applying plugin request [id: 'com.android.application']\n" +
-    "> Failed to apply plugin 'com.android.internal.application'.\n" +
-    "   > Could not create an instance of type com.android.build.gradle.internal.dsl.ApplicationExtensionImpl\$AgpDecorated.\n" +
-    "      > Could not create an instance of type com.android.build.gradle.internal.dsl.LintImpl\$AgpDecorated.\n" +
-    "         > Could not generate a decorated class for type LintImpl\$AgpDecorated.\n" +
-    "            > com/android/tools/lint/model/LintModelSeverity has been compiled by a more recent version of the Java " +
-    "Runtime (class file version $agpCompiled), this version of the Java Runtime only recognizes class file versions up to " +
-    "$gradleRuntime\n"
+      "\n" +
+      "An exception occurred applying plugin request [id: 'com.android.application']\n" +
+      "> Failed to apply plugin 'com.android.internal.application'.\n" +
+      "   > Could not create an instance of type com.android.build.gradle.internal.dsl.ApplicationExtensionImpl\$AgpDecorated.\n" +
+      "      > Could not create an instance of type com.android.build.gradle.internal.dsl.LintImpl\$AgpDecorated.\n" +
+      "         > Could not generate a decorated class for type LintImpl\$AgpDecorated.\n" +
+      "            > com/android/tools/lint/model/LintModelSeverity has been compiled by a more recent version of the Java " +
+      "Runtime (class file version $agpCompiled), this version of the Java Runtime only recognizes class file versions up to " +
+      "$gradleRuntime\n"
 }

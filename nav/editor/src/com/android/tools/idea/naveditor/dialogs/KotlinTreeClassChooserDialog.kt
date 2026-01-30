@@ -46,8 +46,7 @@ interface KotlinTreeClassChooserFactory {
           base: PsiClass?,
           initialClass: PsiClass?,
           classFilter: ClassFilter,
-        ): TreeClassChooser =
-          KotlinTreeClassChooserDialog(title, project, scope, base, initialClass, classFilter)
+        ): TreeClassChooser = KotlinTreeClassChooserDialog(title, project, scope, base, initialClass, classFilter)
       }
 
     fun getInstance(): KotlinTreeClassChooserFactory = instance
@@ -71,14 +70,10 @@ private class KotlinTreeClassChooserDialog(
     val psiClass =
       super.getSelectedFromTreeUserObject(node)
         ?: node!!.userObject?.let { userObject ->
-          if (userObject !is KtClassOrObjectTreeNode) null
-          else (userObject.value as KtClassOrObject).toLightClass()
+          if (userObject !is KtClassOrObjectTreeNode) null else (userObject.value as KtClassOrObject).toLightClass()
         }
 
-    val isAccepted =
-      psiClass?.let {
-        it.isInheritor(base ?: return@let false, true) && filter.isAccepted(psiClass)
-      } ?: false
+    val isAccepted = psiClass?.let { it.isInheritor(base ?: return@let false, true) && filter.isAccepted(psiClass) } ?: false
 
     return if (isAccepted) psiClass else null
   }

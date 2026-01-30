@@ -25,27 +25,27 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 private val PsiClass.definesRoomTable: Boolean
   get() {
     return hasAnnotation(RoomAnnotations.ENTITY.oldName()) ||
-           hasAnnotation(RoomAnnotations.ENTITY.newName()) ||
-           hasAnnotation(RoomAnnotations.DATABASE_VIEW.oldName()) ||
-           hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
+      hasAnnotation(RoomAnnotations.ENTITY.newName()) ||
+      hasAnnotation(RoomAnnotations.DATABASE_VIEW.oldName()) ||
+      hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
   }
 
-/**
- * True if element is PsiElementForFakeColumn, @ENTITY/DATABASE_VIEW-annotated class or field inside such class.
- */
+/** True if element is PsiElementForFakeColumn, @ENTITY/DATABASE_VIEW-annotated class or field inside such class. */
 val PsiElement.definesRoomSchema: Boolean
-  get() = when (this) {
-    is PsiElementForFakeColumn -> true
-    is PsiClass -> definesRoomTable
-    is PsiField, is KtProperty -> {
-      val psiClass: PsiClass? = if (this is PsiField) {
-        this.containingClass
+  get() =
+    when (this) {
+      is PsiElementForFakeColumn -> true
+      is PsiClass -> definesRoomTable
+      is PsiField,
+      is KtProperty -> {
+        val psiClass: PsiClass? =
+          if (this is PsiField) {
+            this.containingClass
+          } else {
+            (this as KtProperty).containingClass()?.toLightClass()
+          }
+        // Doesn't work if there is subclass annotated with `@Entity`, making fields into SQL column definitions.
+        psiClass?.definesRoomTable == true
       }
-      else {
-        (this as KtProperty).containingClass()?.toLightClass()
-      }
-      // Doesn't work if there is subclass annotated with `@Entity`, making fields into SQL column definitions.
-      psiClass?.definesRoomTable == true
+      else -> false
     }
-    else -> false
-  }

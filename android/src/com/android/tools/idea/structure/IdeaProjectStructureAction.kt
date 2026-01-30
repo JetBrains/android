@@ -24,17 +24,15 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 import com.intellij.openapi.ui.DialogWrapper
 
-/**
- * Action to open IDEA's project structure dialog, this can be useful when debugging the structure of a project as seen by IDEA.
- */
+/** Action to open IDEA's project structure dialog, this can be useful when debugging the structure of a project as seen by IDEA. */
 class IdeaProjectStructureAction : AnAction("IDEA Project Structure Dialog") {
 
-  override fun actionPerformed(e: AnActionEvent) =
-    showDialog(e.project ?: ProjectManager.getInstance().defaultProject)
+  override fun actionPerformed(e: AnActionEvent) = showDialog(e.project ?: ProjectManager.getInstance().defaultProject)
 
   internal fun showDialog(project: Project) {
     object : SingleConfigurableEditor(project, ProjectStructureConfigurable.getInstance(project), SettingsDialog.DIMENSION_KEY) {
-      override fun getStyle() = DialogWrapper.DialogStyle.COMPACT
-    }.show()
+        override fun getStyle() = DialogWrapper.DialogStyle.COMPACT
+      }
+      .show()
   }
 }

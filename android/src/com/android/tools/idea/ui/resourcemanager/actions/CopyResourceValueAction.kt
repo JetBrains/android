@@ -20,13 +20,11 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ide.CopyPasteManager
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.datatransfer.StringSelection
+import org.jetbrains.android.util.AndroidBundle.message
 
-class CopyResourceValueAction : AnAction(
-  message("resource.explorer.copy.value.title"),
-  message("resource.explorer.copy.value.description"),
-  null) {
+class CopyResourceValueAction :
+  AnAction(message("resource.explorer.copy.value.title"), message("resource.explorer.copy.value.description"), null) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -35,8 +33,7 @@ class CopyResourceValueAction : AnAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val value = e.getData(RESOURCE_DESIGN_ASSETS_KEY)?.singleOrNull()?.resourceItem?.resourceValue?.value
-                ?: return
+    val value = e.getData(RESOURCE_DESIGN_ASSETS_KEY)?.singleOrNull()?.resourceItem?.resourceValue?.value ?: return
     CopyPasteManager.getInstance().setContents(StringSelection(value))
   }
 }

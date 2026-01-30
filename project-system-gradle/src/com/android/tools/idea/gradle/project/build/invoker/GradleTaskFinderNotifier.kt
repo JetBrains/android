@@ -25,22 +25,18 @@ import com.intellij.openapi.module.Module
 object GradleTaskFinderNotifier {
   fun notifyNoTaskFound(modules: Array<Module>, mode: BuildMode) {
     if (modules.isEmpty()) return
-    val modulePaths = modules
-      .mapNotNull { it.getGradleIdentityPath() }
-      .distinct()
+    val modulePaths = modules.mapNotNull { it.getGradleIdentityPath() }.distinct()
 
     val project = modules[0].project
-    val logModuleNames = modulePaths.take(MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE)
-      .joinToString(", ") + if (modulePaths.size > MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE) "..." else ""
+    val logModuleNames =
+      modulePaths.take(MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE).joinToString(", ") +
+        if (modulePaths.size > MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE) "..." else ""
 
-    val logMessage =
-      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s", logModuleNames, mode)
+    val logMessage = String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s", logModuleNames, mode)
     logger.warn(logMessage)
-    val moduleNames = modulePaths.take(MAX_MODULES_TO_SHOW_IN_NOTIFICATION)
-      .joinToString(", ") + if (modulePaths.size > 5) "..." else ""
+    val moduleNames = modulePaths.take(MAX_MODULES_TO_SHOW_IN_NOTIFICATION).joinToString(", ") + if (modulePaths.size > 5) "..." else ""
 
-    val message =
-      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s.", moduleNames, mode)
+    val message = String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s.", moduleNames, mode)
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Android Gradle Tasks")
       .createNotification(message, NotificationType.WARNING)

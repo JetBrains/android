@@ -19,12 +19,7 @@ import org.junit.Test
 class LogcatEventTest {
 
   @get:Rule
-  val rule =
-    RuleChain(
-      ApplicationRule(),
-      ApplicationServiceRule(TempFileFactory::class.java, TestTempFileFactory()),
-      TestLoggerRule(),
-    )
+  val rule = RuleChain(ApplicationRule(), ApplicationServiceRule(TempFileFactory::class.java, TestTempFileFactory()), TestLoggerRule())
 
   private val channel = Channel<LogcatEvent>()
   private val fakeLogcatPresenter = FakeLogcatPresenter()
@@ -38,8 +33,7 @@ class LogcatEventTest {
 
     channel.cancel()
     job.join()
-    assertThat(fakeLogcatPresenter.messageBatches)
-      .containsExactly(listOf(logcatMessage(message = "Foo")))
+    assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(logcatMessage(message = "Foo")))
   }
 
   @Test
@@ -65,8 +59,7 @@ class LogcatEventTest {
 
     channel.cancel()
     job.join()
-    assertThat(fakeLogcatPresenter.messageBatches)
-      .containsExactly(listOf(logcatMessage(message = "Foo")))
+    assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(logcatMessage(message = "Foo")))
   }
 
   @Test

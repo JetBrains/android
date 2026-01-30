@@ -30,39 +30,37 @@ import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.util.EmptyRunnable
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.annotations.TestOnly
 
 @Service(Service.Level.PROJECT)
 @State(name = "AndroidProjectSystem", storages = [Storage("AndroidProjectSystem.xml")], reloadable = false)
-class ProjectSystemService(val project: Project): PersistentStateComponent<ProjectSystemService.State> {
+class ProjectSystemService(val project: Project) : PersistentStateComponent<ProjectSystemService.State> {
   /**
    * A state for the mini state machine around updating the view of the project system:
    *
-   *    NORMAL_STATE: nothing to report;
-   *   UPDATE_NEEDED: detectProjectSystem has detected a non-default project system where previously
-   *                  we had initialized and cached a default project system;
-   *     UPDATE_SENT: we have sent a rootsChanged event in response to having been in state 1.
+   * NORMAL_STATE: nothing to report; UPDATE_NEEDED: detectProjectSystem has detected a non-default project system where previously we had
+   * initialized and cached a default project system; UPDATE_SENT: we have sent a rootsChanged event in response to having been in state 1.
    */
   private val rootsChangedState = AtomicInteger(NORMAL_STATE)
 
   /**
-   * Uses [LazyThreadSafetyMode.PUBLICATION] intentionally: we cannot use [LazyThreadSafetyMode.SYNCHRONIZED] because of the
-   * very concrete risk of introducing cycles amongst locks.  The initialized-or-not state of this delegate tells us whether
-   * we need to update the world: under usual circumstances (no unusual contention when computing the project system) this
-   * remains uninitialized.
+   * Uses [LazyThreadSafetyMode.PUBLICATION] intentionally: we cannot use [LazyThreadSafetyMode.SYNCHRONIZED] because of the very concrete
+   * risk of introducing cycles amongst locks. The initialized-or-not state of this delegate tells us whether we need to update the world:
+   * under usual circumstances (no unusual contention when computing the project system) this remains uninitialized.
    */
   private val cachedDefaultProjectSystemDelegate = lazy(LazyThreadSafetyMode.PUBLICATION) { defaultProjectSystem(project) }
 
   /**
-   * Uses [LazyThreadSafetyMode.PUBLICATION] intentionally: we cannot use [LazyThreadSafetyMode.SYNCHRONIZED] because of the
-   * very concrete risk of introducing cycles amongst locks.
+   * Uses [LazyThreadSafetyMode.PUBLICATION] intentionally: we cannot use [LazyThreadSafetyMode.SYNCHRONIZED] because of the very concrete
+   * risk of introducing cycles amongst locks.
    */
-  private val cachedProjectSystemDelegate = lazy(LazyThreadSafetyMode.PUBLICATION) {
-    detectProjectSystem(project).also {
-      if (cachedDefaultProjectSystemDelegate.isInitialized()) rootsChangedState.compareAndSet(NORMAL_STATE, UPDATE_NEEDED)
+  private val cachedProjectSystemDelegate =
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
+      detectProjectSystem(project).also {
+        if (cachedDefaultProjectSystemDelegate.isInitialized()) rootsChangedState.compareAndSet(NORMAL_STATE, UPDATE_NEEDED)
+      }
     }
-  }
   private val cachedDefaultProjectSystem by cachedDefaultProjectSystemDelegate
   private val cachedProjectSystem by cachedProjectSystemDelegate
   private var projectSystemForTests: AndroidProjectSystem? = null
@@ -70,12 +68,14 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
   fun setProviderId(id: String) {
     state = State(id)
   }
+
   private var state: State? = null
 
   companion object {
     private const val NORMAL_STATE = 0
     private const val UPDATE_NEEDED = 1
     private const val UPDATE_SENT = 2
+
     @JvmStatic
     fun getInstance(project: Project): ProjectSystemService {
       return project.getService(ProjectSystemService::class.java)!!
@@ -88,44 +88,52 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
       forceOpenInNewFrame: Boolean,
       projectToClose: Project?,
       beforeOpen: suspend ((Project) -> Boolean) = { true },
-    ): OpenProjectTask =
-      OpenProjectTask {
-        this.forceOpenInNewFrame = forceOpenInNewFrame
-        this.projectToClose = projectToClose
-        this.beforeOpen = { project ->
-          project.service<ProjectSystemService>().setProviderId(id)
-          beforeOpen(project)
-        }
+    ): OpenProjectTask = OpenProjectTask {
+      this.forceOpenInNewFrame = forceOpenInNewFrame
+      this.projectToClose = projectToClose
+      this.beforeOpen = { project ->
+        project.service<ProjectSystemService>().setProviderId(id)
+        beforeOpen(project)
       }
+    }
   }
 
   private class ReadLockUnavailable : Exception()
 
   val projectSystem: AndroidProjectSystem
-    get() = projectSystemForTests ?: try {
-      cachedProjectSystem.also {
-        if (rootsChangedState.compareAndSet(UPDATE_NEEDED, UPDATE_SENT)) {
-          ApplicationManager.getApplication().invokeLater({
-            if (project.isDisposed) return@invokeLater
-            // We get here if at a previous time in this session we returned a DefaultProjectSystem because of being unable to
-            // acquire the read lock.  This happens rarely in tests, and almost never in production.
-            //
-            // Under those circumstances, some previously-computed answers involving the Project System will be wrong.  In general
-            // it is probably not the case that sending a roots changed event is enough to force recomputation of all dependents,
-            // but this at least allows other IDE systems to listen for these events and respond appropriately.
-            runWriteAction { sendRootsChangedEvents(project) }
-          }, ModalityState.nonModal())
+    get() =
+      projectSystemForTests
+        ?: try {
+          cachedProjectSystem.also {
+            if (rootsChangedState.compareAndSet(UPDATE_NEEDED, UPDATE_SENT)) {
+              ApplicationManager.getApplication()
+                .invokeLater(
+                  {
+                    if (project.isDisposed) return@invokeLater
+                    // We get here if at a previous time in this session we returned a DefaultProjectSystem because of being unable to
+                    // acquire the read lock.  This happens rarely in tests, and almost never in production.
+                    //
+                    // Under those circumstances, some previously-computed answers involving the Project System will be wrong.  In general
+                    // it is probably not the case that sending a roots changed event is enough to force recomputation of all dependents,
+                    // but this at least allows other IDE systems to listen for these events and respond appropriately.
+                    runWriteAction { sendRootsChangedEvents(project) }
+                  },
+                  ModalityState.nonModal(),
+                )
+            }
+          }
+        } catch (e: ReadLockUnavailable) {
+          cachedDefaultProjectSystem
         }
-      }
-    }
-    catch (e: ReadLockUnavailable) {
-      cachedDefaultProjectSystem
-    }
 
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
     val extensions = EP_NAME.extensionList
     getState()?.providerId?.let { providerId ->
-      extensions.find { it.id == providerId }?.also { return it.projectSystemFactory(project) }
+      extensions
+        .find { it.id == providerId }
+        ?.also {
+          return it.projectSystemFactory(project)
+        }
     }
     val application = ApplicationManagerEx.getApplicationEx()
     var result: AndroidProjectSystem? = null
@@ -145,8 +153,7 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
       if (provider != null) {
         result = provider.projectSystemFactory(project)
         state = State(provider.id)
-      }
-      else {
+      } else {
         result = defaultProjectSystem(project, extensions)
       }
     }
@@ -155,10 +162,10 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
 
   private fun defaultProjectSystem(
     project: Project,
-    extensions: List<AndroidProjectSystemProvider> = EP_NAME.extensionList
+    extensions: List<AndroidProjectSystemProvider> = EP_NAME.extensionList,
   ): AndroidProjectSystem {
-    val provider = extensions.find { it.id == "" }
-                   ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
+    val provider =
+      extensions.find { it.id == "" } ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
     return provider.projectSystemFactory(project)
   }
 
@@ -166,19 +173,13 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
     ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(EmptyRunnable.INSTANCE, RootsChangeRescanningInfo.TOTAL_RESCAN)
   }
 
-  /**
-   * Replaces the project system of the current [project] and re-initializes it by sending [ModuleRootListener.TOPIC] notifications.
-   */
+  /** Replaces the project system of the current [project] and re-initializes it by sending [ModuleRootListener.TOPIC] notifications. */
   @TestOnly
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
     projectSystemForTests = projectSystem
     if (cachedProjectSystemDelegate.isInitialized()) {
       // require EDT explicitly, due to issue with TransactionGuard IJPL-150392
-      ApplicationManager.getApplication().invokeAndWait {
-        runWriteAction {
-          sendRootsChangedEvents(project)
-        }
-      }
+      ApplicationManager.getApplication().invokeAndWait { runWriteAction { sendRootsChangedEvents(project) } }
     }
   }
 

@@ -45,16 +45,14 @@ class WFFExpressionCompletionContributorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
   }
 
   @Test
   fun `autocompletes functions when a literal is expected`() {
     configureExpression(caret)
 
-    assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllOf("log", "log10", "clamp")
+    assertThat(fixture.completeBasic().map { it.lookupString }).containsAllOf("log", "log10", "clamp")
   }
 
   @Test
@@ -128,11 +126,7 @@ class WFFExpressionCompletionContributorTest {
     configureExpression(caret)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllOf(
-        "WEATHER.IS_AVAILABLE",
-        "STEP_COUNT",
-        "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION",
-      )
+      .containsAllOf("WEATHER.IS_AVAILABLE", "STEP_COUNT", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
   }
 
   @Test
@@ -203,11 +197,7 @@ class WFFExpressionCompletionContributorTest {
     configureExpression("[WEATHER.$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllOf(
-        "WEATHER.IS_AVAILABLE",
-        "WEATHER.DAYS.<days>.IS_AVAILABLE",
-        "WEATHER.HOURS.<hours>.IS_AVAILABLE",
-      )
+      .containsAllOf("WEATHER.IS_AVAILABLE", "WEATHER.DAYS.<days>.IS_AVAILABLE", "WEATHER.HOURS.<hours>.IS_AVAILABLE")
   }
 
   @Test
@@ -215,10 +205,7 @@ class WFFExpressionCompletionContributorTest {
     configureExpression("[WEATHER.DAYS.$caret")
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllOf(
-        "WEATHER.DAYS.<days>.IS_AVAILABLE",
-        "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION",
-      )
+      .containsAllOf("WEATHER.DAYS.<days>.IS_AVAILABLE", "WEATHER.DAYS.<days>.CHANCE_OF_PRECIPITATION")
   }
 
   @Test
@@ -226,8 +213,7 @@ class WFFExpressionCompletionContributorTest {
     configureExpression("[WEATHER.DAYS.3.$caret")
 
     val lookupStrings = fixture.completeBasic().map { it.lookupString }
-    assertThat(lookupStrings)
-      .containsAllOf("WEATHER.DAYS.3.IS_AVAILABLE", "WEATHER.DAYS.3.CONDITION_DAY_NAME")
+    assertThat(lookupStrings).containsAllOf("WEATHER.DAYS.3.IS_AVAILABLE", "WEATHER.DAYS.3.CONDITION_DAY_NAME")
     assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
@@ -239,8 +225,7 @@ class WFFExpressionCompletionContributorTest {
     configureExpression("[WEATHER.HOURS.2$caret")
 
     val lookupStrings = fixture.completeBasic().map { it.lookupString }
-    assertThat(lookupStrings)
-      .containsAllOf("WEATHER.HOURS.2.IS_AVAILABLE", "WEATHER.HOURS.2.CONDITION_NAME")
+    assertThat(lookupStrings).containsAllOf("WEATHER.HOURS.2.IS_AVAILABLE", "WEATHER.HOURS.2.CONDITION_NAME")
     assertThat(lookupStrings).doesNotContain("WEATHER.HOURS.<hours>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.DAYS.<days>.IS_AVAILABLE")
     assertThat(lookupStrings).doesNotContain("WEATHER.IS_AVAILABLE")
@@ -268,10 +253,7 @@ class WFFExpressionCompletionContributorTest {
 
   @Test
   fun `does not autocomplete when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      fixture.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, fixture.testRootDisposable)
     // wrap in a watch face file for the configuration references to resolve
     val watchFaceFile =
       fixture.addFileToProject(
@@ -308,8 +290,7 @@ class WFFExpressionCompletionContributorTest {
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
-    assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
+    assertThat(fixture.completeBasic().map { it.lookupString }).containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
   }
 
   @Test
@@ -337,8 +318,7 @@ class WFFExpressionCompletionContributorTest {
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
-    assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
+    assertThat(fixture.completeBasic().map { it.lookupString }).containsNoneIn(DataSources.COMPLICATION_ALL.map { it.id })
   }
 
   @Test
@@ -399,14 +379,10 @@ class WFFExpressionCompletionContributorTest {
 
     overrideCurrentWFFVersion(WFFVersion1, projectRule.testRootDisposable)
 
-    assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsAllOf("COMPLICATION.MONOCHROMATIC_IMAGE", "COMPLICATION.TEXT")
+    assertThat(fixture.completeBasic().map { it.lookupString }).containsAllOf("COMPLICATION.MONOCHROMATIC_IMAGE", "COMPLICATION.TEXT")
     assertThat(fixture.completeBasic().map { it.lookupString })
       // these require version 2
-      .containsNoneOf(
-        "COMPLICATION.RANGED_VALUE_COLORS",
-        "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE",
-      )
+      .containsNoneOf("COMPLICATION.RANGED_VALUE_COLORS", "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE")
 
     overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
     assertThat(fixture.completeBasic().map { it.lookupString })
@@ -420,11 +396,7 @@ class WFFExpressionCompletionContributorTest {
 
   private fun configureExpression(wffExpression: String) {
     // wrap in the watch face file for references to be created
-    val watchFaceFile =
-      fixture.addFileToProject(
-        "res/raw/watch_face.xml",
-        basicWatchFaceFileWithWFFExpression(wffExpression),
-      )
+    val watchFaceFile = fixture.addFileToProject("res/raw/watch_face.xml", basicWatchFaceFileWithWFFExpression(wffExpression))
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
   }
 

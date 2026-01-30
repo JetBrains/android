@@ -28,15 +28,11 @@ import java.util.stream.Collectors
 import javax.swing.JLabel
 import org.junit.Assert.assertTrue
 
-val NoopComposeAnimationTracker =
-  ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
+val NoopComposeAnimationTracker = ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
 
-  fun createComposeAnimation(
-    label: String? = null,
-    type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE,
-  ) =
+  fun createComposeAnimation(label: String? = null, type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE) =
     object : ComposeAnimation {
       override val animationObject = Any()
       override val type = type
@@ -48,20 +44,10 @@ object TestUtils {
     assertTrue(minimumSize.width <= actualSize.width && minimumSize.height <= actualSize.height)
 
   fun findTimeline(parent: Component): TimelinePanel =
-    TreeWalker(parent)
-      .descendantStream()
-      .filter { it is TimelinePanel }
-      .collect(Collectors.toList())
-      .map { it as TimelinePanel }
-      .first()
+    TreeWalker(parent).descendantStream().filter { it is TimelinePanel }.collect(Collectors.toList()).map { it as TimelinePanel }.first()
 
   fun Card.findLabel(): JLabel =
-    TreeWalker(this.component)
-      .descendantStream()
-      .filter { it is JLabel }
-      .collect(Collectors.toList())
-      .map { it as JLabel }
-      .first()
+    TreeWalker(this.component).descendantStream().filter { it is JLabel }.collect(Collectors.toList()).map { it as JLabel }.first()
 
   fun Component.findComboBox(): ComboBoxAction.ComboBoxButton =
     TreeWalker(this)

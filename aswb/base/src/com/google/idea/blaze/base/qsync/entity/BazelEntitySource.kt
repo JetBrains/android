@@ -20,7 +20,5 @@ import com.intellij.platform.workspace.storage.EntitySource
 object BazelEntitySource : EntitySource
 
 @Suppress("unused")
-/**
- * Workspace model code generation is not triggered unless there is at least one class in the file.
- */
+/** Workspace model code generation is not triggered unless there is at least one class in the file. */
 class AnchorForCodeGeneration

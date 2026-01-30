@@ -38,23 +38,23 @@ import javax.swing.JComponent
 abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   val context: PsContext,
   val perspectiveConfigurable: BasePerspectiveConfigurable,
-  module: ModuleT
+  module: ModuleT,
 ) : BaseNamedConfigurable<ModuleT>(module), ContainerConfigurable<PsModule>
-  where PanelT : JComponent,
-        PanelT : CrossModuleUiStateComponent,
-        PanelT : Disposable,
-        PanelT : Place.Navigator {
-
+  where PanelT : JComponent, PanelT : CrossModuleUiStateComponent, PanelT : Disposable, PanelT : Place.Navigator {
 
   private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(history) } }
   protected val modulePanel by lazyPanel
-  protected var uiDisposed = false; private set
+  protected var uiDisposed = false
+    private set
 
   protected abstract fun createPanel(): PanelT
 
   final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)!!
+
   final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
+
   final override fun createOptionsPanel(): JComponent = modulePanel
+
   final override fun restoreUiState() = modulePanel.restoreUiState()
 
   final override fun setHistory(history: History?) {
@@ -76,14 +76,10 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   override fun getChildrenModels(): Collection<PsModule> {
     val currentModuleGradlePath = getModule().gradlePath
     return if (currentModuleGradlePath == null) emptyList()
-    else context.project.modules
-      .filter { it.gradlePath != null }
-      .filter {
-        GradleProjectSystemUtil.isDirectChild(
-          it.gradlePath,
-          currentModuleGradlePath
-        )
-      }
+    else
+      context.project.modules
+        .filter { it.gradlePath != null }
+        .filter { GradleProjectSystemUtil.isDirectChild(it.gradlePath, currentModuleGradlePath) }
   }
 
   override fun createChildConfigurable(model: PsModule): NamedConfigurable<out PsModule> =
@@ -93,4 +89,3 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
 
   override fun dispose() = Unit
 }
-

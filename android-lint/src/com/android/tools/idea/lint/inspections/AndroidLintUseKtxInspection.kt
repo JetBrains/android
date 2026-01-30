@@ -19,8 +19,4 @@ import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.UseKtxDetector
 
-class AndroidLintUseKtxInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.use.ktx"),
-    UseKtxDetector.USE_KTX,
-  )
+class AndroidLintUseKtxInspection : AndroidLintInspectionBase(message("android.lint.inspections.use.ktx"), UseKtxDetector.USE_KTX)

@@ -30,10 +30,7 @@ import com.intellij.util.ThrowableConvertor
 import java.io.File
 import java.time.Clock
 
-/**
- * A test project definition that can be used in integration tests involving projects set up by
- * Gradle.
- */
+/** A test project definition that can be used in integration tests involving projects set up by Gradle. */
 interface TestProjectDefinition {
   /** A developer-friendly name for this project, for example as implemented by [Enum.name]. */
   val name: String
@@ -41,15 +38,12 @@ interface TestProjectDefinition {
   /** A name used in migrating existing tests, often inferred from a containing directory. */
   val projectName: String
 
-  /**
-   * A predicate which returns whether this test project is compatible with a given AGP software
-   * environment.
-   */
+  /** A predicate which returns whether this test project is compatible with a given AGP software environment. */
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
 
   /**
-   * Prepares a test project defined by this instance for the given [agpVersion] in the given
-   * [integrationTestEnvironment] and returns a handle to open/use the project in the test.
+   * Prepares a test project defined by this instance for the given [agpVersion] in the given [integrationTestEnvironment] and returns a
+   * handle to open/use the project in the test.
    */
   fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
@@ -71,14 +65,7 @@ interface TestProjectDefinition {
       sdk: Sdk? = null,
       syncReady: Boolean = true,
     ): PreparedTestProject {
-      return testProject.prepareTestProject(
-        this,
-        name,
-        agpVersion,
-        ndkVersion,
-        sdk,
-        syncReady = syncReady,
-      )
+      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, sdk, syncReady = syncReady)
     }
   }
 }
@@ -92,10 +79,7 @@ interface PreparedTestProject {
     fun selectModule(module: Module)
   }
 
-  fun <T> open(
-    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
-    body: Context.(Project) -> T,
-  ): T
+  fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it }, body: Context.(Project) -> T): T
 
   fun open(
     updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
@@ -115,41 +99,28 @@ interface PreparedTestProject {
 
   companion object {
     @JvmStatic
-    fun openPreparedTestProject(
-      preparedProject: PreparedTestProject,
-      body: ThrowableConsumer<Project, Exception>,
-    ) {
+    fun openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConsumer<Project, Exception>) {
       preparedProject.open(body = body)
     }
 
     @JvmStatic
-    fun <T> openPreparedTestProject(
-      preparedProject: PreparedTestProject,
-      body: ThrowableConvertor<Project, T, Exception>,
-    ) {
+    fun <T> openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConvertor<Project, T, Exception>) {
       preparedProject.open(body = body)
     }
 
     @JvmStatic
-    fun <T> IntegrationTestEnvironment.openTestProject(
-      testProject: TestProjectDefinition,
-      body: Context.(Project) -> T,
-    ) {
+    fun <T> IntegrationTestEnvironment.openTestProject(testProject: TestProjectDefinition, body: Context.(Project) -> T) {
       // Since this method can be called multiple times and there is no reliable way to delete
       // project directories on Windows and, moreover,
       // we do not want intelliJ's external system caches to be reused we need to name projects
       // uniquely. However, we also want to have
       // a stable IDE project name, so we place them in a uniquely named parent directory.
-      val preparedProject =
-        prepareTestProject(testProject, name = "${Clock.systemUTC().millis()}/p")
+      val preparedProject = prepareTestProject(testProject, name = "${Clock.systemUTC().millis()}/p")
       preparedProject.open(body = body)
     }
 
     @JvmStatic
-    fun IntegrationTestEnvironment.openTestProject(
-      testProject: TestProjectDefinition,
-      body: ThrowableConsumer<Project, Exception>,
-    ) {
+    fun IntegrationTestEnvironment.openTestProject(testProject: TestProjectDefinition, body: ThrowableConsumer<Project, Exception>) {
       openTestProject(testProject) { body.consume(it) }
     }
 

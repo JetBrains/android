@@ -37,8 +37,7 @@ class TextFieldSizeAnalyzerComposeTest {
   @Test
   fun testWideTextField() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -52,12 +51,7 @@ class TextFieldSizeAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(1, issues.size)
     assertEquals("The text field EditText is too wide", issues[0].message)
@@ -66,8 +60,7 @@ class TextFieldSizeAnalyzerComposeTest {
   @Test
   fun testNarrowTextField() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
@@ -81,12 +74,7 @@ class TextFieldSizeAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-      )
+      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
     val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(0, issues.size)
   }

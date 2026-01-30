@@ -28,11 +28,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 
 /**
- * Action which directly navigates to the Dagger element related to the element at the cursor (or
- * opens a navigation popup if there are multiple related elements).
+ * Action which directly navigates to the Dagger element related to the element at the cursor (or opens a navigation popup if there are
+ * multiple related elements).
  *
- * This action is not directly used anywhere, but exists so that users can bind a keystroke to it if
- * they wish.
+ * This action is not directly used anywhere, but exists so that users can bind a keystroke to it if they wish.
  */
 class GoToRelatedDaggerItemsAction : EditorAction(Handler()) {
   private class Handler : EditorActionHandler() {
@@ -44,9 +43,7 @@ class GoToRelatedDaggerItemsAction : EditorAction(Handler()) {
       when (gotoItems.size) {
         0 -> return
         1 -> gotoItems.first().navigate()
-        else ->
-          getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title"))
-            .showInBestPositionFor(editor)
+        else -> getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title")).showInBestPositionFor(editor)
       }
     }
 

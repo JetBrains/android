@@ -34,15 +34,18 @@ import com.intellij.usages.impl.rules.UsageType
 
 class DynamicFeatureConsumerProguardFilesProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-  override val necessityInfo = object : AgpUpgradeComponentNecessityInfo() {
-    override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
-      new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
-      current > AgpVersion.parse("9.0.0-beta01") -> IRRELEVANT_PAST
-      else -> MANDATORY_INDEPENDENT
+  override val necessityInfo =
+    object : AgpUpgradeComponentNecessityInfo() {
+      override fun computeNecessity(current: AgpVersion, new: AgpVersion) =
+        when {
+          new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
+          current > AgpVersion.parse("9.0.0-beta01") -> IRRELEVANT_PAST
+          else -> MANDATORY_INDEPENDENT
+        }
     }
-  }
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -84,11 +87,8 @@ class DynamicFeatureConsumerProguardFilesProcessor : AgpUpgradeComponentRefactor
   }
 }
 
-class TransferEntriesUsageInfo(
-  element: WrappedPsiElement,
-  val from: ResolvedPropertyModel,
-  val to: ResolvedPropertyModel
-): GradleBuildModelUsageInfo(element) {
+class TransferEntriesUsageInfo(element: WrappedPsiElement, val from: ResolvedPropertyModel, val to: ResolvedPropertyModel) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     from.getValue(LIST_TYPE)?.forEach {
       val value = it.getValue(OBJECT_TYPE) ?: return@forEach

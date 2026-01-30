@@ -35,8 +35,7 @@ class NlOptionConfigurableSearchableOptionContributorTest {
 
   @Test
   fun testCanFindMagnifyOptionsOnMacWhenMouseGestureEnabled() {
-    val magnifySupported =
-      SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
+    val magnifySupported = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
     if (magnifySupported) {
       val contributor = NlOptionConfigurableSearchableOptionContributor()
       val processor = TestSearchableOptionProcessor()
@@ -82,6 +81,5 @@ private class TestSearchableOptionProcessor : SearchableOptionProcessor() {
     }
   }
 
-  fun getHits(text: String): Set<String> =
-    hitMap.filterKeys { key -> key.startsWith(text, true) }.values.flatten().toSet()
+  fun getHits(text: String): Set<String> = hitMap.filterKeys { key -> key.startsWith(text, true) }.values.flatten().toSet()
 }

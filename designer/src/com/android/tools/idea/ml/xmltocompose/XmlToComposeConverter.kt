@@ -17,20 +17,16 @@ package com.android.tools.idea.ml.xmltocompose
 
 import com.intellij.openapi.Disposable
 
-/**
- * Question to precede every layout when querying Studio Bot. The exact same question is used to
- * train the model.
- */
-internal const val PROMPT_PREFIX =
-  "What's the Jetpack Compose equivalent of the following Android XML layout?"
+/** Question to precede every layout when querying Studio Bot. The exact same question is used to train the model. */
+internal const val PROMPT_PREFIX = "What's the Jetpack Compose equivalent of the following Android XML layout?"
 
 /**
- * Service that takes the content of an XML layout file as a string and returns the code of a
- * corresponding Jetpack Compose file, also as a string, wrapped in a [ConversionResponse] object.
- * This object also contains a [ConversionResponse.Status] indicating if the conversion succeeded.
+ * Service that takes the content of an XML layout file as a string and returns the code of a corresponding Jetpack Compose file, also as a
+ * string, wrapped in a [ConversionResponse] object. This object also contains a [ConversionResponse.Status] indicating if the conversion
+ * succeeded.
  *
- * The conversion is intended to be backed LLMs triggered using the Studio Bot API. [PROMPT_PREFIX]
- * is the query to be included when passing the layout to Studio Bot.
+ * The conversion is intended to be backed LLMs triggered using the Studio Bot API. [PROMPT_PREFIX] is the query to be included when passing
+ * the layout to Studio Bot.
  */
 interface XmlToComposeConverter : Disposable {
   suspend fun convertToCompose(xml: String): ConversionResponse

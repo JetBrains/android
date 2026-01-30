@@ -61,23 +61,24 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     get() = properties?.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
 
   private val properties: Properties?
-    get() = try {
-      PropertiesFiles.getProperties(propertiesFilePath)
-    } catch (e: IOException) {
-      LOG.error("Cannot read properties", e)
-      null
-    }
+    get() =
+      try {
+        PropertiesFiles.getProperties(propertiesFilePath)
+      } catch (e: IOException) {
+        LOG.error("Cannot read properties", e)
+        null
+      }
 
   val distributionSha256: String?
     get() = this.properties?.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM)
 
   /**
-   * Updates the distribution (URL and checksum) in the Gradle wrapper properties file.
-   * Unexpected errors that occur while updating the file will be displayed in an error dialog.
+   * Updates the distribution (URL and checksum) in the Gradle wrapper properties file. Unexpected errors that occur while updating the file
+   * will be displayed in an error dialog.
    *
    * @param gradleVersionString a String representing the Gradle version to update the property to.
-   * @return `true` if the distribution URL and sha256 were updated, or `false` if no update was
-   * necessary because the properties had correct values.
+   * @return `true` if the distribution URL and sha256 were updated, or `false` if no update was necessary because the properties had
+   *   correct values.
    */
   fun updateDistributionOrDisplayFailure(gradleVersionString: String): Boolean {
     try {
@@ -86,35 +87,33 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
       if (updated) {
         return true
       }
-    }
-    catch (e: IOException) {
-      val message = with(StringBuilder()) {
-        appendLine("Unable to update Gradle wrapper to use Gradle $gradleVersionString")
-        appendLine(e.message)
-        toString()
-      }
+    } catch (e: IOException) {
+      val message =
+        with(StringBuilder()) {
+          appendLine("Unable to update Gradle wrapper to use Gradle $gradleVersionString")
+          appendLine(e.message)
+          toString()
+        }
       Messages.showErrorDialog(project, message, "Unexpected Error")
-    }
-    catch (e: IllegalArgumentException) {
-      val message = with(StringBuilder()) {
-        appendLine("Invalid Gradle version $gradleVersionString")
-        appendLine(e.message)
-        toString()
-      }
+    } catch (e: IllegalArgumentException) {
+      val message =
+        with(StringBuilder()) {
+          appendLine("Invalid Gradle version $gradleVersionString")
+          appendLine(e.message)
+          toString()
+        }
       Messages.showErrorDialog(project, message, "Invalid Gradle Version")
     }
     return false
   }
 
   /**
-   * Updates the 'distributionUrl' & 'distributionSha256Sum' in the given Gradle wrapper properties file.
-   * It will attempt to preserve type of distribution already used (-all/-bin) based on filename.
-   * Update of the checksum is done on a best-effort basis. If no checksum can be found for the new
-   * distribution, there will be no 'distributionSha256Sum' property left after the update.
+   * Updates the 'distributionUrl' & 'distributionSha256Sum' in the given Gradle wrapper properties file. It will attempt to preserve type
+   * of distribution already used (-all/-bin) based on filename. Update of the checksum is done on a best-effort basis. If no checksum can
+   * be found for the new distribution, there will be no 'distributionSha256Sum' property left after the update.
    *
    * @param gradleVersion the Gradle version to update the property to.
-   * @return `true` if URL property was updated, or `false` if no update was necessary because
-   * the property already had the correct values.
+   * @return `true` if URL property was updated, or `false` if no update was necessary because the property already had the correct values.
    * @throws IOException if something goes wrong when reading/saving the properties file.
    */
   fun updateDistribution(gradleVersion: GradleVersion): Boolean {
@@ -142,13 +141,14 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
   }
 
   /**
-   * Updates the 'distributionUrl' and 'distributionSha256Sum' in the given Gradle wrapper properties file.
-   * For standard-named distributions, the SHA-256 hash will first be retrieved from a local list.
-   * If the distribution is a fork, the SHA-256 hash will be calculated instead.
+   * Updates the 'distributionUrl' and 'distributionSha256Sum' in the given Gradle wrapper properties file. For standard-named
+   * distributions, the SHA-256 hash will first be retrieved from a local list. If the distribution is a fork, the SHA-256 hash will be
+   * calculated instead.
    *
    * @param gradleDistribution A local gradle distribution file.
    * @return `true` if both properties were updated, or `false` if no update was necessary because
-   *    * the properties already had the correct values.
+   *     * the properties already had the correct values.
+   *
    * @throws IOException if something goes wrong when reading/saving the properties file.
    */
   @VisibleForTesting
@@ -158,17 +158,18 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     val properties = this.properties ?: throw IOException("Cannot read properties")
 
     // if the name matches official distribution - use it
-    val sha256 = if (distributionsChecksums.contains(gradleDistribution.name)) {
-      distributionsChecksums[gradleDistribution.name]
-    } else {
-      // otherwise if filename is not in the list - calculate SHA-256 of the file.
-      try {
-        Files.asByteSource(gradleDistribution).hash(Hashing.sha256()).toString()
-      } catch (e: IOException) {
-        LOG.warn("Cannot read $gradleDistribution for calculating of SHA-256.", e)
-        null
+    val sha256 =
+      if (distributionsChecksums.contains(gradleDistribution.name)) {
+        distributionsChecksums[gradleDistribution.name]
+      } else {
+        // otherwise if filename is not in the list - calculate SHA-256 of the file.
+        try {
+          Files.asByteSource(gradleDistribution).hash(Hashing.sha256()).toString()
+        } catch (e: IOException) {
+          LOG.warn("Cannot read $gradleDistribution for calculating of SHA-256.", e)
+          null
+        }
       }
-    }
     properties.setProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString())
     if (sha256 != null) {
       properties.setProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, sha256)
@@ -180,8 +181,8 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
   }
 
   /**
-   * Return the URL for the distribution of Gradle with version indicated by `gradleVersion`, preserving as
-   * much of the existing distributionUrl property, if any, as possible.
+   * Return the URL for the distribution of Gradle with version indicated by `gradleVersion`, preserving as much of the existing
+   * distributionUrl property, if any, as possible.
    *
    * @param gradleVersion the Gradle version to update to
    * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if the current URL is missing or unrecognized.
@@ -195,21 +196,15 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
 
   companion object {
     /**
-     * A map from Gradle distribution file names (e.g., "gradle-7.5-bin.zip") to their corresponding SHA-256 checksums.
-     * This is used to verify the integrity of the downloaded Gradle distribution.
-     * The checksums are loaded from the `gradle-sha256-list.txt` resource file.
+     * A map from Gradle distribution file names (e.g., "gradle-7.5-bin.zip") to their corresponding SHA-256 checksums. This is used to
+     * verify the integrity of the downloaded Gradle distribution. The checksums are loaded from the `gradle-sha256-list.txt` resource file.
      */
     @VisibleForTesting
     val distributionsChecksums: Map<String, String> by lazy {
-      val bytes = GradleWrapper::class.java.getResourceAsStream("/templates/project/gradle-sha256-list.txt")
-                    ?.readAllBytes() ?: return@lazy emptyMap()
+      val bytes =
+        GradleWrapper::class.java.getResourceAsStream("/templates/project/gradle-sha256-list.txt")?.readAllBytes() ?: return@lazy emptyMap()
       val content = String(bytes, StandardCharsets.UTF_8)
-      return@lazy content.lines()
-        .map { it.split(';') }
-        .filter { it.size == 2 }
-        .associate { (sha256, fileName) ->
-          fileName to sha256
-        }
+      return@lazy content.lines().map { it.split(';') }.filter { it.size == 2 }.associate { (sha256, fileName) -> fileName to sha256 }
     }
 
     private val GRADLEW_PROPERTIES_PATH: String = FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES)
@@ -217,8 +212,10 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
 
     @JvmStatic
     fun find(project: Project): GradleWrapper? {
-      val basePath = project.basePath ?: // Default project. Unlikely to happen.
-                     return null
+      val basePath =
+        project.basePath
+          ?: // Default project. Unlikely to happen.
+          return null
       val baseDir = File(basePath)
       val propertiesFilePath: File = getDefaultPropertiesFilePath(baseDir)
       return if (propertiesFilePath.isFile()) GradleWrapper(propertiesFilePath, project) else null
@@ -233,7 +230,7 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
      * Creates the Gradle wrapper in the project at the given directory.
      *
      * @param projectPath the project's root directory.
-     * @param project     the project, if available, or null if this is not in the context of an existing project.
+     * @param project the project, if available, or null if this is not in the context of an existing project.
      * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
      * @throws IOException any unexpected I/O error.
      * @see StudioFlags.AGP_VERSION_TO_USE
@@ -246,54 +243,46 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     /**
      * Creates the Gradle wrapper in the project at the given directory.
      *
-     * @param projectPath   the project's root directory.
+     * @param projectPath the project's root directory.
      * @param gradleVersion the version of Gradle to use.
-     * @param project       the project, if available, or null if this is not in the context of an existing project.
+     * @param project the project, if available, or null if this is not in the context of an existing project.
      * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
      * @throws IOException any unexpected I/O error.
      */
     @JvmStatic
     fun create(projectPath: File, gradleVersion: GradleVersion, project: Project?): GradleWrapper {
-      val projectDirVirtualFile = VfsUtil.findFileByIoFile(projectPath, true) ?: throw IOException(
-        "Not existent project path: $projectPath")
+      val projectDirVirtualFile =
+        VfsUtil.findFileByIoFile(projectPath, true) ?: throw IOException("Not existent project path: $projectPath")
       return create(projectDirVirtualFile, gradleVersion, project)
     }
 
     /**
      * Creates the Gradle wrapper in the project at the given directory.
      *
-     * @param projectPath   the project's root directory.
+     * @param projectPath the project's root directory.
      * @param gradleVersion the version of Gradle to use.
-     * @param project       the project, if available, or null if this is not in the context of an existing project.
+     * @param project the project, if available, or null if this is not in the context of an existing project.
      * @return an instance of `GradleWrapper` if the project already has the wrapper or the wrapper was successfully created.
      * @throws IOException any unexpected I/O error.
      */
-    fun create(
-      projectPath: VirtualFile,
-      gradleVersion: GradleVersion,
-      project: Project?
-    ): GradleWrapper {
-      WriteAction.computeAndWait<Any?, IOException?>(ThrowableComputable {
-        if (projectPath.findFileByRelativePath(SdkConstants.FD_GRADLE_WRAPPER) == null) {
-          val wrapperVf: VirtualFile = wrapperLocation
-          val sourceRootUrl = wrapperVf.url
-          VfsUtil.copyDirectory(
-            GradleWrapper::class.java,
-            wrapperVf,
-            projectPath
-          ) {
-            projectPath.findFileByRelativePath(
-              it.url.substring(sourceRootUrl.length)
-            ) == null
+    fun create(projectPath: VirtualFile, gradleVersion: GradleVersion, project: Project?): GradleWrapper {
+      WriteAction.computeAndWait<Any?, IOException?>(
+        ThrowableComputable {
+          if (projectPath.findFileByRelativePath(SdkConstants.FD_GRADLE_WRAPPER) == null) {
+            val wrapperVf: VirtualFile = wrapperLocation
+            val sourceRootUrl = wrapperVf.url
+            VfsUtil.copyDirectory(GradleWrapper::class.java, wrapperVf, projectPath) {
+              projectPath.findFileByRelativePath(it.url.substring(sourceRootUrl.length)) == null
+            }
+            val gradlewDestination = projectPath.findChild(SdkConstants.FN_GRADLE_WRAPPER_UNIX)
+            val madeExecutable = gradlewDestination != null && File(gradlewDestination.path).setExecutable(true)
+            if (!madeExecutable) {
+              Logger.getInstance(GradleWrapper::class.java).warn("Unable to make gradlew executable")
+            }
           }
-          val gradlewDestination = projectPath.findChild(SdkConstants.FN_GRADLE_WRAPPER_UNIX)
-          val madeExecutable = gradlewDestination != null && File(gradlewDestination.path).setExecutable(true)
-          if (!madeExecutable) {
-            Logger.getInstance(GradleWrapper::class.java).warn("Unable to make gradlew executable")
-          }
+          null
         }
-        null
-      })
+      )
       val propertiesFilePath: File = getDefaultPropertiesFilePath(File(projectPath.getPath()))
       val gradleWrapper: GradleWrapper = get(propertiesFilePath, project)
       gradleWrapper.updateDistribution(gradleVersion)
@@ -352,8 +341,8 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     }
 
     /**
-     * Return the URL for the distribution of Gradle with version indicated by {@param gradleVersion}, preserving as
-     * much of the existing {@param url} property, if any, as possible.
+     * Return the URL for the distribution of Gradle with version indicated by {@param gradleVersion}, preserving as much of the existing
+     * {@param url} property, if any, as possible.
      *
      * @param url the URL of the Gradle distribution to use as a basis.
      * @param gradleVersion the new Gradle version to use.
@@ -364,19 +353,16 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
       if (url == null) {
         // No idea about the current URL: return the default URL.
         return getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
-      }
-      else if (url.contains("://services.gradle.org/")) {
+      } else if (url.contains("://services.gradle.org/")) {
         val m: Matcher = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url)
         return if (m.matches()) {
           // Return the canonical URL, preserving the -bin/-all suffix.
           getDistributionUrl(gradleVersion, "bin" == m.group(3))
-        }
-        else {
+        } else {
           // The current URL doesn't match; can't update, so return the default URL.
           getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
         }
-      }
-      else {
+      } else {
         val m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url)
         if (m.matches()) {
           // Return the current URL with the new version number spliced in.
@@ -385,8 +371,7 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
           sb.append(gradleVersion.version)
           sb.append(url, if (m.end(2) == -1) m.end(1) else m.end(2), url.length)
           return sb.toString()
-        }
-        else {
+        } else {
           // The current URL doesn't match; can't update, so return the default URL.
           return getDistributionUrl(gradleVersion, binOnlyIfCurrentlyUnknown)
         }
@@ -394,8 +379,8 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     }
 
     /**
-     * @param useBinaryOnlyDistribution - when true this will use -bin distribution (only binaries),
-     * otherwise the -all distribution (binaries + source code & documentation).
+     * @param useBinaryOnlyDistribution - when true this will use -bin distribution (only binaries), otherwise the -all distribution
+     *   (binaries + source code & documentation).
      */
     @JvmStatic
     fun getDistributionUrl(gradleVersion: GradleVersion, useBinaryOnlyDistribution: Boolean): String {
@@ -415,8 +400,7 @@ class GradleWrapper private constructor(val propertiesFilePath: File, private va
     @JvmStatic
     fun getDistributionSha256(gradleVersion: GradleVersion, useBinaryOnlyDistribution: Boolean): String? {
       val distributionUrl = getDistributionUrl(gradleVersion, useBinaryOnlyDistribution)
-      val distributionFile = distributionUrl.substringAfterLast("/").takeIf { it.endsWith(".zip") }
-                             ?: return null
+      val distributionFile = distributionUrl.substringAfterLast("/").takeIf { it.endsWith(".zip") } ?: return null
       return distributionsChecksums[distributionFile]
     }
   }

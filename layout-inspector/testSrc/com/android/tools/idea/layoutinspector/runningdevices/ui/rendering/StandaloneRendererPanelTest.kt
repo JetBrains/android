@@ -71,9 +71,7 @@ class StandaloneRendererPanelTest {
   private val inspectorModel: InspectorModel
     get() =
       model(disposable) {
-        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-          view(VIEW1, 50, 50, 50, 50) { image() }
-        }
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) { view(VIEW1, 50, 50, 50, 50) { image() } }
       }
 
   @Test
@@ -106,23 +104,16 @@ class StandaloneRendererPanelTest {
 
     // 100% scale
     renderSettings.scalePercent = 100
-    assertThat(renderer.preferredSize)
-      .isEqualTo(Dimension(deviceScreenDimension.width, deviceScreenDimension.height))
+    assertThat(renderer.preferredSize).isEqualTo(Dimension(deviceScreenDimension.width, deviceScreenDimension.height))
 
     // 200% scale
     renderSettings.scalePercent = 200
-    assertThat(renderer.preferredSize)
-      .isEqualTo(Dimension((deviceScreenDimension.width * 2), (deviceScreenDimension.height * 2)))
+    assertThat(renderer.preferredSize).isEqualTo(Dimension((deviceScreenDimension.width * 2), (deviceScreenDimension.height * 2)))
 
     // 50% scale
     renderSettings.scalePercent = 50
     assertThat(renderer.preferredSize)
-      .isEqualTo(
-        Dimension(
-          (deviceScreenDimension.width * 0.5).toInt(),
-          (deviceScreenDimension.height * 0.5).toInt(),
-        )
-      )
+      .isEqualTo(Dimension((deviceScreenDimension.width * 0.5).toInt(), (deviceScreenDimension.height * 0.5).toInt()))
   }
 
   @Test
@@ -172,8 +163,7 @@ class StandaloneRendererPanelTest {
   @Test
   fun testChangingRootBoundsUpdatesCentering() {
     // Model with a different root size
-    val smallRootModel =
-      model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 20, 20) { image() } } }
+    val smallRootModel = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 20, 20) { image() } } }
 
     val (_, renderer) = createRenderer(inspectorModel = smallRootModel)
     renderer.setSize(screenDimension.width, screenDimension.height)
@@ -186,10 +176,7 @@ class StandaloneRendererPanelTest {
   private fun paint(image: BufferedImage, renderer: StandaloneRendererPanel) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.fillRect(
-      Rectangle(0, 0, screenDimension.width, screenDimension.height),
-      backgroundColor,
-    )
+    graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), backgroundColor)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     renderer.paint(graphics)
     graphics.dispose()
@@ -208,8 +195,7 @@ class StandaloneRendererPanelTest {
         navigateToSelectedViewOnDoubleClick = {},
       )
 
-    val panel =
-      StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
+    val panel = StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
 
     return Pair(renderModel, panel)
   }
@@ -219,16 +205,8 @@ class StandaloneRendererPanelTest {
     return BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
   }
 
-  private fun assertSimilar(
-    renderImage: BufferedImage,
-    imageName: String,
-    maxDiff: Double = DIFF_THRESHOLD,
-  ) {
+  private fun assertSimilar(renderImage: BufferedImage, imageName: String, maxDiff: Double = DIFF_THRESHOLD) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
-    ImageDiffUtil.assertImageSimilar(
-      resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
-      renderImage,
-      maxDiff,
-    )
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, maxDiff)
   }
 }

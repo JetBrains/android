@@ -37,16 +37,12 @@ import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations.initMocks
 
-/**
- * Tests for [ShowBuildFilesInModuleAction].
- */
+/** Tests for [ShowBuildFilesInModuleAction]. */
 class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
 
-  @Mock
-  private lateinit var myEvent: AnActionEvent
+  @Mock private lateinit var myEvent: AnActionEvent
 
-  @Mock
-  private lateinit var myViewPane: AbstractProjectViewPane
+  @Mock private lateinit var myViewPane: AbstractProjectViewPane
 
   @Mock lateinit var myProjectView: ProjectView
 
@@ -57,7 +53,7 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
     super.setUp()
     initMocks(this)
 
-     myPresentation = Presentation()
+    myPresentation = Presentation()
     `when`(myEvent.presentation).thenReturn(myPresentation)
     `when`(myEvent.project).thenReturn(myProject)
   }
@@ -72,8 +68,7 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
 
   fun testActionVisibility() {
     val mockedStaticProjectView: MockedStatic<ProjectView> = mockStatic(ProjectView::class.java)
-    mockedStaticProjectView.`when`<ProjectView> { ProjectView.getInstance(project) }
-      .thenReturn(myProjectView)
+    mockedStaticProjectView.`when`<ProjectView> { ProjectView.getInstance(project) }.thenReturn(myProjectView)
     `when`(myViewPane.id).thenReturn(ANDROID_VIEW_ID)
     `when`(myProjectView.currentProjectViewPane).thenReturn(myViewPane)
     val action = ShowBuildFilesInModuleAction()
@@ -106,17 +101,26 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
     val action = ShowBuildFilesInModuleAction()
     action.setSelected(myEvent, true)
     assert(settings.showBuildFilesInModule)
-    val usage = testUsageTracker.usages.map {it.studioEvent }.first()
+    val usage = testUsageTracker.usages.map { it.studioEvent }.first()
     assertEquals(usage.kind, AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
-    assertEquals(usage.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule, AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE)
+    assertEquals(
+      usage.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule,
+      AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE,
+    )
 
     action.setSelected(myEvent, false)
     assertFalse(settings.showBuildFilesInModule)
-    val usage2 = testUsageTracker.usages.map {it.studioEvent }.last()
+    val usage2 = testUsageTracker.usages.map { it.studioEvent }.last()
     assertEquals(usage2.kind, AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
-    assertEquals(usage2.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule, AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE)
+    assertEquals(
+      usage2.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule,
+      AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE,
+    )
 
-    val statsEvents = testUsageTracker.usages.map {it.studioEvent }.filter { it.kind == AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT }
+    val statsEvents =
+      testUsageTracker.usages
+        .map { it.studioEvent }
+        .filter { it.kind == AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT }
     assertSize(2, statsEvents)
 
     UsageTracker.cleanAfterTesting()

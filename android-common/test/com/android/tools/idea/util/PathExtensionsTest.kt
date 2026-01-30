@@ -15,29 +15,29 @@
  */
 package com.android.tools.idea.util
 
-import com.android.testutils.AssumeUtil.assumeWindows
 import com.android.testutils.AssumeUtil.assumeIsLinux
+import com.android.testutils.AssumeUtil.assumeWindows
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import org.junit.Rule
-import org.junit.Test
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for `PathExtensions` file
- */
+/** Tests for `PathExtensions` file */
 class PathExtensionsTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
 
-  private val project get() = projectRule.project
-  private val projectRoot get() = project.guessProjectDir()!!.toNioPath()
+  private val project
+    get() = projectRule.project
+
+  private val projectRoot
+    get() = project.guessProjectDir()!!.toNioPath()
 
   @Test
   fun relativeToProject_notInProject_linux() {

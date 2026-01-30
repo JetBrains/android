@@ -24,17 +24,16 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertFailsWith
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertFailsWith
 
 class GradleProjectSystemAutoSyncTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   fun setup() {
@@ -52,17 +51,20 @@ class GradleProjectSystemAutoSyncTest {
   @Test
   fun `Auto-sync disabled and request does not come from user directly`() {
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
-    val failure = assertFailsWith<RuntimeException> {
-      projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED).get()
-    }
-    assertThat(failure.cause?.message).isEqualTo(
-      "Some critical Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure Android Studio presents complete and up-to-date information for your project. You can snooze sync notifications for this session.")
+    val failure =
+      assertFailsWith<RuntimeException> {
+        projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED).get()
+      }
+    assertThat(failure.cause?.message)
+      .isEqualTo(
+        "Some critical Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure Android Studio presents complete and up-to-date information for your project. You can snooze sync notifications for this session."
+      )
   }
 
   @Test
   fun `Auto-sync disabled and request comes from user directly`() {
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
-    assertThat(projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()).isEqualTo(
-      SyncResult.SUCCESS)
+    assertThat(projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get())
+      .isEqualTo(SyncResult.SUCCESS)
   }
 }

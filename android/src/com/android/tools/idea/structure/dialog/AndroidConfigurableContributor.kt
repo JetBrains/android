@@ -23,7 +23,6 @@ abstract class AndroidConfigurableContributor {
   abstract fun getConfigurables(project: Project, parentDisposable: Disposable): List<ProjectStructureItemGroup>
 
   companion object {
-    @JvmStatic
-    val EP_NAME = ExtensionPointName.create<AndroidConfigurableContributor>("com.android.ide.androidConfigurableContributor")
+    @JvmStatic val EP_NAME = ExtensionPointName.create<AndroidConfigurableContributor>("com.android.ide.androidConfigurableContributor")
   }
 }

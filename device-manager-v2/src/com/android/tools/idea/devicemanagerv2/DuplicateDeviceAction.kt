@@ -25,8 +25,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class DuplicateDeviceAction :
-  DumbAwareAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
+class DuplicateDeviceAction : DumbAwareAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -39,8 +38,6 @@ class DuplicateDeviceAction :
 
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_DUPLICATE_ACTION)
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) {
-      duplicateAction.duplicate(e.componentToRestoreFocusTo())
-    }
+    deviceHandle.launchCatchingDeviceActionException(project = e.project) { duplicateAction.duplicate(e.componentToRestoreFocusTo()) }
   }
 }

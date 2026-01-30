@@ -8,8 +8,7 @@ import org.junit.Test
 
 /** Tests for [LogcatFileData] */
 class LogcatFileDataTest {
-  private val device =
-    Device.createPhysical("device", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device = Device.createPhysical("device", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
 
   @Test
   fun safeGetFilter_noMine() {
@@ -43,8 +42,7 @@ class LogcatFileDataTest {
   fun safeGetFilter_withMineAndMultipleProjectPackagesAndMoreFilters() {
     val packages = setOf("package1", "package2")
     val data = LogcatFileData(Metadata(device, "foo package:mine tag:Bar", packages), emptyList())
-    assertThat(data.safeGetFilter(emptySet()))
-      .isEqualTo("foo (package:package1 | package:package2) tag:Bar")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("foo (package:package1 | package:package2) tag:Bar")
   }
 
   @Test

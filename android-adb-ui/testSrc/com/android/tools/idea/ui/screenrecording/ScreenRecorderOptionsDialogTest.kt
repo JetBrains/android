@@ -28,14 +28,14 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JEditorPane
 import javax.swing.JTextField
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [ScreenRecorderOptionsDialog]. */
 @RunsInEdt
@@ -43,13 +43,14 @@ class ScreenRecorderOptionsDialogTest {
 
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
 
   private val project: Project
     get() = projectRule.project
+
   private val testRootDisposable
     get() = projectRule.disposable
+
   private val settings by lazy { DeviceScreenRecordingSettings.getInstance() }
 
   @Before

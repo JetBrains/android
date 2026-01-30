@@ -43,11 +43,7 @@ data class DevServicesDeprecationData(
   fun isSupported() = status == SUPPORTED
 
   fun formattedDate(): String =
-    date?.let {
-      DateFormatUtil.formatDate(
-        java.util.Date.from(it.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
-      )
-    } ?: ""
+    date?.let { DateFormatUtil.formatDate(java.util.Date.from(it.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())) } ?: ""
 
   companion object {
     val EMPTY = DevServicesDeprecationData("", "", "", false, SUPPORTED)

@@ -25,9 +25,7 @@ abstract class ModelCollectionPropertyBase<ModelT, out ResolvedT, ParsedT, in Co
   abstract val getter: ResolvedPropertyModel.() -> ValueT?
   abstract val setter: ResolvedPropertyModel.(ValueT) -> Unit
 
-  protected fun ModelT.getParsedProperty(): ResolvedPropertyModel? = modelDescriptor
-      .getParsed(this)
-      ?.parsedPropertyGetter()
+  protected fun ModelT.getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(this)?.parsedPropertyGetter()
 
   fun setParsedValue(model: ModelT, value: ParsedValue<CollectionT>) {
     model.modify {
@@ -51,7 +49,7 @@ abstract class ModelCollectionPropertyBase<ModelT, out ResolvedT, ParsedT, in Co
     }
   }
 
-  protected fun <T> ModelT.modify(modifier: ModelT.() -> T) : T {
+  protected fun <T> ModelT.modify(modifier: ModelT.() -> T): T {
     modelDescriptor.prepareForModification(this)
     val result = modifier()
     modelDescriptor.setModified(this)
@@ -64,19 +62,29 @@ fun <T : Any> makeItemPropertyCore(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   resolvedValueGetter: () -> ResolvedValue<T>,
-  matcher: (parsedValue: T?, resolvedValue: T)-> Boolean,
-  modifier: (() -> Unit) -> Unit
-): ModelPropertyCore<T> = object: ModelPropertyCoreImpl<T>(), ModelPropertyCore<T> {
-  override val description: String get() = ""
-  override fun getParsedPropertyForRead(): ResolvedPropertyModel? = resolvedProperty
-  override fun getParsedPropertyForWrite(): ResolvedPropertyModel = resolvedProperty
-  override val getter: ResolvedPropertyModel.() -> T? = getter
-  override val setter: ResolvedPropertyModel.(T) -> Unit = setter
-  override val nullifier: ResolvedPropertyModel.() -> Unit = { setValue("") }
-  override fun modify(block: () -> Unit) = modifier(block)
-  override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
-  override val defaultValueGetter: (() -> T?)? = null
-  override val variableScope: (() -> PsVariablesScope?)? = null
-  override val isModified: Boolean? get() = resolvedProperty.isModified
-  override fun parsedAndResolvedValuesAreEqual(parsedValue: T?, resolvedValue: T): Boolean = matcher(parsedValue, resolvedValue)
-}
+  matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
+  modifier: (() -> Unit) -> Unit,
+): ModelPropertyCore<T> =
+  object : ModelPropertyCoreImpl<T>(), ModelPropertyCore<T> {
+    override val description: String
+      get() = ""
+
+    override fun getParsedPropertyForRead(): ResolvedPropertyModel? = resolvedProperty
+
+    override fun getParsedPropertyForWrite(): ResolvedPropertyModel = resolvedProperty
+
+    override val getter: ResolvedPropertyModel.() -> T? = getter
+    override val setter: ResolvedPropertyModel.(T) -> Unit = setter
+    override val nullifier: ResolvedPropertyModel.() -> Unit = { setValue("") }
+
+    override fun modify(block: () -> Unit) = modifier(block)
+
+    override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
+
+    override val defaultValueGetter: (() -> T?)? = null
+    override val variableScope: (() -> PsVariablesScope?)? = null
+    override val isModified: Boolean?
+      get() = resolvedProperty.isModified
+
+    override fun parsedAndResolvedValuesAreEqual(parsedValue: T?, resolvedValue: T): Boolean = matcher(parsedValue, resolvedValue)
+  }

@@ -52,22 +52,11 @@ class GlanceScreenViewProviderTest {
 
   @Test
   fun testNoSecondarySceneView() {
-    Assert.assertNull(
-      GLANCE_SCREEN_VIEW_PROVIDER.createSecondarySceneView(
-        surface,
-        surface.getSceneManager(surface.model!!)!!,
-      )
-    )
+    Assert.assertNull(GLANCE_SCREEN_VIEW_PROVIDER.createSecondarySceneView(surface, surface.getSceneManager(surface.model!!)!!))
   }
 
   @Test
   fun testNotResizable() {
-    Assert.assertFalse(
-      GLANCE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(
-          surface,
-          surface.getSceneManager(surface.model!!)!!,
-        )
-        .isResizeable
-    )
+    Assert.assertFalse(GLANCE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.getSceneManager(surface.model!!)!!).isResizeable)
   }
 }

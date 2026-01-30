@@ -40,11 +40,7 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     GradleDetector.AGP_DEPENDENCY,
   ) {
 
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    incident: Incident,
-  ): Array<LintIdeQuickFix> {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, incident: Incident): Array<LintIdeQuickFix> {
     val fixes = super.getQuickFixes(startElement, endElement, incident)
     val agpUpgradeInfo = LintIdeSupport.get().computeAgpUpgradeInfo(startElement.project)
     return when {
@@ -56,31 +52,17 @@ class AndroidLintAndroidGradlePluginVersionInspection :
   }
 
   class InvokeAGPUpgradeAssistantQuickFix(private val info: AgpUpgradeInfo) :
-    DefaultLintQuickFix(
-      "Invoke AGP Upgrade Assistant${if (info.agpVersion != null) " for upgrade to ${info.agpVersion}" else ""}"
-    ) {
+    DefaultLintQuickFix("Invoke AGP Upgrade Assistant${if (info.agpVersion != null) " for upgrade to ${info.agpVersion}" else ""}") {
 
-    override fun apply(
-      startElement: PsiElement,
-      endElement: PsiElement,
-      context: AndroidQuickfixContexts.Context,
-    ) {
+    override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
       LintIdeSupport.get().upgradeAgp(info)
     }
 
-    override fun generatePreview(
-      project: Project,
-      editor: Editor,
-      file: PsiFile,
-    ): IntentionPreviewInfo? {
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo? {
       return IntentionPreviewInfo.EMPTY
     }
 
-    override fun isApplicable(
-      startElement: PsiElement,
-      endElement: PsiElement,
-      contextType: ContextType,
-    ): Boolean = true
+    override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
   }
 }
 

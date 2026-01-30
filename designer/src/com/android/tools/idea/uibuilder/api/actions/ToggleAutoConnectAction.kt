@@ -37,12 +37,7 @@ class ToggleAutoConnectAction :
     AUTO_CONNECTION_OFF_TOOLTIP,
   ) {
 
-  override fun isSelected(
-    editor: ViewEditor,
-    handler: ViewHandler,
-    parent: NlComponent,
-    selectedChildren: List<NlComponent>,
-  ) =
+  override fun isSelected(editor: ViewEditor, handler: ViewHandler, parent: NlComponent, selectedChildren: List<NlComponent>) =
     PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
 
   override fun setSelected(
@@ -56,15 +51,13 @@ class ToggleAutoConnectAction :
     if (analyticsManager != null) {
       analyticsManager.trackToggleAutoConnect(selected)
     }
-    PropertiesComponent.getInstance()
-      .setValue(AUTO_CONNECT_PREF_KEY, selected, DEFAULT_AUTO_CONNECT_VALUE)
+    PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, DEFAULT_AUTO_CONNECT_VALUE)
   }
 
   companion object {
     @JvmStatic
     fun isAutoconnectOn(): Boolean {
-      return PropertiesComponent.getInstance()
-        .getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
+      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
     }
   }
 }

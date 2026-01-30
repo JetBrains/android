@@ -49,9 +49,7 @@ import org.junit.runners.model.Statement
 
 private val COMPILE_SDK_VERSION = AndroidApiLevel(35)
 
-/**
- * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
- */
+/** [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests. */
 private class ComposeGradleProjectRuleImpl(
   private val projectPath: String,
   private val testDataPath: String,
@@ -62,10 +60,7 @@ private class ComposeGradleProjectRuleImpl(
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
-    projectRule.load(
-      projectPath,
-      AGP_CURRENT.withCompileSdk(COMPILE_SDK_VERSION).withTargetSdk(COMPILE_SDK_VERSION),
-    )
+    projectRule.load(projectPath, AGP_CURRENT.withCompileSdk(COMPILE_SDK_VERSION).withTargetSdk(COMPILE_SDK_VERSION))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
@@ -83,18 +78,14 @@ private class ComposeGradleProjectRuleImpl(
   }
 }
 
-/**
- * A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct
- * setup for rendering Compose elements.
- */
+/** A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct setup for rendering Compose elements. */
 open class ComposeGradleProjectRule(
   projectPath: String,
   testDataPath: String = TEST_DATA_PATH,
   private val projectRule: AndroidGradleProjectRule =
     AndroidGradleProjectRule(
       agpVersionSoftwareEnvironment =
-        AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withTargetSdk(COMPILE_SDK_VERSION)
-          .withCompileSdk(COMPILE_SDK_VERSION)
+        AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withTargetSdk(COMPILE_SDK_VERSION).withCompileSdk(COMPILE_SDK_VERSION)
     ),
 ) : ComposeProjectBasedTestRule {
   override val project: Project
@@ -112,8 +103,7 @@ open class ComposeGradleProjectRule(
 
   fun androidFacet(gradlePath: String) = projectRule.mainAndroidFacet(gradlePath)
 
-  override fun apply(base: Statement, description: Description): Statement =
-    delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 
   fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
 
@@ -121,11 +111,7 @@ open class ComposeGradleProjectRule(
     val invocationResult =
       project.buildAndWait() { invoker ->
         invoker.executeTasks(
-          GradleBuildInvoker.Request.builder(
-              project,
-              File(project.basePath!!),
-              "compileDebugSources",
-            )
+          GradleBuildInvoker.Request.builder(project, File(project.basePath!!), "compileDebugSources")
             .setMode(BuildMode.COMPILE_JAVA)
             .build()
         )

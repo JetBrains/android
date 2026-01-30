@@ -22,9 +22,7 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.WhsDataValue
 
 /** Fake implementation of [WearHealthServicesDeviceManager] for testing. */
-internal class FakeDeviceManager(
-  internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES
-) : WearHealthServicesDeviceManager {
+internal class FakeDeviceManager(internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
@@ -40,17 +38,14 @@ internal class FakeDeviceManager(
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
     failOrWrapResult(Unit).also {
       capabilityUpdates.forEach { (dataType, enabled) ->
-        onDeviceStates[dataType] =
-          if (enabled) onDeviceStates[dataType]!!.enable() else onDeviceStates[dataType]!!.disable()
+        onDeviceStates[dataType] = if (enabled) onDeviceStates[dataType]!!.enable() else onDeviceStates[dataType]!!.disable()
       }
     }
 
   override suspend fun overrideValues(overrideUpdates: List<WhsDataValue>) =
     failOrWrapResult(Unit).also {
       overrideValuesInvocations++
-      overrideUpdates.forEach {
-        onDeviceStates[it.type] = CapabilityState(onDeviceStates[it.type]!!.enabled, it)
-      }
+      overrideUpdates.forEach { onDeviceStates[it.type] = CapabilityState(onDeviceStates[it.type]!!.enabled, it) }
     }
 
   override suspend fun loadCurrentCapabilityStates() = failOrWrapResult(onDeviceStates)
@@ -63,8 +58,7 @@ internal class FakeDeviceManager(
 
   override fun setSerialNumber(serialNumber: String) {}
 
-  override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    failOrWrapResult(triggeredEvents.add(eventTrigger)).map {}
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) = failOrWrapResult(triggeredEvents.add(eventTrigger)).map {}
 
   private fun <T> failOrWrapResult(value: T) =
     if (failState) {

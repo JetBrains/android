@@ -31,12 +31,7 @@ class EditTextHandlerTest : LayoutTestCase() {
             .id("@id/linear")
             .matchParentWidth()
             .matchParentHeight()
-            .children(
-              component(SdkConstants.EDIT_TEXT)
-                .withBounds(0, 0, 200, 200)
-                .wrapContentHeight()
-                .wrapContentWidth()
-            ),
+            .children(component(SdkConstants.EDIT_TEXT).withBounds(0, 0, 200, 200).wrapContentHeight().wrapContentWidth()),
         )
         .build()
     val editText = model.treeReader.components.get(0).getChild(0)!!
@@ -62,15 +57,11 @@ class EditTextHandlerTest : LayoutTestCase() {
     assertTrue(existIds.contains(expected))
 
     // Test input type attribute cases.
-    NlWriteCommandActionUtil.run(editText, "") {
-      editText.removeAndroidAttribute(SdkConstants.ATTR_ID)
-    }
+    NlWriteCommandActionUtil.run(editText, "") { editText.removeAndroidAttribute(SdkConstants.ATTR_ID) }
 
     val inputTypeValue = "testInputType"
     expected = baseId + StringUtil.capitalize(inputTypeValue)
-    NlWriteCommandActionUtil.run(editText, "") {
-      editText.setAndroidAttribute(SdkConstants.ATTR_INPUT_TYPE, inputTypeValue)
-    }
+    NlWriteCommandActionUtil.run(editText, "") { editText.setAndroidAttribute(SdkConstants.ATTR_INPUT_TYPE, inputTypeValue) }
     NlWriteCommandActionUtil.run(editText, "") { editText.incrementId(existIds) }
     assertEquals(expected, editText.id)
     assertTrue(existIds.contains(baseId + StringUtil.capitalize(inputTypeValue)))

@@ -19,20 +19,20 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 
-class MapPropertyTransform(val propertyName:String): PropertyTransform() {
+class MapPropertyTransform(val propertyName: String) : PropertyTransform() {
   override fun test(e: GradleDslElement?, holder: GradleDslElement): Boolean = e is GradleDslExpressionMap
 
-  override fun transform(e: GradleDslElement?): GradleDslElement? =
-    (e as? GradleDslExpressionMap)?.getElement(propertyName)
+  override fun transform(e: GradleDslElement?): GradleDslElement? = (e as? GradleDslExpressionMap)?.getElement(propertyName)
 
   override fun bind(holder: GradleDslElement, oldElement: GradleDslElement?, value: Any, name: String): GradleDslExpression? =
     (oldElement as? GradleDslExpressionMap)?.setNewLiteral(propertyName, value)
 
-
-  override fun replace(holder: GradleDslElement,
-                       oldElement: GradleDslElement?,
-                       newElement: GradleDslExpression,
-                       name: String): GradleDslElement? {
+  override fun replace(
+    holder: GradleDslElement,
+    oldElement: GradleDslElement?,
+    newElement: GradleDslExpression,
+    name: String,
+  ): GradleDslElement? {
     val map = oldElement as? GradleDslExpressionMap ?: return null
     map.setNewElement(newElement)
     return newElement

@@ -51,8 +51,7 @@ private constructor(
       companionAppId: String,
       watchNodeId: String,
     ): NonInteractivePairing {
-      val nonInteractivePairing =
-        NonInteractivePairing(parentDisposable, phone, watchAvdName, companionAppId, watchNodeId)
+      val nonInteractivePairing = NonInteractivePairing(parentDisposable, phone, watchAvdName, companionAppId, watchNodeId)
       nonInteractivePairing.startPairing()
       return nonInteractivePairing
     }
@@ -62,12 +61,7 @@ private constructor(
     logReaderJob =
       AndroidCoroutineScope(parentDisposable).launch(Dispatchers.IO) {
         try {
-          phone.executeShellCommand(
-            "logcat -T 1",
-            this@NonInteractivePairing,
-            0,
-            TimeUnit.MILLISECONDS,
-          )
+          phone.executeShellCommand("logcat -T 1", this@NonInteractivePairing, 0, TimeUnit.MILLISECONDS)
         } catch (e: Throwable) {
           _pairingState.value = PairingState.INTERNAL_ERROR
           throw e

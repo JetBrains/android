@@ -55,25 +55,21 @@ import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.sourcePsiElement
 
-private val PreviewCheckResultKey =
-  Key.create<Pair<String, CheckResult>>(DeviceSpecCheck::class.java.canonicalName)
+private val PreviewCheckResultKey = Key.create<Pair<String, CheckResult>>(DeviceSpecCheck::class.java.canonicalName)
 
 /**
- * Singleton that provides methods to verify the correctness of the `device` parameter within an
- * annotation. This class assumes that the validity of the annotation is verified upstream.
+ * Singleton that provides methods to verify the correctness of the `device` parameter within an annotation. This class assumes that the
+ * validity of the annotation is verified upstream.
  */
 object DeviceSpecCheck {
   /** [CheckResult] for a check that did not identify any issues. */
   private val Passed: CheckResult = CheckResult(emptyList(), null)
 
-  /**
-   * Creates a [CheckResult] for failures that are not dependent on user input. Ie: System failures
-   */
+  /** Creates a [CheckResult] for failures that are not dependent on user input. Ie: System failures */
   private fun failedCheck(description: String) = CheckResult(listOf(Failure(description)), null)
 
   /**
-   * Checks if a [UAnnotation] element that has a `device` attribute has any issues with that
-   * attribute.
+   * Checks if a [UAnnotation] element that has a `device` attribute has any issues with that attribute.
    *
    * @see checkDeviceSpec
    */
@@ -82,8 +78,7 @@ object DeviceSpecCheck {
   }
 
   /**
-   * Takes a [UAnnotation] element that has a `device` attribute and returns a [ProblemDescriptor]
-   * if any issue is found.
+   * Takes a [UAnnotation] element that has a `device` attribute and returns a [ProblemDescriptor] if any issue is found.
    *
    * @param defaultDeviceId the device id to suggest to the user in case of an issue
    * @see checkDeviceSpec
@@ -109,10 +104,8 @@ object DeviceSpecCheck {
           Unknown::class -> message("preview.device.spec.lint.error.unknown")
           Repeated::class -> message("preview.device.spec.lint.error.repeated")
           Failure::class -> {
-            val failureMessage =
-              entry.value.filterIsInstance<Failure>().joinToString("\n") { it.failureMessage }
-            Logger.getInstance(DeviceSpecCheck::class.java)
-              .warn("Failed when checking annotation: $failureMessage")
+            val failureMessage = entry.value.filterIsInstance<Failure>().joinToString("\n") { it.failureMessage }
+            Logger.getInstance(DeviceSpecCheck::class.java).warn("Failed when checking annotation: $failureMessage")
             return@forEach
           }
           else -> return@forEach
@@ -128,8 +121,7 @@ object DeviceSpecCheck {
     if (messageBuffer.isNotEmpty() && result.proposedFix != null) {
       val message = messageBuffer.toString().trim()
 
-      val deviceValueExpression =
-        annotation.findDeclaredAttributeValue("device")?.sourcePsiElement ?: return null
+      val deviceValueExpression = annotation.findDeclaredAttributeValue("device")?.sourcePsiElement ?: return null
 
       val deviceValueElement =
         when (deviceValueExpression) {
@@ -140,11 +132,7 @@ object DeviceSpecCheck {
           is PsiLiteral -> deviceValueExpression
           else -> {
             // Otherwise, highlight the string literal itself.
-            PsiTreeUtil.findChildOfType(
-              deviceValueExpression,
-              KtLiteralStringTemplateEntry::class.java,
-              false,
-            ) ?: return null
+            PsiTreeUtil.findChildOfType(deviceValueExpression, KtLiteralStringTemplateEntry::class.java, false) ?: return null
           }
         }
 
@@ -162,33 +150,24 @@ object DeviceSpecCheck {
   /**
    * Takes a [UAnnotation] element that has a `device` parameter.
    *
-   * Returns a [CheckResult] that contains a list of issues found in the parameter, so an empty list
-   * means that the annotation is syntactically correct. The [CheckResult] is cached into the
-   * PsiElement given, and it's refreshed based on the contents of the annotation.
+   * Returns a [CheckResult] that contains a list of issues found in the parameter, so an empty list means that the annotation is
+   * syntactically correct. The [CheckResult] is cached into the PsiElement given, and it's refreshed based on the contents of the
+   * annotation.
    *
-   * If the `device` attribute has a `name` or an `id` that is invalid, then the [defaultDeviceId]
-   * will be used to generate a fix for the user.
+   * If the `device` attribute has a `name` or an `id` that is invalid, then the [defaultDeviceId] will be used to generate a fix for the
+   * user.
    *
    * @param defaultDeviceId the device id to suggest to the user in case of an issue
    */
   @TestOnly
-  internal fun checkDeviceSpec(
-    annotation: UAnnotation,
-    defaultDeviceId: String = DEFAULT_DEVICE_ID,
-  ): CheckResult {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed)
-      return failedCheck("No read access")
+  internal fun checkDeviceSpec(annotation: UAnnotation, defaultDeviceId: String = DEFAULT_DEVICE_ID): CheckResult {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed) return failedCheck("No read access")
 
-    val deviceValueExpression =
-      annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
-    val deviceValue =
-      deviceValueExpression.evaluateString()
-        ?: return failedCheck("Can't get string literal of 'device' value")
+    val deviceValueExpression = annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
+    val deviceValue = deviceValueExpression.evaluateString() ?: return failedCheck("Can't get string literal of 'device' value")
 
     val sourcePsi = annotation.sourcePsi ?: return failedCheck("Can't get sourcePsi")
-    synchronized(
-      DeviceSpecCheck
-    ) { // Protect reading/writing the cached result from asynchronous calls
+    synchronized(DeviceSpecCheck) { // Protect reading/writing the cached result from asynchronous calls
       sourcePsi.getUserData(PreviewCheckResultKey)?.also { existingResult ->
         if (existingResult.first == deviceValue) {
           Logger.getInstance(DeviceSpecCheck::class.java).debug("Found existing CheckResult")
@@ -209,27 +188,18 @@ object DeviceSpecCheck {
   /**
    * Checks the value of the `device` parameter of the Preview annotation.
    *
-   * Looks for issues in the syntax that'll result in failure or unexpected behavior when defining
-   * the Device for the Preview panel.
+   * Looks for issues in the syntax that'll result in failure or unexpected behavior when defining the Device for the Preview panel.
    *
    * @param defaultDeviceId the device id to suggest to the user in case of an issue
    */
-  private fun checkDeviceParameter(
-    deviceParameterValue: String,
-    module: Module?,
-    defaultDeviceId: String,
-  ): CheckResult =
+  private fun checkDeviceParameter(deviceParameterValue: String, module: Module?, defaultDeviceId: String): CheckResult =
     when {
       // Check the device_id in "id:<device_id>
       deviceParameterValue.startsWith(DEVICE_BY_ID_PREFIX) -> {
         if (module == null) {
           failedCheck("Couldn't obtain Module")
         } else {
-          checkDeviceId(
-            deviceParameterValue.substringAfter(DEVICE_BY_ID_PREFIX),
-            module,
-            defaultDeviceId,
-          )
+          checkDeviceId(deviceParameterValue.substringAfter(DEVICE_BY_ID_PREFIX), module, defaultDeviceId)
         }
       }
       // Check the device_id in "name:<device_name>
@@ -237,17 +207,12 @@ object DeviceSpecCheck {
         if (module == null) {
           failedCheck("Couldn't obtain Module")
         } else {
-          checkDeviceName(
-            deviceParameterValue.substringAfter(DEVICE_BY_NAME_PREFIX),
-            module,
-            defaultDeviceId,
-          )
+          checkDeviceName(deviceParameterValue.substringAfter(DEVICE_BY_NAME_PREFIX), module, defaultDeviceId)
         }
       }
       // Check the DeviceSpec parameters in "spec:..."
       deviceParameterValue.startsWith(DEVICE_BY_SPEC_PREFIX) -> {
-        val deviceSpecParams =
-          toParameterList(deviceParameterValue.substringAfter(DEVICE_BY_SPEC_PREFIX))
+        val deviceSpecParams = toParameterList(deviceParameterValue.substringAfter(DEVICE_BY_SPEC_PREFIX))
 
         val rule =
           when {
@@ -274,28 +239,20 @@ object DeviceSpecCheck {
     }
 
   /**
-   * Checks the given collection of param-value pairs for correctness, it should match the pattern
-   * used to describe a custom device specification:
-   * "spec:shape=<enum>,width=<integer>,height=<integer>,unit=<enum>,dpi=<integer>". With no
-   * particular order enforced.
+   * Checks the given collection of param-value pairs for correctness, it should match the pattern used to describe a custom device
+   * specification: "spec:shape=<enum>,width=<integer>,height=<integer>,unit=<enum>,dpi=<integer>". With no particular order enforced.
    *
    * The issues that the returned [CheckResult] may report:
    * - [Repeated]: There should only be one of each parameter
-   * - [BadType]: A parameter has a value that does not correspond to the expected type (a float
-   *   instead of an integer for example)
+   * - [BadType]: A parameter has a value that does not correspond to the expected type (a float instead of an integer for example)
    * - [Unknown]: Unknown/unsupported parameter found
    * - [Missing]: An expected parameter is missing.
    *
    * Every issue will have the related parameter name in the [IssueReason.parameterName] message.
    *
-   * [CheckResult.proposedFix] is a proposed string to fix the issues found, based on the original
-   * input.
+   * [CheckResult.proposedFix] is a proposed string to fix the issues found, based on the original input.
    */
-  private fun checkDeviceSpecParams(
-    originalParams: Collection<Pair<String, String>>,
-    rule: CheckRule,
-    module: Module?,
-  ): CheckResult {
+  private fun checkDeviceSpecParams(originalParams: Collection<Pair<String, String>>, rule: CheckRule, module: Module?): CheckResult {
     val issues = mutableListOf<IssueReason>()
 
     // Set of parameters confirmed in the original parameter list
@@ -380,45 +337,32 @@ object DeviceSpecCheck {
     paramsToFix.forEach {
       // Lastly, obtain the fixes, it's expected that the inspection should not fail again if the
       // proposed fix is applied
-      fixableParams[it] =
-        namesToParamRule[it]!!.getFixedOrDefaultValue(fixableParams[it]!!, dataProvider)
+      fixableParams[it] = namesToParamRule[it]!!.getFixedOrDefaultValue(fixableParams[it]!!, dataProvider)
     }
     return CheckResult(issues = issues, proposedFix = fixableParams.buildDeviceSpecString())
   }
 
   /**
-   * Finds the default device in the list and, if found, returns a [CheckResult], flagging the given
-   * [unknownParameterValue] as the error and the [defaultDeviceId] as a proposed fix.
+   * Finds the default device in the list and, if found, returns a [CheckResult], flagging the given [unknownParameterValue] as the error
+   * and the [defaultDeviceId] as a proposed fix.
    *
    * @param defaultDeviceId the device id to suggest to the user
    */
-  private fun List<Device>.findDefaultDeviceAndReturnFix(
-    unknownParameterValue: String,
-    defaultDeviceId: String,
-  ): CheckResult =
+  private fun List<Device>.findDefaultDeviceAndReturnFix(unknownParameterValue: String, defaultDeviceId: String): CheckResult =
     if (any { it.id == defaultDeviceId }) {
       // TODO(b/236383162): Improve the messaging for issues in the DeviceId
-      CheckResult(
-        issues = listOf(Unknown(unknownParameterValue)),
-        proposedFix = "$DEVICE_BY_ID_PREFIX$defaultDeviceId",
-      )
+      CheckResult(issues = listOf(Unknown(unknownParameterValue)), proposedFix = "$DEVICE_BY_ID_PREFIX$defaultDeviceId")
     } else {
       // Expected default device not in Sdk
       failedCheck("Default Device: $defaultDeviceId not found")
     }
 
   /**
-   * Check that the given [deviceId] is the ID of an actual device in the SDK. If it's not, use
-   * [defaultDeviceId] as a proposed fix.
+   * Check that the given [deviceId] is the ID of an actual device in the SDK. If it's not, use [defaultDeviceId] as a proposed fix.
    *
-   * @param defaultDeviceId the device id to suggest to the user if there are no devices with the ID
-   *   [deviceId] in the SDK
+   * @param defaultDeviceId the device id to suggest to the user if there are no devices with the ID [deviceId] in the SDK
    */
-  private fun checkDeviceId(
-    deviceId: String,
-    module: Module,
-    defaultDeviceId: String,
-  ): CheckResult {
+  private fun checkDeviceId(deviceId: String, module: Module, defaultDeviceId: String): CheckResult {
     val sdkDevices = getSdkDevices(module)
     val isValid = sdkDevices.any { it.id == deviceId }
     return if (isValid) {
@@ -427,17 +371,11 @@ object DeviceSpecCheck {
   }
 
   /**
-   * Check that the given [deviceName] is the name of an actual device in the SDK. If it's not, use
-   * [defaultDeviceId] as a proposed fix.
+   * Check that the given [deviceName] is the name of an actual device in the SDK. If it's not, use [defaultDeviceId] as a proposed fix.
    *
-   * @param defaultDeviceId the device id to suggest to the user if there are no devices with
-   *   [deviceName] in the SDK.
+   * @param defaultDeviceId the device id to suggest to the user if there are no devices with [deviceName] in the SDK.
    */
-  private fun checkDeviceName(
-    deviceName: String,
-    module: Module,
-    defaultDeviceId: String,
-  ): CheckResult {
+  private fun checkDeviceName(deviceName: String, module: Module, defaultDeviceId: String): CheckResult {
     val sdkDevices = getSdkDevices(module)
     val isValid = sdkDevices.any { it.name == deviceName }
     return if (isValid) {
@@ -446,16 +384,10 @@ object DeviceSpecCheck {
   }
 }
 
-/**
- * Regex to match a string with the [DeviceSpec.OPERATOR] between two other non-empty strings. E.g:
- * name=value, n=v
- */
+/** Regex to match a string with the [DeviceSpec.OPERATOR] between two other non-empty strings. E.g: name=value, n=v */
 private val paramValueRegex: Regex by lazy { Regex("(.+)${DeviceSpec.OPERATOR}(.+)") }
 
-/**
- * Converts the original [configString] using the basic supported format:
- * `[parameter0,value0],[parameter1,value1],[...]`
- */
+/** Converts the original [configString] using the basic supported format: `[parameter0,value0],[parameter1,value1],[...]` */
 private fun toParameterList(configString: String): Collection<Pair<String, String>> =
   configString.split(DeviceSpec.SEPARATOR).map { paramString ->
     val capturedValues = paramValueRegex.matchEntire(paramString)?.groupValues
@@ -471,43 +403,31 @@ private fun toParameterList(configString: String): Collection<Pair<String, Strin
   }
 
 /**
- * Returns the map in a format that matches a string that describes a device based on screen
- * specifications differentiated by the 'spec:' prefix, where every name-value pair is comma (,)
- * separated and are expressed as a value assignment (<name>=<value>).
+ * Returns the map in a format that matches a string that describes a device based on screen specifications differentiated by the 'spec:'
+ * prefix, where every name-value pair is comma (,) separated and are expressed as a value assignment (<name>=<value>).
  *
  * i.e: "spec:<name0>=<value0>,<name1>=<value1>,...,<nameN>=<valueN>"
  */
 private fun Map<String, String>.buildDeviceSpecString(): String {
   val result = StringBuffer()
   this.map { "${it.key}${DeviceSpec.OPERATOR}${it.value}" }
-    .joinTo(
-      buffer = result,
-      prefix = DeviceSpec.PREFIX,
-      separator = DeviceSpec.SEPARATOR.toString(),
-    )
+    .joinTo(buffer = result, prefix = DeviceSpec.PREFIX, separator = DeviceSpec.SEPARATOR.toString())
   return result.toString()
 }
 
 /**
  * QuickFix implementation for the `device` parameter of the Preview Annotation.
  *
- * Whenever there's an incorrect value for the `device` parameter, suggests replacing the expression
- * of the original value to [resultingString]. Which should be a correct value for the parameter.
+ * Whenever there's an incorrect value for the `device` parameter, suggests replacing the expression of the original value to
+ * [resultingString]. Which should be a correct value for the parameter.
  */
-private class DeviceParameterQuickFix(
-  deviceValueElement: PsiElement,
-  private val resultingString: String,
-) : LocalQuickFixOnPsiElement(deviceValueElement) {
+private class DeviceParameterQuickFix(deviceValueElement: PsiElement, private val resultingString: String) :
+  LocalQuickFixOnPsiElement(deviceValueElement) {
   override fun getText(): String = message("preview.device.spec.fix.replace", resultingString)
 
   override fun getFamilyName(): String = message("inspection.quick.fix.family")
 
-  override fun invoke(
-    project: Project,
-    file: PsiFile,
-    startElement: PsiElement,
-    endElement: PsiElement,
-  ) {
+  override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
     try {
       when (startElement.language) {
         is KotlinLanguage -> {
@@ -518,10 +438,7 @@ private class DeviceParameterQuickFix(
           while (replaceableElement.parent !is KtValueArgument) {
             replaceableElement = replaceableElement.parent
           }
-          replaceableElement.replace(
-            KtPsiFactory(project = project, markGenerated = true)
-              .createExpression("\"$resultingString\"")
-          )
+          replaceableElement.replace(KtPsiFactory(project = project, markGenerated = true).createExpression("\"$resultingString\""))
         }
         is JavaLanguage -> {
           val annotation = startElement.findParentOfType<PsiAnnotation>()
@@ -532,52 +449,33 @@ private class DeviceParameterQuickFix(
         else -> throw IllegalArgumentException("Language ${startElement.language} not supported.")
       }
     } catch (e: IncorrectOperationException) {
-      Logger.getInstance(DeviceParameterQuickFix::class.java)
-        .error("Unable to apply fix to @Preview 'device' parameter", e)
+      Logger.getInstance(DeviceParameterQuickFix::class.java).error("Unable to apply fix to @Preview 'device' parameter", e)
     }
   }
 }
 
 private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer: StringBuffer) {
-  val parametersByType =
-    issues.groupBy { it.expected }.mapValues { it.value.map(BadType::parameterName) }
+  val parametersByType = issues.groupBy { it.expected }.mapValues { it.value.map(BadType::parameterName) }
   val messagePrefix = message("preview.device.spec.lint.error.type.prefix")
 
   parametersByType.entries.forEach { entry ->
-    @Suppress(
-      "MoveVariableDeclarationIntoWhen"
-    ) // The suggested pattern is harder to read/understand
+    @Suppress("MoveVariableDeclarationIntoWhen") // The suggested pattern is harder to read/understand
     val expectedType = entry.key
     when (expectedType) {
       is OpenEndedValueType -> {
-        val messagePostfix =
-          message("preview.device.spec.lint.error.type.open", expectedType.valueTypeName)
-        entry.value.joinTo(
-          buffer = messageBuffer,
-          separator = ", ",
-          prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n",
-        )
+        val messagePostfix = message("preview.device.spec.lint.error.type.open", expectedType.valueTypeName)
+        entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }
       is MultipleChoiceValueType -> {
         val valuesExamples = expectedType.acceptableValues.joinToString(", ")
         val messagePostfix = message("preview.device.spec.lint.error.type.options", valuesExamples)
-        entry.value.joinTo(
-          buffer = messageBuffer,
-          separator = ", ",
-          prefix = "$messagePrefix: ",
-          postfix = " $messagePostfix\n",
-        )
+        entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
       }
     }
   }
 }
 
-private fun addSimpleMessage(
-  prefix: String,
-  issues: List<IssueReason>,
-  messageBuffer: StringBuffer,
-) {
+private fun addSimpleMessage(prefix: String, issues: List<IssueReason>, messageBuffer: StringBuffer) {
   val allParameters = issues.map(IssueReason::parameterName)
   if (allParameters.isEmpty()) return
 

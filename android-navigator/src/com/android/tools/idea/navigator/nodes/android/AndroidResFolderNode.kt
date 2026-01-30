@@ -23,12 +23,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 
-class AndroidResFolderNode internal constructor(
+class AndroidResFolderNode
+internal constructor(
   project: Project,
   androidFacet: AndroidFacet,
   sourceType: AndroidSourceType,
   settings: ViewSettings,
-  sourceRoots: Set<VirtualFile>
+  sourceRoots: Set<VirtualFile>,
 ) : AndroidSourceTypeNode(project, androidFacet, settings, sourceType, sourceRoots) {
   /**
    * Returns the children of the res folder. Rather than showing the existing directory hierarchy, this merges together all the folders by
@@ -37,22 +38,19 @@ class AndroidResFolderNode internal constructor(
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     val children = mutableListOf<AbstractTreeNode<*>>()
 
-    val foldersByResourceType = sourceFolders.asSequence()
-      .flatMap { it.subdirectories.asSequence() }    // collect all res folders from all source providers
-      .mapNotNull {
-        (ResourceFolderType.getFolderType(it.name) ?: return@mapNotNull null) to it
-      }
-      .groupBy({ it.first }, { it.second })
+    val foldersByResourceType =
+      sourceFolders
+        .asSequence()
+        .flatMap { it.subdirectories.asSequence() } // collect all res folders from all source providers
+        .mapNotNull { (ResourceFolderType.getFolderType(it.name) ?: return@mapNotNull null) to it }
+        .groupBy({ it.first }, { it.second })
 
     foldersByResourceType.entries
-      .map {(type, folders) ->
-        AndroidResFolderTypeNode(
-          myProject, androidFacet, ArrayList(folders), settings,
-          type
-        )
-      }.forEach(children::add)
+      .map { (type, folders) -> AndroidResFolderTypeNode(myProject, androidFacet, ArrayList(folders), settings, type) }
+      .forEach(children::add)
 
-    val resourcesPropertiesFile = sourceFolders.find { it.parentDirectory?.name == "main" }?.files?.find { it.name == "resources.properties"}
+    val resourcesPropertiesFile =
+      sourceFolders.find { it.parentDirectory?.name == "main" }?.files?.find { it.name == "resources.properties" }
     if (resourcesPropertiesFile != null) {
       val (first, _) = findSourceProvider(resourcesPropertiesFile.virtualFile)
       children.add(AndroidPsiFileNode(myProject, resourcesPropertiesFile, settings, first))

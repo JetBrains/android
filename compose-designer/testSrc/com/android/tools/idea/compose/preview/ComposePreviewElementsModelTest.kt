@@ -33,25 +33,18 @@ class ComposePreviewElementsModelTest {
   @Test
   fun testInstantiatedPreviewElementsFlow(): Unit = runBlocking {
     val basePreviewElement =
-      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-        "Template",
-        groupName = "TemplateGroup",
-      )
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Template", groupName = "TemplateGroup")
 
     // Fake PreviewElementTemplate that generates a couple of instances
     val template =
       object : PsiComposePreviewElement by basePreviewElement {
         private val templateInstances =
           listOf(
-            SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-              "Instance1",
-              groupName = "TemplateGroup",
-            ),
+            SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Instance1", groupName = "TemplateGroup"),
             SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup"),
           )
 
-        override fun resolve(): Sequence<PsiComposePreviewElementInstance> =
-          templateInstances.asSequence()
+        override fun resolve(): Sequence<PsiComposePreviewElementInstance> = templateInstances.asSequence()
       }
     val allPreviews =
       listOf(
@@ -63,19 +56,10 @@ class ComposePreviewElementsModelTest {
       )
 
     val instancesFlow =
-      ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
-        MutableStateFlow(FlowableCollection.Present(allPreviews))
-      )
+      ComposePreviewElementsModel.instantiatedPreviewElementsFlow(MutableStateFlow(FlowableCollection.Present(allPreviews)))
 
     assertThat(instancesFlow.first().asCollection().map { it.methodFqn })
-      .containsExactly(
-        "PreviewMethod1",
-        "SeparatePreview",
-        "PreviewMethod2",
-        "AMethod",
-        "Instance1",
-        "Instance2",
-      )
+      .containsExactly("PreviewMethod1", "SeparatePreview", "PreviewMethod2", "AMethod", "Instance1", "Instance2")
       .inOrder()
   }
 }

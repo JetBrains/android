@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.util
 
 import com.android.ide.common.repository.keysMatch
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.android.tools.idea.module.module
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import com.android.tools.idea.module.module
 import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlHeaderOwner
@@ -30,10 +28,8 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlKeyValueOwner
 
 /**
- * Given a [TomlFile] and a path, returns the corresponding key element.
- * For example, given "versions.foo", it will locate the `foo =` key/value
- * pair under the `\[versions]` table and return it. As a special case,
- * `libraries` don't have to be explicitly named in the path.
+ * Given a [TomlFile] and a path, returns the corresponding key element. For example, given "versions.foo", it will locate the `foo =`
+ * key/value pair under the `\[versions]` table and return it. As a special case, `libraries` don't have to be explicitly named in the path.
  */
 fun findCatalogKey(tomlFile: TomlFile, declarationPath: String): PsiElement? {
   val prefix = listOf("versions.", "bundles.", "plugins.")
@@ -42,8 +38,7 @@ fun findCatalogKey(tomlFile: TomlFile, declarationPath: String): PsiElement? {
   if (prefix.none { declarationPath.startsWith(it) }) {
     section = "libraries"
     target = declarationPath
-  }
-  else {
+  } else {
     section = declarationPath.substringBefore('.')
     target = declarationPath.substringAfter('.')
   }
@@ -56,7 +51,7 @@ fun findCatalogKey(tomlFile: TomlFile, declarationPath: String): PsiElement? {
       val keyText = element.header.key?.text
       if (keysMatch(keyText, section)) {
         if (element is TomlKeyValueOwner) {
-          return findAlias(element,target)
+          return findAlias(element, target)
         }
       }
     }
@@ -68,15 +63,15 @@ fun findCatalogKey(tomlFile: TomlFile, declarationPath: String): PsiElement? {
         return element
       } else
       // libraries = { alias = ""
-        if(element.value is TomlInlineTable && keysMatch(keyText, section)) {
-          return findAlias(element.value as TomlInlineTable,target)
-        }
+      if (element.value is TomlInlineTable && keysMatch(keyText, section)) {
+        return findAlias(element.value as TomlInlineTable, target)
+      }
     }
   }
   return null
 }
 
-private fun findAlias(valueOwner: TomlKeyValueOwner, target:String):PsiElement?{
+private fun findAlias(valueOwner: TomlKeyValueOwner, target: String): PsiElement? {
   for (entry in valueOwner.entries) {
     val entryKeyText = entry.key.text
     if (keysMatch(entryKeyText, target)) {

@@ -44,15 +44,11 @@ fun XmlTag.isTagIdEqualTo(id: String): Boolean {
 }
 
 fun XmlTag.findChildTagElementByNameAttr(tagName: String, nameAttr: String): XmlTag? {
-  return this.subTags.firstOrNull {
-    it != null && it.localName == tagName && it.hasMatchedNameAttr(nameAttr)
-  }
+  return this.subTags.firstOrNull { it != null && it.localName == tagName && it.hasMatchedNameAttr(nameAttr) }
 }
 
 fun XmlTag.findChildTagElementById(tagName: String, idAttr: String): XmlTag? {
-  return this.subTags.firstOrNull {
-    it != null && it.localName == tagName && it.hasMatchedIdAttr(idAttr)
-  }
+  return this.subTags.firstOrNull { it != null && it.localName == tagName && it.hasMatchedIdAttr(idAttr) }
 }
 
 fun XmlTag.findFirstMatchingElementByTraversingUp(tagName: String, idAttr: String): XmlTag? {
@@ -67,13 +63,10 @@ fun XmlTag.findFirstMatchingElementByTraversingUp(tagName: String, idAttr: Strin
 }
 
 fun XmlTag.hasMatchedNameAttr(name: String): Boolean {
-  return this.attributes.firstOrNull {
-    it != null && it.localName == SdkConstants.ATTR_NAME && it.value == name
-  } != null
+  return this.attributes.firstOrNull { it != null && it.localName == SdkConstants.ATTR_NAME && it.value == name } != null
 }
 
 fun XmlTag.hasMatchedIdAttr(id: String): Boolean {
-  return this.attributes.firstOrNull {
-    it != null && it.localName == SdkConstants.ATTR_ID && it.value?.substringAfter("@+id/") == id
-  } != null
+  return this.attributes.firstOrNull { it != null && it.localName == SdkConstants.ATTR_ID && it.value?.substringAfter("@+id/") == id } !=
+    null
 }

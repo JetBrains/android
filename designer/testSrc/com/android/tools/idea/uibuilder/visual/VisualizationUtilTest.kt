@@ -31,30 +31,18 @@ class VisualizationUtilTest {
     val customConfigurations = mutableMapOf<String, CustomConfigurationSet>()
 
     settings.globalState.customConfigurationSets = customConfigurations
-    VisualizationUtil.setCustomConfigurationSet(
-      "Test",
-      CustomConfigurationSet("My Set", emptyList()),
-    )
+    VisualizationUtil.setCustomConfigurationSet("Test", CustomConfigurationSet("My Set", emptyList()))
 
     // Check the values are same after getting another instance.
     val anotherSettings = VisualizationToolSettings.getInstance()
     assertEquals(customConfigurations, anotherSettings.globalState.customConfigurationSets)
-    assertEquals(
-      CustomConfigurationSet("My Set", emptyList()),
-      anotherSettings.globalState.customConfigurationSets["Test"],
-    )
+    assertEquals(CustomConfigurationSet("My Set", emptyList()), anotherSettings.globalState.customConfigurationSets["Test"])
 
     // Add another set with a custom attribute
-    VisualizationUtil.setCustomConfigurationSet(
-      "Test 2",
-      CustomConfigurationSet("My Set2", listOf(CustomConfigurationAttribute())),
-    )
+    VisualizationUtil.setCustomConfigurationSet("Test 2", CustomConfigurationSet("My Set2", listOf(CustomConfigurationAttribute())))
     assertEquals(customConfigurations, anotherSettings.globalState.customConfigurationSets)
     // Check first one is still kept.
-    assertEquals(
-      CustomConfigurationSet("My Set", emptyList()),
-      anotherSettings.globalState.customConfigurationSets["Test"],
-    )
+    assertEquals(CustomConfigurationSet("My Set", emptyList()), anotherSettings.globalState.customConfigurationSets["Test"])
     assertEquals(
       CustomConfigurationSet("My Set2", listOf(CustomConfigurationAttribute())),
       anotherSettings.globalState.customConfigurationSets["Test 2"],

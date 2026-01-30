@@ -34,35 +34,33 @@ import javax.swing.table.TableCellEditor
 
 object DeclaredLibraryDependencyUiProperties {
   fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =
-    PropertyUiModelImpl(dependency.versionProperty,
-                        getFactoryMethod(dependency),
-                        psdUsageLogFieldId = null)
+    PropertyUiModelImpl(dependency.versionProperty, getFactoryMethod(dependency), psdUsageLogFieldId = null)
 
   /**
-   * Wrapping together SimplePropertyEditor builder function with adding custom renderer in order
-   * to show empty property with /*not specified*/ watermark
+   * Wrapping together SimplePropertyEditor builder function with adding custom renderer in order to show empty property with /*not
+   * specified*/ watermark
    */
-  private fun <PropertyT : Any, ModelT : Any,
-    ModelPropertyT : ModelProperty<ModelT, PropertyT, PropertyT, ModelPropertyCore<PropertyT>>> getFactoryMethod(
-    dependency: PsDeclaredLibraryDependency
-  ): PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> = {
-    project: PsProject,
-    module: PsModule?,
-    model: ModelT,
-    property: ModelPropertyT,
-    variablesScope: PsVariablesScope?,
-    cellEditor: TableCellEditor?,
-    validator: PropertyEditorValidator?,
-    logValueEdited: () -> Unit ->
-    val editor: SimplePropertyEditor<PropertyT, ModelPropertyCore<PropertyT>> =
-      if (dependency.canExtractVariable()) {
-        simplePropertyEditor(project, module, model, property, variablesScope, cellEditor, validator, logValueEdited)
-      }
-      else {
-        noExtractButtonPropertyEditor(project, module, model, property, variablesScope, cellEditor, logValueEdited)
-      }
-    editor.customRenderTo = { renderer: TextRenderer, _, _ -> renderEmptyTo(renderer) }
-    editor
-  }
-
+  private fun <
+    PropertyT : Any,
+    ModelT : Any,
+    ModelPropertyT : ModelProperty<ModelT, PropertyT, PropertyT, ModelPropertyCore<PropertyT>>,
+  > getFactoryMethod(dependency: PsDeclaredLibraryDependency): PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
+    {
+      project: PsProject,
+      module: PsModule?,
+      model: ModelT,
+      property: ModelPropertyT,
+      variablesScope: PsVariablesScope?,
+      cellEditor: TableCellEditor?,
+      validator: PropertyEditorValidator?,
+      logValueEdited: () -> Unit ->
+      val editor: SimplePropertyEditor<PropertyT, ModelPropertyCore<PropertyT>> =
+        if (dependency.canExtractVariable()) {
+          simplePropertyEditor(project, module, model, property, variablesScope, cellEditor, validator, logValueEdited)
+        } else {
+          noExtractButtonPropertyEditor(project, module, model, property, variablesScope, cellEditor, logValueEdited)
+        }
+      editor.customRenderTo = { renderer: TextRenderer, _, _ -> renderEmptyTo(renderer) }
+      editor
+    }
 }

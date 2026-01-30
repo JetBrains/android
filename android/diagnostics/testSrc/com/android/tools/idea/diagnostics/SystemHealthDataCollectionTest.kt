@@ -24,15 +24,14 @@ import com.google.wireless.android.sdk.stats.SystemHealthEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent.DeadlockStatus
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.UsefulTestCase
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import junit.framework.TestCase.assertEquals
+import kotlin.test.assertContentEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
-import java.time.Duration
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertContentEquals
-
 
 class SystemHealthDataCollectionTest {
 
@@ -43,9 +42,7 @@ class SystemHealthDataCollectionTest {
   private lateinit var scheduler: VirtualTimeScheduler
 
   companion object {
-    @JvmField
-    @ClassRule
-    var appRule = ApplicationRule()
+    @JvmField @ClassRule var appRule = ApplicationRule()
   }
 
   @Before
@@ -173,33 +170,35 @@ class SystemHealthDataCollectionTest {
     assert(usages.all { it.studioEvent.systemHealthEvent.eventType == SystemHealthEvent.SystemHealthEventType.UI_FREEZE_UPDATE })
     assertContentEquals(
       arrayOf(
-        Duration.ofSeconds(10),
-        Duration.ofSeconds(20),
-        Duration.ofSeconds(30),
-        Duration.ofSeconds(40),
-        Duration.ofSeconds(50),
-        Duration.ofMinutes(1),
-        Duration.ofMinutes(2),
-        Duration.ofMinutes(3),
-        Duration.ofMinutes(4),
-        Duration.ofMinutes(5),
-        Duration.ofMinutes(10),
-        Duration.ofMinutes(15),
-        Duration.ofMinutes(20),
-        Duration.ofMinutes(25),
-        Duration.ofMinutes(30),
-        Duration.ofMinutes(60),
-        Duration.ofMinutes(90),
-        Duration.ofMinutes(120),
-        Duration.ofMinutes(150),
-        Duration.ofMinutes(180),
-        Duration.ofMinutes(210),
-        Duration.ofMinutes(240),
-        Duration.ofMinutes(270),
-        Duration.ofMinutes(300),
-        Duration.ofMinutes(330),
-        Duration.ofMinutes(360)).map { it.toMillis() },
-      usages.map { it.studioEvent.systemHealthEvent.uiFreeze.durationMs }.sorted()
+          Duration.ofSeconds(10),
+          Duration.ofSeconds(20),
+          Duration.ofSeconds(30),
+          Duration.ofSeconds(40),
+          Duration.ofSeconds(50),
+          Duration.ofMinutes(1),
+          Duration.ofMinutes(2),
+          Duration.ofMinutes(3),
+          Duration.ofMinutes(4),
+          Duration.ofMinutes(5),
+          Duration.ofMinutes(10),
+          Duration.ofMinutes(15),
+          Duration.ofMinutes(20),
+          Duration.ofMinutes(25),
+          Duration.ofMinutes(30),
+          Duration.ofMinutes(60),
+          Duration.ofMinutes(90),
+          Duration.ofMinutes(120),
+          Duration.ofMinutes(150),
+          Duration.ofMinutes(180),
+          Duration.ofMinutes(210),
+          Duration.ofMinutes(240),
+          Duration.ofMinutes(270),
+          Duration.ofMinutes(300),
+          Duration.ofMinutes(330),
+          Duration.ofMinutes(360),
+        )
+        .map { it.toMillis() },
+      usages.map { it.studioEvent.systemHealthEvent.uiFreeze.durationMs }.sorted(),
     )
     usages.clear()
 

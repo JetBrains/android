@@ -49,10 +49,7 @@ constructor(
   @JvmField val inverseMethod: String,
   /** The qualified name for the LiveData class */
   @JvmField val liveData: String,
-  /**
-   * The array of qualified names for ObservableField, or any of the primitive versions such as
-   * ObservableBoolean and ObservableInt
-   */
+  /** The array of qualified names for ObservableField, or any of the primitive versions such as ObservableBoolean and ObservableInt */
   @JvmField val observableFields: Array<String>,
 ) {
 
@@ -117,12 +114,10 @@ constructor(
 
   companion object {
     /**
-     * Use the context of a target [PsiElement] to return the surrounding data binding mode it
-     * exists within. This should always return a valid mode for an element that lives inside a data
-     * binding expression, but this can return [NONE] otherwise.
+     * Use the context of a target [PsiElement] to return the surrounding data binding mode it exists within. This should always return a
+     * valid mode for an element that lives inside a data binding expression, but this can return [NONE] otherwise.
      */
     @JvmStatic
-    fun fromPsiElement(element: PsiElement) =
-      AndroidFacet.getInstance(element)?.let { DataBindingUtil.getDataBindingMode(it) } ?: NONE
+    fun fromPsiElement(element: PsiElement) = AndroidFacet.getInstance(element)?.let { DataBindingUtil.getDataBindingMode(it) } ?: NONE
   }
 }

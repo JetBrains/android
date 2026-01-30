@@ -48,10 +48,7 @@ class RenderSettingsActionTest {
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
   private val fakeRenderSettings = FakeRenderSettings()
-  private val capabilities =
-    EnumSet.noneOf(Capability::class.java).apply {
-      add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
-    }
+  private val capabilities = EnumSet.noneOf(Capability::class.java).apply { add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) }
   private var isConnected = true
 
   @Before
@@ -129,13 +126,7 @@ class RenderSettingsActionTest {
 
     val dataContext = SimpleDataContext.getSimpleContext(LAYOUT_INSPECTOR_DATA_KEY, inspector)
     val inputEvent = mock<MouseEvent>()
-    return AnActionEvent.createEvent(
-      dataContext,
-      Presentation(),
-      ActionPlaces.UNKNOWN,
-      ActionUiKind.NONE,
-      inputEvent,
-    )
+    return AnActionEvent.createEvent(dataContext, Presentation(), ActionPlaces.UNKNOWN, ActionUiKind.NONE, inputEvent)
   }
 }
 

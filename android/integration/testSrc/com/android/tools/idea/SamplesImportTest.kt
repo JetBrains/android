@@ -21,9 +21,6 @@ import com.android.tools.asdriver.tests.FileServer
 import com.android.tools.asdriver.tests.MavenRepo
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.ByteArrayOutputStream
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -33,23 +30,20 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.writeBytes
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class SamplesImportTest {
 
-  @get:Rule
-  val system = AndroidSystem.standard()
+  @get:Rule val system = AndroidSystem.standard()
 
-  @get:Rule
-  val tempFolder = TemporaryFolder()
+  @get:Rule val tempFolder = TemporaryFolder()
 
   @Test
   fun importSampleProjectTest() {
 
-    system.installRepo(
-      MavenRepo(
-        "tools/adt/idea/android/integration/openproject_deps.manifest"
-      )
-    )
+    system.installRepo(MavenRepo("tools/adt/idea/android/integration/openproject_deps.manifest"))
 
     // Attempting to import a project on a fresh installation of Android Studio will produce an
     // error saying that no SDK has been configured, so we configure it first.
@@ -68,9 +62,7 @@ class SamplesImportTest {
       fileServer.registerFile("/samplesindex/v1/sample", indexFile)
       fileServer.registerFile("/simpleProject/zipball/HEAD", projectZipFile)
 
-      system.installation.addVmOption(
-        "-Dsamples.service.use.local.port.for.test=${fileServer.port}"
-      )
+      system.installation.addVmOption("-Dsamples.service.use.local.port.for.test=${fileServer.port}")
       system.runStudioWithoutProject().use { studio ->
         studio.executeAction("WelcomeScreen.GoogleCloudTools.SampleImport")
 
@@ -84,19 +76,24 @@ class SamplesImportTest {
 
     val expectedProjectDir = system.installation.androidStudioProjectsDir.resolve("SimpleProjectforTest").toFile()
     Truth.assertThat(expectedProjectDir.exists()).isTrue()
-    val projectFilesList = expectedProjectDir.walkTopDown()
-      .onEnter { it.name != ".idea" && it.name != ".gradle" }
-      .filterNot { it.isDirectory }
-      .filterNot { it.name == "local.properties" }
-      .map { FileUtil.toSystemIndependentName(it.relativeTo(expectedProjectDir).toString()) }
-      .sorted()
-      .joinToString(separator = "\n")
+    val projectFilesList =
+      expectedProjectDir
+        .walkTopDown()
+        .onEnter { it.name != ".idea" && it.name != ".gradle" }
+        .filterNot { it.isDirectory }
+        .filterNot { it.name == "local.properties" }
+        .map { FileUtil.toSystemIndependentName(it.relativeTo(expectedProjectDir).toString()) }
+        .sorted()
+        .joinToString(separator = "\n")
 
-    val originalFilesList = preparedProjectFiles.toFile().walkTopDown()
-      .filterNot { it.isDirectory }
-      .map { FileUtil.toSystemIndependentName(it.relativeTo(preparedProjectFiles.toFile()).toString()) }
-      .sorted()
-      .joinToString(separator = "\n")
+    val originalFilesList =
+      preparedProjectFiles
+        .toFile()
+        .walkTopDown()
+        .filterNot { it.isDirectory }
+        .map { FileUtil.toSystemIndependentName(it.relativeTo(preparedProjectFiles.toFile()).toString()) }
+        .sorted()
+        .joinToString(separator = "\n")
 
     Truth.assertThat(projectFilesList).isEqualTo(originalFilesList)
   }
@@ -108,12 +105,11 @@ class SamplesImportTest {
         sourceDirectory,
         object : SimpleFileVisitor<Path>() {
           override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-            val relativePath =
-              FileUtil.toSystemIndependentName(sourceDirectory.relativize(file).toString())
+            val relativePath = FileUtil.toSystemIndependentName(sourceDirectory.relativize(file).toString())
             createZipEntry(relativePath, Files.readAllBytes(file), zip)
             return FileVisitResult.CONTINUE
           }
-        }
+        },
       )
     }
     return zipBytes.toByteArray()

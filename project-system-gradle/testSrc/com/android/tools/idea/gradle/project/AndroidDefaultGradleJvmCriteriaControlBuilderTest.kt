@@ -31,7 +31,7 @@ import org.jetbrains.plugins.gradle.service.settings.GradleDaemonJvmCriteriaView
 import org.jetbrains.plugins.gradle.service.settings.GradleDaemonJvmCriteriaView.VersionItem
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-class AndroidDefaultGradleJvmCriteriaControlBuilderTest: LightPlatformTestCase() {
+class AndroidDefaultGradleJvmCriteriaControlBuilderTest : LightPlatformTestCase() {
 
   private lateinit var controlBuilder: AndroidDefaultGradleJvmCriteriaControlBuilder
   private lateinit var gradleSettings: GradleSettings
@@ -76,17 +76,13 @@ class AndroidDefaultGradleJvmCriteriaControlBuilderTest: LightPlatformTestCase()
   fun testValidationOfInvalidInput() {
     controlBuilder.defaultGradleDaemonJvmCriteriaView.selectedVersion = VersionItem.Custom("invalid")
 
-    assertThrows(ConfigurationException::class.java) {
-      controlBuilder.validate(gradleSettings)
-    }
+    assertThrows(ConfigurationException::class.java) { controlBuilder.validate(gradleSettings) }
   }
 
   fun testApplyInvalidInput() {
     controlBuilder.defaultGradleDaemonJvmCriteriaView.selectedVersion = VersionItem.Custom("invalid")
 
-    assertThrows(ConfigurationException::class.java) {
-      controlBuilder.apply(gradleSettings)
-    }
+    assertThrows(ConfigurationException::class.java) { controlBuilder.apply(gradleSettings) }
   }
 
   fun testApplyWithoutModification() {
@@ -115,24 +111,43 @@ class AndroidDefaultGradleJvmCriteriaControlBuilderTest: LightPlatformTestCase()
   private fun GradleDaemonJvmCriteriaView.assertVersionDropdownItems() {
     val expectedVersionList = GradleJvmSupportMatrix.getAllSupportedJavaVersionsByIdea().map(JavaVersion::feature).sortedDescending()
     expectedVersionList.forEachIndexed { index, expectedVersion ->
-      val actualVersion = when (val versionItem = versionModel.getElementAt(index)) {
-        is VersionItem.Default -> versionItem.version.toString()
-        is VersionItem.Custom -> throw AssertionError("Unexpected custom version item: " + versionItem.value)
-      }
+      val actualVersion =
+        when (val versionItem = versionModel.getElementAt(index)) {
+          is VersionItem.Default -> versionItem.version.toString()
+          is VersionItem.Custom -> throw AssertionError("Unexpected custom version item: " + versionItem.value)
+        }
       assertEquals(expectedVersion.toString(), actualVersion)
     }
   }
 
   private fun GradleDaemonJvmCriteriaView.assertVendorDropdownItems() {
-    val expectedVendorList = listOf("<ANY_VENDOR>", "<CUSTOM_VENDOR>", "ADOPTIUM", "ADOPTOPENJDK", "AMAZON", "APPLE", "AZUL", "BELLSOFT", "GRAAL_VM",
-                                    "HEWLETT_PACKARD", "IBM", "JETBRAINS", "MICROSOFT", "ORACLE", "SAP", "TENCENT")
+    val expectedVendorList =
+      listOf(
+        "<ANY_VENDOR>",
+        "<CUSTOM_VENDOR>",
+        "ADOPTIUM",
+        "ADOPTOPENJDK",
+        "AMAZON",
+        "APPLE",
+        "AZUL",
+        "BELLSOFT",
+        "GRAAL_VM",
+        "HEWLETT_PACKARD",
+        "IBM",
+        "JETBRAINS",
+        "MICROSOFT",
+        "ORACLE",
+        "SAP",
+        "TENCENT",
+      )
     expectedVendorList.forEachIndexed { index, expectedVendor ->
-      val actualVendor = when (val vendorItem = vendorModel.getElementAt(index)) {
-        VendorItem.Any -> "<ANY_VENDOR>"
-        VendorItem.SelectCustom -> "<CUSTOM_VENDOR>"
-        is VendorItem.Default -> vendorItem.vendor.name
-        is VendorItem.Custom -> throw AssertionError("Unexpected custom vendor item: " + vendorItem.value)
-      }
+      val actualVendor =
+        when (val vendorItem = vendorModel.getElementAt(index)) {
+          VendorItem.Any -> "<ANY_VENDOR>"
+          VendorItem.SelectCustom -> "<CUSTOM_VENDOR>"
+          is VendorItem.Default -> vendorItem.vendor.name
+          is VendorItem.Custom -> throw AssertionError("Unexpected custom vendor item: " + vendorItem.value)
+        }
       assertEquals(expectedVendor, actualVendor)
     }
   }

@@ -19,21 +19,17 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.logcat.message.LogcatMessage
 
 /**
- * Manages a cyclic collection of [LogcatMessage]s that is limited by the size in bytes of the
- * payload.
+ * Manages a cyclic collection of [LogcatMessage]s that is limited by the size in bytes of the payload.
  *
- * The purpose of this backlog is to allow for filtering and re-rendering of the Logcat when needed,
- * for example, when formatting changes are made.
+ * The purpose of this backlog is to allow for filtering and re-rendering of the Logcat when needed, for example, when formatting changes
+ * are made.
  *
- * The goal is to have this backlog contain at least as many messages as there are displayed in the
- * Logcat window which is also governed by a cyclic buffer size. In order to achieve this, the size
- * of a LogcatMessage is 'rounded down' to [LogcatMessage.message] which is less than the minimal
- * size required to render a message. Therefore, the backlog will contain more messages than the
- * actual displayed window, even if no filters are applied and the formatting options are at their
- * minimum.
+ * The goal is to have this backlog contain at least as many messages as there are displayed in the Logcat window which is also governed by
+ * a cyclic buffer size. In order to achieve this, the size of a LogcatMessage is 'rounded down' to [LogcatMessage.message] which is less
+ * than the minimal size required to render a message. Therefore, the backlog will contain more messages than the actual displayed window,
+ * even if no filters are applied and the formatting options are at their minimum.
  *
- * TODO(aalbert): Maybe pass in the current formatting options setting and calculate the size more
- *   accurately.
+ * TODO(aalbert): Maybe pass in the current formatting options setting and calculate the size more accurately.
  */
 internal class MessageBacklog(private var maxSize: Int) {
 

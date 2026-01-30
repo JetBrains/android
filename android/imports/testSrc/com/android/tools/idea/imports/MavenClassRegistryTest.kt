@@ -55,59 +55,59 @@ class MavenClassRegistryTest {
     // language=json
     repositoryIndexContents =
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ],
-              "ktlfns": [
-                {
-                  "fqn": "androidx.activity.result.PickVisualMediaRequestKt.PickVisualMediaRequest"
-                },
-                {
-                  "fqn": "androidx.activity.FakeFunctionKt.FakeFunction"
-                },
-                {
-                  "xfqn": "androidx.activity.FakeFunctionKt.FakeFunction",
-                  "rcvr": "with.a.Receiver"
-                }
-              ]
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-ktx",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.annotation",
-              "artifactId": "annotation",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.annotation.AnimRes",
-                "androidx.annotation.Fake"
-              ],
-              "ktlfns": [
-                {
-                  "fqn": "androidx.annotation.FacadeFileKt.AnnotationFunction"
-                },
-                {
-                  "fqn": "androidx.annotation.FakeFunctionKt.FakeFunction"
-                }
-              ]
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ],
+            "ktlfns": [
+              {
+                "fqn": "androidx.activity.result.PickVisualMediaRequestKt.PickVisualMediaRequest"
+              },
+              {
+                "fqn": "androidx.activity.FakeFunctionKt.FakeFunction"
+              },
+              {
+                "xfqn": "androidx.activity.FakeFunctionKt.FakeFunction",
+                "rcvr": "with.a.Receiver"
+              }
+            ]
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-ktx",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.annotation",
+            "artifactId": "annotation",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.annotation.AnimRes",
+              "androidx.annotation.Fake"
+            ],
+            "ktlfns": [
+              {
+                "fqn": "androidx.annotation.FacadeFileKt.AnnotationFunction"
+              },
+              {
+                "fqn": "androidx.annotation.FakeFunctionKt.FakeFunction"
+              }
+            ]
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -216,11 +216,7 @@ class MavenClassRegistryTest {
         )
       )
 
-    assertThat(
-        mavenClassRegistry.findImportDataByFunctionSpecifier(
-          FunctionSpecifier("FakeFunction", null)
-        )
-      )
+    assertThat(mavenClassRegistry.findImportDataByFunctionSpecifier(FunctionSpecifier("FakeFunction", null)))
       .containsExactly(
         LibraryImportData(
           artifact = "androidx.activity:activity",
@@ -237,9 +233,7 @@ class MavenClassRegistryTest {
       )
 
     assertThat(mavenClassRegistry.lookup.ktxMap)
-      .containsExactlyEntriesIn(
-        mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx")
-      )
+      .containsExactlyEntriesIn(mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx"))
   }
 
   @Test
@@ -247,10 +241,10 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Indices": [
-          ]
-        }
+      {
+        "Indices": [
+        ]
+      }
       """
         .trimIndent()
 
@@ -265,19 +259,19 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-          ]
-        }
+      {
+        "Index": [
+          {
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ]
+          },
+        ]
+      }
       """
         .trimIndent()
 
@@ -292,19 +286,19 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ]
+          },
+        ]
+      }
       """
         .trimIndent()
 
@@ -319,21 +313,21 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-ktx",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-ktx",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ]
+          },
+        ]
+      }
       """
         .trimIndent()
 
@@ -348,18 +342,18 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-ktx",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ]
-            },
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-ktx",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ]
+          },
+        ]
+      }
       """
         .trimIndent()
 
@@ -374,19 +368,19 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ]
+          },
+        ]
+      }
       """
         .trimIndent()
 
@@ -401,51 +395,51 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "group1",
-              "artifactId": "artifact1",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [
-                "class1"
-              ]
-            },
-            {
-              "groupId": "group2",
-              "artifactId": "artifact2",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [
-                "class2"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "group3",
-              "artifactId": "artifact3",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [
-                "class3"
-              ],
-              "ktlfns": [
-                {
-                  "fqn": "FacadeFileKt.someFqn",
-                  "unrecognized": "should be ignored"
-                },
-                {
-                  "has_no_fqn": "should be ignored"
-                },
-                {
-                  "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
-                  "rcvr": "amazingReceiver"
-                }
-              ]
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "group1",
+            "artifactId": "artifact1",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [
+              "class1"
+            ]
+          },
+          {
+            "groupId": "group2",
+            "artifactId": "artifact2",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [
+              "class2"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "group3",
+            "artifactId": "artifact3",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [
+              "class3"
+            ],
+            "ktlfns": [
+              {
+                "fqn": "FacadeFileKt.someFqn",
+                "unrecognized": "should be ignored"
+              },
+              {
+                "has_no_fqn": "should be ignored"
+              },
+              {
+                "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
+                "rcvr": "amazingReceiver"
+              }
+            ]
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -456,12 +450,7 @@ class MavenClassRegistryTest {
         mapOf(
           FunctionSpecifier("someFqn", null) to
             listOf(
-              LibraryImportData(
-                artifact = "group3:artifact3",
-                importedItemFqName = "someFqn",
-                importedItemPackageName = "",
-                version = "1",
-              )
+              LibraryImportData(artifact = "group3:artifact3", importedItemFqName = "someFqn", importedItemPackageName = "", version = "1")
             ),
           FunctionSpecifier("someExtensionFunction", FqName("amazingReceiver")) to
             listOf(
@@ -481,53 +470,53 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "UnKnown1": [],
-          "UnKnown2": [
-            {
-              "a": "",
-              "b": ""
-            }
-          ],
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "unKnown3": "unknown content",
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-ktx",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "unKnown4": [
-                "a",
-                "b"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.annotation",
-              "artifactId": "annotation",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "unKnown5": [],
-              "fqcns": [
-                "androidx.annotation.AnimRes",
-                "androidx.annotation.Fake"
-              ]
-            }
-          ],
-          "UnKnown6": "unknown content"
-        }
+      {
+        "UnKnown1": [],
+        "UnKnown2": [
+          {
+            "a": "",
+            "b": ""
+          }
+        ],
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "unKnown3": "unknown content",
+            "fqcns": [
+              "androidx.activity.ComponentActivity",
+              "androidx.activity.Fake"
+            ]
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-ktx",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "unKnown4": [
+              "a",
+              "b"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.annotation",
+            "artifactId": "annotation",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "unKnown5": [],
+            "fqcns": [
+              "androidx.annotation.AnimRes",
+              "androidx.annotation.Fake"
+            ]
+          }
+        ],
+        "UnKnown6": "unknown content"
+      }
       """
         .trimIndent()
 
@@ -572,16 +561,13 @@ class MavenClassRegistryTest {
         )
       )
     assertThat(mavenClassRegistry.lookup.ktxMap)
-      .containsExactlyEntriesIn(
-        mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx")
-      )
+      .containsExactlyEntriesIn(mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx"))
   }
 
   @Test
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    val repository =
-      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
+    val repository = GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
     val mavenClassRegistry = MavenClassRegistry.createFrom(repository::loadIndexFromDisk)
     val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
@@ -620,11 +606,7 @@ class MavenClassRegistryTest {
 
     mavenClassRegistry.lookup.ktxMap.let {
       assertThat(it.size).isAtLeast(40)
-      assertThat(it)
-        .containsEntry(
-          "androidx.navigation:navigation-fragment",
-          "androidx.navigation:navigation-fragment-ktx",
-        )
+      assertThat(it).containsEntry("androidx.navigation:navigation-fragment", "androidx.navigation:navigation-fragment-ktx")
       assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
     }
   }
@@ -632,8 +614,7 @@ class MavenClassRegistryTest {
   @Test
   fun googleMavenArtifactIdConsistencyWithOfflineFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    val repository =
-      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
+    val repository = GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
     val mavenClassRegistry = MavenClassRegistry.createFrom(repository::loadIndexFromDisk)
     val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
@@ -641,19 +622,13 @@ class MavenClassRegistryTest {
     // Check if we have a valid built-in index file.
     Json.parseToJsonElement(data)
 
-    val ids =
-      mavenClassRegistry.lookup.coordinateList.mapToSetOrEmpty { "${it.groupId}:${it.artifactId}" }
+    val ids = mavenClassRegistry.lookup.coordinateList.mapToSetOrEmpty { "${it.groupId}:${it.artifactId}" }
     assertThat(ids).containsAllIn(GoogleMavenArtifactId.entries.mapToSetOrEmpty { it.toString() })
   }
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName() {
-    with(
-      KotlinTopLevelFunction.fromJvmQualifiedName(
-        "com.example.FileFacadeKt.foo",
-        "com.example.Receiver",
-      )
-    ) {
+    with(KotlinTopLevelFunction.fromJvmQualifiedName("com.example.FileFacadeKt.foo", "com.example.Receiver")) {
       assertThat(simpleName).isEqualTo("foo")
       assertThat(packageName).isEqualTo("com.example")
       assertThat(kotlinFqName.asString()).isEqualTo("com.example.foo")
@@ -683,9 +658,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName_noFacadeFile() {
-    assertThrows(IllegalArgumentException::class.java) {
-      KotlinTopLevelFunction.fromJvmQualifiedName("foo", "com.example.Receiver")
-    }
+    assertThrows(IllegalArgumentException::class.java) { KotlinTopLevelFunction.fromJvmQualifiedName("foo", "com.example.Receiver") }
   }
 
   @Test
@@ -693,47 +666,47 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "group1",
-              "artifactId": "artifact1",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [
-                "com.example.class1"
-              ]
-            },
-            {
-              "groupId": "group2",
-              "artifactId": "artifact2",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [
-                "com.example2.class1"
-              ],
-              "ktlfns": [
-                {
-                  "xfqn": "com.example2.toplevel.FacadeFileKt.someExtensionFunction",
-                  "rcvr": "amazingReceiver"
-                }
-              ]
-            },
-            {
-              "groupId": "group3",
-              "artifactId": "artifact3",
-              "version": "1",
-              "ktxTargets": [],
-              "fqcns": [],
-              "ktlfns": [
-                {
-                  "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
-                  "rcvr": "amazingReceiver"
-                }
-              ]
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "group1",
+            "artifactId": "artifact1",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [
+              "com.example.class1"
+            ]
+          },
+          {
+            "groupId": "group2",
+            "artifactId": "artifact2",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [
+              "com.example2.class1"
+            ],
+            "ktlfns": [
+              {
+                "xfqn": "com.example2.toplevel.FacadeFileKt.someExtensionFunction",
+                "rcvr": "amazingReceiver"
+              }
+            ]
+          },
+          {
+            "groupId": "group3",
+            "artifactId": "artifact3",
+            "version": "1",
+            "ktxTargets": [],
+            "fqcns": [],
+            "ktlfns": [
+              {
+                "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
+                "rcvr": "amazingReceiver"
+              }
+            ]
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -751,90 +724,90 @@ class MavenClassRegistryTest {
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-android",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-desktop",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-jvmstubs",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-linuxx64stubs",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-unknownsuffix",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.artifact.without.base",
-              "artifactId": "foo-desktop",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.different.version",
-              "artifactId": "foo",
-              "version": "1.1.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            },
-            {
-              "groupId": "androidx.different.version",
-              "artifactId": "foo-desktop",
-              "version": "1.2.0",
-              "ktxTargets": [
-                "androidx.activity:activity"
-              ],
-              "fqcns": []
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-android",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-desktop",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-jvmstubs",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-linuxx64stubs",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-unknownsuffix",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.artifact.without.base",
+            "artifactId": "foo-desktop",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.different.version",
+            "artifactId": "foo",
+            "version": "1.1.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          },
+          {
+            "groupId": "androidx.different.version",
+            "artifactId": "foo-desktop",
+            "version": "1.2.0",
+            "ktxTargets": [
+              "androidx.activity:activity"
+            ],
+            "fqcns": []
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -858,62 +831,58 @@ class MavenClassRegistryTest {
       on { isApplicable(any()) } doReturn true
       on { shouldMapKmpArtifacts(any()) } doReturn true
     }
-    ExtensionTestUtil.maskExtensions(
-      AndroidMavenImportToken.EP_NAME,
-      listOf(mockAndroidMavenImportToken),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AndroidMavenImportToken.EP_NAME, listOf(mockAndroidMavenImportToken), projectRule.testRootDisposable)
 
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInBase",
-                "androidx.activity.ClassInBothPlatforms",
-                "androidx.activity.ClassInTwoGroups"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-android",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInAndroid",
-                "androidx.activity.ClassInBothPlatforms"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-desktop",
-              "version": "0.9.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInDesktopWithDifferentVersion"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.foo",
-              "artifactId": "foo",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.foo.ClassInTwoGroups"
-              ],
-              "ktlfns": []
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInBase",
+              "androidx.activity.ClassInBothPlatforms",
+              "androidx.activity.ClassInTwoGroups"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-android",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInAndroid",
+              "androidx.activity.ClassInBothPlatforms"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-desktop",
+            "version": "0.9.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInDesktopWithDifferentVersion"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.foo",
+            "artifactId": "foo",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.foo.ClassInTwoGroups"
+            ],
+            "ktlfns": []
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -921,67 +890,26 @@ class MavenClassRegistryTest {
 
     val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
     assertThat(classInBase)
-      .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInBase",
-          "androidx.activity",
-          "1.1.0",
-        )
-      )
+      .containsExactly(LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInBase", "androidx.activity", "1.1.0"))
 
-    val classInAndroid =
-      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
+    val classInAndroid = mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
     assertThat(classInAndroid)
-      .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInAndroid",
-          "androidx.activity",
-          "1.1.0",
-        )
-      )
+      .containsExactly(LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInAndroid", "androidx.activity", "1.1.0"))
 
-    val classInBothPlatforms =
-      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
+    val classInBothPlatforms = mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
     assertThat(classInBothPlatforms)
       .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInBothPlatforms",
-          "androidx.activity",
-          "1.1.0",
-        )
+        LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInBothPlatforms", "androidx.activity", "1.1.0")
       )
 
-    val classInTwoGroups =
-      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
+    val classInTwoGroups = mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
     assertThat(classInTwoGroups)
       .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInTwoGroups",
-          "androidx.activity",
-          "1.1.0",
-        ),
-        LibraryImportData(
-          "androidx.foo:foo",
-          "androidx.foo.ClassInTwoGroups",
-          "androidx.foo",
-          "1.1.0",
-        ),
+        LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInTwoGroups", "androidx.activity", "1.1.0"),
+        LibraryImportData("androidx.foo:foo", "androidx.foo.ClassInTwoGroups", "androidx.foo", "1.1.0"),
       )
 
-    assertThat(
-        mavenClassRegistry.findLibraryData(
-          "ClassInDesktopWithDifferentVersion",
-          null,
-          true,
-          null,
-          module,
-        )
-      )
-      .isEmpty()
+    assertThat(mavenClassRegistry.findLibraryData("ClassInDesktopWithDifferentVersion", null, true, null, module)).isEmpty()
   }
 
   @Test
@@ -990,62 +918,58 @@ class MavenClassRegistryTest {
       on { isApplicable(any()) } doReturn true
       on { shouldMapKmpArtifacts(any()) } doReturn false
     }
-    ExtensionTestUtil.maskExtensions(
-      AndroidMavenImportToken.EP_NAME,
-      listOf(mockAndroidMavenImportToken),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(AndroidMavenImportToken.EP_NAME, listOf(mockAndroidMavenImportToken), projectRule.testRootDisposable)
 
     repositoryIndexContents =
       // language=json
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInBase",
-                "androidx.activity.ClassInBothPlatforms",
-                "androidx.activity.ClassInTwoGroups"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-android",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInAndroid",
-                "androidx.activity.ClassInBothPlatforms"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity-desktop",
-              "version": "0.9.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.activity.ClassInDesktopWithDifferentVersion"
-              ],
-              "ktlfns": []
-            },
-            {
-              "groupId": "androidx.foo",
-              "artifactId": "foo",
-              "version": "1.1.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.foo.ClassInTwoGroups"
-              ],
-              "ktlfns": []
-            }
-          ]
-        }
+      {
+        "Index": [
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInBase",
+              "androidx.activity.ClassInBothPlatforms",
+              "androidx.activity.ClassInTwoGroups"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-android",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInAndroid",
+              "androidx.activity.ClassInBothPlatforms"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.activity",
+            "artifactId": "activity-desktop",
+            "version": "0.9.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.activity.ClassInDesktopWithDifferentVersion"
+            ],
+            "ktlfns": []
+          },
+          {
+            "groupId": "androidx.foo",
+            "artifactId": "foo",
+            "version": "1.1.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.foo.ClassInTwoGroups"
+            ],
+            "ktlfns": []
+          }
+        ]
+      }
       """
         .trimIndent()
 
@@ -1053,72 +977,29 @@ class MavenClassRegistryTest {
 
     val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
     assertThat(classInBase)
-      .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInBase",
-          "androidx.activity",
-          "1.1.0",
-        )
-      )
+      .containsExactly(LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInBase", "androidx.activity", "1.1.0"))
 
-    val classInAndroid =
-      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
+    val classInAndroid = mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
     assertThat(classInAndroid)
       .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity-android",
-          "androidx.activity.ClassInAndroid",
-          "androidx.activity",
-          "1.1.0",
-        )
+        LibraryImportData("androidx.activity:activity-android", "androidx.activity.ClassInAndroid", "androidx.activity", "1.1.0")
       )
 
-    val classInBothPlatforms =
-      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
+    val classInBothPlatforms = mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
     assertThat(classInBothPlatforms)
       .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInBothPlatforms",
-          "androidx.activity",
-          "1.1.0",
-        ),
-        LibraryImportData(
-          "androidx.activity:activity-android",
-          "androidx.activity.ClassInBothPlatforms",
-          "androidx.activity",
-          "1.1.0",
-        ),
+        LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInBothPlatforms", "androidx.activity", "1.1.0"),
+        LibraryImportData("androidx.activity:activity-android", "androidx.activity.ClassInBothPlatforms", "androidx.activity", "1.1.0"),
       )
 
-    val classInTwoGroups =
-      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
+    val classInTwoGroups = mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
     assertThat(classInTwoGroups)
       .containsExactly(
-        LibraryImportData(
-          "androidx.activity:activity",
-          "androidx.activity.ClassInTwoGroups",
-          "androidx.activity",
-          "1.1.0",
-        ),
-        LibraryImportData(
-          "androidx.foo:foo",
-          "androidx.foo.ClassInTwoGroups",
-          "androidx.foo",
-          "1.1.0",
-        ),
+        LibraryImportData("androidx.activity:activity", "androidx.activity.ClassInTwoGroups", "androidx.activity", "1.1.0"),
+        LibraryImportData("androidx.foo:foo", "androidx.foo.ClassInTwoGroups", "androidx.foo", "1.1.0"),
       )
 
-    assertThat(
-        mavenClassRegistry.findLibraryData(
-          "ClassInDesktopWithDifferentVersion",
-          null,
-          true,
-          null,
-          module,
-        )
-      )
+    assertThat(mavenClassRegistry.findLibraryData("ClassInDesktopWithDifferentVersion", null, true, null, module))
       .containsExactly(
         LibraryImportData(
           "androidx.activity:activity-desktop",

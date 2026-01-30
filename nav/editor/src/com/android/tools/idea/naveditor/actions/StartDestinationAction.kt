@@ -24,14 +24,11 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
-class StartDestinationAction(private val component: NlComponent) :
-  AnAction("Set as Start Destination") {
+class StartDestinationAction(private val component: NlComponent) : AnAction("Set as Start Destination") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
-    WriteCommandAction.runWriteCommandAction(component.model.project) {
-      component.setAsStartDestination()
-    }
+    WriteCommandAction.runWriteCommandAction(component.model.project) { component.setAsStartDestination() }
   }
 
   override fun update(e: AnActionEvent) {

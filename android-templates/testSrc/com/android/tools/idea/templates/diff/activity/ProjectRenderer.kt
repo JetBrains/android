@@ -58,7 +58,11 @@ val FILES_TO_IGNORE = setOf("OWNERS")
 abstract class ProjectRenderer(protected val template: Template, val goldenDirName: String) {
   protected lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(project: Project, agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment, vararg customizers: ProjectStateCustomizer) {
+  fun renderProject(
+    project: Project,
+    agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment,
+    vararg customizers: ProjectStateCustomizer,
+  ) {
     moduleState = getDefaultModuleState(project, template, agpVersionSoftwareEnvironment)
     customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
@@ -81,10 +85,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
 
     println("Creating project $moduleName in $projectRoot")
 
-    val moduleRoot =
-      GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName))
-        .paths
-        .moduleRoot!!
+    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName)).paths.moduleRoot!!
 
     val appTitle = "Template Test App Title"
 
@@ -93,21 +94,11 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
         // TODO(qumeric): support C++
         FormFactor.XR,
         FormFactor.AiGlasses,
-        FormFactor.Mobile -> { data: TemplateData ->
-          this.generateAndroidModule(data as ModuleTemplateData, appTitle, false)
-        }
-        FormFactor.Wear -> { data: TemplateData ->
-          this.generateWearModule(data as ModuleTemplateData, appTitle, false)
-        }
-        FormFactor.Tv -> { data: TemplateData ->
-          this.generateTvModule(data as ModuleTemplateData, appTitle, false)
-        }
-        FormFactor.Car -> { data: TemplateData ->
-          this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false)
-        }
-        FormFactor.Generic -> { data: TemplateData ->
-          this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false)
-        }
+        FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false) }
+        FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
+        FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
+        FormFactor.Car -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
+        FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
       }
 
     val context =
@@ -128,8 +119,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
     val templateRecipeExecutor = DefaultRecipeExecutor(context)
 
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
-    (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value =
-      moduleState.packageName!!
+    (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
     prepareProject(projectRoot)
     renderTemplate(project, moduleRecipe, context, moduleRecipeExecutor, templateRecipeExecutor)
@@ -142,8 +132,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
   protected open fun prepareProject(projectRoot: File) {}
 
   /**
-   * Copies in build.gradle, gradle.properties, and settings.gradle from
-   * testData/projects/projectWithNoModules
+   * Copies in build.gradle, gradle.properties, and settings.gradle from testData/projects/projectWithNoModules
    *
    * When using AndroidGradleProjectRule, this is unnecessary because it's already done by load()
    */
@@ -173,11 +162,9 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
   }
 
   /**
-   * To be overridden to handle the golden and template output directories after the template
-   * project is generated
+   * To be overridden to handle the golden and template output directories after the template project is generated
    *
-   * @param moduleName a unique name for this template, used to determine the directory name to
-   *   output golden files to
+   * @param moduleName a unique name for this template, used to determine the directory name to output golden files to
    * @param goldenDir the location of this template's golden reference files
    * @param projectDir the location of this template-generated project
    */
@@ -195,7 +182,5 @@ internal fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecu
 }
 
 private fun getNoModulesTestProjectPath(): File {
-  return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData")
-    .resolve(TestProjectPaths.NO_MODULES)
-    .toFile()
+  return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").resolve(TestProjectPaths.NO_MODULES).toFile()
 }

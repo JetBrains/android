@@ -25,8 +25,8 @@ class WakeLockEntryTest {
   fun wakeLock() {
     val acquiredStacktrace =
       """
-        android.os.PowerManager${'$'}WakeLock.acquire(PowerManager.java:2386)
-        android.com.java.profilertester.taskcategory.WakeLockTask.execute(BackgroundTaskCategory.java:83)
+      android.os.PowerManager${'$'}WakeLock.acquire(PowerManager.java:2386)
+      android.com.java.profilertester.taskcategory.WakeLockTask.execute(BackgroundTaskCategory.java:83)
       """
         .trimIndent()
 
@@ -40,10 +40,7 @@ class WakeLockEntryTest {
               .apply {
                 level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
                 tag = "TAG1"
-                addFlags(
-                  BackgroundTaskInspectorProtocol.WakeLockAcquired.CreationFlag
-                    .ACQUIRE_CAUSES_WAKEUP
-                )
+                addFlags(BackgroundTaskInspectorProtocol.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
               }
               .build()
         }
@@ -57,10 +54,7 @@ class WakeLockEntryTest {
           wakeLockReleased =
             BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder()
               .apply {
-                addFlags(
-                  BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag
-                    .RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY
-                )
+                addFlags(BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY)
                 isHeld = false
               }
               .build()
@@ -81,11 +75,7 @@ class WakeLockEntryTest {
     entry.consumeAndAssert(wakeLockReleasedEvent, 2) {
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("RELEASED")
-      assertThat(callstacks)
-        .containsExactly(
-          BackgroundTaskCallStack(1, acquiredStacktrace),
-          BackgroundTaskCallStack(2, "RELEASED"),
-        )
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, acquiredStacktrace), BackgroundTaskCallStack(2, "RELEASED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -100,10 +90,7 @@ class WakeLockEntryTest {
           wakeLockReleased =
             BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder()
               .apply {
-                addFlags(
-                  BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag
-                    .RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY
-                )
+                addFlags(BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY)
                 isHeld = false
               }
               .build()

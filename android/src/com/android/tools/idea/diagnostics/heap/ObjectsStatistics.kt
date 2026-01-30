@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap
 
-data class ObjectsStatistics(
-  var objectsCount: Int = 0,
-  var totalSizeInBytes: Long = 0L
-) {
+data class ObjectsStatistics(var objectsCount: Int = 0, var totalSizeInBytes: Long = 0L) {
   fun addObject(size: Long) {
     objectsCount++
     totalSizeInBytes += size

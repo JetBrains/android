@@ -21,14 +21,13 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationViewModel
 import com.intellij.openapi.util.text.StringUtil
 
-/**
- * ViewModel for [com.android.tools.idea.ui.resourcemanager.importer.FileImportRow]
- */
+/** ViewModel for [com.android.tools.idea.ui.resourcemanager.importer.FileImportRow] */
 class FileImportRowViewModel(
   val asset: DesignAsset,
   val resourceFolderType: ResourceFolderType,
   val qualifierViewModel: QualifierConfigurationViewModel = QualifierConfigurationViewModel(folderConfiguration(asset)),
-  val removeCallback: (DesignAsset) -> Unit) {
+  val removeCallback: (DesignAsset) -> Unit,
+) {
 
   // TODO get value from actual file
   var updateCallback: (() -> Unit)? = null
@@ -53,8 +52,9 @@ class FileImportRowViewModel(
   }
 }
 
-private fun folderConfiguration(asset: DesignAsset) = FolderConfiguration().apply {
-  for (qualifier in asset.qualifiers) {
-    addQualifier(qualifier)
+private fun folderConfiguration(asset: DesignAsset) =
+  FolderConfiguration().apply {
+    for (qualifier in asset.qualifiers) {
+      addQualifier(qualifier)
+    }
   }
-}

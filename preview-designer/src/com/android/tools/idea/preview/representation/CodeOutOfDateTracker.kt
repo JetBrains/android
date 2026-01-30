@@ -29,20 +29,16 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.util.PsiModificationTracker
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
-/**
- * Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService]
- * and remove this file.
- */
+/** Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService] and remove this file. */
 interface CodeOutOfDateTracker : ModificationTracker {
   /**
-   * Call this method when an external event has caused the saved build to not be "usable" anymore.
-   * This will force a call to the `needsRefreshCallback` passed to [create] at some point in the
-   * future.
+   * Call this method when an external event has caused the saved build to not be "usable" anymore. This will force a call to the
+   * `needsRefreshCallback` passed to [create] at some point in the future.
    */
   fun invalidateSavedBuildStatus()
 
@@ -56,9 +52,7 @@ interface CodeOutOfDateTracker : ModificationTracker {
       parentDisposable: Disposable,
       needsRefreshCallback: () -> Unit,
     ): CodeOutOfDateTracker =
-      buildTargetReference?.let {
-        CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback)
-      } ?: NopCodeOutOfDateTrackerImpl
+      buildTargetReference?.let { CodeOutOfDateTrackerImpl(it, parentDisposable, needsRefreshCallback) } ?: NopCodeOutOfDateTrackerImpl
   }
 }
 
@@ -81,9 +75,8 @@ private class CodeOutOfDateTrackerImpl(
   private val log = Logger.getInstance(CodeOutOfDateTrackerImpl::class.java)
 
   /**
-   * Lock used when processing events that affect the need of refreshing previews. These events are
-   * the invocations of [invalidateSavedBuildStatus] and the events captured by the
-   * ResourceChangeListener and the BuildListener.
+   * Lock used when processing events that affect the need of refreshing previews. These events are the invocations of
+   * [invalidateSavedBuildStatus] and the events captured by the ResourceChangeListener and the BuildListener.
    */
   private val previewFreshnessLock = ReentrantLock()
 
@@ -100,8 +93,7 @@ private class CodeOutOfDateTrackerImpl(
     // then we need to refresh the previews on the next successful build.
     if (
       reasons.any {
-        it != ResourceNotificationManager.Reason.PROJECT_BUILD &&
-          it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED
+        it != ResourceNotificationManager.Reason.PROJECT_BUILD && it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED
       }
     ) {
       invalidateSavedBuildStatus()
@@ -187,24 +179,18 @@ private class CodeOutOfDateTrackerImpl(
 
     buildTargetReference.module.androidFacet?.let { facet ->
       // Set a ResourceChangeListener to update the need of refreshing the previews when corresponds
-      ResourceNotificationManager.getInstance(buildTargetReference.project)
-        .addListener(resourceChangeListener, facet, null, null)
+      ResourceNotificationManager.getInstance(buildTargetReference.project).addListener(resourceChangeListener, facet, null, null)
       Disposer.register(parentDisposable) {
-        ResourceNotificationManager.getInstance(buildTargetReference.project)
-          .removeListener(resourceChangeListener, facet, null, null)
+        ResourceNotificationManager.getInstance(buildTargetReference.project).removeListener(resourceChangeListener, facet, null, null)
       }
-    }
-      ?: log.error(
-        "Couldn't set the ResourceChangeListener, some previews might not be refreshed correctly after successful builds"
-      )
+    } ?: log.error("Couldn't set the ResourceChangeListener, some previews might not be refreshed correctly after successful builds")
   }
 
   @TestOnly override fun needsRefreshOnSuccessfulBuild() = needsRefreshOnSuccessfulBuild
 
   @TestOnly
   override fun buildWillTriggerRefresh() =
-    needsRefreshOnSuccessfulBuild ||
-      kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
+    needsRefreshOnSuccessfulBuild || kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
 
   override fun getModificationCount() = kotlinJavaModificationTracker.modificationCount
 

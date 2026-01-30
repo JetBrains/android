@@ -20,12 +20,13 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 /**
- * Starting with AGP 9.0, the default value of android.sdk.defaultTargetSdkToCompileSdkIfUnset is now true. This refactoring adds the property if it
- * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01
+ * Starting with AGP 9.0, the default value of android.sdk.defaultTargetSdkToCompileSdkIfUnset is now true. This refactoring adds the
+ * property if it was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01
  */
-class TargetSdkDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class TargetSdkDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.sdk.defaultTargetSdkToCompileSdkIfUnset"
   override val oldDefault = false
@@ -34,7 +35,10 @@ class TargetSdkDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefact
   override val tooltip = AgpUpgradeBundle.message("targetSdkDefaultsToCompileSdk.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("targetSdkDefaultsToCompileSdk.usageView.header")
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.targetSdkDefaultRefactoringProcessor"
+
   override fun getCommandName() = AgpUpgradeBundle.message("targetSdkDefaultsToCompileSdk.commandName")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("targetSdkDefaultsToCompileSdk.shortDescription")
 }

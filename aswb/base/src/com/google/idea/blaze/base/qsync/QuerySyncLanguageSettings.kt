@@ -23,9 +23,7 @@ import com.intellij.openapi.components.service
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.application
 
-/**
- * Query sync configuration for the languages and frameworks supported by the query sync out of the box.
- */
+/** Query sync configuration for the languages and frameworks supported by the query sync out of the box. */
 interface QuerySyncLanguageSettings {
   /**
    * A provider that knows how to fetch configuration for Java, Kotlin and Android.
@@ -34,29 +32,26 @@ interface QuerySyncLanguageSettings {
    * support for these frameworks and languages.
    */
   interface Provider {
-    fun create(
-      projectViewSet: ProjectViewSet,
-      workspaceLanguageSettings: WorkspaceLanguageSettings,
-    ): QuerySyncLanguageSettings
+    fun create(projectViewSet: ProjectViewSet, workspaceLanguageSettings: WorkspaceLanguageSettings): QuerySyncLanguageSettings
   }
 
   interface Java {
     val languageLevel: LanguageLevel
 
-    /**
-     * True if this is a pure Java workspace, i.e. the IDE will not be configured to support Android development.
-     */
+    /** True if this is a pure Java workspace, i.e. the IDE will not be configured to support Android development. */
     val isJavaWorkspace: Boolean
   }
 
   sealed interface Kotlin {
-    object NotSupported: Kotlin
-    object Settings: Kotlin
+    object NotSupported : Kotlin
+
+    object Settings : Kotlin
   }
 
   sealed interface Android {
-    object NotSupported: Android
-    interface Settings: Android {
+    object NotSupported : Android
+
+    interface Settings : Android {
       val sdk: String?
       val minSdk: Int?
     }
@@ -68,10 +63,7 @@ interface QuerySyncLanguageSettings {
 
   companion object {
     @JvmStatic
-    fun from(
-      projectViewSet: ProjectViewSet,
-      workspaceLanguageSettings: WorkspaceLanguageSettings
-    ): QuerySyncLanguageSettings {
+    fun from(projectViewSet: ProjectViewSet, workspaceLanguageSettings: WorkspaceLanguageSettings): QuerySyncLanguageSettings {
       // Although query sync hardcodes languages it supports, Android support is in a different target and cannot be referred from here.
       return application.service<Provider>().create(projectViewSet, workspaceLanguageSettings)
     }
@@ -84,11 +76,12 @@ interface QuerySyncLanguageSettings {
       androidSdk: String?,
       androidMinSdk: Int?,
     ): QuerySyncLanguageSettings {
-      return object: QuerySyncLanguageSettings {
-        override val java: Java = object: Java {
-          override val languageLevel: LanguageLevel = javaLanguageLevel
-          override val isJavaWorkspace: Boolean = workspaceLanguageSettings.workspaceType == WorkspaceType.JAVA
-        }
+      return object : QuerySyncLanguageSettings {
+        override val java: Java =
+          object : Java {
+            override val languageLevel: LanguageLevel = javaLanguageLevel
+            override val isJavaWorkspace: Boolean = workspaceLanguageSettings.workspaceType == WorkspaceType.JAVA
+          }
 
         override val kotlin: Kotlin =
           when (LanguageClass.KOTLIN in workspaceLanguageSettings.activeLanguages) {
@@ -97,15 +90,15 @@ interface QuerySyncLanguageSettings {
           }
 
         override val android: Android =
-          when(workspaceLanguageSettings.workspaceType) {
-            WorkspaceType.ANDROID -> object: Android.Settings{
-              override val sdk: String? = androidSdk
-              override val minSdk: Int? = androidMinSdk
-            }
+          when (workspaceLanguageSettings.workspaceType) {
+            WorkspaceType.ANDROID ->
+              object : Android.Settings {
+                override val sdk: String? = androidSdk
+                override val minSdk: Int? = androidMinSdk
+              }
             else -> Android.NotSupported
           }
       }
     }
   }
 }
-

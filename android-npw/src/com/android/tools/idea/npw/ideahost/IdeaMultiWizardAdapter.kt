@@ -28,31 +28,30 @@ import com.intellij.openapi.util.Disposer
 import javax.swing.JComponent
 
 /**
- * Provides an implementation of the [WizardDelegate] interface (which plugs in to the IntelliJ IDEA New Project / Module Wizards)
- * that hosts the [ModelWizard] based AndroidStudio New Project and New Module wizards.
+ * Provides an implementation of the [WizardDelegate] interface (which plugs in to the IntelliJ IDEA New Project / Module Wizards) that
+ * hosts the [ModelWizard] based AndroidStudio New Project and New Module wizards.
  *
- * In Android Studio, wizards are hosted in the [ModelWizardDialog] class, however when running as a plugin in IDEA we do not create
- * the hosting dialog, but instead need to embed the wizard inside an existing dialog. This class manages that embedding. The
- * [WizardDelegate] class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the
- * [IdeaMultiWizardAdapter] does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
+ * In Android Studio, wizards are hosted in the [ModelWizardDialog] class, however when running as a plugin in IDEA we do not create the
+ * hosting dialog, but instead need to embed the wizard inside an existing dialog. This class manages that embedding. The [WizardDelegate]
+ * class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the [IdeaMultiWizardAdapter] does not
+ * need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-class IdeaMultiWizardAdapter(
-  private val ideaWizard: AbstractWizard<*>,
-  private val mainComponent: JComponent
-) : ModelWizard.WizardListener, IdeaWizardDelegate {
+class IdeaMultiWizardAdapter(private val ideaWizard: AbstractWizard<*>, private val mainComponent: JComponent) :
+  ModelWizard.WizardListener, IdeaWizardDelegate {
   private val listeners = ListenerManager()
   private var currentModelWizard: ModelWizard? = null
 
-  /**
-   * Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard.
-   */
-  private val proxyStep: ModuleWizardStep = object : ModuleWizardStep() {
+  /** Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard. */
+  private val proxyStep: ModuleWizardStep =
+    object : ModuleWizardStep() {
       override fun getComponent(): JComponent = mainComponent
+
       override fun updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
       }
+
       override fun getHelpId(): String? = AndroidWebHelpProvider.HELP_PREFIX + "studio/projects/create-project.html"
-  }
+    }
 
   init {
     Disposer.register(ideaWizard.disposable, this)
@@ -65,20 +64,15 @@ class IdeaMultiWizardAdapter(
 
     modelWizard.apply {
       addResultListener(this@IdeaMultiWizardAdapter)
-      listeners.listenAll(canGoBack(), canGoForward(), onLastStep())
-        .withAndFire { updateButtons() }
+      listeners.listenAll(canGoBack(), canGoForward(), onLastStep()).withAndFire { updateButtons() }
     }
   }
 
-  override fun getCustomOptionsStep(): ModuleWizardStep  = proxyStep
+  override fun getCustomOptionsStep(): ModuleWizardStep = proxyStep
 
-  /**
-   * Update the buttons on the host wizard to reflect the state of the guest wizard
-   */
+  /** Update the buttons on the host wizard to reflect the state of the guest wizard */
   override fun updateButtons() {
-    currentModelWizard?.apply {
-      ideaWizard.updateButtons(onLastStep().get(), canGoForward().get(), !canGoBack().get())
-    }
+    currentModelWizard?.apply { ideaWizard.updateButtons(onLastStep().get(), canGoForward().get(), !canGoBack().get()) }
   }
 
   override fun onWizardFinished(result: ModelWizard.WizardResult) {

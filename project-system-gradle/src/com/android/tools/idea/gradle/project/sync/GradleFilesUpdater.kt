@@ -35,7 +35,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VFileProperty
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -54,11 +53,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_DAEMON_JVM_PROPE
 @Service(Service.Level.PROJECT)
 class GradleFilesUpdater(private val project: Project, private val cs: CoroutineScope) {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): GradleFilesUpdater = project.getService(GradleFilesUpdater::class.java)
+    @JvmStatic fun getInstance(project: Project): GradleFilesUpdater = project.getService(GradleFilesUpdater::class.java)
 
-    @JvmStatic
-    private fun hash(virtualFile: VirtualFile) = ProgressManager.checkCanceled().let { GradleFiles.computeHash(virtualFile) }
+    @JvmStatic private fun hash(virtualFile: VirtualFile) = ProgressManager.checkCanceled().let { GradleFiles.computeHash(virtualFile) }
   }
 
   private val VirtualFile.isRegularFile
@@ -67,16 +64,11 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
   fun scheduleUpdateFileHashes(callback: (Result) -> Unit) {
     if (ApplicationManager.getApplication().isUnitTestMode) {
       runBlocking {
-        val job = cs.launch(Dispatchers.Default) {
-          callback(computeFileHashes())
-        }
+        val job = cs.launch(Dispatchers.Default) { callback(computeFileHashes()) }
         job.join()
       }
-    }
-    else {
-      cs.launch(Dispatchers.Default) {
-        callback(computeFileHashes())
-      }
+    } else {
+      cs.launch(Dispatchers.Default) { callback(computeFileHashes()) }
     }
   }
 
@@ -88,9 +80,7 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
   suspend fun computeFileHashes(): Result {
     suspend fun computeWrapperPropertiesHash(): Result {
       val file = GradleWrapper.find(project)?.propertiesFile?.takeIf { it.isRegularFile } ?: return Result.EMPTY
-      return readAction {
-        Result.from(file)
-      }
+      return readAction { Result.from(file) }
     }
     suspend fun computeModuleHashes(module: Module): Result {
       val files = mutableSetOf<VirtualFile>()
@@ -111,30 +101,39 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
           }
         }
       }
-      return readAction {
-        Result.from(files, externalBuildFiles)
-      }
+      return readAction { Result.from(files, externalBuildFiles) }
     }
     suspend fun computeRootHashes(root: VirtualFile): Result {
       if (!root.isDirectory) return Result.EMPTY
-      val fileNames = listOfNotNull(FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES,
-                                    FN_SETTINGS_GRADLE_DECLARATIVE.takeIf { DeclarativeStudioSupport.isEnabled() })
+      val fileNames =
+        listOfNotNull(
+          FN_SETTINGS_GRADLE,
+          FN_SETTINGS_GRADLE_KTS,
+          FN_GRADLE_PROPERTIES,
+          FN_SETTINGS_GRADLE_DECLARATIVE.takeIf { DeclarativeStudioSupport.isEnabled() },
+        )
       return readAction {
-        val files = fileNames.mapNotNull {
-          val virtualFile = root.findChild(it) ?: return@mapNotNull null
-          if (!virtualFile.isRegularFile) return@mapNotNull null
-          return@mapNotNull virtualFile
-        }.toSet()
+        val files =
+          fileNames
+            .mapNotNull {
+              val virtualFile = root.findChild(it) ?: return@mapNotNull null
+              if (!virtualFile.isRegularFile) return@mapNotNull null
+              return@mapNotNull virtualFile
+            }
+            .toSet()
         Result.from(files)
       }
     }
     suspend fun computeVersionCatalogHashes(gradle: VirtualFile): Result {
       if (!gradle.isDirectory) return Result.EMPTY
       return readAction {
-        val files = gradle.children.mapNotNull { child ->
-          ProgressManager.checkCanceled()
-          if (child.isRegularFile && child.name.endsWith(EXT_VERSIONS_TOML)) child else null
-        }.toSet()
+        val files =
+          gradle.children
+            .mapNotNull { child ->
+              ProgressManager.checkCanceled()
+              if (child.isRegularFile && child.name.endsWith(EXT_VERSIONS_TOML)) child else null
+            }
+            .toSet()
         Result.from(files)
       }
     }
@@ -150,35 +149,41 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
         gradle.findChild(GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME)?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: Result.EMPTY
       }
     }
-    val deferredResults = withContext(Dispatchers.IO) {
-      buildList {
-        add(async { computeWrapperPropertiesHash() })
-        // GradleFacet and NdkFacet are only attached to holder modules.
-        ModuleManager.getInstance(project).modules.filter { it.isHolderModule() }.forEach { add(async { computeModuleHashes(it) }) }
-        project.guessProjectDir()?.let { root ->
-          add(async { computeRootHashes(root) })
-          root.findChild("gradle")?.let { gradle ->
-            add(async { computeVersionCatalogHashes(gradle) })
-            add(async { computeDaemonJvmCriteriaHash(gradle) })
+    val deferredResults =
+      withContext(Dispatchers.IO) {
+        buildList {
+          add(async { computeWrapperPropertiesHash() })
+          // GradleFacet and NdkFacet are only attached to holder modules.
+          ModuleManager.getInstance(project).modules.filter { it.isHolderModule() }.forEach { add(async { computeModuleHashes(it) }) }
+          project.guessProjectDir()?.let { root ->
+            add(async { computeRootHashes(root) })
+            root.findChild("gradle")?.let { gradle ->
+              add(async { computeVersionCatalogHashes(gradle) })
+              add(async { computeDaemonJvmCriteriaHash(gradle) })
+            }
+            root.findChild(".gradle")?.let { dotGradle -> add(async { computeGradleCacheHash(dotGradle) }) }
           }
-          root.findChild(".gradle")?.let { dotGradle -> add(async { computeGradleCacheHash(dotGradle) }) }
         }
       }
-    }
-    return deferredResults.awaitAll().let { results ->
-      results.fold(mutableMapOf<VirtualFile,Int>() to mutableSetOf<VirtualFile>()) { acc, result ->
-        acc.apply { first.putAll(result.hashes); second.addAll(result.externalBuildFiles) }
+    return deferredResults
+      .awaitAll()
+      .let { results ->
+        results.fold(mutableMapOf<VirtualFile, Int>() to mutableSetOf<VirtualFile>()) { acc, result ->
+          acc.apply {
+            first.putAll(result.hashes)
+            second.addAll(result.externalBuildFiles)
+          }
+        }
       }
-    }.let { Result(it.first.toImmutableMap(), it.second.toImmutableSet()) }
+      .let { Result(it.first.toImmutableMap(), it.second.toImmutableSet()) }
   }
 
-  data class Result(
-    val hashes: Map<VirtualFile, Int>,
-    val externalBuildFiles: Set<VirtualFile>,
-  ) {
+  data class Result(val hashes: Map<VirtualFile, Int>, val externalBuildFiles: Set<VirtualFile>) {
     companion object {
       val EMPTY = Result(mapOf(), setOf())
+
       fun from(file: VirtualFile): Result = from(setOf(file))
+
       fun from(files: Set<VirtualFile>): Result = from(files, setOf())
 
       fun from(files: Set<VirtualFile>, externalBuildFiles: Set<VirtualFile>): Result =
@@ -186,4 +191,3 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
     }
   }
 }
-

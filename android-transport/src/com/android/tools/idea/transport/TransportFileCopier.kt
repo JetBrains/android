@@ -25,6 +25,5 @@ interface TransportFileCopier {
    * Most file formats result in only one file copied. For executable files, there may be multiple compatible ABI files, which will result
    * in multiple files copied over.
    */
-  @Throws(AdbCommandRejectedException::class, IOException::class)
-  fun copyFileToDevice(deployableFile: DeployableFile): List<String>
+  @Throws(AdbCommandRejectedException::class, IOException::class) fun copyFileToDevice(deployableFile: DeployableFile): List<String>
 }

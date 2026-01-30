@@ -18,22 +18,17 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiFile
 
-data class VibeTransformerResult(
-  var result: String = "",
-  var error: String = ""
-)
+data class VibeTransformerResult(var result: String = "", var error: String = "")
 
 interface VibeTransformer {
   suspend fun transformVibe(file: PsiFile, vibe: String): VibeTransformerResult
 }
 
 interface VibeTransformerProvider {
-  fun createVibeTransformer() : VibeTransformer
+  fun createVibeTransformer(): VibeTransformer
 
   companion object {
     val EP_NAME: ExtensionPointName<VibeTransformerProvider> =
-      ExtensionPointName.create(
-        "com.android.tools.idea.run.deployment.liveedit.vibeTransformerProvider"
-      )
+      ExtensionPointName.create("com.android.tools.idea.run.deployment.liveedit.vibeTransformerProvider")
   }
 }

@@ -32,17 +32,11 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ModuleModelTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
   private val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
   private val multiTemplateRenderer: MultiTemplateRenderer
     get() = MultiTemplateRenderer { renderer ->
-      object :
-          Task.Modal(
-            projectRule.project,
-            AndroidBundle.message("android.compile.messages.generating.r.java.content.name"),
-            false,
-          ) {
+      object : Task.Modal(projectRule.project, AndroidBundle.message("android.compile.messages.generating.r.java.content.name"), false) {
           override fun run(indicator: ProgressIndicator) {
             renderer(project)
           }
@@ -54,9 +48,7 @@ class ModuleModelTest {
   fun testInitFillsAllTheDataForLibraryModule() {
     projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion()) {
       val libraryModuleModel =
-        NewLibraryModuleModel(projectRule.project, ":", projectSyncInvoker).apply {
-          packageName.set("com.google.lib")
-        }
+        NewLibraryModuleModel(projectRule.project, ":", projectSyncInvoker).apply { packageName.set("com.google.lib") }
       multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
     }
     projectSyncInvoker.syncProject(projectRule.project)

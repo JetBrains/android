@@ -44,9 +44,7 @@ class AppInsightsContentPanel(
   name: String,
   secondaryToolWindows: List<AppInsightsToolWindowDefinition>,
   tableMouseListener: MouseListener? = null,
-  workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = {
-    WorkBench(project, name, null, it)
-  },
+  workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = { WorkBench(project, name, null, it) },
   createCenterPanel: () -> PanelWithHeaderComponent,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
@@ -55,8 +53,7 @@ class AppInsightsContentPanel(
   init {
     Disposer.register(parentDisposable, this)
     val issuesModel = AppInsightsIssuesTableModel(cellRenderer)
-    issuesTableView =
-      AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
+    issuesTableView = AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
     mainContentPanel.add(centerPanel)
@@ -99,11 +96,7 @@ class AppInsightsContentPanel(
     add(workBench)
   }
 
-  private fun maybeRestoreToolWindowOrder(
-    name: String,
-    workBench: WorkBench<AppInsightsToolWindowContext>,
-    firstToolWindowName: String,
-  ) {
+  private fun maybeRestoreToolWindowOrder(name: String, workBench: WorkBench<AppInsightsToolWindowContext>, firstToolWindowName: String) {
     if (name.contains("CRASHLYTICS")) {
       restoreToolWindowOrder(name, workBench, firstToolWindowName)
     } else if (name.contains("VITALS")) {
@@ -111,15 +104,8 @@ class AppInsightsContentPanel(
     }
   }
 
-  /**
-   * Restore the default layout in [WorkBench] and show the tool window with name matching
-   * [toolWindowName]
-   */
-  private fun restoreToolWindowOrder(
-    name: String,
-    workBench: WorkBench<AppInsightsToolWindowContext>,
-    toolWindowName: String,
-  ) {
+  /** Restore the default layout in [WorkBench] and show the tool window with name matching [toolWindowName] */
+  private fun restoreToolWindowOrder(name: String, workBench: WorkBench<AppInsightsToolWindowContext>, toolWindowName: String) {
     val propertiesComponent = PropertiesComponent.getInstance()
     val key = "$name.workbench.toolwindow.order.updated"
     if (!propertiesComponent.isValueSet(key)) {

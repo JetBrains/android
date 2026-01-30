@@ -32,14 +32,11 @@ object TransportServiceUtils {
    */
   fun aggregateByteChunks(byteResponses: Iterator<Transport.BytesInChunksResponse>): ByteString {
     val outputStream = ByteArrayOutputStream()
-    byteResponses.forEach { response ->
-      response.chunk?.let { outputStream.write(it.toByteArray()) }
-    }
+    byteResponses.forEach { response -> response.chunk?.let { outputStream.write(it.toByteArray()) } }
     return ByteString.copyFrom(outputStream.toByteArray())
   }
-  /**
-   * Creates a temporary file with the given content. The file will be deleted on exit.
-   */
+
+  /** Creates a temporary file with the given content. The file will be deleted on exit. */
   @JvmStatic
   @Throws(IOException::class)
   fun createTempFile(prefix: String, suffix: String, content: ByteString): File {

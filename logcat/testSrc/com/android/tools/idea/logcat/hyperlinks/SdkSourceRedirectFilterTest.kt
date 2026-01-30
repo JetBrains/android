@@ -48,11 +48,7 @@ class SdkSourceRedirectFilterTest {
     RuleChain(
       projectRule,
       WaitForIndexRule(projectRule),
-      ProjectServiceRule(
-        projectRule,
-        SdkSourcePositionFinder::class.java,
-        mockSdkSourcePositionFinder,
-      ),
+      ProjectServiceRule(projectRule, SdkSourcePositionFinder::class.java, mockSdkSourcePositionFinder),
       EdtRule(),
     )
 
@@ -69,8 +65,7 @@ class SdkSourceRedirectFilterTest {
 
     val result = filter.applyFilter(line, 100)
 
-    assertThat(result?.resultItems?.map { it.toInfo(line) })
-      .containsExactly(ResultInfo("Foo", "OpenUrlHyperlinkInfo"))
+    assertThat(result?.resultItems?.map { it.toInfo(line) }).containsExactly(ResultInfo("Foo", "OpenUrlHyperlinkInfo"))
   }
 
   @Test
@@ -82,8 +77,7 @@ class SdkSourceRedirectFilterTest {
 
     val result = filter.applyFilter(line, 100)
 
-    assertThat(result?.resultItems?.map { it.toInfo(line) })
-      .containsExactly(ResultInfo("Foo", null))
+    assertThat(result?.resultItems?.map { it.toInfo(line) }).containsExactly(ResultInfo("Foo", null))
   }
 
   @Test
@@ -97,8 +91,7 @@ class SdkSourceRedirectFilterTest {
 
     val result = filter.applyFilter(line, 100)
 
-    assertThat(result?.resultItems?.map { it.toInfo(line) })
-      .containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
+    assertThat(result?.resultItems?.map { it.toInfo(line) }).containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
     val hyperlinkInfo = result?.firstHyperlinkInfo as SdkSourceRedirectLinkInfo
     assertThat(hyperlinkInfo.apiLevel).isEqualTo(AndroidApiLevel(30))
     assertThat(hyperlinkInfo.files).containsExactly(file)
@@ -108,8 +101,7 @@ class SdkSourceRedirectFilterTest {
   fun applyFilter_withOpenFileHyperlink1Info() {
     val file1 = LightVirtualFile()
     val file2 = LightVirtualFile()
-    val info =
-      HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
+    val info = HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
     val line = "1 Foo 2"
     val delegate = TestFilter("Foo", info)
     val filter = SdkSourceRedirectFilter(project, delegate)
@@ -117,8 +109,7 @@ class SdkSourceRedirectFilterTest {
 
     val result = filter.applyFilter(line, 100)
 
-    assertThat(result?.resultItems?.map { it.toInfo(line) })
-      .containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
+    assertThat(result?.resultItems?.map { it.toInfo(line) }).containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
     val hyperlinkInfo = result?.firstHyperlinkInfo as SdkSourceRedirectLinkInfo
     assertThat(hyperlinkInfo.apiLevel).isEqualTo(AndroidApiLevel(22))
     assertThat(hyperlinkInfo.files).containsExactly(file1, file2)
@@ -128,21 +119,12 @@ class SdkSourceRedirectFilterTest {
   fun applyFilter_withMultipleResults() {
     val file1 = LightVirtualFile()
     val file2 = LightVirtualFile()
-    val info1 =
-      HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
+    val info1 = HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
     val info2 = OpenFileHyperlinkInfo(project, file1, 10)
     val info3 = OpenUrlHyperlinkInfo("")
     val line = "1 Foo Bar 2"
     val delegate =
-      CompositeFilter(
-          project,
-          listOf(
-            TestFilter("1", info1),
-            TestFilter("Foo", info2),
-            TestFilter("Bar", info3),
-            TestFilter("2", null),
-          ),
-        )
+      CompositeFilter(project, listOf(TestFilter("1", info1), TestFilter("Foo", info2), TestFilter("Bar", info3), TestFilter("2", null)))
         .apply { setForceUseAllFilters(true) }
     val filter = SdkSourceRedirectFilter(project, delegate)
     filter.apiLevel = AndroidApiLevel(22)
@@ -162,21 +144,12 @@ class SdkSourceRedirectFilterTest {
   fun applyFilter_withoutSdk() {
     val file1 = LightVirtualFile()
     val file2 = LightVirtualFile()
-    val info1 =
-      HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
+    val info1 = HyperlinkInfoFactoryImpl().createMultipleFilesHyperlinkInfo(listOf(file1, file2), 10, project)
     val info2 = OpenFileHyperlinkInfo(project, file1, 10)
     val info3 = OpenUrlHyperlinkInfo("")
     val line = "1 Foo Bar 2"
     val delegate =
-      CompositeFilter(
-          project,
-          listOf(
-            TestFilter("1", info1),
-            TestFilter("Foo", info2),
-            TestFilter("Bar", info3),
-            TestFilter("2", null),
-          ),
-        )
+      CompositeFilter(project, listOf(TestFilter("1", info1), TestFilter("Foo", info2), TestFilter("Bar", info3), TestFilter("2", null)))
         .apply { setForceUseAllFilters(true) }
     val filter = SdkSourceRedirectFilter(project, delegate)
     filter.apiLevel = null
@@ -192,8 +165,7 @@ class SdkSourceRedirectFilterTest {
       )
   }
 
-  private class TestFilter(private val text: String, private val hyperlinkInfo: HyperlinkInfo?) :
-    Filter {
+  private class TestFilter(private val text: String, private val hyperlinkInfo: HyperlinkInfo?) : Filter {
     override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
       val start = line.indexOf(text)
       if (start < 0) {
@@ -207,9 +179,6 @@ class SdkSourceRedirectFilterTest {
   private data class ResultInfo(val text: String, val classname: String?)
 
   private fun ResultItem.toInfo(line: String): ResultInfo {
-    return ResultInfo(
-      line.substring(highlightStartOffset, highlightEndOffset),
-      hyperlinkInfo?.let { it::class.simpleName },
-    )
+    return ResultInfo(line.substring(highlightStartOffset, highlightEndOffset), hyperlinkInfo?.let { it::class.simpleName })
   }
 }

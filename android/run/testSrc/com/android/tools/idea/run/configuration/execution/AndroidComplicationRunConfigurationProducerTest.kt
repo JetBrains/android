@@ -34,28 +34,29 @@ import org.mockito.kotlin.whenever
 
 class AndroidComplicationRunConfigurationProducerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Before
   fun setUp() {
     projectRule.fixture.addWearDependenciesToProject()
   }
 
-
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val complicationFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyComplicationService.kt",
-      """
-      package com.example.myapplication
+    val complicationFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyComplicationService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-      class MyTestComplication : ComplicationDataSourceService() {
-      }
-      """.trimIndent())
+        class MyTestComplication : ComplicationDataSourceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = complicationFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -68,16 +69,19 @@ class AndroidComplicationRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val complicationFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyComplicationService.java",
-      """
-      package com.example.myapplication;
+    val complicationFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyComplicationService.java",
+        """
+        package com.example.myapplication;
 
-      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService;
-        
-      public class MyComplicationService extends ComplicationDataSourceService {
-      }
-      """.trimIndent())
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService;
+          
+        public class MyComplicationService extends ComplicationDataSourceService {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = complicationFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -90,16 +94,19 @@ class AndroidComplicationRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val complicationFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyComplicationService.kt",
-      """
-      package com.example.myapplication
+    val complicationFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyComplicationService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-      class MyTestComplication : ComplicationDataSourceService() {
-      }
-      """.trimIndent())
+        class MyTestComplication : ComplicationDataSourceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = complicationFile.findElementByText("class")
     val context = mock<ConfigurationContext>()
@@ -119,6 +126,7 @@ class AndroidComplicationRunConfigurationProducerTest {
     return runConfiguration
   }
 
-  private fun createRunConfiguration() = AndroidComplicationConfigurationType().configurationFactories[0]
-    .createTemplateConfiguration(projectRule.project) as AndroidComplicationConfiguration
+  private fun createRunConfiguration() =
+    AndroidComplicationConfigurationType().configurationFactories[0].createTemplateConfiguration(projectRule.project)
+      as AndroidComplicationConfiguration
 }

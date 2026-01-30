@@ -32,10 +32,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.PsiElement
 import icons.StudioIcons
+import javax.swing.Icon
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import javax.swing.Icon
 
 class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
   companion object {
@@ -48,15 +48,16 @@ class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
   }
 
   val factory: ConfigurationFactory
-    get() = object : AndroidRunConfigurationFactoryBase(this) {
-      override fun getId(): String {
-        return "Android Baseline Profile Configuration Factory"
-      }
+    get() =
+      object : AndroidRunConfigurationFactoryBase(this) {
+        override fun getId(): String {
+          return "Android Baseline Profile Configuration Factory"
+        }
 
-      override fun createTemplateConfiguration(project: Project): RunConfiguration {
-        return AndroidBaselineProfileRunConfiguration(project, this, NAME)
+        override fun createTemplateConfiguration(project: Project): RunConfiguration {
+          return AndroidBaselineProfileRunConfiguration(project, this, NAME)
+        }
       }
-    }
 
   override fun getDisplayName(): String {
     return AndroidBundle.message("android.baseline.profile.run.configuration.type.name")
@@ -95,23 +96,21 @@ class AndroidBaselineProfileTestOptions : TestRunConfigurationOptions() {
 
   private fun isKotlinTest(e: PsiElement): Boolean {
     return e.language == KotlinLanguage.INSTANCE &&
-           (isKtTestClassIdentifier(e) || isKtTestMethodIdentifier(e)) &&
-           anyTopLevelKtRule(e) != null
-
+      (isKtTestClassIdentifier(e) || isKtTestMethodIdentifier(e)) &&
+      anyTopLevelKtRule(e) != null
   }
 
   private fun isJavaTest(e: PsiElement): Boolean {
     return e.language == JavaLanguage.INSTANCE &&
-           (isJavaTestClassIdentifier(e) || isJavaTestMethodIdentifier(e)) &&
-           anyTopLevelJavaRule(e) != null
+      (isJavaTestClassIdentifier(e) || isJavaTestMethodIdentifier(e)) &&
+      anyTopLevelJavaRule(e) != null
   }
 }
 
 class AndroidBaselineProfileRunConfiguration(project: Project, factory: ConfigurationFactory, name: String? = factory.name) :
   AndroidRunConfigurationBase(project, factory, name, true), WithoutOwnBeforeRunSteps {
 
-  @JvmField
-  var generateAllVariants: Boolean = false
+  @JvmField var generateAllVariants: Boolean = false
 
   override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
     // Do not allow build, as the gradle task will do it for us.
@@ -122,14 +121,15 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
     return AndroidBaselineProfileRunConfigurationEditor(project, this)
   }
 
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String> = Pair(false, AndroidBundle.message("android.cannot.run.library.project.error"))
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String> =
+    Pair(false, AndroidBundle.message("android.cannot.run.library.project.error"))
 
   override fun checkConfiguration(facet: AndroidFacet): MutableList<ValidationError> {
     return mutableListOf()
   }
 
   override fun getApplicableDeployTargetProviders(): MutableList<DeployTargetProvider> {
-    return deployTargetContext.getApplicableDeployTargetProviders(true);
+    return deployTargetContext.getApplicableDeployTargetProviders(true)
   }
 
   override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet?, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
@@ -138,20 +138,23 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
 
   fun getFilterArgument(): String? {
     val agpVersion = configurationModule.module?.getGradlePluginVersion() ?: return null
-    return if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED)
-      null
-    else
-      "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile"
+    return if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED) null
+    else "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile"
   }
 
   override fun validate(executor: Executor?): MutableList<ValidationError> {
     val module = configurationModule.module ?: return mutableListOf(ValidationError.fatal("No module specified in configuration"))
     applicationIdProvider ?: return mutableListOf(ValidationError.fatal("Application ID cannot be found"))
     module.getGradlePluginVersion() ?: return mutableListOf(ValidationError.fatal("Could not determine AGP version"))
-    val model = GradleAndroidModel.get(module) ?: return mutableListOf(ValidationError.fatal("Target module ${module.name} is not a Gradle Android module."))
+    val model =
+      GradleAndroidModel.get(module)
+        ?: return mutableListOf(ValidationError.fatal("Target module ${module.name} is not a Gradle Android module."))
     if (!generateAllVariants && model.isDebuggable) {
-      return mutableListOf(ValidationError.fatal(
-        "Target module's selected variant is debuggable. Please use Build Variants tools window to change the variant of ${module.name}."))
+      return mutableListOf(
+        ValidationError.fatal(
+          "Target module's selected variant is debuggable. Please use Build Variants tools window to change the variant of ${module.name}."
+        )
+      )
     }
     return mutableListOf()
   }

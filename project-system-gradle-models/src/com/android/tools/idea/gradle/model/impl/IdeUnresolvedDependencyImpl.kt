@@ -18,7 +18,4 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import java.io.Serializable
 
-data class IdeUnresolvedDependencyImpl(
-  override val name: String,
-  override val cause: String?
-) : IdeUnresolvedDependency, Serializable
+data class IdeUnresolvedDependencyImpl(override val name: String, override val cause: String?) : IdeUnresolvedDependency, Serializable

@@ -27,15 +27,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [AndroidSdkCompatibilityDialog].
- */
+/** Tests for [AndroidSdkCompatibilityDialog]. */
 @RunsInEdt
 class AndroidSdkCompatibilityDialogTest {
 
@@ -46,19 +44,15 @@ class AndroidSdkCompatibilityDialogTest {
 
   @Test
   fun `test dialog content with same channel recommendation`() {
-    val recommendation = StudioVersionRecommendation.newBuilder().apply {
-      versionReleased = true
-      buildDisplayName = "Android Studio Canary X"
-    }.build()
+    val recommendation =
+      StudioVersionRecommendation.newBuilder()
+        .apply {
+          versionReleased = true
+          buildDisplayName = "Android Studio Canary X"
+        }
+        .build()
 
-    val dialog = AndroidSdkCompatibilityDialog(
-      projectRule.project,
-      recommendation,
-      null,
-      listOf(
-        ".myapp" to AndroidVersion(1000)
-      )
-    )
+    val dialog = AndroidSdkCompatibilityDialog(projectRule.project, recommendation, null, listOf(".myapp" to AndroidVersion(1000)))
     dialog.show()
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
 
@@ -68,7 +62,8 @@ class AndroidSdkCompatibilityDialogTest {
       val ui = FakeUi(rootPane)
       val messageComponents = ui.findAllComponents<JEditorPane>()
       val mainContent = messageComponents.find { c -> c.name == "main-content" }!!.normalizedText
-      assertThat(mainContent).contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
+      assertThat(mainContent)
+        .contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
       assertThat(mainContent).contains("You can upgrade to Android Studio Canary X or higher to have better IDE support for this project")
       val affectedModules = messageComponents.find { c -> c.name == "affected-modules" }!!.normalizedText
       assertThat(affectedModules).contains(".myapp")
@@ -76,9 +71,7 @@ class AndroidSdkCompatibilityDialogTest {
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(3)
-      assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close",  "Don't ask for this project", "Android Studio documentation"
-      )
+      assertThat(buttons.map { btn -> btn.text }).containsAllOf("Close", "Don't ask for this project", "Android Studio documentation")
       buttons.find { btn -> btn.text == "Close" }!!.doClick()
     }
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CLOSE_EXIT_CODE)
@@ -86,29 +79,36 @@ class AndroidSdkCompatibilityDialogTest {
 
   @Test
   fun `test dialog content with different channel recommendation`() {
-    val recommendation = StudioVersionRecommendation.newBuilder().apply {
-      versionReleased = false
-      buildDisplayName = "Android Studio Beta Y"
-    }.build()
+    val recommendation =
+      StudioVersionRecommendation.newBuilder()
+        .apply {
+          versionReleased = false
+          buildDisplayName = "Android Studio Beta Y"
+        }
+        .build()
 
-    val fallbackRecommendation = StudioVersionRecommendation.newBuilder().apply {
-      versionReleased = true
-      buildDisplayName = "Android Studio Canary Z"
-    }.build()
+    val fallbackRecommendation =
+      StudioVersionRecommendation.newBuilder()
+        .apply {
+          versionReleased = true
+          buildDisplayName = "Android Studio Canary Z"
+        }
+        .build()
 
-    val dialog = AndroidSdkCompatibilityDialog(
-      projectRule.project,
-      recommendation,
-      fallbackRecommendation,
-      listOf(
-        ".myapp1" to AndroidVersion(1000),
-        ".myapp2" to AndroidVersion(1000),
-        ".myapp3" to AndroidVersion(1000),
-        ".mylib1" to AndroidVersion(1000),
-        ".mylib2" to AndroidVersion(1000),
-        ".mylib3" to AndroidVersion(1000)
+    val dialog =
+      AndroidSdkCompatibilityDialog(
+        projectRule.project,
+        recommendation,
+        fallbackRecommendation,
+        listOf(
+          ".myapp1" to AndroidVersion(1000),
+          ".myapp2" to AndroidVersion(1000),
+          ".myapp3" to AndroidVersion(1000),
+          ".mylib1" to AndroidVersion(1000),
+          ".mylib2" to AndroidVersion(1000),
+          ".mylib3" to AndroidVersion(1000),
+        ),
       )
-    )
 
     dialog.show()
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
@@ -129,9 +129,7 @@ class AndroidSdkCompatibilityDialogTest {
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(3)
-      assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Don't ask for this project", "Android Studio documentation"
-      )
+      assertThat(buttons.map { btn -> btn.text }).containsAllOf("Close", "Don't ask for this project", "Android Studio documentation")
       buttons.find { btn -> btn.text == "Don't ask for this project" }!!.doClick()
     }
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.OK_EXIT_CODE)
@@ -139,12 +137,7 @@ class AndroidSdkCompatibilityDialogTest {
 
   @Test
   fun `test dialog content with no recommendation`() {
-    val dialog = AndroidSdkCompatibilityDialog(
-      projectRule.project,
-      StudioVersionRecommendation.getDefaultInstance(),
-      null,
-      emptyList()
-    )
+    val dialog = AndroidSdkCompatibilityDialog(projectRule.project, StudioVersionRecommendation.getDefaultInstance(), null, emptyList())
 
     dialog.show()
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
@@ -155,13 +148,14 @@ class AndroidSdkCompatibilityDialogTest {
       val ui = FakeUi(rootPane)
       val messageComponents = ui.findAllComponents<JEditorPane>()
       val mainContent = messageComponents.find { c -> c.name == "main-content" }!!.normalizedText
-      assertThat(mainContent).contains("Currently, there is no version of Android Studio that supports this compile SDK. You may experience issues while working on this project")
+      assertThat(mainContent)
+        .contains(
+          "Currently, there is no version of Android Studio that supports this compile SDK. You may experience issues while working on this project"
+        )
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(3)
-      assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Don't ask for this project", "Android Studio documentation"
-      )
+      assertThat(buttons.map { btn -> btn.text }).containsAllOf("Close", "Don't ask for this project", "Android Studio documentation")
       buttons.find { btn -> btn.text == "Close" }!!.doClick()
     }
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CLOSE_EXIT_CODE)

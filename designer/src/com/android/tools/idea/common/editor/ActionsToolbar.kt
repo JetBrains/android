@@ -51,10 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
-/**
- * The actions toolbar updates dynamically based on the component selection, their parents (and if
- * no selection, the root layout)
- */
+/** The actions toolbar updates dynamically based on the component selection, their parents (and if no selection, the root layout) */
 class ActionsToolbar(private val parent: Disposable, private val surface: DesignSurface<*>) :
   DesignSurfaceListener, Disposable, ConfigurationListener, ModelListener {
   val toolbarComponent: JComponent
@@ -77,8 +74,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private val dynamicGroup = DefaultActionGroup()
 
   /**
-   * Last selection used to produce the current toolbar actions in [updateActions]. If the actions
-   * have not changed, [updateActions] will return early without doing any work.
+   * Last selection used to produce the current toolbar actions in [updateActions]. If the actions have not changed, [updateActions] will
+   * return early without doing any work.
    */
   private var lastSelection = WeakReference<List<NlComponent>>(null)
   private val configuration: Configuration?
@@ -94,14 +91,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   init {
     Disposer.register(parent, this)
     scope.launch {
-      merge(surface.panningChanged, surface.zoomChanged).collect {
-        withContext(uiThread) { northEastToolbar?.updateActionsAsync() }
-      }
+      merge(surface.panningChanged, surface.zoomChanged).collect { withContext(uiThread) { northEastToolbar?.updateActionsAsync() } }
     }
 
-    scope.launch {
-      surface.modelChanged.collect { models -> withContext(uiThread) { modelsChanged(models) } }
-    }
+    scope.launch { surface.modelChanged.collect { models -> withContext(uiThread) { modelsChanged(models) } } }
 
     surface.addListener(this)
     // TODO: Update to support multiple configurations
@@ -141,13 +134,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       }
 
     northEastToolbar =
-      createActionToolbar("NlRhsConfigToolbar", surface, toolbarActionGroups!!.northEastGroup)
-        .apply {
-          this.isReservePlaceAutoPopupIcon = false
-          this.component.name = "NlRhsConfigToolbar"
-          this.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
-          this.setLayoutSecondaryActions(true)
-        }
+      createActionToolbar("NlRhsConfigToolbar", surface, toolbarActionGroups!!.northEastGroup).apply {
+        this.isReservePlaceAutoPopupIcon = false
+        this.component.name = "NlRhsConfigToolbar"
+        this.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+        this.setLayoutSecondaryActions(true)
+      }
 
     centerToolbar =
       createActionToolbar("NlLayoutToolbar", surface, dynamicGroup).apply {
@@ -159,10 +151,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
         val model = surface.models.firstOrNull()
         // Only add center toolbar for XML files.
-        if (
-          model != null &&
-            BackedVirtualFile.getOriginFileIfBacked(model.virtualFile).fileType is XmlFileType
-        ) {
+        if (model != null && BackedVirtualFile.getOriginFileIfBacked(model.virtualFile).fileType is XmlFileType) {
           toolbarComponent.add(wrapper, BorderLayout.CENTER)
         }
       }
@@ -180,8 +169,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       object : AdtPrimaryPanel(BorderLayout()) {
           override fun getBackground() = surface.background
 
-          override fun isVisible(): Boolean =
-            northToolbarComponent.isVisible || northEastToolbarComponent.isVisible
+          override fun isVisible(): Boolean = northToolbarComponent.isVisible || northEastToolbarComponent.isVisible
         }
         .apply {
           // set background to null to use the parent's background
@@ -195,8 +183,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   /**
-   * Call to update the state of all the toolbar icons. This can be called when we do not want to
-   * wait the default 500ms automatic delay where toolbars are updated automatically.
+   * Call to update the state of all the toolbar icons. This can be called when we do not want to wait the default 500ms automatic delay
+   * where toolbars are updated automatically.
    */
   private fun refreshToolbarState() {
     UIUtil.invokeAndWaitIfNeeded {
@@ -241,10 +229,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   // ---- Implements DesignSurfaceListener ----
-  override fun componentSelectionChanged(
-    surface: DesignSurface<*>,
-    newSelection: List<NlComponent>,
-  ) {
+  override fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {
     assert(surface === this.surface)
     if (newSelection.isNotEmpty()) {
       updateActions(newSelection)
@@ -273,8 +258,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateBottomActionBarBorder() {
     val hasBottomActionBar = eastToolbar!!.component.isVisible || dynamicGroup.childrenCount > 0
     val bottom = if (hasBottomActionBar) 1 else 0
-    toolbarComponent.border =
-      BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
+    toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
   }
 
   // ---- Implements ModelListener ----
@@ -303,8 +287,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
 
     val BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
 
-    private const val CONFIGURATION_UPDATE_FLAGS =
-      ConfigurationListener.CFG_TARGET or ConfigurationListener.CFG_DEVICE
+    private const val CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET or ConfigurationListener.CFG_DEVICE
 
     private fun createToolbarComponent(): JComponent {
       val panel: JComponent = AdtPrimaryPanel(BorderLayout())
@@ -312,11 +295,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       return panel
     }
 
-    private fun createActionToolbar(
-      place: String,
-      targetComponent: JComponent,
-      group: ActionGroup,
-    ): ActionToolbarImpl {
+    private fun createActionToolbar(place: String, targetComponent: JComponent, group: ActionGroup): ActionToolbarImpl {
       val toolbar = ActionManager.getInstance().createActionToolbar(place, group, true)
       if (group === ActionGroup.EMPTY_GROUP) {
         toolbar.component.isVisible = false

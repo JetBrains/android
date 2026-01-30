@@ -21,9 +21,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * When a device has multiple targets (currently only the case for devices with snapshots), it is
- * represented by this ActionGroup in the device selector, which expands to show the various target
- * options.
+ * When a device has multiple targets (currently only the case for devices with snapshots), it is represented by this ActionGroup in the
+ * device selector, which expands to show the various target options.
  */
 internal class SnapshotActionGroup(val device: DeploymentTargetDevice) : ActionGroup() {
   init {

@@ -23,8 +23,7 @@ class VirtualDeviceProfileTest {
   fun builder() {
     val devices = readTestDevices()
     val device = devices.first { it.id == "pixel_8" }
-    val deviceProfile =
-      VirtualDeviceProfile.Builder().apply { initializeFromDevice(device) }.build()
+    val deviceProfile = VirtualDeviceProfile.Builder().apply { initializeFromDevice(device) }.build()
 
     assertThat(deviceProfile.name).startsWith("Pixel 8")
     assertThat(deviceProfile.isGooglePlaySupported).isTrue()

@@ -29,8 +29,8 @@ internal class ListenableFutureToCompletionStageAdapter<T>(val wrapped: Listenab
   override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
     // Note that we store these in local variables rather than just writing this as one "&&" expression since
     // we want to unconditionally call both cancel methods even if the first one returns false.
-    val result1= wrapped.cancel(mayInterruptIfRunning)
-    val result2= super.cancel(mayInterruptIfRunning)
+    val result1 = wrapped.cancel(mayInterruptIfRunning)
+    val result2 = super.cancel(mayInterruptIfRunning)
     return result1 && result2
   }
 

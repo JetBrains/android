@@ -54,5 +54,6 @@ class ProguardR8FindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvid
  */
 class ProguardR8IdIndexer : ScanningIdIndexer() {
   override fun createScanner() = ProguardR8FindUsagesProvider().wordsScanner
+
   override fun getVersion(): Int = 0
 }

@@ -42,17 +42,12 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     filter.applyFilter(ERROR_PREFIX, ERROR_PREFIX.length)
 
     val classText = "a.b"
-    var result =
-      filter.applyFilter(classText, ERROR_PREFIX.length + classText.length)!!.resultItems.first()!!
+    var result = filter.applyFilter(classText, ERROR_PREFIX.length + classText.length)!!.resultItems.first()!!
     assertThat(result.highlightStartOffset).isEqualTo(ERROR_PREFIX.length)
     assertThat(result.highlightEndOffset).isEqualTo(ERROR_PREFIX.length + 3)
 
     val methodText = "a.b()"
-    result =
-      filter
-        .applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!
-        .resultItems
-        .first()!!
+    result = filter.applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!.resultItems.first()!!
     assertThat(result.highlightStartOffset).isEqualTo(ERROR_PREFIX.length + classText.length)
     assertThat(result.highlightEndOffset).isEqualTo(ERROR_PREFIX.length + classText.length + 3)
   }
@@ -62,12 +57,12 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
       myFixture.addClass(
         // language=JAVA
         """
-      package example;
-      
-      class MyClass {
-        class Inner {}
-      }
-    """
+        package example;
+
+        class MyClass {
+          class Inner {}
+        }
+        """
           .trimIndent()
       )
 
@@ -106,16 +101,16 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package example;
-      
-      class MyClass {
-        public void myMethod() {}
-        
-        class Inner {
-          Inner() {}
-        }
-      }
-    """
+          package example;
+
+          class MyClass {
+            public void myMethod() {}
+            
+            class Inner {
+              Inner() {}
+            }
+          }
+          """
             .trimIndent()
         )
         .findMethodsByName("myMethod", true)
@@ -137,11 +132,7 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
 
     myFixture.moveCaret("examp|le")
 
-    navigateToResultInLine(
-      filter,
-      "example.NotExistingClass some text example.MyClass.myMethod()",
-      1,
-    )
+    navigateToResultInLine(filter, "example.NotExistingClass some text example.MyClass.myMethod()", 1)
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
     assertThat(elementAtCaret!!.name).isEqualTo(method.name)
 
@@ -150,10 +141,7 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     navigateToResultInLine(filter, "example.MyClass.Inner()")
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
     val innerClassConstructor =
-      JavaPsiFacade.getInstance(project)
-        .findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!
-        .constructors
-        .first()
+      JavaPsiFacade.getInstance(project).findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!.constructors.first()
     assertThat(elementAtCaret).isEqualTo(innerClassConstructor)
   }
 
@@ -162,13 +150,13 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
       "example/MyClass.kt",
       // language=kotlin
       """
-        package example
-        
-        class MyClass {
-          fun myMethod() {}
-          class Inner {}
-        }
-    """
+      package example
+
+      class MyClass {
+        fun myMethod() {}
+        class Inner {}
+      }
+      """
         .trimIndent(),
     )
 

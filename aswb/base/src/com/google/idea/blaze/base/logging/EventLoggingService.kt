@@ -16,13 +16,8 @@
 package com.google.idea.blaze.base.logging
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.google.idea.blaze.base.logging.GenericEvent
 
-/**
- * Forwards event logs to any [EventLogger]s available. This indirection exists so that
- * [EventLogger] can have a minimal API surface.
- */
+/** Forwards event logs to any [EventLogger]s available. This indirection exists so that [EventLogger] can have a minimal API surface. */
 abstract class EventLoggingService {
 
   abstract fun log(event: LoggedEvent)
@@ -30,8 +25,7 @@ abstract class EventLoggingService {
   companion object {
     @JvmStatic
     fun getInstance(): EventLoggingService {
-      return ApplicationManager.getApplication().getService(EventLoggingService::class.java)
-             ?: NoopEventLoggingService()
+      return ApplicationManager.getApplication().getService(EventLoggingService::class.java) ?: NoopEventLoggingService()
     }
   }
 }

@@ -41,46 +41,52 @@ import com.google.common.base.CaseFormat
 import com.intellij.openapi.externalSystem.model.project.dependencies.ArtifactDependencyNode
 import kotlin.reflect.KProperty
 
-class PsDeclaredLibraryJavaDependency(
-  parent: PsJavaModule
-) : PsJavaDependency(parent),
-    PsLibraryDependency, PsDeclaredDependency, PsDeclaredLibraryDependency {
-  override lateinit var parsedModel: ArtifactDependencyModel ; private set
+class PsDeclaredLibraryJavaDependency(parent: PsJavaModule) :
+  PsJavaDependency(parent), PsLibraryDependency, PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override lateinit var parsedModel: ArtifactDependencyModel
+    private set
 
   fun init(parsedModel: ArtifactDependencyModel) {
     this.parsedModel = parsedModel
   }
+
   override fun canExtractVariable() = true
+
   override val descriptor by Descriptor
   override val spec: PsArtifactDependencySpec
-    get() = PsArtifactDependencySpec.create(
-      parsedModel.group().toString(),
-      parsedModel.name().forceString(),
-      parsedModel.version().toString()
-    )
+    get() =
+      PsArtifactDependencySpec.create(parsedModel.group().toString(), parsedModel.name().forceString(), parsedModel.version().toString())
 
-  override val configurationName: String get() = parsedModel.configurationName()
+  override val configurationName: String
+    get() = parsedModel.configurationName()
 
   override val isDeclared: Boolean = true
 
-  override val joinedConfigurationNames: String get() = configurationName
+  override val joinedConfigurationNames: String
+    get() = configurationName
 
-  override val name: String get() = spec.name
+  override val name: String
+    get() = spec.name
 
   override fun toText(): String = spec.toString()
 
   override var version by PsDeclaredLibraryJavaDependency.Descriptor.version
 
   override val versionProperty: ModelSimpleProperty<Unit, String>
-    get() = object : ModelSimpleProperty<Unit, String> {
-      override val description: String get() = Descriptor.version.description
-      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryJavaDependency)
-      override fun bindContext(model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(this@PsDeclaredLibraryJavaDependency)
+    get() =
+      object : ModelSimpleProperty<Unit, String> {
+        override val description: String
+          get() = Descriptor.version.description
 
-      override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
-      override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
-    }
+        override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryJavaDependency)
+
+        override fun bindContext(model: Unit): ModelPropertyContext<String> =
+          Descriptor.version.bindContext(this@PsDeclaredLibraryJavaDependency)
+
+        override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
+
+        override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
+      }
 
   object Descriptor : ModelDescriptor<PsDeclaredLibraryJavaDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryJavaDependency): Nothing? = null
@@ -92,28 +98,32 @@ class PsDeclaredLibraryJavaDependency(
     // TODO(b/118814130): Java resolved dependency collection is not refreshed when requested version changes
     override fun setModified(model: PsDeclaredLibraryJavaDependency) {
       model.isModified = true
-      model.parent.fireDependencyModifiedEvent(lazy {
-        model.parent.dependencies.findLibraryDependencies(
-          model.spec.toLibraryKey()).firstOrNull { it.configurationName == model.configurationName }
-      })
+      model.parent.fireDependencyModifiedEvent(
+        lazy {
+          model.parent.dependencies.findLibraryDependencies(model.spec.toLibraryKey()).firstOrNull {
+            it.configurationName == model.configurationName
+          }
+        }
+      )
     }
 
-    private fun preferredVariableName (model: ArtifactDependencyModel): String {
+    private fun preferredVariableName(model: ArtifactDependencyModel): String {
       val name = model.name().getValue(GradlePropertyModel.STRING_TYPE) ?: return "var"
       return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, "$name-version")
     }
 
-    val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> = property(
-      "Version",
-      preferredVariableName = { preferredVariableName(this.parsedModel) },
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this.version() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString,
-      knownValuesGetter = ::dependencyVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
-    )
+    val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> =
+      property(
+        "Version",
+        preferredVariableName = { preferredVariableName(this.parsedModel) },
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this.version() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+        knownValuesGetter = ::dependencyVersionValues,
+        variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      )
 
     override val properties: Collection<ModelProperty<PsDeclaredLibraryJavaDependency, *, *, *>> = listOf(version)
   }
@@ -123,11 +133,11 @@ class PsResolvedLibraryJavaDependency(
   parent: PsJavaModule,
   val library: ArtifactDependencyNode,
   override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>,
-  private val resolvedDependenciesProducer: () -> Set<PsResolvedLibraryJavaDependency>
-) : PsJavaDependency(parent),
-    PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
+  private val resolvedDependenciesProducer: () -> Set<PsResolvedLibraryJavaDependency>,
+) : PsJavaDependency(parent), PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
 
-  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
+  override val isDeclared: Boolean
+    get() = declaredDependencies.isNotEmpty()
 
   override val joinedConfigurationNames: String = "" // Java library currently only show compile scope
 
@@ -138,7 +148,8 @@ class PsResolvedLibraryJavaDependency(
   // TODO(b/110778597): Implement library version promotion analysis for Java modules.
   override fun hasPromotedVersion(): Boolean = false
 
-  override val name: String get() = spec.name
+  override val name: String
+    get() = spec.name
 
   override fun toText(): String = spec.toString()
 

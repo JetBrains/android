@@ -19,6 +19,7 @@ import com.android.sdklib.IAndroidTarget
 import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.StudioLayoutlibContext
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -26,7 +27,6 @@ import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.android.tools.sdk.CompatibilityRenderTarget
@@ -36,21 +36,26 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.android.sdk.getInstance
 
 /** Studio-specific [ConfigurationModelModule] constructed using Android module. */
-class StudioConfigurationModelModule(val module: Module): ConfigurationModelModule {
+class StudioConfigurationModelModule(val module: Module) : ConfigurationModelModule {
   override val androidPlatform: AndroidPlatform?
     get() = getInstance(module)
+
   override val resourceRepositoryManager: ResourceRepositoryManager?
     get() = StudioResourceRepositoryManager.getInstance(module)
+
   override val themeInfoProvider: ThemeInfoProvider = StudioThemeInfoProvider(module)
   override val androidModuleInfo: AndroidModuleInfo? = StudioAndroidModuleInfo.getInstance(module)
   val project: Project = module.project
   override val name: String = module.name
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
   override val dependencies: ModuleDependencies = module.getModuleSystem().moduleDependencies
-  override fun getCompatibilityTarget(target: IAndroidTarget): CompatibilityRenderTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
+
+  override fun getCompatibilityTarget(target: IAndroidTarget): CompatibilityRenderTarget =
+    StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
 
   override val moduleKey: ModuleKey
     get() = ModuleKeyManager.getKey(module)
+
   override val resourcePackage: String?
     get() = module.getModuleSystem().getPackageName()
 }

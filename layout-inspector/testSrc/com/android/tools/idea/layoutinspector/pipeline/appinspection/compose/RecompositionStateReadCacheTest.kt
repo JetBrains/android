@@ -42,9 +42,7 @@ class RecompositionStateReadCacheTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
-    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
-      it.name == PROCESS.name
-    }
+    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
 
   @get:Rule val rule = RuleChain(projectRule, inspectionRule, inspectorRule)
 
@@ -56,8 +54,7 @@ class RecompositionStateReadCacheTest {
       assertThat(command.startFetchCommand.continuous).isTrue()
       startFetchReceived.countDown()
     }
-    val inspectorState =
-      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
 
     inspectorRule.processNotifier.fireConnected(PROCESS)
@@ -68,29 +65,21 @@ class RecompositionStateReadCacheTest {
     inspectionRule.composeInspector.listenWhen({ true }) { command -> lastCommand = command }
 
     model.stateReadsModel.observeAll()
-    waitForCondition(10.seconds) {
-      lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND
-    }
+    waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings)
       .isEqualTo(StateReadSettings.newBuilder().apply { allBuilder.maxStateReads = 5000 }.build())
     lastCommand = null
 
     model.stateReadsModel.observeNone()
-    waitForCondition(10.seconds) {
-      lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND
-    }
+    waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
     assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings)
       .isEqualTo(StateReadSettings.newBuilder().apply { noneBuilder }.build())
     lastCommand = null
 
     model.stateReadsModel.observeNode(model[COMPOSE2] as ComposeViewNode)
     model.stateReadsModel.observeNode(model[COMPOSE3] as ComposeViewNode)
-    waitForCondition(10.seconds) {
-      lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND
-    }
-    assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.composableToObserveList)
-      .containsExactly(103, 104)
-    assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.maxStateReads)
-      .isEqualTo(5000)
+    waitForCondition(10.seconds) { lastCommand?.specializedCase == Command.SpecializedCase.UPDATE_SETTINGS_COMMAND }
+    assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.composableToObserveList).containsExactly(103, 104)
+    assertThat(lastCommand!!.updateSettingsCommand.stateReadSettings.byId.maxStateReads).isEqualTo(5000)
   }
 }

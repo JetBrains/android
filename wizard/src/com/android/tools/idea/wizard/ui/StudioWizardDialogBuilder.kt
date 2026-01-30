@@ -29,9 +29,7 @@ import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
 import java.net.URL
 
-/**
- * Convenience class for building a [ModelWizard] styled for Android Studio.
- */
+/** Convenience class for building a [ModelWizard] styled for Android Studio. */
 class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var title: String) {
   internal var parent: Component? = null
   internal var project: Project? = null
@@ -42,14 +40,11 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
   private var cancellationPolicy = CancellationPolicy.ALWAYS_CAN_CANCEL
   private var undecorated = false
 
-  /**
-   * Convenience construction for wizards that only have a single step in them.
-   */
+  /** Convenience construction for wizards that only have a single step in them. */
   constructor(step: ModelWizardStep<*>, title: String) : this(Builder(step).build(), title)
 
   /**
-   * Build a wizard with a parent component it should always show in front of. If you use this
-   * constructor, any calls to [setProject] and
+   * Build a wizard with a parent component it should always show in front of. If you use this constructor, any calls to [setProject] and
    * [setModalityType] will be ignored.
    */
   constructor(wizard: ModelWizard, title: String, parent: Component?) : this(wizard, title) {
@@ -117,8 +112,8 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
   }
 
   /**
-   * Set the dialog cancellation policy to provide more fine-grained user experience
-   * by making it clearer when clicking Cancel is likely to incur some actual cancellation action
+   * Set the dialog cancellation policy to provide more fine-grained user experience by making it clearer when clicking Cancel is likely to
+   * incur some actual cancellation action
    *
    * If `null`, this call will be ignored, although it is allowed as an argument to work well with `Nullable` APIs.
    */
@@ -129,9 +124,7 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     return this
   }
 
-  /**
-   * Set to `true` if this dialog should have no window decorations
-   */
+  /** Set to `true` if this dialog should have no window decorations */
   fun setUndecorated(undecorated: Boolean): StudioWizardDialogBuilder {
     this.undecorated = undecorated
     return this
@@ -145,10 +138,9 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     if (SystemInfo.isMac) {
       minimumSize = preferredSize
     }
-    val dialog: ModelWizardDialog = if (parent != null)
-      ModelWizardDialog(wizard, title, parent!!, customLayout, helpUrl, cancellationPolicy, undecorated)
-    else
-      ModelWizardDialog(wizard, title, customLayout, project, helpUrl, modalityType, cancellationPolicy, undecorated)
+    val dialog: ModelWizardDialog =
+      if (parent != null) ModelWizardDialog(wizard, title, parent!!, customLayout, helpUrl, cancellationPolicy, undecorated)
+      else ModelWizardDialog(wizard, title, customLayout, project, helpUrl, modalityType, cancellationPolicy, undecorated)
     val contentPanel = dialog.contentPanel
     if (contentPanel != null) {
       contentPanel.minimumSize = getClampedSize(minimumSize!!)
@@ -161,16 +153,16 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
 }
 
 /**
- * The minimum (and initial) size of a dialog should be no bigger than the user's screen (or,
- * a percentage of the user's screen, to leave a bit of space on the sides). This prevents
- * developers from specifying a size that looks good on their monitor but won't fit on a low
- * resolution screen. Worst case, the UI may end up squished for some users, but the
- * prev/next/cancel buttons will always be visible.
+ * The minimum (and initial) size of a dialog should be no bigger than the user's screen (or, a percentage of the user's screen, to leave a
+ * bit of space on the sides). This prevents developers from specifying a size that looks good on their monitor but won't fit on a low
+ * resolution screen. Worst case, the UI may end up squished for some users, but the prev/next/cancel buttons will always be visible.
  */
 private const val SCREEN_PERCENT = 0.8f
 
 private fun getClampedSize(size: Dimension): Dimension {
   val screenSize = if (GraphicsEnvironment.isHeadless()) Dimension(1200, 800) else Toolkit.getDefaultToolkit().screenSize
-  return Dimension(size.width.coerceAtMost((screenSize.width * SCREEN_PERCENT).toInt()),
-                   size.height.coerceAtMost((screenSize.height * SCREEN_PERCENT).toInt()))
+  return Dimension(
+    size.width.coerceAtMost((screenSize.width * SCREEN_PERCENT).toInt()),
+    size.height.coerceAtMost((screenSize.height * SCREEN_PERCENT).toInt()),
+  )
 }

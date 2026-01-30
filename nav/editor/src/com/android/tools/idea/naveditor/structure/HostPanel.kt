@@ -59,9 +59,6 @@ import com.intellij.util.Query
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import kotlinx.coroutines.launch
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
-import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -79,6 +76,9 @@ import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
+import kotlinx.coroutines.launch
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
+import org.jetbrains.android.dom.navigation.isNavHostFragment
 
 private const val NO_HOST_TEXT1 = "No NavHostFragments found"
 private const val NO_HOST_TEXT2 = "This nav graph must be"
@@ -87,8 +87,7 @@ private const val NO_HOST_TEXT4 = "NavHostFragment in a layout in"
 private const val NO_HOST_TEXT5 = "order to be accessible."
 
 private const val NO_HOST_LINK_TEXT = "Using Navigation Component"
-private const val NO_HOST_LINK_TARGET =
-  "https://developer.android.com/guide/navigation/navigation-getting-started#add-navhost"
+private const val NO_HOST_LINK_TARGET = "https://developer.android.com/guide/navigation/navigation-getting-started#add-navhost"
 
 private const val SPACING_1 = 6
 private const val SPACING_2 = 24
@@ -155,13 +154,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
     }
     list.cellRenderer =
       object : ColoredListCellRenderer<HostItem>() {
-        override fun customizeCellRenderer(
-          list: JList<out HostItem>,
-          value: HostItem?,
-          index: Int,
-          selected: Boolean,
-          hasFocus: Boolean,
-        ) {
+        override fun customizeCellRenderer(list: JList<out HostItem>, value: HostItem?, index: Int, selected: Boolean, hasFocus: Boolean) {
           value?.let { append(it.displayName) } ?: return
           icon = StudioIcons.NavEditor.Tree.ACTIVITY
         }
@@ -193,8 +186,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       .addListener(
         object : ModelListener {
           override fun modelActivated(model: NlModel) {
-            val modCount =
-              StudioResourceRepositoryManager.getAppResources(model.facet).modificationCount
+            val modCount = StudioResourceRepositoryManager.getAppResources(model.facet).modificationCount
             if (resourceVersion < modCount) {
               resourceVersion = modCount
               startLoading()
@@ -207,8 +199,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
   }
 
   /**
-   * Resets the internal cached version number. This ensures that a future [NlModel] activation will
-   * re-load the information immediately.
+   * Resets the internal cached version number. This ensures that a future [NlModel] activation will re-load the information immediately.
    */
   @TestOnly
   internal fun resetCachedVersionCount() {
@@ -238,8 +229,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         readAction {
           if (project.isDisposed) return@readAction null
 
-          if (model.virtualFile.isValid) PsiManager.getInstance(project).findFile(virtualFile)
-          else null
+          if (model.virtualFile.isValid) PsiManager.getInstance(project).findFile(virtualFile) else null
         }
           as? XmlFile ?: return@launch
 
@@ -257,10 +247,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       if (module != null) {
         val newReferences =
           ProgressManager.getInstance()
-            .runProcess(
-              Computable { findReferences(psiFile, module).map { HostItem(it) } },
-              EmptyProgressIndicator(),
-            )
+            .runProcess(Computable { findReferences(psiFile, module).map { HostItem(it) } }, EmptyProgressIndicator())
 
         listModel.addAll(newReferences)
       }
@@ -286,9 +273,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
 
     init {
       val containingFile = tag.containingFile?.name ?: "Unknown File"
-      val id = runReadAction {
-        tag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
-      }
+      val id = runReadAction { tag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
       displayName = "${FileUtil.getNameWithoutExtension(containingFile)} (${id ?: "no id"})"
     }
   }
@@ -306,10 +291,7 @@ internal fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
       continue
     }
     val attribute = element.parent as? XmlAttribute ?: continue
-    if (
-      attribute.localName != ATTR_NAV_GRAPH ||
-        attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri
-    ) {
+    if (attribute.localName != ATTR_NAV_GRAPH || attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri) {
       continue
     }
     val tag = attribute.parent

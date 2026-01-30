@@ -33,37 +33,35 @@ class ShortNamesCacheTestSingleJavaModule {
     val xmlContent =
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment"
-              android:name="test.safeargs.Fragment"
-              android:label="Fragment1">
+        <fragment
+            android:id="@+id/fragment"
+            android:name="test.safeargs.Fragment"
+            android:label="Fragment1">
 
-              <argument
-                  android:name="arg1"
-                  app:argType="string" />
-                  
-              <action
-                  android:id="@+id/action_Fragment_to_Main"
-                  app:destination="@id/main" />                  
-          </fragment>
-        </navigation>
+            <argument
+                android:name="arg1"
+                app:argType="string" />
+                
+            <action
+                android:id="@+id/action_Fragment_to_Main"
+                app:destination="@id/main" />                  
+        </fragment>
+      </navigation>
       """
         .trimIndent()
     safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
     val cache = PsiShortNamesCache.getInstance(project)
 
     // Check light arg classes
-    assertThat(cache.getContents("FragmentArgs", project))
-      .containsExactly("test.safeargs.FragmentArgs")
+    assertThat(cache.getContents("FragmentArgs", project)).containsExactly("test.safeargs.FragmentArgs")
 
     // Check light direction classes
-    assertThat(cache.getContents("FragmentDirections", project))
-      .containsExactly("test.safeargs.FragmentDirections")
+    assertThat(cache.getContents("FragmentDirections", project)).containsExactly("test.safeargs.FragmentDirections")
 
     // Check light builder classes
     assertThat(cache.getContents("Builder", project)).contains("test.safeargs.FragmentArgs.Builder")

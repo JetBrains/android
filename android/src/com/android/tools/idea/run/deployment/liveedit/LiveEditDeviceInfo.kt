@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 // To expose only immutable objects, we return this interface
 interface LiveEditDeviceInfo {
-  val status : LiveEditStatus
+  val status: LiveEditStatus
 
   val app: LiveEditApp? // This can be null if a device starts to be monitored but we don't know if the app was installed on it.
 }
@@ -26,5 +26,4 @@ interface LiveEditDeviceInfo {
 // gets its own copy of LiveEditDevices which contains a set of LiveEditDevice.
 //
 // The app can be null if we have no information about it (we have not seen a deployment to that device yet)
-internal class LiveEditDeviceInfoImpl(override var status: LiveEditStatus, override val app: LiveEditApp?): LiveEditDeviceInfo {
-}
+internal class LiveEditDeviceInfoImpl(override var status: LiveEditStatus, override val app: LiveEditApp?) : LiveEditDeviceInfo {}

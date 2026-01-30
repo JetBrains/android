@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress(
-  "JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE"
-) // TODO: remove usage of sun.swing.ImageIconUIResource.
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.swing.ImageIconUIResource.
 
 package com.android.tools.idea.testing
 
@@ -54,8 +52,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
     val androidSdkUserRootedPath = androidSdk.absolutePath.replace(userHomePath, "~")
     // Some tools (for example ndk-build) follows symlinks created by bazel and write down canonical
     // path of stuff inside the SDK.
-    val androidSdkCanonicalPath =
-      androidSdk.resolve("platform-tools/adb").canonicalFile.parentFile.parentFile.path
+    val androidSdkCanonicalPath = androidSdk.resolve("platform-tools/adb").canonicalFile.parentFile.parentFile.path
     return replace(androidSdkAbsolutePath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(androidSdkUserRootedPath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(androidSdkCanonicalPath, "<ANDROID_SDK>", ignoreCase = false)
@@ -72,13 +69,10 @@ fun <T : Any> Project.dumpAndroidProjectView(
         // read action in NativeIconProvider
         // Most over uses require a read action, only the implementation class DeferredIconImpl
         // knows this
-        this is DeferredIconImpl<*> ->
-          (if (!isNeedReadAction) executeOnPooledThread { evaluate() }.get() else evaluate())
-            .toText()
+        this is DeferredIconImpl<*> -> (if (!isNeedReadAction) executeOnPooledThread { evaluate() }.get() else evaluate()).toText()
         this is RetrievableIcon -> retrieveIcon().toText()
         this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
-        this is CachedImageIcon ->
-          originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
+        this is CachedImageIcon -> originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
         this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
         this is LayeredIcon -> {
           // b/256898739 ignore symlink overlay for ProjectView snapshot
@@ -97,9 +91,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
     fun Color.toText(): String = String.format("#%02x%02x%02x", red, green, blue)
 
     val iconText = icon?.toText()
-    val nodeText =
-      if (coloredText.isEmpty()) presentableText
-      else coloredText.joinToString(separator = "") { it.text }
+    val nodeText = if (coloredText.isEmpty()) presentableText else coloredText.joinToString(separator = "") { it.text }
 
     return buildString {
         append(nodeText)
@@ -146,10 +138,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
   fun applySettings(settings: ProjectViewSettings) {
     ProjectView.getInstance(this).apply {
       setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
-      (this as ProjectViewImpl).setFlattenPackages(
-        AndroidProjectViewPane.ID,
-        settings.flattenPackages,
-      )
+      (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages)
     }
   }
 

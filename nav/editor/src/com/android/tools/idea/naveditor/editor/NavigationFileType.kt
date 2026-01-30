@@ -29,8 +29,7 @@ internal object NavigationFileType : XmlDesignerEditorFileType {
   override fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>) =
     surface.actionManager.getToolbarActions(selection)
 
-  override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && NavigationDomFileDescription.isNavFile(file)
+  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && NavigationDomFileDescription.isNavFile(file)
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>) = NavToolbarActionGroups(surface)
 

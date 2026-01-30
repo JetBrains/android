@@ -34,48 +34,41 @@ import java.nio.file.StandardOpenOption
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 
-/**
- * Manages emulator snapshots and boot mode.
- */
+/** Manages emulator snapshots and boot mode. */
 class SnapshotManager(val emulatorController: EmulatorController) {
 
   val snapshotsFolder: Path = avdFolder.resolve("snapshots")
 
   val avdFolder: Path
     get() = emulatorController.emulatorId.avdFolder
+
   private val avdId: String
     get() = emulatorController.emulatorId.avdId
 
-  /**
-   * Obtains and returns a list of snapshots by querying the emulator.
-   */
+  /** Obtains and returns a list of snapshots by querying the emulator. */
   @Slow
   fun fetchSnapshotList(): List<SnapshotInfo> {
     val snapshotsFuture = SettableFuture.create<List<SnapshotInfo>>()
     val snapshotFilter = SnapshotFilter.newBuilder().setStatusFilter(SnapshotFilter.LoadStatus.All).build()
-    emulatorController.listSnapshots(snapshotFilter, object : EmptyStreamObserver<SnapshotList>() {
-      override fun onNext(message: SnapshotList) {
-        val snapshots = message.snapshotsList.map {
-          SnapshotInfo(snapshotsFolder, it)
+    emulatorController.listSnapshots(
+      snapshotFilter,
+      object : EmptyStreamObserver<SnapshotList>() {
+        override fun onNext(message: SnapshotList) {
+          val snapshots = message.snapshotsList.map { SnapshotInfo(snapshotsFolder, it) }
+          snapshotsFuture.set(snapshots)
         }
-        snapshotsFuture.set(snapshots)
-      }
 
-      override fun onError(t: Throwable) {
-        snapshotsFuture.setException(t)
-      }
-    })
+        override fun onError(t: Throwable) {
+          snapshotsFuture.setException(t)
+        }
+      },
+    )
 
     try {
       return snapshotsFuture.get()
-    }
-    catch (_: ExecutionException) {
+    } catch (_: ExecutionException) {
       // The error is already logged by EmulatorController.
-    }
-    catch (_: InterruptedException) {
-    }
-    catch (_: CancellationException) {
-    }
+    } catch (_: InterruptedException) {} catch (_: CancellationException) {}
     return emptyList()
   }
 
@@ -83,12 +76,9 @@ class SnapshotManager(val emulatorController: EmulatorController) {
   private fun readSnapshotInfo(snapshotFolder: Path): SnapshotInfo? {
     val snapshotProtoFile = snapshotFolder.resolve(SNAPSHOT_PROTO_FILE)
     try {
-      val snapshot = Files.newInputStream(snapshotProtoFile).use {
-        Snapshot.parseFrom(it)
-      }
+      val snapshot = Files.newInputStream(snapshotProtoFile).use { Snapshot.parseFrom(it) }
       return SnapshotInfo(snapshotFolder, snapshot, folderSize(snapshotFolder), isCompatible = true, isLoadedLast = false)
-    }
-    catch (_: NoSuchFileException) {
+    } catch (_: NoSuchFileException) {
       // The "snapshot.pb" file is missing. Skip the incomplete snapshot.
     } catch (e: IOException) {
       thisLogger().warn("Error reading $snapshotProtoFile - ${e.localizedMessage}")
@@ -96,9 +86,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     return null
   }
 
-  /**
-   * Reads and returns information for the given snapshot. Returns null in case of errors.
-   */
+  /** Reads and returns information for the given snapshot. Returns null in case of errors. */
   @Slow
   fun readSnapshotInfo(snapshotFolderName: String): SnapshotInfo? {
     return readSnapshotInfo(snapshotsFolder.resolve(snapshotFolderName))
@@ -111,7 +99,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
   fun saveSnapshotProto(snapshotFolder: Path, snapshotProto: Snapshot) {
     val protoFile = snapshotFolder.resolve(SNAPSHOT_PROTO_FILE)
     try {
-      Files.newOutputStream(protoFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { stream->
+      Files.newOutputStream(protoFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { stream ->
         snapshotProto.writeTo(stream)
       }
     } catch (e: IOException) {
@@ -125,8 +113,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
       stream.forEach { file ->
         try {
           size += if (Files.isDirectory(file)) folderSize(file) else Files.size(file)
-        }
-        catch (_: IOException) {
+        } catch (_: IOException) {
           // Ignore I/O errors.
         }
       }
@@ -134,33 +121,31 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     return size
   }
 
-  /**
-   * Returns the boot options obtained by reading the "config.ini" file in the AVD folder.
-   */
+  /** Returns the boot options obtained by reading the "config.ini" file in the AVD folder. */
   @Slow
   fun readBootMode(): BootMode? {
-    val keysToExtract = setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot",
-                              "fastboot.forceColdBoot", "fastboot.forceFastBoot")
+    val keysToExtract =
+      setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot", "fastboot.forceColdBoot", "fastboot.forceFastBoot")
     val map = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
-    val bootType = when {
-      map["fastboot.forceFastBoot"] == "yes" -> BootType.QUICK
-      map["fastboot.forceChosenSnapshotBoot"] == "yes" -> BootType.SNAPSHOT
-      else -> BootType.COLD
-    }
+    val bootType =
+      when {
+        map["fastboot.forceFastBoot"] == "yes" -> BootType.QUICK
+        map["fastboot.forceChosenSnapshotBoot"] == "yes" -> BootType.SNAPSHOT
+        else -> BootType.COLD
+      }
     return BootMode(bootType, map["fastboot.chosenSnapshotFile"])
   }
 
-  /**
-   * Saves the boot options by updating the "config.ini" file in the AVD directory.
-   */
+  /** Saves the boot options by updating the "config.ini" file in the AVD directory. */
   @Slow
   fun saveBootMode(bootMode: BootMode) {
-    val updates = mapOf(
-      "fastboot.forceColdBoot" to toYesNo(bootMode.bootType == BootType.COLD),
-      "fastboot.forceFastBoot" to toYesNo(bootMode.bootType == BootType.QUICK),
-      "fastboot.forceChosenSnapshotBoot" to toYesNo(bootMode.bootType == BootType.SNAPSHOT),
-      "fastboot.chosenSnapshotFile" to bootMode.bootSnapshotId
-    )
+    val updates =
+      mapOf(
+        "fastboot.forceColdBoot" to toYesNo(bootMode.bootType == BootType.COLD),
+        "fastboot.forceFastBoot" to toYesNo(bootMode.bootType == BootType.QUICK),
+        "fastboot.forceChosenSnapshotBoot" to toYesNo(bootMode.bootType == BootType.SNAPSHOT),
+        "fastboot.chosenSnapshotFile" to bootMode.bootSnapshotId,
+      )
     updateKeyValueFile(avdFolder.resolve("config.ini"), updates)
 
     // Update the cached AVD information in the AVD manager.
@@ -168,13 +153,10 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     avdManagerConnection.reloadAvd(avdFolder)
   }
 
-  private fun toYesNo(value: Boolean) =
-    if (value) "yes" else "no"
+  private fun toYesNo(value: Boolean) = if (value) "yes" else "no"
 }
 
-/**
- * Creates a [BootMode] corresponding to the given boot snapshot. A null [bootSnapshot] value implies cold boot.
- */
+/** Creates a [BootMode] corresponding to the given boot snapshot. A null [bootSnapshot] value implies cold boot. */
 fun createBootMode(bootSnapshot: SnapshotInfo?): BootMode {
   return when (bootSnapshot?.snapshotId) {
     null -> BootMode(BootType.COLD, null)
@@ -183,12 +165,14 @@ fun createBootMode(bootSnapshot: SnapshotInfo?): BootMode {
   }
 }
 
-/**
- * Describes the snapshot, if any, used to start the Emulator.
- */
+/** Describes the snapshot, if any, used to start the Emulator. */
 data class BootMode(val bootType: BootType, val bootSnapshotId: String?)
 
-enum class BootType { COLD, QUICK, SNAPSHOT }
+enum class BootType {
+  COLD,
+  QUICK,
+  SNAPSHOT,
+}
 
 const val QUICK_BOOT_SNAPSHOT_ID = "default_boot"
 

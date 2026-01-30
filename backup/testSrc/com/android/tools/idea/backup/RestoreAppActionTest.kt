@@ -57,8 +57,7 @@ class RestoreAppActionTest {
   private val fakeBackupManager = FakeBackupManager()
   private val fakeDialogFactory = FakeDialogFactory()
 
-  private val temporaryFolder =
-    TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val temporaryFolder = TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
 
   @get:Rule
   val rule =
@@ -119,21 +118,14 @@ class RestoreAppActionTest {
     fakeBackupManager.waitForRestoreInvocations(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations)
-      .containsExactly(
-        RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
-      )
+      .containsExactly(RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true))
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
   @Test
   fun actionPerformed_browse() {
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
-    val action =
-      RestoreAppAction(
-        config = Config.Browse,
-        actionHelper = actionHelper,
-        dialogFactory = fakeDialogFactory,
-      )
+    val action = RestoreAppAction(config = Config.Browse, actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
     val event = testEvent(project, "serial")
 
     action.actionPerformed(event)
@@ -141,9 +133,7 @@ class RestoreAppActionTest {
     fakeBackupManager.waitForRestoreInvocations(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations)
-      .containsExactly(
-        RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
-      )
+      .containsExactly(RestoreInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true))
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
@@ -158,8 +148,7 @@ class RestoreAppActionTest {
     fakeDialogFactory.waitForDialogs(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }
 
   @Test
@@ -174,8 +163,7 @@ class RestoreAppActionTest {
     fakeDialogFactory.waitForDialogs(1)
 
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not supported"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Selected device is not supported"))
   }
 
   private fun testEvent(project: Project? = null, serialNumber: String? = null): AnActionEvent {

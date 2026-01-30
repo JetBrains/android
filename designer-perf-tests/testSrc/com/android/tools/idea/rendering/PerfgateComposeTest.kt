@@ -40,17 +40,14 @@ private val composeTimeBenchmark =
     .setDescription("Base line for Compose Preview (mean) after $NUMBER_OF_SAMPLES samples.")
     .build()
 
-private fun defaultTolerance() =
-  WindowDeviationAnalyzer.MeanToleranceParams.Builder().setStddevCoeff(1.0).build()
+private fun defaultTolerance() = WindowDeviationAnalyzer.MeanToleranceParams.Builder().setStddevCoeff(1.0).build()
 
 class PerfgateComposeTest : ComposeRenderTestBase() {
 
   @Test
   fun baselineCompileTime() {
     val mainFile =
-      projectRule.fixture.project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      projectRule.fixture.project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     ApplicationManager.getApplication().invokeAndWait {
       WriteAction.run<Throwable> {
         projectRule.fixture.openFileInEditor(mainFile)
@@ -74,33 +71,21 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // and render.
         ElapsedTimeMeasurement(Metric("default_template_end_to_end_time")),
         // Measures the memory usage of the render operation end to end.
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          null,
-          Metric("default_template_memory_use"),
-        ),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("default_template_memory_use")),
         // Measures the native memory usage of the render operation end to end.
         LayoutlibNativeMemoryMeasurement(Metric("default_template_layoutlib_native_memory_use")),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("default_template_inflate_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures just the render time.
         RenderTimeMeasurement(Metric("default_template_render_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the class loading time.
         ClassLoadTimeMeasurment(Metric("default_class_total_load_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the class loading time.
         ClassRewriteTimeMeasurement(Metric("default_class_total_rewrite_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("default_class_load_count")),
         // Measures the class avg loading time.
@@ -121,33 +106,21 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // and render.
         ElapsedTimeMeasurement(Metric("complex_template_end_to_end_time")),
         // Measures the memory usage of the render operation end to end.
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          null,
-          Metric("complex_template_memory_use"),
-        ),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("complex_template_memory_use")),
         // Measures the native memory usage of the render operation end to end.
         LayoutlibNativeMemoryMeasurement(Metric("complex_template_layoutlib_native_memory_use")),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("complex_template_inflate_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures just the render time.
         RenderTimeMeasurement(Metric("complex_template_render_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the class loading time.
         ClassLoadTimeMeasurment(Metric("complex_template_class_total_load_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the class loading time.
         ClassRewriteTimeMeasurement(Metric("complex_template_class_total_rewrite_time"))
-          .withAnalyzer(
-            WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()
-          ),
+          .withAnalyzer(WindowDeviationAnalyzer.Builder().addMeanTolerance(defaultTolerance()).build()),
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
         // Measures the class avg loading time.
@@ -168,15 +141,9 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // and render.
         ElapsedTimeMeasurement(Metric("complex_with_bounds_template_end_to_end_time")),
         // Measures the memory usage of the render operation end to end.
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          null,
-          Metric("complex_with_bounds_template_memory_use"),
-        ),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("complex_with_bounds_template_memory_use")),
         // Measures the native memory usage of the render operation end to end.
-        LayoutlibNativeMemoryMeasurement(
-          Metric("complex_with_bounds_template_layoutlib_native_memory_use")
-        ),
+        LayoutlibNativeMemoryMeasurement(Metric("complex_with_bounds_template_layoutlib_native_memory_use")),
         // Measures just the inflate time.
         InflateTimeMeasurement(Metric("complex_with_bounds_template_inflate_time")),
         // Measures just the render time.
@@ -184,9 +151,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // Measures the class loading time.
         ClassLoadTimeMeasurment(Metric("complex_with_bounds_template_class_total_load_time")),
         // Measures the class loading time.
-        ClassRewriteTimeMeasurement(
-          Metric("complex_with_bounds_template_class_total_rewrite_time")
-        ),
+        ClassRewriteTimeMeasurement(Metric("complex_with_bounds_template_class_total_rewrite_time")),
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("complex_with_bounds_template_class_load_count")),
         // Measures the class avg loading time.
@@ -222,17 +187,13 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
   }
 
   /**
-   * This test is similar to [fastPreviewSingleFileCompileTime] but it measures the time, including
-   * the startup time of the daemon. This is meant to simulate the very first "fast preview" build
-   * from the user.
+   * This test is similar to [fastPreviewSingleFileCompileTime] but it measures the time, including the startup time of the daemon. This is
+   * meant to simulate the very first "fast preview" build from the user.
    */
   @Test
   fun fastPreviewSingleFileFirstBuild() {
     val project = projectRule.fixture.project
-    val mainFile =
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+    val mainFile = project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val fastPreviewManager = FastPreviewManager.getInstance(project)
 
@@ -245,8 +206,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     }
 
     composeTimeBenchmark.measureOperation(
-      measures =
-        listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_first_build_time"))),
+      measures = listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_first_build_time"))),
       printSamples = true,
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
@@ -255,8 +215,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) =
-          fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
         fastPreviewManager.stopAllDaemons().join()
       }
@@ -266,10 +225,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
   @Test
   fun fastPreviewSingleFileCompileTime() {
     val project = projectRule.fixture.project
-    val mainFile =
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+    val mainFile = project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     val fastPreviewManager = FastPreviewManager.getInstance(project)
@@ -293,8 +249,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) =
-          fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
       }
     }

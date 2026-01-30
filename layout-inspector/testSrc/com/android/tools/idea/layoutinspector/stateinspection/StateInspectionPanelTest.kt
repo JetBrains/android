@@ -294,10 +294,10 @@ class StateInspectionPanelTest {
       StateInspectionContent(
         stackTraceText =
           """
-      State read value: [b, c] <invalidated> (Explain with AI)
-          at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
+          State read value: [b, c] <invalidated> (Explain with AI)
+              at com.example.recompositiontest.MainActivityKt.Item(MainActivity.kt:60)
 
-    """
+          """
             .trimIndent()
       )
     advanceUntilIdle()
@@ -386,24 +386,8 @@ class StateInspectionPanelTest {
   }
 
   private fun IdeEventQueue.pressAndRelease(component: Component, keyCode: Int, modifiers: Int) {
-    val press =
-      KeyEvent(
-        component,
-        KeyEvent.KEY_PRESSED,
-        System.nanoTime(),
-        modifiers,
-        keyCode,
-        keyCode.toChar(),
-      )
-    val release =
-      KeyEvent(
-        component,
-        KeyEvent.KEY_RELEASED,
-        System.nanoTime(),
-        modifiers,
-        keyCode,
-        keyCode.toChar(),
-      )
+    val press = KeyEvent(component, KeyEvent.KEY_PRESSED, System.nanoTime(), modifiers, keyCode, keyCode.toChar())
+    val release = KeyEvent(component, KeyEvent.KEY_RELEASED, System.nanoTime(), modifiers, keyCode, keyCode.toChar())
     dispatchEvent(press)
     dispatchEvent(release)
   }

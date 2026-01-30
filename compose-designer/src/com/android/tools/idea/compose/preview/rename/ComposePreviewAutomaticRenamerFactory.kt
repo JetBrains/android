@@ -27,10 +27,7 @@ import com.intellij.refactoring.rename.naming.AutomaticRenamerFactory
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/**
- * An [AutomaticRenamerFactory] that renames @Preview functions when a @Composable function is
- * renamed.
- */
+/** An [AutomaticRenamerFactory] that renames @Preview functions when a @Composable function is renamed. */
 class ComposePreviewAutomaticRenamerFactory : AutomaticRenamerFactory {
   override fun isApplicable(element: PsiElement): Boolean {
     return element is KtNamedFunction && element.isComposableFunction()
@@ -46,27 +43,16 @@ class ComposePreviewAutomaticRenamerFactory : AutomaticRenamerFactory {
 
   override fun setEnabled(enabled: Boolean) {}
 
-  override fun createRenamer(
-    element: PsiElement,
-    newName: String,
-    usages: MutableCollection<UsageInfo>,
-  ): AutomaticRenamer {
+  override fun createRenamer(element: PsiElement, newName: String, usages: MutableCollection<UsageInfo>): AutomaticRenamer {
     return object : AutomaticRenamer() {
       init {
         (element as? KtNamedFunction)?.let { composableFunction ->
           composableFunction.name?.let { originalName ->
             val previewFunctions =
-              ReferencesSearch.search(
-                  composableFunction,
-                  ProjectScope.getProjectScope(composableFunction.project),
-                )
+              ReferencesSearch.search(composableFunction, ProjectScope.getProjectScope(composableFunction.project))
                 .findAll()
                 .mapNotNull { it.element.parentOfType<KtNamedFunction>() }
-                .filter { function ->
-                  function.annotationEntries.any {
-                    ComposePreviewAnnotationChecker.isPreviewOrMultiPreview(it)
-                  }
-                }
+                .filter { function -> function.annotationEntries.any { ComposePreviewAnnotationChecker.isPreviewOrMultiPreview(it) } }
             myElements.addAll(previewFunctions)
             suggestAllNames(originalName, newName)
           }

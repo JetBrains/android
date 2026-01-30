@@ -25,9 +25,7 @@ import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription
 /**
  * File description for Watch Face Shapes XML files.
  *
- * @see <a
- *   href="https://developer.android.com/training/wearables/wff/setup#declare-shape-support">Declare
- *   support for watch face shapes</a>
+ * @see <a href="https://developer.android.com/training/wearables/wff/setup#declare-shape-support">Declare support for watch face shapes</a>
  */
 class WatchFaceShapesDescription :
   CustomLogicResourceDomFileDescription<WatchFaceShapesElement>(
@@ -36,6 +34,5 @@ class WatchFaceShapesDescription :
     SdkConstants.TAG_WATCH_FACES,
   ) {
 
-  override fun checkFile(file: XmlFile, module: Module?) =
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() == true
+  override fun checkFile(file: XmlFile, module: Module?) = StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() == true
 }

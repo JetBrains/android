@@ -38,233 +38,143 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkEx
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.testFramework.RunsInEdt
+import kotlin.io.path.Path
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import kotlin.io.path.Path
 
 @RunsInEdt
 @Suppress("UnstableApiUsage")
 class GradleSyncInvalidJdkConfigurationIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given gradleJdk GRADLE_LOCAL_JAVA_HOME with invalid java home property When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME,
-        gradleLocalJavaHome = JDK_INVALID_PATH
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME, gradleLocalJavaHome = JDK_INVALID_PATH)
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(Path(JDK_INVALID_PATH)))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(Path(JDK_INVALID_PATH))) },
       )
     }
 
   @Test
   fun `Given gradleJdk GRADLE_LOCAL_JAVA_HOME with empty java home property When sync project Then throw exception with expected message`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME,
-        gradleLocalJavaHome = ""
-      )
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplication(ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME, gradleLocalJavaHome = "")) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(Path("")))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidGradleLocalJavaHome(Path(""))) },
       )
     }
 
   @Test
   fun `Given gradleJdk USE_GRADLE_JAVA_HOME without java home property When sync project Then throw exception with expected message`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_JAVA_HOME
-      )
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplication(ideaGradleJdk = USE_GRADLE_JAVA_HOME)) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(UndefinedGradlePropertiesJavaHome)
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(UndefinedGradlePropertiesJavaHome) },
       )
     }
 
   @Test
   fun `Given gradleJdk USE_GRADLE_JAVA_HOME with invalid java home property When sync project Then throw exception with expected message`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_GRADLE_JAVA_HOME,
-        gradlePropertiesJavaHome = JDK_INVALID_PATH
-      )
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplication(ideaGradleJdk = USE_GRADLE_JAVA_HOME, gradlePropertiesJavaHome = JDK_INVALID_PATH)) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidGradlePropertiesJavaHome(Path(JDK_INVALID_PATH)))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidGradlePropertiesJavaHome(Path(JDK_INVALID_PATH))) },
       )
     }
 
   @Test
   fun `Given gradleJdk USE_JAVA_HOME without environment variable java home When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME,
-      ),
-      environment = TestEnvironment(
-        environmentVariables = mapOf()
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME),
+      environment = TestEnvironment(environmentVariables = mapOf()),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(UndefinedEnvironmentVariableJavaHome)
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(UndefinedEnvironmentVariableJavaHome) },
       )
     }
 
   @Test
   fun `Given gradleJdk USE_JAVA_HOME with invalid environment variable java home When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_JAVA_HOME
-      ),
-      environment = TestEnvironment(
-        environmentVariables = mapOf(JAVA_HOME to JDK_INVALID_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_JAVA_HOME),
+      environment = TestEnvironment(environmentVariables = mapOf(JAVA_HOME to JDK_INVALID_PATH)),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidEnvironmentVariableJavaHome(Path(JDK_INVALID_PATH)))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidEnvironmentVariableJavaHome(Path(JDK_INVALID_PATH))) },
       )
     }
 
   @Test
   fun `Given gradleJdk STUDIO_GRADLE_JDK without environment variable jdk path When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_LOCATION_ENV_VARIABLE_NAME
-      ),
-      environment = TestEnvironment(
-        environmentVariables = mapOf()
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_LOCATION_ENV_VARIABLE_NAME),
+      environment = TestEnvironment(environmentVariables = mapOf()),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(UndefinedEnvironmentVariableStudioGradleJdk)
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(UndefinedEnvironmentVariableStudioGradleJdk) },
       )
     }
 
   @Test
   fun `Given gradleJdk STUDIO_GRADLE_JDK with invalid environment variable jdk path When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = JDK_LOCATION_ENV_VARIABLE_NAME
-      ),
-      environment = TestEnvironment(
-        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_INVALID_PATH)
-      )
+      project = SimpleApplication(ideaGradleJdk = JDK_LOCATION_ENV_VARIABLE_NAME),
+      environment = TestEnvironment(environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_INVALID_PATH)),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(InvalidEnvironmentVariableStudioGradleJdk(Path(JDK_INVALID_PATH)))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(InvalidEnvironmentVariableStudioGradleJdk(Path(JDK_INVALID_PATH))) },
       )
     }
 
   @Test
   fun `Given gradleJdk using undefined jdk table entry name When sync project Then throw exception with expected message`() =
-    jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = "undefined-jdk-table-entry",
-      )
-    ) {
+    jdkIntegrationTest.run(project = SimpleApplication(ideaGradleJdk = "undefined-jdk-table-entry")) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(UndefinedGradleJvmTableEntry("undefined-jdk-table-entry"))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(UndefinedGradleJvmTableEntry("undefined-jdk-table-entry")) },
       )
     }
 
   @Test
   fun `Given gradleJdk using defined jdk table entry name without path When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = "undefined-jdk-table-path",
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk("undefined-jdk-table-path", null))
-      )
+      project = SimpleApplication(ideaGradleJdk = "undefined-jdk-table-path"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk("undefined-jdk-table-path", null))),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
-        assertSyncEvents = {
-          assertInvalidGradleJdkMessage(UndefinedGradleJvmTableEntryJavaHome("undefined-jdk-table-path"))
-        }
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
+        assertSyncEvents = { assertInvalidGradleJdkMessage(UndefinedGradleJvmTableEntryJavaHome("undefined-jdk-table-path")) },
       )
     }
 
   @Test
   fun `Given gradleJdk using defined jdk table entry name with invalid path When sync project Then throw exception with expected message`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = "invalid-jdk-table-entry",
-      ),
-      environment = TestEnvironment(
-        jdkTable = listOf(Jdk("invalid-jdk-table-entry", JDK_INVALID_PATH))
-      )
+      project = SimpleApplication(ideaGradleJdk = "invalid-jdk-table-entry"),
+      environment = TestEnvironment(jdkTable = listOf(Jdk("invalid-jdk-table-entry", JDK_INVALID_PATH))),
     ) {
       sync(
-        assertOnFailure = {
-          assertException(ExternalSystemJdkException::class)
-        },
+        assertOnFailure = { assertException(ExternalSystemJdkException::class) },
         assertSyncEvents = {
           assertInvalidGradleJdkMessage(InvalidGradleJvmTableEntryJavaHome(Path(JDK_INVALID_PATH), "invalid-jdk-table-entry"))
-        }
+        },
       )
     }
 }

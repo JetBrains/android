@@ -21,12 +21,11 @@ import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-
 @com.intellij.openapi.components.State(
   name = "ProjectToolWindow",
   storages = [Storage("projectToolWindow.xml", roamingType = RoamingType.LOCAL)],
 )
-class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSettings> {
+class ProjectToolWindowSettings : PersistentStateComponent<ProjectToolWindowSettings> {
   var showBuildFilesInModule = false
 
   companion object {

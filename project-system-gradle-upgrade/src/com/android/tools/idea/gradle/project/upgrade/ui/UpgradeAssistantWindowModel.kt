@@ -88,17 +88,19 @@ class UpgradeAssistantWindowModel(
   val project: Project,
   val currentVersionProvider: () -> AgpVersion?,
   var recommended: AgpVersion? = null,
-  val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
-  val newProjectVersion : AgpVersion = AgpVersions.newProject,
-  val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
+  val latestKnownVersion: AgpVersion = AgpVersions.latestKnown,
+  val newProjectVersion: AgpVersion = AgpVersions.newProject,
+  val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() },
 ) : GradleSyncListener, GradleBuildListener, Disposable {
 
   private var stateBeforeBuild: UIState = UIState.Loading
   var current: AgpVersion? = currentVersionProvider()
     private set
+
   private var _selectedVersion: AgpVersion? = recommended ?: latestKnownVersion
   val selectedVersion: AgpVersion?
     get() = _selectedVersion
+
   var processor: AgpUpgradeRefactoringProcessor? = null
   var beforeUpgradeFilesStateLabel: Label? = null
 
@@ -110,25 +112,26 @@ class UpgradeAssistantWindowModel(
     WARNING(AllIcons.General.Warning),
   }
 
-  data class StatusMessage(
-    val severity: Severity,
-    val text: String,
-    val url: String? = null
-  )
+  data class StatusMessage(val severity: Severity, val text: String, val url: String? = null)
 
-  sealed class UIState{
+  sealed class UIState {
     protected abstract val controlsEnabledState: ControlsEnabledState
     val runEnabled: Boolean
       get() = controlsEnabledState.runEnabled
+
     val showPreviewEnabled: Boolean
       get() = controlsEnabledState.showPreviewEnabled
+
     val comboEnabled: Boolean
       get() = controlsEnabledState.comboEnabled
+
     protected abstract val layoutState: LayoutState
     val showLoadingState: Boolean
       get() = layoutState.showLoadingState
+
     val showTree: Boolean
       get() = layoutState.showTree
+
     abstract val runTooltip: String
     open val loadingText: String = ""
     open val statusMessage: StatusMessage? = null
@@ -161,98 +164,107 @@ class UpgradeAssistantWindowModel(
       override val layoutState = LayoutState.READY
       override val runTooltip = ""
     }
+
     object Blocked : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN_BUT_PREVIEW
       override val layoutState = LayoutState.READY
       override val runTooltip = "Upgrade Blocked"
     }
+
     object NoStepsSelected : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.READY
       override val runTooltip = "No Steps Selected"
     }
+
     object Loading : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Loading"
     }
+
     object RunningUpgrade : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Upgrade"
     }
+
     object RunningSync : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Sync"
     }
+
     object RunningUpgradeSync : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Sync"
     }
+
     object AllDone : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.HIDE_TREE
       override val runTooltip = "Nothing to do for this upgrade."
     }
+
     object ProjectFilesNotCleanWarning : UIState() {
       override val controlsEnabledState = ControlsEnabledState.BOTH
       override val layoutState = LayoutState.READY
       override val loadingText = ""
       override val statusMessage = StatusMessage(Severity.WARNING, "Uncommitted changes in build files.")
-      override val runTooltip = "There are uncommitted changes in project build files.  Before upgrading, " +
-                                 "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                                 "can be handled separately."
+      override val runTooltip =
+        "There are uncommitted changes in project build files.  Before upgrading, " +
+          "you should commit or revert changes to the build files so that changes from the upgrade process " +
+          "can be handled separately."
     }
+
     object VersionSelectionInProgress : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.LOADING
       override val runTooltip = "Press enter to commit selected version for upgrade."
-
     }
+
     object RunningBuild : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.LOADING
       override val runTooltip = ""
       override val loadingText = "Running Gradle Build"
     }
-    class InvalidVersionError(
-      override val statusMessage: StatusMessage
-    ) : UIState() {
+
+    class InvalidVersionError(override val statusMessage: StatusMessage) : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.READY
       override val runTooltip: String
         get() = statusMessage.text
     }
+
     object NoAGP : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
       override val statusMessage = StatusMessage(Severity.ERROR, "Android Gradle Plugin not present")
       override val runTooltip = ""
     }
-    class CaughtException(
-      val errorMessage: String
-    ): UIState() {
+
+    class CaughtException(val errorMessage: String) : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
       override val statusMessage: StatusMessage = StatusMessage(Severity.ERROR, errorMessage.lines().first())
       override val runTooltip: String
         get() = statusMessage.text
     }
-    class UpgradeSyncFailed(
-      val errorMessage: String
-    ): UIState() {
+
+    class UpgradeSyncFailed(val errorMessage: String) : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
       override val statusMessage: StatusMessage = StatusMessage(Severity.ERROR, errorMessage.lines().first())
       override val runTooltip: String
         get() = statusMessage.text
     }
+
     object UpgradeSyncSucceeded : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NEITHER
       override val layoutState = LayoutState.HIDE_TREE
@@ -278,44 +290,52 @@ class UpgradeAssistantWindowModel(
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
 
-  val checkboxTreeStateUpdater = object : CheckboxTreeListener {
-    override fun nodeStateChanged(node: CheckedTreeNode) {
-      fun findNecessityNode(necessity: AgpUpgradeComponentNecessity): CheckedTreeNode? =
-        (treeModel.root as CheckedTreeNode).children().asSequence().firstOrNull { (it as CheckedTreeNode).userObject == necessity } as? CheckedTreeNode
+  val checkboxTreeStateUpdater =
+    object : CheckboxTreeListener {
+      override fun nodeStateChanged(node: CheckedTreeNode) {
+        fun findNecessityNode(necessity: AgpUpgradeComponentNecessity): CheckedTreeNode? =
+          (treeModel.root as CheckedTreeNode).children().asSequence().firstOrNull { (it as CheckedTreeNode).userObject == necessity }
+            as? CheckedTreeNode
 
-      fun enableNode(node: CheckedTreeNode) {
-        node.isEnabled = true
-        node.children().asSequence().forEach { (it as? CheckedTreeNode)?.isEnabled = true }
-      }
-
-      fun disableNode(node: CheckedTreeNode) {
-        node.isEnabled = false
-        node.children().asSequence().forEach { (it as? CheckedTreeNode)?.isEnabled = false }
-      }
-
-      fun allChildrenChecked(node: CheckedTreeNode) = node.children().asSequence().all { (it as? CheckedTreeNode)?.isChecked ?: true }
-      fun anyChildrenChecked(node: CheckedTreeNode) = node.children().asSequence().any { (it as? CheckedTreeNode)?.isChecked ?: true }
-      // We change the enabled states of nodes in the nodeStateChanged calls for the leaves (where the parents are the necessities) so
-      // that we can largely ignore issues of checked state propagation; tempting though it is to do this for the state changes on the
-      // necessity nodes themselves, it's not possible to get it right, because we can't tell whether we are deselecting a node because
-      // of an explicit user action on that node or a propagated deselection of a child, and selecting a child node does not cause a
-      // state change in the parent directly in any case.
-      val parentNode = (node.parent as? CheckedTreeNode)?.also { if (it.userObject !is AgpUpgradeComponentNecessity) return } ?: return
-      // The MANDATORY_CODEPENDENT node is special in two ways:
-      // - its children's checkboxes are always disabled;
-      // - it acts as a gateway for the other two necessities mentioned here: if it's enabled, then OPTIONAL_CODEPENDENT processors may
-      //   be selected; if it's disabled, then MANDATORY_INDEPENDENT processors may be deselected.
-      when (parentNode.userObject) {
-        AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = allChildrenChecked(parentNode) }
-        AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT -> {
-          findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT)?.let { if (node.isChecked) disableNode(it) else enableNode(it) }
-          findNecessityNode(AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT)?.let { if (node.isChecked) enableNode(it) else disableNode(it) }
+        fun enableNode(node: CheckedTreeNode) {
+          node.isEnabled = true
+          node.children().asSequence().forEach { (it as? CheckedTreeNode)?.isEnabled = true }
         }
-        AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT -> findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
+
+        fun disableNode(node: CheckedTreeNode) {
+          node.isEnabled = false
+          node.children().asSequence().forEach { (it as? CheckedTreeNode)?.isEnabled = false }
+        }
+
+        fun allChildrenChecked(node: CheckedTreeNode) = node.children().asSequence().all { (it as? CheckedTreeNode)?.isChecked ?: true }
+        fun anyChildrenChecked(node: CheckedTreeNode) = node.children().asSequence().any { (it as? CheckedTreeNode)?.isChecked ?: true }
+        // We change the enabled states of nodes in the nodeStateChanged calls for the leaves (where the parents are the necessities) so
+        // that we can largely ignore issues of checked state propagation; tempting though it is to do this for the state changes on the
+        // necessity nodes themselves, it's not possible to get it right, because we can't tell whether we are deselecting a node because
+        // of an explicit user action on that node or a propagated deselection of a child, and selecting a child node does not cause a
+        // state change in the parent directly in any case.
+        val parentNode = (node.parent as? CheckedTreeNode)?.also { if (it.userObject !is AgpUpgradeComponentNecessity) return } ?: return
+        // The MANDATORY_CODEPENDENT node is special in two ways:
+        // - its children's checkboxes are always disabled;
+        // - it acts as a gateway for the other two necessities mentioned here: if it's enabled, then OPTIONAL_CODEPENDENT processors may
+        //   be selected; if it's disabled, then MANDATORY_INDEPENDENT processors may be deselected.
+        when (parentNode.userObject) {
+          AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT ->
+            findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = allChildrenChecked(parentNode) }
+          AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT -> {
+            findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT)?.let {
+              if (node.isChecked) disableNode(it) else enableNode(it)
+            }
+            findNecessityNode(AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT)?.let {
+              if (node.isChecked) enableNode(it) else disableNode(it)
+            }
+          }
+          AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT ->
+            findNecessityNode(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT)?.let { it.isEnabled = !anyChildrenChecked(parentNode) }
+        }
+        recheckBlockageState()
       }
-      recheckBlockageState()
     }
-  }
 
   private var processorRequestedSync: Boolean = false
 
@@ -329,22 +349,28 @@ class UpgradeAssistantWindowModel(
     suggestedVersions.value = suggestedVersionsList(setOf())
 
     // Request known versions.
-    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
-      override fun run(indicator: ProgressIndicator) {
-        knownVersions.value = knownVersionsRequester()
-        val suggestedVersionsList = suggestedVersionsList(knownVersions.value)
-        invokeLater(ModalityState.nonModal()) { suggestedVersions.value = suggestedVersionsList }
-      }
-    })
+    ProgressManager.getInstance()
+      .run(
+        object : Task.Backgroundable(project, "Looking for known versions", false) {
+          override fun run(indicator: ProgressIndicator) {
+            knownVersions.value = knownVersionsRequester()
+            val suggestedVersionsList = suggestedVersionsList(knownVersions.value)
+            invokeLater(ModalityState.nonModal()) { suggestedVersions.value = suggestedVersionsList }
+          }
+        }
+      )
   }
 
   override fun syncStarted(project: Project) =
-    when(processorRequestedSync) {
+    when (processorRequestedSync) {
       true -> uiState.set(UIState.RunningUpgradeSync)
       false -> uiState.set(UIState.RunningSync)
     }
+
   override fun syncFailed(project: Project, errorMessage: String) = syncFinished(success = false, errorMessage = errorMessage)
+
   override fun syncSucceeded(project: Project) = syncFinished()
+
   override fun syncSkipped(project: Project) = syncFinished()
 
   private fun syncFinished(success: Boolean = true, errorMessage: String = "") {
@@ -378,10 +404,8 @@ class UpgradeAssistantWindowModel(
       parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
       parsed < current -> Pair(EditingErrorCategory.ERROR, "Cannot downgrade AGP version.")
       parsed > latestKnownVersion ->
-        if (parsed.major > latestKnownVersion.major)
-          Pair(EditingErrorCategory.ERROR, "Target AGP version is unsupported.")
-        else
-          Pair(EditingErrorCategory.WARNING, "Upgrade to target AGP version is unverified.")
+        if (parsed.major > latestKnownVersion.major) Pair(EditingErrorCategory.ERROR, "Target AGP version is unsupported.")
+        else Pair(EditingErrorCategory.WARNING, "Upgrade to target AGP version is unverified.")
 
       else -> EDITOR_NO_ERROR
     }
@@ -394,27 +418,29 @@ class UpgradeAssistantWindowModel(
   fun newVersionCommit(newVersionString: String) {
     if (uiState.get() != UIState.VersionSelectionInProgress) return
     val status = editingValidation(newVersionString)
-    _selectedVersion = if (status.first == EditingErrorCategory.ERROR) {
-      uiState.set(UIState.InvalidVersionError(StatusMessage(Severity.ERROR, status.second)))
-      null
-    }
-    else {
-      AgpVersion.tryParse(newVersionString)
-    }
+    _selectedVersion =
+      if (status.first == EditingErrorCategory.ERROR) {
+        uiState.set(UIState.InvalidVersionError(StatusMessage(Severity.ERROR, status.second)))
+        null
+      } else {
+        AgpVersion.tryParse(newVersionString)
+      }
     refresh()
   }
 
-  fun suggestedVersionsList(avaliableVersions: Set<AgpVersion>): List<AgpVersion> = avaliableVersions
-    // Make sure the current (if known), recommended and new project versions are present, whether published or not
-    .union(listOfNotNull(current, recommended, newProjectVersion)).asSequence()
-    // Keep only versions that are later than or equal to current
-    .filter { current?.let { current -> it >= current } ?: false }
-    // Keep only versions that are no later than the latest version we support
-    .filter { it <= latestKnownVersion }
-    // Do not keep other versions that the IDE does not support
-    .filter { !versionsAreUnsupported(it, latestKnownVersion) }
-    .toList()
-    .sortedDescending()
+  fun suggestedVersionsList(avaliableVersions: Set<AgpVersion>): List<AgpVersion> =
+    avaliableVersions
+      // Make sure the current (if known), recommended and new project versions are present, whether published or not
+      .union(listOfNotNull(current, recommended, newProjectVersion))
+      .asSequence()
+      // Keep only versions that are later than or equal to current
+      .filter { current?.let { current -> it >= current } ?: false }
+      // Keep only versions that are no later than the latest version we support
+      .filter { it <= latestKnownVersion }
+      // Do not keep other versions that the IDE does not support
+      .filter { !versionsAreUnsupported(it, latestKnownVersion) }
+      .toList()
+      .sortedDescending()
 
   fun refresh(refindPlugin: Boolean = false) {
     val oldState = uiState.get()
@@ -427,40 +453,40 @@ class UpgradeAssistantWindowModel(
     processor = null
 
     if (refindPlugin) {
-      current = currentVersionProvider()?.also { current ->
-        recommended = computeGradlePluginUpgradeState(current, latestKnownVersion, knownVersions.valueOrNull ?: setOf()).target
-      }
+      current =
+        currentVersionProvider()?.also { current ->
+          recommended = computeGradlePluginUpgradeState(current, latestKnownVersion, knownVersions.valueOrNull ?: setOf()).target
+        }
       suggestedVersions.value = suggestedVersionsList(knownVersions.valueOrNull ?: setOf())
     }
     val newVersion = selectedVersion
     // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
-    val newProcessor = newVersion?.let {
-      current?.let { current ->
-        if (newVersion >= current && !project.isDisposed)
-          project.getService(RefactoringProcessorInstantiator::class.java).createProcessor(project, current, it)
-        else
-          null
+    val newProcessor =
+      newVersion?.let {
+        current?.let { current ->
+          if (newVersion >= current && !project.isDisposed)
+            project.getService(RefactoringProcessorInstantiator::class.java).createProcessor(project, current, it)
+          else null
+        }
       }
-    }
 
     if (current == null) {
       uiState.set(UIState.NoAGP)
-    }
-    else if (newProcessor == null) {
+    } else if (newProcessor == null) {
       // Preserve existing message and run button tooltips from newVersion validation.
       uiState.set(oldState)
-    }
-    else {
+    } else {
       newProcessor.showBuildOutputOnSyncFailure = false
       newProcessor.syncRequestCallback = { processorRequestedSync = true }
       newProcessor.previewExecutedCallback = {
         ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.run { if (isAvailable) show() }
       }
-      newProcessor.backFromPreviewAction = object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
-        override fun actionPerformed(e: ActionEvent?) {
-          ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.run { if (isAvailable) show() }
+      newProcessor.backFromPreviewAction =
+        object : AbstractAction(UIUtil.replaceMnemonicAmpersand("&Back")) {
+          override fun actionPerformed(e: ActionEvent?) {
+            ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.run { if (isAvailable) show() }
+          }
         }
-      }
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         parseAndSetEnabled(newProcessor)
@@ -477,9 +503,7 @@ class UpgradeAssistantWindowModel(
     if (application.isUnitTestMode) {
       setEnabled(newProcessor, projectFilesClean)
     } else {
-      DumbService.getInstance(newProcessor.project).smartInvokeLater {
-        setEnabled(newProcessor, projectFilesClean)
-      }
+      DumbService.getInstance(newProcessor.project).smartInvokeLater { setEnabled(newProcessor, projectFilesClean) }
     }
   }
 
@@ -493,14 +517,11 @@ class UpgradeAssistantWindowModel(
         newProcessor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
       }
       uiState.set(UIState.Blocked)
-    }
-    else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
+    } else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
       uiState.set(UIState.AllDone)
-    }
-    else if (!projectFilesClean) {
+    } else if (!projectFilesClean) {
       uiState.set(UIState.ProjectFilesNotCleanWarning)
-    }
-    else {
+    } else {
       uiState.set(UIState.ReadyToRun)
     }
   }
@@ -514,14 +535,15 @@ class UpgradeAssistantWindowModel(
     }
     fun <T : DefaultMutableTreeNode> populateNecessity(
       necessity: AgpUpgradeComponentNecessity,
-      constructor: (Any) -> (T)
+      constructor: (Any) -> (T),
     ): CheckedTreeNode {
       val node = CheckedTreeNode(necessity)
       processor.activeComponentsForNecessity(necessity).forEach { component -> node.add(constructor(toStepPresentation(component))) }
       node.let { if (it.childCount > 0) root.add(it) }
       return node
     }
-    populateNecessity(AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isEnabled = false } }.isEnabled = false
+    populateNecessity(AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT) { o -> CheckedTreeNode(o).also { it.isEnabled = false } }
+      .isEnabled = false
     populateNecessity(AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT) { o -> CheckedTreeNode(o).also { it.isEnabled = false } }
     populateNecessity(AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT) { o -> CheckedTreeNode(o).also { it.isChecked = false } }
     val hasAnyNodes = root.childCount > 0
@@ -529,10 +551,9 @@ class UpgradeAssistantWindowModel(
     treeModel.nodeStructureChanged(root)
   }
 
-  private fun processorsForCheckedPresentations(): List<AgpUpgradeComponentRefactoringProcessor> = processor?.let {
-    CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
-      .map { it.processor }
-  } ?: listOf()
+  private fun processorsForCheckedPresentations(): List<AgpUpgradeComponentRefactoringProcessor> =
+    processor?.let { CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel).map { it.processor } }
+      ?: listOf()
 
   fun recheckBlockageState() {
     processorsForCheckedPresentations().let { processors ->
@@ -548,33 +569,32 @@ class UpgradeAssistantWindowModel(
     uiRefreshNotificationTimestamp.set(System.currentTimeMillis())
   }
 
-  fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
-    if (!showPreview) uiState.set(UIState.RunningUpgrade)
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
-    processorsForCheckedPresentations().forEach { it.isEnabled = true }
+  fun runUpgrade(showPreview: Boolean) =
+    processor?.let { processor ->
+      if (!showPreview) uiState.set(UIState.RunningUpgrade)
+      processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+      processorsForCheckedPresentations().forEach { it.isEnabled = true }
 
-    val runnable = {
-      try {
-        beforeUpgradeFilesStateLabel = LocalHistory.getInstance().putSystemLabel(project, "Before upgrade to ${processor.new}")
-        processor.run()
+      val runnable = {
+        try {
+          beforeUpgradeFilesStateLabel = LocalHistory.getInstance().putSystemLabel(project, "Before upgrade to ${processor.new}")
+          processor.run()
+        } catch (e: Exception) {
+          processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
+          uiState.set(UIState.CaughtException(e.message ?: "Unknown error"))
+        }
       }
-      catch (e: Exception) {
-        processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
-        uiState.set(UIState.CaughtException(e.message ?: "Unknown error"))
-      }
-    }
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      runnable.invoke()
-    }
-    else {
-      DumbService.getInstance(processor.project).smartInvokeLater {
-        processor.usageView?.close()
-        processor.setPreviewUsages(showPreview)
+      if (ApplicationManager.getApplication().isUnitTestMode) {
         runnable.invoke()
+      } else {
+        DumbService.getInstance(processor.project).smartInvokeLater {
+          processor.usageView?.close()
+          processor.setPreviewUsages(showPreview)
+          runnable.invoke()
+        }
       }
     }
-  }
 
   fun runRevert() {
     try {
@@ -582,12 +602,10 @@ class UpgradeAssistantWindowModel(
         // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here?
         beforeUpgradeFilesStateLabel!!.revert(project, project.getBaseDir())
       }
-      ProgressManager.getInstance()
-        .runProcessWithProgressSynchronously(rollback, "Revert to pre-upgrade state\u2026", true, project)
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(rollback, "Revert to pre-upgrade state\u2026", true, project)
       GradleSyncInvoker.getInstance()
         .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK))
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       uiState.set(UIState.CaughtException(e.message ?: "Unknown error during revert."))
       processor?.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.INTERNAL_ERROR)
       LOG.error("Error during revert.", e)
@@ -601,6 +619,7 @@ class UpgradeAssistantWindowModel(
     val shortDescription: String?
     val additionalInfo: String?
       get() = null
+
     val isBlocked: Boolean
     val blockReasons: List<AgpUpgradeComponentRefactoringProcessor.BlockReason>
   }
@@ -616,117 +635,131 @@ class UpgradeAssistantWindowModel(
   }
 
   // TODO(mlazeba/xof): temporary here, need to be defined in processor itself probably
-  private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) = when (processor) {
-    is R8FullModeDefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
-      override val label: String = "Action on no android.enableR8.fullMode property: "
-      override val pageHeader: String
-        get() = processor.commandName
-      override val treeText: String
-        get() = processor.noPropertyPresentAction.toString()
-      override val elements: List<R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction>
-        get() = listOf(
-          R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT,
-          R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
-        )
-      override var selectedValue: Any
-        get() = processor.noPropertyPresentAction
-        set(value) {
-          if (value is R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction) processor.noPropertyPresentAction = value
-        }
-      init {
-        selectedValue = R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
-      }
-    }
-    is ProjectJdkRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithUserSelection {
-      val comboBox: SdkComboBox
+  private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) =
+    when (processor) {
+      is R8FullModeDefaultRefactoringProcessor ->
+        object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
+          override val label: String = "Action on no android.enableR8.fullMode property: "
+          override val pageHeader: String
+            get() = processor.commandName
 
-      init {
-        fun setupProjectSdksModel(sdksModel: ProjectSdksModel, project: Project, projectSdk: Sdk?) {
-          // TODO copied from AndroidGradleProjectSettingsControlBuilder.kt. If works - try to reuse instead.
-          var resolvedProjectSdk = projectSdk
-          sdksModel.reset(project)
-          //TODO removed for now to test
-          //deduplicateSdkNames(sdksModel)
-          if (resolvedProjectSdk == null) {
-            resolvedProjectSdk = sdksModel.projectSdk
-            // Find real sdk
-            // see ProjectSdksModel#getProjectSdk for details
-            resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk)
-          }
-          if (resolvedProjectSdk != null) {
-            // resolves executable JDK
-            // e.g: for Android projects
-            resolvedProjectSdk = ExternalSystemJdkUtil.resolveDependentJdk(resolvedProjectSdk)
-            // Find editable sdk
-            // see ProjectSdksModel#getProjectSdk for details
-            resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk.name)
-          }
-          sdksModel.projectSdk = resolvedProjectSdk
-          sdksModel.apply()
-        }
-        // Setting up the same way as in AndroidGradleProjectSettingsControlBuilder.kt
-        val sdksModel: ProjectSdksModel = ProjectStructureConfigurable.getInstance(project).projectJdksModel
+          override val treeText: String
+            get() = processor.noPropertyPresentAction.toString()
 
-        setupProjectSdksModel(sdksModel, project, null)
+          override val elements: List<R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction>
+            get() =
+              listOf(
+                R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT,
+                R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT,
+              )
 
-        //TODO not sure why we need to 'hide' project sdk from the model.
-        val projectJdk = sdksModel.projectSdk
-        sdksModel.projectSdk = null
-        val gradleJdkBoxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
-        sdksModel.projectSdk = projectJdk
-
-        comboBox = SdkComboBox(gradleJdkBoxModel).apply { name = "selection" }
-        comboBox.renderer = GradleJdkListPathPresenter(
-          producerSdkList = { comboBox.model.listModel }
-        )
-        processor.newJdkInfo?.let { newJdkInfo ->
-          val sdkItem = comboBox.model.listModel.findSdkItem(newJdkInfo.sdk) ?: return@let
-          comboBox.model.selectedItem = sdkItem
-        }
-        comboBox.addActionListener { e ->
-          val item = comboBox.model.selectedItem
-          (item as? SdkListItem.SdkItem)?.sdk?.let { sdk ->
-            sdk.homePath?.let { homePath ->
-              SdkVersionUtil.getJdkVersionInfo(homePath)?.version?.let { version ->
-                processor.newJdkInfo = NewJdkInfo(sdk, homePath, version)
-              }
+          override var selectedValue: Any
+            get() = processor.noPropertyPresentAction
+            set(value) {
+              if (value is R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction) processor.noPropertyPresentAction = value
             }
-          } ?: run { processor.newJdkInfo = null }
-          notifyUiNeedsToRefresh()
-          recheckBlockageState()
-        }
-      }
 
-      override fun createUiSelector(): JComponent = comboBox
-
-    }
-    is GradlePluginsRefactoringProcessor -> object : DefaultStepPresentation(processor) {
-      override val additionalInfo =
-        processor.cachedUsages
-          .filter { it is WellKnownGradlePluginDependencyUsageInfo || it is WellKnownGradlePluginDslUsageInfo }
-          .map { it.tooltipText }.toSortedSet().takeIf { !it.isEmpty() }?.run {
-             val result = StringBuilder()
-            result.append("<p>The following Gradle plugin versions will be updated:</p>\n")
-            result.append("<ul>\n")
-            forEach { result.append("<li>$it</li>\n") }
-            result.append("</ul>\n")
-            result.toString()
+          init {
+            selectedValue = R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
           }
+        }
+      is ProjectJdkRefactoringProcessor ->
+        object : DefaultStepPresentation(processor), StepUiWithUserSelection {
+          val comboBox: SdkComboBox
+
+          init {
+            fun setupProjectSdksModel(sdksModel: ProjectSdksModel, project: Project, projectSdk: Sdk?) {
+              // TODO copied from AndroidGradleProjectSettingsControlBuilder.kt. If works - try to reuse instead.
+              var resolvedProjectSdk = projectSdk
+              sdksModel.reset(project)
+              // TODO removed for now to test
+              // deduplicateSdkNames(sdksModel)
+              if (resolvedProjectSdk == null) {
+                resolvedProjectSdk = sdksModel.projectSdk
+                // Find real sdk
+                // see ProjectSdksModel#getProjectSdk for details
+                resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk)
+              }
+              if (resolvedProjectSdk != null) {
+                // resolves executable JDK
+                // e.g: for Android projects
+                resolvedProjectSdk = ExternalSystemJdkUtil.resolveDependentJdk(resolvedProjectSdk)
+                // Find editable sdk
+                // see ProjectSdksModel#getProjectSdk for details
+                resolvedProjectSdk = sdksModel.findSdk(resolvedProjectSdk.name)
+              }
+              sdksModel.projectSdk = resolvedProjectSdk
+              sdksModel.apply()
+            }
+            // Setting up the same way as in AndroidGradleProjectSettingsControlBuilder.kt
+            val sdksModel: ProjectSdksModel = ProjectStructureConfigurable.getInstance(project).projectJdksModel
+
+            setupProjectSdksModel(sdksModel, project, null)
+
+            // TODO not sure why we need to 'hide' project sdk from the model.
+            val projectJdk = sdksModel.projectSdk
+            sdksModel.projectSdk = null
+            val gradleJdkBoxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
+            sdksModel.projectSdk = projectJdk
+
+            comboBox = SdkComboBox(gradleJdkBoxModel).apply { name = "selection" }
+            comboBox.renderer = GradleJdkListPathPresenter(producerSdkList = { comboBox.model.listModel })
+            processor.newJdkInfo?.let { newJdkInfo ->
+              val sdkItem = comboBox.model.listModel.findSdkItem(newJdkInfo.sdk) ?: return@let
+              comboBox.model.selectedItem = sdkItem
+            }
+            comboBox.addActionListener { e ->
+              val item = comboBox.model.selectedItem
+              (item as? SdkListItem.SdkItem)?.sdk?.let { sdk ->
+                sdk.homePath?.let { homePath ->
+                  SdkVersionUtil.getJdkVersionInfo(homePath)?.version?.let { version ->
+                    processor.newJdkInfo = NewJdkInfo(sdk, homePath, version)
+                  }
+                }
+              } ?: run { processor.newJdkInfo = null }
+              notifyUiNeedsToRefresh()
+              recheckBlockageState()
+            }
+          }
+
+          override fun createUiSelector(): JComponent = comboBox
+        }
+      is GradlePluginsRefactoringProcessor ->
+        object : DefaultStepPresentation(processor) {
+          override val additionalInfo =
+            processor.cachedUsages
+              .filter { it is WellKnownGradlePluginDependencyUsageInfo || it is WellKnownGradlePluginDslUsageInfo }
+              .map { it.tooltipText }
+              .toSortedSet()
+              .takeIf { !it.isEmpty() }
+              ?.run {
+                val result = StringBuilder()
+                result.append("<p>The following Gradle plugin versions will be updated:</p>\n")
+                result.append("<ul>\n")
+                forEach { result.append("<li>$it</li>\n") }
+                result.append("</ul>\n")
+                result.toString()
+              }
+        }
+      else -> DefaultStepPresentation(processor)
     }
-    else -> DefaultStepPresentation(processor)
-  }
 
   open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
     override val pageHeader: String
       get() = treeText
+
     override val treeText: String
       get() = processor.commandName
+
     override val helpLinkUrl: String?
       get() = processor.getReadMoreUrl()
+
     override val shortDescription: String?
       get() = processor.getShortDescription()
+
     override val isBlocked: Boolean
       get() = processor.isBlocked
+
     override val blockReasons: List<AgpUpgradeComponentRefactoringProcessor.BlockReason>
       get() = processor.blockProcessorReasons()
   }

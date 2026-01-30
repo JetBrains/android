@@ -67,8 +67,7 @@ class OfflineBalloonMaker(name: String, private val project: Project) {
         .createBalloon()
     balloon.show(
       object : PositionTracker<Balloon>(button) {
-        override fun recalculateLocation(balloon: Balloon) =
-          RelativePoint(component, Point(component.preferredSize.width / 4, 0))
+        override fun recalculateLocation(balloon: Balloon) = RelativePoint(component, Point(component.preferredSize.width / 4, 0))
       },
       Balloon.Position.above,
     )

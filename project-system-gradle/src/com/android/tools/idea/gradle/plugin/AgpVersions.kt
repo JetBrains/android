@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.plugin
 import com.android.Version
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Version as GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.IdeInfo
@@ -31,11 +32,10 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.net.URL
 import java.nio.file.Files
-import com.android.ide.common.gradle.Version as GradleVersion
+import org.jetbrains.annotations.VisibleForTesting
 
 object AgpVersions {
   private val LOG: Logger
@@ -44,9 +44,12 @@ object AgpVersions {
   private val ANDROID_GRADLE_PLUGIN_VERSION = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
   private val LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION = AgpVersion.parseStable(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION)
 
-  private val AGP_APP_PLUGIN_MARKER = Component(
-    "com.android.application", "com.android.application.gradle.plugin",
-    GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
+  private val AGP_APP_PLUGIN_MARKER =
+    Component(
+      "com.android.application",
+      "com.android.application.gradle.plugin",
+      GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+    )
 
   @JvmStatic
   val studioFlagOverride: AgpVersion?
@@ -55,13 +58,18 @@ object AgpVersions {
       if (override.isEmpty()) return null
       if (override.equals("stable", true) || !IdeInfo.getInstance().isAndroidStudio) {
         LOG.info(
-          "Android Gradle Plugin version overridden to latest stable version $LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=stable")
+          "Android Gradle Plugin version overridden to latest stable version $LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=stable"
+        )
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
       }
-      val version = AgpVersion.tryParse(override) ?: throw IllegalStateException(
-        "Invalid value '$override' for Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
+      val version =
+        AgpVersion.tryParse(override)
+          ?: throw IllegalStateException(
+            "Invalid value '$override' for Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'"
+          )
       LOG.info(
-        "Android Gradle Plugin version overridden to custom version $version by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=$override")
+        "Android Gradle Plugin version overridden to custom version $version by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=$override"
+      )
       return version
     }
 
@@ -69,10 +77,11 @@ object AgpVersions {
   val newProject: AgpVersion
     get() {
       // Allow explicit override by the studio flag
-      studioFlagOverride?.let { return it }
+      studioFlagOverride?.let {
+        return it
+      }
 
-      if (!StudioFlags.USE_ALONGSIDE_AGP.get())
-        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
+      if (!StudioFlags.USE_ALONGSIDE_AGP.get()) return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
 
       // When running from sources allow fallback to the latest stable if AGP has not been built locally
       if (StudioPathManager.isRunningFromSources() && ApplicationManager.getApplication() != null && !GuiTestingService.isInTestingMode()) {
@@ -84,19 +93,19 @@ object AgpVersions {
         }
         LOG.info(
           "Android Gradle plugin $ANDROID_GRADLE_PLUGIN_VERSION not locally built, " +
-          "falling back to latest stable version ${Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION}. " +
-          "${
+            "falling back to latest stable version ${Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION}. " +
+            "${
             if (repoPaths.isEmpty()) "(no injected repos)"
             else "(searched injected repos: ${
               repoPaths.joinToString(File.pathSeparator)
             }"
-          })")
+          })"
+        )
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION // No locally built AGP exists, use stable version
-
       }
 
       if (StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.get()) {
-        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION;
+        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
       }
 
       // In packaged studio and for tests, use the AGP that was built alongside Studio
@@ -107,10 +116,11 @@ object AgpVersions {
   @JvmStatic
   val latestKnown: AgpVersion
     get() {
-      val version = when (StudioFlags.USE_ALONGSIDE_AGP.get()) {
-        true -> ANDROID_GRADLE_PLUGIN_VERSION
-        false -> LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
-      }
+      val version =
+        when (StudioFlags.USE_ALONGSIDE_AGP.get()) {
+          true -> ANDROID_GRADLE_PLUGIN_VERSION
+          false -> LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
+        }
       return studioFlagOverride?.takeIf { it > version } ?: version
     }
 
@@ -128,9 +138,7 @@ object AgpVersions {
       return buildString {
         append(version)
         info.takeIf { it.isNotBlank() }?.let { append(" (").append(it).append(")") }
-        additionalMavenRepositoryUrls.takeIf { it.isNotEmpty() }?.let {
-          append(it.joinToString(",", " (", ")"))
-        }
+        additionalMavenRepositoryUrls.takeIf { it.isNotEmpty() }?.let { append(it.joinToString(",", " (", ")")) }
       }
     }
   }
@@ -149,7 +157,7 @@ object AgpVersions {
       gmavenVersions = IdeGoogleMavenRepository.getAgpVersions(),
       localAndSnapshotVersions = getLocalAndSnapshotVersions(),
       includeHistoricalAgpVersions = StudioFlags.NPW_INCLUDE_ALL_COMPATIBLE_ANDROID_GRADLE_PLUGIN_VERSIONS.get(),
-      )
+    )
   }
 
   @VisibleForTesting
@@ -175,14 +183,14 @@ object AgpVersions {
       // Go from latest first, and include latest from each series that is compatible
       if (version >= minOfCurrentSeries) continue
       if (!include.contains(computeAndroidGradlePluginCompatibility(version, latestKnown))) continue
-      minOfCurrentSeries = if (version.isSnapshot) {
-        // Treat -dev as special case, so also include the latest release version from the current series, if present.
-        version
-      }
-      else {
-        // Exclude all older versions from the current series
-        AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
-      }
+      minOfCurrentSeries =
+        if (version.isSnapshot) {
+          // Treat -dev as special case, so also include the latest release version from the current series, if present.
+          version
+        } else {
+          // Exclude all older versions from the current series
+          AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
+        }
       // Also count how many stable major-minor versions of AGP we've seen, to truncate the list
       if (!version.isPreview && version < mostRecentMajorMinor) {
         mostRecentMajorMinor = AgpVersion(version.major, version.minor)
@@ -197,18 +205,18 @@ object AgpVersions {
   }
 
   @Slow
-  private fun getLocalAndSnapshotVersions(): List<NewProjectWizardAgpVersion> = getDevelopmentLocalRepoVersions() + getAndroidxDevSnapshotVersions()
+  private fun getLocalAndSnapshotVersions(): List<NewProjectWizardAgpVersion> =
+    getDevelopmentLocalRepoVersions() + getAndroidxDevSnapshotVersions()
 
   @Slow
   private fun getDevelopmentLocalRepoVersions(): List<NewProjectWizardAgpVersion> {
-    return GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
-      .flatMap { localRepo ->
-        MavenRepositories.getAllVersions(localRepo.toPath(), AGP_APP_PLUGIN_MARKER.module)
-          .mapNotNullTo(mutableSetOf()) {
-            AgpVersion.tryParse(
-              it.toString())?.takeIf { version -> version.major == latestKnown.major && version.minor == latestKnown.minor }
-          }.map { NewProjectWizardAgpVersion(it, listOf(localRepo.toPath().toUri().toURL())) }
-      }
+    return GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths().flatMap { localRepo ->
+      MavenRepositories.getAllVersions(localRepo.toPath(), AGP_APP_PLUGIN_MARKER.module)
+        .mapNotNullTo(mutableSetOf()) {
+          AgpVersion.tryParse(it.toString())?.takeIf { version -> version.major == latestKnown.major && version.minor == latestKnown.minor }
+        }
+        .map { NewProjectWizardAgpVersion(it, listOf(localRepo.toPath().toUri().toURL())) }
+    }
   }
 
   @Slow

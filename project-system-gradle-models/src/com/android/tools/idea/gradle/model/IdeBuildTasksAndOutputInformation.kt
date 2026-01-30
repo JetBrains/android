@@ -25,37 +25,28 @@ interface IdeBuildTasksAndOutputInformation {
   val assembleTaskName: String?
 
   /**
-   * Returns the absolute path for the listing file that will get updated after each build. The
-   * model file will contain deployment related information like applicationId, list of APKs.
+   * Returns the absolute path for the listing file that will get updated after each build. The model file will contain deployment related
+   * information like applicationId, list of APKs.
    *
    * @return the path to a json file.
    */
-
   val assembleTaskOutputListingFile: String?
 
-  /**
-   * Returns the name of the task used to generate the bundle file (.aab), or null if the task is
-   * not supported.
-   */
+  /** Returns the name of the task used to generate the bundle file (.aab), or null if the task is not supported. */
   val bundleTaskName: String?
 
   /**
-   * Returns the path to the listing file generated after each [bundleTaskName] task
-   * execution. The listing file will contain a reference to the produced bundle file (.aab).
-   * Returns null when [bundleTaskName] returns null.
+   * Returns the path to the listing file generated after each [bundleTaskName] task execution. The listing file will contain a reference to
+   * the produced bundle file (.aab). Returns null when [bundleTaskName] returns null.
    */
   val bundleTaskOutputListingFile: String?
 
-  /**
-   * Returns the name of the task used to generate APKs via the bundle file (.aab), or null if the
-   * task is not supported.
-   */
+  /** Returns the name of the task used to generate APKs via the bundle file (.aab), or null if the task is not supported. */
   val apkFromBundleTaskName: String?
 
   /**
-   * Returns the path to the model file generated after each [apkFromBundleTaskName]
-   * task execution. The model will contain a reference to the folder where APKs from bundle are
-   * placed into. Returns null when [apkFromBundleTaskName] returns null.
+   * Returns the path to the model file generated after each [apkFromBundleTaskName] task execution. The model will contain a reference to
+   * the folder where APKs from bundle are placed into. Returns null when [apkFromBundleTaskName] returns null.
    */
   val apkFromBundleTaskOutputListingFile: String?
 }

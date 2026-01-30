@@ -49,11 +49,11 @@ class MorphComponentActionTest {
         androidProjectRule.project,
         // language=xml
         """
-            <LinearLayout
-              xmlns:android="http://schemas.android.com/apk/res/android"
-              android:attribute="value"
-              android:attribute2="value2">
-            </LinearLayout>
+        <LinearLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:attribute="value"
+          android:attribute2="value2">
+        </LinearLayout>
         """
           .trimIndent(),
       )
@@ -70,11 +70,9 @@ class MorphComponentActionTest {
     Mockito.`when`(component.children).thenReturn(listOf())
     Mockito.`when`(component.childCount).thenReturn(0)
     Mockito.`when`(component.tagDeprecated).thenReturn(xmlTag)
-    Mockito.`when`(component.backend)
-      .thenReturn(NlComponentBackendXml.getForTest(androidProjectRule.project, xmlTag))
+    Mockito.`when`(component.backend).thenReturn(NlComponentBackendXml.getForTest(androidProjectRule.project, xmlTag))
 
-    val morphComponentAction =
-      MorphComponentAction(component) { listOf("Suggestion1", "Suggestion2", "Suggestion3") }
+    val morphComponentAction = MorphComponentAction(component) { listOf("Suggestion1", "Suggestion2", "Suggestion3") }
 
     invokeAndWaitIfNeeded { morphComponentAction.actionPerformed(TestActionEvent()) }
 
@@ -90,25 +88,23 @@ class MorphComponentActionTest {
     }
     assertEquals(
       """
-        >Suggestion1
-        Suggestion2
-        Suggestion3
+      >Suggestion1
+      Suggestion2
+      Suggestion3
       """
         .trimIndent(),
       componentListString.toString().trim(),
     )
 
-    fakeUi
-      .findComponent<JButton> { it.text == "Apply" }!!
-      .also { invokeAndWaitIfNeeded { it.doClick() } }
+    fakeUi.findComponent<JButton> { it.text == "Apply" }!!.also { invokeAndWaitIfNeeded { it.doClick() } }
 
     assertEquals(
       """
-        <Suggestion1
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:attribute="value"
-          android:attribute2="value2">
-        </Suggestion1>
+      <Suggestion1
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:attribute="value"
+        android:attribute2="value2">
+      </Suggestion1>
       """
         .trimIndent(),
       runReadAction { xmlTag.text },

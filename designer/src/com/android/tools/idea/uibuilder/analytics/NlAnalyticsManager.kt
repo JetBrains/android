@@ -26,12 +26,10 @@ import com.intellij.openapi.diagnostic.Logger
 private val LOG = Logger.getInstance(NlAnalyticsManager::class.java)
 
 /**
- * Handles analytics that are specific to the UI builder. Acts as an interface between
- * [NlDesignSurface] and the usage tracker, being responsible for converting the surface state to
- * data that can be tracked.
+ * Handles analytics that are specific to the UI builder. Acts as an interface between [NlDesignSurface] and the usage tracker, being
+ * responsible for converting the surface state to data that can be tracked.
  */
-class NlAnalyticsManager(private val nlSurface: NlDesignSurface) :
-  DesignerAnalyticsManager(nlSurface) {
+class NlAnalyticsManager(private val nlSurface: NlDesignSurface) : DesignerAnalyticsManager(nlSurface) {
 
   override val surfaceType
     get() = nlSurface.screenViewProvider.surfaceType
@@ -44,16 +42,13 @@ class NlAnalyticsManager(private val nlSurface: NlDesignSurface) :
         else -> super.layoutType
       }
 
-  fun trackClearAllConstraints() =
-    track(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS)
+  fun trackClearAllConstraints() = track(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS)
 
   fun trackInferConstraints() = track(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS)
 
-  fun trackAddHorizontalGuideline() =
-    track(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE)
+  fun trackAddHorizontalGuideline() = track(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE)
 
-  fun trackAddVerticalGuideline() =
-    track(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE)
+  fun trackAddVerticalGuideline() = track(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE)
 
   fun trackAlign() = track(LayoutEditorEvent.LayoutEditorEventType.ALIGN)
 

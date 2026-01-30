@@ -23,10 +23,7 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
-/**
- * TODO: find the way to share the test between [GridLayoutHandlerTest] and
- *   [GridLayoutV7HandlerTest]
- */
+/** TODO: find the way to share the test between [GridLayoutHandlerTest] and [GridLayoutV7HandlerTest] */
 class GridLayoutV7HandlerTest : SceneTest() {
 
   fun testResizeFromBottomRight() {

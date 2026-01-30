@@ -21,10 +21,9 @@ import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtensi
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
 /**
- * This class allows projects to query for the "corresponding" AGP version to the running Android
- * Studio version, somewhat allowing projects to automatically use the latest possible AGP version
- * by wiring in this version.  I don't think this is desperately well-founded, but it also doesn't
- * particularly hurt to provide this information.
+ * This class allows projects to query for the "corresponding" AGP version to the running Android Studio version, somewhat allowing projects
+ * to automatically use the latest possible AGP version by wiring in this version. I don't think this is desperately well-founded, but it
+ * also doesn't particularly hurt to provide this information.
  */
 class AgpVersionExecutionHelperExtension : GradleExecutionHelperExtension {
   override fun configureSettings(settings: GradleExecutionSettings, context: GradleExecutionContext) {

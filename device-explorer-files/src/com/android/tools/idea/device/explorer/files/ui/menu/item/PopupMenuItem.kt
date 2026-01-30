@@ -19,22 +19,23 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Shortcut
 import javax.swing.Icon
 
-/**
- * A wrapper for creating popup menu items for a UI component.
- */
+/** A wrapper for creating popup menu items for a UI component. */
 interface PopupMenuItem : Runnable {
   val text: String
   val icon: Icon?
   val isEnabled: Boolean
   val isVisible: Boolean
     get() = true
+
   val action: AnAction
   val shortcutId: String?
     get() = null
+
   val shortcuts: Array<Shortcut?>?
     get() = null
 }
 
 enum class MenuContext {
-  Popup, Toolbar
+  Popup,
+  Toolbar,
 }

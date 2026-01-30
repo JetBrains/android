@@ -23,10 +23,8 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Rule
 import org.junit.Test
 
-
 class AndroidAnnotationSupportTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -35,51 +33,56 @@ class AndroidAnnotationSupportTest {
   fun test() {
     myFixture.enableInspections(NullableStuffInspection::class.java)
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       "package androidx.annotation; public @interface NonNull {} "
     )
     // Need a stub for @Nullable too to appease
     // NullableStuffInspectionBase#nullabilityAnnotationsNotAvailable
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       "package androidx.annotation; public @interface Nullable {} "
     )
 
-    val file = myFixture.addFileToProject(
-      "/src/test/MakeNonNull.java",
-      //language=JAVA
-      """
-      package test;
+    val file =
+      myFixture.addFileToProject(
+        "/src/test/MakeNonNull.java",
+        // language=JAVA
+        """
+        package test;
 
-      import androidx.annotation.NonNull;
+        import androidx.annotation.NonNull;
 
-      interface MakeNonNull {
-        String getSnapshot(<warning descr="Overriding method parameters are not annotated">@NonN<caret>ull</warning> Integer arg);
-      }
-
-      class MakeNonNullImpl implements MakeNonNull {
-        @Override
-        public String getSnapshot(Integer <warning descr="Not annotated parameter overrides @NonNull parameter">arg</warning>) {
-          return "1";
+        interface MakeNonNull {
+          String getSnapshot(<warning descr="Overriding method parameters are not annotated">@NonN<caret>ull</warning> Integer arg);
         }
-      }
 
-      class MakeNonNullImpl2 implements MakeNonNull {
-        @Override
-        public String getSnapshot(Integer <warning descr="Not annotated parameter overrides @NonNull parameter">arg</warning>) {
-          return "1";
+        class MakeNonNullImpl implements MakeNonNull {
+          @Override
+          public String getSnapshot(Integer <warning descr="Not annotated parameter overrides @NonNull parameter">arg</warning>) {
+            return "1";
+          }
         }
-      }
-    """.trimIndent())
+
+        class MakeNonNullImpl2 implements MakeNonNull {
+          @Override
+          public String getSnapshot(Integer <warning descr="Not annotated parameter overrides @NonNull parameter">arg</warning>) {
+            return "1";
+          }
+        }
+        """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.checkHighlighting()
 
-    myFixture.getAllQuickFixes().find { it.text == "Annotate overriding method parameters as non-null" }!!
+    myFixture
+      .getAllQuickFixes()
+      .find { it.text == "Annotate overriding method parameters as non-null" }!!
       .invoke(projectRule.project, myFixture.editor, myFixture.file)
 
     myFixture.checkResult(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
@@ -102,7 +105,8 @@ class AndroidAnnotationSupportTest {
           return "1";
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

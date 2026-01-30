@@ -42,8 +42,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * This is deliberately un-parameterized to split Groovy vs KTS into different shards, since the
- * overhead from Gradle sync with different types causes timeouts
+ * This is deliberately un-parameterized to split Groovy vs KTS into different shards, since the overhead from Gradle sync with different
+ * types causes timeouts
  */
 class GroovyAddNewModulesToAppTest : AddNewModulesToAppTest(false, false)
 
@@ -53,12 +53,8 @@ class KtsAddNewModulesToAppTest : AddNewModulesToAppTest(true, false)
 
 class KtsVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(true, true)
 
-abstract class AddNewModulesToAppTest(
-  private val useGradleKts: Boolean,
-  private val useVersionCatalog: Boolean,
-) {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useVersionCatalog: Boolean) {
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
   private val emptyProjectSyncInvoker =
@@ -68,21 +64,11 @@ abstract class AddNewModulesToAppTest(
 
   private fun loadInitialProject() {
     // todo b/440101998
-    val disableAndroidX: (File) -> Unit = {
-      File(it, "gradle.properties").appendText("\n\nandroid.useAndroidX=false")
-    }
+    val disableAndroidX: (File) -> Unit = { File(it, "gradle.properties").appendText("\n\nandroid.useAndroidX=false") }
     if (useVersionCatalog) {
-      projectRule.load(
-        TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG,
-        agpVersion = getAgpVersion(),
-        preLoad = disableAndroidX,
-      )
+      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG, agpVersion = getAgpVersion(), preLoad = disableAndroidX)
     } else {
-      projectRule.load(
-        TestProjectPaths.SIMPLE_APPLICATION,
-        agpVersion = getAgpVersion(),
-        preLoad = disableAndroidX,
-      )
+      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion(), preLoad = disableAndroidX)
     }
   }
 
@@ -91,18 +77,8 @@ abstract class AddNewModulesToAppTest(
     loadInitialProject()
 
     val project = projectRule.project
-    createDefaultDynamicFeatureModel(
-      project,
-      "feature1",
-      project.findAppModule(),
-      useGradleKts,
-      emptyProjectSyncInvoker,
-    )
-    checkAgpClasspathAndId(
-      "feature1",
-      "com.android.dynamic-feature",
-      "libs.plugins.android.dynamic.feature",
-    )
+    createDefaultDynamicFeatureModel(project, "feature1", project.findAppModule(), useGradleKts, emptyProjectSyncInvoker)
+    checkAgpClasspathAndId("feature1", "com.android.dynamic-feature", "libs.plugins.android.dynamic.feature")
     checkModuleCompileSdkVersion("feature1")
     assembleDebugProject()
   }
@@ -121,28 +97,11 @@ abstract class AddNewModulesToAppTest(
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    generateModuleFiles(
-      project,
-      baseModuleModel,
-      "base",
-      useGradleKts = true,
-    ) // Base module is always kts for this test
+    generateModuleFiles(project, baseModuleModel, "base", useGradleKts = true) // Base module is always kts for this test
 
     val baseModule = project.findModule("base")
-    createDefaultDynamicFeatureModel(
-      project,
-      "feature1",
-      baseModule,
-      useGradleKts,
-      emptyProjectSyncInvoker,
-    )
-    createDefaultDynamicFeatureModel(
-      project,
-      "feature2",
-      baseModule,
-      useGradleKts,
-      emptyProjectSyncInvoker,
-    )
+    createDefaultDynamicFeatureModel(project, "feature1", baseModule, useGradleKts, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(project, "feature2", baseModule, useGradleKts, emptyProjectSyncInvoker)
 
     checkBuildGradleJavaVersion("feature1")
     checkModuleCompileSdkVersion("feature1")
@@ -166,12 +125,7 @@ abstract class AddNewModulesToAppTest(
         isLibrary = true,
       )
     val moduleName = "mylibrary"
-    generateModuleFiles(
-      project,
-      libModuleModel,
-      moduleName,
-      useGradleKts,
-    ) // Base module is always kts for this test
+    generateModuleFiles(project, libModuleModel, moduleName, useGradleKts) // Base module is always kts for this test
 
     checkAgpClasspathAndId("mylibrary", "com.android.library", "libs.plugins.android.library")
     checkModuleCompileSdkVersion("mylibrary")
@@ -199,30 +153,15 @@ abstract class AddNewModulesToAppTest(
 
     // checking plugin/classpath inserted in correct places
     assertTrue(
-      File(project.basePath!!)
-        .resolve("build.gradle")
-        .readText()
-        .contains("classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:")
+      File(project.basePath!!).resolve("build.gradle").readText().contains("classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:")
     )
     val pluginId = "org.jetbrains.kotlin.jvm"
     // settings must have no declared plugins
     assertFalse(File(project.basePath!!).resolve("settings.gradle").readText().contains("kotlin"))
     if (useGradleKts) {
-      assertTrue(
-        File(project.basePath!!)
-          .resolve(module)
-          .resolve("build.gradle.kts")
-          .readText()
-          .contains("id(\"$pluginId\")\n")
-      )
+      assertTrue(File(project.basePath!!).resolve(module).resolve("build.gradle.kts").readText().contains("id(\"$pluginId\")\n"))
     } else {
-      assertTrue(
-        File(project.basePath!!)
-          .resolve(module)
-          .resolve("build.gradle")
-          .readText()
-          .contains("id '$pluginId'\n")
-      )
+      assertTrue(File(project.basePath!!).resolve(module).resolve("build.gradle").readText().contains("id '$pluginId'\n"))
     }
 
     // Also run :mylibrary:compileKotlin to ensure there is no JVM target compatibility issue,
@@ -243,10 +182,7 @@ abstract class AddNewModulesToAppTest(
   private fun checkAgpClasspathAndId(moduleName: String, pluginId: String, pluginAlias: String) {
     val project = projectRule.project
     if (useVersionCatalog) {
-      File(project.basePath!!)
-        .resolve("build.gradle")
-        .readText()
-        .contains("alias($pluginAlias) apply false")
+      File(project.basePath!!).resolve("build.gradle").readText().contains("alias($pluginAlias) apply false")
     }
 
     if (useGradleKts) {
@@ -335,14 +271,8 @@ private fun createDefaultDynamicFeatureModel(
   generateModuleFiles(project, model, moduleName, useGradleKts)
 }
 
-private fun generateModuleFiles(
-  project: Project,
-  model: ModuleModel,
-  moduleName: String,
-  useGradleKts: Boolean,
-) {
-  model.androidSdkInfo.value =
-    AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
+private fun generateModuleFiles(project: Project, model: ModuleModel, moduleName: String, useGradleKts: Boolean) {
+  model.androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
   model.moduleName.set(moduleName)
   model.template.set(createDefaultModuleTemplate(project, moduleName))
   model.packageName.set("com.example")

@@ -26,8 +26,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
-class NestedGraphToolbarAction :
-  ToolbarAction("Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
+class NestedGraphToolbarAction : ToolbarAction("Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isEnabled(surface: NavDesignSurface) =

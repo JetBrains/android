@@ -21,97 +21,98 @@ import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
-import org.junit.rules.ExternalResource
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
+import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
+import org.junit.rules.ExternalResource
 
-class MemoryConstrainedTestRule(
-  private val projectName: String,
-  private val maxHeapMB: Int,
-  private val benchmark: Benchmark,
-) : ExternalResource() {
+class MemoryConstrainedTestRule(private val projectName: String, private val maxHeapMB: Int, private val benchmark: Benchmark) :
+  ExternalResource() {
   private val gcCollectionTimeMeasurements = mutableListOf<Pair<Instant, Duration>>()
   private val processedFiles = mutableSetOf<String>()
   private var lastKnownAccumulatedGcCollectionTime = 0.milliseconds
-  private var lastKnownDaemonPid : Long? = null
+  private var lastKnownDaemonPid: Long? = null
 
   override fun before() {
-    mutateGradleProperties {
-      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${maxHeapMB}m"))
-    }
-    recordMeasurement("${projectName}_Max_Heap",
-                      listOf(Clock.System.now() to (maxHeapMB.toLong() shl 20)))
+    mutateGradleProperties { setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${maxHeapMB}m")) }
+    recordMeasurement("${projectName}_Max_Heap", listOf(Clock.System.now() to (maxHeapMB.toLong() shl 20)))
   }
 
-  val listener = object : GradleSyncListenerWithRoot {
-    override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-      // It might be the case where there are no daemons,
-      // in which case we just reset the accumulatedd time
-      // First item in the list will be the latest started daemon
-      val daemonPid = getDaemonsStatus().firstOrNull()?.pid?.toLong() ?: ProcessHandle.allProcesses().toList().filter {
-        it.info().commandLine().getOrNull()?.contains("GradleDaemon") ?: false
-      }.map { it.pid() }.singleOrNull()
+  val listener =
+    object : GradleSyncListenerWithRoot {
+      override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+        // It might be the case where there are no daemons,
+        // in which case we just reset the accumulatedd time
+        // First item in the list will be the latest started daemon
+        val daemonPid =
+          getDaemonsStatus().firstOrNull()?.pid?.toLong()
+            ?: ProcessHandle.allProcesses()
+              .toList()
+              .filter { it.info().commandLine().getOrNull()?.contains("GradleDaemon") ?: false }
+              .map { it.pid() }
+              .singleOrNull()
 
-      if (gcCollectionTimeMeasurements.isNotEmpty() && (daemonPid == null || daemonPid != lastKnownDaemonPid)) {
-        println("!!! Daemon is completely gone or restarted between runs !!! pid: $daemonPid")
-        // If a new daemon has started in  between runs, reset the accumulated GC collection time
-        lastKnownAccumulatedGcCollectionTime = 0.milliseconds
+        if (gcCollectionTimeMeasurements.isNotEmpty() && (daemonPid == null || daemonPid != lastKnownDaemonPid)) {
+          println("!!! Daemon is completely gone or restarted between runs !!! pid: $daemonPid")
+          // If a new daemon has started in  between runs, reset the accumulated GC collection time
+          lastKnownAccumulatedGcCollectionTime = 0.milliseconds
+        }
+        lastKnownDaemonPid = daemonPid
+        val accumulatedGcCollectionTime = getGcCollectionTime()
+        val gcCollectionTime = accumulatedGcCollectionTime - lastKnownAccumulatedGcCollectionTime
+        lastKnownAccumulatedGcCollectionTime = accumulatedGcCollectionTime
+        gcCollectionTimeMeasurements.add(Clock.System.now() to gcCollectionTime)
+        println("GC collection time for last run: $gcCollectionTime")
+        println("GC collection time accumulated: $accumulatedGcCollectionTime")
       }
-      lastKnownDaemonPid = daemonPid
-      val accumulatedGcCollectionTime = getGcCollectionTime()
-      val gcCollectionTime = accumulatedGcCollectionTime - lastKnownAccumulatedGcCollectionTime
-      lastKnownAccumulatedGcCollectionTime = accumulatedGcCollectionTime
-      gcCollectionTimeMeasurements.add(Clock.System.now() to gcCollectionTime)
-      println("GC collection time for last run: $gcCollectionTime")
-      println("GC collection time accumulated: $accumulatedGcCollectionTime")
     }
-  }
-
 
   private fun getGcCollectionTime(): Duration {
-    val file = File(OUTPUT_DIRECTORY)
-      .walk()
-      .first {
-        it.name.endsWith(GC_COLLECTION_TIME_FILE_NAME_SUFFIX)
-        && !processedFiles.contains(it.name)
-      }
-    return file.readText().toLong().milliseconds.also {
-      processedFiles.add(file.name)
-    }
+    val file =
+      File(OUTPUT_DIRECTORY).walk().first { it.name.endsWith(GC_COLLECTION_TIME_FILE_NAME_SUFFIX) && !processedFiles.contains(it.name) }
+    return file.readText().toLong().milliseconds.also { processedFiles.add(file.name) }
   }
 
   override fun after() {
     val initialPrefix = "Initial_"
     val droppedPrefix = "Dropped_"
-    gcCollectionTimeMeasurements.mapIndexed { index, value ->
-      val prefix = when (index) {
-        0 -> initialPrefix
-        1, 2 -> droppedPrefix
-        else -> ""
+    gcCollectionTimeMeasurements
+      .mapIndexed { index, value ->
+        val prefix =
+          when (index) {
+            0 -> initialPrefix
+            1,
+            2 -> droppedPrefix
+            else -> ""
+          }
+        "${prefix}GC_Collection_Time" to (value.first to value.second)
       }
-      "${prefix}GC_Collection_Time" to (value.first to value.second)
-    }.groupBy { (type, _,) -> type }
-      .mapValues { groupEntry -> groupEntry.value.map {it.second} }.entries // unpack group values
+      .groupBy {
+        (
+          type,
+          _,
+        ) ->
+        type
+      }
+      .mapValues { groupEntry -> groupEntry.value.map { it.second } }
+      .entries // unpack group values
       .forEach { (type, values) ->
         values.forEach { value ->
           println("Recording ${projectName}_$type -> ${value.second.inWholeMilliseconds} ms (${value.second.inWholeSeconds} seconds)")
         }
-        recordMeasurement("${projectName}_$type", values.map { it.first to it.second.inWholeMilliseconds})
+        recordMeasurement("${projectName}_$type", values.map { it.first to it.second.inWholeMilliseconds })
       }
   }
 
   private fun recordMeasurement(metricName: String, values: List<Pair<Instant, Long>>) {
     Metric(metricName).apply {
-        values.forEach {
-          addSamples(benchmark, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second))
-        }
-        commit()
+      values.forEach { addSamples(benchmark, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second)) }
+      commit()
     }
   }
 }

@@ -27,25 +27,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-class GradleAndroidSdkEventListenerTest  {
+class GradleAndroidSdkEventListenerTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withAndroidModel()
 
   @After
   fun tearDown() {
     IdeSdks.removeJdksOn(androidProjectRule.testRootDisposable)
-    runWriteActionAndWait {
-      AndroidSdkPathStore.getInstance().androidSdkPath = null
-    }
+    runWriteActionAndWait { AndroidSdkPathStore.getInstance().androidSdkPath = null }
   }
 
   @Test
   fun testSetAndroidSdkPathUpdatingLocalPropertiesFile() {
     val androidSdkPath = getSdk().toFile()
-    runWriteActionAndWait {
-      IdeSdks.getInstance().setAndroidSdkPath(androidSdkPath)
-    }
+    runWriteActionAndWait { IdeSdks.getInstance().setAndroidSdkPath(androidSdkPath) }
 
     val localProperties = LocalProperties(getBaseDirPath(androidProjectRule.project))
     assertEquals(androidSdkPath, localProperties.androidSdkPath)

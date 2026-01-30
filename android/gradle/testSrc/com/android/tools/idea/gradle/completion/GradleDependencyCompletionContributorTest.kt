@@ -26,13 +26,13 @@ import com.intellij.psi.PsiReference
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.nio.charset.StandardCharsets
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.psi.KotlinReferenceProvidersService
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.nio.charset.StandardCharsets
 
 @RunsInEdt
 class GradleDependencyCompletionContributorTest : AndroidTestCase() {
@@ -45,11 +45,8 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     super.setUp()
 
     fakeMavenClassRegistryManager = createFakeMavenClassRegistryManager()
-    ApplicationManager.getApplication().replaceService(
-      MavenClassRegistryManager::class.java,
-      fakeMavenClassRegistryManager,
-      myFixture.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(MavenClassRegistryManager::class.java, fakeMavenClassRegistryManager, myFixture.testRootDisposable)
 
     // The KotlinReferenceProviderService implementation in the Kotlin 1.9 compiler constructs a MockProject with an unrooted parent
     // Disposable, causing our test leak checker to complain.  Replace that service with an empty reference provider.
@@ -59,7 +56,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
       object : KotlinReferenceProvidersService() {
         override fun getReferences(psiElement: PsiElement) = PsiReference.EMPTY_ARRAY
       },
-      myFixture.testRootDisposable
+      myFixture.testRootDisposable,
     )
 
     // Although a reference provider returning an empty array of references is ostensibly legal (the service itself provides a default
@@ -68,20 +65,25 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     // KotlinTypeDefCompletionContributor, which we don't need: so mask it out.
     val completionContributorEPs = CompletionContributor.EP.extensions
     val clazz = com.android.tools.idea.lang.typedef.KotlinTypeDefCompletionContributor::class.java
-    ExtensionTestUtil.maskExtensions(CompletionContributor.EP, completionContributorEPs.filter { it.implementationClass != clazz.name },
-                                     myFixture.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(
+      CompletionContributor.EP,
+      completionContributorEPs.filter { it.implementationClass != clazz.name },
+      myFixture.testRootDisposable,
+    )
   }
 
   @Test
   fun testBasicCompletionInGradleBuildFile_qualifiedClosure() {
-    val buildFile = myFixture.addFileToProject(
-      "build.gradle",
-      """
+    val buildFile =
+      myFixture.addFileToProject(
+        "build.gradle",
+        """
         dependencies {
           implementation 'com.google.a$caret'
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
@@ -91,14 +93,16 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testBasicCompletionInGradleBuildFile_gmavenRegistryNotAvailable() {
-    val buildFile = myFixture.addFileToProject(
-      "build.gradle",
-      """
+    val buildFile =
+      myFixture.addFileToProject(
+        "build.gradle",
+        """
         dependencies {
           implementation 'com.google.a$caret'
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
 
@@ -110,14 +114,16 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testBasicCompletionInGradleBuildFile_notQualifiedClosure() {
-    val buildFile = myFixture.addFileToProject(
-      "build.gradle",
-      """
+    val buildFile =
+      myFixture.addFileToProject(
+        "build.gradle",
+        """
         defaultConfig {
           applicationId = "$caret"
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
@@ -127,35 +133,40 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testBasicCompletionInGradleKtsFile_qualifiedClosure() {
-    val buildFile = myFixture.addFileToProject(
-      "build.gradle.kts",
-      """
+    val buildFile =
+      myFixture.addFileToProject(
+        "build.gradle.kts",
+        """
         dependencies {
             api("androidx.$caret")
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera:camera-core:1.1.0-alpha03",
-      "androidx.camera:camera-view:1.0.0-alpha22",
-      "androidx.room:room-runtime:2.2.6"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "androidx.camera:camera-core:1.1.0-alpha03",
+        "androidx.camera:camera-view:1.0.0-alpha22",
+        "androidx.room:room-runtime:2.2.6",
+      )
   }
 
   @Test
   fun testBasicCompletionInGradleKtsFile_notQualifiedClosure() {
-    val buildFile = myFixture.addFileToProject(
-      "build.gradle.kts",
-      """
+    val buildFile =
+      myFixture.addFileToProject(
+        "build.gradle.kts",
+        """
         defaultConfig {
           applicationId = "com.$caret"
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
@@ -165,74 +176,78 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testBasicCompletionInBuildSrc_kotlin() {
-    val ktFile = myFixture.addFileToProject(
-      "buildSrc/src/main/java/Dependencies.kt",
-      """
+    val ktFile =
+      myFixture.addFileToProject(
+        "buildSrc/src/main/java/Dependencies.kt",
+        """
         object Dependencies {
             val cameraView by lazy { "androidx.camera$caret" }
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(ktFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera:camera-core:1.1.0-alpha03",
-      "androidx.camera:camera-view:1.0.0-alpha22"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly("androidx.camera:camera-core:1.1.0-alpha03", "androidx.camera:camera-view:1.0.0-alpha22")
   }
 
   @Test
   fun testBasicCompletionInBuildSrc_java() {
-    val ktFile = myFixture.addFileToProject(
-      "buildSrc/src/main/java/Dependencies.java",
-      """
+    val ktFile =
+      myFixture.addFileToProject(
+        "buildSrc/src/main/java/Dependencies.java",
+        """
         class Dependencies {
             public static String cameraView = "androidx.camera$caret"
         }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(ktFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera:camera-core:1.1.0-alpha03",
-      "androidx.camera:camera-view:1.0.0-alpha22",
-      "cameraView"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly("androidx.camera:camera-core:1.1.0-alpha03", "androidx.camera:camera-view:1.0.0-alpha22", "cameraView")
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsToml() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = "androidx.$caret"
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera:camera-core:1.1.0-alpha03",
-      "androidx.camera:camera-view:1.0.0-alpha22",
-      "androidx.room:room-runtime:2.2.6"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "androidx.camera:camera-core:1.1.0-alpha03",
+        "androidx.camera:camera-view:1.0.0-alpha22",
+        "androidx.room:room-runtime:2.2.6",
+      )
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsToml_gmavenRegistryNotAvailable() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = "androidx.$caret"
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
 
@@ -244,91 +259,88 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testBasicCompletionInLibsVersionsTomlModuleKey() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = { module = "androidx.$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera:camera-core",
-      "androidx.camera:camera-view",
-      "androidx.room:room-runtime"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly("androidx.camera:camera-core", "androidx.camera:camera-view", "androidx.room:room-runtime")
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsTomlGroupKey() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = { group = "androidx.$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "androidx.camera",
-      "androidx.room"
-    )
+    assertThat(myFixture.lookupElementStrings).containsExactly("androidx.camera", "androidx.room")
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsTomlNameKey() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = { name = "r$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "camera-core",
-      "camera-view",
-      "play-services-maps",
-      "room-runtime"
-    )
+    assertThat(myFixture.lookupElementStrings).containsExactly("camera-core", "camera-view", "play-services-maps", "room-runtime")
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsTomlVersionKey() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         camera = { version = "1$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "1.0.0-alpha22", "1.1.0-alpha03", "17.0.0",
-    )
+    assertThat(myFixture.lookupElementStrings).containsExactly("1.0.0-alpha22", "1.1.0-alpha03", "17.0.0")
   }
 
   @Test
   fun testBasicCompletionInLibsVersionsTomlOutsideLibraries() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         camera = "$caret"
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -338,7 +350,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
     val inputStream =
-      //language=JSON
+      // language=JSON
       """
       {
         "Index": [
@@ -389,8 +401,6 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
-    return mock<MavenClassRegistryManager>().apply {
-      whenever(tryGetMavenClassRegistry()).thenReturn(mavenClassRegistry)
-    }
+    return mock<MavenClassRegistryManager>().apply { whenever(tryGetMavenClassRegistry()).thenReturn(mavenClassRegistry) }
   }
 }

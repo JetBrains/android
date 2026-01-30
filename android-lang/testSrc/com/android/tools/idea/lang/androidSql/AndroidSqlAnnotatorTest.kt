@@ -33,7 +33,7 @@ class AndroidSqlAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase() {
     var element = myFixture.moveCaret("RE|PLACE")
     var annotations = CodeInsightTestUtil.testAnnotator(AndroidSqlAnnotator(), element)
     assertThat(annotations).isEmpty()
- }
+  }
 
   fun testAnnotatorOnIdentifier() {
     myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT REPLACE('a','b','aa') FROM books")

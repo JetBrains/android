@@ -49,24 +49,22 @@ import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.getUastParentOfType
 
 typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
+
 typealias PsiMemberPointer = SmartPsiElementPointer<out PsiMember>
 
 data class RoomDatabase(
   /** Annotated class. */
   val psiClass: PsiClassPointer,
 
-  /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
+  /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong. */
   val entities: Set<PsiClassPointer>,
 
-  /** Classes mentioned in the `views` annotation parameter. These may not actually be `@DatabaseView` if the code is wrong.  */
+  /** Classes mentioned in the `views` annotation parameter. These may not actually be `@DatabaseView` if the code is wrong. */
   val views: Set<PsiClassPointer>,
-
-  val daos: Set<PsiClassPointer>
+  val daos: Set<PsiClassPointer>,
 )
 
-/**
- * An [AndroidSqlTable] defined by a Room `@Entity`.
- */
+/** An [AndroidSqlTable] defined by a Room `@Entity`. */
 data class RoomTable(
   /** Annotated class. */
   val psiClass: PsiClassPointer,
@@ -85,11 +83,17 @@ data class RoomTable(
   val nameElement: PsiElementPointer = psiClass,
 
   /** Columns present in the table representing this entity. */
-  val columns: Set<AndroidSqlColumn> = emptySet()
+  val columns: Set<AndroidSqlColumn> = emptySet(),
 ) : AndroidSqlTable {
-  override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>) = ContainerUtil.process(columns, processor)
-  override val definingElement: PsiElement get() = psiClass.element!!
-  override val resolveTo: PsiElement get() = nameElement.element!!
+  override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>) =
+    ContainerUtil.process(columns, processor)
+
+  override val definingElement: PsiElement
+    get() = psiClass.element!!
+
+  override val resolveTo: PsiElement
+    get() = nameElement.element!!
+
   override val isView = type == Type.VIEW
 
   enum class Type {
@@ -101,9 +105,7 @@ data class RoomTable(
   }
 }
 
-/**
- * An [AndroidSqlColumn] defined by a field in a Room `@Entity`.
- */
+/** An [AndroidSqlColumn] defined by a field in a Room `@Entity`. */
 data class RoomMemberColumn(
   /** Field that defines this column. */
   val psiMember: PsiMemberPointer,
@@ -114,25 +116,25 @@ data class RoomMemberColumn(
   /** The [PsiElement] that defines the column name. */
   val nameElement: PsiElementPointer = psiMember,
   override val isPrimaryKey: Boolean = false,
-  override val alternativeNames: Set<String> = emptySet()
+  override val alternativeNames: Set<String> = emptySet(),
 ) : AndroidSqlColumn {
-  override val type: SqlType? = when(definingElement) {
+  override val type: SqlType? =
+    when (definingElement) {
       is PsiField -> (definingElement as PsiField).type.presentableText.let(::JavaFieldSqlType)
       is PsiMethod -> (definingElement as PsiMethod).returnType?.presentableText?.let(::JavaFieldSqlType)
       else -> null
-  }
-  override val definingElement: PsiElement get() = psiMember.element!!
-  override val resolveTo: PsiElement get() = nameElement.element!!
+    }
+  override val definingElement: PsiElement
+    get() = psiMember.element!!
+
+  override val resolveTo: PsiElement
+    get() = nameElement.element!!
 }
 
-/**
- * Represents column that equals table name in Fts table.
- */
-data class RoomFtsTableColumn(
-  override val definingElement: PsiElement,
-  override val name: String
-) : AndroidSqlColumn {
-  override val type: SqlType get() = FtsSqlType
+/** Represents column that equals table name in Fts table. */
+data class RoomFtsTableColumn(override val definingElement: PsiElement, override val name: String) : AndroidSqlColumn {
+  override val type: SqlType
+    get() = FtsSqlType
 }
 
 /**
@@ -140,14 +142,17 @@ data class RoomFtsTableColumn(
  *
  * See [https://sqlite.org/lang_createtable.html#rowid]
  */
-data class RoomRowidColumn(
-  override val definingElement: PsiElement,
-  override val alternativeNames: Set<String> = PRIMARY_KEY_NAMES
-) : AndroidSqlColumn {
+data class RoomRowidColumn(override val definingElement: PsiElement, override val alternativeNames: Set<String> = PRIMARY_KEY_NAMES) :
+  AndroidSqlColumn {
   override val type: SqlType = JavaFieldSqlType("int")
-  override val isPrimaryKey: Boolean get() = true
-  override val isImplicit: Boolean get() = super.isImplicit
-  override val name: String? get() = null
+  override val isPrimaryKey: Boolean
+    get() = true
+
+  override val isImplicit: Boolean
+    get() = super.isImplicit
+
+  override val name: String?
+    get() = null
 }
 
 /**
@@ -155,7 +160,7 @@ data class RoomRowidColumn(
  *
  * There is no real field for [RoomRowidColumn] so we resolve it to [PsiElementForFakeColumn] that navigate to table column belongs to.
  */
-data class PsiElementForFakeColumn(val tablePsiElement: PsiClass): PsiElement by tablePsiElement {
+data class PsiElementForFakeColumn(val tablePsiElement: PsiClass) : PsiElement by tablePsiElement {
   override fun getNavigationElement(): PsiElement {
     return tablePsiElement
   }
@@ -168,20 +173,12 @@ data class PsiElementForFakeColumn(val tablePsiElement: PsiClass): PsiElement by
 /** Represents a Room `@Dao` class. */
 data class Dao(val psiClass: PsiClassPointer)
 
-/**
- * Schema defined using Room annotations in Java/Kotlin code.
- */
-data class RoomSchema(
-  val databases: Set<RoomDatabase>,
-  val tables: Set<RoomTable>,
-  val daos: Set<Dao>
-) {
+/** Schema defined using Room annotations in Java/Kotlin code. */
+data class RoomSchema(val databases: Set<RoomDatabase>, val tables: Set<RoomTable>, val daos: Set<Dao>) {
   fun findTable(psiClass: PsiClass) = tables.find { it.psiClass.element == psiClass }
 }
 
-/**
- * [AndroidSqlContext] for queries in Room's `@Query` annotations.
- */
+/** [AndroidSqlContext] for queries in Room's `@Query` annotations. */
 class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
 
   class Provider : AndroidSqlContext.Provider {
@@ -190,10 +187,8 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
 
   override val bindParameters: Map<String, BindParameter>
     get() {
-      return (findHostRoomAnnotation()
-        ?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }
-        ?.getParentOfType<UAnnotated>()
-        as? UMethod)
+      return (findHostRoomAnnotation()?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }?.getParentOfType<UAnnotated>()
+          as? UMethod)
         ?.uastParameters
         ?.mapNotNull { uParameter ->
           val name = (uParameter.javaPsi as PsiParameter).name
@@ -207,16 +202,14 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     }
 
   private fun findHostRoomAnnotation(): UAnnotation? {
-    return findHost()
-      ?.getUastParentOfType<UAnnotation>()
-      ?.takeIf {
-        val qualifiedName = it.qualifiedName
-        when {
-          RoomAnnotations.QUERY.isEquals(qualifiedName) -> true
-          RoomAnnotations.DATABASE_VIEW.isEquals(qualifiedName) -> true
-          else -> false
-        }
+    return findHost()?.getUastParentOfType<UAnnotation>()?.takeIf {
+      val qualifiedName = it.qualifiedName
+      when {
+        RoomAnnotations.QUERY.isEquals(qualifiedName) -> true
+        RoomAnnotations.DATABASE_VIEW.isEquals(qualifiedName) -> true
+        else -> false
       }
+    }
   }
 
   private fun findHost(): PsiLanguageInjectionHost? {
@@ -225,8 +218,8 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     // recommended method, fall back to a known solution to the situation described above and eventually fall back to the deprecated method
     // which seems to handle even more cases.
     return InjectedLanguageManager.getInstance(query.project).getInjectionHost(query)
-           ?: query.context as? PsiLanguageInjectionHost
-           ?: InjectedLanguageUtil.findInjectionHost(query)
+      ?: query.context as? PsiLanguageInjectionHost
+      ?: InjectedLanguageUtil.findInjectionHost(query)
   }
 
   override fun processTables(processor: Processor<AndroidSqlTable>): Boolean {
@@ -235,16 +228,13 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
       // We are inside a Room annotation, let's use the Room schema.
       // If we are inside Editing Fragment query does not belong to module. We need to use original file.
       val module = ModuleUtil.findModuleForPsiElement(query.originalFile) ?: return true
-      return ContainerUtil.process(
-        findTablesApplicableToContext(module, hostRoomAnnotation),
-        amendProcessor(hostRoomAnnotation, processor)
-      )
+      return ContainerUtil.process(findTablesApplicableToContext(module, hostRoomAnnotation), amendProcessor(hostRoomAnnotation, processor))
     }
 
     return true
   }
 
-  private fun findTablesApplicableToContext(module: Module, hostRoomAnnotation: UAnnotation):Collection<AndroidSqlTable> {
+  private fun findTablesApplicableToContext(module: Module, hostRoomAnnotation: UAnnotation): Collection<AndroidSqlTable> {
     val schema = RoomSchemaManager.getInstance(module).getSchema(query) ?: return emptySet()
     val allTables = schema.tables
     val databases = schema.databases
@@ -260,24 +250,19 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
       return allTables
     }
     return allTables.filter { table ->
-      databasesHostBelongsTo.any {
-        it.entities.contains(table.psiClass) || it.views.contains(table.psiClass)
-      }
+      databasesHostBelongsTo.any { it.entities.contains(table.psiClass) || it.views.contains(table.psiClass) }
     }
   }
 
   /**
-   * Picks the right [Processor] for tables in the schema. If [query] belongs to a `@DatabaseView` definition, skips the view
-   * being defined from completion, to avoid recursive definitions.
+   * Picks the right [Processor] for tables in the schema. If [query] belongs to a `@DatabaseView` definition, skips the view being defined
+   * from completion, to avoid recursive definitions.
    */
-  private fun amendProcessor(
-    hostRoomAnnotation: UAnnotation,
-    processor: Processor<AndroidSqlTable>
-  ): Processor<in AndroidSqlTable> {
-    return hostRoomAnnotation.takeIf { RoomAnnotations.DATABASE_VIEW.isEquals(it.qualifiedName) }
-             ?.getParentOfType<UClass>()
-             ?.let { IgnoreClassProcessor(it.javaPsi, processor) }
-           ?: processor
+  private fun amendProcessor(hostRoomAnnotation: UAnnotation, processor: Processor<AndroidSqlTable>): Processor<in AndroidSqlTable> {
+    return hostRoomAnnotation
+      .takeIf { RoomAnnotations.DATABASE_VIEW.isEquals(it.qualifiedName) }
+      ?.getParentOfType<UClass>()
+      ?.let { IgnoreClassProcessor(it.javaPsi, processor) } ?: processor
   }
 }
 

@@ -21,5 +21,5 @@ import java.io.Serializable
 data class IdeTestOptionsImpl(
   override val animationsDisabled: Boolean,
   override val execution: IdeTestOptions.Execution?,
-  override val instrumentedTestTaskName: String?
+  override val instrumentedTestTaskName: String?,
 ) : IdeTestOptions, Serializable

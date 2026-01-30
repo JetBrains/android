@@ -21,9 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
 object DeviceExplorerFilesUtils {
-  /**
-   * Creates a [VirtualFile] corresponding to the [Path] passed as argument.
-   */
+  /** Creates a [VirtualFile] corresponding to the [Path] passed as argument. */
   @AnyThread
   suspend fun findFile(localPath: Path, inReadOnly: Boolean = false): VirtualFile {
     // We run this operation using invokeLater because we need to refresh a VirtualFile instance
@@ -32,8 +30,7 @@ object DeviceExplorerFilesUtils {
     return withWriteSafeContextWithCurrentModality {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       val file = localPath.toFile().apply { if (inReadOnly) setReadOnly() }
-      VfsUtil.findFileByIoFile(file, true)
-          ?: throw RuntimeException("Unable to locate file \"$localPath\"")
+      VfsUtil.findFileByIoFile(file, true) ?: throw RuntimeException("Unable to locate file \"$localPath\"")
     }
   }
 }

@@ -25,55 +25,48 @@ import java.util.concurrent.Future
 import java.util.function.Supplier
 
 /**
- * Base class for a service responsible for handling navigating to [CodeLocation]s, as well as
- * registering and triggering listeners interested in the event.
+ * Base class for a service responsible for handling navigating to [CodeLocation]s, as well as registering and triggering listeners
+ * interested in the event.
  */
-class CodeNavigator (source: NavSource, private val executor: Executor) {
-  /**
-   * Interface for where the [CodeNavigator] should execute actions.
-   */
+class CodeNavigator(source: NavSource, private val executor: Executor) {
+  /** Interface for where the [CodeNavigator] should execute actions. */
   interface Executor {
     fun onForeground(runnable: Runnable)
+
     fun onBackground(runnable: Runnable): Future<*>
   }
 
   companion object {
-    /**
-     * An executor to be used when using the code navigator within an application to avoid blocking
-     * the UI thread.
-     */
-    val applicationExecutor = object : Executor {
-      override fun onForeground(runnable: Runnable) {
-        ApplicationManager.getApplication().invokeLater(runnable)
+    /** An executor to be used when using the code navigator within an application to avoid blocking the UI thread. */
+    val applicationExecutor =
+      object : Executor {
+        override fun onForeground(runnable: Runnable) {
+          ApplicationManager.getApplication().invokeLater(runnable)
+        }
+
+        override fun onBackground(runnable: Runnable): Future<*> {
+          return ApplicationManager.getApplication().executeOnPooledThread(runnable)
+        }
       }
 
-      override fun onBackground(runnable: Runnable): Future<*> {
-        return ApplicationManager.getApplication().executeOnPooledThread(runnable)
-      }
-    }
+    /** An executor to be used in tests to avoid a dependency on an application existing. */
+    val testExecutor =
+      object : Executor {
+        override fun onForeground(runnable: Runnable) {
+          runnable.run()
+        }
 
-    /**
-     * An executor to be used in tests to avoid a dependency on an application existing.
-     */
-    val testExecutor = object : Executor {
-      override fun onForeground(runnable: Runnable) {
-        runnable.run()
+        override fun onBackground(runnable: Runnable): Future<*> {
+          return CompletableFuture.runAsync(runnable)
+        }
       }
-
-      override fun onBackground(runnable: Runnable): Future<*> {
-        return CompletableFuture.runAsync(runnable)
-      }
-    }
   }
 
   @VisibleForTesting val mySource = source
 
   private val myListeners = mutableListOf<Listener>()
 
-  /**
-   * Supplier of the target CPU architecture (e.g. arm64, x86, etc) used to build the process
-   * currently being profiled.
-   */
+  /** Supplier of the target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled. */
   var cpuArchSource: Supplier<String?> = Supplier { null }
 
   fun addListener(listener: Listener) {
@@ -85,47 +78,40 @@ class CodeNavigator (source: NavSource, private val executor: Executor) {
   }
 
   fun navigate(location: CodeLocation): CompletableFuture<Boolean>? {
-    myListeners.forEach{ it.onNavigated(location) }
+    myListeners.forEach { it.onNavigated(location) }
 
-    return getNavigatableAsync(location).thenApplyAsync(
-      { nav: Navigatable? ->
-        nav?.navigate(true)
-        nav != null
-      }) { runnable: Runnable? -> executor.onForeground(runnable!!)}
+    return getNavigatableAsync(location).thenApplyAsync({ nav: Navigatable? ->
+      nav?.navigate(true)
+      nav != null
+    }) { runnable: Runnable? ->
+      executor.onForeground(runnable!!)
+    }
   }
 
   fun isNavigatableAsync(location: CodeLocation): CompletableFuture<Boolean> {
     return getNavigatableAsync(location).thenApply { nav ->
-      ReadAction.compute<Boolean, RuntimeException> {
-        nav?.canNavigateToSource() ?: false
-      }
+      ReadAction.compute<Boolean, RuntimeException> { nav?.canNavigateToSource() ?: false }
     }
   }
 
   fun isNavigatable(location: CodeLocation) = getNavigatable(location)?.canNavigateToSource() ?: false
 
   /**
-   * Gets the navigatable in another thread, so we don't block the UI while potentially performing
-   * heavy operations, such as searching for the java class/method in the PSI tree or using
-   * llvm-symbolizer to get a native function name.
+   * Gets the navigatable in another thread, so we don't block the UI while potentially performing heavy operations, such as searching for
+   * the java class/method in the PSI tree or using llvm-symbolizer to get a native function name.
    */
   private fun getNavigatableAsync(location: CodeLocation): CompletableFuture<Navigatable?> {
-    return CompletableFuture.supplyAsync({ getNavigatable(location) }) { runnable: Runnable? ->
-      executor.onBackground(runnable!!)
-    }
+    return CompletableFuture.supplyAsync({ getNavigatable(location) }) { runnable: Runnable? -> executor.onBackground(runnable!!) }
   }
 
   /**
-   * Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need
-   * to wrap the action in a ReadAction. Hence, all PSI-reading code inside getNavigatable() will
-   * need to wrapped in a ReadAction.
+   * Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need to wrap the action in a ReadAction. Hence,
+   * all PSI-reading code inside getNavigatable() will need to wrapped in a ReadAction.
    *
    * See [Threading Model](https://plugins.jetbrains.com/docs/intellij/threading-model.html)
    */
   private fun getNavigatable(location: CodeLocation): Navigatable? {
-    return ReadAction.compute(ThrowableComputable<Navigatable, RuntimeException> {
-      mySource.lookUp(location, cpuArchSource.get())
-    })
+    return ReadAction.compute(ThrowableComputable<Navigatable, RuntimeException> { mySource.lookUp(location, cpuArchSource.get()) })
   }
 
   interface Listener {

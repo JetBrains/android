@@ -32,15 +32,12 @@ import com.intellij.openapi.wm.ToolWindow
 interface VisualizationContent : Disposable {
 
   companion object {
-    @JvmField
-    val VISUALIZATION_CONTENT =
-      DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
+    @JvmField val VISUALIZATION_CONTENT = DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
   }
 
   /**
-   * Specifies the next editor the preview should be shown for. The update of the preview may be
-   * delayed. Return True on success, or False if the preview update is not possible (e.g. the file
-   * for the editor cannot be found).
+   * Specifies the next editor the preview should be shown for. The update of the preview may be delayed. Return True on success, or False
+   * if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   fun setNextEditor(editor: FileEditor): Boolean
 
@@ -56,10 +53,7 @@ interface VisualizationContent : Disposable {
   /** Enables updates for this content. */
   fun activate()
 
-  /**
-   * Disables the updates for this content. Any changes to resources or the layout won't update this
-   * content until [activate] is called.
-   */
+  /** Disables the updates for this content. Any changes to resources or the layout won't update this content until [activate] is called. */
   fun deactivate()
 }
 
@@ -68,12 +62,8 @@ interface VisualizationContentProvider {
 }
 
 object VisualizationFormProvider : VisualizationContentProvider {
-  override fun createVisualizationForm(
-    project: Project,
-    toolWindow: ToolWindow,
-  ): VisualizationForm {
-    val visualizationForm =
-      VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
+  override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationForm {
+    val visualizationForm = VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
     contentManager.addUiDataProvider({ sink ->
@@ -104,15 +94,10 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
       initPreviewFormAfterInitialBuild(project, form, onComplete)
     }
     val onError = Runnable { form.showErrorMessage() }
-    ClearResourceCacheAfterFirstBuild.getInstance(project)
-      .runWhenResourceCacheClean(task, onError, form)
+    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError, form)
   }
 
-  private fun initPreviewFormAfterInitialBuild(
-    project: Project,
-    form: VisualizationForm,
-    onComplete: () -> Unit,
-  ) {
+  private fun initPreviewFormAfterInitialBuild(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
     project.runWhenSmartAndSyncedOnEdt(
       form,
       { result: ProjectSystemSyncManager.SyncResult ->

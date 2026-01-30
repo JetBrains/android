@@ -28,8 +28,7 @@ class InstructionTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -44,21 +43,28 @@ class InstructionTest {
 
   @Test
   fun testLineNumberChange() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       class A {
         fun method(): Int {
           return 0
         }
-      }""")
+      }""",
+      )
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {
         fun method(): Int {
           // This is a comment
           return 0
         }
-      }""")
+      }""",
+    )
     val new = projectRule.directApiCompileIr(file)["A"]!!
     // Line number changes should not count as a diff.
     assertNoChanges(original, new)

@@ -28,21 +28,18 @@ import org.jetbrains.android.facet.AndroidFacet
 class SelectedVariantCollector(private val project: Project) {
 
   fun collectSelectedVariants(): SelectedVariants {
-    return SelectedVariants(
-      project.getAndroidFacets().mapNotNull { it.findSelectedVariant() }.associateBy { it.moduleId }
-    )
+    return SelectedVariants(project.getAndroidFacets().mapNotNull { it.findSelectedVariant() }.associateBy { it.moduleId })
   }
-
 }
 
 fun getSelectedVariantDetails(androidModel: GradleAndroidModel, selectedAbi: String?): VariantDetails? {
-  val selectedVariant = try {
-    androidModel.selectedVariant
-  }
-  catch (e: Exception) {
-    Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
-    return null
-  }
+  val selectedVariant =
+    try {
+      androidModel.selectedVariant
+    } catch (e: Exception) {
+      Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
+      return null
+    }
   return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, selectedAbi)
 }
 
@@ -60,7 +57,6 @@ internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
   }
   return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
 }
-
 
 @JvmName("getModuleIdForSyncRequest")
 fun Module.getModuleIdForSyncRequest(): String? {

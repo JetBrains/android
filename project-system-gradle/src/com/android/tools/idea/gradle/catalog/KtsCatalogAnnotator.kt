@@ -29,25 +29,14 @@ class KtsCatalogAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (element !is KtElement || !element.containingFile.name.endsWith("gradle.kts")) return
 
-    if (element is KtDotQualifiedExpression &&
-        element.isEndOfDotExpression() &&
-        element.hasCatalogReference()) {
+    if (element is KtDotQualifiedExpression && element.isEndOfDotExpression() && element.hasCatalogReference()) {
       // handle catalog reference
       // JetBrains patch: can be dropped in favor of incoming Google commit fixing this
       if (!hasLiveCatalogReference(element)) {
-        holder
-          .newAnnotation(
-            HighlightSeverity.ERROR,
-            "Unresolved reference to version catalog",
-          )
-          .create()
+        holder.newAnnotation(HighlightSeverity.ERROR, "Unresolved reference to version catalog").create()
       }
     }
   }
 
-  private fun KtDotQualifiedExpression.hasCatalogReference() =
-    references.any { ref ->
-      ref is KtsDotExpressionVersionCatalogReference
-    }
-
+  private fun KtDotQualifiedExpression.hasCatalogReference() = references.any { ref -> ref is KtsDotExpressionVersionCatalogReference }
 }

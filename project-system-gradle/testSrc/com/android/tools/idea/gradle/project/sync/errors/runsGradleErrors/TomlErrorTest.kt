@@ -28,50 +28,57 @@ import org.junit.Test
 
 class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
 
-  private fun runSyncAndCheckFailure(
-    preparedProject: PreparedTestProject
-  ) = runSyncAndCheckGeneralFailure(
-    preparedProject = preparedProject,
-    verifySyncViewEvents = { _, buildEvents ->
-      // Expect single BuildIssueEvent on Sync Output
-      buildEvents.filterIsInstance<BuildIssueEvent>().let { events ->
-        expect.that(events).hasSize(1)
-        events.firstOrNull()?.let { expect.that(it.message).isEqualTo("Invalid TOML catalog definition.") }
-      }
-      // Make sure no additional error build issue events are generated
-      expect.that(buildEvents.filterIsInstanceAnd<MessageEvent> { it !is BuildIssueEvent }).isEmpty()
-      expect.that(buildEvents.finishEventFailures()).isEmpty()
-    },
-    verifyFailureReported = {
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.INVALID_TOML_DEFINITION)
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION)
-      expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-        failure {
-          error {
-            exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-            exception: java.lang.RuntimeException
-              at: [0]org.gradle.api.internal.catalog.DefaultDependenciesAccessors#generateAccessors
-            exception: org.gradle.api.InvalidUserDataException
-              at: [0]org.gradle.api.internal.catalog.parser.TomlCatalogFileParser#assertNoParseErrors
-          }
+  private fun runSyncAndCheckFailure(preparedProject: PreparedTestProject) =
+    runSyncAndCheckGeneralFailure(
+      preparedProject = preparedProject,
+      verifySyncViewEvents = { _, buildEvents ->
+        // Expect single BuildIssueEvent on Sync Output
+        buildEvents.filterIsInstance<BuildIssueEvent>().let { events ->
+          expect.that(events).hasSize(1)
+          events.firstOrNull()?.let { expect.that(it.message).isEqualTo("Invalid TOML catalog definition.") }
         }
-      """.trimIndent())
-    },
-  )
+        // Make sure no additional error build issue events are generated
+        expect.that(buildEvents.filterIsInstanceAnd<MessageEvent> { it !is BuildIssueEvent }).isEmpty()
+        expect.that(buildEvents.finishEventFailures()).isEmpty()
+      },
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.INVALID_TOML_DEFINITION)
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+          .containsExactly(BuildErrorMessage.ErrorType.INVALID_TOML_DEFINITION)
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: java.lang.RuntimeException
+                  at: [0]org.gradle.api.internal.catalog.DefaultDependenciesAccessors#generateAccessors
+                exception: org.gradle.api.InvalidUserDataException
+                  at: [0]org.gradle.api.internal.catalog.parser.TomlCatalogFileParser#assertNoParseErrors
+              }
+            }
+            """
+              .trimIndent()
+          )
+      },
+    )
 
   @Test
   fun testTomlError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
 
-    preparedProject.root.resolve("gradle/libs.versions.toml").let {
-      it.appendText("\n/")
-    }
+    preparedProject.root.resolve("gradle/libs.versions.toml").let { it.appendText("\n/") }
 
     runSyncAndCheckFailure(preparedProject)
   }
@@ -81,11 +88,14 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
 
     preparedProject.root.resolve("gradle/libs.versions.toml").let {
-      it.appendText("""
-        
+      it.appendText(
+        """
+
         [libraries]
         a = "group:name:1.0"
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
     }
 
     runSyncAndCheckFailure(preparedProject)

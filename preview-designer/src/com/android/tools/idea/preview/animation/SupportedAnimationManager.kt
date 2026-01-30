@@ -35,12 +35,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Manages supported animation types that can be opened in tabs or frozen within a timeline, or
- * their state can be changed for the sake of inspection.
+ * Manages supported animation types that can be opened in tabs or frozen within a timeline, or their state can be changed for the sake of
+ * inspection.
  *
- * This abstract class provides the foundation for handling animations within the context of a
- * timeline panel, playback controls, and a tabbed interface. It manages animation state, timeline
- * elements, and loading/caching of transitions.
+ * This abstract class provides the foundation for handling animations within the context of a timeline panel, playback controls, and a
+ * tabbed interface. It manages animation state, timeline elements, and loading/caching of transitions.
  *
  * @param getCurrentTime Returns time in milliseconds in the current timeline.
  * @param playbackControls The PlaybackControls to control the animation playback.
@@ -57,8 +56,7 @@ abstract class SupportedAnimationManager(
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   private val tracker: AnimationTracker,
-  private val executeInRenderSession:
-    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
+  private val executeInRenderSession: suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   parentScope: CoroutineScope,
   private val updateTimelineElementsCallback: suspend () -> Unit,
 ) : AnimationManager {
@@ -66,10 +64,7 @@ abstract class SupportedAnimationManager(
   /** A dedicated CoroutineScope for managing coroutines specific to this animation. */
   protected val scope = parentScope.createChildScope(tabTitle)
 
-  /**
-   * Represents the frozen state of the animation, storing whether it's frozen and the time it was
-   * frozen at.
-   */
+  /** Represents the frozen state of the animation, storing whether it's frozen and the time it was frozen at. */
   data class FrozenState(val isFrozen: Boolean = false, val frozenAt: Int = 0)
 
   /** Represents the current frozen state of the animation. */
@@ -107,9 +102,7 @@ abstract class SupportedAnimationManager(
   /** [AnimationCard] for coordination panel. */
   final override lateinit var card: AnimationCard
 
-  val tab by lazy {
-    AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
-  }
+  val tab by lazy { AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction) }
   override val timelineMaximumMs: Int
     get() = currentTransition.value.endMillis ?: 0
 
@@ -129,10 +122,8 @@ abstract class SupportedAnimationManager(
       } else
         TimelineLine(
             frozenState.value,
-            transition.startMillis?.let { positionProxy.xPositionForValue(it) }
-              ?: (positionProxy.minimumXPosition()),
-            transition.endMillis?.let { positionProxy.xPositionForValue(it) }
-              ?: positionProxy.minimumXPosition(),
+            transition.startMillis?.let { positionProxy.xPositionForValue(it) } ?: (positionProxy.minimumXPosition()),
+            transition.endMillis?.let { positionProxy.xPositionForValue(it) } ?: positionProxy.minimumXPosition(),
             minY,
           )
           .also {
@@ -146,9 +137,7 @@ abstract class SupportedAnimationManager(
 
   /** Load transition for current animation state. */
   private suspend fun loadTransition(longTimeout: Boolean = false) {
-    executeInRenderSession(longTimeout, false) {
-      currentTransition.value = loadTransitionFromLibrary()
-    }
+    executeInRenderSession(longTimeout, false) { currentTransition.value = loadTransitionFromLibrary() }
   }
 
   abstract suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean)
@@ -166,30 +155,24 @@ abstract class SupportedAnimationManager(
 
     withContext(uiThread) {
       card =
-        AnimationCard(
-            rootComponent,
-            tabTitle,
-            listOf(freezeAction) + animationState.changeStateActions,
-            tracker,
-          )
-          .apply {
+        AnimationCard(rootComponent, tabTitle, listOf(freezeAction) + animationState.changeStateActions, tracker).apply {
 
-            /** [TabInfo] for the animation when it is opened in a new tab. */
-            var tabInfo: TabInfo? = null
+          /** [TabInfo] for the animation when it is opened in a new tab. */
+          var tabInfo: TabInfo? = null
 
-            /** Create if required and open the tab. */
-            fun addTabToPane() {
-              if (tabInfo == null) {
-                tabInfo =
-                  TabInfo(tab.component).apply {
-                    setText(this@SupportedAnimationManager.tabTitle)
-                    tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
-                  }
-              }
-              tabInfo?.let { tabbedPane.select(it, true) }
+          /** Create if required and open the tab. */
+          fun addTabToPane() {
+            if (tabInfo == null) {
+              tabInfo =
+                TabInfo(tab.component).apply {
+                  setText(this@SupportedAnimationManager.tabTitle)
+                  tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
+                }
             }
-            this.addOpenInTabListener { addTabToPane() }
+            tabInfo?.let { tabbedPane.select(it, true) }
           }
+          this.addOpenInTabListener { addTabToPane() }
+        }
     }
 
     // Launch coroutines to handle state changes
@@ -220,8 +203,8 @@ abstract class SupportedAnimationManager(
   }
 
   /**
-   * This method is called when the animation state changes. It should be overridden by subclasses
-   * to perform any necessary synchronization between the animation and its state.
+   * This method is called when the animation state changes. It should be overridden by subclasses to perform any necessary synchronization
+   * between the animation and its state.
    */
   abstract suspend fun syncAnimationWithState()
 
@@ -230,8 +213,4 @@ abstract class SupportedAnimationManager(
 }
 
 private fun CoroutineScope.createChildScope(name: String) =
-  CoroutineScope(
-    this.coroutineContext +
-      SupervisorJob(coroutineContext[Job]) +
-      CoroutineName("AnimationManager.$name")
-  )
+  CoroutineScope(this.coroutineContext + SupervisorJob(coroutineContext[Job]) + CoroutineName("AnimationManager.$name"))

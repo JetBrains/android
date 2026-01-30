@@ -39,10 +39,7 @@ class AndroidComponentRenamingTest {
   @get:Rule var name: TestName = TestName()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath =
-        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
-    }
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString() }
   }
 
   @Test
@@ -75,22 +72,14 @@ class AndroidComponentRenamingTest {
   }
 
   private fun createAndOpenManifest() {
-    val manifestFile =
-      myFixture.copyFileToProject(
-        BASE_PATH + name.methodName + ".xml",
-        SdkConstants.FN_ANDROID_MANIFEST_XML,
-      )
+    val manifestFile = myFixture.copyFileToProject(BASE_PATH + name.methodName + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(manifestFile)
   }
 
   private fun checkAndRenameElementAtCursor(newName: String) {
     // Ensure the rename action is available to the user
     val action = RenameElementAction()
-    val actionEvent =
-      TestActionEvent.createTestEvent(
-        action,
-        DataManager.getInstance().getDataContext(myFixture.editor.component),
-      )
+    val actionEvent = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(myFixture.editor.component))
     runReadAction { action.update(actionEvent) }
     assertThat(actionEvent.presentation.isEnabled).isTrue()
     assertThat(actionEvent.presentation.isVisible).isTrue()

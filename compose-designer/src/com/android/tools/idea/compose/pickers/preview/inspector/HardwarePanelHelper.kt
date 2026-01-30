@@ -48,10 +48,7 @@ private object HardwarePanelHelper
 private val LOG: Logger
   get() = Logger.getInstance(HardwarePanelHelper.javaClass)
 
-/**
- * Generates the UI for the Hardware section in the @Preview picker. See
- * [PreviewPropertiesInspectorBuilder].
- */
+/** Generates the UI for the Hardware section in the @Preview picker. See [PreviewPropertiesInspectorBuilder]. */
 internal fun addHardwareView(
   inspector: InspectorPanel,
   properties: Map<String, PsiPropertyItem>,
@@ -60,10 +57,7 @@ internal fun addHardwareView(
   val panelBuilder = HardwarePanelBuilder()
   val editors = mutableListOf<PropertyEditorModel>()
 
-  /**
-   * Adds a new line on the [HardwarePanelBuilder] for the given [propertyName] with its
-   * corresponding editor.
-   */
+  /** Adds a new line on the [HardwarePanelBuilder] for the given [propertyName] with its corresponding editor. */
   fun addSinglePropertyLine(propertyName: String) {
     val property = properties[propertyName]
     if (property == null) {
@@ -76,10 +70,7 @@ internal fun addHardwareView(
   addSinglePropertyLine(PARAMETER_HARDWARE_DEVICE)
 
   // The Dimensions parameter actually uses 3 other parameters: width, height, dimensionUnit.
-  panelBuilder.addLine(
-    PARAMETER_HARDWARE_DIMENSIONS,
-    createDimensionLine(properties, editorProvider, editors),
-  )
+  panelBuilder.addLine(PARAMETER_HARDWARE_DIMENSIONS, createDimensionLine(properties, editorProvider, editors))
 
   addSinglePropertyLine(PARAMETER_HARDWARE_DENSITY)
 
@@ -111,10 +102,7 @@ private fun createDimensionLine(
     add(component, gbc)
   }
 
-  /**
-   * The added [component] will expand horizontally proportionally to other components added with
-   * this method.
-   */
+  /** The added [component] will expand horizontally proportionally to other components added with this method. */
   fun JPanel.addExpand(component: Component, gbc: GridBagConstraints) {
     gbc.fill = GridBagConstraints.HORIZONTAL
     gbc.weightx = 1.0

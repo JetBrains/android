@@ -55,19 +55,15 @@ class FacetFinderTest {
     val client = mock<Client>()
     val clientData = FakeClientData(applicationId = applicationId, processName = processName)
     val device = mock<IDevice>()
-    whenever(device.supportsFeature(IDevice.Feature.REAL_PKG_NAME))
-      .thenReturn(applicationId != null)
+    whenever(device.supportsFeature(IDevice.Feature.REAL_PKG_NAME)).thenReturn(applicationId != null)
     whenever(client.clientData).thenReturn(clientData)
     whenever(client.device).thenReturn(device)
     return client
   }
 
-  private class FakeClientData(
-    private val applicationId: String?,
-    private val processName: String?,
-  ) : ClientData(mock<Client>().also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
-    override fun getPackageName(): String? =
-      applicationId ?: processName?.substringBefore(":") // See behaviour in overridden method
+  private class FakeClientData(private val applicationId: String?, private val processName: String?) :
+    ClientData(mock<Client>().also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
+    override fun getPackageName(): String? = applicationId ?: processName?.substringBefore(":") // See behaviour in overridden method
 
     override fun getProcessName(): String? = processName
   }
@@ -89,9 +85,7 @@ class FacetFinderTest {
       AndroidModuleModelBuilder(
         ":app",
         "debug",
-        AndroidProjectBuilder(
-            mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() }
-          )
+        AndroidProjectBuilder(mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() })
           .withAndroidModuleDependencyList { listOf(AndroidModuleDependency(":lib", "debug")) },
       ),
       AndroidModuleModelBuilder(
@@ -137,7 +131,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val appDebugManifest =
@@ -153,7 +147,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val appAndroidTestManifest =
@@ -173,7 +167,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val libManifest =
@@ -194,7 +188,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val libAndroidTestManifest =
@@ -214,7 +208,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val libDebugAndroidTestManifest =
@@ -230,7 +224,7 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
   private val testManifest =
@@ -250,14 +244,10 @@ class FacetFinderTest {
             </activity>
         </application>
     </manifest>
-  """
+    """
       .trimIndent()
 
-  private fun writeManifestFileContents(
-    module: Module?,
-    manifest: String,
-    sourceSetName: String? = null,
-  ) {
+  private fun writeManifestFileContents(module: Module?, manifest: String, sourceSetName: String? = null) {
     val facet = AndroidFacet.getInstance(module!!)!!
     val sourceProviderManager = SourceProviderManager.getInstance(facet)
     val sourceProviders =
@@ -283,11 +273,7 @@ class FacetFinderTest {
             val manifestUrl: String = sourceProvider.manifestFileUrls.first()
             val manifestDirectory: VirtualFile =
               sourceProvider.manifestDirectories.firstOrNull()
-                ?: let {
-                  VfsUtil.createDirectories(
-                    VfsUtilCore.urlToPath(sourceProvider.manifestDirectoryUrls.first())
-                  )!!
-                }
+                ?: let { VfsUtil.createDirectories(VfsUtilCore.urlToPath(sourceProvider.manifestDirectoryUrls.first()))!! }
             manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl)!!)
           }
       manifestFile.setBinaryContent(manifest.toByteArray())
@@ -301,19 +287,11 @@ class FacetFinderTest {
     testFacet = project.getAndroidFacets().find { it.module.name.endsWith(".test") }!!
 
     writeManifestFileContents(appFacet.module.getMainModule(), appManifest)
-    writeManifestFileContents(
-      appFacet.module.getMainModule(),
-      appDebugManifest,
-      sourceSetName = "debug",
-    )
+    writeManifestFileContents(appFacet.module.getMainModule(), appDebugManifest, sourceSetName = "debug")
     writeManifestFileContents(appFacet.module.getAndroidTestModule(), appAndroidTestManifest)
     writeManifestFileContents(libFacet.module.getMainModule(), libManifest)
     writeManifestFileContents(libFacet.module.getAndroidTestModule(), libAndroidTestManifest)
-    writeManifestFileContents(
-      libFacet.module.getAndroidTestModule(),
-      libDebugAndroidTestManifest,
-      sourceSetName = "androidTestDebug",
-    )
+    writeManifestFileContents(libFacet.module.getAndroidTestModule(), libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
     writeManifestFileContents(testFacet.module.getMainModule(), testManifest)
   }
 
@@ -323,40 +301,24 @@ class FacetFinderTest {
       assertFailsWith<ExecutionException> {
         FacetFinder.findFacetForProcess(
           project,
-          mockClient(
-            applicationId = "applicationIdShouldNotExist",
-            processName = "processNameShouldNotExist",
-          ),
+          mockClient(applicationId = "applicationIdShouldNotExist", processName = "processNameShouldNotExist"),
         )
       }
-    assertThat(failure)
-      .hasMessage(
-        "Unable to find project context to attach debugger for process processNameShouldNotExist"
-      )
+    assertThat(failure).hasMessage("Unable to find project context to attach debugger for process processNameShouldNotExist")
   }
 
   @Test
   fun testNotFoundGlobalProcessOnOlderDevice() {
     val failure =
       assertFailsWith<ExecutionException> {
-        FacetFinder.findFacetForProcess(
-          project,
-          mockClient(applicationId = null, processName = "processNameShouldNotExist"),
-        )
+        FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "processNameShouldNotExist"))
       }
-    assertThat(failure)
-      .hasMessage(
-        "Unable to find project context to attach debugger for process processNameShouldNotExist"
-      )
+    assertThat(failure).hasMessage("Unable to find project context to attach debugger for process processNameShouldNotExist")
   }
 
   @Test
   fun testPackageName() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = "applicationId", processName = "overridden"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "overridden"))
     assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
@@ -364,10 +326,7 @@ class FacetFinderTest {
   @Test
   fun testLocalProcessFromAppModule() {
     val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = "applicationId", processName = "applicationId:localfromapp"),
-      )
+      FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "applicationId:localfromapp"))
     assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
@@ -375,87 +334,56 @@ class FacetFinderTest {
   @Test
   fun testLocalProcessFromLibModule() {
     val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = "applicationId", processName = "applicationId:localfromlib"),
-      )
+      FacetFinder.findFacetForProcess(project, mockClient(applicationId = "applicationId", processName = "applicationId:localfromlib"))
     assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppModule() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromapp"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromapp"))
     assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppAndroidTestModule() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromappandroidtest"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromappandroidtest"))
     assertEquals(appFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("testApplicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModule() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromlib"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromlib"))
     assertEquals(appFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTest() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromlibandroidtest"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromlibandroidtest"))
     assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTestDebug() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromlibdebugandroidtest"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromlibdebugandroidtest"))
     assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId) // Might be imprecise?
   }
 
   @Test
   fun testGlobalProcessFromTestModule() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = null, processName = "globalfromtest"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = null, processName = "globalfromtest"))
     assertEquals(testFacet.module.getMainModule().androidFacet, result.facet)
     assertEquals("applicationIdFromTest", result.applicationId)
   }
 
   @Test
   fun testTestPackageName() {
-    val result =
-      FacetFinder.findFacetForProcess(
-        project,
-        mockClient(applicationId = "libTestApplicationId", processName = "overridden"),
-      )
+    val result = FacetFinder.findFacetForProcess(project, mockClient(applicationId = "libTestApplicationId", processName = "overridden"))
     assertEquals(libFacet.module.getAndroidTestModule()!!.androidFacet, result.facet)
     assertEquals("libTestApplicationId", result.applicationId)
   }

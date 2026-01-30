@@ -33,10 +33,7 @@ class AsyncDesignerCommonIssuePanelModelProvider : DesignerCommonIssuePanelModel
   override fun createModel() = AsyncableDesignerCommonIssueModel()
 }
 
-/**
- * Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to
- * have different background thread.
- */
+/** Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to have different background thread. */
 class AsyncableDesignerCommonIssueModel : DesignerCommonIssueModel(), InvokerSupplier {
   private val invoker = Invoker.forBackgroundThreadWithReadAction(this)
 

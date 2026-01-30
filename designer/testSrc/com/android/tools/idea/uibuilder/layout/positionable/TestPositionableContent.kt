@@ -21,10 +21,8 @@ import java.awt.Dimension
 import java.awt.Insets
 import kotlin.math.ceil
 
-open class TestPositionableContent(
-  override val organizationGroup: OrganizationGroup?,
-  private var size: Dimension = Dimension(0, 0),
-) : PositionableContent {
+open class TestPositionableContent(override val organizationGroup: OrganizationGroup?, private var size: Dimension = Dimension(0, 0)) :
+  PositionableContent {
   override val scale = 1.0
   override val x = 0
   override val y = 0
@@ -32,8 +30,7 @@ open class TestPositionableContent(
 
   override fun getContentSize(dimension: Dimension?) = size
 
-  override fun sizeForScale(scale: Double): Dimension =
-    Dimension(ceil(size.width * scale).toInt(), ceil(size.height * scale).toInt())
+  override fun sizeForScale(scale: Double): Dimension = Dimension(ceil(size.width * scale).toInt(), ceil(size.height * scale).toInt())
 
   override fun setLocation(x: Int, y: Int) {}
 
@@ -44,7 +41,5 @@ open class TestPositionableContent(
   }
 }
 
-class HeaderTestPositionableContent(
-  organizationGroup: OrganizationGroup?,
-  size: Dimension = Dimension(0, 0),
-) : TestPositionableContent(organizationGroup, size), HeaderPositionableContent
+class HeaderTestPositionableContent(organizationGroup: OrganizationGroup?, size: Dimension = Dimension(0, 0)) :
+  TestPositionableContent(organizationGroup, size), HeaderPositionableContent

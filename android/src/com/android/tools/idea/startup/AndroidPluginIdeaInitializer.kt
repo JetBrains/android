@@ -20,12 +20,9 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.ApplicationInitializedListener
 
-/**
- * Initializer that is run only when the Android plugin is running inside IntelliJ IDEA.
- * This code does *not* run in Android Studio.
- */
+/** Initializer that is run only when the Android plugin is running inside IntelliJ IDEA. This code does *not* run in Android Studio. */
 @Suppress("UnstableApiUsage")
-class AndroidPluginIdeaInitializer: ApplicationInitializedListener {
+class AndroidPluginIdeaInitializer : ApplicationInitializedListener {
   override suspend fun execute() {
     AnalyticsSettings.disable()
     UsageTracker.disable()

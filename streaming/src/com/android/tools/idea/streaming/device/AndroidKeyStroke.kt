@@ -59,10 +59,10 @@ private fun DeviceController.releaseMetaKeys(metaState: Int) {
 }
 
 /** Android meta keys and their corresponding meta states. */
-private val ANDROID_META_KEYS = listOf(
-  AndroidKeyStroke(AKEYCODE_ALT_LEFT, AMETA_ALT_ON),
-  AndroidKeyStroke(AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON),
-  AndroidKeyStroke(AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON),
-  AndroidKeyStroke(AKEYCODE_META_LEFT, AMETA_META_ON),
-)
-
+private val ANDROID_META_KEYS =
+  listOf(
+    AndroidKeyStroke(AKEYCODE_ALT_LEFT, AMETA_ALT_ON),
+    AndroidKeyStroke(AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON),
+    AndroidKeyStroke(AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON),
+    AndroidKeyStroke(AKEYCODE_META_LEFT, AMETA_META_ON),
+  )

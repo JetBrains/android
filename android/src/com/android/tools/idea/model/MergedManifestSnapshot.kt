@@ -35,10 +35,9 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
-/**
- * An immutable snapshot of the merged manifests at a point in time.
- */
-class MergedManifestSnapshot internal constructor(
+/** An immutable snapshot of the merged manifests at a point in time. */
+class MergedManifestSnapshot
+internal constructor(
   val module: Module,
   val `package`: String?,
   val versionCode: Int?,
@@ -58,12 +57,11 @@ class MergedManifestSnapshot internal constructor(
   val services: List<Element>,
   val actions: Actions?,
   /**
-   * If the manifest merger did not encounter any errors when computing this snapshot.
-   * `false` indicates that this snapshot contains dummy values that may not represent the merged
-   * manifest accurately.
+   * If the manifest merger did not encounter any errors when computing this snapshot. `false` indicates that this snapshot contains dummy
+   * values that may not represent the merged manifest accurately.
    */
   val isValid: Boolean,
-  val exception: Exception?
+  val exception: Exception?,
 ) {
 
   private val nodeKeys: Map<String, NodeKey> = actions?.nodeKeys?.associateBy { it.toString() } ?: mapOf()
@@ -73,21 +71,18 @@ class MergedManifestSnapshot internal constructor(
     return activityAttributesMap[
       if (index <= 0 && !`package`.isNullOrEmpty()) {
         "$`package`${if (index == -1) "." else ""}$activity"
-      } else activity
-    ]
+      } else activity]
   }
 
   fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
     manifestTheme ?: module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
 
   fun findUsedFeature(name: String): Element? =
-    generateSequence(document?.documentElement?.firstChild, Node::getNextSibling)
-      .filterIsInstance<Element>()
-      .find {
-        it.nodeType == Node.ELEMENT_NODE &&
+    generateSequence(document?.documentElement?.firstChild, Node::getNextSibling).filterIsInstance<Element>().find {
+      it.nodeType == Node.ELEMENT_NODE &&
         it.nodeName == AndroidManifest.NODE_USES_FEATURE &&
         it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) == name
-      }
+    }
 
   val loggingRecords: ImmutableList<MergingReport.Record>
     get() = mergedManifestInfo?.loggingRecords ?: ImmutableList.of()
@@ -96,6 +91,5 @@ class MergedManifestSnapshot internal constructor(
 
   fun findActivity(qualifiedName: String): Element? = activities.findActivityByQualifiedName(qualifiedName)
 
-  private fun List<Element>.findActivityByQualifiedName(name : String) : Element? =
-    find { name == ActivityLocatorUtils.getQualifiedName(it) }
+  private fun List<Element>.findActivityByQualifiedName(name: String): Element? = find { name == ActivityLocatorUtils.getQualifiedName(it) }
 }

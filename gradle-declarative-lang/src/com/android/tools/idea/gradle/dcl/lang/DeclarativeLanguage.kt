@@ -28,7 +28,6 @@ class DeclarativeLanguage : Language(ID) {
 
     fun getInstance(): DeclarativeLanguage = INSTANCE
 
-    @NonNls
-    const val ID = "Declarative"
+    @NonNls const val ID = "Declarative"
   }
 }

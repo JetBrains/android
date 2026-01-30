@@ -28,14 +28,11 @@ import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 
 /**
- * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with unknown macro or
- * desired jdk name that represents an undefined or invalid [ProjectJdkTable] entry.
+ * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with unknown macro or desired jdk name that
+ * represents an undefined or invalid [ProjectJdkTable] entry.
  */
-class InvalidTableEntryJdkException(
-  project: Project,
-  gradleRootPath: @SystemIndependent String,
-  private val jdkName: String,
-): GradleJdkException(project, gradleRootPath) {
+class InvalidTableEntryJdkException(project: Project, gradleRootPath: @SystemIndependent String, private val jdkName: String) :
+  GradleJdkException(project, gradleRootPath) {
 
   override val cause: InvalidGradleJdkCause
     get() {

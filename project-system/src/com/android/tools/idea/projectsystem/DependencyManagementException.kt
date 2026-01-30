@@ -15,25 +15,17 @@
  */
 package com.android.tools.idea.projectsystem
 
-class DependencyManagementException(override val message: String, val errorCode: ErrorCodes): RuntimeException() {
+class DependencyManagementException(override val message: String, val errorCode: ErrorCodes) : RuntimeException() {
   /**
-   * Error codes that describe the general category of failure.  The caller of dependency management
-   * functions can use these error codes to determine a proper response to the exception.
-   * (e.g. If the build system is not ready, then the caller can try again later.)
+   * Error codes that describe the general category of failure. The caller of dependency management functions can use these error codes to
+   * determine a proper response to the exception. (e.g. If the build system is not ready, then the caller can try again later.)
    */
   enum class ErrorCodes {
-    /**
-     * The project is missing key components that are required by the build system to perform the
-     * requested action.
-     */
+    /** The project is missing key components that are required by the build system to perform the requested action. */
     MALFORMED_PROJECT,
-    /**
-     * The given source context is not a valid source context of the project.
-     */
+    /** The given source context is not a valid source context of the project. */
     BAD_SOURCE_CONTEXT,
-    /**
-     * The artifact of the requested operation could not be processed by the build system due to bad artifact properties.
-     */
-    INVALID_ARTIFACT
+    /** The artifact of the requested operation could not be processed by the build system due to bad artifact properties. */
+    INVALID_ARTIFACT,
   }
 }

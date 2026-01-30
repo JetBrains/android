@@ -24,41 +24,46 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 
-class PsDeclaredModuleAndroidDependency internal constructor(
-  parent: PsAndroidModule
-) : PsModuleAndroidDependency(
-  parent
-), PsDeclaredModuleDependency {
-  override lateinit var parsedModel: ModuleDependencyModel ; private set
+class PsDeclaredModuleAndroidDependency internal constructor(parent: PsAndroidModule) :
+  PsModuleAndroidDependency(parent), PsDeclaredModuleDependency {
+  override lateinit var parsedModel: ModuleDependencyModel
+    private set
 
   fun init(parsedModel: ModuleDependencyModel) {
     this.parsedModel = parsedModel
   }
 
-  override val name: String get() = parsedModel.name()
-  override val gradlePath: String get() = parsedModel.path().forceString()
+  override val name: String
+    get() = parsedModel.name()
+
+  override val gradlePath: String
+    get() = parsedModel.path().forceString()
+
   override val isDeclared: Boolean = true
-  override val configurationName: String get() = parsedModel.configurationName()
-  override val joinedConfigurationNames: String get() = configurationName
+  override val configurationName: String
+    get() = parsedModel.configurationName()
+
+  override val joinedConfigurationNames: String
+    get() = configurationName
 }
 
-class PsResolvedModuleAndroidDependency internal constructor(
+class PsResolvedModuleAndroidDependency
+internal constructor(
   parent: PsAndroidModule,
   override val gradlePath: String,
   val artifact: PsAndroidArtifact,
   internal val moduleVariant: String?,
   targetModule: PsModule,
-  override val declaredDependencies: List<PsDeclaredDependency>
-) : PsModuleAndroidDependency(
-  parent
-), PsResolvedModuleDependency {
+  override val declaredDependencies: List<PsDeclaredDependency>,
+) : PsModuleAndroidDependency(parent), PsResolvedModuleDependency {
   override val name: String = targetModule.name
-  override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
+  override val isDeclared: Boolean
+    get() = !declaredDependencies.isEmpty()
 }
 
-abstract class PsModuleAndroidDependency internal constructor(
-  parent: PsAndroidModule
-) : PsAndroidDependency(parent), PsModuleDependency {
+abstract class PsModuleAndroidDependency internal constructor(parent: PsAndroidModule) : PsAndroidDependency(parent), PsModuleDependency {
   override fun toText(): String = name
-  override val icon: Icon get() = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
+
+  override val icon: Icon
+    get() = parent.parent.findModuleByGradlePath(gradlePath)?.icon ?: LIBRARY_ICON
 }

@@ -27,15 +27,12 @@ import com.intellij.openapi.diagnostic.Logger
  *
  * Dimension parameters are formed by a float value with a unit suffix. I.e: `10.2dp`
  *
- * Dimension parameters should share the same unit. The common unit is defined by the unit of the
- * first valid parameter checked or [DeviceSpec.DEFAULT_UNIT] if there are no valid dimension
- * parameters.
+ * Dimension parameters should share the same unit. The common unit is defined by the unit of the first valid parameter checked or
+ * [DeviceSpec.DEFAULT_UNIT] if there are no valid dimension parameters.
  *
- * There are different fixes that can be applied to a Dimension value. See
- * [DimensionParameterCheckResult].
+ * There are different fixes that can be applied to a Dimension value. See [DimensionParameterCheckResult].
  */
-internal class DimensionParameterRule(override val name: String, private val defaultNumber: Int) :
-  ParameterRule() {
+internal class DimensionParameterRule(override val name: String, private val defaultNumber: Int) : ParameterRule() {
   private val log = Logger.getInstance(this.javaClass)
 
   override val defaultValue: String = defaultNumber.toString() + DeviceSpec.DEFAULT_UNIT
@@ -98,8 +95,7 @@ internal class DimensionParameterRule(override val name: String, private val def
     return when (parameterState) {
       DimensionParameterCheckResult.WrongUnit -> value.dropLast(2) + commonUnit.name
       DimensionParameterCheckResult.MissingUnit -> value + commonUnit.name
-      DimensionParameterCheckResult.BadNumber ->
-        fixNumberOrDefault(value.dropLast(2)).toString() + commonUnit.name
+      DimensionParameterCheckResult.BadNumber -> fixNumberOrDefault(value.dropLast(2)).toString() + commonUnit.name
       DimensionParameterCheckResult.BadStatement -> defaultNumber.toString() + commonUnit.name
       DimensionParameterCheckResult.Ok -> {
         log.warn("Call to fix value, but nothing to fix")
@@ -127,7 +123,6 @@ internal class DimensionParameterRule(override val name: String, private val def
   private fun isBadNumber(numberString: String): Boolean {
     val decimalIndex = numberString.indexOfLast { it == '.' }
     // Is a bad number if the string can't be parsed to a float, or if there's more than one decimal
-    return numberString.toFloatOrNull() == null ||
-      (decimalIndex >= 0 && numberString.length - decimalIndex > 2)
+    return numberString.toFloatOrNull() == null || (decimalIndex >= 0 && numberString.length - decimalIndex > 2)
   }
 }

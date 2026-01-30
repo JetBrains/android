@@ -31,8 +31,7 @@ private const val VERSION_OVERRIDE_KEY = "studio.server.flags.version.override"
 val localCacheDirectory: Path
   get() = File(PathManager.getSystemPath()).toPath().resolve(DIRECTORY_PREFIX)
 
-fun buildLocalFilePath(localCacheDirectory: Path, version: String): Path =
-  localCacheDirectory.resolve(version).resolve(FILE_NAME)
+fun buildLocalFilePath(localCacheDirectory: Path, version: String): Path = localCacheDirectory.resolve(version).resolve(FILE_NAME)
 
 val flagsVersion: String
   get() = System.getProperty(VERSION_OVERRIDE_KEY, ApplicationInfo.getInstance().versionString)

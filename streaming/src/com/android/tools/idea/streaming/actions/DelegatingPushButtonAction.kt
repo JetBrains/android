@@ -34,6 +34,5 @@ internal abstract class DelegatingPushButtonAction(vararg delegates: AnAction) :
     getPushButtonDelegate(event).buttonPressedAndReleased(event)
   }
 
-  private fun getPushButtonDelegate(event: AnActionEvent): PushButtonAction =
-      getLeafDelegate(event) as PushButtonAction
+  private fun getPushButtonDelegate(event: AnActionEvent): PushButtonAction = getLeafDelegate(event) as PushButtonAction
 }

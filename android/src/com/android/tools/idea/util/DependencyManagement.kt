@@ -43,10 +43,9 @@ import com.intellij.openapi.ui.Messages.showOkCancelDialog
 import com.intellij.openapi.util.text.StringUtil
 
 /**
- * Returns true iff the dependency with [artifactId] is transitively available to this module.
- * This function returns false if the project's dependency model is unavailable and therefore dependencies
- * could not be checked (e.g. Project is syncing with build system or any dependency management error occurs).
- * To handle dependency management errors, use methods defined in [AndroidProjectSystem] and catch
+ * Returns true iff the dependency with [artifactId] is transitively available to this module. This function returns false if the project's
+ * dependency model is unavailable and therefore dependencies could not be checked (e.g. Project is syncing with build system or any
+ * dependency management error occurs). To handle dependency management errors, use methods defined in [AndroidProjectSystem] and catch
  * [DependencyManagementException].
  *
  * @param artifactId the dependency's maven artifact id.
@@ -54,11 +53,9 @@ import com.intellij.openapi.util.text.StringUtil
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   try {
     return getModuleSystem().hasResolvedDependency(artifactId)
-  }
-  catch (e: DependencyManagementException) {
+  } catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)
-  }
-  catch (e: Throwable) {
+  } catch (e: Throwable) {
     if (!isDisposed) {
       throw e
     }
@@ -66,9 +63,7 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   return false
 }
 
-/**
- * Returns whether this module depends on the new support library artifacts (androidx).
- */
+/** Returns whether this module depends on the new support library artifacts (androidx). */
 fun Module.dependsOnAndroidx(): Boolean = getModuleSystem().useAndroidX
 
 fun Module?.mapAndroidxName(name: AndroidxName): String {
@@ -81,10 +76,10 @@ fun Module.dependsOnAppCompat(): Boolean =
 
 /**
  * Add Google maven projects as dependencies for this module. The maven group and artifact IDs are taken from given
- * [GoogleMavenArtifactId]s. This method will show a dialog prompting the user for confirmation if
- * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
- * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
- * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
+ * [GoogleMavenArtifactId]s. This method will show a dialog prompting the user for confirmation if [promptUserBeforeAdding] is set to true
+ * and return with no-op if user chooses to not add the dependencies. If any of the dependencies are added successfully and [requestSync] is
+ * set to true, this method will request a sync to make sure the artifacts are resolved. In this case, the sync will happen asynchronously
+ * and this method will not wait for it to finish before returning.
  *
  * An example usage for setting [promptUserBeforeAdding] to false: Suppose the user clicks on a URL that says "Click here to add <some
  * dependency>". In this case it's obvious that user wants to add the dependency so we shouldn't ask them again.
@@ -96,21 +91,23 @@ fun Module.dependsOnAppCompat(): Boolean =
  * If compatibility issues are detected such that no dependencies can be added, this method will show a warning message dialog with an
  * explanation of the issue returned from [RegisteringModuleSystem.analyzeDependencyCompatibility].
  *
- * If there were errors adding any of the dependencies, this method will show an error message dialog with the dependencies that couldn't
- * be added as well as the reasons why they couldn't be added. A sync will still be performed as long as there were some dependencies added
+ * If there were errors adding any of the dependencies, this method will show an error message dialog with the dependencies that couldn't be
+ * added as well as the reasons why they couldn't be added. A sync will still be performed as long as there were some dependencies added
  * successfully and [requestSync] is true.
  *
- * This method shows no confirmation dialog and performs a no-op if the list of artifacts is the empty list.
- * This method does not trigger a sync if none of the artifacts were added successfully or if [requestSync] is false.
+ * This method shows no confirmation dialog and performs a no-op if the list of artifacts is the empty list. This method does not trigger a
+ * sync if none of the artifacts were added successfully or if [requestSync] is false.
+ *
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
 @JvmOverloads
 @UiThread
-fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactId>,
-                                             promptUserBeforeAdding: Boolean,
-                                             requestSync: Boolean = true,
-                                             dependencyType: DependencyType = DependencyType.IMPLEMENTATION)
-  : Set<GoogleMavenArtifactId> {
+fun Module.addDependenciesWithUiConfirmation(
+  artifacts: Set<GoogleMavenArtifactId>,
+  promptUserBeforeAdding: Boolean,
+  requestSync: Boolean = true,
+  dependencyType: DependencyType = DependencyType.IMPLEMENTATION,
+): Set<GoogleMavenArtifactId> {
   ApplicationManager.getApplication().assertIsDispatchThread()
   if (artifacts.isEmpty()) {
     return setOf()
@@ -121,43 +118,45 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
   val dependencyMap = artifacts.associateByNotNull { moduleSystem.getRegisteredDependencyId(it) }
   val dependencies = dependencyMap.keys.toList()
 
-  val (compatibleDependencies, incompatibleDependencies, warning) = ProgressManager.getInstance()
-    .runProcessWithProgressSynchronously<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>,Exception>(
-      { moduleSystem.analyzeDependencyCompatibility(dependencies).get() },
-      "Analyzing Dependency Compatibility",
-      false,
-      project)
+  val (compatibleDependencies, incompatibleDependencies, warning) =
+    ProgressManager.getInstance()
+      .runProcessWithProgressSynchronously<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>, Exception>(
+        { moduleSystem.analyzeDependencyCompatibility(dependencies).get() },
+        "Analyzing Dependency Compatibility",
+        false,
+        project,
+      )
 
   // If [promptUserBeforeAdding] is false then we need to inform the user of any compatibility errors in a separate message window.
   if (promptUserBeforeAdding) {
     if (!userWantsToAdd(project, artifacts, warning)) {
       return artifacts
     }
-  }
-  else if (incompatibleDependencies.isNotEmpty()) {
+  } else if (incompatibleDependencies.isNotEmpty()) {
     Messages.showErrorDialog(warning, "Compatibility Issues Detected")
     if (compatibleDependencies.isEmpty()) {
       return (unnamed + incompatibleDependencies.mapNotNull { dependencyMap[it] }).toSet()
     }
   }
 
-  val idsToExceptions = ProgressManager.getInstance()
-    .runProcessWithProgressSynchronously<List<Pair<RegisteredDependencyId, DependencyManagementException>>, Exception>(
-      {
-        val idsToExceptions: ArrayList<Pair<RegisteredDependencyId, DependencyManagementException>> = ArrayList()
-        for (coordinate in compatibleDependencies) {
-          try {
-            moduleSystem.registerDependency(coordinate.value, dependencyType)
+  val idsToExceptions =
+    ProgressManager.getInstance()
+      .runProcessWithProgressSynchronously<List<Pair<RegisteredDependencyId, DependencyManagementException>>, Exception>(
+        {
+          val idsToExceptions: ArrayList<Pair<RegisteredDependencyId, DependencyManagementException>> = ArrayList()
+          for (coordinate in compatibleDependencies) {
+            try {
+              moduleSystem.registerDependency(coordinate.value, dependencyType)
+            } catch (e: DependencyManagementException) {
+              idsToExceptions.add(Pair(coordinate.key, e))
+            }
           }
-          catch (e: DependencyManagementException) {
-            idsToExceptions.add(Pair(coordinate.key, e))
-          }
-        }
-        idsToExceptions
-      },
-      "Adding Dependencies",
-      false,
-      project)
+          idsToExceptions
+        },
+        "Adding Dependencies",
+        false,
+        project,
+      )
 
   val shouldSync = idsToExceptions.size < compatibleDependencies.size && requestSync
   if (idsToExceptions.isNotEmpty()) {

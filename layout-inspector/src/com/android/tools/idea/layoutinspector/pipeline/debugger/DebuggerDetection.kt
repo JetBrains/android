@@ -46,8 +46,7 @@ val DEBUGGER_CHECK_DELAY = 200.milliseconds
 class DebuggerDetection(private val client: AbstractInspectorClient, parentScope: CoroutineScope) {
   private val project = client.project
   private val process = client.process
-  private val deviceProvisioner =
-    project.getService(DeviceProvisionerService::class.java).deviceProvisioner
+  private val deviceProvisioner = project.getService(DeviceProvisionerService::class.java).deviceProvisioner
   private val debuggerManager = XDebuggerManager.getInstance(project)
   private val scope = parentScope.createChildScope()
   private var debuggingPort = 0
@@ -81,20 +80,14 @@ class DebuggerDetection(private val client: AbstractInspectorClient, parentScope
   /** Provide the ConnectedDevice of the current process */
   private fun connectedDevice(): Flow<ConnectedDevice?> = flow {
     deviceProvisioner.devices.collect { handles ->
-      emit(
-        handles
-          .mapNotNull { it.state.connectedDevice }
-          .firstOrNull { it.serialNumber == process.device.serial }
-      )
+      emit(handles.mapNotNull { it.state.connectedDevice }.firstOrNull { it.serialNumber == process.device.serial })
     }
   }
 
   /** Provide the JdwpProcess of the current process */
   private fun jdwpProcess(): Flow<JdwpProcess?> = flow {
     connectedDevice().collect { device ->
-      device?.jdwpProcessTracker?.processesFlow?.collect { list ->
-        emit(list.find { it.pid == process.pid })
-      }
+      device?.jdwpProcessTracker?.processesFlow?.collect { list -> emit(list.find { it.pid == process.pid }) }
     }
   }
 
@@ -104,17 +97,12 @@ class DebuggerDetection(private val client: AbstractInspectorClient, parentScope
       if (process == null) {
         emit(0)
       } else {
-        process.jdwpProxySocketServer.proxyStatusFlow.collect {
-          emit(it.socketAddress.getOrNull()?.port ?: 0)
-        }
+        process.jdwpProxySocketServer.proxyStatusFlow.collect { emit(it.socketAddress.getOrNull()?.port ?: 0) }
       }
     }
   }
 
-  /**
-   * Return the debug sessions on the specified debugging port. Both Java and Hybrid debug sessions
-   * are returned.
-   */
+  /** Return the debug sessions on the specified debugging port. Both Java and Hybrid debug sessions are returned. */
   private fun findDebugSessions(debuggingPort: Int): List<XDebugSession> {
     return debuggerManager.debugSessions.filter { session ->
       val javaProcess = session.debugProcess.javaProcess
@@ -124,8 +112,7 @@ class DebuggerDetection(private val client: AbstractInspectorClient, parentScope
   }
 
   /**
-   * The XDebugProcess can be a JavaDebugProcess or a hybrid process with an associated Java
-   * session. Return the JavaDebugProcess of either.
+   * The XDebugProcess can be a JavaDebugProcess or a hybrid process with an associated Java session. Return the JavaDebugProcess of either.
    */
   private val XDebugProcess.javaProcess: JavaDebugProcess?
     get() {
@@ -136,9 +123,8 @@ class DebuggerDetection(private val client: AbstractInspectorClient, parentScope
     }
 
   /**
-   * Return the JavaDebugProcess if present. The Layout Inspector can only attach to JVM processes.
-   * As such we are only interested in JavaDebugProcess or a hybrid process that is associated with
-   * a JavaDebugProcess.
+   * Return the JavaDebugProcess if present. The Layout Inspector can only attach to JVM processes. As such we are only interested in
+   * JavaDebugProcess or a hybrid process that is associated with a JavaDebugProcess.
    */
   private val XDebugProcess.hybridJavaSession: XDebugSession?
     get() =

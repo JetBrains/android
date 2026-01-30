@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import java.io.File
-
 import java.io.Serializable
 
 data class IdeProductFlavorImpl(
@@ -45,7 +44,7 @@ data class IdeProductFlavorImpl(
   override val vectorDrawables: IdeVectorDrawablesOptionsImpl?,
   override val matchingFallbacks: List<String>,
   override val missingDimensionStrategy: Map<String, List<String>>,
-  override val isDefault: Boolean?
+  override val isDefault: Boolean?,
 ) : IdeProductFlavor, Serializable {
   constructor(
     name: String,
@@ -73,7 +72,7 @@ data class IdeProductFlavorImpl(
     isDefault: Boolean?,
     matchingFallbacks: List<String>,
     missingDimensionStrategy: Map<String, List<String>>,
-    unused: String = "" // to prevent clash
+    unused: String = "", // to prevent clash
   ) : this(
     name,
     applicationIdSuffix,
@@ -99,6 +98,6 @@ data class IdeProductFlavorImpl(
     vectorDrawables,
     matchingFallbacks,
     missingDimensionStrategy,
-    isDefault
+    isDefault,
   )
 }

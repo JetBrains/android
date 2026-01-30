@@ -43,8 +43,7 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
   @Test
   fun onGettingCompanionAppId_nothingIsNotSet_systemPropertyIsRead() {
     val device = createDeviceWithShellCommandResult("null")
-    whenever(device.getSystemProperty(any()))
-      .thenReturn(Futures.immediateFuture(OEM_COMPANION_APP_ID))
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture(OEM_COMPANION_APP_ID))
 
     runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID) }
   }
@@ -54,9 +53,7 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
     val device = createDeviceWithShellCommandResult("null")
     whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture(""))
 
-    runBlocking {
-      assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID)
-    }
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
   }
 }
 
@@ -74,21 +71,14 @@ class HasPairingFeatureTest(private val pairingFeature: PairingFeature) : LightP
   fun onHasPairingFeature_lowerVersions_fail() {
     val device = createDeviceWithShellCommandResult("    versionCode=1 minSdk=23 targetSdk=30")
 
-    runBlocking {
-      assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isFalse()
-    }
+    runBlocking { assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isFalse() }
   }
 
   @Test
   fun onHasPairingFeature_higherVersions_succeed() {
-    val device =
-      createDeviceWithShellCommandResult(
-        "    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30"
-      )
+    val device = createDeviceWithShellCommandResult("    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30")
 
-    runBlocking {
-      assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isTrue()
-    }
+    runBlocking { assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isTrue() }
   }
 }
 

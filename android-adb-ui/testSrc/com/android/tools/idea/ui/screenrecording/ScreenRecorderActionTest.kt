@@ -39,23 +39,26 @@ class ScreenRecorderActionTest {
   private val mockScreenRecordingSupportedCache = mock<ScreenRecordingSupportedCache>()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    FakeAdbSessionRule(projectRule),
-    ProjectServiceRule(projectRule, ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache),
-  )
+  val rule =
+    RuleChain(
+      projectRule,
+      FakeAdbSessionRule(projectRule),
+      ProjectServiceRule(projectRule, ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache),
+    )
 
-  private val project get() = projectRule.project
+  private val project
+    get() = projectRule.project
 
-  private val testRootDisposable get() = projectRule.disposable
+  private val testRootDisposable
+    get() = projectRule.disposable
+
   private val userData = mutableMapOf<String, Any?>()
   private val action = ScreenRecorderAction()
 
   @Before
   fun setUp() {
     userData[CommonDataKeys.PROJECT.name] = project
-    userData[ScreenRecordingParameters.DATA_KEY.name] =
-        ScreenRecordingParameters("device", "My device", 30, testRootDisposable, null)
+    userData[ScreenRecordingParameters.DATA_KEY.name] = ScreenRecordingParameters("device", "My device", 30, testRootDisposable, null)
   }
 
   @Test

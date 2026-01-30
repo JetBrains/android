@@ -37,20 +37,15 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   /** The version of the AG. `null` means the current `-dev` version. */
   override val agpVersion: String?,
 
-  /**
-   * The version of Gradle to be used in integration tests for this AGP version. `null` means the
-   * latest/default version.
-   */
+  /** The version of Gradle to be used in integration tests for this AGP version. `null` means the latest/default version. */
   override val gradleVersion: String?,
 
-  /**
-   * The version of the JDK to launch Gradle with. `null` means the current version used by the IDE.
-   */
+  /** The version of the JDK to launch Gradle with. `null` means the current version used by the IDE. */
   override val jdkVersion: JavaSdkVersion? = null,
 
   /**
-   * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version.
-   * `null` means the default version used by Android Studio.
+   * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version. `null` means the default version used by
+   * Android Studio.
    */
   override val kotlinVersion: String? = null,
 
@@ -210,32 +205,14 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_87(agpVersion = "8.7.0", gradleVersion = "8.9", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_88(agpVersion = "8.8.0", gradleVersion = "8.10.2", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_89(agpVersion = "8.9.0", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
-  AGP_8_10_1(
-    agpVersion = "8.10.1",
-    gradleVersion = "8.11.1",
-    jdkVersion = JDK_17,
-    compileSdk = "35",
-  ),
+  AGP_8_10_1(agpVersion = "8.10.1", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_11(agpVersion = "8.11.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_12(agpVersion = "8.12.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_8_13(agpVersion = "8.13.0", gradleVersion = "8.13", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_9_0(agpVersion = "9.0.0", gradleVersion = "9.0.0", jdkVersion = JDK_17, compileSdk = "35"),
-  AGP_LATEST_KOTLIN_SNAPSHOT(
-    agpVersion = null,
-    gradleVersion = null,
-    kotlinVersion = KOTLIN_SNAPSHOT_VERSION,
-    compileSdk = "34",
-  ),
-  AGP_LATEST_GRADLE_SNAPSHOT(
-    agpVersion = null,
-    gradleVersion = GRADLE_SNAPSHOT_VERSION,
-    compileSdk = "34",
-  ),
-  AGP_DECLARATIVE_GRADLE_SNAPSHOT(
-    agpVersion = null,
-    gradleVersion = GRADLE_DECLARATIVE_SNAPSHOT_VERSION,
-    compileSdk = "34",
-  ),
+  AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
+  AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION, compileSdk = "34"),
+  AGP_DECLARATIVE_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_DECLARATIVE_SNAPSHOT_VERSION, compileSdk = "34"),
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null, compileSdk = "34");
 
@@ -255,13 +232,10 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
     @JvmField val AGP_CURRENT = AGP_LATEST
     val selected: AgpVersionSoftwareEnvironmentDescriptor
       get() {
-        if (OldAgpSuite.AGP_VERSION == null && OldAgpSuite.GRADLE_VERSION == null)
-          return AGP_CURRENT
+        if (OldAgpSuite.AGP_VERSION == null && OldAgpSuite.GRADLE_VERSION == null) return AGP_CURRENT
         val applicableAgpVersions = applicableAgpVersions()
         return applicableAgpVersions.singleOrNull()
-          ?: error(
-            "Multiple AGP versions selected: $applicableAgpVersions. A parameterised test is required."
-          )
+          ?: error("Multiple AGP versions selected: $applicableAgpVersions. A parameterised test is required.")
       }
   }
 }
@@ -292,23 +266,15 @@ interface AgpIntegrationTestDefinition {
   val name: String
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
 
-  fun withAgpVersion(
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-  ): AgpIntegrationTestDefinition
+  fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): AgpIntegrationTestDefinition
 
   fun displayName(): String = "$name${if (agpVersion != AGP_CURRENT) "-${agpVersion}" else ""}"
 
-  fun isCompatible(): Boolean =
-    agpVersion >
-      AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 /* Not supported special cases */
+  fun isCompatible(): Boolean = agpVersion > AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 /* Not supported special cases */
 }
 
-/**
- * Applies AGP versions selected for testing in the current test target to the list of test
- * definitions.
- */
-fun List<AgpIntegrationTestDefinition>.applySelectedAgpVersions():
-  List<AgpIntegrationTestDefinition> =
+/** Applies AGP versions selected for testing in the current test target to the list of test definitions. */
+fun List<AgpIntegrationTestDefinition>.applySelectedAgpVersions(): List<AgpIntegrationTestDefinition> =
   applicableAgpVersions()
     .flatMap { version -> this.map { it.withAgpVersion(version) } }
     .filter { it.isCompatible() }
@@ -318,16 +284,13 @@ fun applicableAgpVersions() =
   AgpVersionSoftwareEnvironmentDescriptor.values().filter {
     val pass =
       (OldAgpSuite.AGP_VERSION == null || (it.agpVersion ?: "LATEST") == OldAgpSuite.AGP_VERSION) &&
-        (OldAgpSuite.GRADLE_VERSION == null ||
-          (it.gradleVersion ?: "LATEST") == OldAgpSuite.GRADLE_VERSION)
+        (OldAgpSuite.GRADLE_VERSION == null || (it.gradleVersion ?: "LATEST") == OldAgpSuite.GRADLE_VERSION)
     println("${it.name}($it) : $pass")
     pass
   }
 
 /** Prints a message describing the currently running test to the standard output. */
-fun IntegrationTestEnvironment.outputCurrentlyRunningTest(
-  testDefinition: AgpIntegrationTestDefinition
-) {
+fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
   println("Testing: ${this.javaClass.simpleName}[${testDefinition.displayName()}]")
 }
 

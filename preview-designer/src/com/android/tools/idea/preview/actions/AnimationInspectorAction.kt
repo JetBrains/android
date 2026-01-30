@@ -30,14 +30,8 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  *
  * @param defaultModeDescription the description that will be used for the action
  */
-class AnimationInspectorAction(
-  private val defaultModeDescription: String = message("action.animation.inspector.description")
-) :
-  DumbAwareAction(
-    message("action.animation.inspector.title"),
-    defaultModeDescription,
-    ANIMATION_INSPECTOR,
-  ) {
+class AnimationInspectorAction(private val defaultModeDescription: String = message("action.animation.inspector.description")) :
+  DumbAwareAction(message("action.animation.inspector.title"), defaultModeDescription, ANIMATION_INSPECTOR) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -47,9 +41,7 @@ class AnimationInspectorAction(
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
       description =
-        if (isEssentialsModeEnabled)
-          message("action.animation.inspector.essentials.mode.description")
-        else defaultModeDescription
+        if (isEssentialsModeEnabled) message("action.animation.inspector.essentials.mode.description") else defaultModeDescription
     }
   }
 

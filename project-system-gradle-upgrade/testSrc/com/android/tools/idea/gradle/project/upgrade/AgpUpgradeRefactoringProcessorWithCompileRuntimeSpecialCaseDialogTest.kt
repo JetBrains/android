@@ -24,9 +24,9 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
+import org.junit.Test
 
 class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : HeavyPlatformTestCase() {
   private val isPreviewUsagesField: Field = BaseRefactoringProcessor::class.java.getDeclaredField("myIsPreviewUsages")
@@ -55,14 +55,14 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     val irrelevant = setOf(IRRELEVANT_PAST, IRRELEVANT_FUTURE)
     val optional = setOf(OPTIONAL_INDEPENDENT, OPTIONAL_CODEPENDENT)
     val mandatory = setOf(MANDATORY_INDEPENDENT, MANDATORY_CODEPENDENT)
-    fun checkInitialConsistency(p : AgpUpgradeComponentRefactoringProcessor) {
+    fun checkInitialConsistency(p: AgpUpgradeComponentRefactoringProcessor) {
       // isEnabled defaults to any non-irrelevant, listed explicitly here so that we can modify things if more necessities are added
       when (p.isEnabled) {
         true -> assertTrue(p.commandName, optional.union(mandatory).contains(p.necessity()))
         false -> assertTrue(p.commandName, irrelevant.contains(p.necessity()))
       }
     }
-    fun checkFinalConsistency(p : AgpUpgradeComponentRefactoringProcessor) {
+    fun checkFinalConsistency(p: AgpUpgradeComponentRefactoringProcessor) {
       // the dialog sets isEnabled true on only the CompileRuntimeConfiguration processor.
       when (p.isEnabled) {
         true -> assertTrue(p.commandName, p is CompileRuntimeConfigurationRefactoringProcessor)
@@ -71,7 +71,9 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     }
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.componentRefactoringProcessors.forEach { checkInitialConsistency(it) }
-    registerDialogDisposable(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor()))
+    registerDialogDisposable(
+      AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor())
+    )
     processor.componentRefactoringProcessors.forEach { checkFinalConsistency(it) }
   }
 

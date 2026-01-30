@@ -27,35 +27,31 @@ import org.junit.Test
 @RunsInEdt
 class GradleInvokerProjectCleaningTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testCompositeBuildClean() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD)
     preparedProject.open { project ->
       val result = GradleBuildInvoker.getInstance(project).cleanProject()
-      assertThat(result.get().tasks).containsExactly(
-        ":app:clean",
-        ":lib:clean",
-        ":TestCompositeLib1:clean",
-        ":TestCompositeLib2:clean",
-        ":TestCompositeLib3:clean",
-        ":TestCompositeLib4:clean",
-      )
+      assertThat(result.get().tasks)
+        .containsExactly(
+          ":app:clean",
+          ":lib:clean",
+          ":TestCompositeLib1:clean",
+          ":TestCompositeLib2:clean",
+          ":TestCompositeLib3:clean",
+          ":TestCompositeLib4:clean",
+        )
     }
   }
-
 
   @Test
   fun testBasicProjectClean() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     preparedProject.open { project ->
       val result = GradleBuildInvoker.getInstance(project).cleanProject()
-      assertThat(result.get().tasks).containsExactly(
-        "clean",
-      )
+      assertThat(result.get().tasks).containsExactly("clean")
     }
   }
-
 }

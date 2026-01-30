@@ -23,13 +23,11 @@ import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.util.concurrent.CopyOnWriteArrayList
 
-private val selectedBorderColor =
-  JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
+private val selectedBorderColor = JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
 
 class HighlightLayer(private val surface: NlDesignSurface) : Layer() {
   private var rectanglesToHighlight = CopyOnWriteArrayList<Rectangle>()
-  private val borderPainter =
-    BorderPainter(JBUI.scale(2), selectedBorderColor, selectedBorderColor, useHighQuality = true)
+  private val borderPainter = BorderPainter(JBUI.scale(2), selectedBorderColor, selectedBorderColor, useHighQuality = true)
 
   @Override
   override fun paint(gc: Graphics2D) {

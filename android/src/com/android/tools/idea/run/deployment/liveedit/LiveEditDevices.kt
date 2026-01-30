@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
 typealias StatusUpdateFunction = (IDevice, LiveEditStatus) -> LiveEditStatus
+
 typealias StatusChangeListener = Consumer<Map<IDevice, LiveEditStatus>>
 
 // We track the state of LiveEdit on a per-project basis. Each AndroidLiveEditDeployMonitor features a LiveEditDevices object which
@@ -63,7 +64,7 @@ class LiveEditDevices {
   }
 
   fun update(status: LiveEditStatus) {
-    update(devices.keys) { _, _-> status }
+    update(devices.keys) { _, _ -> status }
   }
 
   fun update(transition: StatusUpdateFunction) {
@@ -78,9 +79,9 @@ class LiveEditDevices {
     update(setOf(device), transition)
   }
 
-  private fun update(candidates : Set<IDevice>, transition: StatusUpdateFunction) {
+  private fun update(candidates: Set<IDevice>, transition: StatusUpdateFunction) {
     val changes = mutableMapOf<IDevice, LiveEditStatus>()
-    devices.keys.forEach{
+    devices.keys.forEach {
       if (it !in candidates) {
         return@forEach
       }
@@ -109,10 +110,11 @@ class LiveEditDevices {
     }
     when (event) {
       DeviceEvent.DEVICE_DISCONNECT -> clear(device)
-      DeviceEvent.APPLICATION_CONNECT ->  // If the device was previously in LOADING state, we are now ready to receive live edits.
-        update(device) { _, status -> if (status === LiveEditStatus.Loading) LiveEditStatus.UpToDate else status }
+      DeviceEvent.APPLICATION_CONNECT -> // If the device was previously in LOADING state, we are now ready to receive live edits.
+      update(device) { _, status -> if (status === LiveEditStatus.Loading) LiveEditStatus.UpToDate else status }
 
-      DeviceEvent.APPLICATION_DISCONNECT ->  // If the application disconnects while in the Loading status (if it's the current session that disconnected while loading, we
+      DeviceEvent.APPLICATION_DISCONNECT -> // If the application disconnects while in the Loading status (if it's the current session that
+        // disconnected while loading, we
         // would've gotten an APPLICATION_CONNECT event first before the Client disconnected), that means it is the disconnect from the
         // previous session that has finally arrived in Studio through ADB. Ignore the event in this case.
         update(device) { _, status -> if (status !== LiveEditStatus.Loading) LiveEditStatus.Disabled else status }

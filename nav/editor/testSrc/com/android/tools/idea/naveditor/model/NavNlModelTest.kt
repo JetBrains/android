@@ -46,9 +46,7 @@ class NavNlModelTest : NavTestCase() {
     )
 
     // Add child
-    val parent =
-      modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!!
-        as NavModelBuilderUtil.NavigationComponentDescriptor
+    val parent = modelBuilder.findByPath(NavTestCase.TAG_NAVIGATION)!! as NavModelBuilderUtil.NavigationComponentDescriptor
     assertThat(parent).isNotNull()
     parent.action("action", "fragment1")
     modelBuilder.updateModel(model)
@@ -75,8 +73,7 @@ class NavNlModelTest : NavTestCase() {
     FileDocumentManager.getInstance().saveAllDocuments()
     val result = String(model.virtualFile.contentsToByteArray())
     // ensure that we end up with a self-closing tag
-    assertThat(result.replace("\n *".toRegex(), "\n"))
-      .contains("<fragment\nandroid:id=\"@+id/f1\"/>\n")
+    assertThat(result.replace("\n *".toRegex(), "\n")).contains("<fragment\nandroid:id=\"@+id/f1\"/>\n")
   }
 
   fun testTooltips() {

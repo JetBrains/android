@@ -35,8 +35,7 @@ class SdkComponentCategoryTreeNode(
   override val immediateChildren: Collection<SdkComponentTreeNode>
     get() = components
 
-  override fun updateState(handler: AndroidSdkHandler) =
-    components.forEach { it.updateState(handler) }
+  override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
 
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }
 }

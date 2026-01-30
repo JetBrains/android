@@ -47,8 +47,7 @@ class TreeVisualizer {
 
       if (depth >= options.maxDepth && children.isNotEmpty()) {
         buffer.println(indentStore.getIndentForDepth(depth + 1) + "[...]")
-      }
-      else {
+      } else {
         children.forEach { child -> nodeStack.push(StackItem(child, depth + 1)) }
       }
     }

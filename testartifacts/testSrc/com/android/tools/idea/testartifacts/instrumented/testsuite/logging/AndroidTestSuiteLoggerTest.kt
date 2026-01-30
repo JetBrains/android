@@ -33,9 +33,7 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.eq
 
-/**
- * Unit tests for [AndroidTestSuiteLogger].
- */
+/** Unit tests for [AndroidTestSuiteLogger]. */
 @RunWith(JUnit4::class)
 class AndroidTestSuiteLoggerTest {
 
@@ -48,7 +46,7 @@ class AndroidTestSuiteLoggerTest {
 
   @Test
   fun impressionReporting() {
-    val logger = AndroidTestSuiteLogger(usageLogReporter =  mockReporter, timestamp = 1234L)
+    val logger = AndroidTestSuiteLogger(usageLogReporter = mockReporter, timestamp = 1234L)
 
     logger.addImpression(UiElement.TEST_SUITE_VIEW)
     logger.addImpressions(UiElement.TEST_SUITE_DEVICE_INFO_VIEW, UiElement.TEST_SUITE_LOG_VIEW)
@@ -56,26 +54,19 @@ class AndroidTestSuiteLoggerTest {
     // Make sure duplicated items are not reported twice.
     logger.addImpressions(UiElement.TEST_SUITE_DEVICE_INFO_VIEW, UiElement.TEST_SUITE_LOG_VIEW)
 
-    assertThat(logger.getImpressionsForTesting()).containsExactly(
-      UiElement.TEST_SUITE_VIEW,
-      UiElement.TEST_SUITE_DEVICE_INFO_VIEW,
-      UiElement.TEST_SUITE_LOG_VIEW
-    )
+    assertThat(logger.getImpressionsForTesting())
+      .containsExactly(UiElement.TEST_SUITE_VIEW, UiElement.TEST_SUITE_DEVICE_INFO_VIEW, UiElement.TEST_SUITE_LOG_VIEW)
 
     logger.reportImpressions()
 
     val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                eq(1234L))
+    verify(mockReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(), eq(1234L))
 
     val event = eventCaptor.value
     assertThat(event.category).isEqualTo(EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(EventKind.PARALLEL_ANDROID_TEST_REPORT_UI)
-    assertThat(event.parallelAndroidTestReportUiEvent.impressionsList).containsExactly(
-      UiElement.TEST_SUITE_VIEW,
-      UiElement.TEST_SUITE_DEVICE_INFO_VIEW,
-      UiElement.TEST_SUITE_LOG_VIEW
-    )
+    assertThat(event.parallelAndroidTestReportUiEvent.impressionsList)
+      .containsExactly(UiElement.TEST_SUITE_VIEW, UiElement.TEST_SUITE_DEVICE_INFO_VIEW, UiElement.TEST_SUITE_LOG_VIEW)
 
     // Once impressions are reported, the pending set should become empty.
     assertThat(logger.getImpressionsForTesting()).isEmpty()
@@ -83,13 +74,12 @@ class AndroidTestSuiteLoggerTest {
 
   @Test
   fun clickInteractionReporting() {
-    val logger = AndroidTestSuiteLogger(usageLogReporter =  mockReporter, timestamp = 1234L)
+    val logger = AndroidTestSuiteLogger(usageLogReporter = mockReporter, timestamp = 1234L)
 
     logger.reportClickInteraction(UiElement.TEST_SUITE_OPT_IN_BANNER, UserInteractionResultType.ACCEPT)
 
     val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                isNull())
+    verify(mockReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(), isNull())
 
     val event = eventCaptor.value
     assertThat(event.category).isEqualTo(EventCategory.TESTS)

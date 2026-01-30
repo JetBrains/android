@@ -55,13 +55,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val level = ValidatorData.Level.ERROR
 
     val result =
-      ValidatorData.Issue.IssueBuilder()
-        .setCategory(category)
-        .setType(type)
-        .setMsg(msg)
-        .setLevel(level)
-        .setSourceClass(srcClass)
-        .build()
+      ValidatorData.Issue.IssueBuilder().setCategory(category).setType(type).setMsg(msg).setLevel(level).setSourceClass(srcClass).build()
     val issueSource = mockSource
 
     val atfIssue = NlAtfIssue(result, issueSource)
@@ -126,10 +120,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     // Simulate ignore button click
     ignore.action.run()
 
-    assertEquals(
-      "set: namespace=http://schemas.android.com/tools, attribute=ignore, value=SrcClass",
-      savedCalls.joinToString("\n"),
-    )
+    assertEquals("set: namespace=http://schemas.android.com/tools, attribute=ignore, value=SrcClass", savedCalls.joinToString("\n"))
   }
 
   @Test
@@ -166,8 +157,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val suggestedValue = "#FFFFFF"
     val fixDescription = "Set this item's android:textColor to #FFFFFF"
     val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", attributeName)
-    val setAttributeFix =
-      ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
     val atfIssue = NlAtfIssue(result, mockSource, mockEventListener)
@@ -188,15 +178,11 @@ class NlAtfIssueTest : LayoutTestCase() {
     val suggestedValue = "#FFFFFF"
     val fixDescription = "Set this item's android:textColor to #FFFFFF"
     val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", attributeName)
-    val setAttributeFix =
-      ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
 
     applyFixImpl(setAttributeFix, testSrc)
 
-    assertEquals(
-      "set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF",
-      testSrc.callsString(),
-    )
+    assertEquals("set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF", testSrc.callsString())
   }
 
   @Test
@@ -224,10 +210,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     applyFixImpl(removeAttributeFix, testSrc)
 
-    assertEquals(
-      "remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription",
-      testSrc.callsString(),
-    )
+    assertEquals("remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription", testSrc.callsString())
   }
 
   @Test
@@ -237,13 +220,10 @@ class NlAtfIssueTest : LayoutTestCase() {
     val setViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", setAttributeName)
     val setAttributeFix = ValidatorData.SetViewAttributeFix(setViewAttribute, suggestedValue, "")
     val removeAttributeName = "contentDescription"
-    val removeViewAttribute =
-      ValidatorData.ViewAttribute(ANDROID_URI, "android", removeAttributeName)
+    val removeViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", removeAttributeName)
     val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(removeViewAttribute, "")
-    val fixDescription =
-      "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
-    val compoundFix =
-      ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
+    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
+    val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
     val atfIssue = NlAtfIssue(result, mockSource)
@@ -261,13 +241,10 @@ class NlAtfIssueTest : LayoutTestCase() {
     val setViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", setAttributeName)
     val setAttributeFix = ValidatorData.SetViewAttributeFix(setViewAttribute, suggestedValue, "")
     val removeAttributeName = "contentDescription"
-    val removeViewAttribute =
-      ValidatorData.ViewAttribute(ANDROID_URI, "android", removeAttributeName)
+    val removeViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI, "android", removeAttributeName)
     val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(removeViewAttribute, "")
-    val fixDescription =
-      "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
-    val compoundFix =
-      ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
+    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
+    val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
 
     applyFixImpl(compoundFix, testSrc)
 
@@ -275,7 +252,7 @@ class NlAtfIssueTest : LayoutTestCase() {
       """
       set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF
       remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription
-    """
+      """
         .trimIndent(),
       testSrc.callsString(),
     )

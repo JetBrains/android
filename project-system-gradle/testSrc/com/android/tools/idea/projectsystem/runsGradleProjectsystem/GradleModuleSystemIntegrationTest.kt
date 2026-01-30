@@ -63,14 +63,11 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
- */
+/** Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project. */
 @RunsInEdt
 class GradleModuleSystemIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testRegisterDependency() {
@@ -84,9 +81,8 @@ class GradleModuleSystemIntegrationTest {
       moduleSystem.registerDependency(dummyDependency, DependencyType.IMPLEMENTATION)
       moduleSystem.registerDependency(anotherDummyDependency, DependencyType.IMPLEMENTATION)
 
-      assertThat(
-        dependencyManager.findMissingDependencies(project.findAppModule(), listOf(dummyDependency, anotherDummyDependency))
-      ).isEmpty()
+      assertThat(dependencyManager.findMissingDependencies(project.findAppModule(), listOf(dummyDependency, anotherDummyDependency)))
+        .isEmpty()
     }
   }
 
@@ -125,17 +121,20 @@ class GradleModuleSystemIntegrationTest {
   @Test
   fun `test use androidx in all modules of a non-androidx project`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.root.resolve("gradle.properties").appendText("""
-      android.useAndroidX=false
-    """.trimIndent())
+    preparedProject.root
+      .resolve("gradle.properties")
+      .appendText(
+        """
+        android.useAndroidX=false
+        """
+          .trimIndent()
+      )
 
     preparedProject.open { project ->
       val modules = project.modules.toList()
       assertThat(modules).isNotEmpty()
       for (module in modules) {
-        assertThat(module.getModuleSystem().useAndroidX)
-          .named("module[%s].moduleSystem.useAndroidx", module.name)
-          .isFalse()
+        assertThat(module.getModuleSystem().useAndroidX).named("module[%s].moduleSystem.useAndroidx", module.name).isFalse()
       }
     }
   }
@@ -147,9 +146,7 @@ class GradleModuleSystemIntegrationTest {
       val modules = project.modules.toList()
       assertThat(modules).isNotEmpty()
       for (module in modules) {
-        assertThat(module.getModuleSystem().useAndroidX)
-          .named("module[\"{}\"].moduleSystem.useAndroidx", module.name)
-          .isTrue()
+        assertThat(module.getModuleSystem().useAndroidX).named("module[\"{}\"].moduleSystem.useAndroidx", module.name).isTrue()
       }
     }
   }
@@ -186,10 +183,9 @@ class GradleModuleSystemIntegrationTest {
     preparedProject.open { project ->
       val moduleSystem = project.findAppModule().getModuleSystem()
       val dynamicFeatureModuleNames = moduleSystem.getDynamicFeatureModules().map { it.name }
-      assertThat(dynamicFeatureModuleNames).containsExactly(
-        project.findModule("dynamicfeature").getName(),
-        project.findModule("instantdynamicfeature").getName()
-      ).inOrder()
+      assertThat(dynamicFeatureModuleNames)
+        .containsExactly(project.findModule("dynamicfeature").getName(), project.findModule("instantdynamicfeature").getName())
+        .inOrder()
     }
   }
 
@@ -197,7 +193,6 @@ class GradleModuleSystemIntegrationTest {
   fun testGetDependencyPath() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that the module system returns a path.
@@ -209,28 +204,34 @@ class GradleModuleSystemIntegrationTest {
   fun testDesugarLibraryConfigFiles() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildGradle = preparedProject.root.resolve("app/build.gradle")
-    buildGradle.appendText("""
-      
+    buildGradle.appendText(
+      """
+
       android.compileOptions.coreLibraryDesugaringEnabled = true
       android.defaultConfig.multiDexEnabled = true
       dependencies {
           coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
     preparedProject.open { project ->
-
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       assertThat(moduleSystem.desugarLibraryConfigFilesKnown).named("desugarLibraryConfigFilesKnown").isTrue()
       assertThat(moduleSystem.desugarLibraryConfigFilesNotKnownUserMessage).named("desugarLibraryConfigFilesNotKnownUserMessage").isNull()
       assertThat(moduleSystem.desugarLibraryConfigFiles).named("desugarLibraryConfigFiles").hasSize(1)
-      assertThat(moduleSystem.desugarLibraryConfigFiles.single()).contains("""
-        {
-          "configuration_format_version": 3,
-          "group_id" : "com.tools.android",
-          "artifact_id" : "desugar_jdk_libs",
-          "version": "1.1.5"
-      """.trimIndent()) // Asserting the beginning of the file has the expected header
+      assertThat(moduleSystem.desugarLibraryConfigFiles.single())
+        .contains(
+          """
+          {
+            "configuration_format_version": 3,
+            "group_id" : "com.tools.android",
+            "artifact_id" : "desugar_jdk_libs",
+            "version": "1.1.5"
+          """
+            .trimIndent()
+        ) // Asserting the beginning of the file has the expected header
     }
   }
 
@@ -255,8 +256,9 @@ class GradleModuleSystemIntegrationTest {
       TestCase.assertEquals(mainFlavorSourceProvider, actualProvider)
       // Try finding paid flavor
       val paidFlavorSourceProvider =
-        SourceProviderManager.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders
-          .single { it: NamedIdeaSourceProvider -> it.name.equals("paid", ignoreCase = true) }
+        SourceProviderManager.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders.single { it: NamedIdeaSourceProvider ->
+          it.name.equals("paid", ignoreCase = true)
+        }
       val javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")
       TestCase.assertNotNull(javaSrcFile)
       providers = facet.sourceProviders.getForFile(javaSrcFile)
@@ -275,8 +277,9 @@ class GradleModuleSystemIntegrationTest {
       val facet = module.androidFacet!!
       TestCase.assertNotNull(AndroidModel.get(facet))
       val paidFlavorSourceProvider: IdeaSourceProvider =
-        SourceProviderManager.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders
-          .single { it: NamedIdeaSourceProvider -> it.name.equals("paid", ignoreCase = true) }
+        SourceProviderManager.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders.single { it: NamedIdeaSourceProvider ->
+          it.name.equals("paid", ignoreCase = true)
+        }
       val moduleFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app"), true)
       TestCase.assertNotNull(moduleFile)
       val javaSrcFile = moduleFile!!.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")
@@ -295,10 +298,11 @@ class GradleModuleSystemIntegrationTest {
       val module = project.gradleModule(":app")!!
       val facet = module.androidFacet!!
 
-      val paidFlavorSourceProvider = SourceProviderManager.getInstance(facet)
-        .currentAndSomeFrequentlyUsedInactiveSourceProviders
-        .filter { it -> it.name.equals("paid", ignoreCase = true) }
-        .single()
+      val paidFlavorSourceProvider =
+        SourceProviderManager.getInstance(facet)
+          .currentAndSomeFrequentlyUsedInactiveSourceProviders
+          .filter { it -> it.name.equals("paid", ignoreCase = true) }
+          .single()
 
       val moduleFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app"), true)
       AndroidTestCase.assertNotNull(moduleFile)
@@ -326,8 +330,10 @@ class GradleModuleSystemIntegrationTest {
       val module = project.gradleModule(":app")!!
       val facet = module.androidFacet!!
 
-      val paidFlavorSourceProvider = SourceProviderManager.getInstance(facet)
-        .currentAndSomeFrequentlyUsedInactiveSourceProviders.single { it.name.equals("basicDebug", ignoreCase = true) }
+      val paidFlavorSourceProvider =
+        SourceProviderManager.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders.single {
+          it.name.equals("basicDebug", ignoreCase = true)
+        }
 
       val moduleFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app"), true)
       AndroidTestCase.assertNotNull(moduleFile)
@@ -350,7 +356,7 @@ class GradleModuleSystemIntegrationTest {
       // Verify defaults
       AndroidTestCase.assertFalse(
         "usesCompose override is only meant to be set via properties by the AndroidX project",
-        StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.get()
+        StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.get(),
       )
       AndroidTestCase.assertFalse(moduleSystem.usesCompose)
 
@@ -378,22 +384,30 @@ class GradleModuleSystemIntegrationTest {
       assertThat(gradleProperties.exists()).isTrue()
 
       ApplicationManager.getApplication().runWriteAction {
-        VfsUtil.saveText(gradleProperties, """
-        android.disableAgpUpgradePrompt=true
-      """.trimIndent())
+        VfsUtil.saveText(
+          gradleProperties,
+          """
+          android.disableAgpUpgradePrompt=true
+          """
+            .trimIndent(),
+        )
       }
-      GradleSyncInvoker.getInstance().requestProjectSync(project,
-                                                         GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
+      GradleSyncInvoker.getInstance()
+        .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
 
       AndroidTestCase.assertTrue(moduleSystem.disableAgpUpgradePrompt)
 
       ApplicationManager.getApplication().runWriteAction {
-        VfsUtil.saveText(gradleProperties, """
-        android.disableAgpUpgradePrompt=false
-      """.trimIndent())
+        VfsUtil.saveText(
+          gradleProperties,
+          """
+          android.disableAgpUpgradePrompt=false
+          """
+            .trimIndent(),
+        )
       }
-      GradleSyncInvoker.getInstance().requestProjectSync(project,
-                                                         GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
+      GradleSyncInvoker.getInstance()
+        .requestProjectSync(project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
 
       AndroidTestCase.assertFalse(moduleSystem.disableAgpUpgradePrompt)
     }

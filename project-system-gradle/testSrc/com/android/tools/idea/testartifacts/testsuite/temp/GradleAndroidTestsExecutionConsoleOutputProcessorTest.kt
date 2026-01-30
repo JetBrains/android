@@ -39,29 +39,21 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-/**
- * Unit tests for [GradleAndroidTestsExecutionConsoleOutputProcessor].
- */
+/** Unit tests for [GradleAndroidTestsExecutionConsoleOutputProcessor]. */
 @RunsInEdt
 class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun processOutput() {
     val userDataHolder = UserDataHolderBase()
     val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
     doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
-    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
-      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
 
     exampleIJLogMessages.forEach { text ->
-      GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
-        mockAndroidTestSuite,
-        text,
-        ProcessOutputTypes.STDOUT
-      )
+      GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(mockAndroidTestSuite, text, ProcessOutputTypes.STDOUT)
     }
 
     val device = argumentCaptor<AndroidDevice>()
@@ -87,11 +79,12 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
     // Register a test provider as an extension that returns mock adaptor
     val mockRunConfiguration = mock<RunConfiguration>()
     val mockAdaptor = mock<TestSuiteViewAdaptor>()
-    val testProvider = object : TestSuiteViewAdaptorProvider {
-      override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
-        return if (runConfiguration === mockRunConfiguration) mockAdaptor else null
+    val testProvider =
+      object : TestSuiteViewAdaptorProvider {
+        override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
+          return if (runConfiguration === mockRunConfiguration) mockAdaptor else null
+        }
       }
-    }
 
     val ep = ExtensionPointName.create<TestSuiteViewAdaptorProvider>(TestSuiteViewAdaptorProvider.ADAPTOR_PROVIDER_EP_NAME.name)
     ep.point.registerExtension(testProvider, projectRule.fixture.testRootDisposable)
@@ -99,14 +92,13 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
     val userDataHolder = UserDataHolderBase()
     val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
     doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
-    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
-      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
     whenever(mockAndroidTestSuite.runConfiguration).thenReturn(mockRunConfiguration)
 
     GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
       mockAndroidTestSuite,
       exampleIJLogMessages.first(),
-      ProcessOutputTypes.STDOUT
+      ProcessOutputTypes.STDOUT,
     )
 
     // Verify that the extension-provided mock adaptor was stored in UserData
@@ -121,11 +113,12 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
   fun processOutput_usesDefaultAdaptorWhenNoProviderMatches() {
     // Register a provider that will not match the run configuration
     val mockRunConfiguration = mock<RunConfiguration>()
-    val nonMatchingProvider = object : TestSuiteViewAdaptorProvider {
-      override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
-        return null
+    val nonMatchingProvider =
+      object : TestSuiteViewAdaptorProvider {
+        override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
+          return null
+        }
       }
-    }
 
     val ep = ExtensionPointName.create<TestSuiteViewAdaptorProvider>(TestSuiteViewAdaptorProvider.ADAPTOR_PROVIDER_EP_NAME.name)
     ep.point.registerExtension(nonMatchingProvider, projectRule.fixture.testRootDisposable)
@@ -133,14 +126,13 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
     val userDataHolder = UserDataHolderBase()
     val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
     doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
-    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
-      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
     whenever(mockAndroidTestSuite.runConfiguration).thenReturn(mockRunConfiguration)
 
     GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
       mockAndroidTestSuite,
       exampleIJLogMessages.first(),
-      ProcessOutputTypes.STDOUT
+      ProcessOutputTypes.STDOUT,
     )
 
     // Retrieve the adaptor that was stored in UserData and verify it's the default
@@ -158,22 +150,21 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
 
     val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
     doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
-    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
-      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
 
     GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
       mockAndroidTestSuite,
       exampleIJLogMessages.first(),
-      ProcessOutputTypes.STDOUT
+      ProcessOutputTypes.STDOUT,
     )
 
     // Verify that our pre-cached adaptor was the one used
     verify(mockAdaptor).processEvent(any(), any())
   }
 
-
-  private val exampleIJLogMessages = listOf(
-    """
+  private val exampleIJLogMessages =
+    listOf(
+      """
       <ijLog>
         <event type='beforeSuite'>
           <ijLogEol/>
@@ -187,7 +178,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='beforeSuite'>
           <ijLogEol/>
@@ -200,7 +191,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='onOutput'>
           <ijLogEol/>
@@ -215,7 +206,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='onOutput'>
           <ijLogEol/>
@@ -230,7 +221,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='beforeSuite'>
           <ijLogEol/>
@@ -245,7 +236,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='beforeSuite'>
           <ijLogEol/>
@@ -259,7 +250,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='beforeSuite'>
           <ijLogEol/>
@@ -273,7 +264,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='beforeTest'>
           <ijLogEol/>
@@ -288,7 +279,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='onOutput'>
           <ijLogEol/>
@@ -305,7 +296,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='onOutput'>
           <ijLogEol/>
@@ -322,7 +313,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterTest'>
           <ijLogEol/>
@@ -342,7 +333,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterSuite'>
           <ijLogEol/>
@@ -362,7 +353,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterSuite'>
           <ijLogEol/>
@@ -382,7 +373,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterSuite'>
           <ijLogEol/>
@@ -403,7 +394,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterSuite'>
           <ijLogEol/>
@@ -422,7 +413,7 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
         </event>
       </ijLog>
     """,
-    """
+      """
       <ijLog>
         <event type='afterSuite'>
           <ijLogEol/>
@@ -441,6 +432,6 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
           <ijLogEol/>
         </event>
       </ijLog>
-    """
-  )
+    """,
+    )
 }

@@ -25,22 +25,15 @@ import com.android.tools.sdk.DeviceManagers
 import com.android.utils.ILogger
 import java.nio.file.Path
 
-/**
- * A cache / factory of AvdManager instances, keyed by their constructor parameters.
- */
+/** A cache / factory of AvdManager instances, keyed by their constructor parameters. */
 interface AvdManagerCache {
-  @Throws(AndroidLocationsException::class)
-  fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager
+  @Throws(AndroidLocationsException::class) fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager
 
   @Throws(AndroidLocationsException::class)
-  fun getAvdManager(sdkHandler: AndroidSdkHandler): AvdManager =
-    getAvdManager(sdkHandler, AndroidLocationsSingleton.avdLocation)
+  fun getAvdManager(sdkHandler: AndroidSdkHandler): AvdManager = getAvdManager(sdkHandler, AndroidLocationsSingleton.avdLocation)
 }
 
-internal class AvdManagerCacheImpl(
-  private val logger: ILogger,
-  private val deviceManagerCache: DeviceManagerCache
-) : AvdManagerCache {
+internal class AvdManagerCacheImpl(private val logger: ILogger, private val deviceManagerCache: DeviceManagerCache) : AvdManagerCache {
   private data class AvdManagerCacheKey(val sdkHandler: AndroidSdkHandler, val avdHomeDir: Path)
 
   private val avdManagers = mutableMapOf<AvdManagerCacheKey, AvdManager>()
@@ -53,23 +46,15 @@ internal class AvdManagerCacheImpl(
       }
       val key = AvdManagerCacheKey(sdkHandler, avdHomeDir)
       return avdManagers.computeIfAbsent(key) {
-        AvdManager.createInstance(
-          key.sdkHandler,
-          key.avdHomeDir,
-          deviceManagerCache.getDeviceManager(key.sdkHandler),
-          logger
-        )
+        AvdManager.createInstance(key.sdkHandler, key.avdHomeDir, deviceManagerCache.getDeviceManager(key.sdkHandler), logger)
       }
     }
 }
 
-/**
- * The [AvdManagerCache] instance used within Studio.
- */
+/** The [AvdManagerCache] instance used within Studio. */
 object IdeAvdManagers : AvdManagerCache {
   private val logger = LogWrapper(AvdManager::class.java)
   private val impl = AvdManagerCacheImpl(logger, DeviceManagers.cache)
 
-  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager =
-    impl.getAvdManager(sdkHandler, avdHomeDir)
+  override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager = impl.getAvdManager(sdkHandler, avdHomeDir)
 }

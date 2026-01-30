@@ -20,9 +20,7 @@ import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 
-/**
- * Reference for [PsiParameter] in lambda expressions.
- */
+/** Reference for [PsiParameter] in lambda expressions. */
 internal class PsiParameterReference(element: PsiElement, resolveTo: PsiParameter) : DbExprReference(element, resolveTo) {
 
   override val resolvedType: PsiModelClass

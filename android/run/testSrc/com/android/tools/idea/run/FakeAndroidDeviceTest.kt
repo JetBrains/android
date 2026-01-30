@@ -38,15 +38,11 @@ class FakeAndroidDeviceTest {
   @Test
   fun `test resizable running emulator`() {
     val emulatorWithNoAvdName = createMockRunningEmulator(name = "resizable", version = AndroidVersion(34, null))
-    assertThat(
-      FakeAndroidDevice(emulatorWithNoAvdName).supportsMultipleScreenFormats()).isEqualTo(true)
+    assertThat(FakeAndroidDevice(emulatorWithNoAvdName).supportsMultipleScreenFormats()).isEqualTo(true)
   }
 
   companion object {
-    private fun createMockRunningEmulator(
-      name: String?,
-      version: AndroidVersion = AndroidVersion(28, null)
-    ): IDevice {
+    private fun createMockRunningEmulator(name: String?, version: AndroidVersion = AndroidVersion(28, null)): IDevice {
       val device = mock<IDevice>()
       whenever(device.isEmulator).thenReturn(true)
       whenever(device.avdName).thenReturn(name)

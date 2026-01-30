@@ -21,10 +21,7 @@ import com.android.tools.idea.streaming.device.RequestDeviceStateMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Changes a folding pose of a foldable physical device.
- * Value semantics is intended for comparisons in tests.
- */
+/** Changes a folding pose of a foldable physical device. Value semantics is intended for comparisons in tests. */
 internal data class DeviceFoldingAction(val foldingState: FoldingState) : AbstractDeviceAction() {
 
   init {
@@ -34,9 +31,10 @@ internal data class DeviceFoldingAction(val foldingState: FoldingState) : Abstra
 
   override fun isEnabled(event: AnActionEvent): Boolean {
     val controller = getDeviceController(event) ?: return false
-    return super.isEnabled(event) && controller.supportedFoldingStates.isNotEmpty() &&
-           (PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP !in foldingState.systemProperties ||
-            foldingState.id == controller.currentFoldingState?.id)
+    return super.isEnabled(event) &&
+      controller.supportedFoldingStates.isNotEmpty() &&
+      (PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP !in foldingState.systemProperties ||
+        foldingState.id == controller.currentFoldingState?.id)
   }
 
   override fun actionPerformed(event: AnActionEvent) {

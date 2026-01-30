@@ -25,9 +25,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
-/**
- * Displays a popup menu of available postures of a foldable device.
- */
+/** Displays a popup menu of available postures of a foldable device. */
 internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
@@ -38,10 +36,19 @@ internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
   override fun actionPerformed(event: AnActionEvent) {
     val controller = getDeviceController(event) ?: return
     val currentFoldingState = controller.currentFoldingState
-    val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-      null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
-      { action -> action is DeviceFoldingAction && action.foldingState.id == currentFoldingState?.id },
-      ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID))
+    val popup =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          null,
+          this,
+          event.dataContext,
+          JBPopupFactory.ActionSelectionAid.MNEMONICS,
+          true,
+          null,
+          -1,
+          { action -> action is DeviceFoldingAction && action.foldingState.id == currentFoldingState?.id },
+          ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID),
+        )
     event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
   }
 

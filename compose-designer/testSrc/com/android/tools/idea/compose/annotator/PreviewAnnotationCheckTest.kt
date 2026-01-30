@@ -113,7 +113,7 @@ internal class PreviewAnnotationCheckTest {
 
 
       Missing parameter: height.
-    """
+      """
         .trimIndent(),
       issue.descriptionTemplate,
     )
@@ -133,10 +133,7 @@ internal class PreviewAnnotationCheckTest {
           .trimIndent()
       )
     assertNotNull(issue)
-    assertEquals(
-      "Unknown parameter: Must be a Device ID or a Device specification: \"id:...\", \"spec:...\"..",
-      issue.descriptionTemplate,
-    )
+    assertEquals("Unknown parameter: Must be a Device ID or a Device specification: \"id:...\", \"spec:...\"..", issue.descriptionTemplate)
     assertEquals(1, issue.fixes?.size)
   }
 
@@ -150,14 +147,11 @@ internal class PreviewAnnotationCheckTest {
 
         @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         class myNotAnnotation() {}
-      """
+        """
           .trimIndent()
       )
     assertNotNull(issue)
-    assertEquals(
-      "Preview target must be a composable function or an annotation class",
-      issue.descriptionTemplate,
-    )
+    assertEquals("Preview target must be a composable function or an annotation class", issue.descriptionTemplate)
     assertTrue(issue.fixes.isNullOrEmpty())
   }
 
@@ -171,7 +165,7 @@ internal class PreviewAnnotationCheckTest {
 
         @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         annotation class myAnnotation() {}
-      """
+        """
           .trimIndent()
       )
     assertNull(issue)
@@ -215,19 +209,14 @@ internal class PreviewAnnotationCheckTest {
   }
 
   /**
-   * Adds file with the given [fileContents] and runs [PreviewAnnotationCheck.checkAnnotation] on
-   * the first Preview annotation found.
+   * Adds file with the given [fileContents] and runs [PreviewAnnotationCheck.checkAnnotation] on the first Preview annotation found.
    *
    * This method returns a list of [ProblemDescriptor]s for the issues found.
    */
-  private fun addKotlinFileAndCheckPreviewAnnotation(
-    @Language("kotlin") fileContents: String
-  ): ProblemDescriptor? {
+  private fun addKotlinFileAndCheckPreviewAnnotation(@Language("kotlin") fileContents: String): ProblemDescriptor? {
     rule.fixture.configureByText(KotlinFileType.INSTANCE, fileContents)
 
-    val annotationEntry = runInEdtAndGet {
-      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()
-    }
+    val annotationEntry = runInEdtAndGet { rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>() }
     assertNotNull(annotationEntry)
 
     val manager = InspectionManager.getInstance(fixture.project)

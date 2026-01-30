@@ -30,10 +30,7 @@ class AndroidCodeVisionSettingsDefaultsTest {
 
   @Test
   fun codeVisionDefault() {
-    val provider =
-      CodeVisionProviderFactory.createAllProviders(rule.project).single { provider ->
-        provider.id == "vcs.code.vision"
-      }
+    val provider = CodeVisionProviderFactory.createAllProviders(rule.project).single { provider -> provider.id == "vcs.code.vision" }
     assertThat(CodeVisionSettings.getInstance().isProviderEnabled(provider.id)).isFalse()
   }
 }

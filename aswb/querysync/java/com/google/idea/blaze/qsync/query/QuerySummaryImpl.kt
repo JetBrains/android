@@ -28,38 +28,29 @@ import java.io.InputStream
 import java.nio.file.Path
 
 /**
- * Summaries the output from a `query` invocation into just the data needed by the rest of
- * querysync.
+ * Summaries the output from a `query` invocation into just the data needed by the rest of querysync.
  *
+ * The main purpose of the summarized output is to allow the outputs from multiple `query` invocations to be combined. This enables delta
+ * updates to the project.
  *
- * The main purpose of the summarized output is to allow the outputs from multiple `query`
- * invocations to be combined. This enables delta updates to the project.
+ * If extra data from the `query` invocation is needed by later stages of sync, that data should be added to the [Query.Summary] proto and
+ * this code should be updated accordingly. The proto should remain a simple mapping of data from the build proto, i.e. no complex
+ * functionality should be added to this class. Non-trivial calculations based on the output of the query belong in
+ * [com.google.idea.blaze.qsync.BlazeQueryParser] instead.
  *
- *
- * If extra data from the `query` invocation is needed by later stages of sync, that data
- * should be added to the [Query.Summary] proto and this code should be updated accordingly.
- * The proto should remain a simple mapping of data from the build proto, i.e. no complex
- * functionality should be added to this class. Non-trivial calculations based on the output of the
- * query belong in [com.google.idea.blaze.qsync.BlazeQueryParser] instead.
- *
- *
- * Instances of the the [Query.Summary] proto are maintained in memory so data should not
- * be added to it unnecessarily.
+ * Instances of the the [Query.Summary] proto are maintained in memory so data should not be added to it unnecessarily.
  */
-data class QuerySummaryImpl(
-  private val proto: Query.Summary,
-) : QuerySummary {
+data class QuerySummaryImpl(private val proto: Query.Summary) : QuerySummary {
 
-  override val isCompatibleWithCurrentPluginVersion get(): Boolean = proto.version == PROTO_VERSION
+  override val isCompatibleWithCurrentPluginVersion
+    get(): Boolean = proto.version == PROTO_VERSION
 
-  /** Do not generate toString, this object is too large  */
+  /** Do not generate toString, this object is too large */
   override fun toString(): String {
     return super.toString()
   }
 
-  /**
-   * An opaque proto buffer to be serialized with the project state and re-create the [ ] using [QuerySummaryImpl.create].
-   */
+  /** An opaque proto buffer to be serialized with the project state and re-create the [ ] using [QuerySummaryImpl.create]. */
   override fun protoForSerializationOnly(): Query.Summary = proto
 
   private class StringIndexer {
@@ -72,21 +63,22 @@ data class QuerySummaryImpl(
     }
 
     fun ruleToStoredRule(r: QueryData.Rule): Query.StoredRule {
-      val builder = Query.StoredRule.newBuilder()
-        .setLabel(indexLabel(r.label))
-        .setRuleClass(index(r.ruleClass))
-        .addAllSources(indexLabels(r.sources))
-        .addAllDeps(indexLabels(r.deps))
-        .addAllIdlSources(indexLabels(r.idlSources))
-        .addAllRuntimeDeps(indexLabels(r.runtimeDeps))
-        .addAllResourceFiles(indexLabels(r.resourceFiles))
-        .setTestApp(index(r.testApp))
-        .setInstruments(index(r.instruments))
-        .setCustomPackage(index(r.customPackage))
-        .addAllHdrs(indexLabels(r.hdrs))
-        .addAllCopts(index(r.copts))
-        .addAllTags(index(r.tags))
-        .setMainClass(index(r.mainClass))
+      val builder =
+        Query.StoredRule.newBuilder()
+          .setLabel(indexLabel(r.label))
+          .setRuleClass(index(r.ruleClass))
+          .addAllSources(indexLabels(r.sources))
+          .addAllDeps(indexLabels(r.deps))
+          .addAllIdlSources(indexLabels(r.idlSources))
+          .addAllRuntimeDeps(indexLabels(r.runtimeDeps))
+          .addAllResourceFiles(indexLabels(r.resourceFiles))
+          .setTestApp(index(r.testApp))
+          .setInstruments(index(r.instruments))
+          .setCustomPackage(index(r.customPackage))
+          .addAllHdrs(indexLabels(r.hdrs))
+          .addAllCopts(index(r.copts))
+          .addAllTags(index(r.tags))
+          .setMainClass(index(r.mainClass))
       if (r.manifest != null) {
         builder.setManifest(indexLabel(r.manifest))
       }
@@ -126,10 +118,7 @@ data class QuerySummaryImpl(
     }
 
     fun sourceFileToStoredSourceFile(it: QueryData.SourceFile): Query.StoredSourceFile {
-      return Query.StoredSourceFile.newBuilder()
-        .setLabel(indexLabel(it.label))
-        .addAllSubinclude(indexLabels(it.subincliudes))
-        .build()
+      return Query.StoredSourceFile.newBuilder().setLabel(indexLabel(it.label)).addAllSubinclude(indexLabels(it.subincliudes)).build()
     }
   }
 
@@ -169,11 +158,7 @@ data class QuerySummaryImpl(
     }
 
     fun lookupLabel(l: Query.StoredLabel): Label {
-      return Label(
-        lookupString(l.workspace),
-        lookupString(l.buildPackage),
-        lookupString(l.name)
-      )
+      return Label(lookupString(l.workspace), lookupString(l.buildPackage), lookupString(l.name))
     }
 
     fun lookupLabels(ll: Collection<Query.StoredLabel>): List<Label> {
@@ -189,7 +174,8 @@ data class QuerySummaryImpl(
 
         Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS -> QuerySpec.QueryStrategy.PLAIN_WITH_SAFE_FILTERS
 
-        Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN, Query.Summary.QueryStrategy.QUERY_STRATEGY_UNKNOWN -> QuerySpec.QueryStrategy.PLAIN
+        Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN,
+        Query.Summary.QueryStrategy.QUERY_STRATEGY_UNKNOWN -> QuerySpec.QueryStrategy.PLAIN
 
         Query.Summary.QueryStrategy.UNRECOGNIZED -> throw IllegalStateException(proto.getQueryStrategy().toString())
       }
@@ -198,40 +184,32 @@ data class QuerySummaryImpl(
   /**
    * Returns the map of source files included in the query output.
    *
-   *
    * This is a map of source target label to the [QueryData.SourceFile] proto representing it.
    */
-
   override val sourceFilesMap: Map<Label, QueryData.SourceFile> by lazy {
     val lookup = StringLookup(proto.stringStorage.indexedStringsList)
-    proto.sourceFilesList
-      .map { lookup.storedSourceFileToSourceFile(it) }
-      .associateBy { it.label }
+    proto.sourceFilesList.map { lookup.storedSourceFileToSourceFile(it) }.associateBy { it.label }
   }
 
   /**
    * Returns the map of rules included in the query output.
    *
-   *
    * This is a map of rule label to the [QueryData.Rule] proto representing it.
    */
   override val rulesMap: Map<Label, QueryData.Rule> by lazy {
     val lookup = StringLookup(proto.stringStorage.indexedStringsList)
-    proto.storedRulesList
-      .map { lookup.storedRuleToRule(it) }
-      .associateBy{it.label}
+    proto.storedRulesList.map { lookup.storedRuleToRule(it) }.associateBy { it.label }
   }
 
   override val packagesWithErrors: Set<Path> by lazy {
     proto.packagesWithErrorsList
       .map { Label.of(it) }
-      .map { it.getBuildPackagePath() }  // The packages are BUILD file labels.
+      .map { it.getBuildPackagePath() } // The packages are BUILD file labels.
       .toSet()
   }
 
   /**
    * Returns the set of build packages in the query output.
-   *
    *
    * The packages are workspace relative paths that contain a BUILD file.
    */
@@ -242,33 +220,28 @@ data class QuerySummaryImpl(
   /**
    * Returns a map of .bzl file labels to BUILD file labels that include them.
    *
-   *
    * This is used to determine, for example, which build files include a given .bzl file.
    */
   override val reverseSubincludeMap by lazy {
-    sourceFilesMap.entries.asSequence()
-      .flatMap { entry ->
-        entry.value.subincliudes.asSequence().map { subinclude -> subinclude to entry.key }
-      }
+    sourceFilesMap.entries
+      .asSequence()
+      .flatMap { entry -> entry.value.subincliudes.asSequence().map { subinclude -> subinclude to entry.key } }
       .groupBy({ it.first.toFilePath() }, { it.second.toFilePath() })
       .mapValues { it.value.toSet() }
   }
 
-  /**
-   * Returns the set of labels of all files includes from BUILD files.
-   */
-  override val allBuildIncludedFiles: Set<Label> by lazy {
-    sourceFilesMap.values
-      .flatMap { it.subincliudes }
-      .toSet()
-  }
+  /** Returns the set of labels of all files includes from BUILD files. */
+  override val allBuildIncludedFiles: Set<Label> by lazy { sourceFilesMap.values.flatMap { it.subincliudes }.toSet() }
 
-  override val packagesWithErrorsCount: Int get() = proto.packagesWithErrorsCount
-  override val rulesCount: Int get() = proto.storedRulesCount
+  override val packagesWithErrorsCount: Int
+    get() = proto.packagesWithErrorsCount
+
+  override val rulesCount: Int
+    get() = proto.storedRulesCount
 
   /**
-   * Builder for [QuerySummaryImpl]. This should be used when constructing a summary from a map of
-   * source files and rules. To construct one from a serialized proto, you should use [ ][QuerySummaryImpl.create] instead.
+   * Builder for [QuerySummaryImpl]. This should be used when constructing a summary from a map of source files and rules. To construct one
+   * from a serialized proto, you should use [ ][QuerySummaryImpl.create] instead.
    */
   class Builder internal constructor() {
     private var indexer: StringIndexer = StringIndexer()
@@ -297,13 +270,7 @@ data class QuerySummaryImpl(
     fun putAllPackagesWithErrors(packagesWithErrors: Set<Path>): Builder {
       packagesWithErrors // TODO: b/334110669 - Consider multi workspace-builds.
         .asSequence()
-        .map {
-          fromWorkspacePackageAndName(
-            Label.ROOT_WORKSPACE,
-            it,
-            "BUILD"
-          )
-        }
+        .map { fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, it, "BUILD") }
         .map { it.toString() }
         .map { intern(it) }
         .forEach { builder.addPackagesWithErrors(it) }
@@ -311,45 +278,36 @@ data class QuerySummaryImpl(
     }
 
     fun putPackagesWithErrors(packageWithErrors: Path): Builder {
-      builder.addPackagesWithErrors(
-        intern(
-          fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD")
-            .toString()
-        )
-      )
+      builder.addPackagesWithErrors(intern(fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD").toString()))
       return this
     }
 
     fun build(): QuerySummary {
-      builder.setStringStorage(
-        Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list())
-      )
+      builder.setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()))
       return create(builder.build())
     }
   }
 
   companion object {
     /**
-     * The current version of the Query.Summary proto that this is compatible with. Any persisted
-     * protos with a different version embedded in them will be discarded.
+     * The current version of the Query.Summary proto that this is compatible with. Any persisted protos with a different version embedded
+     * in them will be discarded.
      *
-     *
-     * Whenever changing the logic in this class such that the Query.Summary proto contents will be
-     * different for the same input, this version should be incremented.
+     * Whenever changing the logic in this class such that the Query.Summary proto contents will be different for the same input, this
+     * version should be incremented.
      */
-    @VisibleForTesting
-    const val PROTO_VERSION: Int = 12
+    @VisibleForTesting const val PROTO_VERSION: Int = 12
 
     // Compile-time dependency attributes, as they appear in streamed_proto output
     private val DEPENDENCY_ATTRIBUTES: Set<String> =
       setOf<String>( // android_local_test depends on junit implicitly using the _junit attribute.
         "\$junit",
         "deps",
-        "test_deps",  // java_proto_library and java_lite_proto_library rules depend on the proto runtime
+        "test_deps", // java_proto_library and java_lite_proto_library rules depend on the proto runtime
         // library via these proto_toolchain attributes. In Starlark, the attribute names
         // begin with an underscore instead of a colon (e.g., _aspect_java_proto_toolchain).
         ":aspect_java_proto_toolchain",
-        ":aspect_proto_toolchain_for_javalite",  // This is not strictly correct, as source files of rule with 'export' do not
+        ":aspect_proto_toolchain_for_javalite", // This is not strictly correct, as source files of rule with 'export' do not
         // depend on exported targets.
         "exports",
         "library",
@@ -361,26 +319,19 @@ data class QuerySummaryImpl(
     private val RULE_SCOPED_ATTRIBUTES: Map<String, Set<String>> =
       mapOf<String, Set<String>>(
         "\$toolchain" to
-        setOf(
-          "_java_grpc_library",
-          "_java_lite_grpc_library",
-          "kt_jvm_library_helper",
-          "android_library",
-          "kt_android_library"
-        )
+          setOf("_java_grpc_library", "_java_lite_grpc_library", "kt_jvm_library_helper", "android_library", "kt_android_library")
       )
 
     // Runtime dependency attributes
     private val RUNTIME_DEP_ATTRIBUTES: Set<String> =
       setOf<String>( // From android_binary rules used in android_instrumentation_tests
-        "instruments",  // From android_instrumentation_test rules
-        "test_app"
+        "instruments", // From android_instrumentation_test rules
+        "test_app",
       )
 
     // Source attributes.
-    private val SRCS_ATTRIBUTES: Set<String> = setOf<String>(
-      "srcs", "java_srcs", "kotlin_srcs", "java_test_srcs", "kotlin_test_srcs", "common_srcs"
-    )
+    private val SRCS_ATTRIBUTES: Set<String> =
+      setOf<String>("srcs", "java_srcs", "kotlin_srcs", "java_test_srcs", "kotlin_test_srcs", "common_srcs")
 
     @JvmStatic
     fun create(proto: Query.Summary): QuerySummary {
@@ -389,10 +340,7 @@ data class QuerySummaryImpl(
 
     @JvmStatic
     @Throws(IOException::class)
-    fun create(
-      queryStrategy: QuerySpec.QueryStrategy,
-      protoInputStream: InputStream
-    ): QuerySummary {
+    fun create(queryStrategy: QuerySpec.QueryStrategy, protoInputStream: InputStream): QuerySummary {
       // IMPORTANT: when changing the logic herein, you should also update PROTO_VERSION above.
       // Failure to do so is likely to result in problems during a partial sync.
       val sourceFileMap: MutableMap<Label, Query.StoredSourceFile> = hashMapOf()
@@ -419,9 +367,7 @@ data class QuerySummaryImpl(
             // TODO We don't need all rules types in the proto since many are not used later on.
             //   We could filter the rules here, or even create rule-specific proto messages to
             //   reduce the size of the output proto.
-            val rule =
-              Query.StoredRule.newBuilder()
-                .setRuleClass(indexer.index(target.rule.getRuleClass()))
+            val rule = Query.StoredRule.newBuilder().setRuleClass(indexer.index(target.rule.getRuleClass()))
             val label = Label.of(target.rule.getName())
             rule.setLabel(indexer.indexLabel(label))
             for (a in target.rule.attributeList) {
@@ -440,8 +386,7 @@ data class QuerySummaryImpl(
                   rule.addAllResourceFiles(indexer.indexLabels(a.asLabelListSafe()))
                 }
                 attributeName == "manifest" -> {
-                  a.asLabelSafe()
-                    ?.let { rule.setManifest(indexer.indexLabel(it)) }
+                  a.asLabelSafe()?.let { rule.setManifest(indexer.indexLabel(it)) }
                 }
                 attributeName == "custom_package" -> {
                   rule.setCustomPackage(indexer.index((a.getStringValue())))
@@ -458,15 +403,14 @@ data class QuerySummaryImpl(
                 attributeName == "test_app" -> {
                   rule.setTestApp(indexer.index(a.getStringValue()))
                 }
-                attributeName == "library" || attributeName == "cc_library"-> {
+                attributeName == "library" || attributeName == "cc_library" -> {
                   a.asLabelSafe()?.let { rule.setLibrary(indexer.indexLabel(it)) }
                 }
                 attributeName == "instruments" -> {
                   rule.setInstruments(indexer.index(a.getStringValue()))
                 }
                 attributeName == "test_rule" -> {
-                  a.asLabelSafe()
-                    ?.let { rule.setTestRule(indexer.indexLabel(it)) }
+                  a.asLabelSafe()?.let { rule.setTestRule(indexer.indexLabel(it)) }
                 }
               }
               when {
@@ -499,15 +443,13 @@ data class QuerySummaryImpl(
     private fun convertQueryStrategy(queryStrategy: QuerySpec.QueryStrategy): Query.Summary.QueryStrategy {
       return when (queryStrategy) {
         QuerySpec.QueryStrategy.PLAIN -> Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN
-        QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS -> Query.Summary.QueryStrategy.QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS
+        QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS ->
+          Query.Summary.QueryStrategy.QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS
         QuerySpec.QueryStrategy.PLAIN_WITH_SAFE_FILTERS -> Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS
       }
     }
 
-    private fun attributeIsTrackedDependency(
-      attributeName: String,
-      target: Build.Target
-    ): Boolean {
+    private fun attributeIsTrackedDependency(attributeName: String, target: Build.Target): Boolean {
       if (DEPENDENCY_ATTRIBUTES.contains(attributeName)) {
         return true
       }
@@ -520,8 +462,7 @@ data class QuerySummaryImpl(
       return create(querySpecStrategy, BufferedInputStream(FileInputStream(protoFile)))
     }
 
-    @JvmStatic
-    fun newBuilder(): Builder = Builder()
+    @JvmStatic fun newBuilder(): Builder = Builder()
 
     private fun intern(s: String): String {
       return Interners.STRING.intern(s)
@@ -533,20 +474,15 @@ data class QuerySummaryImpl(
 
 private fun Build.Attribute.asLabelListSafe(): List<Label> {
   return when (this.type) {
-    Build.Attribute.Discriminator.LABEL ->
-      listOfNotNull(this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) })
-    Build.Attribute.Discriminator.LABEL_LIST ->
-      this.stringListValueList.map { Label.of(it) }
-    else ->
-      emptyList()
+    Build.Attribute.Discriminator.LABEL -> listOfNotNull(this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) })
+    Build.Attribute.Discriminator.LABEL_LIST -> this.stringListValueList.map { Label.of(it) }
+    else -> emptyList()
   }
 }
 
 private fun Build.Attribute.asLabelSafe(): Label? {
   return when (this.type) {
-    Build.Attribute.Discriminator.LABEL ->
-      this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) }
-    else ->
-      null
+    Build.Attribute.Discriminator.LABEL -> this.stringValue.takeUnless { it.isNullOrEmpty() }?.let { Label.of(it) }
+    else -> null
   }
 }

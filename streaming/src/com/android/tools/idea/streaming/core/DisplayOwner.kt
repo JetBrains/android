@@ -17,11 +17,10 @@ package com.android.tools.idea.streaming.core
 
 import com.android.annotations.concurrency.UiThread
 
-/**
- * Object that owns device displays and allows components to listen for display-related events.
- */
+/** Object that owns device displays and allows components to listen for display-related events. */
 interface DisplayOwner {
   fun addDeviceDisplayListener(listener: DeviceDisplayListener)
+
   fun removeDeviceDisplayListener(listener: DeviceDisplayListener)
 }
 

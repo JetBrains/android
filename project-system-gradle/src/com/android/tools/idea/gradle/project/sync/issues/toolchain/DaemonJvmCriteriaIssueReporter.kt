@@ -27,12 +27,12 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
  * Represents a wrapper over existing platform Daemon JVM Criteria issue checkers, to handle related errors and report metrics to analytics
  * build issues linked to [Daemon Jvm Criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
  *
- * Any implementation must be registered with 'order="first"' in order to be prioritized over the original platform checker
- * and avoid returning any value for [GradleIssueChecker.check] in order to not interfere with the original ordering.
+ * Any implementation must be registered with 'order="first"' in order to be prioritized over the original platform checker and avoid
+ * returning any value for [GradleIssueChecker.check] in order to not interfere with the original ordering.
  */
 abstract class DaemonJvmCriteriaIssueReporter(
   private val checker: GradleIssueChecker,
-  private val errorEvent: GradleDaemonJvmCriteriaErrorEvent.Error
+  private val errorEvent: GradleDaemonJvmCriteriaErrorEvent.Error,
 ) : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {

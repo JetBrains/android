@@ -49,15 +49,8 @@ class InsightsAttachDiffLinkFilterTest {
   @Before
   fun setUp() {
     tracker = mock()
-    exceptionInfoCache =
-      InsightsExceptionInfoCache(
-        projectRule.project,
-        GlobalSearchScope.allScope(projectRule.project),
-      )
-    console =
-      ConsoleViewImpl(projectRule.project, true).also {
-        Disposer.register(projectRule.testRootDisposable, it)
-      }
+    exceptionInfoCache = InsightsExceptionInfoCache(projectRule.project, GlobalSearchScope.allScope(projectRule.project))
+    console = ConsoleViewImpl(projectRule.project, true).also { Disposer.register(projectRule.testRootDisposable, it) }
   }
 
   @Test
@@ -117,8 +110,7 @@ class InsightsAttachDiffLinkFilterTest {
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
-    val targetPsiFile =
-      projectRule.fixture.addFileToProject("src/MainActivity.java", SAMPLE_JAVA_SOURCE)
+    val targetPsiFile = projectRule.fixture.addFileToProject("src/MainActivity.java", SAMPLE_JAVA_SOURCE)
 
     // Act
     val result = filter.applyFilter(SAMPLE_JAVA_TRACE, 93)
@@ -153,8 +145,7 @@ class InsightsAttachDiffLinkFilterTest {
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
-    val targetPsiFile =
-      projectRule.fixture.addFileToProject("src/MainActivity.kt", SAMPLE_KOTLIN_SOURCE)
+    val targetPsiFile = projectRule.fixture.addFileToProject("src/MainActivity.kt", SAMPLE_KOTLIN_SOURCE)
 
     // Act
     val result = filter.applyFilter(SAMPLE_KOTLIN_TRACE, 98)
@@ -184,26 +175,26 @@ class InsightsAttachDiffLinkFilterTest {
 
 private val SAMPLE_JAVA_SOURCE =
   """
-        package test.simple;
+  package test.simple;
 
-        public class MainActivity {
-            public void onCreate() {
-              //TODO
-            }
-        }
-"""
+  public class MainActivity {
+      public void onCreate() {
+        //TODO
+      }
+  }
+  """
     .trimIndent()
 
 private val SAMPLE_KOTLIN_SOURCE =
   """
-          package test.simple
+  package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-                //TODO
-              }
-          }
-"""
+  class MainActivity {
+      fun onCreate() {
+        //TODO
+      }
+  }
+  """
     .trimIndent()
 
 private const val SAMPLE_JAVA_TRACE = "    test.simple.MainActivity.onCreate(MainActivity.java:4)"

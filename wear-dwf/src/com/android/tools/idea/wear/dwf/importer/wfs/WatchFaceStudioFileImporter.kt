@@ -71,11 +71,9 @@ import org.w3c.dom.Document
 private val LOG = Logger.getInstance(WatchFaceStudioFileImporter::class.java)
 
 /**
- * Imports watch faces compiled by
- * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) into an
- * already existing and open project. These compiled files are `.aab` and `.apk` files and can be
- * built either by publishing a watch face, or deploying a watch face to device, from Watch Face
- * Studio.
+ * Imports watch faces compiled by [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) into an already
+ * existing and open project. These compiled files are `.aab` and `.apk` files and can be built either by publishing a watch face, or
+ * deploying a watch face to device, from Watch Face Studio.
  *
  * Existing files may be overwritten if they have the same path as the files that are imported.
  */
@@ -88,40 +86,27 @@ private constructor(
 ) {
 
   private val extractorByFileExtension =
-    mapOf(
-      EXT_APP_BUNDLE to AndroidAppBundleExtractor(ioDispatcher),
-      EXT_ANDROID_PACKAGE to ApkExtractor(ioDispatcher),
-    )
+    mapOf(EXT_APP_BUNDLE to AndroidAppBundleExtractor(ioDispatcher), EXT_ANDROID_PACKAGE to ApkExtractor(ioDispatcher))
 
   val supportedFileTypes = extractorByFileExtension.keys
 
-  private constructor(
-    project: Project
-  ) : this(
-    project = project,
-    defaultDispatcher = Dispatchers.Default,
-    ioDispatcher = Dispatchers.IO,
-  )
+  private constructor(project: Project) : this(project = project, defaultDispatcher = Dispatchers.Default, ioDispatcher = Dispatchers.IO)
 
   suspend fun import(filePathToImport: Path): WFSImportResult =
     withContext(defaultDispatcher) {
       val mainAndroidFacet =
-        project.modules
-          .mapNotNull { it.androidFacet }
-          .firstOrNull { it.getModuleSystem().isProductionAndroidModule() }
+        project.modules.mapNotNull { it.androidFacet }.firstOrNull { it.getModuleSystem().isProductionAndroidModule() }
           ?: return@withContext WFSImportResult.Error(MISSING_MAIN_MODULE)
 
       val fileExtractor =
-        extractorByFileExtension[filePathToImport.extension]
-          ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
+        extractorByFileExtension[filePathToImport.extension] ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
 
       try {
         withContext(ioDispatcher) {
           fileExtractor.extract(filePathToImport).collect { item ->
             when (item) {
               is ExtractedItem.Manifest -> importManifest(mainAndroidFacet.mainManifestPath(), item)
-              is ExtractedItem.Resource ->
-                importResource(mainAndroidFacet.resolveResourcePath(item.filePath), item)
+              is ExtractedItem.Resource -> importResource(mainAndroidFacet.resolveResourcePath(item.filePath), item)
             }
           }
         }
@@ -135,10 +120,7 @@ private constructor(
       }
     }
 
-  private suspend fun importManifest(
-    manifestPath: Path,
-    extractedManifest: ExtractedItem.Manifest,
-  ) {
+  private suspend fun importManifest(manifestPath: Path, extractedManifest: ExtractedItem.Manifest) {
     val archiveManifestDocument = XmlUtils.parseDocument(extractedManifest.content, true)
     // The package can be different from the current app/module, resulting in an error when
     // deploying the watch face, unless we remove it.
@@ -157,11 +139,7 @@ private constructor(
   private fun mergeManifests(manifestFile: File, archiveManifest: Document): String {
     val archiveManifestFile = File.createTempFile("archiveManifest", ".xml") // will not be created
     val mergeReport =
-      ManifestMerger2.newMerger(
-          manifestFile,
-          StdLogger(StdLogger.Level.WARNING),
-          ManifestMerger2.MergeType.APPLICATION,
-        )
+      ManifestMerger2.newMerger(manifestFile, StdLogger(StdLogger.Level.WARNING), ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(
           ManifestMerger2.Invoker.Feature.SKIP_BLAME,
           ManifestMerger2.Invoker.Feature.NO_IMPLICIT_PERMISSION_ADDITION,
@@ -183,9 +161,8 @@ private constructor(
         )
         .merge()
 
-    return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED)?.takeIf {
-      mergeReport.result.isSuccess
-    } ?: error("Failed to merge the manifest")
+    return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED)?.takeIf { mergeReport.result.isSuccess }
+      ?: error("Failed to merge the manifest")
   }
 
   private suspend fun importResource(destinationPath: Path, resource: ExtractedItem.Resource) {
@@ -196,10 +173,7 @@ private constructor(
     }
   }
 
-  private suspend fun importStringResource(
-    destinationPath: Path,
-    stringResource: ExtractedItem.StringResource,
-  ) {
+  private suspend fun importStringResource(destinationPath: Path, stringResource: ExtractedItem.StringResource) {
     val stringResourceFile =
       VfsUtil.findFile(destinationPath, true)
         ?: VfsUtil.createDirectories(destinationPath.parent.pathString).let { parentDirectory ->
@@ -228,18 +202,12 @@ private constructor(
     }
   }
 
-  private suspend fun importBinaryResource(
-    destinationPath: Path,
-    resource: ExtractedItem.BinaryResource,
-  ) {
+  private suspend fun importBinaryResource(destinationPath: Path, resource: ExtractedItem.BinaryResource) {
     val destinationFile = destinationPath.findOrCreateVirtualFile()
     edtWriteAction { destinationFile.writeBytes(resource.binaryContent) }
   }
 
-  private suspend fun importTextResource(
-    destinationPath: Path,
-    resource: ExtractedItem.TextResource,
-  ) {
+  private suspend fun importTextResource(destinationPath: Path, resource: ExtractedItem.TextResource) {
     val destinationFile = destinationPath.findOrCreateVirtualFile()
     writeAndReformat(destinationFile, resource.text)
   }
@@ -247,9 +215,7 @@ private constructor(
   private suspend fun writeAndReformat(destinationFile: VirtualFile, content: String) {
     val normalized = StringUtil.convertLineSeparators(content)
     readAndWriteAction {
-      val document =
-        FileDocumentManager.getInstance().getDocument(destinationFile)
-          ?: error("Expected file document to exist")
+      val document = FileDocumentManager.getInstance().getDocument(destinationFile) ?: error("Expected file document to exist")
       writeCommandAction(project, "Writing and Reformatting File") {
         document.setText(normalized)
         ReformatUtil.reformatAndRearrange(project, destinationFile, keepDocumentLocked = true)
@@ -259,24 +225,17 @@ private constructor(
   }
 
   private fun AndroidFacet.mainManifestPath() =
-    SourceProviders.getInstance(this)
-      .mainIdeaSourceProvider
-      ?.manifestFileUrls
-      ?.singleOrNull()
-      ?.urlToPath() ?: error("Expected a single manifest URL to exist")
+    SourceProviders.getInstance(this).mainIdeaSourceProvider?.manifestFileUrls?.singleOrNull()?.urlToPath()
+      ?: error("Expected a single manifest URL to exist")
 
   /**
-   * Resolves the path of an extracted resource (which is in the form `res/<type>/<filename.xml>`)
-   * to a resource path within the given [AndroidFacet]. The `res` from the [resourcePath] will be
-   * replaced with the name of the res folder used by the facet.
+   * Resolves the path of an extracted resource (which is in the form `res/<type>/<filename.xml>`) to a resource path within the given
+   * [AndroidFacet]. The `res` from the [resourcePath] will be replaced with the name of the res folder used by the facet.
    */
   private fun AndroidFacet.resolveResourcePath(resourcePath: Path): Path {
     val resDirectoryPath =
-      SourceProviders.getInstance(this)
-        .mainIdeaSourceProvider
-        ?.resDirectoryUrls
-        ?.singleOrNull()
-        ?.urlToPath() ?: error("Expected a single res directory URL to exist")
+      SourceProviders.getInstance(this).mainIdeaSourceProvider?.resDirectoryUrls?.singleOrNull()?.urlToPath()
+        ?: error("Expected a single res directory URL to exist")
 
     // remove the `res/` directory from the resource path to use the one from the facet instead
     return resDirectoryPath.resolve(resourcePath.withoutResDirectory())
@@ -286,14 +245,10 @@ private constructor(
 
   /** Removes the first `res` directory from the path, if any. */
   private fun Path.withoutResDirectory() =
-    indexOfFirst { it.pathString == FD_RES }
-      .takeIf { it >= 0 && it < count() }
-      ?.let { subpath(it + 1, count()) } ?: this
+    indexOfFirst { it.pathString == FD_RES }.takeIf { it >= 0 && it < count() }?.let { subpath(it + 1, count()) } ?: this
 
   private suspend fun Path.findOrCreateVirtualFile(): VirtualFile {
-    val parentDirectory =
-      VfsUtil.createDirectories(parent.pathString)
-        ?: error("expected ${parent.pathString} to be created")
+    val parentDirectory = VfsUtil.createDirectories(parent.pathString) ?: error("expected ${parent.pathString} to be created")
     return edtWriteAction { parentDirectory.findOrCreateFile(fileName.pathString) }
   }
 
@@ -301,16 +256,8 @@ private constructor(
     fun getInstance(project: Project): WatchFaceStudioFileImporter = project.service()
 
     @TestOnly
-    internal fun getInstanceForTest(
-      project: Project,
-      defaultDispatcher: CoroutineDispatcher,
-      ioDispatcher: CoroutineDispatcher,
-    ) =
-      WatchFaceStudioFileImporter(
-        project = project,
-        defaultDispatcher = defaultDispatcher,
-        ioDispatcher = ioDispatcher,
-      )
+    internal fun getInstanceForTest(project: Project, defaultDispatcher: CoroutineDispatcher, ioDispatcher: CoroutineDispatcher) =
+      WatchFaceStudioFileImporter(project = project, defaultDispatcher = defaultDispatcher, ioDispatcher = ioDispatcher)
   }
 }
 

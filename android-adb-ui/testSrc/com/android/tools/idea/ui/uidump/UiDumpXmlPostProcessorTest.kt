@@ -19,11 +19,11 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class UiDumpXmlPostProcessorTest {
-  
+
   @Test
   fun basic() {
     val input =
-    // language=XML
+      // language=XML
       """
       <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
       <hierarchy rotation="0">
@@ -42,7 +42,8 @@ class UiDumpXmlPostProcessorTest {
           </node>
         </node>
       </hierarchy>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val expected =
       // language=XML
@@ -64,7 +65,8 @@ class UiDumpXmlPostProcessorTest {
           </node>
         </node>
       </hierarchy>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     assertPostProcessing(input, expected)
   }
@@ -90,7 +92,8 @@ class UiDumpXmlPostProcessorTest {
         text=""
         hint=""
         index="0"
-      """.trimIndent() + "\n"
+      """
+        .trimIndent() + "\n"
     assertThat(instruction).isEqualTo(expected)
   }
 
@@ -105,7 +108,8 @@ class UiDumpXmlPostProcessorTest {
           <node NAF="true" index="1" text="" resource-id="" class="android.widget.Button" package="com.example.myapplication" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,11][170,116]" />
         </node>
       </hierarchy>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val state = postProcess(input)
     assertThat(state.nafRegions).containsExactly(Region(0, 11, 170, 116, "NAF-1"))

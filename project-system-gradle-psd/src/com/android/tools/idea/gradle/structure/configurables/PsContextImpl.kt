@@ -50,23 +50,27 @@ import com.intellij.util.EventDispatcher
 import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsContextImpl::class.java)
-class PsContextImpl constructor(
+
+class PsContextImpl
+constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
   disableAnalysis: Boolean = false,
   private val disableResolveModels: Boolean,
-  private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
+  private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory(),
 ) : PsContext, Disposable {
   override val analyzerDaemon: PsAnalyzerDaemon
   private val gradleSync: GradleResolver = GradleResolver()
-  override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
+  override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon =
+    PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
   override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon = PsSdkIndexCheckerDaemon(this, project)
 
   private val gradleSyncEventDispatcher = EventDispatcher.create(PsContext.SyncListener::class.java)
   private var disableSync: Boolean = false
   private var disposed: Boolean = false
 
-  override var selectedModule: String? = null; private set
+  override var selectedModule: String? = null
+    private set
 
   override val uiSettings: PsUISettings
     get() = PsUISettings.getInstance(project.ideProject)
@@ -84,27 +88,27 @@ class PsContextImpl constructor(
       sdkIndexCheckerDaemon.queueCheck()
     }
 
-    analyzerDaemon = PsAnalyzerDaemon(
-      this,
-      project,
-      libraryUpdateCheckerDaemon,
-      sdkIndexCheckerDaemon,
-      analyzersMapOf(
-        PsAndroidModuleAnalyzer(this, PsPathRendererImpl().also { it.context = this }),
-        PsJavaModuleAnalyzer(this))
-    )
+    analyzerDaemon =
+      PsAnalyzerDaemon(
+        this,
+        project,
+        libraryUpdateCheckerDaemon,
+        sdkIndexCheckerDaemon,
+        analyzersMapOf(PsAndroidModuleAnalyzer(this, PsPathRendererImpl().also { it.context = this }), PsJavaModuleAnalyzer(this)),
+      )
 
     if (!disableAnalysis) {
       project.onModuleChanged(this) { module ->
         analyzerDaemon.queueCheck(module)
-        project
-          .modules
+        project.modules
           .filter { it.dependencies.modules.any { moduleDependency -> moduleDependency.gradlePath == module.gradlePath } }
           .forEach { analyzerDaemon.queueCheck(it) }
       }
-      project.forEachModule(Consumer { module ->
-        module.addDependencyChangedListener(this) { e -> if (e !is PsModule.DependenciesReloadedEvent) dependencyChanged() }
-      })
+      project.forEachModule(
+        Consumer { module ->
+          module.addDependencyChangedListener(this) { e -> if (e !is PsModule.DependenciesReloadedEvent) dependencyChanged() }
+        }
+      )
     }
 
     mainConfigurable.add(
@@ -120,7 +124,9 @@ class PsContextImpl constructor(
         override fun projectStructureChanged() {
           if (!disableSync) this@PsContextImpl.requestGradleModels()
         }
-      }, this)
+      },
+      this,
+    )
 
     Disposer.register(parentDisposable, this)
   }
@@ -151,17 +157,19 @@ class PsContextImpl constructor(
           return@moduleList
         }
         LOG.info("PSD fetched (${moduleList.size} Gradle model(s). Refreshing the UI model.")
-        future = this.project.refreshFrom(moduleList) // partially executes on a background thread, could in principle be interrupted.
-          .handleFailureOnEdt { ex ->
-            LOG.warn("PSD interrupted while refreshing UI model.", ex)
-            gradleSyncEventDispatcher.multicaster.ended()
-          }
-          .continueOnEdt refresh@{
-            future = null
-            if (it == null || disposed) return@refresh
-            gradleSyncEventDispatcher.multicaster.ended()
-            this.project.forEachModule { m -> analyzerDaemon.queueCheck(m) }
-          }
+        future =
+          this.project
+            .refreshFrom(moduleList) // partially executes on a background thread, could in principle be interrupted.
+            .handleFailureOnEdt { ex ->
+              LOG.warn("PSD interrupted while refreshing UI model.", ex)
+              gradleSyncEventDispatcher.multicaster.ended()
+            }
+            .continueOnEdt refresh@{
+              future = null
+              if (it == null || disposed) return@refresh
+              gradleSyncEventDispatcher.multicaster.ended()
+              this.project.forEachModule { m -> analyzerDaemon.queueCheck(m) }
+            }
       }
   }
 
@@ -171,7 +179,6 @@ class PsContextImpl constructor(
     }
     gradleSyncEventDispatcher.addListener(listener, parentDisposable)
   }
-
 
   override fun setSelectedModule(gradlePath: String, source: Any) {
     selectedModule = gradlePath
@@ -183,8 +190,8 @@ class PsContextImpl constructor(
   }
 
   /**
-   * Gets a [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and
-   * in the case of an exactly matching request reused.
+   * Gets a [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and in the case
+   * of an exactly matching request reused.
    */
   override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService =
     cachingRepositorySearchFactory.create(module.getArtifactRepositories())
@@ -194,8 +201,7 @@ class PsContextImpl constructor(
     try {
       future?.cancel(true)
       project.applyRunAndReparse(runnable)
-    }
-    finally {
+    } finally {
       disableSync = false
     }
     requestGradleModels()
@@ -218,20 +224,24 @@ class PsContextImpl constructor(
       if (validationIssues.isNotEmpty()) {
         activateSuggestionsView()
         // Display errors and make sure the view is refreshed before the message box below changes the current modality.
-        ApplicationManager.getApplication().invokeAndWait(
-          {
-            analyzerDaemon.issues.remove(PsIssueType.PROJECT_ANALYSIS)
-            analyzerDaemon.addAll(validationIssues, now = true)
-          },
-          ModalityState.any() // Any modality to let the UI update itself while showing the message box.
-        )
-        if (Messages.showDialog(project.ideProject,
-                                "Potential problems found in the configuration. Would you like to review them?",
-                                "Problems Found",
-                                arrayOf("Review", "Ignore and Apply"),
-                                0,
-                                null)
-          != 1) {
+        ApplicationManager.getApplication()
+          .invokeAndWait(
+            {
+              analyzerDaemon.issues.remove(PsIssueType.PROJECT_ANALYSIS)
+              analyzerDaemon.addAll(validationIssues, now = true)
+            },
+            ModalityState.any(), // Any modality to let the UI update itself while showing the message box.
+          )
+        if (
+          Messages.showDialog(
+            project.ideProject,
+            "Potential problems found in the configuration. Would you like to review them?",
+            "Problems Found",
+            arrayOf("Review", "Ignore and Apply"),
+            0,
+            null,
+          ) != 1
+        ) {
           throw ProcessCanceledException()
         }
       }
@@ -243,14 +253,12 @@ class PsContextImpl constructor(
     editedFields.add(fieldId)
   }
 
-  override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> =
-    editedFields.toList().also {
-      editedFields.clear()
-    }
+  override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = editedFields.toList().also { editedFields.clear() }
 }
 
 class PsPathRendererImpl : PsPathRenderer {
   var context: PsContext? = null
+
   override fun PsPath.renderNavigation(specificPlace: PsPath): String {
     val text = this.toString()
     val href = specificPlace.getHyperlinkDestination(context!!).orEmpty()

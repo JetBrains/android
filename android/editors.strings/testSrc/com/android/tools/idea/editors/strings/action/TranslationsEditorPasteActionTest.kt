@@ -41,14 +41,14 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.Producer
+import java.awt.Font
+import java.awt.datatransfer.StringSelection
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.Font
-import java.awt.datatransfer.StringSelection
 
 @RunWith(JUnit4::class)
 class TranslationsEditorPasteActionTest {
@@ -66,12 +66,12 @@ class TranslationsEditorPasteActionTest {
 
     val content =
       """
-      <?xml version="1.0" encoding="utf-8"?>
-      <resources>
-        <string name="app_name">Test App</string>
-        <string name="string1">string 1</string>
-        <string name="string2">string 2</string>
-      </resources>
+      |      <?xml version="1.0" encoding="utf-8"?>
+      |      <resources>
+      |        <string name="app_name">Test App</string>
+      |        <string name="string1">string 1</string>
+      |        <string name="string2">string 2</string>
+      |      </resources>
       """
         .trimMargin()
 
@@ -96,16 +96,13 @@ class TranslationsEditorPasteActionTest {
 
   @Test
   fun constructionCopiesShortcutsFromExistingPasteAction() {
-    assertThat(pasteAction.shortcutSet)
-      .isEqualTo(ActionManager.getInstance().getAction("EditorPaste").shortcutSet)
+    assertThat(pasteAction.shortcutSet).isEqualTo(ActionManager.getInstance().getAction("EditorPaste").shortcutSet)
   }
 
   @Test
   fun nullTransferable() {
     val dataContext = createDataContext(editor, psiFile)
-    runInEdtAndWait {
-      pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext)
-    }
+    runInEdtAndWait { pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext) }
     assertThat(editor.getUserData(EditorEx.LAST_PASTED_REGION)).isNull()
   }
 
@@ -114,11 +111,7 @@ class TranslationsEditorPasteActionTest {
     val newTag = """<string name="string2">string 2</string>"""
     val dataContext = createDataContext(editor, psiFile, newTag)
     val initialOffset = runInEdtAndGet { editor.caretModel.currentCaret.offset }
-    runInEdtAndWait {
-      runUndoTransparentWriteAction {
-        pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext)
-      }
-    }
+    runInEdtAndWait { runUndoTransparentWriteAction { pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext) } }
     val lastPastedRegion = TextRange(initialOffset, initialOffset + newTag.length)
     assertThat(editor.getUserData(EditorEx.LAST_PASTED_REGION)).isEqualTo(lastPastedRegion)
     assertThat(editor.document.text).contains(newTag)
@@ -134,9 +127,7 @@ class TranslationsEditorPasteActionTest {
     textEditor.component.font = originalFont
 
     runInEdtAndWait {
-      runUndoTransparentWriteAction {
-        pasteAction.handler.execute(textEditor, textEditor.caretModel.currentCaret, dataContext)
-      }
+      runUndoTransparentWriteAction { pasteAction.handler.execute(textEditor, textEditor.caretModel.currentCaret, dataContext) }
     }
   }
 
@@ -147,11 +138,7 @@ class TranslationsEditorPasteActionTest {
     val originalFont = Font(Font.MONOSPACED, Font.BOLD, 16)
     editor.component.font = originalFont
 
-    runInEdtAndWait {
-      runUndoTransparentWriteAction {
-        pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext)
-      }
-    }
+    runInEdtAndWait { runUndoTransparentWriteAction { pasteAction.handler.execute(editor, editor.caretModel.currentCaret, dataContext) } }
     assertThat(editor.component.font).isEqualTo(originalFont)
   }
 
@@ -174,11 +161,7 @@ class TranslationsEditorPasteActionTest {
       .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)
       .build()
 
-  private fun createDataContext(
-    editor: Editor,
-    psiFile: PsiFile,
-    content: String? = null,
-  ): DataContext =
+  private fun createDataContext(editor: Editor, psiFile: PsiFile, content: String? = null): DataContext =
     SimpleDataContext.builder()
       .add(PasteAction.TRANSFERABLE_PROVIDER, Producer { content?.let { StringSelection(it) } })
       .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)

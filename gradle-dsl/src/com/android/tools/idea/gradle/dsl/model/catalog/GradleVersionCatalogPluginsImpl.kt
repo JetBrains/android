@@ -26,22 +26,21 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.intellij.psi.PsiElement
 
-class GradleVersionCatalogPluginsImpl(private val dslElement: GradlePropertiesDslElement) : GradleDslBlockModel(
-  dslElement), GradleVersionCatalogPlugins {
-  override fun getAllAliases(): Set<String> =
-    dslElement.propertyElements.map { it.key }.toSet()
-
+class GradleVersionCatalogPluginsImpl(private val dslElement: GradlePropertiesDslElement) :
+  GradleDslBlockModel(dslElement), GradleVersionCatalogPlugins {
+  override fun getAllAliases(): Set<String> = dslElement.propertyElements.map { it.key }.toSet()
 
   override fun getAll(): Map<String, PluginDeclarationModel> =
-    dslElement.allPropertyElements.flatMap { dslProperty ->
-      val alias = dslProperty.nameElement.name()
-      return@flatMap when (dslProperty) {
-        is GradleDslLiteral -> listOf(alias to PluginDeclarationModelImpl.LiteralPluginDeclarationModel(dslProperty))
-        is GradleDslExpressionMap -> listOf(alias to PluginDeclarationModelImpl.MapPluginDeclarationModel(dslProperty))
-        else -> listOf()
+    dslElement.allPropertyElements
+      .flatMap { dslProperty ->
+        val alias = dslProperty.nameElement.name()
+        return@flatMap when (dslProperty) {
+          is GradleDslLiteral -> listOf(alias to PluginDeclarationModelImpl.LiteralPluginDeclarationModel(dslProperty))
+          is GradleDslExpressionMap -> listOf(alias to PluginDeclarationModelImpl.MapPluginDeclarationModel(dslProperty))
+          else -> listOf()
+        }
       }
-    }.toMap()
-
+      .toMap()
 
   override fun addDeclaration(alias: String, compactNotation: String) {
     PluginDeclarationModelImpl.LiteralPluginDeclarationModel.createNew(myDslElement, alias, compactNotation)

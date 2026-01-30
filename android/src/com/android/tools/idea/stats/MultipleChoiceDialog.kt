@@ -36,28 +36,23 @@ import javax.swing.JPanel
 private const val SUBMIT_BUTTON_TEXT = "Submit"
 private const val NEXT_BUTTON_TEXT = "Next"
 
-/**
- * Dialog presenting a survey for users with a list of options and requesting multiple answers
- */
-class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?)
-  : DialogWrapper(null), ActionListener, ItemListener {
+/** Dialog presenting a survey for users with a list of options and requesting multiple answers */
+class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?) :
+  DialogWrapper(null), ActionListener, ItemListener {
   val checkBoxes = mutableListOf<JCheckBox>()
 
-  val content: JComponent = Box.createVerticalBox().apply {
-    border = JBUI.Borders.empty(0, 0, 30, 50)
-    add(JBLabel(survey.question))
-    add(Box.createVerticalStrut(JBUI.scale(10)))
+  val content: JComponent =
+    Box.createVerticalBox().apply {
+      border = JBUI.Borders.empty(0, 0, 30, 50)
+      add(JBLabel(survey.question))
+      add(Box.createVerticalStrut(JBUI.scale(10)))
 
-    survey.optionsList.forEach {
-      add(createButton(it))
+      survey.optionsList.forEach { add(createButton(it)) }
     }
-  }
 
   init {
     isAutoAdjustable = true
-    setOKButtonText(
-      followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT
-    )
+    setOKButtonText(followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT)
     setResizable(false)
     title = survey.title
     isOKActionEnabled = false
@@ -81,9 +76,7 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
     super.doCancelAction(source)
   }
 
-  /**
-   * Implementation of [ItemListener] to handle keyboard selection.
-   */
+  /** Implementation of [ItemListener] to handle keyboard selection. */
   override fun itemStateChanged(e: ItemEvent) {
     handleSelection()
   }
@@ -95,34 +88,36 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   private fun handleSelection() {
     val selectedCount = checkBoxes.count { it.isSelected }
 
-    checkBoxes.forEach {
-      it.isEnabled = it.isSelected || selectedCount < survey.answerCount
-    }
+    checkBoxes.forEach { it.isEnabled = it.isSelected || selectedCount < survey.answerCount }
 
     val minimum = if (survey.answerPolicy == Survey.AnswerPolicy.LAX) 1 else survey.answerCount
     isOKActionEnabled = selectedCount >= minimum
   }
 
-  private fun createButton(option: Option) = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    alignmentX = JPanel.LEFT_ALIGNMENT
-    val checkBox = JCheckBox().apply {
-      addActionListener(this@MultipleChoiceDialog)
-      addItemListener(this@MultipleChoiceDialog)
-    }
-    add(checkBox)
-    checkBoxes.add(checkBox)
-    add(JBLabel(option.label, option.icon, JBLabel.LEFT).apply {
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          delegateActionToCheckBox(checkBox, e)
+  private fun createButton(option: Option) =
+    JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+      alignmentX = JPanel.LEFT_ALIGNMENT
+      val checkBox =
+        JCheckBox().apply {
+          addActionListener(this@MultipleChoiceDialog)
+          addItemListener(this@MultipleChoiceDialog)
         }
-      })
-    })
-  }
+      add(checkBox)
+      checkBoxes.add(checkBox)
+      add(
+        JBLabel(option.label, option.icon, JBLabel.LEFT).apply {
+          addMouseListener(
+            object : MouseAdapter() {
+              override fun mouseClicked(e: MouseEvent) {
+                delegateActionToCheckBox(checkBox, e)
+              }
+            }
+          )
+        }
+      )
+    }
 
-  /**
-   * Select the button when the user clicks the label
-   */
+  /** Select the button when the user clicks the label */
   private fun delegateActionToCheckBox(checkBox: JCheckBox, e: MouseEvent) {
     checkBox.requestFocus()
     checkBox.isSelected = true

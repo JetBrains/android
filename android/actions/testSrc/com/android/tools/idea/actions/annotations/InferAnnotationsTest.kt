@@ -162,7 +162,7 @@ class InferAnnotationsTest {
             val prop5: Int by lazy { 0 }
         +   @ColorRes
             const val prop6: Int = 0
-        """
+        """,
     )
   }
 
@@ -204,7 +204,7 @@ class InferAnnotationsTest {
           class Test {
         +     @get:IdRes
               private val destinationId by lazy {
-        """
+        """,
     )
   }
 
@@ -229,7 +229,7 @@ class InferAnnotationsTest {
         class Parent(@IdRes private var id: Int)
         class Child(var id: Int) : Parent(id)
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -259,7 +259,7 @@ class InferAnnotationsTest {
           public class Test {
         +     @AnyRes
               private int test(@AnyRes int id) {
-        """
+        """,
     )
   }
 
@@ -296,7 +296,7 @@ class InferAnnotationsTest {
               @CheckResult
         -     @ColorRes
               private int test(@AnyRes int id) {
-        """
+        """,
     )
   }
 
@@ -333,7 +333,7 @@ class InferAnnotationsTest {
               @CheckResult
         -     @ColorRes
               fun test(@AnyRes id: Int) {
-        """
+        """,
     )
   }
 
@@ -354,7 +354,7 @@ class InferAnnotationsTest {
             }
         }
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -388,7 +388,7 @@ class InferAnnotationsTest {
         -     fun test1(arg1: Int = 0, arg2: Int = 0) { }
         +     fun test1(@HalfFloat arg1: Int = 0, arg2: Int = 0) { }
           }
-        """
+        """,
     )
   }
 
@@ -423,7 +423,7 @@ class InferAnnotationsTest {
         Class test.pkg.Parent:
           Method test2():
             @CheckResult because it returns Parent#test annotated with @CheckResult
-        """
+        """,
     )
   }
 
@@ -453,7 +453,7 @@ class InferAnnotationsTest {
         Class test.pkg.Child1:
           Method test():
             @CheckResult because it extends or is overridden by an annotated method
-        """
+        """,
     )
   }
 
@@ -495,7 +495,7 @@ class InferAnnotationsTest {
               override fun test1(): Int = super.test1()
         +     @FloatRange(from = Double.MIN_VALUE, to = Float.MAX_VALUE.toDouble())
               override fun test2(): Int = super.test2()
-        """
+        """,
     )
   }
 
@@ -518,7 +518,7 @@ class InferAnnotationsTest {
             }
         }
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -550,7 +550,7 @@ class InferAnnotationsTest {
           Method test1(int,int):
             Parameter int arg2:
               @ColorRes because it's passed e (a color) in a call from JavaTest#test1
-        """
+        """,
     )
   }
 
@@ -611,9 +611,9 @@ class InferAnnotationsTest {
               void paint(@DrawableRes int d) {
               }
           }
-          """
+          """,
           )
-        )
+        ),
     )
   }
 
@@ -659,7 +659,7 @@ class InferAnnotationsTest {
         -                     public void setPadding(int left, int top, int right, int bottom) {
         +                     public void setPadding(int left, int top, int right, @Px int bottom) {
                                   super.setPadding(left, top, right, bottom);
-        """
+        """,
     )
   }
 
@@ -727,7 +727,7 @@ class InferAnnotationsTest {
         @@ -23 +22
         + fun test2(@Px w: Int) { }
         """,
-      includeAndroidJar = true
+      includeAndroidJar = true,
     )
   }
 
@@ -764,7 +764,7 @@ class InferAnnotationsTest {
             }
         }
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -790,7 +790,7 @@ class InferAnnotationsTest {
         }
         """,
       expectedReport = "Nothing found.",
-      includeAndroidJar = true
+      includeAndroidJar = true,
     )
   }
 
@@ -838,7 +838,7 @@ class InferAnnotationsTest {
         }
         """,
       expectedReport = "Nothing found.",
-      includeAndroidJar = true
+      includeAndroidJar = true,
     )
   }
 
@@ -891,7 +891,7 @@ class InferAnnotationsTest {
         +     @RequiresPermission(Manifest.permission.CAMERA)
               public void requiresPermission2() {
         """,
-      includeAndroidJar = true
+      includeAndroidJar = true,
     )
   }
 
@@ -937,7 +937,7 @@ class InferAnnotationsTest {
               fun getSecondaryAlpha() = getAlpha()
         +     @IntRange(from = 0L, to = 255L)
               fun getSecondaryViewAlpha(): Int { return getViewAlpha() }
-        """
+        """,
     )
   }
 
@@ -996,7 +996,7 @@ class InferAnnotationsTest {
     // we stringify these properly to Kotlin
     checkKotlin(
       before =
-      """
+        """
         package test.pkg
 
         import test.pkg.JavaTest.call2
@@ -1011,7 +1011,7 @@ class InferAnnotationsTest {
         }
         """,
       expectedReport =
-      """
+        """
         Function test.pkg.test():
           @IntRange(from = MY_VALUE, to = Long.MAX_VALUE) because it returns JavaTest#call annotated with @IntRange(from = MY_VALUE, to = Long.MAX_VALUE)
         Function test.pkg.test2():
@@ -1021,7 +1021,7 @@ class InferAnnotationsTest {
       // In the below, we should be getting a fully qualified name reference to MY_CONSTANT,
       // but it doesn't resolve from unit tests.
       expectedDiffs =
-      """
+        """
         @@ -5 +5
           import androidx.annotation.*
         + import java.lang.Long
@@ -1064,7 +1064,7 @@ class InferAnnotationsTest {
                   return 0;
               }
           }
-          """
+          """,
       ),
       fixture.addFileToProject(
         "test/pkg/Constants.kt",
@@ -1076,7 +1076,7 @@ class InferAnnotationsTest {
                   const val MY_CONSTANT = 10L
               }
           }
-          """
+          """,
       ),
     )
 
@@ -1110,7 +1110,7 @@ class InferAnnotationsTest {
         InferAnnotationsSettings().apply {
           resources = false
           inherit = false
-        }
+        },
     )
   }
 
@@ -1131,7 +1131,7 @@ class InferAnnotationsTest {
         }
         """,
       expectedReport = "Nothing found.",
-      settings = InferAnnotationsSettings().apply { publicOnly = true }
+      settings = InferAnnotationsSettings().apply { publicOnly = true },
     )
   }
 
@@ -1153,7 +1153,7 @@ class InferAnnotationsTest {
         }
         """,
       expectedReport = "Nothing found.",
-      settings = InferAnnotationsSettings().apply { publicOnly = true }
+      settings = InferAnnotationsSettings().apply { publicOnly = true },
     )
   }
 
@@ -1180,7 +1180,7 @@ class InferAnnotationsTest {
           Method callee(int):
             Parameter int arg1:
               @DrawableRes because it's passed d (a drawable) in a call from InferTypes#caller
-        """
+        """,
     )
   }
 
@@ -1210,7 +1210,7 @@ class InferAnnotationsTest {
           Method test1target(int,int,int,int):
             Parameter int arg3:
               @DrawableRes because it's passed d (a drawable) in a call from InferTypes#test1
-        """
+        """,
     )
   }
 
@@ -1232,7 +1232,7 @@ class InferAnnotationsTest {
         Class test.pkg.InferTypes:
           Property test2:
             @StringRes because it's assigned android.R.string.ok
-        """
+        """,
     )
   }
 
@@ -1255,7 +1255,7 @@ class InferAnnotationsTest {
         Class test.pkg.InferTypes:
           Field test2:
             @StringRes because it's assigned android.R.string.ok
-        """
+        """,
     )
   }
 
@@ -1295,7 +1295,7 @@ class InferAnnotationsTest {
             @StringRes because it returns InferTypes#test3 annotated with @StringRes
           Property test3:
             @StringRes because it's assigned test3a(0), a string
-        """
+        """,
     )
   }
 
@@ -1336,7 +1336,7 @@ class InferAnnotationsTest {
             @DimenRes because it returns android.R.dimen.app_icon_size
             @DrawableRes because it returns d2, a drawable
             @StringRes because it returns s, a string
-        """
+        """,
     )
   }
 
@@ -1366,7 +1366,7 @@ class InferAnnotationsTest {
         Class test.pkg.InferTypes:
           Method test5(int,int,boolean):
             @AnyRes because it returns a annotated with @AnyRes
-        """
+        """,
     )
   }
 
@@ -1406,7 +1406,7 @@ class InferAnnotationsTest {
         -     fun test6(unknown: Int) {
         +     fun test6(@AnyRes unknown: Int) {
               }
-        """
+        """,
     )
   }
 
@@ -1431,7 +1431,7 @@ class InferAnnotationsTest {
             }
         }
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -1454,7 +1454,7 @@ class InferAnnotationsTest {
             }
         }
         """,
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -1490,7 +1490,7 @@ class InferAnnotationsTest {
         +     class Child1 : Parent1() { @StringRes
         +     override fun test(@DrawableRes d: Int): Int = 0 }
           }
-        """
+        """,
     )
   }
 
@@ -1512,7 +1512,7 @@ class InferAnnotationsTest {
         """,
       // For now, we don't push requirements *up* in the hierarchy. Maybe we should... maybe we
       // shouldn't....
-      expectedReport = "Nothing found."
+      expectedReport = "Nothing found.",
     )
   }
 
@@ -1548,7 +1548,7 @@ class InferAnnotationsTest {
         - fun test11(p1: Int, p2: Int, p3: Int) {
         + fun test11(@ColorInt p1: Int, @Px p2: Int, @StyleableRes p3: Int) {
               paint(p1, p2)
-        """
+        """,
     )
   }
 
@@ -1584,7 +1584,7 @@ class InferAnnotationsTest {
         - fun test11(p1: Int, p2: Int, p3: Int) {
         + fun test11(@Px p1: Int, @Dimension(SP) p2: Int, @Dimension(DP) p3: Int) {
               paint(p1, p2, p3)
-        """
+        """,
     )
   }
 
@@ -1632,7 +1632,7 @@ class InferAnnotationsTest {
               public void paint(@DrawableRes Integer drawable) {
               }
           }
-          """
+          """,
           )
         ),
     )
@@ -1689,7 +1689,7 @@ class InferAnnotationsTest {
       """
       Function test.pkg.unknownReturnType():
         @DimenRes because it returns getKnownReturnType annotated with @DimenRes
-      """
+      """,
     )
   }
 
@@ -1760,7 +1760,7 @@ class InferAnnotationsTest {
               }
         +     @RequiresPermission("mypermission")
               boolean impliedPermissionByStringLiteral() {
-        """
+        """,
     )
   }
 
@@ -1846,7 +1846,7 @@ class InferAnnotationsTest {
         + @RequiresPermission(ACCESS_COARSE_LOCATION)
           fun callSingle3() {
         """,
-      includeAndroidJar = true
+      includeAndroidJar = true,
     )
   }
 
@@ -1877,7 +1877,7 @@ class InferAnnotationsTest {
         -         int drawable = 0;
         +         @DrawableRes int drawable = 0;
                   call(drawable);
-        """
+        """,
     )
   }
 
@@ -1914,7 +1914,7 @@ class InferAnnotationsTest {
         @@ -7 +7
         +     @RequiresPermission(EnforcePermission.MY_PERMISSION)
               public void unconditionalPermission() {
-        """
+        """,
     )
   }
 
@@ -2029,7 +2029,7 @@ class InferAnnotationsTest {
         @@ -16 +21
         +     @Keep
               public static void usedFromReflection2(String value) {
-        """
+        """,
     )
   }
 
@@ -2144,7 +2144,7 @@ class InferAnnotationsTest {
               fun usedFromReflection2(value: String?) {}
         +     @Keep
               fun usedFromReflection2(list: List<String>) {}
-        """
+        """,
     )
   }
 
@@ -2176,7 +2176,7 @@ class InferAnnotationsTest {
         """
         Property isDebugInspectorInfoEnabled:
           @Keep because it is called reflectively from enableDebugInspectorInfo
-        """
+        """,
     )
   }
 
@@ -2207,7 +2207,7 @@ class InferAnnotationsTest {
       INFER_PATH + "A.java",
       INFER_PATH + "B.java",
       INFER_PATH + "C.java",
-      INFER_PATH + "D.java"
+      INFER_PATH + "D.java",
     )
   }
 
@@ -2254,7 +2254,7 @@ class InferAnnotationsTest {
         Method inferParameterFromMethodCall(int,int) (Hidden):
           Parameter int id:
             @DimenRes because it's passed to the id parameter in InferParameterFromUsage#getDimensionPixelSize, a dimension
-      """
+      """,
     )
   }
 
@@ -2282,7 +2282,7 @@ class InferAnnotationsTest {
         Method inferParameterFromMethodCall(int,int) (Hidden):
           Parameter int id:
             @DimenRes because it's passed to the id parameter in InferParameterFromUsage#getDimensionPixelSize, a dimension
-      """
+      """,
     )
   }
 
@@ -2303,9 +2303,8 @@ class InferAnnotationsTest {
   }
 
   /**
-   * Given [before], a Java string containing a source file, this method runs inference, and then
-   * optionally checks that the generated report matches [expectedReport] and that when we apply the
-   * suggestions the resulting file is updated to match [after].
+   * Given [before], a Java string containing a source file, this method runs inference, and then optionally checks that the generated
+   * report matches [expectedReport] and that when we apply the suggestions the resulting file is updated to match [after].
    */
   private fun checkJava(
     @Language("java") before: String = "",
@@ -2314,24 +2313,14 @@ class InferAnnotationsTest {
     expectedDiffs: String? = null,
     settings: InferAnnotationsSettings = InferAnnotationsSettings(),
     includeAndroidJar: Boolean = false,
-    vararg extraFiles: PsiFile
+    vararg extraFiles: PsiFile,
   ) {
-    doTest(
-      JavaFileType.INSTANCE,
-      before,
-      expectedReport,
-      after,
-      expectedDiffs,
-      settings,
-      includeAndroidJar,
-      *extraFiles
-    )
+    doTest(JavaFileType.INSTANCE, before, expectedReport, after, expectedDiffs, settings, includeAndroidJar, *extraFiles)
   }
 
   /**
-   * Given [before], a Kotlin string containing a source file, this method runs inference, and then
-   * optionally checks that the generated report matches [expectedReport] and that when we apply the
-   * suggestions the resulting file is updated to match [after].
+   * Given [before], a Kotlin string containing a source file, this method runs inference, and then optionally checks that the generated
+   * report matches [expectedReport] and that when we apply the suggestions the resulting file is updated to match [after].
    */
   private fun checkKotlin(
     @Language("kotlin") before: String = "",
@@ -2340,24 +2329,14 @@ class InferAnnotationsTest {
     expectedDiffs: String? = null,
     settings: InferAnnotationsSettings = InferAnnotationsSettings(),
     includeAndroidJar: Boolean = false,
-    vararg extraFiles: PsiFile
+    vararg extraFiles: PsiFile,
   ) {
-    doTest(
-      KotlinFileType.INSTANCE,
-      before,
-      expectedReport,
-      after,
-      expectedDiffs,
-      settings,
-      includeAndroidJar,
-      *extraFiles
-    )
+    doTest(KotlinFileType.INSTANCE, before, expectedReport, after, expectedDiffs, settings, includeAndroidJar, *extraFiles)
   }
 
   /**
-   * Given a [before] string containing a source file of type [fileType], runs inference, and then
-   * optionally checks that the generated report matches [expectedReport] and that when we apply the
-   * suggestions the resulting file is updated to match [after].
+   * Given a [before] string containing a source file of type [fileType], runs inference, and then optionally checks that the generated
+   * report matches [expectedReport] and that when we apply the suggestions the resulting file is updated to match [after].
    */
   private fun doTest(
     fileType: FileType,
@@ -2367,7 +2346,7 @@ class InferAnnotationsTest {
     expectedDiffs: String? = null,
     settings: InferAnnotationsSettings = InferAnnotationsSettings(),
     includeAndroidJar: Boolean = false,
-    vararg extraFiles: PsiFile
+    vararg extraFiles: PsiFile,
   ) {
     assertThat(expectedReport ?: after ?: expectedDiffs).isNotNull()
     doTest(
@@ -2417,21 +2396,16 @@ class InferAnnotationsTest {
         }
       },
       settings = settings,
-      includeAndroidJar = includeAndroidJar
+      includeAndroidJar = includeAndroidJar,
     )
   }
 
   private fun getDiff(left: String, right: String) =
-    TestUtils.getDiff(left, right, 1)
-      .trim()
-      .lines()
-      .map { it.trimEnd() }
-      .filter { it.isNotBlank() }
-      .joinToString("\n")
+    TestUtils.getDiff(left, right, 1).trim().lines().map { it.trimEnd() }.filter { it.isNotBlank() }.joinToString("\n")
 
   /**
-   * Loads the test file named after the calling unit test, runs inference on it, generates an
-   * inference report and compares it to [expectedReport].
+   * Loads the test file named after the calling unit test, runs inference on it, generates an inference report and compares it to
+   * [expectedReport].
    */
   private fun doTest(expectedReport: String?) {
     val name = testName.methodName.replaceFirstChar(Char::uppercaseChar) + ".java"
@@ -2445,19 +2419,15 @@ class InferAnnotationsTest {
         expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) }
         inference.apply(inference.settings, project)
         fixture.checkResultByFile(INFER_PATH + "after" + name)
-      }
+      },
     )
   }
 
   /**
-   * Loads the test file named after the calling unit test, adds in all the extra [filePaths], and
-   * runs inference across all those files, generates an inference report and compares it to
-   * [expectedReport].
+   * Loads the test file named after the calling unit test, adds in all the extra [filePaths], and runs inference across all those files,
+   * generates an inference report and compares it to [expectedReport].
    */
-  private fun doTest(
-    @Suppress("SameParameterValue") expectedReport: String?,
-    vararg filePaths: String
-  ) {
+  private fun doTest(@Suppress("SameParameterValue") expectedReport: String?, vararg filePaths: String) {
     assert(filePaths.isNotEmpty()) // should have chosen other override
     doTest(
       setup = { inference ->
@@ -2472,22 +2442,17 @@ class InferAnnotationsTest {
         }
         AnalysisScope(project, virtualFiles)
       },
-      verify = { _, report ->
-        expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) }
-      }
+      verify = { _, report -> expectedReport?.let { assertThat(report).isEqualTo(it.trimIndent()) } },
     )
   }
 
-  /**
-   * Generic test which performs environment setup and invokes various callbacks to do additional
-   * configuration and verification.
-   */
+  /** Generic test which performs environment setup and invokes various callbacks to do additional configuration and verification. */
   private fun doTest(
     create: (InferAnnotationsSettings) -> InferAnnotations = { InferAnnotations(it, project) },
     setup: (InferAnnotations) -> AnalysisScope,
     verify: (InferAnnotations, String) -> Unit,
     settings: InferAnnotationsSettings = InferAnnotationsSettings(),
-    includeAndroidJar: Boolean = false
+    includeAndroidJar: Boolean = false,
   ) {
     if (!INFER_ANNOTATIONS_REFACTORING_ENABLED.get()) {
       return

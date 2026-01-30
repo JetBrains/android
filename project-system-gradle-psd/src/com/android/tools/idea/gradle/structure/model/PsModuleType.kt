@@ -33,34 +33,37 @@ enum class PsModuleType(val androidModuleType: AndroidModuleSystem.Type? = null)
   JAVA,
 }
 
-fun moduleTypeFromAndroidModuleType(androidModuleType: IdeAndroidProjectType?): PsModuleType = when (androidModuleType) {
-  null -> PsModuleType.UNKNOWN
-  IdeAndroidProjectType.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
-  IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
-  IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> PsModuleType.ANDROID_KMP_LIBRARY
-  IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
-  IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
-  IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
-  IdeAndroidProjectType.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
-  IdeAndroidProjectType.PROJECT_TYPE_ATOM -> PsModuleType.UNKNOWN
-  IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> PsModuleType.ANDROID_FUSED_LIBRARY
-}
+fun moduleTypeFromAndroidModuleType(androidModuleType: IdeAndroidProjectType?): PsModuleType =
+  when (androidModuleType) {
+    null -> PsModuleType.UNKNOWN
+    IdeAndroidProjectType.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
+    IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> PsModuleType.ANDROID_KMP_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
+    IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
+    IdeAndroidProjectType.PROJECT_TYPE_ATOM -> PsModuleType.UNKNOWN
+    IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> PsModuleType.ANDROID_FUSED_LIBRARY
+  }
 
-fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
-  "java", "java-library" -> PsModuleType.JAVA
-  "com.android.application", "android" -> PsModuleType.ANDROID_APP
-  "com.android.library", "android-library" -> PsModuleType.ANDROID_LIBRARY
-  "com.android.fusedlibrary" -> PsModuleType.ANDROID_FUSED_LIBRARY
-  "com.android.instantapp" -> PsModuleType.ANDROID_INSTANTAPP
-  "com.android.feature" -> PsModuleType.ANDROID_FEATURE
-  "com.android.dynamic-feature" -> PsModuleType.ANDROID_DYNAMIC_FEATURE
-  "com.android.test" -> PsModuleType.ANDROID_TEST
-  "com.android.kotlin.multiplatform.library" -> PsModuleType.ANDROID_KMP_LIBRARY
-  else -> PsModuleType.UNKNOWN
-}
+fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType =
+  when (plugin) {
+    "java",
+    "java-library" -> PsModuleType.JAVA
+    "com.android.application",
+    "android" -> PsModuleType.ANDROID_APP
+    "com.android.library",
+    "android-library" -> PsModuleType.ANDROID_LIBRARY
+    "com.android.fusedlibrary" -> PsModuleType.ANDROID_FUSED_LIBRARY
+    "com.android.instantapp" -> PsModuleType.ANDROID_INSTANTAPP
+    "com.android.feature" -> PsModuleType.ANDROID_FEATURE
+    "com.android.dynamic-feature" -> PsModuleType.ANDROID_DYNAMIC_FEATURE
+    "com.android.test" -> PsModuleType.ANDROID_TEST
+    "com.android.kotlin.multiplatform.library" -> PsModuleType.ANDROID_KMP_LIBRARY
+    else -> PsModuleType.UNKNOWN
+  }
 
 fun GradleBuildModel.parsedModelModuleType(): PsModuleType =
-    appliedPlugins()
-        .mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }
-        .firstOrNull { it != PsModuleType.UNKNOWN }
+  appliedPlugins().mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }.firstOrNull { it != PsModuleType.UNKNOWN }
     ?: PsModuleType.UNKNOWN

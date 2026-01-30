@@ -33,29 +33,36 @@ internal fun getAdditionalClassifierArtifactsModel(
 
   actionRunner.runActions(
     inputModules.map { module ->
-      ActionToRun(fun(controller: BuildController) {
-        if (!module.modelVersions[ModelFeature.SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL]) return
-        // Studio starts to manage the MultiVariantArtifactSupport when we add source list for each library based on
-        // useMultiVariantAdditionalArtifactSupport. Before that, it is uncertain whether this additional artifact model fetching should
-        // be skipped because additional artifacts might be passed from the build side.
-        if (module.modelVersions[ModelFeature.HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES] && useMultiVariantAdditionalArtifactSupport) return
+      ActionToRun(
+        fun(controller: BuildController) {
+          if (!module.modelVersions[ModelFeature.SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL]) return
+          // Studio starts to manage the MultiVariantArtifactSupport when we add source list for each library based on
+          // useMultiVariantAdditionalArtifactSupport. Before that, it is uncertain whether this additional artifact model fetching should
+          // be skipped because additional artifacts might be passed from the build side.
+          if (
+            module.modelVersions[ModelFeature.HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES] &&
+              useMultiVariantAdditionalArtifactSupport
+          )
+            return
 
-        // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
-        val identifiers = module.getLibraryDependencies(libraryResolver).filter {
-          !cachedLibraries.contains(idToString(it)) && it.version != "unspecified"
+          // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
+          val identifiers =
+            module.getLibraryDependencies(libraryResolver).filter {
+              !cachedLibraries.contains(idToString(it)) && it.version != "unspecified"
+            }
+
+          // Query for AdditionalClassifierArtifactsModel model.
+          // Since we operate on one module at a time it is safe to run on multiple threads.
+          module.additionalClassifierArtifacts =
+            controller.findModel(
+              module.findModelRoot,
+              AdditionalClassifierArtifactsModel::class.java,
+              AdditionalClassifierArtifactsModelParameter::class.java,
+            ) { parameter ->
+              parameter.artifactIdentifiers = identifiers
+            }
         }
-
-        // Query for AdditionalClassifierArtifactsModel model.
-        // Since we operate on one module at a time it is safe to run on multiple threads.
-        module.additionalClassifierArtifacts =
-          controller.findModel(
-            module.findModelRoot,
-            AdditionalClassifierArtifactsModel::class.java,
-            AdditionalClassifierArtifactsModelParameter::class.java
-          ) { parameter ->
-            parameter.artifactIdentifiers = identifiers
-          }
-      })  // No known incompatibilities if Gradle is compatible.
+      ) // No known incompatibilities if Gradle is compatible.
     }
   )
 }

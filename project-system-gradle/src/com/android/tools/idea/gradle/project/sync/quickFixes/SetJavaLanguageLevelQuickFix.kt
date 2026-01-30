@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
@@ -38,15 +38,18 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.Arrays
 import java.util.concurrent.CompletableFuture
 import java.util.stream.Collectors
+import org.jetbrains.android.facet.AndroidFacet
 
-abstract class AbstractSetJavaLanguageLevelQuickFix(val level: LanguageLevel,
-                                                    private val setJvmTarget: Boolean,
-                                                    private val modulesDescription: String) : DescribedBuildIssueQuickFix {
-  override val description = "Change Java language level${if (setJvmTarget) " and jvmTarget" else ""} to ${level.toJavaVersion().feature} in $modulesDescription if using a lower level."
+abstract class AbstractSetJavaLanguageLevelQuickFix(
+  val level: LanguageLevel,
+  private val setJvmTarget: Boolean,
+  private val modulesDescription: String,
+) : DescribedBuildIssueQuickFix {
+  override val description =
+    "Change Java language level${if (setJvmTarget) " and jvmTarget" else ""} to ${level.toJavaVersion().feature} in $modulesDescription if using a lower level."
 
   abstract fun buildFilesToApply(project: Project): List<VirtualFile>
 
@@ -57,8 +60,7 @@ abstract class AbstractSetJavaLanguageLevelQuickFix(val level: LanguageLevel,
         setJavaLevelInBuildFiles(project, setJvmTarget)
       }
       future.complete(null)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       future.completeExceptionally(e)
     }
     return future
@@ -69,10 +71,12 @@ abstract class AbstractSetJavaLanguageLevelQuickFix(val level: LanguageLevel,
     val buildFiles = buildFilesToApply(project)
     if (buildFiles.isEmpty()) {
       // There is nothing to change, show an error message
-      Messages.showErrorDialog(project, "Could not determine build files to apply fix",
-                               "Change Java language level to ${level.toJavaVersion().feature}}")
-    }
-    else {
+      Messages.showErrorDialog(
+        project,
+        "Could not determine build files to apply fix",
+        "Change Java language level to ${level.toJavaVersion().feature}}",
+      )
+    } else {
       val processor = SetJavaLanguageLevelProcessor(project, buildFiles, level, jvmTarget, modulesDescription)
       processor.setPreviewUsages(true)
       processor.run()
@@ -80,18 +84,15 @@ abstract class AbstractSetJavaLanguageLevelQuickFix(val level: LanguageLevel,
   }
 }
 
-class SetJavaLanguageLevelAllQuickFix(level: LanguageLevel, setJvmTarget: Boolean) : AbstractSetJavaLanguageLevelQuickFix(level,
-                                                                                                                          setJvmTarget,
-                                                                                                                          "all modules") {
+class SetJavaLanguageLevelAllQuickFix(level: LanguageLevel, setJvmTarget: Boolean) :
+  AbstractSetJavaLanguageLevelQuickFix(level, setJvmTarget, "all modules") {
   override val id = "set.java.level.${level.name}.all"
 
   override fun buildFilesToApply(project: Project) = project.allBuildFiles()
 }
 
-class SetJavaLanguageLevelModuleQuickFix(val modulePath: String,
-                                         level: LanguageLevel,
-                                         setJvmTarget: Boolean) : AbstractSetJavaLanguageLevelQuickFix(level, setJvmTarget,
-                                                                                                       "module $modulePath") {
+class SetJavaLanguageLevelModuleQuickFix(val modulePath: String, level: LanguageLevel, setJvmTarget: Boolean) :
+  AbstractSetJavaLanguageLevelQuickFix(level, setJvmTarget, "module $modulePath") {
   override val id = "set.java.level.${level.name}.module"
 
   override fun buildFilesToApply(project: Project): List<VirtualFile> {
@@ -104,14 +105,14 @@ private class SetJavaLanguageLevelProcessor(
   private val buildFiles: List<VirtualFile>,
   val level: LanguageLevel,
   val setJvmTarget: Boolean,
-  private val modulesDescription: String)
-  : BaseRefactoringProcessor(project) {
+  private val modulesDescription: String,
+) : BaseRefactoringProcessor(project) {
   /**
    * For Java compatibility looks for android.compileOptions.sourceCompatibility and android.compileOptions.targetCompatibility and adds
    * usage if its value is lower than [level]. If the elements do not exist then adds usage of the parents.
    *
-   * If setJvmTarget is true, also looks for android.kotlinOptions.jvmTarget and adds usage if its value is lower than [level]. If the elements
-   * do not exist then adds usage of the parents.
+   * If setJvmTarget is true, also looks for android.kotlinOptions.jvmTarget and adds usage if its value is lower than [level]. If the
+   * elements do not exist then adds usage of the parents.
    */
   protected override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
@@ -132,13 +133,11 @@ private class SetJavaLanguageLevelProcessor(
       fun getCompatibilityUsage(languageCompatibility: LanguageLevelPropertyModel): PsiElement? {
         if (compileOptionsElement == null) {
           return androidElement
-        }
-        else {
+        } else {
           val languageCompatibilityElement = languageCompatibility.fullExpressionPsiElement
           if (languageCompatibilityElement == null) {
             return compileOptionsElement
-          }
-          else {
+          } else {
             if (languageCompatibility.toLanguageLevel()!!.isLessThan(level)) {
               return languageCompatibilityElement
             }
@@ -160,16 +159,13 @@ private class SetJavaLanguageLevelProcessor(
         val kotlinOptionsElement = (kotlinOptions as GradleDslBlockModel).psiElement
         if (kotlinOptionsElement == null) {
           elementToUsage.getOrPut(androidElement) { SetJavaLevelUsageInfo(androidElement, file, level) }.setKotlinTarget = true
-        }
-        else {
+        } else {
           val jvmTarget = kotlinOptions.jvmTarget()
           val jvmTargetElement = jvmTarget.fullExpressionPsiElement
           if (jvmTargetElement == null) {
-            elementToUsage.getOrPut(kotlinOptionsElement) {
-              SetJavaLevelUsageInfo(kotlinOptionsElement, file, level)
-            }.setKotlinTarget = true
-          }
-          else {
+            elementToUsage.getOrPut(kotlinOptionsElement) { SetJavaLevelUsageInfo(kotlinOptionsElement, file, level) }.setKotlinTarget =
+              true
+          } else {
             if (jvmTarget.toLanguageLevel()!!.isLessThan(level)) {
               elementToUsage.getOrPut(jvmTargetElement) { SetJavaLevelUsageInfo(jvmTargetElement, file, level) }.setKotlinTarget = true
             }
@@ -184,9 +180,7 @@ private class SetJavaLanguageLevelProcessor(
   override fun performRefactoring(usages: Array<out UsageInfo>) {
     val projectBuildModel = ProjectBuildModel.get(myProject)
     for (file in buildFiles) {
-      val fileUsages = Arrays.stream(usages)
-        .filter { it is SetJavaLevelUsageInfo && it.buildFile == file }
-        .collect(Collectors.toList())
+      val fileUsages = Arrays.stream(usages).filter { it is SetJavaLevelUsageInfo && it.buildFile == file }.collect(Collectors.toList())
       if (fileUsages.isEmpty()) {
         continue
       }
@@ -244,37 +238,32 @@ private class SetJavaLevelUsageInfo(element: PsiElement, val buildFile: VirtualF
   }
 }
 
-fun Project.allBuildFiles(): List<VirtualFile> = ProjectFacetManager.getInstance(this)
-  .getModulesWithFacet(AndroidFacet.ID)
-  .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
-  .mapNotNull { it.buildFileAsVirtualFile() }
-  .distinct()
-  .toList()
+fun Project.allBuildFiles(): List<VirtualFile> =
+  ProjectFacetManager.getInstance(this)
+    .getModulesWithFacet(AndroidFacet.ID)
+    .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
+    .mapNotNull { it.buildFileAsVirtualFile() }
+    .distinct()
+    .toList()
 
 fun Project.moduleBuildFiles(modulePath: String): List<VirtualFile> {
   return listOfNotNull(
-    // TODO(b/149203281): Fix support for composite projects.
-    GradleHolderProjectPath(
-      FileUtil.toSystemIndependentName((guessProjectDir()?.path ?: return emptyList())),
-      modulePath
-    ).resolveIn(this)
-  )
+      // TODO(b/149203281): Fix support for composite projects.
+      GradleHolderProjectPath(FileUtil.toSystemIndependentName((guessProjectDir()?.path ?: return emptyList())), modulePath).resolveIn(this)
+    )
     .filter { AndroidFacet.getInstance(it) != null }
     .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
     .mapNotNull { it.buildFileAsVirtualFile() }
 }
 
 /**
- * Gets the target Java version that was set for Java compilation in this
- * module, or null if this value is not set.
+ * Gets the target Java version that was set for Java compilation in this module, or null if this value is not set.
  *
- * Note: If the module was set up correctly, this value should be the
- * same as the source Java version for Java compilation and the JVM
+ * Note: If the module was set up correctly, this value should be the same as the source Java version for Java compilation and the JVM
  * target version for Kotlin compilation.
  */
 fun GradleBuildModel.getTargetJavaVersion(): LanguageLevel? {
-  return android().compileOptions().targetCompatibility().toLanguageLevel()
-         ?: java().targetCompatibility().toLanguageLevel()
+  return android().compileOptions().targetCompatibility().toLanguageLevel() ?: java().targetCompatibility().toLanguageLevel()
 }
 
 /**
@@ -287,7 +276,7 @@ fun GradleBuildModel.getTargetJavaVersion(): LanguageLevel? {
 fun GradleBuildModel.setJavaKotlinCompileOptions(
   languageLevel: LanguageLevel,
   isAgpApplied: Boolean,
-  isKgpApplied: Boolean
+  isKgpApplied: Boolean,
 ): GradleBuildModel {
   if (isAgpApplied) {
     android().compileOptions().run {

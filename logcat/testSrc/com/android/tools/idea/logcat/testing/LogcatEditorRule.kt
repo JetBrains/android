@@ -33,8 +33,8 @@ class LogcatEditorRule(private val projectRule: ProjectRule) : ExternalResource(
     private set
 
   /**
-   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so
-   * we need to keep them alive as long as they are valid.
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
+   * they are valid.
    */
   private val markers = mutableListOf<RangeMarker>()
 
@@ -49,10 +49,7 @@ class LogcatEditorRule(private val projectRule: ProjectRule) : ExternalResource(
     runInEdtAndWait { EditorFactory.getInstance().releaseEditor(editor) }
   }
 
-  fun putLogcatMessages(
-    vararg messages: LogcatMessage,
-    formatMessage: LogcatMessage.() -> String = LogcatMessage::toString,
-  ) {
+  fun putLogcatMessages(vararg messages: LogcatMessage, formatMessage: LogcatMessage.() -> String = LogcatMessage::toString) {
     val document = editor.document
     messages.forEach {
       val start = document.textLength

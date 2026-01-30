@@ -41,26 +41,9 @@ class ToggleButtonPropertyEditorModelTest {
 
   @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private fun createModel(
-    propertyValue: String?,
-    trueValue: String,
-    falseValue: String,
-  ): ToggleButtonPropertyEditorModel {
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_ALIGNMENT,
-        NlPropertyType.STRING,
-        createTextView(propertyValue),
-      )
-    return ToggleButtonPropertyEditorModel(
-      "description",
-      TEXT_ALIGN_CENTER,
-      trueValue,
-      falseValue,
-      property,
-    )
+  private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_ALIGNMENT, NlPropertyType.STRING, createTextView(propertyValue))
+    return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property)
   }
 
   @Test
@@ -81,13 +64,7 @@ class ToggleButtonPropertyEditorModelTest {
     checkSetSelected("right", "left", "right", false, "right")
   }
 
-  private fun checkSetSelected(
-    propertyValue: String?,
-    trueValue: String,
-    falseValue: String,
-    setValue: Boolean,
-    expected: String?,
-  ) {
+  private fun checkSetSelected(propertyValue: String?, trueValue: String, falseValue: String, setValue: Boolean, expected: String?) {
     val model = createModel(propertyValue, trueValue, falseValue)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -102,10 +79,7 @@ class ToggleButtonPropertyEditorModelTest {
     return if (propertyValue == null) {
       createComponents(projectRule, component(TEXT_VIEW))
     } else {
-      createComponents(
-        projectRule,
-        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue),
-      )
+      createComponents(projectRule, component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue))
     }
   }
 }

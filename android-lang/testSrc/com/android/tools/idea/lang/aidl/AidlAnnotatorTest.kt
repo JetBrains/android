@@ -44,7 +44,8 @@ class AidlAnnotatorTest : JavaCodeInsightFixtureAdtTestCase() {
           void otherTypes(int anInt, long aLong, boolean aBoolean, float aFloat,
                   @nullable double aDouble, String aString, inout List<String> list, String test);
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     var element = myFixture.moveCaret("IMy|AidlInterface")

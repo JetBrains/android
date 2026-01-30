@@ -43,12 +43,13 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.IncorrectOperationException
+import java.nio.file.Path
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.nio.file.Path
 
-class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", "Create a new Version Catalog file", icons.GradleIcons.GradleFile) {
+class NewVersionCatalogAction :
+  CreateFileFromTemplateAction("Version Catalog", "Create a new Version Catalog file", icons.GradleIcons.GradleFile) {
 
   override fun startInWriteAction() = false
 
@@ -68,57 +69,60 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
   override fun createFile(name: String?, templateName: String?, dir: PsiDirectory?): PsiFile? {
     return super.createFile(name, templateName, dir)?.also { createdElement ->
       val project = createdElement.project
-      UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-        override fun undo() {
-          project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
-        }
-        override fun redo() {
-          project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
-        }
-      })
-      val task = object : Task.WithResult<Pair<ProjectBuildModel, GradleSettingsModel?>, Exception>(project, "Parsing Build Files", true) {
-        override fun compute(indicator: ProgressIndicator): Pair<ProjectBuildModel, GradleSettingsModel?> {
-          indicator.run {
-            fraction = 0.0
-            text = "Parsing root Gradle build file"
+      UndoManager.getInstance(project)
+        .undoableActionPerformed(
+          object : BasicUndoableAction() {
+            override fun undo() {
+              project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+            }
+
+            override fun redo() {
+              project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+            }
           }
-          val model = ProjectBuildModel.get(project)
-          indicator.run {
-            checkCanceled()
-            fraction = 0.5
-            text = "Parsing Gradle settings file"
+        )
+      val task =
+        object : Task.WithResult<Pair<ProjectBuildModel, GradleSettingsModel?>, Exception>(project, "Parsing Build Files", true) {
+          override fun compute(indicator: ProgressIndicator): Pair<ProjectBuildModel, GradleSettingsModel?> {
+            indicator.run {
+              fraction = 0.0
+              text = "Parsing root Gradle build file"
+            }
+            val model = ProjectBuildModel.get(project)
+            indicator.run {
+              checkCanceled()
+              fraction = 0.5
+              text = "Parsing Gradle settings file"
+            }
+            val settingsModel = model.projectSettingsModel
+            indicator.fraction = 1.0
+            return model to settingsModel
           }
-          val settingsModel = model.projectSettingsModel
-          indicator.fraction = 1.0
-          return model to settingsModel
         }
-      }
       val (model, settingsModel) = ProgressManager.getInstance().run(task)
 
-      val current = mutableMapOf<String, String?>().also {
-        settingsModel?.dependencyResolutionManagement()?.versionCatalogs()
-          ?.mapNotNull { vc ->
-            vc.name to vc.from().getValue(STRING_TYPE)
-          }
-          ?.toMap(it)
-        it.putIfAbsent("libs", "gradle/libs.versions.toml")
-      }
+      val current =
+        mutableMapOf<String, String?>().also {
+          settingsModel
+            ?.dependencyResolutionManagement()
+            ?.versionCatalogs()
+            ?.mapNotNull { vc -> vc.name to vc.from().getValue(STRING_TYPE) }
+            ?.toMap(it)
+          it.putIfAbsent("libs", "gradle/libs.versions.toml")
+        }
 
       val baseName = createdElement.name.removeSuffix(EXT_VERSIONS_TOML)
       var candidateName = baseName
       if (current[baseName] == "gradle/${createdElement.name}") {
         // do nothing: already set up.  (Common case is adding libs.versions.toml to a project previously not using Version Catalogs)
-      }
-      else {
+      } else {
         var i = 1
         while (current.containsKey(candidateName)) {
           candidateName = "${baseName}${i++}"
         }
         val vcModel = settingsModel?.dependencyResolutionManagement()?.addVersionCatalog(candidateName)
         vcModel?.from()?.setValue("gradle/${createdElement.name}")
-        runWriteAction {
-          model.applyChanges()
-        }
+        runWriteAction { model.applyChanges() }
       }
     }
   }
@@ -130,19 +134,24 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
   override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
     val root = project.singleGradleProjectRoot
     val vfsDirectory = VfsUtil.findRelativeFile(VfsUtil.findFile(Path.of(root), true), "gradle")
-    val defaultText = when (vfsDirectory?.findChild("libs.versions.toml")) {
-      null -> "libs"
-      else -> ""
-    }
+    val defaultText =
+      when (vfsDirectory?.findChild("libs.versions.toml")) {
+        null -> "libs"
+        else -> ""
+      }
     builder
       .setTitle("New Version Catalog")
       .setDefaultText(defaultText)
       .addKind("Version Catalog file", icons.GradleIcons.GradleFile, VERSION_CATALOG_TEMPLATE)
-      .setValidator(object : InputValidatorEx {
-        override fun getErrorText(inputString: String?) = "Name must match the regex $REGEX_STRING"
-        override fun checkInput(inputString: String?) = inputString?.matches(REGEX) ?: false
-        override fun canClose(inputString: String?) = inputString?.matches(REGEX) ?: false
-      })
+      .setValidator(
+        object : InputValidatorEx {
+          override fun getErrorText(inputString: String?) = "Name must match the regex $REGEX_STRING"
+
+          override fun checkInput(inputString: String?) = inputString?.matches(REGEX) ?: false
+
+          override fun canClose(inputString: String?) = inputString?.matches(REGEX) ?: false
+        }
+      )
   }
 
   override fun update(e: AnActionEvent) {
@@ -156,9 +165,8 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
         return
       }
 
-      val gradleVersion = GradleProjectSettingsFinder.getInstance()
-        .findGradleProjectSettings(project)
-        ?.let {
+      val gradleVersion =
+        GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.let {
           GradleInstallationManager.guessGradleVersion(it) ?: GradleVersion.current()
         }
       if (gradleVersion == null || gradleVersion < GradleVersionCatalogDetector.STABLE_GRADLE_VERSION) {
@@ -171,11 +179,11 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
 
   override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String = "Version Catalog File"
 
-
   private val Project.singleGradleProjectRoot: String
-    get() = GradleSettings.getInstance(this).linkedProjectsSettings.mapNotNull { it.externalProjectPath }.toSet().singleOrNull()
-            // The update() method should mean that this exception never happens.
-            ?: throw IncorrectOperationException("Operation not supported in multiple-root projects")
+    get() =
+      GradleSettings.getInstance(this).linkedProjectsSettings.mapNotNull { it.externalProjectPath }.toSet().singleOrNull()
+        // The update() method should mean that this exception never happens.
+        ?: throw IncorrectOperationException("Operation not supported in multiple-root projects")
 
   companion object {
     const val REGEX_STRING = "[a-z]([a-zA-Z0-9])+"

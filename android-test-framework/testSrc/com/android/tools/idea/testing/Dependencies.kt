@@ -37,8 +37,7 @@ private val GOOGLE_FOLDER = "$MAVEN_REPO/com/google/android/"
 /**
  * Adds a dependency from prebuilts to an existing test fixture.
  *
- * The resources from the library are added to the resource manager, and the classes from the
- * library are added to the psi.
+ * The resources from the library are added to the resource manager, and the classes from the library are added to the psi.
  */
 object Dependencies {
 
@@ -93,9 +92,7 @@ object Dependencies {
     // Not: "appcompat/appcompat"
     private fun loadLatestVersion(folder: File): Version {
       val name = folder.name
-      val version =
-        folder.list()?.maxOfOrNull { Version.parse(it) }
-          ?: error("No versions found in folder: ${folder.path}")
+      val version = folder.list()?.maxOfOrNull { Version.parse(it) } ?: error("No versions found in folder: ${folder.path}")
       val versionFolder = File(folder, version.toString())
       val aarFile = File(versionFolder, "$name-$version.aar")
       val aarDir = FileUtil.createTempDirectory(name, "_exploded")
@@ -104,16 +101,9 @@ object Dependencies {
       val classesJar = aarDir.resolve(SdkConstants.FN_CLASSES_JAR)
       val jarDir = FileUtil.createTempDirectory(name, "_exploded_jar")
       ZipUtil.extract(classesJar, jarDir, null)
-      val classesRoots =
-        listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
-      val library =
-        PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
-      ModuleRootModificationUtil.addDependency(
-        fixture.module,
-        library,
-        DependencyScope.PROVIDED,
-        true,
-      )
+      val classesRoots = listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
+      val library = PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
+      ModuleRootModificationUtil.addDependency(fixture.module, library, DependencyScope.PROVIDED, true)
       return version
     }
   }

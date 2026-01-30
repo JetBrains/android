@@ -52,52 +52,24 @@ private const val NAME_KEY = "name:"
 
 private class StringKey(name: String, hint: String) {
   val normalKey = "$name:"
-  val normalHint =
-    message(
-      "logcat.filter.completion.hint.key",
-      hint,
-      message("logcat.filter.completion.hint.value.string"),
-    )
+  val normalHint = message("logcat.filter.completion.hint.key", hint, message("logcat.filter.completion.hint.value.string"))
 
   val negatedKey = "-$name:"
-  val negatedHint =
-    message(
-      "logcat.filter.completion.hint.key.negated",
-      hint,
-      message("logcat.filter.completion.hint.value.string"),
-    )
+  val negatedHint = message("logcat.filter.completion.hint.key.negated", hint, message("logcat.filter.completion.hint.value.string"))
 
   val regexKey = "$name~:"
-  val regexHint =
-    message(
-      "logcat.filter.completion.hint.key.regex",
-      hint,
-      message("logcat.filter.completion.hint.value.regex"),
-    )
+  val regexHint = message("logcat.filter.completion.hint.key.regex", hint, message("logcat.filter.completion.hint.value.regex"))
 
   val regexNegatedKey = "-$name~:"
   val regexNegatedHint =
-    message(
-      "logcat.filter.completion.hint.key.regex.negated",
-      hint,
-      message("logcat.filter.completion.hint.value.regex"),
-    )
+    message("logcat.filter.completion.hint.key.regex.negated", hint, message("logcat.filter.completion.hint.value.regex"))
 
   val exactKey = "$name=:"
-  val exactHint =
-    message(
-      "logcat.filter.completion.hint.key.exact",
-      hint,
-      message("logcat.filter.completion.hint.value.string"),
-    )
+  val exactHint = message("logcat.filter.completion.hint.key.exact", hint, message("logcat.filter.completion.hint.value.string"))
 
   val exactNegatedKey = "-$name=:"
   val exactNegatedHint =
-    message(
-      "logcat.filter.completion.hint.key.exact.negated",
-      hint,
-      message("logcat.filter.completion.hint.value.string"),
-    )
+    message("logcat.filter.completion.hint.key.exact.negated", hint, message("logcat.filter.completion.hint.value.string"))
 
   val keys = setOf(normalKey, negatedKey, regexKey, regexNegatedKey, exactKey, exactNegatedKey)
 }
@@ -116,39 +88,23 @@ private val LEVEL_LOOKUP
 private val LEVEL_LOOKUPS
   get() =
     LogLevel.entries.map {
-      createLookupElement(
-        "$LEVEL_KEY${it.stringValue} ",
-        message("logcat.filter.completion.hint.level.value", it.name),
-      )
+      createLookupElement("$LEVEL_KEY${it.stringValue} ", message("logcat.filter.completion.hint.level.value", it.name))
     }
 
 private val LEVEL_LOOKUPS_LOWERCASE
   get() =
-    LogLevel.entries.map {
-      createLookupElement(
-        "${it.name.lowercase()} ",
-        message("logcat.filter.completion.hint.level.value", it.name),
-      )
-    }
+    LogLevel.entries.map { createLookupElement("${it.name.lowercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
 private val LEVEL_LOOKUPS_UPPERCASE
   get() =
-    LogLevel.entries.map {
-      createLookupElement(
-        "${it.name.uppercase()} ",
-        message("logcat.filter.completion.hint.level.value", it.name),
-      )
-    }
+    LogLevel.entries.map { createLookupElement("${it.name.uppercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
 private val IS_VALUES =
   listOf(
     Pair("crash", message("logcat.filter.completion.hint.is.crash")),
     Pair("firebase", message("logcat.filter.completion.hint.is.firebase")),
     Pair("stacktrace", message("logcat.filter.completion.hint.is.stacktrace")),
-  ) +
-    LogLevel.entries.map {
-      Pair(it.stringValue, message("logcat.filter.completion.hint.is.level", it.name))
-    }
+  ) + LogLevel.entries.map { Pair(it.stringValue, message("logcat.filter.completion.hint.is.level", it.name)) }
 
 private val IS_LOOKUP
   get() = createLookupElement(IS_KEY, message("logcat.filter.completion.hint.is"))
@@ -189,36 +145,14 @@ private val AGE_LOOKUPS
     listOf(
       createLookupElement(
         "30s ",
-        message(
-          "logcat.filter.completion.hint.age.value",
-          30,
-          message("logcat.filter.completion.hint.age.second"),
-        ),
+        message("logcat.filter.completion.hint.age.value", 30, message("logcat.filter.completion.hint.age.second")),
       ),
       createLookupElement(
         "5m ",
-        message(
-          "logcat.filter.completion.hint.age.value",
-          5,
-          message("logcat.filter.completion.hint.age.minute"),
-        ),
+        message("logcat.filter.completion.hint.age.value", 5, message("logcat.filter.completion.hint.age.minute")),
       ),
-      createLookupElement(
-        "3h ",
-        message(
-          "logcat.filter.completion.hint.age.value",
-          3,
-          message("logcat.filter.completion.hint.age.hour"),
-        ),
-      ),
-      createLookupElement(
-        "1d ",
-        message(
-          "logcat.filter.completion.hint.age.value",
-          1,
-          message("logcat.filter.completion.hint.age.day"),
-        ),
-      ),
+      createLookupElement("3h ", message("logcat.filter.completion.hint.age.value", 3, message("logcat.filter.completion.hint.age.hour"))),
+      createLookupElement("1d ", message("logcat.filter.completion.hint.age.value", 1, message("logcat.filter.completion.hint.age.day"))),
     )
 
 // Do not complete a key if previous char is one of these
@@ -241,11 +175,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       psiElement(LogcatFilterTypes.VALUE),
       object : CompletionProvider<CompletionParameters>() {
-        override fun addCompletions(
-          parameters: CompletionParameters,
-          context: ProcessingContext,
-          result: CompletionResultSet,
-        ) {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           // We have to exclude a few special cases where we do not want to complete.
 
           val text = parameters.position.text
@@ -268,17 +198,9 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
               return
             }
           }
-          result.addAllElements(
-            (if (text == DUMMY_IDENTIFIER_TRIMMED) KEY_LOOKUPS else ALL_KEY_LOOKUPS) +
-              historyLookups()
-          )
+          result.addAllElements((if (text == DUMMY_IDENTIFIER_TRIMMED) KEY_LOOKUPS else ALL_KEY_LOOKUPS) + historyLookups())
           if (hasAndroidProject(parameters.editor)) {
-            result.addElement(
-              createLookupElement(
-                "$MY_PACKAGE ",
-                message("logcat.filter.completion.hint.package.mine"),
-              )
-            )
+            result.addElement(createLookupElement("$MY_PACKAGE ", message("logcat.filter.completion.hint.package.mine")))
           }
           result.addHints()
         }
@@ -288,11 +210,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       psiElement(LogcatFilterTypes.KVALUE),
       object : CompletionProvider<CompletionParameters>() {
-        override fun addCompletions(
-          parameters: CompletionParameters,
-          context: ProcessingContext,
-          result: CompletionResultSet,
-        ) {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           when {
             parameters.findPreviousText() == LEVEL_KEY -> result.addLevelLookups()
             parameters.findPreviousText() == IS_KEY -> result.addAllElements(IS_VALUE_LOOKUPS)
@@ -306,35 +224,17 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       or(psiElement(STRING_KVALUE), psiElement(REGEX_KVALUE)),
       object : CompletionProvider<CompletionParameters>() {
-        override fun addCompletions(
-          parameters: CompletionParameters,
-          context: ProcessingContext,
-          result: CompletionResultSet,
-        ) {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
           when (parameters.findPreviousText()) {
             PACKAGE_KEY.normalKey -> {
-              result.addAllElements(
-                (parameters.getPackageNames()).map { createLookupElement("$it ") }
-              )
+              result.addAllElements((parameters.getPackageNames()).map { createLookupElement("$it ") })
               if (hasAndroidProject(parameters.editor)) {
-                result.addElement(
-                  createLookupElement(
-                    "$MY_PACKAGE_VALUE ",
-                    message("logcat.filter.completion.hint.package.mine"),
-                  )
-                )
+                result.addElement(createLookupElement("$MY_PACKAGE_VALUE ", message("logcat.filter.completion.hint.package.mine")))
               }
             }
-            in PACKAGE_KEY.keys ->
-              result.addAllElements(
-                (parameters.getPackageNames()).map { createLookupElement("$it ") }
-              )
-            in PROCESS_KEY.keys ->
-              result.addAllElements(
-                (parameters.getProcessNames()).map { createLookupElement("$it ") }
-              )
-            in TAG_KEY.keys ->
-              result.addAllElements(parameters.getTags().map { createLookupElement("$it ") })
+            in PACKAGE_KEY.keys -> result.addAllElements((parameters.getPackageNames()).map { createLookupElement("$it ") })
+            in PROCESS_KEY.keys -> result.addAllElements((parameters.getProcessNames()).map { createLookupElement("$it ") })
+            in TAG_KEY.keys -> result.addAllElements(parameters.getTags().map { createLookupElement("$it ") })
           }
           result.addHints()
         }
@@ -345,9 +245,7 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
 
 private fun CompletionResultSet.addLevelLookups() {
   val prefix = prefixMatcher.prefix
-  val lookups =
-    if (prefix.isEmpty() || prefix.first().isLowerCase()) LEVEL_LOOKUPS_LOWERCASE
-    else LEVEL_LOOKUPS_UPPERCASE
+  val lookups = if (prefix.isEmpty() || prefix.first().isLowerCase()) LEVEL_LOOKUPS_LOWERCASE else LEVEL_LOOKUPS_UPPERCASE
   addAllElements(lookups)
 }
 
@@ -355,39 +253,31 @@ private fun CompletionResultSet.addHints() {
   HINTS.forEach { addLookupAdvertisement(it) }
 }
 
-@VisibleForTesting
-internal fun String.getKeyVariants() =
-  listOf("$this:", "-$this:", "$this~:", "-$this~:", "$this=:", "-$this=:")
+@VisibleForTesting internal fun String.getKeyVariants() = listOf("$this:", "-$this:", "$this~:", "-$this~:", "$this=:", "-$this=:")
 
 private fun createLookupElement(text: String, hint: String? = null) =
   LookupElementBuilder.create(text)
     .withCaseSensitivity(false)
     .withRenderer(
       object : LookupElementRenderer<LookupElement>() {
-        override fun renderElement(
-          element: LookupElement,
-          presentation: LookupElementPresentation,
-        ) {
+        override fun renderElement(element: LookupElement, presentation: LookupElementPresentation) {
           presentation.itemText = element.lookupString
           presentation.typeText = hint
         }
       }
     )
 
-private fun CompletionParameters.findPreviousText() =
-  PsiTreeUtil.skipWhitespacesBackward(position)?.text
+private fun CompletionParameters.findPreviousText() = PsiTreeUtil.skipWhitespacesBackward(position)?.text
 
 private fun CompletionParameters.getTags() =
   editor.getUserData(TAGS_PROVIDER_KEY)?.getTags()?.filter(String::isNotBlank)
     ?: throw IllegalStateException("Missing PackageNamesProvider")
 
 private fun CompletionParameters.getPackageNames() =
-  editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)?.getPackageNames()
-    ?: throw IllegalStateException("Missing PackageNamesProvider")
+  editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)?.getPackageNames() ?: throw IllegalStateException("Missing PackageNamesProvider")
 
 private fun CompletionParameters.getProcessNames() =
-  editor.getUserData(PROCESS_NAMES_PROVIDER_KEY)?.getProcessNames()
-    ?: throw IllegalStateException("Missing ProcessNamesProvider")
+  editor.getUserData(PROCESS_NAMES_PROVIDER_KEY)?.getProcessNames() ?: throw IllegalStateException("Missing ProcessNamesProvider")
 
 private fun CompletionParameters.getRealTextLength(): Int {
   val text = position.text

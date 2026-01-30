@@ -33,23 +33,19 @@ import javax.swing.SwingUtilities
 private const val REPORT_FREQUENCY_MS = 60_000L
 
 /** Connects to the threading java agent from Android Studio. */
-class ThreadingCheckerHookImpl(
-  private val threadingViolationNotifier: ThreadingViolationNotifier =
-    ThreadingViolationNotifierImpl()
-) : ThreadingCheckerHook {
+class ThreadingCheckerHookImpl(private val threadingViolationNotifier: ThreadingViolationNotifier = ThreadingViolationNotifierImpl()) :
+  ThreadingCheckerHook {
 
   private val logger = thisLogger()
   private val lock = Any()
 
-  @Volatile
-  private var lastReportedUsageTimeMs = 0L
+  @Volatile private var lastReportedUsageTimeMs = 0L
 
   // These counters are not precise, but they are good enough for being included in the usage metrics.
   private var uiThreadCheckCount = 0L
   private var workerThreadCheckCount = 0L
 
-  @VisibleForTesting
-  val threadingViolations: ConcurrentMap<String, AtomicLong> = ConcurrentHashMap()
+  @VisibleForTesting val threadingViolations: ConcurrentMap<String, AtomicLong> = ConcurrentHashMap()
 
   override fun verifyOnUiThread() {
     ++uiThreadCheckCount
@@ -68,7 +64,9 @@ class ThreadingCheckerHookImpl(
     if (!SwingUtilities.isEventDispatchThread()) {
       return
     }
-    recordViolation("Threading violation: methods annotated with @WorkerThread or @RequiresBackgroundThread should not be called on the UI thread")
+    recordViolation(
+      "Threading violation: methods annotated with @WorkerThread or @RequiresBackgroundThread should not be called on the UI thread"
+    )
   }
 
   override fun verifyReadLock() {
@@ -92,7 +90,6 @@ class ThreadingCheckerHookImpl(
     recordViolation("Read lock violation: methods annotated with @RequiresReadLockAbsence must be called without a read lock.")
   }
 
-
   private fun maybeReportUsageStats() {
     val currentTimeMs = System.currentTimeMillis()
     if (currentTimeMs - lastReportedUsageTimeMs < REPORT_FREQUENCY_MS) {
@@ -112,7 +109,8 @@ class ThreadingCheckerHookImpl(
         .setThreadingAgentUsageEvent(
           ThreadingAgentUsageEvent.newBuilder()
             .setVerifyUiThreadCount(uiThreadCheckCount)
-            .setVerifyWorkerThreadCount(workerThreadCheckCount))
+            .setVerifyWorkerThreadCount(workerThreadCheckCount)
+        )
     )
     uiThreadCheckCount = 0
     workerThreadCheckCount = 0
@@ -123,16 +121,14 @@ class ThreadingCheckerHookImpl(
     // Index of an annotated method. We need to skip Thread#getStackTrace, ThreadingCheckerHookImpl#recordViolation,
     // ThreadingCheckerHookImpl#verifyOnUiThread, ThreadingCheckerTrampoline#verifyOnUiThread stack frames.
     val annotatedMethodIndex = 4
-    val methodSignature =
-      stackTrace[annotatedMethodIndex].className + "#" + stackTrace[annotatedMethodIndex].methodName
+    val methodSignature = stackTrace[annotatedMethodIndex].className + "#" + stackTrace[annotatedMethodIndex].methodName
     val violationCount = threadingViolations.computeIfAbsent(methodSignature) { AtomicLong() }.incrementAndGet()
-    val loggedStackTrace = Stream.of(*stackTrace).skip(annotatedMethodIndex.toLong()).map { it.toString() }
-      .collect(Collectors.joining("\n  "))
+    val loggedStackTrace =
+      Stream.of(*stackTrace).skip(annotatedMethodIndex.toLong()).map { it.toString() }.collect(Collectors.joining("\n  "))
     val message = "$warningMessage\nViolating method: $methodSignature\nStack trace:\n$loggedStackTrace"
     if (shouldLogErrors()) {
       logger.error(message)
-    }
-    else {
+    } else {
       logger.warn(message)
     }
 
@@ -143,12 +139,10 @@ class ThreadingCheckerHookImpl(
   }
 
   private fun shouldLogErrors(): Boolean {
-    return System.getProperty("android.studio.instrumentation.threading.log-errors", "true")
-      .equals("true", ignoreCase = true)
+    return System.getProperty("android.studio.instrumentation.threading.log-errors", "true").equals("true", ignoreCase = true)
   }
 
   private fun shouldSuppressNotifications(): Boolean {
-    return System.getProperty("android.studio.instrumentation.threading.suppress-notifications", "true")
-      .equals("true", ignoreCase = true)
+    return System.getProperty("android.studio.instrumentation.threading.suppress-notifications", "true").equals("true", ignoreCase = true)
   }
 }

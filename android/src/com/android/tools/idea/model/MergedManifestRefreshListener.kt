@@ -37,16 +37,13 @@ import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
-
 /**
- * A project-wide listener that determines which modules' merged manifests are affected by VFS
- * changes and tells the corresponding [MergedManifestManager]s to recompute them in the background
- * accordingly. [MergedManifestRefreshListener] registers itself to start actively listening for
- * VFS changes after the first project sync of the session.
+ * A project-wide listener that determines which modules' merged manifests are affected by VFS changes and tells the corresponding
+ * [MergedManifestManager]s to recompute them in the background accordingly. [MergedManifestRefreshListener] registers itself to start
+ * actively listening for VFS changes after the first project sync of the session.
  *
- * This listener is necessary to ensure that the merged manifest is reasonably up to date for
- * callers who are forced to acquire it synchronously (and therefore must use whatever [MergedManifestManager]
- * has cached for performance reasons).
+ * This listener is necessary to ensure that the merged manifest is reasonably up to date for callers who are forced to acquire it
+ * synchronously (and therefore must use whatever [MergedManifestManager] has cached for performance reasons).
  */
 class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFileListener(project) {
 
@@ -55,15 +52,13 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
   override fun isPossiblyRelevant(file: VirtualFile) = file.isDirectory || file.extension == "xml"
 
   /**
-   * Determines if a file contributes to the merged manifest of the module to which it belongs.
-   * This means the file is either:
+   * Determines if a file contributes to the merged manifest of the module to which it belongs. This means the file is either:
+   * 1. An AndroidManifest.xml belonging to one of the module's source providers.
+   * 2. A navigation XML file belonging to one of the module's resource directories.
+   * 3. One of the module's navigation resource folders which contains a navigation file.
+   * 4. One of the module's resource directories which contains a navigation file.
    *
-   *  1. An AndroidManifest.xml belonging to one of the module's source providers.
-   *  2. A navigation XML file belonging to one of the module's resource directories.
-   *  3. One of the module's navigation resource folders which contains a navigation file.
-   *  4. One of the module's resource directories which contains a navigation file.
-   *
-   *  @see [MergedManifestContributors]
+   * @see [MergedManifestContributors]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
     if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return facet.isManifestFile(file)
@@ -76,12 +71,11 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
     if (!file.isDirectory && !couldBeNavigationFile) return false
 
     val couldBeRelevantNavigationFolder = file.couldBeNavigationFolder() && file.children.isNotEmpty()
-    return SourceProviderManager.getInstance(facet).sources.resDirectories
-      .any { resDir ->
-        resDir == file && resDir.children.any { it.couldBeNavigationFolder() && it.children.isNotEmpty() }
-        || couldBeRelevantNavigationFolder && resDir == file.parent
-        || couldBeNavigationFile && resDir == file.parent.parent
-      }
+    return SourceProviderManager.getInstance(facet).sources.resDirectories.any { resDir ->
+      resDir == file && resDir.children.any { it.couldBeNavigationFolder() && it.children.isNotEmpty() } ||
+        couldBeRelevantNavigationFolder && resDir == file.parent ||
+        couldBeNavigationFile && resDir == file.parent.parent
+    }
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
@@ -113,19 +107,23 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
   }
 
   /**
-   * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
-   * subscribed to listen for VFS changes once the initial project sync has completed.
+   * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener] subscribed to listen for
+   * VFS changes once the initial project sync has completed.
    */
   internal class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
-      val subscriber = object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
-        override fun subscribe() {
-          VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+      val subscriber =
+        object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
+          override fun subscribe() {
+            VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+          }
         }
-      }
-      project.listenUntilNextSync(listener = object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
-      })
+      project.listenUntilNextSync(
+        listener =
+          object : SyncResultListener {
+            override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
+          }
+      )
     }
   }
 }
@@ -133,19 +131,15 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
 private val FRESHNESS_EXECUTOR = AppExecutorUtil.createBoundedApplicationPoolExecutor("Merged Manifest Freshness Check Pool", 1)
 
 /**
- * Returns an iterator over the top-level modules that transitively depend on this module for
- * resources, possibly including this module itself (i.e. if nothing depends on this module for
- * resources then the iterator will yield only this module).
+ * Returns an iterator over the top-level modules that transitively depend on this module for resources, possibly including this module
+ * itself (i.e. if nothing depends on this module for resources then the iterator will yield only this module).
  *
  * Please note, if there's a loop detected while DFS traversing, empty iterable is returned.
  */
 @VisibleForTesting
 fun Module.getTopLevelResourceDependents(): Iterable<Module> {
-  return TreeTraversal.LEAVES_DFS
-    .unique()
-    .traversal<Module> {
-      it.getModuleSystem().getDirectResourceModuleDependents()
-    }
+  return TreeTraversal.LEAVES_DFS.unique()
+    .traversal<Module> { it.getModuleSystem().getDirectResourceModuleDependents() }
     .`fun`(this)
     .filter {
       // Since we skip already visited nodes during traversal by `unique`, we collect those modules that are not

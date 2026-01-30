@@ -29,15 +29,9 @@ interface LogcatR8MappingsToken<P : AndroidProjectSystem> : Token {
   data class R8Mappings(val text: Path, val partitioned: Path?)
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName<LogcatR8MappingsToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.logcat.logcatR8MappingToken"
-      )
+    val EP_NAME = ExtensionPointName<LogcatR8MappingsToken<AndroidProjectSystem>>("com.android.tools.idea.logcat.logcatR8MappingToken")
 
-    /**
-     * Return list of R8 mappings. Some files may not exist if user did not build corresponding
-     * variant.
-     */
+    /** Return list of R8 mappings. Some files may not exist if user did not build corresponding variant. */
     @JvmStatic
     fun getR8Mappings(project: Project): List<R8Mappings> {
       val projectSystem = project.getProjectSystem()

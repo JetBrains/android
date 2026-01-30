@@ -22,10 +22,7 @@ import java.awt.event.MouseEvent
 import java.util.function.Supplier
 
 /** Basic tooltip mouse listener that toggles active tooltip. */
-class TooltipMouseAdapter(
-  private val model: NetworkInspectorModel,
-  private val myTooltipBuilder: Supplier<TooltipModel>,
-) : MouseAdapter() {
+class TooltipMouseAdapter(private val model: NetworkInspectorModel, private val myTooltipBuilder: Supplier<TooltipModel>) : MouseAdapter() {
   override fun mouseEntered(e: MouseEvent) {
     model.tooltip = myTooltipBuilder.get()
   }

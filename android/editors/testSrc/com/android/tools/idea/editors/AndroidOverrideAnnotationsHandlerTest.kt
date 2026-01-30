@@ -23,15 +23,16 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 
 /**
- * Test[AndroidOverrideAnnotationsHandler]. Each test overrides a method from a class called "MySuper"
- * in a subclass called "MyOverride". In each test we vary, via the setup() function, what is available
- * in the classpath, and then we check that the override is modified as expected.
+ * Test[AndroidOverrideAnnotationsHandler]. Each test overrides a method from a class called "MySuper" in a subclass called "MyOverride". In
+ * each test we vary, via the setup() function, what is available in the classpath, and then we check that the override is modified as
+ * expected.
  */
 class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   fun testNoAnnotations() {
     // Here we just wipe out the @RecentlyNullable annotation: there's no nullness annotation
     // in the classpath
-    val expected = """
+    val expected =
+      """
       package test.pkg;
 
       public class MyOverride extends MySuper {
@@ -42,11 +43,12 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
       }
       """
 
-    check({ }, expected)
+    check({}, expected)
   }
 
   fun testHaveAndroidX() {
-    val expected = """
+    val expected =
+      """
       package test.pkg;
 
       public class MyOverride extends MySuper {
@@ -63,7 +65,8 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   fun testHaveSupportAnnotations() {
     // In a project that depends on android.support.annotation instead of androidx.annotation,
     // we map to those annotations instead
-    val expected = """
+    val expected =
+      """
       package test.pkg;
 
       public class MyOverride extends MySuper {
@@ -89,16 +92,18 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   // --- Only test infrastructure below ---
 
   /**
-   * Given a setup method, it will create our super class and our overriding class with
-   * the recently nullable class copied into the overriding class, and then it runs the
-   * cleanup method of the override handler and checks that after running it, the overridden
-   * class has the expected source contents.
+   * Given a setup method, it will create our super class and our overriding class with the recently nullable class copied into the
+   * overriding class, and then it runs the cleanup method of the override handler and checks that after running it, the overridden class
+   * has the expected source contents.
    */
   private fun check(setup: () -> Unit, @Language("JAVA") after: String) {
     addNullnessAnnotation("androidx.annotation", "RecentlyNullable")
     setup.invoke()
 
-    val sourceFile = addClass("src/test/pkg/MySuper.java", """
+    val sourceFile =
+      addClass(
+        "src/test/pkg/MySuper.java",
+        """
       package test.pkg;
 
       import androidx.annotation.RecentlyNullable;
@@ -107,11 +112,15 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
           public void method(@Nullable Object parameter) {
           }
       }
-      """)
+      """,
+      )
     val sourceModifier = getFirstParameter(sourceFile)
     assertNotNull(sourceModifier)
 
-    val targetFile = addClass("src/test/pkg/MyOverride.java", """
+    val targetFile =
+      addClass(
+        "src/test/pkg/MyOverride.java",
+        """
       package test.pkg;
 
       public class MyOverride extends MySuper {
@@ -120,7 +129,8 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
               super.method(parameter);
           }
       }
-      """)
+      """,
+      )
     val targetModifier = getFirstParameter(targetFile)
 
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
@@ -132,7 +142,9 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
   }
 
   private fun addNullnessAnnotation(pkg: String, name: String) {
-    addClass("src/${pkg.replace('.', '/')}/$name.java", """
+    addClass(
+      "src/${pkg.replace('.', '/')}/$name.java",
+      """
       package $pkg;
 
       import static java.lang.annotation.ElementType.FIELD;
@@ -145,7 +157,8 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
       @Retention(CLASS)
       @Target({METHOD, PARAMETER, FIELD})
       public @interface $name {}
-      """)
+      """,
+    )
   }
 
   private fun addClass(path: String, @Language("java") code: String): PsiFile {
@@ -154,14 +167,16 @@ class AndroidOverrideAnnotationsHandlerTest : AndroidTestCase() {
 
   private fun getFirstParameter(file: PsiFile): PsiParameter {
     var first: PsiParameter? = null
-    file.accept(object : JavaRecursiveElementVisitor() {
-      override fun visitParameter(parameter: PsiParameter) {
-        if (first == null) {
-          first = parameter
+    file.accept(
+      object : JavaRecursiveElementVisitor() {
+        override fun visitParameter(parameter: PsiParameter) {
+          if (first == null) {
+            first = parameter
+          }
+          super.visitParameter(parameter)
         }
-        super.visitParameter(parameter)
       }
-    })
+    )
     return first!!
   }
 }

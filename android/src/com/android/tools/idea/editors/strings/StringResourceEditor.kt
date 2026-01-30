@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.strings
 
 import com.android.annotations.TestOnly
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
@@ -32,36 +31,39 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.beans.PropertyChangeListener
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.Icon
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import java.beans.PropertyChangeListener
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.Icon
-import javax.swing.JComponent
 
 /**
  * The editor for string resources and translations.
  *
  * This editor is mostly a wrapper around the [StringResourceViewPanel] which holds most of the functionality.
  */
-class StringResourceEditor private constructor(private val file: StringsVirtualFile, injectedScope: CoroutineScope?) : UserDataHolderBase(), DataProvider, FileEditor {
+class StringResourceEditor private constructor(private val file: StringsVirtualFile, injectedScope: CoroutineScope?) :
+  UserDataHolderBase(), DataProvider, FileEditor {
   constructor(file: StringsVirtualFile) : this(file, null)
 
   // We sometimes get extra calls to `selectNotify`. This ensures that we know when
   // those calls represent a real transition.
   private val selected = AtomicBoolean()
-  private val resourceChangeListener = ResourceNotificationManager.ResourceChangeListener { reason ->
-    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
-      panel.reloadData()
+  private val resourceChangeListener =
+    ResourceNotificationManager.ResourceChangeListener { reason ->
+      if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
+        panel.reloadData()
+      }
     }
-  }
 
-  private var resourceVersion = file.facet.let {
-    ResourceNotificationManager.getInstance(it.module.project).getCurrentVersion(it, /* file = */ null, /* configuration = */ null)
-  }
+  private var resourceVersion =
+    file.facet.let {
+      ResourceNotificationManager.getInstance(it.module.project).getCurrentVersion(it, /* file= */ null, /* configuration= */ null)
+    }
 
   /** The [StringResourceViewPanel] that holds most of the UI. */
   lateinit var panel: StringResourceViewPanel
@@ -120,19 +122,18 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
   override fun toString() = "StringResourceEditor ${panel.facet} ${System.identityHashCode(this)}"
 
   override fun getData(dataId: String): Any? {
-    return if (PlatformDataKeys.FILE_EDITOR.`is`(dataId)) this else null;
+    return if (PlatformDataKeys.FILE_EDITOR.`is`(dataId)) this else null
   }
 
   private fun addListener() {
     val facet: AndroidFacet = file.facet
     ResourceNotificationManager.getInstance(facet.module.project)
-      .addListener(resourceChangeListener, facet, /* file = */ null, /* configuration = */ null)
+      .addListener(resourceChangeListener, facet, /* file= */ null, /* configuration= */ null)
 
     // We might need to trigger an update if the resourceVersion has changed but getCurrentVersion is a slow method so we launch the check
     // asynchronously.
     scope.launch {
-      val latest =
-        ResourceNotificationManager.getInstance(facet.module.project).getCurrentVersion(facet, null, null)
+      val latest = ResourceNotificationManager.getInstance(facet.module.project).getCurrentVersion(facet, null, null)
       if (resourceVersion != latest) withContext(Dispatchers.EDT) { panel.reloadData() }
     }
   }
@@ -140,16 +141,14 @@ class StringResourceEditor private constructor(private val file: StringsVirtualF
   private fun removeListener() {
     val facet: AndroidFacet = file.facet
     val manager = ResourceNotificationManager.getInstance(facet.module.project)
-    resourceVersion = manager.getCurrentVersion(facet, /* file = */ null, /* configuration = */ null)
-    manager.removeListener(resourceChangeListener, facet, /* file = */ null, /* configuration = */ null)
+    resourceVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */ null)
+    manager.removeListener(resourceChangeListener, facet, /* file= */ null, /* configuration= */ null)
   }
 
   companion object {
     /** An [Icon] representing the editor. */
-    @JvmField
-    val ICON: Icon = StudioIcons.LayoutEditor.Toolbar.LANGUAGE
+    @JvmField val ICON: Icon = StudioIcons.LayoutEditor.Toolbar.LANGUAGE
 
-    @TestOnly
-    fun createForTests(file: StringsVirtualFile, scope: CoroutineScope) = StringResourceEditor(file, scope)
+    @TestOnly fun createForTests(file: StringsVirtualFile, scope: CoroutineScope) = StringResourceEditor(file, scope)
   }
 }

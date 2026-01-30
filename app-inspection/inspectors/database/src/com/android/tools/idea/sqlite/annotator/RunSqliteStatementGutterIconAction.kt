@@ -47,18 +47,17 @@ import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 /**
  * Action triggered when Run-Sqlite-Statement gutter icon is clicked.
  *
- * The action runs the SQLite statement on the open database. If multiple database are open a dialog
- * is shown to allow the user to select the database of interest.
+ * The action runs the SQLite statement on the open database. If multiple database are open a dialog is shown to allow the user to select
+ * the database of interest.
  *
- * To handle SQLite statements with named parameters a dialog is shown to assign a value to the
- * parameters. All named parameters are replaced with positional parameters.
+ * To handle SQLite statements with named parameters a dialog is shown to assign a value to the parameters. All named parameters are
+ * replaced with positional parameters.
  */
 class RunSqliteStatementGutterIconAction(
   private val project: Project,
   private val element: PsiElement,
   private val viewFactory: DatabaseInspectorViewsFactory,
-  private val databaseInspectorProjectService: DatabaseInspectorProjectService =
-    DatabaseInspectorProjectService.getInstance(project),
+  private val databaseInspectorProjectService: DatabaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project),
 ) : AnAction() {
   private val parentDisposable = project.getService(ProjectDisposableScope::class.java)
 
@@ -77,8 +76,7 @@ class RunSqliteStatementGutterIconAction(
     if (openDatabases.size == 1) {
       runSqliteStatement(openDatabases.first(), injectedPsiFile)
     } else if (openDatabases.size > 1) {
-      val popupChooserBuilder =
-        JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
+      val popupChooserBuilder = JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
       val popup =
         popupChooserBuilder
           .setTitle("Choose Database")
@@ -101,24 +99,16 @@ class RunSqliteStatementGutterIconAction(
   private fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatementPsi: PsiElement) {
     val connectivityState =
       when (databaseId) {
-        is SqliteDatabaseId.FileSqliteDatabaseId ->
-          AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-        is SqliteDatabaseId.LiveSqliteDatabaseId ->
-          AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
       }
 
     DatabaseInspectorAnalyticsTracker.getInstance(project)
-      .trackStatementExecuted(
-        connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT,
-      )
+      .trackStatementExecuted(connectivityState, AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
-      databaseInspectorProjectService.runSqliteStatement(
-        databaseId,
-        createSqliteStatement(project, sqliteStatement),
-      )
+      databaseInspectorProjectService.runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
       databaseInspectorProjectService.getIdeServices()?.showToolWindow()
     } else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
@@ -154,8 +144,7 @@ class RunSqliteStatementGutterIconAction(
       isSelected: Boolean,
       cellHasFocus: Boolean,
     ): Component {
-      val component =
-        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+      val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       if (value is SqliteDatabaseId) {
         text = value.name
       }

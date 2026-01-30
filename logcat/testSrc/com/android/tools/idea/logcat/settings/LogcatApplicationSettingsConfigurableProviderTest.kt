@@ -35,8 +35,7 @@ class LogcatApplicationSettingsConfigurableProviderTest {
 
   @Test
   fun createConfigurable() {
-    assertThat(provider.createConfigurable())
-      .isInstanceOf(LogcatApplicationSettingsConfigurable::class.java)
+    assertThat(provider.createConfigurable()).isInstanceOf(LogcatApplicationSettingsConfigurable::class.java)
   }
 
   @Test

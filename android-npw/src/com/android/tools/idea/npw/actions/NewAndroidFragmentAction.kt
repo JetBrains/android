@@ -32,17 +32,13 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
+import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import java.io.File
 
-/**
- * An action to launch the fragment wizard to create a fragment from a template.
- */
-class NewAndroidFragmentAction
-  : AnAction(AndroidBundle.message("android.wizard.new.fragment.title"),
-             AndroidBundle.message("android.wizard.new.fragment.title"),
-             null) {
+/** An action to launch the fragment wizard to create a fragment from a template. */
+class NewAndroidFragmentAction :
+  AnAction(AndroidBundle.message("android.wizard.new.fragment.title"), AndroidBundle.message("android.wizard.new.fragment.title"), null) {
 
   var shouldOpenFiles = true
 
@@ -63,11 +59,13 @@ class NewAndroidFragmentAction
   }
 
   companion object {
-    fun openNewFragmentWizard(facet: AndroidFacet,
-                              project: Project,
-                              targetDirectory: VirtualFile,
-                              createdFiles: MutableList<File>?,
-                              shouldOpenFiles: Boolean) {
+    fun openNewFragmentWizard(
+      facet: AndroidFacet,
+      project: Project,
+      targetDirectory: VirtualFile,
+      createdFiles: MutableList<File>?,
+      shouldOpenFiles: Boolean,
+    ) {
       if (AndroidModel.get(facet) == null) {
         return
       }
@@ -83,9 +81,16 @@ class NewAndroidFragmentAction
       val dialogTitle = AndroidBundle.message("android.wizard.new.fragment.title")
 
       val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
-      val renderModel = RenderTemplateModel.fromFacet(
-        facet, initialPackageSuggestion, moduleTemplates[0], AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
-        projectSyncInvoker, shouldOpenFiles, FRAGMENT_GALLERY)
+      val renderModel =
+        RenderTemplateModel.fromFacet(
+          facet,
+          initialPackageSuggestion,
+          moduleTemplates[0],
+          AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
+          projectSyncInvoker,
+          shouldOpenFiles,
+          FRAGMENT_GALLERY,
+        )
 
       val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
       val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()
@@ -96,4 +101,3 @@ class NewAndroidFragmentAction
     }
   }
 }
-

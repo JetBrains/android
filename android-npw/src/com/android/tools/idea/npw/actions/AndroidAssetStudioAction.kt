@@ -43,8 +43,8 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Action to invoke one of the Asset Studio wizards.
  *
- * This action will be visible for modules that have a resource directory as part of the
- * [NamedModuleTemplate]. This will not be available for holder modules.
+ * This action will be visible for modules that have a resource directory as part of the [NamedModuleTemplate]. This will not be available
+ * for holder modules.
  */
 abstract class AndroidAssetStudioAction(text: String?, description: String?) :
   AnAction(text, description, StudioIcons.Common.ANDROID_HEAD) {
@@ -57,12 +57,7 @@ abstract class AndroidAssetStudioAction(text: String?, description: String?) :
 
   override fun actionPerformed(event: AnActionEvent) {
     val context = getAndroidAssetStudioContext(event) ?: return
-    val wizard =
-      createWizard(
-        context.facet,
-        context.template,
-        VfsUtilCore.virtualToIoFile(context.resVirtualFile),
-      )
+    val wizard = createWizard(context.facet, context.template, VfsUtilCore.virtualToIoFile(context.resVirtualFile))
     showWizard(wizard, context.facet)
   }
 
@@ -77,15 +72,10 @@ abstract class AndroidAssetStudioAction(text: String?, description: String?) :
   }
 
   /**
-   * Creates a wizard to show or returns `null` if the showing of a wizard should be aborted. If a
-   * subclass class aborts showing the wizard, it should still give some visual indication, such as
-   * an error dialog.
+   * Creates a wizard to show or returns `null` if the showing of a wizard should be aborted. If a subclass class aborts showing the wizard,
+   * it should still give some visual indication, such as an error dialog.
    */
-  protected abstract fun createWizard(
-    facet: AndroidFacet,
-    template: NamedModuleTemplate,
-    resFolder: File,
-  ): ModelWizard
+  protected abstract fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard
 
   protected abstract val wizardMinimumSize: Dimension
 
@@ -97,8 +87,7 @@ abstract class AndroidAssetStudioAction(text: String?, description: String?) :
 
 private fun isAvailable(event: AnActionEvent): Boolean {
   val context = getAndroidAssetStudioContext(event) ?: return false
-  return context.ideView.directories.isNotEmpty() &&
-    context.project.getProjectSystem().allowsFileCreation()
+  return context.ideView.directories.isNotEmpty() && context.project.getProjectSystem().allowsFileCreation()
 }
 
 private fun getModuleTemplate(project: Project, location: VirtualFile): NamedModuleTemplate? {
@@ -139,8 +128,8 @@ private fun findClosestResFolder(paths: AndroidModulePaths, location: VirtualFil
 }
 
 /**
- * Context required by the action to function. [getAndroidAssetStudioContext] will return the
- * context or null if any of the parts are missing. In that case, the action will be disabled.
+ * Context required by the action to function. [getAndroidAssetStudioContext] will return the context or null if any of the parts are
+ * missing. In that case, the action will be disabled.
  */
 private data class AndroidAssetStudioContext(
   val project: Project,

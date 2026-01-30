@@ -37,15 +37,9 @@ class PositionableContentLayoutManagerTest {
 
   class TestLayoutManager(scope: CoroutineScope) : PositionableContentLayoutManager(scope) {
 
-    override fun layoutContainer(
-      content: Collection<PositionableContent>,
-      availableSize: Dimension,
-    ) {}
+    override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
-    override fun preferredLayoutSize(
-      content: Collection<PositionableContent>,
-      availableSize: Dimension,
-    ) = Dimension(300, 300)
+    override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension) = Dimension(300, 300)
 
     override fun getMeasuredPositionableContentPosition(
       content: Collection<PositionableContent>,

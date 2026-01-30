@@ -37,6 +37,5 @@ data class Event(
     val EMPTY = Event()
   }
 
-  fun isStackTraceEmpty() =
-    stacktraceGroup.exceptions.isEmpty() || stacktraceGroup.exceptions.joinToString("").isEmpty()
+  fun isStackTraceEmpty() = stacktraceGroup.exceptions.isEmpty() || stacktraceGroup.exceptions.joinToString("").isEmpty()
 }

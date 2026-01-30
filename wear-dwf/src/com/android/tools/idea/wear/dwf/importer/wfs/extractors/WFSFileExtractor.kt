@@ -28,8 +28,7 @@ import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-private val EXCLUDED_FILES =
-  setOf("res/drawable-nodpi/preview_circular.png", "res/values/strings.xml")
+private val EXCLUDED_FILES = setOf("res/drawable-nodpi/preview_circular.png", "res/values/strings.xml")
 
 private const val WATCH_FACE_FILENAME = "watchface.xml"
 private const val HONEY_FACE_FILENAME = "honeyface.json"
@@ -38,11 +37,9 @@ private const val STUDIO_PREVIEW_FILENAME = "preview.png"
 
 /**
  * A class that extracts watch face files from a `.wfs` file. This format is used by
- * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) before the
- * watch face is built/published.
+ * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) before the watch face is built/published.
  *
- * NOTE: This class is currently not complete and has been paused until we have business need to
- * revisit it.
+ * NOTE: This class is currently not complete and has been paused until we have business need to revisit it.
  */
 internal class WFSFileExtractor(
   private val ioDispatcher: CoroutineDispatcher,
@@ -58,9 +55,7 @@ internal class WFSFileExtractor(
   }
 
   private fun extractWFSFiles(wfsFile: VirtualFile, mainFolderPath: Path, resFolderPath: Path) {
-    Decompressor.Zip(wfsFile.toNioPath())
-      .entryFilter { it -> it.name !in EXCLUDED_FILES }
-      .extract(mainFolderPath)
+    Decompressor.Zip(wfsFile.toNioPath()).entryFilter { it -> it.name !in EXCLUDED_FILES }.extract(mainFolderPath)
 
     val wfsPreviewFile = mainFolderPath.resolve(WFS_PREVIEW_FILENAME).toFile()
     if (wfsPreviewFile.exists()) {
@@ -73,18 +68,13 @@ internal class WFSFileExtractor(
 
   private fun generateRawWatchFaceFile(mainFolderPath: Path, resFolderPath: Path) {
     val honeyFaceFile = File(mainFolderPath.toFile(), HONEY_FACE_FILENAME)
-    val honeyFace =
-      parser.parse(honeyFaceFile)
-        ?: throw InvalidHoneyFaceFileException("Failed to parse the HoneyFace file.")
+    val honeyFace = parser.parse(honeyFaceFile) ?: throw InvalidHoneyFaceFileException("Failed to parse the HoneyFace file.")
     FileUtil.delete(honeyFaceFile)
 
     val rawWatchFaceXmlDocument = xmlConverter.toXml(honeyFace)
     val rawWatchFaceFile = resFolderPath.resolve(FD_RES_RAW).resolve(WATCH_FACE_FILENAME).toFile()
 
     FileUtil.createIfDoesntExist(rawWatchFaceFile)
-    FileUtil.writeToFile(
-      rawWatchFaceFile,
-      XmlPrettyPrinter.prettyPrint(rawWatchFaceXmlDocument, false),
-    )
+    FileUtil.writeToFile(rawWatchFaceFile, XmlPrettyPrinter.prettyPrint(rawWatchFaceXmlDocument, false))
   }
 }

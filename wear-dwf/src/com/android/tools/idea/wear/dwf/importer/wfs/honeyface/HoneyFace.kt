@@ -18,8 +18,7 @@ package com.android.tools.idea.wear.dwf.importer.wfs.honeyface
 import java.nio.file.Path
 
 /**
- * Represents the JSON format used by
- * [WatchFaceStudio](https://developer.samsung.com/watch-face-studio/overview.html) in the
+ * Represents the JSON format used by [WatchFaceStudio](https://developer.samsung.com/watch-face-studio/overview.html) in the
  * `honeyface.json` file that's embedded within the `.wfs` files.
  */
 internal data class HoneyFace(
@@ -32,13 +31,7 @@ internal data class HoneyFace(
   val styleGroup: StyleGroupContainer,
 )
 
-internal data class Settings(
-  val width: Int,
-  val height: Int,
-  val clockType: String,
-  val shape: String?,
-  val isCropped: Boolean,
-)
+internal data class Settings(val width: Int, val height: Int, val clockType: String, val shape: String?, val isCropped: Boolean)
 
 internal data class StyleGroupContainer(val styleGroups: List<StyleGroup>)
 
@@ -51,11 +44,7 @@ internal data class StyleGroup(
   val styleOptions: List<Map<String, String>>,
 )
 
-internal data class BuildData(
-  val watchType: String,
-  val packageName: String,
-  val appLabel: Map<String, String>,
-)
+internal data class BuildData(val watchType: String, val packageName: String, val appLabel: Map<String, String>)
 
 internal data class Dimensions(val width: Float, val height: Float)
 
@@ -110,11 +99,7 @@ internal data class DimensionsCategory(
   val properties: DimensionsProperties,
 )
 
-internal data class DimensionsProperties(
-  val width: Value<Float>,
-  val height: Value<Float>,
-  val scale: Value<Scale>,
-)
+internal data class DimensionsProperties(val width: Value<Float>, val height: Value<Float>, val scale: Value<Scale>)
 
 internal data class ActionCategory(
   val enabled: Boolean?,

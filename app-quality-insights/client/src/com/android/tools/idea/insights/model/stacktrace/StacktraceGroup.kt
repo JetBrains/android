@@ -16,9 +16,8 @@
 package com.android.tools.idea.insights.model.stacktrace
 
 /**
- * A container for the errors / exceptions / stacktraces which describe a fatal crash or a non-fatal
- * error or exception. Logged errors have only the errors field set; fatals have both the exceptions
- * & thread_stack fields set.
+ * A container for the errors / exceptions / stacktraces which describe a fatal crash or a non-fatal error or exception. Logged errors have
+ * only the errors field set; fatals have both the exceptions & thread_stack fields set.
  */
 data class StacktraceGroup(
   // Nested exceptions are broken up & represented as peers in this list. See 'nested' field.

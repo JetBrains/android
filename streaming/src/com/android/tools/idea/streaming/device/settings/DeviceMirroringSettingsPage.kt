@@ -28,9 +28,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
 
-/**
- * Implementation of Settings > Tools > Device Mirroring preference page.
- */
+/** Implementation of Settings > Tools > Device Mirroring preference page. */
 class DeviceMirroringSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
   private lateinit var synchronizeClipboardCheckBox: JBCheckBox
@@ -74,26 +72,27 @@ class DeviceMirroringSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableC
         }
     }
     row {
-      checkBox(message("mirroring.settings.checkbox.redirect.audio"))
-        .comment(message("mirroring.settings.checkbox.redirect.audio.comment"))
-        .bindSelected(state::redirectAudio)
-    }.topGap(TopGap.SMALL)
+        checkBox(message("mirroring.settings.checkbox.redirect.audio"))
+          .comment(message("mirroring.settings.checkbox.redirect.audio.comment"))
+          .bindSelected(state::redirectAudio)
+      }
+      .topGap(TopGap.SMALL)
     row {
-      synchronizeClipboardCheckBox =
-        checkBox(message("mirroring.settings.checkbox.clipboard.sharing"))
-          .bindSelected(state::synchronizeClipboard)
-          .component
-    }.topGap(TopGap.SMALL)
+        synchronizeClipboardCheckBox =
+          checkBox(message("mirroring.settings.checkbox.clipboard.sharing")).bindSelected(state::synchronizeClipboard).component
+      }
+      .topGap(TopGap.SMALL)
     indent {
       row(message("mirroring.settings.maximum.length.clipboard.text")) {
-        intTextField(range = 10..10_000_000, keyboardStep = 1000)
-          .bindIntText(state::maxSyncedClipboardLength)
-      }.enabledIf(synchronizeClipboardCheckBox.selected)
+          intTextField(range = 10..10_000_000, keyboardStep = 1000).bindIntText(state::maxSyncedClipboardLength)
+        }
+        .enabledIf(synchronizeClipboardCheckBox.selected)
     }
     row {
-      checkBox(message("mirroring.settings.checkbox.turn.off.device.display.while.mirroring"))
-        .bindSelected(state::turnOffDisplayWhileMirroring)
-    }.topGap(TopGap.SMALL)
+        checkBox(message("mirroring.settings.checkbox.turn.off.device.display.while.mirroring"))
+          .bindSelected(state::turnOffDisplayWhileMirroring)
+      }
+      .topGap(TopGap.SMALL)
   }
 
   private fun onMirroringEnabled(checkBox: JBCheckBox) {
@@ -102,15 +101,15 @@ class DeviceMirroringSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableC
       val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(parent = checkBox).apply { show() }
       if (dialogWrapper.exitCode == MirroringConfirmationDialog.ACCEPT_EXIT_CODE) {
         state.confirmationDialogShown = true
-      }
-      else {
+      } else {
         checkBox.isSelected = false // Revert mirroring enablement.
       }
     }
   }
 }
 
-private val DISPLAY_NAME = when {
-  IdeInfo.getInstance().isAndroidStudio -> message("android.configurable.DeviceMirroringConfigurable.displayName")
-  else -> "Android Device Mirroring"
-}
+private val DISPLAY_NAME =
+  when {
+    IdeInfo.getInstance().isAndroidStudio -> message("android.configurable.DeviceMirroringConfigurable.displayName")
+    else -> "Android Device Mirroring"
+  }

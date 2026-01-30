@@ -66,8 +66,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
           "test",
           CustomConfigurationSet("Custom", emptyList()),
           object : ConfigurationSetListener {
-            override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) =
-              Unit
+            override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
 
             override fun onCurrentConfigurationSetUpdated() = Unit
           },
@@ -76,18 +75,10 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     val view = surface.getSceneManager(myModel)!!.sceneViews.single()
     val mouseEvent =
-      MouseEventBuilder(
-          view.x + view.scaledContentSize.width * 2,
-          view.y + view.scaledContentSize.height * 2,
-        )
-        .withSource(Any())
-        .build()
+      MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2).withSource(Any()).build()
 
     val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
-    (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(
-      popupMenuListener,
-      testRootDisposable,
-    )
+    (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)
 
     interactionHandler.popupMenuTrigger(mouseEvent)
     Mockito.verifyNoMoreInteractions(popupMenuListener)
@@ -101,8 +92,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val surface = myModel.surface
     val interactionHandler = VisualizationInteractionHandler(surface) { EmptyModelsProvider }
 
-    val keyEvent =
-      KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, KeyEvent.CHAR_UNDEFINED).build()
+    val keyEvent = KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, KeyEvent.CHAR_UNDEFINED).build()
     val interaction = interactionHandler.keyPressedWithoutInteraction(keyEvent)
     assertInstanceOf(interaction, PanInteraction::class.java)
   }
@@ -113,20 +103,14 @@ class VisualizationInteractionHandlerTest : SceneTest() {
         "test",
         CustomConfigurationSet("Custom", emptyList()),
         object : ConfigurationSetListener {
-          override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) =
-            Unit
+          override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
 
           override fun onCurrentConfigurationSetUpdated() = Unit
         },
       )
 
     customModelsProviders.addCustomConfigurationAttributes(
-      CustomConfigurationAttribute(
-        name = "Preview 1",
-        deviceId = "pixel_xl",
-        apiLevel = 34,
-        orientation = ScreenOrientation.PORTRAIT,
-      )
+      CustomConfigurationAttribute(name = "Preview 1", deviceId = "pixel_xl", apiLevel = 34, orientation = ScreenOrientation.PORTRAIT)
     )
     assertEquals(1, customModelsProviders.customConfigSet.customConfigAttributes.size)
     val file = myFixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)

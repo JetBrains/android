@@ -111,12 +111,7 @@ class AndroidLintGradleTest {
     projectRule.loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
     val debug = fixture.loadFile("app/src/debug/AndroidManifest.xml")
-    fixture.checkLint(
-      debug,
-      AndroidLintMockLocationInspection(),
-      "android.permission.ACCESS_|MOCK_LOCATION",
-      "No warnings.",
-    )
+    fixture.checkLint(debug, AndroidLintMockLocationInspection(), "android.permission.ACCESS_|MOCK_LOCATION", "No warnings.")
     val main = fixture.loadFile("app/src/main/AndroidManifest.xml")
 
     fixture.checkLint(
@@ -177,20 +172,9 @@ class AndroidLintGradleTest {
     """,
     )
 
-    val androidTestFile =
-      fixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
-    fixture.checkLint(
-      androidTestFile,
-      AndroidLintNewApiInspection(),
-      "LocalDate.n|ow",
-      "No warnings.",
-    )
-    fixture.checkLint(
-      androidTestFile,
-      AndroidLintNewApiInspection(),
-      "collection.st|ream",
-      "No warnings.",
-    )
+    val androidTestFile = fixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
+    fixture.checkLint(androidTestFile, AndroidLintNewApiInspection(), "LocalDate.n|ow", "No warnings.")
+    fixture.checkLint(androidTestFile, AndroidLintNewApiInspection(), "collection.st|ream", "No warnings.")
   }
 
   @Test
@@ -415,15 +399,9 @@ class AndroidLintGradleTest {
     // We can't just override
     //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
     // here because that interferes with the loadProject() operations running initially
-    fixture.testDataPath =
-      File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
+    fixture.testDataPath = File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
     val testDir = "/lint/global/${PlatformTestUtil.getTestName(nameRule.methodName, true)}"
-    return AndroidTestBase.doGlobalInspectionTest(
-      fixture,
-      GlobalInspectionToolWrapper(tool),
-      testDir,
-      scope,
-    )
+    return AndroidTestBase.doGlobalInspectionTest(fixture, GlobalInspectionToolWrapper(tool), testDir, scope)
   }
 }
 
@@ -445,12 +423,7 @@ fun PsiFile.findCaretOffset(caret: String): Int {
   return index + delta
 }
 
-fun CodeInsightTestFixture.checkLint(
-  psiFile: PsiFile,
-  inspection: AndroidLintInspectionBase,
-  caret: String,
-  expected: String,
-) {
+fun CodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
   checkLint(psiFile, inspection, caret to expected)
 }
 
@@ -467,8 +440,7 @@ fun CodeInsightTestFixture.checkLint(
     val sb = StringBuilder()
     val target = psiFile.findCaretOffset(caret)
     editor.caretModel.moveToOffset(target)
-    val highlights =
-      doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+    val highlights = doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
     for (highlight in highlights) {
       val startIndex = highlight.startOffset
       val endOffset = highlight.endOffset
@@ -537,11 +509,7 @@ fun CodeInsightTestFixture.checkLintBatch(
   for (descriptor in descriptors) {
     if (descriptor is ProblemDescriptor) {
       val element = descriptor.psiElement
-      sb
-        .append(element.containingFile.virtualFile.name)
-        .append(":")
-        .append(element.getLineNumber())
-        .append(": ")
+      sb.append(element.containingFile.virtualFile.name).append(":").append(element.getLineNumber()).append(": ")
       val highlightType = descriptor.highlightType
       val severity =
         when (highlightType) {
@@ -554,9 +522,7 @@ fun CodeInsightTestFixture.checkLintBatch(
           else -> highlightType.name.lowercase(Locale.ROOT).capitalize()
         }
       sb.append(severity).append(": ")
-      sb
-        .append(descriptor.toString().removePrefix("<html>").removeSuffix("</html>").trim())
-        .append("\n")
+      sb.append(descriptor.toString().removePrefix("<html>").removeSuffix("</html>").trim()).append("\n")
       val fixes = descriptor.fixes
       if (fixes != null) {
         for (fix in fixes) {

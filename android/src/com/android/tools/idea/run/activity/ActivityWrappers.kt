@@ -29,7 +29,7 @@ data class IndexedActivityWrapper(
   private val intentFilters: Set<IntentFilterRawText>,
   private val name: String?,
   private val overrides: ManifestOverrides,
-  private val resolvedPackage: String?
+  private val resolvedPackage: String?,
 ) : DefaultActivityLocator.ActivityWrapper() {
 
   companion object {
@@ -42,9 +42,11 @@ data class IndexedActivityWrapper(
     }
 
     @JvmStatic
-    fun getActivityAliases(facet: AndroidFacet,
-                           manifest: AndroidManifestRawText,
-                           overrides: ManifestOverrides): List<IndexedActivityWrapper> {
+    fun getActivityAliases(
+      facet: AndroidFacet,
+      manifest: AndroidManifestRawText,
+      overrides: ManifestOverrides,
+    ): List<IndexedActivityWrapper> {
       val resolvedPackage = facet.getModuleSystem().getPackageName()
       return manifest.activityAliases.map {
         IndexedActivityWrapper(it.enabled, it.exported, null, it.intentFilters, it.name, overrides, resolvedPackage)
@@ -53,19 +55,11 @@ data class IndexedActivityWrapper(
   }
 
   override fun hasCategory(name: String): Boolean {
-    return intentFilters
-      .asSequence()
-      .flatMap { it.categoryNames.asSequence() }
-      .map(overrides::resolvePlaceholders)
-      .contains(name)
+    return intentFilters.asSequence().flatMap { it.categoryNames.asSequence() }.map(overrides::resolvePlaceholders).contains(name)
   }
 
   override fun hasAction(name: String): Boolean {
-    return intentFilters
-      .asSequence()
-      .flatMap { it.actionNames.asSequence() }
-      .map(overrides::resolvePlaceholders)
-      .contains(name)
+    return intentFilters.asSequence().flatMap { it.actionNames.asSequence() }.map(overrides::resolvePlaceholders).contains(name)
   }
 
   override fun isEnabled(): Boolean {

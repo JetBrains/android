@@ -12,11 +12,7 @@ import java.nio.file.Path
 
 /** Adds C/C++ compilation information and headers to the project proto. */
 class ConfigureCcSources {
-  fun update(
-    update: ProjectProtoUpdate,
-    buildGraph: BuildGraphData,
-    context: Context<*>,
-  ) {
+  fun update(update: ProjectProtoUpdate, buildGraph: BuildGraphData, context: Context<*>) {
     update.ccWorkspace {
       val visitor = Visitor(context, this)
 
@@ -27,19 +23,13 @@ class ConfigureCcSources {
     }
   }
 
-  private class Visitor(
-    private val context: Context<*>,
-    private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater,
-  ) {
+  private class Visitor(private val context: Context<*>, private val workspaceUpdater: ProjectProtoUpdate.CcWorkspaceUpdater) {
     fun visitTargetSourceFiles(target: Label, srcPaths: Collection<Path>) {
       workspaceUpdater.target(target) {
         for (srcPath in srcPaths) {
           val lang = getLanguage(srcPath) ?: continue
           addSourceFile(
-            ProjectProto.CcSourceFile(
-              workspacePath = ProjectPath.WorkspaceRelativeProjectPath(srcPath, EMPTY_PATH),
-              language = lang,
-            )
+            ProjectProto.CcSourceFile(workspacePath = ProjectPath.WorkspaceRelativeProjectPath(srcPath, EMPTY_PATH), language = lang)
           )
         }
       }
@@ -60,9 +50,7 @@ class ConfigureCcSources {
       if (EXTENSION_TO_LANGUAGE_MAP.containsKey(ext)) {
         return EXTENSION_TO_LANGUAGE_MAP[ext]
       }
-      context.output(
-        PrintOutput.log(
-          "Unrecognized extension %s for c/c++ source file %s; assuming cpp", ext, srcPath))
+      context.output(PrintOutput.log("Unrecognized extension %s for c/c++ source file %s; assuming cpp", ext, srcPath))
       return ProjectProto.CcLanguage.CPP
     }
   }
@@ -75,11 +63,11 @@ class ConfigureCcSources {
         "cpp" to ProjectProto.CcLanguage.CPP,
         "cxx" to ProjectProto.CcLanguage.CPP,
         "c++" to ProjectProto.CcLanguage.CPP,
-        "C" to ProjectProto.CcLanguage.C)
+        "C" to ProjectProto.CcLanguage.C,
+      )
 
     /* Files we ignore because they are not top level source files: */
-    private val IGNORE_SRC_FILE_EXTENSIONS =
-      setOf("h", "hh", "hpp", "hxx", "inc", "inl", "H", "S", "a", "lo", "so", "o")
+    private val IGNORE_SRC_FILE_EXTENSIONS = setOf("h", "hh", "hpp", "hxx", "inc", "inl", "H", "S", "a", "lo", "so", "o")
   }
 }
 

@@ -24,29 +24,23 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.LightVirtualFile
+import kotlin.test.assertEquals
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 private class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
   override fun dispose() {}
 }
 
-private val PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<TestMethodPreviewElement>("TestMethodPreviewElement")
+private val PREVIEW_ELEMENT_INSTANCE = DataKey.create<TestMethodPreviewElement>("TestMethodPreviewElement")
 
-private class TestAdapter :
-  MethodPreviewElementModelAdapter<TestMethodPreviewElement, TestModel>(PREVIEW_ELEMENT_INSTANCE) {
+private class TestAdapter : MethodPreviewElementModelAdapter<TestMethodPreviewElement, TestModel>(PREVIEW_ELEMENT_INSTANCE) {
   override fun toXml(previewElement: TestMethodPreviewElement) = ""
 
-  override fun applyToConfiguration(
-    previewElement: TestMethodPreviewElement,
-    configuration: Configuration,
-  ) {}
+  override fun applyToConfiguration(previewElement: TestMethodPreviewElement, configuration: Configuration) {}
 
-  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
-    LightVirtualFile()
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) = LightVirtualFile()
 }
 
 class MethodPreviewElementModelAdapterTest {
@@ -74,16 +68,13 @@ class MethodPreviewElementModelAdapterTest {
   @Test
   fun testLogString() {
     val previewElement =
-      TestMethodPreviewElement(
-        methodFqn = "someMethodFqn",
-        displaySettings = someDisplaySettings(name = "preview settings name"),
-      )
+      TestMethodPreviewElement(methodFqn = "someMethodFqn", displaySettings = someDisplaySettings(name = "preview settings name"))
 
     assertEquals(
       """
-        displayName=preview settings name
-        methodName=someMethodFqn
-    """
+      displayName=preview settings name
+      methodName=someMethodFqn
+      """
         .trimIndent(),
       adapter.toLogString(previewElement),
     )

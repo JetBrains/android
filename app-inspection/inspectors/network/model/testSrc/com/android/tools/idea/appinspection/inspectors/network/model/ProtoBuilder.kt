@@ -46,69 +46,41 @@ internal fun httpRequestStarted(
   trace: String = "",
 ) =
   httpConnectionEvent(id, timestampNanos) {
-      setHttpRequestStarted(
-        RequestStarted.newBuilder()
-          .setUrl(url)
-          .setMethod(method)
-          .setTrace(trace)
-          .addAllHeaders(headers)
-      )
+      setHttpRequestStarted(RequestStarted.newBuilder().setUrl(url).setMethod(method).setTrace(trace).addAllHeaders(headers))
     }
     .build()
 
 @Suppress("SameParameterValue")
 internal fun httpRequestPayload(id: Long, timestampNanos: Long, payload: String) =
-  httpConnectionEvent(id, timestampNanos) {
-      setRequestPayload(Payload.newBuilder().setPayload(ByteString.copyFromUtf8(payload)))
-    }
-    .build()
+  httpConnectionEvent(id, timestampNanos) { setRequestPayload(Payload.newBuilder().setPayload(ByteString.copyFromUtf8(payload))) }.build()
 
 @Suppress("SameParameterValue")
 internal fun httpRequestCompleted(id: Long, timestampNanos: Long) =
-  httpConnectionEvent(id, timestampNanos) { setHttpRequestCompleted(RequestCompleted.newBuilder()) }
-    .build()
+  httpConnectionEvent(id, timestampNanos) { setHttpRequestCompleted(RequestCompleted.newBuilder()) }.build()
 
 @Suppress("SameParameterValue")
-internal fun httpResponseStarted(
-  id: Long,
-  timestampNanos: Long,
-  responseCode: Int,
-  headers: List<Header>,
-) =
+internal fun httpResponseStarted(id: Long, timestampNanos: Long, responseCode: Int, headers: List<Header>) =
   httpConnectionEvent(id, timestampNanos) {
-      setHttpResponseStarted(
-        ResponseStarted.newBuilder().setResponseCode(responseCode).addAllHeaders(headers)
-      )
+      setHttpResponseStarted(ResponseStarted.newBuilder().setResponseCode(responseCode).addAllHeaders(headers))
     }
     .build()
 
 @Suppress("SameParameterValue")
 internal fun httpResponsePayload(id: Long, timestampNanos: Long, payload: String) =
-  httpConnectionEvent(id, timestampNanos) {
-      setResponsePayload(Payload.newBuilder().setPayload(ByteString.copyFromUtf8(payload)))
-    }
-    .build()
+  httpConnectionEvent(id, timestampNanos) { setResponsePayload(Payload.newBuilder().setPayload(ByteString.copyFromUtf8(payload))) }.build()
 
 @Suppress("SameParameterValue")
 internal fun httpResponseCompleted(id: Long, timestampNanos: Long) =
-  httpConnectionEvent(id, timestampNanos) {
-      setHttpResponseCompleted(ResponseCompleted.newBuilder())
-    }
-    .build()
+  httpConnectionEvent(id, timestampNanos) { setHttpResponseCompleted(ResponseCompleted.newBuilder()) }.build()
 
 @Suppress("SameParameterValue")
 internal fun httpClosed(id: Long, timestamp: Long, completed: Boolean) =
-  httpConnectionEvent(id, timestamp) { setHttpClosed(Closed.newBuilder().setCompleted(completed)) }
-    .build()
+  httpConnectionEvent(id, timestamp) { setHttpClosed(Closed.newBuilder().setCompleted(completed)) }.build()
 
 @Suppress("SameParameterValue")
 internal fun httpThread(id: Long, timestampNanos: Long, threadId: Long, threadName: String) =
   httpConnectionEvent(id, timestampNanos) {
-      setHttpThread(
-        NetworkInspectorProtocol.ThreadData.newBuilder()
-          .setThreadId(threadId)
-          .setThreadName(threadName)
-      )
+      setHttpThread(NetworkInspectorProtocol.ThreadData.newBuilder().setThreadId(threadId).setThreadName(threadName))
     }
     .build()
 
@@ -127,62 +99,26 @@ internal fun grpcCallStarted(
   trace: String = "",
 ) =
   grpcEvent(id, timestampNanos) {
-      setGrpcCallStarted(
-        GrpcCallStarted.newBuilder()
-          .setService(service)
-          .setMethod(method)
-          .addAllRequestHeaders(headers)
-          .setTrace(trace)
-      )
+      setGrpcCallStarted(GrpcCallStarted.newBuilder().setService(service).setMethod(method).addAllRequestHeaders(headers).setTrace(trace))
     }
     .build()
 
-internal fun grpcMessageSent(
-  id: Long,
-  timestampNanos: Long,
-  bytes: ByteString,
-  type: String,
-  text: String,
-) =
+internal fun grpcMessageSent(id: Long, timestampNanos: Long, bytes: ByteString, type: String, text: String) =
   grpcEvent(id, timestampNanos) {
-      setGrpcMessageSent(
-        GrpcMessageSent.newBuilder()
-          .setPayload(GrpcPayload.newBuilder().setBytes(bytes).setType(type).setText(text))
-      )
+      setGrpcMessageSent(GrpcMessageSent.newBuilder().setPayload(GrpcPayload.newBuilder().setBytes(bytes).setType(type).setText(text)))
     }
     .build()
 
-internal fun grpcStreamCreated(
-  id: Long,
-  timestampNanos: Long,
-  address: String,
-  headers: List<GrpcMetadata>,
-) =
-  grpcEvent(id, timestampNanos) {
-      setGrpcStreamCreated(
-        GrpcStreamCreated.newBuilder().setAddress(address).addAllRequestHeaders(headers)
-      )
-    }
+internal fun grpcStreamCreated(id: Long, timestampNanos: Long, address: String, headers: List<GrpcMetadata>) =
+  grpcEvent(id, timestampNanos) { setGrpcStreamCreated(GrpcStreamCreated.newBuilder().setAddress(address).addAllRequestHeaders(headers)) }
     .build()
 
 internal fun grpcResponseHeaders(id: Long, timestampNanos: Long, headers: List<GrpcMetadata>) =
-  grpcEvent(id, timestampNanos) {
-      setGrpcResponseHeaders(GrpcResponseHeaders.newBuilder().addAllResponseHeaders(headers))
-    }
-    .build()
+  grpcEvent(id, timestampNanos) { setGrpcResponseHeaders(GrpcResponseHeaders.newBuilder().addAllResponseHeaders(headers)) }.build()
 
-internal fun grpcMessageReceived(
-  id: Long,
-  timestampNanos: Long,
-  bytes: ByteString,
-  type: String,
-  text: String,
-) =
+internal fun grpcMessageReceived(id: Long, timestampNanos: Long, bytes: ByteString, type: String, text: String) =
   grpcEvent(id, timestampNanos) {
-      setGrpcMessageReceived(
-        newBuilder()
-          .setPayload(GrpcPayload.newBuilder().setBytes(bytes).setType(type).setText(text))
-      )
+      setGrpcMessageReceived(newBuilder().setPayload(GrpcPayload.newBuilder().setBytes(bytes).setType(type).setText(text)))
     }
     .build()
 
@@ -193,43 +129,25 @@ internal fun grpcCallEnded(
   error: String = "",
   trailers: List<GrpcMetadata> = emptyList(),
 ) =
-  grpcEvent(id, timestampNanos) {
-      setGrpcCallEnded(
-        GrpcCallEnded.newBuilder().setStatus(status).setError(error).addAllTrailers(trailers)
-      )
-    }
+  grpcEvent(id, timestampNanos) { setGrpcCallEnded(GrpcCallEnded.newBuilder().setStatus(status).setError(error).addAllTrailers(trailers)) }
     .build()
 
 internal fun grpcThread(id: Long, timestampNanos: Long, threadId: Long, threadName: String) =
   grpcEvent(id, timestampNanos) {
-      setGrpcThread(
-        NetworkInspectorProtocol.ThreadData.newBuilder()
-          .setThreadId(threadId)
-          .setThreadName(threadName)
-      )
+      setGrpcThread(NetworkInspectorProtocol.ThreadData.newBuilder().setThreadId(threadId).setThreadName(threadName))
     }
     .build()
 
-private fun httpConnectionEvent(
-  id: Long,
-  timestampNanos: Long,
-  block: HttpConnectionEvent.Builder.() -> HttpConnectionEvent.Builder,
-) =
+private fun httpConnectionEvent(id: Long, timestampNanos: Long, block: HttpConnectionEvent.Builder.() -> HttpConnectionEvent.Builder) =
   NetworkInspectorProtocol.Event.newBuilder()
     .setTimestamp(timestampNanos)
     .setHttpConnectionEvent(HttpConnectionEvent.newBuilder().setConnectionId(id).block())
 
-internal fun httpHeader(key: String, vararg values: String) =
-  Header.newBuilder().setKey(key).addAllValues(values.asList()).build()
+internal fun httpHeader(key: String, vararg values: String) = Header.newBuilder().setKey(key).addAllValues(values.asList()).build()
 
-private fun grpcEvent(
-  id: Long,
-  timestampNanos: Long,
-  block: GrpcEvent.Builder.() -> GrpcEvent.Builder,
-) =
+private fun grpcEvent(id: Long, timestampNanos: Long, block: GrpcEvent.Builder.() -> GrpcEvent.Builder) =
   NetworkInspectorProtocol.Event.newBuilder()
     .setTimestamp(timestampNanos)
     .setGrpcEvent(GrpcEvent.newBuilder().setConnectionId(id).block().build())
 
-internal fun grpcMetadata(key: String, vararg values: String) =
-  GrpcMetadata.newBuilder().setKey(key).addAllValues(values.asList()).build()
+internal fun grpcMetadata(key: String, vararg values: String) = GrpcMetadata.newBuilder().setKey(key).addAllValues(values.asList()).build()

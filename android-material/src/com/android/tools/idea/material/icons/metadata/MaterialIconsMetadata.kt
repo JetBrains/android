@@ -34,10 +34,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 
-/**
- * Metadata for the Material design icons, based on the metadata file obtained from
- * http://fonts.google.com/metadata/icons.
- */
+/** Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons. */
 data class MaterialIconsMetadata(
   val host: String,
   @SerializedName("asset_url_pattern") val urlPattern: String,
@@ -78,9 +75,7 @@ data class MaterialIconsMetadata(
         return
       }
       try {
-        Files.newBufferedWriter(target, Charsets.UTF_8).use { writer ->
-          getGson().toJson(metadata, writer)
-        }
+        Files.newBufferedWriter(target, Charsets.UTF_8).use { writer -> getGson().toJson(metadata, writer) }
       } catch (e: Exception) {
         when (e) {
           is IOException,
@@ -173,24 +168,14 @@ private class MetadataDeserializer : JsonDeserializer<MaterialIconsMetadata?> {
   private val familiesKey = "families"
   private val iconsKey = "icons"
 
-  override fun deserialize(
-    json: JsonElement?,
-    typeOfT: Type?,
-    context: JsonDeserializationContext?,
-  ): MaterialIconsMetadata? {
+  override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): MaterialIconsMetadata? {
     if (json == null || typeOfT == null || context == null) return null
     val jsonObject = json.asJsonObject
     val host = jsonObject[hostKey].asString
     val urlPattern = jsonObject[urlPatternKey].asString
-    val families =
-      context.deserialize<Array<String>>(jsonObject[familiesKey], Array<String>::class.java)
-    val icons =
-      context.deserialize<Array<MaterialMetadataIcon>>(
-        jsonObject[iconsKey],
-        Array<MaterialMetadataIcon>::class.java,
-      )
-    val categories: Array<String> =
-      icons.flatMap { it.categories.toList() }.distinct().sorted().toTypedArray()
+    val families = context.deserialize<Array<String>>(jsonObject[familiesKey], Array<String>::class.java)
+    val icons = context.deserialize<Array<MaterialMetadataIcon>>(jsonObject[iconsKey], Array<MaterialMetadataIcon>::class.java)
+    val categories: Array<String> = icons.flatMap { it.categories.toList() }.distinct().sorted().toTypedArray()
     return MaterialIconsMetadata(host, urlPattern, families, icons, categories)
   }
 }
@@ -204,22 +189,13 @@ private class IconDeserializer : JsonDeserializer<MaterialMetadataIcon?> {
   private val tagsKey = "tags"
   private val unicodeKey = "codepoint"
 
-  override fun deserialize(
-    json: JsonElement?,
-    typeOfT: Type?,
-    context: JsonDeserializationContext?,
-  ): MaterialMetadataIcon? {
+  override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): MaterialMetadataIcon? {
     if (json == null || typeOfT == null || context == null) return null
     val jsonObject = json.asJsonObject
     val name = jsonObject[nameKey].asString
     val version = jsonObject[versionKey].asInt
-    val unsupportedFamilies =
-      context.deserialize<Array<String>>(
-        jsonObject[unsupportedFamiliesKey],
-        Array<String>::class.java,
-      )
-    val categories =
-      context.deserialize<Array<String>>(jsonObject[categoriesKey], Array<String>::class.java)
+    val unsupportedFamilies = context.deserialize<Array<String>>(jsonObject[unsupportedFamiliesKey], Array<String>::class.java)
+    val categories = context.deserialize<Array<String>>(jsonObject[categoriesKey], Array<String>::class.java)
     val tags = context.deserialize<Array<String>>(jsonObject[tagsKey], Array<String>::class.java)
     val unicode = jsonObject[unicodeKey].asInt
 

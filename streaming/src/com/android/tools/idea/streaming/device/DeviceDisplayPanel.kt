@@ -24,9 +24,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.project.Project
 
-/**
- * Represents a single display of an Android device.
- */
+/** Represents a single display of an Android device. */
 internal class DeviceDisplayPanel(
   disposableParent: Disposable,
   deviceClient: DeviceClient,

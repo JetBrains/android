@@ -46,8 +46,8 @@ interface ComponentProvider<T> {
 }
 
 /**
- * A basic provider which converts any data to it's a label containing the data's `toString`
- * representation, useful as a default provider for simple cases.
+ * A basic provider which converts any data to it's a label containing the data's `toString` representation, useful as a default provider
+ * for simple cases.
  */
 class ToStringProvider<T> : ComponentProvider<T> {
   override fun convert(data: T) = JBLabel(data.toString())
@@ -82,8 +82,8 @@ object StateProvider : ComponentProvider<BackgroundTaskEntry> {
 }
 
 /**
- * Provides a component that displays the location a worker was enqueued at, with the ability to
- * click on that location to navigate into the code.
+ * Provides a component that displays the location a worker was enqueued at, with the ability to click on that location to navigate into the
+ * code.
  */
 class EnqueuedAtProvider(
   private val ideServices: AppInspectionIdeServices,
@@ -96,20 +96,14 @@ class EnqueuedAtProvider(
         add(JBLabel("Unavailable"))
         add(Box.createHorizontalStrut(5))
         val icon = JLabel(StudioIcons.Common.HELP)
-        HelpTooltip()
-          .setDescription(
-            "Enqueue location is only known for workers started after opening the inspector."
-          )
-          .installOn(icon)
+        HelpTooltip().setDescription("Enqueue location is only known for workers started after opening the inspector.").installOn(icon)
         add(icon)
       }
     } else {
       val frame0 = data.getFrames(0)
       ActionLink("${frame0.fileName} (${frame0.lineNumber})") {
         scope.launch {
-          ideServices.navigateTo(
-            AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber)
-          )
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
           tracker.trackJumpedToSource()
         }
       }
@@ -133,16 +127,14 @@ object StringListProvider : ComponentProvider<List<String>> {
  *
  * @param selectEntry A callback which can be triggered to select some target entry.
  */
-class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) :
-  ComponentProvider<BackgroundTaskEntry> {
+class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) : ComponentProvider<BackgroundTaskEntry> {
   override fun convert(data: BackgroundTaskEntry): JComponent {
     return ActionLink(data.className) { selectEntry(data) }.apply { icon = data.icon() }
   }
 }
 
 /**
- * Provides a component that displays a list of workers, each which, when clicked, select that
- * worker in a source table.
+ * Provides a component that displays a list of workers, each which, when clicked, select that worker in a source table.
  *
  * @param selectWork A callback which can be triggered to select some target worker.
  */
@@ -165,8 +157,7 @@ class IdListProvider(
                 .apply {
                   icon = entry.icon()
                   if (work.tagsCount > 0) {
-                    toolTipText =
-                      "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                    toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
                   }
                 }
             mixedLabel.add(actionLink)
@@ -212,9 +203,7 @@ object WorkConstraintProvider : ComponentProvider<Constraints> {
     }
 
     return if (constraintDescs.isNotEmpty()) {
-      JPanel(VerticalFlowLayout(0, 0)).apply {
-        constraintDescs.forEach { desc -> add(JBLabel(desc)) }
-      }
+      JPanel(VerticalFlowLayout(0, 0)).apply { constraintDescs.forEach { desc -> add(JBLabel(desc)) } }
     } else {
       createEmptyContentLabel()
     }
@@ -228,8 +217,7 @@ object JobConstraintProvider : ComponentProvider<JobInfo> {
     when (data.networkType) {
       JobInfo.NetworkType.NETWORK_TYPE_METERED -> constraintDescs.add("Network must be metered")
       JobInfo.NetworkType.NETWORK_TYPE_UNMETERED -> constraintDescs.add("Network must be unmetered")
-      JobInfo.NetworkType.NETWORK_TYPE_NOT_ROAMING ->
-        constraintDescs.add("Network must not be roaming")
+      JobInfo.NetworkType.NETWORK_TYPE_NOT_ROAMING -> constraintDescs.add("Network must not be roaming")
       else -> {}
     }
 
@@ -247,9 +235,7 @@ object JobConstraintProvider : ComponentProvider<JobInfo> {
     }
 
     return if (constraintDescs.isNotEmpty()) {
-      JPanel(VerticalFlowLayout(0, 0)).apply {
-        constraintDescs.forEach { desc -> add(JBLabel(desc)) }
-      }
+      JPanel(VerticalFlowLayout(0, 0)).apply { constraintDescs.forEach { desc -> add(JBLabel(desc)) } }
     } else {
       createEmptyContentLabel()
     }
@@ -266,18 +252,11 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
           protoData.entriesList.forEach { pair ->
             val pairPanel = JPanel(HorizontalLayout(0))
             pairPanel.add(JLabel("${pair.key} = "))
-            pairPanel.add(
-              JLabel("\"${pair.value}\"").apply {
-                foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR
-              }
-            )
+            pairPanel.add(JLabel("\"${pair.value}\"").apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR })
             add(pairPanel)
           }
         }
-      HideablePanel.Builder("Data", panel)
-        .setPanelBorder(JBUI.Borders.empty())
-        .setContentBorder(JBUI.Borders.emptyLeft(20))
-        .build()
+      HideablePanel.Builder("Data", panel).setPanelBorder(JBUI.Borders.empty()).setContentBorder(JBUI.Borders.emptyLeft(20)).build()
     } else {
       val state = data.state
       JBLabel().apply {

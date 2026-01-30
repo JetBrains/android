@@ -31,15 +31,13 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
 import java.lang.Math.max
 import java.util.Locale
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 
-/**
- * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.
- */
+/** A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests. */
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
@@ -72,13 +70,9 @@ class ProjectDumper(
     }
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
-    offlineRepos.forEach {
-      println("                  ${it.absolutePath}")
-    }
+    offlineRepos.forEach { println("                  ${it.absolutePath}") }
     println("<HOME>        <== ${systemHome?.absolutePath}")
-    additionalRoots.forEach { (key, value) ->
-      println("<$key>        <== ${value.absolutePath}")
-    }
+    additionalRoots.forEach { (key, value) -> println("<$key>        <== ${value.absolutePath}") }
     println("<JDK>        <== ${projectJdk?.name}")
   }
 
@@ -105,12 +99,15 @@ class ProjectDumper(
     val cxxSegment = findCxxSegment(this) ?: return this.path
     val abiSegment = findAbiSegment(this) ?: return this.path
     val stringFile = this.toString().replace("\\", "/")
-    val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1, stringFile.lastIndexOf(abiSegment) - 1)
-    val pathsToReplace = mapOf(
-      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
-      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
-      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
-      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}")
+    val variantSegmentToReplace =
+      stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1, stringFile.lastIndexOf(abiSegment) - 1)
+    val pathsToReplace =
+      mapOf(
+        "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+        "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+        "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+        "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      )
     var result = this.path
     for ((old, new) in pathsToReplace) {
       result = result.replace(old, new)
@@ -121,19 +118,18 @@ class ProjectDumper(
   private fun findCxxSegment(file: File): String? {
     val name = file.name
     if (name.endsWith("cxx")) return file.name
-    return findCxxSegment(file.parentFile?:return null)
+    return findCxxSegment(file.parentFile ?: return null)
   }
 
   private fun findAbiSegment(file: File): String? {
     val name = file.name
-    if (name in Abi.values().map{it -> it.toString()}.toSet()) return file.name
-    return findAbiSegment(file.parentFile?:return null)
+    if (name in Abi.values().map { it -> it.toString() }.toSet()) return file.name
+    return findAbiSegment(file.parentFile ?: return null)
   }
 
-  /**
-   * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
-   */
+  /** Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist. */
   fun File.toPrintablePath(): String = path.toPrintablePath()
+
   fun String.toPrintablePath(): String {
     fun String.splitPathAndSuffix(): Pair<String, String> =
       when {
@@ -160,26 +156,28 @@ class ProjectDumper(
     return if (!exists()) " [-]" else ""
   }
 
-  fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
-  else this
-  fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
+  fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>" else this
+
+  fun String.replaceCurrentBuildToolsVersion(): String =
+    replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
-    this
-      .replaceAgpVersion()
+    this.replaceAgpVersion()
       .replaceKotlinVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
-        }
-        else it
+        } else it
       }
       .removeAndroidVersionsFromPath()
 
   fun String.replaceKnownPaths(): String =
-    this
-      .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
+    this.let {
+        offlineRepos.fold(it) { text, repo ->
+          text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false)
+        }
+      }
       .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
       .replaceJdkPath()
       .replace("/transformed/jetified-", "/transformed/")
@@ -194,18 +192,11 @@ class ProjectDumper(
           it
         }
       }
-      .let {
-        it.replaceAfter(
-          "<ANDROID_SDK>",
-          it.substringAfter("<ANDROID_SDK>", "")
-            .replaceCurrentBuildToolsVersion()
-        )
-      }
+      .let { it.replaceAfter("<ANDROID_SDK>", it.substringAfter("<ANDROID_SDK>", "").replaceCurrentBuildToolsVersion()) }
       .let {
         if (devBuildHome != null) {
           it.replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
-        }
-        else it
+        } else it
       }
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .replace(gradleLongHashPattern, gradleLongHashStub)
@@ -219,8 +210,7 @@ class ProjectDumper(
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replaceGradleVersion()
-        }
-        else it
+        } else it
       }
       .let {
         if (IdeInfo.getInstance().isAndroidStudio) it
@@ -236,30 +226,33 @@ class ProjectDumper(
   fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
 
   private fun String.replaceKotlinVersion(): String {
-    return split("\n").map { line ->
-      when {
-        // Ignore kotlinx for now, we can process it later if we want
-        line.contains("org.jetbrains.kotlinx") || line.contains("org/jetbrains/kotlinx") -> line
+    return split("\n")
+      .map { line ->
+        when {
+          // Ignore kotlinx for now, we can process it later if we want
+          line.contains("org.jetbrains.kotlinx") || line.contains("org/jetbrains/kotlinx") -> line
 
-        // Find org.jetbrains.kotlin(.native):something(:commonMain):<version>
-        //   or org/jetbrains/kotlin(/native)/something/<version>/something-<version>
-        line.contains("org.jetbrains.kotlin") || line.contains("org/jetbrains/kotlin") -> {
-          line.replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
+          // Find org.jetbrains.kotlin(.native):something(:commonMain):<version>
+          //   or org/jetbrains/kotlin(/native)/something/<version>/something-<version>
+          line.contains("org.jetbrains.kotlin") || line.contains("org/jetbrains/kotlin") -> {
+            line.replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
+          }
+
+          // Also look for Kotlin version in strings such as
+          // "jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/<SHA1>/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-1.9.20.jar!/"
+          line.contains("lib/kotlin-") -> {
+            line.substringBefore("kotlin-") + "kotlin-" + line.substringAfter("kotlin-").replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
+          }
+
+          // Handle kotlin-native-prebuilt (e.g., "file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib")
+          line.contains("kotlin-native-prebuilt-") -> {
+            line.replaceKotlinVersionForTests()
+          }
+
+          else -> line
         }
-
-        // Also look for Kotlin version in strings such as "jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/<SHA1>/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-1.9.20.jar!/"
-        line.contains("lib/kotlin-") -> {
-          line.substringBefore("kotlin-") + "kotlin-" + line.substringAfter("kotlin-").replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
-        }
-
-        // Handle kotlin-native-prebuilt (e.g., "file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib")
-        line.contains("kotlin-native-prebuilt-") -> {
-          line.replaceKotlinVersionForTests()
-        }
-
-        else -> line
       }
-    }.joinToString("\n")
+      .joinToString("\n")
   }
 
   fun appendLine(data: String) {
@@ -268,8 +261,8 @@ class ProjectDumper(
   }
 
   /**
-   * Temporarily configures additional indentation and optionally configures a new current directory root which will be replaced
-   * with [rootName] in the output and runs [code].
+   * Temporarily configures additional indentation and optionally configures a new current directory root which will be replaced with
+   * [rootName] in the output and runs [code].
    */
   fun nest(root: File? = null, rootName: String? = null, code: ProjectDumper.() -> Unit) {
     val savedRoot = this.currentRootDirectory
@@ -285,25 +278,23 @@ class ProjectDumper(
   }
 
   fun String.removeAndroidVersionsFromPath(): String =
-    androidPathPattern.find(this)?.groups?.get(1)?.let {
-      this.replace(it.value, "<VERSION>")
-    } ?: this
+    androidPathPattern.find(this)?.groups?.get(1)?.let { this.replace(it.value, "<VERSION>") } ?: this
 
   fun String.replaceSourceAndTargetCompatibility(): String {
-    return projectJdk
-      ?.let {
-        replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
-      }
-      ?: this
+    return projectJdk?.let {
+      replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
+    } ?: this
   }
 
   private val javaVersionRegex = Regex("(ms|homebrew|jbr|corretto)-(21|17|11|1\\.8)")
+
   fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
 
-  private val jdkVersionRegex = Regex("(Microsoft OpenJDK|Homebrew OpenJDK|JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+( - aarch64)?")
+  private val jdkVersionRegex =
+    Regex("(Microsoft OpenJDK|Homebrew OpenJDK|JetBrains Runtime|Amazon Corretto)( version)? (1\\.8|1[17]|21)\\.0\\.[0-9]+( - aarch64)?")
+
   fun String.replaceJdkVersion(): String {
-    return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION")
-      .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+    return replaceJavaVersionLikeMatch(jdkVersionRegex, 3, "JDK_VERSION").replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   }
 
   fun String.replaceJdkPath(): String {
@@ -317,28 +308,24 @@ class ProjectDumper(
     }
   }
 
-  fun String.replaceMatchingVersion(version: String?): String =
-    if (version != null) this.replace("-$version", "-<VERSION>") else this
-
+  fun String.replaceMatchingVersion(version: String?): String = if (version != null) this.replace("-$version", "-<VERSION>") else this
 
   fun String.smartPad() = this.padEnd(max(30, 10 + this.length / 10 * 10))
+
   fun String.markMatching(matching: String) = if (this == matching) "$this [=]" else this
 
   fun String.removeAndroidVersionsFromDependencyNames(): String =
-    androidLibraryPattern.find(this)?.groups?.get(1)?.let {
-      this.replaceRange(it.range, "<VERSION>")
-    } ?: this
+    androidLibraryPattern.find(this)?.groups?.get(1)?.let { this.replaceRange(it.range, "<VERSION>") } ?: this
 
-  fun String.getAndroidVersionFromDependencyName(): String? =
-    androidLibraryPattern.find(this)?.groups?.get(1)?.value
+  fun String.getAndroidVersionFromDependencyName(): String? = androidLibraryPattern.find(this)?.groups?.get(1)?.value
 
   fun Array<Module>.sortModules() =
     sortedWith(
       compareBy(
         // Sort by build root of each included project to maintain order across naming changes
         // Skip sorting for comparisons, it breaks the comparison as gradle project path is not always available
-        { it.getGradleProjectPath()?.buildRoot.takeIf { !forSnapshotComparison } }
-        , { it.name }
+        { it.getGradleProjectPath()?.buildRoot.takeIf { !forSnapshotComparison } },
+        { it.name },
       )
     )
 
@@ -349,17 +336,16 @@ private fun String.replaceJavaVersionLikeMatch(regex: Regex, regexVersionGroupIn
   replace(regex) {
     val defaultVersion = IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion().toFeatureString()
     val actualVersion = it.groupValues[regexVersionGroupIndex]
-    val versionSuffix = when {
-      actualVersion != defaultVersion -> "-$actualVersion"
-      else -> ""
-    }
+    val versionSuffix =
+      when {
+        actualVersion != defaultVersion -> "-$actualVersion"
+        else -> ""
+      }
     "<$placeholderName$versionSuffix>"
   }
 
 fun ProjectDumper.prop(name: String, value: () -> String?) {
-  value()?.let {
-    appendLine("${name.smartPad()}: $it")
-  }
+  value()?.let { appendLine("${name.smartPad()}: $it") }
 }
 
 fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
@@ -367,26 +353,21 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
   appendLine(name.smartPad() + if (v != null) ": $v" else "")
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: System.getenv("GRADLE_USER_HOME") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() =
+  File(System.getProperty("gradle.user.home") ?: System.getenv("GRADLE_USER_HOME") ?: (System.getProperty("user.home") + "/.gradle"))
 
-private fun getStudioSourcesLocation() =
-  if (StudioPathManager.isRunningFromSources()) File(StudioPathManager.getSourcesRoot()) else null
+private fun getStudioSourcesLocation() = if (StudioPathManager.isRunningFromSources()) File(StudioPathManager.getSourcesRoot()) else null
 
 private fun getSystemHomeLocation() = getStudioSourcesLocation()?.toPath()?.parent?.toFile()
 
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
 private fun getOfflineM2Repositories(): List<File> =
-    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths())
-        .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
+  (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()).map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
-/**
- * Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>.
- */
+/** Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>. */
 private val androidLibraryPattern =
   Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)([^@ ]*)")
 
-/**
- * Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>.
- */
+/** Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>. */
 private val androidPathPattern = Regex("(?:com/android/.*/)([0-9.]+)(?:/.*-)(\\1)(?:\\.jar)")

@@ -18,9 +18,7 @@ package com.android.tools.idea.ui.screenrecording
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-/**
- * A cache of mapping of a device to a boolean indicating if it supports screen recording.
- */
+/** A cache of mapping of a device to a boolean indicating if it supports screen recording. */
 interface ScreenRecordingSupportedCache {
   fun isScreenRecordingSupported(serialNumber: String): Boolean
 

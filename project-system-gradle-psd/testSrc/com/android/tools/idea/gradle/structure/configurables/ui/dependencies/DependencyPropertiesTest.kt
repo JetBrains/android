@@ -42,26 +42,46 @@ import org.junit.Test
 
 @RunsInEdt
 class DependencyPropertiesTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  private fun contextFor(project: PsProject) = object : PsContext {
-    override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
-    override val project: PsProject = project
-    override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
-    override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon get() = throw UnsupportedOperationException()
-    override val uiSettings: PsUISettings get() = throw UnsupportedOperationException()
-    override val selectedModule: String? get() = throw UnsupportedOperationException()
-    override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()
-    override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService = throw UnsupportedOperationException()
-    override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
-    override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
-    override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
-    override fun applyChanges() = throw UnsupportedOperationException()
-    override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
-    override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
-    override fun dispose() = throw UnsupportedOperationException()
-  }
+  private fun contextFor(project: PsProject) =
+    object : PsContext {
+      override val analyzerDaemon: PsAnalyzerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val project: PsProject = project
+      override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val uiSettings: PsUISettings
+        get() = throw UnsupportedOperationException()
+
+      override val selectedModule: String?
+        get() = throw UnsupportedOperationException()
+
+      override val mainConfigurable: ProjectStructureConfigurable
+        get() = throw UnsupportedOperationException()
+
+      override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService =
+        throw UnsupportedOperationException()
+
+      override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
+
+      override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
+
+      override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
+
+      override fun applyChanges() = throw UnsupportedOperationException()
+
+      override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
+
+      override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
+
+      override fun dispose() = throw UnsupportedOperationException()
+    }
 
   @Test
   fun testDependencyEmptyVersionDisplay() {

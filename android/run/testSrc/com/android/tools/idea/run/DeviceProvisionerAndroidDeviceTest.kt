@@ -36,27 +36,20 @@ import org.junit.rules.RuleChain
 class DeviceProvisionerAndroidDeviceTest {
   private val deviceProvisionerRule = DeviceProvisionerRule()
 
-  private val useAdbLibAndroidDebugBridgeRule =
-    UseAdbLibAndroidDebugBridgeRule { deviceProvisionerRule.adbSession }
+  private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule { deviceProvisionerRule.adbSession }
 
-  private val initAndroidDebugBridgeRule =
-    InitAndroidDebugBridgeRule { deviceProvisionerRule.fakeAdb.port }
+  private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { deviceProvisionerRule.fakeAdb.port }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(deviceProvisionerRule)
-    .around(useAdbLibAndroidDebugBridgeRule)
-    .around(initAndroidDebugBridgeRule)!!
+  val ruleChain = RuleChain.outerRule(deviceProvisionerRule).around(useAdbLibAndroidDebugBridgeRule).around(initAndroidDebugBridgeRule)!!
 
   lateinit var bridge: AndroidDebugBridge
 
   @Before
   fun initAdb() {
-    bridge =
-      AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
+    bridge = AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
     val startTime = System.currentTimeMillis()
-    while (!bridge.isConnected &&
-        System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(10)
-    ) {
+    while (!bridge.isConnected && System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(10)) {
       Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS)
     }
     deviceProvisionerRule.deviceProvisionerPlugin.explicitBoot = true
@@ -69,28 +62,22 @@ class DeviceProvisionerAndroidDeviceTest {
 
     val device = DeviceHandleAndroidDevice(bridge.asDdmlibDeviceLookup(), handle, handle.state)
     assertThat(device.isRunning).isFalse()
-    assertThat(device.serial)
-      .isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
+    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
     assertThat(device.ddmlibDevice).isNull()
 
     val futureDevice = device.bootDefault()
 
-    assertThat(
-        runCatching { runBlocking { withTimeout(1.seconds) { futureDevice.await() } } }
-          .exceptionOrNull()
-      )
+    assertThat(runCatching { runBlocking { withTimeout(1.seconds) { futureDevice.await() } } }.exceptionOrNull())
       .isInstanceOf(TimeoutCancellationException::class.java)
     assertThat(device.ddmlibDevice).isNull()
 
     handle.finishBoot()
 
-    val iDevice =
-      checkNotNull(runBlocking { withTimeoutOrNull(5.seconds) { futureDevice.await() } })
+    val iDevice = checkNotNull(runBlocking { withTimeoutOrNull(5.seconds) { futureDevice.await() } })
     assertThat(iDevice).isSameAs(device.ddmlibDevice)
     assertThat(iDevice.serialNumber).isEqualTo("abcd")
     assertThat(device.isRunning).isTrue()
-    assertThat(device.serial)
-      .isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
+    assertThat(device.serial).isEqualTo("DeviceProvisionerAndroidDevice pluginId=FakeAdb identifier=serial=abcd")
     runBlocking { assertThat(device.launchedDevice.await()).isEqualTo(iDevice) }
   }
 }

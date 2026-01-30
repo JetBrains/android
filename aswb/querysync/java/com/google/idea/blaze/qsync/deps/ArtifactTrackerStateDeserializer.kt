@@ -29,10 +29,13 @@ import com.google.idea.blaze.qsync.project.ProjectPath.WorkspaceRelativeProjectP
 import java.nio.file.Path
 import java.time.Instant
 
-/** Deserializes [NewArtifactTracker] state from a proto.  */
+/** Deserializes [NewArtifactTracker] state from a proto. */
 class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMetadata.Factory) {
-  val builtDepsMap: Map<Label, TargetBuildInfo> get() = _depsMap
-  val ccToolchainMap: Map<String, CcToolchain> get() = _ccToolchainMap
+  val builtDepsMap: Map<Label, TargetBuildInfo>
+    get() = _depsMap
+
+  val ccToolchainMap: Map<String, CcToolchain>
+    get() = _ccToolchainMap
 
   private val _depsMap = mutableMapOf<Label, TargetBuildInfo>()
   private val _ccToolchainMap = mutableMapOf<String, CcToolchain>()
@@ -50,10 +53,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
 
   private fun visitBuildContext(buildContext: ArtifactTrackerProto.BuildContext) {
     buildContexts[buildContext.getBuildIdForLogging()] =
-      DependencyBuildContext.create(
-        buildContext.getBuildIdForLogging(),
-        Instant.ofEpochMilli(buildContext.startTimeMillis)
-      )
+      DependencyBuildContext.create(buildContext.getBuildIdForLogging(), Instant.ofEpochMilli(buildContext.startTimeMillis))
   }
 
   private fun visitTargetBuildInfo(entry: Map.Entry<String, ArtifactTrackerProto.TargetBuildInfo>) {
@@ -70,24 +70,25 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   }
 
   private fun visitCcToolchain(id: String, proto: ArtifactTrackerProto.CcToolchain) {
-    _ccToolchainMap[id] = CcToolchain.builder()
-      .id(id)
-      .compiler(proto.getCompiler())
-      .compilerExecutable(projectPathFrom(proto.compilerExecutable))
-      .cpu(proto.getCpu())
-      .targetGnuSystemName(proto.getTargetGnuSystemName())
-      .builtInIncludeDirectories(ImmutableList.copyOf(proto.builtInIncludeDirectoriesList.map { projectPathFrom(it) }))
-      .cOptions(ImmutableList.copyOf(proto.cOptionsList))
-      .cppOptions(ImmutableList.copyOf(proto.cppOptionsList))
-      .build()
+    _ccToolchainMap[id] =
+      CcToolchain.builder()
+        .id(id)
+        .compiler(proto.getCompiler())
+        .compilerExecutable(projectPathFrom(proto.compilerExecutable))
+        .cpu(proto.getCpu())
+        .targetGnuSystemName(proto.getTargetGnuSystemName())
+        .builtInIncludeDirectories(ImmutableList.copyOf(proto.builtInIncludeDirectoriesList.map { projectPathFrom(it) }))
+        .cOptions(ImmutableList.copyOf(proto.cOptionsList))
+        .cppOptions(ImmutableList.copyOf(proto.cppOptionsList))
+        .build()
   }
 
   private fun projectPathFrom(p: ArtifactTrackerProto.ProjectPath): ProjectPath {
     val emptyPath = Path.of("")
     return when (p.getBase()) {
-      ArtifactTrackerProto.ProjectPath.Base.UNSPECIFIED, ArtifactTrackerProto.ProjectPath.Base.UNRECOGNIZED -> error("Unexpected value: $p")
-      ArtifactTrackerProto.ProjectPath.Base.WORKSPACE ->
-        WorkspaceRelativeProjectPath(Path.of(p.getPath()), innerPath = emptyPath)
+      ArtifactTrackerProto.ProjectPath.Base.UNSPECIFIED,
+      ArtifactTrackerProto.ProjectPath.Base.UNRECOGNIZED -> error("Unexpected value: $p")
+      ArtifactTrackerProto.ProjectPath.Base.WORKSPACE -> WorkspaceRelativeProjectPath(Path.of(p.getPath()), innerPath = emptyPath)
       ArtifactTrackerProto.ProjectPath.Base.EXTERNAL_REPOSITORY ->
         ExternalRepositoryRelativeProjectPath(p.getExternalRepository(), relativePath = Path.of(p.getPath()), innerPath = emptyPath)
       ArtifactTrackerProto.ProjectPath.Base.PROJECT ->
@@ -121,8 +122,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
       .defines(proto.definesList)
       .includeDirectories(proto.includeDirectoriesList.map { projectPathFrom(it) })
       .quoteIncludeDirectories(proto.quoteIncludeDirectoriesList.map { projectPathFrom(it) })
-      .systemIncludeDirectories(
-        proto.sysytemIncludeDirectoriesList.map { projectPathFrom(it) })
+      .systemIncludeDirectories(proto.sysytemIncludeDirectoriesList.map { projectPathFrom(it) })
       .frameworkIncludeDirectories(proto.frameworkIncludeDirectoriesList.map { projectPathFrom(it) })
       .genHeaders(toArtifactList(proto.genHeadersList, owner))
       .toolchainId(proto.getToolchainId())
@@ -130,12 +130,7 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   }
 
   private fun toArtifact(a: ArtifactTrackerProto.Artifact, owner: Label): BuildArtifact {
-    return BuildArtifact.create(
-      a.getDigest(),
-      Path.of(a.getArtifactPath()),
-      owner,
-      ImmutableMap.copyOf(toArtifactMap(a.metadataList))
-    )
+    return BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner, ImmutableMap.copyOf(toArtifactMap(a.metadataList)))
   }
 
   private fun toArtifactList(protos: List<ArtifactTrackerProto.Artifact>, owner: Label): List<BuildArtifact> {
@@ -143,8 +138,6 @@ class ArtifactTrackerStateDeserializer(private val metadataFactory: ArtifactMeta
   }
 
   private fun toArtifactMap(protoList: List<ArtifactTrackerProto.Metadata>): Map<Class<out ArtifactMetadata>, ArtifactMetadata> {
-    return protoList
-      .mapNotNull { metadataFactory.create(it) }
-      .associateBy { it.javaClass }
+    return protoList.mapNotNull { metadataFactory.create(it) }.associateBy { it.javaClass }
   }
 }

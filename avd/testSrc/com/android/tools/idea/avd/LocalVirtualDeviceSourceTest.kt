@@ -63,19 +63,10 @@ class LocalVirtualDeviceSourceTest {
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
-  private fun SdkFixture.api34() =
-    createLocalSystemImage(
-      "google_apis",
-      listOf(SystemImageTags.GOOGLE_APIS_TAG),
-      AndroidVersion(34),
-    )
+  private fun SdkFixture.api34() = createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
 
   private fun SdkFixture.api34Play() =
-    createLocalSystemImage(
-      "google_apis_playstore",
-      listOf(SystemImageTags.PLAY_STORE_TAG),
-      AndroidVersion(34),
-    )
+    createLocalSystemImage("google_apis_playstore", listOf(SystemImageTags.PLAY_STORE_TAG), AndroidVersion(34))
 
   private fun SdkFixture.localApi34RiscV() = api34RiscV(false) as FakeLocalPackage
 
@@ -92,35 +83,20 @@ class LocalVirtualDeviceSourceTest {
       translatedAbis = listOf(SdkConstants.ABI_RISCV64),
     )
 
-  private fun SdkFixture.remoteApi34() =
-    createRemoteSystemImage(
-      "google_apis",
-      listOf(SystemImageTags.GOOGLE_APIS_TAG),
-      AndroidVersion(34),
-    )
+  private fun SdkFixture.remoteApi34() = createRemoteSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
 
   private fun SdkFixture.remoteApi34Play() =
-    createRemoteSystemImage(
-      "google_apis_playstore",
-      listOf(SystemImageTags.PLAY_STORE_TAG),
-      AndroidVersion(34),
-    )
+    createRemoteSystemImage("google_apis_playstore", listOf(SystemImageTags.PLAY_STORE_TAG), AndroidVersion(34))
 
   private fun SdkFixture.api34ext8() =
-    createLocalSystemImage(
-      "google_apis",
-      listOf(SystemImageTags.GOOGLE_APIS_TAG),
-      AndroidVersion(34, null, 8, false),
-    )
+    createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34, null, 8, false))
 
   @Test
   fun profiles() {
     with(SdkFixture()) {
       repoPackages.setRemotePkgInfos(listOf(remoteApi34()))
 
-      val profiles: List<VirtualDeviceProfile> = runBlocking {
-        createLocalVirtualDeviceSource().profilesWhenReady()
-      }
+      val profiles: List<VirtualDeviceProfile> = runBlocking { createLocalVirtualDeviceSource().profilesWhenReady() }
       val names = profiles.map { it.name }
 
       assertThat(names).containsAllOf("Pixel", "Pixel 8", "Medium Phone")
@@ -133,8 +109,7 @@ class LocalVirtualDeviceSourceTest {
     initialSystemImageState: SystemImageState = sdkFixture.systemImageState(),
   ) {
     val wizard: TestComposeWizard
-    internal val systemImageStateFlow: MutableStateFlow<SystemImageState> =
-      MutableStateFlow(initialSystemImageState)
+    internal val systemImageStateFlow: MutableStateFlow<SystemImageState> = MutableStateFlow(initialSystemImageState)
 
     init {
       with(sdkFixture) {
@@ -152,17 +127,14 @@ class LocalVirtualDeviceSourceTest {
     }
 
     private suspend fun finish(device: VirtualDevice): Boolean {
-      withContext(AndroidDispatchers.diskIoThread) {
-        VirtualDevices(sdkFixture.avdManager).add(device)
-      }
+      withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(sdkFixture.avdManager).add(device) }
       return true
     }
   }
 
   @Test
   fun configurationPage_extensionImages() {
-    val sdkFixture =
-      SdkFixture().apply { repoPackages.setLocalPkgInfos(listOf(api34(), api34ext8())) }
+    val sdkFixture = SdkFixture().apply { repoPackages.setLocalPkgInfos(listOf(api34(), api34ext8())) }
     with(ConfigurationPageFixture(sdkFixture)) {
       composeTestRule.onNodeWithClickableText("34").assertIsSelected()
 
@@ -213,8 +185,7 @@ class LocalVirtualDeviceSourceTest {
         wizard.awaitClose()
 
         val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
-        assertThat(files)
-          .containsExactly("Pixel_8.avd", "Pixel_8.ini", "My_Pixel.avd", "My_Pixel.ini")
+        assertThat(files).containsExactly("Pixel_8.avd", "Pixel_8.ini", "My_Pixel.avd", "My_Pixel.ini")
       }
     }
   }
@@ -247,9 +218,7 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.waitForIdle()
         assertThat(wizard.finishAction.action).isNull()
         composeTestRule
-          .onNodeWithText(
-            "Preferred ABI \"${SdkConstants.ABI_RISCV64}\" is not available with selected system image"
-          )
+          .onNodeWithText("Preferred ABI \"${SdkConstants.ABI_RISCV64}\" is not available with selected system image")
           .assertIsDisplayed()
 
         // Change the preferred ABI to something we have
@@ -258,9 +227,7 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.onNodeWithClickableText(recommendedAbiForHost()).performClick()
 
         // We should be able to finish the edit
-        composeTestRule
-          .onNodeWithText("is not available with selected system image", substring = true)
-          .assertDoesNotExist()
+        composeTestRule.onNodeWithText("is not available with selected system image", substring = true).assertDoesNotExist()
         composeTestRule.waitForIdle()
         wizard.performAction(wizard.finishAction)
         wizard.awaitClose()
@@ -299,9 +266,7 @@ class LocalVirtualDeviceSourceTest {
         // Switch back to Google Play
         composeTestRule.onNodeWithText("Google APIs").performClick()
         composeTestRule.waitForIdle()
-        composeTestRule
-          .onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup()))
-          .performClick()
+        composeTestRule.onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup())).performClick()
 
         // Back where we started
         composeTestRule.onNodeWithText(api34PlayImage.displayName).assertIsSelected()
@@ -317,8 +282,7 @@ class LocalVirtualDeviceSourceTest {
       with(ConfigurationPageFixture(this, SystemImageState(false, false, persistentListOf()))) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
 
-        systemImageStateFlow.value =
-          SystemImageState(hasLocal = true, hasRemote = true, images = persistentListOf())
+        systemImageStateFlow.value = SystemImageState(hasLocal = true, hasRemote = true, images = persistentListOf())
 
         composeTestRule.onNodeWithText("No system images available.").assertIsDisplayed()
       }
@@ -356,9 +320,7 @@ class LocalVirtualDeviceSourceTest {
         // We should be able to select Google Play now under Services
         composeTestRule.onNodeWithClickableText("Google APIs").performClick()
         composeTestRule.waitForIdle()
-        composeTestRule
-          .onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup()))
-          .performClick()
+        composeTestRule.onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup())).performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText(remoteApi34Image.displayName).assertDoesNotExist()
@@ -377,8 +339,7 @@ class LocalVirtualDeviceSourceTest {
       with(ConfigurationPageFixture(this, SystemImageState.INITIAL)) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
 
-        systemImageStateFlow.value =
-          systemImageState(hasLocal = true, hasRemote = false, error = "No internet connection")
+        systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = false, error = "No internet connection")
 
         // We don't need to timeout to see this when there's an error
         composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
@@ -416,10 +377,4 @@ private suspend fun LocalVirtualDeviceSource.profilesWhenReady(): List<VirtualDe
 
 internal fun SdkFixture.createLocalVirtualDeviceSource(
   systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState())
-) =
-  LocalVirtualDeviceSource(
-    persistentListOf(NoSkin.INSTANCE),
-    sdkHandler,
-    avdManager,
-    systemImageStateFlow,
-  )
+) = LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager, systemImageStateFlow)

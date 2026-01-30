@@ -69,7 +69,6 @@ import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -100,7 +99,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     listOf(
       AndroidInnerClassFinder.INSTANCE,
       AndroidManifestClassPsiElementFinder.getInstance(project),
-      AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+      AndroidResourceClassPsiElementFinder(getLightResourceClassService()),
     )
   }
 
@@ -111,7 +110,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
         // potentially triggered by sync phases
         ProjectRootModificationTracker.getInstance(project),
         // triggered after full sync finishes
-        ProjectSyncModificationTracker.getInstance(project)
+        ProjectSyncModificationTracker.getInstance(project),
       )
     }
   }
@@ -119,6 +118,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun isAndroidProjectViewSupported(): Boolean = true
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
+
   override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 
   override fun allowsFileCreation() = true
@@ -128,8 +128,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase &&
-        runConfiguration !is AndroidWearConfiguration) return null
+    if (runConfiguration !is AndroidRunConfigurationBase && runConfiguration !is AndroidWearConfiguration) return null
     val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
     val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
     val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
@@ -139,7 +138,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       isTestConfiguration,
       androidModel,
       androidModel.selectedBasicVariant,
-      androidModel.selectedVariant
+      androidModel.selectedVariant,
     )
   }
 
@@ -150,44 +149,48 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       getApplicationIdProvider(runConfiguration) ?: return null,
       PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       context.isTestConfiguration,
-      context.alwaysDeployApkFromBundle
+      context.alwaysDeployApkFromBundle,
     )
   }
 
   override fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> {
     val context = runConfiguration.getGradleContext() ?: return super.validateRunConfiguration(runConfiguration)
-    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle, quickFixCallback)
+    return GradleApkProvider.doValidate(
+      context.androidFacet,
+      context.isTestConfiguration,
+      context.alwaysDeployApkFromBundle,
+      quickFixCallback,
+    )
   }
 
   internal fun getBuiltApksForSelectedVariant(
     androidFacet: AndroidFacet,
     assembleResult: AssembleInvocationResult,
     device: IDevice,
-    forTests: Boolean = false
+    forTests: Boolean = false,
   ): List<ApkInfo>? {
     val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
 
     // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
     // `PostBuildModel`s were not designed to handle this.
     val postBuildModel: PostBuildModel? =
-      (assembleResult.invocationResult.models.firstOrNull() as? OutputBuildAction.PostBuildProjectModels)
-        ?.let { PostBuildModel(it) }
+      (assembleResult.invocationResult.models.firstOrNull() as? OutputBuildAction.PostBuildProjectModels)?.let { PostBuildModel(it) }
 
     val postBuildModelProvider = PostBuildModelProvider { postBuildModel }
 
     return GradleApkProvider(
-      androidFacet,
-      GradleApplicationIdProvider.create(
         androidFacet,
+        GradleApplicationIdProvider.create(
+          androidFacet,
+          forTests,
+          androidModel,
+          androidModel.selectedBasicVariant,
+          androidModel.selectedVariant,
+        ),
+        postBuildModelProvider,
         forTests,
-        androidModel,
-        androidModel.selectedBasicVariant,
-        androidModel.selectedVariant
-      ),
-      postBuildModelProvider,
-      forTests,
-      false // Overridden and doesn't matter.
-    )
+        false, // Overridden and doesn't matter.
+      )
       .getApks(
         device.abis,
         AndroidVersion(30),
@@ -209,18 +212,19 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.forProject.submodules
 
-  override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
-      val model = GradleAndroidModel.get(facet)
-      return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
+  override fun getSourceProvidersFactory(): SourceProvidersFactory =
+    object : SourceProvidersFactory {
+      override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+        val model = GradleAndroidModel.get(facet)
+        return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
+      }
     }
-  }
 
   override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider {
     return CachedValuesManager.getManager(project).getCachedValue(project) {
       CachedValueProvider.Result.create(
         GradleBuildConfigurationSourceProvider(project),
-        ProjectRootModificationTracker.getInstance(project)
+        ProjectRootModificationTracker.getInstance(project),
       )
     }
   }
@@ -233,76 +237,76 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   internal class GradleProjectCensus(
     val packageToModule: Map<String, Set<Module>>,
     val namespacesWithPrefixes: Set<String>,
-    val applicationIdToModule: Map<String, Set<Module>>
+    val applicationIdToModule: Map<String, Set<Module>>,
   )
 
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
-    return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
-      val applicationIdsToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
-      // It's generally expected that an application ID will map to a single module.
-      // So the data structure is optimised for that case
-      fun PersistentMap.Builder<String, PersistentSet<Module>>.put(key: String, value: Module) {
-        put(key, get(key)?.add(value) ?: persistentSetOf(value))
-      }
-
-      for (androidFacet in project.getAndroidFacets()) {
-        val model = GradleAndroidModel.get(androidFacet) ?: continue
-        val mainModule = androidFacet.module.getMainModule()
-        val androidTestModule = mainModule.getAndroidTestModule()
-        model.androidProject.namespace?.let { namespace ->
-          packageToModule.put(namespace, mainModule)
-
-        }
-        if (androidTestModule != null) {
-          model.androidProject.testNamespace?.let { namespace ->
-              packageToModule.put(namespace, androidTestModule)
+    return CachedValuesManager.getManager(project)
+      .getCachedValue(
+        project,
+        CachedValueProvider {
+          val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
+          val applicationIdsToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
+          // It's generally expected that an application ID will map to a single module.
+          // So the data structure is optimised for that case
+          fun PersistentMap.Builder<String, PersistentSet<Module>>.put(key: String, value: Module) {
+            put(key, get(key)?.add(value) ?: persistentSetOf(value))
           }
-        }
-        // Collect application IDs into sets as they might be duplicated
-        val mainApplicationIds = mutableSetOf<String>()
-        val testApplicationIds = mutableSetOf<String>()
-        for (variant in model.androidProject.basicVariants) {
-          variant.applicationId?.let { mainApplicationIds.add(it) }
-          variant.testApplicationId?.let { testApplicationIds.add(it) }
-        }
-        for (applicationId in mainApplicationIds) {
-          applicationIdsToModule.put(applicationId, mainModule)
-        }
-        if (androidTestModule != null) {
-          for (applicationId in testApplicationIds) {
-            applicationIdsToModule.put(applicationId, androidTestModule)
-          }
-        }
-      }
-      // Only sort if there are multiple values, and only realise the comparator if it is needed
-      var comparator: Comparator<Module>? = null
-      fun getComparator() = comparator ?: ModuleManager.getInstance(project).moduleDependencyComparator().also { comparator = it }
-      for (entry in applicationIdsToModule) {
-        if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
-      }
-      for (entry in packageToModule) {
-        if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
-      }
 
-      val namespacesWithPrefixes = persistentSetOf<String>().builder()
-      for (namespace in packageToModule.keys) {
-        var packageName = namespace
-        while (true) {
-          if (!namespacesWithPrefixes.add(packageName)) break
-          val lastDot = packageName.lastIndexOf('.').takeIf { it > 0 } ?: break
-          packageName = packageName.substring(0, lastDot)
-        }
-      }
-      return@CachedValueProvider CachedValueProvider.Result(
-        GradleProjectCensus(
-          packageToModule = packageToModule.build(),
-          namespacesWithPrefixes = namespacesWithPrefixes.build(),
-          applicationIdToModule = applicationIdsToModule.build(),
-        ),
-        ProjectSyncModificationTracker.getInstance(project)
+          for (androidFacet in project.getAndroidFacets()) {
+            val model = GradleAndroidModel.get(androidFacet) ?: continue
+            val mainModule = androidFacet.module.getMainModule()
+            val androidTestModule = mainModule.getAndroidTestModule()
+            model.androidProject.namespace?.let { namespace -> packageToModule.put(namespace, mainModule) }
+
+            if (androidTestModule != null) {
+              model.androidProject.testNamespace?.let { namespace -> packageToModule.put(namespace, androidTestModule) }
+            }
+            // Collect application IDs into sets as they might be duplicated
+            val mainApplicationIds = mutableSetOf<String>()
+            val testApplicationIds = mutableSetOf<String>()
+            for (variant in model.androidProject.basicVariants) {
+              variant.applicationId?.let { mainApplicationIds.add(it) }
+              variant.testApplicationId?.let { testApplicationIds.add(it) }
+            }
+            for (applicationId in mainApplicationIds) {
+              applicationIdsToModule.put(applicationId, mainModule)
+            }
+            if (androidTestModule != null) {
+              for (applicationId in testApplicationIds) {
+                applicationIdsToModule.put(applicationId, androidTestModule)
+              }
+            }
+          }
+          // Only sort if there are multiple values, and only realise the comparator if it is needed
+          var comparator: Comparator<Module>? = null
+          fun getComparator() = comparator ?: ModuleManager.getInstance(project).moduleDependencyComparator().also { comparator = it }
+          for (entry in applicationIdsToModule) {
+            if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
+          }
+          for (entry in packageToModule) {
+            if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
+          }
+
+          val namespacesWithPrefixes = persistentSetOf<String>().builder()
+          for (namespace in packageToModule.keys) {
+            var packageName = namespace
+            while (true) {
+              if (!namespacesWithPrefixes.add(packageName)) break
+              val lastDot = packageName.lastIndexOf('.').takeIf { it > 0 } ?: break
+              packageName = packageName.substring(0, lastDot)
+            }
+          }
+          return@CachedValueProvider CachedValueProvider.Result(
+            GradleProjectCensus(
+              packageToModule = packageToModule.build(),
+              namespacesWithPrefixes = namespacesWithPrefixes.build(),
+              applicationIdToModule = applicationIdsToModule.build(),
+            ),
+            ProjectSyncModificationTracker.getInstance(project),
+          )
+        },
       )
-    })
   }
 
   override fun getAndroidFacets() = super.getAndroidFacets().filter { it.module.isHolderModule() }
@@ -327,9 +331,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     return census.applicationIdToModule[applicationId] ?: emptyList()
   }
 
-  /**
-   * Gradle supports the profiling mode flag.
-   */
+  /** Gradle supports the profiling mode flag. */
   override fun supportsProfilingMode() = true
 
   override fun getProjectSystemModuleTypeComparator(): Comparator<Module> = gradleProjectSystemModuleTypeComparator
@@ -344,13 +346,14 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   }
 }
 
-private val gradleProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt {
-  when {
-    it.isMainModule() -> 0
-    it.isAndroidTestModule() -> 1
-    else -> 2
+private val gradleProjectSystemModuleTypeComparator: Comparator<Module> =
+  Comparator.comparingInt {
+    when {
+      it.isMainModule() -> 0
+      it.isAndroidTestModule() -> 1
+      else -> 2
+    }
   }
-}
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
@@ -362,14 +365,13 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       model.allDeviceTestSourceProviders.map { (k, v) ->
         putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, k.scopeTypeByName()) })
       }
-      putAll(model.allTestFixturesSourceProviders.associateWith {
-        createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES)
-      })
+      putAll(
+        model.allTestFixturesSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES) }
+      )
       model.allTestSuiteSourceProviders.map { (k, v) ->
         putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_SUITE) })
       }
-      }
-
+    }
 
   fun IdeSourceProvider.toIdeaSourceProvider(): NamedIdeaSourceProvider {
     if (!all.containsKey(this)) {
@@ -385,8 +387,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
-        override val javaDirectoryUrls: Sequence<String> =
-          sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
+        override val javaDirectoryUrls: Sequence<String> = sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
         override val kotlinDirectoryUrls: Sequence<String> = emptySequence()
         override val resourcesDirectoryUrls: Sequence<String> = emptySequence()
         override val aidlDirectoryUrls: Sequence<String> = emptySequence()
@@ -399,9 +400,12 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
-        override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
-        override val keepRulesDirectoryUrls: Sequence<String> get() = emptySequence()
-      }
+        override val baselineProfileDirectoryUrls: Sequence<String>
+          get() = emptySequence()
+
+        override val keepRulesDirectoryUrls: Sequence<String>
+          get() = emptySequence()
+      },
     )
   }
 
@@ -412,8 +416,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
-        override val javaDirectoryUrls: Sequence<String> =
-          sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
+        override val javaDirectoryUrls: Sequence<String> = sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
         override val kotlinDirectoryUrls: Sequence<String> = emptySequence()
         override val resourcesDirectoryUrls: Sequence<String> = emptySequence()
         override val aidlDirectoryUrls: Sequence<String> = emptySequence()
@@ -424,9 +427,12 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
-        override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
-        override val keepRulesDirectoryUrls: Sequence<String> get() = emptySequence()
-      }
+        override val baselineProfileDirectoryUrls: Sequence<String>
+          get() = emptySequence()
+
+        override val keepRulesDirectoryUrls: Sequence<String>
+          get() = emptySequence()
+      },
     )
   }
 
@@ -437,65 +443,107 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
     currentTestSuiteSourceProviders = model.testSuiteSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
-    allVariantAllArtifactsSourceProviders = model.run {
-      allSourceProviders.map { it.toIdeaSourceProvider() } +
-      allHostTestSourceProviders.values.flatten().map { it.toIdeaSourceProvider() } +
-      allDeviceTestSourceProviders.values.flatten().map { it.toIdeaSourceProvider() } +
-      allTestFixturesSourceProviders.map { it.toIdeaSourceProvider() }
-    },
+    allVariantAllArtifactsSourceProviders =
+      model.run {
+        allSourceProviders.map { it.toIdeaSourceProvider() } +
+          allHostTestSourceProviders.values.flatten().map { it.toIdeaSourceProvider() } +
+          allDeviceTestSourceProviders.values.flatten().map { it.toIdeaSourceProvider() } +
+          allTestFixturesSourceProviders.map { it.toIdeaSourceProvider() }
+      },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    listOfNotNull(model.defaultSourceProvider?.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
-      val flavorNames = model.selectedVariant.productFlavors.toSet()
-      multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
-        .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
-    }.orEmpty(),
+      listOfNotNull(model.defaultSourceProvider?.toIdeaSourceProvider()) +
+        model.androidProject.multiVariantData
+          ?.let { multiVariantData ->
+            val flavorNames = model.selectedVariant.productFlavors.toSet()
+            multiVariantData.productFlavors
+              .filter { it.productFlavor.name in flavorNames }
+              .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
+          }
+          .orEmpty(),
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(ScopeType.MAIN),
     generatedHostTestSources =
-    model.selectedVariant.hostTestArtifacts.associate {
-      it.name.toHostTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
-                                                      },
+      model.selectedVariant.hostTestArtifacts.associate {
+        it.name.toHostTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+      },
     generatedDeviceTestSources =
-    model.selectedVariant.deviceTestArtifacts.associate {
-      it.name.toDeviceTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
-                                                        },
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider(ScopeType.TEST_FIXTURES)
-      ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
+      model.selectedVariant.deviceTestArtifacts.associate {
+        it.name.toDeviceTestSourceProviderName() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+      },
+    generatedTestFixturesSources =
+      model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider(ScopeType.TEST_FIXTURES)
+        ?: emptySourceProvider(ScopeType.TEST_FIXTURES),
   )
 }
 
-private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
+private fun createIdeaSourceProviderFromModelSourceProvider(
+  it: IdeSourceProvider,
+  scopeType: ScopeType = ScopeType.MAIN,
+): NamedIdeaSourceProvider {
   return NamedIdeaSourceProviderImpl(
     it.name,
     scopeType,
-    core = object : NamedIdeaSourceProviderImpl.Core {
-      override val manifestFileUrl: String? get() = it.manifestFile?.let { file -> VfsUtil.fileToUrl(file) }
-      override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
-      override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
-      override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
-      override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
-      override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()
-      override val jniLibsDirectoryUrls: Sequence<String> get() = it.jniLibsDirectories.asSequence().toUrls()
-      override val resDirectoryUrls: Sequence<String> get() = it.resDirectories.asSequence().toUrls()
-      override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()
-      override val shadersDirectoryUrls: Sequence<String> get() = it.shadersDirectories.asSequence().toUrls()
-      override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
-      override val customSourceDirectories: Map<String, Sequence<String>>
-        get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
-      override val baselineProfileDirectoryUrls: Sequence<String> get() = it.baselineProfileDirectories.asSequence().toUrls()
-      override val keepRulesDirectoryUrls: Sequence<String> get() = it.keepRulesDirectories.asSequence().toUrls()
-    }
+    core =
+      object : NamedIdeaSourceProviderImpl.Core {
+        override val manifestFileUrl: String?
+          get() = it.manifestFile?.let { file -> VfsUtil.fileToUrl(file) }
+
+        override val javaDirectoryUrls: Sequence<String>
+          get() = it.javaDirectories.asSequence().toUrls()
+
+        override val kotlinDirectoryUrls: Sequence<String>
+          get() = it.kotlinDirectories.asSequence().toUrls()
+
+        override val resourcesDirectoryUrls: Sequence<String>
+          get() = it.resourcesDirectories.asSequence().toUrls()
+
+        override val aidlDirectoryUrls: Sequence<String>
+          get() = it.aidlDirectories.asSequence().toUrls()
+
+        override val renderscriptDirectoryUrls: Sequence<String>
+          get() = it.renderscriptDirectories.asSequence().toUrls()
+
+        override val jniLibsDirectoryUrls: Sequence<String>
+          get() = it.jniLibsDirectories.asSequence().toUrls()
+
+        override val resDirectoryUrls: Sequence<String>
+          get() = it.resDirectories.asSequence().toUrls()
+
+        override val assetsDirectoryUrls: Sequence<String>
+          get() = it.assetsDirectories.asSequence().toUrls()
+
+        override val shadersDirectoryUrls: Sequence<String>
+          get() = it.shadersDirectories.asSequence().toUrls()
+
+        override val mlModelsDirectoryUrls: Sequence<String>
+          get() = it.mlModelsDirectories.asSequence().toUrls()
+
+        override val customSourceDirectories: Map<String, Sequence<String>>
+          get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
+
+        override val baselineProfileDirectoryUrls: Sequence<String>
+          get() = it.baselineProfileDirectories.asSequence().toUrls()
+
+        override val keepRulesDirectoryUrls: Sequence<String>
+          get() = it.keepRulesDirectories.asSequence().toUrls()
+      },
   )
 }
 
-/** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
+/** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files */
 private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 
 @TestOnly
-fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, device: IDevice, forTests: Boolean = false): List<ApkInfo>? {
-  val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem
-                      ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
-                               "Module: ${androidFacet.module.name}")
+fun AssembleInvocationResult.getBuiltApksForSelectedVariant(
+  androidFacet: AndroidFacet,
+  device: IDevice,
+  forTests: Boolean = false,
+): List<ApkInfo>? {
+  val projectSystem =
+    androidFacet.module.project.getProjectSystem() as? GradleProjectSystem
+      ?: error(
+        "The supplied facet does not represent a project managed by the Gradle project system. " + "Module: ${androidFacet.module.name}"
+      )
   return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, device, forTests)
 }
 
@@ -521,18 +569,13 @@ private fun IdeArtifactName.toKnownScopeType() =
     IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
   }
 
-/**
- * An [ApplicationProjectContextProvider] for the Gradle project system.
- */
+/** An [ApplicationProjectContextProvider] for the Gradle project system. */
 class GradleApplicationProjectContextProvider : ApplicationProjectContextProvider<GradleProjectSystem>, GradleToken {
   override fun computeApplicationProjectContext(
     projectSystem: GradleProjectSystem,
-    info: ApplicationProjectContextProvider.RunningApplicationIdentity
-  ) : ApplicationProjectContext? {
+    info: ApplicationProjectContextProvider.RunningApplicationIdentity,
+  ): ApplicationProjectContext? {
     val result = FacetFinder.tryFindFacetForProcess(projectSystem.project, info) ?: return null
-    return FacetBasedApplicationProjectContext(
-      result.applicationId,
-      result.facet
-    )
+    return FacetBasedApplicationProjectContext(result.applicationId, result.facet)
   }
 }

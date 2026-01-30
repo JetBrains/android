@@ -33,9 +33,8 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
 
 /**
- * This test class loads the giant Gradle project that is maintained in the data binding compiler
- * codebase that tests all possible edge-cases and is guaranteed to be error-free, so we run it here
- * as well and verify that we don't show any errors in the IDE.
+ * This test class loads the giant Gradle project that is maintained in the data binding compiler codebase that tests all possible
+ * edge-cases and is guaranteed to be error-free, so we run it here as well and verify that we don't show any errors in the IDE.
  */
 class DataBindingInspectionVerificationTest {
   private val projectRule = AndroidGradleProjectRule()
@@ -49,12 +48,7 @@ class DataBindingInspectionVerificationTest {
 
   private val fileRoot = "app"
   private val rootsToCheck =
-    listOf(
-      "app/src/main/res/layout",
-      "app/src/main/res/layout-land",
-      "app/src/java/android/databinding/testapp",
-      "app/src/androidTest",
-    )
+    listOf("app/src/main/res/layout", "app/src/main/res/layout-land", "app/src/java/android/databinding/testapp", "app/src/androidTest")
 
   // TODO(b/122983052): These are currently failing. Get these files down to zero!
   private val excludedFiles =
@@ -79,23 +73,23 @@ class DataBindingInspectionVerificationTest {
     val buildGradle = File(testAppDst, "build.gradle")
     buildGradle.writeText(
       """
-        rootProject.ext.latestCompileSdk = 34
+      rootProject.ext.latestCompileSdk = 34
 
-        buildscript {
-          repositories {
-            // This will be populated by AndroidGradleProjectRule
-          }
-          dependencies {
-            // This will be overridden by AndroidGradleProjectRule
-            classpath 'com.android.tools.build:gradle:1.5.0'
-          }
+      buildscript {
+        repositories {
+          // This will be populated by AndroidGradleProjectRule
         }
+        dependencies {
+          // This will be overridden by AndroidGradleProjectRule
+          classpath 'com.android.tools.build:gradle:1.5.0'
+        }
+      }
 
-        allprojects {
-          repositories {
-            // This will be populated by AndroidGradleProjectRule
-          }
+      allprojects {
+        repositories {
+          // This will be populated by AndroidGradleProjectRule
         }
+      }
       """
         .trimIndent()
     )

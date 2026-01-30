@@ -28,29 +28,24 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * A project level service used to update, store, and retrieve crash frames on a per-file basis.
- * It's kept up to date by the [AppInsightsProjectLevelController] and its entries are used by
- * external annotator.
+ * A project level service used to update, store, and retrieve crash frames on a per-file basis. It's kept up to date by the
+ * [AppInsightsProjectLevelController] and its entries are used by external annotator.
  */
 @Service(Service.Level.PROJECT)
 class IssuesPerFileIndex(private val project: Project) {
 
-  private val issueFileMapPerProviderKey =
-    ConcurrentHashMap<String, SetMultimap<String, IssueInFrame>>()
+  private val issueFileMapPerProviderKey = ConcurrentHashMap<String, SetMultimap<String, IssueInFrame>>()
 
   /**
-   * A view of [AppInsightsIssue]s grouped by the filename and Insight provider name they are
-   * associated to.
+   * A view of [AppInsightsIssue]s grouped by the filename and Insight provider name they are associated to.
    *
-   * Issues are wrapped in [IssueInFrame] objects that provide context of the stacktrace frame where
-   * they occur. These objects are group by and map to their corresponding files by filename.
+   * Issues are wrapped in [IssueInFrame] objects that provide context of the stacktrace frame where they occur. These objects are group by
+   * and map to their corresponding files by filename.
    */
   fun getIssuesPerFilename(providerName: String): SetMultimap<String, IssueInFrame> =
     issueFileMapPerProviderKey.getOrDefault(providerName, ImmutableSetMultimap.of())
 
-  private fun computeIssuesPerFilename(
-    issues: LoadingState<Selection<AppInsightsIssue>>
-  ): SetMultimap<String, IssueInFrame> =
+  private fun computeIssuesPerFilename(issues: LoadingState<Selection<AppInsightsIssue>>): SetMultimap<String, IssueInFrame> =
     when (issues) {
       is LoadingState.Ready -> {
         val fileCache = HashMultimap.create<String, IssueInFrame>()
@@ -62,11 +57,7 @@ class IssuesPerFileIndex(private val project: Project) {
                 fileCache.put(
                   frame.file,
                   IssueInFrame(
-                    CrashFrame(
-                      frame,
-                      if (previousFrame == null) Cause.Throwable(exception.type)
-                      else Cause.Frame(previousFrame),
-                    ),
+                    CrashFrame(frame, if (previousFrame == null) Cause.Throwable(exception.type) else Cause.Frame(previousFrame)),
                     issue,
                   ),
                 )

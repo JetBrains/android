@@ -61,8 +61,7 @@ class ViewPropertiesDataGenerator(
   private val layout = stringTable[properties.layout]
   private val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
   private val classNamesTable = HashBasedTable.create<String, String, String>()
-  private val resolutionStackTable =
-    HashBasedTable.create<String, String, List<ResourceReference>>()
+  private val resolutionStackTable = HashBasedTable.create<String, String, List<ResourceReference>>()
   private val resolutionStackMap = mutableMapOf<List<Resource>, List<ResourceReference>>()
   private val viewId = properties.viewId
   private val packageNameToNamespaceUri = mutableMapOf<String, String>()
@@ -73,11 +72,7 @@ class ViewPropertiesDataGenerator(
       addItemToTable(item)
       addResolutionStack(item, property)
     }
-    return ViewPropertiesData(
-      PropertiesTable.create(propertyTable),
-      resolutionStackTable,
-      classNamesTable,
-    )
+    return ViewPropertiesData(PropertiesTable.create(propertyTable), resolutionStackTable, classNamesTable)
   }
 
   private fun addItemToTable(item: InspectorPropertyItem) {
@@ -98,8 +93,7 @@ class ViewPropertiesDataGenerator(
   private fun convert(property: Property): InspectorPropertyItem {
     val namespace = toNamespaceUri(stringTable[property.namespace])
     val name = stringTable[property.name]
-    val isDeclared =
-      property.source == properties.layout && property.source != Resource.getDefaultInstance()
+    val isDeclared = property.source == properties.layout && property.source != Resource.getDefaultInstance()
     val source = stringTable[property.source]
     val group =
       when {
@@ -138,14 +132,12 @@ class ViewPropertiesDataGenerator(
 
   private fun toNamespaceUri(packageName: String): String =
     packageNameToNamespaceUri.computeIfAbsent(packageName) {
-      if (packageName.isNotEmpty()) ResourceNamespace.fromPackageName(packageName).xmlNamespaceUri
-      else ""
+      if (packageName.isNotEmpty()) ResourceNamespace.fromPackageName(packageName).xmlNamespaceUri else ""
     }
 
   private fun fromResource(property: Property, layout: ResourceReference?): String {
     val reference = stringTable[property.resourceValue]
-    val url =
-      layout?.let { reference?.getRelativeResourceUrl(layout.namespace) } ?: reference?.resourceUrl
+    val url = layout?.let { reference?.getRelativeResourceUrl(layout.namespace) } ?: reference?.resourceUrl
     return url?.toString() ?: ""
   }
 
@@ -195,8 +187,7 @@ class ViewPropertiesDataGenerator(
       Property.Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
       Property.Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
       Property.Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
-      Property.Type.INTERPOLATOR ->
-        valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
+      Property.Type.INTERPOLATOR -> valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
       else -> null
     }
   }
@@ -204,8 +195,8 @@ class ViewPropertiesDataGenerator(
   /**
    * Map an interpolator className into the resource id for the interpolator.
    *
-   * Some interpolator implementations do not have any variants. We can map such an interpolator to
-   * a resource value even if we don't have access to the source.
+   * Some interpolator implementations do not have any variants. We can map such an interpolator to a resource value even if we don't have
+   * access to the source.
    *
    * Note: the following interpolator classes have variants:
    * - AccelerateInterpolator
@@ -214,11 +205,9 @@ class ViewPropertiesDataGenerator(
    */
   private fun valueFromInterpolatorClass(className: String?): String? =
     when (className) {
-      "${ANIMATION_PACKAGE}.AccelerateDecelerateInterpolator" ->
-        "${FRAMEWORK_INTERPOLATOR_PREFIX}/accelerate_decelerate"
+      "${ANIMATION_PACKAGE}.AccelerateDecelerateInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/accelerate_decelerate"
       "${ANIMATION_PACKAGE}.AnticipateInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/anticipate"
-      "${ANIMATION_PACKAGE}.AnticipateOvershootInterpolator" ->
-        "${FRAMEWORK_INTERPOLATOR_PREFIX}/anticipate_overshoot"
+      "${ANIMATION_PACKAGE}.AnticipateOvershootInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/anticipate_overshoot"
       "${ANIMATION_PACKAGE}.BounceInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/bounce"
       "${ANIMATION_PACKAGE}.CycleInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/cycle"
       "${ANIMATION_PACKAGE}.LinearInterpolator" -> "${FRAMEWORK_INTERPOLATOR_PREFIX}/linear"
@@ -237,10 +226,7 @@ class ViewPropertiesDataGenerator(
     }
     // Many resolution stacks from the agent are identical. Conserve memory by only converting
     // unique stacks:
-    val resolutionStack =
-      resolutionStackMap.computeIfAbsent(encodedResolutionStack) {
-        it.mapNotNull { res -> stringTable[res] }
-      }
+    val resolutionStack = resolutionStackMap.computeIfAbsent(encodedResolutionStack) { it.mapNotNull { res -> stringTable[res] } }
     if (resolutionStack.isEmpty()) {
       return
     }

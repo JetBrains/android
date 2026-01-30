@@ -31,7 +31,7 @@ class LiveEditDesugarResponse(val compilerOutput: LiveEditCompilerOutput) {
   val groupIds = compilerOutput.groupIds
   val hasNonComposeChanges = compilerOutput.hasNonComposeChanges
 
-  private fun getClasses(classNames : Set<String>, apiLevel: MinApiLevel): MutableMap<String, ByteArray> {
+  private fun getClasses(classNames: Set<String>, apiLevel: MinApiLevel): MutableMap<String, ByteArray> {
     if (!apiToClasses.containsKey(apiLevel)) {
       throw desugarFailure("No desugared classes for api=$apiLevel")
     }

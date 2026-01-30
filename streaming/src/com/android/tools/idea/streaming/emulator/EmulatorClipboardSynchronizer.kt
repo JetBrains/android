@@ -25,18 +25,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 
-/**
- * Synchronizes the AVD and the host clipboards.
- */
-internal class EmulatorClipboardSynchronizer(
-  disposableParent: Disposable,
-  val emulator: EmulatorController,
-) : AbstractClipboardSynchronizer(disposableParent) {
+/** Synchronizes the AVD and the host clipboards. */
+internal class EmulatorClipboardSynchronizer(disposableParent: Disposable, val emulator: EmulatorController) :
+  AbstractClipboardSynchronizer(disposableParent) {
 
-  @GuardedBy("lock")
-  private var clipboardFeed: Cancelable? = null
-  @GuardedBy("lock")
-  private var clipboardReceiver: ClipboardReceiver? = null
+  @GuardedBy("lock") private var clipboardFeed: Cancelable? = null
+  @GuardedBy("lock") private var clipboardReceiver: ClipboardReceiver? = null
   private val lock = Any()
 
   private val logger
@@ -47,9 +41,7 @@ internal class EmulatorClipboardSynchronizer(
   }
 
   override fun dispose() {
-    synchronized(lock) {
-      cancelClipboardFeed()
-    }
+    synchronized(lock) { cancelClipboardFeed() }
     super.dispose()
   }
 
@@ -61,15 +53,17 @@ internal class EmulatorClipboardSynchronizer(
     if (text.isNotEmpty() && text != lastClipboardText) {
       lastClipboardText = text
       logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboard: \"$text\"" }
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
-        override fun onCompleted() {
-          if (!isDisposed) {
-            requestClipboardFeed()
+      emulator.setClipboard(
+        ClipData.newBuilder().setText(text).build(),
+        object : EmptyStreamObserver<Empty>() {
+          override fun onCompleted() {
+            if (!isDisposed) {
+              requestClipboardFeed()
+            }
           }
-        }
-      })
-    }
-    else if (clipboardFeed == null) {
+        },
+      )
+    } else if (clipboardFeed == null) {
       requestClipboardFeed()
     }
   }

@@ -25,13 +25,13 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.ui.components.JBCheckBox
+import java.awt.event.ActionEvent
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.event.ActionEvent
 
 class ApplicationRunParametersTest {
   private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidRunConfiguration>
@@ -40,8 +40,7 @@ class ApplicationRunParametersTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {

@@ -40,13 +40,11 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.io.IOException
+import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * [WizardModel] that contains model location to import.
- */
+/** [WizardModel] that contains model location to import. */
 class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
   private val basicRecipe: Recipe = {
@@ -62,30 +60,28 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
     }
   }
 
-  @JvmField
-  val sourceLocation: StringProperty = StringValueProperty()
+  @JvmField val sourceLocation: StringProperty = StringValueProperty()
 
-  @JvmField
-  val mlDirectory: StringProperty = StringValueProperty()
+  @JvmField val mlDirectory: StringProperty = StringValueProperty()
 
-  @JvmField
-  val autoAddBasicSetup: BoolValueProperty = BoolValueProperty(true)
+  @JvmField val autoAddBasicSetup: BoolValueProperty = BoolValueProperty(true)
 
-  @JvmField
-  val autoAddGpuSetup: BoolValueProperty = BoolValueProperty(false)
+  @JvmField val autoAddGpuSetup: BoolValueProperty = BoolValueProperty(false)
 
   override fun handleFinished() {
     object : Task.Modal(module.project, message("android.compile.messages.generating.r.java.content.name"), false) {
-      lateinit var moduleTemplateData: ModuleTemplateData
-      override fun run(indicator: ProgressIndicator) {
-        // Slow operation, do in background.
-        moduleTemplateData = getExistingModuleTemplateDataBuilder(module).build()
-      }
+        lateinit var moduleTemplateData: ModuleTemplateData
 
-      override fun onFinished() {
-        render(moduleTemplateData)
+        override fun run(indicator: ProgressIndicator) {
+          // Slow operation, do in background.
+          moduleTemplateData = getExistingModuleTemplateDataBuilder(module).build()
+        }
+
+        override fun onFinished() {
+          render(moduleTemplateData)
+        }
       }
-    }.queue()
+      .queue()
   }
 
   private fun render(moduleTemplateData: ModuleTemplateData) {
@@ -105,15 +101,16 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)
           if (autoAddBasicSetup.get() || autoAddGpuSetup.get()) {
-            val context = RenderingContext(
-              module.project,
-              module,
-              "Import TensorFlow Lite Model",
-              moduleTemplateData,
-              showErrors = true,
-              dryRun = false,
-              moduleRoot = null
-            )
+            val context =
+              RenderingContext(
+                module.project,
+                module,
+                "Import TensorFlow Lite Model",
+                moduleTemplateData,
+                showErrors = true,
+                dryRun = false,
+                moduleRoot = null,
+              )
             if (autoAddBasicSetup.get()) {
               basicRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
             }
@@ -125,8 +122,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
 
           logEvent(EventType.MODEL_IMPORT_FROM_WIZARD, fromFile)
         }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         logger<MlWizardModel>().error("Error copying %s to %s".format(fromFile, directoryPath), e)
       }
     }

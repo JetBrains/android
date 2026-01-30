@@ -30,7 +30,6 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -88,10 +87,11 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
 
   val treePanel = JBPanel<JBPanel<*>>(BorderLayout())
 
-  val detailsPanel = JBPanel<JBPanel<*>>().apply {
-    layout = VerticalLayout(0, SwingConstants.LEFT)
-    border = JBUI.Borders.empty(20)
-  }
+  val detailsPanel =
+    JBPanel<JBPanel<*>>().apply {
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      border = JBUI.Borders.empty(20)
+    }
 
   val tree: CheckboxTree = CheckboxTree(UpgradeAssistantTreeCellRenderer(model.project), null)
 
@@ -123,195 +123,212 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
 
   val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
-  val versionTextField = CommonComboBox<AgpVersion, CommonComboBoxModel<AgpVersion>>(
-    object : DefaultCommonComboBoxModel<AgpVersion>(
-      model.selectedVersion?.toString() ?: "",
-      model.suggestedVersions.valueOrNull ?: emptyList()
-    ) {
-      init {
-        selectedItem = model.selectedVersion
-        myListeners.listen(model.suggestedVersions) { suggestedVersions ->
-          val selectedVersion = model.selectedVersion
-          for (i in size - 1 downTo 0) {
-            if (getElementAt(i) != selectedVersion) removeElementAt(i)
+  val versionTextField =
+    CommonComboBox<AgpVersion, CommonComboBoxModel<AgpVersion>>(
+        object :
+          DefaultCommonComboBoxModel<AgpVersion>(
+            model.selectedVersion?.toString() ?: "",
+            model.suggestedVersions.valueOrNull ?: emptyList(),
+          ) {
+          init {
+            selectedItem = model.selectedVersion
+            myListeners.listen(model.suggestedVersions) { suggestedVersions ->
+              val selectedVersion = model.selectedVersion
+              for (i in size - 1 downTo 0) {
+                if (getElementAt(i) != selectedVersion) removeElementAt(i)
+              }
+              suggestedVersions.orElse(emptyList()).forEachIndexed { i, it ->
+                when {
+                  selectedVersion == null -> addElement(it)
+                  it > selectedVersion -> insertElementAt(it, i)
+                  it == selectedVersion -> Unit
+                  else -> addElement(it)
+                }
+              }
+              selectedItem = selectedVersion
+            }
+            placeHolderValue = "Select new version"
           }
-          suggestedVersions.orElse(emptyList()).forEachIndexed { i, it ->
-            when {
-              selectedVersion == null -> addElement(it)
-              it > selectedVersion -> insertElementAt(it, i)
-              it == selectedVersion -> Unit
-              else -> addElement(it)
+
+          // Given the ComponentValidator installation below, one might expect this not to be necessary,
+          // but the outline highlighting does not work without it.
+          // This is happening because not specifying validation here does not remove validation but just using default 'accept all' one.
+          // This validation is triggered after the ComponentValidator and overrides the outline set by ComponentValidator.
+          // The solution would be either add support of the tooltip to this component validation logic or use a different component.
+          override val editingSupport =
+            object : EditingSupport {
+              override val validation: EditingValidation = model::editingValidation
+              override val completion: EditorCompletion = { model.suggestedVersions.getValueOr(emptyList()).map { it.toString() } }
+            }
+        }
+      )
+      .apply {
+        myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState -> isEnabled = uiState.comboEnabled }
+        val textField = editor.editorComponent as CommonTextField<*>
+        fun enter() {
+          if (isPopupVisible) {
+            hidePopup()
+            return
+          }
+          textField.enterInLookup()
+          this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+          textField.selectAll()
+        }
+        // Need to register additional key listeners to the textfield that would hide main combo-box popup.
+        // Otherwise textfield consumes these events without hiding popup making it impossible to do with a keyboard.
+        textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+        textField.registerActionKey(
+          {
+            hidePopup()
+            textField.escapeInLookup()
+          },
+          KeyStrokes.ESCAPE,
+          "escape",
+        )
+        ComponentValidator(this@UpgradeAssistantView.model)
+          .withValidator { ->
+            val text = editor.item.toString()
+            val validation = this@UpgradeAssistantView.model.editingValidation(text)
+            when (validation.first) {
+              EditingErrorCategory.ERROR -> ValidationInfo(validation.second, this)
+              EditingErrorCategory.WARNING -> ValidationInfo(validation.second, this).asWarning()
+              else -> null
             }
           }
-          selectedItem = selectedVersion
-        }
-        placeHolderValue = "Select new version"
+          .installOn(this)
+        textField.document?.addDocumentListener(
+          object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+              ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
+              this@UpgradeAssistantView.model.versionComboTextChanged()
+            }
+          }
+        )
+        addPopupMenuListener(
+          object : PopupMenuListenerAdapter() {
+            override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent?) {
+              this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+            }
+          }
+        )
+        val focusListener =
+          object : FocusAdapter() {
+            override fun focusLost(e: FocusEvent?) {
+              this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+            }
+          }
+        addFocusListener(focusListener)
+        textField.addFocusListener(focusListener)
       }
 
-      // Given the ComponentValidator installation below, one might expect this not to be necessary,
-      // but the outline highlighting does not work without it.
-      // This is happening because not specifying validation here does not remove validation but just using default 'accept all' one.
-      // This validation is triggered after the ComponentValidator and overrides the outline set by ComponentValidator.
-      // The solution would be either add support of the tooltip to this component validation logic or use a different component.
-      override val editingSupport = object : EditingSupport {
-        override val validation: EditingValidation = model::editingValidation
-        override val completion: EditorCompletion = { model.suggestedVersions.getValueOr(emptyList()).map { it.toString() } }
-      }
+  val refreshButton =
+    JButton("Refresh").apply {
+      myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState -> isEnabled = !uiState.showLoadingState }
+      addActionListener { this@UpgradeAssistantView.model.run { refresh(true) } }
     }
-  ).apply {
-    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-      isEnabled = uiState.comboEnabled
-    }
-    val textField = editor.editorComponent as CommonTextField<*>
-    fun enter() {
-      if (isPopupVisible) {
-        hidePopup()
-        return
-      }
-      textField.enterInLookup()
-      this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
-      textField.selectAll()
-    }
-    // Need to register additional key listeners to the textfield that would hide main combo-box popup.
-    // Otherwise textfield consumes these events without hiding popup making it impossible to do with a keyboard.
-    textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
-    textField.registerActionKey({ hidePopup(); textField.escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
-    ComponentValidator(this@UpgradeAssistantView.model).withValidator { ->
-      val text = editor.item.toString()
-      val validation = this@UpgradeAssistantView.model.editingValidation(text)
-      when (validation.first) {
-        EditingErrorCategory.ERROR -> ValidationInfo(validation.second, this)
-        EditingErrorCategory.WARNING -> ValidationInfo(validation.second, this).asWarning()
-        else -> null
-      }
-    }.installOn(this)
-    textField.document?.addDocumentListener(
-      object: DocumentAdapter() {
-        override fun textChanged(e: DocumentEvent) {
-          ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
-          this@UpgradeAssistantView.model.versionComboTextChanged()
-        }
-      }
-    )
-    addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent?) {
-        this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
-      }
-    })
-    val focusListener = object : FocusAdapter() {
-      override fun focusLost(e: FocusEvent?) {
-        this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
-      }
-    }
-    addFocusListener(focusListener)
-    textField.addFocusListener(focusListener)
-  }
-
-  val refreshButton = JButton("Refresh").apply {
-    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-      isEnabled = !uiState.showLoadingState
-    }
-    addActionListener {
-      this@UpgradeAssistantView.model.run {
-        refresh(true)
-      }
-    }
-  }
-  val okButton = JButton("Run selected steps").apply {
-    addActionListener { this@UpgradeAssistantView.model.runUpgrade(false) }
-    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-      toolTipText = uiState.runTooltip
-      isEnabled = uiState.runEnabled
-    }
-    putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
-  }
-  val previewButton = JButton("Show Usages").apply {
-    addActionListener { this@UpgradeAssistantView.model.runUpgrade(true) }
-    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-      toolTipText = uiState.runTooltip
-      isEnabled = uiState.showPreviewEnabled
-    }
-  }
-  val messageLabel = JBLabel().apply {
-    myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-      icon = uiState.statusMessage?.severity?.icon
-      text = uiState.statusMessage?.text
-    }
-  }
-  val hyperlinkLabel = object : ActionLink("Read more") {
-    var url: String? = null
-  }
-    .apply {
-      addActionListener { url?.let { BrowserUtil.browse(it) } }
-      setExternalLinkIcon()
+  val okButton =
+    JButton("Run selected steps").apply {
+      addActionListener { this@UpgradeAssistantView.model.runUpgrade(false) }
       myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
-        url = uiState.statusMessage?.url
-        isVisible = url != null
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.runEnabled
+      }
+      putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+    }
+  val previewButton =
+    JButton("Show Usages").apply {
+      addActionListener { this@UpgradeAssistantView.model.runUpgrade(true) }
+      myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.showPreviewEnabled
       }
     }
+  val messageLabel =
+    JBLabel().apply {
+      myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
+        icon = uiState.statusMessage?.severity?.icon
+        text = uiState.statusMessage?.text
+      }
+    }
+  val hyperlinkLabel =
+    object : ActionLink("Read more") {
+        var url: String? = null
+      }
+      .apply {
+        addActionListener { url?.let { BrowserUtil.browse(it) } }
+        setExternalLinkIcon()
+        myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
+          url = uiState.statusMessage?.url
+          isVisible = url != null
+        }
+      }
 
-  val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
-    val controlsPanel = makeTopComponent()
-    val topPanel = JBPanel<JBPanel<*>>().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(controlsPanel)
-      add(JSeparator(SwingConstants.HORIZONTAL))
-    }
-    add(topPanel, BorderLayout.NORTH)
-    add(treePanel, BorderLayout.WEST)
-    add(ScrollPaneFactory.createScrollPane(detailsPanel, SideBorder.NONE), BorderLayout.CENTER)
+  val content =
+    JBLoadingPanel(BorderLayout(), contentManager).apply {
+      val controlsPanel = makeTopComponent()
+      val topPanel =
+        JBPanel<JBPanel<*>>().apply {
+          layout = BoxLayout(this, BoxLayout.Y_AXIS)
+          add(controlsPanel)
+          add(JSeparator(SwingConstants.HORIZONTAL))
+        }
+      add(topPanel, BorderLayout.NORTH)
+      add(treePanel, BorderLayout.WEST)
+      add(ScrollPaneFactory.createScrollPane(detailsPanel, SideBorder.NONE), BorderLayout.CENTER)
 
-    myListeners.listenAndFire(model.uiState) { uiState ->
-      setLoadingText(uiState.loadingText)
-      if (uiState.showLoadingState) {
-        startLoading()
-      }
-      else {
-        stopLoading()
-        upgradeLabel.text = model.current.upgradeLabelText()
-        contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
+      myListeners.listenAndFire(model.uiState) { uiState ->
+        setLoadingText(uiState.loadingText)
+        if (uiState.showLoadingState) {
+          startLoading()
+        } else {
+          stopLoading()
+          upgradeLabel.text = model.current.upgradeLabelText()
+          contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
+        }
       }
     }
-  }
 
   init {
     myListeners.listen(model.uiRefreshNotificationTimestamp) {
       tree.repaint()
       refreshDetailsPanel()
     }
-    model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
-      override fun treeStructureChanged(event: TreeModelEvent?) {
-        // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
-        // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
-        // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
-        invokeLater(ModalityState.nonModal()) {
-          tree.setHoldSize(false)
-          TreeUtil.expandAll(tree) {
-            tree.setHoldSize(true)
-            content.revalidate()
+    model.treeModel.addTreeModelListener(
+      object : TreeModelAdapter() {
+        override fun treeStructureChanged(event: TreeModelEvent?) {
+          // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
+          // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
+          // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
+          invokeLater(ModalityState.nonModal()) {
+            tree.setHoldSize(false)
+            TreeUtil.expandAll(tree) {
+              tree.setHoldSize(true)
+              content.revalidate()
+            }
           }
         }
       }
-    })
+    )
     TreeUtil.expandAll(tree)
     tree.setHoldSize(true)
   }
 
-  private fun makeTopComponent() = JBPanel<JBPanel<*>>().apply {
-    // This layout, rather than com.intellij.ide.plugins.newui.HorizontalLayout (used elsewhere in ContentManager), is needed to make
-    // the baseline of the hyperlinkLabel be aligned with the baselines of unstyled text in other elements.  It does not align the text
-    // in the versionTextField combo box with this baseline, however; instead the borders of the combo are aligned with the borders of
-    // the button.  Using GroupLayout (with BASELINE alignment) aligns all the text baselines, at the cost of misaligning the combo
-    // borders; altering the combo's dimensions or insets somehow might allow complete unity.
-    layout = HorizontalLayout(5)
-    add(upgradeLabel, HorizontalLayout.LEFT)
-    add(versionTextField, HorizontalLayout.LEFT)
-    add(okButton, HorizontalLayout.LEFT)
-    add(previewButton, HorizontalLayout.LEFT)
-    add(refreshButton, HorizontalLayout.LEFT)
-    add(messageLabel, HorizontalLayout.LEFT)
-    add(hyperlinkLabel, HorizontalLayout.LEFT)
-  }
+  private fun makeTopComponent() =
+    JBPanel<JBPanel<*>>().apply {
+      // This layout, rather than com.intellij.ide.plugins.newui.HorizontalLayout (used elsewhere in ContentManager), is needed to make
+      // the baseline of the hyperlinkLabel be aligned with the baselines of unstyled text in other elements.  It does not align the text
+      // in the versionTextField combo box with this baseline, however; instead the borders of the combo are aligned with the borders of
+      // the button.  Using GroupLayout (with BASELINE alignment) aligns all the text baselines, at the cost of misaligning the combo
+      // borders; altering the combo's dimensions or insets somehow might allow complete unity.
+      layout = HorizontalLayout(5)
+      add(upgradeLabel, HorizontalLayout.LEFT)
+      add(versionTextField, HorizontalLayout.LEFT)
+      add(okButton, HorizontalLayout.LEFT)
+      add(previewButton, HorizontalLayout.LEFT)
+      add(refreshButton, HorizontalLayout.LEFT)
+      add(messageLabel, HorizontalLayout.LEFT)
+      add(hyperlinkLabel, HorizontalLayout.LEFT)
+    }
 
   private fun refreshDetailsPanel() {
     detailsPanel.removeAll()
@@ -341,15 +358,17 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         val layoutPanel = JPanel()
         layoutPanel.layout = BorderLayout()
         detailsPanel.add(layoutPanel)
-        val realDetailsPanel = JBPanel<JBPanel<*>>().apply {
-          layout = VerticalLayout(0, SwingConstants.LEFT)
-          border = JBUI.Borders.empty(0, 0, 0, 20)
-        }
+        val realDetailsPanel =
+          JBPanel<JBPanel<*>>().apply {
+            layout = VerticalLayout(0, SwingConstants.LEFT)
+            border = JBUI.Borders.empty(0, 0, 0, 20)
+          }
         layoutPanel.add(realDetailsPanel, BorderLayout.WEST)
-        val errorPanel = JBPanel<JBPanel<*>>().apply {
-          layout = VerticalLayout(0, SwingConstants.LEFT)
-          border = JBUI.Borders.empty(0, 0, 0, 0)
-        }
+        val errorPanel =
+          JBPanel<JBPanel<*>>().apply {
+            layout = VerticalLayout(0, SwingConstants.LEFT)
+            border = JBUI.Borders.empty(0, 0, 0, 0)
+          }
         layoutPanel.add(errorPanel, BorderLayout.CENTER)
         realDetailsPanel.add(label)
         errorPanel.add(JBLabel("The error message from sync is:"))
@@ -357,9 +376,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
           val rows = minOf(errorMessage.lines().size, 10)
           JBTextArea(errorMessage, rows, 80).let { textArea ->
             textArea.isEditable = false
-            JBScrollPane(textArea).run {
-              errorPanel.add(this)
-            }
+            JBScrollPane(textArea).run { errorPanel.add(this) }
           }
         }
         realDetailsPanel.addRevertInfo(showRevertButton = true, markRevertAsDefault = true)
@@ -373,9 +390,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         model.processor?.let { processor ->
           sb.append("<p>The upgrade consisted of the following steps:</p>")
           sb.append("<ul>")
-          processor.componentRefactoringProcessors.filter { it.isEnabled }.forEach {
-            sb.append("<li>${it.commandName}</li>")
-          }
+          processor.componentRefactoringProcessors.filter { it.isEnabled }.forEach { sb.append("<li>${it.commandName}</li>") }
           sb.append("</ul>")
         }
         label.text = sb.toString()
@@ -386,7 +401,9 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         val sb = StringBuilder()
         sb.append("<div><b>Up-to-date for Android Gradle Plugin version ${this@UpgradeAssistantView.model.current}</b></div>")
         if (this@UpgradeAssistantView.model.current?.let { it < this@UpgradeAssistantView.model.latestKnownVersion } == true) {
-          sb.append("<p>Upgrades to newer versions of Android Gradle Plugin (up to ${this@UpgradeAssistantView.model.latestKnownVersion}) can be")
+          sb.append(
+            "<p>Upgrades to newer versions of Android Gradle Plugin (up to ${this@UpgradeAssistantView.model.latestKnownVersion}) can be"
+          )
           sb.append("<br>performed by selecting those versions from the dropdown.</p>")
         }
         label.text = sb.toString()
@@ -435,7 +452,12 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
             }
             val comboPanel = JBPanel<JBPanel<*>>()
             comboPanel.layout = com.intellij.ide.plugins.newui.HorizontalLayout(0)
-            comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4); it.name = "label" })
+            comboPanel.add(
+              JBLabel(selectedStep.label).also {
+                it.border = JBUI.Borders.empty(0, 4)
+                it.name = "label"
+              }
+            )
             comboPanel.add(this)
             detailsPanel.add(comboPanel)
           }
@@ -449,9 +471,11 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
           DEPRECATED -> {
             val sb = StringBuilder()
             sb.append("<div><b>Update from deprecated Android Gradle Plugin version</b></div>")
-            sb.append("<p>This project currently uses Android Gradle Plugin version ${model.current}, which<br/>" +
-                      "will not be supported in future versions of Android Studio.  Update your project<br/>" +
-                      "to version ${SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION} or later")
+            sb.append(
+              "<p>This project currently uses Android Gradle Plugin version ${model.current}, which<br/>" +
+                "will not be supported in future versions of Android Studio.  Update your project<br/>" +
+                "to version ${SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION} or later"
+            )
             if (model.recommended?.let { it < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) } == true) {
               sb.append(" (you may wish to do this in multiple steps)")
             }
@@ -465,24 +489,30 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
               // not AllDone: there must be optional steps left (current must be non-null here)
               val sb = StringBuilder()
               sb.append("<div><b>Recommended project updates</b></div>")
-              sb.append("<p>To prepare your project for future changes in the Android Gradle Plugin, we recommend<br/>" +
-                        "executing additional update steps.")
+              sb.append(
+                "<p>To prepare your project for future changes in the Android Gradle Plugin, we recommend<br/>" +
+                  "executing additional update steps."
+              )
               label.text = sb.toString()
               detailsPanel.add(label)
-            }
-            else {
+            } else {
               val sb = StringBuilder()
               sb.append("<div><b>Updates available</b></div>")
-              sb.append("<p>To take advantage of the latest features, improvements and fixes, we<br/>" +
-                        "recommend that you upgrade this project's Android Gradle Plugin from ${model.current}<br/>" +
-                        "to ${model.recommended}.</p>")
+              sb.append(
+                "<p>To take advantage of the latest features, improvements and fixes, we<br/>" +
+                  "recommend that you upgrade this project's Android Gradle Plugin from ${model.current}<br/>" +
+                  "to ${model.recommended}.</p>"
+              )
               label.text = sb.toString()
               detailsPanel.add(label)
               detailsPanel.addReleaseNotesInfo(model)
             }
           }
           // Other (non-compatible) cases not handled by AGP Upgrade Assistant Tool Window
-          DIFFERENT_PREVIEW, BEFORE_MINIMUM, AFTER_MAXIMUM, OBSOLETE -> Unit
+          DIFFERENT_PREVIEW,
+          BEFORE_MINIMUM,
+          AFTER_MAXIMUM,
+          OBSOLETE -> Unit
           null -> Unit
         }
       }
@@ -492,27 +522,28 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   }
 
   private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
-    JPanel().apply {
-      name = "build window info panel"
-      layout = VerticalLayout(0)
-      border = JBUI.Borders.empty(10, 0, 0, 0)
-      add(JBLabel("There may be more information about the sync failure in the"))
-      ActionLink("'Build' window") {
-        val project = this@UpgradeAssistantView.model.project
-        invokeLater {
-          if (!project.isDisposed) {
-            val buildContentManager = BuildContentManager.getInstance(project)
-            val buildToolWindow = buildContentManager.getOrCreateToolWindow()
-            if (!buildToolWindow.isAvailable) return@invokeLater
-            buildToolWindow.show()
-            val contentManager = buildToolWindow.contentManager
-            contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
+    JPanel()
+      .apply {
+        name = "build window info panel"
+        layout = VerticalLayout(0)
+        border = JBUI.Borders.empty(10, 0, 0, 0)
+        add(JBLabel("There may be more information about the sync failure in the"))
+        ActionLink("'Build' window") {
+            val project = this@UpgradeAssistantView.model.project
+            invokeLater {
+              if (!project.isDisposed) {
+                val buildContentManager = BuildContentManager.getInstance(project)
+                val buildToolWindow = buildContentManager.getOrCreateToolWindow()
+                if (!buildToolWindow.isAvailable) return@invokeLater
+                buildToolWindow.show()
+                val contentManager = buildToolWindow.contentManager
+                contentManager.findContent("Sync")?.let { content -> contentManager.setSelectedContent(content) }
+              }
+            }
           }
-        }
+          .apply { name = "open build window link" }
+          .also { actionLink -> add(actionLink) }
       }
-        .apply { name = "open build window link" }
-        .also { actionLink -> add(actionLink) }
-    }
       .also { panel -> add(panel) }
   }
 
@@ -528,39 +559,43 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         .also { revertButton -> add(revertButton) }
     }
 
-    JPanel().apply {
-      name = "revert information panel"
-      layout = FlowLayout(FlowLayout.LEADING, 0, 0)
-      border = JBUI.Borders.empty(20, 0, 0, 0)
-      add(JBLabel("You can review the applied changes in the "))
-      ActionLink("'Local History' dialog") {
-        val ideaGateway = LocalHistoryImpl.getInstanceImpl().gateway
-        // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
-        val dialog = DirectoryHistoryDialog(this@UpgradeAssistantView.model.project, ideaGateway, this@UpgradeAssistantView.model.project.baseDir)
-        dialog.show()
+    JPanel()
+      .apply {
+        name = "revert information panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        border = JBUI.Borders.empty(20, 0, 0, 0)
+        add(JBLabel("You can review the applied changes in the "))
+        ActionLink("'Local History' dialog") {
+            val ideaGateway = LocalHistoryImpl.getInstanceImpl().gateway
+            // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
+            val dialog =
+              DirectoryHistoryDialog(this@UpgradeAssistantView.model.project, ideaGateway, this@UpgradeAssistantView.model.project.baseDir)
+            dialog.show()
+          }
+          .apply { name = "open local history link" }
+          .also { actionLink -> add(actionLink) }
       }
-        .apply { name = "open local history link" }
-        .also { actionLink -> add(actionLink) }
-    }
       .also { panel -> add(panel) }
   }
 
   private fun JBPanel<JBPanel<*>>.addReleaseNotesInfo(toolWindowModel: UpgradeAssistantWindowModel) {
     val agpVersion = toolWindowModel.selectedVersion ?: toolWindowModel.recommended
-    JPanel().apply {
-      name = "release notes info panel"
-      layout = FlowLayout(FlowLayout.LEADING, 0, 0)
-      border = JBUI.Borders.empty(10, 0, 0, 0)
-      add(JBLabel("View the Android Gradle plugin "))
-      val (url, text) = when {
-        agpVersion == null -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
-        agpVersion.isPreview -> "https://developer.android.com/studio/preview/features" to "preview release notes"
-        else -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
+    JPanel()
+      .apply {
+        name = "release notes info panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        border = JBUI.Borders.empty(10, 0, 0, 0)
+        add(JBLabel("View the Android Gradle plugin "))
+        val (url, text) =
+          when {
+            agpVersion == null -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
+            agpVersion.isPreview -> "https://developer.android.com/studio/preview/features" to "preview release notes"
+            else -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
+          }
+        BrowserLink(AllIcons.Ide.External_link_arrow, text, null, url)
+          .apply { name = "browse release notes link" }
+          .also { browserLink -> add(browserLink) }
       }
-      BrowserLink(AllIcons.Ide.External_link_arrow, text, null, url)
-        .apply { name = "browse release notes link" }
-        .also { browserLink -> add(browserLink) }
-    }
       .also { panel -> add(panel) }
   }
 }

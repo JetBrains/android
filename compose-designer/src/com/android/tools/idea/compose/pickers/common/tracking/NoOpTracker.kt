@@ -19,10 +19,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.google.wireless.android.sdk.stats.EditorPickerEvent
 
-/**
- * Implementation with no operations. For cases of pickers which tracking classes are not available
- * yet.
- */
+/** Implementation with no operations. For cases of pickers which tracking classes are not available yet. */
 internal object NoOpTracker : ComposePickerTracker {
   override fun pickerShown() {} // Do nothing
 

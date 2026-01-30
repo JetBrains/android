@@ -30,8 +30,8 @@ import com.intellij.openapi.diagnostic.Logger
 import java.awt.Rectangle
 
 /**
- * [AnAction] that zooms to the component in a given sceneView that corresponds to the deepest UI
- * Component visible at the position where the mouse is located at the moment the action is created.
+ * [AnAction] that zooms to the component in a given sceneView that corresponds to the deepest UI Component visible at the position where
+ * the mouse is located at the moment the action is created.
  */
 class ZoomToSelectionAction(
   @param:VisibleForTesting @param:SwingCoordinate val x: Int,
@@ -42,8 +42,7 @@ class ZoomToSelectionAction(
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible =
-      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+    e.presentation.isEnabledAndVisible = (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

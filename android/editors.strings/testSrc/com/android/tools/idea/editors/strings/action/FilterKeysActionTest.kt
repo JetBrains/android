@@ -127,8 +127,7 @@ class FilterKeysActionTest {
     val frame: IdeFrameImpl = mock()
     whenever(frame.component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
-    ApplicationManager.getApplication()
-      .replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -150,8 +149,7 @@ class FilterKeysActionTest {
         /* popupTrigger= */ true,
       )
 
-    val dataContext =
-      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
+    val dataContext = SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
     val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
@@ -173,8 +171,7 @@ class FilterKeysActionTest {
     val presentationText = "Some amazing text!"
     rowFilter =
       object : StringResourceTableRowFilter() {
-        override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean =
-          throw NotImplementedError("Not called")
+        override fun include(entry: Entry<out StringResourceTableModel, out Int>?): Boolean = throw NotImplementedError("Not called")
 
         override fun getDescription(): String = presentationText
 
@@ -290,16 +287,14 @@ class FilterKeysActionTest {
     }
 
     assertThat(rowFilter).isInstanceOf(TextRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription())
-      .isEqualTo("""Show Keys with Values Containing "$filterText"""")
+    assertThat(rowFilter!!.getDescription()).isEqualTo("""Show Keys with Values Containing "$filterText"""")
   }
 
   @Test
   fun actionPerformed_keysNeedingTranslationForLocale() {
     whenever(model.columnCount).thenReturn(StringResourceTableModel.FIXED_COLUMN_COUNT + 2)
     whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT)).thenReturn(ARABIC_LOCALE)
-    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1))
-      .thenReturn(US_SPANISH_LOCALE)
+    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1)).thenReturn(US_SPANISH_LOCALE)
 
     filterKeysAction.actionPerformed(event)
 
@@ -307,27 +302,23 @@ class FilterKeysActionTest {
     assertThat(popup.actions).hasSize(6)
 
     var selectedAction = popup.actions[4]
-    assertThat(selectedAction.templateText)
-      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription())
-      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(rowFilter!!.getIcon()).isNull()
 
     selectedAction = popup.actions[5]
-    assertThat(selectedAction.templateText)
-      .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+    assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
     assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
-    assertThat(rowFilter!!.getDescription())
-      .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+    assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
     assertThat(rowFilter!!.getIcon()).isNull()
   }
 

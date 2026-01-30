@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceWear1ButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorWear1ButtonAction
 
-/**
- * Simulates pressing the first button on an Android Wear physical device.
- */
+/** Simulates pressing the first button on an Android Wear physical device. */
 internal class StreamingWear1ButtonAction : StreamingPushButtonAction(EmulatorWear1ButtonAction(), DeviceWear1ButtonAction())

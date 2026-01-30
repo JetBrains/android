@@ -47,24 +47,10 @@ fun RecipeExecutor.androidProjectRecipe(
     copy(resource("project_ignore"), topOut.resolve(".gitignore"))
   }
 
-  val settingsFile =
-    topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
+  val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
+  save(androidProjectGradleSettings(appTitle, data.gradleVersion, data.agpVersion, useGradleKts, data.additionalMavenRepos), settingsFile)
   save(
-    androidProjectGradleSettings(
-      appTitle,
-      data.gradleVersion,
-      data.agpVersion,
-      useGradleKts,
-      data.additionalMavenRepos,
-    ),
-    settingsFile,
-  )
-  save(
-    androidProjectGradleProperties(
-      data.agpVersion,
-      language == Language.Kotlin,
-      data.overridePathCheck,
-    ),
+    androidProjectGradleProperties(data.agpVersion, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES),
   )
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))

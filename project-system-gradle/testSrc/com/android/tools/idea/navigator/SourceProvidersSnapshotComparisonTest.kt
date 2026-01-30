@@ -41,10 +41,9 @@ import org.junit.rules.TestName
  *
  * The pre-recorded sync results can be found in testData/sourceProvidersSnapshots/ *.txt files.
  *
- * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
- * target as "//tools/adt/idea/android:intellij.android.core.tests_tests ---test_filter=SourceProvidersSnapshotComparisonTest".
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use target as
+ * "//tools/adt/idea/android:intellij.android.core.tests_tests ---test_filter=SourceProvidersSnapshotComparisonTest".
  */
-
 data class SourceProvidersTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
@@ -68,40 +67,40 @@ data class SourceProvidersTestDef(
   }
 
   companion object {
-    val tests: List<SourceProvidersTestDef> = listOf(
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION),
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
-      SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
-      SourceProvidersTestDef(TestProject.APP_WITH_ML_MODELS),
-      SourceProvidersTestDef(TestProject.MULTI_FLAVOR),
-      SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),
-      SourceProvidersTestDef(TestProject.COMPOSITE_BUILD),
-      SourceProvidersTestDef(TestProject.APP_WITH_BUILDSRC),
-      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
-      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
-      SourceProvidersTestDef(TestProject.TEST_FIXTURES),
-      SourceProvidersTestDef(TestProject.KOTLIN_KAPT),
-      SourceProvidersTestDef(TestProject.KOTLIN_MULTIPLATFORM),
-      SourceProvidersTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
-      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
-      SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE),
-      SourceProvidersTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
-      SourceProvidersTestDef(TestProject.TEST_STATIC_DIR),
-      SourceProvidersTestDef(TestProject.TEST_SUITES),
-    )
+    val tests: List<SourceProvidersTestDef> =
+      listOf(
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION),
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
+        SourceProvidersTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
+        SourceProvidersTestDef(TestProject.APP_WITH_ML_MODELS),
+        SourceProvidersTestDef(TestProject.MULTI_FLAVOR),
+        SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),
+        SourceProvidersTestDef(TestProject.COMPOSITE_BUILD),
+        SourceProvidersTestDef(TestProject.APP_WITH_BUILDSRC),
+        SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+        SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
+        SourceProvidersTestDef(TestProject.TEST_FIXTURES),
+        SourceProvidersTestDef(TestProject.KOTLIN_KAPT),
+        SourceProvidersTestDef(TestProject.KOTLIN_MULTIPLATFORM),
+        SourceProvidersTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
+        SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
+        SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE),
+        SourceProvidersTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
+        SourceProvidersTestDef(TestProject.TEST_STATIC_DIR),
+        SourceProvidersTestDef(TestProject.TEST_SUITES),
+      )
   }
 }
 
 class SourceProvidersSnapshotComparisonTest : SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
   val testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/snapshots").toString()
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
-  @get:Rule
-  val nameRule = TestName()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val nameRule = TestName()
+
   override fun getName(): String = nameRule.methodName
 
   @Test

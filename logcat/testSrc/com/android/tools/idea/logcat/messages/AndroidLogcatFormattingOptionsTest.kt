@@ -28,8 +28,7 @@ class AndroidLogcatFormattingOptionsTest {
 
     formattingOptions.standardFormattingOptions.tagFormat = TagFormat(enabled = false)
 
-    assertThat(formattingOptions.standardFormattingOptions)
-      .isNotEqualTo(defaultFormattingOptions.standardFormattingOptions)
+    assertThat(formattingOptions.standardFormattingOptions).isNotEqualTo(defaultFormattingOptions.standardFormattingOptions)
   }
 
   @Test
@@ -38,7 +37,6 @@ class AndroidLogcatFormattingOptionsTest {
 
     formattingOptions.compactFormattingOptions.tagFormat = TagFormat(enabled = true)
 
-    assertThat(formattingOptions.compactFormattingOptions)
-      .isNotEqualTo(defaultFormattingOptions.compactFormattingOptions)
+    assertThat(formattingOptions.compactFormattingOptions).isNotEqualTo(defaultFormattingOptions.compactFormattingOptions)
   }
 }

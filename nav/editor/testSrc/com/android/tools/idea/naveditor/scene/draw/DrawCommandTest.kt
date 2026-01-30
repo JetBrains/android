@@ -84,9 +84,7 @@ class DrawCommandTest : NavTestCase() {
   fun testDrawNavScreenWithPreviewUnavailable() {
     val image = RefinableImage()
     val command = DrawNavScreen(SwingRectangle(RECTANGLE), image)
-    verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawNavScreenPreviewUnavailable(inOrder, g, RECTANGLE)
-    }
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawNavScreenPreviewUnavailable(inOrder, g, RECTANGLE) }
   }
 
   fun testDrawFragmentWithPlaceholder() {
@@ -112,33 +110,14 @@ class DrawCommandTest : NavTestCase() {
   private fun testDrawFragment(previewType: PreviewType, highlightColor: Color? = null) {
     val image = makeRefinableImage(previewType)
     val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), highlightColor, image)
-    verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor, previewType)
-    }
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor, previewType) }
   }
 
   fun testDrawNestedGraph() {
     val text = "navigation_graph.xml"
-    val command =
-      DrawNestedGraph(
-        SwingRectangle(RECTANGLE),
-        Scale(SCALE),
-        FRAME_COLOR,
-        SwingLength(FRAME_THICKNESS),
-        text,
-        TEXT_COLOR,
-      )
+    val command = DrawNestedGraph(SwingRectangle(RECTANGLE), Scale(SCALE), FRAME_COLOR, SwingLength(FRAME_THICKNESS), text, TEXT_COLOR)
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawNestedGraph(
-        inOrder,
-        g,
-        RECTANGLE,
-        SCALE,
-        FRAME_COLOR,
-        FRAME_THICKNESS,
-        text,
-        TEXT_COLOR,
-      )
+      verifyDrawNestedGraph(inOrder, g, RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, text, TEXT_COLOR)
     }
   }
 
@@ -171,17 +150,7 @@ class DrawCommandTest : NavTestCase() {
         image,
       )
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawActivity(
-        inOrder,
-        g,
-        RECTANGLE,
-        IMAGE_RECTANGLE,
-        SCALE,
-        FRAME_COLOR,
-        FRAME_THICKNESS,
-        TEXT_COLOR,
-        previewType,
-      )
+      verifyDrawActivity(inOrder, g, RECTANGLE, IMAGE_RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, TEXT_COLOR, previewType)
     }
   }
 
@@ -195,11 +164,8 @@ class DrawCommandTest : NavTestCase() {
   private fun testDrawHeader(isStart: Boolean, hasDeepLinks: Boolean) {
     val headerRect = Rectangle2D.Float(10f, 10f, 200f, 800f)
     val headerString = "header"
-    val command =
-      DrawHeader(SwingRectangle(headerRect), Scale(SCALE), headerString, isStart, hasDeepLinks)
-    verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawHeader(inOrder, g, headerRect, SCALE, headerString, isStart, hasDeepLinks)
-    }
+    val command = DrawHeader(SwingRectangle(headerRect), Scale(SCALE), headerString, isStart, hasDeepLinks)
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawHeader(inOrder, g, headerRect, SCALE, headerString, isStart, hasDeepLinks) }
   }
 
   fun testDrawAction() {
@@ -229,9 +195,7 @@ class DrawCommandTest : NavTestCase() {
     val rectangle = Rectangle2D.Float(10f, 10f, 40f, 20f)
     val color = Color.RED
 
-    verifyDrawCommand(
-      DrawHorizontalAction(SwingRectangle(rectangle), Scale(SCALE), color, isPopAction)
-    ) { inOrder, g ->
+    verifyDrawCommand(DrawHorizontalAction(SwingRectangle(rectangle), Scale(SCALE), color, isPopAction)) { inOrder, g ->
       verifyDrawHorizontalAction(inOrder, g, rectangle, SCALE, color, isPopAction)
     }
   }
@@ -240,9 +204,7 @@ class DrawCommandTest : NavTestCase() {
     val command = DrawLineToMouse(SwingPoint(HANDLE_CENTER))
     setMouse()
 
-    verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawLineToMouse(inOrder, g, HANDLE_CENTER, MOUSE_X, MOUSE_Y)
-    }
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawLineToMouse(inOrder, g, HANDLE_CENTER, MOUSE_X, MOUSE_Y) }
   }
 
   fun testDrawActionHandle() {
@@ -270,15 +232,7 @@ class DrawCommandTest : NavTestCase() {
     val innerRadius = interpolate(INITIAL_INNER_RADIUS, FINAL_INNER_RADIUS, fraction)
 
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawActionHandle(
-        inOrder,
-        g,
-        HANDLE_CENTER,
-        outerRadius,
-        innerRadius,
-        OUTER_HANDLE_COLOR,
-        INNER_HANDLE_COLOR,
-      )
+      verifyDrawActionHandle(inOrder, g, HANDLE_CENTER, outerRadius, innerRadius, OUTER_HANDLE_COLOR, INNER_HANDLE_COLOR)
     }
   }
 
@@ -304,15 +258,7 @@ class DrawCommandTest : NavTestCase() {
     val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
 
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawActionHandleDrag(
-        inOrder,
-        g,
-        HANDLE_CENTER,
-        outerRadius,
-        FINAL_INNER_RADIUS,
-        MOUSE_X,
-        MOUSE_Y,
-      )
+      verifyDrawActionHandleDrag(inOrder, g, HANDLE_CENTER, outerRadius, FINAL_INNER_RADIUS, MOUSE_X, MOUSE_Y)
     }
   }
 
@@ -341,8 +287,7 @@ class DrawCommandTest : NavTestCase() {
     whenever(context.mouseY).thenReturn(MOUSE_Y)
   }
 
-  private fun interpolate(start: Float, end: Float, fraction: Float) =
-    start + (end - start) * fraction
+  private fun interpolate(start: Float, end: Float, fraction: Float) = start + (end - start) * fraction
 
   private fun makeRefinableImage(previewType: PreviewType) =
     when (previewType) {

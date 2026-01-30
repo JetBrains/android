@@ -41,60 +41,26 @@ import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
 /** Provides a custom set of editors for ConstraintLayout's flow in the Property Panel. */
-class ConstraintLayoutFlowInspectorBuilder(
-  private val editorProvider: EditorProvider<NlPropertyItem>
-) {
+class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
-  fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    getTitleLine: () -> InspectorLineModel,
-  ) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
     if (!isApplicable(properties)) return
 
     var titleLine = getTitleLine()
-    addEditor(
-      inspector,
-      properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION],
-      titleLine,
-    )
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_WRAP_MODE],
-      titleLine,
-    )
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_MAX_ELEMENTS_WRAP],
-      titleLine,
-    )
+    addEditor(inspector, properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION], titleLine)
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_WRAP_MODE], titleLine)
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_MAX_ELEMENTS_WRAP], titleLine)
     inspector.addComponent(MySeparator(), titleLine)
     addSubtitle(inspector, "Horizontal", titleLine)
     addHorizontalAlignment(inspector, properties, titleLine)
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_GAP],
-      titleLine,
-    )
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_BIAS],
-      titleLine,
-    )
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_GAP], titleLine)
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_BIAS], titleLine)
     addHorizontalStyle(inspector, properties, titleLine)
     inspector.addComponent(MySeparator(), titleLine)
     addSubtitle(inspector, "Vertical", titleLine)
     addVerticalAlignment(inspector, properties, titleLine)
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_GAP],
-      titleLine,
-    )
-    addEditor(
-      inspector,
-      properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_BIAS],
-      titleLine,
-    )
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_GAP], titleLine)
+    addEditor(inspector, properties[SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_BIAS], titleLine)
     addVerticalStyle(inspector, properties, titleLine)
     inspector.addComponent(MySeparator(), titleLine)
   }
@@ -105,24 +71,13 @@ class ConstraintLayoutFlowInspectorBuilder(
     inspector.addComponent(component, titleLine)
   }
 
-  private fun addHorizontalAlignment(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel,
-  ) {
-    val alignment =
-      properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN) ?: return
+  private fun addHorizontalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+    val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addCustomEditor(model, panel, group)
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Align Start",
-        StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
-        SdkConstants.FlowAlignment.START,
-      )
+      createIconEditor(line, alignment, "Align Start", StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED, SdkConstants.FlowAlignment.START)
     )
     panel.add(
       createIconEditor(
@@ -134,35 +89,16 @@ class ConstraintLayoutFlowInspectorBuilder(
       )
     )
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Align End",
-        StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED,
-        SdkConstants.FlowAlignment.END,
-      )
+      createIconEditor(line, alignment, "Align End", StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED, SdkConstants.FlowAlignment.END)
     )
   }
 
-  private fun addVerticalAlignment(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel,
-  ) {
-    val alignment =
-      properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_ALIGN) ?: return
+  private fun addVerticalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+    val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_ALIGN) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addCustomEditor(model, panel, group)
-    panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Align Top",
-        StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED,
-        SdkConstants.FlowAlignment.TOP,
-      )
-    )
+    panel.add(createIconEditor(line, alignment, "Align Top", StudioIcons.LayoutEditor.Toolbar.TOP_ALIGNED, SdkConstants.FlowAlignment.TOP))
     panel.add(
       createIconEditor(
         line,
@@ -173,13 +109,7 @@ class ConstraintLayoutFlowInspectorBuilder(
       )
     )
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Align Bottom",
-        StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED,
-        SdkConstants.FlowAlignment.BOTTOM,
-      )
+      createIconEditor(line, alignment, "Align Bottom", StudioIcons.LayoutEditor.Toolbar.BOTTOM_ALIGNED, SdkConstants.FlowAlignment.BOTTOM)
     )
     panel.add(
       createIconEditor(
@@ -192,24 +122,13 @@ class ConstraintLayoutFlowInspectorBuilder(
     )
   }
 
-  private fun addHorizontalStyle(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel,
-  ) {
-    val alignment =
-      properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE) ?: return
+  private fun addHorizontalStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+    val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addCustomEditor(model, panel, group)
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Spread",
-        StudioIcons.LayoutEditor.Properties.SPREAD_HORIZONTAL,
-        SdkConstants.FlowStyle.SPREAD,
-      )
+      createIconEditor(line, alignment, "Spread", StudioIcons.LayoutEditor.Properties.SPREAD_HORIZONTAL, SdkConstants.FlowStyle.SPREAD)
     )
     panel.add(
       createIconEditor(
@@ -221,34 +140,17 @@ class ConstraintLayoutFlowInspectorBuilder(
       )
     )
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Packed",
-        StudioIcons.LayoutEditor.Properties.PACKED_HORIZONTAL,
-        SdkConstants.FlowStyle.PACKED,
-      )
+      createIconEditor(line, alignment, "Packed", StudioIcons.LayoutEditor.Properties.PACKED_HORIZONTAL, SdkConstants.FlowStyle.PACKED)
     )
   }
 
-  private fun addVerticalStyle(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    group: InspectorLineModel,
-  ) {
-    val alignment =
-      properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_STYLE) ?: return
+  private fun addVerticalStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+    val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_STYLE) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addCustomEditor(model, panel, group)
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Spread",
-        StudioIcons.LayoutEditor.Properties.SPREAD_VERTICAL,
-        SdkConstants.FlowStyle.SPREAD,
-      )
+      createIconEditor(line, alignment, "Spread", StudioIcons.LayoutEditor.Properties.SPREAD_VERTICAL, SdkConstants.FlowStyle.SPREAD)
     )
     panel.add(
       createIconEditor(
@@ -260,13 +162,7 @@ class ConstraintLayoutFlowInspectorBuilder(
       )
     )
     panel.add(
-      createIconEditor(
-        line,
-        alignment,
-        "Packed",
-        StudioIcons.LayoutEditor.Properties.PACKED_VERTICAL,
-        SdkConstants.FlowStyle.PACKED,
-      )
+      createIconEditor(line, alignment, "Packed", StudioIcons.LayoutEditor.Properties.PACKED_VERTICAL, SdkConstants.FlowStyle.PACKED)
     )
   }
 
@@ -284,11 +180,7 @@ class ConstraintLayoutFlowInspectorBuilder(
     return model to editor
   }
 
-  private fun addEditor(
-    inspector: InspectorPanel,
-    property: NlPropertyItem,
-    group: InspectorLineModel,
-  ): InspectorLineModel {
+  private fun addEditor(inspector: InspectorPanel, property: NlPropertyItem, group: InspectorLineModel): InspectorLineModel {
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 

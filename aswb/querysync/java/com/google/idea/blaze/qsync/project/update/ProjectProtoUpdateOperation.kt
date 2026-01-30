@@ -25,9 +25,7 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.project.ProjectPath
 
 /**
- * An update to the project proto that operates on a [ProjectProtoUpdate]. Also defines some
- * constants that are useful to implementations.
- *
+ * An update to the project proto that operates on a [ProjectProtoUpdate]. Also defines some constants that are useful to implementations.
  *
  * Implementations of this interface must not depend on any project state other than [ ].
  */
@@ -43,7 +41,6 @@ interface ProjectProtoUpdateOperation {
   )
 
   companion object {
-    @JvmField
-    val JAVA_ARCHIVE_EXTENSIONS: ImmutableSet<String> = ImmutableSet.of("jar", "srcjar")
+    @JvmField val JAVA_ARCHIVE_EXTENSIONS: ImmutableSet<String> = ImmutableSet.of("jar", "srcjar")
   }
 }

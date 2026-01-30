@@ -28,16 +28,17 @@ import org.jetbrains.annotations.TestOnly
 interface GradleSyncInvoker {
   fun requestProjectSync(project: Project, request: Request, listener: GradleSyncListener? = null)
 
-  @WorkerThread
-  fun fetchGradleModels(project: Project): GradleProjectModels
+  @WorkerThread fun fetchGradleModels(project: Project): GradleProjectModels
 
-  data class Request @JvmOverloads constructor(
+  data class Request
+  @JvmOverloads
+  constructor(
     val trigger: GradleSyncStats.Trigger,
     // Switch the current variant if not null.
     val requestedVariantChange: SwitchVariantRequest? = null,
     val importDefaultVariants: Boolean = false,
     val dontFocusSyncFailureOutput: Boolean = false,
-    val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION
+    val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION,
   ) {
     val progressExecutionMode: ProgressExecutionMode
       get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
@@ -59,19 +60,13 @@ interface GradleSyncInvoker {
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED)
     }
 
-    @WorkerThread
-    override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null, null)
+    @WorkerThread override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null, null)
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(): GradleSyncInvoker =
-      ApplicationManager.getApplication().getService(GradleSyncInvoker::class.java)
+    @JvmStatic fun getInstance(): GradleSyncInvoker = ApplicationManager.getApplication().getService(GradleSyncInvoker::class.java)
   }
 }
 
-fun GradleSyncInvoker.requestProjectSync(
-  project: Project,
-  trigger: GradleSyncStats.Trigger,
-  listener: GradleSyncListener? = null
-) = requestProjectSync(project, GradleSyncInvoker.Request(trigger), listener)
+fun GradleSyncInvoker.requestProjectSync(project: Project, trigger: GradleSyncStats.Trigger, listener: GradleSyncListener? = null) =
+  requestProjectSync(project, GradleSyncInvoker.Request(trigger), listener)

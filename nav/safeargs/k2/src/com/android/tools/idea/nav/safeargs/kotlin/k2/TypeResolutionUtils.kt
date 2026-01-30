@@ -56,8 +56,7 @@ fun NavArgumentData.resolveKotlinType(modulePackageName: String): String {
   }
 }
 
-val KEYWORDS_TO_ESCAPE: Set<String> =
-  KtTokens.KEYWORDS.types.mapNotNullTo(mutableSetOf()) { (it as? KtKeywordToken)?.value }
+val KEYWORDS_TO_ESCAPE: Set<String> = KtTokens.KEYWORDS.types.mapNotNullTo(mutableSetOf()) { (it as? KtKeywordToken)?.value }
 
 fun String.escapeKeywords(): String = if (this in KEYWORDS_TO_ESCAPE) "`$this`" else this
 

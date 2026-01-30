@@ -65,14 +65,11 @@ class DeviceMonitorControllerImplTest {
   private val project: Project
     get() = androidProjectRule.project
 
-  private val commandHandler =  TestCommandHandler()
+  private val commandHandler = TestCommandHandler()
 
-  private val fakeAdbRule = FakeAdbServerAdbLibRule {
-    addDeviceHandler(commandHandler)
-  }
+  private val fakeAdbRule = FakeAdbServerAdbLibRule { addDeviceHandler(commandHandler) }
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fakeAdbRule)
 
   private lateinit var model: DeviceMonitorModel
   private lateinit var service: AdbDeviceService
@@ -90,17 +87,16 @@ class DeviceMonitorControllerImplTest {
       // Add new client to trigger device update
       addClient(testDevice1, 60)
     }
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(
-      DeviceExplorerSettings::class.java,
-      DeviceExplorerSettings(),
-      androidProjectRule.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(DeviceExplorerSettings::class.java, DeviceExplorerSettings(), androidProjectRule.testRootDisposable)
     packageNameProvider = MockProjectApplicationIdsProvider(project)
     model = DeviceMonitorModel(processService, packageNameProvider)
     mockView = MockDeviceMonitorView(project, model)
     mockView.setup()
-    testDevice1 = fakeAdbRule.connectDevice("test_device_01", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+    testDevice1 =
+      fakeAdbRule
+        .connectDevice("test_device_01", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
     testDeviceHandle1 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice1.deviceId)
     addClient(testDevice1, 5)
   }
@@ -112,238 +108,254 @@ class DeviceMonitorControllerImplTest {
   }
 
   @Test
-  fun ifControllerIsSetAsProjectKey() = runBlocking(Dispatchers.EDT) {
-    // Prepare Act
-    val controller = createController()
+  fun ifControllerIsSetAsProjectKey() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare Act
+      val controller = createController()
 
-    // Assert
-    assertThat(controller).isEqualTo(getProjectController(project))
-  }
-
-  @Test
-  fun startingController() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-
-    // Act
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-
-    // Assert
-    checkMockViewInitialState()
-  }
-
-  @Test
-  fun connectingSecondDevice() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    // Act
-    val testDevice2 = fakeAdbRule.connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    waitForServiceToRetrieveDevice(testDevice2.deviceId)
-    val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
-    controller.setActiveConnectedDevice(testDeviceHandle2)
-    addClient(testDevice2, 10)
-    addClient(testDevice2, 20)
-
-    // Assert
-    checkMockViewActiveDevice(2)
-
-    fakeAdbRule.disconnectDevice(testDevice2.deviceId)
-  }
-
-  @Test
-  fun removingDevice() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    // Act
-    controller.setActiveConnectedDevice(null)
-
-    // Assert
-    checkMockViewActiveDevice(0)
-  }
-
-  @Test
-  fun killProcesses() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    // Act
-    val processToKill = model.tableModel.getValueForRow(0)
-    testDevice1.setActivityManager { args, _ ->
-      if ("force-stop" == args[0] && "package-${processToKill.pid}" == args[1]) {
-        testDevice1.stopClient(processToKill.pid)
-      }
+      // Assert
+      assertThat(controller).isEqualTo(getProjectController(project))
     }
-    mockView.killNodes()
-
-    // Assert
-    checkMockViewActiveDevice(0)
-  }
 
   @Test
-  fun attachDebuggerToProcesses() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-    waitForCondition("Client ${model.tableModel.getValueForRow(0).safeProcessName} has an unknown name") { !model.tableModel.getValueForRow(0).isPidOnly }
-    val config = RunManager.getInstance(project).createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
-    RunManager.getInstance(project).addConfiguration(config)
-    RunManager.getInstance(project).selectedConfiguration = config
+  fun startingController() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
 
-    // Act
-    mockView.debugNodes()
+      // Act
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
 
-    // Assert
-    checkMockViewActiveDevice(2)
-    waitForCondition(
-      "No client has debugger status as ${ClientData.DebuggerStatus.ATTACHED}"
-    ) {
-      for (index in 0 until model.tableModel.rowCount) {
-        val processInfo = model.tableModel.getValueForRow(index)
-        if (processInfo.pid == 5 && processInfo.debuggerStatus == ClientData.DebuggerStatus.ATTACHED) {
-          return@waitForCondition true
+      // Assert
+      checkMockViewInitialState()
+    }
+
+  @Test
+  fun connectingSecondDevice() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      // Act
+      val testDevice2 =
+        fakeAdbRule
+          .connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+          .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+      waitForServiceToRetrieveDevice(testDevice2.deviceId)
+      val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
+      controller.setActiveConnectedDevice(testDeviceHandle2)
+      addClient(testDevice2, 10)
+      addClient(testDevice2, 20)
+
+      // Assert
+      checkMockViewActiveDevice(2)
+
+      fakeAdbRule.disconnectDevice(testDevice2.deviceId)
+    }
+
+  @Test
+  fun removingDevice() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      // Act
+      controller.setActiveConnectedDevice(null)
+
+      // Assert
+      checkMockViewActiveDevice(0)
+    }
+
+  @Test
+  fun killProcesses() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      // Act
+      val processToKill = model.tableModel.getValueForRow(0)
+      testDevice1.setActivityManager { args, _ ->
+        if ("force-stop" == args[0] && "package-${processToKill.pid}" == args[1]) {
+          testDevice1.stopClient(processToKill.pid)
         }
       }
-      return@waitForCondition false
+      mockView.killNodes()
+
+      // Assert
+      checkMockViewActiveDevice(0)
     }
-  }
 
   @Test
-  fun changeInDeviceSelection() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
+  fun attachDebuggerToProcesses() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+      waitForCondition("Client ${model.tableModel.getValueForRow(0).safeProcessName} has an unknown name") {
+        !model.tableModel.getValueForRow(0).isPidOnly
+      }
+      val config =
+        RunManager.getInstance(project)
+          .createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
+      RunManager.getInstance(project).addConfiguration(config)
+      RunManager.getInstance(project).selectedConfiguration = config
 
-    // Act
-    val testDevice2 = fakeAdbRule.connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
-      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
-    val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
-    controller.setActiveConnectedDevice(testDeviceHandle2)
+      // Act
+      mockView.debugNodes()
 
-    // Assert
-    checkMockViewActiveDevice(0)
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewActiveDevice(1)
-
-    fakeAdbRule.disconnectDevice(testDevice2.deviceId)
-  }
-
-  @Test
-  fun filterOneProcessOut() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    addClient(testDevice1, 10)
-    checkMockViewActiveDevice(2)
-
-    // Act
-    packageNameProvider.setApplicationIds("package-10")
-    model.setPackageFilter(true)
-
-    // Assert
-    checkMockViewActiveDevice(1)
-  }
-
-  @Test
-  fun filterAllProcesses() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    addClient(testDevice1, 10)
-    checkMockViewActiveDevice(2)
-
-    // Act
-    packageNameProvider.setApplicationIds("no-process-package")
-    model.setPackageFilter(true)
-
-    // Assert
-    checkMockViewActiveDevice(0)
-  }
-
-  @Test
-  fun filterProcessesAfterProjectSync() = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    model.setPackageFilter(true)
-    addClient(testDevice1, 10)
-    checkMockViewActiveDevice(2)
-
-    // Act
-    packageNameProvider.setApplicationIds("package-10")
-
-    // Assert
-    checkMockViewActiveDevice(1)
-  }
-
-  @Test
-  fun clearAppData(): Unit = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
-
-    // Act
-    mockView.clearAppDataNodes()
-
-    waitForCondition("Expected 'pm clear' to be called", 5) {
-      commandHandler.commands.contains("shell pm clear package-5")
+      // Assert
+      checkMockViewActiveDevice(2)
+      waitForCondition("No client has debugger status as ${ClientData.DebuggerStatus.ATTACHED}") {
+        for (index in 0 until model.tableModel.rowCount) {
+          val processInfo = model.tableModel.getValueForRow(index)
+          if (processInfo.pid == 5 && processInfo.debuggerStatus == ClientData.DebuggerStatus.ATTACHED) {
+            return@waitForCondition true
+          }
+        }
+        return@waitForCondition false
+      }
     }
-  }
 
   @Test
-  fun uninstallApp(): Unit = runBlocking(Dispatchers.EDT) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDeviceHandle1)
-    checkMockViewInitialState()
+  fun changeInDeviceSelection() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
 
-    // Act
-    mockView.uninstallAppNodes()
+      // Act
+      val testDevice2 =
+        fakeAdbRule
+          .connectDevice("test_device_02", "Google", "Pix3l", "versionX", AndroidApiLevel(29), DeviceState.HostConnectionType.USB)
+          .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+      val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
+      controller.setActiveConnectedDevice(testDeviceHandle2)
 
-    waitForCondition("Expected 'pm uninstall' to be called", 5) {
-      println(commandHandler.commands)
-      commandHandler.commands.contains("shell pm uninstall package-5")
+      // Assert
+      checkMockViewActiveDevice(0)
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewActiveDevice(1)
+
+      fakeAdbRule.disconnectDevice(testDevice2.deviceId)
     }
-  }
+
+  @Test
+  fun filterOneProcessOut() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      addClient(testDevice1, 10)
+      checkMockViewActiveDevice(2)
+
+      // Act
+      packageNameProvider.setApplicationIds("package-10")
+      model.setPackageFilter(true)
+
+      // Assert
+      checkMockViewActiveDevice(1)
+    }
+
+  @Test
+  fun filterAllProcesses() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      addClient(testDevice1, 10)
+      checkMockViewActiveDevice(2)
+
+      // Act
+      packageNameProvider.setApplicationIds("no-process-package")
+      model.setPackageFilter(true)
+
+      // Assert
+      checkMockViewActiveDevice(0)
+    }
+
+  @Test
+  fun filterProcessesAfterProjectSync() =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      model.setPackageFilter(true)
+      addClient(testDevice1, 10)
+      checkMockViewActiveDevice(2)
+
+      // Act
+      packageNameProvider.setApplicationIds("package-10")
+
+      // Assert
+      checkMockViewActiveDevice(1)
+    }
+
+  @Test
+  fun clearAppData(): Unit =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      // Act
+      mockView.clearAppDataNodes()
+
+      waitForCondition("Expected 'pm clear' to be called", 5) { commandHandler.commands.contains("shell pm clear package-5") }
+    }
+
+  @Test
+  fun uninstallApp(): Unit =
+    runBlocking(Dispatchers.EDT) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+      waitForServiceToRetrieveInitialDevice()
+      controller.setActiveConnectedDevice(testDeviceHandle1)
+      checkMockViewInitialState()
+
+      // Act
+      mockView.uninstallAppNodes()
+
+      waitForCondition("Expected 'pm uninstall' to be called", 5) {
+        println(commandHandler.commands)
+        commandHandler.commands.contains("shell pm uninstall package-5")
+      }
+    }
 
   private fun createController(): DeviceMonitorControllerImpl {
     return DeviceMonitorControllerImpl(project, model, mockView, service)
@@ -359,9 +371,9 @@ class DeviceMonitorControllerImplTest {
   }
 
   private suspend fun checkMockViewActiveDevice(numOfClientsExpected: Int) {
-    waitForCondition(
-      "Table model has ${model.tableModel.rowCount} but expected $numOfClientsExpected"
-    ) { model.tableModel.rowCount == numOfClientsExpected }
+    waitForCondition("Table model has ${model.tableModel.rowCount} but expected $numOfClientsExpected") {
+      model.tableModel.rowCount == numOfClientsExpected
+    }
   }
 
   private suspend fun waitForServiceToRetrieveInitialDevice() {
@@ -369,26 +381,14 @@ class DeviceMonitorControllerImplTest {
   }
 
   private suspend fun waitForServiceToRetrieveDevice(deviceId: String) {
-    waitForCondition(
-      "Service failed to retrieve device: $deviceId"
-    ) { service.getIDeviceFromSerialNumber(deviceId) != null }
+    waitForCondition("Service failed to retrieve device: $deviceId") { service.getIDeviceFromSerialNumber(deviceId) != null }
   }
 
   private fun addClient(fakeDevice: DeviceState, pid: Int): ClientState {
-    return fakeDevice.startClient(
-      pid,
-      pid * 2,
-      "package-$pid",
-      "app-$pid",
-      true
-    )
+    return fakeDevice.startClient(pid, pid * 2, "package-$pid", "app-$pid", true)
   }
 
-  private suspend fun waitForCondition(
-    failureMessage: String,
-    timeoutSec:  Long = TIMEOUT_SECONDS,
-    condition: () -> Boolean,
-    ) {
+  private suspend fun waitForCondition(failureMessage: String, timeoutSec: Long = TIMEOUT_SECONDS, condition: () -> Boolean) {
     val nano = TimeUnit.SECONDS.toNanos(timeoutSec)
     val startNano = System.nanoTime()
     val endNano = startNano + nano

@@ -24,39 +24,27 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.toList
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Prompts to be appended after [PROMPT_PREFIX] to improve the quality of the Studio Bot responses.
- */
+/** Prompts to be appended after [PROMPT_PREFIX] to improve the quality of the Studio Bot responses. */
 private val nShotPrompts =
-  listOf(
-    "Include imports in your answer.",
-    "Add a @Preview function.",
-    "Don't use ConstraintLayout.",
-    "Use material3, not material.",
-  )
+  listOf("Include imports in your answer.", "Add a @Preview function.", "Don't use ConstraintLayout.", "Use material3, not material.")
 
-private const val viewModelPrompt =
-  "Create a subclass of androidx.lifecycle.ViewModel to store the states."
+private const val viewModelPrompt = "Create a subclass of androidx.lifecycle.ViewModel to store the states."
 
 private const val displayDependenciesPrompt =
-  "After the Kotlin code, display all the dependencies that are required to be added to" +
-    " build.gradle.kts for this code to compile."
+  "After the Kotlin code, display all the dependencies that are required to be added to" + " build.gradle.kts for this code to compile."
 
 private const val customViewPrompt = "Wrap any Custom Views in an AndroidView composable."
 
 private const val errorToGenerateComposeCode = "A valid compose code could not be generated."
 
 private const val contextSharingNeedsToBeEnabled =
-  "Please follow the Gemini onboarding and " +
-    "enable context sharing if you want to use this feature."
+  "Please follow the Gemini onboarding and " + "enable context sharing if you want to use this feature."
 
 /**
- * The [NShotXmlToComposeConverter] uses the n-shot prompt technique when querying Studio Bot. The
- * prompts in [nShotPrompts] are always used, while additional prompts can be used depending on the
- * parameters used when building the converter.
+ * The [NShotXmlToComposeConverter] uses the n-shot prompt technique when querying Studio Bot. The prompts in [nShotPrompts] are always
+ * used, while additional prompts can be used depending on the parameters used when building the converter.
  */
-class NShotXmlToComposeConverter
-private constructor(private val project: Project, private val nShots: List<String>) :
+class NShotXmlToComposeConverter private constructor(private val project: Project, private val nShots: List<String>) :
   XmlToComposeConverter {
 
   private val logger = Logger.getInstance(NShotXmlToComposeConverter::class.java)
@@ -67,10 +55,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
     // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
     // can't use the sendQuery API.
     if (!geminiPluginApi.isContextAllowed(project)) {
-      return ConversionResponse(
-        generatedCode = contextSharingNeedsToBeEnabled,
-        status = ConversionResponse.Status.ERROR,
-      )
+      return ConversionResponse(generatedCode = contextSharingNeedsToBeEnabled, status = ConversionResponse.Status.ERROR)
     }
     try {
       val response = geminiPluginApi.generate(project, prompt)
@@ -80,10 +65,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
       )
     } catch (t: Throwable) {
       logger.error("Error while trying to send query", t)
-      return ConversionResponse(
-        generatedCode = errorToGenerateComposeCode,
-        status = ConversionResponse.Status.ERROR,
-      )
+      return ConversionResponse(generatedCode = errorToGenerateComposeCode, status = ConversionResponse.Status.ERROR)
     }
   }
 
@@ -108,9 +90,8 @@ private constructor(private val project: Project, private val nShots: List<Strin
     private var _displayDependencies = false
 
     /**
-     * If set to something other than [ComposeConverterDataType.UNKNOWN], additional prompts will be
-     * included to specify the view model should use that particular type. These prompts are created
-     * in
+     * If set to something other than [ComposeConverterDataType.UNKNOWN], additional prompts will be included to specify the view model
+     * should use that particular type. These prompts are created in
      */
     private var _dataType: ComposeConverterDataType = ComposeConverterDataType.UNKNOWN
 

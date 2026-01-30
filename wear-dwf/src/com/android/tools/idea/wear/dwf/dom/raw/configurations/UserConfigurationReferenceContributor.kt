@@ -34,25 +34,18 @@ import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 
 /**
- * Creates [UserConfigurationReference]s from Declarative Watch Face attributes. Both
- * [COLOR_ATTRIBUTES] and the [ATTRIBUTE_SOURCE] attribute source under the [TAG_PHOTOS] tag can
- * reference user configurations.
+ * Creates [UserConfigurationReference]s from Declarative Watch Face attributes. Both [COLOR_ATTRIBUTES] and the [ATTRIBUTE_SOURCE]
+ * attribute source under the [TAG_PHOTOS] tag can reference user configurations.
  *
- * @see <a
- *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF
- *   User configurations</a>
+ * @see <a href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF User configurations</a>
  */
 class UserConfigurationReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
     registrar.registerReferenceProvider(
       XmlPatterns.xmlAttributeValue(),
       object : PsiReferenceProvider() {
-        override fun getReferencesByElement(
-          element: PsiElement,
-          context: ProcessingContext,
-        ): Array<out PsiReference?> {
-          if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get())
-            return PsiReference.EMPTY_ARRAY
+        override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
+          if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return PsiReference.EMPTY_ARRAY
           val xmlFile = element.containingFile as? XmlFile ?: return PsiReference.EMPTY_ARRAY
           if (!isDeclarativeWatchFaceFile(xmlFile)) return PsiReference.EMPTY_ARRAY
 
@@ -65,28 +58,15 @@ class UserConfigurationReferenceContributor : PsiReferenceContributor() {
             // in this case the user has entered a color directly
             if (value.startsWith("#")) return PsiReference.EMPTY_ARRAY
             return arrayOf(
-              UserConfigurationReference(
-                attributeValue,
-                xmlFile,
-                referenceValue = value,
-                filter = { it is ColorConfiguration },
-              )
+              UserConfigurationReference(attributeValue, xmlFile, referenceValue = value, filter = { it is ColorConfiguration })
             )
           }
 
-          if (
-            attributeName == ATTRIBUTE_SOURCE &&
-              attributeValue.parentOfType<XmlTag>()?.name == TAG_PHOTOS
-          ) {
+          if (attributeName == ATTRIBUTE_SOURCE && attributeValue.parentOfType<XmlTag>()?.name == TAG_PHOTOS) {
             // in this case, it has to be a reference, as we don't expect other types in this
             // attribute
             return arrayOf(
-              UserConfigurationReference(
-                attributeValue,
-                xmlFile,
-                referenceValue = value,
-                filter = { it is PhotosConfiguration },
-              )
+              UserConfigurationReference(attributeValue, xmlFile, referenceValue = value, filter = { it is PhotosConfiguration })
             )
           }
 

@@ -49,10 +49,7 @@ class CodeEditedCopyPastePreProcessorTest {
 
   @Before
   fun setUp() {
-    CodeEditedListener.EP_NAME.point.registerExtension(
-      codeEditedListener,
-      projectRule.testRootDisposable,
-    )
+    CodeEditedListener.EP_NAME.point.registerExtension(codeEditedListener, projectRule.testRootDisposable)
 
     application.replaceService(
       CodeEditedMetricsService::class.java,
@@ -64,11 +61,7 @@ class CodeEditedCopyPastePreProcessorTest {
   @Test
   fun preprocessOnCopyReturnsNull() {
     val mockCodeEditedMetricsService: CodeEditedMetricsService = mock()
-    application.replaceService(
-      CodeEditedMetricsService::class.java,
-      mockCodeEditedMetricsService,
-      projectRule.testRootDisposable,
-    )
+    application.replaceService(CodeEditedMetricsService::class.java, mockCodeEditedMetricsService, projectRule.testRootDisposable)
 
     val result = processor.preprocessOnCopy(mock(), IntArray(0), IntArray(0), "foo")
 
@@ -79,11 +72,7 @@ class CodeEditedCopyPastePreProcessorTest {
   @Test
   fun preprocessOnPasteSetsAction() {
     val mockCodeEditedMetricsService: CodeEditedMetricsService = mock()
-    application.replaceService(
-      CodeEditedMetricsService::class.java,
-      mockCodeEditedMetricsService,
-      projectRule.testRootDisposable,
-    )
+    application.replaceService(CodeEditedMetricsService::class.java, mockCodeEditedMetricsService, projectRule.testRootDisposable)
 
     val str = "foobar"
 

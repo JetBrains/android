@@ -30,20 +30,18 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
     @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = listOf(
-      TestProjectDef(TestProject.PSD_SAMPLE_GROOVY),
-      TestProjectDef(TestProject.COMPOSITE_BUILD),
-      TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS),
-      TestProjectDef(TestProject.LINKED)
-    )
+    fun testProjects(): Collection<*> =
+      listOf(
+        TestProjectDef(TestProject.PSD_SAMPLE_GROOVY),
+        TestProjectDef(TestProject.COMPOSITE_BUILD),
+        TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS),
+        TestProjectDef(TestProject.LINKED),
+      )
   }
 
-  @Test
-  fun testContains() = super.testContainsImpl()
+  @Test fun testContains() = super.testContainsImpl()
 
-  @Test
-  fun testCanRepresent() = super.testCanRepresentImpl()
+  @Test fun testCanRepresent() = super.testCanRepresentImpl()
 
-  @Test
-  fun testAndroidViewPaneIsVisible() = super.testAndroidViewPaneIsVisibleImpl()
+  @Test fun testAndroidViewPaneIsVisible() = super.testAndroidViewPaneIsVisibleImpl()
 }

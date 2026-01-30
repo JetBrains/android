@@ -42,9 +42,7 @@ class HighlightingStatsTest : BasePlatformTestCase() {
     val usageTracker = TestUsageTracker(VirtualTimeScheduler())
     val getHighlightingEvents = {
       HighlightingStats.getInstance().reportHighlightingStats() // Flush pending histogram.
-      usageTracker.usages.filter { usage ->
-        usage.studioEvent.kind == AndroidStudioEvent.EventKind.EDITOR_HIGHLIGHTING_STATS
-      }
+      usageTracker.usages.filter { usage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.EDITOR_HIGHLIGHTING_STATS }
     }
     UsageTracker.setWriterForTest(usageTracker)
     try {
@@ -63,8 +61,7 @@ class HighlightingStatsTest : BasePlatformTestCase() {
 
       // No new events should be logged now that the latency histogram is empty again.
       assertThat(getHighlightingEvents()).hasSize(1)
-    }
-    finally {
+    } finally {
       UsageTracker.cleanAfterTesting()
     }
   }

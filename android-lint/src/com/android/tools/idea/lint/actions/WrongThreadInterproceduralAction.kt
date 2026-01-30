@@ -38,10 +38,7 @@ import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(WrongThreadInterproceduralAction::class.java)
 
-/**
- * An internal action for running the interprocedural thread annotation Lint check. Useful for
- * timing and debugging.
- */
+/** An internal action for running the interprocedural thread annotation Lint check. Useful for timing and debugging. */
 class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_NAME) {
 
   companion object {
@@ -51,21 +48,12 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
   override fun analyze(project: Project, scope: AnalysisScope) {
     ProgressManager.getInstance()
       .run(
-        object :
-          Task.Backgroundable(
-            project,
-            "Finding interprocedural thread annotation violations",
-            true,
-          ) {
+        object : Task.Backgroundable(project, "Finding interprocedural thread annotation violations", true) {
 
           override fun run(indicator: ProgressIndicator) {
             val time = measureTimeMillis {
               val enabledIssues = setOf(WrongThreadInterproceduralDetector.ISSUE)
-              val client =
-                LintIdeSupport.get()
-                  .createBatchClient(
-                    LintBatchResult(project, mutableMapOf(), scope, enabledIssues, null)
-                  )
+              val client = LintIdeSupport.get().createBatchClient(LintBatchResult(project, mutableMapOf(), scope, enabledIssues, null))
               try {
                 val files = ArrayList<VirtualFile>()
                 scope.accept { files.add(it) }

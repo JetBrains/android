@@ -71,31 +71,24 @@ private data class ResourceClasses(val namespaced: PsiClass?, val nonNamespaced:
 }
 
 /**
- * A [LightResourceClassService] that provides R classes for local modules by finding manifests of
- * all Android modules in the project. This implementation of [LightResourceClassService] is
- * intended for use with the Gradle build system.
+ * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project. This
+ * implementation of [LightResourceClassService] is intended for use with the Gradle build system.
  */
 @Service(Service.Level.PROJECT)
 class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(ProjectLightResourceClassService::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectLightResourceClassService::class.java)!!
   }
 
   /** Cache of created classes for a given AAR. */
-  private val aarClassesCache: Cache<ExternalAndroidLibrary, ResourceClasses> =
-    CacheBuilder.newBuilder().build()
+  private val aarClassesCache: Cache<ExternalAndroidLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> =
-    CacheBuilder.newBuilder().build()
+  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /** Cache for information that should be updated whenever the set of AAR dependencies changes. */
   private var aarInfo: CachedValue<AARInfo> =
-    CachedValue(project) {
-      CachedValueProvider.Result(AARInfo(project), ProjectRootManager.getInstance(project))
-    }
+    CachedValue(project) { CachedValueProvider.Result(AARInfo(project), ProjectRootManager.getInstance(project)) }
 
   init {
     val connection = project.messageBus.connect()
@@ -118,10 +111,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       PROJECT_SYSTEM_BUILD_TOPIC,
       object : ProjectSystemBuildManager.BuildListener {
         override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-          if (
-            result.mode != ProjectSystemBuildManager.BuildMode.CLEAN &&
-              result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
-          ) {
+          if (result.mode != ProjectSystemBuildManager.BuildMode.CLEAN && result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
             // The light R classes might use the actual IDs when available. If the project is
             // successfully compiled, new IDs might have been generated. This ensures the IDs
             // are invalidated.
@@ -172,8 +162,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun getLightRClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
-    val namespacing =
-      StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
+    val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
     val result = mutableListOf<ResourceClasses>()
@@ -182,14 +171,11 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     // Dependencies and libraries are sorted, but the actual order doesn't matter; this is to ensure
     // stability and prevent bugs like b/313521550.
-    for (dependency in
-      AndroidDependenciesCache.getAllAndroidDependencies(module, false)
-        .sortedBy(AndroidFacet::getName)) {
+    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false).sortedBy(AndroidFacet::getName)) {
       result.add(getModuleRClasses(dependency))
     }
 
-    for (aarLibrary in
-      findDependenciesWithResources(module).values.sortedBy(ExternalAndroidLibrary::libraryName)) {
+    for (aarLibrary in findDependenciesWithResources(module).values.sortedBy(ExternalAndroidLibrary::libraryName)) {
       val packageName = aarLibrary.packageName ?: aarInfo.value.packageNames[aarLibrary] ?: continue
       result.add(getAarRClasses(aarLibrary, packageName))
     }
@@ -223,11 +209,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     // Non-namespaced classes of this module and all that depend on it:
     val modules = HashSet<Module>().also { ModuleUtilCore.collectModulesDependsOn(module, it) }
-    modules
-      .asSequence()
-      .mapNotNull { it.androidFacet }
-      .mapNotNull { getModuleRClasses(it).nonNamespaced }
-      .forEach { result += it }
+    modules.asSequence().mapNotNull { it.androidFacet }.mapNotNull { getModuleRClasses(it).nonNamespaced }.forEach { result += it }
 
     return result
   }
@@ -246,9 +228,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       val moduleSystem = module.getModuleSystem()
       if (!moduleSystem.supportsAndroidResources) return@getAndUnwrap ResourceClasses.Empty
 
-      val transitivity =
-        if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE
-        else Transitivity.NON_TRANSITIVE
+      val transitivity = if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
 
       val sourceSet = ResourceClassToken.getSourceSet(module)
 
@@ -258,27 +238,20 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
           SourceSet.TEST -> moduleSystem.testRClassConstantIds
         }
 
-      val fieldModifier =
-        if (isLibraryProject || !useConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+      val fieldModifier = if (isLibraryProject || !useConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
 
       ResourceClasses(
         nonNamespaced = ModuleRClass(facet, psiManager, sourceSet, transitivity, fieldModifier),
-        namespaced =
-          ModuleRClass(facet, psiManager, sourceSet, Transitivity.NON_TRANSITIVE, fieldModifier),
+        namespaced = ModuleRClass(facet, psiManager, sourceSet, Transitivity.NON_TRANSITIVE, fieldModifier),
       )
     }
   }
 
   private fun getAarRClasses(packageName: String): Sequence<ResourceClasses> {
-    return aarInfo.value.librariesByPackage[packageName].asSequence().map { aarLibrary ->
-      getAarRClasses(aarLibrary, packageName)
-    }
+    return aarInfo.value.librariesByPackage[packageName].asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
   }
 
-  private fun getAarRClasses(
-    aarLibrary: ExternalAndroidLibrary,
-    packageName: String,
-  ): ResourceClasses {
+  private fun getAarRClasses(aarLibrary: ExternalAndroidLibrary, packageName: String): ResourceClasses {
     val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
 
     // Build the classes from what is currently on disk. They may be null if the necessary files are
@@ -305,15 +278,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
           aarLibrary.symbolFile
             ?.toFile()
             ?.takeIf { it.exists() }
-            ?.let { symbolFile ->
-              TransitiveAarRClass(
-                psiManager,
-                ideaLibrary,
-                packageName,
-                symbolFile,
-                aarLibrary.address,
-              )
-            },
+            ?.let { symbolFile -> TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile, aarLibrary.address) },
       )
     }
   }
@@ -326,10 +291,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
-    return if (
-      packageName in aarInfo.value.packagesAndParents ||
-        project.getProjectSystem().isNamespaceOrParentPackage(packageName)
-    ) {
+    return if (packageName in aarInfo.value.packagesAndParents || project.getProjectSystem().isNamespaceOrParentPackage(packageName)) {
       AndroidLightPackage.withName(packageName, project)
     } else {
       null
@@ -346,11 +308,9 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
         .asSequence()
         .map { (packageName, library) -> getAarRClasses(library, packageName) }
     val moduleClasses =
-      ProjectFacetManager.getInstance(project)
-        .getFacets(AndroidFacet.ID)
-        .sortedBy(AndroidFacet::getName)
-        .asSequence()
-        .map { getModuleRClasses(it) }
+      ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).sortedBy(AndroidFacet::getName).asSequence().map {
+        getModuleRClasses(it)
+      }
 
     return (libraryClasses + moduleClasses).flatMap { it.all }.toList()
   }
@@ -358,8 +318,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
     val facetsInferredFromPackageName = findAndroidFacetsWithExactPackageName(packageName)
     return if (packageName.endsWith(".test")) {
-      facetsInferredFromPackageName +
-        findAndroidFacetsWithExactPackageName(packageName.substringBeforeLast('.'))
+      facetsInferredFromPackageName + findAndroidFacetsWithExactPackageName(packageName.substringBeforeLast('.'))
     } else {
       facetsInferredFromPackageName
     }
@@ -368,10 +327,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   private fun findAndroidFacetsWithExactPackageName(packageName: String): Collection<AndroidFacet> {
     // The facets are sorted, but the actual order doesn't matter; this is to ensure stability and
     // prevent bugs like b/313521550.
-    return project
-      .getProjectSystem()
-      .getAndroidFacetsWithPackageName(packageName)
-      .sortedBy(AndroidFacet::getName)
+    return project.getProjectSystem().getAndroidFacetsWithPackageName(packageName).sortedBy(AndroidFacet::getName)
   }
 
   class AARInfo(project: Project) {
@@ -389,10 +345,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       val packageNames = mutableMapOf<ExternalAndroidLibrary, String>()
       librariesByPackage =
         Multimaps.index(libsWithResources) { aarLibrary ->
-          aarLibrary.packageName
-            ?: aarLibrary.readPackageNameFromManifest().also { packageName ->
-              packageNames[aarLibrary] = packageName
-            }
+          aarLibrary.packageName ?: aarLibrary.readPackageNameFromManifest().also { packageName -> packageNames[aarLibrary] = packageName }
         }
 
       this.packageNames = packageNames

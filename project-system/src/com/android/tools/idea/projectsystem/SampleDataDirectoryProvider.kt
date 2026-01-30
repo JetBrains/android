@@ -19,23 +19,16 @@ import com.android.ide.common.util.PathString
 import com.intellij.openapi.module.Module
 import java.io.IOException
 
-/**
- * A [SampleDataDirectoryProvider] determines the proper location to store a [Module]'s sample data.
- */
+/** A [SampleDataDirectoryProvider] determines the proper location to store a [Module]'s sample data. */
 interface SampleDataDirectoryProvider {
-  /**
-   * Returns the path where the [Module]'s sample data directory will be if it exists,
-   * or null if the path can't be determined.
-   */
+  /** Returns the path where the [Module]'s sample data directory will be if it exists, or null if the path can't be determined. */
   fun getSampleDataDirectory(): PathString?
 
   /**
-   * Attempts to create the [Module]'s sample data directory if it does not exist.
-   * This method returns the path where the [Module]'s sample data directory will be if
-   * it exists, or null if the path can't be determined.
+   * Attempts to create the [Module]'s sample data directory if it does not exist. This method returns the path where the [Module]'s sample
+   * data directory will be if it exists, or null if the path can't be determined.
    *
    * This function must be called in a write action.
    */
-  @Throws(IOException::class)
-  fun getOrCreateSampleDataDirectory(): PathString?
+  @Throws(IOException::class) fun getOrCreateSampleDataDirectory(): PathString?
 }

@@ -39,8 +39,8 @@ import javax.swing.JPanel
 private const val CURRENT_PAGE_FIELD_WIDTH = 3
 
 /**
- * Action to show the current page number and the total number of pages available in a
- * [PreviewRepresentation] that supports pagination ([PreviewPaginationManager]).
+ * Action to show the current page number and the total number of pages available in a [PreviewRepresentation] that supports pagination
+ * ([PreviewPaginationManager]).
  *
  * Users can manually modify the current page value by simply editing the text field.
  */
@@ -144,9 +144,7 @@ class CurrentPageEditorAction : AnAction(), CustomComponentAction {
 
   private fun updateTotalPagesTextFromManager() {
     val totalPages = paginationManager?.getTotalPages() ?: return
-    paginationManager?.let {
-      totalPagesLabel?.text = message("action.preview.pagination.page.total.pages", totalPages)
-    }
+    paginationManager?.let { totalPagesLabel?.text = message("action.preview.pagination.page.total.pages", totalPages) }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

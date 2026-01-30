@@ -28,7 +28,7 @@ class OpenMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuIt
 
   override val shortcutId: String
     get() = // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-      "OpenFile"
+    "OpenFile"
 
   override fun isVisible(node: DeviceFileEntryNode): Boolean = node.entry.isFile
 

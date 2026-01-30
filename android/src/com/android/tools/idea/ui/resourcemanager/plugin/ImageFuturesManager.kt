@@ -30,11 +30,9 @@ private val LOG = Logger.getInstance(ImageFuturesManager::class.java)
  * Will associate a given [CompletableFuture] to an object of the given type [T] to avoid task repetition.
  */
 class ImageFuturesManager<T> : Disposable {
-  @GuardedBy("disposalLock")
-  private val myPendingFutures = HashMap<T, CompletableFuture<BufferedImage?>>()
+  @GuardedBy("disposalLock") private val myPendingFutures = HashMap<T, CompletableFuture<BufferedImage?>>()
 
-  @GuardedBy("disposalLock")
-  private var myDisposed: Boolean = false
+  @GuardedBy("disposalLock") private var myDisposed: Boolean = false
 
   private val disposalLock = Any()
 
@@ -48,8 +46,7 @@ class ImageFuturesManager<T> : Disposable {
     }
     try {
       CompletableFuture.allOf(*futures).get(5, TimeUnit.SECONDS) // Wait for remaining futures to complete
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       // We do not care about these exceptions since we are disposing anyway
     }
   }
@@ -72,15 +69,9 @@ class ImageFuturesManager<T> : Disposable {
       }
     }
     val imageFuture = imageFutureCallback()
-    synchronized(disposalLock) {
-      myPendingFutures.put(key, imageFuture)
-    }
+    synchronized(disposalLock) { myPendingFutures.put(key, imageFuture) }
 
-    imageFuture.whenComplete { _, _ ->
-      synchronized(disposalLock) {
-        myPendingFutures.remove(key)
-      }
-    }
+    imageFuture.whenComplete { _, _ -> synchronized(disposalLock) { myPendingFutures.remove(key) } }
     return imageFuture
   }
 }

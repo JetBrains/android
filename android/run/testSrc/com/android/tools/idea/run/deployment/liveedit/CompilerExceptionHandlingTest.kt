@@ -18,17 +18,16 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.progress.ProcessCanceledException
+import kotlin.test.assertEquals
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.test.assertEquals
 
 class CompilerExceptionHandlingTest {
 
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {
@@ -54,8 +53,8 @@ class CompilerExceptionHandlingTest {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
     val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
-    Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError(
-      listOf(CompilerErrorSource("ERROR", "some syntax error", file, 1))))
+    Mockito.`when`(cache["AKt"])
+      .thenThrow(LiveEditUpdateException.compilationError(listOf(CompilerErrorSource("ERROR", "some syntax error", file, 1))))
 
     try {
       LiveEditCompiler(file.project, cache)
@@ -79,8 +78,6 @@ class CompilerExceptionHandlingTest {
     try {
       LiveEditCompiler(file.project, cache).compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
-    } catch (e: LiveEditUpdateException) {
-
-    }
+    } catch (e: LiveEditUpdateException) {}
   }
 }

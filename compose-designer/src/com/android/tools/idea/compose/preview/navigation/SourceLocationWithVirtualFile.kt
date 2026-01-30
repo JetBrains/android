@@ -26,8 +26,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import kotlin.math.absoluteValue
 
 /**
- * [SourceLocation] associated to the [VirtualFile] that the location points to. This class is
- * merely used as a cache to avoid the complex task of mapping the string location to a VirtualFile.
+ * [SourceLocation] associated to the [VirtualFile] that the location points to. This class is merely used as a cache to avoid the complex
+ * task of mapping the string location to a VirtualFile.
  */
 internal class SourceLocationWithVirtualFile(
   internal val virtualFile: VirtualFile,
@@ -42,38 +42,33 @@ internal class SourceLocationWithVirtualFile(
 }
 
 /**
- * Calculates the hash of the given [packageName]. This calculation must match the one done in the
- * Compose runtime so we can match the package names.
+ * Calculates the hash of the given [packageName]. This calculation must match the one done in the Compose runtime so we can match the
+ * package names.
  */
-private fun packageNameHash(packageName: String): Int =
-  packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
+private fun packageNameHash(packageName: String): Int = packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
 /** Returns true if the given [file] package matches the [packageHash]. */
 private fun matchesPackage(file: PsiClassOwner, packageHash: Int): Boolean =
   packageHash != -1 && packageNameHash(file.packageName) == packageHash
 
 /**
- * Returns a [SourceLocationWithVirtualFile] from a given [SourceLocation] if the mapping can be
- * done. If there is no mapping, for example the reference file does not exist in the project, then
- * the method returns null.
+ * Returns a [SourceLocationWithVirtualFile] from a given [SourceLocation] if the mapping can be done. If there is no mapping, for example
+ * the reference file does not exist in the project, then the method returns null.
  *
  * @param module the module to use for the file resolution
- * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole
- *   project but you can limit the search scope by passing a different scope.
+ * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole project but you can limit the search scope
+ *   by passing a different scope.
  */
 internal fun SourceLocation.asSourceLocationWithVirtualFile(
   module: Module,
-  scope: GlobalSearchScope =
-    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false),
+  scope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false),
 ): SourceLocationWithVirtualFile? {
   if (isEmpty()) return null
 
   // Lookup in the filename index for matches of the filename. Multiple matches are possible.
   val filesWithName =
     runReadAction {
-        FilenameIndex.getVirtualFilesByName(fileName, scope).mapNotNull {
-          PsiManager.getInstance(module.project).findFile(it)
-        }
+        FilenameIndex.getVirtualFilesByName(fileName, scope).mapNotNull { PsiManager.getInstance(module.project).findFile(it) }
       }
       .filterIsInstance<PsiClassOwner>()
       .toList()

@@ -26,11 +26,7 @@ sealed class ViewPropertiesCache(model: InspectorModel) : ViewNodeCache<ViewProp
   fun setAllFrom(event: PropertiesEvent) {
     val stringTable = StringTableImpl(event.stringsList)
     for (propertyGroup in event.propertyGroupsList) {
-      setDataFor(
-        event.rootId,
-        propertyGroup.viewId,
-        ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate(),
-      )
+      setDataFor(event.rootId, propertyGroup.viewId, ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate())
     }
   }
 }
@@ -40,19 +36,11 @@ class DisconnectedViewPropertiesCache(model: InspectorModel) : ViewPropertiesCac
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? = null
 }
 
-class LiveViewPropertiesCache(
-  private val client: ViewLayoutInspectorClient,
-  model: InspectorModel,
-) : ViewPropertiesCache(model) {
+class LiveViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewPropertiesCache(model) {
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? {
     val response = client.getProperties(root.drawId, node.drawId)
     return if (response != GetPropertiesResponse.getDefaultInstance()) {
-      ViewPropertiesDataGenerator(
-          StringTableImpl(response.stringsList),
-          response.propertyGroup,
-          model,
-        )
-        .generate()
+      ViewPropertiesDataGenerator(StringTableImpl(response.stringsList), response.propertyGroup, model).generate()
     } else {
       null
     }

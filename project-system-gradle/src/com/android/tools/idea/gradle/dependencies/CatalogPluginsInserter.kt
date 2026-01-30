@@ -32,9 +32,11 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 
 class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : CommonPluginsInserter(projectModel) {
 
-  override fun addClasspathDependency(dependency: String,
-                                      excludes: List<ArtifactDependencySpec>,
-                                      matcher: DependencyMatcher): Set<PsiFile> {
+  override fun addClasspathDependency(
+    dependency: String,
+    excludes: List<ArtifactDependencySpec>,
+    matcher: DependencyMatcher,
+  ): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     return CatalogDependenciesInserter.getOrAddDependencyToCatalog(projectModel, dependency, matcher) { alias, updatedFiles ->
       val buildscriptDependencies = buildModel.buildscript().dependencies()
@@ -50,7 +52,7 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
   // Avoid insertion to buildscript when using catalog
   override fun tryAddToBuildscriptDependencies(
     classpathDependency: String,
-    classpathMatcher: DependencyMatcher
+    classpathMatcher: DependencyMatcher,
   ): PluginsInserter.TryAddResult = TryAddResult.failed()
 
   // Avoid insertion to buildscript when using catalog
@@ -58,13 +60,15 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
     dependency: String,
     variableName: String,
     excludes: List<ArtifactDependencySpec>,
-    matcher: DependencyMatcher
+    matcher: DependencyMatcher,
   ): TryAddResult = TryAddResult.failed()
 
-  override fun addClasspathDependencyWithVersionVariable(dependency: String,
-                                                         variableName: String,
-                                                         excludes: List<ArtifactDependencySpec>,
-                                                         matcher: DependencyMatcher): Set<PsiFile> {
+  override fun addClasspathDependencyWithVersionVariable(
+    dependency: String,
+    variableName: String,
+    excludes: List<ArtifactDependencySpec>,
+    matcher: DependencyMatcher,
+  ): Set<PsiFile> {
     val buildModel = projectModel.projectBuildModel ?: return setOf()
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     return CatalogDependenciesInserter.getOrAddDependencyToCatalog(projectModel, dependency, matcher) { alias, updatedFiles ->
@@ -80,12 +84,14 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
   private fun getCatalogModel(): GradleVersionCatalogModel = getCatalogModel(projectModel)
 
   // We ignore setting plugin block as we cannot add reference to catalog here
-  override fun addPlugin(pluginId: String,
-                         version: String,
-                         apply: Boolean?,
-                         settingsPlugins: PluginsBlockModel,
-                         buildModel: GradleBuildModel,
-                         matcher: PluginMatcher): Set<PsiFile> {
+  override fun addPlugin(
+    pluginId: String,
+    version: String,
+    apply: Boolean?,
+    settingsPlugins: PluginsBlockModel,
+    buildModel: GradleBuildModel,
+    matcher: PluginMatcher,
+  ): Set<PsiFile> {
     // buildModel may be root project of multimodule project or module project itself
     val moduleInsertion = isSingleModuleProject() || buildModel.psiFile != projectModel.projectBuildModel?.psiFile
     return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
@@ -97,12 +103,14 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
     }
   }
 
-  override fun addPlugin(pluginId: String,
-                         version: String,
-                         apply: Boolean?,
-                         projectPlugins: GradleBuildModel,
-                         buildModel: GradleBuildModel,
-                         matcher: PluginMatcher): Set<PsiFile> {
+  override fun addPlugin(
+    pluginId: String,
+    version: String,
+    apply: Boolean?,
+    projectPlugins: GradleBuildModel,
+    buildModel: GradleBuildModel,
+    matcher: PluginMatcher,
+  ): Set<PsiFile> {
     // Inserting project level plugins in case
     // - projectPlugins in project file
     // - it's not single module project
@@ -125,19 +133,13 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
   }
 
   /**
-   * Adds plugin to module but insert/check version catalog first
-   * Project build file/settings stay intact
+   * Adds plugin to module but insert/check version catalog first Project build file/settings stay intact
    *
-   * If the plugin has already been applied to the module, but it's not already in the version
-   * catalog, the version catalog is not updated (otherwise the plugin would be added to the
-   * version catalog, but the catalog reference would not actually be used).
+   * If the plugin has already been applied to the module, but it's not already in the version catalog, the version catalog is not updated
+   * (otherwise the plugin would be added to the version catalog, but the catalog reference would not actually be used).
    */
-  override fun addPluginToModule(pluginId: String,
-                                 version: String,
-                                 buildModel: GradleBuildModel,
-                                 matcher: PluginMatcher): Set<PsiFile> {
-    if (buildModel.hasPlugin(matcher) &&
-        findCatalogPluginDeclaration(getCatalogModel(), matcher) == null) {
+  override fun addPluginToModule(pluginId: String, version: String, buildModel: GradleBuildModel, matcher: PluginMatcher): Set<PsiFile> {
+    if (buildModel.hasPlugin(matcher) && findCatalogPluginDeclaration(getCatalogModel(), matcher) == null) {
       return emptySet()
     }
     return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
@@ -151,20 +153,21 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
 
   private fun getOrAddPluginToCatalog(plugin: String, version: String, matcher: PluginMatcher): Pair<Alias?, PsiFile?> {
     val catalogModel = getCatalogModel()
-    val result = findCatalogPluginDeclaration(catalogModel, matcher)?.let { Pair(it, null) } ?: Pair(
-      addCatalogPlugin(catalogModel, plugin, version),
-      catalogModel.psiFile
-    )
+    val result =
+      findCatalogPluginDeclaration(catalogModel, matcher)?.let { Pair(it, null) }
+        ?: Pair(addCatalogPlugin(catalogModel, plugin, version), catalogModel.psiFile)
     if (result.first == null) {
       log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
     }
     return result
   }
 
-  private fun getOrAddPluginToCatalog(pluginId: String,
-                                      version: String,
-                                      matcher: PluginMatcher,
-                                      handler: (Alias, MutableSet<PsiFile>) -> Unit): Set<PsiFile> {
+  private fun getOrAddPluginToCatalog(
+    pluginId: String,
+    version: String,
+    matcher: PluginMatcher,
+    handler: (Alias, MutableSet<PsiFile>) -> Unit,
+  ): Set<PsiFile> {
     val (alias, changedFile) = getOrAddPluginToCatalog(pluginId, version, matcher)
     val changedFiles = mutableSetOf<PsiFile>()
     changedFiles.addIfNotNull(changedFile)
@@ -175,15 +178,16 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
 
   companion object {
 
-    private fun findCatalogPluginDeclaration(catalogModel: GradleVersionCatalogModel,
-                                             matcher: PluginMatcher): Alias? {
+    private fun findCatalogPluginDeclaration(catalogModel: GradleVersionCatalogModel, matcher: PluginMatcher): Alias? {
       val declarations = catalogModel.pluginDeclarations().getAll()
       return declarations.filter { matcher.match(it.value) }.map { it.key }.firstOrNull()
     }
 
-    private fun getOrAddCatalogVersionForPlugin(catalogModel: GradleVersionCatalogModel,
-                                                pluginId: String,
-                                                version: String): VersionDeclarationModel? {
+    private fun getOrAddCatalogVersionForPlugin(
+      catalogModel: GradleVersionCatalogModel,
+      pluginId: String,
+      version: String,
+    ): VersionDeclarationModel? {
       val agpPluginIds = AgpPlugin.values().map { it.id }.toSet()
       return when {
         agpPluginIds.contains(pluginId) -> getAgpVersion(catalogModel, version)
@@ -193,9 +197,7 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
     }
 
     @JvmStatic
-    fun addCatalogPlugin(catalogModel: GradleVersionCatalogModel,
-                         pluginId: String,
-                         version: String): Alias? {
+    fun addCatalogPlugin(catalogModel: GradleVersionCatalogModel, pluginId: String, version: String): Alias? {
       val plugins = catalogModel.pluginDeclarations()
       val names = plugins.getAllAliases()
 
@@ -216,20 +218,21 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
       getPredefinedVersion(catalogModel, version, AgpPlugin.values().map { it.id }.toSet(), AgpPlugin.defaultVersionName)
 
     private fun getKotlinVersion(catalogModel: GradleVersionCatalogModel, version: String): VersionDeclarationModel? =
-      getPredefinedVersion(catalogModel, version, KotlinPlugin.values().map { it.id }.toSet(),
-                           KotlinPlugin.defaultVersionName)
+      getPredefinedVersion(catalogModel, version, KotlinPlugin.values().map { it.id }.toSet(), KotlinPlugin.defaultVersionName)
 
-    private fun getPredefinedVersion(catalogModel: GradleVersionCatalogModel,
-                                     version: String,
-                                     ids: Set<String>,
-                                     defaultName: String): VersionDeclarationModel? {
+    private fun getPredefinedVersion(
+      catalogModel: GradleVersionCatalogModel,
+      version: String,
+      ids: Set<String>,
+      defaultName: String,
+    ): VersionDeclarationModel? {
       return catalogModel.findVersion(ids) ?: addVersionDeclaration(catalogModel, defaultName, version)
     }
 
     private fun addVersionDeclaration(
       catalogModel: GradleVersionCatalogModel,
       pluginId: String,
-      version: String
+      version: String,
     ): VersionDeclarationModel? {
       val versions = catalogModel.versionDeclarations()
       val names = versions.getAllAliases()
@@ -240,19 +243,16 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
     private fun GradleVersionCatalogModel.findVersion(ids: Set<String>): VersionDeclarationModel? {
       val plugins = pluginDeclarations().getAll().values
       for (plugin in plugins) {
-        if (
-          plugin.id().valueAsString() in ids &&
-          plugin.version().completeModel()?.rawElement?.parent?.name == "versions"
-        ) {
+        if (plugin.id().valueAsString() in ids && plugin.version().completeModel()?.rawElement?.parent?.name == "versions") {
           val alias = plugin.version().completeModel()?.name
-          versionDeclarations().getAll()[alias]?.let { return it }
+          versionDeclarations().getAll()[alias]?.let {
+            return it
+          }
         }
       }
       return null
     }
-
   }
-
 }
 
 enum class AgpPlugin(val id: String) {
@@ -266,8 +266,7 @@ enum class AgpPlugin(val id: String) {
   INTERNAL_SETTINGS("com.android.internal.settings"),
   SETTINGS("com.android.settings"),
   LINT("com.android.lint"),
-  KOTLIN_MULTIPLATFORM_LIBRARY("com.android.kotlin.multiplatform.library"),
-  ;
+  KOTLIN_MULTIPLATFORM_LIBRARY("com.android.kotlin.multiplatform.library");
 
   companion object {
     const val defaultVersionName = "agp"
@@ -277,8 +276,7 @@ enum class AgpPlugin(val id: String) {
 enum class KotlinPlugin(val id: String, val defaultPluginName: String) {
   KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlin-android"),
   KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlin-compose"),
-  KOTLIN_MULTIPLATFORM("org.jetbrains.kotlin.multiplatform", "kotlin-multiplatform"),
-  ;
+  KOTLIN_MULTIPLATFORM("org.jetbrains.kotlin.multiplatform", "kotlin-multiplatform");
 
   companion object {
     const val defaultVersionName = "kotlin"

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("NullabilityUtils")
+
 package com.android.tools.idea.psi
 
 import com.intellij.openapi.project.Project
@@ -40,12 +41,12 @@ private fun Project.findClass(fcqn: String, context: PsiElement?): PsiClass? {
 fun Project.createNullabilityAnnotation(isNonNull: Boolean, context: PsiElement?): PsiAnnotation {
   // Prefer androidx.annotation as much as possible, as it is the preferred annotation moving
   // forward, but fall back to the support annotation in case we are loading a legacy project
-  val prefix = if (findClass("$PREFIX_ANDROIDX.$NONNULL", context) != null || findClass("$PREFIX_SUPPORT.$NONNULL", context) == null) {
-    PREFIX_ANDROIDX
-  }
-  else {
-    PREFIX_SUPPORT
-  }
+  val prefix =
+    if (findClass("$PREFIX_ANDROIDX.$NONNULL", context) != null || findClass("$PREFIX_SUPPORT.$NONNULL", context) == null) {
+      PREFIX_ANDROIDX
+    } else {
+      PREFIX_SUPPORT
+    }
   val suffix = if (isNonNull) NONNULL else NULLABLE
 
   return PsiElementFactory.getInstance(this).createAnnotationFromText("@$prefix.$suffix", context)

@@ -94,19 +94,16 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /**
- * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and
- * [com.android.tools.idea.streaming.device.DeviceView].
+ * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and [com.android.tools.idea.streaming.device.DeviceView].
  */
 @Suppress("UseJBColor")
-abstract class AbstractDisplayView(
-  project: Project,
-  val displayId: Int,
-  contextMenuActionGroupId: String,
-) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
+abstract class AbstractDisplayView(project: Project, val displayId: Int, contextMenuActionGroupId: String) :
+  ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
 
   /** Serial number of the device shown in the view. */
   val deviceSerialNumber: String
     get() = deviceId.serialNumber
+
   /** ID of the device shown in the view. */
   abstract val deviceId: DeviceId
   abstract val deviceType: DeviceType
@@ -114,11 +111,13 @@ abstract class AbstractDisplayView(
   /** Area of the window occupied by the device display image in physical pixels. */
   var displayRectangle: Rectangle? = null
     protected set
+
   /** Orientation of the device display in quadrants counterclockwise. */
   abstract val displayOrientationQuadrants: Int
   /** The difference between [displayOrientationQuadrants] and the orientation according to the internal Android data structures. */
   var displayOrientationCorrectionQuadrants: Int = 0
     protected set
+
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */
@@ -154,11 +153,13 @@ abstract class AbstractDisplayView(
     isFocusable = true // Must be focusable to receive keyboard events.
     setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, emptySet())
     setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(KeyStroke.getKeyStroke(VK_TAB, SHIFT_DOWN_MASK)))
-    addFocusListener(object : FocusAdapter() {
-      override fun focusLost(event: FocusEvent) {
-        hardwareInput.resetMetaKeys()
+    addFocusListener(
+      object : FocusAdapter() {
+        override fun focusLost(event: FocusEvent) {
+          hardwareInput.resetMetaKeys()
+        }
       }
-    })
+    )
   }
 
   protected fun drawMultiTouchFeedback(graphics: Graphics2D, displayRectangle: Rectangle, dragging: Boolean) {
@@ -170,8 +171,14 @@ abstract class AbstractDisplayView(
       return
     }
     val g = graphics.create() as Graphics2D
-    g.setRenderingHints(RenderingHints(mapOf(RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-                                             RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY)))
+    g.setRenderingHints(
+      RenderingHints(
+        mapOf(
+          RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+          RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+        )
+      )
+    )
     g.clip = displayRectangle
 
     val centerPoint = Point(displayRectangle.x + displayRectangle.width / 2, displayRectangle.y + displayRectangle.height / 2)
@@ -181,11 +188,12 @@ abstract class AbstractDisplayView(
     val touchCircle = createCircle(touchPoint, r1)
     val mirrorCircle = createCircle(mirrorPoint, r1)
     val centerCircle = createCircle(centerPoint, r2)
-    val clip = Area(displayRectangle).apply {
-      subtract(Area(touchCircle))
-      subtract(Area(mirrorCircle))
-      subtract(Area(centerCircle))
-    }
+    val clip =
+      Area(displayRectangle).apply {
+        subtract(Area(touchCircle))
+        subtract(Area(mirrorCircle))
+        subtract(Area(centerCircle))
+      }
     g.clip = clip
     val darkColor = Color(0, 154, 133, 157)
     val lightColor = Color(255, 255, 255, 157)
@@ -227,7 +235,10 @@ abstract class AbstractDisplayView(
   }
 
   protected fun showDisconnectedStateMessage(
-      message: String, hyperlinkListener: HyperlinkListener? = null, reconnector: Reconnector? = null) {
+    message: String,
+    hyperlinkListener: HyperlinkListener? = null,
+    reconnector: Reconnector? = null,
+  ) {
     hideLongRunningOperationIndicatorInstantly()
     zoom(ZoomType.FIT)
     disconnectedStatePanel.showPanel(message, hyperlinkListener, reconnector)
@@ -242,8 +253,8 @@ abstract class AbstractDisplayView(
   internal fun findNotificationHolderPanel(): NotificationHolderPanel? = getParentOfType<NotificationHolderPanel>()
 
   /**
-   * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of
-   * a small fraction that is close to `value/128` and has the form of `1/2^n`.
+   * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of a small fraction that is close to `value/128`
+   * and has the form of `1/2^n`.
    */
   protected fun roundScale(value: Double): Double {
     if (value >= 1) {
@@ -263,8 +274,7 @@ abstract class AbstractDisplayView(
   /**
    * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
    *
-   * The [listener] must return very quickly as it is invoked on the UI thread inside the painting method
-   * of the view.
+   * The [listener] must return very quickly as it is invoked on the UI thread inside the painting method of the view.
    */
   internal fun addFrameListener(listener: FrameListener) {
     frameListeners.add(listener)
@@ -280,10 +290,11 @@ abstract class AbstractDisplayView(
     val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)
     // Mouse pointer coordinates compensated for the device display rotation.
     val normalized = Point()
-    val rotation = when {
-      displayOrientationCorrectionQuadrants % 2 == 0 -> displayOrientationQuadrants + displayOrientationCorrectionQuadrants % 4
-      else -> displayOrientationQuadrants
-    }
+    val rotation =
+      when {
+        displayOrientationCorrectionQuadrants % 2 == 0 -> displayOrientationQuadrants + displayOrientationCorrectionQuadrants % 4
+        else -> displayOrientationQuadrants
+      }
     when (rotation) {
       0 -> {
         normalized.x = p.x.scaled(screenScale) - displayRectangle.x
@@ -297,7 +308,7 @@ abstract class AbstractDisplayView(
         normalized.x = displayRectangle.right - p.x.scaled(screenScale)
         normalized.y = displayRectangle.bottom - p.y.scaled(screenScale)
       }
-      else -> {  // 3
+      else -> { // 3
         normalized.x = p.y.scaled(screenScale) - displayRectangle.y
         normalized.y = displayRectangle.right - p.x.scaled(screenScale)
       }
@@ -307,10 +318,9 @@ abstract class AbstractDisplayView(
   }
 
   protected fun isHardwareInputEnabled(): Boolean =
-      hardwareInputStateStorage.isHardwareInputEnabled(deviceId) && xrInputController?.isMouseUsedForNavigation() != true
+    hardwareInputStateStorage.isHardwareInputEnabled(deviceId) && xrInputController?.isMouseUsedForNavigation() != true
 
-  final override fun getFocusTraversalKeysEnabled(): Boolean =
-      !isHardwareInputEnabled() && super.focusTraversalKeysEnabled
+  final override fun getFocusTraversalKeysEnabled(): Boolean = !isHardwareInputEnabled() && super.focusTraversalKeysEnabled
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
     if (!isHardwareInputEnabled()) {
@@ -355,8 +365,7 @@ abstract class AbstractDisplayView(
     return g
   }
 
-  protected fun MouseWheelEvent.getNormalizedScrollAmount(): Double =
-      getNormalizedScrollAmount(scale)
+  protected fun MouseWheelEvent.getNormalizedScrollAmount(): Double = getNormalizedScrollAmount(scale)
 
   private fun createContextMenuHandler(contextMenuActionGroupId: String): PopupHandler? {
     return when {
@@ -365,17 +374,13 @@ abstract class AbstractDisplayView(
     }
   }
 
-  override fun canZoomIn(): Boolean =
-    deviceType == DeviceType.XR_HEADSET || super.canZoomIn()
+  override fun canZoomIn(): Boolean = deviceType == DeviceType.XR_HEADSET || super.canZoomIn()
 
-  override fun canZoomOut(): Boolean =
-    deviceType == DeviceType.XR_HEADSET || super.canZoomOut()
+  override fun canZoomOut(): Boolean = deviceType == DeviceType.XR_HEADSET || super.canZoomOut()
 
-  override fun canZoomToActual(): Boolean =
-    deviceType != DeviceType.XR_HEADSET && super.canZoomToActual()
+  override fun canZoomToActual(): Boolean = deviceType != DeviceType.XR_HEADSET && super.canZoomToActual()
 
-  override fun canZoomToFit(): Boolean =
-    deviceType != DeviceType.XR_HEADSET && super.canZoomToFit()
+  override fun canZoomToFit(): Boolean = deviceType != DeviceType.XR_HEADSET && super.canZoomToFit()
 
   override fun zoom(type: ZoomType): Boolean {
     if (deviceType == DeviceType.XR_HEADSET) {
@@ -423,13 +428,14 @@ abstract class AbstractDisplayView(
     open fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {}
 
     companion object {
-      private val vkToMask = mapOf(
-        VK_SHIFT to SHIFT_DOWN_MASK,
-        VK_CONTROL to CTRL_DOWN_MASK,
-        VK_ALT to ALT_DOWN_MASK,
-        VK_META to META_DOWN_MASK,
-        VK_ALT_GRAPH to ALT_GRAPH_DOWN_MASK,
-      )
+      private val vkToMask =
+        mapOf(
+          VK_SHIFT to SHIFT_DOWN_MASK,
+          VK_CONTROL to CTRL_DOWN_MASK,
+          VK_ALT to ALT_DOWN_MASK,
+          VK_META to META_DOWN_MASK,
+          VK_ALT_GRAPH to ALT_GRAPH_DOWN_MASK,
+        )
     }
   }
 
@@ -440,19 +446,18 @@ abstract class AbstractDisplayView(
     internal fun start() {
       hideDisconnectedStateMessage()
       showLongRunningOperationIndicator(progressMessage)
-      createCoroutineScope().launch {
-        reconnect()
-      }
+      createCoroutineScope().launch { reconnect() }
     }
   }
 
   private class DisconnectedStatePanel : JBPanel<DisconnectedStatePanel>(GridBagLayout()) {
 
-    private val message = textComponent(text = "").apply {
-      isOpaque = false
-      isFocusable = false
-      border = JBUI.Borders.empty()
-    }
+    private val message =
+      textComponent(text = "").apply {
+        isOpaque = false
+        isFocusable = false
+        border = JBUI.Borders.empty()
+      }
 
     val button = JButton("Reconnect")
 
@@ -460,13 +465,14 @@ abstract class AbstractDisplayView(
       isVisible = false
       val topMargin = 0.45
 
-      val c = GridBagConstraints().apply {
-        fill = GridBagConstraints.BOTH
-        gridx = 0
-        gridy = 0
-        weightx = 1.0
-        weighty = topMargin
-      }
+      val c =
+        GridBagConstraints().apply {
+          fill = GridBagConstraints.BOTH
+          gridx = 0
+          gridy = 0
+          weightx = 1.0
+          weighty = topMargin
+        }
       add(createFiller(), c)
       c.gridy = 3
       c.weighty = 1 - topMargin
@@ -491,14 +497,14 @@ abstract class AbstractDisplayView(
       button.apply {
         if (reconnector == null) {
           isVisible = false
-        }
-        else {
+        } else {
           isVisible = true
-          action = object : AbstractAction(reconnector.reconnectLabel) {
-            override fun actionPerformed(event: ActionEvent) {
-              reconnector.start()
+          action =
+            object : AbstractAction(reconnector.reconnectLabel) {
+              override fun actionPerformed(event: ActionEvent) {
+                reconnector.start()
+              }
             }
-          }
           SwingUtilities.getRootPane(this)?.let { it.defaultButton = this }
         }
       }
@@ -526,11 +532,8 @@ abstract class AbstractDisplayView(
   }
 }
 
-internal class ContextMenuHandler(
-  private val component: JComponent,
-  private val groupId: String,
-  private val place: String
-) : PopupHandler() {
+internal class ContextMenuHandler(private val component: JComponent, private val groupId: String, private val place: String) :
+  PopupHandler() {
 
   override fun invokePopup(comp: Component?, x: Int, y: Int) {
     val actionManager = ActionManager.getInstance()

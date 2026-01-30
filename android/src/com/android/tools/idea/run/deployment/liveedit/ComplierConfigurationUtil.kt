@@ -78,19 +78,19 @@ fun KaCompilationOptionsBuilder.configureCommonKotlinCompilationOptions(module: 
   //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
   //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
   //  stable, we can drop this.
-  @OptIn(KaIdeApi::class)
-  ignoreConstOptimizationErrors(true)
+  @OptIn(KaIdeApi::class) ignoreConstOptimizationErrors(true)
 }
 
 @KaExperimentalApi
 fun KaCompilationOptionsBuilder.configureModuleName(module: Module) {
-  val moduleNameFromFacet = KotlinFacet.get(module)?.let { kotlinFacet ->
-    when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-      is K2JVMCompilerArguments -> compilerArguments.moduleName
-      is K2MetadataCompilerArguments -> compilerArguments.moduleName
-      else -> null
+  val moduleNameFromFacet =
+    KotlinFacet.get(module)?.let { kotlinFacet ->
+      when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+        is K2JVMCompilerArguments -> compilerArguments.moduleName
+        is K2MetadataCompilerArguments -> compilerArguments.moduleName
+        else -> null
+      }
     }
-  }
 
   moduleName(moduleNameFromFacet ?: module.name)
 }
@@ -103,7 +103,7 @@ fun KaCompilationOptionsBuilder.configureLanguageVersionSettings(languageVersion
   // Needed so we can diff changes to method parameters and parameter annotations.
   jvmGenerateParameterMetadata(true)
 
-  when(StudioFlags.CLOSURE_SCHEME.get()!!) {
+  when (StudioFlags.CLOSURE_SCHEME.get()!!) {
     StudioFlags.ClosureScheme.CLASS -> {
       jvmUseInvokeDynamicForSamConversions(false)
       jvmUseInvokeDynamicForLambdas(false)
@@ -115,50 +115,44 @@ fun KaCompilationOptionsBuilder.configureLanguageVersionSettings(languageVersion
   }
 }
 
-fun getCompilerConfiguration(
-  module: Module,
-  file: KtFile
-): CompilerConfiguration {
+fun getCompilerConfiguration(module: Module, file: KtFile): CompilerConfiguration {
   if (file.module != module) {
     // *Note*: currently all 3 callers satisfy this condition and [module] parameter is going to be removed once both compose previews and
     // live edit migration to build system specific extension points is completed.
     error("$file must belong to $module")
   }
-  val compilerConfiguration = CompilerConfiguration.create().apply {
-    put(
-      CommonConfigurationKeys.MODULE_NAME,
-      module.name
-    )
-    KotlinFacet.get(module)?.let { kotlinFacet ->
-      val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-        is K2JVMCompilerArguments -> compilerArguments.moduleName
-        is K2MetadataCompilerArguments -> compilerArguments.moduleName
-        else -> null
+  val compilerConfiguration =
+    CompilerConfiguration.create().apply {
+      put(CommonConfigurationKeys.MODULE_NAME, module.name)
+      KotlinFacet.get(module)?.let { kotlinFacet ->
+        val moduleName =
+          when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+            is K2JVMCompilerArguments -> compilerArguments.moduleName
+            is K2MetadataCompilerArguments -> compilerArguments.moduleName
+            else -> null
+          }
+        moduleName?.let { put(CommonConfigurationKeys.MODULE_NAME, it) }
       }
-      moduleName?.let {
-        put(CommonConfigurationKeys.MODULE_NAME, it)
+
+      // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
+      // once we can fetch flags from QuerySync
+      //
+      // see ApplicationLiveEditServices.getKotlinCompilerConfiguration which current not implemented on the Blaze side.
+      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().isNotEmpty()) {
+        val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
+        val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
+        val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
+        setOptions(languageSettings)
+      } else {
+        setOptions(file.languageVersionSettings)
       }
-    }
 
-    // This flag was created mostly for experimental Live Edit for ASwB. We should no longer be relying it
-    // once we can fetch flags from QuerySync
-    //
-    // see ApplicationLiveEditServices.getKotlinCompilerConfiguration which current not implemented on the Blaze side.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().isNotEmpty()) {
-      val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
-      val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
-      val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(CommonCompilerArgumentsConfigurator.Reporter.DoNothing)
-      setOptions(languageSettings)
-    } else {
-      setOptions(file.languageVersionSettings)
+      // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
+      //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
+      //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
+      //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
+      //  stable, we can drop this.
+      put(CommonConfigurationKeys.IGNORE_CONST_OPTIMIZATION_ERRORS, true)
     }
-
-    // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
-    //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
-    //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
-    //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
-    //  stable, we can drop this.
-    put(CommonConfigurationKeys.IGNORE_CONST_OPTIMIZATION_ERRORS, true)
-  }
   return compilerConfiguration
 }

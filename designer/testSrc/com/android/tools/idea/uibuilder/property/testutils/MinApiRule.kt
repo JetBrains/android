@@ -25,10 +25,9 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * Rule that adds a manifest file and populates the api level based on the name of the test method.
- * The minSdkVersion can be specified by the test name: testXyzMinApi17 - will cause a manifest with
- * minSdkVersion set to 17. If the test name has no MinApi specified in the test name, the default
- * [DEFAULT_MIN_API_LEVEL] is used.
+ * Rule that adds a manifest file and populates the api level based on the name of the test method. The minSdkVersion can be specified by
+ * the test name: testXyzMinApi17 - will cause a manifest with minSdkVersion set to 17. If the test name has no MinApi specified in the test
+ * name, the default [DEFAULT_MIN_API_LEVEL] is used.
  */
 class MinApiRule(private val projectRule: AndroidProjectRule) : ExternalResource() {
   private var testName: String? = null

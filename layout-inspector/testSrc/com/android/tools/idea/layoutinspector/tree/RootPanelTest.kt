@@ -42,18 +42,9 @@ class RootPanelTest {
   private val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val appInspectorRule = AppInspectionInspectorRule(androidProjectRule)
-  private val layoutInspectorRule =
-    LayoutInspectorRule(
-      listOf(appInspectorRule.createInspectorClientProvider()),
-      androidProjectRule,
-    )
+  private val layoutInspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), androidProjectRule)
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(androidProjectRule)
-      .around(appInspectorRule)
-      .around(layoutInspectorRule)
-      .around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())!!
 
   private val fakeDeviceDescriptor =
     object : DeviceDescriptor {
@@ -76,9 +67,7 @@ class RootPanelTest {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
 
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
@@ -87,18 +76,14 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false,
     )
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE }
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
       true,
     )
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
 
     // disable embedded Layout Inspector, showProcessNotDebuggableText should always be false
     enableEmbeddedLayoutInspector = false
@@ -109,9 +94,7 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false,
     )
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
   }
 
   @Test
@@ -120,15 +103,12 @@ class RootPanelTest {
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
-    layoutInspectorRule.processes.selectedProcess =
-      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.processes.selectedProcess = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
     waitForCondition(1, TimeUnit.SECONDS) {
       rootPanel.uiState == RootPanel.UiState.START_LOADING &&
@@ -146,9 +126,7 @@ class RootPanelTest {
     layoutInspectorRule.disconnect()
 
     // Check that ui state is restored to default after disconnecting.
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
   }
 
   @Test
@@ -162,15 +140,12 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false,
     )
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.PROCESS_NOT_DEBUGGABLE }
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
-    layoutInspectorRule.processes.selectedProcess =
-      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.processes.selectedProcess = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
     waitForCondition(1, TimeUnit.SECONDS) {
       rootPanel.uiState == RootPanel.UiState.START_LOADING &&
@@ -192,15 +167,13 @@ class RootPanelTest {
 
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
-    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
-      .hasSize(1)
+    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners).hasSize(1)
     assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(1)
     assertThat(layoutInspectorRule.inspectorModel.attachStageListeners.size()).isEqualTo(1)
 
     Disposer.dispose(androidProjectRule.testRootDisposable)
 
-    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
-      .hasSize(0)
+    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners).hasSize(0)
     assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(0)
     assertThat(layoutInspectorRule.inspectorModel.attachStageListeners.size()).isEqualTo(0)
   }
@@ -210,16 +183,13 @@ class RootPanelTest {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.WAITING_TO_CONNECT }
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
-    layoutInspectorRule.processes.selectedProcess =
-      DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.processes.selectedProcess = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     layoutInspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
@@ -230,8 +200,6 @@ class RootPanelTest {
       false,
     )
 
-    waitForCondition(1000, TimeUnit.MILLISECONDS) {
-      rootPanel.uiState == RootPanel.UiState.SHOW_TREE
-    }
+    waitForCondition(1000, TimeUnit.MILLISECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
   }
 }

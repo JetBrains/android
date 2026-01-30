@@ -23,13 +23,11 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_E
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_PARSE_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_REMOVE_ELEMENTS
-import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.android.api.android.BuildFeaturesModel
+import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import org.junit.Test
 
-/**
- * Tests for [BuildFeaturesModel].
- */
+/** Tests for [BuildFeaturesModel]. */
 class BuildFeaturesModelTest : AndroidGradleFileModelTestCase() {
 
   @Test

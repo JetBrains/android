@@ -58,15 +58,24 @@ import org.jetbrains.plugins.groovy.lang.psi.patterns.groovyExpression
 class PsiPackageGradleUseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? =
     when {
-      element is PsiPackage -> GradleBuildscriptSearchScope(element.project).let {
-        if (!DeclarativeStudioSupport.isEnabled()) return@let it
-        return@let GlobalSearchScope.union(listOf(it, object : GlobalSearchScope(element.project) {
-          override fun contains(file: VirtualFile) = file.name.endsWith(EXT_GRADLE_DECLARATIVE)
-          override fun isSearchInLibraries() = false
-          override fun isSearchInModuleContent(aModule: Module) = true
-          override fun getDisplayName() = "Gradle Declarative Configuration Files"
-        }))
-      }
+      element is PsiPackage ->
+        GradleBuildscriptSearchScope(element.project).let {
+          if (!DeclarativeStudioSupport.isEnabled()) return@let it
+          return@let GlobalSearchScope.union(
+            listOf(
+              it,
+              object : GlobalSearchScope(element.project) {
+                override fun contains(file: VirtualFile) = file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+
+                override fun isSearchInLibraries() = false
+
+                override fun isSearchInModuleContent(aModule: Module) = true
+
+                override fun getDisplayName() = "Gradle Declarative Configuration Files"
+              },
+            )
+          )
+        }
       else -> null
     }
 }
@@ -92,8 +101,10 @@ private fun groovyPattern(text: String) =
     .withParent(
       StandardPatterns.or(
         groovyExpression<GrAssignmentExpression>().withFirstChild(groovyExpression<GrReferenceExpression>().withText(text)),
-        groovyElement<GrCommandArgumentList>().withParent(
-          groovyExpression<GrApplicationStatement>().withFirstChild(groovyExpression<GrReferenceExpression>().withText(text)))))
+        groovyElement<GrCommandArgumentList>()
+          .withParent(groovyExpression<GrApplicationStatement>().withFirstChild(groovyExpression<GrReferenceExpression>().withText(text))),
+      )
+    )
 
 class KotlinNamespacePsiPackageReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -102,7 +113,7 @@ class KotlinNamespacePsiPackageReferenceContributor : PsiReferenceContributor() 
   }
 }
 
-class KotlinNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType): PsiReferenceProvider() {
+class KotlinNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType) : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
     if (element !is KtStringTemplateExpression) return emptyArray()
     if (!element.isPlainWithEscapes()) return emptyArray()
@@ -120,10 +131,17 @@ private fun kotlinPattern(text: String) =
 private val KtStringTemplateExpression.stringValue: String
   get() = run {
     val sb = StringBuilder()
-    this.accept(object: KtTreeVisitorVoid() {
-      override fun visitEscapeStringTemplateEntry(entry: KtEscapeStringTemplateEntry) { sb.append(entry.unescapedValue) }
-      override fun visitLiteralStringTemplateEntry(entry: KtLiteralStringTemplateEntry) { sb.append(entry.text) }
-    })
+    this.accept(
+      object : KtTreeVisitorVoid() {
+        override fun visitEscapeStringTemplateEntry(entry: KtEscapeStringTemplateEntry) {
+          sb.append(entry.unescapedValue)
+        }
+
+        override fun visitLiteralStringTemplateEntry(entry: KtLiteralStringTemplateEntry) {
+          sb.append(entry.text)
+        }
+      }
+    )
     return sb.toString()
   }
 
@@ -131,12 +149,15 @@ class DeclarativeNamespacePsiPackageReferenceContributor : PsiReferenceContribut
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
     if (DeclarativeStudioSupport.isEnabled()) {
       registrar.registerReferenceProvider(dclPattern("namespace"), DeclarativeNamespacePsiPackageReferenceProvider(ScopeType.MAIN))
-      registrar.registerReferenceProvider(dclPattern("testNamespace"), DeclarativeNamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST))
+      registrar.registerReferenceProvider(
+        dclPattern("testNamespace"),
+        DeclarativeNamespacePsiPackageReferenceProvider(ScopeType.ANDROID_TEST),
+      )
     }
   }
 }
 
-class DeclarativeNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType): PsiReferenceProvider() {
+class DeclarativeNamespacePsiPackageReferenceProvider(private val scopeType: ScopeType) : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
     if (element !is DeclarativeLiteral) return emptyArray()
     val scope = element.module?.getModuleSystem()?.getResolveScope(scopeType) ?: return emptyArray()
@@ -147,5 +168,4 @@ class DeclarativeNamespacePsiPackageReferenceProvider(private val scopeType: Sco
 
 private fun dclPattern(text: String) =
   psiElement(DeclarativeLiteral::class.java)
-    .withParent(psiElement(DeclarativeAssignment::class.java)
-                  .withFirstChild(psiElement(DeclarativeElement::class.java).withText(text)))
+    .withParent(psiElement(DeclarativeAssignment::class.java).withFirstChild(psiElement(DeclarativeElement::class.java).withText(text)))

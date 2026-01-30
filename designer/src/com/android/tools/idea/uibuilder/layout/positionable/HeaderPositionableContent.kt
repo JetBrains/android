@@ -17,8 +17,5 @@ package com.android.tools.idea.uibuilder.layout.positionable
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 
-/**
- * If current [PositionableContent] is a [HeaderPositionableContent] it's positioned on top of the
- * organizationGroup.
- */
+/** If current [PositionableContent] is a [HeaderPositionableContent] it's positioned on top of the organizationGroup. */
 interface HeaderPositionableContent : PositionableContent

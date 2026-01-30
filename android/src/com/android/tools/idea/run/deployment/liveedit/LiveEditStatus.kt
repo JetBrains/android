@@ -43,7 +43,7 @@ open class LiveEditStatus(
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
-  ) : IdeStatus {
+) : IdeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.
@@ -62,13 +62,7 @@ open class LiveEditStatus(
     // A LiveEdit error that is not recoverable.
     @JvmStatic
     fun createErrorStatus(message: String): LiveEditStatus {
-      return LiveEditStatus(
-        AllIcons.General.Error,
-        "Error",
-        message,
-        UNRECOVERABLE_ERROR,
-        notificationText = message,
-      )
+      return LiveEditStatus(AllIcons.General.Error, "Error", message, UNRECOVERABLE_ERROR, notificationText = message)
     }
 
     // A LiveEdit error that can be resolved by rerunning.
@@ -81,7 +75,7 @@ open class LiveEditStatus(
         UNRECOVERABLE_ERROR,
         notificationText = message,
         redeployMode = RedeployMode.RERUN,
-        actionId = "Run"
+        actionId = "Run",
       )
     }
 
@@ -93,12 +87,13 @@ open class LiveEditStatus(
         message("le.status.error.recompose.title"),
         String.format(
           "%s during recomposition and is reverted to last successful composition state:<br>%s",
-          name, if (message.length > 120) message.substring(0, 120) + "..." else message
+          name,
+          if (message.length > 120) message.substring(0, 120) + "..." else message,
         ),
         if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
         notificationText = "Live Edit recomposition error",
         redeployMode = RedeployMode.RERUN,
-        actionId = SHOW_LOGCAT_ACTION_ID
+        actionId = SHOW_LOGCAT_ACTION_ID,
       )
     }
 
@@ -107,13 +102,11 @@ open class LiveEditStatus(
       return LiveEditStatus(
         null,
         message("le.status.error.recompose.title"),
-        String.format(
-          "%s during recomposition status retrieval.", exception.javaClass.name
-        ),
+        String.format("%s during recomposition status retrieval.", exception.javaClass.name),
         RECOVERABLE_ERROR,
         notificationText = "Live Edit recomposition error",
         redeployMode = RedeployMode.RERUN,
-        actionId = SHOW_LOGCAT_ACTION_ID
+        actionId = SHOW_LOGCAT_ACTION_ID,
       )
     }
 
@@ -130,12 +123,7 @@ open class LiveEditStatus(
 
     @JvmStatic
     fun createPausedStatus(message: String): LiveEditStatus {
-      return LiveEditStatus(
-        AllIcons.General.InspectionsPause,
-        "Paused",
-        message,
-        RECOVERABLE_ERROR
-      )
+      return LiveEditStatus(AllIcons.General.InspectionsPause, "Paused", message, RECOVERABLE_ERROR)
     }
   }
 
@@ -148,7 +136,7 @@ open class LiveEditStatus(
       "Live Edit encountered an unrecoverable error.",
       UNRECOVERABLE_ERROR,
       notificationText = "Live Edit encountered an unrecoverable error",
-      redeployMode = RedeployMode.RERUN
+      redeployMode = RedeployMode.RERUN,
     )
 
   object DebuggerAttached :
@@ -167,7 +155,7 @@ open class LiveEditStatus(
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,
       redeployMode = RedeployMode.REFRESH,
-      actionId = REFRESH_ACTION_ID
+      actionId = REFRESH_ACTION_ID,
     )
 
   object NoMultiDeploy :
@@ -175,16 +163,11 @@ open class LiveEditStatus(
       AllIcons.General.Warning,
       message("le.status.out_of_date.title"),
       message("le.status.no_multi_deploy.description"),
-      DISABLED_WITH_MESSAGE
+      DISABLED_WITH_MESSAGE,
     )
 
   object Loading :
-    LiveEditStatus(
-      AnimatedIcon.Default.INSTANCE,
-      message("le.status.loading.title"),
-      message("le.status.loading.description"),
-      REFRESHING,
-    )
+    LiveEditStatus(AnimatedIcon.Default.INSTANCE, message("le.status.loading.title"), message("le.status.loading.description"), REFRESHING)
 
   object InProgress :
     LiveEditStatus(
@@ -210,14 +193,14 @@ open class LiveEditStatus(
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
     ) {
-      override val description
-        get() = if (LiveEditApplicationConfiguration.getInstance().leTriggerMode ==
-                    LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
+    override val description
+      get() =
+        if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
           message("le.status.up_to_date.description_auto")
         } else {
           message("le.status.up_to_date.description_manual")
         }
-    }
+  }
 
   object SyncNeeded :
     LiveEditStatus(
@@ -227,7 +210,7 @@ open class LiveEditStatus(
       UNRECOVERABLE_ERROR,
       notificationText = "Live Edit: Gradle sync required",
       redeployMode = RedeployMode.RERUN,
-      actionId = "Android.SyncProject"
+      actionId = "Android.SyncProject",
     )
 
   object UnsupportedVersion :
@@ -244,15 +227,14 @@ open class LiveEditStatus(
       AllIcons.General.Warning,
       message("le.status.error.unsupported_version.title"),
       message("le.status.error.unsupported_version_other.description"),
-      UNRECOVERABLE_ERROR
+      UNRECOVERABLE_ERROR,
     )
 
   fun unrecoverable(): Boolean {
     return mergePriority == UNRECOVERABLE_ERROR
   }
 
-  fun merge(other: LiveEditStatus) =
-    if (other.mergePriority.value > mergePriority.value) other else this
+  fun merge(other: LiveEditStatus) = if (other.mergePriority.value > mergePriority.value) other else this
 
   enum class RedeployMode {
     NONE,

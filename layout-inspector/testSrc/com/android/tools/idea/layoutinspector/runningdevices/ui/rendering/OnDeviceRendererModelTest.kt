@@ -54,8 +54,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class OnDeviceRendererModelTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
@@ -67,12 +66,7 @@ class OnDeviceRendererModelTest {
       isPreferredProcess = { it.name == MODERN_PROCESS.name },
     )
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(projectRule)
-      .around(appInspectorRule)
-      .around(inspectorRule)
-      .around(EdtRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(EdtRule())
 
   private lateinit var inspectorModel: InspectorModel
   /** Render model tied to inspector rule */
@@ -112,10 +106,7 @@ class OnDeviceRendererModelTest {
   @Test
   fun testClientConnectionStartsOnDeviceRendering() {
     val commands = mutableListOf<ByteArray>()
-    appInspectorRule.viewInspector.listenWhen(
-      condition = { true },
-      listener = { command -> commands.add(command.toByteArray()) },
-    )
+    appInspectorRule.viewInspector.listenWhen(condition = { true }, listener = { command -> commands.add(command.toByteArray()) })
 
     val onDeviceRendererModel =
       OnDeviceRendererModel(
@@ -187,10 +178,7 @@ class OnDeviceRendererModelTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
-          label =
-            inspectorModel[VIEW1]?.unqualifiedName?.let {
-              DrawInstruction.Label(text = it, size = LABEL_FONT_SIZE)
-            },
+          label = inspectorModel[VIEW1]?.unqualifiedName?.let { DrawInstruction.Label(text = it, size = LABEL_FONT_SIZE) },
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
         )
         .toByteArray()
@@ -219,11 +207,7 @@ class OnDeviceRendererModelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds =
-            listOf(
-              inspectorModel[COMPOSE1]!!.layoutBounds,
-              inspectorModel[VIEW1]!!.layoutBounds,
-              inspectorModel[ROOT]!!.layoutBounds,
-            ),
+            listOf(inspectorModel[COMPOSE1]!!.layoutBounds, inspectorModel[VIEW1]!!.layoutBounds, inspectorModel[ROOT]!!.layoutBounds),
           color = BASE_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
           label = null,

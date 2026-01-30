@@ -37,15 +37,12 @@ interface BazelDependencyBuilderPublicForTests : DependencyBuilder {
     buildTargets: Set<Label>,
     buildInvokerCapabilities: Set<BuildSystem.BuildInvoker.Capability>,
     outputGroups: Collection<OutputGroup>,
-    replaceOutputGroups: Boolean
+    replaceOutputGroups: Boolean,
   ): BuildDependenciesBazelInvocationInfo
 
-  @VisibleForTesting
-  fun getBundledAspectPath(filename: String): Path
+  @VisibleForTesting fun getBundledAspectPath(filename: String): Path
 
   @VisibleForTesting
   @Throws(IOException::class, BuildException::class)
-  fun prepareInvocationFiles(
-    context: BlazeContext, invocationFiles: Map<Path, ByteSource>
-  )
+  fun prepareInvocationFiles(context: BlazeContext, invocationFiles: Map<Path, ByteSource>)
 }

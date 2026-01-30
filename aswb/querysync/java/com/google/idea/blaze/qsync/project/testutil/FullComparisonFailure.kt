@@ -17,17 +17,11 @@ package com.google.idea.blaze.qsync.project.testutil
 
 import org.junit.ComparisonFailure
 
-/**
- * A comparison failure assertion error that preserves full actual and expected data to allow
- * copy/pasting.
- */
-class FullComparisonFailure(expected: String, actual: String) :
-  ComparisonFailure("Values differ: ", expected.trimIndent(), actual.trim()) {
+/** A comparison failure assertion error that preserves full actual and expected data to allow copy/pasting. */
+class FullComparisonFailure(expected: String, actual: String) : ComparisonFailure("Values differ: ", expected.trimIndent(), actual.trim()) {
   override val message: String
     get() = buildString {
-      appendLine(
-        "expected:<"
-      ) // Note: These lines are a pattern recognised as a comparison failure.
+      appendLine("expected:<") // Note: These lines are a pattern recognised as a comparison failure.
       appendLine(expected.prependIndent("    "))
       appendLine("> but was:<")
       appendLine(actual.prependIndent("    "))

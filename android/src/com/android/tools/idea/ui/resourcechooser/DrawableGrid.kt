@@ -41,26 +41,25 @@ import javax.swing.JList
 import javax.swing.ListCellRenderer
 import javax.swing.ListModel
 
-
 private const val ITEM_BORDER_WIDTH = 4
 private const val ITEM_SELECTED_BORDER_WIDTH = 2
 private const val DEFAULT_CACHE_SIZE = 128L
 private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)
-private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33),
-                                       Color(0xAA, 0xAA, 0xAA, 0x33))
+private val EMPTY_ICON_COLOR = JBColor(Color(0xAA, 0xAA, 0xAA, 0x33), Color(0xAA, 0xAA, 0xAA, 0x33))
 private val ITEM_BORDER = JBUI.Borders.empty(ITEM_BORDER_WIDTH)
-private val ITEM_BORDER_SELECTED = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(ITEM_BORDER_WIDTH - ITEM_SELECTED_BORDER_WIDTH),
-  JBUI.Borders.customLine(UIUtil.getListBackground(true, true), ITEM_SELECTED_BORDER_WIDTH))
+private val ITEM_BORDER_SELECTED =
+  BorderFactory.createCompoundBorder(
+    JBUI.Borders.empty(ITEM_BORDER_WIDTH - ITEM_SELECTED_BORDER_WIDTH),
+    JBUI.Borders.customLine(UIUtil.getListBackground(true, true), ITEM_SELECTED_BORDER_WIDTH),
+  )
 
-/**
- * Component that displays [ResourceValue] in a grid.
- */
-open class DrawableGrid(val module: Module,
-                        model: ListModel<ResourceValue>,
-                        imageSize: Int = DEFAULT_IMAGE_SIZE,
-                        private val cacheSize: Long = DEFAULT_CACHE_SIZE)
-  : JList<ResourceValue>(model) {
+/** Component that displays [ResourceValue] in a grid. */
+open class DrawableGrid(
+  val module: Module,
+  model: ListModel<ResourceValue>,
+  imageSize: Int = DEFAULT_IMAGE_SIZE,
+  private val cacheSize: Long = DEFAULT_CACHE_SIZE,
+) : JList<ResourceValue>(model) {
 
   init {
     layoutOrientation = HORIZONTAL_WRAP
@@ -85,34 +84,30 @@ open class DrawableGrid(val module: Module,
   }
 }
 
-internal class DrawableCellRenderer(private val module: Module,
-                                    imageSize: Int,
-                                    cacheSize: Long = DEFAULT_CACHE_SIZE)
-  : ListCellRenderer<ResourceValue> {
+internal class DrawableCellRenderer(private val module: Module, imageSize: Int, cacheSize: Long = DEFAULT_CACHE_SIZE) :
+  ListCellRenderer<ResourceValue> {
 
   private val imageDimension = Dimension(imageSize, imageSize)
   private var emptyIcon = ColorIcon(imageSize, EMPTY_ICON_COLOR)
   private val disabledComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
-  private val cache = CacheBuilder.newBuilder()
-    .softValues()
-    .maximumSize(cacheSize)
-    .build<ResourceValue, Icon>()
-  private val label = JLabel().apply {
-    horizontalAlignment = JLabel.CENTER
-  }
+  private val cache = CacheBuilder.newBuilder().softValues().maximumSize(cacheSize).build<ResourceValue, Icon>()
+  private val label = JLabel().apply { horizontalAlignment = JLabel.CENTER }
 
-  private fun createDisabledIcon(imageIcon: ImageIcon) = object : Icon by imageIcon {
-    override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-      (g as Graphics2D).composite = disabledComposite
-      imageIcon.paintIcon(c, g, x, y)
+  private fun createDisabledIcon(imageIcon: ImageIcon) =
+    object : Icon by imageIcon {
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
+        (g as Graphics2D).composite = disabledComposite
+        imageIcon.paintIcon(c, g, x, y)
+      }
     }
-  }
 
-  override fun getListCellRendererComponent(list: JList<out ResourceValue>,
-                                            value: ResourceValue?,
-                                            index: Int,
-                                            isSelected: Boolean,
-                                            cellHasFocus: Boolean): Component {
+  override fun getListCellRendererComponent(
+    list: JList<out ResourceValue>,
+    value: ResourceValue?,
+    index: Int,
+    isSelected: Boolean,
+    cellHasFocus: Boolean,
+  ): Component {
     label.isEnabled = list.isEnabled
     label.border = if (isSelected && label.isEnabled) ITEM_BORDER_SELECTED else ITEM_BORDER
 
@@ -120,15 +115,13 @@ internal class DrawableCellRenderer(private val module: Module,
       label.icon = emptyIcon
       label.disabledIcon = emptyIcon
       return label
-    }
-    else {
+    } else {
       val icon = cache.getIfPresent(value)
       if (icon != null) {
         label.disabledIcon = if (icon is ImageIcon) createDisabledIcon(icon) else null
         label.icon = icon
         return label
-      }
-      else {
+      } else {
         label.icon = emptyIcon
         label.disabledIcon = emptyIcon
       }
@@ -139,18 +132,20 @@ internal class DrawableCellRenderer(private val module: Module,
     DesignAssetRendererManager.getInstance()
       .getViewer(file)
       .getImage(file, module, imageDimension)
-      .whenCompleteAsync(BiConsumer { image, ex ->
-        if (ex == null) {
-          cache.put(value, ImageIcon(image))
-          val cellBounds = list.getCellBounds(index, index)
-          if (cellBounds != null) {
-            list.repaint(cellBounds)
+      .whenCompleteAsync(
+        BiConsumer { image, ex ->
+          if (ex == null) {
+            cache.put(value, ImageIcon(image))
+            val cellBounds = list.getCellBounds(index, index)
+            if (cellBounds != null) {
+              list.repaint(cellBounds)
+            } else {
+              list.repaint()
+            }
           }
-          else {
-            list.repaint()
-          }
-        }
-      }, EdtExecutorService.getInstance())
+        },
+        EdtExecutorService.getInstance(),
+      )
 
     return label
   }

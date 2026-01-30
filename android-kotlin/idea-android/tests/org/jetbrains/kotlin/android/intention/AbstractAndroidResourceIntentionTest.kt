@@ -23,9 +23,9 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
+import java.io.File
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import java.io.File
 
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
@@ -43,8 +43,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
         if (resDirectory != null) {
             myFixture.copyDirectoryToProject(resDirectory, "res")
-        }
-        else {
+        } else {
             if (File("$testDataPath/res").isDirectory) {
                 myFixture.copyDirectoryToProject("res", "res")
             }
@@ -56,14 +55,12 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
         val intentionAction: IntentionAction?
         if (intentionClass != null) {
             intentionAction = Class.forName(intentionClass).newInstance() as IntentionAction
-        }
-        else if (intentionText != null) {
+        } else if (intentionText != null) {
             intentionAction = myFixture.getAvailableIntention(intentionText)
             if (intentionAction != null && !isApplicableExpected) {
                 TestCase.fail("Intention action should not be available")
             }
-        }
-        else {
+        } else {
             intentionAction = null
         }
 
@@ -105,8 +102,8 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
     private fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
 
-  // Originally from jsonUtils.kt
-  private fun JsonObject.getString(name: String): String {
-    return this[name]?.asString ?: throw IllegalStateException("Member with name '$name' is expected in '$this'")
-  }
+    // Originally from jsonUtils.kt
+    private fun JsonObject.getString(name: String): String {
+        return this[name]?.asString ?: throw IllegalStateException("Member with name '$name' is expected in '$this'")
+    }
 }

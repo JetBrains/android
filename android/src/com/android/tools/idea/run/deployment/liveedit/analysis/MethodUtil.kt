@@ -23,8 +23,8 @@ import org.jetbrains.kotlin.load.java.JvmAbi
  * Checks if a method is an inline method.
  *
  * The kotlin compiler adds a synthetic variable to every inline method, consisting of a prefix followed by the method's name. The variable
- * will be scoped to the entire body of the method, from the second label to the last label in the method. The scope must be checked
- * because a similarly named variable may be present if the method calls another inline method with the same name.
+ * will be scoped to the entire body of the method, from the second label to the last label in the method. The scope must be checked because
+ * a similarly named variable may be present if the method calls another inline method with the same name.
  */
 fun IrMethod.isInline(): Boolean {
   val inlineName = "${JvmAbi.LOCAL_VARIABLE_NAME_PREFIX_INLINE_FUNCTION}$name"
@@ -32,6 +32,7 @@ fun IrMethod.isInline(): Boolean {
 }
 
 private val lambdaNameMatcher: Regex by lazy { Regex(".*\\\$lambda\\$\\d+") }
+
 /**
  * Checks if a method is a synthetic method.
  *

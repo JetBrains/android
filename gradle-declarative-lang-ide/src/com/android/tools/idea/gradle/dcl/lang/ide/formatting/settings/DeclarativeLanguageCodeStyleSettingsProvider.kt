@@ -29,13 +29,9 @@ import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider
 class DeclarativeLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
   override fun getLanguage(): Language = DeclarativeLanguage.INSTANCE
 
-  override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings =
-    DeclarativeCodeStyleSettings(settings)
+  override fun createCustomSettings(settings: CodeStyleSettings): CustomCodeStyleSettings = DeclarativeCodeStyleSettings(settings)
 
-  override fun createConfigurable(
-    baseSettings: CodeStyleSettings,
-    modelSettings: CodeStyleSettings
-  ): CodeStyleConfigurable {
+  override fun createConfigurable(baseSettings: CodeStyleSettings, modelSettings: CodeStyleSettings): CodeStyleConfigurable {
     return object : CodeStyleAbstractConfigurable(baseSettings, modelSettings, configurableDisplayName) {
       override fun createPanel(settings: CodeStyleSettings): CodeStyleAbstractPanel =
         DeclarativeCodeStyleMainPanel(currentSettings, settings)
@@ -53,9 +49,12 @@ class DeclarativeLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsPr
 
 private fun sample(@org.intellij.lang.annotations.Language("Declarative") code: String) = code.trim()
 
-private val INDENT_SAMPLE = sample("""
+private val INDENT_SAMPLE =
+  sample(
+    """
 block {
   key = "value"
   anotherKey = factory("parameter")
 }
-""")
+"""
+  )

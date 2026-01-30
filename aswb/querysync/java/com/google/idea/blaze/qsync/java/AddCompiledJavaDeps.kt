@@ -20,12 +20,12 @@ import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
+import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
-import com.google.idea.blaze.qsync.project.ProjectPath
 import kotlin.jvm.optionals.getOrNull
 
-/** Adds compiled jars from dependencies to the project.  */
+/** Adds compiled jars from dependencies to the project. */
 class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectProtoUpdateOperation {
   override fun update(
     update: ProjectProtoUpdate,
@@ -38,9 +38,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
       val seen: MutableSet<String> = hashSetOf()
       val libNameToJars: MutableMap<Label, MutableSet<ProjectPath>> = hashMapOf()
       val outputJarToTarget: Map<String, Label> =
-        artifactState.targets()
-          .flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }
-          .associate { it.digest() to it.target() }
+        artifactState.targets().flatMap { it.javaInfo().getOrNull()?.outputJars().orEmpty() }.associate { it.digest() to it.target() }
       var emptySkipped = 0
       for (target in artifactState.targets()) {
         val javaInfo = target.javaInfo().getOrNull() ?: continue
@@ -68,11 +66,12 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
               !duplicateJar
             }
             .toList()
-        val jars = jarsToAdd.map { jar ->
-          seen.add(jar.digest())
-          addIfNewer(jar.artifactPath(), jar, target.buildContext())
-          ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath())
-        }
+        val jars =
+          jarsToAdd.map { jar ->
+            seen.add(jar.digest())
+            addIfNewer(jar.artifactPath(), jar, target.buildContext())
+            ArtifactDirectories.JAVADEPS.resolveChild(jar.artifactPath())
+          }
         if (jars.isNotEmpty()) {
           libNameToJars.getOrPut(target.label()) { hashSetOf() } += jars
         }
@@ -83,14 +82,7 @@ class AddCompiledJavaDeps(private val emptyJarDigests: Set<String>) : ProjectPro
     }
   }
 
-  private fun updateProjectProtoUpdateOneTargetToOneLibrary(
-    libNameToJars: Map<Label, Set<ProjectPath>>, update: ProjectProtoUpdate
-  ) {
-    libNameToJars.forEach { (name, jars) ->
-      update
-        .library(name) {
-          addClassJars(jars)
-        }
-    }
+  private fun updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars: Map<Label, Set<ProjectPath>>, update: ProjectProtoUpdate) {
+    libNameToJars.forEach { (name, jars) -> update.library(name) { addClassJars(jars) } }
   }
 }

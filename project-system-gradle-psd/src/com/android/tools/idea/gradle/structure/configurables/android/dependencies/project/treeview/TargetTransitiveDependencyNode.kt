@@ -27,7 +27,7 @@ import com.intellij.ui.treeStructure.SimpleNode
 class TargetTransitiveDependencyNode(
   override val models: List<ReverseDependency.Transitive>,
   val spec: PsArtifactDependencySpec,
-  uiSettings: PsUISettings
+  uiSettings: PsUISettings,
 ) : AbstractPsModelNode<ReverseDependency.Transitive>(uiSettings) {
 
   override fun update(presentation: PresentationData) {
@@ -54,12 +54,14 @@ class TargetTransitiveDependencyNode(
       transitive.addAll(declaredOrTransitiveLibraryDependencies.filterIsInstance<ReverseDependency.Transitive>())
       declared.addAll(declaredOrTransitiveLibraryDependencies.filterIsInstance<ReverseDependency.Declared>())
     }
-    transitive.groupBy { it.requestingResolvedDependency.spec }.forEach { transientGroup ->
-      nodes.add(TargetTransitiveDependencyNode(transientGroup.value, transientGroup.key, uiSettings))
-    }
-    declared.groupBy { it.dependency }.forEach { declaredGroup ->
-      nodes.add(TargetConfigurationNode(Configuration(declaredGroup.key.configurationName, declaredGroup.key.icon), uiSettings))
-    }
+    transitive
+      .groupBy { it.requestingResolvedDependency.spec }
+      .forEach { transientGroup -> nodes.add(TargetTransitiveDependencyNode(transientGroup.value, transientGroup.key, uiSettings)) }
+    declared
+      .groupBy { it.dependency }
+      .forEach { declaredGroup ->
+        nodes.add(TargetConfigurationNode(Configuration(declaredGroup.key.configurationName, declaredGroup.key.icon), uiSettings))
+      }
     return nodes.toTypedArray()
   }
 }

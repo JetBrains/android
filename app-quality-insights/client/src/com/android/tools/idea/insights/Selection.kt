@@ -27,8 +27,7 @@ data class Selection<T>(val selected: T?, val items: List<T>) {
     if (item == null) return deselect()
 
     if (item !in items) {
-      Logger.getLogger(Selection::class.qualifiedName)
-        .warning("Requested item $item is not among allowed selections $items.")
+      Logger.getLogger(Selection::class.qualifiedName).warning("Requested item $item is not among allowed selections $items.")
       return this
     }
     return Selection(item, items)
@@ -81,8 +80,6 @@ data class MultiSelection<T>(val selected: Set<T>, val items: List<T>) {
 }
 
 /** Creates a multi selection object of all enum values. */
-inline fun <reified T : Enum<T>> multiSelectionOf(
-  initialValue: Set<T> = emptySet()
-): MultiSelection<T> {
+inline fun <reified T : Enum<T>> multiSelectionOf(initialValue: Set<T> = emptySet()): MultiSelection<T> {
   return MultiSelection(initialValue, enumValues<T>().toList())
 }

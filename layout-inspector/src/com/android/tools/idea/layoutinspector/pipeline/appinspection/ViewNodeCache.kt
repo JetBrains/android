@@ -18,13 +18,12 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.withContext
 
 /**
- * A base class for caching data associated with [ViewNode] that is additionally nested within a
- * layout tree (so if the root of that layout tree is dropped, all data cached within it is removed
- * as well).
+ * A base class for caching data associated with [ViewNode] that is additionally nested within a layout tree (so if the root of that layout
+ * tree is dropped, all data cached within it is removed as well).
  *
  * This class also encapsulates the idea of fetching data from the device if it's not found locally.
  *
@@ -35,8 +34,8 @@ abstract class ViewNodeCache<D>(protected val model: InspectorModel) {
   /**
    * If true, allow fetching data from the device if we don't have it in our local cache.
    *
-   * We provide this lever because sometimes the inspector is in snapshot mode, and we don't want to
-   * pull data from the device that might be newer than what we see in our snapshot.
+   * We provide this lever because sometimes the inspector is in snapshot mode, and we don't want to pull data from the device that might be
+   * newer than what we see in our snapshot.
    */
   var allowFetching = false
 
@@ -63,8 +62,7 @@ abstract class ViewNodeCache<D>(protected val model: InspectorModel) {
    *
    * This may initiate a fetch to device if the data is not locally cached already.
    *
-   * This may also ultimately return null if the viewId is invalid (e.g. stale, and no longer found
-   * inside the model).
+   * This may also ultimately return null if the viewId is invalid (e.g. stale, and no longer found inside the model).
    */
   suspend fun getDataFor(node: ViewNode): D? {
     val root = model.rootFor(node) ?: return null // Unrooted nodes are not supported

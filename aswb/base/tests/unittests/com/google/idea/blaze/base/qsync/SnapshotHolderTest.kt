@@ -19,12 +19,10 @@ import com.google.common.io.ByteSource
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
-import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.project.LanguageClassProto
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -41,11 +39,7 @@ class SnapshotHolderTest {
   @Test
   fun `notifies project structure changed`() {
     val holder = SnapshotHolder()
-    holder.setCurrent(
-      BlazeContext.create(),
-      readonlyQuerySyncProjectStub,
-      QuerySyncProjectSnapshot.EMPTY
-    )
+    holder.setCurrent(BlazeContext.create(), readonlyQuerySyncProjectStub, QuerySyncProjectSnapshot.EMPTY)
 
     var notified = false
     holder.addListener { _, _, _ -> notified = true }
@@ -54,27 +48,18 @@ class SnapshotHolderTest {
       readonlyQuerySyncProjectStub,
       QuerySyncProjectSnapshot.EMPTY.copy(
         // Change something in the project.
-        project =
-          ProjectProto.Project.Builder()
-            .also { it.activeLanguages.add(QuerySyncLanguage.JVM) }.build()
-
-      )
+        project = ProjectProto.Project.Builder().also { it.activeLanguages.add(QuerySyncLanguage.JVM) }.build()
+      ),
     )
     assertThat(notified).isTrue()
   }
 
   @Test
   fun `does not notify if project structure NOT changed`() {
-    fun project() = ProjectProto.Project.Builder()
-      .also { it.activeLanguages.add(QuerySyncLanguage.JVM) }
-      .build()
+    fun project() = ProjectProto.Project.Builder().also { it.activeLanguages.add(QuerySyncLanguage.JVM) }.build()
 
     val holder = SnapshotHolder()
-    holder.setCurrent(
-      BlazeContext.create(),
-      readonlyQuerySyncProjectStub,
-      QuerySyncProjectSnapshot.EMPTY.copy(project = project())
-    )
+    holder.setCurrent(BlazeContext.create(), readonlyQuerySyncProjectStub, QuerySyncProjectSnapshot.EMPTY.copy(project = project()))
 
     var notified = false
     holder.addListener { _, _, _ -> notified = true }
@@ -85,23 +70,41 @@ class SnapshotHolderTest {
         queryData = PostQuerySyncData.EMPTY.toBuilder().setBazelVersion(Optional.of("1.2.3")).build(),
         artifactState = ArtifactTracker.State.forJavaLabels(Label.of("//a/b/c:d")),
         project = project(),
-      )
+      ),
     )
     assertThat(notified).isFalse()
   }
 }
 
-private val readonlyQuerySyncProjectStub = object : ReadonlyQuerySyncProject {
-  private fun notExpected(): Nothing = throw AssertionError("not expected")
-  override val buildSystem: BuildSystem get() = notExpected()
-  override val projectDefinition: ProjectDefinition get() = notExpected()
-  override val workspaceRoot: WorkspaceRoot get() = notExpected()
-  override val projectPathResolver: ProjectPath.Resolver get() = notExpected()
-  override val projectData: QuerySyncProjectData get() = notExpected()
-  override val languageSettings: QuerySyncLanguageSettings get() = notExpected()
-  override fun getWorkingSet(create: BlazeContext): Set<Path> = notExpected()
-  override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean = notExpected()
-  override fun containsPath(absolutePath: Path): Boolean = notExpected()
-  override fun explicitlyExcludesPath(absolutePath: Path): Boolean = notExpected()
-  override fun getBugreportFiles(): Map<String, ByteSource> = notExpected()
-}
+private val readonlyQuerySyncProjectStub =
+  object : ReadonlyQuerySyncProject {
+    private fun notExpected(): Nothing = throw AssertionError("not expected")
+
+    override val buildSystem: BuildSystem
+      get() = notExpected()
+
+    override val projectDefinition: ProjectDefinition
+      get() = notExpected()
+
+    override val workspaceRoot: WorkspaceRoot
+      get() = notExpected()
+
+    override val projectPathResolver: ProjectPath.Resolver
+      get() = notExpected()
+
+    override val projectData: QuerySyncProjectData
+      get() = notExpected()
+
+    override val languageSettings: QuerySyncLanguageSettings
+      get() = notExpected()
+
+    override fun getWorkingSet(create: BlazeContext): Set<Path> = notExpected()
+
+    override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean = notExpected()
+
+    override fun containsPath(absolutePath: Path): Boolean = notExpected()
+
+    override fun explicitlyExcludesPath(absolutePath: Path): Boolean = notExpected()
+
+    override fun getBugreportFiles(): Map<String, ByteSource> = notExpected()
+  }

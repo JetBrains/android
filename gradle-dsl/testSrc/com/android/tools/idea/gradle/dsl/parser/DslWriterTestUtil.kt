@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -36,7 +36,9 @@ import java.util.LinkedList
 fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
   fun populateFactoryAttributes(key: String, value: Any, factory: GradleDslMethodCall) {
     when (value) {
-      is String, is Int, is Boolean -> factory.addNewArgument(factory.createLiteral(value))
+      is String,
+      is Int,
+      is Boolean -> factory.addNewArgument(factory.createLiteral(value))
 
       is Factory<*> -> {
         val newFactory = GradleDslMethodCall(factory, GradleNameElement.empty(), key)
@@ -103,8 +105,9 @@ fun <K, V> blockOf(vararg pairs: Pair<K, V>): Map<K, V> {
 }
 
 fun blockOf(): Map<*, *> {
-  return Block<Any,Any>()
+  return Block<Any, Any>()
 }
+
 class Factory<T> : LinkedList<T>()
 
 fun <T> factoryOf(vararg elements: T): List<T> {
@@ -113,14 +116,17 @@ fun <T> factoryOf(vararg elements: T): List<T> {
   return b
 }
 
-fun compareWithExpectedPsi(project: Project, dslFile: GradleDslFile, expected: String){
+fun compareWithExpectedPsi(project: Project, dslFile: GradleDslFile, expected: String) {
   // verifying that Psi tree after writing is the same as after parsing the
-  val fileExpected = VfsTestUtil.createFile(
-    project.guessProjectDir()!!,
-    "expected-"+dslFile.file.name,
-    expected
-  )
-  val dslFileExpected = object : GradleBuildFile(fileExpected, project, ":", com.android.tools.idea.gradle.dsl.model.BuildModelContext.create(project, org.mockito.Mockito.mock())) {}
+  val fileExpected = VfsTestUtil.createFile(project.guessProjectDir()!!, "expected-" + dslFile.file.name, expected)
+  val dslFileExpected =
+    object :
+      GradleBuildFile(
+        fileExpected,
+        project,
+        ":",
+        com.android.tools.idea.gradle.dsl.model.BuildModelContext.create(project, org.mockito.Mockito.mock()),
+      ) {}
   dslFileExpected.parse()
   val expectedOutput = DebugUtil.psiToString(dslFileExpected.psiElement!!, false, false)
   val writtenOutput = DebugUtil.psiToString(dslFile.psiElement!!, false, false)

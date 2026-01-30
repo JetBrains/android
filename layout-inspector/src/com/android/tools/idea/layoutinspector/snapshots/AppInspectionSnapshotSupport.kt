@@ -44,10 +44,7 @@ import layoutinspector.snapshots.Snapshot
 
 val APP_INSPECTION_SNAPSHOT_VERSION = ProtocolVersion.Version4
 
-/**
- * [SnapshotLoader] that can load snapshots saved by the app inspection-based version of the layout
- * inspector.
- */
+/** [SnapshotLoader] that can load snapshots saved by the app inspection-based version of the layout inspector. */
 class AppInspectionSnapshotLoader : SnapshotLoader {
   override lateinit var propertiesProvider: AppInspectionPropertiesProvider
     private set
@@ -65,29 +62,23 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
   ): SnapshotMetadata? {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
-    propertiesProvider =
-      AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
+    propertiesProvider = AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
     // TODO: error handling
     ObjectInputStream(Files.newInputStream(file)).use { input ->
       val options = LayoutInspectorCaptureOptions().apply { parse(input.readUTF()) }
       if (options.version != APP_INSPECTION_SNAPSHOT_VERSION) {
-        val message =
-          "AppInspectionSnapshotSupport only supports version ${APP_INSPECTION_SNAPSHOT_VERSION.value}, got ${options.version}."
+        val message = "AppInspectionSnapshotSupport only supports version ${APP_INSPECTION_SNAPSHOT_VERSION.value}, got ${options.version}."
         Logger.getInstance(AppInspectionSnapshotLoader::class.java).error(message)
         throw Exception(message)
       }
-      metadata =
-        parseDelimitedFrom(input, Metadata.parser())?.convert(APP_INSPECTION_SNAPSHOT_VERSION)
-          ?: return null
+      metadata = parseDelimitedFrom(input, Metadata.parser())?.convert(APP_INSPECTION_SNAPSHOT_VERSION) ?: return null
       val snapshot = parseDelimitedFrom(input, Snapshot.parser()) ?: return null
       val response = snapshot.viewSnapshot
       val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.node.id }
       val rootIds = response.windowRoots.idsList
       val allComposeInfo = snapshot.composeInfoList.associateBy { it.viewId }
-      val metrics =
-        LayoutInspectorSessionMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
-      fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) =
-        metrics.logEvent(eventType, stats)
+      val metrics = LayoutInspectorSessionMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
+      fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) = metrics.logEvent(eventType, stats)
       rootIds
         .map { allWindows[it] }
         .forEach { windowInfo ->
@@ -97,11 +88,8 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
             val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
             val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
-            val treeLoader =
-              AppInspectionTreeLoader(notificationModel, ::logEvent, SkiaParserImpl({}))
-            val treeData =
-              treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor)
-                ?: throw Exception()
+            val treeLoader = AppInspectionTreeLoader(notificationModel, ::logEvent, SkiaParserImpl({}))
+            val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
             capabilities.addAll(treeData.dynamicCapabilities)
 
             // Trigger a refresh to make sure that the bitmap bytes are converted to an actual image
@@ -145,16 +133,10 @@ fun saveAppInspectorSnapshot(
               .build()
           }
         )
-        windowRoots =
-          LayoutInspectorViewProtocol.WindowRootsEvent.newBuilder()
-            .apply { addAllIds(allRootIds) }
-            .build()
+        windowRoots = LayoutInspectorViewProtocol.WindowRootsEvent.newBuilder().apply { addAllIds(allRootIds) }.build()
       }
       .build()
-  val composeInfo =
-    composeProperties.mapValues { (id, composePropertyEvent) ->
-      data[id]?.composeEvent to composePropertyEvent
-    }
+  val composeInfo = composeProperties.mapValues { (id, composePropertyEvent) -> data[id]?.composeEvent to composePropertyEvent }
   saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata, foldInfo)
 }
 
@@ -188,11 +170,7 @@ fun saveAppInspectorSnapshot(
   val output = ByteArrayOutputStream()
   ObjectOutputStream(output).use { objectOutput ->
     objectOutput.writeUTF(
-      LayoutInspectorCaptureOptions(
-          APP_INSPECTION_SNAPSHOT_VERSION,
-          snapshotMetadata.processName ?: "Unknown",
-        )
-        .toString()
+      LayoutInspectorCaptureOptions(APP_INSPECTION_SNAPSHOT_VERSION, snapshotMetadata.processName ?: "Unknown").toString()
     )
     snapshotMetadata.toProto().writeDelimitedTo(objectOutput)
     snapshot.writeDelimitedTo(objectOutput)

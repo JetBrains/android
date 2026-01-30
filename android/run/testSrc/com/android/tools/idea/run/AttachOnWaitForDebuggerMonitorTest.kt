@@ -22,37 +22,32 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
+import kotlin.jvm.internal.Ref.BooleanRef
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import kotlin.jvm.internal.Ref.BooleanRef
 
 class AttachOnWaitForDebuggerMonitorTest {
   open class FakeDebuggerHost(
     private val enabled: Boolean,
     private val canDebugRun: Boolean,
     private val anyActiveDebugSession: Boolean,
-    private val attach: (project: Project,
-                         debugger: AndroidDebugger<out AndroidDebuggerState>,
-                         client: Client,
-                         config: AndroidRunConfigurationBase) -> Unit
-    ): AttachOnWaitForDebuggerMonitor.DebuggerHost(project = mock()) {
+    private val attach:
+      (project: Project, debugger: AndroidDebugger<out AndroidDebuggerState>, client: Client, config: AndroidRunConfigurationBase) -> Unit,
+  ) : AttachOnWaitForDebuggerMonitor.DebuggerHost(project = mock()) {
 
-    private val applicationIdProvider = mock<ApplicationIdProvider>().also {
-      whenever(it.packageName).thenReturn("Foo")
-    }
-    private val config: AndroidRunConfigurationBase = mock<AndroidRunConfigurationBase>().also {
-      whenever(it.applicationIdProvider).thenReturn(applicationIdProvider)
-    }
+    private val applicationIdProvider = mock<ApplicationIdProvider>().also { whenever(it.packageName).thenReturn("Foo") }
+    private val config: AndroidRunConfigurationBase =
+      mock<AndroidRunConfigurationBase>().also { whenever(it.applicationIdProvider).thenReturn(applicationIdProvider) }
     private val debuggerState: AndroidDebugger<AndroidDebuggerState> = mock()
     private val device: IDevice = mock()
-    internal val clientData: ClientData = mock<ClientData>().also {
-      whenever(it.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
-    }
-    internal val client: Client = mock<Client>().also {
-      whenever(it.clientData).thenReturn(clientData)
-      whenever(it.device).thenReturn(device)
-    }
+    internal val clientData: ClientData =
+      mock<ClientData>().also { whenever(it.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING) }
+    internal val client: Client =
+      mock<Client>().also {
+        whenever(it.clientData).thenReturn(clientData)
+        whenever(it.device).thenReturn(device)
+      }
 
     override val runConfig: AndroidRunConfigurationBase?
       get() = config
@@ -73,10 +68,12 @@ class AttachOnWaitForDebuggerMonitorTest {
       return anyActiveDebugSession
     }
 
-    override fun attachAction(project: Project,
-                              debugger: AndroidDebugger<out AndroidDebuggerState>,
-                              client: Client,
-                              config: AndroidRunConfigurationBase) {
+    override fun attachAction(
+      project: Project,
+      debugger: AndroidDebugger<out AndroidDebuggerState>,
+      client: Client,
+      config: AndroidRunConfigurationBase,
+    ) {
       this.attach(project, debugger, client, config)
     }
   }
@@ -84,7 +81,7 @@ class AttachOnWaitForDebuggerMonitorTest {
   @Test
   fun testAttach() {
     val attachCalled = BooleanRef()
-    val debuggerHost = object: FakeDebuggerHost(true, true, false, { _, _, _, _ -> attachCalled.element = true }) {}
+    val debuggerHost = object : FakeDebuggerHost(true, true, false, { _, _, _, _ -> attachCalled.element = true }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     auto.listener.clientChanged(debuggerHost.client, Client.CHANGE_DEBUGGER_STATUS)
@@ -93,7 +90,7 @@ class AttachOnWaitForDebuggerMonitorTest {
 
   @Test
   fun testNotWaiting() {
-    val debuggerHost = object: FakeDebuggerHost(true, true, false, { _, _, _, _ -> throw RuntimeException() }) {}
+    val debuggerHost = object : FakeDebuggerHost(true, true, false, { _, _, _, _ -> throw RuntimeException() }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     whenever(debuggerHost.clientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.ATTACHED)
@@ -102,7 +99,7 @@ class AttachOnWaitForDebuggerMonitorTest {
 
   @Test
   fun testDisabled() {
-    val debuggerHost = object: FakeDebuggerHost(false, true, false, { _, _, _, _ -> throw RuntimeException() }) {}
+    val debuggerHost = object : FakeDebuggerHost(false, true, false, { _, _, _, _ -> throw RuntimeException() }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     auto.listener.clientChanged(debuggerHost.client, Client.CHANGE_DEBUGGER_STATUS)
@@ -110,7 +107,7 @@ class AttachOnWaitForDebuggerMonitorTest {
 
   @Test
   fun testDebuggerCannotStart() {
-    val debuggerHost = object: FakeDebuggerHost(true, false, false, { _, _, _, _ -> throw RuntimeException() }) {}
+    val debuggerHost = object : FakeDebuggerHost(true, false, false, { _, _, _, _ -> throw RuntimeException() }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     auto.listener.clientChanged(debuggerHost.client, Client.CHANGE_DEBUGGER_STATUS)
@@ -118,7 +115,7 @@ class AttachOnWaitForDebuggerMonitorTest {
 
   @Test
   fun testDebuggerAlreadyAttached() {
-    val debuggerHost = object: FakeDebuggerHost(true, true, true, { _, _, _, _ -> throw RuntimeException() }) {}
+    val debuggerHost = object : FakeDebuggerHost(true, true, true, { _, _, _, _ -> throw RuntimeException() }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     auto.listener.clientChanged(debuggerHost.client, Client.CHANGE_DEBUGGER_STATUS)
@@ -126,7 +123,7 @@ class AttachOnWaitForDebuggerMonitorTest {
 
   @Test
   fun testDebuggerAlreadyAttachedAndCannotRunt() {
-    val debuggerHost = object: FakeDebuggerHost(true, false, true, { _, _, _, _ -> throw RuntimeException() }) {}
+    val debuggerHost = object : FakeDebuggerHost(true, false, true, { _, _, _, _ -> throw RuntimeException() }) {}
     val auto = AttachOnWaitForDebuggerMonitor(debuggerHost)
 
     auto.listener.clientChanged(debuggerHost.client, Client.CHANGE_DEBUGGER_STATUS)

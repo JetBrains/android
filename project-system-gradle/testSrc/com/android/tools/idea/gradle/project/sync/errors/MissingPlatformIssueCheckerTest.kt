@@ -41,33 +41,39 @@ class MissingPlatformIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: Failed to find target with hash string 'A.B.C' in: :test",
-        "Caused by: java.lang.IllegalStateException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: Failed to find target with hash string 'A.B.C' in: :test",
+          "Caused by: java.lang.IllegalStateException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: Failed to find target 'A.B.C'",
-        "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: Failed to find target 'A.B.C'",
+          "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: Failed to find target 'A.B.C'",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(false)
+        missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: Failed to find target 'A.B.C'",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(false)
   }
 }

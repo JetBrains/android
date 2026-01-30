@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
@@ -37,7 +36,6 @@ import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
-import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.android.tools.idea.projectsystem.gradle.toProjectSystemBuildMode
 import com.android.tools.idea.projectsystem.gradle.toProjectSystemBuildStatus
 import com.android.tools.idea.rendering.BuildTargetReference
@@ -71,50 +69,48 @@ import kotlin.reflect.jvm.jvmName
  * An implementation of [BuildSystemFilePreviewServices] for [GradleProjectSystem].
  *
  * It provides mapping from internal Gradle project system message bus topics and states and like [GradleBuildListener] and
- * [GradleBuildState] to values and events defined in [BuildSystemFilePreviewServices] in a way that is needed for the UI tools to track
- * the status and consume the content of build artifacts required for rendering.
+ * [GradleBuildState] to values and events defined in [BuildSystemFilePreviewServices] in a way that is needed for the UI tools to track the
+ * status and consume the content of build artifacts required for rendering.
  */
 class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<GradleProjectSystem, GradleBuildTargetReference>, GradleToken {
   override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean = buildTargetReference is GradleBuildTargetReference
 
-  private val runningBuilds: MutableMap<BuildContext, SettableFuture<BuildListener.BuildResult>> =
-    WeakHashMap()
+  private val runningBuilds: MutableMap<BuildContext, SettableFuture<BuildListener.BuildResult>> = WeakHashMap()
 
-  override val buildTargets: BuildSystemFilePreviewServices.BuildTargets = object: BuildSystemFilePreviewServices.BuildTargets {
-    override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      return GradleBuildTargetReference(
-        // For KMP modules, we should use the Android implementation module instead if available.
-        module.findAndroidModule() ?: module
-      )
-    }
-  }
-
-  override val buildServices: BuildServices<GradleBuildTargetReference> = object: BuildServices<GradleBuildTargetReference> {
-    override fun getLastCompileStatus(buildTarget: GradleBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
-      return getBuildServicesStatus(buildTarget).lastCompileStatus
+  override val buildTargets: BuildSystemFilePreviewServices.BuildTargets =
+    object : BuildSystemFilePreviewServices.BuildTargets {
+      override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
+        return GradleBuildTargetReference(
+          // For KMP modules, we should use the Android implementation module instead if available.
+          module.findAndroidModule() ?: module
+        )
+      }
     }
 
-    override fun buildArtifacts(buildTargets: Collection<GradleBuildTargetReference>) {
-      if (buildTargets.isEmpty()) return
-      val modules = buildTargets.map { it.module }.distinct()
-      val project = modules.map { it.project }.single()
-      GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
+  override val buildServices: BuildServices<GradleBuildTargetReference> =
+    object : BuildServices<GradleBuildTargetReference> {
+      override fun getLastCompileStatus(buildTarget: GradleBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+        return getBuildServicesStatus(buildTarget).lastCompileStatus
+      }
+
+      override fun buildArtifacts(buildTargets: Collection<GradleBuildTargetReference>) {
+        if (buildTargets.isEmpty()) return
+        val modules = buildTargets.map { it.module }.distinct()
+        val project = modules.map { it.project }.single()
+        GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
+      }
     }
-  }
 
   private fun getBuildServicesStatus(buildTarget: GradleBuildTargetReference): GradleBuildServicesStatus {
     val module = buildTarget.module
     val project = module.project
     return CachedValuesManager.getManager(project).getCachedValue(module) {
-      CachedValueProvider.Result.create(
-        GradleBuildServicesStatus(module),
-        ProjectRootModificationTracker.getInstance(project)
-      )
+      CachedValueProvider.Result.create(GradleBuildServicesStatus(module), ProjectRootModificationTracker.getInstance(project))
     }
   }
 
   override fun getRenderingServices(buildTargetReference: GradleBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
-    return object: BuildSystemFilePreviewServices.RenderingServices {
+    return object : BuildSystemFilePreviewServices.RenderingServices {
       override val classFileFinder: ClassFileFinder?
         get() {
           val module = buildTargetReference.moduleIfNotDisposed ?: return null
@@ -123,24 +119,28 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
             module.isMainModule() -> gradleModuleSystem.moduleClassFileFinder
             module.isAndroidTestModule() -> gradleModuleSystem.androidTestsClassFileFinder
             module.isScreenshotTestModule() -> gradleModuleSystem.screenshotTestsClassFileFinder
-            module.isHolderModule() -> module.getMainModule().getModuleSystem().moduleClassFileFinder.also {
-              thisLogger().error(
-                "ClassFileFinder for $module holder module requested. This is ambiguous. Falling back to the main module.",
-                Throwable()
-              )
-            }
+            module.isHolderModule() ->
+              module.getMainModule().getModuleSystem().moduleClassFileFinder.also {
+                thisLogger()
+                  .error(
+                    "ClassFileFinder for $module holder module requested. This is ambiguous. Falling back to the main module.",
+                    Throwable(),
+                  )
+              }
             else -> null
           }
         }
+
       override val externalLibraries: Iterable<Path>
         get() {
           val module = buildTargetReference.moduleIfNotDisposed ?: return emptyList()
           val project = module.project
           return CachedValuesManager.getManager(project).getCachedValue(module) {
-            val libraries = AndroidGradleClassJarProvider.getModuleExternalLibraries(module)
-              .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
-              .mapNotNull { it.toPath() }
-              .toList()
+            val libraries =
+              AndroidGradleClassJarProvider.getModuleExternalLibraries(module)
+                .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
+                .mapNotNull { it.toPath() }
+                .toList()
             CachedValueProvider.Result.create(libraries, ProjectSyncModificationTracker.getInstance(project))
           }
         }
@@ -157,47 +157,41 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
    * Mapping is not precise, and it is not conservative in regard to cleans, failures and cancellations. For example, an interrupted rebuild
    * might be closer to a completed clean than to an interrupted build.
    */
-  override fun subscribeBuildListener(
-    project: Project,
-    parentDisposable: Disposable,
-    listener: BuildListener
-  ) {
-    GradleBuildState.subscribe(project, object : GradleBuildListener {
-      @UiThread
-      override fun buildStarted(context: BuildContext) {
-        val translatedBuildMode = context.translatedBuildMode ?: return
-        val resultFuture =
-          runningBuilds.getOrPut(context) { SettableFuture.create<BuildListener.BuildResult>() }
-        listener.buildStarted(translatedBuildMode, resultFuture)
-      }
+  override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
+    GradleBuildState.subscribe(
+      project,
+      object : GradleBuildListener {
+        @UiThread
+        override fun buildStarted(context: BuildContext) {
+          val translatedBuildMode = context.translatedBuildMode ?: return
+          val resultFuture = runningBuilds.getOrPut(context) { SettableFuture.create<BuildListener.BuildResult>() }
+          listener.buildStarted(translatedBuildMode, resultFuture)
+        }
 
-      @UiThread
-      override fun buildFinished(status: BuildStatus, context: BuildContext) {
-        val resultFuture = runningBuilds.remove(context)
-        if (resultFuture != null) {
-          resultFuture.set(
-            BuildListener.BuildResult(
-              status.toProjectSystemBuildStatus(),
-              getBuildScope(project, context)
-            )
-          )
-        } else {
-          val translatedBuildMode = context.translatedBuildMode
-          if (translatedBuildMode == BuildListener.BuildMode.COMPILE) {
-            val missedBuildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
-            listener.buildStarted(translatedBuildMode, missedBuildResultFuture)
-            missedBuildResultFuture.set(
-              BuildListener.BuildResult(
-                status.toProjectSystemBuildStatus(),
-                // `buildStarted` event was delayed and any other scope won't communicate which files were
-                // build as of their state at `buildStarted()` event.
-                GlobalSearchScope.EMPTY_SCOPE
+        @UiThread
+        override fun buildFinished(status: BuildStatus, context: BuildContext) {
+          val resultFuture = runningBuilds.remove(context)
+          if (resultFuture != null) {
+            resultFuture.set(BuildListener.BuildResult(status.toProjectSystemBuildStatus(), getBuildScope(project, context)))
+          } else {
+            val translatedBuildMode = context.translatedBuildMode
+            if (translatedBuildMode == BuildListener.BuildMode.COMPILE) {
+              val missedBuildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
+              listener.buildStarted(translatedBuildMode, missedBuildResultFuture)
+              missedBuildResultFuture.set(
+                BuildListener.BuildResult(
+                  status.toProjectSystemBuildStatus(),
+                  // `buildStarted` event was delayed and any other scope won't communicate which files were
+                  // build as of their state at `buildStarted()` event.
+                  GlobalSearchScope.EMPTY_SCOPE,
+                )
               )
-            )
+            }
           }
         }
-      }
-    }, parentDisposable)
+      },
+      parentDisposable,
+    )
   }
 
   private fun getBuildScope(project: Project, unusedContext: BuildContext): GlobalSearchScope {
@@ -230,14 +224,11 @@ private class GradleBuildServicesStatus(private val module: Module) {
   }
 }
 
-class GradleBuildTargetReference private constructor(
-  private val moduleRef: WeakReference<Module>,
-  private val moduleTag: Int
-) : BuildTargetReference {
-  internal constructor(module: Module) : this(
-    WeakReference(module),
-    module.getUserData(TAG_KEY) ?: error("Must have been initialized with the default value")
-  )
+class GradleBuildTargetReference private constructor(private val moduleRef: WeakReference<Module>, private val moduleTag: Int) :
+  BuildTargetReference {
+  internal constructor(
+    module: Module
+  ) : this(WeakReference(module), module.getUserData(TAG_KEY) ?: error("Must have been initialized with the default value"))
 
   override val moduleIfNotDisposed: Module?
     get() = moduleRef.get()?.takeUnless { it.isDisposed }
@@ -260,12 +251,13 @@ class GradleBuildTargetReference private constructor(
   }
 }
 
-private val BuildContext.translatedBuildMode: BuildListener.BuildMode? get() {
-  // TODO: solodkyy - Review mode and status mapping to handle failures and cancellations with more caution.
-  val buildMode = buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN
-  return when (buildMode) {
-    ProjectSystemBuildManager.BuildMode.UNKNOWN -> null
-    ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE -> BuildListener.BuildMode.COMPILE
-    ProjectSystemBuildManager.BuildMode.CLEAN -> BuildListener.BuildMode.CLEAN
+private val BuildContext.translatedBuildMode: BuildListener.BuildMode?
+  get() {
+    // TODO: solodkyy - Review mode and status mapping to handle failures and cancellations with more caution.
+    val buildMode = buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN
+    return when (buildMode) {
+      ProjectSystemBuildManager.BuildMode.UNKNOWN -> null
+      ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE -> BuildListener.BuildMode.COMPILE
+      ProjectSystemBuildManager.BuildMode.CLEAN -> BuildListener.BuildMode.CLEAN
+    }
   }
-}

@@ -48,23 +48,22 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.kotlin.mock
 import java.awt.Dimension
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.mock
 
 /** Tests for [DeviceUiSettingsAction]. */
 @RunsInEdt
 class DeviceUiSettingsActionTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain(agentRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain(agentRule, EdtRule(), HeadlessDialogRule())
 
   private val project
     get() = agentRule.project
@@ -135,13 +134,14 @@ class DeviceUiSettingsActionTest {
   private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   private fun connectDeviceAndCreateView(apiLevel: Int = 33, isWear: Boolean = false): DeviceView {
-    val device = agentRule.connectDevice(
-      "Pixel 8",
-      apiLevel,
-      Dimension(1344, 2992),
-      screenDensity = 480,
-      additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap()
-    )
+    val device =
+      agentRule.connectDevice(
+        "Pixel 8",
+        apiLevel,
+        Dimension(1344, 2992),
+        screenDensity = 480,
+        additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap(),
+      )
     val view = createDeviceView(device, testRootDisposable)
     view.setBounds(0, 0, 600, 800)
     waitForConnection(view)

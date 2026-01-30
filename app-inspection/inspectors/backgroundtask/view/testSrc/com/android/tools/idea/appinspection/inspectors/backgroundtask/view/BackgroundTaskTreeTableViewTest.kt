@@ -93,8 +93,7 @@ class BackgroundTaskTreeTableViewTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger =
-        BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       client =
         BackgroundTaskInspectorClient(
@@ -124,22 +123,12 @@ class BackgroundTaskTreeTableViewTest {
   @Test
   fun initializeTable() =
     runBlocking(uiDispatcher) {
-      val scrollPane =
-        TreeWalker(entriesView).descendantStream().filter { it is JScrollPane }.findFirst().get()
+      val scrollPane = TreeWalker(entriesView).descendantStream().filter { it is JScrollPane }.findFirst().get()
       // Make sure there are no ScrollPane outside the table view component.
-      assertThat(
-          TreeWalker(scrollPane).descendantStream().anyMatch {
-            it == entriesView.tableView.component
-          }
-        )
-        .isFalse()
-      val tree =
-        TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
+      assertThat(TreeWalker(scrollPane).descendantStream().anyMatch { it == entriesView.tableView.component }).isFalse()
+      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
       val root = tree.model.root
-      val labels =
-        (root as DefaultMutableTreeNode).children().toList().map {
-          (it as DefaultMutableTreeNode).userObject as String
-        }
+      val labels = (root as DefaultMutableTreeNode).children().toList().map { (it as DefaultMutableTreeNode).userObject as String }
       assertThat(labels.joinToString()).isEqualTo("Workers, Jobs, Alarms, WakeLocks")
     }
 
@@ -150,24 +139,19 @@ class BackgroundTaskTreeTableViewTest {
 
     client.sendBackgroundTaskEvent(4L) {
       taskId = 1L
-      alarmSetBuilder.apply {
-        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE
-      }
+      alarmSetBuilder.apply { type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE }
     }
 
     client.sendBackgroundTaskEvent(5L) {
       taskId = 2L
       jobScheduledBuilder.apply {
-        jobBuilder.backoffPolicy =
-          BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+        jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
       }
     }
 
     client.sendBackgroundTaskEvent(6L) {
       taskId = 3L
-      wakeLockAcquiredBuilder.apply {
-        level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
-      }
+      wakeLockAcquiredBuilder.apply { level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL }
     }
 
     withContext(uiDispatcher) {
@@ -188,8 +172,7 @@ class BackgroundTaskTreeTableViewTest {
 
       val wakeLocks = entriesView.getWakeLocksCategoryNode()
       assertThat(wakeLocks.childCount).isEqualTo(1)
-      val newWakeLock =
-        (wakeLocks.getChildAt(0) as DefaultMutableTreeNode).userObject as WakeLockEntry
+      val newWakeLock = (wakeLocks.getChildAt(0) as DefaultMutableTreeNode).userObject as WakeLockEntry
       assertThat(newWakeLock.id).isEqualTo("3")
     }
   }
@@ -220,10 +203,8 @@ class BackgroundTaskTreeTableViewTest {
     client.sendBackgroundTaskEvent(5L) {
       taskId = 2L
       jobScheduledBuilder.apply {
-        jobBuilder.backoffPolicy =
-          BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
-        jobBuilder.extras =
-          BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("${workInfo.id}")
+        jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+        jobBuilder.extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("${workInfo.id}")
       }
     }
 
@@ -300,8 +281,7 @@ class BackgroundTaskTreeTableViewTest {
       client.sendBackgroundTaskEvent(5L) {
         taskId = 3
         jobScheduledBuilder.apply {
-          jobBuilder.backoffPolicy =
-            BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+          jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
         }
       }
       // This should be nested under a worker. Will not show up under Jobs category.
@@ -309,8 +289,7 @@ class BackgroundTaskTreeTableViewTest {
         taskId = 4
         jobScheduledBuilder.apply {
           jobBuilder.apply {
-            backoffPolicy =
-              BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+            backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
             extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("123")
           }
         }
@@ -318,8 +297,7 @@ class BackgroundTaskTreeTableViewTest {
       client.sendBackgroundTaskEvent(4L) {
         taskId = 5
         jobScheduledBuilder.apply {
-          jobBuilder.backoffPolicy =
-            BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+          jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
         }
       }
       client.sendBackgroundTaskEvent(4L) {
@@ -328,15 +306,11 @@ class BackgroundTaskTreeTableViewTest {
       }
       client.sendBackgroundTaskEvent(6L) {
         taskId = 6
-        wakeLockAcquiredBuilder.apply {
-          level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
-        }
+        wakeLockAcquiredBuilder.apply { level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL }
       }
       client.sendBackgroundTaskEvent(5L) {
         taskId = 7
-        wakeLockAcquiredBuilder.apply {
-          level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
-        }
+        wakeLockAcquiredBuilder.apply { level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL }
       }
       client.sendBackgroundTaskEvent(7L) {
         taskId = 6
@@ -344,9 +318,7 @@ class BackgroundTaskTreeTableViewTest {
       }
 
       withContext(uiDispatcher) {
-        val tree =
-          TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get()
-            as JTree
+        val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
         val root = tree.model.root as DefaultMutableTreeNode
         val model = tree.model as BackgroundTaskTreeModel
         assertThat(root.getWorksCategoryNode().childCount).isEqualTo(3)
@@ -403,10 +375,7 @@ class BackgroundTaskTreeTableViewTest {
       }
     }
 
-  /**
-   * Asserts that the header renderer uses the same underlying component (b/472094288) and sets
-   * height correctly.
-   */
+  /** Asserts that the header renderer uses the same underlying component (b/472094288) and sets height correctly. */
   @Test
   fun headerRendererUsesSameComponent() {
     val view = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
@@ -432,9 +401,7 @@ class BackgroundTaskTreeTableViewTest {
   }
 }
 
-private fun <T> DefaultMutableTreeNode.verifyNaturalOrdering(
-  extractor: BackgroundTaskEntry.() -> T
-) {
+private fun <T> DefaultMutableTreeNode.verifyNaturalOrdering(extractor: BackgroundTaskEntry.() -> T) {
   assertThat(
       getWorksCategoryNode()
         .children()
@@ -452,11 +419,7 @@ private fun <T> DefaultMutableTreeNode.verifyNaturalOrdering(
     )
     .isOrdered()
   assertThat(
-      getJobsCategoryNode()
-        .children()
-        .toList()
-        .map { extractor((it as DefaultMutableTreeNode).userObject as BackgroundTaskEntry) }
-        .toList()
+      getJobsCategoryNode().children().toList().map { extractor((it as DefaultMutableTreeNode).userObject as BackgroundTaskEntry) }.toList()
     )
     .isOrdered()
   assertThat(

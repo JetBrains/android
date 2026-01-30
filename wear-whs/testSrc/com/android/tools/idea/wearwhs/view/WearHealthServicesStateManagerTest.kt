@@ -84,8 +84,7 @@ class WearHealthServicesStateManagerTest {
   fun setUp() = runBlocking {
     loggedEvents.clear()
 
-    val testWorkerScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    val testWorkerScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
     deviceManager = FakeDeviceManager(capabilities)
     stateManager =
       WearHealthServicesStateManagerImpl(
@@ -109,129 +108,65 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
-  fun `test state manager has the correct list of capabilities enabled when standard preset is loaded`() =
-    runBlocking {
-      stateManager.loadPreset(Preset.STANDARD)
+  fun `test state manager has the correct list of capabilities enabled when standard preset is loaded`() = runBlocking {
+    stateManager.loadPreset(Preset.STANDARD)
 
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(locationCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(false)
-    }
+    stateManager.getState(heartRateBpmCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.currentState.enabled }.waitForValue(false)
+  }
 
   @Test
-  fun `test state manager reports to the subscribers when all capabilities preset is loaded`() =
-    runBlocking {
-      stateManager.loadPreset(Preset.STANDARD)
+  fun `test state manager reports to the subscribers when all capabilities preset is loaded`() = runBlocking {
+    stateManager.loadPreset(Preset.STANDARD)
 
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(locationCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(false)
+    stateManager.getState(heartRateBpmCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.currentState.enabled }.waitForValue(false)
 
-      stateManager.loadPreset(Preset.ALL)
+    stateManager.loadPreset(Preset.ALL)
 
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(locationCapability)
-        .mapState { it.currentState.enabled }
-        .waitForValue(true)
-      stateManager.getState(stepsCapability).mapState { it.currentState.enabled }.waitForValue(true)
-    }
+    stateManager.getState(heartRateBpmCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.currentState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.currentState.enabled }.waitForValue(true)
+  }
 
   @Test
-  fun `test state manager initialises all capabilities to UpToDate, enabled and no override`() =
-    runBlocking {
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it is UpToDateCapabilityUIState }
-        .waitForValue(true)
-      stateManager
-        .getState(locationCapability)
-        .mapState { it is UpToDateCapabilityUIState }
-        .waitForValue(true)
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it is UpToDateCapabilityUIState }
-        .waitForValue(true)
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.upToDateState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(locationCapability)
-        .mapState { it.upToDateState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.upToDateState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
-      stateManager
-        .getState(locationCapability)
-        .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.LOCATION.noValue())
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.STEPS.noValue())
-    }
+  fun `test state manager initialises all capabilities to UpToDate, enabled and no override`() = runBlocking {
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.upToDateState.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it.upToDateState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.upToDateState.enabled }.waitForValue(true)
+    stateManager
+      .getState(heartRateBpmCapability)
+      .mapState { it.upToDateState.overrideValue }
+      .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
+    stateManager.getState(locationCapability).mapState { it.upToDateState.overrideValue }.waitForValue(WhsDataType.LOCATION.noValue())
+    stateManager.getState(stepsCapability).mapState { it.upToDateState.overrideValue }.waitForValue(WhsDataType.STEPS.noValue())
+  }
 
   @Test
-  fun `test state manager sets capabilities that are not returned by device manager to default state`() =
-    runBlocking {
-      stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
-      stateManager.applyChanges()
+  fun `test state manager sets capabilities that are not returned by device manager to default state`() = runBlocking {
+    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
+    stateManager.applyChanges()
 
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.upToDateState.enabled }
-        .waitForValue(false)
+    stateManager.getState(heartRateBpmCapability).mapState { it.upToDateState.enabled }.waitForValue(false)
 
-      deviceManager.activeExercise = true
-      stateManager.ongoingExercise.waitForValue(true)
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
 
-      stateManager.setOverrideValue(stepsCapability, 3f)
-      stateManager.applyChanges()
+    stateManager.setOverrideValue(stepsCapability, 3f)
+    stateManager.applyChanges()
 
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.STEPS.value(3f))
+    stateManager.getState(stepsCapability).mapState { it.upToDateState.overrideValue }.waitForValue(WhsDataType.STEPS.value(3f))
 
-      deviceManager.clearContentProvider()
+    deviceManager.clearContentProvider()
 
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it.upToDateState.enabled }
-        .waitForValue(true)
-      stateManager
-        .getState(stepsCapability)
-        .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.STEPS.noValue())
-    }
+    stateManager.getState(heartRateBpmCapability).mapState { it.upToDateState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.upToDateState.overrideValue }.waitForValue(WhsDataType.STEPS.noValue())
+  }
 
   @Test
   fun `test getCapabilityEnabled has the correct value`() = runBlocking {
@@ -265,35 +200,20 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.reset()
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
     stateManager
       .getState(heartRateBpmCapability)
       .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.overrideValue }
       .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
-    stateManager
-      .getState(stepsCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(false)
+    stateManager.getState(stepsCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(false)
     assertEquals(1, deviceManager.overrideValuesInvocations)
   }
 
   @Test
   fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
-    stateManager
-      .getState(locationCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
 
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
     stateManager
@@ -305,10 +225,7 @@ class WearHealthServicesStateManagerTest {
     assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
     deviceManager.activeExercise = true
     stateManager.ongoingExercise.waitForValue(true)
 
@@ -316,127 +233,65 @@ class WearHealthServicesStateManagerTest {
     stateManager.setOverrideValue(stepsCapability, 30)
 
     // Location capability can not be overridden (has no value) so it will remain up-to-date
-    stateManager
-      .getState(locationCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
 
     result = stateManager.applyChanges()
     assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(locationCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
 
     assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
-      .containsEntry(
-        heartRateBpmCapability.dataType,
-        CapabilityState.disabled(WhsDataType.HEART_RATE_BPM),
-      )
+      .containsEntry(heartRateBpmCapability.dataType, CapabilityState.disabled(WhsDataType.HEART_RATE_BPM))
     assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
-      .containsEntry(
-        locationCapability.dataType,
-        CapabilityState(true, WhsDataType.LOCATION.noValue()),
-      )
+      .containsEntry(locationCapability.dataType, CapabilityState(true, WhsDataType.LOCATION.noValue()))
 
     assertThat(loggedEvents).hasSize(3)
-    assertThat(loggedEvents[0].kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind)
-      .isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
-    assertThat(loggedEvents[1].kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[1].wearHealthServicesEvent.kind)
-      .isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
-    assertThat(loggedEvents[2].kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[2].wearHealthServicesEvent.kind)
-      .isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
+    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
+    assertThat(loggedEvents[2].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[2].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
   }
 
   @Test
-  fun `when not in an exercise applyChanges only updates capabilities and does not update override values`():
-    Unit = runBlocking {
+  fun `when not in an exercise applyChanges only updates capabilities and does not update override values`(): Unit = runBlocking {
     deviceManager.activeExercise = false
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
-    stateManager
-      .getState(locationCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
 
     stateManager.setOverrideValue(heartRateBpmCapability, 80)
     stateManager.setCapabilityEnabled(locationCapability, false)
     stateManager.setCapabilityEnabled(stepsCapability, false)
     stateManager.setOverrideValue(stepsCapability, 30)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(locationCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
 
     val result = stateManager.applyChanges()
 
     assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(locationCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(locationCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
 
     val capabilityStates = deviceManager.loadCurrentCapabilityStates().getOrThrow()
-    assertThat(capabilityStates)
-      .containsEntry(
-        heartRateBpmCapability.dataType,
-        CapabilityState.enabled(WhsDataType.HEART_RATE_BPM),
-      )
-    assertThat(capabilityStates)
-      .containsEntry(locationCapability.dataType, CapabilityState.disabled(WhsDataType.LOCATION))
-    assertThat(capabilityStates)
-      .containsEntry(stepsCapability.dataType, CapabilityState.disabled(WhsDataType.STEPS))
+    assertThat(capabilityStates).containsEntry(heartRateBpmCapability.dataType, CapabilityState.enabled(WhsDataType.HEART_RATE_BPM))
+    assertThat(capabilityStates).containsEntry(locationCapability.dataType, CapabilityState.disabled(WhsDataType.LOCATION))
+    assertThat(capabilityStates).containsEntry(stepsCapability.dataType, CapabilityState.disabled(WhsDataType.STEPS))
   }
 
   @Test
-  fun `when in an exercise applyChanges only updates override values and not sensor availability`():
-    Unit = runBlocking {
+  fun `when in an exercise applyChanges only updates override values and not sensor availability`(): Unit = runBlocking {
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
     stateManager
       .getState(heartRateBpmCapability)
@@ -457,22 +312,12 @@ class WearHealthServicesStateManagerTest {
     assertThat(result.isSuccess).isTrue()
     stateManager.status.waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it.upToDateState.enabled }
-      .waitForValue(true)
-    stateManager
-      .getState(stepsCapability)
-      .mapState { it.upToDateState.overrideValue }
-      .waitForValue(stepsCapability.dataType.value(80))
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it.upToDateState.enabled }.waitForValue(true)
+    stateManager.getState(stepsCapability).mapState { it.upToDateState.overrideValue }.waitForValue(stepsCapability.dataType.value(80))
 
     val capabilityStates = deviceManager.loadCurrentCapabilityStates().getOrThrow()
-    assertThat(capabilityStates)
-      .containsEntry(stepsCapability.dataType, CapabilityState(true, WhsDataType.STEPS.value(80f)))
+    assertThat(capabilityStates).containsEntry(stepsCapability.dataType, CapabilityState(true, WhsDataType.STEPS.value(80f)))
   }
 
   @Test
@@ -486,14 +331,10 @@ class WearHealthServicesStateManagerTest {
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     assertThat(loggedEvents).hasSize(2)
-    assertThat(loggedEvents[0].kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind)
-      .isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
-    assertThat(loggedEvents[1].kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[1].wearHealthServicesEvent.kind)
-      .isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
+    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
   }
 
   @Test
@@ -538,10 +379,7 @@ class WearHealthServicesStateManagerTest {
     deviceManager.overrideValues(listOf(WhsDataType.HEART_RATE_BPM.value(10f)))
 
     // Verify that the value is updated
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.enabled }.waitForValue(true)
     stateManager
       .getState(heartRateBpmCapability)
       .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.overrideValue }
@@ -580,36 +418,24 @@ class WearHealthServicesStateManagerTest {
   fun `reset clears the state successfully`(): Unit = runBlocking {
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
     val result = stateManager.reset()
 
     assertThat(result.isSuccess).isTrue()
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is UpToDateCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
   }
 
   @Test
   fun `when there is no connection reset does not clear the state`(): Unit = runBlocking {
     stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
 
-    stateManager
-      .getState(heartRateBpmCapability)
-      .mapState { it is PendingUserChangesCapabilityUIState }
-      .waitForValue(true)
+    stateManager.getState(heartRateBpmCapability).mapState { it is PendingUserChangesCapabilityUIState }.waitForValue(true)
     deviceManager.failState = true
     val result = stateManager.reset()
 
     assertThat(result.isSuccess).isFalse()
     try {
-      stateManager
-        .getState(heartRateBpmCapability)
-        .mapState { it is UpToDateCapabilityUIState }
-        .waitForValue(true)
+      stateManager.getState(heartRateBpmCapability).mapState { it is UpToDateCapabilityUIState }.waitForValue(true)
       fail("Value should not reset if the communication with the device is lost")
     } catch (_: AssertionError) {}
   }
@@ -644,10 +470,7 @@ class WearHealthServicesStateManagerTest {
 
       stateManager.preset.waitForValue(Preset.ALL)
       capabilities.forEach {
-        stateManager
-          .getState(it)
-          .mapState { (it as UpToDateCapabilityUIState).currentState.enabled }
-          .waitForValue(true)
+        stateManager.getState(it).mapState { (it as UpToDateCapabilityUIState).currentState.enabled }.waitForValue(true)
       }
     }
 
@@ -666,10 +489,7 @@ class WearHealthServicesStateManagerTest {
 
       stateManager.preset.waitForValue(Preset.STANDARD)
       capabilities.forEach {
-        stateManager
-          .getState(it)
-          .mapState { (it as UpToDateCapabilityUIState).currentState.enabled }
-          .waitForValue(it.isStandardCapability)
+        stateManager.getState(it).mapState { (it as UpToDateCapabilityUIState).currentState.enabled }.waitForValue(it.isStandardCapability)
       }
     }
 }

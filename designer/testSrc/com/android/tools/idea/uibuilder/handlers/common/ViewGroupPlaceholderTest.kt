@@ -105,17 +105,8 @@ class ViewGroupPlaceholderTest : SceneTest() {
             .id("@id/viewGroup")
             .width("200dp")
             .height("200dp")
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 200, 200)
-                .width("100dp")
-                .height("100dp")
-            ),
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(400, 0, 200, 200)
-            .id("@id/textView")
-            .width("100dp")
-            .height("100dp"),
+            .children(component(SdkConstants.TEXT_VIEW).withBounds(0, 0, 200, 200).width("100dp").height("100dp")),
+          component(SdkConstants.TEXT_VIEW).withBounds(400, 0, 200, 200).id("@id/textView").width("100dp").height("100dp"),
         ),
     )
   }

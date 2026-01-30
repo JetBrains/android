@@ -28,12 +28,12 @@ import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.toMutableConfig
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 internal class DeviceConfigTest {
   @Test
@@ -57,9 +57,7 @@ internal class DeviceConfigTest {
     assertEquals(Shape.Round, config.shape)
 
     // Additional parameters ignored, should be handled by Inspections
-    assertNotNull(
-      parseDeviceSpec("spec:id=myId,isRound=true,width=240px,height=120px,dpi=480,foo=bar")
-    )
+    assertNotNull(parseDeviceSpec("spec:id=myId,isRound=true,width=240px,height=120px,dpi=480,foo=bar"))
 
     // Invalid values in known parameters, should fail to parse
     assertNull(parseDeviceSpec("spec:width=invalid,height=1920,dpi=invalid"))
@@ -167,10 +165,7 @@ internal class DeviceConfigTest {
         cutout = Cutout.double,
         navigation = Navigation.buttons,
       )
-    assertEquals(
-      "spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,cutout=double,navigation=buttons",
-      config.deviceSpec(),
-    )
+    assertEquals("spec:width=100dp,height=200dp,dpi=300,isRound=true,chinSize=40dp,cutout=double,navigation=buttons", config.deviceSpec())
 
     // Orientation change is reflected as a parameter with the DeviceSpec Language
     assertEquals(
@@ -197,10 +192,7 @@ internal class DeviceConfigTest {
         cutout = Cutout.double,
         navigation = Navigation.buttons,
       )
-    assertEquals(
-      "spec:width=100dp,height=200dp,isRound=true,chinSize=40dp,cutout=double,navigation=buttons",
-      config.deviceSpec(),
-    )
+    assertEquals("spec:width=100dp,height=200dp,isRound=true,chinSize=40dp,cutout=double,navigation=buttons", config.deviceSpec())
 
     // Default chinSize not shown
     config =
@@ -214,10 +206,7 @@ internal class DeviceConfigTest {
         cutout = Cutout.double,
         navigation = Navigation.buttons,
       )
-    assertEquals(
-      "spec:width=100dp,height=200dp,isRound=true,cutout=double,navigation=buttons",
-      config.deviceSpec(),
-    )
+    assertEquals("spec:width=100dp,height=200dp,isRound=true,cutout=double,navigation=buttons", config.deviceSpec())
 
     // Default isRound not shown, chinSize is dependent on device being round
     config =
@@ -231,10 +220,7 @@ internal class DeviceConfigTest {
         cutout = Cutout.double,
         navigation = Navigation.buttons,
       )
-    assertEquals(
-      "spec:width=100dp,height=200dp,cutout=double,navigation=buttons",
-      config.deviceSpec(),
-    )
+    assertEquals("spec:width=100dp,height=200dp,cutout=double,navigation=buttons", config.deviceSpec())
 
     // Default cutout not shown
     config =
@@ -265,10 +251,7 @@ internal class DeviceConfigTest {
     assertEquals("spec:width=100dp,height=200dp", config.deviceSpec())
 
     // For DeviceSpec Language, one decimal for floating point supported
-    assertEquals(
-      "spec:width=123.5dp,height=567.9dp",
-      DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec(),
-    )
+    assertEquals("spec:width=123.5dp,height=567.9dp", DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec())
   }
 
   @Test
@@ -280,22 +263,12 @@ internal class DeviceConfigTest {
 
     // If parentDevice is defined but orientation is not default, keep parentDeviceId and show
     // orientation.
-    config =
-      DeviceConfig(
-        deviceId = null,
-        parentDeviceId = Device.NEXUS_7.display,
-        orientation = Orientation.landscape,
-      )
+    config = DeviceConfig(deviceId = null, parentDeviceId = Device.NEXUS_7.display, orientation = Orientation.landscape)
     assertEquals("spec:parent=${Device.NEXUS_7.display},orientation=landscape", config.deviceSpec())
 
     // If parentDevice is defined but navigation is not default, keep parentDeviceId and show
     // orientation.
-    config =
-      DeviceConfig(
-        deviceId = null,
-        parentDeviceId = Device.NEXUS_7.display,
-        navigation = Navigation.buttons,
-      )
+    config = DeviceConfig(deviceId = null, parentDeviceId = Device.NEXUS_7.display, navigation = Navigation.buttons)
     assertEquals("spec:parent=${Device.NEXUS_7.display},navigation=buttons", config.deviceSpec())
 
     // If parentDevice is defined but both navigation and orientation aren't default, keep
@@ -307,10 +280,7 @@ internal class DeviceConfigTest {
         navigation = Navigation.buttons,
         orientation = Orientation.landscape,
       )
-    assertEquals(
-      "spec:parent=${Device.NEXUS_7.display},orientation=landscape,navigation=buttons",
-      config.deviceSpec(),
-    )
+    assertEquals("spec:parent=${Device.NEXUS_7.display},orientation=landscape,navigation=buttons", config.deviceSpec())
   }
 
   @Test

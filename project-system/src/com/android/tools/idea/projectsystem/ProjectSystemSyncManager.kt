@@ -23,21 +23,17 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.util.messages.Topic
 
-/**
- * Provides a build-system-agnostic interface for triggering, responding to, and gathering information about project syncs.
- */
+/** Provides a build-system-agnostic interface for triggering, responding to, and gathering information about project syncs. */
 interface ProjectSystemSyncManager {
   /**
-   * Requests synchronizing the IDE model with the build system model of the project. Source generation
-   * may be triggered when sync completes. If source generation is triggered, the future result of the sync request will
-   * not be set until after source generation completes.
+   * Requests synchronizing the IDE model with the build system model of the project. Source generation may be triggered when sync
+   * completes. If source generation is triggered, the future result of the sync request will not be set until after source generation
+   * completes.
    *
    * @param reason the caller's reason for requesting a sync
-   *
-   * @return the future result of the sync request. The future will complete with a [SyncResult] value describing the
-   * outcome. Note that cancellations, whether initiated manually or by user preferences, are considered normal outcomes
-   * and will not result in an exception. However, the [ListenableFuture] may fail with an exception in case
-   * of unexpected problems.
+   * @return the future result of the sync request. The future will complete with a [SyncResult] value describing the outcome. Note that
+   *   cancellations, whether initiated manually or by user preferences, are considered normal outcomes and will not result in an exception.
+   *   However, the [ListenableFuture] may fail with an exception in case of unexpected problems.
    */
   fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult>
 
@@ -50,8 +46,8 @@ interface ProjectSystemSyncManager {
   fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> = requestSyncProject(reason)
 
   /**
-   * Returns whether or not a sync is in progress. The return value of this method can change at any time as syncs are performed.
-   * To listen for changes in the return value due to a sync ending, subscribe to [PROJECT_SYSTEM_SYNC_TOPIC].
+   * Returns whether or not a sync is in progress. The return value of this method can change at any time as syncs are performed. To listen
+   * for changes in the return value due to a sync ending, subscribe to [PROJECT_SYSTEM_SYNC_TOPIC].
    *
    * Currently, we do not provide a way for callers to be notified when the return value changes due to a sync starting.
    *
@@ -60,11 +56,11 @@ interface ProjectSystemSyncManager {
   fun isSyncInProgress(): Boolean
 
   /**
-   * Indicates whether or not a project sync is needed. Generally, a sync is needed when build system files have been modified
-   * since the last sync began.
+   * Indicates whether or not a project sync is needed. Generally, a sync is needed when build system files have been modified since the
+   * last sync began.
    *
-   * The return value of this method can change at any time as syncs are performed and build files are updated. Currently, we do not
-   * provide a way for callers to be notified when the return value becomes stale.
+   * The return value of this method can change at any time as syncs are performed and build files are updated. Currently, we do not provide
+   * a way for callers to be notified when the return value becomes stale.
    *
    * @return true if the project needs to be synced
    */
@@ -74,9 +70,9 @@ interface ProjectSystemSyncManager {
    * Returns the result of the last completed project sync. If for some reason the [ProjectSystemSyncManager] does not know about the result
    * of the most recently completed sync (e.g. the project has never been synced), this method will return [SyncResult.UNKNOWN].
    *
-   * The return value of this method can change at any time as project syncs are completed. Callers who wish to be notified when the
-   * return value of this method has become stale should listen for sync results by subscribing to [PROJECT_SYSTEM_SYNC_TOPIC] instead
-   * of calling this method.
+   * The return value of this method can change at any time as project syncs are completed. Callers who wish to be notified when the return
+   * value of this method has become stale should listen for sync results by subscribing to [PROJECT_SYSTEM_SYNC_TOPIC] instead of calling
+   * this method.
    *
    * @return the result of the last completed sync, or [SyncResult.UNKNOWN] if this information is unavailable
    */
@@ -102,34 +98,28 @@ interface ProjectSystemSyncManager {
     /** The project state was loaded from a cache instead of performing an actual sync */
     SKIPPED(true),
     /** Sync succeeded */
-    SUCCESS(true);
+    SUCCESS(true),
   }
 
   /** The requestor's reason for syncing the project */
   data class SyncReason(val forStats: Trigger) {
     companion object {
       /** The project is being loaded */
-      @JvmField
-      val PROJECT_LOADED = SyncReason(Trigger.TRIGGER_PROJECT_REOPEN)
+      @JvmField val PROJECT_LOADED = SyncReason(Trigger.TRIGGER_PROJECT_REOPEN)
       /** The project has been modified */
-      @JvmField
-      val PROJECT_MODIFIED = SyncReason(Trigger.TRIGGER_PROJECT_MODIFIED)
+      @JvmField val PROJECT_MODIFIED = SyncReason(Trigger.TRIGGER_PROJECT_MODIFIED)
       /** The project has been modified (dependency updated) */
-      @JvmField
-      val PROJECT_DEPENDENCY_UPDATED = SyncReason(Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED)
+      @JvmField val PROJECT_DEPENDENCY_UPDATED = SyncReason(Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED)
       /** The user requested the sync directly (by pushing the button) */
-      @JvmField
-      val USER_REQUEST = SyncReason(Trigger.TRIGGER_USER_REQUEST)
+      @JvmField val USER_REQUEST = SyncReason(Trigger.TRIGGER_USER_REQUEST)
       /** An agent requested the sync */
-      @JvmField
-      val AGENT_REQUESTED = SyncReason(Trigger.TRIGGER_AGENT_REQUESTED)
+      @JvmField val AGENT_REQUESTED = SyncReason(Trigger.TRIGGER_AGENT_REQUESTED)
     }
   }
 
   /** Listener which provides a callback for when syncs complete */
   fun interface SyncResultListener {
-    @AnyThread
-    fun syncEnded(result: SyncResult)
+    @AnyThread fun syncEnded(result: SyncResult)
   }
 }
 

@@ -98,17 +98,15 @@ class WifiPairableDeviceProvisionerPlugin(
   private val wifiConnectedDevices = MutableStateFlow<Set<String>>(emptySet())
 
   /**
-   * Must have higher priority than PhysicalDeviceProvisionerPlugin to filter out already
-   * wifi-connected devices. It's ok to have very high priority since
-   * WifiPairableDeviceProvisionerPlugin never claims any devices.
+   * Must have higher priority than PhysicalDeviceProvisionerPlugin to filter out already wifi-connected devices. It's ok to have very high
+   * priority since WifiPairableDeviceProvisionerPlugin never claims any devices.
    *
    * @see PhysicalDeviceProvisionerPlugin.priority
    */
   override val priority: Int = Integer.MAX_VALUE
 
   override suspend fun claim(device: ConnectedDevice): DeviceHandle? {
-    wifiConnectedDevicesRegex.find(device.serialNumber)?.groupValues?.get(1)?.let {
-      wifiConnectedDevice ->
+    wifiConnectedDevicesRegex.find(device.serialNumber)?.groupValues?.get(1)?.let { wifiConnectedDevice ->
       wifiConnectedDevices.update { it + wifiConnectedDevice }
       scope.launch {
         device.awaitDisconnection()
@@ -133,10 +131,7 @@ class WifiPairableDeviceProvisionerPlugin(
             if (throwable is CancellationException) {
               false
             } else {
-              log.warn(
-                "Error tracking mDNS services (attempt ${attempt + 1}), retrying in 1000 ms",
-                throwable,
-              )
+              log.warn("Error tracking mDNS services (attempt ${attempt + 1}), retrying in 1000 ms", throwable)
               delay(1000)
               true
             }
@@ -149,11 +144,7 @@ class WifiPairableDeviceProvisionerPlugin(
           currentWifiConnectedDevices ->
           mutex.withLock {
             val newVisibleHandlesMap =
-              buildNewVisibleHandlesMap(
-                currentTrackServices,
-                currentHiddenDeviceServiceNames,
-                currentWifiConnectedDevices,
-              )
+              buildNewVisibleHandlesMap(currentTrackServices, currentHiddenDeviceServiceNames, currentWifiConnectedDevices)
 
             val handlesToCancel = determineHandlesToCancel(newVisibleHandlesMap)
 
@@ -166,9 +157,7 @@ class WifiPairableDeviceProvisionerPlugin(
             deviceHandles.putAll(newVisibleHandlesMap)
 
             _devices.value = deviceHandles.values.toList()
-            log.debug(
-              "Updated devices list. Count: ${deviceHandles.size}. Hidden count: ${currentHiddenDeviceServiceNames.size}"
-            )
+            log.debug("Updated devices list. Count: ${deviceHandles.size}. Hidden count: ${currentHiddenDeviceServiceNames.size}")
           }
         }
         .collect()
@@ -201,10 +190,7 @@ class WifiPairableDeviceProvisionerPlugin(
 
       val handle =
         this.deviceHandles[serviceName]?.also {
-          it.ensureDeviceNameUpToDate(
-            trackService,
-            buildDeviceNameForDeviceManager(trackService.service),
-          )
+          it.ensureDeviceNameUpToDate(trackService, buildDeviceNameForDeviceManager(trackService.service))
         }
           ?: run {
             log.info("Creating new WifiPairableDeviceHandle for service: $serviceName")
@@ -246,9 +232,7 @@ class WifiPairableDeviceProvisionerPlugin(
     override val message = "Check for device software updates to improve Wi-Fi pairing."
   }
 
-  private fun determineHandlesToCancel(
-    newVisibleHandlesMap: Map<String, WifiPairableDeviceHandle>
-  ): List<WifiPairableDeviceHandle> {
+  private fun determineHandlesToCancel(newVisibleHandlesMap: Map<String, WifiPairableDeviceHandle>): List<WifiPairableDeviceHandle> {
     val handlesToCancel = mutableListOf<WifiPairableDeviceHandle>()
     this.deviceHandles.forEach { (serviceName, handle) ->
       if (!newVisibleHandlesMap.containsKey(serviceName)) {
@@ -260,9 +244,7 @@ class WifiPairableDeviceProvisionerPlugin(
 
   private fun buildDeviceNameForDeviceManager(service: MdnsTrackServiceInfo): String =
     service.givenName.takeUnless { it.isNullOrBlank() }
-      ?: service.deviceModel
-        .takeUnless { it.isNullOrBlank() }
-        ?.let { "$it at ${service.ipv4}:${service.port}" }
+      ?: service.deviceModel.takeUnless { it.isNullOrBlank() }?.let { "$it at ${service.ipv4}:${service.port}" }
       ?: "Device at ${service.ipv4}:${service.port}"
 
   data class WifiPairableDeviceProperties(
@@ -289,12 +271,10 @@ class WifiPairableDeviceProvisionerPlugin(
     val mdnsService: MdnsTrackServiceInfo,
   ) : DeviceProperties {
 
-    override fun toBuilder(): Builder =
-      Builder().apply { copyFrom(this@WifiPairableDeviceProperties) }
+    override fun toBuilder(): Builder = Builder().apply { copyFrom(this@WifiPairableDeviceProperties) }
 
     companion object {
-      inline fun build(block: Builder.() -> Unit): WifiPairableDeviceProperties =
-        Builder().apply(block).build()
+      inline fun build(block: Builder.() -> Unit): WifiPairableDeviceProperties = Builder().apply(block).build()
     }
 
     class Builder : DeviceProperties.Builder() {
@@ -348,17 +328,14 @@ class WifiPairableDeviceProvisionerPlugin(
         baseState: Disconnected,
         project: Project,
         notificationService: WiFiPairingNotificationService,
-      ): WifiPairableDeviceHandle =
-        WifiPairableDeviceHandle(scope, MutableStateFlow(baseState), project, notificationService)
+      ): WifiPairableDeviceHandle = WifiPairableDeviceHandle(scope, MutableStateFlow(baseState), project, notificationService)
     }
 
     private val mdnsService: MdnsTrackServiceInfo
       get() = (stateFlow.value.properties as WifiPairableDeviceProperties).mdnsService
 
     private fun buildDeviceName(service: MdnsTrackServiceInfo): String =
-      service.givenName.takeUnless { it.isNullOrBlank() }
-        ?: service.deviceModel.takeUnless { it.isNullOrBlank() }
-        ?: "Device"
+      service.givenName.takeUnless { it.isNullOrBlank() } ?: service.deviceModel.takeUnless { it.isNullOrBlank() } ?: "Device"
 
     fun ensureDeviceNameUpToDate(trackService: MdnsTlsService, newModel: String) {
       _stateFlow.update { currentState ->
@@ -392,8 +369,7 @@ class WifiPairableDeviceProvisionerPlugin(
           controller.showDialog()
         }
 
-        private val defaultPresentation =
-          DeviceAction.Presentation("Pair", StudioIcons.Avd.PAIR_OVER_WIFI, true)
+        private val defaultPresentation = DeviceAction.Presentation("Pair", StudioIcons.Avd.PAIR_OVER_WIFI, true)
 
         override val presentation = MutableStateFlow(defaultPresentation).asStateFlow()
       }
@@ -401,19 +377,14 @@ class WifiPairableDeviceProvisionerPlugin(
     override val hideDeviceAction: HideDeviceAction =
       object : HideDeviceAction {
         override suspend fun hide() {
-          WifiPairableDevicesPersistentStateComponent.getInstance()
-            .addHiddenDevice(mdnsService.serviceInstanceName.instance)
-          project.coroutineScope.launch(Dispatchers.EDT) {
-            notificationService.showDeviceHiddenBalloon(buildDeviceName(mdnsService))
-          }
+          WifiPairableDevicesPersistentStateComponent.getInstance().addHiddenDevice(mdnsService.serviceInstanceName.instance)
+          project.coroutineScope.launch(Dispatchers.EDT) { notificationService.showDeviceHiddenBalloon(buildDeviceName(mdnsService)) }
         }
 
-        override val presentation =
-          MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
+        override val presentation = MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
       }
 
-    override val id =
-      DeviceId("Wireless", false, "serviceName=${mdnsService.serviceInstanceName.instance}")
+    override val id = DeviceId("Wireless", false, "serviceName=${mdnsService.serviceInstanceName.instance}")
   }
 
   companion object {

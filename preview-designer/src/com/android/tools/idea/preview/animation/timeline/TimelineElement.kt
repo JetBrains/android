@@ -38,15 +38,8 @@ interface PositionProxy {
 }
 
 /** Group of [TimelineElement] for timeline. Group elements are moved and frozen together. */
-open class ParentTimelineElement(
-  frozenState: SupportedAnimationManager.FrozenState,
-  private val children: List<TimelineElement>,
-) :
-  TimelineElement(
-    frozenState,
-    minX = children.minOfOrNull { it.minX } ?: 0,
-    maxX = children.maxOfOrNull { it.maxX } ?: 0,
-  ) {
+open class ParentTimelineElement(frozenState: SupportedAnimationManager.FrozenState, private val children: List<TimelineElement>) :
+  TimelineElement(frozenState, minX = children.minOfOrNull { it.minX } ?: 0, maxX = children.maxOfOrNull { it.maxX } ?: 0) {
 
   override val height = children.sumOf { it.height }
 
@@ -62,11 +55,7 @@ open class ParentTimelineElement(
 }
 
 /** Drawable element for timeline. Each element could be moved and frozen. */
-abstract class TimelineElement(
-  val frozenState: SupportedAnimationManager.FrozenState,
-  val minX: Int,
-  val maxX: Int,
-) : Disposable {
+abstract class TimelineElement(val frozenState: SupportedAnimationManager.FrozenState, val minX: Int, val maxX: Int) : Disposable {
 
   abstract val height: Int
 

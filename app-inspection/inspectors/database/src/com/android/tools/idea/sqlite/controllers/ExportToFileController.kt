@@ -87,15 +87,12 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * @param downloadDatabase allows to download a database from the device (works for file-based
- *   databases (i.e. not in-memory))
+ * @param downloadDatabase allows to download a database from the device (works for file-based databases (i.e. not in-memory))
  * @param deleteDatabase allows to delete files downloaded using [downloadDatabase]
- * @param acquireDatabaseLock Takes a databaseId; returns lockId or null if it was not possible to
- *   secure a lock. Locking means preventing any thread (including application threads) from
- *   modifying the database while the lock is in place. This allows for getting a consistent
- *   snapshot of the data (e.g. when exporting a large table, we are fetching the data from the
- *   device by chunks, and locking guarantees that the table won't change while we are in the
- *   process of fetching the data).
+ * @param acquireDatabaseLock Takes a databaseId; returns lockId or null if it was not possible to secure a lock. Locking means preventing
+ *   any thread (including application threads) from modifying the database while the lock is in place. This allows for getting a consistent
+ *   snapshot of the data (e.g. when exporting a large table, we are fetching the data from the device by chunks, and locking guarantees
+ *   that the table won't change while we are in the process of fetching the data).
  * @param releaseDatabaseLock takes a lockId acquired through [acquireDatabaseLock]
  */
 class ExportToFileController(
@@ -103,8 +100,7 @@ class ExportToFileController(
   private val projectScope: CoroutineScope,
   private val view: ExportToFileDialogView,
   private val databaseRepository: DatabaseRepository,
-  private val downloadDatabase:
-    (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
+  private val downloadDatabase: (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
   private val deleteDatabase: suspend (DatabaseFileData) -> Unit,
   private val acquireDatabaseLock: suspend (Int) -> Int?,
   private val releaseDatabaseLock: suspend (Int) -> Unit,
@@ -173,11 +169,7 @@ class ExportToFileController(
     }
 
   /** Notifies [analyticsTracker] of a successful export operation */
-  private fun trackExportCompleted(
-    params: ExportRequest,
-    exportDurationMs: Long,
-    outcome: Outcome,
-  ) {
+  private fun trackExportCompleted(params: ExportRequest, exportDurationMs: Long, outcome: Outcome) {
     val source: Source =
       when (params) {
         is ExportDatabaseRequest -> Source.DATABASE_SOURCE
@@ -200,14 +192,7 @@ class ExportToFileController(
         is LiveSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_ONLINE
         is FileSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_OFFLINE
       }
-    analyticsTracker.trackExportCompleted(
-      source,
-      sourceFormat,
-      destination,
-      exportDurationMs.toInt(),
-      outcome,
-      connectivityState,
-    )
+    analyticsTracker.trackExportCompleted(source, sourceFormat, destination, exportDurationMs.toInt(), outcome, connectivityState)
   }
 
   private suspend fun doExport(params: ExportRequest): Unit =
@@ -225,8 +210,7 @@ class ExportToFileController(
         }
         is ExportTableRequest -> {
           when (params.format) {
-            is CSV ->
-              exportTableToCsv(params.srcDatabase, params.srcTable, params.format, params.dstPath)
+            is CSV -> exportTableToCsv(params.srcDatabase, params.srcTable, params.format, params.dstPath)
             is SQL -> exportTableToSql(params.srcDatabase, params.srcTable, params.dstPath)
             else -> throwNotSupportedParams(params)
           }
@@ -235,8 +219,7 @@ class ExportToFileController(
           if (!params.srcQuery.isQueryStatement) throwNotSupportedParams(params)
 
           when (params.format) {
-            is CSV ->
-              exportQueryToCsv(params.srcDatabase, params.srcQuery, params.format, params.dstPath)
+            is CSV -> exportQueryToCsv(params.srcDatabase, params.srcQuery, params.format, params.dstPath)
             else -> throwNotSupportedParams(params)
           }
         }
@@ -249,8 +232,7 @@ class ExportToFileController(
       withDatabaseLock(database) {
         // TODO(161081452): expose an option to let the user decide if to export views; defaulting
         // now to not exporting views
-        val tableNames: List<String> =
-          databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
+        val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
 
         // TODO(161081452): skip temporary files (write directly to zip stream)
         val dstDir = findOrCreateDir(dstPath.parent)
@@ -259,25 +241,18 @@ class ExportToFileController(
           .use {
             val tmpFileToEntryName: List<TempExportedData> =
               tableNames.mapIndexed { ix, name ->
-                val path =
-                  tmpDir
-                    .toAbsolutePath()
-                    .resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
+                val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
                 doExport(ExportTableRequest(database, name, format, path))
                 TempExportedData(path, "$name.csv")
               }
 
-            createZipFile(
-              dstPath,
-              tmpFileToEntryName,
-            ) // TODO(161081452): write directly to zip file or move outside of database lock
+            createZipFile(dstPath, tmpFileToEntryName) // TODO(161081452): write directly to zip file or move outside of database lock
           }
       }
     }
 
   /**
-   * Exports the whole database to a single sqlite3 db file (binary format). Downloads the database
-   * from the device if needed.
+   * Exports the whole database to a single sqlite3 db file (binary format). Downloads the database from the device if needed.
    *
    * @param database file-based database (i.e. not in-memory)
    */
@@ -287,17 +262,11 @@ class ExportToFileController(
         findOrCreateDir(dstPath.parent)
 
         when {
-          dstPath.isDirectory() ->
-            throw IllegalArgumentException(
-              "Destination path ($dstPath) points to an existing directory."
-            )
-          dstPath.exists() ->
-            dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
+          dstPath.isDirectory() -> throw IllegalArgumentException("Destination path ($dstPath) points to an existing directory.")
+          dstPath.exists() -> dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
         }
 
-        runSqliteCliCommand(
-          SqliteCliArgs.builder().database(srcPath).walCheckpointTruncate().build()
-        )
+        runSqliteCliCommand(SqliteCliArgs.builder().database(srcPath).walCheckpointTruncate().build())
 
         // FileSqliteDatabaseId means offline-mode, where we don't want to remove the source file.
         // Otherwise, we've downloaded the file ourselves, so we're safe to move it to the
@@ -308,15 +277,11 @@ class ExportToFileController(
     }
 
   /**
-   * Executes a [task] on a local (offline) copy of the database. Downloads the database from the
-   * device if needed.
+   * Executes a [task] on a local (offline) copy of the database. Downloads the database from the device if needed.
    *
    * @param database file-based database (i.e. not in-memory)
    */
-  private suspend fun executeTaskOnLocalDatabaseCopy(
-    database: SqliteDatabaseId,
-    task: suspend (srcPath: Path) -> Unit,
-  ) =
+  private suspend fun executeTaskOnLocalDatabaseCopy(database: SqliteDatabaseId, task: suspend (srcPath: Path) -> Unit) =
     withContext(taskDispatcher) {
       // TODO(161081452): [P1] verify behaviour when switching modes (online->offline or
       // offline->online) while export operation in progress
@@ -329,10 +294,7 @@ class ExportToFileController(
             Closeable { files.forEach { projectScope.launch { deleteDatabase(it) } } }
               .use {
                 files.let {
-                  if (it.size != 1)
-                    throw IllegalStateException(
-                      "Unexpected number of downloaded database files: ${it.size}"
-                    )
+                  if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
                   task(it.single().mainFile.toNioPath())
                 }
               }
@@ -353,12 +315,8 @@ class ExportToFileController(
           )
       val commandResponse = SqliteCliClientImpl(sqlite3, taskDispatcher).runSqliteCliCommand(args)
       if (commandResponse.exitCode != 0 || commandResponse.errOutput.isNotBlank()) {
-        val errorSuffix =
-          if (commandResponse.errOutput.isNotBlank()) " Error: ${commandResponse.errOutput}."
-          else ""
-        throw IllegalStateException(
-          "Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.$errorSuffix"
-        )
+        val errorSuffix = if (commandResponse.errOutput.isNotBlank()) " Error: ${commandResponse.errOutput}." else ""
+        throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.$errorSuffix")
       }
     }
 
@@ -367,10 +325,7 @@ class ExportToFileController(
       withDatabaseLock(database) {
         val flow =
           downloadDatabase(database) { message, throwable ->
-            throw IllegalStateException(
-              "Issue while downloading database (${database.name}): $message",
-              throwable,
-            )
+            throw IllegalStateException("Issue while downloading database (${database.name}): $message", throwable)
           }
 
         flow.filter { it.downloadState == COMPLETED }.map { it.filesDownloaded }.toList().flatten()
@@ -385,10 +340,7 @@ class ExportToFileController(
           try {
             lockId = acquireDatabaseLock(database.connectionId)
             if (lockId != null) block()
-            else
-              throw IllegalStateException(
-                "Unable to acquire a lock on ${database.name}. "
-              ) // TODO(161081452): add error logging
+            else throw IllegalStateException("Unable to acquire a lock on ${database.name}. ") // TODO(161081452): add error logging
           } finally {
             lockId?.let { releaseDatabaseLock(it) }
           }
@@ -408,22 +360,13 @@ class ExportToFileController(
       dir
     }
 
-  private suspend fun exportTableToCsv(
-    database: SqliteDatabaseId,
-    srcTable: String,
-    format: CSV,
-    dstPath: Path,
-  ) =
+  private suspend fun exportTableToCsv(database: SqliteDatabaseId, srcTable: String, format: CSV, dstPath: Path) =
     withContext(taskDispatcher) {
       val query = createSqliteStatement(SqliteQueries.selectTableContents(srcTable))
       exportQueryToCsv(database, query, format, dstPath)
     }
 
-  private suspend fun exportTableToSql(
-    database: SqliteDatabaseId,
-    srcTable: String,
-    dstPath: Path,
-  ) =
+  private suspend fun exportTableToSql(database: SqliteDatabaseId, srcTable: String, dstPath: Path) =
     withContext(taskDispatcher) {
       executeTaskOnLocalDatabaseCopy(database) { srcPath ->
         findOrCreateDir(dstPath.parent)
@@ -441,24 +384,13 @@ class ExportToFileController(
 
   private suspend fun exportTableToSql(databasePath: Path, srcTable: String, dstPath: Path) =
     withContext(taskDispatcher) {
-      runSqliteCliCommand(
-        SqliteCliArgs.builder().database(databasePath).dumpTable(srcTable).output(dstPath).build()
-      )
+      runSqliteCliCommand(SqliteCliArgs.builder().database(databasePath).dumpTable(srcTable).output(dstPath).build())
     }
 
   private suspend fun exportDatabaseToSql(databasePath: Path, dstPath: Path) =
-    withContext(taskDispatcher) {
-      runSqliteCliCommand(
-        SqliteCliArgs.builder().database(databasePath).dump().output(dstPath).build()
-      )
-    }
+    withContext(taskDispatcher) { runSqliteCliCommand(SqliteCliArgs.builder().database(databasePath).dump().output(dstPath).build()) }
 
-  private suspend fun exportQueryToCsv(
-    database: SqliteDatabaseId,
-    query: SqliteStatement,
-    format: CSV,
-    dstPath: Path,
-  ) =
+  private suspend fun exportQueryToCsv(database: SqliteDatabaseId, query: SqliteStatement, format: CSV, dstPath: Path) =
     withContext(taskDispatcher) {
       writeRowsToCsvFile(
         executeQuery(database, query), // TODO(161081452): lock and download in chunks
@@ -470,10 +402,7 @@ class ExportToFileController(
   private suspend fun createSqliteStatement(statementText: String): SqliteStatement =
     withContext(edtDispatcher) { createSqliteStatement(project, statementText) }
 
-  private fun executeQuery(
-    srcDatabase: SqliteDatabaseId,
-    srcQuery: SqliteStatement,
-  ): Flow<SqliteRow> = flow {
+  private fun executeQuery(srcDatabase: SqliteDatabaseId, srcQuery: SqliteStatement): Flow<SqliteRow> = flow {
     withDatabaseLock(srcDatabase) {
       val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
 
@@ -482,12 +411,7 @@ class ExportToFileController(
       while (rowOffset < totalRowCount) {
         val batch =
           when (resultSet) {
-              is LiveSqliteResultSet ->
-                resultSet.getRowBatch(
-                  rowOffset,
-                  rowBatchSize = Integer.MAX_VALUE,
-                  responseSizeByteLimitHint,
-                )
+              is LiveSqliteResultSet -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE, responseSizeByteLimitHint)
               else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
             }
             .await()
@@ -500,11 +424,7 @@ class ExportToFileController(
 
   // TODO(161081452): move out to an IO class
   @Suppress("BlockingMethodInNonBlockingContext") // the warning tries to make us use Dispatchers.IO
-  private suspend fun writeRowsToCsvFile(
-    rows: Flow<SqliteRow>,
-    delimiter: Delimiter,
-    dstPath: Path,
-  ) =
+  private suspend fun writeRowsToCsvFile(rows: Flow<SqliteRow>, delimiter: Delimiter, dstPath: Path) =
     withContext(taskDispatcher) {
       val delimiterString = delimiter.delimiter.toString()
 

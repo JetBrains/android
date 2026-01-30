@@ -54,8 +54,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ConfigureCcCompilationTest {
-  @get:Rule
-  val intellij: IntellijRule = IntellijRule()
+  @get:Rule val intellij: IntellijRule = IntellijRule()
 
   @Before
   fun setUp() {
@@ -64,15 +63,16 @@ class ConfigureCcCompilationTest {
 
   private val context: Context<*> = NoopContext()
   private val externalRepositoryFinder = createEmptyForTests()
-  private val syncRunner = TestDataSyncRunner(
-    context,
-    JavaPackagePrefixReaderImpl(
-      workspaceRoot = Path.of("/"),
-      packageReader = PackageStatementParser(),
-      parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
-      fileExistenceCheck = { true }
+  private val syncRunner =
+    TestDataSyncRunner(
+      context,
+      JavaPackagePrefixReaderImpl(
+        workspaceRoot = Path.of("/"),
+        packageReader = PackageStatementParser(),
+        parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
+        fileExistenceCheck = { true },
+      ),
     )
-  )
 
   private fun toArtifactState(proto: CcCompilationInfoOuterClass.CcCompilationInfo): ArtifactTracker.State {
     val digestMap = DigestMap.ofFunction { Integer.toHexString(it.hashCode()) }
@@ -80,9 +80,7 @@ class ConfigureCcCompilationTest {
       proto.targetsList
         .map { CcCompilationInfo.create(it, digestMap, externalRepositoryFinder) }
         .associate { it.target() to TargetBuildInfo.forCcTarget(it, DependencyBuildContext.NONE) },
-      proto.toolchainsList
-        .map { CcToolchain.create(it, externalRepositoryFinder) }
-        .associateBy { it.id() }
+      proto.toolchainsList.map { CcToolchain.create(it, externalRepositoryFinder) }.associateBy { it.id() },
     )
   }
 
@@ -91,12 +89,8 @@ class ConfigureCcCompilationTest {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
     ConfigureCcSources().update(update, BuildGraphData.EMPTY, context)
-    ConfigureCcCompilation().update(
-      update,
-      ArtifactTracker.State.EMPTY,
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcCompilation()
+      .update(update, ArtifactTracker.State.EMPTY, context, ProjectPath.ExternalRepositoryFinder.createFailingForTests())
     val project = update.build()
     assertThat(project.ccWorkspace).isEqualTo(CcWorkspace.getDefaultInstance())
   }
@@ -106,28 +100,30 @@ class ConfigureCcCompilationTest {
     val original = syncRunner.sync(TestData.CC_LIBRARY_QUERY)
     val update = ProjectProtoUpdate(original.project)
     ConfigureCcSources().update(update, original.graph, context)
-    ConfigureCcCompilation().update(
-      update,
-      ArtifactTracker.State.EMPTY,
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcCompilation()
+      .update(update, ArtifactTracker.State.EMPTY, context, ProjectPath.ExternalRepositoryFinder.createFailingForTests())
     val project = update.build()
     val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
-    val testClassCcPath = ProjectPath.WorkspaceRelativeProjectPath(
-      Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc/TestClass.cc"), Path.of(""))
-    assertThat(project.ccWorkspace).isEqualTo(
-      CcWorkspace.getDefaultInstance()
-        .copy(
-          targets = mapOf(
-            ccTarget to ProjectProto.CcTarget(
-              target = ccTarget,
-              sources = mapOf(testClassCcPath to ProjectProto.CcSourceFile(testClassCcPath, ProjectProto.CcLanguage.CPP)),
-              contexts = emptyMap()
-            )
+    val testClassCcPath =
+      ProjectPath.WorkspaceRelativeProjectPath(
+        Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc/TestClass.cc"),
+        Path.of(""),
+      )
+    assertThat(project.ccWorkspace)
+      .isEqualTo(
+        CcWorkspace.getDefaultInstance()
+          .copy(
+            targets =
+              mapOf(
+                ccTarget to
+                  ProjectProto.CcTarget(
+                    target = ccTarget,
+                    sources = mapOf(testClassCcPath to ProjectProto.CcSourceFile(testClassCcPath, ProjectProto.CcLanguage.CPP)),
+                    contexts = emptyMap(),
+                  )
+              )
           )
-        )
-    )
+      )
   }
 
   @Test
@@ -171,19 +167,15 @@ class ConfigureCcCompilationTest {
                 "bazel-out/quote/include/directory/quote_include_header.h",
                 "bazel-out/system/include/directory/system_include_header.h",
                 "bazel-out/framework/include/directory/framework_include_header",
-                "bazel-out/builtin/include/directory/builtin_include.h"
+                "bazel-out/builtin/include/directory/builtin_include.h",
               )
             )
         )
         .build()
 
     ConfigureCcSources().update(update, original.graph, context)
-    ConfigureCcCompilation().update(
-      update,
-      toArtifactState(compilationInfo),
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcCompilation()
+      .update(update, toArtifactState(compilationInfo), context, ProjectPath.ExternalRepositoryFinder.createFailingForTests())
 
     val project = update.build()
 
@@ -193,18 +185,10 @@ class ConfigureCcCompilationTest {
     val context = ccTarget.contexts.values.single()
     assertThat(context.humanReadableName).isNotEmpty()
     val sourceFile = ccTarget.sources.values.single()
-    assertThat<ProjectProto.CcLanguage>(sourceFile.language)
-      .isEqualTo(ProjectProto.CcLanguage.CPP)
+    assertThat<ProjectProto.CcLanguage>(sourceFile.language).isEqualTo(ProjectProto.CcLanguage.CPP)
     assertThat(sourceFile.workspacePath)
-      .isEqualTo(
-        workspaceRelativeForTests(
-          TestData.CC_LIBRARY_QUERY.onlySourcePath.resolve("TestClass.cc")
-        )
-      )
-    val resolver =
-      FlagResolver(
-        create(Path.of("/workspace"), Path.of("/project"), Path.of("/project/external")), false
-      )
+      .isEqualTo(workspaceRelativeForTests(TestData.CC_LIBRARY_QUERY.onlySourcePath.resolve("TestClass.cc")))
+    val resolver = FlagResolver(create(Path.of("/workspace"), Path.of("/project"), Path.of("/project/external")), false)
     val cppCompilerSettings = context.languageToCompilerSettings[ProjectProto.CcLanguage.CPP]!!
     val cCompilerSettings = context.languageToCompilerSettings[ProjectProto.CcLanguage.C]!!
     assertThat(resolver.resolveAll(workspace.flagSets[cppCompilerSettings.flagSetId]))
@@ -220,9 +204,9 @@ class ConfigureCcCompilationTest {
         "-isystem/workspace/src/system/include/directory",
         "-F/project/.bazel/buildout/bazel-out/framework/include/directory",
         "-F/workspace/src/framework/include/directory",
-        "-w",  // This is defined in `copts` of the test project build rule and extracted via the aspect.
+        "-w", // This is defined in `copts` of the test project build rule and extracted via the aspect.
         "--sharedopt",
-        "--cppopt"
+        "--cppopt",
       )
 
     assertThat(resolver.resolveAll(workspace.flagSets[cCompilerSettings.flagSetId]))
@@ -238,30 +222,22 @@ class ConfigureCcCompilationTest {
         "-isystem/workspace/src/system/include/directory",
         "-F/project/.bazel/buildout/bazel-out/framework/include/directory",
         "-F/workspace/src/framework/include/directory",
-        "-w",  // This is defined in `copts` of the test project build rule and extracted via the aspect.
+        "-w", // This is defined in `copts` of the test project build rule and extracted via the aspect.
         "--sharedopt",
-        "--conlyopt"
+        "--conlyopt",
       )
 
-    assertThat(cppCompilerSettings.compilerExecutablePath)
-      .isEqualTo(workspaceRelativeForTests(Path.of("workspace/path/to/clang")))
+    assertThat(cppCompilerSettings.compilerExecutablePath).isEqualTo(workspaceRelativeForTests(Path.of("workspace/path/to/clang")))
 
-    assertThat(context.languageToCompilerSettings.keys)
-      .containsExactly(ProjectProto.CcLanguage.CPP, ProjectProto.CcLanguage.C)
+    assertThat(context.languageToCompilerSettings.keys).containsExactly(ProjectProto.CcLanguage.CPP, ProjectProto.CcLanguage.C)
 
-    assertThat(
-      project
-        .artifactDirectories
-        .directoriesMap[com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT]!!
-        .contents
-        .keys
-    )
+    assertThat(project.artifactDirectories.directoriesMap[com.google.idea.blaze.qsync.deps.ArtifactDirectories.DEFAULT]!!.contents.keys)
       .containsExactly(
         "bazel-out/include/directory/include_header.h",
         "bazel-out/quote/include/directory/quote_include_header.h",
         "bazel-out/system/include/directory/system_include_header.h",
         "bazel-out/framework/include/directory/framework_include_header",
-        "bazel-out/builtin/include/directory/builtin_include.h"
+        "bazel-out/builtin/include/directory/builtin_include.h",
       )
   }
 
@@ -282,9 +258,7 @@ class ConfigureCcCompilationTest {
             .build()
         )
         .addTargets(
-          CcCompilationInfoOuterClass.CcTargetInfo.newBuilder()
-            .setLabel(ccTargetLabel.toString())
-            .setToolchainId("//my/cc_toolchain")
+          CcCompilationInfoOuterClass.CcTargetInfo.newBuilder().setLabel(ccTargetLabel.toString()).setToolchainId("//my/cc_toolchain")
         )
         .build()
 
@@ -296,7 +270,7 @@ class ConfigureCcCompilationTest {
         update,
         toArtifactState(compilationInfo),
         context,
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
       )
       update.build()
     }
@@ -308,7 +282,7 @@ class ConfigureCcCompilationTest {
         update,
         toArtifactState(compilationInfo),
         context,
-        ProjectPath.ExternalRepositoryFinder.createFailingForTests()
+        ProjectPath.ExternalRepositoryFinder.createFailingForTests(),
       )
       update.build()
     }
@@ -324,7 +298,7 @@ class ConfigureCcCompilationTest {
     val labels =
       listOf(
         fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass"),
-        fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass2")
+        fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, pkgPath, "testclass2"),
       )
 
     val ccCi =
@@ -337,7 +311,8 @@ class ConfigureCcCompilationTest {
               .addIncludeDirectories("src/include/directory")
               .setToolchainId("//my/cc_toolchain")
               .build()
-          })
+          }
+        )
         .addToolchains(
           CcCompilationInfoOuterClass.CcToolchainInfo.newBuilder()
             .setId("//my/cc_toolchain")
@@ -351,12 +326,7 @@ class ConfigureCcCompilationTest {
         .build()
 
     ConfigureCcSources().update(update, original.graph, context)
-    ConfigureCcCompilation().update(
-      update,
-      toArtifactState(ccCi),
-      context,
-      ProjectPath.ExternalRepositoryFinder.createFailingForTests()
-    )
+    ConfigureCcCompilation().update(update, toArtifactState(ccCi), context, ProjectPath.ExternalRepositoryFinder.createFailingForTests())
 
     val project = update.build()
 
@@ -367,10 +337,8 @@ class ConfigureCcCompilationTest {
     // Assert that both compilation contexts share a flagset ID (since the two targets share the
     // same flags):
     assertThat(
-      listOf(context1, context2)
-        .map { it.languageToCompilerSettings[ProjectProto.CcLanguage.CPP] }
-        .map { it?.flagSetId }
-        .distinct())
+        listOf(context1, context2).map { it.languageToCompilerSettings[ProjectProto.CcLanguage.CPP] }.map { it?.flagSetId }.distinct()
+      )
       .hasSize(1)
   }
 }

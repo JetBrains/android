@@ -23,15 +23,14 @@ import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.android.tools.idea.gradle.dcl.lang.sync.GradleSchemaProjectResolver
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
-import com.intellij.ide.troubleshooting.scale
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.Serializable
+import org.jetbrains.plugins.gradle.util.GradleConstants
+
 @Service(Service.Level.PROJECT)
 class DeclarativeService(val project: Project) {
 
@@ -40,37 +39,29 @@ class DeclarativeService(val project: Project) {
   }
 
   fun getDeclarativeSchema(): BuildDeclarativeSchemas? {
-      if (!DeclarativeIdeSupport.isEnabled()) return null
-      val externalProjectPath: String = project.basePath ?: return null
-      val projectInfo = ProjectDataManager.getInstance()
-        .getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
-      val projectStructure = projectInfo?.externalProjectStructure ?: return null
-      val projectSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_PROJECT_SCHEMAS)
-      val settingsSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_SETTINGS_SCHEMAS)
-      return if (projectSchemas != null && settingsSchemas != null)
-        BuildDeclarativeSchemas(
-          settingsSchemas.data.settings,
-          projectSchemas.data.projects
-        )
-      else null
+    if (!DeclarativeIdeSupport.isEnabled()) return null
+    val externalProjectPath: String = project.basePath ?: return null
+    val projectInfo = ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
+    val projectStructure = projectInfo?.externalProjectStructure ?: return null
+    val projectSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_PROJECT_SCHEMAS)
+    val settingsSchemas = ExternalSystemApiUtil.find(projectStructure, GradleSchemaProjectResolver.DECLARATIVE_SETTINGS_SCHEMAS)
+    return if (projectSchemas != null && settingsSchemas != null)
+      BuildDeclarativeSchemas(settingsSchemas.data.settings, projectSchemas.data.projects)
+    else null
   }
 }
 
 data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, val projects: Set<BuildDeclarativeSchema>) : Serializable {
-  fun merge(schema: BuildDeclarativeSchemas) =
-    BuildDeclarativeSchemas(this.settings + schema.settings, this.projects + schema.projects)
+  fun merge(schema: BuildDeclarativeSchemas) = BuildDeclarativeSchemas(this.settings + schema.settings, this.projects + schema.projects)
 
   fun getTopLevelEntries(fileName: String): List<EntryWithContext> =
     getSchemas(fileName).flatMap { schema -> schema.getRootEntries().map { EntryWithContext(it, schema) } }
 
-  private fun getSchemas(fileName: String) =
-    if (isSettings(fileName)) settings else projects
+  private fun getSchemas(fileName: String) = if (isSettings(fileName)) settings else projects
 
   fun getTopLevelEntriesByName(name: String, fileName: String): List<EntryWithContext> =
     getSchemas(fileName).flatMap { schema ->
-      schema.getRootEntries { existingName: String -> name == existingName }.map {
-        EntryWithContext(it, schema)
-      }
+      schema.getRootEntries { existingName: String -> name == existingName }.map { EntryWithContext(it, schema) }
     }
 
   fun getAugmentedTypes(fileName: String): Map<FullName, List<AugmentationKind>> =
@@ -85,9 +76,7 @@ data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, va
 data class EntryWithContext(val entry: Entry, val schema: BuildDeclarativeSchema) {
   fun resolveRef(fqName: FullName): ClassType? = schema.resolveRef(fqName)
 
-  fun getNextLevel(name: String): List<EntryWithContext> = entry.getNextLevel(schema, name).map {
-    EntryWithContext(it, schema)
-  }
+  fun getNextLevel(name: String): List<EntryWithContext> = entry.getNextLevel(schema, name).map { EntryWithContext(it, schema) }
 
   fun getNextLevel(): List<EntryWithContext> = entry.getNextLevel(schema).map { EntryWithContext(it, schema) }
 }

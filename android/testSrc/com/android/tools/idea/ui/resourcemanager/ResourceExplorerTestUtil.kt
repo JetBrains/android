@@ -36,7 +36,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestBase
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
@@ -44,14 +43,13 @@ import java.io.File
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertTrue
+import org.jetbrains.android.AndroidTestBase
 
 /** Return a fake directory on a DummyFileSystem. */
 fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   val fileSystem = DummyFileSystem()
   val root = fileSystem.createRoot("design")
-  files.forEach {
-    fileSystem.createChildFile(Any(), root, it)
-  }
+  files.forEach { fileSystem.createChildFile(Any(), root, it) }
   return root
 }
 
@@ -65,22 +63,17 @@ fun getPluginsResourcesDirectory(): String {
   return getTestDataDirectory() + pluginTestFilesDirectoryName
 }
 
-val densityMapper = StaticStringMapper(
-  mapOf(
-    "@2x" to DensityQualifier(Density.XHIGH),
-    "@3x" to DensityQualifier(Density.XXHIGH),
-    "@4x" to DensityQualifier(Density.XXXHIGH)
-  ), DensityQualifier(Density.MEDIUM)
-)
+val densityMapper =
+  StaticStringMapper(
+    mapOf("@2x" to DensityQualifier(Density.XHIGH), "@3x" to DensityQualifier(Density.XXHIGH), "@4x" to DensityQualifier(Density.XXXHIGH)),
+    DensityQualifier(Density.MEDIUM),
+  )
 
-val nightModeMapper = StaticStringMapper(
-  mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))
-)
+val nightModeMapper = StaticStringMapper(mapOf("_dark" to NightModeQualifier(NightMode.NIGHT)))
 
 fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!
 
-fun getPNGFile() = File(getPluginsResourcesDirectory(),
-                        pngFileName)
+fun getPNGFile() = File(getPluginsResourcesDirectory(), pngFileName)
 
 fun AndroidProjectRule.getPNGResourceItem(): ResourceItem {
   val fileName = pngFileName
@@ -94,48 +87,56 @@ fun AndroidProjectRule.getStateList(): ResourceItem {
 }
 
 fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName: String): ResourceItem {
-  val newResource = runWriteActionAndWait {
-    fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
-  }
-  val resourceRepository = StudioResourceRepositoryManager.getModuleResources(module)
-    ?: throw Exception("No StudioResourceRepositoryManager for module=$module")
+  val newResource = runWriteActionAndWait { fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName") }
+  val resourceRepository =
+    StudioResourceRepositoryManager.getModuleResources(module) ?: throw Exception("No StudioResourceRepositoryManager for module=$module")
   // Ensure repository updates have been processed
   waitForUpdates(resourceRepository)
 
-  return resourceRepository
-    .getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))
-    .firstOrNull()
+  return resourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore(".")).firstOrNull()
     ?: throw Exception(
       """
         Unable to obtain resource res/drawable/$fileName
         resource=${resourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)}
         file=$newResource ${newResource.exists()}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 }
 
 const val WAIT_TIMEOUT = 3000
 
 inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
-  val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition(): Boolean {
-      invokeAndWaitIfNeeded {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  val waitForComponentCondition =
+    object : WaitFor(WAIT_TIMEOUT) {
+      public override fun condition(): Boolean {
+        invokeAndWaitIfNeeded { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+        return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
       }
-      return@condition condition(UIUtil.findComponentOfType(container, T::class.java))
     }
-  }
   assertTrue(waitForComponentCondition.isConditionRealized)
 }
 
 fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
   runInEdtAndWait {
     // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
+    component.dispatchEvent(
+      MouseEvent(component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false)
+    )
+    component.dispatchEvent(
+      MouseEvent(component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false)
+    )
+    component.dispatchEvent(
+      MouseEvent(
+        component,
+        MouseEvent.MOUSE_CLICKED,
+        System.currentTimeMillis(),
+        InputEvent.BUTTON1_DOWN_MASK,
+        point.x,
+        point.y,
+        clickCount,
+        false,
+      )
+    )
   }
 }

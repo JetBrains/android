@@ -33,6 +33,7 @@ import com.intellij.openapi.util.io.OSAgnosticPathUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
@@ -42,13 +43,12 @@ import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.resolve.jvm.checkers.isValidDalvikIdentifier
 import org.jetbrains.plugins.gradle.util.GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION
-import java.io.File
 
 /**
  * Inspection to mark identifiers in Kotlin files as errors if that identifier is not supported by the dex format as a SimpleName.
  *
- * This should only be run on sources which will end up being run on the Android Runtime / Dalvik: build and unit test sources can use
- * all identifiers permitted by the JVM.
+ * This should only be run on sources which will end up being run on the Android Runtime / Dalvik: build and unit test sources can use all
+ * identifiers permitted by the JVM.
  */
 class IllegalIdentifierInspection : AbstractKotlinInspection() {
     private class JunitPaths(val paths: List<File>, val generationId: Long) {
@@ -83,7 +83,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                         element,
                         "Identifier not allowed in Android projects",
                         ProblemHighlightType.GENERIC_ERROR,
-                        RenameIdentifierFix()
+                        RenameIdentifierFix(),
                     )
                 }
             }
@@ -98,9 +98,9 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
 
                 if (module != null && containingFile != null) {
                     val currentGenerationId = ProjectRootModificationTracker.getInstance(module.project).modificationCount
-                    val hostTestPaths = module.getUserData(JunitPaths)
-                        ?.takeIf { it.generationId == currentGenerationId }
-                                        ?: JunitPaths(getHostTestsPaths(module), currentGenerationId).also { module.putUserData(JunitPaths, it) }
+                    val hostTestPaths =
+                        module.getUserData(JunitPaths)?.takeIf { it.generationId == currentGenerationId }
+                            ?: JunitPaths(getHostTestsPaths(module), currentGenerationId).also { module.putUserData(JunitPaths, it) }
 
                     if (hostTestPaths.paths.any { containingFile.startsWith(it) }) {
                         return true
@@ -119,12 +119,14 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
     private fun getHostTestsPaths(module: Module): List<File> {
         val androidFacet = AndroidFacet.getInstance(module) ?: return emptyList()
         val hostTestSources = SourceProviders.getInstance(androidFacet).hostTestSources.values
-        return mutableListOf<VirtualFile>().apply {
-            hostTestSources.forEach {
-                this.addAll(it.javaDirectories)
-                this.addAll(it.kotlinDirectories)
+        return mutableListOf<VirtualFile>()
+            .apply {
+                hostTestSources.forEach {
+                    this.addAll(it.javaDirectories)
+                    this.addAll(it.kotlinDirectories)
+                }
             }
-        }.map { it.toIoFile() }
+            .map { it.toIoFile() }
     }
 
     private fun getIoFile(virtualFile: VirtualFile): File? {

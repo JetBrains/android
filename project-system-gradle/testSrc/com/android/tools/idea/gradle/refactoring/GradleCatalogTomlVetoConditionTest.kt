@@ -24,15 +24,14 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
+import kotlin.test.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 @RunsInEdt
 class GradleCatalogTomlVetoConditionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var vetoCondition: GradleCatalogTomlVetoCondition
   private lateinit var tomlFile: VirtualFile
@@ -44,57 +43,93 @@ class GradleCatalogTomlVetoConditionTest {
       vetoCondition = GradleCatalogTomlVetoCondition()
     }
   }
+
   @Test
-  fun testDeclaration(){
-    doTest("""
+  fun testDeclaration() {
+    doTest(
+      """
       [versions]
       vers|ion = "123"
-    """.trimIndent(), false)
+      """
+        .trimIndent(),
+      false,
+    )
 
-    doTest("""
+    doTest(
+      """
       [libraries]
       declara|tion = "123"
-    """.trimIndent(), false)
+      """
+        .trimIndent(),
+      false,
+    )
 
-    doTest("""
+    doTest(
+      """
       [bundles]
       bu|ndle = [ "123" ]
-    """.trimIndent(), false)
+      """
+        .trimIndent(),
+      false,
+    )
 
-    doTest("""
+    doTest(
+      """
       [plugins]
       plu|gin = "123"
-    """.trimIndent(), false)
-
+      """
+        .trimIndent(),
+      false,
+    )
   }
 
   @Test
-  fun testTables(){
-    doTest("""
+  fun testTables() {
+    doTest(
+      """
       [vers|ions]
-    """.trimIndent(), true)
+      """
+        .trimIndent(),
+      true,
+    )
 
-    doTest("""
+    doTest(
+      """
       [lib|aries]
       declara|tion = "123"
-    """.trimIndent(), true)
+      """
+        .trimIndent(),
+      true,
+    )
 
-    doTest("""
+    doTest(
+      """
       [ran|dom]
-    """.trimIndent(), true)
+      """
+        .trimIndent(),
+      true,
+    )
   }
 
   @Test
-  fun testOtherKeyElements(){
-    doTest("""
+  fun testOtherKeyElements() {
+    doTest(
+      """
       [versions]
       version = { requ|ire = "1.1" }
-    """.trimIndent(), true)
+      """
+        .trimIndent(),
+      true,
+    )
 
-    doTest("""
+    doTest(
+      """
       [libaries]
       declaration = { version.re|f = "some"}
-    """.trimIndent(), true)
+      """
+        .trimIndent(),
+      true,
+    )
   }
 
   private fun doTest(tomlContent: String, expectedResult: Boolean) {

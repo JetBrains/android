@@ -61,43 +61,29 @@ fun ComposeViewInfo.findHitWithDepth(x: Int, y: Int): Collection<Pair<Int, Compo
 }
 
 /**
- * Traverses the compose view tree to compile a list of view information that contain the specified
- * x, y coordinates, along with their corresponding depth in the tree hierarchy.
+ * Traverses the compose view tree to compile a list of view information that contain the specified x, y coordinates, along with their
+ * corresponding depth in the tree hierarchy.
  */
 fun List<ComposeViewInfo>.findHitWithDepth(x: Int, y: Int): Collection<Pair<Int, ComposeViewInfo>> {
   return flatMap { it.findHitWithDepth(x, y) }
 }
 
 /**
- * Traverses the compose view tree and finds all leaf hits that have the coordinates [x] and [y].
- * Then goes through each hit and finds the smallest [ComposeViewInfo] by area and returns it in a
- * [Collection].
+ * Traverses the compose view tree and finds all leaf hits that have the coordinates [x] and [y]. Then goes through each hit and finds the
+ * smallest [ComposeViewInfo] by area and returns it in a [Collection].
  */
-fun ComposeViewInfo.findSmallestHit(
-  @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int,
-): Collection<ComposeViewInfo> {
+fun ComposeViewInfo.findSmallestHit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int): Collection<ComposeViewInfo> {
   val viewInfos = findAllHitsWithPoint(x, y)
   if (viewInfos.isEmpty()) return listOf()
-  return listOf(
-    viewInfos.minByOrNull {
-      (it.bounds.bottom - it.bounds.top) * (it.bounds.right - it.bounds.left)
-    }!!
-  )
+  return listOf(viewInfos.minByOrNull { (it.bounds.bottom - it.bounds.top) * (it.bounds.right - it.bounds.left) }!!)
 }
 
-/**
- * Traverses the compose view tree and finds the smallest [ComposeViewInfo] by area and returns it
- * in a [Collection].
- */
+/** Traverses the compose view tree and finds the smallest [ComposeViewInfo] by area and returns it in a [Collection]. */
 fun List<ComposeViewInfo>.findSmallestHit(x: Int, y: Int): Collection<ComposeViewInfo> {
   return flatMap { it.findSmallestHit(x, y) }
 }
 
-/**
- * Traverses the compose view tree to compile a list of view information that contain the specified
- * x, y coordinates.
- */
+/** Traverses the compose view tree to compile a list of view information that contain the specified x, y coordinates. */
 fun ComposeViewInfo.findAllHitsWithPoint(x: Int, y: Int): List<ComposeViewInfo> {
   val hits = mutableListOf<ComposeViewInfo>()
   val stack = mutableListOf(this)
@@ -112,10 +98,7 @@ fun ComposeViewInfo.findAllHitsWithPoint(x: Int, y: Int): List<ComposeViewInfo> 
   return hits
 }
 
-/**
- * Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that contain the
- * specified x, y coordinates.
- */
+/** Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that contain the specified x, y coordinates. */
 fun List<ComposeViewInfo>.findAllHitsWithPoint(x: Int, y: Int): Collection<ComposeViewInfo> {
   return flatMap { it.findAllHitsWithPoint(x, y) }
 }
@@ -133,10 +116,7 @@ fun ComposeViewInfo.findAllHitsInFile(fileName: String): List<ComposeViewInfo> {
   return hits.toList()
 }
 
-/**
- * Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that are in the
- * [fileName] passed in.
- */
+/** Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that are in the [fileName] passed in. */
 fun List<ComposeViewInfo>.findAllHitsInFile(fileName: String): Collection<ComposeViewInfo> {
   return flatMap { it.findAllHitsInFile(fileName) }
 }
@@ -156,8 +136,7 @@ data class PxBounds(val left: Int, val top: Int, val right: Int, val bottom: Int
 }
 
 @VisibleForTesting
-fun PxBounds.containsPoint(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int): Boolean =
-  x in left..right && y in top..bottom
+fun PxBounds.containsPoint(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int): Boolean = x in left..right && y in top..bottom
 
 @VisibleForTesting fun PxBounds.area(): Int = (right - left) * (bottom - top)
 

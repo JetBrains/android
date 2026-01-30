@@ -19,14 +19,11 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPointName.Companion.create
 import com.intellij.openapi.project.Project
 
-/**
- * Provides an extension point for a custom compile target failure notification handling.
- */
+/** Provides an extension point for a custom compile target failure notification handling. */
 interface AndroidModuleDataServiceExtension {
   fun onFailedToFindCompileTarget(project: Project, compileTarget: String, moduleNames: List<String>)
 
   companion object {
-    @JvmField
-    val EP_NAME: ExtensionPointName<AndroidModuleDataServiceExtension> = create("com.android.gradle.androidModuleDataService")
+    @JvmField val EP_NAME: ExtensionPointName<AndroidModuleDataServiceExtension> = create("com.android.gradle.androidModuleDataService")
   }
 }

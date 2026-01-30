@@ -35,8 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposeRenderErrorContributorTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
   private lateinit var linkManager: StudioHtmlLinkManager
   private val nopLinkHandler = HyperlinkListener {}
@@ -52,18 +51,10 @@ class ComposeRenderErrorContributorTest {
       IllegalStateException("CompositionLocal LocalGraphicsContext not present").apply {
         stackTrace =
           arrayOf(
-            StackTraceElement(
-              "androidx.compose.ui.tooling.CommonPreviewUtils",
-              "invokeComposableMethod",
-              "CommonPreviewUtils.kt",
-              149
-            )
+            StackTraceElement("androidx.compose.ui.tooling.CommonPreviewUtils", "invokeComposableMethod", "CommonPreviewUtils.kt", 149)
           )
       }
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
@@ -75,103 +66,100 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         /* desc = */ """
-      java.lang.IllegalStateException: CompositionLocal LocalGraphicsContext not present
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)	    	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
-      	at androidx.compose.runtime.LazyValueHolder.getCurrent(ValueHolders.kt:46)
-      	at androidx.compose.runtime.LazyValueHolder.readValue(ValueHolders.kt:48)
-      	at androidx.compose.runtime.CompositionLocalMapKt.read(CompositionLocalMap.kt:91)
-      	at androidx.compose.runtime.ComposerImpl.consume(Composer.kt:2375)
-      	at com.example.failedcompositionlocal.MainActivityKt.AppScreen(MainActivity.kt:79)
-      	at com.example.failedcompositionlocal.MainActivityKt.FailingPreview(MainActivity.kt:57)
-      	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.jvm.kt:181)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.jvm.kt:221)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:504)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:502)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:539)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:497)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.android.kt:61)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:444)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:443)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.android.kt:438)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.android.kt:124)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:497)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:494)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:441)
-      	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:259)
-      	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:258)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.platform.CompositionLocalsKt.ProvideCommonCompositionLocals(CompositionLocals.kt:216)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:132)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:131)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt.ProvideAndroidCompositionLocals(AndroidCompositionLocals.android.kt:121)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:155)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:154)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:401)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:154)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:133)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.ActualJvm_jvmKt.invokeComposable(ActualJvm.jvm.kt:97)
-      	at androidx.compose.runtime.ComposerImpl.doCompose(Composer.kt:3595)
-      	at androidx.compose.runtime.ComposerImpl.composeContent${'$'}runtime_release(Composer.kt:3522)
-      	at androidx.compose.runtime.CompositionImpl.composeContent(Composition.kt:743)
-      	at androidx.compose.runtime.Recomposer.composeInitial${'$'}runtime_release(Recomposer.kt:1122)
-      	at androidx.compose.runtime.CompositionImpl.composeInitial(Composition.kt:649)
-      	at androidx.compose.runtime.CompositionImpl.setContent(Composition.kt:635)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:133)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.AndroidComposeView.setOnViewTreeOwnersAvailable(AndroidComposeView.android.kt:1625)
-      	at androidx.compose.ui.platform.WrappedComposition.setContent(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.WrappedComposition.onStateChanged(Wrapper.android.kt:180)
-      	at androidx.lifecycle.LifecycleRegistry${'$'}ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
-      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.jvm.kt:191)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1706)
-      	at android.view.View.dispatchAttachedToWindow(View.java:23071)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3518)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:69)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:462)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:125)
-      	at com.android.tools.rendering.RenderTask.createRenderSession(RenderTask.java:829)
-      	at com.android.tools.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:977)
-      	at com.android.tools.rendering.RenderExecutor.runAsyncActionWithTimeout${'$'}lambda${'$'}12(RenderExecutor.kt:217)
-      	at com.android.tools.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:338)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:642)
-      	at java.base/java.lang.Thread.run(Thread.java:1583)
+        java.lang.IllegalStateException: CompositionLocal LocalGraphicsContext not present
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)	    	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
+        	at androidx.compose.runtime.LazyValueHolder.getCurrent(ValueHolders.kt:46)
+        	at androidx.compose.runtime.LazyValueHolder.readValue(ValueHolders.kt:48)
+        	at androidx.compose.runtime.CompositionLocalMapKt.read(CompositionLocalMap.kt:91)
+        	at androidx.compose.runtime.ComposerImpl.consume(Composer.kt:2375)
+        	at com.example.failedcompositionlocal.MainActivityKt.AppScreen(MainActivity.kt:79)
+        	at com.example.failedcompositionlocal.MainActivityKt.FailingPreview(MainActivity.kt:57)
+        	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+        	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.jvm.kt:181)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.jvm.kt:221)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:504)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:502)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:539)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:497)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.android.kt:61)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:444)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:443)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.android.kt:438)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.android.kt:124)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:497)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:494)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:441)
+        	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:259)
+        	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:258)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.platform.CompositionLocalsKt.ProvideCommonCompositionLocals(CompositionLocals.kt:216)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:132)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:131)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt.ProvideAndroidCompositionLocals(AndroidCompositionLocals.android.kt:121)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:155)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:154)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:401)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:154)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:133)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.ActualJvm_jvmKt.invokeComposable(ActualJvm.jvm.kt:97)
+        	at androidx.compose.runtime.ComposerImpl.doCompose(Composer.kt:3595)
+        	at androidx.compose.runtime.ComposerImpl.composeContent${'$'}runtime_release(Composer.kt:3522)
+        	at androidx.compose.runtime.CompositionImpl.composeContent(Composition.kt:743)
+        	at androidx.compose.runtime.Recomposer.composeInitial${'$'}runtime_release(Recomposer.kt:1122)
+        	at androidx.compose.runtime.CompositionImpl.composeInitial(Composition.kt:649)
+        	at androidx.compose.runtime.CompositionImpl.setContent(Composition.kt:635)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:133)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.AndroidComposeView.setOnViewTreeOwnersAvailable(AndroidComposeView.android.kt:1625)
+        	at androidx.compose.ui.platform.WrappedComposition.setContent(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.WrappedComposition.onStateChanged(Wrapper.android.kt:180)
+        	at androidx.lifecycle.LifecycleRegistry${'$'}ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
+        	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.jvm.kt:191)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1706)
+        	at android.view.View.dispatchAttachedToWindow(View.java:23071)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3518)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:69)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:462)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:125)
+        	at com.android.tools.rendering.RenderTask.createRenderSession(RenderTask.java:829)
+        	at com.android.tools.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:977)
+        	at com.android.tools.rendering.RenderExecutor.runAsyncActionWithTimeout${'$'}lambda${'$'}12(RenderExecutor.kt:217)
+        	at com.android.tools.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:338)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:642)
+        	at java.base/java.lang.Thread.run(Thread.java:1583)
 
-      """
-        .trimIndent()
+        """
+          .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
@@ -179,8 +167,8 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate Composition Local", issues[0].summary)
     assertEquals(
       "This preview was unable to find a <A HREF=\"https://developer.android.com/jetpack/compose/compositionlocal\">CompositionLocal</A>. " +
-      "You might need to define it so it can render correctly.<BR/>" +
-      "<A HREF=\"runnable:0\">Show Exception</A>",
+        "You might need to define it so it can render correctly.<BR/>" +
+        "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -190,32 +178,29 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.NoSuchMethodException: Not provided
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:571)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:820)
-      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3490)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
-      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:714)
-      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:870)
-      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}2.run(RenderExecutor.kt:187)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
-      	at java.base/java.lang.Thread.run(Thread.java:834)
+        java.lang.NoSuchMethodException: Not provided
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:571)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:820)
+        	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3490)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+        	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:714)
+        	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:870)
+        	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}2.run(RenderExecutor.kt:187)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+        	at java.base/java.lang.Thread.run(Thread.java:834)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -227,8 +212,7 @@ class ComposeRenderErrorContributorTest {
       issues[0],
       MessageTip(
         AllIcons.General.Information,
-        "The preview will display after rebuilding the project.<BR/>" +
-        "Tip: <A HREF=\"action:build\">Build</A> the project.",
+        "The preview will display after rebuilding the project.<BR/>" + "Tip: <A HREF=\"action:build\">Build</A> the project.",
       ),
     )
   }
@@ -238,46 +222,43 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.Throwable: lateinit property okHttpClient has not been initialized
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
-      	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
-      	at com.example.jetcaster.Graph${'$'}podcastRepository${'$'}2.invoke(Graph.kt:52)
-      	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
-      	at com.example.jetcaster.Graph.getPodcastRepository(Graph.kt:52)
-      	at com.example.jetcaster.ui.home.HomeViewModel.<init>(HomeViewModel.kt:33)
-      	at androidx.lifecycle.ViewModelProvider${'$'}NewInstanceFactory.create(ViewModelProvider.java:219)
-      	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.java:187)
-      	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(ViewModel.kt:72)
-      	at com.example.jetcaster.ui.home.HomeKt.Home(Home.kt:89)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}{'${'$'}'}3${'$'}1.invoke(ComposeViewAdapter.kt:573)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:215)
-      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
-      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:901)
-      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:368)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
-      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:730)
-      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}{'${'$'}'}8(RenderTask.java:886)
-      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}{'${'$'}'}2.run(RenderExecutor.kt:187)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
-      	at java.base/java.lang.Thread.run(Thread.java:829)
+        java.lang.Throwable: lateinit property okHttpClient has not been initialized
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+        	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
+        	at com.example.jetcaster.Graph${'$'}podcastRepository${'$'}2.invoke(Graph.kt:52)
+        	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
+        	at com.example.jetcaster.Graph.getPodcastRepository(Graph.kt:52)
+        	at com.example.jetcaster.ui.home.HomeViewModel.<init>(HomeViewModel.kt:33)
+        	at androidx.lifecycle.ViewModelProvider${'$'}NewInstanceFactory.create(ViewModelProvider.java:219)
+        	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.java:187)
+        	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(ViewModel.kt:72)
+        	at com.example.jetcaster.ui.home.HomeKt.Home(Home.kt:89)
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}{'${'$'}'}3${'$'}1.invoke(ComposeViewAdapter.kt:573)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:215)
+        	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+        	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:901)
+        	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:368)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+        	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:730)
+        	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}{'${'$'}'}8(RenderTask.java:886)
+        	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}{'${'$'}'}2.run(RenderExecutor.kt:187)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+        	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -286,9 +267,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-      "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-      "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
-      " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
+        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -298,46 +279,43 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.Throwable: lateinit property okHttpClient has not been initialized
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
-      	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
-      	at com.example.jetcaster.Graph${'$'}podcastRepository${'$'}2.invoke(Graph.kt:52)
-      	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
-      	at com.example.jetcaster.Graph.getPodcastRepository(Graph.kt:52)
-      	at com.example.jetcaster.ui.home.HomeViewModel.<init>(HomeViewModel.kt:33)
-      	at androidx.lifecycle.ViewModelProvider${'$'}NewInstanceFactory.create(ViewModelProvider.java:219)
-      	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.java:187)
-      	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(ViewModel.kt:72)
-      	at com.example.jetcaster.ui.home.HomeKt.Home(Home.kt:89)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}{'${'$'}'}3${'$'}1.invoke(ComposeViewAdapter.kt:573)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:215)
-      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
-      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:901)
-      	at android.view.View.dispatchAttachedToWindow(View.java:20753)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:368)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
-      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:730)
-      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}{'${'$'}'}8(RenderTask.java:886)
-      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}{'${'$'}'}2.run(RenderExecutor.kt:187)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
-      	at java.base/java.lang.Thread.run(Thread.java:829)
+        java.lang.Throwable: lateinit property okHttpClient has not been initialized
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
+        	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
+        	at com.example.jetcaster.Graph${'$'}podcastRepository${'$'}2.invoke(Graph.kt:52)
+        	at _layoutlib_._internal_.kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
+        	at com.example.jetcaster.Graph.getPodcastRepository(Graph.kt:52)
+        	at com.example.jetcaster.ui.home.HomeViewModel.<init>(HomeViewModel.kt:33)
+        	at androidx.lifecycle.ViewModelProvider${'$'}NewInstanceFactory.create(ViewModelProvider.java:219)
+        	at androidx.lifecycle.ViewModelProvider.get(ViewModelProvider.java:187)
+        	at androidx.lifecycle.viewmodel.compose.ViewModelKt.viewModel(ViewModel.kt:72)
+        	at com.example.jetcaster.ui.home.HomeKt.Home(Home.kt:89)
+        	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}{'${'$'}'}3${'$'}1.invoke(ComposeViewAdapter.kt:573)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:215)
+        	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+        	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:901)
+        	at android.view.View.dispatchAttachedToWindow(View.java:20753)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3497)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:57)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:368)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:436)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+        	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:730)
+        	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}{'${'$'}'}8(RenderTask.java:886)
+        	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}{'${'$'}'}2.run(RenderExecutor.kt:187)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+        	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_BROKEN, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_BROKEN, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -346,9 +324,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-      "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-      "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
-      " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
+        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
@@ -358,55 +336,52 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.IllegalArgumentException: argument type mismatch
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-      	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-      	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.kt:163)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:203)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:509)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:507)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:544)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:502)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
-      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:530)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:529)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.kt:524)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.kt:123)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.kt:581)
-      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1085)
-      	at android.view.View.dispatchAttachedToWindow(View.java:21291)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3491)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3498)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:58)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:367)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:443)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
-      	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:721)
-      	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}9(RenderTask.java:878)
-      	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}3.run(RenderExecutor.kt:194)
-      	at com.android.tools.idea.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:285)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
-      	at java.base/java.lang.Thread.run(Thread.java:829)
+        java.lang.IllegalArgumentException: argument type mismatch
+        	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.kt:163)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:203)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:509)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:507)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:544)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:502)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+        	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.kt:61)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:530)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.kt:529)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.kt:524)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.kt:123)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.kt:581)
+        	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.java:196)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:138)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1085)
+        	at android.view.View.dispatchAttachedToWindow(View.java:21291)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3491)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3498)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:58)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:367)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:443)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:121)
+        	at com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:721)
+        	at com.android.tools.idea.rendering.RenderTask.lambda${'$'}inflate${'$'}9(RenderTask.java:878)
+        	at com.android.tools.idea.rendering.RenderExecutor${'$'}runAsyncActionWithTimeout${'$'}3.run(RenderExecutor.kt:194)
+        	at com.android.tools.idea.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:285)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
+        	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -464,10 +439,7 @@ class ComposeRenderErrorContributorTest {
       """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -476,9 +448,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
     assertEquals(
       "There was problem to load the " +
-      "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-data\">PreviewParameterProvider</A> defined. " +
-      "Please double-check its constructor and the values property implementation. " +
-      "The IDE logs should contain the full exception stack trace.",
+        "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-data\">PreviewParameterProvider</A> defined. " +
+        "Please double-check its constructor and the values property implementation. " +
+        "The IDE logs should contain the full exception stack trace.",
       issues[0].htmlContent,
     )
   }
@@ -488,15 +460,12 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-     java.util.concurrent.TimeoutException: The render action was too slow to execute (100000ms)
+        java.util.concurrent.TimeoutException: The render action was too slow to execute (100000ms)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
 
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
@@ -505,14 +474,11 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Timeout error", issues[0].summary)
     assertEquals(
       "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
-      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
+        "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
       issues[0].htmlContent,
     )
 
-    assertBottomPanelEquals(
-      issues[0],
-      MessageTip(AllIcons.General.Information, "<A HREF=\"runnable:0\">Report Bug</A>."),
-    )
+    assertBottomPanelEquals(issues[0], MessageTip(AllIcons.General.Information, "<A HREF=\"runnable:0\">Report Bug</A>."))
   }
 
   @Test
@@ -520,105 +486,102 @@ class ComposeRenderErrorContributorTest {
     val throwable =
       createExceptionFromDesc(
         """
-      java.lang.ClassCastException: class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity (com.android.layoutlib.bridge.android.BridgeContext and android.app.Activity are in unnamed module of loader 'app')
-      	at com.example.myapplication.MainActivity.findActivity(MainActivity.kt:51)
-      	at com.example.myapplication.MainActivity.access${'$'}findActivity(MainActivity.kt:1)
-      	at com.example.myapplication.MainActivity${'$'}Greeting${'$'}1.invoke(MainActivity.kt:41)
-      	at com.example.myapplication.MainActivity${'$'}Greeting${'$'}1.invoke(MainActivity.kt:39)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.material3.TextKt.ProvideTextStyle(Text.kt:459)
-      	at androidx.compose.material3.TextKt.Text(Text.kt:348)
-      	at com.example.myapplication.MainActivity.Greeting(MainActivity.kt:38)
-      	at com.example.myapplication.MainActivity.GreetingPreview(MainActivity.kt:32)
-      	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-      	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.jvm.kt:181)
-      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.jvm.kt:221)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:504)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:502)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:539)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:497)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.android.kt:61)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:444)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:443)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.android.kt:438)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.android.kt:124)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:497)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:494)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:441)
-      	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:259)
-      	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:258)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.platform.CompositionLocalsKt.ProvideCommonCompositionLocals(CompositionLocals.kt:216)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:132)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:131)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
-      	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt.ProvideAndroidCompositionLocals(AndroidCompositionLocals.android.kt:121)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:155)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:154)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:401)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:154)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:133)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
-      	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
-      	at androidx.compose.runtime.ActualJvm_jvmKt.invokeComposable(ActualJvm.jvm.kt:97)
-      	at androidx.compose.runtime.ComposerImpl.doCompose(Composer.kt:3595)
-      	at androidx.compose.runtime.ComposerImpl.composeContent${'$'}runtime_release(Composer.kt:3522)
-      	at androidx.compose.runtime.CompositionImpl.composeContent(Composition.kt:743)
-      	at androidx.compose.runtime.Recomposer.composeInitial${'$'}runtime_release(Recomposer.kt:1122)
-      	at androidx.compose.runtime.CompositionImpl.composeInitial(Composition.kt:649)
-      	at androidx.compose.runtime.CompositionImpl.setContent(Composition.kt:635)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:133)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.AndroidComposeView.setOnViewTreeOwnersAvailable(AndroidComposeView.android.kt:1625)
-      	at androidx.compose.ui.platform.WrappedComposition.setContent(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.WrappedComposition.onStateChanged(Wrapper.android.kt:180)
-      	at androidx.lifecycle.LifecycleRegistry${'$'}ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
-      	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.jvm.kt:191)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
-      	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
-      	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1706)
-      	at android.view.View.dispatchAttachedToWindow(View.java:23071)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3518)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
-      	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:69)
-      	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
-      	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:462)
-      	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:125)
-      	at com.android.tools.rendering.RenderTask.createRenderSession(RenderTask.java:829)
-      	at com.android.tools.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:977)
-      	at com.android.tools.rendering.RenderExecutor.runAsyncActionWithTimeout${'$'}lambda${'$'}12(RenderExecutor.kt:217)
-      	at com.android.tools.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:338)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-      	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:642)
-      	at java.base/java.lang.Thread.run(Thread.java:1583)
+        java.lang.ClassCastException: class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity (com.android.layoutlib.bridge.android.BridgeContext and android.app.Activity are in unnamed module of loader 'app')
+        	at com.example.myapplication.MainActivity.findActivity(MainActivity.kt:51)
+        	at com.example.myapplication.MainActivity.access${'$'}findActivity(MainActivity.kt:1)
+        	at com.example.myapplication.MainActivity${'$'}Greeting${'$'}1.invoke(MainActivity.kt:41)
+        	at com.example.myapplication.MainActivity${'$'}Greeting${'$'}1.invoke(MainActivity.kt:39)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.material3.TextKt.ProvideTextStyle(Text.kt:459)
+        	at androidx.compose.material3.TextKt.Text(Text.kt:348)
+        	at com.example.myapplication.MainActivity.Greeting(MainActivity.kt:38)
+        	at com.example.myapplication.MainActivity.GreetingPreview(MainActivity.kt:32)
+        	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+        	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.jvm.kt:181)
+        	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.jvm.kt:221)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:504)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1${'$'}1.invoke(ComposeViewAdapter.android.kt:502)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:539)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.android.kt:497)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.tooling.InspectableKt.Inspectable(Inspectable.android.kt:61)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:444)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}WrapPreview${'$'}1.invoke(ComposeViewAdapter.android.kt:443)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.WrapPreview(ComposeViewAdapter.android.kt:438)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter.access${'$'}WrapPreview(ComposeViewAdapter.android.kt:124)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:497)
+        	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3.invoke(ComposeViewAdapter.android.kt:494)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:441)
+        	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:259)
+        	at androidx.compose.ui.platform.AbstractComposeView${'$'}ensureCompositionCreated${'$'}1.invoke(ComposeView.android.kt:258)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.platform.CompositionLocalsKt.ProvideCommonCompositionLocals(CompositionLocals.kt:216)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:132)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt${'$'}ProvideAndroidCompositionLocals${'$'}3.invoke(AndroidCompositionLocals.android.kt:131)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:380)
+        	at androidx.compose.ui.platform.AndroidCompositionLocals_androidKt.ProvideAndroidCompositionLocals(AndroidCompositionLocals.android.kt:121)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:155)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1${'$'}3.invoke(Wrapper.android.kt:154)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:401)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:154)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1${'$'}1.invoke(Wrapper.android.kt:133)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:109)
+        	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:35)
+        	at androidx.compose.runtime.ActualJvm_jvmKt.invokeComposable(ActualJvm.jvm.kt:97)
+        	at androidx.compose.runtime.ComposerImpl.doCompose(Composer.kt:3595)
+        	at androidx.compose.runtime.ComposerImpl.composeContent${'$'}runtime_release(Composer.kt:3522)
+        	at androidx.compose.runtime.CompositionImpl.composeContent(Composition.kt:743)
+        	at androidx.compose.runtime.Recomposer.composeInitial${'$'}runtime_release(Recomposer.kt:1122)
+        	at androidx.compose.runtime.CompositionImpl.composeInitial(Composition.kt:649)
+        	at androidx.compose.runtime.CompositionImpl.setContent(Composition.kt:635)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:133)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.AndroidComposeView.setOnViewTreeOwnersAvailable(AndroidComposeView.android.kt:1625)
+        	at androidx.compose.ui.platform.WrappedComposition.setContent(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.WrappedComposition.onStateChanged(Wrapper.android.kt:180)
+        	at androidx.lifecycle.LifecycleRegistry${'$'}ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
+        	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.jvm.kt:191)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:131)
+        	at androidx.compose.ui.platform.WrappedComposition${'$'}setContent${'$'}1.invoke(Wrapper.android.kt:124)
+        	at androidx.compose.ui.platform.AndroidComposeView.onAttachedToWindow(AndroidComposeView.android.kt:1706)
+        	at android.view.View.dispatchAttachedToWindow(View.java:23071)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3518)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.ViewGroup.dispatchAttachedToWindow(ViewGroup.java:3525)
+        	at android.view.AttachInfo_Accessor.setAttachInfo(AttachInfo_Accessor.java:69)
+        	at com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:362)
+        	at com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:462)
+        	at com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:125)
+        	at com.android.tools.rendering.RenderTask.createRenderSession(RenderTask.java:829)
+        	at com.android.tools.rendering.RenderTask.lambda${'$'}inflate${'$'}7(RenderTask.java:977)
+        	at com.android.tools.rendering.RenderExecutor.runAsyncActionWithTimeout${'$'}lambda${'$'}12(RenderExecutor.kt:217)
+        	at com.android.tools.rendering.RenderExecutor${'$'}PriorityRunnable.run(RenderExecutor.kt:338)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:642)
+        	at java.base/java.lang.Thread.run(Thread.java:1583)
 
-      """
+        """
           .trimIndent()
       )
-    val logger =
-      RenderLogger(androidProjectRule.project).apply {
-        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-      }
+    val logger = RenderLogger(androidProjectRule.project).apply { error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null) }
     assertTrue(isHandledByComposeContributor(throwable))
     val issues = reportComposeErrors(logger, linkManager, nopLinkHandler)
     assertEquals(1, issues.size)
@@ -626,17 +589,14 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Context cannot be cast to Activity in Compose Preview", issues[0].summary)
     assertEquals(
       "The java.lang.ClassCastException you are currently seeing in Jetpack Compose " +
-      "Previews occurs because the @Preview environment provides a non-activity Context " +
-      "(BridgeContext) that cannot be cast to an Activity. <BR/><BR/>" +
-      "<A HREF=\"runnable:0\">Show Exception</A>",
+        "Previews occurs because the @Preview environment provides a non-activity Context " +
+        "(BridgeContext) that cannot be cast to an Activity. <BR/><BR/>" +
+        "<A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent,
     )
   }
 
-  private fun assertBottomPanelEquals(
-    issue: RenderErrorModel.Issue,
-    vararg expectedMessageTips: MessageTip,
-  ) {
+  private fun assertBottomPanelEquals(issue: RenderErrorModel.Issue, vararg expectedMessageTips: MessageTip) {
     val actualMessageTips = issue.messageTip
     assertNotNull(actualMessageTips)
     assert(actualMessageTips.isNotEmpty())

@@ -22,20 +22,18 @@ import com.intellij.openapi.application.ApplicationManager
 
 internal class ThreadingViolationNotifierImpl : ThreadingViolationNotifier {
   override fun notify(warningMessage: String, methodSignature: String) {
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("Threading Violation Notification")
+    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Threading Violation Notification")
     if (notificationGroup == null && ApplicationManager.getApplication().isUnitTestMode) {
       // Do not fail the tests if we cannot show notifications due to notificationGroup not being
       // found which happens if the 'threading-checker.xml' isn't included the test's plugin.xml.
       return
     }
     val notification =
-      notificationGroup!!
-        .createNotification(
-          "Threading violation",
-          "$warningMessage<p>Violating method: $methodSignature",
-          NotificationType.ERROR
-        )
+      notificationGroup!!.createNotification(
+        "Threading violation",
+        "$warningMessage<p>Violating method: $methodSignature",
+        NotificationType.ERROR,
+      )
 
     ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }

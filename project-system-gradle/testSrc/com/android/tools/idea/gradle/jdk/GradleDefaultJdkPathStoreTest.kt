@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.jdk
 
 import com.intellij.testFramework.LightPlatformTestCase
 
-class GradleDefaultJdkPathStoreTest: LightPlatformTestCase() {
+class GradleDefaultJdkPathStoreTest : LightPlatformTestCase() {
 
   override fun tearDown() {
     GradleDefaultJdkPathStore.jdkPath = null

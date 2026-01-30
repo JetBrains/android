@@ -35,9 +35,8 @@ import javax.swing.table.TableCellRenderer
  * @param showAddAndDeleteElementButton show add/delete element button if true
  * @param showRevertElementButton show revert element button (reset value to its original value) if true
  */
-class AndroidTestExtraParamsTable(
-  private val showAddAndDeleteElementButton: Boolean,
-  private val showRevertElementButton: Boolean) : ListTableWithButtons<AndroidTestExtraParam>() {
+class AndroidTestExtraParamsTable(private val showAddAndDeleteElementButton: Boolean, private val showRevertElementButton: Boolean) :
+  ListTableWithButtons<AndroidTestExtraParam>() {
 
   override fun createListModel() = ListTableModel<AndroidTestExtraParam>(NameColumnInfo(), ValueColumnInfo())
 
@@ -55,31 +54,29 @@ class AndroidTestExtraParamsTable(
 
   override fun createExtraToolbarActions(): Array<AnActionButton> {
     return (if (showRevertElementButton) {
-      val revertAction = object : AnActionButton(ActionsBundle.message("action.ChangesView.Revert.text"),
-                                                 AllIcons.Actions.Rollback) {
+      val revertAction =
+        object : AnActionButton(ActionsBundle.message("action.ChangesView.Revert.text"), AllIcons.Actions.Rollback) {
 
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+          override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-        override fun actionPerformed(e: AnActionEvent) {
-          stopEditing()
-          selection.forEach { selectedParam ->
-            if (selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE) {
-              selectedParam.VALUE = selectedParam.ORIGINAL_VALUE
+          override fun actionPerformed(e: AnActionEvent) {
+            stopEditing()
+            selection.forEach { selectedParam ->
+              if (selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE) {
+                selectedParam.VALUE = selectedParam.ORIGINAL_VALUE
+              }
+            }
+            setModified()
+          }
+
+          override fun isEnabled(): Boolean {
+            return selection.any { selectedParam ->
+              selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
             }
           }
-          setModified()
         }
-
-        override fun isEnabled(): Boolean {
-          return selection.any { selectedParam ->
-            selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE
-            && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
-          }
-        }
-      }
       arrayOf(revertAction)
-    }
-    else {
+    } else {
       emptyArray<AnActionButton>()
     })
   }
@@ -87,13 +84,16 @@ class AndroidTestExtraParamsTable(
   /**
    * Represents a name column of [AndroidTestExtraParamsTable].
    *
-   * The param name is unmodifiable if the param has the original value source and those unmodifiable cell will be
-   * rendered differently (grayed out) from the regular cells.
+   * The param name is unmodifiable if the param has the original value source and those unmodifiable cell will be rendered differently
+   * (grayed out) from the regular cells.
    */
   private class NameColumnInfo : ElementsColumnInfoBase<AndroidTestExtraParam>("Name") {
     override fun valueOf(item: AndroidTestExtraParam) = item.NAME
+
     override fun getDescription(element: AndroidTestExtraParam) = null
+
     override fun isCellEditable(item: AndroidTestExtraParam) = item.ORIGINAL_VALUE_SOURCE == AndroidTestExtraParamSource.NONE
+
     override fun setValue(item: AndroidTestExtraParam, value: String) {
       item.NAME = value
     }
@@ -106,51 +106,53 @@ class AndroidTestExtraParamsTable(
   /**
    * Represents a value column of [AndroidTestExtraParamsTable].
    *
-   * The value is modifiable regardless of its original value source. When you modify value which has the original value,
-   * the new value will be rendered differently to standout.
+   * The value is modifiable regardless of its original value source. When you modify value which has the original value, the new value will
+   * be rendered differently to standout.
    */
   private class ValueColumnInfo : ElementsColumnInfoBase<AndroidTestExtraParam>("Value") {
     override fun valueOf(item: AndroidTestExtraParam) = item.VALUE
+
     override fun getDescription(element: AndroidTestExtraParam) = null
+
     override fun isCellEditable(item: AndroidTestExtraParam) = true
+
     override fun setValue(item: AndroidTestExtraParam, value: String) {
       item.VALUE = value
     }
 
     override fun getCustomizedRenderer(item: AndroidTestExtraParam, renderer: TableCellRenderer): TableCellRenderer {
-      return if (item.ORIGINAL_VALUE_SOURCE == AndroidTestExtraParamSource.NONE
-                 || item.VALUE == item.ORIGINAL_VALUE) renderer
+      return if (item.ORIGINAL_VALUE_SOURCE == AndroidTestExtraParamSource.NONE || item.VALUE == item.ORIGINAL_VALUE) renderer
       else ModifiedTableCellRenderer
     }
   }
 }
 
-/**
- * A custom table cell renderer for non-editable cells.
- */
+/** A custom table cell renderer for non-editable cells. */
 private object NonEditableTableCellRenderer : DefaultTableCellRenderer() {
-  override fun getTableCellRendererComponent(table: JTable,
-                                             value: Any,
-                                             isSelected: Boolean,
-                                             hasFocus: Boolean,
-                                             row: Int,
-                                             column: Int): Component {
+  override fun getTableCellRendererComponent(
+    table: JTable,
+    value: Any,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int,
+  ): Component {
     val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
     component.isEnabled = table.isEnabled && (hasFocus || isSelected)
     return component
   }
 }
 
-/**
- * A custom table cell renderer for modified cells.
- */
+/** A custom table cell renderer for modified cells. */
 private object ModifiedTableCellRenderer : DefaultTableCellRenderer() {
-  override fun getTableCellRendererComponent(table: JTable,
-                                             value: Any,
-                                             isSelected: Boolean,
-                                             hasFocus: Boolean,
-                                             row: Int,
-                                             column: Int): Component {
+  override fun getTableCellRendererComponent(
+    table: JTable,
+    value: Any,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int,
+  ): Component {
     val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
     component.font = component.font.deriveFont(Font.BOLD)
     if (!hasFocus && !isSelected) {

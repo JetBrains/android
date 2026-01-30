@@ -29,7 +29,7 @@ class StudioRenderSecurityManager(sdkPath: String?, projectPath: String?, restri
     projectPath,
     restrictReads,
     RenderSecurityManagerDefaults.getDefaultAllowedPaths(),
-    RenderService::isRenderThread
+    RenderService::isRenderThread,
   ) {
   override fun checkLink(lib: String) {
     // Allow linking with relative paths
@@ -37,7 +37,7 @@ class StudioRenderSecurityManager(sdkPath: String?, projectPath: String?, restri
     // BiDiRenderer's layoutGlyphVector call
     if (isRelevant && (lib.indexOf('/') != -1 || lib.indexOf('\\') != -1)) {
       if (lib.startsWith(System.getProperty("java.home"))) {
-        return  // Allow loading JRE libraries
+        return // Allow loading JRE libraries
       }
       // Allow loading webp library
       if (lib == WebpNativeLibHelper.getLibLocation()?.pathString) {

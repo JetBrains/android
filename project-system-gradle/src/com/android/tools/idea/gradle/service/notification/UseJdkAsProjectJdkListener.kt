@@ -28,23 +28,20 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import javax.swing.event.HyperlinkEvent
 
-class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String, idSuffix: String = ""): NotificationListener.Adapter() {
+class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String, idSuffix: String = "") :
+  NotificationListener.Adapter() {
   companion object {
-    @VisibleForTesting
-    fun baseId() = "use.jdk.as.project.jdk"
+    @VisibleForTesting fun baseId() = "use.jdk.as.project.jdk"
   }
 
   val id = "${baseId()}$idSuffix"
 
   override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
-    val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings (project)
+    val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
     if (projectSettings != null) {
-      runWriteAction {
-        changeGradleProjectSetting()
-      }
+      runWriteAction { changeGradleProjectSetting() }
       project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK.toReason())
-    }
-    else {
+    } else {
       Messages.showErrorDialog(project, "Could not set project JDK", "Change Gradle JDK")
     }
   }

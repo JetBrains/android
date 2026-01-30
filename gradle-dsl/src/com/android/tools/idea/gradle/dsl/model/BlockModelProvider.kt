@@ -23,9 +23,8 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.annotations.ApiStatus
 
 /**
- * This is extension point to provide additional models for gradle DSL elements in build script
- * files. For example Studio implements this interface to provide `android`
- * [com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement] model.
+ * This is extension point to provide additional models for gradle DSL elements in build script files. For example Studio implements this
+ * interface to provide `android` [com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement] model.
  *
  * Such approach allows to keep DSL models along with Gradle plugins and plug them in once in use
  *
@@ -48,10 +47,9 @@ interface BlockModelProvider<ParentModel : GradleDslModel, ParentDsl : GradlePro
   fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>>
 }
 
-
 @ApiStatus.Experimental
 interface BlockModelBuilder<M : GradleDslModel, P : GradlePropertiesDslElement> {
   fun modelClass(): Class<M>
+
   fun create(parent: P): M
 }
-

@@ -20,9 +20,7 @@ import org.junit.Test
 
 class BaseProjectsMatchingTargetsTest {
 
-  /**
-   * This test prevents someone adding a new upgrade project tests without updating BUILD file correspondingly.
-   */
+  /** This test prevents someone adding a new upgrade project tests without updating BUILD file correspondingly. */
   @Test
   fun bazelTargetsMatchTestSourceFiles() {
     val baseProjectAgpVersions = AUATestProjectState.values().map { it.version.agpVersion ?: "LATEST" }.distinct()

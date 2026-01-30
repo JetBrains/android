@@ -22,9 +22,8 @@ import com.intellij.psi.search.GlobalSearchScope
 /**
  * An App Insights specific cache which delegates to an IJ [ExceptionInfoCache].
  *
- * The underlying stored resolved info could be out of scope when contents get changed. So here a
- * new cache will be created on [clear] to avoid the staleness as we don't have a control over the
- * underlying [ExceptionInfoCache].
+ * The underlying stored resolved info could be out of scope when contents get changed. So here a new cache will be created on [clear] to
+ * avoid the staleness as we don't have a control over the underlying [ExceptionInfoCache].
  */
 class InsightsExceptionInfoCache(val project: Project, private val searchScope: GlobalSearchScope) {
   private var delegate = ExceptionInfoCache(project, searchScope)
@@ -33,10 +32,7 @@ class InsightsExceptionInfoCache(val project: Project, private val searchScope: 
     delegate = ExceptionInfoCache(project, searchScope)
   }
 
-  fun resolveClassOrFile(
-    className: String,
-    fileName: String?,
-  ): ExceptionInfoCache.ClassResolveInfo {
+  fun resolveClassOrFile(className: String, fileName: String?): ExceptionInfoCache.ClassResolveInfo {
     return delegate.resolveClassOrFile(className, fileName)
   }
 }

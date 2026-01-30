@@ -25,9 +25,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
 import com.intellij.testFramework.ProjectRule
+import java.io.File
+import java.nio.charset.Charset
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -35,22 +39,13 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.whenever
-import java.io.File
-import java.nio.charset.Charset
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 
-/**
- * Tests for [EncodingValidationStrategy].
- */
+/** Tests for [EncodingValidationStrategy]. */
 class EncodingValidationStrategyTest {
-  @Mock
-  private val myEncodings: EncodingProjectManager? = null
+  @Mock private val myEncodings: EncodingProjectManager? = null
   private var myStrategy: EncodingValidationStrategy? = null
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
   val project by lazy { projectRule.project }
 
   @Before
@@ -65,22 +60,14 @@ class EncodingValidationStrategyTest {
     val modelEncoding = "UTF-8"
     val androidModel = mock(GradleAndroidModelImpl::class.java)
     whenever(androidModel.agpVersion).thenReturn(AgpVersion.parse("1.2.0"))
-    val ideAndroidProject = AndroidProjectBuilder()
-      .build()
-      .invoke(
-        "projectName",
-        ":app",
-        File("/"),
-        File("/app"),
-        "1.2.0",
-        InternedModels(null)
-      )
-      .androidProject
-      .let { androidProject ->
-        androidProject.copy(
-          javaCompileOptions = androidProject.javaCompileOptions?.copy(encoding = modelEncoding)
-        )
-      }
+    val ideAndroidProject =
+      AndroidProjectBuilder()
+        .build()
+        .invoke("projectName", ":app", File("/"), File("/app"), "1.2.0", InternedModels(null))
+        .androidProject
+        .let { androidProject ->
+          androidProject.copy(javaCompileOptions = androidProject.javaCompileOptions?.copy(encoding = modelEncoding))
+        }
     whenever(androidModel.androidProject).thenAnswer { invocation: InvocationOnMock? -> ideAndroidProject }
     myStrategy!!.validate(mock(Module::class.java), androidModel)
     assertThat(myStrategy!!.mismatchingEncoding).isEqualTo(modelEncoding)

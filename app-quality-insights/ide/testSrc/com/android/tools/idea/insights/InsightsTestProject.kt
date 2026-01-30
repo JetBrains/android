@@ -34,8 +34,7 @@ enum class InsightsTestProject(
 ) : TemplateBasedTestProject {
   SIMPLE_APP("simpleApp");
 
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String =
-    "tools/adt/idea/app-quality-insights/ide/testData/projects"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/app-quality-insights/ide/testData/projects"
 
   override fun getAdditionalRepos(): Collection<File> = emptyList()
 }

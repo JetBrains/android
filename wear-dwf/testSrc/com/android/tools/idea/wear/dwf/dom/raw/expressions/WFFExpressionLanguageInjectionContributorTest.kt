@@ -39,10 +39,7 @@ import org.junit.Test
 class WFFExpressionLanguageInjectionContributorTest {
 
   @get:Rule
-  val projectRule =
-    AndroidProjectRule.withAndroidModel(
-      createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 })
-    )
+  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 }))
 
   val fixture
     get() = projectRule.fixture
@@ -54,32 +51,26 @@ class WFFExpressionLanguageInjectionContributorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
 
     // add a manifest file for the `res/` folder to be considered a resource folder
     fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "")
 
-    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
-      WFFExpressionLanguage,
-      injectionContributor,
-    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(WFFExpressionLanguage, injectionContributor)
   }
 
   @After
   fun tearDown() {
-    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(
-      WFFExpressionLanguage,
-      injectionContributor,
-    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(WFFExpressionLanguage, injectionContributor)
   }
 
   @Test
   fun `the WFF expression language is injected in attributes`() {
-    val watchFaceFile = fixture.addFileToProject(
-          "res/raw/watch_face.xml",
-          // language=XML
-          """
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
         <WatchFace>
           <Transform value="transform expression" someOtherAttribute="this shouldn't be injected" />
           <Variant value="variant expression" />
@@ -95,9 +86,9 @@ class WFFExpressionLanguageInjectionContributorTest {
           <SomeOtherTagWithoutExpression expression="shoudln't be injected" value="me neither" />
           <Expression><![CDATA[([SECONDS_IN_DAY] >= 43200 && [SECONDS_IN_DAY] < 86400)]]></Expression>
         </WatchFace>
-      """
-            .trimIndent(),
-    )
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
@@ -105,32 +96,31 @@ class WFFExpressionLanguageInjectionContributorTest {
       val injections = injectionFixture.getAllInjections()
       val injectedLanguages = injections.map { it.second.language }.toSet()
       assertThat(injectedLanguages).containsExactly(WFFExpressionLanguage)
-      val injectedAttributesByTag = injections
-        .mapNotNull { (injectedPsiElement, _) -> injectedPsiElement as? XmlAttributeValue }
-        .map {
-          val attribute = it.parentOfType<XmlAttribute>(true)
-          attribute?.parent?.name to attribute?.name
-        }
-      assertThat(injectedAttributesByTag).containsExactly(
-        "Transform" to "value",
-        "Variant" to "value",
-        "Gyro" to "x",
-        "Gyro" to "y",
-        "Gyro" to "scaleX",
-        "Gyro" to "scaleY",
-        "Gyro" to "angle",
-        "Gyro" to "alpha",
-        "Parameter" to "expression",
-      )
+      val injectedAttributesByTag =
+        injections
+          .mapNotNull { (injectedPsiElement, _) -> injectedPsiElement as? XmlAttributeValue }
+          .map {
+            val attribute = it.parentOfType<XmlAttribute>(true)
+            attribute?.parent?.name to attribute?.name
+          }
+      assertThat(injectedAttributesByTag)
+        .containsExactly(
+          "Transform" to "value",
+          "Variant" to "value",
+          "Gyro" to "x",
+          "Gyro" to "y",
+          "Gyro" to "scaleX",
+          "Gyro" to "scaleY",
+          "Gyro" to "angle",
+          "Gyro" to "alpha",
+          "Parameter" to "expression",
+        )
     }
   }
 
   @Test
   fun `the WFF expression language is not injected when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
 
     val watchFaceFile =
       fixture.addFileToProject(
@@ -179,7 +169,7 @@ class WFFExpressionLanguageInjectionContributorTest {
           <Expression><![CDATA[([SECONDS_IN_DAY] >= 43200 && [SECONDS_IN_DAY] < 86400)]]></Expression>
           <SomeOtherTag><![CDATA[this shouldn't be injected]]></SomeOtherTag>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 

@@ -24,6 +24,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import java.io.InputStream
+import java.nio.file.Paths
+import java.util.Base64
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -39,9 +42,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.io.InputStream
-import java.nio.file.Paths
-import java.util.Base64
 
 private const val SERIAL_NUMBER = "abc123"
 private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
@@ -50,8 +50,7 @@ private const val START_COMMAND = "am start -n com.android.tools.screensharing.b
 /** Tests the [StreamingBenchmarkerAppInstaller] class. */
 @RunWith(JUnit4::class)
 class StreamingBenchmarkerAppInstallerTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
   private val adb: StreamingBenchmarkerAppInstaller.AdbWrapper = mock()
   private val urlFileCache: UrlFileCache = mock()
   private val testRootDisposable
@@ -70,7 +69,7 @@ class StreamingBenchmarkerAppInstallerTest {
     val downloadPath = Paths.get("/help/i/am/trapped/in/a/unit/test/factory.apk")
     val relativePath = "common/streaming-benchmarker/streaming-benchmarker.apk"
     val basePrebuiltsUrl = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
-    val apkUrl = UrlFileCache.UrlWithHeaders("$basePrebuiltsUrl$relativePath?format=TEXT")  // Base-64 encoded
+    val apkUrl = UrlFileCache.UrlWithHeaders("$basePrebuiltsUrl$relativePath?format=TEXT") // Base-64 encoded
 
     val studioPathManager = mockStatic<StudioPathManager>(testRootDisposable)
     studioPathManager.whenever<Any?> { StudioPathManager.isRunningFromSources() }.thenReturn(false)
@@ -85,8 +84,7 @@ class StreamingBenchmarkerAppInstallerTest {
       verify(indicator).isIndeterminate = true
       verify(indicator).text = "Installing benchmarking app"
       val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
-      @Suppress("DeferredResultUnused")
-      verify(urlFileCache).get(eq(apkUrl), any(), eq(indicator), transformCaptor.capture())
+      @Suppress("DeferredResultUnused") verify(urlFileCache).get(eq(apkUrl), any(), eq(indicator), transformCaptor.capture())
       val helloWorld = "Hello World"
       assertThat(String(transformCaptor.firstValue.invoke(Base64.getEncoder().encode(helloWorld.toByteArray()).inputStream()).readBytes()))
         .isEqualTo(helloWorld)
@@ -100,8 +98,8 @@ class StreamingBenchmarkerAppInstallerTest {
 
   @Test
   fun installationFromPrebuilts_success() = runTest {
-    val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
-      "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
+    val prebuiltPath =
+      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(true)
     assertThat(installer.installBenchmarkingApp(null)).isTrue()
 
@@ -110,8 +108,8 @@ class StreamingBenchmarkerAppInstallerTest {
 
   @Test
   fun installationFromPrebuilts_failure() = runTest {
-    val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
-      "prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
+    val prebuiltPath =
+      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/common/streaming-benchmarker/streaming-benchmarker.apk")
     whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(false)
 
     assertThat(installer.installBenchmarkingApp(null)).isFalse()

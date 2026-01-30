@@ -24,40 +24,32 @@ import javax.swing.ImageIcon
 
 private val LOG = Logger.getInstance(AssetIconProvider::class.java)
 
-/**
- * An [AssetIconProvider] provides an [Icon] for a [DesignAsset].
- */
+/** An [AssetIconProvider] provides an [Icon] for a [DesignAsset]. */
 interface AssetIconProvider {
 
   /**
-   * Indicates that the implementing [AssetIconProvider] supports transparency.
-   * This is used to display a chessboard background to better see the transparent
-   * areas.
+   * Indicates that the implementing [AssetIconProvider] supports transparency. This is used to display a chessboard background to better
+   * see the transparent areas.
    */
   val supportsTransparency: Boolean
 
   /**
-   * Returns an [Icon] representing the [assetToRender].
-   * The icon should have the size defined by [width] and [height].
-   * This method is meant to be called on the UI thread and should be fast.
+   * Returns an [Icon] representing the [assetToRender]. The icon should have the size defined by [width] and [height]. This method is meant
+   * to be called on the UI thread and should be fast.
    *
-   * If it takes some time to render the icon, the rendering should be done
-   * asynchronously and the resulting image should be cached.
-   * (see [com.android.tools.idea.ui.resourcemanager.ImageCache]).
+   * If it takes some time to render the icon, the rendering should be done asynchronously and the resulting image should be cached. (see
+   * [com.android.tools.idea.ui.resourcemanager.ImageCache]).
    *
-   * If the rendering of the icon is asynchronous, the implementing method can call
-   * [refreshCallback] to notify the caller that the icon has been rendered and [getIcon]
-   * method can be called again to retrieve an updated version of the icon.
+   * If the rendering of the icon is asynchronous, the implementing method can call [refreshCallback] to notify the caller that the icon has
+   * been rendered and [getIcon] method can be called again to retrieve an updated version of the icon.
    *
-   * The same instance of [Icon] is reused for all renders to save memory the same way
-   * a [javax.swing.ListCellRenderer] reuse a view as a stamp. If an instance of [Icon] needs to
-   * be kept - for instance when rendering an icon not in a JList - [AssetIcon] can be used.
+   * The same instance of [Icon] is reused for all renders to save memory the same way a [javax.swing.ListCellRenderer] reuse a view as a
+   * stamp. If an instance of [Icon] needs to be kept - for instance when rendering an icon not in a JList - [AssetIcon] can be used.
    *
-   * In the case of an asynchronous computation, the caller can provide an optional [shouldBeRendered]
-   * function that can be called to verify that the icon should still be rendered. This can be
-   * useful when deferring the rendering call: by the time the request to render the icon is made,
-   * the component showing this icon might not be visible anymore so we can check [shouldBeRendered] to
-   * avoid unnecessary computation.
+   * In the case of an asynchronous computation, the caller can provide an optional [shouldBeRendered] function that can be called to verify
+   * that the icon should still be rendered. This can be useful when deferring the rendering call: by the time the request to render the
+   * icon is made, the component showing this icon might not be visible anymore so we can check [shouldBeRendered] to avoid unnecessary
+   * computation.
    *
    * Example code when the [Icon] instance needs to be kept:
    * ```
@@ -67,7 +59,8 @@ interface AssetIconProvider {
    * }
    * ```
    *
-   *  Example code with a [javax.swing.ListCellRenderer]
+   * Example code with a [javax.swing.ListCellRenderer]
+   *
    * ```
    * class DesignAssetCellRenderer : ListCellRenderer<DesignAsset> {
    *
@@ -85,7 +78,7 @@ interface AssetIconProvider {
    *       { list.repaint(list.getCellBounds(index, index)) },
    *       { ScrollingUtil.isIndexFullyVisible(list, index) })
    *   }
-   *}
+   * }
    * ```
    *
    * @see AssetIcon
@@ -96,12 +89,11 @@ interface AssetIconProvider {
     height: Int,
     component: Component,
     refreshCallback: () -> Unit = {},
-    shouldBeRendered: () -> Boolean = { true }): Icon
+    shouldBeRendered: () -> Boolean = { true },
+  ): Icon
 }
 
-/**
- * An [AssetIconProvider] that always returns an empty icon.
- */
+/** An [AssetIconProvider] that always returns an empty icon. */
 class DefaultIconProvider private constructor() : AssetIconProvider {
   companion object {
     val INSTANCE = DefaultIconProvider()
@@ -117,5 +109,6 @@ class DefaultIconProvider private constructor() : AssetIconProvider {
     height: Int,
     component: Component,
     refreshCallback: () -> Unit,
-    shouldBeRendered: () -> Boolean) = icon
+    shouldBeRendered: () -> Boolean,
+  ) = icon
 }

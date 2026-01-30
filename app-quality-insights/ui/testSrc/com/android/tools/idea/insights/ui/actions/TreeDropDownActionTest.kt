@@ -85,8 +85,7 @@ class TreeDropDownActionTest {
   private val popupRule = JBPopupRule()
   private val testLoggerRule = TestLoggerRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(testLoggerRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(testLoggerRule)!!
 
   private lateinit var scope: CoroutineScope
 
@@ -118,10 +117,7 @@ class TreeDropDownActionTest {
           enabledFlow = enabledFlow,
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
 
       fakeUi.updateToolbars()
@@ -171,10 +167,7 @@ class TreeDropDownActionTest {
           enabledFlow = enabledFlow,
         )
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
 
       val actionEvent: AnActionEvent = mock()
@@ -184,8 +177,7 @@ class TreeDropDownActionTest {
       dropdown.update(actionEvent)
       verify(presentation, times(1)).isEnabled = true
       verify(presentation, times(1)).text = "All values"
-      verify(presentation, times(1))
-        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
+      verify(presentation, times(1)).putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
       verifyNoMoreInteractions(presentation)
 
       enabledFlow.update { false }
@@ -193,8 +185,7 @@ class TreeDropDownActionTest {
 
       verify(presentation, times(1)).isEnabled = false
       verify(presentation, times(2)).text = "All values"
-      verify(presentation, times(2))
-        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
+      verify(presentation, times(2)).putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
       verifyNoMoreInteractions(presentation)
     }
 
@@ -204,10 +195,7 @@ class TreeDropDownActionTest {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
-      val flow =
-        MutableStateFlow(
-          MultiSelection(setOf(VALUE1, VALUE2, VALUE3), listOf(VALUE1, VALUE2, VALUE3))
-        )
+      val flow = MutableStateFlow(MultiSelection(setOf(VALUE1, VALUE2, VALUE3), listOf(VALUE1, VALUE2, VALUE3)))
 
       val dropdown =
         TreeDropDownAction(
@@ -225,10 +213,7 @@ class TreeDropDownActionTest {
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 3 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
       fakeUi.updateToolbars()
 
@@ -309,10 +294,7 @@ class TreeDropDownActionTest {
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 2 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
       fakeUi.updateToolbars()
 
@@ -321,12 +303,7 @@ class TreeDropDownActionTest {
       dropdown.titleState.waitForValue("All values")
 
       assertThat(lastPopup.root.childCount).isEqualTo(1)
-      assertThat(
-          lastPopup.treeTable.tree.isExpanded(
-            TreePath(arrayOf(lastPopup.root, lastPopup.root.firstChild))
-          )
-        )
-        .isTrue()
+      assertThat(lastPopup.treeTable.tree.isExpanded(TreePath(arrayOf(lastPopup.root, lastPopup.root.firstChild)))).isTrue()
     }
 
   @Test
@@ -336,12 +313,7 @@ class TreeDropDownActionTest {
       val fakeUi = FakeUi(panel)
 
       val flow =
-        MutableStateFlow(
-          MultiSelection(
-            setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-          )
-        )
+        MutableStateFlow(MultiSelection(setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5), listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)))
 
       val dropdown =
         TreeDropDownAction(
@@ -359,10 +331,7 @@ class TreeDropDownActionTest {
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
       fakeUi.updateToolbars()
 
@@ -376,21 +345,15 @@ class TreeDropDownActionTest {
       // (VALUE1, VALUE2), (VALUE4, VALUE5), (VALUE3)
       val (group1, group2, group3) = lastPopup.root.checkedChildren()
       assertThat(group1.userObject).isEqualTo("1")
-      assertThat(group1.checkedChildren().map { it.userObject })
-        .containsExactly(VALUE1, VALUE2)
-        .inOrder()
+      assertThat(group1.checkedChildren().map { it.userObject }).containsExactly(VALUE1, VALUE2).inOrder()
       assertThat(group2.userObject).isEqualTo("2")
-      assertThat(group2.checkedChildren().map { it.userObject })
-        .containsExactly(VALUE4, VALUE5)
-        .inOrder()
+      assertThat(group2.checkedChildren().map { it.userObject }).containsExactly(VALUE4, VALUE5).inOrder()
       assertThat(group3.userObject).isEqualTo(VALUE3)
 
       // Ordering should respect the filter.
       // Expect: VALUE4, VALUE2
       lastPopup.searchTextField.text = "title2"
-      assertThat(lastPopup.root.checkedChildren().map { it.userObject })
-        .containsExactly("2", "1")
-        .inOrder()
+      assertThat(lastPopup.root.checkedChildren().map { it.userObject }).containsExactly("2", "1").inOrder()
       assertThat(lastPopup.root.checkedChildren().map { it.checkedChildren().single().userObject })
         .containsExactly(VALUE4, VALUE2)
         .inOrder()
@@ -400,11 +363,7 @@ class TreeDropDownActionTest {
   fun `popup shows unavailable message when items exceed limit`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
       val panel = JPanel(BorderLayout())
-      val items =
-        (1..MAX_DROPDOWN_ITEMS + 1)
-          .asSequence()
-          .map { WithCount(1, SimpleValue("$it", "Title")) }
-          .toList()
+      val items = (1..MAX_DROPDOWN_ITEMS + 1).asSequence().map { WithCount(1, SimpleValue("$it", "Title")) }.toList()
 
       val flow = MutableStateFlow(MultiSelection(items.toSet(), items))
 
@@ -424,10 +383,7 @@ class TreeDropDownActionTest {
       dropdown.selectionState.first { it.items.size == MAX_DROPDOWN_ITEMS + 1 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
@@ -435,15 +391,9 @@ class TreeDropDownActionTest {
       actionButton.click()
 
       // Check the error message is displayed.
-      val popup =
-        popupRule.fakePopupFactory
-          .getChildPopups(mock())
-          .filterIsInstance<FakeComponentPopup>()
-          .map { it.contentPanel }
-          .last()
+      val popup = popupRule.fakePopupFactory.getChildPopups(mock()).filterIsInstance<FakeComponentPopup>().map { it.contentPanel }.last()
 
-      assertThat((popup.components.single() as JBLabel).text)
-        .isEqualTo("Filter unavailable: too many items.")
+      assertThat((popup.components.single() as JBLabel).text).isEqualTo("Filter unavailable: too many items.")
     }
 
   @Test
@@ -451,12 +401,7 @@ class TreeDropDownActionTest {
     runBlocking(AndroidDispatchers.uiThread) {
       val panel = JPanel(BorderLayout())
       val flow =
-        MutableStateFlow(
-          MultiSelection(
-            setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
-          )
-        )
+        MutableStateFlow(MultiSelection(setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5), listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)))
       val dropdown =
         TreeDropDownAction(
           "values",
@@ -465,9 +410,7 @@ class TreeDropDownActionTest {
           primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
-          secondaryGroupSupplier = {
-            setOf(SimpleGroup(if (it.groupingKey == "1") "ONE" else "OTHER"))
-          },
+          secondaryGroupSupplier = { setOf(SimpleGroup(if (it.groupingKey == "1") "ONE" else "OTHER")) },
           onSelected = {},
           getLocationOnScreen = { FakeUi(panel).getPosition(this) },
           enabledFlow = enabledFlow,
@@ -476,10 +419,7 @@ class TreeDropDownActionTest {
       delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
-      val toolbar =
-        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
-          targetComponent = panel
-        }
+      val toolbar = ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply { targetComponent = panel }
       panel.add(toolbar.component, BorderLayout.CENTER)
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
@@ -497,10 +437,8 @@ class TreeDropDownActionTest {
       secondaryGroups[0].doClick()
       val uncheckedNodes = lastPopup.root.checkedChildren().filterNot { it.isChecked }
       assertThat(uncheckedNodes.map { it.userObject as String }).containsExactly("1")
-      val uncheckedLeaves =
-        uncheckedNodes.flatMap { it.children().asSequence() }.filterIsInstance<CheckedTreeNode>()
-      assertThat(uncheckedLeaves.filterNot { it.isChecked }.map { it.userObject })
-        .containsExactly(VALUE1, VALUE2)
+      val uncheckedLeaves = uncheckedNodes.flatMap { it.children().asSequence() }.filterIsInstance<CheckedTreeNode>()
+      assertThat(uncheckedLeaves.filterNot { it.isChecked }.map { it.userObject }).containsExactly(VALUE1, VALUE2)
 
       // Checking one of the leaves should update its associated secondary group to DONT_CARE state
       lastPopup.helper.setNodeState(lastPopup.treeTable.tree, uncheckedLeaves[0], true)
@@ -517,8 +455,7 @@ class TreeDropDownActionTest {
         .last()
 }
 
-fun TreeNode.checkedChildren(): List<CheckedTreeNode> =
-  (children() as Enumeration<CheckedTreeNode>).toList()
+fun TreeNode.checkedChildren(): List<CheckedTreeNode> = (children() as Enumeration<CheckedTreeNode>).toList()
 
 private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 5000) {
   val received = mutableListOf<T>()

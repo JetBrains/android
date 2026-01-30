@@ -26,7 +26,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 @RunsInEdt
@@ -46,7 +45,8 @@ class R8StrictFullModeForKeepRulesRefactoringProcessorTest : UpgradeGradleFileMo
     val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.strictFullModeForKeepRules=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.strictFullModeForKeepRules=false")
   }
 
   @Test
@@ -54,9 +54,11 @@ class R8StrictFullModeForKeepRulesRefactoringProcessorTest : UpgradeGradleFileMo
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.r8.strictFullModeForKeepRules=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.r8.strictFullModeForKeepRules=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.strictFullModeForKeepRules=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.strictFullModeForKeepRules=false")
   }
 
   @Test
@@ -65,7 +67,8 @@ class R8StrictFullModeForKeepRulesRefactoringProcessorTest : UpgradeGradleFileMo
     projectRule.fixture.addFileToProject("gradle.properties", "android.r8.strictFullModeForKeepRules=false")
     val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.strictFullModeForKeepRules=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.strictFullModeForKeepRules=false")
   }
 
   @Test
@@ -74,20 +77,23 @@ class R8StrictFullModeForKeepRulesRefactoringProcessorTest : UpgradeGradleFileMo
     projectRule.fixture.addFileToProject("gradle.properties", "android.r8.strictFullModeForKeepRules=true")
     val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.strictFullModeForKeepRules=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.r8.strictFullModeForKeepRules=true")
   }
 
   @Test
   fun `Refactoring disabled for 9_0_0-alpha01`() {
     val project = projectRule.project
-    val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
+    val processor =
+      R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
   fun `Refactoring enabled for 9_0_0-alpha02`() {
     val project = projectRule.project
-    val processor = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
+    val processor =
+      R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha02"))
     assertTrue(processor.isEnabled)
   }
 

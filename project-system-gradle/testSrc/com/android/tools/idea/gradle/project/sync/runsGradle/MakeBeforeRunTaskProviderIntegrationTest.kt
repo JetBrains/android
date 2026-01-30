@@ -39,8 +39,7 @@ import org.junit.Test
 
 class MakeBeforeRunTaskProviderIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
@@ -55,7 +54,9 @@ class MakeBeforeRunTaskProviderIntegrationTest {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(
+            FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi))))
+          )
         }
       }
 
@@ -77,7 +78,9 @@ class MakeBeforeRunTaskProviderIntegrationTest {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(
+            FakeAndroidDevice.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi))))
+          )
         }
       }
 
@@ -93,12 +96,11 @@ class MakeBeforeRunTaskProviderIntegrationTest {
   fun checkWithSimulatedSyncError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
     withSimulatedSyncError(errorMessage) {
-      preparedProject.open(updateOptions = { it.copy(verifyOpened = { })}) {
+      preparedProject.open(updateOptions = { it.copy(verifyOpened = {}) }) {
         val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
         assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
       }
     }
-
   }
 }
 

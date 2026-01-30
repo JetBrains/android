@@ -30,17 +30,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 
-class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
+class ApkModuleSystem(override val module: Module) : AndroidModuleSystem {
   private val delegate = DefaultModuleSystem(module)
 
   override val moduleClassFileFinder: ClassFileFinder
     get() = delegate.moduleClassFileFinder
 
-  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
-    delegate.getModuleTemplates(targetDirectory)
+  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> = delegate.getModuleTemplates(targetDirectory)
 
-  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope =
-    delegate.getResolveScope(scopeType)
+  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope = delegate.getResolveScope(scopeType)
 
   override val submodules: Collection<Module> = listOf()
 
@@ -56,8 +54,7 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
 
   override fun getDirectResourceModuleDependents(): List<Module> = listOf()
 
-  override fun getPackageName(): String? =
-    delegate.getPackageName()
+  override fun getPackageName(): String? = delegate.getPackageName()
 
   override fun getManifestOverrides(): ManifestOverrides = ManifestOverrides()
 

@@ -38,9 +38,7 @@ import javax.swing.UIManager
 import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.max
 
-/**
- * Default max duration (ms) of the animation preview when it's not possible to get it from andoidx.
- */
+/** Default max duration (ms) of the animation preview when it's not possible to get it from andoidx. */
 const val DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS = 10000L
 
 /** Timeline slider with auto-resized ticks and labels distance. */
@@ -123,10 +121,7 @@ open class TimelinePanel(val tooltip: Tooltip, val tracker: AnimationTracker) :
   }
 
   override fun getPreferredSize(): Dimension {
-    return Dimension(
-      zoomValue * width - 50,
-      InspectorLayout.timelineHeaderHeightScaled() + sliderUI.elements.sumOf { it.heightScaled() },
-    )
+    return Dimension(zoomValue * width - 50, InspectorLayout.timelineHeaderHeightScaled() + sliderUI.elements.sumOf { it.heightScaled() })
   }
 
   override fun getFont(): Font = UIUtil.getFont(UIUtil.FontSize.SMALL, null)
@@ -160,8 +155,7 @@ open class TimelinePanel(val tooltip: Tooltip, val tracker: AnimationTracker) :
 }
 
 /**
- * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following
- * modifications are made:
+ * Modified [JSlider] UI to simulate a timeline-like view. In general lines, the following modifications are made:
  * * The horizontal track is hidden, so only the vertical thumb is shown
  * * The vertical thumb is a vertical line that matches the parent height
  * * The tick lines also match the parent height
@@ -172,11 +166,9 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   val positionProxy =
     object : PositionProxy {
-      override fun valueForXPosition(value: Int): Int =
-        this@TimelineSliderUI.valueForXPosition(value)
+      override fun valueForXPosition(value: Int): Int = this@TimelineSliderUI.valueForXPosition(value)
 
-      override fun xPositionForValue(value: Int): Int =
-        this@TimelineSliderUI.xPositionForValue(value)
+      override fun xPositionForValue(value: Int): Int = this@TimelineSliderUI.xPositionForValue(value)
 
       override fun maximumXPosition(): Int = xPositionForValue(slider.maximum)
 
@@ -201,11 +193,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   final override fun getThumbSize(): Dimension {
     val originalSize = super.getThumbSize()
     return if (slider.parent == null) originalSize
-    else
-      Dimension(
-        originalSize.width,
-        slider.parent.height - InspectorLayout.timelineHeaderHeightScaled(),
-      )
+    else Dimension(originalSize.width, slider.parent.height - InspectorLayout.timelineHeaderHeightScaled())
   }
 
   final override fun calculateTickRect() {
@@ -256,20 +244,12 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   private fun paintMajorTicks(g: Graphics2D) {
     // Set background color
     g.color =
-      if (
-        !moreThanOneTimelineElementInPanel() &&
-          elements.firstOrNull()?.frozenState?.isFrozen == true
-      ) {
+      if (!moreThanOneTimelineElementInPanel() && elements.firstOrNull()?.frozenState?.isFrozen == true) {
         InspectorColors.TIMELINE_FROZEN_BACKGROUND_COLOR
       } else {
         InspectorColors.TIMELINE_BACKGROUND_COLOR
       }
-    g.fillRect(
-      0,
-      InspectorLayout.timelineHeaderHeightScaled(),
-      slider.width,
-      slider.height - InspectorLayout.timelineHeaderHeightScaled(),
-    )
+    g.fillRect(0, InspectorLayout.timelineHeaderHeightScaled(), slider.width, slider.height - InspectorLayout.timelineHeaderHeightScaled())
 
     if (moreThanOneTimelineElementInPanel()) {
       var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
@@ -295,8 +275,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   }
 
   /**
-   * Get vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is
-   * not true, the line will have the height of the panel.
+   * Get vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is not true, the line will have the height of
+   * the panel.
    */
   private fun getFrozenLines(): List<VerticalTick> {
     val frozenTicks = mutableListOf<VerticalTick>()
@@ -314,8 +294,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   }
 
   /**
-   * Paint vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is
-   * not true, the line will have the height of the panel.
+   * Paint vertical freeze lines for all frozen elements. If [moreThanOneTimelineElementInPanel] is not true, the line will have the height
+   * of the panel.
    */
   private fun paintFreezeLines(g: Graphics2D, lines: List<VerticalTick>) {
     g.color = InspectorColors.FREEZE_LINE_COLOR
@@ -387,11 +367,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       val halfWidth = thumbRect.width / 2
       // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of
       // the width so the center is aligned.
-      val thumbX =
-        currentMouseX.coerceIn(
-          xPositionForValue(slider.minimum),
-          xPositionForValue(slider.maximum),
-        ) - halfWidth
+      val thumbX = currentMouseX.coerceIn(xPositionForValue(slider.minimum), xPositionForValue(slider.maximum)) - halfWidth
       setThumbLocation(thumbX, thumbRect.y)
       slider.value = valueForXPosition(currentMouseX)
     }

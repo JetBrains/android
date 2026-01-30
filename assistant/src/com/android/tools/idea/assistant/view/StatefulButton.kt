@@ -52,17 +52,12 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A wrapper presentation on [ActionButton] that allows for the button to maintain state. In
- * practice this means that either a button is displayed or a message indicating why the action was
- * not available is displayed. A common example is adding dependencies. If the dependency has
- * already been added, displaying a success message instead of an "add" button is appropriate.
+ * A wrapper presentation on [ActionButton] that allows for the button to maintain state. In practice this means that either a button is
+ * displayed or a message indicating why the action was not available is displayed. A common example is adding dependencies. If the
+ * dependency has already been added, displaying a success message instead of an "add" button is appropriate.
  */
-class StatefulButton(
-  action: ActionData,
-  listener: ActionListener,
-  stateManager: AssistActionStateManager?,
-  project: Project,
-) : JPanel(GridBagLayout()) {
+class StatefulButton(action: ActionData, listener: ActionListener, stateManager: AssistActionStateManager?, project: Project) :
+  JPanel(GridBagLayout()) {
   @JvmField @VisibleForTesting val myButton: ActionButton
   private val mySuccessMessage: String?
   private val myStateManager: AssistActionStateManager?
@@ -79,8 +74,8 @@ class StatefulButton(
    *
    * @param action model parsed from xml
    * @param listener listens for click and handles action
-   * @param stateManager a button can be associated with a manager that listens for updates and
-   *   changes button UI. If null, button is always in default state (same as NOT_APPLICABLE)
+   * @param stateManager a button can be associated with a manager that listens for updates and changes button UI. If null, button is always
+   *   in default state (same as NOT_APPLICABLE)
    * @param project
    */
   init {
@@ -142,10 +137,7 @@ class StatefulButton(
       // Listen for notifications that the state has been updated.
       val connection = project.messageBus.connect()
       myMessageBusConnections.add(connection)
-      connection.subscribe(
-        StatefulButtonNotifier.BUTTON_STATE_TOPIC,
-        StatefulButtonNotifier { updateButtonState() },
-      )
+      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, StatefulButtonNotifier { updateButtonState() })
     }
     super.addNotify()
   }
@@ -158,8 +150,8 @@ class StatefulButton(
   }
 
   /**
-   * Updates the state of the button display based on the associated `AssistActionStateManager` if
-   * present. This should be called whenever there may have been a state change.
+   * Updates the state of the button display based on the associated `AssistActionStateManager` if present. This should be called whenever
+   * there may have been a state change.
    *
    * TODO: Determine how to update the state on card view change at minimum.
    */
@@ -205,13 +197,11 @@ class StatefulButton(
   }
 
   /**
-   * Generic button used for handling arbitrary actions. No display properties should be overridden
-   * here as this class purely addresses logical handling and is not opinionated about display.
-   * Action buttons may have a variety of visual styles which will either be added inline where used
-   * or by subclassing this class.
+   * Generic button used for handling arbitrary actions. No display properties should be overridden here as this class purely addresses
+   * logical handling and is not opinionated about display. Action buttons may have a variety of visual styles which will either be added
+   * inline where used or by subclassing this class.
    */
-  class ActionButton(action: ActionData, listener: ActionListener, wrapper: StatefulButton) :
-    JButton(action.label) {
+  class ActionButton(action: ActionData, listener: ActionListener, wrapper: StatefulButton) : JButton(action.label) {
     val key: String?
     private val myButtonWrapper: StatefulButton
 
@@ -239,10 +229,7 @@ class StatefulButton(
     val project: Project
       get() = myButtonWrapper.project
 
-    /**
-     * Set this button's background, border, and font styles to look the same as a default dialog
-     * button
-     */
+    /** Set this button's background, border, and font styles to look the same as a default dialog button */
     private fun highlight() {
       if (getUI() is DarculaButtonUI) {
         // Background color and font

@@ -31,10 +31,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch
  * Based on `AndroidActivityAliasCompletionContributor`
  */
 class ClassPickerCompletionContributor : CompletionContributor() {
-  override fun fillCompletionVariants(
-    parameters: CompletionParameters,
-    result: CompletionResultSet,
-  ) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     if (parameters.completionType != CompletionType.BASIC) {
       return
     }

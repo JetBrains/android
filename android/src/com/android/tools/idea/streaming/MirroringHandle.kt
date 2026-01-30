@@ -25,5 +25,6 @@ interface MirroringHandle {
 }
 
 enum class MirroringState {
-  ACTIVE, INACTIVE
+  ACTIVE,
+  INACTIVE,
 }

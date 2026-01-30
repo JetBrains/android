@@ -55,8 +55,7 @@ import org.jdom.Attribute
 import org.jdom.Element
 import org.jetbrains.annotations.TestOnly
 
-private const val EP_NAME =
-  "com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
+private const val EP_NAME = "com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
 private val PROVIDERS_EP = ExtensionPointName.create<PreviewRepresentationProvider>(EP_NAME)
 private const val EDITOR_STATE_TAG = "editor-state"
 private const val SELECTED_LAYOUT_ATTRIBUTE = "selected-layout"
@@ -65,8 +64,7 @@ private const val SELECTED_LAYOUT_ATTRIBUTE = "selected-layout"
 data class SourceCodeEditorWithMultiRepresentationPreviewState(
   val parentState: FileEditorState = FileEditorState.INSTANCE,
   val editorState: FileEditorState = FileEditorState.INSTANCE,
-  val previewState: MultiRepresentationPreviewFileEditorState =
-    MultiRepresentationPreviewFileEditorState.INSTANCE,
+  val previewState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState.INSTANCE,
   val selectedLayout: TextEditorWithPreview.Layout? = null,
 ) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
@@ -78,12 +76,10 @@ data class SourceCodeEditorWithMultiRepresentationPreviewState(
 }
 
 /**
- * [FileEditorProvider] intended to be used with all source code files universally and therefore
- * accepts all source code files. Creates [SourceCodeEditorWithMultiRepresentationPreview] as a
- * corresponding [FileEditor].
+ * [FileEditorProvider] intended to be used with all source code files universally and therefore accepts all source code files. Creates
+ * [SourceCodeEditorWithMultiRepresentationPreview] as a corresponding [FileEditor].
  */
-class SourceCodeEditorProvider
-private constructor(private val providers: Collection<PreviewRepresentationProvider>) :
+class SourceCodeEditorProvider private constructor(private val providers: Collection<PreviewRepresentationProvider>) :
   AsyncFileEditorProvider, QuickDefinitionProvider, DumbAware {
   constructor() : this(PROVIDERS_EP.extensions.toList())
 
@@ -100,11 +96,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     textEditor: TextEditor,
   ): SourceCodeEditorWithMultiRepresentationPreview {
     val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
-    return SourceCodeEditorWithMultiRepresentationPreview(
-      project,
-      textEditor,
-      multiRepresentationPreview,
-    )
+    return SourceCodeEditorWithMultiRepresentationPreview(project, textEditor, multiRepresentationPreview)
   }
 
   override suspend fun createFileEditor(
@@ -113,8 +105,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     document: Document?,
     editorCoroutineScope: CoroutineScope,
   ): FileEditor {
-    val textEditor =
-      PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
+    val textEditor = PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
     val psiFile = readAction { PsiManager.getInstance(project).findFile(file) }
 
     if (psiFile == null) {
@@ -122,9 +113,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       return textEditor
     }
 
-    return withContext(Dispatchers.EDT) {
-      buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
-    }
+    return withContext(Dispatchers.EDT) { buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor) }
   }
 
   // This method is being replaced by the platform to use createFileEditor.
@@ -136,13 +125,8 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     }
 
     val textEditor =
-      SlowOperations.knownIssue("IDEA-359566").use {
-        TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-      }
-    val psiFile =
-      SlowOperations.knownIssue("IDEA-359566").use {
-        runReadAction { PsiManager.getInstance(project).findFile(file) }
-      }
+      SlowOperations.knownIssue("IDEA-359566").use { TextEditorProvider.getInstance().createEditor(project, file) as TextEditor }
+    val psiFile = SlowOperations.knownIssue("IDEA-359566").use { runReadAction { PsiManager.getInstance(project).findFile(file) } }
     if (psiFile == null) {
       log.warn("Unable to locate PSI File for ${file.path}")
       return textEditor
@@ -168,17 +152,11 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       serialize(state.previewState)?.let { targetElement.addContent(it) }
 
       // Persist the current selected layout
-      state.selectedLayout?.let {
-        targetElement.setAttribute(Attribute(SELECTED_LAYOUT_ATTRIBUTE, it.name))
-      }
+      state.selectedLayout?.let { targetElement.setAttribute(Attribute(SELECTED_LAYOUT_ATTRIBUTE, it.name)) }
     }
   }
 
-  override fun readState(
-    sourceElement: Element,
-    project: Project,
-    file: VirtualFile,
-  ): FileEditorState {
+  override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
     if (accept(project, file)) {
       var editorState: TextEditorState? = null
       var multiPreviewState: MultiRepresentationPreviewFileEditorState? = null
@@ -193,12 +171,10 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       sourceElement.children.forEach {
         when (it.name) {
           EDITOR_STATE_TAG -> {
-            editorState =
-              PsiAwareTextEditorProvider().readState(it, project, file) as? TextEditorState
+            editorState = PsiAwareTextEditorProvider().readState(it, project, file) as? TextEditorState
           }
           MULTI_PREVIEW_STATE_TAG -> {
-            multiPreviewState =
-              XmlSerializer.deserialize(it, MultiRepresentationPreviewFileEditorState::class.java)
+            multiPreviewState = XmlSerializer.deserialize(it, MultiRepresentationPreviewFileEditorState::class.java)
           }
           else -> log.warn("Unexpected tag deserializing state ${it.name}")
         }
@@ -218,8 +194,6 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
   }
 
   companion object {
-    @TestOnly
-    fun forTesting(providers: List<PreviewRepresentationProvider>) =
-      SourceCodeEditorProvider(providers)
+    @TestOnly fun forTesting(providers: List<PreviewRepresentationProvider>) = SourceCodeEditorProvider(providers)
   }
 }

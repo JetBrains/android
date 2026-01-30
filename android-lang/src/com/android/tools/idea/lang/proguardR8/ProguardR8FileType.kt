@@ -38,13 +38,10 @@ class ProguardR8FileType private constructor() : LanguageFileType(ProguardR8Lang
   }
 
   companion object {
-    @JvmField
-    val INSTANCE = ProguardR8FileType()
+    @JvmField val INSTANCE = ProguardR8FileType()
 
-    @JvmField
-    val EXT_PRO = "pro"
+    @JvmField val EXT_PRO = "pro"
 
-    @JvmField
-    val DOT_PRO = ".pro"
+    @JvmField val DOT_PRO = ".pro"
   }
 }

@@ -19,7 +19,5 @@ import com.android.tools.idea.gradle.model.IdeBuild
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import java.io.Serializable
 
-data class IdeCompositeBuildMapImpl(
-  override val builds: List<IdeBuild>,
-  override val gradleSupportsDirectTaskInvocation: Boolean
-) : IdeCompositeBuildMap, Serializable
+data class IdeCompositeBuildMapImpl(override val builds: List<IdeBuild>, override val gradleSupportsDirectTaskInvocation: Boolean) :
+  IdeCompositeBuildMap, Serializable

@@ -19,10 +19,7 @@ import com.android.tools.idea.insights.model.event.OperatingSystemInfo
 import com.google.play.developer.reporting.OsVersion
 
 fun OperatingSystemInfo.Companion.fromProto(proto: OsVersion): OperatingSystemInfo {
-  return OperatingSystemInfo(
-    displayVersion = proto.apiLevel.toString(),
-    displayName = proto.apiLevel.toString(),
-  )
+  return OperatingSystemInfo(displayVersion = proto.apiLevel.toString(), displayName = proto.apiLevel.toString())
 }
 
 fun OperatingSystemInfo.Companion.fromDimensions(dimensions: List<Dimension>): OperatingSystemInfo {

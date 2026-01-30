@@ -21,8 +21,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class DeclarativeFoldingBuilderTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
 
@@ -47,7 +46,8 @@ class DeclarativeFoldingBuilderTest {
           implementation("org.apache.commons:commons-lang3:3.12.0")
           implementation("android.arch.core:common:1.1.1")
       }</fold>
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.testFolding("${projectRule.project.basePath}/build.gradle.dcl")
   }
@@ -60,7 +60,8 @@ class DeclarativeFoldingBuilderTest {
       factoryBlock("param") <fold text='{...}'>{
           property = value
       }</fold>
-    """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.testFolding("${projectRule.project.basePath}/build.gradle.dcl")
   }

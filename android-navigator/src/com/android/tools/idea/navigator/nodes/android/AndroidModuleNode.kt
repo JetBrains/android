@@ -39,22 +39,16 @@ import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * [com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode] does not classify source types, and just assumes that all source
- * roots contain Java packages. This class overrides that behavior to provide a per source type node ([AndroidSourceTypeNode]) inside
- * a module.
+ * [com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode] does not classify source types, and just assumes that all source roots
+ * contain Java packages. This class overrides that behavior to provide a per source type node ([AndroidSourceTypeNode]) inside a module.
  */
-class AndroidModuleNode(
-  project: Project,
-  module: Module,
-  settings: ViewSettings
-) : AndroidViewModuleNode(project, module, settings) {
+class AndroidModuleNode(project: Project, module: Module, settings: ViewSettings) : AndroidViewModuleNode(project, module, settings) {
   override fun getModuleChildren(): Collection<AbstractTreeNode<*>> {
     val module = value?.takeUnless { it.isDisposed } ?: return emptyList()
     val facet = AndroidFacet.getInstance(module)
     return if (facet == null || AndroidModel.get(facet) == null) {
       platformGetChildren()
-    }
-    else {
+    } else {
       getChildren(facet, settings)
     }
   }
@@ -70,7 +64,9 @@ class AndroidModuleNode(
   }
 
   override fun getSortKey(): Comparable<*>? = value?.takeUnless { it.isDisposed }?.name
+
   override fun getTypeSortKey(): Comparable<*>? = sortKey
+
   override fun getTypeSortWeight(sortByType: Boolean): Int {
     return AndroidViewTypeSortWeight.PACKAGE.weight
   }
@@ -79,8 +75,7 @@ class AndroidModuleNode(
     val module = value
     return if (module == null || module.isDisposed) {
       if (module == null) "(null)" else "(Disposed)"
-    }
-    else String.format("%1\$s (Android)", super.toTestString(printInfo))
+    } else String.format("%1\$s (Android)", super.toTestString(printInfo))
   }
 
   override fun update(presentation: PresentationData) {
@@ -104,30 +99,28 @@ class AndroidModuleNode(
   override fun canRepresent(element: Any?): Boolean {
     if (super.canRepresent(element)) return true
 
-    val file = when (element) {
-      is VirtualFile -> element
-      is PsiElement -> PsiUtilCore.getVirtualFile(element)
-      else -> null
-    } ?: return false
+    val file =
+      when (element) {
+        is VirtualFile -> element
+        is PsiElement -> PsiUtilCore.getVirtualFile(element)
+        else -> null
+      } ?: return false
 
     val project = project.takeUnless { it == null || it.isDisposed } ?: return false
     val moduleForFile = ProjectFileIndex.getInstance(project).getModuleForFile(file, false)
     if (value != moduleForFile?.getHolderModule()) return false
 
-    val childrenContainFile = moduleChildren.any {
-      it !is ProjectViewNode || it.contains(file)
-    }
+    val childrenContainFile = moduleChildren.any { it !is ProjectViewNode || it.contains(file) }
 
     return !childrenContainFile
   }
 
   companion object {
-    fun getChildren(
-      facet: AndroidFacet,
-      settings: ViewSettings
-    ): Collection<AbstractTreeNode<*>> {
+    fun getChildren(facet: AndroidFacet, settings: ViewSettings): Collection<AbstractTreeNode<*>> {
       val result: MutableList<AbstractTreeNode<*>> = ArrayList()
-      result.addAll(AndroidViewNodeProvider.getProviders().mapNotNull { it.getModuleChildren(facet.module.getHolderModule(), settings) }.flatten())
+      result.addAll(
+        AndroidViewNodeProvider.getProviders().mapNotNull { it.getModuleChildren(facet.module.getHolderModule(), settings) }.flatten()
+      )
       return result
     }
 

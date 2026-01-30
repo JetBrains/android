@@ -30,21 +30,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
-/**
- * A collection of various folding tests that verify data binding code folds as
- * expected.
- */
+/** A collection of various folding tests that verify data binding code folds as expected. */
 class DataBindingFoldingBuilderTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
   private val edtRule = EdtRule()
 
-  @get:Rule
-  val chain = RuleChain(projectRule, edtRule)
+  @get:Rule val chain = RuleChain(projectRule, edtRule)
 
-  private val fixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val fixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Before
   fun setUp() {

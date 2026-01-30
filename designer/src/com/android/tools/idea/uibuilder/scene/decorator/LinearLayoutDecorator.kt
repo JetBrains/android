@@ -73,11 +73,7 @@ class LinearLayoutDecorator : SceneDecorator() {
     }
   }
 
-  override fun addBackground(
-    list: DisplayList,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
     @AndroidDpCoordinate val rect = Rectangle()
     component.fillDrawRect(0, rect)
     @SwingCoordinate val l = sceneContext.getSwingXDip(rect.x.toFloat())
@@ -87,8 +83,7 @@ class LinearLayoutDecorator : SceneDecorator() {
 
     var vertical = false
     sceneContext.surface?.project?.let {
-      val handler =
-        ViewHandlerManager.get(it).getHandler(SdkConstants.LINEAR_LAYOUT) {} as LinearLayoutHandler
+      val handler = ViewHandlerManager.get(it).getHandler(SdkConstants.LINEAR_LAYOUT) {} as LinearLayoutHandler
       vertical = handler.isVertical(component.nlComponent)
     }
 

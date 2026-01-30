@@ -60,8 +60,7 @@ internal fun ErrorReport.toSampleEvent(parser: StackTraceGroupParser): Event {
         eventTime = eventTime.toJavaInstant(),
       ),
     stacktraceGroup =
-      if (type == ErrorType.APPLICATION_NOT_RESPONDING) parser.parseThreadDump(reportText)
-      else parser.parseException(reportText),
+      if (type == ErrorType.APPLICATION_NOT_RESPONDING) parser.parseThreadDump(reportText) else parser.parseException(reportText),
     appVcsInfo = AppVcsInfo.fromProto(vcsInformation),
   )
 }

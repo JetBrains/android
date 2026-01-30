@@ -55,8 +55,7 @@ class ViewNodeCacheTest {
   fun init() {
     val executors: AndroidExecutors = mock()
     whenever(executors.workerThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
-    ApplicationManager.getApplication()
-      .registerServiceInstance(AndroidExecutors::class.java, executors, disposableRule.disposable)
+    ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, executors, disposableRule.disposable)
   }
 
   @Test
@@ -64,9 +63,7 @@ class ViewNodeCacheTest {
     val model =
       model(disposableRule.disposable) {
         view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
-          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-          }
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
           view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
         }
       }
@@ -120,23 +117,14 @@ class ViewNodeCacheTest {
 
   private fun window1() =
     window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-      view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-        view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-      }
+      view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
       view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
     }
 
   private fun window2() =
-    window(ROOT2, ROOT2, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-      view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type")
-    }
+    window(ROOT2, ROOT2, 2, 4, 6, 8, rootViewQualifiedName = "rootType") { view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") }
 
-  private fun update(
-    model: InspectorModel,
-    cache: ViewNodeCache<*>,
-    window: AndroidWindow,
-    allIds: List<Long>,
-  ) {
+  private fun update(model: InspectorModel, cache: ViewNodeCache<*>, window: AndroidWindow, allIds: List<Long>) {
     model.update(window, allIds, 0)
     cache.retain(allIds)
   }

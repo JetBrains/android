@@ -36,28 +36,14 @@ class GoogleCloudServerCommunicatorTest {
 
   @Test
   fun testWriteFile() {
-    val snapshot =
-      SettingsSnapshot(
-        SettingsSnapshot.MetaInfo(Instant.now(), null),
-        setOf(),
-        null,
-        mapOf(),
-        setOf(),
-      )
+    val snapshot = SettingsSnapshot(SettingsSnapshot.MetaInfo(Instant.now(), null), setOf(), null, mapOf(), setOf())
     communicator.push(snapshot, true, "1234")
     verify(driveClient).write(eq("studio/settings.sync.snapshot.zip"), any())
   }
 
   @Test
   fun testDelete() {
-    val snapshot =
-      SettingsSnapshot(
-        SettingsSnapshot.MetaInfo(Instant.now(), null, isDeleted = true),
-        setOf(),
-        null,
-        mapOf(),
-        setOf(),
-      )
+    val snapshot = SettingsSnapshot(SettingsSnapshot.MetaInfo(Instant.now(), null, isDeleted = true), setOf(), null, mapOf(), setOf())
     communicator.push(snapshot, true, "1234")
     verify(driveClient).delete("studio/settings.sync.snapshot.zip")
   }

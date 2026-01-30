@@ -35,11 +35,8 @@ import javax.swing.tree.TreePath
 
 const val BUILD_TYPES_DISPLAY_NAME: String = "Build Types"
 const val BUILD_TYPES_PLACE_NAME: String = "android.psd.build_type"
-class BuildTypesPanel(
-  val module: PsAndroidModule,
-  val treeModel: ConfigurablesTreeModel,
-  uiSettings: PsUISettings
-) :
+
+class BuildTypesPanel(val module: PsAndroidModule, val treeModel: ConfigurablesTreeModel, uiSettings: PsUISettings) :
   ConfigurablesMasterDetailsPanel<PsBuildType>(BUILD_TYPES_DISPLAY_NAME, BUILD_TYPES_PLACE_NAME, treeModel, uiSettings) {
 
   private val nameValidator = NameValidator { module.validateBuildTypeName(it.orEmpty()) }
@@ -53,12 +50,14 @@ class BuildTypesPanel(
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
       override fun actionPerformed(e: AnActionEvent) {
-        if (Messages.showYesNoDialog(
+        if (
+          Messages.showYesNoDialog(
             e.project,
             "Remove build type '${selectedConfigurable?.displayName}' from the module?",
             "Remove Build Type",
-            Messages.getQuestionIcon()
-          ) == Messages.YES) {
+            Messages.getQuestionIcon(),
+          ) == Messages.YES
+        ) {
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_REMOVE)
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeBuildType(selectedNode.getModel() ?: return)
@@ -83,7 +82,7 @@ class BuildTypesPanel(
           false,
           "Also rename related build types",
           selectedConfigurable?.displayName,
-          nameValidator
+          nameValidator,
         ) { newName, alsoRenameReferences ->
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_RENAME)
           (selectedNode.getModel<PsBuildType>() ?: return@renameWithDialog).rename(newName)
@@ -94,27 +93,21 @@ class BuildTypesPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
-        object : DumbAwareAction("Add Build Type", "", IconUtil.addIcon) {
+      object : DumbAwareAction("Add Build Type", "", IconUtil.addIcon) {
 
-          override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-          override fun actionPerformed(e: AnActionEvent) {
-            val newName =
-                Messages.showInputDialog(
-                  e.project,
-                  "Enter a new build type name:",
-                  "Create New Build Type",
-                  null,
-                  "",
-                  nameValidator)
-            if (newName != null) {
-              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_ADD)
-              val buildType = module.addNewBuildType(newName)
-              val node = treeModel.rootNode.findChildFor(buildType)
-              tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
-            }
+        override fun actionPerformed(e: AnActionEvent) {
+          val newName =
+            Messages.showInputDialog(e.project, "Enter a new build type name:", "Create New Build Type", null, "", nameValidator)
+          if (newName != null) {
+            module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_ADD)
+            val buildType = module.addNewBuildType(newName)
+            val node = treeModel.rootNode.findChildFor(buildType)
+            tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
           }
         }
+      }
     )
   }
 

@@ -41,9 +41,9 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import java.io.File
 import org.jetbrains.android.intentions.AndroidExtractColorAction
 import org.jetbrains.android.intentions.AndroidExtractDimensionAction
-import java.io.File
 
 class PreviewFixTest : AbstractAndroidLintTest() {
 
@@ -69,17 +69,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     val element = myFixture.file.findElementAt(myFixture.caretOffset)!!
 
-    val fix =
-      ModCommandLintQuickFix(
-        AddTargetVersionCheckQuickFix(
-          project,
-          element,
-          9,
-          0,
-          ExtensionSdk.ANDROID_SDK_ID,
-          ApiConstraint.ALL,
-        )
-      )
+    val fix = ModCommandLintQuickFix(AddTargetVersionCheckQuickFix(project, element, 9, 0, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL))
 
     myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
     myFixture.checkResult(
@@ -124,17 +114,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     val element = myFixture.file.findElementAt(myFixture.caretOffset)!!
 
-    val fix =
-      ModCommandLintQuickFix(
-        AddTargetVersionCheckQuickFix(
-          project,
-          element,
-          9,
-          0,
-          ExtensionSdk.ANDROID_SDK_ID,
-          ApiConstraint.ALL,
-        )
-      )
+    val fix = ModCommandLintQuickFix(AddTargetVersionCheckQuickFix(project, element, 9, 0, ExtensionSdk.ANDROID_SDK_ID, ApiConstraint.ALL))
 
     myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
     myFixture.checkResult(
@@ -163,10 +143,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "layout.xml", /*language=XML */
         """
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-          <Button android:text="Hello World"/>
-      </LinearLayout>
-      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <Button android:text="Hello World"/>
+        </LinearLayout>
+        """
           .trimIndent(),
       )
     checkPreviewAction(
@@ -272,9 +252,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           .trimIndent(),
       )
 
-    val fix =
-      create().replace().pattern("(foo)").with("foo: Foo").build().toIdeFix(file)
-        as ModCommandLintQuickFix
+    val fix = create().replace().pattern("(foo)").with("foo: Foo").build().toIdeFix(file) as ModCommandLintQuickFix
     myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
 
     myFixture.checkResult(
@@ -303,12 +281,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       )
 
     @Suppress("DEPRECATION")
-    val fix =
-      create()
-        .annotate("@java.lang.SuppressWarnings(\"something\")", false)
-        .range(getLocationAtCaret())
-        .build()
-        .toIdeFix(file)
+    val fix = create().annotate("@java.lang.SuppressWarnings(\"something\")", false).range(getLocationAtCaret()).build().toIdeFix(file)
 
     myFixture.checkPreviewAndLaunchAction((fix as ModCommandLintQuickFix).rawIntention())
     myFixture.checkResult(
@@ -319,7 +292,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         public void test() {
         }
       }
-    """
+      """
         .trimIndent()
     )
   }
@@ -338,14 +311,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           .trimIndent(),
       )
     val annotateFix =
-      AnnotateQuickFix(
-        file.project,
-        "annotate",
-        null,
-        "@java.lang.SuppressWarnings(\"something\")",
-        false,
-        getLocationAtCaret(),
-      )
+      AnnotateQuickFix(file.project, "annotate", null, "@java.lang.SuppressWarnings(\"something\")", false, getLocationAtCaret())
     myFixture.checkPreviewAndLaunchAction(annotateFix.asIntention())
     myFixture.checkResult(
       /* language=Java */
@@ -355,7 +321,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         public void test() {
         }
       }
-    """
+      """
         .trimIndent()
     )
   }
@@ -370,22 +336,14 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         """
           .trimIndent(),
       )
-    val annotateFix =
-      AnnotateQuickFix(
-        file.project,
-        "annotate",
-        null,
-        "@kotlin.Suppress(\"SomeInspection\")",
-        false,
-        getLocationAtCaret(),
-      )
+    val annotateFix = AnnotateQuickFix(file.project, "annotate", null, "@kotlin.Suppress(\"SomeInspection\")", false, getLocationAtCaret())
     myFixture.checkPreviewAndLaunchAction(annotateFix.asIntention())
     myFixture.checkResult(
       /* language=kotlin */
       """
-       @Suppress("SomeInspection")
-       const val someProperty = ""
-    """
+      @Suppress("SomeInspection")
+      const val someProperty = ""
+      """
         .trimIndent()
     )
   }
@@ -404,14 +362,8 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       )
 
     val fix =
-      create()
-        .replace()
-        .range(getLocationAtCaret())
-        .pattern("foo")
-        .with("foo:   Foo  ")
-        .reformat(true)
-        .build()
-        .toIdeFix(file) as ModCommandLintQuickFix
+      create().replace().range(getLocationAtCaret()).pattern("foo").with("foo:   Foo  ").reformat(true).build().toIdeFix(file)
+        as ModCommandLintQuickFix
 
     myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
     myFixture.checkResult(
@@ -431,17 +383,15 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
-    val fix =
-      create().newFile(File(otherFile.path), "<Resources/>").build().toIdeFix(file)
-        as ModCommandLintQuickFix
+    val fix = create().newFile(File(otherFile.path), "<Resources/>").build().toIdeFix(file) as ModCommandLintQuickFix
 
     myFixture.checkIntentionPreviewHtml(
       fix.rawIntention(),
@@ -470,12 +420,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       create()
         .name("Replace")
         .composite(
-          create()
-            .replace()
-            .range(Location.create(File(otherFile.path)))
-            .text("Resources")
-            .with("resources")
-            .build(),
+          create().replace().range(Location.create(File(otherFile.path))).text("Resources").with("resources").build(),
           create().replace().pattern("(foo)").with("foo: Foo").build(),
         )
         .toIdeFix(file) as ModCommandLintQuickFix
@@ -520,13 +465,8 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
     val fix =
-      create()
-        .replace()
-        .range(Location.create(File(otherFile.path)))
-        .text("Resources")
-        .with("resources")
-        .build()
-        .toIdeFix(file) as ModCommandLintQuickFix
+      create().replace().range(Location.create(File(otherFile.path))).text("Resources").with("resources").build().toIdeFix(file)
+        as ModCommandLintQuickFix
 
     val preview = myFixture.getIntentionPreviewText(fix.rawIntention())
     assertEquals("<resources/>", preview)
@@ -559,9 +499,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
-    val fix =
-      create().newFile(File(otherFile.path), "<new>").build().toIdeFix(file)
-        as ModCommandLintQuickFix
+    val fix = create().newFile(File(otherFile.path), "<new>").build().toIdeFix(file) as ModCommandLintQuickFix
 
     val preview = myFixture.getIntentionPreviewText(fix.rawIntention())
     assertEquals("<new>", preview)
@@ -591,9 +529,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         .trimIndent(),
     )
 
-    val intention =
-      SuppressLintIntentionAction(DuplicateResourceDetector.ISSUE, myFixture.elementAtCaret)
-        .asIntention()
+    val intention = SuppressLintIntentionAction(DuplicateResourceDetector.ISSUE, myFixture.elementAtCaret).asIntention()
 
     myFixture.checkPreviewAndLaunchAction(intention)
     myFixture.checkResult(
@@ -623,8 +559,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       )
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
 
-    val intention =
-      SuppressLintIntentionAction(ApiDetector.UNSUPPORTED, myFixture.elementAtCaret).asIntention()
+    val intention = SuppressLintIntentionAction(ApiDetector.UNSUPPORTED, myFixture.elementAtCaret).asIntention()
 
     myFixture.checkPreviewAndLaunchAction(intention)
     myFixture.checkResult(
@@ -665,19 +600,13 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     assertTrue(caretLocation, caretDelta != -1)
 
     // String around caret/range without the range and caret marker characters
-    val caretContext: String =
-      caretLocation.substring(0, caretDelta) + caretLocation.substring(caretDelta + 1)
+    val caretContext: String = caretLocation.substring(0, caretDelta) + caretLocation.substring(caretDelta + 1)
     val caretContextIndex = fileContent.indexOf(caretContext)
     assertTrue("Caret content $caretContext not found in file", caretContextIndex != -1)
     return caretContextIndex + caretDelta
   }
 
-  private fun checkPreviewAction(
-    file: PsiFile,
-    caret: String,
-    createAction: (element: PsiElement) -> IntentionAction,
-    expected: String,
-  ) {
+  private fun checkPreviewAction(file: PsiFile, caret: String, createAction: (element: PsiElement) -> IntentionAction, expected: String) {
     val element = findElement(file, caret)
     val action = createAction(element)
     checkPreview(expected, action, file)
@@ -711,9 +640,6 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         assertEquals(IntentionPreviewInfo.DIFF, preview)
       }
     }
-    assertEquals(
-      expected.trimIndent().trim(),
-      TestUtils.getDiff(file.text, psiFileCopy.text).trim(),
-    )
+    assertEquals(expected.trimIndent().trim(), TestUtils.getDiff(file.text, psiFileCopy.text).trim())
   }
 }

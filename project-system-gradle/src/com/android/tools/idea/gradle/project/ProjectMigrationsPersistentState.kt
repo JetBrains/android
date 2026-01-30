@@ -25,15 +25,8 @@ import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A [PersistentStateComponent] that stores the different project migrations state under .idea/migrations.xml with the following format:
- * <component name="ProjectMigrations">
- *   <option name="MigrateToGradleLocalJavaHome">
- *     <set>
- *       <option value="$PROJECT_DIR$/project_root1" />
- *       <option value="$PROJECT_DIR$/project_root2" />
- *     </set>
- *   </option>
- *   <option name="MigrateToX" value="false" />
- * </component>
+ * <component name="ProjectMigrations"> <option name="MigrateToGradleLocalJavaHome"> <set> <option value="$PROJECT_DIR$/project_root1" />
+ * <option value="$PROJECT_DIR$/project_root2" /> </set> </option> <option name="MigrateToX" value="false" /> </component>
  */
 @State(name = "ProjectMigrations", storages = [Storage("migrations.xml")])
 class ProjectMigrationsPersistentState @VisibleForTesting constructor() : PersistentStateComponent<ProjectMigrationsPersistentState> {
@@ -45,9 +38,9 @@ class ProjectMigrationsPersistentState @VisibleForTesting constructor() : Persis
     }
   }
 
-  @OptionTag("MigrateToGradleLocalJavaHome")
-  val migratedGradleRootsToGradleLocalJavaHome: MutableSet<String> = mutableSetOf()
+  @OptionTag("MigrateToGradleLocalJavaHome") val migratedGradleRootsToGradleLocalJavaHome: MutableSet<String> = mutableSetOf()
 
   override fun getState() = this
+
   override fun loadState(state: ProjectMigrationsPersistentState) = XmlSerializerUtil.copyBean(state, this)
 }

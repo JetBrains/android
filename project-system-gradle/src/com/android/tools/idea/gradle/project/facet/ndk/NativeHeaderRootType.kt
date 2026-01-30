@@ -24,12 +24,11 @@ import org.jetbrains.jps.model.serialization.module.JpsModuleSourceRootPropertie
 
 object NativeHeaderRootType : JpsElementTypeWithDummyProperties(), JpsModuleSourceRootType<JpsDummyElement>
 
-object NativeHeaderRootTypeSerializer : JpsModuleSourceRootPropertiesSerializer<JpsDummyElement>(
-  NativeHeaderRootType, "native-header-root") {
+object NativeHeaderRootTypeSerializer :
+  JpsModuleSourceRootPropertiesSerializer<JpsDummyElement>(NativeHeaderRootType, "native-header-root") {
   override fun loadProperties(sourceRootTag: Element): JpsDummyElement {
-    return JpsElementFactory.getInstance().createDummyElement();
+    return JpsElementFactory.getInstance().createDummyElement()
   }
 
-  override fun saveProperties(properties: JpsDummyElement, sourceRootTag: Element) {
-  }
+  override fun saveProperties(properties: JpsDummyElement, sourceRootTag: Element) {}
 }

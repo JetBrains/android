@@ -27,5 +27,4 @@ interface ValidationAggregateDisplayConfigurable {
   fun interface ValidationChangeListener : EventListener {
     fun validationResultChanges()
   }
-
 }

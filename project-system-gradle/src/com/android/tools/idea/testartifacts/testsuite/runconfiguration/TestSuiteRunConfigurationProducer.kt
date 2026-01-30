@@ -61,10 +61,7 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     return true
   }
 
-  override fun isConfigurationFromContext(
-    configuration: TestSuiteRunConfiguration,
-    context: ConfigurationContext,
-  ): Boolean {
+  override fun isConfigurationFromContext(configuration: TestSuiteRunConfiguration, context: ConfigurationContext): Boolean {
     if (!StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
       return false
     }
@@ -81,8 +78,8 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     val testSuiteContext = getTestSuiteContext(file, module, androidModel) ?: return false
     val targetTaskNames = testSuiteContext.targets.map { it.testTaskName }.toSet()
     return configuration.settings.externalProjectPath == testSuiteContext.externalProjectPath &&
-           configuration.getTaskNames().any { it in targetTaskNames } &&
-           configuration.getTestEngineIds() == testSuiteContext.testSuite.junitEngineInfo.includedEngines
+      configuration.getTaskNames().any { it in targetTaskNames } &&
+      configuration.getTestEngineIds() == testSuiteContext.testSuite.junitEngineInfo.includedEngines
   }
 
   private data class TestSuiteContext(
@@ -95,8 +92,8 @@ class TestSuiteRunConfigurationProducer : LazyRunConfigurationProducer<TestSuite
     val externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module) ?: return null
     val testSuite =
       TestSuiteUtils.getTestSuiteAtRoot(androidModel.testSuites, file)
-      ?: TestSuiteUtils.getTestSuiteContainingFile(androidModel.testSuites, file)
-      ?: return null
+        ?: TestSuiteUtils.getTestSuiteContainingFile(androidModel.testSuites, file)
+        ?: return null
     val targets = TestSuiteUtils.getTestSuiteTargets(androidModel.selectedVariant, testSuite.name)
     if (targets.isEmpty()) {
       return null

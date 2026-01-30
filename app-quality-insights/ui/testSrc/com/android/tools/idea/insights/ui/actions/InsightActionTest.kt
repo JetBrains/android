@@ -74,19 +74,11 @@ class InsightActionTest {
     mockPluginManagerCore = mockStatic(projectRule.disposable)
     whenever(mockGeminiPlugin.name).thenReturn("Gemini")
     whenever(mockGeminiPlugin.pluginId).thenAnswer { PluginId.getId("") }
-    mockPluginManagerCore
-      .whenever<Any> { PluginManagerCore.isDisabled(any()) }
-      .thenAnswer { isGeminiDisabled }
-    mockPluginManagerCore
-      .whenever<Any> { PluginManagerCore.plugins }
-      .thenAnswer { arrayOf(mockGeminiPlugin) }
+    mockPluginManagerCore.whenever<Any> { PluginManagerCore.isDisabled(any()) }.thenAnswer { isGeminiDisabled }
+    mockPluginManagerCore.whenever<Any> { PluginManagerCore.plugins }.thenAnswer { arrayOf(mockGeminiPlugin) }
 
     fakeGeminiPluginApi = FakeGeminiPluginApi()
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
   }
 
   @After
@@ -152,8 +144,7 @@ class InsightActionTest {
     isGeminiDisabled = true
     val countDownLatch = CountDownLatch(1)
 
-    val mockPluginManagerConfigurable =
-      mockStatic<PluginManagerConfigurable>(projectRule.disposable)
+    val mockPluginManagerConfigurable = mockStatic<PluginManagerConfigurable>(projectRule.disposable)
     mockPluginManagerConfigurable
       .whenever<Any> { PluginManagerConfigurable.showPluginConfigurable(any(), anyList()) }
       .thenAnswer { countDownLatch.countDown() }
@@ -174,18 +165,14 @@ class InsightActionTest {
     )
 
   private fun createInsightButton() =
-    (InsightAction.createCustomComponent(InsightAction.templatePresentation, "") as JButton).also {
-      InsightAction.update(it)
-    }
+    (InsightAction.createCustomComponent(InsightAction.templatePresentation, "") as JButton).also { InsightAction.update(it) }
 
-  private fun createStackTraceGroup(eventIdx: Int) =
-    StacktraceGroup(List(5) { createRandomException(it, eventIdx) })
+  private fun createStackTraceGroup(eventIdx: Int) = StacktraceGroup(List(5) { createRandomException(it, eventIdx) })
 
   private fun createRandomException(idx: Int, eventIdx: Int): ExceptionStack {
     return ExceptionStack(
       createStackTrace(),
-      rawExceptionMessage =
-        "${if(idx == 1) "Caused by " else ""}rawExceptionMessage: Some Exception Message for event $eventIdx - ${idx+1}",
+      rawExceptionMessage = "${if(idx == 1) "Caused by " else ""}rawExceptionMessage: Some Exception Message for event $eventIdx - ${idx+1}",
     )
   }
 
@@ -209,8 +196,7 @@ class InsightActionTest {
 
   private fun createStackTrace() = Stacktrace(frames = List(5) { Frame(rawSymbol = "frame-$it") })
 
-  private fun InsightAction.update(button: JButton) =
-    updateCustomComponent(button, templatePresentation)
+  private fun InsightAction.update(button: JButton) = updateCustomComponent(button, templatePresentation)
 
   private fun createTestEvent() =
     createEvent(

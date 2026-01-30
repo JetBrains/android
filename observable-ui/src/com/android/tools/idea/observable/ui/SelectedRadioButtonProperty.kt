@@ -20,14 +20,15 @@ import java.awt.event.ItemEvent.SELECTED
 import javax.swing.JRadioButton
 
 /**
- * An observable property that wraps a group of radio buttons and exposes the selected one by mapping it
- * to one of the given objects, for example enum values.
+ * An observable property that wraps a group of radio buttons and exposes the selected one by mapping it to one of the given objects, for
+ * example enum values.
  *
  * @param selected the value corresponding to the initially selected radio button. The value has to be present in the [values] array.
  * @param values the values to map the radio buttons to
  * @param radioButtons the radio buttons
  */
-class SelectedRadioButtonProperty<T : Any>(private var selected: T, values: Array<T>, vararg radioButtons: JRadioButton) : ObjectProperty<T>() {
+class SelectedRadioButtonProperty<T : Any>(private var selected: T, values: Array<T>, vararg radioButtons: JRadioButton) :
+  ObjectProperty<T>() {
   private val myValueToButtonMap: Map<T, JRadioButton>
 
   init {
@@ -46,14 +47,10 @@ class SelectedRadioButtonProperty<T : Any>(private var selected: T, values: Arra
     setDirectly(selected)
   }
 
-  /**
-   * Returns the value corresponding to the selected radio button.
-   */
+  /** Returns the value corresponding to the selected radio button. */
   override fun get() = selected
 
-  /**
-   * Selects the radio button corresponding to the given value.
-   */
+  /** Selects the radio button corresponding to the given value. */
   override fun setDirectly(value: T) {
     requireNotNull(myValueToButtonMap[value]) { "Invalid selected value (${value})" }.isSelected = true
   }

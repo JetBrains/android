@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.CredentialManagerDigitalAssetLinkDetector
 
 class AndroidLintCredManMissingDalInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.cred.man.missing.dal"),
-    CredentialManagerDigitalAssetLinkDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.cred.man.missing.dal"), CredentialManagerDigitalAssetLinkDetector.ISSUE)

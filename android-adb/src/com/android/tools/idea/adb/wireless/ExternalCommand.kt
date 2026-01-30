@@ -27,14 +27,7 @@ class ExternalCommand(val executable: String) {
   private val LOG = logger<ExternalCommand>()
 
   @Throws(IOException::class)
-  fun execute(
-    args: List<String>,
-    stdin: InputStream,
-    stdout: OutputStream,
-    stderr: OutputStream,
-    timeout: Long,
-    unit: TimeUnit,
-  ): Int {
+  fun execute(args: List<String>, stdin: InputStream, stdout: OutputStream, stderr: OutputStream, timeout: Long, unit: TimeUnit): Int {
     val command: MutableList<String> = ArrayList()
     val exe = File(executable)
     command.add(exe.absolutePath)
@@ -67,8 +60,7 @@ class ExternalCommand(val executable: String) {
     return code
   }
 
-  private class PipeConnector(private val input: InputStream, private val output: OutputStream) :
-    Thread() {
+  private class PipeConnector(private val input: InputStream, private val output: OutputStream) : Thread() {
     override fun run() {
       try {
         val buffer = ByteArray(8192)

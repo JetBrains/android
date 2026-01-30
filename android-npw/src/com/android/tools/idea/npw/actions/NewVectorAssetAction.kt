@@ -26,9 +26,7 @@ import java.io.File
 import java.net.URL
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs.
- */
+/** Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs. */
 class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vector Asset Studio to create an image asset") {
 
   override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {

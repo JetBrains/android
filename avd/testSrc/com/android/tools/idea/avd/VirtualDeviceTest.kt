@@ -48,12 +48,9 @@ class VirtualDeviceTest {
     with(VirtualDevice(pixel8)) {
       initializeFromProfile()
       assertThat(cpuCoreCount).isEqualTo(EmulatedProperties.defaultCpuCount(deviceProfile))
-      assertThat(ram)
-        .isEqualTo(EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity())
-      assertThat(vmHeapSize)
-        .isEqualTo(EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity())
-      assertThat(internalStorage)
-        .isEqualTo(EmulatedProperties.defaultInternalStorage(deviceProfile).toStorageCapacity())
+      assertThat(ram).isEqualTo(EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity())
+      assertThat(vmHeapSize).isEqualTo(EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity())
+      assertThat(internalStorage).isEqualTo(EmulatedProperties.defaultInternalStorage(deviceProfile).toStorageCapacity())
     }
   }
 
@@ -62,8 +59,7 @@ class VirtualDeviceTest {
     val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
-    val avdBuilder =
-      AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
+    val avdBuilder = AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
     avdBuilder.systemImage = mockSystemImage()
     avdBuilder.displayName = "My Pixel"
     avdBuilder.sdCard = InternalSdCard(100 * 1024 * 1024L)
@@ -106,8 +102,7 @@ class VirtualDeviceTest {
   fun virtualDeviceToAvdBuilder() {
     val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
-    val avdBuilder =
-      AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
+    val avdBuilder = AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
 
     val device =
       VirtualDevice(deviceProfile = pixel8).apply {
@@ -157,6 +152,5 @@ class VirtualDeviceTest {
     assertThat(devices.getDevice("pixel_9", "Google")).isNotNull()
   }
 
-  private fun mockSystemImage(): ISystemImage =
-    mock<ISystemImage>().apply { whenever(androidVersion).thenReturn(AndroidVersion(34)) }
+  private fun mockSystemImage(): ISystemImage = mock<ISystemImage>().apply { whenever(androidVersion).thenReturn(AndroidVersion(34)) }
 }

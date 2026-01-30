@@ -16,12 +16,6 @@
 package com.android.tools.idea.streaming.device
 
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import org.junit.After
-import org.junit.Test
 import java.io.IOException
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -33,10 +27,14 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import org.junit.After
+import org.junit.Test
 
-/**
- * Tests for [SuspendingServerSocketChannel] and [SuspendingSocketChannel].
- */
+/** Tests for [SuspendingServerSocketChannel] and [SuspendingSocketChannel]. */
 class SuspendingNetworkChannelTest {
   // TODO: add tests for
   //     - timeouts passed to various read/write methods work as expected

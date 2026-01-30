@@ -23,12 +23,10 @@ import com.intellij.openapi.application.ApplicationManager
 import java.util.regex.Pattern
 
 /**
- * Feature Configuration that represent the flag configurations for the different
- * types of Studio builds.
+ * Feature Configuration that represent the flag configurations for the different types of Studio builds.
  *
- * Configuration are ordered from less stable to more stable. A [com.android.flags.BooleanFlag]
- * targeting a particular [FeatureConfiguration] will also be enabled in all builds
- * that are using Configuration less stable than the target.
+ * Configuration are ordered from less stable to more stable. A [com.android.flags.BooleanFlag] targeting a particular
+ * [FeatureConfiguration] will also be enabled in all builds that are using Configuration less stable than the target.
  *
  * e.g. if a Flag is targeting [PREVIEW], it will be enabled in:
  * - [INTERNAL]
@@ -40,8 +38,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
    *
    * This is used when building Studio from the IDE, and will be used for dogfooding
    *
-   * This configuration is the least stable and therefore any flag enabled in any configuration
-   * is enabled in [INTERNAL]
+   * This configuration is the least stable and therefore any flag enabled in any configuration is enabled in [INTERNAL]
    */
   INTERNAL(1),
 
@@ -57,8 +54,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
   /**
    * This is the stable configuration.
    *
-   * This is the most stable configuration, and therefore only Flags explicitly targeting
-   * this Configuration will be enabled.
+   * This is the most stable configuration, and therefore only Flags explicitly targeting this Configuration will be enabled.
    *
    * It is published to the Beta/RC and Stable channels
    */
@@ -70,10 +66,7 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
      *
      * This is computed based on the name of the application
      */
-    @JvmStatic
-    val current: FeatureConfiguration by lazy {
-      computeConfiguration()
-    }
+    @JvmStatic val current: FeatureConfiguration by lazy { computeConfiguration() }
 
     private fun versionNameContainsChannel(versionName: String?, channel: String): Boolean {
       return Pattern.compile("\\b$channel\\b", Pattern.CASE_INSENSITIVE).matcher(versionName ?: return false).find()
@@ -86,19 +79,21 @@ enum class FeatureConfiguration(val stabilityLevel: Int) {
      */
     @VisibleForTesting
     fun computeConfiguration(): FeatureConfiguration {
-      val versionName = when {
-        ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
-        else -> ApplicationInfo.getInstance().fullVersion
-      }
+      val versionName =
+        when {
+          ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
+          else -> ApplicationInfo.getInstance().fullVersion
+        }
       return getConfigurationFromVersionName(versionName)
     }
 
     @Suppress("DEPRECATION")
     @VisibleForTesting
-    fun getConfigurationFromVersionName(versionName: String) : FeatureConfiguration = when {
-      versionNameContainsChannel(versionName, "dev") -> INTERNAL
-      versionNameContainsChannel(versionName, "canary") -> PREVIEW
-      else -> COMPLETE
-    }
+    fun getConfigurationFromVersionName(versionName: String): FeatureConfiguration =
+      when {
+        versionNameContainsChannel(versionName, "dev") -> INTERNAL
+        versionNameContainsChannel(versionName, "canary") -> PREVIEW
+        else -> COMPLETE
+      }
   }
 }

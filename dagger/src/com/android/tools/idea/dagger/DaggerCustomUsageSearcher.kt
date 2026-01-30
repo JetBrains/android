@@ -36,17 +36,10 @@ import kotlin.system.measureTimeMillis
 /** Adds custom usages for Dagger-related classes to a find usages window. */
 class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   @WorkerThread
-  override fun processElementUsages(
-    element: PsiElement,
-    processor: Processor<in Usage>,
-    options: FindUsagesOptions,
-  ) {
-    val (metricsType, elapsedTimeMillis) =
-      runReadAction { processElementUsagesInReadAction(element, processor) } ?: return
+  override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
+    val (metricsType, elapsedTimeMillis) = runReadAction { processElementUsagesInReadAction(element, processor) } ?: return
 
-    element.project
-      .service<DaggerAnalyticsTracker>()
-      .trackFindUsagesNodeWasDisplayed(metricsType, elapsedTimeMillis)
+    element.project.service<DaggerAnalyticsTracker>().trackFindUsagesNodeWasDisplayed(metricsType, elapsedTimeMillis)
   }
 
   private fun processElementUsagesInReadAction(
@@ -71,11 +64,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     return metricsType?.let { Pair(it, elapsedTimeMillis) }
   }
 
-  class DaggerUsage(
-    private val usageElement: DaggerElement,
-    private val targetElement: DaggerElement,
-    private val usageTypeName: String,
-  ) : UsageInfo2UsageAdapter(UsageInfo(usageElement.psiElement)), UsageWithType {
+  class DaggerUsage(private val usageElement: DaggerElement, private val targetElement: DaggerElement, private val usageTypeName: String) :
+    UsageInfo2UsageAdapter(UsageInfo(usageElement.psiElement)), UsageWithType {
 
     override fun getUsageType(): UsageType? {
       return usageTypeMap.getOrPut(usageTypeName) { UsageType { usageTypeName } }

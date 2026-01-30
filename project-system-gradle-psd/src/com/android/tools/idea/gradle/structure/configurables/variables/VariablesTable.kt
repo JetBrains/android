@@ -105,33 +105,43 @@ import javax.swing.tree.TreePath
 private const val NAME = 0
 private const val UNRESOLVED_VALUE = 1
 
-/**
- * Main table for the Variables view in the Project Structure Dialog
- */
-class VariablesTable private constructor(
+/** Main table for the Variables view in the Project Structure Dialog */
+class VariablesTable
+private constructor(
   private val project: Project,
   private val context: PsContext,
   private val psProject: PsProject,
   private val variablesTreeModel: VariablesTableModel,
   private val validationResultsKeeper: ValidationResultsKeeper,
-  private val parentDisposable: Disposable
-) :
-  TreeTable(variablesTreeModel) {
+  private val parentDisposable: Disposable,
+) : TreeTable(variablesTreeModel) {
 
-  constructor (project: Project, context: PsContext, psProject: PsProject, parentDisposable: Disposable, validationResultsKeeper: ValidationResultsKeeper) :
-    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable), validationResultsKeeper, parentDisposable)
+  constructor(
+    project: Project,
+    context: PsContext,
+    psProject: PsProject,
+    parentDisposable: Disposable,
+    validationResultsKeeper: ValidationResultsKeeper,
+  ) : this(
+    project,
+    context,
+    psProject,
+    createTreeModel(ProjectShadowNode(psProject), parentDisposable),
+    validationResultsKeeper,
+    parentDisposable,
+  )
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
+
   init {
     setProcessCursorKeys(false)
 
     // We replace the automatically synced selection model from [TreeTable] with a simpler one but such that honors column selection.
     fun updateTreeSelection() {
-      if (selectedColumn <= 0) {  // It is -1 when a tree node is being expanded/collapsed.
+      if (selectedColumn <= 0) { // It is -1 when a tree node is being expanded/collapsed.
         tree.selectionModel.selectionPath = tree.getPathForRow(selectedRow)
-      }
-      else {
+      } else {
         tree.selectionModel.clearSelection()
       }
     }
@@ -139,40 +149,43 @@ class VariablesTable private constructor(
     this.selectionModel.addListSelectionListener { updateTreeSelection() }
     tree.selectionModel = DefaultTreeSelectionModel()
 
-    setTreeCellRenderer(OutlineNodeRenderer(object : NodeRenderer() {
-      override fun customizeCellRenderer(
-        tree: JTree,
-        value: Any?,
-        selected: Boolean,
-        expanded: Boolean,
-        leaf: Boolean,
-        row: Int,
-        hasFocus: Boolean
-      ) {
-        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
-        val emptyName = when {
-          value is EmptyNamedNode -> value.emptyName
-          value is EmptyValueNode && editingRow == row -> value.emptyName
-          else -> null
+    setTreeCellRenderer(
+      OutlineNodeRenderer(
+        object : NodeRenderer() {
+          override fun customizeCellRenderer(
+            tree: JTree,
+            value: Any?,
+            selected: Boolean,
+            expanded: Boolean,
+            leaf: Boolean,
+            row: Int,
+            hasFocus: Boolean,
+          ) {
+            super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
+            val emptyName =
+              when {
+                value is EmptyNamedNode -> value.emptyName
+                value is EmptyValueNode && editingRow == row -> value.emptyName
+                else -> null
+              }
+            if (emptyName != null) {
+              append(
+                emptyName,
+                if (selected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES else SimpleTextAttributes.GRAYED_ATTRIBUTES,
+              )
+            }
+            val userObject = (value as VariablesTableNode).userObject
+            if (userObject is NodeDescription) {
+              icon = userObject.icon
+              iconTextGap = iconGap
+              ipad = editorInsets
+            } else {
+              icon = EmptyIcon.ICON_16
+            }
+          }
         }
-        if (emptyName != null) {
-          append(
-            emptyName,
-            if (selected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES
-            else SimpleTextAttributes.GRAYED_ATTRIBUTES
-          )
-        }
-        val userObject = (value as VariablesTableNode).userObject
-        if (userObject is NodeDescription) {
-          icon = userObject.icon
-          iconTextGap = iconGap
-          ipad = editorInsets
-        }
-        else {
-          icon = EmptyIcon.ICON_16
-        }
-      }
-    }))
+      )
+    )
 
     isStriped = true
     tree.isRootVisible = false
@@ -204,13 +217,11 @@ class VariablesTable private constructor(
       }
     }
 
-  private inline fun <reified T: VariablesTableNode> getSelectedNodes() =
-    selectedRows
-      .map { tree.getPathForRow(it)?.lastPathComponent as? T }
-      .filterNotNull()
+  private inline fun <reified T : VariablesTableNode> getSelectedNodes() =
+    selectedRows.map { tree.getPathForRow(it)?.lastPathComponent as? T }.filterNotNull()
 
   fun deleteSelectedVariables() {
-    fun BaseVariableNode.moduleName():String {
+    fun BaseVariableNode.moduleName(): String {
       val name = this.variable.parent.name
       return when (this.variable.parent) {
         is PsProject -> "project '$name'"
@@ -223,25 +234,29 @@ class VariablesTable private constructor(
 
     removeEditor()
     val variableNodes = getSelectedNodes<BaseVariableNode>()
-    val message = when {
-      variableNodes.isEmpty() -> return
-      variableNodes.size == 1 -> variableNodes[0].let { node ->
-        when (node) {
-          is VariableNode -> "Remove variable '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
-          is CatalogVariableNode -> "Remove version '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
-          is ListItemNode -> "Remove list item ${node.index} from '${node.variable.parent.name}'?"
-          is MapItemNode -> "Remove map entry '${node.key}' from '${node.variable.parent.name}'?"
-          else -> return
-        }
+    val message =
+      when {
+        variableNodes.isEmpty() -> return
+        variableNodes.size == 1 ->
+          variableNodes[0].let { node ->
+            when (node) {
+              is VariableNode -> "Remove variable '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
+              is CatalogVariableNode -> "Remove version '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
+              is ListItemNode -> "Remove list item ${node.index} from '${node.variable.parent.name}'?"
+              is MapItemNode -> "Remove map entry '${node.key}' from '${node.variable.parent.name}'?"
+              else -> return
+            }
+          }
+        else -> "Remove ${variableNodes.size} items from project '${psProject.name}'?"
       }
-      else -> "Remove ${variableNodes.size} items from project '${psProject.name}'?"
-    }
-    if (Messages.showYesNoDialog(
+    if (
+      Messages.showYesNoDialog(
         project,
         message,
         if (variableNodes.size > 1) "Remove Variables" else "Remove Variable",
-        Messages.getQuestionIcon()
-      ) == Messages.YES) {
+        Messages.getQuestionIcon(),
+      ) == Messages.YES
+    ) {
       variableNodes.map { it.variable }.forEach { it.delete() }
       project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_REMOVE)
       updateValidationStatus()
@@ -255,13 +270,13 @@ class VariablesTable private constructor(
   fun ContainerNode.findEmptyVariableNode() = children()?.toList()?.last() as? EmptyTopLevelNode
 
   fun createAddVariableStrategy(currentNode: EmptyTopLevelNode? = null): AddVariableStrategy =
-    if (findParentContainer(currentNode) is VersionCatalogNode)
-      AddVersionCatalogVariableStrategy()
-    else AddModuleVariableStrategy()
+    if (findParentContainer(currentNode) is VersionCatalogNode) AddVersionCatalogVariableStrategy() else AddModuleVariableStrategy()
 
   abstract inner class AddVariableStrategy {
     abstract fun executeToolbarAddVariable(currentPosition: RelativePoint)
+
     abstract fun prepareAddVariableEditor(editor: TableCellEditor?, row: Int, column: Int): Component?
+
     abstract fun addVariable(type: ValueType)
 
     protected fun addVariableInternal(type: ValueType, clickedOnRow: Int? = null, startEditing: Boolean = true) {
@@ -286,7 +301,8 @@ class VariablesTable private constructor(
             ValueType.LIST -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_LIST
             ValueType.MAP -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_MAP
             else -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_SIMPLE
-          })
+          }
+        )
       }
     }
   }
@@ -317,8 +333,7 @@ class VariablesTable private constructor(
     override fun prepareAddVariableEditor(editor: TableCellEditor?, row: Int, column: Int): Component? {
       invokeLater {
         createChooseVariableTypePopup()
-          .show(
-            RelativePoint(this@VariablesTable, getCellRect(row, column, true).let { Point(it.x, it.y + it.height) }))
+          .show(RelativePoint(this@VariablesTable, getCellRect(row, column, true).let { Point(it.x, it.y + it.height) }))
       }
       return null
     }
@@ -332,11 +347,8 @@ class VariablesTable private constructor(
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer =
     TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
-
       fun getDefaultComponent() =
-        super
-          .getCellRenderer(row, column)
-          .getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
+        super.getCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
 
       fun getNodeRendered() = tree.getPathForRow(rowIndex).lastPathComponent as VariablesTableNode
 
@@ -345,8 +357,7 @@ class VariablesTable private constructor(
           (getDefaultComponent() as JLabel).apply {
             text = (getNodeRendered() as EmptyValueNode).emptyValue
             foreground =
-              if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
-              else NamedColorUtil.getInactiveTextColor()
+              if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor else NamedColorUtil.getInactiveTextColor()
           }
 
         column == NAME -> getDefaultComponent()
@@ -380,8 +391,7 @@ class VariablesTable private constructor(
         val selectedColumn = this.selectedColumn
         if (isCellEditable(selectedRow, selectedColumn)) {
           editCellAt(selectedRow, selectedColumn)
-        }
-        else {
+        } else {
           nextCell(e, selectedRow, selectedColumn)
         }
         return
@@ -410,8 +420,7 @@ class VariablesTable private constructor(
     return super.prepareEditor(editor, row, column)
   }
 
-  private fun getEmptyNodeByRow(row: Int): EmptyTopLevelNode? =
-    tree.getPathForRow(row).lastPathComponent as? EmptyTopLevelNode
+  private fun getEmptyNodeByRow(row: Int): EmptyTopLevelNode? = tree.getPathForRow(row).lastPathComponent as? EmptyTopLevelNode
 
   override fun editingCanceled(e: ChangeEvent?) {
     val rowBeingEdited = editingRow
@@ -446,9 +455,7 @@ class VariablesTable private constructor(
     }
   }
 
-  /**
-   * Table cell editor that reproduces the layout of a tree element
-   */
+  /** Table cell editor that reproduces the layout of a tree element */
   inner class NameCellEditor(private val row: Int) : AbstractTableCellEditor() {
     private val textBox = JBTextField()
 
@@ -478,11 +485,11 @@ class VariablesTable private constructor(
         val extraHeight = bounds.height - icon.iconHeight
         iconLabel.border = EmptyBorder(Math.ceil(extraHeight / 2.0).toInt(), 0, Math.floor(extraHeight / 2.0).toInt(), 0)
         panel.add(
-          Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt()))
+          Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt())
+        )
         panel.add(iconLabel)
         panel.add(Box.createHorizontalStrut((tree.ui as BasicTreeUI).rightChildIndent - 1 - Math.floor(icon.iconWidth / 2.0).toInt()))
-      }
-      else {
+      } else {
         panel.add(Box.createHorizontalStrut(bounds.x))
       }
       val userObject = nodeBeingEdited.userObject
@@ -495,30 +502,37 @@ class VariablesTable private constructor(
       panel.background = table.getSelectionBackground()
       textBox.text = value as String
 
-      panel.addFocusListener(object : FocusAdapter() {
-        override fun focusGained(e: FocusEvent?) {
-          val focusManager = IdeFocusManager.findInstanceByComponent(panel)
-          focusManager.requestFocus(textBox, true)
+      panel.addFocusListener(
+        object : FocusAdapter() {
+          override fun focusGained(e: FocusEvent?) {
+            val focusManager = IdeFocusManager.findInstanceByComponent(panel)
+            focusManager.requestFocus(textBox, true)
+          }
         }
-      })
+      )
 
-      val validatorFunction = when (val node = tree.getPathForRow(row).lastPathComponent) {
-        is VariablesBaseNode -> node.validateNameOnEditing(textBox.text)
-        else -> null
-      }
-      val validator = ComponentValidator(parentDisposable).withValidator { ->
-         val message = validatorFunction?.invoke(textBox.text)
-         message?.let { ValidationInfo(it, textBox) }
-      }.installOn(textBox)
+      val validatorFunction =
+        when (val node = tree.getPathForRow(row).lastPathComponent) {
+          is VariablesBaseNode -> node.validateNameOnEditing(textBox.text)
+          else -> null
+        }
+      val validator =
+        ComponentValidator(parentDisposable)
+          .withValidator { ->
+            val message = validatorFunction?.invoke(textBox.text)
+            message?.let { ValidationInfo(it, textBox) }
+          }
+          .installOn(textBox)
 
       textBox.document?.addDocumentListener(
         object : DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
             ComponentValidator.getInstance(textBox).ifPresent { v: ComponentValidator -> v.revalidate() }
           }
-        })
+        }
+      )
 
-      if(textBox.text != "") validator.revalidate()
+      if (textBox.text != "") validator.revalidate()
 
       return panel
     }
@@ -531,34 +545,38 @@ class VariablesTable private constructor(
   inner class VariableCellEditor : PropertyCellEditor<Any>() {
     override fun initEditorFor(row: Int): ModelPropertyEditor<Any> {
       val node = tree.getPathForRow(row).lastPathComponent
-      val variable = when (node) {
-        is BaseVariableNode -> node.variable
-        is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
-        else -> throw IllegalStateException()
-      }
-      val uiProperty = if ((node as DefaultMutableTreeNode).parent is VersionCatalogNode)
-        uiProperty(PsVariable.Descriptors.variableStringValue, ::stringPropertyEditor, psdUsageLogFieldId = null)
-      else
-        uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
+      val variable =
+        when (node) {
+          is BaseVariableNode -> node.variable
+          is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
+          else -> throw IllegalStateException()
+        }
+      val uiProperty =
+        if ((node as DefaultMutableTreeNode).parent is VersionCatalogNode)
+          uiProperty(PsVariable.Descriptors.variableStringValue, ::stringPropertyEditor, psdUsageLogFieldId = null)
+        else uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
 
       val enterHandlingProxyCellEditor =
         object : TableCellEditor by this {
           override fun stopCellEditing(): Boolean {
             val editingRow = editingRow
             val editingColumn = editingColumn
-            return this@VariableCellEditor.stopCellEditing()
-              .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
+            return this@VariableCellEditor.stopCellEditing().also {
+              invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) }
+            }
           }
         }
 
-      val validator = when (val node = tree.getPathForRow(row).lastPathComponent) {
-        is VariablesBaseNode -> when (node.parent) {
-          is VersionCatalogNode -> node.validateStringValue()
-          else -> null
-        }
+      val validator =
+        when (val node = tree.getPathForRow(row).lastPathComponent) {
+          is VariablesBaseNode ->
+            when (node.parent) {
+              is VersionCatalogNode -> node.validateStringValue()
+              else -> null
+            }
 
-        else -> null
-      }?.let { PropertyEditorValidator(parentDisposable, it) }
+          else -> null
+        }?.let { PropertyEditorValidator(parentDisposable, it) }
 
       val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor, validator)
 
@@ -586,9 +604,9 @@ class VariablesTable private constructor(
     val editPosition = row to col
     TableUtil.stopEditing(this)
     generateSequence(editPosition) {
-      tree.expandRow(it.first)
-      (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
-    }
+        tree.expandRow(it.first)
+        (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
+      }
       .drop(1)
       .takeWhile { it.first < tree.rowCount }
       .firstOrNull { model.isCellEditable(it.first, it.second) }
@@ -604,20 +622,19 @@ class VariablesTable private constructor(
     val editPosition = editingRow to editingColumn
     TableUtil.stopEditing(this)
     generateSequence(editPosition) {
-      var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
-      var totalRows = tree.rowCount
-      while (!tree.isExpanded(nextRow)) {
-        tree.expandRow(nextRow)
-        if (totalRows == tree.rowCount) {
-          break
+        var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
+        var totalRows = tree.rowCount
+        while (!tree.isExpanded(nextRow)) {
+          tree.expandRow(nextRow)
+          if (totalRows == tree.rowCount) {
+            break
+          } else {
+            nextRow += tree.rowCount - totalRows
+          }
+          totalRows = tree.rowCount
         }
-        else {
-          nextRow += tree.rowCount - totalRows
-        }
-        totalRows = tree.rowCount
+        nextRow to nextColumn
       }
-      nextRow to nextColumn
-    }
       .drop(1)
       .takeWhile { it.first >= 0 }
       .firstOrNull { model.isCellEditable(it.first, it.second) }
@@ -636,12 +653,11 @@ class VariablesTable private constructor(
   }
 
   fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesTableNode>().isNotEmpty()
+
   fun removeVariableAvailable(): Boolean = getSelectedNodes<BaseVariableNode>().isNotEmpty()
 
-  class VariablesTableModel internal constructor(
-    private val project: PsProject,
-    internal val root: ContainerNode
-  ) : DefaultTreeModel(root), TreeTableModel {
+  class VariablesTableModel internal constructor(private val project: PsProject, internal val root: ContainerNode) :
+    DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 
     override fun getColumnCount(): Int = 2
@@ -662,8 +678,8 @@ class VariablesTable private constructor(
     override fun getValueAt(node: Any?, column: Int): Any? =
       when (column) {
         NAME -> node.toString()
-        UNRESOLVED_VALUE -> (node as? BaseVariableNode)?.getUnresolvedValue(tableTree?.isExpanded(TreePath(node.path)) == true)
-                            ?: ParsedValue.NotSet
+        UNRESOLVED_VALUE ->
+          (node as? BaseVariableNode)?.getUnresolvedValue(tableTree?.isExpanded(TreePath(node.path)) == true) ?: ParsedValue.NotSet
         else -> ""
       }
 
@@ -674,8 +690,7 @@ class VariablesTable private constructor(
           if (node is VariableNode) {
             val literalValue = node.variable.value.maybeLiteralValue
             literalValue !is Map<*, *> && literalValue !is List<*>
-          }
-          else {
+          } else {
             node is BaseVariableNode || node is EmptyValueNode
           }
         }
@@ -686,35 +701,34 @@ class VariablesTable private constructor(
       if (getValueAt(node, column) == ((aValue as? Annotated<*>)?.value ?: aValue)) return
 
       when (aValue) {
-        is String -> when {
-          node is EmptyVariableNode && column == NAME -> {
-            val parentNode = node.parent as? ShadowedTreeNode
-            val variable = node.createVariable(aValue)
-            val newNode =
-              parentNode
-                ?.childNodes
-                ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
-                ?.let { newNode ->
-                  tableTree?.expandPath(TreePath(getPathToRoot(newNode)))
-                }
+        is String ->
+          when {
+            node is EmptyVariableNode && column == NAME -> {
+              val parentNode = node.parent as? ShadowedTreeNode
+              val variable = node.createVariable(aValue)
+              val newNode =
+                parentNode
+                  ?.childNodes
+                  ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
+                  ?.let { newNode -> tableTree?.expandPath(TreePath(getPathToRoot(newNode))) }
+            }
+            node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
+            node is BaseVariableNode && column == NAME -> {
+              node.setName(aValue)
+              nodeChanged(node)
+              project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
+            }
           }
-          node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
-          node is BaseVariableNode && column == NAME -> {
-            node.setName(aValue)
-            nodeChanged(node)
-            project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
+        is Annotated<*> ->
+          when {
+            node is EmptyValueNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
+              node.createVariable(aValue.value)
+            node !is BaseVariableNode -> Unit
+            column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
+              node.setValue(aValue.value)
+              nodeChanged(node)
+            }
           }
-
-        }
-        is Annotated<*> -> when {
-          node is EmptyValueNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
-            node.createVariable(aValue.value)
-          node !is BaseVariableNode -> Unit
-          column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
-            node.setValue(aValue.value)
-            nodeChanged(node)
-          }
-        }
       }
     }
 
@@ -723,13 +737,13 @@ class VariablesTable private constructor(
     }
   }
 
-  private fun updateValidationStatus(){
+  private fun updateValidationStatus() {
     validationResultsKeeper.updateValidationResult(hasValidationErrors())
   }
 
   private fun hasValidationErrors(): Boolean {
     fun isInvalid(node: VariablesTableNode): Boolean {
-      if(!node.hasValidName()) return true
+      if (!node.hasValidName()) return true
       return node.children().toList().filterIsInstance<VariablesTableNode>().any { isInvalid(it) }
     }
 
@@ -738,28 +752,29 @@ class VariablesTable private constructor(
 }
 
 fun VariablesTable.createChooseVariableTypePopup(): ListPopup {
-  val actions = listOf(
-    VariablesConfigurable.AddAction("1. Simple value", ValueType.STRING),
-    VariablesConfigurable.AddAction("2. List", ValueType.LIST),
-    VariablesConfigurable.AddAction("3. Map", ValueType.MAP)
-  )
+  val actions =
+    listOf(
+      VariablesConfigurable.AddAction("1. Simple value", ValueType.STRING),
+      VariablesConfigurable.AddAction("2. List", ValueType.LIST),
+      VariablesConfigurable.AddAction("3. Map", ValueType.MAP),
+    )
   val icons = listOf<Icon>(EmptyIcon.ICON_0, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
-  return JBPopupFactory
-    .getInstance()
+  return JBPopupFactory.getInstance()
     .createListPopup(
       object : BaseListPopupStep<VariablesConfigurable.AddAction>(null, actions, icons) {
-        override fun onChosen(selectedValue: VariablesConfigurable.AddAction?, finalChoice: Boolean): PopupStep<*>? =
-          doFinalStep { selectedValue?.type?.let { createAddVariableStrategy().addVariable(it) } }
-      })
+        override fun onChosen(selectedValue: VariablesConfigurable.AddAction?, finalChoice: Boolean): PopupStep<*>? = doFinalStep {
+          selectedValue?.type?.let { createAddVariableStrategy().addVariable(it) }
+        }
+      }
+    )
 }
 
 // Node for all new and existing variables
-abstract class VariablesBaseNode(
-  shadowNode: ShadowNode,
-  private val variablesScope: PsVariablesScope?
-) : VariablesTableNode(shadowNode) {
+abstract class VariablesBaseNode(shadowNode: ShadowNode, private val variablesScope: PsVariablesScope?) : VariablesTableNode(shadowNode) {
   override fun hasValidName(): Boolean = true
+
   override fun isNameEditable() = true
+
   open fun validateName(): (String) -> String? = { name ->
     when {
       name.isEmpty() -> "Variable name cannot be empty."
@@ -782,21 +797,24 @@ abstract class VariablesBaseNode(
     }
   }
 
-  fun validateNameDuplicateOnEditing(currentName: String, editedName: String): String? = when {
-    variablesScope?.filter { it.name != currentName }?.any { it.name == editedName } ?: false -> "Duplicate variable name: '$editedName'"
-    else -> null
-  }
-
+  fun validateNameDuplicateOnEditing(currentName: String, editedName: String): String? =
+    when {
+      variablesScope?.filter { it.name != currentName }?.any { it.name == editedName } ?: false -> "Duplicate variable name: '$editedName'"
+      else -> null
+    }
 }
 
-abstract class VariablesTableNode(override val shadowNode: ShadowNode): DefaultMutableTreeNode(null), ShadowedTreeNode {
+abstract class VariablesTableNode(override val shadowNode: ShadowNode) : DefaultMutableTreeNode(null), ShadowedTreeNode {
   override fun dispose() = Unit
+
   abstract fun isNameEditable(): Boolean
+
   abstract fun hasValidName(): Boolean
 }
 
-open class ContainerNode(shadowNode: ShadowNode): VariablesTableNode(shadowNode) {
+open class ContainerNode(shadowNode: ShadowNode) : VariablesTableNode(shadowNode) {
   override fun hasValidName(): Boolean = true
+
   override fun isNameEditable(): Boolean = false
 }
 
@@ -815,6 +833,7 @@ class VersionCatalogNode(znode: ShadowNode, variables: PsVariablesScope) : Conta
 // Class for all existing variables
 abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : VariablesBaseNode(znode, variable.scopePsVariables) {
   abstract fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any>
+
   abstract fun setName(newName: String)
 
   fun setValue(newValue: ParsedValue<Any>) {
@@ -822,61 +841,62 @@ abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : V
   }
 }
 
-abstract class EmptyTopLevelNode(
-  znode: ShadowNode,
-  variablesScope: PsVariablesScope
-): VariablesBaseNode(znode, variablesScope) {
+abstract class EmptyTopLevelNode(znode: ShadowNode, variablesScope: PsVariablesScope) : VariablesBaseNode(znode, variablesScope) {
   var type: ValueType? = null
+
   fun setValueType(valueType: ValueType) {
     type = valueType
     editingInProgress = true
     setIconFor(type)
   }
+
   var editingInProgress: Boolean = false
     set(value) {
       field = value
-      if(!value) setIconFor(null)
+      if (!value) setIconFor(null)
     }
 
   abstract fun setIconFor(value: ValueType?)
 }
 
-open class EmptyVariableNode(
-  znode: ShadowNode,
-  private val variablesScope: PsVariablesScope
-) : EmptyTopLevelNode(znode, variablesScope), EmptyNamedNode {
+open class EmptyVariableNode(znode: ShadowNode, private val variablesScope: PsVariablesScope) :
+  EmptyTopLevelNode(znode, variablesScope), EmptyNamedNode {
 
   override val emptyName = "+New variable"
+
   override fun createVariable(key: String): PsVariable =
     when (type) {
       ValueType.LIST -> variablesScope.addNewListVariable(key)
       ValueType.MAP -> variablesScope.addNewMapVariable(key)
       else -> variablesScope.addNewVariable(key)
-    }
-      .also {
-        editingInProgress = false
-      }
+    }.also { editingInProgress = false }
 
   override fun setIconFor(value: ValueType?) {
-    userObject = NodeDescription("", when (value) {
-      ValueType.MAP -> AllIcons.Json.Object
-      ValueType.LIST -> AllIcons.Json.Array
-      null -> EmptyIcon.ICON_16
-      else -> StudioIcons.Misc.GRADLE_VARIABLE
-    })
+    userObject =
+      NodeDescription(
+        "",
+        when (value) {
+          ValueType.MAP -> AllIcons.Json.Object
+          ValueType.LIST -> AllIcons.Json.Array
+          null -> EmptyIcon.ICON_16
+          else -> StudioIcons.Misc.GRADLE_VARIABLE
+        },
+      )
   }
 }
 
-class CatalogEmptyVariableNode(
-  znode: ShadowNode,
-  private val variablesScope: PsVariablesScope
-) : EmptyTopLevelNode(znode, variablesScope), EmptyNamedNode {
+class CatalogEmptyVariableNode(znode: ShadowNode, private val variablesScope: PsVariablesScope) :
+  EmptyTopLevelNode(znode, variablesScope), EmptyNamedNode {
 
   override fun setIconFor(value: ValueType?) {
-    userObject = NodeDescription("", when (value) {
-      null -> EmptyIcon.ICON_16
-      else -> StudioIcons.Misc.GRADLE_VARIABLE
-    })
+    userObject =
+      NodeDescription(
+        "",
+        when (value) {
+          null -> EmptyIcon.ICON_16
+          else -> StudioIcons.Misc.GRADLE_VARIABLE
+        },
+      )
   }
 
   override val emptyName = "+New catalog version"
@@ -887,27 +907,30 @@ class CatalogEmptyVariableNode(
     validateName().invoke(name) ?: validateNameDuplicateOnEditing(currentName, name)
   }
 
-  override fun createVariable(key: String): PsVariable = variablesScope.addNewVariable(key).also {
-    userObject = NodeDescription("", EmptyIcon.ICON_16)
-    type = null
-  }
+  override fun createVariable(key: String): PsVariable =
+    variablesScope.addNewVariable(key).also {
+      userObject = NodeDescription("", EmptyIcon.ICON_16)
+      type = null
+    }
 }
 
 fun validateCatalogNameFunction(): (String) -> String? = { name ->
   val catalogNamePattern = "[a-z]([a-zA-Z0-9_-])+"
-  if (!name.matches(catalogNamePattern.toRegex()))
-    "Variable name must match the following regular expression: $catalogNamePattern"
-  else
-    null
+  if (!name.matches(catalogNamePattern.toRegex())) "Variable name must match the following regular expression: $catalogNamePattern"
+  else null
 }
 
 class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
-    userObject = NodeDescription(variable.name, when {
-      variable.isMap -> AllIcons.Json.Object
-      variable.isList -> AllIcons.Json.Array
-      else -> StudioIcons.Misc.GRADLE_VARIABLE
-    })
+    userObject =
+      NodeDescription(
+        variable.name,
+        when {
+          variable.isMap -> AllIcons.Json.Object
+          variable.isList -> AllIcons.Json.Array
+          else -> StudioIcons.Misc.GRADLE_VARIABLE
+        },
+      )
   }
 
   override fun hasValidName(): Boolean {
@@ -928,8 +951,7 @@ class CatalogVariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariabl
     userObject = NodeDescription(variable.name, StudioIcons.Misc.GRADLE_VARIABLE)
   }
 
-  override fun hasValidName(): Boolean =
-    validateName().invoke(variable.name) == null
+  override fun hasValidName(): Boolean = validateName().invoke(variable.name) == null
 
   override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> = variable.value
 
@@ -949,25 +971,29 @@ class ListItemNode(znode: ShadowNode, val index: Int, variable: PsVariable) : Ba
   init {
     userObject = index
   }
+
   override fun getUnresolvedValue(expanded: Boolean): ParsedValue<Any> = variable.value
 
   override fun setName(newName: String) {
     throw UnsupportedOperationException("List item indices cannot be renamed")
   }
+
   override fun isNameEditable() = false
 
   override fun hasValidName(): Boolean = true
 }
 
-class EmptyListItemNode(
-  znode: ShadowNode,
-  private val containingList: PsVariable
-) : VariablesBaseNode(znode, containingList.scopePsVariables), EmptyValueNode {
+class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) :
+  VariablesBaseNode(znode, containingList.scopePsVariables), EmptyValueNode {
   override fun isNameEditable() = false
+
   override fun hasValidName(): Boolean = true
 
-  override val emptyName get() = this.parent.getIndex(this).toString()
+  override val emptyName
+    get() = this.parent.getIndex(this).toString()
+
   override val emptyValue = "+New value"
+
   override fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
@@ -990,20 +1016,21 @@ class MapItemNode(znode: ShadowNode, val key: String, variable: PsVariable) : Ba
 
 interface EmptyNamedNode {
   val emptyName: String
+
   fun createVariable(key: String): PsVariable?
 }
 
 interface EmptyValueNode {
   val emptyName: String
   val emptyValue: String
+
   fun createVariable(value: ParsedValue<Any>): PsVariable
 }
 
-class EmptyMapItemNode(
-  znode: ShadowNode,
-  private val containingMap: PsVariable
-) : VariablesBaseNode(znode, containingMap.scopePsVariables), EmptyNamedNode {
+class EmptyMapItemNode(znode: ShadowNode, private val containingMap: PsVariable) :
+  VariablesBaseNode(znode, containingMap.scopePsVariables), EmptyNamedNode {
   override val emptyName = "+New entry"
+
   override fun isNameEditable() = true
 
   override fun createVariable(key: String) = containingMap.addMapValue(key)
@@ -1015,25 +1042,24 @@ class NodeDescription(var name: String, val icon: Icon) {
 
 class NewVariableEvent(source: Any) : EventObject(source)
 
-/**
- * Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree.
- */
+/** Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree. */
 internal fun createTreeModel(root: ProjectShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
-  VariablesTable.VariablesTableModel(root.project, ContainerNode(root)
-    .also { Disposer.register(parentDisposable, it) })
-    .also { it.initializeNode(it.root, from = root) }
+  VariablesTable.VariablesTableModel(root.project, ContainerNode(root).also { Disposer.register(parentDisposable, it) }).also {
+    it.initializeNode(it.root, from = root)
+  }
 
 internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     listOf(RootModuleShadowNode(project.buildScriptVariables)) +
-    getVersionCatalogNodes() +
-    listOf(RootModuleShadowNode(project.variables)) +
-    project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
+      getVersionCatalogNodes() +
+      listOf(RootModuleShadowNode(project.variables)) +
+      project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
 
   private fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
     project.versionCatalogs.sortedBy { it.name }.map { VersionCatalogShadowNode(it) }
 
   override fun createNode(): ContainerNode = ContainerNode(this)
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) {
     project.modules.onChange(disposable, listener)
     project.versionCatalogs.onChange(disposable, listener)
@@ -1041,24 +1067,28 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
 }
 
 internal data class RootModuleShadowNode(val scope: PsVariables) : ShadowNode {
-  override fun getChildrenModels(): Collection<ShadowNode> =
-    scope.map { VariableShadowNode(it) } + VariableEmptyShadowNode(scope)
+  override fun getChildrenModels(): Collection<ShadowNode> = scope.map { VariableShadowNode(it) } + VariableEmptyShadowNode(scope)
 
   override fun createNode(): ModuleNode = ModuleNode(this, scope)
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) = scope.onChange(disposable, listener)
 }
 
 internal data class ModuleShadowNode(val module: PsModule) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     module.variables.map { VariableShadowNode(it) } + VariableEmptyShadowNode(module.variables)
+
   override fun createNode(): ModuleNode = ModuleNode(this, module.variables)
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.variables.onChange(disposable, listener)
 }
 
 internal data class VersionCatalogShadowNode(val versionCatalog: PsVersionCatalog) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     versionCatalog.variables.map { CatalogVariableShadowNode(it) } + CatalogVariableEmptyShadowNode(versionCatalog.variables)
+
   override fun createNode(): VersionCatalogNode = VersionCatalogNode(this, versionCatalog.variables)
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) = versionCatalog.variables.onChange(disposable, listener)
 }
 
@@ -1081,23 +1111,22 @@ internal data class ListEmptyItemShadowNode(val variable: PsVariable, val index:
 open class VariableShadowNode(open val variable: PsVariable) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> {
     return when {
-      variable.isMap ->
-        variable.mapEntries.entries.map { MapEntryShadowNode(variable, it.key) } +
-        MapEmptyEntryShadowNode(variable)
+      variable.isMap -> variable.mapEntries.entries.map { MapEntryShadowNode(variable, it.key) } + MapEmptyEntryShadowNode(variable)
       variable.isList ->
-        variable.listItems.entries.map { ListItemShadowNode(variable, it.key) } +
-        ListEmptyItemShadowNode(variable, variable.listItems.size)
+        variable.listItems.entries.map { ListItemShadowNode(variable, it.key) } + ListEmptyItemShadowNode(variable, variable.listItems.size)
       else -> listOf()
     }
   }
 
   override fun createNode(): VariablesBaseNode = VariableNode(this, variable)
-  override fun onChange(disposable: Disposable, listener: () -> Unit) = when {
-    // For now, variables cannot get converted between meta types.
-    variable.isMap -> variable.mapEntries.onChange(disposable, listener)
-    variable.isList -> variable.listItems.onChange(disposable, listener)
-    else -> Unit
-  }
+
+  override fun onChange(disposable: Disposable, listener: () -> Unit) =
+    when {
+      // For now, variables cannot get converted between meta types.
+      variable.isMap -> variable.mapEntries.onChange(disposable, listener)
+      variable.isList -> variable.listItems.onChange(disposable, listener)
+      else -> Unit
+    }
 }
 
 internal class CatalogVariableShadowNode(override val variable: PsVariable) : VariableShadowNode(variable) {

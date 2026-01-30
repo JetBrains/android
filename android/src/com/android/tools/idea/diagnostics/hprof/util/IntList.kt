@@ -17,5 +17,6 @@ package com.android.tools.idea.diagnostics.hprof.util
 
 interface IntList {
   operator fun get(index: Int): Int
+
   operator fun set(index: Int, value: Int)
 }

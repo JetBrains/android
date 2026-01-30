@@ -26,8 +26,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import com.intellij.util.io.URLUtil
-import org.jetbrains.android.AndroidTestCase
 import java.io.File
+import org.jetbrains.android.AndroidTestCase
 
 class FileExtensionsTest : AndroidTestCase() {
   fun testRegularFile() {
@@ -58,10 +58,9 @@ class FileExtensionsTest : AndroidTestCase() {
 
   fun testTemp() {
     val vfsFile = runWriteAction {
-      TempFileSystem.getInstance()
-        .findFileByPath("/")!!
-        .createChildData(this, FileExtensionsTest::class.qualifiedName!!)
-        .apply { setBinaryContent("hello".toByteArray()) }
+      TempFileSystem.getInstance().findFileByPath("/")!!.createChildData(this, FileExtensionsTest::class.qualifiedName!!).apply {
+        setBinaryContent("hello".toByteArray())
+      }
     }
 
     checkPathStringFromVirtualFile(vfsFile)
@@ -70,7 +69,8 @@ class FileExtensionsTest : AndroidTestCase() {
   private fun checkPathStringFromVirtualFile(vfsFile: VirtualFile) {
     assertTrue(vfsFile.exists())
 
-    // VFS uses three slashes in its URLs (two on Windows) and won't recognize URLs like `file:/foo` or `temp:/foo`. Make sure we're compatible with that.
+    // VFS uses three slashes in its URLs (two on Windows) and won't recognize URLs like `file:/foo` or `temp:/foo`. Make sure we're
+    // compatible with that.
     val urlRootSlashes = if (SystemInfo.isWindows) "://" else ":///"
 
     assertTrue(vfsFile.url.contains(urlRootSlashes))

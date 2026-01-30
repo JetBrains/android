@@ -59,13 +59,10 @@ class GlassesBackgroundBlendModeTest {
   fun testApplyBackground() {
     val renderedImage = createTestForeground(300, 300)
     val goldenImage =
-      TestUtils.resolveWorkspacePathUnchecked(
-        "tools/adt/idea/compose-designer/testData/glassesPreview/blend_mode_golden.png"
-      )
+      TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/compose-designer/testData/glassesPreview/blend_mode_golden.png")
 
     // Create a copy of the rendered image to apply the blend mode to
-    val imageToBlend =
-      BufferedImage(renderedImage.width, renderedImage.height, BufferedImage.TYPE_INT_ARGB_PRE)
+    val imageToBlend = BufferedImage(renderedImage.width, renderedImage.height, BufferedImage.TYPE_INT_ARGB_PRE)
     val g = imageToBlend.createGraphics()
     g.drawImage(renderedImage, 0, 0, null)
     g.dispose()

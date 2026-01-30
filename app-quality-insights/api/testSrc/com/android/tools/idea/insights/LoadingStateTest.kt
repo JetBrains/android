@@ -56,8 +56,7 @@ class LoadingStateTest {
   fun `filterReady should return a flow with only ready elements`() {
     val ready1 = LoadingState.Ready("1")
     val ready2 = LoadingState.Ready("2")
-    val flow =
-      flowOf(ready1, LoadingState.Loading, ready2, LoadingState.Unauthorized("Unauthorized"))
+    val flow = flowOf(ready1, LoadingState.Loading, ready2, LoadingState.Unauthorized("Unauthorized"))
     val result = runBlocking { flow.filterReady().toList() }
     assertThat(result).containsExactly(ready1.value, ready2.value).inOrder()
   }
@@ -70,32 +69,17 @@ class LoadingStateTest {
     val flow = flowOf(ready1, LoadingState.Loading, ready2, unauthorized)
 
     val result = runBlocking { flow.mapReady(String::toInt).toList() }
-    assertThat(result)
-      .containsExactly(
-        LoadingState.Ready(1),
-        LoadingState.Loading,
-        LoadingState.Ready(2),
-        unauthorized,
-      )
-      .inOrder()
+    assertThat(result).containsExactly(LoadingState.Ready(1), LoadingState.Loading, LoadingState.Ready(2), unauthorized).inOrder()
   }
 
   @Test
   fun `getCauseMessageOrDefault returns the correct message`() {
     assertThat(
-        LoadingState.UnknownFailure(message = "message", cause = Throwable("throwable message"))
-          .getCauseMessageOrDefault(default = "error")
+        LoadingState.UnknownFailure(message = "message", cause = Throwable("throwable message")).getCauseMessageOrDefault(default = "error")
       )
       .isEqualTo("throwable message")
-    assertThat(
-        LoadingState.UnknownFailure(message = "message", cause = null)
-          .getCauseMessageOrDefault(default = "error")
-      )
+    assertThat(LoadingState.UnknownFailure(message = "message", cause = null).getCauseMessageOrDefault(default = "error"))
       .isEqualTo("message")
-    assertThat(
-        LoadingState.UnknownFailure(message = null, cause = null)
-          .getCauseMessageOrDefault(default = "error")
-      )
-      .isEqualTo("error")
+    assertThat(LoadingState.UnknownFailure(message = null, cause = null).getCauseMessageOrDefault(default = "error")).isEqualTo("error")
   }
 }

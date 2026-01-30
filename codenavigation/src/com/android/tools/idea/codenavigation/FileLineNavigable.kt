@@ -20,9 +20,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.pom.Navigatable
 
-/**
- * Use the file name and line number to navigate to a local file.
- */
+/** Use the file name and line number to navigate to a local file. */
 internal class FileLineNavigable(private val project: Project) : NavSource {
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     if (location.fileName.isNullOrEmpty() || location.lineNumber == CodeLocation.INVALID_LINE_NUMBER) {

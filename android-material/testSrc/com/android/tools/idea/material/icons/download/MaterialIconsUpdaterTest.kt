@@ -107,8 +107,7 @@ private const val NEW_METADATA_CONTENT =
 }
 """
 
-private const val OLD_VD =
-  "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
+private const val OLD_VD = "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
 private const val NEW_VD = "new"
 
 data class FakeDownload(val url: String, val downloadPath: String, val destinationPath: String)
@@ -122,8 +121,7 @@ class MaterialIconsUpdaterTest {
   private lateinit var iconsUrlProvider: MaterialIconsUrlProvider
 
   /**
-   * Provides a mock [DownloadableFileService] that will respond to downloads from the given
-   * [iconDownloadUrl].
+   * Provides a mock [DownloadableFileService] that will respond to downloads from the given [iconDownloadUrl].
    *
    * The files map contains the relative path of the file and the contents to download.
    */
@@ -132,28 +130,14 @@ class MaterialIconsUpdaterTest {
     // directory when called properly
     val mockDownloadableFileService = Mockito.mock(DownloadableFileService::class.java)
     ApplicationManager.getApplication()
-      .registerOrReplaceServiceInstance(
-        DownloadableFileService::class.java,
-        mockDownloadableFileService,
-        projectRule.disposable,
-      )
+      .registerOrReplaceServiceInstance(DownloadableFileService::class.java, mockDownloadableFileService, projectRule.disposable)
     val mockDownloader = Mockito.mock(FileDownloader::class.java)
     val downloadDirAsFile = downloadDir.toFile()
 
     downloads.forEach {
-      val descriptor =
-        DownloadableFileDescriptionImpl(
-          it.url,
-          FileUtil.toSystemDependentName(it.downloadPath),
-          "tmp",
-        )
+      val descriptor = DownloadableFileDescriptionImpl(it.url, FileUtil.toSystemDependentName(it.downloadPath), "tmp")
 
-      whenever(
-          mockDownloadableFileService.createFileDescription(
-            it.url,
-            FileUtil.toSystemDependentName(it.destinationPath),
-          )
-        )
+      whenever(mockDownloadableFileService.createFileDescription(it.url, FileUtil.toSystemDependentName(it.destinationPath)))
         .thenReturn(descriptor)
 
       // Mock the download call
@@ -170,10 +154,7 @@ class MaterialIconsUpdaterTest {
         return@thenAnswer listOf(Pair(downloadedFile, descriptor))
       }
     }
-    whenever(
-        mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))
-      )
-      .thenReturn(mockDownloader)
+    whenever(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
   }
 
   @Before
@@ -181,43 +162,20 @@ class MaterialIconsUpdaterTest {
     testDirectory = createTempDirectory(javaClass.simpleName)
     downloadDir = testDirectory.resolve("downloads")
     existingMetadataFile =
-      downloadDir
-        .resolve(METADATA_FILE_NAME)
-        .createParentDirectories()
-        .createFile()
-        .apply { writeText(OLD_METADATA_CONTENT) }
-        .toFile()
+      downloadDir.resolve(METADATA_FILE_NAME).createParentDirectories().createFile().apply { writeText(OLD_METADATA_CONTENT) }.toFile()
 
-    downloadDir
-      .resolve("style1/my_unused_icon")
-      .apply { createDirectories() }
-      .resolve("style1_my_unused_icon_24.xml")
-      .writeText(OLD_VD)
+    downloadDir.resolve("style1/my_unused_icon").apply { createDirectories() }.resolve("style1_my_unused_icon_24.xml").writeText(OLD_VD)
 
     // Setup 'Downloads' directory with the existing XML files of the `old` metadata
-    downloadDir
-      .resolve("style1/my_icon_1")
-      .apply { createDirectories() }
-      .resolve("style1_my_icon_1_24.xml")
-      .writeText(OLD_VD)
-    downloadDir
-      .resolve("style1/my_icon_2")
-      .apply { createDirectories() }
-      .resolve("style1_my_icon_2_24.xml")
-      .writeText(OLD_VD)
+    downloadDir.resolve("style1/my_icon_1").apply { createDirectories() }.resolve("style1_my_icon_1_24.xml").writeText(OLD_VD)
+    downloadDir.resolve("style1/my_icon_2").apply { createDirectories() }.resolve("style1_my_icon_2_24.xml").writeText(OLD_VD)
 
     iconsUrlProvider =
       object : MaterialIconsUrlProvider {
-        override fun getStyleUrl(style: String): URL? =
-          downloadDir.resolve(style.toDirFormat()).toUri().toURL()
+        override fun getStyleUrl(style: String): URL? = downloadDir.resolve(style.toDirFormat()).toUri().toURL()
 
         override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? =
-          downloadDir
-            .resolve(style.toDirFormat())
-            .resolve(iconName)
-            .resolve(iconFileName)
-            .toUri()
-            .toURL()
+          downloadDir.resolve(style.toDirFormat()).resolve(iconName).resolve(iconFileName).toUri().toURL()
       }
   }
 
@@ -244,11 +202,7 @@ class MaterialIconsUpdaterTest {
       MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow()
     }
 
-    val testDownloadedMetadataFile =
-      testDirectory
-        .resolve("downloaded_metadata.txt")
-        .apply { writeText(NEW_METADATA_CONTENT) }
-        .toFile()
+    val testDownloadedMetadataFile = testDirectory.resolve("downloaded_metadata.txt").apply { writeText(NEW_METADATA_CONTENT) }.toFile()
     val loadTestDownloadedMetadata: () -> MaterialIconsMetadata = {
       MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile)).getOrThrow()
     }
@@ -313,10 +267,8 @@ class MaterialIconsUpdaterTest {
 
     assertTrue(
       updateIconsAtDir(
-        existingMetadata =
-          MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
-        newMetadata =
-          MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
+        existingMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
+        newMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(existingMetadataFile)).getOrThrow(),
         targetDir = downloadDir,
         iconsUrlProvider = iconsUrlProvider,
       )

@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_SLEEP
 
-/**
- * Simulates the Palm gesture on a mirrored physical device.
- */
+/** Simulates the Palm gesture on a mirrored physical device. */
 internal class DevicePalmAction : DeviceKeypressAction(AKEYCODE_SLEEP, configFilter = { it.isWatch })

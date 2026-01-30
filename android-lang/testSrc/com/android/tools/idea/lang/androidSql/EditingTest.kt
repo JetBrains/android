@@ -22,94 +22,115 @@ class EditingTest : LightJavaCodeInsightFixtureAdtTestCase() {
     super.setUp()
     createStubRoomClasses(myFixture)
   }
-  
+
   fun testParens() {
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS <caret>")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS <caret>")
+        void runQuery();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('(')
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (<caret>)")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (<caret>)")
+        void runQuery();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testStrings() {
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT <caret>")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT <caret>")
+        void runQuery();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('\'')
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT '<caret>'")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT '<caret>'")
+        void runQuery();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testBackticks() {
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT <caret>")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT <caret>")
+        void runQuery();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.type('`')
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT `<caret>`")
-          void runQuery();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT `<caret>`")
+        void runQuery();
+      }
+      """
+        .trimIndent()
+    )
   }
 }

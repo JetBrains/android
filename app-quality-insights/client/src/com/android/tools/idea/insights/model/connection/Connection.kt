@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.insights.model.connection
 
-/**
- * A single connection represented by credentials required to access resources for a given project.
- */
+/** A single connection represented by credentials required to access resources for a given project. */
 interface Connection {
   val mobileSdkAppId: String?
   val projectId: String?

@@ -36,17 +36,14 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 const val MAX_INITIAL_ITERABLE_SIZE = 5
 
 /** Cache of compose parameters, to avoid expensive refetches when possible. */
-class ComposeParametersCache(
-  private val client: ComposeLayoutInspectorClient?,
-  model: InspectorModel,
-) : ViewNodeCache<ComposeParametersData>(model), ViewNodeAndResourceLookup by model {
+class ComposeParametersCache(private val client: ComposeLayoutInspectorClient?, model: InspectorModel) :
+  ViewNodeCache<ComposeParametersData>(model), ViewNodeAndResourceLookup by model {
 
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ComposeParametersData? {
     val anchorHash = (node as? ComposeViewNode)?.anchorHash ?: 0
     val response = client?.getParameters(root.drawId, node.drawId, anchorHash) ?: return null
     return if (response != GetParametersResponse.getDefaultInstance()) {
-      ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this)
-        .generate(root.drawId, response.parameterGroup)
+      ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this).generate(root.drawId, response.parameterGroup)
     } else {
       null
     }
@@ -58,8 +55,7 @@ class ComposeParametersCache(
     startIndex: Int,
     maxElements: Int,
   ): ParameterGroupItem? {
-    val response =
-      client?.getParameterDetails(rootId, reference, startIndex, maxElements) ?: return null
+    val response = client?.getParameterDetails(rootId, reference, startIndex, maxElements) ?: return null
     return if (response != GetParameterDetailsResponse.getDefaultInstance()) {
       ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this)
         .generate(rootId, reference.nodeId, reference.kind, response.parameter)
@@ -72,11 +68,7 @@ class ComposeParametersCache(
     val stringTable = StringTableImpl(response.stringsList)
     for (group in response.parameterGroupsList) {
       val rootId = response.rootViewId
-      setDataFor(
-        rootId,
-        group.composableId,
-        ComposeParametersDataGenerator(stringTable, this).generate(rootId, group),
-      )
+      setDataFor(rootId, group.composableId, ComposeParametersDataGenerator(stringTable, this).generate(rootId, group))
     }
   }
 
@@ -91,8 +83,7 @@ class ComposeParametersCache(
    *
    * For references to List/Array we need to pay attention to [startIndex]:
    * - if another parameter in the cache already has the requested element, return that parameter
-   * - otherwise load more child elements from the device and update the cached parameter to avoid a
-   *   later download of the same information.
+   * - otherwise load more child elements from the device and update the cached parameter to avoid a later download of the same information.
    */
   override fun resolve(
     rootId: Long,
@@ -102,18 +93,12 @@ class ComposeParametersCache(
     callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit,
   ) {
     val cachedParameter = lookupInCache(rootId, reference)
-    if (
-      (cachedParameter != null && cachedParameter.lastRealChildReferenceIndex >= startIndex) ||
-        !allowFetching
-    ) {
+    if ((cachedParameter != null && cachedParameter.lastRealChildReferenceIndex >= startIndex) || !allowFetching) {
       return callback(cachedParameter, null)
     }
 
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val expansion =
-        withContext(AndroidDispatchers.workerThread) {
-          fetchMoreDataFor(rootId, reference, startIndex, maxElements)
-        }
+      val expansion = withContext(AndroidDispatchers.workerThread) { fetchMoreDataFor(rootId, reference, startIndex, maxElements) }
       ApplicationManager.getApplication().invokeLater {
         if (cachedParameter != null) {
           val modification = expansion?.let { cachedParameter.applyReplacement(it) }
@@ -128,8 +113,8 @@ class ComposeParametersCache(
   /**
    * Find a parameter from the parameter cache from a [reference].
    *
-   * First identify the composite parameter from rootId, nodeId & parameterIndex. Then use
-   * [ParameterReference.indices] to navigate in a nested composite parameter value.
+   * First identify the composite parameter from rootId, nodeId & parameterIndex. Then use [ParameterReference.indices] to navigate in a
+   * nested composite parameter value.
    */
   private fun lookupInCache(rootId: Long, reference: ParameterReference): ParameterGroupItem? {
     ThreadingAssertions.assertEventDispatchThread()

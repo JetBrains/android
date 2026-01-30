@@ -44,12 +44,9 @@ class DeobfuscatedFilterTest {
   private val project
     get() = projectRule.project
 
-  private val editor by lazy {
-    runInEdtAndGet { createLogcatEditor(project, projectRule.disposable) }
-  }
+  private val editor by lazy { runInEdtAndGet { createLogcatEditor(project, projectRule.disposable) } }
 
-  @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule(), HeadlessDialogRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule(), HeadlessDialogRule())
 
   @Before fun setUp() {}
 
@@ -79,9 +76,7 @@ class DeobfuscatedFilterTest {
     val line = "Exception (Show original)"
     val document = editor.document
     document.setText(line)
-    document.createRangeMarker(0, document.textLength).apply {
-      putUserData(LOGCAT_MESSAGE_KEY, logcatMessage(message = "Original"))
-    }
+    document.createRangeMarker(0, document.textLength).apply { putUserData(LOGCAT_MESSAGE_KEY, logcatMessage(message = "Original")) }
 
     val result = filter.applyFilter(line, line.length) ?: fail("Expected to me not null")
     val hyperlinkInfo = result.resultItems.first().hyperlinkInfo ?: fail("Expected to me not null")

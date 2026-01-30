@@ -20,8 +20,8 @@ import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.psi.search.searches.ReferencesSearch
 
 /**
- * Disable [KotlinGradleTomlVersionCatalogReferencesSearcher] since studio has its own implementation for
- * gradle KTS files using version catalog called [GradleKtsVersionCatalogReferencesSearcher]
+ * Disable [KotlinGradleTomlVersionCatalogReferencesSearcher] since studio has its own implementation for gradle KTS files using version
+ * catalog called [GradleKtsVersionCatalogReferencesSearcher]
  */
 class DisableKotlinGradleTomlVersionCatalogReferencesSearcher : ApplicationInitializedListener {
   override suspend fun execute() {

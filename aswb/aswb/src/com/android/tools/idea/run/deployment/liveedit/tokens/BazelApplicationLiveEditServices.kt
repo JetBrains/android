@@ -34,13 +34,9 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
-/**
- * Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews.
- */
-class BazelApplicationLiveEditServices(
-  private val project: Project,
-  private val buildOutcomeProvider: BuildOutcomeProvider,
-) : ApplicationLiveEditServices {
+/** Bazel implementation of [ApplicationLiveEditServices] for Live Edit and Compose previews. */
+class BazelApplicationLiveEditServices(private val project: Project, private val buildOutcomeProvider: BuildOutcomeProvider) :
+  ApplicationLiveEditServices {
 
   /**
    * An interface to the most recent build result relevant to this [ApplicationLiveEditServices].
@@ -55,9 +51,10 @@ class BazelApplicationLiveEditServices(
 
   private data class CompilationDependenciesImpl(
     private val externalLibraries: List<Path>,
-    private val bootClasspath: List<Path> = emptyList()
+    private val bootClasspath: List<Path> = emptyList(),
   ) : ApplicationLiveEditServices.CompilationDependencies {
     override fun getExternalLibraries() = externalLibraries
+
     override fun getBootClasspath() = bootClasspath
   }
 
@@ -81,9 +78,10 @@ class BazelApplicationLiveEditServices(
     if (labels.isEmpty()) return CompilerConfiguration.EMPTY
 
     // Choose the target that would normally be selected for previews.
-    val label = listOf(snapshot.graph.getProjectTargets(path))
-                  .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
-                ?: labels.first()
+    val label =
+      listOf(snapshot.graph.getProjectTargets(path))
+        .toPreferredLabel(isPreferredTarget = { buildOutcomeProvider.lastBuildOutcome()?.builtJavaTargetPredicate(it) ?: false })
+        ?: labels.first()
 
     val targetBuildInfo = snapshot.artifactIndex.builtDepsMap()[label] ?: return CompilerConfiguration.EMPTY
     val javaInfo = targetBuildInfo.javaInfo().getOrNull() ?: return CompilerConfiguration.EMPTY

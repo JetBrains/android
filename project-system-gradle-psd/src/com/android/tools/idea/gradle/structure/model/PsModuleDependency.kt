@@ -23,22 +23,22 @@ import com.android.tools.idea.gradle.structure.navigation.PsModuleDependencyNavi
 
 interface PsModuleDependency : PsBaseDependency {
   val gradlePath: String
-  override val path: PsPath get() = PsModuleDependencyNavigationPath(this)
+  override val path: PsPath
+    get() = PsModuleDependencyNavigationPath(this)
 }
 
-interface PsDeclaredModuleDependency: PsDeclaredDependency, PsModuleDependency {
+interface PsDeclaredModuleDependency : PsDeclaredDependency, PsModuleDependency {
   override fun toKey() = gradlePath
 }
 
-interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
+interface PsResolvedModuleDependency : PsResolvedDependency, PsModuleDependency
 
 val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *, *>?
   get() {
     val targetModule = parent.parent.findModuleByGradlePath(gradlePath)
     return when (targetModule) {
       is PsAndroidModule ->
-        targetModule
-          .resolvedVariants
+        targetModule.resolvedVariants
           .firstOrNull { it.name == (this as? PsResolvedModuleAndroidDependency)?.moduleVariant }
           ?.findArtifact(IdeArtifactName.MAIN)
           ?.dependencies

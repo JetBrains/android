@@ -17,8 +17,7 @@ package com.android.tools.idea.wear.preview.animation
 
 import java.lang.reflect.Method
 
-const val DYNAMIC_TYPE_ANIMATOR_CLASS =
-  "androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator"
+const val DYNAMIC_TYPE_ANIMATOR_CLASS = "androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator"
 
 /**
  * Represents an animation in the Wear preview.
@@ -45,8 +44,7 @@ class ProtoAnimation(private val animator: Any) {
   }
 
   init {
-    val protoAnimatorInterface =
-      animator.javaClass.classLoader?.loadClass(DYNAMIC_TYPE_ANIMATOR_CLASS)
+    val protoAnimatorInterface = animator.javaClass.classLoader?.loadClass(DYNAMIC_TYPE_ANIMATOR_CLASS)
     require(protoAnimatorInterface != null && protoAnimatorInterface.isInstance(animator)) {
       "Animator must implement DynamicTypeAnimator interface"
     }

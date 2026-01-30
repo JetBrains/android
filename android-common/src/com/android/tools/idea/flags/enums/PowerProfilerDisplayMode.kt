@@ -16,5 +16,7 @@
 package com.android.tools.idea.flags.enums
 
 enum class PowerProfilerDisplayMode(val value: Int) {
-  HIDE(0), CUMULATIVE(1), DELTA(2);
+  HIDE(0),
+  CUMULATIVE(1),
+  DELTA(2),
 }

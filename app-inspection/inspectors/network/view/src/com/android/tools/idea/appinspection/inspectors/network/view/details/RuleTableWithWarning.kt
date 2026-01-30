@@ -103,14 +103,10 @@ internal class RuleTableWithWarning(
           is RuleData.HeaderRulesTableModel -> NetworkInspectorBundle.message("confirmation.header")
           else -> NetworkInspectorBundle.message("confirmation.body")
         }
-      val isConfirmed =
-        MessageDialogBuilder.okCancel(NetworkInspectorBundle.message("confirmation.title"), message)
-          .ask(table)
+      val isConfirmed = MessageDialogBuilder.okCancel(NetworkInspectorBundle.message("confirmation.title"), message).ask(table)
       if (isConfirmed) {
         if (TableUtil.doRemoveSelectedItems(table, model, null)) {
-          SwingUtilities.invokeLater {
-            IdeFocusManager.getGlobalInstance().requestFocus(table, true)
-          }
+          SwingUtilities.invokeLater { IdeFocusManager.getGlobalInstance().requestFocus(table, true) }
           TableUtil.updateScroller(table)
         }
       }

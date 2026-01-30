@@ -71,8 +71,7 @@ class LocaleAnalyzerTest {
           <string name="text">This is a very very very very very very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile =
-      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 
@@ -133,8 +132,7 @@ class LocaleAnalyzerTest {
           <string name="text">This is a very very very very very very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile =
-      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 
@@ -194,8 +192,7 @@ class LocaleAnalyzerTest {
           <string name="text">This is also a very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile =
-      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 

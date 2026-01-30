@@ -35,9 +35,7 @@ fun RecipeExecutor.generateXRModule(
   useVersionCatalog: Boolean = true,
 ) {
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.apiLevel >= 31
-  check(data.category != Category.Compose || data.isCompose) {
-    "Template in Compose category must have isCompose set"
-  }
+  check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
   generateCommonModule(
     data = data,
     appTitle = appTitle,

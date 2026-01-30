@@ -68,14 +68,10 @@ class VitalsClient(
   private val stackTraceGroupParser: StackTraceGroupParser,
 ) : AppInsightsClient {
 
-  private val grpcClient: VitalsGrpcClient by lazy {
-    grpcClientOverride ?: VitalsGrpcClientImpl(channelProvider(), interceptor)
-  }
+  private val grpcClient: VitalsGrpcClient by lazy { grpcClientOverride ?: VitalsGrpcClientImpl(channelProvider(), interceptor) }
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
-    runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) {
-      LoadingState.Ready(grpcClient.listAccessibleApps())
-    }
+    runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) { LoadingState.Ready(grpcClient.listAccessibleApps()) }
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
@@ -102,20 +98,10 @@ class VitalsClient(
         )
       }
       val versions = async {
-        listVersions(
-          request.connection,
-          request.filters.copy(versions = setOf(Version.ALL)),
-          null,
-          MetricType.ERROR_REPORT_COUNT,
-        )
+        listVersions(request.connection, request.filters.copy(versions = setOf(Version.ALL)), null, MetricType.ERROR_REPORT_COUNT)
       }
       val devices = async {
-        listDevices(
-          request.connection,
-          request.filters.copy(devices = setOf(Device.ALL)),
-          null,
-          MetricType.ERROR_REPORT_COUNT,
-        )
+        listDevices(request.connection, request.filters.copy(devices = setOf(Device.ALL)), null, MetricType.ERROR_REPORT_COUNT)
       }
       val oses = async {
         listOperatingSystems(
@@ -127,47 +113,25 @@ class VitalsClient(
       }
       val issues = async { fetchIssues(request, fetchSource == FetchSource.REFRESH) }
 
-      LoadingState.Ready(
-        IssueResponse(
-          issues.await(),
-          versions.await(),
-          devices.await(),
-          oses.await(),
-          Permission.READ_ONLY,
-        )
-      )
+      LoadingState.Ready(IssueResponse(issues.await(), versions.await(), devices.await(), oses.await(), Permission.READ_ONLY))
     }
 
-  override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
-    LoadingState.Ready(emptyList<IssueVariant>())
+  override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) = LoadingState.Ready(emptyList<IssueVariant>())
 
   override suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest,
     variantId: String?,
   ): LoadingState.Done<DetailedIssueStats?> =
-    runGrpcCatchingWithSupervisorScope(
-      LoadingState.UnknownFailure("Unable to fetch issue details.")
-    ) {
+    runGrpcCatchingWithSupervisorScope(LoadingState.UnknownFailure("Unable to fetch issue details.")) {
       val devices = async {
         listDevices(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
-          .summarizeDevicesFromRawDataPoints(
-            MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
-            MINIMUM_PERCENTAGE_TO_SHOW,
-          )
+          .summarizeDevicesFromRawDataPoints(MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW, MINIMUM_PERCENTAGE_TO_SHOW)
       }
 
       val oses = async {
-        listOperatingSystems(
-            request.connection,
-            request.filters,
-            issueId,
-            MetricType.DISTINCT_USER_COUNT,
-          )
-          .summarizeOsesFromRawDataPoints(
-            MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
-            MINIMUM_PERCENTAGE_TO_SHOW,
-          )
+        listOperatingSystems(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
+          .summarizeOsesFromRawDataPoints(MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW, MINIMUM_PERCENTAGE_TO_SHOW)
       }
       LoadingState.Ready(DetailedIssueStats(devices.await(), oses.await()))
     }
@@ -180,27 +144,15 @@ class VitalsClient(
     token: String?,
   ): LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY)
 
-  override suspend fun updateIssueState(
-    connection: Connection,
-    issueId: IssueId,
-    state: IssueState,
-  ): LoadingState.Done<Unit> {
+  override suspend fun updateIssueState(connection: Connection, issueId: IssueId, state: IssueState): LoadingState.Done<Unit> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
-  override suspend fun listNotes(
-    connection: Connection,
-    issueId: IssueId,
-    mode: ConnectionMode,
-  ): LoadingState.Done<List<Note>> {
+  override suspend fun listNotes(connection: Connection, issueId: IssueId, mode: ConnectionMode): LoadingState.Done<List<Note>> {
     return LoadingState.Ready(emptyList())
   }
 
-  override suspend fun createNote(
-    connection: Connection,
-    issueId: IssueId,
-    message: String,
-  ): LoadingState.Done<Note> {
+  override suspend fun createNote(connection: Connection, issueId: IssueId, message: String): LoadingState.Done<Note> {
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
@@ -208,53 +160,37 @@ class VitalsClient(
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
-  private suspend fun fetchIssues(
-    request: IssueRequest,
-    fetchEventsForAllIssues: Boolean = false,
-  ): List<AppInsightsIssue> = coroutineScope {
-    val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
+  private suspend fun fetchIssues(request: IssueRequest, fetchEventsForAllIssues: Boolean = false): List<AppInsightsIssue> =
+    coroutineScope {
+      val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
 
-    val (requestIssues, cachedSampleEvents) =
-      if (fetchEventsForAllIssues) {
-        topIssues to emptyMap()
-      } else {
-        val cachedSampleEvents =
-          topIssues
-            .mapNotNull { cache.getEvent(request, it.id)?.let { event -> it to event } }
-            .toMap()
-        topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
-      }
-    val sampleErrorReportIdList =
-      requestIssues.mapNotNull { it.sampleEvent.split("/").last().takeIf { it.isNotEmpty() } }
-    val fetchedErrorReportMap =
-      if (sampleErrorReportIdList.isNotEmpty()) {
-        grpcClient
-          .searchErrorReportByReportIds(
-            request.connection,
-            request.filters,
-            sampleErrorReportIdList,
-            stackTraceGroupParser,
-          )
-          .associateBy { it.name }
-      } else {
-        emptyMap()
-      }
+      val (requestIssues, cachedSampleEvents) =
+        if (fetchEventsForAllIssues) {
+          topIssues to emptyMap()
+        } else {
+          val cachedSampleEvents = topIssues.mapNotNull { cache.getEvent(request, it.id)?.let { event -> it to event } }.toMap()
+          topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
+        }
+      val sampleErrorReportIdList = requestIssues.mapNotNull { it.sampleEvent.split("/").last().takeIf { it.isNotEmpty() } }
+      val fetchedErrorReportMap =
+        if (sampleErrorReportIdList.isNotEmpty()) {
+          grpcClient
+            .searchErrorReportByReportIds(request.connection, request.filters, sampleErrorReportIdList, stackTraceGroupParser)
+            .associateBy { it.name }
+        } else {
+          emptyMap()
+        }
 
-    topIssues
-      .map { issueDetails ->
-        val event =
-          cachedSampleEvents[issueDetails]
-            ?: fetchedErrorReportMap[issueDetails.sampleEvent]
-            ?: grpcClient.searchErrorReportByIssueId(
-              request.connection,
-              request.filters,
-              issueDetails.id,
-              stackTraceGroupParser,
-            )
-        AppInsightsIssue(issueDetails, event, source = VitalsInsightsProvider)
-      }
-      .also { cache.populateIssues(request.connection, it) }
-  }
+      topIssues
+        .map { issueDetails ->
+          val event =
+            cachedSampleEvents[issueDetails]
+              ?: fetchedErrorReportMap[issueDetails.sampleEvent]
+              ?: grpcClient.searchErrorReportByIssueId(request.connection, request.filters, issueDetails.id, stackTraceGroupParser)
+          AppInsightsIssue(issueDetails, event, source = VitalsInsightsProvider)
+        }
+        .also { cache.populateIssues(request.connection, it) }
+    }
 
   private suspend fun listVersions(
     connection: Connection,
@@ -277,10 +213,7 @@ class VitalsClient(
       .map { dataPoint ->
         val version =
           Version.fromDimensions(dataPoint.dimensions).let { rawVersion ->
-            val tracks =
-              releases
-                .singleOrNull { release -> release.buildVersion == rawVersion.buildVersion }
-                ?.tracks ?: emptySet()
+            val tracks = releases.singleOrNull { release -> release.buildVersion == rawVersion.buildVersion }?.tracks ?: emptySet()
             rawVersion.copy(tracks = tracks)
           }
 
@@ -302,13 +235,7 @@ class VitalsClient(
         connection = connection,
         filters = filters,
         issueId = issueId,
-        dimensions =
-          listOf(
-            DimensionType.REPORT_TYPE,
-            DimensionType.DEVICE_BRAND,
-            DimensionType.DEVICE_MODEL,
-            DimensionType.DEVICE_TYPE,
-          ),
+        dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_BRAND, DimensionType.DEVICE_MODEL, DimensionType.DEVICE_TYPE),
         metrics = listOf(metricType),
       )
       .map { dataPoint ->
@@ -355,14 +282,7 @@ class VitalsClient(
       grpcClient.getErrorCountMetricsFreshnessInfo(connection).maxByOrNull { it.timeGranularity }
         ?: throw IllegalStateException("No freshness info found for app: ${connection.appId}.")
 
-    return grpcClient.queryErrorCountMetrics(
-      connection,
-      filters,
-      issueId,
-      dimensions,
-      metrics,
-      freshness,
-    )
+    return grpcClient.queryErrorCountMetrics(connection, filters, issueId, dimensions, metrics, freshness)
   }
 }
 

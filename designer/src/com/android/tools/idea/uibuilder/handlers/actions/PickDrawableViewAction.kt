@@ -26,10 +26,7 @@ import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import icons.StudioIcons
 import java.util.EnumSet
 
-/**
- * Action for picking drawable resource. The reference of resource will set to
- * [namespace]:[attribute] attribute after action performed.
- */
+/** Action for picking drawable resource. The reference of resource will set to [namespace]:[attribute] attribute after action performed. */
 class PickDrawableViewAction(private val namespace: String?, private val attribute: String) :
   DirectViewAction(StudioIcons.LayoutEditor.Extras.PIPETTE, "Drawable") {
 

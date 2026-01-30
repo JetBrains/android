@@ -40,15 +40,11 @@ class StateList(val fileName: String, val dirName: String) {
   val type: ResourceType
     get() = ResourceType.fromFolderName(folderType.getName())!!
 
-  /**
-   * @return a list of all the states in this state list that have explicitly or implicitly
-   *   state_enabled = false
-   */
+  /** @return a list of all the states in this state list that have explicitly or implicitly state_enabled = false */
   val disabledStates: ImmutableList<StateListState>
     get() {
       val disabledStatesBuilder = ImmutableList.builder<StateListState>()
-      var remainingObjectStates =
-        ImmutableSet.of(ImmutableMap.of(STATE_ENABLED, true), ImmutableMap.of(STATE_ENABLED, false))
+      var remainingObjectStates = ImmutableSet.of(ImmutableMap.of(STATE_ENABLED, true), ImmutableMap.of(STATE_ENABLED, false))
       // An object state is a particular assignment of boolean values to all possible state list
       // flags.
       // For example, in a world where there exists only three flags (a, b and c), there are 2^3 = 8
@@ -104,10 +100,7 @@ class StateList(val fileName: String, val dirName: String) {
     myStates.add(state)
   }
 
-  /**
-   * Returns a representation of all the object states that were in allowed states but do not match
-   * the state list state
-   */
+  /** Returns a representation of all the object states that were in allowed states but do not match the state list state */
   private fun removeState(
     state: StateListState,
     allowedStates: ImmutableSet<ImmutableMap<String, Boolean>>,
@@ -166,23 +159,19 @@ class StateListState(var value: String?, val attributes: Map<String, Boolean>, v
   }
 
   /**
-   * Checks if there exists an object state that matches this state list state, has state_enabled =
-   * true, and is represented in allowedObjectStates.
+   * Checks if there exists an object state that matches this state list state, has state_enabled = true, and is represented in
+   * allowedObjectStates.
    *
    * @param allowedObjectStates
    */
-  internal fun matchesWithEnabledObjectState(
-    allowedObjectStates: ImmutableSet<ImmutableMap<String, Boolean>>
-  ): Boolean {
+  internal fun matchesWithEnabledObjectState(allowedObjectStates: ImmutableSet<ImmutableMap<String, Boolean>>): Boolean {
     if (attributes.containsKey(STATE_ENABLED) && attributes[STATE_ENABLED]!!.not()) {
       // This state list state has state_enabled = false, so no object state with state_enabled =
       // true could match it
       return false
     }
     for (allowedAttributes in allowedObjectStates) {
-      if (
-        allowedAttributes.containsKey(STATE_ENABLED) && allowedAttributes[STATE_ENABLED]!!.not()
-      ) {
+      if (allowedAttributes.containsKey(STATE_ENABLED) && allowedAttributes[STATE_ENABLED]!!.not()) {
         // This allowed object state representation has explicitly state_enabled = false, so it does
         // not represent any object state
         // with state_enabled = true
@@ -190,10 +179,7 @@ class StateListState(var value: String?, val attributes: Map<String, Boolean>, v
       }
       var match = true
       for (attribute in attributes.keys) {
-        if (
-          allowedAttributes.containsKey(attribute) &&
-            attributes[attribute] !== allowedAttributes[attribute]
-        ) {
+        if (allowedAttributes.containsKey(attribute) && attributes[attribute] !== allowedAttributes[attribute]) {
           // This state list state does not match any of the object states represented by
           // allowedAttributes, since they explicitly
           // disagree on one particular flag.

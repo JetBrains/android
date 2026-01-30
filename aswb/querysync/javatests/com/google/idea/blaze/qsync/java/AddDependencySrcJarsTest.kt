@@ -49,19 +49,15 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AddDependencySrcJarsTest {
-  @get:Rule
-  val tempDir: TemporaryFolder = TemporaryFolder()
+  @get:Rule val tempDir: TemporaryFolder = TemporaryFolder()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val intellij = IntellijRule()
+    @JvmField @ClassRule val intellij = IntellijRule()
   }
 
   private lateinit var workspaceRoot: Path
   private var pathResolver: ProjectPath.Resolver? = null
-  private val syncer = TestDataSyncRunner(
-    NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
+  private val syncer = TestDataSyncRunner(NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PREFIX_READER)
   private lateinit var original: QuerySyncProjectSnapshot
 
   @Before
@@ -72,8 +68,7 @@ class AddDependencySrcJarsTest {
     original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
     workspaceRoot = tempDir.newFolder("workspace").toPath()
     val projectDirPath = tempDir.newFolder("project").toPath()
-    pathResolver =
-      ProjectPath.Resolver.create(workspaceRoot, projectDirPath, projectDirPath.resolve(".external"))
+    pathResolver = ProjectPath.Resolver.create(workspaceRoot, projectDirPath, projectDirPath.resolve(".external"))
     mockExperimentService.setExperiment(com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY, false)
   }
 
@@ -81,21 +76,15 @@ class AddDependencySrcJarsTest {
   @Throws(Exception::class)
   fun no_deps_built() {
     val addSrcJars =
-      AddDependencySrcJars(
-        original.queryData.projectDefinition(),
-        pathResolver!!,
-        SrcJarInnerPathFinder(PackageStatementParser())
-      )
+      AddDependencySrcJars(original.queryData.projectDefinition(), pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
     no_deps_built(addSrcJars)
   }
 
   @Throws(Exception::class)
   private fun no_deps_built(addSrcJars: AddDependencySrcJars) {
-    val update =
-      ProjectProtoUpdate(original.project)
+    val update = ProjectProtoUpdate(original.project)
 
-    addSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
-                      ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    addSrcJars.update(update, ArtifactTracker.State.EMPTY, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
 
     val newProject = update.build()
 
@@ -108,43 +97,32 @@ class AddDependencySrcJarsTest {
   @Throws(Exception::class)
   fun external_srcjar_added() {
     val addSrcJars =
-      AddDependencySrcJars(
-        original.queryData.projectDefinition(),
-        pathResolver!!,
-        SrcJarInnerPathFinder(PackageStatementParser())
-      )
+      AddDependencySrcJars(original.queryData.projectDefinition(), pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
     external_srcjar_added(
       addSrcJars,
       ProjectProto.Library(
         name = Label.of("//java/com/google/common/collect:collect"),
         classesJarList = emptyList(),
-        sourcesList = listOf(
-          ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root")))
-      )
+        sourcesList =
+          listOf(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root"))),
+      ),
     )
   }
 
   @Throws(Exception::class)
-  private fun external_srcjar_added(
-    addSrcJars: AddDependencySrcJars,
-    vararg libraries: ProjectProto.Library?
-  ) {
-    ZipOutputStream(
-      FileOutputStream(
-        Files.createDirectories(workspaceRoot.resolve("source/path"))
-          .resolve("external.srcjar")
-          .toFile()
-      )
-    ).use { zos ->
-      zos.putNextEntry(ZipEntry("root/com/pkg/Class.java"))
-      zos.write("package com.pkg;\nclass Class {}".toByteArray(StandardCharsets.UTF_8))
-    }
+  private fun external_srcjar_added(addSrcJars: AddDependencySrcJars, vararg libraries: ProjectProto.Library?) {
+    ZipOutputStream(FileOutputStream(Files.createDirectories(workspaceRoot.resolve("source/path")).resolve("external.srcjar").toFile()))
+      .use { zos ->
+        zos.putNextEntry(ZipEntry("root/com/pkg/Class.java"))
+        zos.write("package com.pkg;\nclass Class {}".toByteArray(StandardCharsets.UTF_8))
+      }
     val artifactState =
       ArtifactTracker.State.forJavaArtifacts(
         DependencyBuildContext.NONE,
-        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
+        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
+          .toBuilder()
           .setSrcJars(setOf<ProjectPath>(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar"))))
-          .build()
+          .build(),
       )
 
     val update = ProjectProtoUpdate(original.project)

@@ -48,17 +48,13 @@ import com.android.tools.idea.common.layout.positionable.PositionableContent
 /** A list of scanline coordinates. */
 typealias ScanlineList = List<Int>
 
-/**
- * Maps the [Collection<SceneView>] into a [ScanlineList] by applying the given function. The
- * returned list will be sorted.
- */
-fun Collection<PositionableContent>.findAllScanlines(
-  dimensionProcessor: (PositionableContent) -> Int
-): ScanlineList = map(dimensionProcessor).sorted()
+/** Maps the [Collection<SceneView>] into a [ScanlineList] by applying the given function. The returned list will be sorted. */
+fun Collection<PositionableContent>.findAllScanlines(dimensionProcessor: (PositionableContent) -> Int): ScanlineList =
+  map(dimensionProcessor).sorted()
 
 /**
- * Finds the closest scanline to [key] that is smaller or equals to key. If there is no smaller
- * scanline than key, the method returns [default].
+ * Finds the closest scanline to [key] that is smaller or equals to key. If there is no smaller scanline than key, the method returns
+ * [default].
  */
 fun findSmallerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
   val index = scanLines.binarySearch(key)
@@ -74,8 +70,8 @@ fun findSmallerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
 }
 
 /**
- * Finds the closest scanline to [key] that is larger or equals to key. If there is no larger
- * scanline than key, the method returns [default].
+ * Finds the closest scanline to [key] that is larger or equals to key. If there is no larger scanline than key, the method returns
+ * [default].
  */
 fun findLargerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
   val index = scanLines.binarySearch(key)

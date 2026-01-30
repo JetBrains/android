@@ -49,19 +49,15 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Model for an XML file
  *
- * @param componentRegistrar Returns the responsible for registering an [NlComponent] to enhance it
- *   with layout-specific properties and methods.
- * @param xmlFileProvider [LayoutlibSceneManager] requires the file from model to be an [XmlFile] to
- *   be able to render it. This is true in case of layout file and some others as well. However, we
- *   want to use model to render other file types (e.g. Java and Kotlin source files that contain
- *   custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have
- *   implicit). This provider should provide us with [XmlFile] representation of the VirtualFile fed
- *   to the model.
- * @param dataProvider Returns the [UiDataProvider] associated to this model. The [UiDataProvider]
- *   allows storing information that is specific to this model but is not part of it. For example,
- *   context information about how the model should be represented in a specific surface. The
- *   [UiDataProvider] might change at any point so make sure you always call this method to obtain
- *   the latest data.
+ * @param componentRegistrar Returns the responsible for registering an [NlComponent] to enhance it with layout-specific properties and
+ *   methods.
+ * @param xmlFileProvider [LayoutlibSceneManager] requires the file from model to be an [XmlFile] to be able to render it. This is true in
+ *   case of layout file and some others as well. However, we want to use model to render other file types (e.g. Java and Kotlin source
+ *   files that contain custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have implicit). This provider
+ *   should provide us with [XmlFile] representation of the VirtualFile fed to the model.
+ * @param dataProvider Returns the [UiDataProvider] associated to this model. The [UiDataProvider] allows storing information that is
+ *   specific to this model but is not part of it. For example, context information about how the model should be represented in a specific
+ *   surface. The [UiDataProvider] might change at any point so make sure you always call this method to obtain the latest data.
  */
 open class NlModel
 @VisibleForTesting
@@ -75,14 +71,13 @@ protected constructor(
   override var dataProvider: NlDataProvider?,
 ) : ModificationTracker, NlDataProviderHolder {
 
-  val treeWriter =
-    NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
+  val treeWriter = NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
 
   /**
-   * Adds information to the model from a render result. A given model can use different updaters
-   * depending on what its usage requires. E.g. interactive preview may need less information from
-   * an [NlModel] than a standard preview, so different updaters can be used in those cases.
+   * Adds information to the model from a render result. A given model can use different updaters depending on what its usage requires. E.g.
+   * interactive preview may need less information from an [NlModel] than a standard preview, so different updaters can be used in those
+   * cases.
    */
   private var modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 
@@ -100,8 +95,8 @@ protected constructor(
   private var configurationModificationCount: Long = configuration.modificationCount
 
   /**
-   * Field indicating whether a modification should be notified the next time this model is
-   * activated, which should be true if a modification happened while this model was not active.
+   * Field indicating whether a modification should be notified the next time this model is activated, which should be true if a
+   * modification happened while this model was not active.
    */
   private val notifyModificationWhenActivated = AtomicBoolean(false)
 
@@ -114,10 +109,7 @@ protected constructor(
 
   private val isActive = AtomicBoolean(false)
 
-  /**
-   * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when
-   * rendering or layouting.
-   */
+  /** Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting. */
   var organizationGroup: OrganizationGroup? = null
 
   init {
@@ -139,14 +131,12 @@ protected constructor(
       updateTheme()
     }
     listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
-    if (notifyModificationWhenActivated.getAndSet(false))
-      notifyModified(ChangeType.MODEL_ACTIVATION)
+    if (notifyModificationWhenActivated.getAndSet(false)) notifyModified(ChangeType.MODEL_ACTIVATION)
     return true
   }
 
   /**
-   * Notify model that it's not active. This means it can stop watching for events etc. It may be
-   * activated again in the future.
+   * Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future.
    *
    * @return true if the model was active before and was deactivated.
    */
@@ -167,10 +157,7 @@ protected constructor(
     modelUpdater.updateFromViewInfo(this, viewInfos)
   }
 
-  /**
-   * Adds a new [ModelListener]. If the listener already exists, this method will make sure that the
-   * listener is only added once.
-   */
+  /** Adds a new [ModelListener]. If the listener already exists, this method will make sure that the listener is only added once. */
   fun addListener(listener: ModelListener) {
     listeners.add(listener)
   }
@@ -182,8 +169,8 @@ protected constructor(
   /**
    * Calls all the listeners [ModelListener.modelDerivedDataChanged] method.
    *
-   * TODO: move this mechanism to [LayoutlibSceneManager], or, ideally, remove the need for it
-   *   entirely by moving all the derived data into the Scene.
+   * TODO: move this mechanism to [LayoutlibSceneManager], or, ideally, remove the need for it entirely by moving all the derived data into
+   *   the Scene.
    */
   fun notifyListenersModelDerivedDataChanged() {
     listeners.forEach { listener: ModelListener -> listener.modelDerivedDataChanged(this) }
@@ -194,8 +181,7 @@ protected constructor(
    *
    * @param animate if true, warns the listeners to animate the layout update
    *
-   * TODO: move these listeners out of [NlModel], since the model shouldn't care about being laid
-   *   out.
+   * TODO: move these listeners out of [NlModel], since the model shouldn't care about being laid out.
    */
   fun notifyListenersModelChangedOnLayout(animate: Boolean) {
     listeners.forEach { listener: ModelListener -> listener.modelChangedOnLayout(this, animate) }
@@ -211,9 +197,8 @@ protected constructor(
     get() = buildTarget.project
 
   /**
-   * This will warn model listeners that the model has been changed "live", without the attributes
-   * of components being actually committed. Listeners such as Scene Managers will likely want for
-   * example to schedule a layout pass in reaction to that callback.
+   * This will warn model listeners that the model has been changed "live", without the attributes of components being actually committed.
+   * Listeners such as Scene Managers will likely want for example to schedule a layout pass in reaction to that callback.
    */
   fun notifyLiveUpdate() {
     listeners.forEach { listener -> listener.modelLiveUpdate(this) }
@@ -296,8 +281,7 @@ protected constructor(
   companion object {
     const val DELAY_AFTER_TYPING_MS: Int = 250
 
-    fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
-      AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
+    fun getDefaultFile(project: Project, virtualFile: VirtualFile) = AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
   }
 
   /** An [NlModel] builder */
@@ -308,36 +292,21 @@ protected constructor(
     val configuration: Configuration,
   ) {
     private var componentRegistrar: Consumer<NlComponent> = Consumer {}
-    private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> =
-      BiFunction { project, virtualFile ->
-        getDefaultFile(project, virtualFile)
-      }
+    private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> = BiFunction { project, virtualFile ->
+      getDefaultFile(project, virtualFile)
+    }
     private var dataProvider: NlDataProvider? = null
 
-    fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): Builder = also {
-      this.componentRegistrar = componentRegistrar
+    fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): Builder = also { this.componentRegistrar = componentRegistrar }
+
+    fun withXmlProvider(xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>): Builder = also {
+      this.xmlFileProvider = xmlFileProvider
     }
 
-    fun withXmlProvider(xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>): Builder =
-      also {
-        this.xmlFileProvider = xmlFileProvider
-      }
-
-    fun withDataProvider(dataProvider: NlDataProvider): Builder = also {
-      this.dataProvider = dataProvider
-    }
+    fun withDataProvider(dataProvider: NlDataProvider): Builder = also { this.dataProvider = dataProvider }
 
     /** Instantiate a new [NlModel]. */
     @Slow
-    fun build(): NlModel =
-      NlModel(
-        parentDisposable,
-        buildTarget,
-        file,
-        configuration,
-        componentRegistrar,
-        xmlFileProvider,
-        dataProvider,
-      )
+    fun build(): NlModel = NlModel(parentDisposable, buildTarget, file, configuration, componentRegistrar, xmlFileProvider, dataProvider)
   }
 }

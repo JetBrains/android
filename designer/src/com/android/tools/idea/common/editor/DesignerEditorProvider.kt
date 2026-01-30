@@ -52,16 +52,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Provider that accepts [XmlFile]s whose type belongs to [acceptedTypes].Subclasses are responsible
- * for specifying the types accepted, creating the editor using [createEditor], and specifying their
- * ID via [getEditorTypeId]. This parent class in turn is responsible for registering the accepted
- * types against [DesignerTypeRegistrar].
+ * Provider that accepts [XmlFile]s whose type belongs to [acceptedTypes].Subclasses are responsible for specifying the types accepted,
+ * creating the editor using [createEditor], and specifying their ID via [getEditorTypeId]. This parent class in turn is responsible for
+ * registering the accepted types against [DesignerTypeRegistrar].
  */
-abstract class DesignerEditorProvider
-protected constructor(
-  acceptedTypes: List<DesignerEditorFileType>,
-  private val editorTypeId: String,
-) : AsyncFileEditorProvider, QuickDefinitionProvider, DumbAware {
+abstract class DesignerEditorProvider protected constructor(acceptedTypes: List<DesignerEditorFileType>, private val editorTypeId: String) :
+  AsyncFileEditorProvider, QuickDefinitionProvider, DumbAware {
   private val acceptedXmlTypes = acceptedTypes.filterIsInstance<XmlDesignerEditorFileType>()
 
   init {
@@ -97,10 +93,7 @@ protected constructor(
     // supported file types this editor is going to use.
     // If we can not detect the specific type, we return a generic TextEditor.
     val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
-    val textEditor =
-      withContext(Dispatchers.EDT) {
-        TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-      }
+    val textEditor = withContext(Dispatchers.EDT) { TextEditorProvider.getInstance().createEditor(project, file) as TextEditor }
     if (psiFile !is XmlFile) return textEditor
     val fileType = acceptedXmlTypes.find { type -> type.isResourceTypeOf(psiFile) }
     if (fileType == null) {
@@ -177,13 +170,7 @@ protected constructor(
           override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
             surface.removeListener(this)
             val caretModel = editor.editor.caretModel
-            caretListener.caretPositionChanged(
-              CaretEvent(
-                caretModel.currentCaret,
-                caretModel.logicalPosition,
-                caretModel.logicalPosition,
-              )
-            )
+            caretListener.caretPositionChanged(CaretEvent(caretModel.currentCaret, caretModel.logicalPosition, caretModel.logicalPosition))
           }
         }
       )
@@ -192,14 +179,10 @@ protected constructor(
   protected abstract fun handleCaretChanged(sceneView: SceneView, views: ImmutableList<NlComponent>)
 
   /**
-   * Creates a new [DesignerEditor] for the given file contained in the given [project]. [fileType]
-   * indicates which of the file types supported by this provider is the one that was selected.
+   * Creates a new [DesignerEditor] for the given file contained in the given [project]. [fileType] indicates which of the file types
+   * supported by this provider is the one that was selected.
    */
-  abstract fun createDesignEditor(
-    project: Project,
-    file: VirtualFile,
-    fileType: DesignerEditorFileType,
-  ): DesignerEditor
+  abstract fun createDesignEditor(project: Project, file: VirtualFile, fileType: DesignerEditorFileType): DesignerEditor
 
   final override fun getEditorTypeId(): String = editorTypeId
 

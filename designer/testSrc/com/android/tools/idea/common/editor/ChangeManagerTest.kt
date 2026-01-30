@@ -25,16 +25,15 @@ private fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Un
 }
 
 /** Extension to replace the first occurrence of the [find] string to [replace] */
-private fun PsiFile.replaceStringOnce(find: String, replace: String) =
-  runOnDocument { documentManager, document ->
-    documentManager.commitDocument(document)
+private fun PsiFile.replaceStringOnce(find: String, replace: String) = runOnDocument { documentManager, document ->
+  documentManager.commitDocument(document)
 
-    val index = text.indexOf(find)
-    assert(index != -1) { "\"$find\" not found in the given file" }
+  val index = text.indexOf(find)
+  assert(index != -1) { "\"$find\" not found in the given file" }
 
-    document.replaceString(index, index + find.length, replace)
-    documentManager.commitDocument(document)
-  }
+  document.replaceString(index, index + find.length, replace)
+  documentManager.commitDocument(document)
+}
 
 /** Helper class do test change tracking and asserting on specific types of changes. */
 private class ChangeTracker {
@@ -65,8 +64,7 @@ private class ChangeTracker {
   fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
 
   /** Asserts that the given [runnable] does not trigger refresh notification. */
-  fun assertDoesNotRefresh(runnable: () -> Unit) =
-    assertWithCounters(refresh = 0, runnable = runnable)
+  fun assertDoesNotRefresh(runnable: () -> Unit) = assertWithCounters(refresh = 0, runnable = runnable)
 }
 
 class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
@@ -104,39 +102,21 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       fun NoComposablePreview(label: String) {
 
       }
-    """
+      """
         .trimIndent()
 
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
 
     val tracker = ChangeTracker()
-    val testMergeQueue =
-      MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply {
-        isPassThrough = true
-      }
-    setupChangeListener(
-      project,
-      composeTest,
-      tracker::onRefresh,
-      testRootDisposable,
-      mergeQueue = testMergeQueue,
-    )
+    val testMergeQueue = MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply { isPassThrough = true }
+    setupChangeListener(project, composeTest, tracker::onRefresh, testRootDisposable, mergeQueue = testMergeQueue)
 
-    tracker.assertRefreshed {
-      composeTest.replaceStringOnce("name = \"preview2\"", "name = \"preview2B\"")
-    }
+    tracker.assertRefreshed { composeTest.replaceStringOnce("name = \"preview2\"", "name = \"preview2B\"") }
     tracker.assertRefreshed { composeTest.replaceStringOnce("heightDp = 2", "heightDp = 50") }
     tracker.assertRefreshed { composeTest.replaceStringOnce("@Preview", "//@Preview") }
 
-    tracker.assertRefreshed {
-      composeTest.replaceStringOnce(
-        "NoComposablePreview(\"hello\")",
-        "NoComposablePreview(\"bye\")",
-      )
-    }
-    tracker.assertRefreshed {
-      composeTest.replaceStringOnce("NoComposablePreview(\"bye\")", "NoPreviewComposable()")
-    }
+    tracker.assertRefreshed { composeTest.replaceStringOnce("NoComposablePreview(\"hello\")", "NoComposablePreview(\"bye\")") }
+    tracker.assertRefreshed { composeTest.replaceStringOnce("NoComposablePreview(\"bye\")", "NoPreviewComposable()") }
     tracker.assertRefreshed {
       // This currently triggers a code change although we should be able to ignore it
       composeTest.runOnDocument { _, document ->
@@ -157,23 +137,14 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       @Preview
       fun Preview1() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
 
-    val testMergeQueue =
-      MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply {
-        isPassThrough = true
-      }
+    val testMergeQueue = MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply { isPassThrough = true }
     var saveCount = 0
-    setupOnSaveListener(
-      project,
-      composeTest,
-      { saveCount++ },
-      testRootDisposable,
-      mergeQueue = testMergeQueue,
-    )
+    setupOnSaveListener(project, composeTest, { saveCount++ }, testRootDisposable, mergeQueue = testMergeQueue)
     assertEquals(0, saveCount)
     FileDocumentManager.getInstance().saveAllDocuments()
     // No pending changes
@@ -195,33 +166,19 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
       @Preview
       fun Preview1() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
     myFixture.configureFromExistingVirtualFile(composeTest.virtualFile)
 
     val tracker = ChangeTracker()
-    val testMergeQueue =
-      MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply {
-        isPassThrough = true
-      }
-    setupChangeListener(
-      project,
-      composeTest,
-      tracker::onRefresh,
-      testRootDisposable,
-      mergeQueue = testMergeQueue,
-    )
+    val testMergeQueue = MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply { isPassThrough = true }
+    setupChangeListener(project, composeTest, tracker::onRefresh, testRootDisposable, mergeQueue = testMergeQueue)
     val lookupManager = LookupManager.getInstance(project)
 
     run {
-      val lookup =
-        lookupManager.showLookup(
-          myFixture.editor,
-          LookupElementBuilder.create("Test"),
-          LookupElementBuilder.create("TestB"),
-        )!!
+      val lookup = lookupManager.showLookup(myFixture.editor, LookupElementBuilder.create("Test"), LookupElementBuilder.create("TestB"))!!
 
       // Perform guarded change ensures that the completion popup is not closed on change.
       lookup.performGuardedChange {
@@ -237,12 +194,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
     run {
       var lookup: LookupEx? = null
       tracker.assertDoesNotRefresh {
-        lookup =
-          lookupManager.showLookup(
-            myFixture.editor,
-            LookupElementBuilder.create("Test"),
-            LookupElementBuilder.create("TestB"),
-          )
+        lookup = lookupManager.showLookup(myFixture.editor, LookupElementBuilder.create("Test"), LookupElementBuilder.create("TestB"))
       }
       // Perform guarded change ensures that the completion popup is not closed on change.
       tracker.assertDoesNotRefresh { LookupManager.getInstance(project).hideActiveLookup() }

@@ -28,10 +28,7 @@ class EmbeddedLayoutInspectorIntegrationTest {
 
   @Test
   fun testEmptyApplication() {
-    val project =
-      AndroidProject(
-        "tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication"
-      )
+    val project = AndroidProject("tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication")
 
     system.installation.addVmOption(
       join(
@@ -63,33 +60,14 @@ class EmbeddedLayoutInspectorIntegrationTest {
 
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
-          studio.waitForEmulatorStart(
-            ideaLog,
-            emulator,
-            "com\\.example\\.emptyapplication",
-            300,
-            TimeUnit.SECONDS,
-          )
-          adb.runCommand(
-            "shell",
-            "settings",
-            "put global debug_view_attributes 1",
-            emulator = emulator,
-          )
+          studio.waitForEmulatorStart(ideaLog, emulator, "com\\.example\\.emptyapplication", 300, TimeUnit.SECONDS)
+          adb.runCommand("shell", "settings", "put global debug_view_attributes 1", emulator = emulator)
 
           studio.invokeByIcon("studio/icons/shell/tool-windows/captures.svg")
 
-          ideaLog.waitForMatchingLine(
-            ".*Embedded Layout Inspector successfully enabled.",
-            300,
-            TimeUnit.SECONDS,
-          )
+          ideaLog.waitForMatchingLine(".*Embedded Layout Inspector successfully enabled.", 300, TimeUnit.SECONDS)
 
-          ideaLog.waitForMatchingLine(
-            ".*g:1 Model Updated for process: com.example.emptyapplication",
-            120,
-            TimeUnit.SECONDS,
-          )
+          ideaLog.waitForMatchingLine(".*g:1 Model Updated for process: com.example.emptyapplication", 120, TimeUnit.SECONDS)
         }
       }
     }

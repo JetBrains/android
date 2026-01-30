@@ -64,9 +64,7 @@ abstract class AiInsightToolkit(
    */
   suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
     if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.DISABLED
-    return codeContextResolver
-      .getSource(conn, stack)
-      .copy(contextSharingState = ContextSharingState.ALLOWED)
+    return codeContextResolver.getSource(conn, stack).copy(contextSharingState = ContextSharingState.ALLOWED)
   }
 
   /** Fetch insight for the given params */
@@ -78,16 +76,10 @@ abstract class AiInsightToolkit(
     event: Event,
   ): LoadingState.Done<AiInsight>
 
-  fun updateInsightFeedback(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    feedback: InsightFeedback,
-  ) {
+  fun updateInsightFeedback(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) {
     aiInsightClient.insightFeedbackUpdated(connection, issueId, variantId, feedback)
   }
 
   private fun getDeprecationData(service: String, userFriendlyServiceName: String) =
-    DevServicesDeprecationDataProvider.getInstance()
-      .getCurrentDeprecationData(service, userFriendlyServiceName)
+    DevServicesDeprecationDataProvider.getInstance().getCurrentDeprecationData(service, userFriendlyServiceName)
 }

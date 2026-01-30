@@ -40,6 +40,7 @@ import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.util.Calendar
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -49,22 +50,18 @@ import org.mockito.Mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.Calendar
 
-/**
- * Tests for [AndroidGradleProjectStartupActivity].
- */
+/** Tests for [AndroidGradleProjectStartupActivity]. */
 class AndroidGradleProjectStartupActivityTest {
   @get:Rule val myProjectRule = AndroidProjectRule.inMemory()
 
-  @Mock
-  private lateinit var myInfo: Info
+  @Mock private lateinit var myInfo: Info
   private lateinit var myStartupActivity: AndroidGradleProjectStartupActivity
   private var myRequest: GradleSyncInvoker.Request? = null
   private val myProject: Project
     get() = myProjectRule.project
-  @get:Rule
-  private val notificationRule = NotificationRule(myProjectRule)
+
+  @get:Rule private val notificationRule = NotificationRule(myProjectRule)
 
   private lateinit var calendar: Calendar
 
@@ -77,17 +74,14 @@ class AndroidGradleProjectStartupActivityTest {
   @Before
   fun setUp() {
     StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.override(true)
-    val syncInvoker = object : GradleSyncInvoker.FakeInvoker() {
-      override fun requestProjectSync(
-        project: Project,
-        request: GradleSyncInvoker.Request,
-        listener: GradleSyncListener?
-      ) {
-        super.requestProjectSync(project, request, listener)
-        assertThat(myRequest).isNull()
-        myRequest = request
+    val syncInvoker =
+      object : GradleSyncInvoker.FakeInvoker() {
+        override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+          super.requestProjectSync(project, request, listener)
+          assertThat(myRequest).isNull()
+          myRequest = request
+        }
       }
-    }
     ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myTestRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
@@ -201,7 +195,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test dialog shows on first sync suppression`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, false)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
@@ -209,10 +203,11 @@ class AndroidGradleProjectStartupActivityTest {
 
     try {
       runBlocking { myStartupActivity.execute(myProject) }
-    }
-    catch (e: Exception) {
-      assertThat(e.message).isEqualTo(
-        "Some critical Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure Android Studio presents complete and up-to-date information for your project. You can snooze sync notifications for this session.")
+    } catch (e: Exception) {
+      assertThat(e.message)
+        .isEqualTo(
+          "Some critical Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure Android Studio presents complete and up-to-date information for your project. You can snooze sync notifications for this session."
+        )
     }
   }
 
@@ -220,7 +215,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test notification shows on consequent suppression`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
@@ -232,15 +227,15 @@ class AndroidGradleProjectStartupActivityTest {
 
     assertWithMessage("Should show a notification").that(notification).isNotNull()
     assertWithMessage("Should offer three notification actions")
-      .that(notification?.actions?.map { it.templatePresentation.text }).isEqualTo(
-        listOf("Sync now", "Automatically Sync Projects", "Snooze until tomorrow", "Snooze for this project"))
+      .that(notification?.actions?.map { it.templatePresentation.text })
+      .isEqualTo(listOf("Sync now", "Automatically Sync Projects", "Snooze until tomorrow", "Snooze for this project"))
   }
 
   @Test
   @RunsInEdt
   fun `test notification not shown when temporarily snoozed`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
@@ -254,7 +249,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test notification not shown when indefinitely snoozed`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     timeTick()
@@ -266,12 +261,11 @@ class AndroidGradleProjectStartupActivityTest {
     assertThat(syncDueNotifications).isEmpty()
   }
 
-
   @Test
   @RunsInEdt
   fun `test notification not shown before temporary snooze expires`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
@@ -288,7 +282,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test notification shown after snooze expires`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
@@ -305,7 +299,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test notification not shown after project specific snooze`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     timeTick()
@@ -322,7 +316,7 @@ class AndroidGradleProjectStartupActivityTest {
   @RunsInEdt
   fun `test no notification when temporary snooze expires and project specific snooze continues`() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    if (!IdeInfo.getInstance().isAndroidStudio) return
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     timeTick()

@@ -16,9 +16,7 @@
 
 package com.android.tools.idea.ui.screenshot
 
-/**
- * A framing option used by [ScreenshotViewer].
- */
+/** A framing option used by [ScreenshotViewer]. */
 interface FramingOption {
   val displayName: String
 }

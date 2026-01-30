@@ -53,10 +53,5 @@ class UniqueModuleGradlePathWithParentExpressionTest {
   }
 
   private fun getValidatorValue(applicationName: String, moduleParent: String): String =
-    UniqueModuleGradlePathWithParentExpression(
-        projectRule.project,
-        StringValueProperty(applicationName),
-        moduleParent,
-      )
-      .get()
+    UniqueModuleGradlePathWithParentExpression(projectRule.project, StringValueProperty(applicationName), moduleParent).get()
 }

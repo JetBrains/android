@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dcl.lang.ide.formatting
 
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
@@ -43,46 +42,58 @@ import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.tree.TokenSet
 
-data class DeclarativeFormatContext(
-  val commonSettings: CommonCodeStyleSettings,
-  val spacingBuilder: SpacingBuilder
-) {
+data class DeclarativeFormatContext(val commonSettings: CommonCodeStyleSettings, val spacingBuilder: SpacingBuilder) {
   companion object {
     fun create(settings: CodeStyleSettings): DeclarativeFormatContext {
       val commonSettings = settings.getCommonSettings(DeclarativeLanguage.INSTANCE)
-      val elements = TokenSet.create(ASSIGNMENT,
-                                     RECEIVER_PREFIXED_FACTORY,
-                                     FACTORY_RECEIVER,
-                                     SIMPLE_FACTORY,
-                                     BLOCK)
-      val builder = SpacingBuilder(commonSettings)
-        // factory
-        .after(OP_COMMA).spacing(1, 1, 0, false, 0)
-        .before(OP_COMMA).spacing(0, 0, 0, false, 0)
-        .after(OP_LPAREN).spacing(0, 0, 0, false, 0)
-        .before(OP_LPAREN).spacing(0, 0, 0, false, 0)
-        .before(OP_RPAREN).spacing(0, 0, 0, false, 0)
-        // ;
-        .before(SEMI).spacing(0, 0, 0, false, 0)
-        // =
-        .around(OP_EQ).spacing(1, 1, 0, false, 0)
-        // to
-        .around(PAIR_OPERATOR).spacing(1, 1, 0, false, 0)
-        // block
-        .before(BLOCK_GROUP).spacing(1, 1, 0, false, 0)
-        .after(OP_LBRACE).lineBreakInCode()
-        .after(BLOCK).lineBreakInCode()
-        .beforeInside(elements, BLOCK_GROUP).lineBreakInCode()
-        .before(OP_RBRACE).lineBreakInCode()
-        // .
-        .aroundInside(OP_DOT, TokenSet.create(PROPERTY,
-                                              ASSIGNABLE_QUALIFIED,
-                                              QUALIFIED,
-                                              QUALIFIED_RECEIVER,
-                                              PROPERTY_RECEIVER,
-                                              FACTORY_PROPERTY_RECEIVER,
-                                              RECEIVER_PREFIXED_FACTORY))
-        .spacing(0, 0, 0, false, 0)
+      val elements = TokenSet.create(ASSIGNMENT, RECEIVER_PREFIXED_FACTORY, FACTORY_RECEIVER, SIMPLE_FACTORY, BLOCK)
+      val builder =
+        SpacingBuilder(commonSettings)
+          // factory
+          .after(OP_COMMA)
+          .spacing(1, 1, 0, false, 0)
+          .before(OP_COMMA)
+          .spacing(0, 0, 0, false, 0)
+          .after(OP_LPAREN)
+          .spacing(0, 0, 0, false, 0)
+          .before(OP_LPAREN)
+          .spacing(0, 0, 0, false, 0)
+          .before(OP_RPAREN)
+          .spacing(0, 0, 0, false, 0)
+          // ;
+          .before(SEMI)
+          .spacing(0, 0, 0, false, 0)
+          // =
+          .around(OP_EQ)
+          .spacing(1, 1, 0, false, 0)
+          // to
+          .around(PAIR_OPERATOR)
+          .spacing(1, 1, 0, false, 0)
+          // block
+          .before(BLOCK_GROUP)
+          .spacing(1, 1, 0, false, 0)
+          .after(OP_LBRACE)
+          .lineBreakInCode()
+          .after(BLOCK)
+          .lineBreakInCode()
+          .beforeInside(elements, BLOCK_GROUP)
+          .lineBreakInCode()
+          .before(OP_RBRACE)
+          .lineBreakInCode()
+          // .
+          .aroundInside(
+            OP_DOT,
+            TokenSet.create(
+              PROPERTY,
+              ASSIGNABLE_QUALIFIED,
+              QUALIFIED,
+              QUALIFIED_RECEIVER,
+              PROPERTY_RECEIVER,
+              FACTORY_PROPERTY_RECEIVER,
+              RECEIVER_PREFIXED_FACTORY,
+            ),
+          )
+          .spacing(0, 0, 0, false, 0)
 
       return DeclarativeFormatContext(commonSettings, builder)
     }

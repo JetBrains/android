@@ -52,11 +52,7 @@ class NlEditorProviderTest : AndroidTestCase() {
 
   @Language("XML")
   private fun layoutContent(): String {
-    val layout =
-      ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
+    val layout = ComponentDescriptor(SdkConstants.LINEAR_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight()
     val sb = StringBuilder(1000)
     layout.appendXml(sb, 0)
     return sb.toString()

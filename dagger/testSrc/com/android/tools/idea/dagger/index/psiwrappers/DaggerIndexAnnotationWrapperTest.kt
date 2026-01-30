@@ -52,13 +52,13 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import com.other.*
+        import com.other.*
 
-      @Annotation
-      class Foo {}
-      """
+        @Annotation
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -75,13 +75,13 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import com.other.*
+        import com.other.*
 
-      @com.qualified.Annotation
-      class Foo {}
-      """
+        @com.qualified.Annotation
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -98,13 +98,13 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import com.aliased.Annotation as Bar
+        import com.aliased.Annotation as Bar
 
-      @Bar
-      class Foo {}
-      """
+        @Bar
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -121,11 +121,11 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      @Annotation(modules = [Module1::class])
-      interface Foo {}
-      """
+        @Annotation(modules = [Module1::class])
+        interface Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -142,11 +142,11 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      @Annotation(modules = [Module1::class, Module2::class])
-      interface Foo {}
-      """
+        @Annotation(modules = [Module1::class, Module2::class])
+        interface Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -163,11 +163,11 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      @Annotation(modules = [])
-      interface Foo {}
-      """
+        @Annotation(modules = [])
+        interface Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -184,11 +184,11 @@ class DaggerIndexAnnotationWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      @Annotation(notModules = [Module1::class, Module2::class])
-      interface Foo {}
-      """
+        @Annotation(notModules = [Module1::class, Module2::class])
+        interface Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -205,13 +205,13 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import com.other.*;
+        import com.other.*;
 
-      @Annotation
-      class Foo {}
-      """
+        @Annotation
+        class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -228,13 +228,13 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import com.other.*;
+        import com.other.*;
 
-      @com.qualified.Annotation
-      class Foo {}
-      """
+        @com.qualified.Annotation
+        class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -251,11 +251,11 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @Annotation(modules = Module1.class)
-      interface Foo {}
-      """
+        @Annotation(modules = Module1.class)
+        interface Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -272,11 +272,11 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @Annotation(modules = { Module1.class })
-      interface Foo {}
-      """
+        @Annotation(modules = { Module1.class })
+        interface Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -293,11 +293,11 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @Annotation(modules = { Module1.class, Module2.class })
-      interface Foo {}
-      """
+        @Annotation(modules = { Module1.class, Module2.class })
+        interface Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -314,11 +314,11 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @Annotation(modules = { })
-      interface Foo {}
-      """
+        @Annotation(modules = { })
+        interface Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -335,11 +335,11 @@ class DaggerIndexAnnotationWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @Annotation(notModules = { Module1.class, Module2.class })
-      interface Foo {}
-      """
+        @Annotation(notModules = { Module1.class, Module2.class })
+        interface Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 

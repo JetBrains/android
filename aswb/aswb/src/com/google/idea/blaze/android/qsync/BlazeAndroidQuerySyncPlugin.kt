@@ -31,17 +31,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 
-/** ASwB sync plugin.  */
+/** ASwB sync plugin. */
 class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
-  override fun updateProjectSettingsForQuerySync(
-    project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings
-  ) {
+  override fun updateProjectSettingsForQuerySync(project: Project, context: Context<*>, languageSettings: QuerySyncLanguageSettings) {
     val android = languageSettings.android as? QuerySyncLanguageSettings.Android.Settings ?: return
     val androidSdkPlatform =
       AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, android.sdk, android.minSdk)
-      ?: error("Android SDK platform not found. See build output.")
-    val sdk = BlazeSdkProvider.getInstance().findSdk(androidSdkPlatform.androidSdk)
-              ?: error("Cannot find SDK entry for ${androidSdkPlatform.androidSdk}")
+        ?: error("Android SDK platform not found. See build output.")
+    val sdk =
+      BlazeSdkProvider.getInstance().findSdk(androidSdkPlatform.androidSdk)
+        ?: error("Cannot find SDK entry for ${androidSdkPlatform.androidSdk}")
     val javaLanguageLevel = languageSettings.java.languageLevel
     val rootManager = ProjectRootManagerEx.getInstanceEx(project)
     rootManager.setProjectSdk(sdk)
@@ -55,18 +54,17 @@ class BlazeAndroidQuerySyncPlugin : BlazeQuerySyncPlugin {
     workspaceRoot: WorkspaceRoot,
     workspaceModule: Module,
     androidSourcePackages: Set<String>,
-    languageSettings: QuerySyncLanguageSettings
+    languageSettings: QuerySyncLanguageSettings,
   ) {
     val android = languageSettings.android as? QuerySyncLanguageSettings.Android.Settings ?: return
-    val androidSdkPlatform =
-      AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, android.sdk, android.minSdk)
+    val androidSdkPlatform = AndroidSdkFromProjectView.getAndroidSdkPlatform(context, project, android.sdk, android.minSdk)
     val androidModel =
       BlazeAndroidModel(
         project,
         workspaceRoot.directory(),
         null,
         Futures.immediateFuture<String>(":workspace"),
-        androidSdkPlatform?.androidMinSdkLevel ?: 1
+        androidSdkPlatform?.androidMinSdkLevel ?: 1,
       )
     workspaceModule.service<BazelModuleSystem>().setAndroidModel(androidModel)
 

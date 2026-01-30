@@ -28,23 +28,15 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 
-/**
- * [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project.
- */
+/** [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project. */
 class NewResourceValueAction(
   private val type: ResourceType,
   private val facet: AndroidFacet,
-  private val createdResourceCallback: (String, ResourceType) -> Unit
+  private val createdResourceCallback: (String, ResourceType) -> Unit,
 ) : AnAction("${type.displayName} Value", "Create a new ${type.displayName} resource value", null) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val dialog = CreateXmlResourceDialog(facet.module,
-                                         type,
-                                         null,
-                                         null,
-                                         true,
-                                         null,
-                                         null)
+    val dialog = CreateXmlResourceDialog(facet.module, type, null, null, true, null, null)
     dialog.title = "New ${type.displayName} Value"
     if (!dialog.showAndGet()) return
     val module = facet.module
@@ -65,12 +57,15 @@ class NewResourceValueAction(
     }
 
     // Update modified files into the system
-    ProgressManager.getInstance().run(object : Task.Modal(facet.module.project, "Refreshing Modified Files", false) {
-      override fun run(indicator: ProgressIndicator) {
-        // Avoid hogging the EDT without feedback, this will show a modal dialog if it takes long enough
-        PsiDocumentManager.getInstance(module.project).commitAllDocumentsUnderProgress()
-      }
-    })
+    ProgressManager.getInstance()
+      .run(
+        object : Task.Modal(facet.module.project, "Refreshing Modified Files", false) {
+          override fun run(indicator: ProgressIndicator) {
+            // Avoid hogging the EDT without feedback, this will show a modal dialog if it takes long enough
+            PsiDocumentManager.getInstance(module.project).commitAllDocumentsUnderProgress()
+          }
+        }
+      )
 
     // Show/open/select created resource.
     createdResourceCallback(resName, type)

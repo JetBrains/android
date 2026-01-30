@@ -25,35 +25,38 @@ import org.mockito.kotlin.mock
 class GradleAndroidTestRunConfigurationExecutorProviderTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(object : LightGradleTestProject {
-    override val templateProject = AndroidCoreTestProject.SIMPLE_APPLICATION
-    override val modelBuilders = listOf(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        gradlePath = ":app",
-        selectedBuildVariant = "release",
-        projectBuilder = AndroidProjectBuilder(
-          namespace = { "google.simpleapplication" }
-        ).build(),
-      )
+  val projectRule =
+    AndroidProjectRule.testProject(
+      object : LightGradleTestProject {
+        override val templateProject = AndroidCoreTestProject.SIMPLE_APPLICATION
+        override val modelBuilders =
+          listOf(
+            JavaModuleModelBuilder.rootModuleBuilder,
+            AndroidModuleModelBuilder(
+              gradlePath = ":app",
+              selectedBuildVariant = "release",
+              projectBuilder = AndroidProjectBuilder(namespace = { "google.simpleapplication" }).build(),
+            ),
+          )
+      }
     )
-  })
 
   @Test
   fun produceCorrectExecutor() {
-    val config = object : AndroidTestRunConfiguration(projectRule.project, AndroidTestRunConfigurationType.getInstance().factory) {
-      override fun getDeployTarget(): DeployTarget? {
-        return object : DeployTarget {
-          override fun hasCustomRunProfileState(executor: Executor) = false
+    val config =
+      object : AndroidTestRunConfiguration(projectRule.project, AndroidTestRunConfigurationType.getInstance().factory) {
+        override fun getDeployTarget(): DeployTarget? {
+          return object : DeployTarget {
+            override fun hasCustomRunProfileState(executor: Executor) = false
 
-          override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState) = null
+            override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState) = null
 
-          override fun launchDevices(project: Project) = FakeAndroidDevice.forDevices(listOf(mock<IDevice>()))
+            override fun launchDevices(project: Project) = FakeAndroidDevice.forDevices(listOf(mock<IDevice>()))
 
-          override fun getAndroidDevices(project: Project): List<AndroidDevice> = throw UnsupportedOperationException()
+            override fun getAndroidDevices(project: Project): List<AndroidDevice> = throw UnsupportedOperationException()
+          }
         }
       }
-    }
     config.setModule(projectRule.module)
     val env = ExecutionEnvironmentBuilder.create(DefaultRunExecutor.getRunExecutorInstance(), config).build()
     val runProfileState = config.getState(DefaultRunExecutor.getRunExecutorInstance(), env) as AndroidConfigurationExecutorRunProfileState

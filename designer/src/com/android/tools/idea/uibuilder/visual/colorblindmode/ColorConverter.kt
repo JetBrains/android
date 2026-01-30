@@ -34,8 +34,8 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   private var cbmCLut: ColorLut? = null
 
   /**
-   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB_PRE]. Returns true if color
-   * conversion was successful. False otherwise
+   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB_PRE]. Returns true if color conversion was successful. False
+   * otherwise
    */
   fun convert(startImage: BufferedImage, postImage: BufferedImage): Boolean {
     if (cbmCLut == null || removeGammaCLut == null) {
@@ -43,12 +43,8 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
       cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
     }
 
-    if (
-      startImage.type != BufferedImage.TYPE_INT_ARGB_PRE ||
-        postImage.type != BufferedImage.TYPE_INT_ARGB_PRE
-    ) {
-      Logger.getInstance(ColorConverter::class.java)
-        .warn("Error:: BufferedImage not supported for color blind mode.")
+    if (startImage.type != BufferedImage.TYPE_INT_ARGB_PRE || postImage.type != BufferedImage.TYPE_INT_ARGB_PRE) {
+      Logger.getInstance(ColorConverter::class.java).warn("Error:: BufferedImage not supported for color blind mode.")
       return false
     }
 
@@ -82,10 +78,7 @@ class ColorLut(val lut: IntArray, val dim: Int) {
 
   private val dimdim = dim * dim
 
-  /**
-   * Given current index, it looks for the next appropriate RED index. If [index] contains the
-   * highest RED, it returns [index]
-   */
+  /** Given current index, it looks for the next appropriate RED index. If [index] contains the highest RED, it returns [index] */
   fun nextRed(index: Int): Int {
     if ((index + 1) % dim == 0) {
       // No next number. It's at the edge

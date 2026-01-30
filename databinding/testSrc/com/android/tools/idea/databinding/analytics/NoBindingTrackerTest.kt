@@ -38,8 +38,7 @@ class NoBindingTrackerTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -57,7 +56,7 @@ class NoBindingTrackerTest {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
   }
@@ -71,15 +70,14 @@ class NoBindingTrackerTest {
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """
+      """
         .trimIndent(),
     )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     try {
       UsageTracker.setWriterForTest(tracker)
-      DataBindingTrackerSyncListener(projectRule.project)
-        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       val viewBindingPollMetadata =
         tracker.usages
           .map { it.studioEvent }

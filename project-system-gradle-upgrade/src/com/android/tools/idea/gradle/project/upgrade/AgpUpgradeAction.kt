@@ -27,7 +27,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 
-class AgpUpgradeAction: AnAction() {
+class AgpUpgradeAction : AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -46,9 +46,7 @@ class AgpUpgradeAction: AnAction() {
     ApplicationManager.getApplication().executeOnPooledThread {
       val published = IdeGoogleMavenRepository.getAgpVersions()
       val state = computeGradlePluginUpgradeState(current, latestKnown, published)
-      invokeLater(ModalityState.nonModal()) {
-        showAndInvokeAgpUpgradeRefactoringProcessor(project, current, state.target)
-      }
+      invokeLater(ModalityState.nonModal()) { showAndInvokeAgpUpgradeRefactoringProcessor(project, current, state.target) }
     }
   }
 }

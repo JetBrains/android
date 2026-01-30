@@ -26,19 +26,22 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
 @RunsInEdt
-abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase: UpgradeGradleFileModelTestCase() {
+abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.onDisk()
 
   abstract val removedVersion: AgpVersion
   abstract val propertyKey: String
   abstract val defaultWhenRemoved: Boolean
   open val readMoreLink: String? = null
+
   abstract fun createProcessor(currentVersion: AgpVersion, newVersion: AgpVersion): AbstractBlockPropertyUnlessNoOpProcessor
 
   val olderPreRemoveVersion: AgpVersion
     get() = AgpVersion(removedVersion.major - 1, 2, 0)
+
   val afterRemoveVersion: AgpVersion
     get() = AgpVersion(removedVersion.major, removedVersion.minor + 1, 0)
+
   val preRemoveVersion: AgpVersion
     get() = AgpVersion(removedVersion.major - 1, 1000, 0)
 
@@ -52,7 +55,8 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase: UpgradeGradleFi
   fun `Non blocked and property removed if it is default`() {
     val processor = createProcessor(preRemoveVersion, removedVersion)
     projectRule.fixture.addFileToProject("gradle.properties", "$propertyKey=$defaultWhenRemoved")
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("$propertyKey=$defaultWhenRemoved")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("$propertyKey=$defaultWhenRemoved")
     assertThat(processor.isBlocked).isFalse()
     processor.run()
     assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain(propertyKey)
@@ -90,12 +94,13 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessorTestBase: UpgradeGradleFi
 }
 
 @RunsInEdt
-abstract class AbstractBlockPropertyWithPreviousDefaultProcessorTestBase: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+abstract class AbstractBlockPropertyWithPreviousDefaultProcessorTestBase : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   abstract val featureName: String
   abstract val changeDefaultVersion: AgpVersion
 
   val preChangeDefault: AgpVersion
     get() = AgpVersion(changeDefaultVersion.major - 1, 100, 0)
+
   val olderPreChangeDefault: AgpVersion
     get() = AgpVersion(changeDefaultVersion.major - 1, 2, 0)
 
@@ -119,7 +124,7 @@ abstract class AbstractBlockPropertyWithPreviousDefaultProcessorTestBase: Abstra
   }
 }
 
-class BlockAidlProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockAidlProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey = "android.defaults.buildfeatures.aidl"
   override val defaultWhenRemoved = false
@@ -129,7 +134,7 @@ class BlockAidlProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase()
   }
 }
 
-class BlockAnalysisPerComponentProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockAnalysisPerComponentProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.experimental.lint.analysisPerComponent"
   override val defaultWhenRemoved = true
@@ -139,7 +144,7 @@ class BlockAnalysisPerComponentProcessorTest: AbstractBlockPropertyUnlessNoOpPro
   }
 }
 
-class BlockEmulatorControlProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockEmulatorControlProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.experimental.androidTest.enableEmulatorControl"
   override val defaultWhenRemoved = true
@@ -149,7 +154,7 @@ class BlockEmulatorControlProcessorTest: AbstractBlockPropertyUnlessNoOpProcesso
   }
 }
 
-class BlockMinifyLocalDependenciesLibrariesProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockMinifyLocalDependenciesLibrariesProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.disableMinifyLocalDependenciesForLibraries"
   override val defaultWhenRemoved = true
@@ -159,7 +164,7 @@ class BlockMinifyLocalDependenciesLibrariesProcessorTest: AbstractBlockPropertyU
   }
 }
 
-class BlockPreciseShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockPreciseShrinkingProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.enableNewResourceShrinker.preciseShrinking"
   override val defaultWhenRemoved = true
@@ -169,7 +174,7 @@ class BlockPreciseShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcess
   }
 }
 
-class BlockRenderScriptProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockRenderScriptProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey = "android.defaults.buildfeatures.renderscript"
   override val defaultWhenRemoved = false
@@ -179,7 +184,7 @@ class BlockRenderScriptProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTe
   }
 }
 
-class BlockResourceOptimizationsProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockResourceOptimizationsProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.enableResourceOptimizations"
   override val defaultWhenRemoved = true
@@ -189,7 +194,7 @@ class BlockResourceOptimizationsProcessorTest: AbstractBlockPropertyUnlessNoOpPr
   }
 }
 
-class BlockUnifiedTestPlatformProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockUnifiedTestPlatformProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.experimental.androidTest.useUnifiedTestPlatform"
   override val defaultWhenRemoved = true
@@ -199,7 +204,7 @@ class BlockUnifiedTestPlatformProcessorTest: AbstractBlockPropertyUnlessNoOpProc
   }
 }
 
-class BlockR8IntegratedResourceShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockR8IntegratedResourceShrinkingProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha02")
   override val propertyKey: String = "android.r8.integratedResourceShrinking"
   override val defaultWhenRemoved = true
@@ -210,7 +215,7 @@ class BlockR8IntegratedResourceShrinkingProcessorTest: AbstractBlockPropertyUnle
   }
 }
 
-class BlockBuildFeaturesBuildConfigProcessorTest: AbstractBlockPropertyWithPreviousDefaultProcessorTestBase() {
+class BlockBuildFeaturesBuildConfigProcessorTest : AbstractBlockPropertyWithPreviousDefaultProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("9.0.0-alpha01")
   override val propertyKey: String = "android.defaults.buildfeatures.buildconfig"
   override val defaultWhenRemoved = false
@@ -222,7 +227,7 @@ class BlockBuildFeaturesBuildConfigProcessorTest: AbstractBlockPropertyWithPrevi
   }
 }
 
-class BlockR8OptimizedResourceShrinkingProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockR8OptimizedResourceShrinkingProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("10.0.0-alpha01")
   override val propertyKey: String = "android.r8.optimizedResourceShrinking"
   override val defaultWhenRemoved = true
@@ -232,7 +237,7 @@ class BlockR8OptimizedResourceShrinkingProcessorTest: AbstractBlockPropertyUnles
   }
 }
 
-class BlockR8StrictFullModeForKeepRulesProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockR8StrictFullModeForKeepRulesProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("10.0.0-alpha01")
   override val propertyKey: String = "android.r8.strictFullModeForKeepRules"
   override val defaultWhenRemoved = true
@@ -242,7 +247,7 @@ class BlockR8StrictFullModeForKeepRulesProcessorTest: AbstractBlockPropertyUnles
   }
 }
 
-class BlockUsesSdkInManifestProcessorProcessorTest: AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
+class BlockUsesSdkInManifestProcessorProcessorTest : AbstractBlockPropertyUnlessNoOpProcessorTestBase() {
   override val removedVersion: AgpVersion = AgpVersion.parse("10.0.0-alpha01")
   override val propertyKey: String = "android.usesSdkInManifest.disallowed"
   override val defaultWhenRemoved = true
@@ -251,4 +256,3 @@ class BlockUsesSdkInManifestProcessorProcessorTest: AbstractBlockPropertyUnlessN
     return BlockUsesSdkInManifestProcessor(project, currentVersion, newVersion)
   }
 }
-

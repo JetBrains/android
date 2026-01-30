@@ -51,29 +51,20 @@ class ConnectionFailedException(message: String, val code: AttachErrorCode) : Ex
 data class AttachErrorInfo(val code: AttachErrorCode, val args: Map<String, String>)
 
 /**
- * Convert an exception to an [AttachErrorInfo] which has enough information for generating a
- * message for the user and logging to analytics.
+ * Convert an exception to an [AttachErrorInfo] which has enough information for generating a message for the user and logging to analytics.
  */
 fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
   return when (this) {
     is ConnectionFailedException -> code.toInfo()
-    is AppInspectorForcefullyDisposedException ->
-      AttachErrorCode.APP_INSPECTION_FORCEFULLY_DISPOSED.toInfo()
-    is AppInspectionCannotFindAdbDeviceException ->
-      AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.toInfo()
-    is AppInspectionProcessNoLongerExistsException ->
-      AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS.toInfo()
-    is AppInspectionVersionIncompatibleException ->
-      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION.toInfo()
-    is AppInspectionVersionMissingException ->
-      AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND.toInfo()
-    is AppInspectionLibraryMissingException ->
-      AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.toInfo()
+    is AppInspectorForcefullyDisposedException -> AttachErrorCode.APP_INSPECTION_FORCEFULLY_DISPOSED.toInfo()
+    is AppInspectionCannotFindAdbDeviceException -> AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.toInfo()
+    is AppInspectionProcessNoLongerExistsException -> AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS.toInfo()
+    is AppInspectionVersionIncompatibleException -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION.toInfo()
+    is AppInspectionVersionMissingException -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND.toInfo()
+    is AppInspectionLibraryMissingException -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.toInfo()
     is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP.toInfo()
-    is AppInspectionAgentUnattachableException ->
-      AttachErrorCode.APP_INSPECTION_UNATTACHABLE_AGENT.toInfo()
-    is TransportNonExistingFileException ->
-      AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
+    is AppInspectionAgentUnattachableException -> AttachErrorCode.APP_INSPECTION_UNATTACHABLE_AGENT.toInfo()
+    is TransportNonExistingFileException -> AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()
     is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
     else -> AttachErrorCode.UNEXPECTED_ERROR.toInfo()
@@ -88,14 +79,10 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
 fun LibraryCompatibilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
   val errorCode =
     when (this) {
-      LibraryCompatibilityInfo.Status.INCOMPATIBLE ->
-        AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-      LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
-        AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-      LibraryCompatibilityInfo.Status.VERSION_MISSING ->
-        AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-      LibraryCompatibilityInfo.Status.LIBRARY_MISSING ->
-        AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
+      LibraryCompatibilityInfo.Status.INCOMPATIBLE -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+      LibraryCompatibilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      LibraryCompatibilityInfo.Status.VERSION_MISSING -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
+      LibraryCompatibilityInfo.Status.LIBRARY_MISSING -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
       else -> {
         logUnexpectedError(InspectorConnectionError("Unexpected status $this"))
         AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
@@ -104,10 +91,7 @@ fun LibraryCompatibilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
   return errorCode.toInfo()
 }
 
-/**
- * Log unexpected exception, so we can see them in idea.log and are reported in the crash db at
- * go/studio-exceptions.
- */
+/** Log unexpected exception, so we can see them in idea.log and are reported in the crash db at go/studio-exceptions. */
 fun logUnexpectedError(error: InspectorConnectionError) {
   try {
     Logger.getInstance(ConnectionFailedException::class.java).error(error)
@@ -119,10 +103,8 @@ private fun AppInspectionArtifactNotFoundException.toAttachErrorInfo(): AttachEr
     when {
       // The app may be using a SNAPSHOT for compose:ui:ui but have not specified the VM flag
       // use.snapshot.jar:
-      artifactCoordinate.version.endsWith("-SNAPSHOT") ->
-        AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
-      message?.contains(GMAVEN_HOSTNAME) == true ->
-        AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
+      artifactCoordinate.version.endsWith("-SNAPSHOT") -> AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
+      message?.contains(GMAVEN_HOSTNAME) == true -> AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
       MinimumArtifactCoordinate.COMPOSE_UI.sameArtifact(artifactCoordinate) ||
         MinimumArtifactCoordinate.COMPOSE_UI_ANDROID.sameArtifact(artifactCoordinate) ->
         AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND

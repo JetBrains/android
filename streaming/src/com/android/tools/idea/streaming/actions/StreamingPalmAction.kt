@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DevicePalmAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorPalmAction
 
-/**
- * Simulates the Palm gesture on a mirrored physical device.
- */
+/** Simulates the Palm gesture on a mirrored physical device. */
 internal class StreamingPalmAction : StreamingAction(EmulatorPalmAction(), DevicePalmAction())

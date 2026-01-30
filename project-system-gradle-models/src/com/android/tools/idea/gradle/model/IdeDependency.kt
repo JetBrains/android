@@ -21,20 +21,19 @@ interface IdeDependencyCore {
   val target: LibraryReference
 
   /**
-   * List of direct dependencies for this dependency if known, for old versions of AGP (V1 models) this will be null.
-   * For some dependencies (modules) this list of dependencies will be used as the classpath and as such we retain the order which
-   * was provided by AGP.
+   * List of direct dependencies for this dependency if known, for old versions of AGP (V1 models) this will be null. For some dependencies
+   * (modules) this list of dependencies will be used as the classpath and as such we retain the order which was provided by AGP.
    */
   val dependencies: List<Int>?
 }
 
 enum class ResolverType {
   GLOBAL,
-  KMP_ANDROID
+  KMP_ANDROID,
 }
 
 data class LibraryReference(val libraryIndex: Int, val resolverType: ResolverType = ResolverType.GLOBAL) : Serializable
 
 interface IdeLibraryModelResolver {
-  fun resolve(unresolved: IdeDependencyCore, lenient: Boolean = false) : Sequence<IdeLibrary>
+  fun resolve(unresolved: IdeDependencyCore, lenient: Boolean = false): Sequence<IdeLibrary>
 }

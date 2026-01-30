@@ -52,46 +52,25 @@ class DesignerIssueNodeVisitorTest {
               ComponentDescriptor(SdkConstants.TEXT_VIEW)
                 .width("100dp")
                 .height("20dp")
-                .withAttribute(
-                  SdkConstants.TOOLS_URI,
-                  SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue,
-                )
+                .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
             ),
         )
         .build()
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
-    val issue1 =
-      createTestVisualLintRenderIssue(
-        errorType,
-        model.treeReader.components.first().children,
-        issueProvider,
-        "summaryA",
-      )
-    val issue2 =
-      createTestVisualLintRenderIssue(
-        errorType,
-        model.treeReader.components.first().children,
-        issueProvider,
-        "summaryB",
-      )
+    val issue1 = createTestVisualLintRenderIssue(errorType, model.treeReader.components.first().children, issueProvider, "summaryA")
+    val issue2 = createTestVisualLintRenderIssue(errorType, model.treeReader.components.first().children, issueProvider, "summaryB")
 
     val node1 = TestIssueNode(issue1)
     val node2 = TestIssueNode(issue2)
 
     val visitor = DesignerIssueNodeVisitor(node1)
-    assertEquals(
-      TreeVisitor.Action.CONTINUE,
-      visitor.visit(TreePathUtil.pathToCustomNode(node2) { null }),
-    )
+    assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(TreePathUtil.pathToCustomNode(node2) { null }))
   }
 
   @Test
   fun testVisitIssuedFileNode() {
-    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = {
-      it?.parentDescriptor as? DesignerCommonIssueNode
-    }
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
 
     val mockedFile = mock<VirtualFile>()
     val comparedNode = IssuedFileNode(mockedFile, null)
@@ -120,9 +99,7 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitNoFileNode() {
-    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = {
-      it?.parentDescriptor as? DesignerCommonIssueNode
-    }
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
     val comparedNode = LayoutValidationNoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(comparedNode)
 

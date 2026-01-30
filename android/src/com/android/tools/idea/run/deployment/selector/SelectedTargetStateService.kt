@@ -40,24 +40,21 @@ import java.nio.file.Path
 import kotlin.time.Instant
 
 /**
- * The PersistentStateComponent responsible for persisting the selected targets in
- * ${PROJECT}/.idea/deploymentTargetSelector.xml.
+ * The PersistentStateComponent responsible for persisting the selected targets in ${PROJECT}/.idea/deploymentTargetSelector.xml.
  *
- * Each run configuration has its own separate state. Within each run configuration, we have state
- * for the dropdown (single-target mode) and state for the dialog box (multiple-target mode).
+ * Each run configuration has its own separate state. Within each run configuration, we have state for the dropdown (single-target mode) and
+ * state for the dialog box (multiple-target mode).
  *
- * This consists mostly a bunch of duplicative data classes that satisfy the requirements of the XML
- * persistence framework: public no-arg constructor, mutable fields, tags as necessary.
+ * This consists mostly a bunch of duplicative data classes that satisfy the requirements of the XML persistence framework: public no-arg
+ * constructor, mutable fields, tags as necessary.
  *
- * Note that this class is required to be thread-safe, yet the XML framework requires mutable
- * fields. If we exposed these mutable fields to the rest of the application, then any consumer
- * would need to participate in the synchronization scheme of this class, which is somewhat
+ * Note that this class is required to be thread-safe, yet the XML framework requires mutable fields. If we exposed these mutable fields to
+ * the rest of the application, then any consumer would need to participate in the synchronization scheme of this class, which is somewhat
  * impractical.
  *
- * Thus, we have immutable data classes that are used to communicate with the external world, which
- * are translated here into the mutable form required by the XML framework. However, the getState()
- * method required by the PersistentStateComponent interface still returns the mutable
- * SelectionStateList: this should only be used by the persistence framework.
+ * Thus, we have immutable data classes that are used to communicate with the external world, which are translated here into the mutable
+ * form required by the XML framework. However, the getState() method required by the PersistentStateComponent interface still returns the
+ * mutable SelectionStateList: this should only be used by the persistence framework.
  */
 @State(
   name = "deploymentTargetSelector",
@@ -65,8 +62,7 @@ import kotlin.time.Instant
   storages = [Storage("deploymentTargetSelector.xml", roamingType = RoamingType.DISABLED)],
 )
 @Service(Service.Level.PROJECT)
-internal class SelectedTargetStateService(val project: Project) :
-  PersistentStateComponent<SelectionStateList> {
+internal class SelectedTargetStateService(val project: Project) : PersistentStateComponent<SelectionStateList> {
   @GuardedBy("Lock") private var stateList = SelectionStateList()
   private val runManager: RunManager
     get() = RunManager.getInstance(project)
@@ -90,23 +86,15 @@ internal class SelectedTargetStateService(val project: Project) :
   private fun getOrCreateState(runConfigName: String) =
     synchronized(Lock) {
       stateList.selectionStates.find { it.runConfigName == runConfigName }
-        ?: SelectionStateXml(runConfigName = runConfigName).also {
-          stateList.selectionStates.add(it)
-        }
+        ?: SelectionStateXml(runConfigName = runConfigName).also { stateList.selectionStates.add(it) }
     }
 
-  /**
-   * Any updates create a new SelectionStateList, because otherwise the value returned by getState
-   * could change.
-   */
+  /** Any updates create a new SelectionStateList, because otherwise the value returned by getState could change. */
   fun updateState(newState: SelectionState) =
     synchronized(Lock) {
       val newStateList = SelectionStateList()
       for (selectionState in stateList.selectionStates) {
-        newStateList.selectionStates.add(
-          if (selectionState.runConfigName == newState.runConfigName) newState.toXml()
-          else selectionState
-        )
+        newStateList.selectionStates.add(if (selectionState.runConfigName == newState.runConfigName) newState.toXml() else selectionState)
       }
       stateList = newStateList
     }
@@ -131,15 +119,12 @@ internal class SelectedTargetStateService(val project: Project) :
   }
 
   private fun validRunConfigurationExists(runConfigurationName: String): Boolean {
-    return runManager.allConfigurationsList.any {
-      DeployableToDevice.deploysToLocalDevice(it) && it.name == runConfigurationName
-    }
+    return runManager.allConfigurationsList.any { DeployableToDevice.deploysToLocalDevice(it) && it.name == runConfigurationName }
   }
 }
 
 internal data class SelectionStateList(
-  @XCollection(style = XCollection.Style.v2)
-  var selectionStates: MutableList<SelectionStateXml> = mutableListOf()
+  @XCollection(style = XCollection.Style.v2) var selectionStates: MutableList<SelectionStateXml> = mutableListOf()
 )
 
 internal data class SelectionState(
@@ -148,13 +133,7 @@ internal data class SelectionState(
   val dropdownSelection: DropdownSelection? = null,
   val dialogSelection: DialogSelection = DialogSelection(emptyList()),
 ) {
-  fun toXml() =
-    SelectionStateXml(
-      runConfigName,
-      selectionMode,
-      dropdownSelection?.toXml(),
-      dialogSelection.toXml(),
-    )
+  fun toXml() = SelectionStateXml(runConfigName, selectionMode, dropdownSelection?.toXml(), dialogSelection.toXml())
 }
 
 /** The selection state for a specific run config. */
@@ -165,13 +144,7 @@ internal data class SelectionStateXml(
   @Property(surroundWithTag = false) var dropdownSelection: DropdownSelectionXml? = null,
   @Property(surroundWithTag = false) var dialogSelection: DialogSelectionXml? = null,
 ) {
-  fun fromXml(): SelectionState =
-    SelectionState(
-      runConfigName,
-      selectionMode,
-      dropdownSelection?.fromXml(),
-      dialogSelection.fromXml(),
-    )
+  fun fromXml(): SelectionState = SelectionState(runConfigName, selectionMode, dropdownSelection?.fromXml(), dialogSelection.fromXml())
 }
 
 internal enum class SelectionMode {
@@ -189,17 +162,14 @@ internal data class DropdownSelectionXml(
   @Attribute(converter = KotlinInstantConverter::class) var timestamp: Instant? = null,
 )
 
-internal fun DropdownSelectionXml.fromXml() =
-  target?.let { DropdownSelection(it.fromXml(), timestamp) }
+internal fun DropdownSelectionXml.fromXml() = target?.let { DropdownSelection(it.fromXml(), timestamp) }
 
 internal data class DialogSelection(val targets: List<TargetId>) {
   fun toXml() = DialogSelectionXml(targets.map { it.toXml() })
 }
 
 @Tag("DialogSelection")
-internal data class DialogSelectionXml(
-  @XCollection(style = XCollection.Style.v2) var targets: List<TargetIdXml> = emptyList()
-)
+internal data class DialogSelectionXml(@XCollection(style = XCollection.Style.v2) var targets: List<TargetIdXml> = emptyList())
 
 internal fun DialogSelectionXml?.fromXml() =
   if (this == null) DialogSelection(emptyList()) else DialogSelection(targets.map { it.fromXml() })
@@ -263,8 +233,7 @@ internal enum class DeviceIdType {
   TEMPLATE,
 }
 
-internal fun DeviceId.toXml() =
-  DeviceIdXml(pluginId, if (isTemplate) DeviceIdType.TEMPLATE else DeviceIdType.HANDLE, identifier)
+internal fun DeviceId.toXml() = DeviceIdXml(pluginId, if (isTemplate) DeviceIdType.TEMPLATE else DeviceIdType.HANDLE, identifier)
 
 internal fun DeviceIdXml.fromXml(): DeviceId? {
   return DeviceId(

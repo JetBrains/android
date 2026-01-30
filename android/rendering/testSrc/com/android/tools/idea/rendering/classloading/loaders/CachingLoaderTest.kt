@@ -28,6 +28,7 @@ class CachingLoaderTest {
     val notFound = mutableListOf<String>()
     val loadedString: String
       get() = loaded.joinToString("\n")
+
     val notFoundString: String
       get() = notFound.joinToString("\n")
 
@@ -42,22 +43,21 @@ class CachingLoaderTest {
   fun `check cache hits and misses`() {
     val class1Contents = ByteArray(0)
     val class2Contents = ByteArray(0)
-    val loaderWithHits = LoadDetectionLoader(
-      StaticLoader(
-        "c.class1" to class1Contents,
-        "c.class2" to class2Contents
-      )
-    )
+    val loaderWithHits = LoadDetectionLoader(StaticLoader("c.class1" to class1Contents, "c.class2" to class2Contents))
 
     val loader = CachingLoader(loaderWithHits)
 
     assertNull(loader.loadClass("missing.a"))
     assertNull(loader.loadClass("c.class3"))
     assertTrue(loaderWithHits.loaded.isEmpty())
-    assertEquals("""
+    assertEquals(
+      """
       missing.a
       c.class3
-    """.trimIndent(), loaderWithHits.notFoundString)
+      """
+        .trimIndent(),
+      loaderWithHits.notFoundString,
+    )
     loaderWithHits.notFound.clear()
 
     assertEquals(class1Contents, loader.loadClass("c.class1"))
@@ -65,40 +65,47 @@ class CachingLoaderTest {
     assertEquals(class2Contents, loader.loadClass("c.class2"))
     assertEquals(class2Contents, loader.loadClass("c.class2"))
     assertTrue(loaderWithHits.notFound.isEmpty())
-    assertEquals("""
+    assertEquals(
+      """
       c.class1
       c.class2
-    """.trimIndent(), loaderWithHits.loadedString)
+      """
+        .trimIndent(),
+      loaderWithHits.loadedString,
+    )
     loaderWithHits.loaded.clear()
 
     // Check single class invalidation
     loader.invalidate("c.class1")
     assertEquals(class1Contents, loader.loadClass("c.class1"))
     assertEquals(class2Contents, loader.loadClass("c.class2"))
-    assertEquals("""
+    assertEquals(
+      """
       c.class1
-    """.trimIndent(), loaderWithHits.loadedString)
+      """
+        .trimIndent(),
+      loaderWithHits.loadedString,
+    )
     loaderWithHits.loaded.clear()
 
     loader.invalidateAll()
     assertEquals(class1Contents, loader.loadClass("c.class1"))
     assertEquals(class2Contents, loader.loadClass("c.class2"))
-    assertEquals("""
+    assertEquals(
+      """
       c.class1
       c.class2
-    """.trimIndent(), loaderWithHits.loadedString)
+      """
+        .trimIndent(),
+      loaderWithHits.loadedString,
+    )
   }
 
   @Test
   fun `test size eviction`() {
     val class1Contents = ByteArray(10)
     val class2Contents = ByteArray(50)
-    val loaderWithHits = LoadDetectionLoader(
-      StaticLoader(
-        "c.class1" to class1Contents,
-        "c.class2" to class2Contents
-      )
-    )
+    val loaderWithHits = LoadDetectionLoader(StaticLoader("c.class1" to class1Contents, "c.class2" to class2Contents))
 
     val loader = CachingLoader(loaderWithHits, maxSizeInBytes = 50)
     assertEquals(class1Contents, loader.loadClass("c.class1"))

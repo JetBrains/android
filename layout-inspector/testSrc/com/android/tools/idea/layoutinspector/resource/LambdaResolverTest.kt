@@ -33,13 +33,9 @@ class LambdaResolverTest {
   @Before
   fun before() {
     val fixture = projectRule.fixture
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/androidx/compose/runtime/Composable.kt")
-    fixture.copyFileToProject(
-      "java/com/example/MyLambdas.kt-no-format",
-      "java/com/example/MyLambdas.kt",
-    )
+    fixture.copyFileToProject("java/com/example/MyLambdas.kt-no-format", "java/com/example/MyLambdas.kt")
   }
 
   @Test
@@ -162,19 +158,13 @@ class LambdaResolverTest {
   @Test
   fun testFindLambdaFromUnknownFile() = runBlocking {
     val resourceLookup = ResourceLookup(projectRule.project)
-    val result =
-      resourceLookup.findLambdaLocation("com.example", "MyOtherFile.kt", "l$1", "", 102, 107)
+    val result = resourceLookup.findLambdaLocation("com.example", "MyOtherFile.kt", "l$1", "", 102, 107)
     assertThat(result.source).isEqualTo("MyOtherFile.kt:unknown")
     assertThat(result.navigatable).isNull()
   }
 
-  private suspend fun checkLambda(
-    lambdaName: String,
-    startLine: Int,
-    endLine: Int,
-    expectedStartLine: Int,
-    expectedText: String? = null,
-  ) = check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
+  private suspend fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedStartLine: Int, expectedText: String? = null) =
+    check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
 
   private suspend fun check(
     lambdaName: String,
@@ -185,15 +175,7 @@ class LambdaResolverTest {
     expectedText: String?,
   ) {
     val resourceLookup = ResourceLookup(projectRule.project)
-    val result =
-      resourceLookup.findLambdaLocation(
-        "com.example",
-        "MyLambdas.kt",
-        lambdaName,
-        functionName,
-        startLine,
-        endLine,
-      )
+    val result = resourceLookup.findLambdaLocation("com.example", "MyLambdas.kt", lambdaName, functionName, startLine, endLine)
     if (expectedText == null) {
       val fileDescriptor = result.navigatable as? OpenFileDescriptor
       assertThat(fileDescriptor).isNotNull()

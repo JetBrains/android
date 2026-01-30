@@ -21,24 +21,19 @@ import com.android.tools.idea.gradle.structure.model.PsModel
 import com.intellij.util.PlatformIcons
 import javax.swing.Icon
 
-/**
- * A description of a reason why a dependency is included in a build.
- */
+/** A description of a reason why a dependency is included in a build. */
 sealed class ReverseDependency : PsChildModel() {
-  /**
-   * The requested spec of the library whose presence in the build is justified by the reverse dependency.
-   */
+  /** The requested spec of the library whose presence in the build is justified by the reverse dependency. */
   abstract val spec: PsArtifactDependencySpec
   abstract val resolvedSpec: PsArtifactDependencySpec
-  val isPromoted: Boolean get() = resolvedSpec > spec
+  val isPromoted: Boolean
+    get() = resolvedSpec > spec
 
   override val isDeclared: Boolean = true
   override val parent: PsModel? = null
 
-  class Declared(
-    override val resolvedSpec: PsArtifactDependencySpec,
-    val dependency: PsDeclaredLibraryAndroidDependency
-  ) : ReverseDependency() {
+  class Declared(override val resolvedSpec: PsArtifactDependencySpec, val dependency: PsDeclaredLibraryAndroidDependency) :
+    ReverseDependency() {
     override val spec: PsArtifactDependencySpec = dependency.spec
     override val name: String = spec.toString()
   }
@@ -46,7 +41,7 @@ sealed class ReverseDependency : PsChildModel() {
   class Transitive(
     override val resolvedSpec: PsArtifactDependencySpec,
     val requestingResolvedDependency: PsResolvedLibraryAndroidDependency,
-    override val spec: PsArtifactDependencySpec
+    override val spec: PsArtifactDependencySpec,
   ) : ReverseDependency() {
     override val name: String = requestingResolvedDependency.spec.toString()
     override val icon: Icon? = PlatformIcons.LIBRARY_ICON

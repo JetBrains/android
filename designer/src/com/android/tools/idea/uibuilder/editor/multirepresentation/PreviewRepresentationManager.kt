@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 /** An interface to keep track and control current [PreviewRepresentation]. */
 interface PreviewRepresentationManager {
   /**
-   * A list of available [PreviewRepresentation] names to select from. Name are used as a unique
-   * identifier and a display name for the [PreviewRepresentation]
+   * A list of available [PreviewRepresentation] names to select from. Name are used as a unique identifier and a display name for the
+   * [PreviewRepresentation]
    */
   val representationNames: Collection<RepresentationName>
 
@@ -27,8 +27,8 @@ interface PreviewRepresentationManager {
   var currentRepresentationName: RepresentationName
 
   /**
-   * Current [PreviewRepresentation], expected to be null if the list of [representationNames] is
-   * empty or [currentRepresentationName] is invalid.
+   * Current [PreviewRepresentation], expected to be null if the list of [representationNames] is empty or [currentRepresentationName] is
+   * invalid.
    */
   val currentRepresentation: PreviewRepresentation?
 }

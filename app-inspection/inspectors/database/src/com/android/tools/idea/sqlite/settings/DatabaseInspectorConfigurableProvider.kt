@@ -59,23 +59,16 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
   private var isOfflineModeEnabled = propertyGraph.property(settings.isOfflineModeEnabled)
   private var isForceOpen = propertyGraph.property(settings.isForceOpen)
   private var additionDriverClass = propertyGraph.property(projectSettings.additionalDriverClass)
-  private var additionConnectionClass =
-    propertyGraph.property(projectSettings.additionalConnectionClass)
+  private var additionConnectionClass = propertyGraph.property(projectSettings.additionalConnectionClass)
   private var isIgnoreFrameworkApi = propertyGraph.property(projectSettings.isIgnoreFrameworkApi)
 
   private val panel = panel {
-    row {
-      checkBox(message("enable.offline.mode"))
-        .bindSelected(isOfflineModeEnabled)
-        .named("enableOfflineMode")
-    }
+    row { checkBox(message("enable.offline.mode")).bindSelected(isOfflineModeEnabled).named("enableOfflineMode") }
     if (StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR.get()) {
       row { checkBox(message("force.open.database")).bindSelected(isForceOpen).named("forceOpen") }
     }
     if (StudioFlags.APP_INSPECTION_ENABLE_ADDITIONAL_SQL_DRIVER.get()) {
-      row(message("additional.driver.class")) {
-        classPicker(DRIVER_INTERFACE).bindText(additionDriverClass).named("driverClass")
-      }
+      row(message("additional.driver.class")) { classPicker(DRIVER_INTERFACE).bindText(additionDriverClass).named("driverClass") }
       row(message("additional.connection.class")) {
         classPicker(CONNECTION_INTERFACE, message("additional.connection.class.tooltip"))
           .bindText(additionConnectionClass)
@@ -92,10 +85,9 @@ private class DatabaseInspectorConfigurable(private val project: Project) : Sear
       }
 
       row {
-        checkBox(message("ignore.framework.api"))
-          .bindSelected(isIgnoreFrameworkApi)
-          .named("ignoreFrameworkApi")
-          .applyToComponent { toolTipText = message("ignore.framework.api.tooltip") }
+        checkBox(message("ignore.framework.api")).bindSelected(isIgnoreFrameworkApi).named("ignoreFrameworkApi").applyToComponent {
+          toolTipText = message("ignore.framework.api.tooltip")
+        }
       }
     }
   }
@@ -157,16 +149,11 @@ class DatabaseInspectorSettings : PersistentStateComponent<DatabaseInspectorSett
 }
 
 @Service(PROJECT)
-@State(
-  name = "DatabaseInspectorProjectSettings",
-  storages = [Storage("databaseInspectorProjectSettings.xml")],
-)
-class DatabaseInspectorProjectSettings :
-  PersistentStateComponent<DatabaseInspectorProjectSettings> {
+@State(name = "DatabaseInspectorProjectSettings", storages = [Storage("databaseInspectorProjectSettings.xml")])
+class DatabaseInspectorProjectSettings : PersistentStateComponent<DatabaseInspectorProjectSettings> {
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) = project.service<DatabaseInspectorProjectSettings>()
+    @JvmStatic fun getInstance(project: Project) = project.service<DatabaseInspectorProjectSettings>()
   }
 
   var additionalDriverClass: String = ""
@@ -177,15 +164,12 @@ class DatabaseInspectorProjectSettings :
 
   override fun getState() = this
 
-  override fun loadState(state: DatabaseInspectorProjectSettings) =
-    XmlSerializerUtil.copyBean(state, this)
+  override fun loadState(state: DatabaseInspectorProjectSettings) = XmlSerializerUtil.copyBean(state, this)
 }
 
 private fun <T : JComponent> Cell<T>.named(name: String) = applyToComponent { this.name = name }
 
-private fun Cell<ClassPicker>.bindText(
-  property: ObservableMutableProperty<String>
-): Cell<ClassPicker> {
+private fun Cell<ClassPicker>.bindText(property: ObservableMutableProperty<String>): Cell<ClassPicker> {
   return applyToComponent {
     text = property.get()
     property.afterChange { text = it }

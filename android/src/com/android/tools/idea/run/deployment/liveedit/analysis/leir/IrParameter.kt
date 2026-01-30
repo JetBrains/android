@@ -18,10 +18,12 @@ package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
 import org.jetbrains.org.objectweb.asm.tree.ParameterNode
 
-class IrParameter(val index: Int,
-                  node: ParameterNode,
-                  visibleAnnotations: List<AnnotationNode>,
-                  invisibleAnnotations: List<AnnotationNode>) {
+class IrParameter(
+  val index: Int,
+  node: ParameterNode,
+  visibleAnnotations: List<AnnotationNode>,
+  invisibleAnnotations: List<AnnotationNode>,
+) {
   val name: String = node.name
   val access = parseAccess(node.access)
   val annotations = toAnnotationList(visibleAnnotations, invisibleAnnotations)

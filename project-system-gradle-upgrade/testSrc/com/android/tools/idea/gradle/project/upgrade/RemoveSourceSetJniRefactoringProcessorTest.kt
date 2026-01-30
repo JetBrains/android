@@ -29,23 +29,23 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+class RemoveSourceSetJniRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   fun RemoveSourceSetJniRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("3.5.0" to "3.6.0") to IRRELEVANT_FUTURE,
-      ("3.6.0" to "7.0.0-alpha10") to OPTIONAL_CODEPENDENT,
-      ("7.0.0-alpha07" to "7.0.0-alpha10") to OPTIONAL_INDEPENDENT,
-      ("7.0.0-alpha07" to "8.0.0") to MANDATORY_INDEPENDENT,
-      ("3.6.0" to "8.0.0") to MANDATORY_CODEPENDENT,
-      ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
-    )
+    val expectedNecessitiesMap =
+      mapOf(
+        ("3.5.0" to "3.6.0") to IRRELEVANT_FUTURE,
+        ("3.6.0" to "7.0.0-alpha10") to OPTIONAL_CODEPENDENT,
+        ("7.0.0-alpha07" to "7.0.0-alpha10") to OPTIONAL_INDEPENDENT,
+        ("7.0.0-alpha07" to "8.0.0") to MANDATORY_INDEPENDENT,
+        ("3.6.0" to "8.0.0") to MANDATORY_CODEPENDENT,
+        ("8.0.0" to "8.1.0") to IRRELEVANT_PAST,
+      )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
@@ -83,5 +83,4 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/StatementAndBlockExpected"))
   }
-
 }

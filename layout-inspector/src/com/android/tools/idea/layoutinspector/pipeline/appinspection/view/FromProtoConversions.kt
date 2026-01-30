@@ -125,8 +125,7 @@ const val GRAMMATICAL_GENDER_MASCULINE = 3
 fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
   return when (this) {
     LayoutInspectorViewProtocol.Screenshot.Type.SKP -> AndroidWindow.ImageType.SKP_PENDING
-    LayoutInspectorViewProtocol.Screenshot.Type.BITMAP ->
-      AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+    LayoutInspectorViewProtocol.Screenshot.Type.BITMAP -> AndroidWindow.ImageType.BITMAP_AS_REQUESTED
     else -> AndroidWindow.ImageType.UNKNOWN
   }
 }
@@ -140,10 +139,7 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
 }
 
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
-  val displays =
-    displayInfoList.map {
-      Display(id = it.id, size = Dimension(it.width, it.height), orientation = it.orientation)
-    }
+  val displays = displayInfoList.map { Display(id = it.id, size = Dimension(it.width, it.height), orientation = it.orientation) }
   return AppContext(theme = theme.convert(), displays = displays)
 }
 
@@ -175,26 +171,19 @@ fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
 
 fun LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.toAttachErrorState() =
   when (this) {
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED ->
-      AttachErrorState.START_RECEIVED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED -> AttachErrorState.START_RECEIVED
     LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED -> AttachErrorState.STARTED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK ->
-      AttachErrorState.VIEW_INVALIDATION_CALLBACK
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT ->
-      AttachErrorState.ROOTS_EVENT_SENT
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED ->
-      AttachErrorState.SCREENSHOT_CAPTURED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED ->
-      AttachErrorState.VIEW_HIERARCHY_CAPTURED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT ->
-      AttachErrorState.RESPONSE_SENT
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK -> AttachErrorState.VIEW_INVALIDATION_CALLBACK
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT -> AttachErrorState.ROOTS_EVENT_SENT
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED -> AttachErrorState.SCREENSHOT_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED -> AttachErrorState.VIEW_HIERARCHY_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT -> AttachErrorState.RESPONSE_SENT
     else -> AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   }
 
 fun LayoutInspectorViewProtocol.ErrorCode.toAttachErrorCode() =
   when (this) {
-    LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION ->
-      AttachErrorCode.NO_HARDWARE_ACCELERATION
+    LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION -> AttachErrorCode.NO_HARDWARE_ACCELERATION
     LayoutInspectorViewProtocol.ErrorCode.NO_ROOT_VIEWS_FOUND -> AttachErrorCode.NO_ROOT_VIEWS_FOUND
     else -> AttachErrorCode.UNKNOWN_VIEW_AGENT_ERROR
   }
@@ -205,13 +194,8 @@ fun LayoutInspectorViewProtocol.Quad.toPolygon(): Polygon {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }
 
-/**
- * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto
- * received from a device.
- */
-fun LayoutInspectorViewProtocol.Configuration.convert(
-  apiLevel: AndroidApiLevel
-): FolderConfiguration {
+/** Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto received from a device. */
+fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: AndroidApiLevel): FolderConfiguration {
   val config = FolderConfiguration()
   config.countryCodeQualifier = CountryCodeQualifier(countryCode)
   config.networkCodeQualifier = NetworkCodeQualifier(networkCode)
@@ -371,9 +355,7 @@ private fun LayoutInspectorViewProtocol.FoldEvent.FoldState.convert() =
 
 private fun LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.convert() =
   when (this) {
-    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL ->
-      InspectorModel.FoldOrientation.HORIZONTAL
-    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL ->
-      InspectorModel.FoldOrientation.VERTICAL
+    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL -> InspectorModel.FoldOrientation.HORIZONTAL
+    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL -> InspectorModel.FoldOrientation.VERTICAL
     else -> null
   }

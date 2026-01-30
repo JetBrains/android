@@ -36,37 +36,41 @@ import java.io.File
 import java.util.EventListener
 import javax.swing.Icon
 
-abstract class PsModule protected constructor(
-  override val parent: PsProject,
-  val moduleKind: ModuleKind
-) : PsChildModel() {
+abstract class PsModule protected constructor(override val parent: PsProject, val moduleKind: ModuleKind) : PsChildModel() {
   abstract val gradlePath: String
-  final override var name: String = "" ; private set
-  override val path: PsModulePath get() = PsModulePath(this)
-  var parsedModel: GradleBuildModel? = null ; private set
+  final override var name: String = ""
+    private set
 
-  var parentModule: PsModule? = null ; private set
+  override val path: PsModulePath
+    get() = PsModulePath(this)
+
+  var parsedModel: GradleBuildModel? = null
+    private set
+
+  var parentModule: PsModule? = null
+    private set
+
   private var myParsedDependencies: PsParsedDependencies? = null
   private var myVariables: PsVariables? = null
   private val dependenciesChangeEventDispatcher = EventDispatcher.create(DependenciesChangeListener::class.java)
   private val changedListener = EventDispatcher.create(ModuleChangedListener::class.java)
 
-  abstract val dependencies: PsDependencyCollection<
-    PsModule, PsDeclaredLibraryDependency, PsDeclaredJarDependency, PsDeclaredModuleDependency>
+  abstract val dependencies:
+    PsDependencyCollection<PsModule, PsDeclaredLibraryDependency, PsDeclaredJarDependency, PsDeclaredModuleDependency>
   val parsedDependencies: PsParsedDependencies
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
   val variables: PsVariablesScope
-    get() = myVariables ?: PsVariables(this, gradlePath ?: name, "Module: $name",
-                                       parentModule?.variables ?: parent.variables).also { myVariables = it }
+    get() =
+      myVariables
+        ?: PsVariables(this, gradlePath ?: name, "Module: $name", parentModule?.variables ?: parent.variables).also { myVariables = it }
 
-  override val isDeclared: Boolean get() = parsedModel != null
+  override val isDeclared: Boolean
+    get() = parsedModel != null
 
   override val icon: Icon? = ANDROID_MODULE
 
-  /**
-   * <All Modules> constructor.
-   */
+  /** <All Modules> constructor. */
   protected constructor(name: String, moduleKind: ModuleKind, parent: PsProject) : this(parent, moduleKind) {
     init(name, null, null)
   }
@@ -82,12 +86,20 @@ abstract class PsModule protected constructor(
 
   abstract val rootDir: File?
   abstract val projectType: PsModuleType
-  enum class ImportantFor  { LIBRARY, MODULE }
+
+  enum class ImportantFor {
+    LIBRARY,
+    MODULE,
+  }
+
   abstract fun getConfigurations(onlyImportantFor: ImportantFor? = null): List<String>
+
   protected abstract fun resetDependencies()
+
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
   protected abstract fun maybeAddConfiguration(configurationName: String)
+
   protected abstract fun maybeRemoveConfiguration(configurationName: String)
 
   fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, configurationName: String) {
@@ -109,7 +121,8 @@ abstract class PsModule protected constructor(
 
     val spec = PsArtifactDependencySpec.create(compactNotation)!!
     fireDependencyAddedEvent(
-      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == configurationName } })
+      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == configurationName } }
+    )
     isModified = true
   }
 
@@ -123,12 +136,7 @@ abstract class PsModule protected constructor(
     isModified = true
   }
 
-  fun addJarFileTreeDependency(
-    dirPath: String,
-    includes: Collection<String>,
-    excludes: Collection<String>,
-    configurationName: String
-  ) {
+  fun addJarFileTreeDependency(dirPath: String, includes: Collection<String>, excludes: Collection<String>, configurationName: String) {
     addJarFileTreeDependencyToParsedModel(configurationName, dirPath, includes, excludes)
     maybeAddConfiguration(configurationName)
 
@@ -146,7 +154,8 @@ abstract class PsModule protected constructor(
     resetDependencies()
 
     fireDependencyAddedEvent(
-      lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == configurationName } })
+      lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == configurationName } }
+    )
     isModified = true
   }
 
@@ -165,24 +174,18 @@ abstract class PsModule protected constructor(
     dependency.parsedModel.setConfigurationName(newConfigurationName)
     maybeAddConfiguration(newConfigurationName)
 
-    fireDependencyModifiedEvent(lazy { dependency } )
+    fireDependencyModifiedEvent(lazy { dependency })
     isModified = true
   }
 
   private fun findVersionedLibraryDependenciesWithConfiguration(
     spec: PsArtifactDependencySpec,
-    configurationName: String
+    configurationName: String,
   ): List<PsDeclaredLibraryDependency> {
-    return findLibraryDependencies(spec.group, spec.name)
-      .filter { it.spec == spec && it.configurationName == configurationName }
+    return findLibraryDependencies(spec.group, spec.name).filter { it.spec == spec && it.configurationName == configurationName }
   }
 
-  fun setLibraryDependencyVersion(
-    spec: PsArtifactDependencySpec,
-    configurationName: String,
-    newVersion: String,
-    updateVariable: Boolean
-  ) {
+  fun setLibraryDependencyVersion(spec: PsArtifactDependencySpec, configurationName: String, newVersion: String, updateVariable: Boolean) {
     var modified = false
 
     // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
@@ -199,9 +202,11 @@ abstract class PsModule protected constructor(
     if (modified) {
       resetDependencies()
       for (dependency in matchingDependencies) {
-        fireDependencyModifiedEvent(lazy {
-          dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == dependency.configurationName }
-        })
+        fireDependencyModifiedEvent(
+          lazy {
+            dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == dependency.configurationName }
+          }
+        )
       }
       isModified = true
     }
@@ -219,9 +224,12 @@ abstract class PsModule protected constructor(
   }
 
   fun onChange(disposable: Disposable, handler: (PsModule) -> Unit) {
-    changedListener.addListener(object : ModuleChangedListener {
-      override fun changed() = handler(this@PsModule)
-    }, disposable)
+    changedListener.addListener(
+      object : ModuleChangedListener {
+        override fun changed() = handler(this@PsModule)
+      },
+      disposable,
+    )
   }
 
   override fun changed() {
@@ -234,9 +242,12 @@ abstract class PsModule protected constructor(
   }
 
   fun addDependencyChangedListener(parentDisposable: Disposable, listener: (DependencyChangedEvent) -> Unit) {
-    dependenciesChangeEventDispatcher.addListener(object : DependenciesChangeListener {
-      override fun dependencyChanged(event: DependencyChangedEvent) = listener(event)
-    }, parentDisposable)
+    dependenciesChangeEventDispatcher.addListener(
+      object : DependenciesChangeListener {
+        override fun dependencyChanged(event: DependencyChangedEvent) = listener(event)
+      },
+      parentDisposable,
+    )
   }
 
   fun fireDependencyModifiedEvent(dependency: Lazy<PsDeclaredDependency?>) {
@@ -271,7 +282,7 @@ abstract class PsModule protected constructor(
     configurationName: String,
     dirPath: String,
     includes: Collection<String>,
-    excludes: Collection<String>
+    excludes: Collection<String>,
   ) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
@@ -280,10 +291,7 @@ abstract class PsModule protected constructor(
     } ?: noParsedModel()
   }
 
-  private fun addJarFileDependencyToParsedModel(
-    configurationName: String,
-    filePath: String
-  ) {
+  private fun addJarFileDependencyToParsedModel(configurationName: String, filePath: String) {
     parsedModel?.let { parsedModel ->
       val dependencies = parsedModel.dependencies()
       dependencies.addFile(configurationName, filePath)
@@ -320,14 +328,15 @@ abstract class PsModule protected constructor(
 
   protected open fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     repositories.addAll(
-      parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel ->
-        repositoryModel.toArtifactRepository()
-      })
+      parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel -> repositoryModel.toArtifactRepository() }
+    )
     if (repositories.isEmpty()) {
       val settingsModel = parent.parsedModel.projectSettingsModel ?: return
-      repositories.addAll(settingsModel.dependencyResolutionManagement().repositories().repositories().mapNotNull { repositoryModel ->
-        repositoryModel.toArtifactRepository()
-      })
+      repositories.addAll(
+        settingsModel.dependencyResolutionManagement().repositories().repositories().mapNotNull { repositoryModel ->
+          repositoryModel.toArtifactRepository()
+        }
+      )
     }
   }
 
@@ -351,6 +360,7 @@ abstract class PsModule protected constructor(
 }
 
 fun PsModule.relativeFile(file: File) = rootDir?.let { file.relativeToOrSelf(it) } ?: file
+
 fun PsModule.resolveFile(file: File) = rootDir?.resolve(file) ?: file
 
 fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {

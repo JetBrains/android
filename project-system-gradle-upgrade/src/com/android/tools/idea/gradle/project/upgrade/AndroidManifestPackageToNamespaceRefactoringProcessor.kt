@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
@@ -41,15 +41,15 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   private var blockedReasons: List<BlockReason>? = null
   private var cachingLock = Any()
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(AgpVersion.parse("7.0.0-alpha05"), AgpVersion.parse("8.0.0-alpha03"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 
-  private fun File.computeNamespacesFromManifestPackageAttributes(): Namespaces =
-    this.computeNamespacesFromManifestPackageAttributesWith { }
+  private fun File.computeNamespacesFromManifestPackageAttributes(): Namespaces = this.computeNamespacesFromManifestPackageAttributesWith {}
 
   private fun File.computeNamespacesFromManifestPackageAttributesWith(function: (XmlAttribute) -> Unit): Namespaces {
     val psiManager = PsiManager.getInstance(project)
@@ -77,14 +77,17 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
     return Namespaces(namespace, testNamespace)
   }
 
-  class MainAndTestPackageEqual(moduleNames: List<String>) : BlockReason(
-    shortDescription = "Modules have the same package for their main and androidTest artifacts",
-    description = "The package specifications in AndroidManifest.xml files define the same \n" +
-                  "package for the main and androidTest artifacts, in the following modules: \n" +
-                  moduleNames.descriptionText + "\n" +
-                  "To proceed, change the androidTest package in the manifest for all affected modules.",
-    readMoreUrl = ReadMoreUrlRedirect("main-and-test-package-equal"),
-  )
+  class MainAndTestPackageEqual(moduleNames: List<String>) :
+    BlockReason(
+      shortDescription = "Modules have the same package for their main and androidTest artifacts",
+      description =
+        "The package specifications in AndroidManifest.xml files define the same \n" +
+          "package for the main and androidTest artifacts, in the following modules: \n" +
+          moduleNames.descriptionText +
+          "\n" +
+          "To proceed, change the androidTest package in the manifest for all affected modules.",
+      readMoreUrl = ReadMoreUrlRedirect("main-and-test-package-equal"),
+    )
 
   override fun blockProcessorReasons(): List<BlockReason> {
     synchronized(cachingLock) {
@@ -108,12 +111,14 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
       val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributes()
       (testNamespace ?: modelTestNamespace)?.let { testNamespace ->
         if (buildModel.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
-        val currentNamespace = when {
-          buildModel.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> buildModel.android().namespace().forceString()
-          namespace != null -> namespace
-          modelNamespace != null -> modelNamespace
-          else -> ""
-        }
+        val currentNamespace =
+          when {
+            buildModel.android().namespace().valueType != GradlePropertyModel.ValueType.NONE ->
+              buildModel.android().namespace().forceString()
+            namespace != null -> namespace
+            modelNamespace != null -> modelNamespace
+            else -> ""
+          }
         // TODO(xof): the moduleDirectory need not have the same name as the module (though I guess it's reasonably common?)
         if (testNamespace == currentNamespace) moduleNames.add(moduleDirectory.name)
       }
@@ -126,11 +131,12 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
-      val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributesWith { packageAttribute ->
-        val wrappedPsiElement = WrappedPsiElement(packageAttribute, this, REMOVE_MANIFEST_PACKAGE)
-        val usageInfo = AndroidManifestPackageUsageInfo(wrappedPsiElement)
-        usages.add(usageInfo)
-      }
+      val (namespace, testNamespace) =
+        moduleDirectory.computeNamespacesFromManifestPackageAttributesWith { packageAttribute ->
+          val wrappedPsiElement = WrappedPsiElement(packageAttribute, this, REMOVE_MANIFEST_PACKAGE)
+          val usageInfo = AndroidManifestPackageUsageInfo(wrappedPsiElement)
+          usages.add(usageInfo)
+        }
       namespace?.let { namespace ->
         if (model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
         val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
@@ -153,11 +159,13 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("manifest-package-deprecated")
 
-  override fun getShortDescription(): String? = """
+  override fun getShortDescription(): String? =
+    """
     Declaration of a project's namespace using the package attribute of the
     Android manifest is deprecated in favour of a namespace declaration in build
     files.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(ANDROID_MANIFEST_PACKAGE)
@@ -168,7 +176,8 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() =
+        AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.usageView.header")
     }
   }
 
@@ -182,9 +191,12 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   }
 
   companion object {
-    val REMOVE_MANIFEST_PACKAGE = UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.removePackage.usageType"))
-    val ADD_NAMESPACE_BUILDFILE = UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.usageType"))
-    val ADD_TEST_NAMESPACE_BUILDFILE = UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.usageType"))
+    val REMOVE_MANIFEST_PACKAGE =
+      UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.removePackage.usageType"))
+    val ADD_NAMESPACE_BUILDFILE =
+      UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.usageType"))
+    val ADD_TEST_NAMESPACE_BUILDFILE =
+      UsageType(AgpUpgradeBundle.messagePointer("androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.usageType"))
   }
 }
 
@@ -197,29 +209,26 @@ class AndroidManifestPackageUsageInfo(element: WrappedPsiElement) : GradleBuildM
     }
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.removePackage.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.removePackage.tooltipText")
 }
 
-class AndroidNamespaceUsageInfo(
-  element: WrappedPsiElement,
-  val model: GradleBuildModel,
-  val value: String
-) : GradleBuildModelUsageInfo(element) {
+class AndroidNamespaceUsageInfo(element: WrappedPsiElement, val model: GradleBuildModel, val value: String) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.android().namespace().setValue(value)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.addNamespace.tooltipText")
 }
 
-class AndroidTestNamespaceUsageInfo(
-  element: WrappedPsiElement,
-  val model: GradleBuildModel,
-  val value: String
-) : GradleBuildModelUsageInfo(element) {
+class AndroidTestNamespaceUsageInfo(element: WrappedPsiElement, val model: GradleBuildModel, val value: String) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.android().testNamespace().setValue(value)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }

@@ -21,13 +21,11 @@ interface IdeCustomSourceDirectory {
   /**
    * Source name as represented to the user.
    *
-   * The Android Gradle Plugin will enforce that each custom type registration is unique and used only once
-   * within each Gradle (sub)project.
+   * The Android Gradle Plugin will enforce that each custom type registration is unique and used only once within each Gradle (sub)project.
    *
-   * Names are expected to be reused across Gradle (sub)projects, in general by the build author applying the
-   * same custom plugin to multiple projects within a single or composite Gradle build. In theory, different
-   * plugins could register custom source types of the same name, which would not be a problem as long as
-   * only one of those plugins is applied to any particular project within the build.
+   * Names are expected to be reused across Gradle (sub)projects, in general by the build author applying the same custom plugin to multiple
+   * projects within a single or composite Gradle build. In theory, different plugins could register custom source types of the same name,
+   * which would not be a problem as long as only one of those plugins is applied to any particular project within the build.
    */
   val sourceTypeName: String
 

@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.TraceSectionDetector
 
 class AndroidLintUnclosedTraceInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unclosed.trace"),
-    TraceSectionDetector.UNCLOSED_TRACE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unclosed.trace"), TraceSectionDetector.UNCLOSED_TRACE)

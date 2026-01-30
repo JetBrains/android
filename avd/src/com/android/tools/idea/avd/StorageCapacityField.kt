@@ -46,9 +46,7 @@ internal fun StorageCapacityField(
         state.value,
         Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
         enabled,
-        inputTransformation = {
-          if (!STORAGE_CAPACITY_VALUE_REGEX.matches(asCharSequence())) revertAllChanges()
-        },
+        inputTransformation = { if (!STORAGE_CAPACITY_VALUE_REGEX.matches(asCharSequence())) revertAllChanges() },
         outline = outline,
       )
     }
@@ -60,8 +58,7 @@ internal fun StorageCapacityField(
 internal class StorageCapacityFieldState(
   value: StorageCapacity,
   minValue: StorageCapacity = StorageCapacity.MIN,
-  val units: ImmutableCollection<StorageCapacity.Unit> =
-    enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
+  val units: ImmutableCollection<StorageCapacity.Unit> = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
 ) {
   val value = TextFieldState(value.value.toString())
   var minValue by mutableStateOf(minValue)

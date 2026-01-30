@@ -23,45 +23,53 @@ import org.junit.Test
 // TODO(qumeric): add tests for more methods
 
 class DefaultRecipeExecutorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
 
   @Test
   fun testSquishEmptyLines() {
-    val doubleEmptyLine = """
+    val doubleEmptyLine =
+      """
       aaa
-      
-      
+
+
       aaa
-    """.trimIndent()
-    val doubleEmptyLineResult = """
+      """
+        .trimIndent()
+    val doubleEmptyLineResult =
+      """
       aaa
-      
+
       aaa
-    """.trimIndent()
+      """
+        .trimIndent()
     assertThat(doubleEmptyLine.squishEmptyLines()).isEqualTo(doubleEmptyLineResult)
     // has three spaces on all middle lines
-    val tripleEmptyLine = """
+    val tripleEmptyLine =
+      """
       bbb
          
          
          
       bbb
-    """.trimIndent()
-    val tripleEmptyLineResult = """
+      """
+        .trimIndent()
+    val tripleEmptyLineResult =
+      """
       bbb
-      
+
       bbb
-    """.trimIndent()
+      """
+        .trimIndent()
     assertThat(tripleEmptyLine.squishEmptyLines()).isEqualTo(tripleEmptyLineResult)
     val blanks = "\n\t \n"
     assertThat(blanks.squishEmptyLines()).isEqualTo("")
     val noEmptyLines =
       """
-        abc
-          def
-        ghi  
-      """.trimIndent()
+      abc
+        def
+      ghi  
+      """
+        .trimIndent()
     assertThat(noEmptyLines.squishEmptyLines()).isEqualTo(noEmptyLines)
     val emptyString = ""
     assertThat(emptyString.squishEmptyLines()).isEqualTo(emptyString)

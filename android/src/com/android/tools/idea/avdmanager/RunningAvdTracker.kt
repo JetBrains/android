@@ -30,6 +30,7 @@ class RunningAvdTracker {
   /** A flow of all currently running emulator processes keyed by AVD data folders. */
   val runningAvdsFlow: StateFlow<Map<Path, RunningAvd>>
     get() = mutableRunningAvdsFlow
+
   /** A snapshot of all currently running emulator processes keyed by AVD data folders. */
   var runningAvds: Map<Path, RunningAvd>
     get() = mutableRunningAvdsFlow.value
@@ -45,12 +46,11 @@ class RunningAvdTracker {
     synchronized(lock) {
       if (isLaunchedByThisProcess == null) {
         if (!runningAvds.containsKey(avdDataFolder)) {
-          runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType,
-                                                                     isLaunchedByThisProcess = false))
+          runningAvds =
+            runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType, isLaunchedByThisProcess = false))
           removeOnExit(avdDataFolder, processHandle)
         }
-      }
-      else {
+      } else {
         runningAvds = runningAvds.plus(avdDataFolder to RunningAvd(avdDataFolder, processHandle, runType, isLaunchedByThisProcess))
         removeOnExit(avdDataFolder, processHandle)
       }

@@ -20,7 +20,7 @@ import com.intellij.pom.Navigatable
 /**
  * The name property is used whenever we want to display a navigatable to a user.
  *
- * We will need to display the name when a user wants to click a background element and thereby
- * presses shift + click to open a popup to choose between background elements.
+ * We will need to display the name when a user wants to click a background element and thereby presses shift + click to open a popup to
+ * choose between background elements.
  */
 data class PreviewNavigatableWrapper(val name: String, val navigatable: Navigatable)

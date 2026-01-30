@@ -39,36 +39,35 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.nio.file.Path
 import com.intellij.util.concurrency.ThreadingAssertions
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 @UiThread
 @Service(Service.Level.PROJECT)
-class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: RunConfigurationWithDebugger) -> Unit) {
+class DeviceProcessService
+@NonInjectable
+constructor(
+  private val connectDebuggerAction:
+    (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: RunConfigurationWithDebugger) -> Unit
+) {
 
   @Suppress("unused")
-  constructor(project: Project) : this({ debugger, client, config ->
-    AppExecutorUtil.getAppExecutorService().execute {
-      AndroidConnectDebugger.closeOldSessionAndRun(project, debugger, client, config)
-    }
+  constructor(
+    project: Project
+  ) : this({ debugger, client, config ->
+    AppExecutorUtil.getAppExecutorService().execute { AndroidConnectDebugger.closeOldSessionAndRun(project, debugger, client, config) }
   })
-  /**
-   * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.
-   */
+
+  /** The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread. */
   private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
   private val uiThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.uiThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
     // Run this in a worker thread in case the device/adb is not responsive
     val clients = device.device.clients ?: emptyArray()
-    return withContext(workerThreadDispatcher) {
-      clients
-        .asSequence()
-        .mapNotNull { client -> createProcessInfo(device, client) }
-        .toList()
-    }
+    return withContext(workerThreadDispatcher) { clients.asSequence().mapNotNull { client -> createProcessInfo(device, client) }.toList() }
   }
 
   @WorkerThread
@@ -76,33 +75,32 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
     try {
       val processName = client.clientData.clientDescription
       return if (processName == null) {
-        thisLogger().debug(
-          "Process ${client.clientData.pid} was skipped because the process name is not initialized. Is another instance of Studio running?")
-        ProcessInfo(device,
-                    pid = client.clientData.pid)
-      }
-      else {
+        thisLogger()
+          .debug(
+            "Process ${client.clientData.pid} was skipped because the process name is not initialized. Is another instance of Studio running?"
+          )
+        ProcessInfo(device, pid = client.clientData.pid)
+      } else {
         val userId = if (client.clientData.userId == -1) null else client.clientData.userId
-        ProcessInfo(device,
-                    pid = client.clientData.pid,
-                    packageName = client.clientData.packageName,
-                    processName = processName,
-                    userId = userId,
-                    vmIdentifier = client.clientData.vmIdentifier,
-                    abi = client.clientData.abi,
-                    debuggerStatus = client.clientData.debuggerConnectionStatus,
-                    killAction = { client.kill() } )
+        ProcessInfo(
+          device,
+          pid = client.clientData.pid,
+          packageName = client.clientData.packageName,
+          processName = processName,
+          userId = userId,
+          vmIdentifier = client.clientData.vmIdentifier,
+          abi = client.clientData.abi,
+          debuggerStatus = client.clientData.debuggerConnectionStatus,
+          killAction = { client.kill() },
+        )
       }
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       thisLogger().warn("Error retrieving process info from `Client`", e)
       return null
     }
   }
 
-  /**
-   * Kills the [process] on the [device][ProcessInfo.device]
-   */
+  /** Kills the [process] on the [device][ProcessInfo.device] */
   suspend fun killProcess(process: ProcessInfo, device: IDevice) {
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
@@ -111,19 +109,14 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           device.kill(process.packageName)
         } else {
           thisLogger().debug("Kill process invoked on a null package name")
-          withContext(uiThreadDispatcher) {
-            reportError("kill process", "Couldn't find package name for process.")
-          }
+          withContext(uiThreadDispatcher) { reportError("kill process", "Couldn't find package name for process.") }
         }
         process.killAction?.invoke()
       }
     }
-
   }
 
-  /**
-   * Force stops the [process] on the [device][ProcessInfo.device]
-   */
+  /** Force stops the [process] on the [device][ProcessInfo.device] */
   suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
@@ -132,9 +125,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           device.forceStop(process.packageName)
         } else {
           thisLogger().debug("Force stop invoked on a null package name")
-          withContext(uiThreadDispatcher) {
-            reportError("force stop", "Couldn't find package name for process.")
-          }
+          withContext(uiThreadDispatcher) { reportError("force stop", "Couldn't find package name for process.") }
         }
       }
     }
@@ -153,9 +144,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           connectDebuggerAction.invoke(debugger, client, config)
         } else {
           thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
-          withContext(uiThreadDispatcher) {
-            reportError("attach debugger", "Couldn't find process to attach or debugger to use.")
-          }
+          withContext(uiThreadDispatcher) { reportError("attach debugger", "Couldn't find process to attach or debugger to use.") }
         }
       }
     }
@@ -171,15 +160,11 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
           val result = receiver.output.trim()
           if (result != "Success") {
             thisLogger().info("Clear App Data $packageName failed with output: $result")
-            withContext(uiThreadDispatcher) {
-              reportError("clear app data", "Failed to clear app data.")
-            }
+            withContext(uiThreadDispatcher) { reportError("clear app data", "Failed to clear app data.") }
           }
         } else {
           thisLogger().info("Clear App Data $packageName invoked on a null package name")
-          withContext(uiThreadDispatcher) {
-            reportError("clear app data", "Couldn't find package name for process.")
-          }
+          withContext(uiThreadDispatcher) { reportError("clear app data", "Couldn't find package name for process.") }
         }
       }
     }
@@ -194,39 +179,27 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
             val result = device.uninstallPackage(packageName)
             if (result != null) {
               thisLogger().info("Uninstall App $packageName failed with output: $result")
-              withContext(uiThreadDispatcher) {
-                reportError("uninstall app", "Failed to uninstall app.")
-              }
+              withContext(uiThreadDispatcher) { reportError("uninstall app", "Failed to uninstall app.") }
             }
           } catch (e: InstallException) {
             thisLogger().info("Uninstall App $packageName failed", e)
-            withContext(uiThreadDispatcher) {
-              reportError("uninstall app", "Failed to uninstall app.")
-            }
+            withContext(uiThreadDispatcher) { reportError("uninstall app", "Failed to uninstall app.") }
           }
         } else {
           thisLogger().info("Uninstall App $packageName invoked on a null package name")
-          withContext(uiThreadDispatcher) {
-            reportError("uninstall app", "Couldn't find package name for process.")
-          }
+          withContext(uiThreadDispatcher) { reportError("uninstall app", "Couldn't find package name for process.") }
         }
       }
     }
   }
 
   @UiThread
-  suspend fun backupApplication(
-    project: Project,
-    process: ProcessInfo,
-    device: IDevice,
-  ) {
+  suspend fun backupApplication(project: Project, process: ProcessInfo, device: IDevice) {
     if (process.device.serialNumber == device.serialNumber) {
       val packageName = process.packageName
       if (packageName == null) {
         thisLogger().debug("Backup Application invoked without application id")
-        withContext(uiThreadDispatcher) {
-          reportError("backup app data", "Couldn't find application id.")
-        }
+        withContext(uiThreadDispatcher) { reportError("backup app data", "Couldn't find application id.") }
         return
       }
       val backupManager = BackupManager.getInstance(project)
@@ -242,9 +215,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
 
   private fun reportError(title: String, messageToReport: String) {
     val notification = Notification("Device Explorer", "Unable to $title", messageToReport, NotificationType.WARNING)
-    ApplicationManager.getApplication().invokeLater {
-      Notifications.Bus.notify(notification)
-    }
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   companion object {

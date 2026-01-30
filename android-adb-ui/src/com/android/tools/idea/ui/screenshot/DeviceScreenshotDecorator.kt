@@ -63,9 +63,7 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
         return skinDefinition
       }
     }
-    val subfolderInfo = skinSubfolderInfo.computeIfAbsent(skinFolder) {
-      getSubfolderSkinInfo(skinFolder)
-    }
+    val subfolderInfo = skinSubfolderInfo.computeIfAbsent(skinFolder) { getSubfolderSkinInfo(skinFolder) }
     return subfolderInfo[displaySize]?.let { SkinDefinitionCache.getInstance().getSkinDefinition(it) }
   }
 
@@ -78,9 +76,7 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
           try {
             val displaySize = SkinDefinition.getSkinDisplaySize(dir)
             map[displaySize] = dir
-          }
-          catch (_: Exception) {
-          }
+          } catch (_: Exception) {}
         }
     }
     return map

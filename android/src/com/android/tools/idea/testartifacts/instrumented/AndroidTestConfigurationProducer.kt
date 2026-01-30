@@ -55,9 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 
-/**
- * A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration].
- */
+/** A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration]. */
 class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<AndroidTestRunConfiguration>() {
   companion object {
     val OPTIONS_EP: ExtensionPointName<TestRunConfigurationOptions> =
@@ -66,9 +64,11 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     val LOGGER: Logger = Logger.getInstance(AndroidTestRunConfiguration::class.java)
   }
 
-  override fun setupConfigurationFromContext(configuration: AndroidTestRunConfiguration,
-                                             context: ConfigurationContext,
-                                             sourceElementRef: Ref<PsiElement>): Boolean {
+  override fun setupConfigurationFromContext(
+    configuration: AndroidTestRunConfiguration,
+    context: ConfigurationContext,
+    sourceElementRef: Ref<PsiElement>,
+  ): Boolean {
     val configurator = AndroidTestConfigurator.createFromContext(context) ?: return false
     if (!configurator.configure(configuration, sourceElementRef)) {
       return false
@@ -110,8 +110,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
       AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.TEST_NAME_REGEX == expectedConfig.TEST_NAME_REGEX
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> configuration.PACKAGE_NAME == expectedConfig.PACKAGE_NAME
       AndroidTestRunConfiguration.TEST_CLASS -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME
-      AndroidTestRunConfiguration.TEST_METHOD -> configuration.CLASS_NAME == expectedConfig.CLASS_NAME &&
-                                                 configuration.METHOD_NAME == expectedConfig.METHOD_NAME
+      AndroidTestRunConfiguration.TEST_METHOD ->
+        configuration.CLASS_NAME == expectedConfig.CLASS_NAME && configuration.METHOD_NAME == expectedConfig.METHOD_NAME
       else -> false
     }
   }
@@ -145,17 +145,16 @@ abstract class TestRunConfigurationOptions {
 }
 
 /**
- * A helper class responsible for configuring [AndroidTestRunConfiguration] properly based on given information.
- * This is a stateless class and you can call [configure] method as many times as you wish.
+ * A helper class responsible for configuring [AndroidTestRunConfiguration] properly based on given information. This is a stateless class
+ * and you can call [configure] method as many times as you wish.
  */
-private class AndroidTestConfigurator(private val facet: AndroidFacet,
-                                      private val location: Location<PsiElement>,
-                                      private val virtualFile: VirtualFile) {
+private class AndroidTestConfigurator(
+  private val facet: AndroidFacet,
+  private val location: Location<PsiElement>,
+  private val virtualFile: VirtualFile,
+) {
   companion object {
-    /**
-     * Creates [AndroidTestConfigurator] from a given context.
-     * Returns null if the context is not applicable for android test.
-     */
+    /** Creates [AndroidTestConfigurator] from a given context. Returns null if the context is not applicable for android test. */
     fun createFromContext(context: ConfigurationContext): AndroidTestConfigurator? {
       val location = context.location ?: return null
       val module = AndroidUtils.getAndroidModule(context) ?: return null
@@ -164,9 +163,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
       return AndroidTestConfigurator(facet, location, virtualFile)
     }
 
-    /**
-     * Returns true if a given [method] is a test method otherwise false.
-     */
+    /** Returns true if a given [method] is a test method otherwise false. */
     private fun isTestMethod(method: PsiMethod): Boolean {
       val testClass = method.containingClass ?: return false
       return JUnitUtil.isTestClass(testClass) && JUnitUtil.TestMethodFilter(testClass).value(method)
@@ -174,38 +171,42 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
   }
 
   /**
-   * Configures a given configuration. If success, it returns true otherwise false.
-   * When the configuration fails, the given configuration object may be configured in a halfway so you should dispose the
-   * configuration.
+   * Configures a given configuration. If success, it returns true otherwise false. When the configuration fails, the given configuration
+   * object may be configured in a halfway so you should dispose the configuration.
    *
    * @param configuration a configuration instance to be configured
-   * @param sourceElementRef the most relevant [PsiElement] such as test method, test class, or package is set back to the caller
-   * for reference
+   * @param sourceElementRef the most relevant [PsiElement] such as test method, test class, or package is set back to the caller for
+   *   reference
    */
-  fun configure(configuration: AndroidTestRunConfiguration,
-                sourceElementRef: Ref<PsiElement>): Boolean {
+  fun configure(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
     val sourceProviders = SourceProviderManager.getInstance(facet)
     val module = facet.module
     val (androidTestSources, generatedAndroidTestSources) =
       if (module.androidProjectType() == AndroidModuleSystem.Type.TYPE_TEST) {
         sourceProviders.sources to sourceProviders.generatedSources
+      } else {
+        sourceProviders.deviceTestSources[CommonTestType.ANDROID_TEST] to
+          sourceProviders.generatedDeviceTestSources[CommonTestType.ANDROID_TEST]
       }
-      else {
-        sourceProviders.deviceTestSources[CommonTestType.ANDROID_TEST] to sourceProviders.generatedDeviceTestSources[CommonTestType.ANDROID_TEST]
-    }
     if (
-      androidTestSources?.containsFile(virtualFile) == false && !androidTestSources.isContainedBy(virtualFile) &&
-      generatedAndroidTestSources?.containsFile(virtualFile) == false && !generatedAndroidTestSources.isContainedBy(virtualFile)
+      androidTestSources?.containsFile(virtualFile) == false &&
+        !androidTestSources.isContainedBy(virtualFile) &&
+        generatedAndroidTestSources?.containsFile(virtualFile) == false &&
+        !generatedAndroidTestSources.isContainedBy(virtualFile)
     ) {
       return false
     }
 
-    //Check if the current module is a valid AndroidTest module to setup the Run Configuration from
+    // Check if the current module is a valid AndroidTest module to setup the Run Configuration from
     if (AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration(module) == null) return false
 
     val project = module.project
-    val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      project, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+    val targetSelectionMode =
+      AndroidUtils.getDefaultTargetSelectionMode(
+        project,
+        AndroidTestRunConfigurationType.getInstance(),
+        AndroidRunConfigurationType.getInstance(),
+      )
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }
@@ -220,9 +221,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
     }
   }
 
-  /**
-   * Tries to configure for a single method test. Returns true if success otherwise false.
-   */
+  /** Tries to configure for a single method test. Returns true if success otherwise false. */
   private fun tryMethodTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
     getPsiParentsOfType(location.psiElement, PsiMethod::class.java, false).forEach { elementMethod ->
       if (isTestMethod(elementMethod)) {
@@ -251,23 +250,24 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
   }
 
   /**
-   * Tries to configure for a single class test. Returns true if success otherwise false.
-   * If there are multiple test classes in a file, use the first one to configure.
+   * Tries to configure for a single class test. Returns true if success otherwise false. If there are multiple test classes in a file, use
+   * the first one to configure.
    */
   private fun trySingleClassTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
-    val candidates = sequence<PsiClass> {
-      // First, looks up parents of PsiClass from the context location.
-      yieldAll(getPsiParentsOfType(location.psiElement, PsiClass::class.java, false))
+    val candidates =
+      sequence<PsiClass> {
+        // First, looks up parents of PsiClass from the context location.
+        yieldAll(getPsiParentsOfType(location.psiElement, PsiClass::class.java, false))
 
-      // If there are no PsiClass ancestors of the context location, find PsiClassOwner ancestors and
-      // look up their classes. We don't search recursively so nested classes may be overlooked.
-      // For instance, if there are two top-level classes A and B in a file, the class B has a nested
-      // class C with @RunWith annotation, and the context location is at the class A, the class C is
-      // not discovered.
-      getPsiParentsOfType(location.psiElement, PsiClassOwner::class.java, false).forEach { classOwner ->
-        yieldAll(classOwner.classes.iterator())
+        // If there are no PsiClass ancestors of the context location, find PsiClassOwner ancestors and
+        // look up their classes. We don't search recursively so nested classes may be overlooked.
+        // For instance, if there are two top-level classes A and B in a file, the class B has a nested
+        // class C with @RunWith annotation, and the context location is at the class A, the class C is
+        // not discovered.
+        getPsiParentsOfType(location.psiElement, PsiClassOwner::class.java, false).forEach { classOwner ->
+          yieldAll(classOwner.classes.iterator())
+        }
       }
-    }
     return candidates.any { psiClass ->
       if (!JUnitUtil.isTestClass(psiClass)) {
         return false
@@ -281,8 +281,8 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
   }
 
   /**
-   * Tries to configure for a directory test scope. Returns true if success otherwise false.
-   * This means that we execute the tests in a ALL_IN_MODULE test scope.
+   * Tries to configure for a directory test scope. Returns true if success otherwise false. This means that we execute the tests in a
+   * ALL_IN_MODULE test scope.
    */
   private fun tryAllInDirectoryTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
     if (location.psiElement !is PsiDirectory) return false
@@ -294,8 +294,8 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
   }
 
   /**
-   * Tries to configure for a all-in-package test. Returns true if success otherwise false.
-   * If package name is unknown, it fallbacks to all-in-module test.
+   * Tries to configure for a all-in-package test. Returns true if success otherwise false. If package name is unknown, it fallbacks to
+   * all-in-module test.
    */
   private fun tryAllInPackageTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
     val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement) ?: return false
@@ -304,10 +304,11 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
 
     val packageName = psiPackage.qualifiedName
     configuration.PACKAGE_NAME = packageName
-    configuration.TESTING_TYPE = when {
-      packageName.isNotEmpty() -> AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
-      else -> AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
-    }
+    configuration.TESTING_TYPE =
+      when {
+        packageName.isNotEmpty() -> AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
+        else -> AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
+      }
     configuration.setGeneratedName()
 
     return true
@@ -316,9 +317,10 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
 
 interface AndroidTestConfigurationProducerToken<P : AndroidProjectSystem> : Token {
   companion object {
-    val EP_NAME = ExtensionPointName<AndroidTestConfigurationProducerToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
-    )
+    val EP_NAME =
+      ExtensionPointName<AndroidTestConfigurationProducerToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
+      )
   }
 
   fun isProjectIdealForProducer(project: Project): Boolean

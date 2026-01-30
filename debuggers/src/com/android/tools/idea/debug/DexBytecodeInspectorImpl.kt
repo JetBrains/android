@@ -21,6 +21,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.psi.util.parentOfType
 import com.sun.jdi.Location
 import com.sun.jdi.Method
+import java.util.LinkedList
 import kexter.Dex
 import kexter.DexBytecode
 import kexter.DexMethod
@@ -36,12 +37,10 @@ import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.KotlinMethodSma
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.KotlinSmartStepTargetFilterer
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.SmartStepIntoContext
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import java.util.LinkedList
 
 class DexBytecodeInspectorImpl : DexBytecodeInspector {
   /**
-   * Checks if the method is a simple delegate to a static method by performing a bytecode
-   * instruction test.
+   * Checks if the method is a simple delegate to a static method by performing a bytecode instruction test.
    *
    * A simple delegate to a static method can be defined by these sets of opcodes:
    * ```
@@ -150,12 +149,7 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
       if (insn is InvokeInstruction) {
         val methodInfo = dex.retrieveMethod(insn.methodIndex())
         if (methodInfo != null) {
-          visitOrdinaryFunction(
-            methodInfo.owner,
-            methodInfo.name,
-            methodInfo.signature,
-            insn.opcode.name.startsWith("INVOKE_STATIC"),
-          )
+          visitOrdinaryFunction(methodInfo.owner, methodInfo.name, methodInfo.signature, insn.opcode.name.startsWith("INVOKE_STATIC"))
         }
       }
     }
@@ -173,9 +167,7 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
       }
       inInline = true
       if (inlineCall.isInlineFun) {
-        val call =
-          getCalledInlineFunction(debugProcess.positionManager, inlineCall.startLocation)
-            ?: continue
+        val call = getCalledInlineFunction(debugProcess.positionManager, inlineCall.startLocation) ?: continue
         visitInlineFunction(call)
       } else {
         visitInlineInvokeCall()
@@ -196,32 +188,22 @@ private fun Opcode.isInvokeStatic(): Boolean {
 }
 
 private fun Opcode.isMoveResult(): Boolean {
-  return this == Opcode.MOVE_RESULT ||
-    this == Opcode.MOVE_RESULT_WIDE ||
-    this == Opcode.MOVE_RESULT_OBJECT
+  return this == Opcode.MOVE_RESULT || this == Opcode.MOVE_RESULT_WIDE || this == Opcode.MOVE_RESULT_OBJECT
 }
 
 private fun Opcode.isReturn(): Boolean {
-  return this == Opcode.RETURN_VOID ||
-    this == Opcode.RETURN_OBJECT ||
-    this == Opcode.RETURN_WIDE ||
-    this == Opcode.RETURN
+  return this == Opcode.RETURN_VOID || this == Opcode.RETURN_OBJECT || this == Opcode.RETURN_WIDE || this == Opcode.RETURN
 }
 
 private fun Method.getDebugInfo(): DexMethodDebugInfo {
-  val lineTable =
-    allLineLocations().map { LineTableEntry(it.codeIndex().toUInt(), it.lineNumber()) }
+  val lineTable = allLineLocations().map { LineTableEntry(it.codeIndex().toUInt(), it.lineNumber()) }
   return DexMethodDebugInfo(lineTable)
 }
 
 // Copied from
 // src/org/jetbrains/kotlin/idea/debugger/stepping/smartStepInto/KotlinSmartStepTargetFiltererAdapter.kt
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-internal data class InlineCallInfo(
-  val isInlineFun: Boolean,
-  val bciRange: LongRange,
-  val startLocation: Location,
-)
+internal data class InlineCallInfo(val isInlineFun: Boolean, val bciRange: LongRange, val startLocation: Location)
 
 private fun extractInlineCalls(location: Location): List<InlineCallInfo> =
   location
@@ -240,10 +222,7 @@ private fun extractInlineCalls(location: Location): List<InlineCallInfo> =
     .filterNot { location.codeIndex() in it.bciRange }
     .sortedBy { it.bciRange.first }
 
-private suspend fun getCalledInlineFunction(
-  positionManager: PositionManager,
-  location: Location,
-): KtNamedFunction? {
+private suspend fun getCalledInlineFunction(positionManager: PositionManager, location: Location): KtNamedFunction? {
   val sourcePosition = positionManager.getSourcePosition(location) ?: return null
   return readAction { sourcePosition.elementAt?.parentOfType<KtNamedFunction>() }
 }

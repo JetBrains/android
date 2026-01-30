@@ -15,7 +15,4 @@
  */
 package com.android.tools.idea.diagnostics.report
 
-data class HeapReportProperties(
-  val reason: MemoryReportReason,
-  val liveStats: String
-)
+data class HeapReportProperties(val reason: MemoryReportReason, val liveStats: String)

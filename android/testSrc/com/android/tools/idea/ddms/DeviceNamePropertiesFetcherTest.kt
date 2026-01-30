@@ -23,6 +23,10 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -31,14 +35,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.util.concurrent.Callable
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 enum class ResultType {
   SUCCESS,
-  FAIL
+  FAIL,
 }
 
 @RunWith(JUnit4::class)
@@ -54,27 +54,35 @@ internal class DeviceNamePropertiesFetcherTest {
     Disposer.dispose(myDisposable)
   }
 
-  private fun createDeviceNamePropertiesProvider(result: AtomicReference<ResultType>,
-                                                 successLatch: List<CountDownLatch>,
-                                                 failureLatch: CountDownLatch = CountDownLatch(1)): DeviceNamePropertiesFetcher {
-    return DeviceNamePropertiesFetcher(myDisposable, object : FutureCallback<DeviceNameProperties?> {
-      var successCount = 0
-      override fun onFailure(t: Throwable) {
-        result.set(ResultType.FAIL)
-        failureLatch.countDown()
-      }
+  private fun createDeviceNamePropertiesProvider(
+    result: AtomicReference<ResultType>,
+    successLatch: List<CountDownLatch>,
+    failureLatch: CountDownLatch = CountDownLatch(1),
+  ): DeviceNamePropertiesFetcher {
+    return DeviceNamePropertiesFetcher(
+      myDisposable,
+      object : FutureCallback<DeviceNameProperties?> {
+        var successCount = 0
 
-      override fun onSuccess(properties: DeviceNameProperties?) {
-        result.set(ResultType.SUCCESS)
-        successLatch[successCount++].countDown()
-      }
-    })
+        override fun onFailure(t: Throwable) {
+          result.set(ResultType.FAIL)
+          failureLatch.countDown()
+        }
+
+        override fun onSuccess(properties: DeviceNameProperties?) {
+          result.set(ResultType.SUCCESS)
+          successLatch[successCount++].countDown()
+        }
+      },
+    )
   }
 
-  private fun createDevice(manufacturer: ListenableFuture<String?>,
-                           model: ListenableFuture<String?>,
-                           buildVersion: ListenableFuture<String?>,
-                           apiLevel: ListenableFuture<String?>): IDevice {
+  private fun createDevice(
+    manufacturer: ListenableFuture<String?>,
+    model: ListenableFuture<String?>,
+    buildVersion: ListenableFuture<String?>,
+    apiLevel: ListenableFuture<String?>,
+  ): IDevice {
     val d = Mockito.mock(IDevice::class.java)
     whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer)
     whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(model)
@@ -85,11 +93,13 @@ internal class DeviceNamePropertiesFetcherTest {
 
   @Test
   fun getDefaultValue() {
-    val d = createDevice(
-      Futures.immediateFuture(manufacturer),
-      Futures.immediateFuture(model),
-      Futures.immediateFuture(buildVersion),
-      Futures.immediateFuture(apiLevel))
+    val d =
+      createDevice(
+        Futures.immediateFuture(manufacturer),
+        Futures.immediateFuture(model),
+        Futures.immediateFuture(buildVersion),
+        Futures.immediateFuture(apiLevel),
+      )
     val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(AtomicReference(), listOf(CountDownLatch(1)))
     assertNull(deviceNamePropertiesProvider.get(d).model)
   }
@@ -109,11 +119,13 @@ internal class DeviceNamePropertiesFetcherTest {
 
   @Test
   fun getValueAvailableImmediate() {
-    val d = createDevice(
-      Futures.immediateFuture(manufacturer),
-      Futures.immediateFuture(model),
-      Futures.immediateFuture(buildVersion),
-      Futures.immediateFuture(apiLevel))
+    val d =
+      createDevice(
+        Futures.immediateFuture(manufacturer),
+        Futures.immediateFuture(model),
+        Futures.immediateFuture(buildVersion),
+        Futures.immediateFuture(apiLevel),
+      )
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
     val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
@@ -131,11 +143,13 @@ internal class DeviceNamePropertiesFetcherTest {
     val scheduledExecutorService = MoreExecutors.listeningDecorator(virtualTimeScheduler)
 
     @Suppress("UnstableApiUsage")
-    val d = createDevice(
-      scheduledExecutorService.schedule(Callable { manufacturer }, 5, TimeUnit.SECONDS),
-      scheduledExecutorService.schedule(Callable { model }, 5, TimeUnit.SECONDS),
-      scheduledExecutorService.schedule(Callable { buildVersion }, 5, TimeUnit.SECONDS),
-      scheduledExecutorService.schedule(Callable { apiLevel }, 5, TimeUnit.SECONDS))
+    val d =
+      createDevice(
+        scheduledExecutorService.schedule(Callable { manufacturer }, 5, TimeUnit.SECONDS),
+        scheduledExecutorService.schedule(Callable { model }, 5, TimeUnit.SECONDS),
+        scheduledExecutorService.schedule(Callable { buildVersion }, 5, TimeUnit.SECONDS),
+        scheduledExecutorService.schedule(Callable { apiLevel }, 5, TimeUnit.SECONDS),
+      )
 
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
@@ -151,11 +165,13 @@ internal class DeviceNamePropertiesFetcherTest {
 
   @Test
   fun getExceptionIsThrownDuringRetrieve() {
-    val d = createDevice(
-      Futures.immediateFailedFuture(Exception("Fail")),
-      Futures.immediateFailedFuture(Exception("Fail")),
-      Futures.immediateFailedFuture(Exception("Fail")),
-      Futures.immediateFailedFuture(Exception("Fail")))
+    val d =
+      createDevice(
+        Futures.immediateFailedFuture(Exception("Fail")),
+        Futures.immediateFailedFuture(Exception("Fail")),
+        Futures.immediateFailedFuture(Exception("Fail")),
+        Futures.immediateFailedFuture(Exception("Fail")),
+      )
     val result = AtomicReference<ResultType>()
     val successLatch = CountDownLatch(1)
     val failureLatch = CountDownLatch(1)
@@ -171,11 +187,13 @@ internal class DeviceNamePropertiesFetcherTest {
 
   @Test
   fun getDeviceUnauthorized() {
-    val d = createDevice(
-      Futures.immediateFuture(null),
-      Futures.immediateFuture(null),
-      Futures.immediateFuture(null),
-      Futures.immediateFuture(null))
+    val d =
+      createDevice(
+        Futures.immediateFuture(null),
+        Futures.immediateFuture(null),
+        Futures.immediateFuture(null),
+        Futures.immediateFuture(null),
+      )
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
     val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
@@ -190,23 +208,19 @@ internal class DeviceNamePropertiesFetcherTest {
   @Test
   fun getDeviceUnauthorizedUntilAuthorized() {
     val d = Mockito.mock(IDevice::class.java)
-    whenever(
-      d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER))
+    whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(manufacturer))
-    whenever(
-      d.getSystemProperty(IDevice.PROP_DEVICE_MODEL))
+    whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(model))
       .thenReturn(Futures.immediateFuture(model))
-    whenever(
-      d.getSystemProperty(IDevice.PROP_BUILD_VERSION))
+    whenever(d.getSystemProperty(IDevice.PROP_BUILD_VERSION))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(buildVersion))
-    whenever(
-      d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
+    whenever(d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(null))
       .thenReturn(Futures.immediateFuture(apiLevel))

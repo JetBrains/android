@@ -28,7 +28,5 @@ enum class GlassesBackground(val displayName: String, val fileName: String?) {
   BUSY_BACKGROUND("Busy Background", "busy_bg.png");
 
   val imageTransform: Consumer<BufferedImage> =
-    Consumer<BufferedImage> {
-      GlassesBackgroundBlendMode.getInstance(this@GlassesBackground)?.applyBackground(it)
-    }
+    Consumer<BufferedImage> { GlassesBackgroundBlendMode.getInstance(this@GlassesBackground)?.applyBackground(it) }
 }

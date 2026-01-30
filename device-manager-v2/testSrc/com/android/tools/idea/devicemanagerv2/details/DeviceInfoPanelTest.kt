@@ -106,9 +106,9 @@ class DeviceInfoPanelTest {
         statusWriter.writeOk()
         shellCommandOutput.writeStdout(
           """
-            Filesystem       1K-blocks    Used Available Use% Mounted on
-            /dev/block/dm-32   6082144 3336860   2603072  57% /storage/emulated/0/Android/obb
-            """
+          Filesystem       1K-blocks    Used Available Use% Mounted on
+          /dev/block/dm-32   6082144 3336860   2603072  57% /storage/emulated/0/Android/obb
+          """
             .trimIndent()
         )
         shellCommandOutput.writeExitCode(0)
@@ -164,9 +164,7 @@ class DeviceInfoPanelTest {
 
     runBlocking { handle.deactivationAction.deactivate() }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      retryUntilPassing(5.seconds) { assertThat(panel.powerLabel.isVisible).isFalse() }
-    }
+    ApplicationManager.getApplication().invokeAndWait { retryUntilPassing(5.seconds) { assertThat(panel.powerLabel.isVisible).isFalse() } }
 
     batteryHandler.batteryLevel = 81
     runBlocking { handle.activationAction.activate() }
@@ -178,11 +176,7 @@ class DeviceInfoPanelTest {
       }
     }
 
-    handle.stateFlow.update {
-      (it as com.android.sdklib.deviceprovisioner.DeviceState.Connected).copy(
-        makeProps(Abi.ARM64_V8A)
-      )
-    }
+    handle.stateFlow.update { (it as com.android.sdklib.deviceprovisioner.DeviceState.Connected).copy(makeProps(Abi.ARM64_V8A)) }
 
     ApplicationManager.getApplication().invokeAndWait {
       retryUntilPassing(5.seconds) {
@@ -198,22 +192,11 @@ class DeviceInfoPanelTest {
       val buffer = StringBuilder()
       InfoSection(
           "Properties",
-          listOf(
-            LabeledValue("Type", "Phone"),
-            LabeledValue("System image", "/tmp/foo/system.img"),
-            LabeledValue("API", "33"),
-          ),
+          listOf(LabeledValue("Type", "Phone"), LabeledValue("System image", "/tmp/foo/system.img"), LabeledValue("API", "33")),
         )
         .writeTo(buffer)
       assertThat(buffer.toString())
-        .isEqualTo(
-          String.format(
-            "Properties%n" +
-              "Type         Phone%n" +
-              "System image /tmp/foo/system.img%n" +
-              "API          33%n"
-          )
-        )
+        .isEqualTo(String.format("Properties%n" + "Type         Phone%n" + "System image /tmp/foo/system.img%n" + "API          33%n"))
     }
   }
 }

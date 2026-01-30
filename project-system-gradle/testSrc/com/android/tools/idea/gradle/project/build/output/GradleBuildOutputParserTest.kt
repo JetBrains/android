@@ -23,42 +23,46 @@ class GradleBuildOutputParserTest : BuildOutputParserTest() {
 
   @Test
   fun parseErrorAndWarning() {
-    val filePath = when {
-      // Backslash should be double-escaped in json.
-      SystemInfo.isWindows -> "C:\\app\\src\\main\\res\\layout\\activity_main.xml"
-      else -> "/app/src/main/res/layout/activity_main.xml"
-    }
+    val filePath =
+      when {
+        // Backslash should be double-escaped in json.
+        SystemInfo.isWindows -> "C:\\app\\src\\main\\res\\layout\\activity_main.xml"
+        else -> "/app/src/main/res/layout/activity_main.xml"
+      }
     val filePathJson = filePath.replace("\\", "\\\\")
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = """
+      gradleOutput =
+        """
         AGPBI: {"kind":"error","text":"Error message.","sources":[{"file":"$filePathJson","position":{"startLine":10,"startColumn":31,"startOffset":456,"endColumn":44,"endOffset":469}}],"tool":"AAPT"}
         This is a detail line
         AGPBI: {"kind":"warning","text":"Warning message.","sources":[{}],"tool":"D8"}
-      """.trimIndent(),
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "Error message.",
-          isFileMessageEvent = true,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "AAPT errors",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          filePosition = "$filePath:11:32-11:45",
-          description = "Error message.",
+      """
+          .trimIndent(),
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Error message.",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "AAPT errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:11:32-11:45",
+            description = "Error message.",
+          ),
+          ExpectedEvent(
+            message = "Warning message.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "D8 warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            description = "Warning message.",
+          ),
         ),
-        ExpectedEvent(
-          message = "Warning message.",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "D8 warnings",
-          kind = MessageEvent.Kind.WARNING,
-          parentId = "testId",
-          description = "Warning message."
-        )
-      )
     )
   }
 
@@ -66,27 +70,32 @@ class GradleBuildOutputParserTest : BuildOutputParserTest() {
   fun parseWithMultilineWarning() {
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = """
+      gradleOutput =
+        """
         AGPBI: {"kind":"warning","text":"Warning message.\nWarning line 1\nWarning line 2\nWarning line 3","sources":[{}],"tool":"D8"}
         This is a detail line
-      """.trimIndent(),
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "Warning message.",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "D8 warnings",
-          kind = MessageEvent.Kind.WARNING,
-          parentId = "testId",
-          description = """
-            Warning message.
-            Warning line 1
-            Warning line 2
-            Warning line 3
-          """.trimIndent()
-        )
-      )
+        """
+          .trimIndent(),
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Warning message.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "D8 warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            description =
+              """
+              Warning message.
+              Warning line 1
+              Warning line 2
+              Warning line 3
+              """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -97,42 +106,49 @@ class GradleBuildOutputParserTest : BuildOutputParserTest() {
     // but last one is not and triggers AndroidGradlePluginOutputParser.
     parseOutput(
       parentEventId = "testId",
-      gradleOutput = """
+      gradleOutput =
+        """
         AGPBI: {"kind":"error","text":"Error message.","sources":[{}],"original":"error: line 1\nerror: line 2\nerror: line 3","tool":"Dex"}
         error: line 1
         error: line 2
         error: line 3
         Unrelated output
         error: line 1
-      """.trimIndent(),
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "Error message.",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "Dex errors",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          description = """
-            error: line 1
-            error: line 2
-            error: line 3
-          """.trimIndent()
+        """
+          .trimIndent(),
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Error message.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Dex errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            description =
+              """
+              error: line 1
+              error: line 2
+              error: line 3
+              """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "line 1",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Android Gradle Plugin",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            description =
+              """
+              line 1
+              """
+                .trimIndent(),
+          ),
         ),
-        ExpectedEvent(
-          message = "line 1",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "Android Gradle Plugin",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          description = """
-            line 1
-          """.trimIndent()
-        )
-      )
     )
   }
 
@@ -140,70 +156,84 @@ class GradleBuildOutputParserTest : BuildOutputParserTest() {
   fun parseChangeBuildId() {
     parseOutput(
       parentEventId = "testId_1",
-      gradleOutput = """
+      gradleOutput =
+        """
         AGPBI: {"kind":"error","text":"Error message.","sources":[{}],"original":"error: line 1\nerror: line 2\nerror: line 3","tool":"Dex"}
         error: line 1
         Unrelated output
-      """.trimIndent(),
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "Error message.",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "Dex errors",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId_1",
-          description = """
-            error: line 1
-            error: line 2
-            error: line 3
-          """.trimIndent()
-        )
-      )
+        """
+          .trimIndent(),
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Error message.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Dex errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId_1",
+            description =
+              """
+              error: line 1
+              error: line 2
+              error: line 3
+              """
+                .trimIndent(),
+          )
+        ),
     )
     // GradleBuildOutputParser should not consume outputs from different task, so they generate messages
     parseOutput(
       parentEventId = "testId_2",
-      gradleOutput = """
+      gradleOutput =
+        """
         error: line 1
         error: line 2
-      """.trimIndent(),
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "line 1",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "Android Gradle Plugin",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId_2",
-          description = """
-            line 1
-          """.trimIndent()
+        """
+          .trimIndent(),
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "line 1",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Android Gradle Plugin",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId_2",
+            description =
+              """
+              line 1
+              """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "line 2",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "Android Gradle Plugin",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId_2",
+            description =
+              """
+              line 2
+              """
+                .trimIndent(),
+          ),
         ),
-        ExpectedEvent(
-          message = "line 2",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "Android Gradle Plugin",
-          kind = MessageEvent.Kind.ERROR,
-          parentId = "testId_2",
-          description = """
-            line 2
-          """.trimIndent()
-        )
-      )
     )
     // returning to parsing original task - GradleBuildOutputParser should just consume known lines.
     parseOutput(
       parentEventId = "testId_1",
-      gradleOutput = """
+      gradleOutput =
+        """
         error: line 2
         error: line 3
-      """.trimIndent(),
-      expectedEvents = emptyList<ExpectedEvent>()
+        """
+          .trimIndent(),
+      expectedEvents = emptyList<ExpectedEvent>(),
     )
   }
 }

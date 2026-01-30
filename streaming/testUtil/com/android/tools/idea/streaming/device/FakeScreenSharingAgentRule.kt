@@ -57,32 +57,31 @@ import org.junit.runners.model.Statement
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
- */
+/** Allows tests to use [FakeScreenSharingAgent] instead of the real one. */
 class FakeScreenSharingAgentRule : TestRule {
 
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()
   private val fakeAdbServerAdbLibRule = FakeAdbServerAdbLibRule(::configureFakeAdbServer)
-  private val testEnvironment = object : ExternalResource() {
+  private val testEnvironment =
+    object : ExternalResource() {
 
-    override fun before() {
-      val binDir = Paths.get(StudioPathManager.getBinariesRoot())
-      // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
-      createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
-      for (deviceAbi in listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")) {
-        createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/native/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME"))
+      override fun before() {
+        val binDir = Paths.get(StudioPathManager.getBinariesRoot())
+        // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
+        createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
+        for (deviceAbi in listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")) {
+          createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/native/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME"))
+        }
+      }
+
+      override fun after() {
+        while (devices.isNotEmpty()) {
+          disconnectDevice(devices.last())
+        }
       }
     }
-
-    override fun after() {
-      while (devices.isNotEmpty()) {
-        disconnectDevice(devices.last())
-      }
-    }
-  }
 
   val disposable: Disposable
     get() = projectRule.disposable
@@ -99,78 +98,89 @@ class FakeScreenSharingAgentRule : TestRule {
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return projectRule.apply(
-      fakeAdbServerAdbLibRule.apply(
-        testEnvironment.apply(base, description),
-        description),
-      description)
+    return projectRule.apply(fakeAdbServerAdbLibRule.apply(testEnvironment.apply(base, description), description), description)
   }
 
   private fun configureFakeAdbServer(fakeAdbServer: FakeAdbServer.Builder) {
-    fakeAdbServer.addDeviceHandler(object : DeviceCommandHandler("shell,v2") {
-      override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
-        if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
+    fakeAdbServer.addDeviceHandler(
+      object : DeviceCommandHandler("shell,v2") {
+        override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
+          if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
+            val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
+            val shellProtocol = ShellV2Protocol(socket)
+            writeOkay(socket.outputStream)
+            runBlocking { fakeDevice.agent.run(shellProtocol, args, fakeDevice.hostPort!!) }
+          } else if (args.startsWith("mkdir ")) {
+            writeOkay(socket.outputStream)
+            ShellV2Protocol(socket).writeExitCode(0)
+          } else if (args.startsWith("logcat ")) {
+            writeOkay(socket.outputStream)
+            val shellProtocol = ShellV2Protocol(socket)
+            shellProtocol.writeStdout("--------- beginning of crash\n")
+            shellProtocol.writeStdout("06-20 17:54:11.642 14782 14782 F libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)\n")
+            shellProtocol.writeExitCode(0)
+          } else {
+            throw NextHandlerException()
+          }
+        }
+      }
+    )
+    fakeAdbServer.addDeviceHandler(
+      object : DeviceCommandHandler("reverse") {
+        override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
           val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
-          val shellProtocol = ShellV2Protocol(socket)
-          writeOkay(socket.outputStream)
-          runBlocking { fakeDevice.agent.run(shellProtocol, args, fakeDevice.hostPort!!) }
-        }
-        else if (args.startsWith("mkdir ")) {
-          writeOkay(socket.outputStream)
-          ShellV2Protocol(socket).writeExitCode(0)
-        }
-        else if (args.startsWith("logcat ")) {
-          writeOkay(socket.outputStream)
-          val shellProtocol = ShellV2Protocol(socket)
-          shellProtocol.writeStdout("--------- beginning of crash\n")
-          shellProtocol.writeStdout("06-20 17:54:11.642 14782 14782 F libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)\n")
-          shellProtocol.writeExitCode(0)
-        }
-        else {
-          throw NextHandlerException()
+          if (args.startsWith("forward:")) {
+            val parts = args.split(';')
+            val hostParts = parts[1].split(':')
+            fakeDevice.hostPort = hostParts[1].toInt()
+          } else if (args.startsWith("killforward:")) {
+            fakeDevice.hostPort = null
+          }
+          val stream = socket.outputStream
+          writeOkay(stream)
+          writeOkay(stream)
         }
       }
-    })
-    fakeAdbServer.addDeviceHandler(object : DeviceCommandHandler("reverse") {
-      override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
-        val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
-        if (args.startsWith("forward:")) {
-          val parts = args.split(';')
-          val hostParts = parts[1].split(':')
-          fakeDevice.hostPort = hostParts[1].toInt()
-        }
-        else if (args.startsWith("killforward:")) {
-          fakeDevice.hostPort = null
-        }
-        val stream = socket.outputStream
-        writeOkay(stream)
-        writeOkay(stream)
-      }
-    })
+    )
   }
 
-  fun connectDevice(model: String,
-                    apiLevel: Int,
-                    displaySize: Dimension,
-                    foldedSize: Dimension? = null,
-                    roundDisplay: Boolean = false,
-                    screenDensity: Int? = null,
-                    abi: String = "arm64-v8a",
-                    additionalDeviceProperties: Map<String, String> = emptyMap(),
-                    manufacturer: String = "Google",
-                    hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
+  fun connectDevice(
+    model: String,
+    apiLevel: Int,
+    displaySize: Dimension,
+    foldedSize: Dimension? = null,
+    roundDisplay: Boolean = false,
+    screenDensity: Int? = null,
+    abi: String = "arm64-v8a",
+    additionalDeviceProperties: Map<String, String> = emptyMap(),
+    manufacturer: String = "Google",
+    hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB,
+  ): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
     val release = "Sweet dessert"
-    val deviceState = fakeAdbServerAdbLibRule.connectDevice(
-      serialNumber, manufacturer, model,
-      release, AndroidApiLevel(apiLevel),
-      cpuAbi = abi, properties = additionalDeviceProperties, hostConnectionType = hostConnectionType)
-      .also {
-        it.deviceStatus = DeviceState.DeviceStatus.ONLINE
-      }
+    val deviceState =
+      fakeAdbServerAdbLibRule
+        .connectDevice(
+          serialNumber,
+          manufacturer,
+          model,
+          release,
+          AndroidApiLevel(apiLevel),
+          cpuAbi = abi,
+          properties = additionalDeviceProperties,
+          hostConnectionType = hostConnectionType,
+        )
+        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
 
-    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize,
-                            screenDensity = screenDensity)
+    val device =
+      FakeDevice(
+        serialNumber,
+        displaySize,
+        deviceState,
+        roundDisplay = roundDisplay,
+        foldedSize = foldedSize,
+        screenDensity = screenDensity,
+      )
     devices.add(device)
     return device
   }
@@ -190,12 +200,13 @@ class FakeScreenSharingAgentRule : TestRule {
     }
   }
 
-  class FakeDevice(val serialNumber: String,
-                   val displaySize: Dimension,
-                   val deviceState: DeviceState,
-                   val roundDisplay: Boolean = false,
-                   foldedSize: Dimension? = null,
-                   private val screenDensity: Int? = null,
+  class FakeDevice(
+    val serialNumber: String,
+    val displaySize: Dimension,
+    val deviceState: DeviceState,
+    val roundDisplay: Boolean = false,
+    foldedSize: Dimension? = null,
+    private val screenDensity: Int? = null,
   ) {
     val agent: FakeScreenSharingAgent =
       FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
@@ -208,12 +219,13 @@ class FakeScreenSharingAgentRule : TestRule {
         readCommonProperties(deviceState.properties)
         populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties, "fakeConnectionId")
         readAdbSerialNumber(serialNumber)
-        icon = when (deviceType) {
-          DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-          DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-          DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-          else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        }
+        icon =
+          when (deviceType) {
+            DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
+            DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
+            DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
+            else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          }
         resolution = Resolution(displaySize.width, displaySize.height)
         density = screenDensity
       }
@@ -229,11 +241,9 @@ class FakeScreenSharingAgentRule : TestRule {
 
     fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
       val deviceProperties = device.configuration.deviceProperties
-      val connectedDevice = mock<ConnectedDevice>().apply {
-        whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
-      }
+      val connectedDevice =
+        mock<ConnectedDevice>().apply { whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE))) }
       return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice)
     }
   }
 }
-

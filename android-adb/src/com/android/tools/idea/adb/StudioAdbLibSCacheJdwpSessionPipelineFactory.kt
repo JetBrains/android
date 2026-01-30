@@ -36,17 +36,13 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
   private var enableTracer: () -> Boolean = { false }
 
   /**
-   * SCache has a low priority, meaning it should be as close as possible to the device in the
-   * `(JDWP Device Process, pipeline1, pipeline2, ..., Java Debugger)` sequence
+   * SCache has a low priority, meaning it should be as close as possible to the device in the `(JDWP Device Process, pipeline1, pipeline2,
+   * ..., Java Debugger)` sequence
    */
   override val priority: Int
     get() = -1000
 
-  override fun create(
-    device: ConnectedDevice,
-    pid: Int,
-    previousPipeline: JdwpSessionPipeline,
-  ): JdwpSessionPipeline? {
+  override fun create(device: ConnectedDevice, pid: Int, previousPipeline: JdwpSessionPipeline): JdwpSessionPipeline? {
     return enableForDevice(device).let { enabled ->
       logger.info("SCache for device $device, process=$pid: enabled=$enabled")
       when (enabled) {
@@ -59,13 +55,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
               true -> StudioAdbLibJdwpTracer()
               false -> null
             }
-          StudioAdbLibSCacheJdwpSessionPipeline(
-            device,
-            pid,
-            scacheLogger,
-            monitor,
-            previousPipeline,
-          )
+          StudioAdbLibSCacheJdwpSessionPipeline(device, pid, scacheLogger, monitor, previousPipeline)
         }
         else -> {
           null
@@ -86,16 +76,10 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
     }
 
     @JvmStatic
-    fun install(
-      session: AdbSession,
-      enableForDevice: (ConnectedDevice) -> Boolean,
-      enableJdwpTracer: () -> Boolean,
-    ) {
+    fun install(session: AdbSession, enableForDevice: (ConnectedDevice) -> Boolean, enableJdwpTracer: () -> Boolean) {
       val factory =
         session.cache.getOrPutSynchronized(key) {
-          StudioAdbLibSCacheJdwpSessionPipelineFactory().also {
-            session.addJdwpSessionPipelineFactory(it)
-          }
+          StudioAdbLibSCacheJdwpSessionPipelineFactory().also { session.addJdwpSessionPipelineFactory(it) }
         }
       factory.enableForDevice = enableForDevice
       factory.enableTracer = enableJdwpTracer
@@ -122,8 +106,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
       val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(session)
       val isDeviceRemote =
         deviceProvisioner?.devices?.value?.any { deviceHandle ->
-          (deviceHandle.state.connectedDevice === this) &&
-            (deviceHandle.state.properties.isRemote ?: false)
+          (deviceHandle.state.connectedDevice === this) && (deviceHandle.state.properties.isRemote ?: false)
         } ?: false
 
       return isDeviceRemote

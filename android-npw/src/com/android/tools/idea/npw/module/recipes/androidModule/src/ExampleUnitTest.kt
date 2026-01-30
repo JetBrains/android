@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module.recipes.androidModule.src
 
 import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 
-fun exampleUnitTestWithKotlinTest(packageName: String) = """
+fun exampleUnitTestWithKotlinTest(packageName: String) =
+  """
   package ${escapeKotlinIdentifier(packageName)}
 
   import kotlin.test.Test
@@ -34,9 +35,11 @@ fun exampleUnitTestWithKotlinTest(packageName: String) = """
           assertEquals(4, 2 + 2)
       }
   }
-""".trimIndent()
+"""
+    .trimIndent()
 
-fun exampleUnitTestKt(packageName: String) = """
+fun exampleUnitTestKt(packageName: String) =
+  """
   package ${escapeKotlinIdentifier(packageName)}
 
   import org.junit.Test
@@ -56,7 +59,8 @@ fun exampleUnitTestKt(packageName: String) = """
   }
 """
 
-fun exampleUnitTestJava(packageName: String) = """
+fun exampleUnitTestJava(packageName: String) =
+  """
   package ${packageName};
 
   import org.junit.Test;

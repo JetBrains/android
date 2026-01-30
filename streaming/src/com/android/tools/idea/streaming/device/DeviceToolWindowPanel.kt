@@ -58,9 +58,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.launch
 
-/**
- * Provides view of one physical device in the Running Devices tool window.
- */
+/** Provides view of one physical device in the Running Devices tool window. */
 internal class DeviceToolWindowPanel(
   disposableParent: Disposable,
   private val project: Project,
@@ -111,15 +109,16 @@ internal class DeviceToolWindowPanel(
   override var primaryDisplayView: DeviceView? = null
     private set
 
-  private val deviceStateListener = object : DeviceController.DeviceStateListener {
-    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
-      ActivityTracker.getInstance().inc()
-    }
+  private val deviceStateListener =
+    object : DeviceController.DeviceStateListener {
+      override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
+        ActivityTracker.getInstance().inc()
+      }
 
-    override fun onDeviceStateChanged(deviceState: Int) {
-      ActivityTracker.getInstance().inc()
+      override fun onDeviceStateChanged(deviceState: Int) {
+        ActivityTracker.getInstance().inc()
+      }
     }
-  }
 
   init {
     Disposer.register(disposableParent, this)
@@ -129,9 +128,7 @@ internal class DeviceToolWindowPanel(
     // Showing device frame is not supported for physical devices.
   }
 
-  /**
-   * Populates the device panel with content.
-   */
+  /** Populates the device panel with content. */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     if (contentDisposable != null) {
       thisLogger().error(IllegalStateException("${title}: content already exists"))
@@ -144,9 +141,10 @@ internal class DeviceToolWindowPanel(
 
     val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
     val initialOrientation = uiState.orientation
-    val primaryDisplayPanel = createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
-      DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
-    }
+    val primaryDisplayPanel =
+      createDisplayPanelIfAbsent(PRIMARY_DISPLAY_ID) {
+        DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
+      }
     val zoomScrollState = uiState.zoomScrollState
     for (displayPanel in displayPanels) {
       zoomScrollState[displayPanel.displayId]?.let { displayPanel.zoomScrollState = it }
@@ -159,43 +157,43 @@ internal class DeviceToolWindowPanel(
     centerPanel.addToCenter(primaryDisplayPanel)
     val displayConfigurator = DisplayConfigurator()
 
-    deviceView.addConnectionStateListener(object : ConnectionStateListener {
-      @UiThread
-      override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
-        when (connectionState) {
-          ConnectionState.CONNECTED -> {
-            deviceController?.apply {
-              Disposer.register(disposable) {
+    deviceView.addConnectionStateListener(
+      object : ConnectionStateListener {
+        @UiThread
+        override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
+          when (connectionState) {
+            ConnectionState.CONNECTED -> {
+              deviceController?.apply {
+                Disposer.register(disposable) {
+                  removeDisplayListener(displayConfigurator)
+                  removeDeviceStateListener(deviceStateListener)
+                }
+                addDisplayListener(displayConfigurator)
+                displayConfigurator.initialize()
+                addDeviceStateListener(deviceStateListener)
+              }
+
+              showContextMenuAdvertisementIfNecessary(disposable)
+            }
+            ConnectionState.DISCONNECTED -> {
+              deviceController?.apply {
+                displayConfigurator.reconfigureDisplayPanels(emptyList())
                 removeDisplayListener(displayConfigurator)
                 removeDeviceStateListener(deviceStateListener)
               }
-              addDisplayListener(displayConfigurator)
-              displayConfigurator.initialize()
-              addDeviceStateListener(deviceStateListener)
             }
+            else -> {}
+          }
 
-            showContextMenuAdvertisementIfNecessary(disposable)
-          }
-          ConnectionState.DISCONNECTED -> {
-            deviceController?.apply {
-              displayConfigurator.reconfigureDisplayPanels(emptyList())
-              removeDisplayListener(displayConfigurator)
-              removeDeviceStateListener(deviceStateListener)
-            }
-          }
-          else -> {}
+          ActivityTracker.getInstance().inc()
         }
-
-        ActivityTracker.getInstance().inc()
       }
-    })
+    )
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
   }
 
-  /**
-   * Destroys content of the device panel and returns its state for later recreation.
-   */
+  /** Destroys content of the device panel and returns its state for later recreation. */
   override fun destroyContent(): DeviceUiState {
     val uiState = DeviceUiState()
     val disposable = contentDisposable ?: return uiState
@@ -233,7 +231,7 @@ internal class DeviceToolWindowPanel(
   }
 
   private fun createScreenRecorderParameters(deviceController: DeviceController): ScreenRecordingParameters =
-      ScreenRecordingParameters(deviceSerialNumber, deviceClient.deviceName, deviceConfig.featureLevel, deviceController, null)
+    ScreenRecordingParameters(deviceSerialNumber, deviceClient.deviceName, deviceConfig.featureLevel, deviceController, null)
 
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 
@@ -244,13 +242,13 @@ internal class DeviceToolWindowPanel(
     fun initialize() {
       contentDisposable?.let {
         it.createCoroutineScope().launch {
-          val displays = try {
-            deviceController?.getDisplayConfigurations() ?: return@launch
-          }
-          catch (_: TimeoutException) {
-            thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
-            return@launch
-          }
+          val displays =
+            try {
+              deviceController?.getDisplayConfigurations() ?: return@launch
+            } catch (_: TimeoutException) {
+              thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")
+              return@launch
+            }
           if (displays.isEmpty()) {
             return@launch // All displays are turned off.
           }
@@ -274,8 +272,7 @@ internal class DeviceToolWindowPanel(
             newDisplays[pos].height = height
             newDisplays[pos].orientation = rotation
             newDisplays[pos].type = displayType
-          }
-          else {
+          } else {
             newDisplays.add(pos.inv(), DisplayDescriptor(displayId, width, height, rotation, displayType))
           }
           reconfigureDisplayPanels(newDisplays)
@@ -302,8 +299,8 @@ internal class DeviceToolWindowPanel(
         return
       }
 
-      removeDisplayPanels {
-        displayPanel -> displayPanel.displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayPanel.displayId }
+      removeDisplayPanels { displayPanel ->
+        displayPanel.displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayPanel.displayId }
       }
       val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
       val rootPanel = buildLayout(layoutRoot, newDisplays)
@@ -345,8 +342,7 @@ internal class DeviceToolWindowPanel(
           firstComponent = buildLayout(splitPanelState.firstComponent, displayDescriptors)
           secondComponent = buildLayout(splitPanelState.secondComponent, displayDescriptors)
         }
-      }
-      else {
+      } else {
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
         createDisplayPanelIfAbsent(displayId) {
@@ -385,10 +381,7 @@ internal class DeviceToolWindowPanel(
     }
   }
 
-  /**
-   * Persistent multi-display state corresponding to a single device.
-   * The no-argument constructor is used by the XML deserializer.
-   */
+  /** Persistent multi-display state corresponding to a single device. The no-argument constructor is used by the XML deserializer. */
   class MultiDisplayState() {
 
     constructor(displayDescriptors: Collection<DisplayDescriptor>, panelState: PanelState) : this() {

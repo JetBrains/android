@@ -22,15 +22,12 @@ import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFi
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
 
 /**
- * Registers an unresolved reference resolver in Kotlin files (K2) which recognizes classes from key
- * Maven artifacts and offers to add a dependency on them.
+ * Registers an unresolved reference resolver in Kotlin files (K2) which recognizes classes from key Maven artifacts and offers to add a
+ * dependency on them.
  */
 class AndroidMavenImportKotlinQuickFixRegistrar : KotlinQuickFixRegistrar() {
   private val factory =
-    KotlinQuickFixFactory.IntentionBased<KaFirDiagnostic.UnresolvedReference> { diagnostic ->
-      listOf(AndroidMavenImportIntentionAction())
-    }
+    KotlinQuickFixFactory.IntentionBased<KaFirDiagnostic.UnresolvedReference> { diagnostic -> listOf(AndroidMavenImportIntentionAction()) }
 
-  override val list: KotlinQuickFixesList =
-    KtQuickFixesListBuilder.registerPsiQuickFix { registerFactory(factory) }
+  override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix { registerFactory(factory) }
 }

@@ -29,8 +29,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that would normally go in [LightArgsBuilderClassTest] but are related to a bunch of
- * arguments types that we want to test with parametrization.
+ * Tests that would normally go in [LightArgsBuilderClassTest] but are related to a bunch of arguments types that we want to test with
+ * parametrization.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
@@ -96,9 +96,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val builderClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context)
-        as LightArgsBuilderClass
+    val builderClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context) as LightArgsBuilderClass
 
     // We expect two constructors - a copy constructor (which is initialized with the parent args
     builderClass.constructors.let { constructors ->
@@ -112,11 +110,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
       constructors[1].checkSignaturesAndReturnType(
         name = "Builder",
         returnType = PsiTypes.nullType().presentableText,
-        parameters =
-          listOf(
-            Parameter("argOne", typeMapping.after),
-            Parameter("argThree", "${typeMapping.after}[]"),
-          ),
+        parameters = listOf(Parameter("argOne", typeMapping.after), Parameter("argThree", "${typeMapping.after}[]")),
       )
     }
 
@@ -147,10 +141,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
         parameters = listOf(Parameter("argThree", "${typeMapping.after}[]")),
       )
 
-      methods[5].checkSignaturesAndReturnType(
-        name = "getArgThree",
-        returnType = "${typeMapping.after}[]",
-      )
+      methods[5].checkSignaturesAndReturnType(name = "getArgThree", returnType = "${typeMapping.after}[]")
 
       methods[6].checkSignaturesAndReturnType(
         name = "setArgFour",
@@ -158,11 +149,7 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
         parameters = listOf(Parameter("argFour", "${typeMapping.after}[]")),
       )
 
-      methods[7].checkSignaturesAndReturnType(
-        name = "getArgFour",
-        isReturnTypeNullable = true,
-        returnType = "${typeMapping.after}[]",
-      )
+      methods[7].checkSignaturesAndReturnType(name = "getArgFour", isReturnTypeNullable = true, returnType = "${typeMapping.after}[]")
 
       methods[8].checkSignaturesAndReturnType(name = "build", returnType = "FragmentArgs")
     }

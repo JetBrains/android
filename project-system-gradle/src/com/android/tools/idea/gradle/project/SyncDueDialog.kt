@@ -23,7 +23,6 @@ import com.intellij.openapi.ui.DialogWrapper.NEXT_USER_EXIT_CODE
 import com.intellij.ui.components.JBOptionButton
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
@@ -32,6 +31,7 @@ import javax.swing.Action
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.android.util.AndroidBundle
 
 enum class SyncDueDialogSelection {
   SyncOnce,
@@ -40,16 +40,12 @@ enum class SyncDueDialogSelection {
   CloseAndSnoozeTodayForAllProjects,
   CloseAndSnoozeIndefinitelyForProject;
 
-  /**
-   * Use this instead of [ordinal] to avoid collision with default exit codes of dialog.
-   */
+  /** Use this instead of [ordinal] to avoid collision with default exit codes of dialog. */
   val dialogExitCode: Int
     get() = NEXT_USER_EXIT_CODE + ordinal
 
   companion object {
-    /**
-     * Interprets exit code of dialog
-     */
+    /** Interprets exit code of dialog */
     fun of(dialog: SyncDueDialog): SyncDueDialogSelection {
       return if (dialog.exitCode == CANCEL_EXIT_CODE) {
         Close
@@ -79,39 +75,44 @@ class SyncDueDialog : DialogWrapper(true) {
   }
 
   override fun createSouthPanel(): JComponent {
-    val syncAutomaticallyAction = object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.enable")) {
-      override fun doAction(e: ActionEvent?) {
-        close(SyncDueDialogSelection.SyncAlways.dialogExitCode)
-      }
-    }
-
-    val syncOnceAction = object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.sync")) {
-      override fun doAction(e: ActionEvent?) {
-        close(SyncDueDialogSelection.SyncOnce.dialogExitCode)
-      }
-    }
-
-    val closeAction = object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.continue")) {
-      init {
-        putValue(DEFAULT_ACTION, true)
+    val syncAutomaticallyAction =
+      object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.enable")) {
+        override fun doAction(e: ActionEvent?) {
+          close(SyncDueDialogSelection.SyncAlways.dialogExitCode)
+        }
       }
 
-      override fun doAction(e: ActionEvent?) {
-        close(SyncDueDialogSelection.Close.dialogExitCode)
+    val syncOnceAction =
+      object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.sync")) {
+        override fun doAction(e: ActionEvent?) {
+          close(SyncDueDialogSelection.SyncOnce.dialogExitCode)
+        }
       }
-    }
 
-    val snoozeTomorrowAction = object : AbstractAction(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze")) {
-      override fun actionPerformed(e: ActionEvent?) {
-        close(SyncDueDialogSelection.CloseAndSnoozeTodayForAllProjects.dialogExitCode)
-      }
-    }
+    val closeAction =
+      object : DialogWrapperAction(AndroidBundle.message("gradle.settings.autoSync.dialog.continue")) {
+        init {
+          putValue(DEFAULT_ACTION, true)
+        }
 
-    val snoozeForThisProject = object : AbstractAction(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze.long")) {
-      override fun actionPerformed(e: ActionEvent?) {
-        close(SyncDueDialogSelection.CloseAndSnoozeIndefinitelyForProject.dialogExitCode)
+        override fun doAction(e: ActionEvent?) {
+          close(SyncDueDialogSelection.Close.dialogExitCode)
+        }
       }
-    }
+
+    val snoozeTomorrowAction =
+      object : AbstractAction(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze")) {
+        override fun actionPerformed(e: ActionEvent?) {
+          close(SyncDueDialogSelection.CloseAndSnoozeTodayForAllProjects.dialogExitCode)
+        }
+      }
+
+    val snoozeForThisProject =
+      object : AbstractAction(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze.long")) {
+        override fun actionPerformed(e: ActionEvent?) {
+          close(SyncDueDialogSelection.CloseAndSnoozeIndefinitelyForProject.dialogExitCode)
+        }
+      }
 
     val syncAutomaticallyButton = JButton(syncAutomaticallyAction)
     val syncOnceButton = JButton(syncOnceAction)
@@ -131,8 +132,7 @@ class SyncDueDialog : DialogWrapper(true) {
   }
 
   /**
-   * By overriding createSouthPanel, we must return an empty array here
-   * to prevent the default button creation mechanism from interfering.
+   * By overriding createSouthPanel, we must return an empty array here to prevent the default button creation mechanism from interfering.
    */
   override fun createActions(): Array<Action> {
     return emptyArray()

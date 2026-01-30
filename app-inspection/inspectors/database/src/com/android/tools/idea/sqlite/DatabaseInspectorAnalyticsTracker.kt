@@ -50,28 +50,21 @@ interface DatabaseInspectorAnalyticsTracker {
 
   fun trackOfflineDatabaseDownloadFailed()
 
-  fun trackOfflineModeEntered(
-    metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
-  )
+  fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata)
 
-  fun trackExportDialogOpened(
-    actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
-  )
+  fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin)
 
   fun trackExportCompleted(
     source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
-    sourceFormat:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
-    destination:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
   )
 }
 
-class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
-  DatabaseInspectorAnalyticsTracker {
+class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInspectorAnalyticsTracker {
   override fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
@@ -81,15 +74,10 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
   }
 
   override fun trackTableCellEdited() {
-    track(
-      AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
-        .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.TABLE_CELL_EDITED)
-    )
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder().setType(AppInspectionEvent.DatabaseInspectorEvent.Type.TABLE_CELL_EDITED))
   }
 
-  override fun trackTargetRefreshed(
-    targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType
-  ) {
+  override fun trackTargetRefreshed(targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
         .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.TARGET_REFRESHED)
@@ -143,9 +131,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
     )
   }
 
-  override fun trackOfflineModeEntered(
-    metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
-  ) {
+  override fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
         .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.OFFLINE_MODE_ENTERED)
@@ -153,25 +139,18 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
     )
   }
 
-  override fun trackExportDialogOpened(
-    actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
-  ) {
+  override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {
     track(
       AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
         .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_DIALOG_OPENED)
-        .setExportDialogOpenedEvent(
-          AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.newBuilder()
-            .setOrigin(actionOrigin)
-        )
+        .setExportDialogOpenedEvent(AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.newBuilder().setOrigin(actionOrigin))
     )
   }
 
   override fun trackExportCompleted(
     source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
-    sourceFormat:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
-    destination:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
@@ -195,14 +174,10 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) :
 
   private fun track(inspectorEvent: AppInspectionEvent.DatabaseInspectorEvent.Builder) {
     val inspectionEvent =
-      AppInspectionEvent.newBuilder()
-        .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
-        .setDatabaseInspectorEvent(inspectorEvent)
+      AppInspectionEvent.newBuilder().setType(AppInspectionEvent.Type.INSPECTOR_EVENT).setDatabaseInspectorEvent(inspectorEvent)
 
     val studioEvent: AndroidStudioEvent.Builder =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-        .setAppInspectionEvent(inspectionEvent)
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.APP_INSPECTION).setAppInspectionEvent(inspectionEvent)
 
     // TODO(b/153270761): Use studioEvent.withProjectId instead, after code is moved out of
     //  monolithic core module

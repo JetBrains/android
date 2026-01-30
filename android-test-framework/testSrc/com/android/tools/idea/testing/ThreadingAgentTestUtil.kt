@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-/**
- * Checks for whether the threading agent has been loaded. Skips this check if the test is not being
- * run from bazel.
- */
+/** Checks for whether the threading agent has been loaded. Skips this check if the test is not being run from bazel. */
 fun maybeCheckThreadingAgentIsRunning() {
   if (!System.getProperties().containsKey("bazel.test_suite")) {
     // At this time we only assert that the threading java agent has been loaded
@@ -29,8 +26,7 @@ fun maybeCheckThreadingAgentIsRunning() {
   // Java agent is loaded by the bootstrap class loader and so the findBootstrapClassOrNull
   // method should be used instead of the findLoadedClass method which can only be used
   // with a non-bootstrap class loader
-  val findBootstrapClassOrNullMethod =
-    ClassLoader::class.java.getDeclaredMethod("findBootstrapClassOrNull", String::class.java)
+  val findBootstrapClassOrNullMethod = ClassLoader::class.java.getDeclaredMethod("findBootstrapClassOrNull", String::class.java)
   findBootstrapClassOrNullMethod.isAccessible = true
   findBootstrapClassOrNullMethod.invoke(
     ThreadingCheckRule::class.java.classLoader,

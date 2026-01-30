@@ -53,9 +53,8 @@ import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants
 
 /**
- * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
- * capabilities. When [isSelectionEnabled] is true, Preview selection capabilities are also added,
- * affecting the navigation logic.
+ * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation capabilities. When [isSelectionEnabled]
+ * is true, Preview selection capabilities are also added, affecting the navigation logic.
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
@@ -84,9 +83,8 @@ class NavigatingInteractionHandler(
       sceneView.firstComponent?.let { componentToSceneView[it] = sceneView }
     }
     val selectedComponent =
-      componentToSceneView.keys.firstOrNull {
-        componentToSceneView[it]!!.selectionModel.isSelected(it)
-      } ?: return super.keyPressedWithoutInteraction(keyEvent)
+      componentToSceneView.keys.firstOrNull { componentToSceneView[it]!!.selectionModel.isSelected(it) }
+        ?: return super.keyPressedWithoutInteraction(keyEvent)
 
     val otherComponentsInView =
       componentToSceneView.entries
@@ -96,14 +94,10 @@ class NavigatingInteractionHandler(
         .map { it.key }
 
     when (keyEvent.keyCode) {
-      KeyEvent.VK_LEFT ->
-        selectComponentToTheLeft(selectedComponent, otherComponentsInView, componentToSceneView)
-      KeyEvent.VK_UP ->
-        selectComponentAbove(selectedComponent, otherComponentsInView, componentToSceneView)
-      KeyEvent.VK_RIGHT ->
-        selectComponentToTheRight(selectedComponent, otherComponentsInView, componentToSceneView)
-      KeyEvent.VK_DOWN ->
-        selectComponentBelow(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_LEFT -> selectComponentToTheLeft(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_UP -> selectComponentAbove(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_RIGHT -> selectComponentToTheRight(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_DOWN -> selectComponentBelow(selectedComponent, otherComponentsInView, componentToSceneView)
     }
     surface.repaint()
     return super.keyPressedWithoutInteraction(keyEvent)
@@ -154,8 +148,7 @@ class NavigatingInteractionHandler(
   /** Resizing is allowed only in Focus mode. */
   override fun getViewInResizeZone(mouseX: Int, mouseY: Int): SceneView? {
     return super.getViewInResizeZone(mouseX, mouseY)?.takeIf { sceneView ->
-      sceneView.sceneManager.model.dataProvider?.getData(PreviewModeManager.KEY)?.mode?.value is
-        PreviewMode.Focus
+      sceneView.sceneManager.model.dataProvider?.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
     }
   }
 
@@ -185,18 +178,12 @@ class NavigatingInteractionHandler(
     }
   }
 
-  override fun createInteractionOnPressed(
-    @SwingCoordinate mouseX: Int,
-    @SwingCoordinate mouseY: Int,
-    modifiersEx: Int,
-  ): Interaction? {
+  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
     val interaction = super.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
     // SceneInteractions must be ignored as they impact the selection model following
     // a different logic that the one used by this interaction handler.
     if (isSelectionEnabled && interaction is SceneInteraction) {
-      interaction.cancel(
-        InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx))
-      )
+      interaction.cancel(InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx)))
       return null
     }
     return interaction
@@ -234,15 +221,8 @@ class NavigatingInteractionHandler(
     surface.repaint()
   }
 
-  private fun selectComponent(
-    comp: NlComponent,
-    componentToSceneView: Map<NlComponent, SceneView>,
-  ) {
-    componentToSceneView[comp]!!.selectComponent(
-      component = comp,
-      allowToggle = false,
-      ignoreIfAlreadySelected = true,
-    )
+  private fun selectComponent(comp: NlComponent, componentToSceneView: Map<NlComponent, SceneView>) {
+    componentToSceneView[comp]!!.selectComponent(component = comp, allowToggle = false, ignoreIfAlreadySelected = true)
   }
 
   private fun selectComponentToTheLeft(
@@ -262,9 +242,7 @@ class NavigatingInteractionHandler(
       }
 
     // Then, try to select the last component of the previous row.
-    otherComponents
-      .lastOrNull { componentToSceneView[it]!!.y < selectedSceneView.y }
-      ?.let { selectComponent(it, componentToSceneView) }
+    otherComponents.lastOrNull { componentToSceneView[it]!!.y < selectedSceneView.y }?.let { selectComponent(it, componentToSceneView) }
   }
 
   private fun selectComponentToTheRight(
@@ -284,9 +262,7 @@ class NavigatingInteractionHandler(
       }
 
     // Then, try to select the first component of the next row.
-    otherComponents
-      .firstOrNull { componentToSceneView[it]!!.y > selectedSceneView.y }
-      ?.let { selectComponent(it, componentToSceneView) }
+    otherComponents.firstOrNull { componentToSceneView[it]!!.y > selectedSceneView.y }?.let { selectComponent(it, componentToSceneView) }
   }
 
   private fun selectComponentBelow(
@@ -342,8 +318,7 @@ class NavigatingInteractionHandler(
   }
 
   /**
-   * Handles a click in a preview. The click is handled asynchronously since finding the component
-   * to navigate might be a slow operation.
+   * Handles a click in a preview. The click is handled asynchronously since finding the component to navigate might be a slow operation.
    */
   private fun clickPreview(mouseEvent: MouseEvent, needsFocusEditor: Boolean, modifiersEx: Int) {
     val x = mouseEvent.x
@@ -354,14 +329,7 @@ class NavigatingInteractionHandler(
     val isOptionDown = isOptionDown(modifiersEx)
     val scene = sceneView.scene
     scope.launch(Dispatchers.Default) {
-      val navigatables =
-        navigationHandler.findNavigatablesWithCoordinates(
-          sceneView,
-          x,
-          y,
-          needsFocusEditor,
-          isOptionDown,
-        )
+      val navigatables = navigationHandler.findNavigatablesWithCoordinates(sceneView, x, y, needsFocusEditor, isOptionDown)
 
       if (isOptionDown && navigatables.isNotEmpty()) {
         // Open a pop up menu with all components under coordinates
@@ -371,20 +339,17 @@ class NavigatingInteractionHandler(
       }
 
       val navigated =
-        navigatables.firstOrNull()?.let {
-          navigationHandler.navigateTo(sceneView, it.navigatable!!, needsFocusEditor)
-        }
-        ?: run {
-          if (needsFocusEditor) {
-            // Only allow default navigation when double clicking since it might take us to a
-            // different file
-            navigationHandler.handleNavigate(sceneView, true)
+        navigatables.firstOrNull()?.let { navigationHandler.navigateTo(sceneView, it.navigatable!!, needsFocusEditor) }
+          ?: run {
+            if (needsFocusEditor) {
+              // Only allow default navigation when double clicking since it might take us to a
+              // different file
+              navigationHandler.handleNavigate(sceneView, true)
+            }
+            return@run false
           }
-          return@run false
-        }
       if (!navigated) {
-        val sceneComponent =
-          scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
+        val sceneComponent = scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         withContext(uiThread) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
       }
     }
@@ -392,10 +357,7 @@ class NavigatingInteractionHandler(
 
   // Create an action group with actions to navigate to components. This will be called when Option
   // + clicking on component.
-  private fun createActionGroup(
-    sceneView: SceneView,
-    navigatables: List<PreviewNavigatableWrapper>,
-  ): DefaultActionGroup {
+  private fun createActionGroup(sceneView: SceneView, navigatables: List<PreviewNavigatableWrapper>): DefaultActionGroup {
     val defaultGroup = DefaultActionGroup()
     navigatables.forEach {
       val name = it.name
@@ -403,9 +365,7 @@ class NavigatingInteractionHandler(
         defaultGroup.addAction(
           object : AnAction(name) {
             override fun actionPerformed(e: AnActionEvent) {
-              scope.launch(Dispatchers.Default) {
-                navigationHandler.navigateTo(sceneView, it, false)
-              }
+              scope.launch(Dispatchers.Default) { navigationHandler.navigateTo(sceneView, it, false) }
             }
 
             override fun getActionUpdateThread(): ActionUpdateThread {

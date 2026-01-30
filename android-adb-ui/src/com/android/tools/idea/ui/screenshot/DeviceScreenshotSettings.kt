@@ -35,8 +35,7 @@ class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettin
   internal var saveConfig: SaveConfiguration = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
   internal var scale: Double = 1.0
   internal var frameScreenshot: Boolean = false
-  @VisibleForTesting
-  var nonFramingDecorationId: Int = ScreenshotDecorationOption.PLAY_COMPATIBLE.id
+  @VisibleForTesting var nonFramingDecorationId: Int = ScreenshotDecorationOption.PLAY_COMPATIBLE.id
   internal var screenshotCount: Int = 0
 
   override fun getState(): DeviceScreenshotSettings = this

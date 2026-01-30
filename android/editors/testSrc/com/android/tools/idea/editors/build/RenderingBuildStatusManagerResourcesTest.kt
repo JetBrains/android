@@ -23,15 +23,14 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 class RenderingBuildStatusManagerResourcesTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
   val project: Project
     get() = projectRule.project
 
@@ -45,16 +44,11 @@ class RenderingBuildStatusManagerResourcesTest {
   @Test
   fun testResourcesMakeTheProjectOutOfDate() = runBlocking {
     val psiFile = projectRule.fixture.addFileToProject("/src/a/Test.kt", "fun a() {}")
-    val statusManager = RenderingBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      psiFile,)
+    val statusManager = RenderingBuildStatusManager.create(projectRule.fixture.testRootDisposable, psiFile)
 
     // Simulate a successful build
     buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    statusManager.statusFlow.awaitStatus(
-      "Ready state expected",
-      5.seconds
-    ) { it == RenderingBuildStatus.Ready }
+    statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) { it == RenderingBuildStatus.Ready }
 
     ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
       projectRule.fixture.openFileInEditor(psiFile.virtualFile)
@@ -62,16 +56,10 @@ class RenderingBuildStatusManagerResourcesTest {
 
     // Simulate a resources change
     (statusManager as RenderingBuildStatusManagerForTests).simulateResourcesChange()
-    statusManager.statusFlow.awaitStatus(
-      "OutOfDate expected after a resource change",
-      5.seconds
-    ) { it is RenderingBuildStatus.OutOfDate }
+    statusManager.statusFlow.awaitStatus("OutOfDate expected after a resource change", 5.seconds) { it is RenderingBuildStatus.OutOfDate }
 
     // A build should restore the ready state
     buildServices.simulateArtifactBuild(buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    statusManager.statusFlow.awaitStatus(
-      "Ready state expected",
-      5.seconds
-    ) { it == RenderingBuildStatus.Ready }
+    statusManager.statusFlow.awaitStatus("Ready state expected", 5.seconds) { it == RenderingBuildStatus.Ready }
   }
 }

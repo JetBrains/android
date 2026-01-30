@@ -29,30 +29,25 @@ import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreEx
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import com.google.common.collect.ImmutableRangeSet
 import com.google.common.collect.Range
+import java.io.Serializable
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
-import java.io.Serializable
-
 
 /**
- * The container class of modules we couldn't fetch using parallel Gradle TAPI API.
- * For now this list has :
- *  - All the non-Android modules
- *  - The android modules using an older AGP version than the minimum supported for V2 sync
+ * The container class of modules we couldn't fetch using parallel Gradle TAPI API. For now this list has :
+ * - All the non-Android modules
+ * - The android modules using an older AGP version than the minimum supported for V2 sync
  */
-internal sealed class BasicIncompleteGradleModule(
-  val gradleProject: BasicGradleProject,
-  val buildPath: String
-) {
-  val buildId: BuildId get() = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-  val projectPath: String get() = gradleProject.path
+internal sealed class BasicIncompleteGradleModule(val gradleProject: BasicGradleProject, val buildPath: String) {
+  val buildId: BuildId
+    get() = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
 
-  abstract fun getGradleModuleAction(
-    internedModels: InternedModels,
-    buildInfo: BuildInfo
-  ): ActionToRun<GradleModule>
+  val projectPath: String
+    get() = gradleProject.path
+
+  abstract fun getGradleModuleAction(internedModels: InternedModels, buildInfo: BuildInfo): ActionToRun<GradleModule>
 }
 
 /** The information about the model consumer version required by AGP */
@@ -78,8 +73,12 @@ enum class ModelFeature(
   HAS_V2_MODELS(AgpVersion.parse("7.2.0-alpha01")),
   SUPPORTS_PARALLEL_SYNC(
     enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(ModelVersion(8, 0))),
-    alsoEnabledForAgpVersions = ImmutableRangeSet.builder<AgpVersion>().add(Range.atLeast(AgpVersion.parse("7.3.0-alpha04"))).add(
-      Range.closedOpen(AgpVersion.parse("7.2.0"), AgpVersion.parse("7.3.0-alpha01"))).build()),
+    alsoEnabledForAgpVersions =
+      ImmutableRangeSet.builder<AgpVersion>()
+        .add(Range.atLeast(AgpVersion.parse("7.3.0-alpha04")))
+        .add(Range.closedOpen(AgpVersion.parse("7.2.0"), AgpVersion.parse("7.3.0-alpha01")))
+        .build(),
+  ),
   HAS_NAMESPACE(AgpVersion.parse("7.0.0")),
   HAS_APPLICATION_ID(AgpVersion.parse("7.4.0-alpha04")),
   HAS_PRIVACY_SANDBOX_SDK_INFO(AgpVersion.parse("8.3.0-alpha14")),
@@ -108,40 +107,45 @@ enum class ModelFeature(
   HAS_MATCHING_FALLBACKS(ModelVersion(20, 0)),
   HAS_MISSING_DIMENSION_STRATEGY(ModelVersion(21, 0)),
   HAS_TEST_SUITES_SOURCES(ModelVersion(21, 1)),
-  HAS_KEEP_RULES_SOURCES(ModelVersion(22, 0)),
-  ;
+  HAS_KEEP_RULES_SOURCES(ModelVersion(22, 0));
 
   init {
     check(!enabledForModelVersions.isEmpty) { "All features should be enabled for some model versions" }
-    check(alsoEnabledForAgpVersions.intersection(disabledForAgpVersions).isEmpty) { """
+    check(alsoEnabledForAgpVersions.intersection(disabledForAgpVersions).isEmpty) {
+      """
       AGP based enable and disable flags must be distinct for $name.
            alsoEnabledForAgpVersions = $alsoEnabledForAgpVersions
            disabledForAgpVersions = $disabledForAgpVersions
            overlap:  ${alsoEnabledForAgpVersions.intersection(disabledForAgpVersions)}
-      """.trimIndent()
+      """
+        .trimIndent()
     }
   }
 
-  constructor(minimumModelVersion: ModelVersion): this(enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(minimumModelVersion)))
+  constructor(minimumModelVersion: ModelVersion) : this(enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(minimumModelVersion)))
 
   @Deprecated("All new features should be gated on Model version, not AGP version")
-  constructor(legacyMinimumAgpVersion: AgpVersion) : this(
+  constructor(
+    legacyMinimumAgpVersion: AgpVersion
+  ) : this(
     enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(ModelVersion(8, 9))), // Implicitly all new checks should use model version
-    alsoEnabledForAgpVersions = ImmutableRangeSet.of(Range.atLeast(legacyMinimumAgpVersion)))
+    alsoEnabledForAgpVersions = ImmutableRangeSet.of(Range.atLeast(legacyMinimumAgpVersion)),
+  )
 
   internal fun appliesTo(modelVersion: ModelVersion, agpVersion: AgpVersion): Boolean {
-    return (enabledForModelVersions.contains(modelVersion) && !disabledForAgpVersions.contains(agpVersion)) || alsoEnabledForAgpVersions.contains(agpVersion)
+    return (enabledForModelVersions.contains(modelVersion) && !disabledForAgpVersions.contains(agpVersion)) ||
+      alsoEnabledForAgpVersions.contains(agpVersion)
   }
-
 }
 
 data class ModelVersions(
   private val agp: AgpVersion,
   private val modelVersion: ModelVersion,
-  private val minimumModelConsumer: ModelConsumerVersion?
+  private val minimumModelConsumer: ModelConsumerVersion?,
 ) {
 
   private val features: BooleanArray = ModelFeature.values().map { it.appliesTo(modelVersion, agp) }.toBooleanArray()
+
   operator fun get(feature: ModelFeature): Boolean = features[feature.ordinal]
 
   fun checkAgpVersionCompatibility(syncFlags: GradleSyncStudioFlags) {
@@ -151,18 +155,25 @@ data class ModelVersions(
   val agpVersionAsString: String = agp.toString()
 }
 
-private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
-                                                   gradleProject: BasicGradleProject,
-                                                   modelVersions: ModelVersions): LegacyAndroidGradlePluginProperties? {
-  if (modelVersions[ModelFeature.HAS_APPLICATION_ID] &&
+private fun getLegacyAndroidGradlePluginProperties(
+  controller: BuildController,
+  gradleProject: BasicGradleProject,
+  modelVersions: ModelVersions,
+): LegacyAndroidGradlePluginProperties? {
+  if (
+    modelVersions[ModelFeature.HAS_APPLICATION_ID] &&
       modelVersions[ModelFeature.HAS_NAMESPACE] &&
       modelVersions[ModelFeature.HAS_DATA_BINDING] &&
       modelVersions[ModelFeature.HAS_R8_MAPPING_FILE_PATH] &&
       modelVersions[ModelFeature.HAS_MATCHING_FALLBACKS] &&
       modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]
-    ) return null // Only fetch the model if it is needed.
-  return controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java,
-                              LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
+  )
+    return null // Only fetch the model if it is needed.
+  return controller.findModel(
+    gradleProject,
+    LegacyAndroidGradlePluginProperties::class.java,
+    LegacyAndroidGradlePluginPropertiesModelParameters::class.java,
+  ) {
     it.componentToApplicationIdMap = !modelVersions[ModelFeature.HAS_APPLICATION_ID]
     it.namespace = !modelVersions[ModelFeature.HAS_NAMESPACE]
     it.dataBinding = !modelVersions[ModelFeature.HAS_DATA_BINDING]
@@ -171,83 +182,68 @@ private fun getLegacyAndroidGradlePluginProperties(controller: BuildController,
     it.missingDimensionStrategies = !modelVersions[ModelFeature.HAS_MISSING_DIMENSION_STRATEGY]
   }
 }
-/**
- * The container class of Android modules.
- */
-internal sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildPath: String, val modelVersions: ModelVersions)
-  :  BasicIncompleteGradleModule(gradleProject, buildPath) {
-}
+
+/** The container class of Android modules. */
+internal sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildPath: String, val modelVersions: ModelVersions) :
+  BasicIncompleteGradleModule(gradleProject, buildPath) {}
 
 /**
- *  The container class of Android modules that can be fetched using V1 builder models.
- *  legacyV1AgpVersion: The model that contains the agp version used by the AndroidProject. This can be null if the AndroidProject is using
- *  an AGP version lower than the minimum supported version by Android Studio
+ * The container class of Android modules that can be fetched using V1 builder models. legacyV1AgpVersion: The model that contains the agp
+ * version used by the AndroidProject. This can be null if the AndroidProject is using an AGP version lower than the minimum supported
+ * version by Android Studio
  */
-internal class BasicV1AndroidModuleGradleProject(
-  gradleProject: BasicGradleProject,
-  buildPath: String,
-  modelVersions: ModelVersions,
-) :  BasicIncompleteAndroidModule(gradleProject, buildPath, modelVersions) {
+internal class BasicV1AndroidModuleGradleProject(gradleProject: BasicGradleProject, buildPath: String, modelVersions: ModelVersions) :
+  BasicIncompleteAndroidModule(gradleProject, buildPath, modelVersions) {
 
-  override fun getGradleModuleAction(
-    internedModels: InternedModels,
-    buildInfo: BuildInfo
-  ): ActionToRun<GradleModule> {
+  override fun getGradleModuleAction(internedModels: InternedModels, buildInfo: BuildInfo): ActionToRun<GradleModule> {
     return ActionToRun(
       fun(controller: BuildController): GradleModule {
-        val androidProject = controller.findParameterizedAndroidModel(
-          gradleProject,
-          AndroidProject::class.java,
-          shouldBuildVariant = false
-        ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
+        val androidProject =
+          controller.findParameterizedAndroidModel(gradleProject, AndroidProject::class.java, shouldBuildVariant = false)
+            ?: error("Cannot fetch AndroidProject models for V1 projects.")
 
         val legacyAndroidGradlePluginProperties = getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
-        val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
-          ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
+        val gradlePropertiesModel =
+          controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+            ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
         val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths)
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
-        val androidProjectResult = AndroidProjectResult.V1Project(
-          modelCache = modelCache,
-          rootBuildId = rootBuildId,
-          buildId = buildId,
-          projectPath = gradleProject.path,
-          androidProject = androidProject,
-          legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-          gradlePropertiesModel = gradlePropertiesModel
-        )
+        val androidProjectResult =
+          AndroidProjectResult.V1Project(
+            modelCache = modelCache,
+            rootBuildId = rootBuildId,
+            buildId = buildId,
+            projectPath = gradleProject.path,
+            androidProject = androidProject,
+            legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+            gradlePropertiesModel = gradlePropertiesModel,
+          )
 
         return androidProjectResult
           .mapCatching { androidProjectResult ->
             val nativeModule = controller.findNativeModuleModel(gradleProject, syncAllVariantsAndAbis = false)
-            createAndroidModuleV1(
-              modelVersions,
-              gradleProject,
-              androidProjectResult,
-              nativeModule,
-              buildInfo.buildPathMap,
-              modelCache
-            )
+            createAndroidModuleV1(modelVersions, gradleProject, androidProjectResult, nativeModule, buildInfo.buildPathMap, modelCache)
           }
           .let {
-            val result = it.ignoreExceptionsAndGet()
-            // If we were unable to create an AndroidModule we have enough data to create a JavaModule. This is a fallback allowing users
-            // access to at least build configuration files.
-              ?: JavaModule(gradleProject, kotlinGradleModel = null, kaptGradleModel = null)
+            val result =
+              it.ignoreExceptionsAndGet()
+                // If we were unable to create an AndroidModule we have enough data to create a JavaModule. This is a fallback allowing
+                // users
+                // access to at least build configuration files.
+                ?: JavaModule(gradleProject, kotlinGradleModel = null, kaptGradleModel = null)
             result.recordExceptions(it.exceptions)
             result
           }
       },
       fetchesV1Models = true,
-      fetchesKotlinModels = true
+      fetchesKotlinModels = true,
     )
   }
 }
 
-/**
- * The container class of Android modules that can be fetched using V2 builder models.
- */
+/** The container class of Android modules that can be fetched using V2 builder models. */
 internal class BasicV2AndroidModuleGradleProject(
   gradleProject: BasicGradleProject,
   buildPath: String,
@@ -255,22 +251,22 @@ internal class BasicV2AndroidModuleGradleProject(
   val syncActionOptions: SyncActionOptions,
 ) : BasicIncompleteAndroidModule(gradleProject, buildPath, modelVersions) {
 
-
-  override fun getGradleModuleAction(
-    internedModels: InternedModels,
-    buildInfo: BuildInfo,
-  ): ActionToRun<GradleModule> {
+  override fun getGradleModuleAction(internedModels: InternedModels, buildInfo: BuildInfo): ActionToRun<GradleModule> {
     return ActionToRun(
       fun(controller: BuildController): GradleModule {
-        val basicAndroidProject = controller.findNonParameterizedV2Model(gradleProject, BasicAndroidProject::class.java)
-          ?: error("Cannot get BasicAndroidProject model for $gradleProject")
-        val androidProject = controller.findNonParameterizedV2Model(gradleProject, com.android.builder.model.v2.models.AndroidProject::class.java)
-          ?: error("Cannot get V2AndroidProject model for $gradleProject")
-        val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
-          ?: error("Cannot get AndroidDsl model for $gradleProject")
+        val basicAndroidProject =
+          controller.findNonParameterizedV2Model(gradleProject, BasicAndroidProject::class.java)
+            ?: error("Cannot get BasicAndroidProject model for $gradleProject")
+        val androidProject =
+          controller.findNonParameterizedV2Model(gradleProject, com.android.builder.model.v2.models.AndroidProject::class.java)
+            ?: error("Cannot get V2AndroidProject model for $gradleProject")
+        val androidDsl =
+          controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
+            ?: error("Cannot get AndroidDsl model for $gradleProject")
         val legacyAndroidGradlePluginProperties = getLegacyAndroidGradlePluginProperties(controller, gradleProject, modelVersions)
-        val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
-          ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
+        val gradlePropertiesModel =
+          controller.findModel(gradleProject, GradlePropertiesModel::class.java)
+            ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
         val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncActionOptions.syncTestMode)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
@@ -285,59 +281,58 @@ internal class BasicV2AndroidModuleGradleProject(
             androidDsl = androidDsl,
             legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
             gradlePropertiesModel = gradlePropertiesModel,
-            runtimeClasspathBehaviour = RuntimeClasspathBehaviour(
-              skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries
-                                                 && shouldSkipRuntimeClasspathForLibraries (androidProject.flags, gradlePropertiesModel),
-              buildRuntimeClasspathForLibraryUnitTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
-              buildRuntimeClasspathForLibraryScreenshotTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests
-            ),
-            useFlatDependencyGraphModel = syncActionOptions.flags.studioFlagUseFlatDependencyGraphModel
-                                          && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL],
+            runtimeClasspathBehaviour =
+              RuntimeClasspathBehaviour(
+                skipRuntimeClasspathForLibraries =
+                  syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries &&
+                    shouldSkipRuntimeClasspathForLibraries(androidProject.flags, gradlePropertiesModel),
+                buildRuntimeClasspathForLibraryUnitTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryUnitTests,
+                buildRuntimeClasspathForLibraryScreenshotTests =
+                  syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests,
+              ),
+            useFlatDependencyGraphModel =
+              syncActionOptions.flags.studioFlagUseFlatDependencyGraphModel && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL],
             additionalArtifactsInModel = syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport,
           )
 
-        return androidProjectResult.mapCatching { androidProjectResult ->
-          // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-          val nativeModule = controller.findNativeModuleModel(gradleProject, syncAllVariantsAndAbis = false)
+        return androidProjectResult
+          .mapCatching { androidProjectResult ->
+            // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
+            val nativeModule = controller.findNativeModuleModel(gradleProject, syncAllVariantsAndAbis = false)
 
-          createAndroidModuleV2(
-            modelVersions,
-            gradleProject,
-            androidProjectResult,
-            nativeModule,
-            buildInfo.buildPathMap,
-            modelCache
-          )
-        }
+            createAndroidModuleV2(modelVersions, gradleProject, androidProjectResult, nativeModule, buildInfo.buildPathMap, modelCache)
+          }
           .let {
-            val result = it.ignoreExceptionsAndGet()
-            // If we were unable to create an AndroidModule we have enough data to create a JavaModule. This is a fallback allowing users
-            // access to at least build configuration files.
-            // TODO(b/254045637): Provide a fallback in the case when `BasicAndroidProject` is available but `AndroidProject` is not.
-              ?: JavaModule(gradleProject, kotlinGradleModel = null, kaptGradleModel = null)
+            val result =
+              it.ignoreExceptionsAndGet()
+                // If we were unable to create an AndroidModule we have enough data to create a JavaModule. This is a fallback allowing
+                // users
+                // access to at least build configuration files.
+                // TODO(b/254045637): Provide a fallback in the case when `BasicAndroidProject` is available but `AndroidProject` is not.
+                ?: JavaModule(gradleProject, kotlinGradleModel = null, kaptGradleModel = null)
             result.recordExceptions(it.exceptions)
             result
           }
       },
-      fetchesV2Models = true
+      fetchesV2Models = true,
     )
   }
 
   private fun shouldSkipRuntimeClasspathForLibraries(flags: AndroidGradlePluginProjectFlags, gradlePropertiesModel: GradlePropertiesModel) =
-    !AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_COMPILE_RUNTIME_CLASSPATH_ALIGNMENT.getValue(flags, true) || // true because we always used to align
-    AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(flags, gradlePropertiesModel.excludeLibraryComponentsFromConstraints)
-
+    !AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_COMPILE_RUNTIME_CLASSPATH_ALIGNMENT.getValue(
+      flags,
+      true,
+    ) || // true because we always used to align
+      AndroidGradlePluginProjectFlags.BooleanFlag.EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS.getValue(
+        flags,
+        gradlePropertiesModel.excludeLibraryComponentsFromConstraints,
+      )
 }
 
-/**
- * The container class of non-Android modules.
- */
+/** The container class of non-Android modules. */
 internal class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleProject, buildPath: String) :
   BasicIncompleteGradleModule(gradleProject, buildPath) {
-  override fun getGradleModuleAction(
-    internedModels: InternedModels,
-    buildInfo: BuildInfo
-  ): ActionToRun<GradleModule> {
+  override fun getGradleModuleAction(internedModels: InternedModels, buildInfo: BuildInfo): ActionToRun<GradleModule> {
     return ActionToRun(
       fun(controller: BuildController): GradleModule {
         val kotlinGradleModel = controller.findModel(gradleProject, KotlinGradleModel::class.java)
@@ -345,7 +340,7 @@ internal class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleP
         return JavaModule(gradleProject, kotlinGradleModel, kaptGradleModel)
       },
       fetchesV1Models = false,
-      fetchesKotlinModels = true
+      fetchesKotlinModels = true,
     )
   }
 }
@@ -356,24 +351,25 @@ private fun createAndroidModuleV1(
   androidProjectResult: AndroidProjectResult.V1Project,
   nativeModule: NativeModule?,
   buildPathMap: Map<String, BuildId>,
-  modelCache: ModelCache.V1
+  modelCache: ModelCache.V1,
 ): AndroidModule {
   val ideAndroidProject = androidProjectResult.ideAndroidProject
   val allVariantNames = androidProjectResult.allVariantNames
   val defaultVariantName: String? = androidProjectResult.defaultVariantName
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
-  val androidModule = AndroidModule.V1(
-    modelVersions = modelVersions,
-    buildPathMap = buildPathMap,
-    gradleProject = gradleProject,
-    androidProject = ideAndroidProject,
-    allVariantNames = allVariantNames,
-    defaultVariantName = defaultVariantName,
-    variantFetcher = androidProjectResult.createVariantFetcher(),
-    nativeModule = ideNativeModule,
-    legacyAndroidGradlePluginProperties = androidProjectResult.legacyAndroidGradlePluginProperties,
-  )
+  val androidModule =
+    AndroidModule.V1(
+      modelVersions = modelVersions,
+      buildPathMap = buildPathMap,
+      gradleProject = gradleProject,
+      androidProject = ideAndroidProject,
+      allVariantNames = allVariantNames,
+      defaultVariantName = defaultVariantName,
+      variantFetcher = androidProjectResult.createVariantFetcher(),
+      nativeModule = ideNativeModule,
+      legacyAndroidGradlePluginProperties = androidProjectResult.legacyAndroidGradlePluginProperties,
+    )
 
   val syncIssues = androidProjectResult.syncIssues
   // It will be overridden if we receive something here but also a proper sync issues model later.
@@ -390,7 +386,7 @@ private fun createAndroidModuleV2(
   androidProjectResult: AndroidProjectResult.V2Project,
   nativeModule: NativeModule?,
   buildPathMap: Map<String, BuildId>,
-  modelCache: ModelCache
+  modelCache: ModelCache,
 ): AndroidModule {
 
   val ideAndroidProject = androidProjectResult.ideAndroidProject

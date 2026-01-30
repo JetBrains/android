@@ -50,10 +50,7 @@ const val PIXEL_COMPANION_APP_ID = "com.google.android.apps.wear.companion"
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
 private suspend fun IDevice.getAppVersionCode(appId: String) =
-  VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))
-    ?.groupValues
-    ?.get(1)
-    ?.toInt()
+  VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
 
 private val availableCompanionAppIds = setOf(PIXEL_COMPANION_APP_ID, OEM_COMPANION_FALLBACK_APP_ID)
 
@@ -79,37 +76,28 @@ enum class CompanionSupport {
 }
 
 fun IDevice.supportsCompanionAppId(companionAppId: String): CompanionSupport {
-  if (!availableCompanionAppIds.contains(companionAppId))
-    return CompanionSupport.INCOMPATIBLE_COMPANION_ID
+  if (!availableCompanionAppIds.contains(companionAppId)) return CompanionSupport.INCOMPATIBLE_COMPANION_ID
 
   if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID && abis.singleOrNull() == "x86_64") {
-    Logger.getInstance(PairingFeature::class.java)
-      .warn("$OEM_COMPANION_FALLBACK_APP_ID does not support x86_64 abi.")
+    Logger.getInstance(PairingFeature::class.java).warn("$OEM_COMPANION_FALLBACK_APP_ID does not support x86_64 abi.")
     return CompanionSupport.INCOMPATIBLE_ABI
   }
   return CompanionSupport.SUPPORTED
 }
 
-suspend fun IDevice.hasPairingFeature(
-  pairingFeature: PairingFeature,
-  companionAppId: String? = null,
-): Boolean {
+suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String? = null): Boolean {
   return when (pairingFeature) {
     PairingFeature.COMPANION_EMULATOR_ACTIVITY ->
       companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
-        (getAppVersionCode(companionAppId) ?: 0) >=
-          PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
+        (getAppVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
     PairingFeature.REFRESH_EMULATOR_CONNECTION,
     PairingFeature.GET_PAIRING_STATUS,
     PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING,
-    PairingFeature.REVERSE_PORT_FORWARD ->
-      (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
+    PairingFeature.REVERSE_PORT_FORWARD -> (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
     PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED ->
       companionAppId != OEM_COMPANION_FALLBACK_APP_ID ||
-        (getAppVersionCode(OEM_COMPANION_FALLBACK_APP_ID) ?: 0) >=
-          PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED.minVersion
+        (getAppVersionCode(OEM_COMPANION_FALLBACK_APP_ID) ?: 0) >= PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED.minVersion
   }
 }
 
-private suspend fun IDevice.getSecureSetting(settingKey: String) =
-  runShellCommand("settings get secure $settingKey")
+private suspend fun IDevice.getSecureSetting(settingKey: String) = runShellCommand("settings get secure $settingKey")

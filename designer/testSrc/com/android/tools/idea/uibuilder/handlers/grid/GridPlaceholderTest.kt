@@ -101,38 +101,20 @@ class GridPlaceholderTest : SceneTest() {
 
     val button2 = myScene.getSceneComponent("button2")!!
 
-    assertEquals(
-      "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
-    )
-    assertEquals(
-      "1",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
-    )
+    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
+    assertEquals("1", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
 
     val row1column0 = placeholders.single { it.region == Region(0, 200, 200, 400) }
     applyPlaceholderToSceneComponent(button2, row1column0)
     mySceneManager.update()
-    assertEquals(
-      "1",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
-    )
-    assertEquals(
-      "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
-    )
+    assertEquals("1", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
+    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
 
     val row0column2 = placeholders.single { it.region == Region(400, 0, 900, 200) }
     applyPlaceholderToSceneComponent(button2, row0column2)
     mySceneManager.update()
-    assertEquals(
-      "0",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW),
-    )
-    assertEquals(
-      "2",
-      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN),
-    )
+    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
+    assertEquals("2", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
   }
 
   fun testGapPlaceholder() {
@@ -143,8 +125,7 @@ class GridPlaceholderTest : SceneTest() {
     val handler = GridLayoutHandler()
     val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
-    val gapPlaceholders =
-      placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
+    val gapPlaceholders = placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
     assertEquals(1, gapPlaceholders.size)
 
     val attributeHolder = TestNlAttributeHolder()
@@ -153,14 +134,8 @@ class GridPlaceholderTest : SceneTest() {
     assertEquals(900, gapPlaceholder.region.right)
     assertEquals(900, gapPlaceholder.region.bottom)
     gapPlaceholder.updateAttribute(Mockito.mock(SceneComponent::class.java), attributeHolder)
-    assertEquals(
-      "2",
-      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW),
-    )
-    assertEquals(
-      "2",
-      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN),
-    )
+    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW))
+    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN))
   }
 
   override fun createModel(): ModelBuilder {

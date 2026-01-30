@@ -31,8 +31,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.execution.process.ProcessOutputType
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
@@ -66,19 +66,15 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Unit tests for [GradleConnectedAndroidTestInvoker].
- */
+/** Unit tests for [GradleConnectedAndroidTestInvoker]. */
 @RunWith(JUnit4::class)
 class GradleConnectedAndroidTestInvokerTest {
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule()
 
-  @Mock
-  lateinit var mockExecutionEnvironment: ExecutionEnvironment
+  @Mock lateinit var mockExecutionEnvironment: ExecutionEnvironment
 
-  @Mock
-  lateinit var mockAndroidTestSuiteView: AndroidTestSuiteView
+  @Mock lateinit var mockAndroidTestSuiteView: AndroidTestSuiteView
 
   @Mock lateinit var mockAndroidModuleModel: GradleAndroidDependencyModelImpl
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
@@ -93,9 +89,8 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Before
   fun setup() {
-    val mockAndroidProject = Mockito.mock(IdeAndroidProjectImpl::class.java).also {
-      whenever(it.projectType).thenReturn(IdeAndroidProjectType.PROJECT_TYPE_APP)
-    }
+    val mockAndroidProject =
+      Mockito.mock(IdeAndroidProjectImpl::class.java).also { whenever(it.projectType).thenReturn(IdeAndroidProjectType.PROJECT_TYPE_APP) }
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
     whenever(mockAndroidModuleModel.androidProject).thenReturn(mockAndroidProject)
     whenever(mockAndroidModuleModel.selectedVariant).thenReturn(Mockito.mock(IdeVariantCoreImpl::class.java))
@@ -106,36 +101,39 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockBuildToolWindow.isVisible).thenReturn(false)
   }
 
-  private fun createGradleConnectedAndroidTestInvoker(
-    numDevices: Int = 1
-  ) : GradleConnectedAndroidTestInvoker {
-    mockDevices = (1..numDevices).map { deviceIndex ->
-      mock<IDevice>().apply {
-        whenever(serialNumber).thenReturn("DEVICE_SERIAL_NUMBER_${deviceIndex}")
-        whenever(version).thenReturn(AndroidVersion(29))
+  private fun createGradleConnectedAndroidTestInvoker(numDevices: Int = 1): GradleConnectedAndroidTestInvoker {
+    mockDevices =
+      (1..numDevices)
+        .map { deviceIndex ->
+          mock<IDevice>().apply {
+            whenever(serialNumber).thenReturn("DEVICE_SERIAL_NUMBER_${deviceIndex}")
+            whenever(version).thenReturn(AndroidVersion(29))
+          }
+        }
+        .toList()
+    mockGradleTestResultAdapters =
+      (1..numDevices).map { deviceIndex ->
+        mock<GradleTestResultAdapter>().apply {
+          whenever(device)
+            .thenReturn(
+              AndroidDevice(
+                id = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
+                deviceName = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
+                avdName = "avdName",
+                deviceType = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
+                version = AndroidVersion(29),
+              )
+            )
+          whenever(iDevice).thenReturn(mockDevices[deviceIndex - 1])
+          whenever(needRerunWithUninstallIncompatibleApkOption()).thenReturn(GradleTestResultAdapter.UtpInstallResult())
+        }
       }
-    }.toList()
-    mockGradleTestResultAdapters = (1..numDevices).map { deviceIndex ->
-      mock<GradleTestResultAdapter>().apply {
-        whenever(device).thenReturn(AndroidDevice(
-          id = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
-          deviceName = "DEVICE_SERIAL_NUMBER_${deviceIndex}",
-          avdName = "avdName",
-          deviceType = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
-          version = AndroidVersion(29)
-        ))
-        whenever(iDevice).thenReturn(mockDevices[deviceIndex - 1])
-        whenever(needRerunWithUninstallIncompatibleApkOption()).thenReturn(GradleTestResultAdapter.UtpInstallResult())
-      }
-    }
-    return  GradleConnectedAndroidTestInvoker(
+    return GradleConnectedAndroidTestInvoker(
       mockExecutionEnvironment,
       mockModuleData,
       backgroundTaskExecutor = directExecutor::submit,
       gradleTaskManagerFactory = { mockGradleTaskManager },
-      gradleTestResultAdapterFactory = { iDevice, _, _, _ ->
-        mockGradleTestResultAdapters[mockDevices.indexOf(iDevice)]
-      },
+      gradleTestResultAdapterFactory = { iDevice, _, _, _ -> mockGradleTestResultAdapters[mockDevices.indexOf(iDevice)] },
       buildToolWindowProvider = { mockBuildToolWindow },
     )
   }
@@ -145,39 +143,52 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
-  }
 
+    verify(mockGradleTaskManager).executeTasks(anyString(), any(), any(), any())
+  }
 
   @Test
   fun checkGradleExecutionSettingsForAllInPackageTestWithSingleDevice() {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "packageName", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        @Suppress("DEPRECATION")
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
-        env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-        getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "packageName",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat {
+          @Suppress("DEPRECATION")
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
+            env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
+            getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+        },
+        any(),
+      )
   }
 
   @Test
@@ -185,21 +196,31 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "regex",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        @Suppress("DEPRECATION")
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.tests_regex=regex") &&
-        env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-        getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "regex",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat {
+          @Suppress("DEPRECATION")
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.tests_regex=regex") &&
+            env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
+            getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+        },
+        any(),
+      )
   }
 
   @Test
@@ -207,20 +228,29 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker(numDevices = 2)
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "testClassName", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName") &&
-        env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "testClassName",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat {
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName") &&
+            env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
+        },
+        any(),
+      )
   }
 
   @Test
@@ -228,18 +258,26 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "testClassName", testMethodName = "testMethodName", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName#testMethodName")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "testClassName",
+      testMethodName = "testMethodName",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat { arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName#testMethodName") },
+        any(),
+      )
   }
 
   @Test
@@ -247,18 +285,21 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.debug=true")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(anyString(), any(), argThat { arguments.contains("-Pandroid.testInstrumentationRunnerArguments.debug=true") }, any())
   }
 
   @Test
@@ -266,18 +307,21 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "-e name1 true")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pandroid.testInstrumentationRunnerArguments.name1=true")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "-e name1 true",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(anyString(), any(), argThat { arguments.contains("-Pandroid.testInstrumentationRunnerArguments.name1=true") }, any())
   }
 
   @Test
@@ -285,19 +329,30 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "-e name1 true -e name2 false")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.containsAll(listOf("-Pandroid.testInstrumentationRunnerArguments.name1=true",
-                                "-Pandroid.testInstrumentationRunnerArguments.name2=false"))
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "-e name1 true -e name2 false",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat {
+          arguments.containsAll(
+            listOf("-Pandroid.testInstrumentationRunnerArguments.name1=true", "-Pandroid.testInstrumentationRunnerArguments.name2=false")
+          )
+        },
+        any(),
+      )
   }
 
   @Test
@@ -305,18 +360,26 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat { arguments.contains("-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true") },
+        any(),
+      )
   }
 
   @Test
@@ -326,22 +389,24 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant())
       .thenReturn("connectedNonDefaultBuildVariantAndroidTest")
 
-
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        tasks == listOf(":app:connectedNonDefaultBuildVariantAndroidTest")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(anyString(), any(), argThat { tasks == listOf(":app:connectedNonDefaultBuildVariantAndroidTest") }, any())
   }
 
   @Test
@@ -351,18 +416,21 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        tasks == listOf(":app:testModule:connectedDebugAndroidTest")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(anyString(), any(), argThat { tasks == listOf(":app:testModule:connectedDebugAndroidTest") }, any())
   }
 
   @Test
@@ -370,22 +438,23 @@ class GradleConnectedAndroidTestInvokerTest {
     // This is a regression test for b/219164389.
     whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":")
 
-
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        tasks == listOf(":connectedDebugAndroidTest")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager).executeTasks(anyString(), any(), argThat { tasks == listOf(":connectedDebugAndroidTest") }, any())
   }
 
   @Test
@@ -396,28 +465,26 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        tasks == listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(anyString(), any(), argThat { tasks == listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest") }, any())
   }
 
   @Test
   fun retryExecuteTaskAfterInstallationFailure() {
-    whenever(mockGradleTaskManager.executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
-    )).then {
+    whenever(mockGradleTaskManager.executeTasks(anyString(), any(), any(), any())).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
       val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
@@ -435,34 +502,43 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockGradleTestResultAdapters[1].showRerunWithUninstallIncompatibleApkOptionDialog(any(), any())).thenReturn(true)
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
+    )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     inOrder(mockGradleTaskManager, mockAndroidTestSuiteView).apply {
-      verify(mockGradleTaskManager).executeTasks(
-        anyString(),
-        any(),
-        argThat {
-          !arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
-          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
-        },
-        any()
-      )
+      verify(mockGradleTaskManager)
+        .executeTasks(
+          anyString(),
+          any(),
+          argThat {
+            !arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
+              env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
+          },
+          any(),
+        )
       verify(mockAndroidTestSuiteView).onRerunScheduled(argThat { id == "DEVICE_SERIAL_NUMBER_2" })
-      verify(mockGradleTaskManager).executeTasks(
-        anyString(),
-        any(),
-        argThat {
-          arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
-          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_2"
-        },
-        any()
-      )
+      verify(mockGradleTaskManager)
+        .executeTasks(
+          anyString(),
+          any(),
+          argThat {
+            arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
+              env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_2"
+          },
+          any(),
+        )
       verifyNoMoreInteractions()
     }
   }
@@ -479,19 +555,26 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        arguments.contains("-Pandroid.injected.build.api=30") &&
-        arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat { arguments.contains("-Pandroid.injected.build.api=30") && arguments.contains("-Pandroid.injected.build.abi=x86,x86_64") },
+        any(),
+      )
   }
 
   @Test
@@ -507,19 +590,26 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = true,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      any(),
-      argThat {
-        !arguments.contains("-Pandroid.injected.build.api=30") &&
-        arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
-      },
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = true,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager)
+      .executeTasks(
+        anyString(),
+        any(),
+        argThat { !arguments.contains("-Pandroid.injected.build.api=30") && arguments.contains("-Pandroid.injected.build.abi=x86,x86_64") },
+        any(),
+      )
     StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
   }
 
@@ -528,28 +618,25 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
-
-    verify(mockGradleTaskManager).executeTasks(
-      anyString(),
-      argThat {
-        projectSystemId == GradleConstants.SYSTEM_ID
-      },
-      any(),
-      any()
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
+
+    verify(mockGradleTaskManager).executeTasks(anyString(), argThat { projectSystemId == GradleConstants.SYSTEM_ID }, any(), any())
   }
 
   @Test
   fun buildToolWindowShouldBeDisplayedWhenTaskFailedBeforeTestSuiteStarted() {
-    whenever(mockGradleTaskManager.executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
-    )).then {
+    whenever(mockGradleTaskManager.executeTasks(anyString(), any(), any(), any())).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
       val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
@@ -560,25 +647,27 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
+    )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mockBuildToolWindow).show()
   }
 
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskFailedAfterTestSuiteStarted() {
-    whenever(mockGradleTaskManager.executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
-    )).then {
+    whenever(mockGradleTaskManager.executeTasks(anyString(), any(), any(), any())).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
       val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
@@ -591,25 +680,27 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockGradleTestResultAdapters[0].testSuiteStarted).thenReturn(true)
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
+    )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mockBuildToolWindow, never()).show()
   }
 
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskIsCancelled() {
-    whenever(mockGradleTaskManager.executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
-    )).then {
+    whenever(mockGradleTaskManager.executeTasks(anyString(), any(), any(), any())).then {
       val projectPath: String = it.getArgument(0)
       val externalTaskId: ExternalSystemTaskId = it.getArgument(1)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(3)
@@ -621,13 +712,20 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
+    )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mockBuildToolWindow, never()).show()
   }
@@ -636,12 +734,7 @@ class GradleConnectedAndroidTestInvokerTest {
   fun processStdErrOutput() {
     val errorText = "This is an error line1\nThis is an error line2"
 
-    whenever(mockGradleTaskManager.executeTasks(
-      anyString(),
-      any(),
-      any(),
-      any()
-    )).then {
+    whenever(mockGradleTaskManager.executeTasks(anyString(), any(), any(), any())).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(1)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(3)
 
@@ -653,14 +746,20 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView,
-      mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = "")
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
+    )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mockAndroidTestSuiteView).print("Running tests\n", ConsoleViewContentType.NORMAL_OUTPUT)
     verify(mockAndroidTestSuiteView).print(errorText, ConsoleViewContentType.ERROR_OUTPUT)
@@ -674,11 +773,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
     val mockRunContentManager = mock<com.intellij.execution.ui.RunContentManager>()
     whenever(mockRunContentManager.allDescriptors).thenReturn(listOf(mockRunContentDescriptor))
-    projectRule.project.replaceService(
-      com.intellij.execution.ui.RunContentManager::class.java,
-      mockRunContentManager,
-      projectRule.project
-    )
+    projectRule.project.replaceService(com.intellij.execution.ui.RunContentManager::class.java, mockRunContentManager, projectRule.project)
     whenever(mockRunContentDescriptor.executionId).thenReturn(executionId)
 
     whenever(mockGradleTaskManager.executeTasks(any(), any(), any(), any())).then {
@@ -692,14 +787,20 @@ class GradleConnectedAndroidTestInvokerTest {
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
     gradleConnectedTestInvoker.runGradleTask(
-      projectRule.project, mockDevices, "taskId", mockAndroidTestSuiteView, mockAndroidModuleModel, waitForDebugger = false,
-      testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
-      extraInstrumentationOptions = ""
+      projectRule.project,
+      mockDevices,
+      "taskId",
+      mockAndroidTestSuiteView,
+      mockAndroidModuleModel,
+      waitForDebugger = false,
+      testPackageName = "",
+      testClassName = "",
+      testMethodName = "",
+      testRegex = "",
+      extraInstrumentationOptions = "",
     )
 
-    runInEdtAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     verify(mockProcessHandler).detachProcess()
   }

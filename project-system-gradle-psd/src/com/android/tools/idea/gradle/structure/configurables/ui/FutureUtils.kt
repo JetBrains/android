@@ -33,16 +33,18 @@ internal fun <I, O> ListenableFuture<I>.continueOnEdt(function: (I) -> O) =
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) {
         it.run()
-      }
-      else {
+      } else {
         application.invokeLater({ if (!isCancelled) it.run() }, ModalityState.any())
       }
-    })
+    },
+  )
 
-internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (ListenableFuture<I>) -> Unit) =
-  also {
-    it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<I> {
+internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (ListenableFuture<I>) -> Unit) = also {
+  it.addCallback(
+    MoreExecutors.directExecutor(),
+    object : FutureCallback<I> {
       override fun onSuccess(result: I) = invokeCallback()
+
       override fun onFailure(t: Throwable) = invokeCallback()
 
       private fun invokeCallback() {
@@ -52,8 +54,9 @@ internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (Listena
           com.intellij.openapi.application.invokeLater { callback(this@whenCompletedInvokeOnEdt) }
         }
       }
-    })
-  }
+    },
+  )
+}
 
 internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T?> =
   Futures.catching(
@@ -61,24 +64,25 @@ internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -
     Throwable::class.java,
     { ex ->
       val application = ApplicationManager.getApplication()
-      if (application.isDispatchThread) function(ex)
-      else application.invokeLater({ function(ex) }, ModalityState.any())
+      if (application.isDispatchThread) function(ex) else application.invokeLater({ function(ex) }, ModalityState.any())
       null
     },
-    MoreExecutors.directExecutor())
+    MoreExecutors.directExecutor(),
+  )
 
 internal fun <I, O> ListenableFuture<I>.invokeLater(function: (I) -> O) =
   Futures.transform(
-    this, { function(it!!) },
+    this,
+    { function(it!!) },
     {
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         it.run()
-      }
-      else {
+      } else {
         application.invokeLater(it, ModalityState.any())
       }
-    })
+    },
+  )
 
 internal fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> =
   MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<T> { ReadAction.compute<T, Throwable>(function) }

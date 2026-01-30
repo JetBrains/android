@@ -35,8 +35,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
 class MacrobenchmarkModuleTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun uniqueBuildType_noBuildTypes() {
@@ -79,8 +78,6 @@ class MacrobenchmarkModuleTest {
 
     assertThat(primaryManifest.readText()).doesNotContain("<profileable android:shell=\"true\"")
 
-    verify(mockExecutor).run {
-      mergeXml(Mockito.contains("<profileable android:shell=\"true\""), any())
-    }
+    verify(mockExecutor).run { mergeXml(Mockito.contains("<profileable android:shell=\"true\""), any()) }
   }
 }

@@ -28,9 +28,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Color
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Color
 
 private val blue = TextAttributes().apply { foregroundColor = Color.blue }
 private val red = TextAttributes().apply { foregroundColor = Color.red }
@@ -42,13 +42,10 @@ private val redKey = TextAttributesKey.createTextAttributesKey("red")
 class DocumentAppenderTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule())
 
   private val document: DocumentEx = DocumentImpl("", true)
-  private val markupModel by lazy {
-    DocumentMarkupModel.forDocument(document, projectRule.project, false)
-  }
+  private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, false) }
 
   @Test
   fun appendToDocument_appendsText() {
@@ -60,9 +57,9 @@ class DocumentAppenderTest {
     assertThat(document.text)
       .isEqualTo(
         """
-      Start
-      Added Text
-    """
+        Start
+        Added Text
+        """
           .trimIndent()
       )
   }
@@ -75,7 +72,7 @@ class DocumentAppenderTest {
       Added Line 1
       Added Line 2
 
-    """
+      """
         .trimIndent()
     )
 
@@ -83,10 +80,10 @@ class DocumentAppenderTest {
       TextAccumulator().apply {
         accumulate(
           """
-      Added Line 3
-      Added Line 4
+          Added Line 3
+          Added Line 4
 
-    """
+          """
             .trimIndent()
         )
       }
@@ -101,7 +98,7 @@ class DocumentAppenderTest {
       Added Line 1
       Added Line 2
 
-    """
+      """
         .trimIndent()
     )
 
@@ -109,9 +106,9 @@ class DocumentAppenderTest {
       TextAccumulator().apply {
         accumulate(
           """
-      Added Line 3
+          Added Line 3
 
-    """
+          """
             .trimIndent()
         )
       }
@@ -120,11 +117,11 @@ class DocumentAppenderTest {
     assertThat(document.text)
       .isEqualTo(
         """
-      Added Line 1
-      Added Line 2
-      Added Line 3
+        Added Line 1
+        Added Line 2
+        Added Line 3
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -137,7 +134,7 @@ class DocumentAppenderTest {
       Added Line 1
       Added Line 2
 
-    """
+      """
         .trimIndent()
     )
 
@@ -146,11 +143,11 @@ class DocumentAppenderTest {
       TextAccumulator().apply {
         accumulate(
           """
-      Added Line 3
-      Added Line 4
-      Added Line 5
+          Added Line 3
+          Added Line 4
+          Added Line 5
 
-    """
+          """
             .trimIndent()
         )
       }
@@ -159,11 +156,11 @@ class DocumentAppenderTest {
     assertThat(document.text)
       .isEqualTo(
         """
-      Added Line 3
-      Added Line 4
-      Added Line 5
+        Added Line 3
+        Added Line 4
+        Added Line 5
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -176,7 +173,7 @@ class DocumentAppenderTest {
       Added Line 1
       Added Line 2
 
-    """
+      """
         .trimIndent()
     )
 
@@ -185,12 +182,12 @@ class DocumentAppenderTest {
       TextAccumulator().apply {
         accumulate(
           """
-      Added Line 3
-      Added Line 4
-      Added Line 5
-      Added Line 6
+          Added Line 3
+          Added Line 4
+          Added Line 5
+          Added Line 6
 
-    """
+          """
             .trimIndent()
         )
       }
@@ -199,11 +196,11 @@ class DocumentAppenderTest {
     assertThat(document.text)
       .isEqualTo(
         """
-      Added Line 4
-      Added Line 5
-      Added Line 6
+        Added Line 4
+        Added Line 5
+        Added Line 6
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -284,10 +281,8 @@ class DocumentAppenderTest {
     return TextAccumulator.Range(start, start + text.length, data)
   }
 
-  private fun documentAppender(
-    document: DocumentEx = this.document,
-    maxDocumentSize: Int = Int.MAX_VALUE,
-  ) = DocumentAppender(projectRule.project, document, maxDocumentSize)
+  private fun documentAppender(document: DocumentEx = this.document, maxDocumentSize: Int = Int.MAX_VALUE) =
+    DocumentAppender(projectRule.project, document, maxDocumentSize)
 }
 
 private fun RangeHighlighter.toTextAttributesRange() =

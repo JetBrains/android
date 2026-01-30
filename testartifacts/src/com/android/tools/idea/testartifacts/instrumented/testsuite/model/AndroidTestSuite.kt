@@ -34,27 +34,17 @@ data class AndroidTestSuite(
   val runConfiguration: RunConfiguration? = null,
 )
 
-/**
- * A result of a test suite execution.
- */
+/** A result of a test suite execution. */
 enum class AndroidTestSuiteResult {
-  /**
-   * All tests in a test suite are passed.
-   */
+  /** All tests in a test suite are passed. */
   PASSED,
 
-  /**
-   * At least one test case in a test suite is failed.
-   */
+  /** At least one test case in a test suite is failed. */
   FAILED,
 
-  /**
-   * A test suite execution is aborted by tool failure.
-   */
+  /** A test suite execution is aborted by tool failure. */
   ABORTED,
 
-  /**
-   * A test suite execution is cancelled by a user before it completes.
-   */
-  CANCELLED
+  /** A test suite execution is cancelled by a user before it completes. */
+  CANCELLED,
 }

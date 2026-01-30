@@ -35,9 +35,7 @@ class NamespacedRenderTest {
 
   val AGP_VERSION = AGP_8_13
 
-  @get:Rule val projectRule = AndroidGradleProjectRule(
-    agpVersionSoftwareEnvironment = AGP_VERSION
-  )
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AGP_VERSION)
 
   @get:Rule val renderRule = RenderTestRule()
 
@@ -69,10 +67,7 @@ class NamespacedRenderTest {
       PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
       "@style/AttrsFromLib",
     ) {
-      checkRendering(
-        it,
-        AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png",
-      )
+      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png")
     }
   }
 
@@ -83,10 +78,7 @@ class NamespacedRenderTest {
       PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
       "@style/ParentFromLib",
     ) {
-      checkRendering(
-        it,
-        AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png",
-      )
+      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png")
     }
   }
 }

@@ -52,12 +52,8 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
     setupGradleFiles(false)
     val handler = ProjectBuildModelHandler(project, projectBuildModel, 3L)
     val buildModel = projectBuildModel
-    handler.read {
-      assertTrue(buildModel === this)
-    }
-    handler.modify {
-      assertTrue(buildModel === this)
-    }
+    handler.read { assertTrue(buildModel === this) }
+    handler.modify { assertTrue(buildModel === this) }
   }
 
   @Test
@@ -70,9 +66,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
       assertFalse(buildModel === this)
       buildModel = this
     }
-    handler.read {
-      assertFalse(buildModel === this)
-    }
+    handler.read { assertFalse(buildModel === this) }
   }
 
   @Test
@@ -86,9 +80,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
       buildModel = this
     }
     setupGradleSyncState(6L)
-    handler.modify {
-      assertFalse(buildModel === this)
-    }
+    handler.modify { assertFalse(buildModel === this) }
   }
 
   @Test
@@ -96,10 +88,8 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
     setupGradleSyncState(6L)
     setupGradleFiles(false)
     val handler = ProjectBuildModelHandler(project, projectBuildModel, 6L)
-    whenever(projectBuildModel.applyChanges()).then {
-      ApplicationManager.getApplication().assertWriteAccessAllowed()
-    }
-    handler.modify { }
+    whenever(projectBuildModel.applyChanges()).then { ApplicationManager.getApplication().assertWriteAccessAllowed() }
+    handler.modify {}
     verify(projectBuildModel).applyChanges()
   }
 }

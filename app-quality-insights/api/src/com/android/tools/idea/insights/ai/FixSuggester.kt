@@ -28,15 +28,9 @@ interface FixSuggester {
    *
    * Returns a flow so callers can listen to events of this fix application.
    */
-  fun suggestFix(
-    project: Project,
-    insight: String,
-    files: List<VirtualFile>,
-    parentDisposable: Disposable,
-  ): Flow<TransformDiffViewerEvent>
+  fun suggestFix(project: Project, insight: String, files: List<VirtualFile>, parentDisposable: Disposable): Flow<TransformDiffViewerEvent>
 
   companion object {
-    val EP_NAME: ExtensionPointName<FixSuggester> =
-      ExtensionPointName.create("com.android.tools.idea.insights.ai.fixSuggester")
+    val EP_NAME: ExtensionPointName<FixSuggester> = ExtensionPointName.create("com.android.tools.idea.insights.ai.fixSuggester")
   }
 }

@@ -32,20 +32,19 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.lang.JavaVersion
+import kotlin.io.path.Path
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
-import kotlin.io.path.Path
 
 class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-  private val recommendedToolchainVersion by lazy {
-    GradleJvmSupportMatrix.getRecommendedJavaVersion(getRecommendedGradleVersion(), true)
-  }
+  private val recommendedToolchainVersion by lazy { GradleJvmSupportMatrix.getRecommendedJavaVersion(getRecommendedGradleVersion(), true) }
 
   override val necessityInfo = AlwaysNeeded
 
@@ -54,20 +53,19 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
 
     val externalProjectPath = project.basePath ?: return emptyArray()
     val propertiesPsiFile = getDaemonJvmCriteriaPropertiesFile(externalProjectPath) ?: return emptyArray()
-    val currentToolchainVersion = GradleDaemonJvmPropertiesFile.getProperties(Path(externalProjectPath))?.version?.value?.let {
-      JavaVersion.tryParse(it)
-    }
+    val currentToolchainVersion =
+      GradleDaemonJvmPropertiesFile.getProperties(Path(externalProjectPath))?.version?.value?.let { JavaVersion.tryParse(it) }
     val requiredToolchainVersion = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.toJavaVersion()
     if (currentToolchainVersion != null && currentToolchainVersion >= requiredToolchainVersion) return emptyArray()
     if (!GradleDaemonJvmCriteriaTemplatesManager.canGeneratePropertiesFile(recommendedToolchainVersion)) return emptyArray()
 
-    val usageType = UsageType(AgpUpgradeBundle.messagePointer("gradleDaemonJvmCriteria.enable.usageType", recommendedToolchainVersion.feature))
+    val usageType =
+      UsageType(AgpUpgradeBundle.messagePointer("gradleDaemonJvmCriteria.enable.usageType", recommendedToolchainVersion.feature))
     val wrappedPsiElement = WrappedPsiElement(propertiesPsiFile.containingFile, this, usageType)
     return arrayOf(GradleDaemonJvmCriteriaUsageInfo(wrappedPsiElement, recommendedToolchainVersion, externalProjectPath))
   }
 
-  override fun getCommandName(): String =
-    AgpUpgradeBundle.message("gradleDaemonJvmCriteria.commandName", recommendedToolchainVersion)
+  override fun getCommandName(): String = AgpUpgradeBundle.message("gradleDaemonJvmCriteria.commandName", recommendedToolchainVersion)
 
   override fun getShortDescription(): String =
     AgpUpgradeBundle.message("gradleDaemonJvmCriteria.shortDescription", recommendedToolchainVersion)
@@ -103,8 +101,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessor : AgpUpgradeComponentRefactori
     private val javaVersion: JavaVersion,
     private val externalProjectPath: @SystemIndependent String,
   ) : GradleBuildModelUsageInfo(element) {
-    override fun getTooltipText(): String = AgpUpgradeBundle.message(
-      "gradleDaemonJvmCriteria.enable.tooltipText", javaVersion.feature)
+    override fun getTooltipText(): String = AgpUpgradeBundle.message("gradleDaemonJvmCriteria.enable.tooltipText", javaVersion.feature)
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       GradleDaemonJvmCriteriaTemplatesManager.generatePropertiesFile(javaVersion, externalProjectPath)

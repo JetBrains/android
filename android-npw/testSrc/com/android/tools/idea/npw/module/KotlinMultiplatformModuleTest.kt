@@ -47,8 +47,7 @@ import org.mockito.kotlin.whenever
 
 class KotlinMultiplatformModuleTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
@@ -60,8 +59,7 @@ class KotlinMultiplatformModuleTest {
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
     assertThat(buildGradleContent).isEqualTo(EXPECTED_BUILD_GRADLE_FILE)
 
-    val androidPlatformContent =
-      rootDir.resolve("androidMain").resolve("Platform.android.kt").readText()
+    val androidPlatformContent = rootDir.resolve("androidMain").resolve("Platform.android.kt").readText()
     assertThat(androidPlatformContent).isEqualTo(EXPECTED_ANDROID_MAIN_CONTENT)
 
     val commonPlatformContent = rootDir.resolve("commonMain").resolve("Platform.kt").readText()
@@ -70,31 +68,21 @@ class KotlinMultiplatformModuleTest {
     val iosPlatformContent = rootDir.resolve("iosMain").resolve("Platform.ios.kt").readText()
     assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
-    val androidTestOnJvmContent =
-      rootDir.resolve("androidHostTest").resolve("ExampleUnitTest.kt").readText()
+    val androidTestOnJvmContent = rootDir.resolve("androidHostTest").resolve("ExampleUnitTest.kt").readText()
     assertThat(androidTestOnJvmContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
-    val androidTestOnDeviceContent =
-      rootDir.resolve("androidDeviceTest").resolve("ExampleInstrumentedTest.kt").readText()
+    val androidTestOnDeviceContent = rootDir.resolve("androidDeviceTest").resolve("ExampleInstrumentedTest.kt").readText()
     assertThat(androidTestOnDeviceContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
     val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
-    assertThat(gradlePropertiesContent)
-      .contains("kotlin.native.distribution.downloadFromMaven=true")
+    assertThat(gradlePropertiesContent).contains("kotlin.native.distribution.downloadFromMaven=true")
 
     val moduleFiles =
-      rootDir
-        .walk()
-        .filter { !it.isDirectory }
-        .map { FileUtils.toSystemIndependentPath(it.relativeTo(rootDir).path) }
-        .toList()
+      rootDir.walk().filter { !it.isDirectory }.map { FileUtils.toSystemIndependentPath(it.relativeTo(rootDir).path) }.toList()
     assertThat(moduleFiles).containsExactlyInAnyOrder(*EXPECTED_MODULE_FILES)
   }
 
-  private fun runTemplateGeneration(
-    useKts: Boolean,
-    projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
-  ): File {
+  private fun runTemplateGeneration(useKts: Boolean, projectRuleAgpVersion: AgpVersionSoftwareEnvironment): File {
     val name = "shared"
     val apiLevel = SDK_VERSION_FOR_NPW_TESTS
     val buildApi = AndroidVersion(apiLevel)
@@ -108,10 +96,7 @@ class KotlinMultiplatformModuleTest {
     val iosMainDir = tmpFolderRule.root.resolve("iosMain").also { it.mkdir() }
     val rootDir = tmpFolderRule.root
 
-    projectRule.loadProject(
-      projectPath = TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM,
-      agpVersion = projectRuleAgpVersion,
-    )
+    projectRule.loadProject(projectPath = TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM, agpVersion = projectRuleAgpVersion)
 
     val mockProjectTemplateData = mock<ProjectTemplateData>()
     whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
@@ -145,13 +130,7 @@ class KotlinMultiplatformModuleTest {
             }
             .build(),
         themesData = ThemesData("appname"),
-        apis =
-          ApiTemplateData(
-            buildApi = buildApi,
-            targetApi = targetApi,
-            minApi = minApi,
-            appCompatVersion = 0,
-          ),
+        apis = ApiTemplateData(buildApi = buildApi, targetApi = targetApi, minApi = minApi, appCompatVersion = 0),
         srcDir = androidMainDir,
         resDir = rootDir.resolve("res").also { it.mkdir() },
         manifestDir = rootDir,

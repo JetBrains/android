@@ -18,6 +18,6 @@ package com.android.tools.idea.gradle.dsl.api.kotlin
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface CompilerOptionsModel: GradleBlockModel {
+interface CompilerOptionsModel : GradleBlockModel {
   fun jvmTarget(): LanguageLevelPropertyModel
 }

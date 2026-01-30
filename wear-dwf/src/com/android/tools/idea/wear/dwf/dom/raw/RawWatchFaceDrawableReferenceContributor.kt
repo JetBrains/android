@@ -43,34 +43,25 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * A [PsiReferenceContributor] that is responsible for converting drawable resources referenced in
- * Declarative Watch Face files (in `res/raw`) into [PsiReference]s. The drawables referenced in the
- * XML file do not have a `@drawable` prefix. Furthermore, the attributes are not defined through
- * [org.jetbrains.android.dom.AndroidDomElement]s as we use an [com.intellij.xml.XmlSchemaProvider].
+ * A [PsiReferenceContributor] that is responsible for converting drawable resources referenced in Declarative Watch Face files (in
+ * `res/raw`) into [PsiReference]s. The drawables referenced in the XML file do not have a `@drawable` prefix. Furthermore, the attributes
+ * are not defined through [org.jetbrains.android.dom.AndroidDomElement]s as we use an [com.intellij.xml.XmlSchemaProvider].
  *
- * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. These
- * attributes can be used by multiple different tags.
+ * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. These attributes can be used by multiple different
+ * tags.
  *
  * @see RawWatchfaceXmlSchemaProvider
- * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
- *   Face Format reference</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
  */
 class RawWatchFaceDrawableReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-    registrar.registerReferenceProvider(
-      XmlPatterns.xmlAttributeValue(),
-      RawWatchFaceDrawableReferenceProvider(),
-    )
+    registrar.registerReferenceProvider(XmlPatterns.xmlAttributeValue(), RawWatchFaceDrawableReferenceProvider())
   }
 }
 
 private class RawWatchFaceDrawableReferenceProvider : PsiReferenceProvider() {
-  override fun getReferencesByElement(
-    element: PsiElement,
-    context: ProcessingContext,
-  ): Array<out PsiReference?> {
-    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get())
-      return PsiReference.EMPTY_ARRAY
+  override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<out PsiReference?> {
+    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return PsiReference.EMPTY_ARRAY
 
     val xmlFile = element.containingFile as? XmlFile ?: return PsiReference.EMPTY_ARRAY
     if (!isDeclarativeWatchFaceFile(xmlFile)) return PsiReference.EMPTY_ARRAY
@@ -95,24 +86,12 @@ private class RawWatchFaceDrawablePsiReference(private val attributeValue: XmlAt
     val facet = AndroidFacet.getInstance(attributeValue) ?: return null
 
     val resourceValue =
-      ResourceValue.parse(
-        attributeValue.value,
-        /* withLiterals */ true,
-        /* withPrefix */ false,
-        /* requireValid */ true,
-      )
-        ?: return null
+      ResourceValue.parse(attributeValue.value, /* withLiterals */ true, /* withPrefix */ false, /* requireValid */ true) ?: return null
     val resourceName = resourceValue.resourceName ?: return null
     val resourceType = resourceValue.type ?: ResourceType.DRAWABLE
     val resourceUrl = ResourceUrl.create(/* namespace */ null, resourceType, resourceName)
     val resourceReference = resourceUrl.resolve(attributeValue) ?: return null
-    return ResourceRepositoryToPsiResolver.resolveReference(
-        resourceReference,
-        attributeValue,
-        facet,
-      )
-      .firstOrNull()
-      ?.element
+    return ResourceRepositoryToPsiResolver.resolveReference(resourceReference, attributeValue, facet).firstOrNull()?.element
   }
 
   override fun getVariants(): Array<out Any?> {
@@ -126,9 +105,7 @@ private class RawWatchFaceDrawablePsiReference(private val attributeValue: XmlAt
           ResourceType.DRAWABLE,
           ResourceVisibility.PUBLIC,
         )
-        ?.mapNotNull {
-          ResourceValue.reference(if (withPrefix) "@drawable/$it" else it, withPrefix)
-        } ?: emptyList()
+        ?.mapNotNull { ResourceValue.reference(if (withPrefix) "@drawable/$it" else it, withPrefix) } ?: emptyList()
 
     return resourceValues.map { LookupElementBuilder.create(it.toString()) }.toTypedArray()
   }

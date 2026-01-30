@@ -45,13 +45,7 @@ class ComposeResizeToolingUsageTrackerTest {
   fun setUp() {
 
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
     model.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
@@ -75,39 +69,21 @@ class ComposeResizeToolingUsageTrackerTest {
 
   @Test
   fun test_saveSize() {
-    ComposeResizeToolingUsageTracker.logResizeSaved(
-      surface,
-      ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
-      100,
-      200,
-      100,
-    )
+    ComposeResizeToolingUsageTracker.logResizeSaved(surface, ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE, 100, 200, 100)
 
-    val event =
-      usageTrackerRule.usages
-        .single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }.studioEvent.resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_SAVED)
     Truth.assertThat(event.deviceHeightDp).isEqualTo(200)
     Truth.assertThat(event.deviceWidthDp).isEqualTo(100)
     Truth.assertThat(event.dpi).isEqualTo(100)
-    Truth.assertThat(event.resizeMode)
-      .isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
+    Truth.assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
   }
 
   @Test
   fun test_revertSize() {
-    ComposeResizeToolingUsageTracker.logResizeReverted(
-      surface,
-      ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE,
-    )
+    ComposeResizeToolingUsageTracker.logResizeReverted(surface, ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
 
-    val event =
-      usageTrackerRule.usages
-        .single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }.studioEvent.resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_REVERTED)
     Truth.assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }
@@ -123,11 +99,7 @@ class ComposeResizeToolingUsageTrackerTest {
       ResizeComposePreviewEvent.ResizeSource.DRAG,
     )
 
-    val event =
-      usageTrackerRule.usages
-        .single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }.studioEvent.resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
     Truth.assertThat(event.deviceHeightDp).isEqualTo(200)
     Truth.assertThat(event.deviceWidthDp).isEqualTo(100)
@@ -138,19 +110,9 @@ class ComposeResizeToolingUsageTrackerTest {
 
   @Test
   fun test_saveSize_differentValues() {
-    ComposeResizeToolingUsageTracker.logResizeSaved(
-      surface,
-      ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE,
-      300,
-      400,
-      150,
-    )
+    ComposeResizeToolingUsageTracker.logResizeSaved(surface, ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE, 300, 400, 150)
 
-    val event =
-      usageTrackerRule.usages
-        .single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }.studioEvent.resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_SAVED)
     Truth.assertThat(event.deviceHeightDp).isEqualTo(400)
     Truth.assertThat(event.deviceWidthDp).isEqualTo(300)
@@ -167,15 +129,10 @@ class ComposeResizeToolingUsageTrackerTest {
       deviceId = "pixel_4",
     )
 
-    val event =
-      usageTrackerRule.usages
-        .single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.single { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }.studioEvent.resizeComposePreviewEvent
     Truth.assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
     Truth.assertThat(event.deviceId).isEqualTo("pixel_4")
-    Truth.assertThat(event.resizeMode)
-      .isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
+    Truth.assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
     Truth.assertThat(event.resizeSource).isEqualTo(ResizeComposePreviewEvent.ResizeSource.DROPDOWN)
   }
 }

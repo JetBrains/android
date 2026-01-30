@@ -58,9 +58,7 @@ class DetailsPanelHeaderTest {
 
     detailsPanelHeader.size = Dimension(500, 200)
 
-    detailsPanelHeader.update(
-      DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, ISSUE_VARIANT)
-    )
+    detailsPanelHeader.update(DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, ISSUE_VARIANT))
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("1")
@@ -85,24 +83,10 @@ class DetailsPanelHeaderTest {
   fun `header width affects class name and method name in title label`() {
     val detailsPanelHeader = DetailsPanelHeader()
 
-    assertThat(
-        detailsPanelHeader.generateTitleLabelText(
-          "DetailsPanelTest",
-          "testMethod",
-          120,
-          JBFont.label(),
-        )
-      )
+    assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod", 120, JBFont.label()))
       .matches("<html>\\.\\.\\.\\w+\\.<B>testMethod</B></html>")
 
-    assertThat(
-        detailsPanelHeader.generateTitleLabelText(
-          "DetailsPanelTest",
-          "testMethod",
-          60,
-          JBFont.label(),
-        )
-      )
+    assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod", 60, JBFont.label()))
       .matches("<html><B>\\.\\.\\.\\w+</B></html>")
   }
 

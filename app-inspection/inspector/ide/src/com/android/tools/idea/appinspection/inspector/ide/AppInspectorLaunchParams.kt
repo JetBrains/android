@@ -23,18 +23,11 @@ sealed class AppInspectorLaunchParams {
   abstract val inspectorAgentJar: AppInspectorJar
 }
 
-class FrameworkInspectorLaunchParams(override val inspectorAgentJar: AppInspectorJar) :
-  AppInspectorLaunchParams()
+class FrameworkInspectorLaunchParams(override val inspectorAgentJar: AppInspectorJar) : AppInspectorLaunchParams()
 
-/**
- * In addition to the inspector agent jar, library inspectors need to provide information about the
- * library they are targeting.
- */
+/** In addition to the inspector agent jar, library inspectors need to provide information about the library they are targeting. */
 class LibraryInspectorLaunchParams(
   override val inspectorAgentJar: AppInspectorJar,
-  /**
-   * Information about the library this inspector is targeting, including the minimum version this
-   * inspector is compatible with.
-   */
+  /** Information about the library this inspector is targeting, including the minimum version this inspector is compatible with. */
   val minVersionLibraryCoordinate: MinimumArtifactCoordinate,
 ) : AppInspectorLaunchParams()

@@ -24,15 +24,15 @@ import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
- * This [GradleSyncListenerWithRoot] is responsible given Gradle root project to remove the Gradle JVM config stored on .idea/gradle.xml
- * if projects are using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
+ * This [GradleSyncListenerWithRoot] is responsible given Gradle root project to remove the Gradle JVM config stored on .idea/gradle.xml if
+ * projects are using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
  * Those projects will ignore any Gradle JDK configuration prioritizing instead the defined criteria.
  *
- * The Gradle JDK configuration will be discarded during auto-migration process to Daemon JVM criteria via IDE, however, for those
- * projects manually migrated the old configuration might still be present, causing confusion about source of truth.
+ * The Gradle JDK configuration will be discarded during auto-migration process to Daemon JVM criteria via IDE, however, for those projects
+ * manually migrated the old configuration might still be present, causing confusion about source of truth.
  */
 @Suppress("UnstableApiUsage")
-class RemoveGradleJvmReferenceSyncListener: GradleSyncListenerWithRoot {
+class RemoveGradleJvmReferenceSyncListener : GradleSyncListenerWithRoot {
 
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (!GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath)) return

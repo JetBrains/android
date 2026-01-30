@@ -72,9 +72,7 @@ class InsightContentPanelTest {
   private val projectRule = ProjectRule()
   private val loginFeatureRule = LoginFeatureRule()
 
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule()).around(projectRule).around(loginFeatureRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(loginFeatureRule)
 
   private lateinit var currentInsightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private lateinit var insightContentPanel: InsightContentPanel
@@ -112,23 +110,15 @@ class InsightContentPanelTest {
       .whenever(mockController)
       .state
     doReturn(projectRule.project).whenever(mockController).project
-    doReturn(
-        FakeAiInsightToolkit(projectRule.project, aiInsightOnboardingProvider = onboardingProvider)
-      )
+    doReturn(FakeAiInsightToolkit(projectRule.project, aiInsightOnboardingProvider = onboardingProvider))
       .whenever(mockController)
       .aiInsightToolkit
     doReturn(FakeInsightsProvider()).whenever(mockController).provider
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.available = false
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.disposable,
-    )
-    currentInsightFlow =
-      MutableStateFlow(LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)))
-    insightContentPanel =
-      InsightContentPanel(mockController, scope, currentInsightFlow, projectRule.disposable)
+    ExtensionTestUtil.maskExtensions(GeminiPluginApi.EP_NAME, listOf(fakeGeminiPluginApi), projectRule.disposable)
+    currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight", ISSUE1.sampleEvent)))
+    insightContentPanel = InsightContentPanel(mockController, scope, currentInsightFlow, projectRule.disposable)
   }
 
   @After
@@ -156,10 +146,7 @@ class InsightContentPanelTest {
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
-    assertThat(errorText)
-      .isEqualTo(
-        "Transient state (\"fetch insight\" action is not fired yet), should recover shortly."
-      )
+    assertThat(errorText).isEqualTo("Transient state (\"fetch insight\" action is not fired yet), should recover shortly.")
   }
 
   @Test
@@ -175,9 +162,7 @@ class InsightContentPanelTest {
 
   @Test
   fun `test failure shows failure message if available`() = runBlocking {
-    currentInsightFlow.update {
-      LoadingState.ServerFailure("Some failure", SocketTimeoutException())
-    }
+    currentInsightFlow.update { LoadingState.ServerFailure("Some failure", SocketTimeoutException()) }
 
     FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
@@ -203,15 +188,11 @@ class InsightContentPanelTest {
 
     val fakeUi = FakeUi(insightContentPanel)
 
-    val statusTexts =
-      fakeUi
-        .findAllComponents<kotlin.Any> { it.javaClass.name.contains("StatusText\$Fragment") }
-        .map { it.toString() }
+    val statusTexts = fakeUi.findAllComponents<kotlin.Any> { it.javaClass.name.contains("StatusText\$Fragment") }.map { it.toString() }
 
     assertThat(statusTexts.size).isEqualTo(2)
     assertThat(statusTexts[0]).isEqualTo("Insights require Gemini")
-    assertThat(statusTexts[1])
-      .isEqualTo("You can set up Gemini and enable insights via the button below.")
+    assertThat(statusTexts[1]).isEqualTo("You can set up Gemini and enable insights via the button below.")
 
     val button = fakeUi.findComponent<JButton>() ?: fail("Button not found")
     assertThat(button.text).isEqualTo("Enable Insights")
@@ -244,8 +225,7 @@ class InsightContentPanelTest {
     delayUntilStatusTextVisible()
 
     assertThat(errorText).isEqualTo("Quota exhausted")
-    assertThat(secondaryText)
-      .isEqualTo("You have consumed your available daily quota for insights.")
+    assertThat(secondaryText).isEqualTo("You have consumed your available daily quota for insights.")
   }
 
   @Test
@@ -255,8 +235,7 @@ class InsightContentPanelTest {
     delayUntilStatusTextVisible()
 
     assertThat(errorText).isEqualTo(GEMINI_NOT_AVAILABLE)
-    assertThat(secondaryText)
-      .isEqualTo("To see insights, please enable the Gemini plugin in Settings > Plugins")
+    assertThat(secondaryText).isEqualTo("To see insights, please enable the Gemini plugin in Settings > Plugins")
   }
 
   @Test
@@ -275,8 +254,7 @@ class InsightContentPanelTest {
     val status =
       Status.newBuilder()
         .apply {
-          val message =
-            "SomeException: Cannot process request for disabled experience at\nsome stacktrace"
+          val message = "SomeException: Cannot process request for disabled experience at\nsome stacktrace"
           val any = Any.newBuilder().setValue(ByteString.copyFrom(message.toByteArray()))
           addDetails(any)
         }
@@ -287,10 +265,8 @@ class InsightContentPanelTest {
     delayUntilStatusTextVisible()
 
     assertThat(errorText).isEqualTo("Failed to generate insight")
-    assertThat(secondaryText)
-      .isEqualTo("Insights feature is temporarily unavailable, check back later.")
+    assertThat(secondaryText).isEqualTo("Insights feature is temporarily unavailable, check back later.")
   }
 
-  private suspend fun delayUntilStatusTextVisible() =
-    delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }
+  private suspend fun delayUntilStatusTextVisible() = delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }
 }

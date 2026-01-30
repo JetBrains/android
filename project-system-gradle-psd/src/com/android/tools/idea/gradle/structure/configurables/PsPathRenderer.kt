@@ -19,5 +19,6 @@ import com.android.tools.idea.gradle.structure.model.PsPath
 
 interface PsPathRenderer {
   fun PsPath.renderNavigation(specificPlace: PsPath = this): String
+
   fun <T : PsPath> T.renderNavigation(specificPlace: T.() -> PsPath): String = renderNavigation(specificPlace())
 }

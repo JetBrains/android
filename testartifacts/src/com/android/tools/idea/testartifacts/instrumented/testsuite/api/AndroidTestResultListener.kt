@@ -18,15 +18,15 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 
 /**
  * A listener to subscribe Android instrumentation test execution progress.
  *
- * A test suite means a set of test cases to be executed (including skipped). A test case means a single test method.
- * [onTestSuiteScheduled] callback is always invoked first, followed by [onTestSuiteStarted], [onTestCaseStarted],
- * [onTestCaseFinished], ([onTestCaseStarted], [onTestCaseFinished], ...), and [onTestSuiteFinished].
+ * A test suite means a set of test cases to be executed (including skipped). A test case means a single test method. [onTestSuiteScheduled]
+ * callback is always invoked first, followed by [onTestSuiteStarted], [onTestCaseStarted], [onTestCaseFinished], ([onTestCaseStarted],
+ * [onTestCaseFinished], ...), and [onTestSuiteFinished].
  */
 interface AndroidTestResultListener {
   /**
@@ -90,7 +90,7 @@ interface AndroidTestResultListener {
 
   /**
    * Called when a test step execution is updated, e.g. test artifacts are added.
-
+   *
    * @param device a device which a test suite to be executed on
    * @param testSuite a test suite metadata
    * @param testCase a test case metadata
@@ -114,8 +114,8 @@ interface AndroidTestResultListener {
   }
 
   /**
-   * Called when a test suite execution is finished. This method is also called when the execution is cancelled by a user or aborted by
-   * tool failures.
+   * Called when a test suite execution is finished. This method is also called when the execution is cancelled by a user or aborted by tool
+   * failures.
    *
    * @param device a device which a test suite to be executed on
    * @param testSuite a test suite metadata

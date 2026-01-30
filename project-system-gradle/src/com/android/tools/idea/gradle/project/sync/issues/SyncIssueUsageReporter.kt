@@ -29,20 +29,20 @@ import org.jetbrains.annotations.VisibleForTesting
 private val LOG = Logger.getInstance(SyncIssueUsageReporter::class.java)
 
 /**
- * This service is responsible for collecting and then reporting sync issues not necessarily leading to the failure.
- * Failure type [AndroidStudioEvent.GradleSyncFailure] is now collected and reported in [SyncFailureUsageReporter].
+ * This service is responsible for collecting and then reporting sync issues not necessarily leading to the failure. Failure type
+ * [AndroidStudioEvent.GradleSyncFailure] is now collected and reported in [SyncFailureUsageReporter].
  */
 interface SyncIssueUsageReporter {
 
   /**
-   * Collects a reported sync issue details to be reported as a part of [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] event. This
-   * method is supposed to be called on EDT only.
+   * Collects a reported sync issue details to be reported as a part of [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] event. This method
+   * is supposed to be called on EDT only.
    */
   fun collect(issue: GradleSyncIssue)
 
   /**
-   * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] event.
-   * This method is supposed to be called on EDT only.
+   * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] event. This method is supposed to be
+   * called on EDT only.
    */
   fun reportToUsageTracker(rootProjectPath: @SystemIndependent String)
 
@@ -53,12 +53,9 @@ interface SyncIssueUsageReporter {
 
     @JvmStatic
     fun createGradleSyncIssue(issueType: Int, message: SyncMessage): GradleSyncIssue {
-      return GradleSyncIssue
-        .newBuilder()
+      return GradleSyncIssue.newBuilder()
         .setType(issueType.toGradleSyncIssueType() ?: AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
-        .addAllOfferedQuickFixes(
-          message.quickFixes.flatMap { it.quickFixIds }.distinct()
-        )
+        .addAllOfferedQuickFixes(message.quickFixes.flatMap { it.quickFixIds }.distinct())
         .build()
     }
 
@@ -67,18 +64,25 @@ interface SyncIssueUsageReporter {
       return messages.map { createGradleSyncIssue(issueType, it) }
     }
 
-    private val intToSyncIssueMap = AndroidStudioEvent.GradleSyncIssueType.values()
-      .mapNotNull { it.name.let {
-        name -> try { IdeSyncIssue::class.java.getDeclaredField(name).get(null) } catch(e: NoSuchFieldException) { null }
-          ?.let { value -> (value as? Int)?.let { int -> int to it } } } }
-      .toMap()
+    private val intToSyncIssueMap =
+      AndroidStudioEvent.GradleSyncIssueType.values()
+        .mapNotNull {
+          it.name.let { name ->
+            try {
+                IdeSyncIssue::class.java.getDeclaredField(name).get(null)
+              } catch (e: NoSuchFieldException) {
+                null
+              }
+              ?.let { value -> (value as? Int)?.let { int -> int to it } }
+          }
+        }
+        .toMap()
 
     @VisibleForTesting
     fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       intToSyncIssueMap[this] ?: null.also { LOG.warn("Unknown sync issue type: $this") }
   }
 }
-
 
 fun SyncIssueUsageReporter.collect(issueType: Int, messages: List<SyncMessage>) {
   SyncIssueUsageReporter.createGradleSyncIssues(issueType, messages).forEach { collect(it) }

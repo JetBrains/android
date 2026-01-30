@@ -39,10 +39,7 @@ class ResourceFolderRegistryTest {
     AndroidModuleModelBuilder(
       gradlePath = ":app",
       selectedBuildVariant = "debug",
-      createAndroidProjectBuilderForDefaultTestProjectStructure(
-          IdeAndroidProjectType.PROJECT_TYPE_APP,
-          "p1.p2",
-        )
+      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_APP, "p1.p2")
         .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) },
     )
 
@@ -50,10 +47,7 @@ class ResourceFolderRegistryTest {
     AndroidModuleModelBuilder(
       gradlePath = ":mylib",
       selectedBuildVariant = "debug",
-      createAndroidProjectBuilderForDefaultTestProjectStructure(
-        IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
-        "com.example.mylib",
-      ),
+      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "com.example.mylib"),
     )
 
   @get:Rule
@@ -78,9 +72,7 @@ class ResourceFolderRegistryTest {
   private val project by lazy { fixture.project }
 
   private val appModule by lazy { project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN)!! }
-  private val libModule by lazy {
-    project.gradleModule(":mylib", IdeModuleWellKnownSourceSet.MAIN)!!
-  }
+  private val libModule by lazy { project.gradleModule(":mylib", IdeModuleWellKnownSourceSet.MAIN)!! }
 
   private val appFacet by lazy { appModule.androidFacet!! }
   private val libFacet by lazy { libModule.androidFacet!! }
@@ -90,12 +82,10 @@ class ResourceFolderRegistryTest {
     val registry = ResourceFolderRegistry.getInstance(project)
 
     val appResourceFolders = ResourceFolderManager.getInstance(appFacet).folders
-    val appResourceRepositories =
-      appResourceFolders.associateWith { registry[appFacet, it, ResourceNamespace.RES_AUTO] }
+    val appResourceRepositories = appResourceFolders.associateWith { registry[appFacet, it, ResourceNamespace.RES_AUTO] }
 
     val libResourceFolders = ResourceFolderManager.getInstance(libFacet).folders
-    val libResourceRepositories =
-      libResourceFolders.associateWith { registry[libFacet, it, ResourceNamespace.RES_AUTO] }
+    val libResourceRepositories = libResourceFolders.associateWith { registry[libFacet, it, ResourceNamespace.RES_AUTO] }
 
     // Repositories should be cached.
     for ((folder, repository) in appResourceRepositories) {
@@ -108,9 +98,7 @@ class ResourceFolderRegistryTest {
     // Clearing appFacet only should clear those directories.
     registry.reset(appFacet)
     appResourceFolders.forEach { assertThat(registry.getCached(it, Namespacing.DISABLED)).isNull() }
-    libResourceFolders.forEach {
-      assertThat(registry.getCached(it, Namespacing.DISABLED)).isNotNull()
-    }
+    libResourceFolders.forEach { assertThat(registry.getCached(it, Namespacing.DISABLED)).isNotNull() }
 
     // Clearing libFacet finished the job.
     registry.reset(libFacet)

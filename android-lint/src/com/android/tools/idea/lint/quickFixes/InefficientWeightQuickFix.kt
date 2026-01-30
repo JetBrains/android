@@ -30,8 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlTag
 
-class InefficientWeightQuickFix(element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class InefficientWeightQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
 
   override fun getFamilyName() = "InefficientWeightQuickFix"
 
@@ -41,9 +40,7 @@ class InefficientWeightQuickFix(element: PsiElement) :
     }
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
-    val tag =
-      element.parents(false).filterIsInstance(XmlTag::class.java).firstOrNull()
-        ?: return ModCommand.nop()
+    val tag = element.parents(false).filterIsInstance(XmlTag::class.java).firstOrNull() ?: return ModCommand.nop()
     val parentTag = tag.parentTag ?: return ModCommand.nop()
 
     val attrName =
@@ -54,8 +51,6 @@ class InefficientWeightQuickFix(element: PsiElement) :
       }
 
     @Suppress("UnstableApiUsage")
-    return ModCommand.psiUpdate(tag) { tagCopy, _ ->
-      tagCopy.setAttribute(attrName, ANDROID_URI, "0dp")
-    }
+    return ModCommand.psiUpdate(tag) { tagCopy, _ -> tagCopy.setAttribute(attrName, ANDROID_URI, "0dp") }
   }
 }

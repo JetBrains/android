@@ -27,10 +27,8 @@ import java.util.function.Predicate
  *
  * @param configFilter determines the types of devices the action is applicable to
  */
-abstract class EmulatorKeypressAction(
-  private val keyName: String,
-  configFilter: Predicate<EmulatorConfiguration>? = null,
-) : AbstractEmulatorAction(configFilter = configFilter) {
+abstract class EmulatorKeypressAction(private val keyName: String, configFilter: Predicate<EmulatorConfiguration>? = null) :
+  AbstractEmulatorAction(configFilter = configFilter) {
 
   override fun actionPerformed(event: AnActionEvent) {
     getEmulatorController(event)?.sendKeyEvent(keyName, eventType = KeyEventType.keypress)

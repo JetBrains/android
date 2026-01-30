@@ -38,18 +38,15 @@ import com.intellij.openapi.vfs.VirtualFile
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-interface ApkAnalyzerToken<P: AndroidProjectSystem> : Token {
+interface ApkAnalyzerToken<P : AndroidProjectSystem> : Token {
   fun getDefaultApkToAnalyze(projectSystem: P): VirtualFile?
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName<ApkAnalyzerToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.apk.viewer.apkAnalyzerToken"
-      )
+    val EP_NAME = ExtensionPointName<ApkAnalyzerToken<AndroidProjectSystem>>("com.android.tools.idea.apk.viewer.apkAnalyzerToken")
 
     /**
-     * Uses build-system-specific heuristics to locate a reasonable default APK file produced by the given project
-     * for selecting when picking an APK to analyze.
+     * Uses build-system-specific heuristics to locate a reasonable default APK file produced by the given project for selecting when
+     * picking an APK to analyze.
      */
     @JvmStatic
     fun getDefaultApkToAnalyze(project: Project): VirtualFile? {

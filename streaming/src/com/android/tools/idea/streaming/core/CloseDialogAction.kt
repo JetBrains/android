@@ -22,14 +22,14 @@ import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 
 /**
- * Custom action that closes the dialog with the given exit code. Intended to be used in the context
- * of the `createActions` argument when calling the [com.intellij.ui.components.dialog] function.
+ * Custom action that closes the dialog with the given exit code. Intended to be used in the context of the `createActions` argument when
+ * calling the [com.intellij.ui.components.dialog] function.
  */
 internal class CloseDialogAction(
   private val dialogPanel: DialogPanel,
   name: String,
   private val exitCode: Int,
-  isDefault: Boolean = false
+  isDefault: Boolean = false,
 ) : AbstractAction(name) {
 
   init {

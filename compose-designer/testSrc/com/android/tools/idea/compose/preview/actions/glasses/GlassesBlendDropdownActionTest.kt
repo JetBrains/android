@@ -68,23 +68,18 @@ class GlassesBlendDropdownActionTest {
     val event2 = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.Interactive(mock()))
     assertThat(event2.presentation.isEnabledAndVisible).isFalse()
 
-    val event3 =
-      setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.AnimationInspection(mock()))
+    val event3 = setUpDeviceAndActionVisibility(AI_GLASSES_TAG.id, PreviewMode.AnimationInspection(mock()))
     assertThat(event3.presentation.isEnabledAndVisible).isFalse()
   }
 
   /**
-   * Sets up a data context containing a screen view that has a device passed as an argument. Then,
-   * create an [AnActionEvent] and calls `GlassesBlendDropdownAction#update()` on it. The event's
-   * data context is populated with a [PreviewModeManager] that returns the given [previewMode] as
-   * the current mode.
+   * Sets up a data context containing a screen view that has a device passed as an argument. Then, create an [AnActionEvent] and calls
+   * `GlassesBlendDropdownAction#update()` on it. The event's data context is populated with a [PreviewModeManager] that returns the given
+   * [previewMode] as the current mode.
    *
    * Returns the event so it can be used to check the action visibility.
    */
-  private fun setUpDeviceAndActionVisibility(
-    deviceId: String,
-    previewMode: PreviewMode,
-  ): AnActionEvent {
+  private fun setUpDeviceAndActionVisibility(deviceId: String, previewMode: PreviewMode): AnActionEvent {
     val sceneView = mock<SceneView>()
     val configuration = mock<Configuration>()
     whenever(sceneView.configuration).thenReturn(configuration)
@@ -96,11 +91,7 @@ class GlassesBlendDropdownActionTest {
     val previewModeManager = mock<PreviewModeManager>()
     whenever(previewModeManager.mode).thenReturn(MutableStateFlow(previewMode))
 
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(SCENE_VIEW, sceneView)
-        .add(PreviewModeManager.KEY, previewModeManager)
-        .build()
+    val dataContext = SimpleDataContext.builder().add(SCENE_VIEW, sceneView).add(PreviewModeManager.KEY, previewModeManager).build()
 
     val action = GlassesBlendDropdownAction()
     return TestActionEvent.createTestEvent(action, dataContext).also { action.update(it) }

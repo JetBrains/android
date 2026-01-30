@@ -41,9 +41,7 @@ import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import javax.swing.JLabel
 
-/**
- * Shows an icon in the gutter when a SQLite statement is recognized. e.g. Room @Query annotations.
- */
+/** Shows an icon in the gutter when a SQLite statement is recognized. e.g. Room @Query annotations. */
 internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   override fun getId(): String = "RunSqliteStatement"
 
@@ -51,10 +49,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
-  override fun collectSlowLineMarkers(
-    elements: List<PsiElement>,
-    result: MutableCollection<in LineMarkerInfo<*>>,
-  ) {
+  override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
 
@@ -73,8 +68,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   ) {
     if (element.children.isNotEmpty()) return // not leaf element
 
-    val targetElement =
-      element as? PsiLanguageInjectionHost ?: element.parent as? PsiLanguageInjectionHost
+    val targetElement = element as? PsiLanguageInjectionHost ?: element.parent as? PsiLanguageInjectionHost
     if (targetElement == null) return
 
     val injectedPsiFile =
@@ -85,8 +79,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         .filter { it.language == AndroidSqlLanguage.INSTANCE }
         .firstOrNull { !injectedLanguageManager.isFrankensteinInjection(it) } ?: return
 
-    val injectionHost =
-      InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
+    val injectionHost = InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
 
     // If the sql statement is defined over multiple strings (eg: "select " + "*" + " from users")
     // different elements ("select ", "*", " from users") correspond to the same injection host
@@ -111,14 +104,11 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     )
   }
 
-  private fun getNavHandler(
-    pointer: SmartPsiElementPointer<PsiLanguageInjectionHost>
-  ): GutterIconNavigationHandler<PsiElement> {
+  private fun getNavHandler(pointer: SmartPsiElementPointer<PsiLanguageInjectionHost>): GutterIconNavigationHandler<PsiElement> {
     return GutterIconNavigationHandler { event, element ->
       val targetElement = pointer.element ?: return@GutterIconNavigationHandler
 
-      val sqliteExplorerProjectService =
-        DatabaseInspectorProjectService.getInstance(element.project)
+      val sqliteExplorerProjectService = DatabaseInspectorProjectService.getInstance(element.project)
       if (!sqliteExplorerProjectService.hasOpenDatabase()) {
         JBPopupFactory.getInstance()
           .createBalloonBuilder(JLabel(message("no.db.in.inspector")))
@@ -129,15 +119,8 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         return@GutterIconNavigationHandler
       }
 
-      val action =
-        RunSqliteStatementGutterIconAction(
-          element.project,
-          targetElement,
-          DatabaseInspectorViewsFactoryImpl.getInstance(),
-        )
-      action.actionPerformed(
-        createEvent(action, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, event)
-      )
+      val action = RunSqliteStatementGutterIconAction(element.project, targetElement, DatabaseInspectorViewsFactoryImpl.getInstance())
+      action.actionPerformed(createEvent(action, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, event))
     }
   }
 }

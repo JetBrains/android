@@ -22,31 +22,22 @@ import com.google.common.collect.HashMultimap
 class PsIssueCollection {
   private val lock = Any()
 
-  @GuardedBy("lock")
-  private val myIssues = HashMultimap.create<PsPath, PsIssue>()
+  @GuardedBy("lock") private val myIssues = HashMultimap.create<PsPath, PsIssue>()
 
-  val values: List<PsIssue> get() = synchronized(lock) { myIssues.values().toList() }
+  val values: List<PsIssue>
+    get() = synchronized(lock) { myIssues.values().toList() }
 
-  val isEmpty: Boolean get() = synchronized(lock) { myIssues.isEmpty }
+  val isEmpty: Boolean
+    get() = synchronized(lock) { myIssues.isEmpty }
 
-  /**
-   * Returns all issues optionally filtered by [filterByParentPath].
-   */
+  /** Returns all issues optionally filtered by [filterByParentPath]. */
   fun findIssues(filterByParentPath: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> {
     val unorderedIssues =
       synchronized(lock) {
         if (filterByParentPath != null) {
-          myIssues
-            .get(filterByParentPath)
-            .toList()
-        }
-        else {
-          myIssues
-            .entries()
-            .asSequence()
-            .filter { it.key.parent == null }
-            .map { it.value }
-            .toList()
+          myIssues.get(filterByParentPath).toList()
+        } else {
+          myIssues.entries().asSequence().filter { it.key.parent == null }.map { it.value }.toList()
         }
       }
     return if (comparator != null) unorderedIssues.sortedWith(comparator) else unorderedIssues
@@ -64,15 +55,9 @@ class PsIssueCollection {
 
   fun remove(type: PsIssueType, byPath: PsPath? = null) {
     synchronized(lock) {
-      val issuesToRemove =
-        (if (byPath != null) myIssues[byPath] else myIssues.values())
-          .filter { it.type == type }
-          .toCollection(HashSet())
+      val issuesToRemove = (if (byPath != null) myIssues[byPath] else myIssues.values()).filter { it.type == type }.toCollection(HashSet())
 
-      myIssues
-        .entries()
-        .filter { issuesToRemove.contains(it.value)}
-        .forEach { (path, issue) -> myIssues.remove(path, issue) }
+      myIssues.entries().filter { issuesToRemove.contains(it.value) }.forEach { (path, issue) -> myIssues.remove(path, issue) }
     }
   }
 }
@@ -86,22 +71,23 @@ fun getTooltipText(issues: List<PsIssue>, includePath: Boolean): String? {
 
   val useBullets = issues.size > 1
 
-  val lines = sorted
-    .map {
-      var line = it.text
-      if (includePath) {
-        val path = it.path.toString()
-        if (!path.isEmpty()) {
-          line = "$path: $line"
+  val lines =
+    sorted
+      .map {
+        var line = it.text
+        if (includePath) {
+          val path = it.path.toString()
+          if (!path.isEmpty()) {
+            line = "$path: $line"
+          }
         }
+        if (useBullets) {
+          line = "<li>$line</li>"
+        }
+        line
       }
-      if (useBullets) {
-        line = "<li>$line</li>"
-      }
-      line
-    }
-    // Removed duplicated lines.
-    .distinct()
+      // Removed duplicated lines.
+      .distinct()
 
   return buildString {
     append("<html><body>")

@@ -19,12 +19,11 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
- * Creates a [MutableSharedFlow] that emits only the most recent value published after a subscriber
- * starts collecting. This ensures that new collectors receive only future emissions and do not
- * retain past values.
+ * Creates a [MutableSharedFlow] that emits only the most recent value published after a subscriber starts collecting. This ensures that new
+ * collectors receive only future emissions and do not retain past values.
  *
- * @return A [MutableSharedFlow] that buffers only the latest emitted value, dropping older values
- *   if a new one arrives before being collected.
+ * @return A [MutableSharedFlow] that buffers only the latest emitted value, dropping older values if a new one arrives before being
+ *   collected.
  */
 fun <T> ephemeralFlow(): MutableSharedFlow<T?> {
   return MutableSharedFlow<T?>(

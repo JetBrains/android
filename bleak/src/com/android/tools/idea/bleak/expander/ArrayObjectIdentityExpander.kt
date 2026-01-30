@@ -18,19 +18,18 @@ package com.android.tools.idea.bleak.expander
 import com.android.tools.idea.bleak.Edge
 import java.lang.ref.WeakReference
 
-/** [ArrayObjectIdentityExpander] expands arrays, creating a child node for each non-null element,
- * with an [ObjectLabel] as the edge label. This means objects in arrays can be tracked regardless
- * of their position in the array, which is particularly important for array-backed data structures
- * like ArrayList and maps where elements move around (e.g. as the result of inserting an element
- * in a list, or rehashing a HashMap (though the possibility of the creation of TreeNodes for
- * overly full buckets throws a wrench in things - CollectionExpander might be more appropriate)).
+/**
+ * [ArrayObjectIdentityExpander] expands arrays, creating a child node for each non-null element, with an [ObjectLabel] as the edge label.
+ * This means objects in arrays can be tracked regardless of their position in the array, which is particularly important for array-backed
+ * data structures like ArrayList and maps where elements move around (e.g. as the result of inserting an element in a list, or rehashing a
+ * HashMap (though the possibility of the creation of TreeNodes for overly full buckets throws a wrench in things - CollectionExpander might
+ * be more appropriate)).
  *
- * For large arrays, the default implementation of getChildForLabel is slow (linear in the size of
- * the array). For arrays larger than LABEL_MAP_DEGREE_THRESHOLD, a map from labels back to nodes
- * is maintained to accelerate lookups. For small arrays, the extra memory usage is not worth the
- * small (or possibly negative) performance improvement.
+ * For large arrays, the default implementation of getChildForLabel is slow (linear in the size of the array). For arrays larger than
+ * LABEL_MAP_DEGREE_THRESHOLD, a map from labels back to nodes is maintained to accelerate lookups. For small arrays, the extra memory usage
+ * is not worth the small (or possibly negative) performance improvement.
  */
-class ArrayObjectIdentityExpander: Expander() {
+class ArrayObjectIdentityExpander : Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   // primitive arrays should be expanded by DefaultObjectExpander so we don't end up with nodes for primitive types
@@ -40,10 +39,11 @@ class ArrayObjectIdentityExpander: Expander() {
 
   override fun expand(n: Node) {
     val arr = n.obj as Array<*>
-    val map = if (arr.size > LABEL_MAP_DEGREE_THRESHOLD) {
-      labelToNodeMap[n] = mutableMapOf()
-      labelToNodeMap[n]
-    } else null
+    val map =
+      if (arr.size > LABEL_MAP_DEGREE_THRESHOLD) {
+        labelToNodeMap[n] = mutableMapOf()
+        labelToNodeMap[n]
+      } else null
     for (obj in arr) {
       if (obj != null && (TRACK_WEAK_REFS_IN_ARRAYS || obj !is WeakReference<*>)) {
         val label = ObjectLabel(obj)
@@ -74,4 +74,3 @@ class ArrayObjectIdentityExpander: Expander() {
     private val TRACK_WEAK_REFS_IN_ARRAYS = System.getProperty("bleak.track.weak.refs.in.arrays") == "true"
   }
 }
-

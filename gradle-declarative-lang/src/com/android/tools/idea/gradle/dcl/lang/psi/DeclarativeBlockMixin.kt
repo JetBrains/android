@@ -24,5 +24,4 @@ abstract class DeclarativeBlockMixin(type: IElementType) : CompositePsiElement(t
   fun getEntries(): List<DeclarativeEntry> {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, DeclarativeEntry::class.java)
   }
-
 }

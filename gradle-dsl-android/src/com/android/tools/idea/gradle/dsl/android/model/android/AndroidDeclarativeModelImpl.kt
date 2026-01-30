@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesMo
 import com.android.tools.idea.gradle.dsl.android.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 
-class AndroidDeclarativeModelImpl(dslElement: AndroidDslElement): AndroidModelImpl(dslElement), AndroidDeclarativeModel {
+class AndroidDeclarativeModelImpl(dslElement: AndroidDslElement) : AndroidModelImpl(dslElement), AndroidDeclarativeModel {
   override fun dependencies(): DependenciesModel {
     val dependenciesElement = myDslElement.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES_DCL)
     return ScriptDependenciesModelImpl(dependenciesElement)

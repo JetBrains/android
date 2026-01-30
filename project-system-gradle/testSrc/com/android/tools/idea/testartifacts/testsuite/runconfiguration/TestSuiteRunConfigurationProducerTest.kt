@@ -64,30 +64,29 @@ class TestSuiteRunConfigurationProducerTest {
               listOf(
                 IdeTestSuiteImpl(
                   name = "myTestSuite",
-                  sources = listOf(
-                    createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuite")
-                    )
-                  ),
+                  sources = listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuite"))),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("debug")
+                  targetedVariants = listOf("debug"),
                 )
               )
             },
             testSuiteArtifactsStub = {
-              listOf(IdeTestSuiteVariantTargetImpl(suiteName = "myTestSuite", targetedVariantName = "debug", targets = listOf(
-                IdeTestSuiteTargetImpl(targetName = "connectedTest", testTaskName = "myTestSuiteTaskName", targetedDevices = listOf()))))
-            }
+              listOf(
+                IdeTestSuiteVariantTargetImpl(
+                  suiteName = "myTestSuite",
+                  targetedVariantName = "debug",
+                  targets =
+                    listOf(
+                      IdeTestSuiteTargetImpl(targetName = "connectedTest", testTaskName = "myTestSuiteTaskName", targetedDevices = listOf())
+                    ),
+                )
+              )
+            },
           ),
       ),
     )
 
-  @get:Rule
-  val ruleChain =
-    RuleChain(
-      projectRule,
-      FlagRule(StudioFlags.AGP_TEST_SUITES_ENABLED, true),
-    )
+  @get:Rule val ruleChain = RuleChain(projectRule, FlagRule(StudioFlags.AGP_TEST_SUITES_ENABLED, true))
 
   private lateinit var producer: TestSuiteRunConfigurationProducer
   private lateinit var testFile: PsiFile
@@ -101,13 +100,10 @@ class TestSuiteRunConfigurationProducerTest {
 
     testFile = projectRule.fixture.addFileToProject("app/src/myTestSuite/test.xml", "")
     val testSuiteDirectory = testFile.containingDirectory
-    testSuiteModule =
-      ModuleUtilCore.findModuleForFile(testFile.virtualFile, projectRule.project)!!
+    testSuiteModule = ModuleUtilCore.findModuleForFile(testFile.virtualFile, projectRule.project)!!
 
     // Mock the context and dependencies
-    val mockLocation = mock<Location<PsiElement>> {
-      on { virtualFile } doReturn testSuiteDirectory.virtualFile
-    }
+    val mockLocation = mock<Location<PsiElement>> { on { virtualFile } doReturn testSuiteDirectory.virtualFile }
     mockContext = mock {
       on { location } doReturn mockLocation
       on { psiLocation } doReturn testSuiteDirectory
@@ -144,14 +140,13 @@ class TestSuiteRunConfigurationProducerTest {
   @Test
   fun setupConfigurationFromContext_returnsFalse_whenTestSuiteFile() {
     val configuration = TestSuiteRunConfiguration(projectRule.project, producer.configurationFactory, "")
-    val mockLocation = mock<Location<PsiElement>> {
-      on { virtualFile } doReturn testFile.virtualFile
-    }
-    val mockContext = mock<ConfigurationContext> {
-      on { location } doReturn mockLocation
-      on { psiLocation } doReturn testFile
-      on { module } doReturn testSuiteModule
-    }
+    val mockLocation = mock<Location<PsiElement>> { on { virtualFile } doReturn testFile.virtualFile }
+    val mockContext =
+      mock<ConfigurationContext> {
+        on { location } doReturn mockLocation
+        on { psiLocation } doReturn testFile
+        on { module } doReturn testSuiteModule
+      }
 
     val result = producer.setupConfigurationFromContext(configuration, mockContext, Ref(mockContext.psiLocation))
 

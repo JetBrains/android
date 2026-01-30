@@ -40,10 +40,7 @@ class HorizontalTabbedPanelBuilder {
   private var defaultPage = 0
   private val actionMap = mutableMapOf<KeyStroke, Action>()
 
-  /**
-   * Used to add a tab component with the tab label name.
-   * If the [component] is added before, then throws [IllegalArgumentException].
-   */
+  /** Used to add a tab component with the tab label name. If the [component] is added before, then throws [IllegalArgumentException]. */
   fun addTab(name: String, component: JComponent) = apply {
     if (component in componentsToBuild.values) {
       throw IllegalArgumentException("The component is added before: '$component'")
@@ -51,12 +48,8 @@ class HorizontalTabbedPanelBuilder {
     componentsToBuild[name] = component
   }
 
-  /**
-   * Set the default tab page. By default the first page is chose.
-   */
-  fun setDefaultPage(page: Int) = apply {
-    defaultPage = page
-  }
+  /** Set the default tab page. By default the first page is chose. */
+  fun setDefaultPage(page: Int) = apply { defaultPage = page }
 
   fun addKeyAction(keyStroke: KeyStroke, action: Action) = apply { actionMap[keyStroke] = action }
 
@@ -91,22 +84,23 @@ class HorizontalTabbedPanelBuilder {
   }
 
   companion object {
-    /**
-     * Support using Home, End, PageUp, and PageDown to navigate between different tabs.
-     */
+    /** Support using Home, End, PageUp, and PageDown to navigate between different tabs. */
     private fun registerNavigationKeys(tabbedPane: JTabbedPane) {
       tabbedPane.run {
-        registerActionShortCutSet({ selectedIndex = (tabCount + 1) % tabCount },
-                                  ActionManager.getInstance().getAction(IdeActions.ACTION_NEXT_TAB).shortcutSet)
-        registerActionShortCutSet({ selectedIndex = (tabCount + selectedIndex - 1) % tabCount },
-                                  ActionManager.getInstance().getAction(IdeActions.ACTION_PREVIOUS_TAB).shortcutSet)
+        registerActionShortCutSet(
+          { selectedIndex = (tabCount + 1) % tabCount },
+          ActionManager.getInstance().getAction(IdeActions.ACTION_NEXT_TAB).shortcutSet,
+        )
+        registerActionShortCutSet(
+          { selectedIndex = (tabCount + selectedIndex - 1) % tabCount },
+          ActionManager.getInstance().getAction(IdeActions.ACTION_PREVIOUS_TAB).shortcutSet,
+        )
       }
     }
   }
 }
 
-@SwingCoordinate
-private const val TAB_TEXT_PADDING_PX = 5
+@SwingCoordinate private const val TAB_TEXT_PADDING_PX = 5
 
 private class MyTabbedPane : JBTabbedPane() {
 
@@ -150,7 +144,7 @@ private class MyTabbedPane : JBTabbedPane() {
   }
 }
 
-private class TabbedUI(private val width: Int, private val textVerticalPadding: Int): DarculaTabbedPaneUI() {
+private class TabbedUI(private val width: Int, private val textVerticalPadding: Int) : DarculaTabbedPaneUI() {
   override fun calculateTabWidth(tabPlacement: Int, tabIndex: Int, metrics: FontMetrics?) = width
 
   override fun calculateTabHeight(tabPlacement: Int, tabIndex: Int, fontHeight: Int) = textVerticalPadding * 2 + fontHeight

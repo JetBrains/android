@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.dsl.android.api.android
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel
 
 enum class AndroidDeclarativeType {
-  APPLICATION, LIBRARY // More to come as soon as AGP ecosystem plugin has support of other AGP project types: test, dynamic feature etc.
+  APPLICATION,
+  LIBRARY, // More to come as soon as AGP ecosystem plugin has support of other AGP project types: test, dynamic feature etc.
 }
 
 interface AndroidGradleDeclarativeBuildModel : GradleDeclarativeBuildModel {
   fun existingAndroidElement(): AndroidDeclarativeType?
+
   fun createAndroidElement(type: AndroidDeclarativeType): AndroidDeclarativeModel
 }

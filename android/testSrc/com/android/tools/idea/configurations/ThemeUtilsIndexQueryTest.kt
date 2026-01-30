@@ -27,29 +27,30 @@ import org.junit.Rule
 import org.junit.Test
 
 @Language("XML")
-private val appManifest = """
-    <?xml version="1.0" encoding="utf-8"?>
-    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="google.simpleapplication">
-        <application android:allowBackup="true"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme"
-            android:supportsRtl="true">
-            <activity
-                android:name=".MyActivity"
-                android:theme="@style/AppTheme">
-                <intent-filter>
-                    <action android:name="android.intent.action.MAIN" />
-                    <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
-            </activity>
-        </application>
-    </manifest>
-  """.trimIndent()
+private val appManifest =
+  """
+  <?xml version="1.0" encoding="utf-8"?>
+  <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="google.simpleapplication">
+      <application android:allowBackup="true"
+          android:label="@string/app_name"
+          android:theme="@style/AppTheme"
+          android:supportsRtl="true">
+          <activity
+              android:name=".MyActivity"
+              android:theme="@style/AppTheme">
+              <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+              </intent-filter>
+          </activity>
+      </application>
+  </manifest>
+  """
+    .trimIndent()
 
 class ThemeUtilsIndexQueryTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val facet: AndroidFacet
     get() = projectRule.module.androidFacet!!
 
@@ -62,8 +63,7 @@ class ThemeUtilsIndexQueryTest {
   fun testQueryFromIndex() {
     Truth.assertThat(facet.module.getAppThemeName()).isEqualTo("@style/AppTheme")
     Truth.assertThat(facet.module.getAllActivityThemeNames()).containsExactly("@style/AppTheme")
-    Truth.assertThat(facet.module.getThemeNameForActivity("google.simpleapplication.MyActivity")).isEqualTo(
-      "@style/AppTheme")
+    Truth.assertThat(facet.module.getThemeNameForActivity("google.simpleapplication.MyActivity")).isEqualTo("@style/AppTheme")
   }
 
   /**

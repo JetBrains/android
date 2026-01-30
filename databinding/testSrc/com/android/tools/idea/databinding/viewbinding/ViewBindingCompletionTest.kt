@@ -36,10 +36,7 @@ import org.junit.rules.RuleChain
 class ViewBindingCompletionTest {
   private val projectRule =
     AndroidProjectRule.withAndroidModel(
-      AndroidProjectBuilder(
-        namespace = { "test.vb" },
-        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
-      )
+      AndroidProjectBuilder(namespace = { "test.vb" }, viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) })
     )
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
@@ -48,8 +45,7 @@ class ViewBindingCompletionTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -68,7 +64,7 @@ class ViewBindingCompletionTest {
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """
+      """
         .trimIndent(),
     )
   }
@@ -85,7 +81,7 @@ class ViewBindingCompletionTest {
           xmlns:tools="http://schemas.android.com/tools"
           tools:viewBindingI<caret>>
         </FrameLayout>
-      """
+        """
           .trimIndent(),
       )
 
@@ -118,7 +114,7 @@ class ViewBindingCompletionTest {
           xmlns:tools="http://schemas.android.com/tools"
           tools:viewBindingIgnore="<caret>">
         </FrameLayout>
-      """
+        """
           .trimIndent(),
       )
 
@@ -153,13 +149,13 @@ class ViewBindingCompletionTest {
     fixture.checkResult(
       // language=JAVA
       """
-        package test.vb;
+      package test.vb;
 
-        import test.vb.databinding.ActivityMainBinding;
+      import test.vb.databinding.ActivityMainBinding;
 
-        public class Model {
-          ActivityMainBinding
-        }
+      public class Model {
+        ActivityMainBinding
+      }
       """
         .trimIndent()
     )
@@ -198,20 +194,20 @@ class ViewBindingCompletionTest {
     fixture.checkResult(
       // language=JAVA
       """
-        package test.vb;
+      package test.vb;
 
-        import android.app.Activity;
-        import android.os.Bundle;
-        import test.vb.databinding.ActivityMainBinding;
+      import android.app.Activity;
+      import android.os.Bundle;
+      import test.vb.databinding.ActivityMainBinding;
 
-        public class MainActivity extends Activity {
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-                binding.testId
-            }
-        }
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+              binding.testId
+          }
+      }
       """
         .trimIndent()
     )

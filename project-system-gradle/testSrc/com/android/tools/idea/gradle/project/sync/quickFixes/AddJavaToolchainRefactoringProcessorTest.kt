@@ -117,5 +117,4 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
     verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionAppliedCatalog"))
     Truth.assertThat(catalogFile.readText()).isEmpty()
   }
-
 }

@@ -46,19 +46,13 @@ class FromToStateTest {
   @RunsInEdt
   @Test
   fun createCard() {
-    val state =
-      FromToStateComboBox(NoopComposeAnimationTracker, setOf("One", "Two", "Three"), "One")
+    val state = FromToStateComboBox(NoopComposeAnimationTracker, setOf("One", "Two", "Three"), "One")
     val card =
       AnimationCard(
           Mockito.mock(DesignSurface::class.java),
           "Title",
-          listOf(
-            FreezeAction(
-              { 200 },
-              MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
-              NoopAnimationTracker,
-            )
-          ) + state.changeStateActions,
+          listOf(FreezeAction({ 200 }, MutableStateFlow(SupportedAnimationManager.FrozenState(false)), NoopAnimationTracker)) +
+            state.changeStateActions,
           NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }

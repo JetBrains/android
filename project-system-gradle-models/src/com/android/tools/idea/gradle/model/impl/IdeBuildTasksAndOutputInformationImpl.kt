@@ -24,5 +24,5 @@ data class IdeBuildTasksAndOutputInformationImpl(
   override val bundleTaskName: String?,
   override val bundleTaskOutputListingFile: String?,
   override val apkFromBundleTaskName: String?,
-  override val apkFromBundleTaskOutputListingFile: String?
+  override val apkFromBundleTaskOutputListingFile: String?,
 ) : IdeBuildTasksAndOutputInformation, Serializable

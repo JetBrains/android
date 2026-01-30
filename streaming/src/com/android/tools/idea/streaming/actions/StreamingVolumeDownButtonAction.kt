@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceVolumeDownButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorVolumeDownButtonAction
 
-/**
- * Simulates pressing the Volume Down button on an Android device.
- */
+/** Simulates pressing the Volume Down button on an Android device. */
 internal class StreamingVolumeDownButtonAction : StreamingPushButtonAction(EmulatorVolumeDownButtonAction(), DeviceVolumeDownButtonAction())

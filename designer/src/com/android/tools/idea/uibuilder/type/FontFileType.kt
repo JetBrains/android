@@ -28,12 +28,7 @@ object FontFileType : XmlDesignerEditorFileType {
   override val resourceFolderType: ResourceFolderType = ResourceFolderType.FONT
 
   override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile &&
-      FileDescriptionUtils.isResourceOfTypeWithRootTag(
-        file,
-        ResourceFolderType.FONT,
-        setOf(SdkConstants.TAG_FONT_FAMILY),
-      )
+    file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.FONT, setOf(SdkConstants.TAG_FONT_FAMILY))
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>) = ToolbarActionGroups(surface)
 }

@@ -27,9 +27,9 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import javax.swing.JOptionPane
 import org.apache.commons.io.FilenameUtils
 import org.jetbrains.android.facet.AndroidFacet
-import javax.swing.JOptionPane
 
 private val SUPPORTED_FILE_TYPES = setOf("sketch")
 private const val OLDEST_SUPPORTED_SKETCH_VERSION = 50.0
@@ -39,9 +39,7 @@ private const val IMPORT_SELECTED_OPTION = "Import selected"
 private const val CANCEL_OPTION = "Cancel"
 val DIALOG_OPTIONS = arrayOf(IMPORT_ALL_OPTION, IMPORT_SELECTED_OPTION, CANCEL_OPTION)
 
-/**
- * [ResourceImporter] for Sketch files
- */
+/** [ResourceImporter] for Sketch files */
 class SketchImporter : ResourceImporter {
   override val presentableName = "Sketch Importer"
 
@@ -52,15 +50,15 @@ class SketchImporter : ResourceImporter {
     val sketchFile = com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.read(filePath)
     if (sketchFile == null || sketchFile.meta.appVersion < OLDEST_SUPPORTED_SKETCH_VERSION) {
       showInvalidSketchFileNotification(filePath, sketchFile?.meta?.appVersion, facet.module.project)
-    }
-    else {
+    } else {
       val view = SketchImporterView()
       val disposable = Disposer.newDisposable("SketchImporter")
       val imageCache = ImageCache.createImageCache(disposable)
       // FIXME(b/140494768): Currently unused, get the ResourceResolver asynchronously to use this class.
-      val resourceResolver = facet.module.project.projectFile?.let {
-        ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(it).resourceResolver
-      }?: return
+      val resourceResolver =
+        facet.module.project.projectFile?.let {
+          ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(it).resourceResolver
+        } ?: return
       val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver)
       view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet, assetPreviewManager)
       showImportDialog(view)
@@ -70,12 +68,19 @@ class SketchImporter : ResourceImporter {
 
   override val hasCustomImport = true
 
-  /**
-   * Create a dialog allowing the user to preview and choose which assets they would like to import from the sketch file.
-   */
+  /** Create a dialog allowing the user to preview and choose which assets they would like to import from the sketch file. */
   private fun showImportDialog(view: SketchImporterView) {
-    val option = JOptionPane.showOptionDialog(null, view, IMPORT_DIALOG_TITLE, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                                              null, DIALOG_OPTIONS, DIALOG_OPTIONS[0])
+    val option =
+      JOptionPane.showOptionDialog(
+        null,
+        view,
+        IMPORT_DIALOG_TITLE,
+        JOptionPane.DEFAULT_OPTION,
+        JOptionPane.PLAIN_MESSAGE,
+        null,
+        DIALOG_OPTIONS,
+        DIALOG_OPTIONS[0],
+      )
 
     when (option) {
       0 -> view.presenter.importAllFilesIntoProject()
@@ -83,7 +88,8 @@ class SketchImporter : ResourceImporter {
     }
   }
 
-  override val userCanEditQualifiers get() = true
+  override val userCanEditQualifiers
+    get() = true
 
   override fun getSupportedFileTypes() = SUPPORTED_FILE_TYPES
 
@@ -91,19 +97,19 @@ class SketchImporter : ResourceImporter {
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
 
   /**
-   * Show a notification containing information about the [version] that was used to create the file at [path]. If [version] is null,
-   * that means that either the file is not valid or it has been saved using a version of Sketch older than 43.0 (which is when the open
-   * file format - the zip archive format that the Sketch Importer plugin is based upon - was introduced.
+   * Show a notification containing information about the [version] that was used to create the file at [path]. If [version] is null, that
+   * means that either the file is not valid or it has been saved using a version of Sketch older than 43.0 (which is when the open file
+   * format - the zip archive format that the Sketch Importer plugin is based upon - was introduced.
    */
   private fun showInvalidSketchFileNotification(path: String, version: Double?, project: Project) {
     val fileName = FilenameUtils.getName(path)
     val generalInfo = "Please make sure you use Sketch 50.0 or higher to save your sketch file."
-    val versionInfo = if (version == null) {
-      "$fileName seems to not be a valid Sketch file or has been saved with a version of Sketch older than 43.0."
-    }
-    else {
-      "$fileName seems to have been saved using Sketch $version."
-    }
+    val versionInfo =
+      if (version == null) {
+        "$fileName seems to not be a valid Sketch file or has been saved with a version of Sketch older than 43.0."
+      } else {
+        "$fileName seems to have been saved using Sketch $version."
+      }
     val notificationContent = "$generalInfo<br/>$versionInfo"
     val notificationTitle = "Invalid sketch file"
 

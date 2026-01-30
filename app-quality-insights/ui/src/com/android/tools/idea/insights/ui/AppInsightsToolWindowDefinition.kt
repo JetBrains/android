@@ -49,8 +49,7 @@ class AppInsightsToolWindowDefinition(
   ) {
 
   private val _definitionVisibility = MutableStateFlow(false)
-  val toolWindowVisibility: Flow<Boolean> =
-    combine(tabVisibility, _definitionVisibility) { tab, def -> tab && def }
+  val toolWindowVisibility: Flow<Boolean> = combine(tabVisibility, _definitionVisibility) { tab, def -> tab && def }
 
   fun updateVisibility(isVisible: Boolean) {
     _definitionVisibility.update { isVisible }

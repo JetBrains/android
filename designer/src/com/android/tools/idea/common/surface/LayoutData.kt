@@ -23,9 +23,7 @@ data class LayoutData(val scale: Double, val x: Int, val y: Int, val scaledSize:
   // Used to avoid extra allocations in isValidFor calls
   private val cachedDimension = Dimension()
 
-  /**
-   * Returns whether this [LayoutData] is still valid (has not changed) for the given [SceneView]
-   */
+  /** Returns whether this [LayoutData] is still valid (has not changed) for the given [SceneView] */
   fun isValidFor(sceneView: SceneView): Boolean =
     scale == sceneView.scale &&
       x == sceneView.x &&
@@ -34,11 +32,6 @@ data class LayoutData(val scale: Double, val x: Int, val y: Int, val scaledSize:
 
   companion object {
     fun fromSceneView(sceneView: SceneView): LayoutData =
-      LayoutData(
-        sceneView.scale,
-        sceneView.x,
-        sceneView.y,
-        sceneView.getContentSize(null).scaleBy(sceneView.scale),
-      )
+      LayoutData(sceneView.scale, sceneView.x, sceneView.y, sceneView.getContentSize(null).scaleBy(sceneView.scale))
   }
 }

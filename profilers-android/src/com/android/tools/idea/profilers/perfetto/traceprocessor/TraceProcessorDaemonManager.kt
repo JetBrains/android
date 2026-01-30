@@ -24,7 +24,7 @@ import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.system.CpuArch;
+import com.intellij.util.system.CpuArch
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -33,10 +33,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-
 /**
- * This is responsible to manage the lifetime of an instance of the TraceProcessorDaemon,
- * spawning a new one if necessary and properly shutting it down at the end of Studio execution.
+ * This is responsible to manage the lifetime of an instance of the TraceProcessorDaemon, spawning a new one if necessary and properly
+ * shutting it down at the end of Studio execution.
  */
 class TraceProcessorDaemonManager(
   private val ticker: Ticker,
@@ -83,15 +82,16 @@ class TraceProcessorDaemonManager(
       }
     }
     private val TPD_RELEASE_PATH by lazy {
-      val os = when {
-        SystemInfo.isWindows -> "windows"
-        SystemInfo.isMac -> if (SystemInfo.isAarch64) "darwin-arm64" else "darwin-x86_64"
-        SystemInfo.isLinux -> "linux"
-        else -> {
-          LOGGER.warn("Unsupported platform for TPD. Using linux binary.")
-          "linux"
+      val os =
+        when {
+          SystemInfo.isWindows -> "windows"
+          SystemInfo.isMac -> if (SystemInfo.isAarch64) "darwin-arm64" else "darwin-x86_64"
+          SystemInfo.isLinux -> "linux"
+          else -> {
+            LOGGER.warn("Unsupported platform for TPD. Using linux binary.")
+            "linux"
+          }
         }
-      }
 
       "plugins/android/resources/trace_processor_daemon/$os"
     }
@@ -106,11 +106,8 @@ class TraceProcessorDaemonManager(
       }
     }
 
-    private val TPD_BINARY = DeployableFile.Builder(TPD_EXECUTABLE)
-      .setReleaseDir(TPD_RELEASE_PATH)
-      .setDevDir(TPD_DEV_PATH)
-      .setExecutable(true)
-      .build()
+    private val TPD_BINARY =
+      DeployableFile.Builder(TPD_EXECUTABLE).setReleaseDir(TPD_RELEASE_PATH).setDevDir(TPD_DEV_PATH).setExecutable(true).build()
 
     private fun getExecutablePath(): String {
       val executable = File(TPD_BINARY.dir, TPD_BINARY.fileName)
@@ -133,9 +130,8 @@ class TraceProcessorDaemonManager(
     if (!processIsRunning() && !disposed) {
       val spawnStopwatch = Stopwatch.createStarted(ticker)
       LOGGER.info("TPD Manager: Starting new instance of TPD")
-      val newProcess = ProcessBuilder(getExecutablePath(), "--llvm_symbolizer_path", getLlvmSymbolizerPath())
-        .redirectErrorStream(true)
-        .start()
+      val newProcess =
+        ProcessBuilder(getExecutablePath(), "--llvm_symbolizer_path", getLlvmSymbolizerPath()).redirectErrorStream(true).start()
       val stdoutListener = TPDStdoutListener(BufferedReader(InputStreamReader(newProcess.inputStream)))
       executorService.execute(stdoutListener)
 
@@ -150,8 +146,7 @@ class TraceProcessorDaemonManager(
         daemonPort = stdoutListener.selectedPort
         process = newProcess
         LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
-      }
-      else {
+      } else {
         tracker.trackTraceProcessorDaemonSpawnAttempt(false, timeToSpawnMs)
         LOGGER.info("TPD Manager: Unable to start TPD instance.")
         // Make sure we clean up our instance to not leave a zombie process
@@ -161,16 +156,19 @@ class TraceProcessorDaemonManager(
     }
   }
 
-  /**
-   * Represents the status of the daemon, that we can extract from its output/logging.
-   */
+  /** Represents the status of the daemon, that we can extract from its output/logging. */
   @VisibleForTesting
-  enum class DaemonStatus { STARTING, RUNNING, FAILED, END_OF_STREAM }
+  enum class DaemonStatus {
+    STARTING,
+    RUNNING,
+    FAILED,
+    END_OF_STREAM,
+  }
 
   /**
-   * This runnable will keep consuming the output (stdout and stderr) from the daemon and will pipe it to our own logs.
-   * Besides the obvious utility of being able to track down what the daemon is doing duing debugging, it seems this
-   * is also important to not lock the daemon if it produces too much output (see b/158124339 for full context).
+   * This runnable will keep consuming the output (stdout and stderr) from the daemon and will pipe it to our own logs. Besides the obvious
+   * utility of being able to track down what the daemon is doing duing debugging, it seems this is also important to not lock the daemon if
+   * it produces too much output (see b/158124339 for full context).
    */
   @VisibleForTesting
   class TPDStdoutListener(private val outputReader: BufferedReader) : Runnable {
@@ -183,6 +181,7 @@ class TraceProcessorDaemonManager(
           statusLock.notifyAll()
         }
       }
+
     var selectedPort = 0
       private set
 
@@ -200,8 +199,7 @@ class TraceProcessorDaemonManager(
         if (serverOkMatcher.matches()) {
           selectedPort = serverOkMatcher.group("port").toInt()
           status = DaemonStatus.RUNNING
-        }
-        else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
+        } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
           status = DaemonStatus.FAILED
           break
         }

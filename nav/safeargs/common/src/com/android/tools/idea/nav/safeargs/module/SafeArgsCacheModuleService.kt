@@ -28,17 +28,15 @@ import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they
- * can be recognized elsewhere and included in the search scope when necessary.
+ * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they can be recognized elsewhere and
+ * included in the search scope when necessary.
  */
 private val BACKING_FILE_MARKER: Key<Any> = Key("SAFE_ARGS_CLASS_BACKING_FILE_MARKER")
 
 /**
- * A module service which keeps track of navigation XML file changes and generates safe args light
- * classes from them.
+ * A module service which keeps track of navigation XML file changes and generates safe args light classes from them.
  *
- * This service can be thought of the central cache for safe args, upon which all other parts are
- * built on top of.
+ * This service can be thought of the central cache for safe args, upon which all other parts are built on top of.
  */
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(module: Module) : Disposable.Default {
@@ -46,22 +44,16 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
   private val moduleBindingClassMarker = Any()
 
-  /**
-   * Search scope which includes any light binding classes generated in this cache for the current
-   * module.
-   */
-  val safeArgsClassSearchScope: GlobalSearchScope =
-    SafeArgsClassSearchScope(moduleBindingClassMarker)
+  /** Search scope which includes any light binding classes generated in this cache for the current module. */
+  val safeArgsClassSearchScope: GlobalSearchScope = SafeArgsClassSearchScope(moduleBindingClassMarker)
 
   private class Status(val directions: List<LightDirectionsClass>, val args: List<LightArgsClass>)
 
   private val currentStatus by
     NavStatusCache(this, module, SafeArgsMode.JAVA) { navInfo ->
-      val directions =
-        navInfo.entries.flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }.toList()
+      val directions = navInfo.entries.flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }.toList()
 
-      val args =
-        navInfo.entries.flatMap { entry -> createLightArgsClasses(navInfo, entry) }.toList()
+      val args = navInfo.entries.flatMap { entry -> createLightArgsClasses(navInfo, entry) }.toList()
 
       Status(directions, args)
     }
@@ -72,22 +64,14 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   val args: List<LightArgsClass>
     get() = currentStatus?.args ?: emptyList()
 
-  private fun createLightDirectionsClasses(
-    navInfo: NavInfo,
-    navEntry: NavEntry,
-  ): Collection<LightDirectionsClass> {
+  private fun createLightDirectionsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightDirectionsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
-      .map { destination ->
-        LightDirectionsClass(navInfo, navEntry, destination).withMarkedBackingFile()
-      }
+      .map { destination -> LightDirectionsClass(navInfo, navEntry, destination).withMarkedBackingFile() }
       .toSet()
   }
 
-  private fun createLightArgsClasses(
-    navInfo: NavInfo,
-    navEntry: NavEntry,
-  ): Collection<LightArgsClass> {
+  private fun createLightArgsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightArgsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
       .map { destination -> LightArgsClass(navInfo, navEntry, destination).withMarkedBackingFile() }
@@ -103,10 +87,7 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   }
 
   private fun <T : SafeArgsLightBaseClass> T.withMarkedBackingFile() = apply {
-    containingFile.viewProvider.virtualFile.putUserData(
-      BACKING_FILE_MARKER,
-      moduleBindingClassMarker,
-    )
+    containingFile.viewProvider.virtualFile.putUserData(BACKING_FILE_MARKER, moduleBindingClassMarker)
   }
 }
 

@@ -29,7 +29,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       package android.view
 
       class View
-    """
+      """
         .trimIndent(),
     )
     provider = CustomViewPreviewRepresentationProvider()
@@ -55,12 +55,12 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       myFixture.addFileToProject(
         "src/com/example/CustomView.kt",
         """
-      package com.example
+        package com.example
 
-      import android.view.View
+        import android.view.View
 
-      class CustomView() : View()
-    """
+        class CustomView() : View()
+        """
           .trimIndent(),
       )
     assertFalse(provider.accept(project, file))
@@ -71,16 +71,16 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       myFixture.addFileToProject(
         "src/com/example/CustomView.java",
         """
-      package com.example;
+        package com.example;
 
-      import android.view.View;
+        import android.view.View;
 
-      public class CustomView extends View {
-        public CustomButton() {
-          super();
+        public class CustomView extends View {
+          public CustomButton() {
+            super();
+          }
         }
-      }
-    """
+        """
           .trimIndent(),
       )
     assertFalse(provider.accept(project, file))
@@ -91,14 +91,14 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       myFixture.addFileToProject(
         "src/com/example/CustomView.kt",
         """
-      package com.example
+        package com.example
 
-      import android.view.View
-      import android.util.AttributeSet
-      import android.content.Context
+        import android.view.View
+        import android.util.AttributeSet
+        import android.content.Context
 
-      class CustomView() : View()
-    """
+        class CustomView() : View()
+        """
           .trimIndent(),
       )
     assertTrue(provider.accept(project, file))
@@ -109,18 +109,18 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       myFixture.addFileToProject(
         "src/com/example/CustomView.java",
         """
-      package com.example;
+        package com.example;
 
-      import android.view.View;
-      import android.util.AttributeSet;
-      import android.content.Context;
+        import android.view.View;
+        import android.util.AttributeSet;
+        import android.content.Context;
 
-      public class CustomView extends View {
-        public CustomButton() {
-          super();
+        public class CustomView extends View {
+          public CustomButton() {
+            super();
+          }
         }
-      }
-    """
+        """
           .trimIndent(),
       )
     assertTrue(provider.accept(project, file))
@@ -131,18 +131,18 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureA
       myFixture.addFileToProject(
         "src/com/example/CustomView.java",
         """
-      package com.example;
+        package com.example;
 
-      import android.view.View;
-      import android.util.*;
-      import android.content.*;
+        import android.view.View;
+        import android.util.*;
+        import android.content.*;
 
-      public class CustomView extends View {
-        public CustomButton(AttributeSet s, Context c) {
-          super();
+        public class CustomView extends View {
+          public CustomButton(AttributeSet s, Context c) {
+            super();
+          }
         }
-      }
-    """
+        """
           .trimIndent(),
       )
     assertTrue(provider.accept(project, file))

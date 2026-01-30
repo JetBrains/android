@@ -23,11 +23,12 @@ class StopWatch {
   private var endTimeMillis: Long = 0
 
   val duration: Duration
-    get() = if (active) {
-      Duration.ofMillis(currentTimeMillis - startTimeMillis)
-    } else {
-      Duration.ofMillis(endTimeMillis - startTimeMillis)
-    }
+    get() =
+      if (active) {
+        Duration.ofMillis(currentTimeMillis - startTimeMillis)
+      } else {
+        Duration.ofMillis(endTimeMillis - startTimeMillis)
+      }
 
   private val currentTimeMillis: Long
     get() = StopWatchTimeSource.currentTimeMillis

@@ -36,10 +36,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
 
 @Service(Service.Level.PROJECT)
-@State(
-  name = "DesignSurfaceV2",
-  storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE, roamingType = RoamingType.DISABLED)],
-)
+@State(name = "DesignSurfaceV2", storages = [Storage(StoragePathMacros.PRODUCT_WORKSPACE_FILE, roamingType = RoamingType.DISABLED)])
 class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   var surfaceState: SurfaceState = SurfaceState()
@@ -52,41 +49,36 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): DesignSurfaceSettings =
-      project.getService(DesignSurfaceSettings::class.java)
+    @JvmStatic fun getInstance(project: Project): DesignSurfaceSettings = project.getService(DesignSurfaceSettings::class.java)
   }
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
 class SurfaceState {
   /**
-   * The map of file path and zoom level. We use path string here because [PersistentStateComponent]
-   * doesn't support [File] type. This field is public because [PersistentStateComponent] needs to
-   * access its getter and setter. Do not access this field directly, use [saveFileScale] and
-   * [loadFileScale] instead.
+   * The map of file path and zoom level. We use path string here because [PersistentStateComponent] doesn't support [File] type. This field
+   * is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field directly, use
+   * [saveFileScale] and [loadFileScale] instead.
    */
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
 
   /**
-   * The map of [OrganizationGroup] states - whether each group is expanded or collapsed. Maps file
-   * url to the map of (composable name to group state). This field is public because
-   * [PersistentStateComponent] needs to access its getter and setter. Do not access this field
+   * The map of [OrganizationGroup] states - whether each group is expanded or collapsed. Maps file url to the map of (composable name to
+   * group state). This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field
    * directly, use [getOrganizationGroupState] and [saveOrganizationGroupState] instead.
    */
   var organizationGroups: MutableMap<String, MutableMap<String, Boolean>> = HashMap()
 
   /**
-   * The map of file path and the drawable background type. We use path string here because
-   * [PersistentStateComponent] doesn't support [File] type. This field is public because
-   * [PersistentStateComponent] needs to access its getter and setter. Do not access this field
+   * The map of file path and the drawable background type. We use path string here because [PersistentStateComponent] doesn't support
+   * [File] type. This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field
    * directly, use [saveDrawableBackgroundType] and [loadDrawableBackgroundType] instead.
    */
   var filePathToDrawableBackgroundType: MutableMap<String, DrawableBackgroundType> = HashMap()
 
   /**
-   * Remember the last [DrawableBackgroundType] use selects. This [DrawableBackgroundType] is
-   * applied when user opens a drawable file which it is never opened before.
+   * Remember the last [DrawableBackgroundType] use selects. This [DrawableBackgroundType] is applied when user opens a drawable file which
+   * it is never opened before.
    */
   var lastSelectedDrawableBackgroundType: DrawableBackgroundType = DrawableBackgroundType.NONE
 
@@ -110,17 +102,12 @@ class SurfaceState {
 
   @Transient
   fun loadDrawableBackgroundType(project: Project, file: VirtualFile): DrawableBackgroundType {
-    val relativePath =
-      getRelativePathInProject(project, file) ?: return lastSelectedDrawableBackgroundType
+    val relativePath = getRelativePathInProject(project, file) ?: return lastSelectedDrawableBackgroundType
     return filePathToDrawableBackgroundType[relativePath] ?: lastSelectedDrawableBackgroundType
   }
 
   @Transient
-  fun saveDrawableBackgroundType(
-    project: Project,
-    file: VirtualFile,
-    type: DrawableBackgroundType,
-  ) {
+  fun saveDrawableBackgroundType(project: Project, file: VirtualFile, type: DrawableBackgroundType) {
     lastSelectedDrawableBackgroundType = type
     val relativePath = getRelativePathInProject(project, file) ?: return
     filePathToDrawableBackgroundType[relativePath] = type
@@ -137,16 +124,12 @@ class SurfaceState {
   }
 
   /**
-   * Validates saved state for [file] removing all non-existing Composables what are not in
-   * [validMethodFqn].
+   * Validates saved state for [file] removing all non-existing Composables what are not in [validMethodFqn].
    *
    * TODO(b/360301383) Call the method to revalidate settings
    */
   fun revalidateOrganizationGroups(file: VirtualFile, validMethodFqn: Set<String>) {
-    organizationGroups[file.url]
-      ?.filter { validMethodFqn.contains(it.key) }
-      ?.toMutableMap()
-      ?.let { organizationGroups[file.url] = it }
+    organizationGroups[file.url]?.filter { validMethodFqn.contains(it.key) }?.toMutableMap()?.let { organizationGroups[file.url] = it }
   }
 
   /**
@@ -155,10 +138,7 @@ class SurfaceState {
    * TODO(b/360301383) Call the method to revalidate settings
    */
   fun revalidateOrganizationGroups() {
-    val deletedFiles =
-      organizationGroups.keys.filter { url ->
-        VirtualFileManager.getInstance().findFileByUrl(url) == null
-      }
+    val deletedFiles = organizationGroups.keys.filter { url -> VirtualFileManager.getInstance().findFileByUrl(url) == null }
     deletedFiles.forEach { url -> organizationGroups.remove(url) }
   }
 }
@@ -172,8 +152,7 @@ private fun getRelativePathInProject(project: Project, file: VirtualFile): Strin
 
 /**
  * @param zoomController The [ZoomController] containing a store id (it can be null).
- * @return The key of the map where the scale is stored, if the store id is null returns only the
- *   path of the file.
+ * @return The key of the map where the scale is stored, if the store id is null returns only the path of the file.
  */
 private fun String.appendStoreId(zoomController: ZoomController?): String {
   return zoomController?.storeId?.let { storeId -> "$this:$storeId" } ?: this

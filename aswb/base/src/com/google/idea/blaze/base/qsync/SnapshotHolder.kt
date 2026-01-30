@@ -20,14 +20,14 @@ import com.google.common.io.ByteSource
 import com.google.common.io.Files.asByteSource
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
-import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
+import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.formatTo
 import java.nio.file.Files
 import java.util.Optional
 import org.jetbrains.annotations.TestOnly
 
-/** Keeps a reference to the most up-to date [QuerySyncProjectSnapshot] instance.  */
+/** Keeps a reference to the most up-to date [QuerySyncProjectSnapshot] instance. */
 class SnapshotHolder {
   private val lock = Any()
   private var currentInstance: QuerySyncProjectSnapshot? = null
@@ -35,29 +35,28 @@ class SnapshotHolder {
   private val listeners = mutableListOf<QuerySyncProjectListener>()
 
   fun addListener(listener: QuerySyncProjectListener) {
-    synchronized(lock) {
-      listeners.add(listener)
-    }
+    synchronized(lock) { listeners.add(listener) }
   }
 
   @Throws(BuildException::class)
   fun setCurrent(context: Context<*>, querySyncProject: ReadonlyQuerySyncProject, newInstance: QuerySyncProjectSnapshot) {
     synchronized(lock) {
-      val existingInstance = currentInstance
-      if (existingInstance == newInstance) {
-        return
-      }
-      currentInstance = newInstance
-      val listenersCopy = this.listeners.toList()
-      return@synchronized {
-        // Runs unlocked.
-        if (existingInstance?.project != newInstance.project) {
-          for (l in listenersCopy) {
-            l.onNewProjectStructure(context, querySyncProject, newInstance)
+        val existingInstance = currentInstance
+        if (existingInstance == newInstance) {
+          return
+        }
+        currentInstance = newInstance
+        val listenersCopy = this.listeners.toList()
+        return@synchronized {
+          // Runs unlocked.
+          if (existingInstance?.project != newInstance.project) {
+            for (l in listenersCopy) {
+              l.onNewProjectStructure(context, querySyncProject, newInstance)
+            }
           }
         }
       }
-    }.invoke()
+      .invoke()
   }
 
   val current: Optional<QuerySyncProjectSnapshot>
@@ -71,18 +70,17 @@ class SnapshotHolder {
       "projectProto.yaml",
       instance?.let {
         runCatching {
-          val tmpFile = Files.createTempFile("ProjectProto", ".yaml")
-          it.project.formatTo(Files.newOutputStream(tmpFile))
-          asByteSource(tmpFile.toFile())
-        }.getOrElse { throwable -> ByteSource.wrap(throwable.toString().toByteArray()) }
-      } ?: ByteSource.empty()
+            val tmpFile = Files.createTempFile("ProjectProto", ".yaml")
+            it.project.formatTo(Files.newOutputStream(tmpFile))
+            asByteSource(tmpFile.toFile())
+          }
+          .getOrElse { throwable -> ByteSource.wrap(throwable.toString().toByteArray()) }
+      } ?: ByteSource.empty(),
     )
   }
 
   @TestOnly
   fun clearProjectStructureForTesting() {
-    synchronized(lock) {
-      currentInstance = currentInstance?.copy(project = ProjectProto.Project.getDefaultInstance())
-    }
+    synchronized(lock) { currentInstance = currentInstance?.copy(project = ProjectProto.Project.getDefaultInstance()) }
   }
 }

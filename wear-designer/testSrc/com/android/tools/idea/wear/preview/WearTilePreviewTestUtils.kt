@@ -23,27 +23,27 @@ fun CodeInsightTestFixture.stubWearTilePreviewAnnotation(modulePath: String? = "
     "${modulePath}/src/main/java/androidx/wear/tiles/tooling/preview/Preview.kt",
     // language=kotlin
     """
-        package androidx.wear.tiles.tooling.preview
+    package androidx.wear.tiles.tooling.preview
 
-        import androidx.annotation.FloatRange
+    import androidx.annotation.FloatRange
 
-        object WearDevices {
-            const val LARGE_ROUND = "id:wearos_large_round"
-            const val SMALL_ROUND = "id:wearos_small_round"
-            const val SQUARE = "id:wearos_square"
-            const val RECT = "id:wearos_rect"
-        }
+    object WearDevices {
+        const val LARGE_ROUND = "id:wearos_large_round"
+        const val SMALL_ROUND = "id:wearos_small_round"
+        const val SQUARE = "id:wearos_square"
+        const val RECT = "id:wearos_rect"
+    }
 
-        class TilePreviewData
+    class TilePreviewData
 
-        annotation class Preview(
-            val name: String = "",
-            val group: String = "",
-            val device: String = WearDevices.SMALL_ROUND,
-            val locale: String = "",
-            @FloatRange(from = 0.01) val fontScale: Float = 1f,
-        )
-        """
+    annotation class Preview(
+        val name: String = "",
+        val group: String = "",
+        val device: String = WearDevices.SMALL_ROUND,
+        val locale: String = "",
+        @FloatRange(from = 0.01) val fontScale: Float = 1f,
+    )
+    """
       .trimIndent(),
   )
 }

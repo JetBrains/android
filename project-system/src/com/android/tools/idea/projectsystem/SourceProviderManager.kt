@@ -21,8 +21,7 @@ import org.jetbrains.android.facet.AndroidFacet
 
 interface SourceProviderManager {
   companion object {
-    @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.sourceProviders
+    @JvmStatic fun getInstance(facet: AndroidFacet) = facet.sourceProviders
 
     /**
      * Replaces the instances of SourceProviderManager for the given [facet] with a test stub based on a single source set [sourceSet].
@@ -43,4 +42,3 @@ interface SourceProviderManager {
       SourceProviders.replaceForTest(facet, disposable, manifestFile)
   }
 }
-

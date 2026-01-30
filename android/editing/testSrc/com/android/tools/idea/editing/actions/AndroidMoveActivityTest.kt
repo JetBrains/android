@@ -42,10 +42,8 @@ class AndroidMoveActivityTest {
   @get:Rule var name: TestName = TestName()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath =
-        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
-    } as JavaCodeInsightTestFixture
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString() }
+      as JavaCodeInsightTestFixture
   }
 
   private val myProject by lazy { androidProjectRule.project }
@@ -60,11 +58,7 @@ class AndroidMoveActivityTest {
 
     moveClassToPackage("p1.p2.MyActivity", "p3")
 
-    myFixture.checkResult(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      getManifestText(activityName = ".MyActivity", manifestPackage = "p3"),
-      true,
-    )
+    myFixture.checkResult(SdkConstants.FN_ANDROID_MANIFEST_XML, getManifestText(activityName = ".MyActivity", manifestPackage = "p3"), true)
   }
 
   @Test
@@ -89,11 +83,7 @@ class AndroidMoveActivityTest {
     createActivity()
 
     // Copy and open manifest file
-    val manifestFile =
-      myFixture.copyFileToProject(
-        BASE_PATH + name.methodName + ".xml",
-        SdkConstants.FN_ANDROID_MANIFEST_XML,
-      )
+    val manifestFile = myFixture.copyFileToProject(BASE_PATH + name.methodName + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.configureFromExistingVirtualFile(manifestFile)
 
     // Find the package to rename
@@ -101,9 +91,7 @@ class AndroidMoveActivityTest {
     assertThat(packageToRename).isNotNull()
 
     // Do the rename of the package
-    ApplicationManager.getApplication().invokeAndWait {
-      RenameProcessor(myProject, packageToRename!!, newPackageName, true, true).run()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenameProcessor(myProject, packageToRename!!, newPackageName, true, true).run() }
 
     // Verify that the manifest was updated as expected.
     myFixture.checkResultByFile(BASE_PATH + name.methodName + "_after.xml")
@@ -166,9 +154,7 @@ class AndroidMoveActivityTest {
         .trimIndent()
     )
 
-    val psiClass = runReadAction {
-      myFixture.javaFacade.findClass(className, GlobalSearchScope.projectScope(myProject))
-    }
+    val psiClass = runReadAction { myFixture.javaFacade.findClass(className, GlobalSearchScope.projectScope(myProject)) }
 
     val newParentPackage = runReadAction { myFixture.javaFacade.findPackage(newParentPackageName) }
     assertThat(newParentPackage).isNotNull()

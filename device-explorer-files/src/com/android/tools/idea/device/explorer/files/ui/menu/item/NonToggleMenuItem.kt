@@ -17,7 +17,8 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
 
-abstract class NonToggleMenuItem(listener: DeviceFileExplorerActionListener): TreeMenuItem(listener) {
+abstract class NonToggleMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
   override fun isSelected(): Boolean = false
+
   override fun setSelected(selected: Boolean) {}
 }

@@ -19,15 +19,15 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
-import java.util.function.Consumer
 
 private const val DEVICE_TEST_SOURCE_SET = "KotlinSourceSet with name 'androidTestOnDevice' not found"
 private const val HOST_TEST_SOURCE_SET = "KotlinSourceSet with name 'androidTestOnJvm' not found"
 
-class UnknownMultiplatformTestSourceSetChecker: GradleIssueChecker {
+class UnknownMultiplatformTestSourceSetChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
@@ -36,21 +36,25 @@ class UnknownMultiplatformTestSourceSetChecker: GradleIssueChecker {
     return createBuildIssue(message)
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.contains(DEVICE_TEST_SOURCE_SET) || failureCause.contains(HOST_TEST_SOURCE_SET)
   }
 
   private fun createBuildIssue(message: String) =
-    BuildIssueComposer(message, "Unknown kotlin source set issue").apply {
-      addDescriptionOnNewLine("The default source sets for Android KMP target were renamed in AGP 8.9.0-alpha03.")
-      addDescriptionOnNewLine("In order to migrate you need to change:")
-      addDescriptionOnNewLine("sourceSets.getByName(\"androidTestOnDevice\") -> sourceSets.getByName(\"androidDeviceTest\")")
-      addDescriptionOnNewLine("sourceSets.getByName(\"androidTestOnJvm\") -> sourceSets.getByName(\"androidHostTest\")")
-      startNewParagraph()
-    }.composeBuildIssue()
+    BuildIssueComposer(message, "Unknown kotlin source set issue")
+      .apply {
+        addDescriptionOnNewLine("The default source sets for Android KMP target were renamed in AGP 8.9.0-alpha03.")
+        addDescriptionOnNewLine("In order to migrate you need to change:")
+        addDescriptionOnNewLine("sourceSets.getByName(\"androidTestOnDevice\") -> sourceSets.getByName(\"androidDeviceTest\")")
+        addDescriptionOnNewLine("sourceSets.getByName(\"androidTestOnJvm\") -> sourceSets.getByName(\"androidHostTest\")")
+        startNewParagraph()
+      }
+      .composeBuildIssue()
 }

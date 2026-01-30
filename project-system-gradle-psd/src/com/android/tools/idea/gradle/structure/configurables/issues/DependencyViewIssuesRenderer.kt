@@ -25,8 +25,7 @@ open class DependencyViewIssuesRenderer(context: PsContext) {
   open fun render(issues: Collection<PsIssue>, scope: PsPath?): String = buildString {
     if (issues.size == 1) {
       issueRenderer.renderIssue(this, issues.first(), scope)
-    }
-    else {
+    } else {
       append("<ol>")
       for (issue in issues) {
         append("<li>")

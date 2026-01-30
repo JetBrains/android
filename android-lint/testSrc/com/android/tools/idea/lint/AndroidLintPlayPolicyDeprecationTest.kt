@@ -58,15 +58,9 @@ class AndroidLintPlayPolicyDeprecationTest {
   fun testDeprecationMessage() {
     StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.override(true)
     mockDeprecationService = mock()
-    doAnswer { unsupportedData }
-      .whenever(mockDeprecationService)
-      .getCurrentDeprecationData(any(), any())
+    doAnswer { unsupportedData }.whenever(mockDeprecationService).getCurrentDeprecationData(any(), any())
     ApplicationManager.getApplication()
-      .replaceService(
-        DevServicesDeprecationDataProvider::class.java,
-        mockDeprecationService,
-        projectRule.disposable,
-      )
+      .replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationService, projectRule.disposable)
     val incident = Incident()
     val issue = mock<Issue>()
     doReturn(Category(null, "Play Policy", 100)).whenever(issue).category

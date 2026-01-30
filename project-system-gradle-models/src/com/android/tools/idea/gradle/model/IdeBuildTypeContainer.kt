@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeBuildTypeContainer: IdeSourceProviderContainer {
+interface IdeBuildTypeContainer : IdeSourceProviderContainer {
   /**
    * The Build Type itself.
    *

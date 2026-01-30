@@ -20,9 +20,8 @@ import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.psi.PsiElement
 
 /**
- * This suppresses other tools' inspections for calls to jcenter() in Gradle build files written in
- * Groovy: a generic inspection from the Java-level deprecation of jcenter() in some Gradle
- * versions, and a more specific inspection from the Gradle IDEA plugin.
+ * This suppresses other tools' inspections for calls to jcenter() in Gradle build files written in Groovy: a generic inspection from the
+ * Java-level deprecation of jcenter() in some Gradle versions, and a more specific inspection from the Gradle IDEA plugin.
  *
  * Note that this mechanism does not function for KotlinScript Gradle build files, which
  */
@@ -34,6 +33,5 @@ class AndroidLintJcenterInspectionSuppressor : InspectionSuppressor {
       else -> false
     }
 
-  override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> =
-    SuppressQuickFix.EMPTY_ARRAY
+  override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> = SuppressQuickFix.EMPTY_ARRAY
 }

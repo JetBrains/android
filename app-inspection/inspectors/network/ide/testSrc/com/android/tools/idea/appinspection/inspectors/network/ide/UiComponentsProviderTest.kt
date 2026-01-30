@@ -45,111 +45,62 @@ class UiComponentsProviderTest {
 
   @Test
   fun createImageDataViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     // Valid image results in the creation of an image data viewer.
-    assertThat(
-        componentsProvider.createDataViewer(
-          TEST_IMAGE.readBytes(),
-          ContentType.PNG,
-          DataViewer.Style.RAW,
-          false,
-        )
-      )
+    assertThat(componentsProvider.createDataViewer(TEST_IMAGE.readBytes(), ContentType.PNG, DataViewer.Style.RAW, false))
       .isInstanceOf(IntellijImageDataViewer::class.java)
 
-    val viewer =
-      componentsProvider.createDataViewer(
-        ByteArray(0),
-        ContentType.GIF,
-        DataViewer.Style.RAW,
-        false,
-      )
+    val viewer = componentsProvider.createDataViewer(ByteArray(0), ContentType.GIF, DataViewer.Style.RAW, false)
     // Invalid image bytes in the creation of a regular data viewer with text saying preview is not
     // available.
     assertThat(viewer).isInstanceOf(IntellijImageDataViewer::class.java)
     waitForCondition(TIMEOUT) { viewer.component.components.isNotEmpty() }
-    assertThat((viewer.component.components.first() as JLabel).text)
-      .isEqualTo("No preview available")
+    assertThat((viewer.component.components.first() as JLabel).text).isEqualTo("No preview available")
   }
 
   @Test
   fun createTextDataViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
-    val viewer =
-      componentsProvider.createDataViewer(
-        "csv,file".toByteArray(),
-        ContentType.CSV,
-        DataViewer.Style.RAW,
-        false,
-      )
+    val viewer = componentsProvider.createDataViewer("csv,file".toByteArray(), ContentType.CSV, DataViewer.Style.RAW, false)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
   }
 
   @Test
   fun createInvalidRawDataViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
-    val viewer =
-      componentsProvider.createDataViewer(
-        "csv,file".toByteArray(),
-        ContentType.DEFAULT,
-        DataViewer.Style.RAW,
-        false,
-      )
+    val viewer = componentsProvider.createDataViewer("csv,file".toByteArray(), ContentType.DEFAULT, DataViewer.Style.RAW, false)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.INVALID)
   }
 
   @Test
   fun createInvalidPrettyDataViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
-    val viewer =
-      componentsProvider.createDataViewer(
-        "csv,file".toByteArray(),
-        ContentType.DEFAULT,
-        DataViewer.Style.PRETTY,
-        false,
-      )
+    val viewer = componentsProvider.createDataViewer("csv,file".toByteArray(), ContentType.DEFAULT, DataViewer.Style.PRETTY, false)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.INVALID)
   }
 
   @Test
   fun multipartBody_createsTextViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
     val viewer =
-      componentsProvider.createDataViewer(
-        "content".toByteArray(),
-        ContentType.DEFAULT.withType("multipart"),
-        DataViewer.Style.RAW,
-        false,
-      )
+      componentsProvider.createDataViewer("content".toByteArray(), ContentType.DEFAULT.withType("multipart"), DataViewer.Style.RAW, false)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
   }
 
   @Test
   fun createPrettyDataViewer() {
-    val componentsProvider =
-      DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
+    val componentsProvider = DefaultUiComponentsProvider(projectRule.project, projectRule.disposable)
 
-    val viewer =
-      componentsProvider.createDataViewer(
-        "<html></html>".toByteArray(),
-        ContentType.HTML,
-        DataViewer.Style.PRETTY,
-        true,
-      )
+    val viewer = componentsProvider.createDataViewer("<html></html>".toByteArray(), ContentType.HTML, DataViewer.Style.PRETTY, true)
     assertThat(viewer).isInstanceOf(IntellijDataViewer::class.java)
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
   }

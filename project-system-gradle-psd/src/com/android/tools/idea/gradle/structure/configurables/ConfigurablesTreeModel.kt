@@ -18,18 +18,11 @@ import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.NamedConfigurable
 import javax.swing.tree.DefaultTreeModel
 
-/**
- * A tree model that represents a hierarchy of [NamedConfigurable]s.
- */
-class ConfigurablesTreeModel(
-  val rootNode: MasterDetailsComponent.MyNode
-) : DefaultTreeModel(rootNode)
+/** A tree model that represents a hierarchy of [NamedConfigurable]s. */
+class ConfigurablesTreeModel(val rootNode: MasterDetailsComponent.MyNode) : DefaultTreeModel(rootNode)
 
-/**
- * Finds a [MasterDetailsComponent.MyNode] for a given [PsModel] in the tree.
- */
+/** Finds a [MasterDetailsComponent.MyNode] for a given [PsModel] in the tree. */
 fun MasterDetailsComponent.MyNode.findChildFor(model: Any): MasterDetailsComponent.MyNode? =
   children().asSequence().mapNotNull { it as? MasterDetailsComponent.MyNode }.find { it.configurable?.editableObject === model }
 
-inline fun <reified T> MasterDetailsComponent.MyNode.getModel(): T? =
-  (userObject as? NamedConfigurable<*>)?.editableObject as? T
+inline fun <reified T> MasterDetailsComponent.MyNode.getModel(): T? = (userObject as? NamedConfigurable<*>)?.editableObject as? T

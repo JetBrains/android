@@ -19,21 +19,22 @@ import com.intellij.openapi.util.SystemInfo
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.jna.platform.win32.WinReg
 
-/**
- * Utilities for determining the CPU vendor.
- */
+/** Utilities for determining the CPU vendor. */
 object CpuVendor {
   private val cpuVendor: String
     get() {
       assert(SystemInfo.isWindows)
       val cpuInfoKey = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\"
       val cpuNum = Advapi32Util.registryGetKeys(WinReg.HKEY_LOCAL_MACHINE, cpuInfoKey)
-      return "".takeIf { cpuNum.isEmpty() } ?:
-             Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, cpuInfoKey + cpuNum[0], "VendorIdentifier")
+      return "".takeIf { cpuNum.isEmpty() }
+        ?: Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, cpuInfoKey + cpuNum[0], "VendorIdentifier")
     }
 
   @JvmStatic
-  val isAMD: Boolean get() = cpuVendor == "AuthenticAMD"
+  val isAMD: Boolean
+    get() = cpuVendor == "AuthenticAMD"
+
   @JvmStatic
-  val isIntel: Boolean get() = cpuVendor == "GenuineIntel"
+  val isIntel: Boolean
+    get() = cpuVendor == "GenuineIntel"
 }

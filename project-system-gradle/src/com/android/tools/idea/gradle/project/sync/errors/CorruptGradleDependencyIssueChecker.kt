@@ -22,12 +22,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
-class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
+class CorruptGradleDependencyIssueChecker : GradleIssueChecker {
   private val ERROR_MESSAGE = "Premature end of Content-Length delimited message body"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -38,17 +38,19 @@ class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
-    return BuildIssueComposer("Gradle's dependency cache seems to be corrupt or out of sync.").apply {
-      addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
-    }.composeBuildIssue()
+    return BuildIssueComposer("Gradle's dependency cache seems to be corrupt or out of sync.")
+      .apply { addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix) }
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.startsWith(ERROR_MESSAGE)
   }
 }

@@ -87,14 +87,7 @@ class EntryDetailsViewTest {
     withContext(uiDispatcher) {
       client = BackgroundTaskInspectorTestUtils.getFakeClient(scope)
       ideServices = TestIdeServices()
-      tab =
-        BackgroundTaskInspectorTab(
-          client,
-          ideServices,
-          StubUiComponentsProvider(),
-          scope,
-          uiDispatcher,
-        )
+      tab = BackgroundTaskInspectorTab(client, ideServices, StubUiComponentsProvider(), scope, uiDispatcher)
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView
       tab.isDetailsViewVisible = false
@@ -145,8 +138,7 @@ class EntryDetailsViewTest {
       assertThat(ideServices.lastVisitedCodeLocation!!.lineNumber).isEqualTo(12)
       val constraintsAtComponent = executionPanel.getValueComponent("Constraints") as JPanel
       assertThat(constraintsAtComponent.componentCount).isEqualTo(1)
-      assertThat((constraintsAtComponent.getComponent(0) as JLabel).text)
-        .isEqualTo("Network must be connected")
+      assertThat((constraintsAtComponent.getComponent(0) as JLabel).text).isEqualTo("Network must be connected")
       val frequencyComponent = executionPanel.getValueComponent("Frequency") as JLabel
       assertThat(frequencyComponent.text).isEqualTo("OneTime")
       val stateComponent = executionPanel.getValueComponent("State") as JLabel
@@ -164,33 +156,23 @@ class EntryDetailsViewTest {
       assertThat((nextComponent.getComponent(0) as JLabel).text).isEqualTo("dependentsId")
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(1)
-      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(0) as ActionLink).text)
-        .isEqualTo("ID1")
-      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(1) as JLabel).text)
-        .isEqualTo("(Current)")
+      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(0) as ActionLink).text).isEqualTo("ID1")
+      assertThat(((chainComponent.getComponent(0) as JPanel).getComponent(1) as JLabel).text).isEqualTo("(Current)")
 
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
-      assertThat(timeStartedComponent.text)
-        .isEqualTo(workInfo.scheduleRequestedAt.toFormattedTimeString())
+      assertThat(timeStartedComponent.text).isEqualTo(workInfo.scheduleRequestedAt.toFormattedTimeString())
       val retryCountComponent = resultsPanel.getValueComponent("Run count") as JLabel
       assertThat(retryCountComponent.text).isEqualTo("1")
       val dataComponent = resultsPanel.getValueComponent("Output data") as HideablePanel
-      val keyLabel =
-        TreeWalker(dataComponent)
-          .descendantStream()
-          .filter { (it as? JLabel)?.text == "k = " }
-          .findFirst()
-          .get()
+      val keyLabel = TreeWalker(dataComponent).descendantStream().filter { (it as? JLabel)?.text == "k = " }.findFirst().get()
       val valueLabel = (keyLabel.parent as JPanel).getComponent(1) as JLabel
       assertThat(valueLabel.text).isEqualTo("\"v\"")
     }
 
     // Remove work from client.
     client.sendWorkRemovedEvent(workInfo.id)
-    withContext(uiDispatcher) {
-      assertThat(detailsView.findLabels("WorkContinuation").isEmpty()).isTrue()
-    }
+    withContext(uiDispatcher) { assertThat(detailsView.findLabels("WorkContinuation").isEmpty()).isTrue() }
   }
 
   @Test
@@ -231,11 +213,9 @@ class EntryDetailsViewTest {
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(2)
-      val oldDependentWorkLabel =
-        (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
+      val oldDependentWorkLabel = (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
       assertThat(oldDependentWorkLabel.text).isEqualTo("dependentsId")
-      assertThat(oldDependentWorkLabel.icon)
-        .isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED.icon())
+      assertThat(oldDependentWorkLabel.icon).isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED.icon())
     }
 
     client.sendWorkEvent {
@@ -248,11 +228,9 @@ class EntryDetailsViewTest {
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(2)
-      val newDependentWorkLabel =
-        (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
+      val newDependentWorkLabel = (chainComponent.getComponent(1) as JPanel).getComponent(0) as ActionLink
       assertThat(newDependentWorkLabel.text).isEqualTo("dependentsId")
-      assertThat(newDependentWorkLabel.icon)
-        .isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.FAILED.icon())
+      assertThat(newDependentWorkLabel.icon).isEqualTo(WorkManagerInspectorProtocol.WorkInfo.State.FAILED.icon())
     }
   }
 
@@ -307,8 +285,7 @@ class EntryDetailsViewTest {
             }
           }
         }
-        stacktrace =
-          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+        stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
       }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
@@ -323,8 +300,7 @@ class EntryDetailsViewTest {
       val pendingIntent = detailsView.namedChild<JComponent>("PendingIntent")
       assertThat(pendingIntent.getValueOf("Creator")).isEqualTo("creator.package (UID: 100)")
       assertThat(pendingIntent.getValueOf("Type")).isEqualTo("BROADCAST")
-      assertThat(pendingIntent.getValueOf("Flags"))
-        .isEqualTo("0xc000000 (FLAG_UPDATE_CURRENT, FLAG_IMMUTABLE)")
+      assertThat(pendingIntent.getValueOf("Flags")).isEqualTo("0xc000000 (FLAG_UPDATE_CURRENT, FLAG_IMMUTABLE)")
       assertThat(pendingIntent.getValueOf("Request code")).isEqualTo("12")
 
       val intent = detailsView.namedChild<JComponent>("Intent")
@@ -342,8 +318,7 @@ class EntryDetailsViewTest {
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
-        assertThat(this[0].className)
-          .isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
         assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
         assertThat(this[0].lineNumber).isEqualTo(26)
       }
@@ -353,8 +328,7 @@ class EntryDetailsViewTest {
     client.sendBackgroundTaskEvent(10000) {
       taskId = 1
       alarmFiredBuilder.build()
-      stacktrace =
-        "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
     }
 
     withContext(uiDispatcher) {
@@ -376,8 +350,7 @@ class EntryDetailsViewTest {
           triggerMs = 10000
           listenerBuilder.apply { tag = "tag" }
         }
-        stacktrace =
-          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+        stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
       }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
@@ -398,8 +371,7 @@ class EntryDetailsViewTest {
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
-        assertThat(this[0].className)
-          .isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
         assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
         assertThat(this[0].lineNumber).isEqualTo(26)
       }
@@ -429,8 +401,7 @@ class EntryDetailsViewTest {
           tag = "tag"
           level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
         }
-        stacktrace =
-          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+        stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
       }
     val wakeLockAcquired = event.backgroundTaskEvent.wakeLockAcquired
 
@@ -449,8 +420,7 @@ class EntryDetailsViewTest {
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
-        assertThat(this[0].className)
-          .isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
         assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
         assertThat(this[0].lineNumber).isEqualTo(26)
       }
@@ -470,8 +440,7 @@ class EntryDetailsViewTest {
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
-        assertThat(this[0].className)
-          .isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
         assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
         assertThat(this[0].lineNumber).isEqualTo(26)
       }
@@ -502,8 +471,7 @@ class EntryDetailsViewTest {
           }
           result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
         }
-        stacktrace =
-          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+        stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
       }
     val jobScheduled = event.backgroundTaskEvent.jobScheduled
 
@@ -545,8 +513,7 @@ class EntryDetailsViewTest {
 
       with(detailsView.stackTraceViews[0].stackTraceModel.codeLocations) {
         assertThat(size).isEqualTo(1)
-        assertThat(this[0].className)
-          .isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
+        assertThat(this[0].className).isEqualTo("com.example.android.displayingbitmaps.util.ImageFetcher")
         assertThat(this[0].methodName).isEqualTo("downloadUrlToStream")
         assertThat(this[0].lineNumber).isEqualTo(26)
       }
@@ -567,11 +534,7 @@ class EntryDetailsViewTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val detailedPanelTitleLabel =
-        TreeWalker(detailsView)
-          .descendantStream()
-          .filter { (it as? JLabel)?.text == "Task Details" }
-          .findFirst()
-          .get()
+        TreeWalker(detailsView).descendantStream().filter { (it as? JLabel)?.text == "Task Details" }.findFirst().get()
       val titlePanel = detailedPanelTitleLabel.parent as JPanel
       val closeButton = titlePanel.getComponent(1) as InplaceButton
       assertThat(closeButton.toolTipText).isEqualTo("Close")

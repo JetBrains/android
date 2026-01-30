@@ -25,21 +25,23 @@ import javax.swing.JComponent
 abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, ValueT : Any>(
   val property: ModelPropertyT,
   val propertyContext: ModelPropertyContext<ValueT>,
-  protected val variablesScope: PsVariablesScope?
+  protected val variablesScope: PsVariablesScope?,
 ) {
 
   abstract val component: JComponent
 
-  val labelComponent: JBLabel by lazy(LazyThreadSafetyMode.NONE) {
-    JBLabel(property.description).also {
-      it.labelFor = component
-      it.isFocusable = false
+  val labelComponent: JBLabel by
+    lazy(LazyThreadSafetyMode.NONE) {
+      JBLabel(property.description).also {
+        it.labelFor = component
+        it.isFocusable = false
+      }
     }
-  }
 
   protected fun updateModified() {
-    labelComponent.font = labelComponent.font.let {
-      if (property.isModified == true) it.deriveFont(it.style or Font.BOLD) else it.deriveFont(it.style and Font.BOLD.inv())
-    }
+    labelComponent.font =
+      labelComponent.font.let {
+        if (property.isModified == true) it.deriveFont(it.style or Font.BOLD) else it.deriveFont(it.style and Font.BOLD.inv())
+      }
   }
 }

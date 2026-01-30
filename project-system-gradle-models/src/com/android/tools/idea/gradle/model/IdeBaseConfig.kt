@@ -20,35 +20,27 @@ import java.io.File
 interface IdeBaseConfig {
   val name: String
 
-  /**
-   * The application id suffix applied to this base config.
-   */
+  /** The application id suffix applied to this base config. */
   val applicationIdSuffix: String?
 
   /**
-   * The version name suffix of this flavor or null if none have been set.
-   * This is only the value set on this product flavor, not necessarily the actual
-   * version name suffix used.
+   * The version name suffix of this flavor or null if none have been set. This is only the value set on this product flavor, not
+   * necessarily the actual version name suffix used.
    */
   val versionNameSuffix: String?
 
-  /**
-   * Map of generated res values where the key is the res name.
-   */
+  /** Map of generated res values where the key is the res name. */
   val resValues: Map<String, IdeClassField>
 
   /**
    * Specifies the ProGuard configuration files that the plugin should use.
    *
-   * There are two ProGuard rules files that ship with the Android plugin and are used by
-   * default:
+   * There are two ProGuard rules files that ship with the Android plugin and are used by default:
+   * * proguard-android.txt
+   * * proguard-android-optimize.txt
    *
-   *  * proguard-android.txt
-   *  * proguard-android-optimize.txt
-   *
-   * `proguard-android-optimize.txt` is identical to `proguard-android.txt`,
-   * except with optimizations enabled. You can use [getDefaultProguardFile(String)]
-   * to return the full path of the files.
+   * `proguard-android-optimize.txt` is identical to `proguard-android.txt`, except with optimizations enabled. You can use
+   * [getDefaultProguardFile(String)] to return the full path of the files.
    *
    * @return a non-null collection of files.
    * @see .getTestProguardFiles

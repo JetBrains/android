@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
-class BleakOptions private constructor(var iterations: Int, var checks: List<BleakCheck<*,*>>) {
+class BleakOptions private constructor(var iterations: Int, var checks: List<BleakCheck<*, *>>) {
   constructor() : this(DEFAULT_ITERATION_COUNT, listOf())
 
   fun iterations(i: Int): BleakOptions {
@@ -23,7 +23,7 @@ class BleakOptions private constructor(var iterations: Int, var checks: List<Ble
     return this
   }
 
-  fun withCheck(check: BleakCheck<*,*>): BleakOptions {
+  fun withCheck(check: BleakCheck<*, *>): BleakOptions {
     checks += check
     return this
   }
@@ -31,5 +31,4 @@ class BleakOptions private constructor(var iterations: Int, var checks: List<Ble
   companion object {
     val DEFAULT_ITERATION_COUNT = 3
   }
-
 }

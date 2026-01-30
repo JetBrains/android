@@ -32,8 +32,8 @@ private val consoleView = ConsoleViewForFolding()
  *
  * This code is based on ConsoleViewImpl.updateFoldings()
  *
- * It was rewritten to allow better folding of Stack Traces since the new Logcat appends stack
- * traces in their entirety which allows for better foldings.
+ * It was rewritten to allow better folding of Stack Traces since the new Logcat appends stack traces in their entirety which allows for
+ * better foldings.
  *
  * For example, given the following stack trace:
  * ```
@@ -52,8 +52,8 @@ private val consoleView = ConsoleViewForFolding()
  *   ... 7 more
  * ```
  *
- * This stack trace results in nested folding regions. The "`7 more`" line is expanded into the 7
- * lines of the top level exception which themselves contains 2 regions (Method.invoke).
+ * This stack trace results in nested folding regions. The "`7 more`" line is expanded into the 7 lines of the top level exception which
+ * themselves contains 2 regions (Method.invoke).
  *
  * The original code combines the nested regions with the outer one and shows the hint:
  * ```
@@ -144,25 +144,19 @@ internal class EditorFoldingDetector(
     return null
   }
 
-  private fun shouldFoldLine(folding: ConsoleFolding, line: Int) =
-    folding.shouldFoldLine(project, getLineText(line))
+  private fun shouldFoldLine(folding: ConsoleFolding, line: Int) = folding.shouldFoldLine(project, getLineText(line))
 
   private fun addFoldRegion(folding: ConsoleFolding, startLine: Int, endLine: Int) {
     val lines = (startLine..endLine).map(this::getLineText)
     val startOffset =
-      document.getLineStartOffset(startLine).let {
-        if (folding.shouldBeAttachedToThePreviousLine() && it > 0) it - 1 else it
-      }
+      document.getLineStartOffset(startLine).let { if (folding.shouldBeAttachedToThePreviousLine() && it > 0) it - 1 else it }
     val endOffset = document.getLineEndOffset(endLine)
     val placeholder = folding.getPlaceholderText(project, lines) ?: return
 
-    editor.foldingModel.addFoldRegion(startOffset, endOffset, placeholder)?.let {
-      it.isExpanded = false
-    }
+    editor.foldingModel.addFoldRegion(startOffset, endOffset, placeholder)?.let { it.isExpanded = false }
   }
 
-  private fun getLineText(line: Int) =
-    EditorHyperlinkSupport.getLineText(document, line, /* includeEol */ false)
+  private fun getLineText(line: Int) = EditorHyperlinkSupport.getLineText(document, line, /* includeEol */ false)
 
   private data class Folding(val folding: ConsoleFolding, val startLine: Int, val endLine: Int)
 }

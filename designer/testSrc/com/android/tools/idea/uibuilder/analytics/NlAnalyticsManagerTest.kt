@@ -61,23 +61,19 @@ class NlAnalyticsManagerTest {
   @Test
   fun testBasicTracking() {
     analyticsManager.trackAlign()
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ALIGN)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ALIGN)
 
     analyticsManager.trackToggleAutoConnect(true)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT)
 
     analyticsManager.trackToggleAutoConnect(false)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
-      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT)
   }
 
   @Test
   fun testLayoutType() {
     whenever(surface.layoutType).thenReturn(DefaultDesignerFileType)
-    assertThat(analyticsManager.layoutType)
-      .isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
+    assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
 
     whenever(surface.layoutType).thenReturn(LayoutFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.LAYOUT)
@@ -88,8 +84,7 @@ class NlAnalyticsManagerTest {
 
   @Test
   fun testSurfaceType() {
-    assertThat(analyticsManager.surfaceType)
-      .isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
+    assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
 
     whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE)
@@ -116,7 +111,7 @@ class NlAnalyticsManagerTest {
         """
         fun someFun() {
         }
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
@@ -136,7 +131,7 @@ class NlAnalyticsManagerTest {
         """
         fun someFun() {
         }
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(kotlinFile.virtualFile, project)
@@ -155,7 +150,7 @@ class NlAnalyticsManagerTest {
         """
         class Test {
         }
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(javaFile.virtualFile, project)
@@ -173,7 +168,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <LinearLayout />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(layoutFile.virtualFile, project)
@@ -191,7 +186,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <vector />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
@@ -209,7 +204,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <vector />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(drawableFile.virtualFile, project)
@@ -227,7 +222,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <animated-vector />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(animFile.virtualFile, project)
@@ -245,7 +240,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <font-family />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(fontFile.virtualFile, project)
@@ -263,7 +258,7 @@ class NlAnalyticsManagerTest {
         // language=XML
         """
         <item />
-      """
+        """
           .trimIndent(),
       )
     analyticsManager.setEditorFileTypeWithoutTracking(rawFile.virtualFile, project)

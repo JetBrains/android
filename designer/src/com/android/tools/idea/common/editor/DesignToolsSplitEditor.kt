@@ -31,21 +31,9 @@ private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
 private const val EDITOR_NAME = "Design"
 
-/**
- * [SplitEditor] whose preview is a [DesignerEditor] and [getTextEditor] contains the corresponding
- * XML file displayed in the preview.
- */
-open class DesignToolsSplitEditor(
-  textEditor: TextEditor,
-  val designerEditor: DesignerEditor,
-  private val project: Project,
-) :
-  SplitEditor<DesignerEditor>(
-    textEditor,
-    designerEditor,
-    EDITOR_NAME,
-    defaultLayout(designerEditor),
-  ) {
+/** [SplitEditor] whose preview is a [DesignerEditor] and [getTextEditor] contains the corresponding XML file displayed in the preview. */
+open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: DesignerEditor, private val project: Project) :
+  SplitEditor<DesignerEditor>(textEditor, designerEditor, EDITOR_NAME, defaultLayout(designerEditor)) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
@@ -113,8 +101,7 @@ open class DesignToolsSplitEditor(
   override val showEditorAction: SplitEditorAction
     get() {
       if (textViewToolbarAction == null) {
-        textViewToolbarAction =
-          MyToolBarAction(super.showEditorAction, DesignerEditorPanel.State.DEACTIVATED)
+        textViewToolbarAction = MyToolBarAction(super.showEditorAction, DesignerEditorPanel.State.DEACTIVATED)
       }
       return textViewToolbarAction!!
     }
@@ -122,8 +109,7 @@ open class DesignToolsSplitEditor(
   override val showEditorAndPreviewAction: SplitEditorAction
     get() {
       if (splitViewToolbarAction == null) {
-        splitViewToolbarAction =
-          MyToolBarAction(super.showEditorAndPreviewAction, DesignerEditorPanel.State.SPLIT)
+        splitViewToolbarAction = MyToolBarAction(super.showEditorAndPreviewAction, DesignerEditorPanel.State.SPLIT)
       }
       return splitViewToolbarAction!!
     }
@@ -131,15 +117,13 @@ open class DesignToolsSplitEditor(
   override val showPreviewAction: SplitEditorAction
     get() {
       if (designViewToolbarAction == null) {
-        designViewToolbarAction =
-          MyToolBarAction(super.showPreviewAction, DesignerEditorPanel.State.FULL)
+        designViewToolbarAction = MyToolBarAction(super.showPreviewAction, DesignerEditorPanel.State.FULL)
       }
       return designViewToolbarAction!!
     }
 
   /** Persist the mode in order to restore it next time we open the editor. */
-  private fun setModeProperty(state: DesignerEditorPanel.State) =
-    modePropertyName?.let { propertiesComponent.setValue(it, state.name) }
+  private fun setModeProperty(state: DesignerEditorPanel.State) = modePropertyName?.let { propertiesComponent.setValue(it, state.name) }
 
   override fun getState(level: FileEditorStateLevel): FileEditorState {
     // Override getState to make sure getState(FileEditorStateLevel.UNDO) works properly, otherwise
@@ -173,15 +157,10 @@ open class DesignToolsSplitEditor(
     if (panelState == designerEditor.component.state) {
       return
     }
-    actions
-      .firstOrNull { it is MyToolBarAction && it.panelState == panelState }
-      ?.let { selectAction(it, false) }
+    actions.firstOrNull { it is MyToolBarAction && it.panelState == panelState }?.let { selectAction(it, false) }
   }
 
-  private inner class MyToolBarAction(
-    delegate: SplitEditorAction,
-    val panelState: DesignerEditorPanel.State,
-  ) :
+  private inner class MyToolBarAction(delegate: SplitEditorAction, val panelState: DesignerEditorPanel.State) :
     SplitEditor<DesignerEditor>.SplitEditorAction(
       delegate.name,
       delegate.icon,
@@ -210,8 +189,7 @@ open class DesignToolsSplitEditor(
     override fun createPassesForEditor(): Array<HighlightingPass> {
       val designEditorPasses = designerEditor.backgroundHighlighter.createPassesForEditor()
       val textEditorHighlighter = myEditor.backgroundHighlighter
-      val textEditorPasses =
-        textEditorHighlighter?.createPassesForEditor() ?: HighlightingPass.EMPTY_ARRAY
+      val textEditorPasses = textEditorHighlighter?.createPassesForEditor() ?: HighlightingPass.EMPTY_ARRAY
       return designEditorPasses + textEditorPasses
     }
   }

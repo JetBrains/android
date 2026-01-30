@@ -34,20 +34,14 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
   /** Track the ignore button is clicked by user. */
   fun trackIgnoreButtonClicked(issue: ValidatorData.Issue) {
-    CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT
-    ) { event ->
-      event.setIgnoreAtfResultEvent(
-        IgnoreAtfResultEvent.newBuilder().setAtfResult(atfResultDetailBuilder(issue))
-      )
+    CommonUsageTracker.getInstance(surface).logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT) { event ->
+      event.setIgnoreAtfResultEvent(IgnoreAtfResultEvent.newBuilder().setAtfResult(atfResultDetailBuilder(issue)))
     }
   }
 
   /** Track the fix button is clicked by user. */
   fun trackApplyFixButtonClicked(issue: ValidatorData.Issue) {
-    CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX
-    ) { event ->
+    CommonUsageTracker.getInstance(surface).logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX) { event ->
       val applyAtfFixBuilder = ApplyAtfFixEvent.newBuilder()
       applyAtfFixBuilder.setAtfResult(atfResultDetailBuilder(issue))
       issue.mFix?.let { applyAtfFixBuilder.setAtfFix(atfFixDetailBuilder(it)) }

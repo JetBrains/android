@@ -47,19 +47,15 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
 
 /** Handles how [EnumValue]s are generated for [PsiPropertyItem]s. */
-class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesProvider) :
-  EnumSupportProvider<PsiPropertyItem> {
+class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesProvider) : EnumSupportProvider<PsiPropertyItem> {
 
   // TODO: Refactor out Preview specific implementation
 
   override fun invoke(property: PsiPropertyItem): EnumSupport? =
     when (property.name) {
       PARAMETER_UI_MODE ->
-        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) uiMode@{ stringValue
-          ->
-          val initialResolvedValue =
-            stringValue.toIntOrNull()
-              ?: return@uiMode EnumValue.item(stringValue) // Not an int value
+        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) uiMode@{ stringValue ->
+          val initialResolvedValue = stringValue.toIntOrNull() ?: return@uiMode EnumValue.item(stringValue) // Not an int value
           if (initialResolvedValue.shr(6) != 0) {
             // Goes beyond the supported UiModes
             return@uiMode EnumValue.item(stringValue, "Unknown")
@@ -68,9 +64,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
           val uiMode =
             initialResolvedValue.let { numberValue ->
               // Identify which UiModeType this is, and get the base EnumValue for it
-              UiMode.values().firstOrNull {
-                it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue
-              }
+              UiMode.values().firstOrNull { it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue }
             } ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
 
           val supportsNightMode = initialResolvedValue and UI_MODE_NIGHT_MASK != 0
@@ -100,9 +94,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
       PARAMETER_HARDWARE_CUTOUT -> CutoutEnumSupport
       PARAMETER_HARDWARE_NAVIGATION -> NavigationEnumSupport
       PARAMETER_WALLPAPER ->
-        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) {
-          Wallpaper.values()[Integer.parseInt(it) + 1]
-        }
+        EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { Wallpaper.values()[Integer.parseInt(it) + 1] }
       else -> EnumSupport.simple(emptyList())
     }
 }

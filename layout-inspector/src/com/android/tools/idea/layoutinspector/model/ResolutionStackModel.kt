@@ -25,9 +25,8 @@ import com.intellij.openapi.util.Disposer
 /**
  * Model for keeping track of expanded detail traces in an attribute resolution stack.
  *
- * The detail traces are shown if there are references found in attribute values. A
- * [ResolutionStackModel] is required per table (i.e. 1 for declared attributes and 1 for all
- * attributes).
+ * The detail traces are shown if there are references found in attribute values. A [ResolutionStackModel] is required per table (i.e. 1 for
+ * declared attributes and 1 for all attributes).
  */
 class ResolutionStackModel(val propertiesModel: InspectorPropertiesModel) : Disposable {
   private val expandedItems = mutableSetOf<InspectorPropertyItem>()

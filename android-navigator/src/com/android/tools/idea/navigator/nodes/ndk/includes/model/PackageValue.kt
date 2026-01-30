@@ -22,23 +22,20 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludeP
  * A collection of includes that represents a single logical package that has multiple include folders.
  *
  * Visually, it will be a folder structure like this in the Android Project View:
- *
  * <pre>
  * [-] MyGame
  * [-] Includes
  * [-] CDep [A node where PackageType is CDepPackage]
  * [-] protobuf [A node represented by PackageValue]
  * protobuf.h
-</pre> *
+ * </pre> *
  */
-data class PackageValue(
-  private val key: PackageKey,
-  val description : String,
-  val includes: List<SimpleIncludeValue>) : ClassifiedIncludeValue() {
+data class PackageValue(private val key: PackageKey, val description: String, val includes: List<SimpleIncludeValue>) :
+  ClassifiedIncludeValue() {
 
   // Relative path that is common to the complete set of includes.
-  private val commonRelativeFolder : String
-    get() =  findCommonParentFolder(includes.map { it.relativeIncludeSubFolder } )
+  private val commonRelativeFolder: String
+    get() = findCommonParentFolder(includes.map { it.relativeIncludeSubFolder })
 
   override fun getPackageDescription() = description
 
@@ -47,15 +44,17 @@ data class PackageValue(
       val commonRelativeFolderWithNoSlashes = trimPathSeparators(commonRelativeFolder)
       return if (commonRelativeFolderWithNoSlashes.isEmpty()) {
         "${includes.size} include paths"
-      }
-      else commonRelativeFolderWithNoSlashes
+      } else commonRelativeFolderWithNoSlashes
     }
 
-  val simplePackageName : String
+  val simplePackageName: String
     get() = key.simplePackageName
 
   override fun toString() = "${key.simplePackageName} (${key.packageType.myDescription}, $descriptiveText)"
+
   override fun getSortKey() = SortOrderKey.PACKAGING.myKey + toString()
+
   override fun getPackageType() = key.packageType
+
   override fun getPackageFamilyBaseFolder() = key.packagingFamilyBaseFolder
 }

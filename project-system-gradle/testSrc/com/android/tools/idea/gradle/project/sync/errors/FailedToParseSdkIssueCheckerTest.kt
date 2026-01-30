@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsum
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.SystemProperties
+import java.io.File
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Rule
 import org.junit.Test
@@ -27,14 +28,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import java.io.File
 
 @RunWith(JUnit4::class)
 class FailedToParseSdkIssueCheckerTest {
   private val failedToParseSdkIssueChecker = FailedToParseSdkIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val projectFolderPath by lazy { projectRule.project.basePath!! }
 
   @Test
@@ -50,11 +49,12 @@ class FailedToParseSdkIssueCheckerTest {
   @Test
   fun testCheckIssueWithBrokenSdkAndroidNoWriteAccess() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
-    val sdkPath: File = object : File("/path/to/sdk/home") {
-      override fun canWrite(): Boolean {
-        return false
+    val sdkPath: File =
+      object : File("/path/to/sdk/home") {
+        override fun canWrite(): Boolean {
+          return false
+        }
       }
-    }
     val mockChecker = Mockito.spy(failedToParseSdkIssueChecker)
     whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath)).thenReturn(sdkPath)
 
@@ -62,20 +62,23 @@ class FailedToParseSdkIssueCheckerTest {
     val buildIssue = mockChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(
-      ("The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty\n\n" +
-       "Current user ('${SystemProperties.getUserName()}') does not have write access to the SDK directory."))
+    assertThat(buildIssue!!.description)
+      .contains(
+        ("The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty\n\n" +
+          "Current user ('${SystemProperties.getUserName()}') does not have write access to the SDK directory.")
+      )
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
   @Test
   fun testCheckIssueWithBrokenSdkAndroidWriteAccess() {
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
-    val sdkPath: File = object : File("/path/to/sdk/home") {
-      override fun canWrite(): Boolean {
-        return true
+    val sdkPath: File =
+      object : File("/path/to/sdk/home") {
+        override fun canWrite(): Boolean {
+          return true
+        }
       }
-    }
     val mockChecker = Mockito.spy(failedToParseSdkIssueChecker)
     whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath)).thenReturn(sdkPath)
 
@@ -83,31 +86,35 @@ class FailedToParseSdkIssueCheckerTest {
     val buildIssue = mockChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(
-      "The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty")
+    assertThat(buildIssue!!.description)
+      .contains("The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty")
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: failed to parse SDK",
-        "Caused by: java.lang.RuntimeException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: failed to parse SDK",
+          "Caused by: java.lang.RuntimeException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: failed to parse SDK",
-        "Caused by: java.net.SocketException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isFalse()
+        failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: failed to parse SDK",
+          "Caused by: java.net.SocketException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isFalse()
   }
 }

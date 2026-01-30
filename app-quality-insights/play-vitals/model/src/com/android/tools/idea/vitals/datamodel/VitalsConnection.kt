@@ -17,11 +17,7 @@ package com.android.tools.idea.vitals.datamodel
 
 import com.android.tools.idea.insights.model.connection.Connection
 
-data class VitalsConnection(
-  override val appId: String,
-  val displayName: String,
-  val isPreferred: Boolean,
-) : Connection {
+data class VitalsConnection(override val appId: String, val displayName: String, val isPreferred: Boolean) : Connection {
   override val isConfigured: Boolean = true
   override val mobileSdkAppId = null
   override val projectId = null

@@ -24,54 +24,57 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import java.util.stream.Collectors
 import junit.framework.TestCase.assertNotNull
 import org.junit.Rule
 import org.junit.Test
-import java.util.stream.Collectors
 
 class AndroidTestRunConfigurationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testCannotRunLibTestsInReleaseBuild() {
     projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY).open {
-      val androidTestRunConfiguration = invokeAndWaitIfNeeded {
-        TestConfigurationTesting.createAndroidTestConfigurationFromClass(
-          it,
-          "com.example.projectwithappandlib.lib.ExampleInstrumentedTest"
-        )
-      }!!
+      val androidTestRunConfiguration =
+        invokeAndWaitIfNeeded {
+          TestConfigurationTesting.createAndroidTestConfigurationFromClass(
+            it,
+            "com.example.projectwithappandlib.lib.ExampleInstrumentedTest",
+          )
+        }!!
       assertNotNull(androidTestRunConfiguration)
       var errors = invokeAndWaitIfNeeded { androidTestRunConfiguration!!.validate(null) }
       Truth.assertThat(errors).hasSize(0)
       switchVariant(it, ":app", "basicRelease")
       errors = invokeAndWaitIfNeeded { androidTestRunConfiguration.validate(null) }
       Truth.assertThat(errors).isNotEmpty()
-      Truth.assertThat(errors.stream().map { obj: ValidationError? -> obj!!.message }
-                         .collect(Collectors.toList()))
+      Truth.assertThat(errors.stream().map { obj: ValidationError? -> obj!!.message }.collect(Collectors.toList()))
         .contains("Run configuration ExampleInstrumentedTest is not supported in the current project. Cannot obtain the package.")
     }
   }
 
   @Test
   fun testCanRunLibTestsInDebugBuildWithNoAndroidManifest() {
-    projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY.withAdditionalPatch { root ->
-      root.resolve("lib/build.gradle").apply {
-        val contents = readText().placeNamespaceProperty("com.example.projectwithappandlib.lib")
-        writeText(contents)
+    projectRule
+      .prepareTestProject(
+        AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY.withAdditionalPatch { root ->
+          root.resolve("lib/build.gradle").apply {
+            val contents = readText().placeNamespaceProperty("com.example.projectwithappandlib.lib")
+            writeText(contents)
+          }
+          root.resolve("lib/src/main/AndroidManifest.xml").delete()
+        }
+      )
+      .open {
+        val androidTestRunConfiguration = invokeAndWaitIfNeeded {
+          TestConfigurationTesting.createAndroidTestConfigurationFromClass(
+            it,
+            "com.example.projectwithappandlib.lib.ExampleInstrumentedTest",
+          )
+        }
+        assertNotNull(androidTestRunConfiguration)
+        val errors = invokeAndWaitIfNeeded { androidTestRunConfiguration!!.validate(null) }
+        Truth.assertThat(errors).hasSize(0)
       }
-      root.resolve("lib/src/main/AndroidManifest.xml").delete()
-    }).open {
-      val androidTestRunConfiguration = invokeAndWaitIfNeeded {
-        TestConfigurationTesting.createAndroidTestConfigurationFromClass(
-          it,
-          "com.example.projectwithappandlib.lib.ExampleInstrumentedTest"
-        )
-      }
-      assertNotNull(androidTestRunConfiguration)
-      val errors = invokeAndWaitIfNeeded { androidTestRunConfiguration!!.validate(null) }
-      Truth.assertThat(errors).hasSize(0)
-    }
   }
 }

@@ -44,9 +44,7 @@ class WatchFaceInfoDomTest {
 
   @Before
   fun setup() {
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/${RES_XML_FOLDER}")
-        .toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/${RES_XML_FOLDER}").toString()
     // add a manifest file for the `res/` folder to be considered a resource folder
     fixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "<manifest />")
   }
@@ -59,26 +57,20 @@ class WatchFaceInfoDomTest {
         "${RES_XML_FOLDER}/watch_face_info.xml",
         // language=xml
         """
-          <WatchFaceInfo />
+        <WatchFaceInfo />
         """
           .trimIndent(),
       ) as XmlFile
 
     assertTrue(description.isMyFile(watchFaceInfoFile, projectRule.module))
 
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     Assert.assertFalse(description.isMyFile(watchFaceInfoFile, projectRule.module))
   }
 
   @Test
   fun `tag completion`() {
-    domRule.testCompletion(
-      "watch_face_info_completion_tag.xml",
-      "watch_face_info_completion_tag_after.xml",
-    )
+    domRule.testCompletion("watch_face_info_completion_tag.xml", "watch_face_info_completion_tag_after.xml")
   }
 
   @Test
@@ -94,10 +86,7 @@ class WatchFaceInfoDomTest {
     fixture.addFileToProject("res/drawable/preview.png", "")
     projectRule.waitForResourceRepositoryUpdates()
 
-    domRule.testCompletion(
-      "watch_face_info_completion_attr.xml",
-      "watch_face_info_completion_attr_after.xml",
-    )
+    domRule.testCompletion("watch_face_info_completion_attr.xml", "watch_face_info_completion_attr_after.xml")
   }
 
   @Test
@@ -107,9 +96,9 @@ class WatchFaceInfoDomTest {
       "res/values/bools.xml",
       // language=XML
       """
-        <resources>
-          <bool name="editable">true</dimen>
-        </resources>
+      <resources>
+        <bool name="editable">true</dimen>
+      </resources>
       """
         .trimIndent(),
     )

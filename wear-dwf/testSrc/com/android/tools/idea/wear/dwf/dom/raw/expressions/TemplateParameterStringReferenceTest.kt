@@ -44,16 +44,14 @@ class TemplateParameterStringReferenceTest {
 
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
 
   private val fixture
     get() = projectRule.fixture
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
 
     fixture.addFileToProject(
       "res/values/strings.xml",
@@ -65,7 +63,7 @@ class TemplateParameterStringReferenceTest {
           <string name="title">Some title</string>
           <string name="my_parameter">Some parameter</string>
       </resources>
-    """
+      """
         .trimIndent(),
     )
 
@@ -77,7 +75,7 @@ class TemplateParameterStringReferenceTest {
       <resources>
           <string name="greeting">Bonjour, Monde !</string>
       </resources>
-    """
+      """
         .trimIndent(),
     )
     projectRule.waitForResourceRepositoryUpdates()
@@ -96,7 +94,7 @@ class TemplateParameterStringReferenceTest {
             <Parameter expression="title" />
           </Template>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -108,8 +106,7 @@ class TemplateParameterStringReferenceTest {
       assertThat(reference).isNotNull()
       val resolved = reference!!.resolve() as? ResourceReferencePsiElement
       assertThat(resolved).isNotNull()
-      assertThat(resolved!!.resourceReference)
-        .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
+      assertThat(resolved!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
     }
 
     // title
@@ -119,8 +116,7 @@ class TemplateParameterStringReferenceTest {
       assertThat(reference).isNotNull()
       val resolved = reference!!.resolve() as? ResourceReferencePsiElement
       assertThat(resolved).isNotNull()
-      assertThat(resolved!!.resourceReference)
-        .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "title"))
+      assertThat(resolved!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "title"))
     }
   }
 
@@ -137,7 +133,7 @@ class TemplateParameterStringReferenceTest {
             <Parameter expression="'greeting'" />
           </Template>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -145,21 +141,17 @@ class TemplateParameterStringReferenceTest {
     // double quote
     run {
       fixture.moveCaret("\"gree|ting\"")
-      val resolved =
-        findTemplateParameterStringReferenceAtCaret()?.resolve() as? ResourceReferencePsiElement
+      val resolved = findTemplateParameterStringReferenceAtCaret()?.resolve() as? ResourceReferencePsiElement
       assertThat(resolved).isNotNull()
-      assertThat(resolved!!.resourceReference)
-        .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
+      assertThat(resolved!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
     }
 
     // simple quote
     run {
       fixture.moveCaret("'gree|ting'")
-      val resolved =
-        findTemplateParameterStringReferenceAtCaret()?.resolve() as? ResourceReferencePsiElement
+      val resolved = findTemplateParameterStringReferenceAtCaret()?.resolve() as? ResourceReferencePsiElement
       assertThat(resolved).isNotNull()
-      assertThat(resolved!!.resourceReference)
-        .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
+      assertThat(resolved!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "greeting"))
     }
   }
 
@@ -173,7 +165,7 @@ class TemplateParameterStringReferenceTest {
         <WatchFace>
           <Transform value="greeting" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -184,10 +176,7 @@ class TemplateParameterStringReferenceTest {
 
   @Test
   fun `references are not created when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     val watchFaceFile =
       fixture.addFileToProject(
         "res/raw/watch_face.xml",
@@ -198,7 +187,7 @@ class TemplateParameterStringReferenceTest {
             <Parameter expression="greeting" />
           </Template>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -221,7 +210,7 @@ class TemplateParameterStringReferenceTest {
             <Parameter expression="23" />
           </Template>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -288,7 +277,7 @@ class TemplateParameterStringReferenceTest {
             <Parameter expression="not_a_string_resource" />
           </Template>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -315,19 +304,11 @@ class TemplateParameterStringReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
     val injectionTestFixture = InjectionTestFixture(fixture)
     val quickEditHandler =
-      QuickEditAction()
-        .invokeImpl(
-          fixture.project,
-          injectionTestFixture.topLevelEditor,
-          injectionTestFixture.topLevelFile,
-        )
+      QuickEditAction().invokeImpl(fixture.project, injectionTestFixture.topLevelEditor, injectionTestFixture.topLevelFile)
     val fragmentFile = quickEditHandler.newFile
     fixture.openFileInEditor(fragmentFile.virtualFile)
 
-    val reference =
-      fixture
-        .findElementByText("greeting", WFFExpressionLiteralExpr::class.java)
-        .templateParameterReference
+    val reference = fixture.findElementByText("greeting", WFFExpressionLiteralExpr::class.java).templateParameterReference
 
     assertThat(reference).isNotNull()
     val resolved = reference?.resolve()
@@ -338,12 +319,8 @@ class TemplateParameterStringReferenceTest {
   }
 
   private fun findTemplateParameterStringReferenceAtCaret(): TemplateParameterStringReference? {
-    val injectedElement =
-      InjectedLanguageManager.getInstance(projectRule.project)
-        .findInjectedElementAt(fixture.file, fixture.caretOffset)
-    return injectedElement
-      ?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
-      ?.templateParameterReference
+    val injectedElement = InjectedLanguageManager.getInstance(projectRule.project).findInjectedElementAt(fixture.file, fixture.caretOffset)
+    return injectedElement?.parentOfType<WFFExpressionLiteralExpr>(withSelf = true)?.templateParameterReference
   }
 
   private val WFFExpressionLiteralExpr.templateParameterReference

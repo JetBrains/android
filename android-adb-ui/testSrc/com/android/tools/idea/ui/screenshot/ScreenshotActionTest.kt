@@ -43,11 +43,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
-import org.intellij.images.ui.ImageComponent
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -57,6 +52,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.time.Duration.Companion.seconds
+import org.intellij.images.ui.ImageComponent
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [ScreenshotAction]. */
 @RunsInEdt
@@ -68,14 +68,24 @@ class ScreenshotActionTest {
   private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, WaitForIndexRule(projectRule), fakeAdbRule, temporaryDirectoryRule, fakeAdbSessionRule,
-                            EdtRule(), HeadlessDialogRule())
+  val ruleChain =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      fakeAdbRule,
+      temporaryDirectoryRule,
+      fakeAdbSessionRule,
+      EdtRule(),
+      HeadlessDialogRule(),
+    )
 
   private val deviceServices = fakeAdbSessionRule.adbSession.deviceServices
   private val serialNumber = "123"
   private val device = DeviceSelector.fromSerialNumber(serialNumber)
   private val emptyByteBuffer = ByteBuffer.allocate(0)
-  private val project get() = projectRule.project
+  private val project
+    get() = projectRule.project
+
   private val action = ScreenshotAction()
 
   @Before
@@ -100,30 +110,31 @@ class ScreenshotActionTest {
 
     val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel Fold")
 
-    val displayInfoProvider = object: DisplayInfoProvider {
+    val displayInfoProvider =
+      object : DisplayInfoProvider {
 
-      override fun getIdsOfAllDisplays(): IntArray = intArrayOf(PRIMARY_DISPLAY_ID)
+        override fun getIdsOfAllDisplays(): IntArray = intArrayOf(PRIMARY_DISPLAY_ID)
 
-      override fun getDisplaySize(displayId: Int): Dimension {
-        require(displayId == PRIMARY_DISPLAY_ID)
-        return Dimension(2208, 1840)
+        override fun getDisplaySize(displayId: Int): Dimension {
+          require(displayId == PRIMARY_DISPLAY_ID)
+          return Dimension(2208, 1840)
+        }
+
+        override fun getDisplayOrientation(displayId: Int): Int {
+          require(displayId == PRIMARY_DISPLAY_ID)
+          return 1 // Landscape orientation.
+        }
+
+        override fun getScreenshotRotation(displayId: Int): Int {
+          require(displayId == PRIMARY_DISPLAY_ID)
+          return 0
+        }
+
+        override fun getSkin(displayId: Int): SkinDefinition? {
+          require(displayId == PRIMARY_DISPLAY_ID)
+          return null
+        }
       }
-
-      override fun getDisplayOrientation(displayId: Int): Int {
-        require(displayId == PRIMARY_DISPLAY_ID)
-        return 1 // Landscape orientation.
-      }
-
-      override fun getScreenshotRotation(displayId: Int): Int {
-        require(displayId == PRIMARY_DISPLAY_ID)
-        return 0
-      }
-
-      override fun getSkin(displayId: Int): SkinDefinition? {
-        require(displayId == PRIMARY_DISPLAY_ID)
-        return null
-      }
-    }
 
     val dataSnapshotProvider = DataSnapshotProvider {
       it[ScreenshotParameters.DATA_KEY] = screenshotParameters
@@ -186,14 +197,13 @@ class ScreenshotActionTest {
   }
 
   private fun findScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer? =
-      findModelessDialog<ScreenshotViewer> { filter(it) }
+    findModelessDialog<ScreenshotViewer> { filter(it) }
 
   private fun assertMatchesGolden(image: BufferedImage, name: String) {
     assertImageSimilar(getGoldenFile(name), ImageUtils.scale(image, 0.125))
   }
 
-  private fun getGoldenFile(name: String): Path =
-      resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name.png")
+  private fun getGoldenFile(name: String): Path = resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name.png")
 }
 
 private fun BufferedImage.toPngBytes(): ByteBuffer {
@@ -203,6 +213,6 @@ private fun BufferedImage.toPngBytes(): ByteBuffer {
 }
 
 private fun getDumpsysOutput(filename: String): String =
-    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
+  Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotActionTest/golden"

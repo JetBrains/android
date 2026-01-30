@@ -34,9 +34,13 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 
 class ReferenceIssueHandler : TomlErrorHandler {
-  private val PROBLEM_REFERENCE_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
-  private val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
-  private val REASON_PLUGIN_REFERENCE_PATTERN: Regex = "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
+  private val PROBLEM_REFERENCE_PATTERN: Regex =
+    "\\s+- Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
+  private val REASON_REFERENCE_PATTERN: Regex =
+    "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
+  private val REASON_PLUGIN_REFERENCE_PATTERN: Regex =
+    "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
+
   override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
       val description = StringBuilder().appendLine(BUILD_ISSUE_TITLE)
@@ -44,84 +48,85 @@ class ReferenceIssueHandler : TomlErrorHandler {
       description.appendLine(problemLine)
       PROBLEM_REFERENCE_PATTERN.matchEntire(problemLine)?.let {
         val (catalog, reference) = it.destructured
-        val event = extractReferenceInformation(
-          catalog, reference, description, reader
-        ) ?: return listOf()
+        val event = extractReferenceInformation(catalog, reference, description, reader) ?: return listOf()
         return listOf(event)
       }
     }
     return listOf()
   }
 
-  private fun extractReferenceInformation(catalog: String,
-                                          reference: String,
-                                          description: StringBuilder,
-                                          reader: BuildOutputInstantReader
+  private fun extractReferenceInformation(
+    catalog: String,
+    reference: String,
+    description: StringBuilder,
+    reader: BuildOutputInstantReader,
   ): BuildIssueEvent? {
 
     var dependency: Pair<String, ReferenceSource>? = null
 
-    description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE) { descriptionLine ->
-      if (dependency == null) {
-        REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
-          val (dep, _) = destructured
-          dependency = dep to ReferenceSource.LIBRARY
-        }
-        REASON_PLUGIN_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
-          val (dep, _) = destructured
-          dependency = dep to ReferenceSource.PLUGIN
-        }
-      }
-    })
-
-    if (dependency == null) return null
-    val dependencyName = dependency!!.first
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-      private fun computeNavigable(project: Project,
-                                   virtualFile: VirtualFile,
-                                   tableHeader: String,
-                                   predicate: (TomlKeyValue) -> Boolean): OpenFileDescriptor {
-        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
-        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
-        val element = psiFile.childrenOfType<TomlTable>()
-                        .filter { it.header.key?.text == tableHeader }
-                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-                        .find(predicate) ?: return fileDescriptor
-        return getDescriptor(element, project, virtualFile) ?: fileDescriptor
-      }
-
-      fun isLibraryAliasDeclaration(element: TomlKeyValue): Boolean {
-        val content = element.value
-        val (group, name) = dependencyName.split(":")
-        return if (content is TomlInlineTable) {
-          (
-            content.findKeyValue("module", dependencyName) ||
-            (content.findKeyValue("group", group) && content.findKeyValue("name", name))
-          ) && content.findKeyValue("version.ref", reference)
-        }
-        else
-          false
-      }
-
-      fun isPluginAliasDeclaration(element: TomlKeyValue): Boolean {
-        val content = element.value
-        return if (content is TomlInlineTable) {
-          content.findKeyValue("id", dependencyName) && content.findKeyValue("version.ref", reference)
-        }
-        else
-          false
-      }
-
-      override fun getNavigatable(project: Project): Navigatable? {
-        val file = project.findCatalogFile(catalog) ?: return null
-        return runReadAction {
-          when (dependency!!.second) {
-            ReferenceSource.LIBRARY -> computeNavigable(project, file, "libraries", ::isLibraryAliasDeclaration)
-            ReferenceSource.PLUGIN -> computeNavigable(project, file, "plugins", ::isPluginAliasDeclaration)
+    description.append(
+      readUntilLine(reader, BUILD_ISSUE_STOP_LINE) { descriptionLine ->
+        if (dependency == null) {
+          REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
+            val (dep, _) = destructured
+            dependency = dep to ReferenceSource.LIBRARY
+          }
+          REASON_PLUGIN_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
+            val (dep, _) = destructured
+            dependency = dep to ReferenceSource.PLUGIN
           }
         }
       }
-    }
+    )
+
+    if (dependency == null) return null
+    val dependencyName = dependency!!.first
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
+        private fun computeNavigable(
+          project: Project,
+          virtualFile: VirtualFile,
+          tableHeader: String,
+          predicate: (TomlKeyValue) -> Boolean,
+        ): OpenFileDescriptor {
+          val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+          val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+          val element =
+            psiFile
+              .childrenOfType<TomlTable>()
+              .filter { it.header.key?.text == tableHeader }
+              .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+              .find(predicate) ?: return fileDescriptor
+          return getDescriptor(element, project, virtualFile) ?: fileDescriptor
+        }
+
+        fun isLibraryAliasDeclaration(element: TomlKeyValue): Boolean {
+          val content = element.value
+          val (group, name) = dependencyName.split(":")
+          return if (content is TomlInlineTable) {
+            (content.findKeyValue("module", dependencyName) ||
+              (content.findKeyValue("group", group) && content.findKeyValue("name", name))) &&
+              content.findKeyValue("version.ref", reference)
+          } else false
+        }
+
+        fun isPluginAliasDeclaration(element: TomlKeyValue): Boolean {
+          val content = element.value
+          return if (content is TomlInlineTable) {
+            content.findKeyValue("id", dependencyName) && content.findKeyValue("version.ref", reference)
+          } else false
+        }
+
+        override fun getNavigatable(project: Project): Navigatable? {
+          val file = project.findCatalogFile(catalog) ?: return null
+          return runReadAction {
+            when (dependency!!.second) {
+              ReferenceSource.LIBRARY -> computeNavigable(project, file, "libraries", ::isLibraryAliasDeclaration)
+              ReferenceSource.PLUGIN -> computeNavigable(project, file, "plugins", ::isPluginAliasDeclaration)
+            }
+          }
+        }
+      }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 }

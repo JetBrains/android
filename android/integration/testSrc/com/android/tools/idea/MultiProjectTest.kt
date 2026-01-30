@@ -22,9 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class MultiProjectTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun multiProjectTest() {
@@ -37,7 +35,7 @@ class MultiProjectTest {
     system.runStudio(project) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
-      
+
       val project2 = createLiveEditProject()
       system.installLiveEditMavenDependencies()
       val targetPath = project2.install(system.installation.fileSystem.root)

@@ -42,9 +42,7 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
     val url = linkInfo.url ?: return true
     val project = editor.project ?: return true
     val issueId = linkInfo.issueId ?: return true
-    val issue =
-      BuiltinIssueRegistry().getIssue(issueId)
-        ?: AndroidLintInspectionBase.findIssueInCurrentInspectionProfile(project, issueId)
+    val issue = BuiltinIssueRegistry().getIssue(issueId) ?: AndroidLintInspectionBase.findIssueInCurrentInspectionProfile(project, issueId)
     if (issue == null) {
       LOG.warn("Could not find issue: issue id: $issueId")
       return true
@@ -121,24 +119,20 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
 
   companion object {
 
-    const val LINK_PREFIX =
-      "#lint/" // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
+    const val LINK_PREFIX = "#lint/" // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
 
     /** To separate data items encoded into a String for [handleLink]. */
     private const val LINK_INFO_SEPARATOR = "<"
 
-    /**
-     * To indicate to [handleLink] that the link was an HTTP link that we have added some data to.
-     */
+    /** To indicate to [handleLink] that the link was an HTTP link that we have added some data to. */
     private const val LINK_INFO_MARKER = "link_info"
 
     private val LOG = Logger.getInstance(LintInspectionDescriptionLinkHandler::class.java)
 
     /**
-     * Returns [html] with links to URLs replaced such that [LintInspectionDescriptionLinkHandler]
-     * will handle the link. We do this by prepending [LINK_PREFIX] and some other info before the
-     * "http", otherwise the link is automatically handled by IntelliJ code, and just immediately
-     * opens in a browser.
+     * Returns [html] with links to URLs replaced such that [LintInspectionDescriptionLinkHandler] will handle the link. We do this by
+     * prepending [LINK_PREFIX] and some other info before the "http", otherwise the link is automatically handled by IntelliJ code, and
+     * just immediately opens in a browser.
      *
      * The links change from:
      * ```
@@ -164,14 +158,9 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
       )
     }
 
-    private fun isHrefLinkInfo(href: String) =
-      href.startsWith("${LINK_INFO_MARKER}${LINK_INFO_SEPARATOR}")
+    private fun isHrefLinkInfo(href: String) = href.startsWith("${LINK_INFO_MARKER}${LINK_INFO_SEPARATOR}")
 
-    class LinkInfo(
-      val issueId: String? = null,
-      val url: String? = null,
-      val problem: String? = null,
-    )
+    class LinkInfo(val issueId: String? = null, val url: String? = null, val problem: String? = null)
 
     fun decodeLinkInfo(href: String): LinkInfo {
       // Example:

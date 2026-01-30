@@ -25,14 +25,14 @@ import com.intellij.ui.navigation.Place
 data class PsDependenciesNavigationPath(override val parent: PsModulePath) : PsPlaceBasedPath() {
   override fun queryPlace(place: Place, context: PsContext) {
     val mainConfigurable = context.mainConfigurable
-    val target = mainConfigurable.findConfigurable(
-      DependenciesPerspectiveConfigurable::class.java)!!
+    val target = mainConfigurable.findConfigurable(DependenciesPerspectiveConfigurable::class.java)!!
 
     ProjectStructureConfigurable.putPath(place, target)
     target.putNavigationPath(place, parent.gradlePath)
   }
 
-  override val canHide: Boolean get() = true
+  override val canHide: Boolean
+    get() = true
 
   override fun toString(): String = "Dependencies"
 }

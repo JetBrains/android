@@ -65,7 +65,7 @@ class WearTilePreviewDeviceSpecInspectionTest {
 
         @Preview(device = "id:unknown_id")
         fun unknownId() = TilePreviewData()
-      """
+        """
           .trimIndent(),
       )
 
@@ -104,7 +104,7 @@ class WearTilePreviewDeviceSpecInspectionTest {
           TilePreviewData unknownId() { return new TilePreviewData(); }
 
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -114,10 +114,7 @@ class WearTilePreviewDeviceSpecInspectionTest {
   }
 
   private fun checkErrorsAndFixActions() {
-    val issues =
-      fixture.doHighlighting(HighlightSeverity.ERROR).filter {
-        it.inspectionToolId == inspection.id
-      }
+    val issues = fixture.doHighlighting(HighlightSeverity.ERROR).filter { it.inspectionToolId == inspection.id }
     assertEquals(3, issues.size)
 
     val invalidMultiPreviewSpec = issues.single { it.text.contains("invalid multipreview spec") }
@@ -136,7 +133,7 @@ class WearTilePreviewDeviceSpecInspectionTest {
       Bad value type for: width, height.
 
       Parameter: width, height should have Float(dp/px) value.
-    """
+      """
         .trimIndent(),
       invalidSpec.description,
     )

@@ -26,63 +26,49 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.TestStep
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationNamesInfo
-import org.jdom.Element
-import org.xml.sax.Attributes
-import org.xml.sax.ContentHandler
-import org.xml.sax.helpers.AttributesImpl
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.util.Date
 import java.util.Locale
+import org.jdom.Element
+import org.xml.sax.Attributes
+import org.xml.sax.ContentHandler
+import org.xml.sax.helpers.AttributesImpl
 
-/**
- * Formatter for a [AndroidTestResultsTreeNode] object and exports in XML file.
- */
+/** Formatter for a [AndroidTestResultsTreeNode] object and exports in XML file. */
 class AndroidTestResultsXmlFormatter(
   private val executionDuration: Duration,
   private val rootResultsNode: AndroidTestResultsTreeNode,
   private val devices: List<AndroidDevice>,
   private val runConfiguration: RunConfiguration,
   private val resultHandler: ContentHandler,
-  private val fileGenerationDateText: String = SimpleDateFormat("", Locale.US).format(Date())) {
+  private val fileGenerationDateText: String = SimpleDateFormat("", Locale.US).format(Date()),
+) {
   fun execute() {
     resultHandler.startDocument()
 
     addElement(
       "testrun",
-      mapOf("duration" to rootResultsNode.results.getTotalDuration().toMillis().toString(),
-            "footerText" to ExecutionBundle.message("export.test.results.footer",
-                                                    ApplicationNamesInfo.getInstance().fullProductName,
-                                                    fileGenerationDateText),
-            "name" to runConfiguration.name)) {
+      mapOf(
+        "duration" to rootResultsNode.results.getTotalDuration().toMillis().toString(),
+        "footerText" to
+          ExecutionBundle.message("export.test.results.footer", ApplicationNamesInfo.getInstance().fullProductName, fileGenerationDateText),
+        "name" to runConfiguration.name,
+      ),
+    ) {
       val stats = rootResultsNode.results.getResultStats()
-      addElement(
-        "count",
-        mapOf("name" to "total",
-              "value" to stats.total.toString()))
+      addElement("count", mapOf("name" to "total", "value" to stats.total.toString()))
       if (stats.failed > 0) {
-        addElement(
-          "count",
-          mapOf("name" to "failed",
-                "value" to stats.failed.toString()))
+        addElement("count", mapOf("name" to "failed", "value" to stats.failed.toString()))
       }
       if (stats.skipped > 0) {
-        addElement(
-          "count",
-          mapOf("name" to "ignored",
-                "value" to stats.skipped.toString()))
+        addElement("count", mapOf("name" to "ignored", "value" to stats.skipped.toString()))
       }
       if (stats.cancelled > 0) {
-        addElement(
-          "count",
-          mapOf("name" to "skipped",
-                "value" to stats.cancelled.toString()))
+        addElement("count", mapOf("name" to "skipped", "value" to stats.cancelled.toString()))
       }
       if (stats.passed > 0) {
-        addElement(
-          "count",
-          mapOf("name" to "passed",
-                "value" to stats.passed.toString()))
+        addElement("count", mapOf("name" to "passed", "value" to stats.passed.toString()))
       }
 
       addRunConfigElement()
@@ -93,12 +79,7 @@ class AndroidTestResultsXmlFormatter(
         devices.forEach { device ->
           val duration = rootResultsNode.results.getDuration(device)?.toMillis() ?: return@forEach
           val status = rootResultsNode.results.getTestCaseResult(device)?.toXmlStatusCode() ?: return@forEach
-          addElement(
-            "suite",
-            mapOf(
-              "name" to device.getName(),
-              "duration" to duration.toString(),
-              "status" to status)) {
+          addElement("suite", mapOf("name" to device.getName(), "duration" to duration.toString(), "status" to status)) {
             addTestSuiteElementForDevice(device)
           }
         }
@@ -114,8 +95,7 @@ class AndroidTestResultsXmlFormatter(
     rootResultsNode.childResults.forEach { node ->
       if (isTestSuiteNode(node)) {
         addNodeAsTestSuite(node, device)
-      }
-      else {
+      } else {
         addNodeAsTestCase(node, device)
       }
     }
@@ -125,27 +105,15 @@ class AndroidTestResultsXmlFormatter(
     val duration = node.results.getDuration(device)?.toMillis() ?: return
     val status = node.results.getTestCaseResult(device)?.toXmlStatusCode() ?: return
 
-    addElement(
-      "suite",
-      mapOf(
-        "name" to node.results.getFullTestClassName(),
-        "duration" to duration.toString(),
-        "status" to status)) {
-      node.childResults.forEach { testCase ->
-        addNodeAsTestCase(testCase, device)
-      }
+    addElement("suite", mapOf("name" to node.results.getFullTestClassName(), "duration" to duration.toString(), "status" to status)) {
+      node.childResults.forEach { testCase -> addNodeAsTestCase(testCase, device) }
     }
   }
 
   private fun addNodeAsTestCase(node: AndroidTestResultsTreeNode, device: AndroidDevice) {
     val duration = node.results.getDuration(device)?.toMillis() ?: return
     val status = node.results.getTestCaseResult(device)?.toXmlStatusCode() ?: return
-    addElement(
-      "test",
-      mapOf(
-        "name" to node.results.methodName,
-        "duration" to duration.toString(),
-        "status" to status)) {
+    addElement("test", mapOf("name" to node.results.methodName, "duration" to duration.toString(), "status" to status)) {
       addOutputElement("stderr", node.results.getErrorStackTrace(device))
       addOutputElement("stdout", node.results.getBenchmark(device).lines.joinToString("\n") { it.rawText })
       addOutputElement("stdout", node.results.getLogcat(device))
@@ -164,14 +132,12 @@ class AndroidTestResultsXmlFormatter(
 
   private fun Map<String, String>.toAttributes(): Attributes {
     val attributes = AttributesImpl()
-    forEach { key, value ->
-      attributes.addAttribute("", key, key, "CDATA", value)
-    }
+    forEach { key, value -> attributes.addAttribute("", key, key, "CDATA", value) }
     return attributes
   }
 
   private fun AndroidTestCaseResult.toXmlStatusCode(): String {
-    return when(this) {
+    return when (this) {
       AndroidTestCaseResult.FAILED -> "failed"
       AndroidTestCaseResult.PASSED -> "passed"
       AndroidTestCaseResult.SKIPPED -> "ignored"
@@ -181,64 +147,59 @@ class AndroidTestResultsXmlFormatter(
     }
   }
 
-  private fun addElement(name: String,
-                         attributeMap: Map<String, String> = mapOf(),
-                         innerElements: () -> Unit = {}) {
+  private fun addElement(name: String, attributeMap: Map<String, String> = mapOf(), innerElements: () -> Unit = {}) {
     resultHandler.startElement("", name, name, attributeMap.toAttributes())
     innerElements()
     resultHandler.endElement("", name, name)
   }
 
   private fun addElement(element: Element) {
-    val attributes = element.attributes.fold(AttributesImpl()) { acc, attr ->
-      acc.apply {
-        addAttribute("", attr.name, attr.name, "CDATA", attr.value)
-      }
-    }
+    val attributes =
+      element.attributes.fold(AttributesImpl()) { acc, attr -> acc.apply { addAttribute("", attr.name, attr.name, "CDATA", attr.value) } }
     resultHandler.startElement("", element.name, element.name, attributes)
     element.children.forEach(::addElement)
     resultHandler.endElement("", element.name, element.name)
   }
 
   private fun addRunConfigElement() {
-    addElement(Element("config").apply {
-      runConfiguration.writeExternal(this)
-      setAttribute("configId", runConfiguration.type.id)
-      setAttribute("name", runConfiguration.name)
-    })
+    addElement(
+      Element("config").apply {
+        runConfiguration.writeExternal(this)
+        setAttribute("configId", runConfiguration.type.id)
+        setAttribute("name", runConfiguration.name)
+      }
+    )
   }
 
   private fun addAndroidTestMatrixElement() {
-    addElement(
-      "androidTestMatrix",
-      mapOf("executionDuration" to executionDuration.toMillis().toString())
-    ) {
+    addElement("androidTestMatrix", mapOf("executionDuration" to executionDuration.toMillis().toString())) {
       devices.forEach { device ->
-        addElement("device",
-                   mapOf(
-                     "id" to device.id,
-                     "deviceName" to device.deviceName,
-                     "deviceType" to device.deviceType.toString(),
-                     "version" to device.version.apiLevel.toString())) {
-          device.additionalInfo.forEach { (key, value) ->
-            addElement("additionalInfo", mapOf("key" to key, "value" to value))
-          }
+        addElement(
+          "device",
+          mapOf(
+            "id" to device.id,
+            "deviceName" to device.deviceName,
+            "deviceType" to device.deviceType.toString(),
+            "version" to device.version.apiLevel.toString(),
+          ),
+        ) {
+          device.additionalInfo.forEach { (key, value) -> addElement("additionalInfo", mapOf("key" to key, "value" to value)) }
         }
       }
       devices.forEach { device ->
         val testCaseNodesForDevice = getTestCaseNodesForAndroidTestMatrixExport(device)
 
-        val testSuiteResult = when(rootResultsNode.results.getTestCaseResult(device)) {
-                                null -> null
-                                AndroidTestCaseResult.FAILED -> AndroidTestSuiteResult.FAILED
-                                AndroidTestCaseResult.CANCELLED -> AndroidTestSuiteResult.CANCELLED
-                                else -> AndroidTestSuiteResult.PASSED
-                              } ?: return@forEach
-        addElement("testsuite",
-                   mapOf(
-                     "deviceId" to device.id,
-                     "testCount" to testCaseNodesForDevice.size.toString(),
-                     "result" to testSuiteResult.toString())) {
+        val testSuiteResult =
+          when (rootResultsNode.results.getTestCaseResult(device)) {
+            null -> null
+            AndroidTestCaseResult.FAILED -> AndroidTestSuiteResult.FAILED
+            AndroidTestCaseResult.CANCELLED -> AndroidTestSuiteResult.CANCELLED
+            else -> AndroidTestSuiteResult.PASSED
+          } ?: return@forEach
+        addElement(
+          "testsuite",
+          mapOf("deviceId" to device.id, "testCount" to testCaseNodesForDevice.size.toString(), "result" to testSuiteResult.toString()),
+        ) {
           testCaseNodesForDevice.forEach { testCaseNode ->
             val testCase = testCaseNode.results
             val result = testCase.getTestCaseResult(device) ?: return@forEach
@@ -256,8 +217,9 @@ class AndroidTestResultsXmlFormatter(
                 "errorStackTrace" to testCase.getErrorStackTrace(device),
                 "startTimestampMillis" to startTime.toString(),
                 "endTimestampMillis" to endTime.toString(),
-                "benchmark" to testCase.getBenchmark(device).lines.joinToString("\n") { "${it.rawText}" }
-              )) {
+                "benchmark" to testCase.getBenchmark(device).lines.joinToString("\n") { "${it.rawText}" },
+              ),
+            ) {
               // Add additional test case artifacts
               testCase.getAdditionalTestArtifacts(device).forEach { (key, value) ->
                 addElement("additionalTestCaseArtifact", mapOf("key" to key, "value" to value))
@@ -281,7 +243,7 @@ class AndroidTestResultsXmlFormatter(
                       "errorStackTrace" to stepResults.getErrorStackTrace(device),
                       "startTimestampMillis" to startTime.toString(),
                       "endTimestampMillis" to endTime.toString(),
-                    )
+                    ),
                   ) {
                     // Add additional test step artifacts
                     stepResults.getAdditionalTestArtifacts(device).forEach { (key, value) ->
@@ -298,16 +260,15 @@ class AndroidTestResultsXmlFormatter(
   }
 
   private fun getTestCaseNodesForAndroidTestMatrixExport(device: AndroidDevice): List<AndroidTestResultsTreeNode> {
-    return rootResultsNode.childResults.flatMap { node ->
-      if (isTestSuiteNode(node)) {
-        return@flatMap node.childResults.filter { testCases ->
-          testCases.results.getTestCaseResult(device)?.isTerminalState == true
+    return rootResultsNode.childResults
+      .flatMap { node ->
+        if (isTestSuiteNode(node)) {
+          return@flatMap node.childResults.filter { testCases -> testCases.results.getTestCaseResult(device)?.isTerminalState == true }
+        } else {
+          return@flatMap listOf(node).asSequence()
         }
       }
-      else {
-        return@flatMap listOf(node).asSequence()
-      }
-    }.toList()
+      .toList()
   }
 
   private fun isTestSuiteNode(node: AndroidTestResultsTreeNode): Boolean {

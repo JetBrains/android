@@ -94,9 +94,7 @@ class ComposeAnimationToolbarUpdaterTest {
   fun `check animation mode only logs transitions from false to true`() {
     val previewManager = TestComposePreviewManager()
     val fakeView = FakeView(true)
-    repeat(10) {
-      ComposeAnimationToolbarUpdater.update(fakeView, previewManager, composable) { logTracker }
-    }
+    repeat(10) { ComposeAnimationToolbarUpdater.update(fakeView, previewManager, composable) { logTracker } }
     // Only logged once
     assertEquals(
       "type: ANIMATION_INSPECTOR_AVAILABLE",
@@ -116,8 +114,7 @@ class ComposeAnimationToolbarUpdaterTest {
 
   @Test
   fun `check hasAnimations is not updated in interactive`() {
-    val previewManager =
-      TestComposePreviewManager().apply { setMode(PreviewMode.Interactive(composable)) }
+    val previewManager = TestComposePreviewManager().apply { setMode(PreviewMode.Interactive(composable)) }
     val fakeView = FakeView(true)
     ComposeAnimationToolbarUpdater.update(fakeView, previewManager, composable) { logTracker }
     assertFalse(composable.hasAnimations)

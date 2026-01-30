@@ -27,9 +27,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 
 object FirstRunWizardDefaults {
   /**
-   * Returns initial SDK location. That will be the SDK location from the installer handoff file in
-   * the handoff case, SDK location location from the preference if set or platform-dependant
-   * default path.
+   * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case, SDK location location
+   * from the preference if set or platform-dependant default path.
    */
   @JvmStatic
   fun getInitialSdkLocation(mode: FirstRunWizardMode): File =

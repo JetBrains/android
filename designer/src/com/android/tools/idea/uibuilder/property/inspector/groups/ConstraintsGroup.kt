@@ -25,8 +25,7 @@ import com.android.tools.property.ptable.PTableItem
 const val CONSTRAINT_GROUP_NAME = "layout_constraints"
 
 class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>) : GroupSpec<NlPropertyItem> {
-  private val hasConstraints =
-    properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_CONSTRAINTSET) != null
+  private val hasConstraints = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_CONSTRAINTSET) != null
   private val others =
     setOf(
       SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,

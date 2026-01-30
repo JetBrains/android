@@ -100,18 +100,14 @@ class FileEditorInspectorClient(
   override val isConnected = true
 }
 
-class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
-  UserDataHolderBase(), FileEditor {
+class LayoutInspectorFileEditor(val project: Project, private val path: Path) : UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorSessionMetrics? = null
   private var stats: SessionStatistics = DisconnectedClient.stats
 
   override fun getFile() = VfsUtil.findFile(path, true)
 
   override fun dispose() {
-    metrics?.logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA,
-      stats,
-    )
+    metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA, stats)
   }
 
   private var component: JComponent? = null
@@ -138,8 +134,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-      metadata =
-        snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
+      metadata = snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
       val client = FileEditorInspectorClient(model, snapshotLoader, stats)
 
       // TODO: persisted tree setting scoped to file
@@ -157,8 +152,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
       rootPanel =
         when (model.pictureType) {
-          AndroidWindow.ImageType.BITMAP_AS_REQUESTED ->
-            createNewLayoutInspectorUi(this, project, layoutInspector)
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED -> createNewLayoutInspectorUi(this, project, layoutInspector)
           AndroidWindow.ImageType.SKP_PENDING,
           AndroidWindow.ImageType.SKP -> {
             // TODO(b/459411932): remove this else statement once we fully remove the old inspector
@@ -177,24 +171,17 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
-      metrics =
-        LayoutInspectorSessionMetrics(
-          project,
-          snapshotLoader.processDescriptor,
-          snapshotMetadata = metadata,
-        )
+      metrics = LayoutInspectorSessionMetrics(project, snapshotLoader.processDescriptor, snapshotMetadata = metadata)
       metrics?.logEvent(SNAPSHOT_LOADED, stats)
     } catch (exception: Exception) {
       // TODO: better error panel
-      Logger.getInstance(LayoutInspectorFileEditor::class.java)
-        .warn("Error loading snapshot", exception)
-      LayoutInspectorSessionMetrics(project, snapshotLoader?.processDescriptor, metadata)
-        .logEvent(SNAPSHOT_LOAD_ERROR, stats)
+      Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
+      LayoutInspectorSessionMetrics(project, snapshotLoader?.processDescriptor, metadata).logEvent(SNAPSHOT_LOAD_ERROR, stats)
       val status =
         object : StatusText() {
           override fun isStatusVisible() = true
         }
-      
+
       // TODO these "gap" calls can be removed after the images in
       //  com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditorTest.editorShowsVersionError
       //  are updated accordingly (there was a bug in StatusText that added the gap after the second line,
@@ -235,13 +222,10 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         inspectorModel = layoutInspector.inspectorModel,
         treeSettings = layoutInspector.treeSettings,
         renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = {
-          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-        },
+        navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
       )
 
-    val renderPanel =
-      StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
+    val renderPanel = StandaloneRendererPanel(disposable = disposable, scope = scope, renderModel = renderModel)
 
     val container =
       ZoomableContainer(
@@ -285,17 +269,13 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
     scope.launch { toolbarState.overlayImage.collect { renderModel.setOverlay(it) } }
 
-    scope.launch {
-      toolbarState.overlayTransparency.collect { renderModel.setOverlayTransparency(it) }
-    }
+    scope.launch { toolbarState.overlayTransparency.collect { renderModel.setOverlayTransparency(it) } }
 
     // Since the model was updated before the panel was created, we need to zoom to fit explicitly.
     // If startup is in progress we have to wait until after so tools windows are opened and the
     // window is its final size.
     // TODO: save zoom in editor state
-    StartupManager.getInstance(project).runAfterOpened {
-      invokeLater(ModalityState.any()) { container.zoom(ZoomType.FIT) }
-    }
+    StartupManager.getInstance(project).runAfterOpened { invokeLater(ModalityState.any()) { container.zoom(ZoomType.FIT) } }
 
     return rootPanel
   }
@@ -305,8 +285,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     project: Project,
     layoutInspector: LayoutInspector,
   ): LayoutInspectorRootPanel {
-    val deviceViewPanel =
-      DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
+    val deviceViewPanel = DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
 
     val workbench =
       WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, disposable).apply {
@@ -328,9 +307,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     // If startup is in progress we have to wait until after so tools windows are opened and the
     // window is its final size.
     // TODO: save zoom in editor state
-    StartupManager.getInstance(project).runAfterOpened {
-      invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
-    }
+    StartupManager.getInstance(project).runAfterOpened { invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) } }
 
     return LayoutInspectorRootPanel(content = rootPanel, layoutInspector)
   }
@@ -359,12 +336,10 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
   /** Factory for [LayoutInspectorFileEditor]s. */
   class Provider : FileEditorProvider, DumbAware {
     override fun accept(project: Project, file: VirtualFile): Boolean {
-      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") ==
-        LayoutInspectorFileType
+      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType
     }
 
-    override fun createEditor(project: Project, file: VirtualFile) =
-      LayoutInspectorFileEditor(project, file.toNioPath())
+    override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file.toNioPath())
 
     override fun getEditorTypeId() = "dynamic-layout-inspector"
 

@@ -20,14 +20,13 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.ApplicationRule
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class IntermediateAssetTest {
 
-  @get:Rule
-  val rule = ApplicationRule()
+  @get:Rule val rule = ApplicationRule()
 
   @Test
   fun intermediateFileHasCorrectData() {

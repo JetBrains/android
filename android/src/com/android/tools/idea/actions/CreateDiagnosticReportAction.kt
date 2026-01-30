@@ -27,15 +27,14 @@ import com.intellij.openapi.project.DumbAware
 class CreateDiagnosticReportAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     object : Task.Modal(e.project, "Collect Logs and Diagnostic Data", false) {
-      override fun run(indicator: ProgressIndicator) {
-        indicator.text = "Collecting diagnostic information"
-        indicator.isIndeterminate = true
+        override fun run(indicator: ProgressIndicator) {
+          indicator.text = "Collecting diagnostic information"
+          indicator.isIndeterminate = true
 
-        val list = buildFileList(e.project)
-        ApplicationManager.getApplication().invokeLater {
-          CreateDiagnosticReportDialog(e.project, list).show()
+          val list = buildFileList(e.project)
+          ApplicationManager.getApplication().invokeLater { CreateDiagnosticReportDialog(e.project, list).show() }
         }
       }
-    }.queue()
+      .queue()
   }
 }

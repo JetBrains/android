@@ -21,15 +21,15 @@ import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
+import java.io.File
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
 
 class ObjectNavigatorTest {
 
@@ -46,12 +46,14 @@ class ObjectNavigatorTest {
   }
 
   private fun openTempEmptyFileChannel(): FileChannel {
-    return FileChannel.open(tmpFolder.newFile().toPath(),
-                            StandardOpenOption.READ,
-                            StandardOpenOption.WRITE,
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.TRUNCATE_EXISTING,
-                            StandardOpenOption.DELETE_ON_CLOSE)
+    return FileChannel.open(
+      tmpFolder.newFile().toPath(),
+      StandardOpenOption.READ,
+      StandardOpenOption.WRITE,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING,
+      StandardOpenOption.DELETE_ON_CLOSE,
+    )
   }
 
   @Test
@@ -72,16 +74,13 @@ class ObjectNavigatorTest {
       object2Id = addObject(MyTestClass2())
     }
     val classNameMapping: (Class<*>) -> String = { c ->
-      if (c == MyTestClass1::class.java ||
-          c == MyTestClass2::class.java) {
+      if (c == MyTestClass1::class.java || c == MyTestClass2::class.java) {
         "MyTestClass"
       } else {
         c.name
       }
     }
-    HProfTestUtils.createHProfOnFile(hprofFile,
-                                     scenario,
-                                     classNameMapping)
+    HProfTestUtils.createHProfOnFile(hprofFile, scenario, classNameMapping)
     val (navigator, idMapper) = getObjectNavigatorAndRemappingFunction(hprofFile)
     val clashedClassNames = ArrayList<String>()
 
@@ -111,14 +110,16 @@ class ObjectNavigatorTest {
       parser.setIDMapper(remapper)
       hprofMetadata.remapIds(remapper)
 
-      return Pair(ObjectNavigator.createOnAuxiliaryFiles(
-        parser,
-        openTempEmptyFileChannel(),
-        openTempEmptyFileChannel(),
-        hprofMetadata,
-        histogram.instanceCount
-      ), remapper)
+      return Pair(
+        ObjectNavigator.createOnAuxiliaryFiles(
+          parser,
+          openTempEmptyFileChannel(),
+          openTempEmptyFileChannel(),
+          hprofMetadata,
+          histogram.instanceCount,
+        ),
+        remapper,
+      )
     }
   }
-
 }

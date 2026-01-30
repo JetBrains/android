@@ -24,8 +24,6 @@ import org.junit.runner.RunWith
 @RunWith(JarTestSuiteRunner::class)
 class ApkAnalyzerGradleIntegrationTestSuite : IdeaTestSuiteBase() {
   companion object {
-    @get:ClassRule
-    @get:JvmStatic
-    val mavenRepos: MavenRepoRule = MavenRepoRule.fromTestSuiteSystemProperty()
+    @get:ClassRule @get:JvmStatic val mavenRepos: MavenRepoRule = MavenRepoRule.fromTestSuiteSystemProperty()
   }
 }

@@ -47,44 +47,31 @@ private const val SEPARATOR_MARGIN = 4
 
 private var instanceCounter = 0
 
-/**
- * Display the UiSettingsDialog
- */
+/** Display the UiSettingsDialog */
 internal fun showUiSettingsDialog(
   project: Project,
   model: UiSettingsModel,
   deviceType: DeviceType,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ): UiSettingsDialog {
   val dialog = UiSettingsDialog(project, model, deviceType)
-  dialog.logAround("show") {
-    dialog.show()
-  }
-  dialog.logAround("handleCleanUp") {
-    dialog.handleCleanUp(parentDisposable)
-  }
+  dialog.logAround("show") { dialog.show() }
+  dialog.logAround("handleCleanUp") { dialog.handleCleanUp(parentDisposable) }
   if (StudioFlags.UI_SETTINGS_B475894230_LOGGING.get()) {
     dialog.delayedOpenCheck()
   }
   return dialog
 }
 
-/**
- * A dialog for displaying setting shortcuts.
- */
-internal class UiSettingsDialog(
-  project: Project,
-  model: UiSettingsModel,
-  deviceType: DeviceType
-) : DialogWrapper(project, null, false, IdeModalityType.MODELESS, false) {
+/** A dialog for displaying setting shortcuts. */
+internal class UiSettingsDialog(project: Project, model: UiSettingsModel, deviceType: DeviceType) :
+  DialogWrapper(project, null, false, IdeModalityType.MODELESS, false) {
   private val header = UiSettingsHeader(model)
   private val panel = UiSettingsPanel(model, deviceType)
   private val instance = ++instanceCounter
 
   init {
-    logAround("init") {
-      init()
-    }
+    logAround("init") { init() }
   }
 
   override fun init() {
@@ -92,22 +79,24 @@ internal class UiSettingsDialog(
     setUndecorated(true)
     rootPane.windowDecorationStyle = JRootPane.NONE
     rootPane.border = PopupBorder.Factory.create(true, true)
-    header.border = JBUI.Borders.compound(
-      JBUI.Borders.customLineBottom(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
-      JBUI.Borders.empty(VERTICAL_MARGIN, HORIZONTAL_MARGIN, SEPARATOR_MARGIN, HORIZONTAL_MARGIN)
-    )
+    header.border =
+      JBUI.Borders.compound(
+        JBUI.Borders.customLineBottom(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
+        JBUI.Borders.empty(VERTICAL_MARGIN, HORIZONTAL_MARGIN, SEPARATOR_MARGIN, HORIZONTAL_MARGIN),
+      )
     panel.border = JBUI.Borders.empty(SEPARATOR_MARGIN, HORIZONTAL_MARGIN, VERTICAL_MARGIN, HORIZONTAL_MARGIN)
     with(contentPanel) {
       isFocusCycleRoot = true
       isFocusTraversalPolicyProvider = true
-      focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-        override fun getFirstComponent(container: Container): Component? {
-          val first = super.getFirstComponent(container) ?: return null
-          val from = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
-          val fromOutside = from == null || !SwingUtilities.isDescendingFrom(from, container)
-          return if (first.name == RESET_TITLE && fromOutside) super.getComponentAfter(container, first) else first
+      focusTraversalPolicy =
+        object : LayoutFocusTraversalPolicy() {
+          override fun getFirstComponent(container: Container): Component? {
+            val first = super.getFirstComponent(container) ?: return null
+            val from = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+            val fromOutside = from == null || !SwingUtilities.isDescendingFrom(from, container)
+            return if (first.name == RESET_TITLE && fromOutside) super.getComponentAfter(container, first) else first
+          }
         }
-      }
     }
     WindowRoundedCornersManager.configure(this)
 
@@ -125,35 +114,29 @@ internal class UiSettingsDialog(
   }
 
   override fun createContentPaneBorder() = JBUI.Borders.empty()
+
   override fun createNorthPanel(): JComponent = header
+
   override fun createCenterPanel(): JComponent = panel
+
   override fun createActions(): Array<Action> = emptyArray()
 
   fun handleCleanUp(parentDisposable: Disposable) {
     // Close the dialog if the dialog loses focus:
-    val windowListener = object : WindowAdapter() {
-      override fun windowLostFocus(event: WindowEvent) {
-        logAround("WindowAdapter.focusLost") {
-          close(OK_EXIT_CODE)
+    val windowListener =
+      object : WindowAdapter() {
+        override fun windowLostFocus(event: WindowEvent) {
+          logAround("WindowAdapter.focusLost") { close(OK_EXIT_CODE) }
+        }
+
+        override fun windowGainedFocus(event: WindowEvent) {
+          log("WindowAdapter.focusGained")
         }
       }
-
-      override fun windowGainedFocus(event: WindowEvent) {
-        log("WindowAdapter.focusGained")
-      }
-    }
     window.addWindowFocusListener(windowListener)
 
-    registerCleanup(disposable) {
-      logAround("removeWindowFocusListener") {
-        window.removeWindowFocusListener(windowListener)
-      }
-    }
-    registerCleanup(parentDisposable) {
-      logAround("parentDisposable.close") {
-        close(OK_EXIT_CODE)
-      }
-    }
+    registerCleanup(disposable) { logAround("removeWindowFocusListener") { window.removeWindowFocusListener(windowListener) } }
+    registerCleanup(parentDisposable) { logAround("parentDisposable.close") { close(OK_EXIT_CODE) } }
   }
 
   private fun registerCleanup(parent: Disposable, child: Disposable) {
@@ -184,7 +167,11 @@ internal class UiSettingsDialog(
 
   private fun log(text: String, ex: Throwable? = null) {
     if (StudioFlags.UI_SETTINGS_B475894230_LOGGING.get()) {
-      thisLogger().info("Instance: $instance, Thread: ${Thread.currentThread().name}, $text, Window visible: ${window.isVisible}, focusOwner: ${KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner}, panel added to window: ${SwingUtilities.getWindowAncestor(panel) != null}", ex)
+      thisLogger()
+        .info(
+          "Instance: $instance, Thread: ${Thread.currentThread().name}, $text, Window visible: ${window.isVisible}, focusOwner: ${KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner}, panel added to window: ${SwingUtilities.getWindowAncestor(panel) != null}",
+          ex,
+        )
     }
   }
 

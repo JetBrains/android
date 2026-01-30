@@ -55,19 +55,12 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 
 private val USES_FEATURE_OTHER_FORM_FACTORS =
-  setOf(
-    "android.hardware.type.automotive",
-    "android.hardware.type.watch",
-    "android.software.leanback",
-  )
+  setOf("android.hardware.type.automotive", "android.hardware.type.watch", "android.software.leanback")
 
 private val ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION = Version.parse("1.2.0")
 private const val ANDROIDX_BENCHMARK_LIBRARY_GROUP = "androidx.benchmark"
 
-class ConfigureBaselineProfilesModuleStep(
-  model: NewBaselineProfilesModuleModel,
-  disposable: Disposable? = null,
-) :
+class ConfigureBaselineProfilesModuleStep(model: NewBaselineProfilesModuleModel, disposable: Disposable? = null) :
   ConfigureModuleStep<NewBaselineProfilesModuleModel>(
     model = model,
     formFactor = FormFactor.MOBILE,
@@ -77,12 +70,9 @@ class ConfigureBaselineProfilesModuleStep(
     parentDisposable = disposable,
   ) {
 
-  @VisibleForTesting
-  val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
+  @VisibleForTesting val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
 
-  @VisibleForTesting
-  @Suppress("DialogTitleCapitalization")
-  val useGmdCheck = JBCheckBox("Use Gradle Managed Device", false)
+  @VisibleForTesting @Suppress("DialogTitleCapitalization") val useGmdCheck = JBCheckBox("Use Gradle Managed Device", false)
 
   init {
     bindTargetModule()
@@ -104,9 +94,7 @@ class ConfigureBaselineProfilesModuleStep(
         .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
         .filter { it.androidFacet != null }
         .associateWith { module ->
-          AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!)
-            .toList()
-            .flatMap { it.usedFeatures }
+          AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!).toList().flatMap { it.usedFeatures }
         }
 
     appModules.forEach { e -> targetModuleCombo.addItem(e.key) }
@@ -137,10 +125,7 @@ class ConfigureBaselineProfilesModuleStep(
     bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
 
     val targetModuleValidator = ModuleSelectedValidator()
-    validatorPanel.registerValidator(
-      model.targetModule,
-      createValidator { value -> targetModuleValidator.validate(value) },
-    )
+    validatorPanel.registerValidator(model.targetModule, createValidator { value -> targetModuleValidator.validate(value) })
   }
 
   private fun validateAgpVersion() =
@@ -149,10 +134,7 @@ class ConfigureBaselineProfilesModuleStep(
       createValidator { versionSelector ->
         if (!versionSelector.willSelectAtLeast(BP_PLUGIN_MIN_SUPPORTED)) {
           Validator.Result.fromNullableMessage(
-            AndroidBundle.message(
-              "android.wizard.validate.module.needs.new.agp.baseline.profiles",
-              BP_PLUGIN_MIN_SUPPORTED.toString(),
-            )
+            AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
           )
         } else {
           Validator.Result.OK
@@ -178,18 +160,11 @@ class ConfigureBaselineProfilesModuleStep(
         val androidModel =
           GradleAndroidModel.get(module)
             ?: return@createValidator Validator.Result.fromNullableMessage(
-              AndroidBundle.message(
-                "android.wizard.validate.module.invalid.application.baseline.profiles"
-              )
+              AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
             )
-        if (
-          androidModel.applicationId.isEmpty() ||
-            androidModel.applicationId == AndroidModel.UNINITIALIZED_APPLICATION_ID
-        ) {
+        if (androidModel.applicationId.isEmpty() || androidModel.applicationId == AndroidModel.UNINITIALIZED_APPLICATION_ID) {
           Validator.Result.fromNullableMessage(
-            AndroidBundle.message(
-              "android.wizard.validate.module.invalid.application.id.baseline.profiles"
-            )
+            AndroidBundle.message("android.wizard.validate.module.invalid.application.id.baseline.profiles")
           )
         } else {
           Validator.Result.OK
@@ -205,18 +180,14 @@ class ConfigureBaselineProfilesModuleStep(
         val packageName =
           it.ifEmpty {
             return@createValidator Validator.Result.fromNullableMessage(
-              AndroidBundle.message(
-                "android.wizard.validate.module.empty.package.name.baseline.profiles"
-              )
+              AndroidBundle.message("android.wizard.validate.module.empty.package.name.baseline.profiles")
             )
           }
         val module =
           model.targetModule.get().let { optionalModule ->
             if (optionalModule.isEmpty) {
               return@createValidator Validator.Result.fromNullableMessage(
-                AndroidBundle.message(
-                  "android.wizard.validate.module.not.present.baseline.profiles"
-                )
+                AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles")
               )
             } else {
               optionalModule.get()
@@ -225,16 +196,10 @@ class ConfigureBaselineProfilesModuleStep(
         val androidModel =
           GradleAndroidModel.get(module)
             ?: return@createValidator Validator.Result.fromNullableMessage(
-              AndroidBundle.message(
-                "android.wizard.validate.module.invalid.application.baseline.profiles"
-              )
+              AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
             )
         if (androidModel.applicationId == packageName) {
-          Validator.Result.fromNullableMessage(
-            AndroidBundle.message(
-              "android.wizard.validate.module.same.package.name.baseline.profiles"
-            )
-          )
+          Validator.Result.fromNullableMessage(AndroidBundle.message("android.wizard.validate.module.same.package.name.baseline.profiles"))
         } else {
           Validator.Result.OK
         }
@@ -259,9 +224,7 @@ class ConfigureBaselineProfilesModuleStep(
         val module = it.get()
         GradleAndroidModel.get(module)
           ?: return@createValidator Validator.Result.fromNullableMessage(
-            AndroidBundle.message(
-              "android.wizard.validate.module.invalid.application.baseline.profiles"
-            )
+            AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
           )
 
         if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(module.project).isNotEmpty()) {
@@ -277,34 +240,17 @@ class ConfigureBaselineProfilesModuleStep(
     )
 
   override fun createMainPanel(): JPanel = panel {
-    row {
-      comment(
-        "<strong>" +
-          AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") +
-          "</strong>"
-      )
-    }
+    row { comment("<strong>" + AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") + "</strong>") }
 
-    row {
-      comment(
-        AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra")
-      )
-    }
+    row { comment(AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra")) }
 
     row(
-      contextLabel(
-        "Target application",
-        AndroidBundle.message(
-          "android.wizard.module.help.baselineprofiles.target.module.description"
-        ),
-      )
+      contextLabel("Target application", AndroidBundle.message("android.wizard.module.help.baselineprofiles.target.module.description"))
     ) {
       cell(targetModuleCombo).align(AlignX.FILL)
     }
 
-    row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
-      cell(moduleName).align(AlignX.FILL)
-    }
+    row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
     row("Package name") { cell(packageName).align(AlignX.FILL) }
 
@@ -317,9 +263,7 @@ class ConfigureBaselineProfilesModuleStep(
     row {
       topGap(TopGap.SMALL)
       cell(useGmdCheck)
-      rowComment(
-        AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description")
-      )
+      rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
     }
   }
 
@@ -336,9 +280,7 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   private fun AndroidApiLevelComboBox.selectSdkLevel(minApiLevel: Int) {
-    (0 until itemCount)
-      .firstOrNull { getItemAt(it)?.minApiLevel == minApiLevel }
-      ?.let { selectedIndex = it }
+    (0 until itemCount).firstOrNull { getItemAt(it)?.minApiLevel == minApiLevel }?.let { selectedIndex = it }
   }
 }
 
@@ -352,9 +294,7 @@ fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
     .flatMap { v -> v.mainArtifact.compileClasspath.libraries }
     .filterIsInstance<IdeArtifactLibrary>()
     .filter { it.name.startsWith(ANDROIDX_BENCHMARK_LIBRARY_GROUP) }
-    .filter {
-      it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false
-    }
+    .filter { it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false }
     .toList()
 
 fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any {

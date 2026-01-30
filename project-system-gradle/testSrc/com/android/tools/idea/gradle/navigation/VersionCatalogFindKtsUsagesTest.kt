@@ -33,45 +33,53 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.usageView.UsageInfo
+import java.io.File
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import org.junit.Before
 
 @RunsInEdt
 class VersionCatalogFindKtsUsagesTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
+  private val project
+    get() = projectRule.project
 
-  private val service = object: VersionCatalogFilesModel {
-    val map = mapOf("libs" to "gradle/libs.versions.toml")
-    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
-      map.mapValues { project.basePath + "/" + it.value }
-    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
-      map.mapValues { module.project.basePath + "/" + it.value }
-  }
+  private val fixture
+    get() = projectRule.fixture
+
+  private val service =
+    object : VersionCatalogFilesModel {
+      val map = mapOf("libs" to "gradle/libs.versions.toml")
+
+      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
+
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> =
+        map.mapValues { module.project.basePath + "/" + it.value }
+    }
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().registerExtension(
-      EP_NAME, service, projectRule.fixture.testRootDisposable
-    )
+    ApplicationManager.getApplication().registerExtension(EP_NAME, service, projectRule.fixture.testRootDisposable)
   }
 
   @Test
-  fun testHasUsages(){
-    testVersionCatalogFindUsages("""
+  fun testHasUsages() {
+    testVersionCatalogFindUsages(
+      """
       [libraries]
       groov${caret}y-core = "org.codehaus.groovy:groovy:2.7.3"
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation(libs.groovy.core)
       }
-    """.trimIndent(), { null }) {
+      """
+        .trimIndent(),
+      { null },
+    ) {
       assertThat(it).hasSize(1)
       assertThat(it.first().file).isInstanceOf(KtFile::class.java)
     }
@@ -81,17 +89,22 @@ class VersionCatalogFindKtsUsagesTest {
   // We reproduce situation when editor highlights words that are the same as
   // what cursor is at. Scope is LocalSearchScope for this case.
   @Test
-  fun testNoUsagesInCatalogFileScope(){
-    testVersionCatalogFindUsages("""
+  fun testNoUsagesInCatalogFileScope() {
+    testVersionCatalogFindUsages(
+      """
       [versions]
       groovy = "2.7.3"
       [libraries]
       groov${caret}y = { module = "org.codehaus.groovy:groovy", version.ref = "groovy"}
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation(libs.groovy)
       }
-    """.trimIndent(), getCatalogFileScope
+      """
+        .trimIndent(),
+      getCatalogFileScope,
     ) {
       assertThat(it).hasSize(0)
     }
@@ -99,27 +112,35 @@ class VersionCatalogFindKtsUsagesTest {
 
   @Test
   fun testHasNoUsages() {
-    testVersionCatalogFindUsages( """
+    testVersionCatalogFindUsages(
+      """
       [libraries]
       groov${caret}y-core = "org.codehaus.groovy:groovy:2.7.3"
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation(libs.groovy)
       }
-    """.trimIndent(), { null } ) {
+      """
+        .trimIndent(),
+      { null },
+    ) {
       assertThat(it).isEmpty()
     }
   }
 
   private val getCatalogFileScope: () -> SearchScope = {
-    val virtualFile = VfsUtil.findFileByIoFile(File(project.basePath!!,"gradle/libs.versions.toml"),true)!!
+    val virtualFile = VfsUtil.findFileByIoFile(File(project.basePath!!, "gradle/libs.versions.toml"), true)!!
     LocalSearchScope(PsiManager.getInstance(project).findFile(virtualFile)!!)
   }
 
-  private fun testVersionCatalogFindUsages(versionCatalogText: String,
-                                           buildGradleText: String,
-                                           getScope: () -> SearchScope?, // null is a default global scope
-                                           checker: (Collection<UsageInfo>) -> Unit) {
+  private fun testVersionCatalogFindUsages(
+    versionCatalogText: String,
+    buildGradleText: String,
+    getScope: () -> SearchScope?, // null is a default global scope
+    checker: (Collection<UsageInfo>) -> Unit,
+  ) {
     fixture.run {
       val buildFile = addFileToProject("build.gradle.kts", buildGradleText)
       configureFromExistingVirtualFile(buildFile.virtualFile)

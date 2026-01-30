@@ -67,14 +67,12 @@ class AvdManagerConnectionTest : AndroidTestCase() {
       )
 
     avdFolder = AvdInfo.getDefaultAvdFolder(avdManager, name, false)
-    systemImage =
-      androidSdkHandler.getSystemImageManager(FakeProgressIndicator()).getImages().iterator().next()
+    systemImage = androidSdkHandler.getSystemImageManager(FakeProgressIndicator()).getImages().iterator().next()
 
     // We use Dispatchers.Unconfined to show dialogs: this causes MessageDialog to be invoked on the
     // calling thread. We don't simulate
     // user input in these tests; the dialogs just immediately throw an exception.
-    avdManagerConnection =
-      AvdManagerConnection(androidSdkHandler, avdManager, Dispatchers.Unconfined)
+    avdManagerConnection = AvdManagerConnection(androidSdkHandler, avdManager, Dispatchers.Unconfined)
   }
 
   override fun tearDown() {
@@ -84,21 +82,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
 
   fun testWipeAvd() {
     // Create an AVD
-    val avd =
-      avdManager.createAvd(
-        avdFolder,
-        name,
-        systemImage,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        false,
-        false,
-        false,
-      )
+    val avd = avdManager.createAvd(avdFolder, name, systemImage, null, null, null, null, null, null, false, false, false)
     // Create files that are present on some but not all AVDs.
     createFile(avdFolder, "sdcard.img")
     createFile(avdFolder, "user-settings.ini")
@@ -165,20 +149,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
     val skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(avdManager, skinlessAvdName, false)
 
     val skinlessAvd =
-      avdManager.createAvd(
-        skinlessAvdFolder,
-        skinlessAvdName,
-        systemImage,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        false,
-        true,
-        false,
-      )
+      avdManager.createAvd(skinlessAvdFolder, skinlessAvdName, systemImage, null, null, null, null, null, null, false, true, false)
 
     try {
       runBlocking { avdManagerConnection.startAvd(null, skinlessAvd) }
@@ -190,8 +161,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
 
   fun testStudioParams() {
     val config = ProxyConfiguration.proxy(ProxyProtocol.HTTP, "proxy.com", 80, "")
-    ProxyCredentialStore.getInstance()
-      .setCredentials("proxy.com", 80, Credentials("myuser", "hunter2"), false)
+    ProxyCredentialStore.getInstance().setCredentials("proxy.com", 80, Credentials("myuser", "hunter2"), false)
 
     val params = config.toStudioParams(ProxyCredentialStore.getInstance())
     assertThat(params)
@@ -211,9 +181,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
   companion object {
     private fun recordGoogleApisSysImg23(sdkRoot: Path) {
       sdkRoot.resolve("system-images/android-23/google_apis/x86_64/system.img").recordExistingFile()
-      sdkRoot
-        .resolve("system-images/android-23/google_apis/x86_64/" + AvdManager.USERDATA_IMG)
-        .recordExistingFile("Some dummy info")
+      sdkRoot.resolve("system-images/android-23/google_apis/x86_64/" + AvdManager.USERDATA_IMG).recordExistingFile("Some dummy info")
       sdkRoot
         .resolve("system-images/android-23/google_apis/x86_64/package.xml")
         .recordExistingFile(

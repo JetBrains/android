@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
-import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_FILE
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_LANGUAGE_LEVEL
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class PropertyModelUtilsKtTest : PsdGradleFileModelTestCase() {
@@ -179,21 +179,35 @@ class PropertyModelUtilsKtTest : PsdGradleFileModelTestCase() {
     assertThat(prop25.dslText(effectiveValueIsNull = true), equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("25").annotated()))
     assertThat(propTrue.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(DslText.Literal.annotated()))
     assertThat(propRef.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(DslText.Reference("propValue").annotated()))
-    assertThat(propInterpolated.dslText(effectiveValueIsNull = false),
-               equalTo<Annotated<DslText>?>(DslText.InterpolatedString("${'$'}{prop25}").annotated()))
-    assertThat(propUnresolved.dslText(effectiveValueIsNull = true), equalTo<Annotated<DslText>?>(
-      DslText.Reference("unresolvedReference").annotateWithError("Unresolved reference: unresolvedReference")))
+    assertThat(
+      propInterpolated.dslText(effectiveValueIsNull = false),
+      equalTo<Annotated<DslText>?>(DslText.InterpolatedString("${'$'}{prop25}").annotated()),
+    )
+    assertThat(
+      propUnresolved.dslText(effectiveValueIsNull = true),
+      equalTo<Annotated<DslText>?>(DslText.Reference("unresolvedReference").annotateWithError("Unresolved reference: unresolvedReference")),
+    )
     // This following statement tests the case of known unresolved references which are resolved by property getters.
-    assertThat(propUnresolved.dslText(effectiveValueIsNull = false), equalTo<Annotated<DslText>?>(
-      DslText.Reference("unresolvedReference").annotated()))
-    assertThat(propOtherExpression1.dslText(effectiveValueIsNull = true),
-               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()))
-    assertThat(propOtherExpression2.dslText(effectiveValueIsNull = true),
-               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()))
+    assertThat(
+      propUnresolved.dslText(effectiveValueIsNull = false),
+      equalTo<Annotated<DslText>?>(DslText.Reference("unresolvedReference").annotated()),
+    )
+    assertThat(
+      propOtherExpression1.dslText(effectiveValueIsNull = true),
+      equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()),
+    )
+    assertThat(
+      propOtherExpression2.dslText(effectiveValueIsNull = true),
+      equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()),
+    )
     // This following statements test the case of known invalid expressions which are resolved by property getters.
-    assertThat(propOtherExpression1.dslText(effectiveValueIsNull = false),
-               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()))
-    assertThat(propOtherExpression2.dslText(effectiveValueIsNull = false),
-               equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()))
+    assertThat(
+      propOtherExpression1.dslText(effectiveValueIsNull = false),
+      equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("z(1)").annotated()),
+    )
+    assertThat(
+      propOtherExpression2.dslText(effectiveValueIsNull = false),
+      equalTo<Annotated<DslText>?>(DslText.OtherUnparsedDslText("1 + 2").annotated()),
+    )
   }
 }

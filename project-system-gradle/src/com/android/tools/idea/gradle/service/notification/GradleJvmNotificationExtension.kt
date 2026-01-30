@@ -22,38 +22,30 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
-import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 import java.nio.file.Paths
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
+import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
+import org.jetbrains.plugins.gradle.util.GradleBundle
 
 /**
- * Adds more information to a notification when the selected Gradle JVM is not valid. If the notification message hast this pattern
- * "Invalid Gradle JDK configuration found.<Notification message suffix>", then this extension will replace this message with this:
+ * Adds more information to a notification when the selected Gradle JVM is not valid. If the notification message hast this pattern "Invalid
+ * Gradle JDK configuration found.<Notification message suffix>", then this extension will replace this message with this:
  *
- * "Invalid Gradle JDK configuration found.<Cause of invalid JDK error, if a reason was found>\n
- *  <Use embedded JDK quickfix (if applicable)\n>
- *  <Change JDK location link (if not added already)\n>
- * "
+ * "Invalid Gradle JDK configuration found.<Cause of invalid JDK error, if a reason was found>\n <Use embedded JDK quickfix (if
+ * applicable)\n> <Change JDK location link (if not added already)\n> "
  *
- * For example, this message:
- * """
- * Invalid Gradle JDK configuration found. <a href='#open_external_system_settings'>Open Gradle Settings</a>
+ * For example, this message: """ Invalid Gradle JDK configuration found. <a href='#open_external_system_settings'>Open Gradle Settings</a>
  * """
  *
- * will be replace with:
- * """
- * Invalid Gradle JDK configuration found. ProjectJdkTable table does not have an entry of type JavaSDK named JDK.
- * <a href="use.jdk.as.project.jdk.embedded">Use Embedded JDK (<path to Embedded JDK>)</a>
- * <a href="use.jdk.as.project.jdk">Use JDK 1.8 (<path to JDK 1.8>)</a>
- * <a href="open.project.jdk.location">Change JDK location</a>
- * """
+ * will be replace with: """ Invalid Gradle JDK configuration found. ProjectJdkTable table does not have an entry of type JavaSDK named JDK.
+ * <a href="use.jdk.as.project.jdk.embedded">Use Embedded JDK (<path to Embedded JDK>)</a> <a href="use.jdk.as.project.jdk">Use JDK 1.8
+ * (<path to JDK 1.8>)</a> <a href="open.project.jdk.location">Change JDK location</a> """
  *
  * The current invalid jdk reasons displayed are defined on: [InvalidGradleJdkCause]
  */
-class GradleJvmNotificationExtension: GradleNotificationExtension() {
+class GradleJvmNotificationExtension : GradleNotificationExtension() {
 
   override fun customize(notificationData: NotificationData, project: Project, externalProjectPath: String, error: Throwable?) {
     super.customize(notificationData, project, externalProjectPath, error)
@@ -64,12 +56,15 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val messageBuilder = StringBuilder()
       messageBuilder.appendLine(expectedJvmInvalidPrefix)
       // Add more information on why it is not valid
-      project.coroutineScope.async {
-        GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
-          messageBuilder.appendLine(exception.message)
-          notificationData.filePath = exception.jdkPathLocationFile?.absolutePath
+      project.coroutineScope
+        .async {
+          GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
+            messageBuilder.appendLine(exception.message)
+            notificationData.filePath = exception.jdkPathLocationFile?.absolutePath
+          }
         }
-      }.asCompletableFuture().join()
+        .asCompletableFuture()
+        .join()
 
       // Suggest use embedded
       var registeredListeners = notificationData.registeredListenerIds

@@ -28,11 +28,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Animation manager specifically designed for Compose animations that transition between two states
- * (from and to).
+ * Animation manager specifically designed for Compose animations that transition between two states (from and to).
  *
- * This class extends [ComposeSupportedAnimationManager] and provides specialized handling for
- * animations that have distinct start and end states.
+ * This class extends [ComposeSupportedAnimationManager] and provides specialized handling for animations that have distinct start and end
+ * states.
  *
  * @param animation The Compose animation being managed.
  * @param tabTitle The title to display in the animation preview tab.
@@ -44,8 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
  * @param tabbedPane The [AnimationTabs] component for switching between different animations.
  * @param rootComponent The root UI component for rendering the animation.
  * @param playbackControls The [PlaybackControls] for controlling animation playback.
- * @param updateTimelineElementsCallback Callback to update the timeline elements when the animation
- *   state changes.
+ * @param updateTimelineElementsCallback Callback to update the timeline elements when the animation state changes.
  * @param scope The coroutine scope in which this manager operates.
  * @param animationState The state of the animation, represented as a [FromToState].
  */
@@ -56,8 +54,7 @@ class FromToSupportedAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  executeInRenderSession:
-    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
+  executeInRenderSession: suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -88,13 +85,9 @@ class FromToSupportedAnimationManager(
     animationClock.apply {
       val (initial, target) = animationState.state.value
       if (initial is AnimationUnit.Unit<*> && target is AnimationUnit.Unit<*>) {
-        executeInRenderSession(false, true) {
-          updateFromAndToStates(animation, initial.components, target.components)
-        }
+        executeInRenderSession(false, true) { updateFromAndToStates(animation, initial.components, target.components) }
       } else {
-        executeInRenderSession(false, true) {
-          updateFromAndToStates(animation, listOf(initial), listOf(target))
-        }
+        executeInRenderSession(false, true) { updateFromAndToStates(animation, listOf(initial), listOf(target)) }
       }
     }
   }

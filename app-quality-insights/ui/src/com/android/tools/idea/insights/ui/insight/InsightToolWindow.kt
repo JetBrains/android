@@ -44,15 +44,8 @@ object InsightToolWindow {
     tabVisibility: Flow<Boolean>,
     tracker: AppInsightsTracker,
   ): AppInsightsToolWindowDefinition {
-    val insightWindowVisibility =
-      MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val content =
-      InsightToolWindowContent(
-        projectController,
-        parentDisposable,
-        tracker,
-        insightWindowVisibility,
-      )
+    val insightWindowVisibility = MutableSharedFlow<Boolean>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val content = InsightToolWindowContent(projectController, parentDisposable, tracker, insightWindowVisibility)
     return AppInsightsToolWindowDefinition(
         "Insights",
         StudioIcons.StudioBot.GEMINI_LOGO_MONOCHROME,
@@ -65,11 +58,7 @@ object InsightToolWindow {
         val insightStateFLow =
           projectController.state
             .map { it.currentInsight }
-            .stateIn(
-              projectController.coroutineScope,
-              SharingStarted.Eagerly,
-              LoadingState.Ready(null),
-            )
+            .stateIn(projectController.coroutineScope, SharingStarted.Eagerly, LoadingState.Ready(null))
         projectController.coroutineScope.launch {
           toolWindowVisibility.collect { isVisible ->
             insightWindowVisibility.tryEmit(isVisible)

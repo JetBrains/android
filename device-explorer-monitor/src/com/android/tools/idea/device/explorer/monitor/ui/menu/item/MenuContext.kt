@@ -16,5 +16,6 @@
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 enum class MenuContext {
-  Popup, Toolbar
+  Popup,
+  Toolbar,
 }

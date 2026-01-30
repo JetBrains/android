@@ -23,7 +23,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder
 class GenericReport(
   type: String,
   val fields: Map<String, String>,
-  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties()
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
 ) : DiagnosticReport(type, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
@@ -33,7 +33,7 @@ class GenericReport(
   }
 
   override fun asCrashReport(): CrashReport {
-    return object: DiagnosticCrashReport(type, properties) {
+    return object : DiagnosticCrashReport(type, properties) {
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
         for ((fieldName, value) in fields) {
@@ -44,11 +44,13 @@ class GenericReport(
   }
 
   companion object {
-    fun deserialize(type: String,
-                    baseReportProperties: DiagnosticReportProperties,
-                    fieldNames: List<String>,
-                    properties: Map<String, String>,
-                    format: Long): GenericReport {
+    fun deserialize(
+      type: String,
+      baseReportProperties: DiagnosticReportProperties,
+      fieldNames: List<String>,
+      properties: Map<String, String>,
+      format: Long,
+    ): GenericReport {
       val fields = mutableMapOf<String, String>()
       for (fieldName in fieldNames) {
         fields[fieldName] = properties[fieldName] ?: ""

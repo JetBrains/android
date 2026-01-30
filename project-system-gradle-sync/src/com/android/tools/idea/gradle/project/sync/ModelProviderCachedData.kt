@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.builder.model.v2.models.Versions
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import java.io.Serializable
 import java.util.concurrent.ConcurrentHashMap
+import org.gradle.tooling.model.gradle.BasicGradleProject
 
 /** Class for storing per Gradle-project data between multiple model providers. */
-class ModelProviderCachedData(
-  private val disableLegacyModelProvidersForSupportedProjects: Boolean
-): Serializable {
+class ModelProviderCachedData(private val disableLegacyModelProvidersForSupportedProjects: Boolean) : Serializable {
   internal val versions = ConcurrentHashMap<BasicGradleProject, Versions>()
   internal val data = ConcurrentHashMap<BasicGradleProject, CachedAndroidProjectData>()
   internal val selectedVariant = ConcurrentHashMap<BasicGradleProject, IdeVariantCoreImpl>()
@@ -37,18 +35,16 @@ class ModelProviderCachedData(
   }
 
   /**
-   * If the flag is on to do so, only run legacy providers when there are Gradle subprojects that
-   * are not supported. This is used to mutually exclusively run legacy and phased sync model
-   * providers.
+   * If the flag is on to do so, only run legacy providers when there are Gradle subprojects that are not supported. This is used to
+   * mutually exclusively run legacy and phased sync model providers.
    *
-   * The new phased sync source set model provider (and its corresponding sync contributor)
-   * always runs because it is considered lightweight enough.`
+   * The new phased sync source set model provider (and its corresponding sync contributor) always runs because it is considered lightweight
+   * enough.`
    *
-   * Dependency model provider is controlled by a completely separate flag and is not affected by
-   * this.
+   * Dependency model provider is controlled by a completely separate flag and is not affected by this.
    */
-  val shouldRunLegacyModelProviders: Boolean get() =
-    !disableLegacyModelProvidersForSupportedProjects || !allProjectsSupportedByPhasedSync
+  val shouldRunLegacyModelProviders: Boolean
+    get() = !disableLegacyModelProvidersForSupportedProjects || !allProjectsSupportedByPhasedSync
 
   /**
    * This class exists to share data between model providers, and the last one to execute should call this method to drop all shared state.
@@ -69,6 +65,5 @@ internal data class CachedAndroidProjectData(
   val selectedVariantName: String,
   val ideAndroidProject: IdeAndroidProject,
   val shouldSkipRuntimeClassPathForLibraries: Boolean,
-  val allOutgoingProjectDependencies: List<String>
+  val allOutgoingProjectDependencies: List<String>,
 )
-

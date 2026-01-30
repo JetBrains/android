@@ -28,13 +28,9 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 @VisibleForTesting
 fun findAllPackagePrefixes(fqcn: String): Sequence<String> =
-  generateSequence(fqcn.substringBeforeLast('.', "")) {
-    it.substringBeforeLast('.', "").nullize()
-  }
+  generateSequence(fqcn.substringBeforeLast('.', "")) { it.substringBeforeLast('.', "").nullize() }
 
-/**
- * Max limit of the number of keys we want to save in the affineLoaderIndex of the [MultiLoaderWithAffinity].
- */
+/** Max limit of the number of keys we want to save in the affineLoaderIndex of the [MultiLoaderWithAffinity]. */
 private val DEFAULT_MAX_AFFINITY_CACHE_KEYS = Integer.getInteger("compose.preview.loader.affinity.cache.max.size", 1000)
 
 /**
@@ -43,12 +39,14 @@ private val DEFAULT_MAX_AFFINITY_CACHE_KEYS = Integer.getInteger("compose.previe
  * classes on the same package in future lookups.
  *
  * [maxAffinityCacheKeys] sets the maximum size of the cache for the package -> loader index. Keep in mind that this limit is not enforced
- * for a single class but for all so, if you load a single class with more than [maxAffinityCacheKeys] package elements, they will all
- * be cached. For example, if the limit is 2 and the class is `a.b.c.Class1`, the three `a`, `a.b` and `a.b.c` packages will be added to the
+ * for a single class but for all so, if you load a single class with more than [maxAffinityCacheKeys] package elements, they will all be
+ * cached. For example, if the limit is 2 and the class is `a.b.c.Class1`, the three `a`, `a.b` and `a.b.c` packages will be added to the
  * index even if it exceeds the [maxAffinityCacheKeys].
  */
-class MultiLoaderWithAffinity(private val delegates: List<DelegatingClassLoader.Loader>,
-                              private val maxAffinityCacheKeys: Int = DEFAULT_MAX_AFFINITY_CACHE_KEYS) : DelegatingClassLoader.Loader {
+class MultiLoaderWithAffinity(
+  private val delegates: List<DelegatingClassLoader.Loader>,
+  private val maxAffinityCacheKeys: Int = DEFAULT_MAX_AFFINITY_CACHE_KEYS,
+) : DelegatingClassLoader.Loader {
   constructor(vararg delegates: DelegatingClassLoader.Loader) : this(delegates.toList())
 
   /**
@@ -64,9 +62,7 @@ class MultiLoaderWithAffinity(private val delegates: List<DelegatingClassLoader.
   override fun loadClass(fqcn: String): ByteArray? {
     val packages = findAllPackagePrefixes(fqcn)
 
-    val affineLoaders = packages
-      .flatMap { affineLoaderIndex[it] }
-      .distinct()
+    val affineLoaders = packages.flatMap { affineLoaderIndex[it] }.distinct()
 
     val affineClass = affineLoaders.mapNotNull { it.loadClass(fqcn) }.firstOrNull()
     if (affineClass != null) return affineClass

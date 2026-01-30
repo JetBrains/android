@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 
-class DeviceStreamingOnboardingAction: AssistActionHandler {
+class DeviceStreamingOnboardingAction : AssistActionHandler {
 
   companion object {
     const val ACTION_KEY = "device.streaming.onboarding"
@@ -37,12 +37,20 @@ class DeviceStreamingOnboardingAction: AssistActionHandler {
     WhatsNewMetricsTracker.getInstance().clickActionButton(project, ACTION_KEY)
     ToolWindowManager.getInstance(project).getToolWindow("Device Manager 2")?.show()
     val selectProjectAction = ActionManager.getInstance().getAction("SelectProjectAction")
-    val event = createEvent(selectProjectAction, { it: String ->
-      when(it) {
-        CommonDataKeys.PROJECT.name -> project
-        else -> null
-      }
-    }, null, "WNA", ActionUiKind.NONE, null)
+    val event =
+      createEvent(
+        selectProjectAction,
+        { it: String ->
+          when (it) {
+            CommonDataKeys.PROJECT.name -> project
+            else -> null
+          }
+        },
+        null,
+        "WNA",
+        ActionUiKind.NONE,
+        null,
+      )
     selectProjectAction.actionPerformed(event)
   }
 }

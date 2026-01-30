@@ -42,11 +42,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /** Captures a screenshot of a device display. */
-class ScreenshotAction : DumbAwareAction(
-  message("screenshot.action.title"),
-  message("screenshot.action.description"),
-  StudioIcons.Common.SCREENSHOT,
-) {
+class ScreenshotAction :
+  DumbAwareAction(message("screenshot.action.title"), message("screenshot.action.description"), StudioIcons.Common.SCREENSHOT) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -63,7 +60,7 @@ class ScreenshotAction : DumbAwareAction(
 
     val deviceName = screenshotParameters.deviceName
     val screenshotProvider =
-        ShellCommandScreenshotProvider(project, serialNumber, screenshotParameters.deviceType, deviceName, displayId, displayInfoProvider)
+      ShellCommandScreenshotProvider(project, serialNumber, screenshotParameters.deviceType, deviceName, displayId, displayInfoProvider)
     val scope = AdbLibService.getInstance(project).session.scope.createChildScope(true)
 
     scope.launch {
@@ -73,15 +70,16 @@ class ScreenshotAction : DumbAwareAction(
           val screenshotDecorator = screenshotParameters.screenshotDecorator
           val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-          val decoratedImage = when (decoration) {
-            ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
-            else -> screenshotDecorator.decorate(screenshotImage, decoration)
-          }
+          val decoratedImage =
+            when (decoration) {
+              ScreenshotDecorationOption.RECTANGULAR -> screenshotImage.image
+              else -> screenshotDecorator.decorate(screenshotImage, decoration)
+            }
           val processedImage = ImageUtils.scale(decoratedImage, getScreenshotScale())
           val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
-          val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
-              throw IOException(message("screenshot.error.save"))
+          val backingFile =
+            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException(message("screenshot.error.save"))
           while (backingFile.length == 0L) {
             // It's not clear why the file may have zero length after the first refresh, but it was empirically observed.
             backingFile.refresh(false, false)
@@ -90,13 +88,22 @@ class ScreenshotAction : DumbAwareAction(
           val allowImageRotation = displayInfoProvider == null && screenshotParameters.deviceType == DeviceType.HANDHELD
 
           ApplicationManager.getApplication().invokeLater {
-            val viewer = ScreenshotViewer(project, screenshotImage, processedImage, backingFile, screenshotProvider, screenshotDecorator,
-                                          framingOptions, defaultFrame, allowImageRotation)
+            val viewer =
+              ScreenshotViewer(
+                project,
+                screenshotImage,
+                processedImage,
+                backingFile,
+                screenshotProvider,
+                screenshotDecorator,
+                framingOptions,
+                defaultFrame,
+                allowImageRotation,
+              )
             Disposer.register(viewer.disposable, screenshotProvider)
             viewer.show()
           }
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           Disposer.dispose(screenshotProvider)
           if (e is CancellationException) {
             throw e
@@ -104,9 +111,7 @@ class ScreenshotAction : DumbAwareAction(
           val cause = getMessage(e) ?: e.javaClass.name
           val message = message("screenshot.error.generic", cause)
           thisLogger().error(message, e)
-          ApplicationManager.getApplication().invokeLater {
-            showErrorDialog(project, message, message("screenshot.action.title"))
-          }
+          ApplicationManager.getApplication().invokeLater { showErrorDialog(project, message, message("screenshot.action.title")) }
         }
       }
     }

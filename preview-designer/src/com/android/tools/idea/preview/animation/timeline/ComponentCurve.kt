@@ -66,9 +66,7 @@ class ComponentCurve(
         val minX = positionProxy.xPositionForValue(property.startMs)
         val maxX = positionProxy.xPositionForValue(property.endMs)
         val minY = rowMinY + InspectorLayout.CURVE_TOP_OFFSET
-        val maxY =
-          rowMinY + InspectorLayout.timelineLineRowHeightScaled() -
-            InspectorLayout.curveBottomOffset()
+        val maxY = rowMinY + InspectorLayout.timelineLineRowHeightScaled() - InspectorLayout.curveBottomOffset()
         curve.moveTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
         when {
           isZeroDuration -> {
@@ -87,10 +85,7 @@ class ComponentCurve(
             val stepY = if (valueRange != 0.0) yRange / valueRange else 0.0
 
             component.points.forEach { (ms, value) ->
-              curve.lineTo(
-                positionProxy.xPositionForValue(ms).toDouble(),
-                maxY - (value - animationYMin) * stepY,
-              )
+              curve.lineTo(positionProxy.xPositionForValue(ms).toDouble(), maxY - (value - animationYMin) * stepY)
             }
           }
         }
@@ -110,22 +105,16 @@ class ComponentCurve(
       }
   }
 
-  @VisibleForTesting
-  val curveBaseY =
-    rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
+  @VisibleForTesting val curveBaseY = rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
   private val startDiamond = Diamond(minX, curveBaseY, colorIndex)
   private val endDiamond = Diamond(maxX, curveBaseY, colorIndex)
 
-  private val boxedLabelPositionWithoutOffset =
-    Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
+  private val boxedLabelPositionWithoutOffset = Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
 
   /** Position from where [BoxedLabel] should be painted. */
   val boxedLabelPosition =
     Point(
-      (boxedLabelPositionWithoutOffset.x).coerceIn(
-        positionProxy.minimumXPosition(),
-        positionProxy.maximumXPosition(),
-      ),
+      (boxedLabelPositionWithoutOffset.x).coerceIn(positionProxy.minimumXPosition(), positionProxy.maximumXPosition()),
       boxedLabelPositionWithoutOffset.y,
     )
 
@@ -137,9 +126,7 @@ class ComponentCurve(
 
   /** If point [x], [y] is hovering the curve. */
   override fun contains(x: Int, y: Int): Boolean {
-    return curve.contains(x.toDouble(), y.toDouble()) ||
-      startDiamond.contains(x, y) ||
-      endDiamond.contains(x, y)
+    return curve.contains(x.toDouble(), y.toDouble()) || startDiamond.contains(x, y) || endDiamond.contains(x, y)
   }
 
   /**
@@ -149,8 +136,7 @@ class ComponentCurve(
    * * animation curve itself
    * * (optional) dashed lines - links to the next curve diamonds
    *
-   * @params colorIndex index of the color from [GRAPH_COLORS] @rowHeight total row height including
-   *   all labels
+   * @params colorIndex index of the color from [GRAPH_COLORS] @rowHeight total row height including all labels
    */
   override fun paint(g: Graphics2D) {
     //                 ___        ___         ___

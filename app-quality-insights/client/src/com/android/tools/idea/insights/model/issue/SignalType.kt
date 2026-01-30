@@ -17,10 +17,7 @@ package com.android.tools.idea.insights.model.issue
 
 enum class SignalType(private val readableName: String, val description: String?) {
   SIGNAL_UNSPECIFIED("All signal states", null),
-  SIGNAL_EARLY(
-    "Early",
-    "Issues with a high percentage of events within the first five seconds of a user's session",
-  ),
+  SIGNAL_EARLY("Early", "Issues with a high percentage of events within the first five seconds of a user's session"),
   SIGNAL_FRESH("Fresh", "New issues that appeared in the last seven days"),
   SIGNAL_REGRESSED("Regressed", "Issues that have reoccurred and that we've reopened"),
   SIGNAL_REPETITIVE("Repetitive", "Issues with events that happened multiple times per user");

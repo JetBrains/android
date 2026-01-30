@@ -24,23 +24,24 @@ import org.xml.sax.InputSource
 
 val implicitAttributeDefaultsInstruction =
   "For all the attributes listed below, if you don't see it in the input, assume it is the value provided below.\n"
-val implicitAttributeDefaults = mapOf(
-  "checkable" to "false",
-  "checked" to "false",
-  "clickable" to "false",
-  "content-desc" to "",
-  "enabled" to "true",
-  "focusable" to "false",
-  "focused" to "false",
-  "long-clickable" to "false",
-  "password" to "false",
-  "resource-id" to "",
-  "scrollable" to "false",
-  "selected" to "false",
-  "text" to "",
-  "hint" to "",
-  "index" to "0"
-)
+val implicitAttributeDefaults =
+  mapOf(
+    "checkable" to "false",
+    "checked" to "false",
+    "clickable" to "false",
+    "content-desc" to "",
+    "enabled" to "true",
+    "focusable" to "false",
+    "focused" to "false",
+    "long-clickable" to "false",
+    "password" to "false",
+    "resource-id" to "",
+    "scrollable" to "false",
+    "selected" to "false",
+    "text" to "",
+    "hint" to "",
+    "index" to "0",
+  )
 
 val omitAttributes = setOf("package")
 private val boundsPattern = Regex("\\[(\\d+),(\\d+)]\\[(\\d+),(\\d+)]")
@@ -69,9 +70,11 @@ private fun parse(xmlString: String): Document {
 private fun documentToString(doc: Document, nafRegion: ArrayList<Region>, indent: Boolean = false): String {
   val writer = StringWriter()
   if (doc.xmlEncoding != null && doc.xmlVersion != null) {
-    writer.write("<?xml version='${doc.xmlVersion}'" +
-                 " encoding='${doc.xmlEncoding}'" +
-                 " standalone='${if (doc.xmlStandalone) "yes" else "no"}' ?>\n")
+    writer.write(
+      "<?xml version='${doc.xmlVersion}'" +
+        " encoding='${doc.xmlEncoding}'" +
+        " standalone='${if (doc.xmlStandalone) "yes" else "no"}' ?>\n"
+    )
   }
   val rootElement = doc.documentElement
 
@@ -94,7 +97,7 @@ private fun printNode(node: Node, writer: StringWriter, currentIndent: String, i
     if (indent) writer.write(currentIndent)
     writer.write("<${node.nodeName}")
     val attributes = node.attributes
-    
+
     var isNaf = false
     var boundsString: String? = null
 
@@ -109,8 +112,7 @@ private fun printNode(node: Node, writer: StringWriter, currentIndent: String, i
         boundsString = attr.nodeValue
       }
 
-      if (implicitAttributeDefaults[attrName] != attr.nodeValue &&
-        attrName !in omitAttributes) {
+      if (implicitAttributeDefaults[attrName] != attr.nodeValue && attrName !in omitAttributes) {
         writer.write(" ${attr.nodeName}=\"${attr.nodeValue}\"")
       }
     }
@@ -148,8 +150,7 @@ private fun printNode(node: Node, writer: StringWriter, currentIndent: String, i
 
       if (indent && hasElementChildren) writer.write(currentIndent)
       writer.write("</${node.nodeName}>")
-    }
-    else {
+    } else {
       writer.write("/>")
     }
   }

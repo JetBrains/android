@@ -24,6 +24,12 @@ import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
 import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.util.concurrent.CompletableFuture
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -31,15 +37,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Color
-import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
 
 @Language("XML")
-private const val NAVIGATION_WITH_PREVIEW = """
+private const val NAVIGATION_WITH_PREVIEW =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -53,7 +54,8 @@ private const val NAVIGATION_WITH_PREVIEW = """
 """
 
 @Language("XML")
-private const val NAVIGATION_NO_PREVIEW = """
+private const val NAVIGATION_NO_PREVIEW =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -65,7 +67,8 @@ private const val NAVIGATION_NO_PREVIEW = """
 """
 
 @Language("XML")
-private const val LAYOUT_CONTENTS = """
+private const val LAYOUT_CONTENTS =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -75,8 +78,7 @@ private const val LAYOUT_CONTENTS = """
 
 class NavigationSlowPreviewProviderTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
   private lateinit var facet: AndroidFacet
 
@@ -122,12 +124,13 @@ class NavigationSlowPreviewProviderTest {
 
   private fun setupRenderer(xmlFile: XmlFile, configuration: Configuration) {
     val mockRenderer = mock<LayoutRenderer>()
-    val mockImage = ImageUtil.createImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
-      val g = createGraphics()
-      g.color = Color.RED
-      g.fillRect(0, 0, 100, 100)
-      g.dispose()
-    }
+    val mockImage =
+      ImageUtil.createImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
+        val g = createGraphics()
+        g.color = Color.RED
+        g.fillRect(0, 0, 100, 100)
+        g.dispose()
+      }
     whenever(mockRenderer.getLayoutRender(xmlFile, configuration)).thenReturn(CompletableFuture.completedFuture(mockImage))
     LayoutRenderer.setInstance(rule.module.androidFacet!!, mockRenderer)
   }

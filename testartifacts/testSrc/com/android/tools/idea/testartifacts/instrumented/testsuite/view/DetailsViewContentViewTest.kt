@@ -52,9 +52,7 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
-/**
- * Unit tests for [DetailsViewContentView].
- */
+/** Unit tests for [DetailsViewContentView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DetailsViewContentViewTest {
@@ -64,13 +62,9 @@ class DetailsViewContentViewTest {
   private val headerActions = emptyList<AnAction>()
   @Mock lateinit var mockLogger: AndroidTestSuiteLogger
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  lateinit var mockTestResults: AndroidTestResults
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS) lateinit var mockTestResults: AndroidTestResults
 
-  @get:Rule val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
   @Before
   fun setup() {
@@ -86,8 +80,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
-    assertThat(view.myTestResultLabel.text)
-      .isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
+    assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
   }
 
   @Test
@@ -100,8 +93,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
-    assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font color='#b81708'>Failed</font></html>")
+    assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font></html>")
   }
 
   @Test
@@ -114,8 +106,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
-    assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
+    assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
   }
 
   @Test
@@ -128,8 +119,7 @@ class DetailsViewContentViewTest {
     view.setResults(testDevice, mockTestResults)
 
     assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>&lt;device name&gt;</html>")
-    assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
+    assertThat(view.myTestResultLabel.text).isEqualTo("<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
   }
 
   @Test
@@ -269,10 +259,12 @@ class DetailsViewContentViewTest {
   @Test
   fun logging() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
-    verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView.component,
-                                                  ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
-    verify(mockLogger).addImpressionWhenDisplayed(view.myDeviceInfoTableView.getComponent(),
-                                                  ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
+    verify(mockLogger).addImpressionWhenDisplayed(view.myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
+    verify(mockLogger)
+      .addImpressionWhenDisplayed(
+        view.myDeviceInfoTableView.getComponent(),
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW,
+      )
   }
 
   @Test
@@ -288,8 +280,8 @@ class DetailsViewContentViewTest {
   fun screenshotTabsDisplayedForScreenshotTests() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
-    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
-      mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
 
     view.setResults(testDevice, mockTestResults)
 
@@ -302,8 +294,8 @@ class DetailsViewContentViewTest {
   fun screenshotLogsTabAlwaysDisplayedForScreenshotTests() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
-    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
-      mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
@@ -328,11 +320,7 @@ class DetailsViewContentViewTest {
   fun journeysResultsTabDisplayedWhenJourneyArtifactsExist() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
-    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
-      mapOf(
-        "Journeys.Step" to createEncodedJourneyArtifact(),
-      )
-    )
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(mapOf("Journeys.Step" to createEncodedJourneyArtifact()))
 
     view.setResults(testDevice, mockTestResults)
 
@@ -364,8 +352,8 @@ class DetailsViewContentViewTest {
     view.myLogsView.waitAllRequests()
 
     runInEdtAndWait {
-      assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line).isEqualTo(
-        view.myLogsView.editor?.document?.lineCount?.minus(1) ?: -1)
+      assertThat(view.myLogsView.editor?.caretModel?.logicalPosition?.line)
+        .isEqualTo(view.myLogsView.editor?.document?.lineCount?.minus(1) ?: -1)
     }
   }
 
@@ -386,11 +374,7 @@ class DetailsViewContentViewTest {
   fun journeysTabIsSelectedByDefaultWhenUserHasntSelectedATabYet() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
     val testDevice = device("device id", "device name")
-    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(
-      mapOf(
-        "Journeys.Step" to createEncodedJourneyArtifact(),
-      )
-    )
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice)).thenReturn(mapOf("Journeys.Step" to createEncodedJourneyArtifact()))
     // The Journeys tab should be selected even though there is an error stack trace
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("error stack trace")
 
@@ -445,20 +429,16 @@ class DetailsViewContentViewTest {
   }
 
   private fun createEncodedJourneyArtifact(): String {
-    val step = Step.newBuilder()
-      .addTurns(
-        Turn.newBuilder()
-          .setDescription("The action taken")
-          .setReasoning("The reasoning behind the action")
-          .addArtifactsBefore(
-            Artifact.newBuilder()
-              .setType(ArtifactType.SCREENSHOT)
-              .setUri("/path/to/screenshot.png")
-              .build()
-          )
-          .build()
-      )
-      .build()
+    val step =
+      Step.newBuilder()
+        .addTurns(
+          Turn.newBuilder()
+            .setDescription("The action taken")
+            .setReasoning("The reasoning behind the action")
+            .addArtifactsBefore(Artifact.newBuilder().setType(ArtifactType.SCREENSHOT).setUri("/path/to/screenshot.png").build())
+            .build()
+        )
+        .build()
 
     return Base64.getEncoder().encodeToString(step.toByteArray())
   }

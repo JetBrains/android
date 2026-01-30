@@ -30,16 +30,13 @@ import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
  * Miscellaneous set of tests for lint quickfixes in the IDE handled by [LintIdeFixPerformer].
  *
  * There are additional related tests elsewhere:
- * * [LintIdeFixPerformerReplaceStringTest] does comprehensive testing of the string replacement
- *   quickfix (the most common and powerful one)
- * * [LintIdeFixPerformerCreateFileTest] does comprehensive testing of the create-file fixes --
- *   create new text file, binary files, and delete files
+ * * [LintIdeFixPerformerReplaceStringTest] does comprehensive testing of the string replacement quickfix (the most common and powerful one)
+ * * [LintIdeFixPerformerCreateFileTest] does comprehensive testing of the create-file fixes -- create new text file, binary files, and
+ *   delete files
  * * [AnnotateQuickFixTest] checks the annotation-based quick fixes
- * * PreviewFixTest in the android-lint module checks that these fixes are working in preview
- *   context
- * * [LintIdeTest] has a handful of tests that involve quickfixes with IntelliJ's before and after
- *   diffs. Similarly, in the android-lint plugin, AndroidLintTest has a handful of inspection tests
- *   with fixes.
+ * * PreviewFixTest in the android-lint module checks that these fixes are working in preview context
+ * * [LintIdeTest] has a handful of tests that involve quickfixes with IntelliJ's before and after diffs. Similarly, in the android-lint
+ *   plugin, AndroidLintTest has a handful of inspection tests with fixes.
  */
 class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
   init {
@@ -73,12 +70,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     val ioFile = VfsUtilCore.virtualToIoFile(file.virtualFile)
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    fun replace(
-      oldText: String,
-      start: Int,
-      end: Int,
-      replacement: String,
-    ): LintFix.ReplaceStringBuilder {
+    fun replace(oldText: String, start: Int, end: Int, replacement: String): LintFix.ReplaceStringBuilder {
       val text = file.text
       val actual = text.substring(start, end)
       assertEquals(actual, oldText)
@@ -108,8 +100,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
           deleteTranslate.build(),
           indent.build(),
         )
-    val incident =
-      Incident().location(Location.create(VfsUtilCore.virtualToIoFile(file.virtualFile)))
+    val incident = Incident().location(Location.create(VfsUtilCore.virtualToIoFile(file.virtualFile)))
     val fixes = AndroidLintInspectionBase.createFixes(project, file, incident, group)
     assertEquals(1, fixes.size)
     val offset = file.text.indexOf(".save(")
@@ -141,10 +132,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     // Make sure we've selected the right thing
     assertEquals(file.text, myFixture.editor.document.text)
     assertEquals("Translation", myFixture.editor.selectionModel.selectedText)
-    assertEquals(
-      file.text.indexOf("withTranslation(200") + "with".length,
-      myFixture.editor.caretModel.offset,
-    )
+    assertEquals(file.text.indexOf("withTranslation(200") + "with".length, myFixture.editor.caretModel.offset)
   }
 
   fun testAttributes() {
@@ -241,10 +229,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       LintFix.create()
         .name("Fix code")
         .composite(
-          LintFix.create()
-            .annotate("kotlin.Suppress(\"SdCardPath\")")
-            .range(getLocation(file, "[fun] test"))
-            .build(),
+          LintFix.create().annotate("kotlin.Suppress(\"SdCardPath\")").range(getLocation(file, "[fun] test")).build(),
           LintFix.create()
             .replace()
             .text("test()")
@@ -379,10 +364,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
       val group =
         LintFix.create()
           .name("Fix code")
-          .annotate(
-            "@test.pkg.MyAnnotation(value = \"test\", first = 2, second = 0)",
-            replace = replace,
-          )
+          .annotate("@test.pkg.MyAnnotation(value = \"test\", first = 2, second = 0)", replace = replace)
           .range(getLocation(file, "[public] class RepeatedAnnotationTest"))
           .select("\"(.*)\"")
           .build()
@@ -488,8 +470,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     if (start == -1 || end == -1) {
       fail("Couldn't find range markers [ and ] in the window")
     }
-    val substring =
-      window.substring(0, start) + window.substring(start + 1, end) + window.substring(end + 1)
+    val substring = window.substring(0, start) + window.substring(start + 1, end) + window.substring(end + 1)
     val index = file.text.indexOf(substring)
     assertTrue("Couldn't find $substring in $ioFile", index != -1)
     return Location.create(ioFile, file.text, index + start, index + end)

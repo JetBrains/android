@@ -33,8 +33,8 @@ import com.intellij.icons.AllIcons
 import javax.swing.Icon
 import javax.swing.JComponent
 
-class SuggestionsPerspectiveConfigurable(context: PsContext)
-  : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
+class SuggestionsPerspectiveConfigurable(context: PsContext) :
+  AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
   private var errorCount: Int = 0
 
@@ -54,13 +54,13 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun getId(): String = "android.psd.suggestions"
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *> =
-      when {
-        module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
-        module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module)
-        module is PsJavaModule -> createConfigurable(module)
-        module is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
-        else -> ModuleUnsupportedConfigurable(context, this, module)
-      }
+    when {
+      module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
+      module is PsAndroidModule && module.isKmpModule -> KmpModuleConfigurable(context, this, module)
+      module is PsJavaModule -> createConfigurable(module)
+      module is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
+      else -> ModuleUnsupportedConfigurable(context, this, module)
+    }
 
   override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.suggestions.perspective.configurable.display.name")
 
@@ -70,12 +70,12 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
-  private fun createConfigurable(module: PsModule) =
-      ModuleSuggestionsConfigurable(context, this, module).apply { setHistory(myHistory) }
+  private fun createConfigurable(module: PsModule) = ModuleSuggestionsConfigurable(context, this, module).apply { setHistory(myHistory) }
 
-  private fun createAllModulesConfigurable(module: PsModule) : ModuleSuggestionsConfigurable {
+  private fun createAllModulesConfigurable(module: PsModule): ModuleSuggestionsConfigurable {
     return object : ModuleSuggestionsConfigurable(context, this@SuggestionsPerspectiveConfigurable, module) {
-      override fun getIcon(expanded: Boolean): Icon? = AllIcons.Nodes.ModuleGroup
-    }.apply { setHistory(myHistory) }
+        override fun getIcon(expanded: Boolean): Icon? = AllIcons.Nodes.ModuleGroup
+      }
+      .apply { setHistory(myHistory) }
   }
 }

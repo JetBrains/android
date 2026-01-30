@@ -34,34 +34,25 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Represents a reference to a string resource which is used in a `<Template>`'s `<Parameter>` tag.
  *
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/group/part/text/formatter/template">Template</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/group/part/text/formatter/template">Template</a>
  */
-class TemplateParameterStringReference(private val psiElement: PsiElement) :
-  PsiReferenceBase<PsiElement>(psiElement) {
+class TemplateParameterStringReference(private val psiElement: PsiElement) : PsiReferenceBase<PsiElement>(psiElement) {
 
   // technically the resource can be surrounded by quotes, and it will still be recognised by the
   // watch face renderer
   private val resourceReference =
-    ResourceReference(
-      ResourceNamespace.RES_AUTO,
-      ResourceType.STRING,
-      psiElement.text.removeSurroundingQuotes(),
-    )
+    ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, psiElement.text.removeSurroundingQuotes())
 
   override fun resolve(): PsiElement? {
     val facet = AndroidFacet.getInstance(psiElement) ?: return null
-    return ResourceRepositoryToPsiResolver.resolveReference(resourceReference, psiElement, facet)
-      .firstNotNullOfOrNull { it.element }
+    return ResourceRepositoryToPsiResolver.resolveReference(resourceReference, psiElement, facet).firstNotNullOfOrNull { it.element }
   }
 
   override fun getVariants(): Array<out Any?> {
     val withPrefix = false
     val facet =
       AndroidFacet.getInstance(psiElement)
-        ?: InjectedLanguageManager.getInstance(psiElement.project)
-          .getInjectionHost(psiElement)
-          ?.androidFacet
+        ?: InjectedLanguageManager.getInstance(psiElement.project).getInjectionHost(psiElement)?.androidFacet
         ?: return emptyArray()
 
     val resourceValues =

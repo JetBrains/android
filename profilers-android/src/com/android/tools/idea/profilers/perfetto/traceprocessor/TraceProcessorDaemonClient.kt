@@ -27,13 +27,13 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 
 /**
- * gRPC client used to communicate with the daemon (which runs a gRPC server).
- * For the API details, see {@code tools/base/profiler/native/trace_processor_daemon/trace_processor_service.proto}.
+ * gRPC client used to communicate with the daemon (which runs a gRPC server). For the API details, see {@code
+ * tools/base/profiler/native/trace_processor_daemon/trace_processor_service.proto}.
  */
-class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
+class TraceProcessorDaemonClient(ticker: Ticker) : Disposable {
 
   @VisibleForTesting
-  constructor(ticker: Ticker, stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null): this(ticker) {
+  constructor(ticker: Ticker, stubForTesting: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null) : this(ticker) {
     this.stubForTesting = stubForTesting
   }
 
@@ -56,23 +56,27 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
   @Synchronized
   private fun getStub(tracker: FeatureTracker): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
     // If we have a stub for testing, just return it.
-    stubForTesting?.let { return it }
+    stubForTesting?.let {
+      return it
+    }
 
     daemonManager.makeSureDaemonIsRunning(tracker)
     val previousChannel = cachedChannel
     // If we either don't have a channel created already of if it has been broken, we must create a new one.
-    if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated
-        || cachedChannelPort != daemonManager.daemonPort) {
+    if (
+      previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated || cachedChannelPort != daemonManager.daemonPort
+    ) {
       // If we had a channel, let's make sure we shutdown it properly before creating a new one.
       previousChannel?.shutdownNow()
 
       // Lets set up the new channel now
       cachedChannelPort = daemonManager.daemonPort
       LOGGER.debug("TPD Client: building new channel to localhost:$cachedChannelPort")
-      cachedChannel = NettyChannelBuilder.forAddress("localhost", cachedChannelPort)
-        .usePlaintext()
-        .maxInboundMessageSize(512 * 1024 * 1024) // 512 Mb
-        .build()
+      cachedChannel =
+        NettyChannelBuilder.forAddress("localhost", cachedChannelPort)
+          .usePlaintext()
+          .maxInboundMessageSize(512 * 1024 * 1024) // 512 Mb
+          .build()
     }
 
     // If we still have no stub or if we changed our channel, we need to update out stub.
@@ -84,13 +88,17 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
     return cachedStub!!
   }
 
-  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest,
-                tracker: FeatureTracker): TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse> {
+  fun loadTrace(
+    requestProto: TraceProcessor.LoadTraceRequest,
+    tracker: FeatureTracker,
+  ): TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse> {
     return retry(requestProto) { getStub(tracker).loadTrace(it) }
   }
 
-  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest,
-                        tracker: FeatureTracker): TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse> {
+  fun queryBatchRequest(
+    request: TraceProcessor.QueryBatchRequest,
+    tracker: FeatureTracker,
+  ): TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse> {
     return retry(request) { getStub(tracker).queryBatch(it) }
   }
 
@@ -98,7 +106,7 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
   // In between retries, sleep for 200ms, to allow the underlying issue to fix itself.
   private fun <A, B> retry(request: A, rpc: (A) -> B): TraceProcessorDaemonQueryResult<B> {
     var lastException: Exception? = null
-    for(i in 1..3){
+    for (i in 1..3) {
       try {
         if (!disposed) {
           return TraceProcessorDaemonQueryResult(rpc(request))
@@ -121,16 +129,15 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
 }
 
 /**
- * Wrapper for the result of a query sent to TPD, that can contain the response received (if {@code completed} is true) or the reason
- * why it failed to contact TPD in {@code failure}.
+ * Wrapper for the result of a query sent to TPD, that can contain the response received (if {@code completed} is true) or the reason why it
+ * failed to contact TPD in {@code failure}.
  */
 @ConsistentCopyVisibility
-data class TraceProcessorDaemonQueryResult<A> private constructor(
-  val response: A? = null,
-  val failure: Exception? = null) {
+data class TraceProcessorDaemonQueryResult<A> private constructor(val response: A? = null, val failure: Exception? = null) {
 
   val completed = response != null
 
-  constructor(response: A): this(response, null) { }
-  constructor(failure: Exception): this(null, failure) { }
+  constructor(response: A) : this(response, null) {}
+
+  constructor(failure: Exception) : this(null, failure) {}
 }

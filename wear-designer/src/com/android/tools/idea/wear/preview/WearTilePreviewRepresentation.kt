@@ -46,8 +46,7 @@ private val WEAR_TILE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_
 internal class WearTilePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProviderConstructor:
-    (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiWearTilePreviewElement>,
+  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiWearTilePreviewElement>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiWearTilePreviewElement, NlModel>,
 ) :
   CommonPreviewRepresentation<PsiWearTilePreviewElement>(
@@ -60,18 +59,13 @@ internal class WearTilePreviewRepresentation(
     NlSurfaceBuilder::configureDesignSurface,
     renderingTopic = RenderAsyncActionExecutor.RenderingTopic.WEAR_TILE_PREVIEW,
     createRefreshEventBuilder = { surface ->
-      PreviewRefreshEventBuilder(
-        PreviewRefreshEvent.PreviewType.WEAR,
-        PreviewRefreshTracker.getInstance(surface),
-      )
+      PreviewRefreshEventBuilder(PreviewRefreshEvent.PreviewType.WEAR, PreviewRefreshTracker.getInstance(surface))
     },
     onAfterRender = ::detectAnimations,
   ) {
 
   @UiThread
-  override fun createAnimationInspector(
-    element: PreviewElement<*>
-  ): AnimationPreview<SupportedWearTileAnimationManager>? {
+  override fun createAnimationInspector(element: PreviewElement<*>): AnimationPreview<SupportedWearTileAnimationManager>? {
     val wearPreviewElement = element as? WearTilePreviewElement<*> ?: return null
 
     return WearTileAnimationPreview(

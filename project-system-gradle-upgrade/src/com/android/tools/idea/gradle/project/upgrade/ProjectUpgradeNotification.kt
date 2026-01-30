@@ -39,57 +39,67 @@ const val AGP_UPGRADE_NOTIFICATION_SHOULD_LOG = true
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
-sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP_ID, title, content, type) {
+sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType) :
+  Notification(AGP_UPGRADE_NOTIFICATION_GROUP_ID, title, content, type) {
   var callToActionDismissed = false
   var studioEventSent = false
   abstract val project: Project
   abstract val currentAgpVersion: AgpVersion
 
   init {
-    this.addAction(object : AnAction("Start AGP Upgrade Assistant") {
-      override fun actionPerformed(e: AnActionEvent) {
-        this@ProjectUpgradeNotification.expire(false)
-        LOG.info("Starting AGP Upgrade Assistant")
-        e.project?.let { performRecommendedPluginUpgrade(it) }
+    this.addAction(
+      object : AnAction("Start AGP Upgrade Assistant") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire(false)
+          LOG.info("Starting AGP Upgrade Assistant")
+          e.project?.let { performRecommendedPluginUpgrade(it) }
+        }
       }
-    })
-    this.addAction(object : AnAction("Remind me tomorrow") {
-      override fun actionPerformed(e: AnActionEvent) {
-        this@ProjectUpgradeNotification.expire(false)
-        LOG.info("AGP Upgrade notification postponed for 24 hours")
-        e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
+    )
+    this.addAction(
+      object : AnAction("Remind me tomorrow") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire(false)
+          LOG.info("AGP Upgrade notification postponed for 24 hours")
+          e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
+        }
       }
-    })
-    this.addAction(object : AnAction("Don't ask for this project") {
-      override fun actionPerformed(e: AnActionEvent) {
-        this@ProjectUpgradeNotification.expire(true)
-        LOG.info("AGP Upgrade notification disabled for this project")
-        e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
+    )
+    this.addAction(
+      object : AnAction("Don't ask for this project") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire(true)
+          LOG.info("AGP Upgrade notification disabled for this project")
+          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
+        }
       }
-    })
-    this.addAction(object : AnAction("Don't show again") {
-      override fun actionPerformed(e: AnActionEvent) {
-        this@ProjectUpgradeNotification.expire(true)
-        LOG.info("AGP Upgrade notification disabled application-wide")
-        e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
+    )
+    this.addAction(
+      object : AnAction("Don't show again") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire(true)
+          LOG.info("AGP Upgrade notification disabled application-wide")
+          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
+        }
       }
-    })
+    )
   }
 
   override fun setBalloon(balloon: Balloon) {
     super.setBalloon(balloon)
     // This listener catches closing of the balloon, both explicitly (from clicking the close button) and implicitly (e.g. when expiring).
-    balloon.addListener(object: JBPopupListener {
-      override fun onClosed(event: LightweightWindowEvent) {
-        // If we have been implicitly closed (by running sync, or from changes to Gradle files), then the call to expire(Boolean)
-        // will have sent the event if appropriate.  This call handles cases where the balloon is being closed more directly.
-        //
-        // (In practice, this will not count as a "dismissal"; we identify dismissals as being the actions that will prevent the
-        // notification from reoccurring completely: on this project or in the application.  Leaving this here in case that changes.
-        maybeFireOldAgpCtaDismissedEvent()
+    balloon.addListener(
+      object : JBPopupListener {
+        override fun onClosed(event: LightweightWindowEvent) {
+          // If we have been implicitly closed (by running sync, or from changes to Gradle files), then the call to expire(Boolean)
+          // will have sent the event if appropriate.  This call handles cases where the balloon is being closed more directly.
+          //
+          // (In practice, this will not count as a "dismissal"; we identify dismissals as being the actions that will prevent the
+          // notification from reoccurring completely: on this project or in the application.  Leaving this here in case that changes.
+          maybeFireOldAgpCtaDismissedEvent()
+        }
       }
-    })
+    )
   }
 
   override fun expire() {
@@ -106,10 +116,8 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
 
   private fun maybeFireOldAgpCtaDismissedEvent() {
     if (callToActionDismissed && currentAgpVersion < OLD_AGP_VERSION && !studioEventSent) {
-      val studioEvent = AndroidStudioEvent.newBuilder()
-        .setCategory(PROJECT_SYSTEM)
-        .setKind(UPGRADE_ASSISTANT_CTA_OLD_AGP_DISMISSED)
-        .withProjectId(project)
+      val studioEvent =
+        AndroidStudioEvent.newBuilder().setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_CTA_OLD_AGP_DISMISSED).withProjectId(project)
       UsageTracker.log(studioEvent)
       studioEventSent = true
     }
@@ -120,17 +128,21 @@ sealed class ProjectUpgradeNotification(title: String, content: String, type: No
   }
 }
 
-class UpgradeSuggestion(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION) {
-    init {
-      isSuggestionType = true
-    }
+class UpgradeSuggestion(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion) :
+  ProjectUpgradeNotification(title, content, NotificationType.INFORMATION) {
+  init {
+    isSuggestionType = true
   }
+}
 
-class DeprecatedAgpUpgradeWarning(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.WARNING) {
-    init {
-      isSuggestionType = true
-      isImportantSuggestion = true
-    }
+class DeprecatedAgpUpgradeWarning(
+  title: String,
+  content: String,
+  override val project: Project,
+  override val currentAgpVersion: AgpVersion,
+) : ProjectUpgradeNotification(title, content, NotificationType.WARNING) {
+  init {
+    isSuggestionType = true
+    isImportantSuggestion = true
   }
+}

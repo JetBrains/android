@@ -66,8 +66,7 @@ class PlaybackControls(
     toolbars.forEach { it.playbackControls.updateActionsAsync() }
   }
 
-  fun createToolbar(extraActions: List<AnAction> = emptyList()) =
-    PlaybackToolbar(extraActions).also { toolbars.add(it) }.component
+  fun createToolbar(extraActions: List<AnAction> = emptyList()) = PlaybackToolbar(extraActions).also { toolbars.add(it) }.component
 
   fun pause() {
     playPauseAction.pause()
@@ -78,8 +77,7 @@ class PlaybackControls(
       get() = playbackControls.component
 
     /**
-     * Create a toolbar panel with actions to control the animation, e.g. play, pause and jump to
-     * start/end.
+     * Create a toolbar panel with actions to control the animation, e.g. play, pause and jump to start/end.
      *
      * TODO(b/157895086): Update action icons when we have the final Compose Animation tooling icons
      * TODO(b/157895086): Disable toolbar actions while build is in progress
@@ -89,14 +87,7 @@ class PlaybackControls(
         .createActionToolbar(
           "Animation Preview",
           DefaultActionGroup(
-            listOf(
-              loopAction,
-              GoToStartAction(),
-              playPauseAction,
-              GoToEndAction(),
-              speedAction,
-              Separator(),
-            ) + extraActions
+            listOf(loopAction, GoToStartAction(), playPauseAction, GoToEndAction(), speedAction, Separator()) + extraActions
           ),
           true,
         )
@@ -110,11 +101,7 @@ class PlaybackControls(
 
     /** Snap the animation to the start state. */
     inner class GoToStartAction :
-      DumbAwareAction(
-        message("animation.inspector.action.go.to.start"),
-        null,
-        StudioIcons.LayoutEditor.Motion.GO_TO_START,
-      ) {
+      DumbAwareAction(message("animation.inspector.action.go.to.start"), null, StudioIcons.LayoutEditor.Motion.GO_TO_START) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToStart()
         tracker.triggerJumpToStartAction()
@@ -133,19 +120,14 @@ class PlaybackControls(
 
     /** Snap the animation to the end state. */
     inner class GoToEndAction :
-      DumbAwareAction(
-        message("animation.inspector.action.go.to.end"),
-        null,
-        StudioIcons.LayoutEditor.Motion.GO_TO_END,
-      ) {
+      DumbAwareAction(message("animation.inspector.action.go.to.end"), null, StudioIcons.LayoutEditor.Motion.GO_TO_END) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToEnd()
         tracker.triggerJumpToEndAction()
         // Switch focus to Play button if animation is not playing in the loop at the moment.
         // If animation is playing in the loop - no need to switch focus as GoToEnd button will be
         // enabled again.
-        if (!playPauseAction.isPlaying || !clockControl.playInLoop)
-          playPauseComponent?.requestFocus()
+        if (!playPauseAction.isPlaying || !clockControl.playInLoop) playPauseComponent?.requestFocus()
       }
 
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -156,17 +138,9 @@ class PlaybackControls(
     }
   }
 
-  /**
-   * Action to play and pause the animation. The icon and tooltip gets updated depending on the
-   * playing state.
-   */
+  /** Action to play and pause the animation. The icon and tooltip gets updated depending on the playing state. */
   private inner class PlayPauseAction(parentDisposable: Disposable) :
-    DumbAwareAction(
-      message("animation.inspector.action.play"),
-      null,
-      StudioIcons.LayoutEditor.Motion.PLAY,
-    ),
-    Disposable {
+    DumbAwareAction(message("animation.inspector.action.play"), null, StudioIcons.LayoutEditor.Motion.PLAY), Disposable {
     private val tickPeriod = Duration.ofMillis(30)
 
     /** Ticker that increment the animation timeline while it's playing. */
@@ -174,9 +148,7 @@ class PlaybackControls(
       ControllableTicker(
         {
           if (isPlaying) {
-            UIUtil.invokeLaterIfNeeded {
-              clockControl.incrementClockBy(tickPeriod.toMillis().toInt())
-            }
+            UIUtil.invokeLaterIfNeeded { clockControl.incrementClockBy(tickPeriod.toMillis().toInt()) }
             if (clockControl.isAtEnd()) {
               if (clockControl.playInLoop) {
                 handleLoopEnd()
@@ -245,16 +217,9 @@ class PlaybackControls(
     }
   }
 
-  /**
-   * Action to speed up or slow down the timeline. The clock runs faster/slower depending on the
-   * value selected.
-   */
+  /** Action to speed up or slow down the timeline. The clock runs faster/slower depending on the value selected. */
   private inner class TimelineSpeedAction :
-    DropDownAction(
-      message("animation.inspector.action.speed"),
-      message("animation.inspector.action.speed"),
-      null,
-    ) {
+    DropDownAction(message("animation.inspector.action.speed"), message("animation.inspector.action.speed"), null) {
 
     init {
       enumValues<TimelineSpeed>().forEach { addAction(SpeedAction(it)) }
@@ -267,8 +232,7 @@ class PlaybackControls(
       e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
 
-    private inner class SpeedAction(private val speed: TimelineSpeed) :
-      ToggleAction(speed.displayText, speed.displayText, null) {
+    private inner class SpeedAction(private val speed: TimelineSpeed) : ToggleAction(speed.displayText, speed.displayText, null) {
       override fun isSelected(e: AnActionEvent) = clockControl.speed == speed
 
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -281,10 +245,9 @@ class PlaybackControls(
   }
 
   /**
-   * Action to keep the timeline playing in loop. When active, the timeline will keep playing
-   * indefinitely instead of stopping at the end. When reaching the end of the window, the timeline
-   * will increment the loop count until it reaches its limit. When that happens, the timelines
-   * jumps back to start.
+   * Action to keep the timeline playing in loop. When active, the timeline will keep playing indefinitely instead of stopping at the end.
+   * When reaching the end of the window, the timeline will increment the loop count until it reaches its limit. When that happens, the
+   * timelines jumps back to start.
    *
    * TODO(b/157895086): Add a proper icon for the action.
    */

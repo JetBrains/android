@@ -29,8 +29,7 @@ import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
 class AndroidProfilerLaunchTaskContributorTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testIsProfilerLaunch() {
@@ -54,8 +53,10 @@ class AndroidProfilerLaunchTaskContributorTest {
 
     // Empty string for non-profiler executors.
     val defaultRunExecutor = DefaultRunExecutor.getRunExecutorInstance()
-    assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", profilerState, device,
-                                                                      defaultRunExecutor)).isEmpty()
+    assertThat(
+        AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", profilerState, device, defaultRunExecutor)
+      )
+      .isEmpty()
 
     // Empty string for null ProfilerState.
     val profileExecutor = ProfileRunExecutor.getInstance()!!

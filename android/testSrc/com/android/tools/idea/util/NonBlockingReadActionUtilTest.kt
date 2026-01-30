@@ -23,17 +23,16 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import org.junit.Rule
+import org.junit.Test
 
 class NonBlockingReadActionUtilTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun waitInterruptibly() {
@@ -50,19 +49,21 @@ class NonBlockingReadActionUtilTest {
     }
     var attempts = 0
     while (reads.decrementAndGet() > 0) {
-      val result = ReadAction.nonBlocking(
-        Callable {
-          val future = CompletableFuture.runAsync(
-            { Thread.sleep(Random.nextLong(5)) },
-            AndroidExecutors.getInstance().workerThreadExecutor
+      val result =
+        ReadAction.nonBlocking(
+            Callable {
+              val future =
+                CompletableFuture.runAsync({ Thread.sleep(Random.nextLong(5)) }, AndroidExecutors.getInstance().workerThreadExecutor)
+              runReadAction {
+                attempts++
+                future.waitInterruptibly()
+                future.get()
+              }
+            }
           )
-          runReadAction {
-            attempts++
-            future.waitInterruptibly()
-            future.get()
-          }
-        }).executeSynchronously()
+          .executeSynchronously()
     }
-    assertThat(attempts).isGreaterThan(requestedReads * 120 / 100) // At last some reads will restart. It usually completes with attempts >= 120.
+    assertThat(attempts)
+      .isGreaterThan(requestedReads * 120 / 100) // At last some reads will restart. It usually completes with attempts >= 120.
   }
 }

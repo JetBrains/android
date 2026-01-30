@@ -27,8 +27,7 @@ import com.intellij.openapi.project.DumbAware
 /** Simulates pressing the Home button on an Android device. */
 internal class StreamingHomeButtonAction : DelegatingPushButtonAction(HomeButtonAction(), AllAppsButtonAction()), DumbAware {
 
-  override fun getDelegate(event: AnActionEvent): AnAction =
-    delegates[if (getDeviceType(event) == DeviceType.XR_HEADSET) 1 else 0]
+  override fun getDelegate(event: AnActionEvent): AnAction = delegates[if (getDeviceType(event) == DeviceType.XR_HEADSET) 1 else 0]
 }
 
 private class HomeButtonAction : StreamingPushButtonAction(EmulatorHomeButtonAction(), DeviceHomeButtonAction())

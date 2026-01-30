@@ -41,32 +41,32 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Producer
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.Transferable
-import java.awt.datatransfer.UnsupportedFlavorException
 
-private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE,
-                                                      "my_resource")
+private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE, "my_resource")
 
 @Language("kotlin")
-private const val DEFAULT_KOTLIN_FILE_CONTENT = "package com.example.myapplication\n" +
-                                          "\n" +
-                                          "import android.os.Bundle\n" +
-                                          "import androidx.appcompat.app.AppCompatActivity\n" +
-                                          "\n" +
-                                          "class MainActivity : AppCompatActivity() {\n" +
-                                          "\n" +
-                                          "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
-                                          "        super.onCreate(savedInstanceState)\n" +
-                                          "        setContentView(R.layout.activity_main)\n" +
-                                          "        val color = R.color.my_color\n" +
-                                          "    }\n" +
-                                          "}"
+private const val DEFAULT_KOTLIN_FILE_CONTENT =
+  "package com.example.myapplication\n" +
+    "\n" +
+    "import android.os.Bundle\n" +
+    "import androidx.appcompat.app.AppCompatActivity\n" +
+    "\n" +
+    "class MainActivity : AppCompatActivity() {\n" +
+    "\n" +
+    "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
+    "        super.onCreate(savedInstanceState)\n" +
+    "        setContentView(R.layout.activity_main)\n" +
+    "        val color = R.color.my_color\n" +
+    "    }\n" +
+    "}"
 
 private fun ResourcePasteProvider.paste(dataContext: DataContext) {
   runInEdtAndWait { runUndoTransparentWriteAction { performPaste(dataContext) } }
@@ -75,7 +75,8 @@ private fun ResourcePasteProvider.paste(dataContext: DataContext) {
 internal class ResourcePasteProviderTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory() // TODO(KT-28244) Fallback to ProjectRule when https://youtrack.jetbrains.com/issue/KT-28244 is fixed
+  val projectRule =
+    AndroidProjectRule.inMemory() // TODO(KT-28244) Fallback to ProjectRule when https://youtrack.jetbrains.com/issue/KT-28244 is fixed
 
   private lateinit var project: Project
   private lateinit var editor: Editor
@@ -104,34 +105,40 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteOnKotlinMethodCall() {
-    testPasteOnKotlinFile(stringToMoveCaret = "ContentView",
-                          expectedChange = "setContentView(R.layout.activity_main,namespace.R.drawable.my_resource)")
+    testPasteOnKotlinFile(
+      stringToMoveCaret = "ContentView",
+      expectedChange = "setContentView(R.layout.activity_main,namespace.R.drawable.my_resource)",
+    )
   }
 
   @Test
   fun pasteOnKotlinPropertyInitialization() {
-    testPasteOnKotlinFile(stringToMoveCaret = "my_color",
-                          expectedChange = "val color = namespace.R.drawable.my_resource")
+    testPasteOnKotlinFile(stringToMoveCaret = "my_color", expectedChange = "val color = namespace.R.drawable.my_resource")
   }
 
   @Test
   fun pasteOnKotlinPropertyInitialization2() {
-    testPasteOnKotlinFile(stringToMoveCaret = " color = ",
-                          expectedChange = "val color = namespace.R.drawable.my_resource")
+    testPasteOnKotlinFile(stringToMoveCaret = " color = ", expectedChange = "val color = namespace.R.drawable.my_resource")
   }
 
   @Test
   fun pasteOnKotlinUnknownElement() {
-    testPasteOnKotlinFile(stringToMoveCaret = "super.onCreate",
-                          expectedChange = "namespace.R.drawable.my_resourcesuper.onCreate(savedInstanceState)")
+    testPasteOnKotlinFile(
+      stringToMoveCaret = "super.onCreate",
+      expectedChange = "namespace.R.drawable.my_resourcesuper.onCreate(savedInstanceState)",
+    )
   }
 
   @Test
   fun pasteOntoImageView() {
-    val content = """<ImageView
-        |      xmlns:android="http://schemas.android.com/apk/res/android"
-        |    android:layout_width="wrap_content"
-        |    android:layout_height="wrap_content"/>""".trimMargin()
+    val content =
+      """
+      |<ImageView
+      |      xmlns:android="http://schemas.android.com/apk/res/android"
+      |    android:layout_width="wrap_content"
+      |    android:layout_height="wrap_content"/>
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -147,12 +154,16 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteOnAttributeValue() {
-    val content = """<ImageView
-        |      xmlns:android="http://schemas.android.com/apk/res/android"
-        |    android:layout_width="wrap_content"
-        |    android:layout_height="wrap_content"
-        |    android:background="a random background"
-        |    />""".trimMargin()
+    val content =
+      """
+      |<ImageView
+      |      xmlns:android="http://schemas.android.com/apk/res/android"
+      |    android:layout_width="wrap_content"
+      |    android:layout_height="wrap_content"
+      |    android:background="a random background"
+      |    />
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -169,12 +180,16 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteInDataBindingAttributeValue() {
-    val content = """<ImageView
-        |      xmlns:android="http://schemas.android.com/apk/res/android"
-        |    android:layout_width="wrap_content"
-        |    android:layout_height="wrap_content"
-        |    android:background="@{databinding}"
-        |    />""".trimMargin()
+    val content =
+      """
+      |<ImageView
+      |      xmlns:android="http://schemas.android.com/apk/res/android"
+      |    android:layout_width="wrap_content"
+      |    android:layout_height="wrap_content"
+      |    android:background="@{databinding}"
+      |    />
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -191,12 +206,16 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteOutsideDataBindingAttributeValue() {
-    val content = """<ImageView
-        |      xmlns:android="http://schemas.android.com/apk/res/android"
-        |    android:layout_width="wrap_content"
-        |    android:layout_height="wrap_content"
-        |    android:background="@{databinding}"
-        |    />""".trimMargin()
+    val content =
+      """
+      |<ImageView
+      |      xmlns:android="http://schemas.android.com/apk/res/android"
+      |    android:layout_width="wrap_content"
+      |    android:layout_height="wrap_content"
+      |    android:background="@{databinding}"
+      |    />
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -213,12 +232,16 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteOnAttribute() {
-    val content = """<ImageView
-        |      xmlns:android="http://schemas.android.com/apk/res/android"
-        |    android:layout_width="wrap_content"
-        |    android:layout_height="wrap_content"
-        |    android:background="a random background"
-        |    />""".trimMargin()
+    val content =
+      """
+      |<ImageView
+      |      xmlns:android="http://schemas.android.com/apk/res/android"
+      |    android:layout_width="wrap_content"
+      |    android:layout_height="wrap_content"
+      |    android:background="a random background"
+      |    />
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     editor = createEditor(psiFile)
@@ -234,12 +257,14 @@ internal class ResourcePasteProviderTest {
 
   @Test
   fun pasteOnWhiteSpace() {
-    val content = """
+    val content =
+      """
       |<Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
       |   <Tag2>
       |   </Tag2>
       |</Tag1>
-    """.trimMargin()
+      """
+        .trimMargin()
 
     val psiFile = psiFile(content)
     val psiFilePointer = runInEdtAndGet { SmartPointerManager.createPointer(psiFile) }
@@ -251,38 +276,46 @@ internal class ResourcePasteProviderTest {
     val resourcePasteProvider = ResourcePasteProvider()
     resourcePasteProvider.paste(dataContext)
 
-    Truth.assertThat(editor.document.text).isEqualTo("""
-    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
-       <Tag2>
+    Truth.assertThat(editor.document.text)
+      .isEqualTo(
+        """
+        <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+           <Tag2>
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@namespace:drawable/my_resource" />
-       </Tag2>
-    </Tag1>
-    """.trimIndent())
+               <ImageView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:src="@namespace:drawable/my_resource" />
+           </Tag2>
+        </Tag1>
+        """
+          .trimIndent()
+      )
 
     run {
       val file = runInEdtAndGet { psiFilePointer.element!! }
       resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@drawable/resource2")!!))
 
-      Truth.assertThat(editor.document.text).isEqualTo("""
-    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
-       <Tag2>
+      Truth.assertThat(editor.document.text)
+        .isEqualTo(
+          """
+          <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+             <Tag2>
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@drawable/resource2" />
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@drawable/resource2" />
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@namespace:drawable/my_resource" />
-       </Tag2>
-    </Tag1>
-  """.trimIndent())
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@namespace:drawable/my_resource" />
+             </Tag2>
+          </Tag1>
+          """
+            .trimIndent()
+        )
     }
 
     val tagIndex2 = editor.document.text.indexOf("</Tag2>") + "</Tag2>".length
@@ -292,27 +325,31 @@ internal class ResourcePasteProviderTest {
       val file = runInEdtAndGet { psiFilePointer.element!! }
       resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@drawable/resource3")!!))
 
-      Truth.assertThat(editor.document.text).isEqualTo("""
-    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
-       <Tag2>
+      Truth.assertThat(editor.document.text)
+        .isEqualTo(
+          """
+          <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+             <Tag2>
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@drawable/resource2" />
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@drawable/resource2" />
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@namespace:drawable/my_resource" />
-       </Tag2>
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@namespace:drawable/my_resource" />
+             </Tag2>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/resource3" />
-    </Tag1>
-    """.trimIndent())
+              <ImageView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:src="@drawable/resource3" />
+          </Tag1>
+          """
+            .trimIndent()
+        )
     }
 
     runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex2) }
@@ -321,32 +358,36 @@ internal class ResourcePasteProviderTest {
       val file = runInEdtAndGet { psiFilePointer.element!! }
       resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@layout/my_layout")!!))
 
-      Truth.assertThat(editor.document.text).isEqualTo("""
-    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
-       <Tag2>
+      Truth.assertThat(editor.document.text)
+        .isEqualTo(
+          """
+          <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+             <Tag2>
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@drawable/resource2" />
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@drawable/resource2" />
 
-           <ImageView
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@namespace:drawable/my_resource" />
-       </Tag2>
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@namespace:drawable/my_resource" />
+             </Tag2>
 
-        <include
-            layout="@layout/my_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+              <include
+                  layout="@layout/my_layout"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/resource3" />
-    </Tag1>
-    """.trimIndent())
+              <ImageView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:src="@drawable/resource3" />
+          </Tag1>
+          """
+            .trimIndent()
+        )
     }
   }
 
@@ -359,39 +400,35 @@ internal class ResourcePasteProviderTest {
   private fun psiKtFile(content: String): PsiFile {
     val fileSystem = MockVirtualFileSystem()
     val activityFile: VirtualFile = fileSystem.file("/main/MainActivity.kt", content).refreshAndFindFileByPath("/main/MainActivity.kt")!!
-    return runReadAction {
-      PsiManager.getInstance(project).findFile(activityFile)!!
-    }
+    return runReadAction { PsiManager.getInstance(project).findFile(activityFile)!! }
   }
 
   private fun psiFile(content: String): PsiFile {
     val fileSystem = MockVirtualFileSystem()
     val layoutFile: VirtualFile = fileSystem.file("/layout/layout.xml", content).refreshAndFindFileByPath("/layout/layout.xml")!!
-    return runReadAction {
-      PsiManager.getInstance(project).findFile(layoutFile)!!
-    }
+    return runReadAction { PsiManager.getInstance(project).findFile(layoutFile)!! }
   }
 
-  private fun createDataContext(editor: Editor,
-                                psiFile: PsiFile,
-                                resourceUrl: ResourceUrl = DEFAULT_RESOURCE_URL): DataContext =
+  private fun createDataContext(editor: Editor, psiFile: PsiFile, resourceUrl: ResourceUrl = DEFAULT_RESOURCE_URL): DataContext =
     SimpleDataContext.builder()
       .add(PasteAction.TRANSFERABLE_PROVIDER, Producer { createTransferable(resourceUrl) })
       .add(CommonDataKeys.CARET, editor.caretModel.currentCaret)
       .add(CommonDataKeys.PSI_FILE, psiFile)
       .build()
 
-  private fun createTransferable(resourceUrl: ResourceUrl) = object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any = when (flavor) {
-      RESOURCE_URL_FLAVOR -> resourceUrl
-      DataFlavor.stringFlavor -> resourceUrl.toString()
-      else -> throw UnsupportedFlavorException(flavor)
+  private fun createTransferable(resourceUrl: ResourceUrl) =
+    object : Transferable {
+      override fun getTransferData(flavor: DataFlavor?): Any =
+        when (flavor) {
+          RESOURCE_URL_FLAVOR -> resourceUrl
+          DataFlavor.stringFlavor -> resourceUrl.toString()
+          else -> throw UnsupportedFlavorException(flavor)
+        }
+
+      override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = true
+
+      override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(RESOURCE_URL_FLAVOR)
     }
-
-    override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = true
-
-    override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(RESOURCE_URL_FLAVOR)
-  }
 
   private fun testPasteOnKotlinFile(fileContents: String = DEFAULT_KOTLIN_FILE_CONTENT, stringToMoveCaret: String, expectedChange: String) {
     val psiKtFile = psiKtFile(fileContents)

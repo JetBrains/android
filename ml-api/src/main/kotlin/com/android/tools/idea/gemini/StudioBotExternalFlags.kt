@@ -20,18 +20,14 @@ import com.intellij.openapi.extensions.ExtensionPointName
 /** Flags that are relevant to features using Studio Bot APIs */
 interface StudioBotExternalFlags {
   /**
-   * For the 'Explain Build Error' action in Android Studio; controls whether context should be
-   * fetched and attached for Java/Kotlin compiler errors.
+   * For the 'Explain Build Error' action in Android Studio; controls whether context should be fetched and attached for Java/Kotlin
+   * compiler errors.
    */
   fun isCompilerErrorContextEnabled(): Boolean
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName.create<StudioBotExternalFlags>(
-        "com.android.tools.idea.ml.studioBotExternalFlags"
-      )
+    val EP_NAME = ExtensionPointName.create<StudioBotExternalFlags>("com.android.tools.idea.ml.studioBotExternalFlags")
 
-    fun isCompilerErrorContextEnabled(): Boolean =
-      EP_NAME.extensionList.firstOrNull()?.isCompilerErrorContextEnabled() ?: false
+    fun isCompilerErrorContextEnabled(): Boolean = EP_NAME.extensionList.firstOrNull()?.isCompilerErrorContextEnabled() ?: false
   }
 }

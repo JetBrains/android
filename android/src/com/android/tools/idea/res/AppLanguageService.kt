@@ -31,8 +31,7 @@ import com.intellij.openapi.project.Project
 data class AppLanguageInfo(val applicationId: String, val localeConfig: Set<LocaleQualifier>)
 
 private val enabledStates = setOf(PseudoLocalesState.ENABLED, PseudoLocalesState.BOTH)
-private val pseudoLocales =
-  setOf(LocaleQualifier(null, "en", "XA", null), LocaleQualifier(null, "ar", "XB", null))
+private val pseudoLocales = setOf(LocaleQualifier(null, "en", "XA", null), LocaleQualifier(null, "ar", "XB", null))
 
 /** Provides [AppLanguageInfo] for a given Project. */
 fun interface AppLanguageService {
@@ -41,10 +40,7 @@ fun interface AppLanguageService {
   }
 
   /** Returns the [AppLanguageInfo] of the specified application. */
-  @Slow
-  fun getAppLanguageInfo(
-    runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity
-  ): AppLanguageInfo?
+  @Slow fun getAppLanguageInfo(runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity): AppLanguageInfo?
 }
 
 @Service(Service.Level.PROJECT)
@@ -53,16 +49,12 @@ class AppLanguageServiceImpl(private val project: Project) : AppLanguageService 
   override fun getAppLanguageInfo(
     runningApplicationIdentity: ApplicationProjectContextProvider.RunningApplicationIdentity
   ): AppLanguageInfo? {
-    val context =
-      project.getProjectSystem().getApplicationProjectContext(runningApplicationIdentity)
-        ?: return null
+    val context = project.getProjectSystem().getApplicationProjectContext(runningApplicationIdentity) ?: return null
     val facet = (context as? FacetBasedApplicationProjectContext)?.facet ?: return null
-    val pseudoLocalesEnabled =
-      project.getProjectSystem().isPseudoLocalesEnabled(context) in enabledStates
+    val pseudoLocalesEnabled = project.getProjectSystem().isPseudoLocalesEnabled(context) in enabledStates
     return AppLanguageInfo(
       applicationId = context.applicationId,
-      localeConfig =
-        getLocaleConfig(facet) + if (pseudoLocalesEnabled) pseudoLocales else emptySet(),
+      localeConfig = getLocaleConfig(facet) + if (pseudoLocalesEnabled) pseudoLocales else emptySet(),
     )
   }
 }

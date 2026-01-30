@@ -18,17 +18,18 @@ package com.android.tools.idea.stats
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class EventsLimiter(private val eventCount : Int,
-                    private val periodMs : Long,
-                    private val manualReset : Boolean,
-                    private val timeProvider : () -> Long = { TimeUnit.NANOSECONDS.toMillis(System.nanoTime())})
-{
+class EventsLimiter(
+  private val eventCount: Int,
+  private val periodMs: Long,
+  private val manualReset: Boolean,
+  private val timeProvider: () -> Long = { TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) },
+) {
   private val LOCK = Object()
 
   private var queue = ArrayDeque<Long>(eventCount)
   private var disabled = false
 
-  fun tryAcquire() : Boolean {
+  fun tryAcquire(): Boolean {
     synchronized(LOCK) {
       if (disabled) {
         return false

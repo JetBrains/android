@@ -16,15 +16,13 @@
 package com.android.tools.idea.device.explorer.files
 
 import com.intellij.AbstractBundle
-import org.jetbrains.annotations.PropertyKey
 import java.util.ResourceBundle
+import org.jetbrains.annotations.PropertyKey
 
 private const val BUNDLE_NAME = "messages.DeviceFileExplorerBundle"
 
 object DeviceExplorerBundle {
-  private val bundle by lazy {
-    ResourceBundle.getBundle(BUNDLE_NAME)
-  }
+  private val bundle by lazy { ResourceBundle.getBundle(BUNDLE_NAME) }
 
   @JvmStatic
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {

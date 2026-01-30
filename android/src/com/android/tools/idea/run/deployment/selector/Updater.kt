@@ -18,10 +18,7 @@ package com.android.tools.idea.run.deployment.selector
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 
-internal class Updater(
-  private val presentation: Presentation,
-  private val devicesAndTargets: DevicesAndTargets,
-) {
+internal class Updater(private val presentation: Presentation, private val devicesAndTargets: DevicesAndTargets) {
   fun update() {
     if (devicesAndTargets.isMultipleSelectionMode) {
       presentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES)
@@ -34,22 +31,18 @@ internal class Updater(
         presentation.text = "No Devices"
       } else {
         presentation.setIcon(target.device.icon)
-        presentation.putClientProperty(
-          DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY,
-          target.device.launchCompatibility,
-        )
+        presentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, target.device.launchCompatibility)
         presentation.setText(target.displayText(), false)
       }
     }
   }
 
   /**
-   * Returns the text to display in the drop down button. It usually indicates the device selected
-   * by the user. If there's another device in the drop down with the same name as the selected
-   * device, this method appends the selected device's disambiguator to the text, if available. If
-   * it's appropriate to display the boot option (Cold Boot, Quick Boot, the name of the snapshot
-   * for a snapshot boot), this method appends it to the text. If the underlying machinery has
-   * determined a reason why a device isn't valid, this method appends that too.
+   * Returns the text to display in the drop down button. It usually indicates the device selected by the user. If there's another device in
+   * the drop down with the same name as the selected device, this method appends the selected device's disambiguator to the text, if
+   * available. If it's appropriate to display the boot option (Cold Boot, Quick Boot, the name of the snapshot for a snapshot boot), this
+   * method appends it to the text. If the underlying machinery has determined a reason why a device isn't valid, this method appends that
+   * too.
    *
    * @param device the device selected by the user
    * @param target responsible for the boot option text if it's appropriate to display it

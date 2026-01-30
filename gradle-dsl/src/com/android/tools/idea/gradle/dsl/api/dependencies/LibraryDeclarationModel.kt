@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.dsl.api.dependencies
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 
-/**
- * Model for library declaration in version catalog.
- */
+/** Model for library declaration in version catalog. */
 interface LibraryDeclarationModel : PsiElementHolder {
   fun compactNotation(): String
 

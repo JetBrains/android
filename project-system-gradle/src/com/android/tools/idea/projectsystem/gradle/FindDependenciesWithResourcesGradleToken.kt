@@ -19,20 +19,20 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.intellij.openapi.module.Module
 
 class FindDependenciesWithResourcesGradleToken : FindDependenciesWithResourcesToken<GradleModuleSystem>, GradleToken {
   override fun findDependencies(moduleSystem: GradleModuleSystem, module: Module): Collection<ExternalAndroidLibrary> {
-    val dependencyScope = when {
-      moduleSystem.isRClassTransitive -> DependencyScopeType.MAIN
-      module.isMainModule() -> DependencyScopeType.MAIN
-      module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
-      module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
-      module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
-      module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
-      else -> DependencyScopeType.MAIN
-    }
+    val dependencyScope =
+      when {
+        moduleSystem.isRClassTransitive -> DependencyScopeType.MAIN
+        module.isMainModule() -> DependencyScopeType.MAIN
+        module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
+        module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
+        module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
+        module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
+        else -> DependencyScopeType.MAIN
+      }
     return moduleSystem.getAndroidLibraryDependencies(dependencyScope)
   }
 }

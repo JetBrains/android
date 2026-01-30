@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.logging
 /**
  * An interface for all events that are logged.
  *
- * This interface is used to ensure that all logged events have a consistent structure and can be
- * easily processed.
+ * This interface is used to ensure that all logged events have a consistent structure and can be easily processed.
  */
 interface LoggedEvent {}

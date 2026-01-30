@@ -40,15 +40,13 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle
 
-/**
- * StateManager for RestartAdbAction, displays if there are any connected devices to the user through the
- * state message.
- */
+/** StateManager for RestartAdbAction, displays if there are any connected devices to the user through the state message. */
 class RestartAdbActionStateManager : AssistActionStateManager() {
 
   private val projectStates = mutableMapOf<Project, State>()
 
-  private inner class State(val project: Project) : AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
+  private inner class State(val project: Project) :
+    AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable {
     private var adbFuture: ListenableFuture<AndroidDebugBridge>? = null
     private var loading = false
 
@@ -64,15 +62,19 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
       val adbFutureNotNull = AdbService.getInstance().getDebugBridge(adb) ?: return
       adbFuture = adbFutureNotNull
 
-      Futures.addCallback(adbFutureNotNull, object : FutureCallback<AndroidDebugBridge> {
-        override fun onSuccess(bridge: AndroidDebugBridge) {
-          refreshDependencyState(project)
-        }
+      Futures.addCallback(
+        adbFutureNotNull,
+        object : FutureCallback<AndroidDebugBridge> {
+          override fun onSuccess(bridge: AndroidDebugBridge) {
+            refreshDependencyState(project)
+          }
 
-        override fun onFailure(t: Throwable) {
-          refreshDependencyState(project)
-        }
-      }, EdtExecutorService.getInstance())
+          override fun onFailure(t: Throwable) {
+            refreshDependencyState(project)
+          }
+        },
+        EdtExecutorService.getInstance(),
+      )
     }
 
     private fun setLoading(loading: Boolean) {
@@ -91,7 +93,7 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
     }
 
     override fun deviceConnected(device: IDevice) {
-        refreshDependencyState(project)
+      refreshDependencyState(project)
     }
 
     override fun deviceDisconnected(device: IDevice) {
@@ -125,32 +127,35 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
     fun getStateDisplay(): StatefulButtonMessage {
       val state = getAssistActionState()
-      val (title, body) = when (state) {
-        DefaultActionState.IN_PROGRESS -> ButtonMessage(AndroidBundle.message("connection.assistant.loading"))
-        CustomSuccessState, DefaultActionState.ERROR_RETRY -> {
-          val adb = AndroidDebugBridge.getBridge()
+      val (title, body) =
+        when (state) {
+          DefaultActionState.IN_PROGRESS -> ButtonMessage(AndroidBundle.message("connection.assistant.loading"))
+          CustomSuccessState,
+          DefaultActionState.ERROR_RETRY -> {
+            val adb = AndroidDebugBridge.getBridge()
 
-          val deviceCount = adb?.devices?.size ?: -1
-          UsageTracker.log(
-            AndroidStudioEvent.newBuilder()
-              .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-              .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
-                                             .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
-                                             .setAdbDevicesDetected(deviceCount))
-              .withProjectId(project))
+            val deviceCount = adb?.devices?.size ?: -1
+            UsageTracker.log(
+              AndroidStudioEvent.newBuilder()
+                .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+                .setConnectionAssistantEvent(
+                  ConnectionAssistantEvent.newBuilder()
+                    .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.ADB_DEVICES_DETECTED)
+                    .setAdbDevicesDetected(deviceCount)
+                )
+                .withProjectId(project)
+            )
 
-          if (adb != null) {
-            generateMessage(adb.devices)
+            if (adb != null) {
+              generateMessage(adb.devices)
+            } else {
+              ButtonMessage(AndroidBundle.message("connection.assistant.adb.failure"))
+            }
           }
-          else {
-            ButtonMessage(AndroidBundle.message("connection.assistant.adb.failure"))
+          else -> {
+            ButtonMessage(AndroidBundle.message("connection.assistant.adb.unexpected"))
           }
-
         }
-        else -> {
-          ButtonMessage(AndroidBundle.message("connection.assistant.adb.unexpected"))
-        }
-      }
 
       return StatefulButtonMessage(title, state, body)
     }
@@ -184,23 +189,26 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
     return if (devices.isEmpty()) {
       ButtonMessage(
         HtmlBuilder().addHtml(AndroidBundle.message("connection.assistant.adb.no_devices.title")).newlineIfNecessary().html,
-        HtmlBuilder().addHtml("<p>${AndroidBundle.message("connection.assistant.adb.no_devices.body")}</p>").html)
-    }
-    else {
-      val title = HtmlBuilder().addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">"
-          + AndroidBundle.message("connection.assistant.adb.devices")
-          + "</span>").html
+        HtmlBuilder().addHtml("<p>${AndroidBundle.message("connection.assistant.adb.no_devices.body")}</p>").html,
+      )
+    } else {
+      val title =
+        HtmlBuilder()
+          .addHtml(
+            "<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">" +
+              AndroidBundle.message("connection.assistant.adb.devices") +
+              "</span>"
+          )
+          .html
 
       val htmlBodyBuilder = HtmlBuilder()
       devices.forEach { device ->
         val deviceVersion = device.version.takeIf { it != AndroidVersion.DEFAULT }
-        htmlBodyBuilder.addHtml("<p><span>${device.name}</span>")
-            .newline().apply {
-              if (deviceVersion != null) {
-                addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>")
-                  .newline()
-              }
-            }
+        htmlBodyBuilder.addHtml("<p><span>${device.name}</span>").newline().apply {
+          if (deviceVersion != null) {
+            addHtml("<span style=\"font-size: 80%; font-weight: lighter;\">${device.version}</span></p>").newline()
+          }
+        }
       }
       ButtonMessage(title, htmlBodyBuilder.html)
     }

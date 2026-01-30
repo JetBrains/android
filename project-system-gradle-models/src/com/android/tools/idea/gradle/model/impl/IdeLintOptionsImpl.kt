@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import java.io.File
-
 import java.io.Serializable
 
 data class IdeLintOptionsImpl(
@@ -49,7 +48,7 @@ data class IdeLintOptionsImpl(
   override val xmlReport: Boolean = true,
   override val xmlOutput: FileImpl? = null,
   override val sarifReport: Boolean = false,
-  override val sarifOutput: FileImpl? = null
+  override val sarifOutput: FileImpl? = null,
 ) : Serializable, IdeLintOptions {
   constructor(
     baselineFile: File?,
@@ -110,6 +109,6 @@ data class IdeLintOptionsImpl(
     xmlReport,
     xmlOutput?.toImpl(),
     sarifReport,
-    sarifOutput?.toImpl()
+    sarifOutput?.toImpl(),
   )
 }

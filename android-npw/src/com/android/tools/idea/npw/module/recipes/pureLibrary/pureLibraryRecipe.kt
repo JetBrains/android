@@ -26,11 +26,7 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generatePureLibrary(
-  moduleData: ModuleTemplateData,
-  className: String,
-  useGradleKts: Boolean,
-) {
+fun RecipeExecutor.generatePureLibrary(moduleData: ModuleTemplateData, className: String, useGradleKts: Boolean) {
   val (projectData, srcOut) = moduleData
   val moduleOut = moduleData.rootDir
   val language = projectData.language
@@ -42,8 +38,7 @@ fun RecipeExecutor.generatePureLibrary(
   save(buildGradle(), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
-    if (language == Language.Kotlin) placeholderKt(packageName, className)
-    else placeholderJava(packageName, className),
+    if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
     srcOut.resolve("$className.${language.extension}"),
   )
 
@@ -52,11 +47,7 @@ fun RecipeExecutor.generatePureLibrary(
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
     addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.apiLevel)
-    addPlugin(
-      "org.jetbrains.kotlin.jvm",
-      "org.jetbrains.kotlin:kotlin-gradle-plugin",
-      projectData.kotlinVersion,
-    )
+    addPlugin("org.jetbrains.kotlin.jvm", "org.jetbrains.kotlin:kotlin-gradle-plugin", projectData.kotlinVersion)
   }
   setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

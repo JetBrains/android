@@ -142,9 +142,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     val builder = navEventBuilder.actionInfoBuilder
     val source = actionComponent.parent ?: return this // shouldn't happen
     val destination = actionComponent.actionDestination
-    val root =
-      if (actionComponent.parent?.isNavigation == true) actionComponent.parent
-      else actionComponent.parent?.parent
+    val root = if (actionComponent.parent?.isNavigation == true) actionComponent.parent else actionComponent.parent?.parent
     builder.type =
       when (actionComponent.getActionType(root)) {
         ActionType.GLOBAL -> NavActionInfo.ActionType.GLOBAL
@@ -250,16 +248,12 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
         if (component.parent != null && component.isNavigation && !component.isInclude) {
           nestedGraphs++
         }
-        if (
-          component.destinationType != NavigationSchema.DestinationType.NAVIGATION &&
-            component.className == null
-        ) {
+        if (component.destinationType != NavigationSchema.DestinationType.NAVIGATION && component.className == null) {
           placeholders++
         }
       }
       if (component.isAction) {
-        val actionRoot =
-          if (component.parent?.isNavigation == true) component.parent else component.parent?.parent
+        val actionRoot = if (component.parent?.isNavigation == true) component.parent else component.parent?.parent
         when (component.getActionType(actionRoot)) {
           ActionType.GLOBAL -> globalActions++
           ActionType.SELF -> selfActions++

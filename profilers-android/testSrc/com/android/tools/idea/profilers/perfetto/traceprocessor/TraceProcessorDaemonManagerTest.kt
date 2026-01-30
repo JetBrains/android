@@ -18,11 +18,11 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.io.BufferedReader
 import java.io.StringReader
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class TraceProcessorDaemonManagerTest {
 
@@ -132,14 +132,14 @@ class TraceProcessorDaemonManagerTest {
     assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
   }
 
-  private class RunListener(private val listener: TraceProcessorDaemonManager.TPDStdoutListener): Runnable {
+  private class RunListener(private val listener: TraceProcessorDaemonManager.TPDStdoutListener) : Runnable {
     override fun run() {
       listener.run()
     }
   }
 
   // Holds {@code lock} until unlock() is called.
-  private class LockHolder(private val lock: Any): Runnable {
+  private class LockHolder(private val lock: Any) : Runnable {
     private val internalLock = Object()
     private var locked = false
 
@@ -157,21 +157,16 @@ class TraceProcessorDaemonManagerTest {
     }
 
     fun unlock() {
-      synchronized(internalLock) {
-        internalLock.notifyAll()
-      }
+      synchronized(internalLock) { internalLock.notifyAll() }
     }
 
     fun waitUntilLocked() {
-      synchronized(internalLock) {
-        while (!locked) internalLock.wait()
-      }
+      synchronized(internalLock) { while (!locked) internalLock.wait() }
     }
   }
 
   // Impl of StringReader with internal lock exposed, so we can test timeout logic.
-  private class LockExposedStringReader(str: String): StringReader(str) {
+  private class LockExposedStringReader(str: String) : StringReader(str) {
     fun getLock(): Any = this.lock
   }
-
 }

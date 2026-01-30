@@ -27,7 +27,8 @@ class AidlPairedBraceMatcherTest : BasePlatformTestCase() {
     union Union {
       int[] ns = {};
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun String.offset(window: String): Int {
     val delta = window.indexOf('|')

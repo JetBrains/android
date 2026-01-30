@@ -60,23 +60,19 @@ class AppInsightsExternalAnnotatorTest {
       }
 
     ApplicationManager.getApplication()
-      .replaceService(
-        LineMarkerSettings::class.java,
-        fakeLineMarkerSettings,
-        projectRule.testRootDisposable,
-      )
+      .replaceService(LineMarkerSettings::class.java, fakeLineMarkerSettings, projectRule.testRootDisposable)
 
     checkAnnotations(
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       lineToInsights = emptyList(),
     )
@@ -90,13 +86,13 @@ class AppInsightsExternalAnnotatorTest {
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       lineToInsights = emptyList(),
     )
@@ -117,13 +113,13 @@ class AppInsightsExternalAnnotatorTest {
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       lineToInsights = listOf(LineToInsights(3, listOf(expected[0]))),
     )
@@ -145,26 +141,22 @@ class AppInsightsExternalAnnotatorTest {
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
-      lineToInsights =
-        listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
+      lineToInsights = listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
     )
   }
 
   @Test
   fun `annotations from single insights source`() {
     val expected =
-      listOf(
-        buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)),
-        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
-      )
+      listOf(buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)), buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)))
 
     withFakedInsights(expected)
 
@@ -172,31 +164,24 @@ class AppInsightsExternalAnnotatorTest {
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
-      lineToInsights =
-        listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
+      lineToInsights = listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
     )
   }
 
   @Test
   fun `annotations from two insights sources`() {
     val expected1 =
-      listOf(
-        buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)),
-        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
-      )
+      listOf(buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)), buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)))
     val expected2 =
-      listOf(
-        buildAppInsight(Frame(line = 2), buildIssue(appVcsInfo)),
-        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
-      )
+      listOf(buildAppInsight(Frame(line = 2), buildIssue(appVcsInfo)), buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)))
 
     withFakedInsights(expected1, expected2)
 
@@ -204,13 +189,13 @@ class AppInsightsExternalAnnotatorTest {
       fileName = "MainActivity.kt",
       source =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       lineToInsights =
         listOf(
@@ -221,18 +206,11 @@ class AppInsightsExternalAnnotatorTest {
     )
   }
 
-  private fun checkAnnotations(
-    fileName: String,
-    source: String,
-    lineToInsights: List<LineToInsights>,
-  ) {
+  private fun checkAnnotations(fileName: String, source: String, lineToInsights: List<LineToInsights>) {
     val psiFile = projectRule.fixture.addFileToProject("src/$fileName", source)
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
-    val results =
-      projectRule.fixture.doHighlighting().filter {
-        it.gutterIconRenderer is AppInsightsGutterRenderer
-      }
+    val results = projectRule.fixture.doHighlighting().filter { it.gutterIconRenderer is AppInsightsGutterRenderer }
 
     document.assertHighlightResults(results, lineToInsights)
   }

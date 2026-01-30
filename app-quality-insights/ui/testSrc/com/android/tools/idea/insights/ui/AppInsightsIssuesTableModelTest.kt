@@ -55,8 +55,7 @@ class AppInsightsIssuesTableModelTest {
     val crash4 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(subtitle = "Stack.Crash3"))
     val crash5 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(subtitle = "A.A.Stack.Crash4"))
     val crash6 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(subtitle = "Z.Z.Stack.Crash0"))
-    val crash7 =
-      ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(title = "stack", subtitle = "illegal"))
+    val crash7 = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(title = "stack", subtitle = "illegal"))
 
     val crashes = listOf(crash1, crash2, crash3, crash4, crash5, crash6, crash7)
 

@@ -53,8 +53,7 @@ const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
 /** [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user */
 class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutAlgorithm() {
   private var _storage: Storage? = null
-  private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> =
-    HashBiMap.create()
+  private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> = HashBiMap.create()
   private val filePositionMap: MutableMap<XmlFile, LayoutPositions> = mutableMapOf()
 
   private val storage: Storage
@@ -119,13 +118,9 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     setPosition(tag, positions)
     for ((id, position) in positions.myPositions) {
       for (subtag in tag.subTags) {
-        var subtagId = runReadAction {
-          subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
-        }
+        var subtagId = runReadAction { subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
         if (subtagId == null && subtag.name == TAG_INCLUDE) {
-          subtagId = runReadAction {
-            subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length)
-          }
+          subtagId = runReadAction { subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length) }
         }
         if (subtagId == id) {
           reload(position, subtag)
@@ -145,9 +140,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       if (oldPoint != null) {
         val sceneComponentRef = WeakReference(component)
         val path = component.nlComponent.idPath
-        WriteCommandAction.writeCommandAction(model.file).withName("Move Destination").run<
-          Exception
-        > {
+        WriteCommandAction.writeCommandAction(model.file).withName("Move Destination").run<Exception> {
           val action =
             object : BasicUndoableAction(model.virtualFile) {
               override fun undo() {
@@ -168,8 +161,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
                 sceneComponent.scene.sceneManager.requestRender()
               }
             }
-          UndoManager.getInstance(component.nlComponent.model.project)
-            .undoableActionPerformed(action)
+          UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)
         }
       }
       val newPositions = runReadAction { getPositions(component) }
@@ -196,9 +188,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     return componentPositions
   }
 
-  private fun tryToFindNewNestedGraphPosition(
-    component: SceneComponent
-  ): ManualLayoutAlgorithm.LayoutPositions? {
+  private fun tryToFindNewNestedGraphPosition(component: SceneComponent): ManualLayoutAlgorithm.LayoutPositions? {
     val nlComponent = component.nlComponent
     if (!nlComponent.isNavigation) {
       return null
@@ -213,8 +203,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     children
       .filter { it.isDestination }
       .forEach {
-        val oldChildPosition =
-          maybeGetPositionsFromPath(pathPrefix.plus(it.id))?.myPosition ?: return null
+        val oldChildPosition = maybeGetPositionsFromPath(pathPrefix.plus(it.id))?.myPosition ?: return null
         averagePoint.x += oldChildPosition.x / children.size
         averagePoint.y += oldChildPosition.y / children.size
       }
@@ -253,14 +242,9 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     existing.myPositions = position.myPositions
   }
 
-  override fun getPositionData(component: SceneComponent) = runReadAction {
-    getPositions(component)
-  }
+  override fun getPositionData(component: SceneComponent) = runReadAction { getPositions(component) }
 
-  /**
-   * This attempts to fix up the persisted information with any id changes and any deleted
-   * components.
-   */
+  /** This attempts to fix up the persisted information with any id changes and any deleted components. */
   private fun rectifyIds(components: Collection<NlComponent>, layoutPositions: LayoutPositions) {
     val seenComponents = mutableSetOf<String>()
     for (component in components) {
@@ -325,8 +309,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
   @Service(Service.Level.PROJECT)
   @State(
     name = "navEditor-manualLayoutAlgorithm2",
-    storages =
-      [com.intellij.openapi.components.Storage("navEditor.xml", roamingType = RoamingType.DISABLED)],
+    storages = [com.intellij.openapi.components.Storage("navEditor.xml", roamingType = RoamingType.DISABLED)],
   )
   private class Storage : PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
     @VisibleForTesting internal var rootPositions: LayoutPositions? = null

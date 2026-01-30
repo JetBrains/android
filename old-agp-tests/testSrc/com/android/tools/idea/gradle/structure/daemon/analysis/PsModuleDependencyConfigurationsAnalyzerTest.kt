@@ -38,8 +38,7 @@ import org.junit.Test
 @RunsInEdt
 class PsModuleDependencyConfigurationsAnalyzerTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testObsoleteTestCompileConfigurationInLibrary() {
@@ -59,7 +58,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
         issues.toList(),
         "junit:junit:4.12",
         setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
-        setOf("testCompile" to "testImplementation")
+        setOf("testCompile" to "testImplementation"),
       )
     }
   }
@@ -78,10 +77,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module).toList()
 
-      checkIssuesFor(issues,
-                     "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "api", "compile" to "implementation"))
+      checkIssuesFor(
+        issues,
+        "androidx.appcompat:appcompat:1.0.2",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "api", "compile" to "implementation"),
+      )
     }
   }
 
@@ -99,10 +100,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues.toList(),
-                     "junit:junit:4.12",
-                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
-                     setOf("testCompile" to "testImplementation"))
+      checkIssuesFor(
+        issues.toList(),
+        "junit:junit:4.12",
+        setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
+        setOf("testCompile" to "testImplementation"),
+      )
     }
   }
 
@@ -120,18 +123,24 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module).toList()
 
-      checkIssuesFor(issues,
-                     "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "implementation"))
-      checkIssuesFor(issues,
-                     "obsoleteScopesLibrary",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "implementation"))
-      checkIssuesFor(issues,
-                     "compile/libs",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "implementation"))
+      checkIssuesFor(
+        issues,
+        "androidx.appcompat:appcompat:1.0.2",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "implementation"),
+      )
+      checkIssuesFor(
+        issues,
+        "obsoleteScopesLibrary",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "implementation"),
+      )
+      checkIssuesFor(
+        issues,
+        "compile/libs",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "implementation"),
+      )
     }
   }
 
@@ -150,10 +159,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues.toList(),
-                     "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "implementation"))
+      checkIssuesFor(
+        issues.toList(),
+        "androidx.appcompat:appcompat:1.0.2",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "implementation"),
+      )
     }
   }
 
@@ -170,10 +181,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module).toList()
 
-      checkIssuesFor(issues,
-                     "junit:junit:4.12",
-                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
-                     setOf("testCompile" to "testImplementation"))
+      checkIssuesFor(
+        issues,
+        "junit:junit:4.12",
+        setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
+        setOf("testCompile" to "testImplementation"),
+      )
     }
   }
 
@@ -190,10 +203,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module).toList()
 
-      checkIssuesFor(issues,
-                     "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "api", "compile" to "implementation"))
+      checkIssuesFor(
+        issues,
+        "androidx.appcompat:appcompat:1.0.2",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "api", "compile" to "implementation"),
+      )
     }
   }
 
@@ -211,10 +226,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsJavaModuleAnalyzer(context)
       val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues.toList(),
-                     "junit:junit:4.12",
-                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
-                     setOf("testCompile" to "testImplementation"))
+      checkIssuesFor(
+        issues.toList(),
+        "junit:junit:4.12",
+        setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
+        setOf("testCompile" to "testImplementation"),
+      )
     }
   }
 
@@ -232,10 +249,12 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       val analyzer = PsJavaModuleAnalyzer(context)
       val issues = analyzer.analyze(module).toList()
 
-      checkIssuesFor(issues,
-                     "androidx.appcompat:appcompat:1.0.2",
-                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
-                     setOf("compile" to "api", "compile" to "implementation"))
+      checkIssuesFor(
+        issues,
+        "androidx.appcompat:appcompat:1.0.2",
+        setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+        setOf("compile" to "api", "compile" to "implementation"),
+      )
     }
   }
 
@@ -243,7 +262,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
     issues: List<PsIssue>,
     name: String,
     expectedMessages: Set<Pair<String, String>>,
-    expectedChanges: Set<Pair<String, String>>
+    expectedChanges: Set<Pair<String, String>>,
   ) {
     val issueSet = issueSetFor(issues, name)
     val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
@@ -256,7 +275,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
     return issues.filter { it.path.toString() == name }.toSet()
   }
 
-  private fun quickFixChangesFor(issueSet: Set<PsIssue>): Set<Pair<String,String>> {
+  private fun quickFixChangesFor(issueSet: Set<PsIssue>): Set<Pair<String, String>> {
     return issueSet
       .flatMap { it.quickFixes }
       .filterIsInstance<PsDependencyConfigurationQuickFixPath>()

@@ -111,8 +111,7 @@ class OverlapAnalyzerTest {
 
          </AbsoluteLayout>"""
 
-    val file =
-      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 
@@ -198,8 +197,7 @@ class OverlapAnalyzerTest {
 
          </AbsoluteLayout>"""
 
-    val file =
-      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 
@@ -279,8 +277,7 @@ class OverlapAnalyzerTest {
 
          </AbsoluteLayout>"""
 
-    val file =
-      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 
@@ -319,8 +316,7 @@ class OverlapAnalyzerTest {
 
          </AbsoluteLayout>"""
 
-    val file =
-      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val file = projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 

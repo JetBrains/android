@@ -24,15 +24,13 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Component
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
+@VisibleForTesting val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
 
 /**
- * Panel that should always be at the root of Layout Inspector hierarchy. It is responsible for
- * providing [LayoutInspector] instance through [com.intellij.ide.DataManager]
+ * Panel that should always be at the root of Layout Inspector hierarchy. It is responsible for providing [LayoutInspector] instance through
+ * [com.intellij.ide.DataManager]
  */
-class LayoutInspectorRootPanel(content: Component, private val layoutInspector: LayoutInspector) :
-  BorderLayoutPanel(), UiDataProvider {
+class LayoutInspectorRootPanel(content: Component, private val layoutInspector: LayoutInspector) : BorderLayoutPanel(), UiDataProvider {
   companion object {
     fun get(event: AnActionEvent) = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }

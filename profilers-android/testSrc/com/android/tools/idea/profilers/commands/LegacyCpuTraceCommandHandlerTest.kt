@@ -31,15 +31,15 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.concurrent.LinkedBlockingDeque
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.concurrent.LinkedBlockingDeque
 
 class LegacyCpuTraceCommandHandlerTest {
   private val timer = FakeTimer()
@@ -47,8 +47,7 @@ class LegacyCpuTraceCommandHandlerTest {
   // Needed for GetCurrentTime
   private val service = FakeTransportService(timer)
 
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("LegacyCpuTraceCommandHandlerTest", service)
+  @get:Rule var grpcChannel = FakeGrpcChannel("LegacyCpuTraceCommandHandlerTest", service)
   private val channel: ManagedChannel = InProcessChannelBuilder.forName(grpcChannel.name).usePlaintext().directExecutor().build()
 
   @Test
@@ -62,40 +61,44 @@ class LegacyCpuTraceCommandHandlerTest {
     val mockClient = createMockClient(testPid)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
     val filePathCache = HashMap<String, String>()
-    val commandHandler = LegacyCpuTraceCommandHandler(mockClient.device,
-                                                      TransportServiceGrpc.newBlockingStub(channel),
-                                                      eventQueue,
-                                                      filePathCache)
+    val commandHandler =
+      LegacyCpuTraceCommandHandler(mockClient.device, TransportServiceGrpc.newBlockingStub(channel), eventQueue, filePathCache)
 
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
 
     val expectedStartStatus = Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
-    val expectedTraceInfo = Trace.TraceInfo.newBuilder().apply {
-      traceId = startTimestamp
-      configuration = TRACE_CONFIG
-      fromTimestamp = startTimestamp
-      toTimestamp = -1
-      startStatus = expectedStartStatus
-    }
-    val startStatusEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.TRACE_STATUS
-      commandId = 1
-      timestamp = startTimestamp
-      traceStatus = Trace.TraceStatusData.newBuilder().apply {
-        traceStartStatus = expectedStartStatus
-      }.build()
-    }.build()
-    val startTrackingEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE
-      groupId = startTimestamp
-      timestamp = startTimestamp
-      traceData = Trace.TraceData.newBuilder().apply {
-        traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build()
-      }.build()
-    }.build()
+    val expectedTraceInfo =
+      Trace.TraceInfo.newBuilder().apply {
+        traceId = startTimestamp
+        configuration = TRACE_CONFIG
+        fromTimestamp = startTimestamp
+        toTimestamp = -1
+        startStatus = expectedStartStatus
+      }
+    val startStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.TRACE_STATUS
+          commandId = 1
+          timestamp = startTimestamp
+          traceStatus = Trace.TraceStatusData.newBuilder().apply { traceStartStatus = expectedStartStatus }.build()
+        }
+        .build()
+    val startTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.CPU_TRACE
+          groupId = startTimestamp
+          timestamp = startTimestamp
+          traceData =
+            Trace.TraceData.newBuilder()
+              .apply { traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(startStatusEvent, startTrackingEvent)
 
     eventQueue.clear()
@@ -107,25 +110,30 @@ class LegacyCpuTraceCommandHandlerTest {
       toTimestamp = endTimestamp
       stopStatus = expectedEndStatus
     }
-    val stopStatusEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.TRACE_STATUS
-      commandId = 2
-      timestamp = endTimestamp
-      traceStatus = Trace.TraceStatusData.newBuilder().apply {
-        traceStopStatus = expectedEndStatus
-      }.build()
-    }.build()
-    val stopTrackingEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE
-      groupId = startTimestamp
-      timestamp = endTimestamp
-      isEnded = true
-      traceData = Trace.TraceData.newBuilder().apply {
-        traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
-      }.build()
-    }.build()
+    val stopStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.TRACE_STATUS
+          commandId = 2
+          timestamp = endTimestamp
+          traceStatus = Trace.TraceStatusData.newBuilder().apply { traceStopStatus = expectedEndStatus }.build()
+        }
+        .build()
+    val stopTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.CPU_TRACE
+          groupId = startTimestamp
+          timestamp = endTimestamp
+          isEnded = true
+          traceData =
+            Trace.TraceData.newBuilder()
+              .apply { traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(stopStatusEvent, stopTrackingEvent)
     // Also assert that the bytes are stored in the cache.
     val path = filePathCache[startTimestamp.toString()]!!
@@ -144,40 +152,44 @@ class LegacyCpuTraceCommandHandlerTest {
     val mockClient = createMockClient(testPid)
     val eventQueue = LinkedBlockingDeque<Common.Event>()
     val filePathCache = HashMap<String, String>()
-    val commandHandler = LegacyCpuTraceCommandHandler(mockClient.device,
-                                                      TransportServiceGrpc.newBlockingStub(channel),
-                                                      eventQueue,
-                                                      filePathCache)
+    val commandHandler =
+      LegacyCpuTraceCommandHandler(mockClient.device, TransportServiceGrpc.newBlockingStub(channel), eventQueue, filePathCache)
 
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
 
     val expectedStartStatus = Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
-    val expectedTraceInfo = Trace.TraceInfo.newBuilder().apply {
-      traceId = startTimestamp
-      configuration = TRACE_CONFIG
-      fromTimestamp = startTimestamp
-      toTimestamp = -1
-      startStatus = expectedStartStatus
-    }
-    val expectedStartStatusEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.TRACE_STATUS
-      timestamp = startTimestamp
-      commandId = 1
-      traceStatus = Trace.TraceStatusData.newBuilder().apply {
-        traceStartStatus = expectedStartStatus
-      }.build()
-    }.build()
-    val expectedStartTrackingEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE
-      groupId = startTimestamp
-      timestamp = startTimestamp
-      traceData = Trace.TraceData.newBuilder().apply {
-        traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build()
-      }.build()
-    }.build()
+    val expectedTraceInfo =
+      Trace.TraceInfo.newBuilder().apply {
+        traceId = startTimestamp
+        configuration = TRACE_CONFIG
+        fromTimestamp = startTimestamp
+        toTimestamp = -1
+        startStatus = expectedStartStatus
+      }
+    val expectedStartStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.TRACE_STATUS
+          timestamp = startTimestamp
+          commandId = 1
+          traceStatus = Trace.TraceStatusData.newBuilder().apply { traceStartStatus = expectedStartStatus }.build()
+        }
+        .build()
+    val expectedStartTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.CPU_TRACE
+          groupId = startTimestamp
+          timestamp = startTimestamp
+          traceData =
+            Trace.TraceData.newBuilder()
+              .apply { traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).containsExactly(expectedStartStatusEvent, expectedStartTrackingEvent)
 
     eventQueue.clear()
@@ -189,25 +201,30 @@ class LegacyCpuTraceCommandHandlerTest {
       toTimestamp = endTimestamp
       stopStatus = expectedEndStatus
     }
-    val stopStatusEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.TRACE_STATUS
-      timestamp = endTimestamp
-      commandId = 2
-      traceStatus = Trace.TraceStatusData.newBuilder().apply {
-        traceStopStatus = expectedEndStatus
-      }.build()
-    }.build()
-    val stopTrackingEvent = Common.Event.newBuilder().apply {
-      pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE
-      groupId = startTimestamp
-      timestamp = endTimestamp
-      isEnded = true
-      traceData = Trace.TraceData.newBuilder().apply {
-        traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
-      }.build()
-    }.build()
+    val stopStatusEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.TRACE_STATUS
+          timestamp = endTimestamp
+          commandId = 2
+          traceStatus = Trace.TraceStatusData.newBuilder().apply { traceStopStatus = expectedEndStatus }.build()
+        }
+        .build()
+    val stopTrackingEvent =
+      Common.Event.newBuilder()
+        .apply {
+          pid = testPid
+          kind = Common.Event.Kind.CPU_TRACE
+          groupId = startTimestamp
+          timestamp = endTimestamp
+          isEnded = true
+          traceData =
+            Trace.TraceData.newBuilder()
+              .apply { traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build() }
+              .build()
+        }
+        .build()
     assertThat(eventQueue).hasSize(3)
     assertThat(eventQueue).containsAllOf(stopStatusEvent, stopTrackingEvent)
     assertThat(eventQueue.find { it.kind == Common.Event.Kind.SESSION && it.isEnded }).isNotNull()
@@ -227,10 +244,8 @@ class LegacyCpuTraceCommandHandlerTest {
     val mockClient1 = createMockClient(testPid1)
     val eventQueue1 = LinkedBlockingDeque<Common.Event>()
     val filePathCache1 = HashMap<String, String>()
-    val commandHandler1 = LegacyCpuTraceCommandHandler(mockClient1.device,
-                                                       TransportServiceGrpc.newBlockingStub(channel),
-                                                       eventQueue1,
-                                                       filePathCache1)
+    val commandHandler1 =
+      LegacyCpuTraceCommandHandler(mockClient1.device, TransportServiceGrpc.newBlockingStub(channel), eventQueue1, filePathCache1)
     timer.currentTimeNs = startTimestamp
     commandHandler1.execute(buildStartCommand(testPid1, 1))
     eventQueue1.clear()
@@ -248,10 +263,8 @@ class LegacyCpuTraceCommandHandlerTest {
     val mockClient2 = createMockClient(testPid2, traceBytes)
     val eventQueue2 = LinkedBlockingDeque<Common.Event>()
     val filePathCache2 = HashMap<String, String>()
-    val commandHandler2 = LegacyCpuTraceCommandHandler(mockClient2.device,
-                                                       TransportServiceGrpc.newBlockingStub(channel),
-                                                       eventQueue2,
-                                                       filePathCache2)
+    val commandHandler2 =
+      LegacyCpuTraceCommandHandler(mockClient2.device, TransportServiceGrpc.newBlockingStub(channel), eventQueue2, filePathCache2)
     timer.currentTimeNs = startTimestamp2
     commandHandler2.execute(buildStartCommand(testPid2, 3))
     eventQueue2.clear()
@@ -269,46 +282,48 @@ class LegacyCpuTraceCommandHandlerTest {
 
   companion object {
     private val FAKE_TRACE_BYTES = byteArrayOf('a'.code.toByte())
-    private val TRACE_CONFIG = Trace.TraceConfiguration.newBuilder().apply {
-      artOptions = Trace.ArtOptions.newBuilder().apply {
-        traceMode = Trace.TraceMode.INSTRUMENTED
-      }.build()
-    }.build()
-
-    fun createMockClient(testPid: Int, traceBytes: ByteArray = FAKE_TRACE_BYTES): Client = mock(Client::class.java).also { thisClient ->
-      val mockClientData = mock(ClientData::class.java).apply {
-        whenever(pid).thenReturn(testPid)
-        whenever(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
-      }
-      val mockDevice = mock(IDevice::class.java).apply {
-        whenever(serialNumber).thenReturn("")
-        whenever(getClientName(Mockito.anyInt())).thenReturn("TestClient")
-        whenever(getClient(Mockito.anyString())).thenReturn(thisClient)
-      }
-      whenever(thisClient.clientData).thenReturn(mockClientData)
-      whenever(thisClient.device).thenReturn(mockDevice)
-      // We only have to mock onSuccess(...) for the stop tracing workflow for the command handler to work.
-      whenever(thisClient.stopMethodTracer()).thenAnswer { LegacyCpuProfilingHandler.onSuccess(traceBytes, thisClient) }
-    }
-
-    fun buildStartCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
-      pid = testPid
-      type = Commands.Command.CommandType.START_TRACE
-      commandId = testCommandId
-      startTrace = Trace.StartTrace.newBuilder()
-        .setProfilerType(Trace.ProfilerType.CPU)
-        .setConfiguration(TRACE_CONFIG)
+    private val TRACE_CONFIG =
+      Trace.TraceConfiguration.newBuilder()
+        .apply { artOptions = Trace.ArtOptions.newBuilder().apply { traceMode = Trace.TraceMode.INSTRUMENTED }.build() }
         .build()
-    }.build()
 
-    fun buildStopCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
-      pid = testPid
-      type = Commands.Command.CommandType.STOP_TRACE
-      commandId = testCommandId
-      stopTrace = Trace.StopTrace.newBuilder()
-        .setProfilerType(Trace.ProfilerType.CPU)
-        .setConfiguration(TRACE_CONFIG)
+    fun createMockClient(testPid: Int, traceBytes: ByteArray = FAKE_TRACE_BYTES): Client =
+      mock(Client::class.java).also { thisClient ->
+        val mockClientData =
+          mock(ClientData::class.java).apply {
+            whenever(pid).thenReturn(testPid)
+            whenever(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
+          }
+        val mockDevice =
+          mock(IDevice::class.java).apply {
+            whenever(serialNumber).thenReturn("")
+            whenever(getClientName(Mockito.anyInt())).thenReturn("TestClient")
+            whenever(getClient(Mockito.anyString())).thenReturn(thisClient)
+          }
+        whenever(thisClient.clientData).thenReturn(mockClientData)
+        whenever(thisClient.device).thenReturn(mockDevice)
+        // We only have to mock onSuccess(...) for the stop tracing workflow for the command handler to work.
+        whenever(thisClient.stopMethodTracer()).thenAnswer { LegacyCpuProfilingHandler.onSuccess(traceBytes, thisClient) }
+      }
+
+    fun buildStartCommand(testPid: Int, testCommandId: Int): Commands.Command =
+      Commands.Command.newBuilder()
+        .apply {
+          pid = testPid
+          type = Commands.Command.CommandType.START_TRACE
+          commandId = testCommandId
+          startTrace = Trace.StartTrace.newBuilder().setProfilerType(Trace.ProfilerType.CPU).setConfiguration(TRACE_CONFIG).build()
+        }
         .build()
-    }.build()
+
+    fun buildStopCommand(testPid: Int, testCommandId: Int): Commands.Command =
+      Commands.Command.newBuilder()
+        .apply {
+          pid = testPid
+          type = Commands.Command.CommandType.STOP_TRACE
+          commandId = testCommandId
+          stopTrace = Trace.StopTrace.newBuilder().setProfilerType(Trace.ProfilerType.CPU).setConfiguration(TRACE_CONFIG).build()
+        }
+        .build()
   }
 }

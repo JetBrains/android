@@ -18,10 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.INVALID_DAEMON_JVM_CRITERIA
 import org.jetbrains.plugins.gradle.issue.GradleInvalidDaemonJvmCriteriaIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleInvalidDaemonJvmCriteriaIssueChecker]
- */
-class GradleInvalidDaemonJvmCriteriaIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleInvalidDaemonJvmCriteriaIssueChecker(),
-  errorEvent = INVALID_DAEMON_JVM_CRITERIA
-)
+/** Gradle build error analytics tracker for [GradleInvalidDaemonJvmCriteriaIssueChecker] */
+class GradleInvalidDaemonJvmCriteriaIssueReporter :
+  DaemonJvmCriteriaIssueReporter(checker = GradleInvalidDaemonJvmCriteriaIssueChecker(), errorEvent = INVALID_DAEMON_JVM_CRITERIA)

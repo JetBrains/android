@@ -32,19 +32,18 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 
 // open for testing
 open class AndroidModularizeAction : BaseRefactoringAction() {
-  override fun isAvailableForLanguage(language: Language?): Boolean =
-    language is KotlinLanguage || language is JavaLanguage
+  override fun isAvailableForLanguage(language: Language?): Boolean = language is KotlinLanguage || language is JavaLanguage
 
   override fun isAvailableInEditorOnly() = false
 
   override fun isAvailableForFile(file: PsiFile?): Boolean {
     return file != null && // file exists
-           ( file.fileType == JavaFileType.INSTANCE ||
-             file.fileType == KotlinFileType.INSTANCE ) && // is Java or Kotlin
+      (file.fileType == JavaFileType.INSTANCE || file.fileType == KotlinFileType.INSTANCE) && // is Java or Kotlin
       CommonAndroidUtil.getInstance().isAndroidProject(file.project) // and is Android
   }
 
-  private val Project.isLastSyncSuccessful get() = getSyncManager().getLastSyncResult().isSuccessful
+  private val Project.isLastSyncSuccessful
+    get() = getSyncManager().getLastSyncResult().isSuccessful
 
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
     val project = CommonDataKeys.PROJECT.getData(dataContext)
@@ -61,12 +60,8 @@ open class AndroidModularizeAction : BaseRefactoringAction() {
     }
   }
 
-  override fun isAvailableOnElementInEditorAndFile(
-    element: PsiElement,
-    editor: Editor,
-    file: PsiFile,
-    context: DataContext,
-  ) = file.project.isLastSyncSuccessful
+  override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext) =
+    file.project.isLastSyncSuccessful
 
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = false
 

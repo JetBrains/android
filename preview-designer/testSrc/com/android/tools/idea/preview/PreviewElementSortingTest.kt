@@ -60,9 +60,7 @@ class PreviewElementSortingTest {
     // the previews
     val shuffledPreviews = expectedPreviews.shuffled()
 
-    runBlocking {
-      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
-    }
+    runBlocking { assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition()) }
   }
 
   @Test
@@ -92,9 +90,7 @@ class PreviewElementSortingTest {
       // Because we  want to check if we correctly sort the PreviewElement we shuffle
       // the previews
       val shuffledPreviews = expectedPreviews.shuffled()
-      runBlocking {
-        assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
-      }
+      runBlocking { assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition()) }
     }
   }
 
@@ -110,9 +106,7 @@ class PreviewElementSortingTest {
     val expectedPreviews = listOf(preview1, preview2, preview3, preview4, preview5, preview6)
     val shuffledPreviews = expectedPreviews.shuffled()
 
-    runBlocking {
-      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
-    }
+    runBlocking { assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition()) }
   }
 
   private fun previewInstance(name: String, group: String? = null, locale: String? = null) =

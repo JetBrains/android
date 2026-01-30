@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * Options for build-time support for vector drawables.
- */
+/** Options for build-time support for vector drawables. */
 interface IdeVectorDrawablesOptions {
   val useSupportLibrary: Boolean?
 }

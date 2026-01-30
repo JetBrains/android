@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchByModuleQuery
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -32,9 +34,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -47,7 +47,6 @@ import com.intellij.ui.table.TableView
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
-import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.event.ActionListener
 import java.util.function.Consumer
@@ -55,30 +54,37 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.event.DocumentEvent
+import org.jetbrains.annotations.NonNls
 
 private const val SEARCHING_EMPTY_TEXT = "Searching..."
 private const val NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show"
 
-class ArtifactRepositorySearchForm(
-  val variables: PsVariablesScope,
-  private val repositorySearch: ArtifactRepositorySearchService
-) : ArtifactRepositorySearchFormUi() {
+class ArtifactRepositorySearchForm(val variables: PsVariablesScope, private val repositorySearch: ArtifactRepositorySearchService) :
+  ArtifactRepositorySearchFormUi() {
   private val resultsTable: TableView<FoundArtifact>
   private val versionsPanel: AvailableVersionsPanel
   private val eventDispatcher = SelectionChangeEventDispatcher<ParsedValue<String>>()
 
-  private val selectedArtifact: FoundArtifact? get() = resultsTable.selection.singleOrNull()
-  val panel: JPanel get() = myPanel
-  val preferredFocusedComponent: JComponent get() = myArtifactQueryTextField
-  var searchErrors: List<Exception> = listOf(); private set
+  private val selectedArtifact: FoundArtifact?
+    get() = resultsTable.selection.singleOrNull()
+
+  val panel: JPanel
+    get() = myPanel
+
+  val preferredFocusedComponent: JComponent
+    get() = myArtifactQueryTextField
+
+  var searchErrors: List<Exception> = listOf()
+    private set
 
   init {
-    val inputChangedListener = object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        clearResults()
-        showSearchStopped()
+    val inputChangedListener =
+      object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          clearResults()
+          showSearchStopped()
+        }
       }
-    }
     myArtifactQueryTextField.document.addDocumentListener(inputChangedListener)
 
     val actionListener = ActionListener {
@@ -116,8 +122,7 @@ class ArtifactRepositorySearchForm(
       val searchQuery = currentSearchQuery
       if (searchQuery != null && artifact != null) {
         versionsPanel.setVersions(prepareArtifactVersionChoices(searchQuery, artifact, variables))
-      }
-      else {
+      } else {
         notifyVersionSelectionChanged(ParsedValue.NotSet)
       }
     }
@@ -134,12 +139,13 @@ class ArtifactRepositorySearchForm(
   private fun getQuery() = myArtifactQueryTextField.text.parseArtifactSearchQuery()
 
   private fun notifyVersionSelectionChanged(version: ParsedValue<Version>) {
-    val selectedLibrary = selectedArtifact?.let { selectedArtifact ->
-      when (version) {
-        ParsedValue.NotSet -> ParsedValue.NotSet
-        is ParsedValue.Set.Parsed -> versionToLibrary(selectedArtifact, version)
-      }
-    } ?: ParsedValue.NotSet
+    val selectedLibrary =
+      selectedArtifact?.let { selectedArtifact ->
+        when (version) {
+          ParsedValue.NotSet -> ParsedValue.NotSet
+          is ParsedValue.Set.Parsed -> versionToLibrary(selectedArtifact, version)
+        }
+      } ?: ParsedValue.NotSet
     eventDispatcher.selectionChanged(selectedLibrary)
   }
 
@@ -156,14 +162,15 @@ class ArtifactRepositorySearchForm(
     val request = SearchRequest(searchQuery.toSearchQuery(), 200, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
-      val foundArtifacts = results.artifacts.sorted().takeUnless { it.isEmpty() } ?: let {
-        when {
-          searchQuery.component != null -> listOf(
-            FoundArtifact("(none)", searchQuery.component.group, searchQuery.component.name,
-                          searchQuery.component.version))
-          else -> listOf()
-        }
-      }
+      val foundArtifacts =
+        results.artifacts.sorted().takeUnless { it.isEmpty() }
+          ?: let {
+            when {
+              searchQuery.component != null ->
+                listOf(FoundArtifact("(none)", searchQuery.component.group, searchQuery.component.name, searchQuery.component.version))
+              else -> listOf()
+            }
+          }
 
       resultsTable.listTableModel.items = foundArtifacts
       resultsTable.updateColumnSizes()
@@ -197,11 +204,9 @@ class ArtifactRepositorySearchForm(
     versionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT)
   }
 
-  private fun ArtifactSearchQuery.calculateQueryLength() =
-    normalizedLength(artifactName) + normalizedLength(groupId) + normalizedLength(id)
+  private fun ArtifactSearchQuery.calculateQueryLength() = normalizedLength(artifactName) + normalizedLength(groupId) + normalizedLength(id)
 
-  private fun normalizedLength(str: String?): Int =
-     str?.replace("*", "")?.length ?: 0
+  private fun normalizedLength(str: String?): Int = str?.replace("*", "")?.length ?: 0
 
   fun add(listener: SelectionChangeListener<ParsedValue<String>>, parentDisposable: Disposable) {
     eventDispatcher.addListener(listener, parentDisposable)
@@ -218,14 +223,15 @@ class ArtifactRepositorySearchForm(
         object : ColumnInfo<FoundArtifact, String>(title) {
           override fun valueOf(found: FoundArtifact): String? = valueOf(found)
 
-          @NonNls
-          override fun getPreferredStringValue(): String? = preferredWidthTextSample
+          @NonNls override fun getPreferredStringValue(): String? = preferredWidthTextSample
         }
 
-      columnInfos = arrayOf(
-        column("Group ID", preferredWidthTextSample = "abcdefghijklmno") { it.groupId },
-        column("Artifact Name", preferredWidthTextSample = "abcdefg") { it.name },
-        column("Repository") { it.repositoryNames.joinToString (separator = ", ") })
+      columnInfos =
+        arrayOf(
+          column("Group ID", preferredWidthTextSample = "abcdefghijklmno") { it.groupId },
+          column("Artifact Name", preferredWidthTextSample = "abcdefg") { it.name },
+          column("Repository") { it.repositoryNames.joinToString(separator = ", ") },
+        )
     }
   }
 }
@@ -234,31 +240,31 @@ class ArtifactRepositorySearchForm(
 fun prepareArtifactVersionChoices(
   searchQuery: ArtifactSearchQuery,
   artifact: FoundArtifact,
-  variablesScope: PsVariablesScope
+  variablesScope: PsVariablesScope,
 ): List<Annotated<ParsedValue.Set.Parsed<Version>>> {
-  val versionPropertyContext = object : ModelPropertyContext<Version> {
-    override fun parse(value: String): Annotated<ParsedValue<Version>> = parseGradleVersion(value)
-    override fun format(value: Version): String = value.toString()
+  val versionPropertyContext =
+    object : ModelPropertyContext<Version> {
+      override fun parse(value: String): Annotated<ParsedValue<Version>> = parseGradleVersion(value)
 
-    override fun getKnownValues(): ListenableFuture<KnownValues<Version>> =
-      Futures.immediateFuture(object : KnownValues<Version> {
-        override val literals: List<ValueDescriptor<Version>> = artifact.versions.map { ValueDescriptor(it) }
-        override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<Version>>): Boolean =
-          throw UnsupportedOperationException()
-      })
-  }
+      override fun format(value: Version): String = value.toString()
 
-  val missingVersion = searchQuery
-    .component
-    ?.takeIf {
-      it.name == artifact.name &&
-      it.group == artifact.groupId &&
-      !artifact.versions.contains(it.version)
+      override fun getKnownValues(): ListenableFuture<KnownValues<Version>> =
+        Futures.immediateFuture(
+          object : KnownValues<Version> {
+            override val literals: List<ValueDescriptor<Version>> = artifact.versions.map { ValueDescriptor(it) }
+
+            override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<Version>>): Boolean =
+              throw UnsupportedOperationException()
+          }
+        )
     }
+
+  val missingVersion =
+    searchQuery.component?.takeIf { it.name == artifact.name && it.group == artifact.groupId && !artifact.versions.contains(it.version) }
 
   val versions =
     listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.version, DslText.Literal).annotateWithError("not found") }) +
-    artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+      artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
 
   val suitableVariables =
     variablesScope
@@ -268,12 +274,8 @@ fun prepareArtifactVersionChoices(
   return (versions + suitableVariables).sortedByDescending { it.value.value }
 }
 
-
 @VisibleForTesting
-fun versionToLibrary(
-  artifact: FoundArtifact,
-  version: ParsedValue.Set.Parsed<Version>
-): ParsedValue<String> {
+fun versionToLibrary(artifact: FoundArtifact, version: ParsedValue.Set.Parsed<Version>): ParsedValue<String> {
   val artifactGroupId = artifact.groupId
   val artifactName = artifact.name
 
@@ -294,12 +296,12 @@ fun versionToLibrary(
   return version.dslText.let {
     when (it) {
       is DslText.Literal -> ParsedValue.Set.Parsed(compactNotationResolved, DslText.Literal)
-    // References.
+      // References.
       is DslText.Reference -> makeInterpolatedCompactNotation(versionReference = "\${${it.text}}")
       is DslText.OtherUnparsedDslText -> makeInterpolatedCompactNotation(versionReference = "\${${it.text}}")
-    // Technically the following case should return:
-    //     makeReferenceSelection(it.text)
-    // but since it is not expecting to happen we throw an exception.
+      // Technically the following case should return:
+      //     makeReferenceSelection(it.text)
+      // but since it is not expecting to happen we throw an exception.
       is DslText.InterpolatedString -> throw IllegalStateException()
     }
   }
@@ -311,8 +313,8 @@ data class ArtifactSearchQuery(
   val artifactName: String? = null,
   val version: String? = null,
   val component: Component? = null,
-  val id: String? = null
-  )
+  val id: String? = null,
+)
 
 @VisibleForTesting
 fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
@@ -323,16 +325,11 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
     split.size == 1 -> ArtifactSearchQuery(id = "*" + split[0] + "*")
     split.size == 2 -> ArtifactSearchQuery(groupId = split[0], artifactName = split[1])
     split.size >= 3 ->
-      ArtifactSearchQuery(
-        groupId = split[0],
-        artifactName = split[1],
-        version = split[2],
-        component = Component.tryParse(this))
+      ArtifactSearchQuery(groupId = split[0], artifactName = split[1], version = split[2], component = Component.tryParse(this))
     else -> throw RuntimeException()
   }
 }
 
 private fun ArtifactSearchQuery.toSearchQuery() =
   if (id?.isNotEmpty() == true) ArbitraryModulesSearchByModuleQuery(id)
-  else
-    ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)
+  else ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)

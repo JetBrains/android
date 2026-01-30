@@ -25,8 +25,8 @@ import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 /**
- * Action to stop the interactive preview (including animation inspection). Only visible when it's
- * already running and if the preview is not refreshing.
+ * Action to stop the interactive preview (including animation inspection). Only visible when it's already running and if the preview is not
+ * refreshing.
  */
 class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
   DumbAwareAction(

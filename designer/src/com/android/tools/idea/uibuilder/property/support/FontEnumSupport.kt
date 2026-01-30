@@ -33,16 +33,12 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Standard font [EnumSupport].
  *
- * Generates data for a fontFamily popup with 2 sections: user defined (Project) and framework
- * (Android) defined fonts. The bottom item is an action for opening the downloadable font dialog.
+ * Generates data for a fontFamily popup with 2 sections: user defined (Project) and framework (Android) defined fonts. The bottom item is
+ * an action for opening the downloadable font dialog.
  */
-class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) :
-  EnumSupport {
+class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) : EnumSupport {
   private val projectFonts =
-    ProjectFonts(
-      StudioDownloadableFontCacheService.getInstance(),
-      StudioResourceRepositoryManager.getInstance(facet),
-    )
+    ProjectFonts(StudioDownloadableFontCacheService.getInstance(), StudioResourceRepositoryManager.getInstance(facet))
 
   override val values: List<EnumValue>
     get() {
@@ -50,9 +46,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
       val fonts = mutableListOf<EnumValue>()
 
       fonts.add(EnumValue.header(PROJECT_HEADER))
-      projectFonts.fonts.mapTo(fonts) {
-        EnumValue.indented(value = FONT_PREFIX + it.name, display = it.name)
-      }
+      projectFonts.fonts.mapTo(fonts) { EnumValue.indented(value = FONT_PREFIX + it.name, display = it.name) }
       if (fonts.size == 1) {
         fonts.removeAt(0)
       }
@@ -77,8 +71,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
 
     override fun actionPerformed(event: AnActionEvent) {
       val property = event.getData(EnumValue.PROPERTY_ITEM_KEY) as NlPropertyItem
-      val newEnumValue =
-        event.getData(EnumValue.NEW_ENUM_VALUE_CALLBACK_KEY) as NewEnumValueCallback
+      val newEnumValue = event.getData(EnumValue.NEW_ENUM_VALUE_CALLBACK_KEY) as NewEnumValueCallback
       // TODO: May need namespace resolver when fonts from libraries are supported
       val dialog = MoreFontsDialog(facet, property.resolvedValue, true)
       dialog.show()

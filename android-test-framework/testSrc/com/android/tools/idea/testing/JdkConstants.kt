@@ -33,43 +33,38 @@ object JdkConstants {
   val JDK_EMBEDDED_VERSION by lazy { JDK_EMBEDDED_PATH.jdkFeatureVersion }
 
   val JDK_21_PATH by lazy {
-    if(IdeInfo.getInstance().isAndroidStudio) {
+    if (IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()
     } else {
       TestUtils.getJava21Jdk().toString()
     }
   }
 
-
   val JDK_17_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()
-    }
-    else {
+    } else {
       TestUtils.getJava17Jdk().toString()
     }
   }
   val JDK_11_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()
-    }
-    else {
+    } else {
       TestUtils.getJava11Jdk().toString()
     }
   }
   val JDK_1_8_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
-    }
-    else {
+    } else {
       TestUtils.getJava8Jdk().toString()
     }
   }
   val JDK_EMBEDDED_PATH by lazy {
     if (IdeInfo.getInstance().isAndroidStudio) {
       IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
-    }
-    else {
+    } else {
       IdeSdks.getInstance().jdkPath?.toAbsolutePath().toString()
     }
   }
@@ -79,9 +74,5 @@ object JdkConstants {
   val JDK_21_VERSION by lazy { JDK_21_PATH.jdkFeatureVersion }
 
   private val String.jdkFeatureVersion: String
-    get() = JdkVersionDetector.getInstance()
-    .detectJdkVersionInfo(this)
-    ?.version
-    ?.feature
-    ?.toString() ?: "Unknown"
+    get() = JdkVersionDetector.getInstance().detectJdkVersionInfo(this)?.version?.feature?.toString() ?: "Unknown"
 }

@@ -29,24 +29,21 @@ import kotlin.reflect.safeCast
  */
 interface ModelDumperContext {
   val propertyName: String
+
   fun prop(propertyName: String, v: Any?, defaultValue: Any? = null)
+
   fun head(name: String)
+
   fun nest(code: ModelDumperContext.() -> Unit)
 }
 
-/**
- * A marker interface to hint dumpers that the collection needs to be sorted.
- */
-interface UnorderedCollection<T>: Collection<T>
+/** A marker interface to hint dumpers that the collection needs to be sorted. */
+interface UnorderedCollection<T> : Collection<T>
 
-/**
- * Returns an instance of [UnorderedCollection] containing the same elements.
- */
-fun <T> Collection<T>.asUnordered(): UnorderedCollection<T> = object: UnorderedCollection<T>, Collection<T> by this@asUnordered {}
+/** Returns an instance of [UnorderedCollection] containing the same elements. */
+fun <T> Collection<T>.asUnordered(): UnorderedCollection<T> = object : UnorderedCollection<T>, Collection<T> by this@asUnordered {}
 
-/**
- * A provider of custom handling of properties/values. See [SpecializedDumper] factory functions for possible ways to instantiate it.
- */
+/** A provider of custom handling of properties/values. See [SpecializedDumper] factory functions for possible ways to instantiate it. */
 interface SpecializedDumper {
   /**
    * If [holder], [propertyName] and [value] are recognised as a target property/value of this provider, writes [value] to [projectDumper]
@@ -71,7 +68,6 @@ interface SpecializedDumper {
  *   )
  * },
  * ```
- *
  */
 inline fun <reified T : Any> SpecializedDumper(noinline dumper: ModelDumperContext.(T) -> Unit): SpecializedDumper =
   SpecializedDumperImpl.create(T::class, dumper)
@@ -88,13 +84,11 @@ inline fun <reified T : Any> SpecializedDumper(noinline dumper: ModelDumperConte
  *   )
  * },
  * ```
- *
  */
 inline fun <reified T : Any, reified V : Any> SpecializedDumper(
   property: KProperty1<T, V>,
-  noinline dumper: ModelDumperContext.(T, V) -> Unit
-): SpecializedDumper =
-  SpecializedDumperImpl.create(T::class, V::class, property, dumper)
+  noinline dumper: ModelDumperContext.(T, V) -> Unit,
+): SpecializedDumper = SpecializedDumperImpl.create(T::class, V::class, property, dumper)
 
 /**
  * Creates a [SpecializedDumper] for values of [property].
@@ -108,24 +102,18 @@ inline fun <reified T : Any, reified V : Any> SpecializedDumper(
  *   )
  * },
  * ```
- *
  */
 @JvmName("SpecializedDumper_nullable")
 inline fun <reified T : Any, reified V : Any> SpecializedDumper(
   property: KProperty1<T, V?>,
-  noinline dumper: ModelDumperContext.(T, V) -> Unit
-): SpecializedDumper =
-  SpecializedDumperImpl.create(T::class, V::class, property, dumper)
+  noinline dumper: ModelDumperContext.(T, V) -> Unit,
+): SpecializedDumper = SpecializedDumperImpl.create(T::class, V::class, property, dumper)
 
 @JvmName("SpecializedDumper_nullable")
-inline fun <reified T : Any, reified V : Any> SpecializedDumper(
-  property: KProperty1<T, V?>,
-): SpecializedDumper =
+inline fun <reified T : Any, reified V : Any> SpecializedDumper(property: KProperty1<T, V?>): SpecializedDumper =
   SpecializedDumperImpl.create(T::class, V::class, property) { _, _ -> }
 
-/**
- * A reflection based model dumper customizable through plugins provided in [specializedDumpers].
- */
+/** A reflection based model dumper customizable through plugins provided in [specializedDumpers]. */
 class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
   private val seen = Sets.newIdentityHashSet<Any>()
   private val modelClassDumperDescriptors = mutableMapOf<KClass<*>, ModelClassDumperDescriptor>()
@@ -149,17 +137,10 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
   private val notFileSuffixes = listOf("projectPath")
 
   fun dumpModel(projectDumper: ProjectDumper, propertyName: String, v: Any?, defaultValue: Any? = null, mapEntry: Boolean = false) {
-    with(projectDumper) {
-      doDump(propertyName, v, defaultValue, mapEntry)
-    }
+    with(projectDumper) { doDump(propertyName, v, defaultValue, mapEntry) }
   }
 
-  private fun ProjectDumper.doDump(
-    propertyName: String,
-    v: Any?,
-    defaultValue: Any? = null,
-    mapEntry: Boolean = false
-  ) {
+  private fun ProjectDumper.doDump(propertyName: String, v: Any?, defaultValue: Any? = null, mapEntry: Boolean = false) {
     fun ModelClassDumperDescriptor.getDisplayNamePropertyValue(v: Any): String? {
       val displayNameProperty = displayNameProperty
       return displayNameProperty?.getter?.invoke(v)?.toString()?.replaceKnownPaths()
@@ -182,9 +163,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
 
       head(propertyName) { displayName + (if (seen) " (*seen*)" else "") }
       if (!seen) {
-        nest {
-          outProperties(v, defaultValue, classDumperDescriptor)
-        }
+        nest { outProperties(v, defaultValue, classDumperDescriptor) }
       }
     }
 
@@ -214,9 +193,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
 
     fun processOrderedMap(v: Map<*, *>) {
       head(propertyName)
-      nest {
-        v.entries.forEach { (k, v) -> doDump(k.toString(), v, mapEntry = true) }
-      }
+      nest { v.entries.forEach { (k, v) -> doDump(k.toString(), v, mapEntry = true) } }
     }
 
     fun processUnorderedMap(v: HashMap<*, *>) {
@@ -228,11 +205,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     }
 
     fun processMapEntryValue(v: Any?) {
-      doDump(
-        propertyName,
-        v.replaceDefault(),
-        mapEntry = mapEntry
-      )
+      doDump(propertyName, v.replaceDefault(), mapEntry = mapEntry)
     }
 
     fun processClasspathValue(v: String) {
@@ -261,53 +234,39 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
         !notFileSuffixes.any { suffix -> propertyName.endsWith(suffix, ignoreCase = true) }
 
     when {
-      propertyName == "classpath" && v is String ->
-        processClasspathValue(v)
+      propertyName == "classpath" && v is String -> processClasspathValue(v)
       (propertyName == "sourceCompatibility" || propertyName == "targetCompatibility") && v is String ->
         processSourceAndTargetCompatibility(v)
-      !mapEntry && isIgnorableDefaultValue(v) ->
-        Unit
-      mapEntry && isIgnorableDefaultValue(v) ->
-        processMapEntryValue(v)
-      v == null ->
-        processNullValue()
-      tryProcessingBySpecializedDumpers() ->
-        Unit
-      v is Array<*> ->
-        processArray(v)
-      v is HashMap<*, *> && v !is LinkedHashMap<*, *> ->
-        processUnorderedMap(v)
-      v is Map<*, *> ->
-        processOrderedMap(v)
-      v is HashSet<*> && v !is LinkedHashSet<*> ->
-        processUnorderedCollection(v)
-      v is UnorderedCollection<*> ->
-        processUnorderedCollection(v)
-      v is Collection<*> ->
-        processOrderedCollection(v)
-      !mapEntry && v is String && isPathLikePropertyName() ->
-        processPathValue(v)
-      v is String ->
-        processString(v)
-      v is Enum<*> ->
-        processString(v.toString())
-      v is File ->
-        processFile(v)
-      v is Component ->
-        processComponent(v)
-      v::class.memberProperties.isNotEmpty() ->
-        processObject(v)
-      else ->
-        processString(v.toString())
+      !mapEntry && isIgnorableDefaultValue(v) -> Unit
+      mapEntry && isIgnorableDefaultValue(v) -> processMapEntryValue(v)
+      v == null -> processNullValue()
+      tryProcessingBySpecializedDumpers() -> Unit
+      v is Array<*> -> processArray(v)
+      v is HashMap<*, *> && v !is LinkedHashMap<*, *> -> processUnorderedMap(v)
+      v is Map<*, *> -> processOrderedMap(v)
+      v is HashSet<*> && v !is LinkedHashSet<*> -> processUnorderedCollection(v)
+      v is UnorderedCollection<*> -> processUnorderedCollection(v)
+      v is Collection<*> -> processOrderedCollection(v)
+      !mapEntry && v is String && isPathLikePropertyName() -> processPathValue(v)
+      v is String -> processString(v)
+      v is Enum<*> -> processString(v.toString())
+      v is File -> processFile(v)
+      v is Component -> processComponent(v)
+      v::class.memberProperties.isNotEmpty() -> processObject(v)
+      else -> processString(v.toString())
     }
   }
 
   private val Any.printableClassName
     get() = if (this::class.simpleName.orEmpty().startsWith("\$Proxy")) "<PROXY>" else this::class.simpleName ?: "?"
 
-  private fun getClassDumperDescriptorFor(values: Any) = modelClassDumperDescriptors.computeIfAbsent(values::class) {
-    @Suppress("UNCHECKED_CAST") (ModelClassDumperDescriptor(values::class as KClass<Any>)) // This is safe because we only use it to invoke methods on the same instance.)
-  }
+  private fun getClassDumperDescriptorFor(values: Any) =
+    modelClassDumperDescriptors.computeIfAbsent(values::class) {
+      @Suppress("UNCHECKED_CAST")
+      (ModelClassDumperDescriptor(
+        values::class as KClass<Any>
+      )) // This is safe because we only use it to invoke methods on the same instance.)
+    }
 
   private fun ProjectDumper.outProperties(v: Any, defaultValue: Any?, classDumperDescriptor: ModelClassDumperDescriptor) {
     if (defaultValue != null && v::class != defaultValue::class)
@@ -321,8 +280,10 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
   }
 }
 
-class SpecializedDumperImpl private constructor(
-  private val maybeDump_: (projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?) -> Boolean
+class SpecializedDumperImpl
+private constructor(
+  private val maybeDump_:
+    (projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?) -> Boolean
 ) : SpecializedDumper {
   override fun maybeDump(projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?): Boolean =
     maybeDump_(projectDumper, modelDumper, holder, propertyName, value)
@@ -341,7 +302,7 @@ class SpecializedDumperImpl private constructor(
       hClass: KClass<T>,
       kClass: KClass<V>,
       property: KProperty1<T, V?>,
-      dumper: ModelDumperContext.(T, V) -> Unit
+      dumper: ModelDumperContext.(T, V) -> Unit,
     ): SpecializedDumper {
       val expectedPropertyName = ModelClassDumperDescriptor.maybeMapJavaGetterToKotlinProperty(property) ?: property.name
       fun dumperImpl(projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?): Boolean {
@@ -359,11 +320,11 @@ class SpecializedDumperImpl private constructor(
 private class ContextImpl(
   override val propertyName: String,
   private val modelDumper: ModelDumper,
-  private val projectDumper: ProjectDumper
+  private val projectDumper: ProjectDumper,
 ) : ModelDumperContext {
-  override fun prop(propertyName: String, v: Any?, defaultValue: Any?) =
-    modelDumper.dumpModel(projectDumper, propertyName, v, defaultValue)
+  override fun prop(propertyName: String, v: Any?, defaultValue: Any?) = modelDumper.dumpModel(projectDumper, propertyName, v, defaultValue)
 
   override fun head(name: String) = projectDumper.head(name)
+
   override fun nest(code: ModelDumperContext.() -> Unit) = projectDumper.nest { code() }
 }

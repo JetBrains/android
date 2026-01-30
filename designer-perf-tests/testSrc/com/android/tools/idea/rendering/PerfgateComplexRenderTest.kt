@@ -60,12 +60,7 @@ class PerfgateComplexRenderTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT)
       metric!!
     }
 
-    computeAndRecordMetric(
-      "inflate_time_complex",
-      "inflate_memory_complex",
-      "inflate_layoutlib_native_memory_complex",
-      computable,
-    )
+    computeAndRecordMetric("inflate_time_complex", "inflate_memory_complex", "inflate_layoutlib_native_memory_complex", computable)
   }
 
   @Test
@@ -73,17 +68,11 @@ class PerfgateComplexRenderTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT)
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
       var metric: PerfgateRenderMetric? = null
       RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
-        metric =
-          getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
+        metric = getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
       }
       metric!!
     }
 
-    computeAndRecordMetric(
-      "render_time_complex",
-      "render_memory_complex",
-      "render_layoutlib_native_memory_complex",
-      computable,
-    )
+    computeAndRecordMetric("render_time_complex", "render_memory_complex", "render_layoutlib_native_memory_complex", computable)
   }
 }

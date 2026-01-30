@@ -37,10 +37,7 @@ fun Long.toFormattedTimeString(): String {
 
 fun String.capitalizedName() = Strings.capitalize(lowercase(Locale.getDefault()))
 
-fun WorkInfo.State.isFinished() =
-  this == WorkInfo.State.SUCCEEDED ||
-    this == WorkInfo.State.FAILED ||
-    this == WorkInfo.State.CANCELLED
+fun WorkInfo.State.isFinished() = this == WorkInfo.State.SUCCEEDED || this == WorkInfo.State.FAILED || this == WorkInfo.State.CANCELLED
 
 fun WorkInfo.State.icon() =
   when (this) {

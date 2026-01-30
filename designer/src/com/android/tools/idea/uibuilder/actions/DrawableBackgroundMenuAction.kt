@@ -39,15 +39,12 @@ import java.awt.Graphics2D
 import org.jetbrains.annotations.VisibleForTesting
 
 /** A dropdown menu used in drawable resource to change the background. */
-class DrawableBackgroundMenuAction :
-  DropDownAction("", "Drawable Background", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
+class DrawableBackgroundMenuAction : DropDownAction("", "Drawable Background", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
   init {
     addAction(SetScreenViewProviderAction("None", "None", DrawableBackgroundType.NONE))
     addAction(SetScreenViewProviderAction("White", "White", DrawableBackgroundType.WHITE))
     addAction(SetScreenViewProviderAction("Black", "Black", DrawableBackgroundType.BLACK))
-    addAction(
-      SetScreenViewProviderAction("Checkered", "Checkered", DrawableBackgroundType.CHECKERED)
-    )
+    addAction(SetScreenViewProviderAction("Checkered", "Checkered", DrawableBackgroundType.CHECKERED))
   }
 }
 
@@ -58,23 +55,15 @@ enum class DrawableBackgroundType {
   CHECKERED,
 }
 
-/**
- * [ToggleAction] to that sets a specific [DrawableBackgroundType] to the [DrawableBackgroundLayer].
- */
-private class SetScreenViewProviderAction(
-  name: String,
-  description: String,
-  private val backgroundType: DrawableBackgroundType,
-) : ToggleAction(name, description, null) {
+/** [ToggleAction] to that sets a specific [DrawableBackgroundType] to the [DrawableBackgroundLayer]. */
+private class SetScreenViewProviderAction(name: String, description: String, private val backgroundType: DrawableBackgroundType) :
+  ToggleAction(name, description, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
     val project = e.getData(PlatformDataKeys.PROJECT) ?: return false
     val file = e.getData(PlatformDataKeys.VIRTUAL_FILE) ?: return false
 
-    val currentType =
-      DesignSurfaceSettings.getInstance(project)
-        .surfaceState
-        .loadDrawableBackgroundType(project, file)
+    val currentType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file)
     return currentType == backgroundType
   }
 
@@ -82,9 +71,7 @@ private class SetScreenViewProviderAction(
     val project = e.getData(PlatformDataKeys.PROJECT) ?: return
     val file = e.getData(PlatformDataKeys.VIRTUAL_FILE) ?: return
 
-    DesignSurfaceSettings.getInstance(project)
-      .surfaceState
-      .saveDrawableBackgroundType(project, file, backgroundType)
+    DesignSurfaceSettings.getInstance(project).surfaceState.saveDrawableBackgroundType(project, file, backgroundType)
 
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
     val resourceViewProvider = surface.screenViewProvider as? DrawableScreenViewProvider ?: return
@@ -96,34 +83,23 @@ private class SetScreenViewProviderAction(
 }
 
 /** Provide the custom [ScreenView] to the current [NlDesignSurface] for the drawable files. */
-class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType) :
-  ScreenViewProvider {
+class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType) : ScreenViewProvider {
   override val displayName: String = "Drawable Mode"
   private var myDrawableBackgroundLayer: DrawableBackgroundLayer? = null
 
-  @TestOnly
-  fun getDrawableBackgroudType(): DrawableBackgroundType =
-    myDrawableBackgroundLayer?.backgroundType ?: defaultType
+  @TestOnly fun getDrawableBackgroudType(): DrawableBackgroundType = myDrawableBackgroundLayer?.backgroundType ?: defaultType
 
   fun setDrawableBackgroundType(type: DrawableBackgroundType) {
     myDrawableBackgroundLayer?.backgroundType = type
   }
 
-  override fun createPrimarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView {
-    return ScreenView.newBuilder(surface, manager)
-      .withLayersProvider { screenView -> createScreenLayer(surface, screenView) }
-      .build()
+  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
+    return ScreenView.newBuilder(surface, manager).withLayersProvider { screenView -> createScreenLayer(surface, screenView) }.build()
   }
 
   override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
 
-  private fun createScreenLayer(
-    surface: NlDesignSurface,
-    screenView: ScreenView,
-  ): ImmutableList<Layer> {
+  private fun createScreenLayer(surface: NlDesignSurface, screenView: ScreenView): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)
     myDrawableBackgroundLayer = backgroundLayer
     val borderLayer = BorderLayer(screenView, isRotating = { surface.isRotating })
@@ -137,10 +113,7 @@ private val CHECKERED_GRID_GRAY = Color(236, 236, 236)
 
 /** The background layer of the custom [ScreenView] provided by [DrawableScreenViewProvider]. */
 @VisibleForTesting
-class DrawableBackgroundLayer(
-  private val screenView: ScreenView,
-  var backgroundType: DrawableBackgroundType,
-) : Layer() {
+class DrawableBackgroundLayer(private val screenView: ScreenView, var backgroundType: DrawableBackgroundType) : Layer() {
   private val dim = Dimension()
 
   override fun paint(gc: Graphics2D) {

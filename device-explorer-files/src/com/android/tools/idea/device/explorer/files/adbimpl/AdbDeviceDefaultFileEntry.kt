@@ -20,28 +20,20 @@ import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import java.nio.file.Path
 
 /**
- * A [AdbDeviceFileEntry] that goes through the file system mounting points (see [AdbDeviceFileSystem.resolveMountPoint])
- * for its file operations.
+ * A [AdbDeviceFileEntry] that goes through the file system mounting points (see [AdbDeviceFileSystem.resolveMountPoint]) for its file
+ * operations.
  */
-class AdbDeviceDefaultFileEntry(
-  device: AdbDeviceFileSystem,
-  entry: AdbFileListingEntry,
-  parent: AdbDeviceFileEntry?
-) : AdbDeviceFileEntry(device, entry, parent) {
-  override suspend fun entries(): List<DeviceFileEntry> =
-    fileSystem.resolveMountPoint(this).entries()
+class AdbDeviceDefaultFileEntry(device: AdbDeviceFileSystem, entry: AdbFileListingEntry, parent: AdbDeviceFileEntry?) :
+  AdbDeviceFileEntry(device, entry, parent) {
+  override suspend fun entries(): List<DeviceFileEntry> = fileSystem.resolveMountPoint(this).entries()
 
-  override suspend fun delete() =
-    fileSystem.resolveMountPoint(this).delete()
+  override suspend fun delete() = fileSystem.resolveMountPoint(this).delete()
 
-  override suspend fun createNewFile(fileName: String) =
-    fileSystem.resolveMountPoint(this).createNewFile(fileName)
+  override suspend fun createNewFile(fileName: String) = fileSystem.resolveMountPoint(this).createNewFile(fileName)
 
-  override suspend fun createNewDirectory(directoryName: String) =
-    fileSystem.resolveMountPoint(this).createNewDirectory(directoryName)
+  override suspend fun createNewDirectory(directoryName: String) = fileSystem.resolveMountPoint(this).createNewDirectory(directoryName)
 
-  override suspend fun isSymbolicLinkToDirectory(): Boolean =
-    fileSystem.resolveMountPoint(this).isSymbolicLinkToDirectory()
+  override suspend fun isSymbolicLinkToDirectory(): Boolean = fileSystem.resolveMountPoint(this).isSymbolicLinkToDirectory()
 
   override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) =
     fileSystem.resolveMountPoint(this).downloadFile(localPath, progress)

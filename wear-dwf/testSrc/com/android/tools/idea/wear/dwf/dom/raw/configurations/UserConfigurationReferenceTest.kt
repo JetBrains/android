@@ -39,16 +39,14 @@ import org.junit.Test
 class UserConfigurationReferenceTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
 
   private val fixture
     get() = projectRule.fixture
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
   }
 
   @Test
@@ -74,7 +72,7 @@ class UserConfigurationReferenceTest {
             <NotAPhotos source="[CONFIGURATION.photo_config]" />
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -82,26 +80,18 @@ class UserConfigurationReferenceTest {
 
     fixture.moveCaret("backgroundColor=\"[CONFIGURATION.|unknownColor]\"")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
-    assertThat(fixture.getReferenceAtCaretPosition())
-      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()).isInstanceOf(UserConfigurationReference::class.java)
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve()).isNull()
 
     fixture.moveCaret("tintColor=\"[CONFIGURATION.|some_color_config]\"")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
-    assertThat(fixture.getReferenceAtCaretPosition())
-      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()).isInstanceOf(UserConfigurationReference::class.java)
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
-      .isEqualTo(
-        fixture.findElementByText(
-          "<ColorConfiguration id=\"some_color_config\" />",
-          XmlTag::class.java,
-        )
-      )
+      .isEqualTo(fixture.findElementByText("<ColorConfiguration id=\"some_color_config\" />", XmlTag::class.java))
 
     fixture.moveCaret("tintColor=\"[CO|\"")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
-    assertThat(fixture.getReferenceAtCaretPosition())
-      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()).isInstanceOf(UserConfigurationReference::class.java)
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve()).isNull()
 
     fixture.moveCaret("color=\"#80|ffffff\"")
@@ -109,27 +99,18 @@ class UserConfigurationReferenceTest {
 
     fixture.moveCaret("color=\"[|CONFIGURATION.another_color_config]\"")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
-    assertThat(fixture.getReferenceAtCaretPosition())
-      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()).isInstanceOf(UserConfigurationReference::class.java)
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
-      .isEqualTo(
-        fixture.findElementByText(
-          "<ColorConfiguration id=\"another_color_config\" />",
-          XmlTag::class.java,
-        )
-      )
+      .isEqualTo(fixture.findElementByText("<ColorConfiguration id=\"another_color_config\" />", XmlTag::class.java))
 
     fixture.moveCaret("notAColorAttribute=\"[CONFIGURATION.|some_color_config]\"")
     assertThat(fixture.getReferenceAtCaretPosition()).isNull()
 
     fixture.moveCaret("<Photos source=\"[|CONFIGURATION.photo_config]\" />")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
-    assertThat(fixture.getReferenceAtCaretPosition())
-      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()).isInstanceOf(UserConfigurationReference::class.java)
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
-      .isEqualTo(
-        fixture.findElementByText("<PhotosConfiguration id=\"photo_config\" />", XmlTag::class.java)
-      )
+      .isEqualTo(fixture.findElementByText("<PhotosConfiguration id=\"photo_config\" />", XmlTag::class.java))
 
     fixture.moveCaret("<NotAPhotos source=\"[CONFIGURATION|.photo_config]\" />")
     assertThat(fixture.getReferenceAtCaretPosition()).isNull()
@@ -160,11 +141,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly(
-        "CONFIGURATION.color_config_1",
-        "CONFIGURATION.color_config_2",
-        "CONFIGURATION.color_config_3",
-      )
+      .containsExactly("CONFIGURATION.color_config_1", "CONFIGURATION.color_config_2", "CONFIGURATION.color_config_3")
   }
 
   @Test
@@ -219,11 +196,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly(
-        "CONFIGURATION.color_config_1",
-        "CONFIGURATION.color_config_2",
-        "CONFIGURATION.color_config_3",
-      )
+      .containsExactly("CONFIGURATION.color_config_1", "CONFIGURATION.color_config_2", "CONFIGURATION.color_config_3")
 
     fixture.moveCaret("<Photos source=\"photo_|\" />")
     assertThat(fixture.completeBasic().map { it.lookupString })
@@ -315,12 +288,12 @@ class UserConfigurationReferenceTest {
     fixture.checkResult(
       // language=XML
       """
-        <WatchFace>
-          <UserConfigurations>
-            <ColorConfiguration id="color_config" />
-          </UserConfigurations>
-          <Scene backgroundColor="[CONFIGURATION.color_config]" />
-        </WatchFace>
+      <WatchFace>
+        <UserConfigurations>
+          <ColorConfiguration id="color_config" />
+        </UserConfigurations>
+        <Scene backgroundColor="[CONFIGURATION.color_config]" />
+      </WatchFace>
       """
         .trimIndent()
     )
@@ -344,7 +317,7 @@ class UserConfigurationReferenceTest {
              <Parameter expression="[DATA_SOURCE] + [CONFIGURATION.boolean_configuration] + [CONFIGURATION.unknown]" />
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -360,12 +333,7 @@ class UserConfigurationReferenceTest {
     assertThat(configuration).isNotNull()
     assertThat(configuration?.userConfigurationReference).isNotNull()
     assertThat(configuration?.userConfigurationReference?.resolve())
-      .isEqualTo(
-        fixture.findElementByText(
-          "<BooleanConfiguration id=\"boolean_configuration\" />",
-          XmlTag::class.java,
-        )
-      )
+      .isEqualTo(fixture.findElementByText("<BooleanConfiguration id=\"boolean_configuration\" />", XmlTag::class.java))
 
     fixture.moveCaret("[CONFIGURATION.|unknown]")
     val unknownConfiguration = fixture.findInjectedExpressionLiteralAtCaret()
@@ -429,11 +397,7 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly(
-        "CONFIGURATION.color_config.0",
-        "CONFIGURATION.color_config.1",
-        "CONFIGURATION.color_config.2",
-      )
+      .containsExactly("CONFIGURATION.color_config.0", "CONFIGURATION.color_config.1", "CONFIGURATION.color_config.2")
   }
 
   @Test
@@ -461,14 +425,14 @@ class UserConfigurationReferenceTest {
     fixture.checkResult(
       // language=XML
       """
-        <WatchFace>
-          <UserConfigurations>
-            <ColorConfiguration id="color_config" />
-          </UserConfigurations>
-          <Scene>
-             <Parameter expression="[CONFIGURATION.color_config]" />
-          </Scene>
-        </WatchFace>
+      <WatchFace>
+        <UserConfigurations>
+          <ColorConfiguration id="color_config" />
+        </UserConfigurations>
+        <Scene>
+           <Parameter expression="[CONFIGURATION.color_config]" />
+        </Scene>
+      </WatchFace>
       """
         .trimIndent()
     )
@@ -476,10 +440,7 @@ class UserConfigurationReferenceTest {
 
   @Test
   fun `references are not created if the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
 
     val watchFaceFile =
       fixture.addFileToProject(
@@ -492,7 +453,7 @@ class UserConfigurationReferenceTest {
              <Photos source="[CONFIGURATION.photo_config]" />
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -528,7 +489,7 @@ class UserConfigurationReferenceTest {
           <!-- this is not valid -->
           <Stroke color="[CONFIGURATION.color_config.0.0]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -536,9 +497,7 @@ class UserConfigurationReferenceTest {
     fixture.moveCaret("[CONFIGURATION.|color_config.0]")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
     assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
-      .isEqualTo(
-        fixture.findElementByText("<ColorConfiguration id=\"color_config\">", XmlTag::class.java)
-      )
+      .isEqualTo(fixture.findElementByText("<ColorConfiguration id=\"color_config\">", XmlTag::class.java))
 
     fixture.moveCaret("[CONFIGURATION.|color_config.0.0]")
     assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
@@ -558,7 +517,7 @@ class UserConfigurationReferenceTest {
           </UserConfigurations>
           <Parameter expression="[CONFIGURATION.boolean_config] + [CONFIGURATION.boolean_config.0]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -567,12 +526,7 @@ class UserConfigurationReferenceTest {
     val validBooleanConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(validBooleanConfig).isNotNull()
     assertThat(validBooleanConfig?.userConfigurationReference?.resolve())
-      .isEqualTo(
-        fixture.findElementByText(
-          "<BooleanConfiguration id=\"boolean_config\" />",
-          XmlTag::class.java,
-        )
-      )
+      .isEqualTo(fixture.findElementByText("<BooleanConfiguration id=\"boolean_config\" />", XmlTag::class.java))
 
     fixture.moveCaret("[CONFIGURATION.|boolean_config.0]")
     val invalidBooleanConfig = fixture.findInjectedExpressionLiteralAtCaret()
@@ -593,7 +547,7 @@ class UserConfigurationReferenceTest {
           </UserConfigurations>
           <Parameter expression="[CONFIGURATION.list_config] + [CONFIGURATION.list_config.0]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
@@ -602,9 +556,7 @@ class UserConfigurationReferenceTest {
     val validListConfig = fixture.findInjectedExpressionLiteralAtCaret()
     assertThat(validListConfig).isNotNull()
     assertThat(validListConfig?.userConfigurationReference?.resolve())
-      .isEqualTo(
-        fixture.findElementByText("<ListConfiguration id=\"list_config\" />", XmlTag::class.java)
-      )
+      .isEqualTo(fixture.findElementByText("<ListConfiguration id=\"list_config\" />", XmlTag::class.java))
 
     fixture.moveCaret("[CONFIGURATION.|list_config.0]")
     val invalidListConfig = fixture.findInjectedExpressionLiteralAtCaret()
@@ -648,8 +600,7 @@ class UserConfigurationReferenceTest {
       )
 
     fixture.type("[CONFIGURATION.color_config_1] * list")
-    assertThat(fixture.completeBasic().map { it.lookupString })
-      .containsExactly("CONFIGURATION.list_configuration")
+    assertThat(fixture.completeBasic().map { it.lookupString }).containsExactly("CONFIGURATION.list_configuration")
   }
 
   @Test
@@ -698,22 +649,12 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
     val injectionTestFixture = InjectionTestFixture(fixture)
     val quickEditHandler =
-      QuickEditAction()
-        .invokeImpl(
-          fixture.project,
-          injectionTestFixture.topLevelEditor,
-          injectionTestFixture.topLevelFile,
-        )
+      QuickEditAction().invokeImpl(fixture.project, injectionTestFixture.topLevelEditor, injectionTestFixture.topLevelFile)
     val fragmentFile = quickEditHandler.newFile
     fixture.openFileInEditor(fragmentFile.virtualFile)
 
     val reference =
-      fixture
-        .findElementByText(
-          "[CONFIGURATION.boolean_configuration]",
-          WFFExpressionLiteralExpr::class.java,
-        )
-        .userConfigurationReference
+      fixture.findElementByText("[CONFIGURATION.boolean_configuration]", WFFExpressionLiteralExpr::class.java).userConfigurationReference
 
     assertThat(reference).isNotNull()
     val resolved = reference?.resolve()
@@ -724,6 +665,5 @@ class UserConfigurationReferenceTest {
   }
 
   private val WFFExpressionLiteralExpr.userConfigurationReference
-    get() =
-      references.firstOrNull { it is UserConfigurationReference } as UserConfigurationReference?
+    get() = references.firstOrNull { it is UserConfigurationReference } as UserConfigurationReference?
 }

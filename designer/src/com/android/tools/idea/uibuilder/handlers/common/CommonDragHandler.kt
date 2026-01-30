@@ -46,9 +46,7 @@ internal class CommonDragHandler(
     val dragged = components[0]
     val component =
       layout.scene.getSceneComponent(dragged)
-        ?: TemporarySceneComponent(layout.scene, dragged).apply {
-          setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
-        }
+        ?: TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h)) }
 
     dragTarget = CommonDragTarget(component, fromToolWindow = true)
 
@@ -67,12 +65,7 @@ internal class CommonDragHandler(
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    modifiers: Int,
-    sceneContext: SceneContext,
-  ): String? {
+  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
     val result = super.update(x, y, modifiers, sceneContext)
     dragTarget.mouseDrag(x, y, emptyList(), sceneContext)
     dragTarget.component.scene.requestLayoutIfNeeded()
@@ -80,12 +73,7 @@ internal class CommonDragHandler(
   }
 
   // Note that coordinate is AndroidCoordinate, not AndroidDpCoordinate.
-  override fun commit(
-    @AndroidCoordinate x: Int,
-    @AndroidCoordinate y: Int,
-    modifiers: Int,
-    insertType: InsertType,
-  ) {
+  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
     dragTarget.insertType = insertType
     @AndroidDpCoordinate val dx = editor.pxToDp(x)
     @AndroidDpCoordinate val dy = editor.pxToDp(y)

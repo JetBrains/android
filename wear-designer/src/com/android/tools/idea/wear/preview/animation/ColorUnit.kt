@@ -22,12 +22,11 @@ import java.awt.Color
 /**
  * Represents a color value as a unit in a Wear animation.
  *
- * Stores color components (red, green, blue, alpha) as integers (0-255) and provides methods for
- * conversion, string representation, and parsing.
+ * Stores color components (red, green, blue, alpha) as integers (0-255) and provides methods for conversion, string representation, and
+ * parsing.
  */
 class ColorUnit(override val color: Color) :
-  AnimationUnit.BaseUnit<Int>(color.red, color.green, color.blue, color.alpha),
-  AnimationUnit.Color<Int, ColorUnit> {
+  AnimationUnit.BaseUnit<Int>(color.red, color.green, color.blue, color.alpha), AnimationUnit.Color<Int, ColorUnit> {
 
   /**
    * Creates a [ColorUnit] from individual integer (0-255) RGBA values.
@@ -54,8 +53,7 @@ class ColorUnit(override val color: Color) :
   /**
    * Returns a string representation of the specified color component.
    *
-   * @param componentId The index of the component (0 for red, 1 for green, 2 for blue, 3 for
-   *   alpha).
+   * @param componentId The index of the component (0 for red, 1 for green, 2 for blue, 3 for alpha).
    * @return A string in the format "Component: Value" (e.g., "R: 255").
    */
   override fun toString(componentId: Int) =
@@ -77,9 +75,7 @@ class ColorUnit(override val color: Color) :
    */
   override fun parseUnit(getValue: (Int) -> String?): AnimationUnit.Unit<*>? {
     val values =
-      getValue(0)?.split(",")?.mapNotNull { s ->
-        s.trim().split(":").let { if (it.size == 2) it[1].trim().toIntOrNull() else null }
-      }
+      getValue(0)?.split(",")?.mapNotNull { s -> s.trim().split(":").let { if (it.size == 2) it[1].trim().toIntOrNull() else null } }
     return if (values?.size == 4) {
       ColorUnit(values[0], values[1], values[2], values[3])
     } else {

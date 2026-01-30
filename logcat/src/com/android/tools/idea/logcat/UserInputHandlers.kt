@@ -42,14 +42,11 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Handles typing of text by user in a Logcat [EditorEx].
  *
- * Text typed by user is appended to the document unless the caret or selection is already inside a
- * region of text already typed by user.
+ * Text typed by user is appended to the document unless the caret or selection is already inside a region of text already typed by user.
  *
- * This is consistent with the behavior of ConsoleViewImpl and is based on code in
- * ConsoleViewImpl.registerConsoleEditorActions().
+ * This is consistent with the behavior of ConsoleViewImpl and is based on code in ConsoleViewImpl.registerConsoleEditorActions().
  *
- * TODO(b/261527041): Maybe find a way to persist the user input text so it survives reloading of
- *   messages when filters change.
+ * TODO(b/261527041): Maybe find a way to persist the user input text so it survives reloading of messages when filters change.
  */
 internal class UserInputHandlers(private val editor: EditorEx) {
   private val project = editor.project
@@ -57,8 +54,7 @@ internal class UserInputHandlers(private val editor: EditorEx) {
   private val selectionModel = editor.selectionModel
   private val caretModel = editor.caretModel
   private val scrollingModel = editor.scrollingModel
-  private val markupModel =
-    DocumentMarkupModel.forDocument(document, project, true) as MarkupModelEx
+  private val markupModel = DocumentMarkupModel.forDocument(document, project, true) as MarkupModelEx
   private val copyPasteManager = CopyPasteManager.getInstance()
 
   fun install() {
@@ -76,21 +72,13 @@ internal class UserInputHandlers(private val editor: EditorEx) {
   }
 
   /** Returns true if the specified range is in a user input range */
-  private fun isInUserInputRange(start: Int, end: Int = start) =
-    findUserInputRange(start, end) != null
+  private fun isInUserInputRange(start: Int, end: Int = start) = findUserInputRange(start, end) != null
 
-  /**
-   * Returns the user input [RangeHighlighterEx] that contains given range or null if given range is
-   * not contained in one.
-   */
+  /** Returns the user input [RangeHighlighterEx] that contains given range or null if given range is not contained in one. */
   private fun findUserInputRange(start: Int, end: Int): RangeHighlighterEx? {
     val range = AtomicReference<RangeHighlighterEx?>(null)
     markupModel.processRangeHighlightersOverlappingWith(start, end) {
-      if (
-        it.textAttributesKey == USER_INPUT.attributesKey &&
-          it.startOffset <= start &&
-          it.endOffset >= end
-      ) {
+      if (it.textAttributesKey == USER_INPUT.attributesKey && it.startOffset <= start && it.endOffset >= end) {
         range.set(it)
         false
       } else true
@@ -100,8 +88,7 @@ internal class UserInputHandlers(private val editor: EditorEx) {
 
   /** Type the given text into the document. */
   private fun type(text: String) {
-    val lastOffset =
-      if (selectionModel.hasSelection()) selectionModel.selectionStart else caretModel.offset + 1
+    val lastOffset = if (selectionModel.hasSelection()) selectionModel.selectionStart else caretModel.offset + 1
     if (!isInUserInputRange(lastOffset)) {
       // Not inside a user input range, append text
       append(text)
@@ -150,10 +137,9 @@ internal class UserInputHandlers(private val editor: EditorEx) {
   /**
    * Handles normal typing.
    *
-   * In ConsoleViewImpl, this is done with a
-   * [com.intellij.openapi.editor.actionSystem.TypedActionHandler] using
-   * [com.intellij.openapi.editor.actionSystem.TypedAction.setupHandler] but `setupHandler` is
-   * deprecated and the replacement doesn't quite work, so we use a [java.awt.event.KeyListener]
+   * In ConsoleViewImpl, this is done with a [com.intellij.openapi.editor.actionSystem.TypedActionHandler] using
+   * [com.intellij.openapi.editor.actionSystem.TypedAction.setupHandler] but `setupHandler` is deprecated and the replacement doesn't quite
+   * work, so we use a [java.awt.event.KeyListener]
    */
   private inner class UserInputKeyListener : KeyAdapter() {
     override fun keyTyped(e: KeyEvent) {

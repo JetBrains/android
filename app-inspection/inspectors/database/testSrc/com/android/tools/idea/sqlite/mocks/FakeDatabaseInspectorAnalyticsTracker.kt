@@ -23,9 +23,7 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
 
   override fun trackTableCellEdited() {}
 
-  override fun trackTargetRefreshed(
-    targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType
-  ) {}
+  override fun trackTargetRefreshed(targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType) {}
 
   override fun trackStatementExecuted(
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
@@ -51,22 +49,16 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
 
   var metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata? = null
 
-  override fun trackOfflineModeEntered(
-    metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
-  ) {
+  override fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata) {
     this.metadata = metadata
   }
 
-  override fun trackExportDialogOpened(
-    actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
-  ) {}
+  override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {}
 
   override fun trackExportCompleted(
     source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
-    sourceFormat:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
-    destination:
-      AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
     outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,

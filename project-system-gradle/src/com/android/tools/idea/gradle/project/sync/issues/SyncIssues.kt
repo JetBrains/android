@@ -34,27 +34,26 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 
 class SyncIssues(private val issues: List<IdeSyncIssue>) : List<IdeSyncIssue> by issues {
   companion object {
-    @JvmField
-    val EMPTY = SyncIssues(emptyList())
+    @JvmField val EMPTY = SyncIssues(emptyList())
 
     @JvmName("forModule")
     @JvmStatic
     fun Module.syncIssues(): SyncIssues {
       val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return EMPTY
       val projectDataNode = findProjectNode(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return EMPTY
-      val moduleDataNode = findChild(projectDataNode, ProjectKeys.MODULE) { node ->
-        node.data.internalName == name
-      } ?: return EMPTY
+      val moduleDataNode = findChild(projectDataNode, ProjectKeys.MODULE) { node -> node.data.internalName == name } ?: return EMPTY
       return SyncIssues(findAll(moduleDataNode, SYNC_ISSUE).map { dataNode -> dataNode.data })
     }
   }
 }
 
 class SyncIssueDataService : AbstractProjectDataService<IdeSyncIssue, Void>() {
-  override fun importData(toImport: Collection<DataNode<IdeSyncIssue>>,
-                          projectData: ProjectData?,
-                          project: Project,
-                          modelsProvider: IdeModifiableModelsProvider) {
+  override fun importData(
+    toImport: Collection<DataNode<IdeSyncIssue>>,
+    projectData: ProjectData?,
+    project: Project,
+    modelsProvider: IdeModifiableModelsProvider,
+  ) {
     val moduleToSyncIssueMap: MutableMap<Module, List<IdeSyncIssue>> = mutableMapOf()
     ExternalSystemApiUtil.groupBy(toImport, ModuleData::class.java).entrySet().forEach { (moduleNode, syncIssues) ->
       val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach

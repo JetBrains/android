@@ -45,14 +45,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Launches a coroutine for every DeviceHandle that arrives on the devicesFlow. Cancels it when the
- * device is removed from the flow.
- */
-private suspend fun trackDevices(
-  devicesFlow: Flow<List<DeviceHandle>>,
-  tracker: suspend (DeviceHandle) -> Unit,
-) = coroutineScope {
+/** Launches a coroutine for every DeviceHandle that arrives on the devicesFlow. Cancels it when the device is removed from the flow. */
+private suspend fun trackDevices(devicesFlow: Flow<List<DeviceHandle>>, tracker: suspend (DeviceHandle) -> Unit) = coroutineScope {
   val trackers = mutableMapOf<DeviceHandle, Job>()
   devicesFlow
     .map { it.toSet() }
@@ -102,15 +96,12 @@ private constructor(
     )
     add(scrollPane)
 
-    scope.launch(uiDispatcher) {
-      pairingsTable.selection.asFlow().collect { removeButton.isEnabled = it.isNotEmpty() }
-    }
+    scope.launch(uiDispatcher) { pairingsTable.selection.asFlow().collect { removeButton.isEnabled = it.isNotEmpty() } }
   }
 
   fun updatePairedDeviceData(pairedDeviceData: PairedDeviceData) {
     when (pairedDeviceData.state) {
-      WearPairingManager.PairingState.UNKNOWN ->
-        pairingsTable.removeRowByKey(pairedDeviceData.handle)
+      WearPairingManager.PairingState.UNKNOWN -> pairingsTable.removeRowByKey(pairedDeviceData.handle)
       else -> pairingsTable.addOrUpdateRow(pairedDeviceData)
     }
   }
@@ -151,10 +142,7 @@ private constructor(
   }
 
   /** Updates the PairedDevicesPanel based on the provided flows. */
-  private suspend fun trackPairedDevices(
-    devicesFlow: Flow<List<DeviceHandle>>,
-    pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
-  ) {
+  private suspend fun trackPairedDevices(devicesFlow: Flow<List<DeviceHandle>>, pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>) {
     trackDevices(devicesFlow) { device ->
       try {
         val pairingId = device.state.properties.wearPairingId
@@ -162,11 +150,7 @@ private constructor(
           .map { it[subjectWearPairingId]?.find { it.id == pairingId } }
           .distinctUntilChanged()
           .combine(device.stateFlow) { pairingStatus, deviceState ->
-            PairedDeviceData.create(
-              device,
-              deviceState,
-              pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN,
-            )
+            PairedDeviceData.create(device, deviceState, pairingStatus?.state ?: WearPairingManager.PairingState.UNKNOWN)
           }
           .distinctUntilChanged()
           .collect { withContext(uiDispatcher) { updatePairedDeviceData(it) } }
@@ -204,8 +188,9 @@ private constructor(
     ): PairedDevicesPanel {
       val subjectDevicePairingId = checkNotNull(handle.state.properties.wearPairingId)
 
-      return PairedDevicesPanel(pairingManager, scope, uiDispatcher, handle, subjectDevicePairingId)
-        .also { scope.launch { it.trackPairedDevices(devicesFlow, pairedDevicesFlow) } }
+      return PairedDevicesPanel(pairingManager, scope, uiDispatcher, handle, subjectDevicePairingId).also {
+        scope.launch { it.trackPairedDevices(devicesFlow, pairedDevicesFlow) }
+      }
     }
   }
 }

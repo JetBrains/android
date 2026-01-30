@@ -41,8 +41,8 @@ class KtsAndroidReferenceProviderContributor : KotlinPsiReferenceProviderContrib
     }
 }
 
-class KtsDotExpressionVersionCatalogReference(private val refExpr: KtDotQualifiedExpression, val file: TomlFile)
-  : PsiReferenceBase<KtDotQualifiedExpression>(refExpr) {
+class KtsDotExpressionVersionCatalogReference(private val refExpr: KtDotQualifiedExpression, val file: TomlFile) :
+  PsiReferenceBase<KtDotQualifiedExpression>(refExpr) {
   override fun resolve(): PsiElement? {
     return findCatalogKey(file, refExpr.text.substringAfter("."))
   }
@@ -50,7 +50,7 @@ class KtsDotExpressionVersionCatalogReference(private val refExpr: KtDotQualifie
 
 fun KtDotQualifiedExpression.isEndOfDotExpression() =
   (this.parent !is KtDotQualifiedExpression || this.parent.children.lastOrNull() !is KtNameReferenceExpression) &&
-  this.hasOnlyNameReferences()
+    this.hasOnlyNameReferences()
 
 private fun KtDotQualifiedExpression.hasOnlyNameReferences(): Boolean =
   this.children.all {
@@ -61,6 +61,7 @@ private fun KtDotQualifiedExpression.hasOnlyNameReferences(): Boolean =
     }
   }
 
-fun hasLiveCatalogReference(element: KtDotQualifiedExpression) = element.references.any { ref ->
-  ref is KtsDotExpressionVersionCatalogReference && ref.resolve()?.let { it.containingFile is TomlFile } == true
-}
+fun hasLiveCatalogReference(element: KtDotQualifiedExpression) =
+  element.references.any { ref ->
+    ref is KtsDotExpressionVersionCatalogReference && ref.resolve()?.let { it.containingFile is TomlFile } == true
+  }

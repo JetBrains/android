@@ -35,35 +35,22 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** Button with icon that is either pressed (on) or unchanged (off). */
-class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
-  JPanel(BorderLayout()), UiDataProvider {
+class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : JPanel(BorderLayout()), UiDataProvider {
 
   init {
     val action = ButtonAction(model)
     val presentation = action.templatePresentation.clone()
-    val button =
-      ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
+    val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
     isFocusable = false
-    HelpSupportBinding.registerHelpKeyActions(
-      this,
-      { model.property },
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
+    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     button.addFocusListener(EditorFocusListener(this, model))
 
     model.addListener {
       // This will update the selected state of the ActionButton:
       val context = DataManager.getInstance().getDataContext(button)
-      val event =
-        AnActionEvent.createEvent(
-          context,
-          presentation,
-          ActionPlaces.UNKNOWN,
-          ActionUiKind.NONE,
-          null,
-        )
+      val event = AnActionEvent.createEvent(context, presentation, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
       ActionUtil.performDumbAwareUpdate(action, event, false)
       if (model.focusRequest && !isFocusOwner) {
         button.requestFocusInWindow()

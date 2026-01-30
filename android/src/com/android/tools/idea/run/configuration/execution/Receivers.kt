@@ -18,14 +18,11 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.MultiLineReceiver
 import com.intellij.execution.ui.ConsoleView
 
-internal class ConsoleOutputReceiver(private val isCancelledCheck: () -> Boolean,
-                                     private val consoleView: ConsoleView
-) : MultiLineReceiver() {
+internal class ConsoleOutputReceiver(private val isCancelledCheck: () -> Boolean, private val consoleView: ConsoleView) :
+  MultiLineReceiver() {
   override fun isCancelled() = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<String>) = lines.forEach {
-    consoleView.println(it)
-  }
+  override fun processNewLines(lines: Array<String>) = lines.forEach { consoleView.println(it) }
 }
 
 internal class RecordOutputReceiver(private val isCancelledCheck: () -> Boolean) : MultiLineReceiver() {
@@ -33,9 +30,7 @@ internal class RecordOutputReceiver(private val isCancelledCheck: () -> Boolean)
 
   override fun isCancelled() = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<out String>) = lines.forEach {
-    entireOutput.append(it).append("\n")
-  }
+  override fun processNewLines(lines: Array<out String>) = lines.forEach { entireOutput.append(it).append("\n") }
 
   fun getOutput(): String {
     return entireOutput.toString()

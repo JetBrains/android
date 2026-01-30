@@ -54,9 +54,7 @@ class FoldValidator(private val model: FoldingModel) {
     val message = outputWithMarker()
     assertThat(actualStartLine).named(message).isEqualTo(startLine)
     assertThat(actualEndLine).named(message).isEqualTo(endLine)
-    assertThat(document.getLineStartOffset(startLine - 1))
-      .named(message)
-      .isEqualTo(region.startOffset)
+    assertThat(document.getLineStartOffset(startLine - 1)).named(message).isEqualTo(region.startOffset)
     assertThat(document.getLineEndOffset(endLine - 1)).named(message).isEqualTo(region.endOffset)
     assertThat(region.placeholderText).named(message).isEqualTo(placeHolder)
   }
@@ -66,9 +64,7 @@ class FoldValidator(private val model: FoldingModel) {
     val rest = outputWithMarker()
     index--
     val expected = model.allFoldRegions.size
-    assertThat(index)
-      .named("Only $index out of $expected regions are accounted for:\n $rest")
-      .isEqualTo(expected)
+    assertThat(index).named("Only $index out of $expected regions are accounted for:\n $rest").isEqualTo(expected)
   }
 
   private fun formatActual(): String {

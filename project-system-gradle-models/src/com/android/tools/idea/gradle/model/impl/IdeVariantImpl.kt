@@ -21,44 +21,162 @@ import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
 import java.io.Serializable
 
-sealed interface IdeVariantCoreSerializable: IdeVariantCore, Serializable
+sealed interface IdeVariantCoreSerializable : IdeVariantCore, Serializable
 
 data object ThrowingIdeVariantCore : IdeVariantCoreSerializable {
-  override val mainArtifact: IdeAndroidArtifactCoreImpl get() { error("Should not be called") }
-  override val deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl> get() { error("Should not be called") }
-  override val testFixturesArtifact: IdeAndroidArtifactCoreImpl? get() { error("Should not be called") }
-  override val hostTestArtifacts: List<IdeJavaArtifactCoreImpl> get() { error("Should not be called") }
-  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> get() { error("Should not be called") }
-  override val minSdkVersion: IdeApiVersionImpl get() { error("Should not be called") }
-  override val targetSdkVersion: IdeApiVersionImpl? get() { error("Should not be called") }
-  override val maxSdkVersion: Int? get() { error("Should not be called") }
-  override val versionCode: Int? get() { error("Should not be called") }
-  override val versionNameSuffix: String? get() { error("Should not be called") }
-  override val versionNameWithSuffix: String? get() { error("Should not be called") }
-  override val instantAppCompatible: Boolean get() { error("Should not be called") }
-  override val vectorDrawablesUseSupportLibrary: Boolean get() { error("Should not be called") }
-  override val resourceConfigurations: List<String> get() { error("Should not be called") }
-  override val resValues: Map<String, IdeClassFieldImpl> get() { error("Should not be called") }
-  override val proguardFiles: List<FileImpl> get() { error("Should not be called") }
-  override val consumerProguardFiles: List<FileImpl> get() { error("Should not be called") }
-  override val manifestPlaceholders: Map<String, String> get() { error("Should not be called") }
-  override val testInstrumentationRunner: String? get() { error("Should not be called") }
-  override val testInstrumentationRunnerArguments: Map<String, String> get() { error("Should not be called") }
-  override val testedTargetVariants: List<IdeTestedTargetVariantImpl> get() { error("Should not be called") }
-  override val runTestInSeparateProcess: Boolean get() { error("Should not be called") }
-  override val deprecatedPreMergedApplicationId: String? get() { error("Should not be called") }
-  override val deprecatedPreMergedTestApplicationId: String? get() { error("Should not be called") }
-  override val desugaredMethodsFiles: List<FileImpl> get() { error("Should not be called") }
-  override val experimentalProperties: Map<String, String> get() { error("Should not be called") }
-  override val name: String get() { error("Should not be called") }
-  override val buildType: String get() { error("Should not be called") }
-  override val productFlavors: List<String> get() { error("Should not be called") }
-  override val displayName: String get() { error("Should not be called") }
+  override val mainArtifact: IdeAndroidArtifactCoreImpl
+    get() {
+      error("Should not be called")
+    }
+
+  override val deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val testFixturesArtifact: IdeAndroidArtifactCoreImpl?
+    get() {
+      error("Should not be called")
+    }
+
+  override val hostTestArtifacts: List<IdeJavaArtifactCoreImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val minSdkVersion: IdeApiVersionImpl
+    get() {
+      error("Should not be called")
+    }
+
+  override val targetSdkVersion: IdeApiVersionImpl?
+    get() {
+      error("Should not be called")
+    }
+
+  override val maxSdkVersion: Int?
+    get() {
+      error("Should not be called")
+    }
+
+  override val versionCode: Int?
+    get() {
+      error("Should not be called")
+    }
+
+  override val versionNameSuffix: String?
+    get() {
+      error("Should not be called")
+    }
+
+  override val versionNameWithSuffix: String?
+    get() {
+      error("Should not be called")
+    }
+
+  override val instantAppCompatible: Boolean
+    get() {
+      error("Should not be called")
+    }
+
+  override val vectorDrawablesUseSupportLibrary: Boolean
+    get() {
+      error("Should not be called")
+    }
+
+  override val resourceConfigurations: List<String>
+    get() {
+      error("Should not be called")
+    }
+
+  override val resValues: Map<String, IdeClassFieldImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val proguardFiles: List<FileImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val consumerProguardFiles: List<FileImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val manifestPlaceholders: Map<String, String>
+    get() {
+      error("Should not be called")
+    }
+
+  override val testInstrumentationRunner: String?
+    get() {
+      error("Should not be called")
+    }
+
+  override val testInstrumentationRunnerArguments: Map<String, String>
+    get() {
+      error("Should not be called")
+    }
+
+  override val testedTargetVariants: List<IdeTestedTargetVariantImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val runTestInSeparateProcess: Boolean
+    get() {
+      error("Should not be called")
+    }
+
+  override val deprecatedPreMergedApplicationId: String?
+    get() {
+      error("Should not be called")
+    }
+
+  override val deprecatedPreMergedTestApplicationId: String?
+    get() {
+      error("Should not be called")
+    }
+
+  override val desugaredMethodsFiles: List<FileImpl>
+    get() {
+      error("Should not be called")
+    }
+
+  override val experimentalProperties: Map<String, String>
+    get() {
+      error("Should not be called")
+    }
+
+  override val name: String
+    get() {
+      error("Should not be called")
+    }
+
+  override val buildType: String
+    get() {
+      error("Should not be called")
+    }
+
+  override val productFlavors: List<String>
+    get() {
+      error("Should not be called")
+    }
+
+  override val displayName: String
+    get() {
+      error("Should not be called")
+    }
 
   // Make sure the serialization always returns this singleton
   private fun readResolve(): Any = ThrowingIdeVariantCore
 }
-
 
 data class IdeBasicVariantImpl(
   override val name: String,
@@ -99,7 +217,7 @@ data class IdeVariantCoreImpl(
   override val deprecatedPreMergedApplicationId: String?,
   override val deprecatedPreMergedTestApplicationId: String?,
   override val desugaredMethodsFiles: List<FileImpl>,
-  override val experimentalProperties: Map<String, String>
+  override val experimentalProperties: Map<String, String>,
 ) : IdeVariantCoreSerializable {
   constructor(
     name: String,
@@ -132,7 +250,7 @@ data class IdeVariantCoreImpl(
     deprecatedPreMergedTestApplicationId: String?,
     desugaredMethodsFiles: List<File>,
     experimentalProperties: Map<String, String>,
-    unused: String = "" // to prevent clash
+    unused: String = "", // to prevent clash
   ) : this(
     name,
     displayName,
@@ -163,14 +281,11 @@ data class IdeVariantCoreImpl(
     deprecatedPreMergedApplicationId,
     deprecatedPreMergedTestApplicationId,
     desugaredMethodsFiles.toImpl(),
-    experimentalProperties
+    experimentalProperties,
   )
 }
 
-class IdeVariantImpl(
-  private val core: IdeVariantCoreImpl,
-  resolver: IdeLibraryModelResolverImpl
-) : IdeVariant, IdeVariantCore {
+class IdeVariantImpl(private val core: IdeVariantCoreImpl, resolver: IdeLibraryModelResolverImpl) : IdeVariant, IdeVariantCore {
   override val minSdkVersion: IdeApiVersionImpl = core.minSdkVersion
   override val targetSdkVersion: IdeApiVersionImpl? = core.targetSdkVersion
   override val maxSdkVersion: Int? = core.maxSdkVersion
@@ -200,15 +315,14 @@ class IdeVariantImpl(
   override val deviceTestArtifacts: List<IdeAndroidArtifactImpl> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
   override val testFixturesArtifact: IdeAndroidArtifactImpl? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
   override val hostTestArtifacts: List<IdeJavaArtifactImpl> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
-  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> = core.testSuiteArtifacts.map {
-    IdeTestSuiteVariantTargetImpl(
-      it.suiteName,
-      it.targetedVariantName,
-      it.targets.map { target ->
-        IdeTestSuiteTargetImpl(target.targetName, target.testTaskName, target.targetedDevices)
-      }
-    )
-  }
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTargetImpl> =
+    core.testSuiteArtifacts.map {
+      IdeTestSuiteVariantTargetImpl(
+        it.suiteName,
+        it.targetedVariantName,
+        it.targets.map { target -> IdeTestSuiteTargetImpl(target.targetName, target.testTaskName, target.targetedDevices) },
+      )
+    }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

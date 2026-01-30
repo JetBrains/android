@@ -26,10 +26,8 @@ object HideAndroidBannerAction : AnAction("Hide Android Banners") {
     val project = event.project
     val editor = event.getData(PlatformCoreDataKeys.FILE_EDITOR)
     if (project != null && editor != null) {
-      PropertiesComponent.getInstance().setValue(
-        "PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP",
-        System.currentTimeMillis().toString()
-      )
+      PropertiesComponent.getInstance()
+        .setValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", System.currentTimeMillis().toString())
       EditorNotifications.getInstance(project).updateAllNotifications()
     }
   }

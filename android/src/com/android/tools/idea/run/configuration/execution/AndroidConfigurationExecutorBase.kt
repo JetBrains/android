@@ -47,12 +47,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
 
-abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment,
-                                                private val deviceFutures: DeviceFutures,
-                                                protected val appRunSettings: AppRunSettings,
-                                                protected val apkProvider: ApkProvider,
-                                                protected val applicationContext: ApplicationProjectContext,
-                                                protected val applicationDeployer: ApplicationDeployer) : AndroidConfigurationExecutor {
+abstract class AndroidConfigurationExecutorBase(
+  protected val environment: ExecutionEnvironment,
+  private val deviceFutures: DeviceFutures,
+  protected val appRunSettings: AppRunSettings,
+  protected val apkProvider: ApkProvider,
+  protected val applicationContext: ApplicationProjectContext,
+  protected val applicationDeployer: ApplicationDeployer,
+) : AndroidConfigurationExecutor {
 
   private val LOG = Logger.getInstance(this::class.java)
   val logger = LogWrapper(LOG)
@@ -82,11 +84,9 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
 
         val result = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
         launch(device, result.app, console, false, indicator)
-      }
-      catch (e: DeployerException) {
+      } catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         tryCleanupAfterLaunchFailure(device, console, applicationId, false)
         throw e
       }
@@ -118,17 +118,14 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     try {
       indicator.text = "Installing app..."
       val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
-      val runContentDescriptorDeferred = async(Dispatchers.Default) {
-        startDebugSession(device, applicationContext, console, indicator).runContentDescriptor
-      }
+      val runContentDescriptorDeferred =
+        async(Dispatchers.Default) { startDebugSession(device, applicationContext, console, indicator).runContentDescriptor }
       indicator.text = "Launching..."
       launch(device, deployResult.app, console, true, indicator)
       runContentDescriptorDeferred.await()
-    }
-    catch (e: DeployerException) {
+    } catch (e: DeployerException) {
       throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       tryCleanupAfterLaunchFailure(device, console, applicationId, true)
       throw e
     }
@@ -139,8 +136,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
       try {
         getStopCallback(console, applicationId, isDebug).invoke(device)
         ApplicationTerminator(device, applicationId).killApp()
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         LOG.warn("Failed to cleanup after launch failure", e)
       }
     }
@@ -156,9 +152,9 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   protected abstract suspend fun startDebugSession(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
-    console: ConsoleView, indicator: ProgressIndicator
+    console: ConsoleView,
+    indicator: ProgressIndicator,
   ): XDebugSessionImpl
-
 
   private fun createConsole(): ConsoleView {
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console

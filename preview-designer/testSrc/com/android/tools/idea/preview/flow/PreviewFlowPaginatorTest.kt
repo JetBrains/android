@@ -36,18 +36,14 @@ class PreviewFlowPaginatorTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testPageSizeChange() = runTest {
-    val content: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
-    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+    val content: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
+    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
 
     // backgroundScope is used because this test is not testing the lifecycle of the flow nor
     // its collection. Instead, it only tests its correctness.
     // See backgroundScope documentation for more details.
-    backgroundScope.launch {
-      previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
-    }
+    backgroundScope.launch { previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it } }
 
     content.value = FlowableCollection.Present(listOf(1, 2, 3, 4, 5))
 
@@ -82,14 +78,10 @@ class PreviewFlowPaginatorTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSelectedPageChange() = runTest {
-    val content: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
-    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+    val content: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
+    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
-    backgroundScope.launch {
-      previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
-    }
+    backgroundScope.launch { previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it } }
     content.value = FlowableCollection.Present(listOf(1, 2, 3, 4, 5))
 
     previewFlowPaginator.pageSize = 1
@@ -120,14 +112,10 @@ class PreviewFlowPaginatorTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSelectedPageChangesAutomaticallyWhenPageDisappears() = runTest {
-    val content: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
-    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+    val content: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
+    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
-    backgroundScope.launch {
-      previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
-    }
+    backgroundScope.launch { previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it } }
     content.value = FlowableCollection.Present(listOf(1, 2, 3, 4, 5))
 
     previewFlowPaginator.pageSize = 1
@@ -144,14 +132,10 @@ class PreviewFlowPaginatorTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testContentChange() = runTest {
-    val content: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
-    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+    val content: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
+    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
-    backgroundScope.launch {
-      previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
-    }
+    backgroundScope.launch { previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it } }
 
     content.value = FlowableCollection.Present(emptyList())
 
@@ -176,14 +160,10 @@ class PreviewFlowPaginatorTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testEmptyAndUninitializedAreDifferent() = runTest {
-    val content: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
-    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
-      MutableStateFlow(FlowableCollection.Uninitialized)
+    val content: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
+    val currentPageContent: MutableStateFlow<FlowableCollection<Int>> = MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
-    backgroundScope.launch {
-      previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
-    }
+    backgroundScope.launch { previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it } }
 
     runCurrent()
     assertEquals(FlowableCollection.Uninitialized, currentPageContent.value)

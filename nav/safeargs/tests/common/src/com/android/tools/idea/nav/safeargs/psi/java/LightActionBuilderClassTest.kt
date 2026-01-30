@@ -36,34 +36,34 @@ class LightActionBuilderClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg_one"
-                app:argType="string" />
-            <action
-              android:id="@+id/action_fragment1_to_fragment2"
-              app:destination="@id/fragment2" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
-            <argument
-                android:name="arg_one"
-                app:argType="string" />
-            <action
-              android:id="@+id/action_fragment2_to_main"
-              app:destination="@id/main" />
-          </fragment>
-        </navigation>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <argument
+              android:name="arg_one"
+              app:argType="string" />
+          <action
+            android:id="@+id/action_fragment1_to_fragment2"
+            app:destination="@id/fragment2" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2">
+          <argument
+              android:name="arg_one"
+              app:argType="string" />
+          <action
+            android:id="@+id/action_fragment2_to_main"
+            app:destination="@id/main" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -73,20 +73,10 @@ class LightActionBuilderClassTest {
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
-    Truth.assertThat(
-        safeArgsRule.fixture.findClass(
-          "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
-          context,
-        )
-      )
-      .isNull()
+    Truth.assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions.ActionFragment2ToMain", context)).isNull()
 
     // Classes can be found with context
-    val actionBuilderClass =
-      safeArgsRule.fixture.findClass(
-        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context,
-      )
+    val actionBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context)
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
     // Check supers
@@ -115,46 +105,46 @@ class LightActionBuilderClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <action
-              android:id="@+id/action_fragment1_to_fragment2"
-              app:destination="@id/fragment2" >
-              <argument
-                android:name="overriddenArg"
-                app:argType="string" />
-                
-              <argument
-                  android:name="overridden_arg_with_default_value"
-                  app:argType="integer"
-                  android:defaultValue="1" />
-            </action>
-          </fragment>
-          
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <action
+            android:id="@+id/action_fragment1_to_fragment2"
+            app:destination="@id/fragment2" >
             <argument
-                android:name="arg"
-                app:argType="string" />
-                
+              android:name="overriddenArg"
+              app:argType="string" />
+              
             <argument
                 android:name="overridden_arg_with_default_value"
-                app:argType="integer" />
-                
-            <action
-              android:id="@+id/action_fragment2_to_main"
-              app:destination="@id/main" />
-          </fragment>
-        </navigation>
+                app:argType="integer"
+                android:defaultValue="1" />
+          </action>
+        </fragment>
+        
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2">
+          <argument
+              android:name="arg"
+              app:argType="string" />
+              
+          <argument
+              android:name="overridden_arg_with_default_value"
+              app:argType="integer" />
+              
+          <action
+            android:id="@+id/action_fragment2_to_main"
+            app:destination="@id/main" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -165,20 +155,10 @@ class LightActionBuilderClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // All resolved arguments are with default values, so it falls back to NavDirections.
-    Truth.assertThat(
-        safeArgsRule.fixture.findClass(
-          "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
-          context,
-        )
-      )
-      .isNull()
+    Truth.assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions.ActionFragment2ToMain", context)).isNull()
 
     // Classes can be found with context
-    val actionBuilderClass =
-      safeArgsRule.fixture.findClass(
-        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
-        context,
-      )
+    val actionBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context)
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
     // Check supers
@@ -205,10 +185,7 @@ class LightActionBuilderClassTest {
         parameters = listOf(Parameter("overriddenArgWithDefaultValue", "int")),
       )
 
-      methods[3].checkSignaturesAndReturnType(
-        name = "getOverriddenArgWithDefaultValue",
-        returnType = "int",
-      )
+      methods[3].checkSignaturesAndReturnType(name = "getOverriddenArgWithDefaultValue", returnType = "int")
 
       methods[4].checkSignaturesAndReturnType(
         name = "setArg",

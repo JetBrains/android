@@ -43,13 +43,8 @@ internal fun getJdbcDatabaseConnection(
   }
 }
 
-/**
- * Sets `adb` location in the project (needed when using `adb` in e.g.
- * [com.intellij.testFramework.LightPlatformTestCase])
- */
+/** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
 internal fun initAdbFileProvider(project: Project) {
-  val adbFileProvider = AdbFileProvider {
-    TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile()
-  }
+  val adbFileProvider = AdbFileProvider { TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile() }
   project.replaceService(AdbFileProvider::class.java, adbFileProvider, project)
 }

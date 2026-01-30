@@ -56,31 +56,24 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite
       // engine.
-      openSqliteDatabase(file).use { connection ->
-        fillConfigurableTestDB(connection, tableName, columns, primaryKeys, withoutRowId)
-      }
+      openSqliteDatabase(file).use { connection -> fillConfigurableTestDB(connection, tableName, columns, primaryKeys, withoutRowId) }
 
       // File as changed on disk, refresh virtual file cached data
       file.refresh(false, false)
     }
   }
 
-  fun createAdHocSqliteDatabase(
-    dbName: String = "sqlite-database",
-    createStatement: String,
-    insertStatement: String,
-  ): VirtualFile = runWriteAction {
-    createEmptyTempSqliteDatabase(dbName).also { file ->
-      // Note: We need to close the connection so the database file handle is released by the Sqlite
-      // engine.
-      openSqliteDatabase(file).use { connection ->
-        fillAdHocDatabase(connection, createStatement, insertStatement)
-      }
+  fun createAdHocSqliteDatabase(dbName: String = "sqlite-database", createStatement: String, insertStatement: String): VirtualFile =
+    runWriteAction {
+      createEmptyTempSqliteDatabase(dbName).also { file ->
+        // Note: We need to close the connection so the database file handle is released by the Sqlite
+        // engine.
+        openSqliteDatabase(file).use { connection -> fillAdHocDatabase(connection, createStatement, insertStatement) }
 
-      // File as changed on disk, refresh virtual file cached data
-      file.refresh(false, false)
+        // File as changed on disk, refresh virtual file cached data
+        file.refresh(false, false)
+      }
     }
-  }
 
   fun createTestSqliteDatabaseWithConfigurableTypes(
     dbName: String = "sqlite-database",
@@ -90,9 +83,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite
       // engine.
-      openSqliteDatabase(file).use { connection ->
-        createTestDBWithConfigurableTypes(connection, tableName, types)
-      }
+      openSqliteDatabase(file).use { connection -> createTestDBWithConfigurableTypes(connection, tableName, types) }
 
       // File as changed on disk, refresh virtual file cached data
       file.refresh(false, false)
@@ -139,16 +130,12 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     withoutRowId: Boolean = false,
   ) {
     var columnsString =
-      primaryKeys.joinToString(
-        separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " ",
-      ) {
+      primaryKeys.joinToString(separator = ", ", postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " ") {
         "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL"
       }
     columnsString += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
 
-    val primaryKeysNames =
-      primaryKeys.joinToString(separator = ",") { AndroidSqlLexer.getValidName(it) }
+    val primaryKeysNames = primaryKeys.joinToString(separator = ",") { AndroidSqlLexer.getValidName(it) }
 
     val createTableStatement =
       "CREATE TABLE ${AndroidSqlLexer.getValidName(tableName)} ( $columnsString " +
@@ -159,25 +146,16 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     connection.createStatement().use { stmt -> stmt.executeUpdate(createTableStatement) }
 
     var colsNames =
-      primaryKeys.joinToString(
-        separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "",
-      ) {
+      primaryKeys.joinToString(separator = ", ", postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "") {
         AndroidSqlLexer.getValidName(it)
       }
     colsNames += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
 
     var colsValues =
-      primaryKeys.joinToString(
-        separator = ", ",
-        postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "",
-      ) {
-        "?"
-      }
+      primaryKeys.joinToString(separator = ", ", postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else "") { "?" }
     colsValues += columns.joinToString(separator = ", ") { "?" }
 
-    val insertStatement =
-      "INSERT INTO ${AndroidSqlLexer.getValidName(tableName)} ( $colsNames ) VALUES ( $colsValues )"
+    val insertStatement = "INSERT INTO ${AndroidSqlLexer.getValidName(tableName)} ( $colsNames ) VALUES ( $colsValues )"
 
     var index = 1
     connection.prepareStatement(insertStatement).use { preparedStatement ->
@@ -193,21 +171,13 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  private fun fillAdHocDatabase(
-    connection: Connection,
-    createStatement: String,
-    insertStatement: String,
-  ) {
+  private fun fillAdHocDatabase(connection: Connection, createStatement: String, insertStatement: String) {
     connection.createStatement().use { statement -> statement.executeUpdate(createStatement) }
 
     connection.createStatement().use { statement -> statement.execute(insertStatement) }
   }
 
-  private fun createTestDBWithConfigurableTypes(
-    connection: Connection,
-    tableName: String,
-    types: List<String>,
-  ) {
+  private fun createTestDBWithConfigurableTypes(connection: Connection, tableName: String, types: List<String>) {
     connection.createStatement().use { stmt ->
       val columns = types.mapIndexed { index, type -> "column$index $type" }.joinToString(",")
 
@@ -262,13 +232,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
     connection.autoCommit = true
   }
 
-  private fun addBook(
-    stmt: PreparedStatement,
-    id: Int,
-    title: String,
-    isbn: String,
-    authorId: Int,
-  ) {
+  private fun addBook(stmt: PreparedStatement, id: Int, title: String, isbn: String, authorId: Int) {
     stmt.setInt(1, id)
     stmt.setString(2, title)
     stmt.setString(3, isbn)

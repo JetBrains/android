@@ -17,13 +17,10 @@ package com.android.tools.idea.execution.common.processhandler
 
 import com.intellij.openapi.util.Key
 
-/**
- * An interface to emit a text message. An implementation class must be thread-safe.
- */
+/** An interface to emit a text message. An implementation class must be thread-safe. */
 interface TextEmitter {
   /**
-   * Emits [message] to a destination specified by [key].
-   * Typically, [key] is [com.intellij.execution.process.ProcessOutputTypes.STDOUT] or
+   * Emits [message] to a destination specified by [key]. Typically, [key] is [com.intellij.execution.process.ProcessOutputTypes.STDOUT] or
    * [com.intellij.execution.process.ProcessOutputTypes.STDERR].
    */
   fun emit(message: String, key: Key<*>)

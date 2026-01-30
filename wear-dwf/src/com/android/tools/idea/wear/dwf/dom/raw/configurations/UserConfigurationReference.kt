@@ -23,15 +23,14 @@ import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.xml.XmlFile
 
 /**
- * Reference towards a Declarative Watch Face user configuration. User configurations are defined
- * under the `<UserConfigurations>` tag in the given Declarative [watchFaceFile].
+ * Reference towards a Declarative Watch Face user configuration. User configurations are defined under the `<UserConfigurations>` tag in
+ * the given Declarative [watchFaceFile].
  *
- * The given [referenceValue] must be in the form `[CONFIGURATION.<configurationId>]` or, in the
- * case of color configurations, `[CONFIGURATION.<configurationId>.<colorIndex>]`.
+ * The given [referenceValue] must be in the form `[CONFIGURATION.<configurationId>]` or, in the case of color configurations,
+ * `[CONFIGURATION.<configurationId>.<colorIndex>]`.
  *
- * Color configurations can also refer to a color index. The color index corresponds to an index of
- * a `<ColorOption>`'s `colors` attribute array. For example, in the following the number can be
- * `0`, `1` or `2`:
+ * Color configurations can also refer to a color index. The color index corresponds to an index of a `<ColorOption>`'s `colors` attribute
+ * array. For example, in the following the number can be `0`, `1` or `2`:
  * ```xml
  *    <ColorOption
  *        colors="#ff577c3e #ff577c3e #ff577c3e"
@@ -40,18 +39,15 @@ import com.intellij.psi.xml.XmlFile
  *        screenReaderText="ith_option_display_name" />
  * ```
  *
- * If the `<ColorOption>`'s `colors` attribute only has one value, then it's acceptable to not
- * specify a color index.
+ * If the `<ColorOption>`'s `colors` attribute only has one value, then it's acceptable to not specify a color index.
  *
- * However, as the different options depends on whatever a Watch Face User selects on their watch,
- * the references will point to the parent `<ColorConfiguration>`.
+ * However, as the different options depends on whatever a Watch Face User selects on their watch, the references will point to the parent
+ * `<ColorConfiguration>`.
  *
- * The [filter] parameter is used to filter user configurations that can be resolved by the
- * reference and that should appear in the variants.
+ * The [filter] parameter is used to filter user configurations that can be resolved by the reference and that should appear in the
+ * variants.
  *
- * @see <a
- *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF
- *   User configurations</a>
+ * @see <a href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF User configurations</a>
  */
 class UserConfigurationReference(
   element: PsiElement,
@@ -72,10 +68,7 @@ class UserConfigurationReference(
     if (userConfigurationIdParts.size > 2) return null
 
     val resolvedConfiguration =
-      watchFaceFile
-        .extractUserConfigurations()
-        .filter { filter(it) }
-        .find { it.id == userConfigurationId } ?: return null
+      watchFaceFile.extractUserConfigurations().filter { filter(it) }.find { it.id == userConfigurationId } ?: return null
 
     val hasColorIndex = colorIndex != null
     if (hasColorIndex && resolvedConfiguration !is ColorConfiguration) return null
@@ -88,12 +81,8 @@ class UserConfigurationReference(
         .extractUserConfigurations()
         .filter { filter(it) }
         .flatMap { userConfiguration ->
-          if (
-            userConfiguration is ColorConfiguration && userConfiguration.colorIndices.count() > 1
-          ) {
-            userConfiguration.colorIndices.map { colorIndex ->
-              "${userConfiguration.id}.$colorIndex"
-            }
+          if (userConfiguration is ColorConfiguration && userConfiguration.colorIndices.count() > 1) {
+            userConfiguration.colorIndices.map { colorIndex -> "${userConfiguration.id}.$colorIndex" }
           } else {
             listOf(userConfiguration.id)
           }
@@ -104,8 +93,6 @@ class UserConfigurationReference(
   private fun extractUserConfigurationIdParts(): List<String>? {
     if (!referenceValue.startsWith("[$CONFIGURATION_PREFIX")) return null
     if (!referenceValue.endsWith("]")) return null
-    return referenceValue
-      .removeSurrounding(prefix = "[$CONFIGURATION_PREFIX", suffix = "]")
-      .split(".")
+    return referenceValue.removeSurrounding(prefix = "[$CONFIGURATION_PREFIX", suffix = "]").split(".")
   }
 }

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeVariant
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import java.io.File
-
 import java.io.Serializable
 
 data class IdeNativeModuleImpl(
@@ -30,7 +29,7 @@ data class IdeNativeModuleImpl(
   override val nativeBuildSystem: NativeBuildSystem,
   override val ndkVersion: String,
   override val defaultNdkVersion: String,
-  override val externalNativeBuildFile: FileImpl
+  override val externalNativeBuildFile: FileImpl,
 ) : IdeNativeModule, Serializable {
   constructor(
     name: String,
@@ -38,13 +37,6 @@ data class IdeNativeModuleImpl(
     nativeBuildSystem: NativeBuildSystem,
     ndkVersion: String,
     defaultNdkVersion: String,
-    externalNativeBuildFile: File
-  ) : this(
-    name,
-    variants,
-    nativeBuildSystem,
-    ndkVersion,
-    defaultNdkVersion,
-    externalNativeBuildFile.toImpl()
-  )
+    externalNativeBuildFile: File,
+  ) : this(name, variants, nativeBuildSystem, ndkVersion, defaultNdkVersion, externalNativeBuildFile.toImpl())
 }

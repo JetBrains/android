@@ -19,10 +19,7 @@ enum class AdbServerLogLevel(val displayText: String, val enabledTags: String) {
   // See all tags in
   // https://android.googlesource.com/platform/packages/modules/adb/+/refs/heads/master/docs/user/adb.1.md#environment-variables
   // The default uses all tags except [sockets, packets, rwx, fdevent].
-  MINIMAL(
-    "minimal",
-    "adb,usb,sync,sysdeps,transport,jdwp,services,auth,shell,incremental,mdns,mdns-stack",
-  ),
+  MINIMAL("minimal", "adb,usb,sync,sysdeps,transport,jdwp,services,auth,shell,incremental,mdns,mdns-stack"),
   FULL("full", "all"),
   DISABLED("disabled", "");
 

@@ -21,11 +21,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.replaceService
+import java.io.File
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import java.io.File
+
 val TEST_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/schemas"
 val TEST_PATCHED_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/patchedSchemas"
 
@@ -40,10 +41,7 @@ internal fun createTestDeclarativeSchemas(path: String): BuildDeclarativeSchemas
     val file = File(folder, fileName)
     val analysisSchema: AnalysisSchema = SchemaSerialization.schemaFromJsonString(file.readText())
     val ideSchema = analysisSchema.convert()
-    if (fileName.startsWith("settings"))
-      settingsSchemas.add(ideSchema)
-    else
-      projectSchemas.add(ideSchema)
+    if (fileName.startsWith("settings")) settingsSchemas.add(ideSchema) else projectSchemas.add(ideSchema)
   }
 
   return BuildDeclarativeSchemas(settingsSchemas, projectSchemas)
@@ -61,7 +59,5 @@ private fun registerTestDeclarativeService(project: Project, schemaPath: String,
   val mockService = mock(DeclarativeService::class.java)
   val schema = createTestDeclarativeSchemas(schemaPath)
   whenever(mockService.getDeclarativeSchema()).thenReturn(schema)
-  project.replaceService(
-    DeclarativeService::class.java, mockService, disposable
-  )
+  project.replaceService(DeclarativeService::class.java, mockService, disposable)
 }

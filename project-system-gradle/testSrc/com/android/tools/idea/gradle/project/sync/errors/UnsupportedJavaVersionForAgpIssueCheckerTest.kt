@@ -29,14 +29,15 @@ class UnsupportedJavaVersionForAgpIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is false when pattern is not present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = "This message should not be consumed",
-      failureCause = "Cause is none",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = "This message should not be consumed",
+        failureCause = "Cause is none",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     Truth.assertThat(consumed).isFalse()
     Truth.assertThat(testConsumer.messageEvents).isEmpty()
   }
@@ -44,14 +45,15 @@ class UnsupportedJavaVersionForAgpIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is true when pattern is present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = createErrorMessage(agpMinimumJdkVersion = "17", gradleJdkVersion = "11"),
-      failureCause = "",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = createErrorMessage(agpMinimumJdkVersion = "17", gradleJdkVersion = "11"),
+        failureCause = "",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     Truth.assertThat(consumed).isTrue()
     Truth.assertThat(testConsumer.messageEvents).isEmpty()
   }
@@ -84,8 +86,9 @@ class UnsupportedJavaVersionForAgpIssueCheckerTest {
     val issueData = GradleIssueData("projectFolderPath", Throwable(message), null, null)
     val issue = issueChecker.createBuildIssue(issueData)
     Truth.assertThat(issue).isNotNull()
-    val expectedMessage = "This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
-                          "current AGP requires a Gradle JVM that supports version $agpMinimumJdkVersion."
+    val expectedMessage =
+      "This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
+        "current AGP requires a Gradle JVM that supports version $agpMinimumJdkVersion."
     Truth.assertThat(issue!!.description).contains(expectedMessage)
     val quickFixes = issue.quickFixes
     Truth.assertThat(quickFixes).hasSize(2)
@@ -95,13 +98,13 @@ class UnsupportedJavaVersionForAgpIssueCheckerTest {
 
   private fun createErrorMessage(agpMinimumJdkVersion: String, gradleJdkVersion: String) =
     "Build file 'build.gradle' line: 2\n" +
-    "\n" +
-    "An exception occurred applying plugin request [id: 'com.android.application']\n" +
-    "> Failed to apply plugin 'com.android.internal.application'.\n" +
-    "   > Android Gradle plugin requires Java $agpMinimumJdkVersion to run. You are currently using Java $gradleJdkVersion.\n" +
-    "      Your current JDK is located in /Users/vmadalin/Develop/studio-main/prebuilts/studio/jdk/jdk11/mac-arm64/Contents/Home\n" +
-    "      You can try some of the following options:\n" +
-    "       - changing the IDE settings.\n" +
-    "       - changing the JAVA_HOME environment variable.\n" +
-    "       - changing `org.gradle.java.home` in `gradle.properties`."
+      "\n" +
+      "An exception occurred applying plugin request [id: 'com.android.application']\n" +
+      "> Failed to apply plugin 'com.android.internal.application'.\n" +
+      "   > Android Gradle plugin requires Java $agpMinimumJdkVersion to run. You are currently using Java $gradleJdkVersion.\n" +
+      "      Your current JDK is located in /Users/vmadalin/Develop/studio-main/prebuilts/studio/jdk/jdk11/mac-arm64/Contents/Home\n" +
+      "      You can try some of the following options:\n" +
+      "       - changing the IDE settings.\n" +
+      "       - changing the JAVA_HOME environment variable.\n" +
+      "       - changing `org.gradle.java.home` in `gradle.properties`."
 }

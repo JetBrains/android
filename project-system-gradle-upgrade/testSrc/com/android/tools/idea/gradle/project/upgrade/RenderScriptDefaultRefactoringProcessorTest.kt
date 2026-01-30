@@ -32,11 +32,12 @@ import org.junit.Test
 
 @RunsInEdt
 class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  private lateinit var gradlePropertiesFile : VirtualFile
+  private lateinit var gradlePropertiesFile: VirtualFile
 
-  override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder(includeRenderScriptSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
-  )
+  override val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(includeRenderScriptSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
+    )
 
   @Before
   fun setUpGradlePropertiesFile() {
@@ -64,9 +65,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
   @Test
   fun testEmptyRenderScriptDirectory() {
     writeToBuildFile(TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
-    runWriteAction {
-      projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs")
-    }
+    runWriteAction { projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs") }
     val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
@@ -138,10 +137,9 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
     assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.renderscript=TrUe")
-
   }
-  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+
+  fun VirtualFile.load(): String = VfsUtilCore.loadText(this).normalize()
 
   fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
-
 }

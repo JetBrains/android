@@ -32,9 +32,8 @@ import org.mockito.kotlin.whenever
 
 class ToolWindowTrackerServiceTest : AndroidTestCase() {
   private lateinit var myUsageTracker: TestUsageTracker
-  private lateinit var myService : ToolWindowTrackerService
-  @Mock
-  private lateinit var myMockToolWindowManager: ToolWindowManager
+  private lateinit var myService: ToolWindowTrackerService
+  @Mock private lateinit var myMockToolWindowManager: ToolWindowManager
 
   override fun setUp() {
     super.setUp()

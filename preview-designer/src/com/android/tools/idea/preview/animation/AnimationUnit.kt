@@ -53,8 +53,7 @@ object AnimationUnit {
     val components: List<A>
 
     /**
-     * Returns a string representation of the component at the specified index. If the index is out
-     * of bounds, returns an underscore ("_").
+     * Returns a string representation of the component at the specified index. If the index is out of bounds, returns an underscore ("_").
      *
      * @param componentId The index of the component.
      */
@@ -95,8 +94,7 @@ object AnimationUnit {
 
     override fun toString(): String =
       if (components.size == 1) components[0].toString()
-      else
-        components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+      else components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
 
     override fun hashCode(): Int {
       return components.fold(1) { hash, element -> 31 * hash + (element?.hashCode() ?: 0) }

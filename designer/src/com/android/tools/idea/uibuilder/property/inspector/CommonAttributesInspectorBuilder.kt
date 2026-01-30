@@ -26,10 +26,8 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 
-class CommonAttributesInspectorBuilder(
-  project: Project,
-  private val editorProvider: EditorProvider<NlPropertyItem>,
-) : InspectorBuilder<NlPropertyItem> {
+class CommonAttributesInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
 
   private val viewInspector = ViewInspectorBuilder(project, editorProvider)
   private val textInspector = TextViewInspectorBuilder(editorProvider)
@@ -40,10 +38,7 @@ class CommonAttributesInspectorBuilder(
     viewInspector.resetCache()
   }
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (!InspectorSection.COMMON.visible) {
       return
     }
@@ -71,11 +66,7 @@ class CommonAttributesInspectorBuilder(
       }
   }
 
-  private fun addCommonForAll(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-    generator: TitleGenerator,
-  ) {
+  private fun addCommonForAll(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, generator: TitleGenerator) {
     if (!generator.titleAdded) {
       // Only add the common elements if the basic section was added already.
       return
@@ -83,11 +74,7 @@ class CommonAttributesInspectorBuilder(
     addIfExist(inspector, properties.getOrNull(ANDROID_URI, ATTR_ALPHA), generator.title)
   }
 
-  private fun addIfExist(
-    inspector: InspectorPanel,
-    property: NlPropertyItem?,
-    title: InspectorLineModel,
-  ) {
+  private fun addIfExist(inspector: InspectorPanel, property: NlPropertyItem?, title: InspectorLineModel) {
     if (property != null) {
       inspector.addEditor(editorProvider.createEditor(property), title)
     }

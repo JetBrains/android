@@ -61,8 +61,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
   fun setUp() {
     avdManager = FakeAvdManager(session, temporaryDirectoryRule.newPath())
     plugin =
-      LocalEmulatorProvisionerFactory()
-        .create(session.scope, session, projectRule.project, avdManager::rescanAvds)
+      LocalEmulatorProvisionerFactory().create(session.scope, session, projectRule.project, avdManager::rescanAvds)
         as StudioLocalEmulatorProvisionerPlugin
     provisioner = DeviceProvisioner.create(session.scope, session, listOf(plugin))
   }
@@ -88,22 +87,10 @@ class StudioLocalEmulatorProvisionerPluginTest {
       yieldUntil { provisioner.devices.value.size == 0 }
     }
     validateIcon(avdManager.makeAvdInfo(1), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-    validateIcon(
-      avdManager.makeAvdInfo(2, tag = SystemImageTags.GOOGLE_TV_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
-    )
-    validateIcon(
-      avdManager.makeAvdInfo(3, tag = SystemImageTags.WEAR_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
-    )
-    validateIcon(
-      avdManager.makeAvdInfo(4, tag = SystemImageTags.AUTOMOTIVE_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
-    )
-    validateIcon(
-      avdManager.makeAvdInfo(5, tag = SystemImageTags.XR_HEADSET_TAG),
-      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
-    )
+    validateIcon(avdManager.makeAvdInfo(2, tag = SystemImageTags.GOOGLE_TV_TAG), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV)
+    validateIcon(avdManager.makeAvdInfo(3, tag = SystemImageTags.WEAR_TAG), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR)
+    validateIcon(avdManager.makeAvdInfo(4, tag = SystemImageTags.AUTOMOTIVE_TAG), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR)
+    validateIcon(avdManager.makeAvdInfo(5, tag = SystemImageTags.XR_HEADSET_TAG), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
   }
 
   /** Verify that DeviceActions are implemented as fields rather than via getters. */
@@ -130,9 +117,7 @@ class StudioLocalEmulatorProvisionerPluginTest {
         val action = property.getter.call(handle) as? DeviceAction
         assertWithMessage(property.name).that(action).isSameAs(property.getter.call(handle))
         if (action != null) {
-          assertWithMessage("${property.name}.presentation")
-            .that(action.presentation)
-            .isSameAs(action.presentation)
+          assertWithMessage("${property.name}.presentation").that(action.presentation).isSameAs(action.presentation)
         }
       }
     }

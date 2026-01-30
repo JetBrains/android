@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.PluginDeclarationSpec
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface GradleVersionCatalogPlugins: GradleBlockModel {
+interface GradleVersionCatalogPlugins : GradleBlockModel {
   fun getAllAliases(): Set<String>
 
   fun getAll(): Map<String, PluginDeclarationModel>

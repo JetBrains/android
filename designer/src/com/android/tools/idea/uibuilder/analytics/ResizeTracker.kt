@@ -21,10 +21,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 /** Interface for tracking resize events. */
 interface ResizeTracker {
   companion object {
-    val EP_NAME =
-      ExtensionPointName.create<ResizeTracker>(
-        "com.android.tools.idea.uibuilder.analytics.resizeTracker"
-      )
+    val EP_NAME = ExtensionPointName.create<ResizeTracker>("com.android.tools.idea.uibuilder.analytics.resizeTracker")
 
     @JvmStatic
     fun getTracker(sceneManager: SceneManager): ResizeTracker? {

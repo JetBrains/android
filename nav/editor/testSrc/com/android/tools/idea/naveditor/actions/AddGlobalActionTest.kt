@@ -44,9 +44,7 @@ class AddGlobalActionTest {
       }
     TestNavUsageTracker.create(model).use { tracker ->
       AddGlobalAction(model.treeReader.find("f2")!!)
-        .actionPerformed(
-          TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null }
-        )
+        .actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
       val root = model.treeReader.components[0]
       val action = root.children.first { it.isAction }
       assertThat(action.actionDestination).isEqualTo(model.treeReader.find("f2"))

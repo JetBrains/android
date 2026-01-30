@@ -20,12 +20,10 @@ import java.awt.Shape
 import java.util.LinkedList
 
 /**
- * Adds [DrawViewImage] corresponding to the images in the tree rooted at `skiaRoot` to the tree
- * provided in the call to [loadImages]. The images added will be in the same order as in a
- * depth-first traversal of `skiaRoot`, and in the normal case will be added to the [ViewNode] with
- * the same `drawId` as the `id` of the [SkiaViewNode]. If the order of nodes in the tree provided
- * to [loadImages] and in `skiaRoot` are different, images will be added to other nodes such that
- * order is preserved.
+ * Adds [DrawViewImage] corresponding to the images in the tree rooted at `skiaRoot` to the tree provided in the call to [loadImages]. The
+ * images added will be in the same order as in a depth-first traversal of `skiaRoot`, and in the normal case will be added to the
+ * [ViewNode] with the same `drawId` as the `id` of the [SkiaViewNode]. If the order of nodes in the tree provided to [loadImages] and in
+ * `skiaRoot` are different, images will be added to other nodes such that order is preserved.
  */
 class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
   private val skiaNodes = LinkedList(skiaRoot.flatten().filter { it.image != null }.toList())
@@ -69,14 +67,11 @@ class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: S
           // the SKP (which can happen due to the
           // way we build the tree in studio, and also potentially because of something happening on
           // the device side).
-          (skiaNodes.any { it.id == viewRoot.drawId } &&
-            viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))
+          (skiaNodes.any { it.id == viewRoot.drawId } && viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))
     ) {
       val skiaNode = skiaNodes.poll()
       val correspondingNode = nodeMap[skiaNode.id]
-      viewRoot.drawChildren.add(
-        DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip)
-      )
+      viewRoot.drawChildren.add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip))
     }
   }
 }

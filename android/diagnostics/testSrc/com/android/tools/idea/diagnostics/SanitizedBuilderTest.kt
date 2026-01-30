@@ -24,13 +24,15 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeEOL() {
     builder = SanitizedBuilder()
-    val linuxLine = "Event: 0.003 Loaded shared library /usr/local/google/home/taorantr/.local/share/JetBrains/Toolbox/apps/android-studio/jbr/lib/libjava.so"
+    val linuxLine =
+      "Event: 0.003 Loaded shared library /usr/local/google/home/taorantr/.local/share/JetBrains/Toolbox/apps/android-studio/jbr/lib/libjava.so"
     val expectedLinuxLine = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(linuxLine)
     assertEquals(expectedLinuxLine, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLine = "Event: 0.003 Loaded shared library C:\\Users\\taorantr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
+    val windowsLine =
+      "Event: 0.003 Loaded shared library C:\\Users\\taorantr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
     val expectedWindowsLine = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(windowsLine)
     assertEquals(expectedWindowsLine, builder.toString())
@@ -39,13 +41,15 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeEOLWithSpace() {
     builder = SanitizedBuilder()
-    val linuxLineWithSpace = "Event: 0.003 Loaded shared library /usr/local/goo gle/home/taor antr/.local/share/JetBrains/Toolbox/apps/android-studio/jbr/lib/libjava.so"
+    val linuxLineWithSpace =
+      "Event: 0.003 Loaded shared library /usr/local/goo gle/home/taor antr/.local/share/JetBrains/Toolbox/apps/android-studio/jbr/lib/libjava.so"
     val expectedLinuxLineWithSpace = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(linuxLineWithSpace)
     assertEquals(expectedLinuxLineWithSpace, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLineWithSpace = "Event: 0.003 Loaded shared library C:\\Program File\\User\\taoran tr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
+    val windowsLineWithSpace =
+      "Event: 0.003 Loaded shared library C:\\Program File\\User\\taoran tr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
     val expectedWindowsLineWithSpace = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(windowsLineWithSpace)
     assertEquals(expectedWindowsLineWithSpace, builder.toString())
@@ -54,13 +58,15 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeEOLWrongSlash() {
     builder = SanitizedBuilder()
-    val linuxLineWithWrongSlash = "Event: 0.003 Loaded shared library /usr/local\\google/home/taor antr/.local/share/JetBrains\\Toolbox/apps/android-studio/jbr/lib/libjava.so"
+    val linuxLineWithWrongSlash =
+      "Event: 0.003 Loaded shared library /usr/local\\google/home/taor antr/.local/share/JetBrains\\Toolbox/apps/android-studio/jbr/lib/libjava.so"
     val expectedLinuxLineWithWrongSlash = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(linuxLineWithWrongSlash)
     assertEquals(expectedLinuxLineWithWrongSlash, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLineWithWrongSlash = "Event: 0.003 Loaded shared library C:/Program File\\User/aorantr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
+    val windowsLineWithWrongSlash =
+      "Event: 0.003 Loaded shared library C:/Program File\\User/aorantr\\AppData\\Local\\JetBrains\\Toolbox\\apps\\android-studio\\jbr\\lib\\libjava.so"
     val expectedWindowsLineWithWrongSlash = "Event: 0.003 Loaded shared library <elided>\n"
     builder.sanitizeUntilEOL(windowsLineWithWrongSlash)
     assertEquals(expectedWindowsLineWithWrongSlash, builder.toString())
@@ -69,17 +75,19 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeEOLWithMultiplePaths() {
     builder = SanitizedBuilder()
-    val linuxLine = "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
-                    "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
-                    "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
+    val linuxLine =
+      "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
+        "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
+        "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
     val expectedLinuxLine = "abort vfprintf -XX:ErrorFile=<elided>\n"
     builder.sanitizeUntilEOL(linuxLine)
     assertEquals(expectedLinuxLine, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLine = "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
-                      "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
-                      "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
+    val windowsLine =
+      "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
+        "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
+        "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
     val expectedWindowsLine = "exit -XX:ErrorFile=<elided>\n"
     builder.sanitizeUntilEOL(windowsLine)
     assertEquals(expectedWindowsLine, builder.toString())
@@ -88,15 +96,17 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeEOLWithMixPaths() {
     builder = SanitizedBuilder()
-    val mixLine1 = "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
-                   "-XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m"
+    val mixLine1 =
+      "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
+        "-XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m"
     val expectedMixLine1 = "abort vfprintf -XX:ErrorFile=<elided>\n"
     builder.sanitizeUntilEOL(mixLine1)
     assertEquals(expectedMixLine1, builder.toString())
 
     builder = SanitizedBuilder()
-    val mixLine2 = "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log " +
-                   "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m"
+    val mixLine2 =
+      "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log " +
+        "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m"
     val expectedMixLine2 = "exit -XX:ErrorFile=<elided>\n"
     builder.sanitizeUntilEOL(mixLine2)
     assertEquals(expectedMixLine2, builder.toString())
@@ -105,20 +115,21 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeMultiplePaths() {
     builder = SanitizedBuilder()
-    val linuxLine = "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
-                    "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
-                    "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
-    val expectedLinuxLine = "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " +
-                            "-Dide.managed.by.toolbox=<elided>\n"
+    val linuxLine =
+      "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
+        "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
+        "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
+    val expectedLinuxLine =
+      "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " + "-Dide.managed.by.toolbox=<elided>\n"
     builder.sanitizeMultiplePaths(linuxLine)
     assertEquals(expectedLinuxLine, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLine = "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
-                      "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
-                      "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
-    val expectedWindowsLine = "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " +
-                              "-Djb.vmOptionsFile=<elided>\n"
+    val windowsLine =
+      "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
+        "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
+        "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
+    val expectedWindowsLine = "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " + "-Djb.vmOptionsFile=<elided>\n"
     builder.sanitizeMultiplePaths(windowsLine)
     assertEquals(expectedWindowsLine, builder.toString())
   }
@@ -126,25 +137,28 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeMultiplePathsWithMix() {
     builder = SanitizedBuilder()
-    val mixLine1 = "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
-                   "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
-                   "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
-    val expectedMixLine1 = "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " +
-                           "-Dide.managed.by.toolbox=<elided>\n"
+    val mixLine1 =
+      "exit -XX:ErrorFile=C:\\Users\\taorantr\\\\java_error_in_idea64_%p.log -" +
+        "XX:HeapDumpPath=C:\\Users\\taorantr\\\\java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
+        "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox"
+    val expectedMixLine1 =
+      "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " + "-Dide.managed.by.toolbox=<elided>\n"
     builder.sanitizeMultiplePaths(mixLine1)
     assertEquals(expectedMixLine1, builder.toString())
 
     builder = SanitizedBuilder()
-    val mixLine2 = "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
-                   "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
-                   "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions " +
-                   "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox " +
-                   "-Dpty4j.preferred.native.folder=C:\\Program Files\\JetBrains\\IntelliJ IDEA 2023.2.1/lib/pty4j " +
-                   "-Dide.native.launcher=true -Djcef.sandbox.ptr=0000015FBB000CF0"
-    val expectedMixLine2 = "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " +
-                           "-Djb.vmOptionsFile=<elided> " +
-                           "-Dide.managed.by.toolbox=<elided> -Dpty4j.preferred.native.folder=<elided> " +
-                           "-Dide.native.launcher=true -Djcef.sandbox.ptr=0000015FBB000CF0\n"
+    val mixLine2 =
+      "abort vfprintf -XX:ErrorFile=/usr/local/google/home/taorantr/java_error_in_studio_%p.log " +
+        "-XX:HeapDumpPath=/usr/local/google/home/taorantr/java_error_in_studio.hprof -Xms256m -Xmx2048m " +
+        "-Djb.vmOptionsFile=C:\\Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions " +
+        "-Dide.managed.by.toolbox=/usr/local/google/home/taorantr/Documents/jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox " +
+        "-Dpty4j.preferred.native.folder=C:\\Program Files\\JetBrains\\IntelliJ IDEA 2023.2.1/lib/pty4j " +
+        "-Dide.native.launcher=true -Djcef.sandbox.ptr=0000015FBB000CF0"
+    val expectedMixLine2 =
+      "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " +
+        "-Djb.vmOptionsFile=<elided> " +
+        "-Dide.managed.by.toolbox=<elided> -Dpty4j.preferred.native.folder=<elided> " +
+        "-Dide.native.launcher=true -Djcef.sandbox.ptr=0000015FBB000CF0\n"
     builder.sanitizeMultiplePaths(mixLine2)
     assertEquals(expectedMixLine2, builder.toString())
   }
@@ -152,23 +166,27 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeMultiplePathsWrongSlash() {
     builder = SanitizedBuilder()
-    val linuxLineWithWrongSlash = "abort vfprintf -XX:ErrorFile=/usr\\local/google/home/taorantr/java_error_in_studio_%p.log " +
-                                  "-XX:HeapDumpPath=/usr/local/google/home/taorantr\\java_error_in_studio.hprof -Xms256m -Xmx2048m " +
-                                  "-Dide.managed.by.toolbox=/usr/local/google/home\\taorantr/Documents\\jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox " +
-                                  "-Djcef.sandbox.ptr=0000015FBB000CF0"
-    val expectedLinuxLineWithWrongSlash = "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " +
-                                          "-Dide.managed.by.toolbox=<elided> -Djcef.sandbox.ptr=0000015FBB000CF0\n"
+    val linuxLineWithWrongSlash =
+      "abort vfprintf -XX:ErrorFile=/usr\\local/google/home/taorantr/java_error_in_studio_%p.log " +
+        "-XX:HeapDumpPath=/usr/local/google/home/taorantr\\java_error_in_studio.hprof -Xms256m -Xmx2048m " +
+        "-Dide.managed.by.toolbox=/usr/local/google/home\\taorantr/Documents\\jetbrains-toolbox-2.8.1.52155/bin/jetbrains-toolbox " +
+        "-Djcef.sandbox.ptr=0000015FBB000CF0"
+    val expectedLinuxLineWithWrongSlash =
+      "abort vfprintf -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms256m -Xmx2048m " +
+        "-Dide.managed.by.toolbox=<elided> -Djcef.sandbox.ptr=0000015FBB000CF0\n"
     builder.sanitizeMultiplePaths(linuxLineWithWrongSlash)
     assertEquals(expectedLinuxLineWithWrongSlash, builder.toString())
 
     builder = SanitizedBuilder()
-    val windowsLineWithWrongSlash = "exit -XX:ErrorFile=C:\\Users/taorantr\\\\java_error_in_idea64_%p.log -" +
-                                    "XX:HeapDumpPath=C:\\Users\\taorantr//java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
-                                    "-XX:CICompilerCount=2 -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow " +
-                                    "-Djb.vmOptionsFile=C:/Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
-    val expectedWindowsLineWithWrongSlash = "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " +
-                                            "-XX:CICompilerCount=2 -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow " +
-                                            "-Djb.vmOptionsFile=C:<elided>\n"
+    val windowsLineWithWrongSlash =
+      "exit -XX:ErrorFile=C:\\Users/taorantr\\\\java_error_in_idea64_%p.log -" +
+        "XX:HeapDumpPath=C:\\Users\\taorantr//java_error_in_idea64.hprof -Xms128m -Xmx2048m " +
+        "-XX:CICompilerCount=2 -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow " +
+        "-Djb.vmOptionsFile=C:/Users\\taorantr\\AppData\\Roaming\\\\JetBrains\\\\IntelliJIdea2023.2\\idea64.exe.vmoptions"
+    val expectedWindowsLineWithWrongSlash =
+      "exit -XX:ErrorFile=<elided> -XX:HeapDumpPath=<elided> -Xms128m -Xmx2048m " +
+        "-XX:CICompilerCount=2 -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow " +
+        "-Djb.vmOptionsFile=C:<elided>\n"
     builder.sanitizeMultiplePaths(windowsLineWithWrongSlash)
     assertEquals(expectedWindowsLineWithWrongSlash, builder.toString())
   }
@@ -176,7 +194,8 @@ class SanitizedBuilderTest {
   @Test
   fun testSanitizeNoAbsolutePath() {
     builder = SanitizedBuilder()
-    val noPathLine = "Host: 11th Gen Intel(R) Core(TM) i9-11900K @ 3.50GHz, 16 cores, 63G,  Windows 11 , 64 bit Build 22621 (10.0.22621.2215)"
+    val noPathLine =
+      "Host: 11th Gen Intel(R) Core(TM) i9-11900K @ 3.50GHz, 16 cores, 63G,  Windows 11 , 64 bit Build 22621 (10.0.22621.2215)"
     builder.sanitizeUntilEOL(noPathLine)
     assertEquals(noPathLine + "\n", builder.toString())
 

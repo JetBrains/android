@@ -33,8 +33,7 @@ import org.mockito.kotlin.whenever
 
 class AndroidRemoteDebugProcessHandlerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   lateinit var debugProcess: DebugProcess
   lateinit var client: Client
@@ -45,10 +44,12 @@ class AndroidRemoteDebugProcessHandlerTest {
     client = mock<Client>()
     device = createDevice()
     whenever(client.device).thenReturn(device)
-    val clientData = object : ClientData(client, 111) {
-      override fun getPackageName() = "MyApp"
-      override fun getProcessName() = "MyApp"
-    }
+    val clientData =
+      object : ClientData(client, 111) {
+        override fun getPackageName() = "MyApp"
+
+        override fun getProcessName() = "MyApp"
+      }
     whenever(client.clientData).thenReturn(clientData)
     debugProcess = mock<DebugProcess>()
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)

@@ -80,8 +80,7 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
         isFocusable = true
       }
     add(type, constraints(1, 0))
-    val variationLabel =
-      JBLabel("Variation:").apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
+    val variationLabel = JBLabel("Variation:").apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
     typeLabel.preferredSize = variationLabel.preferredSize
     add(variationLabel, constraints(0, 1))
     val variation =
@@ -190,9 +189,7 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
     val typeMask = property.maskValue.and(TYPE_MASK_CLASS)
     if (typeMask != 0) {
       out.addAll(
-        property.children
-          .filter { it.maskValue.and(TYPE_MASK_CLASS) == typeMask && it.maskValue.and(mask) != 0 }
-          .sortedBy { it.name }
+        property.children.filter { it.maskValue.and(TYPE_MASK_CLASS) == typeMask && it.maskValue.and(mask) != 0 }.sortedBy { it.name }
       )
     }
   }
@@ -204,8 +201,7 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
 
   // We don't want the width of the popup to change when we change types.
   // Achieve this by making the controls in the 2nd column have a fixed width.
-  private class ComboBoxWithFixedWidth<T>(model: ComboBoxModel<T>, private val fixedWidth: Int) :
-    ComboBox<T>(model) {
+  private class ComboBoxWithFixedWidth<T>(model: ComboBoxModel<T>, private val fixedWidth: Int) : ComboBox<T>(model) {
     override fun getPreferredSize(): Dimension {
       val size = super.getPreferredSize()
       return Dimension(JBUIScale.scale(fixedWidth), size.height)
@@ -214,11 +210,7 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
 
   // We don't want the width of the popup to change when we change types.
   // Achieve this by making the controls in the 2nd column have a fixed width.
-  private class CheckBoxWithFixedWidth(
-    text: String,
-    selected: Boolean,
-    private val fixedWidth: Int,
-  ) : JCheckBox(text, selected) {
+  private class CheckBoxWithFixedWidth(text: String, selected: Boolean, private val fixedWidth: Int) : JCheckBox(text, selected) {
     override fun getPreferredSize(): Dimension {
       val size = super.getPreferredSize()
       val scaledWidth = JBUIScale.scale(fixedWidth)

@@ -49,26 +49,10 @@ class AndroidDeclarativeWatchFaceConfigurationEditorTest {
   val projectRule =
     AndroidProjectRule.withAndroidModels(
         rootModuleBuilder,
-        AndroidModuleModelBuilder(
-          ":app",
-          "debug",
-          AndroidProjectBuilder(dynamicFeatures = { listOf(":feature") }),
-        ),
-        AndroidModuleModelBuilder(
-          ":feature",
-          "debug",
-          AndroidProjectBuilder(projectType = { PROJECT_TYPE_DYNAMIC_FEATURE }),
-        ),
-        AndroidModuleModelBuilder(
-          ":lib",
-          "debug",
-          AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY }),
-        ),
-        AndroidModuleModelBuilder(
-          ":test_only",
-          "debug",
-          AndroidProjectBuilder(projectType = { PROJECT_TYPE_TEST }),
-        ),
+        AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder(dynamicFeatures = { listOf(":feature") })),
+        AndroidModuleModelBuilder(":feature", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_DYNAMIC_FEATURE })),
+        AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY })),
+        AndroidModuleModelBuilder(":test_only", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_TEST })),
       )
       .onEdt()
 
@@ -85,10 +69,7 @@ class AndroidDeclarativeWatchFaceConfigurationEditorTest {
 
   @Test
   fun `only app modules are available for selection`() {
-    val availableModules =
-      ModuleManager.getInstance(projectRule.project).modules.filter {
-        editor.moduleSelector.isModuleAccepted(it)
-      }
+    val availableModules = ModuleManager.getInstance(projectRule.project).modules.filter { editor.moduleSelector.isModuleAccepted(it) }
     assertThat(availableModules).containsExactly(module(":app").getHolderModule())
   }
 
@@ -119,7 +100,6 @@ class AndroidDeclarativeWatchFaceConfigurationEditorTest {
     }
 
   private fun module(moduleGradlePath: String): Module {
-    return projectRule.project.gradleModule(moduleGradlePath)
-      ?: error("Holder module for $moduleGradlePath not found")
+    return projectRule.project.gradleModule(moduleGradlePath) ?: error("Holder module for $moduleGradlePath not found")
   }
 }

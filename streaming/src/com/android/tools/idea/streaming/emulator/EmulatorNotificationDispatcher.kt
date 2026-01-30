@@ -35,8 +35,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Dispatcher of logged emulator notification messages that keeps a 5-second backlog of recently
- * logged notifications and allows its listeners to receive notifications from that backlog.
+ * Dispatcher of logged emulator notification messages that keeps a 5-second backlog of recently logged notifications and allows its
+ * listeners to receive notifications from that backlog.
  */
 @Service
 internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable {
@@ -54,34 +54,30 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
   fun addListener(emulatorProcessHandle: ProcessHandle, listener: Listener, playBackRecentMessages: Boolean = true) {
     if (listener is Disposable) {
       listeners.add(ListenerWithProcessHandle(listener, emulatorProcessHandle), listener)
-    }
-    else {
+    } else {
       listeners.add(ListenerWithProcessHandle(listener, emulatorProcessHandle))
     }
     if (playBackRecentMessages) {
       removeExpiredMessages()
-      recentMessages[emulatorProcessHandle]?.forEach {
-        listener.notificationMessageLogged(it.severity, it.text)
-      }
+      recentMessages[emulatorProcessHandle]?.forEach { listener.notificationMessageLogged(it.severity, it.text) }
     }
   }
 
   @AnyThread
-  override fun messageLogged(sourceProcess: ProcessHandle,
-                             avdFolder: Path,
-                             severity: EmulatorLogListener.Severity,
-                             notifyUser: Boolean,
-                             message: String) {
+  override fun messageLogged(
+    sourceProcess: ProcessHandle,
+    avdFolder: Path,
+    severity: EmulatorLogListener.Severity,
+    notifyUser: Boolean,
+    message: String,
+  ) {
     if (!notifyUser) {
       return
     }
-    UIUtil.invokeLaterIfNeeded {
-      notifyListenersAndSaveMessage(sourceProcess, severity, message)
-    }
+    UIUtil.invokeLaterIfNeeded { notifyListenersAndSaveMessage(sourceProcess, severity, message) }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   @UiThread
   private fun notifyListenersAndSaveMessage(sourceProcess: ProcessHandle, severity: EmulatorLogListener.Severity, message: String) {
@@ -91,19 +87,21 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
         listener.notificationMessageLogged(severity, message)
       }
     }
-    val list = recentMessages.getOrCreate(sourceProcess) { processHandle ->
-      processHandle.onExit().thenRun { recentMessages.remove(processHandle) }
-      ArrayDeque()
-    }
+    val list =
+      recentMessages.getOrCreate(sourceProcess) { processHandle ->
+        processHandle.onExit().thenRun { recentMessages.remove(processHandle) }
+        ArrayDeque()
+      }
     list.add(Message(timestamp, severity, message))
     if (janitor == null) {
-      janitor = scope.launch(Dispatchers.EDT) {
-        do {
-          delay(MESSAGE_EXPIRATION)
-          removeExpiredMessages()
-        } while (recentMessages.isNotEmpty())
-        janitor = null
-      }
+      janitor =
+        scope.launch(Dispatchers.EDT) {
+          do {
+            delay(MESSAGE_EXPIRATION)
+            removeExpiredMessages()
+          } while (recentMessages.isNotEmpty())
+          janitor = null
+        }
     }
   }
 
@@ -133,10 +131,9 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
   companion object {
     @JvmStatic
     fun getInstance(): EmulatorNotificationDispatcher =
-        ApplicationManager.getApplication().getService(EmulatorNotificationDispatcher::class.java)
+      ApplicationManager.getApplication().getService(EmulatorNotificationDispatcher::class.java)
 
-    @JvmStatic
-    private val MESSAGE_EXPIRATION = 5.seconds
+    @JvmStatic private val MESSAGE_EXPIRATION = 5.seconds
   }
 
   interface Listener {
@@ -146,6 +143,6 @@ internal class EmulatorNotificationDispatcher : EmulatorLogListener, Disposable 
   }
 
   private data class ListenerWithProcessHandle(val listener: Listener, val processHandle: ProcessHandle)
+
   private data class Message(val timestamp: Long, val severity: EmulatorLogListener.Severity, val text: String)
 }
-

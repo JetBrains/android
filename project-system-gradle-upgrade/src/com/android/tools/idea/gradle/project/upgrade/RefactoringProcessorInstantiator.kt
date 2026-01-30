@@ -28,18 +28,18 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 open class RefactoringProcessorInstantiator {
   /**
-   * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor.  The
-   * usual case is the return value from a dialog presenting information and options to the user, but we show a different
-   * dialog if we detect that the upgrade will fail in some way.  If [preserveProcessorConfigurations] is false (the default), the
-   * dialog is permitted to initialize the processors' state (whether they are enabled, and any configuration) appropriately; if it
-   * is true, the processor is assumed to be already configured.
+   * Show an appropriate dialog, and return whether the AGP upgrade should proceed by running the refactoring processor. The usual case is
+   * the return value from a dialog presenting information and options to the user, but we show a different dialog if we detect that the
+   * upgrade will fail in some way. If [preserveProcessorConfigurations] is false (the default), the dialog is permitted to initialize the
+   * processors' state (whether they are enabled, and any configuration) appropriately; if it is true, the processor is assumed to be
+   * already configured.
    */
   @Slow
   fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor): Boolean =
     showAndGetAgpUpgradeDialog(
       processor,
       { p -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog(p) },
-      { p, changes -> AgpUpgradeRefactoringProcessorDialog(p, changes) }
+      { p, changes -> AgpUpgradeRefactoringProcessorDialog(p, changes) },
     )
 
   @Slow
@@ -47,7 +47,7 @@ open class RefactoringProcessorInstantiator {
   open fun showAndGetAgpUpgradeDialog(
     processor: AgpUpgradeRefactoringProcessor,
     cannotUpgradeDialogFactory: (AgpUpgradeRefactoringProcessor) -> AgpUpgradeRefactoringProcessorCannotUpgradeDialog,
-    upgradeDialogFactory: (AgpUpgradeRefactoringProcessor, Boolean) -> AgpUpgradeRefactoringProcessorDialog
+    upgradeDialogFactory: (AgpUpgradeRefactoringProcessor, Boolean) -> AgpUpgradeRefactoringProcessorDialog,
   ): Boolean {
     val r8FullModeProcessor = processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? R8FullModeDefaultRefactoringProcessor }
     if (r8FullModeProcessor == null) {
@@ -60,28 +60,25 @@ open class RefactoringProcessorInstantiator {
     if (hasChangesInBuildFiles) {
       LOG.warn("changes found in project build files")
     }
-    val runProcessor = invokeAndWaitIfNeeded(ModalityState.nonModal()) {
-      if (processor.blockProcessorExecution()) {
-        processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
-        LOG.warn("cannot upgrade: processor is blocked")
-        if (processor.agpVersionRefactoringProcessor.isBlocked) {
-          processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
-          LOG.warn("cannot upgrade: classpath processor is always a no-op")
+    val runProcessor =
+      invokeAndWaitIfNeeded(ModalityState.nonModal()) {
+        if (processor.blockProcessorExecution()) {
+          processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
+          LOG.warn("cannot upgrade: processor is blocked")
+          if (processor.agpVersionRefactoringProcessor.isBlocked) {
+            processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED)
+            LOG.warn("cannot upgrade: classpath processor is always a no-op")
+          }
+          val dialog = cannotUpgradeDialogFactory(processor)
+          dialog.show()
+          return@invokeAndWaitIfNeeded false
         }
-        val dialog = cannotUpgradeDialogFactory(processor)
-        dialog.show()
-        return@invokeAndWaitIfNeeded false
+        val dialog = upgradeDialogFactory(processor, hasChangesInBuildFiles)
+        dialog.showAndGet()
       }
-      val dialog = upgradeDialogFactory(processor, hasChangesInBuildFiles)
-      dialog.showAndGet()
-    }
     return runProcessor
   }
 
-  /**
-   * Create a refactoring processor for upgrading from AGP version [current] to [new].
-   */
-  fun createProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
-    AgpUpgradeRefactoringProcessor(project, current, new)
-
+  /** Create a refactoring processor for upgrading from AGP version [current] to [new]. */
+  fun createProcessor(project: Project, current: AgpVersion, new: AgpVersion) = AgpUpgradeRefactoringProcessor(project, current, new)
 }

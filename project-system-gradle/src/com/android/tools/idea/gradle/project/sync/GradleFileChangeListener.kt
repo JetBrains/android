@@ -29,20 +29,17 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock
 
 /**
- * Listens for changes to the PsiTree of gradle build files. If a tree changes in any
- * meaningful way then relevant file is recorded. A change is meaningful under the following
- * conditions:
- *
+ * Listens for changes to the PsiTree of gradle build files. If a tree changes in any meaningful way then relevant file is recorded. A
+ * change is meaningful under the following conditions:
  * 1) Only whitespace has been added and deleted
  * 2) The whitespace doesn't affect the structure of the files psi tree
  *
- * For example, adding spaces to the end of a line is not a meaningful change, but adding a new
- * line in between a line i.e "apply plugin: 'java'" -> "apply plugin: \n'java'" will be meaningful.
+ * For example, adding spaces to the end of a line is not a meaningful change, but adding a new line in between a line i.e "apply plugin:
+ * 'java'" -> "apply plugin: \n'java'" will be meaningful.
  *
- * Note: We need to use both sets of before (beforeChildAddition, etc.) and after methods (childAdded, etc.)
- * on the listener. This is because, for some reason, the events we care about on some files are sometimes
- * only triggered with the children set in the after method and sometimes no after method is triggered
- * at all.
+ * Note: We need to use both sets of before (beforeChildAddition, etc.) and after methods (childAdded, etc.) on the listener. This is
+ * because, for some reason, the events we care about on some files are sometimes only triggered with the children set in the after method
+ * and sometimes no after method is triggered at all.
  */
 @Service(Service.Level.PROJECT)
 class GradleFileChangeListener(private val project: Project) : PsiTreeChangeListener {
@@ -75,16 +72,26 @@ class GradleFileChangeListener(private val project: Project) : PsiTreeChangeList
   }
 
   override fun beforePropertyChange(event: PsiTreeChangeEvent) = Unit
+
   override fun propertyChanged(event: PsiTreeChangeEvent) = Unit
 
   override fun beforeChildAddition(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
+
   override fun beforeChildRemoval(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
+
   override fun beforeChildReplacement(event: PsiTreeChangeEvent) = handleEvent(event, event.newChild, event.oldChild)
+
   override fun beforeChildMovement(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
+
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) = handleEvent(event, event.oldChild, event.newChild)
+
   override fun childAdded(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
+
   override fun childRemoved(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
+
   override fun childReplaced(event: PsiTreeChangeEvent) = handleEvent(event, event.newChild, event.oldChild)
+
   override fun childrenChanged(event: PsiTreeChangeEvent) = handleEvent(event, event.oldChild, event.newChild)
+
   override fun childMoved(event: PsiTreeChangeEvent) = handleEvent(event, event.child)
 }

@@ -23,7 +23,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.ApplicationRule
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
@@ -41,8 +40,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
 class GradleSchemaProjectResolverTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
   @Test
   fun testEmptyResultWithoutFlag() {
@@ -72,10 +70,11 @@ class GradleSchemaProjectResolverTest {
       val resolverContext = mock(ProjectResolverContext::class.java)
       val schemaModel = mock(DeclarativeSchemaModel::class.java)
 
-      val sequence = object : InterpretationSequence {
-        override val steps: Iterable<InterpretationSequenceStep>
-          get() = listOf()
-      }
+      val sequence =
+        object : InterpretationSequence {
+          override val steps: Iterable<InterpretationSequenceStep>
+            get() = listOf()
+        }
 
       Mockito.`when`(schemaModel.settingsSequence).thenReturn(sequence)
       Mockito.`when`(schemaModel.projectSequence).thenReturn(sequence)
@@ -87,8 +86,7 @@ class GradleSchemaProjectResolverTest {
       verify(dataNode, times(1)).createChild(argThat<Key<*>> { it == DECLARATIVE_PROJECT_SCHEMAS }, any())
       verify(dataNode, times(1)).createChild(argThat<Key<*>> { it == DECLARATIVE_SETTINGS_SCHEMAS }, any())
       verify(nextResolver).populateProjectExtraModels(project, dataNode)
-    }
-    finally {
+    } finally {
       DeclarativeIdeSupport.clearOverride()
     }
   }

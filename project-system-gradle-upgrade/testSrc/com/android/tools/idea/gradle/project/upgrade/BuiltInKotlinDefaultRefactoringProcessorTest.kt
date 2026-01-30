@@ -33,7 +33,8 @@ class BuiltInKotlinDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestC
     val gradlePropertiesFile = projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = BuiltInKotlinDefaultRefactoringProcessor(projectRule.project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(gradlePropertiesFile.virtualFile.also { it.refresh(false, false) }).contains("android.builtInKotlin=false"))
+    assertThat(
+      VfsUtilCore.loadText(gradlePropertiesFile.virtualFile.also { it.refresh(false, false) }).contains("android.builtInKotlin=false")
+    )
   }
-
 }

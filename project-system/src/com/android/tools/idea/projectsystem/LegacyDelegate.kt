@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 
-/** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
+/** [IdeaSourceProvider] for legacy Android projects without [SourceProvider]. */
 @Suppress("DEPRECATION")
 class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSourceProvider {
 
@@ -32,14 +32,13 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
 
   override val scopeType: ScopeType = ScopeType.MAIN
 
-  private val manifestFileUrl: String? get() = manifestFile?.url ?: let {
-    val moduleDirPath: String? = VfsUtil.getParentDir(facet.module.moduleFilePath)
-    moduleDirPath?.let {
-      VfsUtilCore.pathToUrl(
-        FileUtil.toSystemIndependentName(
-          it + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
-    }
-  }
+  private val manifestFileUrl: String?
+    get() =
+      manifestFile?.url
+        ?: let {
+          val moduleDirPath: String? = VfsUtil.getParentDir(facet.module.moduleFilePath)
+          moduleDirPath?.let { VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(it + facet.properties.MANIFEST_FILE_RELATIVE_PATH)) }
+        }
 
   private val manifestDirectory: VirtualFile?
     get() = manifestDirectoryUrl?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
@@ -54,11 +53,7 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
     // as tested by ResourceTypeInspectionTest#testLibraryRevocablePermission)
     get() {
       val module = facet.module
-      val file = AndroidProjectRootUtil.getFileByRelativeModulePath(
-        module,
-        facet.properties.MANIFEST_FILE_RELATIVE_PATH,
-        false
-      )
+      val file = AndroidProjectRootUtil.getFileByRelativeModulePath(module, facet.properties.MANIFEST_FILE_RELATIVE_PATH, false)
       if (file != null) {
         return file
       }
@@ -81,59 +76,83 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val manifestDirectories: Collection<VirtualFile>
     get() = listOfNotNull(manifestDirectory)
 
-  override val javaDirectoryUrls: Collection<String> get() = ModuleRootManager.getInstance(
-    facet.module).contentRootUrls.toSet()
-  override val javaDirectories: Collection<VirtualFile> get() = ModuleRootManager.getInstance(
-    facet.module).contentRoots.toSet()
+  override val javaDirectoryUrls: Collection<String>
+    get() = ModuleRootManager.getInstance(facet.module).contentRootUrls.toSet()
+
+  override val javaDirectories: Collection<VirtualFile>
+    get() = ModuleRootManager.getInstance(facet.module).contentRoots.toSet()
 
   override val kotlinDirectoryUrls: Collection<String> = emptySet()
   override val kotlinDirectories: Iterable<VirtualFile> = emptySet()
 
-  override val resourcesDirectoryUrls: Collection<String> get() = emptySet()
-  override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
+  override val resourcesDirectoryUrls: Collection<String>
+    get() = emptySet()
 
-  override val aidlDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidProjectRootUtil.getAidlGenSourceRootPath(facet)?.convertToUrl())
-  override val aidlDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidProjectRootUtil.getAidlGenDir(facet))
+  override val resourcesDirectories: Collection<VirtualFile>
+    get() = emptySet()
 
-  override val renderscriptDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidProjectRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
-  override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidProjectRootUtil.getRenderscriptGenDir(facet))
+  override val aidlDirectoryUrls: Collection<String>
+    get() = listOfNotNull(AndroidProjectRootUtil.getAidlGenSourceRootPath(facet)?.convertToUrl())
 
-  override val jniLibsDirectoryUrls: Collection<String> get() = emptySet()
-  override val jniLibsDirectories: Collection<VirtualFile> get() = emptySet()
+  override val aidlDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(AndroidProjectRootUtil.getAidlGenDir(facet))
 
-  override val resDirectoryUrls: Collection<String> get() = resDirectories.map { it.url }
+  override val renderscriptDirectoryUrls: Collection<String>
+    get() = listOfNotNull(AndroidProjectRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
+
+  override val renderscriptDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(AndroidProjectRootUtil.getRenderscriptGenDir(facet))
+
+  override val jniLibsDirectoryUrls: Collection<String>
+    get() = emptySet()
+
+  override val jniLibsDirectories: Collection<VirtualFile>
+    get() = emptySet()
+
+  override val resDirectoryUrls: Collection<String>
+    get() = resDirectories.map { it.url }
+
   override val resDirectories: Collection<VirtualFile>
     get() {
       val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
-      return listOfNotNull(
-        AndroidProjectRootUtil.getFileByRelativeModulePath(facet.module, resRelPath,
-                                                           false))
+      return listOfNotNull(AndroidProjectRootUtil.getFileByRelativeModulePath(facet.module, resRelPath, false))
     }
 
-  override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }
+  override val assetsDirectoryUrls: Collection<String>
+    get() = assetsDirectories.map { it.url }
+
   override val assetsDirectories: Collection<VirtualFile>
     get() {
       val dir = AndroidProjectRootUtil.getAssetsDir(facet)
       return listOfNotNull(dir)
     }
 
-  override val shadersDirectoryUrls: Collection<String> get() = emptySet()
-  override val shadersDirectories: Collection<VirtualFile> get() = emptySet()
+  override val shadersDirectoryUrls: Collection<String>
+    get() = emptySet()
 
-  override val mlModelsDirectoryUrls: Collection<String> get() = emptySet()
-  override val mlModelsDirectories: Collection<VirtualFile> get() = emptySet()
+  override val shadersDirectories: Collection<VirtualFile>
+    get() = emptySet()
 
-  override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
+  override val mlModelsDirectoryUrls: Collection<String>
+    get() = emptySet()
 
-  override val baselineProfileDirectoryUrls: Iterable<String> get() = emptySet()
-  override val baselineProfileDirectories: Iterable<VirtualFile> get() = emptySet()
+  override val mlModelsDirectories: Collection<VirtualFile>
+    get() = emptySet()
 
-  override val keepRulesDirectoryUrls: Iterable<String> get() = emptySet()
-  override val keepRulesDirectories: Iterable<VirtualFile> get() = emptySet()
+  override val custom: Map<String, IdeaSourceProvider.Custom>
+    get() = emptyMap()
+
+  override val baselineProfileDirectoryUrls: Iterable<String>
+    get() = emptySet()
+
+  override val baselineProfileDirectories: Iterable<VirtualFile>
+    get() = emptySet()
+
+  override val keepRulesDirectoryUrls: Iterable<String>
+    get() = emptySet()
+
+  override val keepRulesDirectories: Iterable<VirtualFile>
+    get() = emptySet()
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -160,11 +179,9 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
     currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(mainSourceProvider),
     mainAndFlavorSourceProviders = listOf(mainSourceProvider),
     generatedSources = createMergedSourceProvider(ScopeType.MAIN, emptyList()),
-    generatedHostTestSources =
-    mapOf(CommonTestType.UNIT_TEST to createMergedSourceProvider(ScopeType.UNIT_TEST, emptyList())),
-    generatedDeviceTestSources =
-    mapOf(CommonTestType.ANDROID_TEST to createMergedSourceProvider(ScopeType.ANDROID_TEST, emptyList())),
+    generatedHostTestSources = mapOf(CommonTestType.UNIT_TEST to createMergedSourceProvider(ScopeType.UNIT_TEST, emptyList())),
+    generatedDeviceTestSources = mapOf(CommonTestType.ANDROID_TEST to createMergedSourceProvider(ScopeType.ANDROID_TEST, emptyList())),
     currentTestSuiteSourceProviders = emptyMap(),
-    generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList())
+    generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList()),
   )
 }

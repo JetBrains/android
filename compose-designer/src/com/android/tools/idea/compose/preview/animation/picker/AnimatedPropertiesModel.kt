@@ -46,33 +46,23 @@ internal class AnimatedPropertiesModel(
   override val properties: PropertiesTable<PsiPropertyItem> =
     PropertiesTable.create(
       HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
-        initial
-          .createProperties(message("animation.inspector.picker.header.initial"))
-          .forEachIndexed { index, it ->
-            table.put(INITIAL_PROPERTY, "$index", it)
-            it.addListener { propertiesValuesChanged() }
-          }
-        target
-          .createProperties(message("animation.inspector.picker.header.target"))
-          .forEachIndexed { index, it ->
-            table.put(TARGET_PROPERTY, "$index", it)
-            it.addListener { propertiesValuesChanged() }
-          }
+        initial.createProperties(message("animation.inspector.picker.header.initial")).forEachIndexed { index, it ->
+          table.put(INITIAL_PROPERTY, "$index", it)
+          it.addListener { propertiesValuesChanged() }
+        }
+        target.createProperties(message("animation.inspector.picker.header.target")).forEachIndexed { index, it ->
+          table.put(TARGET_PROPERTY, "$index", it)
+          it.addListener { propertiesValuesChanged() }
+        }
       }
     )
 
   override val inspectorBuilder: PsiPropertiesInspectorBuilder =
     object : PsiPropertiesInspectorBuilder() {
       override val editorProvider: EditorProvider<PsiPropertyItem> =
-        PsiEditorProvider(
-          PsiEnumProvider(EnumSupportValuesProvider.EMPTY),
-          AnimatedPropertyTypeProvider,
-        )
+        PsiEditorProvider(PsiEnumProvider(EnumSupportValuesProvider.EMPTY), AnimatedPropertyTypeProvider)
 
-      override fun attachToInspector(
-        inspector: InspectorPanel,
-        properties: PropertiesTable<PsiPropertyItem>,
-      ) {
+      override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
         // If parameter is one-dimensional it displayed as:
         //      initial : {value}
         //      target : {value}
@@ -91,14 +81,10 @@ internal class AnimatedPropertiesModel(
         } else {
           inspector.addSectionLabel("initial")
           // First half of properties.
-          inspector.addEditorsForProperties(
-            properties.values.filterIndexed { index, _ -> index < size / 2 }
-          )
+          inspector.addEditorsForProperties(properties.values.filterIndexed { index, _ -> index < size / 2 })
           inspector.addSectionLabel("target")
           // Second half of properties.
-          inspector.addEditorsForProperties(
-            properties.values.filterIndexed { index, _ -> index >= size / 2 }
-          )
+          inspector.addEditorsForProperties(properties.values.filterIndexed { index, _ -> index >= size / 2 })
         }
       }
     }
@@ -108,13 +94,9 @@ internal class AnimatedPropertiesModel(
   private fun propertiesValuesChanged() {
     try {
       val resolvedInitial =
-        initial.parseUnit { index ->
-          properties[INITIAL_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue }
-        } ?: initial
+        initial.parseUnit { index -> properties[INITIAL_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue } } ?: initial
       val resolvedTarget =
-        target.parseUnit { index ->
-          properties[TARGET_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue }
-        } ?: target
+        target.parseUnit { index -> properties[TARGET_PROPERTY, "$index"].let { it.resolvedValue ?: it.defaultValue } } ?: target
       onModified(resolvedInitial, resolvedTarget)
     } catch (_: Exception) {}
   }

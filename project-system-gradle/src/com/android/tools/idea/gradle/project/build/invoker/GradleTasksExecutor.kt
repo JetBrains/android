@@ -20,15 +20,13 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.BuildAction
 
-/**
- * Invokes Gradle tasks in the background.
- */
+/** Invokes Gradle tasks in the background. */
 interface GradleTasksExecutor {
   fun execute(
     request: GradleBuildInvoker.Request,
     buildAction: BuildAction<*>?,
     buildStopper: BuildStopper,
-    listener: ExternalSystemTaskNotificationListener
+    listener: ExternalSystemTaskNotificationListener,
   ): ListenableFuture<GradleInvocationResult>
 
   fun internalIsBuildRunning(project: Project): Boolean

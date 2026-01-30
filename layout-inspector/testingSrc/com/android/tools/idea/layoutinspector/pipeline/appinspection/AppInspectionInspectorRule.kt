@@ -30,7 +30,6 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
@@ -39,21 +38,14 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.idea.util.ListenerCollection
-import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** App inspection-pipeline specific setup and teardown for tests. */
-class AppInspectionInspectorRule(
-  private val projectRule: AndroidProjectRule,
-  withDefaultResponse: Boolean = true,
-) : TestRule {
+class AppInspectionInspectorRule(private val projectRule: AndroidProjectRule, withDefaultResponse: Boolean = true) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
@@ -62,8 +54,7 @@ class AppInspectionInspectorRule(
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need
   // to mock a bunch of services
   private val devModeFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
-  private val grpcServer =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
+  private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
   val viewInspector =
@@ -89,19 +80,16 @@ class AppInspectionInspectorRule(
     val viewInspectorHandler =
       TestAppInspectorCommandHandler(
         timer,
-        createInspectorResponse = { createCommand ->
-          createCommand.createResponse(viewInspector.createResponseStatus)
-        },
+        createInspectorResponse = { createCommand -> createCommand.createResponse(viewInspector.createResponseStatus) },
         rawInspectorResponse = { rawCommand ->
           val viewCommand = LayoutInspectorViewProtocol.Command.parseFrom(rawCommand.content)
           val viewResponse = viewInspector.handleCommand(viewCommand)
-          val rawResponse =
-            AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
+          val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
           AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
         },
       )
 
-    //val composeInspectorHandler =
+    // val composeInspectorHandler =
     //  TestAppInspectorCommandHandler(
     //    timer,
     //    createInspectorResponse = { createCommand ->
@@ -116,7 +104,7 @@ class AppInspectionInspectorRule(
     //    },
     //  )
 
-    //transportService.setCommandHandler(
+    // transportService.setCommandHandler(
     //  Commands.Command.CommandType.APP_INSPECTION,
     //  object : CommandHandler(timer) {
     //    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -126,7 +114,7 @@ class AppInspectionInspectorRule(
     //      }
     //    }
     //  },
-    //)
+    // )
   }
 
   /** Convenience method to create an [appInspectionClientProvider]. */
@@ -136,12 +124,7 @@ class AppInspectionInspectorRule(
     getDisposable: () -> Disposable = { defaultDisposable() },
     apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices },
   ): InspectorClientProvider {
-    return appInspectionClientProvider(
-      apiServicesProvider,
-      getMonitor,
-      getClientSettings,
-      getDisposable,
-    )
+    return appInspectionClientProvider(apiServicesProvider, getMonitor, getClientSettings, getDisposable)
   }
 
   fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
@@ -164,9 +147,7 @@ class AppInspectionInspectorRule(
   override fun apply(base: Statement, description: Description): Statement {
     // Rules will be applied in reverse order. This class will evaluate last.
     val innerRules = listOf(inspectionService, grpcServer, devModeFlagRule)
-    return innerRules.fold(base) { stmt: Statement, rule: TestRule ->
-      rule.apply(stmt, description)
-    }
+    return innerRules.fold(base) { stmt: Statement, rule: TestRule -> rule.apply(stmt, description) }
   }
 
   /**

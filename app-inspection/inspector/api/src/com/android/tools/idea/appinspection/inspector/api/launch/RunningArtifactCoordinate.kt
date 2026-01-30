@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.launch
 
-data class RunningArtifactCoordinate(
-  private val minimum: MinimumArtifactCoordinate,
-  override val version: String,
-) : ArtifactCoordinate {
+data class RunningArtifactCoordinate(private val minimum: MinimumArtifactCoordinate, override val version: String) : ArtifactCoordinate {
   override val groupId = minimum.groupId
   override val artifactId = minimum.artifactId
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileTypes.LanguageFileType
-import javax.swing.Icon
 
 object WFFExpressionFileType : LanguageFileType(WFFExpressionLanguage) {
   override fun getName() = "WFFExpressionFile"

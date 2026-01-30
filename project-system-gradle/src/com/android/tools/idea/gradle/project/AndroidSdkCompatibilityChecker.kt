@@ -31,72 +31,70 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings
 
 /**
  * Verifies an Android Gradle project, does not have any modules that violate the compatibility rule between the compile sdk version
- * specified in the module's build.gradle file and the version of Android Studio being used.
- * For example, compileSdk 34 and AS Giraffe are incompatible. For more extensive compatibility info, refer to
- * https://developer.android.com/studio/releases#api-level-support
+ * specified in the module's build.gradle file and the version of Android Studio being used. For example, compileSdk 34 and AS Giraffe are
+ * incompatible. For more extensive compatibility info, refer to https://developer.android.com/studio/releases#api-level-support
  *
  * In case of incompatibility, a modal dialog will be surfaced prompting the user to upgrade AS version
  */
 @Service
 class AndroidSdkCompatibilityChecker {
 
-  fun checkAndroidSdkVersion(importedModules: Collection<DataNode<GradleAndroidModelData>>,
-                             project: Project,
-                             serverFlag: MutableMap<String, RecommendedVersions>?,
-                             maxRecommendedCompileSdk: AndroidVersion = MAX_RECOMMENDED_COMPILE_SDK_VERSION) {
+  fun checkAndroidSdkVersion(
+    importedModules: Collection<DataNode<GradleAndroidModelData>>,
+    project: Project,
+    serverFlag: MutableMap<String, RecommendedVersions>?,
+    maxRecommendedCompileSdk: AndroidVersion = MAX_RECOMMENDED_COMPILE_SDK_VERSION,
+  ) {
     if (StudioUpgradeReminder(project).shouldAsk().not()) return
 
-    val modulesViolatingSupportRules = importedModules.mapNotNull {
-      val androidProject = it.data.androidProject
-      val moduleName = it.data.moduleName
+    val modulesViolatingSupportRules =
+      importedModules.mapNotNull {
+        val androidProject = it.data.androidProject
+        val moduleName = it.data.moduleName
 
-      val compileTargetSdk: String = androidProject.compileTarget
-      val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
-      return@mapNotNull version?.let { sdkVersion ->
-        // Don't worry about extension levels for this check.
-        if (AndroidVersion.API_LEVEL_ORDERING.compare(sdkVersion, maxRecommendedCompileSdk) > 0) {
-          Pair(moduleName, sdkVersion)
-        } else {
-          null
+        val compileTargetSdk: String = androidProject.compileTarget
+        val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
+        return@mapNotNull version?.let { sdkVersion ->
+          // Don't worry about extension levels for this check.
+          if (AndroidVersion.API_LEVEL_ORDERING.compare(sdkVersion, maxRecommendedCompileSdk) > 0) {
+            Pair(moduleName, sdkVersion)
+          } else {
+            null
+          }
         }
       }
-    }
 
     if (modulesViolatingSupportRules.isEmpty()) return
 
     // If multiple modules violate the rules, recommending upgrading to the highest sdk version
-    val highestViolatingSdkVersion: AndroidVersion = modulesViolatingSupportRules.map { it.second }
-                                                       .maxWithOrNull(AndroidVersion.API_LEVEL_ORDERING) ?: return
+    val highestViolatingSdkVersion: AndroidVersion =
+      modulesViolatingSupportRules.map { it.second }.maxWithOrNull(AndroidVersion.API_LEVEL_ORDERING) ?: return
 
-    val recommendation = if (highestViolatingSdkVersion.isPreview) {
-      highestViolatingSdkVersion.codename?.let { previewName -> serverFlag?.get(previewName) }
-    } else {
-      // read the major.minor version from server flags with a fall back to read just the major version
-      serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.toString()) ?: serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.majorVersion.toString())
-    } ?: return
+    val recommendation =
+      if (highestViolatingSdkVersion.isPreview) {
+        highestViolatingSdkVersion.codename?.let { previewName -> serverFlag?.get(previewName) }
+      } else {
+        // read the major.minor version from server flags with a fall back to read just the major version
+        serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.toString())
+          ?: serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.majorVersion.toString())
+      } ?: return
 
-
-    val (recommendedVersion, potentialFallbackVersion) = when (getChannelFromUpdateSettings()) {
-      ProductDetails.SoftwareLifeCycleChannel.CANARY -> Pair(recommendation.canaryChannel, null)
-      ProductDetails.SoftwareLifeCycleChannel.BETA -> Pair(
-        recommendation.betaRcChannel,
-        recommendation.canaryChannel.takeIf { it.versionReleased }
-      )
-      ProductDetails.SoftwareLifeCycleChannel.STABLE -> Pair(
-        recommendation.stableChannel,
-        recommendation.betaRcChannel.takeIf { it.versionReleased } ?: recommendation.canaryChannel.takeIf { it.versionReleased }
-      )
-      else -> return
-    }
+    val (recommendedVersion, potentialFallbackVersion) =
+      when (getChannelFromUpdateSettings()) {
+        ProductDetails.SoftwareLifeCycleChannel.CANARY -> Pair(recommendation.canaryChannel, null)
+        ProductDetails.SoftwareLifeCycleChannel.BETA ->
+          Pair(recommendation.betaRcChannel, recommendation.canaryChannel.takeIf { it.versionReleased })
+        ProductDetails.SoftwareLifeCycleChannel.STABLE ->
+          Pair(
+            recommendation.stableChannel,
+            recommendation.betaRcChannel.takeIf { it.versionReleased } ?: recommendation.canaryChannel.takeIf { it.versionReleased },
+          )
+        else -> return
+      }
 
     ApplicationManager.getApplication().invokeLater {
       if (!project.isDisposed) {
-        val dialog = AndroidSdkCompatibilityDialog(
-          project,
-          recommendedVersion,
-          potentialFallbackVersion,
-          modulesViolatingSupportRules
-        )
+        val dialog = AndroidSdkCompatibilityDialog(project, recommendedVersion, potentialFallbackVersion, modulesViolatingSupportRules)
         dialog.show()
       }
     }
@@ -127,6 +125,7 @@ class AndroidSdkCompatibilityChecker {
     var doNotAskAgainIdeLevel: Boolean
       get() = PropertiesComponent.getInstance().getBoolean(doNotShowAgainPropertyString, false)
       set(value) = PropertiesComponent.getInstance().setValue(doNotShowAgainPropertyString, value)
+
     var doNotAskAgainProjectLevel: Boolean
       get() = PropertiesComponent.getInstance(project).getBoolean(doNotShowAgainPropertyString, false)
       set(value) = PropertiesComponent.getInstance(project).setValue(doNotShowAgainPropertyString, value)

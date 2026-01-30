@@ -29,8 +29,7 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 /**
  * The data backend of network inspector.
  *
- * It collects all the events sent by the inspector and makes them available for queries based on
- * time ranges.
+ * It collects all the events sent by the inspector and makes them available for queries based on time ranges.
  */
 interface NetworkInspectorDataSource {
   fun queryForConnectionData(range: Range): List<ConnectionData>
@@ -88,9 +87,7 @@ class NetworkInspectorDataSourceImpl(
   }
 
   override fun queryForConnectionData(range: Range): List<ConnectionData> =
-    (dataHandler.getHttpDataForRange(range) + dataHandler.getGrpcDataForRange(range)).sortedBy {
-      it.requestStartTimeUs
-    }
+    (dataHandler.getHttpDataForRange(range) + dataHandler.getGrpcDataForRange(range)).sortedBy { it.requestStartTimeUs }
 
   override fun queryForSpeedData(range: Range): List<Event> = dataHandler.getSpeedForRange(range)
 

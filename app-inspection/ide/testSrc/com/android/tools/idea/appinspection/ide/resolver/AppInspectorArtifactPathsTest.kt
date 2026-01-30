@@ -45,22 +45,11 @@ class AppInspectorArtifactPathsTest {
         .resolve("androidx.work-work-runtime-2.5.0-alpha01-inspector.jar")
     val artifact2 = mockMinimumArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0")
     val artifact2Path =
-      basePath
-        .resolve("androidx.sqlite")
-        .resolve("sqlite")
-        .resolve("2.1.0")
-        .resolve("androidx.sqlite-sqlite-2.1.0-inspector.jar")
+      basePath.resolve("androidx.sqlite").resolve("sqlite").resolve("2.1.0").resolve("androidx.sqlite-sqlite-2.1.0-inspector.jar")
 
-    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact1, "2.5.0-alpha01")))
-      .isEqualTo(artifact1Path)
-    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact2, "2.1.0")))
-      .isEqualTo(artifact2Path)
+    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact1, "2.5.0-alpha01"))).isEqualTo(artifact1Path)
+    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact2, "2.1.0"))).isEqualTo(artifact2Path)
 
-    assertThat(
-        jarPaths.getInspectorArchive(
-          RunningArtifactCoordinate(mockMinimumArtifactCoordinate("a", "b", "1.0.0"), "1.0.0")
-        )
-      )
-      .isNull()
+    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(mockMinimumArtifactCoordinate("a", "b", "1.0.0"), "1.0.0"))).isNull()
   }
 }

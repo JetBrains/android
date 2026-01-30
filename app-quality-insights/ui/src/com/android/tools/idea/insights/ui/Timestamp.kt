@@ -29,10 +29,7 @@ enum class TimestampState {
   /** It's online, so the corresponding timestamp is meaningful and should be in use. */
   ONLINE,
 
-  /**
-   * It's offline, so we don't update the timestamp, instead the previous stored one should be in
-   * use.
-   */
+  /** It's offline, so we don't update the timestamp, instead the previous stored one should be in use. */
   OFFLINE,
 
   /** It's loading or pending ([isCancellableTimeoutException]), no available timestamp yet. */
@@ -46,8 +43,7 @@ data class Timestamp(val time: Instant?, val state: TimestampState) {
   fun toDisplayString(nowMs: Long): String {
     return when (state) {
       TimestampState.UNAVAILABLE -> TEXT_REFRESHING
-      TimestampState.OFFLINE ->
-        "Currently offline. Last refreshed: ${getHowLongAgo(time?.toEpochMilli(), nowMs)}"
+      TimestampState.OFFLINE -> "Currently offline. Last refreshed: ${getHowLongAgo(time?.toEpochMilli(), nowMs)}"
       else -> "Last refreshed: ${getHowLongAgo(time?.toEpochMilli(), nowMs)}"
     }
   }
@@ -67,8 +63,7 @@ fun Flow<AppInsightsState>.toTimestamp(clock: Clock): Flow<Timestamp> {
   return map { state ->
     when (val issues = state.issues) {
       is LoadingState.Ready -> {
-        if (state.mode.isOfflineMode()) Timestamp(null, TimestampState.OFFLINE)
-        else Timestamp(issues.value.time, TimestampState.ONLINE)
+        if (state.mode.isOfflineMode()) Timestamp(null, TimestampState.OFFLINE) else Timestamp(issues.value.time, TimestampState.ONLINE)
       }
       is LoadingState.Failure -> {
         if (issues.isCancellableTimeoutException()) {

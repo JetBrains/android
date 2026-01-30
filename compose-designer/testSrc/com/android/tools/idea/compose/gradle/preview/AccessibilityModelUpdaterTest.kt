@@ -54,8 +54,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Returns a string with the form "file line:column" for the given [RangeMarker]. This is easier to
- * maintain in tests that using the absolute offset.
+ * Returns a string with the form "file line:column" for the given [RangeMarker]. This is easier to maintain in tests that using the
+ * absolute offset.
  */
 private fun OpenFileDescriptor.toFileLineAndColumn(): String {
   val line = rangeMarker.document.getLineNumber(this.offset)
@@ -109,12 +109,8 @@ class AccessibilityModelUpdaterTest {
     return runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
   }
 
-  private fun createComposePreviewRepresentation(
-    psiFile: PsiFile,
-    view: TestComposePreviewView,
-  ): ComposePreviewRepresentation {
-    val previewRepresentation =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
+  private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
+    val previewRepresentation = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
 
     return previewRepresentation
@@ -122,19 +118,14 @@ class AccessibilityModelUpdaterTest {
 
   @Test
   fun testNlComponentTreeCreation() {
-    val twoElementsPreviewModel =
-      previewView.mainSurface.models.first {
-        it.displaySettings.modelDisplayName.value == "TwoElementsPreview"
-      }
+    val twoElementsPreviewModel = previewView.mainSurface.models.first { it.displaySettings.modelDisplayName.value == "TwoElementsPreview" }
 
     val uiCheckElement = twoElementsPreviewModel.dataProvider?.previewElement()!!
 
     runBlocking {
       waitForAllRefreshesToFinish(30.seconds)
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
-      composePreviewRepresentation.setMode(
-        PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
-      )
+      composePreviewRepresentation.setMode(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
       onRefreshCompletable.join()
     }
 

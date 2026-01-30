@@ -41,9 +41,7 @@ class WearDevicePairingModel : WizardModel() {
   override fun dispose() {
     val wear = selectedWearDevice.valueOrNull
     if (wear != null && removePairingOnCancel.get()) {
-      GlobalScope.launch(Dispatchers.IO) {
-        WearPairingManager.getInstance().removeAllPairedDevices(wear.deviceID)
-      }
+      GlobalScope.launch(Dispatchers.IO) { WearPairingManager.getInstance().removeAllPairedDevices(wear.deviceID) }
     }
   }
 }

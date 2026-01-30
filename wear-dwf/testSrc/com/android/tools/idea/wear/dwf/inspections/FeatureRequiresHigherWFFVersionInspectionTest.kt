@@ -43,8 +43,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
     fixture.enableInspections(inspection)
   }
 
@@ -54,10 +53,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
 
     // floor requires version 1, icuBestText version 2 which are both ok
     // extractColorFromColors requires version 4 which is higher than the current
-    fixture.configureByText(
-      WFFExpressionFileType,
-      "floor(10) + icuBestText() * extractColorFromColors()",
-    )
+    fixture.configureByText(WFFExpressionFileType, "floor(10) + icuBestText() * extractColorFromColors()")
 
     val error = fixture.doHighlighting().single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("extractColorFromColors")
@@ -81,10 +77,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
 
     // UTC_TIMESTAMP requires version 1, FIRST_DAY_OF_WEEK version 2 which are both ok
     // HOURS_SINCE_EPOCH requires version 3 which is higher than the current
-    fixture.configureByText(
-      WFFExpressionFileType,
-      "[UTC_TIMESTAMP] + [FIRST_DAY_OF_WEEK] + [HOURS_SINCE_EPOCH]",
-    )
+    fixture.configureByText(WFFExpressionFileType, "[UTC_TIMESTAMP] + [FIRST_DAY_OF_WEEK] + [HOURS_SINCE_EPOCH]")
 
     val error = fixture.doHighlighting().single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("HOURS_SINCE_EPOCH")
@@ -111,24 +104,24 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
         "res/raw/watch_face.xml",
         // language=XML
         """
-      <WatchFace>
-        <Scene>
-          <ComplicationSlot>
-            <Complication type="SHORT_TEXT">
-              <PartText>
-                  <Text>
-                      <BitmapFont>
-                          <Template>%s
-                              <Parameter expression="[COMPLICATION.TEXT]" />
-                          </Template>
-                      </BitmapFont>
-                  </Text>
-              </PartText>
-            </Complication>
-          </ComplicationSlot>
-        </Scene>
-      </WatchFace>
-      """
+        <WatchFace>
+          <Scene>
+            <ComplicationSlot>
+              <Complication type="SHORT_TEXT">
+                <PartText>
+                    <Text>
+                        <BitmapFont>
+                            <Template>%s
+                                <Parameter expression="[COMPLICATION.TEXT]" />
+                            </Template>
+                        </BitmapFont>
+                    </Text>
+                </PartText>
+              </Complication>
+            </ComplicationSlot>
+          </Scene>
+        </WatchFace>
+        """
           .trimIndent(),
       )
 
@@ -148,24 +141,24 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
         "res/raw/watch_face.xml",
         // language=XML
         """
-      <WatchFace>
-        <Scene>
-          <ComplicationSlot>
-            <Complication type="WEIGHTED_ELEMENTS">
-              <PartText>
-                  <Text>
-                      <BitmapFont>
-                          <Template>%s
-                              <Parameter expression="[COMPLICATION.TEXT]" />
-                          </Template>
-                      </BitmapFont>
-                  </Text>
-              </PartText>
-            </Complication>
-          </ComplicationSlot>
-        </Scene>
-      </WatchFace>
-      """
+        <WatchFace>
+          <Scene>
+            <ComplicationSlot>
+              <Complication type="WEIGHTED_ELEMENTS">
+                <PartText>
+                    <Text>
+                        <BitmapFont>
+                            <Template>%s
+                                <Parameter expression="[COMPLICATION.TEXT]" />
+                            </Template>
+                        </BitmapFont>
+                    </Text>
+                </PartText>
+              </Complication>
+            </ComplicationSlot>
+          </Scene>
+        </WatchFace>
+        """
           .trimIndent(),
       )
 
@@ -180,11 +173,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
     // Once we use version 2, there should no longer be any errors
     overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
     // This will be called by RawWatchFaceXmlSchemaUpdater in production
-    runInEdtAndWait {
-      runWriteAction {
-        FileContentUtilCore.reparseFiles(watchFaceFile.virtualFile)
-      }
-    }
+    runInEdtAndWait { runWriteAction { FileContentUtilCore.reparseFiles(watchFaceFile.virtualFile) } }
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     errors = fixture.doHighlighting().filter { it.severity == HighlightSeverity.ERROR }
@@ -207,7 +196,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
             </PartDraw>
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -237,7 +226,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
             </PartDraw>
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -262,7 +251,7 @@ class FeatureRequiresHigherWFFVersionInspectionTest {
             </PartDraw>
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 

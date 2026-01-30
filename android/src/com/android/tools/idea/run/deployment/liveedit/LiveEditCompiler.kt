@@ -32,40 +32,43 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import java.util.Optional
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.Optional
 
 class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCache) {
 
   internal interface LiveEditCompilerForKotlinVersion {
-    fun compileKtFile(applicationLiveEditServices: ApplicationLiveEditServices,
-                      file: KtFile,
-                      inputs: Collection<LiveEditCompilerInput>): List<OutputFile>
+    fun compileKtFile(
+      applicationLiveEditServices: ApplicationLiveEditServices,
+      file: KtFile,
+      inputs: Collection<LiveEditCompilerInput>,
+    ): List<OutputFile>
   }
 
   private var applicationLiveEditServices: ApplicationLiveEditServices? = null
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
   // Each Deployment would invoke resetState() to ensure we have a non-null desugarer.
-  private var desugarer : LiveEditDesugar? = null
+  private var desugarer: LiveEditDesugar? = null
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
-   * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
-   * The compilation is wrapped in a cancelable read action, and will be interrupted by a PSI write action.
+   * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code. The compilation is
+   * wrapped in a cancelable read action, and will be interrupted by a PSI write action.
    *
-   * Returns true if the compilation is successful, and false if the compilation was interrupted and did not complete.
-   * If compilation fails due to issues with invalid syntax or other compiler-specific errors, throws a
-   * LiveEditException detailing the failure.
+   * Returns true if the compilation is successful, and false if the compilation was interrupted and did not complete. If compilation fails
+   * due to issues with invalid syntax or other compiler-specific errors, throws a LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<LiveEditCompilerInput>,
-              giveWritePriority: Boolean = true,
-              unrestricted: Boolean = false,
-              apiVersions: Set<MinApiLevel> = emptySet()): Optional<LiveEditDesugarResponse> {
+  fun compile(
+    inputs: List<LiveEditCompilerInput>,
+    giveWritePriority: Boolean = true,
+    unrestricted: Boolean = false,
+    apiVersions: Set<MinApiLevel> = emptySet(),
+  ): Optional<LiveEditDesugarResponse> {
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
     val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
@@ -79,7 +82,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
     // which prevents the UI from freezing during compilation if the user continues typing.
     val progressManager = ProgressManager.getInstance()
 
-    var desugaredOutputs : LiveEditDesugarResponse? = null
+    var desugaredOutputs: LiveEditDesugarResponse? = null
     val compileCmd = {
       var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
@@ -89,16 +92,14 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
         }
         try {
           // Compiler pass
-          val compilerOutput =
-            LiveEditCompilerForK2(project, file.module!!)
-          .compileKtFile(applicationLiveEditServices(), file, input)
+          val compilerOutput = LiveEditCompilerForK2(project, file.module!!).compileKtFile(applicationLiveEditServices(), file, input)
 
           // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
           // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
           validatePsiDiff(input, file)
 
-          LiveEditOutputBuilder(unrestricted).getGeneratedCode(applicationLiveEditServices!!, file, compilerOutput, irClassCache,
-                                                                outputBuilder)
+          LiveEditOutputBuilder(unrestricted)
+            .getGeneratedCode(applicationLiveEditServices!!, file, compilerOutput, irClassCache, outputBuilder)
 
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
@@ -107,12 +108,11 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
           val request = LiveEditDesugarRequest(outputs, apiVersions)
           desugaredOutputs = desugarer!!.desugar(request)
           logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
-
         } catch (e: ProcessCanceledException) {
           throw e
         } catch (e: LiveEditUpdateException) {
           throw e
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           // Unlike the other exception where it is temporary errors or setup failures. These type of internal error should be
           // rare and probably worth logging for bug reports.
           LOGGER.warning("Internal error during compilation command: %s\n%s", e.message, e.stackTraceToString().prependIndent("\t"))
@@ -149,19 +149,16 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
 
         // For now just join all the prompts together if we have multiple vibe prompt attached to a file.
         val changes = changedFiles[file]
-        val prompt = changes.mapNotNull{it.vibe}.joinToString(separator = "\n\n")
+        val prompt = changes.mapNotNull { it.vibe }.joinToString(separator = "\n\n")
 
         // TODO: Consider making Live Edit a suspendable call as well.
-        val result = runBlocking { transformer.transformVibe (file, prompt) }
+        val result = runBlocking { transformer.transformVibe(file, prompt) }
 
         if (result.error.isNotEmpty()) {
           throw LiveEditUpdateException.internalErrorVibeEdit(result.error)
         }
 
-        WriteCommandAction.runWriteCommandAction(project) {
-          file.viewProvider.document.setText(result.result)
-        }
-
+        WriteCommandAction.runWriteCommandAction(project) { file.viewProvider.document.setText(result.result) }
       }
 
       // TODO: FIX THIS!
@@ -182,14 +179,15 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
     return if (success) Optional.of(desugaredOutputs!!) else Optional.empty()
   }
 
-  private fun toComputable(cmd : () -> Unit) = Computable<Exception?> {
-    try {
-      cmd()
-    } catch (e : Exception) {
-      return@Computable e
+  private fun toComputable(cmd: () -> Unit) =
+    Computable<Exception?> {
+      try {
+        cmd()
+      } catch (e: Exception) {
+        return@Computable e
+      }
+      return@Computable null
     }
-    return@Computable null
-  }
 
   private fun applicationLiveEditServices() = applicationLiveEditServices ?: error("not yet initialized")
 

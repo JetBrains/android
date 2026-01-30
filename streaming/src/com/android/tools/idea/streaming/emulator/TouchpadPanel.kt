@@ -45,10 +45,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import javax.swing.SwingConstants
 
 /** Represents the touchpad of an AVD, e.g. AI glasses. */
-internal class TouchpadPanel(
-  private val emulator: EmulatorController,
-  private val touchpadSize: Dimension,
-) : BorderLayoutPanel() {
+internal class TouchpadPanel(private val emulator: EmulatorController, private val touchpadSize: Dimension) : BorderLayoutPanel() {
 
   private var multiTouchMode: Boolean = false
     set(value) {
@@ -59,10 +56,7 @@ internal class TouchpadPanel(
       }
     }
 
-  /**
-   * Last coordinates of the mouse pointer while the first button was pressed.
-   * Set to null when the first mouse button is released.
-   */
+  /** Last coordinates of the mouse pointer while the first button was pressed. Set to null when the first mouse button is released. */
   private var lastMouseCoordinates: Point? = null
     set(value) {
       if (value != field) {
@@ -70,6 +64,7 @@ internal class TouchpadPanel(
         repaint()
       }
     }
+
   private var mouseButtonPressed = false
     set(value) {
       if (value != field) {
@@ -77,6 +72,7 @@ internal class TouchpadPanel(
         repaint()
       }
     }
+
   private val mouseListener = MyMouseListener()
   private val touches = Array(2) { id -> Touch.newBuilder().setIdentifier(id).setExpiration(NEVER_EXPIRE) }
   private val inputEvent = InputEventMessage.newBuilder()
@@ -95,8 +91,10 @@ internal class TouchpadPanel(
 
   override fun getPreferredSize(): Dimension {
     val insets = insets
-    return Dimension(JBUIScale.scale(PREFERRED_HEIGHT.scaled(touchpadSize.width, touchpadSize.height)) + insets.width,
-                     JBUIScale.scale(PREFERRED_HEIGHT) + insets.height)
+    return Dimension(
+      JBUIScale.scale(PREFERRED_HEIGHT.scaled(touchpadSize.width, touchpadSize.height)) + insets.width,
+      JBUIScale.scale(PREFERRED_HEIGHT) + insets.height,
+    )
   }
 
   override fun getMinimumSize(): Dimension = preferredSize
@@ -119,8 +117,14 @@ internal class TouchpadPanel(
     }
 
     val g = graphics.create() as Graphics2D
-    g.setRenderingHints(RenderingHints(mapOf(RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-                                             RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY)))
+    g.setRenderingHints(
+      RenderingHints(
+        mapOf(
+          RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+          RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+        )
+      )
+    )
     g.clip = touchpadRectangle
     g.color = JBUI.CurrentTheme.Tooltip.grayedForeground()
     val scale = w.toDouble() / touchpadSize.width
@@ -131,8 +135,7 @@ internal class TouchpadPanel(
       drawTouchFeedback(g, point, radius)
       point.x += fingerDistance
       drawTouchFeedback(g, point, radius)
-    }
-    else {
+    } else {
       drawTouchFeedback(g, point, radius)
     }
   }
@@ -140,8 +143,7 @@ internal class TouchpadPanel(
   private fun drawTouchFeedback(g: Graphics2D, point: Point, radius: Int) {
     if (mouseButtonPressed) {
       g.fillCircle(point, radius)
-    }
-    else {
+    } else {
       g.drawCircle(point, radius)
     }
   }
@@ -177,8 +179,7 @@ internal class TouchpadPanel(
     if (multiTouchMode) {
       addTouchWithAdjustments(0, touchpadX - FINGER_HALF_DISTANCE, touchpadY, pressure)
       addTouchWithAdjustments(1, touchpadX + FINGER_HALF_DISTANCE, touchpadY, pressure)
-    }
-    else {
+    } else {
       addTouchWithAdjustments(0, touchpadX, touchpadY, pressure)
     }
     sendTouchpadEventIfNotEmpty()
@@ -187,8 +188,7 @@ internal class TouchpadPanel(
   private fun addTouchWithAdjustments(id: Int, x: Int, y: Int, pressure: Int) {
     if (isInsideTouchpad(x, y)) {
       addTouch(id, x, y, pressure)
-    }
-    else if (touches[id].pressure != 0) {
+    } else if (touches[id].pressure != 0) {
       // The pointer crosses the touchpad boundary while dragging.
       addTouch(id, x.coerceIn(0, touchpadSize.width - 1), y.coerceIn(0, touchpadSize.height - 1), 0)
     }
@@ -212,11 +212,9 @@ internal class TouchpadPanel(
     }
   }
 
-  private fun isInsideTouchpad(x: Int, y: Int): Boolean =
-      0 <= x && x < touchpadSize.width && 0 <= y && y < touchpadSize.height
+  private fun isInsideTouchpad(x: Int, y: Int): Boolean = 0 <= x && x < touchpadSize.width && 0 <= y && y < touchpadSize.height
 
-  private fun createTouch(identifier: Int): Touch.Builder =
-      Touch.newBuilder().setIdentifier(identifier).setExpiration(NEVER_EXPIRE)
+  private fun createTouch(identifier: Int): Touch.Builder = Touch.newBuilder().setIdentifier(identifier).setExpiration(NEVER_EXPIRE)
 
   private inner class MyMouseListener : MouseAdapter() {
 

@@ -24,11 +24,12 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
 
-class TargetAndroidModuleNode internal constructor(
+class TargetAndroidModuleNode
+internal constructor(
   parent: AbstractPsNode,
   module: PsAndroidModule,
   private val version: String?,
-  private val children: List<AbstractPsModelNode<*>>
+  private val children: List<AbstractPsModelNode<*>>,
 ) : AbstractPsModelNode<PsAndroidModule>(parent, parent.uiSettings), CellAppearanceEx {
 
   override val models: List<PsAndroidModule> = listOf(module)

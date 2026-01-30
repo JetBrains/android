@@ -30,25 +30,29 @@ private class SingleImageViewTest {
     @JvmStatic
     fun main(args: Array<String>) {
       JFrame().apply {
-        val imageIcon = ImageIcon(ImageUtil.createImage(115, 75, BufferedImage.TYPE_INT_ARGB).apply {
-          createGraphics().apply {
-            this.color = Color.BLUE
-            this.fillRect(0, 0, 200, 300)
-          }
-        })
+        val imageIcon =
+          ImageIcon(
+            ImageUtil.createImage(115, 75, BufferedImage.TYPE_INT_ARGB).apply {
+              createGraphics().apply {
+                this.color = Color.BLUE
+                this.fillRect(0, 0, 200, 300)
+              }
+            }
+          )
 
-        val jLabel = JLabel(imageIcon).apply {
-          isOpaque = false
-        }
-        contentPane = JPanel().apply {
-          preferredSize = JBUI.size(200, 300)
-          add(SingleAssetCard().apply {
-            withChessboard = true
-            title = "title"
-            subtitle = "Subtitle"
-            thumbnail = jLabel
-          })
-        }
+        val jLabel = JLabel(imageIcon).apply { isOpaque = false }
+        contentPane =
+          JPanel().apply {
+            preferredSize = JBUI.size(200, 300)
+            add(
+              SingleAssetCard().apply {
+                withChessboard = true
+                title = "title"
+                subtitle = "Subtitle"
+                thumbnail = jLabel
+              }
+            )
+          }
 
         pack()
         isVisible = true

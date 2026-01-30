@@ -21,9 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import javax.swing.Icon
 
-/**
- * A base popup menu item.
- */
+/** A base popup menu item. */
 abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener) : PopupMenuItem {
   override val text: String
     get() {
@@ -35,20 +33,22 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
       return null
     }
 
-  override val action: AnAction = object : AnAction(icon) {
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+  override val action: AnAction =
+    object : AnAction(icon) {
+      override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
-    override fun update(e: AnActionEvent) {
-      val presentation = e.presentation
-      presentation.text = text
-      presentation.isEnabled = isEnabled
-      presentation.isVisible = isVisible
-      presentation.icon = icon
+      override fun update(e: AnActionEvent) {
+        val presentation = e.presentation
+        presentation.text = text
+        presentation.isEnabled = isEnabled
+        presentation.isVisible = isVisible
+        presentation.icon = icon
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        run()
+      }
     }
 
-    override fun actionPerformed(e: AnActionEvent) {
-      run()
-    }
-  }
   abstract fun getText(numOfNodes: Int): String
 }

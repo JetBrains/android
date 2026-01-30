@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
-import org.junit.Assert.fail
 import java.nio.file.Paths
+import org.junit.Assert.fail
 
 private fun isRootElement(string: String, elementPosition: Int): Boolean {
   var counter = 0
@@ -34,9 +34,7 @@ private fun isRootElement(string: String, elementPosition: Int): Boolean {
   return counter == 0
 }
 
-/**
- * Returns content between curly braces `plugins{ ... }``
- */
+/** Returns content between curly braces `plugins{ ... }`` */
 fun getBlockContent(string: String, blockStart: Int): String? {
   var start = -1
   var counter = 0
@@ -56,8 +54,7 @@ fun getBlockContent(string: String, blockStart: Int): String? {
 }
 
 /**
- * Method returns content of block that we specify in path - for example `pluginManagement.plugins`
- * It does not handle block duplication.
+ * Method returns content of block that we specify in path - for example `pluginManagement.plugins` It does not handle block duplication.
  */
 fun getBlockContent(text: String, path: String): String {
   val elements = path.split(".")
@@ -67,7 +64,10 @@ fun getBlockContent(text: String, path: String): String {
       "${element
         .replace("(", "\\(")
         .replace(")", "\\)")}[ \\t\\n\\{]"
-        .toRegex().find(string)?.range?.start
+        .toRegex()
+        .find(string)
+        ?.range
+        ?.start
     if (blockNamePosition == null) {
       fail("Cannot find $element")
       return null
@@ -75,18 +75,16 @@ fun getBlockContent(text: String, path: String): String {
     if (blockNamePosition >= 0)
       if (isRootElement(string, blockNamePosition)) {
         return getBlockContent(string, blockNamePosition)
-      }
-      else return snippet(string.substring(blockNamePosition + element.length), element)
+      } else return snippet(string.substring(blockNamePosition + element.length), element)
     return null
   }
 
   var currentSnippet = text
   for (element in elements) {
-    snippet(currentSnippet, element)?.let { currentSnippet = it } ?: fail(
-      "Cannot get block content for element $element in $path for file: `$text`")
+    snippet(currentSnippet, element)?.let { currentSnippet = it }
+      ?: fail("Cannot get block content for element $element in $path for file: `$text`")
   }
   return currentSnippet
 }
 
-fun Project.doesFileExists(relativePath: String) =
-  VfsUtil.findFile(Paths.get(basePath, relativePath), false)?.exists() ?: false
+fun Project.doesFileExists(relativePath: String) = VfsUtil.findFile(Paths.get(basePath, relativePath), false)?.exists() ?: false

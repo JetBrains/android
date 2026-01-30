@@ -27,8 +27,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.surface.interaction.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
 
-class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>) :
-  InteractionHandlerBase(surface) {
+class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>) : InteractionHandlerBase(surface) {
 
   override fun createInteractionOnPressed(
     @SwingCoordinate mouseX: Int,
@@ -62,9 +61,7 @@ class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>)
     // leaf nodes inside it
     var component: SceneComponent? = null
     val primary = scene.getSceneComponent(selectionModel.primary)
-    if (
-      primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)
-    ) {
+    if (primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)) {
       component = primary
     }
     if (component == null) {

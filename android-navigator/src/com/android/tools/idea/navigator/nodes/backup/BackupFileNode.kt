@@ -25,14 +25,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
 
-/**
- * A group node in the Android Project View for backup file
- */
-class BackupFileNode internal constructor(
-  project: Project,
-  val file: VirtualFile,
-  settings: ViewSettings
-) :
+/** A group node in the Android Project View for backup file */
+class BackupFileNode internal constructor(project: Project, val file: VirtualFile, settings: ViewSettings) :
   ProjectViewNode<VirtualFile>(project, file, settings) {
   override fun contains(file: VirtualFile): Boolean {
     return true
@@ -42,8 +36,7 @@ class BackupFileNode internal constructor(
     return listOf()
   }
 
-  @Suppress("UnstableApiUsage")
-  override fun getSortOrder(settings: NodeSortSettings) = NodeSortOrder.UNSPECIFIED
+  @Suppress("UnstableApiUsage") override fun getSortOrder(settings: NodeSortSettings) = NodeSortOrder.UNSPECIFIED
 
   override fun canRepresent(element: Any): Boolean {
     return super.canRepresent(element)

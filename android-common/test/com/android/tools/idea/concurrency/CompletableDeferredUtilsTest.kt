@@ -41,9 +41,7 @@ class CompletableDeferredUtilsTest {
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completable.complete(Unit)
-    completableCollection.forEach {
-      assertNotNull(it.getCompletedOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletedOrNull()) }
   }
 
   @Test
@@ -52,73 +50,47 @@ class CompletableDeferredUtilsTest {
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completable.completeExceptionally(Throwable())
-    completableCollection.forEach {
-      assertNotNull(it.getCompletionExceptionOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletionExceptionOrNull()) }
   }
 
   @Test
   fun `completes normally for a collection`() = runBlocking {
-    val completableCollection = listOf<CompletableDeferred<Unit>>(
-      CompletableDeferred(),
-      CompletableDeferred(),
-      CompletableDeferred()
-    )
+    val completableCollection = listOf<CompletableDeferred<Unit>>(CompletableDeferred(), CompletableDeferred(), CompletableDeferred())
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completable.complete(Unit)
-    completableCollection.forEach {
-      assertNotNull(it.getCompletedOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletedOrNull()) }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun `completes exceptionally for a collection`() = runBlocking {
-    val completableCollection = listOf<CompletableDeferred<Unit>>(
-      CompletableDeferred(),
-      CompletableDeferred(),
-      CompletableDeferred()
-    )
+    val completableCollection = listOf<CompletableDeferred<Unit>>(CompletableDeferred(), CompletableDeferred(), CompletableDeferred())
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completable.completeExceptionally(Throwable())
-    completableCollection.forEach {
-      assertNotNull(it.getCompletionExceptionOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletionExceptionOrNull()) }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun `completing one child completes all`() = runBlocking {
-    val completableCollection = listOf<CompletableDeferred<Unit>>(
-      CompletableDeferred(),
-      CompletableDeferred(),
-      CompletableDeferred()
-    )
+    val completableCollection = listOf<CompletableDeferred<Unit>>(CompletableDeferred(), CompletableDeferred(), CompletableDeferred())
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completableCollection.last().complete(Unit)
-    completableCollection.forEach {
-      assertNotNull(it.getCompletedOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletedOrNull()) }
     assertNotNull(completable.getCompletedOrNull())
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun `completing exceptionally one child completes exceptionally all`() = runBlocking {
-    val completableCollection = listOf<CompletableDeferred<Unit>>(
-      CompletableDeferred(),
-      CompletableDeferred(),
-      CompletableDeferred()
-    )
+    val completableCollection = listOf<CompletableDeferred<Unit>>(CompletableDeferred(), CompletableDeferred(), CompletableDeferred())
 
     val completable = wrapCompletableDeferredCollection(completableCollection)
     completableCollection.last().completeExceptionally(Throwable())
-    completableCollection.forEach {
-      assertNotNull(it.getCompletionExceptionOrNull())
-    }
+    completableCollection.forEach { assertNotNull(it.getCompletionExceptionOrNull()) }
     assertNotNull(completable.getCompletionExceptionOrNull())
   }
 }

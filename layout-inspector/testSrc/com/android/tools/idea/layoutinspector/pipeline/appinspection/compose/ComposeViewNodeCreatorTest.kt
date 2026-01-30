@@ -204,11 +204,7 @@ class ComposeViewNodeCreatorTest {
     nodes[10].assertNode("Box", RecompositionData(3, 4, 0), emptyList())
   }
 
-  private fun ViewNode.assertNode(
-    name: String,
-    recompositionData: RecompositionData,
-    childIds: List<Long>,
-  ) {
+  private fun ViewNode.assertNode(name: String, recompositionData: RecompositionData, childIds: List<Long>) {
     assertThat(qualifiedName).isEqualTo(name)
     assertThat(recompositions.count).named(name).isEqualTo(recompositionData.count)
     assertThat(recompositions.skips).named(name).isEqualTo(recompositionData.skips)

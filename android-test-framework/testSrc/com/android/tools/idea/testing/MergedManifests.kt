@@ -24,16 +24,11 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Applies [writeCommandActionBody] to the primary manifest of the given [androidFacet], and then
- * forces and blocks on a refresh of the [androidFacet]'s merged manifest.
+ * Applies [writeCommandActionBody] to the primary manifest of the given [androidFacet], and then forces and blocks on a refresh of the
+ * [androidFacet]'s merged manifest.
  */
-inline fun updatePrimaryManifest(
-  androidFacet: AndroidFacet,
-  crossinline writeCommandActionBody: Manifest.() -> Unit,
-) {
-  runWriteCommandAction(androidFacet.module.project) {
-    Manifest.getMainManifest(androidFacet)!!.writeCommandActionBody()
-  }
+inline fun updatePrimaryManifest(androidFacet: AndroidFacet, crossinline writeCommandActionBody: Manifest.() -> Unit) {
+  runWriteCommandAction(androidFacet.module.project) { Manifest.getMainManifest(androidFacet)!!.writeCommandActionBody() }
   FileDocumentManager.getInstance().saveAllDocuments()
   MergedManifestManager.getMergedManifest(androidFacet.module).get()
   runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }

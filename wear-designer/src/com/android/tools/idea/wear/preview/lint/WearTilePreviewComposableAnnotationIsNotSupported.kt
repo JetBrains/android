@@ -26,24 +26,14 @@ import org.jetbrains.uast.UMethod
 
 const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
 
-/**
- * Inspection that checks that a user is not using the @Composable annotation on a method with a
- * Tile preview signature.
- */
+/** Inspection that checks that a user is not using the @Composable annotation on a method with a Tile preview signature. */
 class WearTilePreviewComposableAnnotationIsNotSupported : WearTilePreviewInspectionBase() {
-  override fun checkMethod(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
-    if (
-      !method.sourcePsi.isMethodWithTilePreviewSignature() || !method.hasTilePreviewAnnotation()
-    ) {
+  override fun checkMethod(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
+    if (!method.sourcePsi.isMethodWithTilePreviewSignature() || !method.hasTilePreviewAnnotation()) {
       return super.checkMethod(method, manager, isOnTheFly)
     }
 
-    val composableAnnotation =
-      method.uAnnotations.find { it.qualifiedName == COMPOSABLE_ANNOTATION_FQN }?.sourcePsi
+    val composableAnnotation = method.uAnnotations.find { it.qualifiedName == COMPOSABLE_ANNOTATION_FQN }?.sourcePsi
 
     if (composableAnnotation == null) {
       return super.checkMethod(method, manager, isOnTheFly)
@@ -60,6 +50,5 @@ class WearTilePreviewComposableAnnotationIsNotSupported : WearTilePreviewInspect
     )
   }
 
-  override fun getStaticDescription() =
-    message("inspection.preview.annotation.composable.not.supported")
+  override fun getStaticDescription() = message("inspection.preview.annotation.composable.not.supported")
 }

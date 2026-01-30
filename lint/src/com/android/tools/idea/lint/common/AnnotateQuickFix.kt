@@ -103,11 +103,7 @@ class AnnotateQuickFix(
     val rangeFile = rangePointer?.element?.containingFile
     var element: PsiElement = context.findLeaf()!!
 
-    if (
-      rangeFile != null &&
-        !(rangeFile.containingFile != context.file &&
-          context.file.originalFile == rangeFile.containingFile)
-    ) {
+    if (rangeFile != null && !(rangeFile.containingFile != context.file && context.file.originalFile == rangeFile.containingFile)) {
       val range = rangePointer.range
       val newStartElement = rangeFile.findElementAt(range!!.startOffset)
       if (newStartElement != null) {
@@ -192,5 +188,4 @@ fun findJavaAnnotationTarget(element: PsiElement?): PsiModifierListOwner? {
   }
 }
 
-private fun findKotlinAnnotationTarget(element: PsiElement) =
-  PsiTreeUtil.findFirstParent(element, false) { it.isAnnotationTarget() }
+private fun findKotlinAnnotationTarget(element: PsiElement) = PsiTreeUtil.findFirstParent(element, false) { it.isAnnotationTarget() }

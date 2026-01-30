@@ -28,11 +28,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 
 /** Helper class to handle the process of visual lint in [VisualizationForm]. */
-class VisualizationFormVisualLintHandler(
-  parentDisposable: Disposable,
-  private val project: Project,
-  private val issueModel: IssueModel,
-) {
+class VisualizationFormVisualLintHandler(parentDisposable: Disposable, private val project: Project, private val issueModel: IssueModel) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
   val lintIssueProvider = ViewVisualLintIssueProvider(parentDisposable)
@@ -58,8 +54,7 @@ class VisualizationFormVisualLintHandler(
     val result = manager.renderResult
     if (result != null) {
       ApplicationManager.getApplication().executeOnPooledThread {
-        VisualLintService.getInstance(project)
-          .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
+        VisualLintService.getInstance(project).analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
       }
     }
   }
@@ -78,7 +73,6 @@ class VisualizationFormVisualLintHandler(
     issueModel.updateErrorsList()
 
     // Trigger Layout Editor Visual Lint
-    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)
-      ?.updateErrorDisplay()
+    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)?.updateErrorDisplay()
   }
 }

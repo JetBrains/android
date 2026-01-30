@@ -25,11 +25,14 @@ import com.intellij.openapi.project.Project
 /**
  * Identification of a configurable which is is supposed to be recorded in [PSDEvent].
  *
- * See:  [com.android.tools.analytics.UsageTracker]
+ * See: [com.android.tools.analytics.UsageTracker]
  */
 interface TrackedConfigurable {
-  val leftConfigurable: PSDEvent.PSDLeftConfigurable? get() = null
-  val topConfigurable: PSDEvent.PSDTopTab? get() = null
+  val leftConfigurable: PSDEvent.PSDLeftConfigurable?
+    get() = null
+
+  val topConfigurable: PSDEvent.PSDTopTab?
+    get() = null
 
   fun copyIdFieldsTo(builder: PSDEvent.Builder) {
     leftConfigurable?.let { builder.setLeftConfigurable(it) }
@@ -41,29 +44,25 @@ interface TrackedConfigurable {
 
 fun Project.logUsageLeftNavigateTo(toSelect: Configurable) {
   if (toSelect is TrackedConfigurable) {
-    val psdEvent = PSDEvent
-      .newBuilder()
-      .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+    val psdEvent = PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
     toSelect.copyIdFieldsTo(psdEvent)
     UsageTracker.log(
-      AndroidStudioEvent
-        .newBuilder()
+      AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
         .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
         .setPsdEvent(psdEvent)
-        .withProjectId(this))
+        .withProjectId(this)
+    )
   }
 }
 
 fun Project.logUsagePsdAction(eventKind: AndroidStudioEvent.EventKind) {
-    val psdEvent = PSDEvent
-      .newBuilder()
-      .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-    UsageTracker.log(
-      AndroidStudioEvent
-        .newBuilder()
-        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-        .setKind(eventKind)
-        .setPsdEvent(psdEvent)
-        .withProjectId(this))
+  val psdEvent = PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+  UsageTracker.log(
+    AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+      .setKind(eventKind)
+      .setPsdEvent(psdEvent)
+      .withProjectId(this)
+  )
 }

@@ -19,9 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.sdklib.devices.Device
 import com.google.wireless.android.sdk.stats.EditorPickerEvent
 
-/**
- * Interface used to log usage data for Compose Pickers, typically invoked from the Editor Gutter.
- */
+/** Interface used to log usage data for Compose Pickers, typically invoked from the Editor Gutter. */
 internal interface ComposePickerTracker {
   fun pickerShown()
 
@@ -30,11 +28,9 @@ internal interface ComposePickerTracker {
   /**
    * Register a modification to the [name] parameter of the Preview annotation.
    *
-   * [value] is one of the tracking relevant options that best represents the value assigned to the
-   * parameter.
+   * [value] is one of the tracking relevant options that best represents the value assigned to the parameter.
    *
-   * [device] should be the currently active [Device] in the preview when the change was made (right
-   * before the change is applied).
+   * [device] should be the currently active [Device] in the preview when the change was made (right before the change is applied).
    */
   fun registerModification(
     name: String,
@@ -43,8 +39,7 @@ internal interface ComposePickerTracker {
   )
 
   /**
-   * Potentially slow, since some modification data will have to be converted to Studio Event
-   * objects (eg: the name of the modified field)
+   * Potentially slow, since some modification data will have to be converted to Studio Event objects (eg: the name of the modified field)
    */
   @Slow fun logUsageData()
 }

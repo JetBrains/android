@@ -68,25 +68,18 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
   fun buildOnWindows() {
     Jimfs.newFileSystem(Configuration.windows()).use { fileSystem ->
-      val emulator =
-        fileSystem.getPath("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe")
+      val emulator = fileSystem.getPath("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe")
       val builder = EmulatorCommandBuilder(emulator, avd)
 
       val command = builder.build()
 
-      assertEquals(
-        "C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe -avd Pixel_4_API_30",
-        command.commandLineString,
-      )
+      assertEquals("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe -avd Pixel_4_API_30", command.commandLineString)
     }
   }
 
@@ -97,10 +90,7 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -netdelay none -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -netdelay none -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
@@ -110,10 +100,7 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -netspeed full -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -netspeed full -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
@@ -123,10 +110,7 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -no-snapstorage -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -no-snapstorage -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
@@ -175,70 +159,51 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -param-1 -param-2 -param-3",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -param-1 -param-2 -param-3", command.commandLineString)
   }
 
   @Test
   fun buildAvdCommandLineEmulatorBinary() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
-    whenever(avd.userSettings)
-      .thenReturn(mapOf(UserSettingsKey.EMULATOR_BINARY to "../my-package/my-emulator"))
+    whenever(avd.userSettings).thenReturn(mapOf(UserSettingsKey.EMULATOR_BINARY to "../my-package/my-emulator"))
     val builder = EmulatorCommandBuilder(myEmulator, avd)
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/my-package/my-emulator -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/my-package/my-emulator -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
   fun buildAvdCommandLineOptionsInUserSettings() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
-    whenever(avd.userSettings)
-      .thenReturn(mapOf(UserSettingsKey.COMMAND_LINE_OPTIONS to "   -custom options"))
+    whenever(avd.userSettings).thenReturn(mapOf(UserSettingsKey.COMMAND_LINE_OPTIONS to "   -custom options"))
     val builder = EmulatorCommandBuilder(myEmulator, avd)
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -custom options",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -custom options", command.commandLineString)
   }
 
   @Test
   fun buildAvdCommandLineOptionsInCongig_Disabled() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
-    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS))
-      .thenReturn("-some random -options")
+    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("-some random -options")
     val builder = EmulatorCommandBuilder(myEmulator, avd)
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
   fun buildAvdCommandLineOptions_Enabled() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true)
-    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS))
-      .thenReturn("-some random -options")
+    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("-some random -options")
     val builder = EmulatorCommandBuilder(myEmulator, avd)
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -some random -options",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -some random -options", command.commandLineString)
   }
 
   @Test
@@ -249,17 +214,13 @@ class EmulatorCommandBuilderTest {
 
     val command = builder.build()
 
-    assertEquals(
-      "/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30",
-      command.commandLineString,
-    )
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.commandLineString)
   }
 
   @Test
   fun buildAvdCommandLineOptionsIsSanitized() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true)
-    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS))
-      .thenReturn("  -some\nrandom  \n unsanitized  -options \n ")
+    whenever(avd.getProperty(UserSettingsKey.COMMAND_LINE_OPTIONS)).thenReturn("  -some\nrandom  \n unsanitized  -options \n ")
     val builder = EmulatorCommandBuilder(myEmulator, avd)
 
     val command = builder.build()

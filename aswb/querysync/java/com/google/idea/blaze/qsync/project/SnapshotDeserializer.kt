@@ -18,7 +18,6 @@ package com.google.idea.blaze.qsync.project
 import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.TargetPattern
@@ -32,7 +31,7 @@ import java.nio.file.Path
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
-/** Deserializes a [PostQuerySyncData] instance from an input stream.  */
+/** Deserializes a [PostQuerySyncData] instance from an input stream. */
 class SnapshotDeserializer private constructor() {
   private val snapshot: PostQuerySyncData.Builder = PostQuerySyncData.builder()
 
@@ -63,11 +62,11 @@ class SnapshotDeserializer private constructor() {
         projectIncludes = ImmutableSet.copyOf(proto.includePathsList.map { Path.of(it) }),
         projectExcludes = ImmutableSet.copyOf(proto.excludePathsList.map { Path.of(it) }),
         deriveTargetsFromDirectories = proto.deriveTargetsFromDirectories,
-        targetPatterns = ImmutableList.copyOf (proto.targetPatternsList.map {TargetPattern.parse(it)}),
+        targetPatterns = ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
         isAndroidWorkspace = proto.isAndroidWorkspace,
-        languageClasses = ImmutableSet.copyOf(proto.languageClassesList.mapNotNull {QuerySyncLanguage.fromProto(it).getOrNull()}),
+        languageClasses = ImmutableSet.copyOf(proto.languageClassesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }),
         testSources = ImmutableSet.copyOf(proto.testSourcesList),
-        systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) })
+        systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) }),
       )
     )
   }
@@ -89,15 +88,8 @@ private fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
     proto.getWorkspaceId(),
     proto.getUpstreamRevision(),
     ImmutableSet.copyOf(
-      proto.workingSetList
-        .map {
-          WorkspaceFileChange(
-            OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())
-          )
-        }
+      proto.workingSetList.map { WorkspaceFileChange(OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())) }
     ),
-    if (proto.hasWorkspaceSnapshot())
-      Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
-    else
-      Optional.empty())
+    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath())) else Optional.empty(),
+  )
 }

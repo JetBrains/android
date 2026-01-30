@@ -33,11 +33,8 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
 import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 
-class AddJavaToolchainDefinition(
-  project: Project,
-  private val versionToSet: Int,
-  private val modules: List<Module>
-) : BaseRefactoringProcessor(project) {
+class AddJavaToolchainDefinition(project: Project, private val versionToSet: Int, private val modules: List<Module>) :
+  BaseRefactoringProcessor(project) {
   private val projectBuildModel = ProjectBuildModel.get(myProject)
 
   protected override fun findUsages(): Array<UsageInfo> {
@@ -66,17 +63,12 @@ class AddJavaToolchainDefinition(
       if (languageVersionPsiElement == null) {
         // java.toolchain.languageVersion not found, need to add it only if kotlin.jvmToolchain was also not found.
         if (foundUsages.isEmpty()) {
-          val languageVersionParentPsiElement = listOf(
-            java().toolchain(),
-            java(),
-            this
-          ).firstNotNullOfOrNull { it.psiElement }
+          val languageVersionParentPsiElement = listOf(java().toolchain(), java(), this).firstNotNullOfOrNull { it.psiElement }
           if (languageVersionParentPsiElement != null) {
             foundUsages.add(SetToolchainLanguageLevelUsageInfo(languageVersionParentPsiElement, languageVersionModel, versionToSet))
           }
         }
-      }
-      else if (definedVersion != versionToSet) {
+      } else if (definedVersion != versionToSet) {
         // java.toolchain.languageVersion found, it needs to be updated.
         foundUsages.add(SetToolchainLanguageLevelUsageInfo(languageVersionPsiElement, languageVersionModel, versionToSet))
       }
@@ -86,18 +78,13 @@ class AddJavaToolchainDefinition(
 
   private fun ProjectBuildModel.findFooJayPluginDefinitionUsageInfo(): UsageInfo? {
     return projectSettingsModel?.let { settingsModel ->
-      val pluginFound = settingsModel.plugins().plugins().any { plugin ->
-        plugin.name().toString() == FOOJAY_RESOLVER_CONVENTION_NAME
-      }
+      val pluginFound = settingsModel.plugins().plugins().any { plugin -> plugin.name().toString() == FOOJAY_RESOLVER_CONVENTION_NAME }
 
       if (!pluginFound) {
-        listOf(
-          settingsModel.plugins(),
-          settingsModel
-        ).firstNotNullOfOrNull { it.psiElement }
+        listOf(settingsModel.plugins(), settingsModel)
+          .firstNotNullOfOrNull { it.psiElement }
           ?.let { psiElement -> AddPluginUsageInfo(psiElement, this@AddJavaToolchainDefinition.projectBuildModel) }
-      }
-      else null
+      } else null
     }
   }
 
@@ -115,45 +102,40 @@ class AddJavaToolchainDefinition(
 
   override fun getCommandName(): String = "Set Java Toolchain to $versionToSet"
 
-  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptor {
-    override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor =
+    object : UsageViewDescriptor {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
 
-    override fun getProcessedElementsHeader(): String = "Set Java Toolchain to $versionToSet"
+      override fun getProcessedElementsHeader(): String = "Set Java Toolchain to $versionToSet"
 
-    override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
-      return "References to be changed: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
+      override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
+        return "References to be changed: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
+      }
     }
-  }
 
   private class SetToolchainLanguageLevelUsageInfo(
     psiElement: PsiElement,
     val modelToSet: JavaLanguageVersionPropertyModel,
-    val versionToSet: Int
+    val versionToSet: Int,
   ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
       modelToSet.setVersion(versionToSet)
     }
   }
 
-  private class SetKotlinJvmToolchainUsageInfo(
-    psiElement: PsiElement,
-    val modelToSet: ResolvedPropertyModel,
-    val versionToSet: Int
-  ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+  private class SetKotlinJvmToolchainUsageInfo(psiElement: PsiElement, val modelToSet: ResolvedPropertyModel, val versionToSet: Int) :
+    UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
       modelToSet.setValue(versionToSet)
     }
   }
 
-  private class AddPluginUsageInfo(
-    psiElement: PsiElement,
-    val projectBuildModel: ProjectBuildModel
-    ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+  private class AddPluginUsageInfo(psiElement: PsiElement, val projectBuildModel: ProjectBuildModel) :
+    UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
       PluginsHelper.withModel(projectBuildModel)
         // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
         .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion(GradleVersion.current()))
     }
   }
-
 }

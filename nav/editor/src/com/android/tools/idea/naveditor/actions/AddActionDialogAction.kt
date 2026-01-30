@@ -25,11 +25,8 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-sealed class AddActionDialogAction(
-  val text: String,
-  private val parent: NlComponent,
-  private val existingAction: NlComponent?,
-) : AnAction(text) {
+sealed class AddActionDialogAction(val text: String, private val parent: NlComponent, private val existingAction: NlComponent?) :
+  AnAction(text) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -38,19 +35,11 @@ sealed class AddActionDialogAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) ?: return
-    val addActionDialog =
-      AddActionDialog(
-        AddActionDialog.Defaults.NORMAL,
-        existingAction,
-        parent,
-        NavEditorEvent.Source.CONTEXT_MENU,
-      )
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, existingAction, parent, NavEditorEvent.Source.CONTEXT_MENU)
     showAndUpdateFromDialog(addActionDialog, surface, existingAction != null)
   }
 }
 
-class ToDestinationAction(val parent: NlComponent) :
-  AddActionDialogAction("To Destination...", parent, null)
+class ToDestinationAction(val parent: NlComponent) : AddActionDialogAction("To Destination...", parent, null)
 
-class EditExistingAction(val parent: NlComponent, val action: NlComponent) :
-  AddActionDialogAction("Edit", parent, action)
+class EditExistingAction(val parent: NlComponent, val action: NlComponent) : AddActionDialogAction("Edit", parent, action)

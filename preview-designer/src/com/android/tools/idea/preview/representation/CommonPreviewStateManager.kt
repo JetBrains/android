@@ -35,10 +35,9 @@ private const val SELECTED_GROUP_KEY = "selectedGroup"
 private const val LAYOUT_KEY = "previewLayout"
 
 /**
- * Common class that handles persisting and restoring Preview Representations. The calls to
- * [PreviewRepresentation.getState] and [PreviewRepresentation.setState] should delegate to this
- * class's [getState] and [setState] methods respectively. [restoreState] should be called after the
- * preview has loaded the initial state through [setState] and is ready to restore the state.
+ * Common class that handles persisting and restoring Preview Representations. The calls to [PreviewRepresentation.getState] and
+ * [PreviewRepresentation.setState] should delegate to this class's [getState] and [setState] methods respectively. [restoreState] should be
+ * called after the preview has loaded the initial state through [setState] and is ready to restore the state.
  */
 class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
   private val surfaceProvider: () -> NlDesignSurface,
@@ -47,10 +46,7 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
   private val previewModeManager: PreviewModeManager,
 ) {
 
-  /**
-   * Callback first time after the preview has loaded the initial state, and it's ready to restore
-   * any saved state.
-   */
+  /** Callback first time after the preview has loaded the initial state, and it's ready to restore any saved state. */
   private var onRestoreState: (() -> Unit)? = null
 
   /**
@@ -60,14 +56,13 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
    */
   fun getState(): PreviewRepresentationState {
     val selectedGroupName = currentGroupFilterProvider()?.filterGroup?.name ?: ""
-    val selectedLayoutName =
-      surfaceProvider().layoutManagerSwitcher?.currentLayoutOption?.value?.displayName ?: ""
+    val selectedLayoutName = surfaceProvider().layoutManagerSwitcher?.currentLayoutOption?.value?.displayName ?: ""
     return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)
   }
 
   /**
-   * Restore any saved state within the manager after the preview representation has been
-   * instantiated. [restoreState] needs to be called once the preview is ready to be restored.
+   * Restore any saved state within the manager after the preview representation has been instantiated. [restoreState] needs to be called
+   * once the preview is ready to be restored.
    *
    * @see PreviewRepresentation.setState
    * @see restoreState
@@ -77,17 +72,14 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
     val previewLayoutName = state[LAYOUT_KEY]
     onRestoreState = {
       if (!selectedGroupName.isNullOrEmpty()) {
-        previewFlowManager.availableGroupsFlow.value
-          .find { it.name == selectedGroupName }
-          ?.let { previewFlowManager.groupFilter = it }
+        previewFlowManager.availableGroupsFlow.value.find { it.name == selectedGroupName }?.let { previewFlowManager.groupFilter = it }
       }
 
       PREVIEW_LAYOUT_OPTIONS.find { it.displayName == previewLayoutName }
         ?.let {
           // If focus mode was selected before - need to restore this type of layout.
           if (it == FOCUS_MODE_LAYOUT_OPTION) {
-            previewFlowManager.allPreviewElementsFlow.value.asCollection().firstOrNull().let {
-              previewElement ->
+            previewFlowManager.allPreviewElementsFlow.value.asCollection().firstOrNull().let { previewElement ->
               previewModeManager.setMode(PreviewMode.Focus(previewElement))
             }
           } else {
@@ -98,8 +90,7 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
   }
 
   /**
-   * This method should be called after the preview has loaded the initial state through [setState]
-   * and is ready to restore the state.
+   * This method should be called after the preview has loaded the initial state through [setState] and is ready to restore the state.
    *
    * @see setState
    */

@@ -42,7 +42,8 @@ import java.nio.file.Path
 import javax.swing.Icon
 
 /** Represents configuration of a running Emulator. */
-class EmulatorConfiguration private constructor(
+class EmulatorConfiguration
+private constructor(
   val avdFolder: Path,
   val avdName: String,
   val deviceType: DeviceType,
@@ -75,13 +76,12 @@ class EmulatorConfiguration private constructor(
 
   companion object {
     /**
-     * Creates and returns an [EmulatorConfiguration] using data in the AVD folder.
-     * Returns null if any of the essential data is missing.
+     * Creates and returns an [EmulatorConfiguration] using data in the AVD folder. Returns null if any of the essential data is missing.
      */
     fun readAvdDefinition(avdFolder: Path): EmulatorConfiguration {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
-      val keysToExtract = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                "hw.sensor.hinge.resizable.config")
+      val keysToExtract =
+        setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density", "hw.sensor.hinge.resizable.config")
       val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract)
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
@@ -98,61 +98,64 @@ class EmulatorConfiguration private constructor(
       val configIni = readKeyValueFile(configIniFile)
 
       val avdName = configIni["avd.ini.displayname"] ?: avdFolder.fileName.toString().removeSuffix(".avd").replace('_', ' ')
-      val initialOrientation = when {
-        "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
-        else -> 0
-      }
+      val initialOrientation =
+        when {
+          "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> 1
+          else -> 0
+        }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val tagIds = configIni[ConfigKey.TAG_IDS] ?: configIni[ConfigKey.TAG_ID]
-      val deviceType = when {
-        tagIds == null -> DeviceType.HANDHELD
-        tagIds.asSeparatedListContains(AUTOMOTIVE_TAG.id) ||
+      val deviceType =
+        when {
+          tagIds == null -> DeviceType.HANDHELD
+          tagIds.asSeparatedListContains(AUTOMOTIVE_TAG.id) ||
             tagIds.asSeparatedListContains(AUTOMOTIVE_PLAY_STORE_TAG.id) ||
             tagIds.asSeparatedListContains(AUTOMOTIVE_DISTANT_DISPLAY_TAG.id) -> DeviceType.AUTOMOTIVE
-        tagIds.asSeparatedListContains(DESKTOP_TAG.id) -> DeviceType.DESKTOP
-        tagIds.asSeparatedListContains(GOOGLE_TV_TAG.id) || tagIds.asSeparatedListContains(ANDROID_TV_TAG.id) -> DeviceType.TV
-        tagIds.asSeparatedListContains(WEAR_TAG.id) -> DeviceType.WEAR
-        tagIds.asSeparatedListContains(XR_HEADSET_TAG.id) -> DeviceType.XR_HEADSET
-        tagIds.asSeparatedListContains(DEPRECATED_AI_GLASSES_TAG.id) ||
-        tagIds.asSeparatedListContains(AI_GLASSES_TAG.id) -> DeviceType.AI_GLASSES
-        else -> DeviceType.HANDHELD
-      }
+          tagIds.asSeparatedListContains(DESKTOP_TAG.id) -> DeviceType.DESKTOP
+          tagIds.asSeparatedListContains(GOOGLE_TV_TAG.id) || tagIds.asSeparatedListContains(ANDROID_TV_TAG.id) -> DeviceType.TV
+          tagIds.asSeparatedListContains(WEAR_TAG.id) -> DeviceType.WEAR
+          tagIds.asSeparatedListContains(XR_HEADSET_TAG.id) -> DeviceType.XR_HEADSET
+          tagIds.asSeparatedListContains(DEPRECATED_AI_GLASSES_TAG.id) || tagIds.asSeparatedListContains(AI_GLASSES_TAG.id) ->
+            DeviceType.AI_GLASSES
+          else -> DeviceType.HANDHELD
+        }
       val hasOrientationSensors = getConfigBoolean(configIni["hw.sensors.orientation"], true)
       val hasTransparentDisplay = getConfigBoolean(configIni["hw.lcd.transparent"], false)
       val hasTouchScreen = !"no-touch".equals(configIni["hw.screen"])
       val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
-      val displayModes = try {
-        configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
-      }
-      catch (_: Exception) {
-        throw RuntimeException("Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," +
-                               " in $configIniFile")
-      }
+      val displayModes =
+        try {
+          configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
+        } catch (_: Exception) {
+          throw RuntimeException(
+            "Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," + " in $configIniFile"
+          )
+        }
 
-      val postureValues = try {
-        configIni["hw.sensor.posture_list"]?.let(::parsePostures) ?: emptyList()
-      }
-      catch (_: Exception) {
-        throw RuntimeException("Unrecognized value of the hw.sensor.posture_list property, \"${configIni["hw.sensor.posture_list"]}\"," +
-                               " in $configIniFile")
-      }
+      val postureValues =
+        try {
+          configIni["hw.sensor.posture_list"]?.let(::parsePostures) ?: emptyList()
+        } catch (_: Exception) {
+          throw RuntimeException(
+            "Unrecognized value of the hw.sensor.posture_list property, \"${configIni["hw.sensor.posture_list"]}\"," + " in $configIniFile"
+          )
+        }
       var postures = emptyList<PostureDescriptor>()
       for (type in PostureDescriptor.ValueType.entries) {
-        val key = when (type) {
-          PostureDescriptor.ValueType.HINGE_ANGLE -> "hw.sensor.hinge_angles_posture_definitions"
-          else -> "hw.sensor.roll_percentages_posture_definitions"
-        }
+        val key =
+          when (type) {
+            PostureDescriptor.ValueType.HINGE_ANGLE -> "hw.sensor.hinge_angles_posture_definitions"
+            else -> "hw.sensor.roll_percentages_posture_definitions"
+          }
         val ranges = configIni[key]
         if (ranges != null) {
           try {
             val postureRanges = parseRanges(ranges)
             if (postureValues.size == postureRanges.size) {
-              postures = List(postureValues.size) { i ->
-                PostureDescriptor(postureValues[i], type, postureRanges[i].first, postureRanges[i].second)
-              }
+              postures =
+                List(postureValues.size) { i -> PostureDescriptor(postureValues[i], type, postureRanges[i].first, postureRanges[i].second) }
             }
-          }
-          catch (_: Exception) {
+          } catch (_: Exception) {
             throw RuntimeException("Unrecognized value of the $key property, \"$ranges\", in $configIniFile")
           }
           break
@@ -162,9 +165,11 @@ class EmulatorConfiguration private constructor(
       val systemImage = configIni["image.sysdir.1"] ?: throw RuntimeException("System image is not defined")
       val sourcePropertiesFile = androidSdkRoot.resolve(systemImage).resolve("source.properties")
       val versionKeys =
-          setOf("AndroidVersion.ApiLevel", "AndroidVersion.CodeName", "AndroidVersion.ExtensionLevel", "AndroidVersion.IsBaseSdk")
+        setOf("AndroidVersion.ApiLevel", "AndroidVersion.CodeName", "AndroidVersion.ExtensionLevel", "AndroidVersion.IsBaseSdk")
       val sourceProperties = readKeyValueFile(sourcePropertiesFile, versionKeys)
-      val api = sourceProperties["AndroidVersion.ApiLevel"]?.let { AndroidApiLevel.fromString(it) } ?: throw RuntimeException("Missing or invalid API level")
+      val api =
+        sourceProperties["AndroidVersion.ApiLevel"]?.let { AndroidApiLevel.fromString(it) }
+          ?: throw RuntimeException("Missing or invalid API level")
       val codeName = sourceProperties["AndroidVersion.CodeName"]
       val extensionLevel = sourceProperties["AndroidVersion.ExtensionLevel"]?.let { parseInt(it, 0) }
       val isBaseSdk = sourceProperties["AndroidVersion.IsBaseSdk"]?.toBoolean() ?: true
@@ -204,32 +209,47 @@ class EmulatorConfiguration private constructor(
       val touchpadHeight = parseInt(configIni["hw.touchpad0.height"], 0)
       val touchpadSize = if (touchpadWidth > 0 && touchpadHeight > 0) Dimension(touchpadWidth, touchpadHeight) else null
 
-      return EmulatorConfiguration(avdFolder = avdFolder,
-                                   avdName = avdName,
-                                   deviceType = deviceType,
-                                   androidVersion = androidVersion,
-                                   displaySize = Dimension(displayWidth, displayHeight),
-                                   density = density,
-                                   additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
-                                   skinFolder = skinPath,
-                                   hasOrientationSensors = hasOrientationSensors,
-                                   hasAudioOutput = hasAudioOutput,
-                                   hasTransparentDisplay = hasTransparentDisplay,
-                                   hasTouchScreen = hasTouchScreen,
-                                   initialOrientationQuadrants = initialOrientation,
-                                   displayModes = displayModes,
-                                   postures = postures,
-                                   touchpadSize = touchpadSize)
+      return EmulatorConfiguration(
+        avdFolder = avdFolder,
+        avdName = avdName,
+        deviceType = deviceType,
+        androidVersion = androidVersion,
+        displaySize = Dimension(displayWidth, displayHeight),
+        density = density,
+        additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
+        skinFolder = skinPath,
+        hasOrientationSensors = hasOrientationSensors,
+        hasAudioOutput = hasAudioOutput,
+        hasTransparentDisplay = hasTransparentDisplay,
+        hasTouchScreen = hasTouchScreen,
+        initialOrientationQuadrants = initialOrientation,
+        displayModes = displayModes,
+        postures = postures,
+        touchpadSize = touchpadSize,
+      )
     }
 
-    private fun getConfigBoolean(value: String?, defaultValue: Boolean): Boolean =
-        value?.equals("yes", ignoreCase = true) ?: defaultValue
+    private fun getConfigBoolean(value: String?, defaultValue: Boolean): Boolean = value?.equals("yes", ignoreCase = true) ?: defaultValue
 
     fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
-      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null,
-                                   hasOrientationSensors = false, hasAudioOutput = false, hasTransparentDisplay = false,
-                                   hasTouchScreen = false, initialOrientationQuadrants = 0, displayModes = emptyList(),
-                                   postures = emptyList(), touchpadSize = null)
+      return EmulatorConfiguration(
+        avdFolder,
+        avdName,
+        DeviceType.HANDHELD,
+        AndroidVersion(0, 0),
+        Dimension(),
+        0,
+        emptyMap(),
+        null,
+        hasOrientationSensors = false,
+        hasAudioOutput = false,
+        hasTransparentDisplay = false,
+        hasTouchScreen = false,
+        initialOrientationQuadrants = 0,
+        displayModes = emptyList(),
+        postures = emptyList(),
+        touchpadSize = null,
+      )
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
@@ -241,11 +261,11 @@ class EmulatorConfiguration private constructor(
     }
 
     /**
-     * Parses a value of the "hw.resizable.configs" parameter that has the following format:
-     * "phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160".
+     * Parses a value of the "hw.resizable.configs" parameter that has the following format: "phone-0-1080-2340-420,
+     * unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160".
      */
     private fun parseDisplayModes(modes: String, postureMode: Int): List<DisplayMode> =
-        Splitter.on(',').trimResults().splitToList(modes).map { parseDisplayMode(it, postureMode) }
+      Splitter.on(',').trimResults().splitToList(modes).map { parseDisplayMode(it, postureMode) }
 
     private fun parseDisplayMode(mode: String, postureMode: Int): DisplayMode {
       val segments = Splitter.on('-').splitToList(mode)
@@ -259,17 +279,19 @@ class EmulatorConfiguration private constructor(
     }
 
     private fun parsePostures(postures: String): List<PostureValue> =
-        Splitter.on(',').trimResults().splitToList(postures).map(::postureForNumber)
+      Splitter.on(',').trimResults().splitToList(postures).map(::postureForNumber)
 
     private fun postureForNumber(postureIndex: String): PostureValue {
       return when (val posture = PostureValue.forNumber(postureIndex.toInt())) {
-        PostureValue.POSTURE_UNKNOWN, PostureValue.UNRECOGNIZED, PostureValue.POSTURE_MAX -> throw IllegalArgumentException()
+        PostureValue.POSTURE_UNKNOWN,
+        PostureValue.UNRECOGNIZED,
+        PostureValue.POSTURE_MAX -> throw IllegalArgumentException()
         else -> posture
       }
     }
 
     private fun parseRanges(ranges: String): List<Pair<Double, Double>> =
-        Splitter.on(',').trimResults().splitToList(ranges).map(::parseRange)
+      Splitter.on(',').trimResults().splitToList(ranges).map(::parseRange)
 
     private fun parseRange(range: String): Pair<Double, Double> {
       val values = Splitter.on('-').trimResults().split(range).map(String::toDouble)
@@ -282,8 +304,12 @@ class EmulatorConfiguration private constructor(
 
   data class DisplayMode(val displayModeId: DisplayModeValue, val displaySize: Dimension, val hasPostures: Boolean) {
 
-    constructor(displayModeId: DisplayModeValue, width: Int, height: Int, hasPostures: Boolean) :
-        this(displayModeId, Dimension(width, height), hasPostures)
+    constructor(
+      displayModeId: DisplayModeValue,
+      width: Int,
+      height: Int,
+      hasPostures: Boolean,
+    ) : this(displayModeId, Dimension(width, height), hasPostures)
 
     val width
       get() = displaySize.width
@@ -292,22 +318,24 @@ class EmulatorConfiguration private constructor(
       get() = displaySize.height
   }
 
-  /**
-   * [minValue] and [maxValue] are hinge angles for foldables and roll percentages for rollables.
-   */
+  /** [minValue] and [maxValue] are hinge angles for foldables and roll percentages for rollables. */
   data class PostureDescriptor(val posture: PostureValue, val valueType: ValueType, val minValue: Double, val maxValue: Double) {
 
-    val displayName: String = when (posture) {
-      PostureValue.POSTURE_CLOSED -> "Closed"
-      PostureValue.POSTURE_HALF_OPENED -> "Half-Open"
-      PostureValue.POSTURE_OPENED -> "Open"
-      PostureValue.POSTURE_FLIPPED -> "Flipped"
-      PostureValue.POSTURE_TENT -> "Tent"
-      else -> "Unknown"
-    }
+    val displayName: String =
+      when (posture) {
+        PostureValue.POSTURE_CLOSED -> "Closed"
+        PostureValue.POSTURE_HALF_OPENED -> "Half-Open"
+        PostureValue.POSTURE_OPENED -> "Open"
+        PostureValue.POSTURE_FLIPPED -> "Flipped"
+        PostureValue.POSTURE_TENT -> "Tent"
+        else -> "Unknown"
+      }
 
     val icon: Icon? = FOLDING_STATE_ICONS[displayName]
 
-    enum class ValueType { HINGE_ANGLE, ROLL_PERCENTAGE }
+    enum class ValueType {
+      HINGE_ANGLE,
+      ROLL_PERCENTAGE,
+    }
   }
 }

@@ -155,6 +155,7 @@ internal class DeviceView(
    */
   override var displayOrientationQuadrants: Int = 0
     private set
+
   override val apiLevel: Int
     get() = deviceClient.deviceConfig.apiLevel
 
@@ -182,6 +183,7 @@ internal class DeviceView(
 
   internal val deviceController: DeviceController?
     get() = deviceClient.deviceController
+
   private val deviceConfig
     get() = deviceClient.deviceConfig
 
@@ -218,19 +220,21 @@ internal class DeviceView(
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
 
-  override val hardwareInput = object : HardwareInput() {
-    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
-      if (!isConnected) return
-      val action = when (id) {
-        KEY_PRESSED -> ACTION_DOWN
-        KEY_RELEASED -> ACTION_UP
-        else -> return
+  override val hardwareInput =
+    object : HardwareInput() {
+      override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
+        if (!isConnected) return
+        val action =
+          when (id) {
+            KEY_PRESSED -> ACTION_DOWN
+            KEY_RELEASED -> ACTION_UP
+            else -> return
+          }
+        val metaState = modifiersToMetaState(modifiersEx)
+        val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
+        deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
       }
-      val metaState = modifiersToMetaState(modifiersEx)
-      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
-      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
     }
-  }
 
   override var xrInputController: DeviceXrInputController? = null
     get() {
@@ -242,13 +246,15 @@ internal class DeviceView(
 
   init {
     Disposer.register(disposableParent, this)
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentShown(event: ComponentEvent) {
-        if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
-          connectToAgentAsync(initialDisplayOrientation)
+    addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentShown(event: ComponentEvent) {
+          if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
+            connectToAgentAsync(initialDisplayOrientation)
+          }
         }
       }
-    })
+    )
 
     // Forward mouse & keyboard events.
     val mouseListener = MyMouseListener()
@@ -285,18 +291,18 @@ internal class DeviceView(
     connectionState = ConnectionState.CONNECTING
     maxVideoSize = physicalSize
     deviceClient.addAgentTerminationListener(disconnectionListener)
-    createCoroutineScope().launch {
-      connectToAgent(maxVideoSize, initialDisplayOrientation, disconnectionListener)
-    }
+    createCoroutineScope().launch { connectToAgent(maxVideoSize, initialDisplayOrientation, disconnectionListener) }
   }
 
-  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int,
-                                     disconnectionListener: AgentTerminationListener) {
+  private suspend fun connectToAgent(
+    maxOutputSize: Dimension,
+    initialDisplayOrientation: Int,
+    disconnectionListener: AgentTerminationListener,
+  ) {
     try {
       if (displayId == PRIMARY_DISPLAY_ID) {
         deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true, project)
-      }
-      else {
+      } else {
         deviceClient.waitUntilConnected()
         val videoDecoder = deviceClient.videoDecoder
         if (videoDecoder == null) {
@@ -315,12 +321,10 @@ internal class DeviceView(
           updateVideoSize() // Update video size in case the view was resized during agent initialization.
         }
       }
-    }
-    catch (e: CancellationException) {
+    } catch (e: CancellationException) {
       // The view has been closed.
       throw e
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       disconnected(initialDisplayOrientation, e, disconnectionListener)
     }
   }
@@ -383,8 +387,9 @@ internal class DeviceView(
 
   private fun logConnectionError(exception: Throwable?) {
     when ((exception as? AgentTerminatedException)?.exitCode) {
-      AGENT_WEAK_VIDEO_ENCODER, AGENT_REPEATED_VIDEO_ENCODER_ERRORS, AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
-          thisLogger().warn("Failed to initialize the screen sharing agent")
+      AGENT_WEAK_VIDEO_ENCODER,
+      AGENT_REPEATED_VIDEO_ENCODER_ERRORS,
+      AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING -> thisLogger().warn("Failed to initialize the screen sharing agent")
 
       else -> thisLogger().warn("Failed to initialize the screen sharing agent", exception)
     }
@@ -393,16 +398,16 @@ internal class DeviceView(
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-          "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+        "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-          "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+        "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
 
       AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
-          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
+        "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else ->
-          (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
+        (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
     }
   }
 
@@ -412,13 +417,13 @@ internal class DeviceView(
     }
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-          "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
+        "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
           " See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
 
       AGENT_XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
-          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
+        "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
     }
@@ -431,8 +436,7 @@ internal class DeviceView(
     disposed = true
   }
 
-  override fun canZoom(): Boolean =
-      connectionState == ConnectionState.CONNECTED
+  override fun canZoom(): Boolean = connectionState == ConnectionState.CONNECTED
 
   override fun onScreenScaleChanged() {
     if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
@@ -440,11 +444,9 @@ internal class DeviceView(
     }
   }
 
-  override fun computeActualSize(): Dimension =
-      computeActualSize(displayOrientationQuadrants)
+  override fun computeActualSize(): Dimension = computeActualSize(displayOrientationQuadrants)
 
-  private fun computeActualSize(rotationQuadrants: Int): Dimension =
-      deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
+  private fun computeActualSize(rotationQuadrants: Int): Dimension = deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -461,15 +463,17 @@ internal class DeviceView(
         hideLongRunningOperationIndicatorInstantly()
       }
       repaintAlarm.cancelAllRequests()
-      if (displayOrientationQuadrants != displayFrame.orientation ||
+      if (
+        displayOrientationQuadrants != displayFrame.orientation ||
           deviceDisplaySize.width != 0 && deviceDisplaySize.width != displayFrame.displaySize.width ||
-          deviceDisplaySize.height != 0 && deviceDisplaySize.height != displayFrame.displaySize.height) {
+          deviceDisplaySize.height != 0 && deviceDisplaySize.height != displayFrame.displaySize.height
+      ) {
         zoom(ZoomType.FIT) // Orientation or dimensions of the display have changed - reset zoom level.
       }
       val rotatedDisplaySize = displayFrame.displaySize.rotatedByQuadrants(displayFrame.orientation)
       val maxSize = computeMaxImageSize()
-      val scaleFactor = roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width,
-                                              maxSize.height.toDouble() / rotatedDisplaySize.height))
+      val scaleFactor =
+        roundScale(min(maxSize.width.toDouble() / rotatedDisplaySize.width, maxSize.height.toDouble() / rotatedDisplaySize.height))
       val w = rotatedDisplaySize.width.scaled(scaleFactor).coerceAtMost(physicalWidth)
       val h = rotatedDisplaySize.height.scaled(scaleFactor).coerceAtMost(physicalHeight)
       val displayRect = Rectangle((physicalWidth - w) / 2, (physicalHeight - h) / 2, w, h)
@@ -479,21 +483,18 @@ internal class DeviceView(
       val g = createAdjustedGraphicsContext(graphics)
       if (displayRect.width == image.width && displayRect.height == image.height) {
         g.drawImage(image, null, displayRect.x, displayRect.y)
-      }
-      else {
+      } else {
         val xScale = displayRect.width.toDouble() / image.width
         val yScale = displayRect.height.toDouble() / image.height
         if (highQualityRenderingRequested && (xScale < 0.5 || yScale < 0.5)) {
           g.drawImage(scale(image, xScale, yScale), null, displayRect.x, displayRect.y)
-        }
-        else {
+        } else {
           displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
           displayTransform.scale(xScale, yScale)
           g.drawImage(image, displayTransform, null)
           if (isUnitTestMode) {
             requestHighQualityRepaint()
-          }
-          else {
+          } else {
             repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
           }
         }
@@ -529,8 +530,7 @@ internal class DeviceView(
     }
     if (settings.synchronizeClipboard) {
       startClipboardSynchronization()
-    }
-    else {
+    } else {
       stopClipboardSynchronization()
     }
   }
@@ -560,44 +560,55 @@ internal class DeviceView(
     if (displayCoordinates in deviceDisplaySize) {
       // Within the bounds of the device display.
       sendMotionEventDisplayCoordinates(displayCoordinates, action, modifiers, button, axisValues)
-    }
-    else if (action == MotionEventMessage.ACTION_MOVE) {
+    } else if (action == MotionEventMessage.ACTION_MOVE) {
       // Crossed the device display boundary while dragging.
       lastTouchCoordinates = null
       val adjusted = displayCoordinates.constrainInside(deviceDisplaySize)
       sendMotionEventDisplayCoordinates(adjusted, action, modifiers, button)
       sendMotionEventDisplayCoordinates(adjusted, MotionEventMessage.ACTION_UP, modifiers, button)
-    }
-    else if (action == MotionEventMessage.ACTION_HOVER_EXIT) {
+    } else if (action == MotionEventMessage.ACTION_HOVER_EXIT) {
       sendMotionEventDisplayCoordinates(displayCoordinates.constrainInside(deviceDisplaySize), action, modifiers, button, axisValues)
     }
   }
 
   private fun sendMotionEventDisplayCoordinates(
-      point: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
+    point: Point,
+    action: Int,
+    modifiers: Int,
+    button: Int,
+    axisValues: Int2FloatOpenHashMap? = null,
+  ) {
     if (!isConnected) {
       return
     }
     val isMouse = deviceConfig.deviceType == DeviceType.XR_HEADSET || isHardwareInputEnabled()
     val buttonState =
-        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isMouse) MotionEventMessage.BUTTON_PRIMARY else 0) or
+      (if (modifiers and BUTTON1_DOWN_MASK != 0 && isMouse) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
         (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
-    val androidActionButton = when (button) {
-      MouseEvent.BUTTON1 -> if (isMouse) MotionEventMessage.BUTTON_PRIMARY else 0
-      MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
-      MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
-      else -> 0
-    }
-    val message = when {
-      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId, isMouse)
-      action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-          MotionEventMessage(originalAndMirroredPointer(point), action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0,
-                              displayId, isMouse)
-      action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP || action == MotionEventMessage.ACTION_MOVE ->
+    val androidActionButton =
+      when (button) {
+        MouseEvent.BUTTON1 -> if (isMouse) MotionEventMessage.BUTTON_PRIMARY else 0
+        MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
+        MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
+        else -> 0
+      }
+    val message =
+      when {
+        multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId, isMouse)
+        action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
+          MotionEventMessage(
+            originalAndMirroredPointer(point),
+            action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT),
+            0,
+            0,
+            displayId,
+            isMouse,
+          )
+        action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP || action == MotionEventMessage.ACTION_MOVE ->
           MotionEventMessage(originalPointer(point, axisValues), action, buttonState, androidActionButton, displayId, isMouse)
-      else -> MotionEventMessage(originalPointer(point, axisValues), action, 0, 0, displayId, isMouse)
-    }
+        else -> MotionEventMessage(originalPointer(point, axisValues), action, 0, 0, displayId, isMouse)
+      }
     deviceController?.sendControlMessage(message)
   }
 
@@ -606,16 +617,17 @@ internal class DeviceView(
   }
 
   private fun originalAndMirroredPointer(p: Point): List<MotionEventMessage.Pointer> {
-    return listOf(MotionEventMessage.Pointer(p.x, p.y, 0),
-                  MotionEventMessage.Pointer(deviceDisplaySize.width - p.x, deviceDisplaySize.height - p.y, 1))
+    return listOf(
+      MotionEventMessage.Pointer(p.x, p.y, 0),
+      MotionEventMessage.Pointer(deviceDisplaySize.width - p.x, deviceDisplaySize.height - p.y, 1),
+    )
   }
 
-  private fun isInsideDisplay(event: MouseEvent) =
-    displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+  private fun isInsideDisplay(event: MouseEvent) = displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
   /**
-   * Adds a [listener] to receive callbacks when the state of the agent's connection changes.
-   * The added listener immediately receives a call with the current connection state.
+   * Adds a [listener] to receive callbacks when the state of the agent's connection changes. The added listener immediately receives a call
+   * with the current connection state.
    */
   @UiThread
   fun addConnectionStateListener(listener: ConnectionStateListener) {
@@ -634,20 +646,24 @@ internal class DeviceView(
     if (event is MouseEvent) {
       wasInsideDisplay = isInsideDisplay(event)
     }
-    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
-                     !isHardwareInputEnabled() && xrInputController == null
+    multiTouchMode =
+      wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isHardwareInputEnabled() && xrInputController == null
     if (multiTouchMode && oldMultiTouchMode) {
       repaint() // If multi-touch mode changed above, the repaint method was already called.
     }
   }
 
-  enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
+  enum class ConnectionState {
+    INITIAL,
+    CONNECTING,
+    CONNECTED,
+    DISCONNECTED,
+  }
 
   /** Listener of connection state changes. */
   interface ConnectionStateListener {
     /** Called when the state of the device agent's connection changes. */
-    @UiThread
-    fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
+    @UiThread fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
   }
 
   private inner class MyFrameListener : VideoDecoder.FrameListener {
@@ -664,22 +680,20 @@ internal class DeviceView(
       }
     }
 
-    override fun onEndOfVideoStream() {
-    }
+    override fun onEndOfVideoStream() {}
 
     override fun onInvalidFrame(e: InvalidFrameException) {
       thisLogger().warn(e)
       if (++consecutiveInvalidFrames <= MAX_INVALID_FRAME_RETRIES) {
         deviceClient.stopVideoStream(project, displayId)
         deviceClient.startVideoStream(project, displayId, maxVideoSize)
-      }
-      else {
+      } else {
         agentTerminationListener.get()?.let { disconnected(initialDisplayOrientation, e, it) }
       }
     }
   }
 
-  private inner class MyKeyListener  : KeyAdapter() {
+  private inner class MyKeyListener : KeyAdapter() {
 
     var cachedKeyStrokeMap: Map<KeyStroke, AndroidKeyStroke>? = null
     private val keyStrokeMap: Map<KeyStroke, AndroidKeyStroke>
@@ -693,11 +707,13 @@ internal class DeviceView(
       }
 
     init {
-      addFocusListener(object : FocusAdapter() {
-        override fun focusGained(event: FocusEvent) {
-          cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
+      addFocusListener(
+        object : FocusAdapter() {
+          override fun focusGained(event: FocusEvent) {
+            cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
+          }
         }
-      })
+      )
     }
 
     override fun keyTyped(event: KeyEvent) {
@@ -752,13 +768,14 @@ internal class DeviceView(
     }
 
     private fun hostKeyStrokeToAndroidKeyStroke(hostKeyCode: Int, modifiers: Int): AndroidKeyStroke? {
-      val canonicalKeyCode = when (hostKeyCode) {
-        VK_KP_LEFT -> VK_LEFT
-        VK_KP_RIGHT -> VK_RIGHT
-        VK_KP_UP -> VK_UP
-        VK_KP_DOWN -> VK_DOWN
-        else -> hostKeyCode
-      }
+      val canonicalKeyCode =
+        when (hostKeyCode) {
+          VK_KP_LEFT -> VK_LEFT
+          VK_KP_RIGHT -> VK_RIGHT
+          VK_KP_UP -> VK_UP
+          VK_KP_DOWN -> VK_DOWN
+          else -> hostKeyCode
+        }
 
       return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
     }
@@ -899,8 +916,7 @@ internal class DeviceView(
           }
           sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
         }
-      }
-      else {
+      } else {
         terminateHovering(event)
       }
     }
@@ -916,9 +932,9 @@ internal class DeviceView(
       // AWT fakes shift being held down for horizontal scrolling.
       val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
       // Android vertical scroll direction is reversed.
-      val direction = ((event.preciseWheelRotation > 0) xor
-                       (axis == MotionEventMessage.AXIS_VSCROLL) xor
-                       (displayOrientationCorrectionQuadrants == 2)).toSign()
+      val direction =
+        ((event.preciseWheelRotation > 0) xor (axis == MotionEventMessage.AXIS_VSCROLL) xor (displayOrientationCorrectionQuadrants == 2))
+          .toSign()
       // Behavior is undefined if we send a value outside [-1.0,1.0], so if we wind up with more than that, send it
       // as multiple sequential MotionEvents.
       // See https://developer.android.com/reference/android/view/MotionEvent#AXIS_HSCROLL and
@@ -966,13 +982,13 @@ internal class DeviceView(
 
     private fun modifiersToMetaState(modifiers: Int): Int {
       return modifierToMetaState(modifiers, SHIFT_DOWN_MASK, AMETA_SHIFT_ON) or
-          modifierToMetaState(modifiers, CTRL_DOWN_MASK, AMETA_CTRL_ON) or
-          modifierToMetaState(modifiers, META_DOWN_MASK, AMETA_META_ON) or
-          modifierToMetaState(modifiers, ALT_DOWN_MASK, AMETA_ALT_ON)
+        modifierToMetaState(modifiers, CTRL_DOWN_MASK, AMETA_CTRL_ON) or
+        modifierToMetaState(modifiers, META_DOWN_MASK, AMETA_META_ON) or
+        modifierToMetaState(modifiers, ALT_DOWN_MASK, AMETA_ALT_ON)
     }
 
     private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
-        if ((modifiers and modifierMask) != 0) metaState else 0
+      if ((modifiers and modifierMask) != 0) metaState else 0
   }
 }
 

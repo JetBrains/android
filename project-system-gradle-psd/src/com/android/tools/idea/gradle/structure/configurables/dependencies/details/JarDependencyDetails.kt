@@ -22,10 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 import javax.swing.JPanel
 
-class JarDependencyDetails(
-  private val myContext: PsContext,
-  showScope: Boolean
-) : JarDependencyDetailsForm() {
+class JarDependencyDetails(private val myContext: PsContext, showScope: Boolean) : JarDependencyDetailsForm() {
 
   init {
     myConfigurationLabel.isVisible = showScope

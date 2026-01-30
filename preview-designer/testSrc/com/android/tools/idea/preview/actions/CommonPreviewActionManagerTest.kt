@@ -58,21 +58,14 @@ class CommonPreviewActionManagerTest {
   private val navigationHandler = mock<NavigationHandler>()
 
   private val actionManager =
-    CommonPreviewActionManager(
-      mock(),
-      navigationHandler,
-      supportAnimationPreview = true,
-      supportInteractivePreview = true,
-    )
+    CommonPreviewActionManager(mock(), navigationHandler, supportAnimationPreview = true, supportInteractivePreview = true)
 
   @Test
   fun testToolbarActionsDisabledWhenPreviewHasErrors() {
     // Simulate different preview statuses
     val errorStatus = Status(hasRenderErrors = true, hasSyntaxErrors = true, isRefreshing = false)
-    val refreshingStatus =
-      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = true)
-    val noErrorStatus =
-      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
+    val refreshingStatus = Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = true)
+    val noErrorStatus = Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
 
     val statusesToEnable =
       mapOf(
@@ -85,18 +78,11 @@ class CommonPreviewActionManagerTest {
       val (isEnabled, description) = expectedResult
 
       val dataContext =
-        SimpleDataContext.builder()
-          .add(CommonDataKeys.PROJECT, projectRule.project)
-          .add(PREVIEW_VIEW_MODEL_STATUS, status)
-          .build()
+        SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).add(PREVIEW_VIEW_MODEL_STATUS, status).build()
       val testEvent = createTestEvent(dataContext)
 
       val actions =
-        (actionManager
-            .getSceneViewContextToolbarOverflowActions()
-            .filterIsInstance<ActionGroup>()
-            .single())
-          .getChildren(testEvent)
+        (actionManager.getSceneViewContextToolbarOverflowActions().filterIsInstance<ActionGroup>().single()).getChildren(testEvent)
 
       assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
@@ -123,20 +109,14 @@ class CommonPreviewActionManagerTest {
     whenever(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     whenever(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
 
-    val noErrorStatus =
-      Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
+    val noErrorStatus = Status(hasRenderErrors = false, hasSyntaxErrors = false, isRefreshing = false)
     val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(PREVIEW_VIEW_MODEL_STATUS, noErrorStatus)
-        .build()
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).add(PREVIEW_VIEW_MODEL_STATUS, noErrorStatus).build()
     val testEvent = createTestEvent(dataContext)
     val actions =
-      (actionManager
-          .getSceneViewContextToolbarOverflowActions()
-          .filterIsInstance<ActionGroup>()
-          .single())
-        .getChildren(createTestEvent(dataContext))
+      (actionManager.getSceneViewContextToolbarOverflowActions().filterIsInstance<ActionGroup>().single()).getChildren(
+        createTestEvent(dataContext)
+      )
     assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
     // project needs build
@@ -191,9 +171,7 @@ class CommonPreviewActionManagerTest {
 
     val invoked = CompletableDeferred<Boolean>()
     val scope = projectRule.testRootDisposable.createCoroutineScope()
-    whenever(navigationHandler.handleNavigate(eq(sceneView), anyBoolean())).then {
-      invoked.complete(true)
-    }
+    whenever(navigationHandler.handleNavigate(eq(sceneView), anyBoolean())).then { invoked.complete(true) }
 
     val label = actionManager.createSceneViewLabel(sceneView, scope, MutableStateFlow(false))
     assertTrue(label is InteractiveLabelPanel)
@@ -232,12 +210,7 @@ class CommonPreviewActionManagerTest {
   @Test
   fun contextToolbarActionsIsEmptyWhenNoActionIsSupported() {
     val actionManager =
-      CommonPreviewActionManager(
-        mock(),
-        navigationHandler,
-        supportAnimationPreview = false,
-        supportInteractivePreview = false,
-      )
+      CommonPreviewActionManager(mock(), navigationHandler, supportAnimationPreview = false, supportInteractivePreview = false)
     assertEquals(emptyList(), actionManager.sceneViewContextToolbarOverflowActions)
   }
 }

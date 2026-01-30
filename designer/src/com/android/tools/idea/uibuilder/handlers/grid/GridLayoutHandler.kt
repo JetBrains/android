@@ -37,12 +37,8 @@ open class GridLayoutHandler : ViewGroupHandler() {
 
   protected open val namespace = SdkConstants.ANDROID_URI
 
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType,
-  ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
+  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler =
+    CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW)
@@ -51,15 +47,11 @@ open class GridLayoutHandler : ViewGroupHandler() {
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_COLUMN_SPAN)
   }
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
-    SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) = SceneInteraction(screenView)
 
   override fun handlesPainting() = true
 
-  override fun createChildTargets(
-    parentComponent: SceneComponent,
-    childComponent: SceneComponent,
-  ): List<Target> {
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
     createResizeTarget(listBuilder)
     return listBuilder.build()
@@ -71,10 +63,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
     ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }
   }
 
-  override fun getPlaceholders(
-    component: SceneComponent,
-    draggedComponents: List<SceneComponent>,
-  ): List<Placeholder> {
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>): List<Placeholder> {
     val listBuilder = ImmutableList.builder<Placeholder>()
     val barrier = getGridBarriers(component)
     for (row in barrier.rowIndices) {
@@ -83,14 +72,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
         if (bounds.width <= 0 || bounds.height <= 0) {
           continue
         }
-        val r =
-          Region(
-            bounds.x,
-            bounds.y,
-            bounds.x + bounds.width,
-            bounds.y + bounds.height,
-            component.depth,
-          )
+        val r = Region(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height, component.depth)
         listBuilder.add(GridPlaceholder(r, row, column, namespace, component))
       }
     }

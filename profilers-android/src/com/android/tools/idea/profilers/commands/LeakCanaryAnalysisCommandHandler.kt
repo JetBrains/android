@@ -25,12 +25,12 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.BlockingDeque
 
 /**
- * Handles the SEND_LEAKCANARY_ANALYSIS command from Studio, converting the payload into a
- * LEAKCANARY_ANALYSIS event and adding it to the event queue for persistence.
+ * Handles the SEND_LEAKCANARY_ANALYSIS command from Studio, converting the payload into a LEAKCANARY_ANALYSIS event and adding it to the
+ * event queue for persistence.
  */
 class LeakCanaryAnalysisCommandHandler(
   private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub,
-  private val eventQueue: BlockingDeque<Common.Event>
+  private val eventQueue: BlockingDeque<Common.Event>,
 ) : TransportProxy.ProxyCommandHandler {
   private val logger = Logger.getInstance(LeakCanaryAnalysisCommandHandler::class.java)
 
@@ -40,13 +40,14 @@ class LeakCanaryAnalysisCommandHandler(
     logger.info("Received SEND_LEAKCANARY_ANALYSIS command.")
     val leakCanaryEvent = LeakCanaryAnalysisData.newBuilder().setData(command.sendLeakcanaryAnalysis.data).build()
 
-    val event = Common.Event.newBuilder()
-      .setGroupId(command.pid.toLong())
-      .setPid(command.pid)
-      .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
-      .setTimestamp(transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs)
-      .setLeakcanaryAnalysis(leakCanaryEvent)
-      .build()
+    val event =
+      Common.Event.newBuilder()
+        .setGroupId(command.pid.toLong())
+        .setPid(command.pid)
+        .setKind(Common.Event.Kind.LEAKCANARY_ANALYSIS)
+        .setTimestamp(transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs)
+        .setLeakcanaryAnalysis(leakCanaryEvent)
+        .build()
     eventQueue.offer(event)
     logger.info("Sent LEAKCANARY_ANALYSIS event to queue.")
     return Transport.ExecuteResponse.getDefaultInstance()

@@ -24,22 +24,15 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import org.jetbrains.android.AndroidTestCase
 
 abstract class ConflictsTestCase : AndroidTestCase() {
-  protected fun appModuleBuilder(
-    appPath: String = ":app",
-    selectedVariant: String = "debug",
-    dependOnVariant: String? = "debug"
-  ) = AndroidModuleModelBuilder(
-    appPath,
-    selectedVariant,
-    AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", dependOnVariant)) })
-  )
+  protected fun appModuleBuilder(appPath: String = ":app", selectedVariant: String = "debug", dependOnVariant: String? = "debug") =
+    AndroidModuleModelBuilder(
+      appPath,
+      selectedVariant,
+      AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", dependOnVariant)) }),
+    )
 
   protected fun libModuleBuilder(selectedVariant: String = "debug") =
-    AndroidModuleModelBuilder(
-      ":lib",
-      selectedVariant,
-      AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY })
-    )
+    AndroidModuleModelBuilder(":lib", selectedVariant, AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }))
 
   override fun setUp() {
     super.setUp()

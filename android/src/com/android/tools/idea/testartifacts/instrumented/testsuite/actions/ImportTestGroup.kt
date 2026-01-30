@@ -26,24 +26,17 @@ import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.concurrent.ExecutorService
 
-/**
- * Customized import test group action which supports additional test format
- * such as UTP test results.
- */
-class ImportTestGroup(
-  private val backgroundExecutor: ExecutorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
-) : com.intellij.execution.testframework.sm.runner.history.actions.ImportTestsGroup() {
+/** Customized import test group action which supports additional test format such as UTP test results. */
+class ImportTestGroup(private val backgroundExecutor: ExecutorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()) :
+  com.intellij.execution.testframework.sm.runner.history.actions.ImportTestsGroup() {
 
-  private data class IntelliJStandardTestHistoryTimestamp(
-    val lastModifiedTime: Long,
-    val testStartTime: Long,
-  )
+  private data class IntelliJStandardTestHistoryTimestamp(val lastModifiedTime: Long, val testStartTime: Long)
 
   private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = ConcurrentCollectionFactory.createConcurrentMap()
 
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
     val project = e?.project ?: return EMPTY_ARRAY
-    val actions: MutableMap<Long, AnAction> = sortedMapOf( compareByDescending { it } )
+    val actions: MutableMap<Long, AnAction> = sortedMapOf(compareByDescending { it })
     getUtpTestHistoryActions(project).associateTo(actions) { it }
     getIntelliJStandardTestHistoryActions(project).associateTo(actions) { it }
     return actions.values.toTypedArray()
@@ -51,7 +44,9 @@ class ImportTestGroup(
 
   private fun getIntelliJStandardTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {
     val testHistoryRoot = TestStateStorage.getTestHistoryRoot(project)
-    return TestHistoryConfiguration.getInstance(project).files.asSequence()
+    return TestHistoryConfiguration.getInstance(project)
+      .files
+      .asSequence()
       .map { fileName: String? -> File(testHistoryRoot, fileName) }
       .filter { file: File -> file.exists() }
       .map {
@@ -80,8 +75,6 @@ class ImportTestGroup(
   }
 
   private fun updateTimestampMapForFileAsync(file: File) {
-    backgroundExecutor.submit {
-      timestampMap[file] = IntelliJStandardTestHistoryTimestamp(file.lastModified(), getTestStartTime(file))
-    }
+    backgroundExecutor.submit { timestampMap[file] = IntelliJStandardTestHistoryTimestamp(file.lastModified(), getTestStartTime(file)) }
   }
 }

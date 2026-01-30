@@ -32,8 +32,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
 
   override fun getConfigurables(project: Project, parentDisposable: Disposable): List<ProjectStructureItemGroup> {
     if (project.isDefault) {
-      (ExternalSystemApiUtil.getManager(
-        GradleProjectSystemUtil.GRADLE_SYSTEM_ID) as? GradleManager)?.let { gradleManager ->
+      (ExternalSystemApiUtil.getManager(GradleProjectSystemUtil.GRADLE_SYSTEM_ID) as? GradleManager)?.let { gradleManager ->
         val gradleConfigurable = gradleManager.getConfigurable(project)
         return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable(), gradleConfigurable))
       }
@@ -43,16 +42,19 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
     return listOf(
-      ProjectStructureItemGroup("main",
-                                ProjectPerspectiveConfigurable(context),
-                                IdeSdksConfigurable(),
-                                VariablesConfigurable(project, context)),
-      ProjectStructureItemGroup("modules",
-                                ModulesPerspectiveConfigurable(context),
-                                DependenciesPerspectiveConfigurable(context),
-                                BuildVariantsPerspectiveConfigurable(context)
+      ProjectStructureItemGroup(
+        "main",
+        ProjectPerspectiveConfigurable(context),
+        IdeSdksConfigurable(),
+        VariablesConfigurable(project, context),
       ),
-      ProjectStructureItemGroup("additional", SuggestionsPerspectiveConfigurable(context))
+      ProjectStructureItemGroup(
+        "modules",
+        ModulesPerspectiveConfigurable(context),
+        DependenciesPerspectiveConfigurable(context),
+        BuildVariantsPerspectiveConfigurable(context),
+      ),
+      ProjectStructureItemGroup("additional", SuggestionsPerspectiveConfigurable(context)),
     )
   }
 }

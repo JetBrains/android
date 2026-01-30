@@ -28,6 +28,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import java.io.File
+import java.io.IOException
 import org.jetbrains.annotations.Contract
 import org.junit.Assert
 import org.junit.Assert.assertTrue
@@ -38,35 +40,35 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
-import java.io.IOException
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized::class)
 open class GradleFileModelTestCase {
-  @get:Rule
-  val nameRule = TestName()
+  @get:Rule val nameRule = TestName()
   protected open val projectRule = onDisk()
 
-  @get:Rule
-  val ruleChain by lazy { RuleChain.outerRule(projectRule).around(EdtRule()) }
+  @get:Rule val ruleChain by lazy { RuleChain.outerRule(projectRule).around(EdtRule()) }
 
-  @Parameterized.Parameter(0)
-  @JvmField
-  var testDataExtension: String? = null
+  @Parameterized.Parameter(0) @JvmField var testDataExtension: String? = null
 
-  @Parameterized.Parameter(1)
-  @JvmField
-  var languageName: String? = null
+  @Parameterized.Parameter(1) @JvmField var languageName: String? = null
   protected lateinit var buildFile: VirtualFile
   protected lateinit var settingsFile: VirtualFile
   protected lateinit var catalogFile: VirtualFile
   protected lateinit var gradleWrapperPropertiesFile: VirtualFile
   protected lateinit var testDataPath: String
-  protected val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
-  protected val isKotlinScript: Boolean get() = languageName == KOTLIN_LANGUAGE
-  protected val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
-  protected val settingsFileName: String get() = if (isGroovy) SdkConstants.FN_SETTINGS_GRADLE else SdkConstants.FN_SETTINGS_GRADLE_KTS
+  protected val isGroovy: Boolean
+    get() = languageName == GROOVY_LANGUAGE
+
+  protected val isKotlinScript: Boolean
+    get() = languageName == KOTLIN_LANGUAGE
+
+  protected val buildFileName: String
+    get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
+
+  protected val settingsFileName: String
+    get() = if (isGroovy) SdkConstants.FN_SETTINGS_GRADLE else SdkConstants.FN_SETTINGS_GRADLE_KTS
+
   protected val gradleBuildModel: GradleBuildModel
     get() {
       val projectBuildModel = ProjectBuildModel.get(projectRule.project)
@@ -74,11 +76,14 @@ open class GradleFileModelTestCase {
       Assert.assertNotNull(buildModel)
       return buildModel!!
     }
-  protected val project: Project get() = projectRule.project
+
+  protected val project: Project
+    get() = projectRule.project
 
   data class TestFileName(val path: String) {
     fun toFile(testDataPath: String, testDataExtension: String): File {
-      val path = FileUtilRt.toSystemDependentName(testDataPath) + File.separator + FileUtilRt.toSystemDependentName(path) + testDataExtension
+      val path =
+        FileUtilRt.toSystemDependentName(testDataPath) + File.separator + FileUtilRt.toSystemDependentName(path) + testDataExtension
       return File(path)
     }
   }
@@ -107,10 +112,9 @@ open class GradleFileModelTestCase {
   protected fun writeToSettingsFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
 
   protected fun writeToCatalogFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
+
   protected fun createCatalogFile(path: String) {
-    runWriteAction {
-      catalogFile = projectRule.fixture.tempDirFixture.createFile(path)
-    }
+    runWriteAction { catalogFile = projectRule.fixture.tempDirFixture.createFile(path) }
   }
 
   protected fun writeToGradleWrapperPropertiesFile(fileName: TestFileName) {
@@ -147,10 +151,7 @@ open class GradleFileModelTestCase {
     @Parameterized.Parameters(name = "{1}")
     @JvmStatic
     fun languageExtensions(): Collection<*> {
-      return listOf(
-        arrayOf<Any>(".gradle", GROOVY_LANGUAGE),
-        arrayOf<Any>(".gradle.kts", KOTLIN_LANGUAGE)
-      )
+      return listOf(arrayOf<Any>(".gradle", GROOVY_LANGUAGE), arrayOf<Any>(".gradle.kts", KOTLIN_LANGUAGE))
     }
   }
 }

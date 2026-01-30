@@ -60,14 +60,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import java.io.File
+import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
-import java.io.File
-import java.util.EnumSet
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
@@ -115,8 +115,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canAnnotate(file: PsiFile, module: Module): Boolean {
     // Limit checks to Android modules and modules within Android projects.
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
-      return false
+    if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project)) return false
 
     if (file.name.endsWith(EXT_GRADLE_DECLARATIVE)) return true
 
@@ -127,9 +126,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       TomlFileType -> true
       XmlFileType.INSTANCE ->
         facet != null &&
-          (ModuleResourceManagers.getInstance(facet)
-            .localResourceManager
-            .getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
+          (ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file) != null ||
+            ANDROID_MANIFEST_XML == file.name)
       FileTypes.PLAIN_TEXT -> super.canAnnotate(file, module)
       else -> file.isGradleFile()
     }
@@ -145,46 +143,30 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     client: LintIdeClient,
     files: List<VirtualFile>?,
     vararg modules: Module,
-  ): List<com.android.tools.lint.detector.api.Project> =
-    AndroidLintIdeProject.create(client, files, *modules)
+  ): List<com.android.tools.lint.detector.api.Project> = AndroidLintIdeProject.create(client, files, *modules)
 
   override fun createProjectForSingleFile(
     client: LintIdeClient,
     file: VirtualFile?,
     module: Module,
-  ): Pair<
-    com.android.tools.lint.detector.api.Project,
-    com.android.tools.lint.detector.api.Project,
-  > {
+  ): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
     return AndroidLintIdeProject.createForSingleFile(client, file, module)
   }
 
-  override fun createClient(project: Project, lintResult: LintResult): LintIdeClient =
-    AndroidLintIdeClient(project, lintResult)
+  override fun createClient(project: Project, lintResult: LintResult): LintIdeClient = AndroidLintIdeClient(project, lintResult)
 
-  override fun createBatchClient(lintResult: LintBatchResult): LintIdeClient =
-    AndroidLintIdeClient(lintResult.project, lintResult)
+  override fun createBatchClient(lintResult: LintBatchResult): LintIdeClient = AndroidLintIdeClient(lintResult.project, lintResult)
 
   override fun createEditorClient(lintResult: LintEditorResult): LintIdeClient =
     AndroidLintIdeClient(lintResult.getModule().project, lintResult)
 
-  override fun createIsolatedClient(
-    project: Project,
-    lintResult: LintResult,
-    issueRegistry: IssueRegistry,
-  ): LintIdeClient {
+  override fun createIsolatedClient(project: Project, lintResult: LintResult, issueRegistry: IssueRegistry): LintIdeClient {
     return object : AndroidLintIdeClient(project, lintResult) {
-      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
-        emptyList()
+      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> = emptyList()
 
-      override fun findRuleJars(
-        project: com.android.tools.lint.detector.api.Project
-      ): Iterable<File> = emptyList()
+      override fun findRuleJars(project: com.android.tools.lint.detector.api.Project): Iterable<File> = emptyList()
 
-      override fun getConfiguration(
-        project: com.android.tools.lint.detector.api.Project,
-        driver: LintDriver?,
-      ): Configuration =
+      override fun getConfiguration(project: com.android.tools.lint.detector.api.Project, driver: LintDriver?): Configuration =
         object : FlagConfiguration(configurations) {
           override fun exactCheckedIds(): Set<String> = issueRegistry.issues.map { it.id }.toSet()
         }
@@ -232,9 +214,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      project
-        .getService(AssistantInvoker::class.java)
-        .performDeprecatedConfigurationsUpgrade(project, element)
+      project.getService(AssistantInvoker::class.java).performDeprecatedConfigurationsUpgrade(project, element)
     }
   }
 
@@ -250,8 +230,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
 
-  override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction =
-    ProvideLintFeedbackIntentionAction(issue.id)
+  override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = ProvideLintFeedbackIntentionAction(issue.id)
 
   // Random number generator used by logSession below. We're using a seed of 0 because
   // we don't need true randomness, just an even distribution. This generator is
@@ -266,25 +245,13 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     // relative importance of lint checks.
     if (random.nextDouble() < 0.01) { // nextDouble() ~20% faster than nextInt()
       val analytics = LintIdeAnalytics(lintResult.getModule().project)
-      analytics.logSession(
-        LintSession.AnalysisType.IDE_FILE,
-        lint,
-        lintResult.getModule(),
-        lintResult.problems,
-        null,
-      )
+      analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
     }
   }
 
   override fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {
     val analytics = LintIdeAnalytics(lintResult.project)
-    analytics.logSession(
-      LintSession.AnalysisType.IDE_BATCH,
-      lint,
-      module,
-      null,
-      lintResult.problemMap,
-    )
+    analytics.logSession(LintSession.AnalysisType.IDE_BATCH, lint, module, null, lintResult.problemMap)
   }
 
   override fun logQuickFixInvocation(project: Project, issue: Issue, fixDescription: String) {
@@ -297,9 +264,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     analytics.logTooltipLink(url, issue)
   }
 
-  override fun ensureNamespaceImported(
-    file: XmlFile,
-    namespaceUri: String,
-    suggestedPrefix: String?,
-  ) = com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
+  override fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?) =
+    com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
 }

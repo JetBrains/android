@@ -50,15 +50,7 @@ class EditorUtilsTest {
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-      logcatEditorRule,
-      disposableRule,
-      EdtRule(),
-    )
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, disposableRule, EdtRule())
 
   private val editors = mutableListOf<Editor>()
 
@@ -110,16 +102,10 @@ class EditorUtilsTest {
     val width = formattingOptions.tagFormat.width()
     val expected = Tag("tag", width - 1)
 
-    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag"), formattingOptions))
-      .isEqualTo(expected)
-    assertThat(
-        editor.getFilterHint(editor.document.text.indexOf("tag") + width - 1, formattingOptions)
-      )
-      .isEqualTo(expected)
-    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag") - 1, formattingOptions))
-      .isNotEqualTo(expected)
-    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag") + width, formattingOptions))
-      .isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag"), formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag") + width - 1, formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag") - 1, formattingOptions)).isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("tag") + width, formattingOptions)).isNotEqualTo(expected)
   }
 
   @Test
@@ -128,28 +114,10 @@ class EditorUtilsTest {
     val width = formattingOptions.appNameFormat.width()
     val expected = AppName("package.name", width - 1)
 
-    assertThat(
-        editor.getFilterHint(editor.document.text.indexOf("package.name"), formattingOptions)
-      )
-      .isEqualTo(expected)
-    assertThat(
-        editor.getFilterHint(
-          editor.document.text.indexOf("package.name") + width - 1,
-          formattingOptions,
-        )
-      )
-      .isEqualTo(expected)
-    assertThat(
-        editor.getFilterHint(editor.document.text.indexOf("package.name") - 1, formattingOptions)
-      )
-      .isNotEqualTo(expected)
-    assertThat(
-        editor.getFilterHint(
-          editor.document.text.indexOf("package.name") + width,
-          formattingOptions,
-        )
-      )
-      .isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("package.name"), formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("package.name") + width - 1, formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("package.name") - 1, formattingOptions)).isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf("package.name") + width, formattingOptions)).isNotEqualTo(expected)
   }
 
   @Test
@@ -158,16 +126,10 @@ class EditorUtilsTest {
     val width = formattingOptions.levelFormat.width()
     val expected = Level(INFO)
 
-    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I "), formattingOptions))
-      .isEqualTo(expected)
-    assertThat(
-        editor.getFilterHint(editor.document.text.indexOf(" I ") + width - 1, formattingOptions)
-      )
-      .isEqualTo(expected)
-    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I ") - 1, formattingOptions))
-      .isNotEqualTo(expected)
-    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I ") + width, formattingOptions))
-      .isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I "), formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I ") + width - 1, formattingOptions)).isEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I ") - 1, formattingOptions)).isNotEqualTo(expected)
+    assertThat(editor.getFilterHint(editor.document.text.indexOf(" I ") + width, formattingOptions)).isNotEqualTo(expected)
   }
 
   @Test
@@ -186,16 +148,13 @@ class EditorUtilsTest {
   }
 
   private fun appendMessage(logcatMessage: LogcatMessage, formattingOptions: FormattingOptions) {
-    val messageFormatter =
-      MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
+    val messageFormatter = MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(formattingOptions, textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)
   }
 
   private fun createLogcatEditor(): EditorEx {
-    return createLogcatEditor(projectRule.project, disposableRule.disposable).also {
-      editors.add(it)
-    }
+    return createLogcatEditor(projectRule.project, disposableRule.disposable).also { editors.add(it) }
   }
 }

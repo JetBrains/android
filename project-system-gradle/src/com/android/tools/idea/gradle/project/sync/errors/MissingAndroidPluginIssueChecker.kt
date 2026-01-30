@@ -38,11 +38,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 
 class MissingAndroidPluginIssueChecker : GradleIssueChecker {
   private val PATTERN = "Could not find com.android.tools.build:gradle:"
@@ -51,24 +51,28 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(PATTERN)) return null
 
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE)
+    SyncFailureUsageReporter.getInstance()
+      .collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE)
 
-    return BuildIssueComposer(message).apply {
-      // Display the link to the quickFix, but it will only effectively write to the build file is the block doesn't exist already.
-      addQuickFix("Add google Maven repository and sync project", AddGoogleMavenRepositoryQuickFix())
-      addQuickFix("Open File", OpenPluginBuildFileQuickFix())
-    }.composeBuildIssue()
+    return BuildIssueComposer(message)
+      .apply {
+        // Display the link to the quickFix, but it will only effectively write to the build file is the block doesn't exist already.
+        addQuickFix("Add google Maven repository and sync project", AddGoogleMavenRepositoryQuickFix())
+        addQuickFix("Open File", OpenPluginBuildFileQuickFix())
+      }
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.startsWith(PATTERN)
   }
-
 }
 
 class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
@@ -81,15 +85,15 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
         Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
         future.complete(null)
       }
-    }
-    else {
+    } else {
       ReadAction.nonBlocking<AndroidPluginInfo?> { findFromBuildFiles(project) }
         .inSmartMode(project)
         .coalesceBy(project, this)
         .finishOnUiThread(ModalityState.defaultModalityState()) { pluginInfo ->
           addGoogleMavenRepoPreview(pluginInfo, project)
           future.complete(null)
-        }.submit(AppExecutorUtil.getAppExecutorService())
+        }
+        .submit(AppExecutorUtil.getAppExecutorService())
     }
 
     return future
@@ -97,11 +101,7 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
 
   private fun addGoogleMavenRepoPreview(pluginInfo: AndroidPluginInfo?, project: Project) {
     val projectBuildModel: ProjectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
-    val buildFile: VirtualFile = pluginInfo?.pluginBuildFile
-                                 ?: getGradleBuildFile(
-                                   getBaseDirPath(project)
-                                 )
-                                 ?: return
+    val buildFile: VirtualFile = pluginInfo?.pluginBuildFile ?: getGradleBuildFile(getBaseDirPath(project)) ?: return
 
     val gradleBuildModel: GradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile)
     // Only add the google Maven repository if it doesn't already exist.

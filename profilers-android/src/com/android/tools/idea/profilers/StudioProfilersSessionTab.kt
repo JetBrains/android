@@ -26,25 +26,27 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
-/**
- * A tab in the Profiler window containing a [SessionProfilersView].
- */
-class StudioProfilersSessionTab(private val profilers: StudioProfilers,
-                                private val window: ToolWindowWrapper,
-                                ideProfilerComponents: IdeProfilerComponents,
-                                project: Project) : AspectObserver(), StudioProfilersTab {
+/** A tab in the Profiler window containing a [SessionProfilersView]. */
+class StudioProfilersSessionTab(
+  private val profilers: StudioProfilers,
+  private val window: ToolWindowWrapper,
+  ideProfilerComponents: IdeProfilerComponents,
+  project: Project,
+) : AspectObserver(), StudioProfilersTab {
 
   override val view: StudioProfilersView
 
   init {
-    profilers.sessionsManager.addDependency(this)
+    profilers.sessionsManager
+      .addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION) { selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { profilingSessionChanged() }
 
     view = SessionProfilersView(profilers, ideProfilerComponents, this)
 
-    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AndroidProfilerWindowManagerListener(project, profilers, view))
+    project.messageBus
+      .connect(this)
+      .subscribe(ToolWindowManagerListener.TOPIC, AndroidProfilerWindowManagerListener(project, profilers, view))
   }
 
   override fun dispose() {}
@@ -61,10 +63,12 @@ class StudioProfilersSessionTab(private val profilers: StudioProfilers,
     // JetBrains patch: use IDE-aware profiler icon instead of the hard-coded Studio icon.
     val icon = getAndroidProfilerToolWindowIcon()
 
-    window.setIcon(if (SessionsManager.isSessionAlive(profilingSession)) {
-      ExecutionUtil.getLiveIndicator(icon)
-    } else {
-      icon
-    })
+    window.setIcon(
+      if (SessionsManager.isSessionAlive(profilingSession)) {
+        ExecutionUtil.getLiveIndicator(icon)
+      } else {
+        icon
+      }
+    )
   }
 }

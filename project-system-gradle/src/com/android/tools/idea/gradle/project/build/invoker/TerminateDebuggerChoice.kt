@@ -25,7 +25,9 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 
 enum class TerminateDebuggerChoice {
-  TERMINATE_DEBUGGER, DO_NOT_TERMINATE_DEBUGGER, CANCEL_BUILD;
+  TERMINATE_DEBUGGER,
+  DO_NOT_TERMINATE_DEBUGGER,
+  CANCEL_BUILD;
 
   companion object {
     fun promptUserToStopNativeDebugSession(project: Project): TerminateDebuggerChoice {
@@ -37,38 +39,42 @@ enum class TerminateDebuggerChoice {
 
       if (value == null) {
         var choice: TerminateDebuggerChoice? = null
-        ApplicationManager.getApplication().invokeAndWait(
-          {
-            val message: String = "Cleaning or rebuilding your project while debugging can lead to unexpected " +
-                                  "behavior.\n" +
-                                  "You can choose to either terminate the debugger before cleaning your project " +
-                                  "or keep debugging while cleaning.\n" +
-                                  "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
-                                  "and preserves your debug process."
-            val dialogBuilder: MessageDialogBuilder.YesNoCancel = MessageDialogBuilder.yesNoCancel(
-              "Terminate debugging", message
-            )
-            val answer: Int = dialogBuilder
-              .yesText("Terminate")
-              .noText("Do not terminate")
-              .cancelText("Cancel")
-              .doNotAsk(
-                object : DoNotAskOption.Adapter() {
-                  override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
-                    if (isSelected) {
-                      PropertiesComponent.getInstance().setValue(propKey, (exitCode == Messages.YES).toString())
+        ApplicationManager.getApplication()
+          .invokeAndWait(
+            {
+              val message: String =
+                "Cleaning or rebuilding your project while debugging can lead to unexpected " +
+                  "behavior.\n" +
+                  "You can choose to either terminate the debugger before cleaning your project " +
+                  "or keep debugging while cleaning.\n" +
+                  "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
+                  "and preserves your debug process."
+              val dialogBuilder: MessageDialogBuilder.YesNoCancel = MessageDialogBuilder.yesNoCancel("Terminate debugging", message)
+              val answer: Int =
+                dialogBuilder
+                  .yesText("Terminate")
+                  .noText("Do not terminate")
+                  .cancelText("Cancel")
+                  .doNotAsk(
+                    object : DoNotAskOption.Adapter() {
+                      override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
+                        if (isSelected) {
+                          PropertiesComponent.getInstance().setValue(propKey, (exitCode == Messages.YES).toString())
+                        }
+                      }
                     }
-                  }
-                })
-              .show(project)
-            choice = when (answer) {
-              Messages.YES -> TerminateDebuggerChoice.TERMINATE_DEBUGGER
-              Messages.NO -> TerminateDebuggerChoice.DO_NOT_TERMINATE_DEBUGGER
-              Messages.CANCEL -> TerminateDebuggerChoice.CANCEL_BUILD
-              else -> error("Unknown selection: $answer")
-            }
-          }, ModalityState.nonModal()
-        )
+                  )
+                  .show(project)
+              choice =
+                when (answer) {
+                  Messages.YES -> TerminateDebuggerChoice.TERMINATE_DEBUGGER
+                  Messages.NO -> TerminateDebuggerChoice.DO_NOT_TERMINATE_DEBUGGER
+                  Messages.CANCEL -> TerminateDebuggerChoice.CANCEL_BUILD
+                  else -> error("Unknown selection: $answer")
+                }
+            },
+            ModalityState.nonModal(),
+          )
         return choice!!
       }
       getLogger().debug(propKey + ": " + value)

@@ -27,8 +27,7 @@ private const val PSI_PROPERTIES_VIEW_NAME = "PsiProperties"
 
 /** Base [PropertiesModel] for pickers interacting with PSI elements. */
 internal abstract class PsiPropertiesModel : PropertiesModel<PsiPropertyItem> {
-  private val listeners =
-    ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
+  private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
 
   /**
    * Builder to generate the properties Table UI.
@@ -59,8 +58,7 @@ internal abstract class PsiPropertiesModel : PropertiesModel<PsiPropertyItem> {
 }
 
 /** A [PropertiesView] for editing [PsiPropertiesModel]s. */
-internal class PsiPropertyView(model: PsiPropertiesModel) :
-  PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
+internal class PsiPropertyView(model: PsiPropertiesModel) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
 
   init {
     addTab("").apply { builders.add(model.inspectorBuilder) }

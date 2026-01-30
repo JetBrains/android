@@ -33,29 +33,29 @@ class LightArgsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-            <argument
-                android:name="top_level_arg"
-                app:argType="string" />
+          <argument
+              android:name="top_level_arg"
+              app:argType="string" />
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg"
-                app:argType="string" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" />
-        </navigation>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <argument
+              android:name="arg"
+              app:argType="string" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" />
+      </navigation>
       """
         .trimIndent(),
     )
@@ -66,10 +66,8 @@ class LightArgsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainArgs", context))
-      .isInstanceOf(LightArgsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context))
-      .isInstanceOf(LightArgsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainArgs", context)).isInstanceOf(LightArgsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context)).isInstanceOf(LightArgsClass::class.java)
 
     // ... but not generated if no arguments
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context)).isNull()

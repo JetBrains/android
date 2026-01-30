@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.launch
 
-enum class MinimumArtifactCoordinate(module: Module, override val version: String) :
-  ArtifactCoordinate {
+enum class MinimumArtifactCoordinate(module: Module, override val version: String) : ArtifactCoordinate {
   COMPOSE_UI(Module.COMPOSE_UI, "1.0.0-beta02"),
   COMPOSE_UI_ANDROID(Module.COMPOSE_UI_ANDROID, "1.5.0-beta01"),
   WORK_RUNTIME(Module.WORK_RUNTIME, "2.5.0"),

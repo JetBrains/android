@@ -23,9 +23,6 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
-import org.junit.Assert.assertNotNull
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.concurrent.CountDownLatch
@@ -33,16 +30,18 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Rule
+import org.junit.Test
 
 class SlowResourcePreviewManagerTest {
 
-  @get:Rule
-  var imageCacheRule = ImageCacheRule()
+  @get:Rule var imageCacheRule = ImageCacheRule()
 
-  @get:Rule
-  var androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule var androidProjectRule = AndroidProjectRule.inMemory()
 
-  val facet get() = androidProjectRule.fixture.module.androidFacet!!
+  val facet
+    get() = androidProjectRule.fixture.module.androidFacet!!
 
   @Test
   fun getPlaceholderThenRealPreview() {
@@ -93,13 +92,14 @@ class SlowResourcePreviewManagerTest {
 }
 
 private object TestSlowPreviewProvider : SlowResourcePreviewProvider {
-  override val previewPlaceholder: BufferedImage = ImageUtil.createImage(80, 80, BufferedImage.TYPE_INT_ARGB).apply {
-    with(createGraphics()) {
-      this.color = Color(255, 0, 0, 255)
-      fillRect(0, 0, 80, 80)
-      dispose()
+  override val previewPlaceholder: BufferedImage =
+    ImageUtil.createImage(80, 80, BufferedImage.TYPE_INT_ARGB).apply {
+      with(createGraphics()) {
+        this.color = Color(255, 0, 0, 255)
+        fillRect(0, 0, 80, 80)
+        dispose()
+      }
     }
-  }
 
   override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
     return createTestImage()

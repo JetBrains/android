@@ -22,14 +22,13 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-/**
- * Persistent settings for the experimental UI state.
- */
+/** Persistent settings for the experimental UI state. */
 @State(name = "ExperimentalUI", storages = [Storage("experimentalUI.xml")])
 @Service
 class ExperimentalUISettings : PersistentStateComponent<ExperimentalUISettings> {
 
   var enabled: Boolean = false
+
   override fun getState(): ExperimentalUISettings {
     return this
   }

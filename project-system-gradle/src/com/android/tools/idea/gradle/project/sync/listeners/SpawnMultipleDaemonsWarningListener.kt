@@ -55,13 +55,12 @@ class SpawnMultipleDaemonsWarningListener(private val coroutineScope: CoroutineS
       if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(rootProjectPath, gradleVersion)) return@launch
 
       // Pre-calculate strings here to avoid IO on the UI thread later
-      val gradleJvmPath = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
+      val gradleJvmPath =
+        AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined"
       val javaHome = IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
 
       // Dispatch back to EDT to show the notification
-      withContext(Dispatchers.EDT) {
-        showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome)
-      }
+      withContext(Dispatchers.EDT) { showMultipleGradleDaemonWarning(project, rootProjectPath, gradleJvmPath, javaHome) }
     }
   }
 
@@ -70,7 +69,7 @@ class SpawnMultipleDaemonsWarningListener(private val coroutineScope: CoroutineS
     project: Project,
     rootProjectPath: @SystemIndependent String,
     gradleJvmPath: String,
-    javaHome: String
+    javaHome: String,
   ) {
     val hyperlinkUrl = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url")
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(hyperlinkUrl, "More info..."))
@@ -79,19 +78,10 @@ class SpawnMultipleDaemonsWarningListener(private val coroutineScope: CoroutineS
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     // Use the pre-calculated paths passed as arguments
-    var message = AndroidBundle.message(
-      "project.sync.warning.multiple.gradle.daemons.message",
-      project.name,
-      gradleJvmPath,
-      javaHome
-    )
+    var message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message", project.name, gradleJvmPath, javaHome)
 
-    quickFixes.forEach { quickFix ->
-      message += "<br>${quickFix.toHtml()}"
-    }
-    val listener = NotificationListener { _, event ->
-      quickFixes.forEach { link -> link.executeIfClicked(project, event) }
-    }
+    quickFixes.forEach { quickFix -> message += "<br>${quickFix.toHtml()}" }
+    val listener = NotificationListener { _, event -> quickFixes.forEach { link -> link.executeIfClicked(project, event) } }
 
     JDK_LOCATION_WARNING_NOTIFICATION_GROUP.createNotification("", message, MessageType.WARNING.toNotificationType()).apply {
       setListener(listener)

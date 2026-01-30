@@ -20,9 +20,7 @@ import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
-/**
- * Extension point to provide the Compose Tooling Target label.
- */
+/** Extension point to provide the Compose Tooling Target label. */
 interface BazelComposeToolingProjectLabelProvider {
   fun isApplicable(project: Project): Boolean
 

@@ -26,11 +26,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 /** Action class to switch the overall color blind mode in a [NlDesignSurface]. */
 class SetColorBlindModeAction(val colorBlindMode: ColorBlindMode) :
-  ToggleAction(
-    colorBlindMode.displayName,
-    message("android.layout.screenview.action.description", colorBlindMode.displayName),
-    null,
-  ) {
+  ToggleAction(colorBlindMode.displayName, message("android.layout.screenview.action.description", colorBlindMode.displayName), null) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
     return (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.colorBlindMode == colorBlindMode

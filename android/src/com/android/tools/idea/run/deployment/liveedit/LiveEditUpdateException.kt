@@ -24,16 +24,17 @@ data class CompilerErrorSource(val severity: String, val desc: String, val file:
   fun displayMessage() = "[$severity] $desc ${file?.let { "${it.name} at line $lineNumber" } ?: ""}"
 }
 
-class LiveEditUpdateException private constructor(val error: Error, val details: String = "", val sourceFilename: String?, cause : Throwable?) : RuntimeException(details, cause) {
+class LiveEditUpdateException
+private constructor(val error: Error, val details: String = "", val sourceFilename: String?, cause: Throwable?) :
+  RuntimeException(details, cause) {
 
   /**
    * @param message Short description
    * @param details Detailed information of the error if available.
-   * @param recoverable If this flag is flags, the current deployment of the application can no longer be live edited and
-   *                    a build and re-run would be required for future live edits.
+   * @param recoverable If this flag is flags, the current deployment of the application can no longer be live edited and a build and re-run
+   *   would be required for future live edits.
    */
-  enum class Error (val message: String, val details: String = "", val recoverable: Boolean = true,
-                    val metric : Status = Status.UNKNOWN) {
+  enum class Error(val message: String, val details: String = "", val recoverable: Boolean = true, val metric: Status = Status.UNKNOWN) {
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
@@ -42,14 +43,12 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_COMPOSE("Non-Compose Module", "%", false, Status.NON_KOTLIN), // TODO: ADD REAL METRICS. (Currently treated as internal error)
     NO_COMPOSE_PLUG_IN("Compilation Error", "%", true, Status.COMPILATION_ERROR), // TODO: Add new metrics.
-
     NON_KOTLIN("Non-Kotlin file not supported", "%", false, Status.NON_KOTLIN),
     NON_KOTLIN_IS_JAVA("Java file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
     NON_KOTLIN_IS_XML("XML file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
-
     UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_ACCESS),
     UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_REMOVED_ACCESS),
     UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR("Unsupported change", "%", false, Status.UNSUPPORTED_CONSTRUCTOR),
@@ -67,16 +66,13 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_CLASS),
     UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH("Unsupported change", "%", false, Status.UNSUPPORTED_WHEN_ENUM_PATH),
     UNSUPPORTED_SRC_CHANGE_ENUM("Unsupported change", "%", false, Status.UNKNOWN), // TODO: Add new metrics
-
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
     UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
     UNSUPPORTED_BUILD_LIBRARY_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNSUPPORTED_BUILD_LIBRARY_DESUGAR),
     VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
-
     MODULE_IS_DISPOSED("Module Disposed", "%", false, Status.MODULE_DISPOSED), // TODO: Add new metrics.
     FILE_NOT_VALID("Invalid File", "%", true, Status.INVALID_FILE), // TODO: Add new metrics.
-
     INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_COMPILER_OUTPUT),
     INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_OUTSIDE_MODULE),
     INTERNAL_ERROR_FILE_CODE_GEN("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_CODE_GEN),
@@ -92,43 +88,67 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun analysisError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source?.name, cause)
-    
-    fun compilationError(errors : List<CompilerErrorSource>) =
-      LiveEditUpdateException(Error.COMPILATION_ERROR, errors.joinToString("\n") { it.displayMessage() }, errors.firstOrNull()?.file?.name, null)
+
+    fun compilationError(errors: List<CompilerErrorSource>) =
+      LiveEditUpdateException(
+        Error.COMPILATION_ERROR,
+        errors.joinToString("\n") { it.displayMessage() },
+        errors.firstOrNull()?.file?.name,
+        null,
+      )
 
     fun gradleBuildFile(source: PsiFile? = null) =
       LiveEditUpdateException(Error.GRADLE_BUILD_FILE, "Modification of Gradle build file not supported", source?.name, null)
 
-    fun iwiDisabled() = LiveEditUpdateException(Error.IWI_DISABLED, "Cannot perform Live Edit without optimistic install support", null, null)
+    fun iwiDisabled() =
+      LiveEditUpdateException(Error.IWI_DISABLED, "Cannot perform Live Edit without optimistic install support", null, null)
 
     fun internalErrorCodeGenException(file: PsiFile, cause: Throwable) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_CODE_GEN, "Internal Error During Code Gen", file.name, cause)
 
     fun internalErrorCompileCommandException(file: PsiFile, cause: Throwable) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION, "Unexpected error during compilation command", file.name, cause)
+      LiveEditUpdateException(
+        Error.INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION,
+        "Unexpected error during compilation command",
+        file.name,
+        cause,
+      )
 
     fun internalErrorMultiModule(modules: Set<Module?>) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_MULTI_MODULE,
-                              "Multiple modules request [${modules.joinToString(",")}]", null, null)
+      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_MULTI_MODULE, "Multiple modules request [${modules.joinToString(",")}]", null, null)
 
     fun internalErrorNoCompilerOutput(file: PsiFile) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_NO_COMPILER_OUTPUT, "No compiler output", file.name, null)
 
     fun internalErrorFileOutsideModule(file: PsiFile) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE, "KtFile outside targeted module found in code generation", file.name, null)
+      LiveEditUpdateException(
+        Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE,
+        "KtFile outside targeted module found in code generation",
+        file.name,
+        null,
+      )
 
     fun internalErrorVibeEdit(details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR_VIBE_EDIT_FAILURE, details, null, null)
 
-    fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
-                                                               " and will only work with the bundled Kotlin Plugin", null, null)
+    fun kotlinEap() =
+      LiveEditUpdateException(
+        Error.KOTLIN_EAP,
+        "Live Edit does not support running with this Kotlin Plugin version" + " and will only work with the bundled Kotlin Plugin",
+        null,
+        null,
+      )
 
-    fun noComposePlugIn() = LiveEditUpdateException(Error.NO_COMPOSE_PLUG_IN, "Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
+    fun noComposePlugIn() =
+      LiveEditUpdateException(Error.NO_COMPOSE_PLUG_IN, "Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
 
-    fun nonKotlin(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+    fun nonKotlin(file: PsiFile) =
+      LiveEditUpdateException(Error.NON_KOTLIN, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
-    fun nonKotlinIsJava(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_JAVA, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+    fun nonKotlinIsJava(file: PsiFile) =
+      LiveEditUpdateException(Error.NON_KOTLIN_IS_JAVA, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
-    fun nonKotlinIsXml(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_XML, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+    fun nonKotlinIsXml(file: PsiFile) =
+      LiveEditUpdateException(Error.NON_KOTLIN_IS_XML, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
     fun unsupportedSourceModificationAddedMethod(location: String, msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, msg, location, null)
@@ -175,24 +195,25 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     fun unsupportedSourceModificationConstructor(msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, msg, null, null)
 
-    fun unsupportedSourceModificationClinit(msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CLINIT, msg, null, null)
+    fun unsupportedSourceModificationClinit(msg: String) = LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CLINIT, msg, null, null)
 
     fun unsupportedSourceModificationInit(msg: String, file: PsiFile) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INIT, msg, file?.name, null)
 
-    fun unsupportedBuildSrcChange(name: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)
+    fun unsupportedBuildSrcChange(name: String) = LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)
 
-    fun unsupportedTestSrcChange(name: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_TEST_SRC_CHANGE, name, null, null)
+    fun unsupportedTestSrcChange(name: String) = LiveEditUpdateException(Error.UNSUPPORTED_TEST_SRC_CHANGE, name, null, null)
 
     fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source?.name, cause)
 
     fun nonPrivateInlineFunctionFailure(source: PsiFile? = null) =
-      LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
-                                                                 "Application needs to be rebuild.", source?.name, null)
+      LiveEditUpdateException(
+        Error.NON_PRIVATE_INLINE_FUNCTION,
+        "Inline functions visible outside of the file cannot be live edited. " + "Application needs to be rebuild.",
+        source?.name,
+        null,
+      )
 
     fun desugarFailure(details: String, file: String? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, file, cause)
@@ -203,7 +224,12 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     fun badMinAPIError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.BAD_MIN_API, details, null, cause)
 
     fun virtualFileNotExist(virtualFile: VirtualFile, file: PsiFile) =
-      LiveEditUpdateException(Error.VIRTUAL_FILE_NOT_EXIST, details = "deleted Kotlin file ${virtualFile.path}", sourceFilename = file?.name, cause = null)
+      LiveEditUpdateException(
+        Error.VIRTUAL_FILE_NOT_EXIST,
+        details = "deleted Kotlin file ${virtualFile.path}",
+        sourceFilename = file?.name,
+        cause = null,
+      )
 
     fun fileNotValid(source: PsiFile) =
       LiveEditUpdateException(Error.FILE_NOT_VALID, "The target file is no longer a valid file.", source.name, null)
@@ -212,7 +238,7 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
       LiveEditUpdateException(Error.MODULE_IS_DISPOSED, "The target module has been disposed", source.name, null)
   }
 
-  fun isCompilationError() : Boolean {
+  fun isCompilationError(): Boolean {
     return when (error) {
       Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
       Error.COMPILATION_ERROR -> true

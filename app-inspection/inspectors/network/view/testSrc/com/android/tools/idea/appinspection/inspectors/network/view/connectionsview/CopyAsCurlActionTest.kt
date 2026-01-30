@@ -70,8 +70,8 @@ class CopyAsCurlActionTest {
     assertThat(fakeClipboard.getTextContents())
       .isEqualTo(
         """
-          curl 'http://google.com' \
-            --compressed
+        curl 'http://google.com' \
+          --compressed
         """
           .trimIndent()
       )
@@ -86,9 +86,9 @@ class CopyAsCurlActionTest {
     assertThat(fakeClipboard.getTextContents())
       .isEqualTo(
         """
-          curl 'http://google.com' \
-            -X 'PUT' \
-            --compressed
+        curl 'http://google.com' \
+          -X 'PUT' \
+          --compressed
         """
           .trimIndent()
       )
@@ -96,18 +96,17 @@ class CopyAsCurlActionTest {
 
   @Test
   fun actionPerformed_withPayload() {
-    val action =
-      copyAsCurlAction(url = "http://google.com", method = "PUT", payload = "payload".toByteArray())
+    val action = copyAsCurlAction(url = "http://google.com", method = "PUT", payload = "payload".toByteArray())
 
     action.actionPerformed(TestActionEvent.createTestEvent())
 
     assertThat(fakeClipboard.getTextContents())
       .isEqualTo(
         """
-          curl 'http://google.com' \
-            -X 'PUT' \
-            --data-raw 'payload' \
-            --compressed
+        curl 'http://google.com' \
+          -X 'PUT' \
+          --data-raw 'payload' \
+          --compressed
         """
           .trimIndent()
       )
@@ -149,23 +148,18 @@ class CopyAsCurlActionTest {
     assertThat(fakeClipboard.getTextContents())
       .isEqualTo(
         """
-          curl 'http://google.com' \
-            -X 'PUT' \
-            -H 'header1: value1' \
-            -H 'header2: value2.1, value2.2' \
-            --data-raw 'payload' \
-            --compressed
+        curl 'http://google.com' \
+          -X 'PUT' \
+          -H 'header1: value1' \
+          -H 'header2: value2.1, value2.2' \
+          --data-raw 'payload' \
+          --compressed
         """
           .trimIndent()
       )
   }
 
-  private fun copyAsCurlAction(
-    url: String,
-    method: String,
-    payload: ByteArray = ByteArray(0),
-    vararg headers: Header,
-  ) =
+  private fun copyAsCurlAction(url: String, method: String, payload: ByteArray = ByteArray(0), vararg headers: Header) =
     CopyAsCurlAction(
       HttpData.createHttpData(
         0,
@@ -179,5 +173,4 @@ class CopyAsCurlActionTest {
     }
 }
 
-private fun header(name: String, vararg values: String) =
-  Header.newBuilder().setKey(name).addAllValues(values.asIterable()).build()
+private fun header(name: String, vararg values: String) = Header.newBuilder().setKey(name).addAllValues(values.asIterable()).build()

@@ -40,11 +40,12 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
   override fun getKind() = GradleDslNameConverter.Kind.DECLARATIVE
 
   override fun psiToName(element: PsiElement): String {
-    val text = when (element) {
-      is DeclarativeLiteral -> element.value.toString()
-      is DeclarativePair -> element.first.toString()
-      else -> element.text
-    }
+    val text =
+      when (element) {
+        is DeclarativeLiteral -> element.value.toString()
+        is DeclarativePair -> element.first.toString()
+        else -> element.text
+      }
     return GradleNameElement.escape(text)
   }
 
@@ -67,16 +68,19 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
         if (e.versionConstraint?.isOkWith(this.context.agpVersion) == false) continue
         when (e.modelEffectDescription.semantics) {
           SET -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
-          VAR, GRADLE_PROPERTY -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
-          VAL -> when (e.modelEffectDescription.property.type) {
-            MUTABLE_SET, MUTABLE_LIST, MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
-            else -> Unit
-          }
+          VAR,
+          GRADLE_PROPERTY -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
+          VAL ->
+            when (e.modelEffectDescription.property.type) {
+              MUTABLE_SET,
+              MUTABLE_LIST,
+              MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
+              else -> Unit
+            }
           else -> Unit
         }
       }
     }
     return result
   }
-
 }

@@ -34,39 +34,34 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Tests for data binding elements that have references outside the module.
- */
+/** Tests for data binding elements that have references outside the module. */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT,
-                         DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   @get:Rule
   val projectRule =
     AndroidProjectRule.testProject(
       testProjectTemplateFromPath(
-        path = when (mode) {
-          DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
-          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
-        }, testDataPath = getTestDataPath()
+        path =
+          when (mode) {
+            DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
+            else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
+          },
+        testDataPath = getTestDataPath(),
       )
     )
 
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture
@@ -88,8 +83,8 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getLiveDataString",
-                                                                                                             false)[0].sourceElement!!
+    val javaStrValue =
+      fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getLiveDataString", false)[0].sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
@@ -107,8 +102,8 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getStateFlowString",
-                                                                                                             false)[0].sourceElement!!
+    val javaStrValue =
+      fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getStateFlowString", false)[0].sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
@@ -123,8 +118,11 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     moveCaretToString("getObservableFieldString")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
-    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getObservableFieldString",
-                                                                                                             false)[0].sourceElement!!
+    val javaStrValue =
+      fixture
+        .findClass("com.android.example.appwithdatabinding.SampleVo")
+        .findMethodsByName("getObservableFieldString", false)[0]
+        .sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
@@ -142,8 +140,8 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     fixture.configureFromExistingVirtualFile(layoutFile)
     val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
-    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
-                                                                                             false)[0].sourceElement!! as PsiMethod
+    val psiMethod =
+      fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick", false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
@@ -160,8 +158,8 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     fixture.configureFromExistingVirtualFile(layoutFile)
     val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
-    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
-                                                                                             false)[0].sourceElement!! as PsiMethod
+    val psiMethod =
+      fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick", false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
@@ -178,8 +176,8 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     fixture.configureFromExistingVirtualFile(layoutFile)
     val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
-    val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
-                                                                                             false)[0].sourceElement!! as PsiMethod
+    val psiMethod =
+      fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick", false)[0].sourceElement!! as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(parameterReference.isReferenceTo(psiMethod.parameterList.parameters[0])).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod.parameterList.parameters[0])
@@ -196,8 +194,9 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     fixture.configureFromExistingVirtualFile(layoutFile)
     val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiMethod }
 
-    val psiMethod = fixture.findClass("com.android.example.appwithdatabinding.MyAdapter")
-      .findMethodsByName("bindOnClick3", false)[0].sourceElement!! as PsiMethod
+    val psiMethod =
+      fixture.findClass("com.android.example.appwithdatabinding.MyAdapter").findMethodsByName("bindOnClick3", false)[0].sourceElement!!
+        as PsiMethod
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(parameterReference.isReferenceTo(psiMethod)).isTrue()
     assertThat(parameterReference.resolve()).isEqualTo(psiMethod)

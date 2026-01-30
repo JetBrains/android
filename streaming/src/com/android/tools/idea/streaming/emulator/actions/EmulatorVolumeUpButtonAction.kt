@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 
-/**
- * Simulates pressing the Volume Up button on an Android virtual device.
- */
+/** Simulates pressing the Volume Up button on an Android virtual device. */
 class EmulatorVolumeUpButtonAction : EmulatorPushButtonAction("AudioVolumeUp", configFilter = { it.deviceType != DeviceType.WEAR })

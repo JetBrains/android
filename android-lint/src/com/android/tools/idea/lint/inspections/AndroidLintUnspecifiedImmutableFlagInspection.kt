@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PendingIntentMutableFlagDetector
 
 class AndroidLintUnspecifiedImmutableFlagInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unspecified.immutable.flag"),
-    PendingIntentMutableFlagDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unspecified.immutable.flag"), PendingIntentMutableFlagDetector.ISSUE)

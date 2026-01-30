@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -36,14 +35,12 @@ import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
 
 /**
- * Go to declaration handler for providing navigation from references to version
- * catalog references -- both from references in KTS files (e.g. from dependency
- * and plugin references) and within TOML files (e.g. from library version variable
- * references and from bundle array references).
+ * Go to declaration handler for providing navigation from references to version catalog references -- both from references in KTS files
+ * (e.g. from dependency and plugin references) and within TOML files (e.g. from library version variable references and from bundle array
+ * references).
  *
- * Surely the right solution here is to actually have an index, and to perform
- * indexing of version catalog files. This is a temporary quick solution
- * which manually looks for the gradle catalogs and parses them on the fly.
+ * Surely the right solution here is to actually have an index, and to perform indexing of version catalog files. This is a temporary quick
+ * solution which manually looks for the gradle catalogs and parses them on the fly.
  */
 class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
   override fun getGotoDeclarationTarget(sourceElement: PsiElement?, editor: Editor?): PsiElement? {
@@ -51,7 +48,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     val parent = sourceElement.parent ?: return null
     val grandParent = parent.parent ?: return null
 
-    //TODO add support of non trivial cases like  "id(libs.plugins.android.application.get().pluginId) apply false"
+    // TODO add support of non trivial cases like  "id(libs.plugins.android.application.get().pluginId) apply false"
     // Reference from build.gradle.kts to dependency?
     if (grandParent is KtDotQualifiedExpression) {
       val key = grandParent.text
@@ -84,7 +81,9 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
           // platform and also vulnerable to users defining keys which are effectively prefixes of each other.
           val wholeKey = getWholeKey(sourceElement)
           if (wholeKey != null) {
-            findCatalogKey(catalog, wholeKey.substringAfter("."))?.let { return it }
+            findCatalogKey(catalog, wholeKey.substringAfter("."))?.let {
+              return it
+            }
           }
         }
         return null
@@ -121,14 +120,10 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     while (currElement.parent != null) {
       if (currElement.parent is GrArgumentList || currElement.parent is GrCommandArgumentList) {
         return currElement.text
-      }
-      else currElement = currElement.parent
+      } else currElement = currElement.parent
     }
     return null
   }
-
 }
 
-private fun TomlLiteral.getString(): String =
-   (kind as? TomlLiteralKind.String)?.value ?: text
-
+private fun TomlLiteral.getString(): String = (kind as? TomlLiteralKind.String)?.value ?: text

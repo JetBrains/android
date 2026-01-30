@@ -24,17 +24,13 @@ import java.awt.image.BufferedImage
 import java.net.InetAddress
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Service to expose and pair wireless devices. All entry points run asynchronously and return
- * [ListenableFuture] for completion.
- */
+/** Service to expose and pair wireless devices. All entry points run asynchronously and return [ListenableFuture] for completion. */
 @AnyThread
 interface WiFiPairingService {
   /**
    * Returns a [MdnsSupportState] for the current platform and current ADB version.
    *
-   * Errors generally are represented by states in MdnsSupportState, not exceptions, except for
-   * catastrophic failures (e.g. out of memory)
+   * Errors generally are represented by states in MdnsSupportState, not exceptions, except for catastrophic failures (e.g. out of memory)
    */
   suspend fun checkMdnsSupport(): MdnsSupportState
 
@@ -48,17 +44,13 @@ interface WiFiPairingService {
   suspend fun scanMdnsServices(): List<PairingMdnsService>
 
   /**
-   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by
-   * the ADB Host ("host:track-mdns-services" query). The flow is active until an exception is
-   * thrown or cancellation is requested by the flow consumer.
+   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by the ADB Host
+   * ("host:track-mdns-services" query). The flow is active until an exception is thrown or cancellation is requested by the flow consumer.
    */
   fun trackMdnsServices(): Flow<MdnsServices>
 
   /** Pair a device through an mDNS service */
-  suspend fun pairMdnsService(
-    pairingMdnsService: PairingMdnsService,
-    password: String,
-  ): PairingResult
+  suspend fun pairMdnsService(pairingMdnsService: PairingMdnsService, password: String): PairingResult
 
   /** Wait for device to be available from the underlying adb implementation */
   suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
@@ -76,10 +68,7 @@ data class PairingResult(
   val ipAddress: InetAddress,
   /** The TCP port that was used for pairing */
   val port: Int,
-  /**
-   * The ID of the mDNS service representing the device that was paired (e.g.
-   * "adb-939AX05XBZ-vWgJpq")
-   */
+  /** The ID of the mDNS service representing the device that was paired (e.g. "adb-939AX05XBZ-vWgJpq") */
   val mdnsServiceId: String,
 ) {
   /** A user friendly string representation of the device */
@@ -136,10 +125,7 @@ private fun mdnsServiceNeedsUpdate(mdnsServiceVersion: String?) = mdnsServiceVer
 
 /** Abstraction over an bitmap representation of a QrCode */
 data class QrCodeImage(
-  /**
-   * The service name of this QR Code. This name will be exposed by ADB when the phone is ready to
-   * pair.
-   */
+  /** The service name of this QR Code. This name will be exposed by ADB when the phone is ready to pair. */
   val serviceName: String,
   /** The password of this QR Code. This password will be used when pairing the device. */
   val password: String,
@@ -148,8 +134,8 @@ data class QrCodeImage(
   /**
    * The QR Code [BufferedImage] representing [pairingString].
    *
-   * The image has a white background and a black pixel for each QR Code "dot". There is also a
-   * white border of a few pixel wide around the image to allow for cameras to frame the QR Code.
+   * The image has a white background and a black pixel for each QR Code "dot". There is also a white border of a few pixel wide around the
+   * image to allow for cameras to frame the QR Code.
    */
   val image: BufferedImage,
 )
@@ -167,10 +153,7 @@ enum class MdnsSupportState {
   /** There was an error invoking ADB, so we don't know if mDNS is supported or not */
   AdbInvocationError,
 
-  /**
-   * We detected that the Mac environment is broken (either platform-tools is too old or mdns back
-   * selection is wrong).
-   */
+  /** We detected that the Mac environment is broken (either platform-tools is too old or mdns back selection is wrong). */
   AdbMacEnvironmentBroken,
 
   /** ADB server MDNS is disabled */

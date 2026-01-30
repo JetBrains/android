@@ -70,70 +70,88 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
       @Entity
       public class TestEntity {}
-      """.trimIndent())
-
-
-    assertThat(getSchema(mainSourceFile)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("MainSourcesEntity"), ENTITY, "MainSourcesEntity",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("MainSourcesEntity").element!!))
-                    ))
-        ),
-        databases = emptySet(),
-        daos = emptySet())
+      """
+        .trimIndent(),
     )
 
-    assertThat(getSchema(testFile)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("MainSourcesEntity"), ENTITY, "MainSourcesEntity",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("MainSourcesEntity").element!!))
-                    )),
-          RoomTable(myFixture.classPointer("TestEntity"), ENTITY, "TestEntity", columns = setOf(
-            RoomRowidColumn(
-              PsiElementForFakeColumn(myFixture.classPointer("TestEntity").element!!))
-          ))
-        ),
-        databases = emptySet(),
-        daos = emptySet())
-    )
+    assertThat(getSchema(mainSourceFile))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("MainSourcesEntity"),
+                ENTITY,
+                "MainSourcesEntity",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("MainSourcesEntity").element!!))),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
+
+    assertThat(getSchema(testFile))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("MainSourcesEntity"),
+                ENTITY,
+                "MainSourcesEntity",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("MainSourcesEntity").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("TestEntity"),
+                ENTITY,
+                "TestEntity",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("TestEntity").element!!))),
+              ),
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testEntities() {
     myFixture.addRoomEntity("User")
     myFixture.addRoomEntity("com.example.Address")
 
-    val psiClass = myFixture.addClass(
-      """
-          package com.example;
+    val psiClass =
+      myFixture.addClass(
+        """
+        package com.example;
 
-          public class NormalClass {}
-          """.trimIndent())
+        public class NormalClass {}
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(psiClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("User"), ENTITY, "User", columns = setOf(
-            RoomRowidColumn(
-              PsiElementForFakeColumn(myFixture.classPointer("User").element!!))
-          )),
-          RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Address").element!!))
-                    ))),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(psiClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("User"),
+                ENTITY,
+                "User",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("User").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("com.example.Address"),
+                ENTITY,
+                "Address",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))),
+              ),
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
-
 
   fun testEntities_tableNameOverride() {
     val address = myFixture.addRoomEntity("com.example.Address", tableNameOverride = "addresses")
@@ -145,8 +163,9 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testEntities_tableNameOverride_expression() {
-    val address = myFixture.addClass(
-      """
+    val address =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
@@ -155,7 +174,9 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
         public class Address {
           public static final String SUFFIX = "_table";
         }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     val entity = getSchema(address).tables.single()
     assertThat(entity.psiClass).isSameAs(myFixture.classPointer("com.example.Address"))
@@ -164,54 +185,57 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testEntities_addEntity() {
-    val addressClass = myFixture.addClass(
-      """
+    val addressClass =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
 
         public class Address {}
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(addressClass)).isEqualTo(
-      RoomSchema(
-        tables = emptySet(),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(addressClass)).isEqualTo(RoomSchema(tables = emptySet(), databases = emptySet(), daos = emptySet()))
 
     myFixture.openFileInEditor(addressClass.containingFile.virtualFile)
     myFixture.editor.caretModel.moveToOffset(myFixture.editor.document.getLineStartOffset(4))
     myFixture.type("@Entity ")
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    assertThat(getSchema(addressClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Address").element!!))
-                    ))),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(addressClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.Address"),
+                ENTITY,
+                "Address",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testViews_addView() {
-    val idsClass = myFixture.addClass(
-      """
+    val idsClass =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.DatabaseView;
 
         public class Ids {}
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(idsClass)).isEqualTo(
-      RoomSchema(
-        tables = emptySet(),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(idsClass)).isEqualTo(RoomSchema(tables = emptySet(), databases = emptySet(), daos = emptySet()))
 
     myFixture.openFileInEditor(idsClass.containingFile.virtualFile)
     myFixture.editor.caretModel.moveToOffset(myFixture.editor.document.getLineStartOffset(4))
@@ -219,38 +243,48 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     val schema = getSchema(idsClass)
-    assertThat(schema).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("com.example.Ids"), VIEW, "Ids")),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(schema)
+      .isEqualTo(
+        RoomSchema(
+          tables = setOf(RoomTable(myFixture.classPointer("com.example.Ids"), VIEW, "Ids")),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
 
     assertThat(schema.tables.single().isView).isTrue()
   }
 
   fun testEntities_AddTableNameOverride() {
-    val addressClass = myFixture.addClass(
-      """
+    val addressClass =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
 
         @Entity
         public class Address {}
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(addressClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Address").element!!))
-                    ))),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(addressClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.Address"),
+                ENTITY,
+                "Address",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
 
     myFixture.openFileInEditor(addressClass.containingFile.virtualFile)
     myFixture.editor.caretModel.moveToOffset(myFixture.editor.document.getLineEndOffset(4))
@@ -269,45 +303,55 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.Address")
     myFixture.addRoomEntity("com.example.Order")
 
-    val database = myFixture.addClass(
-      """
+    val database =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Database;
 
         @Database(entities  = {User.class, Address.class}, version = 1)
         public class AppDatabase {}
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(database)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Address").element!!))
-                    )),
-          RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
-            RoomRowidColumn(
-              PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
-          )),
-          RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Order").element!!))
-                    ))),
-        databases = setOf(
-          RoomDatabase(
-            myFixture.classPointer("com.example.AppDatabase"),
-            entities = setOf(
-              myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User")),
-            daos = emptySet(),
-            views = emptySet(),
-          )),
-        daos = emptySet()))
+    assertThat(getSchema(database))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.Address"),
+                ENTITY,
+                "Address",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                ENTITY,
+                "User",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("com.example.Order"),
+                ENTITY,
+                "Order",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Order").element!!))),
+              ),
+            ),
+          databases =
+            setOf(
+              RoomDatabase(
+                myFixture.classPointer("com.example.AppDatabase"),
+                entities = setOf(myFixture.classPointer("com.example.Address"), myFixture.classPointer("com.example.User")),
+                daos = emptySet(),
+                views = emptySet(),
+              )
+            ),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testDatabases_multiple() {
@@ -315,71 +359,81 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.Address")
     myFixture.addRoomEntity("com.example.Order")
 
-    val psiClass = myFixture.addClass(
-      """
+    val psiClass =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Database;
 
         @Database(entities  = {User.class, Address.class}, version = 1)
         public class UserDatabase {}
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     myFixture.addClass(
       """
-        package com.example;
+      package com.example;
 
-        import androidx.room.Database;
+      import androidx.room.Database;
 
-        @Database(entities  = {Order.class, Address.class}, version = 1)
-        public class OrderDatabase {}
-        """.trimIndent())
+      @Database(entities  = {Order.class, Address.class}, version = 1)
+      public class OrderDatabase {}
+      """
+        .trimIndent()
+    )
 
-    assertThat(getSchema(psiClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Address").element!!))
-                    )),
-          RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
-            RoomRowidColumn(
-              PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
-          )),
-          RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order",
-                    columns = setOf(
-                      RoomRowidColumn(
-                        PsiElementForFakeColumn(
-                          myFixture.classPointer("com.example.Order").element!!))
-                    ))
-        ),
-        databases = setOf(
-          RoomDatabase(
-            myFixture.classPointer("com.example.UserDatabase"),
-            entities = setOf(
-              myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User")),
-            daos = emptySet(),
-            views = emptySet(),
-          ),
-          RoomDatabase(
-            myFixture.classPointer("com.example.OrderDatabase"),
-            entities = setOf(
-              myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.Order")),
-            daos = emptySet(),
-            views = emptySet(),
-          )),
-        daos = emptySet()))
+    assertThat(getSchema(psiClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.Address"),
+                ENTITY,
+                "Address",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Address").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                ENTITY,
+                "User",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))),
+              ),
+              RoomTable(
+                myFixture.classPointer("com.example.Order"),
+                ENTITY,
+                "Order",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.Order").element!!))),
+              ),
+            ),
+          databases =
+            setOf(
+              RoomDatabase(
+                myFixture.classPointer("com.example.UserDatabase"),
+                entities = setOf(myFixture.classPointer("com.example.Address"), myFixture.classPointer("com.example.User")),
+                daos = emptySet(),
+                views = emptySet(),
+              ),
+              RoomDatabase(
+                myFixture.classPointer("com.example.OrderDatabase"),
+                entities = setOf(myFixture.classPointer("com.example.Address"), myFixture.classPointer("com.example.Order")),
+                daos = emptySet(),
+                views = emptySet(),
+              ),
+            ),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testDaos() {
     myFixture.addRoomEntity("com.example.User")
 
-    val dao = myFixture.addClass(
-      """
+    val dao =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Dao;
@@ -389,22 +443,26 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
         public class UserDao {
           @Query("SELECT * FROM User") List<User> getAll();
         }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(dao)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            ENTITY,
-            "User",
-            columns = setOf(
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
-            ))),
-        databases = emptySet(),
-        daos = setOf(
-          Dao(myFixture.classPointer("com.example.UserDao")))))
+    assertThat(getSchema(dao))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                ENTITY,
+                "User",
+                columns = setOf(RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))),
+              )
+            ),
+          databases = emptySet(),
+          daos = setOf(Dao(myFixture.classPointer("com.example.UserDao"))),
+        )
+      )
   }
 
   fun testRoomMissing() {
@@ -422,26 +480,33 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
   fun testColumns() {
     val user = myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
 
-
-    assertThat(getSchema(user)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            name = "User",
-            type = ENTITY,
-            columns = setOf(
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
-              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
-              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(user))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                name = "User",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age"),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testColumns_ignore() {
-    val user = myFixture.addClass(
-      """
+    val user =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
@@ -452,29 +517,36 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
           private String name;
           @Ignore private int age;
         }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(user)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            name = "User",
-            type = ENTITY,
-            columns = setOf(
-              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
-            )
-          )
-        ),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(user))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                name = "User",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                    RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testColumns_static() {
-    val user = myFixture.addClass(
-      """
+    val user =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
@@ -485,27 +557,36 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
           private static final int MY_CONST = 12;
           private String name;
         }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    assertThat(getSchema(user)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            name = "User",
-            type = ENTITY,
-            columns = setOf(
-              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
-            ))),
-        databases = emptySet(),
-        daos = emptySet()))
+    assertThat(getSchema(user))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                name = "User",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name"), "name"),
+                    RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testColumns_inheritance() {
-    val psiClass = myFixture.addClass(
-      """
+    val psiClass =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Entity;
@@ -513,134 +594,162 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
         public abstract class NamedBase {
           private String name;
         }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     myFixture.addClass(
-      """
-        package com.example;
-
-        import androidx.room.Entity;
-
-        @Entity
-        public class User extends NamedBase {
-          private int age;
-        }
-        """.trimIndent())
-
-    assertThat(getSchema(psiClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            name = "User",
-            type = ENTITY,
-            columns = setOf(
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
-              RoomMemberColumn(
-                myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
-              RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age")))),
-        databases = emptySet(),
-        daos = emptySet()))
-  }
-
-  fun testFts() {
-    val psiClass = myFixture.addClass(
       """
       package com.example;
 
       import androidx.room.Entity;
-      import androidx.room.Fts4;
 
       @Entity
-      @Fts4
-      public class Mail {
-        String body;
+      public class User extends NamedBase {
+        private int age;
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    assertThat(getSchema(psiClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.Mail"),
-            name = "Mail",
-            type = ENTITY,
-            columns = setOf(
-              RoomMemberColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
-              RoomFtsTableColumn(myFixture.classPointer("com.example.Mail").element!!, "Mail"),
-              RoomRowidColumn(
-                PsiElementForFakeColumn(myFixture.classPointer("com.example.Mail").element!!),
-                PRIMARY_KEY_NAMES_FOR_FTS)
-            )
-          )),
-        databases = emptySet(),
-        daos = emptySet()
+    assertThat(getSchema(psiClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                name = "User",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "name", checkBases = true), "name"),
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.User", "age"), "age"),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
       )
-    )
+  }
+
+  fun testFts() {
+    val psiClass =
+      myFixture.addClass(
+        """
+        package com.example;
+
+        import androidx.room.Entity;
+        import androidx.room.Fts4;
+
+        @Entity
+        @Fts4
+        public class Mail {
+          String body;
+        }
+        """
+          .trimIndent()
+      )
+
+    assertThat(getSchema(psiClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.Mail"),
+                name = "Mail",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomMemberColumn(myFixture.fieldPointer("com.example.Mail", "body"), "body"),
+                    RoomFtsTableColumn(myFixture.classPointer("com.example.Mail").element!!, "Mail"),
+                    RoomRowidColumn(
+                      PsiElementForFakeColumn(myFixture.classPointer("com.example.Mail").element!!),
+                      PRIMARY_KEY_NAMES_FOR_FTS,
+                    ),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testAutoValue() {
     myFixture.addFileToProject(
       "/src/com/google/auto/value/AutoValue.java",
-      //language=JAVA
-    """
+      // language=JAVA
+      """
       package com.google.auto.value;
 
       @interface AutoValue {}
-    """.trimIndent())
-
-    val psiClass = myFixture.addClass(
       """
-      package com.example;
-
-      import androidx.room.Entity;
-      import com.google.auto.value.AutoValue;
-
-      @AutoValue
-      @Entity
-      public class User {
-        public abstract String getFirstName();
-
-        public abstract String getLastName();
-      }
-      """.trimIndent()
+        .trimIndent(),
     )
 
-    assertThat(getSchema(psiClass)).isEqualTo(
-      RoomSchema(
-        tables = setOf(
-          RoomTable(
-            myFixture.classPointer("com.example.User"),
-            name = "User",
-            type = ENTITY,
-            columns = setOf(
-              RoomMemberColumn(myFixture.methodPointer("com.example.User", "getFirstName"), "firstName"),
-              RoomMemberColumn(myFixture.methodPointer("com.example.User", "getLastName"), "lastName"),
-              RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!) )
-            )
-          )),
-        databases = emptySet(),
-        daos = emptySet()
+    val psiClass =
+      myFixture.addClass(
+        """
+        package com.example;
+
+        import androidx.room.Entity;
+        import com.google.auto.value.AutoValue;
+
+        @AutoValue
+        @Entity
+        public class User {
+          public abstract String getFirstName();
+
+          public abstract String getLastName();
+        }
+        """
+          .trimIndent()
       )
-    )
+
+    assertThat(getSchema(psiClass))
+      .isEqualTo(
+        RoomSchema(
+          tables =
+            setOf(
+              RoomTable(
+                myFixture.classPointer("com.example.User"),
+                name = "User",
+                type = ENTITY,
+                columns =
+                  setOf(
+                    RoomMemberColumn(myFixture.methodPointer("com.example.User", "getFirstName"), "firstName"),
+                    RoomMemberColumn(myFixture.methodPointer("com.example.User", "getLastName"), "lastName"),
+                    RoomRowidColumn(PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!)),
+                  ),
+              )
+            ),
+          databases = emptySet(),
+          daos = emptySet(),
+        )
+      )
   }
 
   fun testSchemaForKotlinFileWithAnnotation() {
-    myFixture.configureByText("User.kt",
-                              """
-        package com.example
+    myFixture.configureByText(
+      "User.kt",
+      """
+      package com.example
 
-        import androidx.room.ColumnInfo
-        import androidx.room.Entity
+      import androidx.room.ColumnInfo
+      import androidx.room.Entity
 
-        @Entity
-        class User() {
-          const val name = "override_name"
-          @ColumnInfo(name = name) val origi<caret>nalName: String?
-        }
-    """.trimIndent())
+      @Entity
+      class User() {
+        const val name = "override_name"
+        @ColumnInfo(name = name) val origi<caret>nalName: String?
+      }
+      """
+        .trimIndent(),
+    )
 
     val element = myFixture.elementAtCaret
 
@@ -650,17 +759,21 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
   fun testEditFragmentFindsCorrectSchema() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val injectionTestFixture = InjectionTestFixture(myFixture)
 

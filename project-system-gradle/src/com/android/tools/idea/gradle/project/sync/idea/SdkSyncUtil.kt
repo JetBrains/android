@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("SdkSyncUtil")
+
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
@@ -34,17 +35,17 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType.CLASSES
 import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
-import java.io.File
 
 private val LOG = Logger.getInstance(SdkSync::class.java)
 
 /**
  * Sync the SDK known by Android Studio with the SDKs listed in local.properties.
  *
- * This method ensures that the SDK location is set in local.properties so that the
- * Android Gradle plugin can find it. It may create or adjust this file as needed.
+ * This method ensures that the SDK location is set in local.properties so that the Android Gradle plugin can find it. It may create or
+ * adjust this file as needed.
  */
 fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
   val projectDir = File(projectPath)
@@ -57,14 +58,13 @@ fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
 }
 
 /**
- * Attempts to find a matching SDK that has been setup in the IDE matching the compile target that
- * was obtained from Gradle via the `IdeAndroidProject`.
+ * Attempts to find a matching SDK that has been setup in the IDE matching the compile target that was obtained from Gradle via the
+ * `IdeAndroidProject`.
  *
- * First we check to see if an Android Sdk that fits that compile target has already been registered,
- * if it has we use that one.
+ * First we check to see if an Android Sdk that fits that compile target has already been registered, if it has we use that one.
  *
- * Secondly we check to see if we can find a new Android SDK by refreshing them via the [RepoManager].
- * This can be the case when the Android Gradle plugin downloads the SDK during sync.
+ * Secondly we check to see if we can find a new Android SDK by refreshing them via the [RepoManager]. This can be the case when the Android
+ * Gradle plugin downloads the SDK during sync.
  *
  * Thirdly we check to see if the SDK is an add-on.
  */
@@ -73,8 +73,8 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   moduleDisplayName: String,
   compileTarget: String,
   bootClasspath: Collection<String>,
-  ideSdks: IdeSdks
-) : Sdk? {
+  ideSdks: IdeSdks,
+): Sdk? {
   // 1 - Find the SDK if it already exists.
   var sdk = findSuitableAndroidSdk(compileTarget)
 
@@ -83,11 +83,7 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   if (sdk != null && sdk.rootProvider.getFiles(CLASSES).isEmpty()) {
     // Delete the invalid JDK to ensure we re-create it with the correct order entries.
     val sdkToRemove = sdk
-    invokeAndWaitIfNeeded {
-      runWriteAction {
-        ProjectJdkTable.getInstance().removeJdk(sdkToRemove)
-      }
-    }
+    invokeAndWaitIfNeeded { runWriteAction { ProjectJdkTable.getInstance().removeJdk(sdkToRemove) } }
     sdk = null
   }
 
@@ -99,13 +95,13 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   // 3 - We may have had an Sdk downloaded by AGP and it has not yet been registered by studio. Here we attempt to
   // find any unregistered sdks.
   val progress = StudioLoggerProgressIndicator(SdkSync::class.java)
-  ProgressManager.getInstance().runProcessWithProgressSynchronously(
-    { tryToChooseSdkHandler().getRepoManager(progress).reloadLocalIfNeeded(progress) },
-    "Reloading SDKs",
-    false,
-    project
-  )
-
+  ProgressManager.getInstance()
+    .runProcessWithProgressSynchronously(
+      { tryToChooseSdkHandler().getRepoManager(progress).reloadLocalIfNeeded(progress) },
+      "Reloading SDKs",
+      false,
+      project,
+    )
 
   val androidSdkHomePath = ideSdks.androidSdkPath
   if (androidSdkHomePath == null) {
@@ -113,12 +109,8 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
     return null
   }
 
-  var newSdk : Sdk? = null
-  invokeAndWaitIfNeeded {
-    newSdk = runWriteAction {
-      tryToCreate(androidSdkHomePath, compileTarget)
-    }
-  }
+  var newSdk: Sdk? = null
+  invokeAndWaitIfNeeded { newSdk = runWriteAction { tryToCreate(androidSdkHomePath, compileTarget) } }
 
   if (newSdk != null) {
     logSdkFound(newSdk as Sdk, moduleDisplayName)
@@ -129,42 +121,35 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   return findMatchingSdkForAddon(bootClasspath)
 }
 
-private fun AndroidSdks.findMatchingSdkForAddon(
-  bootClasspath: Collection<String>
-) : Sdk? {
+private fun AndroidSdks.findMatchingSdkForAddon(bootClasspath: Collection<String>): Sdk? {
   // There will always be an android.jar, any add-ons will be in addition to that.
   if (bootClasspath.size <= 1) return null
 
   // Find the path to the android.jar, so we can match this to the sdks and find which one is in use.
-  val androidJarPath = bootClasspath.map { path ->
-    File(path)
-  }.firstOrNull { file ->
-    file.name == FN_FRAMEWORK_LIBRARY
-  } ?: run {
-    LOG.warn("Unable to find android.jar in bootclasspath. Bootclasspath: ${bootClasspath.joinToString()}.")
-    return null
-  }
+  val androidJarPath =
+    bootClasspath.map { path -> File(path) }.firstOrNull { file -> file.name == FN_FRAMEWORK_LIBRARY }
+      ?: run {
+        LOG.warn("Unable to find android.jar in bootclasspath. Bootclasspath: ${bootClasspath.joinToString()}.")
+        return null
+      }
 
-  return allAndroidSdks.firstOrNull { sdk ->
-    sdk.rootProvider.getFiles(CLASSES).any { sdkFile ->
-      filesEqual(virtualToIoFile(sdkFile), androidJarPath)
+  return allAndroidSdks
+    .firstOrNull { sdk -> sdk.rootProvider.getFiles(CLASSES).any { sdkFile -> filesEqual(virtualToIoFile(sdkFile), androidJarPath) } }
+    .also {
+      if (it == null) {
+        val availableSdks =
+          if (allAndroidSdks.isEmpty()) "No available Android SDKs."
+          else "Available Android SDKs: ${allAndroidSdks.joinToString { sdk -> sdk.name }}."
+        LOG.warn("Unable to find Android SDK that contains $androidJarPath. $availableSdks")
+      }
     }
-  }.also {
-    if (it == null) {
-      val availableSdks = if (allAndroidSdks.isEmpty()) "No available Android SDKs."
-      else "Available Android SDKs: ${allAndroidSdks.joinToString { sdk -> sdk.name }}."
-      LOG.warn("Unable to find Android SDK that contains $androidJarPath. $availableSdks")
-    }
-  }
 }
 
 private fun logAndroidSdkHomeNotFound() {
   LOG.warn("Path to Android SDK not set")
   val sdks = IdeSdks.getInstance().eligibleAndroidSdks
   LOG.warn("# of eligible SDKs: ${sdks.size}")
-  sdks.forEach { sdk ->
-    LOG.info("sdk: $sdk")
-  }
+  sdks.forEach { sdk -> LOG.info("sdk: $sdk") }
 }
 
 private fun logSdkFound(sdk: Sdk, moduleName: String) {

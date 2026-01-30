@@ -32,8 +32,7 @@ import org.jetbrains.annotations.TestOnly
 
 private val LOGGER = Logger.getInstance(NlComponentBackendXml::class.java)
 
-open class NlComponentBackendXml private constructor(private val myProject: Project) :
-  NlComponentBackend {
+open class NlComponentBackendXml private constructor(private val myProject: Project) : NlComponentBackend {
   // TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
   private lateinit var myTag: XmlTag
   private lateinit var myTagName: String
@@ -42,8 +41,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   companion object {
     val DEBUG = false
 
-    @TestOnly
-    fun getForTest(project: Project, xmlTag: XmlTag) = NlComponentBackendXml(project, xmlTag)
+    @TestOnly fun getForTest(project: Project, xmlTag: XmlTag) = NlComponentBackendXml(project, xmlTag)
   }
 
   internal constructor(project: Project, tag: XmlTag) : this(project) {
@@ -53,19 +51,12 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
     if (application.isReadAccessAllowed) {
       myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(myTag)
     } else {
-      application.runReadAction {
-        myTagPointer =
-          SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(myTag)
-      }
+      application.runReadAction { myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(myTag) }
     }
   }
 
   @VisibleForTesting
-  constructor(
-    project: Project,
-    tag: XmlTag,
-    pointer: SmartPsiElementPointer<XmlTag>,
-  ) : this(project) {
+  constructor(project: Project, tag: XmlTag, pointer: SmartPsiElementPointer<XmlTag>) : this(project) {
     myTag = tag
     myTagName = tag.name
     myTagPointer = pointer
@@ -82,8 +73,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
     } else {
       application.runReadAction {
         if (tag.isValid()) {
-          myTagPointer =
-            SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(tag)
+          myTagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(tag)
           myTagName = tag.getName()
         }
       }
@@ -142,9 +132,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   private fun getAttributeImpl(attribute: String, namespace: String?): String? {
     val xmlTag = tag
     if (xmlTag == null) {
-      LOGGER.debug(
-        "Unable to get attribute from ${getTagName()} because XmlTag is invalidated ${getStackTrace()}"
-      )
+      LOGGER.debug("Unable to get attribute from ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return null
     }
     return xmlTag.getAttributeValue(attribute, namespace)
@@ -162,9 +150,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
 
     val xmlTag = tag
     if (xmlTag == null) {
-      LOGGER.debug(
-        "Unable to set attribute to ${getTagName()} because XmlTag is invalidated ${getStackTrace()}"
-      )
+      LOGGER.debug("Unable to set attribute to ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return false
     }
     return xmlTag.setAttribute(attribute, namespace, value) != null
@@ -174,9 +160,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlTag = myTagPointer.element
     if (xmlTag?.containingFile?.virtualFile == null) {
-      LOGGER.debug(
-        "Not reformatting ${getTagName()} because its virtual file is null ${getStackTrace()}"
-      )
+      LOGGER.debug("Not reformatting ${getTagName()} because its virtual file is null ${getStackTrace()}")
       return
     }
 
@@ -188,8 +172,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   }
 
   override fun isValid(): Boolean {
-    return ApplicationManager.getApplication().isReadAccessAllowed &&
-      myTagPointer.element?.isValid == true
+    return ApplicationManager.getApplication().isReadAccessAllowed && myTagPointer.element?.isValid == true
   }
 
   override fun getDefaultNavigatable(): Navigatable? {

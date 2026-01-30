@@ -36,8 +36,7 @@ import java.awt.Insets
  * - State of Live Edit or preview out of date if Live Edit is disabled
  * - Syntax errors
  */
-class PreviewIssueNotificationAction(parentDisposable: Disposable) :
-  CommonIssueNotificationAction(), RightAlignedToolbarAction {
+class PreviewIssueNotificationAction(parentDisposable: Disposable) : CommonIssueNotificationAction(), RightAlignedToolbarAction {
 
   init {
     Disposer.register(parentDisposable, this)
@@ -52,16 +51,11 @@ class PreviewIssueNotificationAction(parentDisposable: Disposable) :
   }
 }
 
-/**
- * [DefaultActionGroup] that shows the notification chip and the
- * [ForceCompileAndRefreshActionForNotification] button when applicable.
- */
+/** [DefaultActionGroup] that shows the notification chip and the [ForceCompileAndRefreshActionForNotification] button when applicable. */
 class ComposeNotificationGroup(parentDisposable: Disposable) :
   DefaultActionGroup(
     listOfNotNull(
-      StudioFlags.PREVIEW_PAGINATION.ifEnabled {
-        PaginationActionGroup().visibleOnlyInDefaultPreview()
-      },
+      StudioFlags.PREVIEW_PAGINATION.ifEnabled { PaginationActionGroup().visibleOnlyInDefaultPreview() },
       PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance(),
     )

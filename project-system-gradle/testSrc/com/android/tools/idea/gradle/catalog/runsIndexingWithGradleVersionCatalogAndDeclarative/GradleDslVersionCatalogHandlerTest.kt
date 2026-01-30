@@ -47,9 +47,9 @@ import org.junit.Test
 @RunsInEdt
 class GradleDslVersionCatalogHandlerTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
+  private val project
+    get() = projectRule.project
 
   @Test
   fun testGetVersionCatalogFiles() {
@@ -65,20 +65,20 @@ class GradleDslVersionCatalogHandlerTest {
 
   @Test
   fun testGetVersionCatalogFilesWithTomlExtension() {
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
-                            AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                            null) {
+    projectRule.loadProject(
+      TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
+      AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+      null,
+    ) {
       Unit
-      it.resolve("settings.gradle")
-        .replaceContent { content ->
-          content
-            .replace("versionCatalogs {", // need to add libs record with custom file name
-                     "versionCatalogs { " +
-                     "    libs {\n" +
-                     "      from(files(\"./gradle/libs.toml\"))\n" +
-                     "    }")
-            .replace("libsTest.versions.toml", "libsTest.toml")
-        }
+      it.resolve("settings.gradle").replaceContent { content ->
+        content
+          .replace(
+            "versionCatalogs {", // need to add libs record with custom file name
+            "versionCatalogs { " + "    libs {\n" + "      from(files(\"./gradle/libs.toml\"))\n" + "    }",
+          )
+          .replace("libsTest.versions.toml", "libsTest.toml")
+      }
       it.resolve("gradle/libs.versions.toml").renameTo(it.resolve("gradle/libs.toml"))
       it.resolve("gradle/libsTest.versions.toml").renameTo(it.resolve("gradle/libsTest.toml"))
     }
@@ -143,17 +143,15 @@ class GradleDslVersionCatalogHandlerTest {
     val settings = root.findFileByRelativePath("settings.gradle")!!
     val settingsContent = settings.readText()
 
-    val newContent = settingsContent.replace("libsTest", "libsTest2 {\n" +
-                                                    "      from(files(\"./gradle/libsTest2.versions.toml\"))\n" +
-                                                    "    }\n libsTest")
+    val newContent =
+      settingsContent.replace(
+        "libsTest",
+        "libsTest2 {\n" + "      from(files(\"./gradle/libsTest2.versions.toml\"))\n" + "    }\n libsTest",
+      )
 
     ApplicationManager.getApplication().runWriteAction {
       settings.writeTextAndCommit(newContent)
-      VfsTestUtil.createFile(
-        root,
-        "gradle/libsTest2.versions.toml",
-        "[libraries]"
-      )
+      VfsTestUtil.createFile(root, "gradle/libsTest2.versions.toml", "[libraries]")
     }
 
     val updatedAccessor1: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
@@ -177,19 +175,24 @@ class GradleDslVersionCatalogHandlerTest {
 
     val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
-    assertThat(dependencies).containsExactly("constraint.layout", "guava", "guava.common",
-                                             "plugins.android.application", "plugins.kotlinAndroid",
-                                             "versions.constraint.layout", "versions.guava", "versions.gradlePlugins.agp",
-                                             "bundles.both")
+    assertThat(dependencies)
+      .containsExactly(
+        "constraint.layout",
+        "guava",
+        "guava.common",
+        "plugins.android.application",
+        "plugins.kotlinAndroid",
+        "versions.constraint.layout",
+        "versions.guava",
+        "versions.gradlePlugins.agp",
+        "bundles.both",
+      )
     // check for catalog updates
     val catalog = root.findFileByRelativePath("gradle/libs.versions.toml")!!
     val catalogContent = catalog.readText()
 
     ApplicationManager.getApplication().runWriteAction {
-      catalog.writeTextAndCommit(catalogContent.replace(
-        "[libraries]",
-        "[libraries]\njunit=\"junit:junit:4.0.0\"\n"
-      ))
+      catalog.writeTextAndCommit(catalogContent.replace("[libraries]", "[libraries]\njunit=\"junit:junit:4.0.0\"\n"))
     }
     val updatedAccessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val updatedDependencies = extractDependenciesInGradleFormat(updatedAccessor)
@@ -198,7 +201,8 @@ class GradleDslVersionCatalogHandlerTest {
 
   @Test
   fun testAccessorUnderscoreNotation() {
-    testWithCustomCatalogFile("""
+    testWithCustomCatalogFile(
+      """
       [versions]
       constraint_layout = "1.0.2"
       gradlePlugins_agp = "8.0.0-beta01"
@@ -211,15 +215,22 @@ class GradleDslVersionCatalogHandlerTest {
 
       [bundles]
       both_bundle = ["constraint_layout"]
-    """.trimIndent(), setOf("constraint.layout",
-                            "plugins.android.application",
-                            "versions.constraint.layout", "versions.gradlePlugins.agp",
-                            "bundles.both.bundle"))
+      """
+        .trimIndent(),
+      setOf(
+        "constraint.layout",
+        "plugins.android.application",
+        "versions.constraint.layout",
+        "versions.gradlePlugins.agp",
+        "bundles.both.bundle",
+      ),
+    )
   }
 
   @Test
   fun testAccessorHyphenNotation() {
-    testWithCustomCatalogFile("""
+    testWithCustomCatalogFile(
+      """
       [versions]
       constraint-layout = "1.0.2"
       gradlePlugins-agp = "8.0.0-beta01"
@@ -232,15 +243,22 @@ class GradleDslVersionCatalogHandlerTest {
 
       [bundles]
       both-bundle = ["constraint-layout"]
-    """.trimIndent(), setOf("constraint.layout",
-                            "plugins.android.application",
-                            "versions.constraint.layout", "versions.gradlePlugins.agp",
-                            "bundles.both.bundle"))
+      """
+        .trimIndent(),
+      setOf(
+        "constraint.layout",
+        "plugins.android.application",
+        "versions.constraint.layout",
+        "versions.gradlePlugins.agp",
+        "bundles.both.bundle",
+      ),
+    )
   }
 
   @Test
   fun testAccessorExtNotation() {
-    testWithCustomCatalogFile("""
+    testWithCustomCatalogFile(
+      """
       [versions]
       constraint_layout = "1.0.2"
       gradlePlugins_agp = "8.0.0-beta01"
@@ -252,10 +270,17 @@ class GradleDslVersionCatalogHandlerTest {
       [plugins]
       android_application = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
       android_application_ext = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
-    """.trimIndent(), setOf("constraint", "constraint.ext",
-                            "plugins.android.application", "plugins.android.application.ext",
-                            "versions.constraint.layout", "versions.gradlePlugins.agp"))
-
+      """
+        .trimIndent(),
+      setOf(
+        "constraint",
+        "constraint.ext",
+        "plugins.android.application",
+        "plugins.android.application.ext",
+        "versions.constraint.layout",
+        "versions.gradlePlugins.agp",
+      ),
+    )
   }
 
   @Test
@@ -264,9 +289,9 @@ class GradleDslVersionCatalogHandlerTest {
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val settings = root.findFileByRelativePath("settings.gradle")!!
     ApplicationManager.getApplication().runWriteAction {
-      settings.writeTextAndCommit("dependencyResolutionManagement {\n" +
-                                  "          defaultLibrariesExtensionName = \"dep\"\n" +
-                                  "        }")
+      settings.writeTextAndCommit(
+        "dependencyResolutionManagement {\n" + "          defaultLibrariesExtensionName = \"dep\"\n" + "        }"
+      )
     }
     val handler = GradleDslVersionCatalogHandler()
     assertThat(handler.getDefaultCatalogName(project)).contains("dep")
@@ -280,12 +305,7 @@ class GradleDslVersionCatalogHandlerTest {
   fun testCustomInclude() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG) { root ->
       val settings = File(root, "settings.gradle")
-      settings.replaceContent {
-        it.replace("include ':app'", "inc('app')\n " +
-                                     "def inc(String str){\n " +
-                                     "    include(str)\n" +
-                                     "}")
-      }
+      settings.replaceContent { it.replace("include ':app'", "inc('app')\n " + "def inc(String str){\n " + "    include(str)\n" + "}") }
     }
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
@@ -298,8 +318,16 @@ class GradleDslVersionCatalogHandlerTest {
 
     val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
-    assertThat(dependencies).containsExactly("constraint.layout", "guava", "junit", "androidx.room.ktx",
-                                             "versions.constraint.layout", "versions.guava", "versions.junit")
+    assertThat(dependencies)
+      .containsExactly(
+        "constraint.layout",
+        "guava",
+        "junit",
+        "androidx.room.ktx",
+        "versions.constraint.layout",
+        "versions.guava",
+        "versions.junit",
+      )
   }
 
   private fun VirtualFile.writeTextAndCommit(text: String) {
@@ -313,9 +341,7 @@ class GradleDslVersionCatalogHandlerTest {
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val catalog = root.findFileByRelativePath("gradle/libs.versions.toml")!!
-    ApplicationManager.getApplication().runWriteAction {
-      catalog.writeTextAndCommit(catalogContent)
-    }
+    ApplicationManager.getApplication().runWriteAction { catalog.writeTextAndCommit(catalogContent) }
     val source = root.findFileByRelativePath("app/build.gradle")!!
     val psiFile = PsiManager.getInstance(project).findFile(source)!!
     val context = psiFile.findReferenceByText("libs.guava")
@@ -336,19 +362,15 @@ class GradleDslVersionCatalogHandlerTest {
         for (method in methods) {
           if (method.name == "asProvider") {
             result.add(path.joinToString(separator = "."))
-          }
-          else {
+          } else {
             result.addAll(extract(method.returnType.resolve(), path + listOf(getPropertyName(method.name)!!)))
           }
         }
         result
-      }
-      else {
+      } else {
         listOf(path.joinToString(separator = "."))
       }
-
     }
     return extract(accessor, listOf())
   }
-
 }

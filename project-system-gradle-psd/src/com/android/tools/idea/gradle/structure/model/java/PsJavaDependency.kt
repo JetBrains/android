@@ -19,8 +19,7 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import org.jetbrains.plugins.gradle.model.ExternalProject
 
-abstract class PsJavaDependency protected constructor(
-  final override val parent: PsJavaModule
-) : PsChildModel(), PsBaseDependency {
-  val gradleModel: ExternalProject? get() = parent.resolvedModel
+abstract class PsJavaDependency protected constructor(final override val parent: PsJavaModule) : PsChildModel(), PsBaseDependency {
+  val gradleModel: ExternalProject?
+    get() = parent.resolvedModel
 }

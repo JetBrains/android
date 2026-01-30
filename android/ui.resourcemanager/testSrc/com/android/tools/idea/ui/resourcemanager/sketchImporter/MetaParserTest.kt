@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter
 
+import kotlin.test.assertEquals
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class MetaParserTest {
   @Test
   fun checkVersionNew() {
-    val meta: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta = SketchTestUtils.parseMeta(
-      AndroidTestBase.getTestDataPath() + "/sketch/meta51.json")
+    val meta: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta =
+      SketchTestUtils.parseMeta(AndroidTestBase.getTestDataPath() + "/sketch/meta51.json")
 
     assertEquals(meta.appVersion, 51.2)
   }
 
   @Test
   fun checkVersionOld() {
-    val meta: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta = SketchTestUtils.parseMeta(
-      AndroidTestBase.getTestDataPath() + "/sketch/meta43.json")
+    val meta: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta =
+      SketchTestUtils.parseMeta(AndroidTestBase.getTestDataPath() + "/sketch/meta43.json")
 
     assertEquals(meta.appVersion, 43.0)
   }

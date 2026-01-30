@@ -32,21 +32,9 @@ private const val SYMBOLS_HOST = "https://fonts.gstatic.com/s/i/short-term/relea
  * @property displayName displayed name in Android Studio UI
  */
 enum class Symbols(val remoteFileName: String, val localName: String, val displayName: String) {
-  OUTLINED(
-    "MaterialSymbolsOutlined[FILL,GRAD,opsz,wght]",
-    "materialsymbolsoutlined",
-    "Material Symbols Outlined",
-  ),
-  ROUNDED(
-    "MaterialSymbolsRounded[FILL,GRAD,opsz,wght]",
-    "materialsymbolsrounded",
-    "Material Symbols Rounded",
-  ),
-  SHARP(
-    "MaterialSymbolsSharp[FILL,GRAD,opsz,wght]",
-    "materialsymbolssharp",
-    "Material Symbols Sharp",
-  );
+  OUTLINED("MaterialSymbolsOutlined[FILL,GRAD,opsz,wght]", "materialsymbolsoutlined", "Material Symbols Outlined"),
+  ROUNDED("MaterialSymbolsRounded[FILL,GRAD,opsz,wght]", "materialsymbolsrounded", "Material Symbols Rounded"),
+  SHARP("MaterialSymbolsSharp[FILL,GRAD,opsz,wght]", "materialsymbolssharp", "Material Symbols Sharp");
 
   companion object {
 
@@ -66,29 +54,19 @@ enum class Symbols(val remoteFileName: String, val localName: String, val displa
  * Data class representing the properties of a Material Symbol that affect its rendering and display
  *
  * @property type The [Symbols] type (Outlined, Rounded, Sharp)
- * @property weight The font weight, affecting the stroke thickness in the render, affecting the
- *   icon's width
- * @property grade The font grade, affecting the stroke thickness in the render without affecting
- *   the icon's width
+ * @property weight The font weight, affecting the stroke thickness in the render, affecting the icon's width
+ * @property grade The font grade, affecting the stroke thickness in the render without affecting the icon's width
  * @property opticalSize The optical size of the icon
- * @property filled Whether the icon should be rendered "empty" or "filled" within the constraints
- *   of its outline
+ * @property filled Whether the icon should be rendered "empty" or "filled" within the constraints of its outline
  */
-data class SymbolConfiguration(
-  val type: Symbols,
-  val weight: Int,
-  val grade: Int,
-  val opticalSize: Int,
-  val filled: Boolean,
-) {
+data class SymbolConfiguration(val type: Symbols, val weight: Int, val grade: Int, val opticalSize: Int, val filled: Boolean) {
 
   companion object {
     val DEFAULT = SymbolConfiguration(Symbols.OUTLINED, 400, 0, 24, false)
   }
 
   /**
-   * @return The common part between the remote URL and File representations of the
-   *   [MaterialSymbols], describing its [SymbolConfiguration]
+   * @return The common part between the remote URL and File representations of the [MaterialSymbols], describing its [SymbolConfiguration]
    */
   private fun getCoreString(): String {
     return buildString {
@@ -136,8 +114,7 @@ interface MaterialSymbolsUrlProvider {
   /**
    * Generates the [URL] used to download a font file for Material Symbols from the remote server
    *
-   * @param type [Symbols] enum instance indicating which style of Material Symbols to download the
-   *   font for
+   * @param type [Symbols] enum instance indicating which style of Material Symbols to download the font for
    * @return the [URL] used for download
    */
   fun getRemoteFontUrl(type: Symbols): URL
@@ -158,10 +135,7 @@ interface MaterialSymbolsUrlProvider {
    */
   fun getLocalFontFile(type: Symbols): File?
 
-  /**
-   * Gets the local [File] where all the resources related to Material Symbols reside (Metadata,
-   * Fonts, Vector Drawables)
-   */
+  /** Gets the local [File] where all the resources related to Material Symbols reside (Metadata, Fonts, Vector Drawables) */
   fun getLocalSymbolsPath(): File?
 
   /**
@@ -176,8 +150,7 @@ interface MaterialSymbolsUrlProvider {
 /**
  * Provides the resources defined in [MaterialSymbolsUrlProvider] from the SDK.
  *
- * It is the only implementation of this interface used in the source code, as this pattern was
- * implemented for testing purposes
+ * It is the only implementation of this interface used in the source code, as this pattern was implemented for testing purposes
  */
 class SymbolsSdkUrlProvider : MaterialSymbolsUrlProvider {
   private val HOST = "https://raw.githubusercontent.com/google/material-design-icons/master/"
@@ -194,8 +167,7 @@ class SymbolsSdkUrlProvider : MaterialSymbolsUrlProvider {
 
   override fun getLocalFontDirectoryFile(type: Symbols): File? {
     val directoryName = type.localName
-    val fontDirectoryPath =
-      MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(FOLDER + directoryName) ?: return null
+    val fontDirectoryPath = MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(FOLDER + directoryName) ?: return null
     return fontDirectoryPath
   }
 

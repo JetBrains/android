@@ -45,46 +45,29 @@ class HeaderRuleDialog(
       (document as AbstractDocument).documentFilter = EmptyFieldDocumentFilter(::updateOkAction)
     }
 
-  @VisibleForTesting
-  val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com")
+  @VisibleForTesting val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com")
 
-  @VisibleForTesting
-  val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
+  @VisibleForTesting val findNameTextField: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
 
   @VisibleForTesting val findNameRegexCheckBox = JBCheckBox()
 
-  @VisibleForTesting
-  val findValueTextField: JBTextField = createTextField(null, "https://www.google.com")
+  @VisibleForTesting val findValueTextField: JBTextField = createTextField(null, "https://www.google.com")
 
   @VisibleForTesting val findValueRegexCheckBox = JBCheckBox()
 
-  @VisibleForTesting
-  val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control")
+  @VisibleForTesting val newReplacedNameTextField: JBTextField = createTextField(null, "Cache-Control")
 
-  @VisibleForTesting
-  val newReplacedValueTextField: JBTextField = createTextField(null, "max-age=604800")
+  @VisibleForTesting val newReplacedValueTextField: JBTextField = createTextField(null, "max-age=604800")
 
-  @VisibleForTesting
-  val findNameCheckBox =
-    createFieldEnabledCheckBox("Header name:", findNameTextField, findNameRegexCheckBox)
+  @VisibleForTesting val findNameCheckBox = createFieldEnabledCheckBox("Header name:", findNameTextField, findNameRegexCheckBox)
 
-  @VisibleForTesting
-  val findValueCheckBox =
-    createFieldEnabledCheckBox("Header value:", findValueTextField, findValueRegexCheckBox)
+  @VisibleForTesting val findValueCheckBox = createFieldEnabledCheckBox("Header value:", findValueTextField, findValueRegexCheckBox)
 
-  @VisibleForTesting
-  val replaceNameCheckBox =
-    createFieldEnabledCheckBox("Header name:", newReplacedNameTextField, null)
+  @VisibleForTesting val replaceNameCheckBox = createFieldEnabledCheckBox("Header name:", newReplacedNameTextField, null)
 
-  @VisibleForTesting
-  val replaceValueCheckBox =
-    createFieldEnabledCheckBox("Header value:", newReplacedValueTextField, null)
+  @VisibleForTesting val replaceValueCheckBox = createFieldEnabledCheckBox("Header value:", newReplacedValueTextField, null)
 
-  private fun createFieldEnabledCheckBox(
-    name: String,
-    textField: JBTextField,
-    regexCheckBox: JBCheckBox?,
-  ) =
+  private fun createFieldEnabledCheckBox(name: String, textField: JBTextField, regexCheckBox: JBCheckBox?) =
     JBCheckBox(name).apply {
       val changeAction: (e: ItemEvent) -> Unit = {
         textField.isEnabled = isSelected
@@ -102,8 +85,7 @@ class HeaderRuleDialog(
     @Suppress("SENSELESS_COMPARISON") // tabs will be null during initialization
     if (tabs == null) return
     okAction.isEnabled =
-      (tabs.selectedComponent == newHeaderPanel &&
-        newAddedNameLabel.text.isNotBlank()) || // Blank value is fine
+      (tabs.selectedComponent == newHeaderPanel && newAddedNameLabel.text.isNotBlank()) || // Blank value is fine
         ((findNameCheckBox.isSelected || findValueCheckBox.isSelected) &&
           (replaceNameCheckBox.isSelected || replaceValueCheckBox.isSelected))
     setOKButtonTooltip(
@@ -122,13 +104,7 @@ class HeaderRuleDialog(
   val newHeaderPanel =
     JPanel(VerticalLayout(10)).apply {
       border = JBUI.Borders.emptyTop(15)
-      add(
-        createCategoryPanel(
-          null,
-          JBLabel("New header name:") to newAddedNameLabel,
-          JBLabel("Value:") to newAddedValueLabel,
-        )
-      )
+      add(createCategoryPanel(null, JBLabel("New header name:") to newAddedNameLabel, JBLabel("Value:") to newAddedValueLabel))
     }
 
   @VisibleForTesting
@@ -144,10 +120,7 @@ class HeaderRuleDialog(
               "Header name matching is case insensitive. Regex that selects for case will have the case selection ignored",
             ),
           findValueCheckBox to
-            findValueTextField.withRegexCheckBoxAndInfoIcon(
-              findValueRegexCheckBox,
-              "Header value match is case sensitive",
-            ),
+            findValueTextField.withRegexCheckBoxAndInfoIcon(findValueRegexCheckBox, "Header value match is case sensitive"),
         )
       )
       add(
@@ -254,17 +227,10 @@ class EmptyFieldDocumentFilter(val updateOkAction: () -> Unit) : DocumentFilter(
     if (!isDocumentEmpty(fb)) updateOkAction()
   }
 
-  override fun replace(
-    fb: FilterBypass,
-    offset: Int,
-    length: Int,
-    text: String,
-    attrs: AttributeSet?,
-  ) {
+  override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String, attrs: AttributeSet?) {
     super.replace(fb, offset, length, text, attrs)
     if (!isDocumentEmpty(fb)) updateOkAction()
   }
 
-  private fun isDocumentEmpty(fb: FilterBypass) =
-    fb.document.getText(0, fb.document.length).isEmpty()
+  private fun isDocumentEmpty(fb: FilterBypass) = fb.document.getText(0, fb.document.length).isEmpty()
 }

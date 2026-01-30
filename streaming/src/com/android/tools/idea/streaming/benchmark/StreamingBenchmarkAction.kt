@@ -35,21 +35,15 @@ class StreamingBenchmarkAction : AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun actionPerformed(event: AnActionEvent) {
-    getTarget(event.project)?.let {
-      StreamingBenchmarkDialog(it).createWrapper(event.project).show()
-    }
+    getTarget(event.project)?.let { StreamingBenchmarkDialog(it).createWrapper(event.project).show() }
   }
 
   private fun getTarget(project: Project?): StreamingBenchmarkTarget? {
-    val panel = project
-                  ?.getEmulatorToolWindow()
-                  ?.contentManager
-                  ?.selectedContent
-                  ?.component as? StreamingDevicePanel<*> ?: return null
+    val panel = project?.getEmulatorToolWindow()?.contentManager?.selectedContent?.component as? StreamingDevicePanel<*> ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
     return StreamingBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }
 
   private fun Project.getEmulatorToolWindow(): ToolWindow? =
-      ToolWindowManager.getInstance(this).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+    ToolWindowManager.getInstance(this).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
 }

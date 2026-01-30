@@ -54,6 +54,10 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.util.TimeoutUtil.sleep
 import com.intellij.util.ui.UIUtil
+import java.time.Clock
+import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -71,14 +75,8 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
-import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
-/**
- * Unit tests for [AndroidTestSuiteView].
- */
+/** Unit tests for [AndroidTestSuiteView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class AndroidTestSuiteViewTest {
@@ -86,10 +84,7 @@ class AndroidTestSuiteViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
   @Mock lateinit var processHandler: ProcessHandler
   @Mock lateinit var mockClock: Clock
@@ -172,8 +167,7 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Click on the test case 2 results row.
-    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(4),
-                                         /*selectedDevice=*/null)
+    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(4), /* selectedDevice= */ null)
 
     // Verifies the details view is visible now.
     assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
@@ -181,8 +175,7 @@ class AndroidTestSuiteViewTest {
     assertThat(view.myDetailsView.selectedDevice).isEqualTo(device1)
 
     // Click on the test case 1 results row in device2 column.
-    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(2),
-                                         /*selectedDevice=*/device2)
+    view.onAndroidTestResultsRowSelected(view.myResultsTableView.getTableViewForTesting().getItem(2), /* selectedDevice= */ device2)
 
     // Verifies the details view is visible now.
     assertThat(view.myDetailsView.rootPanel.isVisible).isTrue()
@@ -194,10 +187,12 @@ class AndroidTestSuiteViewTest {
 
     assertThat(view.myDetailsView.rootPanel.isVisible).isFalse()
 
-    assertThat(view.myLogger.getImpressionsForTesting()).containsExactly(
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW,
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW)
+    assertThat(view.myLogger.getImpressionsForTesting())
+      .containsExactly(
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW,
+        ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW,
+      )
   }
 
   @Test
@@ -240,55 +235,55 @@ class AndroidTestSuiteViewTest {
 
     // Initially, all tests are displayed.
     assertThat(tableView.rowCount).isEqualTo(9)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
-    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
-    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(8).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("") // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.") // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1") // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2") // method 2 (passed)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.") // Class B aggregation (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method3") // method 3 (skipped)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageB.classB.method4") // method 4 (in progress)
+    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.") // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(8).getFullTestCaseName()).isEqualTo("packageC.classC.method5") // method 5 (cancelled)
 
     // Remove "Skipped".
     view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(8)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
-    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("") // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.") // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1") // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2") // method 2 (passed)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.") // Class B aggregation (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4") // method 4 (in progress)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.") // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5") // method 5 (cancelled)
 
     // Remove "Passed" and select "Skipped".
     view.myPassedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = true
 
     assertThat(tableView.rowCount).isEqualTo(8)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method3")  // method 3 (skipped)
-    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
-    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("") // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.") // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1") // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.") // Class B aggregation (in progress)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method3") // method 3 (skipped)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageB.classB.method4") // method 4 (in progress)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.") // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("packageC.classC.method5") // method 5 (cancelled)
 
     // Remove "Passed" and "Skipped". (Nothing is selected).
     view.myPassedToggleButton.isSelected = false
     view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(7)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
-    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
-    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
-    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
-    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method4")  // method 4 (in progress)
-    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageC.classC.")  // Class C aggregation (cancelled)
-    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.method5")  // method 5 (cancelled)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("") // Root aggregation (failed)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.") // Class A aggregation (failed)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1") // method 1 (failed)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.") // Class B aggregation (in progress)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("packageB.classB.method4") // method 4 (in progress)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("packageC.classC.") // Class C aggregation (cancelled)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("packageC.classC.method5") // method 5 (cancelled)
   }
 
   @Test
@@ -347,9 +342,8 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Select "device2" in the device filter ComboBox.
-    val selectDevice2Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
-      it.templateText == "deviceName2"
-    }
+    val selectDevice2Action =
+      view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find { it.templateText == "deviceName2" }
     requireNotNull(selectDevice2Action).actionPerformed(mock())
 
     val tableView = view.myResultsTableView.getTableViewForTesting()
@@ -398,9 +392,8 @@ class AndroidTestSuiteViewTest {
 
     // Select "API 29" in the API level filter ComboBox.
     view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(ActionManager.getInstance())
-    val selectApi29Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
-      it.templateText == "API 29"
-    }
+    val selectApi29Action =
+      view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find { it.templateText == "API 29" }
     requireNotNull(selectApi29Action).actionPerformed(mock())
 
     val tableView = view.myResultsTableView.getTableViewForTesting()
@@ -495,7 +488,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun singleDeviceStatusText() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock = mockClock)
     val device1 = device("deviceId1", "deviceName1")
 
     view.onTestSuiteScheduled(device1)
@@ -504,10 +497,20 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
@@ -516,7 +519,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun multipleDevicesStatusText() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock = mockClock)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -527,18 +530,38 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.SKIPPED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.SKIPPED,
+    )
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice2)
-    runTestCase(view, device2, testsuiteOnDevice2,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(view, device2, testsuiteOnDevice2,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device2,
+      testsuiteOnDevice2,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestCase(
+      view,
+      device2,
+      testsuiteOnDevice2,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     assertThat(view.myStatusText.text)
@@ -548,7 +571,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun durationInStatusTextCanBeOverwritten() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock = mockClock)
     view.testExecutionDurationOverride = Duration.ofSeconds(10)
 
     val device1 = device("deviceId1", "deviceName1")
@@ -559,10 +582,20 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     assertThat(view.myStatusText.text).isEqualTo("<html><nobr><b><font color='#d67b76'>2 failed</font></b></nobr></html>")
@@ -571,7 +604,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun deviceSelectorIsHiddenWhenSingleDevice() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock = mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
 
@@ -580,7 +613,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun deviceSelectorIsVisibleWhenMultiDevices() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock = mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
     view.onTestSuiteScheduled(device("deviceId2", "deviceName2"))
@@ -592,10 +625,11 @@ class AndroidTestSuiteViewTest {
   fun testHistoryIsSavedAfterTestExecution() {
     val initialTestHistoryCount = getTestHistory().size
 
-    val runConfig = mock<RunConfiguration>().apply {
-      whenever(name).thenReturn("mockRunConfig")
-      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
-    }
+    val runConfig =
+      mock<RunConfiguration>().apply {
+        whenever(name).thenReturn("mockRunConfig")
+        whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      }
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig)
     val device1 = device("deviceId1", "deviceName1")
 
@@ -603,20 +637,33 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
 
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
-    assertThat(ProgressIndicatorUtils.withTimeout(30000) {
-      while(getTestHistory().size == initialTestHistoryCount) {
-        ProgressManager.checkCanceled()
-        sleep(100)
-      }
-      true
-    }).isTrue()
+    assertThat(
+        ProgressIndicatorUtils.withTimeout(30000) {
+          while (getTestHistory().size == initialTestHistoryCount) {
+            ProgressManager.checkCanceled()
+            sleep(100)
+          }
+          true
+        }
+      )
+      .isTrue()
   }
 
   @Test
@@ -628,13 +675,14 @@ class AndroidTestSuiteViewTest {
     }
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfigurationMock, disposableRule.disposable)
 
-    val runConfig = mock<RunConfiguration>().apply {
-      whenever(name).thenReturn("mockRunConfig")
-      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
-    }
+    val runConfig =
+      mock<RunConfiguration>().apply {
+        whenever(name).thenReturn("mockRunConfig")
+        whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      }
     val initialCurrentTimeMillis = System.currentTimeMillis()
     whenever(mockClock.millis()).thenReturn(initialCurrentTimeMillis)
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, myClock=mockClock)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, myClock = mockClock)
     val device1 = device("deviceId1", "deviceName1")
 
     // First test run fails by error.
@@ -650,10 +698,20 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
 
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
@@ -665,10 +723,11 @@ class AndroidTestSuiteViewTest {
     val testHistoryConfigurationMock = Mockito.mock(TestHistoryConfiguration::class.java)
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfigurationMock, disposableRule.disposable)
 
-    val runConfig = mock<RunConfiguration>().apply {
-      whenever(name).thenReturn("mockRunConfig")
-      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
-    }
+    val runConfig =
+      mock<RunConfiguration>().apply {
+        whenever(name).thenReturn("mockRunConfig")
+        whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      }
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, canExportTestResults = false)
     val device1 = device("deviceId1", "deviceName1")
 
@@ -676,10 +735,20 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
 
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
@@ -689,27 +758,29 @@ class AndroidTestSuiteViewTest {
   private fun getTestHistory(): List<ImportTestsFromHistoryAction> {
     val mockEvent = mock<AnActionEvent>()
     whenever(mockEvent.project).thenReturn(projectRule.project)
-    return ImportTestGroup().getChildren(mockEvent).mapNotNull {
-      it as? ImportTestsFromHistoryAction
-    }
+    return ImportTestGroup().getChildren(mockEvent).mapNotNull { it as? ImportTestsFromHistoryAction }
   }
 
-  private fun runTestCase(view: AndroidTestSuiteView,
-                          device: AndroidDevice,
-                          suite: AndroidTestSuite,
-                          testcase: AndroidTestCase,
-                          result: AndroidTestCaseResult) {
+  private fun runTestCase(
+    view: AndroidTestSuiteView,
+    device: AndroidDevice,
+    suite: AndroidTestSuite,
+    testcase: AndroidTestCase,
+    result: AndroidTestCaseResult,
+  ) {
     view.onTestCaseStarted(device, suite, testcase)
     testcase.result = result
     view.onTestCaseFinished(device, suite, testcase)
   }
 
-  private fun runTestStep(view: AndroidTestSuiteView,
-                          device: AndroidDevice,
-                          testSuite: AndroidTestSuite,
-                          testCase: AndroidTestCase,
-                          testStep: AndroidTestStep,
-                          result: AndroidTestCaseResult) {
+  private fun runTestStep(
+    view: AndroidTestSuiteView,
+    device: AndroidDevice,
+    testSuite: AndroidTestSuite,
+    testCase: AndroidTestCase,
+    testStep: AndroidTestStep,
+    result: AndroidTestCaseResult,
+  ) {
     view.onTestStepStarted(device, testSuite, testCase, testStep)
     testStep.result = result
     view.onTestStepFinished(device, testSuite, testCase, testStep)
@@ -718,41 +789,6 @@ class AndroidTestSuiteViewTest {
   @Test
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
-
-    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
-      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
-    }
-
-    val actionButtons = UIUtil.uiTraverser(view.component)
-      .filter(ActionButton::class.java)
-      .filter(ActionButton::isFocusable)
-      .map { it.action.templateText }
-      .filterNotNull()
-      .toList()
-
-    assertThat(actionButtons).containsExactly(
-      "Show passed tests",
-      "Show skipped tests",
-      "Expand All",
-      "Collapse All",
-      "Previous Occurrence",
-      "Next Occurrence",
-      "Test History",
-      "Import Tests from File…",
-      "Export Test Results…"
-    ).inOrder()
-  }
-
-  @Test
-  fun importExportActionButtonsAreNotShownForNonAndroidTestRunConfiguration() {
-    val nonAndroidTestRunConfiguration = mock<RunConfiguration>()
-    val view =
-      AndroidTestSuiteView(
-        disposableRule.disposable,
-        projectRule.project,
-        null,
-        runConfiguration = nonAndroidTestRunConfiguration,
-      )
 
     for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
@@ -774,7 +810,32 @@ class AndroidTestSuiteViewTest {
         "Collapse All",
         "Previous Occurrence",
         "Next Occurrence",
+        "Test History",
+        "Import Tests from File…",
+        "Export Test Results…",
       )
+      .inOrder()
+  }
+
+  @Test
+  fun importExportActionButtonsAreNotShownForNonAndroidTestRunConfiguration() {
+    val nonAndroidTestRunConfiguration = mock<RunConfiguration>()
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, runConfiguration = nonAndroidTestRunConfiguration)
+
+    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    }
+
+    val actionButtons =
+      UIUtil.uiTraverser(view.component)
+        .filter(ActionButton::class.java)
+        .filter(ActionButton::isFocusable)
+        .map { it.action.templateText }
+        .filterNotNull()
+        .toList()
+
+    assertThat(actionButtons)
+      .containsExactly("Show passed tests", "Show skipped tests", "Expand All", "Collapse All", "Previous Occurrence", "Next Occurrence")
       .inOrder()
   }
 
@@ -805,12 +866,27 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId3", "method3", "class3", "package3"), AndroidTestCaseResult.PASSED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.FAILED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId3", "method3", "class3", "package3"),
+      AndroidTestCaseResult.PASSED,
+    )
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     // Verifies the details view is visible now.
@@ -828,12 +904,27 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.PASSED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.PASSED)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId3", "method3", "class3", "package3"), AndroidTestCaseResult.PASSED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId2", "method2", "class2", "package2"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId3", "method3", "class3", "package3"),
+      AndroidTestCaseResult.PASSED,
+    )
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
     // Verifies the details view is visible now.
@@ -851,8 +942,13 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 1)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.CANCELLED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.CANCELLED,
+    )
     testsuiteOnDevice1.result = AndroidTestSuiteResult.CANCELLED
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
@@ -870,8 +966,13 @@ class AndroidTestSuiteViewTest {
 
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 1)
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
-    runTestCase(view, device1, testsuiteOnDevice1,
-                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.CANCELLED)
+    runTestCase(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      AndroidTestCase("testId1", "method1", "class1", "package1"),
+      AndroidTestCaseResult.CANCELLED,
+    )
     testsuiteOnDevice1.result = AndroidTestSuiteResult.CANCELLED
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
@@ -891,21 +992,43 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteStarted(device1, testsuiteOnDevice1)
 
     val testcaseOnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
-    runTestCase(view, device1, testsuiteOnDevice1,
-                testcaseOnDevice1, AndroidTestCaseResult.PASSED)
+    runTestCase(view, device1, testsuiteOnDevice1, testcaseOnDevice1, AndroidTestCaseResult.PASSED)
 
-    runTestStep(view, device1, testsuiteOnDevice1, testcaseOnDevice1, AndroidTestStep("testId1.stepId1", 0, "step1"),
-                AndroidTestCaseResult.PASSED)
-    runTestStep(view, device1, testsuiteOnDevice1, testcaseOnDevice1, AndroidTestStep("testId1.stepId2", 1, "step2"),
-                AndroidTestCaseResult.PASSED)
+    runTestStep(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      testcaseOnDevice1,
+      AndroidTestStep("testId1.stepId1", 0, "step1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestStep(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      testcaseOnDevice1,
+      AndroidTestStep("testId1.stepId2", 1, "step2"),
+      AndroidTestCaseResult.PASSED,
+    )
 
     val testCase2OnDevice1 = AndroidTestCase("testId2", "method2", "class1", "package1")
-    runTestCase(view, device1, testsuiteOnDevice1,
-                testCase2OnDevice1, AndroidTestCaseResult.FAILED)
-    runTestStep(view, device1, testsuiteOnDevice1, testCase2OnDevice1, AndroidTestStep("testId2.stepId3", 0, "step1"),
-                AndroidTestCaseResult.PASSED)
-    runTestStep(view, device1, testsuiteOnDevice1, testCase2OnDevice1, AndroidTestStep("testId2.stepId4", 1, "step2"),
-                AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1, testCase2OnDevice1, AndroidTestCaseResult.FAILED)
+    runTestStep(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      testCase2OnDevice1,
+      AndroidTestStep("testId2.stepId3", 0, "step1"),
+      AndroidTestCaseResult.PASSED,
+    )
+    runTestStep(
+      view,
+      device1,
+      testsuiteOnDevice1,
+      testCase2OnDevice1,
+      AndroidTestStep("testId2.stepId4", 1, "step2"),
+      AndroidTestCaseResult.FAILED,
+    )
 
     testsuiteOnDevice1.result = AndroidTestSuiteResult.FAILED
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
@@ -933,7 +1056,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun printSuppressesEmptyLinesForNormalOutput() {
-    val view = AndroidTestSuiteView (disposableRule.disposable, projectRule.project, null)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
     val newline = Platform.current().lineSeparator
 
     view.print(newline, ConsoleViewContentType.NORMAL_OUTPUT)
@@ -947,7 +1070,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun printShouldNotSuppressEmptyLinesForErrorOutput() {
-    val view = AndroidTestSuiteView (disposableRule.disposable, projectRule.project, null)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
     val newline = Platform.current().lineSeparator
 
     view.print(newline, ConsoleViewContentType.ERROR_OUTPUT)

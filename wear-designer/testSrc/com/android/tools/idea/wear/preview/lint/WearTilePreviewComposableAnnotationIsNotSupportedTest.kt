@@ -62,7 +62,7 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
         @Composable
         fun validMethodWithComposableAnnotation() {}
-      """
+        """
           .trimIndent(),
       )
     )
@@ -99,7 +99,7 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
           @Composable
           void validMethodWithComposableAnnotation() {}
         }
-      """
+        """
           .trimIndent(),
       )
     )
@@ -112,10 +112,7 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
     val error = errors.single()
     assertEquals("@Composable", error.text)
-    assertEquals(
-      message("inspection.preview.annotation.composable.not.supported"),
-      error.description,
-    )
+    assertEquals(message("inspection.preview.annotation.composable.not.supported"), error.description)
     assertEquals("invalidPreviewWithComposableAnnotation", file.containingMethodName(error))
   }
 }

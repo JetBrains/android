@@ -37,11 +37,9 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.ClassUtil
 import java.io.File
 
-/**
- * An adapter to translate [ITestRunListener] and [ProcessListener] callback methods into [AndroidTestResultListener].
- */
-class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
-                                   private val listener: AndroidTestResultListener) : ITestRunListener, ProcessListener {
+/** An adapter to translate [ITestRunListener] and [ProcessListener] callback methods into [AndroidTestResultListener]. */
+class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice, private val listener: AndroidTestResultListener) :
+  ITestRunListener, ProcessListener {
 
   companion object {
     private val logger = Logger.getInstance(DdmlibTestRunListenerAdapter::class.java)
@@ -56,12 +54,12 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
-     * Gets the benchmark output from the [testMetrics] map. The order of the keys is important here, given we look
-     * at the first key (in that specific order) that exists in [testMetrics].
+     * Gets the benchmark output from the [testMetrics] map. The order of the keys is important here, given we look at the first key (in
+     * that specific order) that exists in [testMetrics].
      *
-     * We do this because, benchmark output is versioned, and we typically want outputs in the latest
-     * version while gracefully falling back to a prior version if that version of the output is not a part of [testMetrics]. That might
-     * happen when an older version of the `androidx.benchmark` library might be being used.
+     * We do this because, benchmark output is versioned, and we typically want outputs in the latest version while gracefully falling back
+     * to a prior version if that version of the output is not a part of [testMetrics]. That might happen when an older version of the
+     * `androidx.benchmark` library might be being used.
      */
     private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>, orderedKeys: List<String>): String {
       for (key in orderedKeys) {
@@ -98,15 +96,16 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
   @AnyThread
   override fun testStarted(testId: TestIdentifier) {
     val fullyQualifiedTestMethodName = "${testId.className}#${testId.testName}"
-    val testCaseRunCount = myTestCaseRunCount.compute(fullyQualifiedTestMethodName) { _, currentValue ->
-      currentValue?.plus(1) ?: 0
-    }
-    val testCase = AndroidTestCase("${testId} - ${testCaseRunCount}",
-                                   testId.testName,
-                                   ClassUtil.extractClassName(testId.className),
-                                   ClassUtil.extractPackageName(testId.className),
-                                   AndroidTestCaseResult.IN_PROGRESS,
-                                   startTimestampMillis = System.currentTimeMillis())
+    val testCaseRunCount = myTestCaseRunCount.compute(fullyQualifiedTestMethodName) { _, currentValue -> currentValue?.plus(1) ?: 0 }
+    val testCase =
+      AndroidTestCase(
+        "${testId} - ${testCaseRunCount}",
+        testId.testName,
+        ClassUtil.extractClassName(testId.className),
+        ClassUtil.extractPackageName(testId.className),
+        AndroidTestCaseResult.IN_PROGRESS,
+        startTimestampMillis = System.currentTimeMillis(),
+      )
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
@@ -143,17 +142,16 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
       testCase.result = AndroidTestCaseResult.PASSED
     }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
-    testCase.benchmark = getBenchmarkOutput(
-      testMetrics = testMetrics,
-      orderedKeys = listOf(BENCHMARK_V3_TEST_METRICS_KEY, BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY)
-    )
+    testCase.benchmark =
+      getBenchmarkOutput(
+        testMetrics = testMetrics,
+        orderedKeys = listOf(BENCHMARK_V3_TEST_METRICS_KEY, BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY),
+      )
     testCase.endTimestampMillis = System.currentTimeMillis()
     // When copying outputs use the V2 format for ease. This way we don't need to prune path parameters.
     copyBenchmarkFilesIfNeeded(
-      benchmark = getBenchmarkOutput(
-        testMetrics = testMetrics,
-        orderedKeys = listOf(BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY)
-      ),
+      benchmark =
+        getBenchmarkOutput(testMetrics = testMetrics, orderedKeys = listOf(BENCHMARK_V2_TEST_METRICS_KEY, BENCHMARK_TEST_METRICS_KEY)),
       deviceRoot = testMetrics.getOrDefault(BENCHMARK_PATH_TEST_METRICS_KEY, ""),
     )
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
@@ -196,7 +194,7 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
 
   private fun copyBenchmarkFilesIfNeeded(benchmark: String, deviceRoot: String) {
     if (benchmark.isBlank() || deviceRoot.isBlank()) {
-      return;
+      return
     }
     val benchmarkOutput = BenchmarkOutput(benchmark)
     for (line in benchmarkOutput.lines) {
@@ -204,19 +202,20 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
       while (match != null) {
         val link = match.groups[BenchmarkOutput.LINK_GROUP]?.value ?: ""
         if (link.startsWith(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX)) {
-          val task = object : Task.Backgroundable(null, "Pulling: $link", true) {
-            override fun run(indicator: ProgressIndicator) {
-              val relativeFilePath = link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, "")
-              val localFilePath = FileUtil.getTempDirectory() + File.separator + relativeFilePath
-              val localFile = File(localFilePath)
-              localFile.deleteOnExit()
-              if (!localFile.exists() && (localFile.parentFile.exists() || localFile.parentFile.mkdirs())) {
-                myIDevice.pullFile("$deviceRoot/$relativeFilePath", localFile.absolutePath)
-              } else {
-                logger.warn("Unable to copy latest trace file ($relativeFilePath) from device (${myIDevice.serialNumber})")
+          val task =
+            object : Task.Backgroundable(null, "Pulling: $link", true) {
+              override fun run(indicator: ProgressIndicator) {
+                val relativeFilePath = link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, "")
+                val localFilePath = FileUtil.getTempDirectory() + File.separator + relativeFilePath
+                val localFile = File(localFilePath)
+                localFile.deleteOnExit()
+                if (!localFile.exists() && (localFile.parentFile.exists() || localFile.parentFile.mkdirs())) {
+                  myIDevice.pullFile("$deviceRoot/$relativeFilePath", localFile.absolutePath)
+                } else {
+                  logger.warn("Unable to copy latest trace file ($relativeFilePath) from device (${myIDevice.serialNumber})")
+                }
               }
             }
-          }
           ProgressManager.getInstance().run(task)
         }
         match = match.next()
@@ -224,13 +223,9 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     }
   }
 
-  @Synchronized
-  @AnyThread
-  override fun startNotified(event: ProcessEvent) {}
+  @Synchronized @AnyThread override fun startNotified(event: ProcessEvent) {}
 
-  @Synchronized
-  @AnyThread
-  override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {}
+  @Synchronized @AnyThread override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {}
 
   @Synchronized
   @AnyThread

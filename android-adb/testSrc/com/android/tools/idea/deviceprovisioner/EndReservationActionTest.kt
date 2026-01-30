@@ -32,6 +32,8 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
+import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,8 +41,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
-import java.time.Instant
 
 private const val END_RESERVATION_ID = "android.device.reservation.end"
 private val defaultPresentation = DeviceAction.Presentation("", EmptyIcon.ICON_0, true)
@@ -60,16 +60,10 @@ class EndReservationActionTest {
   @Test
   fun testAction() {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val endReservationAction =
-      CustomActionsSchema.getInstance().getCorrectedAction(END_RESERVATION_ID)!!
-        as EndReservationAction
+    val endReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(END_RESERVATION_ID)!! as EndReservationAction
     var reservationEnded = false
     val stateFlow =
-      MutableStateFlow(
-        DeviceState.Disconnected(
-          DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE }
-        )
-      )
+      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE }))
     val handle =
       FakeDeviceHandle(
         scope,
@@ -92,31 +86,19 @@ class EndReservationActionTest {
     assertThat(event.presentation.isVisible).isFalse()
 
     // Reservation with ERROR state.
-    stateFlow.update {
-      it.copy(
-        reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now(), null)
-      )
-    }
+    stateFlow.update { it.copy(reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now(), null)) }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
     assertThat(event.presentation.isVisible).isFalse()
 
     // Reservation with COMPLETE state.
-    stateFlow.update {
-      it.copy(
-        reservation = Reservation(ReservationState.COMPLETE, "", Instant.now(), Instant.now(), null)
-      )
-    }
+    stateFlow.update { it.copy(reservation = Reservation(ReservationState.COMPLETE, "", Instant.now(), Instant.now(), null)) }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
     assertThat(event.presentation.isVisible).isFalse()
 
     // Active reservation.
-    stateFlow.update {
-      it.copy(
-        reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX, null)
-      )
-    }
+    stateFlow.update { it.copy(reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX, null)) }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.isVisible).isTrue()

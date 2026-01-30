@@ -37,42 +37,32 @@ import com.intellij.openapi.vfs.VirtualFile
  * project are also used directly by IntelliJ in the "new project from existing source" flow, which uses a WizardContext for its state
  * (these steps are injected into the Wizard by the [SourceToGradleModuleStep]).
  */
-class SourceToGradleModuleModel(
-  val project: Project,
-  private val projectSyncInvoker: ProjectSyncInvoker
-) : WizardModel() {
+class SourceToGradleModuleModel(val project: Project, private val projectSyncInvoker: ProjectSyncInvoker) : WizardModel() {
   val context: WizardContext = WizardContext(project, this)
   private var modulesToImport = mapOf<String, VirtualFile>()
-  @JvmField
-  val sourceLocation = StringValueProperty().apply {
-    addConstraint(String::trim)
-  }
+  @JvmField val sourceLocation = StringValueProperty().apply { addConstraint(String::trim) }
 
   override fun handleFinished() {
-    runWriteAction {
-      ModuleImporter.getImporter(context).importProjects(modulesToImport)
-    }
-    ApplicationManager.getApplication().invokeLater {
-      projectSyncInvoker.syncProject(project)
-    }
+    runWriteAction { ModuleImporter.getImporter(context).importProjects(modulesToImport) }
+    ApplicationManager.getApplication().invokeLater { projectSyncInvoker.syncProject(project) }
 
-    val templateComponentBuilder = AndroidStudioEvent.TemplatesUsage.TemplateComponent.newBuilder().apply {
-      templateType = NO_ACTIVITY
-      wizardUiContext = NEW_MODULE
-    }
+    val templateComponentBuilder =
+      AndroidStudioEvent.TemplatesUsage.TemplateComponent.newBuilder().apply {
+        templateType = NO_ACTIVITY
+        wizardUiContext = NEW_MODULE
+      }
 
-    val templateModuleBuilder = AndroidStudioEvent.TemplatesUsage.TemplateModule.newBuilder().apply {
-      moduleType = IMPORT_GRADLE
-    }
+    val templateModuleBuilder = AndroidStudioEvent.TemplatesUsage.TemplateModule.newBuilder().apply { moduleType = IMPORT_GRADLE }
 
-    val aseBuilder = AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
-      .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
-      .setTemplateUsage(
-        AndroidStudioEvent.TemplatesUsage.newBuilder()
-          .setTemplateComponent(templateComponentBuilder)
-          .setTemplateModule(templateModuleBuilder)
-      )
+    val aseBuilder =
+      AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
+        .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
+        .setTemplateUsage(
+          AndroidStudioEvent.TemplatesUsage.newBuilder()
+            .setTemplateComponent(templateComponentBuilder)
+            .setTemplateModule(templateModuleBuilder)
+        )
     UsageTracker.log(aseBuilder.withProjectId(project))
   }
 

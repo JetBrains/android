@@ -32,19 +32,18 @@ import java.nio.file.Paths
 internal class ThreadingChecker : ApplicationInitializedListener {
   /** Start receiving notifications from the threading agent. */
   override suspend fun execute() {
-    val agentLoadedAtStartup = try {
-      Class.forName("com.android.tools.instrumentation.threading.agent.Agent", false, null)
-      true
-    }
-    catch (e: ClassNotFoundException) {
-      false
-    }
+    val agentLoadedAtStartup =
+      try {
+        Class.forName("com.android.tools.instrumentation.threading.agent.Agent", false, null)
+        true
+      } catch (e: ClassNotFoundException) {
+        false
+      }
 
     if (agentLoadedAtStartup) {
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
       thisLogger().info("ThreadingChecker listener has been installed.")
-    }
-    else {
+    } else {
       // Attempt to load the threading agent dynamically when running an EAP build of Android Studio.
       // As for the tests and running Android Studio from IntelliJ during development use the -javaagent JVM option instead.
       maybeAttachThreadingAgent()
@@ -87,11 +86,9 @@ internal class ThreadingChecker : ApplicationInitializedListener {
       vm.loadAgent(threadingAgentJarPath.toString())
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
       thisLogger().info("ThreadingChecker listener has been installed (after threading agent was dynamically loaded).")
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       thisLogger().error(e)
-    }
-    finally {
+    } finally {
       vm?.detach()
     }
   }

@@ -22,34 +22,28 @@ import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 
-interface AndroidRunConfigurationToken<P: AndroidProjectSystem> : Token {
-  /**
-   * @return the module containing production code related to [module].
-   */
+interface AndroidRunConfigurationToken<P : AndroidProjectSystem> : Token {
+  /** @return the module containing production code related to [module]. */
   fun getModuleForAndroidRunConfiguration(projectSystem: P, module: Module): Module
-  /**
-   * @return the module containing androidTest code related to [module].
-   */
+
+  /** @return the module containing androidTest code related to [module]. */
   fun getModuleForAndroidTestRunConfiguration(projectSystem: P, module: Module): Module?
 
   companion object {
     @JvmField
-    val EP_NAME = ExtensionPointName<AndroidRunConfigurationToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken")
+    val EP_NAME =
+      ExtensionPointName<AndroidRunConfigurationToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken"
+      )
 
     // TODO(xof): should this be nullable?  At the moment we assume that all (android) modules have a main module that is runnable, but
     //  that is in not in fact the case in the presence of (Gradle) projects with the test plugin.
     @JvmStatic
     fun getModuleForAndroidRunConfiguration(module: Module) =
-      module.project.getProjectSystem().let {
-        it.getTokenOrNull(EP_NAME)?.getModuleForAndroidRunConfiguration(it, module)
-      }
-      ?: module
+      module.project.getProjectSystem().let { it.getTokenOrNull(EP_NAME)?.getModuleForAndroidRunConfiguration(it, module) } ?: module
 
     @JvmStatic
     fun getModuleForAndroidTestRunConfiguration(module: Module) =
-      module.project.getProjectSystem().let {
-        it.getTokenOrNull(EP_NAME)?.getModuleForAndroidTestRunConfiguration(it, module)
-      }
+      module.project.getProjectSystem().let { it.getTokenOrNull(EP_NAME)?.getModuleForAndroidTestRunConfiguration(it, module) }
   }
 }

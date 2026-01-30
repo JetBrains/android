@@ -24,6 +24,7 @@ interface AndroidProjectViewSettings {
 
   companion object {
     fun getInstance(): AndroidProjectViewSettings = ApplicationManager.getApplication().getService(AndroidProjectViewSettings::class.java)
+
     const val PROJECT_VIEW_KEY = "studio.projectview"
   }
 

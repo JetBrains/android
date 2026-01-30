@@ -18,19 +18,17 @@ package com.android.tools.idea.streaming.core
 import java.awt.Color
 import kotlin.math.roundToInt
 
-/**
- * Interpolates between two colors.
- */
+/** Interpolates between two colors. */
 fun interpolate(start: Color, end: Color, fraction: Double): Color {
-  return Color(interpolate(start.red, end.red, fraction).coerceIn(0, 255),
-               interpolate(start.green, end.green, fraction).coerceIn(0, 255),
-               interpolate(start.blue, end.blue, fraction).coerceIn(0, 255),
-               interpolate(start.alpha, end.alpha, fraction).coerceIn(0, 255))
+  return Color(
+    interpolate(start.red, end.red, fraction).coerceIn(0, 255),
+    interpolate(start.green, end.green, fraction).coerceIn(0, 255),
+    interpolate(start.blue, end.blue, fraction).coerceIn(0, 255),
+    interpolate(start.alpha, end.alpha, fraction).coerceIn(0, 255),
+  )
 }
 
-/**
- * Interpolates between multiple colors as with a gradient.
- */
+/** Interpolates between multiple colors as with a gradient. */
 fun interpolate(colors: List<Color>, fraction: Double): Color {
   require(colors.isNotEmpty()) { "Must supply at least one color!" }
   return when {
@@ -44,9 +42,7 @@ fun interpolate(colors: List<Color>, fraction: Double): Color {
   }
 }
 
-/**
- * Interpolates between two integers.
- */
+/** Interpolates between two integers. */
 private fun interpolate(start: Int, end: Int, fraction: Double): Int {
   return start + ((end - start) * fraction).roundToInt()
 }

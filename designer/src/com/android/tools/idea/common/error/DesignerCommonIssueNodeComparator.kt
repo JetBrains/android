@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
-class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName: Boolean) :
-  Comparator<DesignerCommonIssueNode> {
+class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName: Boolean) : Comparator<DesignerCommonIssueNode> {
   private val comparator: Comparator<DesignerCommonIssueNode>
 
   init {
@@ -30,8 +29,7 @@ class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName:
     this.comparator = comparator
   }
 
-  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int =
-    comparator.compare(o1, o2)
+  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int = comparator.compare(o1, o2)
 }
 
 object IssueNodeSeverityComparator : Comparator<DesignerCommonIssueNode> {

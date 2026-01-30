@@ -38,8 +38,7 @@ class PairDevicesUsingWiFiAction : DumbAwareAction(StudioIcons.Avd.PAIR_OVER_WIF
       PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController().showDialog()
       return
     }
-    val wifiPairingService =
-      WiFiPairingServiceImpl(RandomProvider(), AdbServiceWrapperAdbLibImpl(project))
+    val wifiPairingService = WiFiPairingServiceImpl(RandomProvider(), AdbServiceWrapperAdbLibImpl(project))
     WifiAvailableDevicesDialog(project, wifiPairingService).showDialog()
   }
 

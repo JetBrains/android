@@ -29,10 +29,7 @@ import com.intellij.ui.SideBorder
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class ModuleSelectorDropDownPanel(
-  context: PsContext,
-  perspective: BasePerspectiveConfigurable
-) : JPanel(BorderLayout()) {
+class ModuleSelectorDropDownPanel(context: PsContext, perspective: BasePerspectiveConfigurable) : JPanel(BorderLayout()) {
 
   private val actions = createToolbarActions(context, perspective)
   private val toolbar = createToolbar(actions)
@@ -59,11 +56,11 @@ private fun createToolbarActions(context: PsContext, perspective: BasePerspectiv
           MODULES_LIST_MINIMIZE = false
           fireUISettingsChanged()
         }
-    })
+    },
+  )
 
 private fun createToolbar(actions: ActionGroup) =
   ActionManager.getInstance().createActionToolbar("TOP", actions, true).apply {
     setTargetComponent(null)
     component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
   }
-

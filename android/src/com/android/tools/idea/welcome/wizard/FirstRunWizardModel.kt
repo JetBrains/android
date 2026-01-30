@@ -76,23 +76,16 @@ class FirstRunWizardModel(
     }
 
   val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> =
-    ObjectValueProperty(
-      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation)
-    )
+    ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, initialSdkLocation))
   private val localHandler
     get() = localHandlerProperty.get()
 
-  val sdkInstallLocationProperty: ObservableValue<Optional<Path>> =
-    localHandlerProperty.transform { Optional.ofNullable(it.location) }
+  val sdkInstallLocationProperty: ObservableValue<Optional<Path>> = localHandlerProperty.transform { Optional.ofNullable(it.location) }
   val sdkInstallLocation: Path?
     get() = sdkInstallLocationProperty.get().orNull()
 
   /** Should store the root node of the component tree. */
-  val componentTree =
-    createComponentTree(
-      !isChromeOSAndIsNotHWAccelerated() && mode.shouldCreateAvd(),
-      installUpdates,
-    )
+  val componentTree = createComponentTree(!isChromeOSAndIsNotHWAccelerated() && mode.shouldCreateAvd(), installUpdates)
 
   init {
     componentTree.updateState(localHandler)
@@ -108,12 +101,8 @@ class FirstRunWizardModel(
     }
   }
 
-  private fun createComponentTree(
-    createAvd: Boolean,
-    installUpdates: Boolean,
-  ): SdkComponentTreeNode {
-    val components: MutableList<SdkComponentTreeNode> =
-      mutableListOf(AndroidSdkComponentTreeNode(installUpdates))
+  private fun createComponentTree(createAvd: Boolean, installUpdates: Boolean): SdkComponentTreeNode {
+    val components: MutableList<SdkComponentTreeNode> = mutableListOf(AndroidSdkComponentTreeNode(installUpdates))
 
     val sdkManager =
       localHandler.getRepoManager(StudioLoggerProgressIndicator(javaClass)).apply {
@@ -127,9 +116,7 @@ class FirstRunWizardModel(
 
     val remotePackages = sdkManager.packages.remotePackages.values
 
-    components.add(
-      AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates)
-    )
+    components.add(AndroidPlatformSdkComponentTreeNode.createSubtree(remotePackages, installUpdates))
 
     val installationIntention =
       if (installUpdates) AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
@@ -143,16 +130,12 @@ class FirstRunWizardModel(
         components.add(avdSdkComponent)
       }
     }
-    return SdkComponentCategoryTreeNode(
-      "Root",
-      "Root node that is not supposed to appear in the UI",
-      components,
-    )
+    return SdkComponentCategoryTreeNode("Root", "Root node that is not supposed to appear in the UI", components)
   }
 
   /**
-   * Installs all components in the `componentTree` that are configured to be installed. Once the
-   * components have been installed, the SDK path and installer timestamp are stored in preferences.
+   * Installs all components in the `componentTree` that are configured to be installed. Once the components have been installed, the SDK
+   * path and installer timestamp are stored in preferences.
    *
    * @param progressStep used to provide feedback on installation progress
    */
@@ -160,9 +143,7 @@ class FirstRunWizardModel(
   fun installComponents(progressStep: InstallComponentsProgressStep) {
     val sdkHandler = localHandler
 
-    tracker.trackSdkComponentsToInstall(
-      componentTree.childrenToInstall.map { it.sdkComponentsMetricKind() }
-    )
+    tracker.trackSdkComponentsToInstall(componentTree.childrenToInstall.map { it.sdkComponentsMetricKind() })
 
     sdkComponentInstaller.installComponents(
       componentTree.childrenToInstall,

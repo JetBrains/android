@@ -23,14 +23,16 @@ import com.intellij.openapi.ui.Messages
 
 class ResetUserIdAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
-    if (Messages.showOkCancelDialog(
+    if (
+      Messages.showOkCancelDialog(
         e.project,
         "Click OK to reset your data sharing user identifier.",
         "Reset Data Sharing User Identifier",
         "OK",
         "Cancel",
-        Messages.getQuestionIcon()
-      ) != Messages.OK) {
+        Messages.getQuestionIcon(),
+      ) != Messages.OK
+    ) {
       return
     }
 

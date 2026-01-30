@@ -24,11 +24,11 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 /** Tests for the DeviceManagerPanel that use FakeAdb. */
 @RunsInEdt
@@ -38,8 +38,7 @@ class DeviceManagerPanelFakeAdbTest {
   private val androidExecutorsRule = AndroidExecutorsRule()
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(EdtRule(), projectRule, androidExecutorsRule, deviceProvisionerRule)
+  @get:Rule val ruleChain = RuleChain(EdtRule(), projectRule, androidExecutorsRule, deviceProvisionerRule)
 
   @Test
   fun viewDetails() {
@@ -47,8 +46,7 @@ class DeviceManagerPanelFakeAdbTest {
     val device2 = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
     val template = FakeDeviceTemplate("device1")
 
-    val deviceManager =
-      DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
+    val deviceManager = DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
 
     deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device1)
     deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device2)
@@ -81,8 +79,7 @@ class DeviceManagerPanelFakeAdbTest {
     val device = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
     runBlocking { device.activationAction.activate() }
 
-    val deviceManager =
-      DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
+    val deviceManager = DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
 
     deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device)
 
@@ -93,9 +90,7 @@ class DeviceManagerPanelFakeAdbTest {
 
     device.fakeAdbDevice?.deviceStatus = DeviceState.DeviceStatus.OFFLINE
 
-    retryUntilPassing(5.seconds) {
-      assertThat(deviceManager.deviceTable.values[0].status).isEqualTo(DeviceRowData.Status.OFFLINE)
-    }
+    retryUntilPassing(5.seconds) { assertThat(deviceManager.deviceTable.values[0].status).isEqualTo(DeviceRowData.Status.OFFLINE) }
   }
 
   private fun DeviceManagerPanel.invokeViewDetails(row: DeviceRowData) {

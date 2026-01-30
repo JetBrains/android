@@ -21,18 +21,17 @@ import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 import com.intellij.testFramework.ApplicationRule
+import java.net.URLDecoder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.net.URLDecoder
 
 class AndroidStudioResourceUrlsTest {
 
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
   @Before
   fun setUp() {
@@ -55,9 +54,11 @@ class AndroidStudioResourceUrlsTest {
     assertThat(urls.youTubeChannelUrl.toString()).isEqualTo("https://www.youtube.com/c/AndroidDevelopers")
     assertThat(urls.whatIsNewPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/menu-whats-new.html")
     assertThat(urls.gettingStartedPageUrl.toString()).isEqualTo("http://developer.android.com/r/studio-ui/menu-start.html")
-    assertThat(urls.helpPageUrl!!("project.scopes").toString()).isEqualTo("https://www.jetbrains.com/help/idea/$shortVersion/?project.scopes")
+    assertThat(urls.helpPageUrl!!("project.scopes").toString())
+      .isEqualTo("https://www.jetbrains.com/help/idea/$shortVersion/?project.scopes")
     if (SystemInfo.isMac) {
-      assertThat(urls.keyboardShortcutsPdfUrl.toString()).isEqualTo("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf")
+      assertThat(urls.keyboardShortcutsPdfUrl.toString())
+        .isEqualTo("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf")
     } else {
       assertThat(urls.keyboardShortcutsPdfUrl.toString()).isEqualTo("https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf")
     }
@@ -70,9 +71,10 @@ class AndroidStudioResourceUrlsTest {
     val updateMetadataUrl = resourceUrls.updateMetadataUrl.toString()
     assertThat(updateMetadataUrl).startsWith("https://dl.google.com/android/studio/patches/updates.xml")
 
-    val params = updateMetadataUrl.substringAfter('?').split("&").associate {
-      Pair(it.substringBefore('='), URLDecoder.decode(it.substringAfter('='), "UTF-8"))
-    }
+    val params =
+      updateMetadataUrl.substringAfter('?').split("&").associate {
+        Pair(it.substringBefore('='), URLDecoder.decode(it.substringAfter('='), "UTF-8"))
+      }
     assertThat(params.keys).containsAllOf("build", "uid", "os")
     assertThat(params["build"]).isEqualTo(ApplicationInfo.getInstance().build.asString())
   }

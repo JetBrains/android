@@ -24,9 +24,8 @@ import java.awt.Rectangle
 /** Navigation helper for when the surface is clicked. */
 interface NavigationHandler : Disposable {
   /**
-   * Triggered when preview in the design surface is clicked, if [shouldFindAllNavigatables] returns
-   * the returns a list of all navigatables under the x y coordinates in the same file as the click.
-   * Otherwise, returns the deepest navigatable under the given coordinates.
+   * Triggered when preview in the design surface is clicked, if [shouldFindAllNavigatables] returns the returns a list of all navigatables
+   * under the x y coordinates in the same file as the click. Otherwise, returns the deepest navigatable under the given coordinates.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
    * @param x X coordinate within the [SceneView] where the click action was initiated
@@ -43,8 +42,8 @@ interface NavigationHandler : Disposable {
   ): List<PreviewNavigatableWrapper>
 
   /**
-   * Triggered when the caret is moved, this will return all bounds of the components in the preview
-   * and their line number to calculate whether the caret was moved to a line that has a preview.
+   * Triggered when the caret is moved, this will return all bounds of the components in the preview and their line number to calculate
+   * whether the caret was moved to a line that has a preview.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
    * @param fileName [fileName] in which to look for components
@@ -52,24 +51,19 @@ interface NavigationHandler : Disposable {
   suspend fun findBoundsOfComponents(sceneView: SceneView, lineNumber: Int): List<Rectangle>
 
   /**
-   * Triggered when preview in the design surface is clicked, returns true if the navigation was
-   * handled by this handler. This method receives a navigatable to navigate to. If null is passed
-   * the component will be navigated to.
+   * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler. This method
+   * receives a navigatable to navigate to. If null is passed the component will be navigated to.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
    * @param navigatable [Navigatable] the navigatable to navigate to
    * @param requestFocus true if the navigation should focus the editor
    */
-  suspend fun navigateTo(
-    sceneView: SceneView,
-    navigatable: Navigatable,
-    requestFocus: Boolean,
-  ): Boolean
+  suspend fun navigateTo(sceneView: SceneView, navigatable: Navigatable, requestFocus: Boolean): Boolean
 
   /**
-   * Triggered when need to perform a navigation associated to the [sceneView] as a whole, but not
-   * any of its components. This could happen for example when the [sceneView]'s name/title shown in
-   * the design surface is clicked. Returns true if the navigation was handled by this handler.
+   * Triggered when need to perform a navigation associated to the [sceneView] as a whole, but not any of its components. This could happen
+   * for example when the [sceneView]'s name/title shown in the design surface is clicked. Returns true if the navigation was handled by
+   * this handler.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
    * @param requestFocus true if the navigation should focus the editor

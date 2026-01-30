@@ -77,9 +77,7 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
   private val actionClasses by lazy { computeInnerClasses() }
   private val _methods by lazy { computeMethods() }
   private val _navigationElement by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
-  private val _actions by lazy {
-    destination.getActionsWithResolvedArguments(navEntry.data, navInfo.packageName)
-  }
+  private val _actions by lazy { destination.getActionsWithResolvedArguments(navEntry.data, navInfo.packageName) }
 
   override fun getMethods() = _methods
 
@@ -100,20 +98,13 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
   }
 
   private fun computeMethods(): Array<PsiMethod> {
-    val navDirectionsType =
-      parsePsiType(navInfo.packageName, "androidx.navigation.NavDirections", null, this)
+    val navDirectionsType = parsePsiType(navInfo.packageName, "androidx.navigation.NavDirections", null, this)
     return _actions
       .map { action ->
         val methodName = action.id.toCamelCase()
-        val resolvedNavigationElement =
-          _navigationElement?.findFirstMatchingElementByTraversingUp(
-            SdkConstants.TAG_ACTION,
-            action.id,
-          )
+        val resolvedNavigationElement = _navigationElement?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
         val resolvedNavDirectionsType =
-          actionClasses
-            .find { it.name!!.usLocaleDecapitalize() == methodName }
-            ?.let { PsiTypesUtil.getClassType(it) } ?: navDirectionsType
+          actionClasses.find { it.name!!.usLocaleDecapitalize() == methodName }?.let { PsiTypesUtil.getClassType(it) } ?: navDirectionsType
         createMethod(
             name = methodName,
             navigationElement = resolvedNavigationElement,

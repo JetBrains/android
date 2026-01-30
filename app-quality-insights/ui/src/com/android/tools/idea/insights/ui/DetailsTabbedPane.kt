@@ -47,17 +47,12 @@ import javax.swing.JSeparator
 data class TabbedPaneDefinition(val name: String, val component: JComponent)
 
 /**
- * A tabbed pane component for AQI's details panel with a floating soft wrap action in the top right
- * corner.
+ * A tabbed pane component for AQI's details panel with a floating soft wrap action in the top right corner.
  *
- * It takes a list of [TabbedPaneDefinition] and creates tabs based on them. It requires a
- * [StackTraceConsole] to connect with the soft wrap action.
+ * It takes a list of [TabbedPaneDefinition] and creates tabs based on them. It requires a [StackTraceConsole] to connect with the soft wrap
+ * action.
  */
-class DetailsTabbedPane(
-  name: String,
-  definitions: List<TabbedPaneDefinition>,
-  stackTraceConsole: StackTraceConsole,
-) {
+class DetailsTabbedPane(name: String, definitions: List<TabbedPaneDefinition>, stackTraceConsole: StackTraceConsole) {
   val component: JComponent
 
   init {
@@ -92,13 +87,7 @@ class DetailsTabbedPane(
       }
     tabbedPane.tabComponentInsets = null
     definitions.forEachIndexed { index, definition ->
-      tabbedPane.insertTab(
-        definition.name,
-        null,
-        createPanelWithBlankSpaceAtTop(definition.component),
-        null,
-        index,
-      )
+      tabbedPane.insertTab(definition.name, null, createPanelWithBlankSpaceAtTop(definition.component), null, index)
     }
 
     // On fold/un-fold of code blocks, resize tab panel accordingly.
@@ -107,8 +96,7 @@ class DetailsTabbedPane(
       .addComponentListener(
         object : ComponentAdapter() {
           override fun componentResized(e: ComponentEvent) {
-            tabbedPane.preferredSize =
-              calculatePreferredTabbedPaneSize(tabbedPane, tabbedPane.selectedComponent)
+            tabbedPane.preferredSize = calculatePreferredTabbedPaneSize(tabbedPane, tabbedPane.selectedComponent)
             tabbedPane.revalidate()
           }
         }
@@ -117,19 +105,11 @@ class DetailsTabbedPane(
     if (definitions.size > 1) {
       // Tabbed panels normally prefer the size of the largest tab.
       // Here we set the size according to the currently selected tab.
-      tabbedPane.addChangeListener {
-        tabbedPane.preferredSize =
-          calculatePreferredTabbedPaneSize(tabbedPane, tabbedPane.selectedComponent)
-      }
+      tabbedPane.addChangeListener { tabbedPane.preferredSize = calculatePreferredTabbedPaneSize(tabbedPane, tabbedPane.selectedComponent) }
     }
   }
 
-  private fun createToolbar(
-    editor: Editor,
-    targetComponent: JComponent,
-    place: String,
-    tabbedPane: JBTabbedPane,
-  ): JComponent {
+  private fun createToolbar(editor: Editor, targetComponent: JComponent, place: String, tabbedPane: JBTabbedPane): JComponent {
     val wrapAction =
       object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {
         init {
@@ -146,8 +126,7 @@ class DetailsTabbedPane(
 
         override fun getActionUpdateThread() = ActionUpdateThread.EDT
       }
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar(place, DefaultActionGroup(wrapAction), true)
+    val toolbar = ActionManager.getInstance().createActionToolbar(place, DefaultActionGroup(wrapAction), true)
     toolbar.targetComponent = targetComponent
     toolbar.layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
     toolbar.setReservePlaceAutoPopupIcon(false)

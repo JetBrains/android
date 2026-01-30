@@ -55,9 +55,7 @@ class InjectedFieldDaggerConceptTest {
 
   private fun runIndexer(wrapper: DaggerIndexFieldWrapper): Map<String, Set<IndexValue>> =
     mutableMapOf<String, MutableSet<IndexValue>>().also { indexEntries ->
-      InjectedFieldDaggerConcept.indexers.fieldIndexers.forEach {
-        it.addIndexEntries(wrapper, indexEntries)
-      }
+      InjectedFieldDaggerConcept.indexers.fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
     }
 
   @Test
@@ -67,22 +65,21 @@ class InjectedFieldDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import javax.inject.Inject
+        import javax.inject.Inject
 
-      class CoffeeMaker {
-        @Inject lateinit var heater: Heater
-      }
-      """
+        class CoffeeMaker {
+          @Inject lateinit var heater: Heater
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
     val element: KtProperty = myFixture.getEnclosing<KtProperty>("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
-    assertThat(entries)
-      .containsExactly("Heater", setOf(InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")))
+    assertThat(entries).containsExactly("Heater", setOf(InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")))
   }
 
   @Test
@@ -92,12 +89,12 @@ class InjectedFieldDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class CoffeeMaker {
-        lateinit var heater: Heater
-      }
-      """
+        class CoffeeMaker {
+          lateinit var heater: Heater
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -114,14 +111,14 @@ class InjectedFieldDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import com.other.Inject
+        import com.other.Inject
 
-      class CoffeeMaker {
-        @Inject lateinit var heater: Heater
-      }
-      """
+        class CoffeeMaker {
+          @Inject lateinit var heater: Heater
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -167,8 +164,7 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   @Test
@@ -203,8 +199,7 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   companion object {

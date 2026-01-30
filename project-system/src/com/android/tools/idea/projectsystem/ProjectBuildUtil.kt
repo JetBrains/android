@@ -18,17 +18,13 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.project.Project
 
 /**
- * Utility getter that indicates if the project needs a build. This is the case if the previews
- * build is not valid, like after a clean or cancelled, or if it has failed.
+ * Utility getter that indicates if the project needs a build. This is the case if the previews build is not valid, like after a clean or
+ * cancelled, or if it has failed.
  */
 val Project.needsBuild: Boolean
   get() {
-    val lastBuildResult =
-      ProjectSystemService.getInstance(project = this)
-        .projectSystem
-        .getBuildManager()
-        .getLastBuildResult()
+    val lastBuildResult = ProjectSystemService.getInstance(project = this).projectSystem.getBuildManager().getLastBuildResult()
     return lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.CANCELLED ||
-           lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.FAILED ||
-           lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
+      lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.FAILED ||
+      lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
   }

@@ -24,17 +24,17 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import kotlin.io.path.absolutePathString
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import kotlin.io.path.absolutePathString
 
 private val LOG = Logger.getInstance(MigrateGradleJvmFromMacrosSyncListener::class.java)
 
 /**
- * This [GradleSyncListenerWithRoot] is responsible for migrating Gradle projects away from non-desired supported
- * macros defined on [ExternalSystemJdkUtil] using platform convention: vendor + version i.e. jbr-17.
+ * This [GradleSyncListenerWithRoot] is responsible for migrating Gradle projects away from non-desired supported macros defined on
+ * [ExternalSystemJdkUtil] using platform convention: vendor + version i.e. jbr-17.
  *
  * NOTE: Projects using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria)
  * will skip this given that defined criteria will take precedence over the Gradle JDK configuration.
@@ -46,23 +46,27 @@ class MigrateGradleJvmFromMacrosSyncListener : GradleSyncListenerWithRoot {
 
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
-      ExternalSystemJdkUtil.USE_PROJECT_JDK, null ->
-        setProjectGradleJvmWithProjectJdk(project, projectRootSettings) ?: WriteAction.computeAndWait<Unit, Throwable> {
-          val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
-          GradleJdkConfigurationUtils.setProjectGradleJdk(project, rootProjectPath, embeddedJdkPath)
-        }?.let { gradleJvm ->
-          LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${ExternalSystemJdkUtil.USE_PROJECT_JDK} to $gradleJvm")
-        }
+      ExternalSystemJdkUtil.USE_PROJECT_JDK,
+      null ->
+        setProjectGradleJvmWithProjectJdk(project, projectRootSettings)
+          ?: WriteAction.computeAndWait<Unit, Throwable> {
+              val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
+              GradleJdkConfigurationUtils.setProjectGradleJdk(project, rootProjectPath, embeddedJdkPath)
+            }
+            ?.let { gradleJvm ->
+              LOG.info(
+                "Project Gradle root: $rootProjectPath gradleJvm updated from ${ExternalSystemJdkUtil.USE_PROJECT_JDK} to $gradleJvm"
+              )
+            }
     }
   }
 
-  private fun setProjectGradleJvmWithProjectJdk(
-    project: Project,
-    projectRootSettings: GradleProjectSettings?
-  ) = ProjectRootManager.getInstance(project).projectSdk
-    ?.takeIf { ExternalSystemJdkUtil.isValidJdk(it) }
-    ?.let { projectJdk ->
-      projectRootSettings?.gradleJvm = projectJdk.name
-      projectJdk.name
-    }
+  private fun setProjectGradleJvmWithProjectJdk(project: Project, projectRootSettings: GradleProjectSettings?) =
+    ProjectRootManager.getInstance(project)
+      .projectSdk
+      ?.takeIf { ExternalSystemJdkUtil.isValidJdk(it) }
+      ?.let { projectJdk ->
+        projectRootSettings?.gradleJvm = projectJdk.name
+        projectJdk.name
+      }
 }

@@ -36,14 +36,11 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
 
-/**
- * Tests for [MissingNdkIssueChecker].
- */
-class MissingNdkIssueCheckerTest  {
+/** Tests for [MissingNdkIssueChecker]. */
+class MissingNdkIssueCheckerTest {
   private val missingNdkIssueChecker = MissingNdkIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testNullErrorMessage() {
@@ -55,27 +52,28 @@ class MissingNdkIssueCheckerTest  {
   @Test
   fun testPatterns() {
     assertThat(
-      tryExtractPreferredNdkDownloadVersion(
-        "No version of NDK matched the requested version 19.2.5345600. Versions available locally: 20.0.5471264-rc3")!!.toString())
+        tryExtractPreferredNdkDownloadVersion(
+            "No version of NDK matched the requested version 19.2.5345600. Versions available locally: 20.0.5471264-rc3"
+          )!!
+          .toString()
+      )
+      .isEqualTo("19.2.5345600")
+    assertThat(tryExtractPreferredNdkDownloadVersion("No version of NDK matched the requested version 19.2.5345600")!!.toString())
       .isEqualTo("19.2.5345600")
     assertThat(
-      tryExtractPreferredNdkDownloadVersion(
-        "No version of NDK matched the requested version 19.2.5345600")!!.toString())
+        tryExtractPreferredNdkDownloadVersion("NDK not configured. Download it with SDK manager. Preferred NDK version is '19.2.5345600'")!!
+          .toString()
+      )
       .isEqualTo("19.2.5345600")
-    assertThat(
-      tryExtractPreferredNdkDownloadVersion(
-        "NDK not configured. Download it with SDK manager. Preferred NDK version is '19.2.5345600'")!!.toString())
-      .isEqualTo("19.2.5345600")
-    assertThat(
-      tryExtractPreferredNdkDownloadVersion(
-        "No version of NDK matched the requested version 19.2")!!.toString())
-      .isEqualTo("19.2")
+    assertThat(tryExtractPreferredNdkDownloadVersion("No version of NDK matched the requested version 19.2")!!.toString()).isEqualTo("19.2")
   }
 
   @Test
   fun testHandleErrorWithNdkLicenceMissing() {
-    verifyWithFixVersion("java.Lang.RuntimeException: Failed to install the following Android SDK packages as some licences have not been accepted." +
-                           "blah blah ndk-bundle NDK blah blah")
+    verifyWithFixVersion(
+      "java.Lang.RuntimeException: Failed to install the following Android SDK packages as some licences have not been accepted." +
+        "blah blah ndk-bundle NDK blah blah"
+    )
   }
 
   @Test
@@ -103,8 +101,10 @@ class MissingNdkIssueCheckerTest  {
 
   @Test
   fun testHandleErrorWithNdkLocationNotFound() {
-    verifyWithFixVersion("NDK location not found. Define location with ndk.dir in the local.properties file " +
-                         "or with an ANDROID_NDK_HOME environment variable.")
+    verifyWithFixVersion(
+      "NDK location not found. Define location with ndk.dir in the local.properties file " +
+        "or with an ANDROID_NDK_HOME environment variable."
+    )
   }
 
   @Test
@@ -141,54 +141,64 @@ class MissingNdkIssueCheckerTest  {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "NDK not configured. Download it with SDK manager. Preferred NDK version is '45.2.0'",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "NDK not configured. Download it with SDK manager. Preferred NDK version is '45.2.0'",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "No version of NDK matched the requested version 45.26.0",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "No version of NDK matched the requested version 45.26.0",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "NDK location not found.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "NDK location not found.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Specified android.ndkVersion A.B.C does not have enough precision.\n Please fix.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Specified android.ndkVersion A.B.C does not have enough precision.\n Please fix.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingNdkIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Failed to install the following Android SDK packages as some licences have not been accepted. NDK location not found.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingNdkIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Failed to install the following Android SDK packages as some licences have not been accepted. NDK location not found.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 
   private fun verifyWithFixVersion(errMsg: String) {

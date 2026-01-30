@@ -107,11 +107,7 @@ fun minSdk(androidVersion: AndroidMajorVersion, agpVersion: AgpVersion): String 
 fun targetSdk(androidVersion: AndroidMajorVersion, agpVersion: AgpVersion): String =
   toAndroidFieldVersion("targetSdk", androidVersion, agpVersion)
 
-fun toAndroidFieldVersion(
-  fieldNameBase: String,
-  androidVersion: AndroidMajorVersion,
-  agpVersion: AgpVersion,
-): String {
+fun toAndroidFieldVersion(fieldNameBase: String, androidVersion: AndroidMajorVersion, agpVersion: AgpVersion): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
   val fieldName =
     when {
@@ -119,8 +115,7 @@ fun toAndroidFieldVersion(
       isNewAGP -> fieldNameBase
       else -> "${fieldNameBase}Version"
     }
-  val fieldValue =
-    if (androidVersion.isPreview) "\"${androidVersion.apiString}\"" else androidVersion.apiString
+  val fieldValue = if (androidVersion.isPreview) "\"${androidVersion.apiString}\"" else androidVersion.apiString
   return "$fieldName $fieldValue"
 }
 
@@ -155,8 +150,7 @@ fun androidConfig(
     renderIf(hasTests) {
       "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
     }
-  val proguardConsumerBlock =
-    renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
+  val proguardConsumerBlock = renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
   val proguardConfigBlock = renderIf(canUseProguard) { proguardConfig() }
   val lintOptionsBlock =
     renderIf(addLintOptions) {
@@ -214,22 +208,10 @@ fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
   fun apiSuffix(api: Int) = if (api > minApi) "-v$api" else ""
 
   fun copyAdaptiveIcons() {
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml"),
-    )
-    copy(
-      resource("drawable/ic_launcher_background.xml"),
-      destination.resolve("drawable/ic_launcher_background.xml"),
-    )
-    copy(
-      resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml"),
-    )
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml"),
-    )
+    copy(resource("mipmap-anydpi-v26/ic_launcher.xml"), destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml"))
+    copy(resource("drawable/ic_launcher_background.xml"), destination.resolve("drawable/ic_launcher_background.xml"))
+    copy(resource("drawable-v24/ic_launcher_foreground.xml"), destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml"))
+    copy(resource("mipmap-anydpi-v26/ic_launcher_round.xml"), destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml"))
   }
 
   copyMipmapFolder(destination)
@@ -252,8 +234,7 @@ fun RecipeExecutor.copyMipmapFile(destination: File, file: String) {
 fun RecipeExecutor.addLocalTests(packageName: String, localTestOut: File, language: Language) {
   val ext = language.extension
   save(
-    if (language == Language.Kotlin) exampleUnitTestKt(packageName)
-    else exampleUnitTestJava(packageName),
+    if (language == Language.Kotlin) exampleUnitTestKt(packageName) else exampleUnitTestJava(packageName),
     localTestOut.resolve("ExampleUnitTest.$ext"),
   )
 }
@@ -267,8 +248,7 @@ fun RecipeExecutor.addInstrumentedTests(
 ) {
   val ext = language.extension
   save(
-    if (language == Language.Kotlin)
-      exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
+    if (language == Language.Kotlin) exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
     else exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject),
     instrumentedTestOut.resolve("ExampleInstrumentedTest.$ext"),
   )

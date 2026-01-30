@@ -27,8 +27,9 @@ interface AndroidIconProviderProjectToken<T : AndroidProjectSystem> : Token {
 
   companion object {
     @JvmStatic
-    val EP_NAME = ExtensionPointName<AndroidIconProviderProjectToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.projectsystem.androidIconProviderProjectToken"
-    )
+    val EP_NAME =
+      ExtensionPointName<AndroidIconProviderProjectToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.projectsystem.androidIconProviderProjectToken"
+      )
   }
 }

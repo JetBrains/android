@@ -21,16 +21,17 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 
 /**
- * The Device Explorer model class: encapsulates the list of devices,
- * their file system and also associated state changes to via the
+ * The Device Explorer model class: encapsulates the list of devices, their file system and also associated state changes to via the
  * [DeviceExplorerModelListener] listener class.
  */
 open class DeviceFileExplorerModel {
   private val myListeners: MutableList<DeviceExplorerModelListener> = ArrayList()
   var treeModel: DefaultTreeModel? = null
     private set
+
   var treeSelectionModel: DefaultTreeSelectionModel? = null
     private set
+
   var activeDevice: DeviceFileSystem? = null
     private set
 
@@ -47,10 +48,7 @@ open class DeviceFileExplorerModel {
     myListeners.remove(listener)
   }
 
-  private fun setActiveDeviceTreeModel(
-    treeModel: DefaultTreeModel?,
-    treeSelectionModel: DefaultTreeSelectionModel?
-  ) {
+  private fun setActiveDeviceTreeModel(treeModel: DefaultTreeModel?, treeSelectionModel: DefaultTreeSelectionModel?) {
     // Ignore if tree model is not changing
     if (this.treeModel == treeModel) {
       return

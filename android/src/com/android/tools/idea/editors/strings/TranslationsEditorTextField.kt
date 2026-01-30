@@ -27,7 +27,7 @@ import javax.swing.event.DocumentEvent
 internal class TranslationsEditorTextField(
   private val table: StringResourceTable,
   private val columnSupplier: IntSupplier,
-  private val validator: (String) -> String? // return an error string if validation field fails
+  private val validator: (String) -> String?, // return an error string if validation field fails
 ) : MinimumWidthTextField() {
   private var lastSavedValue: String? = null
 
@@ -38,16 +38,20 @@ internal class TranslationsEditorTextField(
 
   init {
     addActionListener { saveText() }
-    addFocusListener(object : FocusAdapter() {
-      override fun focusLost(event: FocusEvent) {
-        saveText()
+    addFocusListener(
+      object : FocusAdapter() {
+        override fun focusLost(event: FocusEvent) {
+          saveText()
+        }
       }
-    })
-    document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(event: DocumentEvent) {
-        updateErrorState()
+    )
+    document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(event: DocumentEvent) {
+          updateErrorState()
+        }
       }
-    })
+    )
   }
 
   private fun saveText() {
@@ -56,7 +60,7 @@ internal class TranslationsEditorTextField(
     if (table.hasSelectedCell() && text != lastSavedValue) {
       val error = updateErrorState()
       if (error.isNullOrEmpty()) {
-        lastSavedValue = text;
+        lastSavedValue = text
         table.model.setValueAt(text, table.selectedModelRowIndex, columnSupplier.asInt)
       }
     }

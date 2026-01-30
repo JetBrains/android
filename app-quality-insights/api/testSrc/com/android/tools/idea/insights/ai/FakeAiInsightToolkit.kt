@@ -29,14 +29,8 @@ import com.intellij.openapi.project.Project
 open class FakeAiInsightToolkit(
   project: Project,
   codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
-  override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
-    StubInsightsOnboardingProvider(),
-) :
-  AiInsightToolkit(
-    project,
-    codeContextResolver,
-    GeminiAiInsightClient(project, codeContextResolver),
-  ) {
+  override val aiInsightOnboardingProvider: InsightsOnboardingProvider = StubInsightsOnboardingProvider(),
+) : AiInsightToolkit(project, codeContextResolver, GeminiAiInsightClient(project, codeContextResolver)) {
 
   private val fetchInsightCall = CallInProgress<LoadingState.Done<AiInsight>>()
 
@@ -48,6 +42,5 @@ open class FakeAiInsightToolkit(
     event: Event,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
-  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =
-    fetchInsightCall.completeWith(value)
+  suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) = fetchInsightCall.completeWith(value)
 }

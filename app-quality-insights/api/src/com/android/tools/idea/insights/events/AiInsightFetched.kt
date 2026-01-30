@@ -24,8 +24,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
-data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsight>) :
-  ChangeEvent {
+data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsight>) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -36,12 +35,7 @@ data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsi
     val appId = state.connections.selected?.appId
     val insight = (fetchedInsight as? LoadingState.Ready)?.value
     if (insight != null && crashType != null && appId != null) {
-      tracker.logInsightFetch(
-        appId,
-        crashType,
-        insight,
-        GeminiPluginApi.getInstance().MAX_QUERY_CHARS,
-      )
+      tracker.logInsightFetch(appId, crashType, insight, GeminiPluginApi.getInstance().MAX_QUERY_CHARS)
     }
     return StateTransition(newState = state.copy(currentInsight = fetchedInsight), Action.NONE)
   }

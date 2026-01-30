@@ -32,24 +32,19 @@ import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 @OptIn(KaExperimentalApi::class)
 abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExtensionFile() {
   init {
-    check(!classId.isLocal && classId.outermostClassId == classId) {
-      "classId ${classId} must be top-level"
-    }
+    check(!classId.isLocal && classId.outermostClassId == classId) { "classId ${classId} must be top-level" }
   }
 
-  @KaSpiExtensionPoint
-  override fun getFileName(): String = "${classId.shortClassName}.kt"
+  @KaSpiExtensionPoint override fun getFileName(): String = "${classId.shortClassName}.kt"
 
-  private val filePackageNameImpl: FqName get() = classId.packageFqName
+  private val filePackageNameImpl: FqName
+    get() = classId.packageFqName
 
-  @KaSpiExtensionPoint
-  override fun getFilePackageName(): FqName = filePackageNameImpl
+  @KaSpiExtensionPoint override fun getFilePackageName(): FqName = filePackageNameImpl
 
-  @KaSpiExtensionPoint
-  override fun getTopLevelCallableNames(): Set<Name> = setOf()
+  @KaSpiExtensionPoint override fun getTopLevelCallableNames(): Set<Name> = setOf()
 
-  @KaSpiExtensionPoint
-  override fun getTopLevelClassifierNames(): Set<Name> = setOf(classId.shortClassName)
+  @KaSpiExtensionPoint override fun getTopLevelClassifierNames(): Set<Name> = setOf(classId.shortClassName)
 
   private val fileText: String by lazy {
     buildString {
@@ -63,28 +58,22 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExt
 
   protected abstract fun StringBuilder.buildClassBody()
 
-  @KaSpiExtensionPoint
-  override fun buildFileText(): String = fileText
+  @KaSpiExtensionPoint override fun buildFileText(): String = fileText
 
-  protected abstract fun KaSession.getNavigationElementForDeclaration(
-    symbol: KaDeclarationSymbol
-  ): PsiElement?
+  protected abstract fun KaSession.getNavigationElementForDeclaration(symbol: KaDeclarationSymbol): PsiElement?
 
   protected abstract val fallbackPsi: PsiElement?
 
   private fun KaSession.getNavigationElement(element: KtElement): PsiElement? =
-    element.parentsWithSelf.filterIsInstance<KtDeclaration>().firstNotNullOfOrNull {
-      getNavigationElementForDeclaration(it.symbol)
-    } ?: fallbackPsi
+    element.parentsWithSelf.filterIsInstance<KtDeclaration>().firstNotNullOfOrNull { getNavigationElementForDeclaration(it.symbol) }
+      ?: fallbackPsi
 
   private val navigationTargetsProvider by lazy {
     object : KaResolveExtensionNavigationTargetsProvider() {
       @KaSpiExtensionPoint
-      override fun KaSession.getNavigationTargets(element: KtElement): Collection<PsiElement> =
-        listOfNotNull(getNavigationElement(element))
+      override fun KaSession.getNavigationTargets(element: KtElement): Collection<PsiElement> = listOfNotNull(getNavigationElement(element))
     }
   }
 
-  @KaSpiExtensionPoint
-  override fun createNavigationTargetsProvider() = navigationTargetsProvider
+  @KaSpiExtensionPoint override fun createNavigationTargetsProvider() = navigationTargetsProvider
 }

@@ -34,8 +34,7 @@ private val CELL_ERROR_ATTRIBUTES = SimpleTextAttributes(STYLE_WAVED, JBColor.re
  *
  * Note this is different from [String.replaceAfter] because that would leave the [delimiter] in place.
  */
-private fun String.clip(delimiter: Char): String =
-  if (contains(delimiter)) "${substringBefore(delimiter)}[...]" else this
+private fun String.clip(delimiter: Char): String = if (contains(delimiter)) "${substringBefore(delimiter)}[...]" else this
 
 /** Translates the column index from sub-table indexing to overall table indexing. */
 private fun SubTable<StringResourceTableModel>.translateColumn(column: Int): Int {
@@ -52,11 +51,10 @@ internal class StringsCellRenderer : SimpleColoredRenderer(), TableCellRenderer 
     isSelected: Boolean,
     hasFocusDontUse: Boolean,
     row: Int,
-    column: Int
+    column: Int,
   ): Component {
     clear()
-    @Suppress("UNCHECKED_CAST")
-    val subTable = table as SubTable<StringResourceTableModel>
+    @Suppress("UNCHECKED_CAST") val subTable = table as SubTable<StringResourceTableModel>
     val hasFocus = subTable.frozenColumnTable.frozenTable.hasFocus() || subTable.frozenColumnTable.scrollableTable.hasFocus()
     foreground = UIUtil.getTableForeground(isSelected, hasFocus)
     background = UIUtil.getTableBackground(isSelected, hasFocus)
@@ -69,17 +67,18 @@ internal class StringsCellRenderer : SimpleColoredRenderer(), TableCellRenderer 
     table: FrozenColumnTable<StringResourceTableModel>,
     value: String,
     viewRowIndex: Int,
-    viewColumnIndex: Int
+    viewColumnIndex: Int,
   ) {
     val modelRowIndex = table.convertRowIndexToModel(viewRowIndex)
     val modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex)
     val problem = table.model.getCellProblem(modelRowIndex, modelColumnIndex).also { toolTipText = it }
 
-    val attributes = when {
-      problem == null -> REGULAR_ATTRIBUTES
-      modelColumnIndex == KEY_COLUMN -> ERROR_ATTRIBUTES
-      else -> CELL_ERROR_ATTRIBUTES
-    }
+    val attributes =
+      when {
+        problem == null -> REGULAR_ATTRIBUTES
+        modelColumnIndex == KEY_COLUMN -> ERROR_ATTRIBUTES
+        else -> CELL_ERROR_ATTRIBUTES
+      }
 
     append(value.clip('\n'), attributes)
   }

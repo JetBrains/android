@@ -26,9 +26,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
-/**
- * Groups together the components required to render Layout Inspector UI on-top of running devices
- */
+/** Groups together the components required to render Layout Inspector UI on-top of running devices */
 class RenderingComponents(
   disposable: Disposable,
   layoutInspector: LayoutInspector,
@@ -61,8 +59,7 @@ fun createRenderingComponents(
   statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
 ): List<RenderingComponents> {
   val isXrDevice = displayList.any { it.deviceType == DeviceType.XR_HEADSET }
-  val useOnDeviceRendering =
-    isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
+  val useOnDeviceRendering = isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
 
   statsProvider().setOnDeviceRendering(useOnDeviceRendering)
 
@@ -87,17 +84,11 @@ fun createRenderingComponents(
         inspectorModel = layoutInspector.inspectorModel,
         treeSettings = layoutInspector.treeSettings,
         renderSettings = layoutInspector.renderSettings,
-        navigateToSelectedViewOnDoubleClick = {
-          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-        },
+        navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
       )
 
     val onDeviceRendererModel =
-      OnDeviceRendererModel(
-        disposable = combinedDisposable,
-        scope = layoutInspector.coroutineScope,
-        renderModel = renderModel,
-      )
+      OnDeviceRendererModel(disposable = combinedDisposable, scope = layoutInspector.coroutineScope, renderModel = renderModel)
 
     displayList.map { displayView ->
       val renderer =
@@ -105,9 +96,7 @@ fun createRenderingComponents(
           disposable = combinedDisposable,
           scope = layoutInspector.coroutineScope,
           model = onDeviceRendererModel,
-          enableSendRightClicksToDevice = { enable ->
-            displayView.rightClicksAreSentToDevice = enable
-          },
+          enableSendRightClicksToDevice = { enable -> displayView.rightClicksAreSentToDevice = enable },
         )
 
       RenderingComponents(
@@ -132,9 +121,7 @@ fun createRenderingComponents(
           inspectorModel = layoutInspector.inspectorModel,
           treeSettings = layoutInspector.treeSettings,
           renderSettings = layoutInspector.renderSettings,
-          navigateToSelectedViewOnDoubleClick = {
-            layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-          },
+          navigateToSelectedViewOnDoubleClick = { layoutInspector.navigateToSelectedViewFromRendererDoubleClick() },
         )
 
       val renderer =
@@ -144,20 +131,12 @@ fun createRenderingComponents(
           renderModel = renderModel,
           displayRectangleProvider = { displayView.displayRectangle },
           screenScaleProvider = { displayView.screenScalingFactor },
-          deviceDisplayDimensionProvider = {
-            renderModel.inspectorModel.getDisplayDimension(displayView.displayId)
-          },
+          deviceDisplayDimensionProvider = { renderModel.inspectorModel.getDisplayDimension(displayView.displayId) },
           orientationQuadrantProvider = {
             calculateRotationCorrection(
-              displayProvider = {
-                layoutInspector.inspectorModel.resourceLookup.displays.find {
-                  it.id == displayView.displayId
-                }
-              },
+              displayProvider = { layoutInspector.inspectorModel.resourceLookup.displays.find { it.id == displayView.displayId } },
               displayOrientationQuadrant = { displayView.displayOrientationQuadrants },
-              displayOrientationQuadrantCorrection = {
-                displayView.displayOrientationCorrectionQuadrants
-              },
+              displayOrientationQuadrantCorrection = { displayView.displayOrientationCorrectionQuadrants },
             )
           },
         )
@@ -173,31 +152,25 @@ fun createRenderingComponents(
 }
 
 /**
- * Returns the quadrant in which the rendering of Layout Inspector should be rotated in order to
- * match the rendering from Running Devices. It does this by calculating the rotation difference
- * between the rotation of the device and the rotation of the rendering from Running Devices.
+ * Returns the quadrant in which the rendering of Layout Inspector should be rotated in order to match the rendering from Running Devices.
+ * It does this by calculating the rotation difference between the rotation of the device and the rotation of the rendering from Running
+ * Devices.
  *
- * Both the rendering from RD and the device can be rotated in all 4 quadrants, independently of
- * each other. We use the diff to reconcile the difference in rotation, as ultimately the rendering
- * from LI should match the rendering of the display from RD.
+ * Both the rendering from RD and the device can be rotated in all 4 quadrants, independently of each other. We use the diff to reconcile
+ * the difference in rotation, as ultimately the rendering from LI should match the rendering of the display from RD.
  *
- * Note that the rendering from Layout Inspector should be rotated only sometimes, to match the
- * rendering from Running Devices. Here are a few examples:
- * * Device is in portrait mode, auto-rotation is off, running devices rendering has no rotation ->
- *   apply no rotation
- * * Device is in landscape mode, auto-rotation is off, running devices rendering has rotation to be
- *   horizontal -> apply rotation, because the app is in portrait mode in the device, so should be
- *   rotated to match rendering from RD.
- * * Device is in landscape mode, auto-rotation is on, running devices rendering has rotation to be
- *   horizontal -> apply no rotation, because the app is already in landscape mode, so no rotation
- *   is needed to match rendering from RD.
+ * Note that the rendering from Layout Inspector should be rotated only sometimes, to match the rendering from Running Devices. Here are a
+ * few examples:
+ * * Device is in portrait mode, auto-rotation is off, running devices rendering has no rotation -> apply no rotation
+ * * Device is in landscape mode, auto-rotation is off, running devices rendering has rotation to be horizontal -> apply rotation, because
+ *   the app is in portrait mode in the device, so should be rotated to match rendering from RD.
+ * * Device is in landscape mode, auto-rotation is on, running devices rendering has rotation to be horizontal -> apply no rotation, because
+ *   the app is already in landscape mode, so no rotation is needed to match rendering from RD.
  *
- * Note that: when rendering a streamed device (as opposed to an emulator), the Running Devices Tool
- * Window fakes the rotation of the screen (b/273699961). This means that for those cases we can't
- * reliably use the rotation provided by the device to calculate the rotation for the Layout
- * Inspector rendering. In these cases we should use the rotation correction provided by the RD Tool
- * Window. But in the case of emulators, the rotation correction from Running Devices is always 0.
- * In these case we should calculate our own rotation correction.
+ * Note that: when rendering a streamed device (as opposed to an emulator), the Running Devices Tool Window fakes the rotation of the screen
+ * (b/273699961). This means that for those cases we can't reliably use the rotation provided by the device to calculate the rotation for
+ * the Layout Inspector rendering. In these cases we should use the rotation correction provided by the RD Tool Window. But in the case of
+ * emulators, the rotation correction from Running Devices is always 0. In these case we should calculate our own rotation correction.
  */
 @VisibleForTesting
 fun calculateRotationCorrection(

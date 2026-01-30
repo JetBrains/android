@@ -49,24 +49,18 @@ class ConfigureAndroidModuleStepTest {
         AndroidModuleModelBuilder(
           ":app",
           "debug",
-          AndroidProjectBuilder().withAndroidProject {
-            buildAndroidProjectStub().copy(compileTarget = APP_COMPILE_SDK.toCompileTarget())
-          },
+          AndroidProjectBuilder().withAndroidProject { buildAndroidProjectStub().copy(compileTarget = APP_COMPILE_SDK.toCompileTarget()) },
         ),
         JavaModuleModelBuilder(":libs", buildable = false),
         AndroidModuleModelBuilder(
           ":libs:lib",
           "debug",
-          AndroidProjectBuilder().withAndroidProject {
-            buildAndroidProjectStub().copy(compileTarget = LIB1_COMPILE_SDK.toCompileTarget())
-          },
+          AndroidProjectBuilder().withAndroidProject { buildAndroidProjectStub().copy(compileTarget = LIB1_COMPILE_SDK.toCompileTarget()) },
         ),
         AndroidModuleModelBuilder(
           ":libs:lib2",
           "debug",
-          AndroidProjectBuilder().withAndroidProject {
-            buildAndroidProjectStub().copy(compileTarget = LIB2_COMPILE_SDK.toCompileTarget())
-          },
+          AndroidProjectBuilder().withAndroidProject { buildAndroidProjectStub().copy(compileTarget = LIB2_COMPILE_SDK.toCompileTarget()) },
         ),
       )
       .onEdt()
@@ -82,9 +76,8 @@ class ConfigureAndroidModuleStepTest {
   }
 
   /**
-   * When adding two libraries to a project, the second library package name should have a distinct
-   * value from the first one (com.example.mylib vs com.example.mylib2). See http://b/68177735 for
-   * more details.
+   * When adding two libraries to a project, the second library package name should have a distinct value from the first one
+   * (com.example.mylib vs com.example.mylib2). See http://b/68177735 for more details.
    */
   @Test
   fun packageNameDependsOnModuleName() {
@@ -100,8 +93,7 @@ class ConfigureAndroidModuleStepTest {
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    val configureAndroidModuleStep =
-      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -110,18 +102,14 @@ class ConfigureAndroidModuleStepTest {
     fun assertPackageNameIsCorrectAfterSettingModuleName(moduleName: String) {
       newModuleModel.moduleName.set(moduleName)
       myInvokeStrategy.updateAllSteps()
-      assertThat(newModuleModel.packageName.get())
-        .isEqualTo("$basePackage.${moduleName.lowercase()}")
+      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.${moduleName.lowercase()}")
     }
 
-    listOf("myLib1", "somewhatLongerLibName", "lib").forEach {
-      assertPackageNameIsCorrectAfterSettingModuleName(it)
-    }
+    listOf("myLib1", "somewhatLongerLibName", "lib").forEach { assertPackageNameIsCorrectAfterSettingModuleName(it) }
   }
 
   /**
-   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore
-   * the parent, but the module name don't.
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
    */
   @Test
   fun moduleNamesWithParent() {
@@ -138,8 +126,7 @@ class ConfigureAndroidModuleStepTest {
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    val configureAndroidModuleStep =
-      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -153,18 +140,13 @@ class ConfigureAndroidModuleStepTest {
     }
 
     verify("My Application", "com.example.myapplication", ":libs:myapplication")
-    verify(
-      "Some what Longer LibName",
-      "com.example.somewhatlongerlibname",
-      ":libs:somewhatlongerlibname",
-    )
+    verify("Some what Longer LibName", "com.example.somewhatlongerlibname", ":libs:somewhatlongerlibname")
     // Verify unique name generation.
     verify("lib", "com.example.lib3", ":libs:lib3")
   }
 
   /**
-   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore
-   * the parent, but the module name don't.
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
    */
   @Test
   fun moduleNamesWithoutParent() {
@@ -181,8 +163,7 @@ class ConfigureAndroidModuleStepTest {
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    val configureAndroidModuleStep =
-      ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -202,8 +183,8 @@ class ConfigureAndroidModuleStepTest {
   }
 
   /**
-   * This tests assumes Project without androidx configuration. Selecting API <28 should allow the
-   * use of "Go Forward", and API >=28 should stop the user from "Go Forward"
+   * This tests assumes Project without androidx configuration. Selecting API <28 should allow the use of "Go Forward", and API >=28 should
+   * stop the user from "Go Forward"
    */
   @Test
   fun selectAndroid_Q_onNonAndroidxProjects() {
@@ -218,8 +199,7 @@ class ConfigureAndroidModuleStepTest {
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    val configureAndroidModuleStep =
-      ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)
     Disposer.register(disposable, configureAndroidModuleStep)
@@ -264,14 +244,7 @@ class ConfigureAndroidModuleStepTest {
     }
 
     assertThat(newAndroidModuleModel.recommendedBuildSdk?.apiLevel).isEqualTo(LIB1_COMPILE_SDK)
-    assertThat(
-        newAndroidModuleModel.moduleTemplateDataBuilder
-          .build()
-          .apis
-          .buildApi
-          .androidApiLevel
-          .majorVersion
-      )
+    assertThat(newAndroidModuleModel.moduleTemplateDataBuilder.build().apis.buildApi.androidApiLevel.majorVersion)
       .isEqualTo(LIB1_COMPILE_SDK)
   }
 

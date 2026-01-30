@@ -25,69 +25,79 @@ import com.google.common.collect.LinkedListMultimap
 import java.io.File
 
 interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
-  where ModuleT : PsModule,
-        LibraryDependencyT : PsLibraryDependency,
-        JarDependencyT : PsJarDependency,
-        ModuleDependencyT : PsModuleDependency
-{
+  where
+    ModuleT : PsModule,
+    LibraryDependencyT : PsLibraryDependency,
+    JarDependencyT : PsJarDependency,
+    ModuleDependencyT : PsModuleDependency {
   val parent: ModuleT
   val libraries: List<LibraryDependencyT>
   val jars: List<JarDependencyT>
   val modules: List<ModuleDependencyT>
-  val items: List<PsBaseDependency> get() = modules + libraries + jars
+  val items: List<PsBaseDependency>
+    get() = modules + libraries + jars
 
   fun isEmpty(): Boolean
 
   fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT>
+
   fun findLibraryDependencies(compactNotation: String): List<LibraryDependencyT>
+
   fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT>
+
   fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT>
+
   fun findJarDependencies(filePath: String): List<JarDependencyT>
 
   fun forEachModuleDependency(consumer: (ModuleDependencyT) -> Unit) = modules.forEach(consumer)
+
   fun forEachLibraryDependency(consumer: (LibraryDependencyT) -> Unit) = libraries.forEach(consumer)
+
   fun forEachJarDependency(consumer: (JarDependencyT) -> Unit) = jars.forEach(consumer)
 }
 
 abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(
   override val parent: ModuleT
 ) : PsDependencyCollection<ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>
-  where ModuleT : PsModule,
-        LibraryDependencyT : PsLibraryDependency,
-        JarDependencyT : PsJarDependency,
-        ModuleDependencyT : PsModuleDependency {
+  where
+    ModuleT : PsModule,
+    LibraryDependencyT : PsLibraryDependency,
+    JarDependencyT : PsJarDependency,
+    ModuleDependencyT : PsModuleDependency {
   private val libraryDependenciesBySpec = LinkedListMultimap.create<PsLibraryKey, LibraryDependencyT>()!!
   private val jarDependenciesByPath = LinkedListMultimap.create<String, JarDependencyT>()!!
   private val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, ModuleDependencyT>()!!
 
   override fun isEmpty(): Boolean =
     moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty && jarDependenciesByPath.isEmpty
-  override val libraries: List<LibraryDependencyT> get() = libraryDependenciesBySpec.values()
-  override val jars: List<JarDependencyT> get() = jarDependenciesByPath.values()
-  override val modules: List<ModuleDependencyT> get() = moduleDependenciesByGradlePath.values()
 
-  override fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT> =
-    moduleDependenciesByGradlePath[gradlePath].toList()
+  override val libraries: List<LibraryDependencyT>
+    get() = libraryDependenciesBySpec.values()
 
-  override fun findJarDependencies(filePath: String): List<JarDependencyT> =
-    jarDependenciesByPath[filePath].toList()
+  override val jars: List<JarDependencyT>
+    get() = jarDependenciesByPath.values()
+
+  override val modules: List<ModuleDependencyT>
+    get() = moduleDependenciesByGradlePath.values()
+
+  override fun findModuleDependencies(gradlePath: String): List<ModuleDependencyT> = moduleDependenciesByGradlePath[gradlePath].toList()
+
+  override fun findJarDependencies(filePath: String): List<JarDependencyT> = jarDependenciesByPath[filePath].toList()
 
   // FIXME(xof): untangle the confusion between PsArtifactDependencySpec (which can have versions) and PsLibraryKey (which can't)
   override fun findLibraryDependencies(compactNotation: String): List<LibraryDependencyT> {
     val spec = PsArtifactDependencySpec.create(compactNotation) ?: return listOf()
-    return libraryDependenciesBySpec[PsLibraryKey(spec.group.orEmpty(), spec.name)]
-      .filter { it.spec == spec }
-      .toList()
+    return libraryDependenciesBySpec[PsLibraryKey(spec.group.orEmpty(), spec.name)].filter { it.spec == spec }.toList()
   }
 
   open fun onDependencyAdded(dependency: PsBaseDependency) = Unit
+
   open fun onCleared() = Unit
 
   override fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
-  override fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT> =
-    libraryDependenciesBySpec[libraryKey].toList()
+  override fun findLibraryDependencies(libraryKey: PsLibraryKey): List<LibraryDependencyT> = libraryDependenciesBySpec[libraryKey].toList()
 
   protected fun addLibraryDependency(dependency: LibraryDependencyT) {
     libraryDependenciesBySpec.put(dependency.spec.toLibraryKey(), dependency)
@@ -136,28 +146,28 @@ fun FileTreeDependencyModel.toKey(): String = dir().asString().orEmpty()
 
 fun ModuleDependencyModel.toKey(): String = path().asString().orEmpty()
 
-abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent: ModuleT)
-  : PsDependencyCollectionBase<ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent)
-  where ModuleT : PsModule,
-        LibraryDependencyT : PsDeclaredDependency,
-        LibraryDependencyT : PsLibraryDependency,
-        JarDependencyT : PsDeclaredDependency,
-        JarDependencyT : PsJarDependency,
-        ModuleDependencyT : PsDeclaredDependency,
-        ModuleDependencyT : PsModuleDependency
-{
+abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent: ModuleT) :
+  PsDependencyCollectionBase<ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent)
+  where
+    ModuleT : PsModule,
+    LibraryDependencyT : PsDeclaredDependency,
+    LibraryDependencyT : PsLibraryDependency,
+    JarDependencyT : PsDeclaredDependency,
+    JarDependencyT : PsJarDependency,
+    ModuleDependencyT : PsDeclaredDependency,
+    ModuleDependencyT : PsModuleDependency {
   private val parsedModelToDependency = mutableMapOf<DependencyModel, PsBaseDependency>()
 
   abstract fun createOrUpdateLibraryDependency(
     existing: LibraryDependencyT?,
-    artifactDependencyModel: ArtifactDependencyModel
+    artifactDependencyModel: ArtifactDependencyModel,
   ): LibraryDependencyT
 
   abstract fun createOrUpdateJarFileDependency(existing: JarDependencyT?, fileDependencyModel: FileDependencyModel): JarDependencyT
 
   abstract fun createOrUpdateJarFileTreeDependency(
     existing: JarDependencyT?,
-    fileTreeDependencyModel: FileTreeDependencyModel
+    fileTreeDependencyModel: FileTreeDependencyModel,
   ): JarDependencyT
 
   abstract fun createOrUpdateModuleDependency(existing: ModuleDependencyT?, moduleDependencyModel: ModuleDependencyModel): ModuleDependencyT
@@ -219,30 +229,29 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, J
 
 abstract class PsResolvedDependencyCollection<ContainerT, out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(
   val container: ContainerT,
-  module: ModuleT
+  module: ModuleT,
 ) : PsDependencyCollectionBase<ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(module)
-  where ModuleT : PsModule,
-        LibraryDependencyT : PsResolvedDependency,
-        LibraryDependencyT : PsLibraryDependency,
-        JarDependencyT : PsResolvedDependency,
-        JarDependencyT : PsJarDependency,
-        ModuleDependencyT : PsResolvedDependency,
-        ModuleDependencyT : PsModuleDependency {
+  where
+    ModuleT : PsModule,
+    LibraryDependencyT : PsResolvedDependency,
+    LibraryDependencyT : PsLibraryDependency,
+    JarDependencyT : PsResolvedDependency,
+    JarDependencyT : PsJarDependency,
+    ModuleDependencyT : PsResolvedDependency,
+    ModuleDependencyT : PsModuleDependency {
 
   abstract fun collectResolvedDependencies(container: ContainerT)
 
   init {
-    @Suppress("LeakingThis")
-    collectResolvedDependencies(container)
+    @Suppress("LeakingThis") collectResolvedDependencies(container)
   }
 }
 
 fun <T : PsDeclaredJarDependency> PsResolvedDependencyCollection<*, *, *, *, *>.matchJarDeclaredDependenciesIn(
   parsedDependencies: PsDeclaredDependencyCollection<*, *, T, *>,
-  artifactCanonicalFile: File
-): List<T> = parsedDependencies
-  .jars
-  .filter { probe ->
+  artifactCanonicalFile: File,
+): List<T> =
+  parsedDependencies.jars.filter { probe ->
     val probeFile = File(probe.filePath)
     val resolvedProbe = parent.resolveFile(probeFile)
     val canonicalResolvedProbe = resolvedProbe.canonicalFile

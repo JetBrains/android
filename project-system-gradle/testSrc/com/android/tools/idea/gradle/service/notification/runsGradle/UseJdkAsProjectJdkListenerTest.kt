@@ -27,9 +27,7 @@ import org.junit.Test
 import org.mockito.kotlin.eq
 
 class UseJdkAsProjectJdkListenerTest {
-  @JvmField
-  @Rule
-  val gradleProjectRule = AndroidGradleProjectRule()
+  @JvmField @Rule val gradleProjectRule = AndroidGradleProjectRule()
 
   @Test
   fun `setJdkAsProjectJdk is called when used`() {

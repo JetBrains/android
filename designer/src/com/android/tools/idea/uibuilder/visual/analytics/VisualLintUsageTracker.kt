@@ -29,33 +29,21 @@ import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 
 interface VisualLintUsageTracker {
-  fun trackIssueCreation(
-    issueType: VisualLintErrorType,
-    origin: VisualLintOrigin,
-    facet: AndroidFacet,
-  ) {
+  fun trackIssueCreation(issueType: VisualLintErrorType, origin: VisualLintOrigin, facet: AndroidFacet) {
     track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet, origin)
   }
 
-  fun trackIssueIgnored(
-    issueType: VisualLintErrorType,
-    origin: VisualLintOrigin,
-    facet: AndroidFacet,
-  ) {
+  fun trackIssueIgnored(issueType: VisualLintErrorType, origin: VisualLintOrigin, facet: AndroidFacet) {
     track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet, origin)
   }
 
   fun trackBackgroundRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
-    val event =
-      if (enabled) VisualLintEvent.IssueEvent.ENABLE_BACKGROUND_RULE
-      else VisualLintEvent.IssueEvent.DISABLE_BACKGROUND_RULE
+    val event = if (enabled) VisualLintEvent.IssueEvent.ENABLE_BACKGROUND_RULE else VisualLintEvent.IssueEvent.DISABLE_BACKGROUND_RULE
     track(event, issueType, null)
   }
 
   fun trackRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
-    val event =
-      if (enabled) VisualLintEvent.IssueEvent.ENABLE_RULE
-      else VisualLintEvent.IssueEvent.DISABLE_RULE
+    val event = if (enabled) VisualLintEvent.IssueEvent.ENABLE_RULE else VisualLintEvent.IssueEvent.DISABLE_RULE
     track(event, issueType, null)
   }
 
@@ -115,15 +103,13 @@ interface VisualLintUsageTracker {
 
   companion object {
     fun getInstance(): VisualLintUsageTracker {
-      return if (AnalyticsSettings.optedIn) VisualLintUsageTrackerImpl
-      else VisualLintNoOpUsageTracker
+      return if (AnalyticsSettings.optedIn) VisualLintUsageTrackerImpl else VisualLintNoOpUsageTracker
     }
   }
 }
 
 private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
-  private val executorService =
-    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val executorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
   override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) {
     try {

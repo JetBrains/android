@@ -22,26 +22,24 @@ import com.android.tools.idea.common.scene.SceneManager
 /** Interface for a 2-D entity that owns [SceneView]s and corresponding [Scene]s. */
 interface ScenesOwner {
   /**
-   * Returns the [SceneView] under the given ([x], [y]) position if any or the focused one
-   * otherwise. The coordinates are in the viewport view coordinate space, so they will not change
-   * with scrolling.
+   * Returns the [SceneView] under the given ([x], [y]) position if any or the focused one otherwise. The coordinates are in the viewport
+   * view coordinate space, so they will not change with scrolling.
    */
   @Deprecated("Owner does not have a single primary SceneView", ReplaceWith("getSceneViewAt"))
   fun getSceneViewAtOrPrimary(@SwingCoordinate x: Int, @SwingCoordinate y: Int): SceneView?
 
   /** The [Scene] of the primary [SceneManager]. */
-  @get:Deprecated("Owner can have multiple scenes", ReplaceWith("sceneManager.scene"))
-  val scene: Scene?
+  @get:Deprecated("Owner can have multiple scenes", ReplaceWith("sceneManager.scene")) val scene: Scene?
 
   /**
-   * Returns the current focused [SceneView] that is responsible for responding to mouse and
-   * keyboard events, or null if there is no focused [SceneView].
+   * Returns the current focused [SceneView] that is responsible for responding to mouse and keyboard events, or null if there is no focused
+   * [SceneView].
    */
   val focusedSceneView: SceneView?
 
   /**
-   * Return the [SceneView] under the given ([x], [y]) position. The coordinates are in the viewport
-   * view coordinate space, so they will not change with scrolling.
+   * Return the [SceneView] under the given ([x], [y]) position. The coordinates are in the viewport view coordinate space, so they will not
+   * change with scrolling.
    */
   fun getSceneViewAt(@SwingCoordinate x: Int, @SwingCoordinate y: Int): SceneView?
 }

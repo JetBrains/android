@@ -30,12 +30,12 @@ import org.junit.runners.Parameterized
 class ProguardR8TypedHandlerTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
 
-
   override fun runInDispatchThread(): Boolean = false
+
   override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun setUp() {
-    UITestUtil.replaceIdeEventQueueSafely()  // See UsefulTestCase#runBare which should be the stack frame above this one.
+    UITestUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
   }
@@ -57,21 +57,24 @@ class ProguardR8TypedHandlerTest(private val fileType: LanguageFileType) : Progu
   @Test
   fun testOpenPopupForInnerClassesAfterDollarSymbol() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       public class MyClass {
         class InnerClass {}
       }
-    """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      fileType, """
+      fileType,
+      """
         -keep class test.MyClass$caret {
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     myFixture.type('$')

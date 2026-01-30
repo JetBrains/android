@@ -26,7 +26,6 @@ import org.junit.rules.TemporaryFolder
 
 /**
  * This class focuses on testing parsing of Gradle failure message:
- *
  * ```
  * FAILURE: Build failed with an exception.
  *
@@ -39,14 +38,14 @@ import org.junit.rules.TemporaryFolder
  */
 class GradleFailureOutputParserTest : BuildOutputParserTest() {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   @Test
   fun configurationCacheErrorParsed() {
     val basePath = temporaryFolder.newFolder()
     val buildGradle = temporaryFolder.newFile("build.gradle")
-    val buildOutput = """
+    val buildOutput =
+      """
 FAILURE: Build failed with an exception.
 
 * Where:
@@ -74,19 +73,23 @@ See the complete report at file:///$basePath/build/reports/configuration-cache/2
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
 
 * Get more help at https://help.gradle.org
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Configuration cache problems found in this build.",
-        isFileMessageEvent = false,
-        isBuildIssueEvent = true,
-        isDuplicateMessageAware = false,
-        group = "Build Issues",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Configuration cache problems found in this build.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = true,
+            isDuplicateMessageAware = false,
+            group = "Build Issues",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            description =
+              """
         Configuration cache problems found in this build.
 
         7 problems were found storing the configuration cache, 6 of which seem unique.
@@ -103,8 +106,10 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
         > Listener registration 'Gradle.addListener' by build 'SimpleApplication2' is unsupported.
         > Listener registration 'TaskExecutionGraph.addTaskExecutionListener' by org.gradle.execution.taskgraph.DefaultTaskExecutionGraph@43a21c71 is unsupported.
         > Listener registration 'Gradle.addBuildListener' by build 'SimpleApplication2' is unsupported.
-        """.trimIndent()
-      ))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -113,7 +118,8 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
     AssumeUtil.assumeNotWindows() // TODO (b/399625141): fix on windows
     val path = temporaryFolder.newFile("/styles.xml")
     val systemIndependentPath = FileUtil.toSystemIndependentName(path.path)
-    val buildOutput = """
+    val buildOutput =
+      """
       > Task :app:processDebugResources FAILED
       AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
       AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$systemIndependentPath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$systemIndependentPath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
@@ -139,73 +145,84 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
       Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
 
       * Get more help at https://help.gradle.org
-    """.trimIndent()
+    """
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "Android resource linking failed",
-          isFileMessageEvent = true,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "AAPT errors",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          filePosition = "$path:4:5-15:13",
-          description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Android resource linking failed",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "AAPT errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$path:4:5-15:13",
+            description =
+              """
           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
-          """.trimIndent()
-        ),
-        ExpectedEvent(
-          message = "Android resource linking failed",
-          isFileMessageEvent = true,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "AAPT errors",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          filePosition = "$path:4:5-15:13",
-          description = """
+          """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "Android resource linking failed",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "AAPT errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$path:4:5-15:13",
+            description =
+              """
           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
-          """.trimIndent()
-        ),
-        ExpectedEvent(
-          message = "Android resource linking failed",
-          isFileMessageEvent = true,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "AAPT errors",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          filePosition = "$path:4:5-15:13",
-          description = """
+          """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "Android resource linking failed",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "AAPT errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$path:4:5-15:13",
+            description =
+              """
           $path:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
-          """.trimIndent()
-        ),
-        ExpectedEvent(
-          message = "Android resource linking failed",
-          isFileMessageEvent = true,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = false,
-          group = "AAPT errors",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = "testId",
-          filePosition = "$path:4:5-15:13",
-          description = """
+          """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "Android resource linking failed",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "AAPT errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$path:4:5-15:13",
+            description =
+              """
           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
-          """.trimIndent()
-        ),
-        //TODO (b/372180686): extra `Android resource linking failed` message is currently generated from final failure message
-        ExpectedEvent(
-          message = "Android resource linking failed",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = true,
-          group = "Other Messages",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = ":app:processDebugResources",
-          description = """
+          """
+                .trimIndent(),
+          ),
+          // TODO (b/372180686): extra `Android resource linking failed` message is currently generated from final failure message
+          ExpectedEvent(
+            message = "Android resource linking failed",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":app:processDebugResources",
+            description =
+              """
           Execution failed for task ':app:processDebugResources'.
           > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
              > Android resource linking failed
@@ -221,9 +238,10 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
           Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
 
           * Get more help at https://help.gradle.org
-          """.trimIndent()
+          """
+                .trimIndent(),
+          ),
         ),
-      )
     )
   }
 
@@ -233,30 +251,34 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-      message = "Invalid TOML catalog definition.",
-      isFileMessageEvent = false,
-      isBuildIssueEvent = true,
-      isDuplicateMessageAware = false,
-      group = "Build Issues",
-      kind= MessageEvent.Kind.ERROR,
-      parentId = "testId",
-      description = getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml")
-    )))
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Invalid TOML catalog definition.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = true,
+            isDuplicateMessageAware = false,
+            group = "Build Issues",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            description = getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml"),
+          )
+        ),
+    )
   }
 
-  @Test
-  fun scriptLocationParsed() = testBuildFileType("Script")
-  @Test
-  fun initScriptLocationParsed() = testBuildFileType("Initialization script")
-  @Test
-  fun buildFileLocationParsed() = testBuildFileType("Build file")
-  @Test
-  fun settingsFileLocationParsed() = testBuildFileType("Settings file")
+  @Test fun scriptLocationParsed() = testBuildFileType("Script")
+
+  @Test fun initScriptLocationParsed() = testBuildFileType("Initialization script")
+
+  @Test fun buildFileLocationParsed() = testBuildFileType("Build file")
+
+  @Test fun settingsFileLocationParsed() = testBuildFileType("Settings file")
 
   private fun testBuildFileType(type: String) {
     val scriptGradle = temporaryFolder.newFile("script.gradle")
-    val buildOutput = """
+    val buildOutput =
+      """
 FAILURE: Build failed with an exception.
 
 * Where:
@@ -271,20 +293,24 @@ Execution failed for task ':app:failingTask1'.
 > Run with --debug option to get more log output.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "java.lang.Exception: Failing failingTask1",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = true,
-        group = "Other Messages",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = ":app:failingTask1",
-        filePosition = "$scriptGradle:5:1-5:1",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "java.lang.Exception: Failing failingTask1",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":app:failingTask1",
+            filePosition = "$scriptGradle:5:1-5:1",
+            description =
+              """
           $type '$scriptGradle' line: 5
           
           Execution failed for task ':app:failingTask1'.
@@ -295,8 +321,10 @@ Execution failed for task ':app:failingTask1'.
           > Run with --debug option to get more log output.
           > Run with --scan to get full insights.
           > Get more help at https://help.gradle.org.
-        """.trimIndent()
-      ))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 }

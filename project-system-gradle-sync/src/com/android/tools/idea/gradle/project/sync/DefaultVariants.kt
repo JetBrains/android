@@ -23,58 +23,42 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import org.jetbrains.annotations.VisibleForTesting
 
-
 fun List<IdeVariantCore>.getDefaultVariantFromIdeModels(
   buildTypes: Collection<IdeBuildTypeContainerImpl>,
-  productFlavors: Collection<IdeProductFlavorContainerImpl>
+  productFlavors: Collection<IdeProductFlavorContainerImpl>,
 ): String? =
   map { VariantDef(it.name, it.buildType, it.productFlavors) }
     .getDefaultVariantInternal(
-      buildTypes.map {
-        BuildTypeDef(it.buildType.name, it.buildType.isDefault)
-      },
-      productFlavors.map {
-        ProductFlavorDef(it.productFlavor.name, it.productFlavor.isDefault)
-      }
+      buildTypes.map { BuildTypeDef(it.buildType.name, it.buildType.isDefault) },
+      productFlavors.map { ProductFlavorDef(it.productFlavor.name, it.productFlavor.isDefault) },
     )
 
 fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFlavors: List<ProductFlavor>): String? =
-  map { VariantDef(it.name, it.buildType, it.productFlavors) }.getDefaultVariantInternal(
-    buildTypes.map {
-      BuildTypeDef(it.name, it.isDefault)
-    },
-    productFlavors.map {
-      ProductFlavorDef(it.name, it.isDefault)
-    })
-
+  map { VariantDef(it.name, it.buildType, it.productFlavors) }
+    .getDefaultVariantInternal(
+      buildTypes.map { BuildTypeDef(it.name, it.isDefault) },
+      productFlavors.map { ProductFlavorDef(it.name, it.isDefault) },
+    )
 
 private fun List<VariantDef>.getDefaultVariantInternal(buildTypes: List<BuildTypeDef>, productFlavors: List<ProductFlavorDef>): String? {
   return getDefaultVariant(
-      userPreferredBuildTypes = buildTypes.filter { it.isDefault == true }.map { it.name }.toSet(),
-      userPreferredProductFlavors = productFlavors.filter { it.isDefault == true }.map { it.name }.toSet(),
-    )
+    userPreferredBuildTypes = buildTypes.filter { it.isDefault == true }.map { it.name }.toSet(),
+    userPreferredProductFlavors = productFlavors.filter { it.isDefault == true }.map { it.name }.toSet(),
+  )
 }
 
-@VisibleForTesting
-class BuildTypeDef(val name: String, val isDefault: Boolean?)
+@VisibleForTesting class BuildTypeDef(val name: String, val isDefault: Boolean?)
+
+@VisibleForTesting class ProductFlavorDef(val name: String, val isDefault: Boolean?)
+
+@VisibleForTesting class VariantDef(val name: String, val buildType: String?, val productFlavors: List<String>)
 
 @VisibleForTesting
-class ProductFlavorDef(val name: String, val isDefault: Boolean?)
-
-@VisibleForTesting
-class VariantDef(val name: String, val buildType: String?, val productFlavors: List<String>)
-
-@VisibleForTesting
-fun List<VariantDef>.getDefaultVariant(
-  userPreferredBuildTypes: Set<String>,
-  userPreferredProductFlavors: Set<String>,
-): String? {
+fun List<VariantDef>.getDefaultVariant(userPreferredBuildTypes: Set<String>, userPreferredProductFlavors: Set<String>): String? {
   val effectiveFlavorDimensions = this.minOfOrNull { it.productFlavors.size } ?: return null
   val availableDimensionIndices = 0 until effectiveFlavorDimensions
-  fun <T: Comparable<T>> Comparator<VariantDef>.thenByProductFlavor(selector: (flavor: String) -> T) =
-    availableDimensionIndices.fold(this) { acc, index -> acc.thenBy {
-      selector(it.productFlavors[index])
-    }}
+  fun <T : Comparable<T>> Comparator<VariantDef>.thenByProductFlavor(selector: (flavor: String) -> T) =
+    availableDimensionIndices.fold(this) { acc, index -> acc.thenBy { selector(it.productFlavors[index]) } }
 
   fun prefer(condition: Boolean): Int = if (condition) 0 else 1
 
@@ -87,4 +71,3 @@ fun List<VariantDef>.getDefaultVariant(
 
   return this.minWithOrNull(comparator)?.name
 }
-

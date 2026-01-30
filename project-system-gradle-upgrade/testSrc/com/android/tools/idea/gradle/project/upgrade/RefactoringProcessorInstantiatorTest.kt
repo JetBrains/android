@@ -29,27 +29,28 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
 class RefactoringProcessorInstantiatorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   val project by lazy { projectRule.project }
 
   @After
   fun tearDown() {
-    invokeAndWaitIfNeeded {
-      JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
-    }
+    invokeAndWaitIfNeeded { JavaAwareProjectJdkTableImpl.removeInternalJdkInTests() }
   }
 
   @Test
   fun testShowAndGetAgpUpgradeDialogAccepted() {
-    projectRule.fixture.addFileToProject("build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
       buildscript {
         dependencies {
           classpath 'com.android.tools.build:gradle:4.2.0'
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val refactoringProcessorInstantiator = RefactoringProcessorInstantiator()
     val processor = refactoringProcessorInstantiator.createProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     val cannotUpgradeDialog = mock(AgpUpgradeRefactoringProcessorCannotUpgradeDialog::class.java)
@@ -63,13 +64,17 @@ class RefactoringProcessorInstantiatorTest {
 
   @Test
   fun testShowAndGetAgpUpgradeDialogRefused() {
-    projectRule.fixture.addFileToProject("build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
       buildscript {
         dependencies {
           classpath 'com.android.tools.build:gradle:4.2.0'
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val refactoringProcessorInstantiator = RefactoringProcessorInstantiator()
     val processor = refactoringProcessorInstantiator.createProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     val cannotUpgradeDialog = mock(AgpUpgradeRefactoringProcessorCannotUpgradeDialog::class.java)

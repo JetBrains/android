@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ActionUtils")
+
 package com.android.tools.idea.actions
 
 import com.intellij.ide.HelpTooltip
@@ -23,22 +24,24 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.keymap.KeymapUtil
 
 /**
- * Enables action tooltip that includes the name of the action, the shortcut if any, and
- * the additional text that, if not provided, defaults to the description of the action.
+ * Enables action tooltip that includes the name of the action, the shortcut if any, and the additional text that, if not provided, defaults
+ * to the description of the action.
  */
 fun Presentation.enableRichTooltip(action: AnAction, detailText: String? = description) {
-  putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
-    @Suppress("DialogTitleCapitalization")
-    setTitle(text)
-    setDescription(detailText)
-    val shortcut = KeymapUtil.getFirstKeyboardShortcutText(action.shortcutSet)
-    if (shortcut.isNotEmpty()) {
-      setShortcut(shortcut)
-    }
-  })
+  putClientProperty(
+    ActionButton.CUSTOM_HELP_TOOLTIP,
+    HelpTooltip().apply {
+      @Suppress("DialogTitleCapitalization") setTitle(text)
+      setDescription(detailText)
+      val shortcut = KeymapUtil.getFirstKeyboardShortcutText(action.shortcutSet)
+      if (shortcut.isNotEmpty()) {
+        setShortcut(shortcut)
+      }
+    },
+  )
 }
 
 /** Disables custom tooltip and reverts to the standard one. */
 fun Presentation.disableRichTooltip() {
-  putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, null);
+  putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, null)
 }

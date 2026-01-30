@@ -27,8 +27,8 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.AndroidTestCase
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.AndroidTestCase
 
 class ConvertToWebpActionTest : AndroidTestCase() {
   val notifications = mutableListOf<Notification>()
@@ -36,11 +36,16 @@ class ConvertToWebpActionTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     WebpNativeLibDownloader.ensureWebpRegistered()
-    project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        notifications.add(notification)
-      }
-    })
+    project.messageBus
+      .connect(testRootDisposable)
+      .subscribe(
+        Notifications.TOPIC,
+        object : Notifications {
+          override fun notify(notification: Notification) {
+            notifications.add(notification)
+          }
+        },
+      )
   }
 
   fun testConvert() {
@@ -60,8 +65,8 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].content).isEqualTo(
-      "1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
+    assertThat(notifications[0].content)
+      .isEqualTo("1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
@@ -105,12 +110,9 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     val assetFolder = myFixture.copyDirectoryToProject("webp", "assets")
     val nonResFolder = myFixture.copyDirectoryToProject("webp", "folder")
     val presentation = Presentation()
-    fun testDataContext(files: Array<VirtualFile>): DataContext = SimpleDataContext.builder()
-      .add(CommonDataKeys.PROJECT, myFixture.project)
-      .add(CommonDataKeys.VIRTUAL_FILE_ARRAY, files)
-      .build()
-    fun createTestEvent(files: Array<VirtualFile>) =
-      createEvent(testDataContext(files), presentation, "", ActionUiKind.NONE, null)
+    fun testDataContext(files: Array<VirtualFile>): DataContext =
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, myFixture.project).add(CommonDataKeys.VIRTUAL_FILE_ARRAY, files).build()
+    fun createTestEvent(files: Array<VirtualFile>) = createEvent(testDataContext(files), presentation, "", ActionUiKind.NONE, null)
 
     action.update(createTestEvent(VirtualFile.EMPTY_ARRAY))
     assertFalse(presentation.isVisible)

@@ -26,18 +26,18 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import kotlin.properties.Delegates
 
-/**
- * A view that lists [LinkLabel]s centered in a [JBScrollPane].
- */
-class LinkLabelSearchView: JBScrollPane() {
+/** A view that lists [LinkLabel]s centered in a [JBScrollPane]. */
+class LinkLabelSearchView : JBScrollPane() {
 
   fun addLabel(text: String, action: () -> Unit) {
-    linkLabelsPanel.add(LinkLabel.create(text, action).apply {
-      alignmentX = JPanel.CENTER_ALIGNMENT
-      alignmentY = JPanel.TOP_ALIGNMENT
-      border = JBUI.Borders.empty(8, 5)
-      isOpaque = false
-    })
+    linkLabelsPanel.add(
+      LinkLabel.create(text, action).apply {
+        alignmentX = JPanel.CENTER_ALIGNMENT
+        alignmentY = JPanel.TOP_ALIGNMENT
+        border = JBUI.Borders.empty(8, 5)
+        isOpaque = false
+      }
+    )
     if (!isVisible) {
       isVisible = true
     }
@@ -48,15 +48,14 @@ class LinkLabelSearchView: JBScrollPane() {
     isVisible = false
   }
 
-  var backgroundColor: Color by Delegates.observable(UIUtil.getListBackground()) { _, _, newValue ->
-    linkLabelsPanel.background = newValue
-  }
+  var backgroundColor: Color by Delegates.observable(UIUtil.getListBackground()) { _, _, newValue -> linkLabelsPanel.background = newValue }
 
-  private val linkLabelsPanel: JPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    isOpaque = true
-    alignmentX = JPanel.CENTER_ALIGNMENT
-  }
+  private val linkLabelsPanel: JPanel =
+    JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      isOpaque = true
+      alignmentX = JPanel.CENTER_ALIGNMENT
+    }
 
   init {
     viewport.view = linkLabelsPanel

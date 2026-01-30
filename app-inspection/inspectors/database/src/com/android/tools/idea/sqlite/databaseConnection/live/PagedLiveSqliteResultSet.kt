@@ -42,28 +42,19 @@ class PagedLiveSqliteResultSet(
         response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.longValue?.toInt() ?: 0
       }
 
-  override fun getRowBatch(
-    rowOffset: Int,
-    rowBatchSize: Int,
-    responseSizeByteLimitHint: Long?,
-  ): ListenableFuture<SqliteQueryResult> {
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<SqliteQueryResult> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return sendQueryCommand(
-        sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize),
-        responseSizeByteLimitHint,
-      )
-      .transform(taskExecutor) { response ->
-        val query = response.query
-        val columnNames = query.columnNamesList
-        val rows =
-          query.rowsList.map {
-            val sqliteColumnValues =
-              it.valuesList.mapIndexed { index, cellValue ->
-                cellValue.toSqliteColumnValue(columnNames[index])
-              }
-            SqliteRow(sqliteColumnValues)
-          }
-        SqliteQueryResult(rows, query.isForcedConnection)
-      }
+    return sendQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), responseSizeByteLimitHint).transform(
+      taskExecutor
+    ) { response ->
+      val query = response.query
+      val columnNames = query.columnNamesList
+      val rows =
+        query.rowsList.map {
+          val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
+          SqliteRow(sqliteColumnValues)
+        }
+      SqliteQueryResult(rows, query.isForcedConnection)
+    }
   }
 }

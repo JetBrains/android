@@ -22,24 +22,24 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.EventQueue
 
-/**
- * Sets a display mode for a resizable AVD.
- */
-internal sealed class DisplayModeAction(
-  val mode: DisplayModeValue,
-) : AbstractEmulatorAction(configFilter = { it.displayModes.any { it.displayModeId == mode } }) {
+/** Sets a display mode for a resizable AVD. */
+internal sealed class DisplayModeAction(val mode: DisplayModeValue) :
+  AbstractEmulatorAction(configFilter = { it.displayModes.any { it.displayModeId == mode } }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorView = getEmulatorView(event) ?: return
     if (mode != emulatorView.displayMode?.displayModeId) {
       val emulator = getEmulatorController(event) ?: return
-      emulator.setDisplayMode(mode, object : EmptyStreamObserver<Empty>() {
-        override fun onCompleted() {
-          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-            emulatorView.displayModeChanged(mode)
+      emulator.setDisplayMode(
+        mode,
+        object : EmptyStreamObserver<Empty>() {
+          override fun onCompleted() {
+            EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+              emulatorView.displayModeChanged(mode)
+            }
           }
-        }
-      })
+        },
+      )
     }
   }
 

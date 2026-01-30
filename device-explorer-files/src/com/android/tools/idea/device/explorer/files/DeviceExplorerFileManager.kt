@@ -21,26 +21,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 
-/**
- * Manage files synchronized between devices and the local file system
- */
+/** Manage files synchronized between devices and the local file system */
 interface DeviceExplorerFileManager {
-  /**
-   * Returns the default [Path] where to store the `entry` on the local file system.
-   */
+  /** Returns the default [Path] where to store the `entry` on the local file system. */
   fun getDefaultLocalPathForEntry(entry: DeviceFileEntry): Path
 
   /**
    * Asynchronously downloads the content of a [DeviceFileEntry] to the local file system.
    *
-   * Returns a VirtualFile when the download has completed. The `progress` callback is
-   * regularly notified (on the UI thread) of the current progress of the download operation.
+   * Returns a VirtualFile when the download has completed. The `progress` callback is regularly notified (on the UI thread) of the current
+   * progress of the download operation.
    */
-  suspend fun downloadFileEntry(
-    entry: DeviceFileEntry,
-    localPath: Path,
-    progress: DownloadProgress
-  ): VirtualFile
+  suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile
 
   /**
    * Delete the VirtualFile passed as argument using the VFS.
@@ -57,8 +49,8 @@ interface DeviceExplorerFileManager {
   fun getPathForEntry(entry: DeviceFileEntry, destinationPath: Path): Path
 
   /**
-   * Opens a previously downloaded file and gives focus to the open component.
-   * If the file contents is not recognized, the implementation may open a dialog box asking the user to pick the best editor type.
+   * Opens a previously downloaded file and gives focus to the open component. If the file contents is not recognized, the implementation
+   * may open a dialog box asking the user to pick the best editor type.
    *
    * @throws RuntimeException if the file can not be found
    * @throws java.util.concurrent.CancellationException if the user cancels the 'choose editor type' dialog.

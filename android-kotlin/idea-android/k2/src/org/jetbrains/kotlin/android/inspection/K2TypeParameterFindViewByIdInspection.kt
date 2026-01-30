@@ -31,35 +31,35 @@ import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
 
 class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectionBase() {
-    override fun KtCallExpression.classifyFindViewCall(
-        cast: KtBinaryExpressionWithTypeRHS
-    ): FindViewCallInfo? = analyze(this) {
-        val calleeSymbol = resolveToCall()?.successfulFunctionCallOrNull()?.symbol as? KaNamedFunctionSymbol ?: return null
-        if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
+    override fun KtCallExpression.classifyFindViewCall(cast: KtBinaryExpressionWithTypeRHS): FindViewCallInfo? =
+        analyze(this) {
+            val calleeSymbol = resolveToCall()?.successfulFunctionCallOrNull()?.symbol as? KaNamedFunctionSymbol ?: return null
+            if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
 
-        // The function must take a single type parameter (T)...
-        val typeParameterSymbol = calleeSymbol.typeParameters.singleOrNull() ?: return null
-        // ... and return T (or T?).
-        val returnType = calleeSymbol.returnType
-        if (unwrapToTypeParameterSymbol(returnType) != typeParameterSymbol) return null
+            // The function must take a single type parameter (T)...
+            val typeParameterSymbol = calleeSymbol.typeParameters.singleOrNull() ?: return null
+            // ... and return T (or T?).
+            val returnType = calleeSymbol.returnType
+            if (unwrapToTypeParameterSymbol(returnType) != typeParameterSymbol) return null
 
-        // The target type of the cast must satisfy all of T's bounds.
-        // We discard the ? on the cast target type when we execute the quickfix, so we need to check
-        // against the non-nullable type here.
-        val castTargetType = cast.right?.type ?: return null
-        if (castTargetType is KaErrorType) return null
+            // The target type of the cast must satisfy all of T's bounds.
+            // We discard the ? on the cast target type when we execute the quickfix, so we need to check
+            // against the non-nullable type here.
+            val castTargetType = cast.right?.type ?: return null
+            if (castTargetType is KaErrorType) return null
 
-        val castTargetTypeNonNull = castTargetType.withNullability(isMarkedNullable = false)
-        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubtypeOf(it) }) return null
+            val castTargetTypeNonNull = castTargetType.withNullability(isMarkedNullable = false)
+            if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull.isSubtypeOf(it) }) return null
 
-        return FindViewCallInfo(
-            returnTypeNullability = when {
-                returnType.hasFlexibleNullability -> ReturnTypeNullability.PLATFORM_TYPE
-                returnType.isMarkedNullable -> ReturnTypeNullability.NULLABLE
-                else -> ReturnTypeNullability.NOT_NULL
-            }
-        )
-    }
+            return FindViewCallInfo(
+                returnTypeNullability =
+                    when {
+                        returnType.hasFlexibleNullability -> ReturnTypeNullability.PLATFORM_TYPE
+                        returnType.isMarkedNullable -> ReturnTypeNullability.NULLABLE
+                        else -> ReturnTypeNullability.NOT_NULL
+                    }
+            )
+        }
 
     companion object {
         private tailrec fun KaSession.unwrapToTypeParameterSymbol(type: KaType): KaTypeParameterSymbol? =
@@ -71,8 +71,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
                     val projectedType = expanded.projection.type
                     if (projectedType != null) {
                         unwrapToTypeParameterSymbol(projectedType)
-                    }
-                    else null
+                    } else null
                 }
                 else -> null
             }

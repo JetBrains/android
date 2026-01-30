@@ -29,8 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 
 object BackgroundTaskInspectorTestUtils {
-  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
-    AppInspectorMessenger {
+  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = ByteArray(0)
 
     override val eventFlow = emptyFlow<ByteArray>()
@@ -47,28 +46,14 @@ object BackgroundTaskInspectorTestUtils {
         runAttemptCount = 1
 
         val frame1 =
-          CallStack.Frame.newBuilder()
-            .setClassName("pkg1.Class1")
-            .setFileName("File1")
-            .setMethodName("method1")
-            .setLineNumber(12)
-            .build()
+          CallStack.Frame.newBuilder().setClassName("pkg1.Class1").setFileName("File1").setMethodName("method1").setLineNumber(12).build()
         val frame2 =
-          CallStack.Frame.newBuilder()
-            .setClassName("pkg2.Class2")
-            .setFileName("File2")
-            .setMethodName("method2")
-            .setLineNumber(33)
-            .build()
+          CallStack.Frame.newBuilder().setClassName("pkg2.Class2").setFileName("File2").setMethodName("method2").setLineNumber(33).build()
         callStack = CallStack.newBuilder().addAllFrames(listOf(frame1, frame2)).build()
 
-        data =
-          Data.newBuilder()
-            .addEntries(DataEntry.newBuilder().setKey("k").setValue("v").build())
-            .build()
+        data = Data.newBuilder().addEntries(DataEntry.newBuilder().setKey("k").setValue("v").build()).build()
 
-        constraints =
-          Constraints.newBuilder().setRequiredNetworkType(Constraints.NetworkType.CONNECTED).build()
+        constraints = Constraints.newBuilder().setRequiredNetworkType(Constraints.NetworkType.CONNECTED).build()
         isPeriodic = false
         addPrerequisites("prerequisiteId")
         addDependents("dependentsId")
@@ -86,15 +71,8 @@ object BackgroundTaskInspectorTestUtils {
     )
   }
 
-  fun BackgroundTaskInspectorClient.sendWorkEvent(
-    map: WorkManagerInspectorProtocol.Event.Builder.() -> Unit
-  ) {
-    handleEvent(
-      EventWrapper(
-        EventWrapper.Case.WORK,
-        WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray(),
-      )
-    )
+  fun BackgroundTaskInspectorClient.sendWorkEvent(map: WorkManagerInspectorProtocol.Event.Builder.() -> Unit) {
+    handleEvent(EventWrapper(EventWrapper.Case.WORK, WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray()))
   }
 
   fun BackgroundTaskInspectorClient.sendBackgroundTaskEvent(
@@ -121,8 +99,7 @@ object BackgroundTaskInspectorTestUtils {
   }
 
   private fun DefaultMutableTreeNode.getCategoryNode(type: String): BackgroundTaskCategoryNode {
-    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type }
-      as BackgroundTaskCategoryNode
+    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type } as BackgroundTaskCategoryNode
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")

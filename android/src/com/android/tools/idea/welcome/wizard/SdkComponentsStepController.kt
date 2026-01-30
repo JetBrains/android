@@ -104,12 +104,10 @@ abstract class SdkComponentsStepController(
         message = "Target drive does not have enough free space."
       } else if (isNonEmptyNonSdk(path)) {
         severity = Validator.Severity.WARNING
-        message =
-          "Target folder is neither empty nor does it point to an existing SDK installation."
+        message = "Target folder is neither empty nor does it point to an existing SDK installation."
       } else if (isExistingSdk(path)) {
         severity = Validator.Severity.WARNING
-        message =
-          "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components."
+        message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components."
       }
     }
 
@@ -154,17 +152,15 @@ abstract class SdkComponentsStepController(
   }
 
   /**
-   * Handles updates to the SDK path, triggering SDK component loading and refreshing the UI. This
-   * method is called when the user selects a new SDK installation location. It updates the internal
-   * SDK handler, loads the SDK components available at the new location, and updates the UI to
-   * reflect the available components. The loading process happens on a background thread to avoid
-   * blocking the UI.
+   * Handles updates to the SDK path, triggering SDK component loading and refreshing the UI. This method is called when the user selects a
+   * new SDK installation location. It updates the internal SDK handler, loads the SDK components available at the new location, and updates
+   * the UI to reflect the available components. The loading process happens on a background thread to avoid blocking the UI.
    *
    * @param sdkPath The new SDK path selected by the user. Should not be empty.
-   * @param modalityState The modality state to use when invoking UI updates. This ensures that UI
-   *   updates happen on the correct thread and with the appropriate modality.
-   * @return `true` if the SDK path was actually updated and processing started, `false` if the
-   *   provided path is the same as the current path and no update was necessary.
+   * @param modalityState The modality state to use when invoking UI updates. This ensures that UI updates happen on the correct thread and
+   *   with the appropriate modality.
+   * @return `true` if the SDK path was actually updated and processing started, `false` if the provided path is the same as the current
+   *   path and no update was necessary.
    */
   fun onPathUpdated(sdkPath: String, modalityState: ModalityState): Boolean {
     val sdkLocation = File(sdkPath)
@@ -178,10 +174,7 @@ abstract class SdkComponentsStepController(
       }
 
       val localHandler =
-        AndroidSdkHandler.getInstance(
-          AndroidLocationsSingleton,
-          localSdkHandlerProperty.get().toCompatiblePath(sdkLocation),
-        )
+        AndroidSdkHandler.getInstance(AndroidLocationsSingleton, localSdkHandlerProperty.get().toCompatiblePath(sdkLocation))
       localSdkHandlerProperty.set(localHandler)
 
       val progress = StudioLoggerProgressIndicator(javaClass)
@@ -195,22 +188,14 @@ abstract class SdkComponentsStepController(
               cacheExpirationMs = RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
               onSuccess = {
                 rootNode.updateState(localHandler)
-                coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
-                  stopLoading()
-                }
+                coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) { stopLoading() }
               },
-              onError = {
-                coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
-                  loadingError()
-                }
-              },
+              onError = { coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) { loadingError() } },
               runner = StudioProgressRunner(false, "Finding Available SDK Components", project),
               downloader = StudioDownloader(),
               settings = StudioSettingsController.getInstance(),
             )
-          coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
-            reloadLicenseAgreementStep()
-          }
+          coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) { reloadLicenseAgreementStep() }
         }
 
       return true

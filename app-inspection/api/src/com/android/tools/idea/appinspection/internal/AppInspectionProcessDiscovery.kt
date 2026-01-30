@@ -35,19 +35,15 @@ import kotlinx.coroutines.launch
 /**
  * A class that manages processes discovered from transport pipeline.
  *
- * Definition: An inspectable process is a process that has certain inspection flags indicated in
- * its manifest. However, currently it is simply a process that is known by transport pipeline and
- * is running on a JVMTI-compatible (O+) device. TODO(b/148540564): tracks the work needed to make
- * process detection feasible.
+ * Definition: An inspectable process is a process that has certain inspection flags indicated in its manifest. However, currently it is
+ * simply a process that is known by transport pipeline and is running on a JVMTI-compatible (O+) device. TODO(b/148540564): tracks the work
+ * needed to make process detection feasible.
  *
- * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for
- * populating the AppInspection combobox.
+ * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the AppInspection combobox.
  */
 @AnyThread
-internal class AppInspectionProcessDiscovery(
-  private val manager: TransportStreamManager,
-  private val scope: CoroutineScope,
-) : ProcessDiscovery {
+internal class AppInspectionProcessDiscovery(private val manager: TransportStreamManager, private val scope: CoroutineScope) :
+  ProcessDiscovery {
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
 
@@ -61,8 +57,7 @@ internal class AppInspectionProcessDiscovery(
 
   private class ProcessData {
     // All known debuggable processes
-    @GuardedBy("processData")
-    val processesMap = mutableMapOf<StreamProcessIdPair, ProcessDescriptor>()
+    @GuardedBy("processData") val processesMap = mutableMapOf<StreamProcessIdPair, ProcessDescriptor>()
 
     @GuardedBy("processData") val processListeners = mutableMapOf<ProcessListener, Executor>()
   }
@@ -74,18 +69,14 @@ internal class AppInspectionProcessDiscovery(
   }
 
   /**
-   * Adds an [ProcessListener] to discovery service. Listener will receive future connections when
-   * they come online.
+   * Adds an [ProcessListener] to discovery service. Listener will receive future connections when they come online.
    *
-   * This has the side effect of notifying users of all existing live targets the discovery service
-   * is aware of.
+   * This has the side effect of notifying users of all existing live targets the discovery service is aware of.
    */
   override fun addProcessListener(executor: Executor, listener: ProcessListener) {
     synchronized(processData) {
       if (processData.processListeners.putIfAbsent(listener, executor) == null) {
-        processData.processesMap.values.forEach {
-          executor.execute { listener.onProcessConnected(it) }
-        }
+        processData.processesMap.values.forEach { executor.execute { listener.onProcessConnected(it) } }
       }
     }
   }
@@ -103,16 +94,11 @@ internal class AppInspectionProcessDiscovery(
           streamIdMap[streamChannel.stream.streamId] = streamChannel
           launch {
             streamChannel
-              .processesFlow(
-                filter = { _, process ->
-                  process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
-                }
-              )
+              .processesFlow(filter = { _, process -> process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE })
               .collect { process ->
                 when (process.state) {
                   Common.Process.State.ALIVE -> addProcess(streamChannel, process)
-                  Common.Process.State.DEAD ->
-                    removeProcess(streamChannel.stream.streamId, process.pid)
+                  Common.Process.State.DEAD -> removeProcess(streamChannel.stream.streamId, process.pid)
                   else -> Unit
                 }
               }
@@ -125,15 +111,10 @@ internal class AppInspectionProcessDiscovery(
     }
   }
 
-  /**
-   * Adds a process to internal cache. This is called when transport pipeline is aware of a new
-   * process.
-   */
+  /** Adds a process to internal cache. This is called when transport pipeline is aware of a new process. */
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
-      processData.processesMap.computeIfAbsent(
-        StreamProcessIdPair(streamChannel.stream.streamId, process.pid)
-      ) {
+      processData.processesMap.computeIfAbsent(StreamProcessIdPair(streamChannel.stream.streamId, process.pid)) {
         val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
         processData.processListeners.forEach { (listener, executor) ->
           if (listener.filter(descriptor)) {
@@ -149,28 +130,21 @@ internal class AppInspectionProcessDiscovery(
   private fun removeProcess(streamId: Long, processId: Int) {
     synchronized(processData) {
       processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let { descriptor ->
-        processData.processListeners.forEach { (listener, executor) ->
-          executor.execute { listener.onProcessDisconnected(descriptor) }
-        }
+        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(descriptor) } }
       }
     }
   }
 
   /**
-   * Remove all processes from the internal cache associated with the parent stream ID. This
-   * function is called when a device goes offline (e.g. emulator closed or USB plug pulled)
+   * Remove all processes from the internal cache associated with the parent stream ID. This function is called when a device goes offline
+   * (e.g. emulator closed or USB plug pulled)
    */
   private fun removeProcesses(streamId: Long) {
     synchronized(processData) {
-      processData.processesMap
-        .filter { it.key.streamId == streamId }
-        .forEach { removeProcess(streamId, it.key.pid) }
+      processData.processesMap.filter { it.key.streamId == streamId }.forEach { removeProcess(streamId, it.key.pid) }
     }
   }
 
-  /**
-   * Gets the [TransportStreamChannel] for the given [streamId]. Returns null if stream does not
-   * exist (ex: may have recently closed).
-   */
+  /** Gets the [TransportStreamChannel] for the given [streamId]. Returns null if stream does not exist (ex: may have recently closed). */
   internal fun getStreamChannel(streamId: Long) = streamIdMap[streamId]
 }

@@ -18,13 +18,9 @@ package com.android.tools.idea.module
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 
-/**
- * A service that can be used as a parent disposable instead of a [Module].
- */
+/** A service that can be used as a parent disposable instead of a [Module]. */
 class ModuleDisposableService(module: Module) : Disposable.Default {
   companion object {
-    @JvmStatic
-    fun getInstance(module: Module): ModuleDisposableService =
-      module.getService(ModuleDisposableService::class.java)
+    @JvmStatic fun getInstance(module: Module): ModuleDisposableService = module.getService(ModuleDisposableService::class.java)
   }
 }

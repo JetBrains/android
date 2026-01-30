@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WearRecentsDetector
 
 class AndroidLintWearRecentsInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.wear.recents"),
-    WearRecentsDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.wear.recents"), WearRecentsDetector.ISSUE)

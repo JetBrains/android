@@ -48,13 +48,7 @@ class QuerySummaryTestBuilder {
     val sourceFiles: MutableSet<Label> =
       packagesBuilder
         .map { it.getBuildPackagePath() }
-        .map {
-          Label.fromWorkspacePackageAndName(
-            Label.ROOT_WORKSPACE,
-            it,
-            Path.of("BUILD")
-          )
-        }
+        .map { Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, it, Path.of("BUILD")) }
         .toMutableSet()
     sourceFiles.addAll(includesBuilder.keys)
 
@@ -62,25 +56,14 @@ class QuerySummaryTestBuilder {
     builder.putAllRules(
       packagesBuilder
         .filter { !buildFilesWithErrorsBuilder.contains(it.siblingWithName("BUILD")) }
-        .map {
-          QueryData.Rule.createForTests(label = it).copy(
-            ruleClass = "java_library",
-          )
-        }
+        .map { QueryData.Rule.createForTests(label = it).copy(ruleClass = "java_library") }
     )
 
     builder.putAllSourceFiles(
-      sourceFiles.associateWith {
-        QueryData.SourceFile(
-          it,
-          ImmutableList.copyOf(includesBuilder.get(it).orEmpty())
-        )
-      }
+      sourceFiles.associateWith { QueryData.SourceFile(it, ImmutableList.copyOf(includesBuilder.get(it).orEmpty())) }
     )
 
-    builder.putAllPackagesWithErrors(
-      buildFilesWithErrorsBuilder.map { it.getBuildPackagePath() }.toSet()
-    )
+    builder.putAllPackagesWithErrors(buildFilesWithErrorsBuilder.map { it.getBuildPackagePath() }.toSet())
 
     return builder.build().protoForSerializationOnly()
   }

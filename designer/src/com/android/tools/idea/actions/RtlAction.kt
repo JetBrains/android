@@ -36,13 +36,11 @@ class RtlAction : ToggleAction(TEXT, DESCRIPTION, null) {
   }
 
   override fun isSelected(e: AnActionEvent) =
-    e.getData(CONFIGURATIONS)?.firstOrNull()?.fullConfig?.layoutDirectionQualifier?.value ==
-      LayoutDirection.RTL
+    e.getData(CONFIGURATIONS)?.firstOrNull()?.fullConfig?.layoutDirectionQualifier?.value == LayoutDirection.RTL
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val configuration = e.getData(CONFIGURATIONS)?.firstOrNull() ?: return
-    configuration.editedConfig.layoutDirectionQualifier =
-      LayoutDirectionQualifier(if (state) LayoutDirection.RTL else LayoutDirection.LTR)
+    configuration.editedConfig.layoutDirectionQualifier = LayoutDirectionQualifier(if (state) LayoutDirection.RTL else LayoutDirection.LTR)
     // Notify the change and update so the surface is updated
     configuration.updated(CFG_LOCALE)
   }

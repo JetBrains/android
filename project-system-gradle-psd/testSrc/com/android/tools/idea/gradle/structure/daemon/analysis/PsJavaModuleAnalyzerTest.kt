@@ -28,14 +28,11 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [PsJavaModuleAnalyzerTest].
- */
+/** Tests for [PsJavaModuleAnalyzerTest]. */
 @RunsInEdt
 class PsJavaModuleAnalyzerTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testPromotionMessages() {
@@ -45,13 +42,14 @@ class PsJavaModuleAnalyzerTest {
       val analyzer = PsJavaModuleAnalyzer(context)
       val messageCollection = analyzer.analyze(javaModule)
 
-      val messages = messageCollection
-        .filter {
-          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
-          dependencyName.startsWith("com.example.")
-        }
-        .map { it.text to it.description!! }
-        .toSet()
+      val messages =
+        messageCollection
+          .filter {
+            val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
+            dependencyName.startsWith("com.example.")
+          }
+          .map { it.text to it.description!! }
+          .toSet()
       // No promoton analysis so far.
       assertThat(messages, equalTo(emptySet()))
     }

@@ -25,10 +25,8 @@ import java.util.concurrent.CompletableFuture
 import javax.swing.event.HyperlinkEvent
 
 @Suppress("UnstableApiUsage")
-class AndroidSyncIssueQuickFix private constructor(
-  private val url: String,
-  private val handler: (Project, HyperlinkEvent) -> Boolean
-) : BuildIssueQuickFix {
+class AndroidSyncIssueQuickFix private constructor(private val url: String, private val handler: (Project, HyperlinkEvent) -> Boolean) :
+  BuildIssueQuickFix {
 
   companion object {
 
@@ -37,7 +35,10 @@ class AndroidSyncIssueQuickFix private constructor(
       hyperlink.urls.map {
         AndroidSyncIssueQuickFix(
           url = it,
-          handler = { project, event -> hyperlink.executeHandler(project, event); true }
+          handler = { project, event ->
+            hyperlink.executeHandler(project, event)
+            true
+          },
         )
       }
   }
@@ -52,8 +53,7 @@ class AndroidSyncIssueQuickFix private constructor(
         val source = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) ?: dataContext
         handler(project, HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, null, id))
         future.complete(null)
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         future.completeExceptionally(e)
       }
     }

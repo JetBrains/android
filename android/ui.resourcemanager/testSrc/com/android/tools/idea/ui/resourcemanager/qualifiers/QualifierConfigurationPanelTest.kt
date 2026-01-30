@@ -20,20 +20,19 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil.findComponentsOfType
-import org.junit.Test
-import org.mockito.kotlin.mock
 import javax.swing.JComboBox
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import org.junit.Test
+import org.mockito.kotlin.mock
 
 class QualifierConfigurationPanelTest {
 
   @Test
   fun addQualifierButton() {
-    val configurationPanel = QualifierConfigurationPanel(
-      QualifierConfigurationViewModel(FolderConfiguration()))
+    val configurationPanel = QualifierConfigurationPanel(QualifierConfigurationViewModel(FolderConfiguration()))
 
     assertFalse("Initially, we have en empty row, so there is no need for the add button to be enabled") {
       findAddButton(configurationPanel).isEnabled
@@ -42,34 +41,24 @@ class QualifierConfigurationPanelTest {
     // We now select a value in the first combo box. Because it's not empty anymore, we can add another row
     selectComboBoxFirstItem(configurationPanel, 0)
     val addButton = findAddButton(configurationPanel)
-    assertTrue(
-      "We have selected a value in the first combo box." +
-      " Because it's not empty anymore, we can add another row"
-    ) { addButton.isEnabled }
-
+    assertTrue("We have selected a value in the first combo box." + " Because it's not empty anymore, we can add another row") {
+      addButton.isEnabled
+    }
 
     addButton.doClick()
     assertFalse("We've just added another row, the button should be disabled") { addButton.isEnabled }
 
     selectComboBoxFirstItem(configurationPanel, 2)
-    assertTrue("Now that the second row has a qualifier the button is enabled again") {
-      findAddButton(configurationPanel).isEnabled
-    }
+    assertTrue("Now that the second row has a qualifier the button is enabled again") { findAddButton(configurationPanel).isEnabled }
 
     clickLastDeleteButton(configurationPanel)
-    assertTrue("We have deleted a filled row, the button should still be enabled") {
-      addButton.isEnabled
-    }
+    assertTrue("We have deleted a filled row, the button should still be enabled") { addButton.isEnabled }
 
     addButton.doClick()
-    assertFalse("A row has been deleted, and we add a new one, so the button should be disabled") {
-      addButton.isEnabled
-    }
+    assertFalse("A row has been deleted, and we add a new one, so the button should be disabled") { addButton.isEnabled }
 
     clickLastDeleteButton(configurationPanel)
-    assertTrue("The newly added empty row has been deleted, the button needs to be enabled again") {
-      addButton.isEnabled
-    }
+    assertTrue("The newly added empty row has been deleted, the button needs to be enabled again") { addButton.isEnabled }
   }
 
   @Test
@@ -87,8 +76,7 @@ class QualifierConfigurationPanelTest {
     assertFalse(viewModel.getAvailableQualifiers().contains(selectedItem))
   }
 
-  private fun selectComboBoxFirstItem(configurationPanel: QualifierConfigurationPanel,
-                                      comboBoxIndexInPanel: Int): JComboBox<*>? {
+  private fun selectComboBoxFirstItem(configurationPanel: QualifierConfigurationPanel, comboBoxIndexInPanel: Int): JComboBox<*>? {
     val qualifierCombo = findComponentsOfType(configurationPanel, JComboBox::class.java)[comboBoxIndexInPanel]
     qualifierCombo.firePopupMenuWillBecomeVisible()
     qualifierCombo.selectedIndex = 0

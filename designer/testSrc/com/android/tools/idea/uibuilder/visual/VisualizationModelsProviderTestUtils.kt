@@ -26,11 +26,7 @@ import com.android.tools.sdk.CompatibilityRenderTarget
 import kotlin.test.assertEquals
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
-fun verifyAdaptiveShapeReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyAdaptiveShapeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   // If the first enum value of AdaptiveIconShape() is same as the current
   // sourceConfig.adaptiveShape, then the
   // ConfigurationListener.CFG_ADAPTIVE_SHAPE will not be triggered and the change would not reflect
@@ -45,11 +41,7 @@ fun verifyAdaptiveShapeReflected(
   )
 }
 
-fun verifyDeviceReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyDeviceReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val settings = sourceConfig.settings
   verifyChangeReflected(
     sourceConfig,
@@ -61,20 +53,14 @@ fun verifyDeviceReflected(
   )
 }
 
-fun verifyDeviceStateReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyDeviceStateReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val device = sourceConfig.device ?: return
   val configsToVerify = modelsToVerify.map { it.configuration }
 
   for (state in device.allStates) {
     val stateName = state.name
     val configsShouldResponse =
-      configsToVerify.filter {
-        it.device?.allStates?.map { deviceState -> deviceState.name }?.contains(stateName) ?: false
-      }
+      configsToVerify.filter { it.device?.allStates?.map { deviceState -> deviceState.name }?.contains(stateName) ?: false }
 
     val currentStateNames = configsToVerify.associateWith { it.deviceState?.name }
     sourceConfig.deviceState = state
@@ -92,11 +78,7 @@ fun verifyDeviceStateReflected(
   }
 }
 
-fun verifyUiModeReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyUiModeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   verifyChangeReflected(
     sourceConfig,
     modelsToVerify,
@@ -107,11 +89,7 @@ fun verifyUiModeReflected(
   )
 }
 
-fun verifyNightModeReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyNightModeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   verifyChangeReflected(
     sourceConfig,
     modelsToVerify,
@@ -122,27 +100,12 @@ fun verifyNightModeReflected(
   )
 }
 
-fun verifyThemeReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyThemeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val themeNames = ThemeResolver(sourceConfig).recommendedThemes.map { it.resourceUrl.toString() }
-  verifyChangeReflected(
-    sourceConfig,
-    modelsToVerify,
-    shouldReflect,
-    themeNames,
-    Configuration::setTheme,
-    Configuration::getTheme,
-  )
+  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, themeNames, Configuration::setTheme, Configuration::getTheme)
 }
 
-fun verifyTargetReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyTargetReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val settings = sourceConfig.settings
   verifyChangeReflected(
     sourceConfig,
@@ -158,11 +121,7 @@ fun verifyTargetReflected(
   }
 }
 
-fun verifyLocaleReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyLocaleReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val settings = sourceConfig.settings
   verifyChangeReflected(
     sourceConfig,
@@ -174,20 +133,9 @@ fun verifyLocaleReflected(
   )
 }
 
-fun verifyFontReflected(
-  sourceConfig: Configuration,
-  modelsToVerify: Collection<NlModel>,
-  shouldReflect: Boolean,
-) {
+fun verifyFontReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val fontScales = listOf(0.85f, 1.0f, 1.15f, 1.3f)
-  verifyChangeReflected(
-    sourceConfig,
-    modelsToVerify,
-    shouldReflect,
-    fontScales,
-    Configuration::setFontScale,
-    Configuration::getFontScale,
-  )
+  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, fontScales, Configuration::setFontScale, Configuration::getFontScale)
 }
 
 fun <T> verifyChangeReflected(
@@ -203,8 +151,7 @@ fun <T> verifyChangeReflected(
   // This keeps showing the error log in "Expected: ... ; Actual: ..." style when equalsFunc is not
   // defined.
   val assertFunc: (T?, T?) -> Unit =
-    if (equalsFunc == null) LayoutTestCase::assertEquals
-    else { a: T?, b: T? -> LayoutTestCase.assertTrue(equalsFunc(a, b)) }
+    if (equalsFunc == null) LayoutTestCase::assertEquals else { a: T?, b: T? -> LayoutTestCase.assertTrue(equalsFunc(a, b)) }
 
   if (!shouldReflect) {
     val origins = modelsToVerify.associateWith { model -> model.configuration.getValue() }
@@ -222,7 +169,5 @@ fun <T> verifyChangeReflected(
     }
   }
 
-  modelsToVerify.forEach {
-    assertEquals(it.configuration.toHtmlTooltip(), it.displaySettings.tooltip.value)
-  }
+  modelsToVerify.forEach { assertEquals(it.configuration.toHtmlTooltip(), it.displaySettings.tooltip.value) }
 }

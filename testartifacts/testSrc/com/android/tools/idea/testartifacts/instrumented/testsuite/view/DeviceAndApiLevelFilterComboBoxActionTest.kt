@@ -38,9 +38,7 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
 
-/**
- * Unit tests for [DeviceAndApiLevelFilterComboBoxAction].
- */
+/** Unit tests for [DeviceAndApiLevelFilterComboBoxAction]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DeviceAndApiLevelFilterComboBoxActionTest {
@@ -48,11 +46,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
   @Test
   fun allDevicesAreSelectedByDefault() {
@@ -69,11 +63,12 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
 
   @Test
   fun createActionGroup() {
-    val comboBox = DeviceAndApiLevelFilterComboBoxAction().apply {
-      addDevice(AndroidDevice("id1", "Z-device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
-      addDevice(AndroidDevice("id2", "A-device2", "A-device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29)))
-      addDevice(AndroidDevice("id3", "B-device3", "B-device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
-    }
+    val comboBox =
+      DeviceAndApiLevelFilterComboBoxAction().apply {
+        addDevice(AndroidDevice("id1", "Z-device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
+        addDevice(AndroidDevice("id2", "A-device2", "A-device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29)))
+        addDevice(AndroidDevice("id3", "B-device3", "B-device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+      }
 
     val actionManager = ActionManager.getInstance()
     val actions = comboBox.createActionGroup().getChildren(actionManager)
@@ -104,7 +99,11 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     comboBox.addDevice(device1)
     comboBox.addDevice(device2)
     comboBox.addDevice(device3)
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device2" }.actionPerformed(TestActionEvent.createTestEvent())
+    comboBox
+      .createActionGroup()
+      .flattenedActions()
+      .first { it.templateText == "device2" }
+      .actionPerformed(TestActionEvent.createTestEvent())
 
     val actionEvent = TestActionEvent.createTestEvent()
     comboBox.update(actionEvent)
@@ -173,11 +172,16 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   @Test
   fun listenerIsInvokedUponSelection() {
     val mockListener = mock<DeviceAndApiLevelFilterComboBoxActionListener>()
-    val comboBox = DeviceAndApiLevelFilterComboBoxAction().apply {
-      addDevice(AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
-      listener = mockListener
-    }
-    comboBox.createActionGroup().flattenedActions().first { it.templateText == "device1" }.actionPerformed(TestActionEvent.createTestEvent())
+    val comboBox =
+      DeviceAndApiLevelFilterComboBoxAction().apply {
+        addDevice(AndroidDevice("id1", "device1", "", AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(28)))
+        listener = mockListener
+      }
+    comboBox
+      .createActionGroup()
+      .flattenedActions()
+      .first { it.templateText == "device1" }
+      .actionPerformed(TestActionEvent.createTestEvent())
 
     verify(mockListener).onFilterUpdated()
   }

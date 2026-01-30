@@ -23,18 +23,15 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [MirroringConfirmationDialog].
- */
+/** Tests for [MirroringConfirmationDialog]. */
 @RunsInEdt
 class MirroringConfirmationDialogTest {
-  @get:Rule
-  val ruleChain = RuleChain(ProjectRule(), EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain = RuleChain(ProjectRule(), EdtRule(), HeadlessDialogRule())
 
   @Test
   fun testAccept() {

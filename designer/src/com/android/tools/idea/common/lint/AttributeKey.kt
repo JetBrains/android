@@ -17,8 +17,4 @@ package com.android.tools.idea.common.lint
 
 import com.android.tools.idea.common.model.NlComponent
 
-data class AttributeKey(
-  val component: NlComponent,
-  val namespace: String,
-  val attributeName: String,
-)
+data class AttributeKey(val component: NlComponent, val namespace: String, val attributeName: String)

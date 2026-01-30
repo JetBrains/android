@@ -19,7 +19,8 @@ import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 
-fun exampleInstrumentedTestKt(packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean = false) = """
+fun exampleInstrumentedTestKt(packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean = false) =
+  """
   package ${escapeKotlinIdentifier(packageName)}
 
   import ${getMaterialComponentName("android.support.test.InstrumentationRegistry", useAndroidX)}
@@ -46,8 +47,8 @@ fun exampleInstrumentedTestKt(packageName: String, useAndroidX: Boolean, isLibra
   }
 """
 
-
-fun exampleInstrumentedTestJava(packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean = false) = """
+fun exampleInstrumentedTestJava(packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean = false) =
+  """
   package ${packageName};
 
   import android.content.Context;

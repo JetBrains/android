@@ -23,6 +23,8 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
+import java.awt.Font
+import javax.swing.JTable
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,8 +34,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Font
-import javax.swing.JTable
 
 private const val STRING_VALUE = "Hey, I'm a String value!"
 private const val PROBLEM = "Big time problem"
@@ -139,17 +139,6 @@ class StringsCellRendererTest {
    * - We don't care about the row, so it is always set to zero
    * - We don't care about whether it has focus, so just make that true
    */
-  private fun StringsCellRenderer.getTableCellRendererComponent(
-    table: JTable,
-    value: Any?,
-    viewColumnIndex: Int,
-  ) =
-    getTableCellRendererComponent(
-      table,
-      value,
-      /* isSelected = */ false,
-      /* hasFocus = */ true,
-      /* row = */ 0,
-      viewColumnIndex,
-    )
+  private fun StringsCellRenderer.getTableCellRendererComponent(table: JTable, value: Any?, viewColumnIndex: Int) =
+    getTableCellRendererComponent(table, value, /* isSelected= */ false, /* hasFocus= */ true, /* row= */ 0, viewColumnIndex)
 }

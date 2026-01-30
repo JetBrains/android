@@ -48,26 +48,16 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) :
   JPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
   private val queue =
-    MergingUpdateQueue(
-      UPDATE_QUEUE_NAME,
-      UPDATE_DELAY_MILLI_SECONDS,
-      true,
-      null,
-      parentDisposable,
-      null,
-      Alarm.ThreadToUse.SWING_THREAD,
-    )
+    MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
   private val componentModel = NlPropertiesModel(this, facet, queue)
   private val componentView = NlPropertiesView(componentModel)
-  private val motionModel: NlPropertiesModel? =
-    NlPropertiesModel.EP_NAME.extensionList.singleOrNull()?.create(this, facet, queue)
+  private val motionModel: NlPropertiesModel? = NlPropertiesModel.EP_NAME.extensionList.singleOrNull()?.create(this, facet, queue)
   private val motionEditorView: PropertiesView<NlPropertyItem>? =
     motionModel?.let { NlPropertiesView.EP_NAME.extensionList.singleOrNull()?.create(it) }
   private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
-  private val documentationTarget =
-    NlPropertyDocumentationTarget(componentModel) { properties.selectedItem }
+  private val documentationTarget = NlPropertyDocumentationTarget(componentModel) { properties.selectedItem }
   private var toolWindow: ToolWindowCallback? = null
 
   init {
@@ -117,12 +107,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
   private fun createFilterKeyListener() =
     object : KeyAdapter() {
       override fun keyPressed(event: KeyEvent) {
-        if (
-          properties.filter.isNotEmpty() &&
-            event.keyCode == KeyEvent.VK_ENTER &&
-            event.modifiers == 0 &&
-            properties.enterInFilter()
-        ) {
+        if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
           event.consume()
         }
       }

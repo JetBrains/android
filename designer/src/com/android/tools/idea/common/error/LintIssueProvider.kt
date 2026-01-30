@@ -43,8 +43,7 @@ import org.jetbrains.kotlin.idea.util.application.executeCommand
 
 class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProvider() {
 
-  var lintAnnotationsModel: LintAnnotationsModel by
-    Delegates.observable(_lintAnnotationsModel) { _, _, _ -> notifyModified() }
+  var lintAnnotationsModel: LintAnnotationsModel by Delegates.observable(_lintAnnotationsModel) { _, _, _ -> notifyModified() }
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
     for (error in lintAnnotationsModel.issues) {
@@ -108,9 +107,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val category: String = issue.issue.category.fullName
 
     override val hyperlinkListener: HyperlinkListener?
-      get() =
-        if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener
-        else BrowserHyperlinkListener.INSTANCE
+      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else BrowserHyperlinkListener.INSTANCE
 
     override val fixes: Stream<Fix>
       get() {
@@ -119,10 +116,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val endElement = issue.endElementPointer.element ?: return emptyList<Fix>().stream()
         val quickFixes = inspection.getQuickFixes(startElement, endElement, issue.incident)
         val intentions = inspection.getIntentions(startElement, endElement)
-        return quickFixes
-          .mapNotNull { createQuickFixPair(it) }
-          .plus(intentions.map { createQuickFixPair(it) })
-          .stream()
+        return quickFixes.mapNotNull { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
     override val suppresses: Stream<Suppress>
@@ -135,12 +129,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
               val startElement = issue.startElementPointer.element ?: return@executeCommand
               val actionContext = ActionContext.from(null, startElement.containingFile)
 
-              ModCommandExecutor.getInstance()
-                .executeInteractively(
-                  actionContext,
-                  suppressLint.applyFix(startElement, actionContext),
-                  null,
-                )
+              ModCommandExecutor.getInstance().executeInteractively(actionContext, suppressLint.applyFix(startElement, actionContext), null)
             }
           }
         return Stream.of(suppress)
@@ -163,8 +152,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       }
     }
 
-    private fun createQuickFixPair(fix: IntentionAction) =
-      Fix("Fix", fix.text, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: IntentionAction) = Fix("Fix", fix.text, createQuickFixRunnable(fix))
 
     override fun equals(other: Any?): Boolean {
       if (other !is LintIssueWrapper) {
@@ -195,11 +183,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                 WriteAction.run<Throwable> {
                   val startElement = issue.startElementPointer.element ?: return@run
                   val endElement = issue.endElementPointer.element ?: return@run
-                  fix.apply(
-                    startElement,
-                    endElement,
-                    AndroidQuickfixContexts.BatchContext.getInstance(),
-                  )
+                  fix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance())
                 }
               },
               EXECUTE_FIX + fix.name,
@@ -217,12 +201,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance()
-            .executeCommand(
-              project,
-              { fix.invoke(project, editor, model.file) },
-              EXECUTE_FIX + fix.familyName,
-              null,
-            )
+            .executeCommand(project, { fix.invoke(project, editor, model.file) }, EXECUTE_FIX + fix.familyName, null)
         }
       }
     }

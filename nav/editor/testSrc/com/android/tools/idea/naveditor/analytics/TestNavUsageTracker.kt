@@ -22,8 +22,7 @@ import java.io.Closeable
 import org.mockito.Mockito
 
 // Open for testing
-open class TestNavUsageTracker private constructor(override val model: NlModel) :
-  NavNopTracker(), Closeable {
+open class TestNavUsageTracker private constructor(override val model: NlModel) : NavNopTracker(), Closeable {
   override fun close() {
     NavUsageTracker.MANAGER.cleanAfterTesting(model)
   }

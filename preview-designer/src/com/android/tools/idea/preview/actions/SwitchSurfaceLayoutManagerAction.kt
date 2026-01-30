@@ -34,10 +34,7 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 
-/**
- * [DropDownAction] that allows switching the layout manager in the surface. Only add if there is
- * more than one option.
- */
+/** [DropDownAction] that allows switching the layout manager in the surface. Only add if there is more than one option. */
 class SwitchSurfaceLayoutManagerAction(
   layoutManagers: List<SurfaceLayoutOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
@@ -46,8 +43,7 @@ class SwitchSurfaceLayoutManagerAction(
   private val enabledIcon = StudioIcons.Common.LAYOUT
   private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.LAYOUT)
 
-  inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) :
-    ToggleAction(option.displayName) {
+  inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) : ToggleAction(option.displayName) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -67,22 +63,14 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     private fun updateMode(dataContext: DataContext) {
-      dataContext.getData(DESIGN_SURFACE)?.let {
-        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutType)
-      }
+      dataContext.getData(DESIGN_SURFACE)?.let { PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutType) }
       val manager = dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return
 
       if (option == FOCUS_MODE_LAYOUT_OPTION) {
         // If turning on Focus layout option - it should be set in preview.
         // TODO (b/292057010) If group filtering is enabled - first element in this group
         // should be selected.
-        val element =
-          dataContext
-            .findPreviewManager(PreviewFlowManager.KEY)
-            ?.allPreviewElementsFlow
-            ?.value
-            ?.asCollection()
-            ?.firstOrNull()
+        val element = dataContext.findPreviewManager(PreviewFlowManager.KEY)?.allPreviewElementsFlow?.value?.asCollection()?.firstOrNull()
         manager.setMode(PreviewMode.Focus(element))
       } else if (manager.mode.value is PreviewMode.Focus) {
         // When switching from Focus mode to Default layout mode - need to set back
@@ -102,9 +90,7 @@ class SwitchSurfaceLayoutManagerAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place).apply {
-      border = JBUI.Borders.empty(1, 2)
-    }
+    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
 
   override fun update(e: AnActionEvent) {
     super.update(e)

@@ -18,7 +18,6 @@ package com.google.idea.blaze.qsync
 import com.google.common.truth.Truth.assertThat
 import com.google.idea.blaze.common.NoopContext
 import com.google.idea.blaze.traverser.DirectoryContents
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
@@ -61,10 +60,7 @@ class DirectoryProcessorImplTest {
       val processor = DirectoryProcessorImpl(context, emptySet())
       val result = processor.processDirectory(workspaceRoot.resolve("empty"))
 
-      assertThat(result)
-        .isEqualTo(
-          DirectoryContents(emptyList(), emptyList())
-        )
+      assertThat(result).isEqualTo(DirectoryContents(emptyList(), emptyList()))
     }
   }
 
@@ -79,16 +75,8 @@ class DirectoryProcessorImplTest {
       val processor = DirectoryProcessorImpl(context, emptySet())
       val result = processor.processDirectory(workspaceRoot.resolve("dir1"))
 
-      assertThat(result?.files)
-        .containsExactly(
-          workspaceRoot.resolve("dir1/file1.txt"),
-          workspaceRoot.resolve("dir1/file2.txt"),
-        )
-      assertThat(result?.subDirectories)
-        .containsExactly(
-          workspaceRoot.resolve("dir1/subdir1"),
-          workspaceRoot.resolve("dir1/subdir2"),
-        )
+      assertThat(result?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"), workspaceRoot.resolve("dir1/file2.txt"))
+      assertThat(result?.subDirectories).containsExactly(workspaceRoot.resolve("dir1/subdir1"), workspaceRoot.resolve("dir1/subdir2"))
     }
   }
 
@@ -108,8 +96,7 @@ class DirectoryProcessorImplTest {
 
       // Processing the parent, the excluded subdir should not be listed in subDirectories
       val parentResult = processor.processDirectory(workspaceRoot.resolve("dir1"))
-      assertThat(parentResult?.files)
-        .containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
+      assertThat(parentResult?.files).containsExactly(workspaceRoot.resolve("dir1/file1.txt"))
       assertThat(parentResult?.subDirectories).isEmpty()
     }
   }

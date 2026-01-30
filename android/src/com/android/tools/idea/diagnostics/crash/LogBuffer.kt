@@ -31,16 +31,12 @@ class LogBuffer(private val maxLines: Int) {
   }
 
   fun clear() {
-    synchronized(deque) {
-      deque.clear()
-    }
+    synchronized(deque) { deque.clear() }
   }
 
   fun getLog(): String {
     val sb = StringBuilder()
-    synchronized(deque) {
-      deque.forEach { sb.append(it).append('\n') }
-    }
+    synchronized(deque) { deque.forEach { sb.append(it).append('\n') } }
     return sb.toString()
   }
 
@@ -52,5 +48,4 @@ class LogBuffer(private val maxLines: Int) {
     }
     return result
   }
-
 }

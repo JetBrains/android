@@ -16,19 +16,14 @@
 package com.android.tools.idea.gradle.model
 
 import java.io.File
-import java.io.Serializable
 
 interface IdeBasicVariant {
   val name: String
 
-  /**
-   * See [IdeAndroidArtifactCore.applicationId] for details.
-   */
+  /** See [IdeAndroidArtifactCore.applicationId] for details. */
   val applicationId: String?
 
-  /**
-   * See [IdeAndroidArtifactCore.applicationId] for details.
-   */
+  /** See [IdeAndroidArtifactCore.applicationId] for details. */
   val testApplicationId: String?
 
   /**
@@ -38,9 +33,7 @@ interface IdeBasicVariant {
    */
   val buildType: String?
 
-  /**
-   * The Studio UI hide all references to those variants for the users, keeping them for internal usage purposes
-   */
+  /** The Studio UI hide all references to those variants for the users, keeping them for internal usage purposes */
   val hideInStudio: Boolean
 }
 
@@ -81,14 +74,10 @@ interface IdeVariantCore : IdeVariantHeader {
    */
   val resourceConfigurations: Collection<String>
 
-  /**
-   * Map of generated res values where the key is the res name.
-   */
+  /** Map of generated res values where the key is the res name. */
   val resValues: Map<String, IdeClassField>
 
-  /**
-   * Specifies the ProGuard configuration files that the plugin should use.
-   */
+  /** Specifies the ProGuard configuration files that the plugin should use. */
   val proguardFiles: Collection<File>
 
   /** The collection of proguard rule files for consumers of the library to use. */
@@ -101,12 +90,10 @@ interface IdeVariantCore : IdeVariantHeader {
    */
   val manifestPlaceholders: Map<String, String>
 
-  /**
-   * The test instrumentation runner. This is only the value set on this product flavor.
-   */
+  /** The test instrumentation runner. This is only the value set on this product flavor. */
   val testInstrumentationRunner: String?
 
-  /** The arguments for the test instrumentation runner.*/
+  /** The arguments for the test instrumentation runner. */
   val testInstrumentationRunnerArguments: Map<String, String>
 
   val testedTargetVariants: List<IdeTestedTargetVariant>
@@ -117,14 +104,10 @@ interface IdeVariantCore : IdeVariantHeader {
   val deprecatedPreMergedApplicationId: String?
   val deprecatedPreMergedTestApplicationId: String?
 
-  /**
-   * Files listing any D8 backported desugared methods or core library desugared methods.
-   */
+  /** Files listing any D8 backported desugared methods or core library desugared methods. */
   val desugaredMethodsFiles: Collection<File>
 
-  /**
-   * The experimental flags set on the variant.
-   */
+  /** The experimental flags set on the variant. */
   val experimentalProperties: Map<String, String>
 }
 

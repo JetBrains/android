@@ -40,14 +40,10 @@ class AndroidProcessMonitorManagerTest {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
-  @get:Rule
-  var mockitoJunit = MockitoJUnit.rule()
-  @Mock
-  lateinit var mockDeploymentAppService: DeploymentApplicationService
-  @Mock
-  lateinit var mockTextEmitter: TextEmitter
-  @Mock
-  lateinit var mockMonitorManagerListener: AndroidProcessMonitorManagerListener
+  @get:Rule var mockitoJunit = MockitoJUnit.rule()
+  @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock lateinit var mockTextEmitter: TextEmitter
+  @Mock lateinit var mockMonitorManagerListener: AndroidProcessMonitorManagerListener
 
   lateinit var monitorManager: AndroidProcessMonitorManager
   lateinit var stateChangeListener: SingleDeviceAndroidProcessMonitorStateListener
@@ -55,24 +51,26 @@ class AndroidProcessMonitorManagerTest {
 
   @Before
   fun setUp() {
-    monitorManager =  AndroidProcessMonitorManager(TARGET_APP_NAME,
-                                                   mockDeploymentAppService,
-                                                   mockTextEmitter,
-                                                   mockMonitorManagerListener,
-                                                   { device -> device.forceStop(TARGET_APP_NAME) }
-    ) { _, device, listener, _ ->
-      if (::stateChangeListener.isInitialized) {
-        assertThat(listener).isSameAs(stateChangeListener)
+    monitorManager =
+      AndroidProcessMonitorManager(
+        TARGET_APP_NAME,
+        mockDeploymentAppService,
+        mockTextEmitter,
+        mockMonitorManagerListener,
+        { device -> device.forceStop(TARGET_APP_NAME) },
+      ) { _, device, listener, _ ->
+        if (::stateChangeListener.isInitialized) {
+          assertThat(listener).isSameAs(stateChangeListener)
+        }
+
+        stateChangeListener = listener
+
+        val monitor = mock<SingleDeviceAndroidProcessMonitor>()
+        whenever(monitor.targetDevice).thenReturn(device)
+        mockSingleDeviceAndroidProcessMonitors[device] = monitor
+
+        monitor
       }
-
-      stateChangeListener = listener
-
-      val monitor = mock<SingleDeviceAndroidProcessMonitor>()
-      whenever(monitor.targetDevice).thenReturn(device)
-      mockSingleDeviceAndroidProcessMonitors[device] = monitor
-
-      monitor
-    }
   }
 
   @Test

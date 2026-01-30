@@ -19,11 +19,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightFieldBuilder
 
-/**
- * A [LightFieldBuilder] with easy nullability support.
- */
-class NullabilityLightFieldBuilder(manager: PsiManager, name: String, type: PsiType, isNonNull: Boolean, vararg modifiers: String)
-  : LightFieldBuilder(manager, name, type) {
+/** A [LightFieldBuilder] with easy nullability support. */
+class NullabilityLightFieldBuilder(manager: PsiManager, name: String, type: PsiType, isNonNull: Boolean, vararg modifiers: String) :
+  LightFieldBuilder(manager, name, type) {
 
   init {
     setModifiers(*modifiers)

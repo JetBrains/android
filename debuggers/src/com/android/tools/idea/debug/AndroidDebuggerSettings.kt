@@ -26,8 +26,7 @@ import com.intellij.xdebugger.settings.XDebuggerSettings
 import java.util.function.Supplier
 
 @State(name = "AndroidDebuggerSettings", storages = [Storage("android.debug.xml")])
-internal class AndroidDebuggerSettings :
-  XDebuggerSettings<AndroidDebuggerSettings>("android_debugger"), Supplier<AndroidDebuggerSettings> {
+internal class AndroidDebuggerSettings : XDebuggerSettings<AndroidDebuggerSettings>("android_debugger"), Supplier<AndroidDebuggerSettings> {
   var filterAndroidRuntimeClasses: Boolean = true
 
   companion object {
@@ -38,14 +37,7 @@ internal class AndroidDebuggerSettings :
 
   override fun createConfigurables(category: DebuggerSettingsCategory): Collection<Configurable> =
     if (category == DebuggerSettingsCategory.STEPPING) {
-      listOf(
-        SimpleConfigurable.create(
-          "reference.idesettings.debugger.android",
-          "Android",
-          AndroidDebuggerSettingsUi::class.java,
-          this,
-        )
-      )
+      listOf(SimpleConfigurable.create("reference.idesettings.debugger.android", "Android", AndroidDebuggerSettingsUi::class.java, this))
     } else listOf()
 
   override fun get() = this

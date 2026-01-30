@@ -19,9 +19,9 @@ import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.google.common.truth.Truth.assertThat
+import java.util.Base64
 import org.junit.Before
 import org.junit.Test
-import java.util.Base64
 
 class HeapProfdConverterTest {
 
@@ -31,61 +31,42 @@ class HeapProfdConverterTest {
   fun buildBasicContext() {
     val base64 = Base64.getEncoder()
 
-    context = Memory.NativeAllocationContext.newBuilder()
-      .addFrames(Memory.StackFrame.newBuilder()
-                   .setId(1)
-                   .setName(base64.encodeToString("Frame 1".toByteArray()))
-                   .setModule(base64.encodeToString("/data/local/fakeModule%%".toByteArray())))
-      .addFrames(Memory.StackFrame.newBuilder()
-                   .setId(2)
-                   .setName(base64.encodeToString("Frame 1A".toByteArray()))
-                   .setModule(base64.encodeToString("TestModule".toByteArray()))
-                   .setSourceFile(base64.encodeToString("/path/to/file.cpp".toByteArray()))
-                   .setLineNumber(10))
-      .addFrames(Memory.StackFrame.newBuilder()
-                   .setId(3)
-                   .setName(base64.encodeToString("Frame 2".toByteArray()))
-                   .setModule(base64.encodeToString("TestModule".toByteArray()))
-                   .setSourceFile(base64.encodeToString("/path/to/file2.cpp".toByteArray()))
-                   .setLineNumber(20))
-      .putPointers(1, Memory.StackPointer.newBuilder()
-        .setFrameId(1)
-        .build())
-      .putPointers(2, Memory.StackPointer.newBuilder()
-        .setFrameId(2)
-        .setParentId(1)
-        .build())
-      .putPointers(3, Memory.StackPointer.newBuilder()
-        .setFrameId(4)
-        .build())
-      .putPointers(4, Memory.StackPointer.newBuilder()
-        .setFrameId(3)
-        .setParentId(4)
-        .build())
-      .addAllocations(Memory.Allocation.newBuilder()
-                        .setTimestamp(1)
-                        .setCount(5)
-                        .setSize(20)
-                        .setStackId(2))
-      .addAllocations(Memory.Allocation.newBuilder()
-                        .setTimestamp(1)
-                        .setCount(-4)
-                        .setSize(-16)
-                        .setStackId(1))
-      .addAllocations(Memory.Allocation.newBuilder()
-                        .setTimestamp(1)
-                        .setCount(2)
-                        .setSize(16)
-                        .setStackId(3))
+    context =
+      Memory.NativeAllocationContext.newBuilder()
+        .addFrames(
+          Memory.StackFrame.newBuilder()
+            .setId(1)
+            .setName(base64.encodeToString("Frame 1".toByteArray()))
+            .setModule(base64.encodeToString("/data/local/fakeModule%%".toByteArray()))
+        )
+        .addFrames(
+          Memory.StackFrame.newBuilder()
+            .setId(2)
+            .setName(base64.encodeToString("Frame 1A".toByteArray()))
+            .setModule(base64.encodeToString("TestModule".toByteArray()))
+            .setSourceFile(base64.encodeToString("/path/to/file.cpp".toByteArray()))
+            .setLineNumber(10)
+        )
+        .addFrames(
+          Memory.StackFrame.newBuilder()
+            .setId(3)
+            .setName(base64.encodeToString("Frame 2".toByteArray()))
+            .setModule(base64.encodeToString("TestModule".toByteArray()))
+            .setSourceFile(base64.encodeToString("/path/to/file2.cpp".toByteArray()))
+            .setLineNumber(20)
+        )
+        .putPointers(1, Memory.StackPointer.newBuilder().setFrameId(1).build())
+        .putPointers(2, Memory.StackPointer.newBuilder().setFrameId(2).setParentId(1).build())
+        .putPointers(3, Memory.StackPointer.newBuilder().setFrameId(4).build())
+        .putPointers(4, Memory.StackPointer.newBuilder().setFrameId(3).setParentId(4).build())
+        .addAllocations(Memory.Allocation.newBuilder().setTimestamp(1).setCount(5).setSize(20).setStackId(2))
+        .addAllocations(Memory.Allocation.newBuilder().setTimestamp(1).setCount(-4).setSize(-16).setStackId(1))
+        .addAllocations(Memory.Allocation.newBuilder().setTimestamp(1).setCount(2).setSize(16).setStackId(3))
   }
 
   @Test
   fun recursiveCallstacksHandled() {
-    context.addAllocations(Memory.Allocation.newBuilder()
-                             .setTimestamp(1)
-                             .setCount(2)
-                             .setSize(16)
-                             .setStackId(4))
+    context.addAllocations(Memory.Allocation.newBuilder().setTimestamp(1).setCount(2).setSize(16).setStackId(4))
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
     val heapProfdConverter = HeapProfdConverter(nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
@@ -94,7 +75,8 @@ class HeapProfdConverterTest {
     assertThat(instances[3].name).isEqualTo("Frame 2 (/path/to/file2.cpp:20)")
     assertThat(instances[3].callStackDepth).isEqualTo(2)
     assertThat(instances[3].allocationCallStack).isNotNull()
-    assertThat(instances[3].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("[Recursive] Frame 2 (/path/to/file2.cpp:20)")
+    assertThat(instances[3].allocationCallStack!!.fullStack.getFrames(0).methodName)
+      .isEqualTo("[Recursive] Frame 2 (/path/to/file2.cpp:20)")
   }
 
   @Test
@@ -122,7 +104,6 @@ class HeapProfdConverterTest {
   }
 
   class FakeNameDemangler : NameDemangler {
-    override fun demangleInplace(stackFrames: Collection<NameHolder>) {
-    }
+    override fun demangleInplace(stackFrames: Collection<NameHolder>) {}
   }
 }

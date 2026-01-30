@@ -19,41 +19,35 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
-import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetScopedService
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import java.util.function.Supplier
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetScopedService
+import org.jetbrains.ide.PooledThreadExecutor
 
 private val FRAMEWORK_DRAWABLE_KEY = Key.create<FrameworkDrawableRenderer>(FrameworkDrawableRenderer::class.java.name)
 
-private fun createRenderTask(buildTarget: AndroidBuildTargetReference,
-                             configuration: Configuration
-): CompletableFuture<RenderTask?> {
-  return StudioRenderService.getInstance(buildTarget.project)
-    .taskBuilder(buildTarget, configuration)
-    .build()
+private fun createRenderTask(buildTarget: AndroidBuildTargetReference, configuration: Configuration): CompletableFuture<RenderTask?> {
+  return StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration).build()
 }
 
-/**
- * Creates preview images of Framework Drawables, these are Drawables located in the framework resources jar of LayoutLib.
- */
+/** Creates preview images of Framework Drawables, these are Drawables located in the framework resources jar of LayoutLib. */
 class FrameworkDrawableRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
   private val renderTaskProvider: (AndroidBuildTargetReference, Configuration) -> CompletableFuture<RenderTask?>,
-  private val futuresManager: ImageFuturesManager<ResourceValue>
+  private val futuresManager: ImageFuturesManager<ResourceValue>,
 ) : AndroidFacetScopedService(facet) {
 
   init {
@@ -62,21 +56,27 @@ constructor(
 
   override fun onServiceDisposal(facet: AndroidFacet) {}
 
-  fun getDrawableRender(resourceValue: ResourceValue, fileForConfiguration: VirtualFile, targetSize: Dimension): CompletableFuture<BufferedImage?> {
+  fun getDrawableRender(
+    resourceValue: ResourceValue,
+    fileForConfiguration: VirtualFile,
+    targetSize: Dimension,
+  ): CompletableFuture<BufferedImage?> {
     val renderImageCallback: () -> CompletableFuture<BufferedImage?> = { getImage(resourceValue, fileForConfiguration, targetSize) }
     return futuresManager.registerAndGet(resourceValue, renderImageCallback)
   }
 
   private fun getImage(value: ResourceValue, fileForConfiguration: VirtualFile, dimension: Dimension): CompletableFuture<BufferedImage?> {
-    return getConfigurationFuture(facet, fileForConfiguration).thenComposeAsync(Function { configuration ->
-      renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), configuration).thenCompose { renderTask ->
-        renderTask?.setOverrideRenderSize(dimension.width, dimension.height)
-        renderTask?.setMaxRenderSize(dimension.width, dimension.height)
-        renderTask?.renderDrawable(value)?.whenComplete { _, _ ->
-          renderTask.dispose()
-        }
-      }
-    }, PooledThreadExecutor.INSTANCE)
+    return getConfigurationFuture(facet, fileForConfiguration)
+      .thenComposeAsync(
+        Function { configuration ->
+          renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), configuration).thenCompose { renderTask ->
+            renderTask?.setOverrideRenderSize(dimension.width, dimension.height)
+            renderTask?.setMaxRenderSize(dimension.width, dimension.height)
+            renderTask?.renderDrawable(value)?.whenComplete { _, _ -> renderTask.dispose() }
+          }
+        },
+        PooledThreadExecutor.INSTANCE,
+      )
   }
 
   companion object {
@@ -84,11 +84,7 @@ constructor(
     fun getInstance(facet: AndroidFacet): FrameworkDrawableRenderer {
       var renderer = facet.getUserData(FRAMEWORK_DRAWABLE_KEY)
       if (renderer == null) {
-        renderer = FrameworkDrawableRenderer(
-          facet,
-          ::createRenderTask,
-          ImageFuturesManager<ResourceValue>()
-        )
+        renderer = FrameworkDrawableRenderer(facet, ::createRenderTask, ImageFuturesManager<ResourceValue>())
         facet.putUserData(FRAMEWORK_DRAWABLE_KEY, renderer)
       }
       return renderer
@@ -104,7 +100,8 @@ constructor(
 }
 
 private fun getConfigurationFuture(facet: AndroidFacet, file: VirtualFile): CompletableFuture<Configuration> {
-  return CompletableFuture.supplyAsync(Supplier {
-    ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file)
-  }, PooledThreadExecutor.INSTANCE)
+  return CompletableFuture.supplyAsync(
+    Supplier { ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file) },
+    PooledThreadExecutor.INSTANCE,
+  )
 }

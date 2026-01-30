@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.render
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -28,14 +28,14 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
 import groovy.json.StringEscapeUtils
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 class FolderTemplatesTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
@@ -45,10 +45,9 @@ class FolderTemplatesTest {
     remapFolder: Boolean,
     location: String,
     expectedLine: String,
-    expectedFolderLocation: String = location
+    expectedFolderLocation: String = location,
   ) {
-    val template =
-      TemplateResolver.getTemplateByName(name) ?: throw RuntimeException("Invalid template")
+    val template = TemplateResolver.getTemplateByName(name) ?: throw RuntimeException("Invalid template")
 
     // These represent the options in the dialog
     val remapParam = template.parameters.find { it.name == "Change Folder Location" }
@@ -60,10 +59,7 @@ class FolderTemplatesTest {
     val moduleStateBuilder = getDefaultModuleState(projectRule.project, template, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT)
     val projectRoot = moduleStateBuilder.projectTemplateDataBuilder.topOut!!
     val moduleRoot =
-      GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, defaultModuleName))
-        .paths
-        .moduleRoot!!
-        .toPath()
+      GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, defaultModuleName)).paths.moduleRoot!!.toPath()
     println("Module root: $moduleRoot")
 
     val templateData = moduleStateBuilder.build()
@@ -75,7 +71,7 @@ class FolderTemplatesTest {
         templateData = templateData,
         moduleRoot = moduleRoot.toFile(),
         dryRun = false,
-        showErrors = true
+        showErrors = true,
       )
     val moduleRecipeExecutor = DefaultRecipeExecutor(context)
 
@@ -87,9 +83,7 @@ class FolderTemplatesTest {
     template.render(context, moduleRecipeExecutor)
 
     // Applying changes is necessary to write the Gradle model to disk
-    WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> {
-      moduleRecipeExecutor.applyChanges()
-    }
+    WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
 
     // Check the folder exists and that relevant content is in build.gradle file
     assertTrue(moduleRoot.resolve(expectedFolderLocation).toFile().isDirectory)
@@ -99,9 +93,8 @@ class FolderTemplatesTest {
   }
 
   /**
-   * Writes a build.gradle.kts file containing only the android {} section to the module's root
-   * folder. This ensures it gets picked up by the Gradle model so the test generateResourcesFolder
-   * has a place to add a sourceSets {} section
+   * Writes a build.gradle.kts file containing only the android {} section to the module's root folder. This ensures it gets picked up by
+   * the Gradle model so the test generateResourcesFolder has a place to add a sourceSets {} section
    */
   private fun writeBuildGradleKtsFile(moduleRoot: Path) {
     FileUtils.mkdirs(moduleRoot.toFile())

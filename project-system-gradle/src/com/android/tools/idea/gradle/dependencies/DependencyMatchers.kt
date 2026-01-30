@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.PluginDeclarationModel
 // and build script declarations (ArtifactDependencyModel)
 interface DependencyMatcher {
   fun match(model: LibraryDeclarationModel): Boolean
+
   fun match(model: ArtifactDependencyModel): Boolean
 }
 
@@ -32,12 +33,13 @@ interface DependencyMatcher {
 // and plugins from build scripts (PluginModel)
 interface PluginMatcher {
   fun match(model: PluginDeclarationModel): Boolean
+
   fun match(model: PluginModel): Boolean
 }
 
 class ExactDependencyMatcher(val configuration: String, val compactNotation: String) : DependencyMatcher {
-  override fun match(model: LibraryDeclarationModel) =
-    model.compactNotation() == compactNotation
+  override fun match(model: LibraryDeclarationModel) = model.compactNotation() == compactNotation
+
   override fun match(model: ArtifactDependencyModel): Boolean =
     model.configurationName() == configuration && model.compactNotation() == compactNotation
 }
@@ -52,18 +54,15 @@ class GroupNameDependencyMatcher(val configuration: String, val compactNotation:
     name = dep.name
   }
 
-  override fun match(model: LibraryDeclarationModel) =
-    with(model) { group().toString() == group && name().toString() == name }
+  override fun match(model: LibraryDeclarationModel) = with(model) { group().toString() == group && name().toString() == name }
+
   override fun match(model: ArtifactDependencyModel): Boolean =
-    with(model) {
-      configurationName() == configuration &&
-        group().toString() == group &&
-        name().toString() == name
-    }
+    with(model) { configurationName() == configuration && group().toString() == group && name().toString() == name }
 }
 
 class IdPluginMatcher(val id: String) : PluginMatcher {
   override fun match(model: PluginDeclarationModel) = model.id().toString().defaultPluginName() == id.defaultPluginName()
+
   override fun match(model: PluginModel): Boolean = model.name().toString().defaultPluginName() == id.defaultPluginName()
 }
 
@@ -71,11 +70,13 @@ class IdPluginMatcher(val id: String) : PluginMatcher {
 // go through comparison
 class FalsePluginMatcher : PluginMatcher {
   override fun match(model: PluginDeclarationModel) = false
+
   override fun match(model: PluginModel): Boolean = false
 }
 
-fun String.defaultPluginName() = when (this) {
-  "kotlin-android" -> "org.jetbrains.kotlin.android"
-  "kotlin" -> "org.jetbrains.kotlin.jvm"
-  else -> this
-}
+fun String.defaultPluginName() =
+  when (this) {
+    "kotlin-android" -> "org.jetbrains.kotlin.android"
+    "kotlin" -> "org.jetbrains.kotlin.jvm"
+    else -> this
+  }

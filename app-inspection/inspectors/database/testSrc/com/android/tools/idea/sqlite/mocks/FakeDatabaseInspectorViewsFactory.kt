@@ -38,8 +38,7 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val tableView: FakeTableView
     get() = tableViews.last()
 
-  val parametersBindingDialogView: FakeParametersBindingDialogView =
-    spy(FakeParametersBindingDialogView())
+  val parametersBindingDialogView: FakeParametersBindingDialogView = spy(FakeParametersBindingDialogView())
   val databaseInspectorView: FakeDatabaseInspectorView = spy(FakeDatabaseInspectorView())
   private val exportToFileDialogView: ExportToFileDialogView = mock()
   private val exportInProgressView: ExportInProgressView = mock()
@@ -52,14 +51,10 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
     return fakeTableView
   }
 
-  override fun createEvaluatorView(
-    project: Project,
-    schemaProvider: SchemaProvider,
-    tableView: TableView,
-  ): SqliteEvaluatorView = sqliteEvaluatorView
+  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView =
+    sqliteEvaluatorView
 
-  override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
-    parametersBindingDialogView
+  override fun createParametersBindingView(project: Project, sqliteStatementText: String) = parametersBindingDialogView
 
   override fun createDatabaseInspectorView(project: Project) = databaseInspectorView
 
@@ -69,9 +64,5 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView = exportToFileDialogView
 
-  override fun createExportInProgressView(
-    project: Project,
-    job: Job,
-    taskDispatcher: CoroutineDispatcher,
-  ) = exportInProgressView
+  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher) = exportInProgressView
 }

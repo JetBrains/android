@@ -41,16 +41,16 @@ class VibEditCompileTest {
   // so not having that available causes a NullPointerException when we call it.
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
-  private val helloToGoodbyeTransformerProvider = object : VibeTransformerProvider {
-    override fun createVibeTransformer() = object : VibeTransformer {
-      override suspend fun transformVibe(file: PsiFile,
-                                         vibe: String): VibeTransformerResult =
-        VibeTransformerResult(file.text.replace("Hello", "Goodbye"))
+  private val helloToGoodbyeTransformerProvider =
+    object : VibeTransformerProvider {
+      override fun createVibeTransformer() =
+        object : VibeTransformer {
+          override suspend fun transformVibe(file: PsiFile, vibe: String): VibeTransformerResult =
+            VibeTransformerResult(file.text.replace("Hello", "Goodbye"))
+        }
     }
-  }
 
   @Before
   fun setUp() {
@@ -71,25 +71,26 @@ class VibEditCompileTest {
 
   @Test
   fun simpleChange() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       fun foo() = "Hello World!"
-    """)
+    """,
+      )
 
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileByteArray(file).toMutableMap()
     apk.putAll(projectRule.directApiCompileByteArray(file))
 
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val output = compile(listOf(
-      LiveEditCompilerInput(file, readPsiValidationState(file), "Change Hello to GoodBye")), compiler)
+    val output = compile(listOf(LiveEditCompilerInput(file, readPsiValidationState(file), "Change Hello to GoodBye")), compiler)
 
     val returnedValue = invokeStatic("foo", loadClass(output))
     Assert.assertEquals("Goodbye World!", returnedValue)
   }
 
   private fun readPsiValidationState(file: PsiFile): PsiState {
-    return runReadAction {
-      getPsiValidationState(file)
-    }
+    return runReadAction { getPsiValidationState(file) }
   }
 }

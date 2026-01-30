@@ -27,10 +27,7 @@ import com.intellij.xdebugger.impl.actions.PauseAction
 
 class AppInsightsConsoleActionsPostProcessor : ConsoleActionsPostProcessor() {
 
-  override fun postProcessPopupActions(
-    console: ConsoleView,
-    actions: Array<AnAction>,
-  ): Array<AnAction> {
+  override fun postProcessPopupActions(console: ConsoleView, actions: Array<AnAction>): Array<AnAction> {
     if (console.place != AQI_CONSOLE_VIEW_PLACE) {
       return actions
     }

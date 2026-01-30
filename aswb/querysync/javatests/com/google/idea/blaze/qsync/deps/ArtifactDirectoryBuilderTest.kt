@@ -37,18 +37,14 @@ class ArtifactDirectoryBuilderTest {
   @Test
   fun test_add_single() {
     update.artifactDirectory(artifactDirProjectPath) {
-
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create(
-            "digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")
-          ),
-          DependencyBuildContext.create("build-id", buildTimestamp1)
+          BuildArtifact.create("digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+          DependencyBuildContext.create("build-id", buildTimestamp1),
         )
 
-      Truth.assertThat(added)
-        .isEqualTo(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
+      Truth.assertThat(added).isEqualTo(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
     }
     Truth.assertThat(update.build().artifactDirectories)
       .isEqualTo(
@@ -71,32 +67,25 @@ class ArtifactDirectoryBuilderTest {
             )
         )
       )
-
   }
 
   @Test
   fun test_add_conflicting_newer() {
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
-
       addIfNewer(
         Path.of("path/to/artifact"),
-        BuildArtifact.create(
-          "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")
-        ),
-        DependencyBuildContext.create("build-id", buildTimestamp1)
+        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        DependencyBuildContext.create("build-id", buildTimestamp1),
       )
 
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create(
-            "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")
-          ),
-          DependencyBuildContext.create("build-id", buildTimestamp2)
+          BuildArtifact.create("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
+          DependencyBuildContext.create("build-id", buildTimestamp2),
         )
 
-      Truth.assertThat(added)
-        .isEqualTo(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
+      Truth.assertThat(added).isEqualTo(ProjectPath.projectRelative(Path.of("artifactDir/path/to/artifact")))
     }
     Truth.assertThat(update.build().artifactDirectories)
       .isEqualTo(
@@ -124,22 +113,17 @@ class ArtifactDirectoryBuilderTest {
   @Test
   fun test_add_conflicting_older() {
     update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
-
       addIfNewer(
         Path.of("path/to/artifact"),
-        BuildArtifact.create(
-          "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")
-        ),
-        DependencyBuildContext.create("build-id", buildTimestamp2)
+        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        DependencyBuildContext.create("build-id", buildTimestamp2),
       )
 
       val added =
         addIfNewer(
           Path.of("path/to/artifact"),
-          BuildArtifact.create(
-            "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")
-          ),
-          DependencyBuildContext.create("build-id", buildTimestamp1)
+          BuildArtifact.create("digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
+          DependencyBuildContext.create("build-id", buildTimestamp1),
         )
 
       Truth.assertThat(added).isNull()
@@ -170,10 +154,43 @@ class ArtifactDirectoryBuilderTest {
 
   @Test
   fun add_to_proto_existing_entries() {
-    val update = ProjectProtoUpdate(
-      this.update.build().copy(
-        // pre-existing state.
-        artifactDirectories = ProjectProto.ArtifactDirectories(
+    val update =
+      ProjectProtoUpdate(
+        this.update
+          .build()
+          .copy(
+            // pre-existing state.
+            artifactDirectories =
+              ProjectProto.ArtifactDirectories(
+                directoriesMap =
+                  mapOf(
+                    artifactDirProjectPath to
+                      ProjectProto.ArtifactDirectoryContents(
+                        contents =
+                          mapOf(
+                            "path/to/existingartifact" to
+                              ProjectProto.ProjectArtifact(
+                                transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                                buildArtifact = ProjectProto.BuildArtifact("digest2"),
+                                fromBuild = buildTimestamp1,
+                                target = Label.of("//project:othertarget"),
+                              )
+                          )
+                      )
+                  )
+              )
+          )
+      )
+    update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
+      addIfNewer(
+        Path.of("path/to/artifact"),
+        BuildArtifact.create("digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
+        DependencyBuildContext.create("build-id", buildTimestamp1),
+      )
+    }
+    Truth.assertThat(update.build().artifactDirectories)
+      .isEqualTo(
+        ProjectProto.ArtifactDirectories(
           directoriesMap =
             mapOf(
               artifactDirProjectPath to
@@ -186,50 +203,18 @@ class ArtifactDirectoryBuilderTest {
                           buildArtifact = ProjectProto.BuildArtifact("digest2"),
                           fromBuild = buildTimestamp1,
                           target = Label.of("//project:othertarget"),
-                        )
+                        ),
+                      "path/to/artifact" to
+                        ProjectProto.ProjectArtifact(
+                          transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
+                          buildArtifact = ProjectProto.BuildArtifact("digest1"),
+                          fromBuild = buildTimestamp1,
+                          target = Label.of("//path/to:target"),
+                        ),
                     )
                 )
             )
         )
       )
-    )
-    update.artifactDirectory(ProjectPath.projectRelative(Path.of("artifactDir"))) {
-
-      addIfNewer(
-        Path.of("path/to/artifact"),
-        BuildArtifact.create(
-          "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")
-        ),
-        DependencyBuildContext.create("build-id", buildTimestamp1)
-      )
-    }
-      Truth.assertThat(update.build().artifactDirectories)
-        .isEqualTo(
-          ProjectProto.ArtifactDirectories(
-            directoriesMap =
-              mapOf(
-                artifactDirProjectPath to
-                  ProjectProto.ArtifactDirectoryContents(
-                    contents =
-                      mapOf(
-                        "path/to/existingartifact" to
-                          ProjectProto.ProjectArtifact(
-                            transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
-                            buildArtifact = ProjectProto.BuildArtifact("digest2"),
-                            fromBuild = buildTimestamp1,
-                            target = Label.of("//project:othertarget"),
-                          ),
-                        "path/to/artifact" to
-                          ProjectProto.ProjectArtifact(
-                            transform = ProjectProto.ProjectArtifact.ArtifactTransform.COPY,
-                            buildArtifact = ProjectProto.BuildArtifact("digest1"),
-                            fromBuild = buildTimestamp1,
-                            target = Label.of("//path/to:target"),
-                          ),
-                      )
-                  )
-              )
-          )
-        )
   }
 }

@@ -26,13 +26,17 @@ import org.jetbrains.android.AndroidTestCase
 
 class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
   fun testAgpClasspathDependencyRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       buildscript {
         dependencies {
           classpath 'com.android.tools.build:gradle:3.6.0'
         }
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = AgpVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -43,9 +47,13 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
   }
 
   fun testGradleVersionRefactoringProcessor() {
-    myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
+    myFixture.addFileToProject(
+      "gradle/wrapper/gradle-wrapper.properties",
+      """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = GradleVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -56,7 +64,9 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
   }
 
   fun testCompileRuntimeConfigurationRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
+    myFixture.addFileToProject(
+      "build.gradle",
+      """
       plugins {
         id 'com.android.application'
       }
@@ -66,7 +76,9 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
       dependencies {
         androidTestCompile 'org.junit:junit:4.11'
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
@@ -75,13 +87,12 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
       .containsExactly("Change dependency configuration", "Rename configuration")
   }
 
-  private fun getUsageType(element: PsiElement) : UsageType? {
+  private fun getUsageType(element: PsiElement): UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
       if (provider is UsageTypeProviderEx) {
         val targets = UsageTarget.EMPTY_ARRAY
         return provider.getUsageType(element, targets) ?: continue
-      }
-      else {
+      } else {
         return provider.getUsageType(element) ?: continue
       }
     }

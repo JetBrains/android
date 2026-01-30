@@ -13,8 +13,8 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 /**
  * Listens to App Inspection tool window's state change events
  *
- * Currently, this is used to track analytics and to show an info bubble when tool window is
- * minimized that app inspection is running in the background.
+ * Currently, this is used to track analytics and to show an info bubble when tool window is minimized that app inspection is running in the
+ * background.
  */
 class AppInspectionToolWindowManagerListener(
   private val project: Project,

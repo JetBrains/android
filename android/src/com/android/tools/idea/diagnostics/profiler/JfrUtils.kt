@@ -18,14 +18,14 @@ package com.android.tools.idea.diagnostics.profiler
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.ThreadingAssertions
-import jdk.jfr.Configuration
-import jdk.jfr.FlightRecorder
-import jdk.jfr.Recording
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.ZoneId
+import jdk.jfr.Configuration
+import jdk.jfr.FlightRecorder
+import jdk.jfr.Recording
 
 fun isJfrAvailable() = FlightRecorder.isAvailable()
 
@@ -53,9 +53,7 @@ class Jfr {
 
   private fun getJfrConfiguration(): Configuration {
     val inputStream = javaClass.getResourceAsStream("/diagnostics/prodprofile.jfc") ?: return Configuration.getConfiguration("profile")
-    return InputStreamReader(inputStream).use { r ->
-      Configuration.create(r)
-    }
+    return InputStreamReader(inputStream).use { r -> Configuration.create(r) }
   }
 
   fun stop() {
@@ -79,7 +77,7 @@ class Jfr {
     }
 
     val dt = LocalDateTime.now(ZoneId.of("America/Los_Angeles"))
-    val path = Files.createTempFile("studio-${dt.year}-${dt.monthValue}-${dt.dayOfMonth}-${dt.hour}-${dt.minute}-${dt.second}-", ".jfr");
+    val path = Files.createTempFile("studio-${dt.year}-${dt.monthValue}-${dt.dayOfMonth}-${dt.hour}-${dt.minute}-${dt.second}-", ".jfr")
     r?.dump(path)
     LOG.info("Saved JFR Recording in $path")
     return path

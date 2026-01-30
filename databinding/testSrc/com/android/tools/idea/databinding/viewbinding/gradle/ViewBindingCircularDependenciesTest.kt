@@ -31,8 +31,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * This class compiles a real project with data binding with valid circular dependencies and makes
- * sure that valid bindings are generated for the layout files.
+ * This class compiles a real project with data binding with valid circular dependencies and makes sure that valid bindings are generated
+ * for the layout files.
  *
  * See also: b/141255511
  */

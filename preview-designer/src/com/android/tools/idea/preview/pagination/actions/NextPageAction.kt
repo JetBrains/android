@@ -23,10 +23,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Action to increment by one the current page value in a [PreviewRepresentation] that supports
- * pagination ([PreviewPaginationManager]).
- */
+/** Action to increment by one the current page value in a [PreviewRepresentation] that supports pagination ([PreviewPaginationManager]). */
 class NextPageAction :
   AnAction(
     PreviewBundle.message("action.preview.pagination.next.page.name"),

@@ -22,16 +22,14 @@ import com.android.tools.idea.editing.metrics.Source
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditingMetricsEvent.CharacterMetrics
 import com.intellij.openapi.Disposable
-import org.jetbrains.annotations.TestOnly
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import org.jetbrains.annotations.TestOnly
 
 /** [CodeEditedListener] that reports results to Clearcut lazily. */
-class ClearcutCodeEditedListener
-@TestOnly
-internal constructor(private val windowDuration: Duration, private val clock: Clock) :
+class ClearcutCodeEditedListener @TestOnly internal constructor(private val windowDuration: Duration, private val clock: Clock) :
   CodeEditedListener, Disposable {
 
   constructor() : this(windowDuration = 1.minutes, clock = Clock.System)
@@ -68,9 +66,7 @@ internal constructor(private val windowDuration: Duration, private val clock: Cl
     val event =
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
-        editingMetricsEventBuilder.apply {
-          setCharacterMetrics(window.toCharacterMetrics(elapsed.coerceAtMost(windowDuration)))
-        }
+        editingMetricsEventBuilder.apply { setCharacterMetrics(window.toCharacterMetrics(elapsed.coerceAtMost(windowDuration))) }
       }
     UsageTracker.log(event)
   }
@@ -101,10 +97,9 @@ internal fun Source.toProto(): CharacterMetrics.Source =
     Source.PASTE_FROM_AI_CHAT -> CharacterMetrics.Source.PASTE_FROM_AI_CHAT
   }
 
-internal fun Map<Source, Long>.toSourceCountList(): List<CharacterMetrics.SourceCount.Builder> =
-  map {
-    CharacterMetrics.SourceCount.newBuilder().apply {
-      source = it.key.toProto()
-      count = it.value
-    }
+internal fun Map<Source, Long>.toSourceCountList(): List<CharacterMetrics.SourceCount.Builder> = map {
+  CharacterMetrics.SourceCount.newBuilder().apply {
+    source = it.key.toProto()
+    count = it.value
   }
+}

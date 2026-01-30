@@ -126,43 +126,20 @@ class WidgetConstraintSectionTest {
     val api = RtlSupportProcessor.RTL_TARGET_SDK_START - 1
     val rtl = true // doesn't matter
 
-    val leftAttrs =
-      listOf(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF)
-    assertTrue(
-      leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT }
-    )
+    val leftAttrs = listOf(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF)
+    assertTrue(leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT })
 
-    val rightAttrs =
-      listOf(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF)
-    assertTrue(
-      rightAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT
-      }
-    )
+    val rightAttrs = listOf(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF)
+    assertTrue(rightAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT })
 
-    val topAttrs =
-      listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
-    assertTrue(
-      topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP }
-    )
+    val topAttrs = listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
+    assertTrue(topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP })
 
-    val bottomAttrs =
-      listOf(
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-      )
-    assertTrue(
-      bottomAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM
-      }
-    )
+    val bottomAttrs = listOf(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+    assertTrue(bottomAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM })
 
     val baselineAttrs = listOf(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF)
-    assertTrue(
-      baselineAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE
-      }
-    )
+    assertTrue(baselineAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE })
 
     assertTrue(NON_CONSTRAINT_ATTRIBUTES.all { getConstraintForAttribute(it, api, rtl) == null })
   }
@@ -179,9 +156,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
         SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
       )
-    assertTrue(
-      leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT }
-    )
+    assertTrue(leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT })
 
     val rightAttrs =
       listOf(
@@ -190,35 +165,16 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
         SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
       )
-    assertTrue(
-      rightAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT
-      }
-    )
+    assertTrue(rightAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT })
 
-    val topAttrs =
-      listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
-    assertTrue(
-      topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP }
-    )
+    val topAttrs = listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
+    assertTrue(topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP })
 
-    val bottomAttrs =
-      listOf(
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-      )
-    assertTrue(
-      bottomAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM
-      }
-    )
+    val bottomAttrs = listOf(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+    assertTrue(bottomAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM })
 
     val baselineAttrs = listOf(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF)
-    assertTrue(
-      baselineAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE
-      }
-    )
+    assertTrue(baselineAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE })
 
     assertTrue(NON_CONSTRAINT_ATTRIBUTES.all { getConstraintForAttribute(it, api, rtl) == null })
   }
@@ -235,9 +191,7 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
         SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
       )
-    assertTrue(
-      leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT }
-    )
+    assertTrue(leftAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.LEFT })
 
     val rightAttrs =
       listOf(
@@ -246,39 +200,19 @@ class WidgetConstraintSectionTest {
         SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
         SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
       )
-    assertTrue(
-      rightAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT
-      }
-    )
+    assertTrue(rightAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.RIGHT })
 
-    val topAttrs =
-      listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
-    assertTrue(
-      topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP }
-    )
+    val topAttrs = listOf(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF)
+    assertTrue(topAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.TOP })
 
-    val bottomAttrs =
-      listOf(
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-      )
-    assertTrue(
-      bottomAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM
-      }
-    )
+    val bottomAttrs = listOf(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+    assertTrue(bottomAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BOTTOM })
 
     val baselineAttrs = listOf(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF)
-    assertTrue(
-      baselineAttrs.all {
-        getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE
-      }
-    )
+    assertTrue(baselineAttrs.all { getConstraintForAttribute(it, api, rtl) == SecondarySelector.Constraint.BASELINE })
 
     assertTrue(NON_CONSTRAINT_ATTRIBUTES.all { getConstraintForAttribute(it, api, rtl) == null })
   }
 }
 
-private val NON_CONSTRAINT_ATTRIBUTES =
-  CONSTRAINT_WIDGET_SECTION_ITEMS.map { it.attribute }.filterNot { it in CONSTRAINT_ATTRIBUTES }
+private val NON_CONSTRAINT_ATTRIBUTES = CONSTRAINT_WIDGET_SECTION_ITEMS.map { it.attribute }.filterNot { it in CONSTRAINT_ATTRIBUTES }

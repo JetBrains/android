@@ -39,9 +39,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
   @Rule @JvmField val myRuleChain: TestRule = RuleChain.outerRule(myProjectRule).around(myDomRule)
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   @Before
@@ -52,40 +50,27 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
 
     myProjectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/xml"
 
-    val androidFacet =
-      FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID)
+    val androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID)
     LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test
   fun dataBindingXmlCompletion_caretInImportTag() {
-    myDomRule.testCompletion(
-      "databinding_xml_completion_import.xml",
-      "databinding_xml_completion_import_after.xml",
-    )
+    myDomRule.testCompletion("databinding_xml_completion_import.xml", "databinding_xml_completion_import_after.xml")
   }
 
   @Test
   fun dataBindingXmlCompletion_caretInVariableTag() {
-    myDomRule.testCompletion(
-      "databinding_xml_completion_variable.xml",
-      "databinding_xml_completion_variable_after.xml",
-    )
+    myDomRule.testCompletion("databinding_xml_completion_variable.xml", "databinding_xml_completion_variable_after.xml")
   }
 
   @Test
   fun dataBindingXmlCompletion_caretInDataTag() {
-    myDomRule.testCompletion(
-      "databinding_xml_completion_data.xml",
-      "databinding_xml_completion_data_after.xml",
-    )
+    myDomRule.testCompletion("databinding_xml_completion_data.xml", "databinding_xml_completion_data_after.xml")
   }
 
   @Test
   fun dataBindingXmlCompletion_caretInDataClassAttribute() {
-    myDomRule.testCompletion(
-      "databinding_xml_completion_data_class.xml",
-      "databinding_xml_completion_data_class_after.xml",
-    )
+    myDomRule.testCompletion("databinding_xml_completion_data_class.xml", "databinding_xml_completion_data_class_after.xml")
   }
 }

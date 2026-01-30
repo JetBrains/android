@@ -35,5 +35,4 @@ class LogCache {
       return buffers[name]?.getLogAndClear().orEmpty()
     }
   }
-
 }

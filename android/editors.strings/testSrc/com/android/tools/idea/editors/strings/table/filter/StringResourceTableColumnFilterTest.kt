@@ -25,10 +25,11 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class StringResourceTableColumnFilterTest {
   private val stringResourceTableColumnFilter =
-      object : StringResourceTableColumnFilter {
-        override fun include(locale: Locale): Boolean = throw NotImplementedError("Never called")
-        override fun getDescription(): String = throw NotImplementedError("Never called")
-      }
+    object : StringResourceTableColumnFilter {
+      override fun include(locale: Locale): Boolean = throw NotImplementedError("Never called")
+
+      override fun getDescription(): String = throw NotImplementedError("Never called")
+    }
 
   @Test
   fun getIcon_nullByDefault() {

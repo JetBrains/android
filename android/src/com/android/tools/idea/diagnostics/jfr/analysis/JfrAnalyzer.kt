@@ -18,10 +18,10 @@ package com.android.tools.idea.diagnostics.jfr.analysis
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder
 import com.android.tools.idea.diagnostics.jfr.analysis.IdleStacks.Companion.isIdle
 import com.android.tools.idea.diagnostics.jfr.analysis.IdleStacks.Companion.isIgnoredThread
-import jdk.jfr.consumer.RecordedEvent
-import jdk.jfr.consumer.RecordingFile
 import java.nio.file.Path
 import java.time.Instant
+import jdk.jfr.consumer.RecordedEvent
+import jdk.jfr.consumer.RecordingFile
 
 private data class Sample(val thread: String, val time: Instant, val duration: Long, val stackTrace: List<String>, val truncated: Boolean)
 
@@ -68,7 +68,8 @@ class JfrAnalyzer {
     }
     if (freezeEvent == null) return "No freeze event."
     val freeze = Freeze(freezeEvent.startTime.toEpochMilli() - freezeEvent.getInt("startOffsetMs"), freezeEvent.endTime.toEpochMilli())
-    events.filter { it.eventType.name in SAMPLING_EVENT_NAMES }
+    events
+      .filter { it.eventType.name in SAMPLING_EVENT_NAMES }
       .groupBy { it.getThread("sampledThread").javaThreadId }
       .forEach { (tid, sampleEvents) ->
         val threadName = threadIdToName[tid]!!
@@ -76,7 +77,7 @@ class JfrAnalyzer {
         val samples = mutableListOf<Sample>()
         val sortedEvents = sampleEvents.filter { freeze.containsInstant(it.startTime) }.sortedBy { it.startTime }
         sortedEvents.forEachIndexed { i, e ->
-          val nextEventTime = if (i+1 == sortedEvents.size) freeze.endTime else sortedEvents[i+1].startTime.toEpochMilli()
+          val nextEventTime = if (i + 1 == sortedEvents.size) freeze.endTime else sortedEvents[i + 1].startTime.toEpochMilli()
           var stacktrace = e.getStacktrace()
           if (isIdle(threadName, stacktrace)) {
             stacktrace = listOf("IDLE.IDLE(Unknown Source)")
@@ -97,15 +98,17 @@ class JfrAnalyzer {
 
     val sb = TruncatingStringBuilder(MAX_REPORT_LENGTH_BYTES, "\n...report truncated...")
     if (edtTree != null) sb.append(getThreadReport(edtId, edtTree))
-    callTrees.entries.toList().sortedByDescending { it.value.numNodesAboveCutoff() }.forEach { (tid, tree) ->
-      sb.append(getThreadReport(tid, tree))
-    }
+    callTrees.entries
+      .toList()
+      .sortedByDescending { it.value.numNodesAboveCutoff() }
+      .forEach { (tid, tree) -> sb.append(getThreadReport(tid, tree)) }
     return sb.toString()
   }
 
-  private fun RecordedEvent.getStacktrace() = stackTrace.frames.map { frame ->
-    "${frame.method.type.name}.${frame.method.name}" + if (frame.lineNumber == -1) "(Unknown Source)" else "(?:${frame.lineNumber})"
-  }
+  private fun RecordedEvent.getStacktrace() =
+    stackTrace.frames.map { frame ->
+      "${frame.method.type.name}.${frame.method.name}" + if (frame.lineNumber == -1) "(Unknown Source)" else "(?:${frame.lineNumber})"
+    }
 
   companion object {
     private val SAMPLING_EVENT_NAMES = listOf("jdk.ExecutionSample", "jdk.NativeMethodSample")

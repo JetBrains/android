@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.SdkConstants
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.model.impl.FileImpl
 import com.android.tools.idea.gradle.model.impl.toImpl
@@ -29,14 +28,16 @@ import java.io.File
 import org.gradle.tooling.model.GradleProject
 import org.jetbrains.plugins.gradle.model.GradleTaskModel
 
-val Module.gradleModuleModel: GradleModuleModel? get() =
-  if (this.isLinkedAndroidModule()) {
-    this.getHolderModule() // We only set this model on the holder so we can redirect
-  } else {
-    this // For non-android modules, the model is only set on the holder, but we have no mechanism of finding it
-  }.findSnapshotModuleEntity()
-    ?.gradleModuleModel
-    ?.gradleModuleModel
+val Module.gradleModuleModel: GradleModuleModel?
+  get() =
+    if (this.isLinkedAndroidModule()) {
+        this.getHolderModule() // We only set this model on the holder so we can redirect
+      } else {
+        this // For non-android modules, the model is only set on the holder, but we have no mechanism of finding it
+      }
+      .findSnapshotModuleEntity()
+      ?.gradleModuleModel
+      ?.gradleModuleModel
 
 data class GradleModuleModel(
   private val moduleNameField: String,
@@ -50,7 +51,7 @@ data class GradleModuleModel(
   val safeArgsJava: Boolean,
   val safeArgsKotlin: Boolean,
   val hasFtlPlugin: Boolean,
-): ModuleModel {
+) : ModuleModel {
   constructor(
     moduleName: String,
     gradleProject: GradleProject,
@@ -59,7 +60,7 @@ data class GradleModuleModel(
     gradleVersion: String?,
     agpVersion: String?,
     gradlePluginModel: GradlePluginModel?,
-  ): this(
+  ) : this(
     moduleName,
     testTasks = gradleTaskModel.tasks.filterValues { it.isTest }.values.map { it.name },
     allTasks = gradleTaskModel.tasks.values.map { it.name },
@@ -68,12 +69,12 @@ data class GradleModuleModel(
     buildFilePath?.toImpl(),
     gradleVersion,
     agpVersion,
-    gradlePluginModel?.hasSafeArgsJava() ?:  false,
+    gradlePluginModel?.hasSafeArgsJava() ?: false,
     gradlePluginModel?.hasSafeArgsKotlin() ?: false,
-    gradlePluginModel?.hasFtlPlugin() ?: false
+    gradlePluginModel?.hasFtlPlugin() ?: false,
   )
 
   fun buildFileAsVirtualFile() = buildFilePath?.let { VfsUtil.findFileByIoFile(it, true) }
+
   override fun getModuleName() = moduleNameField
 }
-

@@ -28,8 +28,7 @@ import org.junit.Test
 class SdkBuildToolsTooLowIssueCheckerIntegrationTest {
   private val sdkBuildToolsTooLowIssueChecker = SdkBuildToolsTooLowIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {

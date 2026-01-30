@@ -56,6 +56,13 @@ import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlToken
 import com.intellij.util.application
 import com.intellij.util.concurrency.SameThreadExecutor
+import java.util.Collections
+import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -64,27 +71,18 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
-import java.util.Collections
-import java.util.EnumSet
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * The [ResourceNotificationManager] provides notifications to editors that are displaying Android
- * resources, and need to update themselves when some operation in the IDE edits a resource.
+ * The [ResourceNotificationManager] provides notifications to editors that are displaying Android resources, and need to update themselves
+ * when some operation in the IDE edits a resource.
  *
- * **NOTE**: Editors should **only** listen for resource notifications while they are actively
- * showing. They should **not** simply add a listener when created and then continue to listen in
- * the background. A core value of the IDE is to offer a quick editing experience, and if all the
- * potential editors start listening globally for events, this will slow everything down to a crawl.
+ * **NOTE**: Editors should **only** listen for resource notifications while they are actively showing. They should **not** simply add a
+ * listener when created and then continue to listen in the background. A core value of the IDE is to offer a quick editing experience, and
+ * if all the potential editors start listening globally for events, this will slow everything down to a crawl.
  *
- * Clients should start listening for resource events when the editor is made visible, and stop
- * listening when the editor is made invisible. Furthermore, when editors are made visible a second
- * time, they can consult a modification stamp to see whether anything changed while they were in
- * the background, and if so update themselves only if that's the case.
+ * Clients should start listening for resource events when the editor is made visible, and stop listening when the editor is made invisible.
+ * Furthermore, when editors are made visible a second time, they can consult a modification stamp to see whether anything changed while
+ * they were in the background, and if so update themselves only if that's the case.
  *
  * Also note that
  * * Resource editing events are not delivered synchronously
@@ -93,30 +91,22 @@ import kotlin.coroutines.cancellation.CancellationException
  * * Add listener or remove listener can be done from any thread
  */
 @Service(Service.Level.PROJECT)
-class ResourceNotificationManager
-private constructor(private val project: Project, private val scope: CoroutineScope) :
+class ResourceNotificationManager private constructor(private val project: Project, private val scope: CoroutineScope) :
   Disposable.Default {
 
-  /**
-   * Module observers: one per observed module in the project, with potentially multiple listeners.
-   */
+  /** Module observers: one per observed module in the project, with potentially multiple listeners. */
   private val moduleToObserverMap = ListenerMap<Module, ModuleEventObserver>()
 
   /** File observers: one per observed file, with potentially multiple listeners. */
   private val fileToObserverMap = ListenerMap<VirtualFile, FileEventObserver>()
 
-  /**
-   * Configuration observers: one per observed configuration, with potentially multiple listeners.
-   */
+  /** Configuration observers: one per observed configuration, with potentially multiple listeners. */
   private val configurationToObserverMap = ListenerMap<Configuration, ConfigurationEventObserver>()
 
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
 
-  /**
-   * Counter for events other than resource repository, configuration or file events. For example,
-   * this counts project builds.
-   */
+  /** Counter for events other than resource repository, configuration or file events. For example, this counts project builds. */
   private val modificationCount = AtomicLong()
 
   private val projectBuildObserver: AtomicReference<ProjectBuildObserver?> = AtomicReference()
@@ -135,24 +125,12 @@ private constructor(private val project: Project, private val scope: CoroutineSc
   }
 
   @Slow // Slow because this method might trigger the AppResources repository initialization
-  fun getCurrentVersion(
-    facet: AndroidFacet,
-    file: PsiFile?,
-    configuration: Configuration?,
-  ): ResourceVersion {
+  fun getCurrentVersion(facet: AndroidFacet, file: PsiFile?, configuration: Configuration?): ResourceVersion {
     val repository = StudioResourceRepositoryManager.getAppResources(facet)
-    if (file == null)
-      return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, modificationCount.get())
+    if (file == null) return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, modificationCount.get())
 
     val fileStamp = file.modificationStamp
-    if (configuration == null)
-      return ResourceVersion(
-        repository.modificationCount,
-        fileStamp,
-        0L,
-        0L,
-        modificationCount.get(),
-      )
+    if (configuration == null) return ResourceVersion(repository.modificationCount, fileStamp, 0L, 0L, modificationCount.get())
 
     return ResourceVersion(
       repository.modificationCount,
@@ -168,44 +146,30 @@ private constructor(private val project: Project, private val scope: CoroutineSc
    *
    * @param listener the listener to notify when there is a resource change
    * @param facet the facet for the Android module whose resources the listener is interested in
-   * @param file an optional file to observe for any edits. Note that this is not currently limited
-   *   to this listener; all listeners in the module will be notified when there is an edit of this
-   *   file.
-   * @param configuration if file is not null, this is an optional configuration you can listen for
-   *   changes in (must be a configuration corresponding to the file)
+   * @param file an optional file to observe for any edits. Note that this is not currently limited to this listener; all listeners in the
+   *   module will be notified when there is an edit of this file.
+   * @param configuration if file is not null, this is an optional configuration you can listen for changes in (must be a configuration
+   *   corresponding to the file)
    */
-  fun addListener(
-    listener: ResourceChangeListener,
-    facet: AndroidFacet,
-    file: VirtualFile?,
-    configuration: Configuration?,
-  ) {
-    require(configuration == null || file != null) {
-      "If configuration is specified, file must be as well. $configuration $file"
-    }
+  fun addListener(listener: ResourceChangeListener, facet: AndroidFacet, file: VirtualFile?, configuration: Configuration?) {
+    require(configuration == null || file != null) { "If configuration is specified, file must be as well. $configuration $file" }
 
     val module = facet.module
 
     // Whenever we're adding a listener, ensure we're getting build events.
     requireNotNull(
-        projectBuildObserver.updateAndGet {
-          it ?: ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice)
-        }
+        projectBuildObserver.updateAndGet { it ?: ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice) }
       )
       .ensureListening()
 
-    moduleToObserverMap.addListener(module, listener) {
-      ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice)
-    }
+    moduleToObserverMap.addListener(module, listener) { ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice) }
 
     if (file != null) {
       fileToObserverMap.addListener(file, listener) { FileEventObserver(facet, ::notice) }
     }
 
     if (configuration != null) {
-      configurationToObserverMap.addListener(configuration, listener) {
-        ConfigurationEventObserver(this, configuration, ::notice)
-      }
+      configurationToObserverMap.addListener(configuration, listener) { ConfigurationEventObserver(this, configuration, ::notice) }
     }
 
     if (AndroidModel.isRequired(facet)) {
@@ -221,15 +185,8 @@ private constructor(private val project: Project, private val scope: CoroutineSc
    * @param file the file passed in to the corresponding [.addListener] call
    * @param configuration the configuration passed in to the corresponding [.addListener] call
    */
-  fun removeListener(
-    listener: ResourceChangeListener,
-    facet: AndroidFacet,
-    file: VirtualFile?,
-    configuration: Configuration?,
-  ) {
-    require(configuration == null || file != null) {
-      "If configuration is specified, file must be as well. $configuration $file"
-    }
+  fun removeListener(listener: ResourceChangeListener, facet: AndroidFacet, file: VirtualFile?, configuration: Configuration?) {
+    require(configuration == null || file != null) { "If configuration is specified, file must be as well. $configuration $file" }
 
     if (configuration != null) configurationToObserverMap.removeListener(configuration, listener)
 
@@ -244,16 +201,14 @@ private constructor(private val project: Project, private val scope: CoroutineSc
 
   val psiListener: PsiTreeChangeListener? = ProjectPsiTreeChangeListener(::notice, ::isRelevantFile)
     /**
-     * Returns an implementation of [PsiTreeChangeListener] that is not registered and is used as a
-     * delegate (e.g in [AndroidPsiTreeChangeListener]).
+     * Returns an implementation of [PsiTreeChangeListener] that is not registered and is used as a delegate (e.g in
+     * [AndroidPsiTreeChangeListener]).
      *
      * If no listener has been added to the [ResourceNotificationManager], this method returns null.
      */
     get() = field.takeIf { moduleToObserverMap.isNotEmpty() }
 
-  /**
-   * Something happened. Either schedule a notification or if one is already pending, do nothing.
-   */
+  /** Something happened. Either schedule a notification or if one is already pending, do nothing. */
   private fun notice(reason: Reason, source: VirtualFile?) {
     synchronized(events) { events.add(reason) }
     if (!pendingNotify.compareAndSet(false, true)) return
@@ -272,9 +227,7 @@ private constructor(private val project: Project, private val scope: CoroutineSc
         // event.
         scheduleFinalNotification()
       } else {
-        application.runWriteAction {
-          scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(source)
-        }
+        application.runWriteAction { scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(source) }
       }
     }
   }
@@ -316,13 +269,9 @@ private constructor(private val project: Project, private val scope: CoroutineSc
   }
 
   /** Checks if the file is present in [fileToObserverMap]. */
-  private fun isRelevantFile(virtualFile: VirtualFile?) =
-    virtualFile != null && fileToObserverMap.containsKey(virtualFile)
+  private fun isRelevantFile(virtualFile: VirtualFile?) = virtualFile != null && fileToObserverMap.containsKey(virtualFile)
 
-  /**
-   * Interface that should be implemented by clients interested in resource edits and events that
-   * affect resources.
-   */
+  /** Interface that should be implemented by clients interested in resource edits and events that affect resources. */
   fun interface ResourceChangeListener {
     /**
      * One or more resources have changed.
@@ -333,8 +282,8 @@ private constructor(private val project: Project, private val scope: CoroutineSc
   }
 
   /**
-   * A version timestamp of the resources. This snapshot version is immutable, so you can hold on to
-   * it and compare it with your most recent version.
+   * A version timestamp of the resources. This snapshot version is immutable, so you can hold on to it and compare it with your most recent
+   * version.
    */
   data class ResourceVersion(
     private val resourceGeneration: Long,
@@ -347,16 +296,12 @@ private constructor(private val project: Project, private val scope: CoroutineSc
   /** The reason the resources have changed. */
   enum class Reason {
     /**
-     * An edit which affects the resource repository was performed (e.g. changing the value of a
-     * string is a resource edit, but editing the layout parameters of a widget in a layout file is
-     * not).
+     * An edit which affects the resource repository was performed (e.g. changing the value of a string is a resource edit, but editing the
+     * layout parameters of a widget in a layout file is not).
      */
     RESOURCE_EDIT,
 
-    /**
-     * Edit of a file that is being observed (if you're for example watching a menu file, this will
-     * include edits in whitespace etc.
-     */
+    /** Edit of a file that is being observed (if you're for example watching a menu file, this will include edits in whitespace etc. */
     EDIT,
 
     /** The configuration changed (for example, the locale may have changed). */
@@ -372,8 +317,8 @@ private constructor(private val project: Project, private val scope: CoroutineSc
     GRADLE_SYNC,
 
     /**
-     * Project build. Not a direct resource edit, but for example when a custom view is compiled it
-     * can affect how a resource like layouts should be rendered.
+     * Project build. Not a direct resource edit, but for example when a custom view is compiled it can affect how a resource like layouts
+     * should be rendered.
      */
     PROJECT_BUILD,
 
@@ -387,9 +332,8 @@ private constructor(private val project: Project, private val scope: CoroutineSc
 }
 
 /**
- * Represents an object the [ResourceNotificationManager] will use to listen for various platform
- * events. This super class provides basic functionality around ensuring event listeners are
- * registered exactly once, and are appropriately torn down on disposal.
+ * Represents an object the [ResourceNotificationManager] will use to listen for various platform events. This super class provides basic
+ * functionality around ensuring event listeners are registered exactly once, and are appropriately torn down on disposal.
  */
 private abstract class Observer(parentDisposable: Disposable) : Disposable {
 
@@ -404,10 +348,7 @@ private abstract class Observer(parentDisposable: Disposable) : Disposable {
     }
   }
 
-  /**
-   * Registration method that ensures this objects listeners are correctly wired up. This method
-   * will never be called more than once.
-   */
+  /** Registration method that ensures this objects listeners are correctly wired up. This method will never be called more than once. */
   protected abstract fun registerListeners()
 
   @Synchronized
@@ -429,15 +370,10 @@ private abstract class Observer(parentDisposable: Disposable) : Disposable {
   }
 }
 
-/**
- * An extension of [Observer] for classes which need to maintain a list of
- * [ResourceChangeListener]s.
- */
-private abstract class ObserverWithListeners(parentDisposable: Disposable) :
-  Observer(parentDisposable) {
+/** An extension of [Observer] for classes which need to maintain a list of [ResourceChangeListener]s. */
+private abstract class ObserverWithListeners(parentDisposable: Disposable) : Observer(parentDisposable) {
 
-  private val listeners: MutableList<ResourceChangeListener> =
-    Collections.synchronizedList(ArrayList(2))
+  private val listeners: MutableList<ResourceChangeListener> = Collections.synchronizedList(ArrayList(2))
 
   fun addListener(listener: ResourceChangeListener) {
     listeners.add(listener)
@@ -456,24 +392,15 @@ private abstract class ObserverWithListeners(parentDisposable: Disposable) :
 }
 
 /**
- * Custom collection similar to a multimap, where a [TKey] may map to multiple
- * [ResourceChangeListener] objects. The [TObserver] type is used as an intermediary to store all
- * the [ResourceChangeListener]s associated with a single key.
+ * Custom collection similar to a multimap, where a [TKey] may map to multiple [ResourceChangeListener] objects. The [TObserver] type is
+ * used as an intermediary to store all the [ResourceChangeListener]s associated with a single key.
  */
 private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
   private val map: MutableMap<TKey, TObserver> = mutableMapOf()
 
-  fun addListener(
-    key: TKey,
-    listener: ResourceChangeListener,
-    createObserver: (TKey) -> TObserver,
-  ) {
+  fun addListener(key: TKey, listener: ResourceChangeListener, createObserver: (TKey) -> TObserver) {
     val observer =
-      synchronized(map) {
-        map
-          .computeIfAbsent(key) { createObserver(key).apply { removeOnDisposal(key) } }
-          .apply { addListener(listener) }
-      }
+      synchronized(map) { map.computeIfAbsent(key) { createObserver(key).apply { removeOnDisposal(key) } }.apply { addListener(listener) } }
 
     observer.ensureListening()
   }
@@ -532,8 +459,8 @@ private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
 }
 
 /**
- * A [ModuleEventObserver] registers listeners for various module-specific events (such as resource
- * folder manager changes) and then notifies [notice] when it sees an event.
+ * A [ModuleEventObserver] registers listeners for various module-specific events (such as resource folder manager changes) and then
+ * notifies [notice] when it sees an event.
  */
 private class ModuleEventObserver(
   private val facet: AndroidFacet,
@@ -546,24 +473,17 @@ private class ModuleEventObserver(
 
   override fun registerListeners() {
     if (AndroidModel.isRequired(facet)) {
-      facet.module.project.messageBus
-        .connect(this)
-        .subscribe(ResourceFolderManager.TOPIC, Listener())
+      facet.module.project.messageBus.connect(this).subscribe(ResourceFolderManager.TOPIC, Listener())
     }
   }
 
   suspend fun notifyListeners(reason: ImmutableSet<Reason>) {
     if (this.isDisposed()) return
 
-    val appResources = blockingContextScope {
-      StudioResourceRepositoryManager.getInstance(facet).appResources
-    }
+    val appResources = blockingContextScope { StudioResourceRepositoryManager.getInstance(facet).appResources }
     withContext(Dispatchers.EDT) {
       if (this@ModuleEventObserver.isDisposed()) return@withContext
-      if (
-        reason.singleOrNull() == Reason.RESOURCE_EDIT &&
-          appResources.modificationCount == this@ModuleEventObserver.generation
-      ) {
+      if (reason.singleOrNull() == Reason.RESOURCE_EDIT && appResources.modificationCount == this@ModuleEventObserver.generation) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
         // such as a variant change, then notify regardless.)
@@ -576,9 +496,7 @@ private class ModuleEventObserver(
   }
 
   private val appResourcesModificationCount
-    get() =
-      StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount
-        ?: -1L
+    get() = StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount ?: -1L
 
   inner class Listener : ResourceFolderListener {
     override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
@@ -761,10 +679,7 @@ private class ProjectPsiTreeChangeListener(
     val parent = event.parent
     if (child is PsiErrorElement || parent is XmlComment) return true
 
-    if (
-      (child is PsiWhiteSpace || child is XmlText || parent is XmlText) &&
-        getFolderType(event.file) != ResourceFolderType.VALUES
-    ) {
+    if ((child is PsiWhiteSpace || child is XmlText || parent is XmlText) && getFolderType(event.file) != ResourceFolderType.VALUES) {
       // Editing text or whitespace has no effect outside of values files.
       return true
     }
@@ -787,10 +702,8 @@ private class ProjectPsiTreeChangeListener(
   }
 }
 
-private class FileEventObserver(
-  parentDisposable: Disposable,
-  private val notice: (Reason, VirtualFile?) -> Unit,
-) : ObserverWithListeners(parentDisposable) {
+private class FileEventObserver(parentDisposable: Disposable, private val notice: (Reason, VirtualFile?) -> Unit) :
+  ObserverWithListeners(parentDisposable) {
 
   override fun registerListeners() {
     VirtualFileManager.getInstance().addAsyncFileListener(Listener(), this)
@@ -807,8 +720,7 @@ private class FileEventObserver(
             .firstOrNull { event ->
               val parent = event.file?.parent ?: return@firstOrNull false
               val resType = ResourceFolderType.getFolderType(parent.name)
-              val isImage =
-                ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
+              val isImage = ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
 
               // If it's not an image, ignore the event
               if (!isImage) return@firstOrNull false
@@ -849,8 +761,7 @@ private class ConfigurationEventObserver(
     override fun changed(flags: Int): Boolean {
       if (isDisposed()) return true
 
-      if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
-        notice(Reason.CONFIGURATION_CHANGED, null)
+      if ((flags and ConfigurationListener.MASK_RENDERING) != 0) notice(Reason.CONFIGURATION_CHANGED, null)
 
       return true
     }

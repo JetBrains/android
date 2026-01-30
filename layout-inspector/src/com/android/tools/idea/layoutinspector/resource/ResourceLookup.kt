@@ -44,8 +44,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Utility for looking up resources in a project.
  *
- * This class contains facilities for finding property values and to navigate to the property
- * definition or property assignment.
+ * This class contains facilities for finding property values and to navigate to the property definition or property assignment.
  */
 class ResourceLookup(private val project: Project) {
   private val composeResolver = LambdaResolver(project)
@@ -108,24 +107,19 @@ class ResourceLookup(private val project: Project) {
     theme: ResourceReference?,
     process: ProcessDescriptor,
   ): ResourceLookupResolver? {
-    val facet =
-      ReadAction.compute<AndroidFacet?, RuntimeException> {
-        findFacetFromPackage(project, process.packageName)
-      } ?: return null
+    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.packageName) } ?: return null
     val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
     val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
-    val resourceResolver =
-      cache.getResourceResolver(mgr.target, themeStyle, folderConfig, emptyList())
+    val resourceResolver = cache.getResourceResolver(mgr.target, themeStyle, folderConfig, emptyList())
     return ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
   }
 
   /**
    * Find the file locations for a [property].
    *
-   * The list of file locations will start from [source]. If that is a reference the definition of
-   * that reference will be next etc. The [max] guards against recursive indirection in the
-   * resources. Each file location is specified by:
+   * The list of file locations will start from [source]. If that is a reference the definition of that reference will be next etc. The
+   * [max] guards against recursive indirection in the resources. Each file location is specified by:
    * - a string containing the file name and a line number
    * - a [Navigatable] that can be used to goto the source location
    */
@@ -138,16 +132,12 @@ class ResourceLookup(private val project: Project) {
   ) = readAction { resolver?.findFileLocations(property, view, source, sourceLocations, max) }
 
   /** Find the location of the specified [view]. */
-  suspend fun findFileLocation(view: ViewNode): SourceLocation? = readAction {
-    resolver?.findFileLocation(view)
-  }
+  suspend fun findFileLocation(view: ViewNode): SourceLocation? = readAction { resolver?.findFileLocation(view) }
 
   /** Find the attribute value from resource reference. */
-  suspend fun findAttributeValue(
-    property: InspectorPropertyItem,
-    view: ViewNode,
-    location: ResourceReference,
-  ): String? = readAction { resolver?.findAttributeValue(property, view, location) }
+  suspend fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, location: ResourceReference): String? = readAction {
+    resolver?.findAttributeValue(property, view, location)
+  }
 
   /** Find the lambda source location. */
   @Slow
@@ -158,16 +148,7 @@ class ResourceLookup(private val project: Project) {
     functionName: String,
     startLine: Int,
     endLine: Int,
-  ): SourceLocation = readAction {
-    composeResolver.findLambdaLocation(
-      packageName,
-      fileName,
-      lambdaName,
-      functionName,
-      startLine,
-      endLine,
-    )
-  }
+  ): SourceLocation = readAction { composeResolver.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLine, endLine) }
 
   /** Find the source navigatable of a composable function. */
   @Slow
@@ -188,8 +169,7 @@ class ResourceLookup(private val project: Project) {
   /** Convert a class name to a source location. */
   suspend fun resolveClassNameAsSourceLocation(className: String): SourceLocation? {
     return readAction {
-      val psiClass =
-        JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
+      val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
       val navigatable = psiClass?.let { findNavigatable(psiClass) }
       val source = ClassUtil.extractClassName(className)
       navigatable?.let { SourceLocation(source, it) }

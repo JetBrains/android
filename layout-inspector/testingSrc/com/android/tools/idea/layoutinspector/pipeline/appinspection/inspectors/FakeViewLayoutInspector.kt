@@ -34,16 +34,10 @@ fun FakeInspector.Connection<Event>.sendEvent(init: Event.Builder.() -> Unit) {
   sendEvent(Event.newBuilder().apply(init).build())
 }
 
-class FakeViewLayoutInspector(connection: Connection<Event>) :
-  FakeInspector<Command, Response, Event>(connection) {
+class FakeViewLayoutInspector(connection: Connection<Event>) : FakeInspector<Command, Response, Event>(connection) {
 
   private fun sendProgress(progress: LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint) {
-    connection.sendEvent {
-      progressEvent =
-        LayoutInspectorViewProtocol.ProgressEvent.newBuilder()
-          .apply { checkpoint = progress }
-          .build()
-    }
+    connection.sendEvent { progressEvent = LayoutInspectorViewProtocol.ProgressEvent.newBuilder().apply { checkpoint = progress }.build() }
   }
 
   override fun handleCommandImpl(command: Command): Response {
@@ -53,15 +47,9 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT)
         connection.sendEvent { rootsEvent = WindowRootsEvent.newBuilder().addIds(123).build() }
-        sendProgress(
-          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK
-        )
-        sendProgress(
-          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED
-        )
-        sendProgress(
-          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED
-        )
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
         connection.sendEvent {
           layoutEvent =
@@ -86,74 +74,48 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
         Response.newBuilder().setStartFetchResponse(StartFetchResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND -> {
-        Response.newBuilder()
-          .setUpdateScreenshotTypeResponse(UpdateScreenshotTypeResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setUpdateScreenshotTypeResponse(UpdateScreenshotTypeResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.STOP_FETCH_COMMAND -> {
         Response.newBuilder().setStopFetchResponse(StopFetchResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.GET_PROPERTIES_COMMAND -> {
-        Response.newBuilder()
-          .setGetPropertiesResponse(GetPropertiesResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setGetPropertiesResponse(GetPropertiesResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.CAPTURE_SNAPSHOT_COMMAND -> {
-        Response.newBuilder()
-          .setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.ENABLE_BITMAP_SCREENSHOT_COMMAND -> {
         Response.newBuilder()
-          .setEnableBitmapScreenshotResponse(
-            LayoutInspectorViewProtocol.EnableBitmapScreenshotResponse.getDefaultInstance()
-          )
+          .setEnableBitmapScreenshotResponse(LayoutInspectorViewProtocol.EnableBitmapScreenshotResponse.getDefaultInstance())
           .build()
       }
       Command.SpecializedCase.ENABLE_XR_INSPECTION_COMMAND -> {
         Response.newBuilder()
-          .setEnableXrInspectionResponse(
-            LayoutInspectorViewProtocol.EnableXrInspectionResponse.getDefaultInstance()
-          )
+          .setEnableXrInspectionResponse(LayoutInspectorViewProtocol.EnableXrInspectionResponse.getDefaultInstance())
           .build()
       }
       Command.SpecializedCase.ENABLE_ON_DEVICE_RENDERING_COMMAND -> {
         Response.newBuilder()
-          .setEnableOnDeviceRenderingResponse(
-            LayoutInspectorViewProtocol.EnableOnDeviceRenderingResponse.getDefaultInstance()
-          )
+          .setEnableOnDeviceRenderingResponse(LayoutInspectorViewProtocol.EnableOnDeviceRenderingResponse.getDefaultInstance())
           .build()
       }
       Command.SpecializedCase.DRAW_COMMAND -> {
-        Response.newBuilder()
-          .setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.DRAW_COMMAND -> {
-        Response.newBuilder()
-          .setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance())
-          .build()
+        Response.newBuilder().setDrawResponse(LayoutInspectorViewProtocol.DrawResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.INTERCEPT_TOUCH_EVENTS_COMMAND -> {
         Response.newBuilder()
-          .setInterceptTouchEventsResponse(
-            LayoutInspectorViewProtocol.InterceptTouchEventsResponse.getDefaultInstance()
-          )
+          .setInterceptTouchEventsResponse(LayoutInspectorViewProtocol.InterceptTouchEventsResponse.getDefaultInstance())
           .build()
       }
       Command.SpecializedCase.DRAW_OVERLAY_COMMAND -> {
-        Response.newBuilder()
-          .setDrawOverlayResponse(
-            LayoutInspectorViewProtocol.DrawOverlayResponse.getDefaultInstance()
-          )
-          .build()
+        Response.newBuilder().setDrawOverlayResponse(LayoutInspectorViewProtocol.DrawOverlayResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.SET_OVERLAY_ALPHA_COMMAND -> {
-        Response.newBuilder()
-          .setSetOverlayAlphaResponse(
-            LayoutInspectorViewProtocol.SetOverlayAlphaResponse.getDefaultInstance()
-          )
-          .build()
+        Response.newBuilder().setSetOverlayAlphaResponse(LayoutInspectorViewProtocol.SetOverlayAlphaResponse.getDefaultInstance()).build()
       }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }

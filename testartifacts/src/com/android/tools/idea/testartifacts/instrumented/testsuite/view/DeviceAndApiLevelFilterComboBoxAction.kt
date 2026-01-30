@@ -27,16 +27,14 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
-import org.jetbrains.kotlin.utils.alwaysTrue
 import java.util.TreeSet
 import javax.swing.Icon
 import javax.swing.JComponent
+import org.jetbrains.kotlin.utils.alwaysTrue
 
 private const val ALL_DEVICES: String = "All devices"
 
-/**
- * A drop-down list to allow users to select an Android API level or a device.
- */
+/** A drop-down list to allow users to select an Android API level or a device. */
 class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
   private val myAvailableApiLevels: TreeSet<AndroidVersion> = sortedSetOf()
   private val myAvailableDevices: MutableSet<AndroidDevice> = mutableSetOf()
@@ -45,6 +43,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
   private var myFilter: ((AndroidDevice) -> Boolean) = alwaysTrue()
   val filter: ((AndroidDevice) -> Boolean)
     get() = { myFilter(it) }
+
   var listener: DeviceAndApiLevelFilterComboBoxActionListener? = null
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -65,34 +64,44 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
     actionGroup.addSeparator()
 
     val apiLevelGroup = DefaultActionGroup("API level", true)
-    apiLevelGroup.addAll(myAvailableApiLevels.map { version ->
-      createFilterAction("API ${version.getApiStringWithExtension()}", null) { it.version.apiStringWithExtension == version.apiStringWithExtension }
-    })
+    apiLevelGroup.addAll(
+      myAvailableApiLevels.map { version ->
+        createFilterAction("API ${version.getApiStringWithExtension()}", null) {
+          it.version.apiStringWithExtension == version.apiStringWithExtension
+        }
+      }
+    )
     actionGroup.add(apiLevelGroup)
     actionGroup.addSeparator()
 
     // AndroidDevice.getName() may return different value depends on the timing
     // you call because it resolves device name lazily.
-    actionGroup.addAll(myAvailableDevices.map { Pair(it.getName(), it) }.toSortedSet(compareBy { it.first }).map { (name, device) ->
-      val icon = when(device.deviceType) {
-        AndroidDeviceType.LOCAL_EMULATOR, AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-        AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }
-      createFilterAction(name, icon) { it.id == device.id || it.getName() == device.getName() }
-    })
+    actionGroup.addAll(
+      myAvailableDevices
+        .map { Pair(it.getName(), it) }
+        .toSortedSet(compareBy { it.first })
+        .map { (name, device) ->
+          val icon =
+            when (device.deviceType) {
+              AndroidDeviceType.LOCAL_EMULATOR,
+              AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+              AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+            }
+          createFilterAction(name, icon) { it.id == device.id || it.getName() == device.getName() }
+        }
+    )
 
     return actionGroup
   }
 
   private fun createFilterAction(text: String, icon: Icon?, filter: (AndroidDevice) -> Boolean): DumbAwareAction {
     return DumbAwareAction.create(text) {
-      myText = text
-      myIcon = icon
-      myFilter = filter
-      listener?.onFilterUpdated()
-    }.apply {
-      templatePresentation.icon = icon
-    }
+        myText = text
+        myIcon = icon
+        myFilter = filter
+        listener?.onFilterUpdated()
+      }
+      .apply { templatePresentation.icon = icon }
   }
 
   fun addDevice(device: AndroidDevice) {
@@ -101,12 +110,8 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
   }
 }
 
-/**
- * An interface to observe an update of a [DeviceAndApiLevelFilterComboBoxAction] state.
- */
+/** An interface to observe an update of a [DeviceAndApiLevelFilterComboBoxAction] state. */
 interface DeviceAndApiLevelFilterComboBoxActionListener {
-  /**
-   * Invoked when a [DeviceAndApiLevelFilterComboBoxAction.filter] gets updated.
-   */
+  /** Invoked when a [DeviceAndApiLevelFilterComboBoxAction.filter] gets updated. */
   fun onFilterUpdated()
 }

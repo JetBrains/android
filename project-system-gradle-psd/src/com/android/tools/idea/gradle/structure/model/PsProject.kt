@@ -40,8 +40,11 @@ interface PsProject : PsModel {
   fun getPluginArtifactRepositories(): Collection<ArtifactRepository>
 
   fun findModuleByName(moduleName: String): PsModule?
+
   fun findModuleByGradlePath(gradlePath: String): PsModule?
+
   fun forEachModule(consumer: Consumer<PsModule>)
+
   fun applyChanges()
 
   fun removeModule(gradlePath: String)
@@ -49,6 +52,8 @@ interface PsProject : PsModel {
   fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit)
 
   fun getGradleVersionValue(notApplied: Boolean): String?
+
   fun setGradleVersionValue(value: String)
-  fun findScopeByDependencyLocation(dependencyLocation: DependencyResultLocation):PsVariablesScope?
+
+  fun findScopeByDependencyLocation(dependencyLocation: DependencyResultLocation): PsVariablesScope?
 }

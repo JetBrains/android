@@ -18,7 +18,7 @@ class ProjectProto {
     val artifactDirectories: ArtifactDirectories,
     val ccWorkspace: CcWorkspace,
     val activeLanguages: Set<QuerySyncLanguage>,
-  ): ProjectProtoModel {
+  ) : ProjectProtoModel {
     class Builder(
       val modules: MutableList<Module.Builder> = mutableListOf(),
       val libraries: MutableMap<Label, Library> = mutableMapOf(),
@@ -26,36 +26,34 @@ class ProjectProto {
       var ccWorkspace: CcWorkspace = CcWorkspace.getDefaultInstance(),
       val activeLanguages: MutableSet<QuerySyncLanguage> = mutableSetOf(),
     ) {
-      fun build(): Project = Project(
-        modules = modules.map { it.build() },
-        libraries = libraries.toMap(),
-        artifactDirectories = artifactDirectories,
-        ccWorkspace = ccWorkspace,
-        activeLanguages = activeLanguages
-      )
+      fun build(): Project =
+        Project(
+          modules = modules.map { it.build() },
+          libraries = libraries.toMap(),
+          artifactDirectories = artifactDirectories,
+          ccWorkspace = ccWorkspace,
+          activeLanguages = activeLanguages,
+        )
     }
 
-    fun toBuilder(): Builder = Builder(
-      modules = modules.map { it.toBuilder() }.toMutableList(),
-      libraries = libraries.toMutableMap(),
-      artifactDirectories = artifactDirectories,
-      ccWorkspace = ccWorkspace,
-      activeLanguages = activeLanguages.toMutableSet()
-    )
+    fun toBuilder(): Builder =
+      Builder(
+        modules = modules.map { it.toBuilder() }.toMutableList(),
+        libraries = libraries.toMutableMap(),
+        artifactDirectories = artifactDirectories,
+        ccWorkspace = ccWorkspace,
+        activeLanguages = activeLanguages.toMutableSet(),
+      )
 
     companion object {
-      @JvmStatic
-      fun getDefaultInstance(): Project = Project.Builder().build()
+      @JvmStatic fun getDefaultInstance(): Project = Project.Builder().build()
     }
   }
 
-  data class ContentEntry(
-    val root: ProjectPath,
-    val sourceFolders: List<SourceFolder>,
-    val excludes: List<ProjectPath>,
-  ): ProjectProtoModel
+  data class ContentEntry(val root: ProjectPath, val sourceFolders: List<SourceFolder>, val excludes: List<ProjectPath>) : ProjectProtoModel
 
-  data class SourceFolder(val projectPath: ProjectPath, val isGenerated: Boolean, val isTest: Boolean, val packagePrefix: String): ProjectProtoModel
+  data class SourceFolder(val projectPath: ProjectPath, val isGenerated: Boolean, val isTest: Boolean, val packagePrefix: String) :
+    ProjectProtoModel
 
   data class Module(
     val name: String,
@@ -66,7 +64,7 @@ class ProjectProto {
     val androidCustomPackages: List<String>,
     val androidExternalLibraries: List<ExternalAndroidLibrary>,
     val kotlinCompilerFlags: List<String>,
-  ): ProjectProtoModel {
+  ) : ProjectProtoModel {
     class Builder(
       var name: String,
       var isAndroidModule: Boolean = false,
@@ -77,47 +75,43 @@ class ProjectProto {
       val androidExternalLibraries: MutableList<ExternalAndroidLibrary> = mutableListOf(),
       val kotlinCompilerFlags: MutableList<String> = mutableListOf(),
     ) {
-      fun build(): Module = Module(
+      fun build(): Module =
+        Module(
+          name = name,
+          isAndroidModule = isAndroidModule,
+          contentEntries = contentEntries.toMap(),
+          androidResourceDirectories = androidResourceDirectories.toList(),
+          androidSourcePackages = androidSourcePackages.toList(),
+          androidCustomPackages = androidCustomPackages.toList(),
+          androidExternalLibraries = androidExternalLibraries.toList(),
+          kotlinCompilerFlags = kotlinCompilerFlags.toList(),
+        )
+    }
+
+    fun toBuilder(): Builder =
+      Builder(
         name = name,
         isAndroidModule = isAndroidModule,
-        contentEntries = contentEntries.toMap(),
-        androidResourceDirectories = androidResourceDirectories.toList(),
-        androidSourcePackages = androidSourcePackages.toList(),
-        androidCustomPackages = androidCustomPackages.toList(),
-        androidExternalLibraries = androidExternalLibraries.toList(),
-        kotlinCompilerFlags = kotlinCompilerFlags.toList(),
+        contentEntries = contentEntries.toMutableMap(),
+        androidResourceDirectories = androidResourceDirectories.toMutableList(),
+        androidSourcePackages = androidSourcePackages.toMutableList(),
+        androidCustomPackages = androidCustomPackages.toMutableList(),
+        androidExternalLibraries = androidExternalLibraries.toMutableList(),
+        kotlinCompilerFlags = kotlinCompilerFlags.toMutableList(),
       )
-    }
-
-    fun toBuilder(): Builder = Builder(
-      name = name,
-      isAndroidModule = isAndroidModule,
-      contentEntries = contentEntries.toMutableMap(),
-      androidResourceDirectories = androidResourceDirectories.toMutableList(),
-      androidSourcePackages = androidSourcePackages.toMutableList(),
-      androidCustomPackages = androidCustomPackages.toMutableList(),
-      androidExternalLibraries = androidExternalLibraries.toMutableList(),
-      kotlinCompilerFlags = kotlinCompilerFlags.toMutableList(),
-    )
   }
 
-  data class Library(
-    val name: Label,
-    val classesJarList: List<ProjectPath>,
-    val sourcesList: List<ProjectPath>,
-  ): ProjectProtoModel
+  data class Library(val name: Label, val classesJarList: List<ProjectPath>, val sourcesList: List<ProjectPath>) : ProjectProtoModel
 
-  data class ArtifactDirectories(
-    val directoriesMap: Map<ProjectPath.ProjectRelativeProjectPath, ArtifactDirectoryContents>
-  ): ProjectProtoModel {
+  data class ArtifactDirectories(val directoriesMap: Map<ProjectPath.ProjectRelativeProjectPath, ArtifactDirectoryContents>) :
+    ProjectProtoModel {
 
     companion object {
-      @JvmStatic
-      fun getDefaultInstance(): ArtifactDirectories = ArtifactDirectories(emptyMap())
+      @JvmStatic fun getDefaultInstance(): ArtifactDirectories = ArtifactDirectories(emptyMap())
     }
   }
 
-  data class ArtifactDirectoryContents(val contents: Map<String, ArtifactSource>): ProjectProtoModel {
+  data class ArtifactDirectoryContents(val contents: Map<String, ArtifactSource>) : ProjectProtoModel {
 
     fun writeTo(output: OutputStream) {
       ObjectOutputStream(output).writeObject(this)
@@ -127,36 +121,33 @@ class ProjectProto {
       @Suppress("UnstableApiUsage")
       @JvmStatic
       fun readFrom(input: InputStream): ArtifactDirectoryContents {
-        return runCatching { ObjectInputStream(input).readObject() as ArtifactDirectoryContents }
-          .getOrLogException(thisLogger())
-               ?: ArtifactDirectoryContents.getDefaultInstance()
+        return runCatching { ObjectInputStream(input).readObject() as ArtifactDirectoryContents }.getOrLogException(thisLogger())
+          ?: ArtifactDirectoryContents.getDefaultInstance()
       }
 
-      @JvmStatic
-      fun getDefaultInstance(): ArtifactDirectoryContents = ArtifactDirectoryContents(mapOf())
+      @JvmStatic fun getDefaultInstance(): ArtifactDirectoryContents = ArtifactDirectoryContents(mapOf())
     }
   }
 
-  sealed interface ArtifactSource: ProjectProtoModel {
+  sealed interface ArtifactSource : ProjectProtoModel {
     val fromBuild: Instant
   }
+
   data class ProjectArtifact(
     val target: Label,
     val buildArtifact: BuildArtifact,
     override val fromBuild: Instant,
     val transform: ArtifactTransform,
-  ): ArtifactSource {
+  ) : ArtifactSource {
 
     enum class ArtifactTransform {
       COPY,
-      UNZIP
+      UNZIP,
     }
   }
 
-  /**
-   * Represents a Bazel external repository with a path relative to (bazel info output_base).
-   */
-  data class ExternalRepository(val name: String, val bazelRepositoryAbsolutePath: Path, override val fromBuild: Instant): ArtifactSource
+  /** Represents a Bazel external repository with a path relative to (bazel info output_base). */
+  data class ExternalRepository(val name: String, val bazelRepositoryAbsolutePath: Path, override val fromBuild: Instant) : ArtifactSource
 
   data class ExternalAndroidLibrary(
     val name: String,
@@ -165,15 +156,13 @@ class ProjectProto {
     val resFolder: ProjectPath,
     val symbolFile: ProjectPath,
     val packageName: String,
-  ): ProjectProtoModel
+  ) : ProjectProtoModel
 
-  data class BuildArtifact(val digest: String): ProjectProtoModel
+  data class BuildArtifact(val digest: String) : ProjectProtoModel
 
-  data class CcWorkspace(
-    val targets: Map<Label, CcTarget>,
-    val flagSets: Map<String, CcCompilerFlagSet>,
-  ): ProjectProtoModel {
-    val isEmpty: Boolean get() = targets.values.all { it.isEssentiallyEmpty() } && flagSets.isEmpty()
+  data class CcWorkspace(val targets: Map<Label, CcTarget>, val flagSets: Map<String, CcCompilerFlagSet>) : ProjectProtoModel {
+    val isEmpty: Boolean
+      get() = targets.values.all { it.isEssentiallyEmpty() } && flagSets.isEmpty()
 
     init {
       targets.forEach { target ->
@@ -191,8 +180,7 @@ class ProjectProto {
     }
 
     companion object {
-      @JvmStatic
-      fun getDefaultInstance(): CcWorkspace = CcWorkspace(mapOf(), mapOf())
+      @JvmStatic fun getDefaultInstance(): CcWorkspace = CcWorkspace(mapOf(), mapOf())
     }
   }
 
@@ -200,10 +188,8 @@ class ProjectProto {
     val target: Label,
     val sources: Map<ProjectPath.SourceCodeRepositoryRelativeProjectPath, CcSourceFile>,
     val contexts: Map<String, CcCompilationContext>,
-  ): ProjectProtoModel {
-    /**
-     * Whether there is anything analyzable in this target.
-     */
+  ) : ProjectProtoModel {
+    /** Whether there is anything analyzable in this target. */
     fun isEssentiallyEmpty(): Boolean = contexts.isEmpty()
   }
 
@@ -211,9 +197,9 @@ class ProjectProto {
     val id: String,
     val humanReadableName: String,
     val languageToCompilerSettings: Map<CcLanguage, CcCompilerSettings>,
-  ): ProjectProtoModel
+  ) : ProjectProtoModel
 
-  sealed interface CcCompilerFlag: ProjectProtoModel {
+  sealed interface CcCompilerFlag : ProjectProtoModel {
     val flag: String
   }
 
@@ -221,19 +207,19 @@ class ProjectProto {
 
   data class CcCompilerPathFlag(override val flag: String, val path: ProjectPath) : CcCompilerFlag
 
-  data class CcCompilerFlagSet(val flags: List<CcCompilerFlag>): ProjectProtoModel
+  data class CcCompilerFlagSet(val flags: List<CcCompilerFlag>) : ProjectProtoModel
 
-  data class CcCompilerSettings(
-    val compilerExecutablePath: ProjectPath,
-    val flagSetId: String,
-  ): ProjectProtoModel
+  data class CcCompilerSettings(val compilerExecutablePath: ProjectPath, val flagSetId: String) : ProjectProtoModel
 
-  data class CcSourceFile(
-    val workspacePath: ProjectPath.SourceCodeRepositoryRelativeProjectPath,
-    val language: CcLanguage,
-  ): ProjectProtoModel
+  data class CcSourceFile(val workspacePath: ProjectPath.SourceCodeRepositoryRelativeProjectPath, val language: CcLanguage) :
+    ProjectProtoModel
 
-  enum class CcLanguage { C, CPP, OBJ_C, OBJ_CPP }
+  enum class CcLanguage {
+    C,
+    CPP,
+    OBJ_C,
+    OBJ_CPP,
+  }
 }
 
-interface ProjectProtoModel: Serializable, FormattableModel
+interface ProjectProtoModel : Serializable, FormattableModel

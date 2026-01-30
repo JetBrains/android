@@ -38,11 +38,7 @@ class ComponentImageLoaderTest {
     val skiaRoot =
       SkiaViewNode(
         1,
-        listOf(
-          SkiaViewNode(1, image1),
-          SkiaViewNode(2, listOf(SkiaViewNode(2, image2))),
-          SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
-        ),
+        listOf(SkiaViewNode(1, image1), SkiaViewNode(2, listOf(SkiaViewNode(2, image2))), SkiaViewNode(4, listOf(SkiaViewNode(4, image4)))),
       )
 
     val window =
@@ -86,10 +82,7 @@ class ComponentImageLoaderTest {
       SkiaViewNode(
         1,
         listOf(
-          SkiaViewNode(
-            2,
-            listOf(SkiaViewNode(2, image3), SkiaViewNode(6, listOf(SkiaViewNode(6, image6)))),
-          ),
+          SkiaViewNode(2, listOf(SkiaViewNode(2, image3), SkiaViewNode(6, listOf(SkiaViewNode(6, image6))))),
           SkiaViewNode(1, image1),
           SkiaViewNode(
             3,
@@ -121,14 +114,7 @@ class ComponentImageLoaderTest {
     ViewNode.readAccess {
       // We don't really care that the images are in certain places in the tree, we just care that
       // they're in the right order.
-      assertThat(
-          root
-            .preOrderFlatten()
-            .toList()
-            .flatMap { it.drawChildren }
-            .filterIsInstance<DrawViewImage>()
-            .map { it.image }
-        )
+      assertThat(root.preOrderFlatten().toList().flatMap { it.drawChildren }.filterIsInstance<DrawViewImage>().map { it.image })
         .containsExactlyElementsIn(listOf(image3, image6, image1, image4, image2, image5))
         .inOrder()
     }

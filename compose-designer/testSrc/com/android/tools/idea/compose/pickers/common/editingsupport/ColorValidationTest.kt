@@ -46,8 +46,7 @@ internal class ColorValidationTest {
 
   @Test
   fun badFormat() {
-    val errorAndMessage =
-      Pair(EditingErrorCategory.ERROR, "Color should be an aRGB hex literal (0xAARRGGBB)")
+    val errorAndMessage = Pair(EditingErrorCategory.ERROR, "Color should be an aRGB hex literal (0xAARRGGBB)")
     assertEquals(errorAndMessage, validator("0xFF AA BB CC"))
     assertEquals(errorAndMessage, validator("0 xFFAABBCC"))
     assertEquals(errorAndMessage, validator("0x FFAABBCC"))
@@ -68,17 +67,8 @@ internal class ColorValidationTest {
     val maxValue = UnsignedInteger.MAX_VALUE
 
     assertEquals(EditingErrorCategory.NONE, validator(maxValue.toString(16)).first)
-    assertEquals(
-      Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
-      validator((maxValue.toLong() + 1).toString(16)),
-    )
-    assertEquals(
-      Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"),
-      validator(Long.MAX_VALUE.toString(16)),
-    )
-    assertEquals(
-      Pair(EditingErrorCategory.ERROR, "Color can't be a negative value"),
-      validator("-1"),
-    )
+    assertEquals(Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"), validator((maxValue.toLong() + 1).toString(16)))
+    assertEquals(Pair(EditingErrorCategory.ERROR, "Value can't be higher than 0xFFFFFFFF"), validator(Long.MAX_VALUE.toString(16)))
+    assertEquals(Pair(EditingErrorCategory.ERROR, "Color can't be a negative value"), validator("-1"))
   }
 }

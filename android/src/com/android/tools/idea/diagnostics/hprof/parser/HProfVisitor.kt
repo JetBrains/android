@@ -64,8 +64,7 @@ open class HProfVisitor {
     if (type === RecordType.HeapDump || type === RecordType.HeapDumpSegment) {
       myTopLevelVisits[RecordType.HeapDump.value] = true
       myTopLevelVisits[RecordType.HeapDumpSegment.value] = true
-    }
-    else {
+    } else {
       myTopLevelVisits[type.value] = true
     }
   }
@@ -84,51 +83,60 @@ open class HProfVisitor {
   }
 
   open fun preVisit() {}
+
   open fun postVisit() {}
 
   open fun visitStringInUTF8(id: Long, s: String) {}
+
   open fun visitLoadClass(classSerialNumber: Long, classObjectId: Long, stackSerialNumber: Long, classNameStringId: Long) {}
 
-  open fun visitStackFrame(stackFrameId: Long,
-                           methodNameStringId: Long,
-                           methodSignatureStringId: Long,
-                           sourceFilenameStringId: Long,
-                           classSerialNumber: Long,
-                           lineNumber: Int) {
-  }
+  open fun visitStackFrame(
+    stackFrameId: Long,
+    methodNameStringId: Long,
+    methodSignatureStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Long,
+    lineNumber: Int,
+  ) {}
 
-  open fun visitStackTrace(stackTraceSerialNumber: Long,
-                           threadSerialNumber: Long,
-                           numberOfFrames: Int,
-                           stackFrameIds: LongArray) {
-  }
+  open fun visitStackTrace(stackTraceSerialNumber: Long, threadSerialNumber: Long, numberOfFrames: Int, stackFrameIds: LongArray) {}
 
   // TODO: Many of these are not implemented yet. Events are fired, but there are no parameters
   open fun visitAllocSites() {}
 
   open fun visitHeapSummary(totalLiveBytes: Long, totalLiveInstances: Long, totalBytesAllocated: Long, totalInstancesAllocated: Long) {}
+
   open fun visitStartThread() {}
+
   open fun visitEndThread(threadSerialNumber: Long) {}
+
   open fun visitHeapDump() {}
+
   open fun visitHeapDumpEnd() {}
+
   open fun visitCPUSamples() {}
+
   open fun visitControlSettings() {}
 
   open fun visitRootUnknown(objectId: Long) {}
+
   open fun visitRootGlobalJNI(objectId: Long, jniGlobalRefId: Long) {}
+
   open fun visitRootLocalJNI(objectId: Long, threadSerialNumber: Long, frameNumber: Long) {}
+
   open fun visitRootJavaFrame(objectId: Long, threadSerialNumber: Long, frameNumber: Long) {}
+
   open fun visitRootNativeStack(objectId: Long, threadSerialNumber: Long) {}
+
   open fun visitRootStickyClass(objectId: Long) {}
+
   open fun visitRootThreadBlock(objectId: Long, threadSerialNumber: Long) {}
+
   open fun visitRootMonitorUsed(objectId: Long) {}
+
   open fun visitRootThreadObject(objectId: Long, threadSerialNumber: Long, stackTraceSerialNumber: Long) {}
 
-  open fun visitPrimitiveArrayDump(
-    arrayObjectId: Long, stackTraceSerialNumber: Long,
-    numberOfElements: Long,
-    elementType: Type) {
-  }
+  open fun visitPrimitiveArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Long, numberOfElements: Long, elementType: Type) {}
 
   open fun visitClassDump(
     classId: Long,
@@ -138,8 +146,8 @@ open class HProfVisitor {
     instanceSize: Long,
     constants: Array<ConstantPoolEntry>,
     staticFields: Array<StaticFieldEntry>,
-    instanceFields: Array<InstanceFieldEntry>) {
-  }
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {}
 
   open fun visitObjectArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Long, arrayClassObjectId: Long, objects: LongArray) {}
 

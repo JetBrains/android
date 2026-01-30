@@ -126,15 +126,12 @@ class PreviewLifecycleManagerTest {
   fun testLifecycleAutoDispose() {
     var manager: PreviewLifecycleManager?
     var disposed = false
-    val delayedExecutor = { disposable: Disposable, _: () -> Unit ->
-      Disposer.register(disposable) { disposed = true }
-    }
+    val delayedExecutor = { disposable: Disposable, _: () -> Unit -> Disposer.register(disposable) { disposed = true } }
 
     // Run within a new scope and simulate an activation/deactivation cycle. This will schedule a
     // delayed deactivation.
     runBlocking {
-      manager =
-        PreviewLifecycleManager.createForTest(this@runBlocking, scheduleDelayed = delayedExecutor)
+      manager = PreviewLifecycleManager.createForTest(this@runBlocking, scheduleDelayed = delayedExecutor)
       manager!!.activate()
       manager!!.deactivate()
       assertFalse("The delayed deactivation disposed before the scope finished", disposed)
@@ -148,14 +145,7 @@ class PreviewLifecycleManagerTest {
     val lruActionQueue = DelayedLruActionQueue(3, Duration.ofSeconds(3))
     var delayedDeactivationDone = false
     val lifecycleManager =
-      PreviewLifecycleManager.createForTest(
-        this,
-        {},
-        {},
-        {},
-        { delayedDeactivationDone = true },
-        lruActionQueue::addDelayedAction,
-      )
+      PreviewLifecycleManager.createForTest(this, {}, {}, {}, { delayedDeactivationDone = true }, lruActionQueue::addDelayedAction)
     repeat(4) {
       lifecycleManager.activate()
       lifecycleManager.deactivate()

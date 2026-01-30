@@ -24,16 +24,17 @@ import com.intellij.codeInsight.template.impl.LiveTemplateLookupElement
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import org.jetbrains.android.AndroidTestCase
 
-/**
- * Base setup for live template tests.
- */
+/** Base setup for live template tests. */
 abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION_FOR_TEMPLATE_TESTS)) {
 
-  /**
-   * Insertion location of a live template
-   */
+  /** Insertion location of a live template */
   protected enum class Location {
-    TOP_LEVEL, CLASS, COMMENT, STATEMENT, EXPRESSION, OBJECT_DECLARATION
+    TOP_LEVEL,
+    CLASS,
+    COMMENT,
+    STATEMENT,
+    EXPRESSION,
+    OBJECT_DECLARATION,
   }
 
   override fun setUp() {
@@ -45,8 +46,7 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
   override fun tearDown() {
     try {
       myFixture.editor?.let(TemplateManagerImpl::getTemplateState)?.gotoEnd()
-    }
-    finally {
+    } finally {
       if (myFixture != null) {
         super.tearDown()
       }
@@ -57,29 +57,21 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
     myFixture.type(templateName)
     myFixture.completeBasic()
     myFixture.lookup.currentItem =
-      myFixture.lookupElements!!
-        .filterIsInstance<LiveTemplateLookupElement>()
-        .first { it.lookupString == templateName }
+      myFixture.lookupElements!!.filterIsInstance<LiveTemplateLookupElement>().first { it.lookupString == templateName }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
   }
 
-  protected fun testNotOnTopLevel(template: String) =
-    testTemplateNotProvided(Location.TOP_LEVEL, template)
+  protected fun testNotOnTopLevel(template: String) = testTemplateNotProvided(Location.TOP_LEVEL, template)
 
-  protected fun testNotInClass(template: String) =
-    testTemplateNotProvided(Location.CLASS, template)
+  protected fun testNotInClass(template: String) = testTemplateNotProvided(Location.CLASS, template)
 
-  protected fun testNotInComment(template: String) =
-    testTemplateNotProvided(Location.COMMENT, template)
+  protected fun testNotInComment(template: String) = testTemplateNotProvided(Location.COMMENT, template)
 
-  protected fun testNotInStatement(template: String) =
-    testTemplateNotProvided(Location.STATEMENT, template)
+  protected fun testNotInStatement(template: String) = testTemplateNotProvided(Location.STATEMENT, template)
 
-  protected fun testNotInExpression(template: String) =
-    testTemplateNotProvided(Location.EXPRESSION, template)
+  protected fun testNotInExpression(template: String) = testTemplateNotProvided(Location.EXPRESSION, template)
 
-  protected fun testNotInCompanion(template: String) =
-    testTemplateNotProvided(Location.OBJECT_DECLARATION, template)
+  protected fun testNotInCompanion(template: String) = testTemplateNotProvided(Location.OBJECT_DECLARATION, template)
 
   private fun testTemplateNotProvided(location: Location, template: String) {
     // Given:
@@ -90,35 +82,34 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
     // Then:
     assertFalse(
       "Unexpected template '$template' present in completion.",
-      myFixture.lookupElements
-        ?.filterIsInstance<LiveTemplateLookupElement>()
-        ?.any { it.lookupString == template } ?: false
+      myFixture.lookupElements?.filterIsInstance<LiveTemplateLookupElement>()?.any { it.lookupString == template } ?: false,
     )
   }
 
   protected fun addPreparedFileToProject(caretLocation: Location) {
-    val content = when (caretLocation) {
-      Location.TOP_LEVEL -> {
-        """
+    val content =
+      when (caretLocation) {
+        Location.TOP_LEVEL -> {
+          """
         package com.example
 
         $caret
         class MyClass {
         }
         """
-      }
-      Location.CLASS -> {
-        """
+        }
+        Location.CLASS -> {
+          """
         package com.example
 
         class MyClass {
             $caret
         }
         """
-      }
+        }
 
-      Location.COMMENT -> {
-        """
+        Location.COMMENT -> {
+          """
         package com.example
 
         /*
@@ -127,9 +118,9 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
         class MyClass {
         }
         """
-      }
-      Location.STATEMENT -> {
-        """
+        }
+        Location.STATEMENT -> {
+          """
         package com.example
 
         class MyClass {
@@ -138,9 +129,9 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
             }
         }
         """
-      }
-      Location.EXPRESSION -> {
-        """
+        }
+        Location.EXPRESSION -> {
+          """
         package com.example
 
         class MyClass {
@@ -149,9 +140,9 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
             }
         }
         """
-      }
-      Location.OBJECT_DECLARATION -> {
-        """
+        }
+        Location.OBJECT_DECLARATION -> {
+          """
         package com.example
 
         class MyClass {
@@ -160,17 +151,13 @@ abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION
           }
         }
         """
-      }
-    }.trimIndent()
+        }
+      }.trimIndent()
     val psiFile = myFixture.addFileToProject("src/com/example/MyClass.kt", content)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
   }
 
-  protected fun insertIntoPsiFileAt(
-    location: Location,
-    imports: String = "",
-    content: String
-  ): String {
+  protected fun insertIntoPsiFileAt(location: Location, imports: String = "", content: String): String {
 
     fun import() = if (!imports.isEmpty()) "\n" + imports + "\n" else ""
 

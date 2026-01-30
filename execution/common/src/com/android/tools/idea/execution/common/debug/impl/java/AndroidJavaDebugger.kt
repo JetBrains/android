@@ -59,18 +59,18 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     client: Client,
     applicationContext: ApplicationProjectContext,
     debugState: AndroidDebuggerState,
-    consoleViewToReuse: ConsoleView?
+    consoleViewToReuse: ConsoleView?,
   ): XDebugProcessStarter {
     try {
-      val debuggerSession = startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, detachIsDefault = false)
-                              .blockingGet(10, TimeUnit.SECONDS) ?: throw ExecutionException("Java Debug Session is not started")
+      val debuggerSession =
+        startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, detachIsDefault = false).blockingGet(10, TimeUnit.SECONDS)
+          ?: throw ExecutionException("Java Debug Session is not started")
       return object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {
           return JavaDebugProcess.create(session, debuggerSession)
         }
       }
-    }
-    catch (e: java.util.concurrent.ExecutionException) {
+    } catch (e: java.util.concurrent.ExecutionException) {
       throw e.cause ?: e
     }
   }
@@ -79,18 +79,18 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     project: Project,
     client: Client,
     applicationContext: ApplicationProjectContext?,
-    state: AndroidDebuggerState?
+    state: AndroidDebuggerState?,
   ): XDebugProcessStarter {
     try {
-      val debuggerSession = startAndroidJavaDebuggerSession(project, client, null, detachIsDefault = true)
-                              .blockingGet(10, TimeUnit.SECONDS) ?: throw ExecutionException("Java Debug Session is not started")
+      val debuggerSession =
+        startAndroidJavaDebuggerSession(project, client, null, detachIsDefault = true).blockingGet(10, TimeUnit.SECONDS)
+          ?: throw ExecutionException("Java Debug Session is not started")
       return object : XDebugProcessStarter() {
         override fun start(session: XDebugSession): XDebugProcess {
           return JavaDebugProcess.create(session, debuggerSession)
         }
       }
-    }
-    catch (e: java.util.concurrent.ExecutionException) {
+    } catch (e: java.util.concurrent.ExecutionException) {
       throw e.cause ?: e
     }
   }

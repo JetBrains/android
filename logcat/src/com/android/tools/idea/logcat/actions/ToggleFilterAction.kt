@@ -25,10 +25,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
 /** An action that adds or removes a filter term from the Logcat filter. */
-internal class ToggleFilterAction(
-  private val logcatPresenter: LogcatPresenter,
-  private val logcatFilterParser: LogcatFilterParser,
-) : DumbAwareAction("Toggle Filter") {
+internal class ToggleFilterAction(private val logcatPresenter: LogcatPresenter, private val logcatFilterParser: LogcatFilterParser) :
+  DumbAwareAction("Toggle Filter") {
 
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 

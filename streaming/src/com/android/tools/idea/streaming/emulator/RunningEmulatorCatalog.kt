@@ -52,9 +52,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Keeps track of Android Emulators running on the local machine under the current user account.
- */
+/** Keeps track of Android Emulators running on the local machine under the current user account. */
 @Service(Service.Level.APP)
 class RunningEmulatorCatalog : Disposable.Parent {
   // TODO: Use WatchService instead of polling.
@@ -66,29 +64,21 @@ class RunningEmulatorCatalog : Disposable.Parent {
   /** This lock is held for reading while an update is running. */
   private val updateLock = ReentrantReadWriteLock()
   private val dataLock = Object()
-  @GuardedBy("dataLock")
-  private var lastUpdateStartTime: Long = 0
-  @GuardedBy("dataLock")
-  private var lastUpdateDuration: Long = 0
-  @GuardedBy("dataLock")
-  private var nextScheduledUpdateTime: Long = Long.MAX_VALUE
-  @GuardedBy("dataLock")
-  private var listeners: List<Listener> = emptyList()
-  @GuardedBy("dataLock")
-  private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
+  @GuardedBy("dataLock") private var lastUpdateStartTime: Long = 0
+  @GuardedBy("dataLock") private var lastUpdateDuration: Long = 0
+  @GuardedBy("dataLock") private var nextScheduledUpdateTime: Long = Long.MAX_VALUE
+  @GuardedBy("dataLock") private var listeners: List<Listener> = emptyList()
+  @GuardedBy("dataLock") private val updateIntervalsByListener = Object2LongOpenHashMap<Listener>()
   /** Long.MAX_VALUE means no updates. A negative value means that the update interval needs to be calculated. */
-  @GuardedBy("dataLock")
-  private var updateInterval: Long = Long.MAX_VALUE
-  @GuardedBy("dataLock")
-  private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
-  @GuardedBy("dataLock")
-  private var registrationDirectory: Path? = computeRegistrationDirectory()
+  @GuardedBy("dataLock") private var updateInterval: Long = Long.MAX_VALUE
+  @GuardedBy("dataLock") private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
+  @GuardedBy("dataLock") private var registrationDirectory: Path? = computeRegistrationDirectory()
   private var runningAvdTracker: RunningAvdTracker? = null
 
   /**
-   * Adds a listener that will be notified when new emulators start and running emulators shut down.
-   * The [updateIntervalMillis] parameter determines the level of data freshness required by the listener.
-   * When called multiple times with the same listener, updates the update interval for that listener.
+   * Adds a listener that will be notified when new emulators start and running emulators shut down. The [updateIntervalMillis] parameter
+   * determines the level of data freshness required by the listener. When called multiple times with the same listener, updates the update
+   * interval for that listener.
    *
    * @param listener the listener to be notified
    * @param updateIntervalMillis a positive number of milliseconds
@@ -109,9 +99,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
-  /**
-   * Removes a listener added by the [addListener] method.
-   */
+  /** Removes a listener added by the [addListener] method. */
   @AnyThread
   fun removeListener(listener: Listener) {
     synchronized(dataLock) {
@@ -120,8 +108,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       if (interval == updateInterval) {
         if (updateIntervalsByListener.isEmpty()) {
           updateInterval = Long.MAX_VALUE
-        }
-        else {
+        } else {
           updateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
           scheduleUpdate(updateInterval)
         }
@@ -146,9 +133,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
-  /**
-   * Triggers an immediate update and returns a [Deferred] for the updated set of running emulators.
-   */
+  /** Triggers an immediate update and returns a [Deferred] for the updated set of running emulators. */
   fun updateNow(): Deferred<Set<EmulatorController>> {
     synchronized(dataLock) {
       val deferredResult = CompletableDeferred<Set<EmulatorController>>()
@@ -170,8 +155,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
       if (pendingUpdateResults.isEmpty()) {
         updateResults = emptyList()
-      }
-      else {
+      } else {
         updateResults = pendingUpdateResults
         pendingUpdateResults = mutableListOf()
       }
@@ -255,8 +239,11 @@ class RunningEmulatorCatalog : Disposable.Parent {
           val processHandle = ProcessHandleProvider.getProcessHandle(emulator.emulatorId.pid)
           if (processHandle?.isAlive == true) {
             val tracker = runningAvdTracker ?: RunningAvdTracker.getInstance().also { runningAvdTracker = it }
-            tracker.started(emulator.emulatorId.avdFolder, processHandle,
-                            if (emulator.emulatorId.isEmbedded) RunningAvd.RunType.EMBEDDED else RunningAvd.RunType.STANDALONE)
+            tracker.started(
+              emulator.emulatorId.avdFolder,
+              processHandle,
+              if (emulator.emulatorId.isEmbedded) RunningAvd.RunType.EMBEDDED else RunningAvd.RunType.STANDALONE,
+            )
           }
           for (listener in listenersSnapshot) {
             if (isDisposing) break
@@ -269,8 +256,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (emulator in removedEmulators) {
         Disposer.dispose(emulator)
       }
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       thisLogger().error("Running Emulator detection failed", e)
 
       synchronized(dataLock) {
@@ -287,37 +273,31 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
   private fun readDirectoryContents(directory: Path): List<Path> {
     return try {
-      Files.list(directory).use { stream ->
-        stream.filter { getProcessHandle(it) != null }.toList()
-      }
-    }
-    catch (_: NoSuchFileException) {
+      Files.list(directory).use { stream -> stream.filter { getProcessHandle(it) != null }.toList() }
+    } catch (_: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
     }
   }
 
   /**
-   * Extracts pid from the file name and returns the corresponding [ProcessHandle] if the emulator
-   * is still running, otherwise returns null.
+   * Extracts pid from the file name and returns the corresponding [ProcessHandle] if the emulator is still running, otherwise returns null.
    */
   private fun getProcessHandle(file: Path): ProcessHandle? {
     val matcher = fileNamePattern.matcher(file.fileName.toString())
     if (!matcher.matches()) {
       return null
     }
-    val pid = try {
-      matcher.group(1).toLong()
-    }
-    catch (_: NumberFormatException) {
-      return null
-    }
+    val pid =
+      try {
+        matcher.group(1).toLong()
+      } catch (_: NumberFormatException) {
+        return null
+      }
     val processHandle = ProcessHandleProvider.getProcessHandle(pid)
     return if (processHandle?.isAlive == true) processHandle else null
   }
 
-  /**
-   * Reads and interprets the registration file of an Emulator (pid_NNNN.ini).
-   */
+  /** Reads and interprets the registration file of an Emulator (pid_NNNN.ini). */
   private fun readEmulatorInfo(file: Path): EmulatorId? {
     val pid = getProcessHandle(file)?.pid() ?: return null
     var grpcPort = 0
@@ -360,21 +340,29 @@ class RunningEmulatorCatalog : Disposable.Parent {
             adbPort = parseInt(line.substring("port.adb=".length), 0)
           }
           line.startsWith("cmdline=") -> {
-            commandLine = decodeCommandLine(line.substring ("cmdline=".length))
+            commandLine = decodeCommandLine(line.substring("cmdline=".length))
           }
         }
       }
-    }
-    catch (_: IOException) {
-    }
+    } catch (_: IOException) {}
 
-    if (grpcPort <= 0 || avdId == null || avdName == null || avdFolder == null ||
-        serialPort <= 0 && adbPort <= 0 || commandLine.isEmpty()) {
+    if (
+      grpcPort <= 0 || avdId == null || avdName == null || avdFolder == null || serialPort <= 0 && adbPort <= 0 || commandLine.isEmpty()
+    ) {
       return null
     }
 
-    return EmulatorId(pid = pid, grpcPort = grpcPort, grpcCertificate = grpcCertificate, grpcToken = grpcToken, avdName = avdName,
-                      avdFolder = avdFolder, serialPort = serialPort, adbPort = adbPort, commandLine = commandLine)
+    return EmulatorId(
+      pid = pid,
+      grpcPort = grpcPort,
+      grpcCertificate = grpcCertificate,
+      grpcToken = grpcToken,
+      avdName = avdName,
+      avdFolder = avdFolder,
+      serialPort = serialPort,
+      adbPort = adbPort,
+      commandLine = commandLine,
+    )
   }
 
   override fun beforeTreeDispose() {
@@ -392,12 +380,10 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   /**
-   * Replaces registration directory location for tests. Calling this method with a null argument
-   * restores the original directory location.
+   * Replaces registration directory location for tests. Calling this method with a null argument restores the original directory location.
    */
   @TestOnly
   fun overrideRegistrationDirectory(directory: Path?) {
@@ -415,23 +401,21 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   /**
-   * Defines interface for an object that receives notifications when a connection to a running Emulator
-   * is established or an Emulator shuts down.
+   * Defines interface for an object that receives notifications when a connection to a running Emulator is established or an Emulator shuts
+   * down.
    */
   interface Listener {
     /**
-     * Called when a connection to a running Emulator is established. Must be quick to avoid delaying catalog updates.
-     * Due to asynchronous nature of the call, it may happen after calling the [removeListener] method.
+     * Called when a connection to a running Emulator is established. Must be quick to avoid delaying catalog updates. Due to asynchronous
+     * nature of the call, it may happen after calling the [removeListener] method.
      */
-    @AnyThread
-    fun emulatorAdded(emulator: EmulatorController)
+    @AnyThread fun emulatorAdded(emulator: EmulatorController)
 
     /**
-     * Called when an Emulator shuts down. Must be quick to avoid delaying catalog updates.
-     * Due to asynchronous nature of the call, it may happen after calling the [removeListener] method.
+     * Called when an Emulator shuts down. Must be quick to avoid delaying catalog updates. Due to asynchronous nature of the call, it may
+     * happen after calling the [removeListener] method.
      */
-    @AnyThread
-    fun emulatorRemoved(emulator: EmulatorController)
+    @AnyThread fun emulatorRemoved(emulator: EmulatorController)
   }
 
   companion object {
@@ -449,9 +433,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       return container?.resolve(REGISTRATION_DIRECTORY_RELATIVE_PATH)
     }
 
-    /**
-     * Returns the Emulator registration directory.
-     */
+    /** Returns the Emulator registration directory. */
     @JvmStatic
     private fun computeRegistrationDirectoryContainer(): Path? {
       when {
@@ -475,8 +457,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
 
     /**
-     * Substitutes values of environment variables in the given [pattern] and returns the corresponding [Path].
-     * Names of environment variables are enclosed in curly braces.
+     * Substitutes values of environment variables in the given [pattern] and returns the corresponding [Path]. Names of environment
+     * variables are enclosed in curly braces.
      */
     @JvmStatic
     private fun resolvePath(pattern: String): Path? {
@@ -523,8 +505,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
           }
           return result
         }
-      }
-      catch (_: IOException) {
+      } catch (_: IOException) {
         return null
       }
     }

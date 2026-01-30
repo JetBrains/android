@@ -98,8 +98,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
 
   private val targetSelectedAction = TargetSelectionActionFactory.getAction(layoutInspector)
 
-  private val layoutInspectorLoadingObserver =
-    LayoutInspectorLoadingObserver(disposableParent, layoutInspector)
+  private val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(disposableParent, layoutInspector)
 
   private val contentPanel =
     DeviceViewContentPanel(
@@ -142,8 +141,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
         isMiddleMousePressed = SwingUtilities.isMiddleMouseButton(e)
         if (isPanning) {
           cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
-          lastPanMouseLocation =
-            SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
+          lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
           e.consume()
         }
       }
@@ -173,9 +171,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
       override fun mouseReleased(e: MouseEvent) {
         isMiddleMousePressed = false
         if (lastPanMouseLocation != null) {
-          cursor =
-            if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
-            else Cursor.getDefaultCursor()
+          cursor = if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB) else Cursor.getDefaultCursor()
           lastPanMouseLocation = null
           e.consume()
         }
@@ -186,17 +182,9 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   private val layeredPane = JLayeredPane()
   private val loadingPane: JBLoadingPanel = JBLoadingPanel(BorderLayout(), disposableParent)
   private val floatingToolbarProvider =
-    FloatingToolbarProvider(
-      disposable = disposableParent,
-      component = this,
-      layoutInspector = layoutInspector,
-    )
+    FloatingToolbarProvider(disposable = disposableParent, component = this, layoutInspector = layoutInspector)
   private val viewportLayoutManager =
-    MyViewportLayoutManager(
-      scrollPane.viewport,
-      { contentPanel.renderModel.layerSpacing },
-      { contentPanel.rootLocation },
-    )
+    MyViewportLayoutManager(scrollPane.viewport, { contentPanel.renderModel.layerSpacing }, { contentPanel.rootLocation })
 
   private val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
@@ -219,8 +207,8 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   private var hasForegroundProcess = false
 
   /**
-   * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
-   * [DeviceViewContentPanel] will show an error message.
+   * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]), [DeviceViewContentPanel] will show an error
+   * message.
    */
   fun onNewForegroundProcess(isDebuggable: Boolean) {
     hasForegroundProcess = true
@@ -293,21 +281,14 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         val performanceWarningNeeded =
-          layoutInspector.currentClient.inLiveMode &&
-            (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
+          layoutInspector.currentClient.inLiveMode && (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
         if (performanceWarningNeeded != performanceWarningGiven) {
           if (performanceWarningNeeded) {
             when {
               contentPanel.renderModel.isRotated -> PERFORMANCE_WARNING_3D
               model.hasHiddenNodes() -> PERFORMANCE_WARNING_HIDDEN
               else -> null
-            }?.let {
-              notificationModel.addNotification(
-                it,
-                LayoutInspectorBundle.message(it),
-                Status.Warning,
-              )
-            }
+            }?.let { notificationModel.addNotification(it, LayoutInspectorBundle.message(it), Status.Warning) }
           } else {
             notificationModel.removeNotification(PERFORMANCE_WARNING_3D)
             notificationModel.removeNotification(PERFORMANCE_WARNING_HIDDEN)
@@ -338,8 +319,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     model.addModificationListener { oldWindow, newWindow, _ ->
       if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
-        layoutInspector.currentClient.stats.recompositionHighlightColor =
-          renderSettings.recompositionColor
+        layoutInspector.currentClient.stats.recompositionHighlightColor = renderSettings.recompositionColor
 
         if (shouldZoomToFit && !model.isXr) {
           // Zoom to fit each time a new window shows up immediately after a process change
@@ -380,10 +360,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     val floatingToolbar = floatingToolbarProvider.floatingToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location =
-      Point(
-        layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
-        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET,
-      )
+      Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET, layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -433,18 +410,13 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     }
   }
 
-  override fun canZoomIn() =
-    renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomIn() = renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomOut() =
-    renderSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomOut() = renderSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomToFit() =
-    !layoutInspector.inspectorModel.isEmpty && getFitZoom() != renderSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != renderSettings.scalePercent
 
-  override fun canZoomToActual() =
-    renderSettings.scalePercent < 100 && canZoomIn() ||
-      renderSettings.scalePercent > 100 && canZoomOut()
+  override fun canZoomToActual() = renderSettings.scalePercent < 100 && canZoomIn() || renderSettings.scalePercent > 100 && canZoomOut()
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[ZOOMABLE_KEY] = this
@@ -453,9 +425,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   }
 
   override val isPannable: Boolean
-    get() =
-      contentPanel.width > scrollPane.viewport.width ||
-        contentPanel.height > scrollPane.viewport.height
+    get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
 
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
@@ -463,8 +433,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
 
   private fun createToolbarPanel(actionToolbar: ActionToolbar): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border =
-      BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
@@ -490,13 +459,9 @@ class MyViewportLayoutManager(
     when {
       layerSpacing() != lastLayerSpacing -> {
         lastLayerSpacing = layerSpacing()
-        val position =
-          viewport.viewPosition.apply {
-            translate(-viewport.view.width / 2, -viewport.view.height / 2)
-          }
+        val position = viewport.viewPosition.apply { translate(-viewport.view.width / 2, -viewport.view.height / 2) }
         origLayout.layoutContainer(parent)
-        viewport.viewPosition =
-          position.apply { translate(viewport.view.width / 2, viewport.view.height / 2) }
+        viewport.viewPosition = position.apply { translate(viewport.view.width / 2, viewport.view.height / 2) }
       }
       currentZoomOperation != null -> {
         viewport.viewPosition =
@@ -505,28 +470,16 @@ class MyViewportLayoutManager(
               origLayout.layoutContainer(parent)
               val bounds = viewport.extentSize
               val size = viewport.view.preferredSize
-              Point(
-                (size.width - bounds.width).coerceAtLeast(0) / 2,
-                (size.height - bounds.height).coerceAtLeast(0) / 2,
-              )
+              Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
             }
             else -> {
-              val position =
-                SwingUtilities.convertPoint(
-                  viewport,
-                  Point(viewport.width / 2, viewport.height / 2),
-                  viewport.view,
-                )
+              val position = SwingUtilities.convertPoint(viewport, Point(viewport.width / 2, viewport.height / 2), viewport.view)
               val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
               val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
 
               origLayout.layoutContainer(parent)
 
-              val newPosition =
-                Point(
-                  (viewport.view.width * xPercent).toInt(),
-                  (viewport.view.height * yPercent).toInt(),
-                )
+              val newPosition = Point((viewport.view.width * xPercent).toInt(), (viewport.view.height * yPercent).toInt())
               newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
               newPosition
             }
@@ -542,10 +495,7 @@ class MyViewportLayoutManager(
         if (view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
           val newRootLocation = SwingUtilities.convertPoint(view, currentRootLocation, viewport)
           val preferredSize = view.preferredSize
-          val newPosition =
-            viewport.viewPosition.apply {
-              translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
-            }
+          val newPosition = viewport.viewPosition.apply { translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y) }
           if (view.width > preferredSize.width) {
             // If there is room for the entire image set x position to 0 (required to remove the
             // horizontal scrollbar).
@@ -560,8 +510,7 @@ class MyViewportLayoutManager(
         }
       }
     }
-    lastRootLocation =
-      rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
+    lastRootLocation = rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
     lastViewSize = viewport.view.size
   }
 }

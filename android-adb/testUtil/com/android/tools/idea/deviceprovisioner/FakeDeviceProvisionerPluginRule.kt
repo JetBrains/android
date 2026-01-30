@@ -24,8 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import org.junit.rules.ExternalResource
 
 /**
- * Overrides the [DeviceProvisionerFactory] extension point so that [DeviceProvisionerService]
- * includes only the [FakeDeviceProvisionerPlugin].
+ * Overrides the [DeviceProvisionerFactory] extension point so that [DeviceProvisionerService] includes only the
+ * [FakeDeviceProvisionerPlugin].
  */
 class FakeDeviceProvisionerPluginRule(val projectProvider: () -> Project) : ExternalResource() {
   lateinit var plugin: FakeDeviceProvisionerPlugin
@@ -38,11 +38,7 @@ class FakeDeviceProvisionerPluginRule(val projectProvider: () -> Project) : Exte
   }
 
   override fun before() {
-    ExtensionTestUtil.maskExtensions(
-      DeviceProvisionerFactory.EP_NAME,
-      listOf(FakeDeviceProvisionerPluginFactory()),
-      projectProvider(),
-    )
+    ExtensionTestUtil.maskExtensions(DeviceProvisionerFactory.EP_NAME, listOf(FakeDeviceProvisionerPluginFactory()), projectProvider())
     // Initialize the plugin field
     projectProvider().service<DeviceProvisionerService>().deviceProvisioner
   }

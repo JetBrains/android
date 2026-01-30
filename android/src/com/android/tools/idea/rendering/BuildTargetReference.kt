@@ -35,13 +35,15 @@ import com.intellij.testFramework.LightVirtualFile
  * It is supposed to be used with project system specific extension points (tokens) to obtain services needed for rendering in the context
  * of a specific build target.
  *
- * Instances of `BuildTargetReference` should be obtained via its companion objects, which in the future will delegate the instantiation
- * to the project system.
+ * Instances of `BuildTargetReference` should be obtained via its companion objects, which in the future will delegate the instantiation to
+ * the project system.
  *
  * Note: In the case of the Gradle project system an implementation of `BuildTargetReference` is likely to simply wrap an IDE module.
  */
 interface BuildTargetReference {
-  val project: Project get() = module.project
+  val project: Project
+    get() = module.project
+
   val module: Module
   val moduleIfNotDisposed: Module?
 
@@ -61,18 +63,14 @@ interface BuildTargetReference {
       return module.project.buildTargets.from(module, targetFile)
     }
 
-    /**
-     * Obtains a reference to a build target that contains the given [targetFile].
-     */
+    /** Obtains a reference to a build target that contains the given [targetFile]. */
     @JvmStatic
     fun from(project: Project, targetFile: VirtualFile): BuildTargetReference? {
-      val module = runReadAction { ProjectFileIndex.getInstance(project).getModuleForFile(targetFile)} ?: return null
+      val module = runReadAction { ProjectFileIndex.getInstance(project).getModuleForFile(targetFile) } ?: return null
       return project.buildTargets.from(module, targetFile)
     }
 
-    /**
-     * Obtains a reference to a build target that contains the given [targetFile].
-     */
+    /** Obtains a reference to a build target that contains the given [targetFile]. */
     @JvmStatic
     fun from(targetFile: PsiFile): BuildTargetReference? {
       val module = runReadAction { ModuleUtilCore.findModuleForFile(targetFile) } ?: return null

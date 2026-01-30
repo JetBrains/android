@@ -17,13 +17,11 @@ package com.android.tools.idea.npw.validator
 
 import com.android.tools.adtui.validation.Validator
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
+import org.jetbrains.android.util.AndroidBundle
 
-class ModuleSelectedValidator: Validator<Optional<Module>> {
+class ModuleSelectedValidator : Validator<Optional<Module>> {
   override fun validate(value: Optional<Module>): Validator.Result =
-    if (value.isPresent)
-      Validator.Result.OK
-    else
-      Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("android.wizard.module.new.dynamic.select.base"))
+    if (value.isPresent) Validator.Result.OK
+    else Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("android.wizard.module.new.dynamic.select.base"))
 }

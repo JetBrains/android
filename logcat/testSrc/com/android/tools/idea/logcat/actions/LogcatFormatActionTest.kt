@@ -45,9 +45,7 @@ class LogcatFormatActionTest {
   private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule =
-    RuleChain(projectRule, WaitForIndexRule(projectRule), popupRule, disposableRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
@@ -88,8 +86,4 @@ class LogcatFormatActionTest {
 }
 
 private fun anActionEvent(component: JComponent) =
-  TestActionEvent.createTestEvent(
-    null,
-    EMPTY_CONTEXT,
-    MouseEvent(component, 0, 0L, 0, 0, 0, 1, true),
-  )
+  TestActionEvent.createTestEvent(null, EMPTY_CONTEXT, MouseEvent(component, 0, 0L, 0, 0, 0, 1, true))

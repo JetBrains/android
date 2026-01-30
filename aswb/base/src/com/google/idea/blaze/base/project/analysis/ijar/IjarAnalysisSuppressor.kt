@@ -23,9 +23,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
 
-class IjarAnalysisSuppressor: BytecodeAnalysisSuppressor {
+class IjarAnalysisSuppressor : BytecodeAnalysisSuppressor {
   private val prefix = ArtifactDirectories.JAVADEPS.relativePath.toString()
-
 
   override fun shouldSuppress(file: VirtualFile): Boolean {
     val filePath = file.path
@@ -33,10 +32,9 @@ class IjarAnalysisSuppressor: BytecodeAnalysisSuppressor {
   }
 
   companion object {
-    @JvmField
-    val enabled = BoolExperiment("header.jar.analysis.suppression.enabled", true)
+    @JvmField val enabled = BoolExperiment("header.jar.analysis.suppression.enabled", true)
 
-   @VisibleForTesting
+    @VisibleForTesting
     fun IjarAnalysisSuppressor.shouldSuppressPath(filePath: @NonNls String): Boolean {
       val javaDepsIndex = filePath.indexOf(prefix)
       // In general any `.jar` files under `.bazel/javadeps` are normally expected to contains class headers and therefore should not be
@@ -44,9 +42,10 @@ class IjarAnalysisSuppressor: BytecodeAnalysisSuppressor {
       // helpful so we skip only files than explicitly end with `-ijar.jar` or `-hjar.jar`. We may need to adjust this in the future.
       // Note: Analyzing the content of the .jar may be more precise but this this method is supposed to work fast so while it works with
       // this solution.
-      return enabled.value && javaDepsIndex > 0 &&
-             (filePath.indexOf("-ijar.jar!/", javaDepsIndex + prefix.length) > 0 ||
-              filePath.indexOf("-hjar.jar!/", javaDepsIndex + prefix.length) > 0);
+      return enabled.value &&
+        javaDepsIndex > 0 &&
+        (filePath.indexOf("-ijar.jar!/", javaDepsIndex + prefix.length) > 0 ||
+          filePath.indexOf("-hjar.jar!/", javaDepsIndex + prefix.length) > 0)
     }
   }
 }

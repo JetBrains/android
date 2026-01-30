@@ -26,8 +26,7 @@ import org.junit.Test
 class GradleBrokenPipeIssueCheckerTest {
   private val gradleBrokenPipeIssueChecker = GradleBrokenPipeIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {
@@ -44,13 +43,15 @@ class GradleBrokenPipeIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      gradleBrokenPipeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Broken pipe",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        gradleBrokenPipeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Broken pipe",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

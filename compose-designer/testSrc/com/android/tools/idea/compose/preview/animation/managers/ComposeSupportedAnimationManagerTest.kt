@@ -51,11 +51,7 @@ internal class ComposeSupportedAnimationManagerTest {
   val testClock =
     object : TestClock() {
       override fun getAnimatedProperties(animation: Any): List<ComposeAnimatedProperty> {
-        return listOf(
-          ComposeAnimatedProperty("Int", 1),
-          ComposeAnimatedProperty("Float", 1f),
-          ComposeAnimatedProperty("Double", 1.0),
-        )
+        return listOf(ComposeAnimatedProperty("Int", 1), ComposeAnimatedProperty("Float", 1f), ComposeAnimatedProperty("Double", 1.0))
       }
     }
 

@@ -27,19 +27,14 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 
 /** An action that opens the [LogcatFormatDialog] */
-internal class LogcatFormatModifyViewsAction(
-  private val project: Project,
-  private val logcatPresenter: LogcatPresenter,
-) : DumbAwareAction(LogcatBundle.message("logcat.format.modify.action.text")) {
+internal class LogcatFormatModifyViewsAction(private val project: Project, private val logcatPresenter: LogcatPresenter) :
+  DumbAwareAction(LogcatBundle.message("logcat.format.modify.action.text")) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
     val defaultFormatting = androidLogcatFormattingOptions.defaultFormatting
     val initialFormatting = logcatPresenter.formattingOptions.getStyle() ?: defaultFormatting
-    LogcatFormatDialog(project, initialFormatting, defaultFormatting) {
-        standardOptions,
-        compactOptions,
-        defaultStyle ->
+    LogcatFormatDialog(project, initialFormatting, defaultFormatting) { standardOptions, compactOptions, defaultStyle ->
         LogcatToolWindowFactory.logcatPresenters.forEach {
           when (it.formattingOptions.getStyle()) {
             STANDARD -> it.formattingOptions = standardOptions

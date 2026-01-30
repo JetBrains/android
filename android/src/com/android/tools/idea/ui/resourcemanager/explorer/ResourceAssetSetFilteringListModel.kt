@@ -21,12 +21,10 @@ import com.intellij.openapi.util.Condition
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.speedSearch.FilteringListModel
 
-/**
- * [FilteringListModel] for [ResourceAssetSet] matching name and [ResourceType.STRING] values.
- */
+/** [FilteringListModel] for [ResourceAssetSet] matching name and [ResourceType.STRING] values. */
 class ResourceAssetSetFilteringListModel(
   collectionListModel: CollectionListModel<ResourceAssetSet>,
-  private val filter: Condition<String>
+  private val filter: Condition<String>,
 ) : FilteringListModel<ResourceAssetSet>(collectionListModel) {
   init {
     setFilter(::isMatch)

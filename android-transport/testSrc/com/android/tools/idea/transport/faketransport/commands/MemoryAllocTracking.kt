@@ -22,10 +22,10 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 
 /**
- * Handles both the START_ALLOC_TRACKING and STOP_ALLOC_TRACKING commands in tests. This is responsible for generating a status event.
- * For the start tracking command,  if |trackStatus| is set to be |SUCCESS|, this generates a start event with timestamp matching what is
- * specified in |trackStatus|. For the end tracking command, an event (start timestamp + 1) is only added if a start event already
- * exists in the input event list.
+ * Handles both the START_ALLOC_TRACKING and STOP_ALLOC_TRACKING commands in tests. This is responsible for generating a status event. For
+ * the start tracking command, if |trackStatus| is set to be |SUCCESS|, this generates a start event with timestamp matching what is
+ * specified in |trackStatus|. For the end tracking command, an event (start timestamp + 1) is only added if a start event already exists in
+ * the input event list.
  */
 class MemoryAllocTracking(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler(timer, isTaskBasedUxEnabled) {
   var legacyTracking = false
@@ -37,53 +37,61 @@ class MemoryAllocTracking(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : Com
     val isStartTracking = command.type == Command.CommandType.START_ALLOC_TRACKING
     val infoId = timer.currentTimeNs
     lastCommand = command
-    lastInfo = Memory.AllocationsInfo.newBuilder()
-      .setStartTime(trackStatus.startTime)
-      .setEndTime(if (isStartTracking) Long.MAX_VALUE else trackStatus.startTime + 1)
-      .setLegacy(legacyTracking)
-      .setSuccess(!isStartTracking)
-      .build()
+    lastInfo =
+      Memory.AllocationsInfo.newBuilder()
+        .setStartTime(trackStatus.startTime)
+        .setEndTime(if (isStartTracking) Long.MAX_VALUE else trackStatus.startTime + 1)
+        .setLegacy(legacyTracking)
+        .setSuccess(!isStartTracking)
+        .build()
 
-    events.add(Common.Event.newBuilder().apply {
-      groupId = infoId
-      pid = command.pid
-      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
-      timestamp = timer.currentTimeNs
-      commandId = command.commandId
-      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
-        status = trackStatus
-      }.build()
-    }.build())
+    events.add(
+      Common.Event.newBuilder()
+        .apply {
+          groupId = infoId
+          pid = command.pid
+          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
+          timestamp = timer.currentTimeNs
+          commandId = command.commandId
+          memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply { status = trackStatus }.build()
+        }
+        .build()
+    )
 
     if (isStartTracking) {
       if (trackStatus.status == Memory.TrackStatus.Status.SUCCESS) {
-        events.add(Common.Event.newBuilder().apply {
-          groupId = infoId
-          pid = command.pid
-          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-          timestamp = timer.currentTimeNs
-          memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-            info = lastInfo
-          }.build()
-        }.build())
+        events.add(
+          Common.Event.newBuilder()
+            .apply {
+              groupId = infoId
+              pid = command.pid
+              kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+              timestamp = timer.currentTimeNs
+              memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply { info = lastInfo }.build()
+            }
+            .build()
+        )
       }
-    }
-    else {
+    } else {
       // Only inserts a stop event if there is a matching start tracking event.
-      events.find { it.groupId == infoId && it.kind == Common.Event.Kind.MEMORY_ALLOC_TRACKING}?.let {
-        events.add(Common.Event.newBuilder().apply {
-          groupId = infoId
-          pid = command.pid
-          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-          timestamp = timer.currentTimeNs
-          isEnded = true
-          memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-            info = lastInfo
-          }.build()
-        }.build())
+      events
+        .find { it.groupId == infoId && it.kind == Common.Event.Kind.MEMORY_ALLOC_TRACKING }
+        ?.let {
+          events.add(
+            Common.Event.newBuilder()
+              .apply {
+                groupId = infoId
+                pid = command.pid
+                kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+                timestamp = timer.currentTimeNs
+                isEnded = true
+                memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply { info = lastInfo }.build()
+              }
+              .build()
+          )
 
-        addSessionEndedEvent(command, events)
-      }
+          addSessionEndedEvent(command, events)
+        }
     }
   }
 }

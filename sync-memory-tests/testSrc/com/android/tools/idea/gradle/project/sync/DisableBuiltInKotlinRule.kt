@@ -19,24 +19,18 @@ import org.junit.rules.ExternalResource
 
 class DisableBuiltInKotlinRule : ExternalResource() {
   override fun before() {
-    mutateGradleProperties {
-      this.properties.setProperty("android.builtInKotlin", false.toString())
-    }
+    mutateGradleProperties { this.properties.setProperty("android.builtInKotlin", false.toString()) }
   }
 }
 
 class DisableNewDslRule : ExternalResource() {
   override fun before() {
-    mutateGradleProperties {
-      this.properties.setProperty("android.newDsl", false.toString())
-    }
+    mutateGradleProperties { this.properties.setProperty("android.newDsl", false.toString()) }
   }
 }
 
 class DisableRuntimeClasspath : ExternalResource() {
   override fun before() {
-    mutateGradleProperties {
-      this.properties.setProperty("android.kmp.disable.runtime.classpath", true.toString())
-    }
+    mutateGradleProperties { this.properties.setProperty("android.kmp.disable.runtime.classpath", true.toString()) }
   }
 }

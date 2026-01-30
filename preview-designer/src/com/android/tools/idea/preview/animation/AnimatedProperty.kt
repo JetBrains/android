@@ -23,13 +23,11 @@ private const val CURVES_SIMILARITY = 0.015
  * Represents animation information for one property for example Color, Dp, Offset. It includes:
  * * [startMs] start point of the animation
  * * [endMs] end point of the animation
- * * [grouped] true if all components have the same curve, in that case [dimension] is 1 and
- *   [components] only contain the first component, regardless of the original number of the
- *   [components].
+ * * [grouped] true if all components have the same curve, in that case [dimension] is 1 and [components] only contain the first component,
+ *   regardless of the original number of the [components].
  * * [dimension] of the property, for example 4 for Rect or Color, 2 for Offset
- * * [components] animation information for each of the components of the property for example for
- *   Rect it includes [AnimatedComponent] for left, top, right, bottom components. Each of the
- *   [AnimatedComponent] includes
+ * * [components] animation information for each of the components of the property for example for Rect it includes [AnimatedComponent] for
+ *   left, top, right, bottom components. Each of the [AnimatedComponent] includes
  *
  * ```
  *    * [AnimatedComponent.maxValue] and [AnimatedComponent.minValue] of that component
@@ -38,20 +36,11 @@ private const val CURVES_SIMILARITY = 0.015
  * ```
  */
 class AnimatedProperty<A>
-private constructor(
-  val startMs: Int,
-  val endMs: Int,
-  val grouped: Boolean,
-  val components: List<AnimatedComponent<A>>,
-  val dimension: Int,
-) where A : Number, A : Comparable<A> {
+private constructor(val startMs: Int, val endMs: Int, val grouped: Boolean, val components: List<AnimatedComponent<A>>, val dimension: Int)
+  where A : Number, A : Comparable<A> {
 
-  class AnimatedComponent<A>(
-    val maxValue: A,
-    val minValue: A,
-    val linkToNext: Boolean,
-    val points: SortedMap<Int, A>,
-  ) where A : Number, A : Comparable<A>
+  class AnimatedComponent<A>(val maxValue: A, val minValue: A, val linkToNext: Boolean, val points: SortedMap<Int, A>)
+    where A : Number, A : Comparable<A>
 
   // Transforms list of [ComposeUnit.Unit<*>] to list of it components.
   // For example for ComposeUnit.Rect
@@ -66,8 +55,7 @@ private constructor(
   // Rect 4    | 1 |  | 2 |  | 3 |  | 4 |  ⬅ point 4
   class Builder {
     /**
-     * Animation values - mapping of the animation time in milliseconds to a value of animation for
-     * this property - a [ComposeUnit.Unit<*>].
+     * Animation values - mapping of the animation time in milliseconds to a value of animation for this property - a [ComposeUnit.Unit<*>].
      */
     private val units: MutableMap<Int, AnimationUnit.NumberUnit<*>> = mutableMapOf()
     private var _startTimeMs: Int? = null
@@ -99,12 +87,8 @@ private constructor(
       val valueClass = units.values.first()::class
       if (units.values.any { it::class != valueClass }) return null
       // Check all max and min values are correct
-      val maxValues: List<Double> =
-        List(dimension) { index -> units.values.maxOfOrNull { it.componentAsDouble(index) } }
-          .filterNotNull()
-      val minValues: List<Double> =
-        List(dimension) { index -> units.values.minOfOrNull { it.componentAsDouble(index) } }
-          .filterNotNull()
+      val maxValues: List<Double> = List(dimension) { index -> units.values.maxOfOrNull { it.componentAsDouble(index) } }.filterNotNull()
+      val minValues: List<Double> = List(dimension) { index -> units.values.minOfOrNull { it.componentAsDouble(index) } }.filterNotNull()
       if (maxValues.size != dimension && minValues.size != dimension) return null
       // Check if values could be grouped.
       // Values could be grouped if the maximum difference between normalized to [0, 1] curves is

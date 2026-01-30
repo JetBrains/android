@@ -26,33 +26,18 @@ import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingResult.SUCC
 
 /** Tracks usages of Wi-Fi Pairing invocations */
 object WifiPairingUsageTracker {
-  fun trackSuccess(
-    adbVersion: String,
-    pairingMethod: PairingMethod,
-    deviceApi: String?,
-    deviceCodeName: String?,
-    elapsedTimeMs: Long,
-  ) {
+  fun trackSuccess(adbVersion: String, pairingMethod: PairingMethod, deviceApi: String?, deviceCodeName: String?, elapsedTimeMs: Long) {
     logEvent(
       WifiPairingEvent.newBuilder()
         .setAdbVersion(adbVersion)
         .setPairingMethod(pairingMethod)
-        .setDeviceApiVersion(
-          ApiVersion.newBuilder()
-            .setApiLevel(deviceApi?.toLongOrNull() ?: -1)
-            .setCodename(deviceCodeName ?: "Unknown")
-        )
+        .setDeviceApiVersion(ApiVersion.newBuilder().setApiLevel(deviceApi?.toLongOrNull() ?: -1).setCodename(deviceCodeName ?: "Unknown"))
         .setPairingResult(SUCCESS)
         .setElapsedTimeMs(elapsedTimeMs)
     )
   }
 
-  fun trackFailure(
-    adbVersion: String,
-    pairingMethod: PairingMethod,
-    exception: Throwable,
-    elapsedTimeMs: Long,
-  ) {
+  fun trackFailure(adbVersion: String, pairingMethod: PairingMethod, exception: Throwable, elapsedTimeMs: Long) {
     logEvent(
       WifiPairingEvent.newBuilder()
         .setAdbVersion(adbVersion)
@@ -64,9 +49,7 @@ object WifiPairingUsageTracker {
   }
 
   private fun logEvent(event: WifiPairingEvent.Builder) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().setKind(WIFI_PAIRING_EVENT).setWifiPairingEvent(event)
-    )
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(WIFI_PAIRING_EVENT).setWifiPairingEvent(event))
   }
 }
 

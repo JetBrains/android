@@ -16,4 +16,11 @@
 package com.android.tools.idea.streaming.core
 
 /** Values correspond to the TYPE_* constants in android.view.Display */
-enum class DisplayType { UNKNOWN, INTERNAL, EXTERNAL, WIFI, OVERLAY, VIRTUAL }
+enum class DisplayType {
+  UNKNOWN,
+  INTERNAL,
+  EXTERNAL,
+  WIFI,
+  OVERLAY,
+  VIRTUAL,
+}

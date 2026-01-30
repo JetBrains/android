@@ -25,10 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform
 
-/**
- * Monitors project related processes start & end event and emits them as system log messages to a
- * [Flow<List<LogcatMessage>>].
- */
+/** Monitors project related processes start & end event and emits them as system log messages to a [Flow<List<LogcatMessage>>]. */
 internal class ProjectAppMonitor(
   private val processNameMonitor: ProcessNameMonitor,
   private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
@@ -40,27 +37,14 @@ internal class ProjectAppMonitor(
       when (it) {
         is ProcessAdded -> {
           val applicationId = it.toProcessNames().applicationId
-          if (
-            applicationId in projectApplicationIdsProvider.getPackageNames() &&
-              !processes.containsKey(it.pid)
-          ) {
+          if (applicationId in projectApplicationIdsProvider.getPackageNames() && !processes.containsKey(it.pid)) {
             processes[it.pid] = applicationId
-            emit(
-              LogcatMessage(
-                SYSTEM_HEADER,
-                LogcatBundle.message("logcat.process.started", it.pid.toString(), applicationId),
-              )
-            )
+            emit(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.started", it.pid.toString(), applicationId)))
           }
         }
         is ProcessRemoved -> {
           val applicationId = processes.remove(it.pid) ?: return@transform
-          emit(
-            LogcatMessage(
-              SYSTEM_HEADER,
-              LogcatBundle.message("logcat.process.ended", it.pid.toString(), applicationId),
-            )
-          )
+          emit(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.ended", it.pid.toString(), applicationId)))
         }
       }
     }

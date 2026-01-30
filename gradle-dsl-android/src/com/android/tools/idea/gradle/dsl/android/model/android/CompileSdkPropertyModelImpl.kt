@@ -21,51 +21,54 @@ import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyM
 import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_INTRODUCED_VERSION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
-import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_MINOR
 import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION
+import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_MINOR
+import com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
 import com.android.tools.idea.gradle.dsl.android.model.android.CompileSdkBlockModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.android.parser.android.CompileSdkBlockDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.intellij.psi.PsiElement
 
-class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyModel,
-                                  private val internalMinorModel: ResolvedPropertyModel? = null,
-                                  private val internalExtensionModel: ResolvedPropertyModel? = null) : CompileSdkPropertyModel,
-                                                                                      ResolvedPropertyModel by internalModel {
+class CompileSdkPropertyModelImpl(
+  private val internalModel: ResolvedPropertyModel,
+  private val internalMinorModel: ResolvedPropertyModel? = null,
+  private val internalExtensionModel: ResolvedPropertyModel? = null,
+) : CompileSdkPropertyModel, ResolvedPropertyModel by internalModel {
   companion object {
 
     private val ADDON_PATTERN = "([^:]+):([^:]+):(\\d+)".toRegex()
     private val API_PATTERN = "android-(\\d+)(?:\\.(?<minor>\\d+))?(-ext(?<ext>\\d+))?".toRegex()
 
-
     @JvmStatic
-    fun getOrCreateCompileSdkPropertyModel(parent: GradlePropertiesDslElement, maybeCreateAfter: ResolvedPropertyModel? = null): CompileSdkPropertyModelImpl {
+    fun getOrCreateCompileSdkPropertyModel(
+      parent: GradlePropertiesDslElement,
+      maybeCreateAfter: ResolvedPropertyModel? = null,
+    ): CompileSdkPropertyModelImpl {
       val context = parent.dslFile.context
       val compileSdkBlockVersion = VersionConstraint.agpFrom(COMPILE_SDK_BLOCK_VERSION)
 
-      val createInPosition = maybeCreateAfter?.let {
-        parent.children.indexOf(it.rawElement).takeIf { it >= 0 }
-      }?.plus(1)
+      val createInPosition = maybeCreateAfter?.let { parent.children.indexOf(it.rawElement).takeIf { it >= 0 } }?.plus(1)
 
-      val compileSdkBlock = parent.getPropertyElement(
-        CompileSdkBlockDslElement.COMPILE_SDK
-      )
+      val compileSdkBlock = parent.getPropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
 
       // Old DSL element already exists
-      parent.getPropertyElement(COMPILE_SDK_VERSION)?.let{
+      parent.getPropertyElement(COMPILE_SDK_VERSION)?.let {
         val compileSdkMinorModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_MINOR).buildResolved()
         val compileSdkExtensionModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_EXTENSION).buildResolved()
-        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition), compileSdkMinorModel, compileSdkExtensionModel)
+        return CompileSdkPropertyModelImpl(
+          createOldResolvedPropertyModel(parent, createInPosition),
+          compileSdkMinorModel,
+          compileSdkExtensionModel,
+        )
       }
 
       if (compileSdkBlock != null) {
@@ -75,58 +78,59 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
       // agpVersion is null for oldDsl tests
       if (context.agpVersion != null && compileSdkBlockVersion.isOkWith(context.agpVersion)) {
         // new DSL is possible
-        val newCompileSdkBlock = if (createInPosition == null) {
-          parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
-        }
-        else {
-          parent.ensurePropertyElementAt(CompileSdkBlockDslElement.COMPILE_SDK, createInPosition)
-        }
+        val newCompileSdkBlock =
+          if (createInPosition == null) {
+            parent.ensurePropertyElement(CompileSdkBlockDslElement.COMPILE_SDK)
+          } else {
+            parent.ensurePropertyElementAt(CompileSdkBlockDslElement.COMPILE_SDK, createInPosition)
+          }
         return CompileSdkPropertyModelImpl(CompileSdkBlockPropertyModel(newCompileSdkBlock))
       } else {
         // AGP is old need to stick to old DSL
         val compileSdkMinorModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_MINOR).buildResolved()
         val compileSdkExtensionModel = GradlePropertyModelBuilder.create(parent, COMPILE_SDK_EXTENSION).buildResolved()
-        return CompileSdkPropertyModelImpl(createOldResolvedPropertyModel(parent, createInPosition), compileSdkMinorModel, compileSdkExtensionModel)
+        return CompileSdkPropertyModelImpl(
+          createOldResolvedPropertyModel(parent, createInPosition),
+          compileSdkMinorModel,
+          compileSdkExtensionModel,
+        )
       }
     }
 
-    private fun createOldResolvedPropertyModel(
-      parent: GradlePropertiesDslElement,
-      createInPosition: Int?
-    ): ResolvedPropertyModel =
-      GradlePropertyModelBuilder.create(parent, COMPILE_SDK_VERSION).addTransform(
-        SdkOrPreviewTransform(
-          COMPILE_SDK_VERSION,
-          "compileSdkVersion",
-          "compileSdk",
-          "compileSdkPreview",
-          VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION),
-          createInPosition
+    private fun createOldResolvedPropertyModel(parent: GradlePropertiesDslElement, createInPosition: Int?): ResolvedPropertyModel =
+      GradlePropertyModelBuilder.create(parent, COMPILE_SDK_VERSION)
+        .addTransform(
+          SdkOrPreviewTransform(
+            COMPILE_SDK_VERSION,
+            "compileSdkVersion",
+            "compileSdk",
+            "compileSdkPreview",
+            VersionConstraint.agpFrom(COMPILE_SDK_INTRODUCED_VERSION),
+            createInPosition,
+          )
         )
-      ).buildResolved()
+        .buildResolved()
 
     fun ResolvedPropertyModel.asCompileSdkString(): String? {
       return when (valueType) {
-          ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
-          ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
-          ValueType.CUSTOM -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
-          else -> null
-        }
+        ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
+        ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
+        ValueType.CUSTOM -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
+        else -> null
       }
     }
+  }
 
-  class CompileSdkBlockPropertyModel(val dslElement: CompileSdkBlockDslElement) : GradlePropertyModelImpl(
-    dslElement
-  ), ResolvedPropertyModel {
+  class CompileSdkBlockPropertyModel(val dslElement: CompileSdkBlockDslElement) :
+    GradlePropertyModelImpl(dslElement), ResolvedPropertyModel {
     val sdkBlockModel = CompileSdkBlockModelImpl(dslElement)
-    override fun getValueType(): ValueType =
-      if (sdkBlockModel.getVersion() == null)
-        ValueType.NONE
-      else
-        ValueType.CUSTOM
+
+    override fun getValueType(): ValueType = if (sdkBlockModel.getVersion() == null) ValueType.NONE else ValueType.CUSTOM
+
     override fun getResultModel(): GradlePropertyModel = PropertyUtil.resolveModel(this)
+
     override fun toString(): String {
-      return this.javaClass.simpleName + "[Version=" + sdkBlockModel.getVersion()?.toHash()+"]"
+      return this.javaClass.simpleName + "[Version=" + sdkBlockModel.getVersion()?.toHash() + "]"
     }
   }
 
@@ -144,7 +148,7 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
         is ReferenceTo -> {
           // handle only integer as for release and preview for string
           val referredElement = value.referredElement
-          if(referredElement is GradleDslSimpleExpression) {
+          if (referredElement is GradleDslSimpleExpression) {
             when (referredElement.value) {
               is Integer -> compileSdkBlock.setReleaseVersion(value)
               else -> compileSdkBlock.setPreviewVersion(value)
@@ -178,8 +182,7 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
           compileSdkBlock.setPreviewVersion(stringValue)
         }
       }
-    }
-    else {
+    } else {
       internalMinorModel?.delete()
       internalExtensionModel?.delete()
       val apiMatchResult = API_PATTERN.matchEntire(value.toString())
@@ -205,7 +208,6 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
       }
     }
 
-
     val minor = internalMinorModel?.getValue(typeReference)
     val extension = internalExtensionModel?.getValue(typeReference)
     return when (typeReference) {
@@ -218,11 +220,12 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
           val extensionSuffix = if (extension != null) "-ext$extension" else ""
           "android-${internalModel.getValue(typeReference)}$minorSuffix$extensionSuffix" as T?
         } else internalModel.getValue(typeReference)
-      } else -> internalModel.getValue(typeReference)
+      }
+      else -> internalModel.getValue(typeReference)
     }
   }
 
-  override fun <T: Any> getRawValue(typeReference: TypeReference<T>): T? {
+  override fun <T : Any> getRawValue(typeReference: TypeReference<T>): T? {
     (internalModel as? CompileSdkBlockPropertyModel)?.let {
       when (typeReference) {
         GradlePropertyModel.STRING_TYPE -> return it.sdkBlockModel.getVersion()?.toHash() as T?
@@ -233,7 +236,6 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
     }
     return internalModel.getRawValue(typeReference)
   }
-
 
   override fun toString(): String {
     return internalModel.toString()

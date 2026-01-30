@@ -27,19 +27,21 @@ import org.junit.Rule
 import org.junit.Test
 
 class SimpleHighlightingBenchmark {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+  @get:Rule val gradleRule = AndroidGradleProjectRule()
 
   companion object {
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val benchmark = Benchmark.Builder("Highlighting simpleApplication")
-      .setDescription("Syntax highlighting benchmark for a simple application.")
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
+    val benchmark =
+      Benchmark.Builder("Highlighting simpleApplication")
+        .setDescription("Syntax highlighting benchmark for a simple application.")
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
 
-    fun doBenchmark(rule: AndroidGradleProjectRule,
-                    measure: () -> List<Metric.MetricSample>,
-                    processSamples: (List<Metric.MetricSample>) -> Unit = { }) {
+    fun doBenchmark(
+      rule: AndroidGradleProjectRule,
+      measure: () -> List<Metric.MetricSample>,
+      processSamples: (List<Metric.MetricSample>) -> Unit = {},
+    ) {
       // Load project.
       rule.load(TestProjectPaths.SIMPLE_APPLICATION)
       rule.generateSources() // Gets us closer to a production setup.
@@ -80,7 +82,7 @@ class SimpleHighlightingBenchmark {
           action = {
             val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
             assert(info.isEmpty())
-          }
+          },
         )
       },
       processSamples = { samplesMs ->
@@ -91,7 +93,7 @@ class SimpleHighlightingBenchmark {
         val metric = Metric("highlighting_latency")
         metric.addSamples(benchmark, *samplesMs.toTypedArray())
         metric.commit()
-      }
+      },
     )
   }
 }

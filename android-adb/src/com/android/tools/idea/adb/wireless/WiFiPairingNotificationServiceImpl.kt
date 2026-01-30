@@ -22,22 +22,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-class WiFiPairingNotificationServiceImpl(override val project: Project) :
-  WiFiPairingNotificationService {
-  private val notificationGroup by lazy {
-    NotificationGroupManager.getInstance().getNotificationGroup("Android Devices (Balloon)")
-  }
+class WiFiPairingNotificationServiceImpl(override val project: Project) : WiFiPairingNotificationService {
+  private val notificationGroup by lazy { NotificationGroupManager.getInstance().getNotificationGroup("Android Devices (Balloon)") }
 
   @UiThread
-  override fun showBalloon(
-    title: String,
-    content: String,
-    type: NotificationType,
-    icon: Icon?,
-    actions: List<AnAction>,
-  ) {
-    val notification =
-      notificationGroup.createNotification(title, content, type).addActions(actions)
+  override fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?, actions: List<AnAction>) {
+    val notification = notificationGroup.createNotification(title, content, type).addActions(actions)
     icon?.let { notification.icon = it }
     notification.notify(project)
   }

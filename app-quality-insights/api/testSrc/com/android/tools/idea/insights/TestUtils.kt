@@ -78,8 +78,7 @@ val TEST_FILTERS =
 
 val CONNECTION1 = TestConnection("app1", "app-id1", "project1", "123", "variant1", "app1")
 val CONNECTION2 = TestConnection("app2", "app-id2", "project2", "456", "variant2", "app2")
-val PLACEHOLDER_CONNECTION =
-  TestConnection("app3", "app-id3", "project3", "789", "variant3", "app3", isConfigured = false)
+val PLACEHOLDER_CONNECTION = TestConnection("app3", "app-id3", "project3", "789", "variant3", "app3", isConfigured = false)
 
 val DEFAULT_FETCHED_VERSIONS = WithCount(10, Version("1", "1.0"))
 
@@ -95,12 +94,7 @@ val NOW = Instant.parse("2022-06-08T10:00:00Z")
 
 const val REVISION_74081e5f = "74081e5f56a58788f3243fe8410c4b66e9c7c902"
 
-val REPO_INFO =
-  RepoInfo(
-    vcsKey = VCS_CATEGORY.TEST_VCS,
-    rootPath = PROJECT_ROOT_PREFIX,
-    revision = REVISION_74081e5f,
-  )
+val REPO_INFO = RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = REVISION_74081e5f)
 
 val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_ID", "abcdeefg"))
 val SAMPLE_LOGS = listOf(Log(FAKE_10_HOURS_AGO, "fake_log", mapOf("key" to "value")))
@@ -130,8 +124,7 @@ val ISSUE1 =
       eventData =
         EventData(
           device = Device(manufacturer = "Google", model = "Pixel 4a"),
-          operatingSystemInfo =
-            OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
+          operatingSystemInfo = OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
           eventTime = FAKE_6_DAYS_AGO,
         ),
       stacktraceGroup =
@@ -141,21 +134,15 @@ val ISSUE1 =
               ExceptionStack(
                 stacktrace =
                   Stacktrace(
-                    caption =
-                      Caption(
-                        title = "Non-fatal Exception: retrofit2.HttpException",
-                        subtitle = "HTTP 401 ",
-                      ),
+                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401 "),
                     blames = Blames.BLAMED,
                     frames =
                       listOf(
                         Frame(
                           line = 23,
                           file = "ResponseWrapper.kt",
-                          rawSymbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
-                          symbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
+                          rawSymbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
+                          symbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -166,8 +153,7 @@ val ISSUE1 =
                           file = "ResponseWrapper.kt",
                           rawSymbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)",
-                          symbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
+                          symbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -196,12 +182,7 @@ val ISSUE1_DETAILS =
           StatsGroup(
             groupName = "Google",
             percentage = 50.0,
-            breakdown =
-              listOf(
-                DataPoint("Pixel 4a", 40.0),
-                DataPoint("Pixel 5", 10.0),
-                DataPoint("Other", 0.0),
-              ),
+            breakdown = listOf(DataPoint("Pixel 4a", 40.0), DataPoint("Pixel 5", 10.0), DataPoint("Other", 0.0)),
           )
         ),
     ),
@@ -242,8 +223,7 @@ val ISSUE2 =
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
-          operatingSystemInfo =
-            OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
+          operatingSystemInfo = OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
           eventTime = FAKE_25_DAYS_AGO,
         ),
       stacktraceGroup =
@@ -254,18 +234,14 @@ val ISSUE2 =
                 stacktrace =
                   Stacktrace(
                     caption =
-                      Caption(
-                        title = "javax.net.ssl.SSLHandshakeException",
-                        subtitle = "Trust anchor for certification path not found.",
-                      ),
+                      Caption(title = "javax.net.ssl.SSLHandshakeException", subtitle = "Trust anchor for certification path not found."),
                     blames = Blames.NOT_BLAMED,
                     frames =
                       listOf(
                         Frame(
                           line = 362,
                           file = "SSLUtils.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
+                          rawSymbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
                           symbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException",
                           offset = 23,
                           address = 0,
@@ -275,8 +251,7 @@ val ISSUE2 =
                         Frame(
                           line = 1134,
                           file = "ConscryptEngine.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
+                          rawSymbol = "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
                           symbol = "com.android.org.conscrypt.ConscryptEngine.convertException",
                           offset = 31,
                           address = 0,
@@ -287,8 +262,7 @@ val ISSUE2 =
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage =
-                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
               ExceptionStack(
                 stacktrace =
@@ -304,8 +278,7 @@ val ISSUE2 =
                         Frame(
                           line = 677,
                           file = "TrustManagerImpl.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
+                          rawSymbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
                           symbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain",
                           offset = 23,
                           address = 0,
@@ -315,8 +288,7 @@ val ISSUE2 =
                         Frame(
                           line = 320,
                           file = "RealConnection.java",
-                          rawSymbol =
-                            "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
+                          rawSymbol = "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
                           symbol = "okhttp3.internal.connection.RealConnection.connectTls",
                           offset = 31,
                           address = 0,
@@ -327,8 +299,7 @@ val ISSUE2 =
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage =
-                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
             )
         ),
@@ -362,8 +333,7 @@ val ISSUE3 =
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
-          operatingSystemInfo =
-            OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
+          operatingSystemInfo = OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
           eventTime = FAKE_25_DAYS_AGO,
         ),
       stacktraceGroup =
@@ -373,16 +343,14 @@ val ISSUE3 =
               ExceptionStack(
                 stacktrace =
                   Stacktrace(
-                    caption =
-                      Caption(title = "java.lang.RuntimeException", subtitle = "Test Crash"),
+                    caption = Caption(title = "java.lang.RuntimeException", subtitle = "Test Crash"),
                     blames = Blames.BLAMED,
                     frames =
                       listOf(
                         Frame(
                           line = 359,
                           file = "MainActivity.java",
-                          rawSymbol =
-                            "com.example.someapp.MainActivity.onCreate\$lambda\$0(MainActivity.java:359)",
+                          rawSymbol = "com.example.someapp.MainActivity.onCreate\$lambda\$0(MainActivity.java:359)",
                           symbol = "com.example.someapp.MainActivity.onCreate\$lambda\$0",
                           offset = 23,
                           address = 0,
@@ -392,10 +360,8 @@ val ISSUE3 =
                         Frame(
                           line = 0,
                           file = "",
-                          rawSymbol =
-                            "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q(:0)",
-                          symbol =
-                            "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q",
+                          rawSymbol = "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q(:0)",
+                          symbol = "com.example.someapp.MainActivity.\$r8\$lambda\$4oWG6U3SJNFRfpZuiYxu7QrLG2Q",
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -404,10 +370,8 @@ val ISSUE3 =
                         Frame(
                           line = 0,
                           file = "SomeFile.java",
-                          rawSymbol =
-                            "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick(D8\$\$SyntheticClass:0)",
-                          symbol =
-                            "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick",
+                          rawSymbol = "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick(D8\$\$SyntheticClass:0)",
+                          symbol = "com.example.someapp.MainActivity\$\$ExternalSyntheticLambda0.onClick",
                           offset = 25,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -445,33 +409,17 @@ val NOTE2 =
   )
 
 val ISSUE_VARIANT =
-  IssueVariant(
-    id = "variant1",
-    sampleEvent = "sample_event_1",
-    uri = "firebase.google.com",
-    impactedDevicesCount = 1,
-    eventsCount = 1,
-  )
+  IssueVariant(id = "variant1", sampleEvent = "sample_event_1", uri = "firebase.google.com", impactedDevicesCount = 1, eventsCount = 1)
 
 val ISSUE_VARIANT2 =
-  IssueVariant(
-    id = "variant2",
-    sampleEvent = "sample_event_2",
-    uri = "firebase.google.com",
-    impactedDevicesCount = 1,
-    eventsCount = 1,
-  )
+  IssueVariant(id = "variant2", sampleEvent = "sample_event_2", uri = "firebase.google.com", impactedDevicesCount = 1, eventsCount = 1)
 
 val DEFAULT_AI_INSIGHT = AiInsight("", ISSUE1.sampleEvent)
 val AI_INSIGHT_WITH_CODE_CONTEXT =
   AiInsight(
     "context",
     ISSUE1.sampleEvent,
-    codeContextData =
-      CodeContextData(
-        listOf(CodeContext("filePath", "content")),
-        contextSharingState = ContextSharingState.ALLOWED,
-      ),
+    codeContextData = CodeContextData(listOf(CodeContext("filePath", "content")), contextSharingState = ContextSharingState.ALLOWED),
   )
 
 // Used for testing cached issues because their counts are zeroed out.

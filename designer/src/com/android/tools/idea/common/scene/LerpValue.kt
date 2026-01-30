@@ -19,10 +19,7 @@ abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) : Anima
 
   constructor(value: T) : this(value, value, 0)
 
-  /**
-   * Gets the interpolated value at the specified time. The start time is measured from the first
-   * time getValue is called.
-   */
+  /** Gets the interpolated value at the specified time. The start time is measured from the first time getValue is called. */
   override fun getValue(time: Long): T {
     if (startTime == -1L) {
       startTime = time

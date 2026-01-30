@@ -89,16 +89,14 @@ internal fun DevicePanel(
     val nameState = rememberTextFieldState(configureDevicePanelState.device.name)
     LaunchedEffect(Unit) {
       nameFocusRequester.requestFocus()
-      snapshotFlow { nameState.text.toString() }
-        .collect { configureDevicePanelState.device.name = it }
+      snapshotFlow { nameState.text.toString() }.collect { configureDevicePanelState.device.name = it }
     }
 
     ErrorTooltip(configureDevicePanelState.deviceNameError) {
       TextField(
         nameState,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE).focusRequester(nameFocusRequester),
-        outline =
-          if (configureDevicePanelState.deviceNameError == null) Outline.None else Outline.Error,
+        outline = if (configureDevicePanelState.deviceNameError == null) Outline.None else Outline.Error,
       )
     }
 
@@ -139,21 +137,12 @@ internal fun DevicePanel(
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       if (filteredSystemImages.isEmpty()) {
-        EmptyStatePanel(
-          "No system images available matching the current set of filters.",
-          Modifier.fillMaxSize(),
-        )
+        EmptyStatePanel("No system images available matching the current set of filters.", Modifier.fillMaxSize())
       } else {
         if (imageState.error != null) {
-          ErrorPanel(
-            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
-            imageState.error,
-          )
+          ErrorPanel(Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp), imageState.error)
         } else if (!imageState.hasRemote) {
-          ProgressIndicatorPanel(
-            "Loading system images...",
-            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
-          )
+          ProgressIndicatorPanel("Loading system images...", Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp))
         }
         SystemImageTable(
           filteredSystemImages,
@@ -194,16 +183,12 @@ private fun ServicesDropdown(
         Modifier.padding(end = Padding.MEDIUM),
         menuContent = {
           servicesCollection.forEach {
-            selectableItem(selectedServices == it, onClick = { onSelectedServicesChange(it) }) {
-              Text(it.toString())
-            }
+            selectableItem(selectedServices == it, onClick = { onSelectedServicesChange(it) }) { Text(it.toString()) }
           }
 
           separator()
 
-          selectableItem(selectedServices == null, onClick = { onSelectedServicesChange(null) }) {
-            Text("Show All")
-          }
+          selectableItem(selectedServices == null, onClick = { onSelectedServicesChange(null) }) { Text("Show All") }
         },
       ) {
         Text(selectedServices?.toString() ?: "Show All")
@@ -240,11 +225,7 @@ private fun SystemImageTable(
             )
           }
         ) {
-          Icon(
-            AllIconsKeys.Nodes.Favorite,
-            contentDescription = "Recommended",
-            modifier = Modifier.size(16.dp),
-          )
+          Icon(AllIconsKeys.Nodes.Favorite, contentDescription = "Recommended", modifier = Modifier.size(16.dp))
         }
       } else {
         val warnings = image.imageWarnings()
@@ -257,16 +238,9 @@ private fun SystemImageTable(
   val columns =
     listOf(
       starColumn,
-      TableColumn(
-        "",
-        TableColumnWidth.Fixed(16.dp),
-        Comparator.comparing { it is RemoteSystemImage },
-      ) { image, _ ->
+      TableColumn("", TableColumnWidth.Fixed(16.dp), Comparator.comparing { it is RemoteSystemImage }) { image, _ ->
         if (image is RemoteSystemImage) {
-          DownloadButton(
-            onClick = { onDownloadButtonClick(image.`package`.path) },
-            Modifier.size(16.dp),
-          )
+          DownloadButton(onClick = { onDownloadButtonClick(image.`package`.path) }, Modifier.size(16.dp))
         }
       },
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
@@ -344,10 +318,6 @@ private fun SystemImageWarningIcon(warnings: List<String>) {
       }
     }
   ) {
-    Icon(
-      StudioIconsCompose.Common.Warning,
-      contentDescription = "Non-recommended image",
-      modifier = Modifier.size(16.dp),
-    )
+    Icon(StudioIconsCompose.Common.Warning, contentDescription = "Non-recommended image", modifier = Modifier.size(16.dp))
   }
 }

@@ -22,7 +22,7 @@ fun baselineProfileBenchmarksKt(
   className: String,
   packageName: String,
   targetPackageName: String,
-  useInstrumentationArgumentForAppId: Boolean
+  useInstrumentationArgumentForAppId: Boolean,
 ): String {
   return """package ${escapeKotlinIdentifier(packageName)}
 

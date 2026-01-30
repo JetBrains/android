@@ -44,20 +44,23 @@ import org.mockito.kotlin.whenever
 @OldAgpTest
 @RunWith(Parameterized::class)
 class SyncWithForcedUpgradeAGPPluginTest(private val environmentDescriptor: AgpVersionSoftwareEnvironmentDescriptor) {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   companion object {
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
-    @Parameterized.Parameters(name="{0}")
+    @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      fun AgpVersionSoftwareEnvironmentDescriptor.isExpectForcedUpgradeVersion() = when (val v = this.agpVersion) {
-        null -> false
-        else -> AgpVersion.parse(v).let { it >= AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION) &&
-                                          it < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) }
-      }
+      fun AgpVersionSoftwareEnvironmentDescriptor.isExpectForcedUpgradeVersion() =
+        when (val v = this.agpVersion) {
+          null -> false
+          else ->
+            AgpVersion.parse(v).let {
+              it >= AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION) &&
+                it < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
+            }
+        }
       return applicableAgpVersions().filter { it.isExpectForcedUpgradeVersion() }.reversed().map { arrayOf(it) }
     }
   }
@@ -68,11 +71,14 @@ class SyncWithForcedUpgradeAGPPluginTest(private val environmentDescriptor: AgpV
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
     preparedProject.open(
       updateOptions = {
-        it.withForcedAgpUpgradeDialog().copy(
-          onProjectCreated = {
-            this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
-            doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())          }
-        )
+        it
+          .withForcedAgpUpgradeDialog()
+          .copy(
+            onProjectCreated = {
+              this.replaceService(RefactoringProcessorInstantiator::class.java, instantiator, projectRule.testRootDisposable)
+              doReturn(false).whenever(instantiator).showAndGetAgpUpgradeDialog(any(), any(), any())
+            }
+          )
       }
     ) { p ->
       val processorCaptor = argumentCaptor<AgpUpgradeRefactoringProcessor>()

@@ -84,14 +84,7 @@ class StartStopButtonTest {
       handle.activationAction.presentation.update { it.copy(enabled = true) }
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
       handle.pairGlassesAction.presentation.update { it.copy(enabled = false) }
-      val button =
-        StartStopButton(
-          handle,
-          handle.activationAction,
-          handle.deactivationAction,
-          null,
-          handle.pairGlassesAction,
-        )
+      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
       assertThat(button.isEnabled).isTrue()
       assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
@@ -119,8 +112,7 @@ class StartStopButtonTest {
       advanceUntilIdle()
 
       assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
-      assertThat(usageTrackerRule.deviceManagerEventKinds())
-        .containsExactly(VIRTUAL_LAUNCH_ACTION, VIRTUAL_STOP_ACTION)
+      assertThat(usageTrackerRule.deviceManagerEventKinds()).containsExactly(VIRTUAL_LAUNCH_ACTION, VIRTUAL_STOP_ACTION)
 
       handle.scope.cancel()
     }
@@ -141,14 +133,7 @@ class StartStopButtonTest {
       handle.activationAction.exception = DeviceActionException("Activation error")
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
 
-      val button =
-        StartStopButton(
-          handle,
-          handle.activationAction,
-          handle.deactivationAction,
-          null,
-          handle.pairGlassesAction,
-        )
+      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
       val dialog = TestMessagesDialog(Messages.OK)
       TestDialogManager.setTestDialog(dialog)
@@ -178,14 +163,7 @@ class StartStopButtonTest {
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
       handle.pairGlassesAction.presentation.update { it.copy(enabled = true) }
 
-      val button =
-        StartStopButton(
-          handle,
-          handle.activationAction,
-          handle.deactivationAction,
-          null,
-          handle.pairGlassesAction,
-        )
+      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null, handle.pairGlassesAction)
 
       advanceUntilIdle()
       SwingUtilities.invokeAndWait {}
@@ -206,13 +184,7 @@ class StartStopButtonTest {
       val scope = createChildScope()
       val handle = FakeDeviceHandle(scope)
       val button =
-        StartStopButton(
-          handle,
-          handle.activationAction,
-          handle.deactivationAction,
-          handle.repairDeviceAction,
-          handle.pairGlassesAction,
-        )
+        StartStopButton(handle, handle.activationAction, handle.deactivationAction, handle.repairDeviceAction, handle.pairGlassesAction)
       // Disable activation, since StartStopButton favors it over repair
       handle.activationAction.presentation.update { it.copy(enabled = false) }
       handle.deactivationAction.presentation.update { it.copy(enabled = false) }
@@ -232,9 +204,7 @@ class StartStopButtonTest {
           error = TestError(),
         )
       }
-      handle.repairDeviceAction.presentation.update {
-        it.copy(enabled = true, icon = AllIcons.Actions.Download)
-      }
+      handle.repairDeviceAction.presentation.update { it.copy(enabled = true, icon = AllIcons.Actions.Download) }
 
       advanceUntilIdle()
       assertThat(button.baseIcon).isEqualTo(AllIcons.Actions.Download)

@@ -75,9 +75,7 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
       .connect(fixture.projectDisposable)
       .subscribe(
         SafeArgsModeModuleService.MODE_CHANGED,
-        SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode ->
-          listener.onSafeArgsModeChanged(module, mode)
-        },
+        SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode -> listener.onSafeArgsModeChanged(module, mode) },
       )
 
     projectRule.load(params.project)
@@ -85,8 +83,7 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
-    assertThat(projectRule.project.safeArgsModeTracker.modificationCount)
-      .isGreaterThan(modificationCountBaseline)
+    assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
     verify(listener).onSafeArgsModeChanged(facet.module, params.mode)
   }
 }

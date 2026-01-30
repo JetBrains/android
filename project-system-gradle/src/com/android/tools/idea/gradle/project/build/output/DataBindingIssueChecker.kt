@@ -26,33 +26,26 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.Navigatable
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CompletableFuture
-
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class DataBindingIssueChecker : GradleIssueChecker {
   private val SEPARATOR = "=".repeat(50)
 
-  /**
-   * JSON parser, shared across parsing calls to take advantage of the caching it does.
-   */
+  /** JSON parser, shared across parsing calls to take advantage of the caching it does. */
   private val gson = Gson()
 
   /**
    * Example structure of the exception chain returned from Gradle.
    *
-   * BuildException "Could not execute build..."
-   *   cause - LocationAwareException "Execution failed for task ..."
-   *     cause - ContextualPlaceholderException "Execution failed for task ..."
-   *       cause - WorkExecutionException "A failure occurred while executing org.jetbrains.kotlin.gradle.internal.KaptExecution"
-   *         cause - InvocationTargetException null
-   *           cause - null
-   *           target - KaptBaseError "Exception while annotation processing"
-   *             cause - LoggedErrorException "Found data binding error(s):\n\n[databinding] <JSON>"
+   * BuildException "Could not execute build..." cause - LocationAwareException "Execution failed for task ..." cause -
+   * ContextualPlaceholderException "Execution failed for task ..." cause - WorkExecutionException "A failure occurred while executing
+   * org.jetbrains.kotlin.gradle.internal.KaptExecution" cause - InvocationTargetException null cause - null target - KaptBaseError
+   * "Exception while annotation processing" cause - LoggedErrorException "Found data binding error(s):\n\n[databinding] <JSON>"
    */
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
@@ -62,27 +55,26 @@ class DataBindingIssueChecker : GradleIssueChecker {
     if (baseError?.cause == null) return null
 
     val possibleLoggedErrorException = baseError.cause
-    val errors = possibleLoggedErrorException?.message?.lineSequence()?.filter { line ->
-      line.startsWith(ERROR_LOG_PREFIX)
-    }?.toList() ?: return null
+    val errors =
+      possibleLoggedErrorException?.message?.lineSequence()?.filter { line -> line.startsWith(ERROR_LOG_PREFIX) }?.toList() ?: return null
 
-    val buildIssues = errors.mapIndexedNotNull{ index, errorJson ->
-      convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectPath)
-    }
+    val buildIssues =
+      errors.mapIndexedNotNull { index, errorJson ->
+        convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectPath)
+      }
 
     if (buildIssues.isEmpty()) return null
 
     if (buildIssues.size == 1) {
       return buildIssues.first()
-    }
-    else {
+    } else {
       val title = "Found ${buildIssues.size} data binding error(s)"
       return object : BuildIssue {
         override val title: String = title
-        override val description: String = "$title\n$SEPARATOR\n" + buildIssues.joinToString ("\n$SEPARATOR\n") {
-          issue -> issue.description
-        }
+        override val description: String =
+          "$title\n$SEPARATOR\n" + buildIssues.joinToString("\n$SEPARATOR\n") { issue -> issue.description }
         override val quickFixes: List<BuildIssueQuickFix> = buildIssues.flatMap { issue -> issue.quickFixes }
+
         override fun getNavigatable(project: Project): Navigatable? = null
       }
     }
@@ -97,10 +89,10 @@ class DataBindingIssueChecker : GradleIssueChecker {
           override val title: String = summary
           override val description: String = msg.message
           override val quickFixes: List<BuildIssueQuickFix> = listOf()
+
           override fun getNavigatable(project: Project): Navigatable? = null
         }
-      }
-      else {
+      } else {
         // Note: msg.filePath is relative to the project, but the build output window can't seem to find the
         // file unless we feed it the absolute path directly.
         val sourceFile = File(projectPath, msg.filePath).absoluteFile
@@ -111,23 +103,20 @@ class DataBindingIssueChecker : GradleIssueChecker {
           override val title: String = summary
           override val description: String = msg.message + "\n<a href=\"${goToFile.id}\">Open File</a>"
           override val quickFixes: List<BuildIssueQuickFix> = listOf(goToFile)
+
           override fun getNavigatable(project: Project): Navigatable? {
             val virtualFile = VfsUtil.findFileByIoFile(sourceFile, false) ?: return null
             return OpenFileDescriptor(project, virtualFile, location.startLine, location.startCol)
           }
         }
       }
-    }
-    catch (ignored: Exception) {
+    } catch (ignored: Exception) {
       return null
     }
   }
 }
 
-/**
- * This is an adaptation of [OpenFileAtLocationQuickFix] which allows a customisable ID to allow multiple links
- * in a single message.
- */
+/** This is an adaptation of [OpenFileAtLocationQuickFix] which allows a customisable ID to allow multiple links in a single message. */
 class OpenFileWithLocationQuickFix(uniqueId: String, val myFilePosition: FilePosition) : BuildIssueQuickFix {
   override val id = uniqueId
 

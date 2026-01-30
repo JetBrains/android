@@ -21,15 +21,11 @@ import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.util.containers.ContainerUtil
 
 /** A TagSnapshot tree that mirrors the ViewInfo tree. */
-internal class ViewInfoTagSnapshotNode constructor(private val myViewInfo: ViewInfo) :
-  TagSnapshotTreeNode {
+internal class ViewInfoTagSnapshotNode constructor(private val myViewInfo: ViewInfo) : TagSnapshotTreeNode {
 
   override val children: List<TagSnapshotTreeNode>
     get() {
-      return ContainerUtil.map<ViewInfo, TagSnapshotTreeNode>(myViewInfo.children) { info: ViewInfo
-        ->
-        ViewInfoTagSnapshotNode(info)
-      }
+      return ContainerUtil.map<ViewInfo, TagSnapshotTreeNode>(myViewInfo.children) { info: ViewInfo -> ViewInfoTagSnapshotNode(info) }
     }
 
   override val tagSnapshot: TagSnapshot?

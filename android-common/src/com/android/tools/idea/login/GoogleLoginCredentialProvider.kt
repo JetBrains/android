@@ -20,8 +20,9 @@ import com.intellij.openapi.extensions.ExtensionPointName
 interface GoogleLoginCredentialProvider {
 
   /**
-   * Returns a fresh OAuth2 access token for the "Gemini" feature as a json object containing
-   * two name/value pairs: an `access_token` and an `expires_in`.
+   * Returns a fresh OAuth2 access token for the "Gemini" feature as a json object containing two name/value pairs: an `access_token` and an
+   * `expires_in`.
+   *
    * ```
    * {
    *   "access_token" : "...",
@@ -29,11 +30,11 @@ interface GoogleLoginCredentialProvider {
    * }
    * ```
    */
-  fun getGeminiAccessTokenAsJson() : String?
+  fun getGeminiAccessTokenAsJson(): String?
 
   companion object {
     val EP_NAME = ExtensionPointName.create<GoogleLoginCredentialProvider>("com.android.tools.idea.login.googleLoginCredentialProvider")
 
-    fun getGeminiAccessTokenAsJson() : String? = EP_NAME.extensionList.firstNotNullOfOrNull { it.getGeminiAccessTokenAsJson() }
+    fun getGeminiAccessTokenAsJson(): String? = EP_NAME.extensionList.firstNotNullOfOrNull { it.getGeminiAccessTokenAsJson() }
   }
 }

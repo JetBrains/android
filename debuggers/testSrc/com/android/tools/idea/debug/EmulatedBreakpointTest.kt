@@ -23,10 +23,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
-
 class EmulatedBreakpointTest {
-  @get:Rule
-  val rule = RuleChain(ApplicationRule())
+  @get:Rule val rule = RuleChain(ApplicationRule())
 
   @Test
   fun emulatedBreakpointDisabled() = runBlocking {

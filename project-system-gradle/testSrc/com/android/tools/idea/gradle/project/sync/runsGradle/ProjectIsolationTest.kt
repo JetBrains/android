@@ -30,37 +30,34 @@ import org.junit.Test
 
 class ProjectIsolationTest {
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProjectIsolationIssues() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).let {
-      it.appendText("\norg.gradle.unsafe.isolated-projects=true")
-    }
+    preparedProject.root.resolve(SdkConstants.FN_GRADLE_PROPERTIES).let { it.appendText("\norg.gradle.unsafe.isolated-projects=true") }
 
     val stdout = StringBuilder()
-    projectRule.openPreparedProject(
-      "project",
-      OpenPreparedProjectOptions(
-        outputHandler = {message ->
-          stdout.append(message)
-        },
-      )
-    ) {
+    projectRule.openPreparedProject("project", OpenPreparedProjectOptions(outputHandler = { message -> stdout.append(message) })) {
       stdout.toString().let {
         assertThat(it).contains("""1 problem was found storing the configuration cache""")
         assertThat(it).contains("""Project ':' cannot access 'Project.repositories' functionality on subprojects via 'allprojects'""")
-        Truth.assertThat(it).doesNotContain("""
-          Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
-          """.trimIndent())
-        Truth.assertThat(it).doesNotContain("""
-          Plugin class 'com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin': Project ':app' cannot dynamically look up a property
-        """.trimIndent())
+        Truth.assertThat(it)
+          .doesNotContain(
+            """
+            Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it)
+          .doesNotContain(
+            """
+            Plugin class 'com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin': Project ':app' cannot dynamically look up a property
+            """
+              .trimIndent()
+          )
       }
     }
   }

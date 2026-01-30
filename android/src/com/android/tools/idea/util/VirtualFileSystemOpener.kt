@@ -24,19 +24,14 @@ import com.intellij.openapi.vfs.VirtualFileSystem
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-/**
- * Implementation of [PathOpener] that understands IntelliJ's [VirtualFileSystem] paths.
- * [VirtualFile] paths.
- */
+/** Implementation of [PathOpener] that understands IntelliJ's [VirtualFileSystem] paths. [VirtualFile] paths. */
 object VirtualFileSystemOpener : PathOpener {
   private val mutex = Object()
   private var registered = false
 
-  /**
-   * Mounts the IntelliJ virtual filesystems. This is an inexpensive no-op if they are already mounted.
-   */
+  /** Mounts the IntelliJ virtual filesystems. This is an inexpensive no-op if they are already mounted. */
   public fun mount() {
-    synchronized (mutex) {
+    synchronized(mutex) {
       if (!registered) {
         registered = true
         FileSystemRegistry.mount(this)
@@ -44,11 +39,9 @@ object VirtualFileSystemOpener : PathOpener {
     }
   }
 
-  /**
-   * Unmounts the IntelliJ virtual filesystems.
-   */
+  /** Unmounts the IntelliJ virtual filesystems. */
   public fun unmount() {
-    synchronized (mutex) {
+    synchronized(mutex) {
       if (registered) {
         registered = false
         FileSystemRegistry.unmount(this)
@@ -56,24 +49,17 @@ object VirtualFileSystemOpener : PathOpener {
     }
   }
 
-  /**
-   * Look up and return the [VirtualFileSystem] for the given path. Uses a 1-element cache of the previous
-   * lookups.
-   */
-  private fun fileSystemFor(path: PathString): VirtualFileSystem?
-    = VirtualFileManager.getInstance().getFileSystem(path.filesystemUri.scheme)
+  /** Look up and return the [VirtualFileSystem] for the given path. Uses a 1-element cache of the previous lookups. */
+  private fun fileSystemFor(path: PathString): VirtualFileSystem? =
+    VirtualFileManager.getInstance().getFileSystem(path.filesystemUri.scheme)
 
-  override fun recognizes(path: PathString): Boolean
-    = fileSystemFor(path) != null
+  override fun recognizes(path: PathString): Boolean = fileSystemFor(path) != null
 
-  override fun isRegularFile(path: PathString): Boolean
-    = toVirtualFile(path)?.let { it.exists() && !it.isDirectory } ?: false
+  override fun isRegularFile(path: PathString): Boolean = toVirtualFile(path)?.let { it.exists() && !it.isDirectory } ?: false
 
-  override fun open(path: PathString): InputStream
-    = toVirtualFile(path)?.inputStream ?: throw FileNotFoundException(path.toString())
+  override fun open(path: PathString): InputStream = toVirtualFile(path)?.inputStream ?: throw FileNotFoundException(path.toString())
 
-  override fun isDirectory(path: PathString): Boolean
-    = toVirtualFile(path)?.let { it.exists() && it.isDirectory } ?: false
+  override fun isDirectory(path: PathString): Boolean = toVirtualFile(path)?.let { it.exists() && it.isDirectory } ?: false
 }
 
 internal fun toVirtualFile(path: PathString, refresh: Boolean = false): VirtualFile? {

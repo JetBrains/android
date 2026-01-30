@@ -15,35 +15,27 @@
  */
 package com.android.tools.idea.streaming.device
 
-/**
- * Similar to [java.io.Closeable] but with a suspending [close] method.
- */
+/** Similar to [java.io.Closeable] but with a suspending [close] method. */
 interface SuspendingCloseable {
   suspend fun close()
 }
 
-/**
- * See [java.io.Closeable.use].
- */
+/** See [java.io.Closeable.use]. */
 suspend inline fun <T : SuspendingCloseable?, R> T.use(block: (T) -> R): R {
   var exception: Throwable? = null
   try {
     return block(this)
-  }
-  catch (e: Throwable) {
+  } catch (e: Throwable) {
     exception = e
     throw e
-  }
-  finally {
+  } finally {
     if (this != null) {
       if (exception == null) {
         close()
-      }
-      else {
+      } else {
         try {
           close()
-        }
-        catch (closeException: Throwable) {
+        } catch (closeException: Throwable) {
           exception.addSuppressed(closeException)
         }
       }

@@ -47,40 +47,30 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 
 private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
-internal const val GLANCE_PREVIEW_ANNOTATION_FQN =
-  "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
+internal const val GLANCE_PREVIEW_ANNOTATION_FQN = "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 
 /**
  * Returns true if this [UAnnotation] is a Glance @Preview annotation.
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
-private fun isGlancePreview(annotation: UAnnotation) =
-  GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
+@RequiresReadLock private fun isGlancePreview(annotation: UAnnotation) = GLANCE_PREVIEW_ANNOTATION_FQN == annotation.qualifiedName
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
-private fun UElement?.isGlancePreviewAnnotation() =
-  (this as? UAnnotation)?.let { isGlancePreview(it) } == true
+@RequiresReadLock private fun UElement?.isGlancePreviewAnnotation() = (this as? UAnnotation)?.let { isGlancePreview(it) } == true
 
 @Slow
-private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
-  uMethod: UMethod
-): PsiGlancePreviewElement? {
+private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(uMethod: UMethod): PsiGlancePreviewElement? {
   val annotation = element as UAnnotation
   if (readAction { !isGlancePreview(annotation) }) return null
 
   val uClass = uMethod.uastParent as UClass
   val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
-  val nameHelper =
-    AnnotationPreviewNameHelper.create(this, uMethod.name) {
-      readAction { isGlancePreviewAnnotation() }
-    }
+  val nameHelper = AnnotationPreviewNameHelper.create(this, uMethod.name) { readAction { isGlancePreviewAnnotation() } }
   val displaySettings =
     PreviewDisplaySettings(
       name = nameHelper.buildPreviewName(),
@@ -93,12 +83,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
       organizationName = uMethod.name,
     )
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
-  val widthDp =
-    annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int
-      ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()
-  val heightDp =
-    annotation.findAttributeValue(PARAMETER_HEIGHT_DP)?.evaluate() as? Int
-      ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
+  val widthDp = annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()
+  val heightDp = annotation.findAttributeValue(PARAMETER_HEIGHT_DP)?.evaluate() as? Int ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
   return GlancePreviewElement(
     displaySettings,
     (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer(),
@@ -111,36 +97,27 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
 /** Common class to find Glance preview elements. */
 open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePreviewElement> {
   /**
-   * Returns a [Collection] of all the Glance Preview elements in the [vFile]. Glance Preview
-   * elements are `@Composable` functions that are also tagged with `@Preview` or a MultiPreview. A
-   * `@Composable` function tagged with many `@Preview` or with a MultiPreview annotation can return
-   * multiple preview elements.
+   * Returns a [Collection] of all the Glance Preview elements in the [vFile]. Glance Preview elements are `@Composable` functions that are
+   * also tagged with `@Preview` or a MultiPreview. A `@Composable` function tagged with many `@Preview` or with a MultiPreview annotation
+   * can return multiple preview elements.
    */
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile) =
-    findAnnotatedMethodsValues(
-        project,
-        vFile,
-        COMPOSABLE_ANNOTATION_FQ_NAME,
-        COMPOSABLE_ANNOTATION_NAME,
-      ) { methods ->
+    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
         methods.asFlow().flatMapConcat { method ->
-          method
-            .findAllAnnotationsInGraph(filter = { readAction { isGlancePreview(it) } })
-            .mapNotNull { it.asGlancePreviewNode(method) }
+          method.findAllAnnotationsInGraph(filter = { readAction { isGlancePreview(it) } }).mapNotNull { it.asGlancePreviewNode(method) }
         }
       }
       .distinct()
 
-  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
-    findPreviewElements(project, vFile).any()
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) = findPreviewElements(project, vFile).any()
 }
 
 /** Object that finds Glance App Widget preview elements in the (Kotlin) file. */
 object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
 
 /**
- * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
- * annotation that is annotated with @Preview or with other MultiPreview.
+ * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an annotation that is annotated with @Preview or
+ * with other MultiPreview.
  */
 @RequiresReadLock
 @RequiresBackgroundThread
@@ -148,6 +125,4 @@ fun isMultiPreviewAnnotation(annotation: UAnnotation) =
   !isGlancePreview(annotation) &&
     annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&
     // TODO(b/381827960): avoid using runBlockingCancellable
-    runBlockingCancellable {
-      annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null
-    }
+    runBlockingCancellable { annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null }

@@ -22,13 +22,10 @@ import com.intellij.openapi.project.Project
 
 object BuildRunConfigNotifier {
   fun notifyNoRunConfigFound(project: Project) {
-    val logMessage =
-      String.format("Unable to find Run Configuration to build: No Configuration selected.")
+    val logMessage = String.format("Unable to find Run Configuration to build: No Configuration selected.")
     logger.warn(logMessage)
 
-
-    val message =
-      String.format("Unable to find Run Configuration to build: No Configuration selected.")
+    val message = String.format("Unable to find Run Configuration to build: No Configuration selected.")
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Android Gradle Tasks")
       .createNotification(message, NotificationType.WARNING)
@@ -36,13 +33,10 @@ object BuildRunConfigNotifier {
   }
 
   fun notifyNoModulesFoundToBuild(runConfigName: String, project: Project) {
-    val logMessage =
-      String.format("Unable to find modules to build for '%s' Run Configuration", runConfigName)
+    val logMessage = String.format("Unable to find modules to build for '%s' Run Configuration", runConfigName)
     logger.warn(logMessage)
 
-
-    val message =
-      String.format("Unable to find modules to build for '%s' Run Configuration", runConfigName)
+    val message = String.format("Unable to find modules to build for '%s' Run Configuration", runConfigName)
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Android Gradle Tasks")
       .createNotification(message, NotificationType.WARNING)

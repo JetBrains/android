@@ -19,8 +19,8 @@ import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 class CreateDefaultResDirectoryGradleToken : CreateDefaultResDirectoryToken<GradleProjectSystem>, GradleToken {
   override fun createDefaultResDirectory(projectSystem: GradleProjectSystem, facet: AndroidFacet): File? {

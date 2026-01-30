@@ -22,8 +22,6 @@ import kotlinx.coroutines.runBlocking
 @Deprecated("Use com.intellij.ide.actions.SendFeedbackAction instead (requires Kotlin coroutines)")
 object SubmitBugReportActionShim {
   fun getDescription(project: Project?): String {
-    return runBlocking {
-      com.intellij.ide.actions.SendFeedbackAction.getDescription(project)
-    }
+    return runBlocking { com.intellij.ide.actions.SendFeedbackAction.getDescription(project) }
   }
 }

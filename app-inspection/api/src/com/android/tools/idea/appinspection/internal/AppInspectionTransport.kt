@@ -29,8 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest =
-  Transport.ExecuteRequest.newBuilder().setCommand(this).build()
+fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.ExecuteRequest.newBuilder().setCommand(this).build()
 
 /** Small helper class to work with the one exact process and app-inspection events & commands. */
 class AppInspectionTransport(
@@ -43,11 +42,9 @@ class AppInspectionTransport(
     private val commandIdGenerator = AtomicInteger(1)
 
     /**
-     * A method which generates a new unique ID each time, to be assigned to an outgoing inspector
-     * command.
+     * A method which generates a new unique ID each time, to be assigned to an outgoing inspector command.
      *
-     * This ID is used to map events from the agent to the correct handler. This method is
-     * thread-safe.
+     * This ID is used to map events from the agent to the correct handler. This method is thread-safe.
      */
     fun generateNextCommandId() = commandIdGenerator.getAndIncrement()
 
@@ -64,13 +61,7 @@ class AppInspectionTransport(
     eventKind: Common.Event.Kind,
     filter: (Common.Event) -> Boolean = { true },
     startTimeNs: () -> Long = { Long.MIN_VALUE },
-  ) =
-    StreamEventQuery(
-      eventKind = eventKind,
-      startTime = startTimeNs,
-      filter = filter,
-      processId = { process.pid },
-    )
+  ) = StreamEventQuery(eventKind = eventKind, startTime = startTimeNs, filter = filter, processId = { process.pid })
 
   /** Creates a flow that subscribes to events filtered by the provided filtering criteria. */
   fun eventFlow(
@@ -90,25 +81,13 @@ class AppInspectionTransport(
       .setAppInspectionCommand(this)
       .build()
 
-  /**
-   * Identical in functionality to [executeCommand] below except it takes an AppInspection [command]
-   * .
-   */
-  suspend fun executeCommand(
-    command: AppInspection.AppInspectionCommand,
-    streamEventQuery: StreamEventQuery,
-  ): Common.Event {
+  /** Identical in functionality to [executeCommand] below except it takes an AppInspection [command] . */
+  suspend fun executeCommand(command: AppInspection.AppInspectionCommand, streamEventQuery: StreamEventQuery): Common.Event {
     return executeCommand(command.toCommand().toExecuteRequest(), streamEventQuery)
   }
 
-  /**
-   * Executes the provided [command] and await for a response that satisfies the provided
-   * [streamEventQuery].
-   */
-  suspend fun executeCommand(
-    request: Transport.ExecuteRequest,
-    streamEventQuery: StreamEventQuery,
-  ): Common.Event {
+  /** Executes the provided [command] and await for a response that satisfies the provided [streamEventQuery]. */
+  suspend fun executeCommand(request: Transport.ExecuteRequest, streamEventQuery: StreamEventQuery): Common.Event {
     executeCommand(request)
     return streamChannel.eventFlow(streamEventQuery).first().event
   }
@@ -125,9 +104,7 @@ class AppInspectionTransport(
     executeCommand(command.toExecuteRequest())
   }
 
-  /**
-   * Executes a command. This call blocks the thread for a little bit while waiting for a response.
-   */
+  /** Executes a command. This call blocks the thread for a little bit while waiting for a response. */
   private fun executeCommand(request: Transport.ExecuteRequest) {
     //noinspection CheckResult
     client.transportStub.execute(request)

@@ -59,8 +59,7 @@ internal class DirectionsClassResolveExtensionFile(
     destination.getActionsWithResolvedArguments(
       navEntry.data,
       navInfo.packageName,
-      adjustArgumentsWithDefaults =
-        (navInfo.navFeatures.contains(SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS)),
+      adjustArgumentsWithDefaults = (navInfo.navFeatures.contains(SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS)),
     )
 
   override fun StringBuilder.buildClassBody() {
@@ -96,9 +95,7 @@ internal class DirectionsClassResolveExtensionFile(
   override val fallbackPsi
     get() = destinationXmlTag
 
-  override fun KaSession.getNavigationElementForDeclaration(
-    symbol: KaDeclarationSymbol
-  ): PsiElement? =
+  override fun KaSession.getNavigationElementForDeclaration(symbol: KaDeclarationSymbol): PsiElement? =
     when (symbol) {
       // Containing class or its companion object -> overall destination.
       is KaClassSymbol -> destinationXmlTag
@@ -110,15 +107,12 @@ internal class DirectionsClassResolveExtensionFile(
     }
 
   private fun KaSession.getTagForValueParameterSymbol(symbol: KaValueParameterSymbol): XmlTag? {
-    val declaringFunctionSymbol =
-      symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
+    val declaringFunctionSymbol = symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag
 
     val originalArgument =
-      matchingAction.arguments.firstOrNull {
-        it.name.toCamelCase() == symbol.name.identifierOrNullIfSpecial
-      } ?: return actionTag
+      matchingAction.arguments.firstOrNull { it.name.toCamelCase() == symbol.name.identifierOrNullIfSpecial } ?: return actionTag
 
     // Search arguments under action first.
     actionTag?.findChildArgumentTag(originalArgument)?.let {
@@ -136,9 +130,7 @@ internal class DirectionsClassResolveExtensionFile(
   }
 
   private fun KaSession.findMatchingAction(symbol: KaNamedFunctionSymbol): NavActionData? =
-    actionsWithResolvedArguments.firstOrNull {
-      it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial
-    }
+    actionsWithResolvedArguments.firstOrNull { it.id.toCamelCase() == symbol.name.identifierOrNullIfSpecial }
 
   private fun XmlTag.findChildArgumentTag(argument: NavArgumentData): XmlTag? =
     findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, argument.name)

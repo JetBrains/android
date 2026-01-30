@@ -31,10 +31,7 @@ class ToggleDeepInspectAction(
   @UiThread private val isRendering: () -> Boolean,
   @UiThread private val connectedClientProvider: () -> InspectorClient,
 ) :
-  ToggleAction(
-    { LayoutInspectorBundle.message("toggle.deep.inspect") },
-    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW,
-  ),
+  ToggleAction({ LayoutInspectorBundle.message("toggle.deep.inspect") }, StudioIcons.Compose.Toolbar.INSPECT_PREVIEW),
   TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
 

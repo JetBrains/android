@@ -53,13 +53,9 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
     val project = module.project
     return when {
       androidFacet != null && apkFacet != null ->
-        listOf(
-          ApkModuleNode(project, module, androidFacet, apkFacet, settings),
-          ExternalLibrariesNode(project, settings)
-        )
+        listOf(ApkModuleNode(project, module, androidFacet, apkFacet, settings), ExternalLibrariesNode(project, settings))
 
-      androidFacet != null && AndroidModel.isRequired(androidFacet) ->
-        listOf(AndroidModuleNode(project, module, settings))
+      androidFacet != null && AndroidModel.isRequired(androidFacet) -> listOf(AndroidModuleNode(project, module, settings))
 
       else -> null
     }
@@ -84,8 +80,7 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
         sourceType == AndroidSourceType.RES || sourceType == AndroidSourceType.GENERATED_RES -> {
           result.add(AndroidResFolderNode(project, facet, sourceType, settings, sourcesByType[sourceType]))
         }
-        sourceType == AndroidSourceType.SHADERS && androidModel == null -> {
-        }
+        sourceType == AndroidSourceType.SHADERS && androidModel == null -> {}
         sourceType == AndroidSourceType.ASSETS || sourceType == AndroidSourceType.GENERATED_ASSETS -> {
           result.add(
             AndroidSourceTypeNode(
@@ -93,10 +88,11 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
               facet,
               object : ViewSettings by settings {
                 override fun isFlattenPackages(): Boolean = false
+
                 override fun isHideEmptyMiddlePackages(): Boolean = false
               },
               sourceType,
-              sourcesByType[sourceType]
+              sourcesByType[sourceType],
             )
           )
         }
@@ -117,13 +113,17 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
       getBuildFiles(module).forEach {
         val psiFile = psiManager.findFile(it.file)
         if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
-          val qualifier = if (it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
-                              || it.file.extension.equals(SdkConstants.EXT_GRADLE)) {
-            // Do not add "(Proguard Rules for 'module')" hint text for proguard files or "('Module') hint for gradle files shown in module
-            null
-          } else {
-            it.displayName
-          }
+          val qualifier =
+            if (
+              it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File") ||
+                it.file.extension.equals(SdkConstants.EXT_GRADLE)
+            ) {
+              // Do not add "(Proguard Rules for 'module')" hint text for proguard files or "('Module') hint for gradle files shown in
+              // module
+              null
+            } else {
+              it.displayName
+            }
           result.add(AndroidBuildScriptNode(project, psiFile, settings, qualifier, it.groupOrder))
         }
       }
@@ -132,7 +132,7 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
   }
 
   private fun getBuildFiles(module: Module): List<ConfigurationFile> {
-    val allBuildFiles = module.project.getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles()  ?: emptyList()
+    val allBuildFiles = module.project.getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles() ?: emptyList()
     return allBuildFiles.filter {
       ModuleUtilCore.moduleContainsFile(module, it.file, true) || ModuleUtilCore.moduleContainsFile(module, it.file, false)
     }
@@ -142,7 +142,7 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
 private fun getSourcesBySourceType(
   providers: SourceProviders,
   androidModel: AndroidModel?,
-  kotlinEnabled: Boolean
+  kotlinEnabled: Boolean,
 ): HashMultimap<AndroidSourceType, VirtualFile> {
   val sourcesByType = HashMultimap.create<AndroidSourceType, VirtualFile>()
 
@@ -158,12 +158,13 @@ private fun getSourcesBySourceType(
       continue
     }
 
-    val sources = when (sourceType) {
-      AndroidSourceType.GENERATED_JAVA,
-      AndroidSourceType.GENERATED_RES,
-      AndroidSourceType.GENERATED_ASSETS -> getGeneratedSources(sourceType, providers)
-      else -> getSources(sourceType, providers)
-    }
+    val sources =
+      when (sourceType) {
+        AndroidSourceType.GENERATED_JAVA,
+        AndroidSourceType.GENERATED_RES,
+        AndroidSourceType.GENERATED_ASSETS -> getGeneratedSources(sourceType, providers)
+        else -> getSources(sourceType, providers)
+      }
 
     if (sources.isEmpty()) {
       continue

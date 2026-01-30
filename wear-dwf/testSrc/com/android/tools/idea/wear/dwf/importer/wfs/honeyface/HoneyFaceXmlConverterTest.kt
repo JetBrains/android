@@ -30,15 +30,12 @@ class HoneyFaceXmlConverterTest {
 
   @Test
   fun `converts example honeyface file successfully`() {
-    val honeyfaceFile =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/honeyface.json").toFile()
+    val honeyfaceFile = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/honeyface.json").toFile()
     val honeyface = parser.parse(honeyfaceFile) ?: error("expected honeyface to not be null")
 
     val convertedXmlDocument = converter.toXml(honeyface)
 
-    val expectedXml =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/expected/raw/watchface.xml")
-        .readText()
+    val expectedXml = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/wfs/expected/raw/watchface.xml").readText()
     val actualXml =
       XmlPrettyPrinter.prettyPrint(
         convertedXmlDocument,

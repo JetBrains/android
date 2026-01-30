@@ -37,13 +37,8 @@ class PreviewElementFilterTest {
       )
 
     // Initialize flows
-    val filterFlow =
-      MutableStateFlow<PreviewElementFilter<TestPreviewElement>>(PreviewElementFilter.Disabled())
-    val filteredInstancesFlow =
-      filteredPreviewElementsFlow(
-        MutableStateFlow(FlowableCollection.Present(allPreviews)),
-        filterFlow,
-      )
+    val filterFlow = MutableStateFlow<PreviewElementFilter<TestPreviewElement>>(PreviewElementFilter.Disabled())
+    val filteredInstancesFlow = filteredPreviewElementsFlow(MutableStateFlow(FlowableCollection.Present(allPreviews)), filterFlow)
 
     assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly("PreviewMethod1", "SeparatePreview", "PreviewMethod2", "AMethod")
@@ -51,8 +46,7 @@ class PreviewElementFilterTest {
 
     // Set an instance filter
     filterFlow.value = PreviewElementFilter.Single(allPreviews.first())
-    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
-      .containsExactly("PreviewMethod1")
+    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn }).containsExactly("PreviewMethod1")
 
     // Set the group filter
     filterFlow.value = PreviewElementFilter.Group(PreviewGroup.namedGroup("GroupA"))
@@ -68,11 +62,7 @@ class PreviewElementFilterTest {
 
     // This should filter and keep the group
     filterFlow.value = PreviewElementFilter.Group(PreviewGroup.namedGroup("GroupA"))
-    assertThat(
-        filteredInstancesFlow.first().asCollection().map {
-          "${it.methodFqn} (${it.displaySettings.group})"
-        }
-      )
+    assertThat(filteredInstancesFlow.first().asCollection().map { "${it.methodFqn} (${it.displaySettings.group})" })
       .containsExactly("PreviewMethod1 (GroupA)", "SeparatePreview (GroupA)")
       .inOrder()
   }
@@ -90,13 +80,8 @@ class PreviewElementFilterTest {
       )
 
     // Initialize flows
-    val filterFlow =
-      MutableStateFlow<PreviewElementFilter<TestPreviewElement>>(PreviewElementFilter.Disabled())
-    val filteredInstancesFlow =
-      filteredPreviewElementsFlow(
-        MutableStateFlow(FlowableCollection.Present(allPreviews)),
-        filterFlow,
-      )
+    val filterFlow = MutableStateFlow<PreviewElementFilter<TestPreviewElement>>(PreviewElementFilter.Disabled())
+    val filteredInstancesFlow = filteredPreviewElementsFlow(MutableStateFlow(FlowableCollection.Present(allPreviews)), filterFlow)
 
     filterFlow.value = PreviewElementFilter.Single(previewElement)
     assertThat(filteredInstancesFlow.first().asCollection()).containsExactly(previewElement)

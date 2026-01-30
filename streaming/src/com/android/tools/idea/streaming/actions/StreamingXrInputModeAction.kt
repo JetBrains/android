@@ -28,14 +28,12 @@ import com.intellij.openapi.project.DumbAware
 /** Sets an input mode for an XR AVD. */
 sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : ToggleAction(), DumbAware {
 
-  override fun isSelected(event: AnActionEvent): Boolean =
-      getXrInputController(event)?.inputMode == inputMode
+  override fun isSelected(event: AnActionEvent): Boolean = getXrInputController(event)?.inputMode == inputMode
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
       getXrInputController(event)?.inputMode = inputMode
-    }
-    else {
+    } else {
       FloatingToolbarContainer.triggerActivation(event)
     }
   }
@@ -44,16 +42,22 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR_HEADSET &&
-                                             (inputMode != XrInputMode.HAND || StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) &&
-                                             (inputMode != XrInputMode.EYE || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
+    event.presentation.isEnabledAndVisible =
+      getDeviceType(event) == DeviceType.XR_HEADSET &&
+        (inputMode != XrInputMode.HAND || StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) &&
+        (inputMode != XrInputMode.EYE || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
     event.presentation.enableRichTooltip(this)
   }
 
   class Interaction : StreamingXrInputModeAction(XrInputMode.INTERACTION)
+
   class HandTracking : StreamingXrInputModeAction(XrInputMode.HAND)
+
   class EyeTracking : StreamingXrInputModeAction(XrInputMode.EYE)
+
   class ViewDirection : StreamingXrInputModeAction(XrInputMode.VIEW_DIRECTION)
+
   class LocationInSpaceXY : StreamingXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_XY)
+
   class LocationInSpaceZ : StreamingXrInputModeAction(XrInputMode.LOCATION_IN_SPACE_Z)
 }

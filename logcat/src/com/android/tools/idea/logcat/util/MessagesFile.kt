@@ -36,9 +36,9 @@ private val logger = Logger.getInstance(MessagesFile::class.java)
 /**
  * Manages a temporary file of [LogcatMessage]s
  *
- * The amount of data stored in the file(s) is capped by [maxSizeBytes]. To make things simple,
- * rather than deleting entries from the start of the file when the size is exceeded, we keep a
- * rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is OK.
+ * The amount of data stored in the file(s) is capped by [maxSizeBytes]. To make things simple, rather than deleting entries from the start
+ * of the file when the size is exceeded, we keep a rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is
+ * OK.
  */
 internal class MessagesFile(private val name: String, private val maxSizeBytes: Int) {
   private val tempFileFactory = TempFileFactory.getInstance()
@@ -60,8 +60,7 @@ internal class MessagesFile(private val name: String, private val maxSizeBytes: 
   /**
    * Write messages to the tmp file.
    *
-   * When the file exceeds a certain size, close it and create a new one. We always keep the last 2
-   * files and delete the rest.
+   * When the file exceeds a certain size, close it and create a new one. We always keep the last 2 files and delete the rest.
    */
   fun appendMessages(messages: List<LogcatMessage>) {
     if (sizeBytes > maxSizeBytes) {
@@ -72,8 +71,7 @@ internal class MessagesFile(private val name: String, private val maxSizeBytes: 
       initialize()
     }
 
-    val stream =
-      outputStream ?: throw IllegalStateException("message file for $name is not initialized")
+    val stream = outputStream ?: throw IllegalStateException("message file for $name is not initialized")
     logger.trace { "Appending ${messages.size} messages to file ${file?.name}" }
     messages.forEach {
       sizeBytes += it.message.length
@@ -86,10 +84,7 @@ internal class MessagesFile(private val name: String, private val maxSizeBytes: 
     outputStream?.writeEofAndClose()
     return buildList {
       addAll(previousFile?.readMessages() ?: emptyList())
-      addAll(
-        file?.readMessages()
-          ?: throw IllegalStateException("message file for $name is not initialized")
-      )
+      addAll(file?.readMessages() ?: throw IllegalStateException("message file for $name is not initialized"))
       delete()
     }
   }

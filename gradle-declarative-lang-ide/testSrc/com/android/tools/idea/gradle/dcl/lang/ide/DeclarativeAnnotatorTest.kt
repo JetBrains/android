@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.onEdt
@@ -27,15 +28,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
-import com.android.tools.idea.testing.caret
 
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DeclarativeAnnotatorTest : UsefulTestCase() {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val fixture by lazy { projectRule.fixture }
 
@@ -44,74 +42,85 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
     DeclarativeIdeSupport.override(true)
   }
 
-  @After
-  fun onAfter() = DeclarativeIdeSupport.clearOverride()
+  @After fun onAfter() = DeclarativeIdeSupport.clearOverride()
 
   @Test
   fun checkFunctionIdentifier() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
          ${"coreLibraryDesugarin" highlightedAs HighlightSeverity.ERROR}("something")
       }
-    """)
+    """
+    )
   }
-
 
   @Test
   fun dontCheckInFailedBlock() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       ${"androidApplication1" highlightedAs HighlightSeverity.ERROR} {
         ${"versionUnknownCode" highlightedAs HighlightSeverity.ERROR} = 8
         ${"versionName" highlightedAs HighlightSeverity.ERROR} = "0.1.2"
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun dontCheckInFailedBlock2() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp{
         ${"myDeps2" highlightedAs HighlightSeverity.ERROR} {
              ${"debugImplementation" highlightedAs HighlightSeverity.ERROR}("com.google.guava:guava:30.1.1-jre")
              ${"wrongImplementation" highlightedAs HighlightSeverity.ERROR}("com.google.guava:guava:30.1.1-jre")
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkRootBlockIdentifier() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       ${"androidapplication" highlightedAs HighlightSeverity.ERROR}{
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkPropertyIdentifier() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
          defaultConfig {
            minSdk = 33
          }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkInvalidUnicodeString() {
     // Annotator should skip highlighting of this element
     // as strings are parsed/highlighted by highlighting lexer
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
         namespace = "org.gradle.experim\uental.android.app"
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkingUnknownNamedDomainObjects() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
         buildTypes {
           buildType("new_type") {
@@ -119,12 +128,14 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
           }
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkingWithKnownNamedDomainObjects() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
         buildTypes {
           buildType("debug") {
@@ -132,13 +143,15 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
           }
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidLibrary {
         namespace = "com.google.samples.apps.nowinandroid.feature.bookmarks"
         dependenciesDcl {
@@ -151,13 +164,15 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
            encoding = ""
         }
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkMultipleErrorAdvancedCase() {
     // DSL is different from AGP as we adopt to Declarative requirements.
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidLibrary {
         ${"nameSpace" highlightedAs HighlightSeverity.ERROR} = "com.google.samples.apps.nowinandroid.feature.bookmarks"
         dependenciesDcl {
@@ -170,29 +185,34 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
            ${"encode" highlightedAs HighlightSeverity.ERROR} = ""
         }
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkFactoryBlock() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidApp {
       buildTypes {
        buildType("new"){ }
       }
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkFactoryBlockNegative() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidApp {
       buildTypes {
         ${"buildTypes" highlightedAs HighlightSeverity.ERROR}("new"){ }
       }
     }
-    """)
+    """
+    )
   }
 
   @Test
@@ -204,100 +224,120 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
       enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
       include(":app")
       include(":app-nia-catalog")
-    """)
+    """
+    )
   }
 
   @Test
   fun checkCorrectDemoSyntax() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidApp {
        compileSdk = 33
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongPropertyType() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidLibrary {
         ${"namespace = 1" highlightedAs HighlightSeverity.ERROR}
    }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongBlockType() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     ${"androidLibrary = 1" highlightedAs HighlightSeverity.ERROR}
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongFunctionType() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
     androidLibrary {
         dependenciesDcl {
             ${"implementation = \"dependency\"" highlightedAs HighlightSeverity.ERROR}
          }
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkEnums() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
      androidApp {
        compileOptions {
          sourceCompatibility = VERSION_15
          ${"sourceCompatibility = 123" highlightedAs HighlightSeverity.ERROR}
        }
     }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkFunctionChain() {
-    doSettingsFileTest("""
+    doSettingsFileTest(
+      """
      plugins {
        id("some.plugin").version("1.0")
      }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongTypeMessage() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
       androidApp {
         dependenciesDcl {
            ${"api = \"org.example:example:1.0\"".highlightedAs(HighlightSeverity.ERROR, "Element type should be of type: Factory")}
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkRootProject() {
-    doSettingsFileTest("""
+    doSettingsFileTest(
+      """
       rootProject.name = "some"
       ${"rootProject.name = 1" highlightedAs HighlightSeverity.ERROR}
       rootProject.${"abc" highlightedAs HighlightSeverity.ERROR} = "some"
-    """)
+    """
+    )
   }
 
   @Test
   fun layoutPositiveTest() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
        androidApp {
         bundle {
           deviceTargetingConfig = layout.projectDirectory.file("myfile")
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun listProperty() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
          buildTypes {
            buildType("debug") {
@@ -305,39 +345,47 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
            }
          }
        }
-    """)
+    """
+    )
   }
 
   @Test
   fun listOfRegularFilesProperty() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
          fakeFileList = listOf(layout.projectDirectory.file("aaa"), layout.projectDirectory.file("bbb"))
        }
-    """)
+    """
+    )
   }
 
   @Test
   fun listOfRegularFilesProperty2() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
          fakeFileList += listOf(layout.projectDirectory.file("aaa"), layout.projectDirectory.file("bbb"))
        }
-    """)
+    """
+    )
   }
 
   @Test
   fun listOfRegularFilesPropertyNegativeTest() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
          fakeFileList = listOf(layout.${ "projectdirectory" highlightedAs HighlightSeverity.ERROR }.${ "file" highlightedAs HighlightSeverity.ERROR }("aaa"), layout.projectDirectory.file("bbb"))
        }
-    """)
+    """
+    )
   }
 
   @Test
   fun listPropertyWrongValue() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
          buildTypes {
            buildType("debug") {
@@ -345,43 +393,51 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
            }
          }
        }
-    """)
+    """
+    )
   }
 
   @Test
   fun mapOfAssignment() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
        androidApp {
         defaultConfig {
           testInstrumentationRunnerArguments = mapOf("a" to "b")
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongAppend() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
       androidApp {
          defaultConfig {
            ${"minSdk += 33".highlightedAs(HighlightSeverity.ERROR, "Cannot do `+=` for this property type") }
          }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkWrongAppend2() {
-    doPatchedBuildFileTest("""
+    doPatchedBuildFileTest(
+      """
       androidApp {
         ${"namespace += \"aaa\"".highlightedAs(HighlightSeverity.ERROR, "Cannot do `+=` for this property type") }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun layoutNegativeTest() {
-    doBuildFileTest("""
+    doBuildFileTest(
+      """
        androidApp {
         bundle {
           deviceTargetingConfig = ${"Layout" highlightedAs HighlightSeverity.ERROR}.${"projectDirectory" highlightedAs HighlightSeverity.ERROR}.${"file" highlightedAs HighlightSeverity.ERROR}("myfile")
@@ -389,12 +445,14 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
           deviceTargetingConfig = layout.projectDirectory.${"File" highlightedAs HighlightSeverity.ERROR}("myfile")
         }
       }
-    """)
+    """
+    )
   }
 
   @Test
   fun checkMavenRepo() {
-    doSettingsFileTest("""
+    doSettingsFileTest(
+      """
       pluginManagement {
         repositories {
             maven {
@@ -402,7 +460,8 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
             }
         }
       }
-    """)
+    """
+    )
   }
 
   private fun doBuildFileTest(buildFileContent: String) {
@@ -430,5 +489,6 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
   }
 
   private fun addDeclarativeBuildFile(text: String) = fixture.addFileToProject("build.gradle.dcl", text.trimIndent())
+
   private fun addDeclarativeSettingsFile(text: String) = fixture.addFileToProject("settings.gradle.dcl", text.trimIndent())
 }

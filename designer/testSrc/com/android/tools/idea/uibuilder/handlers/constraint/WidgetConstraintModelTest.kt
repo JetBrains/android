@@ -57,72 +57,32 @@ class WidgetConstraintModelTest : SceneTest() {
         .matchParentWidth()
         .matchParentHeight()
         .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(0, 0, 200, 200)
-            .id("@id/textView")
-            .width("100dp")
-            .height("100dp"),
+          component(SdkConstants.TEXT_VIEW).withBounds(0, 0, 200, 200).id("@id/textView").width("100dp").height("100dp"),
           component(SdkConstants.TEXT_VIEW)
             .withBounds(200, 0, 200, 200)
             .id("@id/textView2")
             .width("100dp")
             .height("100dp")
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-              "parent",
-            )
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-              "linear",
-            )
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, "linear")
             .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "0.632")
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-              "parent",
-            )
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-              "parent",
-            )
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
-              "0.411",
-            ),
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, "0.411"),
           component(SdkConstants.LINEAR_LAYOUT)
             .withBounds(200, 200, 800, 800)
             .id("@id/linear")
             .width("400dp")
             .height("400dp")
-            .withAttribute(
-              SdkConstants.TOOLS_URI,
-              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-              "100dp",
-            )
-            .withAttribute(
-              SdkConstants.TOOLS_URI,
-              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-              "100dp",
-            ),
+            .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
+            .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp"),
           component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
             .id("@id/guideline")
             .withBounds(0, 200, 1000, 1)
             .wrapContentWidth()
             .wrapContentHeight()
-            .withAttribute(
-              SdkConstants.ANDROID_URI,
-              SdkConstants.ATTR_ORIENTATION,
-              SdkConstants.VALUE_HORIZONTAL,
-            )
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
-              "200dp",
-            ),
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_HORIZONTAL)
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "200dp"),
         ),
     )
   }
@@ -134,59 +94,32 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.component = textView2
 
     // Test deleting vertical constraints
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
-    )
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
-    )
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS)
-    )
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF))
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS))
 
     widgetModel.removeAttributes(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
-    )
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
 
     widgetModel.removeAttributes(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
-    )
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF))
 
     // Deleting both Top and Bottom will delete vertical bias as well
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS)
-    )
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS))
 
     // Test deleting horizontal constraints
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF)
-    )
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
-    )
-    assertNotNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)
-    )
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF))
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF))
+    assertNotNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS))
 
-    widgetModel.removeAttributes(
-      SdkConstants.SHERPA_URI,
-      SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-    )
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF)
-    )
+    widgetModel.removeAttributes(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF)
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF))
 
     widgetModel.removeAttributes(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
-    )
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF))
 
     // Deleting both Start and End will delete vertical bias as well
-    assertNull(
-      textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)
-    )
+    assertNull(textView2.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS))
   }
 
   @Test
@@ -208,16 +141,8 @@ class WidgetConstraintModelTest : SceneTest() {
     assertFalse(widgetModel.isOverConstrained)
 
     NlWriteCommandActionUtil.run(linear, "Set Params") {
-      linear.setAttribute(
-        SdkConstants.SHERPA_URI,
-        SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-        SdkConstants.ATTR_PARENT,
-      )
-      linear.setAttribute(
-        SdkConstants.SHERPA_URI,
-        SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-        SdkConstants.ATTR_PARENT,
-      )
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_PARENT)
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_PARENT)
     }
 
     assertFalse(widgetModel.isMissingHorizontalConstrained)
@@ -225,11 +150,7 @@ class WidgetConstraintModelTest : SceneTest() {
     assertFalse(widgetModel.isOverConstrained)
 
     NlWriteCommandActionUtil.run(linear, "Set Constraints") {
-      linear.setAttribute(
-        SdkConstants.SHERPA_URI,
-        SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-        SdkConstants.ATTR_PARENT,
-      )
+      linear.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_PARENT)
     }
     assertTrue(widgetModel.isOverConstrained)
 
@@ -290,14 +211,8 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
-      )
-      .isEqualTo("16dp")
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)
-      )
-      .isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)).isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
   }
 
   @Test
@@ -310,10 +225,7 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
-      )
-      .isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)).isEqualTo("16dp")
   }
 
   @Test
@@ -326,14 +238,8 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
-      )
-      .isNull()
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)
-      )
-      .isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)).isNull()
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
   }
 
   @Test
@@ -347,14 +253,8 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP)
-      )
-      .isEqualTo("8dp")
-    assertThat(
-        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
-      )
-      .isEqualTo("16dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP)).isEqualTo("8dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)).isEqualTo("16dp")
   }
 
   // To speed up the tests ignore all render requests

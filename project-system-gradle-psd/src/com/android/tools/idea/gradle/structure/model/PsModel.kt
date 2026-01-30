@@ -20,10 +20,9 @@ import com.intellij.openapi.diagnostic.Logger
 import javax.swing.Icon
 
 interface PsModel {
-  /**
-   * A model descriptor to inspect the content of the model in a generic manner.
-   */
-  val descriptor: PsModelDescriptor get() = PsModelDescriptor.None
+  /** A model descriptor to inspect the content of the model in a generic manner. */
+  val descriptor: PsModelDescriptor
+    get() = PsModelDescriptor.None
 
   val parent: PsModel?
 
@@ -33,27 +32,25 @@ interface PsModel {
 
   val isDeclared: Boolean
 
-  val icon: Icon? get() = null
+  val icon: Icon?
+    get() = null
 
-  val path: PsPath? get() = null
+  val path: PsPath?
+    get() = null
 }
 
 interface PsModelDescriptor {
-  /**
-   * Returns a collection of models contained in the given instance (including transitively-contained ones).
-   */
+  /** Returns a collection of models contained in the given instance (including transitively-contained ones). */
   fun enumerateContainedModels(): Collection<PsModel> = listOf()
 
-  /**
-   * Enumerates properties defined on the given instance in a type-safe manner.
-   */
+  /** Enumerates properties defined on the given instance in a type-safe manner. */
   fun enumerateProperties(receiver: PropertyReceiver) = Unit
 
   object None : PsModelDescriptor
 
   @FunctionalInterface
   interface PropertyReceiver {
-    fun <T: PsModel> receive(model: T, property: ModelProperty<T, *, *, *>)
+    fun <T : PsModel> receive(model: T, property: ModelProperty<T, *, *, *>)
   }
 }
 

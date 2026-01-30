@@ -33,8 +33,7 @@ private const val MAX_CACHE_SIZE = 2000
 /**
  * Cache for recomposition state reads.
  *
- * Data missing from the cache will be loaded via the [client] and stored as an instance of
- * [RecomposeStateReadData].
+ * Data missing from the cache will be loaded via the [client] and stored as an instance of [RecomposeStateReadData].
  */
 class RecompositionStateReadCache(
   private val client: ComposeLayoutInspectorClient,
@@ -46,11 +45,7 @@ class RecompositionStateReadCache(
   private var pendingRequest: Key? = null
   private val modificationListener =
     object : InspectorModel.ModificationListener {
-      override fun onModification(
-        oldWindow: AndroidWindow?,
-        newWindow: AndroidWindow?,
-        isStructuralChange: Boolean,
-      ) {
+      override fun onModification(oldWindow: AndroidWindow?, newWindow: AndroidWindow?, isStructuralChange: Boolean) {
         val pending = pendingRequest ?: return
         val composable = model.stateReadsModel.stateReadRequested.value?.composable
         if (composable == null || composable.anchorHash != pending.anchorHash) {
@@ -95,20 +90,10 @@ class RecompositionStateReadCache(
     scope.cancel()
   }
 
-  private suspend fun requestRecompositionStateReads(
-    composable: ComposeViewNode,
-    recomposition: Int,
-  ) {
+  private suspend fun requestRecompositionStateReads(composable: ComposeViewNode, recomposition: Int) {
     val key = Key(composable.anchorHash, recomposition)
     val node = lookup(key) ?: fetchDataFor(key) ?: cache.closest(key)
-    val result =
-      node?.let {
-        RecomposeStateReadResult(
-          StateReadKey(composable, node.recomposition),
-          node.reads,
-          node.prev != null,
-        )
-      }
+    val result = node?.let { RecomposeStateReadResult(StateReadKey(composable, node.recomposition), node.reads, node.prev != null) }
     model.stateReadsModel.stateReads.emit(result)
     if (result == null) {
       pendingRequest = Key(composable.anchorHash, composable.recompositions.count)
@@ -201,10 +186,9 @@ class RecompositionStateReadCache(
   }
 
   /**
-   * LRU cache from [Key] to [StateReadNode]. The cache maintains a double linked list of
-   * [StateReadNode] for each anchorHash value. The purpose of the linked list is to be able to
-   * determine if we have any values prior go a given [StateReadNode]. The value discarded when the
-   * cache is full: is the least recent accessed value.
+   * LRU cache from [Key] to [StateReadNode]. The cache maintains a double linked list of [StateReadNode] for each anchorHash value. The
+   * purpose of the linked list is to be able to determine if we have any values prior go a given [StateReadNode]. The value discarded when
+   * the cache is full: is the least recent accessed value.
    */
   private class LruCache : LinkedHashMap<RecompositionStateReadCache.Key, RecompositionStateReadCache.StateReadNode>(16, 0.75f, true) {
     private val top = mutableMapOf<Int, RecompositionStateReadCache.StateReadNode>()

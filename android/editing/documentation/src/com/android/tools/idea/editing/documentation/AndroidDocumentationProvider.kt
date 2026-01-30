@@ -13,26 +13,21 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin
- * files.
+ * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin files.
  *
- * Despite the fact that AndroidDocumentationProvider is only registered for Java, since the light
- * classes for resources are as Java classes, the documentation provider works for kotlin files.
+ * Despite the fact that AndroidDocumentationProvider is only registered for Java, since the light classes for resources are as Java
+ * classes, the documentation provider works for kotlin files.
  */
 class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentationProvider {
   override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
     if (originalElement == null) return null
 
-    val resourceReference =
-      ResourceReferencePsiElement.create(element)?.resourceReference ?: return null
+    val resourceReference = ResourceReferencePsiElement.create(element)?.resourceReference ?: return null
     val module = ModuleUtilCore.findModuleForPsiElement(originalElement) ?: return null
     val configuration =
       AndroidFacet.getInstance(originalElement)?.let {
         // Creating a basic configuration in case rendering of webp or xml drawables.
-        Configuration.create(
-          ConfigurationManager.getOrCreateInstance(it.module),
-          FolderConfiguration.createDefault(),
-        )
+        Configuration.create(ConfigurationManager.getOrCreateInstance(it.module), FolderConfiguration.createDefault())
       }
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.resourceUrl)
   }

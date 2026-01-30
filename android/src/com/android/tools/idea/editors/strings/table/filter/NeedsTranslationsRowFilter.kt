@@ -23,8 +23,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNT
 class NeedsTranslationsRowFilter : StringResourceTableRowFilter() {
   override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean {
     val untranslatable = entry.getValue(UNTRANSLATABLE_COLUMN) as Boolean
-    return !untranslatable &&
-        entry.stringValues(startIndex = DEFAULT_VALUE_COLUMN).any(String::isEmpty)
+    return !untranslatable && entry.stringValues(startIndex = DEFAULT_VALUE_COLUMN).any(String::isEmpty)
   }
 
   override fun getDescription(): String = "Show Keys Needing Translations"

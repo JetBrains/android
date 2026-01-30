@@ -25,8 +25,6 @@ interface SdkSourcePositionFinder {
   fun getSourcePosition(apiLevel: AndroidApiLevel, file: PsiFile, lineNumber: Int): SourcePosition
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): SdkSourcePositionFinder =
-      project.getService(SdkSourcePositionFinder::class.java)
+    @JvmStatic fun getInstance(project: Project): SdkSourcePositionFinder = project.getService(SdkSourcePositionFinder::class.java)
   }
 }

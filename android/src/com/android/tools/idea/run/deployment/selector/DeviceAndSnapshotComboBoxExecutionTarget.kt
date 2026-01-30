@@ -29,22 +29,18 @@ import java.util.Objects
 import javax.swing.Icon
 
 /**
- * The combo box generates these [ExecutionTargets.][ExecutionTarget] ExecutionTargets determine the
- * state of the run, debug, and stop (but *not* the apply changes) toolbar buttons.
+ * The combo box generates these [ExecutionTargets.][ExecutionTarget] ExecutionTargets determine the state of the run, debug, and stop (but
+ * *not* the apply changes) toolbar buttons.
  */
 open class DeviceAndSnapshotComboBoxExecutionTarget(
   targets: Collection<DeploymentTarget>,
   private val devicesService: DeploymentTargetDevicesService,
-  private val deploymentApplicationService: () -> DeploymentApplicationService =
-    DeploymentApplicationService.Companion::instance,
+  private val deploymentApplicationService: () -> DeploymentApplicationService = DeploymentApplicationService.Companion::instance,
 ) : AndroidExecutionTarget() {
   private val ids = targets.map(DeploymentTarget::deviceId).toSet()
 
   override fun isApplicationRunningAsync(appPackage: String): ListenableFuture<Boolean> {
-    return Futures.submit<Boolean>(
-      { isApplicationRunning(appPackage) },
-      AppExecutorUtil.getAppExecutorService(),
-    )
+    return Futures.submit<Boolean>({ isApplicationRunning(appPackage) }, AppExecutorUtil.getAppExecutorService())
   }
 
   private fun isApplicationRunning(appPackage: String): Boolean {
@@ -68,11 +64,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
     return ids
       .map { it.toString() }
       .sorted()
-      .joinToString(
-        separator = ", ",
-        prefix = "device_and_snapshot_combo_box_target[",
-        postfix = "]",
-      )
+      .joinToString(separator = ", ", prefix = "device_and_snapshot_combo_box_target[", postfix = "]")
   }
 
   override fun getDisplayName(): String =
@@ -92,8 +84,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
       }
     }
 
-  override fun canRun(configuration: RunConfiguration): Boolean =
-    !isLocalDeviceAware(configuration) || deploysToLocalDevice(configuration)
+  override fun canRun(configuration: RunConfiguration): Boolean = !isLocalDeviceAware(configuration) || deploysToLocalDevice(configuration)
 
   override fun equals(other: Any?): Boolean =
     other is DeviceAndSnapshotComboBoxExecutionTarget &&

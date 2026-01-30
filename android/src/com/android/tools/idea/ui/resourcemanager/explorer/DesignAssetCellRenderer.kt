@@ -27,13 +27,8 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.ListCellRenderer
 
-/**
- * [ListCellRenderer] to render [ResourceAssetSet] using an [AssetIconProvider]
- * returned by the [assetPreviewManager].
- */
-class DesignAssetCellRenderer(
-  private val assetPreviewManager: AssetPreviewManager
-) : ListCellRenderer<ResourceAssetSet> {
+/** [ListCellRenderer] to render [ResourceAssetSet] using an [AssetIconProvider] returned by the [assetPreviewManager]. */
+class DesignAssetCellRenderer(private val assetPreviewManager: AssetPreviewManager) : ListCellRenderer<ResourceAssetSet> {
 
   val label = JLabel().apply { horizontalAlignment = JLabel.CENTER }
 
@@ -42,19 +37,22 @@ class DesignAssetCellRenderer(
     value: ResourceAssetSet,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean
+    cellHasFocus: Boolean,
   ): Component {
     val assetView = (list as AssetListView).assetView
     val thumbnailSize = assetView.thumbnailSize
     val assetToRender = value.getHighestDensityAsset()
 
     val iconProvider: AssetIconProvider = assetPreviewManager.getPreviewProvider(assetToRender.type)
-    label.icon = iconProvider.getIcon(assetToRender,
-                                      thumbnailSize.width,
-                                      thumbnailSize.height,
-                                      list,
-                                      { list.getCellBounds(index, index)?.let(list::repaint) },
-                                      { index in list.firstVisibleIndex..list.lastVisibleIndex })
+    label.icon =
+      iconProvider.getIcon(
+        assetToRender,
+        thumbnailSize.width,
+        thumbnailSize.height,
+        list,
+        { list.getCellBounds(index, index)?.let(list::repaint) },
+        { index in list.firstVisibleIndex..list.lastVisibleIndex },
+      )
     // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
     assetView.thumbnail = if (iconProvider is DefaultIconProvider) null else label
     assetView.withChessboard = iconProvider.supportsTransparency

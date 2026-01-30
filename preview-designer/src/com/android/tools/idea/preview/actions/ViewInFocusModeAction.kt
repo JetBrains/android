@@ -26,10 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 
-/**
- * [AnAction] that open the selected scene view in Focus Mode. The action is not enabled if the
- * current [PreviewMode] is Focus already.
- */
+/** [AnAction] that open the selected scene view in Focus Mode. The action is not enabled if the current [PreviewMode] is Focus already. */
 class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
 
   private val logger = Logger.getInstance(ViewInFocusModeAction::class.java)
@@ -44,8 +41,7 @@ class ViewInFocusModeAction : AnAction(message("action.view.in.focus.mode")) {
     // When in Focus mode, we want to show up the action, but disabled.
     e.presentation.isVisible = isDefault || isFocusMode
 
-    val hasRendered: Boolean =
-      (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
+    val hasRendered: Boolean = (e.getData(SCENE_VIEW)?.sceneManager as? LayoutlibSceneManager)?.renderResult != null
 
     // Disable the button if:
     // * SceneView has not finished to render yet.

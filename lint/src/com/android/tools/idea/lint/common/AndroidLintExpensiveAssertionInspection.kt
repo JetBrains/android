@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.AssertDetector
 
 class AndroidLintExpensiveAssertionInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.expensive.assertion"),
-    AssertDetector.EXPENSIVE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.expensive.assertion"), AssertDetector.EXPENSIVE)

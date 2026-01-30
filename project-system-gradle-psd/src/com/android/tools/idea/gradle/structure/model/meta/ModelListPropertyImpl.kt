@@ -33,8 +33,9 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
   formatter: (ValueT) -> String = { it.toString() },
   variableMatchingStrategy: VariableMatchingStrategy = VariableMatchingStrategy.BY_TYPE,
   knownValuesGetter: ((ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>)? = null,
-  matcher: (model: ModelT, parsedValue: ValueT?, resolvedValue: ValueT) -> Boolean =
-    { _, parsedValue, resolvedValue -> parsedValue == resolvedValue }
+  matcher: (model: ModelT, parsedValue: ValueT?, resolvedValue: ValueT) -> Boolean = { _, parsedValue, resolvedValue ->
+    parsedValue == resolvedValue
+  },
 ) =
   ModelListPropertyImpl(
     this,
@@ -47,7 +48,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     formatter,
     variableMatchingStrategy,
     { model -> if (knownValuesGetter != null) knownValuesGetter(model) else immediateFuture(listOf()) },
-    matcher
+    matcher,
   )
 
 class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
@@ -61,7 +62,7 @@ class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val formatter: (ValueT) -> String,
   override val variableMatchingStrategy: VariableMatchingStrategy,
   override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<ValueT>>>,
-  private val matcher: (model: ModelT, parsed: ValueT?, resolved: ValueT) -> Boolean
+  private val matcher: (model: ModelT, parsed: ValueT?, resolved: ValueT) -> Boolean,
 ) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef).value
@@ -71,29 +72,17 @@ class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   private fun getEditableValues(model: ModelT): List<ModelPropertyCore<ValueT>> =
     model
       .getParsedProperty()
-      ?.asParsedListValue(
-        getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.modify { it() } })
-    // TODO(b/72814329): Replace [null] with the matched value.
-    ?: listOf()
+      ?.asParsedListValue(getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { model.modify { it() } })
+      // TODO(b/72814329): Replace [null] with the matched value.
+      ?: listOf()
 
   private fun addItem(model: ModelT, index: Int): ModelPropertyCore<ValueT> =
     model.modify {
-      getParsedProperty()
-        ?.addListItem(
-          index,
-          getter,
-          setter,
-          { parsed, resolved -> matcher(model, parsed, resolved) },
-          { modify { it() } })
-    }
-    ?: throw IllegalStateException()
+      getParsedProperty()?.addListItem(index, getter, setter, { parsed, resolved -> matcher(model, parsed, resolved) }, { modify { it() } })
+    } ?: throw IllegalStateException()
 
   private fun deleteItem(model: ModelT, index: Int) =
-    model.modify {
-      getParsedProperty()
-      ?.deleteListItem(index)
-    }
-    ?: throw IllegalStateException()
+    model.modify { getParsedProperty()?.deleteListItem(index) } ?: throw IllegalStateException()
 
   private fun getParsedValue(model: ModelT): Annotated<ParsedValue<List<ValueT>>> {
     val parsedModel = modelDescriptor.getParsed(model)
@@ -112,50 +101,53 @@ class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
     }
   }
 
-  override fun bind(model: ModelT): ModelListPropertyCore<ValueT> = object: ModelListPropertyCore<ValueT> {
-    override val description: String get() = this@ModelListPropertyImpl.description
-    override fun getParsedValue(): Annotated<ParsedValue<List<ValueT>>> = this@ModelListPropertyImpl.getParsedValue(model)
-    override fun setParsedValue(value: ParsedValue<List<ValueT>>) = this@ModelListPropertyImpl.setParsedValue(model, value)
-    override fun getResolvedValue(): ResolvedValue<List<ValueT>> = this@ModelListPropertyImpl.getResolvedValue(model)
-    override fun getEditableValues(): List<ModelPropertyCore<ValueT>> = this@ModelListPropertyImpl.getEditableValues(model)
-    override fun addItem(index: Int): ModelPropertyCore<ValueT> = this@ModelListPropertyImpl.addItem(model, index)
-    override fun deleteItem(index: Int) = this@ModelListPropertyImpl.deleteItem(model, index)
-    override val defaultValueGetter: (() -> List<ValueT>?)? = null
-    override val variableScope: (() -> PsVariablesScope?)? = null
-    override val isModified: Boolean? get() = model.getParsedProperty()?.isModified
+  override fun bind(model: ModelT): ModelListPropertyCore<ValueT> =
+    object : ModelListPropertyCore<ValueT> {
+      override val description: String
+        get() = this@ModelListPropertyImpl.description
 
-    override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy { parsedValue, resolvedValue ->
-      if (parsedValue?.size != resolvedValue.size) false
-      else parsedValue.zip(resolvedValue).all { (parsedValue, resolvedValue) -> matcher(model, parsedValue, resolvedValue) }
+      override fun getParsedValue(): Annotated<ParsedValue<List<ValueT>>> = this@ModelListPropertyImpl.getParsedValue(model)
+
+      override fun setParsedValue(value: ParsedValue<List<ValueT>>) = this@ModelListPropertyImpl.setParsedValue(model, value)
+
+      override fun getResolvedValue(): ResolvedValue<List<ValueT>> = this@ModelListPropertyImpl.getResolvedValue(model)
+
+      override fun getEditableValues(): List<ModelPropertyCore<ValueT>> = this@ModelListPropertyImpl.getEditableValues(model)
+
+      override fun addItem(index: Int): ModelPropertyCore<ValueT> = this@ModelListPropertyImpl.addItem(model, index)
+
+      override fun deleteItem(index: Int) = this@ModelListPropertyImpl.deleteItem(model, index)
+
+      override val defaultValueGetter: (() -> List<ValueT>?)? = null
+      override val variableScope: (() -> PsVariablesScope?)? = null
+      override val isModified: Boolean?
+        get() = model.getParsedProperty()?.isModified
+
+      override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy { parsedValue, resolvedValue ->
+        if (parsedValue?.size != resolvedValue.size) false
+        else parsedValue.zip(resolvedValue).all { (parsedValue, resolvedValue) -> matcher(model, parsedValue, resolvedValue) }
+      }
     }
-  }
 }
 
 private fun ResolvedPropertyModel?.asResolvedPropertiesList(): List<ResolvedPropertyModel>? =
-  this
-    ?.takeIf { valueType == GradlePropertyModel.ValueType.LIST }
-    ?.getValue(LIST_TYPE)
-    ?.map { it.resolve() }
+  this?.takeIf { valueType == GradlePropertyModel.ValueType.LIST }?.getValue(LIST_TYPE)?.map { it.resolve() }
 
 private fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifier: (() -> Unit) -> Unit
+  modifier: (() -> Unit) -> Unit,
 ): List<ModelPropertyCore<T>>? =
-  this
-    .asResolvedPropertiesList()
-    ?.map { makeItemPropertyCore(it, getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier) }
+  this.asResolvedPropertiesList()?.map { makeItemPropertyCore(it, getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier) }
 
 private fun <T : Any> ResolvedPropertyModel.addListItem(
   index: Int,
   getter: ResolvedPropertyModel.() -> T?,
   setter: ResolvedPropertyModel.(T) -> Unit,
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
-  modifier: (() -> Unit) -> Unit
+  modifier: (() -> Unit) -> Unit,
 ): ModelPropertyCore<T> =
-  makeItemPropertyCore(
-    addListValueAt(index)!!.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
+  makeItemPropertyCore(addListValueAt(index)!!.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 
 private fun ResolvedPropertyModel.deleteListItem(index: Int) = getValue(LIST_TYPE)?.get(index)?.delete() ?: throw IllegalStateException()
-

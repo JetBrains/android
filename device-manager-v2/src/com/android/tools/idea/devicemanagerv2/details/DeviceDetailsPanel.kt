@@ -31,17 +31,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 
 /**
- * A panel within the [DeviceManagerPanel] that shows a [DeviceInfoPanel], and if the device
- * supports Wear pairing, a [PairedDevicesPanel]. If both panels are present, a tabbed pane is used
- * to switch between them.
+ * A panel within the [DeviceManagerPanel] that shows a [DeviceInfoPanel], and if the device supports Wear pairing, a [PairedDevicesPanel].
+ * If both panels are present, a tabbed pane is used to switch between them.
  */
 internal class DeviceDetailsPanel
-private constructor(
-  val scope: CoroutineScope,
-  heading: String,
-  mainComponent: JComponent,
-  private val tabbedPane: JBTabbedPane?,
-) : CloseablePanel(heading, mainComponent), Disposable {
+private constructor(val scope: CoroutineScope, heading: String, mainComponent: JComponent, private val tabbedPane: JBTabbedPane?) :
+  CloseablePanel(heading, mainComponent), Disposable {
 
   fun showDeviceInfo() {
     tabbedPane?.let { it.selectedIndex = DEVICE_INFO_TAB_INDEX }
@@ -86,26 +81,16 @@ private constructor(
             pairedDevicesFlow,
           )
         }
-      val tabbedPane =
-        pairedDevicesPanel?.let { createTabbedPane(deviceInfoPanel, pairedDevicesPanel) }
+      val tabbedPane = pairedDevicesPanel?.let { createTabbedPane(deviceInfoPanel, pairedDevicesPanel) }
       val mainComponent = tabbedPane ?: JBScrollPane(deviceInfoPanel)
       return DeviceDetailsPanel(scope, handle.state.properties.title, mainComponent, tabbedPane)
     }
 
-    private fun createTabbedPane(
-      deviceInfoPanel: DeviceInfoPanel,
-      pairedDevicesPanel: PairedDevicesPanel,
-    ) =
+    private fun createTabbedPane(deviceInfoPanel: DeviceInfoPanel, pairedDevicesPanel: PairedDevicesPanel) =
       JBTabbedPane().apply {
         tabComponentInsets = JBUI.emptyInsets()
         insertTab("Device Info", null, JBScrollPane(deviceInfoPanel), null, DEVICE_INFO_TAB_INDEX)
-        insertTab(
-          "Paired Devices",
-          null,
-          JBScrollPane(pairedDevicesPanel),
-          null,
-          PAIRED_DEVICES_TAB_INDEX,
-        )
+        insertTab("Paired Devices", null, JBScrollPane(pairedDevicesPanel), null, PAIRED_DEVICES_TAB_INDEX)
       }
 
     private const val DEVICE_INFO_TAB_INDEX = 0

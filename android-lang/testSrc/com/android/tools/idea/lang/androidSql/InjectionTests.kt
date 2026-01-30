@@ -46,7 +46,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
         interface UserDao {
           @com.example.MadeUp("select * $caret from User")
           List<User> findAll();
-        }""".trimIndent()
+        }"""
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(null)
@@ -63,7 +64,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
         interface UserDao {
           @Query("select * $caret from User")
           List<User> findAll();
-        }""".trimIndent()
+        }"""
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -80,7 +82,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
         interface UserDao {
           @Query("select * $caret from User")
           fun findAll(): List<User>
-        }""".trimIndent()
+        }"""
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -97,7 +100,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
         interface UserDao {
           @DatabaseView("select * $caret from User")
           List<User> findAll();
-        }""".trimIndent()
+        }"""
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -114,7 +118,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
         interface UserDao {
           @DatabaseView("select * $caret from User")
           fun findAll(): List<User>
-        }""".trimIndent()
+        }"""
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -134,7 +139,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
           @Query("select ${caret}* from " + TABLE + " where id = :id")
           User findById(int id);
         }
-        """.trimIndent()
+        """
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -156,7 +162,8 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
           @Query("select ${caret}* from " + TABLE)
           List<User> findAll();
         }
-        """.trimIndent()
+        """
+        .trimIndent(),
     )
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
@@ -183,8 +190,9 @@ class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
   private val injectionFixture: InjectionTestFixture by lazy { InjectionTestFixture(myFixture) }
 
   fun testSqliteDatabase() {
-    myFixture.addClass(
-      """
+    myFixture
+      .addClass(
+        """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;
@@ -194,17 +202,18 @@ class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
             db.execSQL("delete${caret} from User");
           }
         }
-        """.trimIndent()
-    ).also {
-      myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile)
-    }
+        """
+          .trimIndent()
+      )
+      .also { myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile) }
 
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
   }
 
   fun testSqliteDatabase_nested() {
-    myFixture.addClass(
-      """
+    myFixture
+      .addClass(
+        """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;
@@ -214,17 +223,18 @@ class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
             db.execSQL(getQuery("${caret}foo"));
           }
         }
-        """.trimIndent()
-    ).also {
-      myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile)
-    }
+        """
+          .trimIndent()
+      )
+      .also { myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile) }
 
     injectionFixture.assertInjectedLangAtCaret(null)
   }
 
   fun testSqliteDatabase_wrongArgument() {
-    myFixture.addClass(
-      """
+    myFixture
+      .addClass(
+        """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;
@@ -234,10 +244,10 @@ class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
             db.rawQueryWithFactory(null, "select * from User", null, "tableName", null);
           }
         }
-        """.trimIndent()
-    ).also {
-      myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile)
-    }
+        """
+          .trimIndent()
+      )
+      .also { myFixture.configureFromExistingVirtualFile(it.containingFile.virtualFile) }
 
     val onlyFile = injectionFixture.getAllInjections().single().second
     assertThat(onlyFile.language).isEqualTo(AndroidSqlLanguage.INSTANCE)

@@ -37,37 +37,37 @@ class LightDirectionsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" >
-              
-              <action
-                  android:id="@+id/action_Fragment1_to_main"
-                  app:popUpTo="@id/main" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-              
-              <action
-                  android:id="@+id/action_Fragment2_to_main"
-                  app:destination="@id/main" />
-          </fragment>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1" >
+            
+            <action
+                android:id="@+id/action_Fragment1_to_main"
+                app:popUpTo="@id/main" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
+            
+            <action
+                android:id="@+id/action_Fragment2_to_main"
+                app:destination="@id/main" />
+        </fragment>
 
-          <action
-              android:id="@+id/action_main_to_fragment1"
-              app:destination="@id/fragment1" />
+        <action
+            android:id="@+id/action_main_to_fragment1"
+            app:destination="@id/fragment1" />
 
-          <!-- Sample action -->
-          <action android:id="@+id/action_without_destination" />
-        </navigation>
+        <!-- Sample action -->
+        <action android:id="@+id/action_without_destination" />
+      </navigation>
       """
         .trimIndent(),
     )
@@ -78,12 +78,9 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context))
-      .isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context))
-      .isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context))
-      .isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)).isInstanceOf(LightDirectionsClass::class.java)
   }
 
   @Test
@@ -92,54 +89,54 @@ class LightDirectionsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
+        <action
+          android:id="@+id/action_to_nested"
+          app:destination="@id/nested"/>
+
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1" >
           <action
-            android:id="@+id/action_to_nested"
-            app:destination="@id/nested"/>
+            android:id="@+id/action_fragment1_to_fragment2"
+            app:destination="@id/fragment2" />
+          <action
+            android:id="@+id/action_fragment1_to_fragment3"
+            app:destination="@id/fragment3" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
+          <argument
+              android:name="arg_one"
+              app:argType="string" />
+          <argument
+              android:name="arg_two"
+              app:argType="float" />
+        </fragment>
+
+        <navigation
+            android:id="@+id/nested"
+            app:startDestination="@id/fragment3">
 
           <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" >
-            <action
-              android:id="@+id/action_fragment1_to_fragment2"
-              app:destination="@id/fragment2" />
-            <action
-              android:id="@+id/action_fragment1_to_fragment3"
-              app:destination="@id/fragment3" />
+              android:id="@+id/fragment3"
+              android:name="test.safeargs.Fragment3"
+              android:label="Fragment3">
+            <argument
+                android:name="arg"
+                app:argType="integer" />
           </fragment>
 
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-            <argument
-                android:name="arg_one"
-                app:argType="string" />
-            <argument
-                android:name="arg_two"
-                app:argType="float" />
-          </fragment>
-
-          <navigation
-              android:id="@+id/nested"
-              app:startDestination="@id/fragment3">
-
-            <fragment
-                android:id="@+id/fragment3"
-                android:name="test.safeargs.Fragment3"
-                android:label="Fragment3">
-              <argument
-                  android:name="arg"
-                  app:argType="integer" />
-            </fragment>
-
-          </navigation>
         </navigation>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -149,26 +146,18 @@ class LightDirectionsClassTest {
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
-    val mainDirections =
-      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
-        as LightDirectionsClass
-    val fragment1directions =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
-        as LightDirectionsClass
+    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
+    val fragment1directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
 
     mainDirections.findMethodsByName("actionToNested").first().let { action ->
-      (action as PsiMethod).checkSignaturesAndReturnType(
-        name = "actionToNested",
-        returnType = "NavDirections",
-      )
+      (action as PsiMethod).checkSignaturesAndReturnType(name = "actionToNested", returnType = "NavDirections")
     }
 
     fragment1directions.findMethodsByName("actionFragment1ToFragment2").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment2",
         returnType = "ActionFragment1ToFragment2",
-        parameters =
-          listOf(Parameter("argOne", "String"), Parameter("argTwo", PsiTypes.floatType().name)),
+        parameters = listOf(Parameter("argOne", "String"), Parameter("argTwo", PsiTypes.floatType().name)),
       )
     }
     fragment1directions.findMethodsByName("actionFragment1ToFragment3").first().let { action ->
@@ -186,21 +175,21 @@ class LightDirectionsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
-          <include app:graph="@navigation/included_graph" />
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
+        <include app:graph="@navigation/included_graph" />
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
 
-              <action
-                  android:id="@+id/action_Fragment2_to_IncludedGraph"
-                  app:destination="@id/included_graph" />                  
-          </fragment>
-        </navigation>
+            <action
+                android:id="@+id/action_Fragment2_to_IncludedGraph"
+                app:destination="@id/included_graph" />                  
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -211,16 +200,11 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Class can be found with context
-    val fragment2Directions =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
-        as LightDirectionsClass
+    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
 
     // Check method
     fragment2Directions.findMethodsByName("actionFragment2ToIncludedGraph").first().let { action ->
-      (action as PsiMethod).checkSignaturesAndReturnType(
-        name = "actionFragment2ToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      (action as PsiMethod).checkSignaturesAndReturnType(name = "actionFragment2ToIncludedGraph", returnType = "NavDirections")
     }
   }
 
@@ -230,40 +214,40 @@ class LightDirectionsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
-            
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
+          
+        <action
+              android:id="@+id/action_to_IncludedGraph"
+              app:destination="@id/included_graph" />  
+          
+        <navigation
+              android:id="@+id/inner_navigation"
+              app:startDestination="@id/inner_fragment">
+              
           <action
-                android:id="@+id/action_to_IncludedGraph"
-                app:destination="@id/included_graph" />  
-            
-          <navigation
-                android:id="@+id/inner_navigation"
-                app:startDestination="@id/inner_fragment">
-                
-            <action
-                android:id="@+id/action_InnerNavigation_to_IncludedGraph"
-                app:destination="@id/included_graph" />  
-                 
-            <fragment
-                android:id="@+id/fragment2"
-                android:name="test.safeargs.Fragment2"
-                android:label="Fragment2" >
+              android:id="@+id/action_InnerNavigation_to_IncludedGraph"
+              app:destination="@id/included_graph" />  
+               
+          <fragment
+              android:id="@+id/fragment2"
+              android:name="test.safeargs.Fragment2"
+              android:label="Fragment2" >
 
-                <action
-                    android:id="@+id/action_Fragment2_to_IncludedGraph"
-                    app:destination="@id/included_graph" />  
-                    
-                <!-- Same action with one of global actions -->
-                <action
-                    android:id="@+id/action_to_IncludedGraph"
-                    app:destination="@id/included_graph" />  
-            </fragment>
-                
-          </navigation>
+              <action
+                  android:id="@+id/action_Fragment2_to_IncludedGraph"
+                  app:destination="@id/included_graph" />  
+                  
+              <!-- Same action with one of global actions -->
+              <action
+                  android:id="@+id/action_to_IncludedGraph"
+                  app:destination="@id/included_graph" />  
+          </fragment>
+              
         </navigation>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -274,55 +258,32 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Class can be found with context
-    val fragment2Directions =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
-        as LightDirectionsClass
+    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
     // Check methods of Fragment2Directions
     fragment2Directions.methods.let { methods ->
       assertThat(methods.size).isEqualTo(3)
-      methods[0].checkSignaturesAndReturnType(
-        name = "actionFragment2ToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[0].checkSignaturesAndReturnType(name = "actionFragment2ToIncludedGraph", returnType = "NavDirections")
 
-      methods[1].checkSignaturesAndReturnType(
-        name = "actionToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[1].checkSignaturesAndReturnType(name = "actionToIncludedGraph", returnType = "NavDirections")
 
-      methods[2].checkSignaturesAndReturnType(
-        name = "actionInnerNavigationToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[2].checkSignaturesAndReturnType(name = "actionInnerNavigationToIncludedGraph", returnType = "NavDirections")
     }
 
     val innerNavigationDirections =
-      safeArgsRule.fixture.findClass("test.safeargs.InnerNavigationDirections", context)
-        as LightDirectionsClass
+      safeArgsRule.fixture.findClass("test.safeargs.InnerNavigationDirections", context) as LightDirectionsClass
     // Check methods of InnerNavigationDirections
     innerNavigationDirections.methods.let { methods ->
       assertThat(methods.size).isEqualTo(2)
-      methods[0].checkSignaturesAndReturnType(
-        name = "actionInnerNavigationToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[0].checkSignaturesAndReturnType(name = "actionInnerNavigationToIncludedGraph", returnType = "NavDirections")
 
-      methods[1].checkSignaturesAndReturnType(
-        name = "actionToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[1].checkSignaturesAndReturnType(name = "actionToIncludedGraph", returnType = "NavDirections")
     }
 
-    val mainDirections =
-      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
-        as LightDirectionsClass
+    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
     // Check methods of InnerNavigationDirections
     mainDirections.methods.let { methods ->
       assertThat(methods.size).isEqualTo(1)
-      methods[0].checkSignaturesAndReturnType(
-        name = "actionToIncludedGraph",
-        returnType = "NavDirections",
-      )
+      methods[0].checkSignaturesAndReturnType(name = "actionToIncludedGraph", returnType = "NavDirections")
     }
   }
 
@@ -332,33 +293,33 @@ class LightDirectionsClassTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" >
-              <argument
-                  android:name="arg"
-                  app:argType="string" />
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1" >
+            <argument
+                android:name="arg"
+                app:argType="string" />
 
-              <action
-                  android:id="@+id/action_to_Main"
-                  app:popUpTo="@id/main" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-              
-              <action
-                  android:id="@+id/action_Fragment2_to_Fragment1"
-                  app:popUpTo="@id/fragment1" />
-          </fragment>
-        </navigation>
+            <action
+                android:id="@+id/action_to_Main"
+                app:popUpTo="@id/main" />
+        </fragment>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2" >
+            
+            <action
+                android:id="@+id/action_Fragment2_to_Fragment1"
+                app:popUpTo="@id/fragment1" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -369,12 +330,8 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    val fragment1DirectionsClass =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
-        as LightDirectionsClass
-    val fragment2DirectionsClass =
-      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
-        as LightDirectionsClass
+    val fragment1DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
+    val fragment2DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
 
     // Because we don't have destination defined, no arguments are supposed to be passed. This means
     // no inner builder
@@ -391,10 +348,7 @@ class LightDirectionsClassTest {
 
     fragment2DirectionsClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(1)
-      methods[0].checkSignaturesAndReturnType(
-        name = "actionFragment2ToFragment1",
-        returnType = "NavDirections",
-      )
+      methods[0].checkSignaturesAndReturnType(name = "actionFragment2ToFragment1", returnType = "NavDirections")
     }
   }
 }

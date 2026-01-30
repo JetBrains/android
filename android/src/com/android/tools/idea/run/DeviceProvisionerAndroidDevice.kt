@@ -49,9 +49,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
- * AndroidDevice implementations, we do not implement "launchable" and "connected" devices
- * separately, since DeviceHandle can be both.
+ * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other AndroidDevice implementations, we do not implement
+ * "launchable" and "connected" devices separately, since DeviceHandle can be both.
  *
  * Note that, for now, it still provides an [IDevice] when booted, as required by the interface.
  */
@@ -68,15 +67,13 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   private val launchDeviceTask = AtomicReference<Deferred<IDevice>?>(null)
 
   /**
-   * Boots the device in the default manner, if it is not already running, and returns the resulting
-   * [IDevice]. This will cancel any existing boot operation and start a new one.
+   * Boots the device in the default manner, if it is not already running, and returns the resulting [IDevice]. This will cancel any
+   * existing boot operation and start a new one.
    */
   abstract fun bootDefault(): Deferred<IDevice>
 
   protected fun boot(action: suspend () -> IDevice): Deferred<IDevice> {
-    return scope
-      .async { action() }
-      .also { launchDeviceTask.getAndSet(it)?.cancel() }
+    return scope.async { action() }.also { launchDeviceTask.getAndSet(it)?.cancel() }
   }
 
   override fun getLaunchedDevice(): ListenableFuture<IDevice> {
@@ -85,12 +82,10 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
   }
 
   /**
-   * Returns the IDevice if the device is connected and ready for use, or else null. Note that even
-   * if the device is [running][isRunning], the device may not yet be fully booted, so this may
-   * return null.
+   * Returns the IDevice if the device is connected and ready for use, or else null. Note that even if the device is [running][isRunning],
+   * the device may not yet be fully booted, so this may return null.
    */
-  override fun getDdmlibDevice(): IDevice? =
-    if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
+  override fun getDdmlibDevice(): IDevice? = if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
 
   override fun getSerial(): String = buildString {
     append("DeviceProvisionerAndroidDevice pluginId=")
@@ -120,8 +115,7 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
       else -> false
     }
 
-  override fun supportsMultipleScreenFormats(): Boolean =
-    properties.isResizable == true
+  override fun supportsMultipleScreenFormats(): Boolean = properties.isResizable == true
 
   override fun getName() = properties.title
 
@@ -146,8 +140,7 @@ class DeviceTemplateAndroidDevice(
     val deviceHandle = deviceTemplate.activationAction.activate()
 
     val deviceState =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
-        ?: throw IllegalStateException("Device did not start")
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() } ?: throw IllegalStateException("Device did not start")
     ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
@@ -159,13 +152,7 @@ class DeviceTemplateAndroidDevice(
   ): LaunchCompatibility {
 
     val projectLaunchCompatibility =
-      LaunchCompatibility.canRunOnDevice(
-        minSdkVersion,
-        projectTarget,
-        getRequiredHardwareFeatures,
-        supportedAbis,
-        this,
-      )
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, getRequiredHardwareFeatures, supportedAbis, this)
     return projectLaunchCompatibility.combine(deviceTemplate.state.error.toLaunchCompatibility())
   }
 }
@@ -187,25 +174,18 @@ class DeviceHandleAndroidDevice(
 
   override fun isRunning() = deviceHandle.state.connectedDevice != null
 
-  override fun bootDefault(): Deferred<IDevice> = boot {
-    activate { deviceHandle.activationAction?.activate() }
-  }
+  override fun bootDefault(): Deferred<IDevice> = boot { activate { deviceHandle.activationAction?.activate() } }
 
-  fun coldBoot(): Deferred<IDevice> = boot {
-    activate { deviceHandle.coldBootAction?.activate() }
-  }
+  fun coldBoot(): Deferred<IDevice> = boot { activate { deviceHandle.coldBootAction?.activate() } }
 
-  fun bootFromSnapshot(snapshot: Snapshot): Deferred<IDevice> = boot {
-    activate { deviceHandle.bootSnapshotAction?.activate(snapshot) }
-  }
+  fun bootFromSnapshot(snapshot: Snapshot): Deferred<IDevice> = boot { activate { deviceHandle.bootSnapshotAction?.activate(snapshot) } }
 
   private suspend fun activate(action: suspend () -> Unit): IDevice {
     if (deviceHandle.state.connectedDevice == null) {
       action()
     }
     val deviceState =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
-        ?: throw IllegalStateException("Device did not start")
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() } ?: throw IllegalStateException("Device did not start")
     return ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
@@ -216,13 +196,7 @@ class DeviceHandleAndroidDevice(
     supportedAbis: MutableSet<Abi>,
   ): LaunchCompatibility {
     val projectLaunchCompatibility =
-      LaunchCompatibility.canRunOnDevice(
-        minSdkVersion,
-        projectTarget,
-        getRequiredHardwareFeatures,
-        supportedAbis,
-        this,
-      )
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, getRequiredHardwareFeatures, supportedAbis, this)
     // If the device is running, assume that these errors don't matter.
     val deviceLaunchCompatibility = deviceHandle.state.error.toLaunchCompatibility()
 

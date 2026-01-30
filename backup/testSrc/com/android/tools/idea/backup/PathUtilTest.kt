@@ -40,13 +40,9 @@ class PathUtilTest {
 
   @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), temporaryFolder)
 
-  private val projectDir by lazy {
-    temporaryFolder.newFolder("home/user/projects/project").toPath()
-  }
+  private val projectDir by lazy { temporaryFolder.newFolder("home/user/projects/project").toPath() }
 
-  private val project by lazy {
-    spy(projectRule.project).apply { whenever(basePath).thenReturn(projectDir.pathString) }
-  }
+  private val project by lazy { spy(projectRule.project).apply { whenever(basePath).thenReturn(projectDir.pathString) } }
 
   @Test
   fun relativeToProject_inProject() {

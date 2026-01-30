@@ -22,8 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 
 class CompilerOptionsModelImpl(dslElement: GradlePropertiesDslElement) : GradleDslBlockModel(dslElement), CompilerOptionsModel {
   companion object {
-    @JvmField
-    val JVM_TARGET = "mJvmTarget"
+    @JvmField val JVM_TARGET = "mJvmTarget"
   }
 
   override fun jvmTarget(): LanguageLevelPropertyModel {

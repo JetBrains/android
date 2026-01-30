@@ -22,10 +22,10 @@ import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.TestCase
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import junit.framework.TestCase
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,8 +34,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class StudioGeneratedAssetFileOpenerTest {
   val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule())
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
@@ -44,9 +43,7 @@ class StudioGeneratedAssetFileOpenerTest {
   @Before
   fun setup() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_GENERATED_ASSETS)
-    val invocationResult = projectRule.invokeGradle {
-      it.assemble()
-    }
+    val invocationResult = projectRule.invokeGradle { it.assemble() }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
 
     val facet: AndroidFacet = AndroidFacet.getInstance(project.findAppModule().getMainModule())!!

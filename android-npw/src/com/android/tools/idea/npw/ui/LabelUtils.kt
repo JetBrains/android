@@ -37,11 +37,7 @@ fun createWarningLabel(labelText: String): JPanel {
     val lightBorder = 0xC27D04
 
     background = JBColor(lightBackground, darkBackground)
-    border =
-      JBUI.Borders.compound(
-        RoundedLineBorder(JBColor(lightBorder, darkBorder), JBUIScale.scale(8), 1),
-        empty(JBUIScale.scale(8)),
-      )
+    border = JBUI.Borders.compound(RoundedLineBorder(JBColor(lightBorder, darkBorder), JBUIScale.scale(8), 1), empty(JBUIScale.scale(8)))
 
     val iconLabel = JLabel(WARNING).apply { alignmentY = Component.TOP_ALIGNMENT }
     add(iconLabel)

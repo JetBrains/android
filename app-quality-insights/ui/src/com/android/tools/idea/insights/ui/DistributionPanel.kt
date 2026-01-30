@@ -33,10 +33,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
   fun updateDistribution(stats: IssueStats<Double>, category: String) {
     val emptyBorder = JBUI.Borders.empty(4)
     if (stats.groups.isEmpty()) {
-      add(
-        JLabel("No data available").apply { border = emptyBorder },
-        TabularLayout.Constraint(stats.groups.size, 0, 4),
-      )
+      add(JLabel("No data available").apply { border = emptyBorder }, TabularLayout.Constraint(stats.groups.size, 0, 4))
     } else {
       stats.groups.forEachIndexed { index, group ->
         val nameLabel = JLabel(group.groupName).apply { border = emptyBorder }
@@ -57,9 +54,7 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
         val tooltip = HelpTooltip()
         tooltip.setTitle("${group.groupName} (${group.percentage.roundToInt()})")
         tooltip.setDescription(
-          group.breakdown.joinToString("<br>", "<html>", "</html>") { (name, value) ->
-            "${value.roundToInt()}% ($name)"
-          }
+          group.breakdown.joinToString("<br>", "<html>", "</html>") { (name, value) -> "${value.roundToInt()}% ($name)" }
         )
         tooltip.installOn(infoLabel)
       }

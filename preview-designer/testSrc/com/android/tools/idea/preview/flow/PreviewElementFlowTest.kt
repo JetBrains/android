@@ -56,7 +56,7 @@ class PreviewElementFlowTest {
         @Preview
         fun Preview1() {
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -64,8 +64,7 @@ class PreviewElementFlowTest {
     val secondPreviewElements = listOf(PsiTestPreviewElement(), PsiTestPreviewElement())
 
     val filePreviewElementFinder = mock<PreviewElementProvider<PsiTestPreviewElement>>()
-    whenever(filePreviewElementFinder.previewElements())
-      .thenReturn(firstPreviewElements.asSequence())
+    whenever(filePreviewElementFinder.previewElements()).thenReturn(firstPreviewElements.asSequence())
 
     runBlocking {
       val flowScope = createChildScope()
@@ -77,18 +76,14 @@ class PreviewElementFlowTest {
       assertEquals(firstPreviewElements.toList(), flowState.value.asCollection().toList())
       assertEquals(listOf(firstPreviewElements), updates)
 
-      withContext(AndroidDispatchers.uiThread) {
-        projectRule.fixture.openFileInEditor(psiFile.virtualFile)
-      }
+      withContext(AndroidDispatchers.uiThread) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
       // the same preview elements will be returned despite the following file changes to check
       // that the flow is de-duped
       repeat(2) {
         ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
           projectRule.fixture.editor.moveCaretToEnd()
           projectRule.fixture.editor.executeAndSave {
-            insertText(
-              "\n\nfun method$it() {\n// Some change that will not trigger an update\n}\n\n"
-            )
+            insertText("\n\nfun method$it() {\n// Some change that will not trigger an update\n}\n\n")
           }
         }
         // Wait for longer than the debouncing timer to ensure we do not remove the changes just by
@@ -102,14 +97,11 @@ class PreviewElementFlowTest {
 
       // now the following file change should trigger an update as the preview elements found are
       // different
-      whenever(filePreviewElementFinder.previewElements())
-        .thenReturn(secondPreviewElements.asSequence())
+      whenever(filePreviewElementFinder.previewElements()).thenReturn(secondPreviewElements.asSequence())
 
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
         projectRule.fixture.editor.moveCaretToEnd()
-        projectRule.fixture.editor.executeAndSave {
-          insertText("\n\n// Some change that will trigger an update\n\n")
-        }
+        projectRule.fixture.editor.executeAndSave { insertText("\n\n// Some change that will trigger an update\n\n") }
       }
 
       // the flow should be updated with the second preview element list

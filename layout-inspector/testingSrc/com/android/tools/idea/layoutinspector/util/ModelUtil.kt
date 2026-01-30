@@ -19,5 +19,4 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 
 /** Get a ViewNode by name. Fail if there no matches or multiple matches. */
-fun InspectorModel.find(name: String) =
-  ViewNode.readAccess { root.flatten() }.filter { it.qualifiedName == name }.single()
+fun InspectorModel.find(name: String) = ViewNode.readAccess { root.flatten() }.filter { it.qualifiedName == name }.single()

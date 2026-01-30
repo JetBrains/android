@@ -22,13 +22,11 @@ import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 
 object GradleJdkComboBoxUtil {
 
-  fun createBoxModel(
-    project: Project,
-    sdksModel: ProjectSdksModel
-  ) = SdkComboBoxModel.createJdkComboBoxModel(
-    project,
-    sdksModel,
-    sdkTypeFilter = { it is JavaSdk },
-    sdkTypeCreationFilter = { it is JavaSdk }
-  )
+  fun createBoxModel(project: Project, sdksModel: ProjectSdksModel) =
+    SdkComboBoxModel.createJdkComboBoxModel(
+      project,
+      sdksModel,
+      sdkTypeFilter = { it is JavaSdk },
+      sdkTypeCreationFilter = { it is JavaSdk },
+    )
 }

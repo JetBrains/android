@@ -57,8 +57,8 @@ object Actions {
   @JvmStatic
   fun replaceAction(actionManager: ActionManager, actionId: String, newAction: AnAction, condition: (AnActionEvent) -> Boolean) {
     val existingAction = actionManager.getExistingActionProvider(actionId)
-    val replacement = ConditionalActionWrapper(delegate = existingAction ?: DumbAwareEmptyAction().let { { it } }, replacement = newAction,
-                                               condition)
+    val replacement =
+      ConditionalActionWrapper(delegate = existingAction ?: DumbAwareEmptyAction().let { { it } }, replacement = newAction, condition)
     if (existingAction != null) {
       actionManager.replaceAction(actionId, replacement)
     } else {
@@ -67,13 +67,7 @@ object Actions {
   }
 
   @JvmStatic
-  fun moveAction(
-    actionManager: ActionManager,
-    actionId: String,
-    oldGroupId: String,
-    groupId: String,
-    constraints: Constraints,
-  ) {
+  fun moveAction(actionManager: ActionManager, actionId: String, oldGroupId: String, groupId: String, constraints: Constraints) {
     val action = actionManager.getActionOrStub(actionId)
     val group = actionManager.getAction(groupId)
     val oldGroup = actionManager.getAction(oldGroupId)
@@ -84,7 +78,6 @@ object Actions {
   }
 }
 
-
 /**
  * [com.intellij.openapi.actionSystem.AnActionWrapper] inspired wrapper that delegates to either of two delegates based on a provided
  * condition.
@@ -93,27 +86,28 @@ class ConditionalActionWrapper(
   delegate: () -> AnAction,
   val replacement: AnAction,
   private val replaceCondition: (e: AnActionEvent) -> Boolean,
-): AnAction() {
+) : AnAction() {
   // Action update/perform methods are not required to be thread safe even though update now runs in the BGT.
-  val delegate: AnAction by lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
-    delegate().also { delegate ->
-      // Something deprecated that we do not support.
-      if (isPerformWithDocumentsCommitted(delegate)) {
-        error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
-      }
+  val delegate: AnAction by
+    lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
+      delegate().also { delegate ->
+        // Something deprecated that we do not support.
+        if (isPerformWithDocumentsCommitted(delegate)) {
+          error("Action $delegate cannot be wrapped. isPerformWithDocumentsCommitted(delegate) returns true.")
+        }
 
-      // Prevent these cases from happening at all
-      if (delegate.isDumbAware && !replacement.isDumbAware) {
-        error("Cannot wrap dumb-aware $delegate with non-dumb-aware $replacement.")
-      }
-      if (delegate.actionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
-        error("Replacement $replacement must update on BGT, like $delegate.")
-      }
-      if (delegate.isInInjectedContext != replacement.isInInjectedContext) {
-        error("Replacement $replacement should have isInInjectedContext=${delegate.isInInjectedContext}, like $delegate.")
+        // Prevent these cases from happening at all
+        if (delegate.isDumbAware && !replacement.isDumbAware) {
+          error("Cannot wrap dumb-aware $delegate with non-dumb-aware $replacement.")
+        }
+        if (delegate.actionUpdateThread == ActionUpdateThread.BGT && replacement.actionUpdateThread != ActionUpdateThread.BGT) {
+          error("Replacement $replacement must update on BGT, like $delegate.")
+        }
+        if (delegate.isInInjectedContext != replacement.isInInjectedContext) {
+          error("Replacement $replacement should have isInInjectedContext=${delegate.isInInjectedContext}, like $delegate.")
+        }
       }
     }
-  }
 
   fun getWrappedActionFor(e: AnActionEvent): AnAction {
     return if (replaceCondition(e)) replacement else delegate
@@ -134,10 +128,13 @@ class ConditionalActionWrapper(
   override fun isInInjectedContext(): Boolean = delegate.isInInjectedContext
 }
 
-class DumbAwareEmptyAction () : AnAction() {
+class DumbAwareEmptyAction() : AnAction() {
   override fun actionPerformed(e: AnActionEvent) = Unit
+
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun isDumbAware(): Boolean = true
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
   }
@@ -151,28 +148,31 @@ private fun ActionManager.getExistingActionProvider(actionId: String): (() -> An
   if (existingAction is ActionStub) {
     val renamedId = actionId + "_renamedStub_" + existingAction.hashCode().toULong().toString()
     thisLogger().info("Re-registering action stub for $actionId as $renamedId")
-    registerAction(renamedId, ActionStub(
-      existingAction.className,
+    registerAction(
       renamedId,
-      existingAction.plugin,
-      existingAction.iconPath,
-      existingAction.projectType,
-      { existingAction.templatePresentation }
-    ))
+      ActionStub(
+        existingAction.className,
+        renamedId,
+        existingAction.plugin,
+        existingAction.iconPath,
+        existingAction.projectType,
+        { existingAction.templatePresentation },
+      ),
+    )
     // Action update/perform methods are not required to be thread safe even though update now runs in the BGT.
-    val delayedAction by lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
-      thisLogger().info("Unstubbing: $renamedId")
-      val baseAction = getAction(renamedId)
-      application.invokeLater {
-        getAction(actionId) // Make sure lazy has finished initialization.
-        unregisterAction(renamedId)
-        thisLogger().info("Unregistering already unstubbed: $renamedId")
+    val delayedAction by
+      lazy(mode = LazyThreadSafetyMode.PUBLICATION) {
+        thisLogger().info("Unstubbing: $renamedId")
+        val baseAction = getAction(renamedId)
+        application.invokeLater {
+          getAction(actionId) // Make sure lazy has finished initialization.
+          unregisterAction(renamedId)
+          thisLogger().info("Unregistering already unstubbed: $renamedId")
+        }
+        baseAction
       }
-      baseAction
-    }
     return { delayedAction }
-  }
-  else {
+  } else {
     return { existingAction }
   }
 }

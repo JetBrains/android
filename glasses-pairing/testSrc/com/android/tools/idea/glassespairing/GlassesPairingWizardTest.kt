@@ -110,8 +110,7 @@ class GlassesPairingWizardTest {
         return pairingFlow
       }
 
-      val glassesWizard =
-        GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
@@ -159,10 +158,8 @@ class GlassesPairingWizardTest {
 
   @Test
   fun testLaunchAvds(): Unit = runTest {
-    val glasses =
-      TestDeviceHandle(this@runTest, "G", activationDelay = 8.seconds, bootDelay = 5.seconds)
-    val phone =
-      TestDeviceHandle(this@runTest, "P", activationDelay = 8.seconds, bootDelay = 5.seconds)
+    val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 8.seconds, bootDelay = 5.seconds)
+    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 8.seconds, bootDelay = 5.seconds)
 
     val states = flow { launchGlassesAndPhone(glasses, phone) }.toList()
 
@@ -179,8 +176,7 @@ class GlassesPairingWizardTest {
   @Test
   fun testLaunchAvds_glassesAlreadyRunning(): Unit = runTest {
     val glasses = TestDeviceHandle(this@runTest, "G", activationDelay = 0.seconds)
-    val phone =
-      TestDeviceHandle(this@runTest, "P", activationDelay = 4.seconds, bootDelay = 4.seconds)
+    val phone = TestDeviceHandle(this@runTest, "P", activationDelay = 4.seconds, bootDelay = 4.seconds)
 
     glasses.activationAction!!.activate()
 
@@ -242,8 +238,7 @@ class GlassesPairingWizardTest {
         return pairingFlow
       }
 
-      val glassesWizard =
-        GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
+      val glassesWizard = GlassesPairingWizard(null, coroutineScope, devicesFlow, glasses, ::pair, { true })
       val wizard = TestComposeWizard { with(glassesWizard) { SelectDevicePage() } }
 
       composeTestRule.setContent { wizard.Content() }
@@ -260,36 +255,26 @@ class GlassesPairingWizardTest {
         )
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText("Error pairing AI Glasses").assertIsDisplayed()
-      composeTestRule
-        .onNodeWithText("Failed to create companion device association with glasses device.")
-        .assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to create companion device association with glasses device.").assertIsDisplayed()
       tracker.events.clear()
 
       // 2. Test WORKER_GLASSES_CORE_CONNECTION_FAILED
       pairingFlow.value =
         PairingState.Error(
           heading = "Error pairing AI Glasses",
-          detailText =
-            "Failed to connect to device. Please make sure to accept all permissions on the phone.",
+          detailText = "Failed to connect to device. Please make sure to accept all permissions on the phone.",
         )
       composeTestRule.waitForIdle()
       composeTestRule
-        .onNodeWithText(
-          "Failed to connect to device. Please make sure to accept all permissions on the phone."
-        )
+        .onNodeWithText("Failed to connect to device. Please make sure to accept all permissions on the phone.")
         .assertIsDisplayed()
       tracker.events.clear()
 
       // 3. Test WORKER_BOND_FAILED
       pairingFlow.value =
-        PairingState.Error(
-          heading = "Error pairing AI Glasses",
-          detailText = "Failed to bluetooth bond to glasses device.",
-        )
+        PairingState.Error(heading = "Error pairing AI Glasses", detailText = "Failed to bluetooth bond to glasses device.")
       composeTestRule.waitForIdle()
-      composeTestRule
-        .onNodeWithText("Failed to bluetooth bond to glasses device.")
-        .assertIsDisplayed()
+      composeTestRule.onNodeWithText("Failed to bluetooth bond to glasses device.").assertIsDisplayed()
 
       composeTestRule.onNodeWithText("Cancel").performClick()
       wizard.awaitClose()
@@ -307,7 +292,7 @@ private class TestTracker : UsageTrackerWriter() {
   override fun logDetails(logEvent: ClientAnalytics.LogEvent.Builder) {}
 
   // TODO: android-merge: changed as in upstream
-  //override fun processMessage(eventTimeMs: Long, studioEvent: AndroidStudioEvent.Builder) {
+  // override fun processMessage(eventTimeMs: Long, studioEvent: AndroidStudioEvent.Builder) {
   override fun processEvent(studioEvent: AndroidStudioEvent.Builder): Message.Builder? {
     if (studioEvent.kind == AndroidStudioEvent.EventKind.GLASSES_PAIRING_EVENT) {
       events.add(studioEvent.glassesPairingEvent.kind)
@@ -365,9 +350,4 @@ private class TestDeviceHandle(
 }
 
 private fun createLaunchingState(phone: LaunchState, glasses: LaunchState) =
-  PairingState.Launching(
-    phoneName = "P",
-    phoneLaunchState = phone,
-    glassesName = "G",
-    glassesLaunchState = glasses,
-  )
+  PairingState.Launching(phoneName = "P", phoneLaunchState = phone, glassesName = "G", glassesLaunchState = glasses)

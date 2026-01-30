@@ -76,8 +76,7 @@ class SdkComponentsStep(
         licenseAgreementStep?.reload()
       }
     }
-  private val tableModel: SdkComponentsTableModel =
-    SdkComponentsTableModel(model.componentTree).apply { form.setTableModel(this) }
+  private val tableModel: SdkComponentsTableModel = SdkComponentsTableModel(model.componentTree).apply { form.setTableModel(this) }
   private val isValid = BoolValueProperty(false)
 
   init {
@@ -88,11 +87,7 @@ class SdkComponentsStep(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           validate()
-          val updated =
-            controller.onPathUpdated(
-              form.path.getText(),
-              ModalityState.stateForComponent(form.contents),
-            )
+          val updated = controller.onPathUpdated(form.path.getText(), ModalityState.stateForComponent(form.contents))
           if (updated) tracker.trackSdkInstallLocationChanged()
         }
       }
@@ -160,9 +155,7 @@ class SdkComponentsStep(
   }
 
   private fun updateDiskSizes() {
-    form.setDiskSpace(
-      SdkComponentsStepUtils.getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath)
-    )
+    form.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath))
     form.setDownloadSize(controller.componentsSize)
   }
 

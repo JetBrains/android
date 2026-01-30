@@ -60,30 +60,29 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import javax.swing.JLabel
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.JLabel
 
 @RunsInEdt
 class AndroidRunConfigurationEditorTest {
-  private  val projectRule: EdtAndroidProjectRule = AndroidProjectRule
-    .withAndroidModels(
-      rootModuleBuilder,
-      AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder(dynamicFeatures = { listOf(":feature") })),
-      AndroidModuleModelBuilder(":feature", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_DYNAMIC_FEATURE })),
-      AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY })),
-      AndroidModuleModelBuilder(":test_only", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_TEST })),
-    )
-    .onEdt()
+  private val projectRule: EdtAndroidProjectRule =
+    AndroidProjectRule.withAndroidModels(
+        rootModuleBuilder,
+        AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder(dynamicFeatures = { listOf(":feature") })),
+        AndroidModuleModelBuilder(":feature", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_DYNAMIC_FEATURE })),
+        AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY })),
+        AndroidModuleModelBuilder(":test_only", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_TEST })),
+      )
+      .onEdt()
   private val expect: Expect = Expect.createAndEnableStackTrace()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, expect, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, expect, disposableRule)
 
   @Before
   fun setUp() {
@@ -99,13 +98,8 @@ class AndroidRunConfigurationEditorTest {
   @Test
   fun `android run configuration`() {
     val runConfiguration = createConfiguration<AndroidRunConfiguration>(AndroidRunConfigurationType::class.java)
-    val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector
-    }
-    assertThat(availableModules)
-      .containsExactly(
-        module(":app").getHolderModule(),
-        module(":feature").getHolderModule(),
-      )
+    val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector }
+    assertThat(availableModules).containsExactly(module(":app").getHolderModule(), module(":feature").getHolderModule())
     runConfiguration.setModule(module(":app").getHolderModule())
     assertThat(runConfiguration.modules.asList()).containsExactly(module(":app").getMainModule())
     runConfiguration.setModule(module(":feature").getHolderModule())
@@ -137,30 +131,21 @@ class AndroidRunConfigurationEditorTest {
   fun `android watch face configuration`() {
     val runConfiguration = createConfiguration<AndroidWearConfiguration>(AndroidWatchFaceConfigurationType::class.java)
     val availableModules = runConfiguration.getAvailableModules<AndroidWearConfigurationEditor<*>>() { it.moduleSelector }
-    assertThat(availableModules)
-      .containsExactly(
-        module(":app").getHolderModule(),
-      )
+    assertThat(availableModules).containsExactly(module(":app").getHolderModule())
   }
 
   @Test
   fun `android tile configuration`() {
     val runConfiguration = createConfiguration<AndroidWearConfiguration>(AndroidTileConfigurationType::class.java)
     val availableModules = runConfiguration.getAvailableModules<AndroidWearConfigurationEditor<*>>() { it.moduleSelector }
-    assertThat(availableModules)
-      .containsExactly(
-        module(":app").getHolderModule(),
-      )
+    assertThat(availableModules).containsExactly(module(":app").getHolderModule())
   }
 
   @Test
   fun `android complication configuration`() {
     val runConfiguration = createConfiguration<AndroidComplicationConfiguration>(AndroidComplicationConfigurationType::class.java)
     val availableModules = runConfiguration.getAvailableModules<AndroidComplicationConfigurationEditor>() { it.moduleSelector }
-    assertThat(availableModules)
-      .containsExactly(
-        module(":app").getHolderModule(),
-      )
+    assertThat(availableModules).containsExactly(module(":app").getHolderModule())
   }
 
   @Test
@@ -205,8 +190,10 @@ class AndroidRunConfigurationEditorTest {
     return listOf(DeviceAndSnapshotComboBoxTargetProvider.getInstance(), provider)
   }
 
-  fun getAndroidRunConfigurationEditor(provider: DeployTargetProvider,
-                                       project: Project): AndroidRunConfigurationEditor<AndroidTestRunConfiguration> {
+  fun getAndroidRunConfigurationEditor(
+    provider: DeployTargetProvider,
+    project: Project,
+  ): AndroidRunConfigurationEditor<AndroidTestRunConfiguration> {
     val androidDebuggerContext = mock<AndroidDebuggerContext>()
     val providers: List<DeployTargetProvider> = getTargetProviders(provider)
     val configuration = mock<AndroidTestRunConfiguration>()
@@ -214,18 +201,10 @@ class AndroidRunConfigurationEditorTest {
     whenever(configuration.applicableDeployTargetProviders).thenReturn(providers)
     whenever(configuration.profilerState).thenReturn(ProfilerState())
 
-    @Suppress("unchecked_cast")
-    val configurationSpecificEditor =
-      mock<ConfigurationSpecificEditor<AndroidTestRunConfiguration>>()
+    @Suppress("unchecked_cast") val configurationSpecificEditor = mock<ConfigurationSpecificEditor<AndroidTestRunConfiguration>>()
 
     whenever(configurationSpecificEditor.component).thenReturn(JLabel())
 
-    return AndroidRunConfigurationEditor(
-      project,
-      { false },
-      configuration,
-      true,
-      false,
-      { configurationSpecificEditor })
+    return AndroidRunConfigurationEditor(project, { false }, configuration, true, false, { configurationSpecificEditor })
   }
 }

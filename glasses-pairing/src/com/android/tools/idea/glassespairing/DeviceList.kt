@@ -75,23 +75,15 @@ private fun DeviceType?.toIcon() =
   }
 
 @Composable
-internal fun DeviceList(
-  devices: ImmutableList<DeviceRow>,
-  onSelectedDeviceChange: (DeviceRow) -> Unit,
-  state: SelectableLazyListState,
-) {
+internal fun DeviceList(devices: ImmutableList<DeviceRow>, onSelectedDeviceChange: (DeviceRow) -> Unit, state: SelectableLazyListState) {
   val devices = devices.sortedWith(compareBy(Collator.getInstance(), { it.name }))
   Box(Modifier.fillMaxSize()) {
     SelectableLazyColumn(
       selectionMode = SelectionMode.Single,
       state = state,
-      onSelectedIndexesChange = { indices ->
-        indices.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) }
-      },
+      onSelectedIndexesChange = { indices -> indices.singleOrNull()?.let { onSelectedDeviceChange(devices[it]) } },
     ) {
-      items(devices, key = { it }) {
-        DeviceRow(row = it, isSelected = isSelected, isFocused = isActive)
-      }
+      items(devices, key = { it }) { DeviceRow(row = it, isSelected = isSelected, isFocused = isActive) }
     }
 
     VerticalScrollbar(
@@ -103,11 +95,7 @@ internal fun DeviceList(
 
 @Composable
 private fun DeviceRow(row: DeviceRow, isSelected: Boolean, isFocused: Boolean) {
-  Row(
-    Modifier.background(UIUtil.getListBackground(isSelected, isFocused).toComposeColor())
-      .fillMaxWidth()
-      .padding(vertical = 4.dp)
-  ) {
+  Row(Modifier.background(UIUtil.getListBackground(isSelected, isFocused).toComposeColor()).fillMaxWidth().padding(vertical = 4.dp)) {
     if (row.isConnected) {
       Icon(
         key = StudioIconsCompose.Avd.StatusDecoratorOnline,

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.SdkConstants.DOT_KEEP
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
-import com.android.SdkConstants.DOT_KEEP
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.lint.client.api.Configuration
@@ -51,19 +51,14 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
 
-/**
- * Extension point for the general lint support to look up services it does not directly depend
- * upon.
- */
+/** Extension point for the general lint support to look up services it does not directly depend upon. */
 abstract class LintIdeSupport {
   init {
     LintClient.clientName = CLIENT_STUDIO
   }
 
   companion object {
-    @JvmStatic
-    fun get(): LintIdeSupport =
-      getApplication().getService(LintIdeSupport::class.java) ?: object : LintIdeSupport() {}
+    @JvmStatic fun get(): LintIdeSupport = getApplication().getService(LintIdeSupport::class.java) ?: object : LintIdeSupport() {}
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
@@ -113,9 +108,7 @@ abstract class LintIdeSupport {
       return true
     } else if (fileType === FileTypes.PLAIN_TEXT) {
       val name = file.name
-      return name == FN_PROJECT_PROGUARD_FILE ||
-        name == FN_ANDROID_PROGUARD_FILE ||
-        name == OLD_PROGUARD_FILE || name.endsWith(DOT_KEEP)
+      return name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE || name == OLD_PROGUARD_FILE || name.endsWith(DOT_KEEP)
     } else if (file.isGradleFile()) {
       return true
     }
@@ -141,18 +134,12 @@ abstract class LintIdeSupport {
     client: LintIdeClient,
     file: VirtualFile?,
     module: Module,
-  ): Pair<
-    com.android.tools.lint.detector.api.Project,
-    com.android.tools.lint.detector.api.Project,
-  > {
+  ): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
     return LintIdeProject.createForSingleFile(client, file, module)
   }
 
   /** Creates a lint client */
-  open fun createClient(
-    project: Project,
-    lintResult: LintResult = LintIgnoredResult(),
-  ): LintIdeClient {
+  open fun createClient(project: Project, lintResult: LintResult = LintIgnoredResult()): LintIdeClient {
     return LintIdeClient(project, lintResult)
   }
 
@@ -161,39 +148,24 @@ abstract class LintIdeSupport {
     return LintIdeClient(lintResult.project, lintResult)
   }
 
-  /**
-   * Creates a lint client used for in-editor single file lint analysis (e.g. background checking
-   * while user is editing.)
-   */
+  /** Creates a lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.) */
   open fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
     return LintIdeClient(lintResult.getModule().project, lintResult)
   }
 
   /**
-   * Creates a batch client which ignores project-local configurations and custom lint jars from
-   * dependencies. Used for in-IDE refactoring uses of lint, such as the unused resources
-   * refactoring, which behind the scenes runs lint to find the unused resources -- and we want to
-   * make sure that the lint run doesn't get confused by project local settings (such as a lint.xml
-   * file which turns off the unused resources lint inspection for one of the folders) or slowed
-   * down by third party lint checks loaded from the project dependencies.
+   * Creates a batch client which ignores project-local configurations and custom lint jars from dependencies. Used for in-IDE refactoring
+   * uses of lint, such as the unused resources refactoring, which behind the scenes runs lint to find the unused resources -- and we want
+   * to make sure that the lint run doesn't get confused by project local settings (such as a lint.xml file which turns off the unused
+   * resources lint inspection for one of the folders) or slowed down by third party lint checks loaded from the project dependencies.
    */
-  open fun createIsolatedClient(
-    project: Project,
-    lintResult: LintResult,
-    issueRegistry: IssueRegistry,
-  ): LintIdeClient {
+  open fun createIsolatedClient(project: Project, lintResult: LintResult, issueRegistry: IssueRegistry): LintIdeClient {
     return object : LintIdeClient(project, lintResult) {
-      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
-        emptyList()
+      override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> = emptyList()
 
-      override fun findRuleJars(
-        project: com.android.tools.lint.detector.api.Project
-      ): Iterable<File> = emptyList()
+      override fun findRuleJars(project: com.android.tools.lint.detector.api.Project): Iterable<File> = emptyList()
 
-      override fun getConfiguration(
-        project: com.android.tools.lint.detector.api.Project,
-        driver: LintDriver?,
-      ): Configuration =
+      override fun getConfiguration(project: com.android.tools.lint.detector.api.Project, driver: LintDriver?): Configuration =
         object : FlagConfiguration(configurations) {
           override fun exactCheckedIds(): Set<String> = issueRegistry.issues.map { it.id }.toSet()
         }
@@ -239,11 +211,7 @@ abstract class LintIdeSupport {
   open fun logTooltipLink(url: String, issue: Issue, project: Project) {}
 
   // XML processing
-  open fun ensureNamespaceImported(
-    file: XmlFile,
-    namespaceUri: String,
-    suggestedPrefix: String?,
-  ): String = ""
+  open fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String = ""
 }
 
 fun Module.getModuleDir(): File? {

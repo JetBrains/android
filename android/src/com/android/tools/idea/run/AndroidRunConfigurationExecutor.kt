@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run
 
-import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
@@ -68,15 +67,14 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
 
 class AndroidRunConfigurationExecutor(
   private val applicationContext: ApplicationProjectContext,
@@ -84,7 +82,7 @@ class AndroidRunConfigurationExecutor(
   val deviceFutures: DeviceFutures,
   private val apkProvider: ApkProvider,
   private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project),
-  private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project, RunStats.from(env))
+  private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project, RunStats.from(env)),
 ) : AndroidConfigurationExecutor {
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
@@ -124,35 +122,41 @@ class AndroidRunConfigurationExecutor(
       deployAsInstantApp(devices, console)
     } else {
       indicator.text = "Launching on devices"
-      devices.map { device ->
-        async {
-          val restoreEnabled = configuration.isRestoreEnabled()
-          val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
-          LOG.info("Launching on device ${device.name}")
+      devices
+        .map { device ->
+          async {
+            val restoreEnabled = configuration.isRestoreEnabled()
+            val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
+            LOG.info("Launching on device ${device.name}")
 
-          //Deploy
-          if (configuration.DEPLOY) {
-            val apks = apkInfosSafe(device)
-            val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
-            val deployResults =
-              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
+            // Deploy
+            if (configuration.DEPLOY) {
+              val apks = apkInfosSafe(device)
+              val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+              val deployResults =
+                deployAndHandleError(
+                  env,
+                  { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
+                )
 
-            val mainApp = deployResults.find { it.app.appId == applicationId }
-              ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+              val mainApp =
+                deployResults.find { it.app.appId == applicationId }
+                  ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
-            if (configuration.isRestoreEnabled()) {
-              if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
-                indicator.text = "Restoring app data"
-                restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+              if (configuration.isRestoreEnabled()) {
+                if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
+                  indicator.text = "Restoring app data"
+                  restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+                }
               }
-            }
 
-            if (launch(mainApp.app, device, console, isDebug = false)) {
-              notifyLiveEditService(device, apks, applicationContext)
+              if (launch(mainApp.app, device, console, isDebug = false)) {
+                notifyLiveEditService(device, apks, applicationContext)
+              }
             }
           }
         }
-      }.awaitAll()
+        .awaitAll()
     }
 
     devices.forEach { device ->
@@ -182,13 +186,13 @@ class AndroidRunConfigurationExecutor(
   private fun shouldDeployAsInstant(): Boolean {
     // InstantApp is no longer supported.
     // TODO(b/474499463): Remove this.
-    return false;
+    return false
   }
 
   private fun notifyLiveEditService(
     device: IDevice,
     apkInfos: MutableCollection<ApkInfo>,
-    applicationProjectContext: ApplicationProjectContext
+    applicationProjectContext: ApplicationProjectContext,
   ) {
     try {
       LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationProjectContext, apkInfos, device)
@@ -202,10 +206,14 @@ class AndroidRunConfigurationExecutor(
   private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
     coroutineScope {
       indicator.text = "Terminating the app"
-      val results = devices.filter {
-        // Starting with API33, we will purely rely on Package Manager to handle process termination.
-        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)
-      }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      val results =
+        devices
+          .filter {
+            // Starting with API33, we will purely rely on Package Manager to handle process termination.
+            !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)
+          }
+          .map { async { ApplicationTerminator(it, applicationId).killApp() } }
+          .awaitAll()
 
       if (results.any { !it }) {
         throw ExecutionException("Couldn't terminate previous instance of app")
@@ -223,9 +231,7 @@ class AndroidRunConfigurationExecutor(
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
-    RunStats.from(env).track("waitForProcessTermination") {
-      waitPreviousProcessTermination(devices, applicationId, indicator)
-    }
+    RunStats.from(env).track("waitForProcessTermination") { waitPreviousProcessTermination(devices, applicationId, indicator) }
 
     val console = createConsole()
     val device = devices.single()
@@ -246,7 +252,7 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Launching on devices"
       LOG.info("Launching on device ${device.name}")
 
-      //Deploy
+      // Deploy
       if (configuration.DEPLOY) {
         if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
           launchSandboxSdk(device, applicationId, LOG)
@@ -259,12 +265,16 @@ class AndroidRunConfigurationExecutor(
         val apks = apkInfosSafe(device)
         val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults =
-          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
+          deployAndHandleError(
+            env,
+            { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
+          )
 
         notifyLiveEditService(device, apks, applicationContext)
 
-        val mainApp = deployResults.find { it.app.appId == applicationId }
-          ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+        val mainApp =
+          deployResults.find { it.app.appId == applicationId }
+            ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
         if (restoreEnabled) {
           if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
@@ -286,13 +296,18 @@ class AndroidRunConfigurationExecutor(
   }
 
   private suspend fun startDebugSession(
-    device: IDevice, applicationId: String, indicator: ProgressIndicator, console: ConsoleView
-  ):XDebugSessionImpl  {
-    val debugger = configuration.androidDebuggerContext.androidDebugger
-      ?: throw ExecutionException("Unable to determine debugger to use for this launch")
+    device: IDevice,
+    applicationId: String,
+    indicator: ProgressIndicator,
+    console: ConsoleView,
+  ): XDebugSessionImpl {
+    val debugger =
+      configuration.androidDebuggerContext.androidDebugger
+        ?: throw ExecutionException("Unable to determine debugger to use for this launch")
     LOG.info("Using debugger: " + debugger.id)
-    val debuggerState = configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
-      ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
+    val debuggerState =
+      configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
+        ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
 
     return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -303,7 +318,7 @@ class AndroidRunConfigurationExecutor(
       destroyRunningProcess = { d -> d.forceStop(applicationId) },
       indicator,
       console,
-      15
+      15,
     )
   }
 
@@ -314,19 +329,21 @@ class AndroidRunConfigurationExecutor(
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
      *
-     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by setting [RunContentDescriptor.isHiddenContent] to false.
-     * Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the same instance of [ProcessHandler].
+     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by
+     * setting [RunContentDescriptor.isHiddenContent] to false. Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the
+     * same instance of [ProcessHandler].
      */
     val processHandlers = settings.getProcessHandlersForDevices(project, devices).distinct()
 
-    /**
-     * Searching for first not hidden [RunContentDescriptor].
-     */
-    val existingRunContentDescriptor = processHandlers.mapNotNull {
-      withContext(uiThread) {
-        RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
-      }
-    }.firstOrNull()
+    /** Searching for first not hidden [RunContentDescriptor]. */
+    val existingRunContentDescriptor =
+      processHandlers
+        .mapNotNull {
+          withContext(uiThread) {
+            RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
+          }
+        }
+        .firstOrNull()
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
@@ -337,31 +354,43 @@ class AndroidRunConfigurationExecutor(
 
     // A list of devices that we have launched application successfully.
     indicator.text = "Launching on devices"
-    devices.map { device ->
-      async {
-        LOG.info("Launching on device ${device.name}")
+    devices
+      .map { device ->
+        async {
+          LOG.info("Launching on device ${device.name}")
 
-        //Deploy
-        val apks = apkInfosSafe(device)
-        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
-        val deployResults = deployAndHandleError(
-          env,
-          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
-          isApplyChangesFallbackToRun()
-        )
+          // Deploy
+          val apks = apkInfosSafe(device)
+          val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+          val deployResults =
+            deployAndHandleError(
+              env,
+              {
+                apks.map {
+                  applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator)
+                }
+              },
+              isApplyChangesFallbackToRun(),
+            )
 
-        if (deployResults.any { it.needsRestart }) {
-          val mainApp = deployResults.find { it.app.appId == applicationId }
-            ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
-          RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
-          waitPreviousProcessTermination(listOf(device), applicationId, indicator)
-          launch(mainApp.app, device, console, isDebug = false)
-          needsNewRunContentDescriptor = true
+          if (deployResults.any { it.needsRestart }) {
+            val mainApp =
+              deployResults.find { it.app.appId == applicationId }
+                ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+            RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
+            waitPreviousProcessTermination(listOf(device), applicationId, indicator)
+            launch(mainApp.app, device, console, isDebug = false)
+            needsNewRunContentDescriptor = true
+          }
         }
       }
-    }.awaitAll()
+      .awaitAll()
 
-    if (needsNewRunContentDescriptor || existingRunContentDescriptor?.processHandler == null || existingRunContentDescriptor.processHandler?.isProcessTerminated == true) {
+    if (
+      needsNewRunContentDescriptor ||
+        existingRunContentDescriptor?.processHandler == null ||
+        existingRunContentDescriptor.processHandler?.isProcessTerminated == true
+    ) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
       AndroidSessionInfo.create(processHandler, devices, applicationId)
@@ -384,19 +413,21 @@ class AndroidRunConfigurationExecutor(
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
      *
-     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by setting [RunContentDescriptor.isHiddenContent] to false.
-     * Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the same instance of [ProcessHandler].
+     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by
+     * setting [RunContentDescriptor.isHiddenContent] to false. Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the
+     * same instance of [ProcessHandler].
      */
     val processHandlers = settings.getProcessHandlersForDevices(project, devices).distinct()
 
-    /**
-     * Searching for first not hidden [RunContentDescriptor].
-     */
-    val existingRunContentDescriptor = processHandlers.mapNotNull {
-      withContext(uiThread) {
-        RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
-      }
-    }.firstOrNull()
+    /** Searching for first not hidden [RunContentDescriptor]. */
+    val existingRunContentDescriptor =
+      processHandlers
+        .mapNotNull {
+          withContext(uiThread) {
+            RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
+          }
+        }
+        .firstOrNull()
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
@@ -405,32 +436,41 @@ class AndroidRunConfigurationExecutor(
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     console.printLaunchTaskStartedMessage("Applying code changes to")
 
-    devices.map { device ->
-      async {
-        LOG.info("Launching on device ${device.name}")
-        val apks = apkInfosSafe(device)
-        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
-        val deployResults = deployAndHandleError(
-          env,
-          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
-          isApplyCodeChangesFallbackToRun()
-        )
+    devices
+      .map { device ->
+        async {
+          LOG.info("Launching on device ${device.name}")
+          val apks = apkInfosSafe(device)
+          val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+          val deployResults =
+            deployAndHandleError(
+              env,
+              {
+                apks.map {
+                  applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator)
+                }
+              },
+              isApplyCodeChangesFallbackToRun(),
+            )
 
-        if (deployResults.any { it.needsRestart }) {
-          val mainApp = deployResults.find { it.app.appId == applicationId }
-            ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+          if (deployResults.any { it.needsRestart }) {
+            val mainApp =
+              deployResults.find { it.app.appId == applicationId }
+                ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
-          RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
-          waitPreviousProcessTermination(listOf(device), applicationId, indicator)
-          launch(mainApp.app, device, console, isDebug = env.executor.isDebug)
-          needsNewRunContentDescriptor = true
+            RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
+            waitPreviousProcessTermination(listOf(device), applicationId, indicator)
+            launch(mainApp.app, device, console, isDebug = env.executor.isDebug)
+            needsNewRunContentDescriptor = true
+          }
         }
       }
-    }.awaitAll()
+      .awaitAll()
 
-    if (needsNewRunContentDescriptor ||
-      existingRunContentDescriptor?.processHandler == null ||
-      existingRunContentDescriptor.processHandler?.isProcessTerminated == true
+    if (
+      needsNewRunContentDescriptor ||
+        existingRunContentDescriptor?.processHandler == null ||
+        existingRunContentDescriptor.processHandler?.isProcessTerminated == true
     ) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       if (env.executor.isDebug) {
@@ -445,12 +485,13 @@ class AndroidRunConfigurationExecutor(
     }
   }
 
-  inner class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) : RunContentDescriptor(
-    existingRunContentDescriptor.executionConsole,
-    existingRunContentDescriptor.processHandler,
-    existingRunContentDescriptor.component,
-    existingRunContentDescriptor.displayName
-  ) {
+  inner class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) :
+    RunContentDescriptor(
+      existingRunContentDescriptor.executionConsole,
+      existingRunContentDescriptor.processHandler,
+      existingRunContentDescriptor.component,
+      existingRunContentDescriptor.displayName,
+    ) {
     override fun isHiddenContent() = true
 
     init {
@@ -459,11 +500,12 @@ class AndroidRunConfigurationExecutor(
   }
 
   @Throws(ExecutionException::class)
-  private fun apkInfosSafe(device: IDevice): MutableCollection<ApkInfo> = try {
-    apkProvider.getApks(device)
-  } catch (e: ApkProvisionException) {
-    throw ExecutionException(e)
-  }
+  private fun apkInfosSafe(device: IDevice): MutableCollection<ApkInfo> =
+    try {
+      apkProvider.getApks(device)
+    } catch (e: ApkProvisionException) {
+      throw ExecutionException(e)
+    }
 
   private fun fillStats(stats: RunStats, applicationId: String, devices: List<IDevice>) {
     stats.setPackage(applicationId)
@@ -472,8 +514,9 @@ class AndroidRunConfigurationExecutor(
     stats.setRunAlwaysInstallWithPm(configuration.ALWAYS_INSTALL_WITH_PM)
     stats.setIsComposeProject(LiveEditService.usesCompose(project))
     // Only applicable 35+
-    stats.setUseAssumeVerified(configuration.ALLOW_ASSUME_VERIFIED &&
-                               devices.any { it.version.isAtLeast(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) })
+    stats.setUseAssumeVerified(
+      configuration.ALLOW_ASSUME_VERIFIED && devices.any { it.version.isAtLeast(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) }
+    )
   }
 
   private fun isApplyCodeChangesFallbackToRun(): Boolean {
@@ -490,7 +533,7 @@ class AndroidRunConfigurationExecutor(
   }
 
   @Throws(ExecutionException::class)
-  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) : Boolean {
+  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean): Boolean {
     val amStartOptions = StringBuilder()
     var didAnything = false
 
@@ -500,7 +543,8 @@ class AndroidRunConfigurationExecutor(
     }
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     try {
-      didAnything = configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
+      didAnything =
+        configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
     } catch (e: DeployerException) {
       throw AndroidExecutionException(e.id, e.message)
     }

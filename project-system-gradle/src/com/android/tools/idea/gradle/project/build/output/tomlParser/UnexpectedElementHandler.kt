@@ -31,7 +31,8 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 
 class UnexpectedElementHandler : TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "[a-zA-Z.:]+ On ([^ ]+) declaration '([^ ]+)' expected to find any of [a-z', ]+ but found unexpected key '([^ ]+)'.".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex =
+    "[a-zA-Z.:]+ On ([^ ]+) declaration '([^ ]+)' expected to find any of [a-z', ]+ but found unexpected key '([^ ]+)'.".toRegex()
 
   override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     val problemLine = reader.readLine() ?: return listOf()
@@ -42,46 +43,47 @@ class UnexpectedElementHandler : TomlErrorHandler {
 
       val (type, alias, property) = match.destructured
       val tomlTableName = TYPE_NAMING_PARSING[type] ?: return listOf()
-      return extractAliasInformation(
-        tomlTableName, alias, property, stopString, description, reader
-      ).let { listOf(it) }
+      return extractAliasInformation(tomlTableName, alias, property, stopString, description, reader).let { listOf(it) }
     }
     return listOf()
   }
 
-  private fun extractAliasInformation(tomlTableName: String,
-                                      alias: String,
-                                      property: String,
-                                      stopString: String,
-                                      description: StringBuilder,
-                                      reader: BuildOutputInstantReader
+  private fun extractAliasInformation(
+    tomlTableName: String,
+    alias: String,
+    property: String,
+    stopString: String,
+    description: StringBuilder,
+    reader: BuildOutputInstantReader,
   ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, "> $stopString"))
 
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
 
-      private fun getNavigable(project: Project, file: VirtualFile): OpenFileDescriptor {
-        val fileDescriptor = OpenFileDescriptor(project, file)
-        val psiFile = PsiManager.getInstance(project).findFile(file) ?: return fileDescriptor
+        private fun getNavigable(project: Project, file: VirtualFile): OpenFileDescriptor {
+          val fileDescriptor = OpenFileDescriptor(project, file)
+          val psiFile = PsiManager.getInstance(project).findFile(file) ?: return fileDescriptor
 
-        val result = psiFile.childrenOfType<TomlTable>().filter { it.header.key?.text == tomlTableName }
-          .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-          .find { it.key.text == alias }
-        return result?.value?.childrenOfType<TomlKeyValue>()?.find { it.key.text == property }?.let { getDescriptor(it, project, file) }
-               ?: fileDescriptor
-      }
-
-      override fun getNavigatable(project: Project): Navigatable? {
-        for (file in project.findAllCatalogFiles()) {
-          val descriptor = runReadAction { getNavigable(project, file) }
-          if (descriptor.offset >= 0) return descriptor
+          val result =
+            psiFile
+              .childrenOfType<TomlTable>()
+              .filter { it.header.key?.text == tomlTableName }
+              .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+              .find { it.key.text == alias }
+          return result?.value?.childrenOfType<TomlKeyValue>()?.find { it.key.text == property }?.let { getDescriptor(it, project, file) }
+            ?: fileDescriptor
         }
-        return null
+
+        override fun getNavigatable(project: Project): Navigatable? {
+          for (file in project.findAllCatalogFiles()) {
+            val descriptor = runReadAction { getNavigable(project, file) }
+            if (descriptor.offset >= 0) return descriptor
+          }
+          return null
+        }
       }
-    }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
-
 }
-

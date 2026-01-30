@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
@@ -34,6 +34,7 @@ import java.io.File
 
 class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(AgpVersion.parse("8.0.0-beta01"), AgpVersion.parse("9.0.0-beta01"))
@@ -48,8 +49,8 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
       val xmlFile = manifestFile.takeIf { it.isValid }?.let { psiManager.findFile(it) } as? XmlFile ?: return@child
       val rootTag = xmlFile.rootTag ?: return@child
       val applicationTag = rootTag.findSubTags("application").takeIf { it.size == 1 }?.get(0) ?: return@child
-      val useEmbeddedDexAttribute = applicationTag.getAttribute("useEmbeddedDex", "http://schemas.android.com/apk/res/android")
-                                    ?: return@child
+      val useEmbeddedDexAttribute =
+        applicationTag.getAttribute("useEmbeddedDex", "http://schemas.android.com/apk/res/android") ?: return@child
       function(useEmbeddedDexAttribute)
       if (useEmbeddedDex == null && child.name == "main") {
         useEmbeddedDexAttribute.value?.toBoolean()?.let { useEmbeddedDex = it }
@@ -58,15 +59,17 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
     return useEmbeddedDex
   }
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message(
-    "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.commandName")
+  override fun getCommandName(): String =
+    AgpUpgradeBundle.message("androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.commandName")
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("use-embedded-dex-deprecated")
 
-  override fun getShortDescription(): String = """
+  override fun getShortDescription(): String =
+    """
     The useEmbeddedDex property in AndroidManifest.xml is deprecated in
     favour of the useLegacyPackaging dex option in build files.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_USE_EMBEDDED_DEX)
@@ -76,15 +79,16 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
-      val manifestValue = moduleDirectory.computeUseEmbeddedDexWith {
+      val manifestValue = moduleDirectory.computeUseEmbeddedDexWith {}
 
-      }
       manifestValue?.let {
         if (model.android().packaging().dex().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE) return@let
         if (!it) return@let
-        val psiElement = model.android().packaging().dex().psiElement
-                         ?: model.android().packaging().psiElement
-                         ?: model.android().psiElement ?: modelPsiElement
+        val psiElement =
+          model.android().packaging().dex().psiElement
+            ?: model.android().packaging().psiElement
+            ?: model.android().psiElement
+            ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_DSL_USE_LEGACY_PACKAGING)
         val usageInfo = AddDexUseLegacyPackagingInfo(wrappedPsiElement, model, false)
         usages.add(usageInfo)
@@ -99,26 +103,27 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message(
-        "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() =
+        AgpUpgradeBundle.message("androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val ADD_DSL_USE_LEGACY_PACKAGING = UsageType(AgpUpgradeBundle.messagePointer(
-      "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
+    val ADD_DSL_USE_LEGACY_PACKAGING =
+      UsageType(
+        AgpUpgradeBundle.messagePointer(
+          "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"
+        )
+      )
   }
 }
 
-class AddDexUseLegacyPackagingInfo(
-  element: WrappedPsiElement,
-  val model: GradleBuildModel,
-  val value: Boolean
-) : GradleBuildModelUsageInfo(element) {
+class AddDexUseLegacyPackagingInfo(element: WrappedPsiElement, val model: GradleBuildModel, val value: Boolean) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.android().packaging().dex().useLegacyPackaging().setValue(value)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message(
-    "androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
 }

@@ -32,9 +32,8 @@ class VisualLintSettings : SimplePersistentStateComponent<VisualLintSettings.Sta
   }
 
   /**
-   * Record if the toggle action of visual lint filter is selected in
-   * [com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup]. When it is **NOT**
-   * selected, the visual lint issues/problems are not displayed in the
+   * Record if the toggle action of visual lint filter is selected in [com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup].
+   * When it is **NOT** selected, the visual lint issues/problems are not displayed in the
    * [com.android.tools.idea.common.error.DesignerCommonIssuePanel].
    */
   var isVisualLintFilterSelected: Boolean
@@ -45,8 +44,6 @@ class VisualLintSettings : SimplePersistentStateComponent<VisualLintSettings.Sta
     }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): VisualLintSettings =
-      project.getService(VisualLintSettings::class.java)
+    @JvmStatic fun getInstance(project: Project): VisualLintSettings = project.getService(VisualLintSettings::class.java)
   }
 }

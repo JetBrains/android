@@ -18,33 +18,23 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import kotlinx.coroutines.Job
 
-/**
- * The minimal interface allowing to receive sufficient information to control the
- * [ComposeAnimation] state.
- */
+/** The minimal interface allowing to receive sufficient information to control the [ComposeAnimation] state. */
 interface ComposeAnimationHandler {
-  /**
-   * A controller for the existing [ComposeAnimation]. See [AnimationClock] interface for more
-   * details.
-   */
+  /** A controller for the existing [ComposeAnimation]. See [AnimationClock] interface for more details. */
   var animationClock: AnimationClock?
 
   /**
-   * Notifies the handler that an instance of [ComposeAnimation] is added to the Composable. Meaning
-   * that the [animation] can be controlled with [AnimationClock] (see e.g.
-   * [AnimationClock.setClockTimes]).
+   * Notifies the handler that an instance of [ComposeAnimation] is added to the Composable. Meaning that the [animation] can be controlled
+   * with [AnimationClock] (see e.g. [AnimationClock.setClockTimes]).
    */
   fun addAnimation(animation: ComposeAnimation): Job
 
   /**
-   * Notifies the handler that an instance of [ComposeAnimation] is removed from the Composable.
-   * Meaning that it can no longer be controlled.
+   * Notifies the handler that an instance of [ComposeAnimation] is removed from the Composable. Meaning that it can no longer be
+   * controlled.
    */
   fun removeAnimation(animation: ComposeAnimation): Job
 
-  /**
-   * Notifies the handler that all [ComposeAnimation]s are removed from the Composable. Meaning that
-   * they can no longer be controlled.
-   */
+  /** Notifies the handler that all [ComposeAnimation]s are removed from the Composable. Meaning that they can no longer be controlled. */
   fun removeAllAnimations(): Job
 }

@@ -39,8 +39,7 @@ internal data class AndroidLogcatSettings(
 ) : PersistentStateComponent<AndroidLogcatSettings> {
 
   companion object {
-    fun getInstance(): AndroidLogcatSettings =
-      ApplicationManager.getApplication().getService(AndroidLogcatSettings::class.java)
+    fun getInstance(): AndroidLogcatSettings = ApplicationManager.getApplication().getService(AndroidLogcatSettings::class.java)
   }
 
   override fun getState(): AndroidLogcatSettings = this

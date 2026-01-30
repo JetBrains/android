@@ -40,10 +40,11 @@ object AdbHostLogFileProvider : DiagnosticsSummaryFileProvider {
     }
     val serverStatus = AdbServerStatusRetriever.getInstance(project).serverStatus.value ?: return emptyList()
     val serverStatusOutputFile =
-      DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
-        .resolve(SERVER_STATUS_FILE)
+      DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath()).resolve(SERVER_STATUS_FILE)
     Files.writeString(serverStatusOutputFile, serverStatus.toString())
-    return listOf(FileInfo(Path(serverStatus.absoluteLogPath), Path(serverStatus.absoluteLogPath).fileName),
-                  FileInfo(serverStatusOutputFile, Paths.get(SERVER_STATUS_FILE)))
+    return listOf(
+      FileInfo(Path(serverStatus.absoluteLogPath), Path(serverStatus.absoluteLogPath).fileName),
+      FileInfo(serverStatusOutputFile, Paths.get(SERVER_STATUS_FILE)),
+    )
   }
 }

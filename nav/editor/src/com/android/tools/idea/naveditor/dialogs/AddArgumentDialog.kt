@@ -59,8 +59,7 @@ import org.jetbrains.kotlin.utils.doNothing
 class AddArgumentDialog(
   private val existingComponent: NlComponent?,
   private val parent: NlComponent,
-  private val kotlinTreeClassChooserFactory: KotlinTreeClassChooserFactory =
-    KotlinTreeClassChooserFactory.getInstance(),
+  private val kotlinTreeClassChooserFactory: KotlinTreeClassChooserFactory = KotlinTreeClassChooserFactory.getInstance(),
 ) : DialogWrapper(false) {
 
   private var selectedType: Type = Type.values().first()
@@ -128,18 +127,8 @@ class AddArgumentDialog(
     BOOLEAN("Boolean", "boolean"),
     STRING("String", "string", supportsNullable = true),
     REFERENCE("Resource Reference", "reference", supportsArray = false),
-    CUSTOM_PARCELABLE(
-      "Custom Parcelable...",
-      "custom_parcelable",
-      isCustom = true,
-      supportsNullable = true,
-    ),
-    CUSTOM_SERIALIZABLE(
-      "Custom Serializable...",
-      "custom_serializable",
-      isCustom = true,
-      supportsNullable = true,
-    ),
+    CUSTOM_PARCELABLE("Custom Parcelable...", "custom_parcelable", isCustom = true, supportsNullable = true),
+    CUSTOM_SERIALIZABLE("Custom Serializable...", "custom_serializable", isCustom = true, supportsNullable = true),
     CUSTOM_ENUM("Custom Enum...", "custom_enum", isCustom = true, supportsArray = false);
 
     override fun toString(): String {
@@ -153,13 +142,7 @@ class AddArgumentDialog(
 
     dialogUI.myTypeComboBox.setRenderer(
       object : ListCellRendererWrapper<Type>() {
-        override fun customize(
-          list: JList<*>,
-          value: Type,
-          index: Int,
-          isSelected: Boolean,
-          hasFocus: Boolean,
-        ) {
+        override fun customize(list: JList<*>, value: Type, index: Int, isSelected: Boolean, hasFocus: Boolean) {
           if (index == -1 && value.isCustom && selectedType == value) {
             setText(type)
           } else {
@@ -216,10 +199,7 @@ class AddArgumentDialog(
       myOKAction.putValue(Action.NAME, "Update")
       title = "Update Argument"
     } else {
-      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
-        dialogUI.myDefaultValuePanel,
-        "textDefaultValue",
-      )
+      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "textDefaultValue")
       myOKAction.putValue(Action.NAME, "Add")
       title = "Add Argument"
     }
@@ -232,13 +212,7 @@ class AddArgumentDialog(
 
     dialogUI.myDefaultValueComboBox.renderer =
       object : ListCellRendererWrapper<String>() {
-        override fun customize(
-          list: JList<*>,
-          value: String?,
-          index: Int,
-          selected: Boolean,
-          hasFocus: Boolean,
-        ) {
+        override fun customize(list: JList<*>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
           setText(value ?: "No default value")
         }
       }
@@ -251,8 +225,7 @@ class AddArgumentDialog(
     dialogUI.myNullableCheckBox.addActionListener { event -> updateUi() }
   }
 
-  private fun updateArgType(argType: String?) =
-    argType?.let { it.removeSuffix("[]") + if (isArray) "[]" else "" }
+  private fun updateArgType(argType: String?) = argType?.let { it.removeSuffix("[]") + if (isArray) "[]" else "" }
 
   private fun newTypeSelected() {
     val selectedItem = dialogUI.myTypeComboBox.selectedItem as? Type
@@ -311,17 +284,11 @@ class AddArgumentDialog(
 
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
-          dialogUI.myDefaultValuePanel,
-          "comboDefaultValue",
-        )
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
         defaultValueComboModel.update(listOf(null, "true", "false"))
       }
       selectedType == Type.CUSTOM_ENUM && !isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
-          dialogUI.myDefaultValuePanel,
-          "comboDefaultValue",
-        )
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
         val list =
           ClassUtil.findPsiClass(psiManager, type.orEmpty())
             ?.fields
@@ -333,20 +300,14 @@ class AddArgumentDialog(
         defaultValueComboModel.update(list)
       }
       selectedType.isCustom || isArray -> {
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
-          dialogUI.myDefaultValuePanel,
-          "comboDefaultValue",
-        )
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
         val list = mutableListOf<String?>(null)
         if (isNullable) list.add("@null")
         defaultValueComboModel.update(list)
       }
       else -> {
         dialogUI.myDefaultValueTextField.text = ""
-        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(
-          dialogUI.myDefaultValuePanel,
-          "textDefaultValue",
-        )
+        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "textDefaultValue")
       }
     }
     dialogUI.myDefaultValueComboBox.isEnabled = defaultValueComboModel.size != 1
@@ -366,9 +327,7 @@ class AddArgumentDialog(
     if (name.isNullOrEmpty()) {
       return ValidationInfo("Name must be set", dialogUI.myNameTextField)
     }
-    if (
-      parent.children.any { c -> c !== existingComponent && c.isArgument && c.argumentName == name }
-    ) {
+    if (parent.children.any { c -> c !== existingComponent && c.isArgument && c.argumentName == name }) {
       return ValidationInfo("Name must be unique", dialogUI.myNameTextField)
     }
     var newDefaultValue = defaultValue
@@ -392,21 +351,16 @@ class AddArgumentDialog(
           }
         }
         Type.REFERENCE -> {
-          val url =
-            ResourceUrl.parse(newDefaultValue)
-              ?: return ValidationInfo("Reference not correctly formatted")
+          val url = ResourceUrl.parse(newDefaultValue) ?: return ValidationInfo("Reference not correctly formatted")
           val resourceResolver = parent.model.configuration.resourceResolver
           if (resourceResolver != null) {
             ApplicationManager.getApplication()
-              .runReadAction(
-                Computable<ResourceValue> { resourceResolver.resolve(url, parent.tagDeprecated) }
-              ) ?: return ValidationInfo("Resource does not exist")
+              .runReadAction(Computable<ResourceValue> { resourceResolver.resolve(url, parent.tagDeprecated) })
+              ?: return ValidationInfo("Resource does not exist")
           }
         }
         Type.FLOAT -> {
-          if (
-            !FloatResources.parseFloatAttribute(newDefaultValue, FloatResources.TypedValue(), false)
-          ) {
+          if (!FloatResources.parseFloatAttribute(newDefaultValue, FloatResources.TypedValue(), false)) {
             try {
               newDefaultValue.toFloat()
               return null
@@ -441,10 +395,7 @@ class AddArgumentDialog(
       realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       var newDefaultValue = defaultValue
       if (
-        !isArray &&
-          !newDefaultValue.isNullOrEmpty() &&
-          dialogUI.myTypeComboBox.selectedItem === Type.LONG &&
-          !newDefaultValue.endsWith("L")
+        !isArray && !newDefaultValue.isNullOrEmpty() && dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")
       ) {
         newDefaultValue += "L"
       }

@@ -35,24 +35,24 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames.GRADLE_API_DEFAULT_TASK
 import org.jetbrains.plugins.gradle.util.GradleTaskClassifier
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
-import javax.swing.JPanel
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class GradleRunTaskActionIntegrationTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
 
   private val project: Project
     get() = androidProjectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = androidProjectRule.fixture
 
@@ -70,12 +70,10 @@ class GradleRunTaskActionIntegrationTest {
     val gradleTaskListener = TestGradleTaskListener()
     ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(gradleTaskListener, project)
     TestGradleTaskAction.executeTask(project, fixture, taskName, linkedExternalProjectPath)
-    gradleTaskListener.capturedException?.let {
-      throw it
-    }
+    gradleTaskListener.capturedException?.let { throw it }
   }
 
-  private class TestGradleTaskListener: ExternalSystemTaskNotificationListener {
+  private class TestGradleTaskListener : ExternalSystemTaskNotificationListener {
     var capturedException: Exception? = null
 
     override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
@@ -88,30 +86,33 @@ class GradleRunTaskActionIntegrationTest {
       project: Project,
       fixture: CodeInsightTestFixture,
       taskName: String,
-      linkedExternalProjectPath: @SystemIndependent String
+      linkedExternalProjectPath: @SystemIndependent String,
     ) {
       val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
       fixture.openFileInEditor(buildGradleFile!!)
 
-      val gradleTaskActionEvent = mock<AnActionEvent>().apply {
-        whenever(dataContext).thenReturn(IdeUiService.getInstance().createUiDataContext(createContextComponent(project, fixture)))
-        whenever(place).thenReturn(TOOLWINDOW_GRADLE)
-      }
-      val gradleTaskData = TaskData(GRADLE_SYSTEM_ID, taskName, linkedExternalProjectPath, "Test run task from Gradle tool window").apply {
-        group = GradleTaskClassifier.classifyTaskName(taskName)
-        type = GRADLE_API_DEFAULT_TASK
-      }
+      val gradleTaskActionEvent =
+        mock<AnActionEvent>().apply {
+          whenever(dataContext).thenReturn(IdeUiService.getInstance().createUiDataContext(createContextComponent(project, fixture)))
+          whenever(place).thenReturn(TOOLWINDOW_GRADLE)
+        }
+      val gradleTaskData =
+        TaskData(GRADLE_SYSTEM_ID, taskName, linkedExternalProjectPath, "Test run task from Gradle tool window").apply {
+          group = GradleTaskClassifier.classifyTaskName(taskName)
+          type = GRADLE_API_DEFAULT_TASK
+        }
       perform(project, GRADLE_SYSTEM_ID, gradleTaskData, gradleTaskActionEvent)
     }
 
     private fun createContextComponent(project: Project, fixture: CodeInsightTestFixture): JComponent {
       val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
       fixture.openFileInEditor(buildGradleFile!!)
-      val panel = object : JPanel(), UiDataProvider {
-        override fun uiDataSnapshot(sink: DataSink) {
-          sink[CommonDataKeys.PROJECT] = project
+      val panel =
+        object : JPanel(), UiDataProvider {
+          override fun uiDataSnapshot(sink: DataSink) {
+            sink[CommonDataKeys.PROJECT] = project
+          }
         }
-      }
       panel.add(fixture.editor.component)
       return fixture.editor.contentComponent
     }

@@ -99,14 +99,7 @@ class LayoutlibSceneRendererTest {
       taskInflateCount.incrementAndGet()
       CompletableFuture.completedFuture(simulatedInflateResult)
     }
-    val model =
-      model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          component(SdkConstants.TAG_LAYOUT).withBounds(0, 0, 1000, 1000),
-        )
-        .build()
+    val model = model(projectRule, "layout", "layout.xml", component(SdkConstants.TAG_LAYOUT).withBounds(0, 0, 1000, 1000)).build()
     renderer =
       LayoutlibSceneRenderer(
         projectRule.testRootDisposable,
@@ -115,8 +108,7 @@ class LayoutlibSceneRendererTest {
         model.surface as NlDesignSurface,
         LayoutScannerConfiguration.DISABLED,
       )
-    whenever(renderTaskBuilderMock.build(any()))
-      .thenReturn(CompletableFuture.completedFuture(renderTaskMock))
+    whenever(renderTaskBuilderMock.build(any())).thenReturn(CompletableFuture.completedFuture(renderTaskMock))
     renderer.sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { renderTaskBuilderMock }
     whenever(renderTaskMock.executeCallbacks(any())).then { fakeCallback() }
   }
@@ -149,14 +141,8 @@ class LayoutlibSceneRendererTest {
     simulatedInflateResult = createRenderResult(Result.Status.ERROR_INFLATION)
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     renderer.requestRender(trigger = null)
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 4 }
-    }
-    assertEquals(
-      "expected inflation on forceInflate but didn't happen (2)",
-      3,
-      taskInflateCount.get(),
-    )
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskRenderCount.get() == 4 } }
+    assertEquals("expected inflation on forceInflate but didn't happen (2)", 3, taskInflateCount.get())
     assertEquals("expected render not to happen after inflation failure", 3, taskRenderCount.get())
 
     // Re-render after inflation error, inflation should happen without forcing it and render
@@ -181,8 +167,7 @@ class LayoutlibSceneRendererTest {
     // Use the fact that inflation re-throws the exception from its result to simulate a
     // cancellation exception
     val myCancellationException = CancellationException("Test")
-    simulatedInflateResult =
-      createRenderResult(Result.Status.ERROR_INFLATION, myCancellationException)
+    simulatedInflateResult = createRenderResult(Result.Status.ERROR_INFLATION, myCancellationException)
     renderer.requestRenderAndWait(trigger = null)
     assertEquals("expected inflation but didn't happen", 2, taskInflateCount.get())
     assertEquals("expected render not to happen, but it did", 1, taskRenderCount.get())
@@ -240,15 +225,11 @@ class LayoutlibSceneRendererTest {
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     repeat(5) { renderer.requestRender(trigger = null) }
     // inflation should still be blocked
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 } }
     // Now unblock the inflation, 2 requests should be processed (the first
     // one above, and one from the 5 added later)
     unblockInflation()
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 2 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 2 } }
     assertEquals(2, taskInflateCount.get())
     assertEquals(2, taskRenderCount.get())
   }
@@ -260,17 +241,13 @@ class LayoutlibSceneRendererTest {
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     repeat(5) { renderer.requestRender(trigger = null) }
     // inflation should still be blocked
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 } }
     // deactivate the renderer now, any pending render should not be executed, but the running
     // render is not cancelled.
     renderer.deactivate()
     // Now unblock the inflation
     unblockInflation()
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 1 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 1 } }
     // Deactivation should've cancelled the pending renders. The running render was in the middle
     // of inflation when deactivated, meaning that the inflation is not being cancelled, but the
     // following renderTask.render shouldn't execute
@@ -281,22 +258,17 @@ class LayoutlibSceneRendererTest {
   @Test
   fun testRenderAndWait() = runBlocking {
     blockInflationAndRequestRender()
-    val requestRenderAndWaitJob =
-      launch(workerThread) { renderer.requestRenderAndWait(trigger = null) }
+    val requestRenderAndWaitJob = launch(workerThread) { renderer.requestRenderAndWait(trigger = null) }
     delay(1000)
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     renderer.requestRender(trigger = null)
 
     // Inflation should still be blocked, and the renderAndWait shouldn't have finished
     assertTrue(requestRenderAndWaitJob.isActive)
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 } }
     // now unblock and wait for the wait job to finish
     unblockInflation()
-    delayUntilCondition(delayPerIterationMs = 500, 3.seconds) {
-      requestRenderAndWaitJob.isCompleted
-    }
+    delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { requestRenderAndWaitJob.isCompleted }
     // Inflate should be 2 because forceReinflate was called after the renderAndWaitJob started,
     // but inflation was blocked at the moment and so the request processed later should have
     // re-inflated
@@ -396,7 +368,7 @@ class LayoutlibSceneRendererTest {
     )
     assertEquals(
       """
-        Error inflating the preview (<A HREF="runnable:0">Details</A>): java.lang.IllegalStateException
+      Error inflating the preview (<A HREF="runnable:0">Details</A>): java.lang.IllegalStateException
       """
         .trimIndent(),
       result.logger.messages.joinToString("\n") { "${it.html}: ${it.throwable}" },
@@ -408,9 +380,7 @@ class LayoutlibSceneRendererTest {
     renderer.sceneRenderConfiguration.needsInflation.set(true)
     renderer.requestRender(trigger = null)
     delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { renderer.isRendering() }
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 500, 3.seconds) { taskInflateCount.get() > 0 } }
   }
 
   private fun unblockInflation() {

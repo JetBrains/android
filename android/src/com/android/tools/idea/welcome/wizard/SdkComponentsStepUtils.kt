@@ -48,9 +48,7 @@ internal object SdkComponentsStepUtils {
     }
   }
 
-  @JvmStatic
-  fun getTargetFilesystem(path: String?): File? =
-    getExistingParentFile(path) ?: File.listRoots().firstOrNull()
+  @JvmStatic fun getTargetFilesystem(path: String?): File? = getExistingParentFile(path) ?: File.listRoots().firstOrNull()
 
   @Contract("null->false")
   @JvmStatic
@@ -68,8 +66,6 @@ internal object SdkComponentsStepUtils {
       return false
     }
     val file = File(path)
-    return file.exists() &&
-      !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() &&
-      AndroidSdkData.getSdkData(file) == null
+    return file.exists() && !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() && AndroidSdkData.getSdkData(file) == null
   }
 }

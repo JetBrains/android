@@ -24,21 +24,15 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.jetbrains.annotations.TestOnly
 
 // Flags in ComposeViewNode.composeFlags
-const val FLAG_SYSTEM_DEFINED =
-  LayoutInspectorComposeProtocol.ComposableNode.Flags.SYSTEM_CREATED_VALUE
-const val FLAG_HAS_MERGED_SEMANTICS =
-  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_MERGED_SEMANTICS_VALUE
-const val FLAG_HAS_UNMERGED_SEMANTICS =
-  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_UNMERGED_SEMANTICS_VALUE
+const val FLAG_SYSTEM_DEFINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.SYSTEM_CREATED_VALUE
+const val FLAG_HAS_MERGED_SEMANTICS = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_MERGED_SEMANTICS_VALUE
+const val FLAG_HAS_UNMERGED_SEMANTICS = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_UNMERGED_SEMANTICS_VALUE
 const val FLAG_IS_INLINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
-const val FLAG_HAS_DRAW_MODIFIER =
-  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_DRAW_MODIFIER_VALUE
-const val FLAG_HAS_CHILD_DRAW_MODIFIER =
-  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_CHILD_DRAW_MODIFIER_VALUE
+const val FLAG_HAS_DRAW_MODIFIER = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_DRAW_MODIFIER_VALUE
+const val FLAG_HAS_CHILD_DRAW_MODIFIER = LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_CHILD_DRAW_MODIFIER_VALUE
 
 // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
-fun packageNameHash(packageName: String): Int =
-  packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
+fun packageNameHash(packageName: String): Int = packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
 /** A view node represents a composable in the view hierarchy as seen on the device. */
 class ComposeViewNode(
@@ -51,16 +45,10 @@ class ComposeViewNode(
   textValue: String,
   layoutFlags: Int,
 
-  /**
-   * The number of times this node was recomposed (i.e. the composable method called) since last
-   * reset.
-   */
+  /** The number of times this node was recomposed (i.e. the composable method called) since last reset. */
   recomposeCount: Int,
 
-  /**
-   * The number of times this node was skipped (i.e. the composable method was not called when it
-   * might have been) since last reset.
-   */
+  /** The number of times this node was skipped (i.e. the composable method was not called when it might have been) since last reset. */
   recomposeSkips: Int,
 
   /** The filename of where the code for this composable resides. This name not contain a path. */
@@ -80,18 +68,7 @@ class ComposeViewNode(
 
   /** The hash of an anchor which can identify the composable after a recomposition. */
   var anchorHash: Int,
-) :
-  ViewNode(
-    drawId,
-    qualifiedName,
-    layout,
-    layoutBounds,
-    renderBounds,
-    viewId,
-    textValue,
-    layoutFlags,
-    isDerivedFromWebView = false,
-  ) {
+) : ViewNode(drawId, qualifiedName, layout, layoutBounds, renderBounds, viewId, textValue, layoutFlags, isDerivedFromWebView = false) {
   @TestOnly
   constructor(
     drawId: Long,
@@ -149,8 +126,8 @@ class ComposeViewNode(
   /**
    * Returns true if this node (or a non-reported child) has LayoutInfo with draw modifier.
    *
-   * The presence of a draw modifier indicates that this composable node may draw, and that this
-   * node may be more desirable for selection than nodes above it that are without a draw modifier.
+   * The presence of a draw modifier indicates that this composable node may draw, and that this node may be more desirable for selection
+   * than nodes above it that are without a draw modifier.
    */
   val hasComposeDrawModifier: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_DRAW_MODIFIER)
@@ -163,8 +140,7 @@ class ComposeViewNode(
     get() = composePackageHash != -1
 
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
-    treeSettings.composeAsCallstack &&
-      readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
+    treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
 
   fun resetRecomposeCounts() {
     recompositions.reset()

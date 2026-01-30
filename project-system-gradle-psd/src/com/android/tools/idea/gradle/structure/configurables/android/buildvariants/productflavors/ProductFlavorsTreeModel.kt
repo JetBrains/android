@@ -21,16 +21,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
 
-class ProductFlavorsConfigurable(
-  val module: PsAndroidModule,
-  val context: PsContext
-) : NamedContainerConfigurableBase<PsFlavorDimension>("Flavor Dimensions") {
+class ProductFlavorsConfigurable(val module: PsAndroidModule, val context: PsContext) :
+  NamedContainerConfigurableBase<PsFlavorDimension>("Flavor Dimensions") {
   override fun getChildrenModels(): Collection<PsFlavorDimension> =
     module.flavorDimensions +
-    if (module.productFlavors.any { it.effectiveDimension == null }) listOf(PsFlavorDimension(module, isInvalid = true)) else emptyList()
+      if (module.productFlavors.any { it.effectiveDimension == null }) listOf(PsFlavorDimension(module, isInvalid = true)) else emptyList()
 
   override fun createChildConfigurable(model: PsFlavorDimension): NamedConfigurable<PsFlavorDimension> =
     FlavorDimensionConfigurable(module, model, context).also { Disposer.register(this, it) }
+
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.flavorDimensions.onChange(disposable, listener)
+
   override fun dispose() = Unit
 }

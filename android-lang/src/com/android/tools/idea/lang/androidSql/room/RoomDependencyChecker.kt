@@ -25,9 +25,7 @@ import com.intellij.psi.util.CachedValuesManager
 
 private val LOG = Logger.getInstance(RoomDependencyChecker::class.java)
 
-/**
- * Checks if project uses Room (any module depends on Room)
- */
+/** Checks if project uses Room (any module depends on Room) */
 class RoomDependencyChecker(val project: Project) {
   companion object {
     fun getInstance(project: Project): RoomDependencyChecker = project.getService(RoomDependencyChecker::class.java)!!
@@ -47,4 +45,3 @@ class RoomDependencyChecker(val project: Project) {
     return sequenceOf(RoomAnnotations.ENTITY.newName(), RoomAnnotations.ENTITY.oldName()).any { psiFacade.findClass(it, scope) != null }
   }
 }
-

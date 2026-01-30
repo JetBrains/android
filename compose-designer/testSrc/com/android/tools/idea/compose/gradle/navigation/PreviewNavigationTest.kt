@@ -65,10 +65,7 @@ import org.junit.Rule
 import org.junit.Test
 
 private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandler {
-  /**
-   * [CountDownLatch] useful to verify that the suspendable [handleNavigate] methods are invoked as
-   * many times as expected.
-   */
+  /** [CountDownLatch] useful to verify that the suspendable [handleNavigate] methods are invoked as many times as expected. */
   var expectedInvocationsCountDownLatch = CountDownLatch(expectedInvocations)
 
   fun resetExpectedInvocations(newExpectedInvocations: Int) {
@@ -88,18 +85,11 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     return listOf()
   }
 
-  override suspend fun findBoundsOfComponents(
-    sceneView: SceneView,
-    lineNumber: Int,
-  ): List<Rectangle> {
+  override suspend fun findBoundsOfComponents(sceneView: SceneView, lineNumber: Int): List<Rectangle> {
     return listOf()
   }
 
-  override suspend fun navigateTo(
-    sceneView: SceneView,
-    navigatable: Navigatable,
-    requestFocus: Boolean,
-  ): Boolean {
+  override suspend fun navigateTo(sceneView: SceneView, navigatable: Navigatable, requestFocus: Boolean): Boolean {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
     expectedInvocationsCountDownLatch.countDown()
     return true
@@ -137,15 +127,12 @@ class PreviewNavigationTest {
   fun testComposableNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module.getMainModule()
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"),
       )
       .future
       .thenAccept { renderResult ->
@@ -204,15 +191,12 @@ class PreviewNavigationTest {
   fun testInlineNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module.getMainModule()
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.MyPreviewWithInline"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.MyPreviewWithInline"),
       )
       .future
       .thenAccept { renderResult ->
@@ -223,9 +207,7 @@ class PreviewNavigationTest {
           val bounds = viewInfos.map { it.bounds }.first()
 
           val navigatable =
-            findNavigatableComponentHit(module, viewInfos, 0, bounds.bottom - bounds.bottom / 4) {
-              it.fileName == "InlineDeclaration.kt"
-            }
+            findNavigatableComponentHit(module, viewInfos, 0, bounds.bottom - bounds.bottom / 4) { it.fileName == "InlineDeclaration.kt" }
               as OpenFileDescriptor
           assertEquals("InlineDeclaration.kt", navigatable.file.name)
           assertEquals(22, navigatable.calculateLine())
@@ -239,31 +221,23 @@ class PreviewNavigationTest {
   fun testInProjectNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module.getMainModule()
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.NavigatablePreview"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview"),
       )
       .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
         ReadAction.run<Throwable> {
-          val descriptor =
-            findNavigatableComponentHit(module, viewInfos, 0, 0) {
-              it.fileName == "MainActivity.kt"
-            }
-              as OpenFileDescriptor
+          val descriptor = findNavigatableComponentHit(module, viewInfos, 0, 0) { it.fileName == "MainActivity.kt" } as OpenFileDescriptor
           assertEquals("MainActivity.kt", descriptor.file.name)
           assertEquals(60, descriptor.calculateLine())
 
-          val descriptorInOtherFile =
-            findNavigatableComponentHit(module, viewInfos, 0, 0) as OpenFileDescriptor
+          val descriptorInOtherFile = findNavigatableComponentHit(module, viewInfos, 0, 0) as OpenFileDescriptor
           assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
           assertEquals(52, descriptorInOtherFile.calculateLine())
         }
@@ -271,23 +245,17 @@ class PreviewNavigationTest {
       .join()
   }
 
-  /**
-   * Regression test for b/157129712 where we would navigate to the wrong file when the file names
-   * were equal.
-   */
+  /** Regression test for b/157129712 where we would navigate to the wrong file when the file names were equal. */
   @Test
   fun testDuplicateFileNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module.getMainModule()
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.OnlyATextNavigation"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.OnlyATextNavigation"),
       )
       .future
       .thenAccept { renderResult ->
@@ -297,11 +265,7 @@ class PreviewNavigationTest {
           // We click a Text() but we should not navigate to the local Text.kt file since it's not
           // related to the androidx.compose.ui.foundation.Text
           assertTrue(findComponentHits(viewInfos, 2, 2).any { it.fileName == "Text.kt" })
-          assertTrue(
-            (findNavigatableComponentHit(module, viewInfos, 2, 2) as OpenFileDescriptor)
-              .file
-              .name == "MainActivity.kt"
-          )
+          assertTrue((findNavigatableComponentHit(module, viewInfos, 2, 2) as OpenFileDescriptor).file.name == "MainActivity.kt")
         }
       }
       .join()
@@ -309,20 +273,14 @@ class PreviewNavigationTest {
 
   @Test
   fun testPreviewNavigation_nameLabelInteraction() {
-    val mainFile =
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    val mainFile = project.guessProjectDir()!!.findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     // Create a preview representation with an associated fakeUi
     val myNavigationHandler = TestNavigationHandler(1)
-    val previewView =
-      TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
+    val previewView = TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
     val composePreviewRepresentation =
-      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-        previewView
-      }
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
     lateinit var fakeUi: FakeUi
     runInEdtAndWait {
@@ -354,20 +312,14 @@ class PreviewNavigationTest {
   @Ignore("b/279732135")
   @Test
   fun testPreviewNavigation_imageInteraction() {
-    val mainFile =
-      project
-        .guessProjectDir()!!
-        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    val mainFile = project.guessProjectDir()!!.findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     // Create a preview representation with an associated fakeUi
     val myNavigationHandler = TestNavigationHandler(1)
-    val previewView =
-      TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
+    val previewView = TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
     val composePreviewRepresentation =
-      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
-        previewView
-      }
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi
@@ -388,8 +340,7 @@ class PreviewNavigationTest {
     // Now modify some parts of the previewView according to the FakeUi and the
     // PreviewRepresentation
     previewView.interactionPaneProvider = { fakeUi.root as JPanel }
-    previewView.delegateInteractionHandler.delegate =
-      composePreviewRepresentation.staticPreviewInteractionHandler
+    previewView.delegateInteractionHandler.delegate = composePreviewRepresentation.staticPreviewInteractionHandler
 
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
 
@@ -402,10 +353,7 @@ class PreviewNavigationTest {
     assertEquals(0, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
     fakeUi.clickPreviewImage(sceneViewPanel)
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
-    assertEquals(
-      sceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
-    )
+    assertEquals(sceneViewPanel.sceneView.getRootComponent(), sceneViewPanel.sceneView.surface.selectionModel.selection.single())
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
     // Left-click on an unselected preview should navigate and should set selection to only that
@@ -413,10 +361,7 @@ class PreviewNavigationTest {
     myNavigationHandler.resetExpectedInvocations(1)
     fakeUi.clickPreviewImage(otherSceneViewPanel)
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
-    assertEquals(
-      otherSceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
-    )
+    assertEquals(otherSceneViewPanel.sceneView.getRootComponent(), sceneViewPanel.sceneView.surface.selectionModel.selection.single())
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
     // Shift + Left-click on an unselected Preview shouldn't navigate and should add the preview to
@@ -446,10 +391,7 @@ class PreviewNavigationTest {
     myNavigationHandler.resetExpectedInvocations(0)
     fakeUi.clickPreviewImage(sceneViewPanel, pressingShift = true)
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
-    assertEquals(
-      otherSceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
-    )
+    assertEquals(otherSceneViewPanel.sceneView.getRootComponent(), sceneViewPanel.sceneView.surface.selectionModel.selection.single())
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
     // Right-click on an unselected Preview shouldn't navigate and should set selection to only that
@@ -457,10 +399,7 @@ class PreviewNavigationTest {
     myNavigationHandler.resetExpectedInvocations(0)
     fakeUi.clickPreviewImage(sceneViewPanel, rightClick = true)
     myNavigationHandler.expectedInvocationsCountDownLatch.await()
-    assertEquals(
-      sceneViewPanel.sceneView.getRootComponent(),
-      sceneViewPanel.sceneView.surface.selectionModel.selection.single(),
-    )
+    assertEquals(sceneViewPanel.sceneView.getRootComponent(), sceneViewPanel.sceneView.surface.selectionModel.selection.single())
     assertEquals(0, myNavigationHandler.expectedInvocationsCountDownLatch.count)
 
     // Finally Left-click on a preview to make sure that the pop-up created due to the previous

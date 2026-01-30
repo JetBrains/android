@@ -32,11 +32,7 @@ private constructor(
   parentDisposable: Disposable,
   localResources: List<LocalResourceRepository<VirtualFile>>? = null,
   libraryResources: Collection<AarResourceRepository>? = null,
-) :
-  MemoryTrackingMultiResourceRepository(
-    parentDisposable,
-    facet.module.name + " with modules and libraries",
-  ) {
+) : MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name + " with modules and libraries") {
   private val resourceMapLock = Any()
 
   /** Resource directories. Computed lazily. */
@@ -67,17 +63,10 @@ private constructor(
   }
 
   @VisibleForTesting
-  fun refreshChildren(
-    localResources: List<LocalResourceRepository<VirtualFile>>,
-    libraryResources: Collection<AarResourceRepository>,
-  ) {
+  fun refreshChildren(localResources: List<LocalResourceRepository<VirtualFile>>, libraryResources: Collection<AarResourceRepository>) {
     synchronized(resourceMapLock) { resourceDirs = null }
     invalidateResourceDirs()
-    setChildren(
-      localResources,
-      libraryResources,
-      listOf(PredefinedSampleDataResourceRepository.getInstance()),
-    )
+    setChildren(localResources, libraryResources, listOf(PredefinedSampleDataResourceRepository.getInstance()))
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     val module = facet.module
@@ -98,9 +87,8 @@ private constructor(
     private fun computeLocalRepositories(manager: StudioResourceRepositoryManager) =
       listOf(manager.projectResources, manager.sampleDataResources)
 
-    private fun computeLibraryResources(
-      manager: StudioResourceRepositoryManager
-    ): Collection<AarResourceRepository> = manager.libraryResources
+    private fun computeLibraryResources(manager: StudioResourceRepositoryManager): Collection<AarResourceRepository> =
+      manager.libraryResources
 
     @TestOnly
     @JvmStatic

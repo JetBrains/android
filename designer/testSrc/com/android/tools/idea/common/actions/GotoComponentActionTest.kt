@@ -48,12 +48,7 @@ class GotoComponentActionTest {
   @Before
   fun setUp() {
     model =
-      NlModelBuilderUtil.model(
-          projectRule,
-          SdkConstants.FD_RES_LAYOUT,
-          "layout.xml",
-          ComponentUtil.component(SdkConstants.LINEAR_LAYOUT),
-        )
+      NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "layout.xml", ComponentUtil.component(SdkConstants.LINEAR_LAYOUT))
         .build()
     val selectionModel = DefaultSelectionModel()
     nlDesignSurface = mock {
@@ -69,11 +64,7 @@ class GotoComponentActionTest {
   @Test
   fun `action selects split mode if in design mode`() = runTest {
     val gotoAction = GotoComponentAction() { designSplitEditor }
-    val testEvent =
-      TestActionEvent.createTestEvent(
-        gotoAction,
-        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, nlDesignSurface),
-      )
+    val testEvent = TestActionEvent.createTestEvent(gotoAction, SimpleDataContext.getSimpleContext(DESIGN_SURFACE, nlDesignSurface))
 
     withContext(Dispatchers.EDT) { gotoAction.actionPerformed(testEvent) }
 

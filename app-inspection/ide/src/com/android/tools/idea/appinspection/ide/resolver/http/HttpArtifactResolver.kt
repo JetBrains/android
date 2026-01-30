@@ -51,19 +51,11 @@ class HttpArtifactResolver(
         }
       }
 
-  private suspend fun downloadLibrary(
-    targetDir: Path,
-    artifactCoordinate: RunningArtifactCoordinate,
-  ) =
+  private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: RunningArtifactCoordinate) =
     withContext(AndroidDispatchers.diskIoThread) {
       try {
         val targetPath = targetDir.resolve(artifactCoordinate.fileName)
-        downloader.downloadFullyWithCaching(
-          artifactCoordinate.toGMavenUrl(),
-          targetPath,
-          null,
-          ConsoleProgressIndicator(),
-        )
+        downloader.downloadFullyWithCaching(artifactCoordinate.toGMavenUrl(), targetPath, null, ConsoleProgressIndicator())
         targetPath
       } catch (e: IOException) {
         throw throw AppInspectionArtifactNotFoundException(
@@ -74,11 +66,7 @@ class HttpArtifactResolver(
       }
     }
 
-  private suspend fun extractInspector(
-    targetDir: Path,
-    libraryPath: Path,
-    artifactCoordinate: RunningArtifactCoordinate,
-  ): Path {
+  private suspend fun extractInspector(targetDir: Path, libraryPath: Path, artifactCoordinate: RunningArtifactCoordinate): Path {
     val artifactDir =
       try {
         extractZipIfNeeded(targetDir, libraryPath)
@@ -90,10 +78,7 @@ class HttpArtifactResolver(
         )
       }
     return artifactDir.resolveExistsOrNull(INSPECTOR_JAR)
-      ?: throw throw AppInspectionArtifactNotFoundException(
-        "inspector.jar was not found in $artifactDir",
-        artifactCoordinate,
-      )
+      ?: throw throw AppInspectionArtifactNotFoundException("inspector.jar was not found in $artifactDir", artifactCoordinate)
   }
 
   private val RunningArtifactCoordinate.type
@@ -104,7 +89,5 @@ class HttpArtifactResolver(
     get() = "${artifactId}-${version}.${type}"
 
   private fun RunningArtifactCoordinate.toGMavenUrl() =
-    URL(
-      "https://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}"
-    )
+    URL("https://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
 }

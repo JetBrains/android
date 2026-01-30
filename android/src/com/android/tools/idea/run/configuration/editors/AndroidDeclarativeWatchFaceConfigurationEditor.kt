@@ -33,10 +33,10 @@ import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.RowLayout
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Dimension
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle.message
 
 class AndroidDeclarativeWatchFaceConfigurationEditor(private val project: Project) :
   SettingsEditor<AndroidDeclarativeWatchFaceConfiguration>() {
@@ -59,8 +59,7 @@ class AndroidDeclarativeWatchFaceConfigurationEditor(private val project: Projec
 
   init {
     modulesComboBox.addActionListener {
-      object :
-          Task.Modal(project, message("android.run.configuration.loading"), true) {
+      object : Task.Modal(project, message("android.run.configuration.loading"), true) {
           override fun run(indicator: ProgressIndicator) {
             val module = moduleSelector.module
             if (module == null || DumbService.isDumb(project)) {
@@ -73,10 +72,7 @@ class AndroidDeclarativeWatchFaceConfigurationEditor(private val project: Projec
               component?.parent?.parent?.apply {
                 removeAll()
                 layout = BorderLayout()
-                add(
-                  JBPanelWithEmptyText()
-                    .withEmptyText(message("android.run.configuration.synchronization.warning"))
-                )
+                add(JBPanelWithEmptyText().withEmptyText(message("android.run.configuration.synchronization.warning")))
               }
             }
           }
@@ -98,9 +94,7 @@ class AndroidDeclarativeWatchFaceConfigurationEditor(private val project: Projec
   override fun createEditor() = panel {
     row {
         label(message("android.run.configuration.module.label"))
-        cell(modulesComboBox).align(AlignX.FILL).applyToComponent {
-          maximumSize = Dimension(400, maximumSize.height)
-        }
+        cell(modulesComboBox).align(AlignX.FILL).applyToComponent { maximumSize = Dimension(400, maximumSize.height) }
       }
       .layout(RowLayout.LABEL_ALIGNED)
   }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("KeyValueFiles")
+
 package com.android.tools.idea.streaming.emulator
 
 import com.google.common.base.Splitter
@@ -31,8 +32,7 @@ import kotlin.text.Charsets.UTF_8
  * Reads a subset of values in a key-value file. A key and the corresponding value are separated by an equals sign.
  *
  * @param file the file to read from
- * @param keysToExtract the keys to be returned together with the corresponding values,
- *     or null to return all keys and values.
+ * @param keysToExtract the keys to be returned together with the corresponding values, or null to return all keys and values.
  */
 fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String> {
   val result = mutableMapOf<String, String>()
@@ -55,22 +55,16 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   val originalContents = readKeyValueFile(file)
   val sortedContents = TreeMap(originalContents)
   sortedContents.putAll(updates)
-  val lines = sortedContents.entries.asSequence()
-    .filter { it.value != null }
-    .map { "${it.key}=${it.value}"}
-    .toList()
+  val lines = sortedContents.entries.asSequence().filter { it.value != null }.map { "${it.key}=${it.value}" }.toList()
   // Write to a temporary file first then atomically replace the original file.
   val tempFile = file.resolveSibling(file.fileName.toString() + ".temp")
   try {
     Files.write(tempFile, lines, UTF_8, CREATE)
     Files.move(tempFile, file, REPLACE_EXISTING, ATOMIC_MOVE)
-  }
-  catch (e: IOException) {
+  } catch (e: IOException) {
     try {
       Files.deleteIfExists(tempFile)
-    }
-    catch (ignore: IOException) {
-    }
+    } catch (ignore: IOException) {}
     logError("Error writing $file", e)
   }
 }

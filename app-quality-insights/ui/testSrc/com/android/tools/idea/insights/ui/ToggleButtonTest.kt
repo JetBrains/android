@@ -47,8 +47,7 @@ import org.junit.runners.JUnit4
 
 class StateHolder<T>(value: T) : Closeable {
   val value = AtomicReference(value)
-  private val channel =
-    Channel<T>(capacity = Channel.BUFFERED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val channel = Channel<T>(capacity = Channel.BUFFERED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   init {
     channel.trySend(this.value.get())
@@ -97,9 +96,7 @@ class ToggleButtonTest {
     )
 
   private fun createDefaultStateHolder() =
-    StateHolder(
-      ToggleButtonState(issue, ToggleButtonEnabledState(Permission.FULL, ConnectionMode.ONLINE))
-    )
+    StateHolder(ToggleButtonState(issue, ToggleButtonEnabledState(Permission.FULL, ConnectionMode.ONLINE)))
 
   private fun CoroutineScope.createButton(stateHolder: StateHolder<ToggleButtonState>): JButton =
     ToggleButton(
@@ -166,47 +163,38 @@ class ToggleButtonTest {
 
   @Test
   fun `insufficient permission disables button`() = runTest {
-    StateHolder(
-        ToggleButtonState(
-          issue,
-          ToggleButtonEnabledState(Permission.READ_ONLY, ConnectionMode.ONLINE),
-        )
-      )
-      .use { stateHolder ->
-        val btn = createButton(stateHolder)
-        val ui = FakeUi(btn)
-        ui.dispatchInEdt()
-        advanceUntilIdle()
+    StateHolder(ToggleButtonState(issue, ToggleButtonEnabledState(Permission.READ_ONLY, ConnectionMode.ONLINE))).use { stateHolder ->
+      val btn = createButton(stateHolder)
+      val ui = FakeUi(btn)
+      ui.dispatchInEdt()
+      advanceUntilIdle()
 
-        assertThat(btn.text).isEqualTo("Close issue")
-        assertThat(btn.isEnabled).isFalse()
+      assertThat(btn.text).isEqualTo("Close issue")
+      assertThat(btn.isEnabled).isFalse()
 
-        ui.click(btn)
-        advanceUntilIdle()
-        assertThat(btn.isEnabled).isFalse()
-        assertThat(btn.text).isEqualTo("Close issue")
-      }
+      ui.click(btn)
+      advanceUntilIdle()
+      assertThat(btn.isEnabled).isFalse()
+      assertThat(btn.text).isEqualTo("Close issue")
+    }
   }
 
   @Test
   fun `offline mode disables button`() = runTest {
-    StateHolder(
-        ToggleButtonState(issue, ToggleButtonEnabledState(Permission.FULL, ConnectionMode.OFFLINE))
-      )
-      .use { stateHolder ->
-        val btn = createButton(stateHolder)
-        val ui = FakeUi(btn)
-        ui.dispatchInEdt()
-        advanceUntilIdle()
+    StateHolder(ToggleButtonState(issue, ToggleButtonEnabledState(Permission.FULL, ConnectionMode.OFFLINE))).use { stateHolder ->
+      val btn = createButton(stateHolder)
+      val ui = FakeUi(btn)
+      ui.dispatchInEdt()
+      advanceUntilIdle()
 
-        assertThat(btn.text).isEqualTo("Close issue")
-        assertThat(btn.isEnabled).isFalse()
+      assertThat(btn.text).isEqualTo("Close issue")
+      assertThat(btn.isEnabled).isFalse()
 
-        ui.click(btn)
-        advanceUntilIdle()
-        assertThat(btn.isEnabled).isFalse()
-        assertThat(btn.text).isEqualTo("Close issue")
-      }
+      ui.click(btn)
+      advanceUntilIdle()
+      assertThat(btn.isEnabled).isFalse()
+      assertThat(btn.text).isEqualTo("Close issue")
+    }
   }
 }
 

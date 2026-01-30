@@ -89,8 +89,7 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
   return when {
     buildManager.isBuilding -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
     prevBuildStatus.status == ProjectSystemBuildManager.BuildStatus.UNKNOWN ||
-      prevBuildStatus.status == ProjectSystemBuildManager.BuildStatus.SUCCESS ->
-      CustomViewVisualStateTracker.BuildState.SUCCESSFUL
+      prevBuildStatus.status == ProjectSystemBuildManager.BuildStatus.SUCCESS -> CustomViewVisualStateTracker.BuildState.SUCCESSFUL
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }
 }
@@ -98,20 +97,14 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
 private val CUSTOM_VIEW_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
- * A preview for a file containing custom android view classes. Allows selecting between the classes
- * if multiple custom view classes are present in the file.
+ * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
+ * present in the file.
  */
 class CustomViewPreviewRepresentation(
   psiFile: PsiFile,
-  persistenceProvider: (Project) -> PropertiesComponent = { p ->
-    PropertiesComponent.getInstance(p)
-  },
+  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p) },
   buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState,
-) :
-  PreviewRepresentation,
-  CustomViewPreviewManager,
-  UserDataHolderEx by UserDataHolderBase(),
-  AndroidCoroutinesAware {
+) : PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
 
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
@@ -128,14 +121,11 @@ class CustomViewPreviewRepresentation(
   private val currentStatePropertyName = "${previewId}_SELECTED"
   override val preferredInitialVisibility: PreferredVisibility? = null
 
-  private fun dimensionsPropertyNameForClass(className: String) =
-    "${previewId}_${className}_DIMENSIONS"
+  private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
 
-  private fun wrapContentWidthPropertyNameForClass(className: String) =
-    "${previewId}_${className}_WRAP_CONTENT_W"
+  private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
 
-  private fun wrapContentHeightPropertyNameForClass(className: String) =
-    "${previewId}_${className}_WRAP_CONTENT_H"
+  private fun wrapContentHeightPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_H"
 
   private val classesLock = Any()
   @GuardedBy("classesLock")
@@ -159,30 +149,20 @@ class CustomViewPreviewRepresentation(
       }
     }
 
-  override val caretNavigationHandler =
-    PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
+  override val caretNavigationHandler = PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 
   override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
       if (field != value) {
         field = value
         persistenceManager.setValue(currentStatePropertyName, value)
-        shrinkHeight =
-          persistenceManager
-            .getValue(wrapContentHeightPropertyNameForClass(value), "false")
-            .toBoolean()
-        shrinkWidth =
-          persistenceManager
-            .getValue(wrapContentWidthPropertyNameForClass(value), "false")
-            .toBoolean()
+        shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(value), "false").toBoolean()
+        shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(value), "false").toBoolean()
         updateModel()
       }
     }
 
-  override var shrinkHeight =
-    persistenceManager
-      .getValue(wrapContentHeightPropertyNameForClass(currentView), "false")
-      .toBoolean()
+  override var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentView), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
@@ -191,10 +171,7 @@ class CustomViewPreviewRepresentation(
       }
     }
 
-  override var shrinkWidth =
-    persistenceManager
-      .getValue(wrapContentWidthPropertyNameForClass(currentView), "false")
-      .toBoolean()
+  override var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentView), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
@@ -209,9 +186,7 @@ class CustomViewPreviewRepresentation(
   private val view = invokeAndWaitIfNeeded {
     CustomViewPreviewView(
       NlSurfaceBuilder.builder(project, this) { surface, model ->
-          defaultSceneManagerProvider(surface, model).apply {
-            sceneRenderConfiguration.useShrinkRendering = true
-          }
+          defaultSceneManagerProvider(surface, model).apply { sceneRenderConfiguration.useShrinkRendering = true }
         }
         .setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
@@ -228,8 +203,7 @@ class CustomViewPreviewRepresentation(
   @Volatile private var lastBuildStartedNanos = 0L
 
   private val scope = AndroidCoroutineScope(this)
-  private val uniqueUpdateModelLauncher =
-    UniqueTaskCoroutineLauncher(scope, "CustomViewPreviewRepresentation updateModel")
+  private val uniqueUpdateModelLauncher = UniqueTaskCoroutineLauncher(scope, "CustomViewPreviewRepresentation updateModel")
 
   @get:TestOnly
   val hasPendingRefresh: Boolean
@@ -242,8 +216,7 @@ class CustomViewPreviewRepresentation(
   init {
     val buildState = buildStateProvider(project)
     val fileState =
-      if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
-        CustomViewVisualStateTracker.FileState.MODIFIED
+      if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile)) CustomViewVisualStateTracker.FileState.MODIFIED
       else CustomViewVisualStateTracker.FileState.UP_TO_DATE
     stateTracker =
       CustomViewVisualStateTracker(
@@ -272,9 +245,7 @@ class CustomViewPreviewRepresentation(
               }
               CustomViewVisualStateTracker.PreviewState.BUILD_FAILED -> {
                 workbench.hideContent()
-                workbench.loadingStopped(
-                  "Preview is unavailable until after a successful project build."
-                )
+                workbench.loadingStopped("Preview is unavailable until after a successful project build.")
               }
               CustomViewVisualStateTracker.PreviewState.OK -> {
                 workbench.showContent()
@@ -369,8 +340,7 @@ class CustomViewPreviewRepresentation(
     }
   }
 
-  private fun updateModel() =
-    scope.launch { uniqueUpdateModelLauncher.launch { updateModelAsync() } }
+  private fun updateModel() = scope.launch { uniqueUpdateModelLauncher.launch { updateModelAsync() } }
 
   private fun updateModelAsync() =
     scope.launch {
@@ -381,10 +351,7 @@ class CustomViewPreviewRepresentation(
             return@launch
           }
 
-      val selectedClass =
-        synchronized(classesLock) {
-          classes.firstOrNull { fqcn2name(it) == currentView } ?: return@launch
-        }
+      val selectedClass = synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } ?: return@launch }
 
       val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
       val facet =
@@ -398,19 +365,15 @@ class CustomViewPreviewRepresentation(
 
       val model =
         if (surface.models.isEmpty()) {
-          val customPreviewXml =
-            CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
-          val config =
-            Configuration.create(configurationManager, FolderConfiguration.createDefault())
+          val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
+          val config = Configuration.create(configurationManager, FolderConfiguration.createDefault())
           NlModel.Builder(
               this@CustomViewPreviewRepresentation,
               AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
               customPreviewXml,
               config,
             )
-            .withXmlProvider { project, _ ->
-              AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
-            }
+            .withXmlProvider { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile }
             .withComponentRegistrar(NlComponentRegistrar)
             .build()
             .apply { displaySettings.setDisplayName(className) }
@@ -426,13 +389,8 @@ class CustomViewPreviewRepresentation(
       val configuration = model.configuration
 
       // Load and set preview size if exists for this custom view
-      persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let { previewDimensions
-        ->
-        configuration.updateScreenSize(
-          previewDimensions[0].toInt(),
-          previewDimensions[1].toInt(),
-          configuration.device,
-        )
+      persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
+        configuration.updateScreenSize(previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
       val newSceneManager = surface.addModelsWithoutRender(listOf(model)).single()
@@ -452,14 +410,10 @@ class CustomViewPreviewRepresentation(
 
     // Persist the current dimensions
     surface.models.firstOrNull()?.configuration?.let { configuration ->
-      val selectedClass =
-        synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } } ?: return
+      val selectedClass = synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setList(
-        dimensionsPropertyNameForClass(className),
-        listOf("${screen.xDimension}", "${screen.yDimension}"),
-      )
+      persistenceManager.setList(dimensionsPropertyNameForClass(className), listOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 
@@ -475,7 +429,6 @@ class CustomViewPreviewRepresentation(
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
-    ForceCompileAndRefreshAction(surface)
-      .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -33,26 +34,25 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import java.io.File
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
-import java.io.File
 
 /**
- * The aim of these tests is to ensure the state changes for element's dependencies and dependents are correct.
- * We cover 5 different cases relating to properties and variables:
+ * The aim of these tests is to ensure the state changes for element's dependencies and dependents are correct. We cover 5 different cases
+ * relating to properties and variables:
  * <ul>
- *   <li>Parsing</li>
- *   <li>Adding</li>
- *   <li>Changing the value</li>
- *   <li>Renaming</li>
- *   <li>Deleting</li>
+ * <li>Parsing</li>
+ * <li>Adding</li>
+ * <li>Changing the value</li>
+ * <li>Renaming</li>
+ * <li>Deleting</li>
  * </ul>
  */
 class PropertyDependencyTest : GradleFileModelTestCase() {
@@ -84,15 +84,15 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   /**
-   * Note: [numResolvedDependencies] includes the dependencies of the children as well, whereas
-   * [numTotalDependencies] and [numUnresolvedDependencies] do not.
+   * Note: [numResolvedDependencies] includes the dependencies of the children as well, whereas [numTotalDependencies] and
+   * [numUnresolvedDependencies] do not.
    */
   private fun assertDependencyNumbers(
     element: GradleDslElement,
     numResolvedDependencies: Int,
     numTotalDependencies: Int,
     numUnresolvedDependencies: Int,
-    numDependents: Int
+    numDependents: Int,
   ) {
     assertSize(numResolvedDependencies, element.resolvedVariables)
     assertSize(numTotalDependencies, element.dependencies)
@@ -105,7 +105,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     numResolvedDependencies: Int,
     numTotalDependencies: Int,
     numUnresolvedDependencies: Int,
-    numDependents: Int
+    numDependents: Int,
   ) {
     assertDependencyNumbers(model.element(), numResolvedDependencies, numTotalDependencies, numUnresolvedDependencies, numDependents)
   }
@@ -126,7 +126,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   private fun assertUnresolvedDependency(origin: GradlePropertyModel, dependencyName: String) {
-    val injections = origin.element().dependencies.filter { e -> e.originElement == origin.element() && e.toBeInjected == null && !e.isResolved && e.name == dependencyName }
+    val injections =
+      origin.element().dependencies.filter { e ->
+        e.originElement == origin.element() && e.toBeInjected == null && !e.isResolved && e.name == dependencyName
+      }
     assertSize(1, injections)
   }
 
@@ -463,7 +466,6 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
 
     run {
-
       val debugFileModel = childModel.ext().findProperty("debugFile")
       debugFileModel.setValue("myDebugFile.txt")
 
@@ -497,15 +499,21 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     fun verify(model: ArtifactDependencyModel) {
       verifyPropertyModel(model.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", INTERPOLATED, REGULAR, 1)
-      verifyPropertyModel(model.completeModel().unresolvedModel, STRING_TYPE,
-                          if (isGroovy) "deps.android_gradle_plugin" else "extra[\"deps\"][\"android_gradle_plugin\"]",
-                          REFERENCE, REGULAR, 1)
-      assertThat(model.completeModel().resultModel.getRawValue(STRING_TYPE),
-                 equalTo(
-                   if (isGroovy)
-                     "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
-                   else
-                     "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"))
+      verifyPropertyModel(
+        model.completeModel().unresolvedModel,
+        STRING_TYPE,
+        if (isGroovy) "deps.android_gradle_plugin" else "extra[\"deps\"][\"android_gradle_plugin\"]",
+        REFERENCE,
+        REGULAR,
+        1,
+      )
+      assertThat(
+        model.completeModel().resultModel.getRawValue(STRING_TYPE),
+        equalTo(
+          if (isGroovy) "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+          else "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"
+        ),
+      )
       verifyPropertyModel(model.version(), STRING_TYPE, "3.2.0", STRING, FAKE, 1)
       verifyPropertyModel(model.version().resultModel, STRING_TYPE, "3.2.0", STRING, if (isGroovy) REGULAR else DERIVED, 0)
     }
@@ -516,8 +524,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     verify(depsProperty)
 
     verifyFileContents(myBuildFile, TestFile.BUILD_SCRIPT_APPLIED_DEPENDENCIES)
-    verifyFileContents(myProjectBasePath.findChild("versions$myTestDataExtension")!!,
-                       TestFile.BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED)
+    verifyFileContents(
+      myProjectBasePath.findChild("versions$myTestDataExtension")!!,
+      TestFile.BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED,
+    )
   }
 
   @Test
@@ -531,15 +541,21 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val artModel = buildModel.dependencies().artifacts()[0]
 
     verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", INTERPOLATED, REGULAR, 1)
-    verifyPropertyModel(artModel.completeModel().unresolvedModel, STRING_TYPE,
-                        if (isGroovy) "rootProject.ext.deps.android_gradle_plugin" else "rootProject.extra[\"deps\"][\"android_gradle_plugin\"]",
-                        REFERENCE, REGULAR, 1)
-    assertThat(artModel.completeModel().resultModel.getRawValue(STRING_TYPE),
-               equalTo(
-                 if (isGroovy)
-                   "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
-                 else
-                   "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"))
+    verifyPropertyModel(
+      artModel.completeModel().unresolvedModel,
+      STRING_TYPE,
+      if (isGroovy) "rootProject.ext.deps.android_gradle_plugin" else "rootProject.extra[\"deps\"][\"android_gradle_plugin\"]",
+      REFERENCE,
+      REGULAR,
+      1,
+    )
+    assertThat(
+      artModel.completeModel().resultModel.getRawValue(STRING_TYPE),
+      equalTo(
+        if (isGroovy) "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+        else "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"
+      ),
+    )
     verifyPropertyModel(artModel.version(), STRING_TYPE, "3.1.0", STRING, FAKE, 1)
     verifyPropertyModel(artModel.version().resultModel, STRING_TYPE, "3.1.0", STRING, if (isGroovy) REGULAR else DERIVED, 0)
   }
@@ -659,12 +675,12 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     // IDEA-271479: gbm.dependencies() should not throw AssertionException
 
     // this is not working (not implemented yet): only simple cases of properties resolution are handled
-    //assertSize(1, dependenciesModel.all())
-    //val artModel = dependenciesModel.artifacts()[0]!!
-    //verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
+    // assertSize(1, dependenciesModel.all())
+    // val artModel = dependenciesModel.artifacts()[0]!!
+    // verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
 
     BUILD_SCRIPT_APPLIED_DEPENDENCIES("buildScriptAppliedDependencies"),
     BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED("buildScriptAppliedDependenciesApplied"),
@@ -694,12 +710,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     SUBPROJECTS_APPLIED_DEPENDENCIES("subProjectsAppliedDependencies"),
     ALLPROJECTS_APPLIED_DEPENDENCIES("allProjectsAppliedDependencies"),
     PROJECTS_APPLIED_DEPENDENCIES_SUB("projectsAppliedDependencies_sub"),
-    PROJECTS_APPLIED_DEPENDENCIES_APPLIED("projectsAppliedDependenciesApplied"),
-    ;
+    PROJECTS_APPLIED_DEPENDENCIES_APPLIED("projectsAppliedDependenciesApplied");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/propertyDependency/$path", extension)
     }
   }
-
 }

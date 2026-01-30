@@ -23,15 +23,15 @@ import kotlin.io.path.relativeToOrSelf
 /**
  * Converts a path to a project relative path.
  *
- * If `path` is relative to the project directory (see [Project.guessProjectDir]), returns the relative portion.
- * Otherwise, returns the path unchanged.
+ * If `path` is relative to the project directory (see [Project.guessProjectDir]), returns the relative portion. Otherwise, returns the path
+ * unchanged.
  *
- * Note:
- * A project can have files that are not under the project base directory. For these files, this function will return an absolute path.
+ * Note: A project can have files that are not under the project base directory. For these files, this function will return an absolute
+ * path.
  */
 fun Path.relativeToProject(project: Project): Path {
-    val relative = relativeToOrSelf(project.guessProjectDir()!!.toNioPath())
-    return if (relative.startsWith("..")) this else relative
+  val relative = relativeToOrSelf(project.guessProjectDir()!!.toNioPath())
+  return if (relative.startsWith("..")) this else relative
 }
 
 /**
@@ -42,9 +42,9 @@ fun Path.relativeToProject(project: Project): Path {
  * Otherwise, returns the path unchanged.
  */
 fun Path.absoluteInProject(project: Project): Path {
-    val projectDir = project.guessProjectDir()!!.toNioPath()
-    return when {
-        isAbsolute -> this
-        else -> projectDir.resolve(this)
-    }
+  val projectDir = project.guessProjectDir()!!.toNioPath()
+  return when {
+    isAbsolute -> this
+    else -> projectDir.resolve(this)
+  }
 }

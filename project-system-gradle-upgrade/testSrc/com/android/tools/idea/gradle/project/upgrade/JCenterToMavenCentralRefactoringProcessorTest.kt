@@ -52,5 +52,4 @@ class JCenterToMavenCentralRefactoringProcessorTest : UpgradeGradleFileModelTest
     processor.run()
     verifyFileContents(settingsFile, TestFileName("JCenterToMavenCentral/SettingsWithJCenterAndMavenCentralExpected"))
   }
-
 }

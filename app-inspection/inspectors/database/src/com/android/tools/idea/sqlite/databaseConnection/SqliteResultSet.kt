@@ -26,26 +26,21 @@ import com.intellij.openapi.Disposable
 /**
  * Interface to access the result of a SQLite query.
  *
- * All operations, except [dispose], are asynchronous, where completion is communicated through
- * [ListenableFuture] return values.
+ * All operations, except [dispose], are asynchronous, where completion is communicated through [ListenableFuture] return values.
  *
- * The [dispose] method cancels all pending operations and releases all resources associated with
- * the result set.
+ * The [dispose] method cancels all pending operations and releases all resources associated with the result set.
  */
 interface SqliteResultSet : Disposable {
-  fun SqliteStatement.toRowCountStatement() =
-    this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
+  fun SqliteStatement.toRowCountStatement() = this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
 
   fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) =
-    this.transform(SqliteStatementType.SELECT) {
-      "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
-    }
+    this.transform(SqliteStatementType.SELECT) { "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize" }
 
   val columns: ListenableFuture<List<ResultSetSqliteColumn>>
 
   /**
-   * Returns the total amount of rows available to this result set. This number is obtained by
-   * running a `SELECT COUNT(*) FROM (sqliteStatement)`, sqliteStatement can be anything.
+   * Returns the total amount of rows available to this result set. This number is obtained by running a `SELECT COUNT(*) FROM
+   * (sqliteStatement)`, sqliteStatement can be anything.
    */
   val totalRowCount: ListenableFuture<Int>
 

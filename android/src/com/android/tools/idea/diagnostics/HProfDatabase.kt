@@ -25,9 +25,7 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.util.Locale
 
-/**
- * Stores list of hprof files and keeps the temporary directory where they are stored clean.
- */
+/** Stores list of hprof files and keeps the temporary directory where they are stored clean. */
 class HProfDatabase(tmpDirectory: Path) {
 
   // All hprof files should be in $tmpDirectory/hprof-temp/
@@ -47,15 +45,13 @@ class HProfDatabase(tmpDirectory: Path) {
           val pathsToKeepSet = pathsToKeep.map(Path::toAbsolutePath).toSet()
           Files.newDirectoryStream(hprofTempDirectory).use { stream ->
             stream.forEach { path ->
-              if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) &&
-                  !pathsToKeepSet.contains(path.toAbsolutePath())) {
+              if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && !pathsToKeepSet.contains(path.toAbsolutePath())) {
                 Files.delete(path)
               }
             }
           }
         }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         LOG.warn("Exception while cleaning hprof files", e)
       }
     }

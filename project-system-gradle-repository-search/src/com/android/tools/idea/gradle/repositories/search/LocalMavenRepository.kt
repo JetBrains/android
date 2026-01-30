@@ -49,34 +49,36 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
       }
 
     try {
-      walkFileTree(rootLocationPath, object : SimpleFileVisitor<Path>() {
-        override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-          val visitedDirFile: File = dir.toFile()
-          val repositoryRelativeDirectory = visitedDirFile.relativeTo(rootLocation)
-          if (repositoryRelativeDirectory.parentFile == null) return FileVisitResult.CONTINUE
-          val groupIdProbe = repositoryRelativeDirectory.parentFile.path.replace(File.separatorChar, '.')
-          val artifactNameProbe = visitedDirFile.name
+      walkFileTree(
+        rootLocationPath,
+        object : SimpleFileVisitor<Path>() {
+          override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+            val visitedDirFile: File = dir.toFile()
+            val repositoryRelativeDirectory = visitedDirFile.relativeTo(rootLocation)
+            if (repositoryRelativeDirectory.parentFile == null) return FileVisitResult.CONTINUE
+            val groupIdProbe = repositoryRelativeDirectory.parentFile.path.replace(File.separatorChar, '.')
+            val artifactNameProbe = visitedDirFile.name
 
-          if (artifactPredicate(groupIdProbe, artifactNameProbe)) {
-            val versions =
-              visitedDirFile
-                .listFiles()
-                ?.mapNotNull {
-                  val versionProbe = it.name
-                  val expectedPomFileName = "$artifactNameProbe-$versionProbe.pom"
-                  if (it.isDirectory && it.resolve(expectedPomFileName).isFile) Version.parse(versionProbe) else null
-                }
-                .orEmpty()
-            if (versions.isNotEmpty()) {
-              foundArtifacts.add(FoundArtifact(name, groupIdProbe, artifactNameProbe, versions))
-              return FileVisitResult.SKIP_SUBTREE
+            if (artifactPredicate(groupIdProbe, artifactNameProbe)) {
+              val versions =
+                visitedDirFile
+                  .listFiles()
+                  ?.mapNotNull {
+                    val versionProbe = it.name
+                    val expectedPomFileName = "$artifactNameProbe-$versionProbe.pom"
+                    if (it.isDirectory && it.resolve(expectedPomFileName).isFile) Version.parse(versionProbe) else null
+                  }
+                  .orEmpty()
+              if (versions.isNotEmpty()) {
+                foundArtifacts.add(FoundArtifact(name, groupIdProbe, artifactNameProbe, versions))
+                return FileVisitResult.SKIP_SUBTREE
+              }
             }
+            return FileVisitResult.CONTINUE
           }
-          return FileVisitResult.CONTINUE
-        }
-      })
-    }
-    catch (e: Throwable) {
+        },
+      )
+    } catch (e: Throwable) {
       val msg = "Failed to search local repository $rootLocationPath"
       Logger.getInstance(LocalMavenRepository::class.java).warn(msg, e)
     }
@@ -100,8 +102,7 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 private fun String.toWildcardMatchingPredicate(): (String) -> Boolean =
   if (isBlank()) {
     { true }
-  }
-  else {
+  } else {
     Regex(replace("*", ".*")).let { { probe: String -> it.matches(probe) } }
   }
 

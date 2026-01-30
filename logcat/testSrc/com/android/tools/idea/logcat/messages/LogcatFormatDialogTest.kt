@@ -60,10 +60,7 @@ class LogcatFormatDialogTest {
       usageTrackerRule,
       disposableRule,
       HeadlessDialogRule(),
-      ApplicationServiceRule(
-        AndroidLogcatFormattingOptions::class.java,
-        AndroidLogcatFormattingOptions(),
-      ),
+      ApplicationServiceRule(AndroidLogcatFormattingOptions::class.java, AndroidLogcatFormattingOptions()),
     )
 
   @After
@@ -140,9 +137,7 @@ class LogcatFormatDialogTest {
     val dialog =
       logcatFormatDialogNew(
         initialFormatting = STANDARD,
-        applyAction = { standardOptions, _, _ ->
-          options.timestampFormat = standardOptions.timestampFormat
-        },
+        applyAction = { standardOptions, _, _ -> options.timestampFormat = standardOptions.timestampFormat },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -221,9 +216,7 @@ class LogcatFormatDialogTest {
     val dialog =
       logcatFormatDialogNew(
         initialFormatting = STANDARD,
-        applyAction = { standardOptions, _, _ ->
-          options.processThreadFormat = standardOptions.processThreadFormat
-        },
+        applyAction = { standardOptions, _, _ -> options.processThreadFormat = standardOptions.processThreadFormat },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -247,8 +240,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialState_tagDisabled() {
-    STANDARD.formattingOptions.tagFormat =
-      TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -265,8 +257,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialState_tagEnabled() {
-    STANDARD.formattingOptions.tagFormat =
-      TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -283,8 +274,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun toggle_tag() {
-    STANDARD.formattingOptions.tagFormat =
-      TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -304,8 +294,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun apply_tag() {
-    STANDARD.formattingOptions.tagFormat =
-      TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val options = FormattingOptions()
     val dialog =
       logcatFormatDialogNew(
@@ -321,27 +310,20 @@ class LogcatFormatDialogTest {
       it.colorize().isSelected = true
       it.tagWidth().value = 20
       ui.clickApply()
-      assertThat(options.tagFormat)
-        .isEqualTo(
-          TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true)
-        )
+      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true))
 
       it.showTag().isSelected = false
       it.showRepeatedTags().isSelected = true
       it.colorize().isSelected = false
       it.tagWidth().value = 10
       ui.clickApply()
-      assertThat(options.tagFormat)
-        .isEqualTo(
-          TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
-        )
+      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false))
     }
   }
 
   @Test
   fun initialState_packageDisabled() {
-    STANDARD.formattingOptions.appNameFormat =
-      AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.appNameFormat = AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -356,8 +338,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialState_packageEnabled() {
-    STANDARD.formattingOptions.appNameFormat =
-      AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true)
+    STANDARD.formattingOptions.appNameFormat = AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -372,8 +353,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun toggle_package() {
-    STANDARD.formattingOptions.appNameFormat =
-      AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.appNameFormat = AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -391,15 +371,12 @@ class LogcatFormatDialogTest {
 
   @Test
   fun apply_package() {
-    STANDARD.formattingOptions.appNameFormat =
-      AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.appNameFormat = AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false)
     val options = FormattingOptions()
     val dialog =
       logcatFormatDialogNew(
         initialFormatting = STANDARD,
-        applyAction = { standardOptions, _, _ ->
-          options.appNameFormat = standardOptions.appNameFormat
-        },
+        applyAction = { standardOptions, _, _ -> options.appNameFormat = standardOptions.appNameFormat },
       )
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -409,15 +386,13 @@ class LogcatFormatDialogTest {
       it.showRepeatedPackages().isSelected = false
       it.packageWidth().value = 20
       ui.clickApply()
-      assertThat(options.appNameFormat)
-        .isEqualTo(AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
+      assertThat(options.appNameFormat).isEqualTo(AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
 
       it.showPackage().isSelected = false
       it.showRepeatedPackages().isSelected = true
       it.packageWidth().value = 10
       ui.clickApply()
-      assertThat(options.appNameFormat)
-        .isEqualTo(AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false))
+      assertThat(options.appNameFormat).isEqualTo(AppNameFormat(maxLength = 10, hideDuplicates = false, enabled = false))
     }
   }
 
@@ -426,9 +401,7 @@ class LogcatFormatDialogTest {
     STANDARD.formattingOptions.levelFormat = LevelFormat(false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
-    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
-      assertThat(it.showLevel().isSelected).isFalse()
-    }
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { assertThat(it.showLevel().isSelected).isFalse() }
   }
 
   @Test
@@ -436,9 +409,7 @@ class LogcatFormatDialogTest {
     STANDARD.formattingOptions.levelFormat = LevelFormat(true)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
-    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
-      assertThat(it.showLevel().isSelected).isTrue()
-    }
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { assertThat(it.showLevel().isSelected).isTrue() }
   }
 
   @Test
@@ -484,7 +455,7 @@ class LogcatFormatDialogTest {
           Sample logcat message 3.
           Sample logcat multiline
           message.
-        """
+          """
             .trimIndent()
         )
 
@@ -497,12 +468,12 @@ class LogcatFormatDialogTest {
       assertThat(dialog.previewEditor.document.text.trimEnd())
         .isEqualTo(
           """
-        11:00:14.234 27217 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
-        11:00:14.234 27217 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
-        11:00:14.234 24395 ExampleTag2             com.example.app2                     W  Sample logcat message 3.
-        11:00:14.234 24395 ExampleTag2             com.example.app2                     E  Sample logcat multiline
-                                                                                           message.
-      """
+          11:00:14.234 27217 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
+          11:00:14.234 27217 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
+          11:00:14.234 24395 ExampleTag2             com.example.app2                     W  Sample logcat message 3.
+          11:00:14.234 24395 ExampleTag2             com.example.app2                     E  Sample logcat multiline
+                                                                                             message.
+          """
             .trimIndent()
         )
     }
@@ -527,8 +498,7 @@ class LogcatFormatDialogTest {
       it.showPackage().isSelected = true
       it.showLevel().isSelected = true
 
-      assertThat(dialog.previewEditor.document.text.lines().maxOf(String::length))
-        .isEqualTo(maxLineLength)
+      assertThat(dialog.previewEditor.document.text.lines().maxOf(String::length)).isEqualTo(maxLineLength)
     }
   }
 
@@ -638,16 +608,14 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialize_presets() {
-    val args =
-      listOf(STANDARD to STANDARD, STANDARD to COMPACT, COMPACT to STANDARD, COMPACT to COMPACT)
+    val args = listOf(STANDARD to STANDARD, STANDARD to COMPACT, COMPACT to STANDARD, COMPACT to COMPACT)
     for ((initialFormatting, defaultFormatting) in args) {
       val dialog = logcatFormatDialogNew(initialFormatting, defaultFormatting)
       createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
         val tagsCheckBox = it.getCheckBox("Show tag")
         assertThat(it.formattingStyle().selectedItem).isEqualTo(initialFormatting)
         assertThat(it.setAsDefault().isSelected).isEqualTo(initialFormatting == defaultFormatting)
-        assertThat(tagsCheckBox.isSelected)
-          .isEqualTo(initialFormatting.formattingOptions.tagFormat.enabled)
+        assertThat(tagsCheckBox.isSelected).isEqualTo(initialFormatting.formattingOptions.tagFormat.enabled)
       }
     }
   }
@@ -711,7 +679,7 @@ class LogcatFormatDialogTest {
           11:00:14.234  W  Sample logcat message 3.
           11:00:14.234  E  Sample logcat multiline
                            message.
-      """
+          """
             .trimIndent()
         )
     }
@@ -720,12 +688,7 @@ class LogcatFormatDialogTest {
   @Test
   fun setAsDefaultCheckBox() {
     var style: FormattingOptions.Style? = null
-    val dialog =
-      logcatFormatDialogNew(
-        COMPACT,
-        STANDARD,
-        applyAction = { _, _, defaultStyle -> style = defaultStyle },
-      )
+    val dialog = logcatFormatDialogNew(COMPACT, STANDARD, applyAction = { _, _, defaultStyle -> style = defaultStyle })
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       val ui = FakeUi(it.rootPane)
 
@@ -771,9 +734,7 @@ class LogcatFormatDialogTest {
   @Test
   fun initialize_applyButtonIsDisabled() {
     val dialog = logcatFormatDialogNew(STANDARD, STANDARD)
-    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
-      assertThat(it.getButton("Apply").isEnabled).isFalse()
-    }
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) { assertThat(it.getButton("Apply").isEnabled).isFalse() }
   }
 
   @Test
@@ -852,26 +813,22 @@ class LogcatFormatDialogTest {
     initialFormatting: FormattingOptions.Style = STANDARD,
     defaultFormatting: FormattingOptions.Style = STANDARD,
     applyAction: ApplyAction = mockApplyAction,
-  ): LogcatFormatDialog =
-    LogcatFormatDialog(projectRule.project, initialFormatting, defaultFormatting, applyAction)
+  ): LogcatFormatDialog = LogcatFormatDialog(projectRule.project, initialFormatting, defaultFormatting, applyAction)
 
   private inline fun <reified T : JComponent> DialogWrapper.findComponent(name: String): T {
     return TreeWalker(rootPane).descendants().filterIsInstance<T>().find { it.name == name }
-           ?: fail("${T::class.simpleName} named $name was not found")
+      ?: fail("${T::class.simpleName} named $name was not found")
   }
 
-  private fun FakeUi.clickApply() =
-    clickOn(getComponent<JButton> { button -> button.text == "Apply" })
+  private fun FakeUi.clickApply() = clickOn(getComponent<JButton> { button -> button.text == "Apply" })
 
-  private fun DialogWrapper.formattingStyle() =
-    findComponent<JComboBox<FormattingOptions.Style>>("formattingStyle")
+  private fun DialogWrapper.formattingStyle() = findComponent<JComboBox<FormattingOptions.Style>>("formattingStyle")
 
   private fun DialogWrapper.setAsDefault() = findComponent<JCheckBox>("setAsDefault")
 
   private fun DialogWrapper.showTimestamp() = findComponent<JCheckBox>("showTimestamp")
 
-  private fun DialogWrapper.timestampFormat() =
-    findComponent<JComboBox<TimestampFormat.Style>>("timestampFormat")
+  private fun DialogWrapper.timestampFormat() = findComponent<JComboBox<TimestampFormat.Style>>("timestampFormat")
 
   private fun DialogWrapper.showPid() = findComponent<JCheckBox>("showPid")
 
@@ -893,8 +850,7 @@ class LogcatFormatDialogTest {
 
   private fun DialogWrapper.packageWidthLabel() = findComponent<JLabel>("packageWidthLabel")
 
-  private fun DialogWrapper.showRepeatedPackages() =
-    findComponent<JCheckBox>("showRepeatedPackages")
+  private fun DialogWrapper.showRepeatedPackages() = findComponent<JCheckBox>("showRepeatedPackages")
 
   private fun DialogWrapper.showLevel() = findComponent<JCheckBox>("showLevel")
 }

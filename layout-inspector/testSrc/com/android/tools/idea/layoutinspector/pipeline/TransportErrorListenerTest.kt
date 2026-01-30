@@ -68,14 +68,10 @@ class TransportErrorListenerTest {
     waitForCondition(10.seconds) { notificationModel.notifications.isNotEmpty() }
 
     val notification1 = notificationModel.notifications.single()
-    assertThat(notification1.message)
-      .isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
     assertThat(notification1.actions).isEmpty()
     verify(mockMetrics)
-      .logTransportError(
-        DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
-        device1.toDeviceDescriptor(),
-      )
+      .logTransportError(DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON, device1.toDeviceDescriptor())
 
     transportErrorListener.onPreTransportDaemonStart(mock())
     waitForCondition(10.seconds) { notificationModel.notifications.isEmpty() }

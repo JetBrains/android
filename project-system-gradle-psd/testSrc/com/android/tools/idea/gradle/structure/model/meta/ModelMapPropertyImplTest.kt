@@ -34,10 +34,13 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
 
   object TestModelDescriptor : ModelDescriptor<ModelMapPropertyImplTest, ModelMapPropertyImplTest, ModelMapPropertyImplTest> {
     override fun getResolved(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+
     override fun getParsed(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+
     override fun prepareForModification(model: ModelMapPropertyImplTest) {
       model.prepareForModificationCount++
     }
+
     override fun setModified(model: ModelMapPropertyImplTest) {
       model.modifiedCount++
     }
@@ -45,17 +48,18 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
 
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (String) -> Annotated<ParsedValue<T>>,
-    caster: ResolvedPropertyModel.() -> T?
+    caster: ResolvedPropertyModel.() -> T?,
   ): ModelMapPropertyCore<T> {
     val resolved = resolve()
     return TestModelDescriptor.mapProperty(
-      "description",
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { resolved },
-      getter = { caster() },
-      setter = { setValue(it) },
-      parser = { value -> parse(value) }
-    ).bind(this@ModelMapPropertyImplTest)
+        "description",
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { resolved },
+        getter = { caster() },
+        setter = { setValue(it) },
+        parser = { value -> parse(value) },
+      )
+      .bind(this@ModelMapPropertyImplTest)
   }
 
   @Test
@@ -105,7 +109,7 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
     editableValues["one"]?.testSetValue("A")
     assertThat(map.isModified, equalTo(true))
     assertThat(editableValues["one"]?.isModified, equalTo(true))
-    assertThat(editableValues["B"]?.isModified, equalTo(false))  // Other entries remain unmodified.
+    assertThat(editableValues["B"]?.isModified, equalTo(false)) // Other entries remain unmodified.
     editableValues["B"]?.testSetReference("propC")
     editableValues["propC1"]?.testSetInterpolatedString("${'$'}{propC}rd")
     editableValues["propRef1"]?.testSetValue("D")
@@ -146,11 +150,11 @@ class ModelMapPropertyImplTest : PsdGradleFileModelTestCase() {
     val newPropRef = map.changeEntryKey("propRef1", "newPropRef")
     val newOne = map.changeEntryKey("one", "newOne")
     // Add new.
-    val newNew = map.addEntry("new")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
+    val newNew = map.addEntry("new") // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     newNew.testSetValue("new")
     assertThat(map.getEditableValues()["new"]?.isModified, equalTo(true))
     // Add new and change it.
-    val new2 = map.addEntry("new2")  // Does count as modified. This is required to auto-instantiate "debug" alike entities.
+    val new2 = map.addEntry("new2") // Does count as modified. This is required to auto-instantiate "debug" alike entities.
     new2.testSetReference("propC")
     val newChanged = map.changeEntryKey("new2", "newChanged")
     assertThat(modifiedCount, equalTo(10))

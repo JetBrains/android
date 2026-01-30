@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.assistant.view
 
-import junit.framework.TestCase
 import java.net.URL
+import junit.framework.TestCase
 
 class LocalHTMLTest : TestCase() {
   var html =
     """
-      <html>
-      <body>
-      <img src="anotherImage.png"/>
-      <img src="/image.png" />
-      <img src="/folder/image2.png" />
-      </body>
-      </html>
+    <html>
+    <body>
+    <img src="anotherImage.png"/>
+    <img src="/image.png" />
+    <img src="/folder/image2.png" />
+    </body>
+    </html>
     """
       .trimIndent()
 
@@ -49,7 +49,7 @@ class LocalHTMLTest : TestCase() {
       <img src="file:/test/folder/image2.png" />
       </body>
       </html>
-    """
+      """
         .trimIndent(),
       processed,
     )

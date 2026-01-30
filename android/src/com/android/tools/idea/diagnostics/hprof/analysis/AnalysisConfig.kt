@@ -23,13 +23,13 @@ class AnalysisConfig(
   val metaInfoOptions: MetaInfoOptions = MetaInfoOptions(),
   val dominatorTreeOptions: DominatorTreeOptions = DominatorTreeOptions(),
   val innerClassOptions: InnerClassOptions = InnerClassOptions(),
-  val summaryOptions: SummaryOptions = SummaryOptions()
+  val summaryOptions: SummaryOptions = SummaryOptions(),
 ) {
 
   class PerClassOptions(
     val classNames: List<String>,
     val includeClassList: Boolean = true,
-    val treeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions.default
+    val treeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions.default,
   )
 
   class TreeDisplayOptions(
@@ -42,19 +42,22 @@ class AnalysisConfig(
     val minimumPaths: Int = 2,
     val headLimit: Int = 100,
     val tailLimit: Int = 25,
-    val smartIndent: Boolean = true
+    val smartIndent: Boolean = true,
   ) {
     companion object {
       val default = TreeDisplayOptions()
+
       fun all(smartIndent: Boolean = default.smartIndent) =
-        TreeDisplayOptions(minimumObjectSize = 0,
-                           minimumObjectCount = 0,
-                           minimumSubgraphSize = 0,
-                           minimumObjectCountPercent = 0,
-                           headLimit = Int.MAX_VALUE,
-                           tailLimit = 0,
-                           minimumPaths = Int.MAX_VALUE,
-                           smartIndent = smartIndent)
+        TreeDisplayOptions(
+          minimumObjectSize = 0,
+          minimumObjectCount = 0,
+          minimumSubgraphSize = 0,
+          minimumObjectCountPercent = 0,
+          headLimit = Int.MAX_VALUE,
+          tailLimit = 0,
+          minimumPaths = Int.MAX_VALUE,
+          smartIndent = smartIndent,
+        )
     }
   }
 
@@ -63,34 +66,27 @@ class AnalysisConfig(
     val includeBySize: Boolean = true,
     val includeSummary: Boolean = true,
     val classByCountLimit: Int = 50,
-    val classBySizeLimit: Int = 10
+    val classBySizeLimit: Int = 10,
   )
 
   class DisposerOptions(
     val includeDisposerTreeSummary: Boolean = true,
     val includeDisposedObjectsSummary: Boolean = true,
     val includeDisposedObjectsDetails: Boolean = true,
-    val disposedObjectsDetailsTreeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions(minimumSubgraphSize = 5_000_000,
-                                                                                          headLimit = 70,
-                                                                                          tailLimit = 5),
-    val disposerTreeSummaryOptions: DisposerTreeSummaryOptions = DisposerTreeSummaryOptions()
+    val disposedObjectsDetailsTreeDisplayOptions: TreeDisplayOptions =
+      TreeDisplayOptions(minimumSubgraphSize = 5_000_000, headLimit = 70, tailLimit = 5),
+    val disposerTreeSummaryOptions: DisposerTreeSummaryOptions = DisposerTreeSummaryOptions(),
   )
 
-  class DisposerTreeSummaryOptions(
-    val maxDepth: Int = 20,
-    val headLimit: Int = 500,
-    val nodeCutoff: Int = 4
-  )
+  class DisposerTreeSummaryOptions(val maxDepth: Int = 20, val headLimit: Int = 500, val nodeCutoff: Int = 4)
 
   class TraverseOptions(
     val onlyStrongReferences: Boolean = false,
     val includeDisposerRelationships: Boolean = true,
-    val includeFieldInformation: Boolean = true
+    val includeFieldInformation: Boolean = true,
   )
 
-  class MetaInfoOptions(
-    val include: Boolean = true
-  )
+  class MetaInfoOptions(val include: Boolean = true)
 
   class DominatorTreeOptions(
     val includeDominatorTree: Boolean = false,
@@ -98,18 +94,12 @@ class AnalysisConfig(
     val minNodeSize: Int = 100_000,
     val maxDepth: Int = 30,
     val headLimit: Int = 5_000,
-    val diskSpaceThreshold: Long = 500_000_000L
+    val diskSpaceThreshold: Long = 500_000_000L,
   )
 
-  class InnerClassOptions(
-    val includeInnerClassSection: Boolean = true,
-    val histogramEntries: Int = 30
-  )
+  class InnerClassOptions(val includeInnerClassSection: Boolean = true, val histogramEntries: Int = 30)
 
-  class SummaryOptions(
-    val minimumSubgraphSize: Long = 10_000_000,
-    val maximumTreeDepth: Int = 40
-  )
+  class SummaryOptions(val minimumSubgraphSize: Long = 10_000_000, val maximumTreeDepth: Int = 40)
 
   companion object {
     fun getDefaultConfig(nominatedClasses: List<String>) = AnalysisConfig(PerClassOptions(nominatedClasses))

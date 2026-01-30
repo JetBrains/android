@@ -24,8 +24,7 @@ interface OverridePropertyParser {
 }
 
 class OverridePropertyParserImpl() : OverridePropertyParser {
-  override fun parseProperty(property: String) =
-    property.split(',').associateNotNull { param -> parseMultiValueOverrideParam(param) }
+  override fun parseProperty(property: String) = property.split(',').associateNotNull { param -> parseMultiValueOverrideParam(param) }
 
   private fun parseMultiValueOverrideParam(param: String): Pair<String, Int>? {
     if (param.isEmpty()) return null

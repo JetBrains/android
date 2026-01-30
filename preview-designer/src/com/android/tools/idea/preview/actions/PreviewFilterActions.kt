@@ -39,17 +39,14 @@ class PreviewFilterShowHistoryAction : AnAction(null, null, StudioIcons.Common.F
 
   override fun actionPerformed(e: AnActionEvent) {
     // TODO(b/266080992): Implement showing search history
-    throw Exception(
-      "Showing searching history is not implemented and this action should never be performed."
-    )
+    throw Exception("Showing searching history is not implemented and this action should never be performed.")
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
 
 /** A text field for enter the keyword of filter. */
-class PreviewFilterTextAction(private val filter: PreviewViewFilter) :
-  AnAction(), CustomComponentAction {
+class PreviewFilterTextAction(private val filter: PreviewViewFilter) : AnAction(), CustomComponentAction {
   override fun update(e: AnActionEvent) {
     // Do nothing. This action is for showing text field.
   }

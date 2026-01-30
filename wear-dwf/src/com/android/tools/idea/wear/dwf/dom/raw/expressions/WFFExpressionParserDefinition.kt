@@ -37,12 +37,9 @@ class WFFExpressionParserDefinition : ParserDefinition {
 
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
-  override fun createElement(node: ASTNode?): PsiElement =
-    WFFExpressionTypes.Factory.createElement(node)
+  override fun createElement(node: ASTNode?): PsiElement = WFFExpressionTypes.Factory.createElement(node)
 
-  override fun createFile(viewProvider: FileViewProvider): PsiFile =
-    WFFExpressionPsiFile(viewProvider)
+  override fun createFile(viewProvider: FileViewProvider): PsiFile = WFFExpressionPsiFile(viewProvider)
 
-  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) =
-    ParserDefinition.SpaceRequirements.MAY
+  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
 }

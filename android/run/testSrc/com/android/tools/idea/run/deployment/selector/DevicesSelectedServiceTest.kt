@@ -53,8 +53,7 @@ class DevicesSelectedServiceTest {
     selectedTargetStateService.updateState(
       state.copy(
         selectionMode = SelectionMode.DROPDOWN,
-        dropdownSelection =
-          DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds),
+        dropdownSelection = DropdownSelection(target = target1.id, timestamp = clock.now() - 10.seconds),
       )
     )
 
@@ -93,10 +92,8 @@ class DevicesSelectedServiceTest {
     testScope.advanceUntilIdle()
 
     assertThat(devicesSelectedService.devicesAndTargets.isMultipleSelectionMode).isTrue()
-    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets)
-      .containsExactly(target1, target2)
-    assertThat(devicesSelectedService.getTargetsSelectedWithDialog())
-      .containsExactly(target1, target2)
+    assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target1, target2)
+    assertThat(devicesSelectedService.getTargetsSelectedWithDialog()).containsExactly(target1, target2)
 
     devices = listOf(device1, device3)
 
@@ -116,8 +113,7 @@ class DevicesSelectedServiceTest {
 
     assertThat(devicesSelectedService.devicesAndTargets.isMultipleSelectionMode).isFalse()
     assertThat(devicesSelectedService.devicesAndTargets.selectedTargets).containsExactly(target3)
-    assertThat(devicesSelectedService.getTargetsSelectedWithDialog())
-      .containsExactly(target1, target2)
+    assertThat(devicesSelectedService.getTargetsSelectedWithDialog()).containsExactly(target1, target2)
   }
 
   @Test
@@ -132,8 +128,7 @@ class DevicesSelectedServiceTest {
     val device3 = createDevice("D3")
 
     fun DeploymentTargetDevice.targetId() = DeploymentTarget(this, DefaultBoot).id
-    fun DeploymentTargetDevice.resolve(vararg devices: DeploymentTargetDevice) =
-      targetId().resolve(listOf(*devices))?.device
+    fun DeploymentTargetDevice.resolve(vararg devices: DeploymentTargetDevice) = targetId().resolve(listOf(*devices))?.device
 
     // For each class of device, after the null cases, add items to the set of choices in order of
     // preference.

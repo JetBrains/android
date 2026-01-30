@@ -17,12 +17,8 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 
-/**
- * Listener of AVD posture changes.
- */
+/** Listener of AVD posture changes. */
 interface PostureListener {
-  /**
-   * Called when the posture of a foldable or a rollable device has been changed.
-   */
+  /** Called when the posture of a foldable or a rollable device has been changed. */
   fun postureChanged(posture: PostureDescriptor)
 }

@@ -25,9 +25,7 @@ class CustomViewTestSuite : IdeaTestSuiteBase() {
     init {
       linkIntoOfflineMavenRepo("tools/adt/idea/designer/customview/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
-      linkIntoOfflineMavenRepo(
-        "tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest"
-      )
+      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
     }
   }
 }

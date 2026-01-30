@@ -29,10 +29,7 @@ class LintReportParser(private val out: PrintStream) {
     // We could parse the exact path from the lint task's build error output, but the path is only
     // displayed when there isn't a baseline file. Otherwise, the build is aborted because a new
     // baseline file is generated.
-    val lintDebugDir =
-      projectDir.resolve(
-        "Template test module/build/intermediates/lint_intermediate_text_report/debug"
-      )
+    val lintDebugDir = projectDir.resolve("Template test module/build/intermediates/lint_intermediate_text_report/debug")
     var reportPath = lintDebugDir.resolve("lintReportDebug/lint-results-debug.txt")
     if (!reportPath.toFile().exists()) {
       // The lint output structure may have changed. This seems to be the older structure
@@ -68,9 +65,7 @@ class LintReportParser(private val out: PrintStream) {
         var numMatchedIssues = 0
         issues.values.forEach { numMatchedIssues += it.size }
         if (numErrorsReported != numMatchedIssues) {
-          out.println(
-            "WARNING: End of report summary doesn't match number of errors found ($numMatchedIssues). A problem with the regex?"
-          )
+          out.println("WARNING: End of report summary doesn't match number of errors found ($numMatchedIssues). A problem with the regex?")
         }
         out.println(line)
 

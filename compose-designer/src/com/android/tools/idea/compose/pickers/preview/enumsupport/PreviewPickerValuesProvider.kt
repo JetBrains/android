@@ -46,25 +46,18 @@ import com.intellij.util.text.nullize
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-internal fun IAndroidTarget.displayName(): String =
-  "${version.apiLevel}${versionName?.let { " (Android $it)" } ?: ""}"
+@VisibleForTesting internal fun IAndroidTarget.displayName(): String = "${version.apiLevel}${versionName?.let { " (Android $it)" } ?: ""}"
 
 object PreviewPickerValuesProvider {
   @JvmStatic
-  fun createPreviewValuesProvider(
-    module: Module,
-    containingFile: VirtualFile?,
-  ): EnumSupportValuesProvider {
+  fun createPreviewValuesProvider(module: Module, containingFile: VirtualFile?): EnumSupportValuesProvider {
     val providersMap = mutableMapOf<String, EnumValuesProvider>()
 
     providersMap[PARAMETER_UI_MODE] = createUiModeEnumProvider()
 
     providersMap[PARAMETER_API_LEVEL] = createApiLevelEnumProvider(module)
 
-    containingFile?.let {
-      providersMap[PARAMETER_GROUP] = createGroupEnumProvider(module, containingFile)
-    }
+    containingFile?.let { providersMap[PARAMETER_GROUP] = createGroupEnumProvider(module, containingFile) }
 
     providersMap[PARAMETER_LOCALE] = createLocaleEnumProvider(module)
 
@@ -84,15 +77,9 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
       DeviceGroup.NEXUS,
       DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
       DeviceGroup.CANONICAL_DEVICE -> {
-        devices
-          .firstOrNull { it.id == CanonicalDeviceType.SMALL_PHONE.id }
-          ?.let { devicesEnumValueBuilder::addPhone }
-        devices
-          .firstOrNull { it.id == CanonicalDeviceType.MEDIUM_PHONE.id }
-          ?.let { devicesEnumValueBuilder::addPhone }
-        devices
-          .firstOrNull { it.id == CanonicalDeviceType.MEDIUM_TABLET.id }
-          ?.let { devicesEnumValueBuilder::addTablet }
+        devices.firstOrNull { it.id == CanonicalDeviceType.SMALL_PHONE.id }?.let { devicesEnumValueBuilder::addPhone }
+        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_PHONE.id }?.let { devicesEnumValueBuilder::addPhone }
+        devices.firstOrNull { it.id == CanonicalDeviceType.MEDIUM_TABLET.id }?.let { devicesEnumValueBuilder::addTablet }
       }
       DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
       DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
@@ -126,30 +113,19 @@ private fun createUiModeEnumProvider(): EnumValuesProvider = uiModeProvider@{
   )
 }
 
-/**
- * Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for
- * rendering.
- */
+/** Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for rendering. */
 private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
   val configurationManager = ConfigurationManager.findExistingInstance(module)
-  val minTargetSdk =
-    StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel
-      ?: AndroidVersion.VersionCodes.BASE
+  val minTargetSdk = StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel ?: AndroidVersion.VersionCodes.BASE
   configurationManager
     ?.targets
     ?.filter { it.isLayoutLibTarget && it.version.apiLevel >= minTargetSdk }
     ?.distinctBy { it.version.apiLevel }
-    ?.map { target -> EnumValue.item(target.version.apiLevel.toString(), target.displayName()) }
-    ?: emptyList()
+    ?.map { target -> EnumValue.item(target.version.apiLevel.toString(), target.displayName()) } ?: emptyList()
 }
 
-private fun createGroupEnumProvider(
-  module: Module,
-  containingFile: VirtualFile,
-): EnumValuesProvider = {
-  runBlocking {
-      AnnotationFilePreviewElementFinder.findPreviewElements(module.project, containingFile)
-    }
+private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile): EnumValuesProvider = {
+  runBlocking { AnnotationFilePreviewElementFinder.findPreviewElements(module.project, containingFile) }
     .mapNotNull { previewElement -> previewElement.displaySettings.group }
     .distinct()
     .map { group -> EnumValue.Companion.item(group) }
@@ -157,13 +133,8 @@ private fun createGroupEnumProvider(
 
 private fun createLocaleEnumProvider(module: Module): EnumValuesProvider = localesProvider@{
   val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
-  StudioResourceRepositoryManager.getInstance(module)
-    ?.localesInProject
-    ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
-    ?.forEach { locale ->
-      locale.qualifier.full.nullize()?.let {
-        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
-      }
-    }
+  StudioResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.forEach { locale ->
+    locale.qualifier.full.nullize()?.let { enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId())) }
+  }
   return@localesProvider enumValueLocales
 }

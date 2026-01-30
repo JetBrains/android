@@ -31,14 +31,14 @@ import com.intellij.util.application
 import kotlin.math.max
 
 /**
- * Service used to trace updates to the resources subsystem above and beyond normal logging, used to
- * help diagnose difficult resources issues in the wild.
+ * Service used to trace updates to the resources subsystem above and beyond normal logging, used to help diagnose difficult resources
+ * issues in the wild.
  *
  * Tracing can be enabled by a user via Help > Diagnostic Tools > Trace Resource Updates.
  *
- * The augmented traces are dumped to logs in some automatic circumstances, such as when the IDE
- * recognizes that some `R.string.foo` statement fails to resolve. The user can also manually
- * trigger the traces to be logged with Help > Diagnostic Tools > Dump Resource Trace.
+ * The augmented traces are dumped to logs in some automatic circumstances, such as when the IDE recognizes that some `R.string.foo`
+ * statement fails to resolve. The user can also manually trigger the traces to be logged with Help > Diagnostic Tools > Dump Resource
+ * Trace.
  */
 @Service(Service.Level.APP)
 class ResourceUpdateTracer {
@@ -80,8 +80,7 @@ class ResourceUpdateTracer {
   fun dumpTrace(message: String?) {
     val trace = FlightRecorder.getAndClear()
     if (trace.isEmpty()) {
-      if (message == null) logger.info("No resource updates recorded")
-      else logger.info("$message - no resource updates recorded")
+      if (message == null) logger.info("No resource updates recorded") else logger.info("$message - no resource updates recorded")
       return
     }
 
@@ -109,16 +108,12 @@ class ResourceUpdateTracer {
 
   fun pathForLogging(file: PsiFile?): String? = file?.let { pathForLogging(it.virtualFile) }
 
-  fun pathForLogging(file: VirtualFile, project: Project): String =
-    pathForLogging(file.toPathString(), project)
+  fun pathForLogging(file: VirtualFile, project: Project): String = pathForLogging(file.toPathString(), project)
 
   fun pathForLogging(file: PathString, project: Project): String =
-    project.guessProjectDir()?.toPathString()?.relativize(file)?.nativePath
-      ?: file.truncatedPathString(4)
+    project.guessProjectDir()?.toPathString()?.relativize(file)?.nativePath ?: file.truncatedPathString(4)
 
-  fun pathsForLogging(files: Collection<VirtualFile>, project: Project): String =
-    files.joinToString(", ") { pathForLogging(it, project) }
+  fun pathsForLogging(files: Collection<VirtualFile>, project: Project): String = files.joinToString(", ") { pathForLogging(it, project) }
 }
 
-private fun PathString.truncatedPathString(subdirCount: Int) =
-  subpath(max(nameCount - subdirCount, 0), nameCount).nativePath
+private fun PathString.truncatedPathString(subdirCount: Int) = subpath(max(nameCount - subdirCount, 0), nameCount).nativePath

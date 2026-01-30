@@ -47,29 +47,19 @@ fun transparentPanel() = JPanel().apply { isOpaque = false }
 
 fun transparentPanel(layout: LayoutManager) = JPanel(layout).apply { isOpaque = false }
 
-class AppInsightsStatusText(owner: JComponent?, private val checkStatusVisible: () -> Boolean) :
-  StatusText(owner) {
+class AppInsightsStatusText(owner: JComponent?, private val checkStatusVisible: () -> Boolean) : StatusText(owner) {
   @VisibleForTesting public override fun isStatusVisible() = checkStatusVisible()
 }
 
-val offlineModeIcon =
-  ColoredIconGenerator.generateColoredIcon(
-    AllIcons.Actions.OfflineMode,
-    UIUtil.getErrorForeground(),
-  )
+val offlineModeIcon = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.OfflineMode, UIUtil.getErrorForeground())
 
-fun Long.formatNumberToPrettyString(): String =
-  NumberFormat.getIntegerInstance().format(this).takeUnless { it == "0" } ?: "-"
+fun Long.formatNumberToPrettyString(): String = NumberFormat.getIntegerInstance().format(this).takeUnless { it == "0" } ?: "-"
 
 val dateFormatter: DateTimeFormatter
-  get() =
-    DateTimeFormatter.ofPattern("MMM d, yyyy, hh:mm:ss a")
-      .withLocale(Locale.getDefault())
-      .withZone(ZoneId.systemDefault())
+  get() = DateTimeFormatter.ofPattern("MMM d, yyyy, hh:mm:ss a").withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault())
 
 val EMPTY_STATE_TITLE_FORMAT = SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
-val EMPTY_STATE_TEXT_FORMAT =
-  SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, NamedColorUtil.getInactiveTextColor())
+val EMPTY_STATE_TEXT_FORMAT = SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, NamedColorUtil.getInactiveTextColor())
 val EMPTY_STATE_LINK_FORMAT =
   SimpleTextAttributes(
     SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.LINK_ATTRIBUTES.style,
@@ -95,12 +85,7 @@ internal fun convertToSearchText(issue: AppInsightsIssue): String {
   }
 }
 
-fun getFatalityIcon(
-  fatality: FailureType,
-  selected: Boolean,
-  foreground: Color,
-  withNote: Boolean = false,
-): Icon? {
+fun getFatalityIcon(fatality: FailureType, selected: Boolean, foreground: Color, withNote: Boolean = false): Icon? {
   val icon =
     if (withNote) {
       when (fatality) {
@@ -160,15 +145,12 @@ const val DETAIL_PANEL_HORIZONTAL_SPACING = 10
 /**
  * Shortens the full even id to a form friendly for presentation in the UI.
  *
- * Vitals event IDs follow the format: sessionId_eventId. If the eventId is longer than 15
- * characters, it is to be shortened to the 6 prefix and suffix characters with ellipses in between.
+ * Vitals event IDs follow the format: sessionId_eventId. If the eventId is longer than 15 characters, it is to be shortened to the 6 prefix
+ * and suffix characters with ellipses in between.
  *
  * Crashlytics eventIds do not come with the sessionId so the call to substringAfterLast is a noop.
  */
-fun String.shortenEventId() =
-  substringAfterLast('_').let {
-    if (it.length > 15) it.replaceRange(6..it.length - 7, "...") else it
-  }
+fun String.shortenEventId() = substringAfterLast('_').let { if (it.length > 15) it.replaceRange(6..it.length - 7, "...") else it }
 
 val MINIMUM_ACTION_BUTTON_SIZE = JBUI.size(26)
 
@@ -177,5 +159,4 @@ val ISSUE_DETAILS_PANEL_MIN_SIZE = Dimension(JBUI.scale(300), 0)
 /** Used by toolbars to ensure they are of the same height. */
 fun commonToolbarHeight() = JBUI.scale(35)
 
-fun ActionToolbar.getTotalHeight() =
-  component.height.div(2) + component.border.getBorderInsets(component).bottom
+fun ActionToolbar.getTotalHeight() = component.height.div(2) + component.border.getBorderInsets(component).bottom

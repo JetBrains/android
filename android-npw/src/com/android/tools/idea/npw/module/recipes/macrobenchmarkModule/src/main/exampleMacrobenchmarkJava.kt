@@ -17,7 +17,7 @@
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main
 
 fun exampleMacrobenchmarkJava(className: String, packageName: String, targetPackageName: String) =
-"""package $packageName;
+  """package $packageName;
 
 import androidx.benchmark.macro.CompilationMode;
 import androidx.benchmark.macro.StartupMode;

@@ -20,11 +20,10 @@ import com.google.common.reflect.ClassPath
 import junit.framework.TestCase
 import org.assertj.core.api.Assertions.assertThat
 
-class DeclarativePsiTest: TestCase() {
-  fun testAllPsiInterfacesHasDeclarativeParent(){
+class DeclarativePsiTest : TestCase() {
+  fun testAllPsiInterfacesHasDeclarativeParent() {
     val classes =
-      ClassPath
-        .from(DeclarativePsiTest::class.java.classLoader)
+      ClassPath.from(DeclarativePsiTest::class.java.classLoader)
         // it's a guarantee that impl has all generated files
         .getTopLevelClasses("com.android.tools.idea.gradle.dcl.lang.psi.impl")
 

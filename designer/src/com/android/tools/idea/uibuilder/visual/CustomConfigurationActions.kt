@@ -27,8 +27,7 @@ import java.util.UUID
 
 private const val MAX_CUSTOM_CONFIGURATION_NUMBER = 12
 private const val ENABLED_TEXT = "Add configuration"
-private const val DISABLED_TEXT =
-  "Cannot add more than $MAX_CUSTOM_CONFIGURATION_NUMBER configurations"
+private const val DISABLED_TEXT = "Cannot add more than $MAX_CUSTOM_CONFIGURATION_NUMBER configurations"
 
 /** Action for adding custom set in Validation Tool. */
 class AddCustomConfigurationSetAction : AnAction() {
@@ -56,11 +55,9 @@ class AddCustomConfigurationSetAction : AnAction() {
       val createdConfigSet = CustomConfigurationSet(customSetName, emptyList())
       VisualizationUtil.setCustomConfigurationSet(id, createdConfigSet)
       dialog.close()
-      val newConfigurationSet =
-        ConfigurationSetProvider.getConfigurationSets().firstOrNull { it.id == id }
+      val newConfigurationSet = ConfigurationSetProvider.getConfigurationSets().firstOrNull { it.id == id }
       if (newConfigurationSet != null) {
-        e.getData(VisualizationForm.VISUALIZATION_FORM)
-          ?.onSelectedConfigurationSetChanged(newConfigurationSet)
+        e.getData(VisualizationForm.VISUALIZATION_FORM)?.onSelectedConfigurationSetChanged(newConfigurationSet)
       }
     }
     val owner = e.inputEvent!!.component
@@ -71,8 +68,7 @@ class AddCustomConfigurationSetAction : AnAction() {
   }
 }
 
-class RemoveCustomConfigurationSetAction(private val configurationSet: ConfigurationSet) :
-  AnAction(AllIcons.Actions.GC) {
+class RemoveCustomConfigurationSetAction(private val configurationSet: ConfigurationSet) : AnAction(AllIcons.Actions.GC) {
   init {
     templatePresentation.text = "Delete This Category"
     templatePresentation.description = "Delete the current custom custom category"
@@ -87,18 +83,15 @@ class RemoveCustomConfigurationSetAction(private val configurationSet: Configura
   override fun actionPerformed(e: AnActionEvent) {
     val idToRemove = configurationSet.id
     VisualizationUtil.setCustomConfigurationSet(idToRemove, null)
-    e.getData(VisualizationForm.VISUALIZATION_FORM)
-      ?.onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
+    e.getData(VisualizationForm.VISUALIZATION_FORM)?.onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
   }
 }
 
 /**
- * Action for adding custom configuration into the given [CustomModelsProvider]. For now the
- * implementation is showing [CustomConfigurationAttributeCreationPalette] as a popup dialog and add
- * the configuration picked from it.
+ * Action for adding custom configuration into the given [CustomModelsProvider]. For now the implementation is showing
+ * [CustomConfigurationAttributeCreationPalette] as a popup dialog and add the configuration picked from it.
  */
-class AddCustomConfigurationAction(private val provider: CustomModelsProvider) :
-  AnAction(StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
+class AddCustomConfigurationAction(private val provider: CustomModelsProvider) : AnAction(StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
   init {
     templatePresentation.text = getDisplayText()
@@ -106,12 +99,9 @@ class AddCustomConfigurationAction(private val provider: CustomModelsProvider) :
   }
 
   private fun getDisplayText() =
-    if (provider.customConfigSet.customConfigAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER)
-      ENABLED_TEXT
-    else DISABLED_TEXT
+    if (provider.customConfigSet.customConfigAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER) ENABLED_TEXT else DISABLED_TEXT
 
-  private fun isEnabled() =
-    provider.customConfigSet.customConfigAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER
+  private fun isEnabled() = provider.customConfigSet.customConfigAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LightCalloutPopup()

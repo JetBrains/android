@@ -36,22 +36,15 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
   object : ScreenViewProvider {
     override val displayName: String = "Wear Tile"
 
-    override fun createPrimarySceneView(
-      surface: NlDesignSurface,
-      manager: LayoutlibSceneManager,
-    ): ScreenView =
+    override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
       ScreenView.newBuilder(surface, manager)
         .withLayersProvider {
           ImmutableList.builder<Layer>()
             .apply {
               add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
               add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
-              StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
-                add(ClassLoadingDebugLayer(surface.models.first().facet.module))
-              }
-              StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled {
-                add(DiagnosticsLayer(surface, surface.project))
-              }
+              StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled { add(ClassLoadingDebugLayer(surface.models.first().facet.module)) }
+              StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled { add(DiagnosticsLayer(surface, surface.project)) }
             }
             .build()
         }

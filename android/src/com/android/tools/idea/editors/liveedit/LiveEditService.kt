@@ -33,26 +33,21 @@ import com.intellij.openapi.project.modules
 import com.intellij.util.containers.stream
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Allows any component to listen to all method body edits of a project.
- */
+/** Allows any component to listen to all method body edits of a project. */
 interface LiveEditService : Disposable {
 
   val adbEventsListener: LiveEditAdbEventsListener
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): LiveEditService = project.getService(LiveEditServiceImpl::class.java)
+    @JvmStatic fun getInstance(project: Project): LiveEditService = project.getService(LiveEditServiceImpl::class.java)
 
     @JvmStatic
-    fun usesCompose(project: Project) = project.modules.stream().anyMatch {
-      ProjectSystemService.getInstance(project).projectSystem.getModuleSystem(it).usesCompose
-    }
+    fun usesCompose(project: Project) =
+      project.modules.stream().anyMatch { ProjectSystemService.getInstance(project).projectSystem.getModuleSystem(it).usesCompose }
 
     // The action upon which we trigger LiveEdit to do a push in manual mode.
     // Right now this is set to "SaveAll" which is called via Ctrl/Cmd+S.
-    @JvmStatic
-    val PIGGYBACK_ACTION_ID: String = "SaveAll"
+    @JvmStatic val PIGGYBACK_ACTION_ID: String = "SaveAll"
 
     enum class LiveEditTriggerMode {
       ON_SAVE,
@@ -69,11 +64,9 @@ interface LiveEditService : Disposable {
       return mode == LiveEditTriggerMode.ON_SAVE || mode == LiveEditTriggerMode.ON_HOTKEY
     }
 
-    @JvmStatic
-    fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+    @JvmStatic fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
-    @JvmStatic
-    fun isLeTriggerOnSave() = LiveEditApplicationConfiguration.getInstance().leTriggerMode == LiveEditTriggerMode.ON_SAVE
+    @JvmStatic fun isLeTriggerOnSave() = LiveEditApplicationConfiguration.getInstance().leTriggerMode == LiveEditTriggerMode.ON_SAVE
 
     @JvmStatic
     fun manualLiveEdit(project: Project) {
@@ -92,33 +85,32 @@ interface LiveEditService : Disposable {
       if (LiveEditApplicationConfiguration.getInstance().leTriggerMode === LiveEditTriggerMode.ON_SAVE)
         LiveEditAnActionListener.getLiveEditTriggerShortCutString()
       else
-        ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID)
-          .shortcutSet.shortcuts.firstOrNull()?.let { KeymapUtil.getShortcutText(it) } ?: ""
+        ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID).shortcutSet.shortcuts.firstOrNull()?.let {
+          KeymapUtil.getShortcutText(it)
+        } ?: ""
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
-  @VisibleForTesting
-  fun getDeployMonitor(): LiveEditProjectMonitor
+  @VisibleForTesting fun getDeployMonitor(): LiveEditProjectMonitor
+
   fun devices(): Set<IDevice>
+
   fun editStatus(device: IDevice): LiveEditStatus
 
-  /**
-   * Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device
-   */
+  /** Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device */
   fun notifyAppRefresh(device: IDevice): Boolean
 
-  /**
-   * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-   */
+  /** Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device */
   fun notifyAppDeploy(
     runProfile: RunProfile,
     executor: Executor,
     applicationProjectContext: ApplicationProjectContext,
     device: IDevice,
-    app: LiveEditApp
+    app: LiveEditApp,
   ): Boolean
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode)
+
   fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode)
 
   /**
@@ -133,7 +125,7 @@ interface LiveEditService : Disposable {
    *
    * Note that, unlike triggerLiveEdit(), this call is a sync call. We have the option to inform the agent what exactly happened.
    */
-  fun triggerVibeEdit(pathString: String, prompt: String) : String
+  fun triggerVibeEdit(pathString: String, prompt: String): String
 
   fun notifyLiveEditAvailability(device: IDevice)
 }

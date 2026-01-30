@@ -29,8 +29,7 @@ import org.junit.Test
 
 @RunsInEdt
 class IllegalIdentifierInspectionTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
@@ -42,8 +41,7 @@ class IllegalIdentifierInspectionTest {
 
   @Test
   fun testInspectionInRegularFile() {
-    val file = project.guessProjectDir()!!
-      .findFileByRelativePath("app/src/main/java/com/google/studio/android/test/Test.kt")!!
+    val file = project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/com/google/studio/android/test/Test.kt")!!
     fixture.openFileInEditor(file)
     val highlightInfo = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(highlightInfo).isNotEmpty()
@@ -51,8 +49,7 @@ class IllegalIdentifierInspectionTest {
 
     // 208842981: Allow spaces in method names via backticks
     // The lib module in the project sets minSdkVersion to 30, where the inspection no longer applies.
-    val file2 = project.guessProjectDir()!!
-      .findFileByRelativePath("lib/src/main/java/com/google/studio/android/test/Test2.kt")!!
+    val file2 = project.guessProjectDir()!!.findFileByRelativePath("lib/src/main/java/com/google/studio/android/test/Test2.kt")!!
     fixture.openFileInEditor(file2)
     val highlightInfo2 = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(highlightInfo2).isEmpty()
@@ -60,8 +57,7 @@ class IllegalIdentifierInspectionTest {
 
   @Test
   fun testInspectionInBuildKtsFile() {
-    val file = project.guessProjectDir()!!
-      .findFileByRelativePath("app/build.gradle.kts")!!
+    val file = project.guessProjectDir()!!.findFileByRelativePath("app/build.gradle.kts")!!
     fixture.openFileInEditor(file)
     val highlightInfo = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(highlightInfo).isEmpty()

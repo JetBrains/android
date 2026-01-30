@@ -57,8 +57,7 @@ class DynamicFeatureModel(
   val deviceFeatures = ObservableList<DeviceFeatureModel>()
   val downloadInstallKind = OptionalValueProperty(DownloadInstallKind.ON_DEMAND_ONLY)
   override val recommendedBuildSdk: AndroidVersion?
-    get() =
-      baseApplication.valueOrNull?.let { StudioAndroidModuleInfo.getInstance(it)?.buildSdkVersion }
+    get() = baseApplication.valueOrNull?.let { StudioAndroidModuleInfo.getInstance(it)?.buildSdkVersion }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = RenderLoggingEvent.DYNAMIC_FEATURE_MODULE

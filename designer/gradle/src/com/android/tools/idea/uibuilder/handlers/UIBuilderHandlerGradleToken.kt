@@ -35,14 +35,11 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 
 class UIBuilderHandlerGradleToken : UIBuilderHandlerToken<GradleProjectSystem>, GradleToken {
   private fun hasMaterial3Dependency(moduleSystem: GradleModuleSystem) =
-    moduleSystem
-      .getResolvedDependency(GoogleMavenArtifactId.MATERIAL.getModule(), DependencyScopeType.MAIN)
-      ?.let { it.version > Version.prefixInfimum("1.5.0") } ?: false
+    moduleSystem.getResolvedDependency(GoogleMavenArtifactId.MATERIAL.getModule(), DependencyScopeType.MAIN)?.let {
+      it.version > Version.prefixInfimum("1.5.0")
+    } ?: false
 
-  override fun getBottomAppBarStyle(
-    projectSystem: GradleProjectSystem,
-    newChild: NlComponent,
-  ): String? {
+  override fun getBottomAppBarStyle(projectSystem: GradleProjectSystem, newChild: NlComponent): String? {
     val module = newChild.model.module
     val moduleSystem = projectSystem.getModuleSystem(module)
     return when {
@@ -52,29 +49,15 @@ class UIBuilderHandlerGradleToken : UIBuilderHandlerToken<GradleProjectSystem>, 
   }
 
   private fun constraintLayoutVersion(moduleSystem: GradleModuleSystem): Version? =
-    moduleSystem
-      .getResolvedDependency(
-        GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getModule(),
-        DependencyScopeType.MAIN,
-      )
-      ?.version
+    moduleSystem.getResolvedDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getModule(), DependencyScopeType.MAIN)?.version
 
-  override fun showConvertToMotionLayoutComponentsAction(
-    projectSystem: GradleProjectSystem,
-    viewEditor: ViewEditor,
-  ): Boolean {
-    val version =
-      constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
+  override fun showConvertToMotionLayoutComponentsAction(projectSystem: GradleProjectSystem, viewEditor: ViewEditor): Boolean {
+    val version = constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
     return version > Version.parse("2.0.0-beta02")
   }
 
-  override fun showAddElementsAction(
-    projectSystem: GradleProjectSystem,
-    viewEditor: ViewEditor,
-    type: AddElementType,
-  ): Boolean {
-    val version =
-      constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
+  override fun showAddElementsAction(projectSystem: GradleProjectSystem, viewEditor: ViewEditor, type: AddElementType): Boolean {
+    val version = constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
     return when (type) {
       HORIZONTAL_GUIDELINE,
       VERTICAL_GUIDELINE -> true

@@ -26,7 +26,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedMethod
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationSignature
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationSuperClass
-
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.AnnotationDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
@@ -46,7 +45,8 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBl
 import com.android.utils.ILogger
 
 // TODO: which annotations from Compose and Kotlin do we need to allow-list? Once we know, modifying other annotations should be an error.
-class RegularClassVisitor(private val className: String, private val unrestricted: Boolean = false, private val logger: ILogger) : ClassVisitor {
+class RegularClassVisitor(private val className: String, private val unrestricted: Boolean = false, private val logger: ILogger) :
+  ClassVisitor {
   private val location = className.replace('/', '.')
   private val changedMethods = mutableListOf<MethodDiff>()
   val modifiedMethods: List<MethodDiff> = changedMethods
@@ -128,7 +128,6 @@ class RegularClassVisitor(private val className: String, private val unrestricte
       field.accept(visitor)
     }
   }
-
 }
 
 private class RegularFieldVisitor(className: String, fieldName: String) : FieldVisitor {
@@ -158,6 +157,7 @@ private class RegularFieldVisitor(className: String, fieldName: String) : FieldV
 private class RegularMethodVisitor(val className: String, val methodName: String, val methodDesc: String) : MethodVisitor {
   var hasNonSourceInfoChanges: Boolean = false
     private set
+
   private val location = "${className.replace('/', '.')}.$methodName$methodDesc"
 
   override fun visitLocalVariables(added: List<IrLocalVariable>, removed: List<IrLocalVariable>, modified: List<LocalVariableDiff>) {

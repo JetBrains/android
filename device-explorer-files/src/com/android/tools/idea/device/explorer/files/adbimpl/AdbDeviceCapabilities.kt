@@ -32,8 +32,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 /**
- * Helper class used to detect various capabilities/features supported by a device
- * so callers can make decisions about which adb commands to use.
+ * Helper class used to detect various capabilities/features supported by a device so callers can make decisions about which adb commands to
+ * use.
  */
 class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceName: String, private val device: ConnectedDevice) {
   private val logger = thisLogger()
@@ -41,156 +41,171 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
   private val shellCommandsUtil = AdbShellCommandsUtil.create(device)
 
   suspend fun supportsTestCommand() = supportsTestCommand.await()
-  private val supportsTestCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_test_test__file__.tmp")).use { tempFile ->
-      // Create the remote file used for testing capability
-      tempFile.create()
 
-      // Try the "test" command on it (it should succeed if the command is supported)
-      val command = AdbShellCommandBuilder().withText("test -e ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(command)
-      try {
-        commandResult.throwIfError()
-        true
-      }
-      catch (e: AdbShellCommandException) {
-        logger.debug(
-          """Device "$deviceName" does not seem to support the "test" command: ${
-            commandResult.outputSummary()}""")
-        false
-      }
-    }
-  }
-
-  suspend fun supportsRmForceFlag() = supportsRmForceFlag.await()
-  private val supportsRmForceFlag = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_rm_test_file__.tmp")).use { tempFile ->
-      // Create the remote file used for testing capability
-      tempFile.create()
-
-      // Try to delete it with "rm -f" (it should work if th command is supported)
-      val command = AdbShellCommandBuilder().withText("rm -f ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(command)
-      try {
-        commandResult.throwIfError()
-        // If no error, "rm -f" is supported and test file has been deleted, so no need to delete it again.
-        tempFile.deleteOnClose = false
-        true
-      }
-      catch (e: AdbShellCommandException) {
-        logger.debug("""Device "$deviceName" does not seem to support "-f" flag for rm: ${
-            commandResult.outputSummary()}""")
-        false
-      }
-    }
-  }
-
-  suspend fun supportsTouchCommand() = supportsTouchCommand.await()
-  private val supportsTouchCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_touch_test_file__.tmp")).use { tempFile ->
-
-      // Try to create the file with the "touch" command
-      val command = AdbShellCommandBuilder().withText("touch ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(command)
-      try {
-        commandResult.throwIfError()
-
-        // If "touch" worked, we want to delete the temporary file
-        tempFile.deleteOnClose = true
-        true
-      }
-      catch (e: AdbShellCommandException) {
-        logger.debug("""Device "$deviceName" does not seem to support "touch" command: ${
-          commandResult.outputSummary()
-        }""")
-        false
-      }
-    }
-  }
-
-  suspend fun supportsSuRootCommand() = supportsSuRootCommand.await()
-  private val supportsSuRootCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    // Try a "su" command ("id") that should always succeed, unless "su" is not supported
-    val command = AdbShellCommandBuilder().withSuRootPrefix().withText("id").build()
-    val commandResult = shellCommandsUtil.executeCommand(command)
-    try {
-      commandResult.throwIfError()
-      true
-    }
-    catch (e: AdbShellCommandException) {
-      logger.debug(
-          """Device "$deviceName" does not seem to support the "su 0" command: ${
-              commandResult.outputSummary()}""")
-      false
-    }
-  }
-
-  suspend fun isRoot() = isRoot.await()
-  private val isRoot = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-
-    val result = shellCommandsUtil.executeCommandNoErrorCheck("echo \$USER_ID")
-    result.output.joinToString().trim() == "0"
-  }
-
-  suspend fun supportsCpCommand() = supportsCpCommand.await()
-  private val supportsCpCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file__.tmp")).use { srcFile ->
-      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp")).use { dstFile ->
+  private val supportsTestCommand =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_test_test__file__.tmp")).use { tempFile ->
         // Create the remote file used for testing capability
-        srcFile.create()
+        tempFile.create()
 
-        // Copy source file to destination file
-        val command = AdbShellCommandBuilder()
-          .withText("cp ")
-          .withEscapedPath(srcFile.remotePath)
-          .withText(" ")
-          .withEscapedPath(dstFile.remotePath)
-          .build()
+        // Try the "test" command on it (it should succeed if the command is supported)
+        val command = AdbShellCommandBuilder().withText("test -e ").withEscapedPath(tempFile.remotePath).build()
         val commandResult = shellCommandsUtil.executeCommand(command)
         try {
           commandResult.throwIfError()
-
-          // If "cp" succeeded, we need to delete the destination file
-          dstFile.deleteOnClose = true
           true
-        }
-        catch (e: AdbShellCommandException) {
+        } catch (e: AdbShellCommandException) {
           logger.debug(
-              """Device "$deviceName" does not seem to support the "cp" command: ${
-                  commandResult.outputSummary()}""")
+            """Device "$deviceName" does not seem to support the "test" command: ${
+            commandResult.outputSummary()}"""
+          )
           false
         }
       }
     }
-  }
 
-  suspend fun hasEscapingLs(): Boolean = hasEscapingLs.await()
-  private val hasEscapingLs = coroutineScope.async(start = CoroutineStart.LAZY) {
-    assertNotDispatchThread()
-    try {
-      touchEscapedPath()
-    }
-    catch (exception: AdbShellCommandException) {
-      logger.debug("""Device "$deviceName" does not seem to support the touch command""", exception)
-      return@async false
-    }
-    try {
-      ScopedRemoteFile(ESCAPING_LS_NOT_ESCAPED_PATH).use { file ->
-        file.deleteOnClose = true
-        lsEscapedPath()
+  suspend fun supportsRmForceFlag() = supportsRmForceFlag.await()
+
+  private val supportsRmForceFlag =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_rm_test_file__.tmp")).use { tempFile ->
+        // Create the remote file used for testing capability
+        tempFile.create()
+
+        // Try to delete it with "rm -f" (it should work if th command is supported)
+        val command = AdbShellCommandBuilder().withText("rm -f ").withEscapedPath(tempFile.remotePath).build()
+        val commandResult = shellCommandsUtil.executeCommand(command)
+        try {
+          commandResult.throwIfError()
+          // If no error, "rm -f" is supported and test file has been deleted, so no need to delete it again.
+          tempFile.deleteOnClose = false
+          true
+        } catch (e: AdbShellCommandException) {
+          logger.debug(
+            """Device "$deviceName" does not seem to support "-f" flag for rm: ${
+            commandResult.outputSummary()}"""
+          )
+          false
+        }
       }
     }
-    catch (exception: AdbShellCommandException) {
-      logger.debug("""Device "$deviceName" does not seem to support the ls command""", exception)
-      false
+
+  suspend fun supportsTouchCommand() = supportsTouchCommand.await()
+
+  private val supportsTouchCommand =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_touch_test_file__.tmp")).use { tempFile ->
+
+        // Try to create the file with the "touch" command
+        val command = AdbShellCommandBuilder().withText("touch ").withEscapedPath(tempFile.remotePath).build()
+        val commandResult = shellCommandsUtil.executeCommand(command)
+        try {
+          commandResult.throwIfError()
+
+          // If "touch" worked, we want to delete the temporary file
+          tempFile.deleteOnClose = true
+          true
+        } catch (e: AdbShellCommandException) {
+          logger.debug(
+            """Device "$deviceName" does not seem to support "touch" command: ${
+          commandResult.outputSummary()
+        }"""
+          )
+          false
+        }
+      }
     }
-  }
+
+  suspend fun supportsSuRootCommand() = supportsSuRootCommand.await()
+
+  private val supportsSuRootCommand =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      // Try a "su" command ("id") that should always succeed, unless "su" is not supported
+      val command = AdbShellCommandBuilder().withSuRootPrefix().withText("id").build()
+      val commandResult = shellCommandsUtil.executeCommand(command)
+      try {
+        commandResult.throwIfError()
+        true
+      } catch (e: AdbShellCommandException) {
+        logger.debug(
+          """Device "$deviceName" does not seem to support the "su 0" command: ${
+              commandResult.outputSummary()}"""
+        )
+        false
+      }
+    }
+
+  suspend fun isRoot() = isRoot.await()
+
+  private val isRoot =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+
+      val result = shellCommandsUtil.executeCommandNoErrorCheck("echo \$USER_ID")
+      result.output.joinToString().trim() == "0"
+    }
+
+  suspend fun supportsCpCommand() = supportsCpCommand.await()
+
+  private val supportsCpCommand =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file__.tmp")).use { srcFile ->
+        ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp")).use { dstFile ->
+          // Create the remote file used for testing capability
+          srcFile.create()
+
+          // Copy source file to destination file
+          val command =
+            AdbShellCommandBuilder()
+              .withText("cp ")
+              .withEscapedPath(srcFile.remotePath)
+              .withText(" ")
+              .withEscapedPath(dstFile.remotePath)
+              .build()
+          val commandResult = shellCommandsUtil.executeCommand(command)
+          try {
+            commandResult.throwIfError()
+
+            // If "cp" succeeded, we need to delete the destination file
+            dstFile.deleteOnClose = true
+            true
+          } catch (e: AdbShellCommandException) {
+            logger.debug(
+              """Device "$deviceName" does not seem to support the "cp" command: ${
+                  commandResult.outputSummary()}"""
+            )
+            false
+          }
+        }
+      }
+    }
+
+  suspend fun hasEscapingLs(): Boolean = hasEscapingLs.await()
+
+  private val hasEscapingLs =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      try {
+        touchEscapedPath()
+      } catch (exception: AdbShellCommandException) {
+        logger.debug("""Device "$deviceName" does not seem to support the touch command""", exception)
+        return@async false
+      }
+      try {
+        ScopedRemoteFile(ESCAPING_LS_NOT_ESCAPED_PATH).use { file ->
+          file.deleteOnClose = true
+          lsEscapedPath()
+        }
+      } catch (exception: AdbShellCommandException) {
+        logger.debug("""Device "$deviceName" does not seem to support the ls command""", exception)
+        false
+      }
+    }
 
   private suspend fun touchEscapedPath() {
     val command = AdbShellCommandBuilder().withText("touch $ESCAPING_LS_ESCAPED_PATH").build()
@@ -213,34 +228,35 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
   }
 
   suspend fun supportsMkTempCommand() = supportsMkTempCommand.await()
-  private val supportsMkTempCommand = coroutineScope.async(start = CoroutineStart.LAZY)  {
-    assertNotDispatchThread()
-    // Copy source file to destination file
-    val command = AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(AdbPathUtil.DEVICE_TEMP_DIRECTORY).build()
-    val commandResult = shellCommandsUtil.executeCommand(command)
-    try {
-      commandResult.throwIfError()
-      if (commandResult.isEmpty()) {
-        throw AdbShellCommandException("Unexpected output from mktemp, assuming not supported")
-      }
 
-      // If "mktemp" succeeded, we need to delete the destination file
-      val remotePath = commandResult.output[0]
-      ScopedRemoteFile(remotePath).use { tempFile -> tempFile.deleteOnClose = true }
-      true
-    }
-    catch (e: AdbShellCommandException) {
-      logger.debug(
+  private val supportsMkTempCommand =
+    coroutineScope.async(start = CoroutineStart.LAZY) {
+      assertNotDispatchThread()
+      // Copy source file to destination file
+      val command = AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(AdbPathUtil.DEVICE_TEMP_DIRECTORY).build()
+      val commandResult = shellCommandsUtil.executeCommand(command)
+      try {
+        commandResult.throwIfError()
+        if (commandResult.isEmpty()) {
+          throw AdbShellCommandException("Unexpected output from mktemp, assuming not supported")
+        }
+
+        // If "mktemp" succeeded, we need to delete the destination file
+        val remotePath = commandResult.output[0]
+        ScopedRemoteFile(remotePath).use { tempFile -> tempFile.deleteOnClose = true }
+        true
+      } catch (e: AdbShellCommandException) {
+        logger.debug(
           """Device "$deviceName" does not seem to support the "cp" command: ${
-              commandResult.outputSummary()}""")
-      false
+              commandResult.outputSummary()}"""
+        )
+        false
+      }
     }
-  }
 
   /**
-   * An [AutoCloseable] wrapper around a temporary file on a remote device.f
-   * The [close] method attempts to delete the file from the remote device
-   * unless [deleteOnClose] is set to false.
+   * An [AutoCloseable] wrapper around a temporary file on a remote device.f The [close] method attempts to delete the file from the remote
+   * device unless [deleteOnClose] is set to false.
    */
   private inner class ScopedRemoteFile(val remotePath: String) {
     var deleteOnClose = false
@@ -284,48 +300,44 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
         val commandResult = shellCommandsUtil.executeCommand(command)
         try {
           commandResult.throwIfError()
-        }
-        catch (e: AdbShellCommandException) {
+        } catch (e: AdbShellCommandException) {
           // There is not much we can do if we can't delete the test file other than logging the error.
           logger.debug(
-              """Device "$deviceName": Error deleting temporary test file "$remotePath": ${
-                  commandResult.outputSummary()}""")
+            """Device "$deviceName": Error deleting temporary test file "$remotePath": ${
+                  commandResult.outputSummary()}"""
+          )
         }
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         // There is not much we can do if we can't delete the test file other than logging the error.
         logger.debug("""Device "$deviceName": Error deleting temporary test file "$remotePath"""")
       }
     }
 
-    /**
-     * Create an empty file on the remote device by first creating a local empty temporary file,
-     * then pushing it to the remote device.
-     */
-    private suspend fun createRemoteTemporaryFile() = withContext(diskIoThread) {
-      val tempFile = FileUtil.createTempFile(remotePath, "", true)
-      try {
-        val tempFileChannel = device.session.channelFactory.openFile(tempFile.toPath())
-        logger.trace("""Device "$deviceName": Uploading temporary file "$tempFile" to remote file "$remotePath"""")
-        device.session.deviceServices.syncSend(device.selector, tempFileChannel, remotePath, RemoteFileMode.DEFAULT)
-      }
-      finally {
-        withContext(NonCancellable) {
-          try {
-            FileUtil.delete(tempFile)
-          }
-          catch (e: Exception) {
-            logger.debug("""Device "$deviceName": Error deleting temporary file "$tempFile"""")
+    /** Create an empty file on the remote device by first creating a local empty temporary file, then pushing it to the remote device. */
+    private suspend fun createRemoteTemporaryFile() =
+      withContext(diskIoThread) {
+        val tempFile = FileUtil.createTempFile(remotePath, "", true)
+        try {
+          val tempFileChannel = device.session.channelFactory.openFile(tempFile.toPath())
+          logger.trace("""Device "$deviceName": Uploading temporary file "$tempFile" to remote file "$remotePath"""")
+          device.session.deviceServices.syncSend(device.selector, tempFileChannel, remotePath, RemoteFileMode.DEFAULT)
+        } finally {
+          withContext(NonCancellable) {
+            try {
+              FileUtil.delete(tempFile)
+            } catch (e: Exception) {
+              logger.debug("""Device "$deviceName": Error deleting temporary file "$tempFile"""")
+            }
           }
         }
       }
-    }
   }
 
   companion object {
     private val PROBE_FILES_TEMP_PATH = AdbPathUtil.resolve(AdbPathUtil.DEVICE_TEMP_DIRECTORY, "device-explorer")
     private val ESCAPING_LS_ESCAPED_PATH = AdbPathUtil.resolve(AdbPathUtil.DEVICE_TEMP_DIRECTORY, "oyX2HCKL\\ acuauQGJ")
     private val ESCAPING_LS_NOT_ESCAPED_PATH = AdbPathUtil.resolve(AdbPathUtil.DEVICE_TEMP_DIRECTORY, "oyX2HCKL acuauQGJ")
+
     private fun assertNotDispatchThread() {
       val application = ApplicationManager.getApplication()
       assert(application == null || !application.isDispatchThread)

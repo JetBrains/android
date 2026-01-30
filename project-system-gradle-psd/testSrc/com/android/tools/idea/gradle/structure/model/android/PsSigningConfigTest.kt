@@ -23,33 +23,32 @@ import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class PsSigningConfigTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testDescriptor() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       val appModule = project.findModuleByName("app") as PsAndroidModule
       assertThat(appModule, notNullValue())
 
       val signingConfig = appModule.findSigningConfig("myConfig")
-      assertThat(appModule, notNullValue()); signingConfig!!
+      assertThat(appModule, notNullValue())
+      signingConfig!!
 
       assertThat(
         signingConfig.descriptor.testEnumerateProperties(),
-        equalTo(PsSigningConfig.SigningConfigDescriptors.testEnumerateProperties())
+        equalTo(PsSigningConfig.SigningConfigDescriptors.testEnumerateProperties()),
       )
     }
   }
@@ -64,7 +63,8 @@ class PsSigningConfigTest {
       assertThat(appModule, notNullValue())
 
       val signingConfig = appModule.findSigningConfig("myConfig")
-      assertThat(appModule, notNullValue()); signingConfig!!
+      assertThat(appModule, notNullValue())
+      signingConfig!!
 
       val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
       val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.bind(signingConfig).getValue()
@@ -96,7 +96,8 @@ class PsSigningConfigTest {
       assertThat(appModule, notNullValue())
 
       val signingConfig = appModule.findSigningConfig("myConfig")
-      assertThat(appModule, notNullValue()); signingConfig!!
+      assertThat(appModule, notNullValue())
+      signingConfig!!
 
       signingConfig.keyAlias = "ka".asParsed()
       signingConfig.keyPassword = "kp".asParsed()
@@ -146,7 +147,8 @@ class PsSigningConfigTest {
       assertThat(appModule, notNullValue())
 
       val signingConfig = appModule.findSigningConfig("debug")
-      assertThat(appModule, notNullValue()); signingConfig!!
+      assertThat(appModule, notNullValue())
+      signingConfig!!
 
       signingConfig.keyAlias = "ka".asParsed()
 

@@ -36,34 +36,28 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 
 @RunWith(Parameterized::class)
-class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
+class GradleVersionCatalogDetectorTest : HeavyPlatformTestCase() {
   companion object {
-    @JvmStatic
-    @Parameters(name="{0}")
-    fun parameters() = listOf(
-      arrayOf(FN_SETTINGS_GRADLE),
-      arrayOf(FN_SETTINGS_GRADLE_KTS),
-    )
+    @JvmStatic @Parameters(name = "{0}") fun parameters() = listOf(arrayOf(FN_SETTINGS_GRADLE), arrayOf(FN_SETTINGS_GRADLE_KTS))
   }
 
-  @Parameter
-  lateinit var settingsFilename: String
+  @Parameter lateinit var settingsFilename: String
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  @Before
-  fun setUpTracker(): Unit = UsageTracker.setWriterForTest(tracker).let { }
+  @Before fun setUpTracker(): Unit = UsageTracker.setWriterForTest(tracker).let {}
 
-  @After
-  fun tearDownTracker(): Unit = UsageTracker.cleanAfterTesting()
+  @After fun tearDownTracker(): Unit = UsageTracker.cleanAfterTesting()
 
-  @Test fun testEmptyProject() {
+  @Test
+  fun testEmptyProject() {
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
     val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
     assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle6CallProject() {
+  @Test
+  fun testGradle6CallProject() {
     addWrapperFile("6.9")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = true)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -71,7 +65,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle70PreviewCallProject() {
+  @Test
+  fun testGradle70PreviewCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = true)
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -79,7 +74,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle70PreviewNoCallProject() {
+  @Test
+  fun testGradle70PreviewNoCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -87,7 +83,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle70PreviewLibsProject() {
+  @Test
+  fun testGradle70PreviewLibsProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = false)
     addLibsTomlFile()
@@ -98,7 +95,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
 
   // This would fail to configure, but let's test the logic anyway: since we have a Gradle version of 7.0 and
   // no preview enabled, this is not a Version Catalog project.
-  @Test fun testGradle70NoPreviewCallProject() {
+  @Test
+  fun testGradle70NoPreviewCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -108,7 +106,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
 
   // Likewise, this will fail to configure: the presence of libs.versions.toml without the preview feature causes an early abort in
   // gradle.  Testing the logic anyway.
-  @Test fun testGradle70NoPreviewLibsProject() {
+  @Test
+  fun testGradle70NoPreviewLibsProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     addLibsTomlFile()
@@ -117,7 +116,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle70NoPreviewNoCallProject() {
+  @Test
+  fun testGradle70NoPreviewNoCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -125,7 +125,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle74CallProject() {
+  @Test
+  fun testGradle74CallProject() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true)
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -133,7 +134,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle74NoCallProject() {
+  @Test
+  fun testGradle74NoCallProject() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
@@ -141,7 +143,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testGradle74LibsProject() {
+  @Test
+  fun testGradle74LibsProject() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     addLibsTomlFile()
@@ -150,14 +153,16 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(IMPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testMultipleCallsSingleEvent() {
+  @Test
+  fun testMultipleCallsSingleEvent() {
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
     val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
     assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testSettingsDslNoEntry() {
+  @Test
+  fun testSettingsDslNoEntry() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true, dslEntry = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isSettingsCatalogEntry)
@@ -165,7 +170,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
     assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
-  @Test fun testSettingsDslEntry() {
+  @Test
+  fun testSettingsDslEntry() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true, dslEntry = true)
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isSettingsCatalogEntry)
@@ -176,10 +182,11 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
   private fun addWrapperFile(gradleVersion: String) {
     runWriteAction {
       val baseDir = getOrCreateProjectBaseDir()
-      val propertiesFile = baseDir
-        .run { findChild("gradle") ?: createChildDirectory(this, "gradle") }
-        .run { findChild("wrapper") ?: createChildDirectory(this, "wrapper") }
-        .findOrCreateChildData(this, "gradle-wrapper.properties")
+      val propertiesFile =
+        baseDir
+          .run { findChild("gradle") ?: createChildDirectory(this, "gradle") }
+          .run { findChild("wrapper") ?: createChildDirectory(this, "wrapper") }
+          .findOrCreateChildData(this, "gradle-wrapper.properties")
       propertiesFile.setBinaryContent(
         """distributionUrl=https\://services.gradle.org/distributions/gradle-$gradleVersion-bin.zip""".toByteArray()
       )
@@ -205,7 +212,9 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
                                    "}\n"
           else ""
         }
-      """.trimMargin().toByteArray()
+      """
+          .trimMargin()
+          .toByteArray()
       )
     }
   }
@@ -213,9 +222,8 @@ class GradleVersionCatalogDetectorTest: HeavyPlatformTestCase() {
   private fun addLibsTomlFile() {
     runWriteAction {
       val baseDir = getOrCreateProjectBaseDir()
-      val tomlFile = baseDir
-        .run { findChild("gradle") ?: createChildDirectory(this, "gradle") }
-        .findOrCreateChildData(this, "libs.versions.toml")
+      val tomlFile =
+        baseDir.run { findChild("gradle") ?: createChildDirectory(this, "gradle") }.findOrCreateChildData(this, "libs.versions.toml")
       tomlFile.setBinaryContent("".toByteArray())
     }
   }

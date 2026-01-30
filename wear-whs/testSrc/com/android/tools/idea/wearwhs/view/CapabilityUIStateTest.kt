@@ -28,10 +28,7 @@ class CapabilityUIStateTest {
     assertThat(upToDateState.hasUserChanges(ongoingExercise = true)).isFalse()
 
     val onlyAvailabilityChange =
-      PendingUserChangesCapabilityUIState(
-        upToDateState = heartRateCapabilityState,
-        userState = heartRateCapabilityState.disable(),
-      )
+      PendingUserChangesCapabilityUIState(upToDateState = heartRateCapabilityState, userState = heartRateCapabilityState.disable())
     assertThat(onlyAvailabilityChange.hasUserChanges(ongoingExercise = true)).isFalse()
 
     val onlyOverrideValueChange =
@@ -44,8 +41,7 @@ class CapabilityUIStateTest {
     val allChanges =
       PendingUserChangesCapabilityUIState(
         upToDateState = heartRateCapabilityState,
-        userState =
-          heartRateCapabilityState.override(WhsDataType.HEART_RATE_BPM.value(60)).disable(),
+        userState = heartRateCapabilityState.override(WhsDataType.HEART_RATE_BPM.value(60)).disable(),
       )
     assertThat(allChanges.hasUserChanges(ongoingExercise = true)).isTrue()
   }
@@ -57,10 +53,7 @@ class CapabilityUIStateTest {
     assertThat(upToDateState.hasUserChanges(ongoingExercise = false)).isFalse()
 
     val onlyAvailabilityChange =
-      PendingUserChangesCapabilityUIState(
-        upToDateState = heartRateCapabilityState,
-        userState = heartRateCapabilityState.disable(),
-      )
+      PendingUserChangesCapabilityUIState(upToDateState = heartRateCapabilityState, userState = heartRateCapabilityState.disable())
     assertThat(onlyAvailabilityChange.hasUserChanges(ongoingExercise = false)).isTrue()
 
     val onlyOverrideValueChange =
@@ -73,8 +66,7 @@ class CapabilityUIStateTest {
     val allChanges =
       PendingUserChangesCapabilityUIState(
         upToDateState = heartRateCapabilityState,
-        userState =
-          heartRateCapabilityState.override(WhsDataType.HEART_RATE_BPM.value(60)).disable(),
+        userState = heartRateCapabilityState.override(WhsDataType.HEART_RATE_BPM.value(60)).disable(),
       )
     assertThat(allChanges.hasUserChanges(ongoingExercise = false)).isTrue()
   }

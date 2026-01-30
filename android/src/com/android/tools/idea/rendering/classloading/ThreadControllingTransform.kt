@@ -19,10 +19,7 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
 
 /**
  * Transform to replace every newly created [java.lang.Thread] object with [com.android.layoutlib.reflection.TrackingThread] object
- * including inheritance cases.
- * See [com.android.layoutlib.reflection.TrackingThread] for more details.
+ * including inheritance cases. See [com.android.layoutlib.reflection.TrackingThread] for more details.
  */
-class ThreadControllingTransform (delegate: ClassVisitor) :
-  ConstructorAndSuperclassReplacingTransform(
-    delegate, "java/lang/Thread", "com/android/layoutlib/reflection/TrackingThread")
-
+class ThreadControllingTransform(delegate: ClassVisitor) :
+  ConstructorAndSuperclassReplacingTransform(delegate, "java/lang/Thread", "com/android/layoutlib/reflection/TrackingThread")

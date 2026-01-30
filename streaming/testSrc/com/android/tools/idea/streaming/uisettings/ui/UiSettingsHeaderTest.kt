@@ -22,11 +22,11 @@ import com.android.tools.adtui.swing.getDescendant
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.ActionLink
+import java.awt.Dimension
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import kotlin.time.Duration.Companion.seconds
 
 class UiSettingsHeaderTest {
   private lateinit var model: UiSettingsModel
@@ -34,8 +34,7 @@ class UiSettingsHeaderTest {
   private lateinit var ui: FakeUi
   private var lastCommand: String = ""
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun before() {

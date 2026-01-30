@@ -24,8 +24,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Test implementation of [TransportService].
+ *
  * <p>
- *   Usage example:
+ * Usage example:
  * <pre>
  *   @get:Rule val applicationRule = ApplicationRule()
  *

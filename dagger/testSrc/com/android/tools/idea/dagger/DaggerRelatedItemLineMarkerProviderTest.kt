@@ -76,21 +76,14 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
   override fun runInDispatchThread() = false
 
   private fun getGotoElements(icon: GutterMark): Collection<GotoRelatedItem> {
-    return ((icon as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo
-        as RelatedItemLineMarkerInfo)
-      .createGotoRelatedItems()
+    return ((icon as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo as RelatedItemLineMarkerInfo).createGotoRelatedItems()
   }
 
   private fun clickOnIcon(icon: LineMarkerInfo.LineMarkerGutterIconRenderer<*>) {
     application.invokeAndWait {
       @Suppress("UNCHECKED_CAST")
-      val navigationHandler =
-        requireNotNull(icon.lineMarkerInfo.navigationHandler)
-          as GutterIconNavigationHandler<PsiElement>
-      navigationHandler.navigate(
-        MouseEvent(JLabel(), 0, 0, 0, 0, 0, 0, false),
-        icon.lineMarkerInfo.element,
-      )
+      val navigationHandler = requireNotNull(icon.lineMarkerInfo.navigationHandler) as GutterIconNavigationHandler<PsiElement>
+      navigationHandler.navigate(MouseEvent(JLabel(), 0, 0, 0, 0, 0, 0, false), icon.lineMarkerInfo.element)
 
       // It's okay to close the popup right away, since what's being validated is that the correct
       // elements were shown (by virtue of telemetry logged). Closing this now ensures the popup is
@@ -169,9 +162,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     var icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    var gotoRelatedItems = runReadAction {
-      getGotoElements(icons.find { it.tooltipText == "injectedString consumes provider()" }!!)
-    }
+    var gotoRelatedItems = runReadAction { getGotoElements(icons.find { it.tooltipText == "injectedString consumes provider()" }!!) }
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
@@ -199,9 +190,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     application.invokeAndWait { icons = myFixture.findGuttersAtCaret() }
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = runReadAction {
-      getGotoElements(icons.find { it.tooltipText == "injectedStringKt consumes provider()" }!!)
-    }
+    gotoRelatedItems = runReadAction { getGotoElements(icons.find { it.tooltipText == "injectedStringKt consumes provider()" }!!) }
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
@@ -225,9 +214,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .trimIndent(),
     )
 
-    val consumerParameter: KtParameter = runReadAction {
-      myFixture.findParentElement("cons|umer:String")
-    }
+    val consumerParameter: KtParameter = runReadAction { myFixture.findParentElement("cons|umer:String") }
 
     // Kotlin consumer as parameter
     myFixture.configureByText(
@@ -253,28 +240,22 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
 
-    assertThat(consumerElements)
-      .containsExactly(consumerField, consumerKtField, parameter, consumerParameter)
+    assertThat(consumerElements).containsExactly(consumerField, consumerKtField, parameter, consumerParameter)
 
     val displayedNames = gotoRelatedItems.map { it.customName }
-    assertThat(displayedNames)
-      .containsAllOf("MyClass2", "MyClass", "MyClass", "providerToDisplayAsConsumer")
+    assertThat(displayedNames).containsAllOf("MyClass2", "MyClass", "MyClass", "providerToDisplayAsConsumer")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(4)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
-    assertThat(trackerService.calledMethods[1])
-      .startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
-    assertThat(trackerService.calledMethods[2])
-      .startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: CONSUMER time: ")
+    assertThat(trackerService.calledMethods[2]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
     assertThat(trackerService.calledMethods[3]).isEqualTo("trackClickOnGutter PROVIDER")
   }
 
@@ -285,17 +266,17 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-        package test;
-        import dagger.Provides;
-        import dagger.Module;
+          package test;
+          import dagger.Provides;
+          import dagger.Module;
 
-        @Module
-        class MyModule {
-          @Provides String provider() {
-            return "logcat.filter.save.button.tooltip";
+          @Module
+          class MyModule {
+            @Provides String provider() {
+              return "logcat.filter.save.button.tooltip";
+            }
           }
-        }
-      """
+          """
             .trimIndent()
         )
         .containingFile
@@ -306,14 +287,14 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Component;
+          package test;
+          import dagger.Component;
 
-      @Component(modules = { MyModule.class })
-      public interface MyComponent {
-        String getString();
-      }
-    """
+          @Component(modules = { MyModule.class })
+          public interface MyComponent {
+            String getString();
+          }
+          """
             .trimIndent()
         )
         .containingFile
@@ -330,8 +311,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
-    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name)
-      .isEqualTo("provider")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
 
     myFixture.configureFromExistingVirtualFile(providerFile)
     lateinit var icons: List<GutterMark>
@@ -342,8 +322,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
@@ -356,17 +335,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(6)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
-    assertThat(trackerService.calledMethods[1])
-      .startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
-    assertThat(trackerService.calledMethods[2])
-      .startsWith("trackGutterWasDisplayed owner: MODULE time: ")
-    assertThat(trackerService.calledMethods[3])
-      .startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
+    assertThat(trackerService.calledMethods[2]).startsWith("trackGutterWasDisplayed owner: MODULE time: ")
+    assertThat(trackerService.calledMethods[3]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
     assertThat(trackerService.calledMethods[4]).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods[5])
-      .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
+    assertThat(trackerService.calledMethods[5]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentMethodsForProvider_kotlin() {
@@ -377,17 +351,17 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "src/test/MyModule.java",
           // language=JAVA
           """
-        package test;
-        import dagger.Provides;
-        import dagger.Module;
+          package test;
+          import dagger.Provides;
+          import dagger.Module;
 
-        @Module
-        public class MyModule {
-          @Provides String provider() {
-            return "logcat.filter.save.button.tooltip";
+          @Module
+          public class MyModule {
+            @Provides String provider() {
+              return "logcat.filter.save.button.tooltip";
+            }
           }
-        }
-      """
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -403,7 +377,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       interface MyComponent {
         val str:String
       }
-    """
+      """
         .trimIndent(),
     )
 
@@ -418,8 +392,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
-    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name)
-      .isEqualTo("provider")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
 
     myFixture.configureFromExistingVirtualFile(providerFile)
     lateinit var icons: List<GutterMark>
@@ -430,8 +403,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
@@ -444,25 +416,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(4)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
-    assertThat(
-        trackerService.calledMethods[0]
-          .removePrefix("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
-          .toInt()
-      )
-      .isNotNull()
-    assertThat(trackerService.calledMethods[1])
-      .startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
-    assertThat(
-        trackerService.calledMethods[1]
-          .removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ")
-          .toInt()
-      )
-      .isNotNull()
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: COMPONENT_METHOD time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods[1]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[1].removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ").toInt()).isNotNull()
     assertThat(trackerService.calledMethods[2]).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods[3])
-      .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
+    assertThat(trackerService.calledMethods[3]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
   fun testComponentForModules() {
@@ -472,13 +431,13 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           // language=JAVA
           JavaFileType.INSTANCE,
           """
-        package test;
-        import dagger.Module;
+          package test;
+          import dagger.Module;
 
-        @Module
-        class MyModule {
-        }
-      """
+          @Module
+          class MyModule {
+          }
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -492,7 +451,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Component(modules = { MyModule.class })
       public interface MyComponent {
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -500,11 +459,11 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
-        import dagger.Module;
+      package test;
+      import dagger.Module;
 
-        @Module(includes = { MyModule.class })
-        class MyModule2 {}
+      @Module(includes = { MyModule.class })
+      class MyModule2 {}
       """
         .trimIndent()
     )
@@ -513,11 +472,11 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
-        import dagger.Subcomponent;
+      package test;
+      import dagger.Subcomponent;
 
-        @Subcomponent(modules = { MyModule.class })
-        class MySubcomponent {}
+      @Subcomponent(modules = { MyModule.class })
+      class MySubcomponent {}
       """
         .trimIndent()
     )
@@ -531,29 +490,20 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItems = getGotoElements(icon)
     val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result)
-      .containsExactly(
-        "Included in components: MyComponent",
-        "Included in modules: MyModule2",
-        "Included in subcomponents: MySubcomponent",
-      )
+      .containsExactly("Included in components: MyComponent", "Included in modules: MyModule2", "Included in subcomponents: MySubcomponent")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: MODULE time: ")
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: MODULE time: ")
     assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter MODULE")
 
-    application.invokeAndWait {
-      gotoRelatedItems.find { it.group == "Included in components" }!!.navigate()
-    }
-    assertThat(trackerService.calledMethods.last())
-      .isEqualTo("trackNavigation CONTEXT_GUTTER MODULE COMPONENT")
+    application.invokeAndWait { gotoRelatedItems.find { it.group == "Included in components" }!!.navigate() }
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER MODULE COMPONENT")
   }
 
   fun testDependantComponentsForComponent() {
@@ -563,12 +513,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Component;
+          package test;
+          import dagger.Component;
 
-      @Component
-      public interface MyComponent {}
-    """
+          @Component
+          public interface MyComponent {}
+          """
             .trimIndent()
         )
         .containingFile
@@ -584,7 +534,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Component(dependencies = [MyComponent::class])
       interface MyDependantComponent
-    """
+      """
         .trimIndent(),
     )
 
@@ -596,8 +546,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     }
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "MyDependantComponent is parent of MyComponent" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "MyDependantComponent is parent of MyComponent" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     assertThat(icons).isNotEmpty()
 
@@ -609,17 +558,10 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(3)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
-    assertThat(
-        trackerService.calledMethods[0]
-          .removePrefix("trackGutterWasDisplayed owner: COMPONENT time: ")
-          .toInt()
-      )
-      .isNotNull()
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: COMPONENT time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: COMPONENT time: ").toInt()).isNotNull()
     assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter COMPONENT")
-    assertThat(trackerService.calledMethods[2])
-      .isEqualTo("trackNavigation CONTEXT_GUTTER COMPONENT COMPONENT")
+    assertThat(trackerService.calledMethods[2]).isEqualTo("trackNavigation CONTEXT_GUTTER COMPONENT COMPONENT")
   }
 
   fun testParentsForSubcomponent() {
@@ -629,12 +571,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Subcomponent;
+          package test;
+          import dagger.Subcomponent;
 
-      @Subcomponent
-      public interface MySubcomponent {}
-    """
+          @Subcomponent
+          public interface MySubcomponent {}
+          """
             .trimIndent()
         )
         .containingFile
@@ -643,12 +585,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
+      package test;
 
-        import dagger.Module;
+      import dagger.Module;
 
-        @Module(subcomponents = { MySubcomponent.class })
-        class MyModule { }
+      @Module(subcomponents = { MySubcomponent.class })
+      class MyModule { }
       """
         .trimIndent()
     )
@@ -662,7 +604,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """
+      """
         .trimIndent()
     )
 
@@ -676,7 +618,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Component(modules = [ MyModule::class])
       interface MyComponentKt
-    """
+      """
         .trimIndent(),
     )
 
@@ -689,16 +631,11 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = runReadAction {
-      getGotoElements(
-        icons.find { it.tooltipText == "Dependency Related Files for MySubcomponent" }!!
-      )
+      getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MySubcomponent" }!!)
     }
     assertThat(gotoRelatedItems).hasSize(2)
-    val result = runReadAction {
-      gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
-    }
-    assertThat(result)
-      .containsAllOf("Parent components: MyComponent", "Parent components: MyComponentKt")
+    val result = runReadAction { gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" } }
+    assertThat(result).containsAllOf("Parent components: MyComponent", "Parent components: MyComponentKt")
   }
 
   fun testSubcomponentsAndModulesForComponent() {
@@ -711,7 +648,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """
+      """
         .trimIndent()
     )
 
@@ -725,19 +662,19 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Subcomponent
       interface MySubcomponent2
-    """
+      """
         .trimIndent(),
     )
 
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
+      package test;
 
-        import dagger.Module;
+      import dagger.Module;
 
-        @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
-        class MyModule { }
+      @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
+      class MyModule { }
       """
         .trimIndent()
     )
@@ -748,12 +685,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Component;
+          package test;
+          import dagger.Component;
 
-      @Component(modules = { MyModule.class })
-      public interface MyComponent {}
-    """
+          @Component(modules = { MyModule.class })
+          public interface MyComponent {}
+          """
             .trimIndent()
         )
         .containingFile
@@ -767,17 +704,10 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     }
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = runReadAction {
-      getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MyComponent" }!!)
-    }
+    val gotoRelatedItems = runReadAction { getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MyComponent" }!!) }
     assertThat(gotoRelatedItems).hasSize(3)
     val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
-    assertThat(result)
-      .containsAllOf(
-        "Subcomponents: MySubcomponent2",
-        "Subcomponents: MySubcomponent",
-        "Modules included: MyModule",
-      )
+    assertThat(result).containsAllOf("Subcomponents: MySubcomponent2", "Subcomponents: MySubcomponent", "Modules included: MyModule")
   }
 
   fun testAssistedInjectFactoriesAndConstructors() {
@@ -789,7 +719,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       import javax.inject.Inject
 
       class Repository @Inject constructor()
-    """
+      """
         .trimIndent(),
     )
     val assistedFactory =
@@ -798,21 +728,21 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/AssistedFactory.kt",
           // language=kotlin
           """
-      package test
+          package test
 
-      import dagger.assisted.AssistedFactory
+          import dagger.assisted.AssistedFactory
 
-      // Gutter icon with 'down' arrow as this is consumed somewhere else,
-      // possible consumers are:
-      // * @Provides method parameter
-      // * @Inject constructor parameter
-      // * @Inject field
-      @AssistedFactory
-      interface FooFactory {
-          // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
-          fun create(id: String): Foo
-      }
-    """
+          // Gutter icon with 'down' arrow as this is consumed somewhere else,
+          // possible consumers are:
+          // * @Provides method parameter
+          // * @Inject constructor parameter
+          // * @Inject field
+          @AssistedFactory
+          interface FooFactory {
+              // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
+              fun create(id: String): Foo
+          }
+          """
             .trimIndent(),
         )
         .containingFile
@@ -824,22 +754,22 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/AssistedInject.kt",
           // language=kotlin
           """
-      package test
+          package test
 
-      import dagger.assisted.Assisted
-      import dagger.assisted.AssistedInject
+          import dagger.assisted.Assisted
+          import dagger.assisted.AssistedInject
 
-      // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
-      // with 'down arrow', indicating this is consumed somewhere else. Link goes
-      // to FooFactory#create()
-      class Foo @AssistedInject constructor(
-          // Gutter icon with the 'up' arrow, link to 'Repository' provider.
-          val repository: Repository,
-          // This is the assisted value, it does not need a gutter icon since the
-          // @AssistedInject constructor links to the assisted factory.
-          @Assisted val id: String
-      )
-    """
+          // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
+          // with 'down arrow', indicating this is consumed somewhere else. Link goes
+          // to FooFactory#create()
+          class Foo @AssistedInject constructor(
+              // Gutter icon with the 'up' arrow, link to 'Repository' provider.
+              val repository: Repository,
+              // This is the assisted value, it does not need a gutter icon since the
+              // @AssistedInject constructor links to the assisted factory.
+              @Assisted val id: String
+          )
+          """
             .trimIndent(),
         )
         .containingFile
@@ -856,32 +786,23 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       assertThat(icons).isNotEmpty()
 
       val icon = runReadAction {
-        icons.find { it.tooltipText == "Foo(Repository, String) is created by create" }!!
-          as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+        icons.find { it.tooltipText == "Foo(Repository, String) is created by create" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
       }
       val gotoRelatedItems = getGotoElements(icon)
       assertThat(gotoRelatedItems).hasSize(1)
-      val result = runReadAction {
-        gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
-      }
+      val result = runReadAction { gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" } }
       assertThat(result).containsExactly("AssistedFactory methods: create")
 
       clickOnIcon(icon)
       assertThat(trackerService.calledMethods).hasSize(4)
-      assertThat(trackerService.calledMethods[0])
-        .startsWith("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ")
+      assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ")
       assertThat(
-          trackerService.calledMethods[0]
-            .removePrefix("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ")
-            .toInt()
+          trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: ASSISTED_INJECTED_CONSTRUCTOR time: ").toInt()
         )
         .isNotNull()
-      assertThat(trackerService.calledMethods[2])
-        .isEqualTo("trackClickOnGutter ASSISTED_INJECTED_CONSTRUCTOR")
+      assertThat(trackerService.calledMethods[2]).isEqualTo("trackClickOnGutter ASSISTED_INJECTED_CONSTRUCTOR")
       assertThat(trackerService.calledMethods[3])
-        .isEqualTo(
-          "trackNavigation CONTEXT_GUTTER ASSISTED_INJECTED_CONSTRUCTOR ASSISTED_FACTORY_METHOD"
-        )
+        .isEqualTo("trackNavigation CONTEXT_GUTTER ASSISTED_INJECTED_CONSTRUCTOR ASSISTED_FACTORY_METHOD")
     }
 
     // Assisted Factory method tests
@@ -896,32 +817,21 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       assertThat(icons).isNotEmpty()
 
       val icon = runReadAction {
-        icons.find { it.tooltipText == "create(String) is defined by Foo" }!!
-          as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+        icons.find { it.tooltipText == "create(String) is defined by Foo" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
       }
       val gotoRelatedItems = getGotoElements(icon)
       assertThat(gotoRelatedItems).hasSize(1)
-      val result = runReadAction {
-        gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
-      }
+      val result = runReadAction { gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" } }
       assertThat(result).containsExactly("AssistedInject constructors: Foo")
 
       clickOnIcon(icon)
       assertThat(trackerService.calledMethods).hasSize(7)
-      assertThat(trackerService.calledMethods[4])
-        .startsWith("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
-      assertThat(
-          trackerService.calledMethods[4]
-            .removePrefix("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
-            .toInt()
-        )
+      assertThat(trackerService.calledMethods[4]).startsWith("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+      assertThat(trackerService.calledMethods[4].removePrefix("trackGutterWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ").toInt())
         .isNotNull()
-      assertThat(trackerService.calledMethods[5])
-        .isEqualTo("trackClickOnGutter ASSISTED_FACTORY_METHOD")
+      assertThat(trackerService.calledMethods[5]).isEqualTo("trackClickOnGutter ASSISTED_FACTORY_METHOD")
       assertThat(trackerService.calledMethods[6])
-        .isEqualTo(
-          "trackNavigation CONTEXT_GUTTER ASSISTED_FACTORY_METHOD ASSISTED_INJECTED_CONSTRUCTOR"
-        )
+        .isEqualTo("trackNavigation CONTEXT_GUTTER ASSISTED_FACTORY_METHOD ASSISTED_INJECTED_CONSTRUCTOR")
     }
   }
 
@@ -932,11 +842,11 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/Repository.kt",
           // language=kotlin
           """
-      package test
-      import javax.inject.Inject
+          package test
+          import javax.inject.Inject
 
-      class Repository @Inject constructor()
-    """
+          class Repository @Inject constructor()
+          """
             .trimIndent(),
         )
         .containingFile
@@ -947,22 +857,22 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/AssistedFactory.kt",
           // language=kotlin
           """
-      package test
+          package test
 
-      import dagger.assisted.AssistedFactory
+          import dagger.assisted.AssistedFactory
 
-      // Gutter icon with 'down' arrow as this is consumed somewhere else,
-      // possible consumers are:
-      // * @Provides method parameter
-      // * @Inject constructor parameter
-      // * @Inject field
-      @AssistedFactory
-      interface FooFactory {
-          // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
-          fun create(id: String): Foo
-      }
+          // Gutter icon with 'down' arrow as this is consumed somewhere else,
+          // possible consumers are:
+          // * @Provides method parameter
+          // * @Inject constructor parameter
+          // * @Inject field
+          @AssistedFactory
+          interface FooFactory {
+              // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
+              fun create(id: String): Foo
+          }
 
-    """
+          """
             .trimIndent(),
         )
         .containingFile
@@ -974,22 +884,22 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/AssistedInject.kt",
           // language=kotlin
           """
-      package test
+          package test
 
-      import dagger.assisted.Assisted
-      import dagger.assisted.AssistedInject
+          import dagger.assisted.Assisted
+          import dagger.assisted.AssistedInject
 
-      // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
-      // with 'down arrow', indicating this is consumed somewhere else. Link goes
-      // to FooFactory#create()
-      class Foo @AssistedInject constructor(
-          // Gutter icon with the 'up' arrow, link to 'Repository' provider.
-          val repository: Repository,
-          // This is the assisted value, it does not need a gutter icon since the
-          // @AssistedInject constructor links to the assisted factory.
-          @Assisted val id: String
-      )
-    """
+          // Gutter icon in constructor (or in class as this is primary Kotlin constructor)
+          // with 'down arrow', indicating this is consumed somewhere else. Link goes
+          // to FooFactory#create()
+          class Foo @AssistedInject constructor(
+              // Gutter icon with the 'up' arrow, link to 'Repository' provider.
+              val repository: Repository,
+              // This is the assisted value, it does not need a gutter icon since the
+              // @AssistedInject constructor links to the assisted factory.
+              @Assisted val id: String
+          )
+          """
             .trimIndent(),
         )
         .containingFile
@@ -1000,26 +910,20 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import javax.inject.Inject;
+          package test;
+          import javax.inject.Inject;
 
-      class MyClass {
-        @Inject FooFactory myFooFactory;
-      }
+          class MyClass {
+            @Inject FooFactory myFooFactory;
+          }
 
-    """
+          """
             .trimIndent()
         )
         .containingFile
         .virtualFile
 
-    checkGutterIcon(
-      repository,
-      "constru|ctor()",
-      "Repository() provides for Foo",
-      listOf("Consumers: repository"),
-      DEPENDENCY_CONSUMER,
-    )
+    checkGutterIcon(repository, "constru|ctor()", "Repository() provides for Foo", listOf("Consumers: repository"), DEPENDENCY_CONSUMER)
 
     checkGutterIcon(
       consumingClass,
@@ -1074,9 +978,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons.map { it.icon }).contains(expectedIcon)
 
     runReadAction {
-      val gotoRelatedItems = runReadAction {
-        getGotoElements(icons.find { it.tooltipText == tooltipText }!!)
-      }
+      val gotoRelatedItems = runReadAction { getGotoElements(icons.find { it.tooltipText == tooltipText }!!) }
       assertThat(gotoRelatedItems).hasSize(resultStrings.size)
       val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
       assertThat(result).containsExactlyElementsIn(resultStrings)
@@ -1090,12 +992,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/MyModule.kt",
           // language=kotlin
           """
-        package test
-        import dagger.Module
+          package test
+          import dagger.Module
 
-        @Module
-        object MyModule
-      """
+          @Module
+          object MyModule
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -1107,14 +1009,14 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           "test/NotMyModule.kt",
           // language=kotlin
           """
-        package test
-        import dagger.Module
+          package test
+          import dagger.Module
 
-        enum class NotMyModule {
-          @Module
-          ONE
-        }
-      """
+          enum class NotMyModule {
+            @Module
+            ONE
+          }
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -1128,7 +1030,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       @Component(modules = { MyModule.class })
       public interface MyComponent {
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -1141,9 +1043,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = runReadAction {
-      getGotoElements(
-        icons.find { it.tooltipText == "MyModule is included in component MyComponent" }!!
-      )
+      getGotoElements(icons.find { it.tooltipText == "MyModule is included in component MyComponent" }!!)
     }
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
@@ -1166,7 +1066,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Qualifier
       public @interface MyQualifier {}
-    """
+      """
         .trimIndent()
     )
 
@@ -1181,7 +1081,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         @Inject @MyQualifier String injectedStringWithQualifier;
       }
 
-    """
+      """
         .trimIndent()
     )
 
@@ -1214,8 +1114,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "str provides for MyClass" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "str provides for MyClass" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
@@ -1224,29 +1123,22 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(3)
-    assertThat(trackerService.calledMethods[0])
-      .startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
-    assertThat(
-        trackerService.calledMethods[0]
-          .removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ")
-          .toInt()
-      )
-      .isNotNull()
+    assertThat(trackerService.calledMethods[0]).startsWith("trackGutterWasDisplayed owner: PROVIDER time: ")
+    assertThat(trackerService.calledMethods[0].removePrefix("trackGutterWasDisplayed owner: PROVIDER time: ").toInt()).isNotNull()
     assertThat(trackerService.calledMethods[1]).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods[2])
-      .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
+    assertThat(trackerService.calledMethods[2]).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
   }
 
   fun testModulesForSubcomponent() {
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
+      package test;
 
-        import dagger.Module;
+      import dagger.Module;
 
-        @Module
-        class MyModule { }
+      @Module
+      class MyModule { }
       """
         .trimIndent()
     )
@@ -1256,12 +1148,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Subcomponent;
+          package test;
+          import dagger.Subcomponent;
 
-      @Subcomponent(modules = { MyModule.class })
-      public interface MySubcomponent {}
-    """
+          @Subcomponent(modules = { MyModule.class })
+          public interface MySubcomponent {}
+          """
             .trimIndent()
         )
         .containingFile
@@ -1275,9 +1167,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     }
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = runReadAction {
-      getGotoElements(icons.find { it.tooltipText == "MySubcomponent includes module MyModule" }!!)
-    }
+    val gotoRelatedItems = runReadAction { getGotoElements(icons.find { it.tooltipText == "MySubcomponent includes module MyModule" }!!) }
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result).containsExactly("Modules included: MyModule")
@@ -1293,19 +1183,19 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """
+      """
         .trimIndent()
     )
 
     myFixture.addClass(
       // language=JAVA
       """
-        package test;
+      package test;
 
-        import dagger.Module;
+      import dagger.Module;
 
-        @Module(subcomponents = { MySubcomponent.class })
-        class MyModule { }
+      @Module(subcomponents = { MySubcomponent.class })
+      class MyModule { }
       """
         .trimIndent()
     )
@@ -1316,12 +1206,12 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.Subcomponent;
+          package test;
+          import dagger.Subcomponent;
 
-      @Subcomponent(modules = { MyModule.class })
-      public interface MyParentSubcomponent {}
-    """
+          @Subcomponent(modules = { MyModule.class })
+          public interface MyParentSubcomponent {}
+          """
             .trimIndent()
         )
         .containingFile
@@ -1344,8 +1234,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter SUBCOMPONENT")
     application.invokeAndWait { gotoRelatedItems.find { it.group == "Subcomponents" }!!.navigate() }
-    assertThat(trackerService.calledMethods.last())
-      .isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
   }
 
   fun testEntryPointMethodsForProvider() {
@@ -1356,15 +1245,15 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
           // language=JAVA
           JavaFileType.INSTANCE,
           """
-        package test;
-        import dagger.Provides;
-        import dagger.Module;
+          package test;
+          import dagger.Provides;
+          import dagger.Module;
 
-        @Module
-        class MyModule {
-          @Provides String provider() {}
-        }
-      """
+          @Module
+          class MyModule {
+            @Provides String provider() {}
+          }
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -1379,7 +1268,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
       public interface MyComponent {
         String getString();
       }
-    """
+      """
         .trimIndent()
     )
 
@@ -1388,14 +1277,14 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .addClass(
           // language=JAVA
           """
-      package test;
-      import dagger.hilt.EntryPoint;
+          package test;
+          import dagger.hilt.EntryPoint;
 
-      @EntryPoint
-      public interface MyEntryPoint {
-        String getStringInEntryPoint();
-      }
-    """
+          @EntryPoint
+          public interface MyEntryPoint {
+            String getStringInEntryPoint();
+          }
+          """
             .trimIndent()
         )
         .containingFile
@@ -1409,16 +1298,13 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     }
 
     val iconForComponentMethod = runReadAction {
-      iconsForComponentMethod.find {
-        it.tooltipText == "getStringInEntryPoint() exposes provider()"
-      }!!
+      iconsForComponentMethod.find { it.tooltipText == "getStringInEntryPoint() exposes provider()" }!!
         as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
-    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name)
-      .isEqualTo("provider")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
 
     myFixture.configureFromExistingVirtualFile(providerFile)
     lateinit var icons: List<GutterMark>
@@ -1429,8 +1315,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon = runReadAction {
-      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
-        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     }
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(2)
@@ -1441,8 +1326,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
     }
 
     application.invokeAndWait { method.navigate() }
-    assertThat(trackerService.calledMethods.last())
-      .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 
   fun testNavigationGoesToTargetElement() {
@@ -1461,11 +1345,7 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .trimIndent(),
     )
 
-    application.invokeAndWait {
-      clickOnIcon(
-        myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
-      )
-    }
+    application.invokeAndWait { clickOnIcon(myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>) }
 
     myFixture.checkResult(
       // language=kotlin
@@ -1516,22 +1396,13 @@ class DaggerRelatedItemLineMarkerProviderTest {
 
     assertThat(myFixture.moveCaret("cla|ss Foo constructor").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("class Fo|o constructor").canReceiveLineMarker()).isTrue()
-    assertThat(
-        myFixture.findParentElement<KtClass>("class Fo|o constructor").canReceiveLineMarker()
-      )
-      .isFalse()
+    assertThat(myFixture.findParentElement<KtClass>("class Fo|o constructor").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("class Foo constr|uctor").canReceiveLineMarker()).isTrue()
-    assertThat(
-        myFixture.findParentElement<KtFunction>("class Foo constr|uctor").canReceiveLineMarker()
-      )
-      .isFalse()
+    assertThat(myFixture.findParentElement<KtFunction>("class Foo constr|uctor").canReceiveLineMarker()).isFalse()
 
     assertThat(myFixture.moveCaret("va|l property: Int = 0").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("val prop|erty: Int = 0").canReceiveLineMarker()).isTrue()
-    assertThat(
-        myFixture.findParentElement<KtProperty>("val prop|erty: Int = 0").canReceiveLineMarker()
-      )
-      .isFalse()
+    assertThat(myFixture.findParentElement<KtProperty>("val prop|erty: Int = 0").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("val property: In|t = 0").canReceiveLineMarker()).isTrue()
     assertThat(myFixture.moveCaret("val property: Int = |0").canReceiveLineMarker()).isFalse()
   }
@@ -1559,16 +1430,12 @@ class DaggerRelatedItemLineMarkerProviderTest {
 
     assertThat(myFixture.moveCaret("pub|lic Foo()").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("public Fo|o()").canReceiveLineMarker()).isTrue()
-    assertThat(myFixture.findParentElement<PsiMethod>("public Fo|o()").canReceiveLineMarker())
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiMethod>("public Fo|o()").canReceiveLineMarker()).isFalse()
 
     assertThat(myFixture.moveCaret("pri|vate int property = 0;").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("private in|t property = 0;").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("private int pro|perty = 0;").canReceiveLineMarker()).isTrue()
-    assertThat(
-        myFixture.findParentElement<PsiField>("private int pro|perty = 0;").canReceiveLineMarker()
-      )
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiField>("private int pro|perty = 0;").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("private int property = |0;").canReceiveLineMarker()).isFalse()
   }
 
@@ -1576,66 +1443,22 @@ class DaggerRelatedItemLineMarkerProviderTest {
   fun gotoItemOrdering() {
     val mockRelatedElements =
       listOf(
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName8"),
-          "Consumers",
-          "navigate.to.consumer",
-          "CustomName8",
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName7"),
-          "Providers",
-          "navigate.to.provider",
-          "CustomName7",
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName4"),
-          "Consumers",
-          "navigate.to.consumer",
-          null,
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName3"),
-          "Providers",
-          "navigate.to.provider",
-          null,
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName6"),
-          "Consumers",
-          "navigate.to.consumer",
-          "CustomName6",
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName5"),
-          "Providers",
-          "navigate.to.provider",
-          "CustomName5",
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName2"),
-          "Consumers",
-          "navigate.to.consumer",
-          null,
-        ),
-        DaggerRelatedElement(
-          createMockDaggerElement("ElementName1"),
-          "Providers",
-          "navigate.to.provider",
-          null,
-        ),
+        DaggerRelatedElement(createMockDaggerElement("ElementName8"), "Consumers", "navigate.to.consumer", "CustomName8"),
+        DaggerRelatedElement(createMockDaggerElement("ElementName7"), "Providers", "navigate.to.provider", "CustomName7"),
+        DaggerRelatedElement(createMockDaggerElement("ElementName4"), "Consumers", "navigate.to.consumer", null),
+        DaggerRelatedElement(createMockDaggerElement("ElementName3"), "Providers", "navigate.to.provider", null),
+        DaggerRelatedElement(createMockDaggerElement("ElementName6"), "Consumers", "navigate.to.consumer", "CustomName6"),
+        DaggerRelatedElement(createMockDaggerElement("ElementName5"), "Providers", "navigate.to.provider", "CustomName5"),
+        DaggerRelatedElement(createMockDaggerElement("ElementName2"), "Consumers", "navigate.to.consumer", null),
+        DaggerRelatedElement(createMockDaggerElement("ElementName1"), "Providers", "navigate.to.provider", null),
       )
 
-    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock {
-      on { getRelatedDaggerElements() } doReturn mockRelatedElements
-    }
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock { on { getRelatedDaggerElements() } doReturn mockRelatedElements }
 
     val gotoItems = mockDaggerElement.getGotoItems()
 
     // Items are sorted at a higher level by their group.
-    assertThat(gotoItems.map { it.group })
-      .containsExactlyElementsIn(List(4) { "Consumers" } + List(4) { "Providers" })
-      .inOrder()
+    assertThat(gotoItems.map { it.group }).containsExactlyElementsIn(List(4) { "Consumers" } + List(4) { "Providers" }).inOrder()
 
     // Within the group, items are sorted by their names. We can't directly verify the display text
     // since it's controlled by the platform, but we can validate that the goto items contain the

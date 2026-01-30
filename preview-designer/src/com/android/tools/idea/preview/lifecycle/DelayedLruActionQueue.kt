@@ -19,7 +19,6 @@ import com.android.ide.common.util.Cancelable
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.annotations.TestOnly
 import java.lang.ref.WeakReference
 import java.time.Duration
 import java.util.ArrayDeque
@@ -29,11 +28,9 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import org.jetbrains.annotations.TestOnly
 
-/**
- * An actions queue that will execute them once they get out of the LRU [maxLruPlaces] or after the
- * given [delay].
- */
+/** An actions queue that will execute them once they get out of the LRU [maxLruPlaces] or after the given [delay]. */
 class DelayedLruActionQueue(
   private val maxLruPlaces: Int,
   private val delay: Duration,
@@ -49,18 +46,12 @@ class DelayedLruActionQueue(
   fun queueSize(): Int {
     queueLock.withLock {
       val queueSize = lruQueue.size
-      assert(queueSize == actionToDisposable.size) {
-        "actionToDisposable size must always match the size of the lruQueue"
-      }
+      assert(queueSize == actionToDisposable.size) { "actionToDisposable size must always match the size of the lruQueue" }
       return queueSize
     }
   }
 
-  private fun addActionToQueue(
-    action: () -> Unit,
-    actionDisposable: Disposable,
-    scheduledFuture: ScheduledFuture<*>,
-  ) {
+  private fun addActionToQueue(action: () -> Unit, actionDisposable: Disposable, scheduledFuture: ScheduledFuture<*>) {
     queueLock.withLock {
       if (actionToDisposable.contains(action)) {
         // Do not schedule the same action twice, just put at the back of the queue.
@@ -94,9 +85,8 @@ class DelayedLruActionQueue(
   }
 
   /**
-   * Adds the given [action] to the queue. It will execute automatically after [delay] has passed or
-   * if the number of actions in the queue exceeds [maxLruPlaces]. The action will be executed out
-   * of the UI thread.
+   * Adds the given [action] to the queue. It will execute automatically after [delay] has passed or if the number of actions in the queue
+   * exceeds [maxLruPlaces]. The action will be executed out of the UI thread.
    *
    * This method returns a [Cancelable]. If cancelled, the action will not be executed.
    */

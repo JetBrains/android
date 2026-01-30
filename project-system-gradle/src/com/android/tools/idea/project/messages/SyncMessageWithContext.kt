@@ -17,7 +17,4 @@ package com.android.tools.idea.project.messages
 
 import com.intellij.openapi.module.Module
 
-data class SyncMessageWithContext(
-  val syncMessage: SyncMessage,
-  val affectedModules: List<Module>
-)
+data class SyncMessageWithContext(val syncMessage: SyncMessage, val affectedModules: List<Module>)

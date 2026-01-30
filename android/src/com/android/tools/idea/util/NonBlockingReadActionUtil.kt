@@ -39,13 +39,14 @@ fun <T> CompletableFuture<T>.waitInterruptibly(): T {
   val condVar = lock.newCondition()
   val application = ApplicationManagerEx.getApplicationEx()
 
-  val listener = object : ApplicationListener {
-    override fun beforeWriteActionStart(action: Any) {
-      lock.withLock {
-        condVar.signal() // Interrupt waiting to give priority to write actions as we are holding the read lock.
+  val listener =
+    object : ApplicationListener {
+      override fun beforeWriteActionStart(action: Any) {
+        lock.withLock {
+          condVar.signal() // Interrupt waiting to give priority to write actions as we are holding the read lock.
+        }
       }
     }
-  }
 
   fun withListener(action: () -> Unit) {
     val disposable = Disposer.newDisposable()
@@ -57,11 +58,7 @@ fun <T> CompletableFuture<T>.waitInterruptibly(): T {
     }
   }
 
-  this.handle { _, _ ->
-    lock.withLock {
-      condVar.signal()
-    }
-  }
+  this.handle { _, _ -> lock.withLock { condVar.signal() } }
 
   try {
     withListener {
@@ -76,8 +73,8 @@ fun <T> CompletableFuture<T>.waitInterruptibly(): T {
               ?: error("waitInterruptibly() is supposed to be called under a progress indicator")
             ProgressManager.checkCanceled()
             throw ProcessCanceledException() // We don't know why we received reports of `ProgressManager.checkCanceled()` not interrupting
-                                             // execution when a write action is pending. Make sure if it happened again we still throw,
-                                             // and it will break our test.
+            // execution when a write action is pending. Make sure if it happened again we still throw,
+            // and it will break our test.
           }
           condVar.await(50, TimeUnit.MILLISECONDS) // In case of any misbehaving code still check for cancellation and done status.
         }
@@ -89,4 +86,3 @@ fun <T> CompletableFuture<T>.waitInterruptibly(): T {
     throw cancelled
   }
 }
-

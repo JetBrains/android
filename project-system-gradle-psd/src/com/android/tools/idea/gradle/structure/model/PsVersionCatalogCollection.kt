@@ -28,8 +28,7 @@ class PsVersionCatalogCollection(parent: PsProjectImpl) : PsCollectionBase<PsVer
     val result = mutableSetOf<VersionCatalogKey>()
     val projectParsedModel = from.parsedModel
     val versionCatalogModel = projectParsedModel.versionCatalogsModel
-    for (catalogName in versionCatalogModel.catalogNames())
-      result.add(VersionCatalogKey(catalogName))
+    for (catalogName in versionCatalogModel.catalogNames()) result.add(VersionCatalogKey(catalogName))
 
     return result.sortedBy { it.name }.toSet()
   }

@@ -23,8 +23,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class WifiPairButton(handle: DeviceHandle, wifiPairAction: PairDeviceAction) :
-  IconButton(StudioIcons.Avd.PAIR_OVER_WIFI) {
+class WifiPairButton(handle: DeviceHandle, wifiPairAction: PairDeviceAction) : IconButton(StudioIcons.Avd.PAIR_OVER_WIFI) {
 
   init {
     addActionListener { handle.scope.launch(Dispatchers.EDT) { wifiPairAction.pair() } }

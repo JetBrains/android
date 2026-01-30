@@ -33,10 +33,13 @@ import org.jetbrains.android.util.AndroidBundle
 class NewResourceFileAction(
   private val type: ResourceType,
   private val resourceFolderType: ResourceFolderType,
-  private val facet: AndroidFacet
-) : AnAction(AndroidBundle.message("new.typed.resource.action.title", type.displayName),
-             AndroidBundle.message("new.typed.resource.action.description", type.displayName),
-             XmlFileType.INSTANCE.icon) {
+  private val facet: AndroidFacet,
+) :
+  AnAction(
+    AndroidBundle.message("new.typed.resource.action.title", type.displayName),
+    AndroidBundle.message("new.typed.resource.action.description", type.displayName),
+    XmlFileType.INSTANCE.icon,
+  ) {
   override fun actionPerformed(e: AnActionEvent) {
     CreateResourceFileAction.createFileResource(
       facet,
@@ -47,7 +50,7 @@ class NewResourceFileAction(
       true,
       "${type.displayName} Resource File",
       null,
-      e.dataContext
+      e.dataContext,
     )
     // TODO: Select created file in ResourceExplorer.
   }

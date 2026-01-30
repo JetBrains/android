@@ -33,7 +33,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
@@ -57,125 +56,132 @@ private const val MIN_FIRST_COMPONENT_PROPORTION: Float = 0.1f
 private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
 
 /**
- * Displays detailed results of an instrumentation test case. The test case may be executed by
- * multiple devices and this view can show them all. It has a device selector list view at left
- * side and the test result of the selected device is displayed at the right side. Use
+ * Displays detailed results of an instrumentation test case. The test case may be executed by multiple devices and this view can show them
+ * all. It has a device selector list view at left side and the test result of the selected device is displayed at the right side. Use
  * [AndroidTestSuiteDetailsViewListener] to receive events.
  */
-class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Disposable,
-                                                        controller: AndroidTestSuiteViewController,
-                                                        listener: AndroidTestSuiteDetailsViewListener,
-                                                        project: Project,
-                                                        logger: AndroidTestSuiteLogger, headerActions: List<AnAction>) {
-  /**
-   * An interface to listen events occurred in AndroidTestSuiteDetailsView.
-   */
+class AndroidTestSuiteDetailsView
+@UiThread
+constructor(
+  parentDisposable: Disposable,
+  controller: AndroidTestSuiteViewController,
+  listener: AndroidTestSuiteDetailsViewListener,
+  project: Project,
+  logger: AndroidTestSuiteLogger,
+  headerActions: List<AnAction>,
+) {
+  /** An interface to listen events occurred in AndroidTestSuiteDetailsView. */
   interface AndroidTestSuiteDetailsViewListener {
-    /**
-     * Invoked when the close button is clicked.
-     */
+    /** Invoked when the close button is clicked. */
     fun onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  @get:VisibleForTesting val titleTextView: JBLabel = JBLabel().apply {
-    border = JBUI.Borders.empty(0, 10)
-  }
+  @get:VisibleForTesting val titleTextView: JBLabel = JBLabel().apply { border = JBUI.Borders.empty(0, 10) }
 
-  private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
-    toolTipText = "Change Orientation"
-    addActionListener {
-      when (controller.orientation) {
-        AndroidTestSuiteViewController.Orientation.VERTICAL -> {
-          icon = AllIcons.Actions.PreviewDetailsVertically
-          controller.orientation = AndroidTestSuiteViewController.Orientation.HORIZONTAL
-        }
-        AndroidTestSuiteViewController.Orientation.HORIZONTAL -> {
-          icon = AllIcons.Actions.PreviewDetails
-          controller.orientation = AndroidTestSuiteViewController.Orientation.VERTICAL
+  private val myChangeOrientationButton: CommonButton =
+    CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
+      toolTipText = "Change Orientation"
+      addActionListener {
+        when (controller.orientation) {
+          AndroidTestSuiteViewController.Orientation.VERTICAL -> {
+            icon = AllIcons.Actions.PreviewDetailsVertically
+            controller.orientation = AndroidTestSuiteViewController.Orientation.HORIZONTAL
+          }
+          AndroidTestSuiteViewController.Orientation.HORIZONTAL -> {
+            icon = AllIcons.Actions.PreviewDetails
+            controller.orientation = AndroidTestSuiteViewController.Orientation.VERTICAL
+          }
         }
       }
     }
-  }
 
-  @get:VisibleForTesting val closeButton: CommonButton = CommonButton(StudioIcons.Common.CLOSE).apply {
-    toolTipText = "Close"
-    addActionListener(ActionListener { listener.onAndroidTestSuiteDetailsViewCloseButtonClicked() })
-  }
+  @get:VisibleForTesting
+  val closeButton: CommonButton =
+    CommonButton(StudioIcons.Common.CLOSE).apply {
+      toolTipText = "Close"
+      addActionListener(ActionListener { listener.onAndroidTestSuiteDetailsViewCloseButtonClicked() })
+    }
 
   @get:VisibleForTesting val contentView: DetailsViewContentView = DetailsViewContentView(parentDisposable, project, logger, headerActions)
 
-  val rawTestLogConsoleView: ConsoleViewImpl = ConsoleViewImpl(project, /*viewer=*/true).apply {
-    Disposer.register(parentDisposable, this)
-  }
+  val rawTestLogConsoleView: ConsoleViewImpl =
+    ConsoleViewImpl(project, /* viewer= */ true).apply { Disposer.register(parentDisposable, this) }
 
-  private val myRawTestLogConsoleViewWithVerticalToolbar: NonOpaquePanel = NonOpaquePanel(BorderLayout()).apply {
-    add(rawTestLogConsoleView.component, BorderLayout.CENTER)
-    val rawTestLogToolbar = ActionManager.getInstance().createActionToolbar(
-      ActionPlaces.ANDROID_TEST_SUITE_RAW_LOG,
-      DefaultActionGroup(*rawTestLogConsoleView.createConsoleActions()),
-      false)
-    rawTestLogToolbar.setTargetComponent(rawTestLogConsoleView.component)
-    add(rawTestLogToolbar.component, BorderLayout.EAST)
-  }
-
-  private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView = DetailsViewDeviceSelectorListView(
-    object : DetailsViewDeviceSelectorListViewListener {
-      @UiThread
-      override fun onDeviceSelected(selectedDevice: AndroidDevice) {
-        this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
-        reloadAndroidTestResults()
-
-        val deviceSpecificConsoleView = this@AndroidTestSuiteDetailsView.contentView.rootPanel
-        if (myComponentsSplitter.secondComponent != deviceSpecificConsoleView) {
-          myComponentsSplitter.secondComponent = deviceSpecificConsoleView
-
-          // The theme may have changed while the component has been detached
-          // from the hierarchy
-          IJSwingUtilities.updateComponentTreeUI(deviceSpecificConsoleView)
-        }
-      }
-
-      @UiThread
-      override fun onRawOutputSelected() {
-        if (myComponentsSplitter.secondComponent != myRawTestLogConsoleViewWithVerticalToolbar) {
-          myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-
-          // The theme may have changed while the component has been detached
-          // from the hierarchy
-          IJSwingUtilities.updateComponentTreeUI(myRawTestLogConsoleViewWithVerticalToolbar)
-        }
-      }
-    })
-
-  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter(
-    /*vertical=*/false,
-    /*defaultProportion=*/0.4f,
-    MIN_FIRST_COMPONENT_PROPORTION,
-    MAX_FIRST_COMPONENT_PROPORTION) {
-
-    init {
-      setHonorComponentsMinimumSize(false)
-      firstComponent = myDeviceSelectorListView.rootPanel
-      secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
-      dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
+  private val myRawTestLogConsoleViewWithVerticalToolbar: NonOpaquePanel =
+    NonOpaquePanel(BorderLayout()).apply {
+      add(rawTestLogConsoleView.component, BorderLayout.CENTER)
+      val rawTestLogToolbar =
+        ActionManager.getInstance()
+          .createActionToolbar(
+            ActionPlaces.ANDROID_TEST_SUITE_RAW_LOG,
+            DefaultActionGroup(*rawTestLogConsoleView.createConsoleActions()),
+            false,
+          )
+      rawTestLogToolbar.setTargetComponent(rawTestLogConsoleView.component)
+      add(rawTestLogToolbar.component, BorderLayout.EAST)
     }
 
-    override fun doLayout() {
-      if (proportion * width > MAX_FIRST_COMPONENT_WIDTH && width > 0) {
-        proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
+  private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView =
+    DetailsViewDeviceSelectorListView(
+      object : DetailsViewDeviceSelectorListViewListener {
+        @UiThread
+        override fun onDeviceSelected(selectedDevice: AndroidDevice) {
+          this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
+          reloadAndroidTestResults()
+
+          val deviceSpecificConsoleView = this@AndroidTestSuiteDetailsView.contentView.rootPanel
+          if (myComponentsSplitter.secondComponent != deviceSpecificConsoleView) {
+            myComponentsSplitter.secondComponent = deviceSpecificConsoleView
+
+            // The theme may have changed while the component has been detached
+            // from the hierarchy
+            IJSwingUtilities.updateComponentTreeUI(deviceSpecificConsoleView)
+          }
+        }
+
+        @UiThread
+        override fun onRawOutputSelected() {
+          if (myComponentsSplitter.secondComponent != myRawTestLogConsoleViewWithVerticalToolbar) {
+            myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+
+            // The theme may have changed while the component has been detached
+            // from the hierarchy
+            IJSwingUtilities.updateComponentTreeUI(myRawTestLogConsoleViewWithVerticalToolbar)
+          }
+        }
+      }
+    )
+
+  private val myComponentsSplitter: OnePixelSplitter =
+    object :
+      OnePixelSplitter(
+        /*vertical=*/ false,
+        /*defaultProportion=*/ 0.4f,
+        MIN_FIRST_COMPONENT_PROPORTION,
+        MAX_FIRST_COMPONENT_PROPORTION,
+      ) {
+
+      init {
+        setHonorComponentsMinimumSize(false)
+        firstComponent = myDeviceSelectorListView.rootPanel
+        secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+        dividerPositionStrategy = DividerPositionStrategy.KEEP_FIRST_SIZE
       }
 
-      // The internal proportion value can be greater than maxProportion and smaller
-      // than minProportion when you change component's side (b/170234515).
-      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+      override fun doLayout() {
+        if (proportion * width > MAX_FIRST_COMPONENT_WIDTH && width > 0) {
+          proportion = max(0f, min(MAX_FIRST_COMPONENT_WIDTH.toFloat() / width, 1f))
+        }
 
-      super.doLayout()
+        // The internal proportion value can be greater than maxProportion and smaller
+        // than minProportion when you change component's side (b/170234515).
+        proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+
+        super.doLayout()
+      }
     }
-  }
 
-  /**
-   * Shows or hides a device selector list.
-   */
+  /** Shows or hides a device selector list. */
   @get:UiThread
   @set:UiThread
   var isDeviceSelectorListVisible: Boolean
@@ -189,65 +195,61 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       }
     }
 
-  val rootPanel: JPanel = JPanel(BorderLayout()).apply {
-    add(JPanel(BorderLayout()).apply {
-      add(titleTextView, BorderLayout.CENTER)
-      add(JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-        add(myChangeOrientationButton)
-        add(closeButton)
-      }, BorderLayout.EAST)
-      border = SideBorder(NamedColorUtil.getBoundsColor(), SideBorder.BOTTOM)
-    }, BorderLayout.NORTH)
-    add(myComponentsSplitter, BorderLayout.CENTER)
-    minimumSize = Dimension()
-  }
+  val rootPanel: JPanel =
+    JPanel(BorderLayout()).apply {
+      add(
+        JPanel(BorderLayout()).apply {
+          add(titleTextView, BorderLayout.CENTER)
+          add(
+            JPanel().apply {
+              layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+              add(myChangeOrientationButton)
+              add(closeButton)
+            },
+            BorderLayout.EAST,
+          )
+          border = SideBorder(NamedColorUtil.getBoundsColor(), SideBorder.BOTTOM)
+        },
+        BorderLayout.NORTH,
+      )
+      add(myComponentsSplitter, BorderLayout.CENTER)
+      minimumSize = Dimension()
+    }
 
   private var myTestResults: AndroidTestResults? = null
   @get:VisibleForTesting var selectedDevice: AndroidDevice? = null
 
-  /**
-   * Updates the view with a given AndroidTestResults.
-   */
+  /** Updates the view with a given AndroidTestResults. */
   @UiThread
   fun setAndroidTestResults(results: AndroidTestResults) {
     myTestResults = results
     reloadAndroidTestResults()
   }
 
-  /**
-   * Reload AndroidTestResults set by [.setAndroidTestResults].
-   */
+  /** Reload AndroidTestResults set by [.setAndroidTestResults]. */
   @UiThread
   fun reloadAndroidTestResults() {
     val testResults = myTestResults ?: return
     if (!Strings.isNullOrEmpty(testResults.methodName)) {
       titleTextView.text = testResults.getFullTestCaseName()
-    }
-    else if (!Strings.isNullOrEmpty(testResults.className)) {
+    } else if (!Strings.isNullOrEmpty(testResults.className)) {
       titleTextView.text = testResults.getFullTestClassName()
-    }
-    else {
+    } else {
       titleTextView.text = "Test Results"
     }
     titleTextView.icon = getIconFor(testResults.getTestResultSummary())
     titleTextView.minimumSize = Dimension()
     if (testResults.isRootAggregationResult()) {
       myDeviceSelectorListView.setShowRawOutputItem(true)
-    }
-    else {
+    } else {
       myDeviceSelectorListView.setShowRawOutputItem(false)
       selectedDevice?.let { selectDevice(it) }
     }
     myDeviceSelectorListView.setAndroidTestResults(testResults)
-    selectedDevice?.let {
-      contentView.setResults(it, testResults)
-    }
+    selectedDevice?.let { contentView.setResults(it, testResults) }
   }
 
-  /**
-   * Adds a given Android device to the device selector list in the details view.
-   */
+  /** Adds a given Android device to the device selector list in the details view. */
   @UiThread
   fun addDevice(device: AndroidDevice) {
     myDeviceSelectorListView.addDevice(device)
@@ -258,17 +260,13 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
     }
   }
 
-  /**
-   * Selects a given device and display test results specifically to the device.
-   */
+  /** Selects a given device and display test results specifically to the device. */
   @UiThread
   fun selectDevice(device: AndroidDevice) {
     myDeviceSelectorListView.selectDevice(device)
   }
 
-  /**
-   * Select the raw output item to be displayed in the content area.
-   */
+  /** Select the raw output item to be displayed in the content area. */
   @UiThread
   fun selectRawOutput() {
     myDeviceSelectorListView.selectRawOutputItem()

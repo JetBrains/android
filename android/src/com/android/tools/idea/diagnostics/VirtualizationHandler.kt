@@ -28,12 +28,7 @@ class LoggingVirtualizationHandler : VirtualizationHandler {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.VIRTUALIZATION_EVENT)
-        .setVirtualizationEvent(
-          VirtualizationEvent.newBuilder()
-            .setVm(vm)
-            .setContainer(container)
-            .build()
-        )
+        .setVirtualizationEvent(VirtualizationEvent.newBuilder().setVm(vm).setContainer(container).build())
     )
   }
 }

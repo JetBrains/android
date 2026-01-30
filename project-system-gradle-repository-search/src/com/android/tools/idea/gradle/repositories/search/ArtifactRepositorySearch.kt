@@ -29,11 +29,8 @@ class ArtifactRepositorySearch(private val repositories: Collection<ArtifactRepo
 
   override fun search(request: SearchRequest): ListenableFuture<SearchResult> {
     val futures = repositories.map { it.search(request) }
-    return Futures
-      .whenAllComplete(futures)
-      .call(
-        { futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } },
-        PooledThreadExecutor.INSTANCE)
+    return Futures.whenAllComplete(futures)
+      .call({ futures.map { it.getResultSafely() }.combine().also { logSearchStats(it.stats) } }, PooledThreadExecutor.INSTANCE)
   }
 }
 
@@ -46,10 +43,7 @@ private fun logSearchStats(stats: SearchResultStats) {
           PSDEvent.newBuilder()
             .addAllRepositoriesSearched(
               stats.stats.map { (repository, stats) ->
-                PSDEvent.PSDRepositoryUsage.newBuilder()
-                  .setRepository(repository)
-                  .setDurationMs(stats.duration.toMillis())
-                  .build()
+                PSDEvent.PSDRepositoryUsage.newBuilder().setRepository(repository).setDurationMs(stats.duration.toMillis()).build()
               }
             )
         )

@@ -32,9 +32,9 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
+import java.lang.String.join
 import org.junit.After
 import org.junit.Test
-import java.lang.String.join
 
 class FromProtoConversionTest {
   private var stringIndex = 0
@@ -53,11 +53,7 @@ class FromProtoConversionTest {
         .apply {
           countryCode = 310
           networkCode = 410
-          screenLayout =
-            SCREENLAYOUT_SIZE_SMALL or
-              SCREENLAYOUT_LONG_YES or
-              SCREENLAYOUT_LAYOUTDIR_RTL or
-              SCREENLAYOUT_ROUND_YES
+          screenLayout = SCREENLAYOUT_SIZE_SMALL or SCREENLAYOUT_LONG_YES or SCREENLAYOUT_LAYOUTDIR_RTL or SCREENLAYOUT_ROUND_YES
           colorMode = COLOR_MODE_WIDE_COLOR_GAMUT_YES or COLOR_MODE_HDR_YES
           touchScreen = TOUCHSCREEN_STYLUS
           keyboard = KEYBOARD_QWERTY

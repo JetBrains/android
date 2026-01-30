@@ -17,9 +17,7 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.idea.streaming.emulator.EmulatorId
 
-/**
- * Identifying information for a running Emulator or a connected physical device.
- */
+/** Identifying information for a running Emulator or a connected physical device. */
 sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
 
   data class EmulatorDeviceId(val emulatorId: EmulatorId) : DeviceId(emulatorId.serialNumber) {
@@ -40,9 +38,7 @@ sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
     }
   }
 
-  /**
-   * Physical devices are sorted after AVDs. Within each group devices are sorted by serial number.
-   */
+  /** Physical devices are sorted after AVDs. Within each group devices are sorted by serial number. */
   override fun compareTo(other: DeviceId): Int {
     return when {
       this::class == other::class -> serialNumber.compareTo(other.serialNumber)

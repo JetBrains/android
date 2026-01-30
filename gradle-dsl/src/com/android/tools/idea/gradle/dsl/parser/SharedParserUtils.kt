@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
@@ -36,80 +36,85 @@ import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import java.util.ArrayList
 
-/**
- * Set of classes whose properties should not be merged into each other.
- */
+/** Set of classes whose properties should not be merged into each other. */
 private val makeDistinctClassSet = setOf(MavenRepositoryDslElement::class.java, FlatDirRepositoryDslElement::class.java)
 
-/**
- * Get the block element that is given be repeat
- */
+/** Get the block element that is given be repeat */
 fun GradleDslFile.getPropertiesElement(
   nameParts: List<String>,
   converter: GradleDslNameConverter,
   parentElement: GradlePropertiesDslElement,
-  nameElement: GradleNameElement? = null
+  nameElement: GradleNameElement? = null,
 ): GradlePropertiesDslElement? {
-  return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val canonicalNestedElementName = converter.modelDescriptionForParent(nestedElementName, resultElement)?.name ?: nestedElementName
-    val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
-    var element = resultElement.getElement(canonicalNestedElementName)
+  return nameParts
+    .map { namePart -> namePart.trim { it <= ' ' } }
+    .fold(parentElement) { resultElement, nestedElementName ->
+      val canonicalNestedElementName = converter.modelDescriptionForParent(nestedElementName, resultElement)?.name ?: nestedElementName
+      val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
+      var element = resultElement.getElement(canonicalNestedElementName)
 
-    if (element != null && makeDistinctClassSet.contains(element::class.java)) {
-      element = null // Force recreation of the element
-    }
-
-    if (element is GradlePropertiesDslElement) {
-      if (element.nameElement.isFake && nameElement != null) {
-        element.nameElement.commitNameChange(nameElement.namedPsiElement, converter, resultElement)
+      if (element != null && makeDistinctClassSet.contains(element::class.java)) {
+        element = null // Force recreation of the element
       }
-      return@fold element
-    }
 
-    if (element != null) return null
-
-    // The first lookup, where resultElement is parentElement, can be special: though not if it is (somehow) an ExpressionList, which
-    // requires elements that are GradleDslExpressions.  Otherwise we should only resolve these to blocks if they are dereferencing
-    // projects (represented as GradleDslFiles).
-    if ((resultElement == parentElement && resultElement !is GradleDslExpressionList) || resultElement is GradleDslFile) {
-      // Handle special cases based on the child element name.
-      when (nestedElementName) {
-        "rootProject" -> return@fold context.rootProjectFile ?: this
-        // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
-        // such an element if needed.
-        EXT.name -> {
-          val newElement = EXT.constructor.construct(resultElement, elementName)
-          resultElement.setParsedElement(newElement)
-          return@fold newElement
+      if (element is GradlePropertiesDslElement) {
+        if (element.nameElement.isFake && nameElement != null) {
+          element.nameElement.commitNameChange(nameElement.namedPsiElement, converter, resultElement)
         }
-        APPLY_BLOCK_NAME -> (resultElement.dslFile as? GradleScriptFile)?.let {
-          val newApplyElement = ApplyDslElement(resultElement, it)
-          resultElement.setParsedElement(newApplyElement)
-          return@fold newApplyElement
+        return@fold element
+      }
+
+      if (element != null) return null
+
+      // The first lookup, where resultElement is parentElement, can be special: though not if it is (somehow) an ExpressionList, which
+      // requires elements that are GradleDslExpressions.  Otherwise we should only resolve these to blocks if they are dereferencing
+      // projects (represented as GradleDslFiles).
+      if ((resultElement == parentElement && resultElement !is GradleDslExpressionList) || resultElement is GradleDslFile) {
+        // Handle special cases based on the child element name.
+        when (nestedElementName) {
+          "rootProject" -> return@fold context.rootProjectFile ?: this
+          // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
+          // such an element if needed.
+          EXT.name -> {
+            val newElement = EXT.constructor.construct(resultElement, elementName)
+            resultElement.setParsedElement(newElement)
+            return@fold newElement
+          }
+          APPLY_BLOCK_NAME ->
+            (resultElement.dslFile as? GradleScriptFile)?.let {
+              val newApplyElement = ApplyDslElement(resultElement, it)
+              resultElement.setParsedElement(newApplyElement)
+              return@fold newApplyElement
+            }
         }
       }
-    }
 
-    val newElement: GradlePropertiesDslElement = when (resultElement) {
-      // Some parent blocks require special-case treatment
-      is GradleDslFile, is SubProjectsDslElement -> createNewElementForFileOrSubProject(converter, resultElement, nestedElementName) ?: return null
-      // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
-      // to record whether there's anything there or not.
-      is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)
-      // normal cases can simply construct a child block based on information in the parent Dsl element
-      else -> resultElement.getChildPropertiesElementDescription(converter, nestedElementName)?.constructor?.construct(resultElement, elementName)
-              ?: return null
-    }
+      val newElement: GradlePropertiesDslElement =
+        when (resultElement) {
+          // Some parent blocks require special-case treatment
+          is GradleDslFile,
+          is SubProjectsDslElement -> createNewElementForFileOrSubProject(converter, resultElement, nestedElementName) ?: return null
+          // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
+          // to record whether there's anything there or not.
+          is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)
+          // normal cases can simply construct a child block based on information in the parent Dsl element
+          else ->
+            resultElement
+              .getChildPropertiesElementDescription(converter, nestedElementName)
+              ?.constructor
+              ?.construct(resultElement, elementName) ?: return null
+        }
 
-    resultElement.setParsedElement(newElement)
-    return@fold newElement
-  }
+      resultElement.setParsedElement(newElement)
+      return@fold newElement
+    }
 }
 
 private fun createNewElementForFileOrSubProject(
   converter: GradleDslNameConverter,
   resultElement: GradlePropertiesDslElement,
-  nestedElementName: String): GradlePropertiesDslElement? {
+  nestedElementName: String,
+): GradlePropertiesDslElement? {
   val elementName = GradleNameElement.fake(nestedElementName)
   return when (val properties = resultElement.getChildPropertiesElementDescription(converter, nestedElementName)) {
     null -> {
@@ -120,11 +125,9 @@ private fun createNewElementForFileOrSubProject(
   }
 }
 
-/**
- * Get the parent dsl element with a valid psi
- */
+/** Get the parent dsl element with a valid psi */
 fun getNextValidParent(element: GradleDslElement): GradleDslElement? {
-  var element : GradleDslElement? = element
+  var element: GradleDslElement? = element
   var psi = element?.psiElement
   while (element != null && (psi == null || !psi.isValid)) {
     element = element.parent ?: return element
@@ -178,20 +181,21 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   // TODO(b/151607418): this is only an approximation to the scope in which this element is being written: a proper calculation should have
   //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
   //  to those (possibly nested) scopes rather than the model.
-  val parent = element.parent
-                 // TODO(xof): *sigh*
-                 ?.takeIf { it !is ProjectPropertiesDslElement }
-               ?: element.parent?.parent
-  val parts = ArrayList(name.fullNameParts());
+  val parent =
+    element.parent
+      // TODO(xof): *sigh*
+      ?.takeIf { it !is ProjectPropertiesDslElement } ?: element.parent?.parent
+  val parts = ArrayList(name.fullNameParts())
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, UNKNOWN, name.isFake)
 
   val effect = element.modelEffect
   val part = parts.removeAt(parts.size - 1)
-  val lastNamePart = when (effect) {
-    null -> part
-    else -> effect.property.name
-  }
+  val lastNamePart =
+    when (effect) {
+      null -> part
+      else -> effect.property.name
+    }
   val parentParts = GradleNameElement.split(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
@@ -221,10 +225,9 @@ fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: Gradle
 }
 
 /**
- * Is this method name one that finds or creates an element of a NamedDomainObjectContainer and
- * provides a configuration Action or Closure?
+ * Is this method name one that finds or creates an element of a NamedDomainObjectContainer and provides a configuration Action or Closure?
  */
-fun isDomainObjectConfiguratorMethodName(methodName : String?) =
+fun isDomainObjectConfiguratorMethodName(methodName: String?) =
   methodName != null && methodName in listOf("create", "getByName", "maybeCreate", "named", "register")
 
 private val KNOWN_METHOD_NAMES =
@@ -259,8 +262,8 @@ private val KNOWN_METHOD_NAMES =
 /**
  * Checks if the given [name] is a known method on Gradle container-like objects.
  *
- * This is used to help differentiate between method calls that are likely operating on a collection
- * (e.g., `add`, `all`, `create`) versus those that might be defining new properties or blocks.
+ * This is used to help differentiate between method calls that are likely operating on a collection (e.g., `add`, `all`, `create`) versus
+ * those that might be defining new properties or blocks.
  *
  * @param name the name to check.
  * @return `true` if the name is one of the known Gradle container methods, `false` otherwise.

@@ -19,9 +19,7 @@ class CustomViewVisualStateTracker(
   private var fileState: FileState = FileState.UP_TO_DATE,
   private var buildState: BuildState = BuildState.SUCCESSFUL,
   private var visualState: VisualState = VisualState.NONE,
-  private val onNotificationStateChanged:
-    (newState: CustomViewPreviewManager.NotificationsState) -> Unit =
-    {},
+  private val onNotificationStateChanged: (newState: CustomViewPreviewManager.NotificationsState) -> Unit = {},
   private val onPreviewStateChanged: (newState: PreviewState) -> Unit = {},
 ) {
   enum class FileState {
@@ -66,18 +64,15 @@ class CustomViewVisualStateTracker(
         buildState == BuildState.IN_PROGRESS && previewState != PreviewState.BUILDING ->
           CustomViewPreviewManager.NotificationsState.BUILDING
         fileState == FileState.MODIFIED &&
-          (buildState == BuildState.FAILED ||
-            (buildState == BuildState.SUCCESSFUL && previewState != PreviewState.RENDERING)) ->
+          (buildState == BuildState.FAILED || (buildState == BuildState.SUCCESSFUL && previewState != PreviewState.RENDERING)) ->
           CustomViewPreviewManager.NotificationsState.CODE_MODIFIED
-        fileState == FileState.UP_TO_DATE && buildState == BuildState.FAILED ->
-          CustomViewPreviewManager.NotificationsState.BUILD_FAILED
+        fileState == FileState.UP_TO_DATE && buildState == BuildState.FAILED -> CustomViewPreviewManager.NotificationsState.BUILD_FAILED
         else -> CustomViewPreviewManager.NotificationsState.NO_NOTIFICATIONS
       }
   }
 
   @get:Synchronized
-  var notificationsState: CustomViewPreviewManager.NotificationsState =
-    CustomViewPreviewManager.NotificationsState.NO_NOTIFICATIONS
+  var notificationsState: CustomViewPreviewManager.NotificationsState = CustomViewPreviewManager.NotificationsState.NO_NOTIFICATIONS
     private set(value) {
       if (value != field) {
         field = value

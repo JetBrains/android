@@ -44,21 +44,14 @@ internal class SelectedDevicesErrorDialogTest {
   @RunsInEdt
   @Test
   fun testErrorDevice() {
-    val device =
-      createDevice(
-        "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
-      )
+    val device = createDevice("Pixel 3 API 29", launchCompatibility = LaunchCompatibility(State.ERROR, "error message"))
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Error")
-      val message =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text?.contains("error message") ?: false
-        }
+      val message = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text?.contains("error message") ?: false }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
@@ -72,11 +65,7 @@ internal class SelectedDevicesErrorDialogTest {
   @RunsInEdt
   @Test
   fun testWarningDevice() {
-    val device =
-      createDevice(
-        "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
-      )
+    val device = createDevice("Pixel 3 API 29", launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"))
 
     val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(device))
 
@@ -84,9 +73,7 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Warning")
       val message =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text?.contains("warning message on device Pixel 3 API 29") ?: false
-        }
+        treeWalker.descendants().filterIsInstance<JLabel>().find { it.text?.contains("warning message on device Pixel 3 API 29") ?: false }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(2)
@@ -100,33 +87,20 @@ internal class SelectedDevicesErrorDialogTest {
   @RunsInEdt
   @Test
   fun testMultipleDevices() {
-    val deviceWithWarning =
-      createDevice(
-        "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
-      )
+    val deviceWithWarning = createDevice("Pixel 3 API 29", launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"))
 
-    val deviceWithError =
-      createDevice(
-        "Pixel 3 API 30",
-        launchCompatibility = LaunchCompatibility(State.ERROR, "error message"),
-      )
+    val deviceWithError = createDevice("Pixel 3 API 30", launchCompatibility = LaunchCompatibility(State.ERROR, "error message"))
 
-    val dialog =
-      SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithError, deviceWithWarning))
+    val dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithError, deviceWithWarning))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       assertThat(dialogWrapper.title).isEqualTo("Error")
       val warning =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text?.contains("warning message on device Pixel 3 API 29") ?: false
-        }
+        treeWalker.descendants().filterIsInstance<JLabel>().find { it.text?.contains("warning message on device Pixel 3 API 29") ?: false }
       assertThat(warning).isNotNull()
       val error =
-        treeWalker.descendants().filterIsInstance<JLabel>().find {
-          it.text?.contains("error message on device Pixel 3 API 30") ?: false
-        }
+        treeWalker.descendants().filterIsInstance<JLabel>().find { it.text?.contains("error message on device Pixel 3 API 30") ?: false }
       assertThat(error).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
@@ -140,28 +114,17 @@ internal class SelectedDevicesErrorDialogTest {
   @RunsInEdt
   @Test
   fun rememberCheckboxState() {
-    val deviceWithWarning =
-      createDevice(
-        "Pixel 3 API 29",
-        launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"),
-      )
+    val deviceWithWarning = createDevice("Pixel 3 API 29", launchCompatibility = LaunchCompatibility(State.WARNING, "warning message"))
 
     var dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))
 
     // Select checkbox.
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val checkbox =
-        treeWalker.descendants().filterIsInstance<JCheckBox>().find {
-          it.text == "Do not ask again for this session"
-        }!!
+      val checkbox = treeWalker.descendants().filterIsInstance<JCheckBox>().find { it.text == "Do not ask again for this session" }!!
       assertThat(checkbox.isSelected).isFalse()
       checkbox.isSelected = true
-      treeWalker
-        .descendants()
-        .filterIsInstance<JButton>()
-        .find { it.text == "Continue" }!!
-        .doClick()
+      treeWalker.descendants().filterIsInstance<JButton>().find { it.text == "Continue" }!!.doClick()
     }
 
     dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))
@@ -169,10 +132,7 @@ internal class SelectedDevicesErrorDialogTest {
     // Check that we remember checkbox state.
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val checkbox =
-        treeWalker.descendants().filterIsInstance<JCheckBox>().find {
-          it.text == "Do not ask again for this session"
-        }!!
+      val checkbox = treeWalker.descendants().filterIsInstance<JCheckBox>().find { it.text == "Do not ask again for this session" }!!
       assertThat(checkbox.isSelected).isTrue()
     }
   }

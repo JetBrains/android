@@ -54,9 +54,9 @@ class IndexKeyUtilTest {
       "/src/com/example/Foo.kt",
       // language=kotlin
       """
-        package com.example
-        class F<caret>oo
-        """
+      package com.example
+      class F<caret>oo
+      """
         .trimIndent(),
     )
 
@@ -72,9 +72,9 @@ class IndexKeyUtilTest {
       "/src/com/example/Foo.java",
       // language=kotlin
       """
-        package com.example;
-        class F<caret>oo {}
-        """
+      package com.example;
+      class F<caret>oo {}
+      """
         .trimIndent(),
     )
 
@@ -90,15 +90,13 @@ class IndexKeyUtilTest {
       "/src/Foo.kt",
       // language=kotlin
       """
-        class F<caret>oo
-        """
+      class F<caret>oo
+      """
         .trimIndent(),
     )
 
     val psiType = (myFixture.elementAtCaret as KtClass).toPsiType()!!
-    assertThat(getIndexKeys(psiType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Foo", "")
-      .inOrder()
+    assertThat(getIndexKeys(psiType, myFixture.project, myFixture.project.projectScope())).containsExactly("Foo", "").inOrder()
   }
 
   @Test
@@ -171,10 +169,8 @@ class IndexKeyUtilTest {
 
     assertThat(alias2PsiType).isEqualTo(basePsiType)
 
-    val indexKeysWithAlias2 =
-      getIndexKeys(alias2PsiType, myFixture.project, myFixture.project.projectScope())
-    assertThat(indexKeysWithAlias2)
-      .containsExactly("com.example.Foo", "Foo", "FooAlias1", "FooAlias2", "")
+    val indexKeysWithAlias2 = getIndexKeys(alias2PsiType, myFixture.project, myFixture.project.projectScope())
+    assertThat(indexKeysWithAlias2).containsExactly("com.example.Foo", "Foo", "FooAlias1", "FooAlias2", "")
 
     assertThat(indexKeysWithAlias2[0]).isEqualTo("com.example.Foo")
     assertThat(indexKeysWithAlias2[1]).isEqualTo("Foo")
@@ -188,11 +184,11 @@ class IndexKeyUtilTest {
           "/src/com/other/FooAlias2.kt",
           // language=kotlin
           """
-      package com.other
-      typealias FooAlias2 = com.example.Foo
+          package com.other
+          typealias FooAlias2 = com.example.Foo
 
-      val fooAlias2: FooAlias2 = FooAlias()
-      """
+          val fooAlias2: FooAlias2 = FooAlias()
+          """
             .trimIndent(),
         )
         .virtualFile
@@ -203,10 +199,8 @@ class IndexKeyUtilTest {
 
     assertThat(alias2OtherPsiType).isEqualTo(basePsiType)
 
-    val indexKeysWithAlias2Other =
-      getIndexKeys(alias2OtherPsiType, myFixture.project, myFixture.project.projectScope())
-    assertThat(indexKeysWithAlias2Other)
-      .containsExactly("com.example.Foo", "Foo", "FooAlias1", "FooAlias2", "")
+    val indexKeysWithAlias2Other = getIndexKeys(alias2OtherPsiType, myFixture.project, myFixture.project.projectScope())
+    assertThat(indexKeysWithAlias2Other).containsExactly("com.example.Foo", "Foo", "FooAlias1", "FooAlias2", "")
 
     assertThat(indexKeysWithAlias2Other[0]).isEqualTo("com.example.Foo")
     assertThat(indexKeysWithAlias2Other[1]).isEqualTo("Foo")
@@ -246,30 +240,16 @@ class IndexKeyUtilTest {
     val longType = myFixture.findParentElement<KtProperty>("val foo|J").psiType!!
     val shortType = myFixture.findParentElement<KtProperty>("val foo|S").psiType!!
 
-    assertThat(getIndexKeys(booleanType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Boolean", "")
-      .inOrder()
-    assertThat(getIndexKeys(byteType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Byte", "")
-      .inOrder()
+    assertThat(getIndexKeys(booleanType, myFixture.project, myFixture.project.projectScope())).containsExactly("Boolean", "").inOrder()
+    assertThat(getIndexKeys(byteType, myFixture.project, myFixture.project.projectScope())).containsExactly("Byte", "").inOrder()
     assertThat(getIndexKeys(charType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Char", "Character", "")
       .inOrder()
-    assertThat(getIndexKeys(doubleType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Double", "")
-      .inOrder()
-    assertThat(getIndexKeys(floatType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Float", "")
-      .inOrder()
-    assertThat(getIndexKeys(intType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Int", "Integer", "")
-      .inOrder()
-    assertThat(getIndexKeys(longType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Long", "")
-      .inOrder()
-    assertThat(getIndexKeys(shortType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Short", "")
-      .inOrder()
+    assertThat(getIndexKeys(doubleType, myFixture.project, myFixture.project.projectScope())).containsExactly("Double", "").inOrder()
+    assertThat(getIndexKeys(floatType, myFixture.project, myFixture.project.projectScope())).containsExactly("Float", "").inOrder()
+    assertThat(getIndexKeys(intType, myFixture.project, myFixture.project.projectScope())).containsExactly("Int", "Integer", "").inOrder()
+    assertThat(getIndexKeys(longType, myFixture.project, myFixture.project.projectScope())).containsExactly("Long", "").inOrder()
+    assertThat(getIndexKeys(shortType, myFixture.project, myFixture.project.projectScope())).containsExactly("Short", "").inOrder()
   }
 
   @Test
@@ -307,32 +287,20 @@ class IndexKeyUtilTest {
     val unboxedLongType = myFixture.findParentElement<PsiField>("unboxed|J").type
     val unboxedShortType = myFixture.findParentElement<PsiField>("unboxed|S").type
 
-    assertThat(
-        getIndexKeys(unboxedBooleanType, myFixture.project, myFixture.project.projectScope())
-      )
+    assertThat(getIndexKeys(unboxedBooleanType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Boolean", "")
       .inOrder()
-    assertThat(getIndexKeys(unboxedByteType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Byte", "")
-      .inOrder()
+    assertThat(getIndexKeys(unboxedByteType, myFixture.project, myFixture.project.projectScope())).containsExactly("Byte", "").inOrder()
     assertThat(getIndexKeys(unboxedCharType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Char", "Character", "")
       .inOrder()
-    assertThat(getIndexKeys(unboxedDoubleType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Double", "")
-      .inOrder()
-    assertThat(getIndexKeys(unboxedFloatType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Float", "")
-      .inOrder()
+    assertThat(getIndexKeys(unboxedDoubleType, myFixture.project, myFixture.project.projectScope())).containsExactly("Double", "").inOrder()
+    assertThat(getIndexKeys(unboxedFloatType, myFixture.project, myFixture.project.projectScope())).containsExactly("Float", "").inOrder()
     assertThat(getIndexKeys(unboxedIntType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Int", "Integer", "")
       .inOrder()
-    assertThat(getIndexKeys(unboxedLongType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Long", "")
-      .inOrder()
-    assertThat(getIndexKeys(unboxedShortType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Short", "")
-      .inOrder()
+    assertThat(getIndexKeys(unboxedLongType, myFixture.project, myFixture.project.projectScope())).containsExactly("Long", "").inOrder()
+    assertThat(getIndexKeys(unboxedShortType, myFixture.project, myFixture.project.projectScope())).containsExactly("Short", "").inOrder()
   }
 
   @Test
@@ -370,30 +338,18 @@ class IndexKeyUtilTest {
     val boxedLongType = myFixture.findParentElement<PsiField>(" boxed|J").type
     val boxedShortType = myFixture.findParentElement<PsiField>(" boxed|S").type
 
-    assertThat(getIndexKeys(boxedBooleanType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Boolean", "")
-      .inOrder()
-    assertThat(getIndexKeys(boxedByteType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Byte", "")
-      .inOrder()
+    assertThat(getIndexKeys(boxedBooleanType, myFixture.project, myFixture.project.projectScope())).containsExactly("Boolean", "").inOrder()
+    assertThat(getIndexKeys(boxedByteType, myFixture.project, myFixture.project.projectScope())).containsExactly("Byte", "").inOrder()
     assertThat(getIndexKeys(boxedCharType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Char", "Character", "")
       .inOrder()
-    assertThat(getIndexKeys(boxedDoubleType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Double", "")
-      .inOrder()
-    assertThat(getIndexKeys(boxedFloatType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Float", "")
-      .inOrder()
+    assertThat(getIndexKeys(boxedDoubleType, myFixture.project, myFixture.project.projectScope())).containsExactly("Double", "").inOrder()
+    assertThat(getIndexKeys(boxedFloatType, myFixture.project, myFixture.project.projectScope())).containsExactly("Float", "").inOrder()
     assertThat(getIndexKeys(boxedIntType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Int", "Integer", "")
       .inOrder()
-    assertThat(getIndexKeys(boxedLongType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Long", "")
-      .inOrder()
-    assertThat(getIndexKeys(boxedShortType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactly("Short", "")
-      .inOrder()
+    assertThat(getIndexKeys(boxedLongType, myFixture.project, myFixture.project.projectScope())).containsExactly("Long", "").inOrder()
+    assertThat(getIndexKeys(boxedShortType, myFixture.project, myFixture.project.projectScope())).containsExactly("Short", "").inOrder()
   }
 
   @Test
@@ -521,8 +477,7 @@ class IndexKeyUtilTest {
 
     assertThat(indexKeys[0]).isEqualTo("com.example.SomeGenericType")
     assertThat(indexKeys[1]).isEqualTo("SomeGenericType")
-    assertThat(indexKeys.subList(2, 5))
-      .containsExactly("MyTypeAlias1", "MyTypeAlias2", "MyTypeAlias3")
+    assertThat(indexKeys.subList(2, 5)).containsExactly("MyTypeAlias1", "MyTypeAlias2", "MyTypeAlias3")
     assertThat(indexKeys[5]).isEqualTo("")
   }
 
@@ -796,8 +751,7 @@ class IndexKeyUtilTest {
     val intArrayType = myFixture.findParentElement<KtProperty>("intArray|Property").psiType!!
     assertThat(getIndexKeys(intArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("IntArray", "int[]", "MyIntArray", "")
-    val integerArrayType =
-      myFixture.findParentElement<KtProperty>("integerArray|Property").psiType!!
+    val integerArrayType = myFixture.findParentElement<KtProperty>("integerArray|Property").psiType!!
     assertThat(getIndexKeys(integerArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Integer[]", "MyIntegerArray", "MyFooArray", "")
     val charArrayType = myFixture.findParentElement<KtProperty>("charArray|Property").psiType!!
@@ -811,10 +765,10 @@ class IndexKeyUtilTest {
       "/src/com/other/Foo.kt",
       // language=kotlin
       """
-        package com.other
+      package com.other
 
-        class Foo<T>
-        """
+      class Foo<T>
+      """
         .trimIndent(),
     )
 
@@ -852,35 +806,14 @@ class IndexKeyUtilTest {
     )
 
     val fooIntType = myFixture.findParentElement<KtProperty>("fooInt|Property").psiType!!
-    val fooIntIndexKeys =
-      getIndexKeys(fooIntType, myFixture.project, myFixture.project.projectScope())
-    assertThat(fooIntIndexKeys)
-      .containsExactly(
-        "com.example.Foo",
-        "Foo",
-        "MyFooInt",
-        "MyFooBar",
-        "OtherFooInt",
-        "OtherFooBar",
-        "",
-      )
+    val fooIntIndexKeys = getIndexKeys(fooIntType, myFixture.project, myFixture.project.projectScope())
+    assertThat(fooIntIndexKeys).containsExactly("com.example.Foo", "Foo", "MyFooInt", "MyFooBar", "OtherFooInt", "OtherFooBar", "")
     val fooBarType = myFixture.findParentElement<KtProperty>("fooBar|Property").psiType!!
-    assertThat(getIndexKeys(fooBarType, myFixture.project, myFixture.project.projectScope()))
-      .containsExactlyElementsIn(fooIntIndexKeys)
+    assertThat(getIndexKeys(fooBarType, myFixture.project, myFixture.project.projectScope())).containsExactlyElementsIn(fooIntIndexKeys)
 
     val otherFooIntType = myFixture.findParentElement<KtProperty>("otherFooInt|Property").psiType!!
-    val otherFooIntIndexKeys =
-      getIndexKeys(otherFooIntType, myFixture.project, myFixture.project.projectScope())
-    assertThat(otherFooIntIndexKeys)
-      .containsExactly(
-        "com.other.Foo",
-        "Foo",
-        "MyFooInt",
-        "MyFooBar",
-        "OtherFooInt",
-        "OtherFooBar",
-        "",
-      )
+    val otherFooIntIndexKeys = getIndexKeys(otherFooIntType, myFixture.project, myFixture.project.projectScope())
+    assertThat(otherFooIntIndexKeys).containsExactly("com.other.Foo", "Foo", "MyFooInt", "MyFooBar", "OtherFooInt", "OtherFooBar", "")
     val otherFooBarType = myFixture.findParentElement<KtProperty>("otherFooBar|Property").psiType!!
     assertThat(getIndexKeys(otherFooBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactlyElementsIn(otherFooIntIndexKeys)

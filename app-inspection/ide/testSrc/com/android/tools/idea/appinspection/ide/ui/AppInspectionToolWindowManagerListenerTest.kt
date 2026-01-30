@@ -47,10 +47,8 @@ import org.junit.Test
 class AppInspectionToolWindowManagerListenerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
-  private val appInspectionServiceRule =
-    AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
+  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
@@ -61,8 +59,7 @@ class AppInspectionToolWindowManagerListenerTest {
     inspectionView: AppInspectionView,
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
-    val listener =
-      AppInspectionToolWindowManagerListener(project, ideServices, this, inspectionView)
+    val listener = AppInspectionToolWindowManagerListener(project, ideServices, this, inspectionView)
 
     var shouldBeAvailable = true
     var visible = false
@@ -92,25 +89,16 @@ class AppInspectionToolWindowManagerListenerTest {
     object : AppInspectionIdeServicesAdapter() {
       var notificationText: String? = null
 
-      override fun showNotification(
-        content: String,
-        title: String,
-        severity: AppInspectionIdeServices.Severity,
-        action: AnAction?,
-      ) {
+      override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, action: AnAction?) {
         notificationText = content
       }
     }
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
 
   @Test
   fun testShowBubbleWhenInspectionIsAndIsNotRunning() = runBlocking {
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer),
-    )
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
     val uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     val inspectionView =
       withContext(uiDispatcher) {
@@ -146,7 +134,6 @@ class AppInspectionToolWindowManagerListenerTest {
     // Check bubble is shown.
     toolWindow.show()
     toolWindow.hide()
-    assertThat(ideServices.notificationText)
-      .isEqualTo(AppInspectionBundle.message("inspection.is.running"))
+    assertThat(ideServices.notificationText).isEqualTo(AppInspectionBundle.message("inspection.is.running"))
   }
 }

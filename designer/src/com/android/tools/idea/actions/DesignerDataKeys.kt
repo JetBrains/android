@@ -24,20 +24,14 @@ import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.intellij.openapi.actionSystem.DataKey
 
 /**
- * Data key for the actions work in Design Editor. This includes DesignSurface and ActionToolBar,
- * but **exclude** all attached ToolWindows. Attached ToolWindows take the responsibility of
- * handling shortcuts and key events. For example, when focusing Palette, typing means search the
- * widget.
+ * Data key for the actions work in Design Editor. This includes DesignSurface and ActionToolBar, but **exclude** all attached ToolWindows.
+ * Attached ToolWindows take the responsibility of handling shortcuts and key events. For example, when focusing Palette, typing means
+ * search the widget.
  */
-@JvmField
-val DESIGN_SURFACE: DataKey<DesignSurface<*>> = DataKey.create(DesignSurface::class.qualifiedName!!)
+@JvmField val DESIGN_SURFACE: DataKey<DesignSurface<*>> = DataKey.create(DesignSurface::class.qualifiedName!!)
 
-@JvmField
-val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> =
-  DataKey.create(AnimationToolbar::class.qualifiedName!!)
+@JvmField val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> = DataKey.create(AnimationToolbar::class.qualifiedName!!)
 
 @JvmField val SCENE_VIEW: DataKey<SceneView> = DataKey.create(SceneView::class.qualifiedName!!)
 
-@JvmField
-val CONFIGURATIONS: DataKey<Collection<Configuration>> =
-  DataKey.create(DesignSurface::class.qualifiedName!! + "_Configurations")
+@JvmField val CONFIGURATIONS: DataKey<Collection<Configuration>> = DataKey.create(DesignSurface::class.qualifiedName!! + "_Configurations")

@@ -19,14 +19,18 @@ import java.io.File
 
 /** This is essentially a value class, but we don't want File as the backing field as it's not supported by the workspace model. */
 @Suppress("FileEqualsUsage")
-data class FileImpl(val pathString: String): File(pathString) {
+data class FileImpl(val pathString: String) : File(pathString) {
   override fun toString(): String = super.toString()
+
   // equals/hashCode is purposely delegated to super so FileImpl equals File.
   // This is to ensure compatibility where a File is used as a key (i.e. in a map) or an identifier.
   override fun equals(other: Any?) = super.equals(other)
+
   override fun hashCode() = super.hashCode()
 }
 
 fun File.toImpl() = FileImpl(path)
+
 fun List<File>.toImpl() = map { it.toImpl() }
+
 fun <T> Map<T, File>.toImpl() = mapValues { (key, value) -> value.toImpl() }

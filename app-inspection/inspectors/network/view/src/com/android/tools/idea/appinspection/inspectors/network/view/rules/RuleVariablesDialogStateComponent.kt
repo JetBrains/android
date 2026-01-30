@@ -25,8 +25,7 @@ import com.intellij.openapi.components.Storage
 /** Persistence of the [RuleVariablesDialog] state */
 @Service
 @State(name = "RuleVariablesDialogState", storages = [Storage("ruleVariablesDialogState.xml")])
-internal class RuleVariablesDialogStateComponent :
-  PersistentStateComponent<RuleVariablesDialogState> {
+internal class RuleVariablesDialogStateComponent : PersistentStateComponent<RuleVariablesDialogState> {
   private var state = RuleVariablesDialogState()
 
   override fun getState() = state
@@ -42,8 +41,7 @@ internal class RuleVariablesDialogStateComponent :
 }
 
 internal data class RuleVariablesDialogState(
-  var columns: MutableList<ConfigColumnTableAspect.ColumnInfo> =
-    RuleVariablesDialog.columnConfig.toMutableList(),
+  var columns: MutableList<ConfigColumnTableAspect.ColumnInfo> = RuleVariablesDialog.columnConfig.toMutableList(),
   var dialogWidth: Int = 600,
   var dialogHeight: Int = 200,
 )

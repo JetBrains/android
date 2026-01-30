@@ -37,17 +37,17 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
-/**
- * A property editor [ModelPropertyEditor] for properties of simple map types.
- */
+/** A property editor [ModelPropertyEditor] for properties of simple map types. */
 class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<ValueT>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
   variablesScope: PsVariablesScope?,
-  private val logValueEdited: () -> Unit
-) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
-    ModelPropertyEditor<Map<String, ValueT>>, ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
+  private val logValueEdited: () -> Unit,
+) :
+  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
+  ModelPropertyEditor<Map<String, ValueT>>,
+  ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
 
   init {
     loadValue()
@@ -103,26 +103,30 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
 
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
-      addColumn(TableColumn(0, 50).apply {
-        headerValue = "Key"
-        cellEditor = MyKeyCellEditor()
-        cellRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
-          SimpleColoredComponent()
-              .also {
-                if (value != null) {
-                  it.toRenderer()
-                      .toSelectedTextRenderer(isSelected && hasFocus)
-                      .append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
-                }
-                if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
+      addColumn(
+        TableColumn(0, 50).apply {
+          headerValue = "Key"
+          cellEditor = MyKeyCellEditor()
+          cellRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
+            SimpleColoredComponent().also {
+              if (value != null) {
+                it
+                  .toRenderer()
+                  .toSelectedTextRenderer(isSelected && hasFocus)
+                  .append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
               }
+              if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
+            }
+          }
         }
-      })
-      addColumn(TableColumn(1).apply {
-        headerValue = "Value"
-        cellEditor = MyCellEditor()
-        cellRenderer = MyCellRenderer()
-      })
+      )
+      addColumn(
+        TableColumn(1).apply {
+          headerValue = "Value"
+          cellEditor = MyCellEditor()
+          cellRenderer = MyCellRenderer()
+        }
+      )
       columnSelectionAllowed = true
     }
   }
@@ -139,9 +143,7 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
       currentKey = keyAt(row)
-      lastEditor = JTextField().apply {
-        text = currentKey
-      }
+      lastEditor = JTextField().apply { text = currentKey }
       lastEditor?.let { table.addTabKeySupportTo(it) }
       return lastEditor
     }
@@ -171,8 +173,7 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   override fun createNew(
     property: ModelPropertyT,
     cellEditor: TableCellEditor?,
-    isPropertyContext: Boolean
+    isPropertyContext: Boolean,
   ): ModelPropertyEditor<Map<String, ValueT>> =
     MapPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */ }
 }
-

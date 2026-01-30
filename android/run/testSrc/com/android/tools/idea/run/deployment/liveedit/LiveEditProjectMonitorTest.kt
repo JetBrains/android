@@ -38,8 +38,16 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import junit.framework.Assert
 import junit.framework.Assert.assertTrue
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.fail
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Before
@@ -52,26 +60,15 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
-import java.io.IOException
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.fail
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @RunWith(JUnit4::class)
 class LiveEditProjectMonitorTest {
   private lateinit var myProject: Project
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
-  private fun hasMetricStatus(status : LiveEditEvent.Status) = usageTracker.usages.any() {
-    it.studioEvent.liveEditEvent.status == status
-  }
+  private fun hasMetricStatus(status: LiveEditEvent.Status) = usageTracker.usages.any() { it.studioEvent.liveEditEvent.status == status }
 
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {
@@ -89,8 +86,7 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun manualModeCompileError() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
     val device: IDevice = mock()
@@ -105,9 +101,7 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun autoModeCompileSuccess() {
-    val monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject
-    )
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
 
     // Fake a UpToDate Physical Device
@@ -123,17 +117,14 @@ class LiveEditProjectMonitorTest {
     monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(0, monitor.numFilesWithCompilationErrors())
 
-    val hasPhysicalDevice = usageTracker.usages.any() {
-      it.studioEvent.liveEditEvent.targetDevice == LiveEditEvent.Device.PHYSICAL
-    }
+    val hasPhysicalDevice = usageTracker.usages.any() { it.studioEvent.liveEditEvent.targetDevice == LiveEditEvent.Device.PHYSICAL }
 
     Assert.assertTrue(hasPhysicalDevice)
   }
 
   @Test
   fun autoModeCompileError() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
     val device: IDevice = mock()
@@ -147,8 +138,7 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun autoModeCompileErrorInOtherFile() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
     val device: IDevice = mock()
@@ -164,9 +154,7 @@ class LiveEditProjectMonitorTest {
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
-  /**
-   * This test needs to be updated when multi-deploy is supported (its failure will signify so).
-   */
+  /** This test needs to be updated when multi-deploy is supported (its failure will signify so). */
   @Test
   fun testMultiDeploy() {
     val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
@@ -205,8 +193,7 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun nonKotlin() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     var file = projectRule.fixture.configureByText("A.java", "class A() { }")
     monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_KOTLIN))
@@ -215,7 +202,7 @@ class LiveEditProjectMonitorTest {
   @Test
   fun recomposition() {
     val taskFinished = CountDownLatch(1)
-    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val device: IDevice = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
@@ -241,9 +228,7 @@ class LiveEditProjectMonitorTest {
     }
   }
 
-  /**
-   * Make sure that 10 recomposition status retrieval request all at once doesn't trigger 10+ round trip to the device
-   */
+  /** Make sure that 10 recomposition status retrieval request all at once doesn't trigger 10+ round trip to the device */
   @Test
   @Ignore("b/326255667")
   fun recompositionCheckRate() {
@@ -285,9 +270,7 @@ class LiveEditProjectMonitorTest {
     assertEquals(1, totalStatusRetrieve)
   }
 
-  /**
-   * Make sure we get 5 recomposition status update.
-   */
+  /** Make sure we get 5 recomposition status update. */
   @Test
   fun recompositionCheckCount() {
     // Force the test env to queue up 10 Live Edit recomposition status retrieval
@@ -298,13 +281,14 @@ class LiveEditProjectMonitorTest {
     val taskComposeStatusFinished = CountDownLatch(NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT)
 
     var totalStatusRetrieve = 0
-    val monitor = object : LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject) {
-      override fun updateEditableStatus(newStatus: LiveEditStatus) {
-        recompositionStatusRequestFinished.await()
-        totalStatusRetrieve++
-        taskComposeStatusFinished.countDown()
+    val monitor =
+      object : LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject) {
+        override fun updateEditableStatus(newStatus: LiveEditStatus) {
+          recompositionStatusRequestFinished.await()
+          totalStatusRetrieve++
+          taskComposeStatusFinished.countDown()
+        }
       }
-    }
 
     val device: IDevice = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
@@ -355,9 +339,7 @@ class LiveEditProjectMonitorTest {
     monitor.notifyAppDeploy(TestApplicationProjectContext(appId), device, LiveEditApp(emptySet(), 30), listOf()) { true }
     assertTrue(ready.await(5000, TimeUnit.MILLISECONDS))
 
-    ReadAction.run<Throwable> {
-      monitor.fileChanged(file.virtualFile)
-    }
+    ReadAction.run<Throwable> { monitor.fileChanged(file.virtualFile) }
 
     assertTrue(needUpdate.await(5000, TimeUnit.MILLISECONDS))
 
@@ -365,7 +347,6 @@ class LiveEditProjectMonitorTest {
     assertTrue(done.await(5000, TimeUnit.MILLISECONDS))
     assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN_IS_JAVA.message))
   }
-
 
   @Test
   fun testVibeEditWithoutRunningDevices() {
@@ -375,7 +356,7 @@ class LiveEditProjectMonitorTest {
     try {
       monitor.onAgentTrigger(file.virtualFile.name, "do fun things with it.")
       fail("Exception should have been thrown.")
-    } catch (e : LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
       assertTrue(e.message!!.contains("No running application available for Live Edit"))
     }
   }

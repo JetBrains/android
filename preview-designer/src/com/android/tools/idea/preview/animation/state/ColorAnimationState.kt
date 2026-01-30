@@ -26,19 +26,16 @@ import kotlinx.coroutines.flow.update
 /**
  * An abstract base class representing the state of a color animation.
  *
- * This class manages the initial and target colors of the animation, provides a hash code
- * representing the current state, and defines actions for changing the color states.
+ * This class manages the initial and target colors of the animation, provides a hash code representing the current state, and defines
+ * actions for changing the color states.
  *
  * @param T The type of animation unit representing a color (e.g., RGB, HSL).
  * @param tracker The [AnimationTracker] associated with this animation to log changes and events.
  * @param initialColor The starting color value for the animation.
  * @param targetColor The final color value for the animation.
  */
-abstract class ColorAnimationState<T : AnimationUnit.Color<*, T>>(
-  private val tracker: AnimationTracker,
-  initialColor: T,
-  targetColor: T,
-) : FromToState<T> {
+abstract class ColorAnimationState<T : AnimationUnit.Color<*, T>>(private val tracker: AnimationTracker, initialColor: T, targetColor: T) :
+  FromToState<T> {
   companion object {
     val DEFAULT_COLOR: Color = JBColor.WHITE
   }
@@ -48,13 +45,9 @@ abstract class ColorAnimationState<T : AnimationUnit.Color<*, T>>(
 
   override val changeStateActions: List<AnAction> by lazy {
     val initial =
-      ColorPickerAction(tracker, initialColor.color ?: DEFAULT_COLOR) {
-        state.update { (_, target) -> target.create(it) to target }
-      }
+      ColorPickerAction(tracker, initialColor.color ?: DEFAULT_COLOR) { state.update { (_, target) -> target.create(it) to target } }
     val target =
-      ColorPickerAction(tracker, targetColor.color ?: DEFAULT_COLOR) {
-        state.update { (initial, _) -> initial to initial.create(it) }
-      }
+      ColorPickerAction(tracker, targetColor.color ?: DEFAULT_COLOR) { state.update { (initial, _) -> initial to initial.create(it) } }
 
     listOf(SwapAction(tracker) { initial.swapWith(target) }, initial, ToolbarLabel("to"), target)
   }

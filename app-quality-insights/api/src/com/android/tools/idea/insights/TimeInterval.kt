@@ -34,8 +34,8 @@ enum class TimeIntervalFilter(val numDays: Long, private val displayString: Stri
   /**
    * Returns a [Pair] of [Long] values representing the (start, end) times as millis since epoch.
    *
-   * A [TimeIntervalFilter] represents a timeframe, from "now" to "X" time in the past. This
-   * extension function calculates this interval as Milliseconds from the time it was called.
+   * A [TimeIntervalFilter] represents a timeframe, from "now" to "X" time in the past. This extension function calculates this interval as
+   * Milliseconds from the time it was called.
    */
   fun asMillisFromNow(): Pair<Long, Long> {
     val endOfRange = Instant.now()

@@ -64,17 +64,13 @@ import javax.swing.tree.TreePath
 
 const val BASE_PERSPECTIVE_MODULE_PLACE_NAME = "base_perspective.module"
 
-abstract class BasePerspectiveConfigurable protected constructor(
-  protected val context: PsContext,
-  val extraModules: List<PsModule>
-) : MasterDetailsComponent(),
-    SearchableConfigurable,
-    Disposable,
-    Place.Navigator,
-    TrackedConfigurable,
-    CrossModuleUiStateComponent {
+abstract class BasePerspectiveConfigurable protected constructor(protected val context: PsContext, val extraModules: List<PsModule>) :
+  MasterDetailsComponent(), SearchableConfigurable, Disposable, Place.Navigator, TrackedConfigurable, CrossModuleUiStateComponent {
 
-  private enum class ModuleSelectorStyle { LIST_VIEW, DROP_DOWN }
+  private enum class ModuleSelectorStyle {
+    LIST_VIEW,
+    DROP_DOWN,
+  }
 
   private var uiDisposed = true
 
@@ -89,24 +85,28 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   private var selectedUnresolvedPath: String? = null
   val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
-  val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
+  val selectedModule: PsModule?
+    get() = myCurrentConfigurable?.editableObject as? PsModule
 
   init {
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.modules"
 
     @Suppress("LeakingThis")
-    context.add(object : PsContext.SyncListener {
-      override fun started() {
-        loadingPanel?.startLoading()
-        loadingPanelVisible = true
-      }
+    context.add(
+      object : PsContext.SyncListener {
+        override fun started() {
+          loadingPanel?.startLoading()
+          loadingPanelVisible = true
+        }
 
-      override fun ended() {
-        loadingPanelVisible = false
-        stopSyncAnimation()
-        maybeUpdateTreeAfterSync()
-      }
-    }, this)
+        override fun ended() {
+          loadingPanelVisible = false
+          stopSyncAnimation()
+          maybeUpdateTreeAfterSync()
+        }
+      },
+      this,
+    )
 
     @Suppress("LeakingThis")
     context.analyzerDaemon.onIssuesChange(this) @UiThread {
@@ -117,8 +117,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       Unit
     }
 
-    @Suppress("LeakingThis")
-    context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
+    @Suppress("LeakingThis") context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
   }
 
   private fun maybeUpdateTreeAfterSync() {
@@ -138,7 +137,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
         selectNodeInTree(node)
         selectedNode = node
         node.configurable as? BaseNamedConfigurable<*>
-      } ?: run { selectedUnresolvedPath = gradlePath; null }
+      }
+      ?: run {
+        selectedUnresolvedPath = gradlePath
+        null
+      }
 
   protected fun findModuleByGradlePath(gradlePath: String): PsModule? =
     context.project.findModuleByGradlePath(gradlePath) ?: extraModules.find { it.gradlePath == gradlePath }
@@ -160,19 +163,24 @@ abstract class BasePerspectiveConfigurable protected constructor(
     moduleSelectorDropDownPanel?.update()
   }
 
-
   final override fun reInitWholePanelIfNeeded() {
     if (!myToReInitWholePanel) return
     super.reInitWholePanelIfNeeded()
     currentModuleSelectorStyle = null
     centerComponent = splitter.secondComponent
     val splitterLeftComponent = (splitter.firstComponent as JPanel)
-    toolWindowHeader = ToolWindowHeader.createAndAdd(AndroidGradlePsdBundle.message("tab.title.android.modules"), ANDROID_MODULE, splitterLeftComponent, ToolWindowAnchor.LEFT)
-      .also {
-        it.setPreferredFocusedComponent(myTree)
-        it.addMinimizeListener { modulesTreeMinimized() }
-        Disposer.register(this@BasePerspectiveConfigurable, it)
-      }
+    toolWindowHeader =
+      ToolWindowHeader.createAndAdd(
+          AndroidGradlePsdBundle.message("tab.title.android.modules"),
+          ANDROID_MODULE,
+          splitterLeftComponent,
+          ToolWindowAnchor.LEFT,
+        )
+        .also {
+          it.setPreferredFocusedComponent(myTree)
+          it.addMinimizeListener { modulesTreeMinimized() }
+          Disposer.register(this@BasePerspectiveConfigurable, it)
+        }
   }
 
   private fun reconfigureForCurrentSettings() {
@@ -217,8 +225,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
     if (!treeInitiated) {
       initTree()
-    }
-    else {
+    } else {
       super<MasterDetailsComponent>.disposeUIResources()
     }
     loadTree()
@@ -237,31 +244,40 @@ abstract class BasePerspectiveConfigurable protected constructor(
     TreeSpeedSearch.installOn(myTree, true) { treePath -> (treePath.lastPathComponent as MasterDetailsComponent.MyNode).displayName }
     ToolTipManager.sharedInstance().registerComponent(myTree)
     myTree.cellRenderer = PsModuleCellRenderer(context)
-    Disposer.register(context) { myTree.cellRenderer = null; treeInitiated = false }
+    Disposer.register(context) {
+      myTree.cellRenderer = null
+      treeInitiated = false
+    }
   }
 
   private fun loadTree() {
     myTree.model =
       createTreeModel(
         object : NamedContainerConfigurableBase<PsModule>("root") {
-          private val hasRootGradleModule = context.project.modules.any { it.gradlePath == ":" }
-          override fun getChildrenModels(): Collection<PsModule> = extraModules + context.project.modules
-            .filter { filterRootLevelModules(it) }
-          override fun createChildConfigurable(model: PsModule) = this@BasePerspectiveConfigurable.createChildConfigurable(model)
-          override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
-          override fun dispose() = Unit
+            private val hasRootGradleModule = context.project.modules.any { it.gradlePath == ":" }
 
-          private fun filterRootLevelModules(module: PsModule): Boolean {
-            return when {
-              // Fake modules should always be displayed under the tree root.
-              module.gradlePath == null -> true
-              // If gradle root is among modules add it to the tree root node
-              hasRootGradleModule -> module.gradlePath == ":"
-              // otherwise flatten the Gradle root project and add its children directly under the tree root.
-              else -> GradleProjectSystemUtil.isDirectChild(module.gradlePath, ":")
+            override fun getChildrenModels(): Collection<PsModule> =
+              extraModules + context.project.modules.filter { filterRootLevelModules(it) }
+
+            override fun createChildConfigurable(model: PsModule) = this@BasePerspectiveConfigurable.createChildConfigurable(model)
+
+            override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
+
+            override fun dispose() = Unit
+
+            private fun filterRootLevelModules(module: PsModule): Boolean {
+              return when {
+                // Fake modules should always be displayed under the tree root.
+                module.gradlePath == null -> true
+                // If gradle root is among modules add it to the tree root node
+                hasRootGradleModule -> module.gradlePath == ":"
+                // otherwise flatten the Gradle root project and add its children directly under the tree root.
+                else -> GradleProjectSystemUtil.isDirectChild(module.gradlePath, ":")
+              }
             }
           }
-        }.also { Disposer.register(this, it) })
+          .also { Disposer.register(this, it) }
+      )
     myRoot = myTree.model.root as MyNode
     uiDisposed = false
   }
@@ -279,24 +295,22 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }
   }
 
-  fun createChildConfigurable(model: PsModule) : NamedConfigurable<out PsModule> =
+  fun createChildConfigurable(model: PsModule): NamedConfigurable<out PsModule> =
     createConfigurableFor(model).also { it.setHistory(myHistory) }
 
   protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *>
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
     fun Place.getModuleGradlePath() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }
-    return place
-             ?.getModuleGradlePath()
-             ?.let { moduleGradlePath ->
-               val callback = ActionCallback()
-               context.setSelectedModule(moduleGradlePath, this)
-               selectModule(moduleGradlePath)  // TODO(solodkyy): Do not ignore result.
-               selectedConfigurable?.let {
-                 goFurther(selectedConfigurable, place, requestFocus).notifyWhenDone(callback)
-                 callback
-               }
-             } ?: ActionCallback.DONE
+    return place?.getModuleGradlePath()?.let { moduleGradlePath ->
+      val callback = ActionCallback()
+      context.setSelectedModule(moduleGradlePath, this)
+      selectModule(moduleGradlePath) // TODO(solodkyy): Do not ignore result.
+      selectedConfigurable?.let {
+        goFurther(selectedConfigurable, place, requestFocus).notifyWhenDone(callback)
+        callback
+      }
+    } ?: ActionCallback.DONE
   }
 
   override fun queryPlace(place: Place) {
@@ -321,71 +335,92 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   override fun createActions(fromPopup: Boolean): List<AnAction> {
-    val addNewModuleAction = object : DumbAwareAction(
-      AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.text"),
-      AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.description"), IconUtil.addIcon) {
-      override fun actionPerformed(e: AnActionEvent) {
-        if (!context.project.isModified ||
+    val addNewModuleAction =
+      object :
+        DumbAwareAction(
+          AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.text"),
+          AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.description"),
+          IconUtil.addIcon,
+        ) {
+        override fun actionPerformed(e: AnActionEvent) {
+          if (
+            !context.project.isModified ||
+              Messages.showYesNoDialog(
+                e.project,
+                AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.message"),
+                AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.title"),
+                Messages.getQuestionIcon(),
+              ) == Messages.YES
+          ) {
+            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
+            var synced = false
+            context.applyRunAndReparse {
+              // TODO(b/134652202)
+              showDefaultWizard(
+                context.project.ideProject,
+                ":",
+                object : ProjectSyncInvoker {
+                  override fun syncProject(project: Project) {
+                    synced = true
+                  }
+                },
+              )
+              synced // Tells whether the context needs to reparse the config.
+            }
+          }
+        }
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+      }
+
+    val removeModuleAction =
+      object :
+        DumbAwareAction(
+          AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
+          AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.description"),
+          IconUtil.removeIcon,
+        ) {
+        override fun update(e: AnActionEvent) {
+          if (uiDisposed) return
+          super.update(e)
+          e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
+        }
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+        override fun actionPerformed(e: AnActionEvent) {
+          val module = (selectedObject as? PsModule) ?: return
+          if (
             Messages.showYesNoDialog(
               e.project,
-              AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.message"),
-              AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.title"),
-              Messages.getQuestionIcon()) == Messages.YES
-        ) {
-          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
-          var synced = false
-          context.applyRunAndReparse {
-            // TODO(b/134652202)
-            showDefaultWizard(context.project.ideProject, ":", object: ProjectSyncInvoker {
-              override fun syncProject(project: Project) { synced = true }
-            })
-            synced  // Tells whether the context needs to reparse the config.
+              buildString {
+                append(
+                  when {
+                    module.parent.modelCount == 1 ->
+                      AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm.last.module")
+                    else -> AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm", module.name)
+                  }
+                )
+                append("\n")
+                append(AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.files.remark"))
+              },
+              AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
+              Messages.getQuestionIcon(),
+            ) == Messages.YES
+          ) {
+            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
+            module.parent.removeModule(module.gradlePath)
           }
         }
       }
-
-      override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
-    }
-
-    val removeModuleAction = object : DumbAwareAction(
-      AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
-      AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.description"), IconUtil.removeIcon) {
-      override fun update(e: AnActionEvent) {
-        if (uiDisposed) return
-        super.update(e)
-        e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
-      }
-
-      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
-      override fun actionPerformed(e: AnActionEvent) {
-        val module = (selectedObject as? PsModule) ?: return
-        if (Messages.showYesNoDialog(
-            e.project,
-            buildString {
-                  append(when {
-                           module.parent.modelCount == 1 -> AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm.last.module")
-                           else -> AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm", module.name)
-                         })
-                  append("\n")
-                  append(AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.files.remark"))
-                },
-            AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
-            Messages.getQuestionIcon()
-            ) == Messages.YES) {
-          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
-          module.parent.removeModule(module.gradlePath)
-        }
-      }
-    }
 
     fun AnAction.withShortcuts(action: String) = apply {
       registerCustomShortcutSet(ActionManager.getInstance().getAction(action).shortcutSet, tree)
     }
 
     return listOf(
-        addNewModuleAction.withShortcuts(IdeActions.ACTION_NEW_ELEMENT),
-        removeModuleAction.withShortcuts(IdeActions.ACTION_DELETE)
+      addNewModuleAction.withShortcuts(IdeActions.ACTION_NEW_ELEMENT),
+      removeModuleAction.withShortcuts(IdeActions.ACTION_DELETE),
     )
   }
 

@@ -17,5 +17,5 @@ package com.android.tools.idea.diagnostics
 
 const val HEAP_REPORTS_DIR = "heapReports"
 const val DIAGNOSTICS_REPORTS_DIR = "diagnostics"
-const val THREAD_DUMP_DIR_PREFIX ="threadDumps-"
+const val THREAD_DUMP_DIR_PREFIX = "threadDumps-"
 const val UI_FREEZE_DIR_PREFIX = "uiFreeze-"

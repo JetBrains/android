@@ -44,7 +44,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.treeStructure.Tree
 import icons.StudioIllustrations
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.GraphicsEnvironment
 import java.awt.datatransfer.DataFlavor
@@ -66,12 +65,10 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.ExpandVetoException
 import javax.swing.tree.TreePath
+import org.jetbrains.annotations.TestOnly
 
-class DeviceFileExplorerViewImpl(
-  project: Project,
-  model: DeviceFileExplorerModel,
-  private val toolWindowID: String
-) : DeviceFileExplorerView {
+class DeviceFileExplorerViewImpl(project: Project, model: DeviceFileExplorerModel, private val toolWindowID: String) :
+  DeviceFileExplorerView {
 
   private val listeners: MutableList<DeviceExplorerViewListener> = ArrayList()
   private val progressListeners: MutableList<DeviceExplorerViewProgressListener> = ArrayList()
@@ -84,9 +81,7 @@ class DeviceFileExplorerViewImpl(
 
   init {
     model.addListener(ModelListener())
-    panel.setCancelActionListener { _ ->
-      progressListeners.forEach(Consumer { it.cancellationRequested() })
-    }
+    panel.setCancelActionListener { _ -> progressListeners.forEach(Consumer { it.cancellationRequested() }) }
   }
 
   override fun getComponent(): JComponent {
@@ -115,7 +110,7 @@ class DeviceFileExplorerViewImpl(
   }
 
   override fun reportError(message: String, t: Throwable) {
-    val messageToReport =  if (t.message != null) "$message: ${t.message}" else message
+    val messageToReport = if (t.message != null) "$message: ${t.message}" else message
 
     // If there is an error related to a device, show the error "layer", hiding the other
     // controls, until the user takes some action to fix the issue.
@@ -178,8 +173,7 @@ class DeviceFileExplorerViewImpl(
     packageFilterMenuItem.shouldBeEnabled = shouldEnable
   }
 
-  @TestOnly
-  fun getFileTree(): JTree = panel.tree
+  @TestOnly fun getFileTree(): JTree = panel.tree
 
   @TestOnly
   fun getFileTreeActionGroup(): ActionGroup? {
@@ -191,14 +185,11 @@ class DeviceFileExplorerViewImpl(
     return loadingPanel
   }
 
-  @TestOnly
-  fun getDeviceExplorerPanel(): DeviceExplorerPanel = panel
+  @TestOnly fun getDeviceExplorerPanel(): DeviceExplorerPanel = panel
 
   private fun reportMessage(message: String, toolWindowID: String) {
     val notification = Notification(toolWindowID, toolWindowID, message, NotificationType.INFORMATION)
-    ApplicationManager.getApplication().invokeLater {
-      Notifications.Bus.notify(notification)
-    }
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private fun reportError(message: String, t: Throwable, toolWindowID: String) {
@@ -208,9 +199,7 @@ class DeviceFileExplorerViewImpl(
 
     val messageToReport = if (t.message != null) "$message: ${t.message}" else message
     val notification = Notification(toolWindowID, toolWindowID, messageToReport, NotificationType.WARNING)
-    ApplicationManager.getApplication().invokeLater {
-      Notifications.Bus.notify(notification)
-    }
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private fun setupPanel() {
@@ -225,110 +214,109 @@ class DeviceFileExplorerViewImpl(
     createToolBar()
   }
 
-  private fun getTreeWillExpandListener() = object : TreeWillExpandListener {
-    @Throws(ExpandVetoException::class)
-    override fun treeWillExpand(event: TreeExpansionEvent) {
-      val node = DeviceFileEntryNode.fromNode(event.path.lastPathComponent)
-      node?.let {
-        expandTreeNode(it)
+  private fun getTreeWillExpandListener() =
+    object : TreeWillExpandListener {
+      @Throws(ExpandVetoException::class)
+      override fun treeWillExpand(event: TreeExpansionEvent) {
+        val node = DeviceFileEntryNode.fromNode(event.path.lastPathComponent)
+        node?.let { expandTreeNode(it) }
       }
+
+      @Throws(ExpandVetoException::class) override fun treeWillCollapse(event: TreeExpansionEvent) {}
     }
 
-    @Throws(ExpandVetoException::class)
-    override fun treeWillCollapse(event: TreeExpansionEvent) {}
-  }
-
-  private fun getMouseListener(tree: Tree) = object : MouseAdapter() {
-    override fun mousePressed(e: MouseEvent) {
-      // Double-click on a file should result in a file open
-      if (e.clickCount == 2) {
-        val selRow = tree.getRowForLocation(e.x, e.y)
-        val selPath = tree.getPathForLocation(e.x, e.y)
-        if (selRow != -1 && selPath != null) {
-          openSelectedNodes(listOf(selPath))
+  private fun getMouseListener(tree: Tree) =
+    object : MouseAdapter() {
+      override fun mousePressed(e: MouseEvent) {
+        // Double-click on a file should result in a file open
+        if (e.clickCount == 2) {
+          val selRow = tree.getRowForLocation(e.x, e.y)
+          val selPath = tree.getPathForLocation(e.x, e.y)
+          if (selRow != -1 && selPath != null) {
+            openSelectedNodes(listOf(selPath))
+          }
         }
       }
     }
-  }
 
-  private fun getKeyListener(tree: Tree) = object : KeyAdapter() {
-    override fun keyPressed(e: KeyEvent) {
-      if (KeyEvent.VK_ENTER == e.keyCode) {
-        val paths = tree.selectionPaths
-        if (paths != null) {
-          openSelectedNodes(listOf(*paths))
+  private fun getKeyListener(tree: Tree) =
+    object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (KeyEvent.VK_ENTER == e.keyCode) {
+          val paths = tree.selectionPaths
+          if (paths != null) {
+            openSelectedNodes(listOf(*paths))
+          }
         }
       }
     }
-  }
 
-  private fun getTransferHandler(tree: Tree) = object : TransferHandler() {
-    override fun importData(support: TransferSupport): Boolean {
-      val t = support.transferable
-      val files = FileCopyPasteUtil.getFiles(t) ?: return false
-      val point = support.dropLocation.dropPoint
-      val treePath = tree.getPathForLocation(point.getX().toInt(), point.getY().toInt()) ?: return false
-      val node = DeviceFileEntryNode.fromNode(treePath.lastPathComponent)
-      return if (node != null && (node.entry.isDirectory || node.isSymbolicLinkToDirectory)) {
-        listeners.forEach(Consumer { it.uploadFilesInvoked(node, files) })
-        true
+  private fun getTransferHandler(tree: Tree) =
+    object : TransferHandler() {
+      override fun importData(support: TransferSupport): Boolean {
+        val t = support.transferable
+        val files = FileCopyPasteUtil.getFiles(t) ?: return false
+        val point = support.dropLocation.dropPoint
+        val treePath = tree.getPathForLocation(point.getX().toInt(), point.getY().toInt()) ?: return false
+        val node = DeviceFileEntryNode.fromNode(treePath.lastPathComponent)
+        return if (node != null && (node.entry.isDirectory || node.isSymbolicLinkToDirectory)) {
+          listeners.forEach(Consumer { it.uploadFilesInvoked(node, files) })
+          true
+        } else {
+          false
+        }
       }
-      else {
-        false
-      }
+
+      override fun canImport(comp: JComponent, transferFlavors: Array<DataFlavor>): Boolean =
+        FileCopyPasteUtil.isFileListFlavorAvailable(transferFlavors)
     }
-
-    override fun canImport(comp: JComponent, transferFlavors: Array<DataFlavor>): Boolean =
-      FileCopyPasteUtil.isFileListFlavorAvailable(transferFlavors)
-  }
 
   private fun createTreePopupMenu() {
-    treePopupMenu = ComponentPopupMenu(panel.tree).apply {
-      val fileMenu = addPopup("New")
-      fileMenu.addItem(NewFileMenuItem(fileExplorerActionListener))
-      fileMenu.addItem(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Popup))
-      addSeparator()
-      addItem(OpenMenuItem(fileExplorerActionListener))
-      addItem(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Popup))
-      addItem(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Popup))
-      addItem(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
-      addSeparator()
-      addItem(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
-      addItem(CopyPathMenuItem(fileExplorerActionListener))
-      install()
-    }
+    treePopupMenu =
+      ComponentPopupMenu(panel.tree).apply {
+        val fileMenu = addPopup("New")
+        fileMenu.addItem(NewFileMenuItem(fileExplorerActionListener))
+        fileMenu.addItem(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Popup))
+        addSeparator()
+        addItem(OpenMenuItem(fileExplorerActionListener))
+        addItem(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Popup))
+        addItem(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Popup))
+        addItem(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
+        addSeparator()
+        addItem(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
+        addItem(CopyPathMenuItem(fileExplorerActionListener))
+        install()
+      }
   }
 
   private fun createToolBar() {
     val actionManager = ActionManager.getInstance()
-    val actionGroup = DefaultActionGroup().apply {
-      add(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
-      add(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
-      add(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
-      add(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
-      add(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
-      if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
-    }
+    val actionGroup =
+      DefaultActionGroup().apply {
+        add(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+        add(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+        add(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+        add(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+        add(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+        if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
+      }
     val actionToolbar = actionManager.createActionToolbar("Device File Explorer Toolbar", actionGroup, true)
     actionToolbar.targetComponent = panel.tree
     panel.toolbarPanel.add(actionToolbar.component, BorderLayout.WEST)
   }
 
   private fun openSelectedNodes(paths: List<TreePath>) {
-    val nodes = paths.stream()
-      .map { x: TreePath ->
-        DeviceFileEntryNode.fromNode(x.lastPathComponent)
-      }
-      .filter { obj: DeviceFileEntryNode? ->
-        Objects.nonNull(obj)
-      }
-      .collect(Collectors.toList<DeviceFileEntryNode>())
+    val nodes =
+      paths
+        .stream()
+        .map { x: TreePath -> DeviceFileEntryNode.fromNode(x.lastPathComponent) }
+        .filter { obj: DeviceFileEntryNode? -> Objects.nonNull(obj) }
+        .collect(Collectors.toList<DeviceFileEntryNode>())
     fileExplorerActionListener.openNodes(nodes)
   }
 
   private fun expandTreeNode(node: DeviceFileEntryNode) {
-    listeners.forEach(
-      Consumer { it.treeNodeExpanding(node) })
+    listeners.forEach(Consumer { it.treeNodeExpanding(node) })
   }
 
   private fun incrementTreeLoading() {
@@ -364,20 +352,17 @@ class DeviceFileExplorerViewImpl(
     }
   }
 
-  private inner class DeviceFileExplorerActionListenerImpl :  DeviceFileExplorerActionListener {
+  private inner class DeviceFileExplorerActionListenerImpl : DeviceFileExplorerActionListener {
     override val selectedNodes: List<DeviceFileEntryNode>?
       get() {
         val paths: Array<TreePath>? = panel.tree.selectionPaths
 
         paths?.let {
-          val nodes = Arrays.stream(paths)
-            .map { path: TreePath ->
-              DeviceFileEntryNode.fromNode(path.lastPathComponent)
-            }
-            .filter { obj: DeviceFileEntryNode? ->
-              Objects.nonNull(obj)
-            }
-            .collect(Collectors.toList<DeviceFileEntryNode>())
+          val nodes =
+            Arrays.stream(paths)
+              .map { path: TreePath -> DeviceFileEntryNode.fromNode(path.lastPathComponent) }
+              .filter { obj: DeviceFileEntryNode? -> Objects.nonNull(obj) }
+              .collect(Collectors.toList<DeviceFileEntryNode>())
 
           return if (nodes.isEmpty()) null else nodes
         }

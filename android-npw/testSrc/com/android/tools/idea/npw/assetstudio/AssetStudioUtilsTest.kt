@@ -18,39 +18,40 @@ package com.android.tools.idea.npw.assetstudio
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.google.common.truth.Truth
-import org.junit.Test
 import java.io.File
+import org.junit.Test
 
 class AssetStudioUtilsTest {
 
   @Test
   fun orderTemplates() {
-    val noopPath = object: AndroidModulePaths {
-      override val moduleRoot: File?
-        get() = null
+    val noopPath =
+      object : AndroidModulePaths {
+        override val moduleRoot: File?
+          get() = null
 
-      override fun getSrcDirectory(packageName: String?): File? {
-        return null
+        override fun getSrcDirectory(packageName: String?): File? {
+          return null
+        }
+
+        override fun getTestDirectory(packageName: String?): File? {
+          return null
+        }
+
+        override fun getUnitTestDirectory(packageName: String?): File? {
+          return null
+        }
+
+        override val resDirectories: List<File>
+          get() = listOf()
+
+        override fun getAidlDirectory(packageName: String?): File? {
+          return null
+        }
+
+        override val manifestDirectory: File?
+          get() = null
       }
-
-      override fun getTestDirectory(packageName: String?): File? {
-        return null
-      }
-
-      override fun getUnitTestDirectory(packageName: String?): File? {
-        return null
-      }
-
-      override val resDirectories: List<File>
-        get() = listOf()
-
-      override fun getAidlDirectory(packageName: String?): File? {
-        return null
-      }
-
-      override val manifestDirectory: File?
-        get() = null
-    }
     val zzz = NamedModuleTemplate("zzz", noopPath)
     val release = NamedModuleTemplate("release", noopPath)
     val main = NamedModuleTemplate("main", noopPath)

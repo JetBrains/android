@@ -31,18 +31,15 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-/**
- * Tests for [PsModuleCollection].
- */
+/** Tests for [PsModuleCollection]. */
 @RunsInEdt
 class PsModuleCollectionTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testNotSyncedModules() {
@@ -71,15 +68,15 @@ class PsModuleCollectionTest {
     preparedProject.root.resolve("app/build.gradle").replaceContent { "apply plugin: 'something' \n" + it }
     projectRule.psTestWithProject(preparedProject, resolveModels = false, expectSyncFailing = true) {
       assertThat(
-        GradleModelProvider
-          .getInstance()
-          .getProjectModel(resolvedProject)
-          .getModuleBuildModel(File(resolvedProject.basePath, "app"))
-          ?.plugins()
-          ?.firstOrNull()
-          ?.name()
-          ?.getValue(STRING_TYPE)
-      ).isEqualTo("something")
+          GradleModelProvider.getInstance()
+            .getProjectModel(resolvedProject)
+            .getModuleBuildModel(File(resolvedProject.basePath, "app"))
+            ?.plugins()
+            ?.firstOrNull()
+            ?.name()
+            ?.getValue(STRING_TYPE)
+        )
+        .isEqualTo("something")
 
       assertThat(project.modules.map { it.gradlePath }).contains(":app")
     }
@@ -119,7 +116,6 @@ class PsModuleCollectionTest {
   fun testRelocatedModules_withResolvedModel() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_PROJECT_DIR)
     projectRule.psTestWithProject(preparedProject) {
-
       assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib", ":jav")
 
       // And make sure the build file is parsed.
@@ -138,24 +134,23 @@ class PsModuleCollectionTest {
   fun testEmptyParentsInNestedModules() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject, resolveModels = false) {
-
-      assertThat(project.modules.map { it.gradlePath }).containsExactly(
-        ":app",
-        ":lib",
-        ":jav",
-        ":nested1",
-        ":nested2",
-        ":nested1:deep",
-        ":nested2:deep",
-        ":nested2:trans",
-        ":nested2:trans:deep2",
-        ":dyn_feature"
-      )
+      assertThat(project.modules.map { it.gradlePath })
+        .containsExactly(
+          ":app",
+          ":lib",
+          ":jav",
+          ":nested1",
+          ":nested2",
+          ":nested1:deep",
+          ":nested2:deep",
+          ":nested2:trans",
+          ":nested2:trans:deep2",
+          ":dyn_feature",
+        )
 
       assertThat(project.findModuleByGradlePath(":nested2:trans")?.moduleKind).isEqualTo(ModuleKind.EMPTY)
     }
   }
-
 }
 
 private fun moduleWithSyncedModel(project: PsProject, name: String): PsModule = project.findModuleByName(name) as PsModule

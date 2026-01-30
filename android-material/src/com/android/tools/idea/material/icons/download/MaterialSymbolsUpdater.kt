@@ -34,8 +34,7 @@ class MaterialSymbolsUpdater {
   companion object {
     // incomplete=true because Material has not published a "complete" set of icons in a few years,
     // and no Material Symbols are published in the last complete set
-    private const val METADATA_DOWNLOAD_URL =
-      "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
+    private const val METADATA_DOWNLOAD_URL = "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
     private const val DOWNLOADED_METADATA_FILE_NAME = "icons_metadata_temp.txt"
     private const val FONT_FILE_DOWNLOADER_NAME = "MaterialSymbolsFont"
     private const val METADATA_DOWNLOADER_NAME = "MaterialSymbolsMetadata"
@@ -53,34 +52,20 @@ class MaterialSymbolsUpdater {
       val url = materialSymbolsUrlProvider.getRemoteFontUrl(type)
       val folder = materialSymbolsUrlProvider.getLocalFontDirectoryFile(type) ?: return
       val fileName = type.remoteFileName
-      downloadAndMove(
-        url.toString(),
-        fileName,
-        type.localName + FONT_EXTENSION,
-        folder,
-        FONT_FILE_DOWNLOADER_NAME,
-      )
+      downloadAndMove(url.toString(), fileName, type.localName + FONT_EXTENSION, folder, FONT_FILE_DOWNLOADER_NAME)
     }
 
     /** Downloads the metadata file for the Material Symbols */
     @Slow
     fun downloadMetadataFile(materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) {
       val folder = materialSymbolsUrlProvider.getLocalSymbolsPath() ?: return
-      downloadAndMove(
-        METADATA_DOWNLOAD_URL,
-        DOWNLOADED_METADATA_FILE_NAME,
-        METADATA_FILE_NAME,
-        folder,
-        METADATA_DOWNLOADER_NAME,
-      )
+      downloadAndMove(METADATA_DOWNLOAD_URL, DOWNLOADED_METADATA_FILE_NAME, METADATA_FILE_NAME, folder, METADATA_DOWNLOADER_NAME)
     }
 
     /**
-     * Downloads the [com.android.ide.common.vectordrawable.VdIcon] for the specified Material
-     * Symbol
+     * Downloads the [com.android.ide.common.vectordrawable.VdIcon] for the specified Material Symbol
      *
-     * @param symbolConfiguration The [SymbolConfiguration] that defines the visual properties of
-     *   the Material Symbol to be downloaded
+     * @param symbolConfiguration The [SymbolConfiguration] that defines the visual properties of the Material Symbol to be downloaded
      * @param symbolName The name of the Material Symbol to be downloaded
      */
     @Slow
@@ -90,17 +75,15 @@ class MaterialSymbolsUpdater {
       materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
     ) {
       val folder =
-        materialSymbolsUrlProvider
-          .getLocalSymbolsPath()
-          ?.resolve("${symbolConfiguration.type.localName}/${symbolName}") ?: return
+        materialSymbolsUrlProvider.getLocalSymbolsPath()?.resolve("${symbolConfiguration.type.localName}/${symbolName}") ?: return
       val fileName = symbolConfiguration.toFileName(symbolName)
       val remoteUrl = symbolConfiguration.toUrlString(symbolName)
       downloadAndMove(remoteUrl, "$fileName.tmp", fileName, folder, SYMBOL_VD_DOWNLOADER_NAME)
     }
 
     /**
-     * Ensures a safe download for the required resources, by downloading to a temporary file, then
-     * moving do the final one to avoid partial downloads
+     * Ensures a safe download for the required resources, by downloading to a temporary file, then moving do the final one to avoid partial
+     * downloads
      *
      * @param downloadUrl [String] determining the remote URL the resource should be downloaded from
      * @param tempFileName temporary file name to download the resource to
@@ -118,17 +101,12 @@ class MaterialSymbolsUpdater {
       try {
         val downloadService = DownloadableFileService.getInstance()
 
-        val fileDescription =
-          listOf(downloadService.createFileDescription(downloadUrl, tempFileName))
+        val fileDescription = listOf(downloadService.createFileDescription(downloadUrl, tempFileName))
 
         val downloader = downloadService.createDownloader(fileDescription, downloaderName)
         val downloadedFile = downloader.download(downloadFolder).first().first
 
-        Files.move(
-          downloadedFile.toPath(),
-          downloadedFile.parentFile.resolve(finalFileName).toPath(),
-          StandardCopyOption.REPLACE_EXISTING,
-        )
+        Files.move(downloadedFile.toPath(), downloadedFile.parentFile.resolve(finalFileName).toPath(), StandardCopyOption.REPLACE_EXISTING)
         downloadedFile.delete()
       } catch (e: Throwable) {
         LOG.warn("Download failed for $finalFileName with error: $e")

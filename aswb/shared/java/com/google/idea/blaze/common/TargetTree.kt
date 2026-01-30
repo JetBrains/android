@@ -19,19 +19,13 @@ import java.nio.file.Path
 
 interface TargetTree {
 
-  /**
-   * Returns all targets in the target tree.
-   */
+  /** Returns all targets in the target tree. */
   fun getTargets(): Sequence<Label>
 
-  /**
-   * Returns targets directly under the tree root package.
-   */
+  /** Returns targets directly under the tree root package. */
   fun getDirectTargets(pkg: Path): Sequence<Label>
 
-  /**
-   * Returns targets of a subtree rooted at the given path.
-   */
+  /** Returns targets of a subtree rooted at the given path. */
   fun getSubpackages(pkg: Path): Sequence<Label>
 
   /**

@@ -60,32 +60,23 @@ class NlIdRenamingTest {
 
   @Test
   fun testSetValueChangeReferences() {
-    val util =
-      SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
 
     // Perform renaming
     property.value = "label"
 
     // Verify renaming results
-    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW))
-      .isEqualTo("@id/label")
-    assertThat(
-        util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)
-      )
-      .isEqualTo("@id/label")
-    assertThat(
-        util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)
-      )
-      .isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
   }
 
   @Test
   fun testSetResourceLightFields() {
     addManifest(projectRule.fixture)
     val activityFile = projectRule.fixture.addFileToProject("src/MainActivity.java", testActivity)
-    val util =
-      SupportTestUtil(projectRule, createTestLayout()).selectById("checkBox1").clearSnapshots()
+    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("checkBox1").clearSnapshots()
     val property = util.makeIdProperty()
 
     // Perform renaming

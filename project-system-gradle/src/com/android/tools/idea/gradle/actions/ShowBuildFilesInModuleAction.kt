@@ -29,7 +29,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.ui.treeStructure.ProjectViewUpdateCause
 
-class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module") {
+class ShowBuildFilesInModuleAction : ToggleAction("Display Build Files In Module") {
   private val settings = ProjectToolWindowSettings.Companion.getInstance()
 
   override fun isSelected(e: AnActionEvent) = settings.showBuildFilesInModule
@@ -37,9 +37,10 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (settings.showBuildFilesInModule != state) {
       settings.showBuildFilesInModule = state
-      ProjectManager.getInstance().openProjects
+      ProjectManager.getInstance()
+        .openProjects
         .filter { !it.isDisposed }
-        .forEach{ ProjectView.getInstance(it)?.refresh(ProjectViewUpdateCause.SETTINGS) }
+        .forEach { ProjectView.getInstance(it)?.refresh(ProjectViewUpdateCause.SETTINGS) }
       trackShowBuildFileInModuleSettingChange(state)
     }
   }
@@ -63,13 +64,14 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
   }
 
   private fun trackShowBuildFileInModuleSettingChange(settingValue: Boolean) {
-    val showBuildFilesInModule = if (settingValue) ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE else ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE
+    val showBuildFilesInModule =
+      if (settingValue) ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE else ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
         .setAndroidViewShowBuildFilesInModuleEvent(
-          AndroidViewShowBuildFilesInModuleEvent.newBuilder().apply {
-          this.showBuildFilesInModule = showBuildFilesInModule
-        }))
+          AndroidViewShowBuildFilesInModuleEvent.newBuilder().apply { this.showBuildFilesInModule = showBuildFilesInModule }
+        )
+    )
   }
 }

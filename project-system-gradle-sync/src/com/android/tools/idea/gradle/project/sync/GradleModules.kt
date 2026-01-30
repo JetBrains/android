@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.ProjectSyncIssues as ProjectSyncIssuesV1
+import com.android.builder.model.v2.models.ProjectSyncIssues as ProjectSyncIssuesV2
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
@@ -36,31 +38,35 @@ import com.android.tools.idea.gradle.model.impl.toImpl
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.utils.findGradleBuildFile
+import java.io.File
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import java.io.File
-import com.android.builder.model.ProjectSyncIssues as ProjectSyncIssuesV1
-import com.android.builder.model.v2.models.ProjectSyncIssues as ProjectSyncIssuesV2
 
-typealias IdeVariantFetcher = (
-  controller: BuildController,
-  androidProjectPathResolver: AndroidProjectPathResolver,
-  module: AndroidModule,
-  configuration: ModuleConfiguration
-) -> ModelResult<IdeVariantWithPostProcessor>
+typealias IdeVariantFetcher =
+  (
+    controller: BuildController,
+    androidProjectPathResolver: AndroidProjectPathResolver,
+    module: AndroidModule,
+    configuration: ModuleConfiguration,
+  ) -> ModelResult<IdeVariantWithPostProcessor>
 
 sealed interface HasBasicGradleProject {
   val gradleProject: BasicGradleProject
 }
-sealed class GradleModule(override val gradleProject: BasicGradleProject): HasBasicGradleProject {
-  val findModelRoot: Model get() = gradleProject
+
+sealed class GradleModule(override val gradleProject: BasicGradleProject) : HasBasicGradleProject {
+  val findModelRoot: Model
+    get() = gradleProject
+
   val id = createUniqueModuleId(gradleProject)
   val moduleId: ModuleId = gradleProject.toModuleId()
-  var projectSyncIssues: List<IdeSyncIssue> = emptyList(); private set
+  var projectSyncIssues: List<IdeSyncIssue> = emptyList()
+    private set
+
   val exceptions: MutableList<Throwable> = mutableListOf()
 
   fun setSyncIssues(issues: List<IdeSyncIssue>) {
@@ -71,20 +77,17 @@ sealed class GradleModule(override val gradleProject: BasicGradleProject): HasBa
     exceptions += throwables
   }
 
-  /**
-   * Prepares the final collection of models for delivery to the IDE.
-   */
+  /** Prepares the final collection of models for delivery to the IDE. */
   abstract fun prepare(indexedModels: IndexedModels): DeliverableGradleModule
+
   abstract fun getFetchSyncIssuesAction(): ActionToRun<Unit>?
 }
 
-/**
- * The container class for Java module, containing its Android models handled by the Android plugin.
- */
+/** The container class for Java module, containing its Android models handled by the Android plugin. */
 class JavaModule(
   gradleProject: BasicGradleProject,
   private val kotlinGradleModel: KotlinGradleModel?,
-  private val kaptGradleModel: KaptGradleModel?
+  private val kaptGradleModel: KaptGradleModel?,
 ) : GradleModule(gradleProject) {
   override fun getFetchSyncIssuesAction(): ActionToRun<Unit>? = null
 
@@ -97,10 +100,9 @@ interface HasLintJar {
   val lintJar: File?
 }
 
-/**
- * The container class for Android module, containing its Android model, Variant models, and dependency modules.
- */
-sealed class AndroidModule constructor(
+/** The container class for Android module, containing its Android model, Variant models, and dependency modules. */
+sealed class AndroidModule
+constructor(
   val modelVersions: ModelVersions,
   val buildPathMap: Map<String, BuildId>,
   gradleProject: BasicGradleProject,
@@ -115,18 +117,24 @@ sealed class AndroidModule constructor(
   private val nativeModule: IdeNativeModule?,
   val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
 ) : GradleModule(gradleProject), ResolvedAndroidProjectPath {
-  val projectType: IdeAndroidProjectType get() = androidProject.projectType
+  val projectType: IdeAndroidProjectType
+    get() = androidProject.projectType
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
     return nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
   }
 
-  enum class NativeModelVersion { None, V1, V2 }
-
-  val nativeModelVersion: NativeModelVersion = when {
-    nativeModule != null -> NativeModelVersion.V2
-    else -> NativeModelVersion.None
+  enum class NativeModelVersion {
+    None,
+    V1,
+    V2,
   }
+
+  val nativeModelVersion: NativeModelVersion =
+    when {
+      nativeModule != null -> NativeModelVersion.V2
+      else -> NativeModelVersion.None
+    }
 
   var syncedVariant: IdeVariantWithPostProcessor? = null
   var syncedNativeVariantAbiName: String? = null
@@ -138,9 +146,10 @@ sealed class AndroidModule constructor(
 
   var unresolvedDependencies: List<IdeUnresolvedDependency> = emptyList()
 
-  /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
-   * libraries other variants depend on).
-   **/
+  /**
+   * Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some libraries other variants
+   * depend on).
+   */
   fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): Collection<ArtifactIdentifier> {
     return collectIdentifiers(listOfNotNull(syncedVariant?.variant), libraryResolver)
   }
@@ -157,25 +166,25 @@ sealed class AndroidModule constructor(
     /** New V2 native model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-  ) : AndroidModule(
-    modelVersions = modelVersions,
-    buildPathMap = buildPathMap,
-    gradleProject = gradleProject,
-    androidProject = androidProject,
-    /** All configured variant names if supported by the AGP version. */
-    allVariantNames = allVariantNames,
-    defaultVariantName = defaultVariantName,
-    variantFetcher = variantFetcher,
-    androidVariantResolver = AndroidVariantResolver.NONE,
-    /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
-    nativeModule = nativeModule,
-    legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-  ) {
+  ) :
+    AndroidModule(
+      modelVersions = modelVersions,
+      buildPathMap = buildPathMap,
+      gradleProject = gradleProject,
+      androidProject = androidProject,
+      /** All configured variant names if supported by the AGP version. */
+      allVariantNames = allVariantNames,
+      defaultVariantName = defaultVariantName,
+      variantFetcher = variantFetcher,
+      androidVariantResolver = AndroidVariantResolver.NONE,
+      /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
+      nativeModule = nativeModule,
+      legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+    ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(
         fun(controller: BuildController) {
-          val syncIssues =
-            controller.findModel(this.findModelRoot, ProjectSyncIssuesV1::class.java)?.syncIssues?.toSyncIssueData()
+          val syncIssues = controller.findModel(this.findModelRoot, ProjectSyncIssuesV1::class.java)?.syncIssues?.toSyncIssueData()
 
           if (syncIssues != null) {
             // These would have been attached above if there is no separate sync issue model.
@@ -183,7 +192,7 @@ sealed class AndroidModule constructor(
             this.setSyncIssues(syncIssues + legacyModelProblems)
           }
         },
-        fetchesV1Models = true
+        fetchesV1Models = true,
       )
     }
   }
@@ -199,18 +208,19 @@ sealed class AndroidModule constructor(
     androidVariantResolver: AndroidVariantResolver,
     nativeModule: IdeNativeModule?,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-  ) : AndroidModule(
-    modelVersions = modelVersions,
-    buildPathMap = buildPathMap,
-    gradleProject = gradleProject,
-    androidProject = androidProject,
-    allVariantNames = allVariantNames,
-    defaultVariantName = defaultVariantName,
-    variantFetcher = variantFetcher,
-    androidVariantResolver = androidVariantResolver,
-    nativeModule = nativeModule,
-    legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-  ) {
+  ) :
+    AndroidModule(
+      modelVersions = modelVersions,
+      buildPathMap = buildPathMap,
+      gradleProject = gradleProject,
+      androidProject = androidProject,
+      allVariantNames = allVariantNames,
+      defaultVariantName = defaultVariantName,
+      variantFetcher = variantFetcher,
+      androidVariantResolver = androidVariantResolver,
+      nativeModule = nativeModule,
+      legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+    ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(
         fun(controller: BuildController) {
@@ -218,21 +228,21 @@ sealed class AndroidModule constructor(
             controller.findModel(this.findModelRoot, ProjectSyncIssuesV2::class.java)?.syncIssues?.toV2SyncIssueData() ?: listOf()
           val legacyModelProblems = this.legacyAndroidGradlePluginProperties.getProblemsAsSyncIssues()
           // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
-          val v2UnresolvedDependenciesIssues = this.unresolvedDependencies.map {
-            IdeSyncIssueImpl(
-              message = "Unresolved dependencies",
-              data = it.name.ifBlank { null },
-              multiLineMessage = it.cause?.lines(),
-              severity = IdeSyncIssue.SEVERITY_ERROR,
-              type = if (it.name.isBlank()) IdeSyncIssue.TYPE_EXCEPTION else IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
-            )
-          }
+          val v2UnresolvedDependenciesIssues =
+            this.unresolvedDependencies.map {
+              IdeSyncIssueImpl(
+                message = "Unresolved dependencies",
+                data = it.name.ifBlank { null },
+                multiLineMessage = it.cause?.lines(),
+                severity = IdeSyncIssue.SEVERITY_ERROR,
+                type = if (it.name.isBlank()) IdeSyncIssue.TYPE_EXCEPTION else IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY,
+              )
+            }
           this.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyModelProblems)
         },
         fetchesV2Models = true,
-        fetchesKotlinModels = false
+        fetchesKotlinModels = false,
       )
-
     }
   }
 
@@ -252,7 +262,8 @@ sealed class AndroidModule constructor(
           "No variants found for '${gradleProject.path}'. Check ${findGradleBuildFile(gradleProject.projectDirectory).absolutePath} to ensure at least one variant exists and address any sync warnings and errors.",
           gradleProject.projectIdentifier.buildIdentifier.rootDir.path,
           gradleProject.path,
-          projectSyncIssues)
+          projectSyncIssues,
+        )
     return DeliverableAndroidModule(
       gradleProject = gradleProject,
       projectSyncIssues = projectSyncIssues,
@@ -264,7 +275,7 @@ sealed class AndroidModule constructor(
       nativeModule = nativeModule,
       kotlinGradleModel = kotlinGradleModel,
       kaptGradleModel = kaptGradleModel,
-      additionalClassifierArtifacts = additionalClassifierArtifacts
+      additionalClassifierArtifacts = additionalClassifierArtifacts,
     )
   }
 }
@@ -291,16 +302,17 @@ fun IdeVariantCoreImpl.patchForKapt(kaptModel: KaptGradleModel): IdeVariantCoreI
   }
 
   return copy(
-    mainArtifact = mainArtifact
-      .maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
-    deviceTestArtifacts = deviceTestArtifacts.map {
-      v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
-                                                          },
-    hostTestArtifacts = hostTestArtifacts.map {
-      v -> v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
-                                                      },
-    testFixturesArtifact = testFixturesArtifact
-      ?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+    mainArtifact = mainArtifact.maybePatch("") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
+    deviceTestArtifacts =
+      deviceTestArtifacts.map { v ->
+        v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+      },
+    hostTestArtifacts =
+      hostTestArtifacts.map { v ->
+        v.maybePatch(v.name.toPrintableName()) { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) }
+      },
+    testFixturesArtifact =
+      testFixturesArtifact?.maybePatch("TestFixtures") { copy(generatedSourceFolders = generatedSourceFoldersPatchedForKapt(it)) },
   )
 }
 
@@ -319,16 +331,18 @@ fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
 
 private fun collectIdentifiers(
   variants: Collection<IdeVariantCoreImpl>,
-  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary,
 ): List<ArtifactIdentifier> {
-  return variants.asSequence()
+  return variants
+    .asSequence()
     .flatMap {
-      val sequence = sequenceOf(it.mainArtifact.compileClasspathCore) +
-                     it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore +
-                     it.hostTestArtifacts.map { v -> v.compileClasspathCore } +
-                     it.testFixturesArtifact?.compileClasspathCore
+      val sequence =
+        sequenceOf(it.mainArtifact.compileClasspathCore) +
+          it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore +
+          it.hostTestArtifacts.map { v -> v.compileClasspathCore } +
+          it.testFixturesArtifact?.compileClasspathCore
 
-        sequence.filterNotNull()
+      sequence.filterNotNull()
     }
     .flatMap { it.dependencies.asSequence() }
     .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.component }

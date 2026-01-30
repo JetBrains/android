@@ -29,12 +29,8 @@ import com.intellij.openapi.ui.DialogWrapper
 class DeviceAndSnapshotComboBoxTargetProvider
 internal constructor(
   private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
-  private val newSelectedDevicesErrorDialog:
-    (Project, Iterable<DeploymentTargetDevice>) -> DialogWrapper =
-    ::SelectedDevicesErrorDialog,
-  private val newDeviceAndSnapshotComboBoxTarget: () -> DeployTarget = {
-    DeviceAndSnapshotComboBoxTarget()
-  },
+  private val newSelectedDevicesErrorDialog: (Project, Iterable<DeploymentTargetDevice>) -> DialogWrapper = ::SelectedDevicesErrorDialog,
+  private val newDeviceAndSnapshotComboBoxTarget: () -> DeployTarget = { DeviceAndSnapshotComboBoxTarget() },
 ) : com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider() {
 
   override fun getId(): String {
@@ -62,13 +58,11 @@ internal constructor(
     if (devicesWithError.isEmpty()) {
       return false
     }
-    val anyDeviceHasError =
-      devicesWithError.any { it.launchCompatibility.state == LaunchCompatibility.State.ERROR }
+    val anyDeviceHasError = devicesWithError.any { it.launchCompatibility.state == LaunchCompatibility.State.ERROR }
 
     // Show dialog if any device has an error or if DO_NOT_SHOW_WARNING_ON_DEPLOYMENT is not true
     // (null or false).
-    return anyDeviceHasError ||
-      project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT) != true
+    return anyDeviceHasError || project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT) != true
   }
 
   private fun selectedDevicesWithError(project: Project): List<DeploymentTargetDevice> {

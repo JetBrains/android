@@ -35,15 +35,14 @@ import javax.swing.JComponent
 /**
  * A panel for editing configuration entities such as [PsProductFlavor] and [PsBuildType].
  *
- * [ModelT] is the model type of an entity being edited
- * [propertiesModel] the UI model of the properties being edited
+ * [ModelT] is the model type of an entity being edited [propertiesModel] the UI model of the properties being edited
  */
 open class ConfigPanel<in ModelT>(
   val context: PsContext,
   val project: PsProject,
   private val module: PsModule?,
   private val model: ModelT,
-  private val propertiesModel: PropertiesUiModel<ModelT>
+  private val propertiesModel: PropertiesUiModel<ModelT>,
 ) : ConfigPanelUi(), ComponentProvider, Place.Navigator, Disposable {
   private var editors = mutableListOf<ModelPropertyEditor<Any>>()
   private var editorsInitialized = false
@@ -63,10 +62,13 @@ open class ConfigPanel<in ModelT>(
       val editor: ModelPropertyEditor<Any> = property.createEditor(context, project, module, model)
       val labelComponent = editor.labelComponent
       addPropertyComponents(labelComponent, editor.component, editor.statusComponent)
-      editor.addFocusListener(object: FocusListener{
-        override fun focusLost(e: FocusEvent?) = Unit
-        override fun focusGained(e: FocusEvent?) = editor.component.scrollRectToVisible(Rectangle(Point(0, 0), editor.component.size))
-      })
+      editor.addFocusListener(
+        object : FocusListener {
+          override fun focusLost(e: FocusEvent?) = Unit
+
+          override fun focusGained(e: FocusEvent?) = editor.component.scrollRectToVisible(Rectangle(Point(0, 0), editor.component.size))
+        }
+      )
       editors.add(editor)
     }
 
@@ -77,10 +79,14 @@ open class ConfigPanel<in ModelT>(
       }
     }
 
-    context.add(object : PsContext.SyncListener {
-      override fun started() = refresh()
-      override fun ended() = refresh()
-    }, this)
+    context.add(
+      object : PsContext.SyncListener {
+        override fun started() = refresh()
+
+        override fun ended() = refresh()
+      },
+      this,
+    )
   }
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
@@ -91,9 +97,7 @@ open class ConfigPanel<in ModelT>(
         is CollectionPropertyEditor<*, *> -> {
           editor.component.scrollRectToVisible(editor.component.bounds)
           editor.component.requestFocus()
-          ApplicationManager.getApplication().invokeLater {
-            editor.addItem()
-          }
+          ApplicationManager.getApplication().invokeLater { editor.addItem() }
         }
         else -> editor?.component?.requestFocus()
       }
@@ -105,4 +109,3 @@ open class ConfigPanel<in ModelT>(
     editors.forEach { Disposer.dispose(it) }
   }
 }
-

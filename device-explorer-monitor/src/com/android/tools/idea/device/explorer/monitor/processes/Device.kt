@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.device.explorer.monitor.processes
 
-/**
- * Abstraction over a device that exposes [ProcessInfo]
- */
+/** Abstraction over a device that exposes [ProcessInfo] */
 interface Device {
-  /**
-   * The device name
-   */
+  /** The device name */
   val name: String
 
   /**
-   * A unique identifier of a device. The identifier is unique as long as the device is connected, i.e.
-   * an identifier value can be re-used if a device is disconnected and another device becomes connected.
+   * A unique identifier of a device. The identifier is unique as long as the device is connected, i.e. an identifier value can be re-used
+   * if a device is disconnected and another device becomes connected.
    */
   val serialNumber: String
-
 }

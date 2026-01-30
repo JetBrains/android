@@ -29,59 +29,50 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.annotations.TestOnly
 
-class AddLocaleAction
-@TestOnly
-internal constructor(private val stringResourceWriter: StringResourceWriter) :
-    PanelAction(
-        text = "Add Locale",
-        description = null,
-        icon = StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE) {
+class AddLocaleAction @TestOnly internal constructor(private val stringResourceWriter: StringResourceWriter) :
+  PanelAction(text = "Add Locale", description = null, icon = StudioIcons.LayoutEditor.Toolbar.ADD_LOCALE) {
   constructor() : this(StringResourceWriter.INSTANCE)
-  override fun doUpdate(event: AnActionEvent): Boolean =
-      event.panel.table.model.keys.mapNotNull { it.directory }.isNotEmpty()
+
+  override fun doUpdate(event: AnActionEvent): Boolean = event.panel.table.model.keys.mapNotNull { it.directory }.isNotEmpty()
 
   override fun actionPerformed(event: AnActionEvent) {
     val data: StringResourceData = checkNotNull(event.panel.table.data)
 
     JBPopupFactory.getInstance()
-        .createPopupChooserBuilder(getUnusedLocales(data.localeSet))
-        .setItemChosenCallback { locale ->
-          val key = findResourceKey(data, event.panel.facet)
-          if (stringResourceWriter.addTranslation(
-              event.requiredProject, key, data.getStringResource(key).defaultValueAsString, locale)) {
-            event.panel.reloadData()
-          }
+      .createPopupChooserBuilder(getUnusedLocales(data.localeSet))
+      .setItemChosenCallback { locale ->
+        val key = findResourceKey(data, event.panel.facet)
+        if (stringResourceWriter.addTranslation(event.requiredProject, key, data.getStringResource(key).defaultValueAsString, locale)) {
+          event.panel.reloadData()
         }
-        .setRenderer(textListCellRenderer("") { Locale.getLocaleLabel(it, /* brief= */ false) })
-        .createPopup()
-        .showUnderneathOf(event.inputEvent!!.component)
+      }
+      .setRenderer(textListCellRenderer("") { Locale.getLocaleLabel(it, /* brief= */ false) })
+      .createPopup()
+      .showUnderneathOf(event.inputEvent!!.component)
   }
 
   companion object {
     /**
-     * Returns the list of [Locale]s that are not already present in the editor, as we don't want to
-     * offer the user the option of adding those.
+     * Returns the list of [Locale]s that are not already present in the editor, as we don't want to offer the user the option of adding
+     * those.
      */
     private fun getUnusedLocales(usedLocales: Set<Locale>): List<Locale> {
       return LocaleManager.getLanguageCodes(/* include3= */ true)
-          .flatMap(this::languageToLocales)
-          .minus(usedLocales)
-          .sortedWith(Locale.LANGUAGE_NAME_COMPARATOR)
+        .flatMap(this::languageToLocales)
+        .minus(usedLocales)
+        .sortedWith(Locale.LANGUAGE_NAME_COMPARATOR)
     }
 
     /** Returns the list of [Locale]s for the given language. */
     private fun languageToLocales(language: String): List<Locale> {
       val regionlessLocale = Locale.create(LocaleQualifier(/* full= */ null, language, /* region= */ null, /* script= */ null))
       return listOf(regionlessLocale) +
-             LocaleManager.getRelevantRegions(language).map { region ->
-               Locale.create(LocaleQualifier(/* full= */ null, language, region, /* script= */ null))
-             }
+        LocaleManager.getRelevantRegions(language).map { region ->
+          Locale.create(LocaleQualifier(/* full= */ null, language, region, /* script= */ null))
+        }
     }
 
-    /**
-     * Returns a [StringResourceKey] for the resource named "app_name" or the first resource found
-     * if that does not exist.
-     */
+    /** Returns a [StringResourceKey] for the resource named "app_name" or the first resource found if that does not exist. */
     private fun findResourceKey(data: StringResourceData, facet: AndroidFacet): StringResourceKey {
       val directories = ResourceFolderManager.getInstance(facet).folders
       if (directories.isNotEmpty()) {

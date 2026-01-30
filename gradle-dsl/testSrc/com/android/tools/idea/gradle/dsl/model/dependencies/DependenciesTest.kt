@@ -57,10 +57,7 @@ class DependenciesTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     val deps = buildModel.dependencies().all()
-    if (isGradleDeclarative)
-      assertSize(10, deps)
-    else
-      assertSize(13, deps)
+    if (isGradleDeclarative) assertSize(10, deps) else assertSize(13, deps)
     run {
       val dep = deps[0] as ArtifactDependencyModel
       assertThat(dep.configurationName(), equalTo("implementation"))

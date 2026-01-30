@@ -32,9 +32,8 @@ interface ScaleListener {
  *
  * @param previousScale The scale change before its change.
  * @param newScale The scale change after its change.
- * @param focusPoint The focus point where to apply the scale change, default value is with
- *   coordinates of (-1, -1), meaning that when the scale was changed, no focus coordinates were
- *   expressed. In such case we need to calculate the coordinates by checking the window size.
+ * @param focusPoint The focus point where to apply the scale change, default value is with coordinates of (-1, -1), meaning that when the
+ *   scale was changed, no focus coordinates were expressed. In such case we need to calculate the coordinates by checking the window size.
  * @param isAnimating Scale change is requested by an animation.
  */
 data class ScaleChange(

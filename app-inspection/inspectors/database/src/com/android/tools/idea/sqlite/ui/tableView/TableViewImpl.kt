@@ -105,8 +105,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
 
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh)
 
-  private val liveUpdatesCheckBox =
-    JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
+  private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
 
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
@@ -150,11 +149,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
 
     tableActionsPanel.name = "table-actions-panel"
     tableActionsPanel.border =
-      JBUI.Borders.merge(
-        BorderFactory.createEmptyBorder(2, 0, 2, 0),
-        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        true,
-      )
+      JBUI.Borders.merge(BorderFactory.createEmptyBorder(2, 0, 2, 0), IdeBorderFactory.createBorder(SideBorder.BOTTOM), true)
 
     val pagingControlsPanel = createPagingControlsPanel()
 
@@ -185,9 +180,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     exportButton.name = "export-button"
     exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
     exportButton.isEnabled = false
-    HelpTooltip()
-      .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
-      .installOn(exportButton)
+    HelpTooltip().setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title")).installOn(exportButton)
     tableActionsPanel.add(Box.createHorizontalStrut(4))
     tableActionsPanel.add(exportButton)
     exportButton.addActionListener { listeners.forEach { it.showExportToFileDialogInvoked() } }
@@ -300,9 +293,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     pageSizeComboBox.maximumSize = pageSizeComboBox.preferredSize
     pagingControlsPanel.add(Box.createHorizontalStrut(2))
     pagingControlsPanel.add(pageSizeComboBox)
-    pageSizeComboBox.addActionListener {
-      listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) }
-    }
+    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem!!.toString())) } }
 
     nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Play_forward)
     nextRowsPageButton.toolTipText = "Go to next page"
@@ -471,10 +462,9 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
   }
 
   /**
-   * Changes the auto resize mode of JTable so that if the preferred width of the table is less than
-   * the width of the parent, the table is set to AUTO_RESIZE_SUBSEQUENT_COLUMNS, to fill the
-   * parent's width. Otherwise, if the preferred width of the table is greater than or equal to the
-   * width of the parent, horizontal scrolling is enabled with AUTO_RESIZE_OFF.
+   * Changes the auto resize mode of JTable so that if the preferred width of the table is less than the width of the parent, the table is
+   * set to AUTO_RESIZE_SUBSEQUENT_COLUMNS, to fill the parent's width. Otherwise, if the preferred width of the table is greater than or
+   * equal to the width of the parent, horizontal scrolling is enabled with AUTO_RESIZE_OFF.
    */
   private fun setAutoResizeMode() {
     if (table.preferredSize.width < table.parent.width) {
@@ -528,12 +518,8 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
         sortIcon.icon =
           when (val o = orderBy) {
             is OrderBy.NotOrdered -> AllIcons.General.ArrowSplitCenterV
-            is OrderBy.Asc ->
-              if (o.columnName == value as String) AllIcons.General.ArrowDown
-              else AllIcons.General.ArrowSplitCenterV
-            is OrderBy.Desc ->
-              if (o.columnName == value as String) AllIcons.General.ArrowUp
-              else AllIcons.General.ArrowSplitCenterV
+            is OrderBy.Asc -> if (o.columnName == value as String) AllIcons.General.ArrowDown else AllIcons.General.ArrowSplitCenterV
+            is OrderBy.Desc -> if (o.columnName == value as String) AllIcons.General.ArrowUp else AllIcons.General.ArrowSplitCenterV
           }
 
         columnNameLabel.text = value as String
@@ -641,15 +627,13 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
       listeners.forEach { it.updateCellInvoked(modelRowIndex, column, newSqliteValue) }
     }
 
-    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) =
-      modelColumnIndex != 0 && isEditable
+    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable
 
     fun applyRowsDiff(rowDiffOperations: List<RowDiffOperation>) {
       for (diffOperation in rowDiffOperations) {
         when (diffOperation) {
           is RowDiffOperation.UpdateCell -> {
-            rows[diffOperation.rowIndex].values[diffOperation.colIndex] =
-              diffOperation.newValue.value
+            rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value
             fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex + 1)
           }
           is RowDiffOperation.AddRow -> {
@@ -681,8 +665,7 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
 
     // Request max available space
     override fun preferredLayoutSize(parent: Container): Dimension =
-      if (parent.isPreferredSizeSet) parent.preferredSize
-      else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+      if (parent.isPreferredSizeSet) parent.preferredSize else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
 
     override fun minimumLayoutSize(parent: Container): Dimension = Dimension(0, 0)
 
@@ -701,19 +684,13 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
 
   private class IsForcedConnectionBanner : EditorNotificationPanel(WARNING_BACKGROUND) {
     init {
-      text =
-        "Non-native connection. This database has not yet been opened by the app so it may contain an outdated schema."
+      text = "Non-native connection. This database has not yet been opened by the app so it may contain an outdated schema."
       minimumSize = preferredSize
-      border =
-        BorderFactory.createCompoundBorder(
-          JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
-          border,
-        )
+      border = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), border)
     }
   }
 
-  class CopyToClipboardAction(private val table: JTable) :
-    AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+  class CopyToClipboardAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -742,24 +719,16 @@ class TableViewImpl(private val type: TableView.TableViewType) : TableView {
     }
 
     override fun update(e: AnActionEvent) {
-      e.presentation.text =
-        DatabaseInspectorBundle.message("action.remove.row", table.selectedRows.size)
+      e.presentation.text = DatabaseInspectorBundle.message("action.remove.row", table.selectedRows.size)
       e.presentation.isEnabled = (table.model as MyTableModel).isEditable
     }
   }
 
-  class SetNullAction(private val table: JTable) :
-    AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
+  class SetNullAction(private val table: JTable) : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
     init {
       registerCustomShortcutSet(
         CustomShortcutSet(
-          KeyboardShortcut(
-            KeyStroke.getKeyStroke(
-              KeyEvent.VK_N,
-              InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK,
-            ),
-            null,
-          )
+          KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null)
         ),
         table,
       )

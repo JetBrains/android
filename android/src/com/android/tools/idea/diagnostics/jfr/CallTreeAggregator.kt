@@ -18,15 +18,16 @@ package com.android.tools.idea.diagnostics.jfr
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder
 import com.android.tools.idea.diagnostics.jfr.analysis.CallTree
 import com.android.tools.idea.diagnostics.jfr.analysis.IdleStacks
-import jdk.jfr.consumer.RecordedEvent
 import java.time.Instant
+import jdk.jfr.consumer.RecordedEvent
 
 private data class Sample(val thread: String, val time: Instant, var duration: Long, val stackTrace: List<String>)
 
 class CallTreeAggregator(val threadFilter: (String) -> Boolean) {
   private val samples = mutableMapOf<Long, MutableList<Sample>>() // thread id -> samples for that thread
   private val threadIdToName = mutableMapOf<Long, String>()
-  private val callTrees = mutableMapOf<Long, CallTree>(); // thread id -> call tree
+  private val callTrees = mutableMapOf<Long, CallTree>()
+  // thread id -> call tree
   private var edtId = 0L
 
   fun accept(e: RecordedEvent) {
@@ -61,9 +62,10 @@ class CallTreeAggregator(val threadFilter: (String) -> Boolean) {
     val edtTree = callTrees.remove(edtId)
     val sb = TruncatingStringBuilder(maxLengthBytes, "\n...report truncated...")
     if (edtTree != null) sb.append(getReportForThread(edtId, edtTree))
-    callTrees.entries.toList().sortedByDescending { it.value.numNodesAboveCutoff() }.forEach { (tid, tree) ->
-      sb.append(getReportForThread(tid, tree))
-    }
+    callTrees.entries
+      .toList()
+      .sortedByDescending { it.value.numNodesAboveCutoff() }
+      .forEach { (tid, tree) -> sb.append(getReportForThread(tid, tree)) }
     return sb.toString()
   }
 
@@ -71,7 +73,7 @@ class CallTreeAggregator(val threadFilter: (String) -> Boolean) {
     samples.forEach { (_, sampleList) ->
       sampleList.sortBy { it.time }
       for (i in 0 until sampleList.size - 1) {
-        sampleList[i].duration = sampleList[i+1].time.toEpochMilli() - sampleList[i].time.toEpochMilli()
+        sampleList[i].duration = sampleList[i + 1].time.toEpochMilli() - sampleList[i].time.toEpochMilli()
       }
       sampleList.last().duration = end.toEpochMilli() - sampleList.last().time.toEpochMilli()
     }
@@ -80,26 +82,25 @@ class CallTreeAggregator(val threadFilter: (String) -> Boolean) {
   private fun aggregate() {
     samples.forEach { (tid, sampleList) ->
       val root = callTrees[tid] ?: CallTree("")
-      sampleList.forEach { sample ->
-        root.addStacktrace(sample.stackTrace, sample.duration)
-      }
+      sampleList.forEach { sample -> root.addStacktrace(sample.stackTrace, sample.duration) }
       root.sort()
       callTrees[tid] = root
     }
   }
 
-  private fun RecordedEvent.getStacktrace() = stackTrace.frames.map { frame ->
-    buildString {
-      append(frame.method.type.name)
-      append(".")
-      append(frame.method.name)
-      if (frame.lineNumber == -1) {
-        append("(Unknown Source)")
-      } else {
-        append("(?:${frame.lineNumber})")
+  private fun RecordedEvent.getStacktrace() =
+    stackTrace.frames.map { frame ->
+      buildString {
+        append(frame.method.type.name)
+        append(".")
+        append(frame.method.name)
+        if (frame.lineNumber == -1) {
+          append("(Unknown Source)")
+        } else {
+          append("(?:${frame.lineNumber})")
+        }
       }
     }
-  }
 
   companion object {
     private const val EDT = "AWT-EventQueue-0"

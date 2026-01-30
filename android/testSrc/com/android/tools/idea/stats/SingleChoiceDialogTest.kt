@@ -22,11 +22,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.util.ui.UIUtil
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.verify
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JRadioButton
@@ -34,44 +29,42 @@ import javax.swing.SwingUtilities
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.verify
 
-private val TEST_SURVEY: Survey = Survey.newBuilder().apply {
-  title = "Test Title"
-  question = "Test Question"
-  intervalDays = 365
-  answerCount = 1
-  addOptions(Option.newBuilder().apply {
-    label = "Option 0"
-  })
-  addOptions(Option.newBuilder().apply {
-    label = "Option 1"
-  })
-  addOptions(Option.newBuilder().apply {
-    label = "Option 2"
-  })
-  name = TEST_SURVEY_NAME
-}.build()
+private val TEST_SURVEY: Survey =
+  Survey.newBuilder()
+    .apply {
+      title = "Test Title"
+      question = "Test Question"
+      intervalDays = 365
+      answerCount = 1
+      addOptions(Option.newBuilder().apply { label = "Option 0" })
+      addOptions(Option.newBuilder().apply { label = "Option 1" })
+      addOptions(Option.newBuilder().apply { label = "Option 2" })
+      name = TEST_SURVEY_NAME
+    }
+    .build()
 
-private val TEST_SURVEY_RANDOM: Survey = Survey.newBuilder().apply {
-  title = "Test Title"
-  question = "Test Question"
-  intervalDays = 365
-  answerCount = 1
-  addOptions(Option.newBuilder().apply {
-    label = "Option 0"
-  })
-  addOptions(Option.newBuilder().apply {
-    label = "Option 1"
-  })
-  addOptions(Option.newBuilder().apply {
-    label = "Option 2"
-  })
-  name = TEST_SURVEY_NAME
-  randomOrder = true
-}.build()
+private val TEST_SURVEY_RANDOM: Survey =
+  Survey.newBuilder()
+    .apply {
+      title = "Test Title"
+      question = "Test Question"
+      intervalDays = 365
+      answerCount = 1
+      addOptions(Option.newBuilder().apply { label = "Option 0" })
+      addOptions(Option.newBuilder().apply { label = "Option 1" })
+      addOptions(Option.newBuilder().apply { label = "Option 2" })
+      name = TEST_SURVEY_NAME
+      randomOrder = true
+    }
+    .build()
 
 private const val TEST_SURVEY_NAME = "Test Survey"
-
 
 class SingleChoiceDialogTest {
 

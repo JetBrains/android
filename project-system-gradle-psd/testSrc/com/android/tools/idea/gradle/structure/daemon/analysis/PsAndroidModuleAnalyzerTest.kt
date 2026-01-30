@@ -29,14 +29,11 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [PsAndroidModuleAnalyzer].
- */
+/** Tests for [PsAndroidModuleAnalyzer]. */
 @RunsInEdt
 class PsAndroidModuleAnalyzerTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testPromotionMessages() {
@@ -46,33 +43,45 @@ class PsAndroidModuleAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val messageCollection = analyzer.analyze(mainModule)
 
-      val comExampleMessages = messageCollection
-        .filter {
-          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
-          dependencyName.startsWith("com.example.")
-        }
-        .map { it.text to it.description!! }
-        .toSet()
+      val comExampleMessages =
+        messageCollection
+          .filter {
+            val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
+            dependencyName.startsWith("com.example.")
+          }
+          .map { it.text to it.description!! }
+          .toSet()
 
-      val appcompatMessages = messageCollection
-        .filter {
-          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
-          dependencyName.startsWith("com.android.support:appcompat-v7")
-        }
-        .map { it.text to it.description }
-        .toSet()
+      val appcompatMessages =
+        messageCollection
+          .filter {
+            val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
+            dependencyName.startsWith("com.android.support:appcompat-v7")
+          }
+          .map { it.text to it.description }
+          .toSet()
 
-      assertThat(comExampleMessages, equalTo(setOf(
-        "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
-        "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-        "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
-        "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation"
-      )))
+      assertThat(
+        comExampleMessages,
+        equalTo(
+          setOf(
+            "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
+            "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
+            "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
+            "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation",
+          )
+        ),
+      )
 
-      assertThat(appcompatMessages, equalTo(setOf(
-        "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds." to null,
-        "Gradle provided version 28.0.0 for +" to "in: implementation"
-      )))
+      assertThat(
+        appcompatMessages,
+        equalTo(
+          setOf(
+            "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds." to null,
+            "Gradle provided version 28.0.0 for +" to "in: implementation",
+          )
+        ),
+      )
     }
   }
 
@@ -84,17 +93,16 @@ class PsAndroidModuleAnalyzerTest {
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val messageCollection = analyzer.analyze(mainModule)
 
-      val messages = messageCollection
-        .filter {
-          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
-          dependencyName.startsWith("com.android.support")
-        }
-        .map { it.text to it.description!! }
-        .toSet()
+      val messages =
+        messageCollection
+          .filter {
+            val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
+            dependencyName.startsWith("com.android.support")
+          }
+          .map { it.text to it.description!! }
+          .toSet()
 
-      assertThat(messages, equalTo(setOf(
-        "Gradle provided version 28.0.0" to "in: implementation",
-      )))
+      assertThat(messages, equalTo(setOf("Gradle provided version 28.0.0" to "in: implementation")))
     }
   }
 }

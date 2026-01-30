@@ -87,8 +87,7 @@ class InteractivePreviewManager(
 
   private fun logMetrics() {
     val touchEvents = interactiveScenesProvider().sumOf { it.interactiveEventsCount }
-    usageTrackerProvider()
-      .logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
+    usageTrackerProvider().logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
   }
 
   override fun dispose() {}

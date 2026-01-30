@@ -32,71 +32,86 @@ import org.junit.Test
 
 @RunsInEdt
 class VersionCatalogDependencyReferenceContributorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var tomlFile: VirtualFile
 
   @Before
   fun setUp() {
-    runWriteAction {
-      tomlFile = projectRule.fixture.tempDirFixture.createFile("libs.versions.toml")
-    }
+    runWriteAction { tomlFile = projectRule.fixture.tempDirFixture.createFile("libs.versions.toml") }
   }
+
   @Test
-  fun testSimpleBundle(){
-    doTest("""
+  fun testSimpleBundle() {
+    doTest(
+      """
       [libraries]
       li^b = "group:name:1.0"
       [bundles]
       bundle = [ "li|b" ]
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    doTest("""
+    doTest(
+      """
       [libraries]
       lib = "group:name:1.0"
       li^b2 = "group:name:1.0"
       [bundles]
       bundle = [ "lib", "li|b2" ]
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    doTest("""
+    doTest(
+      """
       [libraries]
       lib = "group:name:1.0"
       li^b2 = "group:name:1.0"
       [bundles]
       bundle = [ "lib", "li|b2" ]
       bundle2 = [ "lib", "li|b2" ]
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
-  fun testCatalogWithSameNames(){
-    doTest("""
+  fun testCatalogWithSameNames() {
+    doTest(
+      """
       [plugins]
       lib = "name:1.0"
       [libraries]
       li^b = "group:name:1.0"
       [bundles]
       b = [ "li|b" ]
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    doTest("""
+    doTest(
+      """
       [versions]
       lib = "1.0"
       [libraries]
       li^b = "group:name:1.0"
       [bundles]
       b = [ "li|b" ]
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testFailedReference() {
-    val content = """
+    val content =
+      """
       [bundles]
       b = [ "lib" ]
-    """.trimIndent()
+      """
+        .trimIndent()
     runWriteAction { VfsUtil.saveText(tomlFile, content) }
     projectRule.fixture.openFileInEditor(tomlFile)
     runReadAction {
@@ -113,7 +128,9 @@ class VersionCatalogDependencyReferenceContributorTest {
     val withoutCaret = tomlContent.replace("|", "")
 
     val resolvedElementPosition = withoutCaret.indexOf('^')
-    Truth.assertWithMessage("The tomlContent must include ^ somewhere to point the resolved element").that(resolvedElementPosition).isNotEqualTo(-1)
+    Truth.assertWithMessage("The tomlContent must include ^ somewhere to point the resolved element")
+      .that(resolvedElementPosition)
+      .isNotEqualTo(-1)
 
     val cleanToml = withoutCaret.substring(0, resolvedElementPosition) + withoutCaret.substring(resolvedElementPosition + 1)
 
@@ -130,5 +147,4 @@ class VersionCatalogDependencyReferenceContributorTest {
       }
     }
   }
-
 }

@@ -31,19 +31,14 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.MockitoAnnotations
 
-/**
- * Unit tests for [AndroidDeviceInfoTableView].
- */
+/** Unit tests for [AndroidDeviceInfoTableView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class AndroidDeviceInfoTableViewTest {
 
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  @get:Rule val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
   @Before
   fun setup() {
@@ -68,11 +63,15 @@ class AndroidDeviceInfoTableViewTest {
   fun setAndroidDevice() {
     val table = AndroidDeviceInfoTableView()
 
-    val device = AndroidDevice(
-      "mock device id", "mock device name", "mock device name",
-      AndroidDeviceType.LOCAL_EMULATOR,
-      AndroidVersion(29),
-      mutableMapOf("Manufacturer" to "mock manufacturer name"))
+    val device =
+      AndroidDevice(
+        "mock device id",
+        "mock device name",
+        "mock device name",
+        AndroidDeviceType.LOCAL_EMULATOR,
+        AndroidVersion(29),
+        mutableMapOf("Manufacturer" to "mock manufacturer name"),
+      )
     table.setAndroidDevice(device)
 
     val model = table.myTableView.model

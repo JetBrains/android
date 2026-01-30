@@ -51,19 +51,15 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   val logger = Logger.getInstance(this::class.java)
 
   @Slow
-  override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
-    IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long) = IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 
-  override fun error(throwable: Throwable, message: String?) =
-    logger.error(message, throwable)
+  override fun error(throwable: Throwable, message: String?) = logger.error(message, throwable)
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
-    if (isBlocking)
-      logger.warn(generateBlockingPolicyMessage(groupId, artifactId, versionString))
-    else
-      logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
+    if (isBlocking) logger.warn(generateBlockingPolicyMessage(groupId, artifactId, versionString))
+    else logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
@@ -71,10 +67,8 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     super.logHasCriticalIssues(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     val warnMsg =
-      if (isBlocking)
-        generateBlockingCriticalMessage(groupId, artifactId, versionString)
-      else
-        generateCriticalMessage(groupId, artifactId, versionString)
+      if (isBlocking) generateBlockingCriticalMessage(groupId, artifactId, versionString)
+      else generateCriticalMessage(groupId, artifactId, versionString)
     logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES)
   }
@@ -83,10 +77,8 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     super.logOutdated(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     val warnMsg =
-      if (isBlocking)
-        generateBlockingOutdatedMessage(groupId, artifactId, versionString)
-      else
-        generateOutdatedMessage(groupId, artifactId, versionString)
+      if (isBlocking) generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+      else generateOutdatedMessage(groupId, artifactId, versionString)
     logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
   }
@@ -94,7 +86,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   override fun logVulnerability(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logVulnerability(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
-    generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { logger.warn(it.description)}
+    generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { logger.warn(it.description) }
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES)
   }
 
@@ -110,9 +102,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     super.logIndexLoadedCorrectly(dataSourceType)
     logger.info("SDK Index data loaded correctly from $dataSourceType")
     val event = createTrackerEvent(null, SDK_INDEX_LOADED_CORRECTLY)
-    event.setSdkIndexLoadingDetails(
-      SdkIndexLoadingDetails.newBuilder().setSourceType(dataSourceType.toTrackerType())
-    )
+    event.setSdkIndexLoadingDetails(SdkIndexLoadingDetails.newBuilder().setSourceType(dataSourceType.toTrackerType()))
     UsageTracker.log(event)
   }
 
@@ -134,16 +124,16 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     val url = getSdkUrl(groupId, artifactId)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     return if (url != null)
-      LintFix.ShowUrl(VIEW_DETAILS_MESSAGE, null, url, onUrlOpen = {
-        logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, buildFile, SDK_INDEX_LINK_FOLLOWED)
-      })
-    else
-      null
+      LintFix.ShowUrl(
+        VIEW_DETAILS_MESSAGE,
+        null,
+        url,
+        onUrlOpen = { logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, buildFile, SDK_INDEX_LINK_FOLLOWED) },
+      )
+    else null
   }
 
-  /***
-   * Initialize the SDK index and set flags according to StudioFlags
-   */
+  /** Initialize the SDK index and set flags according to StudioFlags */
   fun initializeAndSetFlags() {
     initialize()
     showNotesFromDeveloper = StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER.get()
@@ -160,11 +150,13 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
    * @param newVersionString: version that was replaced by the fix
    * @param file: file where this library is being used
    */
-  fun logUpdateLibraryVersionFixApplied(groupId: String,
-                                        artifactId: String,
-                                        oldVersionString: String,
-                                        newVersionString: String,
-                                        file: File?) {
+  fun logUpdateLibraryVersionFixApplied(
+    groupId: String,
+    artifactId: String,
+    oldVersionString: String,
+    newVersionString: String,
+    file: File?,
+  ) {
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, oldVersionString)
     val event = createTrackerEvent(file, SDK_INDEX_LIBRARY_UPDATED)
     event.setSdkIndexLibraryDetails(
@@ -182,29 +174,35 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(file.toPath())
     return if (virtualFile == null) {
       null
-    }
-    else {
+    } else {
       guessProjectForFile(virtualFile)
     }
   }
 
-  private fun logTrackerEventForLibraryVersion(groupId: String,
-                                               artifactId: String,
-                                               versionString: String,
-                                               isBlocking: Boolean,
-                                               file: File?,
-                                               kind: AndroidStudioEvent.EventKind) {
+  private fun logTrackerEventForLibraryVersion(
+    groupId: String,
+    artifactId: String,
+    versionString: String,
+    isBlocking: Boolean,
+    file: File?,
+    kind: AndroidStudioEvent.EventKind,
+  ) {
     val event = createTrackerEvent(file, kind)
     event.setSdkIndexLibraryDetails(
       SdkIndexLibraryDetails.newBuilder()
         .setGroupId(groupId)
         .setArtifactId(artifactId)
         .setVersionString(versionString)
-        .setIsBlocking(isBlocking))
+        .setIsBlocking(isBlocking)
+    )
     UsageTracker.log(event)
   }
 
-  private fun logTrackerEventForIndexLoadingError(kind: AndroidStudioEvent.EventKind, readResult: ReadDataResult, dataSource: DataSourceType) {
+  private fun logTrackerEventForIndexLoadingError(
+    kind: AndroidStudioEvent.EventKind,
+    readResult: ReadDataResult,
+    dataSource: DataSourceType,
+  ) {
     val event = createTrackerEvent(null, kind)
     event.setSdkIndexLoadingDetails(
       SdkIndexLoadingDetails.newBuilder()
@@ -214,17 +212,14 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     UsageTracker.log(event)
   }
 
-  private fun createTrackerEvent(file: File?,
-                                 kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
-    val event = AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
-      .setKind(kind)
-    val project = if (file != null) {
-      findProject(file)
-    }
-    else {
-      null
-    }
+  private fun createTrackerEvent(file: File?, kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
+    val event = AndroidStudioEvent.newBuilder().setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX).setKind(kind)
+    val project =
+      if (file != null) {
+        findProject(file)
+      } else {
+        null
+      }
     if (project != null) {
       event.withProjectId(project)
     }

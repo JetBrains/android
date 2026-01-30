@@ -35,12 +35,8 @@ import java.awt.RenderingHints
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */
-class TimelineLine(
-  frozenState: SupportedAnimationManager.FrozenState,
-  minX: Int,
-  maxX: Int,
-  rowMinY: Int,
-) : TimelineElement(frozenState, minX, maxX) {
+class TimelineLine(frozenState: SupportedAnimationManager.FrozenState, minX: Int, maxX: Int, rowMinY: Int) :
+  TimelineElement(frozenState, minX, maxX) {
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2
@@ -56,13 +52,10 @@ class TimelineLine(
   override var height: Int = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   override fun contains(x: Int, y: Int): Boolean {
-    return x in rectNoOffset.x + 0..rectNoOffset.maxX.toInt() &&
-      y in rectNoOffset.y..rectNoOffset.maxY.toInt()
+    return x in rectNoOffset.x + 0..rectNoOffset.maxX.toInt() && y in rectNoOffset.y..rectNoOffset.maxY.toInt()
   }
 
-  /**
-   * Painting the animation line with two circle shapes at the start and the end of the animation.
-   */
+  /** Painting the animation line with two circle shapes at the start and the end of the animation. */
   override fun paint(g: Graphics2D) {
     (g.create() as Graphics2D).apply {
       setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
@@ -83,12 +76,7 @@ class TimelineLine(
   private fun paintCircle(g: Graphics2D, x: Int, y: Int) {
     g.apply {
       color = InspectorColors.LINE_CIRCLE_OUTLINE_COLOR
-      fillOval(
-        x - lineHalfHeightScaled(),
-        y - lineHalfHeightScaled(),
-        lineHeightScaled(),
-        lineHeightScaled(),
-      )
+      fillOval(x - lineHalfHeightScaled(), y - lineHalfHeightScaled(), lineHeightScaled(), lineHeightScaled())
       color = InspectorColors.LINE_CIRCLE_COLOR
       fillOval(
         x - lineHalfHeightScaled() + outlinePaddingScaled(),

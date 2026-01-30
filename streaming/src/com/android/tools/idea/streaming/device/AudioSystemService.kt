@@ -23,6 +23,5 @@ import javax.sound.sampled.SourceDataLine
 internal open class AudioSystemService {
 
   /** See [AudioSystem.getSourceDataLine]. */
-  open fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine =
-      AudioSystem.getSourceDataLine(audioFormat)
+  open fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = AudioSystem.getSourceDataLine(audioFormat)
 }

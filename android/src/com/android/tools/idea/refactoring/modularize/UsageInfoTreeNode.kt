@@ -27,17 +27,16 @@ import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
 import com.intellij.usageView.UsageInfo
+import javax.swing.Icon
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
-import javax.swing.Icon
 
 class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyTreeNode(usageInfo, referenceCount) {
   val psiElement = usageInfo.element
 
   override fun render(renderer: ColoredTreeCellRenderer) {
-    renderer.icon = ApplicationManager.getApplication().runReadAction<Icon> {
-      psiElement!!.getIcon(ICON_FLAG_VISIBILITY or ICON_FLAG_READ_STATUS)
-    }
+    renderer.icon =
+      ApplicationManager.getApplication().runReadAction<Icon> { psiElement!!.getIcon(ICON_FLAG_VISIBILITY or ICON_FLAG_READ_STATUS) }
 
     when (psiElement) {
       is PsiFile -> {
@@ -71,7 +70,7 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
 
   private fun renderQualifiers(config: FolderConfiguration?, renderer: ColoredTreeCellRenderer, attr: SimpleTextAttributes) {
     val qualifier = config!!.qualifierString
-    if(qualifier.isNotBlank()) {
+    if (qualifier.isNotBlank()) {
       renderer.append(" ($qualifier)", SimpleTextAttributes(attr.style or STYLE_SMALLER, attr.fgColor))
     }
   }

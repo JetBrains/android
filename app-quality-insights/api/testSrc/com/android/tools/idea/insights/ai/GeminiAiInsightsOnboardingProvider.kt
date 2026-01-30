@@ -36,15 +36,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class FakeToolWindowManager(project: Project, private val geminiToolWindow: FakeGeminiToolWindow) :
-  ToolWindowHeadlessManagerImpl(project) {
+class FakeToolWindowManager(project: Project, private val geminiToolWindow: FakeGeminiToolWindow) : ToolWindowHeadlessManagerImpl(project) {
   override fun getToolWindow(id: String?): ToolWindow? {
     return geminiToolWindow
   }
 }
 
-class FakeGeminiToolWindow(project: Project) :
-  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+class FakeGeminiToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private val publisher = project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC)
   private val toolWindowManager: ToolWindowManager
     get() = ToolWindowManager.getInstance(project)
@@ -59,20 +57,12 @@ class FakeGeminiToolWindow(project: Project) :
 
   override fun show(runnable: Runnable?) {
     visible = true
-    publisher.stateChanged(
-      toolWindowManager,
-      this,
-      ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow,
-    )
+    publisher.stateChanged(toolWindowManager, this, ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow)
   }
 
   override fun hide() {
     visible = false
-    publisher.stateChanged(
-      toolWindowManager,
-      this,
-      ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow,
-    )
+    publisher.stateChanged(toolWindowManager, this, ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow)
   }
 }
 
@@ -88,11 +78,7 @@ class GeminiAiInsightsOnboardingProviderTest {
     scope = AndroidCoroutineScope(projectRule.disposable)
     geminiToolWindow = FakeGeminiToolWindow(projectRule.project)
     val manager = FakeToolWindowManager(projectRule.project, geminiToolWindow)
-    projectRule.project.replaceService(
-      ToolWindowManager::class.java,
-      manager,
-      projectRule.disposable,
-    )
+    projectRule.project.replaceService(ToolWindowManager::class.java, manager, projectRule.disposable)
   }
 
   @Test

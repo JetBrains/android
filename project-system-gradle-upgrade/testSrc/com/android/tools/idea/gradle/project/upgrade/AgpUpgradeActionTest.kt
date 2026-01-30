@@ -35,8 +35,7 @@ import org.junit.Test
 @RunsInEdt
 class AgpUpgradeActionTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
 
   val project by lazy { projectRule.project }
 
@@ -75,19 +74,27 @@ class AgpUpgradeActionTest {
 
   @Test
   fun testAgpUpgradeAction() {
-    projectRule.fixture.addFileToProject("build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
       buildscript {
         dependencies {
           classpath 'com.android.tools.build:gradle:4.2.0'
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     projectRule.fixture.addFileToProject("settings.gradle", "include ':app'")
-    projectRule.fixture.addFileToProject("app/build.gradle", """
+    projectRule.fixture.addFileToProject(
+      "app/build.gradle",
+      """
       plugins {
         id 'com.android.application'
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
     val event = TestActionEvent.createTestEvent(SimpleDataContext.getProjectContext(project))
     AgpUpgradeAction().actionPerformed(event)
     fun ready(): Boolean {

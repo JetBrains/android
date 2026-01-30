@@ -40,8 +40,7 @@ import com.intellij.util.Consumer
  * * [ResourceNotificationManager]
  */
 @Service(Service.Level.PROJECT)
-class AndroidPsiTreeChangeListener(private val project: Project) :
-  PsiTreeChangeListener, Disposable {
+class AndroidPsiTreeChangeListener(private val project: Project) : PsiTreeChangeListener, Disposable {
   override fun dispose() {}
 
   private val sampleDataListener
@@ -54,8 +53,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
     when {
       psiFile == null -> {
         when (val child = event.child) {
-          is PsiFile ->
-            child.virtualFile?.let { if (isRelevantFile(it)) dispatchChildAdded(event, it) }
+          is PsiFile -> child.virtualFile?.let { if (isRelevantFile(it)) dispatchChildAdded(event, it) }
           is PsiDirectory -> dispatchChildAdded(event, child.virtualFile)
         }
       }
@@ -77,8 +75,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
     when {
       psiFile == null -> {
         when (val child = event.child) {
-          is PsiFile ->
-            child.virtualFile?.takeIf(::isRelevantFile)?.let { dispatchChildRemoved(event, it) }
+          is PsiFile -> child.virtualFile?.takeIf(::isRelevantFile)?.let { dispatchChildRemoved(event, it) }
           is PsiDirectory ->
             if (ResourceFolderType.getFolderType(child.name) != null) {
               dispatchChildRemoved(event, child.virtualFile)
@@ -118,9 +115,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
   }
 
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-    event.file?.takeIf(::isRelevantFile)?.let {
-      dispatchBeforeChildrenChange(event, it.virtualFile)
-    }
+    event.file?.takeIf(::isRelevantFile)?.let { dispatchBeforeChildrenChange(event, it.virtualFile) }
   }
 
   private fun dispatchBeforeChildrenChange(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
@@ -174,9 +169,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   override fun beforePropertyChange(event: PsiTreeChangeEvent) {
     if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
-      (event.child as? PsiFile)?.takeIf(::isRelevantFile)?.let {
-        dispatchBeforePropertyChange(event, it.virtualFile)
-      }
+      (event.child as? PsiFile)?.takeIf(::isRelevantFile)?.let { dispatchBeforePropertyChange(event, it.virtualFile) }
     }
   }
 
@@ -186,9 +179,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   override fun propertyChanged(event: PsiTreeChangeEvent) {
     if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
-      (event.element as? PsiFile)?.takeIf(::isRelevantFile)?.let {
-        dispatchPropertyChanged(event, it.virtualFile)
-      }
+      (event.element as? PsiFile)?.takeIf(::isRelevantFile)?.let { dispatchPropertyChanged(event, it.virtualFile) }
     }
 
     // TODO: Do we need to handle PROP_DIRECTORY_NAME for users renaming any of the resource
@@ -201,8 +192,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
   }
 
   private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {
-    if (file != null)
-      ResourceFolderRegistry.getInstance(project).dispatchToRepositories(file, invokeCallback)
+    if (file != null) ResourceFolderRegistry.getInstance(project).dispatchToRepositories(file, invokeCallback)
     ResourceNotificationManager.getInstance(project).psiListener?.let(invokeCallback::consume)
   }
 

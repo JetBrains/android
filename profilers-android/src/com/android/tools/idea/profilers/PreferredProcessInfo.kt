@@ -17,6 +17,4 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.profiler.proto.Common
 
-data class PreferredProcessInfo(val deviceName: String,
-                                val processName: String?,
-                                val processFilter: (Common.Process) -> Boolean)
+data class PreferredProcessInfo(val deviceName: String, val processName: String?, val processFilter: (Common.Process) -> Boolean)

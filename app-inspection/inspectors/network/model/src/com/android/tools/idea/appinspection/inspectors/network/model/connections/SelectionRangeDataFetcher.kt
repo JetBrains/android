@@ -18,10 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model.connection
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 
-/**
- * Listener subscription to [SelectionRangeDataFetcher] that fires every time the range selection is
- * updated.
- */
+/** Listener subscription to [SelectionRangeDataFetcher] that fires every time the range selection is updated. */
 interface SelectionRangeDataListener {
   fun onUpdate(data: List<ConnectionData>)
 }
@@ -40,10 +37,9 @@ abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
 }
 
 /**
- * A class which handles querying of [HttpData] requests based on the [range] selection. When the
- * range changes, the list will automatically be updated, and this class will notify any listeners.
- * When the selection is cleared, listeners will get all [HttpData] and will continue to receive new
- * [HttpData] as they arrive.
+ * A class which handles querying of [HttpData] requests based on the [range] selection. When the range changes, the list will automatically
+ * be updated, and this class will notify any listeners. When the selection is cleared, listeners will get all [HttpData] and will continue
+ * to receive new [HttpData] as they arrive.
  */
 class SelectionRangeDataFetcher(
   private val dataModel: ConnectionDataModel,
@@ -54,15 +50,13 @@ class SelectionRangeDataFetcher(
   private val listeners = mutableListOf<SelectionRangeDataListener>()
 
   /**
-   * The last list of requests polled from the user's device. Initialized to `null` to distinguish
-   * that case from the case where a range returns no requests.
+   * The last list of requests polled from the user's device. Initialized to `null` to distinguish that case from the case where a range
+   * returns no requests.
    */
   private var prevDataList: List<ConnectionData>? = null
 
   init {
-    selectionRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) {
-      handleRangeUpdated()
-    }
+    selectionRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
     dataRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
     handleRangeUpdated()
   }

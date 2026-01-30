@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
 import java.io.File
 
-
 /**
  * Encapsulates an Android test case metadata to be displayed in Android test suite view.
  *
@@ -33,52 +32,39 @@ import java.io.File
  * @param benchmark an output from AndroidX Benchmark library.
  * @param retentionSnapshot an Android Test Retention snapshot artifact.
  */
-data class AndroidTestCase(val id: String,
-                           val methodName: String,
-                           val className: String,
-                           val packageName: String,
-                           var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
-                           var logcat: String = "",
-                           var errorStackTrace: String = "",
-                           var startTimestampMillis: Long? = null,
-                           var endTimestampMillis: Long? = null,
-                           var benchmark: String = "",
-                           var retentionInfo: File? = null,
-                           var retentionSnapshot: File? = null,
-                           val additionalTestArtifacts: MutableMap<String, String> = mutableMapOf()
+data class AndroidTestCase(
+  val id: String,
+  val methodName: String,
+  val className: String,
+  val packageName: String,
+  var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
+  var logcat: String = "",
+  var errorStackTrace: String = "",
+  var startTimestampMillis: Long? = null,
+  var endTimestampMillis: Long? = null,
+  var benchmark: String = "",
+  var retentionInfo: File? = null,
+  var retentionSnapshot: File? = null,
+  val additionalTestArtifacts: MutableMap<String, String> = mutableMapOf(),
 )
 
-/**
- * A result of a test case execution.
- */
+/** A result of a test case execution. */
 enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
-  /**
-   * A test case is failed.
-   */
+  /** A test case is failed. */
   FAILED(true),
 
-  /**
-   * A test case is skipped by test runner.
-   */
+  /** A test case is skipped by test runner. */
   SKIPPED(true),
 
-  /**
-   * A test case is passed.
-   */
+  /** A test case is passed. */
   PASSED(true),
 
-  /**
-   * A test case is in progress.
-   */
+  /** A test case is in progress. */
   IN_PROGRESS(false),
 
-  /**
-   * A test case which is scheduled to run ends up with cancelled.
-   */
+  /** A test case which is scheduled to run ends up with cancelled. */
   CANCELLED(true),
 
-  /**
-   * A test case is scheduled but not started yet.
-   */
-  SCHEDULED(false)
+  /** A test case is scheduled but not started yet. */
+  SCHEDULED(false),
 }

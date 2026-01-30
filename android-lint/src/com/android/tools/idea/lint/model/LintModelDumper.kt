@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.head
 import com.android.tools.idea.gradle.project.sync.internal.prop
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.lint.model.LintModelAndroidArtifact
 import com.android.tools.lint.model.LintModelAndroidLibrary
@@ -40,29 +39,26 @@ import java.io.File
 
 fun ProjectDumper.dumpLintModels(project: Project) {
   nest(File(project.basePath!!), "PROJECT") {
-    ModuleManager.getInstance(project)
-      .modules
-      .sortModules()
-      .forEach { module ->
-        head("MODULE") { module.name }
-        nest {
-          val gradleAndroidModel = GradleAndroidDependencyModel.get(module)
-          // Skip all but holders to prevent needless spam in the snapshots. All modules
-          // point to the same facet.
-          if (module.isHolderModule() && gradleAndroidModel != null) {
-            val lintModelModule =
-              LintModelFactory()
-                .create(
-                  gradleAndroidModel.androidProject,
-                  gradleAndroidModel.variantsWithDependencies,
-                  gradleAndroidModel.androidProject.multiVariantData!!,
-                  gradleAndroidModel.rootDirPath,
-                  deep = true,
-                )
-            dump(lintModelModule)
-          }
+    ModuleManager.getInstance(project).modules.sortModules().forEach { module ->
+      head("MODULE") { module.name }
+      nest {
+        val gradleAndroidModel = GradleAndroidDependencyModel.get(module)
+        // Skip all but holders to prevent needless spam in the snapshots. All modules
+        // point to the same facet.
+        if (module.isHolderModule() && gradleAndroidModel != null) {
+          val lintModelModule =
+            LintModelFactory()
+              .create(
+                gradleAndroidModel.androidProject,
+                gradleAndroidModel.variantsWithDependencies,
+                gradleAndroidModel.androidProject.multiVariantData!!,
+                gradleAndroidModel.rootDirPath,
+                deep = true,
+              )
+          dump(lintModelModule)
         }
       }
+    }
   }
 }
 
@@ -113,9 +109,7 @@ private fun ProjectDumper.dump(lintOptions: LintModelLintOptions) {
     prop("BaselineFile") { lintOptions.baselineFile?.path?.toPrintablePath() }
     if (lintOptions.severityOverrides.orEmpty().isNotEmpty()) {
       head("SeverityOverrides")
-      nest {
-        lintOptions.severityOverrides?.forEach { key, value -> prop(key) { value.toString() } }
-      }
+      nest { lintOptions.severityOverrides?.forEach { key, value -> prop(key) { value.toString() } } }
     }
   }
 }
@@ -127,15 +121,11 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       head("BuildFeatures")
       nest {
         prop("ViewBinding") { lintModelVariant.buildFeatures.viewBinding.toString() }
-        prop("CoreLibraryDesugaringEnabled") {
-          lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString()
-        }
+        prop("CoreLibraryDesugaringEnabled") { lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString() }
       }
     }
     nest {
-      prop("UseSupportLibraryVectorDrawables") {
-        useSupportLibraryVectorDrawables.takeIf { it }?.toString()
-      }
+      prop("UseSupportLibraryVectorDrawables") { useSupportLibraryVectorDrawables.takeIf { it }?.toString() }
       head("MainArtifact")
       nest { dump(mainArtifact) }
       testArtifact?.let { testArtifact ->
@@ -160,9 +150,7 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       }
       resourceConfigurations.forEach { prop("- ResourceConfigurations") { it } }
       proguardFiles.forEach { prop("- ProguardFiles") { it.path.toPrintablePath() } }
-      consumerProguardFiles.forEach {
-        prop("- ConsumerProguardFiles") { it.path.toPrintablePath() }
-      }
+      consumerProguardFiles.forEach { prop("- ConsumerProguardFiles") { it.path.toPrintablePath() } }
       if (sourceProviders.isNotEmpty()) {
         head("SourceProviders")
         nest { sourceProviders.forEach { dump(it) } }
@@ -187,15 +175,9 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
 private fun ProjectDumper.dump(lintModelAndroidArtifact: LintModelAndroidArtifact) {
   with(lintModelAndroidArtifact) {
     prop("ApplicationId") { applicationId }
-    generatedResourceFolders.sorted().forEach {
-      prop("- GeneratedResourceFolders") { it.path.toPrintablePath() }
-    }
-    generatedSourceFolders.sorted().forEach {
-      prop("- GeneratedSourceFolders") { it.path.toPrintablePath() }
-    }
-    desugaredMethodsFiles.sorted().forEach {
-      prop("- DesugaredMethodFiles") { it.path.toPrintablePath() }
-    }
+    generatedResourceFolders.sorted().forEach { prop("- GeneratedResourceFolders") { it.path.toPrintablePath() } }
+    generatedSourceFolders.sorted().forEach { prop("- GeneratedSourceFolders") { it.path.toPrintablePath() } }
+    desugaredMethodsFiles.sorted().forEach { prop("- DesugaredMethodFiles") { it.path.toPrintablePath() } }
   }
   dump(lintModelAndroidArtifact as LintModelArtifact)
 }
@@ -208,9 +190,7 @@ private fun ProjectDumper.dump(lintModelArtifact: LintModelArtifact) {
   with(lintModelArtifact) {
     head("Dependencies")
     nest { dump(dependencies) }
-    classOutputs
-      .sortedBy { it.path.toPrintablePath() }
-      .forEach { prop("- ClassOutputs") { it.path.toPrintablePath() } }
+    classOutputs.sortedBy { it.path.toPrintablePath() }.forEach { prop("- ClassOutputs") { it.path.toPrintablePath() } }
   }
 }
 
@@ -219,24 +199,14 @@ private fun ProjectDumper.dump(lintModelDependencies: LintModelDependencies) {
     prop(dependency.artifactName.replaceKnownPaths()) {
       "${dependency.requestedCoordinates?.replaceKnownPaths()} => ${dependency.identifier.replaceKnownPaths()}"
     }
-    nest {
-      dependency.dependencies.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
-    }
+    nest { dependency.dependencies.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) } }
   }
 
   with(lintModelDependencies) {
     head("CompileDependencies")
-    nest {
-      compileDependencies.roots
-        .sortedBy { it.artifactName.replaceKnownPaths() }
-        .forEach { dump(it) }
-    }
+    nest { compileDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) } }
     head("PackageDependencies")
-    nest {
-      packageDependencies.roots
-        .sortedBy { it.artifactName.replaceKnownPaths() }
-        .forEach { dump(it) }
-    }
+    nest { packageDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) } }
   }
 }
 
@@ -253,9 +223,7 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
   with(lintModelLibrary) {
     head("LintModelLibrary") { toString().replaceKnownPaths() }
     nest {
-      (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach {
-        prop("- JarFiles") { it.path.toPrintablePath() }
-      }
+      (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
       prop("Identifier") { identifier.replaceKnownPaths() }
       if (this@with is LintModelAndroidLibrary) {
         prop("Manifest") { manifest.path.toPrintablePath() }
@@ -271,12 +239,7 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
         prop("ProguardRules") { proguardRules.path.toPrintablePath() }
       }
       prop("ProjectPath") { (this@with as? LintModelModuleLibrary)?.projectPath }
-      prop("ResolvedCoordinates") {
-        (this@with as? LintModelExternalLibrary)
-          ?.resolvedCoordinates
-          ?.toString()
-          ?.replaceKnownPaths()
-      }
+      prop("ResolvedCoordinates") { (this@with as? LintModelExternalLibrary)?.resolvedCoordinates?.toString()?.replaceKnownPaths() }
       prop("Provided") { provided.takeIf { it }?.toString() }
     }
   }

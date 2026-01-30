@@ -17,29 +17,21 @@
 
 package com.android.tools.idea.stats
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.analytics.recordTestLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.google.wireless.android.sdk.stats.TestLibraries
 
-/**
- * Constructs the [TestLibraries] protocol buffer based on dependencies in the given [IdeAndroidArtifact].
- */
+/** Constructs the [TestLibraries] protocol buffer based on dependencies in the given [IdeAndroidArtifact]. */
 fun findTestLibrariesVersions(artifact: IdeAndroidArtifact): TestLibraries {
-  return TestLibraries.newBuilder()
-    .also { recordTestLibraries(it, artifact) }
-    .build()
+  return TestLibraries.newBuilder().also { recordTestLibraries(it, artifact) }.build()
 }
 
-/**
- * Fills in a [TestLibraries] protocol buffer based on dependencies in the given [IdeAndroidArtifact].
- */
+/** Fills in a [TestLibraries] protocol buffer based on dependencies in the given [IdeAndroidArtifact]. */
 fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeAndroidArtifact) {
   val dependencies = artifact.compileClasspath
 
   for (lib in dependencies.libraries.filterIsInstance(IdeArtifactLibrary::class.java)) {
-    lib.component?.run {
-      builder.recordTestLibrary(group, name, version.toString())
-    }
+    lib.component?.run { builder.recordTestLibrary(group, name, version.toString()) }
   }
 }

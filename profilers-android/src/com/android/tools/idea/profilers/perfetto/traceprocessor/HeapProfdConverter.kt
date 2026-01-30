@@ -24,8 +24,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapS
 import java.util.Base64
 
 /**
- * Helper class to convert from perfetto memory proto to profiler protos.
- * The {@link NativeMemoryHeapSet} passed into the constructor is populated by calling {@link populateHeapSet}.
+ * Helper class to convert from perfetto memory proto to profiler protos. The {@link NativeMemoryHeapSet} passed into the constructor is
+ * populated by calling {@link populateHeapSet}.
  */
 class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val demangler: NameDemangler) {
 
@@ -34,10 +34,9 @@ class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val
   }
 
   /**
-   * Given a {@link Memory.StackFrame} this method converts it to a StackFrameInfo using the provided name.
-   * When we have a symbolized frame we return a frame with a method name in the form of
-   * Symbol (File:Line) eg.. operator new (new.cpp:256)
-   * The file name and line number are also populated if available.
+   * Given a {@link Memory.StackFrame} this method converts it to a StackFrameInfo using the provided name. When we have a symbolized frame
+   * we return a frame with a method name in the form of Symbol (File:Line) eg.. operator new (new.cpp:256) The file name and line number
+   * are also populated if available.
    */
   private fun toStackFrameInfo(rawFrame: StackFrame): StackFrameInfo {
     val base64 = Base64.getDecoder()
@@ -47,46 +46,46 @@ class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val
     val name = base64.decode(rawFrame.name).toString(Charsets.UTF_8)
 
     // If there is a file name (source file), then we will have a line number.
-    val fullName = if (file.isNotEmpty()) {
-      "$name ($file:${rawFrame.lineNumber})"
-    } else {
-      name
-    }
+    val fullName =
+      if (file.isNotEmpty()) {
+        "$name ($file:${rawFrame.lineNumber})"
+      } else {
+        name
+      }
 
     return StackFrameInfo(name = fullName, fileName = file, lineNumber = rawFrame.lineNumber, moduleName = module)
   }
 
   /**
-   * Given a context all values will be enumerated and added to the {@link NativeMemoryHeapSet}. If the context has an allocation with
-   * a count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
+   * Given a context all values will be enumerated and added to the {@link NativeMemoryHeapSet}. If the context has an allocation with a
+   * count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
    */
   fun populateHeapSet(context: NativeAllocationContext) {
     val frameIdToFrame: MutableMap<Long, MutableList<StackFrameInfo>> = HashMap()
     val frames: MutableMap<Long, List<Memory.AllocationStack.StackFrame>> = HashMap()
     val classDb = ClassDb()
 
-    context.framesList.forEach {
-      frameIdToFrame.getOrPut(it.id) { ArrayList() }.add(toStackFrameInfo(it))
-    }
+    context.framesList.forEach { frameIdToFrame.getOrPut(it.id) { ArrayList() }.add(toStackFrameInfo(it)) }
     // Demangle in place is significantly faster than passing in names 1 by 1
     demangler.demangleInplace(frameIdToFrame.values.flatten())
     // On windows the llvm-symbolizer holds a file lock on the last file loaded. This can be a pain if you want to rebuild / redeploy the
     // app after a single line change. Stopping the symbolizer kills the llvm-symbolizer process.
     // Reduce duplication of UI StackFrame elements, by doing a one time conversion between StackFrameInfo objects and StackFrame protos
     val it = frameIdToFrame.iterator()
-    while(it.hasNext()) {
+    while (it.hasNext()) {
       val next = it.next()
       // Inlined functions can map to the same key, for more info see
       // https://perfetto.dev/docs/analysis/sql-tables#stack_profile_symbol
-      frames[next.key] = next.value.map {
-        Memory.AllocationStack.StackFrame.newBuilder()
-          .setModuleName(it.moduleName)
-          .setMethodName(it.name)
-          .setFileName(it.fileName)
-          .setLineNumber(it.lineNumber)
-          .build()
-      }
-      it.remove() //Remove to reduce temp space required.
+      frames[next.key] =
+        next.value.map {
+          Memory.AllocationStack.StackFrame.newBuilder()
+            .setModuleName(it.moduleName)
+            .setMethodName(it.name)
+            .setFileName(it.fileName)
+            .setLineNumber(it.lineNumber)
+            .build()
+        }
+      it.remove() // Remove to reduce temp space required.
     }
     val pointerMap = context.pointersMap
     context.allocationsList.forEach { allocation ->
@@ -105,36 +104,28 @@ class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val
       // Found a recursive callstack
       if (callSiteId > 0L) {
         val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.last()?.methodName } ?: UNKNOWN_FRAME.methodName
-        fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder()
-          .setMethodName("[Recursive] $frameName"))
+        fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder().setMethodName("[Recursive] $frameName"))
       }
 
-      val stack = Memory.AllocationStack.newBuilder()
-        .setFullStack(fullStack)
-        .build()
+      val stack = Memory.AllocationStack.newBuilder().setFullStack(fullStack).build()
 
       // Build allocation event proto
-      val event = Memory.AllocationEvent.Allocation.newBuilder()
-        .setSize(Math.abs(allocation.size))
-        .build()
+      val event = Memory.AllocationEvent.Allocation.newBuilder().setSize(Math.abs(allocation.size)).build()
 
       // Build allocation instance object
       val allocationMethod = pointerMap[allocation.stackId]?.let { frames[it.frameId]?.last() } ?: UNKNOWN_FRAME
-      val instanceObject = NativeAllocationInstanceObject(
-        event, classDb.registerClass(0, 0, allocationMethod.methodName), stack, allocation.count)
+      val instanceObject =
+        NativeAllocationInstanceObject(event, classDb.registerClass(0, 0, allocationMethod.methodName), stack, allocation.count)
 
       // Add it to the heapset bookkeeping.
       if (allocation.count > 0) {
         memorySet.addDeltaInstanceObject(instanceObject)
-      }
-      else {
+      } else {
         memorySet.freeDeltaInstanceObject(instanceObject)
       }
     }
   }
 }
 
-data class StackFrameInfo(override var name: String,
-                          val fileName: String = "",
-                          val lineNumber: Int = 0,
-                          val moduleName: String = "") : NameHolder
+data class StackFrameInfo(override var name: String, val fileName: String = "", val lineNumber: Int = 0, val moduleName: String = "") :
+  NameHolder

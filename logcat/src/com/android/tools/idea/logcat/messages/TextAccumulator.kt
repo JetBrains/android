@@ -30,14 +30,8 @@ internal class TextAccumulator {
   val textAttributesKeyRanges = mutableListOf<Range<TextAttributesKey>>()
   val messageRanges = mutableListOf<Range<LogcatMessage>>()
 
-  fun accumulate(
-    text: String,
-    textAttributes: TextAttributes? = null,
-    textAttributesKey: TextAttributesKey? = null,
-  ): TextAccumulator {
-    assert(textAttributes == null || textAttributesKey == null) {
-      "Only one of textAttributesKey and textAttributesKeyKey can be set"
-    }
+  fun accumulate(text: String, textAttributes: TextAttributes? = null, textAttributesKey: TextAttributesKey? = null): TextAccumulator {
+    assert(textAttributes == null || textAttributesKey == null) { "Only one of textAttributesKey and textAttributesKeyKey can be set" }
     val start = stringBuilder.length
     val end = start + text.length
     stringBuilder.append(text)

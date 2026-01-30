@@ -66,10 +66,7 @@ class JumpToDiffUtilsTest {
 
     // Assert
     with(diffRequest as SimpleDiffRequest) {
-      assertThat(title)
-        .isEqualTo(
-          "Foo.kt (${PathUtil.toSystemDependentName(vcsInsightsRule.projectBaseDir.path)})"
-        )
+      assertThat(title).isEqualTo("Foo.kt (${PathUtil.toSystemDependentName(vcsInsightsRule.projectBaseDir.path)})")
 
       val customTitles = getUserData(DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER)
       assertThat(customTitles).isNotNull()
@@ -113,11 +110,8 @@ class JumpToDiffUtilsTest {
       )
 
     // Note in our test infra, we don't really support real historical content.
-    val extension =
-      VcsForAppInsights.getExtensionByKey(VCS_CATEGORY.TEST_VCS) as FakeVcsForAppInsights
-    extension.vcsContentProvider = {
-      throw DiffRequestProducerException("Cannot show diff: fatal: invalid object name: '123'.")
-    }
+    val extension = VcsForAppInsights.getExtensionByKey(VCS_CATEGORY.TEST_VCS) as FakeVcsForAppInsights
+    extension.vcsContentProvider = { throw DiffRequestProducerException("Cannot show diff: fatal: invalid object name: '123'.") }
 
     // Act
     val diffRequest = makeDiffRequest(context)
@@ -130,15 +124,9 @@ class JumpToDiffUtilsTest {
 
   private fun makeDiffRequest(context: ContextDataForDiff): DiffRequest {
     val provider = InsightsDiffViewProvider(context, projectRule.project)
-    val diffRequestProcessor =
-      provider.createDiffRequestProcessor().apply {
-        Disposer.register(projectRule.testRootDisposable, this)
-      }
+    val diffRequestProcessor = provider.createDiffRequestProcessor().apply { Disposer.register(projectRule.testRootDisposable, this) }
 
-    return diffRequestProcessor
-      .apply { updateRequest() }
-      .also { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-      .activeRequest!!
+    return diffRequestProcessor.apply { updateRequest() }.also { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }.activeRequest!!
   }
 }
 

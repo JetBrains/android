@@ -26,11 +26,9 @@ import com.android.tools.idea.editors.strings.table.filter.StringResourceTableCo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFrame
@@ -54,7 +52,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.withSettings
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -121,8 +118,7 @@ class FilterLocalesActionTest {
     val frame: JFrame = mock(extraInterfaces = arrayOf(IdeFrame::class))
     whenever((frame as IdeFrame).component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
-    ApplicationManager.getApplication()
-      .replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -144,8 +140,7 @@ class FilterLocalesActionTest {
         /* popupTrigger= */ true,
       )
 
-    val dataContext =
-      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
+    val dataContext = SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
     val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
@@ -199,8 +194,7 @@ class FilterLocalesActionTest {
   fun actionPerformed_showSpecificLocales() {
     whenever(model.columnCount).thenReturn(StringResourceTableModel.FIXED_COLUMN_COUNT + 2)
     whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT)).thenReturn(ARABIC_LOCALE)
-    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1))
-      .thenReturn(US_SPANISH_LOCALE)
+    whenever(model.getLocale(StringResourceTableModel.FIXED_COLUMN_COUNT + 1)).thenReturn(US_SPANISH_LOCALE)
 
     filterLocalesAction.actionPerformed(event)
 

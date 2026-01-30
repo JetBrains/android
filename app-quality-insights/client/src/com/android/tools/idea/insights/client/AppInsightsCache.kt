@@ -32,17 +32,14 @@ interface AppInsightsCache {
   fun getRecentConnections(): List<Connection>
 
   /**
-   * Sets the most recently obtained connections. Calling this has the side effect of evicting
-   * values associated with connections not in [connections].
+   * Sets the most recently obtained connections. Calling this has the side effect of evicting values associated with connections not in
+   * [connections].
    *
    * Used for Vitals only.
    */
   fun populateConnections(connections: List<Connection>)
 
-  /**
-   * Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for
-   * this [FirebaseConnection].
-   */
+  /** Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for this [FirebaseConnection]. */
   fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>?
 
   /** Returns the issues specified by [issueIds]. */
@@ -51,10 +48,7 @@ interface AppInsightsCache {
   /** Populates the cache with recently fetched [Issue]s. */
   fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>)
 
-  /**
-   * Returns an event that belongs to [issueId] and matches the filtering criteria. Null if such an
-   * event does not exist.
-   */
+  /** Returns an event that belongs to [issueId] and matches the filtering criteria. Null if such an event does not exist. */
   fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event?
 
   /** Get cached notes based on [issueId]. Returns null if notes are not cached for this issue. */
@@ -66,9 +60,7 @@ interface AppInsightsCache {
   /** Adds a [Note] to the cache belonging to [issueId]. */
   fun addNote(connection: Connection, issueId: IssueId, note: Note)
 
-  /**
-   * Removes the note matching [com.android.tools.idea.insights.model.note.NoteId] from the cache.
-   */
+  /** Removes the note matching [com.android.tools.idea.insights.model.note.NoteId] from the cache. */
   fun removeNote(connection: Connection, noteId: NoteId)
 
   /** Removes the cached entry of an issue. */
@@ -82,8 +74,7 @@ class StubAppInsightsCache : AppInsightsCache {
 
   override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? = null
 
-  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue> =
-    emptyList()
+  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue> = emptyList()
 
   override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) = Unit
 

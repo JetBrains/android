@@ -41,12 +41,7 @@ class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
     g.drawString(text1, x, y)
     x += g.fontMetrics.stringWidth(text1)
 
-    ADD_DESTINATION.paintIcon(
-      null,
-      g,
-      x,
-      y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET),
-    )
+    ADD_DESTINATION.paintIcon(null, g, x, y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET))
     x += ADD_DESTINATION.iconWidth
 
     g.drawString(text2, x, y)

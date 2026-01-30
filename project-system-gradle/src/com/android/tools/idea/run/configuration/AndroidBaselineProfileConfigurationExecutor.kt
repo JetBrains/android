@@ -51,15 +51,13 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.File
 import java.io.OutputStream
+import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.nio.file.Path
 
-class AndroidBaselineProfileConfigurationExecutor(
-  val env: ExecutionEnvironment,
-  private val deviceFutures: DeviceFutures
-) : AndroidConfigurationExecutor {
+class AndroidBaselineProfileConfigurationExecutor(val env: ExecutionEnvironment, private val deviceFutures: DeviceFutures) :
+  AndroidConfigurationExecutor {
   override val configuration = env.runProfile as AndroidBaselineProfileRunConfiguration
 
   private val LOG = Logger.getInstance(this::class.java)
@@ -67,8 +65,7 @@ class AndroidBaselineProfileConfigurationExecutor(
   private val project = env.project
   private val stats = RunStats.from(env)
   private val applicationIdProvider =
-    configuration.applicationIdProvider
-      ?: throw RuntimeException("Can't get ApplicationIdProvider for AndroidTestRunConfiguration")
+    configuration.applicationIdProvider ?: throw RuntimeException("Can't get ApplicationIdProvider for AndroidTestRunConfiguration")
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Generate Baseline Profile(s)")
@@ -80,9 +77,7 @@ class AndroidBaselineProfileConfigurationExecutor(
 
     stats.setPackage(applicationId)
     try {
-      RunStats.from(env).track("BASELINE_PROFILE_LAUNCH_TASK_CREATE") {
-        runGradleTask(indicator, devices)
-      }
+      RunStats.from(env).track("BASELINE_PROFILE_LAUNCH_TASK_CREATE") { runGradleTask(indicator, devices) }
     } finally {
       devices.forEach {
         // Notify listeners of the deployment.
@@ -100,62 +95,77 @@ class AndroidBaselineProfileConfigurationExecutor(
     val gradleInitScriptFile = getGradleInitScriptFile()
     val deviceSerials = devices.joinToString(",") { device -> device.serialNumber }
     val envVar = mapOf(("ANDROID_SERIAL" to deviceSerials))
-    val argList = mutableListOf<String>().apply {
-      add("--init-script=${gradleInitScriptFile.absolutePath}")
-      configuration.getFilterArgument()?.let { add(it) }
-    }
+    val argList =
+      mutableListOf<String>().apply {
+        add("--init-script=${gradleInitScriptFile.absolutePath}")
+        configuration.getFilterArgument()?.let { add(it) }
+      }
 
     val taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
 
-    val handler = object : ProcessHandler() {
-      override fun destroyProcessImpl() {
-        notifyProcessTerminated(if (GradleBuildInvoker.getInstance(project).stopBuild(taskId)) 0 else -1)
-      }
-
-      override fun detachProcessImpl() {
-        notifyProcessDetached()
-      }
-
-      override fun detachIsDefault(): Boolean = false
-      override fun getProcessInput(): OutputStream? = null
-    }
-
-    GradleBuildInvoker.getInstance(project).generateBaselineProfileSources(taskId, configuration.modules, envVar, argList, configuration.generateAllVariants).apply {
-      addListener({
-        if (this.get().isBuildSuccessful) {
-          val notification = notificationGroup
-            .createNotification("Baseline profile for the project \"${project.name}\" has been generated.", NotificationType.INFORMATION)
-            .setTitle("Baseline profile added")
-            .setImportant(true)
-          notification.addAction(object : AnAction("Open Run tool window") {
-            override fun actionPerformed(e: AnActionEvent) {
-              RunContentManager.getInstance(project).toFrontRunContent(DefaultRunExecutor.getRunExecutorInstance(), handler)
-              notification.expire()
-            }
-          })
-          Notifications.Bus.notify(notification, project)
-        } else if (!this.get().isBuildCancelled)  {
-          val notification = notificationGroup
-            .createNotification("Baseline profile generation for the project \"${project.name}\" has failed.", NotificationType.ERROR)
-            .setTitle("Baseline profile error")
-            .setImportant(true)
-          Notifications.Bus.notify(notification, project)
+    val handler =
+      object : ProcessHandler() {
+        override fun destroyProcessImpl() {
+          notifyProcessTerminated(if (GradleBuildInvoker.getInstance(project).stopBuild(taskId)) 0 else -1)
         }
 
-        // This listener only gets called after the build finishes, so it should be safe to detach here.
-        handler.detachProcess()
-      }, AppExecutorUtil.getAppExecutorService())
-    }
+        override fun detachProcessImpl() {
+          notifyProcessDetached()
+        }
+
+        override fun detachIsDefault(): Boolean = false
+
+        override fun getProcessInput(): OutputStream? = null
+      }
+
+    GradleBuildInvoker.getInstance(project)
+      .generateBaselineProfileSources(taskId, configuration.modules, envVar, argList, configuration.generateAllVariants)
+      .apply {
+        addListener(
+          {
+            if (this.get().isBuildSuccessful) {
+              val notification =
+                notificationGroup
+                  .createNotification(
+                    "Baseline profile for the project \"${project.name}\" has been generated.",
+                    NotificationType.INFORMATION,
+                  )
+                  .setTitle("Baseline profile added")
+                  .setImportant(true)
+              notification.addAction(
+                object : AnAction("Open Run tool window") {
+                  override fun actionPerformed(e: AnActionEvent) {
+                    RunContentManager.getInstance(project).toFrontRunContent(DefaultRunExecutor.getRunExecutorInstance(), handler)
+                    notification.expire()
+                  }
+                }
+              )
+              Notifications.Bus.notify(notification, project)
+            } else if (!this.get().isBuildCancelled) {
+              val notification =
+                notificationGroup
+                  .createNotification("Baseline profile generation for the project \"${project.name}\" has failed.", NotificationType.ERROR)
+                  .setTitle("Baseline profile error")
+                  .setImportant(true)
+              Notifications.Bus.notify(notification, project)
+            }
+
+            // This listener only gets called after the build finishes, so it should be safe to detach here.
+            handler.detachProcess()
+          },
+          AppExecutorUtil.getAppExecutorService(),
+        )
+      }
 
     AndroidSessionInfo.create(handler, devices, "Baseline Profile Task: ${taskId.id}")
     return createRunContentDescriptor(handler, console, env)
   }
 
   private fun getGradleInitScriptFile(): File {
-    val initScriptFile = File.createTempFile("initScript", ".gradle.kts", Path.of(FileUtil.getTempDirectory()).toFile()).apply {
-      deleteOnExit()
-    }
-    initScriptFile.writeText("""
+    val initScriptFile =
+      File.createTempFile("initScript", ".gradle.kts", Path.of(FileUtil.getTempDirectory()).toFile()).apply { deleteOnExit() }
+    initScriptFile.writeText(
+      """
       afterProject {
         pluginManager.withPlugin("androidx.baselineprofile") {
           val baselineExt = extensions.findByName("baselineProfile") ?: return@withPlugin
@@ -187,7 +197,9 @@ class AndroidBaselineProfileConfigurationExecutor(
           managedDevices.clear()
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
     return initScriptFile
   }
 

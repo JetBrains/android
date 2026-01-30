@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.project.model
 import com.android.sdklib.devices.Abi
 
 data class VariantAbi(val variant: String, val abi: String) {
-  @Transient
-  val displayName: String = "$variant-$abi"
+  @Transient val displayName: String = "$variant-$abi"
 
   companion object {
     @JvmStatic

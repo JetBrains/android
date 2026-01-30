@@ -52,8 +52,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
-  @get:Rule
-  val temporaryFolder: TemporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder: TemporaryFolder = TemporaryFolder()
   private val experimentService = MockExperimentService()
   private val snapshotHolder = SnapshotHolder()
 
@@ -61,16 +60,12 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
   fun before() {
     experimentService.setExperimentString(
       AspectFiles.aspectLocation,
-      AswbTestUtils.getRunfilesWorkspaceRoot().toPath().resolve("tools/adt/idea/aswb").toString()
+      AswbTestUtils.getRunfilesWorkspaceRoot().toPath().resolve("tools/adt/idea/aswb").toString(),
     )
-    application.registerServiceInstance(
-      ExperimentService::class.java,
-      experimentService
-    )
+    application.registerServiceInstance(ExperimentService::class.java, experimentService)
     val mockProjectDataManager: BlazeProjectDataManager =
       MockBlazeProjectDataManager(MockBlazeProjectDataBuilder.builder(workspaceRoot).build())
-    registerProjectService(BlazeProjectDataManager::class.java, mockProjectDataManager
-    )
+    registerProjectService(BlazeProjectDataManager::class.java, mockProjectDataManager)
   }
 
   @Test
@@ -93,53 +88,50 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
         WorkspaceRoot(temporaryFolder.getRoot()),
         Optional.empty<BlazeVcsHandlerProvider.BlazeVcsHandler?>(),
         MockArtifactCache(temporaryFolder.newFolder().toPath()),
-        ImmutableSet.of("always_build_rule1", "always_build_rule2")
+        ImmutableSet.of("always_build_rule1", "always_build_rule2"),
       )
 
     val generatedAspectName = String.format("qs-%s.bzl", dependencyBuilder.getProjectHash())
-    val invocationFiles = dependencyBuilder.getInvocationFiles(
-      ImmutableSet.of(of("//target1:target1"), of("//target2:target2")),
-      LocalBazelInvoker.CAPABILITIES,
-      BazelDependencyBuilder.BuildDependencyParameters(
-        ImmutableList.of("dir1", "dir2"),
-        ImmutableList.of("dir1/sub1"),
-        ImmutableList.of("always_build_rule1", "always_build_rule2"),
-        true,
-        false
+    val invocationFiles =
+      dependencyBuilder.getInvocationFiles(
+        ImmutableSet.of(of("//target1:target1"), of("//target2:target2")),
+        LocalBazelInvoker.CAPABILITIES,
+        BazelDependencyBuilder.BuildDependencyParameters(
+          ImmutableList.of("dir1", "dir2"),
+          ImmutableList.of("dir1/sub1"),
+          ImmutableList.of("always_build_rule1", "always_build_rule2"),
+          true,
+          false,
+        ),
       )
-    )
-    Truth.assertThat(invocationFiles.aspectFileLabel)
-      .isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()))
+    Truth.assertThat(invocationFiles.aspectFileLabel).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()))
     Truth.assertThat(
-      String(
-        invocationFiles.files.get(Path.of(".aswb", generatedAspectName))!!
-          .openStream()
-          .readAllBytes(), StandardCharsets.UTF_8
+        String(invocationFiles.files.get(Path.of(".aswb", generatedAspectName))!!.openStream().readAllBytes(), StandardCharsets.UTF_8)
       )
-    )
       .isEqualTo(
         """
-                   load(':build_dependencies.bzl', _collect_dependencies = 'collect_dependencies', _package_dependencies = 'package_dependencies')
-                   _config = struct(
-                     include = [
-                       "dir1",
-                       "dir2",
-                     ],
-                     exclude = [
-                       "dir1/sub1",
-                     ],
-                     always_build_rules = [
-                       "always_build_rule1",
-                       "always_build_rule2",
-                     ],
-                     generate_aidl_classes = True,
-                     use_generated_srcjars = False,
-                   )
- 
-                   collect_dependencies = _collect_dependencies(_config)
-                   package_dependencies = _package_dependencies(_config)
+        load(':build_dependencies.bzl', _collect_dependencies = 'collect_dependencies', _package_dependencies = 'package_dependencies')
+        _config = struct(
+          include = [
+            "dir1",
+            "dir2",
+          ],
+          exclude = [
+            "dir1/sub1",
+          ],
+          always_build_rules = [
+            "always_build_rule1",
+            "always_build_rule2",
+          ],
+          generate_aidl_classes = True,
+          use_generated_srcjars = False,
+        )
 
-                   """.trimIndent()
+        collect_dependencies = _collect_dependencies(_config)
+        package_dependencies = _package_dependencies(_config)
+
+        """
+          .trimIndent()
       )
   }
 
@@ -165,34 +157,31 @@ class BazelDependencyBuilderTest : BlazeIntegrationTestCase() {
         WorkspaceRoot(temporaryFolder.getRoot()),
         Optional.empty<BlazeVcsHandlerProvider.BlazeVcsHandler?>(),
         MockArtifactCache(temporaryFolder.newFolder().toPath()),
-        ImmutableSet.of("always_build_rule1", "always_build_rule2")
+        ImmutableSet.of("always_build_rule1", "always_build_rule2"),
       )
 
     val targets = ImmutableSet.of<Label>(of("//target1:target1"), of("//target2:target2"))
-    val generatedTargetPatternName =
-      of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name
+    val generatedTargetPatternName = of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name
 
     val invocationInfo =
       dependencyBuilder.getInvocationInfo(
-        BlazeContext.create(), targets, LocalBazelInvoker.CAPABILITIES,
+        BlazeContext.create(),
+        targets,
+        LocalBazelInvoker.CAPABILITIES,
         ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE),
-        replaceOutputGroups
+        replaceOutputGroups,
       )
     val invocationFiles = invocationInfo.invocationWorkspaceFiles
     Truth.assertThat(
-      String(
-        invocationFiles.get(Path.of(".aswb", generatedTargetPatternName))!!
-          .openStream()
-          .readAllBytes(), StandardCharsets.UTF_8
+        String(invocationFiles.get(Path.of(".aswb", generatedTargetPatternName))!!.openStream().readAllBytes(), StandardCharsets.UTF_8)
       )
-    )
       .isEqualTo(
         """
-                   //target1:target1
-                   //target2:target2
-                   """.trimIndent()
+        //target1:target1
+        //target2:target2
+        """
+          .trimIndent()
       )
-    Truth.assertThat(invocationInfo.argsAndFlags)
-      .contains("--target_pattern_file=.aswb/" + generatedTargetPatternName)
+    Truth.assertThat(invocationInfo.argsAndFlags).contains("--target_pattern_file=.aswb/" + generatedTargetPatternName)
   }
 }

@@ -25,6 +25,7 @@ abstract class ProguardR8TestCase : JavaCodeInsightFixtureAdtTestCase() {
     @get:Parameterized.Parameters(name = "{0}")
     val fileType = listOf(ProguardR8FileType.INSTANCE, KeepRulesR8FileType.INSTANCE)
   }
+
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(ProguardR8ReferenceInspection::class.java)

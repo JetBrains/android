@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 
 interface IdeJavaArtifactCore : IdeBaseArtifactCore {
-  /** Path to the mockable platform jar generated for this [IdeJavaArtifact], if present.  */
+  /** Path to the mockable platform jar generated for this [IdeJavaArtifact], if present. */
   val mockablePlatformJar: File?
   val compileClasspathCore: IdeDependenciesCore
   val runtimeClasspathCore: IdeDependenciesCore

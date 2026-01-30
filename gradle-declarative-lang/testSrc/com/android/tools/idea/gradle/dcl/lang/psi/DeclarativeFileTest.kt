@@ -20,19 +20,24 @@ import com.intellij.testFramework.LightPlatformTestCase
 
 class DeclarativeFileTest : LightPlatformTestCase() {
   fun testGetEntries() {
-    val file = DeclarativePsiFactory(project).createFile("""
-      foo {
-      }
-      
-      bar = 3
-      
-      baz("abc")
-      
-      foo()
-      
-      quux("def") {
-      }
-    """.trimIndent())
+    val file =
+      DeclarativePsiFactory(project)
+        .createFile(
+          """
+          foo {
+          }
+
+          bar = 3
+
+          baz("abc")
+
+          foo()
+
+          quux("def") {
+          }
+          """
+            .trimIndent()
+        )
     val entries = file.getEntries()
     assertThat(entries).hasSize(5)
     assertThat(entries[0]).isInstanceOf(DeclarativeBlock::class.java)

@@ -39,9 +39,7 @@ class ComposeViewNodeTest {
         view(ROOT) {
           compose(VIEW1, "MyApplicationTheme", composePackageHash = EXAMPLE) {
             compose(VIEW2, "Text", composePackageHash = EXAMPLE) {
-              compose(VIEW3, "Text", composePackageHash = SYSTEM_PKG) {
-                compose(VIEW4, "CoreText", composePackageHash = SYSTEM_PKG)
-              }
+              compose(VIEW3, "Text", composePackageHash = SYSTEM_PKG) { compose(VIEW4, "CoreText", composePackageHash = SYSTEM_PKG) }
             }
           }
         }
@@ -77,24 +75,9 @@ class ComposeViewNodeTest {
         view(ROOT) {
           compose(VIEW1, "MyApplicationTheme") {
             compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
-              compose(
-                VIEW3,
-                "Text",
-                composeFlags = FLAG_HAS_MERGED_SEMANTICS,
-                composePackageHash = EXAMPLE,
-              ) {
-                compose(
-                  VIEW4,
-                  "Text",
-                  composeFlags = FLAG_HAS_UNMERGED_SEMANTICS,
-                  composePackageHash = EXAMPLE,
-                ) {
-                  compose(
-                    VIEW5,
-                    "CoreText",
-                    composeFlags = FLAG_SYSTEM_DEFINED,
-                    composePackageHash = EXAMPLE,
-                  )
+              compose(VIEW3, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+                compose(VIEW4, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+                  compose(VIEW5, "CoreText", composeFlags = FLAG_SYSTEM_DEFINED, composePackageHash = EXAMPLE)
                 }
               }
             }

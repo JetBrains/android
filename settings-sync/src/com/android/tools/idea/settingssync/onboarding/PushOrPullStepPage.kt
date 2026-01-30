@@ -44,15 +44,11 @@ import kotlin.io.path.getLastModifiedTime
 import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Text
 
-private const val BACKUP_AND_SYNC_LOCATION_URL =
-  "https://d.android.com/r/studio-ui/settings-sync/location"
+private const val BACKUP_AND_SYNC_LOCATION_URL = "https://d.android.com/r/studio-ui/settings-sync/location"
 
 internal class PushOrPullStepPage : WizardPage() {
-  override val description: String =
-    "Backup & Sync step2: choose to push or pull settings to/from Google Drive."
-  override val composableContent: @Composable WizardState.() -> Unit = {
-    PushOrPullComposableContent()
-  }
+  override val description: String = "Backup & Sync step2: choose to push or pull settings to/from Google Drive."
+  override val composableContent: @Composable WizardState.() -> Unit = { PushOrPullComposableContent() }
   override val controlProvider: (WizardState) -> WizardPageControl = { state ->
     object : WizardPageControl() {
       val configurationState = state.getOrCreateState { SyncConfigurationState() }
@@ -66,8 +62,7 @@ internal class PushOrPullStepPage : WizardPage() {
           when (configurationState.pushOrPull) {
             PushOrPull.PULL -> {
               val email =
-                with(configurationState) { state.getOnboardingUser().email }
-                  ?: error("Should have valid email address at this point.")
+                with(configurationState) { state.getOnboardingUser().email } ?: error("Should have valid email address at this point.")
 
               // No network call at this point as the result is supposedly already cached.
               val result: UpdateResult? = configurationState.cloudStatusCache[email]
@@ -101,11 +96,7 @@ internal class PushOrPullStepPage : WizardPage() {
             UpdateResult.FileDeletedFromServer -> false
             is UpdateResult.Success -> true
             is UpdateResult.Error -> {
-              throw RetryableException(
-                message =
-                  SettingsSyncBundle.message("notification.title.update.error") +
-                    ": ${cloudStatus.message}"
-              )
+              throw RetryableException(message = SettingsSyncBundle.message("notification.title.update.error") + ": ${cloudStatus.message}")
             }
           }
         }
@@ -121,8 +112,7 @@ internal fun WizardState.PushOrPullComposableContent() {
   InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
-        "There are existing Android Studio settings synced to this Google account." +
-          " Please choose which settings you would like to use."
+        "There are existing Android Studio settings synced to this Google account." + " Please choose which settings you would like to use."
       )
 
       Spacer(modifier = Modifier.height(16.dp))
@@ -131,9 +121,7 @@ internal fun WizardState.PushOrPullComposableContent() {
         // pull
         RadioButtonWithComment(
           annotatedText =
-            AnnotatedString.Builder()
-              .apply { append("Use the settings from your Google account storage\n") }
-              .toAnnotatedString(),
+            AnnotatedString.Builder().apply { append("Use the settings from your Google account storage\n") }.toAnnotatedString(),
           annotatedComment =
             AnnotatedString.Builder()
               .apply {
@@ -151,18 +139,14 @@ internal fun WizardState.PushOrPullComposableContent() {
         RadioButtonWithComment(
           annotatedText =
             AnnotatedString.Builder()
-              .apply {
-                append("Use the local settings and upload them to your Google account storage\n")
-              }
+              .apply { append("Use the local settings and upload them to your Google account storage\n") }
               .toAnnotatedString(),
           annotatedComment =
             AnnotatedString.Builder()
               .apply {
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                   append("Last updated: ${extractDateFromLocalConfig()}\n")
-                  append(
-                    "Android Studio version: ${ApplicationInfoEx.getInstanceEx().fullApplicationName}\n"
-                  )
+                  append("Android Studio version: ${ApplicationInfoEx.getInstanceEx().fullApplicationName}\n")
                 }
               }
               .toAnnotatedString(),
@@ -173,10 +157,7 @@ internal fun WizardState.PushOrPullComposableContent() {
 
       Row {
         Text("Your previous settings will be backed up and can be retrieved. ")
-        ExternalLink(
-          text = "Learn more",
-          onClick = { BrowserUtil.browse(BACKUP_AND_SYNC_LOCATION_URL) },
-        )
+        ExternalLink(text = "Learn more", onClick = { BrowserUtil.browse(BACKUP_AND_SYNC_LOCATION_URL) })
       }
     }
   }
@@ -184,10 +165,7 @@ internal fun WizardState.PushOrPullComposableContent() {
 
 private fun WizardState.getCachedServerData(): UpdateResult.Success {
   val configurationState = getOrCreateState { SyncConfigurationState() }
-  val onboardingUserEmail: String =
-    with(configurationState) {
-      getOnboardingUser().email ?: error("Should have non-null email available.")
-    }
+  val onboardingUserEmail: String = with(configurationState) { getOnboardingUser().email ?: error("Should have non-null email available.") }
 
   return configurationState.cloudStatusCache[onboardingUserEmail] as UpdateResult.Success
 }

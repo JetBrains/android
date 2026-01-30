@@ -45,10 +45,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     // light classes,
     // see AndroidResolveScopeEnlarger.
     if (!SystemInfo.isWindows) {
-      VfsTestUtil.createFile(
-        LocalFileSystem.getInstance().findFileByPath("/")!!,
-        myModule.moduleFilePath,
-      )
+      VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, myModule.moduleFilePath)
     }
 
     val analyticsSettings = AnalyticsSettingsData()
@@ -68,11 +65,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     return LanguageLevel.JDK_1_8
   }
 
-  protected fun doTestNoFix(
-    inspection: AndroidLintInspectionBase,
-    copyTo: String,
-    extension: String,
-  ) {
+  protected fun doTestNoFix(inspection: AndroidLintInspectionBase, copyTo: String, extension: String) {
     doTestHighlighting(inspection, copyTo, extension)
     var action: IntentionAction? = null
     for (a in myFixture.availableIntentions) {
@@ -105,9 +98,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
         myFixture.launchAction(action)
       }
     } else {
-      WriteCommandAction.runWriteCommandAction(myFixture.project) {
-        action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      }
+      WriteCommandAction.runWriteCommandAction(myFixture.project) { action.invoke(myFixture.project, myFixture.editor, myFixture.file) }
     }
 
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
@@ -126,22 +117,14 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
       )
   }
 
-  protected fun doTestHighlighting(
-    inspection: AndroidLintInspectionBase,
-    copyTo: String,
-    extension: String,
-  ) {
+  protected fun doTestHighlighting(inspection: AndroidLintInspectionBase, copyTo: String, extension: String) {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.checkHighlighting(true, false, false)
   }
 
-  protected fun collectTestHighlighting(
-    inspection: AndroidLintInspectionBase,
-    copyTo: String,
-    extension: String,
-  ): List<HighlightInfo> {
+  protected fun collectTestHighlighting(inspection: AndroidLintInspectionBase, copyTo: String, extension: String): List<HighlightInfo> {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)

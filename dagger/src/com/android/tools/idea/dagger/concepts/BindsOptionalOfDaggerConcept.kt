@@ -59,8 +59,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
  *   }
  * ```
  *
- * The above method indicates that there may or may not be a binding for `Heater` present, and
- * consumers may bind to an `Optional<Heater>`.
+ * The above method indicates that there may or may not be a binding for `Heater` present, and consumers may bind to an `Optional<Heater>`.
  *
  * Dagger supports using either `com.google.common.base.Optional` or `java.util.Optional`.
  *
@@ -74,11 +73,7 @@ internal object BindsOptionalOfDaggerConcept : DaggerConcept {
 
 private object BindsOptionalOfIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) {
-    if (
-      !wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS_OPTIONAL_OF) ||
-        wrapper.getParameters().isNotEmpty()
-    )
-      return
+    if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS_OPTIONAL_OF) || wrapper.getParameters().isNotEmpty()) return
 
     val containingClass = wrapper.getContainingClass() ?: return
     if (!containingClass.getIsSelfOrCompanionParentAnnotatedWith(DaggerAnnotation.MODULE)) return
@@ -91,8 +86,7 @@ private object BindsOptionalOfIndexer : DaggerConceptIndexer<DaggerIndexMethodWr
 }
 
 @VisibleForTesting
-internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSimpleName: String) :
-  IndexValue() {
+internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSimpleName: String) : IndexValue() {
 
   override val dataType = Reader.supportedType
 
@@ -104,8 +98,7 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_OPTIONAL_OF_METHOD
 
-    override fun read(input: DataInput) =
-      BindsOptionalOfIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = BindsOptionalOfIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -143,19 +136,15 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.methods
-      ?.asSequence()
-      ?.filter { it.name == methodSimpleName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.methods?.asSequence()?.filter {
+      it.name == methodSimpleName
+    } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
 
-internal data class BindsOptionalOfProviderDaggerElement(
-  override val psiElement: PsiElement,
-  private val providedPsiType: PsiType,
-) : ProviderDaggerElementBase() {
+internal data class BindsOptionalOfProviderDaggerElement(override val psiElement: PsiElement, private val providedPsiType: PsiType) :
+  ProviderDaggerElementBase() {
 
   constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
 
@@ -179,15 +168,10 @@ internal data class BindsOptionalOfProviderDaggerElement(
   companion object {
     private const val optionalSimpleName = "Optional"
 
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>(
-        "BindsOptionalOfProviderDaggerElement_RelatedElements"
-      )
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("BindsOptionalOfProviderDaggerElement_RelatedElements")
   }
 }
 
 private fun KtClassOrObject.selfOrCompanionParentIsModule() =
   hasAnnotation(DaggerAnnotation.MODULE) ||
-    (this is KtObjectDeclaration &&
-      isCompanion() &&
-      containingClassOrObject?.hasAnnotation(DaggerAnnotation.MODULE) == true)
+    (this is KtObjectDeclaration && isCompanion() && containingClassOrObject?.hasAnnotation(DaggerAnnotation.MODULE) == true)

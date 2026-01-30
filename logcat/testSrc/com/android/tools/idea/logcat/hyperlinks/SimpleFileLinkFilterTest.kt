@@ -19,17 +19,14 @@ class SimpleFileLinkFilterTest {
   private val project
     get() = projectRule.project
 
-  private val projectFiles =
-    listOf("File.kt", "File2.kt", "package1/MultiFile.kt", "package2/MultiFile.kt", "_Strange-File")
+  private val projectFiles = listOf("File.kt", "File2.kt", "package1/MultiFile.kt", "package2/MultiFile.kt", "_Strange-File")
 
   @get:Rule
   val rule =
     RuleChain(
       projectRule,
       WaitForIndexRule(projectRule),
-      ProjectServiceRule(projectRule, PsiShortNamesCache::class.java) {
-        FakePsiShortNamesCache(project, projectFiles)
-      },
+      ProjectServiceRule(projectRule, PsiShortNamesCache::class.java) { FakePsiShortNamesCache(project, projectFiles) },
     )
 
   @Test
@@ -94,8 +91,7 @@ class SimpleFileLinkFilterTest {
 
     val result = filter.applyFilter(line, line.length) ?: fail()
 
-    assertThat(result.resultItems.map { it.describeLink() })
-      .containsExactly("[package1/MultiFile.kt:11, package2/MultiFile.kt:11]")
+    assertThat(result.resultItems.map { it.describeLink() }).containsExactly("[package1/MultiFile.kt:11, package2/MultiFile.kt:11]")
     result.resultItems.forEach { assertHighlight(it, line) }
   }
 
@@ -106,8 +102,7 @@ class SimpleFileLinkFilterTest {
 
     val result = filter.applyFilter(line, line.length) ?: fail()
 
-    assertThat(result.resultItems.map { it.describeLink() })
-      .containsExactly("File.kt:11", "File2.kt:20")
+    assertThat(result.resultItems.map { it.describeLink() }).containsExactly("File.kt:11", "File2.kt:20")
     result.resultItems.forEach { assertHighlight(it, line) }
   }
 
@@ -133,11 +128,9 @@ class SimpleFileLinkFilterTest {
 }
 
 /**
- * Asserts that the highlight range in a [ResultItem] corresponds to text in the provided line which
- * matches the hyperlinkInfo.
+ * Asserts that the highlight range in a [ResultItem] corresponds to text in the provided line which matches the hyperlinkInfo.
  *
- * Note that hyperlinkInfo uses 0-index lines while the line text uses 1-index lines, so we need to
- * adjust for that.
+ * Note that hyperlinkInfo uses 0-index lines while the line text uses 1-index lines, so we need to adjust for that.
  */
 @Suppress("UnstableApiUsage")
 private fun assertHighlight(resultItem: ResultItem, line: String) {

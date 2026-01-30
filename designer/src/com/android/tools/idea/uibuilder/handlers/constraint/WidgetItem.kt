@@ -34,82 +34,24 @@ private class ConstraintWidgetItem(displayName: String, attribute: String, margi
     { it.getAttribute(SdkConstants.SHERPA_URI, attribute) != null },
     displayName,
     { it.getAttribute(SdkConstants.SHERPA_URI, attribute) },
-    {
-      if (margin == null) null
-      else
-        it.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
-          ?: it.getAndroidAttribute(margin)
-          ?: "0dp"
-    },
+    { if (margin == null) null else it.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN) ?: it.getAndroidAttribute(margin) ?: "0dp" },
   )
 
 private val CONSTRAINT_ATTRIBUTES_ITEMS: Array<WidgetItem> =
   arrayOf(
-    ConstraintWidgetItem(
-      "Start → StartOf",
-      SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_START,
-    ),
-    ConstraintWidgetItem(
-      "Start → EndOf",
-      SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_START,
-    ),
-    ConstraintWidgetItem(
-      "End → StartOf",
-      SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_END,
-    ),
-    ConstraintWidgetItem(
-      "End → EndOf",
-      SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_END,
-    ),
-    ConstraintWidgetItem(
-      "Left → LeftOf",
-      SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    ),
-    ConstraintWidgetItem(
-      "Left → RightOf",
-      SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    ),
-    ConstraintWidgetItem(
-      "Right → LeftOf",
-      SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    ),
-    ConstraintWidgetItem(
-      "Right → RightOf",
-      SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    ),
-    ConstraintWidgetItem(
-      "Top → TopOf",
-      SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    ),
-    ConstraintWidgetItem(
-      "Top → BottomOf",
-      SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    ),
-    ConstraintWidgetItem(
-      "Bottom → TopOf",
-      SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-    ),
-    ConstraintWidgetItem(
-      "Bottom → BottomOf",
-      SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-      SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-    ),
-    ConstraintWidgetItem(
-      "Baseline → BaselineOf",
-      SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
-      null,
-    ),
+    ConstraintWidgetItem("Start → StartOf", SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_MARGIN_START),
+    ConstraintWidgetItem("Start → EndOf", SdkConstants.ATTR_LAYOUT_START_TO_END_OF, SdkConstants.ATTR_LAYOUT_MARGIN_START),
+    ConstraintWidgetItem("End → StartOf", SdkConstants.ATTR_LAYOUT_END_TO_START_OF, SdkConstants.ATTR_LAYOUT_MARGIN_END),
+    ConstraintWidgetItem("End → EndOf", SdkConstants.ATTR_LAYOUT_END_TO_END_OF, SdkConstants.ATTR_LAYOUT_MARGIN_END),
+    ConstraintWidgetItem("Left → LeftOf", SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),
+    ConstraintWidgetItem("Left → RightOf", SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),
+    ConstraintWidgetItem("Right → LeftOf", SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
+    ConstraintWidgetItem("Right → RightOf", SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
+    ConstraintWidgetItem("Top → TopOf", SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP),
+    ConstraintWidgetItem("Top → BottomOf", SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP),
+    ConstraintWidgetItem("Bottom → TopOf", SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM),
+    ConstraintWidgetItem("Bottom → BottomOf", SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM),
+    ConstraintWidgetItem("Baseline → BaselineOf", SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null),
   )
 
 private class ConstraintValueWidgetItem(displayName: String, attribute: String) :
@@ -129,21 +71,14 @@ private val DIMENSION_ATTRIBUTES_ITEMS: Array<WidgetItem> =
     ConstraintValueWidgetItem("Dimension Ratio", SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO),
   )
 
-private class ConstraintCircleWidgetItem(
-  displayName: String,
-  attribute: String,
-  radius: String,
-  angle: String,
-) :
+private class ConstraintCircleWidgetItem(displayName: String, attribute: String, radius: String, angle: String) :
   WidgetItem(
     SdkConstants.SHERPA_URI,
     attribute,
     { it.getAttribute(SdkConstants.SHERPA_URI, attribute) != null },
     displayName,
     { it.getAttribute(SdkConstants.SHERPA_URI, attribute) },
-    {
-      "${it.getAttribute(SdkConstants.SHERPA_URI, radius) ?: "0"}, ${it.getAttribute(SdkConstants.SHERPA_URI, angle) ?: "0"}"
-    },
+    { "${it.getAttribute(SdkConstants.SHERPA_URI, radius) ?: "0"}, ${it.getAttribute(SdkConstants.SHERPA_URI, angle) ?: "0"}" },
   )
 
 private val CONSTRAINT_CIRCLE_ATTRIBUTES_ITEMS: Array<WidgetItem> =
@@ -202,14 +137,8 @@ private val CONSTRAINT_HEIGHT_ATTRIBUTES_ITEMS: Array<WidgetItem> =
 
 private val CONSTRAINT_CHAIN_STYLE_ATTRIBUTE_ITEMS: Array<WidgetItem> =
   arrayOf(
-    ConstraintValueWidgetItem(
-      "Horizontal Chain Style",
-      SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
-    ),
-    ConstraintValueWidgetItem(
-      "Vertical Chain Style",
-      SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
-    ),
+    ConstraintValueWidgetItem("Horizontal Chain Style", SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE),
+    ConstraintValueWidgetItem("Vertical Chain Style", SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE),
     ConstraintValueWidgetItem("Chain Uses RTL", SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL),
   )
 
@@ -225,10 +154,7 @@ private class ReferencedIdsWidgetItem(displayName: String) :
 
 private val CONSTRAINT_BARRIER_ATTRIBUTES_ITEMS: Array<WidgetItem> =
   arrayOf(
-    ConstraintValueWidgetItem(
-      "Barrier Allows Gone Widgets",
-      SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS,
-    ),
+    ConstraintValueWidgetItem("Barrier Allows Gone Widgets", SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS),
     ReferencedIdsWidgetItem("Constraint Referenced Ids"),
     ConstraintValueWidgetItem("Barrier Direction", SdkConstants.ATTR_BARRIER_DIRECTION),
   )

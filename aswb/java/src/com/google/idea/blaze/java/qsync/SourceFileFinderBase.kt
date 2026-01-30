@@ -29,10 +29,12 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 /**
- * A base class used to find source files for a class jar. It provides a basic workflow to fetch
- * source files. And it allows different implementation to provide its own implementation.
+ * A base class used to find source files for a class jar. It provides a basic workflow to fetch source files. And it allows different
+ * implementation to provide its own implementation.
  */
-abstract class SourceFileFinderBase @VisibleForTesting constructor(
+abstract class SourceFileFinderBase
+@VisibleForTesting
+constructor(
   protected val project: Project?,
   protected val querySyncManager: QuerySyncManager,
   protected val workspaceRoot: Path?,
@@ -42,27 +44,24 @@ abstract class SourceFileFinderBase @VisibleForTesting constructor(
 
   protected val qualifiedClassNames: Set<String> = getQualifiedClassNames(clsFile)
 
-  constructor(clsFile: PsiFile) : this(
+  constructor(
+    clsFile: PsiFile
+  ) : this(
     project = clsFile.project,
     querySyncManager = QuerySyncManager.getInstance(clsFile.project),
     workspaceRoot = WorkspaceRoot.fromProject(clsFile.project).path(),
     projectPath = Path(clsFile.project.basePath ?: ""),
-    clsFile = clsFile
+    clsFile = clsFile,
   )
 
   fun findSourceFile(): PsiFile? {
-    val sourcePaths = javaArtifactInfos.asSequence()
-      .flatMap { filterSourcePaths(it) }
-      .toSet()
+    val sourcePaths = javaArtifactInfos.asSequence().flatMap { filterSourcePaths(it) }.toSet()
 
     if (sourcePaths.isEmpty()) {
       return null
     }
 
-    val matchingPsiFiles = sourcePaths.asSequence()
-      .mapNotNull { convertToVirtualFile(it) }
-      .flatMap { getMatchingPsiFile(it) }
-      .toSet()
+    val matchingPsiFiles = sourcePaths.asSequence().mapNotNull { convertToVirtualFile(it) }.flatMap { getMatchingPsiFile(it) }.toSet()
 
     if (matchingPsiFiles.size > 1) {
       logger.warn("Warning: found more than 1 matching source file for $clsFile: $matchingPsiFiles")
@@ -71,19 +70,13 @@ abstract class SourceFileFinderBase @VisibleForTesting constructor(
     return matchingPsiFiles.firstOrNull()
   }
 
-  /**
-   * Returns the path to the source files stored in current JavaArtifactInfo.
-   */
+  /** Returns the path to the source files stored in current JavaArtifactInfo. */
   abstract fun filterSourcePaths(artifactInfo: JavaArtifactInfo): Sequence<Path>
 
-  /**
-   * Converts the file to VirtualFile.
-   */
+  /** Converts the file to VirtualFile. */
   abstract fun convertToVirtualFile(path: Path): VirtualFile?
 
-  /**
-   * Returns a list of PsiFile's that contains a file with the class we are looking for
-   */
+  /** Returns a list of PsiFile's that contains a file with the class we are looking for */
   abstract fun getMatchingPsiFile(vf: VirtualFile): Set<PsiFile>
 
   private val javaArtifactInfos: List<JavaArtifactInfo> by lazy {
@@ -101,16 +94,11 @@ abstract class SourceFileFinderBase @VisibleForTesting constructor(
   }
 
   protected fun getQualifiedClassNames(psiFile: PsiFile?): Set<String> {
-    return (psiFile as? PsiClassOwner)?.classes
-             ?.mapNotNull { it.qualifiedName }
-             ?.toSet()
-           ?: emptySet()
+    return (psiFile as? PsiClassOwner)?.classes?.mapNotNull { it.qualifiedName }?.toSet() ?: emptySet()
   }
 
   protected fun containsClass(file: PsiFile?): Boolean {
-    return (file as? PsiClassOwner)?.classes?.any {
-      it.qualifiedName in qualifiedClassNames
-    } == true
+    return (file as? PsiClassOwner)?.classes?.any { it.qualifiedName in qualifiedClassNames } == true
   }
 
   companion object {

@@ -30,16 +30,10 @@ class SafeArgsModeGradleToken : SafeArgsModeToken<GradleProjectSystem>, GradleTo
   override fun getSafeArgsMode(projectSystem: GradleProjectSystem, module: Module): SafeArgsMode =
     module.gradleModuleModel?.toSafeArgsMode() ?: SafeArgsMode.NONE
 
-  override fun getSafeArgsFeatures(
-    projectSystem: GradleProjectSystem,
-    module: Module,
-  ): Set<SafeArgsFeature> {
+  override fun getSafeArgsFeatures(projectSystem: GradleProjectSystem, module: Module): Set<SafeArgsFeature> {
     val moduleSystem = projectSystem.getModuleSystem(module)
     val component =
-      moduleSystem.getResolvedDependency(
-        GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getModule(),
-        DependencyScopeType.MAIN,
-      )
+      moduleSystem.getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getModule(), DependencyScopeType.MAIN)
         ?: moduleSystem.getResolvedDependency(
           GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON_ANDROID.getModule(),
           DependencyScopeType.MAIN,

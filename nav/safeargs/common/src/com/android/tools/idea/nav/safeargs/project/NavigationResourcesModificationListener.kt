@@ -63,31 +63,25 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 /**
- * A project-wide listener that determines which modules' navigation files are affected by VFS
- * changes or Document changes and sends a [NAVIGATION_RESOURCES_CHANGED] event to tell the
- * corresponding [ModuleNavigationResourcesModificationTracker]s and
+ * A project-wide listener that determines which modules' navigation files are affected by VFS changes or Document changes and sends a
+ * [NAVIGATION_RESOURCES_CHANGED] event to tell the corresponding [ModuleNavigationResourcesModificationTracker]s and
  * [ProjectNavigationResourceModificationTracker]s to increment counter.
  *
- * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS
- * changes and Document changes after the project opening.
+ * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS changes and Document changes after the
+ * project opening.
  */
-class NavigationResourcesModificationListener(
-  project: Project,
-  private val coroutineScope: CoroutineScope,
-) : PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
+class NavigationResourcesModificationListener(project: Project, private val coroutineScope: CoroutineScope) :
+  PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
 
-  private fun newSupervisorJob(): CompletableJob =
-    SupervisorJob(parent = coroutineScope.coroutineContext[Job])
+  private fun newSupervisorJob(): CompletableJob = SupervisorJob(parent = coroutineScope.coroutineContext[Job])
 
   private val supervisorJob = AtomicReference(newSupervisorJob())
 
   /** Returns a [Job] that will complete when all scheduled updates have completed. */
-  @TestOnly
-  fun completePendingUpdates(): Job =
-    supervisorJob.getAndSet(newSupervisorJob()).also { it.complete() }
+  @TestOnly fun completePendingUpdates(): Job = supervisorJob.getAndSet(newSupervisorJob()).also { it.complete() }
 
   // If a directory was deleted, we won't get a separate event for each descendant, so we
   // must let directories pass through this fail-fast filter in case they contain relevant files.
@@ -96,9 +90,7 @@ class NavigationResourcesModificationListener(
   }
 
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (
-      ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.NAVIGATION
-    ) {
+    if (ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.NAVIGATION) {
       return true
     }
 
@@ -110,8 +102,7 @@ class NavigationResourcesModificationListener(
     // say the file is relevant. In the case
     // where it's not truly relevant but we increment the modification trackers anyway, we may have
     // some unnecessary cache invalidation.
-    val moduleResources =
-      StudioResourceRepositoryManager.getInstance(facet).cachedModuleResources ?: return true
+    val moduleResources = StudioResourceRepositoryManager.getInstance(facet).cachedModuleResources ?: return true
     val navResourceVfs =
       moduleResources
         .getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
@@ -125,9 +116,7 @@ class NavigationResourcesModificationListener(
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
     coroutineScope.launch(supervisorJob.get()) {
       val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
-      val moduleResources =
-        resourceManager.cachedModuleResources
-          ?: withContext(Dispatchers.IO) { resourceManager.moduleResources }
+      val moduleResources = resourceManager.cachedModuleResources ?: withContext(Dispatchers.IO) { resourceManager.moduleResources }
 
       withContext(Dispatchers.EDT) {
         // Ensure that any resource rescan that may have been triggered by this file change event
@@ -140,9 +129,7 @@ class NavigationResourcesModificationListener(
         // because we made sure the rescan was already scheduled above, we won't resume this
         // coroutine until after the rescan completes.)
         suspendCancellableCoroutine { continuation ->
-          moduleResources.invokeAfterPendingUpdatesFinish(directExecutor()) {
-            continuation.resume(Unit)
-          }
+          moduleResources.invokeAfterPendingUpdatesFinish(directExecutor()) { continuation.resume(Unit) }
         }
 
         // Dispatch the resource-change event to listeners. (This will happen on the EDT.)
@@ -172,9 +159,8 @@ class NavigationResourcesModificationListener(
   }
 
   /**
-   * [StartupActivity] responsible for ensuring that a [Project] has a
-   * [NavigationResourcesModificationListener] subscribed to listen for both VFS and Document
-   * changes when opening projects.
+   * [StartupActivity] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener] subscribed to listen for
+   * both VFS and Document changes when opening projects.
    */
   class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
@@ -183,8 +169,7 @@ class NavigationResourcesModificationListener(
   }
 
   @Service(Service.Level.PROJECT)
-  private class Subscriber(private val project: Project, coroutineScope: CoroutineScope) :
-    Disposable.Default {
+  private class Subscriber(private val project: Project, coroutineScope: CoroutineScope) : Disposable.Default {
     private val subscriber =
       object :
         LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
@@ -208,9 +193,7 @@ class NavigationResourcesModificationListener(
       project.listenUntilNextSync(this) { subscriber.ensureSubscribed() }
       // Send a project-wide resource-change event once indexes are ready, to ensure that all
       // modification trackers are updated and all old cached data is cleared.
-      DumbService.getInstance(project).runWhenSmart {
-        subscriber.listener.dispatchResourcesChanged(null)
-      }
+      DumbService.getInstance(project).runWhenSmart { subscriber.listener.dispatchResourcesChanged(null) }
     }
 
     fun ensureSubscribed() {
@@ -221,24 +204,20 @@ class NavigationResourcesModificationListener(
   }
 
   private fun dispatchResourcesChanged(module: Module?) {
-    project.messageBus
-      .syncPublisher(NAVIGATION_RESOURCES_CHANGED)
-      .onNavigationResourcesChanged(module)
+    project.messageBus.syncPublisher(NAVIGATION_RESOURCES_CHANGED).onNavigationResourcesChanged(module)
   }
 
   companion object {
     /**
-     * Normally, this listener waits for the project to finish syncing before subscribing to events,
-     * but for tests, we sometimes have to kickstart the subscription process manually.
+     * Normally, this listener waits for the project to finish syncing before subscribing to events, but for tests, we sometimes have to
+     * kickstart the subscription process manually.
      */
     @TestOnly
     fun ensureSubscribed(project: Project) {
       project.service<Subscriber>().ensureSubscribed()
     }
 
-    @TestOnly
-    fun completePendingUpdates(project: Project): Job =
-      project.service<Subscriber>().completePendingUpdates()
+    @TestOnly fun completePendingUpdates(project: Project): Job = project.service<Subscriber>().completePendingUpdates()
   }
 }
 
@@ -246,8 +225,7 @@ fun interface NavigationResourcesChangeListener {
   /**
    * Called when the navigation resources for a given module have changed.
    *
-   * If [module] is `null`, this is the result of a project-wide change, and all modules should be
-   * considered changed.
+   * If [module] is `null`, this is the result of a project-wide change, and all modules should be considered changed.
    */
   fun onNavigationResourcesChanged(module: Module?)
 }

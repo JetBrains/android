@@ -50,20 +50,21 @@ class JavaApiUsageInspectionSuppressorTest {
     )
 
     // Add a Java 9 API usage.
-    val psiFile = fixture.configureByText(
-      "Test.java",
-      // language=JAVA
-      """
-      import java.util.Objects;
-      public class Test {
-        public String testJava9APIUsage(String s) {
-          // This API is allowed in Android modules via desugaring.
-          return Objects.requireNonNullElse(s, "default");
+    val psiFile =
+      fixture.configureByText(
+        "Test.java",
+        // language=JAVA
+        """
+        import java.util.Objects;
+        public class Test {
+          public String testJava9APIUsage(String s) {
+            // This API is allowed in Android modules via desugaring.
+            return Objects.requireNonNullElse(s, "default");
+          }
         }
-      }
-      """
-        .trimIndent(),
-    )
+        """
+          .trimIndent(),
+      )
 
     // Verify JavaApiUsageInspection does not report any errors.
     val inspectionProfile = InspectionProfileManager.getInstance().currentProfile

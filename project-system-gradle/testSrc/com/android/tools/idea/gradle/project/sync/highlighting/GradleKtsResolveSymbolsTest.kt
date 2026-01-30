@@ -35,8 +35,7 @@ import org.junit.Test
 @RunsInEdt
 class GradleKtsResolveSymbolsTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   fun setup() {
@@ -44,28 +43,22 @@ class GradleKtsResolveSymbolsTest {
     AndroidTestBase.unmaskKotlinHighlightVisitor(projectRule.fixture)
   }
 
-  @Test
-  fun testSingleModuleApplication() = test(TestProjectPaths.BASIC_KOTLIN_GRADLE_DSL)
+  @Test fun testSingleModuleApplication() = test(TestProjectPaths.BASIC_KOTLIN_GRADLE_DSL)
 
-  @Test
-  fun testSimpleApplication() = test(TestProjectPaths.KOTLIN_GRADLE_DSL)
+  @Test fun testSimpleApplication() = test(TestProjectPaths.KOTLIN_GRADLE_DSL)
 
   private fun test(projectPath: String) {
     projectRule.load(projectPath)
 
     var ktsFiles: Collection<VirtualFile>? = null
-    runReadAction {
-      ktsFiles = FilenameIndex.getAllFilesByExt(projectRule.project, GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION)
-    }
+    runReadAction { ktsFiles = FilenameIndex.getAllFilesByExt(projectRule.project, GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION) }
     assertNotEmpty(ktsFiles)
 
     val ktsHighlightErrors = mutableListOf<HighlightInfo>()
     runInEdtAndWait {
       ktsFiles?.forEach { ktsFile ->
         projectRule.fixture.openFileInEditor(ktsFile)
-        projectRule.fixture.doHighlighting(HighlightSeverity.ERROR).also {
-          ktsHighlightErrors.addAll(it)
-        }
+        projectRule.fixture.doHighlighting(HighlightSeverity.ERROR).also { ktsHighlightErrors.addAll(it) }
       }
     }
     assertEmpty(ktsHighlightErrors)

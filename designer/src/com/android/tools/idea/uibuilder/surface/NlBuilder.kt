@@ -51,18 +51,9 @@ import org.jetbrains.annotations.VisibleForTesting
 private val DEFAULT_NL_SUPPORTED_ACTIONS = ImmutableSet.copyOf(NlSupportedActions.values())
 
 /** Default [LayoutlibSceneManager] provider */
-fun defaultSceneManagerProvider(
-  surface: NlDesignSurface,
-  model: NlModel,
-  listenToResourceChanges: Boolean = true,
-): LayoutlibSceneManager {
+fun defaultSceneManagerProvider(surface: NlDesignSurface, model: NlModel, listenToResourceChanges: Boolean = true): LayoutlibSceneManager {
   val sceneManager =
-    LayoutlibSceneManager(
-      model,
-      surface,
-      layoutScannerConfig = LayoutScannerEnabled(),
-      listenToResourceChanges = listenToResourceChanges,
-    )
+    LayoutlibSceneManager(model, surface, layoutScannerConfig = LayoutScannerEnabled(), listenToResourceChanges = listenToResourceChanges)
   val settings = getProjectSettings(model.project)
   sceneManager.sceneRenderConfiguration.let { config ->
     config.showDecorations = settings.showDecorations
@@ -74,9 +65,7 @@ fun defaultSceneManagerProvider(
 
 /** Default [NlDesignSurfaceActionHandler] provider. */
 @VisibleForTesting
-fun defaultActionHandlerProvider(
-  surface: DesignSurface<LayoutlibSceneManager>
-): NlDesignSurfaceActionHandler {
+fun defaultActionHandlerProvider(surface: DesignSurface<LayoutlibSceneManager>): NlDesignSurfaceActionHandler {
   return NlDesignSurfaceActionHandler(surface)
 }
 
@@ -88,11 +77,7 @@ class NlSurfaceBuilder(
 
   companion object {
     @JvmOverloads
-    fun builder(
-      project: Project,
-      parentDisposable: Disposable,
-      listenToResourceChanges: Boolean = true,
-    ): NlSurfaceBuilder {
+    fun builder(project: Project, parentDisposable: Disposable, listenToResourceChanges: Boolean = true): NlSurfaceBuilder {
       return builder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel ->
         defaultSceneManagerProvider(surface, model, listenToResourceChanges)
       }
@@ -109,13 +94,8 @@ class NlSurfaceBuilder(
     /** Builds a new [NlDesignSurface] with the default settings */
     @JvmOverloads
     @TestOnly
-    fun build(
-      project: Project,
-      parentDisposable: Disposable,
-      listenToResourceChanges: Boolean = true,
-    ): NlDesignSurface {
-      return NlSurfaceBuilder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel
-          ->
+    fun build(project: Project, parentDisposable: Disposable, listenToResourceChanges: Boolean = true): NlDesignSurface {
+      return NlSurfaceBuilder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel ->
           defaultSceneManagerProvider(surface, model, listenToResourceChanges)
         }
         .build()
@@ -124,37 +104,21 @@ class NlSurfaceBuilder(
 
   private var surfaceLayoutOption: SurfaceLayoutOption? = null
 
-  /**
-   * An optional [UiDataProvider] that allows users of the surface to provide additional information
-   * associated with this surface.
-   */
+  /** An optional [UiDataProvider] that allows users of the surface to provide additional information associated with this surface. */
   private var _delegateUiDataProvider: UiDataProvider? = null
 
   /** Factory to create an action manager for the DesignSurface */
-  private var _actionManagerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> ActionManager<DesignSurface<LayoutlibSceneManager>> =
-    {
-      NlActionManager(it as NlDesignSurface)
-    }
-
-  /**
-   * Factory to create an [Interactable] for the DesignSurface. It should only be modified for
-   * tests.
-   */
-  private var _interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable = {
-    SurfaceInteractable(it)
+  private var _actionManagerProvider: (DesignSurface<LayoutlibSceneManager>) -> ActionManager<DesignSurface<LayoutlibSceneManager>> = {
+    NlActionManager(it as NlDesignSurface)
   }
 
+  /** Factory to create an [Interactable] for the DesignSurface. It should only be modified for tests. */
+  private var _interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable = { SurfaceInteractable(it) }
+
   /** Factory to create an [InteractionHandler] for the [DesignSurface]. */
-  private var _interactionHandlerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler =
-    {
-      NlInteractionHandler(it)
-    }
+  private var _interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler = { NlInteractionHandler(it) }
   private var _actionHandlerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
-        DesignSurface<LayoutlibSceneManager>
-      > =
+    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<DesignSurface<LayoutlibSceneManager>> =
     {
       defaultActionHandlerProvider(it)
     }
@@ -168,11 +132,9 @@ class NlSurfaceBuilder(
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
 
-  private var _visualLintIssueProviderFactory:
-    (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
-    {
-      ViewVisualLintIssueProvider(it)
-    }
+  private var _visualLintIssueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider = {
+    ViewVisualLintIssueProvider(it)
+  }
 
   /** Allows customizing the [SurfaceLayoutOption]. */
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
@@ -181,32 +143,29 @@ class NlSurfaceBuilder(
   }
 
   /**
-   * Allows customizing the [ActionManager]. Use this method if you need to apply additional
-   * settings to it or if you need to completely replace it, for example for tests.
+   * Allows customizing the [ActionManager]. Use this method if you need to apply additional settings to it or if you need to completely
+   * replace it, for example for tests.
    */
   fun setActionManagerProvider(
-    actionManagerProvider:
-      (DesignSurface<LayoutlibSceneManager>) -> ActionManager<DesignSurface<LayoutlibSceneManager>>
+    actionManagerProvider: (DesignSurface<LayoutlibSceneManager>) -> ActionManager<DesignSurface<LayoutlibSceneManager>>
   ): NlSurfaceBuilder {
     _actionManagerProvider = actionManagerProvider
     return this
   }
 
   /**
-   * Allows to define the [Interactable] factory that will later be used to generate the
-   * [Interactable] over which the [InteractionHandler] will be placed.
+   * Allows to define the [Interactable] factory that will later be used to generate the [Interactable] over which the [InteractionHandler]
+   * will be placed.
    */
   @TestOnly
-  fun setInteractableProvider(
-    interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable
-  ): NlSurfaceBuilder {
+  fun setInteractableProvider(interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable): NlSurfaceBuilder {
     _interactableProvider = interactableProvider
     return this
   }
 
   /**
-   * Allows customizing the [InteractionHandler]. Use this method if you need to apply different
-   * interaction behavior to the [DesignSurface].
+   * Allows customizing the [InteractionHandler]. Use this method if you need to apply different interaction behavior to the
+   * [DesignSurface].
    *
    * Default is [NlInteractionHandler].
    */
@@ -219,19 +178,13 @@ class NlSurfaceBuilder(
 
   /** Sets the [DesignSurfaceActionHandler] provider for this surface. */
   fun setActionHandler(
-    actionHandlerProvider:
-      (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
-          DesignSurface<LayoutlibSceneManager>
-        >
+    actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<DesignSurface<LayoutlibSceneManager>>
   ): NlSurfaceBuilder {
     _actionHandlerProvider = actionHandlerProvider
     return this
   }
 
-  /**
-   * Sets a delegate [UiDataProvider] that allows users of the surface to provide additional
-   * information associated with this surface.
-   */
+  /** Sets a delegate [UiDataProvider] that allows users of the surface to provide additional information associated with this surface. */
   fun setDelegateUiDataProvider(uiDataProvider: UiDataProvider): NlSurfaceBuilder {
     _delegateUiDataProvider = uiDataProvider
     return this
@@ -250,17 +203,14 @@ class NlSurfaceBuilder(
   }
 
   /**
-   * Set the supported [NlSupportedActions] for the built DesignSurface. These actions are
-   * registered by xml and can be found globally, we need to assign if the built DesignSurface
-   * supports it or not. By default, the builder assumes there is no supported [NlSupportedActions].
-   * <br></br><br></br> Be aware the [com.intellij.openapi.actionSystem.AnAction]s registered by
-   * code are not effected.
+   * Set the supported [NlSupportedActions] for the built DesignSurface. These actions are registered by xml and can be found globally, we
+   * need to assign if the built DesignSurface supports it or not. By default, the builder assumes there is no supported
+   * [NlSupportedActions]. <br></br><br></br> Be aware the [com.intellij.openapi.actionSystem.AnAction]s registered by code are not
+   * effected.
    *
    * TODO(b/183243031): These mechanism should be integrated into [ActionManager].
    */
-  fun setSupportedActionsProvider(
-    supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>
-  ): NlSurfaceBuilder {
+  fun setSupportedActionsProvider(supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>): NlSurfaceBuilder {
     _supportedActionsProvider = supportedActionsProvider
     return this
   }
@@ -277,10 +227,7 @@ class NlSurfaceBuilder(
     return this
   }
 
-  fun setScreenViewProvider(
-    screenViewProvider: ScreenViewProvider,
-    setAsDefault: Boolean,
-  ): NlSurfaceBuilder {
+  fun setScreenViewProvider(screenViewProvider: ScreenViewProvider, setAsDefault: Boolean): NlSurfaceBuilder {
     _screenViewProvider = screenViewProvider
     _setDefaultScreenViewProvider = setAsDefault
     return this
@@ -295,10 +242,7 @@ class NlSurfaceBuilder(
 
   fun build(): NlDesignSurface {
     val nlDesignSurfacePositionableContentLayoutManager =
-      NlDesignSurfacePositionableContentLayoutManager(
-        parentDisposable.createCoroutineScope(),
-        surfaceLayoutOption ?: DEFAULT_OPTION,
-      )
+      NlDesignSurfacePositionableContentLayoutManager(parentDisposable.createCoroutineScope(), surfaceLayoutOption ?: DEFAULT_OPTION)
     val surface =
       NlDesignSurface(
         project,
@@ -321,9 +265,7 @@ class NlSurfaceBuilder(
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
     AndroidCoroutineScope(surface).launch {
-      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect {
-        withContext(uiThread) { surface.onLayoutUpdated(it) }
-      }
+      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect { withContext(uiThread) { surface.onLayoutUpdated(it) } }
     }
 
     _screenViewProvider?.let { surface.setScreenViewProvider(it, _setDefaultScreenViewProvider) }

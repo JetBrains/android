@@ -43,10 +43,7 @@ import javax.imageio.ImageIO
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-/**
- * Base class for a studio-side renderer (non on-device renderer) that is driven by an
- * [EmbeddedRendererModel].
- */
+/** Base class for a studio-side renderer (non on-device renderer) that is driven by an [EmbeddedRendererModel]. */
 abstract class AbstractStudioRendererPanel(
   disposable: Disposable,
   scope: CoroutineScope,
@@ -127,20 +124,12 @@ abstract class AbstractStudioRendererPanel(
 
     if (overlay != null) {
       getOverlayBounds(transform)?.let { overlayBounds ->
-        g2d.drawImage(
-          image = overlay!!,
-          bounds = overlayBounds,
-          alpha = renderModel.overlayAlpha.value,
-        )
+        g2d.drawImage(image = overlay!!, bounds = overlayBounds, alpha = renderModel.overlayAlpha.value)
       }
     }
 
-    renderModel.recomposingNodes.value.forEach {
-      it.paint(g2d, canvasBounds = canvasBounds, scale = scale, fill = true)
-    }
-    renderModel.visibleNodes.value.forEach {
-      it.paint(g2d, canvasBounds = canvasBounds, scale = scale)
-    }
+    renderModel.recomposingNodes.value.forEach { it.paint(g2d, canvasBounds = canvasBounds, scale = scale, fill = true) }
+    renderModel.visibleNodes.value.forEach { it.paint(g2d, canvasBounds = canvasBounds, scale = scale) }
     renderModel.hoveredNode.value?.paint(g2d, canvasBounds = canvasBounds, scale = scale)
     renderModel.selectedNode.value?.paint(g2d, canvasBounds = canvasBounds, scale = scale)
   }
@@ -160,8 +149,7 @@ abstract class AbstractStudioRendererPanel(
   private inner class LayoutInspectorPopupHandler : PopupHandler() {
     override fun invokePopup(comp: Component, x: Int, y: Int) {
       if (!interceptClicks) return
-      val modelCoordinates =
-        toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
+      val modelCoordinates = toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
       val views = renderModel.rightClickNode(modelCoordinates.x, modelCoordinates.y)
       showViewContextMenu(
         selectedView = renderModel.inspectorModel.selection,
@@ -211,16 +199,8 @@ private fun Graphics2D.drawImage(image: Image, bounds: Rectangle, alpha: Float) 
   composite = previousComposite
 }
 
-/**
- * Paints this [DrawInstruction] on the [graphics] context. The order of the draw operations in this
- * function matters.
- */
-private fun DrawInstruction.paint(
-  graphics: Graphics2D,
-  canvasBounds: Rectangle2D,
-  scale: Float,
-  fill: Boolean = false,
-) {
+/** Paints this [DrawInstruction] on the [graphics] context. The order of the draw operations in this function matters. */
+private fun DrawInstruction.paint(graphics: Graphics2D, canvasBounds: Rectangle2D, scale: Float, fill: Boolean = false) {
   if (image != null) {
     // Draw the image first
     graphics.drawImage(image, bounds, alpha = 1f)
@@ -269,10 +249,7 @@ private fun DrawInstruction.paint(
   }
 }
 
-/**
- * Paints this [DrawInstruction.Label] on the [graphics] context. The order of the draw operations
- * in this function matters.
- */
+/** Paints this [DrawInstruction.Label] on the [graphics] context. The order of the draw operations in this function matters. */
 private fun DrawInstruction.Label.paint(
   graphics: Graphics2D,
   nodeBounds: Rectangle,
@@ -312,8 +289,7 @@ private fun DrawInstruction.Label.paint(
   }
 
   // Use float rectangle to avoid rounding errors resulting from float to int conversion.
-  val labelBounds =
-    Rectangle2D.Float(labelLeft, labelTop, labelRight - labelLeft, labelBottom - labelTop)
+  val labelBounds = Rectangle2D.Float(labelLeft, labelTop, labelRight - labelLeft, labelBottom - labelTop)
 
   if (outlineColor != null) {
     // Draw the outline around the label.

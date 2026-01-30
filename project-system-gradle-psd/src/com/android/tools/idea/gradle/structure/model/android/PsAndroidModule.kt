@@ -47,19 +47,31 @@ import javax.swing.Icon
 const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|', '\$', ''']"
 val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|\$'")
 
-class PsAndroidModule(
-  parent: PsProject,
-  override val gradlePath: String
-) : PsModule(parent, ModuleKind.ANDROID) {
+class PsAndroidModule(parent: PsProject, override val gradlePath: String) : PsModule(parent, ModuleKind.ANDROID) {
   override val descriptor by AndroidModuleDescriptors
-  var resolvedModel: GradleAndroidDependencyModel? = null; private set
-  var resolvedNativeModel: NdkModuleModel? = null; private set
-  var resolvedSyncIssues: SyncIssues? = null ; private set
-  override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
-  var isLibrary: Boolean = false; private set
-  var isKmpModule: Boolean = false; private set
-  override var rootDir: File? = null; private set
-  override var icon: Icon? = null; private set
+  var resolvedModel: GradleAndroidDependencyModel? = null
+    private set
+
+  var resolvedNativeModel: NdkModuleModel? = null
+    private set
+
+  var resolvedSyncIssues: SyncIssues? = null
+    private set
+
+  override var projectType: PsModuleType = PsModuleType.UNKNOWN
+    private set
+
+  var isLibrary: Boolean = false
+    private set
+
+  var isKmpModule: Boolean = false
+    private set
+
+  override var rootDir: File? = null
+    private set
+
+  override var icon: Icon? = null
+    private set
 
   private var buildTypeCollection: PsBuildTypeCollection? = null
   private var flavorDimensionCollection: PsFlavorDimensionCollection? = null
@@ -83,7 +95,7 @@ class PsAndroidModule(
     resolvedModel: GradleAndroidDependencyModel?,
     resolvedNativeModel: NdkModuleModel?,
     resolvedSyncIssues: SyncIssues?,
-    parsedModel: GradleBuildModel?
+    parsedModel: GradleBuildModel?,
   ) {
     super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
@@ -92,7 +104,8 @@ class PsAndroidModule(
 
     projectType =
       moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
-      ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
+        ?: parsedModel?.parsedModelModuleType()
+        ?: PsModuleType.UNKNOWN
     isLibrary = projectType.androidModuleType != AndroidModuleSystem.Type.TYPE_APP
     isKmpModule = projectType == PsModuleType.ANDROID_KMP_LIBRARY
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
@@ -102,17 +115,31 @@ class PsAndroidModule(
     flavorDimensionCollection?.refresh()
     productFlavorCollection?.refresh()
     resolvedVariantCollection?.refresh()
-    dependencyCollection?.let { it.refresh(); fireDependenciesReloadedEvent() }
+    dependencyCollection?.let {
+      it.refresh()
+      fireDependenciesReloadedEvent()
+    }
     signingConfigCollection?.refresh()
   }
 
-  val buildTypes: PsModelCollection<PsBuildType> get() = getOrCreateBuildTypeCollection()
-  val productFlavors: PsModelCollection<PsProductFlavor> get() = getOrCreateProductFlavorCollection()
-  val resolvedVariants: PsModelCollection<PsVariant> get() = getOrCreateResolvedVariantCollection()
-  override val dependencies: PsAndroidModuleDependencyCollection get() = getOrCreateDependencyCollection()
-  val signingConfigs: PsModelCollection<PsSigningConfig> get() = getOrCreateSigningConfigCollection()
+  val buildTypes: PsModelCollection<PsBuildType>
+    get() = getOrCreateBuildTypeCollection()
+
+  val productFlavors: PsModelCollection<PsProductFlavor>
+    get() = getOrCreateProductFlavorCollection()
+
+  val resolvedVariants: PsModelCollection<PsVariant>
+    get() = getOrCreateResolvedVariantCollection()
+
+  override val dependencies: PsAndroidModuleDependencyCollection
+    get() = getOrCreateDependencyCollection()
+
+  val signingConfigs: PsModelCollection<PsSigningConfig>
+    get() = getOrCreateSigningConfigCollection()
+
   val defaultConfig = PsAndroidModuleDefaultConfig(this)
-  val flavorDimensions: PsModelCollection<PsFlavorDimension> get() = getOrCreateFlavorDimensionCollection()
+  val flavorDimensions: PsModelCollection<PsFlavorDimension>
+    get() = getOrCreateFlavorDimensionCollection()
 
   fun findBuildType(buildType: String): PsBuildType? = getOrCreateBuildTypeCollection().findElement(buildType)
 
@@ -135,8 +162,7 @@ class PsAndroidModule(
     repositories.addAll(listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository()))
   }
 
-  private fun flavorNamesByDimension(dimension: String) =
-    productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
+  private fun flavorNamesByDimension(dimension: String) = productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
   private fun flavorNamesCartesianProduct(newFlavorName: String? = null, dimensionName: String? = null): List<String> =
     flavorDimensions
@@ -151,17 +177,18 @@ class PsAndroidModule(
 
   // TODO(xof): in the light of b/137551452, remaining uses of this function (checking for collisions when adding new build types
   //  or product flavors) should be converted to flavorNamesCartesianProduct.  (Using this makes the check slightly too stringent.)
-  private fun buildFlavorCombinations(newFlavorName: String? = null, dimensionName: String? = null) = when {
-    flavorDimensions.size > 1 -> flavorDimensions
-      .fold(listOf(listOf(""))) { acc, dimension ->
-        (if (dimensionName == dimension.name) listOf(newFlavorName!!) else flavorNamesByDimension(dimension.name))
-          .flatMap { flavor ->
-            acc.map { prefix -> prefix + flavor }
+  private fun buildFlavorCombinations(newFlavorName: String? = null, dimensionName: String? = null) =
+    when {
+      flavorDimensions.size > 1 ->
+        flavorDimensions
+          .fold(listOf(listOf(""))) { acc, dimension ->
+            (if (dimensionName == dimension.name) listOf(newFlavorName!!) else flavorNamesByDimension(dimension.name)).flatMap { flavor ->
+              acc.map { prefix -> prefix + flavor }
+            }
           }
-      }
-      .map { it.filter { it != "" }.combineAsCamelCase() }
-    else -> listOf()  // There are no additional flavor combinations if there is only one flavor dimension.
-  }
+          .map { it.filter { it != "" }.combineAsCamelCase() }
+      else -> listOf() // There are no additional flavor combinations if there is only one flavor dimension.
+    }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
   override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
@@ -170,17 +197,19 @@ class PsAndroidModule(
 
     fun applicableBuildTypes(artifact: String) =
       when (artifact) {
-        "androidTest" -> listOf("")  // androidTest is built only for the configured buildType.
-        else -> listOf("") +
-                (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) buildTypes.map { it.name } else listOf())
+        "androidTest" -> listOf("") // androidTest is built only for the configured buildType.
+        else ->
+          listOf("") + (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) buildTypes.map { it.name } else listOf())
       }
 
-    fun applicableScopes() = listOfNotNull(
-      "implementation",
-      "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
-      "compileOnly".takeIf { onlyImportantFor == null },
-      "runtimeOnly".takeIf { onlyImportantFor == null },
-      "annotationProcessor".takeIf { onlyImportantFor == null })
+    fun applicableScopes() =
+      listOfNotNull(
+        "implementation",
+        "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
+        "compileOnly".takeIf { onlyImportantFor == null },
+        "runtimeOnly".takeIf { onlyImportantFor == null },
+        "annotationProcessor".takeIf { onlyImportantFor == null },
+      )
 
     val result = mutableListOf<String>()
     applicableArtifacts().forEach { artifact ->
@@ -196,10 +225,12 @@ class PsAndroidModule(
           }
         }
         if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) {
-          productFlavors.map { it.name }.forEach { productFlavor ->
-            // configurations that are simple single-dimension productFlavor names (with no build type)
-            result.add(listOf(artifact, productFlavor, "", scope).filter { it != "" }.combineAsCamelCase())
-          }
+          productFlavors
+            .map { it.name }
+            .forEach { productFlavor ->
+              // configurations that are simple single-dimension productFlavor names (with no build type)
+              result.add(listOf(artifact, productFlavor, "", scope).filter { it != "" }.combineAsCamelCase())
+            }
         }
       }
     }
@@ -221,29 +252,33 @@ class PsAndroidModule(
     return potential.any { variantSuffixes.contains(it) }
   }
 
-  fun validateBuildTypeName(name: String): String? = when {
-    name.isEmpty() -> "Build type name cannot be empty."
-    name.startsWith("test") -> "Build type name cannot start with 'test'."
-    name.startsWith("androidTest") -> "Build type name cannot start with 'androidTest'."
-    name == "main" -> "Build type name cannot be 'main'."
-    name == "lint" -> "Build type name cannot be 'lint'."
-    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate build type name: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Build type name cannot collide with product flavor: '$name'"
-    buildTypeCausesAmbiguity(name) -> "Build type name '$name' would cause a configuration name ambiguity."
-    else -> null
-  }
+  fun validateBuildTypeName(name: String): String? =
+    when {
+      name.isEmpty() -> "Build type name cannot be empty."
+      name.startsWith("test") -> "Build type name cannot start with 'test'."
+      name.startsWith("androidTest") -> "Build type name cannot start with 'androidTest'."
+      name == "main" -> "Build type name cannot be 'main'."
+      name == "lint" -> "Build type name cannot be 'lint'."
+      DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
+      getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } ->
+        "Duplicate build type name: '$name'"
+      getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } ->
+        "Build type name cannot collide with product flavor: '$name'"
+      buildTypeCausesAmbiguity(name) -> "Build type name '$name' would cause a configuration name ambiguity."
+      else -> null
+    }
 
   fun removeBuildType(buildType: PsBuildType) = getOrCreateBuildTypeCollection().remove(buildType.name)
 
   fun addNewFlavorDimension(name: String) = getOrCreateFlavorDimensionCollection().addNew(name)
 
-  fun validateFlavorDimensionName(name: String): String? = when {
-    name.isEmpty() -> "Flavor dimension name cannot be empty."
-    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Flavor dimension name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateFlavorDimensionCollection().any { it.name == name } -> "Duplicate flavor dimension name: '$name'"
-    else -> null
-  }
+  fun validateFlavorDimensionName(name: String): String? =
+    when {
+      name.isEmpty() -> "Flavor dimension name cannot be empty."
+      DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Flavor dimension name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
+      getOrCreateFlavorDimensionCollection().any { it.name == name } -> "Duplicate flavor dimension name: '$name'"
+      else -> null
+    }
 
   fun removeFlavorDimension(flavorDimension: PsFlavorDimension) = getOrCreateFlavorDimensionCollection().remove(flavorDimension.name)
 
@@ -253,37 +288,42 @@ class PsAndroidModule(
   private fun productFlavorCausesAmbiguity(name: String, dimension: String?): Boolean {
     if (dimension == null) return false
     val variantSuffixes = computeCurrentVariantSuffixes()
-    val potential = (listOf(name) + buildFlavorCombinations(name, dimension))
-      .flatMap { flavor -> buildTypes.map { listOf(flavor, it.name).combineAsCamelCase().usLocaleCapitalize() } }
+    val potential =
+      (listOf(name) + buildFlavorCombinations(name, dimension)).flatMap { flavor ->
+        buildTypes.map { listOf(flavor, it.name).combineAsCamelCase().usLocaleCapitalize() }
+      }
     return potential.any { variantSuffixes.contains(it) }
   }
 
-  fun validateProductFlavorName(name: String, dimension: String?): String? = when {
-    name.isEmpty() -> "Product flavor name cannot be empty."
-    name.startsWith("test") -> "Product flavor name cannot start with 'test'."
-    name.startsWith("androidTest") -> "Product flavor name cannot start with 'androidTest'."
-    name == "main" -> "Product flavor name cannot be 'main'."
-    name == "lint" -> "Product flavor name cannot be 'lint'."
-    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Duplicate product flavor name: '$name'"
-    getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } -> "Product flavor name cannot collide with build type: '$name'"
-    productFlavorCausesAmbiguity(name, dimension) ->
-      "Product flavor name '$name' in flavor dimension '$dimension' would cause a configuration name ambiguity."
-    else -> null
-  }
+  fun validateProductFlavorName(name: String, dimension: String?): String? =
+    when {
+      name.isEmpty() -> "Product flavor name cannot be empty."
+      name.startsWith("test") -> "Product flavor name cannot start with 'test'."
+      name.startsWith("androidTest") -> "Product flavor name cannot start with 'androidTest'."
+      name == "main" -> "Product flavor name cannot be 'main'."
+      name == "lint" -> "Product flavor name cannot be 'lint'."
+      DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Product flavor name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
+      getOrCreateProductFlavorCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } ->
+        "Duplicate product flavor name: '$name'"
+      getOrCreateBuildTypeCollection().any { it.name.usLocaleCapitalize() == name.usLocaleCapitalize() } ->
+        "Product flavor name cannot collide with build type: '$name'"
+      productFlavorCausesAmbiguity(name, dimension) ->
+        "Product flavor name '$name' in flavor dimension '$dimension' would cause a configuration name ambiguity."
+      else -> null
+    }
 
   fun removeProductFlavor(productFlavor: PsProductFlavor) =
-    getOrCreateProductFlavorCollection()
-      .remove(PsProductFlavorKey(productFlavor.effectiveDimension.orEmpty(), productFlavor.name))
+    getOrCreateProductFlavorCollection().remove(PsProductFlavorKey(productFlavor.effectiveDimension.orEmpty(), productFlavor.name))
 
   fun addNewSigningConfig(name: String): PsSigningConfig = getOrCreateSigningConfigCollection().addNew(name)
 
-  fun validateSigningConfigName(name: String): String? = when {
-    name.isEmpty() -> "Signing config name cannot be empty."
-    DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Signing config name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
-    getOrCreateSigningConfigCollection().any { it.name == name } -> "Duplicate signing config name: '$name'"
-    else -> null
-  }
+  fun validateSigningConfigName(name: String): String? =
+    when {
+      name.isEmpty() -> "Signing config name cannot be empty."
+      DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Signing config name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
+      getOrCreateSigningConfigCollection().any { it.name == name } -> "Duplicate signing config name: '$name'"
+      else -> null
+    }
 
   fun removeSigningConfig(signingConfig: PsSigningConfig) = getOrCreateSigningConfigCollection().remove(signingConfig.name)
 
@@ -297,37 +337,41 @@ class PsAndroidModule(
       dimensions: List<List<String>>,
       dimensionIndex: Int,
       capitalize: Boolean,
-      matches: Int
+      matches: Int,
     ): Boolean {
       // dimensions is a list, each element except the last of which is a list of strings naming flavours in one flavour dimension.
       // The last element is a list of strings naming build types.
       if (dimensionIndex >= dimensions.size) return false
       return when (matches) {
-        0 -> dimensions[dimensionIndex]
-               .any {
-                 val prefix = if (capitalize) it.usLocaleCapitalize() else it
-                 configurationName.startsWith(prefix) &&
-                 artifactFreeConfigurationRequiresWorkaround(configurationName.removePrefix(prefix), dimensions,
-                                                             dimensionIndex + 1, true,
-                                                             matches + 1)
-               } ||
-             artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, dimensionIndex + 1, capitalize, matches)
-        1 -> dimensions[dimensionIndex].any { configurationName.startsWith(if (capitalize) it.usLocaleCapitalize() else it) } ||
-             artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, dimensionIndex + 1, capitalize, matches)
+        0 ->
+          dimensions[dimensionIndex].any {
+            val prefix = if (capitalize) it.usLocaleCapitalize() else it
+            configurationName.startsWith(prefix) &&
+              artifactFreeConfigurationRequiresWorkaround(
+                configurationName.removePrefix(prefix),
+                dimensions,
+                dimensionIndex + 1,
+                true,
+                matches + 1,
+              )
+          } || artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, dimensionIndex + 1, capitalize, matches)
+        1 ->
+          dimensions[dimensionIndex].any { configurationName.startsWith(if (capitalize) it.usLocaleCapitalize() else it) } ||
+            artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, dimensionIndex + 1, capitalize, matches)
         else -> false
       }
     }
 
     return flavorDimensions.isNotEmpty() &&
-           (flavorDimensions.map { flavorNamesByDimension(it.name) } + listOf(buildTypes.map { it.name })).let { dimensions ->
-             when {
-               configurationName.startsWith("androidTest") ->
-                 artifactFreeConfigurationRequiresWorkaround(configurationName.removePrefix("androidTest"), dimensions, 0, true, 0)
-               configurationName.startsWith("test") ->
-                 artifactFreeConfigurationRequiresWorkaround(configurationName.removePrefix("test"), dimensions, 0, true, 0)
-               else -> artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, 0, false, 0)
-             }
-           }
+      (flavorDimensions.map { flavorNamesByDimension(it.name) } + listOf(buildTypes.map { it.name })).let { dimensions ->
+        when {
+          configurationName.startsWith("androidTest") ->
+            artifactFreeConfigurationRequiresWorkaround(configurationName.removePrefix("androidTest"), dimensions, 0, true, 0)
+          configurationName.startsWith("test") ->
+            artifactFreeConfigurationRequiresWorkaround(configurationName.removePrefix("test"), dimensions, 0, true, 0)
+          else -> artifactFreeConfigurationRequiresWorkaround(configurationName, dimensions, 0, false, 0)
+        }
+      }
   }
 
   override fun maybeAddConfiguration(configurationName: String) {
@@ -381,7 +425,7 @@ class PsAndroidModule(
 
   fun resetProductFlavors() {
     productFlavorCollection?.refresh()
-    flavorDimensionCollection?.refresh()  // (invalid) dimension may appear or disappear.
+    flavorDimensionCollection?.refresh() // (invalid) dimension may appear or disappear.
   }
 
   internal fun resetResolvedDependencies() {

@@ -26,12 +26,11 @@ import com.intellij.psi.impl.source.codeStyle.CodeEditUtil
 import com.intellij.psi.impl.source.tree.LeafElement
 import com.intellij.psi.tree.IElementType
 
-
 /**
  * [AbstractElementManipulator] that inserts the new name (possibly quoted) into the PSI.
  *
- * It also specifies the range in element, which for quoted names does not include the quotes. This fixes the inline renamer,
- * because SQL remains valid when renaming quoted names.
+ * It also specifies the range in element, which for quoted names does not include the quotes. This fixes the inline renamer, because SQL
+ * remains valid when renaming quoted names.
  */
 class AndroidSqlNameElementManipulator : AbstractElementManipulator<AndroidSqlNameElement>() {
   override fun handleContentChange(element: AndroidSqlNameElement, range: TextRange, newContent: String): AndroidSqlNameElement {
@@ -41,7 +40,7 @@ class AndroidSqlNameElementManipulator : AbstractElementManipulator<AndroidSqlNa
         newLeaf(AndroidSqlPsiTypes.BACKTICK_LITERAL, AndroidSqlLexer.getValidName(newContent))
       } else {
         newLeaf(AndroidSqlPsiTypes.IDENTIFIER, newContent)
-      }
+      },
     )
     return element
   }

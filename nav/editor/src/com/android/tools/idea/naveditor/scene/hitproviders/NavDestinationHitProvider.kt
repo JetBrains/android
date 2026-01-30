@@ -26,11 +26,7 @@ import com.android.tools.idea.naveditor.scene.getHeaderRect
  Augments the hit region for destinations to include the header above the destination
 */
 object NavDestinationHitProvider : DefaultHitProvider() {
-  override fun addHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     super.addHit(component, sceneTransform, picker)
 
     val drawRectangle = component.inlineDrawRect(sceneTransform)

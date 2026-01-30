@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-/**
- * Centralized place to construct user-friendly error message.
- */
-public fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all build errors are fixed."
+/** Centralized place to construct user-friendly error message. */
+public fun leErrorMessage(type: LiveEditUpdateException.Error, source: String?) =
+  "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all build errors are fixed."
 
-fun errorMessage(exception: LiveEditUpdateException) : String {
+fun errorMessage(exception: LiveEditUpdateException): String {
   val error = exception.error.message
   var details = exception.details
   if (!details.isEmpty()) {
@@ -31,23 +30,23 @@ fun errorMessage(exception: LiveEditUpdateException) : String {
   return "$error$inLocation.$details$cause"
 }
 
-private fun String.findNthIndexOf(char: Char, nth: Int) : Int {
-  var occurr = nth;
+private fun String.findNthIndexOf(char: Char, nth: Int): Int {
+  var occurr = nth
 
-  var index = -1;
+  var index = -1
   while (occurr > 0) {
     val newIndex = this.indexOf(char, index + 1)
     if (newIndex == -1) {
-      return index;
+      return index
     } else {
       index = newIndex
     }
-    occurr--;
+    occurr--
   }
   return index
 }
 
-private fun truncateDetail(detail: String) : String{
+private fun truncateDetail(detail: String): String {
   val index = detail.findNthIndexOf('\n', 20)
   return if (index == -1) {
     detail

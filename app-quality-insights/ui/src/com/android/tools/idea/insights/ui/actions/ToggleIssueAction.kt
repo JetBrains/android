@@ -58,13 +58,11 @@ class ToggleIssueAction(
     }
   }
 
-  private fun AppInsightsState.shouldEnableAction() =
-    permission == Permission.FULL && mode == ConnectionMode.ONLINE
+  private fun AppInsightsState.shouldEnableAction() = permission == Permission.FULL && mode == ConnectionMode.ONLINE
 
   private fun AppInsightsState.getActionDescription() =
     when {
-      permission != Permission.FULL ->
-        "You don't have the necessary permissions to open/close issues."
+      permission != Permission.FULL -> "You don't have the necessary permissions to open/close issues."
       mode != ConnectionMode.ONLINE -> "AQI is offline."
       else -> null
     }

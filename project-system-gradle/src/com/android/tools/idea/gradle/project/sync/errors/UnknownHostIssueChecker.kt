@@ -24,15 +24,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.net.UnknownHostException
+import java.util.function.Consumer
+import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.net.UnknownHostException
-import java.util.function.Consumer
-import java.util.regex.Pattern
 
-class UnknownHostIssueChecker: GradleIssueChecker {
+class UnknownHostIssueChecker : GradleIssueChecker {
   private val UNKNOWN_HOST_PATTERN = Pattern.compile("java.net.UnknownHostException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -44,21 +44,27 @@ class UnknownHostIssueChecker: GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNKNOWN_HOST)
 
     val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
-    return BuildIssueComposer("Unknown host '$message'. You may need to adjust the proxy settings in Gradle.").apply {
-      if (ideaProject != null && !GradleSettings.getInstance(ideaProject).isOfflineWork) {
-        addQuickFix("Enable Gradle 'offline mode' and sync project",  ToggleOfflineModeQuickFix(true))
+    return BuildIssueComposer("Unknown host '$message'. You may need to adjust the proxy settings in Gradle.")
+      .apply {
+        if (ideaProject != null && !GradleSettings.getInstance(ideaProject).isOfflineWork) {
+          addQuickFix("Enable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+        }
+        addQuickFix(
+          "Learn about configuring HTTP proxies in Gradle",
+          OpenLinkQuickFix("https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy"),
+        )
       }
-      addQuickFix("Learn about configuring HTTP proxies in Gradle",
-                  OpenLinkQuickFix("https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy"))
-    }.composeBuildIssue()
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return stacktrace != null && UNKNOWN_HOST_PATTERN.matcher(stacktrace).find()
   }
 }

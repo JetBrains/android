@@ -39,10 +39,8 @@ import org.junit.runner.Description
 import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
 
-class NavEditorRule(
-  private val projectRule: AndroidProjectRule? = null,
-  private val projectName: String = NAVIGATION_EDITOR_BASIC,
-) : TestRule {
+class NavEditorRule(private val projectRule: AndroidProjectRule? = null, private val projectName: String = NAVIGATION_EDITOR_BASIC) :
+  TestRule {
 
   val testDataPath: String
     get() = "${navEditorPluginHome}/testData"
@@ -55,17 +53,10 @@ class NavEditorRule(
 
   private val myProjectRule = projectRule ?: AndroidProjectRule.withSdk()
 
-  fun model(name: String, f: () -> ComponentDescriptor) = runInEdtAndGet {
-    modelBuilder(name, f).build()
-  }
+  fun model(name: String, f: () -> ComponentDescriptor) = runInEdtAndGet { modelBuilder(name, f).build() }
 
   fun modelBuilder(name: String, f: () -> ComponentDescriptor): ModelBuilder =
-    NavModelBuilderUtil.model(
-      name,
-      myProjectRule.module.androidFacet!!,
-      myProjectRule.fixture as JavaCodeInsightTestFixture,
-      f,
-    )
+    NavModelBuilderUtil.model(name, myProjectRule.module.androidFacet!!, myProjectRule.fixture as JavaCodeInsightTestFixture, f)
 
   override fun apply(statement: Statement, description: Description): Statement {
     var localStatement: Statement =
@@ -93,10 +84,7 @@ class NavEditorRule(
 
     myProjectRule.fixture.copyDirectoryToProject("$projectName/app/src/main/java", "src")
     myProjectRule.fixture.copyDirectoryToProject("$projectName/app/src/main/res", "res")
-    myProjectRule.fixture.copyFileToProject(
-      "$projectName/app/src/main/AndroidManifest.xml",
-      "AndroidManifest.xml",
-    )
+    myProjectRule.fixture.copyFileToProject("$projectName/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
@@ -111,12 +99,7 @@ class NavEditorRule(
         virtualFileList.add(VfsUtil.findFileByIoFile(resFile, true))
       }
 
-      PsiTestUtil.addProjectLibrary(
-        myProjectRule.module,
-        libName,
-        virtualFileList,
-        emptyList<VirtualFile>(),
-      )
+      PsiTestUtil.addProjectLibrary(myProjectRule.module, libName, virtualFileList, emptyList<VirtualFile>())
       VfsUtil.markDirtyAndRefresh(false, true, true, unzippedClasses)
 
       // TODO: support multiple modules

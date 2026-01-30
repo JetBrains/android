@@ -25,8 +25,8 @@ class UnanalyzedHeapReport
 constructor(
   val hprofPath: Path,
   heapProperties: HeapReportProperties,
-  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : HeapReport("UnanalyzedHeap", heapProperties, baseProperties) {
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : HeapReport("UnanalyzedHeap", heapProperties, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
     super.serializeReportProperties(writer)
@@ -39,15 +39,13 @@ constructor(
   }
 
   companion object {
-    fun deserialize(baseProperties: DiagnosticReportProperties,
-                    properties: Map<String, String>,
-                    format: Long): UnanalyzedHeapReport {
+    fun deserialize(baseProperties: DiagnosticReportProperties, properties: Map<String, String>, format: Long): UnanalyzedHeapReport {
       if (format >= 2L) {
         val hprofPath = Paths.get(properties["hprofPath"] ?: throw IllegalArgumentException("Missing hprofPath entry"))
         val heapReportProperties =
           HeapReportProperties(
             properties["reason"]?.let { MemoryReportReason.valueOf(it) } ?: MemoryReportReason.None,
-            properties["liveStats"] ?: ""
+            properties["liveStats"] ?: "",
           )
         return UnanalyzedHeapReport(hprofPath, heapReportProperties, baseProperties)
       }

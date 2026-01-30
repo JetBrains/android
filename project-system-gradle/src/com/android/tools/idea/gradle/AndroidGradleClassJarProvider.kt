@@ -27,8 +27,7 @@ import org.jetbrains.android.facet.AndroidRootUtil.getExternalLibraries
 
 object AndroidGradleClassJarProvider {
   fun getModuleExternalLibraries(module: Module): List<File> {
-    val gradleModule = GradleAndroidDependencyModel.get(module)
-                       ?: return getExternalLibraries(module).map(VfsUtilCore::virtualToIoFile)
+    val gradleModule = GradleAndroidDependencyModel.get(module) ?: return getExternalLibraries(module).map(VfsUtilCore::virtualToIoFile)
     return gradleModule.mainArtifactWithDependencies.runtimeClasspath.libraries.flatMap { library ->
       when (library) {
         is IdeAndroidLibrary -> library.runtimeJarFiles

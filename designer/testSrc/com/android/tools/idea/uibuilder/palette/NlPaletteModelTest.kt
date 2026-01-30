@@ -147,8 +147,7 @@ class NlPaletteModelTest {
     val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(handler).isNotNull()
     assertThat(handler!!.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW)
-    assertThat(handler.getIcon(CUSTOM_VIEW_CLASS))
-      .isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
+    assertThat(handler.getIcon(CUSTOM_VIEW_CLASS)).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isNull()
     assertThat(handler.getPreviewScale(CUSTOM_VIEW_CLASS)).isWithin(0.0).of(1.0)
     assertThat(handler.inspectorProperties).isEmpty()
@@ -262,10 +261,10 @@ class NlPaletteModelTest {
     assertThat(item.xml.trim())
       .isEqualTo(
         """
-      <com.example.FakeCustomView
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
-      """
+        <com.example.FakeCustomView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        """
           .trimIndent()
       )
     assertThat(item.metaTags).isEmpty()
@@ -285,28 +284,21 @@ class NlPaletteModelTest {
     registerFakeBaseViewHandler()
     var palette = getPaletteWhenAdditionalComponentsReady(model)
     var thirdParty = getProjectGroup(palette)
-    assertThat(thirdParty!!.items.map { it.toString() })
-      .containsExactly("FakeCustomView", "FakeCustomViewGroup")
+    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup")
 
     // Simulate a build where a new custom component was added:
-    fixture!!.addClass(
-      "package com.example; public class AnotherFakeCustomView extends android.view.View {}"
-    )
+    fixture!!.addClass("package com.example; public class AnotherFakeCustomView extends android.view.View {}")
     projectSystem!!.getBuildManager().compileProject()
     palette = getPaletteWhenAdditionalComponentsReady(model)
     thirdParty = getProjectGroup(palette)
-    assertThat(thirdParty!!.items.map { it.toString() })
-      .containsExactly("FakeCustomView", "FakeCustomViewGroup", "AnotherFakeCustomView")
+    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup", "AnotherFakeCustomView")
   }
 
   private fun checkIdsAreUniqueInPalette(layoutType: LayoutEditorFileType) {
     val palette = model!!.getPalette(layoutType)
     val ids: MutableSet<String?> = HashSet()
     palette.accept { item: Palette.Item ->
-      TestCase.assertTrue(
-        "ID is not unique: " + item.id + " with layoutType: " + layoutType,
-        ids.add(item.id),
-      )
+      TestCase.assertTrue("ID is not unique: " + item.id + " with layoutType: " + layoutType, ids.add(item.id))
     }
     assertThat(ids).isNotEmpty()
   }
@@ -321,12 +313,8 @@ class NlPaletteModelTest {
   private fun registerJavaClasses() {
     fixture!!.addClass("package android.view; public class View {}")
     fixture!!.addClass("package android.view; public class ViewGroup extends View {}")
-    fixture!!.addClass(
-      "package com.example; public class FakeCustomView extends android.view.View {}"
-    )
-    fixture!!.addClass(
-      "package com.example; public class FakeCustomViewGroup extends android.view.ViewGroup {}"
-    )
+    fixture!!.addClass("package com.example; public class FakeCustomView extends android.view.View {}")
+    fixture!!.addClass("package com.example; public class FakeCustomViewGroup extends android.view.ViewGroup {}")
   }
 
   companion object {

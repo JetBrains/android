@@ -25,12 +25,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 /** A [JComponent] that can switch between 2 provided child components */
-internal class SwitchingPanel(
-  component1: JComponent,
-  title1: String,
-  component2: JComponent,
-  title2: String,
-) : JPanel(null) {
+internal class SwitchingPanel(component1: JComponent, title1: String, component2: JComponent, title2: String) : JPanel(null) {
   val switcher = JLabel()
 
   init {

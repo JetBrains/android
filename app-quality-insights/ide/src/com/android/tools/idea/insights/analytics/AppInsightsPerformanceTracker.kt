@@ -23,18 +23,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
-private val scheduler =
-  AppExecutorUtil.createBoundedScheduledExecutorService(
-    "App Insights Performance Statistics Collector",
-    1,
-  )
+private val scheduler = AppExecutorUtil.createBoundedScheduledExecutorService("App Insights Performance Statistics Collector", 1)
 
 /**
  * A manager for tracking performance/latency sensitive executions in AQI.
  *
- * We will report on hourly basis and at application shutdown. That is, events will be recorded in
- * recorders first, and then histograms of value measurements will be sent out at the scheduled
- * time.
+ * We will report on hourly basis and at application shutdown. That is, events will be recorded in recorders first, and then histograms of
+ * value measurements will be sent out at the scheduled time.
  */
 @Service(Service.Level.APP)
 class AppInsightsPerformanceTracker : Disposable {
@@ -43,8 +38,7 @@ class AppInsightsPerformanceTracker : Disposable {
     scheduler.scheduleWithFixedDelay({ reportPerformanceStats() }, 1, 1, TimeUnit.HOURS)
   }
 
-  private val vcBasedLineNumberMappingLatencyRecorder =
-    VersionControlBasedLineNumberMappingLatencyRecorder()
+  private val vcBasedLineNumberMappingLatencyRecorder = VersionControlBasedLineNumberMappingLatencyRecorder()
 
   fun recordVersionControlBasedLineNumberMappingLatency(latencyMs: Long) {
     vcBasedLineNumberMappingLatencyRecorder.recordLatency(latencyMs)
@@ -53,14 +47,9 @@ class AppInsightsPerformanceTracker : Disposable {
   private fun reportPerformanceStats() {
     val performanceStats =
       AppQualityInsightsUsageEvent.PerformanceStats.newBuilder()
-        .apply {
-          vcBasedLineNumberMappingLatencyRecorder.reportLatency()?.let {
-            vcBasedLineNumberMappingLatency = it
-          }
-        }
+        .apply { vcBasedLineNumberMappingLatencyRecorder.reportLatency()?.let { vcBasedLineNumberMappingLatency = it } }
         .build()
-        .takeUnless { it == AppQualityInsightsUsageEvent.PerformanceStats.getDefaultInstance() }
-        ?: return
+        .takeUnless { it == AppQualityInsightsUsageEvent.PerformanceStats.getDefaultInstance() } ?: return
 
     UsageTracker.log(
       generateAndroidStudioEventBuilder()

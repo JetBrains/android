@@ -82,14 +82,7 @@ class EmbeddedRendererModelTest {
         view(ROOT, 0, 0, 100, 100) {
           view(VIEW1, 10, 15, 25, 25)
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
-          view(
-            VIEW2,
-            0,
-            0,
-            100,
-            100,
-            qualifiedName = "com.android.tools.agent.appinspection.rendering.OverlayView",
-          )
+          view(VIEW2, 0, 0, 100, 100, qualifiedName = "com.android.tools.agent.appinspection.rendering.OverlayView")
         }
       }
 
@@ -239,10 +232,7 @@ class EmbeddedRendererModelTest {
 
     treeSettings.showRecompositions = true
 
-    val newWindow =
-      viewWindow(ROOT, 0, 0, 100, 200) {
-        compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {}
-      }
+    val newWindow = viewWindow(ROOT, 0, 0, 100, 200) { compose(COMPOSE2, name = "compose-node", x = 0, y = 0, width = 50, height = 50) {} }
     var composeNode2 = newWindow.root.flattenedList().find { it.drawId == COMPOSE2 }!!
     composeNode2.recompositions.highlightCount = 100f
     inspectorModel.update(newWindow, listOf(ROOT), 0)
@@ -266,10 +256,7 @@ class EmbeddedRendererModelTest {
     inspectorModel.resetRecompositionCounts()
     treeSettings.showRecompositions = false
 
-    val newWindow2 =
-      viewWindow(ROOT, 0, 0, 100, 200) {
-        compose(COMPOSE3, name = "compose-node", x = 0, y = 0, width = 20, height = 20) {}
-      }
+    val newWindow2 = viewWindow(ROOT, 0, 0, 100, 200) { compose(COMPOSE3, name = "compose-node", x = 0, y = 0, width = 20, height = 20) {} }
     var composeNode3 = newWindow2.root.flattenedList().find { it.drawId == COMPOSE3 }!!
     composeNode3.recompositions.highlightCount = 100f
     inspectorModel.update(newWindow2, listOf(ROOT), 0)
@@ -284,10 +271,7 @@ class EmbeddedRendererModelTest {
     val screenshot = Screenshot("wear.png", BitmapType.RGB_565)
     val imageBytes = processBitmap(screenshot.bytes)
 
-    val localInspectorModel =
-      model(disposableRule.disposable, displayId = 0) {
-        view(ROOT, 0, 0, 100, 100) { image = imageBytes }
-      }
+    val localInspectorModel = model(disposableRule.disposable, displayId = 0) { view(ROOT, 0, 0, 100, 100) { image = imageBytes } }
 
     val localRenderModel = createEmbeddedRendererModel(model = localInspectorModel)
     testScheduler.advanceUntilIdle()
@@ -604,8 +588,7 @@ class EmbeddedRendererModelTest {
     treeSettings.hideSystemNodes = false
     testScheduler.advanceUntilIdle()
 
-    val layoutAppcompat =
-      ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val systemNodesWindow =
       viewWindow(ROOT, 0, 0, 100, 100) {
         view(VIEW2, 0, 0, 10, 10) {}
@@ -668,8 +651,7 @@ class EmbeddedRendererModelTest {
     treeSettings.hideSystemNodes = false
     testScheduler.advanceUntilIdle()
 
-    val layoutAppcompat =
-      ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val systemNodesWindow =
       viewWindow(ROOT, 0, 0, 100, 100) {
         view(VIEW1, 0, 0, 50, 50, layout = layoutAppcompat) {}
@@ -713,8 +695,7 @@ class EmbeddedRendererModelTest {
     treeSettings.hideSystemNodes = false
     testScheduler.advanceUntilIdle()
 
-    val layoutAppcompat =
-      ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val systemNodesWindow =
       viewWindow(ROOT, 0, 0, 100, 100) {
         view(VIEW1, 0, 0, 50, 50, layout = layoutAppcompat) {}
@@ -943,24 +924,8 @@ class EmbeddedRendererModelTest {
     return viewWindow(ROOT, 0, 0, 100, 200) {
       view(VIEW1, 0, 0, 100, 200) {
         compose(COMPOSE1, "Column", x = 0, y = 0, width = 100, height = 200) {
-          compose(
-            COMPOSE2,
-            "Text",
-            x = 0,
-            y = 0,
-            width = 80,
-            height = 100,
-            composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
-          ) {
-            compose(
-              COMPOSE3,
-              "BasicText",
-              x = 0,
-              y = 0,
-              width = 80,
-              height = 100,
-              composeFlags = FLAG_SYSTEM_DEFINED,
-            ) {
+          compose(COMPOSE2, "Text", x = 0, y = 0, width = 80, height = 100, composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER) {
+            compose(COMPOSE3, "BasicText", x = 0, y = 0, width = 80, height = 100, composeFlags = FLAG_SYSTEM_DEFINED) {
               compose(
                 COMPOSE4,
                 "Layout",
@@ -972,24 +937,8 @@ class EmbeddedRendererModelTest {
               )
             }
           }
-          compose(
-            COMPOSE5,
-            "Text",
-            x = 20,
-            y = 20,
-            width = 80,
-            height = 100,
-            composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
-          ) {
-            compose(
-              COMPOSE6,
-              "BasicText",
-              x = 20,
-              y = 20,
-              width = 80,
-              height = 100,
-              composeFlags = FLAG_SYSTEM_DEFINED,
-            ) {
+          compose(COMPOSE5, "Text", x = 20, y = 20, width = 80, height = 100, composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER) {
+            compose(COMPOSE6, "BasicText", x = 20, y = 20, width = 80, height = 100, composeFlags = FLAG_SYSTEM_DEFINED) {
               compose(
                 COMPOSE7,
                 "Layout",
@@ -1007,10 +956,7 @@ class EmbeddedRendererModelTest {
     }
   }
 
-  private fun createEmbeddedRendererModel(
-    displayId: Int? = null,
-    model: InspectorModel = inspectorModel,
-  ): EmbeddedRendererModel {
+  private fun createEmbeddedRendererModel(displayId: Int? = null, model: InspectorModel = inspectorModel): EmbeddedRendererModel {
     return EmbeddedRendererModel(
       parentDisposable = disposableRule.disposable,
       displayId = displayId,

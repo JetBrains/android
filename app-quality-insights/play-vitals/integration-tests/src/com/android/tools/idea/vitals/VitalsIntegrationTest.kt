@@ -50,27 +50,20 @@ class VitalsIntegrationTest {
     grpcServerRule.database.addIssue(TEST_ISSUE2)
 
     // Create a new android project, and set a fixed distribution
-    val project =
-      AndroidProject(
-        "tools/adt/idea/app-quality-insights/play-vitals/integration-tests/testData/projects/appinsights"
-      )
+    val project = AndroidProject("tools/adt/idea/app-quality-insights/play-vitals/integration-tests/testData/projects/appinsights")
 
     // Create a maven repo and set it up in the installation and environment
-    system.installRepo(
-      MavenRepo(
-        "tools/adt/idea/app-quality-insights/play-vitals/integration-tests/openproject_deps.manifest"
-      )
-    )
+    system.installRepo(MavenRepo("tools/adt/idea/app-quality-insights/play-vitals/integration-tests/openproject_deps.manifest"))
 
     val optionsDir = system.installation.configDir.resolve("options")
     Files.writeString(
       optionsDir.resolve("studiobot.xml"),
       """
-        <application>
-          <component name="StudioBotSettings">
-            <option name="onboardedVersion" value="3" />
-          </component>
-        </application>
+      <application>
+        <component name="StudioBotSettings">
+          <option name="onboardedVersion" value="3" />
+        </component>
+      </application>
       """
         .trimIndent(),
       StandardCharsets.UTF_8,
@@ -78,25 +71,25 @@ class VitalsIntegrationTest {
     Files.writeString(
       optionsDir.resolve("googleLoginApplicationSettings.xml"),
       """
-        <application>
-          <component name="GoogleLoginApplicationSettings">
-            <option name="activeUser" value="test_user@google.com" />
-            <option name="userEmail2FeaturesStore">
-              <map>
-                <entry key="test_user@google.com">
-                  <value>
-                    <set>
-                      <option value="Firebase" />
-                      <option value="Gemini" />
-                      <option value="User Info" />
-                      <option value="Android Vitals" />
-                    </set>
-                  </value>
-                </entry>
-              </map>
-            </option>
-          </component>
-        </application>
+      <application>
+        <component name="GoogleLoginApplicationSettings">
+          <option name="activeUser" value="test_user@google.com" />
+          <option name="userEmail2FeaturesStore">
+            <map>
+              <entry key="test_user@google.com">
+                <value>
+                  <set>
+                    <option value="Firebase" />
+                    <option value="Gemini" />
+                    <option value="User Info" />
+                    <option value="Android Vitals" />
+                  </set>
+                </value>
+              </entry>
+            </map>
+          </option>
+        </component>
+      </application>
       """
         .trimIndent(),
       StandardCharsets.UTF_8,
@@ -107,8 +100,7 @@ class VitalsIntegrationTest {
     val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
     val tempKeystorePath = Files.createTempFile("e2e_test_truststore", ".jks")
     val defaultTrustStorePath =
-      System.getProperty("javax.net.ssl.trustStore")
-        ?: (System.getProperty("java.home") + "/lib/security/cacerts")
+      System.getProperty("javax.net.ssl.trustStore") ?: (System.getProperty("java.home") + "/lib/security/cacerts")
     FileInputStream(defaultTrustStorePath).use { fis -> keyStore.load(fis, null) }
     keyStore.setCertificateEntry("E2E test", grpcServerRule.cert.cert())
     FileOutputStream(tempKeystorePath.pathString).use { fos -> keyStore.store(fos, null) }
@@ -117,9 +109,7 @@ class VitalsIntegrationTest {
     system.installation.addVmOption("-Djavax.net.ssl.trustStore=${tempKeystorePath.pathString}")
 
     install.addVmOption("-Dappinsights.enable.play.vitals=true")
-    install.addVmOption(
-      "-Dappinsights.play.vitals.grpc.server=localhost:${grpcServerRule.server.port}"
-    )
+    install.addVmOption("-Dappinsights.play.vitals.grpc.server=localhost:${grpcServerRule.server.port}")
     install.addVmOption("-Dappinsights.gemini.fetch.real.insight=false")
     install.addVmOption("-Dappinsights.play.vitals.show.insight.tool.window=true")
     system.setEnv("GOOGLE_LOGIN_USER", "test_user@google.com")
@@ -137,22 +127,14 @@ class VitalsIntegrationTest {
 
       // Verify the issues table is displayed.
       studio.waitForComponent(
-        ComponentMatchersBuilder().apply {
-          addSwingClassRegexMatch(".*AppInsightsIssuesTableView\\\$IssuesTableView$")
-        }
+        ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*AppInsightsIssuesTableView\\\$IssuesTableView$") }
       )
 
       // Verify the stack trace panel is displayed.
-      studio.waitForComponent(
-        ComponentMatchersBuilder().apply {
-          addSwingClassRegexMatch(".*vitals\\.ui\\.VitalsIssueDetailsPanel$")
-        }
-      )
+      studio.waitForComponent(ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*vitals\\.ui\\.VitalsIssueDetailsPanel$") })
       // Verify the details panel is displayed.
       studio.waitForComponent(
-        ComponentMatchersBuilder().apply {
-          addSwingClassRegexMatch(".*insights\\.ui\\.DistributionsContainerPanel$")
-        }
+        ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*insights\\.ui\\.DistributionsContainerPanel$") }
       )
 
       studio.waitForComponentWithExactText("Android 3.1 (API 12)")
@@ -160,11 +142,7 @@ class VitalsIntegrationTest {
       studio.waitForComponentWithExactText("Most affected Android version: $MOST_AFFECTED_OS")
 
       // Verify insights text pane is displayed.
-      studio.waitForComponent(
-        ComponentMatchersBuilder().apply {
-          addSwingClassRegexMatch(".*insights\\.ui\\.insight\\.InsightTextPane$")
-        }
-      )
+      studio.waitForComponent(ComponentMatchersBuilder().apply { addSwingClassRegexMatch(".*insights\\.ui\\.insight\\.InsightTextPane$") })
     }
   }
 }

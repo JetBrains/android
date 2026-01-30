@@ -55,11 +55,9 @@ import kotlin.math.ceil
 /**
  * Custom filter for attaching inlay diff links for traces if applicable.
  *
- * A diff (historical source file from the affected commit VS current source file) link is attached
- * just after the file line number when
+ * A diff (historical source file from the affected commit VS current source file) link is attached just after the file line number when
  * 1) the class/file extracted from a trace line is navigable/resolvable and within project scope,
- * 2) an app VCS info is found (this piece of info is captured when an app is built and is sent
- *    along with a crash)
+ * 2) an app VCS info is found (this piece of info is captured when an app is built and is sent along with a crash)
  */
 class InsightsAttachInlayDiffLinkFilter(
   private val exceptionInfoCache: InsightsExceptionInfoCache,
@@ -82,8 +80,7 @@ class InsightsAttachInlayDiffLinkFilter(
     lineNumber: Int,
   ): ContextDataForDiff? {
     // For now, we just pick the first matching vcs info as AGP doesn't support multi-repo case yet.
-    val firstVcsInfo =
-      appVcsInfo.repoInfo.firstOrNull { it.locateRepository(project) != null } ?: return null
+    val firstVcsInfo = appVcsInfo.repoInfo.firstOrNull { it.locateRepository(project) != null } ?: return null
 
     return virtualFiles
       .mapNotNull { vFile ->
@@ -108,8 +105,7 @@ class InsightsAttachInlayDiffLinkFilter(
     //  for Kotlin native one, maybe follow KotlinExceptionFilterFactory#parseNativeStackTraceLine.
     val parsedLineInfo = parseExceptionLine(line) ?: return null
 
-    val lineNumber =
-      parsedLineInfo.lineNumber.takeUnless { it < 1 } ?: return null // It's 1-based line number.
+    val lineNumber = parsedLineInfo.lineNumber.takeUnless { it < 1 } ?: return null // It's 1-based line number.
 
     val className = parsedLineInfo.classFqnRange.substring(line).trim()
     val fileName = parsedLineInfo.fileName
@@ -120,9 +116,7 @@ class InsightsAttachInlayDiffLinkFilter(
     //   the VCS info.
     if (resolvedInfo.isInLibrary || resolvedInfo.classes.isEmpty()) return null
 
-    val contextDataForDiff =
-      createContextDataForDiff(foundVcsInfo, resolvedInfo.classes.keys.toList(), lineNumber)
-        ?: return null
+    val contextDataForDiff = createContextDataForDiff(foundVcsInfo, resolvedInfo.classes.keys.toList(), lineNumber) ?: return null
 
     // Here, we attach inlay element to the "file name and line number" part,
     // e.g. "Foo.java:17" in " at com.project.module.Foo.bar(Foo.java:17)".
@@ -130,8 +124,7 @@ class InsightsAttachInlayDiffLinkFilter(
     val highlightStartOffset: Int = textStartOffset + parsedLineInfo.fileLineRange.startOffset
     val highlightEndOffset: Int = textStartOffset + parsedLineInfo.fileLineRange.endOffset
 
-    val diffLinkInlayResult =
-      DiffLinkInlayResult(contextDataForDiff, highlightStartOffset, highlightEndOffset, tracker)
+    val diffLinkInlayResult = DiffLinkInlayResult(contextDataForDiff, highlightStartOffset, highlightEndOffset, tracker)
 
     return Filter.Result(listOf(diffLinkInlayResult))
   }
@@ -151,12 +144,7 @@ class InsightsAttachInlayDiffLinkFilter(
 
     private fun PresentationFactory.createInlayPresentation(editor: Editor): InlayPresentation {
       val commaInlay =
-        InsightsTextInlayPresentation(
-          text = ", ",
-          textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
-          isUnderline = false,
-          editor,
-        )
+        InsightsTextInlayPresentation(text = ", ", textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES, isUnderline = false, editor)
 
       val showDiffTooltip =
         HelpTooltip().apply {
@@ -186,9 +174,7 @@ class InsightsAttachInlayDiffLinkFilter(
     private fun logActivity() {
       val metricsEventBuilder =
         AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder().apply {
-          clickLocation =
-            AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
-              .DIFF_INLAY
+          clickLocation = AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation.DIFF_INLAY
         }
 
       tracker.logStacktraceClicked(null, metricsEventBuilder.build())
@@ -205,8 +191,7 @@ class InsightsAttachInlayDiffLinkFilter(
 /**
  * Custom inlay text presentation for insights specific.
  *
- * The basic idea is from [TextInlayPresentation], just we can apply our own style instead of the
- * typical "inlay" style.
+ * The basic idea is from [TextInlayPresentation], just we can apply our own style instead of the typical "inlay" style.
  */
 class InsightsTextInlayPresentation(
   val text: String,
@@ -244,8 +229,7 @@ class InsightsTextInlayPresentation(
     var font = editorFont.deriveFont(fontType, size)
 
     if (isUnderline) {
-      font =
-        font.deriveFont(font.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
+      font = font.deriveFont(font.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
     }
 
     val context = getCurrentContext(editor.contentComponent)
@@ -253,23 +237,12 @@ class InsightsTextInlayPresentation(
     // We assume this will be a better approximation to a real line height for a given font
     val fontHeight = ceil(font.createGlyphVector(context, "H").visualBounds.height).toInt()
 
-    return InlayTextMetrics(
-      editor,
-      fontHeight,
-      fontHeight,
-      metrics,
-      fontType,
-      UISettings.getInstance().ideScale,
-    )
+    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType, UISettings.getInstance().ideScale)
   }
 
   private fun getCurrentContext(editorComponent: JComponent): FontRenderContext {
     val editorContext = FontInfo.getFontRenderContext(editorComponent)
-    return FontRenderContext(
-      editorContext.transform,
-      AntialiasingType.getKeyForCurrentScope(false),
-      UISettings.editorFractionalMetricsHint,
-    )
+    return FontRenderContext(editorContext.transform, AntialiasingType.getKeyForCurrentScope(false), UISettings.editorFractionalMetricsHint)
   }
 
   override fun paint(g: Graphics2D, attributes: TextAttributes) {
@@ -279,10 +252,7 @@ class InsightsTextInlayPresentation(
       val metrics = getOrCreateMetrics()
       val font = metrics.font
       g.font = font
-      g.setRenderingHint(
-        RenderingHints.KEY_TEXT_ANTIALIASING,
-        AntialiasingType.getKeyForCurrentScope(false),
-      )
+      g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, AntialiasingType.getKeyForCurrentScope(false))
       g.color = colorsScheme.getAttributes(textAttributesKey).foregroundColor
       g.drawString(text, 0, (editor.lineHeight + metrics.fontBaseline).div(2))
     } finally {

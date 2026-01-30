@@ -121,30 +121,35 @@ class StreamingToolWindowManagerTest {
   private val provisionerRule = LightweightDeviceProvisionerRule(agentRule.fakeDeviceCreator) { AdbLibApplicationService.instance.session }
 
   @get:Rule
-  val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
-                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
+  val ruleChain =
+    RuleChain(
+      agentRule,
+      provisionerRule,
+      emulatorRule,
+      ClipboardSynchronizationDisablementRule(),
+      androidExecutorsRule,
+      EdtRule(),
+      PortableUiFontRule(),
+      HeadlessDialogRule(),
+      popupRule,
+    )
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private val toolWindow: FakeToolWindow by lazy {
-      createFakeToolWindow(
-        windowFactory,
-        RUNNING_DEVICES_TOOL_WINDOW_ID,
-        StudioIcons.Shell.ToolWindows.EMULATOR,
-        project,
-        testRootDisposable,
-      )
-    }
+    createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, StudioIcons.Shell.ToolWindows.EMULATOR, project, testRootDisposable)
+  }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
 
-  private val project get() = agentRule.project
-  private val testRootDisposable get() = agentRule.disposable
+  private val project
+    get() = agentRule.project
+
+  private val testRootDisposable
+    get() = agentRule.disposable
+
   private val dataContext: DataContext by lazy {
-    SimpleDataContext.builder()
-      .add(CommonDataKeys.PROJECT, project)
-      .add(PlatformDataKeys.TOOL_WINDOW, toolWindow)
-      .build()
+    SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).add(PlatformDataKeys.TOOL_WINDOW, toolWindow).build()
   }
 
   @Before
@@ -213,12 +218,12 @@ class StreamingToolWindowManagerTest {
 
     // Close the watch tab.
     contentManager.removeContent(contentManager.contents[0], true)
-    var call = watch.getNextGrpcCall(2.seconds,
-                                     FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
+    var call =
+      watch.getNextGrpcCall(2.seconds, FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
     waitForCondition(2.seconds) { !watch.isRunning }
-    assertThat(runBlocking { runningEmulatorCatalog.updateNow().await()}).hasSize(2)
+    assertThat(runBlocking { runningEmulatorCatalog.updateNow().await() }).hasSize(2)
 
     // Start the watch AVD again.
     watch.start(standalone = false)
@@ -245,8 +250,8 @@ class StreamingToolWindowManagerTest {
 
     // Close the phone tab.
     contentManager.removeContent(contentManager.contents[0], true)
-    call = phone.getNextGrpcCall(2.seconds,
-                                     FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
+    call =
+      phone.getNextGrpcCall(2.seconds, FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
@@ -372,8 +377,7 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(15.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    assertThat(contentManager.contents[0].description).isEqualTo(
-        "Google Pixel 4 API 30 <font color=808080>(${device.serialNumber})</font>")
+    assertThat(contentManager.contents[0].description).isEqualTo("Google Pixel 4 API 30 <font color=808080>(${device.serialNumber})</font>")
     assertThat(contentManager.contents[0].isCloseable).isTrue()
 
     agentRule.disconnectDevice(device)
@@ -410,34 +414,44 @@ class StreamingToolWindowManagerTest {
     assertThat(bottomContentManager.contents).hasLength(1)
 
     var action = getAddDeviceAction(emulator2.avdName)
-    executeAction(action, toolWindow.component, project,
-                  extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = bottomContentManager })
+    executeAction(
+      action,
+      toolWindow.component,
+      project,
+      extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = bottomContentManager },
+    )
     waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
     assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
 
     val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
     action = getAddDeviceAction(device2Name)
-    executeAction(action, toolWindow.component, project,
-                  extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = topContentManager })
+    executeAction(
+      action,
+      toolWindow.component,
+      project,
+      extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = topContentManager },
+    )
     waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
     assertThat(topContentManager.contents[1].displayName).isEqualTo(device2Name)
   }
 
   @Test
   fun testRemoteDevice() {
-    val properties = DeviceProperties.buildForTest {
-      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
-      model = "Pixel 9000"
-    }
+    val properties =
+      DeviceProperties.buildForTest {
+        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
+        model = "Pixel 9000"
+      }
     val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = properties)
-    device.sourceTemplate = object: DeviceTemplate {
-      override val id = DeviceId("TEST", true, "")
-      override val properties = properties
-      override val activationAction: TemplateActivationAction = mock()
-      override val editAction = null
-    }
-    device.stateFlow.value = DeviceState.Disconnected(
-      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
+    device.sourceTemplate =
+      object : DeviceTemplate {
+        override val id = DeviceId("TEST", true, "")
+        override val properties = properties
+        override val activationAction: TemplateActivationAction = mock()
+        override val editAction = null
+      }
+    device.stateFlow.value =
+      DeviceState.Disconnected(properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
     provisionerRule.deviceProvisionerPlugin.addDevice(device)
 
     val provisionerService: DeviceProvisionerService = mock()
@@ -451,41 +465,48 @@ class StreamingToolWindowManagerTest {
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
     val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
 
-    assertThat(popup.actions.toString()).isEqualTo(
-      "[Separator (Reserved Remote Devices), Pixel 9000 (null), Separator (null), " +
-        "Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions.toString())
+      .isEqualTo(
+        "[Separator (Reserved Remote Devices), Pixel 9000 (null), Separator (null), " +
+          "Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]"
+      )
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
   }
 
   @Test
   fun testReservableRemoteDevice() {
-    val templateProperties = DeviceProperties.buildForTest {
-      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE
-      model = "Pixel Reservable"
-      isRemote = true
-    }
-    val deviceProperties = DeviceProperties.buildForTest {
-      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR
-      model = "Pixel Reserved"
-    }
-    val template = object : DeviceTemplate {
-      override val id = DeviceId("TEST", true, "")
-      override val properties = templateProperties
-      override val activationAction: TemplateActivationAction = mock<TemplateActivationAction>().apply {
-        val stateFlow = MutableStateFlow(DeviceAction.Presentation("", templateProperties.icon, true)).asStateFlow()
-        whenever(this.presentation).thenReturn(stateFlow)
+    val templateProperties =
+      DeviceProperties.buildForTest {
+        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE
+        model = "Pixel Reservable"
+        isRemote = true
       }
-      override val editAction: EditTemplateAction? = null
-    }
+    val deviceProperties =
+      DeviceProperties.buildForTest {
+        icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR
+        model = "Pixel Reserved"
+      }
+    val template =
+      object : DeviceTemplate {
+        override val id = DeviceId("TEST", true, "")
+        override val properties = templateProperties
+        override val activationAction: TemplateActivationAction =
+          mock<TemplateActivationAction>().apply {
+            val stateFlow = MutableStateFlow(DeviceAction.Presentation("", templateProperties.icon, true)).asStateFlow()
+            whenever(this.presentation).thenReturn(stateFlow)
+          }
+        override val editAction: EditTemplateAction? = null
+      }
     val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = deviceProperties)
-    device.sourceTemplate = object : DeviceTemplate {
-      override val id = DeviceId("TEST2", true, "")
-      override val properties = deviceProperties
-      override val activationAction: TemplateActivationAction = mock()
-      override val editAction: EditTemplateAction? = null
-    }
-    device.stateFlow.value = DeviceState.Disconnected(
-      deviceProperties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
+    device.sourceTemplate =
+      object : DeviceTemplate {
+        override val id = DeviceId("TEST2", true, "")
+        override val properties = deviceProperties
+        override val activationAction: TemplateActivationAction = mock()
+        override val editAction: EditTemplateAction? = null
+      }
+    device.stateFlow.value =
+      DeviceState.Disconnected(deviceProperties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
     provisionerRule.deviceProvisionerPlugin.addTemplate(template)
     provisionerRule.deviceProvisionerPlugin.addDevice(device)
 
@@ -496,10 +517,13 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
-    executeAction(newTabAction,createTestEvent(toolWindow.component, project))
+    executeAction(newTabAction, createTestEvent(toolWindow.component, project))
     val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
 
-    assertThat(popup.actions.toString()).isEqualTo("[Separator (Reserved Remote Devices), Pixel Reserved (null), Separator (Remote Devices), Pixel Reservable (null), Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions.toString())
+      .isEqualTo(
+        "[Separator (Reserved Remote Devices), Pixel Reserved (null), Separator (Remote Devices), Pixel Reservable (null), Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]"
+      )
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_WEAR)
     assertThat(popup.actions[3].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_PHONE)
   }
@@ -575,17 +599,19 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, createTestEvent(toolWindow.component, project))
     var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
-        "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions.toString().htmlToPlainText())
+      .isEqualTo("[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     contentManager.removeContent(contentManager.contents[0], true)
     contentManager.removeContent(contentManager.contents[0], true)
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
+    assertThat(popup.actions.toString().htmlToPlainText())
+      .isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), Pixel 7 API 33 (2) (null), " +
-        "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+          "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]"
+      )
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
     assertThat(popup.actions[2].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
@@ -597,9 +623,11 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
+    assertThat(popup.actions.toString().htmlToPlainText())
+      .isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (1) (null), " +
-                "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+          "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]"
+      )
 
     // Activate mirroring of Pixel 4 API 30.
     executeAction(popup.actions[1], toolWindow.component, project)
@@ -609,8 +637,8 @@ class StreamingToolWindowManagerTest {
 
     executeAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup(2.seconds)
-    assertThat(popup.actions.toString().htmlToPlainText()).isEqualTo(
-        "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions.toString().htmlToPlainText())
+      .isEqualTo("[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
   @Test
@@ -695,9 +723,11 @@ class StreamingToolWindowManagerTest {
     runBlocking { RunningEmulatorCatalog.getInstance().updateNow().await() }
 
     val popup = triggerAddDevicePopup()
-    assertThat(popup.actions.toString()).isEqualTo(
+    assertThat(popup.actions.toString())
+      .isEqualTo(
         "[Separator (Virtual Devices), ${phone.avdName} (null), " +
-        "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+          "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]"
+      )
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     executeAction(popup.actions[1], toolWindow.component, project)
@@ -804,8 +834,13 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), abi = "armeabi-v7a",
-                            additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    agentRule.connectDevice(
+      "LG Watch Sport",
+      29,
+      Dimension(480, 480),
+      abi = "armeabi-v7a",
+      additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
+    )
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
@@ -821,7 +856,7 @@ class StreamingToolWindowManagerTest {
 
     windowFactory.createToolWindowContent(project, toolWindow)
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
-    executeAction(windowAction,createEvent(windowAction, dataContext, null, "", ActionUiKind.NONE, null))
+    executeAction(windowAction, createEvent(windowAction, dataContext, null, "", ActionUiKind.NONE, null))
 
     assertThat(toolWindow.type).isEqualTo(ToolWindowType.WINDOWED)
   }
@@ -849,8 +884,7 @@ class StreamingToolWindowManagerTest {
     return displayView.frameNumber
   }
 
-  private fun getAddDeviceAction(deviceNameName: String): AnAction =
-      waitForAddDeviceAction(2.seconds, deviceNameName)
+  private fun getAddDeviceAction(deviceNameName: String): AnAction = waitForAddDeviceAction(2.seconds, deviceNameName)
 
   private fun waitForAddDeviceAction(timeout: Duration, deviceName: String): AnAction {
     var action: AnAction? = null
@@ -871,4 +905,4 @@ class StreamingToolWindowManagerTest {
 }
 
 private fun String.htmlToPlainText(): String =
-    replace(Regex("<[^>]+>"), "").trim().replace("&gt;", ">").replace("&lt;", "<").replace("&nbsp;", " ").replace(Regex("\\s+"), " ")
+  replace(Regex("<[^>]+>"), "").trim().replace("&gt;", ">").replace("&lt;", "<").replace("&nbsp;", " ").replace(Regex("\\s+"), " ")

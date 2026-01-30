@@ -32,24 +32,21 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.w3c.dom.Document
 import org.w3c.dom.Node
-import java.util.concurrent.TimeUnit
 
 @RunWith(JUnit4::class)
 class GradleMergedManifestContributorsTest {
   @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private val mergedManifest
-    get() : MergedManifestSnapshot {
-      return MergedManifestManager
-        .getMergedManifestSupplier(projectRule.gradleModule(":app"))
-        .get()
-        .get(2, TimeUnit.SECONDS)
+    get(): MergedManifestSnapshot {
+      return MergedManifestManager.getMergedManifestSupplier(projectRule.gradleModule(":app")).get().get(2, TimeUnit.SECONDS)
     }
 
   @Test
@@ -59,11 +56,8 @@ class GradleMergedManifestContributorsTest {
     // Each manifest gives a different value for android:sharedUserId.
     projectRule.load(MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR)
 
-    val sharedUserId = mergedManifest.document
-      ?.getOnlyElement(null, TAG_MANIFEST)
-      ?.attributes
-      ?.getNamedItemNS(ANDROID_URI, ATTR_SHARED_USER_ID)
-      ?.nodeValue
+    val sharedUserId =
+      mergedManifest.document?.getOnlyElement(null, TAG_MANIFEST)?.attributes?.getNamedItemNS(ANDROID_URI, ATTR_SHARED_USER_ID)?.nodeValue
 
     // The manifest from the build type should get the highest priority.
     assertThat(sharedUserId).isEqualTo("com.example.myapplication.debug")
@@ -111,9 +105,7 @@ class GradleMergedManifestContributorsTest {
 }
 
 private fun Document.getOnlyElement(namespaceURI: String?, localName: String): Node {
-  return getElementsByTagNameNS(namespaceURI, localName).also {
-    assertThat(it.length).isEqualTo(1)
-  }.item(0)
+  return getElementsByTagNameNS(namespaceURI, localName).also { assertThat(it.length).isEqualTo(1) }.item(0)
 }
 
 private fun Node.attrValue(namespaceURI: String?, localName: String): String? {

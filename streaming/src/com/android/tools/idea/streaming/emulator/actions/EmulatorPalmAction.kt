@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 
-/**
- * Simulates the Palm gesture on an Android Wear virtual device.
- */
+/** Simulates the Palm gesture on an Android Wear virtual device. */
 internal class EmulatorPalmAction : EmulatorKeypressAction("Standby", configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 28 })

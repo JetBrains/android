@@ -19,9 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 
-/**
- * This class handles begin session commands by creating a unique session each time this command is called.
- */
+/** This class handles begin session commands by creating a unique session each time this command is called. */
 class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
   var nextSessionId = 0L
   var attachAgentCalled = false
@@ -35,34 +33,46 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     nextSessionId++
     attachAgentCalled = command.beginSession.hasJvmtiConfig() && command.beginSession.jvmtiConfig.attachAgent
     if (attachAgentCalled) {
-      events.add(Common.Event.newBuilder().apply {
-        pid = command.pid
-        kind = Common.Event.Kind.AGENT
-        timestamp = timer.currentTimeNs
-        agentData = Common.AgentData.newBuilder().apply {
-          status = agentStatus
-        }.build()
-      }.build())
+      events.add(
+        Common.Event.newBuilder()
+          .apply {
+            pid = command.pid
+            kind = Common.Event.Kind.AGENT
+            timestamp = timer.currentTimeNs
+            agentData = Common.AgentData.newBuilder().apply { status = agentStatus }.build()
+          }
+          .build()
+      )
     }
-    events.add(Common.Event.newBuilder().apply {
-      groupId = nextSessionId
-      pid = command.pid
-      kind = Common.Event.Kind.SESSION
-      timestamp = timer.currentTimeNs
-      session = Common.SessionData.newBuilder().apply {
-        sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
-          sessionId = nextSessionId
-          streamId = command.streamId
+    events.add(
+      Common.Event.newBuilder()
+        .apply {
+          groupId = nextSessionId
           pid = command.pid
-          startTimestampEpochMs = command.beginSession.requestTimeEpochMs
-          sessionName = command.beginSession.sessionName
-          processAbi = command.beginSession.processAbi
-          jvmtiEnabled = attachAgentCalled
-          type = Common.SessionData.SessionStarted.SessionType.FULL
-          taskType = command.beginSession.taskType
-          isStartupTask = command.beginSession.isStartupTask
-        }.build()
-      }.build()
-    }.build())
+          kind = Common.Event.Kind.SESSION
+          timestamp = timer.currentTimeNs
+          session =
+            Common.SessionData.newBuilder()
+              .apply {
+                sessionStarted =
+                  Common.SessionData.SessionStarted.newBuilder()
+                    .apply {
+                      sessionId = nextSessionId
+                      streamId = command.streamId
+                      pid = command.pid
+                      startTimestampEpochMs = command.beginSession.requestTimeEpochMs
+                      sessionName = command.beginSession.sessionName
+                      processAbi = command.beginSession.processAbi
+                      jvmtiEnabled = attachAgentCalled
+                      type = Common.SessionData.SessionStarted.SessionType.FULL
+                      taskType = command.beginSession.taskType
+                      isStartupTask = command.beginSession.isStartupTask
+                    }
+                    .build()
+              }
+              .build()
+        }
+        .build()
+    )
   }
 }

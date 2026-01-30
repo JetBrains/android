@@ -24,11 +24,10 @@ import javax.swing.border.Border
 
 class Separator(
   border: Border = JBUI.Borders.empty(0, 4),
-  background: Color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
+  background: Color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground(),
 ) : JComponent() {
 
-  constructor(verticalInset: Int, horizontalInset: Int) :
-    this(JBUI.Borders.empty(verticalInset, horizontalInset))
+  constructor(verticalInset: Int, horizontalInset: Int) : this(JBUI.Borders.empty(verticalInset, horizontalInset))
 
   private val lineWidth = JBUI.scale(1)
 
@@ -50,8 +49,7 @@ class Separator(
     if (parent != null) {
       val parentInset = parent.insets
       height = parent.height - parentInset.top - parentInset.bottom
-    }
-    else {
+    } else {
       height = super.getPreferredSize().height
     }
     return Dimension(width, height)

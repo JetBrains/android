@@ -60,14 +60,8 @@ sealed class PreviewStatus(
     )
 
   /** The Preview is refreshing. */
-  class Refreshing(
-    detailsMessage: String = message("notification.preview.refreshing.description")
-  ) :
-    PreviewStatus(
-      AnimatedIcon.Default(),
-      message("notification.preview.refreshing.title"),
-      detailsMessage,
-    )
+  class Refreshing(detailsMessage: String = message("notification.preview.refreshing.description")) :
+    PreviewStatus(AnimatedIcon.Default(), message("notification.preview.refreshing.title"), detailsMessage)
 
   /** The Preview is out of date. This state will not happen if Fast Preview is enabled. */
   object OutOfDate :
@@ -109,8 +103,7 @@ sealed class PreviewStatus(
 /**
  * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
  *
- * @param [fileProvider] is lambda providing the [PsiFile] used to request the build. This lambda
- *   will be called under a read lock.
+ * @param [fileProvider] is lambda providing the [PsiFile] used to request the build. This lambda will be called under a read lock.
  */
 class BuildAndRefresh(@RequiresReadLock private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
@@ -118,17 +111,14 @@ class BuildAndRefresh(@RequiresReadLock private val fileProvider: () -> PsiFile?
       .submit(AppExecutorUtil.getAppExecutorService())
       .onSuccess {
         val file = it ?: return@onSuccess
-        ApplicationManager.getApplication().executeOnPooledThread {
-          file.project.requestBuildArtifactsForRendering(file.virtualFile)
-        }
+        ApplicationManager.getApplication().executeOnPooledThread { file.project.requestBuildArtifactsForRendering(file.virtualFile) }
       }
   }
 }
 
 /**
- * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design
- * Tools" is different depends on different tools. e.g. it shows "Compose" when using Compose
- * Preview, shows "Layout and Qualifiers" when using Layout Editor.
+ * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design Tools" is different depends on
+ * different tools. e.g. it shows "Compose" when using Compose Preview, shows "Layout and Qualifiers" when using Layout Editor.
  */
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {

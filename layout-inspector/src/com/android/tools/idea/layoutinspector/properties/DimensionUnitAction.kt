@@ -32,8 +32,7 @@ object DimensionUnitAction :
       object : ToggleAction("dp") {
         override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-        override fun isSelected(event: AnActionEvent): Boolean =
-          PropertiesSettings.dimensionUnits == DimensionUnits.DP
+        override fun isSelected(event: AnActionEvent): Boolean = PropertiesSettings.dimensionUnits == DimensionUnits.DP
 
         override fun setSelected(event: AnActionEvent, state: Boolean) {
           if (state && PropertiesSettings.dimensionUnits != DimensionUnits.DP) {
@@ -44,8 +43,7 @@ object DimensionUnitAction :
       object : ToggleAction("pixels") {
         override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-        override fun isSelected(event: AnActionEvent): Boolean =
-          PropertiesSettings.dimensionUnits == DimensionUnits.PIXELS
+        override fun isSelected(event: AnActionEvent): Boolean = PropertiesSettings.dimensionUnits == DimensionUnits.PIXELS
 
         override fun setSelected(event: AnActionEvent, state: Boolean) {
           if (state && PropertiesSettings.dimensionUnits != DimensionUnits.PIXELS) {
@@ -70,7 +68,5 @@ object DimensionUnitAction :
 
 private fun setUnits(event: AnActionEvent, units: DimensionUnits) {
   PropertiesSettings.dimensionUnits = units
-  ToolContent.getToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
-    ?.component
-    ?.repaint()
+  ToolContent.getToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.component?.repaint()
 }

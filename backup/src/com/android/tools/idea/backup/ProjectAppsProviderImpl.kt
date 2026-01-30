@@ -22,8 +22,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 
 class ProjectAppsProviderImpl(private val project: Project) : ProjectAppsProvider {
-  override fun getApplicationIds(): Set<String> =
-    project.modules.filter { it.isApp() }.mapNotNullTo(hashSetOf()) { it.applicationId }
+  override fun getApplicationIds(): Set<String> = project.modules.filter { it.isApp() }.mapNotNullTo(hashSetOf()) { it.applicationId }
 }
 
 private fun Module.isApp() = getModuleSystem().isValidForAndroidRunConfiguration()

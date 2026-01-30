@@ -26,7 +26,8 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPropertyCore<PropertyT>>(
   private val refactoredProperty: ModelPropertyCoreT
 ) {
-  private val value: Annotated<ParsedValue<PropertyT>>? get() = property?.getParsedValue()
+  private val value: Annotated<ParsedValue<PropertyT>>?
+    get() = property?.getParsedValue()
 
   private var property: ModelPropertyCoreT? = null
   private var variable: PsVariable? = null
@@ -60,15 +61,13 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
   fun validate(currentName: String): String? {
     return when {
       currentName.isBlank() -> "Variable name is required."
-      variable?.value  == ParsedValue.NotSet -> "Cannot bind a variable to an empty value."
+      variable?.value == ParsedValue.NotSet -> "Cannot bind a variable to an empty value."
       else -> null
     }
   }
 
   fun commit(currentName: String) {
     variable?.setName(currentName)
-    refactoredProperty.setParsedValue(ParsedValue.Set.Parsed(
-      dslText = DslText.Reference(currentName),
-      value = value!!.value.maybeValue))
+    refactoredProperty.setParsedValue(ParsedValue.Set.Parsed(dslText = DslText.Reference(currentName), value = value!!.value.maybeValue))
   }
 }

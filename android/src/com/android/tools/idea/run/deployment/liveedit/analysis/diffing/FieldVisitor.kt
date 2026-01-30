@@ -20,12 +20,16 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 
 interface FieldVisitor {
   fun visitDesc(old: String?, new: String?) {}
+
   fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {}
+
   fun visitSignature(old: String?, new: String?) {}
+
   fun visitValue(old: Any?, new: Any?) {}
 
   /**
    * Visits the changed annotations of this field. Will not be called if no annotations were added, removed, or modified.
+   *
    * @param added the annotations that were added. Can be an empty list.
    * @param removed the annotations that were removed. Can be an empty list.
    * @param modified the diffs of annotations that were modified. Can be an empty list.

@@ -21,35 +21,29 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /**
- * Build systems can implement their own [DesugaringLibraryConfigFilesLocator] to help the IDE
- * to locate desugaring config files. Note that there can be multiple locators enabled at the same
- * time; see [DesugaringLibraryConfigFilesLocator.forBuildSystem] on how to
- * obtain them for a given build system.
+ * Build systems can implement their own [DesugaringLibraryConfigFilesLocator] to help the IDE to locate desugaring config files. Note that
+ * there can be multiple locators enabled at the same time; see [DesugaringLibraryConfigFilesLocator.forBuildSystem] on how to obtain them
+ * for a given build system.
  */
 interface DesugaringLibraryConfigFilesLocator {
-  /** Returns true if desugaring library config files exist.  */
+  /** Returns true if desugaring library config files exist. */
   fun getDesugarLibraryConfigFilesKnown(): Boolean
 
-  /** Returns the list of paths to the desugaring library config files  */
+  /** Returns the list of paths to the desugaring library config files */
   fun getDesugarLibraryConfigFiles(project: Project): List<Path>
 
-  /**
-   * Returns the [BuildSystemName] this [DesugaringLibraryConfigFilesLocator] supports.
-   */
+  /** Returns the [BuildSystemName] this [DesugaringLibraryConfigFilesLocator] supports. */
   fun buildSystem(): BuildSystemName
 
   companion object {
     @JvmField
-    val EP_NAME = ExtensionPointName.create<DesugaringLibraryConfigFilesLocator>("com.google.idea.blaze.DesugaringLibraryConfigFilesLocator")
+    val EP_NAME =
+      ExtensionPointName.create<DesugaringLibraryConfigFilesLocator>("com.google.idea.blaze.DesugaringLibraryConfigFilesLocator")
 
-    /**
-     * Returns a [List] of [DesugaringLibraryConfigFilesLocator] that supports
-     * the given build system.
-     */
+    /** Returns a [List] of [DesugaringLibraryConfigFilesLocator] that supports the given build system. */
     @JvmStatic
     fun forBuildSystem(buildSystemName: BuildSystemName): List<DesugaringLibraryConfigFilesLocator> {
-      return EP_NAME.extensionList
-        .filter { it.buildSystem() == buildSystemName }
+      return EP_NAME.extensionList.filter { it.buildSystem() == buildSystemName }
     }
   }
 }

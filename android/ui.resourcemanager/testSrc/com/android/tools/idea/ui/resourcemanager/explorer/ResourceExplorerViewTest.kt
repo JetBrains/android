@@ -41,11 +41,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.event.KeyEvent
 import java.io.File
 import javax.swing.JComponent
@@ -53,15 +48,18 @@ import javax.swing.JPanel
 import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class ResourceExplorerViewTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val disposable = Disposer.newDisposable("ResourceExplorerViewTest")
 
@@ -130,8 +128,7 @@ class ResourceExplorerViewTest {
     // Setup
     runInEdtAndWait {
       addAndroidModule(module2Name, projectRule.project, "com.example.app2") { resourceDir ->
-        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
-                      resourceDir.resolve("values/colors.xml"))
+        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"), resourceDir.resolve("values/colors.xml"))
       }
     }
     val viewModel = createViewModel(projectRule.module)
@@ -176,20 +173,26 @@ class ResourceExplorerViewTest {
     var openedFile = "" // Variable used to check the opened file name
 
     // Dummy implementation of a ViewModel to record the opened file
-    val viewModel = ResourceExplorerViewModel.createResPickerViewModel(
-      projectRule.module.androidFacet!!,
-      null,
-      ResourceType.DRAWABLE,
-      arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR),
-      false,
-      true,
-      { asset ->
-        assertThat(asset).isInstanceOf(DesignAsset::class.java)
-        openedFile = FileUtil.getRelativePath(
-          FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
-          FileUtil.toSystemIndependentName((asset as DesignAsset).file.path), '/').orEmpty()
-      },
-      {})
+    val viewModel =
+      ResourceExplorerViewModel.createResPickerViewModel(
+        projectRule.module.androidFacet!!,
+        null,
+        ResourceType.DRAWABLE,
+        arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR),
+        false,
+        true,
+        { asset ->
+          assertThat(asset).isInstanceOf(DesignAsset::class.java)
+          openedFile =
+            FileUtil.getRelativePath(
+                FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+                FileUtil.toSystemIndependentName((asset as DesignAsset).file.path),
+                '/',
+              )
+              .orEmpty()
+        },
+        {},
+      )
     Disposer.register(disposable, viewModel)
 
     // A parent used to swap the ResourceExplorerView and the DetailView
@@ -227,7 +230,7 @@ class ResourceExplorerViewTest {
     list.setUI(HeadlessListUI())
     val pointOfFirstResource = list.indexToLocation(0)
     // Click a resource.
-    simulateMouseClick(list, pointOfFirstResource, clickCount= 1)
+    simulateMouseClick(list, pointOfFirstResource, clickCount = 1)
 
     waitAndAssert<DetailedPreview>(view) { summaryView ->
       if (summaryView == null) return@waitAndAssert false
@@ -246,13 +249,14 @@ class ResourceExplorerViewTest {
   }
 
   private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel, withSummaryView: Boolean = false): ResourceExplorerView {
-    val view = ResourceExplorerView(viewModel,
-                                    null,
-                                    ResourceImportDragTarget(
-                                      projectRule.module.androidFacet!!,
-                                      ImportersProvider()),
-                                    withMultiModuleSearch = true,
-                                    withSummaryView = withSummaryView)
+    val view =
+      ResourceExplorerView(
+        viewModel,
+        null,
+        ResourceImportDragTarget(projectRule.module.androidFacet!!, ImportersProvider()),
+        withMultiModuleSearch = true,
+        withSummaryView = withSummaryView,
+      )
     Disposer.register(disposable, view)
 
     waitAndAssert<AssetListView>(view) { list -> list != null }
@@ -262,9 +266,7 @@ class ResourceExplorerViewTest {
 
 private fun simulatePressEnter(component: JComponent) {
   val keyEvent = KeyEvent(component, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED)
-  component.keyListeners.forEach {
-    it.keyPressed(keyEvent)
-  }
+  component.keyListeners.forEach { it.keyPressed(keyEvent) }
 }
 
 private fun selectAndAssertAsset(view: ResourceExplorerView, assetName: String) {

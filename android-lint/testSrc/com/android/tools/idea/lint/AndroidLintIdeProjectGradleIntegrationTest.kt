@@ -32,31 +32,25 @@ import org.junit.Test
 @RunsInEdt
 class AndroidLintIdeProjectGradleIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule =
-    AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule var expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun test() {
     val result: LintResult = LintIgnoredResult()
-    val preparedProject =
-      projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
     preparedProject.open { ideProject ->
       val root = preparedProject.root
       val client: LintIdeClient = AndroidLintIdeClient(ideProject, result)
-      val projects =
-        AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
+      val projects = AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
       assertThat(
           projects
             .map { lintProject ->
               flattenDag(
                 lintProject,
                 getId = { it.dir },
-                getChildren = {
-                  it.directLibraries.filter { dependency -> dependency.buildModule != null }
-                },
+                getChildren = { it.directLibraries.filter { dependency -> dependency.buildModule != null } },
               )
             }
             .flatten() // Modules may be repeated here if a dependency is shared between roots.
@@ -75,11 +69,7 @@ class AndroidLintIdeProjectGradleIntegrationTest {
   }
 }
 
-private fun <T : Any> flattenDag(
-  root: T,
-  getId: (T) -> Any = { it },
-  getChildren: (T) -> List<T>,
-): List<T> =
+private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> =
   sequence {
       val seen = HashSet<Any>()
       val queue = ArrayDeque(listOf(root))

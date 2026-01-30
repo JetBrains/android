@@ -40,12 +40,8 @@ import javax.swing.JPanel
 /** Class used to provide a [Configurable] to show in Android Studio settings panel. */
 class LayoutInspectorConfigurableProvider(
   private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() },
-  private val doRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = {
-    registerLayoutInspectorToolWindow(it)
-  },
-  private val doUnRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = {
-    unregisterLayoutInspectorToolWindow(it)
-  },
+  private val doRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = { registerLayoutInspectorToolWindow(it) },
+  private val doUnRegisterLayoutInspectorToolWindow: (project: Project) -> Unit = { unregisterLayoutInspectorToolWindow(it) },
 ) : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable {
@@ -65,8 +61,7 @@ class LayoutInspectorConfigurable(
   private val component: JPanel = JPanel()
   private val enableAutoConnectCheckBox =
     JBCheckBox(
-      LayoutInspectorBundle.message("enable.auto.connect")
-        .replace("Android Studio", ApplicationNamesInfo.getInstance().fullProductName)
+      LayoutInspectorBundle.message("enable.auto.connect").replace("Android Studio", ApplicationNamesInfo.getInstance().fullProductName)
     )
   private val embeddedLayoutInspectorSettingPanel = JPanel()
   private val enableEmbeddedLayoutInspectorCheckBox =
@@ -79,18 +74,12 @@ class LayoutInspectorConfigurable(
   private val autoConnectSettingControl =
     ToggleSettingController(
       enableAutoConnectCheckBox,
-      Setting(
-        getValue = { settings.autoConnectEnabled },
-        setValue = { settings.autoConnectEnabled = it },
-      ),
+      Setting(getValue = { settings.autoConnectEnabled }, setValue = { settings.autoConnectEnabled = it }),
     )
   private val embeddedLayoutInspectorSettingControl =
     ToggleSettingController(
       enableEmbeddedLayoutInspectorCheckBox,
-      Setting(
-        getValue = { settings.embeddedLayoutInspectorEnabled },
-        setValue = { settings.embeddedLayoutInspectorEnabled = it },
-      ),
+      Setting(getValue = { settings.embeddedLayoutInspectorEnabled }, setValue = { settings.embeddedLayoutInspectorEnabled = it }),
     )
 
   init {
@@ -98,8 +87,7 @@ class LayoutInspectorConfigurable(
     component.add(enableAutoConnectCheckBox)
     enableAutoConnectCheckBox.alignmentX = Component.LEFT_ALIGNMENT
 
-    embeddedLayoutInspectorSettingPanel.layout =
-      BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
+    embeddedLayoutInspectorSettingPanel.layout = BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
     embeddedLayoutInspectorSettingPanel.add(enableEmbeddedLayoutInspectorCheckBox)
     embeddedLayoutInspectorSettingPanel.add(Box.createRigidArea(Dimension(20, 0)))
 
@@ -111,8 +99,7 @@ class LayoutInspectorConfigurable(
 
   override fun createComponent() = component
 
-  override fun isModified() =
-    autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
+  override fun isModified() = autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
 
   override fun apply() {
     val autoConnectHasChanged = autoConnectSettingControl.apply()

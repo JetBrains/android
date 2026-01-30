@@ -22,14 +22,13 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.TailTypeDecorator
 
-/**
- * Returns the [LookupElement] with a Decorator of [type].
- */
-fun LookupElementBuilder.withTypeDecorator(type: TailType) = object : TailTypeDecorator<LookupElement>(this) {
-  override fun computeTailType(context: InsertionContext) = type
+/** Returns the [LookupElement] with a Decorator of [type]. */
+fun LookupElementBuilder.withTypeDecorator(type: TailType) =
+  object : TailTypeDecorator<LookupElement>(this) {
+    override fun computeTailType(context: InsertionContext) = type
 
-  override fun handleInsert(context: InsertionContext) {
-    super.handleInsert(context)
-    AutoPopupController.getInstance(context.project).scheduleAutoPopup(context.editor)
+    override fun handleInsert(context: InsertionContext) {
+      super.handleInsert(context)
+      AutoPopupController.getInstance(context.project).scheduleAutoPopup(context.editor)
+    }
   }
-}

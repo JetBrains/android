@@ -91,9 +91,9 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   @Language("kt")
   private val requiresApiAnnotationStub =
     """
-      package androidx.annotation
-      annotation class RequiresApi(val api: Int)
-      """
+    package androidx.annotation
+    annotation class RequiresApi(val api: Int)
+    """
       .trimIndent()
 
   private fun createFile(relativePath: String, @Language("kt") source: String): PsiFile {

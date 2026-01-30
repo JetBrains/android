@@ -76,6 +76,12 @@ import com.intellij.util.io.IOUtil.readUTF
 import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
+import java.io.ByteArrayInputStream
+import java.io.DataInput
+import java.io.DataOutput
+import java.io.Reader
+import java.util.Objects
+import java.util.stream.Stream
 import org.jetbrains.android.facet.AndroidFacet
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
@@ -83,40 +89,31 @@ import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
 import org.xmlpull.v1.XmlPullParser.END_TAG
 import org.xmlpull.v1.XmlPullParser.START_TAG
 import org.xmlpull.v1.XmlPullParserException
-import java.io.ByteArrayInputStream
-import java.io.DataInput
-import java.io.DataOutput
-import java.io.Reader
-import java.util.Objects
-import java.util.stream.Stream
 
 private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
 
 /**
- * A file-based index which maps each AndroidManifest.xml to a single entry, <key: package name, value: structured
- * representation of the manifest's raw text (as an [AndroidManifestRawText])>.
+ * A file-based index which maps each AndroidManifest.xml to a single entry, <key: package name, value: structured representation of the
+ * manifest's raw text (as an [AndroidManifestRawText])>.
  *
- * Callers that need to consume only a subset of a merged manifest's attributes can use
- * this index to avoid blocking on computing the entire manifest by applying this pattern:
- *
- *   1. Use [AndroidManifestIndex.getDataForMergedManifestContributors] to obtain the pre-parsed
- *      [AndroidManifestRawText] for each of the module's merged manifest contributors.
- *   2. Extract the desired attribute(s) from each pre-parsed [AndroidManifestRawText]
- *   3. Apply any relevant overrides and placeholder substitutions to the attributes' raw text (as determined by
- *      [com.android.tools.idea.projectsystem.AndroidModuleSystem.getManifestOverrides])
- *   4. Manually merge the attributes to obtain the final attribute(s) which would be present in the merged manifest
+ * Callers that need to consume only a subset of a merged manifest's attributes can use this index to avoid blocking on computing the entire
+ * manifest by applying this pattern:
+ * 1. Use [AndroidManifestIndex.getDataForMergedManifestContributors] to obtain the pre-parsed [AndroidManifestRawText] for each of the
+ *    module's merged manifest contributors.
+ * 2. Extract the desired attribute(s) from each pre-parsed [AndroidManifestRawText]
+ * 3. Apply any relevant overrides and placeholder substitutions to the attributes' raw text (as determined by
+ *    [com.android.tools.idea.projectsystem.AndroidModuleSystem.getManifestOverrides])
+ * 4. Manually merge the attributes to obtain the final attribute(s) which would be present in the merged manifest
  */
 class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawText>() {
   companion object {
-    @JvmField
-    val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName<AndroidManifestIndex>())
+    @JvmField val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName<AndroidManifestIndex>())
 
     /**
-     * Returns corresponding [AndroidFacet]s by given key(package name)
-     * NOTE: This function must be called from a smart read action.
+     * Returns corresponding [AndroidFacet]s by given key(package name) NOTE: This function must be called from a smart read action.
      *
-     * This may not be useful for non-Gradle build systems, as they may allow for package name overrides.
-     * Most callers should use the build system-dependent AndroidProjectSystem.findAndroidFacetsWithPackageName.
+     * This may not be useful for non-Gradle build systems, as they may allow for package name overrides. Most callers should use the build
+     * system-dependent AndroidProjectSystem.findAndroidFacetsWithPackageName.
      *
      * @see DumbService.runReadActionInSmartMode
      */
@@ -138,9 +135,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     }
 
     /**
-     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
-     * if the file isn't recognized by the index (e.g. because it's malformed).
-     * NOTE: This function must be called from a smart read action.
+     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null if the file isn't recognized by the index (e.g. because
+     * it's malformed). NOTE: This function must be called from a smart read action.
+     *
      * @see com.android.tools.idea.projectsystem.MergedManifestContributors
      * @see DumbService.runReadActionInSmartMode
      */
@@ -149,8 +146,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       if (checkIndexAccessibleFor(project)) {
         try {
           return doGetDataForManifestFile(project, manifestFile)
-        }
-        catch (e: IndexNotReadyException) {
+        } catch (e: IndexNotReadyException) {
           LOG.debug(e)
         }
       }
@@ -159,8 +155,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     }
 
     /**
-     * Returns the [AndroidManifestRawText] for each of the given [facet]'s `MergedManifestContributors` recognized by the index.
-     * NOTE: This function must be called from a smart read action.
+     * Returns the [AndroidManifestRawText] for each of the given [facet]'s `MergedManifestContributors` recognized by the index. NOTE: This
+     * function must be called from a smart read action.
+     *
      * @see com.android.tools.idea.projectsystem.MergedManifestContributors
      * @see DumbService.runReadActionInSmartMode
      */
@@ -183,8 +180,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
           }
           .filter(Objects::nonNull)
           .map { it as AndroidManifestRawText }
-      }
-      else {
+      } else {
         Stream.empty()
       }
     }
@@ -208,25 +204,28 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     }
 
     /**
-     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
-     * if the file isn't recognized by the index (e.g. because it's malformed).
+     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null if the file isn't recognized by the index (e.g. because
+     * it's malformed).
      */
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
       ProgressManager.checkCanceled()
 
-      val data: Map<String, AndroidManifestRawText> = SlowOperations.knownIssue("b/391099838").use {
-        FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project)
-      }
+      val data: Map<String, AndroidManifestRawText> =
+        SlowOperations.knownIssue("b/391099838").use { FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project) }
       check(data.values.size <= 1)
       return data.values.firstOrNull()
     }
   }
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
+
   override fun getName() = NAME
+
   override fun getVersion() = 10
+
   override fun getIndexer() = Indexer
+
   override fun getInputFilter() = InputFilter
 
   object InputFilter : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
@@ -253,8 +252,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
             else -> parser.skipSubTreeWithExceptionCaught()
           }
         }
-      }
-      catch (e: XmlPullParserException) {
+      } catch (e: XmlPullParserException) {
         LOG.warn(e.toString())
       }
       // This is unfortunate. Ideally, we'd just be catching XmlPullParserExceptions from KXmlParser
@@ -263,8 +261,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       // an undefined namespace).
       catch (e: ProcessCanceledException) {
         throw e
-      }
-      catch (e: RuntimeException) {
+      } catch (e: RuntimeException) {
         LOG.warn(e.toString())
       }
       return null
@@ -284,15 +281,14 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         // TODO(b/143528395): Go back to using FileContentImpl#getContent once the upstream issue has been resolved.
         val decoded = BinaryXmlParser.decodeXml(file.contentsToByteArray())
         ByteArrayInputStream(decoded).reader()
-      }
-      else {
+      } else {
         CharArrayUtil.readerFromCharSequence(contentAsText)
       }
     }
 
     /**
-     * This is a copy of the KXmlPullParser implementation, except that it catches pull parser exceptions and returns
-     * them as an invalid status code so that we can retain whatever information we've already computed.
+     * This is a copy of the KXmlPullParser implementation, except that it catches pull parser exceptions and returns them as an invalid
+     * status code so that we can retain whatever information we've already computed.
      */
     private fun KXmlParser.skipSubTreeWithExceptionCaught() {
       require(START_TAG, null, null)
@@ -303,8 +299,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         eventType = nextWithExceptionCaught()
         if (eventType == END_TAG) {
           --level
-        }
-        else if (eventType == START_TAG) {
+        } else if (eventType == START_TAG) {
           ++level
         }
       }
@@ -346,7 +341,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
             androidName?.let(customPermissionGroupNames::add)
             skipSubTreeWithExceptionCaught()
           }
-          TAG_USES_PERMISSION, TAG_USES_PERMISSION_SDK_23, TAG_USES_PERMISSION_SDK_M -> {
+          TAG_USES_PERMISSION,
+          TAG_USES_PERMISSION_SDK_23,
+          TAG_USES_PERMISSION_SDK_M -> {
             androidName?.let(usedPermissionNames::add)
             skipSubTreeWithExceptionCaught()
           }
@@ -376,7 +373,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         usedPermissionNames = usedPermissionNames.toSet(),
         usedFeatures = usedFeatures.toSet(),
         targetSdkLevel = targetSdkLevel,
-        theme = theme
+        theme = theme,
       )
     }
 
@@ -390,8 +387,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
-        }
-        else {
+        } else {
           skipSubTreeWithExceptionCaught()
         }
       }
@@ -400,7 +396,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         enabled = enabled,
         exported = exported,
         theme = theme,
-        intentFilters = intentFilters.toSet()
+        intentFilters = intentFilters.toSet(),
       )
     }
 
@@ -414,8 +410,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
-        }
-        else {
+        } else {
           skipSubTreeWithExceptionCaught()
         }
       }
@@ -424,7 +419,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         targetActivity = targetActivity,
         enabled = enabled,
         exported = exported,
-        intentFilters = intentFilters.toSet()
+        intentFilters = intentFilters.toSet(),
       )
     }
 
@@ -439,10 +434,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         }
         skipSubTreeWithExceptionCaught()
       }
-      return IntentFilterRawText(
-        actionNames = actionNames.toSet(),
-        categoryNames = categoryNames.toSet()
-      )
+      return IntentFilterRawText(actionNames = actionNames.toSet(), categoryNames = categoryNames.toSet())
     }
   }
 
@@ -454,14 +446,12 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 }
 
 /**
- * Invokes [processChildTag] for each start tag in the subtree of the current tag.
- * After this function is called, the parser will have moved to the current tag's end tag.
+ * Invokes [processChildTag] for each start tag in the subtree of the current tag. After this function is called, the parser will have moved
+ * to the current tag's end tag.
  *
- * [processChildTag] must also consume each child tag for which it is called,
- * moving the parser to the child's end tag. In order to make this actually
- * process just the children of the current tag, [processChildTag] should consume
- * the subtree of each child (e.g. by calling [KXmlParser.skipSubTreeWithExceptionCaught]
- * or recursively calling [processChildTags]).
+ * [processChildTag] must also consume each child tag for which it is called, moving the parser to the child's end tag. In order to make
+ * this actually process just the children of the current tag, [processChildTag] should consume the subtree of each child (e.g. by calling
+ * [KXmlParser.skipSubTreeWithExceptionCaught] or recursively calling [processChildTags]).
  */
 private inline fun KXmlParser.processChildTags(crossinline processChildTag: KXmlParser.() -> Unit) {
   require(START_TAG, null, null)
@@ -488,13 +478,13 @@ private inline fun KXmlParser.processChildTags(crossinline processChildTag: KXml
   }
 }
 
-private val ERROR_TAG get() = -1
+private val ERROR_TAG
+  get() = -1
 
 private fun KXmlParser.nextWithExceptionCaught(): Int {
   try {
     return next()
-  }
-  catch (e: XmlPullParserException) {
+  } catch (e: XmlPullParserException) {
     LOG.warn(e.message)
 
     if (this.eventType == END_TAG) {
@@ -505,17 +495,17 @@ private fun KXmlParser.nextWithExceptionCaught(): Int {
   }
 }
 
-private val KXmlParser.androidName get() = getAttributeValue(ANDROID_URI, ATTR_NAME)
+private val KXmlParser.androidName
+  get() = getAttributeValue(ANDROID_URI, ATTR_NAME)
 
 /**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of a manifest tag's
- * attributes and sub-tags.
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of a manifest tag's attributes and sub-tags.
  *
- * The raw text may include placeholders and resource references. This is by design, since indices are project-independent
- * (whereas placeholder values are project/variant-specific) and we aren't capable of resolving resource references at
- * this abstraction level. For performance reasons, [AndroidManifestRawText] only contains the subset of text that the IDE needs.
- * When updating the struct to include any additional information, one must also update the schema used by
- * [AndroidManifestRawText.Externalizer] and increment [AndroidManifestIndex.getVersion].
+ * The raw text may include placeholders and resource references. This is by design, since indices are project-independent (whereas
+ * placeholder values are project/variant-specific) and we aren't capable of resolving resource references at this abstraction level. For
+ * performance reasons, [AndroidManifestRawText] only contains the subset of text that the IDE needs. When updating the struct to include
+ * any additional information, one must also update the schema used by [AndroidManifestRawText.Externalizer] and increment
+ * [AndroidManifestIndex.getVersion].
  */
 data class AndroidManifestRawText(
   val activities: Set<ActivityRawText>,
@@ -529,15 +519,14 @@ data class AndroidManifestRawText(
   val usedPermissionNames: Set<String>,
   val usedFeatures: Set<UsedFeatureRawText>,
   val targetSdkLevel: String?,
-  val theme: String?
+  val theme: String?,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [AndroidManifestRawText]s to/from disk.
    *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [AndroidManifestRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [AndroidManifestRawText] requires an update to the schema used here, and any update to the schema
+   * requires us to increment [AndroidManifestIndex.getVersion].
    */
   object Externalizer : DataExternalizer<AndroidManifestRawText> {
     override fun save(out: DataOutput, value: AndroidManifestRawText) {
@@ -557,26 +546,26 @@ data class AndroidManifestRawText(
       }
     }
 
-    override fun read(`in`: DataInput) = AndroidManifestRawText(
-      activities = readSeq(`in`) { ActivityRawText.Externalizer.read(`in`) }.toSet(),
-      activityAliases = readSeq(`in`) { ActivityAliasRawText.Externalizer.read(`in`) }.toSet(),
-      customPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
-      customPermissionGroupNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
-      debuggable = readNullable(`in`) { readUTF(`in`) },
-      enabled = readNullable(`in`) { readUTF(`in`) },
-      minSdkLevel = readNullable(`in`) { readUTF(`in`) },
-      packageName = readNullable(`in`) { readUTF(`in`) },
-      usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
-      usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
-      targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
-      theme = readNullable(`in`) { readUTF(`in`) }
-    )
+    override fun read(`in`: DataInput) =
+      AndroidManifestRawText(
+        activities = readSeq(`in`) { ActivityRawText.Externalizer.read(`in`) }.toSet(),
+        activityAliases = readSeq(`in`) { ActivityAliasRawText.Externalizer.read(`in`) }.toSet(),
+        customPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+        customPermissionGroupNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+        debuggable = readNullable(`in`) { readUTF(`in`) },
+        enabled = readNullable(`in`) { readUTF(`in`) },
+        minSdkLevel = readNullable(`in`) { readUTF(`in`) },
+        packageName = readNullable(`in`) { readUTF(`in`) },
+        usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+        usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
+        targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
+        theme = readNullable(`in`) { readUTF(`in`) },
+      )
   }
 }
 
 /**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an
- * activity tag's attributes and sub-tags.
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an activity tag's attributes and sub-tags.
  *
  * @see AndroidManifestRawText
  */
@@ -585,15 +574,14 @@ data class ActivityRawText(
   val enabled: String?,
   val exported: String?,
   val theme: String?,
-  val intentFilters: Set<IntentFilterRawText>
+  val intentFilters: Set<IntentFilterRawText>,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
    *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [ActivityRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [ActivityRawText] requires an update to the schema used here, and any update to the schema requires
+   * us to increment [AndroidManifestIndex.getVersion].
    */
   object Externalizer : DataExternalizer<ActivityRawText> {
     override fun save(out: DataOutput, value: ActivityRawText) {
@@ -606,19 +594,20 @@ data class ActivityRawText(
       }
     }
 
-    override fun read(`in`: DataInput) = ActivityRawText(
-      name = readNullable(`in`) { readUTF(`in`) },
-      enabled = readNullable(`in`) { readUTF(`in`) },
-      exported = readNullable(`in`) { readUTF(`in`) },
-      theme = readNullable(`in`) { readUTF(`in`) },
-      intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
-    )
+    override fun read(`in`: DataInput) =
+      ActivityRawText(
+        name = readNullable(`in`) { readUTF(`in`) },
+        enabled = readNullable(`in`) { readUTF(`in`) },
+        exported = readNullable(`in`) { readUTF(`in`) },
+        theme = readNullable(`in`) { readUTF(`in`) },
+        intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet(),
+      )
   }
 }
 
 /**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an
- * activity alias tag's attributes and sub-tags.
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an activity alias tag's attributes and
+ * sub-tags.
  *
  * @see AndroidManifestRawText
  */
@@ -627,15 +616,14 @@ data class ActivityAliasRawText(
   val targetActivity: String?,
   val enabled: String?,
   val exported: String?,
-  val intentFilters: Set<IntentFilterRawText>
+  val intentFilters: Set<IntentFilterRawText>,
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityAliasRawText]s to/from disk.
    *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [ActivityAliasRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [ActivityAliasRawText] requires an update to the schema used here, and any update to the schema
+   * requires us to increment [AndroidManifestIndex.getVersion].
    */
   object Externalizer : DataExternalizer<ActivityAliasRawText> {
     override fun save(out: DataOutput, value: ActivityAliasRawText) {
@@ -648,19 +636,20 @@ data class ActivityAliasRawText(
       }
     }
 
-    override fun read(`in`: DataInput) = ActivityAliasRawText(
-      name = readNullable(`in`) { readUTF(`in`) },
-      targetActivity = readNullable(`in`) { readUTF(`in`) },
-      enabled = readNullable(`in`) { readUTF(`in`) },
-      exported = readNullable(`in`) { readUTF(`in`) },
-      intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
-    )
+    override fun read(`in`: DataInput) =
+      ActivityAliasRawText(
+        name = readNullable(`in`) { readUTF(`in`) },
+        targetActivity = readNullable(`in`) { readUTF(`in`) },
+        enabled = readNullable(`in`) { readUTF(`in`) },
+        exported = readNullable(`in`) { readUTF(`in`) },
+        intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet(),
+      )
   }
 }
 
 /**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an
- * intent filter tag's attributes and sub-tags.
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an intent filter tag's attributes and
+ * sub-tags.
  *
  * @see AndroidManifestRawText
  */
@@ -668,10 +657,9 @@ data class IntentFilterRawText(val actionNames: Set<String>, val categoryNames: 
   /**
    * Singleton responsible for serializing/de-serializing [IntentFilterRawText]s to/from disk.
    *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [IntentFilterRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [IntentFilterRawText] requires an update to the schema used here, and any update to the schema
+   * requires us to increment [AndroidManifestIndex.getVersion].
    */
   object Externalizer : DataExternalizer<IntentFilterRawText> {
     override fun save(out: DataOutput, value: IntentFilterRawText) {
@@ -681,16 +669,13 @@ data class IntentFilterRawText(val actionNames: Set<String>, val categoryNames: 
       }
     }
 
-    override fun read(`in`: DataInput) = IntentFilterRawText(
-      actionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
-      categoryNames = readSeq(`in`) { readUTF(`in`) }.toSet()
-    )
+    override fun read(`in`: DataInput) =
+      IntentFilterRawText(actionNames = readSeq(`in`) { readUTF(`in`) }.toSet(), categoryNames = readSeq(`in`) { readUTF(`in`) }.toSet())
   }
 }
 
 /**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of uses-feature tag's
- * attributes.
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of uses-feature tag's attributes.
  *
  * @see AndroidManifestRawText
  */
@@ -698,10 +683,9 @@ data class UsedFeatureRawText(val name: String?, val required: String?) {
   /**
    * Singleton responsible for serializing/de-serializing [UsedFeatureRawText]s to/from disk.
    *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [UsedFeatureRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit and also to persist indexed data between IDE
+   * sessions. Any structural change to [UsedFeatureRawText] requires an update to the schema used here, and any update to the schema
+   * requires us to increment [AndroidManifestIndex.getVersion].
    */
   object Externalizer : DataExternalizer<UsedFeatureRawText> {
     override fun save(out: DataOutput, value: UsedFeatureRawText) {
@@ -711,9 +695,7 @@ data class UsedFeatureRawText(val name: String?, val required: String?) {
       }
     }
 
-    override fun read(`in`: DataInput) = UsedFeatureRawText(
-      name = readNullable(`in`) { readUTF(`in`) },
-      required = readNullable(`in`) { readUTF(`in`) }
-    )
+    override fun read(`in`: DataInput) =
+      UsedFeatureRawText(name = readNullable(`in`) { readUTF(`in`) }, required = readNullable(`in`) { readUTF(`in`) })
   }
 }

@@ -20,16 +20,13 @@ import com.android.tools.idea.FirstLaunchTest.Companion.getFileNamesInSdkDirecto
 import com.android.tools.testlib.Display
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
+import java.nio.file.Files
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 
 class FirstLaunchWizardTest {
 
-  @JvmField
-  @Rule
-  val system: AndroidSystem =
-    AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
 
   @Test
   fun firstLaunchTest() {
@@ -60,16 +57,7 @@ class FirstLaunchWizardTest {
 
       val fileNames = getFileNamesInSdkDirectory(system)
       val expectedFiles: List<String> =
-        ArrayList(
-          mutableListOf(
-            "build-tools",
-            "emulator",
-            "licenses",
-            "platforms",
-            "platform-tools",
-            "sources",
-          )
-        )
+        ArrayList(mutableListOf("build-tools", "emulator", "licenses", "platforms", "platform-tools", "sources"))
       Truth.assertThat<String>(fileNames).asList().containsAllIn(expectedFiles)
     }
   }

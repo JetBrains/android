@@ -14,4 +14,3 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.model
-

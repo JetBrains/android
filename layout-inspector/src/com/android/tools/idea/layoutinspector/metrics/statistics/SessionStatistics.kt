@@ -126,23 +126,11 @@ interface SessionStatistics {
 
 class SessionStatisticsImpl(
   clientType: ClientType,
-  areMultipleProjectsOpen: () -> Boolean = {
-    LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen()
-  },
-  isAutoConnectEnabled: () -> Boolean = {
-    LayoutInspectorSettings.getInstance().autoConnectEnabled
-  },
-  isEmbeddedLayoutInspector: () -> Boolean = {
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  },
+  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() },
+  isAutoConnectEnabled: () -> Boolean = { LayoutInspectorSettings.getInstance().autoConnectEnabled },
+  isEmbeddedLayoutInspector: () -> Boolean = { LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled },
 ) : SessionStatistics {
-  private val attach =
-    AttachStatistics(
-      clientType,
-      areMultipleProjectsOpen,
-      isAutoConnectEnabled,
-      isEmbeddedLayoutInspector,
-    )
+  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen, isAutoConnectEnabled, isEmbeddedLayoutInspector)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val compose = ComposeStatistics()

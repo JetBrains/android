@@ -133,15 +133,5 @@ internal object TestDevices {
       formFactor = FormFactors.TV,
     )
 
-  val allTestDevices =
-    listOf(
-      automotive,
-      galaxyS22,
-      mediumPhone,
-      pixelFold,
-      pixelTablet,
-      remotePixel5,
-      tv4k,
-      wearLargeRound,
-    )
+  val allTestDevices = listOf(automotive, galaxyS22, mediumPhone, pixelFold, pixelTablet, remotePixel5, tv4k, wearLargeRound)
 }

@@ -24,10 +24,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
 
-/**
- * Action to stop the animation inspector, displayed when the inspector is open for the current
- * preview.
- */
+/** Action to stop the animation inspector, displayed when the inspector is open for the current preview. */
 class StopAnimationInspectorAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
   DumbAwareAction(
     message("action.stop.animation.inspector.title"),

@@ -39,7 +39,8 @@ class DeviceExplorerController(
   project: Project,
   private val model: DeviceExplorerModel,
   private val view: DeviceExplorerView,
-  private val tabControllers: List<DeviceExplorerTabController>) : Disposable, DeviceExplorerControllerListener {
+  private val tabControllers: List<DeviceExplorerTabController>,
+) : Disposable, DeviceExplorerControllerListener {
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val viewListener: DeviceExplorerViewListener = ViewListener()
 
@@ -60,9 +61,7 @@ class DeviceExplorerController(
       if (isActive) DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_ON
       else DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_OFF
     )
-    tabControllers.forEach {
-      it.setPackageFilter(isActive)
-    }
+    tabControllers.forEach { it.setPackageFilter(isActive) }
   }
 
   fun setup() {
@@ -94,19 +93,14 @@ class DeviceExplorerController(
   private fun setActiveDevice(deviceHandle: DeviceHandle?) {
     model.setActiveDevice(deviceHandle)
     trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
-    tabControllers.forEach {
-      it.setActiveConnectedDevice(deviceHandle)
-    }
+    tabControllers.forEach { it.setActiveConnectedDevice(deviceHandle) }
   }
 
   private fun trackAction(action: DeviceExplorerEvent.Action) {
     log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-        .setDeviceExplorerEvent(
-          DeviceExplorerEvent.newBuilder()
-            .setAction(action)
-        )
+        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder().setAction(action))
     )
   }
 
@@ -121,9 +115,8 @@ class DeviceExplorerController(
   }
 
   companion object {
-    private val KEY = Key.create<DeviceExplorerController>(
-      DeviceExplorerController::class.java.name
-    )
+    private val KEY = Key.create<DeviceExplorerController>(DeviceExplorerController::class.java.name)
+
     @JvmStatic
     fun getProjectController(project: Project?): DeviceExplorerController? {
       return project?.getUserData(KEY)

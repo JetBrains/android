@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.android.api.android.testOptions.testSuites.TestSuiteModel
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
@@ -32,7 +32,8 @@ open class DependenciesInserter {
     dependency: String,
     enforced: Boolean,
     parsedModel: GradleBuildModel,
-    matcher: DependencyMatcher = ExactDependencyMatcher(configuration, dependency)): Set<PsiFile> {
+    matcher: DependencyMatcher = ExactDependencyMatcher(configuration, dependency),
+  ): Set<PsiFile> {
     val buildscriptDependencies = parsedModel.dependencies()
     val updatedFiles = mutableSetOf<PsiFile>()
 
@@ -45,12 +46,14 @@ open class DependenciesInserter {
     return updatedFiles
   }
 
-  open fun addDependency(configuration: String,
-                         dependency: String,
-                         excludes: List<ArtifactDependencySpec>,
-                         parsedModel: GradleBuildModel,
-                         matcher: DependencyMatcher,
-                         sourceSetName: String? = null): Set<PsiFile> {
+  open fun addDependency(
+    configuration: String,
+    dependency: String,
+    excludes: List<ArtifactDependencySpec>,
+    parsedModel: GradleBuildModel,
+    matcher: DependencyMatcher,
+    sourceSetName: String? = null,
+  ): Set<PsiFile> {
     val updateFiles = mutableSetOf<PsiFile>()
     val dependenciesModel = getDependenciesModel(sourceSetName, parsedModel)
     if (dependenciesModel != null && !dependenciesModel.hasArtifact(matcher)) {
@@ -64,8 +67,7 @@ open class DependenciesInserter {
   /**
    * Adds a test suite engine dependency to the given [TestSuiteModel].
    *
-   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s
-   * enginesDependencies, this function does nothing.
+   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s enginesDependencies, this function does nothing.
    *
    * @param testSuiteModel The [TestSuiteModel] to add the dependency to.
    * @param dependency The dependency string in compact notation (e.g., "group:name:version").
@@ -74,10 +76,12 @@ open class DependenciesInserter {
   open fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
     // First check if any version of the dependency already exists
     val parsedDependency = Dependency.parse(dependency)
-    if (testSuiteModel.useJunitEngine().enginesDependencies().any {
+    if (
+      testSuiteModel.useJunitEngine().enginesDependencies().any {
         val parsedExisting = Dependency.parse(it.compactNotation())
         parsedExisting.group == parsedDependency.group && parsedExisting.name == parsedDependency.group
-      }) {
+      }
+    ) {
       return emptySet()
     }
 
@@ -85,8 +89,7 @@ open class DependenciesInserter {
     return setOfNotNull(testSuiteModel.useJunitEngine().psiElement?.containingFile)
   }
 
-  internal fun findDependency(dependency: Dependency,
-                              buildModel: GradleBuildModel): ArtifactDependencyModel? {
+  internal fun findDependency(dependency: Dependency, buildModel: GradleBuildModel): ArtifactDependencyModel? {
     val dependenciesModel = buildModel.dependencies()
     val richVersion = dependency.version
     var richVersionIdentifier: String? = null
@@ -94,17 +97,18 @@ open class DependenciesInserter {
 
     val artifacts: List<ArtifactDependencyModel> = ArrayList(dependenciesModel.artifacts())
     for (artifact in artifacts) {
-      if (dependency.group == artifact.group().toString()
-          && dependency.name == artifact.name().forceString()
-          && richVersionIdentifier != artifact.version().toString()) {
+      if (
+        dependency.group == artifact.group().toString() &&
+          dependency.name == artifact.name().forceString() &&
+          richVersionIdentifier != artifact.version().toString()
+      ) {
         return artifact
       }
     }
     return null
   }
 
-  open fun updateDependencyVersion(dependency: Dependency,
-                                   buildModel: GradleBuildModel) {
+  open fun updateDependencyVersion(dependency: Dependency, buildModel: GradleBuildModel) {
     check(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
     findDependency(dependency, buildModel)?.let { artifact ->
       buildModel.dependencies().apply {
@@ -117,25 +121,23 @@ open class DependenciesInserter {
   private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
     return if (sourceSetName != null) {
       parsedModel.kotlin().sourceSets().find { it.name() == sourceSetName }?.dependencies()
-    }
-    else {
+    } else {
       parsedModel.dependencies()
     }
   }
 
-  internal fun DependenciesModel.hasArtifact(matcher: DependencyMatcher): Boolean =
-    artifacts().any { matcher.match(it) }
+  internal fun DependenciesModel.hasArtifact(matcher: DependencyMatcher): Boolean = artifacts().any { matcher.match(it) }
 
   /**
-   * This is short version of addDependency function.
-   * Assuming there is no excludes and algorithm will search exact dependency declaration in catalog if exists.
+   * This is short version of addDependency function. Assuming there is no excludes and algorithm will search exact dependency declaration
+   * in catalog if exists.
    */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency))
 
   /**
-   * This is short version of addDependency function with additional sourceSet parameter.
-   * Assuming there is no excludes and algorithm will search exact dependency declaration in catalog if exists.
+   * This is short version of addDependency function with additional sourceSet parameter. Assuming there is no excludes and algorithm will
+   * search exact dependency declaration in catalog if exists.
    */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel, sourceSet: String) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency), sourceSet)

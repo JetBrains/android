@@ -18,8 +18,7 @@ package com.android.tools.idea.diagnostics.hprof.analysis
 import com.android.tools.idea.diagnostics.hprof.histogram.Histogram
 import com.android.tools.idea.diagnostics.hprof.histogram.HistogramEntry
 
-class ClassNomination(private val histogram: Histogram,
-                      private val classLimitPerCategory: Int) {
+class ClassNomination(private val histogram: Histogram, private val classLimitPerCategory: Int) {
 
   fun nominateClasses(): List<HistogramEntry> {
     val resultClasses = HashSet<HistogramEntry>()
@@ -65,8 +64,8 @@ class ClassNomination(private val histogram: Histogram,
     }
 
     return !localName.startsWith("java.") &&
-           !localName.startsWith("com.google.common.") &&
-           !localName.startsWith("kotlin.") &&
-           !localName.startsWith("com.intellij.util.")
+      !localName.startsWith("com.google.common.") &&
+      !localName.startsWith("kotlin.") &&
+      !localName.startsWith("com.intellij.util.")
   }
 }

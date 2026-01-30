@@ -31,16 +31,12 @@ import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 
 /**
- * Inspection that checks that any method with a Tile Preview signature is annotated with the tile
- * `@Preview` annotation, and not a `@Preview` annotation from a different package.
+ * Inspection that checks that any method with a Tile Preview signature is annotated with the tile `@Preview` annotation, and not a
+ * `@Preview` annotation from a different package.
  */
 class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePreviewInspectionBase() {
 
-  override fun checkMethod(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
+  override fun checkMethod(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
     if (!method.sourcePsi.isMethodWithTilePreviewSignature()) {
       return super.checkMethod(method, manager, isOnTheFly)
     }
@@ -55,18 +51,9 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
               message("inspection.preview.annotation.not.from.tile.package"),
               isOnTheFly,
               LocalQuickFix.notNullElements(
-                ReplacePreviewAnnotationFix(
-                    sourcePsi,
-                    withAnnotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
-                  )
-                  .takeIf {
-                    it.isAvailable(
-                      sourcePsi.project,
-                      sourcePsi.containingFile,
-                      sourcePsi,
-                      sourcePsi,
-                    )
-                  }
+                ReplacePreviewAnnotationFix(sourcePsi, withAnnotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME).takeIf {
+                  it.isAvailable(sourcePsi.project, sourcePsi.containingFile, sourcePsi, sourcePsi)
+                }
               ),
               ProblemHighlightType.ERROR,
             )
@@ -86,16 +73,13 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
       .toTypedArray()
   }
 
-  override fun getStaticDescription() =
-    message("inspection.preview.annotation.not.from.tile.package")
+  override fun getStaticDescription() = message("inspection.preview.annotation.not.from.tile.package")
 }
 
 @RequiresBackgroundThread
 // TODO(b/381827960): avoid using runBlockingCancellable
 private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() = runBlockingCancellable {
-  findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.firstOrNull() !=
-    null
+  findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.firstOrNull() != null
 }
 
-private fun String?.isPreviewFqnFromDifferentPackage() =
-  this?.endsWith(".Preview") == true && this != TILE_PREVIEW_ANNOTATION_FQ_NAME
+private fun String?.isPreviewFqnFromDifferentPackage() = this?.endsWith(".Preview") == true && this != TILE_PREVIEW_ANNOTATION_FQ_NAME

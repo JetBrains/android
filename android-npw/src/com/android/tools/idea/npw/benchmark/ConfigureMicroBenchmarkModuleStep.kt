@@ -27,35 +27,27 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 
-@Deprecated(message = "Will be removed soon", replaceWith = ReplaceWith(
-  "ConfigureBenchmarkModuleStep", imports = ["com.android.tools.idea.npw.benchmark.ConfigureBenchmarkModuleStep"])
+@Deprecated(
+  message = "Will be removed soon",
+  replaceWith = ReplaceWith("ConfigureBenchmarkModuleStep", imports = ["com.android.tools.idea.npw.benchmark.ConfigureBenchmarkModuleStep"]),
 )
-class ConfigureMicroBenchmarkModuleStep(
-  model: NewBenchmarkModuleModel, title: String, minSdkLevel: Int
-) : ConfigureModuleStep<NewBenchmarkModuleModel>(
-  model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title
-) {
-  override fun createMainPanel(): DialogPanel = panel {
-    row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).align(AlignX.FILL)
-    }
+class ConfigureMicroBenchmarkModuleStep(model: NewBenchmarkModuleModel, title: String, minSdkLevel: Int) :
+  ConfigureModuleStep<NewBenchmarkModuleModel>(model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title) {
+  override fun createMainPanel(): DialogPanel =
+    panel {
+        row(contextLabel("Module name", message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
-    row("Package name") {
-      cell(packageName).align(AlignX.FILL)
-    }
+        row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-    row("Language") {
-      cell(languageCombo).align(AlignX.FILL)
-    }
+        row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-    row("Minimum SDK") {
-      cell(apiLevelCombo).align(AlignX.FILL)
-    }
+        row("Minimum SDK") { cell(apiLevelCombo).align(AlignX.FILL) }
 
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-    }
-  }.withBorder(empty(6))
+        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
+        }
+      }
+      .withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
 }

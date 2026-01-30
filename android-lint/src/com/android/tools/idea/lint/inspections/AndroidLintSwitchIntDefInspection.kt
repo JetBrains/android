@@ -38,16 +38,8 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
 class AndroidLintSwitchIntDefInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.switch.int.def"),
-    AnnotationDetector.SWITCH_TYPE_DEF,
-  ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    message: String,
-    fixData: LintFix?,
-  ): Array<LintIdeQuickFix> {
+  AndroidLintInspectionBase(message("android.lint.inspections.switch.int.def"), AnnotationDetector.SWITCH_TYPE_DEF) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
     val missingCases = getStringList(fixData, AnnotationDetector.KEY_CASES)
     if (!missingCases.isNullOrEmpty()) {
       return arrayOf(
@@ -57,15 +49,13 @@ class AndroidLintSwitchIntDefInspection :
             override fun getFamilyName() = "AddMissingIntDefFix"
 
             @Suppress("DialogTitleCapitalization")
-            override fun getPresentation(context: ActionContext, element: PsiElement) =
-              Presentation.of("Add Missing @IntDef Constants")
+            override fun getPresentation(context: ActionContext, element: PsiElement) = Presentation.of("Add Missing @IntDef Constants")
 
             override fun perform(context: ActionContext, element: PsiElement): ModCommand {
               val project = element.project
 
               if (element.language == JavaLanguage.INSTANCE) {
-                val switchStatement =
-                  element.parent as? PsiSwitchStatement ?: return ModCommand.nop()
+                val switchStatement = element.parent as? PsiSwitchStatement ?: return ModCommand.nop()
                 val factory = JavaPsiFacade.getElementFactory(project)
 
                 @Suppress("UnstableApiUsage")
@@ -86,8 +76,7 @@ class AndroidLintSwitchIntDefInspection :
               } else if (element.language == KotlinLanguage.INSTANCE) {
                 // Kotlin
                 val whenExpression =
-                  PsiTreeUtil.getParentOfType(startElement, KtWhenExpression::class.java, false)
-                    ?: return ModCommand.nop()
+                  PsiTreeUtil.getParentOfType(startElement, KtWhenExpression::class.java, false) ?: return ModCommand.nop()
                 val factory = KtPsiFactory(project)
 
                 @Suppress("UnstableApiUsage")

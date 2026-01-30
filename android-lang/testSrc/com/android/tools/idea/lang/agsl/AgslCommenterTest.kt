@@ -33,67 +33,79 @@ class AgslCommenterTest {
   private val fixture by lazy { projectRule.fixture }
 
   // This is how this case handled in other languages
-  @Test
-  fun comment() = toggleLineComment("test", "//test")
-  @Test
-  fun uncomment() = toggleLineComment("//test", "test")
-  @Test
-  fun commentOnEmptyLine() = toggleLineComment("<caret>\n", "//<caret>\n")
-  @Test
-  fun uncommentOnEmptyLine() = toggleLineComment("// <caret>\n", "\n<caret>")
-  @Test
-  fun lineCommentBlock() = toggleLineComment(
-    """
-    uniform shader imageA;
-    <block>uniform shader imageB;
-    uniform ivec2</block> imageDimensions;
-    uniform float progress;
-    """.trimIndent(),
-    """
-    uniform shader imageA;
-    //uniform shader imageB;
-    //uniform ivec2 imageDimensions;
-    uniform float progress;
-    """.trimIndent()
-  )
+  @Test fun comment() = toggleLineComment("test", "//test")
+
+  @Test fun uncomment() = toggleLineComment("//test", "test")
+
+  @Test fun commentOnEmptyLine() = toggleLineComment("<caret>\n", "//<caret>\n")
+
+  @Test fun uncommentOnEmptyLine() = toggleLineComment("// <caret>\n", "\n<caret>")
 
   @Test
-  fun lineUncommentBlock() = toggleLineComment(
-    """
-    uniform shader imageA;
-    <block>//uniform shader imageB;
-    //uniform ivec2</block> imageDimensions;
-    uniform float progress;
-    """.trimIndent(),
-    """
-    uniform shader imageA;
-    uniform shader imageB;
-    uniform ivec2 imageDimensions;
-    uniform float progress;
-    """.trimIndent()
-  )
+  fun lineCommentBlock() =
+    toggleLineComment(
+      """
+      uniform shader imageA;
+      <block>uniform shader imageB;
+      uniform ivec2</block> imageDimensions;
+      uniform float progress;
+      """
+        .trimIndent(),
+      """
+      uniform shader imageA;
+      //uniform shader imageB;
+      //uniform ivec2 imageDimensions;
+      uniform float progress;
+      """
+        .trimIndent(),
+    )
 
   @Test
-  fun commentBlock() = toggleBlockComment(
-    """
-    <block>uniform shader</block> imageB;
-    """.trimIndent(),
-    """
-    /*uniform shader*/ imageB;
-    """.trimIndent()
-  )
+  fun lineUncommentBlock() =
+    toggleLineComment(
+      """
+      uniform shader imageA;
+      <block>//uniform shader imageB;
+      //uniform ivec2</block> imageDimensions;
+      uniform float progress;
+      """
+        .trimIndent(),
+      """
+      uniform shader imageA;
+      uniform shader imageB;
+      uniform ivec2 imageDimensions;
+      uniform float progress;
+      """
+        .trimIndent(),
+    )
 
   @Test
-  fun uncommentBlock() = toggleBlockComment(
-    """
-    uniform shader imageA;
-    <block>/*uniform shader*/</block> imageB;
-    """.trimIndent(),
-    """
-    uniform shader imageA;
-    uniform shader imageB;
-    """.trimIndent()
-  )
+  fun commentBlock() =
+    toggleBlockComment(
+      """
+      <block>uniform shader</block> imageB;
+      """
+        .trimIndent(),
+      """
+      /*uniform shader*/ imageB;
+      """
+        .trimIndent(),
+    )
+
+  @Test
+  fun uncommentBlock() =
+    toggleBlockComment(
+      """
+      uniform shader imageA;
+      <block>/*uniform shader*/</block> imageB;
+      """
+        .trimIndent(),
+      """
+      uniform shader imageA;
+      uniform shader imageB;
+      """
+        .trimIndent(),
+    )
 
   private fun toggleLineComment(@Language("AGSL") before: String, @Language("AGSL") after: String) {
     doTest(before, after, IdeActions.ACTION_COMMENT_LINE)
@@ -106,9 +118,7 @@ class AgslCommenterTest {
   private fun doTest(@Language("AGSL") before: String, @Language("AGSL") after: String, actionId: String) {
     fixture.configureByText("file.agsl", before)
 
-    application.invokeAndWait {
-      PlatformTestUtil.invokeNamedAction(actionId)
-    }
+    application.invokeAndWait { PlatformTestUtil.invokeNamedAction(actionId) }
 
     fixture.checkResult(after)
   }

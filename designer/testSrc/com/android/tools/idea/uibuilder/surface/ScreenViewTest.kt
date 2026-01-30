@@ -92,30 +92,14 @@ class ScreenViewTest {
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
 
     // Not modified
-    assertEquals(
-      "measure should not modify the dimensions where there is no device available",
-      123,
-      outDimension.width,
-    )
-    assertEquals(
-      "measure should not modify the dimensions where there is no device available",
-      123,
-      outDimension.height,
-    )
+    assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.width)
+    assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.height)
 
     whenever(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
     // Not modified
-    assertEquals(
-      "measure should not modify the dimensions where there is no state available",
-      123,
-      outDimension.width,
-    )
-    assertEquals(
-      "measure should not modify the dimensions where there is no state available",
-      123,
-      outDimension.height,
-    )
+    assertEquals("measure should not modify the dimensions where there is no state available", 123, outDimension.width)
+    assertEquals("measure should not modify the dimensions where there is no state available", 123, outDimension.height)
   }
 
   @Test

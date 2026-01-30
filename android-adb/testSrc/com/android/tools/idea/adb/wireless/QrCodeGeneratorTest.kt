@@ -21,9 +21,8 @@ import org.junit.Test
 
 class QrCodeGeneratorTest {
   /**
-   * Note: Change the return value to `true` to generate source code for the `expectedRows` variable
-   * of the tests. This should only required if, for some reason, the zxing library behavior
-   * changes. (One would hope this never happens).
+   * Note: Change the return value to `true` to generate source code for the `expectedRows` variable of the tests. This should only required
+   * if, for some reason, the zxing library behavior changes. (One would hope this never happens).
    */
   private fun generateExpectedRows() = false
 
@@ -192,10 +191,7 @@ class QrCodeGeneratorTest {
     return QrCodeGenerator.encodeQrCode(contents, size)
   }
 
-  /**
-   * Keep this method because we may need to generate source code for the expected QR Code format
-   * (or if we add tests in the future)
-   */
+  /** Keep this method because we may need to generate source code for the expected QR Code format (or if we add tests in the future) */
   @Suppress("unused")
   private fun outputExpectedRowsCode(bits: BitMatrix) {
     if (!generateExpectedRows()) {

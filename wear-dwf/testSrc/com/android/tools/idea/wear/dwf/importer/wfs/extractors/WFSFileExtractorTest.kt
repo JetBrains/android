@@ -46,8 +46,7 @@ class WFSFileExtractorTest {
   fun `test extract example WFS file`() = runTest {
     val extractor = WFSFileExtractor(StandardTestDispatcher(testScheduler))
     val wfsFile =
-      LocalFileSystem.getInstance().findFileByNioFile(testDataPath.resolve("wfs/example.wfs"))
-        ?: error("expected WFS file to exist")
+      LocalFileSystem.getInstance().findFileByNioFile(testDataPath.resolve("wfs/example.wfs")) ?: error("expected WFS file to exist")
 
     val mainFolderPath = fixture.tempDirPath.toNioPathOrNull() ?: error("expected path to be valid")
     val resFolderPath = fixture.tempDirFixture.findOrCreateDir("res").toNioPath()
@@ -56,16 +55,8 @@ class WFSFileExtractorTest {
 
     fixture.checkResultByFile("res/raw/watchface.xml", "wfs/expected/raw/watchface.xml", true)
     fixture.checkResultByFile("res/xml/watch_face.xml", "wfs/expected/xml/watch_face.xml", true)
-    fixture.checkResultByFile(
-      "res/xml/watch_face_info.xml",
-      "wfs/expected/xml/watch_face_info.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "res/xml/watch_face_shapes.xml",
-      "wfs/expected/xml/watch_face_shapes.xml",
-      true,
-    )
+    fixture.checkResultByFile("res/xml/watch_face_info.xml", "wfs/expected/xml/watch_face_info.xml", true)
+    fixture.checkResultByFile("res/xml/watch_face_shapes.xml", "wfs/expected/xml/watch_face_shapes.xml", true)
     assertThat(fixture.findFileInTempDir("res/drawable-nodpi/preview.png").exists()).isTrue()
     assertThat(fixture.findFileInTempDir("res/drawable-nodpi/").children).hasLength(68)
 

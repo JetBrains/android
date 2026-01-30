@@ -25,7 +25,7 @@ fun RecipeExecutor.generateBasicJniBindings(
   language: Language,
   className: String,
   nativeSourceName: String,
-  nativeLibraryName: String
+  nativeLibraryName: String,
 ) {
 
   val pn = data.packageName.replace("_", "_1").replace('.', '_')
@@ -46,8 +46,8 @@ fun RecipeExecutor.generateBasicJniBindings(
   }
 }
 
-private fun jniBindingJava(escapedPackageName: String, className: String, nativeLibraryName: String): String = //language=JAVA
-  """
+private fun jniBindingJava(escapedPackageName: String, className: String, nativeLibraryName: String): String = // language=JAVA
+"""
 package $escapedPackageName;
 
 public class $className {
@@ -65,8 +65,8 @@ public class $className {
 }
 """
 
-private fun jniBindingKotlin(escapedPackageName: String, className: String, nativeLibraryName: String): String = //language=kotlin
-  """
+private fun jniBindingKotlin(escapedPackageName: String, className: String, nativeLibraryName: String): String = // language=kotlin
+"""
 package $escapedPackageName
 
 class $className {
@@ -86,7 +86,8 @@ class $className {
 }
 """
 
-private fun jniBindingCpp(pn: String, className: String): String = """
+private fun jniBindingCpp(pn: String, className: String): String =
+  """
 #include <jni.h>
 #include <string>
 
@@ -97,4 +98,5 @@ Java_${pn}_${className}_stringFromJNI(
     std::string hello = "Hello from C++";
     return env->NewStringUTF(hello.c_str());
 }
-""".trimIndent()
+"""
+    .trimIndent()

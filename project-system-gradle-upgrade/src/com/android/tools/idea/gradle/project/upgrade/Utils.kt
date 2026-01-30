@@ -25,17 +25,30 @@ internal val List<String>.descriptionText: String
     run done@{
       this.forEachIndexed moduleNames@{ index, name ->
         when (index) {
-          0 -> name.let { col += it.length; sb.append(it) }
-          last -> name.let { if (index != 1) sb.append(","); sb.append(" and $it") }
+          0 ->
+            name.let {
+              col += it.length
+              sb.append(it)
+            }
+          last ->
+            name.let {
+              if (index != 1) sb.append(",")
+              sb.append(" and $it")
+            }
           in 1..7 -> {
             sb.append(", ")
             if (col > 72) {
-              sb.append("\n"); col = 0
+              sb.append("\n")
+              col = 0
             }
             col += name.length
             sb.append(name)
           }
-          else -> this.let { sb.append(", and ${it.size - index} other modules"); return@done }
+          else ->
+            this.let {
+              sb.append(", and ${it.size - index} other modules")
+              return@done
+            }
         }
       }
     }
@@ -43,5 +56,4 @@ internal val List<String>.descriptionText: String
     return sb.toString()
   }
 
-@VisibleForTesting
-fun computeDescriptionTextForTests(list: List<String>) = list.descriptionText
+@VisibleForTesting fun computeDescriptionTextForTests(list: List<String>) = list.descriptionText

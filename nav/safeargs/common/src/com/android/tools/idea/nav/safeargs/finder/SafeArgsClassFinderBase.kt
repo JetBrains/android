@@ -62,9 +62,7 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
     return findAll(project)
-      .filter { lightClass ->
-        lightClass.qualifiedName == qualifiedName && PsiSearchScopeUtil.isInScope(scope, lightClass)
-      }
+      .filter { lightClass -> lightClass.qualifiedName == qualifiedName && PsiSearchScopeUtil.isInScope(scope, lightClass) }
       .toTypedArray()
   }
 
@@ -75,8 +73,7 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
     return findAll(psiPackage.project)
       .filter { lightClass ->
-        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.') &&
-          PsiSearchScopeUtil.isInScope(scope, lightClass)
+        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.') && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
       .toTypedArray()
   }

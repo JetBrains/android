@@ -26,38 +26,38 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedMethod
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.psi.PsiFile
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class ErrorReporterTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
   lateinit var file1: PsiFile
   lateinit var file2: PsiFile
 
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
-    file1= projectRule.fixture.configureByText("fileOne.java", "")
-    file2= projectRule.fixture.configureByText("fileTwo.java", "")
+    file1 = projectRule.fixture.configureByText("fileOne.java", "")
+    file2 = projectRule.fixture.configureByText("fileTwo.java", "")
   }
 
   @Test
   fun `Global Error`() {
-    eq(kotlinEap(),
-      "Compilation Error.\nLive Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.")
+    eq(
+      kotlinEap(),
+      "Compilation Error.\nLive Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.",
+    )
   }
 
   @Test
   fun `Error with file name`() {
-    eq(nonKotlin(file1), "Non-Kotlin file not supported.\n" +
-                         "Modification to fileOne.java not supported.")
+    eq(nonKotlin(file1), "Non-Kotlin file not supported.\n" + "Modification to fileOne.java not supported.")
   }
 
   @Test
@@ -66,66 +66,79 @@ class ErrorReporterTest {
     val fakeException = RuntimeException("This exception is fake")
     eq(analysisError(msg), "Resolution Analysis Error.\nCannot Resolve Symbol A.")
     eq(analysisError(msg, file2), "Resolution Analysis Error in fileTwo.java.\nCannot Resolve Symbol A.")
-    eq(analysisError(msg, file2, fakeException), "Resolution Analysis Error in fileTwo.java.\nCannot Resolve Symbol A.\n"+
-                                                 "${fakeException.stackTraceToString()}")
+    eq(
+      analysisError(msg, file2, fakeException),
+      "Resolution Analysis Error in fileTwo.java.\nCannot Resolve Symbol A.\n" + "${fakeException.stackTraceToString()}",
+    )
   }
 
   @Test
   fun `ClassDiffer Exceptions`() {
     // These type of exceptions might not have a reference to the PsiFile
-    eq(unsupportedSourceModificationAddedMethod("a.class", "Currently not support adding methods"),
-       "Unsupported change in a.class.\nCurrently not support adding methods.")
-    eq(unsupportedSourceModificationRemovedMethod("a.class", "Currently not support removing methods"),
-       "Unsupported change in a.class.\nCurrently not support removing methods.")
+    eq(
+      unsupportedSourceModificationAddedMethod("a.class", "Currently not support adding methods"),
+      "Unsupported change in a.class.\nCurrently not support adding methods.",
+    )
+    eq(
+      unsupportedSourceModificationRemovedMethod("a.class", "Currently not support removing methods"),
+      "Unsupported change in a.class.\nCurrently not support removing methods.",
+    )
   }
 
   @Test
   fun `Desugaring Errors`() {
-    eq(desugarFailure("Failed to Desugar"), "Live Edit post-processing failure.\n" +
-                                            "Failed to Desugar.")
-    eq(desugarFailure("Failed to Desugar", "output.jar"), "Live Edit post-processing failure in output.jar.\n" +
-                                                          "Failed to Desugar.")
+    eq(desugarFailure("Failed to Desugar"), "Live Edit post-processing failure.\n" + "Failed to Desugar.")
+    eq(desugarFailure("Failed to Desugar", "output.jar"), "Live Edit post-processing failure in output.jar.\n" + "Failed to Desugar.")
     val fakeException = RuntimeException("This exception is fake")
-    eq(desugarFailure("Failed to Desugar", "output.jar", fakeException),
-       "Live Edit post-processing failure in output.jar.\nFailed to Desugar.\n${fakeException.stackTraceToString()}")
+    eq(
+      desugarFailure("Failed to Desugar", "output.jar", fakeException),
+      "Live Edit post-processing failure in output.jar.\nFailed to Desugar.\n${fakeException.stackTraceToString()}",
+    )
   }
 
   @Test
   fun `Internal Errors`() {
     val fakeException = RuntimeException("This exception is fake")
     eq(internalErrorNoCompilerOutput(file2), "Internal Error in fileTwo.java.\nNo compiler output.")
-    eq(internalErrorCompileCommandException(file2, fakeException), "Internal Error in fileTwo.java.\n" +
-                                                                   "Unexpected error during compilation command.\n" +
-                                                                   "${fakeException.stackTraceToString()}")
-
+    eq(
+      internalErrorCompileCommandException(file2, fakeException),
+      "Internal Error in fileTwo.java.\n" + "Unexpected error during compilation command.\n" + "${fakeException.stackTraceToString()}",
+    )
   }
 
   @Test
   fun `super long lines`() {
     // Limit to 20 lines only.
-    val detail = buildString { for (i in 1..400) {appendLine("$i")} }
-    eq(unsupportedBuildSrcChange(detail), "buildSrc/ sources not supported.\n" +
-                                          "1\n" +
-                                          "2\n" +
-                                          "3\n" +
-                                          "4\n" +
-                                          "5\n" +
-                                          "6\n" +
-                                          "7\n" +
-                                          "8\n" +
-                                          "9\n" +
-                                          "10\n" +
-                                          "11\n" +
-                                          "12\n" +
-                                          "13\n" +
-                                          "14\n" +
-                                          "15\n" +
-                                          "16\n" +
-                                          "17\n" +
-                                          "18\n" +
-                                          "19\n" +
-                                          "20\n" +
-                                          "....")
+    val detail = buildString {
+      for (i in 1..400) {
+        appendLine("$i")
+      }
+    }
+    eq(
+      unsupportedBuildSrcChange(detail),
+      "buildSrc/ sources not supported.\n" +
+        "1\n" +
+        "2\n" +
+        "3\n" +
+        "4\n" +
+        "5\n" +
+        "6\n" +
+        "7\n" +
+        "8\n" +
+        "9\n" +
+        "10\n" +
+        "11\n" +
+        "12\n" +
+        "13\n" +
+        "14\n" +
+        "15\n" +
+        "16\n" +
+        "17\n" +
+        "18\n" +
+        "19\n" +
+        "20\n" +
+        "....",
+    )
   }
 
   private fun eq(exception: LiveEditUpdateException, expected: String) {
@@ -135,8 +148,6 @@ class ErrorReporterTest {
 
   private fun match(exception: LiveEditUpdateException, pattern: String) {
     var msg = errorMessage(exception)
-    assertTrue("${msg}") {
-      Regex(pattern).containsMatchIn(msg)
-    }
+    assertTrue("${msg}") { Regex(pattern).containsMatchIn(msg) }
   }
 }

@@ -41,36 +41,39 @@ import kotlinx.coroutines.withContext
 /**
  * Process handler that is used for [DebugSessionStarter.attachDebuggerToStartedProcess]
  *
- * This is [ProcessHandler] with which user will interact (stop tests via UI).
- * Thus, it should be set as a process handler for [RunContentDescriptor] for debug session for every new process(new test).
+ * This is [ProcessHandler] with which user will interact (stop tests via UI). Thus, it should be set as a process handler for
+ * [RunContentDescriptor] for debug session for every new process(new test).
  *
  * It has two important properties:
- * 1. If user presses stop button it terminates [masterProcessHandler].
- * If [masterProcessHandler] terminates [ReattachingProcessHandler] goes to terminated state.
- *
- * 2. When current test process is finished [ReattachingProcessHandler] goes to terminated state,
- * so RunContentDescriptionManager will reuse the current tab for the next test(next debug session) instead of opening a new one.
+ * 1. If user presses stop button it terminates [masterProcessHandler]. If [masterProcessHandler] terminates [ReattachingProcessHandler]
+ *    goes to terminated state.
+ * 2. When current test process is finished [ReattachingProcessHandler] goes to terminated state, so RunContentDescriptionManager will reuse
+ *    the current tab for the next test(next debug session) instead of opening a new one.
  */
 internal class ReattachingProcessHandler(private val masterProcessHandler: ProcessHandler) : ProcessHandler() {
   init {
-    masterProcessHandler.addProcessListener(object : ProcessAdapter() {
-      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-        if (!isProcessTerminating && !isProcessTerminated) {
-          detachProcess()
+    masterProcessHandler.addProcessListener(
+      object : ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          if (!isProcessTerminating && !isProcessTerminated) {
+            detachProcess()
+          }
         }
       }
-    })
+    )
     startNotify()
   }
 
   fun subscribeOnDebugProcess(debugProcessHandler: ProcessHandler) {
-    debugProcessHandler.addProcessListener(object : ProcessAdapter() {
-      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-        if (!isProcessTerminating && !isProcessTerminated) {
-          detachProcess()
+    debugProcessHandler.addProcessListener(
+      object : ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          if (!isProcessTerminating && !isProcessTerminated) {
+            detachProcess()
+          }
         }
       }
-    })
+    )
   }
 
   override fun destroyProcessImpl() {
@@ -87,9 +90,7 @@ internal class ReattachingProcessHandler(private val masterProcessHandler: Proce
   override fun getProcessInput() = null
 }
 
-/**
- * While [masterProcessHandler] is not terminated starts [androidDebugger] for clients with a process name [applicationId].
- */
+/** While [masterProcessHandler] is not terminated starts [androidDebugger] for clients with a process name [applicationId]. */
 internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   private val project: Project,
   private val masterProcessHandler: ProcessHandler,
@@ -98,7 +99,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   val androidDebuggerState: S,
   private val consoleViewToReuse: ConsoleView?,
   val environment: ExecutionEnvironment,
-  private var processHandlerForOpenedTab: ReattachingProcessHandler
+  private var processHandlerForOpenedTab: ReattachingProcessHandler,
 ) : AndroidDebugBridge.IClientChangeListener {
 
   init {
@@ -136,14 +137,12 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   private fun handleError(e: Throwable) {
     try {
       masterProcessHandler.destroyProcess()
-    }
-    catch (destroyError: Exception) {
+    } catch (destroyError: Exception) {
       LOG.warn(destroyError)
     }
     if (e is ExecutionException) {
       showError(project, e, environment.runProfile.name)
-    }
-    else {
+    } else {
       LOG.error(e)
     }
   }
@@ -153,11 +152,17 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
       addProcessedClientPid(client.clientData.pid)
       AndroidCoroutineScope(project).launch(workerThread) {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
-        val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, applicationContext,
-                                                                         environment,
-                                                                         androidDebugger, androidDebuggerState,
-                                                                         { it.forceStop(client.clientData.processName!!) },
-                                                                         indicator = EmptyProgressIndicator(), consoleViewToReuse)
+        val session =
+          DebugSessionStarter.attachDebuggerToStartedProcess(
+            client.device,
+            applicationContext,
+            environment,
+            androidDebugger,
+            androidDebuggerState,
+            { it.forceStop(client.clientData.processName!!) },
+            indicator = EmptyProgressIndicator(),
+            consoleViewToReuse,
+          )
         processHandlerForOpenedTab.detachProcess()
         processHandlerForOpenedTab = ReattachingProcessHandler(masterProcessHandler)
         processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
@@ -166,8 +171,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
         withContext(AndroidDispatchers.uiThread) {
           try {
             session.showSessionTab()
-          }
-          catch (e: Throwable) {
+          } catch (e: Throwable) {
             handleError(e)
           }
         }

@@ -18,15 +18,15 @@ package com.android.tools.idea.gradle.dsl
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.TestDataFile
 import com.intellij.testFramework.TestDataPath
-import org.jetbrains.annotations.SystemIndependent
 import java.io.File
+import org.jetbrains.annotations.SystemIndependent
 
 interface TestFileName {
-  fun toFile(basePath: @SystemIndependent String, extension: String): File =
-    File(FileUtilRt.toSystemDependentName(basePath) + extension)
+  fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtilRt.toSystemDependentName(basePath) + extension)
 }
+
 @TestDataPath("\$CONTENT_ROOT/../testData/parser")
-enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
+enum class TestFileNameImpl(@TestDataFile val path: String) : TestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
   AAPT_OPTIONS_EDIT_ELEMENTS("aaptOptions/editElements"),
@@ -52,7 +52,9 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT("compileOptionsModel/compileOptionsApplicationStatement"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT("compileOptionsModel/compileOptionsBlockWithOverrideStatement"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT("compileOptionsModel/compileOptionsRemoveApplicationStatement"),
-  COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED("compileOptionsModel/compileOptionsRemoveApplicationStatementExpected"),
+  COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED(
+    "compileOptionsModel/compileOptionsRemoveApplicationStatementExpected"
+  ),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY("compileOptionsModel/compileOptionsModify"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED("compileOptionsModel/compileOptionsModifyExpected"),
   COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER("compileOptionsModel/compileOptionsModifyLongIdentifier"),
@@ -87,7 +89,9 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addCMakePathAndApplyChangesExpected"),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_RESET("externalNativeBuildModel/addCMakeVersionAndReset"),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES("externalNativeBuildModel/addCMakeVersionAndApplyChanges"),
-  EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addCMakeVersionAndApplyChangesExpected"),
+  EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES_EXPECTED(
+    "externalNativeBuildModel/addCMakeVersionAndApplyChangesExpected"
+  ),
   EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD("externalNativeBuildModel/ndkBuild"),
   EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH("externalNativeBuildModel/ndkBuildWithNewFilePath"),
   EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_VERSION("externalNativeBuildModel/ndkBuildWithVersion"),
@@ -95,16 +99,24 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES("externalNativeBuildModel/removeNdkBuildAndApplyChanges"),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET("externalNativeBuildModel/addNdkBuildPathAndReset"),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES("externalNativeBuildModel/addNdkBuildPathAndApplyChanges"),
-  EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addNdkBuildPathAndApplyChangesExpected"),
+  EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED(
+    "externalNativeBuildModel/addNdkBuildPathAndApplyChangesExpected"
+  ),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_RESET("externalNativeBuildModel/addNdkBuildVersionAndReset"),
   EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES("externalNativeBuildModel/addNdkBuildVersionAndApplyChanges"),
-  EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED("externalNativeBuildModel/addNdkBuildVersionAndApplyChangesExpected"),
+  EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED(
+    "externalNativeBuildModel/addNdkBuildVersionAndApplyChangesExpected"
+  ),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION("externalNativeBuildModel/setConstructorToFunction"),
   EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED("externalNativeBuildModel/setConstructorToFunctionExpected"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT("sourceDirectoryModel/sourceDirectoryText"),
   SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED("sourceDirectoryModel/sourceDirectoryEntriesAddAndApplyExpected"),
-  SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED("sourceDirectoryModel/sourceDirectoryEntriesRemoveAndApplyExpected"),
-  SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED("sourceDirectoryModel/sourceDirectoryEntriesReplaceAndApplyExpected"),
+  SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED(
+    "sourceDirectoryModel/sourceDirectoryEntriesRemoveAndApplyExpected"
+  ),
+  SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED(
+    "sourceDirectoryModel/sourceDirectoryEntriesReplaceAndApplyExpected"
+  ),
   SOURCE_FILE_MODEL_SOURCE_FILE("sourceFileModel/sourceFile"),
   SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET("sourceFileModel/sourceFileEditAndReset"),
   SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY("sourceFileModel/sourceFileEditAndApply"),
@@ -174,7 +186,9 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK("buildScriptModel/extPropertiesFromBuildscriptBlock"),
   BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB("buildScriptModel/extPropertiesFromBuildscriptBlock_sub"),
   BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK("buildScriptModel/extPropertiesNotVisibleFromBuildscriptBlock"),
-  BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED("buildScriptModel/extPropertiesNotVisibleFromBuildscriptBlockExpected"),
+  BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED(
+    "buildScriptModel/extPropertiesNotVisibleFromBuildscriptBlockExpected"
+  ),
   REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH("referenceResolution/resolveOtherProjectPath"),
   REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB("referenceResolution/resolveOtherProjectPath_sub"),
   REFERENCE_RESOLUTION_RESOLVE_PARENT("referenceResolution/resolveParent"),
@@ -209,9 +223,15 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY("fileDependency/removeOneOfFileDependency"),
   FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY_EXPECTED("fileDependency/removeOneOfFileDependencyExpected"),
   FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE("fileDependency/removeWhenMultiple"),
-  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST("fileTreeDependency/parseFileTreeWithDirAndIncludeAttributeList"),
-  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN("fileTreeDependency/parseFileTreeWithDirAndIncludeAttributePattern"),
-  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST("fileTreeDependency/parseFileTreeWithDirAndExcludeAttributeList"),
+  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST(
+    "fileTreeDependency/parseFileTreeWithDirAndIncludeAttributeList"
+  ),
+  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN(
+    "fileTreeDependency/parseFileTreeWithDirAndIncludeAttributePattern"
+  ),
+  FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST(
+    "fileTreeDependency/parseFileTreeWithDirAndExcludeAttributeList"
+  ),
   FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_WITH_DIR_ONLY("fileTreeDependency/parseFileTreeWithDirOnly"),
   FILE_TREE_DEPENDENCY_PARSE_FILE_TREE_MIXED("fileTreeDependency/parseFileTreeMixed"),
   FILE_TREE_DEPENDENCY_SET_DIR_WHEN_INCLUDE_SPECIFIED("fileTreeDependency/setDirWhenIncludeSpecified"),
@@ -220,12 +240,20 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   FILE_TREE_DEPENDENCY_SET_DIR_EXPECTED("fileTreeDependency/setDirExpected"),
   FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY("fileTreeDependency/addFileTreeWithDirOnly"),
   FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_ONLY_EXPECTED("fileTreeDependency/addFileTreeWithDirOnlyExpected"),
-  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN("fileTreeDependency/addFileTreeWithDirAndIncludeAttributePattern"),
-  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN_EXPECTED("fileTreeDependency/addFileTreeWithDirAndIncludeAttributePatternExpected"),
+  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN(
+    "fileTreeDependency/addFileTreeWithDirAndIncludeAttributePattern"
+  ),
+  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_PATTERN_EXPECTED(
+    "fileTreeDependency/addFileTreeWithDirAndIncludeAttributePatternExpected"
+  ),
   FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST("fileTreeDependency/addFileTreeWithDirAndIncludeAttributeList"),
-  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST_EXPECTED("fileTreeDependency/addFileTreeWithDirAndIncludeAttributeListExpected"),
+  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_INCLUDE_ATTRIBUTE_LIST_EXPECTED(
+    "fileTreeDependency/addFileTreeWithDirAndIncludeAttributeListExpected"
+  ),
   FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST("fileTreeDependency/addFileTreeWithDirAndExcludeAttributeList"),
-  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST_EXPECTED("fileTreeDependency/addFileTreeWithDirAndExcludeAttributeListExpected"),
+  FILE_TREE_DEPENDENCY_ADD_FILE_TREE_WITH_DIR_AND_EXCLUDE_ATTRIBUTE_LIST_EXPECTED(
+    "fileTreeDependency/addFileTreeWithDirAndExcludeAttributeListExpected"
+  ),
   FILE_TREE_DEPENDENCY_REMOVE_FILE_TREE_DEPENDENCY("fileTreeDependency/removeFileTreeDependency"),
   FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE("fileTreeDependency/removeWhenMultiple"),
   FILE_TREE_DEPENDENCY_REMOVE_WHEN_MULTIPLE_EXPECTED("fileTreeDependency/removeWhenMultipleExpected"),
@@ -286,8 +314,12 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXT_MODEL_RESOLVE_VARIABLE_IN_MAINMODULE_BUILD_FILE_SUB("extModel/resolveVariableInMainModuleBuildFile_sub"),
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY("extModel/resolveMultiModuleExtPropertyWithHistory"),
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_WITH_HISTORY_SUB("extModel/resolveMultiModuleExtPropertyWithHistory_sub"),
-  EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY("extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory"),
-  EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB("extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory_sub"),
+  EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY(
+    "extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory"
+  ),
+  EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB(
+    "extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory_sub"
+  ),
   PROPERTY_MODIFIED_TEST_FILE("propertyModified/testFile"),
   PROPERTY_MODIFIED_TEST_FILE2("propertyModified/testFile2"),
   PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME("propertyUtil/writeBackElementWithTrimmedName"),
@@ -306,9 +338,7 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   COMPOSITE_BUILD_MAIN_PROJECT_APPLIED("compositeBuild/mainProjectApplied"),
   COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD("compositeBuild/mainProjectRootBuild"),
   COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS("compositeBuild/mainProjectSettings"),
-  COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD("compositeBuild/mainProjectSubModuleBuild"),
-
-  ;
+  COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD("compositeBuild/mainProjectSubModuleBuild");
 
   override fun toFile(basePath: String, extension: String): File = super.toFile("$basePath/$path", extension)
 }

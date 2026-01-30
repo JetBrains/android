@@ -25,9 +25,7 @@ import com.intellij.openapi.actionSystem.Separator
 internal class ActionGroupSection(val headingActionId: String?, val actions: List<AnAction>)
 
 internal fun DefaultActionGroup.addSection(section: ActionGroupSection) {
-  section.headingActionId
-    ?.let { ActionManager.getInstance().getAction(it) }
-    ?.let { add(Separator(it.templateText)) }
+  section.headingActionId?.let { ActionManager.getInstance().getAction(it) }?.let { add(Separator(it.templateText)) }
   addAll(section.actions)
 }
 
@@ -41,15 +39,10 @@ internal fun createActionGroup(vararg sections: ActionGroupSection): DefaultActi
     }
   }
 
-internal fun createDeviceSelectorActionGroup(
-  devices: List<DeploymentTargetDevice>
-): DefaultActionGroup {
+internal fun createDeviceSelectorActionGroup(devices: List<DeploymentTargetDevice>): DefaultActionGroup {
   val actionManager = ActionManager.getInstance()
   return createActionGroup(
-    ActionGroupSection(
-      Heading.RUNNING_DEVICES_ID,
-      devices.filter { it.isConnected }.map { SelectDeviceAction(it) },
-    ),
+    ActionGroupSection(Heading.RUNNING_DEVICES_ID, devices.filter { it.isConnected }.map { SelectDeviceAction(it) }),
     ActionGroupSection(
       Heading.AVAILABLE_DEVICES_ID,
       devices
@@ -69,9 +62,6 @@ internal fun createDeviceSelectorActionGroup(
         actionManager.getAction("Android.DeviceManager"),
       ),
     ),
-    ActionGroupSection(
-      null,
-      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant")),
-    ),
+    ActionGroupSection(null, listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant"))),
   )
 }

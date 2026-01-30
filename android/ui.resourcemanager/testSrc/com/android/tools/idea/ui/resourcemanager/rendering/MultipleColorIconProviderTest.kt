@@ -28,6 +28,11 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.BaseAsset
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.util.ui.ImageUtil
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.swing.Icon
+import javax.swing.JLabel
+import kotlin.test.assertEquals
 import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
@@ -35,29 +40,22 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.image.BufferedImage
-import java.io.File
-import javax.swing.Icon
-import javax.swing.JLabel
-import kotlin.test.assertEquals
 
 @Language("XML")
 private const val STATELIST_COLOR_FILE_CONTENTS =
   "<selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-  "    <item android:state_selected=\"true\" android:color=\"#F00\"/>\n" +
-  "    <item android:state_activated=\"true\" android:color=\"#0F0\"/>\n" +
-  "</selector>"
+    "    <item android:state_selected=\"true\" android:color=\"#F00\"/>\n" +
+    "    <item android:state_activated=\"true\" android:color=\"#0F0\"/>\n" +
+    "</selector>"
 
 @Language("XML")
 private const val COLOR_RESOURCE_FILE_CONTENTS =
   "<resources xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-  "    <color name=\"my_color\">#F00</color>\n" +
-  "</resources>"
-
+    "    <color name=\"my_color\">#F00</color>\n" +
+    "</resources>"
 
 class MultipleColorIconProviderTest {
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
   @Before
   fun setup() {
@@ -67,9 +65,11 @@ class MultipleColorIconProviderTest {
   @Test
   fun getStateListColorIcon() {
     rule.fixture.addFileToProject("res/color/my_statelist_color.xml", STATELIST_COLOR_FILE_CONTENTS)
-    val statelistResource = StudioResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
-                                                                                                                                                               ResourceType.COLOR,
-                                                                                                                                                               "my_statelist_color").first()
+    val statelistResource =
+      StudioResourceRepositoryManager.getInstance(rule.module)!!
+        .appResources
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_statelist_color")
+        .first()
     val statelistAsset = Asset.fromResourceItem(statelistResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
@@ -83,9 +83,11 @@ class MultipleColorIconProviderTest {
   @Test
   fun getColorIconFromResourceFile() {
     rule.fixture.addFileToProject("res/values/values.xml", COLOR_RESOURCE_FILE_CONTENTS)
-    val colorResource = StudioResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
-                                                                                                                                                           ResourceType.COLOR,
-                                                                                                                                                           "my_color").first()
+    val colorResource =
+      StudioResourceRepositoryManager.getInstance(rule.module)!!
+        .appResources
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color")
+        .first()
     val colorAsset = Asset.fromResourceItem(colorResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
@@ -102,9 +104,8 @@ class MultipleColorIconProviderTest {
     ResourceFile.createSingle(File("source"), asset.resourceItem as ResourceMergerItem, "")
 
     val resourceResolver = mock<ResourceResolver>()
-    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
-      ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color", "#00F")
-    )
+    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any()))
+      .thenReturn(ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color", "#00F"))
 
     val colorIconProvider = createColorIconProvider(resourceResolver)
 

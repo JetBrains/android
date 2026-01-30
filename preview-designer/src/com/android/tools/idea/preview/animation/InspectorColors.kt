@@ -63,27 +63,21 @@ object InspectorColors {
   val GRAPH_COLORS_WITH_ALPHA = GRAPH_COLORS.map { ColorUtil.withAlpha(it, 0.7) }
 
   /** Background color for the timeline. */
-  val TIMELINE_BACKGROUND_COLOR =
-    if (isNewUI) JBColor.PanelBackground else JBColor(Gray._245, JBColor.background())
+  val TIMELINE_BACKGROUND_COLOR = if (isNewUI) JBColor.PanelBackground else JBColor(Gray._245, JBColor.background())
 
   /** Background color for the timeline for frozen elements. */
-  val TIMELINE_FROZEN_BACKGROUND_COLOR =
-    if (isNewUI) JBUI.CurrentTheme.ActionButton.pressedBackground()
-    else JBColor(Gray._234, Gray._58)
+  val TIMELINE_FROZEN_BACKGROUND_COLOR = if (isNewUI) JBUI.CurrentTheme.ActionButton.pressedBackground() else JBColor(Gray._234, Gray._58)
 
   /** Color of the ticks for the timeline. */
   val TIMELINE_TICK_COLOR = if (isNewUI) JBColor.border() else JBColor(Gray._223, Gray._50)
 
   /** Color of the ticks for the timeline. */
-  val TIMELINE_FROZEN_TICK_COLOR =
-    if (isNewUI) JBColor.background() else JBColor(Gray._223, Gray._50)
+  val TIMELINE_FROZEN_TICK_COLOR = if (isNewUI) JBColor.background() else JBColor(Gray._223, Gray._50)
 
   /** Color of the vertical line showing the freeze position. */
   val FREEZE_LINE_COLOR = JBColor(Gray._176, Gray._176)
 
-  val BOXED_LABEL_BACKGROUND =
-    if (isNewUI) UIUtil.getToolTipActionBackground()
-    else JBColor(Gray._225, UIUtil.getToolTipActionBackground())
+  val BOXED_LABEL_BACKGROUND = if (isNewUI) UIUtil.getToolTipActionBackground() else JBColor(Gray._225, UIUtil.getToolTipActionBackground())
 
   val BOXED_LABEL_OUTLINE = Gray._194
 

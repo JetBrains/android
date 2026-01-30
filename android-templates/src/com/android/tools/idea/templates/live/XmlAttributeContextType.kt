@@ -20,9 +20,7 @@ import com.intellij.codeInsight.template.XmlContextType
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlAttribute
 
-/**
- * Template context type used for LiveTemplate abbreviations that should only be expanded as Xml attributes.
- */
+/** Template context type used for LiveTemplate abbreviations that should only be expanded as Xml attributes. */
 class XmlAttributeContextType : TemplateContextType("XML Attribute") {
   override fun isInContext(file: PsiFile, offset: Int): Boolean {
     return XmlContextType.isInXml(file, offset) && file.findElementAt(offset)?.parent is XmlAttribute

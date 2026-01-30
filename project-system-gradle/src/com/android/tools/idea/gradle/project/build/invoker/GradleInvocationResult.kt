@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
-import org.gradle.tooling.BuildCancelledException
-import org.jetbrains.annotations.TestOnly
 import java.io.File
+import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 
 interface GradleBuildResult {
@@ -29,37 +29,41 @@ interface GradleBuildResult {
   val isBuildCancelled: Boolean
 }
 
-class GradleInvocationResult @JvmOverloads constructor(
+class GradleInvocationResult
+@JvmOverloads
+constructor(
   val rootProjectPath: File,
   val tasks: List<String>,
 
   /**
-   * In production, the build error is intentionally wrapped, with relevant information exposed
-   * only through a public API, but for tests it could be useful to access it directly.
+   * In production, the build error is intentionally wrapped, with relevant information exposed only through a public API, but for tests it
+   * could be useful to access it directly.
    */
   @get:TestOnly val buildError: Throwable?,
   val model: Any? = null,
-  private val buildEnvironment: BuildEnvironment? = null
+  private val buildEnvironment: BuildEnvironment? = null,
 ) : GradleBuildResult {
 
-  override val isBuildCancelled: Boolean get() = buildError != null && GradleProjectSystemUtil.hasCause(
-    buildError, BuildCancelledException::class.java)
-  override val isBuildSuccessful: Boolean get() = buildError == null
+  override val isBuildCancelled: Boolean
+    get() = buildError != null && GradleProjectSystemUtil.hasCause(buildError, BuildCancelledException::class.java)
 
-  fun Throwable.toFriendlyError(): ExternalSystemException = GradleProjectResolver.createProjectResolverChain()
-      .getUserFriendlyError(buildEnvironment, this, rootProjectPath.toString(), null)
+  override val isBuildSuccessful: Boolean
+    get() = buildError == null
+
+  fun Throwable.toFriendlyError(): ExternalSystemException =
+    GradleProjectResolver.createProjectResolverChain().getUserFriendlyError(buildEnvironment, this, rootProjectPath.toString(), null)
 }
 
-class GradleMultiInvocationResult(
-  val invocations: List<GradleInvocationResult>
-) : GradleBuildResult {
-  override val isBuildSuccessful: Boolean get() = invocations.all { it.isBuildSuccessful }
-  override val isBuildCancelled: Boolean get() = invocations.all { it.isBuildCancelled }
+class GradleMultiInvocationResult(val invocations: List<GradleInvocationResult>) : GradleBuildResult {
+  override val isBuildSuccessful: Boolean
+    get() = invocations.all { it.isBuildSuccessful }
 
-  val models: List<Any> get() = invocations.mapNotNull { it.model }
+  override val isBuildCancelled: Boolean
+    get() = invocations.all { it.isBuildCancelled }
+
+  val models: List<Any>
+    get() = invocations.mapNotNull { it.model }
 }
 
-class AssembleInvocationResult(
-  val invocationResult: GradleMultiInvocationResult,
-  val buildMode: BuildMode
-) : GradleBuildResult by invocationResult
+class AssembleInvocationResult(val invocationResult: GradleMultiInvocationResult, val buildMode: BuildMode) :
+  GradleBuildResult by invocationResult

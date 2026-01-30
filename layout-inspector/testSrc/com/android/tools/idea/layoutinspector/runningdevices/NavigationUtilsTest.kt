@@ -51,8 +51,7 @@ class NavigationUtilsTest {
   private val androidProjectRule = AndroidProjectRule.Companion.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)
 
   @get:Rule val edtRule = EdtRule()
 
@@ -90,9 +89,7 @@ class NavigationUtilsTest {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
               compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
-              compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
-                compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
-              }
+              compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) { compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3) }
             }
           }
         },
@@ -100,8 +97,7 @@ class NavigationUtilsTest {
 
   private fun loadComposeFiles() {
     val fixture = androidProjectRule.fixture
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
@@ -116,9 +112,7 @@ private class FakeInspectorClient : InspectorClient {
 
   override fun registerTreeEventCallback(callback: (Any) -> Unit) {}
 
-  override fun registerConnectionTimeoutCallback(
-    callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
-  ) {}
+  override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) {}
 
   override suspend fun connect(project: Project) {}
 
@@ -132,10 +126,7 @@ private class FakeInspectorClient : InspectorClient {
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(
-    path: Path,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
-  ) {}
+  override suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type) {}
 
   override val clientType = DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
   override val state = InspectorClient.State.CONNECTED

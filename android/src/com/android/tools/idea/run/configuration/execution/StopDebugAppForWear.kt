@@ -19,15 +19,11 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
 import java.util.concurrent.TimeUnit
 
-
-private val DEBUG_SURFACE_CLEAR =
-  "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
+private val DEBUG_SURFACE_CLEAR = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 private val ACTIVITY_MANAGER_CLEAR = "am clear-debug-app"
-
 
 internal fun stopDebugApp(device: IDevice) {
   val dummyReceiver = NullOutputReceiver()
   device.executeShellCommand(DEBUG_SURFACE_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
   device.executeShellCommand(ACTIVITY_MANAGER_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
 }
-

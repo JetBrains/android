@@ -28,9 +28,8 @@ import com.android.tools.idea.uibuilder.model.Insets
 import java.awt.Rectangle
 
 /**
- * Data class for providing the information of barriers of GridLayout [rows] and [columns] is the
- * index-coordinate mapping, which specified the start positions of indices of row and column in
- * GridLayout The unit of coordinate is [AndroidDpCoordinate].
+ * Data class for providing the information of barriers of GridLayout [rows] and [columns] is the index-coordinate mapping, which specified
+ * the start positions of indices of row and column in GridLayout The unit of coordinate is [AndroidDpCoordinate].
  */
 class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int, Int>) {
   @AndroidDpCoordinate val left = columns.minByOrNull { it.key }?.value ?: -1
@@ -51,10 +50,8 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
   fun getBounds(row: Int, column: Int): Rectangle? {
     val left = columns[column] ?: return null
     val top = rows[row] ?: return null
-    val right =
-      columns.asSequence().filter { it.key > column }.minByOrNull { it.key }?.value ?: return null
-    val bottom =
-      rows.asSequence().filter { it.key > row }.minByOrNull { it.key }?.value ?: return null
+    val right = columns.asSequence().filter { it.key > column }.minByOrNull { it.key }?.value ?: return null
+    val bottom = rows.asSequence().filter { it.key > row }.minByOrNull { it.key }?.value ?: return null
     return Rectangle(left, top, right - left, bottom - top)
   }
 
@@ -62,25 +59,16 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
 
   @AndroidDpCoordinate fun getRowValue(rowIndex: Int) = rows[rowIndex]
 
-  /**
-   * Return the column index of GridLayout which contains the given x coordinate, or -1 if there is
-   * no column contains it.
-   */
-  fun getColumnAtX(@AndroidDpCoordinate x: Int): Int =
-    columns.filter { it.value > x }.minByOrNull { it.key }?.key ?: -1
+  /** Return the column index of GridLayout which contains the given x coordinate, or -1 if there is no column contains it. */
+  fun getColumnAtX(@AndroidDpCoordinate x: Int): Int = columns.filter { it.value > x }.minByOrNull { it.key }?.key ?: -1
 
-  /**
-   * Return the row index of GridLayout which contains the given y coordinate, or -1 if there is no
-   * row contains it.
-   */
-  fun getRowAtY(@AndroidDpCoordinate y: Int): Int =
-    rows.filter { it.value > y }.minByOrNull { it.key }?.key ?: -1
+  /** Return the row index of GridLayout which contains the given y coordinate, or -1 if there is no row contains it. */
+  fun getRowAtY(@AndroidDpCoordinate y: Int): Int = rows.filter { it.value > y }.minByOrNull { it.key }?.key ?: -1
 }
 
 /** Function for getting Barriers of */
 fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
-  val isSupportLibrary =
-    AndroidXConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
+  val isSupportLibrary = AndroidXConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
 
   // Helper function to convert px to dp
   fun Int.toDp() = Coordinates.pxToDp(gridComponent.scene.sceneManager, this)
@@ -159,9 +147,8 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
 }
 
 /**
- * Class for record the cell attributes. If the row/column is not defined, the value would be -1/-1
- * If the rowSpan/columnSpan is not defined, the value would be 0 as the default value in Android
- * framework.
+ * Class for record the cell attributes. If the row/column is not defined, the value would be -1/-1 If the rowSpan/columnSpan is not
+ * defined, the value would be 0 as the default value in Android framework.
  */
 private class CellInfo(var row: Int, var column: Int, val rowSpan: Int, val columnSpan: Int)
 
@@ -195,24 +182,13 @@ private data class InsetsAttributes(
   val bottom: String,
 )
 
-private fun NlComponent.getLiveAndroidAttribute(androidAttribute: String) =
-  getLiveAttribute(SdkConstants.ANDROID_URI, androidAttribute)
+private fun NlComponent.getLiveAndroidAttribute(androidAttribute: String) = getLiveAttribute(SdkConstants.ANDROID_URI, androidAttribute)
 
-/**
- * Get the padding of component by retrieving the live attributes. The unit of returned [Insets] is
- * px
- */
-@AndroidCoordinate
-private fun retrieveMargins(nlComponent: NlComponent): Insets =
-  retrieveInsets(nlComponent, MARGIN_ATTRIBUTES)
+/** Get the padding of component by retrieving the live attributes. The unit of returned [Insets] is px */
+@AndroidCoordinate private fun retrieveMargins(nlComponent: NlComponent): Insets = retrieveInsets(nlComponent, MARGIN_ATTRIBUTES)
 
-/**
- * Get the padding of component by retrieving the live attributes. The unit of returned [Insets] is
- * px
- */
-@AndroidCoordinate
-private fun retrievePaddings(nlComponent: NlComponent): Insets =
-  retrieveInsets(nlComponent, PADDING_ATTRIBUTES)
+/** Get the padding of component by retrieving the live attributes. The unit of returned [Insets] is px */
+@AndroidCoordinate private fun retrievePaddings(nlComponent: NlComponent): Insets = retrieveInsets(nlComponent, PADDING_ATTRIBUTES)
 
 private val PADDING_ATTRIBUTES =
   InsetsAttributes(
@@ -248,17 +224,13 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
     right = padding
     bottom = padding
   } else {
-    valueString =
-      nlComponent.getLiveAndroidAttribute(attrs.left.first)
-        ?: nlComponent.getLiveAndroidAttribute(attrs.left.second)
+    valueString = nlComponent.getLiveAndroidAttribute(attrs.left.first) ?: nlComponent.getLiveAndroidAttribute(attrs.left.second)
     left = getPxValue(nlComponent, valueString)
 
     valueString = nlComponent.getLiveAndroidAttribute(attrs.top)
     top = getPxValue(nlComponent, valueString)
 
-    valueString =
-      nlComponent.getLiveAndroidAttribute(attrs.right.first)
-        ?: nlComponent.getLiveAndroidAttribute(attrs.right.second)
+    valueString = nlComponent.getLiveAndroidAttribute(attrs.right.first) ?: nlComponent.getLiveAndroidAttribute(attrs.right.second)
     right = getPxValue(nlComponent, valueString)
 
     valueString = nlComponent.getLiveAndroidAttribute(attrs.bottom)
@@ -267,10 +239,7 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
   return Insets(left, top, right, bottom)
 }
 
-/**
- * Get the value of resource string. The unit of return value is px If [value] is null or illegal
- * number format, return 0.
- */
+/** Get the value of resource string. The unit of return value is px If [value] is null or illegal number format, return 0. */
 @AndroidCoordinate
 private fun getPxValue(nlComponent: NlComponent, value: String?): Int {
   if (value != null) {

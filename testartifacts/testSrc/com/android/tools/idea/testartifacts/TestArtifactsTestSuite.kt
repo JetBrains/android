@@ -21,7 +21,6 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(TestArtifactsTestSuite::class) // a suite mustn't contain itself
 class TestArtifactsTestSuite : IdeaTestSuiteBase() {
@@ -32,23 +31,22 @@ class TestArtifactsTestSuite : IdeaTestSuiteBase() {
 
     init {
       try {
-        unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
-        linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
-        linkIntoOfflineMavenRepo("tools/adt/idea/testartifacts/test_deps.manifest");
-        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+        unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
+        linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
+        linkIntoOfflineMavenRepo("tools/adt/idea/testartifacts/test_deps.manifest")
+        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
         // When using iml_module's split_test_target attribute, not all bazel targets will include this dependency.
         // Only bazel targets which rely on data_binding_runtime.zip will include this runtime dependency.
         if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
-          unzipIntoOfflineMavenRepo(DATA_BINDING_RUNTIME_ZIP);
+          unzipIntoOfflineMavenRepo(DATA_BINDING_RUNTIME_ZIP)
         }
 
         // Disable production AdbService to prevent it from interfering with AndroidDebugBridge (b/267107145).
-        AdbService.disabled = true;
-      }
-      catch (e: Throwable) {
+        AdbService.disabled = true
+      } catch (e: Throwable) {
         // See b/143359533 for why we are handling errors here
-        System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
-        e.printStackTrace();
+        System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error")
+        e.printStackTrace()
       }
     }
   }

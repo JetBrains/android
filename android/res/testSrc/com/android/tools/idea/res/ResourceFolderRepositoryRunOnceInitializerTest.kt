@@ -58,9 +58,7 @@ class ResourceFolderRepositoryRunOnceInitializerTest {
 
   @Test
   fun runOnceWithReadLockInitializer_hasReadLock() {
-    val init = RunOnceWithReadLockInitializer {
-      assertThat(application.isReadAccessAllowed).isTrue()
-    }
+    val init = RunOnceWithReadLockInitializer { assertThat(application.isReadAccessAllowed).isTrue() }
 
     init.run()
   }

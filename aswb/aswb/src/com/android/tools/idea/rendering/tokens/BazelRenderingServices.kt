@@ -21,10 +21,8 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Re
 import com.android.tools.idea.run.classes.BuildOutcome
 import java.nio.file.Path
 
-internal class BazelRenderingServices(
-  private val buildServices: BazelBuildServices,
-  private val target: BazelBuildTargetReference
-) : RenderingServices {
+internal class BazelRenderingServices(private val buildServices: BazelBuildServices, private val target: BazelBuildTargetReference) :
+  RenderingServices {
   override val classFileFinder: ClassFileFinder?
     get() = getBuildOutcome()?.classFileFinder
 

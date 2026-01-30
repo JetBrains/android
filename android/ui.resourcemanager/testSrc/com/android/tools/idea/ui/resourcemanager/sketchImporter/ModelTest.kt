@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter
 
+import kotlin.test.assertEquals
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class ModelTest {
   @Test
   fun findLayers() {
-    val sketchFile = com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
+    val sketchFile =
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.read(
+        AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch"
+      )!!
 
     // First page
     assertEquals(sketchFile.findLayer("7D779FEF-7EA8-45AF-AA97-04E803E773F7")?.classType, "rectangle")
@@ -35,7 +38,10 @@ class ModelTest {
 
   @Test
   fun findSymbols() {
-    val sketchFile = com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.read(AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch")!!
+    val sketchFile =
+      com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser.read(
+        AndroidTestBase.getTestDataPath() + "/sketch/palette.sketch"
+      )!!
 
     // First page
     assertEquals(sketchFile.findSymbol("3BDBDFC1-CDA3-4C7A-B70A-990DFAF1290C")?.frame?.height, 12.0)
@@ -52,7 +58,9 @@ class ModelTest {
  *
  * @return the found layer or `null` if no layer was found
  */
-private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile.findLayer(objectId: String): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer? {
+private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile.findLayer(
+  objectId: String
+): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer? {
   for (page in pages) {
     val foundLayer = findLayer(objectId, page)
     if (foundLayer != null) {
@@ -68,7 +76,9 @@ private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFi
  *
  * @return the found symbol or `null` if no layer was found
  */
-private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile.findSymbol(symbolId: String): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchSymbol? {
+private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile.findSymbol(
+  symbolId: String
+): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchSymbol? {
   for (page in pages) {
     val foundSymbol = findSymbol(symbolId, page)
     if (foundSymbol != null) {
@@ -84,7 +94,10 @@ private fun com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFi
  *
  * @return the found layer or `null` if no layer was found
  */
-private fun findLayer(objectId: String, currentLayer: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer? {
+private fun findLayer(
+  objectId: String,
+  currentLayer: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer,
+): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer? {
   if (currentLayer.objectId == objectId) {
     return currentLayer
   }
@@ -106,7 +119,10 @@ private fun findLayer(objectId: String, currentLayer: com.android.tools.idea.ui.
  *
  * @return the found symbol or `null` if no layer was found
  */
-private fun findSymbol(symbolId: String, currentLayer: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchSymbol? {
+private fun findSymbol(
+  symbolId: String,
+  currentLayer: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer,
+): com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchSymbol? {
   if (currentLayer is com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchSymbol) {
     if (currentLayer.symbolId == symbolId) {
       return currentLayer

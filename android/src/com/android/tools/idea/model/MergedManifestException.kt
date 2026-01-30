@@ -19,36 +19,20 @@ import com.android.ide.common.xml.XmlPrettyPrinter
 import com.intellij.openapi.module.Module
 import org.w3c.dom.Document
 
-internal sealed class MergedManifestException(
-  mergedManifestInfo: MergedManifestInfo?,
-  message: String,
-  cause: Throwable? = null
-) : RuntimeException(mergedManifestInfo?.errorMessage(message) ?: message, cause) {
+internal sealed class MergedManifestException(mergedManifestInfo: MergedManifestInfo?, message: String, cause: Throwable? = null) :
+  RuntimeException(mergedManifestInfo?.errorMessage(message) ?: message, cause) {
 
-  class MergingError(
-    module: Module,
-    cause: Throwable
-  ) : MergedManifestException(null, "Manifest merger encountered an error processing module ${module.name}", cause)
+  class MergingError(module: Module, cause: Throwable) :
+    MergedManifestException(null, "Manifest merger encountered an error processing module ${module.name}", cause)
 
-  class MissingAttribute(
-    val element: String,
-    val namespace: String?,
-    val attribute: String,
-    info: MergedManifestInfo
-  ) : MergedManifestException(info, "Element \"$element\" missing attribute \"${attribute.prependNamespace(namespace)}\"")
+  class MissingAttribute(val element: String, val namespace: String?, val attribute: String, info: MergedManifestInfo) :
+    MergedManifestException(info, "Element \"$element\" missing attribute \"${attribute.prependNamespace(namespace)}\"")
 
-  class MissingElement(
-    val element: String,
-    info: MergedManifestInfo
-  ) : MergedManifestException(info, "Missing element \"$element\"")
+  class MissingElement(val element: String, info: MergedManifestInfo) : MergedManifestException(info, "Missing element \"$element\"")
 
-  class ParsingError(
-    cause: Throwable
-  ) : MergedManifestException(null, "Parsing document error", cause)
+  class ParsingError(cause: Throwable) : MergedManifestException(null, "Parsing document error", cause)
 
-  class InfrastructureError(
-    cause: Throwable
-  ) : MergedManifestException(null, "Unexpected error during manifest merging", cause)
+  class InfrastructureError(cause: Throwable) : MergedManifestException(null, "Unexpected error during manifest merging", cause)
 }
 
 private fun MergedManifestInfo.errorMessage(reason: String): String {

@@ -21,7 +21,7 @@ import java.awt.Component
 
 /** A UI component that host a Run Configuration Editor section */
 interface RunConfigSection {
-  /**  Create a UI component */
+  /** Create a UI component */
   fun getComponent(parentDisposable: Disposable): Component
 
   /** Reset UI from a [RunConfiguration] */

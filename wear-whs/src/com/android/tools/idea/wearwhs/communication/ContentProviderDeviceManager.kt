@@ -33,15 +33,13 @@ import kotlin.reflect.full.isSuperclassOf
 const val whsPackage: String = "com.google.android.wearable.healthservices"
 const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
 const val whsActiveExerciseUri: String = "content://$whsPackage.dev.exerciseinfo"
-private val capabilityStatePattern =
-  Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*E?\\d*)")
+private val capabilityStatePattern = Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*E?\\d*)")
 private val activeExerciseRegex = Regex("active_exercise=(true|false)")
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
  *
- * This class uses the content provider for the synthetic HAL in WHS to sync the current state of
- * the UI to the selected Wear OS device.
+ * This class uses the content provider for the synthetic HAL in WHS to sync the current state of the UI to the selected Wear OS device.
  */
 internal class ContentProviderDeviceManager(
   private val adbSessionProvider: () -> AdbSession,
@@ -80,8 +78,7 @@ internal class ContentProviderDeviceManager(
         }
         val dataValue = dataType.valueFromString(match.groupValues[3])
         val isZero =
-          (dataValue is WhsDataValue.IntValue && dataValue.value == 0) ||
-            (dataValue is WhsDataValue.FloatValue && dataValue.value == 0.0f)
+          (dataValue is WhsDataValue.IntValue && dataValue.value == 0) || (dataValue is WhsDataValue.FloatValue && dataValue.value == 0.0f)
         val newState: CapabilityState =
           if (!isEnabled && isZero) {
             // If data type is disabled and override has not been set content provider returns
@@ -94,8 +91,7 @@ internal class ContentProviderDeviceManager(
       capabilities
     }
 
-  override suspend fun clearContentProvider() =
-    runAdbShellCommandIfConnected("content delete --uri $whsConfigUri").map {}
+  override suspend fun clearContentProvider() = runAdbShellCommandIfConnected("content delete --uri $whsConfigUri").map {}
 
   override fun setSerialNumber(serialNumber: String) {
     this.serialNumber = serialNumber
@@ -106,9 +102,7 @@ internal class ContentProviderDeviceManager(
       activeExerciseRegex.find(output)?.groupValues?.get(1)?.toBoolean() ?: false
     }
 
-  private fun contentUpdateMultipleCapabilitiesBoolean(
-    capabilityUpdates: Map<WhsDataType, Boolean>
-  ): String {
+  private fun contentUpdateMultipleCapabilitiesBoolean(capabilityUpdates: Map<WhsDataType, Boolean>): String {
     val sb = StringBuilder("content update --uri $whsConfigUri")
     for ((dataType, value) in capabilityUpdates.toSortedMap(compareBy { it.name })) {
       sb.append(bindString(dataType.name, value))
@@ -116,9 +110,7 @@ internal class ContentProviderDeviceManager(
     return sb.toString()
   }
 
-  private fun contentUpdateMultipleCapabilitiesNumber(
-    capabilityUpdates: Map<WhsDataType, Number?>
-  ): String {
+  private fun contentUpdateMultipleCapabilitiesNumber(capabilityUpdates: Map<WhsDataType, Number?>): String {
     val sb = StringBuilder("content update --uri $whsConfigUri")
     for ((dataType, value) in capabilityUpdates.toSortedMap(compareBy { it.name })) {
       if (!WhsDataValue.Value::class.isSuperclassOf(dataType.overrideDataType)) {
@@ -155,11 +147,9 @@ internal class ContentProviderDeviceManager(
   }
 
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
-    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilitiesBoolean(capabilityUpdates))
-      .map {}
+    runAdbShellCommandIfConnected(contentUpdateMultipleCapabilitiesBoolean(capabilityUpdates)).map {}
 
-  override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map {}
+  override suspend fun triggerEvent(eventTrigger: EventTrigger) = runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map {}
 
   private fun triggerEventCommand(eventTrigger: EventTrigger): String {
     val commandStringBuilder = StringBuilder("am broadcast -a \"${eventTrigger.eventKey}\"")
@@ -191,17 +181,12 @@ internal class ContentProviderDeviceManager(
 
     // Wrap adbSession interactions with a try, as it can fail anywhere if it's closed
     return try {
-      val deviceOnline =
-        adbSession.connectedDevicesTracker.device(serialNumber!!)?.isOnline ?: false
+      val deviceOnline = adbSession.connectedDevicesTracker.device(serialNumber!!)?.isOnline ?: false
       if (!deviceOnline) {
         return loggedFailure(ConnectionLostException("Device is not online"))
       }
       // This can still fail, if the device becomes unreachable between these lines
-      Result.success(
-        adbSession.deviceServices
-          .shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command)
-          .stdout
-      )
+      Result.success(adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command).stdout)
     } catch (e: Exception) {
       loggedFailure(e)
     }

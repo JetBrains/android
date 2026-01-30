@@ -25,40 +25,51 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AndroidGradleTestsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testReplaceRegexGroup() {
-    val contents = """
+    val contents =
+      """
       // id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
       // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
-    """.trimIndent()
+      """
+        .trimIndent()
     val result = AndroidGradleTests.replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", "1.2.3")
-    assertThat(result).isEqualTo("""
-      // id 'com.android.library' version '1.2.3' apply false
-      // id 'com.android.application' version '1.2.3' apply false
-    """.trimIndent())
+    assertThat(result)
+      .isEqualTo(
+        """
+        // id 'com.android.library' version '1.2.3' apply false
+        // id 'com.android.application' version '1.2.3' apply false
+        """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testReplaceRegexGroupInitialMatchDoesNotStopSubsequentMatches() {
-    val contents = """
+    val contents =
+      """
       // id 'com.android.library' version '1.2.3' apply false
       // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
-    """.trimIndent()
+      """
+        .trimIndent()
     val result = AndroidGradleTests.replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", "1.2.3")
-    assertThat(result).isEqualTo("""
-      // id 'com.android.library' version '1.2.3' apply false
-      // id 'com.android.application' version '1.2.3' apply false
-    """.trimIndent())
+    assertThat(result)
+      .isEqualTo(
+        """
+        // id 'com.android.library' version '1.2.3' apply false
+        // id 'com.android.application' version '1.2.3' apply false
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -80,16 +91,17 @@ class AndroidGradleTestsTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(
-      buildFile.readText() + """
+      buildFile.readText() +
+        """
       dependencies {
         implementation "a:a:1.0" // This should cause sync to fail in tests.
       }
-      """)
+      """
+    )
     try {
       preparedProject.open {}
       fail("Sync should have failed")
-    }
-    catch(e: java.lang.IllegalStateException) {
+    } catch (e: java.lang.IllegalStateException) {
       assertThat(e.message).contains("Unresolved dependencies")
       assertThat(e.message).contains("a:a:1.0")
     }
@@ -100,19 +112,25 @@ class AndroidGradleTestsTest {
   fun testOutputHandling() {
     var syncMessageFound = false
     var buildMessageFound = false
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
-      root.resolve("build.gradle").appendText("""
-        
-        println("This is a simple application!")
-      """.trimIndent())
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+          root
+            .resolve("build.gradle")
+            .appendText(
+              """
+
+              println("This is a simple application!")
+              """
+                .trimIndent()
+            )
+        }
+      )
     preparedProject.open(
       updateOptions = { it.copy(outputHandler = { if (it.contains("This is a simple application!")) syncMessageFound = true }) }
     ) { project ->
       injectBuildOutputDumpingBuildViewManager(project, project) { if (it.message.contains("BUILD SUCCESSFUL")) buildMessageFound = true }
-      GradleBuildInvoker.getInstance(project)
-        .assemble(arrayOf(project.gradleModule(":app")!!))
-        .get(120, TimeUnit.SECONDS)
+      GradleBuildInvoker.getInstance(project).assemble(arrayOf(project.gradleModule(":app")!!)).get(120, TimeUnit.SECONDS)
     }
     assertThat(syncMessageFound).named("'This is a simple application!' found").isTrue()
     assertThat(buildMessageFound).named("'BUILD SUCCESSFUL' found").isTrue()

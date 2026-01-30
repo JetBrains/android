@@ -23,8 +23,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 class ProfilerProgramRunnerGradleToken : ProfilerProgramRunnerToken<GradleProjectSystem>, GradleToken {
   override fun isProfileableBuildSupported(projectSystem: GradleProjectSystem): Boolean {
     val project = projectSystem.project
-    val agpVersion = GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(
-      project)?.let { AgpVersion.tryParse(it) }
+    val agpVersion = GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(project)?.let { AgpVersion.tryParse(it) }
     return agpVersion != null && agpVersion.isAtLeastIncludingPreviews(7, 3, 0)
   }
 }

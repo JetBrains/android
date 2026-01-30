@@ -28,10 +28,10 @@ class StudioLayoutlibContext(private val project: Project) : LayoutlibContext {
   private val hasRegistered = AtomicBoolean(false)
 
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
+
   override fun register(layoutlib: LayoutLibrary) {
     if (!hasRegistered.getAndSet(true)) {
-      if (!project.isDisposed)
-        Disposer.register((project as ProjectEx).earlyDisposable) { layoutlib.dispose() }
+      if (!project.isDisposed) Disposer.register((project as ProjectEx).earlyDisposable) { layoutlib.dispose() }
       else {
         Logger.getInstance(StudioLayoutlibContext::class.java).error("$project had already been disposed")
         layoutlib.dispose()

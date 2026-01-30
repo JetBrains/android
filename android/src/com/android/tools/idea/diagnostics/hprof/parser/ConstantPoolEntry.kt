@@ -15,6 +15,4 @@
  */
 package com.android.tools.idea.diagnostics.hprof.parser
 
-data class ConstantPoolEntry(val constantPoolIndex: Int,
-                             val type: Type,
-                             val value: Long)
+data class ConstantPoolEntry(val constantPoolIndex: Int, val type: Type, val value: Long)

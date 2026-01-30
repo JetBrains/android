@@ -22,17 +22,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * Creates a [StateFlow] returning the FPS limit to be applied from a given [StateFlow] of booleans.
- * When the value from [this] is true, the FPS limit is throttled to [standardFpsLimit] / 3
- * otherwise it is not and [standardFpsLimit] is returned.
+ * Creates a [StateFlow] returning the FPS limit to be applied from a given [StateFlow] of booleans. When the value from [this] is true, the
+ * FPS limit is throttled to [standardFpsLimit] / 3 otherwise it is not and [standardFpsLimit] is returned.
  */
-fun StateFlow<Boolean>.fpsLimitFlow(
-  coroutineScope: CoroutineScope,
-  standardFpsLimit: Int,
-): StateFlow<Int> {
-  return map { fpsLimit(standardFpsLimit, it) }
-    .stateIn(coroutineScope, SharingStarted.Eagerly, fpsLimit(standardFpsLimit, value))
+fun StateFlow<Boolean>.fpsLimitFlow(coroutineScope: CoroutineScope, standardFpsLimit: Int): StateFlow<Int> {
+  return map { fpsLimit(standardFpsLimit, it) }.stateIn(coroutineScope, SharingStarted.Eagerly, fpsLimit(standardFpsLimit, value))
 }
 
-private fun fpsLimit(standardFpsLimit: Int, isThrottled: Boolean) =
-  if (isThrottled) standardFpsLimit / 3 else standardFpsLimit
+private fun fpsLimit(standardFpsLimit: Int, isThrottled: Boolean) = if (isThrottled) standardFpsLimit / 3 else standardFpsLimit

@@ -31,17 +31,17 @@ private const val KEYMAP_SECTION_NAME = "Running Devices"
 /** The action group defining the contents of the Settings > Keymap > Running Devices section. */
 private const val ACTION_GROUP = "Streaming"
 
-/**
- * Adds the Settings -> Keymap > Running Devices section.
- */
+/** Adds the Settings -> Keymap > Running Devices section. */
 class StreamingKeymapExtension : KeymapExtension {
 
   override fun createGroup(filtered: Condition<in AnAction>, project: Project?): KeymapGroup? {
     val keymapGroup = KeymapGroupFactory.getInstance().createGroup(KEYMAP_SECTION_NAME)
 
     for (action in ActionsTreeUtil.getActions(ACTION_GROUP)) {
-      if (action is HandTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() ||
-          action is EyeTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()) {
+      if (
+        action is HandTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get() ||
+          action is EyeTracking && !StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get()
+      ) {
         continue
       }
       ActionsTreeUtil.addAction(keymapGroup, action, filtered)

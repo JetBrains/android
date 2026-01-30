@@ -20,9 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.util.text.StringUtil.toTitleCase
 
-/**
- * Characteristics of a mirrored Android device.
- */
+/** Characteristics of a mirrored Android device. */
 class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName: Boolean = false) {
   val apiLevel: Int
     get() = deviceProperties.androidVersion?.androidApiLevel?.majorVersion ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
@@ -65,8 +63,7 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
       }
     }
     name.append(if (model.startsWith("Google Pixel")) model.removePrefix("Google ") else model)
-  }
-  else {
+  } else {
     name.append("unknown")
   }
   val api = androidVersion?.apiStringWithoutExtension

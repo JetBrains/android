@@ -39,11 +39,7 @@ class RenderSettingsTest {
   @Before
   fun before() {
     ApplicationManager.getApplication()
-      .replaceService(
-        PropertiesComponent::class.java,
-        PropertiesComponentMock(),
-        disposableRule.disposable,
-      )
+      .replaceService(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
   }
 
   @Test

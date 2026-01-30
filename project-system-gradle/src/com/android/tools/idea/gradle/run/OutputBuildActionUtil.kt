@@ -19,13 +19,13 @@ package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.util.DynamicAppUtils
 import com.intellij.openapi.module.Module
 
 /**
- * Creates BuildAction based on AndroidModelFeatures.
- * Use [OutputBuildAction] to obtain post build sync models if isPostBuildSyncSupported is true for all modules.
+ * Creates BuildAction based on AndroidModelFeatures. Use [OutputBuildAction] to obtain post build sync models if isPostBuildSyncSupported
+ * is true for all modules.
  */
 internal fun createOutputBuildAction(modulesFromOneIncludedBuild: List<Module>): OutputBuildAction? {
   val usePostBuildSync = modulesFromOneIncludedBuild.mapNotNull { GradleAndroidModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
@@ -33,8 +33,8 @@ internal fun createOutputBuildAction(modulesFromOneIncludedBuild: List<Module>):
 }
 
 /**
- * Get the gradle paths for the given module, all the tested projects (if it is a test app), and dynamic feature modules.
- * These paths will be used by the BuildAction run after build to know all the needed models.
+ * Get the gradle paths for the given module, all the tested projects (if it is a test app), and dynamic feature modules. These paths will
+ * be used by the BuildAction run after build to know all the needed models.
  */
 private fun getModuleGradlePaths(modulesFromOneIncludedBuild: List<Module>): Set<String> {
   val gradlePaths = mutableSetOf<String>()

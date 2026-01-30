@@ -82,8 +82,8 @@ enum class WhsDataType(val overrideDataType: KClass<*>) {
   fun noValue(): WhsDataValue = WhsDataValue.NoValue(this)
 
   /**
-   * Returns a [WhsDataValue] with the [value] for the type of this [WhsDataValue]. This method
-   * might throw [NumberFormatException] if the given [value] is not valid number for this type.
+   * Returns a [WhsDataValue] with the [value] for the type of this [WhsDataValue]. This method might throw [NumberFormatException] if the
+   * given [value] is not valid number for this type.
    */
   fun valueFromString(value: String): WhsDataValue =
     when (overrideDataType) {
@@ -95,9 +95,8 @@ enum class WhsDataType(val overrideDataType: KClass<*>) {
 }
 
 /**
- * Data class representing WHS capabilities such as Heart Rate, Location. [dataType] corresponds to
- * an enum for capabilities in WHS, [label] is the user displayed label of the capability,
- * [isOverrideable] means the value of the sensor can be changed via adb commands, and [unit]
+ * Data class representing WHS capabilities such as Heart Rate, Location. [dataType] corresponds to an enum for capabilities in WHS, [label]
+ * is the user displayed label of the capability, [isOverrideable] means the value of the sensor can be changed via adb commands, and [unit]
  * specifies the unit of the sensor.
  */
 data class WhsCapability(

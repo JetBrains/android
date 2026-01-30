@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.quickFixes.AbstractSetJavaLanguageLevelQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelModuleQuickFix
@@ -41,8 +41,7 @@ import org.junit.Test
 
 @RunsInEdt
 class SetJavaLanguageLevelQuickFixTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testAllJvmTargetTrue() {
@@ -58,7 +57,7 @@ class SetJavaLanguageLevelQuickFixTest {
       originalLevel = JDK_1_7,
       expectedLevel = JDK_1_8,
       setJvmTarget = setJvmTarget,
-      modulesNames = listOf("app", "lib")
+      modulesNames = listOf("app", "lib"),
     )
   }
 
@@ -71,8 +70,13 @@ class SetJavaLanguageLevelQuickFixTest {
     assertThat(quickfix.id).isEqualTo("set.java.level.JDK_1_9.all")
 
     // run method
-    verifyQuickFix(quickfix, originalLevel = JDK_1_7, expectedLevel = JDK_1_9, setJvmTarget = setJvmTarget,
-                   modulesNames = listOf("app", "lib"))
+    verifyQuickFix(
+      quickfix,
+      originalLevel = JDK_1_7,
+      expectedLevel = JDK_1_9,
+      setJvmTarget = setJvmTarget,
+      modulesNames = listOf("app", "lib"),
+    )
   }
 
   @Test
@@ -114,7 +118,6 @@ class SetJavaLanguageLevelQuickFixTest {
     verifyQuickFix(quickfix, originalLevel = JDK_1_8, expectedLevel = JDK_1_8, setJvmTarget = setJvmTarget, modulesNames = listOf("app"))
   }
 
-
   @Test
   fun testModuleOn9JvmTargetTrue() {
     val setJvmTarget = true
@@ -133,7 +136,7 @@ class SetJavaLanguageLevelQuickFixTest {
     originalLevel: LanguageLevel,
     expectedLevel: LanguageLevel,
     setJvmTarget: Boolean,
-    modulesNames: List<String>
+    modulesNames: List<String>,
   ) {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY)
     preparedProject.open { project ->
@@ -161,25 +164,18 @@ class SetJavaLanguageLevelQuickFixTest {
       compileOptions.targetCompatibility().setLanguageLevel(level)
       if (level.isLessThan(JDK_1_8) || (!setJvmTarget)) {
         android.kotlinOptions().jvmTarget().delete()
-      }
-      else {
+      } else {
         android.kotlinOptions().jvmTarget().setLanguageLevel(level)
       }
     }
 
     ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(project) {
-        projectBuildModel.applyChanges()
-      }
+      WriteCommandAction.runWriteCommandAction(project) { projectBuildModel.applyChanges() }
     }
   }
 
   private fun verifyBuildFiles(project: Project, quickfix: AbstractSetJavaLanguageLevelQuickFix, modules: List<Module>) {
-    val expectedBuildFiles = modules.map {
-      GradleProjectSystemUtil.getGradleBuildFile(
-        it
-      )
-    }
+    val expectedBuildFiles = modules.map { GradleProjectSystemUtil.getGradleBuildFile(it) }
     val buildFiles = quickfix.buildFilesToApply(project)
     assertThat(buildFiles).containsExactlyElementsIn(expectedBuildFiles)
   }
@@ -195,8 +191,7 @@ class SetJavaLanguageLevelQuickFixTest {
       assertThat(compileOptions.targetCompatibility().toLanguageLevel()).isEqualTo(expectedLevel)
       if (setJvmTarget) {
         assertThat(android.kotlinOptions().jvmTarget().toLanguageLevel()).isEqualTo(expectedLevel)
-      }
-      else {
+      } else {
         assertThat(android.kotlinOptions().jvmTarget().toLanguageLevel()).isNull()
       }
     }

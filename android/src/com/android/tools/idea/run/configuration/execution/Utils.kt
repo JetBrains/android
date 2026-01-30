@@ -47,11 +47,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
-import java.util.concurrent.TimeUnit
-
 
 fun ConsoleView.printShellCommand(command: String) = println("$ adb shell $command \n")
 
@@ -70,16 +69,21 @@ val errorPattern = Regex(TARGET_REGEX, RegexOption.IGNORE_CASE)
 @WorkerThread
 @Throws(ExecutionException::class)
 @JvmOverloads
-fun IDevice.executeShellCommand(command: String, consoleView: ConsoleView, receiver: IShellOutputReceiver = NullOutputReceiver(),
-                                timeOut: Long = 5, timeOutUnits: TimeUnit = TimeUnit.SECONDS, indicator: ProgressIndicator?) {
+fun IDevice.executeShellCommand(
+  command: String,
+  consoleView: ConsoleView,
+  receiver: IShellOutputReceiver = NullOutputReceiver(),
+  timeOut: Long = 5,
+  timeOutUnits: TimeUnit = TimeUnit.SECONDS,
+  indicator: ProgressIndicator?,
+) {
   ApplicationManager.getApplication().assertIsNonDispatchThread()
   consoleView.printShellCommand(command)
   val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, consoleView)
   val collectingOutputReceiver = CollectingOutputReceiver()
   try {
     executeShellCommand(command, MultiReceiver(receiver, consoleReceiver, collectingOutputReceiver), timeOut, timeOutUnits)
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     throw ExecutionException("Error while executing: '$command'")
   }
   if (collectingOutputReceiver.output.matches(errorPattern)) {
@@ -97,9 +101,7 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
     override fun isCancelled() = isCancelledCheck()
 
     override fun processNewLines(lines: Array<String>) {
-      lines.forEach { line ->
-        extractPattern(line, versionPattern)?.let { version = it.toInt() }
-      }
+      lines.forEach { line -> extractPattern(line, versionPattern)?.let { version = it.toInt() } }
     }
   }
 
@@ -126,7 +128,7 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
       inferredVersion = 0
     } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
       Logger.getInstance("WearUtils").warn("Error while checking version, message: ${outputReceiver.getOutput()}")
-        throw ExecutionException("Error while checking version")
+      throw ExecutionException("Error while checking version")
     }
 
     // 2 is the minimum for all surfaces. 2 means the watch supports both start and stop commands
@@ -147,7 +149,7 @@ internal fun checkAndroidVersionForWearDebugging(version: AndroidVersion, consol
 suspend fun createRunContentDescriptor(
   processHandler: ProcessHandler,
   console: ConsoleView,
-  environment: ExecutionEnvironment
+  environment: ExecutionEnvironment,
 ): RunContentDescriptor {
   console.attachToProcess(processHandler)
   return withContext(uiThread) {
@@ -174,12 +176,14 @@ suspend fun getDevices(deviceFutures: DeviceFutures, indicator: ProgressIndicato
     throw AndroidExecutionException(TARGET_DEVICE_NOT_FOUND, AndroidBundle.message("deployment.target.not.found"))
   }
 
-  return deviceFutureList.map {
-    stats.beginWaitForDevice()
-    val device = it.await()
-    stats.endWaitForDevice(device)
-    device
-  }.onEach { LaunchUtils.initiateDismissKeyguard(it) }
+  return deviceFutureList
+    .map {
+      stats.beginWaitForDevice()
+      val device = it.await()
+      stats.endWaitForDevice(device)
+      device
+    }
+    .onEach { LaunchUtils.initiateDismissKeyguard(it) }
 }
 
 private const val APPLICATION_ID_NOT_FOUND = "APPLICATION_ID_NOT_FOUND"
@@ -187,7 +191,7 @@ private const val APPLICATION_ID_NOT_FOUND = "APPLICATION_ID_NOT_FOUND"
 @Throws(ExecutionException::class)
 @WorkerThread
 suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget, stats: RunStats): List<IDevice> {
-  return getDevices(prepareDevices (project, indicator, deployTarget), indicator, stats)
+  return getDevices(prepareDevices(project, indicator, deployTarget), indicator, stats)
 }
 
 @Throws(ExecutionException::class)
@@ -195,8 +199,11 @@ suspend fun getDevices(environment: ExecutionEnvironment, deviceFutures: DeviceF
   return getDevices(deviceFutures, indicator, RunStats.from(environment))
 }
 
-val ApplicationIdProvider.applicationIdOrAndroidExecutionException: String @Throws(ExecutionException::class) get() = try {
-  packageName
-} catch (e: ApkProvisionException) {
-  throw AndroidExecutionException(APPLICATION_ID_NOT_FOUND, e.message)
-}
+val ApplicationIdProvider.applicationIdOrAndroidExecutionException: String
+  @Throws(ExecutionException::class)
+  get() =
+    try {
+      packageName
+    } catch (e: ApkProvisionException) {
+      throw AndroidExecutionException(APPLICATION_ID_NOT_FOUND, e.message)
+    }

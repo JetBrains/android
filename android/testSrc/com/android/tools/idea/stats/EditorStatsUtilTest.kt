@@ -37,28 +37,28 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class EditorStatsUtilTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun getEditorFileTypeForAnalytics_fromStringOnly() {
-    val map = mapOf(
-      "JAVA" to EditorFileType.JAVA,
-      "Java" to EditorFileType.JAVA,
-      "java" to EditorFileType.JAVA,
-      "Kotlin" to EditorFileType.KOTLIN,
-      "kotlin" to EditorFileType.KOTLIN,
-      "groovy" to EditorFileType.GROOVY,
-      "properties" to EditorFileType.PROPERTIES,
-      "json" to EditorFileType.JSON,
-      "ObjectiveC" to EditorFileType.NATIVE,
-      "XML" to EditorFileType.XML,
-      "xml" to EditorFileType.XML,
-      "protobuf" to EditorFileType.PROTO,
-      "TOML" to EditorFileType.TOML,
-      "Dart" to EditorFileType.DART,
-      "fhqwhgads" to EditorFileType.UNKNOWN,
-    )
+    val map =
+      mapOf(
+        "JAVA" to EditorFileType.JAVA,
+        "Java" to EditorFileType.JAVA,
+        "java" to EditorFileType.JAVA,
+        "Kotlin" to EditorFileType.KOTLIN,
+        "kotlin" to EditorFileType.KOTLIN,
+        "groovy" to EditorFileType.GROOVY,
+        "properties" to EditorFileType.PROPERTIES,
+        "json" to EditorFileType.JSON,
+        "ObjectiveC" to EditorFileType.NATIVE,
+        "XML" to EditorFileType.XML,
+        "xml" to EditorFileType.XML,
+        "protobuf" to EditorFileType.PROTO,
+        "TOML" to EditorFileType.TOML,
+        "Dart" to EditorFileType.DART,
+        "fhqwhgads" to EditorFileType.UNKNOWN,
+      )
 
     for ((id, fileType) in map) {
       assertThat(getEditorFileTypeForAnalytics(id)).isEqualTo(fileType)
@@ -70,17 +70,18 @@ class EditorStatsUtilTest {
     // EditorFileType.NATIVE is not tested, because there is no file extension registered for it. It's unclear whether it's needed at all,
     // but since this test is being added to document existing behavior I'm leaving it in the source code for now.
 
-    val simpleFileTypes = mapOf(
-      "java" to EditorFileType.JAVA,
-      "groovy" to EditorFileType.GROOVY,
-      "properties" to EditorFileType.PROPERTIES,
-      "json" to EditorFileType.JSON,
-      "toml" to EditorFileType.TOML,
-      "py" to EditorFileType.PYTHON,
-      "rs" to EditorFileType.RUST,
-      "go" to EditorFileType.GO,
-      "foo" to EditorFileType.UNKNOWN,
-    )
+    val simpleFileTypes =
+      mapOf(
+        "java" to EditorFileType.JAVA,
+        "groovy" to EditorFileType.GROOVY,
+        "properties" to EditorFileType.PROPERTIES,
+        "json" to EditorFileType.JSON,
+        "toml" to EditorFileType.TOML,
+        "py" to EditorFileType.PYTHON,
+        "rs" to EditorFileType.RUST,
+        "go" to EditorFileType.GO,
+        "foo" to EditorFileType.UNKNOWN,
+      )
 
     for ((fileExtension, editorFileType) in simpleFileTypes) {
       val fakeResourceFile = projectRule.fixture.addFileToProject("Fake.$fileExtension", "").virtualFile
@@ -90,22 +91,23 @@ class EditorStatsUtilTest {
 
   @Test
   fun xmlFileTypes() = runBlocking {
-    val simpleXmlFileTypes = mapOf(
-      "anim" to EditorFileType.XML_RES_ANIM,
-      "animator" to EditorFileType.XML_RES_ANIMATOR,
-      "color" to EditorFileType.XML_RES_COLOR,
-      "drawable" to EditorFileType.XML_RES_DRAWABLE,
-      "font" to EditorFileType.XML_RES_FONT,
-      "interpolator" to EditorFileType.XML_RES_INTERPOLATOR,
-      "layout" to EditorFileType.XML_RES_LAYOUT,
-      "menu" to EditorFileType.XML_RES_MENU,
-      "mipmap" to EditorFileType.XML_RES_MIPMAP,
-      "navigation" to EditorFileType.XML_RES_NAVIGATION,
-      "raw" to EditorFileType.XML_RES_RAW,
-      "transition" to EditorFileType.XML_RES_TRANSITION,
-      "values" to EditorFileType.XML_RES_VALUES,
-      "xml" to EditorFileType.XML_RES_XML,
-    )
+    val simpleXmlFileTypes =
+      mapOf(
+        "anim" to EditorFileType.XML_RES_ANIM,
+        "animator" to EditorFileType.XML_RES_ANIMATOR,
+        "color" to EditorFileType.XML_RES_COLOR,
+        "drawable" to EditorFileType.XML_RES_DRAWABLE,
+        "font" to EditorFileType.XML_RES_FONT,
+        "interpolator" to EditorFileType.XML_RES_INTERPOLATOR,
+        "layout" to EditorFileType.XML_RES_LAYOUT,
+        "menu" to EditorFileType.XML_RES_MENU,
+        "mipmap" to EditorFileType.XML_RES_MIPMAP,
+        "navigation" to EditorFileType.XML_RES_NAVIGATION,
+        "raw" to EditorFileType.XML_RES_RAW,
+        "transition" to EditorFileType.XML_RES_TRANSITION,
+        "values" to EditorFileType.XML_RES_VALUES,
+        "xml" to EditorFileType.XML_RES_XML,
+      )
 
     for ((fileTypeName, editorFileType) in simpleXmlFileTypes) {
       val fakeResourceFile = projectRule.fixture.addFileToProject("$fileTypeName/Fake.xml", "").virtualFile
@@ -148,7 +150,7 @@ class EditorStatsUtilTest {
         FakePbFileType,
         listOf(ExtensionFileNameMatcher("proto")),
         projectRule.testRootDisposable,
-        requireNotNull(getPlugin(PluginId.getId("org.jetbrains.android")))
+        requireNotNull(getPlugin(PluginId.getId("org.jetbrains.android"))),
       )
     }
 
@@ -178,5 +180,4 @@ private object FakePbFileType : LanguageFileType(FakePbLangauge) {
   override fun getDefaultExtension() = "proto"
 
   override fun getIcon() = TODO("Not yet implemented")
-
 }

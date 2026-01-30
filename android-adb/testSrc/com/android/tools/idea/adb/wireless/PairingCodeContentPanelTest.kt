@@ -43,45 +43,23 @@ class PairingCodeContentPanelTest {
 
     val services1 =
       listOf(
-        PairingMdnsService(
-          "Service1",
-          ServiceType.PairingCode,
-          InetAddresses.fromInteger(1),
-          1001,
-          null,
-        ),
+        PairingMdnsService("Service1", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1001, null),
         PairingMdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002, null),
       )
     panel.showDevices(services1) {}
     assertThat(deviceList.components).hasLength(2)
-    assertThat(deviceList.components[0].findDescendant<JLabel> { it.text == "0.0.0.1:1001" })
-      .isNotNull()
-    assertThat(deviceList.components[1].findDescendant<JLabel> { it.text == "0.0.0.1:1002" })
-      .isNotNull()
+    assertThat(deviceList.components[0].findDescendant<JLabel> { it.text == "0.0.0.1:1001" }).isNotNull()
+    assertThat(deviceList.components[1].findDescendant<JLabel> { it.text == "0.0.0.1:1002" }).isNotNull()
 
     val services2 =
       listOf(
-        PairingMdnsService(
-          "Service2",
-          ServiceType.QrCode,
-          InetAddresses.fromInteger(1),
-          1002,
-          null,
-        ),
-        PairingMdnsService(
-          "Service3",
-          ServiceType.PairingCode,
-          InetAddresses.fromInteger(1),
-          1003,
-          null,
-        ),
+        PairingMdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002, null),
+        PairingMdnsService("Service3", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1003, null),
       )
     panel.showDevices(services2) {}
     assertThat(deviceList.components).hasLength(2)
-    assertThat(deviceList.components[0].findDescendant<JLabel> { it.text == "0.0.0.1:1002" })
-      .isNotNull()
-    assertThat(deviceList.components[1].findDescendant<JLabel> { it.text == "0.0.0.1:1003" })
-      .isNotNull()
+    assertThat(deviceList.components[0].findDescendant<JLabel> { it.text == "0.0.0.1:1002" }).isNotNull()
+    assertThat(deviceList.components[1].findDescendant<JLabel> { it.text == "0.0.0.1:1003" }).isNotNull()
 
     panel.showDevices(listOf()) {}
     assertThat(deviceList.components).isEmpty()

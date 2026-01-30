@@ -25,10 +25,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 
-/**
- * Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project
- * system.
- */
+/** Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project system. */
 abstract class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     @JvmField val LOG = logger<ProjectSystemPsiElementFinder>()
@@ -49,10 +46,7 @@ abstract class ProjectSystemPsiElementFinder(private val project: Project) : Psi
     }
 }
 
-/**
- * [ProjectSystemPsiElementFinder] that handles classes, with a higher priority than the default
- * finder.
- */
+/** [ProjectSystemPsiElementFinder] that handles classes, with a higher priority than the default finder. */
 class ProjectSystemPsiClassFinder(project: Project) : ProjectSystemPsiElementFinder(project) {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     for (delegate in finders) {
@@ -72,16 +66,13 @@ class ProjectSystemPsiClassFinder(project: Project) : ProjectSystemPsiElementFin
 }
 
 /**
- * [ProjectSystemPsiElementFinder] that handles packages, with a lower priority than the default
- * finder, meaning custom light packages are only used if there are no corresponding directories in
- * the project.
+ * [ProjectSystemPsiElementFinder] that handles packages, with a lower priority than the default finder, meaning custom light packages are
+ * only used if there are no corresponding directories in the project.
  */
-class ProjectSystemPsiPackageFinder(private val project: Project) :
-  ProjectSystemPsiElementFinder(project) {
+class ProjectSystemPsiPackageFinder(private val project: Project) : ProjectSystemPsiElementFinder(project) {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? = null
 
-  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> =
-    PsiClass.EMPTY_ARRAY
+  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) return null

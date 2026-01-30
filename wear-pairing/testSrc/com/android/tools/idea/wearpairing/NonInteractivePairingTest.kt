@@ -30,8 +30,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-private const val LOGCAT_FORMAT =
-  "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
+private const val LOGCAT_FORMAT = "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
 
 class NonInteractivePairingTest : LightPlatform4TestCase() {
   private lateinit var device: IDevice

@@ -23,13 +23,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 
-/**
- * Synchronizes clipboards between the host and a connected device.
- */
-internal class DeviceClipboardSynchronizer(
-  disposableParent: Disposable,
-  private val deviceClient: DeviceClient,
-) : AbstractClipboardSynchronizer(disposableParent), DeviceController.DeviceClipboardListener, Disposable {
+/** Synchronizes clipboards between the host and a connected device. */
+internal class DeviceClipboardSynchronizer(disposableParent: Disposable, private val deviceClient: DeviceClient) :
+  AbstractClipboardSynchronizer(disposableParent), DeviceController.DeviceClipboardListener, Disposable {
 
   private val deviceController: DeviceController?
     get() = deviceClient.deviceController
@@ -56,11 +52,12 @@ internal class DeviceClipboardSynchronizer(
     }
     val maxSyncedClipboardLength = DeviceMirroringSettings.getInstance().maxSyncedClipboardLength
     if (forceSend || (text.isNotEmpty() && text != lastClipboardText)) {
-      val adjustedText = when {
-        text.length <= maxSyncedClipboardLength -> text
-        forceSend -> ""
-        else -> return
-      }
+      val adjustedText =
+        when {
+          text.length <= maxSyncedClipboardLength -> text
+          forceSend -> ""
+          else -> return
+        }
       val message = StartClipboardSyncMessage(maxSyncedClipboardLength, adjustedText)
       deviceController?.sendControlMessage(message)
       lastClipboardText = adjustedText

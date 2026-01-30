@@ -24,9 +24,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [JcenterDeprecatedReporter]
- */
+/** Tests for [JcenterDeprecatedReporter] */
 class JcenterDeprecatedReporterTest {
   @Test
   fun `expected type`() {

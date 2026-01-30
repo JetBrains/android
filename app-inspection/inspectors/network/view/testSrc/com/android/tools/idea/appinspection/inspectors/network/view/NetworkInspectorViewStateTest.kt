@@ -49,9 +49,7 @@ class NetworkInspectorViewStateTest {
   fun upgrade_columnsRemoved() {
     val state = NetworkInspectorViewState()
 
-    val list =
-      ConnectionColumn.values().map { ColumnInfo(it.displayString, 0.0, true) } +
-        ColumnInfo("Unknown")
+    val list = ConnectionColumn.values().map { ColumnInfo(it.displayString, 0.0, true) } + ColumnInfo("Unknown")
     state.columns = list.toMutableList()
     val newState = state.state
 

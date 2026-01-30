@@ -45,8 +45,9 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       field = value
     }
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = PointNecessity(ACTIVATED_VERSION)
 
@@ -58,24 +59,27 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       val gradlePropertiesPsiFile = PsiManager.getInstance(project).findFile(gradlePropertiesVirtualFile)
       if (gradlePropertiesPsiFile is PropertiesFile) {
         val property = gradlePropertiesPsiFile.findPropertyByKey("android.enableR8.fullMode")
-        val (psiElement, usageType) = when(property) {
-          null -> gradlePropertiesPsiFile to when (noPropertyPresentAction) {
-            ACCEPT_NEW_DEFAULT -> ACCEPT_NEW_USAGE_TYPE
-            INSERT_OLD_DEFAULT -> INSERT_OLD_USAGE_TYPE
+        val (psiElement, usageType) =
+          when (property) {
+            null ->
+              gradlePropertiesPsiFile to
+                when (noPropertyPresentAction) {
+                  ACCEPT_NEW_DEFAULT -> ACCEPT_NEW_USAGE_TYPE
+                  INSERT_OLD_DEFAULT -> INSERT_OLD_USAGE_TYPE
+                }
+            else -> property.psiElement to EXISTING_PROPERTY_USAGE_TYPE
           }
-          else -> property.psiElement to EXISTING_PROPERTY_USAGE_TYPE
-        }
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, usageType)
         usages.add(R8FullModeUsageInfo(wrappedPsiElement, usageType == EXISTING_PROPERTY_USAGE_TYPE, noPropertyPresentAction))
       }
-    }
-    else if (baseDir.exists()) {
+    } else if (baseDir.exists()) {
       val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
       if (baseDirPsiDirectory is PsiElement) {
-        val usageType = when(noPropertyPresentAction) {
-          ACCEPT_NEW_DEFAULT -> ACCEPT_NEW_USAGE_TYPE
-          INSERT_OLD_DEFAULT -> INSERT_OLD_USAGE_TYPE
-        }
+        val usageType =
+          when (noPropertyPresentAction) {
+            ACCEPT_NEW_DEFAULT -> ACCEPT_NEW_USAGE_TYPE
+            INSERT_OLD_DEFAULT -> INSERT_OLD_USAGE_TYPE
+          }
         val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, usageType)
         usages.add(R8FullModeUsageInfo(wrappedPsiElement, false, noPropertyPresentAction))
       }
@@ -84,13 +88,15 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   }
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder {
-    val protoNoPropertyPresentAction = when (noPropertyPresentAction) {
-      INSERT_OLD_DEFAULT -> R8FullModeDefaultProcessorSettings.NoPropertyPresentAction.INSERT_OLD_DEFAULT
-      ACCEPT_NEW_DEFAULT -> R8FullModeDefaultProcessorSettings.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
-    }
-    val r8FullModeSettings = R8FullModeDefaultProcessorSettings.newBuilder().setNoPropertyPresentAction(protoNoPropertyPresentAction)
-      .build()
-    return builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.R8_FULL_MODE_DEFAULT)
+    val protoNoPropertyPresentAction =
+      when (noPropertyPresentAction) {
+        INSERT_OLD_DEFAULT -> R8FullModeDefaultProcessorSettings.NoPropertyPresentAction.INSERT_OLD_DEFAULT
+        ACCEPT_NEW_DEFAULT -> R8FullModeDefaultProcessorSettings.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
+      }
+    val r8FullModeSettings =
+      R8FullModeDefaultProcessorSettings.newBuilder().setNoPropertyPresentAction(protoNoPropertyPresentAction).build()
+    return builder
+      .setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.R8_FULL_MODE_DEFAULT)
       .setR8FullModeDefaultSettings(r8FullModeSettings)
   }
 
@@ -111,24 +117,21 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
     }
   }
 
-  override fun computeIsAlwaysNoOpForProject(): Boolean =
-    findComponentUsages().all {
-      it is R8FullModeUsageInfo && it.existing
-    }
+  override fun computeIsAlwaysNoOpForProject(): Boolean = findComponentUsages().all { it is R8FullModeUsageInfo && it.existing }
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("r8-full-mode-default")
 
   override fun getShortDescription(): String? =
     """
-      The default for the R8 mode in AGP is now full mode, rather than the
-      previous compatibility mode.  If your project requires compatibility
-      mode, it needs to be set explicitly in the gradle.properties file.
-    """.trimIndent()
+    The default for the R8 mode in AGP is now full mode, rather than the
+    previous compatibility mode.  If your project requires compatibility
+    mode, it needs to be set explicitly in the gradle.properties file.
+    """
+      .trimIndent()
 
   enum class NoPropertyPresentAction(val supplier: Supplier<String>) {
     ACCEPT_NEW_DEFAULT(AgpUpgradeBundle.messagePointer("noPropertyPresentAction.acceptNewDefault")),
-    INSERT_OLD_DEFAULT(AgpUpgradeBundle.messagePointer("noPropertyPresentAction.insertOldDefault")),
-    ;
+    INSERT_OLD_DEFAULT(AgpUpgradeBundle.messagePointer("noPropertyPresentAction.insertOldDefault"));
 
     override fun toString() = supplier.get()
   }
@@ -136,7 +139,8 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   companion object {
     val ACTIVATED_VERSION = AgpVersion.parse("8.0.0-alpha01")
 
-    val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
+    val EXISTING_PROPERTY_USAGE_TYPE =
+      UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
     val ACCEPT_NEW_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.acceptNewUsageType"))
     val INSERT_OLD_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("r8FullModeDefaultRefactoringProcessor.insertOldUsageType"))
   }
@@ -145,28 +149,32 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 class R8FullModeUsageInfo(
   private val wrappedElement: WrappedPsiElement,
   val existing: Boolean,
-  private val noPropertyPresentAction: NoPropertyPresentAction
+  private val noPropertyPresentAction: NoPropertyPresentAction,
 ) : GradleBuildModelUsageInfo(wrappedElement) {
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     if (!existing && noPropertyPresentAction == INSERT_OLD_DEFAULT) {
-      val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
-        is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-        is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
-          (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
+      val (propertiesFile, psiFile) =
+        when (val realElement = wrappedElement.realElement) {
+          is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
+          is PsiDirectory ->
+            (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile(FN_GRADLE_PROPERTIES)).let {
+              (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
+            }
+          else -> return
         }
-        else -> return
-      }
       otherAffectedFiles.add(psiFile)
       propertiesFile.addProperty("android.enableR8.fullMode", "false")
     }
   }
 
-  override fun getTooltipText() = when (existing) {
-    false -> when (noPropertyPresentAction) {
-      ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.acceptNewDefault")
-      INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.insertOldDefault")
+  override fun getTooltipText() =
+    when (existing) {
+      false ->
+        when (noPropertyPresentAction) {
+          ACCEPT_NEW_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.acceptNewDefault")
+          INSERT_OLD_DEFAULT -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.insertOldDefault")
+        }
+      true -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.existing")
     }
-    true -> AgpUpgradeBundle.message("r8FullModeDefaultUsageInfo.tooltipText.existing")
-  }
 }

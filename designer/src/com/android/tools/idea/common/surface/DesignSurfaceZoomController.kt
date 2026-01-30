@@ -38,10 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
-/**
- * If the difference between old and new scaling values is less than threshold, the scaling will be
- * ignored.
- */
+/** If the difference between old and new scaling values is less than threshold, the scaling will be ignored. */
 @SurfaceZoomLevel const val SCALING_THRESHOLD = 0.005
 
 /** The max milliseconds duration of the zooming animation. */
@@ -53,10 +50,9 @@ private const val SCALE_CHANGES_PER_ANIMATION = 50
 /**
  * Implementation of [ZoomController] for [DesignSurface] zoom logic.
  *
- * It is responsible for zooming interaction of type [ZoomType] and to change scale. This class can
- * be changed if we want to change zooming behaviours in [DesignSurface] and its implementations,
- * this means that changing zooming interaction in this class will also affect [NlDesignSurface] as
- * well as [NavDesignSurface].
+ * It is responsible for zooming interaction of type [ZoomType] and to change scale. This class can be changed if we want to change zooming
+ * behaviours in [DesignSurface] and its implementations, this means that changing zooming interaction in this class will also affect
+ * [NlDesignSurface] as well as [NavDesignSurface].
  *
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
@@ -79,8 +75,8 @@ abstract class DesignSurfaceZoomController(
   open val shouldShowZoomAnimation: Boolean = false
 
   /**
-   * The expected bitwise mask value for when we want to apply zoom-to-fit. This mask is used to
-   * wait for: rendering, layout creation, layout resize before applying zoom-to-fit.
+   * The expected bitwise mask value for when we want to apply zoom-to-fit. This mask is used to wait for: rendering, layout creation,
+   * layout resize before applying zoom-to-fit.
    */
   private val expectedZoomToFitMask: Int =
     ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK or
@@ -88,8 +84,8 @@ abstract class DesignSurfaceZoomController(
       ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
 
   /**
-   * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If
-   * you want to get the scale you can use [scale].
+   * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If you want to get the scale you can use
+   * [scale].
    */
   @SurfaceScale private var currentScale: Double = 1.0
 
@@ -104,29 +100,23 @@ abstract class DesignSurfaceZoomController(
   @SurfaceScreenScalingFactor override var screenScalingFactor: Double = 1.0
 
   /**
-   * A bitwise mask used by [notifyZoomToFit]. If the "or" operator applied to this mask gets a
-   * bitwise values of [ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK],
-   * [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can apply zoom-to-fit.
+   * A bitwise mask used by [notifyZoomToFit]. If the "or" operator applied to this mask gets a bitwise values of
+   * [ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK], [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can apply zoom-to-fit.
    */
   private val currentZoomToFitMask = AtomicInteger(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
 
   /**
-   * Set the scale factor used to multiply the content size and try to position the viewport such
-   * that its center is the closest possible to the provided x and y coordinate in the Viewport's
-   * view coordinate system [JViewport.getView]. If x OR y are negative, the scale will be centered
-   * toward the center the viewport.
+   * Set the scale factor used to multiply the content size and try to position the viewport such that its center is the closest possible to
+   * the provided x and y coordinate in the Viewport's view coordinate system [JViewport.getView]. If x OR y are negative, the scale will be
+   * centered toward the center the viewport.
    *
-   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value
-   *   below 0 means zoom to fit) This value doesn't consider DPI.
+   * @param scale The scale factor. Can be any value, but it will be capped between -1 and 10 (value below 0 means zoom to fit) This value
+   *   doesn't consider DPI.
    * @param x The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return True if the scaling was changed, false if this was a noop.
    */
-  override fun setScale(
-    @SurfaceScale scale: Double,
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-  ): Boolean {
+  override fun setScale(@SurfaceScale scale: Double, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean {
     @SurfaceScale val newScale: Double = getBoundedScale(scale)
     if (isScaleSame(currentScale, newScale)) {
       return false
@@ -137,20 +127,13 @@ abstract class DesignSurfaceZoomController(
         val previousScale = currentScale
         currentScale = scaleIncrement
         scaleListener?.onScaleChange(
-          ScaleChange(
-            previousScale = previousScale,
-            newScale = scaleIncrement,
-            focusPoint = Point(x, y),
-            isAnimating = isAnimating,
-          )
+          ScaleChange(previousScale = previousScale, newScale = scaleIncrement, focusPoint = Point(x, y), isAnimating = isAnimating)
         )
       }
     } else {
       val previewsScale = currentScale
       currentScale = newScale
-      scaleListener?.onScaleChange(
-        ScaleChange(previousScale = previewsScale, newScale = newScale, focusPoint = Point(x, y))
-      )
+      scaleListener?.onScaleChange(ScaleChange(previousScale = previewsScale, newScale = newScale, focusPoint = Point(x, y)))
     }
     return true
   }
@@ -163,8 +146,7 @@ abstract class DesignSurfaceZoomController(
    * @param newScale The final scale we want to apply.
    * @param changeScale Applies scale changes to [DesignSurface]
    *
-   * TODO(b/331165064): if we want to ship this feature, it is better moving this code in a
-   *   different class
+   * TODO(b/331165064): if we want to ship this feature, it is better moving this code in a different class
    */
   @UiThread
   private fun animateScaleChange(newScale: Double, changeScale: (Double, Boolean) -> Unit) {
@@ -234,12 +216,7 @@ abstract class DesignSurfaceZoomController(
     designerAnalyticsManager?.trackZoom(type)
 
     val view = getFocusedSceneView()
-    if (
-      type == ZoomType.IN &&
-        (newX < 0 || newY < 0) &&
-        view != null &&
-        selectionModel?.isEmpty == false
-    ) {
+    if (type == ZoomType.IN && (newX < 0 || newY < 0) && view != null && selectionModel?.isEmpty == false) {
       val scene: Scene = view.scene
       val component = scene.getSceneComponent(selectionModel.primary)
       if (component != null) {
@@ -253,16 +230,14 @@ abstract class DesignSurfaceZoomController(
           @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
           val current = Math.round(currentScale * 100).toInt()
 
-          @SurfaceScale
-          val newScale: Double = (ZoomType.zoomIn(current) / 100.0) / screenScalingFactor
+          @SurfaceScale val newScale: Double = (ZoomType.zoomIn(current) / 100.0) / screenScalingFactor
           setScale(newScale, newX, newY)
         }
         ZoomType.OUT -> {
           @SurfaceZoomLevel val currentScale: Double = currentScale * screenScalingFactor
           val current = (currentScale * 100).toInt()
 
-          @SurfaceScale
-          val newScale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
+          @SurfaceScale val newScale: Double = (ZoomType.zoomOut(current) / 100.0) / screenScalingFactor
           setScale(newScale, newX, newY)
         }
         ZoomType.ACTUAL -> setScale(1.0 / screenScalingFactor)
@@ -288,12 +263,10 @@ abstract class DesignSurfaceZoomController(
 
   override fun canZoomToFit(): Boolean {
     @SurfaceScale val zoomToFitScale = getFitScale()
-    return (currentScale > zoomToFitScale && canZoomOut()) ||
-      (currentScale < zoomToFitScale && canZoomIn())
+    return (currentScale > zoomToFitScale && canZoomOut()) || (currentScale < zoomToFitScale && canZoomIn())
   }
 
-  override fun canZoomToActual(): Boolean =
-    (scale > 1 && canZoomOut()) || (scale < 1 && canZoomIn())
+  override fun canZoomToActual(): Boolean = (scale > 1 && canZoomOut()) || (scale < 1 && canZoomIn())
 
   protected fun getFocusedSceneView(): SceneView? = scenesOwner?.focusedSceneView
 
@@ -302,35 +275,31 @@ abstract class DesignSurfaceZoomController(
     scaleListener = listener
   }
 
-  /**
-   * If the differences of two scales are smaller than tolerance, they are considered as the same
-   * scale.
-   */
+  /** If the differences of two scales are smaller than tolerance, they are considered as the same scale. */
   private fun isScaleSame(@SurfaceScale scaleA: Double, @SurfaceScale scaleB: Double): Boolean {
     val tolerance: Double = SCALING_THRESHOLD / screenScalingFactor
     return abs(scaleA - scaleB) < tolerance
   }
 
   /**
-   * Resets the bitwise mask responsible to wait for [notifyZoomToFit]. Resetting will allow
-   * DesignSurface to call [zoomToFit] as if it happens for the first time.
+   * Resets the bitwise mask responsible to wait for [notifyZoomToFit]. Resetting will allow DesignSurface to call [zoomToFit] as if it
+   * happens for the first time.
    *
    * This is useful when we switch modes or layouts.
    *
    * @param shouldWaitForResize When true, the zoom mask waits for the resize notification
-   *   [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK]. When false, the notification is
-   *   applied immediately, avoiding the need to wait for the next [DesignSurface] resize event.
+   *   [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK]. When false, the notification is applied immediately, avoiding the need to wait
+   *   for the next [DesignSurface] resize event.
    * @param width wip
-   * @param height wip Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait
-   *   [notifyZoomToFit] to be performed at least once before trying to apply zoom-to-fit.
+   * @param height wip Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait [notifyZoomToFit] to be performed at least once
+   *   before trying to apply zoom-to-fit.
    */
   override fun resetZoomToFitSettings(shouldWaitForResize: Boolean, surfaceSize: Dimension) {
     val newZoomToFitStateMask =
       if (!shouldWaitForResize && surfaceSize.height > 0 && surfaceSize.width > 0) {
         // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
         // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
-        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
-          ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
       } else {
         ZoomMaskConstants.INITIAL_STATE_INT_MASK
       }
@@ -353,25 +322,18 @@ abstract class DesignSurfaceZoomController(
   }
 
   fun notifyDesignSurfaceResized(width: Int, height: Int, isShowing: Boolean = true) {
-    if (
-      currentZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
-        isShowing &&
-        width > 0 &&
-        height > 0
-    ) {
+    if (currentZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK && isShowing && width > 0 && height > 0) {
       zoomToFitIfReady(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
     }
   }
 
   /**
-   * Try to apply [zoomToFit] if [DesignSurface] has been resized and its [bitwiseNumber] mask is
-   * equal to the [expectedZoomToFitMask]. This function solves a race condition of when the sizes
-   * of the content to show and the sizes of [DesignSurface] aren't yet synchronized causing a wrong
-   * fitScale value.
+   * Try to apply [zoomToFit] if [DesignSurface] has been resized and its [bitwiseNumber] mask is equal to the [expectedZoomToFitMask]. This
+   * function solves a race condition of when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
+   * causing a wrong fitScale value.
    *
-   * Note: if [waitForRenderBeforeZoomToFit] is enabled it will wait [notifyZoomToFit] to be
-   * performed at least once. if [waitForRenderBeforeZoomToFit] is disabled it will directly perform
-   * [zoomToFit]
+   * Note: if [waitForRenderBeforeZoomToFit] is enabled it will wait [notifyZoomToFit] to be performed at least once. if
+   * [waitForRenderBeforeZoomToFit] is disabled it will directly perform [zoomToFit]
    */
   @UiThread
   protected open fun zoomToFitIfReady(bitwiseNumber: Int): Boolean {
@@ -392,8 +354,8 @@ abstract class DesignSurfaceZoomController(
   }
 
   /**
-   * Class to define constants used to manage the bitwise logic to check if apply zoom-to-fit. These
-   * constants are integers masks to be used in bitwise operations.
+   * Class to define constants used to manage the bitwise logic to check if apply zoom-to-fit. These constants are integers masks to be used
+   * in bitwise operations.
    *
    * @see [currentZoomToFitMask]
    */
@@ -418,8 +380,7 @@ abstract class DesignSurfaceZoomController(
       const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
       /**
-       * Number used as part of the bitwise mask to notify to [DesignSurface] its layout has been
-       * created.
+       * Number used as part of the bitwise mask to notify to [DesignSurface] its layout has been created.
        *
        * @see also [DesignSurface.zoomToFitIfReady].
        */
@@ -431,9 +392,8 @@ abstract class DesignSurfaceZoomController(
        * * preview renders and
        * * layout is created
        *
-       * It indicates that the zooming has been done already and should not have shared bits with
-       * [NOTIFY_ZOOM_TO_FIT_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] or
-       * [NOTIFY_LAYOUT_CREATED_INT_MASK].
+       * It indicates that the zooming has been done already and should not have shared bits with [NOTIFY_ZOOM_TO_FIT_INT_MASK],
+       * [NOTIFY_COMPONENT_RESIZED_INT_MASK] or [NOTIFY_LAYOUT_CREATED_INT_MASK].
        */
       const val ZOOM_TO_FIT_DONE_INT_MASK = 8
     }

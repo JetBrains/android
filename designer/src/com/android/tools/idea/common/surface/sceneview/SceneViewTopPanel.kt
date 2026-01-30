@@ -41,10 +41,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** Distance between the bottom bound of model name and top bound of SceneView. */
 @SwingCoordinate private const val TOP_BAR_BOTTOM_MARGIN = 3
 
-/**
- * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
- * aligned (the toolbar).
- */
+/** This panel wraps both the label and the toolbar and puts them left aligned (label) and right aligned (the toolbar). */
 class SceneViewTopPanel(
   private val toolbarTargetComponent: JComponent,
   private val statusIconAction: AnAction?,
@@ -74,14 +71,8 @@ class SceneViewTopPanel(
     add(labelPanel, BorderLayout.CENTER)
     val actions =
       toolbarActions +
-        toolbarOverflowActions.let {
-          if (it.isNotEmpty()) listOf(ShowActionGroupInPopupAction(DefaultActionGroup(it)))
-          else emptyList()
-        }
-    toolbar =
-      if (actions.isNotEmpty())
-        createToolbar(actions)?.also { toolbar -> add(toolbar, BorderLayout.LINE_END) }
-      else null
+        toolbarOverflowActions.let { if (it.isNotEmpty()) listOf(ShowActionGroupInPopupAction(DefaultActionGroup(it))) else emptyList() }
+    toolbar = if (actions.isNotEmpty()) createToolbar(actions)?.also { toolbar -> add(toolbar, BorderLayout.LINE_END) } else null
     // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
@@ -92,28 +83,18 @@ class SceneViewTopPanel(
     // actions appear/disappear. To fix this,
     // we should set sceneViewTopPanel preferred size to always occupy the height taken by
     // sceneViewToolbar when it exists.
-    val minHeight =
-      maxOf(
-        minimumSize.height,
-        toolbar?.preferredSize?.height ?: 0,
-        toolbar?.minimumSize?.height ?: 0,
-      )
+    val minHeight = maxOf(minimumSize.height, toolbar?.preferredSize?.height ?: 0, toolbar?.minimumSize?.height ?: 0)
     minimumSize = Dimension(minWidth, minHeight)
   }
 
   /**
-   * Returns the scaled [preferredSize] as defined during class initialization. This guarantees
-   * correct scaling of the component's size, preventing clipping of its children when Accessibility
-   * Zoom or Presentation Mode features are enabled.
+   * Returns the scaled [preferredSize] as defined during class initialization. This guarantees correct scaling of the component's size,
+   * preventing clipping of its children when Accessibility Zoom or Presentation Mode features are enabled.
    */
   override fun getPreferredSize(): Dimension =
-    if (toolbar != null) JBDimension(minimumSize.width, minimumSize.height)
-    else super.getPreferredSize()
+    if (toolbar != null) JBDimension(minimumSize.width, minimumSize.height) else super.getPreferredSize()
 
-  private fun createToolbar(
-    actions: List<AnAction>,
-    toolbarCustomization: (ActionToolbar) -> Unit = {},
-  ): JComponent? {
+  private fun createToolbar(actions: List<AnAction>, toolbarCustomization: (ActionToolbar) -> Unit = {}): JComponent? {
     if (actions.isEmpty()) {
       return null
     }
@@ -133,13 +114,11 @@ class SceneViewTopPanel(
   private fun JComponent?.minimumWidth(): Int = this?.minimumSize?.width ?: 0
 
   /**
-   * Returns the visibility of the [SceneViewTopPanel]. The panel is visible if there are any
-   * actions available or if the [labelPanel] is visible.
+   * Returns the visibility of the [SceneViewTopPanel]. The panel is visible if there are any actions available or if the [labelPanel] is
+   * visible.
    */
   override fun isVisible(): Boolean {
-    return labelPanel.isVisible ||
-      toolbarActions.isNotEmpty() ||
-      toolbarOverflowActions.isNotEmpty()
+    return labelPanel.isVisible || toolbarActions.isNotEmpty() || toolbarOverflowActions.isNotEmpty()
   }
 
   /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */

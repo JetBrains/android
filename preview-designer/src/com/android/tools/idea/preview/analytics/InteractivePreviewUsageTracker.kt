@@ -27,14 +27,14 @@ import java.util.function.Consumer
 /** Interface for usage tracking in the interactive preview. */
 interface InteractivePreviewUsageTracker {
   /**
-   * Logs interactive session info at the end of the session (when exiting interactive preview or
-   * closing the tab), including frames per second, duration and number of user interactions.
+   * Logs interactive session info at the end of the session (when exiting interactive preview or closing the tab), including frames per
+   * second, duration and number of user interactions.
    */
   fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int)
 
   /**
-   * Logs startup time of an interactive session. A period from the time a user enables interactive
-   * preview to the time the user can actually interact with the preview.
+   * Logs startup time of an interactive session. A period from the time a user enables interactive preview to the time the user can
+   * actually interact with the preview.
    */
   fun logStartupTime(timeMs: Int, peers: Int)
 
@@ -81,8 +81,8 @@ class InteractivePreviewUsageTrackerImpl(
   }
 
   /**
-   * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a
-   * [consumer] to customize the event fileds based on its [type].
+   * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a [consumer] to customize the event fileds based
+   * on its [type].
    */
   private fun logInteractiveEvent(
     type: InteractivePreviewEvent.InteractivePreviewEventType,

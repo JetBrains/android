@@ -27,6 +27,8 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -36,8 +38,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.assertEquals
 
 class CommonFocusEssentialsModeManagerTest {
 
@@ -106,10 +106,7 @@ class CommonFocusEssentialsModeManagerTest {
   @Test
   fun testFocusModeShouldBeSetWhenPreviewEssentialsModeIsEnabled() {
     val previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2"))
-    testRefreshIsRequested(
-      previewElements = previewElements,
-      expectedUpdatedFromPreviewEssentialsModeCount = 1,
-    ) {
+    testRefreshIsRequested(previewElements = previewElements, expectedUpdatedFromPreviewEssentialsModeCount = 1) {
       triggerPreviewEssentialsModeUpdate(true)
     }
     assertEquals(PreviewMode.Focus(previewElements.first()), previewModeManager.mode.value)
@@ -119,10 +116,7 @@ class CommonFocusEssentialsModeManagerTest {
   fun testFocusModeShouldBeSetWhenManagerIsActivated() {
     val previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2"))
     triggerPreviewEssentialsModeUpdate(true)
-    testRefreshIsRequested(
-      previewElements = previewElements,
-      expectedUpdatedFromPreviewEssentialsModeCount = 0,
-    ) { manager ->
+    testRefreshIsRequested(previewElements = previewElements, expectedUpdatedFromPreviewEssentialsModeCount = 0) { manager ->
       manager.activate()
     }
     assertEquals(PreviewMode.Focus(previewElements.first()), previewModeManager.mode.value)
@@ -163,9 +157,7 @@ class CommonFocusEssentialsModeManagerTest {
     val manager =
       focusEssentialsModeManager(
         previewElements = previewElements,
-        onUpdatedFromPreviewEssentialsMode = {
-          updatedFromPreviewEssentialsModeCount.incrementAndGet()
-        },
+        onUpdatedFromPreviewEssentialsMode = { updatedFromPreviewEssentialsModeCount.incrementAndGet() },
       ) {
         refreshCount.incrementAndGet()
       }
@@ -174,10 +166,7 @@ class CommonFocusEssentialsModeManagerTest {
     trigger(manager)
 
     assertEquals(1, refreshCount.get())
-    assertEquals(
-      expectedUpdatedFromPreviewEssentialsModeCount,
-      updatedFromPreviewEssentialsModeCount.get(),
-    )
+    assertEquals(expectedUpdatedFromPreviewEssentialsModeCount, updatedFromPreviewEssentialsModeCount.get())
   }
 
   private fun focusEssentialsModeManager(
@@ -186,8 +175,7 @@ class CommonFocusEssentialsModeManagerTest {
     requestRefresh: () -> Unit,
   ): CommonFocusEssentialsModeManager<PreviewElement<*>> {
     val previewFlowManager = mock<PreviewFlowManager<PreviewElement<*>>>()
-    whenever(previewFlowManager.allPreviewElementsFlow)
-      .thenReturn(MutableStateFlow(FlowableCollection.Present(previewElements)))
+    whenever(previewFlowManager.allPreviewElementsFlow).thenReturn(MutableStateFlow(FlowableCollection.Present(previewElements)))
 
     return CommonFocusEssentialsModeManager(
         project = project,
@@ -202,9 +190,6 @@ class CommonFocusEssentialsModeManagerTest {
 
   private fun triggerPreviewEssentialsModeUpdate(value: Boolean) {
     settings.isPreviewEssentialsModeEnabled = value
-    ApplicationManager.getApplication()
-      .messageBus
-      .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
-      .onOptionsChanged()
+    ApplicationManager.getApplication().messageBus.syncPublisher(NlOptionsConfigurable.Listener.TOPIC).onOptionsChanged()
   }
 }

@@ -29,20 +29,22 @@ import org.junit.Test
 
 class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
 
-
   @Test
   fun testNoVariantsFoundFailure() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
     val buildFile = preparedProject.root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)
-    buildFile.appendText("""
+    buildFile.appendText(
+      """
 
       android {
           variantFilter { variant ->
               setIgnore(true)
           }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
@@ -65,21 +67,30 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
         // This failure is thrown during model building, but it is passed with the models instead of failing the build,
         // Thus we have successful build but failed Sync.
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
-          SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
-                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS/GRADLE_RUN_WORK
+            SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+                  at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+              }
             }
-          }
-        """.trimIndent())
-      }
+            """
+              .trimIndent()
+          )
+      },
     )
   }
 }

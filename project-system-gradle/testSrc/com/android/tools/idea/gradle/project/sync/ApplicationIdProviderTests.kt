@@ -38,21 +38,15 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
   listOf(
     def(
       stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.RUN_CONFIG_ACTIVITY,
-        executeMakeBeforeRun = false,
-      ),
+      TestScenario(testProject = AndroidCoreTestProject.RUN_CONFIG_ACTIVITY, executeMakeBeforeRun = false),
       expectPackageName = "from.gradle.debug",
       expectTestPackageName = "(null)",
     ),
     def(
       stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
-        executeMakeBeforeRun = false,
-      ),
+      TestScenario(testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX, executeMakeBeforeRun = false),
       expectPackageName = "one.name.defaultConfig.debug",
-      expectTestPackageName = "(null)"
+      expectTestPackageName = "(null)",
     ),
     def(
       stackMarker = { it() },
@@ -62,17 +56,14 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         executeMakeBeforeRun = false,
       ),
       expectPackageName = "one.name.defaultConfig.debug",
-      expectTestPackageName = "one.name.test_app"
+      expectTestPackageName = "one.name.test_app",
     ),
     def(
       stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.APPLICATION_ID_VARIANT_API,
-        executeMakeBeforeRun = false,
-      ),
+      TestScenario(testProject = AndroidCoreTestProject.APPLICATION_ID_VARIANT_API, executeMakeBeforeRun = false),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
       expectPackageName = "one.dynamic.name.debug",
-      expectTestPackageName = "(null)"
+      expectTestPackageName = "(null)",
     ),
     def(
       stackMarker = { it() },
@@ -81,37 +72,46 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = AndroidCoreTestProject.APPLICATION_ID_VARIANT_API,
         executeMakeBeforeRun = false,
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
+      IGNORE = {
+        if (agpVersion != AGP_CURRENT && agpVersion != AGP_72)
+          error("Application ID must be available during sync for model v1, so only test with model v2.")
+      },
       expectPackageName = "one.dynamic.name.debug",
-      expectTestPackageName = "one.dynamic.name.debug.test"
+      expectTestPackageName = "one.dynamic.name.debug.test",
     ),
     def(
       stackMarker = { it() },
       TestScenario(
         testProject = AndroidCoreTestProject.APPLICATION_ID_VARIANT_API_BROKEN,
         executeMakeBeforeRun = false, // Build is broken by the application ID not being available
-        ),
-      IGNORE = { if (agpVersion != AGP_CURRENT && agpVersion != AGP_72) error("Application ID must be available during sync for model v1, so only test with model v2.") },
-      expectPackageName = mapOf(
-        AGP_CURRENT to "ApkProvisionException*> Could not get applicationId for Application_ID_Suffix_Test_App.app. Project type: PROJECT_TYPE_APP",
-        AGP_72 to "ApkProvisionException*> Could not get applicationId for Application_ID_Suffix_Test_App.app. Project type: PROJECT_TYPE_APP"
       ),
-      expectTestPackageName = mapOf(
-        AGP_CURRENT to "(null)",
-        AGP_72 to "(null)",
-      ),
-      expectSyncIssueContent = mapOf(
-        AGP_CURRENT to listOf(
-          "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
-          "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
-          "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+      IGNORE = {
+        if (agpVersion != AGP_CURRENT && agpVersion != AGP_72)
+          error("Application ID must be available during sync for model v1, so only test with model v2.")
+      },
+      expectPackageName =
+        mapOf(
+          AGP_CURRENT to
+            "ApkProvisionException*> Could not get applicationId for Application_ID_Suffix_Test_App.app. Project type: PROJECT_TYPE_APP",
+          AGP_72 to
+            "ApkProvisionException*> Could not get applicationId for Application_ID_Suffix_Test_App.app. Project type: PROJECT_TYPE_APP",
         ),
-        AGP_72 to listOf(
-          "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
-          "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
-          "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+      expectTestPackageName = mapOf(AGP_CURRENT to "(null)", AGP_72 to "(null)"),
+      expectSyncIssueContent =
+        mapOf(
+          AGP_CURRENT to
+            listOf(
+              "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
+              "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
+              "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+            ),
+          AGP_72 to
+            listOf(
+              "Failed to read applicationId for debug.\nSetting the application ID to the output of a task in the variant api is not supported",
+              "Failed to read applicationId for debugAndroidTest.\nSetting the application ID to the output of a task in the variant api is not supported",
+              "Failed to read applicationId for release.\nSetting the application ID to the output of a task in the variant api is not supported",
+            ),
         ),
-      )
     ),
     def(
       stackMarker = { it() },
@@ -126,7 +126,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         }
       },
       expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "google.simpleapplication.test"
+      expectTestPackageName = "google.simpleapplication.test",
     ),
     def(
       stackMarker = { it() },
@@ -135,18 +135,20 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("com.example.projectwithappandlib.lib.ExampleInstrumentedTest"),
         executeMakeBeforeRun = false,
       ),
-      expectPackageName = mapOf(
-        AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
-        AGP_35 to "com.example.projectwithappandlib.lib.test",
-        AGP_40 to "com.example.projectwithappandlib.lib.test",
-        AGP_41 to "com.example.projectwithappandlib.lib.test"
-      ),
-      expectTestPackageName = mapOf(
-        AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
-        AGP_35 to "com.example.projectwithappandlib.lib.test",
-        AGP_40 to "com.example.projectwithappandlib.lib.test",
-        AGP_41 to "com.example.projectwithappandlib.lib.test"
-      )
+      expectPackageName =
+        mapOf(
+          AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
+          AGP_35 to "com.example.projectwithappandlib.lib.test",
+          AGP_40 to "com.example.projectwithappandlib.lib.test",
+          AGP_41 to "com.example.projectwithappandlib.lib.test",
+        ),
+      expectTestPackageName =
+        mapOf(
+          AGP_CURRENT to "com.example.projectwithappandlib.lib.test",
+          AGP_35 to "com.example.projectwithappandlib.lib.test",
+          AGP_40 to "com.example.projectwithappandlib.lib.test",
+          AGP_41 to "com.example.projectwithappandlib.lib.test",
+        ),
     ),
     def(
       stackMarker = { it() },
@@ -156,7 +158,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
       ),
       expectPackageName = "com.example.android.app",
-      expectTestPackageName = "com.example.android.app.testmodule"
+      expectTestPackageName = "com.example.android.app.testmodule",
     ),
     def(
       stackMarker = { it() },
@@ -166,16 +168,13 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("com.example.android.test2.ExampleTest"),
       ),
       expectPackageName = "com.example.android.app",
-      expectTestPackageName = "com.example.android.test2"
+      expectTestPackageName = "com.example.android.test2",
     ),
     def(
       stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.DYNAMIC_APP,
-        executeMakeBeforeRun = false,
-      ),
+      TestScenario(testProject = AndroidCoreTestProject.DYNAMIC_APP, executeMakeBeforeRun = false),
       expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "(null)"
+      expectTestPackageName = "(null)",
     ),
     def(
       stackMarker = { it() },
@@ -185,7 +184,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         executeMakeBeforeRun = false,
       ),
       expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "google.simpleapplication.test"
+      expectTestPackageName = "google.simpleapplication.test",
     ),
     def(
       stackMarker = { it() },
@@ -195,7 +194,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         executeMakeBeforeRun = false,
       ),
       expectPackageName = "google.simpleapplication",
-      expectTestPackageName = "com.example.feature1.test"
+      expectTestPackageName = "com.example.feature1.test",
     ),
     def(
       stackMarker = { it() },
@@ -206,7 +205,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion < AGP_42) error("The test project does not contain the test class for older AGPs. ") },
       expectPackageName = "com.example.android.app",
-      expectTestPackageName = "com.example.android.benchmark"
+      expectTestPackageName = "com.example.android.benchmark",
     ),
     def(
       stackMarker = { it() },
@@ -217,46 +216,47 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectPackageName = "com.example.kmpfirstlib.test",
-      expectTestPackageName = "com.example.kmpfirstlib.test"
+      expectTestPackageName = "com.example.kmpfirstlib.test",
     ),
   )
 
 private fun def(
   stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
   scenario: TestScenario,
-  IGNORE: TestConfiguration.() -> Unit = { },
+  IGNORE: TestConfiguration.() -> Unit = {},
   expectPackageName: String,
   expectTestPackageName: String? = null,
   expectSyncIssueContent: List<String> = emptyList(),
-  ) = ApplicationIdProviderTest(
-  scenario = scenario,
-  IGNORE = IGNORE,
-  expectPackageName = mapOf(AGP_CURRENT to expectPackageName),
-  expectTestPackageName = expectTestPackageName?.let { mapOf(AGP_CURRENT to expectTestPackageName) } ?: emptyMap(),
-  stackMarker = stackMarker,
-  expectSyncIssueContent = mapOf(AGP_CURRENT to expectSyncIssueContent),
-)
+) =
+  ApplicationIdProviderTest(
+    scenario = scenario,
+    IGNORE = IGNORE,
+    expectPackageName = mapOf(AGP_CURRENT to expectPackageName),
+    expectTestPackageName = expectTestPackageName?.let { mapOf(AGP_CURRENT to expectTestPackageName) } ?: emptyMap(),
+    stackMarker = stackMarker,
+    expectSyncIssueContent = mapOf(AGP_CURRENT to expectSyncIssueContent),
+  )
 
 private fun def(
   stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
   scenario: TestScenario,
-  IGNORE: TestConfiguration.() -> Unit = { },
+  IGNORE: TestConfiguration.() -> Unit = {},
   expectPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
   expectTestPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String> = emptyMap(),
   expectSyncIssueContent: Map<AgpVersionSoftwareEnvironmentDescriptor, List<String>> = emptyMap(),
-) = ApplicationIdProviderTest(
-  scenario = scenario,
-  IGNORE = IGNORE,
-  expectPackageName = expectPackageName,
-  expectTestPackageName = expectTestPackageName,
-  stackMarker = stackMarker,
-  expectSyncIssueContent = expectSyncIssueContent,
-)
-
+) =
+  ApplicationIdProviderTest(
+    scenario = scenario,
+    IGNORE = IGNORE,
+    expectPackageName = expectPackageName,
+    expectTestPackageName = expectTestPackageName,
+    stackMarker = stackMarker,
+    expectSyncIssueContent = expectSyncIssueContent,
+  )
 
 private data class ApplicationIdProviderTest(
   override val scenario: TestScenario,
-  override val IGNORE: TestConfiguration.() -> Unit = { },
+  override val IGNORE: TestConfiguration.() -> Unit = {},
   override val stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
   val expectPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
   val expectTestPackageName: Map<AgpVersionSoftwareEnvironmentDescriptor, String>,
@@ -269,7 +269,7 @@ private data class ApplicationIdProviderTest(
     project: Project,
     runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
-    device: IDevice
+    device: IDevice,
   ) {
     val applicationIdProvider = project.getProjectSystem().getApplicationIdProvider(runConfiguration!!)!!
     val packageName = runCatching { applicationIdProvider.packageName }

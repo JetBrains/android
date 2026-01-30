@@ -53,14 +53,14 @@ class AndroidLintDeclarativeTest {
       fixture.saveText(
         buildFile,
         """
-      androidApp {
-           deviceTest {
-               dependencies {
-                   implementation("junit:junit:4.3.12")
-               }
-           }
-       }
-    """
+        androidApp {
+             deviceTest {
+                 dependencies {
+                     implementation("junit:junit:4.3.12")
+                 }
+             }
+         }
+        """
           .trimIndent(),
       )
       val catalog = VfsTestUtil.createFile(project.baseDir, "gradle/libs.versions.toml")
@@ -75,28 +75,20 @@ class AndroidLintDeclarativeTest {
       AndroidLintUseTomlInsteadInspection(),
       "implementation(\"junit:ju|nit:4.3.12\")\n",
       """
-        No warnings.
+      No warnings.
       """
         .trimIndent(),
     )
   }
 
-  private fun checkLint(
-    psiFile: PsiFile,
-    inspection: AndroidLintInspectionBase,
-    caret: String,
-    expected: String,
-  ) {
+  private fun checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.enableInspections(inspection)
     val fileText = psiFile.text
     val sb = StringBuilder()
     val target = psiFile.findCaretOffset(caret)
-    WriteCommandAction.runWriteCommandAction(project) {
-      fixture.editor.caretModel.moveToOffset(target)
-    }
-    val highlights =
-      fixture.doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+    WriteCommandAction.runWriteCommandAction(project) { fixture.editor.caretModel.moveToOffset(target) }
+    val highlights = fixture.doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
     for (highlight in highlights) {
       val startIndex = highlight.startOffset
       val endOffset = highlight.endOffset

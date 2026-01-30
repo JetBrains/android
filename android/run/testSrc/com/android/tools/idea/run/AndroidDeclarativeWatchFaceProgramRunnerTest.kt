@@ -35,8 +35,7 @@ class AndroidDeclarativeWatchFaceProgramRunnerTest {
   private val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private val flagRule = FlagRule(WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION, true)
   private val projectRule = ProjectRule()
-  @get:Rule
-  val ruleChain = RuleChain(flagRule, projectRule, ensureAndroidProjectRule)
+  @get:Rule val ruleChain = RuleChain(flagRule, projectRule, ensureAndroidProjectRule)
 
   private lateinit var declarativeWatchFaceRunConfiguration: RunConfiguration
   private lateinit var programRunner: AndroidDeclarativeWatchFaceProgramRunner
@@ -49,14 +48,16 @@ class AndroidDeclarativeWatchFaceProgramRunnerTest {
     val factory = AndroidDeclarativeWatchFaceConfigurationType().configurationFactories[0]
     declarativeWatchFaceRunConfiguration = factory.createTemplateConfiguration(projectRule.project)
 
-    val syncManager = object: ProjectSystemSyncManager {
-      override fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason) = throw IllegalStateException("not implemented")
-      override fun getLastSyncResult() = throw IllegalStateException("not implemented")
+    val syncManager =
+      object : ProjectSystemSyncManager {
+        override fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason) = throw IllegalStateException("not implemented")
 
-      override fun isSyncInProgress() = isSyncInProgress
+        override fun getLastSyncResult() = throw IllegalStateException("not implemented")
 
-      override fun isSyncNeeded() = isSyncNeeded
-    }
+        override fun isSyncInProgress() = isSyncInProgress
+
+        override fun isSyncNeeded() = isSyncNeeded
+      }
 
     programRunner = AndroidDeclarativeWatchFaceProgramRunner { syncManager }
   }

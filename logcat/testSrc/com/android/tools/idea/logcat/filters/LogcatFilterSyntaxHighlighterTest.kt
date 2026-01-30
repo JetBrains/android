@@ -29,10 +29,7 @@ import org.junit.Test
 class LogcatFilterSyntaxHighlighterTest {
   @Test
   fun factory() {
-    assertThat(
-        LogcatFilterSyntaxHighlighterFactory()
-          .getSyntaxHighlighter(project = null, virtualFile = null)
-      )
+    assertThat(LogcatFilterSyntaxHighlighterFactory().getSyntaxHighlighter(project = null, virtualFile = null))
       .isInstanceOf(LogcatFilterSyntaxHighlighter::class.java)
   }
 

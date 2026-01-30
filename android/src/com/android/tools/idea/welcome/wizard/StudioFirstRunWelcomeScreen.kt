@@ -44,10 +44,9 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.idea.util.application.isHeadlessEnvironment
 
 /**
- * Android Studio's implementation of a [WelcomeScreen]. Starts up a wizard meant to run the first
- * time someone starts up Android Studio to ask them to pick from some initial, useful options. Once
- * the wizard is complete, it will bring the user to the initial "Welcome Screen" UI (with a list of
- * projects and options to start a new project, etc.)
+ * Android Studio's implementation of a [WelcomeScreen]. Starts up a wizard meant to run the first time someone starts up Android Studio to
+ * ask them to pick from some initial, useful options. Once the wizard is complete, it will bring the user to the initial "Welcome Screen"
+ * UI (with a list of projects and options to start a new project, etc.)
  */
 class StudioFirstRunWelcomeScreen(
   private val mode: FirstRunWizardMode,
@@ -86,17 +85,10 @@ class StudioFirstRunWelcomeScreen(
             val supplier = model.getPackagesToInstallSupplier()
             val licenseAgreementStep =
               object :
-                LicenseAgreementStep(
-                  licenseAgreementModel,
-                  supplier,
-                  JBUI.emptyInsets(),
-                  StudioFlags.NPW_ACCEPT_ALL_LICENSES.get(),
-                ) {
+                LicenseAgreementStep(licenseAgreementModel, supplier, JBUI.emptyInsets(), StudioFlags.NPW_ACCEPT_ALL_LICENSES.get()) {
                 override fun onShowing() {
                   super.onShowing()
-                  tracker.trackStepShowing(
-                    SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT
-                  )
+                  tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
                 }
               }
 
@@ -107,11 +99,7 @@ class StudioFirstRunWelcomeScreen(
               addStep(licenseAgreementStep)
             }
 
-            if (
-              isLinux &&
-                !isChromeOSAndIsNotHWAccelerated() &&
-                mode == FirstRunWizardMode.NEW_INSTALL
-            ) {
+            if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
               addStep(LinuxKvmInfoStep(tracker))
             }
 
@@ -134,14 +122,7 @@ class StudioFirstRunWelcomeScreen(
 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
-    val model =
-      FirstRunWizardModel(
-        mode,
-        initialSdkLocation.toPath(),
-        installUpdates = true,
-        sdkComponentInstaller,
-        tracker,
-      )
+    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), installUpdates = true, sdkComponentInstaller, tracker)
     modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, tracker)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel

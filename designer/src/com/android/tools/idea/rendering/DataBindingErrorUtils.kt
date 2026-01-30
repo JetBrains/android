@@ -22,11 +22,10 @@ const val DATA_BINDING_MAPPER_CLASS_NAME = "androidx.databinding.DataBinderMappe
 internal object DataBindingErrorUtils {
 
   /**
-   * Checks if the given [throwable] is a [ClassNotFoundException] caused by not being able to load
-   * the `androidx.databinding.DataBinderMapperImpl` class.
+   * Checks if the given [throwable] is a [ClassNotFoundException] caused by not being able to load the
+   * `androidx.databinding.DataBinderMapperImpl` class.
    *
-   * If the given [throwable] is not likely to be caused by this problem, the method will return
-   * false.
+   * If the given [throwable] is not likely to be caused by this problem, the method will return false.
    */
   @JvmStatic
   fun handleDataBindingMapperError(throwable: Throwable, builder: HtmlBuilder): Boolean {
@@ -37,9 +36,7 @@ internal object DataBindingErrorUtils {
       .addItalic(DATA_BINDING_MAPPER_CLASS_NAME)
       .add(" class could not be found.")
       .newline()
-      .add(
-        "This is likely caused by trying to render a layout using data binding directly from a library module."
-      )
+      .add("This is likely caused by trying to render a layout using data binding directly from a library module.")
       .newline()
       .newline()
 

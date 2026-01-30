@@ -30,6 +30,5 @@ object DeployableToDevice {
     return (profile as? UserDataHolder)?.getUserData(KEY) != null
   }
 
-  @JvmStatic
-  val KEY: Key<Boolean> = Key.create("android.execution.deploysToLocalDevice")
+  @JvmStatic val KEY: Key<Boolean> = Key.create("android.execution.deploysToLocalDevice")
 }

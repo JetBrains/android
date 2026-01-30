@@ -24,12 +24,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
+import javax.swing.Icon
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle.message
-import javax.swing.Icon
 
 open class AndroidNewModuleAction : AnAction, DumbAware {
-  constructor() : super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null)
+  constructor() :
+    super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null)
 
   constructor(text: String?, description: String?, icon: Icon?) : super(text, description, icon) {}
 

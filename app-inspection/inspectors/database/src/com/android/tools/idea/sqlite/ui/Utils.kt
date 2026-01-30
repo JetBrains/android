@@ -30,8 +30,7 @@ internal fun notifyError(message: String, t: Throwable?) {
   var errorMessage = message
   t?.message?.let { errorMessage += ": " + t.message }
 
-  val notification =
-    Notification("Database Inspector", "Database inspector", errorMessage, NotificationType.WARNING)
+  val notification = Notification("Database Inspector", "Database inspector", errorMessage, NotificationType.WARNING)
 
   Notifications.Bus.notify(notification)
 }

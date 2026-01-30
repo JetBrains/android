@@ -103,9 +103,7 @@ class NlLayoutScannerTest {
     val model = ScannerTestHelper().buildModel(0)
     val scannerConfig = LayoutScannerEnabled()
     val renderConfig =
-      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      }
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also { Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig) }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
         Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
@@ -133,9 +131,7 @@ class NlLayoutScannerTest {
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
     val renderConfig =
-      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      }
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also { Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig) }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
         Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
@@ -167,9 +163,7 @@ class NlLayoutScannerTest {
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
     val renderConfig =
-      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also {
-        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      }
+      Mockito.mock(LayoutlibSceneRenderConfiguration::class.java).also { Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig) }
     val manager =
       Mockito.mock(LayoutlibSceneManager::class.java).also {
         Mockito.`when`(it.sceneRenderConfiguration).thenReturn(renderConfig)
@@ -228,22 +222,13 @@ class NlLayoutScannerTest {
 
     // Add 3 types of issues that will be filtered: Internal, verbose or info.
     resultToInject.mIssues.add(
-      ScannerTestHelper.createTestIssueBuilder()
-        .setLevel(ValidatorData.Level.ERROR)
-        .setType(ValidatorData.Type.INTERNAL_ERROR)
-        .build()
+      ScannerTestHelper.createTestIssueBuilder().setLevel(ValidatorData.Level.ERROR).setType(ValidatorData.Type.INTERNAL_ERROR).build()
     )
     resultToInject.mIssues.add(
-      ScannerTestHelper.createTestIssueBuilder()
-        .setLevel(ValidatorData.Level.VERBOSE)
-        .setType(ValidatorData.Type.ACCESSIBILITY)
-        .build()
+      ScannerTestHelper.createTestIssueBuilder().setLevel(ValidatorData.Level.VERBOSE).setType(ValidatorData.Type.ACCESSIBILITY).build()
     )
     resultToInject.mIssues.add(
-      ScannerTestHelper.createTestIssueBuilder()
-        .setLevel(ValidatorData.Level.INFO)
-        .setType(ValidatorData.Type.ACCESSIBILITY)
-        .build()
+      ScannerTestHelper.createTestIssueBuilder().setLevel(ValidatorData.Level.INFO).setType(ValidatorData.Type.ACCESSIBILITY).build()
     )
 
     // Run the scanner core code.

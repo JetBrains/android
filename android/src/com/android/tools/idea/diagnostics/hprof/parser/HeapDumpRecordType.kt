@@ -33,6 +33,7 @@ enum class HeapDumpRecordType(val value: Int) {
 
   companion object {
     private val map = HeapDumpRecordType.values().associateBy(HeapDumpRecordType::value)
+
     fun fromInt(type: Int) = map[type]!!
   }
 }

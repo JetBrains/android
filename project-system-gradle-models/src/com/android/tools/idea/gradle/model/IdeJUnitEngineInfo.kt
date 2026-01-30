@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * JUnit engines configuration
- */
+/** JUnit engines configuration */
 interface IdeJUnitEngineInfo {
   /**
    * List of JUnit Engines identifier.
    *
-   * Each identifier is used to match service looked up junit engines.
-   * See Gradle Test Task documentation for details.
+   * Each identifier is used to match service looked up junit engines. See Gradle Test Task documentation for details.
    */
   val includedEngines: Set<String>
 }

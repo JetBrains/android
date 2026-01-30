@@ -22,9 +22,9 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_P
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.IOException
 import org.junit.Before
 import org.junit.Test
-import java.io.IOException
 
 class CompositeProjectCatalogBuildModelTest : GradleFileModelTestCase() {
   private lateinit var compositeRoot: VirtualFile
@@ -36,10 +36,13 @@ class CompositeProjectCatalogBuildModelTest : GradleFileModelTestCase() {
     writeToNewProjectFile("applied", COMPOSITE_BUILD_MAIN_PROJECT_APPLIED)
     writeToSubModuleBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD)
     writeToSettingsFile(COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS)
-    writeToVersionCatalogFile("""
+    writeToVersionCatalogFile(
+      """
       [libraries]
       guava = "com.google.guava:guava:19.0"
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Set up the composite project.
     runWriteAction<Unit, IOException> {
@@ -49,10 +52,14 @@ class CompositeProjectCatalogBuildModelTest : GradleFileModelTestCase() {
       createFileAndWriteContent(compositeRoot.createChildData(this, "build$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_SINGLE)
       gradle = compositeRoot.createChildDirectory(this, "gradle")
       assertTrue(gradle.exists())
-      saveFileUnderWrite(gradle.createChildData(this, "libs.versions.toml"), """
+      saveFileUnderWrite(
+        gradle.createChildData(this, "libs.versions.toml"),
+        """
         [libraries]
         new_guava = "com.google.guava:guava:20.0"
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     }
   }
 
@@ -71,7 +78,6 @@ class CompositeProjectCatalogBuildModelTest : GradleFileModelTestCase() {
     // model should have included build catalog but not composite project (parent) catalog
     assertNotNull(allLibraries.get("new_guava"))
   }
-
 
   private fun createFileAndWriteContent(file: VirtualFile, content: TestFileName) {
     assertTrue(file.exists())

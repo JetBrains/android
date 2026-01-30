@@ -59,8 +59,7 @@ class ZoomableContainer(
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
-  private val floatingToolbarProvider =
-    NewFloatingToolbarProvider(disposable = disposable, component = this)
+  private val floatingToolbarProvider = NewFloatingToolbarProvider(disposable = disposable, component = this)
 
   private val viewportLayoutManager = CenteredViewportLayout(scrollPane.viewport)
 
@@ -111,8 +110,8 @@ class ZoomableContainer(
   override fun canZoomToActual() = getZoomPercent() != ACTUAL_ZOOM_PERCENT
 
   /**
-   * Return the zoom to fit percentage, this is the amount of zoom required so that [contentPanel]
-   * entirely fits in the viewport and scrollbars are not needed
+   * Return the zoom to fit percentage, this is the amount of zoom required so that [contentPanel] entirely fits in the viewport and
+   * scrollbars are not needed
    */
   private fun getZoomToFit(): Int {
     val viewport = scrollPane.viewport
@@ -179,12 +178,8 @@ class ZoomableContainer(
   }
 }
 
-/**
- * A [LayoutManager] that keeps its center point consistent as the size of the content panel
- * changes.
- */
-private class CenteredViewportLayout(private val viewport: JViewport) :
-  LayoutManager by viewport.layout {
+/** A [LayoutManager] that keeps its center point consistent as the size of the content panel changes. */
+private class CenteredViewportLayout(private val viewport: JViewport) : LayoutManager by viewport.layout {
   private val delegate = viewport.layout
 
   /** If true, we force the view to recenter (0.5, 0.5) on the next layout pass. */
@@ -201,15 +196,8 @@ private class CenteredViewportLayout(private val viewport: JViewport) :
       if (forceCenterOnNextLayout) {
         0.5 to 0.5
       } else {
-        val p =
-          SwingUtilities.convertPoint(
-            viewport,
-            viewportSize.width / 2,
-            viewportSize.height / 2,
-            view,
-          )
-        (p.x.toDouble() / viewSize.width.coerceAtLeast(1)) to
-          (p.y.toDouble() / viewSize.height.coerceAtLeast(1))
+        val p = SwingUtilities.convertPoint(viewport, viewportSize.width / 2, viewportSize.height / 2, view)
+        (p.x.toDouble() / viewSize.width.coerceAtLeast(1)) to (p.y.toDouble() / viewSize.height.coerceAtLeast(1))
       }
 
     // Execute the default layout (resizes the view)
@@ -232,7 +220,6 @@ private class CenteredViewportLayout(private val viewport: JViewport) :
     val yScroll = if (hDiff < 0) (newView.height * ry) - viewportSize.height / 2 else 0.0
 
     newView.setLocation(xPadding, yPadding)
-    viewport.viewPosition =
-      Point(xScroll.toInt().coerceAtLeast(0), yScroll.toInt().coerceAtLeast(0))
+    viewport.viewPosition = Point(xScroll.toInt().coerceAtLeast(0), yScroll.toInt().coerceAtLeast(0))
   }
 }

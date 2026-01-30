@@ -17,36 +17,27 @@ package com.android.tools.idea.transport
 
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
-import java.io.File
 
 class DeployableFileTest {
-  @get:Rule
-  val timeout = Timeout.seconds(60)
+  @get:Rule val timeout = Timeout.seconds(60)
 
-  @Rule
-  @JvmField
-  val temporaryFolder = TemporaryFolder()
+  @Rule @JvmField val temporaryFolder = TemporaryFolder()
 
   @Test
   fun testFileName() {
-    DeployableFile.Builder("myName").build().let {
-      assertThat(it.fileName).isEqualTo("myName")
-    }
+    DeployableFile.Builder("myName").build().let { assertThat(it.fileName).isEqualTo("myName") }
   }
 
   @Test
   fun testIsExecutable() {
-    DeployableFile.Builder("myName").setExecutable(true).build().let {
-      assertThat(it.isExecutable).isTrue()
-    }
+    DeployableFile.Builder("myName").setExecutable(true).build().let { assertThat(it.isExecutable).isTrue() }
 
-    DeployableFile.Builder("myName").setExecutable(false).build().let {
-      assertThat(it.isExecutable).isFalse()
-    }
+    DeployableFile.Builder("myName").setExecutable(false).build().let { assertThat(it.isExecutable).isFalse() }
   }
 
   @Test
@@ -67,12 +58,13 @@ class DeployableFileTest {
     val releaseDir = temporaryFolder.newFolder("release")
     temporaryFolder.newFolder("dev")
 
-    val hostFile = DeployableFile.Builder("myfile")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setIsRunningFromSources(false)
-      .setHomePath(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("myfile")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setIsRunningFromSources(false)
+        .setHomePath(temporaryFolder.root.absolutePath)
+        .build()
 
     assertThat(hostFile.dir).isEqualTo(releaseDir)
   }
@@ -81,12 +73,13 @@ class DeployableFileTest {
   fun getDirIsDevDir() {
     val devDir = temporaryFolder.newFolder("dev")
 
-    val hostFile = DeployableFile.Builder("myfile")
-      .setReleaseDir("release")
-      .setDevDir("dev")
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile =
+      DeployableFile.Builder("myfile")
+        .setReleaseDir("release")
+        .setDevDir("dev")
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
     assertThat(hostFile.dir).isEqualTo(devDir)
   }
@@ -98,22 +91,24 @@ class DeployableFileTest {
     val targetDir = getWorkspaceRoot().toString()
 
     // Test running from sources (dev mode) - calling getDir() on the deployable file should return the dev directory.
-    val hostFile1 = DeployableFile.Builder("myfile")
-      .setReleaseDir(targetDir)
-      .setDevDir(targetDir)
-      .setIsRunningFromSources(true)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile1 =
+      DeployableFile.Builder("myfile")
+        .setReleaseDir(targetDir)
+        .setDevDir(targetDir)
+        .setIsRunningFromSources(true)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
     assertThat(hostFile1.dir).isEqualTo(File(targetDir))
 
     // Test release mode - calling getDir() on the deployable file should return the release directory.
-    val hostFile2 = DeployableFile.Builder("myfile")
-      .setReleaseDir(targetDir)
-      .setDevDir(targetDir)
-      .setIsRunningFromSources(false)
-      .setSourcesRoot(temporaryFolder.root.absolutePath)
-      .build()
+    val hostFile2 =
+      DeployableFile.Builder("myfile")
+        .setReleaseDir(targetDir)
+        .setDevDir(targetDir)
+        .setIsRunningFromSources(false)
+        .setSourcesRoot(temporaryFolder.root.absolutePath)
+        .build()
 
     assertThat(hostFile2.dir).isEqualTo(File(targetDir))
   }

@@ -30,40 +30,39 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
 
 class AndroidArtifactFacetConfiguration : FacetConfiguration {
-  override fun createEditorTabs(editorContext: FacetEditorContext?, validatorsManager: FacetValidatorsManager?): Array<FacetEditorTab>
-    = emptyArray()
+  override fun createEditorTabs(editorContext: FacetEditorContext?, validatorsManager: FacetValidatorsManager?): Array<FacetEditorTab> =
+    emptyArray()
 
   override fun toString(): String = "Empty Configuration"
 }
 
-class AndroidArtifactFacetType : FacetType<AndroidArtifactFacet, AndroidArtifactFacetConfiguration>(
-  AndroidArtifactFacet.ID,
-  "android-artifact",
-  AndroidArtifactFacet.NAME
-) {
+class AndroidArtifactFacetType :
+  FacetType<AndroidArtifactFacet, AndroidArtifactFacetConfiguration>(
+    AndroidArtifactFacet.ID,
+    "android-artifact",
+    AndroidArtifactFacet.NAME,
+  ) {
   override fun createDefaultConfiguration(): AndroidArtifactFacetConfiguration = AndroidArtifactFacetConfiguration()
 
   override fun createFacet(
     module: Module,
     name: String,
     configuration: AndroidArtifactFacetConfiguration,
-    underlyingFacet: Facet<*>?
+    underlyingFacet: Facet<*>?,
   ): AndroidArtifactFacet = AndroidArtifactFacet(module, name, configuration)
 
   override fun isSuitableModuleType(moduleType: ModuleType<*>?): Boolean = moduleType is JavaModuleType
 }
 
 // This key will be present on all AndroidArtifactFacets it will link to the AndroidFacet of the parent module
-private val ANDROID_FACET_KEY : Key<AndroidFacet> = Key.create(AndroidFacet::class.java.name)
+private val ANDROID_FACET_KEY: Key<AndroidFacet> = Key.create(AndroidFacet::class.java.name)
 
-class AndroidArtifactFacet(
-  module: Module,
-  name: String,
-  config: AndroidArtifactFacetConfiguration
-) : Facet<AndroidArtifactFacetConfiguration>(getFacetType(), module, name, config, null) {
+class AndroidArtifactFacet(module: Module, name: String, config: AndroidArtifactFacetConfiguration) :
+  Facet<AndroidArtifactFacetConfiguration>(getFacetType(), module, name, config, null) {
   companion object {
     val ID = FacetTypeId<AndroidArtifactFacet>("android-artifact")
     const val NAME = "Android Artifact"
+
     fun getFacetType() = FacetTypeRegistry.getInstance().findFacetType(ID) as AndroidArtifactFacetType
   }
 
@@ -71,5 +70,5 @@ class AndroidArtifactFacet(
     putUserData(ANDROID_FACET_KEY, androidFacet)
   }
 
-  fun getLinkedAndroidFacet() : AndroidFacet? = getUserData(ANDROID_FACET_KEY)
+  fun getLinkedAndroidFacet(): AndroidFacet? = getUserData(ANDROID_FACET_KEY)
 }

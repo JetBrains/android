@@ -17,8 +17,7 @@ package com.android.tools.idea.diagnostics.hprof.navigator
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 
-class RootReason
-private constructor(val description: String, val javaFrame: Boolean = false) {
+class RootReason private constructor(val description: String, val javaFrame: Boolean = false) {
 
   companion object {
     fun createConstantReferenceReason(classDefinition: ClassDefinition, constantNumber: Int): RootReason {
@@ -37,23 +36,13 @@ private constructor(val description: String, val javaFrame: Boolean = false) {
       return RootReason("Java Frame: $frameDescription", true)
     }
 
-    val rootUnknown: RootReason = RootReason(
-      "Unknown")
-    val rootGlobalJNI: RootReason = RootReason(
-      "Global JNI")
-    val rootLocalJNI: RootReason = RootReason(
-      "Local JNI")
-    val rootNativeStack: RootReason = RootReason(
-      "Native stack")
-    val rootStickyClass: RootReason = RootReason(
-      "Sticky class")
-    val rootThreadBlock: RootReason = RootReason(
-      "Thread block")
-    val rootThreadObject: RootReason = RootReason(
-      "Thread object")
-    val rootMonitorUsed: RootReason = RootReason(
-      "Monitor used")
+    val rootUnknown: RootReason = RootReason("Unknown")
+    val rootGlobalJNI: RootReason = RootReason("Global JNI")
+    val rootLocalJNI: RootReason = RootReason("Local JNI")
+    val rootNativeStack: RootReason = RootReason("Native stack")
+    val rootStickyClass: RootReason = RootReason("Sticky class")
+    val rootThreadBlock: RootReason = RootReason("Thread block")
+    val rootThreadObject: RootReason = RootReason("Thread object")
+    val rootMonitorUsed: RootReason = RootReason("Monitor used")
   }
 }
-
-

@@ -17,22 +17,22 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FeatureConfig
+import java.lang.reflect.Method
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.lang.reflect.Method
 
 /**
- * This test make sure that our flags in prod and test environment are consistent.
- * Any divergence should be documented below with a tracking bug associated.
+ * This test make sure that our flags in prod and test environment are consistent. Any divergence should be documented below with a tracking
+ * bug associated.
  */
 @RunWith(Parameterized::class)
 class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "FeatureConfig.{1}()")
-    fun data() : Collection<Array<Any>> {
+    fun data(): Collection<Array<Any>> {
       return FeatureConfig::class.java.declaredMethods.map { arrayOf(it, it.name) }.toList()
     }
 
@@ -59,7 +59,8 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
 }
 
 /**
- * This test class runs once and make sure our {@code KNOWN_POSSIBLE_DIVERGENCES} registry isn't stale with entries that doesn't exist anymore.
+ * This test class runs once and make sure our {@code KNOWN_POSSIBLE_DIVERGENCES} registry isn't stale with entries that doesn't exist
+ * anymore.
  */
 class VerifyKnownDivergencesUpdatedTest {
   @Test
@@ -67,9 +68,11 @@ class VerifyKnownDivergencesUpdatedTest {
     val allMethodsInFeatureConfig = FeatureConfig::class.java.declaredMethods.map { it.name }.toSet()
     val missingMethodsFromKnownDivergences = ProdAndTestFlagsVerifier.KNOWN_POSSIBLE_DIVERGENCES.keys.minus(allMethodsInFeatureConfig)
     if (missingMethodsFromKnownDivergences.isNotEmpty()) {
-      Assert.fail("The following methods are listed in KNOWN_POSSIBLE_DIVERGENCES but doesn't exist in FeatureConfig interface: " +
-                  "${missingMethodsFromKnownDivergences}. " +
-                  "Make sure you removed the entry from KNOWN_POSSIBLE_DIVERGENCES if you removed/cleaned the flag.")
+      Assert.fail(
+        "The following methods are listed in KNOWN_POSSIBLE_DIVERGENCES but doesn't exist in FeatureConfig interface: " +
+          "${missingMethodsFromKnownDivergences}. " +
+          "Make sure you removed the entry from KNOWN_POSSIBLE_DIVERGENCES if you removed/cleaned the flag."
+      )
     }
   }
 }

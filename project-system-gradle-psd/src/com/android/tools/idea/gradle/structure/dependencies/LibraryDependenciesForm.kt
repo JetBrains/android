@@ -27,23 +27,34 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-internal class LibraryDependenciesForm (context: PsContext, module: PsModule) : LibraryDependenciesFormUi(), Disposable {
+internal class LibraryDependenciesForm(context: PsContext, module: PsModule) : LibraryDependenciesFormUi(), Disposable {
   private val searchForm: ArtifactRepositorySearchForm
   private var selected: ParsedValue<String> = ParsedValue.NotSet
 
-  val preferredFocusedComponent: JComponent get() = searchForm.preferredFocusedComponent
-  val panel: JPanel get() = myMainPanel
-  val selectedLibrary: ParsedValue<String> get() = selected
-  val searchErrors: List<Exception> get() = searchForm.searchErrors
+  val preferredFocusedComponent: JComponent
+    get() = searchForm.preferredFocusedComponent
+
+  val panel: JPanel
+    get() = myMainPanel
+
+  val selectedLibrary: ParsedValue<String>
+    get() = selected
+
+  val searchErrors: List<Exception>
+    get() = searchForm.searchErrors
+
   val repositories = module.getArtifactRepositories()
 
   init {
     searchForm = ArtifactRepositorySearchForm(module.variables, context.getArtifactRepositorySearchServiceFor(module))
-    searchForm.add(SelectionChangeListener { selectedLibrary ->
-      selected = selectedLibrary ?: ParsedValue.NotSet
-      myLibraryLabel.clear()
-      selectedLibrary?.renderTo(myLibraryLabel.toRenderer(), { toString() }, mapOf())
-    }, this)
+    searchForm.add(
+      SelectionChangeListener { selectedLibrary ->
+        selected = selectedLibrary ?: ParsedValue.NotSet
+        myLibraryLabel.clear()
+        selectedLibrary?.renderTo(myLibraryLabel.toRenderer(), { toString() }, mapOf())
+      },
+      this,
+    )
     mySearchPanelHost.add(searchForm.panel, BorderLayout.CENTER)
   }
 

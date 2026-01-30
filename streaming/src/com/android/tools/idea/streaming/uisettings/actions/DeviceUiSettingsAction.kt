@@ -33,14 +33,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Opens a picker with UI settings of a physical device. */
-internal class DeviceUiSettingsAction : AbstractDeviceAction(
-  configFilter = {
-    it.apiLevel >= 33
-    && it.deviceProperties.resolution != null
-    && it.deviceProperties.density != null
-    && it.deviceType != DeviceType.AUTOMOTIVE
-  }
-) {
+internal class DeviceUiSettingsAction :
+  AbstractDeviceAction(
+    configFilter = {
+      it.apiLevel >= 33 &&
+        it.deviceProperties.resolution != null &&
+        it.deviceProperties.density != null &&
+        it.deviceType != DeviceType.AUTOMOTIVE
+    }
+  ) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -55,9 +56,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
     deviceView.createCoroutineScope().launch {
       controller.populateModel()
-      withContext(Dispatchers.EDT) {
-        showUiSettingsDialog(project, model, deviceType, deviceView)
-      }
+      withContext(Dispatchers.EDT) { showUiSettingsDialog(project, model, deviceType, deviceView) }
     }
   }
 }

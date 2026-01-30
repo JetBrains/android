@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.RecyclerViewHelper
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 
 /**
- * Simple [DelegatingClassLoader.Loader] that delegates to [RecyclerViewHelper.getAdapterHelperClass]. This loader
- * will load custom adapters for `RecyclerView`s.
+ * Simple [DelegatingClassLoader.Loader] that delegates to [RecyclerViewHelper.getAdapterHelperClass]. This loader will load custom adapters
+ * for `RecyclerView`s.
  *
- * It is recommended as, for example, a last step of a [MultiLoader] to allow loading the adapter helper classes when
- * they are not found in any other class loader.
+ * It is recommended as, for example, a last step of a [MultiLoader] to allow loading the adapter helper classes when they are not found in
+ * any other class loader.
  */
 class RecyclerViewAdapterLoader : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? = RecyclerViewHelper.getAdapterHelperClass(fqcn)

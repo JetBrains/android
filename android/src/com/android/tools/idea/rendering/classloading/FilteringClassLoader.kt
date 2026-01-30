@@ -20,7 +20,7 @@ package com.android.tools.idea.rendering.classloading
  *
  * The class will be allowed to load if it exists and [allow] returns true for the name.
  */
-class FilteringClassLoader(parent: ClassLoader?, private val allow: (String) -> Boolean): ClassLoader(parent) {
+class FilteringClassLoader(parent: ClassLoader?, private val allow: (String) -> Boolean) : ClassLoader(parent) {
   override fun loadClass(name: String, resolve: Boolean): Class<*> {
     if (!allow(name)) throw ClassNotFoundException(name)
     return super.loadClass(name, resolve)
@@ -32,17 +32,11 @@ class FilteringClassLoader(parent: ClassLoader?, private val allow: (String) -> 
   }
 
   companion object {
-    /**
-     * Utility method that creates a [FilteringClassLoader] that allows
-     * only the classes from the given prefixes.
-     */
+    /** Utility method that creates a [FilteringClassLoader] that allows only the classes from the given prefixes. */
     @JvmStatic
     fun allowedPrefixes(parent: ClassLoader?, prefixes: Collection<String>): FilteringClassLoader {
       // Sort by increasing length to make the shorter (more generic) prefixes first
-      val prefixesArray = prefixes
-        .distinct()
-        .sortedBy { it.length }
-        .toTypedArray()
+      val prefixesArray = prefixes.distinct().sortedBy { it.length }.toTypedArray()
       return FilteringClassLoader(parent) { fqcn -> prefixesArray.any { fqcn.startsWith(it) } }
     }
   }

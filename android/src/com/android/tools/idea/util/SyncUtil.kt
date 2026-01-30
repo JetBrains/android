@@ -32,41 +32,47 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.util.function.Consumer
 
-private val LOG: Logger get() = Logger.getInstance("SyncUtil.kt")
+private val LOG: Logger
+  get() = Logger.getInstance("SyncUtil.kt")
 
 /**
- * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus
- * until the next sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
- *
+ * Registers [listener] to be notified of any sync result broadcast on [PROJECT_SYSTEM_SYNC_TOPIC] on [project]'s message bus until the next
+ * sync completes. The [listener] maintains its subscription to [PROJECT_SYSTEM_SYNC_TOPIC] until either
  * 1) a sync completes and [listener] is notified, or
  * 2) [parentDisposable] is disposed
  */
 @JvmOverloads
 fun Project.listenUntilNextSync(parentDisposable: Disposable = this, listener: SyncResultListener) {
   messageBus.connect(parentDisposable).apply {
-    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        disconnect()
-        listener.syncEnded(result)
-      }
-    })
+    subscribe(
+      PROJECT_SYSTEM_SYNC_TOPIC,
+      object : SyncResultListener {
+        override fun syncEnded(result: SyncResult) {
+          disconnect()
+          listener.syncEnded(result)
+        }
+      },
+    )
   }
 }
 
 /**
  * Runs the given [callback] when the project is smart and synced.
- * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed
- *  then the callback will never be called.
- * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode
- *  and the sync has completed.
+ *
+ * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed then the callback will
+ *   never be called.
+ * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode and the sync has
+ *   completed.
  * @param runOnEdt indicates whether the callback must run on the UI thread
  * @param syncManager optional [ProjectSystemSyncManager] for testing
  */
 @JvmOverloads
-fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
-                                  callback: Consumer<SyncResult>,
-                                  runOnEdt: Boolean = false,
-                                  syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
+fun Project.runWhenSmartAndSynced(
+  parentDisposable: Disposable = this,
+  callback: Consumer<SyncResult>,
+  runOnEdt: Boolean = false,
+  syncManager: ProjectSystemSyncManager = this.getSyncManager(),
+) {
 
   // Because this might run at some point in the future, we need to check if the parent disposable was already disposed to avoid
   // causing leaks and exceptions.
@@ -80,13 +86,11 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   if (dumbService.isDumb) {
     if (runOnEdt) {
       dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
-    }
-    else {
+    } else {
       dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     }
     return
   }
-
 
   if (syncManager.isSyncInProgress()) {
     LOG.debug { "runWhenSmartAndSynced waiting for sync callback=${callback}" }
@@ -124,15 +128,18 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
 
 /**
  * Runs the given [callback] on the EDT when the project is smart and synced.
- * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed
- *  then the callback will never be called.
- * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode
- *  and the sync has completed.
+ *
+ * @param parentDisposable [Disposable] used to track the current request. If this parent [Disposable] is disposed then the callback will
+ *   never be called.
+ * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode and the sync has
+ *   completed.
  * @param syncManager optional [ProjectSystemSyncManager] for testing.
  */
 @JvmOverloads
-fun Project.runWhenSmartAndSyncedOnEdt(parentDisposable: Disposable = this,
-                                       callback: Consumer<SyncResult>,
-                                       syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
+fun Project.runWhenSmartAndSyncedOnEdt(
+  parentDisposable: Disposable = this,
+  callback: Consumer<SyncResult>,
+  syncManager: ProjectSystemSyncManager = this.getSyncManager(),
+) {
   runWhenSmartAndSynced(parentDisposable, callback, true, syncManager)
 }

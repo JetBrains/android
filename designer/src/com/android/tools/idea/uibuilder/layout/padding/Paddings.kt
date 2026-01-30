@@ -21,24 +21,18 @@ import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableCo
 val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale -> dynamicPadding(scale, 5, 20) }
 
 /**
- * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
- * of the current [PositionableContent].
+ * Provider of the horizontal and vertical paddings for preview. The input value is the scale value of the current [PositionableContent].
  */
-private val ORGANIZATION_PREVIEW_RIGHT_PADDING: (Double, PositionableContent) -> Int =
-  { scale, content ->
-    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
-    else dynamicPadding(scale, 5, 15)
-  }
+private val ORGANIZATION_PREVIEW_RIGHT_PADDING: (Double, PositionableContent) -> Int = { scale, content ->
+  if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0) else dynamicPadding(scale, 5, 15)
+}
 
 /**
- * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
- * of the current [PositionableContent].
+ * Provider of the horizontal and vertical paddings for preview. The input value is the scale value of the current [PositionableContent].
  */
-private val ORGANIZATION_PREVIEW_BOTTOM_PADDING: (Double, PositionableContent) -> Int =
-  { scale, content ->
-    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
-    else dynamicPadding(scale, 5, 7)
-  }
+private val ORGANIZATION_PREVIEW_BOTTOM_PADDING: (Double, PositionableContent) -> Int = { scale, content ->
+  if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0) else dynamicPadding(scale, 5, 7)
+}
 
 /** Default paddings for layouts with organization. */
 val DEFAULT_LAYOUT_PADDING =
@@ -54,14 +48,12 @@ val DEFAULT_LAYOUT_PADDING =
   )
 
 /**
- * Provider of the padding for preview. The input value is the scale value of the current
- * [PositionableContent]. Minimum padding is min at 20% and maximum padding is max at 100%,
- * responsive.
+ * Provider of the padding for preview. The input value is the scale value of the current [PositionableContent]. Minimum padding is min at
+ * 20% and maximum padding is max at 100%, responsive.
  */
 private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
   when {
     scale <= 0.2 -> min
     scale >= 1.0 -> max
-    else ->
-      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
+    else -> min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
   }.toInt()

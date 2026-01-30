@@ -61,11 +61,9 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
       Event.OneOfCase.WORK_UPDATED -> {
         when (event.workUpdated.oneOfCase!!) {
           WorkUpdatedEvent.OneOfCase.STATE -> work.state = event.workUpdated.state
-          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT ->
-            work.scheduleRequestedAt = event.workUpdated.scheduleRequestedAt
+          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT -> work.scheduleRequestedAt = event.workUpdated.scheduleRequestedAt
           WorkUpdatedEvent.OneOfCase.DATA -> work.data = event.workUpdated.data
-          WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT ->
-            work.runAttemptCount = event.workUpdated.runAttemptCount
+          WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT -> work.runAttemptCount = event.workUpdated.runAttemptCount
           else -> throw RuntimeException()
         }
       }

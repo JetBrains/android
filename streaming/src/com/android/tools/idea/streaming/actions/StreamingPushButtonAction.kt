@@ -27,6 +27,5 @@ internal abstract class StreamingPushButtonAction(
   physicalDeviceAction: DevicePushButtonAction,
 ) : DelegatingPushButtonAction(virtualDeviceAction, physicalDeviceAction), DumbAware {
 
-  override fun getDelegate(event: AnActionEvent): AnAction =
-      delegates[if (getEmulatorController(event) == null) 1 else 0]
+  override fun getDelegate(event: AnActionEvent): AnAction = delegates[if (getEmulatorController(event) == null) 1 else 0]
 }

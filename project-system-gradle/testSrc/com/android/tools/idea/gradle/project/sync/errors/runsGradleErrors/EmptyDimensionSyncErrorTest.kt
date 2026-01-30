@@ -33,17 +33,16 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class EmptyDimensionSyncErrorTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
@@ -65,16 +64,17 @@ class EmptyDimensionSyncErrorTest {
     val buildFile = preparedProject.root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)
     buildFile.appendText(
       """
-        // Line needed to ensure line break
-        android {
-          flavorDimensions 'flv_dim1', 'flv_dim3'
-          productFlavors {
-            flv1 {
-                dimension 'flv_dim1'
-            }
+      // Line needed to ensure line break
+      android {
+        flavorDimensions 'flv_dim1', 'flv_dim3'
+        productFlavors {
+          flv1 {
+              dimension 'flv_dim1'
           }
         }
-      """.trimIndent()
+      }
+      """
+        .trimIndent()
     )
 
     var capturedException: Exception? = null
@@ -88,26 +88,28 @@ class EmptyDimensionSyncErrorTest {
             Truth.assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
               .isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
           },
-          syncExceptionHandler = { e: Exception ->
-            capturedException = e
-          },
+          syncExceptionHandler = { e: Exception -> capturedException = e },
           syncViewEventHandler = { buildEvent ->
             buildEvents.add(buildEvent)
             if (buildEvent is FinishBuildEventImpl) {
               allBuildEventsProcessedLatch.countDown()
             }
-          }
+          },
         )
       }
     ) {
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
     }
 
-    Truth.assertThat(capturedException?.message).startsWith("No variants found for ':app'. Check ${buildFile.absolutePath} to ensure at least one variant exists and address any sync warnings and errors.")
+    Truth.assertThat(capturedException?.message)
+      .startsWith(
+        "No variants found for ':app'. Check ${buildFile.absolutePath} to ensure at least one variant exists and address any sync warnings and errors."
+      )
 
-    val failureEvents = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-      .map { it.studioEvent.gradleSyncFailure }
+    val failureEvents =
+      usageTracker.usages
+        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+        .map { it.studioEvent.gradleSyncFailure }
     Truth.assertThat(failureEvents).containsExactly(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
     Truth.assertThat(usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }).isEmpty()
   }
@@ -125,22 +127,27 @@ class EmptyDimensionSyncErrorTest {
             if (buildEvent is FinishBuildEventImpl) {
               allBuildEventsProcessedLatch.countDown()
             }
-          })
+          }
+        )
       }
     ) {
       val buildFile = VfsUtil.findFileByIoFile(this.projectRoot.resolve("app/build.gradle"), true)!!
       runWriteActionAndWait {
-        val buildFileText = VfsUtil.loadText(buildFile) + "\n" + """
-          // Line needed to ensure line break
-          android {
-            flavorDimensions 'flv_dim1', 'flv_dim3'
-            productFlavors {
-              flv1 {
-                  dimension 'flv_dim1'
+        val buildFileText =
+          VfsUtil.loadText(buildFile) +
+            "\n" +
+            """
+            // Line needed to ensure line break
+            android {
+              flavorDimensions 'flv_dim1', 'flv_dim3'
+              productFlavors {
+                flv1 {
+                    dimension 'flv_dim1'
+                }
               }
             }
-          }
-        """.trimIndent()
+            """
+              .trimIndent()
         buildFile.setBinaryContent(buildFileText.toByteArray())
       }
 
@@ -152,25 +159,32 @@ class EmptyDimensionSyncErrorTest {
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
     }
 
-    val failureEvents = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-      .map { it.studioEvent.gradleSyncFailure }
+    val failureEvents =
+      usageTracker.usages
+        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+        .map { it.studioEvent.gradleSyncFailure }
     Truth.assertThat(failureEvents).containsExactly(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
 
-    val issuesEvents = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }
+    val issuesEvents = usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }
     Truth.assertThat(issuesEvents.map { it.studioEvent.gradleSyncIssuesList.map { issue -> issue.type } })
       .containsExactly(listOf(AndroidStudioEvent.GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION))
 
-    val gradleFailureDetails = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-      .studioEvent.gradleFailureDetails
-    Truth.assertThat(gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
-                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
-            }
+    val gradleFailureDetails =
+      usageTracker.usages
+        .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+        .studioEvent
+        .gradleFailureDetails
+    Truth.assertThat(gradleFailureDetails.toTestString())
+      .isEqualTo(
+        """
+        failure {
+          error {
+            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
           }
-        """.trimIndent())
+        }
+        """
+          .trimIndent()
+      )
   }
 }

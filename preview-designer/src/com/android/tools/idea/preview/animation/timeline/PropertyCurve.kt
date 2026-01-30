@@ -62,15 +62,12 @@ private constructor(
     }
 
   private val boxedLabels: List<BoxedLabel> =
-    componentCurves.mapIndexed { index, curve ->
-      BoxedLabel(index, property.grouped) { curve.boxedLabelPosition }
-    }
+    componentCurves.mapIndexed { index, curve -> BoxedLabel(index, property.grouped) { curve.boxedLabelPosition } }
 
   override fun paint(g: Graphics2D) {
     componentCurves.forEach { it.paint(g) }
     boxedLabels.forEach { it.paint(g) }
   }
 
-  override fun getTooltip(point: Point): TooltipInfo? =
-    boxedLabels.firstNotNullOfOrNull { it.getTooltip(point) }
+  override fun getTooltip(point: Point): TooltipInfo? = boxedLabels.firstNotNullOfOrNull { it.getTooltip(point) }
 }

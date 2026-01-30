@@ -23,9 +23,16 @@ class SdkIndexLinkQuickFixTest {
   fun `execute logs click`() {
     var browserCalled = false
     var eventReportCalled = false
-    val quickfix = SdkIndexLinkQuickFix(text = "Open link text", url = "http://google.com", groupId = "com.google.androidx",
-                                        artifactId = "firebase", "2.0.0", browseFunction = { browserCalled = true },
-                                        eventReport = { eventReportCalled = true })
+    val quickfix =
+      SdkIndexLinkQuickFix(
+        text = "Open link text",
+        url = "http://google.com",
+        groupId = "com.google.androidx",
+        artifactId = "firebase",
+        "2.0.0",
+        browseFunction = { browserCalled = true },
+        eventReport = { eventReportCalled = true },
+      )
     quickfix.applyQuickfix(null)
     assertThat(browserCalled).isTrue()
     assertThat(eventReportCalled).isTrue()

@@ -22,8 +22,8 @@ import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
 
 /**
- * Base class for [TestRule]s that need to know the name of their own test during setup. This is a
- * replacement for [ExternalResource] that provides access to the [Description] object.
+ * Base class for [TestRule]s that need to know the name of their own test during setup. This is a replacement for [ExternalResource] that
+ * provides access to the [Description] object.
  */
 abstract class NamedExternalResource : TestRule {
   final override fun apply(base: Statement, description: Description): Statement {

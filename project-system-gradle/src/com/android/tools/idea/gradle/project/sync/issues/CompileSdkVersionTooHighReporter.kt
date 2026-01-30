@@ -23,7 +23,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-
 class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() {
 
   override fun getSupportedIssueType(): Int {
@@ -33,10 +32,12 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun getCustomLinks(project: Project,
-                              syncIssues: MutableList<IdeSyncIssue>,
-                              affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: MutableList<IdeSyncIssue>,
+    affectedModules: MutableList<Module>,
+    buildFileMap: MutableMap<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> {
     if (syncIssues.isEmpty() || affectedModules.isEmpty()) {
       return emptyList()
     }
@@ -45,9 +46,7 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
 
   @VisibleForTesting
   fun createQuickFixes(project: Project, syncIssues: MutableList<IdeSyncIssue>): List<SyncIssueNotificationHyperlink> {
-    return listOfNotNull(
-      suppressSdkQuickFix(project, syncIssues),
-    )
+    return listOfNotNull(suppressSdkQuickFix(project, syncIssues))
   }
 
   private fun suppressSdkQuickFix(project: Project, syncIssues: MutableList<IdeSyncIssue>): SuppressUnsupportedSdkVersionHyperlink? {
@@ -55,13 +54,9 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
     if (pluginInfo != null) {
       val agpVersion = pluginInfo.pluginVersion
       return if (agpVersion != null && agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false)) {
-        syncIssues[0].data?.let {
-          SuppressUnsupportedSdkVersionHyperlink(it)
-        }
+        syncIssues[0].data?.let { SuppressUnsupportedSdkVersionHyperlink(it) }
       } else {
-        tryExtractPropertyFromSyncMessage(syncIssues)?.let {
-          SuppressUnsupportedSdkVersionHyperlink(it)
-        }
+        tryExtractPropertyFromSyncMessage(syncIssues)?.let { SuppressUnsupportedSdkVersionHyperlink(it) }
       }
     }
     return null

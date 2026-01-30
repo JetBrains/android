@@ -41,27 +41,30 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class KtsCatalogAnnotatorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var fixture: CodeInsightTestFixture
 
-  private val service = object: VersionCatalogFilesModel {
-    val map = mapOf("libs" to "gradle/libs.versions.toml")
-    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
-      map.mapValues { project.basePath + "/" + it.value }
-    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
-      map.mapValues { module.project.basePath + "/" + it.value }
-  }
+  private val service =
+    object : VersionCatalogFilesModel {
+      val map = mapOf("libs" to "gradle/libs.versions.toml")
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
+
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> =
+        map.mapValues { module.project.basePath + "/" + it.value }
+    }
+
+  @get:Rule val disposableRule = DisposableRule()
+
   @Before
   fun setup() {
-    val extension = object: ProblemHighlightFilter() {
-      override fun shouldHighlight(file: PsiFile): Boolean = file.name.endsWith("build.gradle.kts")
-      override fun shouldProcessInBatch(file: PsiFile) = true
-    }
+    val extension =
+      object : ProblemHighlightFilter() {
+        override fun shouldHighlight(file: PsiFile): Boolean = file.name.endsWith("build.gradle.kts")
+
+        override fun shouldProcessInBatch(file: PsiFile) = true
+      }
 
     fixture = projectRule.fixture
 
@@ -72,29 +75,37 @@ class KtsCatalogAnnotatorTest {
     // skipping compiler highlighter
     AndroidTestBase.unmaskKotlinHighlightVisitor(fixture)
 
-    val catalog = fixture.addFileToProject("gradle/libs.versions.toml","""
-      [versions]
-      my_version = "1.0"
-      [plugins]
-      android_application = "com.android.application:8.0"
-      [libraries]
-      some_library = "com.example:some:1.0.0"
-      [bundles]
-      some_bundle = ["some_library"]
-    """.trimIndent())
+    val catalog =
+      fixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
+        [versions]
+        my_version = "1.0"
+        [plugins]
+        android_application = "com.android.application:8.0"
+        [libraries]
+        some_library = "com.example:some:1.0.0"
+        [bundles]
+        some_bundle = ["some_library"]
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(catalog.virtualFile)
-    ApplicationManager.getApplication().registerExtension(
-      EP_NAME, service, projectRule.fixture.testRootDisposable
-    )
+    ApplicationManager.getApplication().registerExtension(EP_NAME, service, projectRule.fixture.testRootDisposable)
   }
 
   @Test
   fun checkLibsAlias() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      dependencies {
-         implementation(${"libs.some.library.wrong" highlightedAs HighlightSeverity.ERROR})
-      }
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        dependencies {
+           implementation(${"libs.some.library.wrong" highlightedAs HighlightSeverity.ERROR})
+        }
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -103,11 +114,16 @@ class KtsCatalogAnnotatorTest {
 
   @Test
   fun checkBundlesAlias() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      dependencies {
-         implementation(${"libs.bundles.some.wrong" highlightedAs HighlightSeverity.ERROR})
-      }
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        dependencies {
+           implementation(${"libs.bundles.some.wrong" highlightedAs HighlightSeverity.ERROR})
+        }
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -116,11 +132,16 @@ class KtsCatalogAnnotatorTest {
 
   @Test
   fun checkPluginAlias() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      plugins{
-         alias(${"libs.plugin.android.application2" highlightedAs HighlightSeverity.ERROR})
-      }
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        plugins{
+           alias(${"libs.plugin.android.application2" highlightedAs HighlightSeverity.ERROR})
+        }
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -129,25 +150,36 @@ class KtsCatalogAnnotatorTest {
 
   @Test
   fun checkNoErrors() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      plugins {
-         alias(libs.plugins.android.application)
-      }
-      dependencies {
-         implementation(libs.some.library)
-         implementation(libs.bundles.some.bundle)
-      }
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        plugins {
+           alias(libs.plugins.android.application)
+        }
+        dependencies {
+           implementation(libs.some.library)
+           implementation(libs.bundles.some.bundle)
+        }
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
+
   @Test
   fun checkGetSyntaxSupport() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      val version = libs.versions.my.version.get()
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        val version = libs.versions.my.version.get()
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -156,9 +188,14 @@ class KtsCatalogAnnotatorTest {
 
   @Test
   fun checkGetSyntaxSupportWithErrors() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      val version = ${"libs.versions.my.version2" highlightedAs HighlightSeverity.ERROR}.get()
-    """.trimIndent())
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        val version = ${"libs.versions.my.version2" highlightedAs HighlightSeverity.ERROR}.get()
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -168,16 +205,20 @@ class KtsCatalogAnnotatorTest {
   // no highlighting if it's not a catalog reference
   @Test
   fun checkNotCatalogProperties() {
-    val file = fixture.addFileToProject("build.gradle.kts","""
-      android {
-        testOptions.manageDevices.devices {
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
+        android {
+          testOptions.manageDevices.devices {
+          }
         }
-      }
-    """.trimIndent())
+        """
+          .trimIndent(),
+      )
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
-
 }

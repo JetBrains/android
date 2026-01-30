@@ -20,20 +20,16 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import org.junit.Rule
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import org.junit.Rule
 
 open class PsdFetchGradleBuildModelsTestBase {
   private val gradleModelsTimeoutSeconds: Long = 60
 
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   fun verifyPsdFetchesGradleModels(testProjectPath: String, testRepoManifest: String) {
     val project = AndroidProject(testProjectPath)
@@ -48,21 +44,24 @@ open class PsdFetchGradleBuildModelsTestBase {
 
   private fun openPsdAndVerifyGradleModelsFetched(studio: AndroidStudio) {
     var modelsFetched = true
-    val thread = thread(start = true) {
-      try {
-        // Wait for successful model fetch and UI refresh
-        system.installation.ideaLog.waitForMatchingLine(
-          ".*PSD fetched \\((\\d+) Gradle model\\(s\\). Refreshing the UI model.*",
-          ".*PSD failed to fetch Gradle models.*",
-          true, gradleModelsTimeoutSeconds,
-          TimeUnit.SECONDS)
-      } catch (e: Exception) {
-        modelsFetched = false
-        throw e
-      } finally {
-        studio.invokeComponent("OK") // Close PSD
+    val thread =
+      thread(start = true) {
+        try {
+          // Wait for successful model fetch and UI refresh
+          system.installation.ideaLog.waitForMatchingLine(
+            ".*PSD fetched \\((\\d+) Gradle model\\(s\\). Refreshing the UI model.*",
+            ".*PSD failed to fetch Gradle models.*",
+            true,
+            gradleModelsTimeoutSeconds,
+            TimeUnit.SECONDS,
+          )
+        } catch (e: Exception) {
+          modelsFetched = false
+          throw e
+        } finally {
+          studio.invokeComponent("OK") // Close PSD
+        }
       }
-    }
     studio.executeAction("ShowProjectStructureSettings")
     thread.join()
     assert(modelsFetched)

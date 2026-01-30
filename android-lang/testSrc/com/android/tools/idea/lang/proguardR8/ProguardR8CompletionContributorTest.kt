@@ -33,29 +33,41 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
   @Test
   fun testFlagCompletion() {
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -k$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     var keys = myFixture.completeBasic()
 
     assertThat(keys).isNotEmpty()
     assertThat(keys.map { it.lookupString }).contains("keepattributes")
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
     assertThat(keys).isNotEmpty()
     assertThat(keys.map { it.lookupString }).contains("allowaccessmodification")
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class myClass {
           -k$caret
         }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
@@ -65,18 +77,26 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
 
   @Test
   fun testClassTypeCompletion() {
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -koop $caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     var keys = myFixture.completeBasic()
 
     // don't appear outside class specification header
     assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("class", "interface", "enum")
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep $caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
@@ -84,10 +104,13 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     assertThat(keys).isNotEmpty()
     assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
 
-
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -if $caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
@@ -95,7 +118,6 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     assertThat(keys).isNotEmpty()
     assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
   }
-
 
   @Test
   fun testFieldMethodWildcardsCompletion() {
@@ -108,10 +130,14 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     assertThat(myFixture.editor.document.text).isEqualTo("")
 
     // At start of new rule.
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           $caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
@@ -119,10 +145,14 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     assertThat(keys.map { it.lookupString }.toList()).containsAllOf("<fields>", "<init>", "<methods>", "<clinit>")
 
     // Suggest only with right prefix
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           <ini$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
@@ -136,7 +166,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       """
         -keep class * {
           private $caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic()
@@ -150,24 +181,32 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       """
         -keep class * {
           int $caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic()
 
     assertThat(keys).isEmpty()
-    assertThat(myFixture.editor.document.text).isEqualTo(
-      """
+    assertThat(myFixture.editor.document.text)
+      .isEqualTo(
+        """
         -keep class * {
           int 
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testFieldMethodModifiersCompletion() {
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         pu$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     var keys = myFixture.completeBasic()
 
@@ -175,63 +214,108 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     assertThat(keys).isEmpty()
     assertThat(myFixture.editor.document.text).isEqualTo("pu")
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           $caret
         }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
     // suggests at the start of new rule
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
-                                                                    "static", "synchronized", "native", "abstract", "strictfp",
-                                                                    "volatile", "transient", "final")
-
+    assertThat(keys.map { it.lookupString }.toList())
+      .containsAllOf(
+        "public",
+        "private",
+        "protected",
+        "static",
+        "synchronized",
+        "native",
+        "abstract",
+        "strictfp",
+        "volatile",
+        "transient",
+        "final",
+      )
 
     // suggests after !
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           !$caret
         }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
-                                                                    "static", "synchronized", "native", "abstract", "strictfp",
-                                                                    "volatile", "transient", "final")
+    assertThat(keys.map { it.lookupString }.toList())
+      .containsAllOf(
+        "public",
+        "private",
+        "protected",
+        "static",
+        "synchronized",
+        "native",
+        "abstract",
+        "strictfp",
+        "volatile",
+        "transient",
+        "final",
+      )
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           public $caret
         }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
     // suggests after another modifier
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsAllOf(
-      "private", "protected",
-      "static", "synchronized", "native", "abstract", "strictfp",
-      "volatile", "transient", "final"
-    )
+    assertThat(keys.map { it.lookupString }.toList())
+      .containsAllOf("private", "protected", "static", "synchronized", "native", "abstract", "strictfp", "volatile", "transient", "final")
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -keep class * {
           int $caret
         }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     keys = myFixture.completeBasic()
 
     // don't suggest after type
-    assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("public", "private", "protected",
-                                                                     "static", "synchronized", "native", "abstract", "strictfp",
-                                                                     "volatile", "transient", "final")
+    assertThat(keys.map { it.lookupString }.toList())
+      .containsNoneOf(
+        "public",
+        "private",
+        "protected",
+        "static",
+        "synchronized",
+        "native",
+        "abstract",
+        "strictfp",
+        "volatile",
+        "transient",
+        "final",
+      )
   }
 
   @Test
@@ -242,7 +326,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       fileType,
       """
         in$caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     var keys = myFixture.completeBasic().toList()
@@ -257,7 +342,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
         -keep class * {
           $caret
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic().toList()
@@ -272,7 +358,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
         -keep class * {
           public $caret
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic().toList()
@@ -287,7 +374,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
         -keep class * {
           int $caret
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic().toList()
@@ -301,7 +389,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
         -keep class * {
           int method($caret
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic().toList()
@@ -314,7 +403,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
         -keep class * {
           int method(int $caret
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     keys = myFixture.completeBasic().toList()
@@ -324,20 +414,24 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
 
   @Test
   fun testSuggestClassName() {
-    myFixture.addClass(
-      //language=JAVA
-      """
-      package p1.p2;
+    myFixture
+      .addClass(
+        // language=JAVA
+        """
+        package p1.p2;
 
-      class MyClass {}
-    """.trimIndent()
-    ).containingFile
+        class MyClass {}
+        """
+          .trimIndent()
+      )
+      .containingFile
 
     myFixture.configureByText(
       fileType,
       """
       -keep class $caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     var fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -350,7 +444,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       fileType,
       """
       -keep class SomeClass extends $caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -365,7 +460,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       -keep class SomeClass {
         $caret
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -380,7 +476,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       -keep class SomeClass {
         public $caret
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -395,7 +492,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       -keep class SomeClass {
         public int method($caret
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -410,7 +508,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       -keep class SomeClass {
         public int member$caret
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
@@ -421,30 +520,37 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
 
   @Test
   fun testPackageNameCompletion() {
-    myFixture.addClass(
-      //language=JAVA
-      """
-      package p1.myPackage1;
+    myFixture
+      .addClass(
+        // language=JAVA
+        """
+        package p1.myPackage1;
 
-      public class MyClass {}
-    """.trimIndent()
-    ).qualifiedName
+        public class MyClass {}
+        """
+          .trimIndent()
+      )
+      .qualifiedName
 
-    myFixture.addClass(
-      //language=JAVA
-      """
-      package p1.myPackage2;
+    myFixture
+      .addClass(
+        // language=JAVA
+        """
+        package p1.myPackage2;
 
-      public class MyClass2 {}
-    """.trimIndent()
-    ).qualifiedName
+        public class MyClass2 {}
+        """
+          .trimIndent()
+      )
+      .qualifiedName
 
     myFixture.configureByText(
       fileType,
       """
         -keep class p1.myPackage1.MyClass {
           $caret
-        """.trimIndent()
+        """
+        .trimIndent(),
     )
 
     val classes = myFixture.completeBasic()
@@ -459,7 +565,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       """
         -keep class p1.myPackage1.MyClass {
           private $caret
-        """.trimIndent()
+        """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -471,7 +578,8 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       """
         -keep class p1.myPackage1.MyClass {
           !static $caret
-        """.trimIndent()
+        """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
@@ -481,46 +589,51 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
   @Test
   fun testCompletionForInnerClass() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       public class MyClass {
         class InnerClass {}
       }
-    """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      fileType, """
+      fileType,
+      """
         -keep class test.MyClass${"$"}${caret} {
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
     assertThat(classes.map { it.lookupString }).containsExactly("InnerClass")
 
-
     // Test that ProguardR8CompletionContributor doesn't duplicate static classes.
     // Static classes are provided by JavaClassReferenceCompletionContributor
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
 
       public class MyClass2 {
         static class StaticInnerClass {}
       }
-    """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      fileType, """
+      fileType,
+      """
         -keep class test.MyClass2${"$"}${caret} {
         }
-    """.trimIndent()
+    """
+        .trimIndent(),
     )
 
     assertThat(myFixture.completeBasic()).hasLength(1)
@@ -532,35 +645,31 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     myFixture.configureByText(
       fileType,
       """
-        -keep,<caret>
-      """.trimIndent()
+      -keep,<caret>
+      """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
     var modifiers = myFixture.lookupElementStrings
 
-    assertThat(modifiers).containsAllOf("includedescriptorclasses",
-                                        "includecode",
-                                        "allowshrinking",
-                                        "allowoptimization",
-                                        "allowobfuscation")
+    assertThat(modifiers)
+      .containsAllOf("includedescriptorclasses", "includecode", "allowshrinking", "allowoptimization", "allowobfuscation")
 
     // Suggest after KEEP_OPTION_MODIFIER + COMMA.
     myFixture.configureByText(
       fileType,
       """
-        -keep, includecode, allowobfuscation, <caret>
-      """.trimIndent()
+      -keep, includecode, allowobfuscation, <caret>
+      """
+        .trimIndent(),
     )
 
     myFixture.completeBasic()
     modifiers = myFixture.lookupElementStrings
 
-    assertThat(modifiers).containsAllOf("includedescriptorclasses",
-                                        "includecode",
-                                        "allowshrinking",
-                                        "allowoptimization",
-                                        "allowobfuscation")
+    assertThat(modifiers)
+      .containsAllOf("includedescriptorclasses", "includecode", "allowshrinking", "allowoptimization", "allowobfuscation")
   }
 
   @Test
@@ -568,10 +677,11 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
     myFixture.configureByText(
       fileType,
       """
-        -keep class * {
-          <in<caret>
-        }
-      """.trimIndent()
+      -keep class * {
+        <in<caret>
+      }
+      """
+        .trimIndent(),
     )
     val elements = myFixture.completeBasic()
     val element = elements.find { it.lookupString == "<init>" }!!
@@ -582,7 +692,9 @@ class ProguardR8CompletionContributorTest(private val fileType: LanguageFileType
       -keep class * {
         <init>
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 }
 
@@ -600,9 +712,13 @@ class ProguardR8FlagsCodeCompletion(private val fileType: LanguageFileType) : An
     (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8
 
     val justProguardFlag = PROGUARD_FLAGS.minus(R8_FLAGS).first()
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
     var flags = myFixture.lookupElementStrings
@@ -611,9 +727,13 @@ class ProguardR8FlagsCodeCompletion(private val fileType: LanguageFileType) : An
 
     (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.PROGUARD
 
-    myFixture.configureByText(fileType, """
+    myFixture.configureByText(
+      fileType,
+      """
         -$caret
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
     flags = myFixture.lookupElementStrings

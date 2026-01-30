@@ -47,22 +47,18 @@ private const val NOTIFICATION_GROUP = "Wear Declarative Watch Faces"
  *
  * @see [WatchFaceStudioFileImporter]
  */
-class ImportWatchFaceStudioFileAction(
-  private val defaultDispatcher: CoroutineDispatcher,
-  private val edtDispatcher: CoroutineContext,
-) : DumbAwareAction() {
+class ImportWatchFaceStudioFileAction(private val defaultDispatcher: CoroutineDispatcher, private val edtDispatcher: CoroutineContext) :
+  DumbAwareAction() {
 
   constructor() : this(defaultDispatcher = Dispatchers.Default, edtDispatcher = Dispatchers.EDT)
 
-  private val notificationGroup =
-    NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP)
+  private val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP)
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible =
-      StudioFlags.WATCH_FACE_STUDIO_FILE_IMPORT.get() && e.project != null
+    e.presentation.isEnabledAndVisible = StudioFlags.WATCH_FACE_STUDIO_FILE_IMPORT.get() && e.project != null
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -89,9 +85,7 @@ class ImportWatchFaceStudioFileAction(
   }
 
   private fun notifySuccess(project: Project) {
-    notificationGroup
-      .createNotification(message("wfs.import.success"), NotificationType.INFORMATION)
-      .notify(project)
+    notificationGroup.createNotification(message("wfs.import.success"), NotificationType.INFORMATION).notify(project)
   }
 
   private fun notifyError(project: Project, errorType: WFSImportResult.Error.Type) {

@@ -53,13 +53,12 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Shows a tab for each [Key]. [FocusModeTabs] always track the list of currently available tabs
- * using [keysProvider] and currently selected tab using [selectedProvider]. [tabChangeListener] is
- * called only if tab is changed by interacting with [FocusModeTabs].
+ * Shows a tab for each [Key]. [FocusModeTabs] always track the list of currently available tabs using [keysProvider] and currently selected
+ * tab using [selectedProvider]. [tabChangeListener] is called only if tab is changed by interacting with [FocusModeTabs].
  *
  * @param root a root [JComponent] for this [FocusModeTabs].
- * @param tabChangeListener is called when new [Key] is selected. [FocusModeTabs] insures
- *   [tabChangeListener] is not called twice if same [Key] set twice.
+ * @param tabChangeListener is called when new [Key] is selected. [FocusModeTabs] insures [tabChangeListener] is not called twice if same
+ *   [Key] set twice.
  */
 internal class FocusModeTabs<Key : FocusKey>(
   private val root: JComponent,
@@ -80,16 +79,9 @@ internal class FocusModeTabs<Key : FocusKey>(
     }
   }
 
-  inner class TabLabelAction(val key: Key, val partOfOrganizationGroup: Boolean) :
-    ToggleAction(), CustomComponentAction {
+  inner class TabLabelAction(val key: Key, val partOfOrganizationGroup: Boolean) : ToggleAction(), CustomComponentAction {
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-      object :
-          ActionButtonWithText(
-            this,
-            presentation,
-            ActionPlaces.TOOLBAR,
-            ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-          ) {
+      object : ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
           override fun updateUI() {
             super.updateUI()
             updateFont()
@@ -116,12 +108,7 @@ internal class FocusModeTabs<Key : FocusKey>(
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.presentation.text =
-        key.settings
-          .let {
-            it.parameterName.takeIf { e.place == ActionPlaces.POPUP && partOfOrganizationGroup }
-              ?: it.name
-          }
-          .truncate()
+        key.settings.let { it.parameterName.takeIf { e.place == ActionPlaces.POPUP && partOfOrganizationGroup } ?: it.name }.truncate()
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -132,9 +119,8 @@ internal class FocusModeTabs<Key : FocusKey>(
     }
 
     /**
-     * Request the focus of this label even if it hasn't been clicked. Clicks are already giving
-     * focus on the tab. Use this function when it is needed to focus on this tab without clicking
-     * on it.
+     * Request the focus of this label even if it hasn't been clicked. Clicks are already giving focus on the tab. Use this function when it
+     * is needed to focus on this tab without clicking on it.
      *
      * @return true if the focus is correctly applied in the selected button, false otherwise
      */
@@ -156,8 +142,7 @@ internal class FocusModeTabs<Key : FocusKey>(
         button.location.x < -centerPanel.location.x -> scrollBar.value = button.location.x
 
         // If tab is not visible and on the right side - move it to the most right visible side.
-        button.location.x + button.bounds.width >
-          -centerPanel.location.x + scrollBar.bounds.width ->
+        button.location.x + button.bounds.width > -centerPanel.location.x + scrollBar.bounds.width ->
           scrollBar.value = button.location.x + button.bounds.width - scrollBar.bounds.width
       }
       button.requestFocus()
@@ -177,8 +162,7 @@ internal class FocusModeTabs<Key : FocusKey>(
   }
 
   /** Toolbar button that shows all available previews in a dropdown. */
-  private inner class AllTabsDropdown :
-    DumbAwareAction(message("action.focus.show.hidden"), null, AllIcons.General.ChevronDown) {
+  private inner class AllTabsDropdown : DumbAwareAction(message("action.focus.show.hidden"), null, AllIcons.General.ChevronDown) {
 
     var popup: ListPopup? = null
 
@@ -188,13 +172,11 @@ internal class FocusModeTabs<Key : FocusKey>(
         popup = null
       }
       popup =
-        JBPopupFactory.getInstance()
-          .createActionGroupPopup(null, moreActionGroup, e.dataContext, null, true)
-          .also {
-            val location: Point = allTabToolbar.locationOnScreen
-            location.translate(0, allTabToolbar.height)
-            it.showInScreenCoordinates(allTabToolbar, location)
-          }
+        JBPopupFactory.getInstance().createActionGroupPopup(null, moreActionGroup, e.dataContext, null, true).also {
+          val location: Point = allTabToolbar.locationOnScreen
+          location.translate(0, allTabToolbar.height)
+          it.showInScreenCoordinates(allTabToolbar, location)
+        }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
@@ -210,8 +192,8 @@ internal class FocusModeTabs<Key : FocusKey>(
     private set
 
   /**
-   * Notify [tabChangeListener] about change in [selectedKey]. Should only be called if
-   * [selectedKey] is modified by interaction with [FocusModeTabs].
+   * Notify [tabChangeListener] about change in [selectedKey]. Should only be called if [selectedKey] is modified by interaction with
+   * [FocusModeTabs].
    */
   private fun updateSelectedKey(e: AnActionEvent, key: Key?) {
     // Avoid setting same value twice.
@@ -226,14 +208,10 @@ internal class FocusModeTabs<Key : FocusKey>(
   private val centerPanel = JPanel(BorderLayout())
   private val scrollBar = JBThinOverlappingScrollBar(Adjustable.HORIZONTAL)
   private val allTabToolbar: JComponent =
-    createToolbarWithNavigation(root, "More Tabs", listOf(allTabDropdown)).component.apply {
-      background = Colors.DEFAULT_BACKGROUND_COLOR
-    }
+    createToolbarWithNavigation(root, "More Tabs", listOf(allTabDropdown)).component.apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
   private var previousToolbar: JComponent? = null
 
-  private var updateToolbarExecutor: Executor = Executor { command ->
-    invokeLater { command.run() }
-  }
+  private var updateToolbarExecutor: Executor = Executor { command -> invokeLater { command.run() } }
 
   init {
     add(
@@ -249,25 +227,21 @@ internal class FocusModeTabs<Key : FocusKey>(
 
   private fun createEmptyToolbar() {
     previousToolbar =
-      createToolbarWithNavigation(root, "Focus Tabs", FocusModeActionGroup(emptyList()))
-        .component
-        .apply {
-          background = Colors.DEFAULT_BACKGROUND_COLOR
-          centerPanel.add(this, BorderLayout.CENTER)
-        }
+      createToolbarWithNavigation(root, "Focus Tabs", FocusModeActionGroup(emptyList())).component.apply {
+        background = Colors.DEFAULT_BACKGROUND_COLOR
+        centerPanel.add(this, BorderLayout.CENTER)
+      }
   }
 
   /**
-   * Update all available [Key]s and currently [selectedKey]. Toolbar is recreated if there are any
-   * changes in [keys]. It also ensures that if there are no changes in [keys] toolbar will not be
-   * updated.
+   * Update all available [Key]s and currently [selectedKey]. Toolbar is recreated if there are any changes in [keys]. It also ensures that
+   * if there are no changes in [keys] toolbar will not be updated.
    */
   private fun updateKeys(keys: Set<Key>, selected: Key?) {
 
     // If [FocusTabs] needs update, [previousToolbar] will be removed and new toolbar will be
     // created and added with available [labelActions].
-    val needsUpdate =
-      labelActions.keys.any { !keys.contains(it) } || keys.any { !labelActions.keys.contains(it) }
+    val needsUpdate = labelActions.keys.any { !keys.contains(it) } || keys.any { !labelActions.keys.contains(it) }
 
     selectedKey = selected
 
@@ -275,20 +249,14 @@ internal class FocusModeTabs<Key : FocusKey>(
     if (needsUpdate) {
       val allGroups = keys.findOrganizationGroups()
       labelActions.clear()
-      keys.forEach {
-        labelActions[it] = TabLabelAction(it, allGroups.contains(it.settings.organizationGroup))
-      }
+      keys.forEach { labelActions[it] = TabLabelAction(it, allGroups.contains(it.settings.organizationGroup)) }
       // Remove previous toolbar if exists.
       previousToolbar?.let { centerPanel.remove(it) }
       // Create new toolbar.
       val toolbar =
-        createToolbarWithNavigation(
-            root,
-            "Focus Tabs",
-            FocusModeActionGroup(labelActions.values.toList()),
-          )
-          .component
-          .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
+        createToolbarWithNavigation(root, "Focus Tabs", FocusModeActionGroup(labelActions.values.toList())).component.apply {
+          background = Colors.DEFAULT_BACKGROUND_COLOR
+        }
 
       // Update "More" action group.
       moreActionGroup =

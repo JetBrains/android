@@ -24,10 +24,8 @@ import com.intellij.execution.RunManager
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class DebugMenuItem(
-  listener: DeviceMonitorActionsListener,
-  private val context: MenuContext,
-  private val runManager: RunManager) : TreeMenuItem(listener) {
+class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext, private val runManager: RunManager) :
+  TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val config = runManager.selectedConfiguration?.configuration as? RunConfigurationWithDebugger
     // Prioritize number of selected processes first.

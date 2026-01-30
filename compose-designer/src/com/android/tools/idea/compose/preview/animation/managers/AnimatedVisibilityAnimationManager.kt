@@ -28,8 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * This class handles AnimatedVisibility composable. It animates the appearance and disappearance of
- * its content.
+ * This class handles AnimatedVisibility composable. It animates the appearance and disappearance of its content.
  *
  * Animation can be in one of 2 states Enter or Exit, see [AnimatedVisibilityState] in AndroidX
  */
@@ -40,8 +39,7 @@ class AnimatedVisibilityAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  executeInRenderSession:
-    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
+  executeInRenderSession: suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -63,20 +61,14 @@ class AnimatedVisibilityAnimationManager(
     scope,
   ) {
 
-  override val animationState: SingleState<*> =
-    SingleState(tracker, animation.states, animation.states.firstOrNull())
+  override val animationState: SingleState<*> = SingleState(tracker, animation.states, animation.states.firstOrNull())
 
   /** Initializes the state of the Compose animation before it starts */
   override suspend fun setupInitialAnimationState() {
-    executeInRenderSession(true, false) {
-      animationState.setInitialState(animationClock.getAnimatedVisibilityState(animation))
-    }
+    executeInRenderSession(true, false) { animationState.setInitialState(animationClock.getAnimatedVisibilityState(animation)) }
   }
 
-  /**
-   * Updates the actual animation in Compose to set its state based on the selected value of
-   * [animationState].
-   */
+  /** Updates the actual animation in Compose to set its state based on the selected value of [animationState]. */
   override suspend fun syncAnimationWithState() {
     animationClock.apply {
       val state = animationState.state.value ?: return

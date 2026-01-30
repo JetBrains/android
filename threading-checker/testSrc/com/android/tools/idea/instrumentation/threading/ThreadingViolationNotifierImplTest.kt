@@ -22,8 +22,8 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ui.UIUtil
-import org.junit.Test
 import java.util.Collections
+import org.junit.Test
 
 internal class ThreadingViolationNotifierImplTest : LightPlatformTestCase() {
   private val notifications: MutableList<Notification> = Collections.synchronizedList(mutableListOf())
@@ -31,13 +31,19 @@ internal class ThreadingViolationNotifierImplTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    ApplicationManager.getApplication().messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        if (notification.groupId == "Threading Violation Notification") {
-          notifications += notification
-        }
-      }
-    })
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect(testRootDisposable)
+      .subscribe(
+        Notifications.TOPIC,
+        object : Notifications {
+          override fun notify(notification: Notification) {
+            if (notification.groupId == "Threading Violation Notification") {
+              notifications += notification
+            }
+          }
+        },
+      )
     notifications.clear()
   }
 

@@ -103,9 +103,7 @@ class RoomSchemaManager(val module: Module) {
     // Some of this logic is repeated in [RoomReferenceSearchExecutor], make sure to keep them in sync.
     val entities = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.ENTITY) { createTable(it, RoomTable.Type.ENTITY) }
     val views = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DATABASE_VIEW) { createTable(it, RoomTable.Type.VIEW) }
-    val daos = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DAO) {
-      Dao(pointerManager.createSmartPsiElementPointer(it))
-    }
+    val daos = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DAO) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
     val databases = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DATABASE) { this.createDatabase(it, pointerManager, daos) }
 
     return RoomSchema(databases, entities + views, daos)
@@ -119,7 +117,7 @@ class RoomSchemaManager(val module: Module) {
     psiFacade: JavaPsiFacade,
     scope: GlobalSearchScope,
     annotation: AndroidxName,
-    processor: (PsiClass) -> T?
+    processor: (PsiClass) -> T?,
   ): Set<T> {
     val allScope = GlobalSearchScope.allScope(psiFacade.project)
     return buildSet {
@@ -131,30 +129,33 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun createTable(psiClass: PsiClass, type: RoomTable.Type): RoomTable? {
-    val (tableName, tableNameElement) = getNameAndNameElement(
-      psiClass,
-      annotationName = when (type) {
-        RoomTable.Type.ENTITY -> RoomAnnotations.ENTITY
-        RoomTable.Type.VIEW -> RoomAnnotations.DATABASE_VIEW
-      },
-      annotationAttributeName = when (type) {
-        RoomTable.Type.ENTITY -> "tableName"
-        RoomTable.Type.VIEW -> "viewName"
-      }
-    ) ?: return null
+    val (tableName, tableNameElement) =
+      getNameAndNameElement(
+        psiClass,
+        annotationName =
+          when (type) {
+            RoomTable.Type.ENTITY -> RoomAnnotations.ENTITY
+            RoomTable.Type.VIEW -> RoomAnnotations.DATABASE_VIEW
+          },
+        annotationAttributeName =
+          when (type) {
+            RoomTable.Type.ENTITY -> "tableName"
+            RoomTable.Type.VIEW -> "viewName"
+          },
+      ) ?: return null
 
     return RoomTable(
       pointerManager.createSmartPsiElementPointer(psiClass),
       type,
       tableName,
       pointerManager.createSmartPsiElementPointer(tableNameElement),
-      createColumns(psiClass, tableName, type)
+      createColumns(psiClass, tableName, type),
     )
   }
 
   private fun createColumns(psiClass: PsiClass, tableName: String, type: RoomTable.Type): Set<AndroidSqlColumn> {
-    val columns = createColumnsFromFields(psiClass,
-                                          useMethods = psiClass.hasAnnotation(AUTO_VALUE_ANNOTATION)).toHashSet<AndroidSqlColumn>()
+    val columns =
+      createColumnsFromFields(psiClass, useMethods = psiClass.hasAnnotation(AUTO_VALUE_ANNOTATION)).toHashSet<AndroidSqlColumn>()
     val tableElement = pointerManager.createSmartPsiElementPointer(psiClass).element!!
     val primaryKeyElement = columns.find { it.isPrimaryKey }
     if (psiClass.annotations.any(::isFtsAnnotation)) {
@@ -164,8 +165,7 @@ class RoomSchemaManager(val module: Module) {
     if (primaryKeyElement == null && type != RoomTable.Type.VIEW) {
       // ROWID can be referenced in queries using multiple special names [alternativePrimaryKeysNames], but doesn't need to be declared.
       // See [SQLite docs](https://sqlite.org/lang_createtable.html#rowid).
-      columns.add(RoomRowidColumn(
-        PsiElementForFakeColumn(tableElement), getPrimaryKeyNames(psiClass)))
+      columns.add(RoomRowidColumn(PsiElementForFakeColumn(tableElement), getPrimaryKeyNames(psiClass)))
     }
 
     return columns
@@ -197,24 +197,24 @@ class RoomSchemaManager(val module: Module) {
         val embeddedAnnotation = psiMember.modifierList?.findAnnotation(RoomAnnotations.EMBEDDED)
         if (embeddedAnnotation != null) {
           createColumnsFromEmbeddedField(psiMember, embeddedAnnotation, namePrefix)
-        }
-        else {
-          val thisField = getNameAndNameElement(
-            psiMember as? PsiField ?: psiMember as PsiMethod,
-            annotationName = RoomAnnotations.COLUMN_INFO,
-            annotationAttributeName = "name"
-          )
-            ?.let { (columnName, columnNameElement) ->
-              val isPrimaryKey = psiMember.modifierList?.findAnnotation(RoomAnnotations.PRIMARY_KEY) != null
-
-              RoomMemberColumn(
-                pointerManager.createSmartPsiElementPointer(psiMember),
-                namePrefix + columnName,
-                pointerManager.createSmartPsiElementPointer(columnNameElement),
-                isPrimaryKey,
-                if (isPrimaryKey) getPrimaryKeyNames(psiClass) else emptySet()
+        } else {
+          val thisField =
+            getNameAndNameElement(
+                psiMember as? PsiField ?: psiMember as PsiMethod,
+                annotationName = RoomAnnotations.COLUMN_INFO,
+                annotationAttributeName = "name",
               )
-            }
+              ?.let { (columnName, columnNameElement) ->
+                val isPrimaryKey = psiMember.modifierList?.findAnnotation(RoomAnnotations.PRIMARY_KEY) != null
+
+                RoomMemberColumn(
+                  pointerManager.createSmartPsiElementPointer(psiMember),
+                  namePrefix + columnName,
+                  pointerManager.createSmartPsiElementPointer(columnNameElement),
+                  isPrimaryKey,
+                  if (isPrimaryKey) getPrimaryKeyNames(psiClass) else emptySet(),
+                )
+              }
 
           if (thisField != null) sequenceOf(thisField) else emptySequence()
         }
@@ -224,10 +224,9 @@ class RoomSchemaManager(val module: Module) {
   private fun createColumnsFromEmbeddedField(
     embeddedMember: PsiMember,
     embeddedAnnotation: PsiAnnotation,
-    currentPrefix: String
+    currentPrefix: String,
   ): Sequence<RoomMemberColumn> {
-    val newPrefix = embeddedAnnotation.getAttributeValue("prefix")?.evaluate() as? String
-                    ?: ""
+    val newPrefix = embeddedAnnotation.getAttributeValue("prefix")?.evaluate() as? String ?: ""
 
     val type = (embeddedMember as? PsiField)?.type ?: (embeddedMember as PsiMethod).returnType
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(type) ?: return emptySequence()
@@ -235,42 +234,41 @@ class RoomSchemaManager(val module: Module) {
     return createColumnsFromFields(embeddedClass, currentPrefix + newPrefix, false)
   }
 
-  private fun PsiAnnotation.extractClassesFromAttribute(attribute: String): Set<PsiClassPointer> = findDeclaredAttributeValue(attribute)
-                                                                                                     ?.let { it as? PsiArrayInitializerMemberValue }
-                                                                                                     ?.initializers
-                                                                                                     ?.mapNotNullTo(HashSet()) {
-                                                                                                       val classObjectAccessExpression = it as? PsiClassObjectAccessExpression
-                                                                                                                                         ?: return@mapNotNullTo null
-                                                                                                       PsiUtil.resolveClassInClassTypeOnly(
-                                                                                                         classObjectAccessExpression.operand.type)
-                                                                                                         ?.let(
-                                                                                                           pointerManager::createSmartPsiElementPointer)
-                                                                                                     } ?: emptySet()
+  private fun PsiAnnotation.extractClassesFromAttribute(attribute: String): Set<PsiClassPointer> =
+    findDeclaredAttributeValue(attribute)
+      ?.let { it as? PsiArrayInitializerMemberValue }
+      ?.initializers
+      ?.mapNotNullTo(HashSet()) {
+        val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
+        PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)?.let(pointerManager::createSmartPsiElementPointer)
+      } ?: emptySet()
 
   private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager, daos: Set<Dao>): RoomDatabase? {
     val dataBaseAnnotation = psiClass.modifierList?.findAnnotation(RoomAnnotations.DATABASE) ?: return null
     val entities: Set<PsiClassPointer> = dataBaseAnnotation.extractClassesFromAttribute("entities")
     val views: Set<PsiClassPointer> = dataBaseAnnotation.extractClassesFromAttribute("views")
 
-    val daosExposedInDatabase: Set<PsiClassPointer> = psiClass.allMethods
-      .mapNotNullTo((HashSet())) {
+    val daosExposedInDatabase: Set<PsiClassPointer> =
+      psiClass.allMethods.mapNotNullTo((HashSet())) {
         val resolvedClass = (it.returnType as? PsiClassReferenceType)?.resolve()
         resolvedClass
           ?.takeIf { daos.any { dao -> dao.psiClass.element == resolvedClass } }
           ?.let(pointerManager::createSmartPsiElementPointer)
       }
 
-    return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entities = entities, daos = daosExposedInDatabase,
-                        views = views)
+    return RoomDatabase(
+      pointerManager.createSmartPsiElementPointer(psiClass),
+      entities = entities,
+      daos = daosExposedInDatabase,
+      views = views,
+    )
   }
 
   private fun <T> getNameAndNameElement(
     element: T,
     annotationName: AndroidxName,
-    annotationAttributeName: String
-  ): Pair<String, PsiElement>?
-    where T : PsiModifierListOwner,
-          T : PsiNamedElement {
+    annotationAttributeName: String,
+  ): Pair<String, PsiElement>? where T : PsiModifierListOwner, T : PsiNamedElement {
     // First look for the annotation that can override the name:
     val nameFromAnnotation = getAnnotationAndAnnotationName(element, annotationName, annotationAttributeName)
     if (nameFromAnnotation != null) return nameFromAnnotation
@@ -283,21 +281,16 @@ class RoomSchemaManager(val module: Module) {
     return nameInCode to element
   }
 
-  private fun KtLightField.getPropertyAnnotationExpression(
-    annotationName: AndroidxName,
-    annotationAttributeName: String
-  ): KtExpression? {
+  private fun KtLightField.getPropertyAnnotationExpression(annotationName: AndroidxName, annotationAttributeName: String): KtExpression? {
     val annotationEntry =
-      kotlinOrigin
-        ?.annotationEntries
-        ?.firstOrNull { it.fqNameMatches(annotationName.oldName()) || it.fqNameMatches(annotationName.newName()) }
-      ?: return null
+      kotlinOrigin?.annotationEntries?.firstOrNull {
+        it.fqNameMatches(annotationName.oldName()) || it.fqNameMatches(annotationName.newName())
+      } ?: return null
 
     // Property annotation it is annotation without target
     return if (annotationEntry.useSiteTarget == null) {
       annotationEntry.findArgumentExpression(annotationAttributeName)
-    }
-    else {
+    } else {
       null
     }
   }
@@ -310,10 +303,8 @@ class RoomSchemaManager(val module: Module) {
   private fun <T> getAnnotationAndAnnotationName(
     element: T,
     annotationName: AndroidxName,
-    annotationAttributeName: String
-  ): Pair<String, PsiElement>?
-    where T : PsiModifierListOwner,
-          T : PsiNamedElement {
+    annotationAttributeName: String,
+  ): Pair<String, PsiElement>? where T : PsiModifierListOwner, T : PsiNamedElement {
     val annotation = element.modifierList?.findAnnotation(annotationName)
     val nameExpression = annotation?.getAttributeValue(annotationAttributeName)
     val name = nameExpression?.evaluate() as? String
@@ -321,8 +312,10 @@ class RoomSchemaManager(val module: Module) {
       return name to nameExpression.sourcePsi!!
     }
 
-    // There is special case for KtLightField when we have annotation without target (property annotation) e.g. @ColumnInfo(name = 'override_name')
-    // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD target
+    // There is special case for KtLightField when we have annotation without target (property annotation) e.g. @ColumnInfo(name =
+    // 'override_name')
+    // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD
+    // target
     if (name == null && element is KtLightField) {
       val ktExpression = element.getPropertyAnnotationExpression(annotationName, annotationAttributeName)
       ktExpression?.tryEvaluateConstant()?.let {

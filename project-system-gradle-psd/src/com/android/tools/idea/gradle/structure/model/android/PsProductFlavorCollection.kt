@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.project.sync.FAKE_DIMENSION
 import com.android.tools.idea.gradle.structure.model.meta.asString
 
-internal class PsProductFlavorCollection(parent: PsAndroidModule)
-  : PsMutableCollectionBase<PsProductFlavor, PsProductFlavorKey, PsAndroidModule>(parent) {
+internal class PsProductFlavorCollection(parent: PsAndroidModule) :
+  PsMutableCollectionBase<PsProductFlavor, PsProductFlavorKey, PsAndroidModule>(parent) {
   init {
     refresh()
   }
@@ -32,17 +32,22 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
     val silentDimension =
       from.parsedModel?.android()?.flavorDimensions()?.toList()?.takeIf { it.size == 1 }?.let { it[0]?.toString() }.orEmpty()
     result.addAll(
-      from.parsedModel?.android()
+      from.parsedModel
+        ?.android()
         ?.productFlavors()
-        ?.map { PsProductFlavorKey(it.dimension().asString() ?: silentDimension, it.name()) }.orEmpty())
+        ?.map { PsProductFlavorKey(it.dimension().asString() ?: silentDimension, it.name()) }
+        .orEmpty()
+    )
     val parsedNames = result.map { it.name }.toSet()
     result.addAll(
-      from.resolvedModel?.androidProject?.multiVariantData
+      from.resolvedModel
+        ?.androidProject
+        ?.multiVariantData
         ?.productFlavors
         ?.filter { !parsedNames.contains(it.productFlavor.name) }
-        ?.map {
-          PsProductFlavorKey(it.productFlavor.dimension?.takeIf { it != FAKE_DIMENSION }.orEmpty(), it.productFlavor.name)
-        }.orEmpty())
+        ?.map { PsProductFlavorKey(it.productFlavor.dimension?.takeIf { it != FAKE_DIMENSION }.orEmpty(), it.productFlavor.name) }
+        .orEmpty()
+    )
     return result
   }
 
@@ -52,19 +57,13 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
   override fun update(key: PsProductFlavorKey, model: PsProductFlavor) {
     model.init(
       parent.resolvedModel?.androidProject?.multiVariantData?.productFlavors?.map { it.productFlavor }?.firstOrNull { it.name == key.name },
-      parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key.name }
+      parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key.name },
     )
   }
 
   override fun instantiateNew(key: PsProductFlavorKey) {
     if (entries.keys.any { it.name == key.name }) throw RuntimeException("Duplicate flavor name: ${key.name}")
-    parent
-      .parsedModel!!
-      .android()
-      .addProductFlavor(key.name)
-      .also {
-        it.dimension().setValue(key.dimension)
-      }
+    parent.parsedModel!!.android().addProductFlavor(key.name).also { it.dimension().setValue(key.dimension) }
   }
 
   override fun removeExisting(key: PsProductFlavorKey) {

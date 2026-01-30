@@ -105,20 +105,8 @@ class StateInspectionModelTest {
       model(disposableRule.disposable, projectRule.project) {
         view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
           view(VIEW1, 0, 0, 100, 200) {
-            compose(
-              COMPOSE1,
-              "Item",
-              anchorHash = ANCHOR1,
-              composeCount = 2,
-              composeFilename = "MainActivity.kt",
-            )
-            compose(
-              COMPOSE2,
-              "Text",
-              anchorHash = ANCHOR2,
-              composeCount = 3,
-              composeFilename = "MainActivity.kt",
-            )
+            compose(COMPOSE1, "Item", anchorHash = ANCHOR1, composeCount = 2, composeFilename = "MainActivity.kt")
+            compose(COMPOSE2, "Text", anchorHash = ANCHOR2, composeCount = 3, composeFilename = "MainActivity.kt")
           }
         }
       }
@@ -158,10 +146,7 @@ class StateInspectionModelTest {
     assertThat(content.updates).isEqualTo(3)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.emptyStateText)
-      .isEqualTo(
-        "The selected composable has not recomposed yet.\n" +
-          "Try interacting with the app to cause recompositions."
-      )
+      .isEqualTo("The selected composable has not recomposed yet.\n" + "Try interacting with the app to cause recompositions.")
     assertThat(content.stateReadsText).isEmpty()
     assertThat(content.stackTraceText).isEmpty()
     assertThat(content.composableInspected).isNull()
@@ -187,11 +172,10 @@ class StateInspectionModelTest {
             at androidx.SnapshotKt.readable(Snapshot.kt:225)
 
 
-      """
+        """
           .trimIndent()
       )
-    assertThat(content.composableInspected)
-      .isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
+    assertThat(content.composableInspected).isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -245,11 +229,10 @@ class StateInspectionModelTest {
             at androidx.SnapshotKt.readable(Snapshot.kt:225)
 
 
-      """
+        """
           .trimIndent()
       )
-    assertThat(content.composableInspected)
-      .isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
+    assertThat(content.composableInspected).isEqualTo(ComposableDefinition("Item", "MainActivity.kt"))
     assertThat(model.prevAction.isEnabled()).isTrue()
     assertThat(model.nextAction.isEnabled()).isFalse()
     assertThat(model.minimizeAction.isEnabled()).isTrue()
@@ -265,10 +248,7 @@ class StateInspectionModelTest {
     assertThat(content.updates).isEqualTo(7)
     assertThat(content.recompositionText).isEqualTo("Node is not observed")
     assertThat(content.emptyStateText)
-      .isEqualTo(
-        "The selected composable is not being observed.\n" +
-          "Select a different node to see recomposition state reads."
-      )
+      .isEqualTo("The selected composable is not being observed.\n" + "Select a different node to see recomposition state reads.")
 
     assertThat(content.stateReadsText).isEmpty()
     assertThat(content.stackTraceText).isEmpty()
@@ -287,10 +267,7 @@ class StateInspectionModelTest {
     assertThat(content.updates).isEqualTo(8)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.emptyStateText)
-      .isEqualTo(
-        "The selected composable has not recomposed yet.\n" +
-          "Try interacting with the app to cause recompositions."
-      )
+      .isEqualTo("The selected composable has not recomposed yet.\n" + "Try interacting with the app to cause recompositions.")
     assertThat(content.stateReadsText).isEmpty()
     assertThat(content.stackTraceText).isEmpty()
     assertThat(content.composableInspected).isNull()
@@ -325,20 +302,8 @@ class StateInspectionModelTest {
     val updatedRecompositionCounts =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
         view(VIEW1, 0, 0, 100, 200) {
-          compose(
-            COMPOSE1,
-            "Item",
-            anchorHash = ANCHOR1,
-            composeCount = 3,
-            composeFilename = "MainActivity.kt",
-          )
-          compose(
-            COMPOSE2,
-            "Text",
-            anchorHash = ANCHOR2,
-            composeCount = 3,
-            composeFilename = "MainActivity.kt",
-          )
+          compose(COMPOSE1, "Item", anchorHash = ANCHOR1, composeCount = 3, composeFilename = "MainActivity.kt")
+          compose(COMPOSE2, "Text", anchorHash = ANCHOR2, composeCount = 3, composeFilename = "MainActivity.kt")
         }
       }
     inspectorModel.update(updatedRecompositionCounts, listOf(ROOT), 0)
@@ -352,8 +317,7 @@ class StateInspectionModelTest {
     model.nextAction.perform()
     testScheduler.advanceUntilIdle()
     content = model.content.value
-    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
-      .isEqualTo(StateReadKey(compose1, 3))
+    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 3))
     assertThat(content.updates).isEqualTo(6)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.stateReadsText).isEmpty()
@@ -370,8 +334,7 @@ class StateInspectionModelTest {
 
     model.prevAction.perform()
     testScheduler.advanceUntilIdle()
-    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
-      .isEqualTo(StateReadKey(compose1, 2))
+    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 2))
     content = model.content.value
     assertThat(content.updates).isEqualTo(8)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
@@ -390,16 +353,13 @@ class StateInspectionModelTest {
     model.prevAction.perform()
     testScheduler.advanceUntilIdle()
     content = model.content.value
-    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value)
-      .isEqualTo(StateReadKey(compose1, 1))
+    assertThat(inspectorModel.stateReadsModel.stateReadRequested.value).isEqualTo(StateReadKey(compose1, 1))
     assertThat(content.updates).isEqualTo(10)
     assertThat(content.recompositionText).isEqualTo("Waiting for interactions")
     assertThat(content.stateReadsText).isEmpty()
     assertThat(content.stackTraceText).isEmpty()
 
-    inspectorModel.stateReadsModel.stateReads.emit(
-      read1Anchor1.convert(compose1, 1, hasPrevious = false)
-    )
+    inspectorModel.stateReadsModel.stateReads.emit(read1Anchor1.convert(compose1, 1, hasPrevious = false))
     testScheduler.advanceUntilIdle()
     content = model.content.value
     assertThat(content.updates).isEqualTo(11)
@@ -433,28 +393,14 @@ class StateInspectionModelTest {
 
   private fun AnAction.isEnabled(): Boolean {
     val presentation = templatePresentation.clone()
-    val event =
-      AnActionEvent.createEvent(
-        DataContext.EMPTY_CONTEXT,
-        presentation,
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.NONE,
-        null,
-      )
+    val event = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, presentation, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     ActionUtil.updateAction(this, event)
     return presentation.isEnabled
   }
 
   private fun AnAction.perform() {
     val presentation = templatePresentation.clone()
-    val event =
-      AnActionEvent.createEvent(
-        DataContext.EMPTY_CONTEXT,
-        presentation,
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.NONE,
-        null,
-      )
+    val event = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, presentation, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     runInEdtAndWait {
       ActionUtil.updateAction(this, event)
       ActionUtil.performAction(this, event)

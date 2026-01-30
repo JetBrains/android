@@ -18,10 +18,7 @@ package com.android.tools.idea.common.error
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
-private val EP_NAME =
-  ExtensionPointName<IssueFixActionProvider>(
-    "com.android.tools.idea.designer.issueFixActionProvider"
-  )
+private val EP_NAME = ExtensionPointName<IssueFixActionProvider>("com.android.tools.idea.designer.issueFixActionProvider")
 
 /** Extension point to provide actions for issues in the issue panel. */
 interface IssueFixActionProvider {

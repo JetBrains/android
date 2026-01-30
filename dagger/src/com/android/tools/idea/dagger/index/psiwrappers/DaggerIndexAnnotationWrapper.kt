@@ -27,43 +27,33 @@ interface DaggerIndexAnnotationWrapper : DaggerIndexPsiWrapper {
   fun getAnnotationNameInSource(): String
 
   /**
-   * Various Dagger attributes have arguments that list out class names. As an example:
-   * `@Component(modules = [Module1::class, Module2::class])`
+   * Various Dagger attributes have arguments that list out class names. As an example: `@Component(modules =
+   * [Module1::class, Module2::class])`
    *
-   * This method returns the names of the classes that are listed in a given argument, in the form
-   * they're written. The above example would return `["Module1", "Module2"]`.
+   * This method returns the names of the classes that are listed in a given argument, in the form they're written. The above example would
+   * return `["Module1", "Module2"]`.
    */
   fun getArgumentClassNames(argumentName: String): List<String>
 }
 
-internal class KtAnnotationEntryWrapper(private val ktAnnotationEntry: KtAnnotationEntry) :
-  DaggerIndexAnnotationWrapper {
+internal class KtAnnotationEntryWrapper(private val ktAnnotationEntry: KtAnnotationEntry) : DaggerIndexAnnotationWrapper {
   override fun getAnnotationNameInSource(): String = ktAnnotationEntry.typeReference!!.text
 
   override fun getArgumentClassNames(argumentName: String): List<String> {
-    val argument =
-      ktAnnotationEntry.valueArgumentList?.arguments?.firstOrNull {
-        it.getArgumentName()?.text == argumentName
-      }
-    return argument
-      ?.getArgumentExpression()
-      ?.childrenOfType<KtClassLiteralExpression>()
-      ?.mapNotNull { it.lhs?.text } ?: emptyList()
+    val argument = ktAnnotationEntry.valueArgumentList?.arguments?.firstOrNull { it.getArgumentName()?.text == argumentName }
+    return argument?.getArgumentExpression()?.childrenOfType<KtClassLiteralExpression>()?.mapNotNull { it.lhs?.text } ?: emptyList()
   }
 }
 
-internal class PsiAnnotationWrapper(private val psiAnnotation: PsiAnnotation) :
-  DaggerIndexAnnotationWrapper {
+internal class PsiAnnotationWrapper(private val psiAnnotation: PsiAnnotation) : DaggerIndexAnnotationWrapper {
   override fun getAnnotationNameInSource(): String = psiAnnotation.nameReferenceElement!!.text
 
   override fun getArgumentClassNames(argumentName: String): List<String> {
-    val argumentValue =
-      psiAnnotation.parameterList.attributes.firstOrNull { it.name == argumentName }?.value
+    val argumentValue = psiAnnotation.parameterList.attributes.firstOrNull { it.name == argumentName }?.value
     return if (argumentValue is PsiClassObjectAccessExpression) {
       listOf(argumentValue.operand.text)
     } else {
-      argumentValue?.childrenOfType<PsiClassObjectAccessExpression>()?.map { it.operand.text }
-        ?: emptyList()
+      argumentValue?.childrenOfType<PsiClassObjectAccessExpression>()?.map { it.operand.text } ?: emptyList()
     }
   }
 }

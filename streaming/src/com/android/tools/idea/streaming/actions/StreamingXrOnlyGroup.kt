@@ -29,6 +29,6 @@ internal class StreamingXrOnlyGroup : DefaultActionGroup() {
     super.update(event)
     // Enabled only for XR devices.
     event.presentation.isEnabledAndVisible =
-        getDeviceType(event) == DeviceType.XR_HEADSET && getXrInputController(event)?.isXrInputAvailable == true
+      getDeviceType(event) == DeviceType.XR_HEADSET && getXrInputController(event)?.isXrInputAvailable == true
   }
 }

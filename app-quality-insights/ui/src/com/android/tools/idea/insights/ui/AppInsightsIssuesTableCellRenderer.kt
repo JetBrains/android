@@ -82,13 +82,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     renderer.removeAll()
     renderer.clear()
     val foreground = if (selected) table.selectionForeground else table.foreground
-    renderer.icon =
-      getFatalityIcon(
-        issue.issueDetails.fatality,
-        selected,
-        foreground,
-        issue.issueDetails.notesCount > 0,
-      )
+    renderer.icon = getFatalityIcon(issue.issueDetails.fatality, selected, foreground, issue.issueDetails.notesCount > 0)
     var availableWidth = table.columnModel.getColumn(0).width.toFloat() - JBUI.scale(30)
 
     signalPanel.removeAll()
@@ -119,8 +113,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
       val methodAttrs = SimpleTextAttributes(style or SimpleTextAttributes.STYLE_BOLD, null)
       val methodFont = renderer.font.deriveFont(methodAttrs.style)
       val methodFontMetrics = rendererPanel.getFontMetrics(methodFont)
-      val methodText =
-        AdtUiUtils.shrinkToFit(methodName, methodFontMetrics, availableWidth, TRUNCATE_START)
+      val methodText = AdtUiUtils.shrinkToFit(methodName, methodFontMetrics, availableWidth, TRUNCATE_START)
       availableWidth -= methodFontMetrics.stringWidth(methodText)
 
       if (methodText == methodName) {
@@ -128,8 +121,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
       }
       renderer.append(methodText, methodAttrs)
     }
-    rendererPanel.toolTipText =
-      "<html>${issue.issueDetails.title}<br>${issue.issueDetails.subtitle}</html>"
+    rendererPanel.toolTipText = "<html>${issue.issueDetails.title}<br>${issue.issueDetails.subtitle}</html>"
     rendererPanel.background = if (selected) table.selectionBackground else table.background
     renderer.border = JBUI.Borders.empty()
     return rendererPanel
@@ -139,14 +131,6 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     val classAttrs = SimpleTextAttributes(style, null)
     val classFont = renderer.font.deriveFont(classAttrs.style)
     val classText = "$className."
-    renderer.append(
-      AdtUiUtils.shrinkToFit(
-        classText,
-        rendererPanel.getFontMetrics(classFont),
-        availableWidth,
-        TRUNCATE_START,
-      ),
-      classAttrs,
-    )
+    renderer.append(AdtUiUtils.shrinkToFit(classText, rendererPanel.getFontMetrics(classFont), availableWidth, TRUNCATE_START), classAttrs)
   }
 }

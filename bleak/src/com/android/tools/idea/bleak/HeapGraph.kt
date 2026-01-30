@@ -34,32 +34,37 @@ interface DoNotTrace
 
 typealias Node = HeapGraph.Node
 
-/** [HeapGraph] represents a slightly-abstracted snapshot of the Java object reference graph.
- * Each node corresponds to a single object, and edges represent references, either real, or
- * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
+/**
+ * [HeapGraph] represents a slightly-abstracted snapshot of the Java object reference graph. Each node corresponds to a single object, and
+ * edges represent references, either real, or abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbiddenObjects: List<Any> = listOf()): DoNotTrace {
+class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbiddenObjects: List<Any> = listOf()) : DoNotTrace {
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true))
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
+
   val leakRoots: MutableList<Node> = mutableListOf()
 
-  inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
+  inner class Node(val obj: Any, val isRootNode: Boolean = false) : DoNotTrace {
     val expander = expanderChooser.expanderFor(obj)
     val edges = mutableListOf<Edge>()
     val type: Class<*> = obj.javaClass
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
     val children: List<Node>
       get() = edges.map { it.end }
+
     val childObjects: List<Any>
       get() = edges.map { it.end.obj }
+
     val degree: Int
       get() = edges.size
+
     var mark = 0
     var growing = false
       private set
+
     private var approximateSize = -1L
 
     init {
@@ -124,21 +129,27 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     // trashes marks
     private fun isReachableFrom(n: Node, followWeakSoftRefs: Boolean = false): Boolean {
       var found = false
-      bfs(roots = listOf(n), followWeakSoftRefs = followWeakSoftRefs) { if (this@Node === this@bfs) found = true; return@bfs }
+      bfs(roots = listOf(n), followWeakSoftRefs = followWeakSoftRefs) {
+        if (this@Node === this@bfs) found = true
+        return@bfs
+      }
       return found
     }
 
     // trashes marks and incomingEdges
     fun shortestPathTo(n: Node, followWeakSoftRefs: Boolean = false): Path? {
       var found = false
-      bfs(roots = listOf(this), setIncomingEdges = true, followWeakSoftRefs = followWeakSoftRefs) { if (n === this@bfs) found = true; return@bfs }
-      return if(found) n.getPath { it.end === this } else null
+      bfs(roots = listOf(this), setIncomingEdges = true, followWeakSoftRefs = followWeakSoftRefs) {
+        if (n === this@bfs) found = true
+        return@bfs
+      }
+      return if (found) n.getPath { it.end === this } else null
     }
 
     // trashes marks
     fun dominates(target: Node, roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false): Boolean {
       var found = false
-      bfs (roots = roots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !== this }) {
+      bfs(roots = roots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !== this }) {
         if (this@bfs === target) {
           found = true
           return@bfs
@@ -148,7 +159,8 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     }
 
     // trashes marks
-    private fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
+    private fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) =
+      dominatedNodes(setOf(this), roots)
 
     fun retainedSize() = dominatedNodes().fold(0L) { acc, node -> acc + node.approximateSize }
   }
@@ -159,9 +171,12 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
 
   fun expandWholeGraph(initialRun: Boolean = false): HeapGraph {
     withThreadsPaused {
-        time("Expanding graph") {
-          bfs { expand(); if (initialRun && expander.canPotentiallyGrowIndefinitely(this)) markAsGrowing() }
+      time("Expanding graph") {
+        bfs {
+          expand()
+          if (initialRun && expander.canPotentiallyGrowIndefinitely(this)) markAsGrowing()
         }
+      }
     }
     println("Graph has ${nodes.size} nodes")
     return this
@@ -186,30 +201,40 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
 
   private fun markAll(value: Int = 0) = forEachNode { mark = value }
 
-  /** Performs breadth-first search on the graph.
+  /**
+   * Performs breadth-first search on the graph.
    *
    * @param clearMarks If true, sets all node marks to [markValue]-1
    * @param markValue When a node is encountered, its [mark] is set to [markValue] so it won't be traversed again.
    * @param setIncomingEdges If true, sets each traversed node's [incomingEdge] to the edge that caused it to be added to the queue.
    * @param followWeakSoftRefs Whether to follow weak and soft references.
-   * @param childFilter provides an opportunity to restrict the search scope: nodes for which this returns false will not be
-   * added to the queue.
+   * @param childFilter provides an opportunity to restrict the search scope: nodes for which this returns false will not be added to the
+   *   queue.
    * @param rootNodes The starting points for the search. Defaults to the HeapGraph roots.
    * @param action is executed on each node as it is removed from the queue
    */
-  private fun bfs(clearMarks: Boolean = true, markValue: Int = 1, setIncomingEdges: Boolean = false, followWeakSoftRefs: Boolean = true,
-                  childFilter: (Node) -> Boolean = { true }, roots: Collection<Node> = rootNodes, action: Node.() -> Unit) {
+  private fun bfs(
+    clearMarks: Boolean = true,
+    markValue: Int = 1,
+    setIncomingEdges: Boolean = false,
+    followWeakSoftRefs: Boolean = true,
+    childFilter: (Node) -> Boolean = { true },
+    roots: Collection<Node> = rootNodes,
+    action: Node.() -> Unit,
+  ) {
     if (clearMarks) markAll(markValue - 1)
     if (setIncomingEdges) nodes.forEach { it.incomingEdge = null }
-    roots.forEach {it.mark = markValue}
-    with (ArrayDeque<Node>()) {
+    roots.forEach { it.mark = markValue }
+    with(ArrayDeque<Node>()) {
       addAll(roots)
       while (isNotEmpty()) {
         val n = pop()
         n.action()
         for (e in n.edges) {
           val child = e.end
-          if (child.mark != markValue && childFilter(child) && !(followWeakSoftRefs && Reference::class.java.isAssignableFrom(child.type))) {
+          if (
+            child.mark != markValue && childFilter(child) && !(followWeakSoftRefs && Reference::class.java.isAssignableFrom(child.type))
+          ) {
             if (setIncomingEdges && child.incomingEdge == null) child.incomingEdge = e
             add(child)
           }
@@ -252,7 +277,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
         for (leakRoot in leakRoots) {
           val newNode = newGraph.getNodeForPath(leakRoot.getPath(), true)
           if (newNode != null) {
-            newNode.expand()  // need to expand fully at the end to figure out how many children there are
+            newNode.expand() // need to expand fully at the end to figure out how many children there are
             if (leakRoot.degree < newNode.degree) {
               newNode.markAsGrowing()
             }
@@ -264,11 +289,14 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
   }
 
   fun getLeaks(prevGraph: HeapGraph, ignoreList: IgnoreList<LeakInfo>, dominatorTimeout: Duration): List<LeakInfo> {
-    val leaks = leakRoots.mapNotNull { root ->
-      (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
-        LeakInfo(this, root, prevRoot)
-      }
-    }.filterNot { ignoreList.matches(it) }
+    val leaks =
+      leakRoots
+        .mapNotNull { root ->
+          (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
+            LeakInfo(this, root, prevRoot)
+          }
+        }
+        .filterNot { ignoreList.matches(it) }
     var startTime = System.currentTimeMillis()
     leaks.forEach { leak ->
       if (System.currentTimeMillis() - startTime > dominatorTimeout.toMillis()) return@forEach
@@ -280,14 +308,17 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
 
   private fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
     var found = false
-    bfs(roots = roots, setIncomingEdges = true) { if (this@bfs in this@anyReachableFrom) found = true; return@bfs }
+    bfs(roots = roots, setIncomingEdges = true) {
+      if (this@bfs in this@anyReachableFrom) found = true
+      return@bfs
+    }
     return found
   }
 
   fun dominatedNodes(dominators: Set<Node>, traversalRoots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false): List<Node> {
     val dominated = mutableListOf<Node>()
-    bfs (roots = traversalRoots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !in dominators }) {}
-    bfs (clearMarks = false, markValue = 2, roots = dominators, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it.mark != 1 }) {
+    bfs(roots = traversalRoots, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it !in dominators }) {}
+    bfs(clearMarks = false, markValue = 2, roots = dominators, followWeakSoftRefs = followWeakSoftRefs, childFilter = { it.mark != 1 }) {
       dominated.add(this)
     }
     return dominated
@@ -307,6 +338,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
   }
 
   fun instancesOf(klass: Class<*>) = nodes.filter { it.type === klass }
+
   fun instancesOf(className: String) = nodes.filter { it.type.name == className }
 
   companion object {
@@ -320,10 +352,11 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
   }
 }
 
-class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrace {
+class Edge(val start: Node, val end: Node, val label: Expander.Label) : DoNotTrace {
   init {
     if (end.incomingEdge == null) end.incomingEdge = this
   }
+
   // the signature is only used for ignore-listing
   fun signature(): LeaktraceElement =
     if (start.isRootNode) {
@@ -335,8 +368,11 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
     }
 
   fun previous(): Edge? = start.incomingEdge
+
   private fun isWeak() = start.obj is WeakReference<*>
+
   private fun isSoft() = start.obj is SoftReference<*>
+
   fun isStrong() = !(isWeak() || isSoft())
 
   fun delete() {
@@ -344,8 +380,10 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   }
 }
 
-private fun time (description: String, action: () -> Unit) = println("$description took ${measureTimeMillis(action)}ms")
+private fun time(description: String, action: () -> Unit) = println("$description took ${measureTimeMillis(action)}ms")
 
 private typealias Path = List<Edge>
+
 private fun Path.root() = first().start
+
 private fun Path.tip() = last().end

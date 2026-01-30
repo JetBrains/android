@@ -37,14 +37,14 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import javax.swing.JLabel
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import javax.swing.JLabel
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @org.junit.Ignore("b/323520092")
 class ResourceExplorerToolWindowTest {
@@ -53,7 +53,8 @@ class ResourceExplorerToolWindowTest {
   lateinit var module: Module
   var facet: AndroidFacet? = null
 
-  val project: Project get() = fixture.project
+  val project: Project
+    get() = fixture.project
 
   @Before
   fun before() {
@@ -88,17 +89,17 @@ class ResourceExplorerToolWindowTest {
   }
 
   private fun createHeavyFixture(): CodeInsightTestFixture {
-    IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
-      AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
-      AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
+    IdeaTestFixtureFactory.getFixtureFactory()
+      .registerFixtureBuilder(
+        AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
+        AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java,
+      )
 
-    val projectBuilder = IdeaTestFixtureFactory
-      .getFixtureFactory()
-      .createFixtureBuilder(ResourceExplorerToolWindowTest::class.java.simpleName)
+    val projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(ResourceExplorerToolWindowTest::class.java.simpleName)
     val tempDirFixture = TempDirTestFixtureImpl()
-    val javaCodeInsightTestFixture = JavaTestFixtureFactory
-      .getFixtureFactory()
-      .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
+    val javaCodeInsightTestFixture =
+      JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
     val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
     AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
     return javaCodeInsightTestFixture

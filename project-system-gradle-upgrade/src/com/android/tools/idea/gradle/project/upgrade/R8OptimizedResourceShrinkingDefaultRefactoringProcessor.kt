@@ -23,9 +23,10 @@ import com.intellij.openapi.project.Project
  * Starting with AGP 9.0, the default value of android.r8.optimizedResourceShrinking is now true. This refactoring adds the property if it
  * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha02
  */
-class R8OptimizedResourceShrinkingDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class R8OptimizedResourceShrinkingDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val propertyKey = "android.r8.optimizedResourceShrinking"
   override val oldDefault = false
@@ -34,9 +35,13 @@ class R8OptimizedResourceShrinkingDefaultRefactoringProcessor: AbstractBooleanPr
   override val tooltip = AgpUpgradeBundle.message("useR8OptimizedResourceShrinking.tooltipText")
   override val usageViewHeader = AgpUpgradeBundle.message("useR8OptimizedResourceShrinking.usageView.header")
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.useR8OptimizedResourceShrinking"
+
   override fun getCommandName() = AgpUpgradeBundle.message("useR8OptimizedResourceShrinking.commandName")
+
   override val readMoreUrlRedirect: ReadMoreUrlRedirect? = ReadMoreUrlRedirect("r8-optimized-resource-shrinking")
+
   override fun getShortDescription() = AgpUpgradeBundle.message("useR8OptimizedResourceShrinking.shortDescription")
 
   companion object {

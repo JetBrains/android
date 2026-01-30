@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.entities.gradleModuleModel
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.setup.Facets
+import com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet
 import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -33,11 +34,10 @@ import com.intellij.openapi.util.Computable
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 
-
-/** Applies Gradle settings to the modules of Gradle project.  */
-class GradleModuleModelDataService @Suppress("unused") // Instantiated by IDEA
+/** Applies Gradle settings to the modules of Gradle project. */
+class GradleModuleModelDataService
+@Suppress("unused") // Instantiated by IDEA
 constructor() : ModuleModelDataService<GradleModuleModel>() {
   override fun getTargetDataKey(): Key<GradleModuleModel> {
     return AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -47,27 +47,28 @@ constructor() : ModuleModelDataService<GradleModuleModel>() {
     toImport: Collection<DataNode<GradleModuleModel>>,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
-    modelsByModuleName: MutableMap<String?, DataNode<GradleModuleModel>>
+    modelsByModuleName: MutableMap<String?, DataNode<GradleModuleModel>>,
   ) {
     for (module in modelsProvider.modules) {
       val model = modelsByModuleName[module.name]?.data ?: continue
 
-      val facet = findFacet(module, modelsProvider, GradleFacet.getFacetTypeId()) ?: run {
-        // Create facet if it doesn't exist.
-        val facetType = GradleFacet.getFacetType()
-       facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null).also { facet ->
-         @Suppress("UnstableApiUsage")
-         modelsProvider.getModifiableFacetModel(module).addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
-       }
-      }
+      val facet =
+        findFacet(module, modelsProvider, GradleFacet.getFacetTypeId())
+          ?: run {
+            // Create facet if it doesn't exist.
+            val facetType = GradleFacet.getFacetType()
+            facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null).also { facet ->
+              @Suppress("UnstableApiUsage")
+              modelsProvider
+                .getModifiableFacetModel(module)
+                .addFacet(facet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
+            }
+          }
       facet.updateLastKnownAgpVersion(model)
 
       val storage = (modelsProvider as IdeModifiableModelsProviderImpl).actualStorageBuilder
       storage.modifyModuleEntity(storage.resolve(ModuleId(module.name))!!) {
-        this.gradleModuleModel = GradleModuleModelEntity(
-          entitySource = this@modifyModuleEntity.entitySource,
-          gradleModuleModel = model
-        )
+        this.gradleModuleModel = GradleModuleModelEntity(entitySource = this@modifyModuleEntity.entitySource, gradleModuleModel = model)
       }
     }
   }
@@ -77,7 +78,7 @@ constructor() : ModuleModelDataService<GradleModuleModel>() {
     toIgnore: MutableCollection<out DataNode<GradleModuleModel?>?>,
     projectData: ProjectData,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     for (module in toRemoveComputable.get()) {
       val facetModel: ModifiableFacetModel = modelsProvider.getModifiableFacetModel(module)

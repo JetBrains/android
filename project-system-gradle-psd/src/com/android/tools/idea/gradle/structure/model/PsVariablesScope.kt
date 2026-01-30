@@ -20,24 +20,15 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
 
-/**
- * An interface providing access to variables available in the specific scope.
- */
+/** An interface providing access to variables available in the specific scope. */
 interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
-  /**
-   * The name of the variables scope.
-   */
+  /** The name of the variables scope. */
   val name: String
 
-  /**
-   * The title of the variables scope as it should appear in the UI.
-   */
+  /** The title of the variables scope as it should appear in the UI. */
   val title: String
 
-  /**
-   * Returns a list of variables available in the scope which are suitable for use with
-   * [property].
-   */
+  /** Returns a list of variables available in the scope which are suitable for use with [property]. */
   fun <ValueT : Any> getAvailableVariablesFor(property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>>
 
   /**
@@ -45,10 +36,8 @@ interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
    */
   fun getVariableScopes(): List<PsVariablesScope>
 
-  /**
-   * Returns a new not conflicting name for a new variable in this scope based on the [preferredName].
-   */
-  fun getNewVariableName(preferredName: String) : String
+  /** Returns a new not conflicting name for a new variable in this scope based on the [preferredName]. */
+  fun getNewVariableName(preferredName: String): String
 
   fun getVariable(name: String): PsVariable?
 
@@ -67,22 +56,34 @@ interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
   object NONE : PsVariablesScope {
     override val name: String = ""
     override val title: String = ""
-    override val model: PsModel get() = throw UnsupportedOperationException()
+    override val model: PsModel
+      get() = throw UnsupportedOperationException()
+
     override val items: Collection<PsVariable> = listOf()
     override val entries: Map<String, PsVariable> = mapOf()
+
     override fun findElement(key: String): PsVariable? = null
+
     override fun <ValueT : Any> getAvailableVariablesFor(
-      property: ModelPropertyContext<ValueT>): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
+      property: ModelPropertyContext<ValueT>
+    ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> = listOf()
 
     override fun getVariableScopes(): List<PsVariablesScope> = listOf()
+
     override fun getVariable(name: String): PsVariable? = null
+
     override fun getNewVariableName(preferredName: String): String = throw UnsupportedOperationException()
+
     override fun getOrCreateVariable(name: String): PsVariable = throw UnsupportedOperationException()
+
     override fun addNewVariable(name: String): PsVariable = throw UnsupportedOperationException()
+
     override fun addNewListVariable(name: String): PsVariable = throw UnsupportedOperationException()
+
     override fun addNewMapVariable(name: String): PsVariable = throw UnsupportedOperationException()
+
     override fun removeVariable(name: String) = throw UnsupportedOperationException()
+
     override fun onChange(disposable: Disposable, listener: () -> Unit) = Unit
   }
 }
-

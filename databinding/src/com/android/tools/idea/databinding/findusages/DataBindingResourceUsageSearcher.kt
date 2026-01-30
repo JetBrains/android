@@ -39,15 +39,10 @@ import com.intellij.util.Processor
  * @see org.jetbrains.android.AndroidResourcesFindUsagesHandlerFactory
  */
 class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
-  override fun processElementUsages(
-    element: PsiElement,
-    processor: Processor<in Usage>,
-    options: FindUsagesOptions,
-  ) {
+  override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
     runReadAction {
       if (element !is ResourceReferencePsiElement) return@runReadAction
-      val androidFacet =
-        element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
+      val androidFacet = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
       val bindingModuleCache = LayoutBindingModuleCache.getInstance(androidFacet)
 
       when (element.resourceReference.resourceType) {
@@ -76,9 +71,7 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
           val relevantFields =
             bindingModuleCache
               .getLightBindingClasses()
-              .mapNotNull { bindingClass ->
-                bindingClass.allFields.find { it.name == javaFieldName }
-              }
+              .mapNotNull { bindingClass -> bindingClass.allFields.find { it.name == javaFieldName } }
               .filter {
                 // It's possible for the same ID to be used in two different views within the same
                 // group. Most of the time we want to

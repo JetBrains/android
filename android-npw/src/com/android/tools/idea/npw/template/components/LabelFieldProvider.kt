@@ -21,8 +21,6 @@ import javax.swing.JLabel
 import javax.swing.SwingConstants
 
 /** Provides a [JBLabel] with the specified text and optional icon. */
-class LabelFieldProvider(private val text: String, private val icon: Icon?) :
-  ComponentProvider<JLabel>() {
-  override fun createComponent(): JBLabel =
-    JBLabel("<html>$text</html>", icon, SwingConstants.LEFT).apply { isAllowAutoWrapping = true }
+class LabelFieldProvider(private val text: String, private val icon: Icon?) : ComponentProvider<JLabel>() {
+  override fun createComponent(): JBLabel = JBLabel("<html>$text</html>", icon, SwingConstants.LEFT).apply { isAllowAutoWrapping = true }
 }

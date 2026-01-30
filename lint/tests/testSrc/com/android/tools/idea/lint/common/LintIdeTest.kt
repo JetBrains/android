@@ -36,9 +36,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.InspectionTestUtil
 import com.intellij.testFramework.createGlobalContextForTool
 import com.intellij.util.ThrowableRunnable
+import java.nio.file.Files
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.annotations.NonNls
-import java.nio.file.Files
 
 class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
   init {
@@ -64,116 +64,61 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
       """
       package p1.p2;
       public class WhySoSerious {}
-    """
+      """
         .trimIndent()
-    val vfPointer =
-      myFixture.addFileToProject("src/p1/p2/WhySoSerious.java", fileContent).virtualFile
+    val vfPointer = myFixture.addFileToProject("src/p1/p2/WhySoSerious.java", fileContent).virtualFile
 
     val module = ModuleManager.getInstance(myFixture.project).modules[0]
-    val lintClient =
-      LintIdeClient(
-        myFixture.project,
-        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet(), null),
-      )
+    val lintClient = LintIdeClient(myFixture.project, LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet(), null))
 
     assertThat(lintClient.module).isSameAs(module)
   }
 
   fun testUseValueOf() {
-    doTestWithFix(
-      AndroidLintUseValueOfInspection(),
-      "Replace with valueOf()",
-      "/src/test/pkg/UseValueOf.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintUseValueOfInspection(), "Replace with valueOf()", "/src/test/pkg/UseValueOf.java", "java")
   }
 
   fun testUseValueOfSuppress() {
-    doTestWithFix(
-      AndroidLintUseValueOfInspection(),
-      "Suppress UseValueOf with an annotation",
-      "/src/test/pkg/UseValueOf.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintUseValueOfInspection(), "Suppress UseValueOf with an annotation", "/src/test/pkg/UseValueOf.java", "java")
   }
 
   fun testWrongQuote() {
-    doTestWithFix(
-      AndroidLintNotInterpolatedInspection(),
-      "Replace single quotes with double quotes",
-      "build.gradle",
-      "gradle",
-    )
+    doTestWithFix(AndroidLintNotInterpolatedInspection(), "Replace single quotes with double quotes", "build.gradle", "gradle")
   }
 
   fun testAddSuperCallJava() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "/src/p1/p2/SuperTestJava.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTestJava.java", "java")
   }
 
   fun testAddSuperCall() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "/src/p1/p2/SuperTest.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testAddSuperCallInterface() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "/src/p1/p2/SuperTestInterface.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTestInterface.kt", "kt")
   }
 
   fun testAddSuperCallSuppress() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Suppress MissingSuperCall with an annotation",
-      "/src/p1/p2/SuperTest.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Suppress MissingSuperCall with an annotation", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testAddSuperCallExpression() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "/src/p1/p2/SuperTest.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
   }
 
   fun testJavaCheckResultTest1() {
     addCheckResult()
-    doTestWithFix(
-      AndroidLintCheckResultInspection(),
-      "Call replace instead",
-      "/src/p1/p2/JavaCheckResultTest1.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintCheckResultInspection(), "Call replace instead", "/src/p1/p2/JavaCheckResultTest1.java", "java")
   }
 
   fun testKotlinCheckResultTest1() {
     addCheckResult()
-    doTestWithFix(
-      AndroidLintCheckResultInspection(),
-      "Call replace instead",
-      "/src/p1/p2/KotlinCheckResultTest1.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintCheckResultInspection(), "Call replace instead", "/src/p1/p2/KotlinCheckResultTest1.kt", "kt")
   }
 
   fun testPropertyFiles() {
@@ -182,42 +127,22 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
 
   fun testCallSuper() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "src/p1/p2/CallSuperTest.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "src/p1/p2/CallSuperTest.java", "java")
   }
 
   fun testCallSuper2() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "src/p1/p2/FooImpl.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "src/p1/p2/FooImpl.java", "java")
   }
 
   fun testCallSuperKotlin() {
     addCallSuper()
-    doTestWithFix(
-      AndroidLintMissingSuperCallInspection(),
-      "Add super call",
-      "src/p1/p2/FooImpl.kt",
-      "kt",
-    )
+    doTestWithFix(AndroidLintMissingSuperCallInspection(), "Add super call", "src/p1/p2/FooImpl.kt", "kt")
   }
 
   fun testStopShip() {
     CommentDetector.STOP_SHIP.setEnabledByDefault(true)
-    doTestWithFix(
-      AndroidLintStopShipInspection(),
-      "Remove STOPSHIP",
-      "/src/test/pkg/StopShip.java",
-      "java",
-    )
+    doTestWithFix(AndroidLintStopShipInspection(), "Remove STOPSHIP", "/src/test/pkg/StopShip.java", "java")
   }
 
   fun testDisabledTestsEnabledOnTheFly() {
@@ -235,12 +160,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testGradleWindows() {
-    doTestWithFix(
-      AndroidLintGradlePathInspection(),
-      "Replace with my/libs/http.jar",
-      "build.gradle",
-      "gradle",
-    )
+    doTestWithFix(AndroidLintGradlePathInspection(), "Replace with my/libs/http.jar", "build.gradle", "gradle")
   }
 
   // Global (batch) inspections
@@ -308,8 +228,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
       myFixture.doHighlighting()
       myFixture.checkHighlighting(true, false, false)
 
-      val action =
-        myFixture.getAvailableIntention("Update build.gradle") ?: error("Failed to find intention")
+      val action = myFixture.getAvailableIntention("Update build.gradle") ?: error("Failed to find intention")
       assertThat(action.asModCommandAction()).isNotNull()
       assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
       myFixture.launchAction(action)
@@ -327,16 +246,10 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     val scope = AnalysisScope(myFixture.module)
     scope.invalidate()
 
-    val globalContext =
-      createGlobalContextForTool(scope, project, listOf<InspectionToolWrapper<*, *>>(wrapper))
+    val globalContext = createGlobalContextForTool(scope, project, listOf<InspectionToolWrapper<*, *>>(wrapper))
     InspectionTestUtil.runTool(wrapper, scope, globalContext)
     try {
-      InspectionTestUtil.compareToolResults(
-        globalContext,
-        wrapper,
-        false,
-        testDataPath + globalTestDir,
-      )
+      InspectionTestUtil.compareToolResults(globalContext, wrapper, false, testDataPath + globalTestDir)
     } finally {
       globalContext.cleanup()
     }
@@ -346,20 +259,14 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
   private val globalTestDir: String
     get() = BASE_PATH_GLOBAL + getTestName(true)
 
-  private fun doTestWithFix(
-    inspection: AndroidLintInspectionBase,
-    message: String,
-    copyTo: String,
-    extension: String,
-  ) {
+  private fun doTestWithFix(inspection: AndroidLintInspectionBase, message: String, copyTo: String, extension: String) {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.doHighlighting()
     myFixture.checkHighlighting(true, false, false)
 
-    val action =
-      myFixture.getAvailableIntention(message) ?: error("Failed to find intention \"$message\"")
+    val action = myFixture.getAvailableIntention(message) ?: error("Failed to find intention \"$message\"")
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     assertThat(action.asModCommandAction()).isNotNull()
     myFixture.checkPreviewAndLaunchAction(action)
@@ -370,17 +277,18 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     myFixture.addFileToProject(
       "android/support/annotation/CallSuper.java",
       """
-        package android.support.annotation;
-        import static java.lang.annotation.ElementType.METHOD;
-        import static java.lang.annotation.RetentionPolicy.CLASS;
-        import java.lang.annotation.Documented;
-        import java.lang.annotation.Retention;
-        import java.lang.annotation.Target;
-        @Documented
-        @Retention(CLASS)
-        @Target({METHOD})
-        public @interface CallSuper {
-        }"""
+      package android.support.annotation;
+      import static java.lang.annotation.ElementType.METHOD;
+      import static java.lang.annotation.RetentionPolicy.CLASS;
+      import java.lang.annotation.Documented;
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.Target;
+      @Documented
+      @Retention(CLASS)
+      @Target({METHOD})
+      public @interface CallSuper {
+      }
+      """
         .trimIndent(),
     )
   }
@@ -389,18 +297,19 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     return myFixture.addFileToProject(
       "android/support/annotation/Keep.java",
       """
-          package android.support.annotation;
-          import static java.lang.annotation.ElementType.METHOD;
-          import static java.lang.annotation.RetentionPolicy.CLASS;
-          import java.lang.annotation.Documented;
-          import java.lang.annotation.Retention;
-          import java.lang.annotation.Target;
-          @Documented
-          @Retention(CLASS)
-          @Target({METHOD})
-          public @interface CheckResult {
-              String suggest() default "";
-          }"""
+      package android.support.annotation;
+      import static java.lang.annotation.ElementType.METHOD;
+      import static java.lang.annotation.RetentionPolicy.CLASS;
+      import java.lang.annotation.Documented;
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.Target;
+      @Documented
+      @Retention(CLASS)
+      @Target({METHOD})
+      public @interface CheckResult {
+          String suggest() default "";
+      }
+      """
         .trimIndent(),
     )
   }
@@ -410,7 +319,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
       """
       package p1.p2;
       public class Test {}
-    """
+      """
         .trimIndent()
 
     val now = System.currentTimeMillis()
@@ -420,11 +329,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     val file = VfsUtilCore.virtualToIoFile(vFile)
 
     val module = ModuleManager.getInstance(myFixture.project).modules[0]
-    val client =
-      LintIdeClient(
-        myFixture.project,
-        LintEditorResult(module, vFile, fileContent, Sets.newHashSet(), null),
-      )
+    val client = LintIdeClient(myFixture.project, LintEditorResult(module, vFile, fileContent, Sets.newHashSet(), null))
 
     assertThat(file).isNotNull()
     // File was just created: recent files are treated as edited
@@ -447,8 +352,7 @@ class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
     private val androidPluginHome: String
       get() {
         val adtPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android")
-        return if (Files.exists(adtPath)) adtPath.toString()
-        else PathManagerEx.findFileUnderCommunityHome("android/android").path
+        return if (Files.exists(adtPath)) adtPath.toString() else PathManagerEx.findFileUnderCommunityHome("android/android").path
       }
   }
 }

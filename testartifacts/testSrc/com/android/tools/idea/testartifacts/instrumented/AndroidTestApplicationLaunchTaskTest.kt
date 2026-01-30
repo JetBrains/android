@@ -34,22 +34,16 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
-/**
- * Unit tests for [AndroidTestApplicationLaunchTask].
- */
+/** Unit tests for [AndroidTestApplicationLaunchTask]. */
 @RunWith(JUnit4::class)
 class AndroidTestApplicationLaunchTaskTest {
 
-  @get:Rule
-  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val projectRule = ProjectRule()
 
-  @Mock
-  lateinit var mockProcessHandler: AndroidProcessHandler
+  @Mock lateinit var mockProcessHandler: AndroidProcessHandler
 
-  @Mock
-  lateinit var mockConsole: AndroidTestSuiteView
+  @Mock lateinit var mockConsole: AndroidTestSuiteView
 
   private fun createMockDevice(version: AndroidVersion): IDevice {
     val mockDevice = mock(IDevice::class.java)
@@ -64,7 +58,7 @@ class AndroidTestApplicationLaunchTaskTest {
       "testApplicationId",
       null,
       /*waitForDebugger=*/ false,
-      "instrumentationOptions"
+      "instrumentationOptions",
     ) {}
   }
 

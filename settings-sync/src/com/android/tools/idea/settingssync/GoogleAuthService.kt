@@ -56,8 +56,7 @@ class GoogleAuthService : SettingsSyncAuthService {
         .takeIf { SettingsSyncLocalSettings.getInstance().providerCode == PROVIDER_CODE_GOOGLE }
         ?.let { getUserData(it) }
 
-    val allLoggedInUsers =
-      GoogleLoginService.instance.allUsersFlow.value.values.map { it.createSettingsSyncUserData() }
+    val allLoggedInUsers = GoogleLoginService.instance.allUsersFlow.value.values.map { it.createSettingsSyncUserData() }
 
     return listOfNotNull(currentUser) + allLoggedInUsers.filterNot { it == currentUser }
   }
@@ -75,10 +74,7 @@ class GoogleAuthService : SettingsSyncAuthService {
     return login(preferredUser = PreferredUser.None, parentComponent = parentComponent)
   }
 
-  suspend fun login(
-    preferredUser: PreferredUser,
-    parentComponent: Component?,
-  ): SettingsSyncUserData? {
+  suspend fun login(preferredUser: PreferredUser, parentComponent: Component?): SettingsSyncUserData? {
     val loggedInUser =
       GoogleLoginService.instance.logIn(
         features = setOf(feature),
@@ -118,27 +114,13 @@ class GoogleAuthService : SettingsSyncAuthService {
 }
 
 internal fun getActiveSyncUserEmail(): String? {
-  return SettingsSyncLocalSettings.getInstance().userId.takeIf {
-    SettingsSyncSettings.getInstance().syncEnabled
-  }
+  return SettingsSyncLocalSettings.getInstance().userId.takeIf { SettingsSyncSettings.getInstance().syncEnabled }
 }
 
 // if we want to make sure what we show is consistent (e.g. name is not available if not logged
 // in), we just always pass email info around.
 private fun CredentialedUser.createSettingsSyncUserData() =
-  SettingsSyncUserData(
-    id = email,
-    providerCode = PROVIDER_CODE_GOOGLE,
-    name = null,
-    email = email,
-    printableName = null,
-  )
+  SettingsSyncUserData(id = email, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = email, printableName = null)
 
 private fun createSettingsSyncUserData(email: String) =
-  SettingsSyncUserData(
-    id = email,
-    providerCode = PROVIDER_CODE_GOOGLE,
-    name = null,
-    email = email,
-    printableName = null,
-  )
+  SettingsSyncUserData(id = email, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = email, printableName = null)

@@ -54,14 +54,7 @@ class VitalsAiInsightToolkitTest {
 
   @Test
   fun `fetch insight populates proto fields correctly`() = runBlocking {
-    val insight =
-      aiInsightToolkit.fetchInsight(
-        TEST_CONNECTION_1,
-        ISSUE1.id,
-        null,
-        ISSUE1.issueDetails.fatality,
-        ISSUE1.sampleEvent,
-      )
+    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
     val expectedRequest =
@@ -78,17 +71,9 @@ class VitalsAiInsightToolkitTest {
 
   @Test
   fun `test fetch insight on ANR returns unsupported operation`() = runBlocking {
-    val insight =
-      aiInsightToolkit.fetchInsight(
-        TEST_CONNECTION_1,
-        ISSUE1.id,
-        null,
-        FailureType.ANR,
-        ISSUE1.sampleEvent,
-      )
+    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, FailureType.ANR, ISSUE1.sampleEvent)
 
-    Truth.assertThat(insight)
-      .isEqualTo(LoadingState.UnsupportedOperation("Insights are currently not available for ANRs"))
+    Truth.assertThat(insight).isEqualTo(LoadingState.UnsupportedOperation("Insights are currently not available for ANRs"))
   }
 
   @Test
@@ -111,13 +96,7 @@ class VitalsAiInsightToolkitTest {
           ExceptionStack(
             Stacktrace(
               Caption("backtrace", ")"),
-              frames =
-                listOf(
-                  Frame(
-                    rawSymbol = "#00  pc 0x00000000001f4cdc",
-                    symbol = "#00  pc 0x00000000001f4cdc",
-                  )
-                ),
+              frames = listOf(Frame(rawSymbol = "#00  pc 0x00000000001f4cdc", symbol = "#00  pc 0x00000000001f4cdc")),
             ),
             type = "backtrace",
             rawExceptionMessage = "backtrace:",
@@ -126,17 +105,8 @@ class VitalsAiInsightToolkitTest {
       )
 
     val insight =
-      aiInsightToolkit.fetchInsight(
-        TEST_CONNECTION_1,
-        ISSUE1.id,
-        null,
-        FailureType.FATAL,
-        Event(stacktraceGroup = stackTraceGroup),
-      )
+      aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, FailureType.FATAL, Event(stacktraceGroup = stackTraceGroup))
 
-    Truth.assertThat(insight)
-      .isEqualTo(
-        LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
-      )
+    Truth.assertThat(insight).isEqualTo(LoadingState.UnsupportedOperation("Insights are currently not available for native crashes"))
   }
 }

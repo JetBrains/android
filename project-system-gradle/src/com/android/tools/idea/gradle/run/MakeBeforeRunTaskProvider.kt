@@ -36,10 +36,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.gradleModuleModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.BuildMode
@@ -76,7 +73,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Key
@@ -96,17 +92,19 @@ import javax.swing.Icon
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
- *
- *  * is only available in Android Studio
- *  * delegates to the regular "Make" if the project is not an Android Gradle project
- *  * otherwise, invokes Gradle directly, to build the project
- *
+ * * is only available in Android Studio
+ * * delegates to the regular "Make" if the project is not an Android Gradle project
+ * * otherwise, invokes Gradle directly, to build the project
  */
 class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   override fun getId(): Key<MakeBeforeRunTask> = ID
+
   override fun getIcon(): Icon = StudioIcons.Common.ANDROID_HEAD
+
   override fun getTaskIcon(task: MakeBeforeRunTask): Icon = StudioIcons.Common.ANDROID_HEAD
+
   override fun getName(): String = TASK_NAME
+
   override fun isConfigurable(): Boolean = true
 
   override fun getDescription(task: MakeBeforeRunTask): String {
@@ -130,9 +128,9 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   private fun configurationTypeIsSupported(runConfiguration: RunConfiguration): Boolean {
     if (runConfiguration is PreferGradleMake) return true
 
-    return (ApplicationManager.getApplication().isUnitTestMode || IdeInfo.getInstance().isAndroidStudio)
-           && isUnitTestConfiguration(runConfiguration)
-           && runConfiguration.project.getProjectSystem() is GradleProjectSystem
+    return (ApplicationManager.getApplication().isUnitTestMode || IdeInfo.getInstance().isAndroidStudio) &&
+      isUnitTestConfiguration(runConfiguration) &&
+      runConfiguration.project.getProjectSystem() is GradleProjectSystem
   }
 
   private fun configurationTypeIsEnabledByDefault(runConfiguration: RunConfiguration): Boolean = runConfiguration is PreferGradleMake
@@ -152,26 +150,23 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     return true
   }
 
-  private fun createAvailableTasks(project: Project): List<String> = project.modules.flatMap {
-    it.gradleModuleModel?.allTasks.orEmpty()
-  }
+  private fun createAvailableTasks(project: Project): List<String> = project.modules.flatMap { it.gradleModuleModel?.allTasks.orEmpty() }
 
   override fun canExecuteTask(configuration: RunConfiguration, task: MakeBeforeRunTask): Boolean = task.isValid
 
   /**
    * Execute the Gradle build task, returns `false` in case of any error.
    *
-   *
-   * Note: Error handling should be improved to notify user in case of `false` return value.
-   * Currently, the caller does not expect exceptions, and there is no notification mechanism to propagate an
-   * error message to the user. The current implementation uses logging (in idea.log) to report errors, whereas the
-   * UI behavior is to merely stop the execution without any other sort of notification, which far from ideal.
+   * Note: Error handling should be improved to notify user in case of `false` return value. Currently, the caller does not expect
+   * exceptions, and there is no notification mechanism to propagate an error message to the user. The current implementation uses logging
+   * (in idea.log) to report errors, whereas the UI behavior is to merely stop the execution without any other sort of notification, which
+   * far from ideal.
    */
   override fun executeTask(
     context: DataContext,
     configuration: RunConfiguration,
     env: ExecutionEnvironment,
-    task: MakeBeforeRunTask
+    task: MakeBeforeRunTask,
   ): Boolean {
     if (java.lang.Boolean.FALSE == env.getUserData(GradleBuilds.BUILD_SHOULD_EXECUTE)) {
       return true
@@ -180,8 +175,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     return try {
       stats.beginBeforeRunTasks()
       doExecuteTask(context, configuration, env, task)
-    }
-    finally {
+    } finally {
       stats.endBeforeRunTasks()
     }
   }
@@ -206,7 +200,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     context: DataContext,
     configuration: RunConfiguration,
     env: ExecutionEnvironment,
-    task: MakeBeforeRunTask
+    task: MakeBeforeRunTask,
   ): Boolean {
     if (!configuration.project.requiresAndroidModel()) {
       val regularMake = CompileStepBeforeRun(configuration.project)
@@ -220,19 +214,21 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
 
     val deviceSpecs = createDeviceSpecs(targetDevices)
 
-    val targetDeviceSpec = createTargetDeviceSpec(targetDevices) { title, message ->
-      val notification = NotificationGroupManager
-        .getInstance()
-        .getNotificationGroup("Deploy")
-        .createNotification(message, NotificationType.INFORMATION)
-        .setTitle(title)
-        .setImportant(false)
-      notification.notify(env.project)
-      AppExecutorUtil.getAppScheduledExecutorService().schedule({ notification.expire() }, 5, TimeUnit.SECONDS)
-    }
+    val targetDeviceSpec =
+      createTargetDeviceSpec(targetDevices) { title, message ->
+        val notification =
+          NotificationGroupManager.getInstance()
+            .getNotificationGroup("Deploy")
+            .createNotification(message, NotificationType.INFORMATION)
+            .setTitle(title)
+            .setImportant(false)
+        notification.notify(env.project)
+        AppExecutorUtil.getAppScheduledExecutorService().schedule({ notification.expire() }, 5, TimeUnit.SECONDS)
+      }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
-    if (configuration is RunProfileWithCompileBeforeLaunchOption &&
+    if (
+      configuration is RunProfileWithCompileBeforeLaunchOption &&
         (configuration as RunProfileWithCompileBeforeLaunchOption).isExcludeCompileBeforeLaunchOption
     ) {
       return true
@@ -250,38 +246,38 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     val cmdLineArgs =
       try {
         getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec, deviceSpecs, profilingMode) + "--stacktrace"
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         log.warn("Error generating command line arguments for Gradle task", e)
         return false
       }
-    val targetDeviceVersion = when (targetDeviceSpec) {
-      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> null
-      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.commonVersion
-    }
+    val targetDeviceVersion =
+      when (targetDeviceSpec) {
+        is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> null
+        is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.commonVersion
+      }
     val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs, env)
     if (configuration is UserDataHolderEx && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
         configuration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
-      }
-      else {
+      } else {
         log.info("Couldn't get post build models.")
       }
     }
     log.info("Gradle invocation complete, build result = $buildResult")
 
     // If the model needs a sync, we need to sync "synchronously" before running.
-    val targetAbis: Set<String> = when (targetDeviceSpec) {
-      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> emptySet()
-      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.abis.toSet()
-    }
+    val targetAbis: Set<String> =
+      when (targetDeviceSpec) {
+        is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> emptySet()
+        is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.abis.toSet()
+      }
     val syncNeeded = isSyncNeeded(configuration.project, targetAbis)
     runSyncIfNeeded(configuration.project, syncNeeded, targetAbis)
     return !configuration.project.isDisposed &&
-           buildResult != null &&
-           buildResult.isBuildSuccessful &&
-           buildResult.invocationResult.invocations.isNotEmpty()
+      buildResult != null &&
+      buildResult.isBuildSuccessful &&
+      buildResult.invocationResult.invocations.isNotEmpty()
   }
 
   private fun getModules(context: DataContext, configuration: RunConfiguration): Array<Module> {
@@ -294,16 +290,13 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   }
 
   companion object {
-    @JvmField
-    val ID = Key.create<MakeBeforeRunTask>("Android.Gradle.BeforeRunTask")
+    @JvmField val ID = Key.create<MakeBeforeRunTask>("Android.Gradle.BeforeRunTask")
 
     const val TASK_NAME = "Gradle-aware Make"
 
     private val log = Logger.getInstance(MakeBeforeRunTask::class.java)
 
-    /**
-     * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
-     */
+    /** Returns the list of arguments to Gradle that are common to both instant and non-instant builds. */
     @VisibleForTesting
     @Throws(IOException::class)
     fun getCommonArguments(
@@ -311,7 +304,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       configuration: RunConfigurationGradleContext?,
       targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
       deviceSpecs: ProcessedDeviceSpec.MultipleDeviceSpec,
-      profilingMode: ProfilingMode
+      profilingMode: ProfilingMode,
     ): List<String> {
       val cmdLineArgs = mutableListOf<String>()
       // Always build with stable IDs to avoid push-to-device overhead.
@@ -328,7 +321,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       modules: Array<Module>,
       configuration: RunConfigurationGradleContext,
       targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
-      deviceSpecs: ProcessedDeviceSpec.MultipleDeviceSpec
+      deviceSpecs: ProcessedDeviceSpec.MultipleDeviceSpec,
     ): List<String> {
       if (targetDeviceSpec !is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec) {
         return emptyList()
@@ -349,8 +342,10 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         if (StudioFlags.MULTIPLE_DEVICE_SPECS_ENABLED.get()) {
           val deviceSpecFiles = deviceSpecs.writeToMultipleJsonTempFiles(collectListOfLanguages, moduleAgpVersions)
           val multipleDeviceSpecProperty =
-            AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_MULTIPLE_DEVICE_SPECS,
-                                                        deviceSpecFiles.joinToString { it.invariantSeparatorsPath })
+            AndroidGradleSettings.createProjectProperty(
+              PROPERTY_APK_SELECT_MULTIPLE_DEVICE_SPECS,
+              deviceSpecFiles.joinToString { it.invariantSeparatorsPath },
+            )
           properties.add(multipleDeviceSpecProperty)
         }
         if (configuration.deployAsInstant) {
@@ -362,8 +357,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INJECTED_DYNAMIC_MODULES_LIST, featureList))
           }
         }
-      }
-      else {
+      } else {
         // For non bundle tool deploy tasks, we have one argument per device spec property
         val version = targetDeviceSpec.deviceSpec.commonVersion
         val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
@@ -375,7 +369,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         }
         if (targetDeviceSpec.deviceSpec.abis.isNotEmpty()) {
           properties.add(
-            AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(targetDeviceSpec.deviceSpec.abis)))
+            AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(targetDeviceSpec.deviceSpec.abis))
+          )
         }
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
@@ -387,8 +382,9 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           properties.add(injectedProperty)
         }
         if (configuration.supportsPrivacySandbox) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX,
-                                                                     targetDeviceSpec.deviceSpec.supportsSdkRuntime))
+          properties.add(
+            AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, targetDeviceSpec.deviceSpec.supportsSdkRuntime)
+          )
         }
       }
       return properties
@@ -400,12 +396,10 @@ private fun isUnitTestConfiguration(runConfiguration: RunConfiguration): Boolean
   return runConfiguration is JUnitConfiguration || runConfiguration.javaClass.simpleName == "TestNGConfiguration"
 }
 
-private fun getEnabledDynamicFeatureList(
-  modules: Array<Module>,
-  configuration: RunConfigurationGradleContext
-): String {
+private fun getEnabledDynamicFeatureList(modules: Array<Module>, configuration: RunConfigurationGradleContext): String {
   val disabledFeatures = configuration.disabledDynamicFeatureModuleNames
-  return modules.asSequence()
+  return modules
+    .asSequence()
     .flatMap { it.getModuleSystem().getDynamicFeatureModules() }
     .map { it.name }
     .filter { name: String -> !disabledFeatures.contains(name) }
@@ -421,7 +415,7 @@ private fun getEnabledDynamicFeatureList(
 private fun getProfilingOptions(
   configuration: RunConfigurationGradleContext,
   targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
-  profilingMode: ProfilingMode
+  profilingMode: ProfilingMode,
 ): List<String> {
   if (targetDeviceSpec !is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec) {
     return emptyList()
@@ -447,8 +441,9 @@ private fun getProfilingOptions(
   }
   // Append PROFILING_MODE if set by profilers.
   if (profilingMode.shouldInjectProjectProperty) {
-    arguments.add(AndroidGradleSettings.createProjectProperty(AbstractProfilerExecutorGroup.PROFILING_MODE_PROPERTY_NAME,
-                                                              profilingMode.value))
+    arguments.add(
+      AndroidGradleSettings.createProjectProperty(AbstractProfilerExecutorGroup.PROFILING_MODE_PROPERTY_NAME, profilingMode.value)
+    )
   }
   return arguments
 }
@@ -459,7 +454,7 @@ private fun build(
   targetDeviceVersion: AndroidVersion?,
   userGoal: String?,
   commandLineArgs: List<String>,
-  executionEnvironment: ExecutionEnvironment
+  executionEnvironment: ExecutionEnvironment,
 ): AssembleInvocationResult? {
 
   check(modules.isNotEmpty()) { "Unable to determine list of modules to build" }
@@ -476,10 +471,7 @@ private fun build(
 
   if (!userGoal.isNullOrEmpty()) {
     val tasks: Map<Path, List<String>> =
-      modules
-        .map { ExternalSystemApiUtil.getExternalRootProjectPath(it) }
-        .distinct()
-        .associate { Paths.get(it) to listOf(userGoal) }
+      modules.map { ExternalSystemApiUtil.getExternalRootProjectPath(it) }.distinct().associate { Paths.get(it) to listOf(userGoal) }
 
     return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
   }
@@ -492,25 +484,26 @@ private fun build(
     //       AndroidRunConfigurationBase.
     // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(),
-              BuildMode.APK_FROM_BUNDLE)
+      doBuild(
+        gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(),
+        BuildMode.APK_FROM_BUNDLE,
+      )
 
-    else ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, expandModules = true).asMap(), BuildMode.ASSEMBLE)
+    else -> doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, expandModules = true).asMap(), BuildMode.ASSEMBLE)
   }
 }
 
 private fun useSelectApksFromBundleBuilder(
   modules: Array<Module>,
   configuration: RunConfigurationGradleContext?,
-  minTargetDeviceVersion: AndroidVersion?
+  minTargetDeviceVersion: AndroidVersion?,
 ): Boolean {
   return modules.any {
     useSelectApksFromBundleBuilder(
       it,
       configuration?.alwaysDeployApkFromBundle ?: false,
       configuration?.isTestConfiguration ?: false,
-      minTargetDeviceVersion
+      minTargetDeviceVersion,
     )
   }
 }
@@ -524,15 +517,11 @@ private fun shouldCollectListOfLanguages(
   // end up deploying language split APKs to devices that don't support them.
   return modules.all {
     // Don't collect if not using the bundle tool
-    if (!useSelectApksFromBundleBuilder(
-        it,
-        configuration.alwaysDeployApkFromBundle,
-        configuration.isTestConfiguration,
-        targetDeviceVersion
-      )) {
+    if (
+      !useSelectApksFromBundleBuilder(it, configuration.alwaysDeployApkFromBundle, configuration.isTestConfiguration, targetDeviceVersion)
+    ) {
       false
-    }
-    else {
+    } else {
       // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
       // they don't support install on demand, meaning all languages should be installed.
       targetDeviceVersion != null && targetDeviceVersion.featureLevel >= VersionCodes.LOLLIPOP

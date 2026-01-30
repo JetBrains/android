@@ -18,9 +18,8 @@ package com.android.tools.idea.diagnostics.hprof.util
 import com.intellij.ide.util.DelegatingProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 
-class PartialProgressIndicator(indicator: ProgressIndicator,
-                               private val start: Double,
-                               private val duration: Double) : DelegatingProgressIndicator(indicator) {
+class PartialProgressIndicator(indicator: ProgressIndicator, private val start: Double, private val duration: Double) :
+  DelegatingProgressIndicator(indicator) {
   private var current: Double = 0.0
 
   init {

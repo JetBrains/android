@@ -33,42 +33,42 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.File
+import java.util.ArrayDeque
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runners.Parameterized
-import java.io.File
-import java.util.ArrayDeque
 
 /**
  * A test to ensure that implementations of [ProjectViewNode.canRepresent] and [ProjectViewNode.contains] methods are consistent with
  * methods like [ProjectViewNode.getChildren], [ProjectViewNode.getVirtualFile] and others that expose files represented by a node.
  *
- * [ProjectViewNode.canRepresent] and [ProjectViewNode.contains] are used by the platform to locate a node by a file and are essential
- * to refresh the tree in response to changes in the virtual file system.
+ * [ProjectViewNode.canRepresent] and [ProjectViewNode.contains] are used by the platform to locate a node by a file and are essential to
+ * refresh the tree in response to changes in the virtual file system.
  */
 abstract class AndroidProjectViewNodeConsistencyTestBase {
 
   data class TestProjectDef(val template: TestProjectDefinition, val skipWindows: Boolean = false)
 
-  @JvmField
-  @Parameterized.Parameter
-  var testProjectName: TestProjectDef? = null
+  @JvmField @Parameterized.Parameter var testProjectName: TestProjectDef? = null
 
-
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private interface TestContext {
     val project: Project
     val viewPane: AndroidProjectViewPane
     val rootElement: ProjectViewNode<*>
     val projectRoot: File
+
     fun reportProblem(node: NodeWithParents, problem: String)
+
     fun reportProblem(problem: String)
   }
 
   private data class NodeWithParents(val node: ProjectViewNode<*>, val parents: List<ProjectViewNode<*>> = emptyList()) {
-    val parent: NodeWithParents? get() = if (parents.isNotEmpty()) NodeWithParents(parents.last(), parents.dropLast(1)) else null
+    val parent: NodeWithParents?
+      get() = if (parents.isNotEmpty()) NodeWithParents(parents.last(), parents.dropLast(1)) else null
+
     fun child(node: ProjectViewNode<*>): NodeWithParents = NodeWithParents(node, this.parents + this.node)
   }
 
@@ -78,9 +78,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
     val preparedProject = projectRule.prepareTestProject(testProjectName.template)
     preparedProject.open { project ->
       val oldHideEmptyPackages = ProjectView.getInstance(project).isHideEmptyMiddlePackages(AndroidProjectViewPane.ID)
-      ProjectView.getInstance(project).apply {
-        setHideEmptyPackages(AndroidProjectViewPane.ID, true)
-      }
+      ProjectView.getInstance(project).apply { setHideEmptyPackages(AndroidProjectViewPane.ID, true) }
       try {
         val viewPane = AndroidProjectViewPane(project)
         // We need to create a component to initialize the view pane.
@@ -88,36 +86,40 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
         val treeStructure: AbstractTreeStructure? = viewPane.treeStructure
 
         val problems = mutableListOf<String>()
-        with(object : TestContext {
-          override val project: Project get() = project
-          override val viewPane: AndroidProjectViewPane get() = viewPane
-          override val rootElement = (treeStructure?.rootElement ?: error("No root element")) as ProjectViewNode<*>
-          override val projectRoot = preparedProject.root
-          override fun reportProblem(node: NodeWithParents, problem: String) {
-            val message = buildString {
-              var prefix = ""
-              (node.parents + node.node).forEach {
-                appendLine("$prefix/ ${it.nodeNameForTest()}")
-                prefix += "    "
-              }
-              appendLine(problem.prependIndent(prefix))
-            }
-            reportProblem(message)
-          }
+        with(
+          object : TestContext {
+            override val project: Project
+              get() = project
 
-          override fun reportProblem(problem: String) {
-            println(problem);
-            problems.add(problem)
+            override val viewPane: AndroidProjectViewPane
+              get() = viewPane
+
+            override val rootElement = (treeStructure?.rootElement ?: error("No root element")) as ProjectViewNode<*>
+            override val projectRoot = preparedProject.root
+
+            override fun reportProblem(node: NodeWithParents, problem: String) {
+              val message = buildString {
+                var prefix = ""
+                (node.parents + node.node).forEach {
+                  appendLine("$prefix/ ${it.nodeNameForTest()}")
+                  prefix += "    "
+                }
+                appendLine(problem.prependIndent(prefix))
+              }
+              reportProblem(message)
+            }
+
+            override fun reportProblem(problem: String) {
+              println(problem)
+              problems.add(problem)
+            }
           }
-        }) {
+        ) {
           test()
         }
         assertThat(problems).isEmpty()
-      }
-      finally {
-        ProjectView.getInstance(project).apply {
-          setHideEmptyPackages(AndroidProjectViewPane.ID, oldHideEmptyPackages)
-        }
+      } finally {
+        ProjectView.getInstance(project).apply { setHideEmptyPackages(AndroidProjectViewPane.ID, oldHideEmptyPackages) }
       }
     }
   }
@@ -137,51 +139,57 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
     return result
   }
 
-  private fun ProjectViewNode<*>.enumerateNodes() = sequence<NodeWithParents> {
-    val q = ArrayDeque(listOf(NodeWithParents(this@enumerateNodes)))
-    while (!q.isEmpty()) {
-      val current = q.pop()
-      yield(current)
-      q.addAll(current.node.children.reversed().filterIsInstance<ProjectViewNode<*>>().map { current.child(it) })
+  private fun ProjectViewNode<*>.enumerateNodes() =
+    sequence<NodeWithParents> {
+      val q = ArrayDeque(listOf(NodeWithParents(this@enumerateNodes)))
+      while (!q.isEmpty()) {
+        val current = q.pop()
+        yield(current)
+        q.addAll(current.node.children.reversed().filterIsInstance<ProjectViewNode<*>>().map { current.child(it) })
+      }
     }
-  }
 
   private fun ProjectViewNode<*>.nodeNameForTest() = "${toTestString(null)} (${javaClass.simpleName})"
 
   /**
-   * Tests that `contains` method recognises any files which are supposed to be "represented" by the node itself or any node it
-   * expands into (via [ProjectViewNode.getChildren]). We learn about the fact that a node is supposed to "represent" a file from various
-   * sources like [ProjectViewNode.getVirtualFile] method or [FolderGroupNode] and [FileGroupNode] interfaces. This does not guarantee that
-   * we learn about all files "represented" by a node.
+   * Tests that `contains` method recognises any files which are supposed to be "represented" by the node itself or any node it expands into
+   * (via [ProjectViewNode.getChildren]). We learn about the fact that a node is supposed to "represent" a file from various sources like
+   * [ProjectViewNode.getVirtualFile] method or [FolderGroupNode] and [FileGroupNode] interfaces. This does not guarantee that we learn
+   * about all files "represented" by a node.
    */
   fun testContainsImpl() {
     runTest {
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForContains: Map<NodeWithParents, Set<VirtualFile>> =
-        nodes.flatMap { node ->
-          node.node.representedFiles().asSequence().flatMap { file ->
-            generateSequence(node) { it.parent }.map { parentNodeOrSelf -> parentNodeOrSelf to file }
+        nodes
+          .flatMap { node ->
+            node.node.representedFiles().asSequence().flatMap { file ->
+              generateSequence(node) { it.parent }.map { parentNodeOrSelf -> parentNodeOrSelf to file }
+            }
           }
-        }
           .groupBy({ it.first }, { it.second })
           .mapValues { it.value.toSet() }
 
       expectedForContains.forEach { (node, files) ->
         val missing = files.filter { !node.node.contains(it) }
         if (missing.isNotEmpty()) {
-          reportProblem(node,
-                        "does not contains the following files:\n" +
-                          missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" })
+          reportProblem(
+            node,
+            "does not contains the following files:\n" + missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" },
+          )
         }
       }
       val selectInTarget = viewPane.createSelectInTarget()
 
-      nodes.map { it.node }.mapNotNull { it.virtualFile }.forEach { fileInProject ->
-        if (!selectInTarget.canSelect(FileSelectInContext(project, fileInProject))) {
-          reportProblem("$fileInProject cannot be selected")
+      nodes
+        .map { it.node }
+        .mapNotNull { it.virtualFile }
+        .forEach { fileInProject ->
+          if (!selectInTarget.canSelect(FileSelectInContext(project, fileInProject))) {
+            reportProblem("$fileInProject cannot be selected")
+          }
         }
-      }
     }
   }
 
@@ -195,23 +203,22 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForCanRepresent =
-        nodes.flatMap { node ->
-          node.node.representedFiles().asSequence().map { file -> node to file }
-        }
+        nodes
+          .flatMap { node -> node.node.representedFiles().asSequence().map { file -> node to file } }
           .groupBy({ it.first }, { it.second })
           .mapValues { it.value.toSet() }
 
       expectedForCanRepresent.forEach { (node, files) ->
         val missing = files.filter { !node.node.canRepresent(it) }
         if (missing.isNotEmpty()) {
-          reportProblem(node,
-                        "does not represent the following files:\n" +
-                        missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" })
+          reportProblem(
+            node,
+            "does not represent the following files:\n" + missing.joinToString("\n") { "* ${it.toIoFile().relativeTo(projectRoot)}" },
+          )
         }
       }
     }
   }
-
 
   fun testAndroidViewPaneIsVisibleImpl() {
     runTest {
@@ -225,7 +232,5 @@ abstract class AndroidProjectViewNodeConsistencyTestBase {
 //       which is a collection of utilities in `testSrc` and which are not visible from regular sources.
 class MakeBuildSystemHappyTest {
 
-  @Test
-  fun `make build system happy`() = Unit
-
+  @Test fun `make build system happy`() = Unit
 }

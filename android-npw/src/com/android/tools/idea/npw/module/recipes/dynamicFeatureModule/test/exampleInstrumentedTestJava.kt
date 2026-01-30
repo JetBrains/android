@@ -18,10 +18,8 @@ package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test
 
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 
-fun exampleInstrumentedTestJava(
-  packageName: String,
-  useAndroidX: Boolean
-) = """
+fun exampleInstrumentedTestJava(packageName: String, useAndroidX: Boolean) =
+  """
 package ${packageName};
 
 import ${getMaterialComponentName("android.support.test.runner.AndroidJUnit4", useAndroidX)};

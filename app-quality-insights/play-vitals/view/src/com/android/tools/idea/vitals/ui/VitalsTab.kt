@@ -71,38 +71,24 @@ class VitalsTab(
   private val scope = AndroidCoroutineScope(this)
 
   private val connections =
-    projectController.state
-      .map { it.connections }
-      .stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
-  private val versions =
-    projectController.state.map { state -> state.filters.versions }.distinctUntilChanged()
-  private val devices =
-    projectController.state.map { state -> state.filters.devices }.distinctUntilChanged()
-  private val operatingSystems =
-    projectController.state.map { state -> state.filters.operatingSystems }.distinctUntilChanged()
+    projectController.state.map { it.connections }.stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
+  private val versions = projectController.state.map { state -> state.filters.versions }.distinctUntilChanged()
+  private val devices = projectController.state.map { state -> state.filters.devices }.distinctUntilChanged()
+  private val operatingSystems = projectController.state.map { state -> state.filters.operatingSystems }.distinctUntilChanged()
   private val intervals =
-    projectController.state
-      .map { state -> state.filters.timeInterval }
-      .stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
+    projectController.state.map { state -> state.filters.timeInterval }.stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
   private val visibilityTypes =
     projectController.state
       .map { state -> state.filters.visibilityType }
       .stateIn(scope, SharingStarted.Eagerly, selectionOf(VisibilityType.ALL))
 
-  private val timestamp: Flow<Timestamp> =
-    projectController.state.toTimestamp(clock).distinctUntilChanged()
+  private val timestamp: Flow<Timestamp> = projectController.state.toTimestamp(clock).distinctUntilChanged()
 
-  private val offlineStateFlow =
-    projectController.state
-      .map { it.mode }
-      .stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
+  private val offlineStateFlow = projectController.state.map { it.mode }.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
 
   private val timestampAction = AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope)
 
-  private val failureTypeFlow =
-    projectController.state
-      .map { state -> state.filters.failureTypeToggles.selected }
-      .distinctUntilChanged()
+  private val failureTypeFlow = projectController.state.map { state -> state.filters.failureTypeToggles.selected }.distinctUntilChanged()
   private val crashToggle = failureTypeFlow.map { it.contains(FailureType.FATAL) }
   private val anrToggle = failureTypeFlow.map { it.contains(FailureType.ANR) }
 
@@ -114,22 +100,10 @@ class VitalsTab(
   private fun addActionsToGroup(group: DefaultActionGroup, toolbar: ActionToolbar) {
     group.apply {
       @Suppress("UNCHECKED_CAST")
-      add(
-        VitalsConnectionSelectorAction(
-          connections as StateFlow<Selection<VitalsConnection>>,
-          scope,
-          projectController::selectConnection,
-        )
-      )
+      add(VitalsConnectionSelectorAction(connections as StateFlow<Selection<VitalsConnection>>, scope, projectController::selectConnection))
       addSeparator()
       add(
-        AppInsightsToggleAction(
-          "Crash",
-          null,
-          StudioIcons.AppQualityInsights.FATAL,
-          crashToggle,
-          scope,
-        ) {
+        AppInsightsToggleAction("Crash", null, StudioIcons.AppQualityInsights.FATAL, crashToggle, scope) {
           projectController.toggleFailureType(FailureType.FATAL)
         }
       )
@@ -138,27 +112,9 @@ class VitalsTab(
           projectController.toggleFailureType(FailureType.ANR)
         }
       )
+      add(AppInsightsDropDownAction("Interval", null, null, intervals, null, projectController::selectTimeInterval) { toolbar })
       add(
-        AppInsightsDropDownAction(
-          "Interval",
-          null,
-          null,
-          intervals,
-          null,
-          projectController::selectTimeInterval,
-        ) {
-          toolbar
-        }
-      )
-      add(
-        AppInsightsDropDownAction(
-          "Visibility types",
-          null,
-          null,
-          visibilityTypes,
-          null,
-          projectController::selectVisibilityType,
-        ) {
+        AppInsightsDropDownAction("Visibility types", null, null, visibilityTypes, null, projectController::selectVisibilityType) {
           toolbar
         }
       )
@@ -222,8 +178,7 @@ class VitalsTab(
           override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
           override fun update(e: AnActionEvent) {
-            e.presentation.text =
-              if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
+            e.presentation.text = if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
             e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
           }
         }
@@ -234,17 +189,13 @@ class VitalsTab(
 
   private fun createToolbar(): ActionToolbar {
     val group = DefaultActionGroup()
-    val actionToolbar =
-      AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
+    val actionToolbar = AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
     actionToolbar.component.border = SideBorder(JBColor.border(), SideBorder.BOTTOM)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     scope.launch(AndroidDispatchers.uiThread) {
       offlineStateFlow.collect { mode ->
         ActionToolbarUtil.findActionButton(actionToolbar, timestampAction)?.let { button ->
-          if (
-            mode == ConnectionMode.OFFLINE &&
-              !project.service<AppInsightsSettings>().isOfflineNotificationDismissed
-          ) {
+          if (mode == ConnectionMode.OFFLINE && !project.service<AppInsightsSettings>().isOfflineNotificationDismissed) {
             OfflineBalloonMaker("Android Vitals", project).showOfflineNotificationBalloon(button)
           }
         }

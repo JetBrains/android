@@ -28,26 +28,27 @@ class FakeSavedStateRegistryLoaderTest {
   @Test
   fun `FakeSavedStateRegistry is loaded with the correct content`() {
     // Given a map of classes with an empty FakeSavedStateRegistry.
-    val classesToLoad = mapOf(
-      "should.skip.ThisClass1" to ByteArray(size = 4),
-      "_layoutlib_._internal_.androidx.lifecycle.FakeSavedStateRegistry" to ByteArray(size = 0),
-      "should.skip.ThisClass2" to ByteArray(size = 5),
-      "should.skip.ThisClass3" to ByteArray(size = 42),
-    )
+    val classesToLoad =
+      mapOf(
+        "should.skip.ThisClass1" to ByteArray(size = 4),
+        "_layoutlib_._internal_.androidx.lifecycle.FakeSavedStateRegistry" to ByteArray(size = 0),
+        "should.skip.ThisClass2" to ByteArray(size = 5),
+        "should.skip.ThisClass3" to ByteArray(size = 42),
+      )
 
     // Given a delegate containing the classes.
     val loadedClasses = mutableSetOf<String>()
     val staticLoader = StaticLoader(classesToLoad)
-    val classDetectorDelegate = object : DelegatingClassLoader.Loader {
-      override fun loadClass(fqcn: String): ByteArray? {
-        try {
-          return staticLoader.loadClass(fqcn)
-        }
-        finally {
-          loadedClasses.add(fqcn)
+    val classDetectorDelegate =
+      object : DelegatingClassLoader.Loader {
+        override fun loadClass(fqcn: String): ByteArray? {
+          try {
+            return staticLoader.loadClass(fqcn)
+          } finally {
+            loadedClasses.add(fqcn)
+          }
         }
       }
-    }
 
     // When FakeSavedStateRegistryLoader loads the classes from the delegate.
     val loader = FakeSavedStateRegistryLoader(classDetectorDelegate)

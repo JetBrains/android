@@ -30,8 +30,7 @@ data class InputEvent(val rootId: Long, val x: Float, val y: Float)
 /**
  * Client that contains all the logic required to communicate with the on-device renderer.
  *
- * @param messenger The messenger used to communicate with the device. Currently using the
- *   [ViewLayoutInspectorClient] messenger.
+ * @param messenger The messenger used to communicate with the device. Currently using the [ViewLayoutInspectorClient] messenger.
  */
 class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
   private val _selectionEvents = ephemeralFlow<InputEvent?>()
@@ -70,10 +69,7 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
   /** Send a command to the agent to enable on-device rendering. */
   suspend fun enableOnDeviceRendering(enable: Boolean) {
     messenger.sendCommand {
-      enableOnDeviceRenderingCommand =
-        LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder()
-          .setEnable(enable)
-          .build()
+      enableOnDeviceRenderingCommand = LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder().setEnable(enable).build()
     }
   }
 
@@ -81,26 +77,18 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
   suspend fun interceptTouchEvents(intercept: Boolean) {
     messenger.sendCommand {
       interceptTouchEventsCommand =
-        LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder()
-          .apply { this.intercept = intercept }
-          .build()
+        LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder().apply { this.intercept = intercept }.build()
     }
   }
 
   /** Send a command to the agent to draw the selected node. */
   suspend fun drawSelectedNode(instruction: DrawInstruction?) {
-    sendDrawCommand(
-      listOfNotNull(instruction),
-      LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
-    )
+    sendDrawCommand(listOfNotNull(instruction), LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES)
   }
 
   /** Send a command to the agent to draw the hovered node. */
   suspend fun drawHoveredNode(instruction: DrawInstruction?) {
-    sendDrawCommand(
-      listOfNotNull(instruction),
-      LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
-    )
+    sendDrawCommand(listOfNotNull(instruction), LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES)
   }
 
   /** Send a command to the agent to draw the visible nodes. */
@@ -130,15 +118,11 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
 
   suspend fun setOverlayAlpha(alpha: Float) {
     messenger.sendCommand {
-      setOverlayAlphaCommand =
-        LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(alpha).build()
+      setOverlayAlphaCommand = LayoutInspectorViewProtocol.SetOverlayAlphaCommand.newBuilder().setAlpha(alpha).build()
     }
   }
 
-  private suspend fun sendDrawCommand(
-    instructions: List<DrawInstruction>,
-    type: LayoutInspectorViewProtocol.DrawCommand.Type,
-  ) {
+  private suspend fun sendDrawCommand(instructions: List<DrawInstruction>, type: LayoutInspectorViewProtocol.DrawCommand.Type) {
     val drawInstructions = instructions.map { it.toProto() }
 
     messenger.sendCommand {
@@ -172,11 +156,7 @@ private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstructi
     .setColor(color)
     .also {
       if (label != null) {
-        it.label =
-          LayoutInspectorViewProtocol.Label.newBuilder()
-            .setText(label.text)
-            .setSize(label.size)
-            .build()
+        it.label = LayoutInspectorViewProtocol.Label.newBuilder().setText(label.text).setSize(label.size).build()
       }
     }
     .setStrokeThickness(strokeThickness)

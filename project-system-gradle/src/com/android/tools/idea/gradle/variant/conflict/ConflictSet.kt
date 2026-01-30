@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.variant.conflict
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -32,24 +32,17 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 
 /**
  * Set of all variant-selection-related conflicts.There are two reasons for conflicts to happen:
- *
- * 1. **Selection conflicts.** These conflicts occur when module A depends on module B/variant X but module B has variant Y selected
- * instead and no other modules depend on B/variant Y.These conflicts can be easily fixed by selecting the right variant in the "Build
- * Variants" tool window.
- *
- * 2. **Structure conflicts.** These conflicts occur when there are multiple modules depending on different variants of a single module.
- * For example, module A depends on module E/variant X, module B depends on module E/variant Y and module C depends on module E/variant Z.
- * These conflicts cannot be resolved through the "Build Variants" tool window because regardless of the variant is selected on module E,
- * we will always have a selection conflict. These conflicts need to be resolved in build configuration, but the user can still adjust the
- * selection to their needs.
+ * 1. **Selection conflicts.** These conflicts occur when module A depends on module B/variant X but module B has variant Y selected instead
+ *    and no other modules depend on B/variant Y.These conflicts can be easily fixed by selecting the right variant in the "Build Variants"
+ *    tool window.
+ * 2. **Structure conflicts.** These conflicts occur when there are multiple modules depending on different variants of a single module. For
+ *    example, module A depends on module E/variant X, module B depends on module E/variant Y and module C depends on module E/variant Z.
+ *    These conflicts cannot be resolved through the "Build Variants" tool window because regardless of the variant is selected on module E,
+ *    we will always have a selection conflict. These conflicts need to be resolved in build configuration, but the user can still adjust
+ *    the selection to their needs.
  */
-class ConflictSet private constructor(
-  val project: Project,
-  val selectionConflicts: List<Conflict>
-) {
-  /**
-   * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
-   */
+class ConflictSet private constructor(val project: Project, val selectionConflicts: List<Conflict>) {
+  /** Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows. */
   fun showSelectionConflicts() {
     ApplicationManager.getApplication().invokeLater {
       if (!project.isDisposed) {
@@ -65,13 +58,14 @@ class ConflictSet private constructor(
     fun findConflicts(project: Project): ConflictSet {
       val androidHolderModules = project.getAndroidFacets().map { it.module }
 
-      val modulesByPath = androidHolderModules
-        .asSequence()
-        .mapNotNull {
-          val gradleProjectPath = it.getGradleProjectPath() ?: return@mapNotNull null
-          gradleProjectPath to it
-        }
-        .toMap()
+      val modulesByPath =
+        androidHolderModules
+          .asSequence()
+          .mapNotNull {
+            val gradleProjectPath = it.getGradleProjectPath() ?: return@mapNotNull null
+            gradleProjectPath to it
+          }
+          .toMap()
 
       val selectedVariants =
         androidHolderModules
@@ -83,22 +77,14 @@ class ConflictSet private constructor(
           .toMap()
 
       val conflicts =
-        androidHolderModules
-          .asSequence()
-          .flatMap { module ->
-            GradleAndroidDependencyModel.get(module)
-              ?.getModuleLibraries()
-              .orEmpty()
-              .mapNotNull {
-                val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-                val targetModule =
-                  modulesByPath[it.getGradleProjectPath().toHolder()] ?: return@mapNotNull null
-                val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
-                if (selectedVariant == targetVariant) null
-                else RawConflict(module, selectedVariant, targetModule, targetVariant)
-              }
+        androidHolderModules.asSequence().flatMap { module ->
+          GradleAndroidDependencyModel.get(module)?.getModuleLibraries().orEmpty().mapNotNull {
+            val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val targetModule = modulesByPath[it.getGradleProjectPath().toHolder()] ?: return@mapNotNull null
+            val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
+            if (selectedVariant == targetVariant) null else RawConflict(module, selectedVariant, targetModule, targetVariant)
           }
-
+        }
 
       val selectionConflicts = mutableMapOf<String, Conflict>()
       conflicts.forEach { conflict ->
@@ -111,7 +97,7 @@ class ConflictSet private constructor(
       source: Module,
       selectedVariant: String,
       affected: Module,
-      expectedVariant: String
+      expectedVariant: String,
     ) {
       val causeName = source.name
       val conflict = computeIfAbsent(causeName) { k: String? -> Conflict(source, selectedVariant) }
@@ -120,10 +106,16 @@ class ConflictSet private constructor(
 
     private fun GradleAndroidDependencyModel.getModuleLibraries(): Sequence<IdeModuleLibrary> {
       val variant = selectedVariantWithDependencies
-      val allModuleLibraries = variant.mainArtifact.compileClasspath.libraries.asSequence() +
-                               variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath?.libraries?.asSequence().orEmpty() +
-                               variant.testFixturesArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
-                               variant.hostTestArtifacts.map { it.compileClasspath.libraries }.flatten().asSequence()
+      val allModuleLibraries =
+        variant.mainArtifact.compileClasspath.libraries.asSequence() +
+          variant.deviceTestArtifacts
+            .find { it.name == IdeArtifactName.ANDROID_TEST }
+            ?.compileClasspath
+            ?.libraries
+            ?.asSequence()
+            .orEmpty() +
+          variant.testFixturesArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
+          variant.hostTestArtifacts.map { it.compileClasspath.libraries }.flatten().asSequence()
       return allModuleLibraries.filterIsInstance<IdeModuleLibrary>().distinct()
     }
   }
@@ -131,30 +123,34 @@ class ConflictSet private constructor(
 
 data class DependencyVariantConflict(val dependencyName: String, val expectedVariant: String, val actualVariant: String)
 
-/**
- * Compute a display message for a given module when there are dependencies with conflicting variants selected.
- */
+/** Compute a display message for a given module when there are dependencies with conflicting variants selected. */
 fun Module.variantConflictMessage(conflicts: ImmutableList<Conflict>): String {
-  val affectedModules = conflicts.flatMap { conflict -> conflict.affectedModules }
-    .filter { affectedModule -> affectedModule.target.name == this.name }
-  val dependenciesVariantConflict = affectedModules.map { affectedModule -> DependencyVariantConflict(
-    affectedModule.conflict.source.displayName,
-    affectedModule.expectedVariant,
-    affectedModule.conflict.selectedVariant) }
+  val affectedModules =
+    conflicts.flatMap { conflict -> conflict.affectedModules }.filter { affectedModule -> affectedModule.target.name == this.name }
+  val dependenciesVariantConflict =
+    affectedModules.map { affectedModule ->
+      DependencyVariantConflict(
+        affectedModule.conflict.source.displayName,
+        affectedModule.expectedVariant,
+        affectedModule.conflict.selectedVariant,
+      )
+    }
 
   return buildString {
     append("Only a single variant of a Android Gradle project can be loaded at a time in Android Studio.<br>")
     append("Dependencies of ${this@variantConflictMessage.displayName} are different to what it expects due to variant conflicts.<br>")
 
-    append(dependenciesVariantConflict.joinToString("<br>") {
-      "Gradle project ${it.dependencyName}(Expected variant: ${it.expectedVariant}, Loaded variant: ${it.actualVariant})"
-    })
+    append(
+      dependenciesVariantConflict.joinToString("<br>") {
+        "Gradle project ${it.dependencyName}(Expected variant: ${it.expectedVariant}, Loaded variant: ${it.actualVariant})"
+      }
+    )
   }
 }
 
 val Module.displayName: String
   get() {
-  val modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(this)
-  // Note: modulePath should never be null here.
-  return modulePath ?: this.name
-}
+    val modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(this)
+    // Note: modulePath should never be null here.
+    return modulePath ?: this.name
+  }

@@ -55,7 +55,7 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       presentation.text = "Zoom Level: $scaleText"
       thisLogger().info("Zoom level indicator updated from ${presentation.description} to $scaleText") // b/479059316
       if (scaleText != presentation.description) {
-        zoomLevelChanged = true;
+        zoomLevelChanged = true
       }
       presentation.description = scaleText
     }
@@ -67,14 +67,10 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-      MyActionButton(this, presentation, place)
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent = MyActionButton(this, presentation, place)
 
-  private class MyActionButton(
-    action: AnAction,
-    presentation: Presentation,
-    place: String
-  ) : ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
+  private class MyActionButton(action: AnAction, presentation: Presentation, place: String) :
+    ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
 
     private var cachedTextPainter: TextPainter? = null
     private val textPainter: TextPainter
@@ -118,8 +114,8 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
     }
 
     /**
-     * If the given text is wider than [maxWidth] when rendered using this font, returns a font that
-     * is squeezed horizontally so that it fits in [maxWidth]. Otherwise, returns this font.
+     * If the given text is wider than [maxWidth] when rendered using this font, returns a font that is squeezed horizontally so that it
+     * fits in [maxWidth]. Otherwise, returns this font.
      */
     private fun Font.squeezeToFit(text: String, maxWidth: Int): Font {
       var scale = 1.0
@@ -151,16 +147,13 @@ class ZoomLevelIndicator : DumbAwareAction(EmptyIcon.ICON_16), CustomComponentAc
       return scaled(scale)
     }
 
-    private fun computeTextWidth(text: String, font: Font, scale: Double): Int =
-        computeTextBounds(font.scaled(scale), text).width
+    private fun computeTextWidth(text: String, font: Font, scale: Double): Int = computeTextBounds(font.scaled(scale), text).width
 
-    private fun computeTextBounds(font: Font, text: String): Rectangle =
-        computePixelBounds(font, text, fontRenderContext)
+    private fun computeTextBounds(font: Font, text: String): Rectangle = computePixelBounds(font, text, fontRenderContext)
   }
 }
 
-private fun Font.scaled(scale: Double): Font =
-    if (scale == 1.0) this else deriveFont(AffineTransform.getScaleInstance(scale, 1.0))
+private fun Font.scaled(scale: Double): Font = if (scale == 1.0) this else deriveFont(AffineTransform.getScaleInstance(scale, 1.0))
 
 private fun computePixelBounds(font: Font, text: String, context: FontRenderContext): Rectangle {
   return when {
@@ -175,4 +168,5 @@ private fun createFontRenderContext(): FontRenderContext {
   return FontRenderContext(null, aaHint, fmHint)
 }
 
-private var zoomLevelChanged = false; // b/479059316
+private var zoomLevelChanged = false
+ // b/479059316

@@ -157,9 +157,7 @@ class ComposePreviewViewImplTest {
         AndroidModuleModelBuilder(
           ":testModule",
           "debug",
-          createAndroidProjectBuilderForDefaultTestProjectStructure(
-            IdeAndroidProjectType.PROJECT_TYPE_TEST
-          ),
+          createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_TEST),
         ),
       )
       .initAndroid(true)
@@ -175,8 +173,7 @@ class ComposePreviewViewImplTest {
   private val statusManager =
     object : RenderingBuildStatusManager {
       override val isBuilding: Boolean = false
-      override val statusFlow: MutableStateFlow<RenderingBuildStatus> =
-        MutableStateFlow(RenderingBuildStatus.Ready)
+      override val statusFlow: MutableStateFlow<RenderingBuildStatus> = MutableStateFlow(RenderingBuildStatus.Ready)
     }
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var mainSurfaceBuilder: NlSurfaceBuilder
@@ -313,15 +310,14 @@ class ComposePreviewViewImplTest {
   }
 
   /**
-   * Updates the [ComposePreviewView] with the preview elements provided by the [previewProvider]. A
-   * [composePreviewManager] is needed to determine the state.
+   * Updates the [ComposePreviewView] with the preview elements provided by the [previewProvider]. A [composePreviewManager] is needed to
+   * determine the state.
    */
   private fun updatePreviewAndRefreshWithProvider(
     previewProvider: PreviewElementProvider<PsiComposePreviewElementInstance>,
     composePreviewManager: ComposePreviewManager,
     surface: NlDesignSurface = previewView.mainSurface,
-    configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager =
+    configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager =
       ::configureLayoutlibSceneManagerForPreviewElement,
   ) {
     val testPreviewElementModelAdapter = createPreviewElementModelAdapter(composePreviewManager)
@@ -348,9 +344,7 @@ class ComposePreviewViewImplTest {
     }
   }
 
-  private fun createPreviewElementModelAdapter(
-    composePreviewManager: ComposePreviewManager
-  ): ComposePreviewElementModelAdapter =
+  private fun createPreviewElementModelAdapter(composePreviewManager: ComposePreviewManager): ComposePreviewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
         """
@@ -361,8 +355,7 @@ class ComposePreviewViewImplTest {
   """
 
       override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
-        object :
-          NlDataProvider(COMPOSE_PREVIEW_MANAGER, PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, PROJECT) {
+        object : NlDataProvider(COMPOSE_PREVIEW_MANAGER, PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, PROJECT) {
           override fun getData(dataId: String): Any? =
             when (dataId) {
               COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
@@ -500,16 +493,12 @@ class ComposePreviewViewImplTest {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
-        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-          "Fake Test Method",
-          "Display1",
-        ),
+        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Fake Test Method", "Display1"),
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<PsiComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> =
-          previews.asSequence()
+        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> = previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
     ApplicationManager.getApplication().invokeAndWait {
@@ -528,16 +517,12 @@ class ComposePreviewViewImplTest {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
-        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-          "Fake Test Method",
-          "Display1",
-        ),
+        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Fake Test Method", "Display1"),
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<PsiComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> =
-          previews.asSequence()
+        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> = previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
 
@@ -598,16 +583,12 @@ class ComposePreviewViewImplTest {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
-        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-          "Fake Test Method",
-          "Display1",
-        ),
+        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Fake Test Method", "Display1"),
         SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2"),
       )
     val fakePreviewProvider =
       object : PreviewElementProvider<PsiComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> =
-          previews.asSequence()
+        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> = previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
     ApplicationManager.getApplication().invokeAndWait {
@@ -622,10 +603,7 @@ class ComposePreviewViewImplTest {
   fun `test reusing model resets Configuration but keeps image transform`() {
     val composePreviewManager = TestComposePreviewManager()
     val fakePreviewElement =
-      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-        "Fake Test Method",
-        "Display1",
-      )
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>("Fake Test Method", "Display1")
     val testPreviewElementModelAdapter = createPreviewElementModelAdapter(composePreviewManager)
     val configurationManager = ConfigurationManager.getOrCreateInstance(projectRule.module)
     previewView.mainSurface.colorBlindMode = ColorBlindMode.PROTANOMALY

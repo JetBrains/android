@@ -43,35 +43,18 @@ class RunningDevicesStateObserverTest {
 
   @Before
   fun setUp() {
-    tab1 =
-      TabInfo(
-        DeviceId.ofPhysicalDevice("tab1"),
-        BorderLayoutPanel(),
-        JPanel(),
-        listOf(displayViewRule.newEmulatorView()),
-      )
-    tab2 =
-      TabInfo(
-        DeviceId.ofPhysicalDevice("tab2"),
-        BorderLayoutPanel(),
-        JPanel(),
-        listOf(displayViewRule.newEmulatorView()),
-      )
+    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
+    tab2 = TabInfo(DeviceId.ofPhysicalDevice("tab2"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
 
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())
 
     // replace ToolWindowManager with fake one
-    displayViewRule.project.replaceService(
-      ToolWindowManager::class.java,
-      fakeToolWindowManager,
-      displayViewRule.disposable,
-    )
+    displayViewRule.project.replaceService(ToolWindowManager::class.java, fakeToolWindowManager, displayViewRule.disposable)
   }
 
   @Test
   fun testListenerIsCalledWithExistingState() {
-    val runningDevicesStateObserver =
-      RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.toolWindow.show()
 
@@ -100,8 +83,7 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
-    val runningDevicesStateObserver =
-      RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.toolWindow.show()
 
@@ -130,21 +112,14 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.removeContent(tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    assertThat(observedVisibleTabs)
-      .containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab2.deviceId))
+    assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab2.deviceId))
     assertThat(observedExistingTabs)
-      .containsExactly(
-        emptyList<DeviceId>(),
-        listOf(tab1.deviceId),
-        listOf(tab1.deviceId, tab2.deviceId),
-        listOf(tab2.deviceId),
-      )
+      .containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab1.deviceId, tab2.deviceId), listOf(tab2.deviceId))
   }
 
   @Test
   fun testListenerIsCalledWhenSelectedTabChanges() {
-    val runningDevicesStateObserver =
-      RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
     val observedExistingTabs = mutableListOf<List<DeviceId>>()
@@ -182,24 +157,13 @@ class RunningDevicesStateObserverTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertThat(observedVisibleTabs)
-      .containsExactly(
-        emptyList<DeviceId>(),
-        listOf(tab1.deviceId),
-        listOf(tab2.deviceId),
-        listOf(tab1.deviceId),
-      )
-    assertThat(observedExistingTabs)
-      .containsExactly(
-        emptyList<DeviceId>(),
-        listOf(tab1.deviceId),
-        listOf(tab1.deviceId, tab2.deviceId),
-      )
+      .containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab2.deviceId), listOf(tab1.deviceId))
+    assertThat(observedExistingTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), listOf(tab1.deviceId, tab2.deviceId))
   }
 
   @Test
   fun testToolWindowStateChange() {
-    val runningDevicesStateObserver =
-      RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver.getInstance(displayViewRule.project)
 
     val observedVisibleTabs = mutableListOf<List<DeviceId>>()
 
@@ -226,7 +190,6 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.toolWindow.show()
     fakeToolWindowManager.toolWindow.hide()
 
-    assertThat(observedVisibleTabs)
-      .containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), emptyList<DeviceId>())
+    assertThat(observedVisibleTabs).containsExactly(emptyList<DeviceId>(), listOf(tab1.deviceId), emptyList<DeviceId>())
   }
 }

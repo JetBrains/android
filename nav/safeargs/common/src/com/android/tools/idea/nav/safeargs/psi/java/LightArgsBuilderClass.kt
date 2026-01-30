@@ -82,8 +82,7 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
   }
 
   private fun computeConstructors(): Array<PsiMethod> {
-    val copyConstructor =
-      createConstructor().addParameter("original", PsiTypesUtil.getClassType(argsClass))
+    val copyConstructor = createConstructor().addParameter("original", PsiTypesUtil.getClassType(argsClass))
 
     val argsConstructor =
       createConstructor().apply {
@@ -124,11 +123,7 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
         }
         .toTypedArray()
 
-    val build =
-      createMethod(
-        name = "build",
-        returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass)),
-      )
+    val build = createMethod(name = "build", returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass)))
     return argMethods + build
   }
 }

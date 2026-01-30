@@ -20,75 +20,62 @@ import com.android.tools.idea.ndk.PageAlignConfig.Type.SO_UNALIGNED_LOAD_SEGMENT
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.PageAlign16kb
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.util.text.StringUtil
-import java.io.File
 
-/**
- * Configuration of 16 KB page alignment handling.
- */
+/** Configuration of 16 KB page alignment handling. */
 object PageAlignConfig {
   enum class Type {
     SO_UNALIGNED_IN_APK,
-    SO_UNALIGNED_LOAD_SEGMENTS
+    SO_UNALIGNED_LOAD_SEGMENTS,
   }
 
-  @VisibleForTesting
-  val PROTO_TEMPLATE = PageAlign16kb.newBuilder().build()!!
+  @VisibleForTesting val PROTO_TEMPLATE = PageAlign16kb.newBuilder().build()!!
 
-  /**
-   * Return true if the 16 KB page alignment feature is enabled by server flag.
-   */
+  /** Return true if the 16 KB page alignment feature is enabled by server flag. */
   fun isPageAlignMessageEnabled() = readServerFlag() != null
 
   /**
-   * Create the text body of a message to alert the user that their APK has some SO files that aren't aligned at a 16 KB boundary within
-   * the APK.
+   * Create the text body of a message to alert the user that their APK has some SO files that aren't aligned at a 16 KB boundary within the
+   * APK.
    */
   fun createSoNotAlignedInZipMessage(apkLink: String, files: List<String>) = createMessage(apkLink, files, SO_UNALIGNED_IN_APK)
 
   /**
-   * Create the text body of a message to alert the user that the APK has some SO files that have LOAD segments that aren't aligned on 16 KB boundaries.
+   * Create the text body of a message to alert the user that the APK has some SO files that have LOAD segments that aren't aligned on 16 KB
+   * boundaries.
    */
   fun createSoUnalignedLoadSegmentsMessage(apkLink: String, files: List<String>) = createMessage(apkLink, files, SO_UNALIGNED_LOAD_SEGMENTS)
 
-  /**
-   * Helper to read the server flag. Will return null if 16 KB alignment feature is not enabled on this build.
-   */
-  private fun readServerFlag() =
-    ServerFlagService.instance.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PROTO_TEMPLATE)
+  /** Helper to read the server flag. Will return null if 16 KB alignment feature is not enabled on this build. */
+  private fun readServerFlag() = ServerFlagService.instance.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PROTO_TEMPLATE)
 
-  /**
-   * Create a one-line message for when the .so files and APK are already known to the user by context.
-   */
-  fun createShortSoUnalignedLoadSegmentsMessage() : String {
+  /** Create a one-line message for when the .so files and APK are already known to the user by context. */
+  fun createShortSoUnalignedLoadSegmentsMessage(): String {
     val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
     val date = flag.playStoreDeadlineDate
     val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
-    return flag.messagePostscript
-      .replace("[DATE]", date)
-      .replace("[URL]", url)
+    return flag.messagePostscript.replace("[DATE]", date).replace("[URL]", url)
   }
 
-  /**
-   * Create a warning message given a list of SO files that have alignment problems.
-   */
+  /** Create a warning message given a list of SO files that have alignment problems. */
   fun createMessage(apkLink: String, soFiles: List<String>, type: Type): String {
     if (soFiles.isEmpty()) error("Don't call create*Message() functions with empty SO-file list")
     val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
     val date = flag.playStoreDeadlineDate
     val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
 
-    val prefix = when(type) {
-      SO_UNALIGNED_IN_APK -> flag.soUnalignedInApkMessage
-      SO_UNALIGNED_LOAD_SEGMENTS -> flag.unalignedLoadSegmentsMessage
-    }
+    val prefix =
+      when (type) {
+        SO_UNALIGNED_IN_APK -> flag.soUnalignedInApkMessage
+        SO_UNALIGNED_LOAD_SEGMENTS -> flag.unalignedLoadSegmentsMessage
+      }
     val postscript = flag.messagePostscript
     return """
     |$prefix <ul>
     |  ${soFiles.sorted().joinToString(separator = "</li><li>", prefix = "<li>")}
     | </ul>
     |$postscript
-    """.trimMargin()
+    """
+      .trimMargin()
       .replace("[APK]", apkLink)
       .replace("[DATE]", date)
       .replace("[URL]", url)

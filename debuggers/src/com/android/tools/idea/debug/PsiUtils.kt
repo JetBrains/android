@@ -21,8 +21,7 @@ import com.intellij.psi.util.PsiTreeUtil
 /**
  * Returns the JVM name of a class.
  *
- * For example:
- *  `com.example.Foo.Bar` -> `com.example.Foo$Bar`
+ * For example: `com.example.Foo.Bar` -> `com.example.Foo$Bar`
  */
 internal fun PsiClass.getJvmName(): String {
   val parent = PsiTreeUtil.getParentOfType(this, PsiClass::class.java, true) ?: return qualifiedName ?: ""

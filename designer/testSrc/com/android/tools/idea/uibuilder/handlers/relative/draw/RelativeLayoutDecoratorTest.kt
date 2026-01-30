@@ -45,13 +45,7 @@ class RelativeLayoutDecoratorTest : SceneTest() {
         .width("1000dp")
         .height("1000dp")
         .withAttribute("android:padding", "20dp")
-        .children(
-          component(PROGRESS_BAR)
-            .id("@+id/a")
-            .withBounds(450, 450, 100, 100)
-            .width("100dp")
-            .height("100dp")
-        ),
+        .children(component(PROGRESS_BAR).id("@+id/a").withBounds(450, 450, 100, 100).width("100dp").height("100dp")),
     )
   }
 

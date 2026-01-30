@@ -26,8 +26,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 
 /**
- * Data service that updates the project Jdk located under .idea/misc.xml and used to resolve
- * project symbols after a successful gradle sync.
+ * Data service that updates the project Jdk located under .idea/misc.xml and used to resolve project symbols after a successful gradle
+ * sync.
  *
  * The data node [ProjectJdkUpdateData] provides the necessary data to be able to update project jdk
  */
@@ -38,7 +38,7 @@ class ProjectJdkUpdateService : AbstractProjectDataService<ProjectJdkUpdateData,
     toImport: Collection<DataNode<ProjectJdkUpdateData>>,
     projectData: ProjectData?,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     if (toImport.isEmpty() || projectData == null) return
     require(toImport.size == 1) { "Expected to get a single project but got ${toImport.size}: $toImport" }

@@ -34,8 +34,8 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /**
- * Represents an Android typedef (i.e. an annotation that is itself annotated
- * with @IntDef/@LongDef/@StringDef), including the possible values.
+ * Represents an Android typedef (i.e. an annotation that is itself annotated with @IntDef/@LongDef/@StringDef), including the possible
+ * values.
  *
  * Example TypeDef:
  * ```kotlin
@@ -50,19 +50,11 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
  *   }
  * ```
  */
-internal data class TypeDef(
-  val annotation: PsiElement,
-  val values: List<PsiElement>,
-  val type: Type
-) {
+internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElement>, val type: Type) {
   /** Different variants of Android typedefs. */
 
   /** The type of a typedef - one of `@IntDef`, `@LongDef`, or `@StringDef` */
-  internal enum class Type(
-    val annotationName: String,
-    val javaTypeName: String,
-    val kotlinTypeName: String
-  ) {
+  internal enum class Type(val annotationName: String, val javaTypeName: String, val kotlinTypeName: String) {
     INT("IntDef", "int", "Int"),
     LONG("LongDef", "long", "Long"),
     STRING("StringDef", "String", "String");
@@ -81,8 +73,8 @@ internal data class TypeDef(
     }
 
   /**
-   * Returns a decorated version of the given [LookupElement], or [delegate] if it does not
-   * correspond to a value of this [TypeDef] or required information is missing.
+   * Returns a decorated version of the given [LookupElement], or [delegate] if it does not correspond to a value of this [TypeDef] or
+   * required information is missing.
    */
   fun maybeDecorateAndPrioritize(delegate: LookupElement): LookupElement {
     val completionElement = delegate.psiElement?.navigationElement
@@ -97,15 +89,7 @@ internal data class TypeDef(
         is PsiDocCommentOwner -> completionElement.isDeprecated
         else -> false
       }
-    val element =
-      TypeDefLookupElementDecorator(
-        delegate,
-        fqName,
-        annotationName,
-        lookupStrings,
-        icon,
-        isStrikeout
-      )
+    val element = TypeDefLookupElementDecorator(delegate, fqName, annotationName, lookupStrings, icon, isStrikeout)
     return PrioritizedLookupElement.withPriority(element, HIGH_PRIORITY)
   }
 
@@ -127,17 +111,12 @@ internal data class TypeDef(
       presentation.isStrikeout = isStrikeout
       presentation.isItemTextBold = true
       val nameWithClasses = lookupStrings.asReversed().joinToString(".")
-      fqName.substringBeforeLast(nameWithClasses).trimEnd('.').let {
-        presentation.tailText = " ($it)"
-      }
+      fqName.substringBeforeLast(nameWithClasses).trimEnd('.').let { presentation.tailText = " ($it)" }
       presentation.typeText = "@$annotationName"
     }
   }
 
-  /**
-   * Returns all the ways we might start to type this element, i.e. all the parts of its
-   * Class/Object-qualified name.
-   */
+  /** Returns all the ways we might start to type this element, i.e. all the parts of its Class/Object-qualified name. */
   private fun PsiNamedElement.getLookupStrings(): List<String>? =
     when (this) {
       is KtProperty -> getLookupStrings()

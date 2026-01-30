@@ -24,14 +24,14 @@ import org.junit.Test
 
 @RunsInEdt
 class UpdateGradlePluginProcessorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   @Test
   fun testPluginGetUpgradedCorrectly() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "build.gradle",
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "build.gradle",
+        """
         buildscript {
             ext.kotlin_version = '1.4.32'
             dependencies {
@@ -39,8 +39,9 @@ class UpdateGradlePluginProcessorTest {
                 classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${'$'}kotlin_version"
             }
         }
-      """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
     val gradleInfo = GradlePluginInfo("gradle", "com.android.tools.build")
     val kotlinInfo = GradlePluginInfo("kotlin-gradle-plugin", "org.jetbrains.kotlin")

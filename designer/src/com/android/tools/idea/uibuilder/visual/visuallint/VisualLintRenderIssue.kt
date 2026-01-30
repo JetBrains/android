@@ -97,32 +97,26 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   /** The text range of the issue. */
   private val range: TextRange? by lazy { runReadAction { getTextRange() } }
 
-  /**
-   * The line number (0-based) in the source file where the issue is located, or
-   * [UNDEFINED_LINE_NUMBER] if it cannot be determined.
-   */
+  /** The line number (0-based) in the source file where the issue is located, or [UNDEFINED_LINE_NUMBER] if it cannot be determined. */
   val lineNumber: Int by lazy { runReadAction { getIssueLineNumber() } }
 
   /**
-   * The signature of the composable function call that has the visual lint issue (e.g.,
-   * `MyComposable(name = "text")`).
+   * The signature of the composable function call that has the visual lint issue (e.g., `MyComposable(name = "text")`).
    *
-   * This will be `null` if the signature could not be determined, or if the issue is from an XML
-   * layout. This is not supported for XML layouts.
+   * This will be `null` if the signature could not be determined, or if the issue is from an XML layout. This is not supported for XML
+   * layouts.
    */
   val componentSignature: String? by lazy { runReadAction { getIssueComponentSignature() } }
 
   private val suppressList: MutableList<Suppress> = mutableListOf()
 
   override val suppresses: Stream<Suppress>
-    get() =
-      suppressList.filter { it.action !is VisualLintSuppressTask || it.action.isValid() }.stream()
+    get() = suppressList.filter { it.action !is VisualLintSuppressTask || it.action.isValid() }.stream()
 
   private var frozenNavigatable: Navigatable? = null
 
   val navigatable: Navigatable?
-    get() =
-      frozenNavigatable ?: components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
+    get() = frozenNavigatable ?: components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
 
   private var frozenAffectedFiles: List<VirtualFile> = emptyList()
 
@@ -131,10 +125,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
       frozenAffectedFiles.ifEmpty {
         models
           .filter { model -> this.shouldHighlight(model) }
-          .map {
-            @kotlin.Suppress("UnstableApiUsage")
-            BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-          }
+          .map { @kotlin.Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }
           .distinct()
       }
 
@@ -149,9 +140,8 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
     }
 
   /**
-   * Returns the [TextRange] of the first component associated with the issue source. This is used
-   * to determine the location of the issue in the source code. Returns null if there are no
-   * components associated with the issue source.
+   * Returns the [TextRange] of the first component associated with the issue source. This is used to determine the location of the issue in
+   * the source code. Returns null if there are no components associated with the issue source.
    */
   @RequiresReadLock
   private fun getTextRange(): TextRange? {
@@ -161,8 +151,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   }
 
   /**
-   * Returns the 0-based line number in the source file where the issue is located, or
-   * [UNDEFINED_LINE_NUMBER] if it cannot be determined.
+   * Returns the 0-based line number in the source file where the issue is located, or [UNDEFINED_LINE_NUMBER] if it cannot be determined.
    */
   @RequiresReadLock
   private fun getIssueLineNumber(): Int {
@@ -174,11 +163,10 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   }
 
   /**
-   * Returns the signature of the composable function call that has the visual lint issue (e.g.,
-   * `MyComposable(name = "text")`).
+   * Returns the signature of the composable function call that has the visual lint issue (e.g., `MyComposable(name = "text")`).
    *
-   * Returns `null` if the signature could not be determined, or if the issue is in an XML layout.
-   * This method is not supported for XML layouts.
+   * Returns `null` if the signature could not be determined, or if the issue is in an XML layout. This method is not supported for XML
+   * layouts.
    *
    * This is extracted from the function call text at the issue's start offset in the affected file.
    */
@@ -228,8 +216,8 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
   }
 
   /**
-   * This should be called when the previews that are at the origin of this issue have been
-   * discarded, so that the issue won't be updated anymore.
+   * This should be called when the previews that are at the origin of this issue have been discarded, so that the issue won't be updated
+   * anymore.
    */
   fun freeze() {
     frozenNavigatable = navigatable
@@ -237,10 +225,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
     frozenAffectedFiles =
       models
         .filter { model -> this.shouldHighlight(model) }
-        .map {
-          @kotlin.Suppress("UnstableApiUsage")
-          BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-        }
+        .map { @kotlin.Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }
         .distinct()
     synchronized(_components) { _components.clear() }
     synchronized(_models) { _models.clear() }
@@ -268,17 +253,13 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
 
     fun severity(severity: HighlightSeverity) = apply { this.severity = severity }
 
-    fun contentDescriptionProvider(provider: (Int) -> HtmlBuilder) = apply {
-      this.contentDescriptionProvider = provider
-    }
+    fun contentDescriptionProvider(provider: (Int) -> HtmlBuilder) = apply { this.contentDescriptionProvider = provider }
 
     fun model(model: NlModel) = apply { this.model = model }
 
     fun components(components: MutableList<NlComponent>) = apply { this.components = components }
 
-    fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply {
-      this.hyperlinkListener = hyperlinkListener
-    }
+    fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply { this.hyperlinkListener = hyperlinkListener }
 
     fun type(type: VisualLintErrorType) = apply { this.type = type }
 
@@ -304,16 +285,11 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
       if (accessibilityNodeInfo is AccessibilityNodeInfo) {
         return model.treeReader.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
       }
-      val tag =
-        (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag
-          ?: return model.treeReader.components.firstOrNull()
+      val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return model.treeReader.components.firstOrNull()
       return model.treeReader.findViewByTag(tag.psiXmlTag)
     }
 
-    private fun getHyperlinkListener(
-      issueOrigin: VisualLintOrigin,
-      type: VisualLintErrorType,
-    ): HyperlinkListener {
+    private fun getHyperlinkListener(issueOrigin: VisualLintOrigin, type: VisualLintErrorType): HyperlinkListener {
       val listener = createDefaultHyperLinkListener()
       return HyperlinkListener {
         listener.hyperlinkUpdate(it)
@@ -325,20 +301,12 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
 
     private fun getSeverity(type: VisualLintErrorType, project: Project): HighlightSeverity {
       val key = HighlightDisplayKey.find(type.shortName)
-      return key?.let {
-        InspectionProfileManager.getInstance(project)
-          .currentProfile
-          .getErrorLevel(it, null)
-          .severity
-      } ?: HighlightSeverity.WARNING
+      return key?.let { InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity }
+        ?: HighlightSeverity.WARNING
     }
 
     /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
-    fun createVisualLintRenderIssue(
-      content: VisualLintIssueContent,
-      model: NlModel,
-      type: VisualLintErrorType,
-    ): VisualLintRenderIssue {
+    fun createVisualLintRenderIssue(content: VisualLintIssueContent, model: NlModel, type: VisualLintErrorType): VisualLintRenderIssue {
       var issueType = type
       var summary = content.message
       var descriptionProvider = content.descriptionProvider
@@ -351,14 +319,10 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
         summary = COLOR_BLIND_ISSUE_SUMMARY
         val colorBlindFilterName = appliedColorBlindFilter(model).displayName
         val description = content.atfIssue!!.describe()
-        descriptionProvider = { count ->
-          colorBLindModeDescriptionProvider(colorBlindFilterName, description, count)
-        }
+        descriptionProvider = { count -> colorBLindModeDescriptionProvider(colorBlindFilterName, description, count) }
       }
       val component = componentFromViewInfo(content.view, model)
-      val issueOrigin =
-        if (component?.backend is NlComponentBackendEmpty) VisualLintOrigin.UI_CHECK
-        else VisualLintOrigin.XML_LINTING
+      val issueOrigin = if (component?.backend is NlComponentBackendEmpty) VisualLintOrigin.UI_CHECK else VisualLintOrigin.XML_LINTING
       VisualLintUsageTracker.getInstance().trackIssueCreation(issueType, issueOrigin, model.facet)
 
       return builder()
@@ -373,28 +337,26 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
     }
 
     fun appliedColorBlindFilter(model: NlModel) =
-      ColorBlindMode.entries.firstOrNull {
-        model.displaySettings.modelDisplayName.value?.startsWith(it.displayName) == true
-      } ?: ColorBlindMode.NONE
+      ColorBlindMode.entries.firstOrNull { model.displaySettings.modelDisplayName.value?.startsWith(it.displayName) == true }
+        ?: ColorBlindMode.NONE
 
-    private val colorBLindModeDescriptionProvider: (String, String, Int) -> HtmlBuilder =
-      { colorBlindFilterName, description, count ->
-        val contentDescription =
-          StringBuilder()
-            .append("Color contrast check fails for $colorBlindFilterName ")
-            .append(
-              when (count) {
-                0,
-                1 -> "colorblind configuration"
-                2 -> "and 1 other colorblind configuration"
-                else -> "and ${count - 1} other colorblind configurations"
-              }
-            )
-            .append(".<br>")
-            .append(description)
-            .toString()
-        HtmlBuilder().addHtml(contentDescription)
-      }
+    private val colorBLindModeDescriptionProvider: (String, String, Int) -> HtmlBuilder = { colorBlindFilterName, description, count ->
+      val contentDescription =
+        StringBuilder()
+          .append("Color contrast check fails for $colorBlindFilterName ")
+          .append(
+            when (count) {
+              0,
+              1 -> "colorblind configuration"
+              2 -> "and 1 other colorblind configuration"
+              else -> "and ${count - 1} other colorblind configurations"
+            }
+          )
+          .append(".<br>")
+          .append(description)
+          .toString()
+      HtmlBuilder().addHtml(contentDescription)
+    }
 
     /**
      * Finds the function call expression at a caret offset within a given VirtualFile.
@@ -404,11 +366,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
      * @param project The current project context, needed to access the PSI.
      * @return The enclosing KtCallExpression, or null if not found.
      */
-    private fun getFunctionCallAt(
-      virtualFile: VirtualFile,
-      offset: Int,
-      project: Project,
-    ): KtCallExpression? {
+    private fun getFunctionCallAt(virtualFile: VirtualFile, offset: Int, project: Project): KtCallExpression? {
       try {
         val ktFile = runReadAction { virtualFile.toPsiFile(project) } ?: return null
 

@@ -19,9 +19,6 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
-import org.junit.Assert.assertEquals
-import org.junit.Rule
-import org.junit.Test
 import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
 import java.awt.image.IndexColorModel
@@ -31,11 +28,17 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
 
 private class DebugFakeImage(private val identifier: String) : BufferedImage(10, 10, IndexColorModel.OPAQUE) {
   override fun getSource() = throw NotImplementedError()
+
   override fun getProperty(name: String?, observer: ImageObserver?) = throw NotImplementedError()
+
   override fun getGraphics() = throw NotImplementedError()
+
   override fun toString() = identifier
 }
 
@@ -47,48 +50,36 @@ class ImageCacheTest {
 
   private val placeholder = DebugFakeImage("Placeholder")
 
-  @get:Rule
-  val imageCacheRule = ImageCacheRule()
+  @get:Rule val imageCacheRule = ImageCacheRule()
 
   @Test
   fun storeImage() {
     val helper = imageCacheRule.imageCache
     val key = fakeAsset()
     val latch = CountDownLatch(1)
-    val res = helper.computeAndGet(key, placeholder, false) {
-      CompletableFuture.completedFuture(imageA).also { latch.countDown() }
-    }
+    val res = helper.computeAndGet(key, placeholder, false) { CompletableFuture.completedFuture(imageA).also { latch.countDown() } }
     assertThat(res).isEqualTo(placeholder)
     latch.await(1, TimeUnit.SECONDS)
     assertThat(helper.computeAndGet(key, placeholder, false) { CompletableFuture.completedFuture(imageB) }).isEqualTo(imageA)
   }
 
-  /**
-   * Test that the image is overridden when the computation is forced
-   */
+  /** Test that the image is overridden when the computation is forced */
   @Test
   fun valueOverridden() {
     val helper = imageCacheRule.imageCache
     val key = fakeAsset()
     val latch = CountDownLatch(1)
     val latch2 = CountDownLatch(1)
-    val res = helper.computeAndGet(key, placeholder, false) {
-      CompletableFuture.completedFuture(imageA).also { latch.countDown() }
-    }
+    val res = helper.computeAndGet(key, placeholder, false) { CompletableFuture.completedFuture(imageA).also { latch.countDown() } }
     assertThat(res).isEqualTo(placeholder)
 
     // Checks that the previously cached image is returned and not the placeholder
-    val res2 = helper.computeAndGet(key, placeholder, true) {
-      CompletableFuture.completedFuture(imageB).whenComplete { t, u ->
-        latch2.countDown()
-      }
-    }
+    val res2 =
+      helper.computeAndGet(key, placeholder, true) { CompletableFuture.completedFuture(imageB).whenComplete { t, u -> latch2.countDown() } }
     assertThat(res2).isEqualTo(imageA)
 
     assertTrue(latch2.await(1, TimeUnit.SECONDS), "Latch2 was not decremented.")
-    val res3 = helper.computeAndGet(key, placeholder, true) {
-      CompletableFuture.completedFuture(null)
-    }
+    val res3 = helper.computeAndGet(key, placeholder, true) { CompletableFuture.completedFuture(null) }
     assertThat(res3).isEqualTo(imageB)
   }
 
@@ -114,17 +105,17 @@ class ImageCacheTest {
     var computedImage: BufferedImage? = null
     run {
       val latch = CountDownLatch(1)
-      computedImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
-        CompletableFuture.completedFuture(imageA).whenComplete { _, _ ->
-          latch.countDown()
+      computedImage =
+        imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+          CompletableFuture.completedFuture(imageA).whenComplete { _, _ -> latch.countDown() }
         }
-      }
       assertEquals(placeholder, computedImage)
       assertTrue(latch.await(1, TimeUnit.SECONDS))
 
-      computedImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
-        throw IllegalStateException("Image should not be computed, it is already cached")
-      }
+      computedImage =
+        imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+          throw IllegalStateException("Image should not be computed, it is already cached")
+        }
       assertEquals(imageA, computedImage)
     }
     assertNotNull(computedImage)
@@ -134,20 +125,19 @@ class ImageCacheTest {
     run {
       val latch = CountDownLatch(1)
       imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
-        CompletableFuture.completedFuture(imageB).whenComplete { _, _ ->
-          latch.countDown()
-        }
+        CompletableFuture.completedFuture(imageB).whenComplete { _, _ -> latch.countDown() }
       }
       assertTrue(latch.await(1, TimeUnit.SECONDS))
 
-      val newImage = imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
-        throw IllegalStateException("Image should not be computed, it is already cached")
-      }
+      val newImage =
+        imageCacheRule.imageCache.computeAndGet(asset, placeholder, false) {
+          throw IllegalStateException("Image should not be computed, it is already cached")
+        }
       assertNotEquals(computedImage, newImage)
     }
   }
 
-  private fun testNoCollision(asset1: DesignAsset, asset2:DesignAsset) {
+  private fun testNoCollision(asset1: DesignAsset, asset2: DesignAsset) {
     val imageCache = imageCacheRule.imageCache
     val latch1 = CountDownLatch(1)
     val latch2 = CountDownLatch(1)

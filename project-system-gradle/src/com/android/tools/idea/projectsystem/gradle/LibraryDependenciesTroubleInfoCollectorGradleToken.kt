@@ -29,7 +29,8 @@ class LibraryDependenciesTroubleInfoCollectorGradleToken : LibraryDependenciesTr
     """ isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
   scopeType=${getScopeType(module)}"""
 
-  private fun getScopeType(module: Module) = when {
+  private fun getScopeType(module: Module) =
+    when {
       module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
       module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
       module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES

@@ -29,25 +29,22 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * A test which loads the "testData/projects/calculator" data binding project. The test is
- * designed to ensure various classes in the lang-databinding module are covered.
+ * A test which loads the "testData/projects/calculator" data binding project. The test is designed to ensure various classes in the
+ * lang-databinding module are covered.
  */
 class CalculatorProjectTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
   private val edtRule = EdtRule()
 
-  @get:Rule
-  val chain = RuleChain(projectRule, edtRule)
+  @get:Rule val chain = RuleChain(projectRule, edtRule)
 
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture

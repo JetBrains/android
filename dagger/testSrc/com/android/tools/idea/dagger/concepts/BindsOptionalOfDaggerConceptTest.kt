@@ -171,15 +171,11 @@ class BindsOptionalOfDaggerConceptTest {
     )
 
     val functionInModuleDaggerElement =
-      BindsOptionalOfProviderDaggerElement(
-        myFixture.findParentElement<KtFunction>("fun function|InModule(): Foo")
-      )
+      BindsOptionalOfProviderDaggerElement(myFixture.findParentElement<KtFunction>("fun function|InModule(): Foo"))
 
     // Expected to resolve
     assertThat(
-        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
+        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule").resolveToDaggerElements(myProject, myProject.projectScope()).toList()
       )
       .containsExactly(functionInModuleDaggerElement)
 
@@ -198,11 +194,7 @@ class BindsOptionalOfDaggerConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
-        .that(
-          BindsOptionalOfIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+        .that(BindsOptionalOfIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
     }
   }
@@ -245,15 +237,11 @@ class BindsOptionalOfDaggerConceptTest {
     )
 
     val functionInModuleDaggerElement =
-      BindsOptionalOfProviderDaggerElement(
-        myFixture.findParentElement<PsiMethod>("Foo function|InModule();")
-      )
+      BindsOptionalOfProviderDaggerElement(myFixture.findParentElement<PsiMethod>("Foo function|InModule();"))
 
     // Expected to resolve
     assertThat(
-        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
+        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule").resolveToDaggerElements(myProject, myProject.projectScope()).toList()
       )
       .containsExactly(functionInModuleDaggerElement)
 
@@ -268,11 +256,7 @@ class BindsOptionalOfDaggerConceptTest {
 
     for ((classId, methodName) in nonResolving) {
       assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
-        .that(
-          BindsOptionalOfIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+        .that(BindsOptionalOfIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
     }
   }

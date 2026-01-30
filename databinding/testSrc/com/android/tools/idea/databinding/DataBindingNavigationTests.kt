@@ -56,8 +56,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -75,7 +74,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
@@ -94,7 +93,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
           <variable name="intValue" type="Integer"/>
         </data>
       </layout>
-    """
+      """
         .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
@@ -102,8 +101,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     val editors = FileEditorManager.getInstance(fixture.project)
     assertThat(editors.selectedFiles).isEmpty()
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding =
-      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
@@ -130,15 +128,14 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
             android:layout_height="fill_parent">
           </LinearLayout>
       </layout>
-    """
+      """
         .trimIndent(),
     )
     val context = fixture.addClass("public class MainActivity {}")
 
     val editors = FileEditorManager.getInstance(fixture.project)
     assertThat(editors.selectedFiles).isEmpty()
-    val binding =
-      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val field = binding.fields[0]
     field.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
@@ -147,13 +144,13 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     assertThat(element!!.parent.text)
       .isEqualTo(
         """
-      <LinearLayout
-            android:id="@+id/test_id"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-    """
+        <LinearLayout
+              android:id="@+id/test_id"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+            </LinearLayout>
+        """
           .trimIndent()
       )
   }
@@ -229,7 +226,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       """
       package a.b.c;
       class Sample {}
-    """
+      """
         .trimIndent()
     )
 

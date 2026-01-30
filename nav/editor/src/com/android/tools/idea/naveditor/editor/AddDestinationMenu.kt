@@ -89,6 +89,7 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.util.*
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.JPanel
@@ -103,7 +104,6 @@ import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
-import java.util.*
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
 
@@ -157,19 +157,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
       val parent = surface.currentNavigation.parentSequence().last()
-      val existingClasses =
-        parent
-          .flatten()
-          .map { it?.className }
-          .filter { it != null }
-          .collect(Collectors.toCollection { TreeSet() })
+      val existingClasses = parent.flatten().map { it?.className }.filter { it != null }.collect(Collectors.toCollection { TreeSet() })
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for ((psiClass, dynamicModule) in
-          getClassesForTag(module, tag).filterKeys {
-            !existingClasses.contains(it.qualifiedName)
-          }) {
+        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()
@@ -191,9 +183,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val existingIncludes = parent.children.filter { it.isInclude }.map { it.includeFile }
 
       for (navPsi in
-        resourceManager
-          .findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.NAVIGATION)
-          .filterIsInstance<XmlFile>()) {
+        resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.NAVIGATION).filterIsInstance<XmlFile>()) {
         if (model.file == navPsi || existingIncludes.contains(navPsi)) {
           continue
         }
@@ -247,19 +237,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           createNewDestination()
         }
       }
-    createNewDestinationButton =
-      ActionButtonWithText(
-        action,
-        action.templatePresentation.clone(),
-        "Toolbar",
-        JBDimension(0, 45),
-      )
+    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation.clone(), "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
-    buttonPanel.border =
-      CompoundBorder(
-        JBUI.Borders.empty(1, 1),
-        DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f),
-      )
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
     buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
     buttonPanel.background = BACKGROUND_COLOR
     val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
@@ -297,8 +277,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
 
       thumbnailRenderer.icon = IconUtil.createImageIcon(value.thumbnail(iconCallback, list))
-      thumbnailRenderer.iconTextGap =
-        (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
+      thumbnailRenderer.iconTextGap = (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
       primaryTextRenderer.text = value.label
       secondaryTextRenderer.text = value.typeLabel
       renderer.isOpaque = selected
@@ -349,13 +328,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       .runProcessWithProgressAsynchronously(
         object : Task.Backgroundable(surface.project, "Get Available Destinations") {
           override fun run(indicator: ProgressIndicator) {
-            val dests =
-              DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
+            val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
             maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
             val listModel = FilteringListModel(CollectionListModel(dests))
-            listModel.setFilter { destination ->
-              destination.label.lowercase(Locale.getDefault()).contains(searchField.text.lowercase())
-            }
+            listModel.setFilter { destination -> destination.label.lowercase(Locale.getDefault()).contains(searchField.text.lowercase()) }
             searchField.addDocumentListener(
               object : DocumentAdapter() {
                 override fun textChanged(e: DocumentEvent) {
@@ -389,21 +365,14 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     val module = model.module
     val facet = AndroidFacet.getInstance(module)
     // Find navigation resource folder.
-    val targetDirectory =
-      CommonDataKeys.VIRTUAL_FILE.getData(DataManager.getInstance().getDataContext(surface))?.parent
+    val targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(DataManager.getInstance().getDataContext(surface))?.parent
     if (facet == null || targetDirectory == null) {
       return
     }
 
     // returned argument to receive created files from wizard.
     val createdFiles = mutableListOf<File>()
-    NewAndroidFragmentAction.openNewFragmentWizard(
-      facet,
-      model.project,
-      targetDirectory,
-      createdFiles,
-      false,
-    )
+    NewAndroidFragmentAction.openNewFragmentWizard(facet, model.project, targetDirectory, createdFiles, false)
     postNewDestinationFileCreated(model, createdFiles)
   }
 
@@ -419,10 +388,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       for (file in createdFiles) {
         val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
         val psiFile = PsiUtil.getPsiFile(model.project, virtualFile)
-        if (
-          psiFile is XmlFile &&
-            resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT
-        ) {
+        if (psiFile is XmlFile && resourceManager.getFileResourceFolderType(psiFile) == ResourceFolderType.LAYOUT) {
           layoutFile = psiFile
         }
         if (psiFile is PsiClassOwner) {
@@ -430,9 +396,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
       if (psiClass != null) {
-        NavUsageTracker.getInstance(surface.model)
-          .createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT)
-          .log()
+        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
 
         // If the new destination requires a dependency that hasn't been added yet we might not be
         // able to
@@ -444,14 +408,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
             ?: schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)
             ?: return@runWhenSmart
 
-        val destination =
-          Destination.RegularDestination(
-            surface.currentNavigation,
-            tag,
-            null,
-            psiClass,
-            layoutFile = layoutFile,
-          )
+        val destination = Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass, layoutFile = layoutFile)
         addDestination(destination)
       }
       createdFiles.clear()
@@ -476,9 +433,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         destination.addToGraph()
         component = destination.component ?: return@Runnable
         if (component.isInclude) {
-          NavUsageTracker.getInstance(model)
-            .createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE)
-            .log()
+          NavUsageTracker.getInstance(model).createEvent(NavEditorEvent.NavEditorEventType.ADD_INCLUDE).log()
         } else {
           NavUsageTracker.getInstance(model)
             .createEvent(NavEditorEvent.NavEditorEventType.ADD_DESTINATION)
@@ -527,19 +482,16 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private fun getLayoutFilesForModule(module: Module): Map<PsiClass?, XmlFile> {
     val resourceManager = LocalResourceManager.getInstance(module) ?: return mapOf()
 
-    return resourceManager
-      .findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-      .filterIsInstance<XmlFile>()
-      .associateBy { AndroidUtils.getContextClass(module, it) }
+    return resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>().associateBy {
+      AndroidUtils.getContextClass(module, it)
+    }
   }
 }
 
 interface AddDestinationMenuToken<P : AndroidProjectSystem> : Token {
   companion object {
     val EP_NAME =
-      ExtensionPointName<AddDestinationMenuToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.naveditor.editor.addDestinationMenuToken"
-      )
+      ExtensionPointName<AddDestinationMenuToken<AndroidProjectSystem>>("com.android.tools.idea.naveditor.editor.addDestinationMenuToken")
   }
 
   fun modifyProject(projectSystem: P, data: Data)

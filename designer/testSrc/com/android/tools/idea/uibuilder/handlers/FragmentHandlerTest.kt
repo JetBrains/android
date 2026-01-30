@@ -43,10 +43,7 @@ class FragmentHandlerTest : LayoutTestCase() {
             .id("@+id/outer")
             .withBounds(0, 0, 100, 100)
             .children(
-              component("fragment")
-                .id("@+id/navhost")
-                .withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav")
-                .withBounds(0, 0, 100, 50),
+              component("fragment").id("@+id/navhost").withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav").withBounds(0, 0, 100, 50),
               component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50),
             ),
         )
@@ -64,9 +61,7 @@ class FragmentHandlerTest : LayoutTestCase() {
   }
 
   fun testCreateNavHost() {
-    val model =
-      model("model.xml", component("LinearLayout").id("@+id/outer").withBounds(0, 0, 100, 100))
-        .build()
+    val model = model("model.xml", component("LinearLayout").id("@+id/outer").withBounds(0, 0, 100, 100)).build()
 
     val tag =
       XmlElementFactory.getInstance(getProject())
@@ -77,27 +72,14 @@ class FragmentHandlerTest : LayoutTestCase() {
         )
 
     mockStatic<ViewEditor>(testRootDisposable)
-      .whenever<String> {
-        ViewEditor.displayResourceInput(
-          eq(model),
-          eq("Navigation Graphs"),
-          eq(EnumSet.of(ResourceType.NAVIGATION)),
-        )
-      }
+      .whenever<String> { ViewEditor.displayResourceInput(eq(model), eq("Navigation Graphs"), eq(EnumSet.of(ResourceType.NAVIGATION))) }
       .thenReturn("@navigation/testNav")
 
     WriteCommandAction.runWriteCommandAction(
       model.project,
       null,
       null,
-      {
-        model.treeWriter.createComponent(
-          tag,
-          model.treeReader.find("outer"),
-          null,
-          InsertType.CREATE,
-        )
-      },
+      { model.treeWriter.createComponent(tag, model.treeReader.find("outer"), null, InsertType.CREATE) },
       model.file,
     )
     val newFragment = model.treeReader.find("fragment")!!

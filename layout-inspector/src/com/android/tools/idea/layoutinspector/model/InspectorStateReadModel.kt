@@ -63,10 +63,7 @@ class InspectorStateReadModel {
       when (current) {
         is All -> All // Switch from All to Some is not supported
         is None -> None
-        is Some ->
-          (current.nodes - node).let { remaining ->
-            if (remaining.isEmpty()) None else Some(remaining)
-          }
+        is Some -> (current.nodes - node).let { remaining -> if (remaining.isEmpty()) None else Some(remaining) }
       }
   }
 

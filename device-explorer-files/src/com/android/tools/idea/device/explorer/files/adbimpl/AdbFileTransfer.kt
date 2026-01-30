@@ -26,12 +26,12 @@ import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.fs.ThrottledProgress
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.logger
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 private val LOGGER = logger<AdbFileTransfer>()
 
@@ -39,24 +39,15 @@ class AdbFileTransfer(
   private val device: ConnectedDevice,
   private val fileOperations: AdbFileOperations,
   progressExecutor: Executor,
-  private val dispatcher: CoroutineDispatcher
+  private val dispatcher: CoroutineDispatcher,
 ) {
   private val progressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
 
-  suspend fun downloadFile(
-    remoteFileEntry: AdbFileListingEntry,
-    localPath: Path,
-    progress: FileTransferProgress
-  ) {
+  suspend fun downloadFile(remoteFileEntry: AdbFileListingEntry, localPath: Path, progress: FileTransferProgress) {
     return downloadFileWorker(remoteFileEntry.fullPath, remoteFileEntry.size, localPath, progress)
   }
 
-  suspend fun downloadFile(
-    remotePath: String,
-    remotePathSize: Long,
-    localPath: Path,
-    progress: FileTransferProgress
-  ) {
+  suspend fun downloadFile(remotePath: String, remotePathSize: Long, localPath: Path, progress: FileTransferProgress) {
     return downloadFileWorker(remotePath, remotePathSize, localPath, progress)
   }
 
@@ -65,7 +56,7 @@ class AdbFileTransfer(
     remotePathSize: Long,
     localPath: Path,
     progress: FileTransferProgress,
-    runAs: String?
+    runAs: String?,
   ) {
     // Note: We should reach this code only if the device is not root, in which case
     // trying a "pullFile" would fail because of permission error (reading from the /data/data/
@@ -80,20 +71,11 @@ class AdbFileTransfer(
     }
   }
 
-  suspend fun uploadFile(
-    localPath: Path,
-    remotePath: String,
-    progress: FileTransferProgress
-  ) {
+  suspend fun uploadFile(localPath: Path, remotePath: String, progress: FileTransferProgress) {
     return uploadFileWorker(localPath, remotePath, progress)
   }
 
-  suspend fun uploadFileViaTempLocation(
-    localPath: Path,
-    remotePath: String,
-    progress: FileTransferProgress,
-    runAs: String?
-  ) {
+  suspend fun uploadFileViaTempLocation(localPath: Path, remotePath: String, progress: FileTransferProgress, runAs: String?) {
     val tempFile = fileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
     try {
       // Upload to temporary location
@@ -104,15 +86,9 @@ class AdbFileTransfer(
     }
   }
 
-  private suspend fun downloadFileWorker(
-    remotePath: String,
-    remotePathSize: Long,
-    localPath: Path,
-    progress: FileTransferProgress
-  ) {
+  private suspend fun downloadFileWorker(remotePath: String, remotePathSize: Long, localPath: Path, progress: FileTransferProgress) {
     try {
-      val monitor = SingleFileProgressMonitor(
-        progressExecutor.asCoroutineDispatcher(), progress, remotePathSize)
+      val monitor = SingleFileProgressMonitor(progressExecutor.asCoroutineDispatcher(), progress, remotePathSize)
       withContext(dispatcher) {
         val stopwatch = Stopwatch.createStarted()
         device.session.channelFactory.createFile(localPath).use { fileChannel ->
@@ -126,11 +102,7 @@ class AdbFileTransfer(
     }
   }
 
-  private suspend fun uploadFileWorker(
-    localPath: Path,
-    remotePath: String,
-    progress: FileTransferProgress
-  ) {
+  private suspend fun uploadFileWorker(localPath: Path, remotePath: String, progress: FileTransferProgress) {
     try {
       withContext(dispatcher) {
         val fileLength = localPath.toFile().length()
@@ -139,13 +111,16 @@ class AdbFileTransfer(
 
         device.session.channelFactory.openFile(localPath).use { fileChannel ->
           device.session.deviceServices.syncSend(
-            device.selector, fileChannel, remotePath,
+            device.selector,
+            fileChannel,
+            remotePath,
             RemoteFileMode.fromPath(localPath) ?: RemoteFileMode.DEFAULT,
             null,
-            monitor)
+            monitor,
+          )
         }
 
-        LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
+        LOGGER.info("Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
       }
     } catch (e: IOException) {
       LOGGER.info("Error pushing file from \"$localPath\" to \"$remotePath\"", e)
@@ -155,22 +130,19 @@ class AdbFileTransfer(
 }
 
 /**
- * Forward callbacks from a [SyncProgress], running on a pooled thread,
- * to a [FileTransferProgress], using the provided [CoroutineDispatcher],
- * typically the UI dispatcher.
+ * Forward callbacks from a [SyncProgress], running on a pooled thread, to a [FileTransferProgress], using the provided
+ * [CoroutineDispatcher], typically the UI dispatcher.
  */
 private class SingleFileProgressMonitor(
   private val callbackDispatcher: CoroutineDispatcher,
   private val progress: FileTransferProgress,
-  private val totalBytes: Long
+  private val totalBytes: Long,
 ) : SyncProgress {
   private val throttledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS)
   private var currentBytes: Long = 0
 
   override suspend fun transferStarted(remotePath: String) {
-    withContext(callbackDispatcher) {
-      progress.progress(0, totalBytes)
-    }
+    withContext(callbackDispatcher) { progress.progress(0, totalBytes) }
   }
 
   override suspend fun transferProgress(remotePath: String, totalBytesSoFar: Long) {
@@ -184,9 +156,7 @@ private class SingleFileProgressMonitor(
   }
 
   override suspend fun transferDone(remotePath: String, totalBytes: Long) {
-    withContext(callbackDispatcher) {
-      progress.progress(totalBytes, totalBytes)
-    }
+    withContext(callbackDispatcher) { progress.progress(totalBytes, totalBytes) }
   }
 }
 

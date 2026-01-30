@@ -34,31 +34,23 @@ import kotlinx.coroutines.flow.FlowCollector
 private const val TEXT_PREFIX = "--------- beginning of "
 
 /**
- * A [ShellV2Collector] implementation that collects `stdout` as a sequence of lists of
- * [LogcatMessage]'s
+ * A [ShellV2Collector] implementation that collects `stdout` as a sequence of lists of [LogcatMessage]'s
  *
- * Since a message can be split by buffer boundaries, we need to save a state of leftover bytes from
- * the previous invocation.
+ * Since a message can be split by buffer boundaries, we need to save a state of leftover bytes from the previous invocation.
  *
- * The trivial way of handling the leftover bytes is to always create a new buffer by concatenating
- * the leftover bytes with the new buffer. However, this results in unnecessary memory thrashing.
- * Rather, we only copy the remaining bytes when processing the first log message in the buffer.
- * After the first message is handled, we proceed by reading directly from the provided buffer.
+ * The trivial way of handling the leftover bytes is to always create a new buffer by concatenating the leftover bytes with the new buffer.
+ * However, this results in unnecessary memory thrashing. Rather, we only copy the remaining bytes when processing the first log message in
+ * the buffer. After the first message is handled, we proceed by reading directly from the provided buffer.
  */
-class LogcatProtoShellCollector(
-  private val serialNumber: String,
-  private val processNameMonitor: ProcessNameMonitor,
-) : ShellV2Collector<List<LogcatMessage>> {
+class LogcatProtoShellCollector(private val serialNumber: String, private val processNameMonitor: ProcessNameMonitor) :
+  ShellV2Collector<List<LogcatMessage>> {
   // Bytes left over from the last call. These bytes are the start of the next message to be read.
   private var leftoverBytes: ByteArray = ByteArray(0)
   private var firstTime = true
 
   override suspend fun start(collector: FlowCollector<List<LogcatMessage>>) {}
 
-  override suspend fun collectStdout(
-    collector: FlowCollector<List<LogcatMessage>>,
-    stdout: ByteBuffer,
-  ) {
+  override suspend fun collectStdout(collector: FlowCollector<List<LogcatMessage>>, stdout: ByteBuffer) {
     stdout.order(LITTLE_ENDIAN)
 
     val messages = mutableListOf<LogcatMessage>()
@@ -71,21 +63,16 @@ class LogcatProtoShellCollector(
     collector.emit(messages)
   }
 
-  override suspend fun collectStderr(
-    collector: FlowCollector<List<LogcatMessage>>,
-    stderr: ByteBuffer,
-  ) {}
+  override suspend fun collectStderr(collector: FlowCollector<List<LogcatMessage>>, stderr: ByteBuffer) {}
 
   override suspend fun end(collector: FlowCollector<List<LogcatMessage>>, exitCode: Int) {}
 
   /**
    * Tries to read the first [LogcatMessage] in a buffer.
    *
-   * If [leftoverBytes] is not empty, then it will contain the first bytes fo the message while the
-   * buffer contains the rest.
+   * If [leftoverBytes] is not empty, then it will contain the first bytes fo the message while the buffer contains the rest.
    *
-   * @return The first LogcatMessage in `leftoverBytes + buffer` or null if there are not enough
-   *   bytes.
+   * @return The first LogcatMessage in `leftoverBytes + buffer` or null if there are not enough bytes.
    */
   private fun getFirstLogMessage(buffer: ByteBuffer): LogcatMessage? {
     if (firstTime) {
@@ -182,8 +169,7 @@ class LogcatProtoShellCollector(
 
   private fun LogcatEntryProto.toLogcatMessage(): LogcatMessage {
     val processNames = processNameMonitor.getProcessNames(serialNumber, pid.toInt())
-    val processName =
-      processName.takeIf { it.isNotEmpty() } ?: processNames?.processName ?: "pid-$pid"
+    val processName = processName.takeIf { it.isNotEmpty() } ?: processNames?.processName ?: "pid-$pid"
     val applicationId = processNames?.applicationId ?: processName
     return LogcatMessage(
       LogcatHeader(
@@ -235,8 +221,8 @@ private const val NEWLINE = '\n'.code.toByte()
  *
  * The ByteString contains a null terminator which is removed before converting to a [String].
  *
- * For some reason, some log messages end with a trailing newline. This newline is not included in
- * the text output of logcat. This method also removed a single trailing newline if it exists.
+ * For some reason, some log messages end with a trailing newline. This newline is not included in the text output of logcat. This method
+ * also removed a single trailing newline if it exists.
  */
 private fun ByteString.toMessage(): String {
   val size = size()

@@ -52,9 +52,7 @@ class InsightToolbarPanel(
   private val scope = parentDisposable.createCoroutineScope()
   private val feedbackState =
     currentInsightFlow
-      .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
-        insight?.feedback ?: InsightFeedback.NONE
-      }
+      .mapReadyOrDefault(InsightFeedback.NONE) { insight -> insight?.feedback ?: InsightFeedback.NONE }
       .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
 
   private val copyAction = ActionManager.getInstance().getAction(IdeActions.ACTION_COPY)
@@ -77,24 +75,14 @@ class InsightToolbarPanel(
 
   init {
     val actionGroup = DefaultActionGroup(copyAction, upvoteAction, downvoteAction)
-    val toolbar =
-      ActionManager.getInstance().createActionToolbar(INSIGHT_TOOLBAR, actionGroup, true)
+    val toolbar = ActionManager.getInstance().createActionToolbar(INSIGHT_TOOLBAR, actionGroup, true)
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)
 
-    currentInsightFlow
-      .filterReady()
-      .filterNotNull()
-      .onEach { runInEdt { toolbar.updateActionsAsync() } }
-      .launchIn(scope)
+    currentInsightFlow.filterReady().filterNotNull().onEach { runInEdt { toolbar.updateActionsAsync() } }.launchIn(scope)
   }
 
-  private fun createFeedbackAction(
-    icon: Icon,
-    text: String,
-    action: (AnActionEvent) -> Unit,
-    state: () -> Boolean,
-  ) =
+  private fun createFeedbackAction(icon: Icon, text: String, action: (AnActionEvent) -> Unit, state: () -> Boolean) =
     object : DumbAwareAction(text, null, icon), Toggleable {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

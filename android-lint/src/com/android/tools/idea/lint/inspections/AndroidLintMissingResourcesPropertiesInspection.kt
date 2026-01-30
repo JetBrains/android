@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MissingResourcesPropertiesDetector
 
 class AndroidLintMissingResourcesPropertiesInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.missing.resources.properties"),
-    MissingResourcesPropertiesDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.missing.resources.properties"), MissingResourcesPropertiesDetector.ISSUE)

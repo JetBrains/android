@@ -81,8 +81,8 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   /**
    * In-memory cache holding the results of the latest cloud status fetch operations.
    *
-   * The map uses the user's email address as the key. The value is the `UpdateResult`, representing
-   * the state of the remote copy associated with that email address.
+   * The map uses the user's email address as the key. The value is the `UpdateResult`, representing the state of the remote copy associated
+   * with that email address.
    */
   val cloudStatusCache: MutableMap<String, UpdateResult> = mutableMapOf()
 
@@ -92,8 +92,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
 
   // mutable states
   var pushOrPull: PushOrPull by mutableStateOf(PushOrPull.NOT_SPECIFIED)
-  var configurationOption: SyncConfigurationOption by
-    mutableStateOf(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
+  var configurationOption: SyncConfigurationOption by mutableStateOf(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
   var syncCategoryStates = SettingsSyncStateHolder().mapToUIStates()
 
   // Returns the [PreferredUser] for the following configuration based on the selected
@@ -122,8 +121,8 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   /**
    * Gets a user's cloud sync status, prioritizing a valid result from the local cache.
    *
-   * On a cache miss (or if the cached result is an error), this function triggers a network request
-   * to fetch the latest status, but only if [allowFetchIfCacheMiss] is `true`.
+   * On a cache miss (or if the cached result is an error), this function triggers a network request to fetch the latest status, but only if
+   * [allowFetchIfCacheMiss] is `true`.
    */
   suspend fun getCloudStatus(userEmail: String, allowFetchIfCacheMiss: Boolean): UpdateResult? {
     val cached = cloudStatusCache[userEmail]
@@ -139,10 +138,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   override val handleFinishedTask: HandleFinishedTask =
     HandleFinishedTask(description = feature.title) {
       // Exit early if no action is needed
-      if (
-        canSkipFeatureConfiguration() ||
-          configurationOption == SyncConfigurationOption.USE_EXISTING_SETTINGS
-      ) {
+      if (canSkipFeatureConfiguration() || configurationOption == SyncConfigurationOption.USE_EXISTING_SETTINGS) {
         LOG.info("Skipping feature configuration as per user choice.")
         return@HandleFinishedTask
       }
@@ -191,9 +187,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
     // the whole application work is not fully done when the dialog is closed,
     // the remaining work is launched ("fired and forget") and the life cycle is
     // not controlled by us.
-    withContext(Dispatchers.EDT) {
-      syncEnabler.getSettingsFromServer(syncCategoryStates.toSettingsSyncState(syncEnabled = true))
-    }
+    withContext(Dispatchers.EDT) { syncEnabler.getSettingsFromServer(syncCategoryStates.toSettingsSyncState(syncEnabled = true)) }
 
     updateFromServerCompleter.await()
   }
@@ -237,9 +231,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
       }
       is UpdateResult.Error -> {
         updateFromServerCompleter.completeExceptionally(
-          IOException(
-            SettingsSyncBundle.message("notification.title.update.error") + result.message
-          )
+          IOException(SettingsSyncBundle.message("notification.title.update.error") + result.message)
         )
       }
     }
@@ -253,21 +245,12 @@ internal fun List<CheckboxNode>.toSettingsSyncState(syncEnabled: Boolean): Setti
     val parent = DESCRIPTORS.single { it.name == nodeState.id }
 
     // set parent category
-    settingsSyncState.setCategoryEnabled(
-      parent.category,
-      nodeState.isCheckedState != ToggleableState.Off,
-    )
+    settingsSyncState.setCategoryEnabled(parent.category, nodeState.isCheckedState != ToggleableState.Off)
 
     // set children categories
     nodeState.children.mapNotNull { nodeState ->
-      val descriptor =
-        parent.secondaryGroup?.getDescriptors()?.single { it.id == nodeState.id }
-          ?: return@mapNotNull null
-      settingsSyncState.setSubcategoryEnabled(
-        parent.category,
-        descriptor.id,
-        nodeState.isCheckedState == ToggleableState.On,
-      )
+      val descriptor = parent.secondaryGroup?.getDescriptors()?.single { it.id == nodeState.id } ?: return@mapNotNull null
+      settingsSyncState.setSubcategoryEnabled(parent.category, descriptor.id, nodeState.isCheckedState == ToggleableState.On)
     }
   }
 

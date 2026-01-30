@@ -88,17 +88,12 @@ class ThemeUtilsTest : AndroidTestCase() {
 
   fun testGetFrameworkThemesWithFilter() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     val themeResolver = ThemeResolver(configuration)
     val reference = ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Black")
     val style = configuration.resourceResolver.getStyle(reference)!!
     val filter: ThemeStyleFilter = createFilter(themeResolver, emptySet(), *Array(1) { style })
     val themes = getFrameworkThemeNames(themeResolver, filter)
-    assertThat(themes)
-      .containsExactly(
-        "android:Theme.Black.NoTitleBar",
-        "android:Theme.Black.NoTitleBar.Fullscreen",
-      )
+    assertThat(themes).containsExactly("android:Theme.Black.NoTitleBar", "android:Theme.Black.NoTitleBar.Fullscreen")
   }
 }

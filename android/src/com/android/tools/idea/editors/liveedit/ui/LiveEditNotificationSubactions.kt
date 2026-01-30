@@ -58,16 +58,10 @@ const val REFRESH_ACTION_ID = "Compose.Live.Edit.Refresh"
 const val SHOW_LOGCAT_ACTION_ID = "Compose.Live.Edit.ShowLogcat"
 
 /**
- * [AnAction] that triggers a compilation of the current module. The build will automatically
- * trigger a refresh of the surface. The action visibility is controlled by
- * [LiveEditStatus.hasRefreshIcon]
+ * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface. The action
+ * visibility is controlled by [LiveEditStatus.hasRefreshIcon]
  */
-internal class RedeployAction :
-  AnAction(
-    null,
-    null,
-    null
-  ), CustomComponentAction {
+internal class RedeployAction : AnAction(null, null, null), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -76,9 +70,8 @@ internal class RedeployAction :
       LiveEditStatus.RedeployMode.REFRESH -> {
         invokeActionNow(e, ActionManager.getInstance().getAction("Compose.Live.Edit.Refresh"))
       }
-      LiveEditStatus.RedeployMode.RERUN -> ActionUtil.getAction("Run")?.let {
-        ActionUtil.invokeAction(it, e.dataContext, e.place, e.inputEvent, null)
-      }
+      LiveEditStatus.RedeployMode.RERUN ->
+        ActionUtil.getAction("Run")?.let { ActionUtil.invokeAction(it, e.dataContext, e.place, e.inputEvent, null) }
       LiveEditStatus.RedeployMode.NONE -> {
         // do nothing
       }
@@ -107,47 +100,41 @@ internal class RedeployAction :
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     object : ActionButtonWithText(this, presentation, place, Dimension(20, 20)) {
-      override fun updateToolTipText() {
-        HelpTooltip.dispose(this)
-        HelpTooltip()
-          .setTitle(presentation.text)
-          .setDescription(presentation.description)
-          .installOn(this)
-      }
-
-      override fun getInsets(): Insets = JBUI.emptyInsets()
-      override fun getInsets(insets: Insets?): Insets {
-        val i = getInsets()
-        if (insets != null) {
-          insets.set(i.top, i.left, i.bottom, i.right)
-          return insets
+        override fun updateToolTipText() {
+          HelpTooltip.dispose(this)
+          HelpTooltip().setTitle(presentation.text).setDescription(presentation.description).installOn(this)
         }
-        return i
-      }
 
-      override fun iconTextSpace() = 0
-      override fun getMargins(): Insets = JBUI.insets(2, 0, 2, 2)
-    }.apply {
-      border = JBUI.Borders.empty()
-    }
+        override fun getInsets(): Insets = JBUI.emptyInsets()
+
+        override fun getInsets(insets: Insets?): Insets {
+          val i = getInsets()
+          if (insets != null) {
+            insets.set(i.top, i.left, i.bottom, i.right)
+            return insets
+          }
+          return i
+        }
+
+        override fun iconTextSpace() = 0
+
+        override fun getMargins(): Insets = JBUI.insets(2, 0, 2, 2)
+      }
+      .apply { border = JBUI.Borders.empty() }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }
 }
 
-/**
- * [AnAction] for the UI that manually triggers Live Edit.
- */
+/** [AnAction] for the UI that manually triggers Live Edit. */
 internal class RefreshAction : AnAction("Refresh") {
   override fun actionPerformed(e: AnActionEvent) {
     e.project?.let { LiveEditService.manualLiveEdit(it) }
   }
 }
 
-/**
- * [AnAction] that manually triggers Live Edit.
- */
+/** [AnAction] that manually triggers Live Edit. */
 internal class ManualLiveEditAction : AnAction("Manual Live Edit") {
   override fun actionPerformed(e: AnActionEvent) {
     e.project?.let {
@@ -178,7 +165,7 @@ private class ConfigureLiveEditActionOption(text: String, val setSelected: () ->
     e.presentation.icon = if (getSelected()) StudioIcons.Common.CHECKED else EmptyIcon.ICON_13
   }
 
-  fun getSelected() : Boolean {
+  fun getSelected(): Boolean {
     return getSelected.invoke()
   }
 
@@ -195,18 +182,19 @@ internal class ConfigureLiveEditAction : DefaultActionGroup() {
     val config = LiveEditApplicationConfiguration.getInstance()
     templatePresentation.isPopupGroup = true
     templatePresentation.isPerformGroup = true
-    add(ConfigureLiveEditActionOption(
-      "Push Edits Automatically",
-      {
-        config.leTriggerMode = AUTOMATIC
-        config.mode = LIVE_EDIT
-      },
-      {
-        config.mode == LIVE_EDIT && config.leTriggerMode == AUTOMATIC
-      })
+    add(
+      ConfigureLiveEditActionOption(
+        "Push Edits Automatically",
+        {
+          config.leTriggerMode = AUTOMATIC
+          config.mode = LIVE_EDIT
+        },
+        { config.mode == LIVE_EDIT && config.leTriggerMode == AUTOMATIC },
+      )
     )
-    add(ConfigureLiveEditActionOption(
-      "Push Edits Manually${
+    add(
+      ConfigureLiveEditActionOption(
+        "Push Edits Manually${
         ActionManager.getInstance()
           .getAction(MANUAL_LIVE_EDIT_ACTION_ID)
           .shortcutSet
@@ -215,29 +203,25 @@ internal class ConfigureLiveEditAction : DefaultActionGroup() {
           ?.let { " (${KeymapUtil.getShortcutText(it)})" }
           ?: ""
         }",
-      {
-        config.leTriggerMode = ON_HOTKEY
-        config.mode = LIVE_EDIT
-      },
-      {
-        config.mode == LIVE_EDIT && config.leTriggerMode == ON_HOTKEY
-      })
+        {
+          config.leTriggerMode = ON_HOTKEY
+          config.mode = LIVE_EDIT
+        },
+        { config.mode == LIVE_EDIT && config.leTriggerMode == ON_HOTKEY },
+      )
     )
-    add(ConfigureLiveEditActionOption(
-      "Push Edits Manually on Save (${LiveEditAnActionListener.getLiveEditTriggerShortCutString()})",
-      {
-        config.leTriggerMode = ON_SAVE
-        config.mode = LIVE_EDIT
-      },
-      {
-        config.mode == LIVE_EDIT && config.leTriggerMode == ON_SAVE
-      })
+    add(
+      ConfigureLiveEditActionOption(
+        "Push Edits Manually on Save (${LiveEditAnActionListener.getLiveEditTriggerShortCutString()})",
+        {
+          config.leTriggerMode = ON_SAVE
+          config.mode = LIVE_EDIT
+        },
+        { config.mode == LIVE_EDIT && config.leTriggerMode == ON_SAVE },
+      )
     )
     addSeparator()
-    add(ConfigureLiveEditActionOption(
-      "Disable Live Edit",
-      { config.mode = DISABLED },
-      { config.mode == DISABLED }))
+    add(ConfigureLiveEditActionOption("Disable Live Edit", { config.mode = DISABLED }, { config.mode == DISABLED }))
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -251,9 +235,9 @@ internal class ConfigureLiveEditAction : DefaultActionGroup() {
         true,
         // Do a delayed dispose because disposing the parent popup directly here would result in the invoked action being hidden,
         // and the ActionUtil won't be able to invoke it. There is a flag available to avoid this, but it is internal.
-        { parentDisposable.let { ApplicationManager.getApplication().invokeLater { Disposer.dispose (it) } } },
+        { parentDisposable.let { ApplicationManager.getApplication().invokeLater { Disposer.dispose(it) } } },
         4,
-        { action -> (action as ConfigureLiveEditActionOption).getSelected() }
+        { action -> (action as ConfigureLiveEditActionOption).getSelected() },
       )
       .show(RelativePoint(parentComponent, Point(0, parentComponent.height + JBUIScale.scale(4))))
   }

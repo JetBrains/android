@@ -42,265 +42,304 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class DeclarativeDependenciesHelperTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().withDeclarative()
-  private val fixture get() = projectRule.fixture
-  private val project get() = projectRule.project
+  @get:Rule val projectRule = AndroidGradleProjectRule().withDeclarative()
+  private val fixture
+    get() = projectRule.fixture
+
+  private val project
+    get() = projectRule.project
 
   val pluginFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }
   val fakeDependencyMatcher = GroupNameDependencyMatcher("", "")
 
   @Test
   fun testSimpleAddDeclarative() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.defaultConfig.dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.defaultConfig.dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToBuildType() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         val updates = helper.addBuildTypeDependency("debug", "api", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"debug\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        val updates = helper.addBuildTypeDependency("debug", "api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"debug\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToFlavor() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         val updates = helper.addFlavorDependency("demo", "api", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        val updates = helper.addFlavorDependency("demo", "api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyWithUserBuildType() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         moduleModel.android().addBuildType("staging")
-                         moduleModel.applyChanges()
-                         val updates = helper.addBuildTypeDependency("staging", "api", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"staging\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        moduleModel.android().addBuildType("staging")
+        moduleModel.applyChanges()
+        val updates = helper.addBuildTypeDependency("staging", "api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"staging\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyWithUserFlavor() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         moduleModel.android().addProductFlavor("demo")
-                         moduleModel.applyChanges()
-                         val updates = helper.addFlavorDependency("demo", "api", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        moduleModel.android().addProductFlavor("demo")
+        moduleModel.applyChanges()
+        val updates = helper.addFlavorDependency("demo", "api", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToBuildTypeWithUniversalApi() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         val updates = helper.addDependency("debugApi", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"debug\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("debugApi", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"debug\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToFlavorWithUniversalApi() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         val updates = helper.addDependency("demoApi", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        val updates = helper.addDependency("demoApi", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToBuildTypeWithUniversalApi2() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         moduleModel.android().addBuildType("staging")
-                         moduleModel.applyChanges()
-                         val updates = helper.addDependency("stagingApi", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"staging\").dependencies")
-                         assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        moduleModel.android().addBuildType("staging")
+        moduleModel.applyChanges()
+        val updates = helper.addDependency("stagingApi", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.buildTypes.buildType(\"staging\").dependencies")
+        assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddDependencyToFlavorWithUniversalApi2() {
-    doDependenciesTest(SIMPLE_APPLICATION_DECLARATIVE,
-                       { _, moduleModel, helper ->
-                         moduleModel.android().addProductFlavor("demo")
-                         moduleModel.applyChanges()
-                         val updates = helper.addDependency("demoConfig", "com.example.libs:lib2:1.0", moduleModel)
-                         assertThat(updates.size).isEqualTo(1)
-                       },
-                       {
-                         val buildFile = project.getTextForFile("app/build.gradle.dcl")
-                         val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
-                         assertThat(dependencies).contains("config(\"com.example.libs:lib2:1.0\")")
-                       })
+    doDependenciesTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, moduleModel, helper ->
+        moduleModel.android().addProductFlavor("demo")
+        moduleModel.applyChanges()
+        val updates = helper.addDependency("demoConfig", "com.example.libs:lib2:1.0", moduleModel)
+        assertThat(updates.size).isEqualTo(1)
+      },
+      {
+        val buildFile = project.getTextForFile("app/build.gradle.dcl")
+        val dependencies = getBlockContent(buildFile, "androidApp.productFlavors.productFlavor(\"demo\").dependencies")
+        assertThat(dependencies).contains("config(\"com.example.libs:lib2:1.0\")")
+      },
+    )
   }
 
   @Test
   fun testAddPluginToDeclarativeSettings() {
-    doPluginTest(SIMPLE_APPLICATION_DECLARATIVE,
-                 { _, _, helper ->
-                   val pluginId = "com.example.foo"
-                   val changed = helper.applySettingsPlugin(pluginId, "10.0")
-                   assertThat(changed.size).isEqualTo(1)
-                 },
-                 {
-                   val projectBuildContent = project.getTextForFile("app/build.gradle.dcl")
-                   assertThat(projectBuildContent).doesNotContain("example")
+    doPluginTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, _, helper ->
+        val pluginId = "com.example.foo"
+        val changed = helper.applySettingsPlugin(pluginId, "10.0")
+        assertThat(changed.size).isEqualTo(1)
+      },
+      {
+        val projectBuildContent = project.getTextForFile("app/build.gradle.dcl")
+        assertThat(projectBuildContent).doesNotContain("example")
 
-                   val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
-                   val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
-                   assertThat(pluginsBlockContent).contains("id(\"com.example.foo\").version(\"10.0\")")
-                   assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
-                 })
+        val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
+        val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+        assertThat(pluginsBlockContent).contains("id(\"com.example.foo\").version(\"10.0\")")
+        assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+      },
+    )
   }
 
   @Test
   fun testAddEcosystemPluginToDeclarative() {
-    doPluginTest(EMPTY_APPLICATION_DECLARATIVE,
-                 { _, model, helper ->
-                   val env = BuildEnvironment.getInstance()
-                   val changed = helper.addPluginOrClasspath(
-                     "com.android.application",
-                     "fakeClasspathModule",
-                     env.gradlePluginVersion,
-                     listOf(model),
-                     pluginFactory,
-                     fakeDependencyMatcher,
-                     PluginInsertionConfig.defaultInsertionConfig()
-                   )
-                   assertThat(changed.size).isEqualTo(2)
-                 },
-                 {
-                   val projectBuildContent = project.getTextForFile("app/build.gradle.dcl")
-                   assertThat(projectBuildContent).doesNotContain("com.android.application")
+    doPluginTest(
+      EMPTY_APPLICATION_DECLARATIVE,
+      { _, model, helper ->
+        val env = BuildEnvironment.getInstance()
+        val changed =
+          helper.addPluginOrClasspath(
+            "com.android.application",
+            "fakeClasspathModule",
+            env.gradlePluginVersion,
+            listOf(model),
+            pluginFactory,
+            fakeDependencyMatcher,
+            PluginInsertionConfig.defaultInsertionConfig(),
+          )
+        assertThat(changed.size).isEqualTo(2)
+      },
+      {
+        val projectBuildContent = project.getTextForFile("app/build.gradle.dcl")
+        assertThat(projectBuildContent).doesNotContain("com.android.application")
 
-                   val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
-                   val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
-                   assertThat(pluginsBlockContent).contains("id(\"com.android.ecosystem\").version(\"")
-                 })
+        val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
+        val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+        assertThat(pluginsBlockContent).contains("id(\"com.android.ecosystem\").version(\"")
+      },
+    )
   }
 
   @Test
   fun testAddPluginToDeclarative() {
-    doPluginTest(SIMPLE_APPLICATION_DECLARATIVE,
-                 { _, model, helper ->
-                   val changed = helper.addPluginOrClasspath(
-                     "org.example",
-                     "fakeClasspathModule",
-                     "1.0",
-                     listOf(model),
-                     pluginFactory,
-                     fakeDependencyMatcher,
-                     PluginInsertionConfig.defaultInsertionConfig()
-                   )
-                   assertThat(changed.size).isEqualTo(1)
-                 },
-                 {
-                   // TODO - not clear if/how we need to update module build file
+    doPluginTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, model, helper ->
+        val changed =
+          helper.addPluginOrClasspath(
+            "org.example",
+            "fakeClasspathModule",
+            "1.0",
+            listOf(model),
+            pluginFactory,
+            fakeDependencyMatcher,
+            PluginInsertionConfig.defaultInsertionConfig(),
+          )
+        assertThat(changed.size).isEqualTo(1)
+      },
+      {
+        // TODO - not clear if/how we need to update module build file
 
-                   val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
-                   val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
-                   assertThat(pluginsBlockContent).contains("id(\"org.example\").version(\"1.0\")")
-                 })
+        val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
+        val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+        assertThat(pluginsBlockContent).contains("id(\"org.example\").version(\"1.0\")")
+      },
+    )
   }
 
   @Test
   fun testUpdateEcosystemPluginToDeclarative() {
-    doPluginTest(SIMPLE_APPLICATION_DECLARATIVE,
-                 { _, model, helper ->
-                   val changed = helper.addPluginOrClasspath(
-                     "com.android.application",
-                     "fakeClasspathModule",
-                     "9999.99",
-                     listOf(model),
-                     pluginFactory,
-                     fakeDependencyMatcher,
-                     PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION)
-                   )
-                   assertThat(changed.size).isEqualTo(1)
-                 },
-                 {
-                   val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
-                   val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
-                   assertThat(pluginsBlockContent).contains("id(\"com.android.ecosystem\").version(\"9999.99\")")
-                 })
+    doPluginTest(
+      SIMPLE_APPLICATION_DECLARATIVE,
+      { _, model, helper ->
+        val changed =
+          helper.addPluginOrClasspath(
+            "com.android.application",
+            "fakeClasspathModule",
+            "9999.99",
+            listOf(model),
+            pluginFactory,
+            fakeDependencyMatcher,
+            PluginInsertionConfig.defaultInsertionConfig().copy(whenFoundSame = MatchedStrategy.UPDATE_VERSION),
+          )
+        assertThat(changed.size).isEqualTo(1)
+      },
+      {
+        val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
+        val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+        assertThat(pluginsBlockContent).contains("id(\"com.android.ecosystem\").version(\"9999.99\")")
+      },
+    )
   }
 
   private fun doDependenciesTest(
     projectPath: String,
     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DeclarativeDependenciesInserter) -> Unit,
-    assert: () -> Unit
+    assert: () -> Unit,
   ) {
-    doTest(projectPath, { projectBuildModel, model ->
-      val helper = DeclarativeDependenciesInserter()
-      change(projectBuildModel, model, helper)
-    }, assert)
+    doTest(
+      projectPath,
+      { projectBuildModel, model ->
+        val helper = DeclarativeDependenciesInserter()
+        change(projectBuildModel, model, helper)
+      },
+      assert,
+    )
   }
 
   private fun doPluginTest(
     projectPath: String,
     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DeclarativePluginsInserter) -> Unit,
-    assert: () -> Unit
+    assert: () -> Unit,
   ) {
-    doTest(projectPath, { projectBuildModel, model ->
-      val helper = DeclarativePluginsInserter(projectBuildModel)
-      change(projectBuildModel, model, helper)
-    }, assert)
+    doTest(
+      projectPath,
+      { projectBuildModel, model ->
+        val helper = DeclarativePluginsInserter(projectBuildModel)
+        change(projectBuildModel, model, helper)
+      },
+      assert,
+    )
   }
 
   private fun doTest(
     projectPath: String,
     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel) -> Unit,
-    assert: () -> Unit
+    assert: () -> Unit,
   ) {
     projectRule.loadProject(projectPath)
     fixture.allowTreeAccessForAllFiles()

@@ -8,14 +8,17 @@ import org.jetbrains.annotations.TestOnly
 object DeclarativeStudioSupport {
   private fun getRegistryValue() = Registry.Companion.get("gradle.declarative.studio.support")
 
-  @JvmStatic
-  fun isEnabled(): Boolean = getRegistryValue().asBoolean()
+  @JvmStatic fun isEnabled(): Boolean = getRegistryValue().asBoolean()
 
   @JvmStatic
   @TestOnly
-  fun override(value: Boolean) { getRegistryValue().setValue(value) }
+  fun override(value: Boolean) {
+    getRegistryValue().setValue(value)
+  }
 
   @JvmStatic
   @TestOnly
-  fun clearOverride() { getRegistryValue().resetToDefault() }
+  fun clearOverride() {
+    getRegistryValue().resetToDefault()
+  }
 }

@@ -35,13 +35,11 @@ private const val DEFAULT_MAX_OPEN_ISSUES_PER_CALL = 50
 
 interface VitalsGrpcClient {
   /** Returns a list of [Connection]s (App IDs) that are accessible. */
-  suspend fun listAccessibleApps(
-    maxNumResults: Int = DEFAULT_MAX_APPS_PER_CALL
-  ): List<AppConnection>
+  suspend fun listAccessibleApps(maxNumResults: Int = DEFAULT_MAX_APPS_PER_CALL): List<AppConnection>
 
   /**
-   * Returns freshness info (query period granularity & valid end-time) which is required for the
-   * following metrics query ([queryErrorCountMetrics]).
+   * Returns freshness info (query period granularity & valid end-time) which is required for the following metrics query
+   * ([queryErrorCountMetrics]).
    */
   suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection): List<Freshness>
 
@@ -50,8 +48,7 @@ interface VitalsGrpcClient {
    *
    * Metrics we get here are quite raw; E.g. they could be hourly-based or daily-based data or so.
    *
-   * Please note we need to call [getErrorCountMetricsFreshnessInfo] first to get valid [freshness]
-   * information.
+   * Please note we need to call [getErrorCountMetricsFreshnessInfo] first to get valid [freshness] information.
    */
   suspend fun queryErrorCountMetrics(
     connection: Connection,
@@ -74,10 +71,7 @@ interface VitalsGrpcClient {
     stackTraceGroupParser: StackTraceGroupParser,
   ): List<Event>
 
-  /**
-   * Returns error reports (sample events) based on the passed-in issue id and other general
-   * searching criteria.
-   */
+  /** Returns error reports (sample events) based on the passed-in issue id and other general searching criteria. */
   suspend fun searchErrorReportByIssueId(
     connection: Connection,
     filters: QueryFilters,

@@ -39,9 +39,7 @@ internal fun PairingDevice.buildIDevice(
   avdInfo: AvdInfo? = null,
   systemProperties: Map<String, String> = emptyMap(),
   properties: Map<String, String> = emptyMap(),
-  shellCommandHandler: (String) -> (String) = {
-    throw IllegalStateException("Unknown ADB request $it")
-  },
+  shellCommandHandler: (String) -> (String) = { throw IllegalStateException("Unknown ADB request $it") },
 ): IDevice {
   return mock<IDevice>().apply {
     whenever(isOnline).thenReturn(true)
@@ -74,8 +72,7 @@ internal fun PairingDevice.buildIDevice(
 internal fun handlePhoneAdbRequest(request: String): String? =
   when {
     request == "cat /proc/uptime" -> "500"
-    request.contains("grep versionCode") ->
-      "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
+    request.contains("grep versionCode") -> "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
     request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null
@@ -86,8 +83,7 @@ internal fun handleWearAdbRequest(request: String): String? =
   when {
     request == "cat /proc/uptime" -> "500"
     request == "am force-stop com.google.android.gms" -> "OK"
-    request.contains("grep versionCode") ->
-      "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
+    request.contains("grep versionCode") -> "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
     request == "am broadcast -a com.google.android.gms.INITIALIZE" -> "OK"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null

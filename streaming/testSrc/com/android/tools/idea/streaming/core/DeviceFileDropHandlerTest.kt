@@ -54,9 +54,7 @@ import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/DeviceFileDropHandlerTest"
 
-/**
- * Tests for [DeviceFileDropHandler].
- */
+/** Tests for [DeviceFileDropHandler]. */
 @RunsInEdt
 class DeviceFileDropHandlerTest {
 
@@ -65,16 +63,16 @@ class DeviceFileDropHandlerTest {
 
   private val fakeAdbServerAdbLibRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, fakeAdbServerAdbLibRule, emulatorRule, EdtRule())
-  @get:Rule
-  val tempDirRule = TemporaryDirectoryRule()
+  @get:Rule val ruleChain = RuleChain(projectRule, fakeAdbServerAdbLibRule, emulatorRule, EdtRule())
+  @get:Rule val tempDirRule = TemporaryDirectoryRule()
 
   private var nullableEmulator: FakeEmulator? = null
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
-    set(value) { nullableEmulator = value }
+    set(value) {
+      nullableEmulator = value
+    }
 
   private val testRootDisposable
     get() = projectRule.disposable
@@ -96,8 +94,12 @@ class DeviceFileDropHandlerTest {
     target.drop(event)
 
     waitForCondition(5, SECONDS) { device.cmdLogs.size >= 3 }
-    assertThat(device.cmdLogs).containsExactly("package install-create -t --user current --full -S 675",
-                                               "package install-write -S 675 1234 test.apk -", "package install-commit 1234")
+    assertThat(device.cmdLogs)
+      .containsExactly(
+        "package install-create -t --user current --full -S 675",
+        "package install-write -S 675 1234 test.apk -",
+        "package install-commit 1234",
+      )
   }
 
   @Test
@@ -121,32 +123,29 @@ class DeviceFileDropHandlerTest {
     target.drop(event)
 
     waitForCondition(5, SECONDS) {
-      device.getFile("/sdcard/Download/${file1.fileName}") != null &&
-      device.getFile("/sdcard/Download/${file2.fileName}") != null
+      device.getFile("/sdcard/Download/${file1.fileName}") != null && device.getFile("/sdcard/Download/${file2.fileName}") != null
     }
     assertThat(device.getFile("/sdcard/Download/${file1.fileName}")?.permission).isEqualTo(420)
     assertThat(device.getFile("/sdcard/Download/${file2.fileName}")?.permission).isEqualTo(420)
   }
 
   private fun attachDevice(): DeviceState {
-    return fakeAdbServerAdbLibRule.connectDevice(
-      deviceId = "emulator-${emulator.serialPort}",
-      manufacturer = "Google",
-      deviceModel = "Pixel 3 XL",
-      release = "Sweet dessert",
-      sdk = AndroidApiLevel(29),
-      hostConnectionType = DeviceState.HostConnectionType.USB)
-      .also {
-        it.deviceStatus = DeviceState.DeviceStatus.ONLINE
-      }
+    return fakeAdbServerAdbLibRule
+      .connectDevice(
+        deviceId = "emulator-${emulator.serialPort}",
+        manufacturer = "Google",
+        deviceModel = "Pixel 3 XL",
+        release = "Sweet dessert",
+        sdk = AndroidApiLevel(29),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
+      .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
   }
 
   private fun createDropTarget(): DnDTarget {
     var nullableTarget: DnDTarget? = null
     val mockDndManager = mock<DnDManager>()
-    whenever(mockDndManager.registerTarget(any(), any())).then {
-      it.apply { nullableTarget = getArgument<DnDTarget>(0) }
-    }
+    whenever(mockDndManager.registerTarget(any(), any())).then { it.apply { nullableTarget = getArgument<DnDTarget>(0) } }
     ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
 
     val panel = createWindowPanelForPhone()
@@ -174,13 +173,11 @@ class DeviceFileDropHandlerTest {
     emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = runBlocking { catalog.updateNow ().await() }
+    val emulators = runBlocking { catalog.updateNow().await() }
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)
-    Disposer.register(testRootDisposable) {
-      emulator.stop()
-    }
+    Disposer.register(testRootDisposable) { emulator.stop() }
     panel.zoomToolbarVisible = true
     waitForCondition(5, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel

@@ -26,16 +26,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 /**
- * A Dropdown action that contains preset backgrounds to be applied in a Compose Preview when the
- * device is AI glasses. The backgrounds will be blended into the preview by applying certain
- * heuristics used to simulate how Composables look like in AI Glasses environment.
+ * A Dropdown action that contains preset backgrounds to be applied in a Compose Preview when the device is AI glasses. The backgrounds will
+ * be blended into the preview by applying certain heuristics used to simulate how Composables look like in AI Glasses environment.
  */
 class GlassesBlendDropdownAction :
-  DropDownAction(
-    message("action.glasses.blend.title"),
-    message("action.glasses.blend.title"),
-    StudioIcons.Emulator.XR.ENVIRONMENT,
-  ) {
+  DropDownAction(message("action.glasses.blend.title"), message("action.glasses.blend.title"), StudioIcons.Emulator.XR.ENVIRONMENT) {
 
   init {
     GlassesBackground.entries.forEach { addAction(SetGlassesBackgroundAction(it)) }

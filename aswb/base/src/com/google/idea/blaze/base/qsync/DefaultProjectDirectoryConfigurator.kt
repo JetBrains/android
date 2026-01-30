@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Files
 import java.nio.file.Path
 
-class DefaultProjectDirectoryConfigurator(private val project: Project): ProjectDirectoryConfigurator {
+class DefaultProjectDirectoryConfigurator(private val project: Project) : ProjectDirectoryConfigurator {
   fun resolveDirectory(directory: ProjectDirectory): Path {
     val basePath = Path.of(project.basePath ?: error("Invalid project"))
     return basePath.resolve(directory.directoryName)

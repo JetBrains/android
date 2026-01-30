@@ -50,10 +50,7 @@ object DefaultBuildManager : ProjectSystemBuildManager {
 
   override fun getLastBuildResult(): BuildResult = lastResult
 
-  override fun addBuildListener(
-    parentDisposable: Disposable,
-    buildListener: ProjectSystemBuildManager.BuildListener,
-  ) {
+  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
     listeners.add(buildListener)
     if (!Disposer.tryRegister(parentDisposable) { listeners.remove(buildListener) }) {
       listeners.remove(buildListener)

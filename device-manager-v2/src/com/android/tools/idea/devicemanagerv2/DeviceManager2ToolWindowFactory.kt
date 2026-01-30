@@ -30,8 +30,7 @@ internal class DeviceManager2ToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val content =
-      ContentFactory.getInstance().createContent(DeviceManagerPanel(project), null, false)
+    val content = ContentFactory.getInstance().createContent(DeviceManagerPanel(project), null, false)
     toolWindow.contentManager.addContent(content)
   }
 

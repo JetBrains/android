@@ -28,10 +28,8 @@ class RemoveSdkFromManifestProcessorTest : HeavyPlatformTestCase() {
   fun testUsageViewDescriptor() {
     val processor = RemoveSdkFromManifestProcessor(project, listOf(), MIN)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Property to move/remove " + UsageViewBundle.getReferencesString(1, 1),
-                 usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Properties to move/remove " + UsageViewBundle.getReferencesString(2, 2),
-                 usageDescriptor.getCodeReferencesText(2, 2))
+    assertEquals("Property to move/remove " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
+    assertEquals("Properties to move/remove " + UsageViewBundle.getReferencesString(2, 2), usageDescriptor.getCodeReferencesText(2, 2))
     assertEquals("Remove minSdkVersion from manifest", usageDescriptor.processedElementsHeader)
   }
 
@@ -39,10 +37,8 @@ class RemoveSdkFromManifestProcessorTest : HeavyPlatformTestCase() {
   fun testMultipleModulesUsageViewDescriptor() {
     val processor = RemoveSdkFromManifestProcessor(project, listOf(mock(Module::class.java), mock(Module::class.java)), MIN)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Property to move/remove " + UsageViewBundle.getReferencesString(1, 1),
-                 usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Properties to move/remove " + UsageViewBundle.getReferencesString(2, 2),
-                 usageDescriptor.getCodeReferencesText(2, 2))
+    assertEquals("Property to move/remove " + UsageViewBundle.getReferencesString(1, 1), usageDescriptor.getCodeReferencesText(1, 1))
+    assertEquals("Properties to move/remove " + UsageViewBundle.getReferencesString(2, 2), usageDescriptor.getCodeReferencesText(2, 2))
     assertEquals("Remove minSdkVersion from manifests", usageDescriptor.processedElementsHeader)
   }
 }

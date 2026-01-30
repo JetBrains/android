@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.project.sync.utils.environment
 
 import com.intellij.openapi.externalSystem.util.environment.Environment
 
-class TestSystemEnvironment(
-  private val fallbackEnvironment: Environment? = null
-) : Environment {
+class TestSystemEnvironment(private val fallbackEnvironment: Environment? = null) : Environment {
 
   private val properties = hashMapOf<String, String?>()
   private val variables = hashMapOf<String, String?>()

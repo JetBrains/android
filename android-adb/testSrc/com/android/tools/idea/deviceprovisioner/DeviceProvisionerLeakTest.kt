@@ -50,11 +50,7 @@ class DeviceProvisionerLeakTest {
   @get:Rule val rules = RuleChain(EdtRule(), project1, project2, fakeAdbProvider)
 
   private fun createDeviceProvisioner(project: Project): DeviceProvisioner {
-    val coroutineScope =
-      fakeAdbProvider.adbSession.scope.createChildScope(
-        isSupervisor = true,
-        parentDisposable = project,
-      )
+    val coroutineScope = fakeAdbProvider.adbSession.scope.createChildScope(isSupervisor = true, parentDisposable = project)
 
     return DeviceProvisioner.create(
       coroutineScope,
@@ -64,11 +60,9 @@ class DeviceProvisionerLeakTest {
   }
 
   /**
-   * Verifies that a DeviceProvisioner is not held in memory by a ConnectedDevice if the
-   * ConnectedDevice outlives the DeviceProvisioner.
+   * Verifies that a DeviceProvisioner is not held in memory by a ConnectedDevice if the ConnectedDevice outlives the DeviceProvisioner.
    *
-   * (This is tested in this module to get access to LeakHunter, but could otherwise be tested in
-   * DeviceProvisionerTest.)
+   * (This is tested in this module to get access to LeakHunter, but could otherwise be tested in DeviceProvisionerTest.)
    */
   @Test
   @RunsInEdt
@@ -78,14 +72,7 @@ class DeviceProvisionerLeakTest {
 
     val deviceState =
       fakeAdbProvider.fakeAdb.fakeAdbServer
-        .connectDevice(
-          "1",
-          "Google",
-          "Pixel",
-          "13",
-          AndroidApiLevel(33),
-          DeviceState.HostConnectionType.USB,
-        )
+        .connectDevice("1", "Google", "Pixel", "13", AndroidApiLevel(33), DeviceState.HostConnectionType.USB)
         .get()
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
 
@@ -94,23 +81,13 @@ class DeviceProvisionerLeakTest {
 
     val job2 = handle2.scope.launch { awaitCancellation() }
 
-    ApplicationManager.getApplication().invokeAndWait {
-      ProjectManagerEx.getInstanceEx().forceCloseProject(project2.project, save = false)
-    }
+    ApplicationManager.getApplication().invokeAndWait { ProjectManagerEx.getInstanceEx().forceCloseProject(project2.project, save = false) }
 
     runBlocking { withTimeout(5000) { job2.join() } }
 
-    runInEdtAndWait {
-      LeakHunter.checkLeak(fakeAdbProvider.adbSession, DeviceProvisioner::class.java) {
-        !it.scope.isActive
-      }
-    }
+    runInEdtAndWait { LeakHunter.checkLeak(fakeAdbProvider.adbSession, DeviceProvisioner::class.java) { !it.scope.isActive } }
 
     assertThat(handle1.state.connectedDevice).isSameAs(handle2.state.connectedDevice)
-    runInEdtAndWait {
-      LeakHunter.checkLeak(handle1.state.connectedDevice!!, DeviceProvisioner::class.java) {
-        !it.scope.isActive
-      }
-    }
+    runInEdtAndWait { LeakHunter.checkLeak(handle1.state.connectedDevice!!, DeviceProvisioner::class.java) { !it.scope.isActive } }
   }
 }

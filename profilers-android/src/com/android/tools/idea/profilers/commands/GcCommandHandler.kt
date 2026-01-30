@@ -34,5 +34,4 @@ class GcCommandHandler(val device: IDevice) : TransportProxy.ProxyCommandHandler
 
     return Transport.ExecuteResponse.getDefaultInstance()
   }
-
 }

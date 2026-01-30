@@ -38,20 +38,27 @@ class ShellCommandRecordingProviderTest {
   private val fakeAdbRule = FakeAdbServerProviderRule()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
-  @get:Rule
-  val ruleChain = RuleChain(disposableRule, fakeAdbRule, temporaryDirectoryRule)
+  @get:Rule val ruleChain = RuleChain(disposableRule, fakeAdbRule, temporaryDirectoryRule)
 
-  private val fakeAdb get() =
-      fakeAdbRule.fakeAdb
-  private val deviceServices get() =
-      fakeAdbRule.adbSession.deviceServices
+  private val fakeAdb
+    get() = fakeAdbRule.fakeAdb
+
+  private val deviceServices
+    get() = fakeAdbRule.adbSession.deviceServices
 
   @Test
   fun testRecording() = runBlockingWithTimeout {
     // Prepare.
     val device = createFakeDevice()
-    val options = ScreenRecorderOptions(
-        displayId = PRIMARY_DISPLAY_ID, width = 600, height = 400, bitrateMbps = 6, showTouches = false, timeLimitSec = 300)
+    val options =
+      ScreenRecorderOptions(
+        displayId = PRIMARY_DISPLAY_ID,
+        width = 600,
+        height = 400,
+        bitrateMbps = 6,
+        showTouches = false,
+        timeLimitSec = 300,
+      )
     val provider = ShellCommandRecordingProvider(disposableRule.disposable, device.deviceId, RECODING_FILE, options, fakeAdbRule.adbSession)
 
     // Act.

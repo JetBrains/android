@@ -28,53 +28,53 @@ import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Step for the gallery for Activity templates.
- */
-class ChooseActivityTypeStep private constructor(
+/** Step for the gallery for Activity templates. */
+class ChooseActivityTypeStep
+private constructor(
   renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   moduleTemplates: List<NamedModuleTemplate>,
   androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent(),
-  private val wizardUiContext: WizardUiContext
-) : ChooseGalleryItemStep(
-  renderModel, formFactor, moduleTemplates, activityGalleryStepMessageKeys, "Empty Activity", androidSdkInfo
-) {
-  override val templateRenderers: List<TemplateRenderer> = sequence {
-    if (isNewModule) {
-      yield(NewTemplateRenderer(Template.NoActivity))
-    }
-    yieldAll(TemplateResolver.getAllTemplates()
-               .filter { wizardUiContext in it.uiContexts }
-               .filter { formFactor.toTemplateFormFactor() == it.formFactor }
-               .map(::NewTemplateRenderer))
-  }.toList()
+  private val wizardUiContext: WizardUiContext,
+) : ChooseGalleryItemStep(renderModel, formFactor, moduleTemplates, activityGalleryStepMessageKeys, "Empty Activity", androidSdkInfo) {
+  override val templateRenderers: List<TemplateRenderer> =
+    sequence {
+        if (isNewModule) {
+          yield(NewTemplateRenderer(Template.NoActivity))
+        }
+        yieldAll(
+          TemplateResolver.getAllTemplates()
+            .filter { wizardUiContext in it.uiContexts }
+            .filter { formFactor.toTemplateFormFactor() == it.formFactor }
+            .map(::NewTemplateRenderer)
+        )
+      }
+      .toList()
 
   companion object Factory {
     fun forNewModule(
       renderModel: RenderTemplateModel,
       formFactor: FormFactor,
-      androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
+      androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent(),
     ) = ChooseActivityTypeStep(renderModel, formFactor, listOf(), androidSdkInfo, WizardUiContext.NewModule)
 
-    fun forActivityGallery(
-      renderModel: RenderTemplateModel,
-      targetDirectory: VirtualFile
-    ) = ChooseActivityTypeStep(
-      renderModel = renderModel,
-      formFactor = FormFactor.MOBILE,
-      moduleTemplates = renderModel.androidFacet!!.getModuleTemplates(targetDirectory),
-      wizardUiContext = WizardUiContext.ActivityGallery
-    )
+    fun forActivityGallery(renderModel: RenderTemplateModel, targetDirectory: VirtualFile) =
+      ChooseActivityTypeStep(
+        renderModel = renderModel,
+        formFactor = FormFactor.MOBILE,
+        moduleTemplates = renderModel.androidFacet!!.getModuleTemplates(targetDirectory),
+        wizardUiContext = WizardUiContext.ActivityGallery,
+      )
   }
 }
 
 @VisibleForTesting
-val activityGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
-  "android.wizard.activity.add",
-  "android.wizard.config.activity.title",
-  "android.wizard.activity.not.found",
-  "android.wizard.activity.invalid.min.sdk",
-  "android.wizard.activity.invalid.androidx",
-  "android.wizard.activity.invalid.needs.kotlin"
-)
+val activityGalleryStepMessageKeys =
+  WizardGalleryItemsStepMessageKeys(
+    "android.wizard.activity.add",
+    "android.wizard.config.activity.title",
+    "android.wizard.activity.not.found",
+    "android.wizard.activity.invalid.min.sdk",
+    "android.wizard.activity.invalid.androidx",
+    "android.wizard.activity.invalid.needs.kotlin",
+  )

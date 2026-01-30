@@ -27,9 +27,10 @@ import java.lang.Integer.min
  */
 class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod: PsiMethod) : PsiModelMember {
 
-  val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
-    psiMethod.parameterList.parameters.map { PsiModelClass(it.type, containingClass.mode) }.toTypedArray()
-  }
+  val parameterTypes by
+    lazy(LazyThreadSafetyMode.NONE) {
+      psiMethod.parameterList.parameters.map { PsiModelClass(it.type, containingClass.mode) }.toTypedArray()
+    }
 
   val name: String
     get() = psiMethod.name
@@ -47,9 +48,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
 
   val isAbstract = psiMethod.hasModifierProperty(PsiModifier.ABSTRACT)
 
-  /**
-   * Returns true if the final parameter is a varargs parameter.
-   */
+  /** Returns true if the final parameter is a varargs parameter. */
   val isVarArgs = psiMethod.isVarArgs
 
   /**
@@ -87,10 +86,8 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
      *
      * Ensure both [thisMethod] and [thatMethod] accept [args] as their arguments before calling this method.
      * 1. Exact matches are better than boxed/unboxed ones for primitive types. e.g "int" matches "int" better than "java.lang.Integer"
-     * 2. Stricter matches are better.
-     * e.g. "int" matches "char" better than "float"
-     * "AbstractMap" matches "HashMap" better than "Map"
-     * "List<String>" matches "ArrayList<String>" better than "List"
+     * 2. Stricter matches are better. e.g. "int" matches "char" better than "float" "AbstractMap" matches "HashMap" better than "Map"
+     *    "List<String>" matches "ArrayList<String>" better than "List"
      */
     fun betterMatchWithArguments(args: List<PsiModelClass>, thisMethod: PsiModelMethod, thatMethod: PsiModelMethod): PsiModelMethod {
       for (i in args.indices) {

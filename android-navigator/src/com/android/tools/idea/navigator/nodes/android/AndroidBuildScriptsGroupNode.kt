@@ -32,8 +32,8 @@ import com.intellij.psi.PsiManager
 import icons.GradleIcons
 import org.jetbrains.annotations.VisibleForTesting
 
-class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
-  : ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
+class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings) :
+  ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
 
   private lateinit var cachedScripts: List<BuildConfigurationSourceProvider.ConfigurationFile>
 

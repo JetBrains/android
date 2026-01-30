@@ -86,8 +86,7 @@ class AbstractStudioRendererPanelTest {
 
   /** A simple inspector model for basic rendering tests */
   private val simpleInspectorModel: InspectorModel
-    get() =
-      model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 50, 50) { image() } } }
+    get() = model(disposable) { view(ROOT, 0, 0, 100, 100) { view(VIEW1, 10, 10, 50, 50) { image() } } }
 
   @Test
   @RunsInEdt
@@ -118,8 +117,7 @@ class AbstractStudioRendererPanelTest {
     fakeUi.layoutAndDispatchEvents()
 
     assertThat(model.inspectorModel.selection?.drawId).isEqualTo(VIEW1)
-    assertThat(model.selectedNode.value!!.bounds)
-      .isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
+    assertThat(model.selectedNode.value!!.bounds).isEqualTo(model.inspectorModel[VIEW1]!!.layoutBounds)
   }
 
   @Test
@@ -182,8 +180,7 @@ class AbstractStudioRendererPanelTest {
 
     // Mock ActionManager to capture the popup menu
     var latestPopup: FakeActionPopupMenu? = null
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mock(), disposable)
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposable)
     doAnswer { invocation ->
         latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
         latestPopup
@@ -272,10 +269,7 @@ class AbstractStudioRendererPanelTest {
 
   private fun paint(image: BufferedImage, renderer: AbstractStudioRendererPanel) {
     val graphics = image.createGraphics()
-    graphics.fillRect(
-      Rectangle(0, 0, screenDimension.width, screenDimension.height),
-      backgroundColor,
-    )
+    graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), backgroundColor)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     renderer.bounds = Rectangle(0, 0, screenDimension.width, screenDimension.height)
     renderer.paint(graphics)
@@ -286,23 +280,12 @@ class AbstractStudioRendererPanelTest {
     return BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
   }
 
-  private fun assertSimilar(
-    renderImage: BufferedImage,
-    imageName: String,
-    maxDiff: Double = DIFF_THRESHOLD,
-  ) {
+  private fun assertSimilar(renderImage: BufferedImage, imageName: String, maxDiff: Double = DIFF_THRESHOLD) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
-    ImageDiffUtil.assertImageSimilar(
-      resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
-      renderImage,
-      maxDiff,
-    )
+    ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, maxDiff)
   }
 
-  /**
-   * Concrete implementation of [AbstractStudioRendererPanel] for testing purposes. Allows injecting
-   * behavior for abstract methods.
-   */
+  /** Concrete implementation of [AbstractStudioRendererPanel] for testing purposes. Allows injecting behavior for abstract methods. */
   private class TestStudioRendererPanel(
     disposable: Disposable,
     scope: CoroutineScope,

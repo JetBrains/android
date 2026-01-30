@@ -68,9 +68,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
 
     fun getTools() =
       rootProfile.tools.filter {
-        (it.tool.tool as? AndroidLintInspectionBase)
-          ?.groupPath
-          ?.contentEquals(arrayOf("Android", "Lint", "Play Policy")) == true
+        (it.tool.tool as? AndroidLintInspectionBase)?.groupPath?.contentEquals(arrayOf("Android", "Lint", "Play Policy")) == true
       }
 
     val tools =
@@ -82,12 +80,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
         getTools()
       }
 
-    myExternalProfile =
-      InspectionProfileImpl(
-        "Play Policy",
-        InspectionToolsSupplier.Simple(tools.map { it.tool }),
-        rootProfile,
-      )
+    myExternalProfile = InspectionProfileImpl("Play Policy", InspectionToolsSupplier.Simple(tools.map { it.tool }), rootProfile)
     if (tools.isNotEmpty()) {
       logger.log(LogLevel.Info, "${tools.size} rules are loaded for Play Policy Insights.", null)
     } else {
@@ -106,13 +99,8 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
     super.runInspections(project, scope)
   }
 
-  override fun getAdditionalActionSettings(
-    project: Project,
-    dialog: BaseAnalysisActionDialog,
-  ): JComponent {
-    val deprecationData =
-      service<DevServicesDeprecationDataProvider>()
-        .getCurrentDeprecationData("aqi/policy", "Play Policy Insights")
+  override fun getAdditionalActionSettings(project: Project, dialog: BaseAnalysisActionDialog): JComponent {
+    val deprecationData = service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData("aqi/policy", "Play Policy Insights")
     if (deprecationData.isUnsupported()) {
       dialog.isOKActionEnabled = false
     }
@@ -120,20 +108,13 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
     return panel {
       customizeSpacingConfiguration(EmptySpacingConfiguration()) {
         if (!deprecationData.isSupported() && deprecationData.description.isNotEmpty()) {
-          dialog.disposable.createCoroutineScope().launch {
-            trackDeprecation(deprecationData.status, userNotified = true)
-          }
+          dialog.disposable.createCoroutineScope().launch { trackDeprecation(deprecationData.status, userNotified = true) }
           row {
-              icon(
-                  if (deprecationData.isDeprecated()) AllIcons.General.Warning
-                  else AllIcons.General.Error
-                )
+              icon(if (deprecationData.isDeprecated()) AllIcons.General.Warning else AllIcons.General.Error)
                 .align(AlignX.LEFT.plus(AlignY.TOP))
                 .customize(UnscaledGaps(2, 2, 2, 5))
               panel {
-                row {
-                  text(deprecationData.description).align(Align.FILL).recalculatePreferredHeight()
-                }
+                row { text(deprecationData.description).align(Align.FILL).recalculatePreferredHeight() }
                 row {
                   if (deprecationData.showUpdateAction) {
                     text(
@@ -154,8 +135,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
                       e.url?.let { BrowserUtil.browse(it) }
                     }
 
-                    text("<a href=${moreInfoUrl}>More Info</a>", action = hyperlinkEventAction)
-                      .align(AlignX.LEFT + AlignY.FILL)
+                    text("<a href=${moreInfoUrl}>More Info</a>", action = hyperlinkEventAction).align(AlignX.LEFT + AlignY.FILL)
                   }
                 }
               }
@@ -164,9 +144,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
         }
 
         row {
-          icon(AllIcons.General.Information)
-            .align(AlignX.LEFT.plus(AlignY.TOP))
-            .customize(UnscaledGaps(2, 2, 2, 5))
+          icon(AllIcons.General.Information).align(AlignX.LEFT.plus(AlignY.TOP)).customize(UnscaledGaps(2, 2, 2, 5))
 
           text(
               "Play Policy Insights (Beta) is intended to provide helpful pre-review guidance" +
@@ -185,8 +163,7 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
   /**
    * Recalculates the preferred height with a fixed width from DslLabel.
    *
-   * DslLabel applies an internal width limit to the component and the preferred height needs to be
-   * updated.
+   * DslLabel applies an internal width limit to the component and the preferred height needs to be updated.
    */
   private fun Cell<JEditorPane>.recalculatePreferredHeight(): Cell<JEditorPane> {
     component.size = Dimension(component.preferredSize.width, Int.MAX_VALUE)

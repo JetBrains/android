@@ -21,24 +21,29 @@ import icons.StudioIcons.Misc.PRODUCT_FLAVOR_DIMENSION
 import java.util.Objects
 import javax.swing.Icon
 
-class PsFlavorDimension(
-  override val parent: PsAndroidModule,
-  val isInvalid: Boolean = false
-) : PsChildModel() {
+class PsFlavorDimension(override val parent: PsAndroidModule, val isInvalid: Boolean = false) : PsChildModel() {
   var parsedName: String? = null
 
   internal fun init(parsedName: String) {
     this.parsedName = parsedName
   }
 
-  override val name get() = if (isInvalid) "(invalid)" else parsedName.orEmpty()
-  override val path: PsFlavorDimensionNavigationPath get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
-  override val isDeclared: Boolean get() = parsedName != null
+  override val name
+    get() = if (isInvalid) "(invalid)" else parsedName.orEmpty()
+
+  override val path: PsFlavorDimensionNavigationPath
+    get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
+
+  override val isDeclared: Boolean
+    get() = parsedName != null
+
   override val icon: Icon = PRODUCT_FLAVOR_DIMENSION
 
-  override fun equals(other: Any?) = when(other) {
-    is PsFlavorDimension -> if (this.isInvalid && other.isInvalid) this.parent == other.parent else super.equals(other)
-    else -> false
-  }
+  override fun equals(other: Any?) =
+    when (other) {
+      is PsFlavorDimension -> if (this.isInvalid && other.isInvalid) this.parent == other.parent else super.equals(other)
+      else -> false
+    }
+
   override fun hashCode() = if (isInvalid) Objects.hash(42, parent) else super.hashCode()
 }

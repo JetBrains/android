@@ -23,8 +23,7 @@ import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JLabel
 
-class CursorFollowingTooltipLabel(parentDisposable: Disposable, icon: Icon, helpText: String) :
-  JLabel(icon, LEFT), Disposable {
+class CursorFollowingTooltipLabel(parentDisposable: Disposable, icon: Icon, helpText: String) : JLabel(icon, LEFT), Disposable {
   init {
     Disposer.register(parentDisposable, this)
     // This mouse listener needs to be added before the HelpTooltip is installed so that

@@ -19,9 +19,7 @@ import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersHomeTabView
 
-/**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeTabView].
- */
+/** A tab in the Profiler tool window, wrapping a [StudioProfilersHomeTabView]. */
 class StudioProfilersHomeTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
   val view = StudioProfilersHomeTabView(profilers.taskHomeTabModel, ideProfilerComponents)
 }

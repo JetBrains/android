@@ -68,8 +68,7 @@ private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActio
 private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
 
-val DESIGNER_COMMON_ISSUE_PANEL =
-  DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
+val DESIGNER_COMMON_ISSUE_PANEL = DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
 
 /** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
 class DesignerCommonIssuePanel(
@@ -88,8 +87,7 @@ class DesignerCommonIssuePanel(
   private val coroutineScope = AndroidCoroutineScope(this)
   private val issueListeners = mutableListOf<IssueListener>()
 
-  var sidePanelVisible =
-    PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
+  var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
     set(value) {
       field = value
       updateSidePanel(getSelectedNode(), value)
@@ -116,11 +114,7 @@ class DesignerCommonIssuePanel(
     tree = Tree(asyncModel)
     tree.emptyText.text = "Loading..."
     updateEmptyMessageIfNeed()
-    PopupHandler.installPopupMenu(
-      tree,
-      POPUP_HANDLER_ACTION_ID,
-      "Android.Designer.IssuePanel.TreePopup",
-    )
+    PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")
 
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
@@ -129,14 +123,11 @@ class DesignerCommonIssuePanel(
     EditSourceOnDoubleClickHandler.install(tree)
     EditSourceOnEnterKeyHandler.install(tree)
 
-    val toolbarActionGroup =
-      ActionManager.getInstance().getAction(TOOLBAR_ACTIONS_ID) as ActionGroup
-    ActionManager.getInstance()
-      .createActionToolbar(javaClass.name, toolbarActionGroup, false)
-      .apply {
-        targetComponent = this@DesignerCommonIssuePanel
-        toolbar = component
-      }
+    val toolbarActionGroup = ActionManager.getInstance().getAction(TOOLBAR_ACTIONS_ID) as ActionGroup
+    ActionManager.getInstance().createActionToolbar(javaClass.name, toolbarActionGroup, false).apply {
+      targetComponent = this@DesignerCommonIssuePanel
+      toolbar = component
+    }
 
     sidePanel = DesignerCommonIssueSidePanel(project, this, fixWithAiActionProvider)
 
@@ -166,9 +157,7 @@ class DesignerCommonIssuePanel(
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode
       updateSidePanel(selectedNode, sidePanelVisible)
-      (selectedNode as? IssueNode)?.issue.let { issue ->
-        issueListeners.forEach { it.onIssueSelected(issue) }
-      }
+      (selectedNode as? IssueNode)?.issue.let { issue -> issueListeners.forEach { it.onIssueSelected(issue) } }
     }
 
     // Listener for metric
@@ -222,8 +211,7 @@ class DesignerCommonIssuePanel(
       updateIssueOrder()
       updateIssueVisibility()
       val type =
-        if (tabId == SHARED_ISSUE_PANEL_TAB_ID)
-          UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
+        if (tabId == SHARED_ISSUE_PANEL_TAB_ID) UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
         else UniversalProblemsPanelEvent.ActivatedTab.UI_CHECK
       DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingTab(type, project)
     }
@@ -271,9 +259,7 @@ class DesignerCommonIssuePanel(
 
   fun updateIssueOrder() {
     val state = ProblemsViewState.getInstance(project)
-    (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(
-      DesignerCommonIssueNodeComparator(state.sortBySeverity, state.sortByName)
-    )
+    (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(DesignerCommonIssueNodeComparator(state.sortBySeverity, state.sortByName))
     treeModel.structureChanged(null)
   }
 
@@ -307,10 +293,7 @@ class DesignerCommonIssuePanel(
   }
 
   fun addIssueSelectionListener(listener: IssueListener, parentDisposable: Disposable) {
-    Disposer.register(
-      parentDisposable,
-      WeakReferenceDisposableWrapper { issueListeners.remove(listener) },
-    )
+    Disposer.register(parentDisposable, WeakReferenceDisposableWrapper { issueListeners.remove(listener) })
     issueListeners.add(listener)
   }
 
@@ -323,9 +306,7 @@ class DesignerCommonIssuePanel(
   }
 }
 
-/**
- * Used to find the target [DesignerCommonIssueNode] in the [com.intellij.ui.treeStructure.Tree].
- */
+/** Used to find the target [DesignerCommonIssueNode] in the [com.intellij.ui.treeStructure.Tree]. */
 class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : TreeVisitor {
 
   override fun visit(path: TreePath): TreeVisitor.Action {
@@ -335,13 +316,9 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     }
   }
 
-  private fun compareNode(
-    node1: DesignerCommonIssueNode?,
-    node2: DesignerCommonIssueNode?,
-  ): TreeVisitor.Action {
+  private fun compareNode(node1: DesignerCommonIssueNode?, node2: DesignerCommonIssueNode?): TreeVisitor.Action {
     if (node1 == null || node2 == null) {
-      return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT
-      else TreeVisitor.Action.CONTINUE
+      return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
     }
     if (node1::class != node2::class) {
       return TreeVisitor.Action.CONTINUE
@@ -350,32 +327,22 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
       is IssuedFileNode -> visitIssuedFileNode(node1, node2 as IssuedFileNode)
       is NoFileNode -> visitNoFileNode(node1, node2 as NoFileNode)
       is IssueNode -> visitIssueNode(node1, node2 as IssueNode)
-      is DesignerCommonIssueRoot ->
-        if (node1 === node2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
+      is DesignerCommonIssueRoot -> if (node1 === node2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
       else -> TreeVisitor.Action.CONTINUE
     }
   }
 
-  private fun visitIssuedFileNode(
-    node1: IssuedFileNode,
-    node2: IssuedFileNode,
-  ): TreeVisitor.Action {
+  private fun visitIssuedFileNode(node1: IssuedFileNode, node2: IssuedFileNode): TreeVisitor.Action {
     return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE
     else {
-      compareNode(
-        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
-      )
+      compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode, node2.parentDescriptor?.element as? DesignerCommonIssueNode)
     }
   }
 
   private fun visitNoFileNode(node1: NoFileNode, node2: NoFileNode): TreeVisitor.Action {
     return if (node1.name != node2.name) TreeVisitor.Action.CONTINUE
     else {
-      compareNode(
-        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
-      )
+      compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode, node2.parentDescriptor?.element as? DesignerCommonIssueNode)
     }
   }
 
@@ -385,10 +352,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
 
     // It would be complicated if the issues are VisualLintRenderIssue, compare the parents first.
     val actionAfterComparingParents =
-      compareNode(
-        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-        node2.parentDescriptor?.element as? DesignerCommonIssueNode,
-      )
+      compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode, node2.parentDescriptor?.element as? DesignerCommonIssueNode)
     if (actionAfterComparingParents == TreeVisitor.Action.CONTINUE) {
       return TreeVisitor.Action.CONTINUE
     }
@@ -415,9 +379,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
           return TreeVisitor.Action.CONTINUE
         }
       }
-      return if (visitedNodeIterator.hasNext() || nodeIterator.hasNext())
-        TreeVisitor.Action.CONTINUE
-      else TreeVisitor.Action.INTERRUPT
+      return if (visitedNodeIterator.hasNext() || nodeIterator.hasNext()) TreeVisitor.Action.CONTINUE else TreeVisitor.Action.INTERRUPT
     }
 
     return if (issue1 == issue2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
@@ -437,10 +399,7 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
   }
 }
 
-/**
- * This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName]
- * for consistency.
- */
+/** This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency. */
 @VisibleForTesting
 @NlsContexts.TabTitle
 fun createTabName(name: String, count: Int): String {

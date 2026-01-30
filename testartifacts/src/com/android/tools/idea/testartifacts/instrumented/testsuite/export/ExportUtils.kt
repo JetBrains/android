@@ -51,89 +51,91 @@ import javax.xml.transform.sax.TransformerHandler
 import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.stream.StreamSource
 
-/**
- * Exports a given [rootResultsNode] into a AndroidTestMatrix XML file.
- */
+/** Exports a given [rootResultsNode] into a AndroidTestMatrix XML file. */
 @AnyThread
-fun exportAndroidTestMatrixResultXmlFile(project: Project,
-                                         toolWindowId: String?,
-                                         exportConfig: ExportTestResultsConfiguration,
-                                         exportFile: File,
-                                         executionDuration: Duration,
-                                         rootResultsNode: AndroidTestResultsTreeNode,
-                                         runConfiguration: RunConfiguration,
-                                         devices: List<AndroidDevice>,
-                                         onFinishedFunc: () -> Unit = {}) {
-  ProgressManager.getInstance().run(
-    object : Task.Backgroundable(
-      project,
-      ExecutionBundle.message("export.test.results.task.name"),
-      false,
-      PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-      override fun run(indicator: ProgressIndicator) {
-        indicator.isIndeterminate = true
-        val outputText = createOutputText(exportConfig, executionDuration, rootResultsNode, runConfiguration, devices, toolWindowId)
-                         ?: return
-        val (resultFile, errorMessage) = invokeAndWaitIfNeeded {
-          runWriteAction {
-            exportFile.parentFile.mkdirs()
+fun exportAndroidTestMatrixResultXmlFile(
+  project: Project,
+  toolWindowId: String?,
+  exportConfig: ExportTestResultsConfiguration,
+  exportFile: File,
+  executionDuration: Duration,
+  rootResultsNode: AndroidTestResultsTreeNode,
+  runConfiguration: RunConfiguration,
+  devices: List<AndroidDevice>,
+  onFinishedFunc: () -> Unit = {},
+) {
+  ProgressManager.getInstance()
+    .run(
+      object :
+        Task.Backgroundable(
+          project,
+          ExecutionBundle.message("export.test.results.task.name"),
+          false,
+          PerformInBackgroundOption.ALWAYS_BACKGROUND,
+        ) {
+        override fun run(indicator: ProgressIndicator) {
+          indicator.isIndeterminate = true
+          val outputText =
+            createOutputText(exportConfig, executionDuration, rootResultsNode, runConfiguration, devices, toolWindowId) ?: return
+          val (resultFile, errorMessage) =
+            invokeAndWaitIfNeeded {
+              runWriteAction {
+                exportFile.parentFile.mkdirs()
 
-            val parent = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(exportFile.parentFile)
-            if (parent?.isValid != true) {
-              return@runWriteAction Pair(
-                null, ExecutionBundle.message("failed.to.create.output.file", exportFile.path))
+                val parent = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(exportFile.parentFile)
+                if (parent?.isValid != true) {
+                  return@runWriteAction Pair(null, ExecutionBundle.message("failed.to.create.output.file", exportFile.path))
+                }
+
+                val resultFile = parent.findChild(exportFile.name) ?: parent.createChildData(this, exportFile.name)
+                VfsUtil.saveText(resultFile, outputText)
+
+                Pair(resultFile, null)
+              }
             }
 
-            val resultFile = parent.findChild(exportFile.name) ?: parent.createChildData(this, exportFile.name)
-            VfsUtil.saveText(resultFile, outputText)
+          if (!errorMessage.isNullOrBlank()) {
+            showBalloon(project, toolWindowId, MessageType.ERROR, ExecutionBundle.message("export.test.results.failed", errorMessage), null)
+            return
+          }
+          if (resultFile == null) {
+            return
+          }
 
-            Pair(resultFile, null)
+          if (exportConfig.isOpenResults) {
+            openEditorOrBrowser(resultFile, project, exportConfig.exportFormat == ExportTestResultsConfiguration.ExportFormat.Xml)
+          } else {
+            val listener = HyperlinkListener { e ->
+              if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+                openEditorOrBrowser(resultFile, project, exportConfig.exportFormat == ExportTestResultsConfiguration.ExportFormat.Xml)
+              }
+            }
+            showBalloon(
+              project,
+              toolWindowId,
+              MessageType.INFO,
+              ExecutionBundle.message("export.test.results.succeeded", exportFile.name),
+              listener,
+            )
           }
         }
 
-        if (!errorMessage.isNullOrBlank()) {
-          showBalloon(project, toolWindowId, MessageType.ERROR,
-                      ExecutionBundle.message("export.test.results.failed", errorMessage),
-                      null)
-          return
-        }
-        if (resultFile == null) {
-          return
-        }
-
-        if (exportConfig.isOpenResults) {
-          openEditorOrBrowser(
-            resultFile, project,
-            exportConfig.exportFormat == ExportTestResultsConfiguration.ExportFormat.Xml)
-        }
-        else {
-          val listener = HyperlinkListener { e ->
-            if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-              openEditorOrBrowser(
-                resultFile, project,
-                exportConfig.exportFormat == ExportTestResultsConfiguration.ExportFormat.Xml)
-            }
-          }
-          showBalloon(project, toolWindowId, MessageType.INFO,
-                      ExecutionBundle.message("export.test.results.succeeded", exportFile.name),
-                      listener)
+        override fun onFinished() {
+          onFinishedFunc()
         }
       }
-
-      override fun onFinished() {
-        onFinishedFunc()
-      }
-    }
-  )
+    )
 }
 
 @WorkerThread
-private fun createOutputText(exportConfig: ExportTestResultsConfiguration,
-                             executionDuration: Duration,
-                             rootResultsNode: AndroidTestResultsTreeNode,
-                             runConfiguration: RunConfiguration,
-                             devices: List<AndroidDevice>,
-                             toolWindowId: String?): String? {
+private fun createOutputText(
+  exportConfig: ExportTestResultsConfiguration,
+  executionDuration: Duration,
+  rootResultsNode: AndroidTestResultsTreeNode,
+  runConfiguration: RunConfiguration,
+  devices: List<AndroidDevice>,
+  toolWindowId: String?,
+): String? {
   val transformerHandler = createTransformerHandler(exportConfig, runConfiguration, toolWindowId) ?: return null
   val writer = StringWriter()
   transformerHandler.setResult(StreamResult(writer))
@@ -142,11 +144,13 @@ private fun createOutputText(exportConfig: ExportTestResultsConfiguration,
 }
 
 @WorkerThread
-private fun createTransformerHandler(exportConfig: ExportTestResultsConfiguration,
-                                     runConfiguration: RunConfiguration,
-                                     toolWindowId: String?): TransformerHandler? {
+private fun createTransformerHandler(
+  exportConfig: ExportTestResultsConfiguration,
+  runConfiguration: RunConfiguration,
+  toolWindowId: String?,
+): TransformerHandler? {
   val transformerFactory = SAXTransformerFactory.newDefaultInstance() as SAXTransformerFactory
-  return when(exportConfig.exportFormat) {
+  return when (exportConfig.exportFormat) {
     ExportTestResultsConfiguration.ExportFormat.Xml -> {
       transformerFactory.newTransformerHandler().apply {
         transformer.apply {
@@ -156,30 +160,34 @@ private fun createTransformerHandler(exportConfig: ExportTestResultsConfiguratio
       }
     }
     ExportTestResultsConfiguration.ExportFormat.BundledTemplate -> {
-      val xslSource = StreamSource(URLUtil.openStream(
-        ExportTestResultsAction::class.java.getResource("intellij-export.xsl")))
+      val xslSource = StreamSource(URLUtil.openStream(ExportTestResultsAction::class.java.getResource("intellij-export.xsl")))
       transformerFactory.newTransformerHandler(xslSource).apply {
         transformer.apply {
-          setParameter("TITLE",
-                       ExecutionBundle.message("export.test.results.filename",
-                                               runConfiguration.name,
-                                               runConfiguration.type.displayName))
+          setParameter(
+            "TITLE",
+            ExecutionBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
+          )
         }
       }
     }
     else -> {
       val xslFile = File(exportConfig.userTemplatePath)
       if (!xslFile.isFile) {
-        showBalloon(runConfiguration.project, toolWindowId, MessageType.ERROR,
-                    ExecutionBundle.message("export.test.results.custom.template.not.found", xslFile.path), null)
+        showBalloon(
+          runConfiguration.project,
+          toolWindowId,
+          MessageType.ERROR,
+          ExecutionBundle.message("export.test.results.custom.template.not.found", xslFile.path),
+          null,
+        )
         return null
       }
       transformerFactory.newTransformerHandler(StreamSource(xslFile)).apply {
         transformer.apply {
-          setParameter("TITLE",
-                       ExecutionBundle.message("export.test.results.filename",
-                                               runConfiguration.name,
-                                               runConfiguration.type.displayName))
+          setParameter(
+            "TITLE",
+            ExecutionBundle.message("export.test.results.filename", runConfiguration.name, runConfiguration.type.displayName),
+          )
         }
       }
     }
@@ -204,8 +212,7 @@ private fun openEditorOrBrowser(result: VirtualFile, project: Project, editor: B
   ApplicationManager.getApplication().invokeLater {
     if (editor) {
       FileEditorManager.getInstance(project).openFile(result, true)
-    }
-    else {
+    } else {
       BrowserUtil.browse(result)
     }
   }

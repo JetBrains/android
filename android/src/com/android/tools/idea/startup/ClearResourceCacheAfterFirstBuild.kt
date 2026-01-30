@@ -37,29 +37,26 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 /**
- * Project component responsible for clearing the resource cache after the initial project build if any resources
- * were accessed before source generation. If the last build of the project in the previous session was successful
- * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
+ * Project component responsible for clearing the resource cache after the initial project build if any resources were accessed before
+ * source generation. If the last build of the project in the previous session was successful (i.e. the initial build of this session is
+ * skipped), then the resource cache is already valid and will not be cleared.
  */
 @Service(Service.Level.PROJECT)
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private data class CacheClearedCallbacks(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
+
   private val lock = Any()
-  @GuardedBy("lock")
-  private var state = State.INITIAL
-  @GuardedBy("lock")
-  private val waitingCallbacks = mutableSetOf<CacheClearedCallbacks>()
+  @GuardedBy("lock") private var state = State.INITIAL
+  @GuardedBy("lock") private val waitingCallbacks = mutableSetOf<CacheClearedCallbacks>()
 
   // We initialize this connection here to ensure it only happens once.
-  private var messageBusConnection: MessageBusConnection? = project.messageBus.connect().apply {
-    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener {
-      if (it.isSuccessful) syncSucceeded() else syncFailed()
-    })
-  }
+  private var messageBusConnection: MessageBusConnection? =
+    project.messageBus.connect().apply {
+      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener { if (it.isSuccessful) syncSucceeded() else syncFailed() })
+    }
 
   /**
    * Runs at most once when sync succeeds the first time, or when it is clear sync is not required.
-   *
    * * Disconnects and clears the [MessageBusConnection]
    * * Clears the resource cache, if necessary
    * * Sets the state to [State.CACHE_CLEARED]
@@ -69,12 +66,12 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     checkNotNull(messageBusConnection).disconnect()
     messageBusConnection = null
     clearResourceCacheIfNecessary()
-    val cacheClearedCallbacks = synchronized(lock) {
-      // runWhenResourceCacheClean should now execute onCacheCleared immediately when called
-      state = State.CACHE_CLEARED
-      waitingCallbacks.mapTo(mutableSetOf(), CacheClearedCallbacks::onCacheCleared)
-        .also { waitingCallbacks.clear() }
-    }
+    val cacheClearedCallbacks =
+      synchronized(lock) {
+        // runWhenResourceCacheClean should now execute onCacheCleared immediately when called
+        state = State.CACHE_CLEARED
+        waitingCallbacks.mapTo(mutableSetOf(), CacheClearedCallbacks::onCacheCleared).also { waitingCallbacks.clear() }
+      }
     for (cacheClearedCallback in cacheClearedCallbacks) {
       cacheClearedCallback.run()
     }
@@ -88,18 +85,18 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   }
 
   /**
-   * Delays the execution of [onCacheClean] until after the initial project build finishes and, if necessary, the resource
-   * cache has been cleared.
+   * Delays the execution of [onCacheClean] until after the initial project build finishes and, if necessary, the resource cache has been
+   * cleared.
    *
-   * In the event that source generation fails, [onSourceGenerationError] will be executed. This gives callers the opportunity
-   * to notify the user that whatever feature [onCacheClean] supports will be unavailable until after a successful project sync.
-   * The execution of [onSourceGenerationError] does not stop the later execution of [onCacheClean] once source generation is
-   * complete and the resource cache has been validated.
+   * In the event that source generation fails, [onSourceGenerationError] will be executed. This gives callers the opportunity to notify the
+   * user that whatever feature [onCacheClean] supports will be unavailable until after a successful project sync. The execution of
+   * [onSourceGenerationError] does not stop the later execution of [onCacheClean] once source generation is complete and the resource cache
+   * has been validated.
    *
    * @param onCacheClean callback to execute once the resource cache has been validated
    * @param onSourceGenerationError callback to execute if source generation failed
    * @param parentDisposable parent disposable for the CacheClearedCallback that will be created. Corresponding CacheClearedCallback will be
-   * removed when parentDisposable is disposed.
+   *   removed when parentDisposable is disposed.
    */
   fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable, parentDisposable: Disposable) {
     // There's no need to wait for the first successful project sync this session if the project's sync
@@ -107,17 +104,16 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     // as if sync succeeded.
     if (!isCacheClean() && isSyncStateClean()) onSyncSucceeded()
 
-    val localState = synchronized(lock) {
-      if (state != State.CACHE_CLEARED) {
-        val callbacks = CacheClearedCallbacks(onCacheClean, onSourceGenerationError)
-        if (waitingCallbacks.add(callbacks)) {
-          Disposer.register(parentDisposable) {
-            synchronized(lock) { waitingCallbacks.remove(callbacks) }
+    val localState =
+      synchronized(lock) {
+        if (state != State.CACHE_CLEARED) {
+          val callbacks = CacheClearedCallbacks(onCacheClean, onSourceGenerationError)
+          if (waitingCallbacks.add(callbacks)) {
+            Disposer.register(parentDisposable) { synchronized(lock) { waitingCallbacks.remove(callbacks) } }
           }
         }
+        state
       }
-      state
-    }
 
     when (localState) {
       State.INITIAL -> return
@@ -126,21 +122,20 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     }
   }
 
-  private fun isSyncStateClean() = with(project.getSyncManager()) {
-    !isSyncInProgress() && !isSyncNeeded() && getLastSyncResult().isSuccessful
-  }
+  private fun isSyncStateClean() =
+    with(project.getSyncManager()) { !isSyncInProgress() && !isSyncNeeded() && getLastSyncResult().isSuccessful }
 
   /**
-   * Sets the flag indicating that computed runtime dependencies are incomplete because
-   * the underlying project model was not yet finalized when the computation happened.
+   * Sets the flag indicating that computed runtime dependencies are incomplete because the underlying project model was not yet finalized
+   * when the computation happened.
    */
   fun setIncompleteRuntimeDependencies() {
     project.putUserData(INCOMPLETE_RUNTIME_DEPENDENCIES, true)
   }
 
   /**
-   * Dump the cached resources if we have accessed the resources before the build was ready.
-   * Clear the file based resources and attributes that may have been created based on those resources.
+   * Dump the cached resources if we have accessed the resources before the build was ready. Clear the file based resources and attributes
+   * that may have been created based on those resources.
    */
   private fun clearResourceCacheIfNecessary() {
     if (project.getUserData(INCOMPLETE_RUNTIME_DEPENDENCIES) !== java.lang.Boolean.TRUE) return
@@ -158,10 +153,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     }
   }
 
-  /**
-   * Will be called when the sync succeeds. May happen more than once, although we do unsubscribe
-   * when this is called.
-   */
+  /** Will be called when the sync succeeds. May happen more than once, although we do unsubscribe when this is called. */
   @VisibleForTesting
   fun syncSucceeded() {
     onSyncSucceeded()
@@ -184,27 +176,24 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     }
   }
 
-  /** Indicates whether the cache has been cleared.*/
-  @VisibleForTesting
-  internal fun isCacheClean() = synchronized(lock) { state == State.CACHE_CLEARED }
+  /** Indicates whether the cache has been cleared. */
+  @VisibleForTesting internal fun isCacheClean() = synchronized(lock) { state == State.CACHE_CLEARED }
 
   /**
    * The state diagram for this class:
-   *
    * * Starts in INITIAL
    * * Can move from INITIAL to SYNC_ERROR or CACHE_CLEARED
    * * Can move from SYNC_ERROR to CACHE_CLEARED
    */
   private enum class State {
-    INITIAL, SYNC_ERROR, CACHE_CLEARED
+    INITIAL,
+    SYNC_ERROR,
+    CACHE_CLEARED,
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild =
-        project.service()
+    @JvmStatic fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild = project.service()
 
-    @JvmStatic
-    private val INCOMPLETE_RUNTIME_DEPENDENCIES = Key.create<Boolean>("IncompleteRuntimeDependencies")
+    @JvmStatic private val INCOMPLETE_RUNTIME_DEPENDENCIES = Key.create<Boolean>("IncompleteRuntimeDependencies")
   }
 }

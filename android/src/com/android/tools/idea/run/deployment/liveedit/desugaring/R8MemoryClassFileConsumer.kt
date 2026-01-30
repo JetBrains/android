@@ -19,19 +19,18 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.r8.ByteDataView
 import com.android.tools.r8.ClassFileConsumer
 import com.android.tools.r8.DiagnosticsHandler
-import java.util.concurrent.ConcurrentHashMap
 import com.android.tools.r8.references.Reference
+import java.util.concurrent.ConcurrentHashMap
 
-class R8MemoryClassFileConsumer(private val logger: LiveEditLogger): ClassFileConsumer {
-  private val inClasses : MutableMap<String, ByteArray> = ConcurrentHashMap<String, ByteArray>()
+class R8MemoryClassFileConsumer(private val logger: LiveEditLogger) : ClassFileConsumer {
+  private val inClasses: MutableMap<String, ByteArray> = ConcurrentHashMap<String, ByteArray>()
   val classes: Map<String, ByteArray> = inClasses
 
-  override fun finished(handler: DiagnosticsHandler?) {
-  }
+  override fun finished(handler: DiagnosticsHandler?) {}
 
   // Warning: This may be called from multiple threads. R8 defaults to running in an Executor
   // with one thread per core. This MUST be thread-safe.
-  override fun accept(data : ByteDataView, desc : String, handler :  DiagnosticsHandler) {
+  override fun accept(data: ByteDataView, desc: String, handler: DiagnosticsHandler) {
     // We don't use 'L' prefix and ';' suffix in LE so we need to remove them if they are here.
     var binaryName = Reference.classFromDescriptor(desc).binaryName
 

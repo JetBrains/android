@@ -18,16 +18,14 @@ package com.android.tools.idea.appinspection.inspector.api.launch
 /**
  * Response from a GetLibraryCompatibilityInfo call.
  *
- * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is
- * populated if the check resulted in failure.
+ * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is populated if the check resulted in failure.
  */
 data class LibraryCompatibilityInfo(
   val libraryCoordinate: ArtifactCoordinate,
   val status: Status,
   /**
-   * This version string follows the gradle version format. See
-   * https://docs.gradle.org/current/userguide/single_versions.html Examples: 1.3, 1.3.0-beta3,
-   * 1.0-20150201.131010-1
+   * This version string follows the gradle version format. See https://docs.gradle.org/current/userguide/single_versions.html Examples:
+   * 1.3, 1.3.0-beta3, 1.0-20150201.131010-1
    */
   val version: String,
   val errorMessage: String,

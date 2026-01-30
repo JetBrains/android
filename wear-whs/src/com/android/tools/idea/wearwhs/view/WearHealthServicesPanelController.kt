@@ -52,15 +52,13 @@ internal class WearHealthServicesPanelController(
 ) {
 
   private var currentBalloon: Balloon? = null
-  private val userInformationFlow =
-    MutableStateFlow<PanelInformation>(PanelInformation.EmptyMessage)
+  private val userInformationFlow = MutableStateFlow<PanelInformation>(PanelInformation.EmptyMessage)
 
   init {
     workerScope.launch {
       stateManager.status.collect {
         if (it is WhsStateManagerStatus.Syncing) {
-          userInformationFlow.value =
-            PanelInformation.Message(message("wear.whs.panel.capabilities.syncing"))
+          userInformationFlow.value = PanelInformation.Message(message("wear.whs.panel.capabilities.syncing"))
         }
       }
     }
@@ -141,44 +139,27 @@ internal class WearHealthServicesPanelController(
 
   private fun notifyWithBalloon(message: String, type: MessageType) {
     userInformationFlow.value = PanelInformation.EmptyMessage
-    Notifications.Bus.notify(
-      Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
-    )
+    Notifications.Bus.notify(Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType()))
   }
 
   private fun reset() {
     workerScope.launch {
       stateManager
         .reset()
-        .onSuccess {
-          notifyUserInPanelIfOpen(message("wear.whs.panel.reset.success"), MessageType.INFO)
-        }
-        .onFailure {
-          notifyUserInPanelIfOpen(message("wear.whs.panel.reset.failure"), MessageType.ERROR)
-        }
+        .onSuccess { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.success"), MessageType.INFO) }
+        .onFailure { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
     }
   }
 
   private fun applyChanges() {
     currentBalloon?.hide()
     workerScope.launch {
-      val changesApplied =
-        if (stateManager.ongoingExercise.value) "sensor.values" else "capabilities"
+      val changesApplied = if (stateManager.ongoingExercise.value) "sensor.values" else "capabilities"
 
       stateManager
         .applyChanges()
-        .onSuccess {
-          notifyWithBalloon(
-            message("wear.whs.panel.apply.$changesApplied.success"),
-            MessageType.INFO,
-          )
-        }
-        .onFailure {
-          notifyWithBalloon(
-            message("wear.whs.panel.apply.$changesApplied.failure"),
-            MessageType.ERROR,
-          )
-        }
+        .onSuccess { notifyWithBalloon(message("wear.whs.panel.apply.$changesApplied.success"), MessageType.INFO) }
+        .onFailure { notifyWithBalloon(message("wear.whs.panel.apply.$changesApplied.failure"), MessageType.ERROR) }
     }
   }
 
@@ -187,12 +168,8 @@ internal class WearHealthServicesPanelController(
     workerScope.launch {
       stateManager
         .triggerEvent(eventTrigger)
-        .onSuccess {
-          notifyWithBalloon(message("wear.whs.event.trigger.success"), MessageType.INFO)
-        }
-        .onFailure {
-          notifyWithBalloon(message("wear.whs.event.trigger.failure"), MessageType.ERROR)
-        }
+        .onSuccess { notifyWithBalloon(message("wear.whs.event.trigger.success"), MessageType.INFO) }
+        .onFailure { notifyWithBalloon(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
     }
   }
 }
@@ -200,10 +177,7 @@ internal class WearHealthServicesPanelController(
 private sealed class PanelInformation(val message: String) {
   class Message(message: String) : PanelInformation(message)
 
-  class TemporaryMessage(
-    message: String,
-    val duration: Duration = TEMPORARY_MESSAGE_DISPLAY_DURATION,
-  ) : PanelInformation(message)
+  class TemporaryMessage(message: String, val duration: Duration = TEMPORARY_MESSAGE_DISPLAY_DURATION) : PanelInformation(message)
 
   data object EmptyMessage : PanelInformation("")
 }

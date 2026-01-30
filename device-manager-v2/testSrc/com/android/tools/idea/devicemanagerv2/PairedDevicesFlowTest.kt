@@ -38,9 +38,7 @@ class PairedDevicesFlowTest {
     val output = Channel<ImmutableMap<String, ImmutableList<PairingStatus>>>()
     val list =
       object : ObservablePairedDevicesList {
-        override fun addDevicePairingStatusChangedListener(
-          listener: WearPairingManager.PairingStatusChangedListener
-        ) {
+        override fun addDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener) {
           backgroundScope.launch {
             while (isActive) {
               val command = input.receive()
@@ -49,9 +47,7 @@ class PairedDevicesFlowTest {
           }
         }
 
-        override fun removeDevicePairingStatusChangedListener(
-          listener: WearPairingManager.PairingStatusChangedListener
-        ) {}
+        override fun removeDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener) {}
       }
 
     backgroundScope.launch { list.pairedDevicesFlow().collect { output.send(it) } }
@@ -79,9 +75,7 @@ class PairedDevicesFlowTest {
 
     input.send {
       pairingStatusChanged(
-        WearPairingManager.PhoneWearPair(phone, wear).also {
-          it.pairingStatus = WearPairingManager.PairingState.CONNECTING
-        }
+        WearPairingManager.PhoneWearPair(phone, wear).also { it.pairingStatus = WearPairingManager.PairingState.CONNECTING }
       )
     }
 
@@ -106,9 +100,7 @@ class PairedDevicesFlowTest {
 
     input.send {
       pairingStatusChanged(
-        WearPairingManager.PhoneWearPair(phone, wear).also {
-          it.pairingStatus = WearPairingManager.PairingState.CONNECTED
-        }
+        WearPairingManager.PhoneWearPair(phone, wear).also { it.pairingStatus = WearPairingManager.PairingState.CONNECTED }
       )
     }
 

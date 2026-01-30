@@ -34,11 +34,9 @@ import com.intellij.psi.xml.XmlTag
  *
  * Reference tags are identified by their `name` attribute.
  *
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
  */
-class ReferenceTagReference(element: PsiElement, private val watchFaceFile: XmlFile) :
-  PsiReferenceBase<PsiElement>(element) {
+class ReferenceTagReference(element: PsiElement, private val watchFaceFile: XmlFile) : PsiReferenceBase<PsiElement>(element) {
   override fun resolve(): PsiElement? {
     if (!element.text.startsWith("[$REFERENCE_PREFIX")) return null
     if (!element.text.endsWith("]")) return null
@@ -49,9 +47,7 @@ class ReferenceTagReference(element: PsiElement, private val watchFaceFile: XmlF
 
   override fun getVariants(): Array<out Any?> {
     val referenceNames = extractReferenceTagsByName().keys
-    return referenceNames
-      .map { createDataSourceLookupElement("$REFERENCE_PREFIX$it") }
-      .toTypedArray()
+    return referenceNames.map { createDataSourceLookupElement("$REFERENCE_PREFIX$it") }.toTypedArray()
   }
 
   private fun extractReferenceTagsByName(): Map<String, SmartPsiElementPointer<XmlTag>> {

@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.templates
 
+import java.io.File
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
-
-import java.io.File
 
 class KeystoreUtilsTest : TestCase() {
   private fun check(certPath: String, expected: String) {
     try {
       assertEquals(expected, KeystoreUtils.sha1(File(certPath)))
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       fail("Unexpected exception.")
     }
   }

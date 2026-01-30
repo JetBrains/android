@@ -93,9 +93,8 @@ class ConnectionsViewTest {
   private val timer = FakeTimer()
 
   /**
-   * The underlying table in ConnectionsView is intentionally not exposed to regular users of the
-   * class. However, for tests, it is useful to inspect the contents of the table to verify it was
-   * updated.
+   * The underlying table in ConnectionsView is intentionally not exposed to regular users of the class. However, for tests, it is useful to
+   * inspect the contents of the table to verify it was updated.
    */
   private fun getConnectionsTable(view: ConnectionsView): JTable {
     return view.component as JTable
@@ -116,10 +115,7 @@ class ConnectionsViewTest {
           private val dataList = FAKE_DATA
 
           override fun getData(timeCurrentRangeUs: Range): List<ConnectionData> {
-            return dataList.filter {
-              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
-                it.requestStartTimeUs <= timeCurrentRangeUs.max
-            }
+            return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
           }
         },
       )
@@ -127,15 +123,7 @@ class ConnectionsViewTest {
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        disposableRule.disposable,
-      )
+      NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, disposableRule.disposable)
     parentPanel.add(inspectorView.component)
   }
 
@@ -177,20 +165,15 @@ class ConnectionsViewTest {
   fun dataRangeControlsVisibleConnections() {
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
-      .isEqualTo(model.timeline.dataRange)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
     assertThat(table.rowCount).isEqualTo(FAKE_DATA.size)
     // When a range is selected, table should only show connections within.
-    model.timeline.selectionRange.set(
-      SECONDS.toMicros(3).toDouble(),
-      SECONDS.toMicros(10).toDouble(),
-    )
+    model.timeline.selectionRange.set(SECONDS.toMicros(3).toDouble(), SECONDS.toMicros(10).toDouble())
     assertThat(table.rowCount).isEqualTo(2)
     // Once selection is cleared, table goes back to showing everything.
     model.timeline.selectionRange.set(0.0, -1.0)
     assertThat(table.rowCount).isEqualTo(FAKE_DATA.size)
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
-      .isEqualTo(model.timeline.dataRange)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange).isEqualTo(model.timeline.dataRange)
   }
 
   @Test
@@ -234,10 +217,7 @@ class ConnectionsViewTest {
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
-    model.timeline.selectionRange.set(
-      SECONDS.toMicros(3).toDouble(),
-      SECONDS.toMicros(10).toDouble(),
-    )
+    model.timeline.selectionRange.set(SECONDS.toMicros(3).toDouble(), SECONDS.toMicros(10).toDouble())
     assertThat(table.rowCount).isEqualTo(2)
     assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
     assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
@@ -270,11 +250,9 @@ class ConnectionsViewTest {
     table.background = backgroundColor
     table.selectionBackground = selectionColor
     val renderer = table.getCellRenderer(1, timelineColumn)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
-      .isEqualTo(backgroundColor)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background).isEqualTo(backgroundColor)
     table.setRowSelectionInterval(1, 1)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
-      .isEqualTo(selectionColor)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background).isEqualTo(selectionColor)
   }
 
   @Test
@@ -289,8 +267,7 @@ class ConnectionsViewTest {
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
 
     val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
-    assertThat(popupMenu.actions.map { it::class })
-      .containsExactly(CopyUrlAction::class, CopyAsCurlAction::class)
+    assertThat(popupMenu.actions.map { it::class }).containsExactly(CopyUrlAction::class, CopyAsCurlAction::class)
   }
 
   @Test
@@ -341,8 +318,7 @@ private fun createGrpcData(id: Long, startS: Long, endS: Long, responsePayload: 
     responsePayload = ByteString.copyFromUtf8(responsePayload),
   )
 
-private fun JTable.getTimesInSeconds() =
-  getRowItems().map { MICROSECONDS.toSeconds(TIME.getValueFrom(it) as Long).toInt() }
+private fun JTable.getTimesInSeconds() = getRowItems().map { MICROSECONDS.toSeconds(TIME.getValueFrom(it) as Long).toInt() }
 
 private fun JTable.getPayloads() = getRowItems().map { it.responsePayload.toStringUtf8() }
 

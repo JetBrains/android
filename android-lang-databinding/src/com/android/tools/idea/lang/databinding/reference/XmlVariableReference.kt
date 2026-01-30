@@ -29,15 +29,14 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 
-/**
- * Reference that points to a <variable> tag in a layout XML file.
- */
-internal class XmlVariableReference(element: PsiElement,
-                                    resolveTo: XmlTag,
-                                    private val variable: VariableData,
-                                    private val bindingData: BindingXmlData,
-                                    private val module: Module)
-  : DbExprReference(element, resolveTo) {
+/** Reference that points to a <variable> tag in a layout XML file. */
+internal class XmlVariableReference(
+  element: PsiElement,
+  resolveTo: XmlTag,
+  private val variable: VariableData,
+  private val bindingData: BindingXmlData,
+  private val module: Module,
+) : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
       return DataBindingUtil.getQualifiedType(element.project, variable.type, bindingData, false)
@@ -45,9 +44,7 @@ internal class XmlVariableReference(element: PsiElement,
         ?.let { psiType -> PsiModelClass(psiType, DataBindingMode.fromPsiElement(element)) }
     }
 
-  /**
-   * Returns the resolved [PsiClassType] for fully qualified name with type parameters.
-   */
+  /** Returns the resolved [PsiClassType] for fully qualified name with type parameters. */
   private fun resolveType(name: String): PsiClassType? {
     val index = name.indexOf('<')
     val simpleName = if (index == -1) name else name.substring(0, index).trim()
@@ -57,7 +54,7 @@ internal class XmlVariableReference(element: PsiElement,
     val parametersString = if (index == -1) "" else name.substring(index + 1, name.lastIndexOf('>')).trim() + ","
     val psiClass =
       JavaPsiFacade.getInstance(element.project).findClass(qualifiedName, module.getModuleSystem().getResolveScope(ScopeType.MAIN))
-      ?: return null
+        ?: return null
 
     // Parse and resolve type parameters recursively
     // For example: name = "MyClass<Class1<InsideClass1, InsideClass2>, Class2<InsideClass3<InsideClass4>, InsideClass4>"
@@ -75,8 +72,7 @@ internal class XmlVariableReference(element: PsiElement,
       if (c == ',' && layerCount == 0) {
         parameters.add(resolveType(stringBuilder.trim().toString()))
         stringBuilder.clear()
-      }
-      else {
+      } else {
         stringBuilder.append(c)
         when (c) {
           '<' -> layerCount += 1

@@ -27,47 +27,46 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 
 /**
- * Class transforms compact notation to map notation if user wants to set variable to compact dependency notation
- * that is at catalog file. Toml syntax does not support interpolation.
+ * Class transforms compact notation to map notation if user wants to set variable to compact dependency notation that is at catalog file.
+ * Toml syntax does not support interpolation.
  */
 class CompactToMapCatalogDependencyTransform : PropertyTransform() {
   override fun test(e: GradleDslElement?, holder: GradleDslElement): Boolean {
-    if (e == null)
-      return false
-    return (e is FakeArtifactElement &&
-            e.realExpression is GradleDslLiteral &&
-            e.realExpression.dslFile is GradleVersionCatalogFile)
+    if (e == null) return false
+    return (e is FakeArtifactElement && e.realExpression is GradleDslLiteral && e.realExpression.dslFile is GradleVersionCatalogFile)
   }
 
   override fun transform(e: GradleDslElement?): GradleDslElement? = e
+
   override fun bind(holder: GradleDslElement, oldElement: GradleDslElement?, value: Any, name: String): GradleDslExpression? {
     if (oldElement is FakeArtifactElement) {
-      val literal = when(value) {
-        is ReferenceTo -> GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.create(name), value.javaClass)
-        else -> oldElement
-      }
+      val literal =
+        when (value) {
+          is ReferenceTo -> GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.create(name), value.javaClass)
+          else -> oldElement
+        }
       literal.setValue(value)
       return literal
     }
     return null
   }
 
-  override fun replace(holder: GradleDslElement,
-                       oldElement: GradleDslElement?,
-                       newElement: GradleDslExpression,
-                       name: String): GradleDslElement {
-      val fakeElement = (oldElement as FakeArtifactElement)
-      val literal = fakeElement.realExpression as GradleDslLiteral
-      val spec = ArtifactDependencySpecImpl.create(literal.value as String)!!
-      val expressionMap = GradleDslExpressionMap(holder, GradleNameElement.create(literal.name))
-      spec.group?.let {
-        expressionMap.setNewLiteral("group", it)
-      }
-      expressionMap.setNewLiteral("name", spec.name)
-      // adding version
-      expressionMap.setNewElement(newElement)
-      // toml does not support classifier of extension - omit them here
-      PropertyUtil.replaceElement(holder, literal, expressionMap)
-      return newElement
+  override fun replace(
+    holder: GradleDslElement,
+    oldElement: GradleDslElement?,
+    newElement: GradleDslExpression,
+    name: String,
+  ): GradleDslElement {
+    val fakeElement = (oldElement as FakeArtifactElement)
+    val literal = fakeElement.realExpression as GradleDslLiteral
+    val spec = ArtifactDependencySpecImpl.create(literal.value as String)!!
+    val expressionMap = GradleDslExpressionMap(holder, GradleNameElement.create(literal.name))
+    spec.group?.let { expressionMap.setNewLiteral("group", it) }
+    expressionMap.setNewLiteral("name", spec.name)
+    // adding version
+    expressionMap.setNewElement(newElement)
+    // toml does not support classifier of extension - omit them here
+    PropertyUtil.replaceElement(holder, literal, expressionMap)
+    return newElement
   }
 }

@@ -37,8 +37,7 @@ class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
       createCoroutineScope().launch {
         try {
           setPassthrough(if (state) 1f else 0f)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           thisLogger().warn("Unable to set passthrough", e)
         }
       }
@@ -51,7 +50,7 @@ class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
     super.update(event)
     val presentation = event.presentation
     presentation.isVisible = getXrInputController(event)?.isPassthroughSupported == true
-    presentation.isEnabled =  presentation.isVisible && isEnabled(event)
+    presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
   private fun isEnabled(event: AnActionEvent): Boolean {

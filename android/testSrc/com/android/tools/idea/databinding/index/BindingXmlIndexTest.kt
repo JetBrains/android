@@ -33,23 +33,20 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.ui.UIUtil
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 class BindingXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture: CodeInsightTestFixture by lazy {
-    projectRule.fixture
-  }
+  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   private lateinit var psiFile: PsiFile
 
@@ -58,17 +55,24 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexDataBindingLayout() {
-    val file = fixture.configureByText("layout.xml", """
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <data class="a.b.c.CustomBinding">
-          <import type="C"/>
-          <import type="Map&lt;D&gt;" alias="Dee" />
-          <variable type="A" name="ex1"/>
-          <variable type="B" name="ex2"/>
-          <variable type="List&lt;E>" name="ex3"/>
-        </data>
-      </layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <data class="a.b.c.CustomBinding">
+              <import type="C"/>
+              <import type="Map&lt;D&gt;" alias="Dee" />
+              <variable type="A" name="ex1"/>
+              <variable type="B" name="ex2"/>
+              <variable type="List&lt;E>" name="ex3"/>
+            </data>
+          </layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -79,10 +83,7 @@ class BindingXmlIndexTest {
     assertThat(data.rootTag).isEqualTo("layout")
     assertThat(data.customBindingName).isEqualTo("a.b.c.CustomBinding")
     assertThat(data.imports).containsExactly(ImportData("C", null), ImportData("Map<D>", "Dee"))
-    assertThat(data.variables).containsExactly(
-      VariableData("ex1", "A"),
-      VariableData("ex2", "B"),
-      VariableData("ex3", "List<E>"))
+    assertThat(data.variables).containsExactly(VariableData("ex1", "A"), VariableData("ex2", "B"), VariableData("ex3", "List<E>"))
     assertThat(data.viewIds).isEmpty()
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
@@ -91,12 +92,19 @@ class BindingXmlIndexTest {
   @Test
   fun indexDataBindingLayout_nullValue() {
     // regression for b/284046638
-    val file = fixture.configureByText("layout.xml", """
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <data class= >
-        </data>
-      </layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <data class= >
+            </data>
+          </layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
     val data = map.values.first()
@@ -106,12 +114,19 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexDataBindingLayout_emptyValue() {
-    val file = fixture.configureByText("layout.xml", """
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <data class="">
-        </data>
-      </layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <data class="">
+            </data>
+          </layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
     val data = map.values.first()
@@ -121,11 +136,18 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexViewBindingLayout() {
-    val file = fixture.configureByText("layout.xml", """
-      <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:id="@+id/testId2"/>
-      </constraint_layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId2"/>
+          </constraint_layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -143,19 +165,24 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexBindingLayoutSkipsComments() {
-    val file = fixture.configureByText(
-      "layout.xml",
-      // language=XML
-      """
-      <!-- Leading comment -->
-      <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <!-- Normally & unescaped isn't allowed but should be OK in a comment -->
-        <TextView android:id="@+id/testId1"/>
-        <!-- Comment in the middle -->
-        <Button android:id="@+id/testId2"/> <!-- Same line comment -->
-      </constraint_layout>
-      <!-- Trailing comment that we "forgot" to close
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          // language=XML
+          """
+          <!-- Leading comment -->
+          <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <!-- Normally & unescaped isn't allowed but should be OK in a comment -->
+            <TextView android:id="@+id/testId1"/>
+            <!-- Comment in the middle -->
+            <Button android:id="@+id/testId2"/> <!-- Same line comment -->
+          </constraint_layout>
+          <!-- Trailing comment that we "forgot" to close
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -166,23 +193,27 @@ class BindingXmlIndexTest {
     assertThat(data.viewBindingIgnore).isFalse()
     assertThat(data.imports).isEmpty()
     assertThat(data.variables).isEmpty()
-    assertThat(data.viewIds).containsExactly(
-      ViewIdData("testId1", "TextView", null, null),
-      ViewIdData("testId2", "Button", null, null)
-    )
+    assertThat(data.viewIds).containsExactly(ViewIdData("testId1", "TextView", null, null), ViewIdData("testId2", "Button", null, null))
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
   fun indexViewBindingIgnoreLayout() {
-    val file = fixture.configureByText("layout.xml", """
-      <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:viewBindingIgnore="true">
-        <TextView android:id="@+id/testId2"/>
-      </constraint_layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            tools:viewBindingIgnore="true">
+            <TextView android:id="@+id/testId2"/>
+          </constraint_layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -200,11 +231,18 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexViewBindingIgnoreLayout_ignoredInDataBindingLayouts() {
-    val file = fixture.configureByText("layout.xml", """
-      <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:viewBindingIgnore="true" />
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            tools:viewBindingIgnore="true" />
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -217,92 +255,122 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexLayoutIds() {
-    val file = fixture.configureByText("layout.xml", """
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:id="@+id/testId1"/> <!-- Simple ID declaration -->
-        <TextView android:id="@+id/testId2"/> <!-- Simple ID declaration -->
-        <TextView android:id="@id/testId3"/> <!-- Simple ID declaration -->
-        <view android:id="@+id/testId4" class="com.example.class"/> <!-- view tag -->
-        <include android:id="@+id/testId5" layout="this_other_layout"/> <!-- include tag -->
-        <merge android:id="@+id/testId6" layout="this_other_layout"/> <!-- merge tag -->
-        <Button android:id="@id/android:testId7"/> <!-- namespaced ID -->
-        <CheckBox android:id="@android:id/testId8"/> <!-- namespaced ID -->
-        <DatePicker android:id="@+id/android:testId9"/> <!-- namespaced ID -->
-        <ProgressBar android:id="@android:id/android:testId10"/> <!-- namespaced ID -->
-        <NumberPicker android:id="invalid"/> <!-- Will be ignored -->
-      </layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId1"/> <!-- Simple ID declaration -->
+            <TextView android:id="@+id/testId2"/> <!-- Simple ID declaration -->
+            <TextView android:id="@id/testId3"/> <!-- Simple ID declaration -->
+            <view android:id="@+id/testId4" class="com.example.class"/> <!-- view tag -->
+            <include android:id="@+id/testId5" layout="this_other_layout"/> <!-- include tag -->
+            <merge android:id="@+id/testId6" layout="this_other_layout"/> <!-- merge tag -->
+            <Button android:id="@id/android:testId7"/> <!-- namespaced ID -->
+            <CheckBox android:id="@android:id/testId8"/> <!-- namespaced ID -->
+            <DatePicker android:id="@+id/android:testId9"/> <!-- namespaced ID -->
+            <ProgressBar android:id="@android:id/android:testId10"/> <!-- namespaced ID -->
+            <NumberPicker android:id="invalid"/> <!-- Will be ignored -->
+          </layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.viewIds.toList()).containsExactly(
-      ViewIdData("testId1", "TextView", null, null),
-      ViewIdData("testId2", "TextView", null, null),
-      ViewIdData("testId3", "TextView", null, null),
-      ViewIdData("testId4", "com.example.class", null, null),
-      ViewIdData("testId5", "include", "this_other_layout", null),
-      ViewIdData("testId6", "merge", "this_other_layout", null),
-      ViewIdData("testId7", "Button", null, null),
-      ViewIdData("testId8", "CheckBox", null, null),
-      ViewIdData("testId9", "DatePicker", null, null),
-      // TODO(b/141013448): This should just be "testId10", update after ResourceUrl.parse is fixed
-      ViewIdData("android:testId10", "ProgressBar", null, null),
-    ).inOrder()
+    assertThat(data.viewIds.toList())
+      .containsExactly(
+        ViewIdData("testId1", "TextView", null, null),
+        ViewIdData("testId2", "TextView", null, null),
+        ViewIdData("testId3", "TextView", null, null),
+        ViewIdData("testId4", "com.example.class", null, null),
+        ViewIdData("testId5", "include", "this_other_layout", null),
+        ViewIdData("testId6", "merge", "this_other_layout", null),
+        ViewIdData("testId7", "Button", null, null),
+        ViewIdData("testId8", "CheckBox", null, null),
+        ViewIdData("testId9", "DatePicker", null, null),
+        // TODO(b/141013448): This should just be "testId10", update after ResourceUrl.parse is fixed
+        ViewIdData("android:testId10", "ProgressBar", null, null),
+      )
+      .inOrder()
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
   fun indexViewTag() {
-    val file = fixture.configureByText("layout.xml", """
-      <constraint_layout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools">
-        <view android:id="@+id/viewButReallyEditText" class="EditText"/>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <constraint_layout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools">
+            <view android:id="@+id/viewButReallyEditText" class="EditText"/>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.viewIds.toList()).containsExactly(
-      ViewIdData("viewButReallyEditText", "EditText", null, null)
-    )
+    assertThat(data.viewIds.toList()).containsExactly(ViewIdData("viewButReallyEditText", "EditText", null, null))
   }
 
   @Test
   fun indexViewBindingTypeOverride() {
-    val file = fixture.configureByText("layout.xml", """
-      <constraint_layout
-       xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:tools="http://schemas.android.com/tools">
-        <CustomTextView android:id="@+id/textViewOverride" tools:viewBindingType="TextView"/>
-        <CustomTextView android:id="@+id/incorrectNamespace" android:viewBindingType="TextView"/>
-        <include android:id="@+id/incompatibleTag" tools:viewBindingType="TextView"/>
-      </constraint_layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <constraint_layout
+           xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:tools="http://schemas.android.com/tools">
+            <CustomTextView android:id="@+id/textViewOverride" tools:viewBindingType="TextView"/>
+            <CustomTextView android:id="@+id/incorrectNamespace" android:viewBindingType="TextView"/>
+            <include android:id="@+id/incompatibleTag" tools:viewBindingType="TextView"/>
+          </constraint_layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.viewIds.toList()).containsExactly(
-      ViewIdData("textViewOverride", "CustomTextView", null, "TextView"),
-      ViewIdData("incorrectNamespace", "CustomTextView", null, null),
-      ViewIdData("incompatibleTag", "include", null, null),
-    ).inOrder()
+    assertThat(data.viewIds.toList())
+      .containsExactly(
+        ViewIdData("textViewOverride", "CustomTextView", null, "TextView"),
+        ViewIdData("incorrectNamespace", "CustomTextView", null, null),
+        ViewIdData("incompatibleTag", "include", null, null),
+      )
+      .inOrder()
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
   fun indexViewBindingTypeOverride_ignoredInDataBindingLayouts() {
-    val file = fixture.configureByText("layout.xml", """
-      <layout
-       xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:tools="http://schemas.android.com/tools">
-        <CustomTextView android:id="@+id/textViewOverride" tools:viewBindingType="TextView"/>
-      </layout>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "layout.xml",
+          """
+          <layout
+           xmlns:android="http://schemas.android.com/apk/res/android"
+           xmlns:tools="http://schemas.android.com/tools">
+            <CustomTextView android:id="@+id/textViewOverride" tools:viewBindingType="TextView"/>
+          </layout>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
@@ -338,48 +406,46 @@ class BindingXmlIndexTest {
 
   @Test
   fun indexDoesNotThrowExceptionIfEncounteringUnrelatedXml() {
-    val file = fixture.configureByText(
-      "not-really-a-layout.xml",
-      // language=XML
-      """
-        <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              package="com.example.layout.binding">
-            <application android:label="BindingXmlIndex Test" />
-        </manifest>
-    """.trimIndent()).virtualFile
+    val file =
+      fixture
+        .configureByText(
+          "not-really-a-layout.xml",
+          // language=XML
+          """
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="com.example.layout.binding">
+              <application android:label="BindingXmlIndex Test" />
+          </manifest>
+          """
+            .trimIndent(),
+        )
+        .virtualFile
 
     val bindingXmlIndex = BindingXmlIndex()
     bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
     // If we got here, no exception was thrown
   }
 
-
   @Test
   @RunsInEdt
   fun testAddIdToView() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
     assertIndexedIds()
-    val orientation = findChild {
-      (it is XmlAttribute) && it.localName == "orientation"
-    }!!
-    insertXml(
-      offset = orientation.textOffset,
-      xml = """android:id="@+id/root_view" """
-    )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
+    val orientation = findChild { (it is XmlAttribute) && it.localName == "orientation" }!!
+    insertXml(offset = orientation.textOffset, xml = """android:id="@+id/root_view" """)
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
   }
 
   @Test
@@ -387,22 +453,19 @@ class BindingXmlIndexTest {
   fun testRemoveIdFromView() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
-    val idAttr = findChild {
-      (it is XmlAttribute) && it.localName == "id"
-    }!!
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
+    val idAttr = findChild { (it is XmlAttribute) && it.localName == "id" }!!
     deleteXml(idAttr.textRange)
     assertIndexedIds()
   }
@@ -412,29 +475,21 @@ class BindingXmlIndexTest {
   fun testChangeId() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
-    val idAttr = findChild {
-      (it is XmlAttribute) && it.localName == "id"
-    }!!
-    updateXml(
-      range = (idAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "@+id/new_id"
-    )
-    assertIndexedIds(
-      ViewIdData("new_id", "LinearLayout", null, null)
-    )
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
+    val idAttr = findChild { (it is XmlAttribute) && it.localName == "id" }!!
+    updateXml(range = (idAttr as XmlAttribute).valueElement!!.valueTextRange, xml = "@+id/new_id")
+    assertIndexedIds(ViewIdData("new_id", "LinearLayout", null, null))
   }
 
   @Test
@@ -442,26 +497,23 @@ class BindingXmlIndexTest {
   fun testChangeViewType() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent"/>
+      </layout>
+      """
+        .trimIndent()
     )
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    }!! as XmlTag
+    val linearLayout = findChild { (it is XmlTag) && it.localName == "LinearLayout" }!! as XmlTag
 
     updateXml(
       range = TextRange(linearLayout.startOffsetInParent, linearLayout.startOffsetInParent + "<LinearLayout".length),
-      xml = "<TextView"
+      xml = "<TextView",
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "TextView", null, null)
-    )
+    assertIndexedIds(ViewIdData("root_view", "TextView", null, null))
   }
 
   @Test
@@ -469,37 +521,33 @@ class BindingXmlIndexTest {
   fun testAddViewWithId() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    }!! as XmlTag
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
+    val linearLayout = findChild { (it is XmlTag) && it.localName == "LinearLayout" }!! as XmlTag
 
     insertXml(
       offset = linearLayout.textRange.endOffset,
-      xml = """
+      xml =
+        """
         <TextView
             android:id="@+id/view2"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
         />
-        """.trimIndent()
+        """
+          .trimIndent(),
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null),
-      ViewIdData("view2", "TextView", null, null)
-    )
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null), ViewIdData("view2", "TextView", null, null))
   }
 
   @Test
@@ -507,29 +555,21 @@ class BindingXmlIndexTest {
   fun testUnrelatedChange_attr() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
-    val orientationAttr = findChild {
-      (it is XmlAttribute) && it.localName == "orientation"
-    }!!
-    updateXml(
-      range = (orientationAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "horizontal"
-    )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
+    val orientationAttr = findChild { (it is XmlAttribute) && it.localName == "orientation" }!!
+    updateXml(range = (orientationAttr as XmlAttribute).valueElement!!.valueTextRange, xml = "horizontal")
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
   }
 
   @Test
@@ -537,35 +577,32 @@ class BindingXmlIndexTest {
   fun testUnrelatedChange_addView() {
     setupWithLayoutFile(
       """
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout
-            android:id="@+id/root_view"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-          </LinearLayout>
-        </layout>
-      """.trimIndent()
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """
+        .trimIndent()
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
-    val linearLayout = findChild {
-      (it is XmlTag) && it.localName == "LinearLayout"
-    }!! as XmlTag
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
+    val linearLayout = findChild { (it is XmlTag) && it.localName == "LinearLayout" }!! as XmlTag
 
     insertXml(
       offset = linearLayout.textRange.endOffset,
-      xml = """
+      xml =
+        """
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
         />
-        """.trimIndent()
+        """
+          .trimIndent(),
     )
-    assertIndexedIds(
-      ViewIdData("root_view", "LinearLayout", null, null)
-    )
+    assertIndexedIds(ViewIdData("root_view", "LinearLayout", null, null))
   }
 
   @Test
@@ -581,7 +618,8 @@ class BindingXmlIndexTest {
           android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val layoutPsiFile = fixture.addFileToProject("res/layout/some_layout.xml", layoutContents)
     val otherPsiFile = fixture.addFileToProject("res/values/some_layout.xml", layoutContents)
@@ -602,7 +640,8 @@ class BindingXmlIndexTest {
           <ghi />
         </def>
       </abc>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     // This file will be a false positive and will be indexed, even though it's not a layout file.
     val unrelatedContentWithNamespace =
@@ -613,12 +652,11 @@ class BindingXmlIndexTest {
           <ghi />
         </def>
       </abc>
-      """.trimIndent()
+      """
+        .trimIndent()
 
-    val unrelatedFile =
-      fixture.configureByText("layout/unrelated.xml", unrelatedContent).virtualFile
-    val unrelatedFileWithNamespace =
-      fixture.configureByText("layout/unrelatedWithNamespace.xml", unrelatedContentWithNamespace).virtualFile
+    val unrelatedFile = fixture.configureByText("layout/unrelated.xml", unrelatedContent).virtualFile
+    val unrelatedFileWithNamespace = fixture.configureByText("layout/unrelatedWithNamespace.xml", unrelatedContentWithNamespace).virtualFile
 
     val map1 = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(unrelatedFile))
     assertThat(map1).isEmpty()
@@ -627,10 +665,7 @@ class BindingXmlIndexTest {
     assertThat(map2).hasSize(1)
   }
 
-  /**
-   * asserts all views with viewIds.
-   * Pairs are variable name to view type
-   */
+  /** asserts all views with viewIds. Pairs are variable name to view type */
   private fun assertIndexedIds(vararg expected: ViewIdData) {
     val indexedIds = BindingXmlIndex.getDataForFile(psiFile)!!.viewIds.toSet()
     assertThat(indexedIds).isEqualTo(expected.toSet())

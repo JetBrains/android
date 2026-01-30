@@ -20,26 +20,17 @@ import com.intellij.psi.xml.XmlTag
 /**
  * Represents a user defined configuration.
  *
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/user-configuration/user-configurations">WFF
- *   User Configurations</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/user-configuration/user-configurations">WFF User Configurations</a>
  */
 sealed class UserConfiguration(open val id: String, open val xmlTag: XmlTag)
 
-data class ColorConfiguration(
-  override val id: String,
-  override val xmlTag: XmlTag,
-  val colorIndices: IntRange,
-) : UserConfiguration(id, xmlTag)
-
-data class ListConfiguration(override val id: String, override val xmlTag: XmlTag) :
+data class ColorConfiguration(override val id: String, override val xmlTag: XmlTag, val colorIndices: IntRange) :
   UserConfiguration(id, xmlTag)
 
-data class BooleanConfiguration(override val id: String, override val xmlTag: XmlTag) :
-  UserConfiguration(id, xmlTag)
+data class ListConfiguration(override val id: String, override val xmlTag: XmlTag) : UserConfiguration(id, xmlTag)
 
-data class PhotosConfiguration(override val id: String, override val xmlTag: XmlTag) :
-  UserConfiguration(id, xmlTag)
+data class BooleanConfiguration(override val id: String, override val xmlTag: XmlTag) : UserConfiguration(id, xmlTag)
 
-data class UnknownConfiguration(override val id: String, override val xmlTag: XmlTag) :
-  UserConfiguration(id, xmlTag)
+data class PhotosConfiguration(override val id: String, override val xmlTag: XmlTag) : UserConfiguration(id, xmlTag)
+
+data class UnknownConfiguration(override val id: String, override val xmlTag: XmlTag) : UserConfiguration(id, xmlTag)

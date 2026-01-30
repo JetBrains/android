@@ -24,15 +24,13 @@ import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection
 import com.intellij.pom.java.LanguageLevel
 
 class QuerySyncLanguageSettingsProvider : QuerySyncLanguageSettings.Provider {
-  override fun create(
-    projectViewSet: ProjectViewSet,
-    workspaceLanguageSettings: WorkspaceLanguageSettings,
-  ): QuerySyncLanguageSettings {
+  override fun create(projectViewSet: ProjectViewSet, workspaceLanguageSettings: WorkspaceLanguageSettings): QuerySyncLanguageSettings {
     return QuerySyncLanguageSettings.from(
       projectViewSet,
       workspaceLanguageSettings,
       JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21),
       projectViewSet.getScalarValue(AndroidSdkPlatformSection.KEY).orElse(null),
-      projectViewSet.getScalarValue(AndroidMinSdkSection.KEY).orElse(null))
+      projectViewSet.getScalarValue(AndroidMinSdkSection.KEY).orElse(null),
+    )
   }
 }

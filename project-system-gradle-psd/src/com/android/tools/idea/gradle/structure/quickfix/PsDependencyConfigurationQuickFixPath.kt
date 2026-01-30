@@ -30,8 +30,8 @@ enum class PsDependencyKind {
   UNKNOWN,
 }
 
-fun dependencyKind(dependency: PsDeclaredDependency) : PsDependencyKind {
-  return when(dependency) {
+fun dependencyKind(dependency: PsDeclaredDependency): PsDependencyKind {
+  return when (dependency) {
     is PsLibraryDependency -> PsDependencyKind.LIBRARY
     is PsJarDependency -> PsDependencyKind.JAR
     is PsModuleDependency -> PsDependencyKind.MODULE
@@ -44,27 +44,32 @@ data class PsDependencyConfigurationQuickFixPath(
   val dependencyKind: PsDependencyKind,
   val dependencyKey: String,
   val oldConfigurationName: String,
-  val newConfigurationName: String
+  val newConfigurationName: String,
 ) : PsQuickFix, Serializable {
   override val text = "Update $oldConfigurationName to $newConfigurationName"
 
   constructor(
     dependency: PsDeclaredDependency,
-    newConfigurationName: String
-  ): this(
-    dependency.parent.name, dependencyKind(dependency), dependency.toKey(), dependency.joinedConfigurationNames, newConfigurationName
+    newConfigurationName: String,
+  ) : this(
+    dependency.parent.name,
+    dependencyKind(dependency),
+    dependency.toKey(),
+    dependency.joinedConfigurationNames,
+    newConfigurationName,
   )
 
   override fun execute(context: PsContext) {
     val module = context.project.findModuleByName(moduleName) ?: return
     // TODO(xof): factor into method(s) on PsDeclaredDependency classes
     // (would need dependencyKey to be unique across all kinds of dependency, or some similar mechanism)
-    val dependencies = when (dependencyKind) {
-      PsDependencyKind.LIBRARY -> module.dependencies.findLibraryDependencies(dependencyKey)
-      PsDependencyKind.JAR -> module.dependencies.findJarDependencies(dependencyKey)
-      PsDependencyKind.MODULE -> module.dependencies.findModuleDependencies(dependencyKey)
-      else -> return
-    }
+    val dependencies =
+      when (dependencyKind) {
+        PsDependencyKind.LIBRARY -> module.dependencies.findLibraryDependencies(dependencyKey)
+        PsDependencyKind.JAR -> module.dependencies.findJarDependencies(dependencyKey)
+        PsDependencyKind.MODULE -> module.dependencies.findModuleDependencies(dependencyKey)
+        else -> return
+      }
 
     dependencies
       .filter { it.configurationName == oldConfigurationName }

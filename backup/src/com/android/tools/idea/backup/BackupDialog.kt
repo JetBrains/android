@@ -145,8 +145,7 @@ internal class BackupDialog(
   private fun checkBackupType() {
     val isBackupEnabled = appIdToBackupEnabledMap[applicationId] != true
     backupNotEnabledWarning.isVisible = isBackupEnabled
-    backupNotEnabledWarning.text =
-      if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
+    backupNotEnabledWarning.text = if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
     updateOkAction()
     pack()
   }
@@ -165,11 +164,7 @@ internal class BackupDialog(
     with(layout) {
       setHorizontalGroup(
         createParallelGroup(GroupLayout.Alignment.LEADING)
-          .addGroup(
-            createSequentialGroup()
-              .addComponent(applicationIdLabel)
-              .addComponent(applicationIdComboBox)
-          )
+          .addGroup(createSequentialGroup().addComponent(applicationIdLabel).addComponent(applicationIdComboBox))
           .addGroup(
             createSequentialGroup()
               .addComponent(typeLabel)
@@ -181,11 +176,7 @@ internal class BackupDialog(
       )
       setVerticalGroup(
         createSequentialGroup()
-          .addGroup(
-            createParallelGroup(GroupLayout.Alignment.CENTER)
-              .addComponent(applicationIdLabel)
-              .addComponent(applicationIdComboBox)
-          )
+          .addGroup(createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(applicationIdLabel).addComponent(applicationIdComboBox))
           .addGroup(
             createParallelGroup(GroupLayout.Alignment.LEADING)
               .addGroup(
@@ -196,11 +187,7 @@ internal class BackupDialog(
               )
               .addComponent(backupNotEnabledWarning)
           )
-          .addGroup(
-            createParallelGroup(GroupLayout.Alignment.CENTER)
-              .addComponent(fileLabel)
-              .addComponent(fileTextField)
-          )
+          .addGroup(createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(fileLabel).addComponent(fileTextField))
       )
       linkSize(HORIZONTAL, applicationIdLabel, typeLabel, fileLabel)
     }
@@ -214,9 +201,7 @@ internal class BackupDialog(
   }
 
   override fun doHelpAction() {
-    BrowserUtil.browse(
-      "http://d.android.com/studio/preview/features?utm_source=android-studio#test-backup-restore"
-    )
+    BrowserUtil.browse("http://d.android.com/studio/preview/features?utm_source=android-studio#test-backup-restore")
   }
 
   override fun doOKAction() {
@@ -275,7 +260,7 @@ internal class BackupDialog(
       App-data won't be backed up as allowBackup property is false.<br>
       Backup may contain Restore Keys, if present for the app.<br>
       (<a href='learn-more'>Learn more</a>, <a href='enable-backup'>Enable in manifest</a>)
-    """
+      """
         .trimIndent()
 
     private val WARNING_CLOUD =
@@ -283,7 +268,7 @@ internal class BackupDialog(
       App-data won't be backed up as allowBackup property is false.<br>
       Restore Keys backup is not supported via this tool for Cloud.<br>
       backup type. (<a href='learn-more'>Learn more</a>, <a href='enable-backup'>Enable in manifest</a>)
-    """
+      """
         .trimIndent()
 
     @VisibleForTesting internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
@@ -295,10 +280,7 @@ internal class BackupDialog(
     val isBackupEnabled = appIdToBackupEnabledMap[applicationId] ?: false
     try {
       val path = Path.of(fileTextField.text)
-      isOKActionEnabled =
-        path.isValid() &&
-          !path.isDirectory() &&
-          (typeComboBox.item == DEVICE_TO_DEVICE || isBackupEnabled)
+      isOKActionEnabled = path.isValid() && !path.isDirectory() && (typeComboBox.item == DEVICE_TO_DEVICE || isBackupEnabled)
     } catch (_: InvalidPathException) {
       isOKActionEnabled = false
     }
@@ -308,18 +290,9 @@ internal class BackupDialog(
     when (ManifestPatcher(project).enableBackup(applicationId)) {
       true -> {
         close(CANCEL_EXIT_CODE)
-        dialogFactory.showDialog(
-          project,
-          message("enable.backup.success.title"),
-          message("enable.backup.success.text"),
-        )
+        dialogFactory.showDialog(project, message("enable.backup.success.title"), message("enable.backup.success.text"))
       }
-      false ->
-        dialogFactory.showDialog(
-          project,
-          message("enable.backup.failure.title"),
-          message("enable.backup.failure.text"),
-        )
+      false -> dialogFactory.showDialog(project, message("enable.backup.failure.title"), message("enable.backup.failure.text"))
     }
   }
 }

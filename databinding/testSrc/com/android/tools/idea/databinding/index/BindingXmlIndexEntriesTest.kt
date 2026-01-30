@@ -38,8 +38,8 @@ import org.junit.rules.RuleChain
 private const val LAYOUT_WITH_DATA_BINDING = "res/layout_with_data_binding.xml"
 
 /**
- * Tests that verify that the entry contents of a binding index are kept up-to-date as their
- * associated layout files are added, updated, and deleted.
+ * Tests that verify that the entry contents of a binding index are kept up-to-date as their associated layout files are added, updated, and
+ * deleted.
  */
 @RunsInEdt
 class BindingXmlIndexEntriesTest {
@@ -63,8 +63,7 @@ class BindingXmlIndexEntriesTest {
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
-    val file =
-      fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
+    val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
   }
 
@@ -86,29 +85,19 @@ class BindingXmlIndexEntriesTest {
 
   @Test
   fun testRenameVariable() {
-    updateXml(
-      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "newName",
-    )
+    updateXml(range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange, xml = "newName")
     assertVariables("newName" to "String")
   }
 
   @Test
   fun testRenameVariable_prefix() {
-    insertXml(
-      offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
-      xml = "prefix_",
-    )
+    insertXml(offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset, xml = "prefix_")
     assertVariables("prefix_variable1" to "String")
   }
 
   @Test
   fun testRenameVariable_suffix() {
-    insertXml(
-      offset =
-        getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
-      xml = "_suffix",
-    )
+    insertXml(offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset, xml = "_suffix")
     assertVariables("variable1_suffix" to "String")
   }
 
@@ -157,10 +146,7 @@ class BindingXmlIndexEntriesTest {
 
   @Test
   fun testUpdateType() {
-    updateXml(
-      range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
-      xml = "Float",
-    )
+    updateXml(range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange, xml = "Float")
     assertVariables("variable1" to "Float")
   }
 
@@ -201,20 +187,17 @@ class BindingXmlIndexEntriesTest {
   }
 
   /**
-   * Asserts all variables declared in the xml are found up-to-date in the [BindingXmlIndex]. See
-   * also: [getIndexEntry]
+   * Asserts all variables declared in the xml are found up-to-date in the [BindingXmlIndex]. See also: [getIndexEntry]
    *
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    val variables =
-      getIndexEntry().data.variables.map { variable -> variable.name to variable.type }.toSet()
+    val variables = getIndexEntry().data.variables.map { variable -> variable.name to variable.type }.toSet()
     assertEquals(expected.toSet(), variables)
   }
 
   /**
-   * Asserts all imports declared in the xml are found up-to-date in the current
-   * [BindingXmlIndex.Entry] See also: [getIndexEntry]
+   * Asserts all imports declared in the xml are found up-to-date in the current [BindingXmlIndex.Entry] See also: [getIndexEntry]
    *
    * Note: Pairs are type to alias.
    */

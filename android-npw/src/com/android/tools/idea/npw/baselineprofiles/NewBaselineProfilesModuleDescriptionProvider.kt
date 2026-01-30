@@ -22,29 +22,25 @@ import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
+import org.jetbrains.android.util.AndroidBundle.message
 
 class NewBaselineProfilesModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
     if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) {
       listOf(BaselineProfilesModuleTemplateGalleryEntry())
-    }
-    else emptyList()
-
+    } else emptyList()
 
   private class BaselineProfilesModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = StudioIcons.Wizards.Modules.BASELINE_PROFILE
     override val name: String = message("android.wizard.module.new.baselineprofiles.module.app")
     override val description: String = message("android.wizard.module.new.baselineprofiles.module.description")
+
     override fun toString(): String = name
+
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
       ConfigureBaselineProfilesModuleStep(
-        model = NewBaselineProfilesModuleModel(
-          project = project,
-          moduleParent = moduleParent,
-          projectSyncInvoker = projectSyncInvoker,
-        )
+        model = NewBaselineProfilesModuleModel(project = project, moduleParent = moduleParent, projectSyncInvoker = projectSyncInvoker)
       )
   }
 }

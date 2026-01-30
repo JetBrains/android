@@ -29,8 +29,7 @@ import java.io.ByteArrayInputStream
 import java.nio.file.Path
 import org.mockito.kotlin.mock
 
-fun readTestDevices(): List<Device> =
-  DeviceParser.parse(ByteArrayInputStream(testDeviceXml.encodeToByteArray())).values().toList()
+fun readTestDevices(): List<Device> = DeviceParser.parse(ByteArrayInputStream(testDeviceXml.encodeToByteArray())).values().toList()
 
 private const val testDeviceXml =
   """
@@ -139,8 +138,7 @@ internal object TestDevices {
   }
 
   internal fun pixel6(): VirtualDevice {
-    val pixel6Skin =
-      DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
+    val pixel6Skin = DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6"))
     return VirtualDevice(
         deviceProfile = mock(),
         defaultRam = StorageCapacity(2, StorageCapacity.Unit.GB),
@@ -168,10 +166,7 @@ internal object TestDevices {
   }
 
   internal fun pixel9Pro(): VirtualDevice {
-    val pixel9Skin =
-      DefaultSkin(
-        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro")
-      )
+    val pixel9Skin = DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro"))
 
     return VirtualDevice(
         deviceProfile = mock(),
@@ -201,10 +196,7 @@ internal object TestDevices {
   }
 
   internal fun pixel9ProFold(): VirtualDevice {
-    val pixel9ProFoldSkin =
-      DefaultSkin(
-        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold")
-      )
+    val pixel9ProFoldSkin = DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold"))
 
     return VirtualDevice(
         deviceProfile = mock(),
@@ -234,10 +226,7 @@ internal object TestDevices {
   }
 
   internal fun wearOSSmallRound(): VirtualDevice {
-    val wearOsSkin =
-      DefaultSkin(
-        Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "wearos_small_round")
-      )
+    val wearOsSkin = DefaultSkin(Path.of(System.getProperty("user.home"), "Android", "Sdk", "skins", "wearos_small_round"))
 
     return VirtualDevice(
         deviceProfile = mock(),

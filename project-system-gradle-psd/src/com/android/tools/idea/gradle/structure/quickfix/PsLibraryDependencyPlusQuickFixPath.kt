@@ -21,28 +21,22 @@ import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import java.io.Serializable
 
 data class PsLibraryDependencyPlusQuickFixPath(
-  val moduleName : String,
-  val dependencyGroup : String?,
-  val dependencyName : String,
-  val configurationName : String
+  val moduleName: String,
+  val dependencyGroup: String?,
+  val dependencyName: String,
+  val configurationName: String,
 ) : PsQuickFix, Serializable {
   override val text: String = "View Declaration"
 
-  constructor(dependency : PsLibraryDependency) : this(
-    dependency.parent.name,
-    dependency.spec.group,
-    dependency.spec.name,
-    dependency.spec.compactNotation()
-  )
+  constructor(
+    dependency: PsLibraryDependency
+  ) : this(dependency.parent.name, dependency.spec.group, dependency.spec.name, dependency.spec.compactNotation())
 
   override fun execute(context: PsContext) {
     val module = context.project.findModuleByName(moduleName) ?: return
     val dependency = module.dependencies.findLibraryDependencies(dependencyGroup, dependencyName).firstOrNull() ?: return
 
-    context.mainConfigurable.navigateTo(
-      dependency.path.getPlaceDestination(context),
-      true
-    )
+    context.mainConfigurable.navigateTo(dependency.path.getPlaceDestination(context), true)
   }
 
   override fun toString(): String = "View declaration of ${dependencyGroup}:${dependencyName}"

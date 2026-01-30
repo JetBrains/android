@@ -25,9 +25,9 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
 import java.nio.file.Files
+import org.jetbrains.android.AndroidTestBase
 
 sealed class JdkTestProject(
   override val template: String,
@@ -40,20 +40,18 @@ sealed class JdkTestProject(
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
   override val switchVariant: TemplateBasedTestProject.VariantSelection? = null,
-  val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+  val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
 ) : TemplateBasedTestProject {
 
   class SimpleApplicationWithoutIdea(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     gradleDaemonToolchain: GradleDaemonToolchain? = null,
-    ) : JdkTestProject(
-    agpVersion = agpVersion,
-    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
-    patch = { projectRoot ->
-      gradleDaemonToolchain?.let {
-        ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
-      }
-    })
+  ) :
+    JdkTestProject(
+      agpVersion = agpVersion,
+      template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+      patch = { projectRoot -> gradleDaemonToolchain?.let { ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it) } },
+    )
 
   class SimpleApplication(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
@@ -62,60 +60,46 @@ sealed class JdkTestProject(
     gradleLocalJavaHome: String? = null,
     gradlePropertiesJavaHome: String? = null,
     gradleDaemonToolchain: GradleDaemonToolchain? = null,
-  ) : JdkTestProject(
-    agpVersion = agpVersion,
-    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
-    patch = { projectRoot ->
-      Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
-      ideaGradleJdk?.let {
-        ProjectJdkUtils.setProjectIdeaGradleJdk(
-          projectRoot,
-          listOf(GradleRoot(ideaGradleJdk = it, modulesPath = listOf("app")))
-        )
-      }
-      ideaProjectJdk?.let {
-        ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, it)
-      }
-      gradleLocalJavaHome?.let {
-        ProjectJdkUtils.setProjectGradleLocalJavaHome(projectRoot, it)
-      }
-      gradlePropertiesJavaHome?.let {
-        ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
-      }
-      gradleDaemonToolchain?.let {
-        ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
-      }
-    }
-  )
+  ) :
+    JdkTestProject(
+      agpVersion = agpVersion,
+      template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+      patch = { projectRoot ->
+        Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
+        ideaGradleJdk?.let {
+          ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, listOf(GradleRoot(ideaGradleJdk = it, modulesPath = listOf("app"))))
+        }
+        ideaProjectJdk?.let { ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, it) }
+        gradleLocalJavaHome?.let { ProjectJdkUtils.setProjectGradleLocalJavaHome(projectRoot, it) }
+        gradlePropertiesJavaHome?.let { ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it) }
+        gradleDaemonToolchain?.let { ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it) }
+      },
+    )
 
   class SimpleApplicationMultipleRoots(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     roots: List<GradleRoot>,
-    ideaProjectJdk: String? = null
-  ) : JdkTestProject(
-    agpVersion = agpVersion,
-    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
-    patch = { projectRoot ->
-      Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
-      cloneProjectRootIntoMultipleGradleRoots(
-        projectRoot,
-        gradleRoots = roots,
-        configGradleRoot = { gradleRootFile, gradleRoot ->
-          gradleRoot.gradleLocalJavaHome?.let {
-            ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it)
-          }
-          gradleRoot.gradleDaemonToolchain?.let {
-            ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(gradleRootFile, it)
-          }
-        },
-        configProjectRoot = {
-          ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, roots)
-          ideaProjectJdk?.let {
-            ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, ideaProjectJdk)
-          }
-        })
-    }
-  )
+    ideaProjectJdk: String? = null,
+  ) :
+    JdkTestProject(
+      agpVersion = agpVersion,
+      template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+      patch = { projectRoot ->
+        Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
+        cloneProjectRootIntoMultipleGradleRoots(
+          projectRoot,
+          gradleRoots = roots,
+          configGradleRoot = { gradleRootFile, gradleRoot ->
+            gradleRoot.gradleLocalJavaHome?.let { ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it) }
+            gradleRoot.gradleDaemonToolchain?.let { ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(gradleRootFile, it) }
+          },
+          configProjectRoot = {
+            ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, roots)
+            ideaProjectJdk?.let { ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, ideaProjectJdk) }
+          },
+        )
+      },
+    )
 
   override val name: String = this::class.simpleName.orEmpty()
 

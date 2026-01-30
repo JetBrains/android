@@ -41,12 +41,12 @@ class RawWatchFaceUtilsTest {
         "res/raw/not_a_watchface.xml",
         // language=XML
         """
-      <NotAWatchFace>
-        <UserConfigurations>
-          <ColorConfiguration id="color_config_1" />
-        </UserConfigurations>
-      </NotAWatchFace>
-    """
+        <NotAWatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config_1" />
+          </UserConfigurations>
+        </NotAWatchFace>
+        """
           .trimIndent(),
       ) as XmlFile
 
@@ -55,26 +55,26 @@ class RawWatchFaceUtilsTest {
         "res/raw/watchface.xml",
         // language=XML
         """
-      <WatchFace>
-        <UserConfigurations>
-          <BooleanConfiguration id="boolean_configuration_1" />
-          <BooleanConfiguration id="boolean_configuration_2" />
-          <ColorConfiguration id="color_config_1" />
-          <ColorConfiguration id="color_config_2">
-            <ColorOption colors="#ff0000 #00ff00 #0000ff" />
-          </ColorConfiguration>
-          <ColorConfiguration id="color_config_3">
-            <ColorOption colors="#ff0000" />
-          </ColorConfiguration>
-          <PhotosConfiguration id="photo_config" />
-          <ListConfiguration id="list_configuration" />
-        </UserConfigurations>
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration_1" />
+            <BooleanConfiguration id="boolean_configuration_2" />
+            <ColorConfiguration id="color_config_1" />
+            <ColorConfiguration id="color_config_2">
+              <ColorOption colors="#ff0000 #00ff00 #0000ff" />
+            </ColorConfiguration>
+            <ColorConfiguration id="color_config_3">
+              <ColorOption colors="#ff0000" />
+            </ColorConfiguration>
+            <PhotosConfiguration id="photo_config" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
 
-        <NotAConfigurationsTag>
-          <ColorConfiguration id="not_a_color_config" />
-        </NotAConfigurationsTag>
-      </WatchFace>
-    """
+          <NotAConfigurationsTag>
+            <ColorConfiguration id="not_a_color_config" />
+          </NotAConfigurationsTag>
+        </WatchFace>
+        """
           .trimIndent(),
       ) as XmlFile
 
@@ -94,6 +94,5 @@ class RawWatchFaceUtilsTest {
       )
   }
 
-  private fun findXmlTag(text: String) =
-    projectRule.fixture.findElementByText(text, XmlTag::class.java)
+  private fun findXmlTag(text: String) = projectRule.fixture.findElementByText(text, XmlTag::class.java)
 }

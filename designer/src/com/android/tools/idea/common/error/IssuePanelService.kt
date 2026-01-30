@@ -87,9 +87,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
     connection.subscribe(
       PROJECT_SYSTEM_SYNC_TOPIC,
       ProjectSystemSyncManager.SyncResultListener {
-        FileEditorManager.getInstance(project).selectedEditors.forEach {
-          updateIssuePanelVisibility(it.file, it)
-        }
+        FileEditorManager.getInstance(project).selectedEditors.forEach { updateIssuePanelVisibility(it.file, it) }
       },
     )
 
@@ -97,9 +95,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
       PROJECT_SYSTEM_BUILD_TOPIC,
       object : ProjectSystemBuildManager.BuildListener {
         override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-          FileEditorManager.getInstance(project).selectedEditors.forEach {
-            updateIssuePanelVisibility(it.file, it)
-          }
+          FileEditorManager.getInstance(project).selectedEditors.forEach { updateIssuePanelVisibility(it.file, it) }
         }
       },
     )
@@ -136,16 +132,12 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
         }
       } else {
         withContext(uiThread) {
-          if (
-            ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) == null
-          ) {
+          if (ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) == null) {
             if (ProblemsView.getToolWindow(project) != null) {
               ProblemsViewToolWindowUtils.addTab(project, SharedIssuePanelProvider(project))
             } else {
               // In unit tests, the ProblemView might be missing
-              assert(ApplicationManager.getApplication().isUnitTestMode) {
-                "ProblemsView must be available"
-              }
+              assert(ApplicationManager.getApplication().isUnitTestMode) { "ProblemsView must be available" }
             }
           }
         }
@@ -155,14 +147,13 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   /**
-   * Opens the problem panel and switch the tab to shared issue panel tab. The optional given
-   * [onAfterSettingVisibility] is executed after the visibility is changed.
+   * Opens the problem panel and switch the tab to shared issue panel tab. The optional given [onAfterSettingVisibility] is executed after
+   * the visibility is changed.
    */
   @UiThread
   fun showSharedIssuePanel(focus: Boolean = false, onAfterSettingVisibility: Runnable? = null) {
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
-    DesignerCommonIssuePanelUsageTracker.getInstance()
-      .trackChangingCommonIssuePanelVisibility(true, project)
+    DesignerCommonIssuePanelUsageTracker.getInstance().trackChangingCommonIssuePanelVisibility(true, project)
     ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID)?.let {
       if (!isTabShowing(it)) {
         problemsViewPanel.show {
@@ -177,16 +168,12 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
     }
   }
 
-  @UiThread
-  fun getSharedPanelIssues() =
-    getDesignerCommonIssuePanel(project)?.issueProvider?.getFilteredIssues() ?: emptyList()
+  @UiThread fun getSharedPanelIssues() = getDesignerCommonIssuePanel(project)?.issueProvider?.getFilteredIssues() ?: emptyList()
 
   /** Update the tab name (includes the issue count) of shared issue panel. */
   private suspend fun updateSharedIssuePanelTabName() {
     withContext(workerThread) {
-      val tab =
-        ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID)
-          ?: return@withContext
+      val tab = ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID) ?: return@withContext
       val newName = getSharedIssuePanelTabTitle()
       val panel = (tab.component as? DesignerCommonIssuePanel)?.apply { name = newName }
       val count = panel?.issueProvider?.getFilteredIssues()?.distinct()?.size ?: 0
@@ -254,10 +241,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
     }
   }
 
-  /**
-   * Select the highest severity issue related to the provided [NlComponent] and scroll the viewport
-   * to issue.
-   */
+  /** Select the highest severity issue related to the provided [NlComponent] and scroll the viewport to issue. */
   @UiThread
   fun showIssueForComponent(surface: DesignSurface<*>, component: NlComponent) {
     val issueModel = surface.issueModel
@@ -269,14 +253,10 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   /** Return the visibility of the issue panel. */
   @UiThread
   fun isIssuePanelVisible(): Boolean {
-    return isTabShowing(
-      ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID)
-    )
+    return isTabShowing(ProblemsViewToolWindowUtils.getContentById(project, SHARED_ISSUE_PANEL_TAB_ID))
   }
 
-  /**
-   * Return true if IJ's problem panel is visible and selecting the given [tab], false otherwise.
-   */
+  /** Return true if IJ's problem panel is visible and selecting the given [tab], false otherwise. */
   private fun isTabShowing(tab: Content?): Boolean {
     if (tab == null) {
       return false
@@ -295,13 +275,10 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): IssuePanelService =
-      project.getService(IssuePanelService::class.java)
+    @JvmStatic fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
 
     @UiThread
     fun getDesignerCommonIssuePanel(project: Project): DesignerCommonIssuePanel? =
-      ProblemsViewToolWindowUtils.getTabById(project, SHARED_ISSUE_PANEL_TAB_ID)
-        as? DesignerCommonIssuePanel
+      ProblemsViewToolWindowUtils.getTabById(project, SHARED_ISSUE_PANEL_TAB_ID) as? DesignerCommonIssuePanel
   }
 }

@@ -23,16 +23,15 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.testFramework.RunsInEdt
+import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
 @RunsInEdt
 class AndroidSourceTypeNodeTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
 
   @Test
   fun testNodeFoldersOrder() {
@@ -41,16 +40,18 @@ class AndroidSourceTypeNodeTest {
     val providers = SourceProviders.getInstance(androidFacet)
     val sources = AndroidViewNodes.getSourceProviders(providers).flatMap { sourceType.getSources(it) }.toSet()
 
-    val sourcesInExpectedOrder = linkedSetOf(
-      sources.single { it.toNioPath().endsWith(Path.of("main", "java")) },
-      sources.single { it.toNioPath().endsWith(Path.of("androidTest", "java")) },
-      sources.single { it.toNioPath().endsWith(Path.of("test", "java")) }
-    )
-    val sourcesInShuffledOrder = linkedSetOf(
-      sources.single { it.toNioPath().endsWith(Path.of("test", "java")) },
-      sources.single { it.toNioPath().endsWith(Path.of("main", "java")) },
-      sources.single { it.toNioPath().endsWith(Path.of("androidTest", "java")) }
-    )
+    val sourcesInExpectedOrder =
+      linkedSetOf(
+        sources.single { it.toNioPath().endsWith(Path.of("main", "java")) },
+        sources.single { it.toNioPath().endsWith(Path.of("androidTest", "java")) },
+        sources.single { it.toNioPath().endsWith(Path.of("test", "java")) },
+      )
+    val sourcesInShuffledOrder =
+      linkedSetOf(
+        sources.single { it.toNioPath().endsWith(Path.of("test", "java")) },
+        sources.single { it.toNioPath().endsWith(Path.of("main", "java")) },
+        sources.single { it.toNioPath().endsWith(Path.of("androidTest", "java")) },
+      )
 
     // Test node returns folders in expected order when provided in expected order
     AndroidSourceTypeNode(projectRule.project, androidFacet, ViewSettings.DEFAULT, sourceType, sourcesInExpectedOrder).let { node ->
@@ -64,5 +65,4 @@ class AndroidSourceTypeNodeTest {
       Truth.assertThat(sourcesFromNode).containsExactlyElementsIn(sourcesInExpectedOrder.asIterable()).inOrder()
     }
   }
-
 }

@@ -67,46 +67,18 @@ class IdEnumSupportTest {
 
   @Test
   fun testRelativeLayoutAttribute() {
-    val util =
-      SupportTestUtil(
-        projectRule,
-        TEXT_VIEW,
-        BUTTON,
-        TEXT_VIEW,
-        BUTTON,
-        parentTag = RELATIVE_LAYOUT,
-      )
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
-    val property =
-      NlPropertyItem(
-        ANDROID_URI,
-        ATTR_LAYOUT_ALIGN_START,
-        NlPropertyType.ID,
-        null,
-        "",
-        "",
-        util.model,
-        listOf(textView),
-      )
+    val property = NlPropertyItem(ANDROID_URI, ATTR_LAYOUT_ALIGN_START, NlPropertyType.ID, null, "", "", util.model, listOf(textView))
     val enumSupport = IdEnumSupport(property)
-    assertThat(enumSupport.values.map { it.display })
-      .containsExactly("@id/button2", "@id/textview3", "@id/button4")
+    assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4")
   }
 
   @Test
   fun testConstraintLayoutAttribute() {
-    val util =
-      SupportTestUtil(
-        projectRule,
-        TEXT_VIEW,
-        BUTTON,
-        TEXT_VIEW,
-        BUTTON,
-        parentTag = CONSTRAINT_LAYOUT.newName(),
-      )
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = CONSTRAINT_LAYOUT.newName())
     val textView = util.findSiblingById("textview1")!!
-    val definition =
-      AttributeDefinition(ResourceNamespace.TODO(), SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
+    val definition = AttributeDefinition(ResourceNamespace.TODO(), SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
     val property =
       NlPropertyItem(
         AUTO_URI,
@@ -120,41 +92,21 @@ class IdEnumSupportTest {
       )
     definition.setValueMappings(mapOf(Pair("parent", 0)))
     val enumSupport = IdEnumSupport(property)
-    assertThat(enumSupport.values.map { it.display })
-      .containsExactly("@id/button2", "@id/textview3", "@id/button4", "parent")
+    assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4", "parent")
   }
 
   @Test
   fun testChipGroupAttribute() {
     val util = SupportTestUtil(projectRule, CHIP, CHIP, CHIP, parentTag = CHIP_GROUP)
     val group = util.components[0].parent!!
-    val property =
-      NlPropertyItem(
-        AUTO_URI,
-        ATTR_CHECKED_CHIP,
-        NlPropertyType.ID,
-        null,
-        "",
-        "",
-        util.model,
-        listOf(group),
-      )
+    val property = NlPropertyItem(AUTO_URI, ATTR_CHECKED_CHIP, NlPropertyType.ID, null, "", "", util.model, listOf(group))
     val enumSupport = IdEnumSupport(property)
-    assertThat(enumSupport.values.map { it.display })
-      .containsExactly("@id/chip1", "@id/chip2", "@id/chip3")
+    assertThat(enumSupport.values.map { it.display }).containsExactly("@id/chip1", "@id/chip2", "@id/chip3")
   }
 
   @Test
   fun testAccessibilityAttribute() {
-    val util =
-      SupportTestUtil(
-        projectRule,
-        TEXT_VIEW,
-        BUTTON,
-        TEXT_VIEW,
-        BUTTON,
-        parentTag = RELATIVE_LAYOUT,
-      )
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
     val property =
       NlPropertyItem(
@@ -168,7 +120,6 @@ class IdEnumSupportTest {
         listOf(textView),
       )
     val enumSupport = IdEnumSupport(property)
-    assertThat(enumSupport.values.map { it.display })
-      .containsExactly("@id/relativelayout", "@id/button2", "@id/textview3", "@id/button4")
+    assertThat(enumSupport.values.map { it.display }).containsExactly("@id/relativelayout", "@id/button2", "@id/textview3", "@id/button4")
   }
 }

@@ -24,15 +24,12 @@ import com.intellij.platform.backend.documentation.PsiDocumentationTargetProvide
 import com.intellij.psi.PsiElement
 
 /**
- * A [PsiDocumentationTargetProvider] which can fetch documentation for classes defined in the
- * Android SDK from developer.android.com. This only runs when javadocs are not available from
- * locally-downloaded SDK sources, and only for class documentation (not methods, fields, etc).
+ * A [PsiDocumentationTargetProvider] which can fetch documentation for classes defined in the Android SDK from developer.android.com. This
+ * only runs when javadocs are not available from locally-downloaded SDK sources, and only for class documentation (not methods, fields,
+ * etc).
  */
 class AndroidSdkDocumentationTargetProvider : PsiDocumentationTargetProvider {
-  override fun documentationTarget(
-    element: PsiElement,
-    originalElement: PsiElement?,
-  ): DocumentationTarget? {
+  override fun documentationTarget(element: PsiElement, originalElement: PsiElement?): DocumentationTarget? {
     if (!element.project.getProjectSystem().isAndroidProject()) return null
 
     // If sources exist (and therefore have javadocs), the navigation element will not be in
@@ -44,7 +41,6 @@ class AndroidSdkDocumentationTargetProvider : PsiDocumentationTargetProvider {
 
   private fun PsiElement.isInAndroidSdkJar(): Boolean {
     val virtualFile = containingFile?.virtualFile ?: return false
-    return JarFileSystem.getInstance().getVirtualFileForJar(virtualFile)?.name ==
-      SdkConstants.FN_FRAMEWORK_LIBRARY
+    return JarFileSystem.getInstance().getVirtualFileForJar(virtualFile)?.name == SdkConstants.FN_FRAMEWORK_LIBRARY
   }
 }

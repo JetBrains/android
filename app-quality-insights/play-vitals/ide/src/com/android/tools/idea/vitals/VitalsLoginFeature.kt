@@ -32,8 +32,7 @@ class VitalsLoginFeature : LoginFeature {
   override val title = "Android Vitals"
   override val infoUrl = "https://play.google.com/console/developers/app/vitals/"
   override val infoUrlDisplayText = "Go to Play Console"
-  override val permissionInfoUrl =
-    "https://d.android.com/r/studio-ui/app-quality-insights/permissions"
+  override val permissionInfoUrl = "https://d.android.com/r/studio-ui/app-quality-insights/permissions"
   override val settingsAction = null
   override val description =
     "See metrics and data about the apps in your Google Play Developer account. Used in " +
@@ -45,8 +44,7 @@ class VitalsLoginFeature : LoginFeature {
       object : LoginFeature.OnboardingWizardEntry {
         override val icon: Icon = StudioIllustrations.Common.PLAY_STORE
         override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.PlayStore
-        override val title: String =
-          "<b>Google Play:</b> Enable viewing Android Vitals crash reports"
+        override val title: String = "<b>Google Play:</b> Enable viewing Android Vitals crash reports"
         override val annotatedTitle: AnnotatedString = buildAnnotatedString {
           withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Play:") }
           append(" Enable viewing Android Vitals crash reports")

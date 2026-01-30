@@ -18,31 +18,24 @@ package com.android.tools.idea.preview
 import com.android.tools.idea.flags.StudioFlags
 
 /**
- * Default implementation of [RenderQualityPolicy] . A [screenScalingFactorProvider] is needed for
- * the [scaleVisibilityThreshold] to work correctly. Also note that it needs to be a provider and
- * not a fixed value for the policy to properly work and get dynamically adjusted when the user has
- * different screens with different scale factors.
+ * Default implementation of [RenderQualityPolicy] . A [screenScalingFactorProvider] is needed for the [scaleVisibilityThreshold] to work
+ * correctly. Also note that it needs to be a provider and not a fixed value for the policy to properly work and get dynamically adjusted
+ * when the user has different screens with different scale factors.
  */
-class DefaultRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) :
-  RenderQualityPolicy {
+class DefaultRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) : RenderQualityPolicy {
   companion object {
     /** When the scale is lower than this value, then all previews are treated as not visible. */
     val scaleVisibilityThreshold: Float
-      get() =
-        (StudioFlags.PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
-          .coerceAtLeast(0f)
-          .coerceAtMost(1f)
+      get() = (StudioFlags.PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f).coerceAtLeast(0f).coerceAtMost(1f)
 
     const val lowestQuality: Float = 0.001f
   }
 
   /**
-   * When false, then the target quality of all the previews configured following this policy
-   * instance will be [lowestQuality].
+   * When false, then the target quality of all the previews configured following this policy instance will be [lowestQuality].
    *
-   * This is expected to be used for considering the lifecycle of the components where this policy
-   * is used, to make sure that deactivated previews, that could be reactivated later, get
-   * temporarily rendered in low quality.
+   * This is expected to be used for considering the lifecycle of the components where this policy is used, to make sure that deactivated
+   * previews, that could be reactivated later, get temporarily rendered in low quality.
    */
   private var active: Boolean = true
   override val acceptedErrorMargin = .05f // 5% error margin

@@ -24,17 +24,16 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
 
-/**
- * Opens the Resource Manager Tool Window
- */
-class OpenResourceManagerAction : DumbAwareAction("Resource Manager", "Open the Resource Manager",
-                                                  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS) {
+/** Opens the Resource Manager Tool Window */
+class OpenResourceManagerAction :
+  DumbAwareAction("Resource Manager", "Open the Resource Manager", StudioIcons.Shell.ToolWindows.VISUAL_ASSETS) {
 
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabledAndVisible = project != null
-                                         && CommonAndroidUtil.getInstance().isAndroidProject(project)
-                                         && ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) != null
+    e.presentation.isEnabledAndVisible =
+      project != null &&
+        CommonAndroidUtil.getInstance().isAndroidProject(project) &&
+        ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) != null
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

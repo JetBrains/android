@@ -27,28 +27,28 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.intellij.openapi.diagnostic.Logger
 
-class GradleVersionCatalogVersionsImpl(private val dslElement: GradlePropertiesDslElement): GradleDslBlockModel(dslElement), GradleVersionCatalogVersions {
+class GradleVersionCatalogVersionsImpl(private val dslElement: GradlePropertiesDslElement) :
+  GradleDslBlockModel(dslElement), GradleVersionCatalogVersions {
   companion object {
     val LOG = Logger.getInstance(GradleVersionCatalogVersionsImpl::class.java)
   }
 
-  override fun getAllAliases(): Set<String> =
-    dslElement.propertyElements.map{it.key}.toSet()
-
+  override fun getAllAliases(): Set<String> = dslElement.propertyElements.map { it.key }.toSet()
 
   override fun getAll(): Map<String, VersionDeclarationModel> =
-    dslElement.allPropertyElements.flatMap{ dslProperty ->
-    val alias = dslProperty.nameElement.name()
-    return@flatMap when (dslProperty) {
-      is GradleDslLiteral -> listOf(alias to LiteralVersionDeclarationModel(dslProperty))
-      is GradleDslExpressionMap -> listOf(alias to MapVersionDeclarationModel(dslProperty))
-      else -> listOf()
-    }
-  }.toMap()
+    dslElement.allPropertyElements
+      .flatMap { dslProperty ->
+        val alias = dslProperty.nameElement.name()
+        return@flatMap when (dslProperty) {
+          is GradleDslLiteral -> listOf(alias to LiteralVersionDeclarationModel(dslProperty))
+          is GradleDslExpressionMap -> listOf(alias to MapVersionDeclarationModel(dslProperty))
+          else -> listOf()
+        }
+      }
+      .toMap()
 
   override fun addDeclaration(alias: String, version: String): VersionDeclarationModel? =
     LiteralVersionDeclarationModel.createNew(dslElement, alias, version)
-
 
   override fun addDeclaration(alias: String, version: VersionDeclarationSpec): VersionDeclarationModel? =
     MapVersionDeclarationModel.createNew(dslElement, alias, version)
@@ -64,7 +64,7 @@ class GradleVersionCatalogVersionsImpl(private val dslElement: GradlePropertiesD
     val dependencyElement = (dependency as VersionDeclarationModelImpl).dslElement
 
     val parent = dependencyElement.parent
-    if (parent is GradlePropertiesDslElement){
+    if (parent is GradlePropertiesDslElement) {
       parent.removeProperty(alias)
     }
   }

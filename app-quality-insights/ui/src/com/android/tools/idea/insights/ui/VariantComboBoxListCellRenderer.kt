@@ -38,22 +38,11 @@ private val labelFont: Font
   get() = UIUtil.getLabelFont()
 
 /** A row containing variant information. */
-data class VariantRow(
-  val name: String,
-  val eventCount: Long,
-  val userCount: Long,
-  val issueVariant: IssueVariant?,
-) : Row {
+data class VariantRow(val name: String, val eventCount: Long, val userCount: Long, val issueVariant: IssueVariant?) : Row {
   override fun getRendererComponent(): Component {
     textLabel.update(if (issueVariant == null) name else "Variant $name", null)
-    eventCountLabel.update(
-      eventCount.formatNumberToPrettyString(),
-      StudioIcons.AppQualityInsights.ISSUE,
-    )
-    userCountLabel.update(
-      userCount.formatNumberToPrettyString(),
-      StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
-    )
+    eventCountLabel.update(eventCount.formatNumberToPrettyString(), StudioIcons.AppQualityInsights.ISSUE)
+    userCountLabel.update(userCount.formatNumberToPrettyString(), StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
     rendererComponent.invalidate()
     return rendererComponent
   }

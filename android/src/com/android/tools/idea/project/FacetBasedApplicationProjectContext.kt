@@ -19,13 +19,8 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * An [ApplicationProjectContext] class used by [AndroidFacet] based project systems.
- */
-data class FacetBasedApplicationProjectContext(
-  override val applicationId: String,
-  val facet: AndroidFacet
-) : ApplicationProjectContext {
+/** An [ApplicationProjectContext] class used by [AndroidFacet] based project systems. */
+data class FacetBasedApplicationProjectContext(override val applicationId: String, val facet: AndroidFacet) : ApplicationProjectContext {
   val project: Project
     get() = facet.module.project
 }

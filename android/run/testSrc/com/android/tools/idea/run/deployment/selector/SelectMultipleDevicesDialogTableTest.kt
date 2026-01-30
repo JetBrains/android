@@ -18,10 +18,10 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.tools.idea.run.LaunchCompatibility
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBColor
+import java.util.Arrays
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.util.Arrays
 
 class SelectMultipleDevicesDialogTableTest {
   private var table: SelectMultipleDevicesDialogTable = SelectMultipleDevicesDialogTable()
@@ -73,18 +73,12 @@ class SelectMultipleDevicesDialogTableTest {
 
     table.setModel(model)
 
-    assertThat(table.data)
-      .isEqualTo(listOf(listOf("", "Type", "Device"), listOf(false, device.icon, "Pixel 8")))
+    assertThat(table.data).isEqualTo(listOf(listOf("", "Type", "Device"), listOf(false, device.icon, "Pixel 8")))
   }
 
   @Test
   fun deviceWithError() {
-    val device =
-      createDevice(
-        "Pixel 5",
-        launchCompatibility =
-          LaunchCompatibility(LaunchCompatibility.State.ERROR, "Missing system image"),
-      )
+    val device = createDevice("Pixel 5", launchCompatibility = LaunchCompatibility(LaunchCompatibility.State.ERROR, "Missing system image"))
     val model = SelectMultipleDevicesDialogTableModel(listOf(device))
 
     table.setModel(model)
@@ -92,11 +86,7 @@ class SelectMultipleDevicesDialogTableTest {
     val data =
       listOf(
         listOf("", "Type", "Device"),
-        listOf(
-          false,
-          device.icon,
-          "<html>Pixel 5<br><font size=-2 color=#999999>Missing system image</font></html>",
-        ),
+        listOf(false, device.icon, "<html>Pixel 5<br><font size=-2 color=#999999>Missing system image</font></html>"),
       )
     assertThat(table.data).isEqualTo(data)
   }

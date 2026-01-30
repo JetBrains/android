@@ -44,8 +44,7 @@ private fun getDefaultSurfaceState(): DesignerEditorPanel.State =
     null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
 
-open class NavEditor(file: VirtualFile, project: Project) :
-  DesignerEditor(file, project, NavigationFileType) {
+open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project, NavigationFileType) {
 
   override fun getEditorId() = NAV_EDITOR_ID
 
@@ -63,13 +62,7 @@ open class NavEditor(file: VirtualFile, project: Project) :
         }
       },
       NavComponentRegistrar,
-      {
-        listOf(
-          NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
-          TreePanelDefinition(),
-          HostPanelDefinition(),
-        )
-      },
+      { listOf(NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED), TreePanelDefinition(), HostPanelDefinition()) },
       getDefaultSurfaceState(),
     )
 

@@ -31,14 +31,11 @@ import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
 
 /**
- * An [AndroidSqlContext] based on an [SqliteSchema] stored in the user data of [query]'s virtual
- * file.
+ * An [AndroidSqlContext] based on an [SqliteSchema] stored in the user data of [query]'s virtual file.
  *
- * Meant to be used in the database inspector UI which stores the schema in the temporary files
- * created for ad-hoc queries.
+ * Meant to be used in the database inspector UI which stores the schema in the temporary files created for ad-hoc queries.
  */
-class SqliteSchemaContext(private val schema: SqliteSchema, private val query: AndroidSqlFile) :
-  AndroidSqlContext {
+class SqliteSchemaContext(private val schema: SqliteSchema, private val query: AndroidSqlFile) : AndroidSqlContext {
   companion object {
     val SQLITE_SCHEMA_KEY = Key.create<SqliteSchema>("SQLITE_SCHEMA_KEY")
   }
@@ -58,11 +55,7 @@ class SqliteSchemaContext(private val schema: SqliteSchema, private val query: A
 }
 
 /** Element that columns and tables based on [SqliteSchema] resolve to. */
-class AndroidSqlFakePsiElement(
-  private val query: PsiFile,
-  private val _name: String,
-  val typeDescription: String?,
-) : FakePsiElement() {
+class AndroidSqlFakePsiElement(private val query: PsiFile, private val _name: String, val typeDescription: String?) : FakePsiElement() {
   override fun getParent() = query
 
   override fun canNavigate(): Boolean = false
@@ -75,26 +68,18 @@ class AndroidSqlFakePsiElement(
 /** Type that corresponds to [com.android.tools.idea.sqlite.model.SqliteAffinity]. */
 data class SqliteSchemaSqlType(override val typeName: String) : SqlType
 
-data class SqliteSchemaColumn(
-  override val name: String,
-  val query: PsiFile,
-  override val type: SqliteSchemaSqlType,
-) : AndroidSqlColumn {
+data class SqliteSchemaColumn(override val name: String, val query: PsiFile, override val type: SqliteSchemaSqlType) : AndroidSqlColumn {
   override val definingElement = AndroidSqlFakePsiElement(query, name, type.typeName)
 }
 
 /** Converts [SqliteTable] to [AndroidSqlTable]. */
 fun SqliteTable.convertToSqlTable(query: PsiFile): AndroidSqlTable {
-  val androidSqlColumns =
-    columns.map { SqliteSchemaColumn(it.name, query, SqliteSchemaSqlType(it.affinity.name)) }
+  val androidSqlColumns = columns.map { SqliteSchemaColumn(it.name, query, SqliteSchemaSqlType(it.affinity.name)) }
   val tableName = name
   val isView = isView
 
   return object : AndroidSqlTable {
-    override fun processColumns(
-      processor: Processor<AndroidSqlColumn>,
-      sqlTablesInProcess: MutableSet<PsiElement>,
-    ): Boolean {
+    override fun processColumns(processor: Processor<AndroidSqlColumn>, sqlTablesInProcess: MutableSet<PsiElement>): Boolean {
       return ContainerUtil.process(androidSqlColumns, processor)
     }
 

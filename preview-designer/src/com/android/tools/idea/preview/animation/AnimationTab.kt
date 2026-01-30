@@ -28,21 +28,18 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
 
 /**
- * Represents a tab within an animation preview tool that displays individual animation and
- * timeline.
+ * Represents a tab within an animation preview tool that displays individual animation and timeline.
  *
  * This class manages the layout and components necessary to interact with the animation, including:
  * - [playbackControls] to control the animation playback (e.g., play, pause, rewind).
  * - A toolbar for additional actions, primarily to change the state of the animation.
  * - A button for freezing the animation at a specific frame using [freezeAction].
  *
- * The timeline itself (represented by a [TimelinePanel]) is added dynamically using the
- * [addTimeline] method.
+ * The timeline itself (represented by a [TimelinePanel]) is added dynamically using the [addTimeline] method.
  *
  * @param rootComponent The root component of the animation preview tool.
  * @param playbackControls The controls responsible for managing the animation playback.
- * @param changeStateActions Actions that change the state of the animation preview, displayed in
- *   the toolbar.
+ * @param changeStateActions Actions that change the state of the animation preview, displayed in the toolbar.
  * @param freezeAction The action to freeze the animation at a specific frame.
  */
 class AnimationTab(
@@ -51,8 +48,7 @@ class AnimationTab(
   private val changeStateActions: List<AnAction>,
   private val freezeAction: AnAction,
 ) {
-  private val tabScrollPane =
-    JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
+  private val tabScrollPane = JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
 
   val component: JComponent by lazy {
     JPanel(TabularLayout("*,Fit", "32px,*")).apply {
@@ -72,9 +68,8 @@ class AnimationTab(
   }
 
   /**
-   * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing
-   * component can't be added as a child of multiple components simultaneously. Therefore, this
-   * method needs to be called everytime we change tabs.
+   * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing component can't be added as a child of
+   * multiple components simultaneously. Therefore, this method needs to be called everytime we change tabs.
    */
   @UiThread
   fun addTimeline(timeline: TimelinePanel) {

@@ -30,22 +30,14 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 /** Handler for <FrameLayout> */
 open class FrameLayoutHandler : ViewGroupHandler() {
 
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType,
-  ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
+  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler =
+    CommonDragHandler(editor, this, layout, components, type)
 
   override fun handlesPainting() = true
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
-    SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) = SceneInteraction(screenView)
 
-  override fun createChildTargets(
-    parentComponent: SceneComponent,
-    childComponent: SceneComponent,
-  ): List<Target> {
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val list = mutableListOf<Target>()
     ResizeBaseTarget.Type.values().forEach { list.add(FrameResizeTarget(it)) }
     return list

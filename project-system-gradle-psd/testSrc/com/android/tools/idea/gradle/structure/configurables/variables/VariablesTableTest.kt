@@ -49,6 +49,9 @@ import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBTextField
+import javax.swing.JPanel
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -56,44 +59,65 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import javax.swing.JPanel
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreePath
 
 @RunsInEdt
 class VariablesTableTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private var defaultTestDialog: TestDialog? = null
-  private val stub = object : ValidationResultsKeeper {
-    override fun updateValidationResult(hasValidationError: Boolean) {}
-  }
-  private fun contextFor(project: PsProject) = object : PsContext {
-    override val analyzerDaemon: PsAnalyzerDaemon get() = throw UnsupportedOperationException()
-    override val project: PsProject = project
-    override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon get() = throw UnsupportedOperationException()
-    override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon get() = throw UnsupportedOperationException()
-    override val uiSettings: PsUISettings get() = throw UnsupportedOperationException()
-    override val selectedModule: String? get() = throw UnsupportedOperationException()
-    override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()
-    override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService = throw UnsupportedOperationException()
-    override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
-    override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
-    override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
-    override fun applyChanges() = throw UnsupportedOperationException()
-    override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
-    override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
-    override fun dispose() = throw UnsupportedOperationException()
-  }
+  private val stub =
+    object : ValidationResultsKeeper {
+      override fun updateValidationResult(hasValidationError: Boolean) {}
+    }
+
+  private fun contextFor(project: PsProject) =
+    object : PsContext {
+      override val analyzerDaemon: PsAnalyzerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val project: PsProject = project
+      override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val sdkIndexCheckerDaemon: PsSdkIndexCheckerDaemon
+        get() = throw UnsupportedOperationException()
+
+      override val uiSettings: PsUISettings
+        get() = throw UnsupportedOperationException()
+
+      override val selectedModule: String?
+        get() = throw UnsupportedOperationException()
+
+      override val mainConfigurable: ProjectStructureConfigurable
+        get() = throw UnsupportedOperationException()
+
+      override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService =
+        throw UnsupportedOperationException()
+
+      override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
+
+      override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
+
+      override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
+
+      override fun applyChanges() = throw UnsupportedOperationException()
+
+      override fun logFieldEdited(fieldId: PSDEvent.PSDField) = throw UnsupportedOperationException()
+
+      override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> = throw UnsupportedOperationException()
+
+      override fun dispose() = throw UnsupportedOperationException()
+    }
 
   @Before
   fun setUp() {
-    defaultTestDialog = TestDialogManager.setTestDialog(object : TestDialog {
-      override fun show(message: String): Int = Messages.YES
-    })
-
+    defaultTestDialog =
+      TestDialogManager.setTestDialog(
+        object : TestDialog {
+          override fun show(message: String): Int = Messages.YES
+        }
+      )
   }
 
   @After
@@ -180,13 +204,14 @@ class VariablesTableTest {
 
       val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
       for (column in 0..1) {
-        val component = variablesTable.getCellRenderer(row, column)
-          .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+        val component =
+          variablesTable
+            .getCellRenderer(row, column)
+            .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
         assertThat(component.background).isEqualTo(variablesTable.background)
       }
     }
   }
-
 
   @Test
   fun testVersionCatalogNodeDisplay() {
@@ -243,7 +268,8 @@ class VariablesTableTest {
       assertThat(variablesTable.tree.isExpanded(TreePath(versionCatalogNode.path))).isEqualTo(false)
 
       val secondVersionCatalogNode = rootNode.getChildAt(2) as DefaultMutableTreeNode
-      assertThat(tableModel.getValueAt(secondVersionCatalogNode, 0) as String).isEqualTo("Version catalog: libsTest (libsTest.versions.toml)")
+      assertThat(tableModel.getValueAt(secondVersionCatalogNode, 0) as String)
+        .isEqualTo("Version catalog: libsTest (libsTest.versions.toml)")
       assertThat(tableModel.getValueAt(secondVersionCatalogNode, 1)).isEqualTo(ParsedValue.NotSet)
       assertThat(secondVersionCatalogNode.childCount).isNotEqualTo(0)
       assertThat(variablesTable.tree.isExpanded(TreePath(secondVersionCatalogNode.path))).isEqualTo(false)
@@ -265,37 +291,38 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[2]
-      assertThat(
-        rootNode.testStructure().toString().trimIndent()).isEqualTo(
+      assertThat(rootNode.testStructure().toString().trimIndent())
+        .isEqualTo(
           """
-        :app
-            myVariable
-            variable1
-            anotherVariable
-            varInt
-            varBool
-            varRefString
-            varProGuardFiles
-                0
-                1
-                (null)
-            localList
-                0
-                1
-                (null)
-            localMap
-                KTSApp
-                LocalApp
-                (null)
-            valVersion
-            versionVal
-            moreVariable
-            mapVariable
-                a
-                b
-                (null)
-            (null)
-            """.trimIndent()
+          :app
+              myVariable
+              variable1
+              anotherVariable
+              varInt
+              varBool
+              varRefString
+              varProGuardFiles
+                  0
+                  1
+                  (null)
+              localList
+                  0
+                  1
+                  (null)
+              localMap
+                  KTSApp
+                  LocalApp
+                  (null)
+              valVersion
+              versionVal
+              moreVariable
+              mapVariable
+                  a
+                  b
+                  (null)
+              (null)
+          """
+            .trimIndent()
         )
     }
   }
@@ -312,39 +339,40 @@ class VariablesTableTest {
       appModuleVariables?.addNewListVariable("varList")
 
       val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[2]
-      assertThat(
-        rootNode.testStructure().toString().trimIndent()).isEqualTo(
+      assertThat(rootNode.testStructure().toString().trimIndent())
+        .isEqualTo(
           """
-        :app
-            myVariable
-            variable1
-            anotherVariable
-            varInt
-            varBool
-            varRefString
-            varProGuardFiles
-                0
-                1
-                (null)
-            localList
-                0
-                1
-                (null)
-            localMap
-                KTSApp
-                LocalApp
-                (null)
-            valVersion
-            versionVal
-            moreVariable
-            mapVariable
-                a
-                b
-                (null)
-            varList
-                (null)
-            (null)
-            """.trimIndent()
+          :app
+              myVariable
+              variable1
+              anotherVariable
+              varInt
+              varBool
+              varRefString
+              varProGuardFiles
+                  0
+                  1
+                  (null)
+              localList
+                  0
+                  1
+                  (null)
+              localMap
+                  KTSApp
+                  LocalApp
+                  (null)
+              valVersion
+              versionVal
+              moreVariable
+              mapVariable
+                  a
+                  b
+                  (null)
+              varList
+                  (null)
+              (null)
+          """
+            .trimIndent()
         )
     }
   }
@@ -361,36 +389,37 @@ class VariablesTableTest {
       appModuleVariables?.getVariable("varProGuardFiles")?.listItems?.findElement(0)?.delete()
 
       val rootNode = (tableModel.root as ShadowedTreeNode).childNodes.toList()[2]
-      assertThat(
-        rootNode.testStructure().toString().trimIndent()).isEqualTo(
+      assertThat(rootNode.testStructure().toString().trimIndent())
+        .isEqualTo(
           """
-        :app
-            myVariable
-            variable1
-            anotherVariable
-            varInt
-            varBool
-            varRefString
-            varProGuardFiles
-                0
-                (null)
-            localList
-                0
-                1
-                (null)
-            localMap
-                KTSApp
-                LocalApp
-                (null)
-            valVersion
-            versionVal
-            moreVariable
-            mapVariable
-                a
-                b
-                (null)
-            (null)
-            """.trimIndent()
+          :app
+              myVariable
+              variable1
+              anotherVariable
+              varInt
+              varBool
+              varRefString
+              varProGuardFiles
+                  0
+                  (null)
+              localList
+                  0
+                  1
+                  (null)
+              localMap
+                  KTSApp
+                  LocalApp
+                  (null)
+              valVersion
+              versionVal
+              moreVariable
+              mapVariable
+                  a
+                  b
+                  (null)
+              (null)
+          """
+            .trimIndent()
         )
     }
   }
@@ -404,8 +433,7 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
-      val variableNode =
-        appNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
+      val variableNode = appNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
       variablesTable.tree.expandPath(TreePath(appNode.path))
 
       assertThat(variableNode.variable.value).isEqualTo("3.0.1".asParsed<Any>())
@@ -415,8 +443,10 @@ class VariablesTableTest {
 
       val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
       for (column in 0..1) {
-        val component = variablesTable.getCellRenderer(row, column)
-          .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+        val component =
+          variablesTable
+            .getCellRenderer(row, column)
+            .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
         assertThat(component.background).isEqualTo(variablesTable.background)
       }
     }
@@ -424,29 +454,31 @@ class VariablesTableTest {
 
   @Test
   fun testVersionCatalogVariableNodeDisplay() {
-      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
-      preparedProject.open { project ->
-        val psProject = PsProjectImpl(project)
-        val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
-        val tableModel = variablesTable.tableModel
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
+      val tableModel = variablesTable.tableModel
 
-        val catalogNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as DefaultMutableTreeNode
-        val variableNode =
-          catalogNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
-        variablesTable.tree.expandPath(TreePath(catalogNode.path))
+      val catalogNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as DefaultMutableTreeNode
+      val variableNode =
+        catalogNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
+      variablesTable.tree.expandPath(TreePath(catalogNode.path))
 
-        assertThat(variableNode.variable.value).isEqualTo("1.0.2".asParsed<Any>())
-        assertThat(variableNode.childCount).isEqualTo(0)
-        assertThat(tableModel.getValueAt(variableNode, 0) as String).isEqualTo("constraint-layout")
-        assertThat(tableModel.getValueAt(variableNode, 1)).isEqualTo("1.0.2".asParsed<Any>())
+      assertThat(variableNode.variable.value).isEqualTo("1.0.2".asParsed<Any>())
+      assertThat(variableNode.childCount).isEqualTo(0)
+      assertThat(tableModel.getValueAt(variableNode, 0) as String).isEqualTo("constraint-layout")
+      assertThat(tableModel.getValueAt(variableNode, 1)).isEqualTo("1.0.2".asParsed<Any>())
 
-        val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
-        for (column in 0..1) {
-          val component = variablesTable.getCellRenderer(row, column)
+      val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
+      for (column in 0..1) {
+        val component =
+          variablesTable
+            .getCellRenderer(row, column)
             .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
-          assertThat(component.background).isEqualTo(variablesTable.background)
-        }
+        assertThat(component.background).isEqualTo(variablesTable.background)
       }
+    }
   }
 
   @Test
@@ -458,8 +490,7 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
-      val variableNode =
-        appNode.children().asSequence().find { "varBool" == (it as VariableNode).toString() } as VariableNode
+      val variableNode = appNode.children().asSequence().find { "varBool" == (it as VariableNode).toString() } as VariableNode
       variablesTable.tree.expandPath(TreePath(variableNode.path))
 
       assertThat(variableNode.variable.value).isEqualTo(true.asParsed<Any>())
@@ -478,13 +509,10 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
-      val variableNode =
-        appNode.children().asSequence().find { "varRefString" == (it as VariableNode).toString() } as VariableNode
+      val variableNode = appNode.children().asSequence().find { "varRefString" == (it as VariableNode).toString() } as VariableNode
       variablesTable.tree.expandPath(TreePath(variableNode.path))
 
-      assertThat(
-        variableNode.variable.value
-      ).isEqualTo(ParsedValue.Set.Parsed("1.3", DslText.Reference("variable1")))
+      assertThat(variableNode.variable.value).isEqualTo(ParsedValue.Set.Parsed("1.3", DslText.Reference("variable1")))
       assertThat(variableNode.variable.value.maybeValue is String).isEqualTo(true)
       assertThat(variableNode.childCount).isEqualTo(0)
       assertThat(tableModel.getValueAt(variableNode, 0) as String).isEqualTo("varRefString")
@@ -503,14 +531,12 @@ class VariablesTableTest {
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
       variablesTable.tree.expandPath(TreePath(appNode.path))
 
-      val listNode =
-        appNode.children().asSequence().find { "varProGuardFiles" == (it as VariableNode).toString() } as VariableNode
+      val listNode = appNode.children().asSequence().find { "varProGuardFiles" == (it as VariableNode).toString() } as VariableNode
       assertThat(listNode.variable.isList()).isEqualTo(true)
       assertThat(listNode.childCount).isEqualTo(3)
       assertThat(tableModel.getValueAt(listNode, 0) as String).isEqualTo("varProGuardFiles")
-      assertThat(
-        tableModel.getValueAt(listNode, 1)
-      ).isEqualTo(listOf("proguard-rules.txt".asParsed(), "proguard-rules2.txt".asParsed()).asParsed())
+      assertThat(tableModel.getValueAt(listNode, 1))
+        .isEqualTo(listOf("proguard-rules.txt".asParsed(), "proguard-rules2.txt".asParsed()).asParsed())
 
       val firstElementNode = listNode.getChildAt(0)
       assertThat(tableModel.getValueAt(firstElementNode, 0) as String).isEqualTo("0")
@@ -526,8 +552,10 @@ class VariablesTableTest {
 
       val row = variablesTable.tree.getRowForPath(TreePath(listNode.path))
       for (column in 0..1) {
-        val component = variablesTable.getCellRenderer(row, column)
-          .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+        val component =
+          variablesTable
+            .getCellRenderer(row, column)
+            .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
         assertThat(component.background).isEqualTo(variablesTable.background)
       }
     }
@@ -544,14 +572,12 @@ class VariablesTableTest {
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as DefaultMutableTreeNode
       variablesTable.tree.expandPath(TreePath(appNode.path))
 
-      val mapNode =
-        appNode.children().asSequence().find { "mapVariable" == (it as VariableNode).toString() } as VariableNode
+      val mapNode = appNode.children().asSequence().find { "mapVariable" == (it as VariableNode).toString() } as VariableNode
       assertThat(mapNode.variable.isMap()).isEqualTo(true)
       assertThat(mapNode.childCount).isEqualTo(3)
       assertThat(tableModel.getValueAt(mapNode, 0) as String).isEqualTo("mapVariable")
-      assertThat(
-        tableModel.getValueAt(mapNode, 1)
-      ).isEqualTo(mapOf("a" to "\"double\" quotes".asParsed(), "b" to "'single' quotes".asParsed()).asParsed())
+      assertThat(tableModel.getValueAt(mapNode, 1))
+        .isEqualTo(mapOf("a" to "\"double\" quotes".asParsed(), "b" to "'single' quotes".asParsed()).asParsed())
 
       val firstElementNode = mapNode.getChildAt(0)
       assertThat(tableModel.getValueAt(firstElementNode, 0) as String).isEqualTo("a")
@@ -567,8 +593,10 @@ class VariablesTableTest {
 
       val row = variablesTable.tree.getRowForPath(TreePath(mapNode.path))
       for (column in 0..1) {
-        val component = variablesTable.getCellRenderer(row, column)
-          .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+        val component =
+          variablesTable
+            .getCellRenderer(row, column)
+            .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
         assertThat(component.background).isEqualTo(variablesTable.background)
       }
     }
@@ -813,7 +841,7 @@ class VariablesTableTest {
         (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString() == ":app" } as ModuleNode
       assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet()).doesNotContain("newVariable")
 
-      //create variable
+      // create variable
       variablesTable.selectNode(buildScriptNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVariable")
@@ -843,12 +871,12 @@ class VariablesTableTest {
       val psProject = PsProjectImpl(project)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
 
-      val buildScriptNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children()
-        .asSequence()
-        .find { it.toString().contains("(build script)") } as ModuleNode
+      val buildScriptNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("(build script)") }
+          as ModuleNode
       assertThat(buildScriptNode.children().asSequence().map { it.toString() }.toSet()).doesNotContain("newVariable")
 
-      //create variable
+      // create variable
       variablesTable.selectNode(buildScriptNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVariable")
@@ -877,9 +905,9 @@ class VariablesTableTest {
   }
 
   private fun assertVariableValue(psProject: PsProject, name: String, value: String, moduleSelector: (Any) -> Boolean) {
-    val newTableModel1 = VariablesTable(psProject.ideProject, contextFor(psProject), psProject, projectRule.testRootDisposable, stub).tableModel
-    val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(
-      moduleSelector) as ContainerNode
+    val newTableModel1 =
+      VariablesTable(psProject.ideProject, contextFor(psProject), psProject, projectRule.testRootDisposable, stub).tableModel
+    val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(moduleSelector) as ContainerNode
     val newVariableNode1 = newModuleNode1.children().asSequence().find { name == (it as BaseVariableNode).toString() } as BaseVariableNode
     assertThat(newVariableNode1.getUnresolvedValue(false)).isEqualTo(value.asParsed<Any>())
   }
@@ -891,14 +919,14 @@ class VariablesTableTest {
       val psProject = PsProjectImpl(project)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
+      val versionCatalogNode: VersionCatalogNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("libs") }
+          as VersionCatalogNode
       assertThat(versionCatalogNode.children().asSequence().map(Any::toString).toSet())
         .isEqualTo(setOf("constraint-layout", "guava", "junit", ""))
       assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet()).doesNotContain("newVersion")
 
-      //create variable
+      // create variable
       variablesTable.selectNode(versionCatalogNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVersion")
@@ -930,7 +958,6 @@ class VariablesTableTest {
       val validationResults = mock(ValidationResultsKeeper::class.java)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, validationResults)
 
-
       val tableModel = variablesTable.tableModel
       val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
 
@@ -958,14 +985,14 @@ class VariablesTableTest {
 
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, validationResults)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
+      val versionCatalogNode: VersionCatalogNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("libs") }
+          as VersionCatalogNode
       assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet()).doesNotContain("newVersion")
 
       val message = """Variable name must match the following regular expression: [a-z]([a-zA-Z0-9_-])+"""
 
-      //create variable
+      // create variable
       variablesTable.selectNode(versionCatalogNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
 
@@ -996,36 +1023,34 @@ class VariablesTableTest {
     }
   }
 
-    @Test
+  @Test
   fun testValidationCatalogVariableValue() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
+      val versionCatalogNode: VersionCatalogNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("libs") }
+          as VersionCatalogNode
       assertThat(versionCatalogNode.children().asSequence().map(Any::toString).toSet())
         .isEqualTo(setOf("constraint-layout", "guava", "junit", ""))
       assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet()).doesNotContain("newVersion")
 
-      //create variable
+      // create variable
       variablesTable.selectNode(versionCatalogNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVersion")
 
-      variablesTable.editCellAt(variablesTable.selectedRow,1)
+      variablesTable.editCellAt(variablesTable.selectedRow, 1)
       val textBox = variablesTable.editorComponent as JBTextField
       textBox.text = ""
       assertThat(textBox.getWarningMessage()).isEqualTo("Variable value cannot be empty.")
     }
   }
 
-  private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input:String, expectedMessage:String?){
-    variablesTable.simulateTextInput(input) { textBox ->
-      assertThat(textBox.getWarningMessage()).isEqualTo(expectedMessage)
-    }
+  private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input: String, expectedMessage: String?) {
+    variablesTable.simulateTextInput(input) { textBox -> assertThat(textBox.getWarningMessage()).isEqualTo(expectedMessage) }
   }
 
   // regression b/258243668
@@ -1036,19 +1061,19 @@ class VariablesTableTest {
       val psProject = PsProjectImpl(project)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
-      val buildScriptNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children()
-        .asSequence()
-        .find { it.toString().contains("(build script)") } as ModuleNode
+      val versionCatalogNode: VersionCatalogNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("libs") }
+          as VersionCatalogNode
+      val buildScriptNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("(build script)") }
+          as ModuleNode
 
       val addNewCatalogVariable = versionCatalogNode.lastChild as VariablesBaseNode
-      //expand
+      // expand
       variablesTable.tree.expandRow(variablesTable.getRowByNode(versionCatalogNode))
       variablesTable.tree.expandRow(variablesTable.getRowByNode(buildScriptNode))
 
-      //new catalog var, focus on build script then edit new catalog variable
+      // new catalog var, focus on build script then edit new catalog variable
       variablesTable.editNode(addNewCatalogVariable)
 
       variablesTable.editNode(buildScriptNode)
@@ -1200,7 +1225,8 @@ class VariablesTableTest {
       val appNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as VersionCatalogNode
       variablesTable.tree.expandPath(TreePath(appNode.path))
       val childCount = appNode.childCount
-      val variableNode = appNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
+      val variableNode =
+        appNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
       variablesTable.selectNode(variableNode)
       variablesTable.deleteSelectedVariables()
 
@@ -1265,10 +1291,10 @@ class VariablesTableTest {
       val psProject = PsProjectImpl(project)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, stub)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
-      //create variable
+      val versionCatalogNode: VersionCatalogNode =
+        (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find { it.toString().contains("libs") }
+          as VersionCatalogNode
+      // create variable
       variablesTable.selectNode(versionCatalogNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
 
@@ -1341,7 +1367,7 @@ private fun VariablesTable.simulateTextInput(input: String) {
   simulateTextInput(input) {}
 }
 
-private fun VariablesTable.simulateTextInput(input: String, f:(JBTextField) -> Unit) {
+private fun VariablesTable.simulateTextInput(input: String, f: (JBTextField) -> Unit) {
   val editorComp = editorComponent as JPanel
   val textBox = editorComp.components.first { it is JBTextField } as JBTextField
   textBox.text = input
@@ -1355,15 +1381,14 @@ private fun VariablesTable.selectNode(node: VariablesTableNode) {
 }
 
 private fun VariablesTable.editNode(node: VariablesTableNode) {
-  this.editCellAt(getRowByNode(node),0)
+  this.editCellAt(getRowByNode(node), 0)
 }
 
-private fun VariablesTable.getRowByNode(node: VariablesTableNode): Int =
-  tree.getRowForPath(TreePath(node.path))
+private fun VariablesTable.getRowByNode(node: VariablesTableNode): Int = tree.getRowForPath(TreePath(node.path))
 
 private fun JBTextField.getWarningMessage(): String? {
   val maybeComponentValidator = ComponentValidator.getInstance(this)
-  if(maybeComponentValidator.isPresent){
+  if (maybeComponentValidator.isPresent) {
     val info = maybeComponentValidator.get().validationInfo
     return info?.message
   }
@@ -1371,4 +1396,5 @@ private fun JBTextField.getWarningMessage(): String? {
 }
 
 private fun PsVariable.isList() = value.maybeLiteralValue is List<*>
+
 private fun PsVariable.isMap() = value.maybeLiteralValue is Map<*, *>

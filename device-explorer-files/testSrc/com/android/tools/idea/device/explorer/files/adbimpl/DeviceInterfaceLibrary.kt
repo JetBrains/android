@@ -17,5 +17,6 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 
 /** Enum for picking which device library to test with (so parameterized tests have readable names). */
 enum class DeviceInterfaceLibrary {
-  DDMLIB, ADBLIB
+  DDMLIB,
+  ADBLIB,
 }

@@ -44,9 +44,7 @@ class WearTilePreviewShouldBeTopLevelFunction : WearTilePreviewInspectionBase() 
           }
 
           val hasTilePreviewAnnotation =
-            sourcePsi.annotationEntries
-              .mapNotNull { it.toUElement(UAnnotation::class.java) }
-              .any { it.hasTilePreviewAnnotation() }
+            sourcePsi.annotationEntries.mapNotNull { it.toUElement(UAnnotation::class.java) }.any { it.hasTilePreviewAnnotation() }
 
           if (!hasTilePreviewAnnotation) {
             return super.visitLambdaExpression(node)
@@ -93,8 +91,7 @@ class WearTilePreviewShouldBeTopLevelFunction : WearTilePreviewInspectionBase() 
     if (isClassDeclaredInAnotherClass) return false
 
     val constructors = containingClass.methods.filter { it.isConstructor }
-    val classHasDefaultConstructor =
-      constructors.isEmpty() || constructors.any { it.uastParameters.isEmpty() }
+    val classHasDefaultConstructor = constructors.isEmpty() || constructors.any { it.uastParameters.isEmpty() }
 
     return classHasDefaultConstructor
   }

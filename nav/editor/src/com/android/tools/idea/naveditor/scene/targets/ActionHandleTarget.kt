@@ -55,12 +55,11 @@ import org.intellij.lang.annotations.JdkConstants
 private const val DURATION = 200
 private const val DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS"
 
-fun isDragCreateInProgress(component: NlComponent) =
-  component.parent?.getClientProperty(DRAG_CREATE_IN_PROGRESS) != null
+fun isDragCreateInProgress(component: NlComponent) = component.parent?.getClientProperty(DRAG_CREATE_IN_PROGRESS) != null
 
 /**
- * [ActionHandleTarget] is a target for handling drag-creation of actions. It appears as a circular
- * grab handle on the right side of the navigation screen.
+ * [ActionHandleTarget] is a target for handling drag-creation of actions. It appears as a circular grab handle on the right side of the
+ * navigation screen.
  */
 class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
 
@@ -112,17 +111,12 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     scene.repaint()
   }
 
-  override fun mouseRelease(
-    @NavCoordinate x: Int,
-    @NavCoordinate y: Int,
-    closestTargets: List<Target>,
-  ) {
+  override fun mouseRelease(@NavCoordinate x: Int, @NavCoordinate y: Int, closestTargets: List<Target>) {
     isDragging = false
     val scene = myComponent.scene
     myComponent.parent?.nlComponent?.removeClientProperty(DRAG_CREATE_IN_PROGRESS)
     component.isDragging = false
-    scene.findComponent(component.scene.sceneManager.sceneViews.first().context, x, y)?.let {
-      closestComponent ->
+    scene.findComponent(component.scene.sceneManager.sceneViews.first().context, x, y)?.let { closestComponent ->
       if (closestComponent !== component.scene.root && !closestComponent.id.isNullOrEmpty()) {
         createAction(closestComponent)?.let { action ->
           NavUsageTracker.getInstance(action.model)
@@ -181,24 +175,13 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     val initialInnerRadius = handleState.innerRadius * scale
     val finalInnerRadius = newState.innerRadius * scale
 
-    val duration =
-      (DURATION * (handleState.outerRadius - newState.outerRadius) / OUTER_RADIUS_LARGE)
-        .absoluteValue
-        .toInt()
+    val duration = (DURATION * (handleState.outerRadius - newState.outerRadius) / OUTER_RADIUS_LARGE).absoluteValue.toInt()
 
     val outerColor = primaryPanelBackground
     val innerColor = if (component.isSelected) SELECTED else HIGHLIGHTED_FRAME
 
     if (isDragging) {
-      list.add(
-        DrawActionHandleDrag(
-          center,
-          initialOuterRadius,
-          finalOuterRadius,
-          finalInnerRadius,
-          duration,
-        )
-      )
+      list.add(DrawActionHandleDrag(center, initialOuterRadius, finalOuterRadius, finalInnerRadius, duration))
     } else {
       list.add(
         DrawActionHandle(
@@ -217,30 +200,18 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     handleState = newState
   }
 
-  override fun addHit(
-    transform: SceneContext,
-    picker: ScenePicker.Writer,
-    @JdkConstants.InputEventMask modifiersEx: Int,
-  ) {
+  override fun addHit(transform: SceneContext, picker: ScenePicker.Writer, @JdkConstants.InputEventMask modifiersEx: Int) {
     @SwingCoordinate val centerX = transform.getSwingX(centerX.toInt())
     @SwingCoordinate val centerY = transform.getSwingY(centerY.toInt())
-    picker.addCircle(
-      this,
-      0,
-      centerX,
-      centerY,
-      transform.getSwingDimension(OUTER_RADIUS_LARGE.toInt()),
-    )
+    picker.addCircle(this, 0, centerX, centerY, transform.getSwingDimension(OUTER_RADIUS_LARGE.toInt()))
   }
 
-  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int) =
-    Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int) = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
   private fun calculateState(): HandleState {
     return when {
       isDragging -> HandleState.SMALL
-      myComponent.scene.designSurface.guiInputHandler.isInteractionInProgress ->
-        HandleState.INVISIBLE
+      myComponent.scene.designSurface.guiInputHandler.isInteractionInProgress -> HandleState.INVISIBLE
       mIsOver -> HandleState.LARGE
       component.drawState == SceneComponent.DrawState.HOVER -> HandleState.SMALL
       component.isSelected && myComponent.scene.selection.size == 1 -> HandleState.SMALL

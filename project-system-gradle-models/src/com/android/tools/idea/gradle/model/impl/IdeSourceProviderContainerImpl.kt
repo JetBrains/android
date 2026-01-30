@@ -21,5 +21,5 @@ import java.io.Serializable
 
 data class IdeSourceProviderContainerImpl(
   override val sourceProvider: IdeSourceProvider?,
-  override val extraSourceProviders: List<IdeExtraSourceProviderImpl>
-): IdeSourceProviderContainer, Serializable
+  override val extraSourceProviders: List<IdeExtraSourceProviderImpl>,
+) : IdeSourceProviderContainer, Serializable

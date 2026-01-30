@@ -45,8 +45,7 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
 
   class MultilineString(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.String =
-      (if (node.text.length >= 6) node.text.removePrefix("\"\"\"").removeSuffix("\"\"\"") else node.text)
-        .unescapeMultiline() ?: ""
+      (if (node.text.length >= 6) node.text.removePrefix("\"\"\"").removeSuffix("\"\"\"") else node.text).unescapeMultiline() ?: ""
   }
 
   class Double(node: ASTNode) : DeclarativeLiteralKind(node) {

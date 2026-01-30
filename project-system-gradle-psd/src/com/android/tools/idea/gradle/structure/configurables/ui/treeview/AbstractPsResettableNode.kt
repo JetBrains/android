@@ -22,6 +22,7 @@ import com.intellij.ui.treeStructure.SimpleNode
 
 abstract class AbstractPsResettableNode<K, N : SimpleNode, M : PsModel> : AbstractPsModelNode<M> {
   protected constructor(uiSettings: PsUISettings) : super(uiSettings)
+
   protected constructor(parent: AbstractPsNode, uiSettings: PsUISettings) : super(parent, uiSettings)
 
   private var myChildren: Array<SimpleNode>? = null
@@ -31,7 +32,9 @@ abstract class AbstractPsResettableNode<K, N : SimpleNode, M : PsModel> : Abstra
   }
 
   protected abstract fun getKeys(from: Unit): Set<K>
+
   protected abstract fun create(key: K): N
+
   protected abstract fun update(key: K, node: N)
 
   fun reset() {
@@ -40,17 +43,20 @@ abstract class AbstractPsResettableNode<K, N : SimpleNode, M : PsModel> : Abstra
   }
 
   final override fun getChildren(): Array<SimpleNode> =
-    myChildren ?: let {
-      collection.refresh()
-      val result = collection.items.toTypedArray<SimpleNode>()
-      myChildren = result
-      result
-    }
+    myChildren
+      ?: let {
+        collection.refresh()
+        val result = collection.items.toTypedArray<SimpleNode>()
+        myChildren = result
+        result
+      }
 
   private val collection: PsCollectionBase<out N, K, Unit> =
     object : PsCollectionBase<N, K, Unit>(Unit) {
       override fun getKeys(from: Unit): Set<K> = this@AbstractPsResettableNode.getKeys(from)
+
       override fun create(key: K): N = this@AbstractPsResettableNode.create(key)
+
       override fun update(key: K, model: N) = this@AbstractPsResettableNode.update(key, model)
     }
 }

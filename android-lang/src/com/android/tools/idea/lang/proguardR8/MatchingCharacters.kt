@@ -26,22 +26,24 @@ import com.intellij.psi.tree.IElementType
  * [PairedBraceMatcher] for ProguardR8. Makes the IDE insert the matching parenthesis when typing and highlight corresponding pairs of them.
  */
 class ProguardR8PairedBraceMatcher : PairedBraceMatcher {
-  private val _pairs = arrayOf(
-    BracePair(ProguardR8PsiTypes.OPEN_BRACE, ProguardR8PsiTypes.CLOSE_BRACE, true),
-    BracePair(ProguardR8PsiTypes.LPAREN, ProguardR8PsiTypes.RPAREN, true)
-  )
+  private val _pairs =
+    arrayOf(
+      BracePair(ProguardR8PsiTypes.OPEN_BRACE, ProguardR8PsiTypes.CLOSE_BRACE, true),
+      BracePair(ProguardR8PsiTypes.LPAREN, ProguardR8PsiTypes.RPAREN, true),
+    )
 
   override fun getPairs(): Array<BracePair> = _pairs
+
   override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?): Boolean = true
+
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
-/**
- * [com.intellij.codeInsight.editorActions.QuoteHandler] for ProguardR8. Makes the IDE insert the matching quote when typing.
- */
-class ProguardR8QuoteHandler : SimpleTokenSetQuoteHandler(
-  ProguardR8PsiTypes.SINGLE_QUOTED_STRING,
-  ProguardR8PsiTypes.DOUBLE_QUOTED_STRING,
-  ProguardR8PsiTypes.UNTERMINATED_SINGLE_QUOTED_STRING,
-  ProguardR8PsiTypes.UNTERMINATED_DOUBLE_QUOTED_STRING
-)
+/** [com.intellij.codeInsight.editorActions.QuoteHandler] for ProguardR8. Makes the IDE insert the matching quote when typing. */
+class ProguardR8QuoteHandler :
+  SimpleTokenSetQuoteHandler(
+    ProguardR8PsiTypes.SINGLE_QUOTED_STRING,
+    ProguardR8PsiTypes.DOUBLE_QUOTED_STRING,
+    ProguardR8PsiTypes.UNTERMINATED_SINGLE_QUOTED_STRING,
+    ProguardR8PsiTypes.UNTERMINATED_DOUBLE_QUOTED_STRING,
+  )

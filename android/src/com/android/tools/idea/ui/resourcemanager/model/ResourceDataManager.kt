@@ -33,68 +33,54 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.psi.PsiElement
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * [DataFlavor] for [ResourceUrl]
- */
-@JvmField
-val RESOURCE_URL_FLAVOR = DataFlavor(ResourceUrl::class.java, "Resource Url")
+/** [DataFlavor] for [ResourceUrl] */
+@JvmField val RESOURCE_URL_FLAVOR = DataFlavor(ResourceUrl::class.java, "Resource Url")
 
 private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.stringFlavor)
 
-/**
- * Helper class to deal with [DataContext] and copy/paste behavior from the resource explorer.
- */
+/** Helper class to deal with [DataContext] and copy/paste behavior from the resource explorer. */
 class ResourceDataManager(var facet: AndroidFacet) {
 
   fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>) {
-    sink[PlatformDataKeys.COPY_PROVIDER] = object : CopyProvider {
-      override fun performCopy(dataContext: DataContext) {
-        val designAsset = selectedAssets.firstOrNull() ?: return
-        CopyPasteManager.getInstance().setContents(createTransferable(designAsset))
+    sink[PlatformDataKeys.COPY_PROVIDER] =
+      object : CopyProvider {
+        override fun performCopy(dataContext: DataContext) {
+          val designAsset = selectedAssets.firstOrNull() ?: return
+          CopyPasteManager.getInstance().setContents(createTransferable(designAsset))
+        }
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+        override fun isCopyVisible(dataContext: DataContext): Boolean = isCopyEnabled(dataContext)
+
+        override fun isCopyEnabled(dataContext: DataContext): Boolean = selectedAssets.isNotEmpty()
       }
-
-      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
-      override fun isCopyVisible(dataContext: DataContext): Boolean = isCopyEnabled(dataContext)
-
-      override fun isCopyEnabled(dataContext: DataContext): Boolean = selectedAssets.isNotEmpty()
-    }
     sink[RESOURCE_DESIGN_ASSETS_KEY] = selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
 
-    sink.lazy(LangDataKeys.PSI_ELEMENT) {
-      if (selectedAssets.size != 1) null
-      else assetsToArrayPsiElements(selectedAssets).firstOrNull()
-    }
-    sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
-      assetsToArrayPsiElements(selectedAssets)
-    }
-    sink.lazy(UsageView.USAGE_TARGETS_KEY) {
-      getUsageTargets(assetsToArrayPsiElements(selectedAssets))
-    }
+    sink.lazy(LangDataKeys.PSI_ELEMENT) { if (selectedAssets.size != 1) null else assetsToArrayPsiElements(selectedAssets).firstOrNull() }
+    sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) { assetsToArrayPsiElements(selectedAssets) }
+    sink.lazy(UsageView.USAGE_TARGETS_KEY) { getUsageTargets(assetsToArrayPsiElements(selectedAssets)) }
   }
 
   private fun assetsToArrayPsiElements(assets: List<Asset>): Array<out PsiElement> =
-    assets.asSequence()
+    assets
+      .asSequence()
       .mapNotNull(Asset::resourceItem)
       .mapNotNull(this::findPsiElement)
       .filter { it.manager.isInProject(it) }
       .toList()
       .toTypedArray()
 
-  /**
-   * Try to find the psi element that this [ResourceItem] represents.
-   */
+  /** Try to find the psi element that this [ResourceItem] represents. */
   fun findPsiElement(resourceItem: ResourceItem): PsiElement? {
     var psiElement: PsiElement? = null
-    if (!resourceItem.isFileBased
-        && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
-      psiElement = getItemTag(facet.module.project, resourceItem)
-        ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
+    if (!resourceItem.isFileBased && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
+      psiElement = getItemTag(facet.module.project, resourceItem)?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
     }
 
     if (psiElement == null) {
@@ -130,6 +116,5 @@ fun createTransferable(asset: Asset): Transferable {
     override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor in SUPPORTED_DATA_FLAVORS
 
     override fun getTransferDataFlavors(): Array<DataFlavor> = SUPPORTED_DATA_FLAVORS
-
   }
 }

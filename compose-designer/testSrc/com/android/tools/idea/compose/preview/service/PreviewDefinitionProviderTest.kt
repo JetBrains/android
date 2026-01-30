@@ -103,11 +103,7 @@ class PreviewDefinitionProviderTest {
       """,
     )
 
-    assertPreviewDisplayNames(
-      "MyComponent:Preview1",
-      "MyComponent:Preview2",
-      "MyComponent:Preview3",
-    )
+    assertPreviewDisplayNames("MyComponent:Preview1", "MyComponent:Preview2", "MyComponent:Preview3")
   }
 
   @Test
@@ -170,12 +166,7 @@ class PreviewDefinitionProviderTest {
       """,
     )
 
-    assertPreviewDisplayNames(
-      "MyComponent:Phone",
-      "MyComponent:Tablet",
-      "MyComponent:Light",
-      "MyComponent:Dark",
-    )
+    assertPreviewDisplayNames("MyComponent:Phone", "MyComponent:Tablet", "MyComponent:Light", "MyComponent:Dark")
   }
 
   @Test
@@ -208,11 +199,7 @@ class PreviewDefinitionProviderTest {
       """,
     )
 
-    assertPreviewDisplayNames(
-      "MyComponent:Preview1",
-      "MyComponent:Preview2",
-      "MyComponent:Preview3",
-    )
+    assertPreviewDisplayNames("MyComponent:Preview1", "MyComponent:Preview2", "MyComponent:Preview3")
   }
 
   @Test
@@ -243,12 +230,7 @@ class PreviewDefinitionProviderTest {
       """,
     )
 
-    assertPreviewDisplayNames(
-      "MyComponent:Preview1",
-      "MyComponent:Preview2",
-      "MyComponent:Preview3",
-      "MyComponent:Preview4",
-    )
+    assertPreviewDisplayNames("MyComponent:Preview1", "MyComponent:Preview2", "MyComponent:Preview3", "MyComponent:Preview4")
   }
 
   @Test
@@ -485,18 +467,18 @@ class PreviewDefinitionProviderTest {
     projectRule.fixture.saveText(
       file.virtualFile,
       """
-        package com.example
+      package com.example
 
-        import androidx.compose.runtime.Composable
-        import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
 
-        @Preview
-        @Composable
-        fun MyComponent() {}
+      @Preview
+      @Composable
+      fun MyComponent() {}
 
-        @Preview
-        @Composable
-        fun AnotherComponent() {}
+      @Preview
+      @Composable
+      fun AnotherComponent() {}
       """
         .trimIndent(),
     )
@@ -546,12 +528,7 @@ class PreviewDefinitionProviderTest {
         fun PositionalNameComponent() {}
       """,
     )
-    assertPreviewDisplayNames(
-      "UiModeComponent",
-      "BooleanComponent",
-      "MultipleParamsComponent",
-      "PositionalNameComponent:MyPositionalName",
-    )
+    assertPreviewDisplayNames("UiModeComponent", "BooleanComponent", "MultipleParamsComponent", "PositionalNameComponent:MyPositionalName")
   }
 
   @Test
@@ -626,11 +603,7 @@ class PreviewDefinitionProviderTest {
     assertPreviewDisplayNames("MyComponent:MyPreview", "MyComponent:MyPreview")
   }
 
-  private fun addFile(
-    name: String,
-    content: String,
-    relativePath: String = "com/example",
-  ): PsiFile {
+  private fun addFile(name: String, content: String, relativePath: String = "com/example"): PsiFile {
     return projectRule.fixture.addFileToProject(
       "src/$relativePath/$name",
       """

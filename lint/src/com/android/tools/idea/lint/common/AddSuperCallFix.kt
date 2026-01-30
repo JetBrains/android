@@ -38,13 +38,11 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.utils.join
 
-class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) : PsiBasedModCommandAction<PsiElement>(element) {
 
   override fun getFamilyName() = "AddSuperCallFix"
 
-  override fun getPresentation(context: ActionContext, element: PsiElement) =
-    Presentation.of("Add super call")
+  override fun getPresentation(context: ActionContext, element: PsiElement) = Presentation.of("Add super call")
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
     val project = element.project
@@ -58,8 +56,7 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
       val factory = JavaPsiFacade.getInstance(project).elementFactory
       // Create the statement to be added as the first one in the method.
       // e.g. super.onCreate(savedInstanceState);
-      val superStatement =
-        factory.createStatementFromText(buildSuperStatement(method, superMethod), null)
+      val superStatement = factory.createStatementFromText(buildSuperStatement(method, superMethod), null)
 
       @Suppress("UnstableApiUsage")
       return ModCommand.psiUpdate(method) { methodCopy, _ ->
@@ -83,8 +80,7 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
     } else if (element.language === KotlinLanguage.INSTANCE) {
 
       val factory = KtPsiFactory(project)
-      val method =
-        PsiTreeUtil.getParentOfType(element, KtNamedFunction::class.java) ?: return ModCommand.nop()
+      val method = PsiTreeUtil.getParentOfType(element, KtNamedFunction::class.java) ?: return ModCommand.nop()
 
       val superStatement = factory.createExpression(buildSuperStatement(method, superMethod))
 

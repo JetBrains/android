@@ -22,8 +22,4 @@ import com.android.tools.idea.appinspection.inspector.ide.bundle.AppInspectorBun
 
 /** Convenience constructor that sets up an empty message with a learn more URL (if present). */
 fun EmptyStatePanel(reason: String, learnMoreUrl: String?, actionData: ActionData? = null) =
-  EmptyStatePanel(
-    reason,
-    learnMoreUrl?.let { url -> UrlData(AppInspectorBundle.message("learn.more"), url) },
-    actionData,
-  )
+  EmptyStatePanel(reason, learnMoreUrl?.let { url -> UrlData(AppInspectorBundle.message("learn.more"), url) }, actionData)

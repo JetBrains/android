@@ -29,15 +29,15 @@ import org.junit.Test
 
 class LaunchUtilsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testActivity() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_ACTIVITY).open {
-      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
-        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
-      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      val watchFeatureRequired =
+        ReadAction.nonBlocking<Boolean> { LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!) }
+          .submit(AppExecutorUtil.getAppExecutorService())
+          .get()
       Truth.assertThat(watchFeatureRequired).isFalse()
     }
   }
@@ -45,9 +45,10 @@ class LaunchUtilsTest {
   @Test
   fun testActivityAlias() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_ALIAS).open {
-      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
-        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
-      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      val watchFeatureRequired =
+        ReadAction.nonBlocking<Boolean> { LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!) }
+          .submit(AppExecutorUtil.getAppExecutorService())
+          .get()
       Truth.assertThat(watchFeatureRequired).isFalse()
     }
   }
@@ -55,9 +56,10 @@ class LaunchUtilsTest {
   @Test
   fun testWatchFaceService() {
     projectRule.prepareTestProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE).open {
-      val watchFeatureRequired = ReadAction.nonBlocking<Boolean> {
-        LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!)
-      }.submit(AppExecutorUtil.getAppExecutorService()).get();
+      val watchFeatureRequired =
+        ReadAction.nonBlocking<Boolean> { LaunchUtils.isWatchFeatureRequired(AndroidFacet.getInstance(project.gradleModule(":")!!)!!) }
+          .submit(AppExecutorUtil.getAppExecutorService())
+          .get()
       Truth.assertThat(watchFeatureRequired).isTrue()
     }
   }

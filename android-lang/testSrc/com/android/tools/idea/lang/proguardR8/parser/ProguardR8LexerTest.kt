@@ -50,52 +50,40 @@ import com.google.common.truth.Truth.assertThat
 class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
 
   fun testOneRule() {
-    assertTokenTypes(
-      "-android",
-      "-android" to FLAG_TOKEN
-    )
+    assertTokenTypes("-android", "-android" to FLAG_TOKEN)
   }
 
   fun testSimpleRule() {
-    assertTokenTypes(
-      "-android -dontpreverify",
-      "-android" to FLAG_TOKEN,
-      SPACE,
-      "-dontpreverify" to FLAG_TOKEN
-    )
+    assertTokenTypes("-android -dontpreverify", "-android" to FLAG_TOKEN, SPACE, "-dontpreverify" to FLAG_TOKEN)
 
-    assertTokenTypes(
-      "-android\n-dontpreverify",
-      "-android" to FLAG_TOKEN,
-      NEWLINE,
-      "-dontpreverify" to FLAG_TOKEN
-    )
+    assertTokenTypes("-android\n-dontpreverify", "-android" to FLAG_TOKEN, NEWLINE, "-dontpreverify" to FLAG_TOKEN)
   }
 
   fun testSimpleRuleWithArg() {
     assertTokenTypes(
       """
-        -outjars bin/application.apk
-        -libraryjars /usr/local/android-sdk/platforms/android-28/android.jar
-      """.trimIndent(),
-
+      -outjars bin/application.apk
+      -libraryjars /usr/local/android-sdk/platforms/android-28/android.jar
+      """
+        .trimIndent(),
       "-outjars" to FLAG_TOKEN,
       SPACE,
       "bin/application.apk" to FILE_NAME,
       NEWLINE,
       "-libraryjars" to FLAG_TOKEN,
       SPACE,
-      "/usr/local/android-sdk/platforms/android-28/android.jar" to FILE_NAME
+      "/usr/local/android-sdk/platforms/android-28/android.jar" to FILE_NAME,
     )
   }
 
   fun testRuleWithClassSpecification() {
     assertTokenTypes(
       """
-        -keepclasseswithmembers class * {
-        public <init>(androi_d.content.Context, android.util.AttributeSet, int);
-        }
-      """.trimIndent(),
+      -keepclasseswithmembers class * {
+      public <init>(androi_d.content.Context, android.util.AttributeSet, int);
+      }
+      """
+        .trimIndent(),
       "-keepclasseswithmembers" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -126,15 +114,16 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       ")" to RPAREN,
       ";" to SEMICOLON,
       NEWLINE,
-      "}" to CLOSE_BRACE
+      "}" to CLOSE_BRACE,
     )
   }
 
   fun testDistinguishAnnotationAndFilename() {
     assertTokenTypes(
       """
-        -keepclassmembers class * implements @javax.annotation.Resource java.io.Serializable
-      """.trimIndent(),
+      -keepclassmembers class * implements @javax.annotation.Resource java.io.Serializable
+      """
+        .trimIndent(),
       "-keepclassmembers" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -154,20 +143,21 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "." to DOT,
       "io" to JAVA_IDENTIFIER,
       "." to DOT,
-      "Serializable" to JAVA_IDENTIFIER
+      "Serializable" to JAVA_IDENTIFIER,
     )
   }
 
   fun testDifferentJavaArgumentTypes() {
     assertTokenTypes(
       """
-        -assumenoexternalsideeffects class **java.lang.StringBuilder {
-        public java.lang.StringBuilder();
-        public java.lang.StringBuilder(...);
-        public java.lang.StringBuilder(int);
-        public java.lang.StringBuilder append(java.lang.StringBuffer);
-        }
-      """.trimIndent(),
+      -assumenoexternalsideeffects class **java.lang.StringBuilder {
+      public java.lang.StringBuilder();
+      public java.lang.StringBuilder(...);
+      public java.lang.StringBuilder(int);
+      public java.lang.StringBuilder append(java.lang.StringBuffer);
+      }
+      """
+        .trimIndent(),
       "-assumenoexternalsideeffects" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -233,7 +223,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       ")" to RPAREN,
       ";" to SEMICOLON,
       NEWLINE,
-      "}" to CLOSE_BRACE
+      "}" to CLOSE_BRACE,
     )
   }
 
@@ -246,7 +236,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       ":" to COLON,
       "'/your directory/your program.jar'" to SINGLE_QUOTED_STRING,
       ";" to SEMICOLON,
-      "<java.home>/lib/rt.jar" to FILE_NAME
+      "<java.home>/lib/rt.jar" to FILE_NAME,
     )
   }
 
@@ -259,18 +249,19 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       SPACE,
       "**" to DOUBLE_ASTERISK,
       "." to DOT,
-      "R${'$'}InnerClass" to JAVA_IDENTIFIER
+      "R${'$'}InnerClass" to JAVA_IDENTIFIER,
     )
   }
 
   fun testClassSpecification() {
     assertTokenTypes(
       """
-        -assumenoexternalsideeffects class **java.lang.StringBuilder {
-        static *** fieldName;
-        public <methods>;
-        }
-      """.trimIndent(),
+      -assumenoexternalsideeffects class **java.lang.StringBuilder {
+      static *** fieldName;
+      public <methods>;
+      }
+      """
+        .trimIndent(),
       "-assumenoexternalsideeffects" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -295,21 +286,22 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "<methods>" to _METHODS_,
       ";" to SEMICOLON,
       NEWLINE,
-      "}" to CLOSE_BRACE
+      "}" to CLOSE_BRACE,
     )
   }
 
   fun testStrangeJavaIdentifiers() {
     assertTokenTypes(
       """
-          -keep class i.am.NormalOne {
-          int _9pins;
-          int ανδρος;
-          int OReilly;
-          int кирилиц;
-          int 弛;
-          }
-      """.trimIndent(),
+      -keep class i.am.NormalOne {
+      int _9pins;
+      int ανδρος;
+      int OReilly;
+      int кирилиц;
+      int 弛;
+      }
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -347,21 +339,22 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "弛" to JAVA_IDENTIFIER,
       ";" to SEMICOLON,
       NEWLINE,
-      "}" to CLOSE_BRACE
+      "}" to CLOSE_BRACE,
     )
   }
 
   fun testWildcardsJavaIdentifiers() {
     assertTokenTypes(
       """
-          -keep class i.am.NormalOne {
-          int ident1fier?;
-          int ?ident1fier;
-          int ident1fier*ident1fier;
-          int **ident1fier**;
-          int **弛?ident1fier**弛*ident1fier?;
-          }
-      """.trimIndent(),
+      -keep class i.am.NormalOne {
+      int ident1fier?;
+      int ?ident1fier;
+      int ident1fier*ident1fier;
+      int **ident1fier**;
+      int **弛?ident1fier**弛*ident1fier?;
+      }
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
@@ -399,7 +392,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "**弛?ident1fier**弛*ident1fier?" to JAVA_IDENTIFIER_WITH_WILDCARDS,
       ";" to SEMICOLON,
       NEWLINE,
-      "}" to CLOSE_BRACE
+      "}" to CLOSE_BRACE,
     )
   }
 
@@ -416,11 +409,12 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       """
       @keep-rules.txt
       -secondrule
-      """.trimIndent(),
+      """
+        .trimIndent(),
       "@" to AT,
       "keep-rules.txt" to FILE_NAME,
       NEWLINE,
-      "-secondrule" to FLAG_TOKEN
+      "-secondrule" to FLAG_TOKEN,
     )
   }
 
@@ -428,11 +422,12 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     assertTokenTypes(
       """
       -keep @annotation
-      """.trimIndent(),
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "@" to AT,
-      "annotation" to JAVA_IDENTIFIER
+      "annotation" to JAVA_IDENTIFIER,
     )
   }
 
@@ -440,12 +435,13 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     assertTokenTypes(
       """
       @file @file
-      """.trimIndent(),
+      """
+        .trimIndent(),
       "@" to AT,
       "file" to FILE_NAME,
       SPACE,
       "@" to AT,
-      "file" to FILE_NAME
+      "file" to FILE_NAME,
     )
   }
 
@@ -453,29 +449,31 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     assertTokenTypes(
       """
       -keep class **${'$'}D<2>
-      """.trimIndent(),
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
-      "**${'$'}D<2>" to JAVA_IDENTIFIER_WITH_WILDCARDS
+      "**${'$'}D<2>" to JAVA_IDENTIFIER_WITH_WILDCARDS,
     )
   }
 
   fun testQuotingInFileNames() {
     assertTokenTypes(
       """
-        -printusage 'xxx'
-        -printusage "xxx"
-        -printusage 'xxx xxx'
-        -printusage "xxx xxx"
-        -printusage "'xxx'"
-        -printusage " xxx xxx ("
-        -printusage '"xxx"'
-        -printusage " xxx xxx "
-        -printusage ' xxx xxx '
-        -printusage "xxx'
-      """.trimIndent(),
+      -printusage 'xxx'
+      -printusage "xxx"
+      -printusage 'xxx xxx'
+      -printusage "xxx xxx"
+      -printusage "'xxx'"
+      -printusage " xxx xxx ("
+      -printusage '"xxx"'
+      -printusage " xxx xxx "
+      -printusage ' xxx xxx '
+      -printusage "xxx'
+      """
+        .trimIndent(),
       "-printusage" to FLAG_TOKEN,
       SPACE,
       "'xxx'" to SINGLE_QUOTED_STRING,
@@ -514,7 +512,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       NEWLINE,
       "-printusage" to FLAG_TOKEN,
       SPACE,
-      "\"xxx'" to UNTERMINATED_DOUBLE_QUOTED_STRING
+      "\"xxx'" to UNTERMINATED_DOUBLE_QUOTED_STRING,
     )
   }
 
@@ -524,15 +522,16 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     // In this case, "@interface" is interpreted as the class type (interface|class|enum) before the class name.
     assertTokenTypes(
       """
-        -keep @interface butterknife.*
-      """.trimIndent(),
+      -keep @interface butterknife.*
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "@interface" to AT_INTERFACE,
       SPACE,
       "butterknife" to JAVA_IDENTIFIER,
       "." to DOT,
-      "*" to ASTERISK
+      "*" to ASTERISK,
     )
   }
 
@@ -541,8 +540,9 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     // In this case, "@interface.remaining.name" is interpreted as an annotation type.
     assertTokenTypes(
       """
-        -keep @interface.remaining.name interface androidx.interface.Keep
-      """.trimIndent(),
+      -keep @interface.remaining.name interface androidx.interface.Keep
+      """
+        .trimIndent(),
       "-keep" to FLAG_TOKEN,
       SPACE,
       "@" to AT,

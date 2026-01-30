@@ -76,8 +76,7 @@ class CommonNlDesignSurfacePreviewViewTest {
     runBlocking(uiThread) {
       val surfaceBuilder = NlSurfaceBuilder.builder(project, fixture.testRootDisposable)
 
-      previewView =
-        CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
+      previewView = CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
 
       fakeUi =
         FakeUi(
@@ -114,9 +113,7 @@ class CommonNlDesignSurfacePreviewViewTest {
         // relies on animations to hide the content. For now, the best we can do is to check that
         // the panel has received the message by checking isLoading.
         // Reported as KTIJ-36421
-        withContext(Dispatchers.Main) {
-          Assert.assertFalse(fakeUi.findComponent<JBLoadingPanel>()!!.isLoading)
-        }
+        withContext(Dispatchers.Main) { Assert.assertFalse(fakeUi.findComponent<JBLoadingPanel>()!!.isLoading) }
       }
     }
 
@@ -124,11 +121,7 @@ class CommonNlDesignSurfacePreviewViewTest {
   fun testErrorMessage() =
     runBlocking(Dispatchers.Default) {
       withContext(uiThread) {
-        previewView.showErrorMessage(
-          "error foo happened",
-          UrlData("foo url text", "www.foo.bar"),
-          null,
-        )
+        previewView.showErrorMessage("error foo happened", UrlData("foo url text", "www.foo.bar"), null)
         fakeUi.root.validate()
       }
 
@@ -138,9 +131,7 @@ class CommonNlDesignSurfacePreviewViewTest {
         Assert.assertTrue(
           fakeUi
             .findComponent<InstructionsPanel> { panel ->
-              panel.toDisplayText().let {
-                it.contains("error foo happened") && it.contains("[foo url text]")
-              }
+              panel.toDisplayText().let { it.contains("error foo happened") && it.contains("[foo url text]") }
             }
             .isVisible()
         )
@@ -151,9 +142,7 @@ class CommonNlDesignSurfacePreviewViewTest {
         Assert.assertFalse(
           fakeUi
             .findComponent<InstructionsPanel> { panel ->
-              panel.toDisplayText().let {
-                it.contains("error foo happened") && it.contains("[foo url text]")
-              }
+              panel.toDisplayText().let { it.contains("error foo happened") && it.contains("[foo url text]") }
             }
             .isVisible()
         )

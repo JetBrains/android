@@ -24,11 +24,15 @@ class MemoryAllocSampling(timer: FakeTimer) : CommandHandler(timer) {
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     samplingRate = command.memoryAllocSampling.samplingNumInterval
-    events.add(Common.Event.newBuilder().apply {
-      pid = command.pid
-      kind = Common.Event.Kind.MEMORY_ALLOC_SAMPLING
-      timestamp = timer.currentTimeNs
-      memoryAllocSampling = command.memoryAllocSampling
-    }.build())
+    events.add(
+      Common.Event.newBuilder()
+        .apply {
+          pid = command.pid
+          kind = Common.Event.Kind.MEMORY_ALLOC_SAMPLING
+          timestamp = timer.currentTimeNs
+          memoryAllocSampling = command.memoryAllocSampling
+        }
+        .build()
+    )
   }
 }

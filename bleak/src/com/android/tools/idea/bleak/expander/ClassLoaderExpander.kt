@@ -19,11 +19,12 @@ import com.android.tools.idea.bleak.BleakHelper
 
 object BootstrapClassloaderPlaceholder
 
-/** Expands a ClassLoader, with an edge to each class it defines. The bootstrap ClassLoader is represented by
- * null in [Class.getClassLoader], but every Node must correspond to a non-null object.
- * [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class loader for this purpose.
+/**
+ * Expands a ClassLoader, with an edge to each class it defines. The bootstrap ClassLoader is represented by null in [Class.getClassLoader],
+ * but every Node must correspond to a non-null object. [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class
+ * loader for this purpose.
  */
-class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
+class ClassLoaderExpander(val bleakHelper: BleakHelper) : Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder
@@ -34,15 +35,17 @@ class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
     val map = mutableMapOf<Label, Node>()
     labelToNodeMap[n] = map
     val cl = if (n.obj === BootstrapClassloaderPlaceholder) null else n.obj as ClassLoader
-    bleakHelper.classesFor(cl)?.filterNot { it.isArray }?.forEach {
-      val label = ObjectLabel(it)
-      val childNode = n.addEdgeTo(it, label)
-      if (childNode != null) map[label] = childNode
-    }
+    bleakHelper
+      .classesFor(cl)
+      ?.filterNot { it.isArray }
+      ?.forEach {
+        val label = ObjectLabel(it)
+        val childNode = n.addEdgeTo(it, label)
+        if (childNode != null) map[label] = childNode
+      }
   }
 
   override fun getChildForLabel(n: Node, label: Label): Node? {
     return labelToNodeMap[n]?.get(label) ?: super.getChildForLabel(n, label)
   }
-
 }

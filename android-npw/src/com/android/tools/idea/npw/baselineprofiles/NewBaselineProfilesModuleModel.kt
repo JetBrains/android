@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -33,11 +33,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 
-class NewBaselineProfilesModuleModel(
-  project: Project,
-  moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker,
-) :
+class NewBaselineProfilesModuleModel(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) :
   ModuleModel(
     name = "baselineProfile",
     commandName = "New Baseline Profile Module",
@@ -80,8 +76,7 @@ class NewBaselineProfilesModuleModel(
 }
 
 /**
- * Checks [targetModule] for minSdk and applies maxOf(targetModule.minSdk,
- * SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
+ * Checks [targetModule] for minSdk and applies maxOf(targetModule.minSdk, SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
  */
 fun getBaselineProfilesMinSdk(targetModule: Module?): Int {
   val targetModuleMinSdk = getModuleMinSdk(targetModule)
@@ -98,8 +93,7 @@ fun getBaselineProfilesMinSdk(targetModule: Module?): Int {
 fun getModuleMinSdk(targetModule: Module?): Int? {
   targetModule ?: return null
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return null
-  val targetModuleAndroidModel =
-    projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return null
+  val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return null
 
   return targetModuleAndroidModel.defaultConfig().minSdkVersion().toInt()
 }

@@ -21,8 +21,6 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath
@@ -30,15 +28,14 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import kotlin.jvm.optionals.getOrNull
 
-/**
- * Adds in-project generated `.srcjar` files to the project proto. This allows these sources
- * to be resolved and viewed.
- */
+/** Adds in-project generated `.srcjar` files to the project proto. This allows these sources to be resolved and viewed. */
 class AddProjectGenSrcJars(
   private val projectDefinition: ProjectDefinition,
-  private val srcJarPathMetadata: ArtifactMetadata.Extractor<SrcJarPrefixedJavaPackageRoots>
+  private val srcJarPathMetadata: ArtifactMetadata.Extractor<SrcJarPrefixedJavaPackageRoots>,
 ) : ProjectProtoUpdateOperation {
   private val testSourceMatcher: TestSourceGlobMatcher = TestSourceGlobMatcher.create(projectDefinition)
 
@@ -50,9 +47,7 @@ class AddProjectGenSrcJars(
     return javaInfo.genSrcs().filter { ProjectProtoUpdateOperation.Companion.JAVA_ARCHIVE_EXTENSIONS.contains(it.getExtension()) }
   }
 
-  override fun getRequiredArtifacts(
-    forTarget: TargetBuildInfo
-  ): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
+  override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
     return getProjectGenSrcJars(forTarget).associateWith { listOf(srcJarPathMetadata) }
   }
 
@@ -67,35 +62,25 @@ class AddProjectGenSrcJars(
         val genSrcJars = getProjectGenSrcJars(target)
         if (genSrcJars.isEmpty()) continue
         update.module(target.label()) {
-          genSrcJars
-            .forEach { genSrc ->
-              // a zip of generated sources
-              val added =
-                  addIfNewer(
-                    genSrc.artifactPath().resolve("src"),
-                    genSrc,
-                    target.buildContext(),
-                    ArtifactTransform.UNZIP
-                  )
-              if (added != null) {
-                contentEntry(added) {
-                  val packageRoots =
-                    genSrc
-                      .getMetadata(SrcJarPrefixedJavaPackageRoots::class.java)
-                      .getOrNull()
-                      ?.paths()
+          genSrcJars.forEach { genSrc ->
+            // a zip of generated sources
+            val added = addIfNewer(genSrc.artifactPath().resolve("src"), genSrc, target.buildContext(), ArtifactTransform.UNZIP)
+            if (added != null) {
+              contentEntry(added) {
+                val packageRoots =
+                  genSrc.getMetadata(SrcJarPrefixedJavaPackageRoots::class.java).getOrNull()?.paths()
                     ?: ImmutableSet.of(JarPath.create("", ""))
-                  for (innerPath in packageRoots) {
-                    addSourceRoot(
-                      root = added.resolveChild(innerPath.path),
-                      javaPackage = innerPath.packagePrefix,
-                      isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
-                      isGenerated = true
-                    )
-                  }
+                for (innerPath in packageRoots) {
+                  addSourceRoot(
+                    root = added.resolveChild(innerPath.path),
+                    javaPackage = innerPath.packagePrefix,
+                    isTest = testSourceMatcher.matches(genSrc.target().getBuildPackagePath()),
+                    isGenerated = true,
+                  )
                 }
               }
             }
+          }
         }
       }
     }

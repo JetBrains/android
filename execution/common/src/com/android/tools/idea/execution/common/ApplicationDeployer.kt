@@ -21,18 +21,34 @@ import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.run.ApkInfo
 import com.intellij.openapi.progress.ProgressIndicator
 
-/**
- * Deploys one app, described as [ApkInfo], at a time.
- */
+/** Deploys one app, described as [ApkInfo], at a time. */
 interface ApplicationDeployer {
   @Throws(DeployerException::class)
-  fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
+  fun fullDeploy(
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
+  ): Deployer.Result
 
   @Throws(DeployerException::class)
-  fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
+  fun applyChangesDeploy(
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
+  ): Deployer.Result
 
   @Throws(DeployerException::class)
-  fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result
+  fun applyCodeChangesDeploy(
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    hasMakeBeforeRun: Boolean,
+    indicator: ProgressIndicator,
+  ): Deployer.Result
 }
 
 data class DeployOptions(

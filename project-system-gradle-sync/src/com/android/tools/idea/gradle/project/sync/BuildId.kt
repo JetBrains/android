@@ -20,6 +20,9 @@ import java.io.File
 
 @JvmInline
 value class BuildId(private val buildRoot: File) {
-  val asFile: File get() = buildRoot
-  val asString: String get() = FileUtil.toSystemIndependentName(buildRoot.path)
+  val asFile: File
+    get() = buildRoot
+
+  val asString: String
+    get() = FileUtil.toSystemIndependentName(buildRoot.path)
 }

@@ -26,10 +26,8 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 import com.google.common.collect.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 
-class KotlinSourceSetDslElement(
-  parent: GradleDslElement,
-  name: GradleNameElement
-) : GradleDslBlockElement(parent, name), GradleDslNamedDomainElement {
+class KotlinSourceSetDslElement(parent: GradleDslElement, name: GradleNameElement) :
+  GradleDslBlockElement(parent, name), GradleDslNamedDomainElement {
 
   private var methodName: String? = null
 
@@ -48,18 +46,18 @@ class KotlinSourceSetDslElement(
   override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
     CHILD_PROPERTIES_ELEMENTS_MAP
 
-
   override fun getExternalToModelMap(converter: GradleDslNameConverter): ExternalToModelMap =
     getExternalToModelMap(converter, ktsToModelNameMap, groovyToModelNameMap, declarativeToModelNameMap)
 
   companion object {
     @JvmField
-    val KOTLIN_SOURCE_SET = PropertiesElementDescription(
-      null,
-      KotlinSourceSetDslElement::class.java,
-      { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetDslElement(parent, name) },
-      "kotlinSourceSet"
-    )
+    val KOTLIN_SOURCE_SET =
+      PropertiesElementDescription(
+        null,
+        KotlinSourceSetDslElement::class.java,
+        { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetDslElement(parent, name) },
+        "kotlinSourceSet",
+      )
 
     val CHILD_PROPERTIES_ELEMENTS_MAP: ImmutableMap<String, PropertiesElementDescription<*>> =
       ImmutableMap.copyOf(persistentMapOf("dependencies" to DependenciesDslElement.DEPENDENCIES))

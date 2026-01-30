@@ -39,6 +39,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
+import java.awt.event.KeyEvent.VK_SHIFT
+import java.util.concurrent.TimeoutException
+import javax.swing.JLabel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -46,15 +51,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.event.KeyEvent.VK_SHIFT
-import java.util.concurrent.TimeoutException
-import javax.swing.JLabel
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
- * Find the [PsiFile] corresponding to a file that is part of the given [project], whose location is
- * defined by the given [relativePath] from the [project]'s root directory.
+ * Find the [PsiFile] corresponding to a file that is part of the given [project], whose location is defined by the given [relativePath]
+ * from the [project]'s root directory.
  */
 fun getPsiFile(project: Project, relativePath: String): PsiFile {
   val vFile = project.guessProjectDir()!!.findFileByRelativePath(relativePath)!!
@@ -62,14 +62,10 @@ fun getPsiFile(project: Project, relativePath: String): PsiFile {
 }
 
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
-suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
-  fakeUi: FakeUi,
-  timeout: Duration = 90.seconds,
-) =
+suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi, timeout: Duration = 90.seconds) =
   try {
     withTimeout(timeout = timeout) {
-      Logger.getInstance(ComposePreviewRepresentation::class.java)
-        .debug("Activating ComposePreviewRepresentation for tests")
+      Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Activating ComposePreviewRepresentation for tests")
       onActivate()
 
       var retryCounter = 0
@@ -93,8 +89,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
           }
         }
       }
-      Logger.getInstance(ComposePreviewRepresentation::class.java)
-        .debug("ComposePreviewRepresentation active")
+      Logger.getInstance(ComposePreviewRepresentation::class.java).debug("ComposePreviewRepresentation active")
 
       // Now wait for them to be rendered
       waitForRender(sceneViewPeerPanels, timeout)
@@ -106,20 +101,12 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
     )
   }
 
-suspend fun waitForRender(
-  sceneViewPeerPanels: Set<SceneViewPeerPanel>,
-  timeout: Duration = 60.seconds,
-) =
+suspend fun waitForRender(sceneViewPeerPanels: Set<SceneViewPeerPanel>, timeout: Duration = 60.seconds) =
   withTimeout(timeout) {
     Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Waiting for render")
     waitForAllRefreshesToFinish(timeout)
     var retryCounter = 0
-    while (
-      isActive &&
-        sceneViewPeerPanels.any {
-          (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
-        }
-    ) {
+    while (isActive && sceneViewPeerPanels.any { (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null }) {
       if (retryCounter++ % 4 == 0) {
         Logger.getInstance(ComposePreviewRepresentation::class.java).debug {
           val resultsString =
@@ -138,11 +125,7 @@ fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
   runInEdtAndWait { clickRelativeTo(nameLabel, 1, 1) }
 }
 
-fun FakeUi.clickPreviewImage(
-  sceneViewPanel: SceneViewPeerPanel,
-  rightClick: Boolean = false,
-  pressingShift: Boolean = false,
-) {
+fun FakeUi.clickPreviewImage(sceneViewPanel: SceneViewPeerPanel, rightClick: Boolean = false, pressingShift: Boolean = false) {
   sceneViewPanel.positionableAdapter.let {
     runInEdtAndWait {
       if (pressingShift) keyboard.press(VK_SHIFT)
@@ -157,8 +140,7 @@ fun FakeUi.clickPreviewImage(
 }
 
 fun createNlModelForCompose(parent: Disposable, facet: AndroidFacet, file: VirtualFile): NlModel {
-  val nlModel =
-    create(parent, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
+  val nlModel = create(parent, NlComponentRegistrar, AndroidBuildTargetReference.gradleOnly(facet), file)
   // Sets the correct model update for Compose
   nlModel.setModelUpdater(AccessibilityModelUpdater())
   return nlModel

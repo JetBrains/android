@@ -33,9 +33,7 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import org.jetbrains.annotations.Nls
 
-/**
- * A [com.intellij.openapi.fileEditor.FileEditor] for displaying profiler captures in a main editor tab.
- */
+/** A [com.intellij.openapi.fileEditor.FileEditor] for displaying profiler captures in a main editor tab. */
 class UnifiedProfilerFileEditor(private val project: Project, private val file: VirtualFile) : UserDataHolderBase(), FileEditor {
 
   private val component: JComponent = JLabel("Unified Profiler Capture View for ${file.name}", SwingConstants.CENTER)
@@ -49,9 +47,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
     // leaving only the imported session visible.
     // TODO(b/472667234): Investigate and implement a alternative approach to directly open imported file.
     if (!FileUtil.isAncestor(FileUtil.getTempDirectory(), file.path, true)) {
-      SwingUtilities.invokeLater {
-        FileEditorManager.getInstance(project).closeFile(file)
-      }
+      SwingUtilities.invokeLater { FileEditorManager.getInstance(project).closeFile(file) }
     }
   }
 
@@ -59,8 +55,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
 
   override fun getPreferredFocusedComponent() = component
 
-  @Nls(capitalization = Nls.Capitalization.Title)
-  override fun getName() = "Profiler Capture"
+  @Nls(capitalization = Nls.Capitalization.Title) override fun getName() = "Profiler Capture"
 
   override fun setState(state: FileEditorState) {}
 
@@ -78,6 +73,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
 
   /**
    * Handles the import of an external profiler file into the Android Profiler tool window.
+   *
    * @param project The current project context.
    * @param file The [VirtualFile] representing the profiler data to be imported.
    */
@@ -99,7 +95,7 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
           return
         }
         // Check if the file is already tracked in sessions to avoid duplicate imports.
-        //TODO(b/472667234): File will be handled by external
+        // TODO(b/472667234): File will be handled by external
         val isAlreadyImported = profilerToolWindow.profilers.sessionsManager.sessionArtifacts.any { it.name == file.name }
         if (!isAlreadyImported) {
           profilerToolWindow.openFile(file)
@@ -108,6 +104,5 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 }

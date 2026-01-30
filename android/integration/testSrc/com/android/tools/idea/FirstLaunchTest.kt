@@ -19,15 +19,13 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.testlib.Display
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
-import org.junit.Rule
-import org.junit.Test
 import java.nio.file.Files
 import kotlin.io.path.name
+import org.junit.Rule
+import org.junit.Test
 
 class FirstLaunchTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.basicRemoteSDK(Display.createDefault(), Files.createTempDirectory("root"))
 
   @Test
   fun firstLaunchTest() {
@@ -58,16 +56,7 @@ class FirstLaunchTest {
 
       val fileNames = getFileNamesInSdkDirectory(system)
       val expectedFiles: List<String> =
-        ArrayList(
-          mutableListOf(
-            "build-tools",
-            "emulator",
-            "licenses",
-            "platforms",
-            "platform-tools",
-            "sources",
-          )
-        )
+        ArrayList(mutableListOf("build-tools", "emulator", "licenses", "platforms", "platform-tools", "sources"))
       Truth.assertThat<String>(fileNames).asList().containsAllIn(expectedFiles)
     }
   }
@@ -77,18 +66,17 @@ class FirstLaunchTest {
       system.installation.addVmOption("-Dnpw.first.run.wizard.show=true")
       system.installation.addVmOption("-Dnpw.first.run.offline=true")
       system.installation.addVmOption("-Dnpw.first.run.accept.sdk.license=true")
+      system.installation.addVmOption(String.format("-Dnpw.first.run.local.app.data=%s", system.installation.fileSystem.root))
       system.installation.addVmOption(
-        String.format("-Dnpw.first.run.local.app.data=%s", system.installation.fileSystem.root)
-      )
-      system.installation.addVmOption("-Dnpw.new.project.compile.sdk=35") // Keep in sync with the version in data for //android/integration:FirstLaunchTest
+        "-Dnpw.new.project.compile.sdk=35"
+      ) // Keep in sync with the version in data for //android/integration:FirstLaunchTest
     }
 
     fun getFileNamesInSdkDirectory(system: AndroidSystem): Array<String?> {
       var directory = system.installation.fileSystem.root
       if (SystemInfo.isLinux) {
         directory = directory.resolve("home")
-      }
-      else if (SystemInfo.isMac) {
+      } else if (SystemInfo.isMac) {
         directory = directory.resolve("Library")
       }
       val files = Files.list(directory.resolve("Android").resolve("Sdk")).toList()

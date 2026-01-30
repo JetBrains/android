@@ -26,10 +26,8 @@ import java.awt.event.MouseEvent
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
-class IssueTableMouseListener(private val controller: AppInsightsProjectLevelController) :
-  MouseAdapter() {
-  private val appInsightState =
-    controller.state.stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
+class IssueTableMouseListener(private val controller: AppInsightsProjectLevelController) : MouseAdapter() {
+  private val appInsightState = controller.state.stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
 
   override fun mouseReleased(e: MouseEvent) = handleMouseClick(e)
 

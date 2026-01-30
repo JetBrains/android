@@ -38,8 +38,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
     @JvmStatic @Parameterized.Parameters(name = "useGradleKts={0}") fun data() = listOf(false, true)
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @After
   fun tearDown() {
@@ -53,11 +52,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     val project = projectRule.project
     val model =
-      NewBenchmarkModuleModel(
-          project = project,
-          moduleParent = ":",
-          projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-        )
+      NewBenchmarkModuleModel(project = project, moduleParent = ":", projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker())
         .apply {
           // SimpleApplication app minSdkVersion
           androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(21)
@@ -80,11 +75,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     val project = projectRule.project
     val model =
-      NewBenchmarkModuleModel(
-          project = project,
-          moduleParent = ":",
-          projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-        )
+      NewBenchmarkModuleModel(project = project, moduleParent = ":", projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker())
         .apply {
           // Lowest supported min sdk for macrobenchmark
           androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(23)

@@ -28,16 +28,10 @@ class ProcessesModelTest {
     return Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE).build()
   }
 
-  private fun Common.Stream.createFakeProcess(
-    name: String? = null,
-    pid: Int = 0,
-  ): ProcessDescriptor {
+  private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
-      FakeTransportService.FAKE_PROCESS.toBuilder()
-        .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
-        .setPid(pid)
-        .build(),
+      FakeTransportService.FAKE_PROCESS.toBuilder().setName(name ?: FakeTransportService.FAKE_PROCESS_NAME).setPid(pid).build(),
     )
   }
 
@@ -89,8 +83,7 @@ class ProcessesModelTest {
 
     testNotifier.fireConnected(fakeProcessA)
     testNotifier.fireConnected(fakeProcessB)
-    assertThat(model.selectedProcess)
-      .isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
+    assertThat(model.selectedProcess).isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
 
     model.selectedProcess = fakeProcessB
     assertThat(model.selectedProcess).isSameAs(fakeProcessB)

@@ -23,7 +23,5 @@ import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 fun main() {
   val nodes = populateCheckboxNodes(SettingsSyncStateHolder())
 
-  standaloneSingleWindowApplication(title = "Test HierarchicalCheckboxes") {
-    IntUiTheme { HierarchicalCheckboxes(nodes) }
-  }
+  standaloneSingleWindowApplication(title = "Test HierarchicalCheckboxes") { IntUiTheme { HierarchicalCheckboxes(nodes) } }
 }

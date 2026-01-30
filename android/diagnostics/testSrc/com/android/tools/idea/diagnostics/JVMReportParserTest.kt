@@ -20,23 +20,21 @@ import java.io.BufferedReader
 import java.io.FileReader
 import java.nio.file.Path
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import org.junit.After
 
 class JVMReportParserTest {
   private lateinit var parser: JVMReportParser
   private lateinit var testLogReader: BufferedReader
 
-  @Rule
-  @JvmField
-  val tmpFolder = TemporaryFolder()
+  @Rule @JvmField val tmpFolder = TemporaryFolder()
 
   @Before
   fun setup() {
@@ -54,9 +52,7 @@ class JVMReportParserTest {
 
   @Test
   fun testReadNextSectionLineAtBeginningOfFile() {
-    val e = assertFailsWith<IllegalStateException> {
-      parser.readNextSectionLine()
-    }
+    val e = assertFailsWith<IllegalStateException> { parser.readNextSectionLine() }
     assertEquals("Not started reading the file yet", e.message)
   }
 
@@ -116,9 +112,7 @@ class JVMReportParserTest {
 
   @Test
   fun testIsEndOfSection() {
-    val e = assertFailsWith<IllegalStateException> {
-      parser.isEndOfSection()
-    }
+    val e = assertFailsWith<IllegalStateException> { parser.isEndOfSection() }
     assertEquals("Not started reading the file yet", e.message)
     parser.goToNextSection()
 
@@ -133,9 +127,7 @@ class JVMReportParserTest {
     assertTrue(parser.isEndOfSection())
 
     // when reached EOF, isEndOfSection() should return true
-    repeat(6) {
-      parser.goToNextSection()
-    }
+    repeat(6) { parser.goToNextSection() }
     assertTrue(parser.isEOF()) // reached EOF
 
     assertTrue(parser.isEndOfSection())
@@ -143,18 +135,14 @@ class JVMReportParserTest {
 
   @Test
   fun testIsEndOfSubsection() {
-    val e = assertFailsWith<IllegalStateException> {
-      parser.isEndOfSubsection()
-    }
+    val e = assertFailsWith<IllegalStateException> { parser.isEndOfSubsection() }
     assertEquals("Not started reading the file yet", e.message)
 
     // set up to a clearer start of a subsection
     parser.goToNextSection()
     parser.goToNextSection()
     parser.goToNextSection()
-    repeat(10) {
-      parser.readNextSectionLine()
-    }
+    repeat(10) { parser.readNextSectionLine() }
 
     // reached start of a subsection, start test
     repeat(7) {
@@ -164,17 +152,13 @@ class JVMReportParserTest {
     assertTrue(parser.isEndOfSubsection())
 
     // set parser to an end of section, isEndOfSubsection() should also return true
-    repeat(91) {
-      parser.readNextSectionLine()
-    }
+    repeat(91) { parser.readNextSectionLine() }
     assertTrue(parser.isEndOfSection()) // reached end of section
 
     assertTrue(parser.isEndOfSubsection())
 
     // set parser to EOF, isEndOfSubsection() should also return true
-    repeat(4) {
-      parser.goToNextSection()
-    }
+    repeat(4) { parser.goToNextSection() }
     assertTrue(parser.isEOF()) // reached EOF
 
     assertTrue(parser.isEndOfSubsection())
@@ -219,26 +203,18 @@ class JVMReportParserTest {
   @Test
   fun testReadLineAndGoToNextSectionAtEOF() {
     // set to EOF
-    repeat(7) {
-      parser.goToNextSection()
-    }
+    repeat(7) { parser.goToNextSection() }
 
-    val e1 = assertFailsWith<IllegalStateException> {
-      parser.readNextSectionLine()
-    }
+    val e1 = assertFailsWith<IllegalStateException> { parser.readNextSectionLine() }
     assertEquals("Reached EOF, cannot proceed further", e1.message)
 
-    val e2 = assertFailsWith<IllegalStateException> {
-      parser.goToNextSection()
-    }
+    val e2 = assertFailsWith<IllegalStateException> { parser.goToNextSection() }
     assertEquals("Reached EOF, cannot proceed further", e2.message)
   }
 
   @Test
   fun testGetCurrentSectionTypeAtBeginningOfFile() {
-    val e = assertFailsWith<IllegalStateException> {
-      parser.getCurrentSectionType()
-    }
+    val e = assertFailsWith<IllegalStateException> { parser.getCurrentSectionType() }
     assertEquals("Not started reading the file yet", e.message)
   }
 
@@ -273,10 +249,8 @@ class JVMReportParserTest {
   @Test
   fun testGetCurrentSectionTypeAtEOF() {
     // set to EOF
-    repeat(7) {
-      parser.goToNextSection()
-    }
-    assertTrue(parser.isEOF())// reached EOF
+    repeat(7) { parser.goToNextSection() }
+    assertTrue(parser.isEOF()) // reached EOF
 
     assertEquals(SectionType.EOF, parser.getCurrentSectionType())
   }
@@ -287,16 +261,12 @@ class JVMReportParserTest {
     val emptyReader = BufferedReader(FileReader(emptyFile))
     val parser = JVMReportParser(emptyReader)
 
-    val e1 = assertFailsWith<IllegalStateException> {
-      parser.readNextSectionLine()
-    }
+    val e1 = assertFailsWith<IllegalStateException> { parser.readNextSectionLine() }
     assertEquals("Not started reading the file yet", e1.message)
 
     parser.goToNextSection()
     assertEquals(SectionType.EOF, parser.getCurrentSectionType())
-    val e2 = assertFailsWith<IllegalStateException> {
-      parser.readNextSectionLine()
-    }
+    val e2 = assertFailsWith<IllegalStateException> { parser.readNextSectionLine() }
     assertEquals("Reached EOF, cannot proceed further", e2.message)
     assertTrue(parser.isEOF())
 
@@ -306,9 +276,10 @@ class JVMReportParserTest {
   @Test
   fun testParserForTwoSectionTitlesBackToBack() {
     val file = tmpFolder.newFile()
-    val logContent = "---------------  S U M M A R Y ------------\n" +
-                     "---------------  T H R E A D  ---------------\n" +
-                     "---------------  P R O C E S S  ---------------\n"
+    val logContent =
+      "---------------  S U M M A R Y ------------\n" +
+        "---------------  T H R E A D  ---------------\n" +
+        "---------------  P R O C E S S  ---------------\n"
     file.writeText(logContent)
     val testReader = BufferedReader(FileReader(file))
     val parser = JVMReportParser(testReader)
@@ -380,18 +351,14 @@ class JVMReportParserTest {
     assertEquals(SectionType.Summary, parser.getCurrentSectionType())
     parser.readNextSectionLine()
     assertEquals("Summary 1", parser.readNextSectionLine())
-    repeat(5) {
-      parser.readNextSectionLine()
-    }
+    repeat(5) { parser.readNextSectionLine() }
     assertNull(parser.readNextSectionLine())
 
     parser.goToNextSection()
     assertEquals(SectionType.Summary, parser.getCurrentSectionType())
     parser.readNextSectionLine()
     assertEquals("Summary 2", parser.readNextSectionLine())
-    repeat(6) {
-      parser.readNextSectionLine()
-    }
+    repeat(6) { parser.readNextSectionLine() }
     assertNull(parser.readNextSectionLine())
 
     parser.goToNextSection()
@@ -408,10 +375,11 @@ class JVMReportParserTest {
   @Test
   fun testParserWrongSectionTitleSameSection() {
     val file = tmpFolder.newFile()
-    val logContent = "-----------  S U M M A R Y\n" +
-                     "-----  T H R e a d  ---------------\n" +
-                     "---------------  process  ---------------\n" +
-                     "---------------  sy    st  e m\n"
+    val logContent =
+      "-----------  S U M M A R Y\n" +
+        "-----  T H R e a d  ---------------\n" +
+        "---------------  process  ---------------\n" +
+        "---------------  sy    st  e m\n"
     file.writeText(logContent)
     val testReader = BufferedReader(FileReader(file))
     val parser = JVMReportParser(testReader)
@@ -438,8 +406,7 @@ class JVMReportParserTest {
   @Test
   fun testParserWrongSectionTitleDifferentSection() {
     val file = tmpFolder.newFile()
-    val logContent = "--- S U M M A R Y ------------\n" +
-                     "---------------  T H R E A D :  ---------------\n"
+    val logContent = "--- S U M M A R Y ------------\n" + "---------------  T H R E A D :  ---------------\n"
     file.writeText(logContent)
     val testReader = BufferedReader(FileReader(file))
     val parser = JVMReportParser(testReader)
@@ -458,8 +425,7 @@ class JVMReportParserTest {
   @Test
   fun testParserWrongSectionTitleNoSection() {
     val file = tmpFolder.newFile()
-    val logContent = "#\n" +
-                     "---  T H R E A D  ---------------\n"
+    val logContent = "#\n" + "---  T H R E A D  ---------------\n"
     file.writeText(logContent)
     val testReader = BufferedReader(FileReader(file))
     val parser = JVMReportParser(testReader)

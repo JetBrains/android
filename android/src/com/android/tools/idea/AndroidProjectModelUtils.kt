@@ -42,14 +42,11 @@ import org.jetbrains.android.facet.AndroidFacet
  * [ExternalAndroidLibrary.address] which is unique within a project.
  */
 fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroidLibrary> {
-  return ModuleManager.getInstance(project)
-    .modules
-    .asSequence()
-    .map(::findDependenciesWithResources)
-    .fold(HashMap()) { inProject, inModule ->
-      inProject.putAll(inModule)
-      inProject
-    }
+  return ModuleManager.getInstance(project).modules.asSequence().map(::findDependenciesWithResources).fold(HashMap()) { inProject, inModule
+    ->
+    inProject.putAll(inModule)
+    inProject
+  }
 }
 
 /**
@@ -57,13 +54,14 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroid
  * [ExternalAndroidLibrary.address] which is unique within a project.
  */
 fun findDependenciesWithResources(module: Module): Map<String, ExternalAndroidLibrary> =
-  (module.project.getProjectSystem().getTokenOrNull(FindDependenciesWithResourcesToken.EP_NAME)
-     ?.findDependencies(module.getModuleSystem(), module)
-    ?: module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN))
+  (module.project
+      .getProjectSystem()
+      .getTokenOrNull(FindDependenciesWithResourcesToken.EP_NAME)
+      ?.findDependencies(module.getModuleSystem(), module)
+      ?: module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN))
     .filter { it.hasResources }
     .associateBy { library -> library.address }
 
-/**
- * Checks namespacing of the module with the given [AndroidFacet].
- */
-val AndroidFacet.namespacing: Namespacing get() = AndroidModel.get(this)?.namespacing ?: Namespacing.DISABLED
+/** Checks namespacing of the module with the given [AndroidFacet]. */
+val AndroidFacet.namespacing: Namespacing
+  get() = AndroidModel.get(this)?.namespacing ?: Namespacing.DISABLED

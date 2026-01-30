@@ -33,7 +33,8 @@ fun Path.toFileNameSet(): Set<String> {
     object : SimpleFileVisitor<Path>() {
       override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
         file?.let { generatedFilesSet.add(it.fileName.toString()) }
-        @Suppress("BlockingMethodInNonBlockingContext") return super.visitFile(file, attrs)
+        @Suppress("BlockingMethodInNonBlockingContext")
+        return super.visitFile(file, attrs)
       }
     },
   )
@@ -41,6 +42,5 @@ fun Path.toFileNameSet(): Set<String> {
 }
 
 fun RenderingBuildStatusManagerForTests.simulateResourcesChange() {
-  getResourcesListenerForTest()
-    .resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
+  getResourcesListenerForTest().resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
 }

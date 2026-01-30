@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.RuleChain
+import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -30,17 +31,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import kotlin.test.fail
 
-/**
- * Tests for [clearAppStorage]
- */
+/** Tests for [clearAppStorage] */
 class ClearAppStorageTest {
   val projectRule = AndroidProjectRule.inMemory()
   val notificationRule = NotificationRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, notificationRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, notificationRule)
 
   @Test
   fun appExists_success() {
@@ -56,7 +53,8 @@ class ClearAppStorageTest {
     clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
     verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
-    val notificationInfo = notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
+    val notificationInfo =
+      notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
     Truth.assertThat(notificationInfo).isNotNull()
   }
 
@@ -74,11 +72,12 @@ private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = tr
   whenever(mock.executeShellCommand(any(), any())).thenAnswer {
     val command = it.arguments[0] as String
     val receiver = it.arguments[1] as CollectingOutputReceiver
-    val result = when {
-      command == "pm clear $packageName" -> if (clearAppStorageSuccess) "Success" else "Failed"
-      command.startsWith("pm list packages ") -> if (command.endsWith(" $packageName")) "package:$packageName" else ""
-      else -> fail("""Command "$command" not setup in mock""")
-    }
+    val result =
+      when {
+        command == "pm clear $packageName" -> if (clearAppStorageSuccess) "Success" else "Failed"
+        command.startsWith("pm list packages ") -> if (command.endsWith(" $packageName")) "package:$packageName" else ""
+        else -> fail("""Command "$command" not setup in mock""")
+      }
     whenever(mock.name).thenReturn("device1")
 
     receiver.addOutput(result.toByteArray(), 0, result.length)

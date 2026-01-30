@@ -27,18 +27,17 @@ import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.bindIntValue
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.concurrency.AppExecutorUtil
-import org.jetbrains.annotations.Nls
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.random.Random
 import kotlin.reflect.KMutableProperty0
+import org.jetbrains.annotations.Nls
 
 /**
- * An internal action to put the rendering pipeline into a "lagging mode". This will create slow rendering requests
- * to slow down the rendering pipeline.
- * This can be used to test how other components of the rendering (Layout Editor, Compose Preview, Resource Manager, RenderTask)
- * react to a heavy loaded queue. This can be used to verify that the code from those components can gracefully handle timeouts or
- * slow renderings correctly.
+ * An internal action to put the rendering pipeline into a "lagging mode". This will create slow rendering requests to slow down the
+ * rendering pipeline. This can be used to test how other components of the rendering (Layout Editor, Compose Preview, Resource Manager,
+ * RenderTask) react to a heavy loaded queue. This can be used to verify that the code from those components can gracefully handle timeouts
+ * or slow renderings correctly.
  */
 class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
   private val LOG = Logger.getInstance(RenderLaggingMode::class.java)
@@ -47,26 +46,34 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
 
   /** Minimum time for a request to execute in the rendering thread. */
   private var minWaitTimeMs = TimeUnit.SECONDS.toMillis(2).toInt()
-    set(value) { field = value.coerceAtMost(maxWaitTimeMs) }
+    set(value) {
+      field = value.coerceAtMost(maxWaitTimeMs)
+    }
 
   /** Maximum time for a request to execute in the rendering thread. */
   private var maxWaitTimeMs = TimeUnit.SECONDS.toMillis(4).toInt()
-    set(value) { field = value.coerceAtLeast(minWaitTimeMs)}
+    set(value) {
+      field = value.coerceAtLeast(minWaitTimeMs)
+    }
 
   /**
    * Minimum time to space requests creation. If this is smaller than [minWaitTimeMs], requests will accumulate in the queue and will
    * eventually cause the queue to become full.
    */
   private var minSpaceTimeMs = 500
-    set(value) { field = value.coerceAtMost(maxSpaceTimeMs) }
+    set(value) {
+      field = value.coerceAtMost(maxSpaceTimeMs)
+    }
 
   /** Max time between two wait requests. */
   private var maxSpaceTimeMs = TimeUnit.SECONDS.toMillis(5).toInt()
-    set(value) { field = value.coerceAtLeast(minSpaceTimeMs)}
+    set(value) {
+      field = value.coerceAtLeast(minSpaceTimeMs)
+    }
 
   /**
-   * The [lagger] method will wait on this lock to do its sleep cycles. When the action is disabled, the lock will be released
-   * so all the waits will immediately be cancelled.
+   * The [lagger] method will wait on this lock to do its sleep cycles. When the action is disabled, the lock will be released so all the
+   * waits will immediately be cancelled.
    */
   private val sleepLock = ReentrantReadWriteLock()
   private val lagger = {
@@ -91,19 +98,21 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
   }
 
   override fun isSelected(e: AnActionEvent): Boolean = enabled
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (enabled) {
       enabled = false
       sleepLock.writeLock().unlock()
-    }
-    else {
+    } else {
       val builder = DialogBuilder()
-      builder.setCenterPanel(panel {
-        spinnerParamMs("Min wait time", ::minWaitTimeMs)
-        spinnerParamMs("Max wait time", ::maxWaitTimeMs)
-        spinnerParamMs("Min action space time", ::minSpaceTimeMs)
-        spinnerParamMs("Max action space time", ::maxSpaceTimeMs)
-      })
+      builder.setCenterPanel(
+        panel {
+          spinnerParamMs("Min wait time", ::minWaitTimeMs)
+          spinnerParamMs("Max wait time", ::maxWaitTimeMs)
+          spinnerParamMs("Min action space time", ::minSpaceTimeMs)
+          spinnerParamMs("Max action space time", ::maxSpaceTimeMs)
+        }
+      )
       builder.setOkOperation {
         enabled = true
         sleepLock.writeLock().lock()
@@ -115,14 +124,11 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
 }
 
 private fun Panel.spinnerParamMs(@Nls label: String, prop: KMutableProperty0<Int>) {
   row(label) {
-    spinner(0..90000)
-      .bindIntValue(prop)
-      .gap(RightGap.SMALL)
+    spinner(0..90000).bindIntValue(prop).gap(RightGap.SMALL)
     label("ms")
   }
 }

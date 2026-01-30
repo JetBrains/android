@@ -22,18 +22,14 @@ import com.android.tools.idea.common.surface.DesignSurface
 import java.awt.Dimension
 import java.awt.Point
 
-/**
- * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
- */
+/** A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent]. */
 class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(null) {
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     content.singleOrNull()?.setLocation(0, 0)
   }
 
-  override fun preferredLayoutSize(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Dimension = content.singleOrNull()?.getScaledContentSize(null) ?: availableSize
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
+    content.singleOrNull()?.getScaledContentSize(null) ?: availableSize
 
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,

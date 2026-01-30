@@ -43,16 +43,12 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class DataBindingTrackerTest(private val mode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.NONE, DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.NONE, DataBindingMode.ANDROIDX)
   }
 
   @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  private val fixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val fixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
   @Before
   fun setUp() {
@@ -64,13 +60,12 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
 
-    val androidFacet =
-      FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
@@ -79,8 +74,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     try {
       UsageTracker.setWriterForTest(tracker)
-      DataBindingTrackerSyncListener(projectRule.project)
-        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       val dataBindingPollMetadata =
         tracker.usages
           .map { it.studioEvent }
@@ -113,14 +107,14 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
 
       fixture.addClass(
         """
-      package test.langdb;
+        package test.langdb;
 
-      import android.view.View;
+        import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
-        public static void doSomethingStatic(View view) {}
-      }
-    """
+        public class ModelWithBindableMethodsJava {
+          public static void doSomethingStatic(View view) {}
+        }
+        """
           .trimIndent()
       )
 
@@ -165,10 +159,8 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
         assertThat(completionSuggestedEvent).isNull()
         assertThat(completionAcceptedEvent).isNull()
       } else {
-        assertThat(completionSuggestedEvent!!.context)
-          .isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
-        assertThat(completionAcceptedEvent!!.context)
-          .isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
+        assertThat(completionSuggestedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
+        assertThat(completionAcceptedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
       }
     } finally {
       tracker.close()
@@ -184,14 +176,14 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
 
       fixture.addClass(
         """
-      package test.langdb;
+        package test.langdb;
 
-      import android.view.View;
+        import android.view.View;
 
-      public class ModelWithBindableMethodsJava {
-        public void doSomething(View view) {}
-      }
-    """
+        public class ModelWithBindableMethodsJava {
+          public void doSomething(View view) {}
+        }
+        """
           .trimIndent()
       )
 

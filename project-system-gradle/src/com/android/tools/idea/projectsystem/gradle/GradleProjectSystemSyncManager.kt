@@ -30,7 +30,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGENT_REQUESTED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK
@@ -47,14 +46,18 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
-    val connection = project.messageBus.connect(project).apply {
-      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) {
-          disconnect()
-          syncResult.set(result)
-        }
-      })
-    }
+    val connection =
+      project.messageBus.connect(project).apply {
+        subscribe(
+          PROJECT_SYSTEM_SYNC_TOPIC,
+          object : SyncResultListener {
+            override fun syncEnded(result: SyncResult) {
+              disconnect()
+              syncResult.set(result)
+            }
+          },
+        )
+      }
 
     try {
       GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
@@ -71,7 +74,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
 
   private fun shouldCancelAutoSync(reason: SyncReason): Boolean {
     if (!StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get()) {
-      return false;
+      return false
     }
     if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
       return false
@@ -87,14 +90,17 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val syncResult = SettableFuture.create<SyncResult>()
     val cancelAutoSync = shouldCancelAutoSync(reason)
     when {
-      cancelAutoSync  -> syncResult.set(SyncResult.SKIPPED_DUE_TO_AUTO_SYNC_DISABLED)
-      isSyncInProgress() -> syncResult.setException(RuntimeException("A sync was requested while one is"
-          + " already in progress. Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
+      cancelAutoSync -> syncResult.set(SyncResult.SKIPPED_DUE_TO_AUTO_SYNC_DISABLED)
+      isSyncInProgress() ->
+        syncResult.setException(
+          RuntimeException(
+            "A sync was requested while one is" +
+              " already in progress. Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."
+          )
+        )
 
       project.isInitialized -> syncResult.setFuture(requestSync(project, reason))
-      else -> StartupManager.getInstance(project).runWhenProjectIsInitialized {
-          syncResult.setFuture(requestSync(project, reason))
-      }
+      else -> StartupManager.getInstance(project).runWhenProjectIsInitialized { syncResult.setFuture(requestSync(project, reason)) }
     }
 
     if (cancelAutoSync) {
@@ -105,6 +111,8 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
   }
 
   override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress
+
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO
+
   override fun getLastSyncResult() = GradleSyncStateHolder.getInstance(project).syncResult
 }

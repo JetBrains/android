@@ -19,7 +19,6 @@ import com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.impl.ProjectRootsUtil
 import com.intellij.openapi.module.Module
@@ -53,12 +52,13 @@ class AndroidIconProviderProjectGradleToken : AndroidIconProviderProjectToken<Gr
 
   companion object {
     @JvmStatic
-    fun getModuleIcon(module: Module): Icon = when {
-      module.isHolderModule() || module.isMainModule() -> getAndroidModuleIcon(module.getModuleSystem())
-      module.isAndroidTestModule() -> StudioIcons.Shell.Filetree.ANDROID_MODULE
-      module.isTestSuiteModule() -> AllIcons.Nodes.TestSourceFolder // TODO(b/445374798): Get a test suite icon
-      else -> AllIcons.Nodes.Module
-    }
+    fun getModuleIcon(module: Module): Icon =
+      when {
+        module.isHolderModule() || module.isMainModule() -> getAndroidModuleIcon(module.getModuleSystem())
+        module.isAndroidTestModule() -> StudioIcons.Shell.Filetree.ANDROID_MODULE
+        module.isTestSuiteModule() -> AllIcons.Nodes.TestSourceFolder // TODO(b/445374798): Get a test suite icon
+        else -> AllIcons.Nodes.Module
+      }
 
     private fun getAndroidModuleIcon(androidModuleSystem: AndroidModuleSystem): Icon {
       return getAndroidModuleIcon(androidModuleSystem.type)
@@ -68,7 +68,8 @@ class AndroidIconProviderProjectGradleToken : AndroidIconProviderProjectToken<Gr
       return when (androidProjectType) {
         AndroidModuleSystem.Type.TYPE_NON_ANDROID -> AllIcons.Nodes.Module
         AndroidModuleSystem.Type.TYPE_APP -> StudioIcons.Shell.Filetree.ANDROID_MODULE
-        AndroidModuleSystem.Type.TYPE_FEATURE, AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> StudioIcons.Shell.Filetree.FEATURE_MODULE
+        AndroidModuleSystem.Type.TYPE_FEATURE,
+        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> StudioIcons.Shell.Filetree.FEATURE_MODULE
         AndroidModuleSystem.Type.TYPE_INSTANTAPP -> StudioIcons.Shell.Filetree.INSTANT_APPS
         AndroidModuleSystem.Type.TYPE_LIBRARY -> StudioIcons.Shell.Filetree.LIBRARY_MODULE
         AndroidModuleSystem.Type.TYPE_TEST -> StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT

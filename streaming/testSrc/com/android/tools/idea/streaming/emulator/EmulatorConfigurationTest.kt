@@ -27,9 +27,7 @@ import com.intellij.openapi.util.SystemInfo
 import java.awt.Dimension
 import org.junit.Test
 
-/**
- * Tests for [EmulatorConfiguration].
- */
+/** Tests for [EmulatorConfiguration]. */
 class EmulatorConfigurationTest {
   private val baseDir = if (SystemInfo.isWindows) "C:/home/janedoe" else "/home/janedoe"
   private val fileSystem = Jimfs.newFileSystem()
@@ -57,7 +55,7 @@ class EmulatorConfigurationTest {
     assertThat(config.density).isEqualTo(480)
     assertThat(config.additionalDisplays).isEmpty()
     assertThat(config.skinFolder?.toString()?.replace('\\', '/'))
-        .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
+      .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasTransparentDisplay).isFalse()
@@ -229,10 +227,12 @@ class EmulatorConfigurationTest {
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
-    assertThat(config.postures).containsExactly(
+    assertThat(config.postures)
+      .containsExactly(
         PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0),
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
-        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0))
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0),
+      )
   }
 
   @Test
@@ -259,10 +259,12 @@ class EmulatorConfigurationTest {
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
     assertThat(config.displayModes).isEmpty()
-    assertThat(config.postures).containsExactly(
+    assertThat(config.postures)
+      .containsExactly(
         PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 58.55, 76.45),
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 76.45, 94.35),
-        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 94.35, 100.0))
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 94.35, 100.0),
+      )
   }
 
   @Test
@@ -288,14 +290,18 @@ class EmulatorConfigurationTest {
     assertThat(config.hasAudioOutput).isTrue()
     assertThat(config.hasOrientationSensors).isTrue()
     assertThat(config.initialOrientationQuadrants).isEqualTo(0)
-    assertThat(config.displayModes).containsExactly(
+    assertThat(config.displayModes)
+      .containsExactly(
         DisplayMode(DisplayModeValue.PHONE, 1080, 2340, false),
         DisplayMode(DisplayModeValue.FOLDABLE, 1768, 2208, true),
         DisplayMode(DisplayModeValue.TABLET, 1920, 1200, false),
-        DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080, false))
-    assertThat(config.postures).containsExactly(
+        DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080, false),
+      )
+    assertThat(config.postures)
+      .containsExactly(
         PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0),
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
-        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0))
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0),
+      )
   }
 }

@@ -48,17 +48,21 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
     require(results.percentiles.values.isNotEmpty()) { "Must provide some values!" }
   }
 
-  private fun createTimeSeries() = latencyChart(
-    xValues = 0 until results.raw.size,
-    yValues = results.raw.values.map { it.inWholeMilliseconds },
-    yLineValues = genLines(results.raw.values.maxOrNull()?.inWholeMilliseconds ?: 0L),
-    xLabelFormatStr = "%d")
+  private fun createTimeSeries() =
+    latencyChart(
+      xValues = 0 until results.raw.size,
+      yValues = results.raw.values.map { it.inWholeMilliseconds },
+      yLineValues = genLines(results.raw.values.maxOrNull()?.inWholeMilliseconds ?: 0L),
+      xLabelFormatStr = "%d",
+    )
 
-  private fun createHistogram() = latencyChart(
-    xValues = results.percentiles.keys,
-    yValues = results.percentiles.values,
-    yLineValues = genLines(results.percentiles.values.maxOrNull() ?: 0.0),
-    xLabelFormatStr = "%d%%")
+  private fun createHistogram() =
+    latencyChart(
+      xValues = results.percentiles.keys,
+      yValues = results.percentiles.values,
+      yLineValues = genLines(results.percentiles.values.maxOrNull() ?: 0.0),
+      xLabelFormatStr = "%d%%",
+    )
 
   private fun createPanel() = panel {
     separator()
@@ -73,9 +77,7 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
     }
   }
 
-  /**
-   * Creates the dialog wrapper.
-   */
+  /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     return dialog(
@@ -84,7 +86,8 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
       panel = dialogPanel,
       project = project,
       parent = parent,
-      createActions = { listOf(CloseDialogAction()) })
+      createActions = { listOf(CloseDialogAction()) },
+    )
   }
 
   private class CloseDialogAction : AbstractAction(CommonBundle.getCloseButtonText()) {
@@ -100,51 +103,52 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
       yValues: Iterable<T>,
       yLineValues: Iterable<T>,
       xLabelFormatStr: String,
-    ) = lineChart<Int, T> {
-      margins {
-        top = 50
-        right = 50
-        left = 100
-        bottom = 50
-      }
-      datasets {
-        dataset {
-          label = "Latency"
-          lineColor = JBColor.BLUE
-          smooth = true
-          values {
-            x = xValues
-            y = yValues
+    ) =
+      lineChart<Int, T> {
+          margins {
+            top = 50
+            right = 50
+            left = 100
+            bottom = 50
+          }
+          datasets {
+            dataset {
+              label = "Latency"
+              lineColor = JBColor.BLUE
+              smooth = true
+              values {
+                x = xValues
+                y = yValues
+              }
+            }
+          }
+          ranges {
+            xMin = xValues.first()
+            xMax = xValues.last()
+            yMin = yLineValues.first()
+            yMax = yLineValues.last()
+          }
+          grid {
+            xLines = genLines(xValues.last()).toValueIterable()
+            xPainter {
+              label = xLabelFormatStr.format(value)
+              verticalAlignment = SwingConstants.BOTTOM
+              horizontalAlignment = SwingConstants.CENTER
+            }
+            yLines = yLineValues.toValueIterable()
+            yPainter {
+              label = "${value.toDouble().roundToLong()} ms"
+              verticalAlignment = SwingConstants.CENTER
+              horizontalAlignment = SwingConstants.LEFT
+            }
           }
         }
-      }
-      ranges {
-        xMin = xValues.first()
-        xMax = xValues.last()
-        yMin = yLineValues.first()
-        yMax = yLineValues.last()
-      }
-      grid {
-        xLines = genLines(xValues.last()).toValueIterable()
-        xPainter {
-          label = xLabelFormatStr.format(value)
-          verticalAlignment = SwingConstants.BOTTOM
-          horizontalAlignment = SwingConstants.CENTER
-        }
-        yLines = yLineValues.toValueIterable()
-        yPainter {
-          label = "${value.toDouble().roundToLong()} ms"
-          verticalAlignment = SwingConstants.CENTER
-          horizontalAlignment = SwingConstants.LEFT
-        }
-      }
-    }.apply {
-      component.preferredSize = Dimension(800, 400)
-    }
+        .apply { component.preferredSize = Dimension(800, 400) }
 
-    private fun <T : Number> Iterable<T>.toValueIterable() = object : ValueIterable<T>() {
-      override fun iterator(): Iterator<T> = this@toValueIterable.iterator()
-    }
+    private fun <T : Number> Iterable<T>.toValueIterable() =
+      object : ValueIterable<T>() {
+        override fun iterator(): Iterator<T> = this@toValueIterable.iterator()
+      }
 
     private fun genLines(yMax: Double, divisions: Int = 10): List<Double> {
       // Find a convenient max nearby
@@ -155,7 +159,9 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
       val step = newMax / divisions
       return (0..divisions).map { (it * step).toDouble() }
     }
+
     private fun genLines(yMax: Long, divisions: Int = 10): Iterable<Long> = genLines(yMax.toDouble(), divisions).map { it.roundToLong() }
+
     private fun genLines(yMax: Int, divisions: Int = 10): Iterable<Int> = genLines(yMax.toDouble(), divisions).map { it.roundToInt() }
   }
 }

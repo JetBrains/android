@@ -25,12 +25,7 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 fun channelBuilderForAddress(address: String): NettyChannelBuilder {
   val sslContext =
     GrpcSslContexts.configure(SslContextBuilder.forClient(), SslProvider.JDK)
-      .trustManager(
-        ConfirmingTrustManager.createForStorage(
-          CertificateManager.DEFAULT_PATH,
-          CertificateManager.DEFAULT_PASSWORD,
-        )
-      )
+      .trustManager(ConfirmingTrustManager.createForStorage(CertificateManager.DEFAULT_PATH, CertificateManager.DEFAULT_PASSWORD))
       .build()
   return NettyChannelBuilder.forTarget(address).sslContext(sslContext)
 }

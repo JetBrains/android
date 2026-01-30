@@ -21,8 +21,8 @@ import com.android.tools.idea.run.DeviceHandleAndroidDevice
 import java.util.Objects
 
 /**
- * A deployment target for an app, binding a Device with a BootOption. A user actually selects these
- * (and not devices) with the combobox or the Select Multiple Devices dialog.
+ * A deployment target for an app, binding a Device with a BootOption. A user actually selects these (and not devices) with the combobox or
+ * the Select Multiple Devices dialog.
  */
 class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootOption) {
 
@@ -34,8 +34,7 @@ class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootO
 
   fun boot() {
     when (bootOption) {
-      is BootSnapshot ->
-        (device.androidDevice as DeviceHandleAndroidDevice).bootFromSnapshot(bootOption.snapshot)
+      is BootSnapshot -> (device.androidDevice as DeviceHandleAndroidDevice).bootFromSnapshot(bootOption.snapshot)
       ColdBoot -> (device.androidDevice as DeviceHandleAndroidDevice).coldBoot()
       DefaultBoot -> device.androidDevice.bootDefault()
     }
@@ -44,8 +43,7 @@ class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootO
   val id: TargetId
     get() = TargetId(deviceId, templateId, bootOption)
 
-  override fun equals(other: Any?) =
-    other is DeploymentTarget && id == other.id && bootOption == other.bootOption
+  override fun equals(other: Any?) = other is DeploymentTarget && id == other.id && bootOption == other.bootOption
 
   override fun hashCode(): Int {
     return Objects.hash(id, bootOption)

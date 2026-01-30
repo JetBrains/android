@@ -30,8 +30,12 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface AndroidBuildTargetReference {
   val facet: AndroidFacet
-  val module: Module get() = facet.module
-  val project: Project get() = module.project
+  val module: Module
+    get() = facet.module
+
+  val project: Project
+    get() = module.project
+
   val buildTarget: BuildTargetReference
 
   private data class Impl(override val facet: AndroidFacet, override val buildTarget: BuildTargetReference) : AndroidBuildTargetReference
@@ -48,11 +52,8 @@ interface AndroidBuildTargetReference {
       return Impl(facet, BuildTargetReference.from(facet.module, targetFile))
     }
 
-    /**
-     * Obtains a reference to a build target that was used to build the running application (if known).
-     */
-    @JvmStatic
-    fun from(applicationProjectContext: ApplicationProjectContext): AndroidBuildTargetReference? = error("Not yet implemented")
+    /** Obtains a reference to a build target that was used to build the running application (if known). */
+    @JvmStatic fun from(applicationProjectContext: ApplicationProjectContext): AndroidBuildTargetReference? = error("Not yet implemented")
 
     /**
      * Returns an instance of `BuildTargetReference` that refers to code under the modules (or the group of main, androidTest etc. modules).

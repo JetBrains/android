@@ -59,8 +59,7 @@ internal fun ConfigureDevicePanel(
         "Configure virtual device",
         fontWeight = FontWeight.SemiBold,
         fontSize = LocalTextStyle.current.fontSize * 1.2,
-        modifier =
-          Modifier.padding(horizontal = Padding.EXTRA_LARGE).padding(bottom = Padding.SMALL_MEDIUM),
+        modifier = Modifier.padding(horizontal = Padding.EXTRA_LARGE).padding(bottom = Padding.SMALL_MEDIUM),
       )
       Tabs(configureDevicePanelState, images, onDownloadButtonClick, onSystemImageTableRowClick)
     }
@@ -87,22 +86,12 @@ private fun Tabs(
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
 
   TabStrip(
-    Tab.values().map { tab ->
-      TabData.Default(
-        selectedTab == tab,
-        { Text(tab.text) },
-        onClick = { selectedTab = tab },
-        closable = false,
-      )
-    },
+    Tab.values().map { tab -> TabData.Default(selectedTab == tab, { Text(tab.text) }, onClick = { selectedTab = tab }, closable = false) },
     JewelTheme.defaultTabStyle,
     Modifier.padding(start = Padding.EXTRA_LARGE),
   )
 
-  val servicesSet =
-    imageState.images
-      .mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices)
-      .toImmutableSet()
+  val servicesSet = imageState.images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
 
   val androidVersions = imageState.images.map { it.androidVersion }.relevantVersions()
 
@@ -111,16 +100,12 @@ private fun Tabs(
       val initialSystemImage = configureDevicePanelState.device.image
       if (initialSystemImage == null) {
         SystemImageFilterState(
-          selectedApi =
-            AndroidVersionSelection(
-              androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-            ),
+          selectedApi = AndroidVersionSelection(androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT),
           selectedServices = servicesSet.firstOrNull(),
         )
       } else {
         SystemImageFilterState(
-          selectedApi =
-            AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
+          selectedApi = AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
           selectedServices = initialSystemImage.getServices(),
           showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
           showUnsupportedSystemImages = !initialSystemImage.isSupported(),
@@ -152,16 +137,13 @@ private fun Tabs(
 }
 
 /**
- * Reduce this set of versions to the stable versions, plus any preview versions that are newer than
- * the latest stable, sorted newest first. Strip extension levels.
+ * Reduce this set of versions to the stable versions, plus any preview versions that are newer than the latest stable, sorted newest first.
+ * Strip extension levels.
  */
 private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
-  val (previewVersions, stableVersions) =
-    mapTo(TreeSet()) { it.withBaseExtensionLevel() }.partition { it.isPreview }
+  val (previewVersions, stableVersions) = mapTo(TreeSet()) { it.withBaseExtensionLevel() }.partition { it.isPreview }
   val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
-  return (previewVersions.filter { it > latestStableVersion } + stableVersions)
-    .sortedDescending()
-    .toImmutableList()
+  return (previewVersions.filter { it > latestStableVersion } + stableVersions).sortedDescending().toImmutableList()
 }
 
 private enum class Tab(val text: String) {

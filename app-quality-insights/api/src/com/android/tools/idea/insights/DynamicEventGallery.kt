@@ -24,8 +24,7 @@ enum class EventMovement {
 }
 
 /**
- * A data structure for managing an ordered list of events. It is backed by an array list and an
- * integer representing the selected index.
+ * A data structure for managing an ordered list of events. It is backed by an array list and an integer representing the selected index.
  */
 data class DynamicEventGallery(val events: List<Event>, val selectedIndex: Int, val token: String) {
   val selected: Event?
@@ -35,21 +34,15 @@ data class DynamicEventGallery(val events: List<Event>, val selectedIndex: Int, 
   fun hasPrevious() = selectedIndex > 0
 
   /**
-   * Can get the next downloaded event. This function returning false does not indicate there aren't
-   * more events to be requested from the server.
+   * Can get the next downloaded event. This function returning false does not indicate there aren't more events to be requested from the
+   * server.
    */
   fun hasNext() = selectedIndex < events.size - 1
 
-  /**
-   * Whether there are more events to be requested from the server. Does not indicate the end of the
-   * downloaded list of events.
-   */
+  /** Whether there are more events to be requested from the server. Does not indicate the end of the downloaded list of events. */
   fun canRequestMoreEvents() = token.isNotEmpty()
 
-  /**
-   * Whether the selected index is the last index of the events list that we currently have. More
-   * events might be available.
-   */
+  /** Whether the selected index is the last index of the events list that we currently have. More events might be available. */
   fun isLastIndexSelected() = selectedIndex == events.size - 1
 
   /** Returns an event gallery with the index advanced if possible. */
@@ -69,6 +62,5 @@ data class DynamicEventGallery(val events: List<Event>, val selectedIndex: Int, 
   }
 
   /** Appends items to the end of the list and advances selected index by 1. */
-  fun appendEventPage(page: EventPage) =
-    DynamicEventGallery(this.events + page.events, selectedIndex, page.token)
+  fun appendEventPage(page: EventPage) = DynamicEventGallery(this.events + page.events, selectedIndex, page.token)
 }

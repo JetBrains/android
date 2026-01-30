@@ -36,12 +36,8 @@ class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Ac
   override fun actionPerformed(e: AnActionEvent) {
     val handle = DEVICE_HANDLE_KEY.getData(e.dataContext) ?: return
 
-    DeviceManagerUsageTracker.logDeviceManagerEvent(
-      DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
-    )
+    DeviceManagerUsageTracker.logDeviceManagerEvent(DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION)
 
-    handle.launchCatchingDeviceActionException {
-      handle.editAction?.edit(e.componentToRestoreFocusTo())
-    }
+    handle.launchCatchingDeviceActionException { handle.editAction?.edit(e.componentToRestoreFocusTo()) }
   }
 }

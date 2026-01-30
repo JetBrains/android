@@ -41,12 +41,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
 
   @Before
   fun setUp() {
-    validAppVcsInfo =
-      AppVcsInfo.ValidInfo(
-        listOf(
-          RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")
-        )
-      )
+    validAppVcsInfo = AppVcsInfo.ValidInfo(listOf(RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")))
 
     errorAppVcsInfo = AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND)
   }
@@ -64,24 +59,24 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       fileName = "MainActivity.kt",
       beforeSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       afterSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              // TODO:
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            // TODO:
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, original)),
       afterLineToInsights = listOf(LineToInsights(3, original)),
@@ -98,24 +93,24 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       fileName = "MainActivity.kt",
       beforeSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       afterSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              // TODO:
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            // TODO:
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, original)),
       afterLineToInsights = listOf(LineToInsights(3, original)),
@@ -132,24 +127,24 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       fileName = "MainActivity.kt",
       beforeSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       afterSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              // TODO:
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            // TODO:
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, original)),
       afterLineToInsights = listOf(LineToInsights(4, listOf(original[0].updateLineNumber(4)))),
@@ -166,24 +161,24 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       fileName = "MainActivity.kt",
       beforeSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              // TODO:
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            // TODO:
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       afterSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(4, original)),
       afterLineToInsights = listOf(LineToInsights(3, listOf(original[0].updateLineNumber(3)))),
@@ -200,23 +195,23 @@ class AppInsightsExternalAnnotatorOnChangeTest {
       fileName = "MainActivity.kt",
       beforeSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() {
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() {
+            }
+        }
+        """
           .trimIndent(),
       afterSource =
         """
-          package test.simple
+        package test.simple
 
-          class MainActivity {
-              fun onCreate() { //TODO:
-              }
-          }
-      """
+        class MainActivity {
+            fun onCreate() { //TODO:
+            }
+        }
+        """
           .trimIndent(),
       beforeLineToInsights = listOf(LineToInsights(3, expected)),
       afterLineToInsights = emptyList(),
@@ -233,20 +228,14 @@ class AppInsightsExternalAnnotatorOnChangeTest {
     val psiFile = projectRule.fixture.addFileToProject("src/$fileName", beforeSource)
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
-    val results =
-      projectRule.fixture.doHighlighting().filter {
-        it.gutterIconRenderer is AppInsightsGutterRenderer
-      }
+    val results = projectRule.fixture.doHighlighting().filter { it.gutterIconRenderer is AppInsightsGutterRenderer }
     document.assertHighlightResults(results, beforeLineToInsights)
 
     // Since no revision difference in our FakeContentRevision, we just
     // mimic some document changes by not saving any.
     document.updateFileContentWithoutSaving(afterSource, projectRule.project)
 
-    val updated =
-      projectRule.fixture.doHighlighting().filter {
-        it.gutterIconRenderer is AppInsightsGutterRenderer
-      }
+    val updated = projectRule.fixture.doHighlighting().filter { it.gutterIconRenderer is AppInsightsGutterRenderer }
     document.assertHighlightResults(updated, afterLineToInsights)
   }
 

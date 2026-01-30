@@ -31,9 +31,7 @@ class DeviceFileSystemManagerImpl(private val deviceProvisioner: DeviceProvision
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   override suspend fun getFileSystem(serialNumber: String): DeviceFileSystem? {
-    val handle =
-      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
-      ?: return null
+    val handle = deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber)) ?: return null
     val device = handle.state.connectedDevice ?: return null
     return newDeviceFileSystem(handle, device)
   }

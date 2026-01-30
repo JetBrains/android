@@ -37,12 +37,7 @@ const val HIGHLIGHTED_CLIENT_PROPERTY = "actionHighlighted"
 
 /** [ActionDecorator] responsible for creating draw commands for actions. */
 object ActionDecorator : NavBaseDecorator() {
-  override fun addContent(
-    list: DisplayList,
-    time: Long,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val nlComponent = component.nlComponent
     val color = actionColor(component)
     val view = component.scene.designSurface.focusedSceneView ?: return
@@ -59,8 +54,7 @@ object ActionDecorator : NavBaseDecorator() {
       else -> {
         val scene = component.scene
 
-        val sourceNlComponent =
-          scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
+        val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
         val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
         val sourceRect = sourceSceneComponent.inlineDrawRect(view)
 
@@ -79,10 +73,8 @@ object ActionDecorator : NavBaseDecorator() {
 
   private fun actionColor(component: SceneComponent): Color {
     return when {
-      component.isSelected ||
-        component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
-      component.drawState == SceneComponent.DrawState.HOVER ||
-        component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
+      component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
+      component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION
       else -> ACTION
     }
   }

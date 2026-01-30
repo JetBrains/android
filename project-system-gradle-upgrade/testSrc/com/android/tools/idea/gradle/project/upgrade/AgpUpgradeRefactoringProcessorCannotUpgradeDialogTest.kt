@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
-import org.junit.Test
 import javax.swing.JEditorPane
+import org.junit.Test
 
 class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestCase() {
 

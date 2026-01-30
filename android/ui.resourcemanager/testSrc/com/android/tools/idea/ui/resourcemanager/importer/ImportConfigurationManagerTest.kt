@@ -23,32 +23,20 @@ import com.android.resources.KeyboardState
 import com.android.resources.NightMode
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.google.common.collect.testing.Helpers
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class ImportConfigurationManagerTest {
 
   @Test
   fun saveMappers() {
     val manager = ImportConfigurationManager()
-    val mappers = setOf(
-      StaticStringMapper(
-        matchers = mapOf(
-          "@2x" to DensityQualifier(Density.XXXHIGH),
-          "" to DensityQualifier(Density.MEDIUM)
-        )
-      ),
-      StaticStringMapper(
-        matchers = mapOf(
-          "_dark" to NightModeQualifier(NightMode.NIGHT)
-        )
-      ),
-      StaticStringMapper(
-        matchers = mapOf(
-          "-inline" to KeyboardStateQualifier(KeyboardState.EXPOSED)
-        )
+    val mappers =
+      setOf(
+        StaticStringMapper(matchers = mapOf("@2x" to DensityQualifier(Density.XXXHIGH), "" to DensityQualifier(Density.MEDIUM))),
+        StaticStringMapper(matchers = mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))),
+        StaticStringMapper(matchers = mapOf("-inline" to KeyboardStateQualifier(KeyboardState.EXPOSED))),
       )
-    )
     manager.saveMappers(mappers)
     val segmentsToStrings = manager.state!!.serializedMatchers
     Helpers.assertContentsInOrder(segmentsToStrings, "xxxhdpi,,@2x", "mdpi,,", "night,,_dark", "keysexposed,,-inline")
@@ -64,13 +52,7 @@ class ImportConfigurationManagerTest {
     assertEquals(NightModeQualifier(NightMode.NIGHT), nightModeMapper.getQualifier("_dark"))
     assertEquals(KeyboardStateQualifier(KeyboardState.EXPOSED), keyboardMapper.getQualifier("-inline"))
 
-    assertEquals(
-      mapOf(
-        "@2x" to DensityQualifier(Density.XXXHIGH),
-        "" to DensityQualifier(Density.MEDIUM)
-      ),
-      densityMapper.matchers
-    )
+    assertEquals(mapOf("@2x" to DensityQualifier(Density.XXXHIGH), "" to DensityQualifier(Density.MEDIUM)), densityMapper.matchers)
     assertEquals(mapOf("_dark" to NightModeQualifier(NightMode.NIGHT)), nightModeMapper.matchers)
     assertEquals(mapOf("-inline" to KeyboardStateQualifier(KeyboardState.EXPOSED)), keyboardMapper.matchers)
   }

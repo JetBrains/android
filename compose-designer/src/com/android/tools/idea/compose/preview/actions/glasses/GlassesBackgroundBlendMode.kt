@@ -23,14 +23,9 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Method to scale a buffered image to a given width and height. This method returns an image of
- * type BufferedImage.TYPE_INT_ARGB_PRE.
- */
+/** Method to scale a buffered image to a given width and height. This method returns an image of type BufferedImage.TYPE_INT_ARGB_PRE. */
 private fun BufferedImage.scaleTo(width: Int, height: Int): BufferedImage {
-  @Suppress(
-    "UndesirableClassUsage"
-  ) // We do not want HiDPI images, we want to maintain the same pixel size.
+  @Suppress("UndesirableClassUsage") // We do not want HiDPI images, we want to maintain the same pixel size.
   val scaledImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE)
   val bgG2d: Graphics2D = scaledImage.createGraphics()
   try {
@@ -43,20 +38,16 @@ private fun BufferedImage.scaleTo(width: Int, height: Int): BufferedImage {
 }
 
 /** A class that applies a blend mode to a rendered image to simulate a glasses environment. */
-internal class GlassesBackgroundBlendMode
-private constructor(private val background: BufferedImage) {
+internal class GlassesBackgroundBlendMode private constructor(private val background: BufferedImage) {
   private val log = Logger.getInstance(GlassesBackgroundBlendMode::class.java)
 
   /**
    * Applies the blend mode to the given image.
    *
-   * @param renderedImage the image to apply the blend mode to. The image must be of type
-   *   [BufferedImage.TYPE_INT_ARGB_PRE].
+   * @param renderedImage the image to apply the blend mode to. The image must be of type [BufferedImage.TYPE_INT_ARGB_PRE].
    */
   fun applyBackground(renderedImage: BufferedImage) {
-    require(renderedImage.type == BufferedImage.TYPE_INT_ARGB_PRE) {
-      "Rendered image must support transparency"
-    }
+    require(renderedImage.type == BufferedImage.TYPE_INT_ARGB_PRE) { "Rendered image must support transparency" }
 
     // We need to scale the background so it's the same size as the rendered preview image, since
     // we're doing pixel-by-pixel blending.
@@ -86,18 +77,11 @@ private constructor(private val background: BufferedImage) {
    * Blends the rendered image and the background image using the screen blend mode.
    *
    * @param renderedImage the image.
-   * @param scaledBackgroundImage the background image, scaled to the same size as the rendered
-   *   image.
+   * @param scaledBackgroundImage the background image, scaled to the same size as the rendered image.
    * @param renderedImage the rendered image.
    */
-  private fun blendRenderedImageAndBackground(
-    renderedImage: BufferedImage,
-    scaledBackgroundImage: BufferedImage,
-  ): BufferedImage {
-    require(
-      renderedImage.width == scaledBackgroundImage.width &&
-        renderedImage.height == scaledBackgroundImage.height
-    ) {
+  private fun blendRenderedImageAndBackground(renderedImage: BufferedImage, scaledBackgroundImage: BufferedImage): BufferedImage {
+    require(renderedImage.width == scaledBackgroundImage.width && renderedImage.height == scaledBackgroundImage.height) {
       """
         Rendered image and background image must have the same dimensions.
         Rendered image width: ${renderedImage.width}, height: ${renderedImage.height}
@@ -107,9 +91,7 @@ private constructor(private val background: BufferedImage) {
     }
     val width = renderedImage.width
     val height = renderedImage.height
-    @Suppress(
-      "UndesirableClassUsage"
-    ) // We do not want HiDPI images, we want to maintain the same pixel size.
+    @Suppress("UndesirableClassUsage") // We do not want HiDPI images, we want to maintain the same pixel size.
     val blendedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
 
     for (y in 0 until height) {
@@ -136,8 +118,7 @@ private constructor(private val background: BufferedImage) {
         val blendedBlue = (255 - ((255 - imgBlue) * (255 - bgBlue)) / 255)
 
         // Set the pixel color in the blended image
-        val finalPixelValue =
-          (0xFF shl 24) or (blendedRed shl 16) or (blendedGreen shl 8) or blendedBlue
+        val finalPixelValue = (0xFF shl 24) or (blendedRed shl 16) or (blendedGreen shl 8) or blendedBlue
         blendedImage.setRGB(x, y, finalPixelValue)
       }
     }
@@ -152,11 +133,7 @@ private constructor(private val background: BufferedImage) {
      * @return A [BufferedImage] if the file is found and can be read, or null if an error occurs.
      */
     private fun loadBackgroundImage(fileName: String): BufferedImage? {
-      val imageStream =
-        GlassesBackgroundBlendMode::class
-          .java
-          .classLoader
-          .getResourceAsStream("glassesPreview/$fileName")
+      val imageStream = GlassesBackgroundBlendMode::class.java.classLoader.getResourceAsStream("glassesPreview/$fileName")
       if (imageStream == null) {
         thisLogger().warn("Error: Background '$fileName' not found.")
         return null
@@ -171,8 +148,8 @@ private constructor(private val background: BufferedImage) {
     }
 
     /**
-     * Returns a [GlassesBackgroundBlendMode] for a given [GlassesBackground] or null if the
-     * background is not available or [GlassesBackground.NONE].
+     * Returns a [GlassesBackgroundBlendMode] for a given [GlassesBackground] or null if the background is not available or
+     * [GlassesBackground.NONE].
      *
      * @param mode the [GlassesBackground] to be used.
      */

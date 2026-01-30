@@ -19,18 +19,15 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.Executor
 
 /**
- * An [Executor] wrapper that ensures that only the command it most recently received gets executed.
- * This is useful if you expect lots of work where any new command means that any queued up command
- * is already obsolete and should be dropped.
+ * An [Executor] wrapper that ensures that only the command it most recently received gets executed. This is useful if you expect lots of
+ * work where any new command means that any queued up command is already obsolete and should be dropped.
  *
- * In other words, if nothing is running, it will get executed immediately. If a previous command is
- * still in progress, then the next command will be stored for later execution as soon as possible.
- * If two or more commands come in, while a previous command is running, then only the most recently
- * received one will be executed when ready.
+ * In other words, if nothing is running, it will get executed immediately. If a previous command is still in progress, then the next
+ * command will be stored for later execution as soon as possible. If two or more commands come in, while a previous command is running,
+ * then only the most recently received one will be executed when ready.
  *
- * @param wrapped An inner executor that this one delegates to. The inner executor doesn't offer any
- *   special guarantees about running only recent work - it is only when going through this parent
- *   layer that this rule is enforced.
+ * @param wrapped An inner executor that this one delegates to. The inner executor doesn't offer any special guarantees about running only
+ *   recent work - it is only when going through this parent layer that this rule is enforced.
  */
 class MostRecentExecutor(private val wrapped: Executor) : Executor {
   private class State {

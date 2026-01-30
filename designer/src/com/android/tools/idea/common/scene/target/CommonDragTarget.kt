@@ -41,7 +41,6 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
@@ -49,14 +48,13 @@ import java.awt.Point
 import java.awt.Stroke
 import java.awt.event.InputEvent
 import kotlin.math.abs
+import org.intellij.lang.annotations.JdkConstants
 
 private const val DEBUG_RENDERER = false
 
 private const val MIN_SIZE = 16
 
-class CommonDragTarget
-@JvmOverloads
-constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean = false) :
+class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean = false) :
   BaseTarget() {
 
   /** List of dragged components. The first entry is the one which user start dragging. */
@@ -75,8 +73,8 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   @AndroidDpCoordinate private val firstMouse = Point(-1, -1)
 
   /**
-   * The collected placeholder. Needs to be lazy because [myComponent] doesn't exist when
-   * constructing the [Target]. But it will be set immediately after [Target] is created.
+   * The collected placeholder. Needs to be lazy because [myComponent] doesn't exist when constructing the [Target]. But it will be set
+   * immediately after [Target] is created.
    */
   private lateinit var placeholders: List<Placeholder>
   private lateinit var dominatePlaceholders: List<Placeholder>
@@ -140,14 +138,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     @Suppress("ConstantConditionIf")
     if (DEBUG_RENDERER) {
-      list.addRect(
-        sceneContext,
-        myLeft,
-        myTop,
-        myRight,
-        myBottom,
-        if (mIsOver) JBColor.yellow else JBColor.green,
-      )
+      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) JBColor.yellow else JBColor.green)
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red)
     }
@@ -161,25 +152,11 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
           when {
             ph == snappedPlaceholder -> {
               // Snapped Placeholder
-              list.add(
-                DrawSnappedPlaceholder(
-                  ph.region.left,
-                  ph.region.top,
-                  ph.region.right,
-                  ph.region.bottom,
-                )
-              )
+              list.add(DrawSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
             }
             ph.associatedComponent == snappedPlaceholder.associatedComponent -> {
               // Sibling of snapped Placeholder
-              list.add(
-                DrawSiblingsOfSnappedPlaceholder(
-                  ph.region.left,
-                  ph.region.top,
-                  ph.region.right,
-                  ph.region.bottom,
-                )
-              )
+              list.add(DrawSiblingsOfSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
             }
             else -> Unit // Do nothing for Placeholders in different host
           }
@@ -220,8 +197,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
       }
 
-    placeholders =
-      component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
+    placeholders = component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
 
     val dominateBuilder = ImmutableList.builder<Placeholder>()
     val recessiveBuilder = ImmutableList.builder<Placeholder>()
@@ -248,10 +224,8 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
 
         // Calculate distance between primary and other components.
         for (i in 1 until draggedComponents.size) {
-          offsets[i].x =
-            offsets[0].x + primaryX - draggedComponents[i].getDrawX(System.currentTimeMillis())
-          offsets[i].y =
-            offsets[0].y + primaryY - draggedComponents[i].getDrawY(System.currentTimeMillis())
+          offsets[i].x = offsets[0].x + primaryX - draggedComponents[i].getDrawX(System.currentTimeMillis())
+          offsets[i].y = offsets[0].y + primaryY - draggedComponents[i].getDrawY(System.currentTimeMillis())
         }
       }
     } else {
@@ -267,26 +241,17 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     targetSnapper.gatherNotches(myComponent)
   }
 
-  override fun mouseDrag(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    unused: List<Target>,
-    ignored: SceneContext,
-  ) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>, ignored: SceneContext) {
     draggedComponents.forEach { it.isDragging = true }
     snap(x, y)
     myComponent.scene.repaint()
   }
 
   /**
-   * Snap the component to the [placeholders]. This function applies the snapped placeholder and
-   * adjust the position of [myComponent]. When placeholder is overlapped, the higher [Region.level]
-   * get snapped.
+   * Snap the component to the [placeholders]. This function applies the snapped placeholder and adjust the position of [myComponent]. When
+   * placeholder is overlapped, the higher [Region.level] get snapped.
    */
-  private fun snap(
-    @AndroidDpCoordinate mouseX: Int,
-    @AndroidDpCoordinate mouseY: Int,
-  ): Placeholder? {
+  private fun snap(@AndroidDpCoordinate mouseX: Int, @AndroidDpCoordinate mouseY: Int): Placeholder? {
     // We use primary component to do snap
     val left = mouseX - offsets[0].x
     val top = mouseY - offsets[0].y
@@ -339,10 +304,8 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
       // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged
       // in the same ConstraintLayout
       draggedComponents.forEachIndexed { index, it ->
-        val expectedX =
-          if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
-        val expectedY =
-          if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
+        val expectedX = if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
+        val expectedY = if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
         var modification = ComponentModification(it.authoritativeNlComponent, "Dragging component")
         ph!!.updateLiveAttribute(it, modification, expectedX, expectedY)
         modification.apply()
@@ -352,20 +315,14 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
       if (currentSnappedPlaceholder?.dominate == true) {
         draggedComponents.forEach { it.setPosition(snappedX, snappedY) }
       } else {
-        draggedComponents.forEachIndexed { index, it ->
-          it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y)
-        }
+        draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
       }
       myComponent.scene.markNeedsLayout(Scene.NO_LAYOUT)
     }
     return ph
   }
 
-  override fun mouseRelease(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    unused: List<Target>,
-  ) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
     if (!myComponent.isDragging) {
       val isClicked = abs(x - firstMouse.x) <= 1 && abs(y - firstMouse.y) <= 1
       if (isClicked) {
@@ -379,17 +336,12 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
       if (ph != null) {
         // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
         if (ToggleAutoConnectAction.isAutoconnectOn()) {
-          targetSnapper.applyNotches(
-            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction()
-          )
+          targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
         }
         applyPlaceholder(ph)
       } else {
         draggedComponents.forEachIndexed { index, sceneComponent ->
-          sceneComponent.setPosition(
-            firstMouse.x - offsets[index].x,
-            firstMouse.y - offsets[index].y,
-          )
+          sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
         }
       }
       newSelectedComponents = draggedComponents
@@ -400,10 +352,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     placeholderHosts = emptySet()
   }
 
-  /**
-   * Apply the given [Placeholder]. Returns true if succeed, false otherwise. write to file
-   * directly.
-   */
+  /** Apply the given [Placeholder]. Returns true if succeed, false otherwise. write to file directly. */
   @VisibleForTesting
   fun applyPlaceholder(placeholder: Placeholder) {
     val parent = placeholder.host.authoritativeNlComponent
@@ -435,9 +384,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
 
   /** Function to check if the attribute is updated during dragging. */
   private fun isPlaceholderLiveUpdatable(placeholder: Placeholder?) =
-    placeholder != null &&
-      placeholder.isLiveUpdatableForComponent(myComponent) &&
-      myComponent !is TemporarySceneComponent
+    placeholder != null && placeholder.isLiveUpdatableForComponent(myComponent) && myComponent !is TemporarySceneComponent
 
   /** Apply any pending transactions on mouse released. */
   private fun handleRemainingComponentsOnRelease() {
@@ -487,8 +434,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
     }
   }
 
-  override fun isHittable() =
-    if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
+  override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
 }
 
 private abstract class BasePlaceholderDrawRegion(
@@ -554,8 +500,7 @@ private class DrawSiblingsOfSnappedPlaceholder(
   @AndroidDpCoordinate y2: Int,
 ) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
-  override fun getBackgroundColor(colorSet: ColorSet): Color? =
-    colorSet.dragReceiverSiblingBackground
+  override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverSiblingBackground
 
   override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragReceiverSiblingBackground
 

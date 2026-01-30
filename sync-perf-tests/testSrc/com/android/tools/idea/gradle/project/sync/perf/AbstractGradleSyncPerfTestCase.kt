@@ -31,6 +31,12 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.vfs.newvfs.persistent.FSRecords
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import java.time.Duration
+import java.time.Instant
+import java.util.Scanner
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.logging.Logger
 import org.jetbrains.android.AndroidTestBase.getModulePath
 import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
 import org.jetbrains.plugins.gradle.settings.DistributionType
@@ -42,18 +48,12 @@ import org.junit.FixMethodOrder
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runners.MethodSorters
-import java.io.File
-import java.time.Duration
-import java.time.Instant
-import java.util.Scanner
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Logger
 
 /**
  * Abstract class that contains the logic for running sync perf tests over a project. It has two methods:
- *   - testInitialization: Loads and sync SIMPLE_APPLICATION initialDrops times so Gradle daemon initialization time is not considered
- *   - testSyncTimes: Loads the project pointed by relativePath and syncs it initialDrops + numSamples, recording only the last numSamples
- *                    times.
+ * - testInitialization: Loads and sync SIMPLE_APPLICATION initialDrops times so Gradle daemon initialization time is not considered
+ * - testSyncTimes: Loads the project pointed by relativePath and syncs it initialDrops + numSamples, recording only the last numSamples
+ *   times.
  *
  *   This is a parameterized test class, running each test using tip of tree AGP and Gradle or Gradle 5.5 and AGP 3.5.0.
  */
@@ -61,8 +61,7 @@ import java.util.logging.Logger
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 abstract class AbstractGradleSyncPerfTestCase {
   protected val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   companion object {
     const val MEMORY_MEASUREMENT_INTERVAL_MILLIS: Long = 1000
@@ -83,7 +82,7 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Before
   @Throws(Exception::class)
   open fun setUp() {
-    //TODO use CleanVFSExtension for that:
+    // TODO use CleanVFSExtension for that:
     FSRecords.invalidateCaches("Cleanup before performance test")
     myScheduler = VirtualTimeScheduler()
     myUsageTracker = TestUsageTracker(myScheduler!!)
@@ -91,7 +90,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     projectSettings.distributionType = DistributionType.DEFAULT_WRAPPED
     GradleSettings.getInstance(projectRule.project).linkedProjectsSettings = listOf(projectSettings)
 
-    projectRule.fixture.testDataPath = getModulePath ("sync-perf-tests") + File.separator + "testData"
+    projectRule.fixture.testDataPath = getModulePath("sync-perf-tests") + File.separator + "testData"
     disableExpensivePlatformAssertions(projectRule.fixture)
     StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(useModelV2)
   }
@@ -103,13 +102,12 @@ abstract class AbstractGradleSyncPerfTestCase {
       myScheduler!!.advanceBy(0)
       myUsageTracker!!.close()
       cleanAfterTesting()
-    }
-    catch (_: Throwable) {
-    }
+    } catch (_: Throwable) {}
   }
 
   /**
    * This test is run first in order to have gradle daemon already running before actual metrics are done.
+   *
    * @throws Exception
    */
   @Throws(java.lang.Exception::class)
@@ -127,8 +125,7 @@ abstract class AbstractGradleSyncPerfTestCase {
         val droppedStats: GradleSyncStats? = getLastSyncStats()
         printStats("dropped (initialization) $drop", droppedStats, log)
       }
-    }
-    catch (e: java.lang.Exception) {
+    } catch (e: java.lang.Exception) {
       throw RuntimeException(e)
     }
   }
@@ -137,6 +134,7 @@ abstract class AbstractGradleSyncPerfTestCase {
    * Measure the following sync times:
    * - Initial sync time.
    * - Average over [AbstractGradleSyncPerfTestCase.numSamples] samples of subsequent syncs.
+   *
    * @throws Exception
    */
   @Throws(java.lang.Exception::class)
@@ -150,15 +148,9 @@ abstract class AbstractGradleSyncPerfTestCase {
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
-      val initialBenchmark = Benchmark.Builder("Initial sync time")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
-      val regularBenchmark = Benchmark.Builder("Regular sync time")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
-      val scenarioBenchmark = Benchmark.Builder(scenarioName)
-        .setProject(BENCHMARK_PROJECT)
-        .build()
+      val initialBenchmark = Benchmark.Builder("Initial sync time").setProject(BENCHMARK_PROJECT).build()
+      val regularBenchmark = Benchmark.Builder("Regular sync time").setProject(BENCHMARK_PROJECT).build()
+      val scenarioBenchmark = Benchmark.Builder(scenarioName).setProject(BENCHMARK_PROJECT).build()
 
       val metricScenario = Metric(scenarioName)
       val metricInitialTotal = Metric("Initial_Total")
@@ -203,11 +195,9 @@ abstract class AbstractGradleSyncPerfTestCase {
       metricRegularGradle.commit(scenarioName)
       metricRegularIDE.commit(scenarioName)
       metricRegularTotal.commit(scenarioName)
-    }
-    catch (e: java.lang.Exception) {
+    } catch (e: java.lang.Exception) {
       throw RuntimeException(e)
-    }
-    finally {
+    } finally {
       memoryThread.stopReadings()
       logSummary("Time", measurements, log)
       memoryThread.logSummary(log)
@@ -253,20 +243,22 @@ abstract class AbstractGradleSyncPerfTestCase {
       }
       samples.add(currentSample)
     }
-    log.info(buildString {
-      append("Memory usage:")
-      for (level in HISTOGRAM_LEVELS - 1 downTo 0) {
+    log.info(
+      buildString {
+        append("Memory usage:")
+        for (level in HISTOGRAM_LEVELS - 1 downTo 0) {
+          append("\n")
+          val currentLevelValue = (maximum * level) / HISTOGRAM_LEVELS
+          for (sample in samples) {
+            append(if (sample > currentLevelValue) "X" else " ")
+          }
+        }
         append("\n")
-        val currentLevelValue = (maximum * level) / HISTOGRAM_LEVELS
         for (sample in samples) {
-          append(if (sample > currentLevelValue) "X" else " ")
+          append("-")
         }
       }
-      append("\n")
-      for (sample in samples) {
-        append("-")
-      }
-    })
+    )
   }
 
   private fun getLogger(): Logger {
@@ -288,8 +280,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     log.info("${getScenarioName()} $message:")
     if (stats == null) {
       log.info("  <null_stats>")
-    }
-    else {
+    } else {
       log.info("  Gradle: " + stats.gradleTimeMs)
       log.info("     IDE: " + stats.ideTimeMs)
       log.info("   Total: " + stats.totalTimeMs)
@@ -302,12 +293,12 @@ abstract class AbstractGradleSyncPerfTestCase {
     return scenarioName.toString()
   }
 
-  private inner class MemoryMeasurementThread(private val scenarioName: String): Thread() {
+  private inner class MemoryMeasurementThread(private val scenarioName: String) : Thread() {
     private inner class ThreadMetric(val metricName: String, val sampler: () -> Long?) {
       private val metric = Metric("${scenarioName}_$metricName")
       val samples = ArrayList<Long>()
 
-      fun sample(benchmark: Benchmark,  timeStamp: Long) {
+      fun sample(benchmark: Benchmark, timeStamp: Long) {
         val value = sampler.invoke() ?: return
         samples.add(value)
         metric.addSamples(benchmark, MetricSample(timeStamp, value))
@@ -320,17 +311,15 @@ abstract class AbstractGradleSyncPerfTestCase {
 
     var daemonPid: Long? = null
     private var stopRunning = AtomicBoolean(false)
-    private val threadMetrics = listOf(
-      ThreadMetric("Test") { getUsedMemoryIde() },
-      ThreadMetric("TestRsz") { getUsedMemoryIdeRsz() },
-      ThreadMetric( "GradleRsz") { getUsedMemoryGradleRsz()}
-    )
+    private val threadMetrics =
+      listOf(
+        ThreadMetric("Test") { getUsedMemoryIde() },
+        ThreadMetric("TestRsz") { getUsedMemoryIdeRsz() },
+        ThreadMetric("GradleRsz") { getUsedMemoryGradleRsz() },
+      )
 
     override fun run() {
-      val memoryBenchmark = Benchmark.Builder("Memory usage")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
-
+      val memoryBenchmark = Benchmark.Builder("Memory usage").setProject(BENCHMARK_PROJECT).build()
 
       var nextReading = Instant.now()
       while (!stopRunning.get()) {
@@ -358,7 +347,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     }
 
     private fun getFirstBusyDaemonPid(): Long? {
-      val daemon = getDaemonsStatus().find {it.status == "BUSY"} ?: return null
+      val daemon = getDaemonsStatus().find { it.status == "BUSY" } ?: return null
       return daemon.pid
     }
 
@@ -368,7 +357,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     }
 
     private fun getUsedMemoryIdeRsz(): Long? {
-      val handler = ProcessHandle.current()?: return null
+      val handler = ProcessHandle.current() ?: return null
       return getProcessRsz(handler.pid(), "Test")
     }
 
@@ -393,17 +382,14 @@ abstract class AbstractGradleSyncPerfTestCase {
         try {
           val errorMessage = Scanner(process.errorStream).useDelimiter("\\A").next()
           getLogger().warning("Error $result while running \"$command\" for $processName, message: \"$errorMessage\"")
-        }
-        catch (ignored: Exception) {
-        }
+        } catch (ignored: Exception) {}
         return null
       }
       try {
         val inputStream = process.inputStream
         val usedKB = Scanner(inputStream).useDelimiter("\\A").next().trim().toLong()
         return usedKB * 1024
-      }
-      catch (exc: Exception) {
+      } catch (exc: Exception) {
         getLogger().warning("Exception while parsing output of command \"$command\" for $processName: $exc")
       }
       return null

@@ -37,8 +37,8 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.whenever
 
 /**
- * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project
- * structures created in setup.
+ * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project structures
+ * created in setup.
  */
 class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
 
@@ -101,15 +101,15 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
   fun testAllocationTrackingIsFullByDefault() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    whenever(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    whenever(runConfig.profilerState).thenReturn(state)
     ProfilerTransportConfigContributor().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.FULL.value)
 
     // Note startup profiling should not change the default default mode because live allocation tracking can be
     // started only by an explicit user operation which is impossible while startup profiling is in progress.
-    state.STARTUP_PROFILING_ENABLED = true;
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
+    state.STARTUP_PROFILING_ENABLED = true
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
     ProfilerTransportConfigContributor().customizeAgentConfig(configBuilder, runConfig)
     assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.FULL.value)
     assertThat(state.isNativeMemoryStartupProfilingEnabled).isTrue()
@@ -118,19 +118,19 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
   fun testNoRunConfigSetsAttachTypeInstant() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     ProfilerTransportConfigContributor().customizeAgentConfig(configBuilder, null)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.INSTANT)
   }
 
   fun testMemoryRunConfigSetsAttachTypeAndCommand() {
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    whenever(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    whenever(runConfig.profilerState).thenReturn(state)
     ProfilerTransportConfigContributor().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_TRACE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_TRACE)
   }
 
   fun testCpuRunConfigSetsAttachTypeAndCommand() {
@@ -139,13 +139,13 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
     // require a project + project service to test.
     val configBuilder = Agent.AgentConfig.newBuilder()
     val runConfig = mock(AndroidRunConfigurationBase::class.java)
-    val state = ProfilerState();
-    state.STARTUP_CPU_PROFILING_ENABLED = true;
-    state.STARTUP_PROFILING_ENABLED = true;
-    whenever(runConfig.profilerState).thenReturn(state);
+    val state = ProfilerState()
+    state.STARTUP_CPU_PROFILING_ENABLED = true
+    state.STARTUP_PROFILING_ENABLED = true
+    whenever(runConfig.profilerState).thenReturn(state)
     ProfilerTransportConfigContributor().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_TRACE);
+    assertThat(configBuilder.attachMethod).isEqualTo(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND)
+    assertThat(configBuilder.attachCommand).isEqualTo(Commands.Command.CommandType.STOP_TRACE)
   }
 
   fun testCustomizeProxyService() {
@@ -154,8 +154,14 @@ class ProfilerTransportConfigContributorTest : HeavyPlatformTestCase() {
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
     verify(mockProxy, times(1)).registerEventPreprocessor(any())
     verify(mockProxy, times(1))
-      .registerProxyCommandHandler(eq(Commands.Command.CommandType.STOP_LEAKCANARY_TASK), any(LeakCanaryLogcatCommandHandler::class.java))
+      .registerProxyCommandHandler(
+        eq(Commands.Command.CommandType.STOP_LEAKCANARY_TASK),
+        any(LeakCanaryLogcatCommandHandler::class.java),
+      )
     verify(mockProxy, times(1))
-      .registerProxyCommandHandler(eq(Commands.Command.CommandType.START_LEAKCANARY_TASK), any(LeakCanaryLogcatCommandHandler::class.java))
+      .registerProxyCommandHandler(
+        eq(Commands.Command.CommandType.START_LEAKCANARY_TASK),
+        any(LeakCanaryLogcatCommandHandler::class.java),
+      )
   }
 }

@@ -23,9 +23,7 @@ import com.android.tools.idea.gradle.project.sync.TEST_SUITE_ASSETS_CUSTOM_SOURC
 import java.io.File
 
 object TestSuiteTestUtils {
-  fun createAssetsTestSuiteSource(
-    testSuitePath: File
-  ): IdeTestSuiteSourceImpl {
+  fun createAssetsTestSuiteSource(testSuitePath: File): IdeTestSuiteSourceImpl {
     return IdeTestSuiteSourceImpl(
       name = "assets",
       type = IdeTestSuiteSource.SourceType.ASSETS,
@@ -44,16 +42,13 @@ object TestSuiteTestUtils {
           jniLibsDirectories = emptyList(),
           shadersDirectories = emptyList(),
           mlModelsDirectories = emptyList(),
-          customSourceDirectories = listOf(
-            IdeCustomSourceDirectoryImpl(
-              sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY,
-              myFolder = testSuitePath,
-              path = "."
-            )
-          ),
+          customSourceDirectories =
+            listOf(
+              IdeCustomSourceDirectoryImpl(sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY, myFolder = testSuitePath, path = ".")
+            ),
           baselineProfileDirectories = emptyList(),
-          keepRulesDirectoriesField = emptyList()
-        )
+          keepRulesDirectoriesField = emptyList(),
+        ),
     )
   }
 }

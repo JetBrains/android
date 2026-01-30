@@ -24,9 +24,7 @@ class ComposeRenderTest : ComposeRenderTestBase() {
   @Test
   fun baselineCompile() {
     val mainFile =
-      projectRule.fixture.project
-        .guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      projectRule.fixture.project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     ApplicationManager.getApplication().invokeAndWait {
       WriteAction.run<Throwable> {
         projectRule.fixture.openFileInEditor(mainFile)

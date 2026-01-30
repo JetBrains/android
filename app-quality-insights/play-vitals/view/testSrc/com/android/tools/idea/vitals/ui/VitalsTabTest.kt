@@ -89,8 +89,7 @@ class VitalsTabTest {
 
   private fun FakeUi.findToolbar(): ActionToolbar = this.findComponent()!!
 
-  private fun FakeUi.getConnectionsDropdownComponent() =
-    findToolbar().actions[0] as VitalsConnectionSelectorAction
+  private fun FakeUi.getConnectionsDropdownComponent() = findToolbar().actions[0] as VitalsConnectionSelectorAction
 
   private fun FakeUi.getTimestampFromLastRefresh(): AppInsightsDisplayRefreshTimestampAction =
     findToolbar().actions.filterIsInstance<AppInsightsDisplayRefreshTimestampAction>().first()
@@ -99,26 +98,18 @@ class VitalsTabTest {
     var index = 0
     issue.groups.forEach { group ->
       assertThat((components[index++] as? JLabel)?.text).isEqualTo(group.groupName)
-      assertThat((components[index++] as? JLabel)?.text)
-        .isEqualTo("${group.percentage.roundToInt()}%")
-      assertThat((components[index++] as? JProgressBar)?.value)
-        .isEqualTo(group.percentage.roundToInt())
+      assertThat((components[index++] as? JLabel)?.text).isEqualTo("${group.percentage.roundToInt()}%")
+      assertThat((components[index++] as? JProgressBar)?.value).isEqualTo(group.percentage.roundToInt())
       assertThat((components[index++] as? JLabel)?.icon).isEqualTo(StudioIcons.Common.INFO)
     }
-    assertThat((components[index++] as? JLabel)?.text)
-      .isEqualTo("Most affected $category: ${issue.topValue}")
+    assertThat((components[index++] as? JLabel)?.text).isEqualTo("Most affected $category: ${issue.topValue}")
     assertThat(index).isEqualTo(componentCount)
   }
 
   private fun createTab() =
-    VitalsTab(
-        controllerRule.controller,
-        projectRule.project,
-        clock,
-        TestAppInsightsTracker,
-        visibilityFlow,
-      )
-      .also { Disposer.register(controllerRule.disposable, it) }
+    VitalsTab(controllerRule.controller, projectRule.project, clock, TestAppInsightsTracker, visibilityFlow).also {
+      Disposer.register(controllerRule.disposable, it)
+    }
 
   @Test
   fun `tab shows correct information on startup`() =
@@ -148,35 +139,25 @@ class VitalsTabTest {
         val consoleView = fakeUi.findComponent<ConsoleViewImpl>()!!
         consoleView.text.trim() ==
           """
-        retrofit2.HttpException: HTTP 401 
-            dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.build(ResponseWrapper.kt:23)
-            dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.fetchOrError(ResponseWrapper.kt:31)
-      """
+          retrofit2.HttpException: HTTP 401 
+              dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.build(ResponseWrapper.kt:23)
+              dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.fetchOrError(ResponseWrapper.kt:31)
+          """
             .trimIndent()
       }
       // Also wait for the details panel to have some content. It should come quickly after the
       // above check.
       delayUntilCondition(200) {
         // Make sure each DistributionPanel has a JProgressBar
-        fakeUi.findAllComponents<DistributionPanel>().all {
-          it.findDescendant<JProgressBar>() != null
-        }
+        fakeUi.findAllComponents<DistributionPanel>().all { it.findDescendant<JProgressBar>() != null }
       }
 
       // Check the toolbar.
       val actionEvent = TestActionEvent.createTestEvent()
       fakeUi.getConnectionsDropdownComponent().update(actionEvent)
-      assertThat(actionEvent.presentation.text)
-        .isEqualTo("${TEST_CONNECTION_1.displayName} [${TEST_CONNECTION_1.appId}]")
+      assertThat(actionEvent.presentation.text).isEqualTo("${TEST_CONNECTION_1.displayName} [${TEST_CONNECTION_1.appId}]")
 
-      val dropDownPresentations =
-        listOf(
-          "Last 30 days",
-          "All visibility",
-          "All versions",
-          "All devices",
-          "All operating systems",
-        )
+      val dropDownPresentations = listOf("Last 30 days", "All visibility", "All versions", "All devices", "All operating systems")
       fakeUi
         .findToolbar()
         .actions
@@ -198,42 +179,28 @@ class VitalsTabTest {
       val detailsPanelHeader = fakeUi.findComponent<DetailsPanelHeader>()!!
       // Set header to a large size so the title label don't get truncated.
       detailsPanelHeader.size = Dimension(500, 500)
-      delayUntilCondition(200) {
-        detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>"
-      }
+      delayUntilCondition(200) { detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>" }
       assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
       assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
 
       // Details body
-      val rows =
-        fakeUi
-          .findComponent<JPanel> { it.name == "detail_rows" }!!
-          .components
-          .filterIsInstance<JPanel>()
+      val rows = fakeUi.findComponent<JPanel> { it.name == "detail_rows" }!!.components.filterIsInstance<JPanel>()
       assertThat(rows.size).isEqualTo(4)
 
       // Versions affected, signals, open/close button
-      with(FakeUi(rows[0])) {
-        assertThat(findComponent<JLabel>()!!.text).isEqualTo("Versions affected: 1.2.3 → 2.0.0")
-      }
+      with(FakeUi(rows[0])) { assertThat(findComponent<JLabel>()!!.text).isEqualTo("Versions affected: 1.2.3 → 2.0.0") }
 
       // Event id, Link to vitals console
       with(FakeUi(rows[2])) {
-        assertThat(findComponent<JLabel>()!!.text)
-          .isEqualTo("Event ${ISSUE1.issueDetails.sampleEvent.shortenEventId()}")
+        assertThat(findComponent<JLabel>()!!.text).isEqualTo("Event ${ISSUE1.issueDetails.sampleEvent.shortenEventId()}")
         assertThat(findComponent<HyperlinkLabel>()!!.text).isEqualTo("View on Android Vitals")
       }
 
       // Device, OS Version, Timestamp, VCS Commit
       with(FakeUi(rows[3])) {
         assertThat(findAllComponents<JLabel>().filter { isShowing(it) }.map { it.text })
-          .containsExactly(
-            "Google Pixel 4a",
-            "Android 3.1 (API 12)",
-            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime),
-          )
-        assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text })
-          .containsExactly("74081e5f")
+          .containsExactly("Google Pixel 4a", "Android 3.1 (API 12)", dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime))
+        assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text }).containsExactly("74081e5f")
       }
 
       // Tabbed pane
@@ -248,10 +215,10 @@ class VitalsTabTest {
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """
-        retrofit2.HttpException: HTTP 401 
-            dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.build(ResponseWrapper.kt:23)
-            dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.fetchOrError(ResponseWrapper.kt:31)
-      """
+          retrofit2.HttpException: HTTP 401 
+              dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.build(ResponseWrapper.kt:23)
+              dev.firebase.appdistribution.api_service.ResponseWrapper${"$"}Companion.fetchOrError(ResponseWrapper.kt:31)
+          """
             .trimIndent()
         )
 
@@ -282,10 +249,7 @@ class VitalsTabTest {
             DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
-        detailsState =
-          LoadingState.Ready(
-            DetailedIssueStats(IssueStats(null, emptyList()), IssueStats(null, emptyList()))
-          ),
+        detailsState = LoadingState.Ready(DetailedIssueStats(IssueStats(null, emptyList()), IssueStats(null, emptyList()))),
       )
 
       with(fakeUi.findComponent<DistributionsContainerPanel>()!!.emptyText) {
@@ -310,18 +274,11 @@ class VitalsTabTest {
             DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
-        detailsState =
-          LoadingState.Ready(
-            DetailedIssueStats(IssueStats(null, emptyList()), ISSUE1_DETAILS.osStats)
-          ),
+        detailsState = LoadingState.Ready(DetailedIssueStats(IssueStats(null, emptyList()), ISSUE1_DETAILS.osStats)),
       )
 
-      delayUntilCondition(200) {
-        fakeUi.findComponent<JLabel> { it.text == "No data available" } != null
-      }
-      fakeUi
-        .findAllComponents<DistributionPanel>()[1]
-        .assertContent(ISSUE1_DETAILS.osStats, "Android version")
+      delayUntilCondition(200) { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      fakeUi.findAllComponents<DistributionPanel>()[1].assertContent(ISSUE1_DETAILS.osStats, "Android version")
     }
 
   @Test
@@ -340,18 +297,11 @@ class VitalsTabTest {
             DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
-        detailsState =
-          LoadingState.Ready(
-            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          ),
+        detailsState = LoadingState.Ready(DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))),
       )
 
-      delayUntilCondition(200) {
-        fakeUi.findComponent<JLabel> { it.text == "No data available" } != null
-      }
-      fakeUi
-        .findAllComponents<DistributionPanel>()[0]
-        .assertContent(ISSUE1_DETAILS.deviceStats, "device")
+      delayUntilCondition(200) { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      fakeUi.findAllComponents<DistributionPanel>()[0].assertContent(ISSUE1_DETAILS.deviceStats, "device")
     }
 
   @Test
@@ -370,16 +320,11 @@ class VitalsTabTest {
             DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
-        detailsState =
-          LoadingState.Ready(
-            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          ),
+        detailsState = LoadingState.Ready(DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))),
       )
 
       delayUntilCondition(200) {
-        fakeUi.findComponent<JLabel> {
-          it.icon == StudioIcons.LayoutEditor.Toolbar.ANDROID_API && it.text == "unknown"
-        } != null
+        fakeUi.findComponent<JLabel> { it.icon == StudioIcons.LayoutEditor.Toolbar.ANDROID_API && it.text == "unknown" } != null
       }
     }
 
@@ -396,16 +341,11 @@ class VitalsTabTest {
             DEFAULT_FETCHED_PERMISSIONS,
           )
         ),
-        detailsState =
-          LoadingState.Ready(
-            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
-          ),
+        detailsState = LoadingState.Ready(DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))),
       )
 
       createTab()
-      controllerRule.geminiToolkit.completeFetchInsightCallWith(
-        LoadingState.Ready(DEFAULT_AI_INSIGHT)
-      )
+      controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
       var state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
 
@@ -418,11 +358,7 @@ class VitalsTabTest {
       state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
       try {
-        withTimeout(1000) {
-          controllerRule.geminiToolkit.completeFetchInsightCallWith(
-            LoadingState.Ready(DEFAULT_AI_INSIGHT)
-          )
-        }
+        withTimeout(1000) { controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT)) }
         fail("Should have timed out")
       } catch (_: TimeoutCancellationException) {}
 
@@ -430,9 +366,7 @@ class VitalsTabTest {
       state = controllerRule.consumeNext()
       assertThat(state.disabledActions).isEmpty()
 
-      controllerRule.geminiToolkit.completeFetchInsightCallWith(
-        LoadingState.Ready(DEFAULT_AI_INSIGHT)
-      )
+      controllerRule.geminiToolkit.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
       state = controllerRule.consumeNext()
       assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
     }
@@ -464,13 +398,12 @@ class VitalsTabTest {
       assertThat(tableView.emptyText.toString())
         .isEqualTo(
           """
-        Too many results.
-        Choose a shorter time range or add other filters.
-      """
+          Too many results.
+          Choose a shorter time range or add other filters.
+          """
             .trimIndent()
         )
     }
 
-  private fun JBTabbedPane.getComponentAtIdx(idx: Int) =
-    (getComponentAt(idx) as JComponent).components.last()
+  private fun JBTabbedPane.getComponentAtIdx(idx: Int) = (getComponentAt(idx) as JComponent).components.last()
 }

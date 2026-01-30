@@ -61,8 +61,7 @@ class WearPairingManagerTest {
       hasPlayStore = true,
       state = ConnectionState.ONLINE,
     )
-  private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
+  private val wearPropertiesMap = mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
     AvdInfo(
       iniFile = Paths.get("ini"),
@@ -81,28 +80,16 @@ class WearPairingManagerTest {
   @Test
   fun directAccessDevicePairingReportsCorrectDeviceIdTest(): Unit = runBlocking {
     val directAccessIDevice =
-      directAccessDevice.buildIDevice(
-        properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to "firebase-remote-dev1")
-      ) { request ->
-        handlePhoneAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      directAccessDevice.buildIDevice(properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to "firebase-remote-dev1")) { request ->
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
     val wearIDevice =
-      wearDevice.buildIDevice(
-        avdInfo = avdWearInfo,
-        systemProperties = mapOf("ro.oem.companion_package" to ""),
-      ) { request ->
-        return@buildIDevice handleWearAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->
+        return@buildIDevice handleWearAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
 
     pairingManager.setDataProviders({ listOf() }, { listOf(directAccessIDevice, wearIDevice) })
-    pairingManager.createPairedDeviceBridge(
-      directAccessDevice,
-      directAccessIDevice,
-      wearDevice,
-      wearIDevice,
-    )
+    pairingManager.createPairedDeviceBridge(directAccessDevice, directAccessIDevice, wearDevice, wearIDevice)
     assertNotNull(pairingManager.findDevice("firebase-remote-dev1"))
   }
 
@@ -111,29 +98,16 @@ class WearPairingManagerTest {
     val expiredDirectAccessDeviceID = "projects/222768521919/deviceSessions/session-294jm1dz2ck5m"
     val newDirectAccessDeviceID = "projects/222768521919/deviceSessions/session-3mafdtdd82zxd"
     val newDirectAccessIDevice =
-      directAccessDevice.buildIDevice(
-        properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to newDirectAccessDeviceID)
-      ) { request ->
-        handlePhoneAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      directAccessDevice.buildIDevice(properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to newDirectAccessDeviceID)) { request ->
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
 
-    pairingManager.setDataProviders(
-      virtualDevices = { listOf(avdWearInfo) },
-      connectedDevices = { listOf(newDirectAccessIDevice) },
-    )
+    pairingManager.setDataProviders(virtualDevices = { listOf(avdWearInfo) }, connectedDevices = { listOf(newDirectAccessIDevice) })
     pairingManager.loadSettings(
       pairedDevices =
         listOf(
-          PairingDeviceState(
-            deviceID = expiredDirectAccessDeviceID,
-            displayName = directAccessDevice.displayName,
-          ),
-          PairingDeviceState(
-            deviceID = avdWearInfo.id,
-            displayName = avdWearInfo.name,
-            isEmulator = true,
-          ),
+          PairingDeviceState(deviceID = expiredDirectAccessDeviceID, displayName = directAccessDevice.displayName),
+          PairingDeviceState(deviceID = avdWearInfo.id, displayName = avdWearInfo.name, isEmulator = true),
         ),
       pairedDeviceConnections =
         listOf(
@@ -166,20 +140,13 @@ class WearPairingManagerTest {
   fun pairingIsUpdatedWhenExistingSessionOfDirectAccessDeviceIsConnected() = runBlocking {
     val directAccessDeviceID = "projects/222768521919/deviceSessions/session-3mafdtdd82zxd"
     val directAccessIDevice =
-      directAccessDevice.buildIDevice(
-        properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to directAccessDeviceID)
-      ) { request ->
-        handlePhoneAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      directAccessDevice.buildIDevice(properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to directAccessDeviceID)) { request ->
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
 
     val wearIDevice =
-      wearDevice.buildIDevice(
-        avdInfo = avdWearInfo,
-        systemProperties = mapOf("ro.oem.companion_package" to ""),
-      ) { request ->
-        return@buildIDevice handleWearAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->
+        return@buildIDevice handleWearAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
 
     pairingManager.setDataProviders(
@@ -189,15 +156,8 @@ class WearPairingManagerTest {
     pairingManager.loadSettings(
       pairedDevices =
         listOf(
-          PairingDeviceState(
-            deviceID = directAccessDeviceID,
-            displayName = directAccessDevice.displayName,
-          ),
-          PairingDeviceState(
-            deviceID = avdWearInfo.id,
-            displayName = avdWearInfo.name,
-            isEmulator = true,
-          ),
+          PairingDeviceState(deviceID = directAccessDeviceID, displayName = directAccessDevice.displayName),
+          PairingDeviceState(deviceID = avdWearInfo.id, displayName = avdWearInfo.name, isEmulator = true),
         ),
       pairedDeviceConnections =
         listOf(
@@ -229,41 +189,24 @@ class WearPairingManagerTest {
     val changedPairing = changedPairingDeferred.await()
     assertEquals(directAccessDeviceID, changedPairing.phone.deviceID)
     assertEquals(avdWearInfo.id, changedPairing.wear.deviceID)
-    assertTrue(
-      changedPairing.pairingStatus in
-        setOf(WearPairingManager.PairingState.CONNECTED, WearPairingManager.PairingState.CONNECTING)
-    )
+    assertTrue(changedPairing.pairingStatus in setOf(WearPairingManager.PairingState.CONNECTED, WearPairingManager.PairingState.CONNECTING))
   }
 
   @Test
   fun onlyConnectedDirectAccessDevicesShouldBeInPhoneList() = runBlocking {
-    val disconnectedDirectAccessDeviceID =
-      "projects/222768521919/deviceSessions/session-294jm1dz2ck5m"
+    val disconnectedDirectAccessDeviceID = "projects/222768521919/deviceSessions/session-294jm1dz2ck5m"
     val connectedDirectAccessDeviceID = "projects/222768521919/deviceSessions/session-1dw7qe2spkoq2"
     val connectedAccessIDevice =
-      directAccessDevice.buildIDevice(
-        properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to connectedDirectAccessDeviceID)
-      ) { request ->
-        handlePhoneAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+      directAccessDevice.buildIDevice(properties = mapOf(PROP_FIREBASE_TEST_LAB_SESSION to connectedDirectAccessDeviceID)) { request ->
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
 
-    pairingManager.setDataProviders(
-      virtualDevices = { listOf(avdWearInfo) },
-      connectedDevices = { listOf(connectedAccessIDevice) },
-    )
+    pairingManager.setDataProviders(virtualDevices = { listOf(avdWearInfo) }, connectedDevices = { listOf(connectedAccessIDevice) })
     pairingManager.loadSettings(
       pairedDevices =
         listOf(
-          PairingDeviceState(
-            deviceID = disconnectedDirectAccessDeviceID,
-            displayName = directAccessDevice.displayName,
-          ),
-          PairingDeviceState(
-            deviceID = avdWearInfo.id,
-            displayName = avdWearInfo.name,
-            isEmulator = true,
-          ),
+          PairingDeviceState(deviceID = disconnectedDirectAccessDeviceID, displayName = directAccessDevice.displayName),
+          PairingDeviceState(deviceID = avdWearInfo.id, displayName = avdWearInfo.name, isEmulator = true),
         ),
       pairedDeviceConnections =
         listOf(
@@ -298,44 +241,30 @@ class WearPairingManagerTest {
         state = ConnectionState.ONLINE,
       )
     val avdPhoneInfo =
-      AvdInfo(
-        iniFile = Paths.get("ini"),
-        dataFolderPath = Paths.get(phoneDevice.deviceID),
-        systemImage = mock<ISystemImage>(),
-      )
+      AvdInfo(iniFile = Paths.get("ini"), dataFolderPath = Paths.get(phoneDevice.deviceID), systemImage = mock<ISystemImage>())
     val phoneIDevice =
       phoneDevice.buildIDevice(avdInfo = avdPhoneInfo) { request ->
-        handlePhoneAdbRequest(request)
-          ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+        handlePhoneAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
       }
     val wearIDevice =
       wearDevice
         .buildIDevice(avdInfo = avdWearInfo) { request ->
-          return@buildIDevice handleWearAdbRequest(request)
-            ?: throw IllegalStateException("Unknown executeShellCommand request $request")
+          return@buildIDevice handleWearAdbRequest(request) ?: throw IllegalStateException("Unknown executeShellCommand request $request")
         }
-        .apply {
-          whenever(getSystemProperty("ro.oem.companion_package"))
-            .thenReturn(Futures.immediateFuture(""))
-        }
+        .apply { whenever(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture("")) }
 
     val isPairingReconnected = AtomicBoolean(false)
     pairingManager.addDevicePairingStatusChangedListener(
       object : PairingStatusChangedListener {
         override fun pairingStatusChanged(phoneWearPair: WearPairingManager.PhoneWearPair) {
-          isPairingReconnected.set(
-            phoneWearPair.pairingStatus == WearPairingManager.PairingState.CONNECTED
-          )
+          isPairingReconnected.set(phoneWearPair.pairingStatus == WearPairingManager.PairingState.CONNECTED)
         }
 
         override fun pairingDeviceRemoved(phoneWearPair: WearPairingManager.PhoneWearPair) {}
       }
     )
 
-    pairingManager.setDataProviders(
-      { listOf(avdPhoneInfo, avdWearInfo) },
-      { listOf(phoneIDevice, wearIDevice) },
-    )
+    pairingManager.setDataProviders({ listOf(avdPhoneInfo, avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
 
     pairingManager.loadSettings(
       listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState()),

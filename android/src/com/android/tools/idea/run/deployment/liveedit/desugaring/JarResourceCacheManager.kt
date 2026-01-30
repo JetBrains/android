@@ -27,9 +27,9 @@ import kotlin.io.path.absolute
 internal class JarResourceCacheManager(private val logger: LiveEditLogger) : AutoCloseable {
 
   // Mapping path to a jar -> Cache of the jar entries.
-  private val cache : MutableMap<String, JarResourceCacheEntry> = HashMap()
+  private val cache: MutableMap<String, JarResourceCacheEntry> = HashMap()
 
-  internal fun getResourceCache(file: Path) : ClassFileResourceProvider {
+  internal fun getResourceCache(file: Path): ClassFileResourceProvider {
     val path = file.absolute().toString()
 
     if (!cache.containsKey(path)) {
@@ -45,17 +45,13 @@ internal class JarResourceCacheManager(private val logger: LiveEditLogger) : Aut
 
   // Release all resources
   override fun close() {
-    cache.forEach{
-      it.value.finished(null)
-    }
+    cache.forEach { it.value.finished(null) }
     cache.clear()
   }
 
   // Called at the end of desugaring. This is when jar cache can be closed
   fun done() {
     val handler = R8DiagnosticHandler(logger)
-    cache.forEach{
-      it.value.finished(handler)
-    }
+    cache.forEach { it.value.finished(handler) }
   }
 }

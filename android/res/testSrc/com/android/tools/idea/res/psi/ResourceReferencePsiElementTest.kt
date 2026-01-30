@@ -49,18 +49,16 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
 
   fun testReferencesToAAR_equivalent() {
     addAarDependency(myFixture, myModule, "aarLib", "com.example.aarLib") { resDir ->
-      resDir.parentFile
-        .resolve(SdkConstants.FN_RESOURCE_TEXT)
-        .writeText("""int color colorPrimary 0x7f010001""")
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("""int color colorPrimary 0x7f010001""")
       resDir
         .resolve("values/colors.xml")
         .writeText(
           // language=XML
           """
-        <resources>
-          <color name="colorPrimary">#008577</color>
-        </resources>
-        """
+          <resources>
+            <color name="colorPrimary">#008577</color>
+          </resources>
+          """
             .trimIndent()
         )
     }
@@ -96,8 +94,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     // Resource in TransitiveAaaRClass
     myFixture.moveCaret("com.example.aarLib.R.color.color|Primary")
     val transitiveAarRClassResource = myFixture.elementAtCaret
-    assertThat(transitiveAarRClassResource.parent.parent)
-      .isInstanceOf(TransitiveAarRClass::class.java)
+    assertThat(transitiveAarRClassResource.parent.parent).isInstanceOf(TransitiveAarRClass::class.java)
 
     assertThat(
       ResourceReferencePsiElement.create(moduleRClassResource)!!.isEquivalentTo(
@@ -131,8 +128,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(elementAtCaret).isInstanceOf(ClsFieldImpl::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
-    assertThat(fakePsiElement!!.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
     assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
@@ -156,8 +152,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(elementAtCaret).isInstanceOf(ClsFieldImpl::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
-    assertThat(fakePsiElement!!.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
     assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
@@ -217,9 +212,10 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       "res/values/flattenColors.xml",
       // language=XML
       """
-       <resources>
-         <color name="foo.bar">#3700B3</color>
-       </resources>"""
+      <resources>
+        <color name="foo.bar">#3700B3</color>
+      </resources>
+      """
         .trimIndent(),
     )
     val file =
@@ -241,8 +237,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
-    assertThat(fakePsiElement!!.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "foo.bar"))
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "foo.bar"))
   }
 
   fun testResourceReferencePsiElementDeclaration() {
@@ -301,9 +296,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(
-        ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "secondary_text_dark")
-      )
+      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "secondary_text_dark"))
   }
 
   fun testIdDeclarationInLayout() {
@@ -326,8 +319,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
     assertThat(fakePsiElement).isNotNull()
-    assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "textview"))
+    assertThat(fakePsiElement.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "textview"))
   }
 
   fun testAttrValueResourceAndroid() {
@@ -342,27 +334,22 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    val elementAtCaret =
-      myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttributeValue>()!!
-    val fakePsiElement =
-      ResourceReferencePsiElement.create(elementAtCaret) as ResourceReferencePsiElement
-    assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
+    val elementAtCaret = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttributeValue>()!!
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret) as ResourceReferencePsiElement
+    assertThat(fakePsiElement.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
-  /**
-   * Regression test for http://b.android.com/170867656 Bug: res/values files should not be
-   * considered resources, only the tags within.
-   */
+  /** Regression test for http://b.android.com/170867656 Bug: res/values files should not be considered resources, only the tags within. */
   fun testStringsFile() {
     val file =
       myFixture.addFileToProject(
         "res/values/strings.xml",
         // language=XML
         """
-        <resources>
-          <string name="Foo">Bar</string>
-        </resources>"""
+        |        <resources>
+        |          <string name="Foo">Bar</string>
+        |        </resources>
+        """
           .trimMargin(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -379,17 +366,18 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       myFixture.addFileToProject(
         "res/drawable/test.xml",
         // language=XML
-        """<shape xmlns:android="http://schemas.android.com/apk/res/android"
-        android:shape="rectangle"
-        android:tint="#FF0000">
-       </shape>"""
+        """
+        |<shape xmlns:android="http://schemas.android.com/apk/res/android"
+        |        android:shape="rectangle"
+        |        android:tint="#FF0000">
+        |       </shape>
+        """
           .trimMargin(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     assertThat(file).isInstanceOf(PsiFile::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(file) as ResourceReferencePsiElement
-    assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "test"))
+    assertThat(fakePsiElement.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "test"))
   }
 
   fun testDrawableFileInvalidName() {
@@ -414,11 +402,12 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         "res/values/styles.xml",
         // language=XML
         """
-       <resources>
-         <style name="TextAppearance.Theme.PlainText">
-           <item name="android:textStyle"/>
-         </style>
-       </resources>"""
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="android:textStyle"/>
+          </style>
+        </resources>
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
@@ -427,8 +416,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement::class.java)
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
-    assertThat(fakePsiElement!!.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
   fun testStyleItemResAuto() {
@@ -436,12 +424,12 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       "res/values/coordinatorlayout_attrs.xml",
       // language=XML
       """
-        <resources>
-          <declare-styleable name="CoordinatorLayout_Layout">
-            <attr name="layout_behavior" format="string" />
-          </declare-styleable>
-        </resources>
-        """
+      <resources>
+        <declare-styleable name="CoordinatorLayout_Layout">
+          <attr name="layout_behavior" format="string" />
+        </declare-styleable>
+      </resources>
+      """
         .trimIndent(),
     )
     val psiFile =
@@ -449,23 +437,21 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         "res/values/styles.xml",
         // language=XML
         """
-       <resources>
-         <style name="TextAppearance.Theme.PlainText">
-           <item name="layout_behavior"/>
-         </style>
-       </resources>"""
+        <resources>
+          <style name="TextAppearance.Theme.PlainText">
+            <item name="layout_behavior"/>
+          </style>
+        </resources>
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("la|yout_behavior")
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement::class.java)
-    val fakePsiElement =
-      ResourceReferencePsiElement.create(elementAtCaret) as ResourceReferencePsiElement
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret) as ResourceReferencePsiElement
     assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(
-        ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "layout_behavior")
-      )
+      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "layout_behavior"))
   }
 
   fun testReferenceStyleAttribute() {
@@ -473,13 +459,13 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
       "res/values/attrs.xml",
       // language=XML
       """
-        <resources>
-          <attr name="button_text" format="string" />
-         <style name="TextAppearance.Theme.PlainText">
-           <item name="button_text">Example Text</item>
-         </style>
-        </resources>
-        """
+      <resources>
+        <attr name="button_text" format="string" />
+       <style name="TextAppearance.Theme.PlainText">
+         <item name="button_text">Example Text</item>
+       </style>
+      </resources>
+      """
         .trimIndent(),
     )
     val file =
@@ -487,23 +473,22 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         "res/layout/layout.xml",
         // language=XML
         """
-       <LinearLayout
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
-          <TextView
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:text="?attr/button_text"/>
-      </LinearLayout>
-       """
+         <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="?attr/button_text"/>
+        </LinearLayout>
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.moveCaret("attr/butto|n_text")
     val fakePsiElement = myFixture.elementAtCaret as ResourceReferencePsiElement
-    assertThat(fakePsiElement.resourceReference)
-      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "button_text"))
+    assertThat(fakePsiElement.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "button_text"))
   }
 
   fun testElementRepresentation_equivalent() {
@@ -565,23 +550,10 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     myFixture.configureByFile("res/values/colors.xml")
     myFixture.moveCaret("colorPri|mary")
     val elementAtCaret = myFixture.elementAtCaret as ResourceReferencePsiElement
-    checkElementDescriptions(
-      elementAtCaret,
-      "colorPrimary",
-      "@color/colorPrimary",
-      "Color Resource",
-    )
+    checkElementDescriptions(elementAtCaret, "colorPrimary", "@color/colorPrimary", "Color Resource")
     val frameworkElement =
-      ResourceReferencePsiElement(
-        elementAtCaret,
-        ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"),
-      )
-    checkElementDescriptions(
-      frameworkElement,
-      "example",
-      "@android:string/example",
-      "String Resource",
-    )
+      ResourceReferencePsiElement(elementAtCaret, ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"))
+    checkElementDescriptions(frameworkElement, "example", "@android:string/example", "String Resource")
   }
 
   private fun checkElementDescriptions(
@@ -590,17 +562,8 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     expectedLongName: String,
     expectedTypeDescription: String,
   ) {
-    assertThat(
-        ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE)
-      )
-      .isEqualTo(expectedShortName)
-    assertThat(
-        ElementDescriptionUtil.getElementDescription(element, UsageViewLongNameLocation.INSTANCE)
-      )
-      .isEqualTo(expectedLongName)
-    assertThat(
-        ElementDescriptionUtil.getElementDescription(element, UsageViewTypeLocation.INSTANCE)
-      )
-      .isEqualTo(expectedTypeDescription)
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE)).isEqualTo(expectedShortName)
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewLongNameLocation.INSTANCE)).isEqualTo(expectedLongName)
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewTypeLocation.INSTANCE)).isEqualTo(expectedTypeDescription)
   }
 }

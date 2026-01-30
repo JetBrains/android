@@ -24,39 +24,46 @@ internal class DeviceStreamingSessionTracker(private val deviceConfig: DeviceCon
 
   override val deviceInfoProto: DeviceInfo
     get() = deviceConfig.deviceProperties.deviceInfoProto
+
   override val streamingSessionProto: DeviceMirroringSession
     get() {
-      return DeviceMirroringSession.newBuilder().apply {
-        deviceKind = DeviceMirroringSession.DeviceKind.PHYSICAL
-        durationSec = sessionDurationSec
-        if (agentPushEndTime != 0L) {
-          agentPushTimeMillis = agentPushEndTime - agentPushStartTime
-          if (firstFrameArrivalTime != 0L) {
-            firstFrameDelayMillis = firstFrameArrivalTime - agentPushEndTime
+      return DeviceMirroringSession.newBuilder()
+        .apply {
+          deviceKind = DeviceMirroringSession.DeviceKind.PHYSICAL
+          durationSec = sessionDurationSec
+          if (agentPushEndTime != 0L) {
+            agentPushTimeMillis = agentPushEndTime - agentPushStartTime
+            if (firstFrameArrivalTime != 0L) {
+              firstFrameDelayMillis = firstFrameArrivalTime - agentPushEndTime
+            }
           }
         }
-      }.build()
+        .build()
     }
 
   private var agentPushStartTime: Long = 0L
   private var agentPushEndTime: Long = 0L
   private var firstFrameArrivalTime: Long = 0L
 
-  @Synchronized fun agentPushStarted() {
+  @Synchronized
+  fun agentPushStarted() {
     agentPushStartTime = System.currentTimeMillis()
   }
 
-  @Synchronized fun agentPushEnded() {
+  @Synchronized
+  fun agentPushEnded() {
     agentPushEndTime = System.currentTimeMillis()
   }
 
-  @Synchronized fun videoFrameArrived() {
+  @Synchronized
+  fun videoFrameArrived() {
     if (firstFrameArrivalTime == 0L) {
       firstFrameArrivalTime = System.currentTimeMillis()
     }
   }
 
-  @Synchronized override fun reset() {
+  @Synchronized
+  override fun reset() {
     agentPushStartTime = 0L
     agentPushEndTime = 0L
     firstFrameArrivalTime = 0L

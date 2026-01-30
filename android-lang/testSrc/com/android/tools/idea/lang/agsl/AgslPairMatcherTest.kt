@@ -29,7 +29,8 @@ class AgslPairMatcherTest : BasePlatformTestCase() {
         float xy = n.x * n.y;
         return fract(xy * 95.4307) + fract(xy * 75.04961) - 1.0;
     } // end
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun String.offset(window: String): Int {
     val delta = window.indexOf('|')

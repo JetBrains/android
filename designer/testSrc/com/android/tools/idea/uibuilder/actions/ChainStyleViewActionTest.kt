@@ -28,15 +28,11 @@ import org.mockito.kotlin.whenever
 class ChainStyleViewActionTest : SceneTest() {
 
   fun testChainHorizontal() {
-    ChainStyleViewActions.HORIZONTAL_CHAIN_STYLES.forEach {
-      verifyHorizontalChainStyle(it as ChainStyleViewAction)
-    }
+    ChainStyleViewActions.HORIZONTAL_CHAIN_STYLES.forEach { verifyHorizontalChainStyle(it as ChainStyleViewAction) }
   }
 
   fun testChainVertical() {
-    ChainStyleViewActions.VERTICAL_CHAIN_STYLES.forEach {
-      verifyVerticalChainStyle(it as ChainStyleViewAction)
-    }
+    ChainStyleViewActions.VERTICAL_CHAIN_STYLES.forEach { verifyVerticalChainStyle(it as ChainStyleViewAction) }
   }
 
   fun testChainApplicable() {
@@ -89,11 +85,7 @@ class ChainStyleViewActionTest : SceneTest() {
     }
   }
 
-  private fun verifyApplicable(
-    list: List<NlComponent>,
-    action: ChainStyleViewAction,
-    expected: Boolean,
-  ) {
+  private fun verifyApplicable(list: List<NlComponent>, action: ChainStyleViewAction, expected: Boolean) {
     val mockViewEditor = mock(ViewEditor::class.java)
     whenever(mockViewEditor.scene).thenReturn(myScene)
 
@@ -136,13 +128,7 @@ class ChainStyleViewActionTest : SceneTest() {
     whenever(mockViewEditor.scene).thenReturn(myScene)
     val mockHandler = mock(ViewHandler::class.java)
 
-    action.perform(
-      mockViewEditor,
-      mockHandler,
-      button0,
-      mutableListOf(button0, button1, button2),
-      0,
-    )
+    action.perform(mockViewEditor, mockHandler, button0, mutableListOf(button0, button1, button2), 0)
 
     myScreen
       .get("@+id/button0")
@@ -162,8 +148,7 @@ class ChainStyleViewActionTest : SceneTest() {
   }
 
   /**
-   * Create a model where button0 is both Horizontal && Vertical chain. 0, 1, 2 are in horizontal
-   * chain 0, 3 are in vertical chain
+   * Create a model where button0 is both Horizontal && Vertical chain. 0, 1, 2 are in horizontal chain 0, 3 are in vertical chain
    *
    * 4 is not in any chain
    *

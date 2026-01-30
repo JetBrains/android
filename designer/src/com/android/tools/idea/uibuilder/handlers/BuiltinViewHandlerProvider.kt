@@ -185,8 +185,7 @@ private object BasicViewHandlerProvider : ViewHandlerProvider {
       FQCN_RELATIVE_LAYOUT,
       RELATIVE_LAYOUT -> RelativeLayoutHandler()
       EDIT_TEXT -> EditTextHandler()
-      EXPANDABLE_LIST_VIEW ->
-        ListViewHandler() // TODO: Find out why this fails to load by class name
+      EXPANDABLE_LIST_VIEW -> ListViewHandler() // TODO: Find out why this fails to load by class name
       FQCN_LINEAR_LAYOUT,
       LINEAR_LAYOUT,
       SEARCH_VIEW -> LinearLayoutHandler()
@@ -297,8 +296,7 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
 private object FlexboxViewHandlerProvider : ViewHandlerProvider {
   override fun findHandler(viewTag: String): ViewHandler? =
     if (FLEXBOX_LAYOUT == viewTag) {
-      if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) FlexboxLayoutHandler()
-      else ViewHandlerManager.NONE
+      if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) FlexboxLayoutHandler() else ViewHandlerManager.NONE
     } else {
       null
     }
@@ -306,13 +304,7 @@ private object FlexboxViewHandlerProvider : ViewHandlerProvider {
 
 internal object BuiltinViewHandlerProvider : ViewHandlerProvider {
   private val providers =
-    sequenceOf(
-      BasicViewHandlerProvider,
-      PreferencesViewHandlerProvider,
-      AndroidxViewHandlerProvider,
-      FlexboxViewHandlerProvider,
-    )
+    sequenceOf(BasicViewHandlerProvider, PreferencesViewHandlerProvider, AndroidxViewHandlerProvider, FlexboxViewHandlerProvider)
 
-  override fun findHandler(viewTag: String): ViewHandler? =
-    providers.map { it.findHandler(viewTag) }.filterNotNull().firstOrNull()
+  override fun findHandler(viewTag: String): ViewHandler? = providers.map { it.findHandler(viewTag) }.filterNotNull().firstOrNull()
 }

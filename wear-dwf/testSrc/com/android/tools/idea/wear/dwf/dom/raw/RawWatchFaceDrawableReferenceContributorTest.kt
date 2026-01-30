@@ -39,16 +39,12 @@ class RawWatchFaceDrawableReferenceContributorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
   }
 
   @Test
   fun `raw watch face drawable attribute references are not provided when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     val icon = "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1"
     val resource = "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685"
     fixture.addFileToProject("res/drawable/$icon.png", "")
@@ -87,9 +83,7 @@ class RawWatchFaceDrawableReferenceContributorTest {
       fixture.file.findReferenceAt(fixture.caretOffset)
     }
     assertThat(iconAttributeReference).isNotNull()
-    val iconReference =
-      runReadAction { iconAttributeReference?.resolve() as? ResourceReferencePsiElement }
-        ?.resourceReference
+    val iconReference = runReadAction { iconAttributeReference?.resolve() as? ResourceReferencePsiElement }?.resourceReference
     assertThat(iconReference?.resourceType).isEqualTo(ResourceType.DRAWABLE)
     assertThat(iconReference?.resourceUrl?.name).isEqualTo(icon)
 
@@ -98,9 +92,7 @@ class RawWatchFaceDrawableReferenceContributorTest {
       fixture.file.findReferenceAt(fixture.caretOffset)
     }
     assertThat(resourceAttributeReference).isNotNull()
-    val resourceReference =
-      runReadAction { resourceAttributeReference?.resolve() as? ResourceReferencePsiElement }
-        ?.resourceReference
+    val resourceReference = runReadAction { resourceAttributeReference?.resolve() as? ResourceReferencePsiElement }?.resourceReference
     assertThat(resourceReference?.resourceType).isEqualTo(ResourceType.DRAWABLE)
     assertThat(resourceReference?.resourceUrl?.name).isEqualTo(resource)
   }
@@ -115,10 +107,10 @@ class RawWatchFaceDrawableReferenceContributorTest {
         "res/xml/non_dwf_file.xml",
         // language=XML
         """
-      <resource>
-        <someTag resource="some<caret>_image" />
-      </resource>
-    """
+        <resource>
+          <someTag resource="some<caret>_image" />
+        </resource>
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(nonDWFFile.virtualFile)
@@ -128,16 +120,9 @@ class RawWatchFaceDrawableReferenceContributorTest {
 
   @Test
   fun `drawables do not show up as completion variants if the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     val drawables =
-      listOf(
-        "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1",
-        "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685",
-        "some_other_drawable",
-      )
+      listOf("style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1", "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685", "some_other_drawable")
     for (drawable in drawables) {
       fixture.addFileToProject("res/drawable/$drawable.png", "")
     }
@@ -159,11 +144,7 @@ class RawWatchFaceDrawableReferenceContributorTest {
   @Test
   fun `drawables show up as completion variants`() {
     val drawables =
-      listOf(
-        "style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1",
-        "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685",
-        "some_other_drawable",
-      )
+      listOf("style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1", "wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685", "some_other_drawable")
     for (drawable in drawables) {
       fixture.addFileToProject("res/drawable/$drawable.png", "")
     }
@@ -177,13 +158,11 @@ class RawWatchFaceDrawableReferenceContributorTest {
     assertThat(iconAttributeCompletions).containsExactlyElementsIn(drawables)
 
     runInEdt { fixture.moveCaret("resource=\"|") }
-    val resourceAttributeCompletions =
-      fixture.complete(CompletionType.BASIC).map { it.lookupString }
+    val resourceAttributeCompletions = fixture.complete(CompletionType.BASIC).map { it.lookupString }
     assertThat(resourceAttributeCompletions).containsExactlyElementsIn(drawables)
 
     runInEdt { fixture.moveCaret(" defaultImageResource=\"|") }
-    val defaultImageResourceAttributeCompletions =
-      fixture.complete(CompletionType.BASIC).map { it.lookupString }
+    val defaultImageResourceAttributeCompletions = fixture.complete(CompletionType.BASIC).map { it.lookupString }
     assertThat(defaultImageResourceAttributeCompletions).containsExactlyElementsIn(drawables)
   }
 }

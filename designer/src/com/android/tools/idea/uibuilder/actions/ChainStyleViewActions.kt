@@ -35,43 +35,27 @@ class ChainStyleViewActions {
     @JvmField
     val HORIZONTAL_CHAIN_STYLES: List<ViewAction> =
       listOf(
-        ChainStyleViewAction(
-          Toolbar.CYCLE_CHAIN_SPREAD,
-          SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD,
-          ChainDirection.HORIZONTAL,
-        ),
+        ChainStyleViewAction(Toolbar.CYCLE_CHAIN_SPREAD, SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD, ChainDirection.HORIZONTAL),
         ChainStyleViewAction(
           Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
           SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE,
           ChainDirection.HORIZONTAL,
           "spread inside",
         ),
-        ChainStyleViewAction(
-          Toolbar.CYCLE_CHAIN_PACKED,
-          SdkConstants.ATTR_LAYOUT_CHAIN_PACKED,
-          ChainDirection.HORIZONTAL,
-        ),
+        ChainStyleViewAction(Toolbar.CYCLE_CHAIN_PACKED, SdkConstants.ATTR_LAYOUT_CHAIN_PACKED, ChainDirection.HORIZONTAL),
       )
 
     @JvmField
     val VERTICAL_CHAIN_STYLES: List<ViewAction> =
       listOf(
-        ChainStyleViewAction(
-          Toolbar.CYCLE_CHAIN_SPREAD,
-          SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD,
-          ChainDirection.VERTICAL,
-        ),
+        ChainStyleViewAction(Toolbar.CYCLE_CHAIN_SPREAD, SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD, ChainDirection.VERTICAL),
         ChainStyleViewAction(
           Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
           SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE,
           ChainDirection.VERTICAL,
           "spread inside",
         ),
-        ChainStyleViewAction(
-          Toolbar.CYCLE_CHAIN_PACKED,
-          SdkConstants.ATTR_LAYOUT_CHAIN_PACKED,
-          ChainDirection.VERTICAL,
-        ),
+        ChainStyleViewAction(Toolbar.CYCLE_CHAIN_PACKED, SdkConstants.ATTR_LAYOUT_CHAIN_PACKED, ChainDirection.VERTICAL),
       )
   }
 }
@@ -79,18 +63,14 @@ class ChainStyleViewActions {
 /**
  * View action for each chain styles available in ConstraintLayout.
  *
- * @param style one of [SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD],
- *   [SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE] or [SdkConstants.ATTR_LAYOUT_CHAIN_PACKED].
+ * @param style one of [SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD], [SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE] or
+ *   [SdkConstants.ATTR_LAYOUT_CHAIN_PACKED].
  * @param chainDirection direction of the chain.
  * @param label Display string visible to users. Note that IntelliJ menu removes underscore ("_").
  */
 @VisibleForTesting
-class ChainStyleViewAction(
-  icon: Icon?,
-  val style: String,
-  val chainDirection: ChainDirection,
-  label: String = style,
-) : DirectViewAction(icon, label) {
+class ChainStyleViewAction(icon: Icon?, val style: String, val chainDirection: ChainDirection, label: String = style) :
+  DirectViewAction(icon, label) {
 
   @VisibleForTesting
   enum class ChainDirection {
@@ -115,12 +95,7 @@ class ChainStyleViewAction(
 
     if (chainDirection == ChainDirection.HORIZONTAL) {
       val horizontalHead = getHorizontalHead(primary, nonPrimaryComponents) ?: return
-      chooseChainStyle(
-        horizontalHead,
-        SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
-        primary,
-        style,
-      )
+      chooseChainStyle(horizontalHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, primary, style)
     } else if (chainDirection == ChainDirection.VERTICAL) {
       val verticalHead = getVerticalHead(primary, nonPrimaryComponents) ?: return
       chooseChainStyle(verticalHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, primary, style)
@@ -142,14 +117,10 @@ class ChainStyleViewAction(
   }
 
   /**
-   * Precondition: [chainDirection] == [ChainDirection.HORIZONTAL] Checks all the non primary
-   * components to ensure that they're on the same direction (horizontal), then returns the chain
-   * head.
+   * Precondition: [chainDirection] == [ChainDirection.HORIZONTAL] Checks all the non primary components to ensure that they're on the same
+   * direction (horizontal), then returns the chain head.
    */
-  private fun getHorizontalHead(
-    primary: SceneComponent,
-    nonPrimaryComponents: List<SceneComponent>,
-  ): SceneComponent? {
+  private fun getHorizontalHead(primary: SceneComponent, nonPrimaryComponents: List<SceneComponent>): SceneComponent? {
     val checker = ChainChecker()
     if (!checker.checkIsInChain(primary) || !checker.isInHorizontalChain) {
       return null
@@ -167,14 +138,10 @@ class ChainStyleViewAction(
   }
 
   /**
-   * Precondition: [chainDirection] == [ChainDirection.VERTICAL] Checks all the non primary
-   * components to ensure that they're on the same direction (vertical), then returns the chain
-   * head.
+   * Precondition: [chainDirection] == [ChainDirection.VERTICAL] Checks all the non primary components to ensure that they're on the same
+   * direction (vertical), then returns the chain head.
    */
-  private fun getVerticalHead(
-    primary: SceneComponent,
-    nonPrimaryComponents: List<SceneComponent>,
-  ): SceneComponent? {
+  private fun getVerticalHead(primary: SceneComponent, nonPrimaryComponents: List<SceneComponent>): SceneComponent? {
     val checker = ChainChecker()
     if (!checker.checkIsInChain(primary) || !checker.isInVerticalChain) {
       return null
@@ -211,14 +178,7 @@ class ChainStyleViewAction(
     selectedChildren: MutableList<NlComponent>,
     modifiersEx: Int,
   ) {
-    super.updatePresentation(
-      presentation,
-      editor,
-      handler,
-      component,
-      selectedChildren,
-      modifiersEx,
-    )
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx)
     presentation.setVisible(isApplicable(editor, selectedChildren))
   }
 

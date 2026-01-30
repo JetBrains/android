@@ -53,47 +53,41 @@ import com.intellij.openapi.module.ModuleManager
 import java.util.ArrayDeque
 import org.jetbrains.annotations.TestOnly
 
-private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+private const val MAX_ARTIFACTS_TO_REQUEST = 50 // Note: we do not expect more than one result per repository.
 private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
 
-/**
- * Dependency Analyzer for Gradle projects.
- */
+/** Dependency Analyzer for Gradle projects. */
 class GradleDependencyCompatibilityAnalyzer(
   private val moduleSystem: GradleModuleSystem,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
-  @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
+  @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get(),
 ) {
   private val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 
   /**
-   * Analyse existing module dependencies in combination with [components] for
-   * version compatibility.
+   * Analyse existing module dependencies in combination with [components] for version compatibility.
    *
-   * The [components] are treated as strict declarations referring to ranges of
-   * [KnownVersionStability], in order to determine whether there are incompatibilities between
-   * the requested components and any existing dependency declarations.
+   * The [components] are treated as strict declarations referring to ranges of [KnownVersionStability], in order to determine whether there
+   * are incompatibilities between the requested components and any existing dependency declarations.
    *
    * There are (at least) 3 possible error conditions:
-   * - The latest version of a new artifact has a dependency that is newer than
-   *   an existing dependency. This method should handle this case by attempting
-   *   to match an earlier version of that new artifact.
-   * - The latest version of a new artifact has a dependency that is older than
-   *   an existing dependency.  (The situation could be handled by choosing older
-   *   versions of the existing dependencies, but that is out of scope for this
-   *   method.)
+   * - The latest version of a new artifact has a dependency that is newer than an existing dependency. This method should handle this case
+   *   by attempting to match an earlier version of that new artifact.
+   * - The latest version of a new artifact has a dependency that is older than an existing dependency. (The situation could be handled by
+   *   choosing older versions of the existing dependencies, but that is out of scope for this method.)
    * - There are no possible matches.
    */
   fun analyzeComponentCompatibility(
     components: List<Component>
-  ): ListenableFuture<Triple<Map<Component,Component>, List<Dependency>, String>> {
-    val dependenciesToComponents = components.map { component ->
-      val stability = component.stability
-      val upperBound = stability.expiration(component.version)
-      val range = VersionRange(Range.closedOpen(component.version, upperBound))
-      val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
-      dependency to component
-    }
+  ): ListenableFuture<Triple<Map<Component, Component>, List<Dependency>, String>> {
+    val dependenciesToComponents =
+      components.map { component ->
+        val stability = component.stability
+        val upperBound = stability.expiration(component.version)
+        val range = VersionRange(Range.closedOpen(component.version, upperBound))
+        val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
+        dependency to component
+      }
     return findVersions(dependenciesToComponents.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
       analyzeCompatibility(dependenciesToComponents, results)
     }
@@ -101,7 +95,7 @@ class GradleDependencyCompatibilityAnalyzer(
 
   fun analyzeDependencyCompatibility(
     dependencies: List<Dependency>
-  ): ListenableFuture<Triple<Map<Dependency,Component>, List<Dependency>, String>> {
+  ): ListenableFuture<Triple<Map<Dependency, Component>, List<Dependency>, String>> {
     return findVersions(dependencies).transform(MoreExecutors.directExecutor()) { results ->
       analyzeCompatibility(dependencies.map { it to it }, results)
     }
@@ -109,27 +103,26 @@ class GradleDependencyCompatibilityAnalyzer(
 
   @Suppress("UnstableApiUsage") // Futures.allAsList
   private fun findVersions(dependencies: List<Dependency>): ListenableFuture<List<SearchResult>> =
-    Futures.allAsList(dependencies.mapNotNull {
-      it.group?.let { group ->
-        createSearchService().search(SearchRequest(SingleModuleSearchQuery(group, it.name), MAX_ARTIFACTS_TO_REQUEST, 0))
+    Futures.allAsList(
+      dependencies.mapNotNull {
+        it.group?.let { group ->
+          createSearchService().search(SearchRequest(SingleModuleSearchQuery(group, it.name), MAX_ARTIFACTS_TO_REQUEST, 0))
+        }
       }
-    })
+    )
 
   private fun createSearchService(): ArtifactRepositorySearchService {
     val repositories = mutableListOf<ArtifactRepository>()
     projectBuildModelHandler.read {
-      getModuleBuildModel(moduleSystem.module)
-        ?.repositories()
-        ?.repositories()
-        .orEmpty()
-        .mapNotNullTo(repositories) { repositoryModel -> repositoryModel.toArtifactRepository() }
+      getModuleBuildModel(moduleSystem.module)?.repositories()?.repositories().orEmpty().mapNotNullTo(repositories) { repositoryModel ->
+        repositoryModel.toArtifactRepository()
+      }
 
       if (repositories.isEmpty()) {
-        projectSettingsModel
-          ?.dependencyResolutionManagement()
-          ?.repositories()
-          ?.repositories()
-          ?.mapNotNullTo(repositories) { repositoryModel -> repositoryModel.toArtifactRepository() }
+        projectSettingsModel?.dependencyResolutionManagement()?.repositories()?.repositories()?.mapNotNullTo(repositories) { repositoryModel
+          ->
+          repositoryModel.toArtifactRepository()
+        }
       }
     }
     if (repositories.isEmpty()) {
@@ -140,10 +133,11 @@ class GradleDependencyCompatibilityAnalyzer(
   }
 
   private fun <T> analyzeCompatibility(
-    dependenciesToAdd: List<Pair<Dependency,T>>,
-    searchResults: List<SearchResult>
-  ): Triple<Map<T,Component>, List<Dependency>, String> {
-    val dependencies = dependenciesToAdd.mapNotNull { it.first.externalModule()?.let { m -> m to it } }.associateBy( { it.first }, { it.second })
+    dependenciesToAdd: List<Pair<Dependency, T>>,
+    searchResults: List<SearchResult>,
+  ): Triple<Map<T, Component>, List<Dependency>, String> {
+    val dependencies =
+      dependenciesToAdd.mapNotNull { it.first.externalModule()?.let { m -> m to it } }.associateBy({ it.first }, { it.second })
     val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toExternalModuleVersionPair(dependencies) }
     if (!versionsMap.keys.containsAll(dependencies.keys) || versionsMap.values.any { it.isEmpty() }) {
       // The new dependencies were not found, just return.
@@ -151,7 +145,7 @@ class GradleDependencyCompatibilityAnalyzer(
     }
 
     // First analyze the existing dependency artifacts of all the related modules.
-    val found = mutableMapOf<T,Component>()
+    val found = mutableMapOf<T, Component>()
     val analyzer = AndroidDependencyAnalyzer()
     try {
       projectBuildModelHandler.read {
@@ -159,8 +153,7 @@ class GradleDependencyCompatibilityAnalyzer(
           moduleSystem.getDirectDependencies(relatedModule).forEach { analyzer.addExplicitDependency(it, relatedModule) }
         }
       }
-    }
-    catch (ex: VersionIncompatibilityException) {
+    } catch (ex: VersionIncompatibilityException) {
       // The existing dependencies are not compatible.
       // There is no point in trying to find the correct new dependency, just pick the most recent.
       dependencies.forEach { (artifact, info) ->
@@ -176,8 +169,7 @@ class GradleDependencyCompatibilityAnalyzer(
       val versions = versionsMap[artifact] ?: listOf()
       try {
         found[info.second] = findCompatibleVersion(analyzer, baseAnalyzer, artifact, versions.listIterator())
-      }
-      catch (ex: VersionIncompatibilityException) {
+      } catch (ex: VersionIncompatibilityException) {
         warning.append(if (warning.isNotEmpty()) "\n\n" else "").append(ex.message)
         versions.firstOrNull()?.let { found[info.second] = artifact.toComponent(it) }
       }
@@ -187,17 +179,22 @@ class GradleDependencyCompatibilityAnalyzer(
 
   private fun <T> createMissingDependenciesResponse(
     dependencies: Map<ExternalModule, Pair<Dependency, T>>,
-    resultMap: Map<ExternalModule, List<Version>>
-  ): Triple<Map<T,Component>, List<Dependency>, String> {
-    val found = dependencies.values.filter { resultMap[it.first.externalModule()]?.isNotEmpty() ?: false }
-      .mapNotNull { it.first.externalModule()?.let let@{ m -> it.second to m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) } }
-      .toMap()
+    resultMap: Map<ExternalModule, List<Version>>,
+  ): Triple<Map<T, Component>, List<Dependency>, String> {
+    val found =
+      dependencies.values
+        .filter { resultMap[it.first.externalModule()]?.isNotEmpty() ?: false }
+        .mapNotNull {
+          it.first.externalModule()?.let let@{ m -> it.second to m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) }
+        }
+        .toMap()
     val missing = dependencies.values.filter { resultMap[it.first.externalModule()]?.isEmpty() ?: true }
     assert(missing.isNotEmpty())
-    val message = when (missing.size) {
-      1 -> "The dependency was not found: ${missing.first().second }"
-      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ") { it.second.toString() }}"
-    }
+    val message =
+      when (missing.size) {
+        1 -> "The dependency was not found: ${missing.first().second }"
+        else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ") { it.second.toString() }}"
+      }
     return Triple(found, missing.map { it.first }, message)
   }
 
@@ -223,9 +220,11 @@ class GradleDependencyCompatibilityAnalyzer(
     return relatedModules.mapNotNull { nameLookup[it] }
   }
 
-  private fun findModuleDependencies(module: Module,
-                                     dependencies: Multimap<String, String>,
-                                     reverseDependencies: Multimap<String, String>) {
+  private fun findModuleDependencies(
+    module: Module,
+    dependencies: Multimap<String, String>,
+    reverseDependencies: Multimap<String, String>,
+  ) {
     projectBuildModelHandler.read {
       val dependentNames = getModuleBuildModel(module)?.dependencies()?.modules()?.map { it.path().forceString() } ?: return@read
       val moduleReference = moduleReference(module)
@@ -240,12 +239,8 @@ class GradleDependencyCompatibilityAnalyzer(
     stack.push(moduleReference(moduleSystem.module))
     while (stack.isNotEmpty()) {
       val element = stack.pop()
-      dependencies[element]?.stream()
-        ?.filter { !result.contains(it) }
-        ?.forEach { stack.add(it) }
-      reverseDependencies[element]?.stream()
-        ?.filter { !result.contains(it) }
-        ?.forEach { stack.add(it) }
+      dependencies[element]?.stream()?.filter { !result.contains(it) }?.forEach { stack.add(it) }
+      reverseDependencies[element]?.stream()?.filter { !result.contains(it) }?.forEach { stack.add(it) }
       result.add(element)
     }
     return result
@@ -262,23 +257,19 @@ class GradleDependencyCompatibilityAnalyzer(
   /**
    * Find a compatible version of an [id] among the possible [versions].
    *
-   * If a compatibility problem is found try the previous known version of the [id]
-   * until either there is no compatibility problems or the added id requires a
-   * dependent library that are 2 or more major versions older than an existing dependency.
-   * At that point we assume that there are no possible compatible libraries
-   * (note: in theory this may be wrong, but is considered safe for practical purposes).
+   * If a compatibility problem is found try the previous known version of the [id] until either there is no compatibility problems or the
+   * added id requires a dependent library that are 2 or more major versions older than an existing dependency. At that point we assume that
+   * there are no possible compatible libraries (note: in theory this may be wrong, but is considered safe for practical purposes).
    *
-   * Use [analyzer] for testing the dependency. If a version incompatibility is found
-   * during testing of all possible versions, the analyzer should be reset to the state
-   * specified by [baseAnalyzer]. When a compatible version is found, [baseAnalyzer]
-   * should be updated with the state created by adding the successful version of this
-   * [id] such that other artifacts can be tested with the dependencies added.
+   * Use [analyzer] for testing the dependency. If a version incompatibility is found during testing of all possible versions, the analyzer
+   * should be reset to the state specified by [baseAnalyzer]. When a compatible version is found, [baseAnalyzer] should be updated with the
+   * state created by adding the successful version of this [id] such that other artifacts can be tested with the dependencies added.
    */
   private fun findCompatibleVersion(
     analyzer: AndroidDependencyAnalyzer,
     baseAnalyzer: AndroidDependencyAnalyzer,
     id: ExternalModule,
-    versions: Iterator<Version>
+    versions: Iterator<Version>,
   ): Component {
     var found: Component? = null
     val testVersion = analyzer.getVersionIdentityMatch(id.group) ?: versions.next()
@@ -290,24 +281,24 @@ class GradleDependencyCompatibilityAnalyzer(
         analyzer.addExplicitDependency(candidate.dependency(), moduleSystem.module.getHolderModule())
         baseAnalyzer.copy(analyzer)
         found = candidate
-      }
-      catch (ex: VersionIncompatibilityException) {
+      } catch (ex: VersionIncompatibilityException) {
         analyzer.copy(baseAnalyzer)
-        val nextVersionToTest = when {
-          ex.problemVersion1.lowerEndpoint().major == null || ex.problemVersion2.lowerEndpoint().major == null -> versions.nextOrNull()
-          // At this point we know that we have created a version incompatibility by adding [candidate].
-          // If the incompatibility created is more than 2 major versions off, then trying an older version of the candidate
-          // is not likely to solve the problem. So jump to the preview section or stop.
-          //
-          // Example:
-          //   - candidate is androidx:recyclerview:recyclerview:1.1.17
-          //   - the problem artifact is androidx:annotation:annotation problemVersion1 is 4.1.2 and problemVersion2 is 1.2.0
-          // We know that problemVersion2 was added because of the [candidate], trying an older version of candidate would not help.
-          ex.problemVersion1.lowerEndpoint().major!! + 2 < ex.problemVersion2.lowerEndpoint().major!! ->
-            if (!candidate.version.isPreview) versions.nextPreviewOrNull() else throw bestError ?: ex
+        val nextVersionToTest =
+          when {
+            ex.problemVersion1.lowerEndpoint().major == null || ex.problemVersion2.lowerEndpoint().major == null -> versions.nextOrNull()
+            // At this point we know that we have created a version incompatibility by adding [candidate].
+            // If the incompatibility created is more than 2 major versions off, then trying an older version of the candidate
+            // is not likely to solve the problem. So jump to the preview section or stop.
+            //
+            // Example:
+            //   - candidate is androidx:recyclerview:recyclerview:1.1.17
+            //   - the problem artifact is androidx:annotation:annotation problemVersion1 is 4.1.2 and problemVersion2 is 1.2.0
+            // We know that problemVersion2 was added because of the [candidate], trying an older version of candidate would not help.
+            ex.problemVersion1.lowerEndpoint().major!! + 2 < ex.problemVersion2.lowerEndpoint().major!! ->
+              if (!candidate.version.isPreview) versions.nextPreviewOrNull() else throw bestError ?: ex
 
-          else -> versions.nextOrNull()
-        } ?: throw bestError ?: ex
+            else -> versions.nextOrNull()
+          } ?: throw bestError ?: ex
         candidate = id.toComponent(nextVersionToTest)
         bestError = ex
       }
@@ -315,8 +306,7 @@ class GradleDependencyCompatibilityAnalyzer(
     return found
   }
 
-  private fun SearchResult.artifactFound(): Boolean =
-    artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
+  private fun SearchResult.artifactFound(): Boolean = artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
 
   private fun <T> SearchResult.toExternalModuleVersionPair(
     requestedDependencies: Map<ExternalModule, Pair<Dependency, T>>
@@ -327,7 +317,11 @@ class GradleDependencyCompatibilityAnalyzer(
     return Pair(id, selectAndSort(artifacts, versionFilter, versionComparator))
   }
 
-  private fun selectAndSort(artifacts: List<FoundArtifact>, versionFilter: (Version) -> Boolean, versionComparator: Comparator<Version>): List<Version> {
+  private fun selectAndSort(
+    artifacts: List<FoundArtifact>,
+    versionFilter: (Version) -> Boolean,
+    versionComparator: Comparator<Version>,
+  ): List<Version> {
     // Remove duplicates by copying all versions into a Set<Version>...
     val versions = artifacts.flatMapTo(mutableSetOf()) { it.unsortedVersions.filter(versionFilter) }
     return versions.sortedWith(versionComparator)
@@ -336,10 +330,9 @@ class GradleDependencyCompatibilityAnalyzer(
   private fun versionFilter(requested: RichVersion): (Version) -> Boolean = { v: Version -> requested.accepts(v) }
 
   private fun versionComparator(requested: RichVersion): Comparator<Version> =
-    compareBy<Version>{ it == requested.prefer }.thenBy { !it.isPreview }.thenBy { requested.contains(it) }.thenBy { it }.reversed()
+    compareBy<Version> { it == requested.prefer }.thenBy { !it.isPreview }.thenBy { requested.contains(it) }.thenBy { it }.reversed()
 
-  private fun <T> Iterator<T>.nextOrNull(): T? =
-    if (hasNext()) next() else null
+  private fun <T> Iterator<T>.nextOrNull(): T? = if (hasNext()) next() else null
 
   private fun Iterator<Version>.nextPreviewOrNull(): Version? {
     var next: Version? = nextOrNull() ?: return null
@@ -349,14 +342,12 @@ class GradleDependencyCompatibilityAnalyzer(
     return next
   }
 
-  private val stableFirstComparator: Comparator<Version> =
-    compareBy<Version> { !it.isPreview }.thenBy { it }.reversed()
+  private val stableFirstComparator: Comparator<Version> = compareBy<Version> { !it.isPreview }.thenBy { it }.reversed()
 
   /**
-   * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
-   * Some incompatibilities are indirect incompatibilities i.e. from the dependencies of [conflict1] and [conflict2].
-   * The details are then found in [problemId1] with [problemVersion1] found from [conflict1] and
-   * [problemId2] with [problemVersion2] found from [conflict2].
+   * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2]. Some incompatibilities are
+   * indirect incompatibilities i.e. from the dependencies of [conflict1] and [conflict2]. The details are then found in [problemId1] with
+   * [problemVersion1] found from [conflict1] and [problemId2] with [problemVersion2] found from [conflict2].
    *
    * This information is gathered such that a meaningful message can be generated for the user.
    */
@@ -368,7 +359,8 @@ class GradleDependencyCompatibilityAnalyzer(
     val problemId1: ExternalModule,
     val problemVersion1: VersionRange,
     val problemId2: ExternalModule,
-    val problemVersion2: VersionRange) : RuntimeException() {
+    val problemVersion2: VersionRange,
+  ) : RuntimeException() {
 
     override val message: String by lazy {
       val version1 = formatVersion(problemId1, problemVersion1)
@@ -382,13 +374,16 @@ class GradleDependencyCompatibilityAnalyzer(
       message
     }
 
-    /**
-     * AndroidX dependency ranges are displayed as simply a version.
-     */
+    /** AndroidX dependency ranges are displayed as simply a version. */
     private fun formatVersion(id: ExternalModule, version: VersionRange): String {
       val max = version.upperEndpoint()
-      if (MavenRepositories.isAndroidX(id.group) && max != null &&
-          max.minor == null && max.micro == null && max.major == version.lowerEndpoint().major?.let { it + 1 }) {
+      if (
+        MavenRepositories.isAndroidX(id.group) &&
+          max != null &&
+          max.minor == null &&
+          max.micro == null &&
+          max.major == version.lowerEndpoint().major?.let { it + 1 }
+      ) {
         return version.lowerEndpoint().toString()
       }
       return version.toString()
@@ -396,8 +391,8 @@ class GradleDependencyCompatibilityAnalyzer(
   }
 
   /**
-   * A dependency analyzer that can track which explicit artifact and which module a dependency is coming from.
-   * Special handling are included for pre androidX support artifacts which require version identify.
+   * A dependency analyzer that can track which explicit artifact and which module a dependency is coming from. Special handling are
+   * included for pre androidX support artifacts which require version identify.
    */
   private inner class AndroidDependencyAnalyzer() {
     private val dependencyMap = mutableMapOf<ExternalModule, VersionRange>()
@@ -441,10 +436,21 @@ class GradleDependencyCompatibilityAnalyzer(
       val existingVersion = dependencyMap[id]
       val existingModule = moduleMap[id]
       val dependencyVersion = dependency.versionRange() ?: VersionRange.parse("+")
-      if (existingDependency != null && existingVersion != null &&
-          (!dependencyVersion.isConnected(existingVersion) || dependencyVersion.intersection(existingVersion).isEmpty())) {
-        throw VersionIncompatibilityException(dependency, fromModule, existingDependency, existingModule,
-                                              id, dependencyVersion, id, existingVersion)
+      if (
+        existingDependency != null &&
+          existingVersion != null &&
+          (!dependencyVersion.isConnected(existingVersion) || dependencyVersion.intersection(existingVersion).isEmpty())
+      ) {
+        throw VersionIncompatibilityException(
+          dependency,
+          fromModule,
+          existingDependency,
+          existingModule,
+          id,
+          dependencyVersion,
+          id,
+          existingVersion,
+        )
       }
       addDependency(dependency, dependency, fromModule)
       explicitDependencies.add(id)
@@ -456,10 +462,21 @@ class GradleDependencyCompatibilityAnalyzer(
       val existingVersionRange = dependencyMap[id]
       val existingExplicitCoordinate = explicitMap[id]
       if (versionRange != existingVersionRange) {
-        if (existingVersionRange != null && existingExplicitCoordinate != null &&
-            (!versionRange.isConnected(existingVersionRange) || versionRange.intersection(existingVersionRange).isEmpty())) {
-          throw VersionIncompatibilityException(explicitDependency, fromModule, existingExplicitCoordinate, moduleMap[id],
-                                                id, versionRange, id, existingVersionRange)
+        if (
+          existingVersionRange != null &&
+            existingExplicitCoordinate != null &&
+            (!versionRange.isConnected(existingVersionRange) || versionRange.intersection(existingVersionRange).isEmpty())
+        ) {
+          throw VersionIncompatibilityException(
+            explicitDependency,
+            fromModule,
+            existingExplicitCoordinate,
+            moduleMap[id],
+            id,
+            versionRange,
+            id,
+            existingVersionRange,
+          )
         }
 
         // Special case for the support annotations. See details here: b/129408604
@@ -471,8 +488,16 @@ class GradleDependencyCompatibilityAnalyzer(
             val otherId = otherGroupCoordinate.externalModule() ?: return
             val otherExplicitCoordinate = explicitMap[otherId]
             if (dependencyVersion != existingVersion && otherExplicitCoordinate != null) {
-              throw VersionIncompatibilityException(explicitDependency, fromModule, otherExplicitCoordinate, moduleMap[id],
-                                                    id, versionRange, otherId, existingVersion)
+              throw VersionIncompatibilityException(
+                explicitDependency,
+                fromModule,
+                otherExplicitCoordinate,
+                moduleMap[id],
+                id,
+                versionRange,
+                otherId,
+                existingVersion,
+              )
             }
           }
           groupMap[id.group] = dependency
@@ -481,13 +506,11 @@ class GradleDependencyCompatibilityAnalyzer(
         explicitMap[id] = explicitDependency
         moduleMap[id] = fromModule
 
-        //TODO: Find a way to get artifact dependencies from all repositories...
-        if (existingVersionRange == null ||
-            versionRange.lowerEndpoint() > existingVersionRange.lowerEndpoint())
-        {
-          repoUrlManager
-            .findCompileDependencies(id.group, id.name, versionRange.lowerEndpoint())
-            .forEach { addDependency(it, explicitDependency, fromModule) }
+        // TODO: Find a way to get artifact dependencies from all repositories...
+        if (existingVersionRange == null || versionRange.lowerEndpoint() > existingVersionRange.lowerEndpoint()) {
+          repoUrlManager.findCompileDependencies(id.group, id.name, versionRange.lowerEndpoint()).forEach {
+            addDependency(it, explicitDependency, fromModule)
+          }
         }
       }
     }
@@ -506,16 +529,21 @@ private fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
 }
 
 private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
+
 private fun Dependency.externalModule() = group?.let { ExternalModule(it, name) }
-private fun Dependency.versionRange(): VersionRange? = version?.let {
-  when {
-    hasExplicitDistinctUpperBound -> it.require ?: it.strictly
-    else -> explicitSingletonVersion?.let { v ->
-      val stability = group?.let { g -> Component(g, name, v).stability } ?: return null
-      VersionRange(Range.closedOpen(v, stability.expiration(v)))
+
+private fun Dependency.versionRange(): VersionRange? =
+  version?.let {
+    when {
+      hasExplicitDistinctUpperBound -> it.require ?: it.strictly
+      else ->
+        explicitSingletonVersion?.let { v ->
+          val stability = group?.let { g -> Component(g, name, v).stability } ?: return null
+          VersionRange(Range.closedOpen(v, stability.expiration(v)))
+        }
     }
   }
-}
+
 private fun ExternalModule.toComponent(version: Version) = Component(this, version)
-private fun ExternalModule.isSameAs(dependency: Dependency) =
-  group == dependency.group && name == dependency.name
+
+private fun ExternalModule.isSameAs(dependency: Dependency) = group == dependency.group && name == dependency.name

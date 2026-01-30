@@ -51,8 +51,7 @@ private const val BASE_XML =
  * Method to convert the [Color] into the needed RGB value for the color properties in the XML.
  *
  * [Integer.toHexString] not used due to:
- * + toHexString() also output's the string's alpha value, which we don't need and would have to be
- *   formatted away
+ * + toHexString() also output's the string's alpha value, which we don't need and would have to be formatted away
  * + toHexString() is not padded with 0s, to make a full color hex string
  *
  * @return String in the expected RGB format
@@ -61,11 +60,7 @@ private fun Color.toHex(): String {
   return "#%06X".format(this.rgb and 0xFFFFFF)
 }
 
-private fun getXMLString(
-  symbolConfiguration: SymbolConfiguration,
-  unicode: Int,
-  fontPath: String,
-): String {
+private fun getXMLString(symbolConfiguration: SymbolConfiguration, unicode: Int, fontPath: String): String {
   val fillStr = symbolConfiguration.filled.compareTo(false).toString()
   val weightStr = symbolConfiguration.weight.coerceIn(100, 700).toString()
   val gradeStr = symbolConfiguration.grade.coerceIn(-25, 200).toString()
@@ -86,32 +81,20 @@ private fun getDisplayName(name: String): String {
   return name.trim().split('_').joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
 }
 
-private fun getFileName(
-  symbolConfiguration: SymbolConfiguration,
-  metadata: MaterialMetadataIcon,
-): String {
+private fun getFileName(symbolConfiguration: SymbolConfiguration, metadata: MaterialMetadataIcon): String {
   val shortenedType = symbolConfiguration.type.localName.removePrefix("materialsymbols")
   return "${shortenedType}_${symbolConfiguration.toFileName(metadata.name)}"
 }
 
 /**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used
- * as adapter to be able to preview custom entities, in this case Material Symbols. The contents of
- * the file only reside in memory and contain some XML that will be passed to Layoutlib, alongside
- * of some visual properties required to render the Symbol.
+ * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter to be able to preview custom
+ * entities, in this case Material Symbols. The contents of the file only reside in memory and contain some XML that will be passed to
+ * Layoutlib, alongside of some visual properties required to render the Symbol.
  *
- * Adapted from [InMemoryLayoutVirtualFile], not extended to avoid adding a dependency to the
- * preview designer
+ * Adapted from [InMemoryLayoutVirtualFile], not extended to avoid adding a dependency to the preview designer
  */
-class MaterialSymbolsVirtualFile(
-  val symbolConfiguration: SymbolConfiguration,
-  val metadata: MaterialMetadataIcon,
-  fontPath: String,
-) :
-  LightVirtualFile(
-    getFileName(symbolConfiguration, metadata),
-    getXMLString(symbolConfiguration, metadata.unicode, fontPath),
-  ),
+class MaterialSymbolsVirtualFile(val symbolConfiguration: SymbolConfiguration, val metadata: MaterialMetadataIcon, fontPath: String) :
+  LightVirtualFile(getFileName(symbolConfiguration, metadata), getXMLString(symbolConfiguration, metadata.unicode, fontPath)),
   BackedVirtualFile,
   Comparable<MaterialSymbolsVirtualFile> {
 

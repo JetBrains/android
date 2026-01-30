@@ -36,23 +36,22 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.ThrowableRunnable
+import java.io.File
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 /**
- * Unlike many/most of the processors, [BuildConfigDefaultRefactoringProcessor] inspects (but does not modify) the project source code
- * to detect whether there are any users of the (generated) BuildConfig class.  This means that rather more of the project needs to be
- * set up than in the simpler cases of [AndroidProjectRule].  These tests are relatively heavy, so future testers of this processor should
- * prefer adding tests in [BuildConfigDefaultRefactoringProcessorTest].
+ * Unlike many/most of the processors, [BuildConfigDefaultRefactoringProcessor] inspects (but does not modify) the project source code to
+ * detect whether there are any users of the (generated) BuildConfig class. This means that rather more of the project needs to be set up
+ * than in the simpler cases of [AndroidProjectRule]. These tests are relatively heavy, so future testers of this processor should prefer
+ * adding tests in [BuildConfigDefaultRefactoringProcessorTest].
  */
 @OldAgpTest(gradleVersions = ["7.0.2"], agpVersions = ["7.0.0"])
 @RunsInEdt
 class BuildConfigDefaultRefactoringProcessorSyncedTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProjectWithoutGeneratedSources() {
@@ -68,64 +67,87 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                            .contains("android.defaults.buildfeatures.buildconfig=true"))
+        Assert.assertTrue(
+          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            .contains("android.defaults.buildfeatures.buildconfig=true")
+        )
       }
   }
 
   @Test
   fun testProjectWithoutGeneratedSourcesWithFalseFlag() {
-    PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", "false", ThrowableRunnable {
-      projectRule
-        .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-        .addBuildConfigFlagInGradleProperties(false).addBuildConfigUsingClass()
-        .open { project ->
-          project.findGradleProperties().also { it.refresh(false, false) }
-          val buildGradleVfsFile = project.findAppBuildGradle()
-          val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
-          val gradlePropertiesText = VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-          val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
-          Assert.assertFalse(processor.isBlocked)
-          val usages = processor.findUsages()
-          UsefulTestCase.assertSize(0, usages)
-          processor.run()
-          Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-          Assert.assertEquals(gradlePropertiesText, VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }))
-          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                              .contains("android.defaults.buildfeatures.buildconfig=false"))
-        }
-    })
+    PlatformTestUtil.withSystemProperty(
+      "idea.skip.indices.initialization",
+      "false",
+      ThrowableRunnable {
+        projectRule
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .addBuildConfigFlagInGradleProperties(false)
+          .addBuildConfigUsingClass()
+          .open { project ->
+            project.findGradleProperties().also { it.refresh(false, false) }
+            val buildGradleVfsFile = project.findAppBuildGradle()
+            val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+            val gradlePropertiesText = VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+            Assert.assertFalse(processor.isBlocked)
+            val usages = processor.findUsages()
+            UsefulTestCase.assertSize(0, usages)
+            processor.run()
+            Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+            Assert.assertEquals(
+              gradlePropertiesText,
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }),
+            )
+            Assert.assertTrue(
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                .contains("android.defaults.buildfeatures.buildconfig=false")
+            )
+          }
+      },
+    )
   }
 
   @Test
   fun testProjectWithoutGeneratedSourcesWithTrueFlag() {
-    PlatformTestUtil.withSystemProperty("idea.skip.indices.initialization", "false", ThrowableRunnable {
-      projectRule
-        .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-        .addBuildConfigUsingClass().addBuildConfigFlagInGradleProperties(true)
-        .open { project ->
-          project.findGradleProperties().also { it.refresh(false, false) }
-          val buildGradleVfsFile = project.findAppBuildGradle()
-          val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
-          val gradlePropertiesText = VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-          val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
-          Assert.assertFalse(processor.isBlocked)
-          val usages = processor.findUsages()
-          UsefulTestCase.assertSize(0, usages)
-          processor.run()
-          Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-          Assert.assertEquals(gradlePropertiesText, VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }))
-          Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                              .contains("android.defaults.buildfeatures.buildconfig=true"))
-        }
-    })
+    PlatformTestUtil.withSystemProperty(
+      "idea.skip.indices.initialization",
+      "false",
+      ThrowableRunnable {
+        projectRule
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .addBuildConfigUsingClass()
+          .addBuildConfigFlagInGradleProperties(true)
+          .open { project ->
+            project.findGradleProperties().also { it.refresh(false, false) }
+            val buildGradleVfsFile = project.findAppBuildGradle()
+            val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
+            val gradlePropertiesText = VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+            Assert.assertFalse(processor.isBlocked)
+            val usages = processor.findUsages()
+            UsefulTestCase.assertSize(0, usages)
+            processor.run()
+            Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
+            Assert.assertEquals(
+              gradlePropertiesText,
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) }),
+            )
+            Assert.assertTrue(
+              VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+                .contains("android.defaults.buildfeatures.buildconfig=true")
+            )
+          }
+      },
+    )
   }
 
   @Test
   fun testProjectWithoutGeneratedSourcesWithFalseBuildFeature() {
     projectRule
       .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-      .addBuildConfigUsingClass().patchBuildConfigFlagInBuildFeatures(false)
+      .addBuildConfigUsingClass()
+      .patchBuildConfigFlagInBuildFeatures(false)
       .open { project ->
         val buildGradleVfsFile = project.findAppBuildGradle()
         val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
@@ -135,8 +157,10 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                            .contains("android.defaults.buildfeatures.buildconfig=true"))
+        Assert.assertTrue(
+          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            .contains("android.defaults.buildfeatures.buildconfig=true")
+        )
       }
   }
 
@@ -144,7 +168,8 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
   fun testProjectWithoutGeneratedSourcesWithTrueBuildFeature() {
     projectRule
       .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-      .addBuildConfigUsingClass().patchBuildConfigFlagInBuildFeatures(true)
+      .addBuildConfigUsingClass()
+      .patchBuildConfigFlagInBuildFeatures(true)
       .open { project ->
         val buildGradleVfsFile = project.findAppBuildGradle()
         val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
@@ -154,8 +179,10 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                            .contains("android.defaults.buildfeatures.buildconfig=true"))
+        Assert.assertTrue(
+          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            .contains("android.defaults.buildfeatures.buildconfig=true")
+        )
       }
   }
 
@@ -173,8 +200,10 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                            .contains("android.defaults.buildfeatures.buildconfig=true"))
+        Assert.assertTrue(
+          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            .contains("android.defaults.buildfeatures.buildconfig=true")
+        )
       }
   }
 
@@ -182,7 +211,8 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
   fun testProjectUsingBuildConfig() {
     projectRule
       .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
-      .addBuildConfigClass().addBuildConfigUsingClass()
+      .addBuildConfigClass()
+      .addBuildConfigUsingClass()
       .open { project ->
         val buildGradleVfsFile = project.findAppBuildGradle()
         val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
@@ -193,14 +223,16 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
         UsefulTestCase.assertSize(1, usages)
         processor.run()
         Assert.assertEquals(appBuildGradleText, VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) }))
-        Assert.assertTrue(VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-                            .contains("android.defaults.buildfeatures.buildconfig=true"))
+        Assert.assertTrue(
+          VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
+            .contains("android.defaults.buildfeatures.buildconfig=true")
+        )
       }
   }
 
   /**
-   * The BuildConfig definition is normally generated (if configured) by build, not sync.  Rather than attempt to run a build, we can
-   * verify that if we have a file with the appropriate contents in the appropriate location, the processor can resolve it.
+   * The BuildConfig definition is normally generated (if configured) by build, not sync. Rather than attempt to run a build, we can verify
+   * that if we have a file with the appropriate contents in the appropriate location, the processor can resolve it.
    */
   private fun PreparedTestProject.addBuildConfigClass(): PreparedTestProject {
     val buildConfigDir = File(root, "app/build/generated/source/buildConfig/debug/google/simpleapplication")
@@ -209,12 +241,14 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
       .resolve("BuildConfig.java")
       .writeText(
         """
-          package google.simpleapplication;
+        package google.simpleapplication;
 
-          public final class BuildConfig {
-            public static final String BUILD_TYPE = "debug";
-          }
-        """.trimIndent())
+        public final class BuildConfig {
+          public static final String BUILD_TYPE = "debug";
+        }
+        """
+          .trimIndent()
+      )
     VfsUtil.markDirtyAndRefresh(false, true, true, buildConfigDir)
     return this
   }
@@ -226,14 +260,16 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
       .resolve("Foo.java")
       .writeText(
         """
-          package google.simpleapplication;
+        package google.simpleapplication;
 
-          public class Foo {
-            public String toString() {
-              return "aFoo " + BuildConfig.BUILD_TYPE;
-            }
+        public class Foo {
+          public String toString() {
+            return "aFoo " + BuildConfig.BUILD_TYPE;
           }
-      """.trimIndent())
+        }
+        """
+          .trimIndent()
+      )
     VfsUtil.markDirtyAndRefresh(false, true, true, simpleApplicationJavaSrcDir)
     return this
   }
@@ -255,5 +291,6 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
   }
 
   private fun Project.findAppBuildGradle(): VirtualFile = findAppModule().guessModuleDir()!!.findChild("build.gradle")!!
+
   private fun Project.findGradleProperties(): VirtualFile = guessProjectDir()?.findChild("gradle.properties")!!
 }

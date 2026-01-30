@@ -19,10 +19,10 @@ import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
+import javax.swing.event.HyperlinkEvent
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.event.HyperlinkEvent
 
 class OpenProjectJdkLocationListenerTest : LightPlatformTestCase() {
 
@@ -30,9 +30,7 @@ class OpenProjectJdkLocationListenerTest : LightPlatformTestCase() {
     val mockService = mock<AndroidProjectSettingsService>()
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val jdkHyperlink = OpenProjectJdkLocationListener.create(project, null)
-    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
-      whenever(eventType).thenReturn(HyperlinkEvent.EventType.ACTIVATED)
-    }
+    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply { whenever(eventType).thenReturn(HyperlinkEvent.EventType.ACTIVATED) }
 
     jdkHyperlink?.hyperlinkUpdate(mock(), mockHyperlinkEvent)
     verify(mockService).chooseJdkLocation(null)
@@ -43,9 +41,7 @@ class OpenProjectJdkLocationListenerTest : LightPlatformTestCase() {
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val rootProjectPath = "gradle/project/root/path"
     val jdkHyperlink = OpenProjectJdkLocationListener.create(project, rootProjectPath)
-    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
-      whenever(eventType).thenReturn(HyperlinkEvent.EventType.ACTIVATED)
-    }
+    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply { whenever(eventType).thenReturn(HyperlinkEvent.EventType.ACTIVATED) }
 
     jdkHyperlink?.hyperlinkUpdate(mock(), mockHyperlinkEvent)
     verify(mockService).chooseJdkLocation(rootProjectPath)

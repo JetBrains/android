@@ -54,50 +54,24 @@ class DeviceNamePanelTest {
       return rowData
     }
 
-    assertThat(rowData(true, "Reserving a device").stateTransitionText())
-      .isEqualTo("Reserving a device")
+    assertThat(rowData(true, "Reserving a device").stateTransitionText()).isEqualTo("Reserving a device")
     assertThat(rowData(false, "Reserving a device").stateTransitionText()).isNull()
   }
 
   @Test
   fun reservationText() {
     assertThat(
-        Reservation(
-            ReservationState.ACTIVE,
-            "Connected",
-            null,
-            Instant.parse("2023-02-03T19:15:30.00Z"),
-            null,
-          )
-          .line2Text(ZoneId.of("UTC"))
+        Reservation(ReservationState.ACTIVE, "Connected", null, Instant.parse("2023-02-03T19:15:30.00Z"), null).line2Text(ZoneId.of("UTC"))
       )
-      .isAnyOf(
-        "Connected; device will expire at 7:15 PM",
-        "Connected; device will expire at 7:15\u202FPM",
-      )
+      .isAnyOf("Connected; device will expire at 7:15 PM", "Connected; device will expire at 7:15\u202FPM")
 
-    assertThat(
-        Reservation(
-            ReservationState.ACTIVE,
-            "",
-            null,
-            Instant.parse("2023-02-03T19:15:30.00Z"),
-            null,
-          )
-          .line2Text(ZoneId.of("UTC"))
-      )
+    assertThat(Reservation(ReservationState.ACTIVE, "", null, Instant.parse("2023-02-03T19:15:30.00Z"), null).line2Text(ZoneId.of("UTC")))
       .isAnyOf("Device will expire at 7:15 PM", "Device will expire at 7:15\u202FPM")
 
-    assertThat(
-        Reservation(ReservationState.PENDING, "Connection pending", null, null, null)
-          .line2Text(ZoneId.of("UTC"))
-      )
+    assertThat(Reservation(ReservationState.PENDING, "Connection pending", null, null, null).line2Text(ZoneId.of("UTC")))
       .isEqualTo("Connection pending")
 
-    assertThat(
-        Reservation(ReservationState.ACTIVE, "", null, null, null).line2Text(ZoneId.of("UTC"))
-      )
-      .isNull()
+    assertThat(Reservation(ReservationState.ACTIVE, "", null, null, null).line2Text(ZoneId.of("UTC"))).isNull()
   }
 
   @Test
@@ -132,16 +106,10 @@ class DeviceNamePanelTest {
     panel.update(row)
     assertThat(panel.pairedLabel.isVisible).isFalse()
 
-    panel.update(
-      row.copy(
-        pairingStatus =
-          listOf(PairingStatus("watch2", "Pixel Watch", WearPairingManager.PairingState.CONNECTED))
-      )
-    )
+    panel.update(row.copy(pairingStatus = listOf(PairingStatus("watch2", "Pixel Watch", WearPairingManager.PairingState.CONNECTED))))
 
     assertThat(panel.pairedLabel.isVisible).isTrue()
-    assertThat(panel.pairedLabel.baseIcon)
-      .isEqualTo(BadgeIconSupplier(StudioIcons.DeviceExplorer.DEVICE_PAIRED).liveIndicatorIcon)
+    assertThat(panel.pairedLabel.baseIcon).isEqualTo(BadgeIconSupplier(StudioIcons.DeviceExplorer.DEVICE_PAIRED).liveIndicatorIcon)
     assertThat(panel.pairedLabel.accessibleContext.accessibleDescription).contains("Pixel Watch")
   }
 

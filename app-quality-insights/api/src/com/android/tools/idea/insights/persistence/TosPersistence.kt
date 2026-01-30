@@ -49,6 +49,4 @@ class TosPersistence : PersistentStateComponent<TosPersistenceState> {
  *
  * The key is the user's email address and the value is a set of project ids.
  */
-data class TosPersistenceState(
-  var userProjectMap: MutableMap<String, MutableSet<String>> = mutableMapOf()
-)
+data class TosPersistenceState(var userProjectMap: MutableMap<String, MutableSet<String>> = mutableMapOf())

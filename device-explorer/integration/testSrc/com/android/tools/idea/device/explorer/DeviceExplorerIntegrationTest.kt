@@ -17,7 +17,6 @@ package testSrc.com.android.tools.idea.device.explorer
 
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.google.common.truth.Truth.assertThat
@@ -27,19 +26,18 @@ import org.junit.Rule
 import org.junit.Test
 
 class DeviceExplorerIntegrationTest {
-  @JvmField @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun viewDeviceExplorerToolWindow() {
     val projectArtifactsPath = Paths.get("tools/adt/idea/android/integration/minapp_project_model")
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
-    system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl,com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel")
+    system.installation.addVmOption(
+      "-Didea.log.debug.categories=#com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl,com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel"
+    )
 
     system.getInstallation().copySystemDir(projectArtifactsPath)
     system.getInstallation().copyConfigDir(projectArtifactsPath)

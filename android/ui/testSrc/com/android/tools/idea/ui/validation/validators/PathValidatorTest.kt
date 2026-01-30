@@ -25,8 +25,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
 import com.google.common.base.Strings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
-import org.junit.Assume
-import org.junit.Test
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -38,6 +36,8 @@ import java.nio.file.attribute.DosFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
 import java.util.EnumSet
 import java.util.Locale
+import org.junit.Assume
+import org.junit.Test
 
 class PathValidatorTest {
   @Test
@@ -239,7 +239,7 @@ private fun assertRuleFails(rule: Rule, inputPath: Path, failureCause: Path) {
 }
 
 private fun assertRulePasses(rule: Rule, path: Path) {
-  val validator = Builder().withError(rule) .build("test path")
+  val validator = Builder().withError(rule).build("test path")
   val result = validator.validate(path)
   assertThat(result.severity).isEqualTo(Severity.OK)
 }
@@ -247,14 +247,11 @@ private fun assertRulePasses(rule: Rule, path: Path) {
 private fun Path.setReadOnly() {
   if (FileOpUtils.isWindows()) {
     val acls = Files.getFileAttributeView(this, AclFileAttributeView::class.java)
-    val newAcls = acls.acl.map {
-      AclEntry.newBuilder(it).setPermissions(it.permissions().minus(AclEntryPermission.WRITE_DATA)).build()
-    }
+    val newAcls = acls.acl.map { AclEntry.newBuilder(it).setPermissions(it.permissions().minus(AclEntryPermission.WRITE_DATA)).build() }
     acls.acl = newAcls
 
     Files.getFileAttributeView(this, DosFileAttributeView::class.java).setReadOnly(true)
-  }
-  else {
+  } else {
     val permissions: MutableSet<PosixFilePermission> = EnumSet.copyOf(Files.getPosixFilePermissions(this))
     permissions.remove(PosixFilePermission.OWNER_WRITE)
     permissions.remove(PosixFilePermission.GROUP_WRITE)

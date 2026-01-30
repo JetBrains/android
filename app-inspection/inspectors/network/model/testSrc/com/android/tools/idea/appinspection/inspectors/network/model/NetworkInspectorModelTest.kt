@@ -114,18 +114,10 @@ class NetworkInspectorModelTest {
     var legendsUpdated = false
     var tooltipLegendsUpdated = false
 
-    model.networkUsage.addDependency(observer).onChange(LineChartModel.Aspect.LINE_CHART) {
-      networkUsageUpdated = true
-    }
-    model.trafficAxis.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) {
-      trafficAxisUpdated = true
-    }
-    model.legends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) {
-      legendsUpdated = true
-    }
-    model.tooltipLegends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) {
-      tooltipLegendsUpdated = true
-    }
+    model.networkUsage.addDependency(observer).onChange(LineChartModel.Aspect.LINE_CHART) { networkUsageUpdated = true }
+    model.trafficAxis.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) { trafficAxisUpdated = true }
+    model.legends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) { legendsUpdated = true }
+    model.tooltipLegends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) { tooltipLegendsUpdated = true }
     timer.tick(1)
     assertThat(networkUsageUpdated).isTrue()
     assertThat(trafficAxisUpdated).isTrue()
@@ -141,10 +133,7 @@ class NetworkInspectorModelTest {
     timer.tick(100)
     assertThat(legendsUpdated).isTrue()
     assertThat(trafficAxisUpdated).isTrue()
-    model.timeline.tooltipRange.set(
-      SECONDS.toMicros(100).toDouble(),
-      SECONDS.toMicros(100).toDouble(),
-    )
+    model.timeline.tooltipRange.set(SECONDS.toMicros(100).toDouble(), SECONDS.toMicros(100).toDouble())
     assertThat(tooltipLegendsUpdated).isTrue()
   }
 
@@ -153,18 +142,12 @@ class NetworkInspectorModelTest {
     val data =
       createFakeHttpData(
         1,
-        responseHeaders =
-          listOf(
-            httpHeader("null", "HTTP/1.1 302 Found"),
-            httpHeader("Content-Type", "image/jpeg"),
-          ),
+        responseHeaders = listOf(httpHeader("null", "HTTP/1.1 302 Found"), httpHeader("Content-Type", "image/jpeg")),
         responsePayload = ByteString.copyFromUtf8("Content"),
       )
     val observer = AspectObserver()
     var connectionChanged = false
-    model.aspect.addDependency(observer).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
-      connectionChanged = true
-    }
+    model.aspect.addDependency(observer).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { connectionChanged = true }
     model.setSelectedConnection(data)
     assertThat(model.selectedConnection).isEqualTo(data)
     assertThat(connectionChanged).isEqualTo(true)

@@ -38,20 +38,11 @@ private class FakeGeminiPluginApi : GeminiPluginApi {
 
   override fun isFileExcluded(project: Project, file: VirtualFile) = fileExcluded
 
-  override fun sendChatQuery(
-    project: Project,
-    prompt: LlmPrompt,
-    displayText: String?,
-    requestSource: GeminiPluginApi.RequestSource,
-  ) {
+  override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
     sentPrompt = prompt
   }
 
-  override fun stageChatQuery(
-    project: Project,
-    prompt: String,
-    requestSource: GeminiPluginApi.RequestSource,
-  ) {}
+  override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {}
 }
 
 @RunWith(JUnit4::class)
@@ -61,8 +52,7 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
   @Before
   fun setup() {
     geminiPluginApi = FakeGeminiPluginApi()
-    ApplicationManager.getApplication()
-      .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, testRootDisposable)
   }
 
   @Test
@@ -78,18 +68,18 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt.formatForTests())
       .isEqualTo(
         """
-      |SYSTEM
-      |You are Gemini.
-      |
-      |USER
-      |Hi!
-      |
-      |MODEL
-      |How can I help you?
-      |
-      |USER
-      |What is Compose?
-    """
+        |SYSTEM
+        |You are Gemini.
+        |
+        |USER
+        |Hi!
+        |
+        |MODEL
+        |How can I help you?
+        |
+        |USER
+        |What is Compose?
+        """
           .trimMargin()
           .trim()
       )
@@ -105,10 +95,10 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt.formatForTests())
       .isEqualTo(
         """
-      |USER
-      |Hi!
-      |<file1.txt>
-    """
+        |USER
+        |Hi!
+        |<file1.txt>
+        """
           .trimMargin()
           .trim()
       )
@@ -128,15 +118,15 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
     assertThat(prompt.formatForTests())
       .isEqualTo(
         """
-      |SYSTEM
-      |You are Gemini.
-      |
-      |USER
-      |Explain this code
-      |```kotlin
-      |fun foo() = 42
-      |```
-    """
+        |SYSTEM
+        |You are Gemini.
+        |
+        |USER
+        |Explain this code
+        |```kotlin
+        |fun foo() = 42
+        |```
+        """
           .trimMargin()
           .trim()
       )

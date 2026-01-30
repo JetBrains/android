@@ -47,13 +47,7 @@ open class AnimationPreviewTests {
   open fun setUp() {
     parentDisposable = projectRule.testRootDisposable
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
     surface = NlSurfaceBuilder.builder(projectRule.project, parentDisposable).build()
     surface.addModelsWithoutRender(listOf(model))

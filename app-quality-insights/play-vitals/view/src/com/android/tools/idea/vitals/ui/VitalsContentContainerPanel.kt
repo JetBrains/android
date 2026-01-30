@@ -66,26 +66,15 @@ class VitalsContentContainerPanel(
         .apply {
           appendLine("No apps available", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, null)
           appendLine("")
-          appendLine(
-            "Request that your app Admin provides you with the ",
-            SimpleTextAttributes.GRAYED_ATTRIBUTES,
-            null,
-          )
+          appendLine("Request that your app Admin provides you with the ", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
           @Suppress("DialogTitleCapitalization")
-          appendLine(
-            "View App Quality Information (read-only)",
-            SimpleTextAttributes.LINK_ATTRIBUTES,
-          ) {
+          appendLine("View App Quality Information (read-only)", SimpleTextAttributes.LINK_ATTRIBUTES) {
             BrowserUtil.browse(
               "https://support.google.com/googleplay/android-developer/answer/9844686?hl=en#zippy=%2Cview-app-quality-information-read-only"
             )
           }
           @Suppress("DialogTitleCapitalization")
-          appendText(
-            " permission via the Play Console.",
-            SimpleTextAttributes.GRAYED_ATTRIBUTES,
-            null,
-          )
+          appendText(" permission via the Play Console.", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
         }
     val selectProjectTextPanel =
       object : JPanel() {
@@ -102,34 +91,13 @@ class VitalsContentContainerPanel(
 
     val toolWindowList =
       mutableListOf<AppInsightsToolWindowDefinition>().apply {
-        add(
-          InsightToolWindow.create(
-            projectController,
-            this@VitalsContentContainerPanel,
-            tabVisibilityFlow,
-            tracker,
-          )
-        )
+        add(InsightToolWindow.create(projectController, this@VitalsContentContainerPanel, tabVisibilityFlow, tracker))
 
-        add(
-          DistributionToolWindow.create(
-            VITALS_WORKBENCH_NAME,
-            scope,
-            projectController.state,
-            tabVisibilityFlow,
-          )
-        )
+        add(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state, tabVisibilityFlow))
       }
 
     add(
-      AppInsightsContentPanel(
-        projectController,
-        project,
-        this,
-        AppInsightsIssuesTableCellRenderer,
-        VITALS_WORKBENCH_NAME,
-        toolWindowList,
-      ) {
+      AppInsightsContentPanel(projectController, project, this, AppInsightsIssuesTableCellRenderer, VITALS_WORKBENCH_NAME, toolWindowList) {
         VitalsIssueDetailsPanel(projectController, project, this, tracker)
       },
       MAIN_CARD,
@@ -143,11 +111,7 @@ class VitalsContentContainerPanel(
           if (selected == null || !selected.isConfigured) {
             tracker.logZeroState(
               AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
-                .apply {
-                  emptyState =
-                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
-                      .NO_ACCESS
-                }
+                .apply { emptyState = AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState.NO_ACCESS }
                 .build()
             )
             (layout as CardLayout).show(this@VitalsContentContainerPanel, GET_STARTED)

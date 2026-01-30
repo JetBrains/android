@@ -39,8 +39,7 @@ interface AssistantToolWindowService : Disposable {
   }
 }
 
-internal class AssistantToolWindowServiceImpl(private val project: Project) :
-  AssistantToolWindowService {
+internal class AssistantToolWindowServiceImpl(private val project: Project) : AssistantToolWindowService {
 
   private val assistSidePanel: AssistSidePanel by lazy { AssistSidePanel(project) }
 
@@ -52,14 +51,7 @@ internal class AssistantToolWindowServiceImpl(private val project: Project) :
 
     if (toolWindow == null) {
       // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
-      toolWindow =
-        toolWindowManager.registerToolWindow(
-          TOOL_WINDOW_TITLE,
-          false,
-          ToolWindowAnchor.RIGHT,
-          this,
-          true,
-        )
+      toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, this, true)
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT)
     }
     toolWindow.helpId = bundleId
@@ -70,11 +62,7 @@ internal class AssistantToolWindowServiceImpl(private val project: Project) :
     toolWindow.activate(null)
   }
 
-  private fun createAssistantContent(
-    bundleId: String,
-    toolWindow: ToolWindow,
-    defaultTutorialCardId: String?,
-  ) {
+  private fun createAssistantContent(bundleId: String, toolWindow: ToolWindow, defaultTutorialCardId: String?) {
     var content: Content? = null
     assistSidePanel.showBundle(bundleId, defaultTutorialCardId) { content?.displayName = it.name }
     val contentFactory = ContentFactory.getInstance()

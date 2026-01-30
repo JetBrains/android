@@ -29,6 +29,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.writeChild
 import com.intellij.util.text.DateFormatUtil
+import java.util.Date
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,11 +41,8 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.whenever
-import java.util.Date
 
-/**
- * Unit test for [ImportTestGroup].
- */
+/** Unit test for [ImportTestGroup]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ImportTestGroupTest {
@@ -55,18 +53,11 @@ class ImportTestGroupTest {
 
   private val importTestGroup = ImportTestGroup(MoreExecutors.newDirectExecutorService())
 
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
-    .around(temporaryFolder)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule).around(temporaryFolder)
 
-  @get:Rule
-  var mockitoRule: MockitoRule = MockitoJUnit.rule()
+  @get:Rule var mockitoRule: MockitoRule = MockitoJUnit.rule()
 
-  @Mock
-  private lateinit var mockActionEvent: AnActionEvent
+  @Mock private lateinit var mockActionEvent: AnActionEvent
 
   @Before
   fun setupMocks() {
@@ -81,15 +72,10 @@ class ImportTestGroupTest {
     createTestResultsProto("utpProto", startTimeMillis = 2000)
 
     importTestGroup.getChildren(mockActionEvent) // Timestamp map will be updated asynchronously.
-    val actions = importTestGroup.getChildren(mockActionEvent).map {
-      it.templateText ?: ""
-    }
+    val actions = importTestGroup.getChildren(mockActionEvent).map { it.templateText ?: "" }
 
-    assertThat(actions).containsExactly(
-      "intelliJHistory1",
-      "utpProto - connected (${DateFormatUtil.formatDateTime(Date(2000))})",
-      "intelliJHistory2",
-    )
+    assertThat(actions)
+      .containsExactly("intelliJHistory1", "utpProto - connected (${DateFormatUtil.formatDateTime(Date(2000))})", "intelliJHistory2")
   }
 
   @Test
@@ -98,16 +84,16 @@ class ImportTestGroupTest {
     createTestResultsProto("utpProto", startTimeMillis = 1000)
 
     importTestGroup.getChildren(mockActionEvent) // Timestamp map will be updated asynchronously.
-    val actions = importTestGroup.getChildren(mockActionEvent).map {
-      it.templateText ?: ""
-    }
+    val actions = importTestGroup.getChildren(mockActionEvent).map { it.templateText ?: "" }
 
     assertThat(actions).containsExactly("intelliJHistory1")
   }
 
   private fun createIntelliJHistoryXml(name: String, startTimeMillis: Long) {
-    TestStateStorage.getTestHistoryRoot(projectRule.project).resolve(name).writeText(
-      """<?xml version="1.0" encoding="UTF-8"?>
+    TestStateStorage.getTestHistoryRoot(projectRule.project)
+      .resolve(name)
+      .writeText(
+        """<?xml version="1.0" encoding="UTF-8"?>
       <testrun duration="3" name="ExampleInstrumentedTest">
           <count name="total" value="1"/>
           <count name="passed" value="1"/>
@@ -130,13 +116,14 @@ class ImportTestGroupTest {
           </androidTestMatrix>
       </testrun>
       """
-    )
+      )
     TestHistoryConfiguration.getInstance(projectRule.project).registerHistoryItem(name, "configName", "configId")
   }
 
   private fun createTestResultsProto(name: String, startTimeMillis: Long) {
-    val resultProto = TextFormat.parse(
-      """
+    val resultProto =
+      TextFormat.parse(
+        """
       test_result {
         test_case {
           test_class: "$name"
@@ -152,12 +139,11 @@ class ImportTestGroupTest {
         test_status: PASSED
       }
       """,
-      TestSuiteResultProto.TestSuiteResult::class.java
-    )
-    projectRule.module.rootManager.contentRoots[0]
-      .writeChild(
-        "build/outputs/androidTest-results/connected/test-result.pb",
-        resultProto.toByteArray()
+        TestSuiteResultProto.TestSuiteResult::class.java,
       )
+    projectRule.module.rootManager.contentRoots[0].writeChild(
+      "build/outputs/androidTest-results/connected/test-result.pb",
+      resultProto.toByteArray(),
+    )
   }
 }

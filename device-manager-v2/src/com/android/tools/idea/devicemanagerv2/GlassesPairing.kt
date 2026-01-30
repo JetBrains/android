@@ -44,9 +44,7 @@ class PairGlassesAction() : DumbAwareAction("Pair Glasses") {
     val deviceHandle = e.deviceHandle()
     val pairGlassesAction = deviceHandle?.pairGlassesAction ?: return
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) {
-      pairGlassesAction.pairGlasses(e.componentToRestoreFocusTo())
-    }
+    deviceHandle.launchCatchingDeviceActionException(project = e.project) { pairGlassesAction.pairGlasses(e.componentToRestoreFocusTo()) }
   }
 }
 
@@ -63,8 +61,6 @@ class UnpairGlassesAction() : DumbAwareAction("Unpair Glasses") {
     val deviceHandle = e.deviceHandle()
     val pairGlassesAction = deviceHandle?.unpairGlassesAction ?: return
 
-    deviceHandle.launchCatchingDeviceActionException(project = e.project) {
-      pairGlassesAction.unpairGlasses()
-    }
+    deviceHandle.launchCatchingDeviceActionException(project = e.project) { pairGlassesAction.unpairGlasses() }
   }
 }

@@ -35,19 +35,15 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
-/**
- * Tests for {@link AssembleRunConfigurationAction }.
- */
+/** Tests for {@link AssembleRunConfigurationAction }. */
 @RunsInEdt
 class AssembleRunConfigurationActionTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   private var myPresentation: Presentation? = null
 
-  @Mock
-  private var myEvent: AnActionEvent? = null
+  @Mock private var myEvent: AnActionEvent? = null
   private val myAction = AssembleRunConfigurationAction()
 
   @Before
@@ -58,18 +54,15 @@ class AssembleRunConfigurationActionTest {
     Mockito.`when`(myEvent!!.project).thenReturn(project)
   }
 
-  /**
-   * Test to verify that the Java Run Configs are not enabled on Android Studio. Context: b/467659028.
-   */
+  /** Test to verify that the Java Run Configs are not enabled on Android Studio. Context: b/467659028. */
   @Test
   fun testJavaRunConfigIsNotEnabled() {
     projectRule.loadProject(UNIT_TESTING)
-    val gradleJavaConfiguration = createAndroidGradleTestConfigurationFromClass(
-      project, "com.example.javalib.JavaLibJavaTest")
+    val gradleJavaConfiguration = createAndroidGradleTestConfigurationFromClass(project, "com.example.javalib.JavaLibJavaTest")
     assertThat(gradleJavaConfiguration).isNotNull()
     val runConfigSettingsForSelected =
-      RunManager.getInstance(project).createConfiguration(
-        gradleJavaConfiguration!!, GradleExternalTaskConfigurationType.getInstance().factory)
+      RunManager.getInstance(project)
+        .createConfiguration(gradleJavaConfiguration!!, GradleExternalTaskConfigurationType.getInstance().factory)
     RunManager.getInstance(project).selectedConfiguration = runConfigSettingsForSelected
 
     myAction.update(myEvent!!)
@@ -83,8 +76,8 @@ class AssembleRunConfigurationActionTest {
     val androidGradleRunConfig = createAndroidGradleTestConfigurationFromClass(project, "google.simpleapplication.UnitTest")
     assertThat(androidGradleRunConfig).isNotNull()
     val runConfigSettingsForSelected =
-      RunManager.getInstance(project).createConfiguration(
-        androidGradleRunConfig!!, GradleExternalTaskConfigurationType.getInstance().factory)
+      RunManager.getInstance(project)
+        .createConfiguration(androidGradleRunConfig!!, GradleExternalTaskConfigurationType.getInstance().factory)
     RunManager.getInstance(project).selectedConfiguration = runConfigSettingsForSelected
 
     myAction.update(myEvent!!)

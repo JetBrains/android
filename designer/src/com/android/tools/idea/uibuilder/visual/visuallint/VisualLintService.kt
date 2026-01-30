@@ -65,20 +65,11 @@ import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 
 /** Dispatcher to trigger background visual linting analysis using only 1 thread */
-@OptIn(ExperimentalCoroutinesApi::class)
-private val visualLintSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
-/**
- * Dispatcher to run all the visual linting analyzers triggered from one analysis using only 1
- * thread
- */
-@OptIn(ExperimentalCoroutinesApi::class)
-private val visualLintAnalyzerSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
-/**
- * Time out for visual lint analysis. Use a longer one for testing to ensure it always completes
- * then.
- */
-private val visualLintTimeout: Long =
-  if (ApplicationManager.getApplication().isUnitTestMode) 30 else 5
+@OptIn(ExperimentalCoroutinesApi::class) private val visualLintSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
+/** Dispatcher to run all the visual linting analyzers triggered from one analysis using only 1 thread */
+@OptIn(ExperimentalCoroutinesApi::class) private val visualLintAnalyzerSingleThreadedDispatcher = Dispatchers.Default.limitedParallelism(1)
+/** Time out for visual lint analysis. Use a longer one for testing to ensure it always completes then. */
+private val visualLintTimeout: Long = if (ApplicationManager.getApplication().isUnitTestMode) 30 else 5
 
 private val LOG = Logger.getInstance(VisualLintService::class.java)
 
@@ -130,13 +121,7 @@ private constructor(
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers =
-    listOf(
-      BottomNavAnalyzer,
-      BottomAppBarAnalyzer,
-      TextFieldSizeAnalyzer,
-      LongTextAnalyzer,
-      ButtonSizeAnalyzer,
-    )
+    listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer, LongTextAnalyzer, ButtonSizeAnalyzer)
   private val wearAnalyzers = listOf(WearMarginAnalyzer)
 
   private var listenerRemovalDisposable: Disposable? = null
@@ -151,9 +136,8 @@ private constructor(
   }
 
   /**
-   * Runs visual lint analysis in a pooled thread and adds the issues found to the [IssueModel]. For
-   * models in [modelsForBackgroundRun], it creates related configurations to analyze. For renders
-   * in [renderResultsForAnalysis], it simply analyzes the given results.
+   * Runs visual lint analysis in a pooled thread and adds the issues found to the [IssueModel]. For models in [modelsForBackgroundRun], it
+   * creates related configurations to analyze. For renders in [renderResultsForAnalysis], it simply analyzes the given results.
    */
   fun runVisualLintAnalysis(
     parentDisposable: Disposable,
@@ -176,9 +160,7 @@ private constructor(
       }
 
       val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
-      modelsForBackgroundRun.forEach {
-        runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues)
-      }
+      modelsForBackgroundRun.forEach { runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues) }
 
       runOnPreviewVisualLinting(renderResultsForAnalysis, issueProvider, visualLintBaseConfigIssues)
     }
@@ -193,8 +175,7 @@ private constructor(
       object : ModelListener {
         override fun modelChanged(model: NlModel) {
           val numberOfCancelledActions =
-            RenderService.getRenderAsyncActionExecutor()
-              .cancelActionsByTopic(listOf(RenderingTopic.VISUAL_LINT), false)
+            RenderService.getRenderAsyncActionExecutor().cancelActionsByTopic(listOf(RenderingTopic.VISUAL_LINT), false)
           if (numberOfCancelledActions > 0) {
             VisualLintUsageTracker.getInstance().trackCancelledBackgroundAnalysis()
           }
@@ -227,13 +208,7 @@ private constructor(
           withContext(visualLintAnalyzerDispatcher) {
             try {
               updateHierarchy(result, model)
-              analyzeAfterModelUpdate(
-                issueProvider,
-                result,
-                model,
-                visualLintBaseConfigIssues,
-                true,
-              )
+              analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues, true)
             } finally {
               Disposer.dispose(model)
             }
@@ -241,9 +216,7 @@ private constructor(
         }
       }
       issueModel.updateErrorsList(IssueProviderListener.TOPIC)
-      LOG.debug(
-        "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
-      )
+      LOG.debug("Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found")
     } finally {
       baseModel.removeListener(listener)
     }
@@ -257,21 +230,14 @@ private constructor(
   ) {
     withTimeout(visualLintTimeout.seconds) {
       renderResultsForAnalysis.forEach { (result, model) ->
-        withContext(visualLintAnalyzerDispatcher) {
-          analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
-        }
+        withContext(visualLintAnalyzerDispatcher) { analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues) }
       }
     }
     issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
-    LOG.debug(
-      "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
-    )
+    LOG.debug("Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found")
   }
 
-  /**
-   * Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given
-   * [RenderResult] after model is updated.
-   */
+  /** Collects in [issueProvider] all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated. */
   fun analyzeAfterModelUpdate(
     targetIssueProvider: VisualLintIssueProvider,
     result: RenderResult,
@@ -284,13 +250,7 @@ private constructor(
       runAnalyzers(targetIssueProvider, wearAnalyzers, result, model, runningInBackground)
     } else {
       runAnalyzers(targetIssueProvider, adaptiveAnalyzers, result, model, runningInBackground)
-      runAnalyzers(
-        targetIssueProvider,
-        listOf(LocaleAnalyzer(baseConfigIssues)),
-        result,
-        model,
-        runningInBackground,
-      )
+      runAnalyzers(targetIssueProvider, listOf(LocaleAnalyzer(baseConfigIssues)), result, model, runningInBackground)
     }
   }
 
@@ -309,13 +269,11 @@ private constructor(
         if (!tools.isEnabled) {
           return@forEach
         }
-        val inspection =
-          tools.getInspectionTool(null).tool as? VisualLintInspection ?: return@forEach
+        val inspection = tools.getInspectionTool(null).tool as? VisualLintInspection ?: return@forEach
         if (runningInBackground && !inspection.runInBackground) {
           return@forEach
         }
-        val issues =
-          analyzer.analyze(result).map { createVisualLintRenderIssue(it, model, analyzer.type) }
+        val issues = analyzer.analyze(result).map { createVisualLintRenderIssue(it, model, analyzer.type) }
         targetIssueProvider.addAllIssues(issues)
       }
   }
@@ -351,21 +309,13 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
     .build()
     .thenCompose { newTask ->
       if (newTask == null) {
-        logger.error(
-          "INFLATE",
-          "Error inflating view for visual lint on background. No RenderTask Created.",
-          null,
-          null,
-          null,
-        )
+        logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.", null, null, null)
         return@thenCompose CompletableFuture.failedFuture(IllegalArgumentException())
       }
 
       if (model.isDisposed) {
         newTask.dispose()
-        return@thenCompose CompletableFuture.failedFuture(
-          AlreadyDisposedException("NlModel was already disposed")
-        )
+        return@thenCompose CompletableFuture.failedFuture(AlreadyDisposedException("NlModel was already disposed"))
       }
 
       // TODO: Potentially save this task for future?
@@ -373,13 +323,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
         val exception: Throwable? = inflateException ?: result?.renderResult?.exception
         newTask.dispose()
         if (exception != null || result == null) {
-          logger.error(
-            "INFLATE",
-            "Error inflating views for visual lint on background",
-            exception,
-            null,
-            null,
-          )
+          logger.error("INFLATE", "Error inflating views for visual lint on background", exception, null, null)
         }
       }
     }
@@ -398,8 +342,7 @@ private fun VisualLintAnalyzer.shouldRun(project: Project, runningInBackground: 
   return inspection.runInBackground
 }
 
-class VisualLintIssueModel(parentDisposable: Disposable, project: Project) :
-  IssueModel(parentDisposable, project) {
+class VisualLintIssueModel(parentDisposable: Disposable, project: Project) : IssueModel(parentDisposable, project) {
 
   /** If using in UI Check mode, represents the Compose Preview instance being checked. */
   var uiCheckInstanceId: String? = null

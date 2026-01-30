@@ -84,13 +84,7 @@ class ResizePanelTest {
   @Before
   fun setUp() = runBlocking {
     model =
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     configuration = model.configuration
 
     surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.testRootDisposable).build()
@@ -98,10 +92,7 @@ class ResizePanelTest {
     resizePanel = ResizePanel(projectRule.fixture.testRootDisposable)
 
     val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, resizePanel) }
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      provider,
-      projectRule.testRootDisposable,
-    )
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider, projectRule.testRootDisposable)
 
     runInEdtAndGet {
       val panel =
@@ -156,14 +147,8 @@ class ResizePanelTest {
     changeWidthTextField(500)
     changeHeightTextField(800)
 
-    assertNotEquals(
-      oldWidth,
-      configuration.device?.getScreenSize(configuration.deviceState!!.orientation)?.width,
-    )
-    assertNotEquals(
-      oldHeight,
-      configuration.device?.getScreenSize(configuration.deviceState!!.orientation)?.height,
-    )
+    assertNotEquals(oldWidth, configuration.device?.getScreenSize(configuration.deviceState!!.orientation)?.width)
+    assertNotEquals(oldHeight, configuration.device?.getScreenSize(configuration.deviceState!!.orientation)?.height)
   }
 
   private fun findAndPerformDeviceMenuAction(predicate: (AnAction) -> Boolean) {
@@ -353,9 +338,7 @@ class ResizePanelTest {
     setupAndShowPanel()
     // Find a reference device to select
     val referenceDevice = configuration.settings.devices.first { isReferenceDevice(it) }
-    findAndPerformDeviceMenuAction { action ->
-      (action as? SetDeviceAction)?.device?.id == referenceDevice.id
-    }
+    findAndPerformDeviceMenuAction { action -> (action as? SetDeviceAction)?.device?.id == referenceDevice.id }
 
     assertEquals(referenceDevice.id, configuration.device!!.id)
     assertDevicePickerText(referenceDevice.displayName)
@@ -397,9 +380,7 @@ class ResizePanelTest {
     assertDevicePickerText("Custom")
 
     // Now, select the same device as before
-    findAndPerformDeviceMenuAction { action ->
-      (action as? SetDeviceAction)?.device?.id == firstDevice.id
-    }
+    findAndPerformDeviceMenuAction { action -> (action as? SetDeviceAction)?.device?.id == firstDevice.id }
 
     // Check that the device is now back to the selected device
     assertEquals(firstDevice.id, configuration.device!!.id)
@@ -542,8 +523,7 @@ class ResizePanelTest {
   private fun revert() {
     @Suppress("DEPRECATION") fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
-    val revertToolbar =
-      fakeUi.findComponent<ActionToolbar> { it.actions.firstOrNull() is ResizePanel.RevertAction }
+    val revertToolbar = fakeUi.findComponent<ActionToolbar> { it.actions.firstOrNull() is ResizePanel.RevertAction }
     assertNotNull(revertToolbar)
     revertToolbar!!.actions.single().actionPerformed(TestActionEvent.createTestEvent())
   }

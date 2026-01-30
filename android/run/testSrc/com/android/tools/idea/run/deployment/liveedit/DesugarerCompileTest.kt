@@ -34,8 +34,7 @@ class DesugarerCompileTest {
   // so not having that available causes a NullPointerException when we call it.
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @After
   fun tearDown() {
@@ -44,17 +43,26 @@ class DesugarerCompileTest {
 
   @Test
   fun simpleChange() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       fun foo() = ""
       fun bar() = 1
-    """)
+    """,
+      )
 
-    val exception = Assert.assertThrows(LiveEditUpdateException::class.java) {
-      projectRule.postDeploymentStateCompile(file, """
+    val exception =
+      Assert.assertThrows(LiveEditUpdateException::class.java) {
+        projectRule.postDeploymentStateCompile(
+          file,
+          """
       fun foo() = "I am not foo"
       fun bar() = 1
-    """, setOf(30))
-    }
+    """,
+          setOf(30),
+        )
+      }
 
     // We currently don't have all the tools to run desugaring in unit tests but we have at least one
     // test in the ETE that does desguaring.

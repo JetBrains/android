@@ -22,28 +22,27 @@ import com.google.common.base.Charsets
 import com.google.common.base.Joiner
 import com.google.gson.stream.JsonWriter
 import com.intellij.diagnostic.ThreadDumper
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.mime.MultipartEntityBuilder
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.mime.MultipartEntityBuilder
 
 class PerformanceThreadDumpReport
 @JvmOverloads
-constructor(val threadDumpPath: Path?,
-            val description: String?,
-            baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport(REPORT_TYPE, baseProperties) {
+constructor(
+  val threadDumpPath: Path?,
+  val description: String?,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
     val threadDump = threadDumpPath?.let { Joiner.on('\n').join(Files.readAllLines(it)) } ?: ""
     val fileName = threadDumpPath?.fileName?.toString() ?: "noFilename.txt"
 
-    return PerformanceThreadDumpCrashReport(properties,
-                                            fileName,
-                                            threadDump)
+    return PerformanceThreadDumpCrashReport(properties, fileName, threadDump)
   }
 
   override fun serializeReportProperties(writer: JsonWriter) {
@@ -54,29 +53,32 @@ constructor(val threadDumpPath: Path?,
   companion object {
     const val REPORT_TYPE = "PerformanceThreadDump"
 
-    fun deserialize(baseProperties: DiagnosticReportProperties,
-                    properties: Map<String, String>,
-                    format: Long): PerformanceThreadDumpReport {
+    fun deserialize(
+      baseProperties: DiagnosticReportProperties,
+      properties: Map<String, String>,
+      format: Long,
+    ): PerformanceThreadDumpReport {
       if (format >= 1L) {
         return PerformanceThreadDumpReport(
-          properties["threadDumpPath"]?.let {
-            fixDirectoryPathAndCheckIfReadable(Paths.get(it))
-          },
+          properties["threadDumpPath"]?.let { fixDirectoryPathAndCheckIfReadable(Paths.get(it)) },
           properties["description"],
-          baseProperties)
+          baseProperties,
+        )
       }
       throw IllegalArgumentException("Unrecognized format version: $format")
     }
   }
 }
 
-class PerformanceThreadDumpCrashReport(properties: DiagnosticReportProperties,
-                                       private val fileName: String,
-                                       private val threadDump: String) : DiagnosticCrashReport("Performance", properties) {
+class PerformanceThreadDumpCrashReport(
+  properties: DiagnosticReportProperties,
+  private val fileName: String,
+  private val threadDump: String,
+) : DiagnosticCrashReport("Performance", properties) {
   private val EXCEPTION_TYPE = "com.android.ApplicationNotResponding"
 
-  private val EMPTY_ANR_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                     "\tat " + PerformanceThreadDumpReport::class.java.name + ".missingEdtStack(Unknown source)"
+  private val EMPTY_ANR_STACKTRACE =
+    EXCEPTION_TYPE + ": \n" + "\tat " + PerformanceThreadDumpReport::class.java.name + ".missingEdtStack(Unknown source)"
 
   override fun serializeTo(builder: MultipartEntityBuilder) {
     super.serializeTo(builder)

@@ -29,6 +29,5 @@ class AndroidLintWatchFaceFormatMissingVersionInspection :
   ) {
 
   override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, incident: Incident) =
-    super.getQuickFixes(startElement, endElement, incident) +
-      AddWatchFaceFormatVersionPropertyQuickFix()
+    super.getQuickFixes(startElement, endElement, incident) + AddWatchFaceFormatVersionPropertyQuickFix()
 }

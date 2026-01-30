@@ -18,15 +18,11 @@ package com.google.idea.blaze.base.qsync.action
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.TargetsToBuild
 
-/**
- * Additional targets to consider when disambiguating targets to build for a file.
- */
+/** Additional targets to consider when disambiguating targets to build for a file. */
 sealed interface TargetDisambiguationAnchors {
   val anchorTargets: Set<Label>
 
-  /**
-   * A set of specific targets to consider when disambiguating targets to build for a file.
-   */
+  /** A set of specific targets to consider when disambiguating targets to build for a file. */
   data class Targets(override val anchorTargets: Set<Label>) : TargetDisambiguationAnchors
 
   companion object {
@@ -34,7 +30,7 @@ sealed interface TargetDisambiguationAnchors {
   }
 }
 
-/** Utility for identifying ambiguities in targets to build for files  */
+/** Utility for identifying ambiguities in targets to build for files */
 data class TargetDisambiguator(
   val unambiguousTargets: Set<Label>,
   val ambiguousTargetSets: Set<TargetsToBuild>,
@@ -44,16 +40,12 @@ data class TargetDisambiguator(
   companion object {
     @JvmStatic
     @JvmName("createForGroups")
-    fun createDisambiguatorForTargetGroups(
-      groups: Set<TargetsToBuild>,
-      anchors: TargetDisambiguationAnchors,
-    ): TargetDisambiguator {
+    fun createDisambiguatorForTargetGroups(groups: Set<TargetsToBuild>, anchors: TargetDisambiguationAnchors): TargetDisambiguator {
       // Note: This implementation does not take into account the dependency graph and it might be useful to do so.
       val unambiguousTargets = groups.asSequence().filter { !it.isAmbiguous() }.flatMap { it.targets }.toSet()
       val ambiguousTargets = groups.asSequence().filter { it.isAmbiguous() }.toSet()
       val allAnchors = anchors.anchorTargets + unambiguousTargets
-      val disambiguated = ambiguousTargets
-        .mapNotNull { it to (it.autoDisambiguate(allAnchors) ?: return@mapNotNull null) }
+      val disambiguated = ambiguousTargets.mapNotNull { it to (it.autoDisambiguate(allAnchors) ?: return@mapNotNull null) }
       val undefinedTargetSets = groups.asSequence().filter { it.requiresQueryDataRefresh() }.toSet()
       return TargetDisambiguator(
         unambiguousTargets = unambiguousTargets + disambiguated.map { it.second }.flatMap { it.targets },

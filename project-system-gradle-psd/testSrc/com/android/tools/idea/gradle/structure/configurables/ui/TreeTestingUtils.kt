@@ -21,18 +21,20 @@ import com.intellij.util.text.nullize
 import javax.swing.tree.TreeNode
 
 data class TestTree(val text: String, val children: List<TestTree>?) {
-  override fun toString(): String =
-    listOfNotNull(text, children?.nullize()?.joinToString("\n")?.prependIndent("    ")).joinToString("\n")
+  override fun toString(): String = listOfNotNull(text, children?.nullize()?.joinToString("\n")?.prependIndent("    ")).joinToString("\n")
 }
 
 fun AbstractPsNode.testStructure(filter: (AbstractPsNode) -> Boolean = { true }): TestTree =
-  TestTree(let {
-    update()
-    name ?: "(null)"
-  },
-           children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) })
+  TestTree(
+    let {
+      update()
+      name ?: "(null)"
+    },
+    children.mapNotNull { it as? AbstractPsNode }.filter { filter(it) }.map { it.testStructure(filter) },
+  )
 
 fun TreeNode.testStructure(filter: (TreeNode) -> Boolean = { true }): TestTree =
-  TestTree(toString().nullize(nullizeSpaces = true) ?: "(null)",
-           children().asSequence().mapNotNull { it as? TreeNode }.filter { filter(it) }.map { it.testStructure(filter) }.toList())
-
+  TestTree(
+    toString().nullize(nullizeSpaces = true) ?: "(null)",
+    children().asSequence().mapNotNull { it as? TreeNode }.filter { filter(it) }.map { it.testStructure(filter) }.toList(),
+  )

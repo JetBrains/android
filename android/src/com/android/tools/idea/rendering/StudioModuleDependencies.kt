@@ -36,18 +36,18 @@ class StudioModuleDependencies(private val module: Module) : ModuleDependencies 
   override fun dependsOnAndroidx(): Boolean = module.getModuleSystem().useAndroidX
 
   override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> =
-    (
-      (
-        sequenceOf(module) +
+    ((sequenceOf(module) +
           // Get all project (not external libraries) dependencies
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }.asSequence()
-        ).map { it.getModuleSystem().getPackageName() } +
+          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }.asSequence())
+        .map { it.getModuleSystem().getPackageName() } +
         // Get all external (libraries) dependencies
         when (includeExternalLibraries) {
           true -> module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }.asSequence()
           false -> emptySequence<String>()
-        }
-      ).filterNotNull().distinct().toList()
+        })
+      .filterNotNull()
+      .distinct()
+      .toList()
 
   override fun findViewClass(fqcn: String): ViewClass? {
     val facade = JavaPsiFacade.getInstance(module.project)
@@ -63,8 +63,7 @@ private fun getPackageName(library: ExternalAndroidLibrary): String? {
     if (manifest != null) {
       try {
         packageName = AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifest)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         Logger.getInstance(StudioModuleDependencies::class.java)
           .info("getPackageName: failed to find packageName for library ${library.libraryName()}")
       }

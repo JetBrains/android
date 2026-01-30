@@ -127,13 +127,8 @@ class DesignerCommonIssueSidePanelTest {
     panel.loadIssueNode(createIssueNode(issue))
 
     // Setting up data provider
-    val provider = EdtNoGetDataProvider { sink ->
-      DataSink.uiDataSnapshot(sink, panel.getFirstSplitterComponent())
-    }
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
-      provider,
-      rule.testRootDisposable,
-    )
+    val provider = EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, panel.getFirstSplitterComponent()) }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider, rule.testRootDisposable)
 
     // Performing action
     val actionToolbar = panel.findDescendant(ActionToolbar::class.java)!!
@@ -227,10 +222,7 @@ class DesignerCommonIssueSidePanelTest {
             currentActionEvent = e
             val issueNode = e.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode
             val issue = issueNode?.issue as? VisualLintRenderIssue
-            assertTrue(
-              "The provided issue is not of type VisualLintRenderIssue. Issue: $issue",
-              issue is VisualLintRenderIssue,
-            )
+            assertTrue("The provided issue is not of type VisualLintRenderIssue. Issue: $issue", issue is VisualLintRenderIssue)
             currentVisualLintIssue = issue as VisualLintRenderIssue
           }
         }
@@ -250,8 +242,7 @@ class DesignerCommonIssueSidePanelTest {
       assertEquals(expectedActionText, fixWithAiActionButton.templateText)
 
       // Simulate a click and verify the action handler receives the expected issue.
-      val expectedActionEvent =
-        createTestEvent(expectedVisualLintRenderIssue, fixWithAiActionButton)
+      val expectedActionEvent = createTestEvent(expectedVisualLintRenderIssue, fixWithAiActionButton)
       fixWithAiActionButton.actionPerformed(expectedActionEvent)
       assertEquals(expectedVisualLintRenderIssue, currentVisualLintIssue)
       assertEquals(expectedActionEvent, currentActionEvent)
@@ -261,10 +252,7 @@ class DesignerCommonIssueSidePanelTest {
   }
 
   private fun createTestEvent(issue: VisualLintRenderIssue, action: AnAction): AnActionEvent {
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(PlatformCoreDataKeys.SELECTED_ITEM, IssueNode(null, issue, null))
-        .build()
+    val dataContext = SimpleDataContext.builder().add(PlatformCoreDataKeys.SELECTED_ITEM, IssueNode(null, issue, null)).build()
     return TestActionEvent.createTestEvent(action, dataContext)
   }
 

@@ -27,10 +27,12 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ui.SimpleTextAttributes
 import java.io.File
 
-abstract class AbstractDependencyNode<K, T : PsBaseDependency>(parent: AbstractPsNode)
-  : AbstractPsResettableNode<K, AbstractDependencyNode<*, *>, T>(parent, parent.uiSettings) {
+abstract class AbstractDependencyNode<K, T : PsBaseDependency>(parent: AbstractPsNode) :
+  AbstractPsResettableNode<K, AbstractDependencyNode<*, *>, T>(parent, parent.uiSettings) {
 
-  val isDeclared: Boolean get() = models.any { it.isDeclared }
+  val isDeclared: Boolean
+    get() = models.any { it.isDeclared }
+
   final override var models: List<T> = listOf()
 
   open fun init(dependencies: List<T>) {
@@ -40,13 +42,18 @@ abstract class AbstractDependencyNode<K, T : PsBaseDependency>(parent: AbstractP
 }
 
 class LibraryDependencyNode(parent: AbstractPsNode) : AbstractDependencyNode<PsArtifactDependencySpec, PsLibraryDependency>(parent) {
-  enum class Mode { SPECIFIC, GROUP, VERSION }
+  enum class Mode {
+    SPECIFIC,
+    GROUP,
+    VERSION,
+  }
 
   private var nodeMode: Mode = Mode.SPECIFIC
 
   override fun getKeys(from: Unit): Set<PsArtifactDependencySpec> =
     when (nodeMode) {
-      Mode.SPECIFIC, Mode.VERSION -> setOf()
+      Mode.SPECIFIC,
+      Mode.VERSION -> setOf()
       Mode.GROUP -> models.groupBy { it.spec }.keys.sortedBy { it.version }.toSet()
     }
 
@@ -73,17 +80,20 @@ class LibraryDependencyNode(parent: AbstractPsNode) : AbstractDependencyNode<PsA
   }
 
   override fun init(dependencies: List<PsLibraryDependency>) {
-    this.nodeMode = when {
-      dependencies.distinctBy { it.spec }.size == 1 -> Mode.SPECIFIC
-      else -> Mode.GROUP
-    }
+    this.nodeMode =
+      when {
+        dependencies.distinctBy { it.spec }.size == 1 -> Mode.SPECIFIC
+        else -> Mode.GROUP
+      }
     super.init(dependencies)
   }
 }
 
 class JarDependencyNode(parent: AbstractPsNode) : AbstractDependencyNode<DependencyKey, PsJarDependency>(parent) {
   override fun getKeys(from: Unit): Set<DependencyKey> = setOf()
+
   override fun create(key: DependencyKey): Nothing = throw UnsupportedOperationException()
+
   override fun update(key: DependencyKey, node: AbstractDependencyNode<*, *>) = Unit
 
   override fun update(presentation: PresentationData) {
@@ -104,6 +114,8 @@ class ModuleDependencyNode(parent: AbstractPsNode) : AbstractDependencyNode<Depe
   }
 
   override fun getKeys(from: Unit): Set<DependencyKey> = setOf()
+
   override fun create(key: DependencyKey): Nothing = throw UnsupportedOperationException()
+
   override fun update(key: DependencyKey, node: AbstractDependencyNode<*, *>) = Unit
 }

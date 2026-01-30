@@ -34,13 +34,13 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.ProjectRule
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
 typealias GradleBuildMode = com.android.tools.idea.gradle.util.BuildMode
 
@@ -50,8 +50,7 @@ class GradleBuildSystemFilePreviewServicesTest {
   @RunWith(JUnit4::class)
   class BuildTargets {
 
-    @get:Rule
-    val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+    @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
     @Test
     fun `build targets can be obtained`() {
@@ -63,17 +62,18 @@ class GradleBuildSystemFilePreviewServicesTest {
     }
   }
 
-
   @RunWith(JUnit4::class)
-  class Listener  {
-    @get:Rule
-    val projectRule = ProjectRule()
+  class Listener {
+    @get:Rule val projectRule = ProjectRule()
 
-    @get:Rule
-    val otherProjectRule = ProjectRule()
+    @get:Rule val otherProjectRule = ProjectRule()
 
-    private val project get() = projectRule.project
-    private val otherProject get() = otherProjectRule.project
+    private val project
+      get() = projectRule.project
+
+    private val otherProject
+      get() = otherProjectRule.project
+
     lateinit var services: GradleBuildSystemFilePreviewServices
 
     private class CapturingBuildListener : BuildSystemFilePreviewServices.BuildListener {
@@ -82,7 +82,7 @@ class GradleBuildSystemFilePreviewServicesTest {
 
       override fun buildStarted(
         buildMode: BuildMode,
-        buildResult: ListenableFuture<BuildSystemFilePreviewServices.BuildListener.BuildResult>
+        buildResult: ListenableFuture<BuildSystemFilePreviewServices.BuildListener.BuildResult>,
       ) {
         capturedMode = buildMode
         capturedResult = buildResult
@@ -99,8 +99,7 @@ class GradleBuildSystemFilePreviewServicesTest {
       val listener = CapturingBuildListener()
       services.subscribeBuildListener(project, project, listener)
 
-      project.messageBus.syncPublisher(GRADLE_BUILD_TOPIC)
-        .buildStarted(createBuildContext(GradleBuildMode.COMPILE_JAVA))
+      project.messageBus.syncPublisher(GRADLE_BUILD_TOPIC).buildStarted(createBuildContext(GradleBuildMode.COMPILE_JAVA))
 
       assertThat(listener.capturedMode).isEqualTo(BuildMode.COMPILE)
       assertThat(listener.capturedResult?.isDone).isFalse()
@@ -111,8 +110,7 @@ class GradleBuildSystemFilePreviewServicesTest {
       val listener = CapturingBuildListener()
       services.subscribeBuildListener(project, project, listener)
 
-      otherProject.messageBus.syncPublisher(GRADLE_BUILD_TOPIC)
-        .buildStarted(createBuildContext(GradleBuildMode.COMPILE_JAVA))
+      otherProject.messageBus.syncPublisher(GRADLE_BUILD_TOPIC).buildStarted(createBuildContext(GradleBuildMode.COMPILE_JAVA))
 
       assertThat(listener.capturedMode).isNull()
       assertThat(listener.capturedResult).isNull()
@@ -123,8 +121,7 @@ class GradleBuildSystemFilePreviewServicesTest {
       val listener = CapturingBuildListener()
       services.subscribeBuildListener(project, project, listener)
 
-      project.messageBus.syncPublisher(GRADLE_BUILD_TOPIC)
-        .buildStarted(createBuildContext(GradleBuildMode.SOURCE_GEN))
+      project.messageBus.syncPublisher(GRADLE_BUILD_TOPIC).buildStarted(createBuildContext(GradleBuildMode.SOURCE_GEN))
 
       assertThat(listener.capturedMode).isNull()
       assertThat(listener.capturedResult).isNull()
@@ -183,10 +180,7 @@ class GradleBuildSystemFilePreviewServicesTest {
       assertThat(listener.capturedResult?.get()?.scope).isEqualTo(GlobalSearchScope.EMPTY_SCOPE)
     }
 
-    private fun createBuildContext(buildMode: com.android.tools.idea.gradle.util.BuildMode) = BuildContext(
-      GradleBuildInvoker.Request.builder(project, File("/"))
-        .setMode(buildMode)
-        .build()
-    )
+    private fun createBuildContext(buildMode: com.android.tools.idea.gradle.util.BuildMode) =
+      BuildContext(GradleBuildInvoker.Request.builder(project, File("/")).setMode(buildMode).build())
   }
 }

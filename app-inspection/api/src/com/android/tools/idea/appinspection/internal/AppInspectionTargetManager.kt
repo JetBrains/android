@@ -33,22 +33,17 @@ import kotlinx.coroutines.async
 
 /** A class that exclusively attaches, tracks, and disposes of [AppInspectionTarget]. */
 @AnyThread
-internal class AppInspectionTargetManager
-internal constructor(private val transportClient: TransportClient, parentScope: CoroutineScope) :
+internal class AppInspectionTargetManager internal constructor(private val transportClient: TransportClient, parentScope: CoroutineScope) :
   SimpleProcessListener() {
   private val scope = parentScope.createChildScope(true)
 
-  @VisibleForTesting
-  internal class TargetInfo(
-    val targetDeferred: Deferred<AppInspectionTarget>,
-    val projectName: String,
-  )
+  @VisibleForTesting internal class TargetInfo(val targetDeferred: Deferred<AppInspectionTarget>, val projectName: String)
 
   @VisibleForTesting internal val targets = ConcurrentHashMap<ProcessDescriptor, TargetInfo>()
 
   /**
-   * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future
-   * of [AppInspectionTarget] which can be used to launch inspector connections.
+   * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future of [AppInspectionTarget] which can be
+   * used to launch inspector connections.
    */
   internal suspend fun attachToProcess(
     processDescriptor: ProcessDescriptor,
@@ -60,8 +55,7 @@ internal constructor(private val transportClient: TransportClient, parentScope: 
       targets.computeIfAbsent(processDescriptor) {
         val targetDeferred =
           scope.async {
-            val transport =
-              AppInspectionTransport(transportClient, processDescriptor, streamChannel)
+            val transport = AppInspectionTransport(transportClient, processDescriptor, streamChannel)
             attachAppInspectionTarget(transport, jarCopier, scope)
           }
         TargetInfo(targetDeferred, projectName)

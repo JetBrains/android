@@ -22,16 +22,12 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Triggers the tilt sensor on an Android Wear virtual device.
- */
+/** Triggers the tilt sensor on an Android Wear virtual device. */
 internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 28 }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    val physicalModelValue = PhysicalModelValue.newBuilder()
-        .setTarget(WRIST_TILT)
-        .setValue(ParameterValue.newBuilder().addData(1F))
+    val physicalModelValue = PhysicalModelValue.newBuilder().setTarget(WRIST_TILT).setValue(ParameterValue.newBuilder().addData(1F))
     emulatorController.setPhysicalModel(physicalModelValue.build())
   }
 

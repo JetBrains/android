@@ -20,10 +20,8 @@ import com.android.tools.idea.project.AndroidRunConfigurationsManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 
-
 class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     AndroidRunConfigurationsManager.getInstance(project).createProjectRunConfigurations()
   }
 }
-

@@ -172,8 +172,7 @@ private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
 
     override val styles: List<String> = listOf("Style 1", "Style 2")
 
-    override fun getCategories(style: String): List<String> =
-      listOf("category1", "category2", "category3")
+    override fun getCategories(style: String): List<String> = listOf("category1", "category2", "category3")
 
     override fun getIcons(style: String, category: String): List<VdIcon> {
       throw UnsupportedOperationException()
@@ -189,8 +188,7 @@ private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
 }
 
 private fun createVdIcon(dir: File, name: String): VdIcon {
-  val iconFile =
-    dir.resolve("test_icons").apply { mkdir() }.resolve("$name.xml").apply { writeText(SIMPLE_VD) }
+  val iconFile = dir.resolve("test_icons").apply { mkdir() }.resolve("$name.xml").apply { writeText(SIMPLE_VD) }
   return VdIcon(SdkUtils.fileToUrl(iconFile))
 }
 
@@ -210,20 +208,9 @@ private fun assertIconFile(parentDir: File, iconName: String) {
 }
 
 private fun setupIncompleteCopy(targetDir: File) {
-  val incompleteMetadata =
-    targetDir.resolve("icons_metadata_temp_copy.txt").apply { writeText(INCOMPLETE_METADATA) }
+  val incompleteMetadata = targetDir.resolve("icons_metadata_temp_copy.txt").apply { writeText(INCOMPLETE_METADATA) }
   assertTrue(incompleteMetadata.exists())
   assertFalse(incompleteMetadata.isDirectory)
-  targetDir
-    .resolve("style1")
-    .resolve("my_icon_1")
-    .apply { mkdirs() }
-    .resolve("my_icon_1.xml")
-    .writeText(SIMPLE_VD)
-  targetDir
-    .resolve("style2")
-    .resolve("my_icon_1")
-    .apply { mkdirs() }
-    .resolve("my_icon_1.xml")
-    .writeText(SIMPLE_VD)
+  targetDir.resolve("style1").resolve("my_icon_1").apply { mkdirs() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
+  targetDir.resolve("style2").resolve("my_icon_1").apply { mkdirs() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
 }

@@ -18,23 +18,17 @@ package com.android.tools.idea.layoutlib
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader.LayoutLibraryProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 
-
 /**
- * If the [LayoutLibraryProvider] service is declared in a different plugin, it
- * cannot be found by the [ServiceLoader] because each plugin has its own
- * classloader. To use [LayoutLibraryProvider] services from other plugins in
- * android plugin we set up an extension point so other plugins can subscribe
- * their services to it so that they are accessible in android plugin.
+ * If the [LayoutLibraryProvider] service is declared in a different plugin, it cannot be found by the [ServiceLoader] because each plugin
+ * has its own classloader. To use [LayoutLibraryProvider] services from other plugins in android plugin we set up an extension point so
+ * other plugins can subscribe their services to it so that they are accessible in android plugin.
  */
 class LayoutLibraryProviderBridge : LayoutLibraryProvider {
   private val epName = ExtensionPointName<LayoutLibraryProvider>("com.android.tools.idea.layoutlib.layoutLibraryProvider")
 
-  override fun getLibrary(): LayoutLibrary? =
-    epName.computeSafeIfAny(LayoutLibraryProvider::getLibrary)
+  override fun getLibrary(): LayoutLibrary? = epName.computeSafeIfAny(LayoutLibraryProvider::getLibrary)
 
-  override fun getFrameworkRClass(): Class<*>? =
-    epName.computeSafeIfAny(LayoutLibraryProvider::getFrameworkRClass)
+  override fun getFrameworkRClass(): Class<*>? = epName.computeSafeIfAny(LayoutLibraryProvider::getFrameworkRClass)
 
-  override fun getNativeMemoryUsage(): Long =
-    epName.computeSafeIfAny(LayoutLibraryProvider::getNativeMemoryUsage) ?: 0
+  override fun getNativeMemoryUsage(): Long = epName.computeSafeIfAny(LayoutLibraryProvider::getNativeMemoryUsage) ?: 0
 }

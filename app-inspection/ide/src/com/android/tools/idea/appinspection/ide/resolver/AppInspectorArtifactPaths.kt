@@ -36,26 +36,22 @@ import org.jetbrains.kotlin.utils.ThreadSafe
 const val INSPECTOR_JAR = "inspector.jar"
 
 /**
- * This class supports file system cache functionality so the framework can query for, as well as
- * populate new inspector archives.
+ * This class supports file system cache functionality so the framework can query for, as well as populate new inspector archives.
  *
  * It is an internal class not meant to be exposed to users.
  *
  * Note the inspector jars are keyed by their respective library's [RunningArtifactCoordinate].
  *
- * The directory structure follows the following scheme:
- * $cache_dir/&lt;group_id&gt;/&lt;artifact_id&gt;/&lt;version&gt;/inspector.jar
+ * The directory structure follows the following scheme: $cache_dir/&lt;group_id&gt;/&lt;artifact_id&gt;/&lt;version&gt;/inspector.jar
  */
 @ThreadSafe
 class AppInspectorArtifactPaths(private val fileService: FileService) {
 
   /**
-   * In memory representation of the cached inspector jars that have been accessed or populated
-   * during the life of the application. At the beginning, this is empty. But it's populated over
-   * time as jars are accessed and or stored.
+   * In memory representation of the cached inspector jars that have been accessed or populated during the life of the application. At the
+   * beginning, this is empty. But it's populated over time as jars are accessed and or stored.
    *
-   * Concurrent data structure is used here because it could be accessed by multiple threads at the
-   * same time.
+   * Concurrent data structure is used here because it could be accessed by multiple threads at the same time.
    */
   private val jars = ConcurrentHashMap<RunningArtifactCoordinate, Path>()
 
@@ -64,13 +60,7 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
     if (!jars.containsKey(inspector)) {
       val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
       val jarPath =
-        Paths.get(
-          cachePath.toString(),
-          inspector.groupId,
-          inspector.artifactId,
-          inspector.version,
-          inspector.inspectorJarFileName(),
-        )
+        Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version, inspector.inspectorJarFileName())
       if (jarPath.exists()) {
         jars[inspector] = jarPath
       }
@@ -81,11 +71,9 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
   /**
    * Given an inspector archive, insert it into the cache.
    *
-   * This method has the side effect of copying the inspector archive from wherever it is to this
-   * class's internal cache location.
+   * This method has the side effect of copying the inspector archive from wherever it is to this class's internal cache location.
    *
-   * The directory structure of the cache contains the coordinate information of the artifact in
-   * question:
+   * The directory structure of the cache contains the coordinate information of the artifact in question:
    * $cache_dir/<group_id>/<artifact_id>/<version>/<group_id>-<artifact_id>-<version>-inspector.jar
    */
   @WorkerThread
@@ -106,6 +94,5 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
     }
   }
 
-  private fun RunningArtifactCoordinate.inspectorJarFileName() =
-    "${groupId}-${artifactId}-${version}-inspector.jar"
+  private fun RunningArtifactCoordinate.inspectorJarFileName() = "${groupId}-${artifactId}-${version}-inspector.jar"
 }

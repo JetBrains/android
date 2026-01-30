@@ -38,6 +38,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -55,26 +56,19 @@ import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.atMost
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewElementFinderTest {
   @get:Rule
   val projectRule: AndroidProjectRule =
     AndroidProjectRule.withAndroidModels(
       rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY }),
-      ),
+      AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY })),
       AndroidModuleModelBuilder(
         ":app",
         "debug",
         AndroidProjectBuilder(
           projectType = { PROJECT_TYPE_APP },
-          androidModuleDependencyList = {
-            listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug"))
-          },
+          androidModuleDependencyList = { listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug")) },
         ),
       ),
     )
@@ -93,9 +87,9 @@ class WearTilePreviewElementFinderTest {
       "lib/src/main/java/android/content/Context.kt",
       // language=kotlin
       """
-        package android.content
+      package android.content
 
-        class Context
+      class Context
       """
         .trimIndent(),
     )
@@ -284,7 +278,7 @@ class WearTilePreviewElementFinderTest {
           @Preview(
             device = WearDevices.LARGE_ROUND
           )
-        """
+          """
             .trimIndent()
         )
     }
@@ -308,7 +302,7 @@ class WearTilePreviewElementFinderTest {
           @Preview(
             name = "some name"
           )
-        """
+          """
             .trimIndent()
         )
     }
@@ -334,7 +328,7 @@ class WearTilePreviewElementFinderTest {
             group = "some group",
             device = WearDevices.SQUARE
           )
-        """
+          """
             .trimIndent()
         )
     }
@@ -357,7 +351,7 @@ class WearTilePreviewElementFinderTest {
           @Preview(
             locale = "fr"
           )
-        """
+          """
             .trimIndent()
         )
     }
@@ -380,7 +374,7 @@ class WearTilePreviewElementFinderTest {
           @Preview(
             fontScale = 1.2f
           )
-        """
+          """
             .trimIndent()
         )
     }
@@ -396,8 +390,7 @@ class WearTilePreviewElementFinderTest {
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-      assertThat(it)
-        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithContextParameter"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithContextParameter"))
       assertThat(it).hasAnnotationDefinition("@Preview")
     }
     previewElements.elementAt(7).let {
@@ -412,8 +405,7 @@ class WearTilePreviewElementFinderTest {
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-      assertThat(it)
-        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
       assertThat(it).hasAnnotationDefinition("@Preview")
     }
     previewElements.elementAt(8).let {
@@ -428,8 +420,7 @@ class WearTilePreviewElementFinderTest {
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
-      assertThat(it)
-        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
       assertThat(it).hasAnnotationDefinition("@Preview(device = WearDevices.LARGE_ROUND)")
     }
     previewElements.elementAt(9).let {
@@ -444,8 +435,7 @@ class WearTilePreviewElementFinderTest {
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
-      assertThat(it)
-        .previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
+      assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewWithMultipleAnnotations"))
       assertThat(it).hasAnnotationDefinition("@Preview(name = \"some name\")")
     }
   }
@@ -545,17 +535,17 @@ class WearTilePreviewElementFinderTest {
       "app/src/main/java/com/android/test/AllWearDevices.kt",
       // language=kotlin
       """
-        package com.android.test
+      package com.android.test
 
-        import androidx.wear.tiles.tooling.preview.Preview
-        import androidx.wear.tiles.tooling.preview.WearDevices
+      import androidx.wear.tiles.tooling.preview.Preview
+      import androidx.wear.tiles.tooling.preview.WearDevices
 
-        @Preview(device = WearDevices.LARGE_ROUND)
-        @Preview(device = WearDevices.SMALL_ROUND)
-        @Preview(device = WearDevices.SQUARE)
-        @Preview(device = WearDevices.RECT)
-        annotation class AllWearDevices
-        """
+      @Preview(device = WearDevices.LARGE_ROUND)
+      @Preview(device = WearDevices.SMALL_ROUND)
+      @Preview(device = WearDevices.SQUARE)
+      @Preview(device = WearDevices.RECT)
+      annotation class AllWearDevices
+      """
         .trimIndent(),
     )
 
@@ -608,9 +598,7 @@ class WearTilePreviewElementFinderTest {
       )
 
     assertTrue(elementFinder.hasPreviewElements(project, previewsTest.virtualFile))
-    assertTrue(
-      elementFinder.hasPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile)
-    )
+    assertTrue(elementFinder.hasPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile))
 
     val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
     assertThat(previewElements).hasSize(7)
@@ -721,8 +709,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
     }
 
-    val previewsWithoutDirectUseOfPreview =
-      elementFinder.findPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile)
+    val previewsWithoutDirectUseOfPreview = elementFinder.findPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile)
     assertThat(previewsWithoutDirectUseOfPreview).hasSize(2)
 
     previewsWithoutDirectUseOfPreview.elementAt(0).let {
@@ -733,17 +720,12 @@ class WearTilePreviewElementFinderTest {
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 1",
             organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
-            organizationGroup =
-              "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
+            organizationGroup = "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
       assertThat(it)
-        .previewBodyHasTextRange(
-          previewsWithoutDirectUseOfPreviewTest.textRange(
-            "tileWithMultiPreviewAnnotationFromAnotherFile"
-          )
-        )
+        .previewBodyHasTextRange(previewsWithoutDirectUseOfPreviewTest.textRange("tileWithMultiPreviewAnnotationFromAnotherFile"))
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
     }
     previewsWithoutDirectUseOfPreview.elementAt(1).let {
@@ -754,17 +736,12 @@ class WearTilePreviewElementFinderTest {
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 2",
             organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
-            organizationGroup =
-              "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
+            organizationGroup = "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
       assertThat(it)
-        .previewBodyHasTextRange(
-          previewsWithoutDirectUseOfPreviewTest.textRange(
-            "tileWithMultiPreviewAnnotationFromAnotherFile"
-          )
-        )
+        .previewBodyHasTextRange(previewsWithoutDirectUseOfPreviewTest.textRange("tileWithMultiPreviewAnnotationFromAnotherFile"))
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
     }
   }
@@ -775,14 +752,14 @@ class WearTilePreviewElementFinderTest {
       "lib/src/main/java/com/android/test/AllWearDevices.kt",
       // language=kotlin
       """
-        package com.android.test
+      package com.android.test
 
-        import androidx.wear.tiles.tooling.preview.Preview
-        import androidx.wear.tiles.tooling.preview.WearDevices
+      import androidx.wear.tiles.tooling.preview.Preview
+      import androidx.wear.tiles.tooling.preview.WearDevices
 
-        @Preview
-        annotation class MultiPreview
-        """
+      @Preview
+      annotation class MultiPreview
+      """
         .trimIndent(),
     )
 
@@ -833,16 +810,16 @@ class WearTilePreviewElementFinderTest {
         "app/src/main/java/com/android/test/Test.kt",
         // language=kotlin
         """
-          package com.android.test
+        package com.android.test
 
-          import androidx.wear.tiles.tooling.preview.Preview
-          import androidx.wear.tiles.tooling.preview.TilePreviewData
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
 
-          @Preview
-          private fun tilePreview(): TilePreviewData {
-            return TilePreviewData()
-          }
-          """
+        @Preview
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
           .trimIndent(),
       )
 
@@ -853,8 +830,7 @@ class WearTilePreviewElementFinderTest {
 
     try {
       assertThat(
-          WearTilePreviewElementFinder(findMethods = methodReturningInvalidElements)
-            .hasPreviewElements(project, previewFile.virtualFile)
+          WearTilePreviewElementFinder(findMethods = methodReturningInvalidElements).hasPreviewElements(project, previewFile.virtualFile)
         )
         .isFalse()
     } catch (e: Exception) {
@@ -954,7 +930,7 @@ class WearTilePreviewElementFinderTest {
 
         @Many
         fun f() = TilePreviewData()
-      """
+        """
           .trimIndent(),
       )
 
@@ -1019,29 +995,20 @@ class WearTilePreviewElementFinderTest {
     val thirdCall = elementFinder.findPreviewElements(project, testFile.virtualFile)
 
     assertTrue(firstCall.isNotEmpty())
-    assertTrue(
-      "The same instances of collections should be returned for each call",
-      firstCall === secondCall && firstCall === thirdCall,
-    )
+    assertTrue("The same instances of collections should be returned for each call", firstCall === secondCall && firstCall === thirdCall)
   }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {
-  return ReadAction.compute<TextRange, Throwable> {
-    toUElementOfType<UFile>()?.method(methodName)?.uastBody?.sourcePsi?.textRange!!
-  }
+  return ReadAction.compute<TextRange, Throwable> { toUElementOfType<UFile>()?.method(methodName)?.uastBody?.sourcePsi?.textRange!! }
 }
 
-private fun UFile.declaredMethods(): Sequence<UMethod> =
-  classes.asSequence().flatMap { it.methods.asSequence() }
+private fun UFile.declaredMethods(): Sequence<UMethod> = classes.asSequence().flatMap { it.methods.asSequence() }
 
-private fun UFile.method(name: String): UMethod? =
-  declaredMethods().filter { it.name == name }.singleOrNull()
+private fun UFile.method(name: String): UMethod? = declaredMethods().filter { it.name == name }.singleOrNull()
 
-private class WearTilePreviewElementSubject(
-  metadata: FailureMetadata?,
-  actual: PsiWearTilePreviewElement?,
-) : Subject<WearTilePreviewElementSubject, PsiWearTilePreviewElement?>(metadata, actual) {
+private class WearTilePreviewElementSubject(metadata: FailureMetadata?, actual: PsiWearTilePreviewElement?) :
+  Subject<WearTilePreviewElementSubject, PsiWearTilePreviewElement?>(metadata, actual) {
 
   fun hasDisplaySettings(settings: PreviewDisplaySettings) {
     assertThat(actual()?.displaySettings).isEqualTo(settings)
@@ -1059,9 +1026,7 @@ private class WearTilePreviewElementSubject(
   }
 
   fun hasAnnotationDefinition(definition: String) {
-    ReadAction.run<Throwable> {
-      assertThat(actual()?.previewElementDefinition?.element?.text).isEqualTo(definition)
-    }
+    ReadAction.run<Throwable> { assertThat(actual()?.previewElementDefinition?.element?.text).isEqualTo(definition) }
   }
 
   companion object {
@@ -1091,8 +1056,5 @@ private fun defaultDisplaySettings(
     organizationName = organizationName,
   )
 
-private fun defaultConfiguration(
-  device: String = "id:wearos_small_round",
-  locale: String? = null,
-  fontScale: Float = 1.0f,
-) = PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
+private fun defaultConfiguration(device: String = "id:wearos_small_round", locale: String? = null, fontScale: Float = 1.0f) =
+  PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)

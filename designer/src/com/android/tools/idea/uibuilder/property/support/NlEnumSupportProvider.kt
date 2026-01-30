@@ -58,10 +58,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
           cachedEnumSupport.clear()
         }
 
-        override fun propertyValuesChanged(
-          model: PropertiesModel<NlPropertyItem>,
-          childElementChanges: Boolean,
-        ) {
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
           cachedEnumSupport.clear()
         }
       }
@@ -83,37 +80,16 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
   }
 
   private val textSizeEnumSupport: EnumSupport by lazy {
-    EnumSupport.simple(
-      "8sp",
-      "10sp",
-      "12sp",
-      "14sp",
-      "16sp",
-      "20sp",
-      "24sp",
-      "34sp",
-      "48sp",
-      "60sp",
-      "96sp",
-    )
+    EnumSupport.simple("8sp", "10sp", "12sp", "14sp", "16sp", "20sp", "24sp", "34sp", "48sp", "60sp", "96sp")
   }
 
-  private val typefaceEnumSupport: EnumSupport by lazy {
-    EnumSupport.simple("normal", "sans", "serif", "monospace")
-  }
+  private val typefaceEnumSupport: EnumSupport by lazy { EnumSupport.simple("normal", "sans", "serif", "monospace") }
 
-  private val sizesSupport: EnumSupport by lazy {
-    EnumSupport.simple("match_parent", "wrap_content")
-  }
+  private val sizesSupport: EnumSupport by lazy { EnumSupport.simple("match_parent", "wrap_content") }
 
-  private val actionBarNavModeEnumSupport: EnumSupport by lazy {
-    EnumSupport.simple("standard", "list", "tabs")
-  }
+  private val actionBarNavModeEnumSupport: EnumSupport by lazy { EnumSupport.simple("standard", "list", "tabs") }
 
-  private fun provideEnumSupportFromViewHandler(
-    name: String,
-    components: List<NlComponent>,
-  ): EnumSupport? {
+  private fun provideEnumSupportFromViewHandler(name: String, components: List<NlComponent>): EnumSupport? {
     val isLayoutProperty = name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val attrComponents = if (isLayoutProperty) getParentComponents(components) else components
     if (attrComponents.isEmpty()) {
@@ -122,8 +98,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     var values: Map<String, String>? = null
     for (component in attrComponents) {
       val handler = component.getViewHandler {} ?: return null
-      val overrides =
-        handler.getEnumPropertyValues(component).getOrDefault(name, null) ?: return null
+      val overrides = handler.getEnumPropertyValues(component).getOrDefault(name, null) ?: return null
       if (values == null) {
         values = overrides
       } else if (overrides != values) {
@@ -188,9 +163,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     return FontEnumSupport(facet, resolver)
   }
 
-  private fun provideEnumSupportFromAttributeDefinition(
-    definition: AttributeDefinition
-  ): EnumSupport? {
+  private fun provideEnumSupportFromAttributeDefinition(definition: AttributeDefinition): EnumSupport? {
     if (definition.values.isEmpty()) return null
     val valuesAsList = definition.values.map { EnumValue.item(it) }
     return EnumSupport.simple(valuesAsList)

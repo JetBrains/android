@@ -38,10 +38,7 @@ class CompileErrorsTest {
   @get:Rule
   val projectRule =
     AndroidProjectRule.testProject(
-      testProjectTemplateFromPath(
-        path = TestDataPaths.PROJECT_WITH_COMPILE_ERRORS,
-        testDataPath = TestDataPaths.TEST_DATA_ROOT,
-      )
+      testProjectTemplateFromPath(path = TestDataPaths.PROJECT_WITH_COMPILE_ERRORS, testDataPath = TestDataPaths.TEST_DATA_ROOT)
     )
 
   @Test
@@ -49,24 +46,17 @@ class CompileErrorsTest {
     val assembleDebug = projectRule.project.buildAndWait { it.assemble() }
     val errorMessage =
       with(StringWriter()) {
-        assembleDebug.invocationResult.invocations
-          .first()
-          .buildError!!
-          .printStackTrace(PrintWriter(this))
+        assembleDebug.invocationResult.invocations.first().buildError!!.printStackTrace(PrintWriter(this))
         toString()
       }
 
-    val result =
-      Regex("""\[databinding] (\{.+})""").find(errorMessage)
-        ?: error("Unexpected error message:\n\n$errorMessage")
+    val result = Regex("""\[databinding] (\{.+})""").find(errorMessage) ?: error("Unexpected error message:\n\n$errorMessage")
     val errorJson = with(result.groupValues[1]) { JsonParser().parse(this) as JsonObject }
 
     assertThat(errorJson["msg"].asString).startsWith("Could not find identifier 'usr'")
 
     val file =
-      errorJson["file"].asString.let { path ->
-        if (FileUtil.isAbsolute(path)) File(path) else File(projectRule.project.basePath, path)
-      }
+      errorJson["file"].asString.let { path -> if (FileUtil.isAbsolute(path)) File(path) else File(projectRule.project.basePath, path) }
     assertThat(LocalFileSystem.getInstance().findFileByIoFile(file)).isNotNull()
     assertThat(file.name).isEqualTo("activity_main.xml")
     assertThat(errorJson["pos"].asJsonArray[0].asJsonObject["line0"].asInt).isEqualTo(12)

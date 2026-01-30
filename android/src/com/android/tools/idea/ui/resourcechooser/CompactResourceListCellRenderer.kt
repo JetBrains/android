@@ -39,34 +39,34 @@ import javax.swing.ListCellRenderer
  *
  * @param cellHeight The expected height of each item rendered in the list
  */
-class CompactResourceListCellRenderer(private val assetPreviewManager: AssetPreviewManager,
-                                      cellHeight: Int) : ListCellRenderer<ResourceAssetSet> {
+class CompactResourceListCellRenderer(private val assetPreviewManager: AssetPreviewManager, cellHeight: Int) :
+  ListCellRenderer<ResourceAssetSet> {
   private val widget = AssetSetWidget(cellHeight)
-  override fun getListCellRendererComponent(list: JList<out ResourceAssetSet>,
-                                            value: ResourceAssetSet,
-                                            index: Int,
-                                            isSelected: Boolean,
-                                            cellHasFocus: Boolean): Component {
+
+  override fun getListCellRendererComponent(
+    list: JList<out ResourceAssetSet>,
+    value: ResourceAssetSet,
+    index: Int,
+    isSelected: Boolean,
+    cellHasFocus: Boolean,
+  ): Component {
     val assetToRender = value.getHighestDensityAsset()
     val thumbnailSize = widget.getThumbnailSize()
     val iconProvider = assetPreviewManager.getPreviewProvider(assetToRender.type)
-    val icon = if (iconProvider is DefaultIconProvider) {
-      null
-    }
-    else {
-      iconProvider.getIcon(assetToRender,
-                           thumbnailSize.width,
-                           thumbnailSize.height,
-                           list,
-                           { list.getCellBounds(index, index)?.let(list::repaint) },
-                           { index in list.firstVisibleIndex..list.lastVisibleIndex })
-    }
-    widget.updateWidget(
-      icon,
-      value.name,
-      isSelected,
-      cellHasFocus
-    )
+    val icon =
+      if (iconProvider is DefaultIconProvider) {
+        null
+      } else {
+        iconProvider.getIcon(
+          assetToRender,
+          thumbnailSize.width,
+          thumbnailSize.height,
+          list,
+          { list.getCellBounds(index, index)?.let(list::repaint) },
+          { index in list.firstVisibleIndex..list.lastVisibleIndex },
+        )
+      }
+    widget.updateWidget(icon, value.name, isSelected, cellHasFocus)
     return widget
   }
 }
@@ -82,26 +82,27 @@ class CompactResourceListCellRenderer(private val assetPreviewManager: AssetPrev
  * If no icon is given then it just displays the text aligned to the left.
  */
 private class AssetSetWidget(private val cellHeight: Int) : JPanel(BorderLayout()) {
-  private val mainLabel = JBLabel("").apply {
-    isOpaque = false
-    border = JBEmptyBorder(0, 5, 0, 0)
-  }
-  private val iconLabel = JBLabel().apply {
-    isOpaque = false
-  }
-  private val iconWrapper = ChessBoardPanel(cellHeight.div(6).coerceAtLeast(2)).apply {
-    isOpaque = false
-    add(iconLabel)
-    border = JBUI.Borders.merge(JBUI.Borders.customLine(borderLight), JBUI.Borders.empty(4, 0), true)
-  }
+  private val mainLabel =
+    JBLabel("").apply {
+      isOpaque = false
+      border = JBEmptyBorder(0, 5, 0, 0)
+    }
+  private val iconLabel = JBLabel().apply { isOpaque = false }
+  private val iconWrapper =
+    ChessBoardPanel(cellHeight.div(6).coerceAtLeast(2)).apply {
+      isOpaque = false
+      add(iconLabel)
+      border = JBUI.Borders.merge(JBUI.Borders.customLine(borderLight), JBUI.Borders.empty(4, 0), true)
+    }
 
   init {
-    val mainContentPanel = JPanel(BorderLayout()).apply {
-      isOpaque = false
-      add(iconWrapper, BorderLayout.WEST)
-      add(mainLabel)
-      border = JBEmptyBorder(0, 4, 0, 0)
-    }
+    val mainContentPanel =
+      JPanel(BorderLayout()).apply {
+        isOpaque = false
+        add(iconWrapper, BorderLayout.WEST)
+        add(mainLabel)
+        border = JBEmptyBorder(0, 4, 0, 0)
+      }
     add(mainContentPanel, BorderLayout.WEST)
     iconWrapper.preferredSize = JBDimension(cellHeight - 8, cellHeight - 8)
     background = PICKER_BACKGROUND_COLOR
@@ -115,8 +116,7 @@ private class AssetSetWidget(private val cellHeight: Int) : JPanel(BorderLayout(
     if (icon != null) {
       iconWrapper.isVisible = true
       iconWrapper.preferredSize = JBDimension(cellHeight - 8, cellHeight - 8)
-    }
-    else {
+    } else {
       iconWrapper.isVisible = false
       iconWrapper.preferredSize = JBDimension(0, 0)
     }

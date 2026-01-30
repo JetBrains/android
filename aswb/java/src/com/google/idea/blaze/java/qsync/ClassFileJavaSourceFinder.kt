@@ -32,14 +32,10 @@ class ClassFileJavaSourceFinder : SourceFileInWorkspaceFinderBase {
     querySyncManager: QuerySyncManager,
     workspaceRoot: Path,
     projectPath: Path,
-    clsFile: ClsFileImpl
+    clsFile: ClsFileImpl,
   ) : super(project, querySyncManager, workspaceRoot, projectPath, clsFile)
 
   override fun getSourceFileNamesFromClasses(): Set<String> {
-    return (clsFile as ClsFileImpl).classes
-      .asSequence()
-      .filterIsInstance<ClsClassImpl>()
-      .mapNotNull { it.sourceFileName }
-      .toSet()
+    return (clsFile as ClsFileImpl).classes.asSequence().filterIsInstance<ClsClassImpl>().mapNotNull { it.sourceFileName }.toSet()
   }
 }

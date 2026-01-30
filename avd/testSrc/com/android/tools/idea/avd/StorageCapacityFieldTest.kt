@@ -57,9 +57,7 @@ class StorageCapacityFieldTest {
   @Test
   fun replaceValueWithMaxValuePlus1() {
     // Act
-    rule
-      .onNodeWithTag("StorageCapacityFieldTextField")
-      .performTextReplacement("9223372036854775808")
+    rule.onNodeWithTag("StorageCapacityFieldTextField").performTextReplacement("9223372036854775808")
 
     // Assert
     assertEquals(Overflow, state.result())

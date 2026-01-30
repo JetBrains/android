@@ -33,18 +33,12 @@ class DataBindingKotlinAnnotator : Annotator {
     val facet = AndroidFacet.getInstance(element) ?: return
     if (!DataBindingUtil.isDataBindingEnabled(facet)) return
 
-    if (
-      element is KtAnnotationEntry &&
-        DATA_BINDING_ANNOTATIONS.any { annotation -> element.text.startsWith("@$annotation") }
-    ) {
+    if (element is KtAnnotationEntry && DATA_BINDING_ANNOTATIONS.any { annotation -> element.text.startsWith("@$annotation") }) {
       highlightIfGradleKotlinKaptPluginNotApplied(element, holder)
     }
   }
 
-  private fun highlightIfGradleKotlinKaptPluginNotApplied(
-    element: PsiElement,
-    holder: AnnotationHolder,
-  ) {
+  private fun highlightIfGradleKotlinKaptPluginNotApplied(element: PsiElement, holder: AnnotationHolder) {
     val module = element.module ?: return
 
     if (!module.getModuleSystem().isKaptEnabled) {

@@ -35,8 +35,7 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     if (!isAndroidEnvironment(project)) {
       return
     }
-    val serverStatus =
-      AdbServerStatusRetriever.getInstance(project).serverStatus.filterNotNull().first()
+    val serverStatus = AdbServerStatusRetriever.getInstance(project).serverStatus.filterNotNull().first()
     statusReporter(serverStatus)
   }
 }

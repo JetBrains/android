@@ -18,17 +18,12 @@ package com.android.tools.idea.gradle.dsl.parser.semantics
 import java.lang.IllegalArgumentException
 
 /**
- * A class representing a specific version of the Android Gradle Plugin.  Unlike GradleVersion in
- * android.sdktools.sdk-common, this makes no attempt to represent declarations of "required versions"
- * or "prefix version ranges" of AGP (in the sense of Gradle's "Simple version declaration semantics").
+ * A class representing a specific version of the Android Gradle Plugin. Unlike GradleVersion in android.sdktools.sdk-common, this makes no
+ * attempt to represent declarations of "required versions" or "prefix version ranges" of AGP (in the sense of Gradle's "Simple version
+ * declaration semantics").
  */
-data class AndroidGradlePluginVersion(
-  val major: Int,
-  val minor: Int,
-  val micro: Int,
-  val previewKind: PreviewKind,
-  val preview: Int?
-): Comparable<AndroidGradlePluginVersion> {
+data class AndroidGradlePluginVersion(val major: Int, val minor: Int, val micro: Int, val previewKind: PreviewKind, val preview: Int?) :
+  Comparable<AndroidGradlePluginVersion> {
   override fun compareTo(other: AndroidGradlePluginVersion): Int =
     compareValuesBy(this, other, { it.major }, { it.minor }, { it.micro }, { it.previewKind }, { it.preview })
 
@@ -65,17 +60,21 @@ data class AndroidGradlePluginVersion(
       val major = matchList[0].toIntOrNull() ?: return null
       val minor = matchList[1].toIntOrNull() ?: return null
       val micro = matchList[2].toIntOrNull() ?: return null
-      val previewKind = when {
-        matchList[3] == "-alpha" -> PreviewKind.ALPHA
-        matchList[3] == "-beta" -> PreviewKind.BETA
-        matchList[3] == "-rc" -> PreviewKind.RC
-        matchList[5] == "-dev" -> PreviewKind.DEV
-        else -> PreviewKind.NONE
-      }
-      val preview = when(previewKind) {
-        PreviewKind.ALPHA, PreviewKind.BETA, PreviewKind.RC -> matchList[4].toIntOrNull() ?: return null
-        else -> null
-      }
+      val previewKind =
+        when {
+          matchList[3] == "-alpha" -> PreviewKind.ALPHA
+          matchList[3] == "-beta" -> PreviewKind.BETA
+          matchList[3] == "-rc" -> PreviewKind.RC
+          matchList[5] == "-dev" -> PreviewKind.DEV
+          else -> PreviewKind.NONE
+        }
+      val preview =
+        when (previewKind) {
+          PreviewKind.ALPHA,
+          PreviewKind.BETA,
+          PreviewKind.RC -> matchList[4].toIntOrNull() ?: return null
+          else -> null
+        }
       return AndroidGradlePluginVersion(major, minor, micro, previewKind, preview)
     }
 

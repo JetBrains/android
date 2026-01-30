@@ -25,14 +25,12 @@ import com.intellij.build.events.DuplicateMessageAware
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
 
-class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() {
+class JavaCompilationInBuildSrcBrokenTest : AbstractSyncFailureIntegrationTest() {
 
   @Test
   fun testBrokenCompilation() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.APP_WITH_BUILDSRC)
-    preparedProject.root.resolve("buildSrc/src/main/java/org/example/buildsrc/BuildScriptClass.java").let {
-      it.appendText("{}{")
-    }
+    preparedProject.root.resolve("buildSrc/src/main/java/org/example/buildsrc/BuildScriptClass.java").let { it.appendText("{}{") }
 
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
@@ -42,10 +40,11 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
           // One message is generated from the task and another from failure.
           // We make second one duplication aware so it will not be shown on UI.
           // Unfortunately it will be reported to analytics twice, but this is minor issue.
-          expect.that(events.map { "message='${it.message}':group='${it.group}':duplicateMessageAware=${it is DuplicateMessageAware}" })
+          expect
+            .that(events.map { "message='${it.message}':group='${it.group}':duplicateMessageAware=${it is DuplicateMessageAware}" })
             .containsExactly(
               "message='class, interface, enum, or record expected':group='Compiler':duplicateMessageAware=false",
-              "message='class, interface, enum, or record expected':group='Compiler':duplicateMessageAware=true"
+              "message='class, interface, enum, or record expected':group='Compiler':duplicateMessageAware=true",
             )
         }
         // Make sure no additional error build issue events are generated
@@ -54,29 +53,39 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
       },
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.JAVA_COMPILATION_ERROR)
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.ErrorType.JAVA_COMPILER)
 
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: org.gradle.tooling.BuildActionFailureException
-                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-              exception: org.gradle.internal.exceptions.LocationAwareException
-                at: [0]org.gradle.initialization.exception.DefaultExceptionAnalyser#transform
-              exception: org.gradle.api.tasks.TaskExecutionException
-                at: [0]org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter#lambda${'$'}executeIfValid${'$'}1
-              exception: org.gradle.api.internal.tasks.compile.CompilationFailedException
-                at: [0]org.gradle.api.internal.tasks.compile.JdkJavaCompiler#execute
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.internal.exceptions.LocationAwareException
+                  at: [0]org.gradle.initialization.exception.DefaultExceptionAnalyser#transform
+                exception: org.gradle.api.tasks.TaskExecutionException
+                  at: [0]org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter#lambda${'$'}executeIfValid${'$'}1
+                exception: org.gradle.api.internal.tasks.compile.CompilationFailedException
+                  at: [0]org.gradle.api.internal.tasks.compile.JdkJavaCompiler#execute
+              }
             }
-          }
-        """.trimIndent())
+            """
+              .trimIndent()
+          )
       },
     )
   }

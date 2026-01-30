@@ -27,10 +27,10 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBCheckBox
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JCheckBox
 import javax.swing.JPanel
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.kotlin.mock
 
 class LayoutInspectorConfigurableProviderTest {
@@ -57,27 +57,22 @@ class LayoutInspectorConfigurableProviderTest {
   fun testConfigurableControls() {
     val ideName = ApplicationNamesInfo.getInstance().fullProductName
 
-    val configurable1 =
-      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val configurable1 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component1 = configurable1.createComponent()!!
 
     assertThat(component1.components).hasLength(2)
-    assertThat((component1.components[0] as JCheckBox).text)
-      .isEqualTo("Enable auto connect (requires a restart of $ideName)")
+    assertThat((component1.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of $ideName)")
 
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
-    val configurable2 =
-      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val configurable2 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component2 = configurable2.createComponent()!!
     val enableEmbeddedLiPanel = component2.components[1] as JPanel
 
     assertThat(component2.components).hasLength(2)
-    assertThat((component2.components[0] as JCheckBox).text)
-      .isEqualTo("Enable auto connect (requires a restart of $ideName)")
-    assertThat((enableEmbeddedLiPanel.components[0] as JCheckBox).text)
-      .isEqualTo("Enable embedded Layout Inspector")
+    assertThat((component2.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of $ideName)")
+    assertThat((enableEmbeddedLiPanel.components[0] as JCheckBox).text).isEqualTo("Enable embedded Layout Inspector")
 
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
   }
@@ -146,11 +141,7 @@ class LayoutInspectorConfigurableProviderTest {
   @Test
   fun testConfigurableSettingEmbeddedLayoutInspectorInteraction() = withEmbeddedLayoutInspector {
     val projectManager = mock<ProjectManager>()
-    projectRule.project.replaceService(
-      ProjectManager::class.java,
-      projectManager,
-      projectRule.disposable,
-    )
+    projectRule.project.replaceService(ProjectManager::class.java, projectManager, projectRule.disposable)
 
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
@@ -167,9 +158,7 @@ class LayoutInspectorConfigurableProviderTest {
           restartStudio
         },
         doRegisterLayoutInspectorToolWindow = { registerLayoutInspectorToolWindowInvokeCount += 1 },
-        doUnRegisterLayoutInspectorToolWindow = {
-          unregisterLayoutInspectorToolWindowInvokeCount += 1
-        },
+        doUnRegisterLayoutInspectorToolWindow = { unregisterLayoutInspectorToolWindowInvokeCount += 1 },
       )
     val configurable = provider.createConfigurable()
     val enableEmbeddedLiPanel = configurable.createComponent()!!.getComponent(1) as JPanel

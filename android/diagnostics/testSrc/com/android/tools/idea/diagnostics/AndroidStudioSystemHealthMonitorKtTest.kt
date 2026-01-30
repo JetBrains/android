@@ -20,30 +20,38 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.LightPlatformTestCase
 
-/**
- * Kotlin tests for [SystemHealthMonitor].
- */
+/** Kotlin tests for [SystemHealthMonitor]. */
 class AndroidStudioSystemHealthMonitorKtTest : LightPlatformTestCase() {
   fun testGetActionName() {
     val isJava8 = System.getProperty("java.specification.version") == "1.8"
-    val expected1 = if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$1" else
-      "AnAction@AndroidStudioSystemHealthMonitorKtTest"
-    val expected2 = if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$2\$1" else
-      "AnAction@AndroidStudioSystemHealthMonitorKtTest"
+    val expected1 =
+      if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$1" else "AnAction@AndroidStudioSystemHealthMonitorKtTest"
+    val expected2 =
+      if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$2\$1" else "AnAction@AndroidStudioSystemHealthMonitorKtTest"
     // Anonymous class - in Java8, Kotlin classes are not recognized as anonymous classes by the JVM.
     //   Action is formatted as an inner class
     assertEquals(
       expected1,
-      AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
-        override fun actionPerformed(e: AnActionEvent) {}
-      }.javaClass, Presentation("foo")))
+      AndroidStudioSystemHealthMonitor.getActionName(
+        object : AnAction() {
+            override fun actionPerformed(e: AnActionEvent) {}
+          }
+          .javaClass,
+        Presentation("foo"),
+      ),
+    )
     // Double-nested anonymous class - same as above - not seen as an anonymous class.
     Any().apply {
       assertEquals(
         expected2,
-        AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
-          override fun actionPerformed(e: AnActionEvent) {}
-        }.javaClass, Presentation("foo")))
+        AndroidStudioSystemHealthMonitor.getActionName(
+          object : AnAction() {
+              override fun actionPerformed(e: AnActionEvent) {}
+            }
+            .javaClass,
+          Presentation("foo"),
+        ),
+      )
     }
   }
 }

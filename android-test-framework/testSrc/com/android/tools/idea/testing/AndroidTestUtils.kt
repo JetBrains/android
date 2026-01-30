@@ -68,12 +68,10 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.runner.Description
 
 /** Finds an [IntentionAction] with given name, if present. */
-fun CodeInsightTestFixture.getIntentionAction(message: String) =
-  availableIntentions.firstOrNull { it.text == message }
+fun CodeInsightTestFixture.getIntentionAction(message: String) = availableIntentions.firstOrNull { it.text == message }
 
 /** Finds an intention action with given name and class, if present. */
-fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: String): T? where
-T : IntentionAction {
+fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: String): T? where T : IntentionAction {
   return availableIntentions
     .asSequence()
     .filter { it.text == message }
@@ -85,9 +83,8 @@ T : IntentionAction {
 /**
  * Moves caret in the currently open editor to position indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
- * found in the file. The file is searched for the concatenation of prefix and suffix strings and
- * the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
   val offset = offsetForWindow(window)
@@ -97,12 +94,10 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
 }
 
 /**
- * Returns the parent [PsiElement] in the currently open editor of the given type as indicated by
- * the [window] string.
+ * Returns the parent [PsiElement] in the currently open editor of the given type as indicated by the [window] string.
  *
- * [com.intellij.psi.util.parentOfType] is used to find the parent. This is useful since
- * [PsiElement.findElementAt] returns a leaf node, but quite often we are looking for an element
- * that is a bit higher up the PSI tree.
+ * [com.intellij.psi.util.parentOfType] is used to find the parent. This is useful since [PsiElement.findElementAt] returns a leaf node, but
+ * quite often we are looking for an element that is a bit higher up the PSI tree.
  *
  * See [getEnclosing] for information no how to form the [window] parameter.
  *
@@ -110,39 +105,31 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
  */
 @Deprecated(
   message = "Use getEnclosing instead, which has clearer semantics.",
-  replaceWith =
-    ReplaceWith(
-      expression = "this.getEnclosing<T>(window)",
-      imports = ["com.android.tools.idea.testing.getEnclosing"],
-    ),
+  replaceWith = ReplaceWith(expression = "this.getEnclosing<T>(window)", imports = ["com.android.tools.idea.testing.getEnclosing"]),
 )
-inline fun <reified T : PsiElement> CodeInsightTestFixture.findParentElement(window: String): T =
-  getEnclosing(window)
+inline fun <reified T : PsiElement> CodeInsightTestFixture.findParentElement(window: String): T = getEnclosing(window)
 
 /**
- * Returns the smallest [T] in the currently open editor that completely contains the range defined
- * by [window], which is expanded according to [splitWindows].
+ * Returns the smallest [T] in the currently open editor that completely contains the range defined by [window], which is expanded according
+ * to [splitWindows].
  */
-inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(window: String): T =
-  file.getEnclosing(window)
+inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(window: String): T = file.getEnclosing(window)
 
 /**
- * Returns the smallest [T] in the currently open editor that completely contains the range defined
- * by [windows]. See [splitWindows] for more on how this works.
+ * Returns the smallest [T] in the currently open editor that completely contains the range defined by [windows]. See [splitWindows] for
+ * more on how this works.
  */
-inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(
-  windows: Pair<String, String>
-): T = file.getEnclosing(windows)
+inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(windows: Pair<String, String>): T = file.getEnclosing(windows)
 
 /**
- * Returns the smallest [T] in this [PsiFile] that completely contains the range defined by
- * [window]. See [splitWindows] for more on how this works.
+ * Returns the smallest [T] in this [PsiFile] that completely contains the range defined by [window]. See [splitWindows] for more on how
+ * this works.
  */
 inline fun <reified T> PsiFile.getEnclosing(window: String): T = getEnclosing(splitWindows(window))
 
 /**
- * Returns the smallest [T] in this [PsiFile] that completely contains the range specified by
- * [windows]. See [splitWindows] for more on how this works.
+ * Returns the smallest [T] in this [PsiFile] that completely contains the range specified by [windows]. See [splitWindows] for more on how
+ * this works.
  */
 inline fun <reified T> PsiFile.getEnclosing(windows: Pair<String, String>): T {
   val fixedFirst = windows.first.takeIf { it.countChar('|') > 0 } ?: "|${windows.first}"
@@ -151,10 +138,7 @@ inline fun <reified T> PsiFile.getEnclosing(windows: Pair<String, String>): T {
   val endOffset = offsetForWindow(fixedSecond, startOffset)
   var candidate = findElementAt(startOffset)
   // Climb up until we find something
-  while (
-    candidate != null &&
-      (candidate !is T || candidate.startOffset > startOffset || candidate.endOffset < endOffset)
-  ) {
+  while (candidate != null && (candidate !is T || candidate.startOffset > startOffset || candidate.endOffset < endOffset)) {
     candidate = candidate.parent
   }
   val foundText = text.substring(startOffset until endOffset).ellipsize(20)
@@ -169,9 +153,8 @@ fun String.countChar(c: Char): Int = count { it == c }
 /**
  * Returns the offset of the caret in the currently open editor as indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
- * found in the file. The file is searched for the concatenation of prefix and suffix strings and
- * the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.offsetForWindow(window: String, startIndex: Int = 0): Int =
   editor.document.text.offsetForWindow(window, startIndex)
@@ -179,43 +162,32 @@ fun CodeInsightTestFixture.offsetForWindow(window: String, startIndex: Int = 0):
 /**
  * Returns the offset of the caret in this [PsiFile] as indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
- * found in the file. The file is searched for the concatenation of prefix and suffix strings and
- * the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
-fun PsiFile.offsetForWindow(window: String, startIndex: Int = 0): Int =
-  text.offsetForWindow(window, startIndex)
+fun PsiFile.offsetForWindow(window: String, startIndex: Int = 0): Int = text.offsetForWindow(window, startIndex)
 
 /**
  * Returns the offset of the caret in this [Document] as indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
- * found in the file. The file is searched for the concatenation of prefix and suffix strings and
- * the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
-@JvmOverloads
-fun Document.getOffsetForWindow(window: String, startIndex: Int = 0): Int =
-  text.offsetForWindow(window, startIndex)
+@JvmOverloads fun Document.getOffsetForWindow(window: String, startIndex: Int = 0): Int = text.offsetForWindow(window, startIndex)
 
 private fun String.offsetForWindow(window: String, startIndex: Int = 0): Int {
-  require(window.count { it == '|' } == 1) {
-    "Must provide exactly one '|' character in window. Got \"$window\""
-  }
+  require(window.count { it == '|' } == 1) { "Must provide exactly one '|' character in window. Got \"$window\"" }
   val delta = window.indexOf("|")
   val target = window.substring(0, delta) + window.substring(delta + 1)
   val start = indexOf(target, startIndex - delta)
-  assertWithMessage("Didn't find the string $target in the source of $this")
-    .that(start)
-    .isAtLeast(0)
+  assertWithMessage("Didn't find the string $target in the source of $this").that(start).isAtLeast(0)
   return start + delta
 }
 
 /** Sets the selection to the range defined by [window]. See [splitWindows] for more information. */
 fun CodeInsightTestFixture.setSelection(window: String) = setSelection(splitWindows(window))
 
-/**
- * Sets the selection to the range defined by [windows]. See [splitWindows] for more information.
- */
+/** Sets the selection to the range defined by [windows]. See [splitWindows] for more information. */
 fun CodeInsightTestFixture.setSelection(windows: Pair<String, String>) {
   val fixedFirst = windows.first.takeIf { it.countChar('|') > 0 } ?: "|${windows.first}"
   val fixedSecond = windows.second.takeIf { it.countChar('|') > 0 } ?: "${windows.second}|"
@@ -225,20 +197,16 @@ fun CodeInsightTestFixture.setSelection(windows: Pair<String, String>) {
 }
 
 /**
- * Renames element at caret using injected [RenameHandler]s only when Android handler is available.
- * Returns true if Android handler is available.
+ * Renames element at caret using injected [RenameHandler]s only when Android handler is available. Returns true if Android handler is
+ * available.
  *
- * We can either invoke the processor directly or go through the handler layer. Unfortunately
- * [MemberInplaceRenameHandler] won't work in unit test mode, the default handler fails for light
- * elements and some tests depend on the logic from ResourceRenameHandler. To handle that mess,
- * rename the element only when Android handler is available.
+ * We can either invoke the processor directly or go through the handler layer. Unfortunately [MemberInplaceRenameHandler] won't work in
+ * unit test mode, the default handler fails for light elements and some tests depend on the logic from ResourceRenameHandler. To handle
+ * that mess, rename the element only when Android handler is available.
  */
 fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: String): Boolean {
   val context = (editor as EditorEx).dataContext
-  if (
-    ResourceRenameHandler().isAvailableOnDataContext(context) ||
-      KotlinResourceRenameHandler().isAvailableOnDataContext(context)
-  ) {
+  if (ResourceRenameHandler().isAvailableOnDataContext(context) || KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
     renameElementAtCaretUsingHandler(newName)
     return true
   }
@@ -246,8 +214,8 @@ fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: Stri
 }
 
 /**
- * Creates a new file with the given contents under the given path, treated as relative to the
- * project root. Opens the file in the in-memory editor and returns the corresponding [PsiFile].
+ * Creates a new file with the given contents under the given path, treated as relative to the project root. Opens the file in the in-memory
+ * editor and returns the corresponding [PsiFile].
  */
 fun CodeInsightTestFixture.loadNewFile(path: String, contents: String): PsiFile {
   val virtualFile = VfsTestUtil.createFile(project.guessProjectDir()!!, path, contents)
@@ -256,15 +224,13 @@ fun CodeInsightTestFixture.loadNewFile(path: String, contents: String): PsiFile 
 }
 
 /**
- * Marker used for caret position by
- * [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value
- * is meant to be used in a Kotlin string template to stand out from the surrounding XML.
+ * Marker used for caret position by [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value is
+ * meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
 const val caret = EditorTestUtil.CARET_TAG
 
 /**
- * Helper function for constructing strings understood by
- * [com.intellij.testFramework.ExpectedHighlightingData].
+ * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
  *
  * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
@@ -278,13 +244,11 @@ fun String.highlightedAs(level: HighlightSeverity, message: String?): String {
       else -> error("Don't know how to handle $level.")
     }
 
-  return if (message != null) "<$marker descr=\"$message\">$this</$marker>"
-  else "<$marker>$this</$marker>"
+  return if (message != null) "<$marker descr=\"$message\">$this</$marker>" else "<$marker>$this</$marker>"
 }
 
 /**
- * Helper function for constructing strings understood by
- * [com.intellij.testFramework.ExpectedHighlightingData].
+ * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
  *
  * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
@@ -297,8 +261,8 @@ fun CodeInsightTestFixture.goToElementAtCaret() {
 /**
  * Finds class with the given name in the [PsiElement.getResolveScope] of the context element.
  *
- * This means using the same scope as the real code editor will use and also makes this method work
- * with light classes, since [PsiElement.getResolveScope] is subject to [ResolveScopeEnlarger]s.
+ * This means using the same scope as the real code editor will use and also makes this method work with light classes, since
+ * [PsiElement.getResolveScope] is subject to [ResolveScopeEnlarger]s.
  *
  * @see JavaCodeInsightTestFixture.findClass
  * @see PsiElement.getResolveScope
@@ -308,19 +272,13 @@ fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): Psi
 }
 
 /**
- * Schedules the suspending [block] to run on the UI thread and "busy waits" for it to finish by
- * draining the event queue.
+ * Schedules the suspending [block] to run on the UI thread and "busy waits" for it to finish by draining the event queue.
  *
- * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI
- * thread and the suspending [block] needs to schedule work on the UI thread.
+ * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI thread and the suspending [block] needs to
+ * schedule work on the UI thread.
  */
-fun <T> runDispatching(
-  context: CoroutineContext = EmptyCoroutineContext,
-  block: suspend CoroutineScope.() -> T,
-): T {
-  require(
-    SwingUtilities.isEventDispatchThread()
-  ) // That's the thread dispatchAllEventsInIdeEventQueue requires.
+fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T {
+  require(SwingUtilities.isEventDispatchThread()) // That's the thread dispatchAllEventsInIdeEventQueue requires.
 
   val result = CoroutineScope(context).async(block = block)
   while (!result.isCompleted) {
@@ -335,37 +293,21 @@ fun <T> runDispatching(
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForResourceRepositoryUpdates(
-  facet: AndroidFacet,
-  timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS,
-) {
+fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForResourceRepositoryUpdates(
-  module: Module,
-  timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS,
-) {
-  waitForUpdates(
-    StudioResourceRepositoryManager.getInstance(module)!!.projectResources,
-    timeout,
-    unit,
-  )
+fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
+  waitForUpdates(StudioResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForUpdates(
-  repository: LocalResourceRepository<*>,
-  timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS,
-) {
+fun waitForUpdates(repository: LocalResourceRepository<*>, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
   if (EDT.isCurrentThreadEdt()) {
     EDT.dispatchAllInvocationEvents()
   }
@@ -375,32 +317,24 @@ fun waitForUpdates(
 }
 
 /**
- * Invalidates the file document to ensure it is reloaded from scratch. This will ensure that we run
- * the code path that requires the read lock and we ensure that the handling of files is correctly
- * done in the right thread.
+ * Invalidates the file document to ensure it is reloaded from scratch. This will ensure that we run the code path that requires the read
+ * lock and we ensure that the handling of files is correctly done in the right thread.
  */
 private fun PsiFile.invalidateDocumentCache() =
   ApplicationManager.getApplication().invokeAndWait {
-    val cachedDocument =
-      PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
+    val cachedDocument = PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
     // Make sure it is invalidated
     cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
-    ApplicationManager.getApplication().runWriteAction {
-      FileDocumentManager.getInstance().reloadFiles(virtualFile)
-    }
+    ApplicationManager.getApplication().runWriteAction { FileDocumentManager.getInstance().reloadFiles(virtualFile) }
   }
 
 /**
- * Same as [CodeInsightTestFixture.addFileToProject] but invalidates immediately the cached
- * document. This ensures that the code immediately after this does not work with a cached version
- * and reloads it from disk. This ensures that the loading from disk is executed and the code path
- * that needs the read lock will be executed. The idea is to help detecting code paths that require
- * the [ReadAction] during testing.
+ * Same as [CodeInsightTestFixture.addFileToProject] but invalidates immediately the cached document. This ensures that the code immediately
+ * after this does not work with a cached version and reloads it from disk. This ensures that the loading from disk is executed and the code
+ * path that needs the read lock will be executed. The idea is to help detecting code paths that require the [ReadAction] during testing.
  */
-fun CodeInsightTestFixture.addFileToProjectAndInvalidate(
-  relativePath: String,
-  fileText: String,
-): PsiFile = addFileToProject(relativePath, fileText).also { it.invalidateDocumentCache() }
+fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, fileText: String): PsiFile =
+  addFileToProject(relativePath, fileText).also { it.invalidateDocumentCache() }
 
 @Suppress("UnstableApiUsage")
 val ProjectRule.disposable: Disposable
@@ -419,22 +353,19 @@ object AndroidTestUtilsHelpers {
   /**
    * Turns [window] and into a [Pair] of window [String]s.
    *
-   * If [window] contains zero or one '|' character, the returned value is simply a [Pair] where
-   * both elements are equal to [window]. If there are 2 '|' characters, the [Pair]'s first element
-   * has the second '|' character removed, while the second element has the first '|' character
-   * removed.
+   * If [window] contains zero or one '|' character, the returned value is simply a [Pair] where both elements are equal to [window]. If
+   * there are 2 '|' characters, the [Pair]'s first element has the second '|' character removed, while the second element has the first '|'
+   * character removed.
    *
-   * The [Pair] of windows represents the range between the first and last '|' characters in the two
-   * [windows], respectively. The second element of [windows] is always assumed to start at or after
-   * the first element. If no '|' character is present in the first (or second) window, it is
-   * assumed to be at the start (or end, respectively).
+   * The [Pair] of windows represents the range between the first and last '|' characters in the two [windows], respectively. The second
+   * element of [windows] is always assumed to start at or after the first element. If no '|' character is present in the first (or second)
+   * window, it is assumed to be at the start (or end, respectively).
    *
    * I.e.,
    * * `"foo" to "foo"` => `"|foo" to "foo|"`: matches from beginning of "foo" to end of "foo"
-   * * `"f|oo" to "foo"` => `"f|oo" to "foo|"`: matches from before the first 'o' to the end of
-   *   "foo"
-   * * `"foo" to "bar"` => `"|foo" to "bar|"`: matches from the start of the first time "foo" is
-   *   seen to the end of the next time (after the first "foo") that "bar" is seen.
+   * * `"f|oo" to "foo"` => `"f|oo" to "foo|"`: matches from before the first 'o' to the end of "foo"
+   * * `"foo" to "bar"` => `"|foo" to "bar|"`: matches from the start of the first time "foo" is seen to the end of the next time (after the
+   *   first "foo") that "bar" is seen.
    */
   fun splitWindows(window: String) =
     when (window.countChar('|')) {
@@ -445,7 +376,6 @@ object AndroidTestUtilsHelpers {
         val windowEnd = window.replaceFirst("|", "")
         windowStart to windowEnd
       }
-      else ->
-        throw IllegalArgumentException("Must include 0, 1, or 2 '|' characters in the window!")
+      else -> throw IllegalArgumentException("Must include 0, 1, or 2 '|' characters in the window!")
     }
 }

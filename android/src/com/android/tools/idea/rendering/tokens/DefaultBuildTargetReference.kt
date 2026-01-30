@@ -35,46 +35,49 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.application
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
 import org.jetbrains.kotlin.cli.create
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * An implementation of [BuildSystemFilePreviewServices] for the [DefaultProjectSystem].
  *
  * It supports basic features only. Builds are not available in the default project system.
  */
-class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<DefaultProjectSystem, DefaultBuildTargetReference>, DefaultToken {
+class DefaultBuildSystemFilePreviewServices :
+  BuildSystemFilePreviewServices<DefaultProjectSystem, DefaultBuildTargetReference>, DefaultToken {
   override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean = buildTargetReference is DefaultBuildTargetReference
 
-  override val buildTargets: BuildTargets = object : BuildTargets {
-    override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      return DefaultBuildTargetReference(module)
+  override val buildTargets: BuildTargets =
+    object : BuildTargets {
+      override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
+        return DefaultBuildTargetReference(module)
+      }
     }
-  }
 
   /**
    * An implementation of [BuildSystemFilePreviewServices.BuildServices] for a [DefaultBuildTargetReference].
    *
    * Builds are not supported in the [DefaultProjectSystem].
    */
-  override val buildServices = object : BuildServices<DefaultBuildTargetReference> {
-    override fun getLastCompileStatus(buildTarget: DefaultBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
-      return ProjectSystemBuildManager.BuildStatus.UNKNOWN
-    }
+  override val buildServices =
+    object : BuildServices<DefaultBuildTargetReference> {
+      override fun getLastCompileStatus(buildTarget: DefaultBuildTargetReference): ProjectSystemBuildManager.BuildStatus {
+        return ProjectSystemBuildManager.BuildStatus.UNKNOWN
+      }
 
-    override fun buildArtifacts(buildTargets: Collection<DefaultBuildTargetReference>) {
-      error("Building artifacts for rendering is not supported in this project")
+      override fun buildArtifacts(buildTargets: Collection<DefaultBuildTargetReference>) {
+        error("Building artifacts for rendering is not supported in this project")
+      }
     }
-  }
 
   override fun getRenderingServices(buildTargetReference: DefaultBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
-    return object: BuildSystemFilePreviewServices.RenderingServices {
+    return object : BuildSystemFilePreviewServices.RenderingServices {
       override val classFileFinder: ClassFileFinder?
         get() {
           val module = buildTargetReference.moduleIfNotDisposed ?: return null
@@ -84,21 +87,21 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
 
       override val externalLibraries: Iterable<Path>
         get() {
-          return AndroidRootUtil.getExternalLibraries(buildTargetReference.moduleIfNotDisposed ?: return emptyList())
-            .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+          return AndroidRootUtil.getExternalLibraries(buildTargetReference.moduleIfNotDisposed ?: return emptyList()).map {
+            VfsUtilCore.virtualToIoFile(it).toPath()
+          }
         }
     }
   }
 
   override fun getApplicationLiveEditServices(buildTargetReference: DefaultBuildTargetReference): ApplicationLiveEditServices {
     if (application.isUnitTestMode) {
-      return ApplicationLiveEditServices.LegacyForTests(buildTargetReference.project);
+      return ApplicationLiveEditServices.LegacyForTests(buildTargetReference.project)
     }
 
-    data class CompilationDependenciesImpl(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
+    data class CompilationDependenciesImpl(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
       override fun getExternalLibraries(): List<Path> {
-        return AndroidRootUtil.getExternalLibraries(module)
-          .map { VfsUtilCore.virtualToIoFile(it).toPath() }
+        return AndroidRootUtil.getExternalLibraries(module).map { VfsUtilCore.virtualToIoFile(it).toPath() }
       }
 
       override fun getBootClasspath(): List<Path> {
@@ -106,22 +109,19 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
       }
     }
 
-    return object: ApplicationLiveEditServices {
-      override fun getClassContent(
-        file: VirtualFile,
-        className: String,
-      ): ClassContent? = null
+    return object : ApplicationLiveEditServices {
+      override fun getClassContent(file: VirtualFile, className: String): ClassContent? = null
 
       override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
-        return file.module?.let { CompilationDependenciesImpl(it)}
+        return file.module?.let { CompilationDependenciesImpl(it) }
       }
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.create()
 
-      @KaExperimentalApi
-      override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {}
+      @KaExperimentalApi override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {}
 
       override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
+
       override fun getRuntimeVersionString(): String = DEFAULT_RUNTIME_VERSION
     }
   }
@@ -129,7 +129,7 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
   override fun subscribeBuildListener(
     project: Project,
     parentDisposable: Disposable,
-    listener: BuildSystemFilePreviewServices.BuildListener
+    listener: BuildSystemFilePreviewServices.BuildListener,
   ) {
     // Do nothing. There are no builds in the DefaultProjectSystem.
   }
@@ -139,6 +139,7 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
 data class DefaultBuildTargetReference internal constructor(private val moduleRef: Module) : BuildTargetReference {
   override val moduleIfNotDisposed: Module?
     get() = moduleRef.takeUnless { it.isDisposed }
+
   override val module: Module
     get() = moduleIfNotDisposed ?: throw AlreadyDisposedException("Already disposed: $moduleRef")
 }

@@ -23,11 +23,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.util.function.Consumer
 
 class InternetConnectionIssueChecker : GradleIssueChecker {
   private val COULD_NOT_GET = "Could not GET "
@@ -40,20 +40,24 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.INTERNET_CONNECTION_ERROR)
-    return BuildIssueComposer(message).apply {
-      val project = fetchIdeaProjectForGradleProject(issueData.projectPath) ?: return@apply
-      if (GradleSettings.getInstance(project).isOfflineWork) {
-        addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
+    return BuildIssueComposer(message)
+      .apply {
+        val project = fetchIdeaProjectForGradleProject(issueData.projectPath) ?: return@apply
+        if (GradleSettings.getInstance(project).isOfflineWork) {
+          addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
+        }
       }
-    }.composeBuildIssue()
+      .composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return failureCause.startsWith(COULD_NOT_GET) || failureCause.startsWith(COULD_NOT_HEAD) || failureCause.startsWith(NETWORK_UNREACHABLE)
   }
 }

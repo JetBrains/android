@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.lang.proguardR8.KeepRulesR8FileType
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
@@ -27,6 +26,5 @@ class KeepRulesR8FileTypeTest : BasePlatformTestCase() {
 
     file = myFixture.configureByText("keep.txt", "")
     assertThat(file.fileType).isNotEqualTo(KeepRulesR8FileType.INSTANCE)
-
   }
 }

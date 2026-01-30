@@ -33,16 +33,16 @@ import org.junit.rules.TestName
 
 @RunsInEdt
 class GradleProjectImporterTest : SnapshotComparisonTest {
-  @get:Rule
-  val nameRule = TestName()
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val nameRule = TestName()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
-  val integrationTestEnvironment = object : IntegrationTestEnvironment {
-    override fun getBaseTestPath(): @SystemDependent String = FileUtils.toSystemIndependentPath(projectRule.fixture.tempDirPath)
-  }
+  val integrationTestEnvironment =
+    object : IntegrationTestEnvironment {
+      override fun getBaseTestPath(): @SystemDependent String = FileUtils.toSystemIndependentPath(projectRule.fixture.tempDirPath)
+    }
 
   override fun getName(): String = nameRule.methodName
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
 
   @Test

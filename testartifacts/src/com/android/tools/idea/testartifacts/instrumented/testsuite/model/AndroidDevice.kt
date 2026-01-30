@@ -17,24 +17,24 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
 import com.android.sdklib.AndroidVersion
 
-
 /**
  * Encapsulates an Android device metadata to be displayed in Android test suite view.
  *
  * @param id a device identifier. This can be arbitrary string as long as it is unique to other devices.
  * @param deviceName a name of this device
- * @param avdName the name of the avd for this device. If this Device represents a physical device,
- *   this field should be an empty string.
+ * @param avdName the name of the avd for this device. If this Device represents a physical device, this field should be an empty string.
  * @param deviceType a device type
  * @param version Android version of this device
  * @param additionalInfo an additional device info (such as RAM, processor name) as a key value pair
  */
-data class AndroidDevice(val id: String,
-                         var deviceName: String,
-                         val avdName: String,
-                         val deviceType: AndroidDeviceType,
-                         val version: AndroidVersion,
-                         val additionalInfo: MutableMap<String,String> = mutableMapOf())
+data class AndroidDevice(
+  val id: String,
+  var deviceName: String,
+  val avdName: String,
+  val deviceType: AndroidDeviceType,
+  val version: AndroidVersion,
+  val additionalInfo: MutableMap<String, String> = mutableMapOf(),
+)
 
 enum class AndroidDeviceType {
   // A virtual Android device running on a local machine from the AVD home folder.
@@ -42,12 +42,10 @@ enum class AndroidDeviceType {
   // A physical Android device connected to a local machine.
   LOCAL_PHYSICAL_DEVICE,
   // A virtual Android device managed by the Android plugin for Gradle.
-  LOCAL_GRADLE_MANAGED_EMULATOR
+  LOCAL_GRADLE_MANAGED_EMULATOR,
 }
 
-/**
- * Returns a displayable name of a device.
- */
+/** Returns a displayable name of a device. */
 fun AndroidDevice.getName(): String {
   if (deviceName.isNotBlank()) {
     return deviceName

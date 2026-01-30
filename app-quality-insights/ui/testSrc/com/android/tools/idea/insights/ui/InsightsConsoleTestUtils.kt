@@ -61,12 +61,7 @@ fun executeWithErrorProcessor(job: () -> Unit) {
   var error: String? = null
   val errorProcessor =
     object : LoggedErrorProcessor() {
-      override fun processError(
-        category: String,
-        message: String,
-        details: Array<out String>,
-        t: Throwable?,
-      ): Set<Action> {
+      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         error = message
         return EnumSet.allOf(Action::class.java)
       }

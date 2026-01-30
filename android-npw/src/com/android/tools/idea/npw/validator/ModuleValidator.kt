@@ -29,16 +29,11 @@ import com.intellij.openapi.project.guessProjectDir
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.SystemIndependent
 
-/**
- * Validates the module name and its location.
- */
-class ModuleValidator(
-  val project: Project
-) : Validator<String> {
+/** Validates the module name and its location. */
+class ModuleValidator(val project: Project) : Validator<String> {
   private val projectPath: @SystemIndependent String = project.guessProjectDir()!!.path
   private val pathValidator: PathValidator = PathValidator.createDefault("module location")
-  private val ILLEGAL_CHAR_MATCHER =
-    inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-: ")).negate()
+  private val ILLEGAL_CHAR_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-: ")).negate()
 
   override fun validate(moduleGradlePath: String): Result {
     val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
@@ -47,11 +42,12 @@ class ModuleValidator(
     //                    of the IDE project.
     val gradleProjectPath = GradleHolderProjectPath(projectPath, rootedModuleGradlePath)
     return when {
-      moduleGradlePath.isEmpty() ->
-        Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
+      moduleGradlePath.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
       illegalCharIdx >= 0 ->
-        Result(Severity.ERROR,
-               message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
+        Result(
+          Severity.ERROR,
+          message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath),
+        )
       gradleProjectPath.resolveIn(project) != null ->
         Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
       else -> pathValidator.validate(getModuleRootForNewModule(projectPath, moduleGradlePath).toPath())

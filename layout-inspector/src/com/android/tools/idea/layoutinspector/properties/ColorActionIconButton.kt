@@ -31,24 +31,14 @@ class ColorActionIconButton(override val actionIcon: Icon?) : ActionIconButton {
   override val action: AnAction? = null
 
   companion object {
-    suspend fun createColorButton(
-      type: PropertyType,
-      value: String?,
-      view: ViewNode,
-      lookup: ResourceLookup,
-    ): ActionIconButton? =
+    suspend fun createColorButton(type: PropertyType, value: String?, view: ViewNode, lookup: ResourceLookup): ActionIconButton? =
       when (type) {
         PropertyType.COLOR,
-        PropertyType.DRAWABLE ->
-          value?.let { ColorActionIconButton(createColorButtonIcon(value, view, lookup)) }
+        PropertyType.DRAWABLE -> value?.let { ColorActionIconButton(createColorButtonIcon(value, view, lookup)) }
         else -> null
       }
 
-    private suspend fun createColorButtonIcon(
-      value: String?,
-      view: ViewNode,
-      lookup: ResourceLookup,
-    ): Icon? {
+    private suspend fun createColorButtonIcon(value: String?, view: ViewNode, lookup: ResourceLookup): Icon? {
       lookup.resolveAsIcon(value, view)?.let {
         return it
       }

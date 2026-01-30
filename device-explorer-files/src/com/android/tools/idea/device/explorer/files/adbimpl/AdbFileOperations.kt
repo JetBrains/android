@@ -26,7 +26,8 @@ import kotlinx.coroutines.withContext
 class AdbFileOperations(
   device: ConnectedDevice,
   private val deviceCapabilities: AdbDeviceCapabilities,
-  private val dispatcher: CoroutineDispatcher) {
+  private val dispatcher: CoroutineDispatcher,
+) {
   private val shellCommandsUtil = AdbShellCommandsUtil.create(device)
 
   suspend fun createNewFile(parentPath: String, fileName: String) {
@@ -43,12 +44,11 @@ class AdbFileOperations(
       // Check remote file does not exists, so that we can give a relevant error message.
       // The check + create below is not an atomic operation, but this service does not
       // aim to guarantee strong atomicity for file system operations.
-      val command = when {
-        deviceCapabilities.supportsTestCommand() ->
-          getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
-        else ->
-          getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
-      }
+      val command =
+        when {
+          deviceCapabilities.supportsTestCommand() -> getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
+          else -> getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
+        }
       val commandResult = shellCommandsUtil.executeCommand(command)
       if (!commandResult.isError) {
         throw AdbShellCommandException.create("File $remotePath already exists on device")
@@ -126,12 +126,12 @@ class AdbFileOperations(
 
   suspend fun copyFileRunAs(source: String, destination: String, runAs: String?) {
     return withContext(dispatcher) {
-      val command = when {
-        deviceCapabilities.supportsCpCommand() ->
-          getCommand(runAs, "cp ").withEscapedPath(source).withText(" ").withEscapedPath(destination).build()
-        else ->
-          getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build()
-      }
+      val command =
+        when {
+          deviceCapabilities.supportsCpCommand() ->
+            getCommand(runAs, "cp ").withEscapedPath(source).withText(" ").withEscapedPath(destination).build()
+          else -> getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build()
+        }
       shellCommandsUtil.executeCommand(command).throwIfError()
     }
   }
@@ -157,27 +157,27 @@ class AdbFileOperations(
 
   suspend fun touchFileAsDefaultUser(remotePath: String) {
     return withContext(dispatcher) {
-      val command = when {
-        deviceCapabilities.supportsTouchCommand() ->
-          // Touch creates an empty file if the file does not exist.
-          // Touch fails if there are permissions errors.
-          AdbShellCommandBuilder().withText("touch ").withEscapedPath(remotePath).build()
-        else ->
-          AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build()
-      }
+      val command =
+        when {
+          deviceCapabilities.supportsTouchCommand() ->
+            // Touch creates an empty file if the file does not exist.
+            // Touch fails if there are permissions errors.
+            AdbShellCommandBuilder().withText("touch ").withEscapedPath(remotePath).build()
+          else -> AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build()
+        }
       shellCommandsUtil.executeCommand(command).throwIfError()
     }
   }
 
   private suspend fun touchFileRunAs(remotePath: String, runAs: String?) {
-    val command = when {
-      deviceCapabilities.supportsTouchCommand() ->
-        // Touch creates an empty file if the file does not exist.
-        // Touch fails if there are permissions errors.
-        getCommand(runAs, "touch ").withEscapedPath(remotePath).build()
-      else ->
-        getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build()
-    }
+    val command =
+      when {
+        deviceCapabilities.supportsTouchCommand() ->
+          // Touch creates an empty file if the file does not exist.
+          // Touch fails if there are permissions errors.
+          getCommand(runAs, "touch ").withEscapedPath(remotePath).build()
+        else -> getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build()
+      }
     shellCommandsUtil.executeCommand(command).throwIfError()
   }
 

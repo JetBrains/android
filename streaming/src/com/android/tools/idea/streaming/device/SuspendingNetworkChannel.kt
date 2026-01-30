@@ -27,18 +27,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 
-/**
- * Base class for [SuspendingSocketChannel] and [SuspendingServerSocketChannel].
- */
+/** Base class for [SuspendingSocketChannel] and [SuspendingServerSocketChannel]. */
 abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: T) : SuspendingCloseable {
 
   override suspend fun close() {
     withContextWithoutLoggingExceptions(SupervisorJob() + Dispatchers.IO) {
       try {
         networkChannel.close()
-      }
-      catch (_: ClosedChannelException) {
-      }
+      } catch (_: ClosedChannelException) {}
     }
   }
 
@@ -52,23 +48,17 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
 
   /** See [NetworkChannel.bind]. */
   suspend fun bind(local: SocketAddress) {
-    withContextWithoutLoggingExceptions(Dispatchers.IO) {
-      networkChannel.bind(local)
-    }
+    withContextWithoutLoggingExceptions(Dispatchers.IO) { networkChannel.bind(local) }
   }
 
   /** See [NetworkChannel.setOption]. */
   suspend fun <U : Any?> setOption(name: SocketOption<U>, value: U) {
-    withContextWithoutLoggingExceptions(Dispatchers.IO) {
-      networkChannel.setOption(name, value)
-    }
+    withContextWithoutLoggingExceptions(Dispatchers.IO) { networkChannel.setOption(name, value) }
   }
 
   /** See [NetworkChannel.getOption]. */
   suspend fun <U : Any?> getOption(name: SocketOption<U>): U {
-    return withContextWithoutLoggingExceptions(Dispatchers.IO) {
-      networkChannel.getOption(name)
-    }
+    return withContextWithoutLoggingExceptions(Dispatchers.IO) { networkChannel.getOption(name) }
   }
 
   /** See [NetworkChannel.supportedOptions]. */
@@ -76,9 +66,7 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
     return networkChannel.supportedOptions()
   }
 
-  /**
-   * Closes the socket channel when the coroutine is canceled.
-   */
+  /** Closes the socket channel when the coroutine is canceled. */
   protected fun closeOnCancel(continuation: CancellableContinuation<*>) {
     continuation.invokeOnCancellation {
       try {
@@ -90,5 +78,5 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
   }
 
   private suspend fun <T> withContextWithoutLoggingExceptions(context: CoroutineContext, block: () -> T): T =
-      withContext(context) { runCatching(block) }.getOrThrow()
+    withContext(context) { runCatching(block) }.getOrThrow()
 }

@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.InstantAppDetector
 
 class AndroidLintInstantAppCallInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.instant.app.call"),
-    InstantAppDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.instant.app.call"), InstantAppDetector.ISSUE)

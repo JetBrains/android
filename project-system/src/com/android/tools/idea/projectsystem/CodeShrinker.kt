@@ -16,5 +16,6 @@
 package com.android.tools.idea.projectsystem
 
 enum class CodeShrinker {
-  PROGUARD, R8
+  PROGUARD,
+  R8,
 }

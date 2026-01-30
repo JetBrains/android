@@ -65,11 +65,11 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun My<caret>Composable() {}
-      """
+        @Composable
+        fun My<caret>Composable() {}
+        """
           .trimIndent(),
       )
 
@@ -85,18 +85,18 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Preview
-      @Composable
-      fun MyComposablePreview() {
-        MyComposable()
-      }
-      """
+        @Preview
+        @Composable
+        fun MyComposablePreview() {
+          MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -113,16 +113,16 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Composable
-      fun MyComposableNotAPreview() {
-        MyComposable()
-      }
-      """
+        @Composable
+        fun MyComposableNotAPreview() {
+          MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -139,18 +139,18 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Preview
-      @Composable
-      fun SomeOtherPreview() {
-        MyComposable()
-      }
-      """
+        @Preview
+        @Composable
+        fun SomeOtherPreview() {
+          MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -167,20 +167,20 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      class MyClass {
+        class MyClass {
+          @Composable
+          fun My<caret>Composable() {}
+        }
+
+        @Preview
         @Composable
-        fun My<caret>Composable() {}
-      }
-
-      @Preview
-      @Composable
-      fun MyComposablePreview() {
-        MyClass().MyComposable()
-      }
-      """
+        fun MyComposablePreview() {
+          MyClass().MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -211,11 +211,11 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun My<caret>Composable() {}
-      """
+        @Composable
+        fun My<caret>Composable() {}
+        """
           .trimIndent(),
       )
 
@@ -232,24 +232,24 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Preview
-      @Composable
-      fun MyComposablePreview1() {
-        MyComposable()
-      }
+        @Preview
+        @Composable
+        fun MyComposablePreview1() {
+          MyComposable()
+        }
 
-      @Preview
-      @Composable
-      fun MyComposablePreview2() {
-        MyComposable()
-      }
-      """
+        @Preview
+        @Composable
+        fun MyComposablePreview2() {
+          MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -268,18 +268,18 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Preview
-      @Composable
-      fun PreviewMyComposable() {
-        MyComposable()
-      }
-      """
+        @Preview
+        @Composable
+        fun PreviewMyComposable() {
+          MyComposable()
+        }
+        """
           .trimIndent(),
       )
 
@@ -308,20 +308,20 @@ class ComposePreviewAutomaticRenamerFactoryTest {
       fixture.configureByText(
         "Test.kt",
         """
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.tooling.preview.Preview
 
-      @Composable
-      fun My<caret>Composable() {}
+        @Composable
+        fun My<caret>Composable() {}
 
-      @Preview
-      @Composable
-      fun MyComposablePreview() {
-        SomeContainer {
-          MyComposable()
+        @Preview
+        @Composable
+        fun MyComposablePreview() {
+          SomeContainer {
+            MyComposable()
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
 

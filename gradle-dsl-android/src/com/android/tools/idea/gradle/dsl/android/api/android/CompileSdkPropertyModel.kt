@@ -24,8 +24,6 @@ interface CompileSdkPropertyModel : ResolvedPropertyModel {
     const val COMPILE_SDK_INTRODUCED_VERSION = "4.1.0"
   }
 
-  /**
-   * @return the compile SDK config model referenced to by this property.
-   */
+  /** @return the compile SDK config model referenced to by this property. */
   fun toCompileSdkConfig(): CompileSdkBlockModel?
 }

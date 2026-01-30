@@ -30,31 +30,31 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
-import org.junit.Test
 import java.io.File
+import org.junit.Test
 
 class BuildIssueEventWrappersTest {
-  private val buildIssueFix = object : DescribedBuildIssueQuickFix {
-    override val description: String
-      get() = "Additional quickfix link"
-    override val id: String
-      get() = "com.plugin.gradle.quickfix"
+  private val buildIssueFix =
+    object : DescribedBuildIssueQuickFix {
+      override val description: String
+        get() = "Additional quickfix link"
 
-  }
-  private val additionalDescription = BuildIssueDescriptionComposer().apply {
-    addQuickFix(buildIssueFix)
-  }
+      override val id: String
+        get() = "com.plugin.gradle.quickfix"
+    }
+  private val additionalDescription = BuildIssueDescriptionComposer().apply { addQuickFix(buildIssueFix) }
 
   @Test
   fun testWrappedEventAddsQuickFixAndPreservesFileMessageEventImplFields() {
-    val originalEvent = FileMessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message",
-      FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
-    )
+    val originalEvent =
+      FileMessageEventImpl(
+        "parentId",
+        MessageEvent.Kind.ERROR,
+        "title",
+        "message",
+        "detailed message",
+        FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1),
+      )
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as FileMessageBuildIssueEvent
 
@@ -62,20 +62,17 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.issue.quickFixes.first()).isSameAs(buildIssueFix)
     assertThat(wrappedEvent.result.filePosition).isEqualTo(originalEvent.result.filePosition)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
   fun testWrappedEventAddsQuickFixAndPreservesMessageEventImplFields() {
-    val originalEvent = MessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message")
+    val originalEvent = MessageEventImpl("parentId", MessageEvent.Kind.ERROR, "title", "message", "detailed message")
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as MessageBuildIssueEvent
 
@@ -84,66 +81,74 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
   fun testDoubleWrappedEventAddsQuickFixAndPreservesFileMessageEventImplFields() {
-    val originalEvent = FileMessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message",
-      FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
-    )
+    val originalEvent =
+      FileMessageEventImpl(
+        "parentId",
+        MessageEvent.Kind.ERROR,
+        "title",
+        "message",
+        "detailed message",
+        FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1),
+      )
     val openLinkQuickFix = OpenLinkQuickFix("https://docs.gradle.org")
-    val additionalDescription1 = BuildIssueDescriptionComposer().apply {
-      addDescription("Additional line")
-      newLine()
-      addQuickFix("Open docs", openLinkQuickFix)
-    }
+    val additionalDescription1 =
+      BuildIssueDescriptionComposer().apply {
+        addDescription("Additional line")
+        newLine()
+        addQuickFix("Open docs", openLinkQuickFix)
+      }
 
-    val wrappedEvent = originalEvent
-      .toBuildIssueEventWithAdditionalDescription(additionalDescription1)
-      .toBuildIssueEventWithAdditionalDescription(additionalDescription) as FileMessageBuildIssueEvent
+    val wrappedEvent =
+      originalEvent
+        .toBuildIssueEventWithAdditionalDescription(additionalDescription1)
+        .toBuildIssueEventWithAdditionalDescription(additionalDescription) as FileMessageBuildIssueEvent
 
     assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(2)
     assertThat(wrappedEvent.issue.quickFixes[0]).isSameAs(openLinkQuickFix)
     assertThat(wrappedEvent.issue.quickFixes[1]).isSameAs(buildIssueFix)
     assertThat(wrappedEvent.result.filePosition).isEqualTo(originalEvent.result.filePosition)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
-                                                      + "\nAdditional line"
-                                                      + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                      + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(
+        originalEvent.result.details +
+          "\nAdditional line" +
+          "\n<a href=\"open.more.details\">Open docs</a>" +
+          "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>"
+      )
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
-                                                   + "\nAdditional line"
-                                                   + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                   + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(
+        originalEvent.description +
+          "\nAdditional line" +
+          "\n<a href=\"open.more.details\">Open docs</a>" +
+          "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>"
+      )
   }
 
   @Test
   fun testDoubleWrappedEventAddsQuickFixAndPreservesMessageEventImplFields() {
-    val originalEvent = MessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message")
+    val originalEvent = MessageEventImpl("parentId", MessageEvent.Kind.ERROR, "title", "message", "detailed message")
 
     val openLinkQuickFix = OpenLinkQuickFix("https://docs.gradle.org")
-    val additionalDescription1 = BuildIssueDescriptionComposer().apply {
-      addDescription("Additional line")
-      newLine()
-      addQuickFix("Open docs", openLinkQuickFix)
-    }
-    val wrappedEvent = originalEvent
-      .toBuildIssueEventWithAdditionalDescription(additionalDescription1)
-      .toBuildIssueEventWithAdditionalDescription(additionalDescription) as MessageBuildIssueEvent
+    val additionalDescription1 =
+      BuildIssueDescriptionComposer().apply {
+        addDescription("Additional line")
+        newLine()
+        addQuickFix("Open docs", openLinkQuickFix)
+      }
+    val wrappedEvent =
+      originalEvent
+        .toBuildIssueEventWithAdditionalDescription(additionalDescription1)
+        .toBuildIssueEventWithAdditionalDescription(additionalDescription) as MessageBuildIssueEvent
 
     assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(2)
     assertThat(wrappedEvent.issue.quickFixes[0]).isSameAs(openLinkQuickFix)
@@ -151,26 +156,33 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
-                                                      + "\nAdditional line"
-                                                      + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                      + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
-                                                   + "\nAdditional line"
-                                                   + "\n<a href=\"open.more.details\">Open docs</a>"
-                                                   + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(
+        originalEvent.result.details +
+          "\nAdditional line" +
+          "\n<a href=\"open.more.details\">Open docs</a>" +
+          "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>"
+      )
+    assertThat(wrappedEvent.description)
+      .isEqualTo(
+        originalEvent.description +
+          "\nAdditional line" +
+          "\n<a href=\"open.more.details\">Open docs</a>" +
+          "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>"
+      )
   }
 
   @Test
   fun testWrappingFileMessageEventImplWithNullDetails() {
-    val originalEvent = FileMessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      null,
-      FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
-    )
+    val originalEvent =
+      FileMessageEventImpl(
+        "parentId",
+        MessageEvent.Kind.ERROR,
+        "title",
+        "message",
+        null,
+        FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1),
+      )
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as FileMessageBuildIssueEvent
 
@@ -186,12 +198,7 @@ class BuildIssueEventWrappersTest {
 
   @Test
   fun testWrappingMessageEventImplWithNullDetails() {
-    val originalEvent = MessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      null)
+    val originalEvent = MessageEventImpl("parentId", MessageEvent.Kind.ERROR, "title", "message", null)
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as MessageBuildIssueEvent
 
@@ -206,13 +213,8 @@ class BuildIssueEventWrappersTest {
 
   @Test
   fun testWrappingDuplicateMessageAwareMessageEvent() {
-    val originalEvent = object : MessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message"
-    ), DuplicateMessageAware {}
+    val originalEvent =
+      object : MessageEventImpl("parentId", MessageEvent.Kind.ERROR, "title", "message", "detailed message"), DuplicateMessageAware {}
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as MessageBuildIssueEvent
 
@@ -222,20 +224,25 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
   fun testWrappingDuplicateMessageAwareFileMessageEven() {
-    val originalEvent = object : FileMessageEventImpl(
-      "parentId",
-      MessageEvent.Kind.ERROR,
-      "title",
-      "message",
-      "detailed message",
-      FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
-    ), DuplicateMessageAware {}
+    val originalEvent =
+      object :
+        FileMessageEventImpl(
+          "parentId",
+          MessageEvent.Kind.ERROR,
+          "title",
+          "message",
+          "detailed message",
+          FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1),
+        ),
+        DuplicateMessageAware {}
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as FileMessageBuildIssueEvent
 
@@ -246,19 +253,22 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
     assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
     assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
   fun testWrappedEventAddsQuickFixAndPreservesBuildIssueEventImplFields() {
-    val originalEvent = BuildIssueEventImpl(
-      "parentId",
-      BuildIssueComposer("base message", "title")
-        .addQuickFix("Open docs", OpenLinkQuickFix("https://docs.gradle.org"))
-        .composeBuildIssue(),
-      MessageEvent.Kind.ERROR
-    )
+    val originalEvent =
+      BuildIssueEventImpl(
+        "parentId",
+        BuildIssueComposer("base message", "title")
+          .addQuickFix("Open docs", OpenLinkQuickFix("https://docs.gradle.org"))
+          .composeBuildIssue(),
+        MessageEvent.Kind.ERROR,
+      )
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as BuildIssueEvent
 
@@ -272,23 +282,24 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
     assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
     assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
-    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
-    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.result.details)
+      .isEqualTo(originalEvent.result.details + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.description)
+      .isEqualTo(originalEvent.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 
   @Test
   fun testWrappedEventPreservesErrorMessageAwareBuildIssue() {
-    val buildErrorMessage = BuildErrorMessage.newBuilder().setErrorShownType(
-      BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL).build()
-    val originalEvent = BuildIssueEventImpl(
-      "parentId",
-      BuildIssueComposer("base message", "title")
-        .addQuickFix("Open docs", OpenLinkQuickFix("https://docs.gradle.org"))
-        .composeErrorMessageAwareBuildIssue(
-          buildErrorMessage
-        ),
-      MessageEvent.Kind.ERROR,
-    )
+    val buildErrorMessage =
+      BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL).build()
+    val originalEvent =
+      BuildIssueEventImpl(
+        "parentId",
+        BuildIssueComposer("base message", "title")
+          .addQuickFix("Open docs", OpenLinkQuickFix("https://docs.gradle.org"))
+          .composeErrorMessageAwareBuildIssue(buildErrorMessage),
+        MessageEvent.Kind.ERROR,
+      )
 
     val wrappedEvent = originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription) as BuildIssueEvent
 
@@ -297,7 +308,7 @@ class BuildIssueEventWrappersTest {
     assertThat(wrappedEvent.issue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
     assertThat(wrappedEvent.issue.quickFixes[1]).isEqualTo(buildIssueFix)
     assertThat(wrappedEvent.issue.title).isEqualTo(originalEvent.issue.title)
-    assertThat(wrappedEvent.issue.description).isEqualTo(
-      originalEvent.issue.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+    assertThat(wrappedEvent.issue.description)
+      .isEqualTo(originalEvent.issue.description + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
   }
 }

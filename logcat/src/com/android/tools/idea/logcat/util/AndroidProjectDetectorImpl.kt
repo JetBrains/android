@@ -20,6 +20,5 @@ import com.intellij.openapi.project.Project
 
 /** Production implementation of [AndroidProjectDetector] */
 class AndroidProjectDetectorImpl : AndroidProjectDetector {
-  override fun isAndroidProject(project: Project): Boolean =
-    CommonAndroidUtil.getInstance().isAndroidProject(project)
+  override fun isAndroidProject(project: Project): Boolean = CommonAndroidUtil.getInstance().isAndroidProject(project)
 }

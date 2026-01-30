@@ -85,10 +85,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStatementExpression
 
 class AndroidLintMissingPermissionInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.missing.permission"),
-    PermissionDetector.MISSING_PERMISSION,
-  ) {
+  AndroidLintInspectionBase(message("android.lint.inspections.missing.permission"), PermissionDetector.MISSING_PERMISSION) {
 
   override fun getQuickFixes(
     startElement: PsiElement,
@@ -104,37 +101,27 @@ class AndroidLintMissingPermissionInspection :
       // Create quickfix(es) that can add or update the @RequiresPermission annotation.
       val operator = parseOperator(quickfixData.getString(PermissionDetector.KEY_OPERATOR, "&"))
       val requiresPermissionFixes =
-        AddRequiresPermissionAnnotationFix.create(startElement, names.toSet(), operator)
-          .map(::ModCommandLintQuickFix)
+        AddRequiresPermissionAnnotationFix.create(startElement, names.toSet(), operator).map(::ModCommandLintQuickFix)
 
       // [missing permissions: Set<String>, maxSdkVersion: Integer]
       // Add quickfixes for the missing permissions
       val lastApplicableApi = quickfixData.getInt(PermissionDetector.KEY_LAST_API, -1)
       if (lastApplicableApi != -1) {
-        return (names.map { ModCommandLintQuickFix(AddPermissionFix(it, lastApplicableApi)) } +
-            requiresPermissionFixes)
-          .toTypedArray()
+        return (names.map { ModCommandLintQuickFix(AddPermissionFix(it, lastApplicableApi)) } + requiresPermissionFixes).toTypedArray()
       }
 
       // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
       // Add quickfix for requesting permissions
-      quickfixData
-        .getString(PermissionDetector.KEY_REQUIREMENT, null)
-        ?.let(PermissionRequirement::deserialize)
-        ?.let {
-          return (listOf(ModCommandLintQuickFix(AddCheckPermissionFix(it, startElement, names))) +
-              requiresPermissionFixes)
-            .toTypedArray()
-        }
+      quickfixData.getString(PermissionDetector.KEY_REQUIREMENT, null)?.let(PermissionRequirement::deserialize)?.let {
+        return (listOf(ModCommandLintQuickFix(AddCheckPermissionFix(it, startElement, names))) + requiresPermissionFixes).toTypedArray()
+      }
     }
 
     return super.getQuickFixes(startElement, endElement, message, quickfixData)
   }
 
-  internal class AddPermissionFix(private val permissionName: String, private val maxVersion: Int) :
-    ModCommandAction {
-    private val name =
-      "Add Permission ${permissionName.substring(permissionName.lastIndexOf('.') + 1)}"
+  internal class AddPermissionFix(private val permissionName: String, private val maxVersion: Int) : ModCommandAction {
+    private val name = "Add Permission ${permissionName.substring(permissionName.lastIndexOf('.') + 1)}"
 
     override fun getFamilyName() = "AddPermissionFix"
 
@@ -162,8 +149,7 @@ class AndroidLintMissingPermissionInspection :
     }
 
     private fun addPermission(manifestTag: XmlTag, facet: AndroidFacet): XmlTag? {
-      var permissionTag =
-        manifestTag.createChildTag(TAG_USES_PERMISSION, "", null, false) ?: return null
+      var permissionTag = manifestTag.createChildTag(TAG_USES_PERMISSION, "", null, false) ?: return null
 
       // Find best insert position:
       //   (1) attempt to insert alphabetically among any permission tags
@@ -195,10 +181,7 @@ class AndroidLintMissingPermissionInspection :
       // Some permissions only apply for a range of API levels - for example,
       // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
       // case set a maxSdkVersion attribute on the uses-permission element.
-      if (
-        maxVersion != Int.MAX_VALUE &&
-          maxVersion >= StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel
-      ) {
+      if (maxVersion != Int.MAX_VALUE && maxVersion >= StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel) {
         permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, maxVersion.toString())
       }
       return permissionTag
@@ -220,10 +203,7 @@ class AndroidLintMissingPermissionInspection :
 
       // Find the statement containing the method call
       val statement =
-        if (isKotlin)
-          call.parents(false).filterIsInstance<KtExpression>().firstOrNull {
-            it.parent is KtStatementExpression
-          }
+        if (isKotlin) call.parents(false).filterIsInstance<KtExpression>().firstOrNull { it.parent is KtStatementExpression }
         else PsiTreeUtil.getParentOfType(call, PsiStatement::class.java, true)
 
       val parent = statement?.parent ?: return // highly unlikely
@@ -267,8 +247,7 @@ class AndroidLintMissingPermissionInspection :
           ?: facade.findClass("android.support.v4.app.ActivityCompat", moduleScope)
 
       // If using an older version of appcompat than 23.0.1, revert to platform version.
-      val usingAppCompat =
-        activityCompat?.findMethodsByName("requestPermissions", false)?.isNotEmpty() ?: false
+      val usingAppCompat = activityCompat?.findMethodsByName("requestPermissions", false)?.isNotEmpty() ?: false
 
       // TODO(b/319287252): rewrite with IfSurrounder APIs when available (KTIJ-29939)
       val code = buildString {
@@ -309,12 +288,13 @@ class AndroidLintMissingPermissionInspection :
         append(" //    Activity")
           .append(if (usingAppCompat) "Compat" else "")
           .append(
-            """#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity
+            """
+            #requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for Activity
             """
               .trimIndent()
           )
@@ -324,8 +304,7 @@ class AndroidLintMissingPermissionInspection :
         // TODO: Add additional information here, perhaps pointing to
         // http://android-developers.blogspot.com/2015/09/google-play-services-81-and-android-60.html
         // or ask our assistant for suggestions.
-        val method =
-          if (isKotlin) null else PsiTreeUtil.getParentOfType(call, PsiMethod::class.java, true)
+        val method = if (isKotlin) null else PsiTreeUtil.getParentOfType(call, PsiMethod::class.java, true)
         if (method != null && PsiTypes.voidType() != method.returnType) {
           append("return TODO")
         } else {
@@ -386,24 +365,15 @@ class AndroidLintMissingPermissionInspection :
     }
 
     private fun addOrUpdateKotlinAnnotation(ktAnnotated: KtAnnotated) {
-      val existing =
-        analyze(ktAnnotated) {
-          ktAnnotated.annotationEntries.firstOrNull { it.fqNameMatches(REQUIRES_PERMISSION, this) }
-        }
+      val existing = analyze(ktAnnotated) { ktAnnotated.annotationEntries.firstOrNull { it.fqNameMatches(REQUIRES_PERMISSION, this) } }
       if (existing == null) {
-        ktAnnotated.addAnnotation(
-          ClassId.topLevel(FqName(REQUIRES_PERMISSION)),
-          getKotlinInnerText(),
-          false,
-        )
+        ktAnnotated.addAnnotation(ClassId.topLevel(FqName(REQUIRES_PERMISSION)), getKotlinInnerText(), false)
         return
       }
       // Find the corresponding argument that has the permission(s), if any, and delete it
       // as we will be replacing it.
       existing.valueArguments
-        .firstOrNull {
-          it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true
-        }
+        .firstOrNull { it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true }
         ?.asElement()
         ?.delete()
 
@@ -455,9 +425,7 @@ class AndroidLintMissingPermissionInspection :
           else -> combinedNames.joinToString(prefix = "{", postfix = "}")
         }
       val newValue =
-        JavaPsiFacade.getInstance(elementToAnnotate.project)
-          .elementFactory
-          .createExpressionFromText(innerText, elementToAnnotate)
+        JavaPsiFacade.getInstance(elementToAnnotate.project).elementFactory.createExpressionFromText(innerText, elementToAnnotate)
       annotation.setDeclaredAttributeValue(newArgName, newValue)
     }
 
@@ -466,33 +434,23 @@ class AndroidLintMissingPermissionInspection :
       val targetName = (elementToAnnotate as? PsiNamedElement)?.name ?: "Enclosing Element"
       val str =
         when {
-          oldPermissionNames.isEmpty() ->
-            message("android.lint.fix.add.requires.permission", targetName)
-          showAdditions ->
-            message(
-              "android.lint.fix.update.requires.permission.with",
-              targetName,
-              namesToDisplay.joinToString(),
-            )
+          oldPermissionNames.isEmpty() -> message("android.lint.fix.add.requires.permission", targetName)
+          showAdditions -> message("android.lint.fix.update.requires.permission.with", targetName, namesToDisplay.joinToString())
           else -> message("android.lint.fix.update.requires.permission", targetName)
         }
       return Presentation.of(str)
     }
 
-    private fun String.toCanonicalPermissionField(): PsiField? =
-      elementToAnnotate.module?.getManifestPermissionsMap()?.get(this)
+    private fun String.toCanonicalPermissionField(): PsiField? = elementToAnnotate.module?.getManifestPermissionsMap()?.get(this)
 
-    private fun String.toCanonicalPermission(): String =
-      toCanonicalPermissionField()?.kotlinFqName?.asString() ?: "\"$this\""
+    private fun String.toCanonicalPermission(): String = toCanonicalPermissionField()?.kotlinFqName?.asString() ?: "\"$this\""
 
-    private fun String.toCanonicalPermissionShort(): String =
-      toCanonicalPermissionField()?.name ?: "\"$this\""
+    private fun String.toCanonicalPermissionShort(): String = toCanonicalPermissionField()?.name ?: "\"$this\""
 
     companion object {
       private const val REQUIRES_PERMISSION = "androidx.annotation.RequiresPermission"
 
-      private val KOTLIN_TARGETS =
-        listOf(KtFunction::class, KtPropertyAccessor::class, KtClass::class, KtConstructor::class)
+      private val KOTLIN_TARGETS = listOf(KtFunction::class, KtPropertyAccessor::class, KtClass::class, KtConstructor::class)
 
       private val JAVA_TARGETS = listOf(PsiMethod::class, PsiField::class, PsiClass::class)
 
@@ -508,27 +466,19 @@ class AndroidLintMissingPermissionInspection :
 
         val argument =
           analyze(elementToAnnotate) {
-              elementToAnnotate.annotationEntries.firstOrNull {
-                it.getQualifiedName(this) == REQUIRES_PERMISSION
-              }
+              elementToAnnotate.annotationEntries.firstOrNull { it.getQualifiedName(this) == REQUIRES_PERMISSION }
             }
             ?.valueArguments
-            ?.firstOrNull {
-              it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true
-            }
+            ?.firstOrNull { it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true }
 
         val existingPermissions =
           when (val expr = argument?.getArgumentExpression()) {
             null -> setOf()
-            is KtCollectionLiteralExpression ->
-              expr.innerExpressions.map(PsiElement::getText).toSet()
+            is KtCollectionLiteralExpression -> expr.innerExpressions.map(PsiElement::getText).toSet()
             else -> setOf(expr.text)
           }
         // We cannot add to an existing "OR" annotation.
-        if (
-          existingPermissions.size > 1 && argument?.getArgumentName()?.asName?.asString() == "anyOf"
-        )
-          return null
+        if (existingPermissions.size > 1 && argument?.getArgumentName()?.asName?.asString() == "anyOf") return null
         return elementToAnnotate to existingPermissions
       }
 
@@ -541,15 +491,13 @@ class AndroidLintMissingPermissionInspection :
             .firstOrNull() ?: return null
 
         val argument =
-          elementToAnnotate.modifierList
-            ?.findAnnotation(REQUIRES_PERMISSION)
-            ?.attributes
-            ?.firstOrNull { it.attributeName in ARGUMENT_NAMES } as? PsiNameValuePair
+          elementToAnnotate.modifierList?.findAnnotation(REQUIRES_PERMISSION)?.attributes?.firstOrNull {
+            it.attributeName in ARGUMENT_NAMES
+          } as? PsiNameValuePair
         val existingPermissions =
           when (val attributeValue = argument?.value) {
             null -> setOf()
-            is PsiArrayInitializerMemberValue ->
-              attributeValue.initializers.map(PsiElement::getText).toSet()
+            is PsiArrayInitializerMemberValue -> attributeValue.initializers.map(PsiElement::getText).toSet()
             else -> setOf(attributeValue.text)
           }
         // We cannot extend an existing "OR" annotation.
@@ -558,11 +506,7 @@ class AndroidLintMissingPermissionInspection :
         return elementToAnnotate to existingPermissions
       }
 
-      fun create(
-        element: PsiElement,
-        newPermissions: Set<String>,
-        operator: IElementType,
-      ): List<AddRequiresPermissionAnnotationFix> {
+      fun create(element: PsiElement, newPermissions: Set<String>, operator: IElementType): List<AddRequiresPermissionAnnotationFix> {
         val (elementToAnnotate, existingPermissions) =
           when (element.language) {
             is KotlinLanguage -> createKotlinParams(element)
@@ -573,22 +517,12 @@ class AndroidLintMissingPermissionInspection :
         // offer to add each of them individually.
         if (existingPermissions.isNotEmpty() && operator != JavaTokenType.ANDAND) {
           return newPermissions.map {
-            AddRequiresPermissionAnnotationFix(
-              elementToAnnotate,
-              existingPermissions,
-              setOf(it),
-              showAdditions = true,
-            )
+            AddRequiresPermissionAnnotationFix(elementToAnnotate, existingPermissions, setOf(it), showAdditions = true)
           }
         }
 
         return listOf(
-          AddRequiresPermissionAnnotationFix(
-            elementToAnnotate,
-            existingPermissions,
-            newPermissions,
-            operator == JavaTokenType.ANDAND,
-          )
+          AddRequiresPermissionAnnotationFix(elementToAnnotate, existingPermissions, newPermissions, operator == JavaTokenType.ANDAND)
         )
       }
     }
@@ -605,8 +539,7 @@ private fun parseOperator(s: String?): IElementType =
   }
 
 /**
- * Gets a map from [String] permission values to the canonical [PsiField] that holds them for
- * `android.Manifest` permissions.
+ * Gets a map from [String] permission values to the canonical [PsiField] that holds them for `android.Manifest` permissions.
  *
  * E.g. `"android.permission.CAMERA"` -> `android.Manifest.permission.CAMERA`
  */
@@ -620,9 +553,7 @@ private fun Module.getManifestPermissionsMap(): Map<String, PsiField> =
     } else {
       @Suppress("UNCHECKED_CAST")
       CachedValueProvider.Result(
-        (manifest.fields.associateBy {
-          (it.initializer as? PsiLiteralExpression)?.value as? String
-        } - null) // Remove null from the mapping
+        (manifest.fields.associateBy { (it.initializer as? PsiLiteralExpression)?.value as? String } - null) // Remove null from the mapping
           as Map<String, PsiField>,
         manifest,
       )

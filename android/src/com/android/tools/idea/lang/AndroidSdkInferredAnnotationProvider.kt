@@ -25,11 +25,10 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiUtil
 
 /**
- * Certain Android SDK annotations are available only in the stub jar (android.jar) and not in attached sources
- * because they are injected by Metalava at build time. This discrepancy confuses certain IntelliJ inspections
- * which search for annotations in sources instead of bytecode (presumably to handle annotations with source retention).
- * As a workaround, this class "infers" additional annotations for Android SDK source elements, matching android.jar.
- * Most notably, this includes nullability annotations.
+ * Certain Android SDK annotations are available only in the stub jar (android.jar) and not in attached sources because they are injected by
+ * Metalava at build time. This discrepancy confuses certain IntelliJ inspections which search for annotations in sources instead of
+ * bytecode (presumably to handle annotations with source retention). As a workaround, this class "infers" additional annotations for
+ * Android SDK source elements, matching android.jar. Most notably, this includes nullability annotations.
  */
 class AndroidSdkInferredAnnotationProvider(private val project: Project) : InferredAnnotationProvider {
 

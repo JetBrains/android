@@ -11,12 +11,7 @@ import org.junit.Test
 internal class MessagesFileTest {
   private val tempFileFactory = TestTempFileFactory()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      ApplicationRule(),
-      ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory),
-    )
+  @get:Rule val rule = RuleChain(ApplicationRule(), ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory))
 
   @Test
   fun initialize_createsFile() {
@@ -51,12 +46,9 @@ internal class MessagesFileTest {
     val messagesFile = messagesFile()
     messagesFile.initialize()
 
-    messagesFile.appendMessages(
-      listOf(logcatMessage(message = "Foo"), logcatMessage(message = "Bar"))
-    )
+    messagesFile.appendMessages(listOf(logcatMessage(message = "Foo"), logcatMessage(message = "Bar")))
 
-    assertThat(messagesFile.loadMessagesAndDelete())
-      .containsExactly(logcatMessage(message = "Foo"), logcatMessage(message = "Bar"))
+    assertThat(messagesFile.loadMessagesAndDelete()).containsExactly(logcatMessage(message = "Foo"), logcatMessage(message = "Bar"))
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
@@ -78,14 +70,9 @@ internal class MessagesFileTest {
       )
     )
 
-    assertThat(tempFileFactory.getExistingFileNames())
-      .containsExactly("studio-test-1.bin", "studio-test-2.bin")
+    assertThat(tempFileFactory.getExistingFileNames()).containsExactly("studio-test-1.bin", "studio-test-2.bin")
     assertThat(messagesFile.loadMessagesAndDelete())
-      .containsExactly(
-        logcatMessage(message = "Foo-12345"),
-        logcatMessage(message = "Bar-12345"),
-        logcatMessage(message = "More-12345"),
-      )
+      .containsExactly(logcatMessage(message = "Foo-12345"), logcatMessage(message = "Bar-12345"), logcatMessage(message = "More-12345"))
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
@@ -112,14 +99,9 @@ internal class MessagesFileTest {
       )
     )
 
-    assertThat(tempFileFactory.getExistingFileNames())
-      .containsExactly("studio-test-2.bin", "studio-test-3.bin")
+    assertThat(tempFileFactory.getExistingFileNames()).containsExactly("studio-test-2.bin", "studio-test-3.bin")
     assertThat(messagesFile.loadMessagesAndDelete())
-      .containsExactly(
-        logcatMessage(message = "More-1234"),
-        logcatMessage(message = "More-5678"),
-        logcatMessage(message = "Even more"),
-      )
+      .containsExactly(logcatMessage(message = "More-1234"), logcatMessage(message = "More-5678"), logcatMessage(message = "Even more"))
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 

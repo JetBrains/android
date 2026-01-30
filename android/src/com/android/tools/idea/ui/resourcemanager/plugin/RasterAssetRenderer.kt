@@ -23,21 +23,15 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 
-/**
- * [DesignAssetRenderer] to display raster format images.
- */
+/** [DesignAssetRenderer] to display raster format images. */
 class RasterAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = ImageIO.getReaderFormatNames().contains(file.extension)
 
-  override fun getImage(file: VirtualFile,
-                        module: Module?,
-                        dimension: Dimension,
-                        context: Any?): CompletableFuture<out BufferedImage?> =
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<out BufferedImage?> =
     CompletableFuture.supplyAsync {
       try {
         ImageUtils.readImageAtScale(file.inputStream, dimension)
-      }
-      catch (e: NullPointerException) {
+      } catch (e: NullPointerException) {
         // b/115303829
         null
       }

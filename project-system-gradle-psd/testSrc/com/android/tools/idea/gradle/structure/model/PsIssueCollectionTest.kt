@@ -28,9 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.MockitoAnnotations.initMocks
 
-/**
- * Tests for [PsIssueCollection].
- */
+/** Tests for [PsIssueCollection]. */
 class PsIssueCollectionTest {
   private lateinit var issueCollection: PsIssueCollection
   private lateinit var testPath: PsPath
@@ -55,9 +53,7 @@ class PsIssueCollectionTest {
   fun getTooltipText_singleIssueWithPath() {
     issueCollection.add(PsGeneralIssue("Issue 01", testPath, PROJECT_ANALYSIS, WARNING))
     val issues = issueCollection.values
-    val expected = "<html><body>" +
-                   "test path: Issue 01<br>" +
-                   "</body></html>"
+    val expected = "<html><body>" + "test path: Issue 01<br>" + "</body></html>"
     assertEquals(expected, getTooltipText(issues, true))
   }
 
@@ -65,9 +61,7 @@ class PsIssueCollectionTest {
   fun getTooltipText_singleIssueWithoutPath() {
     issueCollection.add(PsGeneralIssue("Issue 01", testPath, PROJECT_ANALYSIS, WARNING))
     val issues = issueCollection.values
-    val expected = "<html><body>" +
-                   "Issue 01<br>" +
-                   "</body></html>"
+    val expected = "<html><body>" + "Issue 01<br>" + "</body></html>"
     assertEquals(expected, getTooltipText(issues, false))
   }
 
@@ -78,14 +72,15 @@ class PsIssueCollectionTest {
       issueCollection.add(PsGeneralIssue(String.format("Test Issue %02d", i), testPath, PROJECT_ANALYSIS, WARNING))
     }
     val issues = issueCollection.values
-    val expected = "<html><body><ul>" +
-                   "<li>Empty Issue 01</li>" +
-                   "<li>Empty Issue 02</li>" +
-                   "<li>Empty Issue 03</li>" +
-                   "<li>test path: Test Issue 01</li>" +
-                   "<li>test path: Test Issue 02</li>" +
-                   "<li>test path: Test Issue 03</li>" +
-                   "</ul></body></html>"
+    val expected =
+      "<html><body><ul>" +
+        "<li>Empty Issue 01</li>" +
+        "<li>Empty Issue 02</li>" +
+        "<li>Empty Issue 03</li>" +
+        "<li>test path: Test Issue 01</li>" +
+        "<li>test path: Test Issue 02</li>" +
+        "<li>test path: Test Issue 03</li>" +
+        "</ul></body></html>"
     assertEquals(expected, getTooltipText(issues, true))
   }
 
@@ -96,14 +91,15 @@ class PsIssueCollectionTest {
       issueCollection.add(PsGeneralIssue(String.format("Test Issue %02d", i), testPath, PROJECT_ANALYSIS, WARNING))
     }
     val issues = issueCollection.values
-    val expected = "<html><body><ul>" +
-                   "<li>Empty Issue 01</li>" +
-                   "<li>Empty Issue 02</li>" +
-                   "<li>Empty Issue 03</li>" +
-                   "<li>Test Issue 01</li>" +
-                   "<li>Test Issue 02</li>" +
-                   "<li>Test Issue 03</li>" +
-                   "</ul></body></html>"
+    val expected =
+      "<html><body><ul>" +
+        "<li>Empty Issue 01</li>" +
+        "<li>Empty Issue 02</li>" +
+        "<li>Empty Issue 03</li>" +
+        "<li>Test Issue 01</li>" +
+        "<li>Test Issue 02</li>" +
+        "<li>Test Issue 03</li>" +
+        "</ul></body></html>"
     assertEquals(expected, getTooltipText(issues, false))
   }
 
@@ -114,19 +110,20 @@ class PsIssueCollectionTest {
       issueCollection.add(PsGeneralIssue(String.format("Test Issue %02d", i), testPath, PROJECT_ANALYSIS, WARNING))
     }
     val issues = issueCollection.values
-    val expected = "<html><body><ul>" +
-                   "<li>Empty Issue 01</li>" +
-                   "<li>Empty Issue 02</li>" +
-                   "<li>Empty Issue 03</li>" +
-                   "<li>Empty Issue 04</li>" +
-                   "<li>Empty Issue 05</li>" +
-                   "<li>Empty Issue 06</li>" +
-                   "<li>Empty Issue 07</li>" +
-                   "<li>Empty Issue 08</li>" +
-                   "<li>test path: Test Issue 01</li>" +
-                   "<li>test path: Test Issue 02</li>" +
-                   "<li>test path: Test Issue 03</li>" +
-                   "</ul>5 more messages...<br></body></html>"
+    val expected =
+      "<html><body><ul>" +
+        "<li>Empty Issue 01</li>" +
+        "<li>Empty Issue 02</li>" +
+        "<li>Empty Issue 03</li>" +
+        "<li>Empty Issue 04</li>" +
+        "<li>Empty Issue 05</li>" +
+        "<li>Empty Issue 06</li>" +
+        "<li>Empty Issue 07</li>" +
+        "<li>Empty Issue 08</li>" +
+        "<li>test path: Test Issue 01</li>" +
+        "<li>test path: Test Issue 02</li>" +
+        "<li>test path: Test Issue 03</li>" +
+        "</ul>5 more messages...<br></body></html>"
     assertEquals(expected, getTooltipText(issues, true))
   }
 
@@ -137,19 +134,20 @@ class PsIssueCollectionTest {
       issueCollection.add(PsGeneralIssue(String.format("Test Issue %02d", i), testPath, PROJECT_ANALYSIS, WARNING))
     }
     val issues = issueCollection.values
-    val expected = "<html><body><ul>" +
-                   "<li>Empty Issue 01</li>" +
-                   "<li>Empty Issue 02</li>" +
-                   "<li>Empty Issue 03</li>" +
-                   "<li>Empty Issue 04</li>" +
-                   "<li>Empty Issue 05</li>" +
-                   "<li>Empty Issue 06</li>" +
-                   "<li>Empty Issue 07</li>" +
-                   "<li>Empty Issue 08</li>" +
-                   "<li>Test Issue 01</li>" +
-                   "<li>Test Issue 02</li>" +
-                   "<li>Test Issue 03</li>" +
-                   "</ul>5 more messages...<br></body></html>"
+    val expected =
+      "<html><body><ul>" +
+        "<li>Empty Issue 01</li>" +
+        "<li>Empty Issue 02</li>" +
+        "<li>Empty Issue 03</li>" +
+        "<li>Empty Issue 04</li>" +
+        "<li>Empty Issue 05</li>" +
+        "<li>Empty Issue 06</li>" +
+        "<li>Empty Issue 07</li>" +
+        "<li>Empty Issue 08</li>" +
+        "<li>Test Issue 01</li>" +
+        "<li>Test Issue 02</li>" +
+        "<li>Test Issue 03</li>" +
+        "</ul>5 more messages...<br></body></html>"
     assertEquals(expected, getTooltipText(issues, false))
   }
 
@@ -184,8 +182,7 @@ class PsIssueCollectionTest {
     issueCollection.add(issueD)
     issueCollection.add(issueC)
     issueCollection.add(issueA)
-    val issues = issueCollection.findIssues(TestPath.EMPTY_PATH,
-                                              Comparator.comparing<PsIssue, String> { it.text })
+    val issues = issueCollection.findIssues(TestPath.EMPTY_PATH, Comparator.comparing<PsIssue, String> { it.text })
     assertThat(issues).containsExactly(issueA, issueB, issueC, issueD).inOrder()
   }
 

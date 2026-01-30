@@ -38,16 +38,9 @@ interface AppInsightsClient {
     permission: Permission = Permission.NONE,
   ): LoadingState.Done<IssueResponse>
 
-  suspend fun getIssueVariants(
-    request: IssueRequest,
-    issueId: IssueId,
-  ): LoadingState.Done<List<IssueVariant>>
+  suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId): LoadingState.Done<List<IssueVariant>>
 
-  suspend fun getIssueDetails(
-    issueId: IssueId,
-    request: IssueRequest,
-    variantId: String? = null,
-  ): LoadingState.Done<DetailedIssueStats?>
+  suspend fun getIssueDetails(issueId: IssueId, request: IssueRequest, variantId: String? = null): LoadingState.Done<DetailedIssueStats?>
 
   suspend fun listEvents(
     issueId: IssueId,
@@ -57,23 +50,11 @@ interface AppInsightsClient {
     token: String?,
   ): LoadingState.Done<EventPage>
 
-  suspend fun updateIssueState(
-    connection: Connection,
-    issueId: IssueId,
-    state: IssueState,
-  ): LoadingState.Done<Unit>
+  suspend fun updateIssueState(connection: Connection, issueId: IssueId, state: IssueState): LoadingState.Done<Unit>
 
-  suspend fun listNotes(
-    connection: Connection,
-    issueId: IssueId,
-    mode: ConnectionMode,
-  ): LoadingState.Done<List<Note>>
+  suspend fun listNotes(connection: Connection, issueId: IssueId, mode: ConnectionMode): LoadingState.Done<List<Note>>
 
-  suspend fun createNote(
-    connection: Connection,
-    issueId: IssueId,
-    message: String,
-  ): LoadingState.Done<Note>
+  suspend fun createNote(connection: Connection, issueId: IssueId, message: String): LoadingState.Done<Note>
 
   suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit>
 }

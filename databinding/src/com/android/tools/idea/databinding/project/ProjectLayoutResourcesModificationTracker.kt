@@ -30,24 +30,20 @@ import com.intellij.util.SlowOperations
  * `ResourceRepositoryManager.getModuleResources(facet).modificationCount` directly.
  */
 @Service(Service.Level.PROJECT)
-class ProjectLayoutResourcesModificationTracker(private val project: Project) :
-  ModificationTracker {
+class ProjectLayoutResourcesModificationTracker(private val project: Project) : ModificationTracker {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker = project.service()
+    @JvmStatic fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker = project.service()
   }
 
   override fun getModificationCount(): Long {
     // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
     // so we must incorporate both into the modification count (see b/283753328).
     val resourceModificationCount: Long =
-      LayoutBindingEnabledFacetsProvider.getInstance(project).getAllBindingEnabledFacets().sumOf {
-        facet ->
+      LayoutBindingEnabledFacetsProvider.getInstance(project).getAllBindingEnabledFacets().sumOf { facet ->
         StudioResourceRepositoryManager.getModuleResources(facet).modificationCount
       }
-    val bindingIndexModificationCount = SlowOperations.knownIssue("b/391099536").use {
-      BindingXmlIndexModificationTracker.getInstance(project).modificationCount
-    }
+    val bindingIndexModificationCount =
+      SlowOperations.knownIssue("b/391099536").use { BindingXmlIndexModificationTracker.getInstance(project).modificationCount }
     return resourceModificationCount + bindingIndexModificationCount
   }
 }

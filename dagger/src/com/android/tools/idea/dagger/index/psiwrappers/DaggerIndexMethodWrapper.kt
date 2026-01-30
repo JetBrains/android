@@ -35,17 +35,14 @@ interface DaggerIndexMethodWrapper : DaggerIndexAnnotatedWrapper {
   fun getContainingClass(): DaggerIndexClassWrapper?
 }
 
-internal class KtFunctionWrapper(
-  private val ktFunction: KtFunction,
-  private val importHelper: KotlinImportHelper,
-) : DaggerIndexAnnotatedKotlinWrapper(ktFunction, importHelper), DaggerIndexMethodWrapper {
+internal class KtFunctionWrapper(private val ktFunction: KtFunction, private val importHelper: KotlinImportHelper) :
+  DaggerIndexAnnotatedKotlinWrapper(ktFunction, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = ktFunction.name!!
 
   override fun getReturnType(): DaggerIndexTypeWrapper? =
     ktFunction.getReturnTypeReference()?.let { KtTypeReferenceWrapper(it, importHelper) }
 
-  override fun getParameters(): List<DaggerIndexParameterWrapper> =
-    ktFunction.valueParameters.map { KtParameterWrapper(it, importHelper) }
+  override fun getParameters(): List<DaggerIndexParameterWrapper> = ktFunction.valueParameters.map { KtParameterWrapper(it, importHelper) }
 
   override fun getIsConstructor() = ktFunction is KtConstructor<*>
 
@@ -53,20 +50,16 @@ internal class KtFunctionWrapper(
     ktFunction.containingClassOrObject?.let { KtClassOrObjectWrapper(it, importHelper) }
 }
 
-internal class PsiMethodWrapper(
-  private val psiMethod: PsiMethod,
-  private val importHelper: JavaImportHelper,
-) : DaggerIndexAnnotatedJavaWrapper(psiMethod, importHelper), DaggerIndexMethodWrapper {
+internal class PsiMethodWrapper(private val psiMethod: PsiMethod, private val importHelper: JavaImportHelper) :
+  DaggerIndexAnnotatedJavaWrapper(psiMethod, importHelper), DaggerIndexMethodWrapper {
   override fun getSimpleName() = psiMethod.name
 
-  override fun getReturnType(): DaggerIndexTypeWrapper? =
-    psiMethod.returnTypeElement?.let { PsiTypeElementWrapper(it) }
+  override fun getReturnType(): DaggerIndexTypeWrapper? = psiMethod.returnTypeElement?.let { PsiTypeElementWrapper(it) }
 
   override fun getParameters(): List<DaggerIndexParameterWrapper> =
     psiMethod.parameterList.parameters.map { PsiParameterWrapper(it, importHelper) }
 
   override fun getIsConstructor() = psiMethod.isConstructor
 
-  override fun getContainingClass(): DaggerIndexClassWrapper? =
-    psiMethod.containingClass?.let { PsiClassWrapper(it, importHelper) }
+  override fun getContainingClass(): DaggerIndexClassWrapper? = psiMethod.containingClass?.let { PsiClassWrapper(it, importHelper) }
 }

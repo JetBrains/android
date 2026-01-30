@@ -17,21 +17,9 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeProjectPath
 import java.io.File
-
 import java.io.Serializable
 
-data class IdeProjectPathImpl(
-  override val rootBuildId: FileImpl,
-  override val buildId: FileImpl,
-  override val projectPath: String
-): IdeProjectPath, Serializable {
-  constructor(
-    rootBuildId: File,
-    buildId: File,
-    projectPath: String
-  ) : this(
-    rootBuildId.toImpl(),
-    buildId.toImpl(),
-    projectPath
-  )
+data class IdeProjectPathImpl(override val rootBuildId: FileImpl, override val buildId: FileImpl, override val projectPath: String) :
+  IdeProjectPath, Serializable {
+  constructor(rootBuildId: File, buildId: File, projectPath: String) : this(rootBuildId.toImpl(), buildId.toImpl(), projectPath)
 }

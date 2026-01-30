@@ -35,11 +35,8 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
   ): Boolean {
     val surface = editor.scene.designSurface
     val isSelected =
-      surface.models
-        .firstOrNull()
-        ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
-        ?.sceneRenderConfiguration
-        ?.showDecorations ?: false
+      surface.models.firstOrNull()?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }?.sceneRenderConfiguration?.showDecorations
+        ?: false
     // A selected state could need to change to unselected due to changing to a wear device.
     // Make sure to update the selection here in such scenario
     if (isSelected && editor.configuration.device.isWear()) {
@@ -81,15 +78,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     modifiers: Int,
     selected: Boolean,
   ) {
-    super.updatePresentation(
-      presentation,
-      editor,
-      handler,
-      component,
-      selectedChildren,
-      modifiers,
-      selected,
-    )
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers, selected)
     presentation.setEnabled(!editor.configuration.device.isWear())
   }
 

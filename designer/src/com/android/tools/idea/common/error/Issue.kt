@@ -35,12 +35,7 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
 
   override val files: Set<VirtualFile> = setOf(component.model.virtualFile)
   override val displayText: String =
-    listOfNotNull(
-        component.model.displaySettings.modelDisplayName.value,
-        component.id,
-        "<${component.tagName}>",
-      )
-      .joinToString(" ")
+    listOfNotNull(component.model.displaySettings.modelDisplayName.value, component.id, "<${component.tagName}>").joinToString(" ")
 
   val component: NlComponent?
     get() = componentRef.get()
@@ -51,9 +46,7 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
 
   override fun setAttribute(namespace: String?, attribute: String, value: String?) {
     component?.let { component ->
-      NlWriteCommandActionUtil.run(component, "Update issue source") {
-        component.setAttribute(namespace, attribute, value)
-      }
+      NlWriteCommandActionUtil.run(component, "Update issue source") { component.setAttribute(namespace, attribute, value) }
     }
   }
 
@@ -95,9 +88,7 @@ interface IssueSource {
         override val displayText: String = model.displaySettings.modelDisplayName.value.orEmpty()
 
         override fun equals(other: Any?): Boolean =
-          other is IssueSource &&
-            Objects.equals(files, other.files) &&
-            Objects.equals(displayText, other.displayText)
+          other is IssueSource && Objects.equals(files, other.files) && Objects.equals(displayText, other.displayText)
 
         override fun hashCode(): Int = Objects.hash(files, displayText)
       }
@@ -129,10 +120,7 @@ abstract class Issue {
   /** Allows the [Issue] to return an HyperlinkListener to handle embedded links */
   open val hyperlinkListener: HyperlinkListener? = createDefaultHyperLinkListener()
 
-  /**
-   * Returns a Steam of pair containing the description of the fix as the first element and a
-   * [Runnable] to execute the fix
-   */
+  /** Returns a Steam of pair containing the description of the fix as the first element and a [Runnable] to execute the fix */
   open val fixes: Stream<Fix>
     get() = Stream.empty()
 
@@ -170,20 +158,12 @@ abstract class Issue {
   }
 
   /** Representation of a fix action for the issue. */
-  data class Fix(
-    override val buttonText: String = "Fix",
-    override val description: String,
-    override val action: Runnable,
-  ) : QuickFixable {
+  data class Fix(override val buttonText: String = "Fix", override val description: String, override val action: Runnable) : QuickFixable {
     override val icon = AllIcons.Actions.RealIntentionBulb
   }
 
   /** Representation of a suppress action for the issue. */
-  data class Suppress(
-    override val buttonText: String,
-    override val description: String,
-    override val action: Runnable,
-  ) : QuickFixable {
+  data class Suppress(override val buttonText: String, override val description: String, override val action: Runnable) : QuickFixable {
     override val icon = AllIcons.Actions.Cancel
   }
 

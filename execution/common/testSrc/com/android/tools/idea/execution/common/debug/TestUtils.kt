@@ -26,22 +26,26 @@ import com.intellij.execution.runners.GenericProgramRunner
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-internal fun createFakeExecutionEnvironment(project: Project,
-                                            name: String,
-                                            executor: Executor = DefaultRunExecutor.getRunExecutorInstance()): ExecutionEnvironment {
-  val runProfile = object : RunProfile {
-    override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? = null
-    override fun getName() = name
-    override fun getIcon(): Icon? = null
-  }
+internal fun createFakeExecutionEnvironment(
+  project: Project,
+  name: String,
+  executor: Executor = DefaultRunExecutor.getRunExecutorInstance(),
+): ExecutionEnvironment {
+  val runProfile =
+    object : RunProfile {
+      override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? = null
 
-  val programRunner = object : GenericProgramRunner<RunnerSettings>() {
-    override fun canRun(executorId: String, profile: RunProfile): Boolean = true
-    override fun getRunnerId() = "FakeDebuggerRunner"
-  }
+      override fun getName() = name
 
-  return ExecutionEnvironmentBuilder(project, executor)
-    .runProfile(runProfile)
-    .runner(programRunner)
-    .build()
+      override fun getIcon(): Icon? = null
+    }
+
+  val programRunner =
+    object : GenericProgramRunner<RunnerSettings>() {
+      override fun canRun(executorId: String, profile: RunProfile): Boolean = true
+
+      override fun getRunnerId() = "FakeDebuggerRunner"
+    }
+
+  return ExecutionEnvironmentBuilder(project, executor).runProfile(runProfile).runner(programRunner).build()
 }

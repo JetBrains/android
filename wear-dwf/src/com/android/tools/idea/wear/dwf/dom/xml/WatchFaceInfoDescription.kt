@@ -25,9 +25,7 @@ import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription
 /**
  * File description for Watch Face Info XML files.
  *
- * @see <a
- *   href="https://developer.android.com/training/wearables/wff/setup#declare-metadata">Declare
- *   watch face metadata</a>
+ * @see <a href="https://developer.android.com/training/wearables/wff/setup#declare-metadata">Declare watch face metadata</a>
  */
 class WatchFaceInfoDescription :
   CustomLogicResourceDomFileDescription<WatchFaceInfoElement>(
@@ -36,6 +34,5 @@ class WatchFaceInfoDescription :
     SdkConstants.TAG_WATCH_FACE_INFO,
   ) {
 
-  override fun checkFile(file: XmlFile, module: Module?) =
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() == true
+  override fun checkFile(file: XmlFile, module: Module?) = StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() == true
 }

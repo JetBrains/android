@@ -33,27 +33,22 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class GradleTaskRunnerTest {
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun `successful and failed build`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       val appModule = project.gradleModule(":app")!!
-      val tasksToRun =
-        mapOf(preparedProject.root.toPath() to listOf(":app:assembleDebug"))
+      val tasksToRun = mapOf(preparedProject.root.toPath() to listOf(":app:assembleDebug"))
 
-      expect.that(
-        GradleTaskRunner.run(
-          project,
-          arrayOf(appModule),
-          tasksToRun,
-          BuildMode.ASSEMBLE,
-          listOf(),
-          ExecutionEnvironment()
-        ).isBuildSuccessful
-      ).named("Successful build result").isTrue()
+      expect
+        .that(
+          GradleTaskRunner.run(project, arrayOf(appModule), tasksToRun, BuildMode.ASSEMBLE, listOf(), ExecutionEnvironment())
+            .isBuildSuccessful
+        )
+        .named("Successful build result")
+        .isTrue()
 
       // Set the activity file content to something that does not compile.
       runWriteActionAndWait {
@@ -62,20 +57,16 @@ class GradleTaskRunnerTest {
           .setBinaryContent("***THIS IS ERROR***".toByteArray())
       }
 
-      expect.that(
-        GradleTaskRunner.run(
-          project,
-          arrayOf(appModule),
-          tasksToRun,
-          BuildMode.ASSEMBLE,
-          listOf(),
-          ExecutionEnvironment()
+      expect
+        .that(
+          GradleTaskRunner.run(project, arrayOf(appModule), tasksToRun, BuildMode.ASSEMBLE, listOf(), ExecutionEnvironment())
+            .isBuildSuccessful
+            .let { !it }
         )
-          .isBuildSuccessful.let { !it }
-      ).named("Failed build result").isTrue()
+        .named("Failed build result")
+        .isTrue()
     }
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 }

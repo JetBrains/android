@@ -45,8 +45,7 @@ import com.intellij.util.ui.JBUI
 /**
  * The Logcat panel `Document` version is updated whenever it's cleared.
  *
- * This can be used by components that run in the background to abandon scheduled work if the
- * document is obsolete.
+ * This can be used by components that run in the background to abandon scheduled work if the document is obsolete.
  */
 private val DOC_VERSION_KEY = Key<Int>("DOC_VERSION_KEY")
 
@@ -92,39 +91,29 @@ internal fun EditorEx.updateFontSize() {
       false -> UISettingsUtils.getInstance().scaledConsoleFontSize
     }
   setFontSize(fontSize)
-  colorsScheme =
-    ConsoleViewUtil.updateConsoleColorScheme(colorsScheme).apply { setEditorFontSize(fontSize) }
+  colorsScheme = ConsoleViewUtil.updateConsoleColorScheme(colorsScheme).apply { setEditorFontSize(fontSize) }
 }
 
 /** Returns true if the caret is at the bottom of the editor document. */
-@UiThread
-internal fun EditorEx.isCaretAtBottom() =
-  document.let { it.getLineNumber(caretModel.offset) >= it.lineCount - 1 }
+@UiThread internal fun EditorEx.isCaretAtBottom() = document.let { it.getLineNumber(caretModel.offset) >= it.lineCount - 1 }
 
 /** Returns true if the editor vertical scroll position is at the bottom. */
 @UiThread
 internal fun EditorEx.isScrollAtBottom(useImmediatePosition: Boolean): Boolean {
   val scrollBar = scrollPane.verticalScrollBar
-  val position =
-    if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
+  val position = if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
   return scrollBar.maximum - scrollBar.visibleAmount == position
 }
 
-internal fun EditorEx.getFilterHint(
-  offset: Int,
-  formattingOptions: FormattingOptions,
-): FilterHint? {
+internal fun EditorEx.getFilterHint(offset: Int, formattingOptions: FormattingOptions): FilterHint? {
   var result: FilterHint? = null
   document.processRangeMarkersOverlappingWith(offset, offset) {
-    val header =
-      it.getUserData(LOGCAT_MESSAGE_KEY)?.header ?: return@processRangeMarkersOverlappingWith true
+    val header = it.getUserData(LOGCAT_MESSAGE_KEY)?.header ?: return@processRangeMarkersOverlappingWith true
     val pos = offset - it.startOffset
     result =
       when {
-        formattingOptions.getTagRange().isWithin(pos) ->
-          Tag(header.tag, formattingOptions.tagFormat.width() - 1)
-        formattingOptions.getAppIdRange().isWithin(pos) ->
-          AppName(header.applicationId, formattingOptions.appNameFormat.width() - 1)
+        formattingOptions.getTagRange().isWithin(pos) -> Tag(header.tag, formattingOptions.tagFormat.width() - 1)
+        formattingOptions.getAppIdRange().isWithin(pos) -> AppName(header.applicationId, formattingOptions.appNameFormat.width() - 1)
         formattingOptions.getLeveRange().isWithin(pos) -> Level(header.logLevel)
         else -> null
       }

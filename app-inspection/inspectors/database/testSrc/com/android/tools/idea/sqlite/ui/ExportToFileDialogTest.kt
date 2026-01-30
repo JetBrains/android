@@ -87,21 +87,14 @@ class ExportToFileDialogTest {
 
   @get:Rule val rule = RuleChain(projectRule, disposableRule, usageTrackerRule, EdtRule())
 
-  private val inFileDatabaseId =
-    SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
+  private val inFileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
   private val inMemoryDatabaseId = SqliteDatabaseId.fromLiveDatabase(":memory: database1337", 1337)
 
   // memory-backed
-  private val column1 =
-    SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
-  private val column2 =
-    SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
   private val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
-  private val query =
-    SqliteStatement(
-      SELECT,
-      "select * from ${table1.name} where ${table1.columns.first().name} == qwerty",
-    )
+  private val query = SqliteStatement(SELECT, "select * from ${table1.name} where ${table1.columns.first().name} == qwerty")
 
   @Before
   fun setUp() {
@@ -115,17 +108,14 @@ class ExportToFileDialogTest {
 
     createModalDialogAndInteractWithIt({ dialog.show() }) {}
 
-    assertThat(usageTrackerRule.events())
-      .contains(exportDialogOpenedEvent(SCHEMA_TREE_CONTEXT_MENU))
+    assertThat(usageTrackerRule.events()).contains(exportDialogOpenedEvent(SCHEMA_TREE_CONTEXT_MENU))
   }
 
   @Test
   fun exportDatabase_title() {
     val dialog = exportToFileDialogViewImpl(exportDatabaseDialogParams())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) {
-      assertThat(it.title).isEqualTo("Export Database")
-    }
+    createModalDialogAndInteractWithIt({ dialog.show() }) { assertThat(it.title).isEqualTo("Export Database") }
   }
 
   @Test
@@ -178,9 +168,7 @@ class ExportToFileDialogTest {
   fun exportTable_title() {
     val dialog = exportToFileDialogViewImpl(exportTableDialogParams())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) {
-      assertThat(it.title).isEqualTo("Export Table")
-    }
+    createModalDialogAndInteractWithIt({ dialog.show() }) { assertThat(it.title).isEqualTo("Export Table") }
   }
 
   @Test
@@ -223,9 +211,7 @@ class ExportToFileDialogTest {
   fun exportQuery_title() {
     val dialog = exportToFileDialogViewImpl(exportQueryDialogParams())
 
-    createModalDialogAndInteractWithIt({ dialog.show() }) {
-      assertThat(it.title).isEqualTo("Export Query Results")
-    }
+    createModalDialogAndInteractWithIt({ dialog.show() }) { assertThat(it.title).isEqualTo("Export Query Results") }
   }
 
   @Test
@@ -290,8 +276,7 @@ class ExportToFileDialogTest {
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialog ->
       dialog.selectFormat("CSV")
 
-      assertThat(dialog.delimiterComboBox().items)
-        .containsExactly("Semicolon (;)", "Tab (↹)", "Comma (,)", "Vertical Bar (|)", "Space (␣)")
+      assertThat(dialog.delimiterComboBox().items).containsExactly("Semicolon (;)", "Tab (↹)", "Comma (,)", "Vertical Bar (|)", "Space (␣)")
     }
   }
 
@@ -411,8 +396,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, DB, Path.of("/foo.db")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, DB, Path.of("/foo.db")))
   }
 
   @Test
@@ -426,8 +410,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, SQL, Path.of("/foo.sql")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, SQL, Path.of("/foo.sql")))
   }
 
   @Test
@@ -441,8 +424,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(SEMICOLON), Path.of("/foo.zip")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(SEMICOLON), Path.of("/foo.zip")))
   }
 
   @Test
@@ -457,10 +439,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(
-        ExportDatabaseRequest(inFileDatabaseId, CSV(VERTICAL_BAR), Path.of("/foo.zip"))
-      )
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(VERTICAL_BAR), Path.of("/foo.zip")))
   }
 
   @Test
@@ -474,8 +453,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, DB, Path.of("/foo.db")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, DB, Path.of("/foo.db")))
   }
 
   @Test
@@ -489,8 +467,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, SQL, Path.of("/foo.sql")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, SQL, Path.of("/foo.sql")))
   }
 
   @Test
@@ -504,8 +481,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(SEMICOLON), Path.of("/foo.zip")))
+    assertThat(requestListener.requests).containsExactly(ExportDatabaseRequest(inFileDatabaseId, CSV(SEMICOLON), Path.of("/foo.zip")))
   }
 
   @Test
@@ -519,8 +495,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportTableRequest(inFileDatabaseId, "t1", SQL, Path.of("/foo.sql")))
+    assertThat(requestListener.requests).containsExactly(ExportTableRequest(inFileDatabaseId, "t1", SQL, Path.of("/foo.sql")))
   }
 
   @Test
@@ -534,10 +509,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(
-        ExportTableRequest(inFileDatabaseId, "t1", CSV(SEMICOLON), Path.of("/foo.csv"))
-      )
+    assertThat(requestListener.requests).containsExactly(ExportTableRequest(inFileDatabaseId, "t1", CSV(SEMICOLON), Path.of("/foo.csv")))
   }
 
   @Test
@@ -551,8 +523,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(ExportTableRequest(inFileDatabaseId, "t1", SQL, Path.of("/foo.sql")))
+    assertThat(requestListener.requests).containsExactly(ExportTableRequest(inFileDatabaseId, "t1", SQL, Path.of("/foo.sql")))
   }
 
   @Test
@@ -566,10 +537,7 @@ class ExportToFileDialogTest {
       dialog.clickExport()
     }
 
-    assertThat(requestListener.requests)
-      .containsExactly(
-        ExportTableRequest(inFileDatabaseId, "t1", CSV(SEMICOLON), Path.of("/foo.csv"))
-      )
+    assertThat(requestListener.requests).containsExactly(ExportTableRequest(inFileDatabaseId, "t1", CSV(SEMICOLON), Path.of("/foo.csv")))
   }
 
   @Test
@@ -584,9 +552,7 @@ class ExportToFileDialogTest {
     }
 
     assertThat(requestListener.requests)
-      .containsExactly(
-        ExportQueryResultsRequest(inFileDatabaseId, query, CSV(SEMICOLON), Path.of("/foo.csv"))
-      )
+      .containsExactly(ExportQueryResultsRequest(inFileDatabaseId, query, CSV(SEMICOLON), Path.of("/foo.csv")))
   }
 
   @Test
@@ -601,9 +567,7 @@ class ExportToFileDialogTest {
     }
 
     assertThat(requestListener.requests)
-      .containsExactly(
-        ExportQueryResultsRequest(inFileDatabaseId, query, CSV(SEMICOLON), Path.of("/foo.csv"))
-      )
+      .containsExactly(ExportQueryResultsRequest(inFileDatabaseId, query, CSV(SEMICOLON), Path.of("/foo.csv")))
   }
 
   private val Delimiter.displayName: String
@@ -619,10 +583,8 @@ class ExportToFileDialogTest {
   private val <T> ComboBox<T>.items
     get() = (0 until itemCount).map { getItemAt(it) }
 
-  private fun exportDatabaseDialogParams(
-    databaseId: SqliteDatabaseId = inFileDatabaseId,
-    actioOrigin: Origin = UNKNOWN_ORIGIN,
-  ) = ExportDatabaseDialogParams(databaseId, actioOrigin)
+  private fun exportDatabaseDialogParams(databaseId: SqliteDatabaseId = inFileDatabaseId, actioOrigin: Origin = UNKNOWN_ORIGIN) =
+    ExportDatabaseDialogParams(databaseId, actioOrigin)
 
   private fun exportTableDialogParams(
     databaseId: SqliteDatabaseId = inFileDatabaseId,
@@ -636,9 +598,8 @@ class ExportToFileDialogTest {
     actioOrigin: Origin = UNKNOWN_ORIGIN,
   ) = ExportQueryResultsDialogParams(databaseId, query, actioOrigin)
 
-  private fun exportToFileDialogViewImpl(
-    params: ExportDialogParams = exportDatabaseDialogParams()
-  ) = ExportToFileDialogViewImpl(project, params)
+  private fun exportToFileDialogViewImpl(params: ExportDialogParams = exportDatabaseDialogParams()) =
+    ExportToFileDialogViewImpl(project, params)
 
   private class RequestListener : ExportToFileDialogView.Listener {
     val requests = mutableListOf<ExportRequest>()
@@ -659,8 +620,7 @@ private fun exportDialogOpenedEvent(origin: Origin) =
     .setExportDialogOpenedEvent(ExportDialogOpenedEvent.newBuilder().setOrigin(origin))
     .build()
 
-private fun DialogWrapper.formatButtons() =
-  rootPane.findAllDescendants<JRadioButton> { it.isVisible }.toList()
+private fun DialogWrapper.formatButtons() = rootPane.findAllDescendants<JRadioButton> { it.isVisible }.toList()
 
 private fun DialogWrapper.delimiterComboBox() = rootPane.getDescendant<ComboBox<String>>()
 
@@ -672,8 +632,6 @@ private fun DialogWrapper.destinationPathTextField() = rootPane.getDescendant<Ex
 
 private fun DialogWrapper.exportButton() = rootPane.getDescendant<JButton> { it.text == "Export" }
 
-private fun DialogWrapper.clickExport() =
-  rootPane.getDescendant<JButton> { it.text == "Export" }.doClick()
+private fun DialogWrapper.clickExport() = rootPane.getDescendant<JButton> { it.text == "Export" }.doClick()
 
-private fun DialogWrapper.clickCancel() =
-  rootPane.getDescendant<JButton> { it.text == "Cancel" }.doClick()
+private fun DialogWrapper.clickCancel() = rootPane.getDescendant<JButton> { it.text == "Cancel" }.doClick()

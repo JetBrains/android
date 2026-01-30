@@ -24,13 +24,13 @@ import org.junit.Rule
 import org.junit.Test
 
 class ProjectCatalogSyncDependentTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestProjectPaths.TEST_DATA_PATH
   }
+
   @Test
   fun testImportedCatalog() {
     projectRule.loadProject(TestProjectPaths.PSD_IMPORTED_VERSION_CATALOG_SAMPLE_GROOVY)

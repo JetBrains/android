@@ -25,8 +25,7 @@ object NavigationTargetProvider : TargetProvider {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     return listOf(
       if (sceneComponent.childCount == 0) EmptyDesignerTarget(sceneComponent.scene.designSurface)
-      else
-        LassoTarget(/* selectWhileDragging= */ true, /* showMargins= */ false, /* recurse= */ true)
+      else LassoTarget(/* selectWhileDragging= */ true, /* showMargins= */ false, /* recurse= */ true)
     )
   }
 }

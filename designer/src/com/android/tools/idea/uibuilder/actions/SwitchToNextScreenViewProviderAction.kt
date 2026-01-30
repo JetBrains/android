@@ -26,16 +26,12 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Action to change the current Scene View in the Design Surface to the next option as defined in
- * [NlScreenViewProvider].
- */
+/** Action to change the current Scene View in the Design Surface to the next option as defined in [NlScreenViewProvider]. */
 class SwitchToNextScreenViewProviderAction : AnAction() {
   companion object {
     @JvmStatic
     fun getInstance(): SwitchToNextScreenViewProviderAction {
-      return ActionManager.getInstance().getAction(DesignerActions.ACTION_SWITCH_DESIGN_MODE)
-        as SwitchToNextScreenViewProviderAction
+      return ActionManager.getInstance().getAction(DesignerActions.ACTION_SWITCH_DESIGN_MODE) as SwitchToNextScreenViewProviderAction
     }
   }
 
@@ -44,8 +40,7 @@ class SwitchToNextScreenViewProviderAction : AnAction() {
       e.presentation.isEnabled = false
       return
     }
-    e.presentation.isEnabled =
-      e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_DESIGN_MODE)
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_DESIGN_MODE)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -21,14 +21,8 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiElement
 
 class AndroidLintNewerVersionAvailableInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.newer.version.available"),
-    GradleDetector.REMOTE_VERSION,
-  ) {
-  override fun getIntentions(
-    startElement: PsiElement,
-    endElement: PsiElement,
-  ): Array<out IntentionAction>? {
+  AndroidLintInspectionBase(message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION) {
+  override fun getIntentions(startElement: PsiElement, endElement: PsiElement): Array<out IntentionAction>? {
     val actions = DependencyUpdateProvider.EP_NAME.extensionList.map { it.getUpdateProvider() }
     if (actions.isNotEmpty()) {
       return actions.toTypedArray()

@@ -40,16 +40,11 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
   companion object {
     @JvmStatic
     fun isVertical(component: NlComponent): Boolean {
-      return ATTR_GUIDELINE_ORIENTATION_VERTICAL ==
-        component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
+      return ATTR_GUIDELINE_ORIENTATION_VERTICAL == component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
     }
   }
 
   override fun getInspectorProperties(): List<String> {
-    return ImmutableList.of(
-      LAYOUT_CONSTRAINT_GUIDE_BEGIN,
-      LAYOUT_CONSTRAINT_GUIDE_END,
-      LAYOUT_CONSTRAINT_GUIDE_PERCENT,
-    )
+    return ImmutableList.of(LAYOUT_CONSTRAINT_GUIDE_BEGIN, LAYOUT_CONSTRAINT_GUIDE_END, LAYOUT_CONSTRAINT_GUIDE_PERCENT)
   }
 }

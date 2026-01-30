@@ -18,14 +18,14 @@ package com.android.tools.idea.gradle.model
 
 import com.android.builder.model.ClassField
 
-data class ClassFieldStub(
-    private val typeString: String,
-    private val nameString: String,
-    private val valueString: String
-) : ClassField {
-    override fun getType(): String = typeString
-    override fun getAnnotations(): MutableSet<String> = mutableSetOf()
-    override fun getName(): String = nameString
-    override fun getDocumentation(): String = ""
-    override fun getValue(): String = valueString
+data class ClassFieldStub(private val typeString: String, private val nameString: String, private val valueString: String) : ClassField {
+  override fun getType(): String = typeString
+
+  override fun getAnnotations(): MutableSet<String> = mutableSetOf()
+
+  override fun getName(): String = nameString
+
+  override fun getDocumentation(): String = ""
+
+  override fun getValue(): String = valueString
 }

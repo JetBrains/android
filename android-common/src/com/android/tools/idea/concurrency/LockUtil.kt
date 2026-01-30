@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("LockUtil")
+
 package com.android.tools.idea.concurrency
 
 import com.intellij.openapi.application.runReadAction

@@ -74,8 +74,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
 ) : JPanel(BorderLayout()) {
   private val eventDispatcher = EventDispatcher.create(CheckboxTreeListener::class.java)
 
-  @VisibleForTesting
-  val helper = CheckboxTreeHelper(CheckboxTreeHelper.DEFAULT_POLICY, eventDispatcher)
+  @VisibleForTesting val helper = CheckboxTreeHelper(CheckboxTreeHelper.DEFAULT_POLICY, eventDispatcher)
 
   @VisibleForTesting val root = Node("All")
 
@@ -85,8 +84,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       layout = BoxLayout(this, BoxLayout.LINE_AXIS)
       border = JBUI.Borders.empty(1)
     }
-  private val primaryToSecondaryGroups =
-    selection.items.associate { it.value to secondaryGroupSupplier(it.value) }
+  private val primaryToSecondaryGroups = selection.items.associate { it.value to secondaryGroupSupplier(it.value) }
 
   private val secondaryToPrimaryGroups =
     selection.items
@@ -119,8 +117,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
 
           override fun getAdditionalWidth() = JBUI.scale(10)
 
-          override fun getPreferredStringValue() =
-            listOf(getIssueCount(root).toString(), "Events").maxBy { string -> string.length }
+          override fun getPreferredStringValue() = listOf(getIssueCount(root).toString(), "Events").maxBy { string -> string.length }
 
           override fun valueOf(item: CheckedTreeNode) = getIssueCount(item)
 
@@ -150,21 +147,14 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     val scrollPanel =
       object : ScrollablePanel(BorderLayout()) {
         override fun getPreferredSize() =
-          Dimension(
-            treeTable.preferredSize.width + JBUI.scale(18),
-            treeTable.preferredSize.height + JBUI.scale(4),
-          )
+          Dimension(treeTable.preferredSize.width + JBUI.scale(18), treeTable.preferredSize.height + JBUI.scale(4))
 
-        override fun getPreferredScrollableViewportSize() =
-          Dimension(preferredSize.width, preferredSize.height.coerceAtMost(500))
+        override fun getPreferredScrollableViewportSize() = Dimension(preferredSize.width, preferredSize.height.coerceAtMost(500))
       }
     val scrollPane =
       object : JBScrollPane(scrollPanel) {
         override fun getPreferredSize() =
-          Dimension(
-            scrollPanel.preferredScrollableViewportSize.width,
-            scrollPanel.preferredScrollableViewportSize.height + JBUI.scale(4),
-          )
+          Dimension(scrollPanel.preferredScrollableViewportSize.width, scrollPanel.preferredScrollableViewportSize.height + JBUI.scale(4))
       }
     scrollPanel.add(treeTable, BorderLayout.CENTER)
     scrollPanel.border = JBUI.Borders.empty(3, 0, 0, 12)
@@ -178,9 +168,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           updateTreeNodes { it.lowercase().contains(searchText) }
           val toExpand = mutableListOf<TreePath>()
           root.children().asSequence().forEach { child ->
-            if (
-              child.children().asSequence().any { getNodeText(it).lowercase().contains(searchText) }
-            ) {
+            if (child.children().asSequence().any { getNodeText(it).lowercase().contains(searchText) }) {
               toExpand.add(TreePath(arrayOf(root, child)))
             }
           }
@@ -210,10 +198,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
         val tableHeaderPanel =
           transparentPanel(BorderLayout()).apply {
             border = JBUI.Borders.emptyRight(10)
-            add(
-              JLabel(primaryColumnName).apply { font = font.deriveFont(JBFont.BOLD) },
-              BorderLayout.WEST,
-            )
+            add(JLabel(primaryColumnName).apply { font = font.deriveFont(JBFont.BOLD) }, BorderLayout.WEST)
             add(JLabel("Events").apply { font = font.deriveFont(JBFont.BOLD) }, BorderLayout.EAST)
           }
         add(tableHeaderPanel)
@@ -235,8 +220,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
             val available = secondaryToPrimaryGroups[boxGroup] ?: emptySet()
             box.state =
               if (selected.isEmpty()) ThreeStateCheckBox.State.NOT_SELECTED
-              else if (selected == available) ThreeStateCheckBox.State.SELECTED
-              else ThreeStateCheckBox.State.DONT_CARE
+              else if (selected == available) ThreeStateCheckBox.State.SELECTED else ThreeStateCheckBox.State.DONT_CARE
           }
         }
       }
@@ -261,8 +245,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       val available = secondaryToPrimaryGroups[item] ?: emptySet()
       val state =
         if (selected.isEmpty()) ThreeStateCheckBox.State.NOT_SELECTED
-        else if (selected != available) ThreeStateCheckBox.State.DONT_CARE
-        else ThreeStateCheckBox.State.SELECTED
+        else if (selected != available) ThreeStateCheckBox.State.DONT_CARE else ThreeStateCheckBox.State.SELECTED
       secondaryGrouping.add(
         ThreeStateCheckBox(item.groupName, state)
           .also { box ->
@@ -272,10 +255,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
               if (box.state == ThreeStateCheckBox.State.DONT_CARE) return@addItemListener
               val newState = box.state == ThreeStateCheckBox.State.SELECTED
               val matchingVersions = secondaryToPrimaryGroups[item] ?: emptySet()
-              selection =
-                matchingVersions.fold(selection) { acc, value ->
-                  if (newState) acc.select(value) else acc.deselect(value)
-                }
+              selection = matchingVersions.fold(selection) { acc, value -> if (newState) acc.select(value) else acc.deselect(value) }
               root.checkMatching<T>(newState) {
                 val set = primaryToSecondaryGroups[it] ?: return@checkMatching false
                 item in set
@@ -290,10 +270,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   private fun getIssueCount(node: CheckedTreeNode): Long =
     when (node) {
       is Leaf<*> -> node.item.count
-      else ->
-        node.children().asSequence().sumOf { child: TreeNode ->
-          getIssueCount(child as CheckedTreeNode)
-        }
+      else -> node.children().asSequence().sumOf { child: TreeNode -> getIssueCount(child as CheckedTreeNode) }
     }
 
   private fun createTree(columns: Array<ColumnInfo<out Any, out Any>>): TreeTableView {
@@ -330,9 +307,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     return treeTable
   }
 
-  private fun filterGroupAndSortItems(
-    filter: (String) -> Boolean
-  ): List<FilteredGroup<WithCount<T>>> =
+  private fun filterGroupAndSortItems(filter: (String) -> Boolean): List<FilteredGroup<WithCount<T>>> =
     selection.items
       .groupBy { groupNameSupplier(it.value) }
       .mapNotNull { entry ->
@@ -359,16 +334,10 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     groupedValues.forEach { (groupingKey, values, wasMultiple) ->
       val node =
         if (!wasMultiple) {
-          values.single().let { withCount ->
-            Leaf(withCount).apply { isChecked = withCount in selection.selected }
-          }
+          values.single().let { withCount -> Leaf(withCount).apply { isChecked = withCount in selection.selected } }
         } else {
           val node =
-            Node(groupingKey).apply {
-              values.forEach { value ->
-                add(Leaf(value).apply { isChecked = value in selection.selected })
-              }
-            }
+            Node(groupingKey).apply { values.forEach { value -> add(Leaf(value).apply { isChecked = value in selection.selected }) } }
           if (node.childCount > 0) node else null
         }
       if (node != null) {
@@ -392,15 +361,9 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
 
   fun asPopup(): JBPopup {
     val popup =
-      JBPopupFactory.getInstance()
-        .createComponentPopupBuilder(this, searchTextField)
-        .setFocusable(true)
-        .setRequestFocus(true)
-        .createPopup()
+      JBPopupFactory.getInstance().createComponentPopupBuilder(this, searchTextField).setFocusable(true).setRequestFocus(true).createPopup()
     val updatePopupSize = {
-      scope.launch(AndroidDispatchers.uiThread) {
-        popup.size = Dimension(preferredSize.width, preferredSize.height + 3)
-      }
+      scope.launch(AndroidDispatchers.uiThread) { popup.size = Dimension(preferredSize.width, preferredSize.height + 3) }
       Unit
     }
     updatePopupSize()

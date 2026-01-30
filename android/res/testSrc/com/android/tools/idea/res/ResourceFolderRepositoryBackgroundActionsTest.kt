@@ -23,12 +23,12 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.application
-import kotlinx.coroutines.CoroutineExceptionHandler
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineExceptionHandler
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -45,7 +45,9 @@ class ResourceFolderRepositoryBackgroundActionsTest {
     // Enabling tracing ensures all the log lines show up in the test log, and that there aren't any
     // exceptions there.
     ResourceUpdateTracer.getInstance().startTracing()
-    ResourceFolderRepositoryBackgroundActions.testOverriddenBackgroundTaskContext = CoroutineExceptionHandler { _, t -> t.printStackTrace() }
+    ResourceFolderRepositoryBackgroundActions.testOverriddenBackgroundTaskContext = CoroutineExceptionHandler { _, t ->
+      t.printStackTrace()
+    }
   }
 
   @After
@@ -338,15 +340,9 @@ class ResourceFolderRepositoryBackgroundActionsTest {
 
       exceptionThrown.acquire()
       Thread.sleep(1000)
-      ResourceFolderRepositoryBackgroundActions.runInBackground {
-        actionCompletedCount.incrementAndGet()
-      }
-      ResourceFolderRepositoryBackgroundActions.runInBackground {
-        actionCompletedCount.incrementAndGet()
-      }
-      ResourceFolderRepositoryBackgroundActions.runInBackground {
-        actionCompletedCount.incrementAndGet()
-      }
+      ResourceFolderRepositoryBackgroundActions.runInBackground { actionCompletedCount.incrementAndGet() }
+      ResourceFolderRepositoryBackgroundActions.runInBackground { actionCompletedCount.incrementAndGet() }
+      ResourceFolderRepositoryBackgroundActions.runInBackground { actionCompletedCount.incrementAndGet() }
 
       waitForCondition(10.seconds) { actionCompletedCount.get() == 3 }
     }

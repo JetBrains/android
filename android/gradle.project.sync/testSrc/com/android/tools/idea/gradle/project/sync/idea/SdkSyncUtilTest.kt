@@ -26,6 +26,10 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.RootProvider
 import com.intellij.testFramework.replaceService
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
@@ -34,18 +38,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.io.File
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
 
 class SdkSyncUtilTest {
   private val androidSdks = mock<AndroidSdks>()
   private val sdk = mock<Sdk>()
   private val ideSdks = mock<IdeSdks>()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Before
@@ -67,13 +66,7 @@ class SdkSyncUtilTest {
       sdk
     }
 
-    assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(
-      project,
-      "ModuleName",
-      "WatchedCompileTarget",
-      listOf(),
-      ideSdks
-    ))
+    assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(project, "ModuleName", "WatchedCompileTarget", listOf(), ideSdks))
 
     verify(repoManager).reloadLocalIfNeeded(any())
   }
@@ -97,13 +90,7 @@ class SdkSyncUtilTest {
     doNothing().whenever(mockTable).removeJdk(any())
     ApplicationManager.getApplication().replaceService(ProjectJdkTable::class.java, mockTable, project)
 
-    assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(
-      project,
-      "ModuleName",
-      compileTarget,
-      listOf(),
-      ideSdks
-    ))
+    assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(project, "ModuleName", compileTarget, listOf(), ideSdks))
 
     verify(mockTable).removeJdk(eq(sdk))
     verify(repoManager).reloadLocalIfNeeded(any())
@@ -117,12 +104,15 @@ class SdkSyncUtilTest {
     whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     whenever(androidSdks.tryToCreate(any(), any())).thenAnswer { null }
 
-    assertEquals(null, androidSdks.computeSdkReloadingAsNeeded(
-      project,
-      "ModuleName",
-      "WatchedCompileTarget",
-      listOf("android.jar", "foo.jar"), // need bootclasspath with at least 2 elements
-      ideSdks
-    ))
+    assertEquals(
+      null,
+      androidSdks.computeSdkReloadingAsNeeded(
+        project,
+        "ModuleName",
+        "WatchedCompileTarget",
+        listOf("android.jar", "foo.jar"), // need bootclasspath with at least 2 elements
+        ideSdks,
+      ),
+    )
   }
 }

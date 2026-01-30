@@ -74,10 +74,9 @@ import org.w3c.dom.Document
 import org.xml.sax.SAXException
 
 /**
- * IDE-side fix performer; delegates most work to the lint performer to create all the editing
- * operations, but performs the edits on IDE documents instead of directly on files, and taps into
- * IDE facilities like reference shortening and code formatting using the user's preferred code
- * style.
+ * IDE-side fix performer; delegates most work to the lint performer to create all the editing operations, but performs the edits on IDE
+ * documents instead of directly on files, and taps into IDE facilities like reference shortening and code formatting using the user's
+ * preferred code style.
  */
 class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
 
@@ -90,11 +89,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
     }
   }
 
-  override fun applyEdits(
-    fileProvider: FileProvider,
-    fileData: PendingEditFile,
-    edits: List<PendingEdit>,
-  ) {
+  override fun applyEdits(fileProvider: FileProvider, fileData: PendingEditFile, edits: List<PendingEdit>) {
     // In the IDE we should always be passing in a lambda when we call
     // applyEdits since here we want to pass in additional context (such as the
     // PsiElement to be operated on -- since we may use the same fix both in a
@@ -175,9 +170,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
           return arrayOf(ShowUrlQuickFix(fix))
         }
         is DataMap -> {
-          error(
-            "A DataMap fix should only be used with inspections that override `getQuickFixes` (issue id: ${incident.issue.id})"
-          )
+          error("A DataMap fix should only be used with inspections that override `getQuickFixes` (issue id: ${incident.issue.id})")
         }
       }
 
@@ -255,11 +248,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
       }
     }
 
-    private fun collectDisjointDescendantsCoveringRange(
-      parent: PsiElement,
-      fileRange: TextRange,
-      out: MutableList<PsiElement>,
-    ) {
+    private fun collectDisjointDescendantsCoveringRange(parent: PsiElement, fileRange: TextRange, out: MutableList<PsiElement>) {
       var child = parent.firstChild
       while (child != null) {
         val childRange = child.textRange
@@ -294,8 +283,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
   }
 }
 
-open class LintIdeReadOnlyFileProvider(private val project: Project) :
-  LintFixPerformer.FileProvider {
+open class LintIdeReadOnlyFileProvider(private val project: Project) : LintFixPerformer.FileProvider {
   @RequiresReadLock
   override fun getFileContents(file: PendingEditFile): String {
     return file.file.toPsiFile(project)?.text ?: ""
@@ -325,10 +313,8 @@ open class LintIdeReadOnlyFileProvider(private val project: Project) :
 }
 
 @Suppress("UnstableApiUsage")
-class LintIdeReadWriteFileProvider(
-  private val project: Project,
-  private val updater: ModPsiUpdater,
-) : LintIdeReadOnlyFileProvider(project) {
+class LintIdeReadWriteFileProvider(private val project: Project, private val updater: ModPsiUpdater) :
+  LintIdeReadOnlyFileProvider(project) {
 
   override fun createBinaryFile(fileData: PendingEditFile, contents: ByteArray) {
     val file = fileData.file
@@ -354,15 +340,12 @@ class LintIdeReadWriteFileProvider(
 }
 
 /**
- * A [LintIdeQuickFix] implementation which uses the [LintFixPerformer] behind the scenes. When
- * first constructed, it creates a list of [edits], tracking an affected range with a smart element
- * pointer. Whenever the [isApplicable] method is called (for example by the Inspections UI
- * periodically to show whether the fix should still be enabled), it checks that the document
- * fragments are still valid at the current (possibly shifted or edited) locations, and in apply, it
- * goes and performs the edits, again possibly with shifted offsets.
+ * A [LintIdeQuickFix] implementation which uses the [LintFixPerformer] behind the scenes. When first constructed, it creates a list of
+ * [edits], tracking an affected range with a smart element pointer. Whenever the [isApplicable] method is called (for example by the
+ * Inspections UI periodically to show whether the fix should still be enabled), it checks that the document fragments are still valid at
+ * the current (possibly shifted or edited) locations, and in apply, it goes and performs the edits, again possibly with shifted offsets.
  *
- * While [LintFixPerformer] operates on plain files, here we map to VirtualFiles, PsiFiles and
- * Documents first.
+ * While [LintFixPerformer] operates on plain files, here we map to VirtualFiles, PsiFiles and Documents first.
  */
 @Suppress("UnstableApiUsage")
 private class LintIdeFixPerformerFix(
@@ -381,12 +364,7 @@ private class LintIdeFixPerformerFix(
 
   init {
     // Collect edits
-    val affectedFiles =
-      performer.registerFixes(
-        incident.copySafe(),
-        listOf(fix),
-        LintIdeReadOnlyFileProvider(project),
-      )
+    val affectedFiles = performer.registerFixes(incident.copySafe(), listOf(fix), LintIdeReadOnlyFileProvider(project))
     val manager = SmartPointerManager.getInstance(project)
     for (file in affectedFiles) {
       val psiFile = file.file.toVirtualFile()?.toPsiFile(project)
@@ -396,10 +374,8 @@ private class LintIdeFixPerformerFix(
         val start = textRange.startOffset
         val end = textRange.endOffset
         val contents =
-          PsiDocumentManager.getInstance(project)
-            .getCachedDocument(psiFile)
-            ?.charsSequence
-            ?.subSequence(start, end) ?: psiFile.text.substring(start, end)
+          PsiDocumentManager.getInstance(project).getCachedDocument(psiFile)?.charsSequence?.subSequence(start, end)
+            ?: psiFile.text.substring(start, end)
         edits[file] = Pair(pointer, contents)
       } else {
         // New file to be created
@@ -426,16 +402,13 @@ private class LintIdeFixPerformerFix(
 
       val delta = start - file.affectedRange().startOffset
       if (delta != 0) {
-        val deltas =
-          performer.deltas ?: mutableMapOf<PendingEditFile, Int>().also { performer.deltas = it }
+        val deltas = performer.deltas ?: mutableMapOf<PendingEditFile, Int>().also { performer.deltas = it }
         deltas[file] = delta
       }
 
       val currentContents =
-        PsiDocumentManager.getInstance(project)
-          .getCachedDocument(psiFile)
-          ?.charsSequence
-          ?.subSequence(start, end) ?: psiFile.text.substring(start, end)
+        PsiDocumentManager.getInstance(project).getCachedDocument(psiFile)?.charsSequence?.subSequence(start, end)
+          ?: psiFile.text.substring(start, end)
       if (currentContents != contents) {
         return null
       }
@@ -448,17 +421,11 @@ private class LintIdeFixPerformerFix(
   override fun perform(context: ActionContext): ModCommand {
     return ModCommand.psiUpdate(context) { updater ->
       val fileProvider = LintIdeReadWriteFileProvider(project, updater)
-      performer.applyEdits(fileProvider, edits.keys.toList()) { fileData, edits ->
-        applyEdits(fileData, edits, updater)
-      }
+      performer.applyEdits(fileProvider, edits.keys.toList()) { fileData, edits -> applyEdits(fileData, edits, updater) }
     }
   }
 
-  private fun applyEdits(
-    fileData: PendingEditFile,
-    edits: List<PendingEdit>,
-    updater: ModPsiUpdater,
-  ) {
+  private fun applyEdits(fileData: PendingEditFile, edits: List<PendingEdit>, updater: ModPsiUpdater) {
     if (edits.isEmpty()) {
       return
     }
@@ -468,10 +435,7 @@ private class LintIdeFixPerformerFix(
     var psiFile = originalFile.toPsiFile(project)
     if (psiFile == null) {
       if (fileData.createText) {
-        psiFile =
-          updater
-            .getWritable(originalFile.parentFile.toPsiDirectory(project))
-            ?.createFile(originalFile.name)
+        psiFile = updater.getWritable(originalFile.parentFile.toPsiDirectory(project))?.createFile(originalFile.name)
       }
     } else {
       psiFile = updater.getWritable(psiFile)
@@ -500,12 +464,7 @@ private class LintIdeFixPerformerFix(
       val start = edit.startOffset + delta
       val end = edit.endOffset + delta
       document.replaceString(start, end, replacement)
-      modifiedRanges.add(
-        pointerManager.createSmartPsiFileRangePointer(
-          file,
-          TextRange.create(start, start + replacement.length),
-        )
-      )
+      modifiedRanges.add(pointerManager.createSmartPsiFileRangePointer(file, TextRange.create(start, start + replacement.length)))
 
       if (firstSelection == edit) {
         // Use a smart RangeMarker to survive document changes such as reformatting etc. The
@@ -513,11 +472,7 @@ private class LintIdeFixPerformerFix(
         // selecting or highlighting text) after them, e.g. there will be a ModCompositeCommand
         // consisting of a ModCreateFile (or Mod UpdateFileText), then a ModNavigate.
         assert(firstSelection.selectStart <= firstSelection.selectEnd)
-        selectedRange =
-          document.createRangeMarker(
-            start + firstSelection.selectStart,
-            start + firstSelection.selectEnd,
-          )
+        selectedRange = document.createRangeMarker(start + firstSelection.selectStart, start + firstSelection.selectEnd)
       }
     }
     documentManager.commitDocument(document)
@@ -577,24 +532,14 @@ fun LintFix.toIdeFix(project: Project, incident: Incident): LintIdeQuickFix {
 
 fun LintFix.toIdeFix(file: PsiFile): LintIdeQuickFix {
   val location =
-    Location.create(
-      VfsUtilCore.virtualToIoFile(file.virtualFile),
-      DefaultPosition(-1, -1, 0),
-      DefaultPosition(-1, -1, file.textLength),
-    )
+    Location.create(VfsUtilCore.virtualToIoFile(file.virtualFile), DefaultPosition(-1, -1, 0), DefaultPosition(-1, -1, file.textLength))
   val incident = Incident().location(location)
   return toIdeFix(file.project, incident)
 }
 
-fun LintFix.toIdeFix(
-  project: Project,
-  incident: Incident,
-  valueOverride: ((PendingEditFile, PendingEdit) -> String?),
-): LintIdeQuickFix {
+fun LintFix.toIdeFix(project: Project, incident: Incident, valueOverride: ((PendingEditFile, PendingEdit) -> String?)): LintIdeQuickFix {
   if (this !is LintFix.ReplaceString) {
     error("Cannot only override values on string replacements")
   }
-  return ModCommandLintQuickFix(
-    LintIdeFixPerformerFix(project, incident, this, valueOverride = valueOverride)
-  )
+  return ModCommandLintQuickFix(LintIdeFixPerformerFix(project, incident, this, valueOverride = valueOverride))
 }

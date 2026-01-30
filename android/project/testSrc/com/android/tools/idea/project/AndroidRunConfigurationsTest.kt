@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.junit.After
@@ -50,12 +51,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import java.io.File
 
 class AndroidRunConfigurationsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @After
   fun tearDown() {
@@ -156,36 +155,43 @@ class AndroidRunConfigurationsTest {
       project.projectFile?.writeChild(
         "src/com/example/tile/TileServiceNotInManifest.kt",
         """
-            package com.example.tile
+        package com.example.tile
 
-            import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.TileService
 
-            class TileServiceNotInManifest : TileService()
-      """.trimIndent())
+        class TileServiceNotInManifest : TileService()
+        """
+          .trimIndent(),
+      )
 
       project.projectFile?.writeChild(
         "src/com/example/myface/WatchFaceNotInManifest.kt",
         """
-          package com.example.myface
+        package com.example.myface
 
-          import androidx.wear.watchface.WatchFaceService
+        import androidx.wear.watchface.WatchFaceService
 
-          class WatchFaceNotInManifest : WatchFaceService()
-      """.trimIndent())
+        class WatchFaceNotInManifest : WatchFaceService()
+        """
+          .trimIndent(),
+      )
 
       project.projectFile?.writeChild(
         "src/com/example/complication/ComplicationNotInManifest.kt",
         """
-          package com.example.complication
+        package com.example.complication
 
-          import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-          class ComplicationNotInManifest : ComplicationDataSourceService()
-      """.trimIndent())
+        class ComplicationNotInManifest : ComplicationDataSourceService()
+        """
+          .trimIndent(),
+      )
 
-      val wearComponentNames = RunManager.getInstance(project).allConfigurationsList
-        .filterIsInstance<AndroidWearConfiguration>()
-        .mapNotNull { it.componentLaunchOptions.componentName }
+      val wearComponentNames =
+        RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidWearConfiguration>().mapNotNull {
+          it.componentLaunchOptions.componentName
+        }
       assertThat(wearComponentNames).doesNotContain("com.example.tile.TileServiceNotInManifest")
       assertThat(wearComponentNames).doesNotContain("com.example.myface.WatchFaceNotInManifest")
       assertThat(wearComponentNames).doesNotContain("com.example.complication.ComplicationNotInManifest")
@@ -201,23 +207,20 @@ class AndroidRunConfigurationsTest {
       runManager.removeExistingRunConfigurations()
       runManager.addWearConfigurationWithComponentName<AndroidTileConfigurationType>(
         name = "ExistingTileConfig",
-        componentName = "com.example.tile.MyTileService"
+        componentName = "com.example.tile.MyTileService",
       )
       runManager.addWearConfigurationWithComponentName<AndroidComplicationConfigurationType>(
         name = "ExistingComplicationConfig",
-        componentName = "com.example.complication.MyComplicationService"
+        componentName = "com.example.complication.MyComplicationService",
       )
       runManager.addWearConfigurationWithComponentName<AndroidWatchFaceConfigurationType>(
         name = "ExistingWatchFaceConfig",
-        componentName = "com.example.myface.MyWatchFace"
+        componentName = "com.example.myface.MyWatchFace",
       )
 
       val configurations = runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()
-      assertThat(configurations.map { it.name }).containsExactly(
-        "ExistingTileConfig",
-        "ExistingComplicationConfig",
-        "ExistingWatchFaceConfig"
-      )
+      assertThat(configurations.map { it.name })
+        .containsExactly("ExistingTileConfig", "ExistingComplicationConfig", "ExistingWatchFaceConfig")
     }
   }
 
@@ -256,8 +259,7 @@ class AndroidRunConfigurationsTest {
 
 // we split the test into two, to avoid issues with re-used static instances leading to some tests failing.
 class AndroidRunConfigurationsTestDfw {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @After
   fun tearDown() {
@@ -304,9 +306,7 @@ class AndroidRunConfigurationsTestDfw {
       runWriteCommandAction(project) {
         project.getAndroidFacets().forEach { facet ->
           val activity = Manifest.getMainManifest(facet)?.application?.addActivity()
-          activity?.activityClass?.value = mock<PsiClass>().also {
-            Mockito.`when`(it.name).thenReturn("ActivityName")
-          }
+          activity?.activityClass?.value = mock<PsiClass>().also { Mockito.`when`(it.name).thenReturn("ActivityName") }
         }
       }
       val runManager = RunManager.getInstance(project)
@@ -327,9 +327,7 @@ class AndroidRunConfigurationsTestDfw {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_DECLARATIVE_WATCHFACE)
     preparedProject.open { project ->
       runWriteCommandAction(project) {
-        project.getAndroidFacets().forEach { facet ->
-          Manifest.getMainManifest(facet)?.application?.addService()
-        }
+        project.getAndroidFacets().forEach { facet -> Manifest.getMainManifest(facet)?.application?.addService() }
       }
       val runManager = RunManager.getInstance(project)
       runManager.removeExistingRunConfigurations()
@@ -393,27 +391,20 @@ class AndroidRunConfigurationsTestDfw {
   }
 }
 
-  private fun removeWatchFeatureRequirement(project: Project) {
-    runWriteCommandAction(project) {
-      project.getAndroidFacets().forEach { facet ->
-        val watchFeature = Manifest.getMainManifest(facet)?.usesFeatures?.find { it.name.value == UsesFeature.HARDWARE_TYPE_WATCH }
-        watchFeature?.required?.stringValue = "false"
-      }
-    }
-    runInEdtAndWait {
-      FileDocumentManager.getInstance().saveAllDocuments()
+private fun removeWatchFeatureRequirement(project: Project) {
+  runWriteCommandAction(project) {
+    project.getAndroidFacets().forEach { facet ->
+      val watchFeature = Manifest.getMainManifest(facet)?.usesFeatures?.find { it.name.value == UsesFeature.HARDWARE_TYPE_WATCH }
+      watchFeature?.required?.stringValue = "false"
     }
   }
+  runInEdtAndWait { FileDocumentManager.getInstance().saveAllDocuments() }
+}
 
-  private fun RunManager.removeExistingRunConfigurations() =
-    allConfigurationsList.forEach {
-      removeConfiguration(findSettings(it))
-    }
+private fun RunManager.removeExistingRunConfigurations() = allConfigurationsList.forEach { removeConfiguration(findSettings(it)) }
 
-  private inline fun <reified T: ConfigurationType> RunManager.addWearConfigurationWithComponentName(
-    name: String,
-    componentName: String
-  ) = createConfiguration(name, T::class.java).also { settings ->
+private inline fun <reified T : ConfigurationType> RunManager.addWearConfigurationWithComponentName(name: String, componentName: String) =
+  createConfiguration(name, T::class.java).also { settings ->
     val configuration = settings.configuration as AndroidWearConfiguration
     configuration.componentLaunchOptions.componentName = componentName
     addConfiguration(settings)

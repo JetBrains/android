@@ -20,22 +20,17 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
-import org.junit.Rule
-import org.junit.Test
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
+import org.junit.Rule
+import org.junit.Test
 
 // TODO(b/279220000 && IDEA-337844): Run button is grayed out in the failing tests while debug button is not.
 class BuildAndRunInstrumentedTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
-
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun deployInstrumentedTest() {
@@ -57,7 +52,7 @@ class BuildAndRunInstrumentedTest {
           studio.waitForBuild()
           studio.waitForIndex()
 
-          studio.waitForSmart();
+          studio.waitForSmart()
           studio.executeActionWhenSmart("Run")
 
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.instrumentedtestapp", 1, TimeUnit.MINUTES)

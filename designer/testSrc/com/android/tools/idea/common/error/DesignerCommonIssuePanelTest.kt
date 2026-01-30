@@ -52,10 +52,7 @@ class DesignerCommonIssuePanelTest {
 
   @Before
   fun setUp() {
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
   }
 
   @RunsInEdt
@@ -80,14 +77,10 @@ class DesignerCommonIssuePanelTest {
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
     val treeModel = tree.model
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(infoSeverityIssue, warningSeverityIssue))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(infoSeverityIssue, warningSeverityIssue))
 
     val root = (treeModel.root!! as DesignerCommonIssueRoot)
-    root.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
-    )
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     val provider = panel.issueProvider
     val noFileNode = root.getChildren().single() as NoFileNode
@@ -101,9 +94,7 @@ class DesignerCommonIssuePanelTest {
     }
 
     run {
-      panel.setViewOptionFilter {
-        !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal)
-      }
+      panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal) }
       provider.update()
 
       assertEquals(1, noFileNode.getChildren().size)
@@ -111,9 +102,7 @@ class DesignerCommonIssuePanelTest {
     }
 
     run {
-      panel.setViewOptionFilter {
-        !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
-      }
+      panel.setViewOptionFilter { !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
       provider.update()
 
       assertEquals(1, noFileNode.getChildren().size)
@@ -121,10 +110,7 @@ class DesignerCommonIssuePanelTest {
     }
 
     run {
-      panel.setViewOptionFilter {
-        !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal)
-          .contains(it.severity.myVal)
-      }
+      panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
       provider.update()
 
       // If there is no issue, then tree has no file node.
@@ -156,9 +142,7 @@ class DesignerCommonIssuePanelTest {
       .issueUpdated(this, listOf(TestIssue(description = "some description")))
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)
-    root.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
-    )
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
     val fileNode = root.getChildren().single() as NoFileNode
     val issueNode = fileNode.getChildren().single()
     val splitter = UIUtil.findComponentOfType(panel.getComponent(), OnePixelSplitter::class.java)!!
@@ -182,17 +166,12 @@ class DesignerCommonIssuePanelTest {
 
     val file = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val fileIssue =
-      TestIssue(
-        source = IssueSourceWithFile(file.virtualFile, "my_layout"),
-        description = "layout issue",
-      )
+    val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
     val noFileIssue = TestIssue(description = "other issue")
 
     val composeFile = rule.fixture.addFileToProject("src/Compose.kt", "Compose file")
     val nlModel = Mockito.mock(NlModel::class.java)
-    Mockito.`when`(nlModel.displaySettings)
-      .thenReturn(DisplaySettings().apply { setDisplayName("") })
+    Mockito.`when`(nlModel.displaySettings).thenReturn(DisplaySettings().apply { setDisplayName("") })
     Mockito.`when`(nlModel.virtualFile).thenReturn(composeFile.virtualFile)
     val navigatable = OpenFileDescriptor(rule.project, composeFile.virtualFile)
     val component = NlComponent(nlModel, 651L).apply { setNavigatable(navigatable) }
@@ -223,9 +202,7 @@ class DesignerCommonIssuePanelTest {
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(fileIssue, noFileIssue, visualLintIssue))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(fileIssue, noFileIssue, visualLintIssue))
     tree.isRootVisible = false
     tree.expandRow(1)
     tree.expandRow(3)
@@ -304,14 +281,9 @@ class DesignerCommonIssuePanelTest {
     val file = rule.fixture.addFileToProject("src/main/MyClass.kt", "")
 
     val throwable = Throwable()
-    throwable.stackTrace =
-      arrayOf(StackTraceElement("com.example.MyClass", "myMethod", "MyClass.kt", 10))
+    throwable.stackTrace = arrayOf(StackTraceElement("com.example.MyClass", "myMethod", "MyClass.kt", 10))
     val fileIssue =
-      TestIssue(
-        source = IssueSourceWithFile(file.virtualFile, "my_layout"),
-        description = "layout issue",
-        throwable = throwable,
-      )
+      TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue", throwable = throwable)
 
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
@@ -330,9 +302,7 @@ class DesignerCommonIssuePanelTest {
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(fileIssue))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(fileIssue))
     tree.isRootVisible = false
     tree.expandRow(0)
 

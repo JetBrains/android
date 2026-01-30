@@ -39,10 +39,7 @@ import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.geom.Area
 
-open class WarningLayer(
-  protected val screenView: ScreenView,
-  private val shouldDisplay: () -> Boolean,
-) : Layer() {
+open class WarningLayer(protected val screenView: ScreenView, private val shouldDisplay: () -> Boolean) : Layer() {
 
   protected var componentsToHighlight: List<NlComponent> = emptyList()
   private val issueListener =
@@ -58,17 +55,14 @@ open class WarningLayer(
       override fun selectionChanged(event: ContentManagerEvent) {
         val dataContext = DataManager.getInstance().getDataContext(event.content.component)
         val selectedItem = PlatformDataKeys.SELECTED_ITEM.getData(dataContext)
-        componentsToHighlight =
-          (selectedItem as? IssueNode)?.issue?.getComponentsToHighlight() ?: emptyList()
+        componentsToHighlight = (selectedItem as? IssueNode)?.issue?.getComponentsToHighlight() ?: emptyList()
         screenView.surface.repaint()
       }
     }
 
   init {
     screenView.surface.addIssueListener(issueListener)
-    ProblemsView.getToolWindow(screenView.surface.project)
-      ?.contentManager
-      ?.addContentManagerListener(tabSelectionListener)
+    ProblemsView.getToolWindow(screenView.surface.project)?.contentManager?.addContentManagerListener(tabSelectionListener)
   }
 
   override fun paint(gc: Graphics2D) {
@@ -87,10 +81,7 @@ open class WarningLayer(
     val clip = gc.clip
     if (screenShape != null) {
       gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      gc.setRenderingHint(
-        RenderingHints.KEY_INTERPOLATION,
-        RenderingHints.VALUE_INTERPOLATION_BICUBIC,
-      )
+      gc.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
       gc.draw(screenShape)
       val screenShapeClip = Area(screenShape).apply { intersect(Area(clip)) }
       gc.clip = screenShapeClip
@@ -115,9 +106,7 @@ open class WarningLayer(
 
   override fun dispose() {
     screenView.surface.removeIssueListener(issueListener)
-    ProblemsView.getToolWindow(screenView.surface.project)
-      ?.contentManager
-      ?.removeContentManagerListener(tabSelectionListener)
+    ProblemsView.getToolWindow(screenView.surface.project)?.contentManager?.removeContentManagerListener(tabSelectionListener)
     super.dispose()
   }
 

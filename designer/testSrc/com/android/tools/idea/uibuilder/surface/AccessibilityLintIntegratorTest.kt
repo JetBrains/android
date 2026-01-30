@@ -44,8 +44,7 @@ class AccessibilityLintIntegratorTest {
   fun setUp() {
     MockitoAnnotations.openMocks(this)
     Mockito.`when`(mockModel.virtualFile).thenReturn(mockFile)
-    Mockito.`when`(mockModel.displaySettings)
-      .thenReturn(DisplaySettings().apply { setDisplayName("") })
+    Mockito.`when`(mockModel.displaySettings).thenReturn(DisplaySettings().apply { setDisplayName("") })
   }
 
   @Test
@@ -97,8 +96,7 @@ class AccessibilityLintIntegratorTest {
     assertEquals(1, integrator.issues.size)
 
     integrator.populateLints()
-    Mockito.verify(issueModel, Mockito.times(1))
-      .addIssueProvider(Mockito.any(IssueProvider::class.java))
+    Mockito.verify(issueModel, Mockito.times(1)).addIssueProvider(Mockito.any(IssueProvider::class.java))
   }
 
   private fun createTestIssue(): ValidatorData.Issue {

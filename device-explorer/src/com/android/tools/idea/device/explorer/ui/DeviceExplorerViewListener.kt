@@ -19,5 +19,6 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 
 interface DeviceExplorerViewListener {
   fun noDeviceSelected()
+
   fun deviceSelected(deviceHandle: DeviceHandle)
 }

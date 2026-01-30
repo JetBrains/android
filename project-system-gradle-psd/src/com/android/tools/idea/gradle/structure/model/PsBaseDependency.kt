@@ -20,6 +20,8 @@ import javax.swing.Icon
 interface PsBaseDependency : PsModel {
   override val parent: PsModule
   val joinedConfigurationNames: String
+
   fun toText(): String
+
   override val icon: Icon
 }

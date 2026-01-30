@@ -26,23 +26,18 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Last message in batch will be posted after a delay, to allow for more log lines if another batch
- * is pending.
- */
+/** Last message in batch will be posted after a delay, to allow for more log lines if another batch is pending. */
 private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 
 /** Implementation of a [LogcatService] */
 internal class LogcatServiceImpl
 @VisibleForTesting
-constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS) :
-  LogcatService {
+constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS) : LogcatService {
   @Suppress("unused") // Used by XML registration
   constructor(project: Project) : this(project, LOGCAT_IDLE_TIMEOUT_MILLIS)
 
   private val deviceServices = AdbLibService.getSession(project).deviceServices
-  private val processNameMonitor: ProcessNameMonitor =
-    project.getService(ProcessNameMonitor::class.java)
+  private val processNameMonitor: ProcessNameMonitor = project.getService(ProcessNameMonitor::class.java)
 
   override fun readLogcat(
     serialNumber: String,
@@ -84,24 +79,12 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
       val cutoffTime =
         when {
           maxHistoryEntries < Int.MAX_VALUE && !cutoffTimeSupported ->
-            deviceServices
-              .shellAsText(deviceSelector, "date +%s", commandTimeout = Duration.ofMillis(500))
-              .stdout
-              .trimEnd()
-              .toLongOrNull()
+            deviceServices.shellAsText(deviceSelector, "date +%s", commandTimeout = Duration.ofMillis(500)).stdout.trimEnd().toLongOrNull()
           else -> null
         }
 
       val messageAssembler =
-        LogcatMessageAssembler(
-          serialNumber,
-          logcatFormat,
-          channel,
-          processNameMonitor,
-          coroutineContext,
-          lastMessageDelayMs,
-          cutoffTime,
-        )
+        LogcatMessageAssembler(serialNumber, logcatFormat, channel, processNameMonitor, coroutineContext, lastMessageDelayMs, cutoffTime)
       try {
         try {
           deviceServices
@@ -129,12 +112,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
           if (split.size == 1) {
             channel.send(listOf(message))
           } else {
-            channel.send(
-              listOf(
-                LogcatMessage(message.header, split[0]),
-                LogcatMessage(SYSTEM_HEADER, split[1]),
-              )
-            )
+            channel.send(listOf(LogcatMessage(message.header, split[0]), LogcatMessage(SYSTEM_HEADER, split[1])))
           }
         }
       } finally {
@@ -143,11 +121,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     }
   }
 
-  private fun readLogcatProtobuf(
-    serialNumber: String,
-    duration: Duration,
-    maxHistoryEntries: Int,
-  ): Flow<List<LogcatMessage>> {
+  private fun readLogcatProtobuf(serialNumber: String, duration: Duration, maxHistoryEntries: Int): Flow<List<LogcatMessage>> {
     return flow {
       val command = buildString {
         append("logcat --proto")
@@ -175,13 +149,8 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
   }
 
   override suspend fun clearLogcat(serialNumber: String) {
-    deviceServices.shellAsText(
-      DeviceSelector.fromSerialNumber(serialNumber),
-      "logcat -c",
-      commandTimeout = Duration.ofSeconds(2),
-    )
+    deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), "logcat -c", commandTimeout = Duration.ofSeconds(2))
   }
 }
 
-private fun logcatFormat(sdk: AndroidApiLevel) =
-  if (sdk.majorVersion >= AndroidVersion.VersionCodes.N) EPOCH_FORMAT else STANDARD_FORMAT
+private fun logcatFormat(sdk: AndroidApiLevel) = if (sdk.majorVersion >= AndroidVersion.VersionCodes.N) EPOCH_FORMAT else STANDARD_FORMAT

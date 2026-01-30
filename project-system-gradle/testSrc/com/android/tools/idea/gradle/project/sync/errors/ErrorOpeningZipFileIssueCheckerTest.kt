@@ -26,8 +26,7 @@ import org.junit.Test
 class ErrorOpeningZipFileIssueCheckerTest {
   private val errorOpeningZipFileIssueChecker = ErrorOpeningZipFileIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {
@@ -35,9 +34,12 @@ class ErrorOpeningZipFileIssueCheckerTest {
     val buildIssue = errorOpeningZipFileIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Failed to open zip file.\n" +
-                                                  "Gradle's dependency cache may be corrupt (this sometimes occurs after a network " +
-                                                  "connection timeout.)")
+    assertThat(buildIssue!!.description)
+      .contains(
+        "Failed to open zip file.\n" +
+          "Gradle's dependency cache may be corrupt (this sometimes occurs after a network " +
+          "connection timeout.)"
+      )
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
   }
@@ -45,13 +47,15 @@ class ErrorOpeningZipFileIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      errorOpeningZipFileIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: error in opening zip file",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        errorOpeningZipFileIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: error in opening zip file",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

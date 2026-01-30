@@ -25,10 +25,5 @@ object FakeAiInsightClient : AiInsightClient {
     return AiInsight(request.toString(), request.event)
   }
 
-  override fun insightFeedbackUpdated(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    feedback: InsightFeedback,
-  ) = Unit
+  override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) = Unit
 }

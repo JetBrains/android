@@ -60,23 +60,13 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     val contentLayoutManager =
       NlDesignSurfacePositionableContentLayoutManager(
           backgroundScope,
-          SurfaceLayoutOption(
-            "",
-            { GridLayoutManager() },
-            layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-          ),
+          SurfaceLayoutOption("", { GridLayoutManager() }, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid),
         )
         .apply { surface = mock<NlDesignSurface>() }
     assertEquals(0, layoutUpdates.value)
-    backgroundScope.launch {
-      contentLayoutManager.currentLayoutOption.collect { layoutUpdates.value++ }
-    }
+    backgroundScope.launch { contentLayoutManager.currentLayoutOption.collect { layoutUpdates.value++ } }
     contentLayoutManager.currentLayoutOption.value =
-      SurfaceLayoutOption(
-        "",
-        { GridLayoutManager() },
-        layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-      )
+      SurfaceLayoutOption("", { GridLayoutManager() }, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid)
     runCurrent()
     advanceUntilIdle()
     assertEquals(1, layoutUpdates.value)
@@ -92,19 +82,11 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val contentLayoutManager =
         NlDesignSurfacePositionableContentLayoutManager(
             backgroundScope,
-            SurfaceLayoutOption(
-              "",
-              { layoutManager1 },
-              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-            ),
+            SurfaceLayoutOption("", { layoutManager1 }, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid),
           )
           .apply { surface = mockedSurface }
       contentLayoutManager.currentLayoutOption.value =
-        SurfaceLayoutOption(
-          "",
-          { layoutManager2 },
-          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-        )
+        SurfaceLayoutOption("", { layoutManager2 }, layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid)
 
       val content1 = TestPositionableContent(width = 80, height = 80)
       val content2 = TestPositionableContent(width = 80, height = 80)
@@ -113,8 +95,7 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val contents = listOf(content1, content2, content3, content4)
 
       // The layout of these content should be 2 x 2
-      val positions =
-        contentLayoutManager.getMeasuredPositionableContentPosition(contents, 200, 200)
+      val positions = contentLayoutManager.getMeasuredPositionableContentPosition(contents, 200, 200)
 
       assertEquals(10, positions[content1]!!.x)
       assertEquals(10, positions[content1]!!.y)

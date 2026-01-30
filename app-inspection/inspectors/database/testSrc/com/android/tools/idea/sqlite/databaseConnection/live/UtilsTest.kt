@@ -26,8 +26,7 @@ class UtilsTest {
 
   @Test
   fun toSqliteSchema_withoutRowidTrue() {
-    val table =
-      SqliteInspectorProtocol.Table.newBuilder().addColumns(column).setWithoutRowid(true).build()
+    val table = SqliteInspectorProtocol.Table.newBuilder().addColumns(column).setWithoutRowid(true).build()
 
     val tables = listOf(table).toSqliteSchema().tables
 
@@ -36,8 +35,7 @@ class UtilsTest {
 
   @Test
   fun toSqliteSchema_withoutRowidFalse() {
-    val table =
-      SqliteInspectorProtocol.Table.newBuilder().addColumns(column).setWithoutRowid(false).build()
+    val table = SqliteInspectorProtocol.Table.newBuilder().addColumns(column).setWithoutRowid(false).build()
 
     val tables = listOf(table).toSqliteSchema().tables
 

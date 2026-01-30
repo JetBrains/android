@@ -47,7 +47,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
       package test
 
       annotation class Preview
-     """
+      """
         .trimIndent(),
     )
     fixture.addFileToProject(
@@ -58,7 +58,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
       @Preview
       annotation class AnInvalidMultiPreviewAnnotation
-     """
+      """
         .trimIndent(),
     )
   }
@@ -70,22 +70,22 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
         "src/main/test/Test.kt",
         // language=kotlin
         """
-      import androidx.wear.tiles.tooling.preview.TilePreviewData
-      import test.Preview
-      import test.AnInvalidMultiPreviewAnnotation
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+        import test.Preview
+        import test.AnInvalidMultiPreviewAnnotation
 
-      @Preview
-      fun tilePreviewWithInvalidPreviewAnnotation() = TilePreviewData()
+        @Preview
+        fun tilePreviewWithInvalidPreviewAnnotation() = TilePreviewData()
 
-      fun someMethodWithTilePreviewSignatureButNotAnnotated() = TilePreviewData()
+        fun someMethodWithTilePreviewSignatureButNotAnnotated() = TilePreviewData()
 
-      @Preview
-      @AnInvalidMultiPreviewAnnotation
-      fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
+        @Preview
+        @AnInvalidMultiPreviewAnnotation
+        fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
 
-      @AnInvalidMultiPreviewAnnotation
-      fun tilePreviewWithInvalidMultiPreviewAnnotation() = TilePreviewData()
-      """
+        @AnInvalidMultiPreviewAnnotation
+        fun tilePreviewWithInvalidMultiPreviewAnnotation() = TilePreviewData()
+        """
           .trimIndent(),
       )
 
@@ -99,30 +99,30 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
         "src/main/test/Test.java",
         // language=java
         """
-      import androidx.wear.tiles.tooling.preview.TilePreviewData;
-      import test.Preview;
-      import test.AnInvalidMultiPreviewAnnotation;
+        import androidx.wear.tiles.tooling.preview.TilePreviewData;
+        import test.Preview;
+        import test.AnInvalidMultiPreviewAnnotation;
 
-      class Test {
-        @Preview
-        TilePreviewData tilePreviewWithInvalidPreviewAnnotation() {
-          return new TilePreviewData();
+        class Test {
+          @Preview
+          TilePreviewData tilePreviewWithInvalidPreviewAnnotation() {
+            return new TilePreviewData();
+          }
+
+          TilePreviewData someMethodWithTilePreviewSignatureButNotAnnotated() {
+            return new TilePreviewData();
+          }
+
+          @Preview
+          @AnInvalidMultiPreviewAnnotation
+          void someAnnotatedMethodButWithoutTilePreviewSignature() {}
+
+          @AnInvalidMultiPreviewAnnotation
+          TilePreviewData tilePreviewWithInvalidMultiPreviewAnnotation() {
+            return new TilePreviewData();
+          }
         }
-
-        TilePreviewData someMethodWithTilePreviewSignatureButNotAnnotated() {
-          return new TilePreviewData();
-        }
-
-        @Preview
-        @AnInvalidMultiPreviewAnnotation
-        void someAnnotatedMethodButWithoutTilePreviewSignature() {}
-
-        @AnInvalidMultiPreviewAnnotation
-        TilePreviewData tilePreviewWithInvalidMultiPreviewAnnotation() {
-          return new TilePreviewData();
-        }
-      }
-      """
+        """
           .trimIndent(),
       )
 
@@ -135,25 +135,14 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
     val errors = fixture.doHighlighting(HighlightSeverity.ERROR)
     assertEquals(2, errors.size)
 
-    val directPreviewError =
-      errors.single {
-        it.description == message("inspection.preview.annotation.not.from.tile.package")
-      }
+    val directPreviewError = errors.single { it.description == message("inspection.preview.annotation.not.from.tile.package") }
     assertEquals(
       "@Preview" to "tilePreviewWithInvalidPreviewAnnotation",
       directPreviewError.text to file.containingMethodName(directPreviewError),
     )
-    assertTrue(
-      directPreviewError.findRegisteredQuickFix { desc, _ ->
-        QuickFixWrapper.unwrap(desc.action) is ReplacePreviewAnnotationFix
-      }
-    )
+    assertTrue(directPreviewError.findRegisteredQuickFix { desc, _ -> QuickFixWrapper.unwrap(desc.action) is ReplacePreviewAnnotationFix })
 
-    val multiPreviewError =
-      errors.single {
-        it.description ==
-          message("inspection.preview.annotation.not.from.tile.package.multipreview")
-      }
+    val multiPreviewError = errors.single { it.description == message("inspection.preview.annotation.not.from.tile.package.multipreview") }
     assertEquals(
       "@AnInvalidMultiPreviewAnnotation" to "tilePreviewWithInvalidMultiPreviewAnnotation",
       multiPreviewError.text to file.containingMethodName(multiPreviewError),

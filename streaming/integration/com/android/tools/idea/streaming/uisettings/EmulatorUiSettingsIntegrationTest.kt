@@ -27,12 +27,9 @@ import org.junit.runners.Suite
 @Suite.SuiteClasses(EmulatorUiSettingsIntegrationTest::class)
 class EmulatorUiSettingsIntegrationTestSuite : IdeaTestSuiteBase()
 
-/**
- * Integration test for the UI settings picker for emulators.
- */
+/** Integration test for the UI settings picker for emulators. */
 internal class EmulatorUiSettingsIntegrationTest {
-  @get:Rule
-  val rule = UiSettingsIntegrationRule()
+  @get:Rule val rule = UiSettingsIntegrationRule()
 
   /**
    * The test:

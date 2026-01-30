@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.ndk.v2
 
-/**
- * Response returned by Gradle to Android Studio containing information about a variant in a native
- * module.
- */
+/** Response returned by Gradle to Android Studio containing information about a variant in a native module. */
 interface IdeNativeVariant {
   /** Name of the variant. For example "debug", "release". */
   val name: String

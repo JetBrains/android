@@ -110,8 +110,7 @@ val serverFlagTestData: ServerFlagList
                   FlagValue.newBuilder()
                     .apply {
                       percentEnabled = 100
-                      protoValue =
-                        Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
+                      protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
                     }
                     .build()
                 )

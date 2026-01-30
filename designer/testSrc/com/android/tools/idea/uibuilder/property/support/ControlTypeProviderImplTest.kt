@@ -47,13 +47,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testFlagEditorForFlagProperties() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val definition =
-      AttributeDefinition(
-        ResourceNamespace.RES_AUTO,
-        "definition",
-        null,
-        listOf(AttributeFormat.FLAGS),
-      )
+    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, "definition", null, listOf(AttributeFormat.FLAGS))
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
@@ -76,8 +70,7 @@ class ControlTypeProviderImplTest {
   @Test
   fun testBooleanForBooleanTypes() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property =
-      util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NlPropertyType.THREE_STATE_BOOLEAN)
+    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NlPropertyType.THREE_STATE_BOOLEAN)
     val enumSupportProvider = createEnumSupportProvider()
     val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)

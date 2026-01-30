@@ -24,13 +24,15 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
 class UpgradeAssistantTreeCellRenderer(val project: Project) : CheckboxTree.CheckboxTreeCellRenderer(true, true) {
-  override fun customizeRenderer(tree: JTree,
-                                 value: Any,
-                                 selected: Boolean,
-                                 expanded: Boolean,
-                                 leaf: Boolean,
-                                 row: Int,
-                                 hasFocus: Boolean) {
+  override fun customizeRenderer(
+    tree: JTree,
+    value: Any,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean,
+  ) {
     if (project.isDisposed) return super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     if (value is DefaultMutableTreeNode) {
       when (val o = value.userObject) {
@@ -52,12 +54,10 @@ class UpgradeAssistantTreeCellRenderer(val project: Project) : CheckboxTree.Chec
               // SimpleColoredComponent interprets padding from the start of the extent, rather than from the previous end.  Of course this
               // might be a bug, and if the behaviour of SimpleColoredComponent is changed this will break alignment of the Upgrade steps.
               textRenderer.appendTextPadding(totalXoffset)
-            }
-            else {
+            } else {
               myCheckbox.let {
-                toolTipText = (parent.userObject as? AgpUpgradeComponentNecessity)?.let { n ->
-                  n.checkboxToolTipText(it.isEnabled, it.isSelected)
-                }
+                toolTipText =
+                  (parent.userObject as? AgpUpgradeComponentNecessity)?.let { n -> n.checkboxToolTipText(it.isEnabled, it.isSelected) }
               }
             }
           }
@@ -66,8 +66,9 @@ class UpgradeAssistantTreeCellRenderer(val project: Project) : CheckboxTree.Chec
             textRenderer.icon = AllIcons.General.Error
             textRenderer.isIconOnTheRight = true
             textRenderer.iconTextGap = 10
-          }
-          else if (o is UpgradeAssistantWindowModel.StepUiWithComboSelectorPresentation || o is UpgradeAssistantWindowModel.StepUiWithUserSelection) {
+          } else if (
+            o is UpgradeAssistantWindowModel.StepUiWithComboSelectorPresentation || o is UpgradeAssistantWindowModel.StepUiWithUserSelection
+          ) {
             textRenderer.icon = AllIcons.Actions.Edit
             textRenderer.isIconOnTheRight = true
             textRenderer.iconTextGap = 10

@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.repositories.search
 
 import com.google.common.truth.Truth.assertThat
+import java.io.StringReader
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.io.StringReader
 
-/**
- * Tests for [JCenterRepository].
- */
+/** Tests for [JCenterRepository]. */
 class JCenterRepositoryTest {
   @Test
   fun testCreateUrlWithGroupId() {
@@ -49,7 +47,8 @@ class JCenterRepositoryTest {
   @Test
   fun testParse() {
     @Language("JSON")
-    val response = """
+    val response =
+      """
       [
         {
           "name": "com.atlassian.guava:guava",
@@ -126,17 +125,19 @@ class JCenterRepositoryTest {
     val responseReader = StringReader(response)
     val result = JCenterRepository.parse(responseReader)
     val coordinates = result.artifactCoordinates
-    assertThat(coordinates).containsExactly(
-      "com.atlassian.guava:guava:15.0",
-      "com.atlassian.bundles:guava:8.1",
-      "io.janusproject.guava:guava:19.0.0",
-      "com.google.guava:guava:19.0",
-      "com.google.guava:guava:18.0",
-      "com.google.guava:guava:17.0",
-      "com.google.guava:guava:16.0",
-      "com.google.guava:guava:15.0",
-      "com.google.guava:guava:14.0",
-      "com.google.guava:guava:13.0",
-      "de.weltraumschaf.commons:guava:2.1.0")
+    assertThat(coordinates)
+      .containsExactly(
+        "com.atlassian.guava:guava:15.0",
+        "com.atlassian.bundles:guava:8.1",
+        "io.janusproject.guava:guava:19.0.0",
+        "com.google.guava:guava:19.0",
+        "com.google.guava:guava:18.0",
+        "com.google.guava:guava:17.0",
+        "com.google.guava:guava:16.0",
+        "com.google.guava:guava:15.0",
+        "com.google.guava:guava:14.0",
+        "com.google.guava:guava:13.0",
+        "de.weltraumschaf.commons:guava:2.1.0",
+      )
   }
 }

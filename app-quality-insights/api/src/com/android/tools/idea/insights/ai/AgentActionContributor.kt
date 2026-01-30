@@ -21,16 +21,9 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 interface AgentActionContributor {
-  fun provideActions(
-    event: Event,
-    issue: AppInsightsIssue,
-    project: Project,
-  ): List<Pair<String, () -> Unit>>
+  fun provideActions(event: Event, issue: AppInsightsIssue, project: Project): List<Pair<String, () -> Unit>>
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName<AgentActionContributor>(
-        "com.android.tools.idea.insights.ai.agentActionContributor"
-      )
+    val EP_NAME = ExtensionPointName<AgentActionContributor>("com.android.tools.idea.insights.ai.agentActionContributor")
   }
 }

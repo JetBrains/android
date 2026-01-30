@@ -17,6 +17,9 @@ package com.android.tools.idea.editors.strings.table
 
 import com.android.tools.idea.editors.strings.CopyAllSelectedAction
 import com.intellij.testFramework.ApplicationRule
+import java.awt.event.ActionEvent
+import javax.swing.JMenuItem
+import javax.swing.table.DefaultTableModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -24,9 +27,6 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.ActionEvent
-import javax.swing.JMenuItem
-import javax.swing.table.DefaultTableModel
 
 class CopyAllSelectedActionTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -34,27 +34,27 @@ class CopyAllSelectedActionTest {
 
   @Before
   fun setUp() {
-    frozenColumnTable = FrozenColumnTable(
-      DefaultTableModel(
-        arrayOf(
-          arrayOf<Any>("east", "app/src/main/res", false, "east"),
-          arrayOf<Any>("west", "app/src/main/res", false, "west"),
-          arrayOf<Any>("north", "app/src/main/res", false, "north"),
-        ),
-        arrayOf("Key", "Resource Folder", "Untranslatable", "Default Value"),
-      ),
-      4,
-    ).apply {
-      frozenTable.createDefaultColumnsFromModel()
-      scrollableTable.createDefaultColumnsFromModel()
-    }
+    frozenColumnTable =
+      FrozenColumnTable(
+          DefaultTableModel(
+            arrayOf(
+              arrayOf<Any>("east", "app/src/main/res", false, "east"),
+              arrayOf<Any>("west", "app/src/main/res", false, "west"),
+              arrayOf<Any>("north", "app/src/main/res", false, "north"),
+            ),
+            arrayOf("Key", "Resource Folder", "Untranslatable", "Default Value"),
+          ),
+          4,
+        )
+        .apply {
+          frozenTable.createDefaultColumnsFromModel()
+          scrollableTable.createDefaultColumnsFromModel()
+        }
   }
 
   @Test
   fun copyWithoutSelection() {
-    val onCopy: (String) -> Unit = {
-      fail("Copy not expected. Received $it")
-    }
+    val onCopy: (String) -> Unit = { fail("Copy not expected. Received $it") }
     val copyAction = CopyAllSelectedAction.forTesting(frozenColumnTable, onCopy)
     val copyMenuItem = JMenuItem()
     copyAction.update(copyMenuItem)
@@ -66,9 +66,7 @@ class CopyAllSelectedActionTest {
   @Test
   fun copyContents() {
     var clipboard: String = ""
-    val onCopy: (String) -> Unit = {
-      clipboard = it
-    }
+    val onCopy: (String) -> Unit = { clipboard = it }
     val copyAction = CopyAllSelectedAction.forTesting(frozenColumnTable, onCopy)
     frozenColumnTable.setRowSelectionInterval(0, 0)
 

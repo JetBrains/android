@@ -65,31 +65,34 @@ internal class ShellCommandRecordingProvider(
 
   override suspend fun startRecording(): Deferred<Unit> {
     val result = CompletableDeferred<Unit>()
-    Disposer.register(this) {
-        result.completeExceptionally(createLostConnectionException())
-    }
+    Disposer.register(this) { result.completeExceptionally(createLostConnectionException()) }
 
-    val job = createCoroutineScope().launch {
-      runCatching {
-        val physicalDisplayId = when {
-          options.displayId == PRIMARY_DISPLAY_ID -> 0L
-          else -> adbSession.getPhysicalDisplayId(device, options.displayId)
-        }
-        val adbOptions = ScreenRecordOptions(
-          physicalDisplayId = if (physicalDisplayId != 0L) physicalDisplayId else null,
-          videoSize = if (options.width != 0 && options.height != 0) Dimension(options.width, options.height) else null,
-          bitRateMbps = if (options.bitrateMbps != 0) options.bitrateMbps else null,
-          timeLimitSec = if (options.timeLimitSec != 0) options.timeLimitSec else null
-        )
-        adbSession.deviceServices.screenRecord(device, remotePath, adbOptions, stopRecordingSignal)
-      }.onSuccess {
-        // The screen recording to `remotePath` was successful
-        result.complete(Unit)
-      }.onFailure { t ->
-        // The screen recording failed for some reason, notify the caller
-        result.completeExceptionally(t)
+    val job =
+      createCoroutineScope().launch {
+        runCatching {
+            val physicalDisplayId =
+              when {
+                options.displayId == PRIMARY_DISPLAY_ID -> 0L
+                else -> adbSession.getPhysicalDisplayId(device, options.displayId)
+              }
+            val adbOptions =
+              ScreenRecordOptions(
+                physicalDisplayId = if (physicalDisplayId != 0L) physicalDisplayId else null,
+                videoSize = if (options.width != 0 && options.height != 0) Dimension(options.width, options.height) else null,
+                bitRateMbps = if (options.bitrateMbps != 0) options.bitrateMbps else null,
+                timeLimitSec = if (options.timeLimitSec != 0) options.timeLimitSec else null,
+              )
+            adbSession.deviceServices.screenRecord(device, remotePath, adbOptions, stopRecordingSignal)
+          }
+          .onSuccess {
+            // The screen recording to `remotePath` was successful
+            result.complete(Unit)
+          }
+          .onFailure { t ->
+            // The screen recording failed for some reason, notify the caller
+            result.completeExceptionally(t)
+          }
       }
-    }
     recordingJob.set(job)
     return result
   }
@@ -108,13 +111,11 @@ internal class ShellCommandRecordingProvider(
     // Cancel the recording job, and delete temp. file
     val job = recordingJob.getAndSet(null) ?: return
     job.cancel()
-    CoroutineScope(Dispatchers.IO).launch {
-      adbSession.deviceServices.shellAsText(device, "rm $remotePath", commandTimeout = CMD_TIMEOUT)
-    }
+    CoroutineScope(Dispatchers.IO).launch { adbSession.deviceServices.shellAsText(device, "rm $remotePath", commandTimeout = CMD_TIMEOUT) }
   }
 
   override suspend fun doesRecordingExist(): Boolean {
-    //TODO: Check for `stderr` and `exitCode` to report errors
+    // TODO: Check for `stderr` and `exitCode` to report errors
     val out = adbSession.deviceServices.shellAsText(device, "ls $remotePath", commandTimeout = CMD_TIMEOUT).stdout
     return out.trim() == remotePath
   }
@@ -123,18 +124,14 @@ internal class ShellCommandRecordingProvider(
     Files.createDirectories(target.parent)
     adbSession.deviceServices.sync(device).use { sync ->
       try {
-        adbSession.channelFactory.createFile(target).use {
-          sync.recv(remotePath, it, progress = null)
-        }
-      }
-      finally {
+        adbSession.channelFactory.createFile(target).use { sync.recv(remotePath, it, progress = null) }
+      } finally {
         adbSession.deviceServices.shellAsText(device, "rm $remotePath", commandTimeout = CMD_TIMEOUT)
       }
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   private fun createLostConnectionException() = RuntimeException(AndroidAdbUiBundle.message("screenrecord.error.disconnected"))
 }

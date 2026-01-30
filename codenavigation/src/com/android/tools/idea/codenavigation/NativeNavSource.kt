@@ -23,25 +23,21 @@ import com.intellij.pom.Navigatable
 import java.io.File
 import java.io.IOException
 
-class NativeNavSource(private val project: Project,
-                      private val symbolizer: NativeSymbolizer): NavSource {
+class NativeNavSource(private val project: Project, private val symbolizer: NativeSymbolizer) : NavSource {
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     if (!location.isNativeCode || location.fileName == null || arch == null) {
       return null
     }
 
     return try {
-      val symbol = symbolizer.symbolize(arch,
-                                        File(location.fileName),
-                                        location.nativeVAddress)
+      val symbol = symbolizer.symbolize(arch, File(location.fileName), location.nativeVAddress)
 
       if (symbol == null) {
         null
       } else {
         FileNavigatable(project, FilePosition(File(symbol.sourceFile), symbol.lineNumber - 1, 0))
       }
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       null
     }
   }

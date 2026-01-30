@@ -24,18 +24,22 @@ internal fun CodeInsightTestFixture.addWatchFace(): PsiClass {
   addFileToProject(
     "src/lib/WatchFace.kt",
     """
-      package androidx.wear.watchface
+    package androidx.wear.watchface
 
-      open class WatchFaceService
-    """.trimIndent())
+    open class WatchFaceService
+    """
+      .trimIndent(),
+  )
 
   addFileToProject(
     "src/com/example/MyWatchFace.kt",
     """
-      package com.example
+    package com.example
 
-      class MyWatchFace : androidx.wear.watchface.WatchFaceService
-    """.trimIndent())
+    class MyWatchFace : androidx.wear.watchface.WatchFaceService
+    """
+      .trimIndent(),
+  )
 
   return JavaPsiFacade.getInstance(project).findClass("com.example.MyWatchFace", project.allScope())!!
 }

@@ -21,24 +21,24 @@ import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
 /**
- * Adds external `.aar` files to the project proto as [ExternalAndroidLibrary]s. This
- * allows resources references to external libraries to be resolved in Android Studio.
+ * Adds external `.aar` files to the project proto as [ExternalAndroidLibrary]s. This allows resources references to external libraries to
+ * be resolved in Android Studio.
  */
 class AddDependencyAars(
   private val projectDefinition: ProjectDefinition,
-  private val aarPackageNameMetadata: ArtifactMetadata.Extractor<AarResPackage>
+  private val aarPackageNameMetadata: ArtifactMetadata.Extractor<AarResPackage>,
 ) : ProjectProtoUpdateOperation {
 
   private fun getDependencyAars(target: TargetBuildInfo): Collection<BuildArtifact> {
@@ -46,9 +46,7 @@ class AddDependencyAars(
     return if (projectDefinition.isIncluded(javaInfo.label())) emptyList() else listOfNotNull(javaInfo.ideAar())
   }
 
-  override fun getRequiredArtifacts(
-    forTarget: TargetBuildInfo
-  ): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
+  override fun getRequiredArtifacts(forTarget: TargetBuildInfo): Map<BuildArtifact, Collection<ArtifactMetadata.Extractor<*>>> {
     return getDependencyAars(forTarget).associateWith { listOf(aarPackageNameMetadata) }
   }
 
@@ -65,19 +63,19 @@ class AddDependencyAars(
         if (aars.isEmpty()) continue
         update.module(target.label()) {
           for (aar in aars) {
-            val packageName =
-              aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
-            val added =
-                addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
+            val packageName = aar.getMetadata(AarResPackage::class.java).getOrNull()?.name
+            val added = addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
             if (added != null) {
-                addExternalAndroidLibrary(ProjectProto.ExternalAndroidLibrary(
+              addExternalAndroidLibrary(
+                ProjectProto.ExternalAndroidLibrary(
                   name = aar.artifactPath().toString().replace('/', '_'),
                   location = added,
                   manifestFile = added.resolveChild(Path.of("AndroidManifest.xml")),
                   resFolder = added.resolveChild(Path.of("res")),
                   symbolFile = added.resolveChild(Path.of("R.txt")),
-                  packageName = packageName.orEmpty()
-                ))
+                  packageName = packageName.orEmpty(),
+                )
+              )
             }
           }
         }

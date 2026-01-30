@@ -32,12 +32,12 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 /**
  * No-op [FindUsagesProvider] that provides the right [WordsScanner] for SQL.
  *
- * Having one for the language enables the "find usages" UI, which is what we want. Currently there are no PSI references pointing to
- * SQL elements, so this provider doesn't have to do anything, it never actually gets invoked. The only references are from SQL to Java,
- * but that is handled by java usages providers.
+ * Having one for the language enables the "find usages" UI, which is what we want. Currently there are no PSI references pointing to SQL
+ * elements, so this provider doesn't have to do anything, it never actually gets invoked. The only references are from SQL to Java, but
+ * that is handled by java usages providers.
  *
- * We cannot inherit from [EmptyFindUsagesProvider], because [com.intellij.find.actions.FindUsagesInFileAction] has an explicit check
- * that disables the action if the provider is an instance of [EmptyFindUsagesProvider].
+ * We cannot inherit from [EmptyFindUsagesProvider], because [com.intellij.find.actions.FindUsagesInFileAction] has an explicit check that
+ * disables the action if the provider is an instance of [EmptyFindUsagesProvider].
  */
 class AndroidSqlFindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvider() {
   override fun getWordsScanner(): WordsScanner = DefaultWordsScanner(AndroidSqlLexer(), IDENTIFIERS, COMMENTS, STRING_LITERALS)
@@ -45,6 +45,7 @@ class AndroidSqlFindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvid
 
 class AndroidSqlIdIndexer : ScanningIdIndexer() {
   override fun createScanner(): WordsScanner = AndroidSqlFindUsagesProvider().wordsScanner
+
   override fun getVersion(): Int = 0
 }
 

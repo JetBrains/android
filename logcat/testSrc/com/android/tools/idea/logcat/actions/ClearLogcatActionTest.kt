@@ -93,6 +93,4 @@ class ClearLogcatActionTest {
 }
 
 private fun testEvent(logcatPresenter: LogcatPresenter) =
-  TestActionEvent.createTestEvent(
-    SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build()
-  )
+  TestActionEvent.createTestEvent(SimpleDataContext.builder().add(LOGCAT_PRESENTER_ACTION, logcatPresenter).build())

@@ -16,12 +16,7 @@ class CommonPreviewModeManagerTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val androidEditorSettings = AndroidEditorSettings()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings),
-    )
+  @get:Rule val rule = RuleChain(projectRule, ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings))
 
   @Test
   fun testRestoreMode(): Unit = runBlocking {
@@ -36,18 +31,8 @@ class CommonPreviewModeManagerTest {
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
     manager.setMode(PreviewMode.Default(GRID_LAYOUT_OPTION))
-    manager.setMode(
-      PreviewMode.UiCheck(
-        UiCheckInstance(previewElement, isWearPreview = false),
-        GRID_NO_GROUP_LAYOUT_OPTION,
-      )
-    )
-    manager.setMode(
-      PreviewMode.UiCheck(
-        UiCheckInstance(previewElement, isWearPreview = false),
-        GRID_LAYOUT_OPTION,
-      )
-    )
+    manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false), GRID_NO_GROUP_LAYOUT_OPTION))
+    manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false), GRID_LAYOUT_OPTION))
     manager.restorePrevious()
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(GRID_LAYOUT_OPTION))
   }
@@ -68,12 +53,7 @@ class CommonPreviewModeManagerTest {
     manager.setMode(PreviewMode.AnimationInspection(previewElement))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
 
-    manager.setMode(
-      PreviewMode.UiCheck(
-        UiCheckInstance(previewElement, isWearPreview = false),
-        GRID_LAYOUT_OPTION,
-      )
-    )
+    manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false), GRID_LAYOUT_OPTION))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.Interactive(previewElement))
@@ -93,8 +73,7 @@ class CommonPreviewModeManagerTest {
   @Test
   fun testGridLayoutModeDefaultPreference_GridIsDefault(): Unit = runBlocking {
     // Grid is set as a preference
-    androidEditorSettings.globalState.preferredPreviewLayoutMode =
-      AndroidEditorSettings.LayoutType.GRID
+    androidEditorSettings.globalState.preferredPreviewLayoutMode = AndroidEditorSettings.LayoutType.GRID
 
     val manager = CommonPreviewModeManager()
 
@@ -105,8 +84,7 @@ class CommonPreviewModeManagerTest {
   @Test
   fun testFocusLayoutModeDefaultPreference_FocusIsDefault(): Unit = runBlocking {
     // Focus is set as a preference
-    androidEditorSettings.globalState.preferredPreviewLayoutMode =
-      AndroidEditorSettings.LayoutType.GALLERY
+    androidEditorSettings.globalState.preferredPreviewLayoutMode = AndroidEditorSettings.LayoutType.GALLERY
 
     val manager = CommonPreviewModeManager()
 

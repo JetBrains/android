@@ -50,20 +50,14 @@ internal class PreviewSurfaceActionManager(
   private val navigationHandler: NavigationHandler,
 ) : CommonPreviewActionManager(surface, navigationHandler) {
 
-  override fun getPopupMenuActions(
-    leafComponent: NlComponent?,
-    mouseEvent: MouseEvent,
-  ): DefaultActionGroup {
+  override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup {
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
-    val convertedPoint =
-      SwingUtilities.convertPoint(mouseEvent.component, mouseEvent.point, surface.interactionPane)
+    val convertedPoint = SwingUtilities.convertPoint(mouseEvent.component, mouseEvent.point, surface.interactionPane)
 
     // Zoom to Selection
-    actionGroup.add(
-      ZoomToSelectionAction(convertedPoint.x, convertedPoint.y, ::subComponentProvider)
-    )
+    actionGroup.add(ZoomToSelectionAction(convertedPoint.x, convertedPoint.y, ::subComponentProvider))
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(convertedPoint.x, convertedPoint.y, navigationHandler))
     // View in Focus mode
@@ -75,9 +69,7 @@ internal class PreviewSurfaceActionManager(
   }
 
   override fun getSceneViewContextToolbarActions(): List<AnAction?> =
-    listOfNotNull(
-      StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() }
-    )
+    listOfNotNull(StudioFlags.COMPOSE_PREVIEW_AI_GLASSES_PREVIEW.ifEnabled { GlassesBlendDropdownAction() })
 
   override fun getSceneViewContextToolbarOverflowActions(): List<AnAction> {
     val aiActionGroup = getAiActionGroup(shouldShowInDropDown = false)
@@ -90,17 +82,14 @@ internal class PreviewSurfaceActionManager(
       listOfNotNull(
           SavePreviewInNewSizeAction().visibleOnlyInFocus(),
           EnableUiCheckAction(),
-          AnimationInspectorAction(
-            defaultModeDescription = message("action.animation.inspector.description")
-          ),
+          AnimationInspectorAction(defaultModeDescription = message("action.animation.inspector.description")),
           EnableInteractiveAction(),
           DeployToDeviceAction(),
         )
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview() +
-      listOf(BackNavigationAction().visibleOnlyInInteractive())
-        .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
+      listOf(BackNavigationAction().visibleOnlyInInteractive()).disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
 
   private fun getAiActionGroup(shouldShowInDropDown: Boolean): AnAction? {
     val factory = ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null

@@ -41,17 +41,14 @@ class PerfgateRenderMetric {
   fun beforeTest() {
     mPrevUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
     mStartTime = System.currentTimeMillis()
-    mPrevUsedLayoutlibNativeMem =
-      NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes }
+    mPrevUsedLayoutlibNativeMem = NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes }
   }
 
   fun afterTest() {
     mElapsedTime = System.currentTimeMillis() - mStartTime
-    mMemoryUsage =
-      Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem
+    mMemoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem
     mLayoutlibNativeMemoryUsage =
-      NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes } -
-        mPrevUsedLayoutlibNativeMem
+      NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes } - mPrevUsedLayoutlibNativeMem
 
     mTimestamp = Instant.now().toEpochMilli()
   }

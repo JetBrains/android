@@ -42,8 +42,7 @@ class TestSuiteRunConfigurationType :
       object : ConfigurationFactory(this) {
         override fun getId() = "TestSuiteRunConfigurationFactory"
 
-        override fun createTemplateConfiguration(project: Project) =
-          TestSuiteRunConfiguration(project, this, "")
+        override fun createTemplateConfiguration(project: Project) = TestSuiteRunConfiguration(project, this, "")
       }
     )
   }

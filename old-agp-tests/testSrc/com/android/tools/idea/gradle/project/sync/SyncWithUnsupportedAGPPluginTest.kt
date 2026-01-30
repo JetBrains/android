@@ -21,7 +21,6 @@ import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.applicableAgpVersions
@@ -33,26 +32,23 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Integration test for Gradle Sync with old versions of Android plugin where we expect a
- * Controlled Failure.
- */
+/** Integration test for Gradle Sync with old versions of Android plugin where we expect a Controlled Failure. */
 @OldAgpTest
 @RunWith(Parameterized::class)
 class SyncWithUnsupportedAGPPluginTest(private val environmentDescriptor: AgpVersionSoftwareEnvironmentDescriptor) {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   companion object {
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
-    @Parameterized.Parameters(name="{0}")
+    @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      fun AgpVersionSoftwareEnvironmentDescriptor.isBelowMinimumForcedUpgradeVersion() = when (val v = this.agpVersion) {
-        null -> false
-        else -> AgpVersion.parse(v) < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION)
-      }
+      fun AgpVersionSoftwareEnvironmentDescriptor.isBelowMinimumForcedUpgradeVersion() =
+        when (val v = this.agpVersion) {
+          null -> false
+          else -> AgpVersion.parse(v) < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION)
+        }
       return applicableAgpVersions().filter { it.isBelowMinimumForcedUpgradeVersion() }.reversed().map { arrayOf(it) }
     }
   }
@@ -60,20 +56,14 @@ class SyncWithUnsupportedAGPPluginTest(private val environmentDescriptor: AgpVer
   @Test
   fun testGradleSyncFails() {
     var exceptionText: String? = null
-    val preparedProject =
-      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
     preparedProject.open(
-      updateOptions = {
-        it.copy(
-          verifyOpened = { },
-          syncExceptionHandler = { e: Exception ->
-            exceptionText = e.message
-          })
-      }
+      updateOptions = { it.copy(verifyOpened = {}, syncExceptionHandler = { e: Exception -> exceptionText = e.message }) }
     ) {}
-      assertThat(exceptionText).contains(
+    assertThat(exceptionText)
+      .contains(
         "The project is using an incompatible version (AGP ${environmentDescriptor.agpVersion}) of the Android " +
           "Gradle plugin. Minimum supported version is AGP ${SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION}."
       )
-    }
   }
+}

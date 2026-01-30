@@ -35,12 +35,14 @@ class CrashlyticsBlockModelProvider : BlockModelProvider<GradleBuildModel, Gradl
   override val parentClass = GradleBuildModel::class.java
   override val parentDslClass = GradleDslFile::class.java
 
-  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleDslFile>> = listOf(
-    object : BlockModelBuilder<CrashlyticsModel, GradleDslFile> {
-      override fun modelClass() = CrashlyticsModel::class.java
-      override fun create(parent: GradleDslFile) = CrashlyticsModelImpl(parent.ensurePropertyElement(CRASHLYTICS))
-    }
-  )
+  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleDslFile>> =
+    listOf(
+      object : BlockModelBuilder<CrashlyticsModel, GradleDslFile> {
+        override fun modelClass() = CrashlyticsModel::class.java
+
+        override fun create(parent: GradleDslFile) = CrashlyticsModelImpl(parent.ensurePropertyElement(CRASHLYTICS))
+      }
+    )
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
     mapOf("crashlytics" to CRASHLYTICS)
@@ -52,12 +54,14 @@ class FirebaseCrashlyticsBlockModelProvider : BlockModelProvider<BuildTypeModel,
   override val parentClass = BuildTypeModel::class.java
   override val parentDslClass = BuildTypeDslElement::class.java
 
-  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, BuildTypeDslElement>> = listOf(
-    object : BlockModelBuilder<FirebaseCrashlyticsModel, BuildTypeDslElement> {
-      override fun modelClass() = FirebaseCrashlyticsModel::class.java
-      override fun create(parent: BuildTypeDslElement) = FirebaseCrashlyticsModelImpl(parent.ensurePropertyElement(FIREBASE_CRASHLYTICS))
-    }
-  )
+  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, BuildTypeDslElement>> =
+    listOf(
+      object : BlockModelBuilder<FirebaseCrashlyticsModel, BuildTypeDslElement> {
+        override fun modelClass() = FirebaseCrashlyticsModel::class.java
+
+        override fun create(parent: BuildTypeDslElement) = FirebaseCrashlyticsModelImpl(parent.ensurePropertyElement(FIREBASE_CRASHLYTICS))
+      }
+    )
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
     mapOf("firebaseCrashlytics" to FIREBASE_CRASHLYTICS)

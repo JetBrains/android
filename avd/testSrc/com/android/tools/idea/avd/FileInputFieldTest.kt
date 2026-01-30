@@ -58,35 +58,25 @@ class FileInputFieldTest {
     ApplicationServiceRule(
       FileChooserFactory::class.java,
       object : FileChooserFactoryImpl() {
-        override fun createFileChooser(
-          descriptor: FileChooserDescriptor,
-          project: Project?,
-          parent: Component?,
-        ): FileChooserDialog {
+        override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
           val virtualFile =
             fileResult?.let { path ->
               object : LightVirtualFile(path.toString()) {
                 override fun toNioPath(): Path = path
               }
             }
-          return FileChooserDialog { _, _ ->
-            if (virtualFile == null) emptyArray() else arrayOf(virtualFile)
-          }
+          return FileChooserDialog { _, _ -> if (virtualFile == null) emptyArray() else arrayOf(virtualFile) }
         }
       },
     )
   val composeRule = createStudioComposeTestRule()
-  @get:Rule
-  val rules =
-    RuleChain.emptyRuleChain().around(ApplicationRule()).around(fileChooserRule).around(composeRule)
+  @get:Rule val rules = RuleChain.emptyRuleChain().around(ApplicationRule()).around(fileChooserRule).around(composeRule)
 
   @Test
   fun selectFileViaDialog() {
     fileResult = fileSystem.someRoot.resolve("tmp").resolve("image.png").recordExistingFile()
     var pathState by mutableStateOf<Path?>(null)
-    setContent {
-      FileInputField(pathState, { pathState = it }, FileChooserDescriptorFactory.singleFile())
-    }
+    setContent { FileInputField(pathState, { pathState = it }, FileChooserDescriptorFactory.singleFile()) }
 
     composeRule.onNodeWithContentDescription("select file").performClick()
     composeRule.waitForIdle()
@@ -97,9 +87,7 @@ class FileInputFieldTest {
   @Test
   fun updateFileViaTextField() {
     var pathState by mutableStateOf<Path?>(null)
-    setContent {
-      FileInputField(pathState, { pathState = it }, FileChooserDescriptorFactory.singleFile())
-    }
+    setContent { FileInputField(pathState, { pathState = it }, FileChooserDescriptorFactory.singleFile()) }
 
     val path = fileSystem.someRoot.resolve("foo/bar")
     composeRule.onNodeWithTag("FileInputField").performTextReplacement("  $path  ")

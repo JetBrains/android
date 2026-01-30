@@ -29,7 +29,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import java.io.File
@@ -53,14 +52,9 @@ class ViewInfoParserTest {
   @Test
   fun testDefaultPreviewRendering() {
     val facet = projectRule.androidFacet(":app")
-    val mainActivityFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val previewStartLine = runReadAction {
-      val file =
-        VfsUtil.findRelativeFile(
-          SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-          project.guessProjectDir(),
-        )!!
+      val file = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path, project.guessProjectDir())!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile
       ktFile.declarations
         .filterIsInstance<KtNamedFunction>()
@@ -72,9 +66,7 @@ class ViewInfoParserTest {
     renderPreviewElementForResult(
         facet,
         mainActivityFile,
-        SingleComposePreviewElementInstance.forTesting(
-          "google.simpleapplication.MainActivityKt.TwoElementsPreview"
-        ),
+        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"),
       )
       .future
       .thenAccept { renderResult ->
@@ -88,10 +80,7 @@ class ViewInfoParserTest {
             .flatMap { it.allChildren() }
 
         val previewViewInfos =
-          viewInfos.filter {
-            it.sourceLocation.fileName == "MainActivity.kt" &&
-              it.sourceLocation.packageHash == 34180119
-          }
+          viewInfos.filter { it.sourceLocation.fileName == "MainActivity.kt" && it.sourceLocation.packageHash == 34180119 }
 
         var expectedLineNumber = previewStartLine + 1
         assertEquals(6, previewViewInfos.size)

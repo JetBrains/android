@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
-import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -48,56 +48,54 @@ sealed class NdkModel : INdkModel
  * synced variant and ABIs would have the [NativeAbi.compileCommandsJsonFile], [NativeAbi.symbolFolderIndexFile], and
  * [NativeAbi.buildFileIndexFile] generated, containing detailed build information.
  */
-data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor(
-  private val /* `val` declaration needed for serialization */ agpVersion: String,
-  val nativeModule: IdeNativeModule
-) : NdkModel() {
+data class V2NdkModel
+@PropertyMapping("agpVersion", "nativeModule")
+constructor(private val /* `val` declaration needed for serialization */ agpVersion: String, val nativeModule: IdeNativeModule) :
+  NdkModel() {
+
+  @Transient override val features: NdkModelFeatures = NdkModelFeatures(AgpVersion.tryParse(agpVersion))
 
   @Transient
-  override val features: NdkModelFeatures = NdkModelFeatures(AgpVersion.tryParse(agpVersion))
+  val abiByVariantAbi: Map<VariantAbi, IdeNativeAbi> =
+    nativeModule.variants.flatMap { variant -> variant.abis.map { abi -> VariantAbi(variant.name, abi.name) to abi } }.toMap()
 
-  @Transient
-  val abiByVariantAbi: Map<VariantAbi, IdeNativeAbi> = nativeModule.variants.flatMap { variant ->
-    variant.abis.map { abi ->
-      VariantAbi(variant.name, abi.name) to abi
-    }
-  }.toMap()
-
-  @Transient
-  override val allVariantAbis: Collection<VariantAbi> = LinkedHashSet(abiByVariantAbi.keys.sortedBy { it.displayName })
+  @Transient override val allVariantAbis: Collection<VariantAbi> = LinkedHashSet(abiByVariantAbi.keys.sortedBy { it.displayName })
 
   override val syncedVariantAbis: Collection<VariantAbi>
-    get() = LinkedHashSet(
-      abiByVariantAbi.entries.filter { (_, abi) -> abi.sourceFlagsFile.exists() }
-        .map { (variantAbi, _) -> variantAbi }
-        .sortedBy { it.displayName }
-    )
+    get() =
+      LinkedHashSet(
+        abiByVariantAbi.entries
+          .filter { (_, abi) -> abi.sourceFlagsFile.exists() }
+          .map { (variantAbi, _) -> variantAbi }
+          .sortedBy { it.displayName }
+      )
 
   override val symbolFolders: Map<VariantAbi, Set<File>>
-    get() = abiByVariantAbi.mapValues { (_, abi) ->
-      abi.symbolFolderIndexFile.readIndexFile()
-    }
+    get() = abiByVariantAbi.mapValues { (_, abi) -> abi.symbolFolderIndexFile.readIndexFile() }
 
-  override val buildFiles: Collection<File> get() = abiByVariantAbi.values.flatMap { it.buildFileIndexFile.readIndexFile() }.toSet()
-
-  @Transient
-  override val buildSystems: Collection<String> = listOf(
-    when (nativeModule.nativeBuildSystem) {
-      NativeBuildSystem.CMAKE -> "cmake"
-      NativeBuildSystem.NDK_BUILD -> "ndkBuild"
-      NativeBuildSystem.NINJA -> "ninja"
-    })
+  override val buildFiles: Collection<File>
+    get() = abiByVariantAbi.values.flatMap { it.buildFileIndexFile.readIndexFile() }.toSet()
 
   @Transient
-  override val defaultNdkVersion: String = nativeModule.defaultNdkVersion
+  override val buildSystems: Collection<String> =
+    listOf(
+      when (nativeModule.nativeBuildSystem) {
+        NativeBuildSystem.CMAKE -> "cmake"
+        NativeBuildSystem.NDK_BUILD -> "ndkBuild"
+        NativeBuildSystem.NINJA -> "ninja"
+      }
+    )
 
-  @Transient
-  override val ndkVersion: String = nativeModule.ndkVersion
+  @Transient override val defaultNdkVersion: String = nativeModule.defaultNdkVersion
 
-  override val needsAbiSyncBeforeRun: Boolean get() = false
+  @Transient override val ndkVersion: String = nativeModule.ndkVersion
+
+  override val needsAbiSyncBeforeRun: Boolean
+    get() = false
 }
 
-private fun File.readIndexFile(): Set<File> = when {
-  this.isFile -> this.readLines(StandardCharsets.UTF_8).map { File(it) }.toSet()
-  else -> emptySet()
-}
+private fun File.readIndexFile(): Set<File> =
+  when {
+    this.isFile -> this.readLines(StandardCharsets.UTF_8).map { File(it) }.toSet()
+    else -> emptySet()
+  }

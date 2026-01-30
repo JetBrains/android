@@ -41,24 +41,17 @@ fun FailureType.toCrashType(): AppQualityInsightsUsageEvent.CrashType =
     ANR -> AppQualityInsightsUsageEvent.CrashType.ANR
   }
 
-fun convertSeverityList(
-  fatalities: List<FailureType>
-): AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter {
+fun convertSeverityList(fatalities: List<FailureType>): AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter {
   if (fatalities.isEmpty() || fatalities.size > 3) {
-    return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter
-      .UNKNOWN_SEVERITY
+    return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
   }
   if (fatalities.size == 3) {
     return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ALL
   }
   return when (fatalities[0]) {
-    FailureType.ANR ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ANR
-    FailureType.FATAL ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL
-    FailureType.NON_FATAL ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.NON_FATAL
-    FailureType.UNSPECIFIED ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
+    FailureType.ANR -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ANR
+    FailureType.FATAL -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL
+    FailureType.NON_FATAL -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.NON_FATAL
+    FailureType.UNSPECIFIED -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
   }
 }

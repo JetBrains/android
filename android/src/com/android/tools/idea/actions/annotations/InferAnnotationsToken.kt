@@ -23,13 +23,14 @@ import com.intellij.usageView.UsageInfo
 
 interface InferAnnotationsToken<P : AndroidProjectSystem> : Token {
   /**
-   * Check that the project is correctly set up for annotations, making any changes if necessary.  If no changes are necessary, simply
-   * return `true`.  If changes to the project are necessary, proceed to make them appropriately; on success, run [runnable]; whether
-   * changes are successful or not, return `false`.
+   * Check that the project is correctly set up for annotations, making any changes if necessary. If no changes are necessary, simply return
+   * `true`. If changes to the project are necessary, proceed to make them appropriately; on success, run [runnable]; whether changes are
+   * successful or not, return `false`.
    */
   fun checkDependencies(project: Project, usageInfos: Array<UsageInfo>, runnable: Runnable): Boolean
 
   companion object {
-    val EP_NAME = ExtensionPointName<InferAnnotationsToken<AndroidProjectSystem>>("com.android.tools.idea.actions.annotations.inferAnnotationsToken")
+    val EP_NAME =
+      ExtensionPointName<InferAnnotationsToken<AndroidProjectSystem>>("com.android.tools.idea.actions.annotations.inferAnnotationsToken")
   }
 }

@@ -31,8 +31,7 @@ import java.util.EventListener
 
 internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigation Controls"), DumbAware {
 
-  override fun isSelected(event: AnActionEvent): Boolean =
-    service<FloatingXrToolbarState>().floatingXrToolbarEnabled
+  override fun isSelected(event: AnActionEvent): Boolean = service<FloatingXrToolbarState>().floatingXrToolbarEnabled
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     service<FloatingXrToolbarState>().floatingXrToolbarEnabled = state
@@ -42,7 +41,8 @@ internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigat
     super.update(event)
     // Enabled only for XR devices.
     event.presentation.isEnabledAndVisible =
-        event.toolWindowContents.find { it.isSelected && (it.component as? StreamingDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET } != null
+      event.toolWindowContents.find { it.isSelected && (it.component as? StreamingDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET } !=
+        null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

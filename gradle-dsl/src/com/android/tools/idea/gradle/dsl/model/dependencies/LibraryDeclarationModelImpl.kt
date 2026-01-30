@@ -40,8 +40,8 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
   companion object {
     val LOG = Logger.getInstance(LibraryDeclarationModelImpl::class.java)
   }
-  override fun getSpec(): LibraryDeclarationSpec =
-    LibraryDeclarationSpecImpl(name().toString(), group().toString(), version().getSpec())
+
+  override fun getSpec(): LibraryDeclarationSpec = LibraryDeclarationSpecImpl(name().toString(), group().toString(), version().getSpec())
 
   override fun compactNotation(): String = getSpec().compactNotation()
 
@@ -56,31 +56,26 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
     }
   }
 
-  /**
-   * Creates VersionDeclarationModel with no DSL element as it does not exist yet
-   * by default we add literal property to map as version
-   */
-  protected fun createVersionDeclarationModel(dslElement: GradleDslElement?,
-                                              holder: GradlePropertiesDslElement,
-                                              alias: String): VersionDeclarationModel {
+  /** Creates VersionDeclarationModel with no DSL element as it does not exist yet by default we add literal property to map as version */
+  protected fun createVersionDeclarationModel(
+    dslElement: GradleDslElement?,
+    holder: GradlePropertiesDslElement,
+    alias: String,
+  ): VersionDeclarationModel {
     val element = dslElement ?: GradleDslLiteral(holder, GradleNameElement.create(alias))
     return createVersionDeclarationModel(element)
   }
 
   class MapDependencyDeclarationModel(override val dslElement: GradleDslExpressionMap) : LibraryDeclarationModelImpl(dslElement) {
     companion object {
-      /**
-       * Creates library declaration as map with in place version
-       */
+      /** Creates library declaration as map with in place version */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    dependency: LibraryDeclarationSpec): MapDependencyDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, dependency: LibraryDeclarationSpec): MapDependencyDeclarationModel {
         val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
         declaration.getMapValue("group").setValue(dependency.getGroup())
         declaration.getMapValue("name").setValue(dependency.getName())
         dependency.getVersion()?.let {
-          if(it.compactNotation() == null) {
+          if (it.compactNotation() == null) {
             LOG.warn("Version for dependency ${dependency.getName()} does not have string notation")
           }
           declaration.getMapValue("version").setValue(it.compactNotation() ?: "")
@@ -88,15 +83,15 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
         return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
       }
 
-      /**
-       * Creates library declaration as map with version as reference
-       */
+      /** Creates library declaration as map with version as reference */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    name: String,
-                    group: String,
-                    version: ReferenceTo): MapDependencyDeclarationModel {
+      fun createNew(
+        parent: GradlePropertiesDslElement,
+        alias: String,
+        name: String,
+        group: String,
+        version: ReferenceTo,
+      ): MapDependencyDeclarationModel {
         val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
         declaration.getMapValue("group").setValue(group)
         declaration.getMapValue("name").setValue(name)
@@ -104,14 +99,9 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
         return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
       }
 
-      /**
-       * For special cases when version is missed in declaration and will be taken from BOM
-       */
+      /** For special cases when version is missed in declaration and will be taken from BOM */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    name: String,
-                    group: String): MapDependencyDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, name: String, group: String): MapDependencyDeclarationModel {
         val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
         declaration.getMapValue("group").setValue(group)
         declaration.getMapValue("name").setValue(name)
@@ -132,12 +122,7 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
     ): ResolvedPropertyModel {
       val module = dslElement.getPropertyElement("module", GradleDslLiteral::class.java)
       if (module != null) {
-        val element: FakeElement = FakeDependencyDeclarationElement(dslElement,
-                                                                    GradleNameElement.fake(name),
-                                                                    module,
-                                                                    getter,
-                                                                    setter,
-                                                                    false)
+        val element: FakeElement = FakeDependencyDeclarationElement(dslElement, GradleNameElement.fake(name), module, getter, setter, false)
         return GradlePropertyModelBuilder.create(element).addTransform(FakeElementTransform()).buildResolved()
       }
       return GradlePropertyModelBuilder.create(dslElement, name).buildResolved()
@@ -154,48 +139,39 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
     override fun updateVersion(versionReference: VersionDeclarationModel) {
       val oldVersion = dslElement.getPropertyElement("version")
       val reference = ReferenceTo(versionReference)
-      val newVersion = GradleDslVersionLiteral(dslElement,
-                                               GradleNameElement.create("version"),
-                                               reference.javaClass)
+      val newVersion = GradleDslVersionLiteral(dslElement, GradleNameElement.create("version"), reference.javaClass)
 
-      if (oldVersion == null)
-        dslElement.addParsedElement(newVersion)
-      else{
+      if (oldVersion == null) dslElement.addParsedElement(newVersion)
+      else {
         dslElement.removeProperty(oldVersion)
         dslElement.setNewElement(newVersion)
         newVersion.setValue(reference)
       }
     }
 
-    override fun completeModel(): ResolvedPropertyModel? =
-      GradlePropertyModelBuilder.create(dslElement).buildResolved()
-
+    override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
   }
 
   class LiteralLibraryDeclarationModel(override val dslElement: GradleDslLiteral) : LibraryDeclarationModelImpl(dslElement) {
 
     companion object {
-      /**
-       * Creates library declaration as a literal
-       */
+      /** Creates library declaration as a literal */
       @JvmStatic
-      fun createNew(parent: GradlePropertiesDslElement,
-                    alias: String,
-                    compactNotation: String): LiteralLibraryDeclarationModel {
+      fun createNew(parent: GradlePropertiesDslElement, alias: String, compactNotation: String): LiteralLibraryDeclarationModel {
         val literal = parent.setNewLiteral(alias, compactNotation)
         return LiteralLibraryDeclarationModel(literal)
       }
     }
 
-    private fun createModelFor(name: String,
-                               getFunc: (LibraryDeclarationSpec) -> String?,
-                               setFunc: (LibraryDeclarationSpecImpl, String) -> Unit
-
+    private fun createModelFor(
+      name: String,
+      getFunc: (LibraryDeclarationSpec) -> String?,
+      setFunc: (LibraryDeclarationSpecImpl, String) -> Unit,
     ): ResolvedPropertyModel {
       val element = dslElement
       assert(element.parent != null)
-      val fakeElement: FakeElement = FakeDependencyDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc,
-                                                                      setFunc, false)
+      val fakeElement: FakeElement =
+        FakeDependencyDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc, setFunc, false)
       val builder = GradlePropertyModelBuilder.create(fakeElement)
       return builder.addTransform(FakeElementTransform()).buildResolved()
     }
@@ -218,7 +194,8 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
         dslElement,
         { spec: LibraryDeclarationSpec -> spec.getVersion()?.compactNotation() },
         LibraryDeclarationSpecImpl::setStringVersion,
-        false)
+        false,
+      )
     }
 
     override fun updateVersion(compactNotation: String) {
@@ -229,8 +206,6 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
       createVersionElement().setValue(version.getSpec())
     }
 
-    override fun completeModel(): ResolvedPropertyModel? =
-      GradlePropertyModelBuilder.create(dslElement).buildResolved()
+    override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
   }
 }
-

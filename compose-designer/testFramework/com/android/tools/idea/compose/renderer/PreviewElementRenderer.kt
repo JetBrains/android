@@ -36,26 +36,20 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 @TestOnly
-data class RenderFutureForTests<T>(
-  val future: CompletableFuture<T>,
-  val lightVirtualFile: VirtualFile,
-) {
+data class RenderFutureForTests<T>(val future: CompletableFuture<T>, val lightVirtualFile: VirtualFile) {
   fun <R> map(mapper: (CompletableFuture<T>) -> CompletableFuture<R>): RenderFutureForTests<R> =
     RenderFutureForTests(lightVirtualFile = lightVirtualFile, future = mapper(future))
 
-  fun get(): RenderResultForTests<T> =
-    RenderResultForTests(lightVirtualFile = lightVirtualFile, result = future.get())
+  fun get(): RenderResultForTests<T> = RenderResultForTests(lightVirtualFile = lightVirtualFile, result = future.get())
 }
 
 @TestOnly data class RenderResultForTests<T>(val result: T, val lightVirtualFile: VirtualFile)
 
 /**
- * Returns a [CompletableFuture] that creates a [RenderTask] for a single
- * [ComposePreviewElementInstance]. It is the responsibility of a client of this function to dispose
- * the resulting [RenderTask] when no loner needed.
+ * Returns a [CompletableFuture] that creates a [RenderTask] for a single [ComposePreviewElementInstance]. It is the responsibility of a
+ * client of this function to dispose the resulting [RenderTask] when no loner needed.
  *
- * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of
- * modules identified by [facet].
+ * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of modules identified by [facet].
  */
 @TestOnly
 fun createRenderTaskFuture(
@@ -86,44 +80,31 @@ fun createRenderTaskFuture(
         classesToPreload = classesToPreload,
         customViewInfoParser = customViewInfoParser,
         showDecorations = previewElement.displaySettings.showDecoration,
-        configure = { conf ->
-          previewElement.applyTo(conf) { it.settings.getDefaultPreviewDevice() }
-        },
+        configure = { conf -> previewElement.applyTo(conf) { it.settings.getDefaultPreviewDevice() } },
       ),
   )
 }
 
-private fun validateOriginFile(
-  originFile: VirtualFile,
-  facet: AndroidFacet,
-  previewElement: PsiComposePreviewElementInstance,
-) {
+private fun validateOriginFile(originFile: VirtualFile, facet: AndroidFacet, previewElement: PsiComposePreviewElementInstance) {
   val definitionOriginFile = previewElement.previewElementDefinition?.virtualFile
   if (definitionOriginFile != null) {
     if (originFile != definitionOriginFile) {
-      error(
-        "originFile does not match the origin file or the preview definition: $originFile != $definitionOriginFile"
-      )
+      error("originFile does not match the origin file or the preview definition: $originFile != $definitionOriginFile")
     }
   }
   if (
-    runReadAction {
-      ProjectFileIndex.getInstance(facet.module.project)
-        .getModuleForFile(originFile)
-        ?.getMainModule()
-    } != facet.module.getMainModule()
+    runReadAction { ProjectFileIndex.getInstance(facet.module.project).getModuleForFile(originFile)?.getMainModule() } !=
+      facet.module.getMainModule()
   ) {
     error("originFile($originFile) does not match facet($facet)")
   }
 }
 
 /**
- * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result
- * or null if the preview could not be rendered. This method will render the element asynchronously
- * and will return immediately.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be
+ * rendered. This method will render the element asynchronously and will return immediately.
  *
- * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of
- * modules identified by [facet].
+ * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of modules identified by [facet].
  */
 fun renderPreviewElementForResult(
   facet: AndroidFacet,
@@ -150,14 +131,7 @@ fun renderPreviewElementForResult(
       CompletableFuture.supplyAsync({ renderTaskFuture.future.get() }, executor)
         .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
         .thenApply {
-          if (
-            it != null &&
-              it.renderResult.isSuccess &&
-              it.logger.brokenClasses.isEmpty() &&
-              !it.logger.hasErrors()
-          )
-            it
-          else null
+          if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty() && !it.logger.hasErrors()) it else null
         }
 
     renderResultFuture.handle { _, _ -> renderTaskFuture.future.get().dispose() }
@@ -166,19 +140,15 @@ fun renderPreviewElementForResult(
 }
 
 /**
- * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result
- * or null if the preview could not be rendered. This method will render the element asynchronously
- * and will return immediately.
+ * Renders a single [ComposePreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be
+ * rendered. This method will render the element asynchronously and will return immediately.
  *
- * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of
- * modules identified by [facet].
+ * Where [originFile] is a physical virtual file that is being previewed. It must be from a group of modules identified by [facet].
  */
 fun renderPreviewElement(
   facet: AndroidFacet,
   originFile: VirtualFile,
   previewElement: PsiComposePreviewElementInstance,
 ): CompletableFuture<BufferedImage?> {
-  return renderPreviewElementForResult(facet, originFile, previewElement).future.thenApply {
-    it?.renderedImage?.copy
-  }
+  return renderPreviewElementForResult(facet, originFile, previewElement).future.thenApply { it?.renderedImage?.copy }
 }

@@ -24,10 +24,10 @@ import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
-import org.jetbrains.annotations.NonNls
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
+import org.jetbrains.annotations.NonNls
 
 @Service
 @State(name = "AndroidSdkPathStore", storages = [(Storage("android.sdk.path.xml", roamingType = RoamingType.LOCAL))])
@@ -43,9 +43,7 @@ class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.S
     get() = androidSdkPath?.takeIf { isValid(it) }
 
   class State : BaseState() {
-    /**
-     * Absolute path to Android SDK location.
-     */
+    /** Absolute path to Android SDK location. */
     var androidSdkAbsolutePath: String? by string(null)
   }
 
@@ -69,7 +67,6 @@ class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.S
     private const val ANDROID_SDK_PATH_KEY: @NonNls String = "android.sdk.path"
     private const val MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY = "migrate.android.sdk.path.to.roamable.storage"
 
-    @JvmStatic
-    fun getInstance(): AndroidSdkPathStore = service()
+    @JvmStatic fun getInstance(): AndroidSdkPathStore = service()
   }
 }

@@ -43,47 +43,22 @@ class ApkExtractorTest {
 
     val extractedManifest = extractedItems.filterIsInstance<ExtractedItem.Manifest>().single()
     assertThat(StringUtil.convertLineSeparators(extractedManifest.content))
-      .isEqualTo(
-        testDataPath.resolve("import/apk/expected/AndroidManifest_extracted.xml").readText()
-      )
+      .isEqualTo(testDataPath.resolve("import/apk/expected/AndroidManifest_extracted.xml").readText())
 
     val stringFolders =
-      extractedItems
-        .filterIsInstance<ExtractedItem.StringResource>()
-        .map { FileUtil.normalize(it.filePath.pathString) }
-        .toSet()
+      extractedItems.filterIsInstance<ExtractedItem.StringResource>().map { FileUtil.normalize(it.filePath.pathString) }.toSet()
     assertThat(stringFolders)
-      .containsExactly(
-        "res/values/strings.xml",
-        "res/values-en/strings.xml",
-        "res/values-es/strings.xml",
-        "res/values-ko/strings.xml",
-      )
+      .containsExactly("res/values/strings.xml", "res/values-en/strings.xml", "res/values-es/strings.xml", "res/values-ko/strings.xml")
+    assertThat(extractedItems)
+      .contains(ExtractedItem.StringResource(value = "Camping style", name = "ID_CAMPING_STYLE", filePath = Path("res/values/strings.xml")))
     assertThat(extractedItems)
       .contains(
-        ExtractedItem.StringResource(
-          value = "Camping style",
-          name = "ID_CAMPING_STYLE",
-          filePath = Path("res/values/strings.xml"),
-        )
-      )
-    assertThat(extractedItems)
-      .contains(
-        ExtractedItem.StringResource(
-          value = "Estilo de camping",
-          name = "ID_CAMPING_STYLE",
-          filePath = Path("res/values-es/strings.xml"),
-        )
+        ExtractedItem.StringResource(value = "Estilo de camping", name = "ID_CAMPING_STYLE", filePath = Path("res/values-es/strings.xml"))
       )
 
-    val rawWatchFace =
-      extractedItems.filterIsInstance<ExtractedItem.TextResource>().find {
-        it.filePath == Path("res/raw/watchface.xml")
-      }
+    val rawWatchFace = extractedItems.filterIsInstance<ExtractedItem.TextResource>().find { it.filePath == Path("res/raw/watchface.xml") }
     assertThat(rawWatchFace).isNotNull()
     assertThat(StringUtil.convertLineSeparators(rawWatchFace!!.text))
-      .isEqualTo(
-        testDataPath.resolve("import/apk/expected/res/raw/watchface_extracted.xml").readText()
-      )
+      .isEqualTo(testDataPath.resolve("import/apk/expected/res/raw/watchface_extracted.xml").readText())
   }
 }

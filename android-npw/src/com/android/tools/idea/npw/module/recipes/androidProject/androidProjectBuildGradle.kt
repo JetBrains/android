@@ -16,7 +16,8 @@
 package com.android.tools.idea.npw.module.recipes.androidProject
 
 // Each plugin is requested from module recipe. Only the empty plugins block is needed from the project recipe
-fun androidProjectBuildGradle() = """
+fun androidProjectBuildGradle() =
+  """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     plugins {
     }

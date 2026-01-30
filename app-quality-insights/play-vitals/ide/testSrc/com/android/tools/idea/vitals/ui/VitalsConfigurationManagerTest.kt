@@ -46,8 +46,7 @@ class VitalsConfigurationManagerTest {
 
   private val loginUsersRule = LoginUsersRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(loginUsersRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(loginUsersRule)!!
 
   @Test
   fun `should return unauthenticated configuration when user is not logged in`() =
@@ -73,10 +72,7 @@ class VitalsConfigurationManagerTest {
     runBlocking<Unit> {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
-      loginUsersRule.setActiveUser(
-        "foo@goo.com",
-        features = listOf(LoginFeature.feature<VitalsLoginFeature>()),
-      )
+      loginUsersRule.setActiveUser("foo@goo.com", features = listOf(LoginFeature.feature<VitalsLoginFeature>()))
 
       val configManager =
         VitalsConfigurationManager(
@@ -91,10 +87,7 @@ class VitalsConfigurationManagerTest {
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
       loginUsersRule.logOut("foo@goo.com")
       configManager.configuration.first { it is AppInsightsModel.Unauthenticated }
-      loginUsersRule.setActiveUser(
-        "foo@goo.com",
-        features = listOf(LoginFeature.feature<VitalsLoginFeature>()),
-      )
+      loginUsersRule.setActiveUser("foo@goo.com", features = listOf(LoginFeature.feature<VitalsLoginFeature>()))
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
     }
 
@@ -116,10 +109,7 @@ class VitalsConfigurationManagerTest {
 
       configManager.refreshConfiguration()
       configManager.configuration.first { it is AppInsightsModel.Unauthenticated }
-      loginUsersRule.setActiveUser(
-        "foo@goo.com",
-        features = listOf(LoginFeature.feature<VitalsLoginFeature>()),
-      )
+      loginUsersRule.setActiveUser("foo@goo.com", features = listOf(LoginFeature.feature<VitalsLoginFeature>()))
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
     }
 
@@ -128,10 +118,7 @@ class VitalsConfigurationManagerTest {
     runBlocking<Unit> {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("failed"))
-      loginUsersRule.setActiveUser(
-        "foo@goo.com",
-        features = listOf(LoginFeature.feature<VitalsLoginFeature>()),
-      )
+      loginUsersRule.setActiveUser("foo@goo.com", features = listOf(LoginFeature.feature<VitalsLoginFeature>()))
 
       val configManager =
         VitalsConfigurationManager(

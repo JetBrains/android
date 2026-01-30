@@ -48,6 +48,7 @@ class EmptyStatePanelTest {
 
   private val testRootDisposable
     get() = projectRule.disposable
+
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
 
@@ -69,11 +70,13 @@ class EmptyStatePanelTest {
   fun testActivateOnConnectionDisabled() {
     DeviceMirroringSettings.getInstance().activateOnConnection = false
     val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
+    assertThat(htmlComponent.normalizedText)
+      .contains(
         "To mirror a physical device, connect it via USB cable or over WiFi, click" +
-        " <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select the device from the list." +
-        " You may also select the <b>Activate mirroring when a new physical device is connected</b> option in the" +
-        " <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
+          " <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select the device from the list." +
+          " You may also select the <b>Activate mirroring when a new physical device is connected</b> option in the" +
+          " <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>."
+      )
   }
 
   @Test
@@ -84,9 +87,11 @@ class EmptyStatePanelTest {
     whenever(mockToolWindowManager.getToolWindow("Device Manager 2")).thenReturn(mockToolWindow)
     projectRule.project.replaceService(ToolWindowManager::class.java, mockToolWindowManager, testRootDisposable)
     val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
+    assertThat(htmlComponent.normalizedText)
+      .contains(
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select the device from the list," +
-        " or use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>.")
+          " or use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>."
+      )
     htmlComponent.clickOnHyperlink("DeviceManager")
     verify(mockToolWindow, times(1)).show(anyOrNull())
   }
@@ -95,15 +100,17 @@ class EmptyStatePanelTest {
   fun testLaunchInToolWindowDisabled() {
     EmulatorSettings.getInstance().launchInToolWindow = false
     val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
+    assertThat(htmlComponent.normalizedText)
+      .contains(
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select a virtual device," +
-        " or select the <b>Launch in the Running Devices tool window</b> option in the" +
-        " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>" +
-        " and use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>.")
+          " or select the <b>Launch in the Running Devices tool window</b> option in the" +
+          " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>" +
+          " and use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>."
+      )
   }
 
   private fun createEmptyStatePanel(): EmptyStatePanel =
-      EmptyStatePanel(projectRule.project, testRootDisposable).apply { setSize(500, 1000) }
+    EmptyStatePanel(projectRule.project, testRootDisposable).apply { setSize(500, 1000) }
 
   private fun JEditorPane.clickOnHyperlink(hyperlink: String) {
     fireHyperlinkUpdate(HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, hyperlink))

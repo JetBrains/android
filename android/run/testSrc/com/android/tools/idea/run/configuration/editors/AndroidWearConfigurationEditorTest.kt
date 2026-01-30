@@ -45,9 +45,7 @@ class AndroidWearConfigurationEditorTest {
   fun setUp() {
     val runConfigurationFactory = AndroidWatchFaceConfigurationType().configurationFactories[0]
     runConfiguration = AndroidWatchFaceConfiguration(projectRule.project, runConfigurationFactory)
-    settingsEditor =
-      runConfiguration.configurationEditor
-        as AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
+    settingsEditor = runConfiguration.configurationEditor as AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
     Disposer.register(projectRule.testRootDisposable, settingsEditor)
   }
 
@@ -55,16 +53,10 @@ class AndroidWearConfigurationEditorTest {
   fun testComponentComboBoxDisabled() = runBlocking {
     val editor = settingsEditor.component as DialogPanel
     val modulesComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>().first()
-    val componentComboBox =
-      TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
+    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
     var comboBoxRenderer =
-      componentComboBox.renderer.getListCellRendererComponent(
-        JList(),
-        componentComboBox.item,
-        -1,
-        false,
-        false,
-      ) as SimpleListCellRenderer<String>
+      componentComboBox.renderer.getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false)
+        as SimpleListCellRenderer<String>
 
     assertThat(modulesComboBox.item).isNull()
     assertThat(comboBoxRenderer.isEnabled).isFalse()
@@ -74,23 +66,13 @@ class AndroidWearConfigurationEditorTest {
     settingsEditor.resetFrom(runConfiguration)
     delayUntilCondition(200) {
       comboBoxRenderer =
-        componentComboBox.renderer.getListCellRendererComponent(
-          JList(),
-          componentComboBox.item,
-          -1,
-          false,
-          false,
-        ) as SimpleListCellRenderer<String>
+        componentComboBox.renderer.getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false)
+          as SimpleListCellRenderer<String>
       comboBoxRenderer.text == "Watch Face not found"
     }
     comboBoxRenderer =
-      componentComboBox.renderer.getListCellRendererComponent(
-        JList(),
-        componentComboBox.item,
-        -1,
-        false,
-        false,
-      ) as SimpleListCellRenderer<String>
+      componentComboBox.renderer.getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false)
+        as SimpleListCellRenderer<String>
     assertThat(comboBoxRenderer.text).isEqualTo("Watch Face not found")
     assertThat(comboBoxRenderer.isEnabled).isFalse()
   }
@@ -102,9 +84,7 @@ class AndroidWearConfigurationEditorTest {
     runConfiguration.setModule(projectRule.module)
     runConfiguration.componentLaunchOptions.componentName = watchFaceClass
     settingsEditor.resetFrom(runConfiguration)
-    val componentComboBox =
-      TreeWalker(settingsEditor.component).descendants().filterIsInstance<ComboBox<*>>()[1]
-        as ComboBox<String>
+    val componentComboBox = TreeWalker(settingsEditor.component).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
 
     delayUntilCondition(200) { componentComboBox.item != null }
 

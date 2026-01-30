@@ -39,23 +39,26 @@ class ProguardR8CommenterTest(private val fileType: LanguageFileType) : JavaCode
       fileType,
       """
         -rule$caret
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.performEditorAction(IdeActions.ACTION_COMMENT_LINE)
 
     myFixture.checkResult(
       """
-        #-rule
-      """.trimIndent()
+      #-rule
+      """
+        .trimIndent()
     )
 
     myFixture.performEditorAction(IdeActions.ACTION_COMMENT_LINE)
 
     myFixture.checkResult(
       """
-        -rule
-      """.trimIndent()
+      -rule
+      """
+        .trimIndent()
     )
   }
 }

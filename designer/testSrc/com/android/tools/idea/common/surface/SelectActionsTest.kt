@@ -124,19 +124,12 @@ class SelectActionsTest : LayoutTestCase() {
 
     val action = SelectAllAction()
 
-    action.actionPerformed(
-      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
-    )
-    AndroidTestCase.assertEquals(
-      listOf(outer, button, inner, textView1, textView2),
-      surface.selectionModel.selection,
-    )
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
+    AndroidTestCase.assertEquals(listOf(outer, button, inner, textView1, textView2), surface.selectionModel.selection)
   }
 
   private fun performAction(action: AnAction, surface: DesignSurface<*>, id: String) {
-    action.actionPerformed(
-      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
-    )
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     val component = surface.model?.treeReader?.find(id)!!
     assertEquals(listOf(component), surface.selectionModel.selection)
   }

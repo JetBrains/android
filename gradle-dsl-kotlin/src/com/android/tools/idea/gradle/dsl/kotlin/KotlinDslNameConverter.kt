@@ -27,10 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTL
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtPsiFactory
-
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
@@ -38,25 +34,29 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTA
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import com.intellij.psi.PsiElement
 import java.util.regex.Pattern
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
-interface KotlinDslNameConverter: GradleDslNameConverter {
+interface KotlinDslNameConverter : GradleDslNameConverter {
   override fun getKind() = KOTLIN
 
   override fun psiToName(element: PsiElement): String {
     return when (element) {
-      is KtStringTemplateExpression -> when (val contents = element.literalContents()) {
-        null -> element.text
-        else -> GradleNameElement.escape(contents)
-      }
+      is KtStringTemplateExpression ->
+        when (val contents = element.literalContents()) {
+          null -> element.text
+          else -> GradleNameElement.escape(contents)
+        }
       is KtExpression -> gradleNameFor(element) ?: ""
       else -> element.text
     }
   }
 
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    var result : String? = null
+    var result: String? = null
     runReadAction {
       val referencePsi = KtPsiFactory(context.dslFile.project, false).createExpression(referenceText)
       result = gradleNameFor(referencePsi)
@@ -68,18 +68,14 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     return (element as? KtExpression)?.let { gradleNameFor(element) } ?: convertReferenceText(context, element.text)
   }
 
-  override fun convertReferenceToExternalText(context: GradleDslElement,
-                                              referenceText: String,
-                                              forInjection: Boolean): String {
+  override fun convertReferenceToExternalText(context: GradleDslElement, referenceText: String, forInjection: Boolean): String {
     return when (context) {
       is GradleDslSimpleExpression -> convertToExternalTextValue(context, context.dslFile, referenceText, forInjection)
       else -> referenceText
     }
   }
 
-  override fun convertReferenceToExternalText(context: GradleDslElement,
-                                              dslElement: GradleDslElement,
-                                              forInjection: Boolean): String {
+  override fun convertReferenceToExternalText(context: GradleDslElement, dslElement: GradleDslElement, forInjection: Boolean): String {
     return when (context) {
       is GradleDslSimpleExpression -> convertToExternalTextValue(dslElement, context, context.dslFile, forInjection) ?: dslElement.name
       else -> dslElement.name
@@ -89,20 +85,28 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
     val defaultResult = ExternalNameInfo(modelName, UNKNOWN)
-    var result : ExternalNameInfo? = null
+    var result: ExternalNameInfo? = null
     for (e in map.entrySet) {
       if (e.modelEffectDescription.property.name == modelName) {
         if (e.versionConstraint?.isOkWith(this.context.agpVersion) == false) continue
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.modelEffectDescription.semantics) {
-          VAR, VWO -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
+          VAR,
+          VWO -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
           GRADLE_PROPERTY -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, SET_METHOD)
-          SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER ->
-            if (result == null) result = ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
-          VAL -> when (e.modelEffectDescription.property.type) {
-            MUTABLE_SET, MUTABLE_LIST, MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
-            else -> Unit
-          }
+          SET,
+          ADD_AS_LIST,
+          AUGMENT_LIST,
+          CLEAR_AND_AUGMENT_LIST,
+          AUGMENT_MAP,
+          OTHER -> if (result == null) result = ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
+          VAL ->
+            when (e.modelEffectDescription.property.type) {
+              MUTABLE_SET,
+              MUTABLE_LIST,
+              MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
+              else -> Unit
+            }
           else -> Unit
         }
       }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.templates.diff.activity
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.templates.diff.LintReportParser
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
@@ -46,16 +46,12 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 
 /**
- * Generates files from a template and performs checks on them to ensure they're valid and can be
- * checked in as golden files
+ * Generates files from a template and performs checks on them to ensure they're valid and can be checked in as golden files
  *
  * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
-class GoldenFileValidator(
-  template: Template,
-  goldenDirName: String,
-  private val gradleProjectRule: AndroidGradleProjectRule,
-) : ProjectRenderer(template, goldenDirName) {
+class GoldenFileValidator(template: Template, goldenDirName: String, private val gradleProjectRule: AndroidGradleProjectRule) :
+  ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     checkProjectProperties(projectDir)
     performBuild()
@@ -65,10 +61,7 @@ class GoldenFileValidator(
     generateLintBaseline(projectDir)
   }
 
-  /**
-   * Overrides ProjectRenderer's renderTemplate to wrap it inside the AndroidGradleProjectRule's
-   * load(), which syncs the project
-   */
+  /** Overrides ProjectRenderer's renderTemplate to wrap it inside the AndroidGradleProjectRule's load(), which syncs the project */
   override fun renderTemplate(
     project: Project,
     moduleRecipe: Recipe,
@@ -77,13 +70,7 @@ class GoldenFileValidator(
     templateRecipeExecutor: DefaultRecipeExecutor,
   ) {
     gradleProjectRule.load(TestProjectPaths.NO_MODULES, getPinnedAgpVersion()) {
-      super.renderTemplate(
-        project,
-        moduleRecipe,
-        context,
-        moduleRecipeExecutor,
-        templateRecipeExecutor,
-      )
+      super.renderTemplate(project, moduleRecipe, context, moduleRecipeExecutor, templateRecipeExecutor)
     }
   }
 
@@ -103,9 +90,7 @@ class GoldenFileValidator(
         ),
       // TODO: b/390509438
       "testNewSettingsActivityWithKotlinMultipleScreens" to
-        setOf(
-          "'fun setTargetFragment(p0: Fragment?, p1: Int): Unit' is deprecated. Deprecated in Java."
-        ),
+        setOf("'fun setTargetFragment(p0: Fragment?, p1: Int): Unit' is deprecated. Deprecated in Java."),
       // TODO: b/390509533
       "testNewTabbedActivityWithKotlin" to
         setOf(
@@ -151,9 +136,7 @@ class GoldenFileValidator(
         ),
       // TODO: b/390510577
       "testNewPrimaryDetailFlowWithKotlin" to
-        setOf(
-          "'fun startDrag(p0: ClipData!, p1: View.DragShadowBuilder!, p2: Any!, p3: Int): Boolean' is deprecated. Deprecated in Java."
-        ),
+        setOf("'fun startDrag(p0: ClipData!, p1: View.DragShadowBuilder!, p2: Any!, p3: Int): Boolean' is deprecated. Deprecated in Java."),
       // TODO: b/390509164
       "testNewFullscreenActivityWithKotlin" to
         setOf(
@@ -193,28 +176,18 @@ class GoldenFileValidator(
           "'fun getSerializableExtra(p0: String!): Serializable?' is deprecated. Deprecated in Java.",
         ),
       // TODO: b/446181730
-      "testJourneysWithTestSuite" to
-        setOf(
-          "The option setting 'android.experimental.testSuiteSupport=true' is experimental."
-        )
+      "testJourneysWithTestSuite" to setOf("The option setting 'android.experimental.testSuiteSupport=true' is experimental."),
     )
 
   private fun isValidWarning(message: String): Boolean {
     // If the message doesn't match any known baseline warnings, we should fail the test
-    return warningsToIgnore
-      .filterKeys { key -> key == "*" || key == goldenDirName }
-      .values
-      .flatten()
-      .none { warning -> warning in message }
+    return warningsToIgnore.filterKeys { key -> key == "*" || key == goldenDirName }.values.flatten().none { warning -> warning in message }
   }
 
   /** Build the project to ensure it compiles and that there are no warnings */
   private fun performBuild() {
     var failed: MessageEvent? = null
-    injectBuildOutputDumpingBuildViewManager(
-      gradleProjectRule.project,
-      gradleProjectRule.project,
-    ) { buildEvent ->
+    injectBuildOutputDumpingBuildViewManager(gradleProjectRule.project, gradleProjectRule.project) { buildEvent ->
       if (buildEvent is MessageEvent && buildEvent.kind == MessageEvent.Kind.WARNING) {
         if (isValidWarning(buildEvent.message)) {
           println("Build Warning: $buildEvent")
@@ -248,9 +221,9 @@ class GoldenFileValidator(
   }
 
   /**
-   * Runs Gradle Lint on the project and generates the baseline files to the output directory. The
-   * baseline files should be unzipped to the source tree along with the golden files, and the
-   * resulting CL acts as a manual diff to ensure that potentially added warnings are intentional.
+   * Runs Gradle Lint on the project and generates the baseline files to the output directory. The baseline files should be unzipped to the
+   * source tree along with the golden files, and the resulting CL acts as a manual diff to ensure that potentially added warnings are
+   * intentional.
    *
    * See go/template-diff-tests for more details
    */
@@ -276,8 +249,7 @@ class GoldenFileValidator(
   /** Modifies gradle.build's lint block to include the options we need in order to run lint */
   private fun setLintOptions() {
     val gradleBuildModel =
-      ProjectBuildModel.get(gradleProjectRule.project)
-        .getModuleBuildModel(gradleProjectRule.project.findModule("Template_test_module"))
+      ProjectBuildModel.get(gradleProjectRule.project).getModuleBuildModel(gradleProjectRule.project.findModule("Template_test_module"))
     val lintBlock = gradleBuildModel!!.android().lint()
 
     // Since we intend to generate the baseline, we need to set the file path, which is where the
@@ -294,15 +266,12 @@ class GoldenFileValidator(
     val disableList = lintBlock.disable().convertToEmptyList()
     disableList.addListValue()!!.setValue("GradleDependency")
 
-    WriteCommandAction.writeCommandAction(gradleProjectRule.project).run<IOException> {
-      gradleBuildModel.applyChanges()
-    }
+    WriteCommandAction.writeCommandAction(gradleProjectRule.project).run<IOException> { gradleBuildModel.applyChanges() }
   }
 
   /**
-   * Copies the baseline file generated by the Gradle Lint task from the project module files to
-   * Bazel's outputs.zip. Replace the AGP version in the XML with placeholders because it creates
-   * noise in Git diffs
+   * Copies the baseline file generated by the Gradle Lint task from the project module files to Bazel's outputs.zip. Replace the AGP
+   * version in the XML with placeholders because it creates noise in Git diffs
    */
   private fun copyBaselineFile(projectBaseline: Path) {
     val outputBaselineDir = TemplateDiffTestUtils.getOutputDir("lintBaseline")
@@ -319,8 +288,7 @@ class GoldenFileValidator(
     lines.forEach { line ->
       val issuesMatch = issuesTagRegex.matchEntire(line)
       if (issuesMatch != null) {
-        newContent +=
-          "<!-- This file should not be edited manually! See go/template-diff-tests -->\n"
+        newContent += "<!-- This file should not be edited manually! See go/template-diff-tests -->\n"
         val agpVersion = issuesMatch.groups[1]!!.value
         newContent += line.replace(agpVersion, "%AGP_VERSION_PLACEHOLDER%") + "\n"
         println("Replacing AGP version $agpVersion with placeholder in $outputBaselinePath")

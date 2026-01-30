@@ -21,7 +21,8 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.components.Service
 
 enum class AutoSyncBehavior(val labelBundleKey: String) {
-  Default("gradle.settings.autoSync.behavior.default"), Manual("gradle.settings.autoSync.behavior.manual")
+  Default("gradle.settings.autoSync.behavior.default"),
+  Manual("gradle.settings.autoSync.behavior.manual"),
 }
 
 private const val AUTO_SYNC_SETTING_KEY = "gradle.sync.auto.key"
@@ -30,8 +31,7 @@ private const val AUTO_SYNC_SETTING_KEY_LAST_CHANGED = "gradle.sync.auto.key.las
 @Service(Service.Level.APP)
 object AutoSyncSettingStore {
 
-  @VisibleForTesting
-  var timeProvider: () -> Long = { System.currentTimeMillis() }
+  @VisibleForTesting var timeProvider: () -> Long = { System.currentTimeMillis() }
 
   var autoSyncBehavior: AutoSyncBehavior
     get() = readAutoSyncPreference().takeUnless { isAutoSyncControlDisabled() } ?: AutoSyncBehavior.Default

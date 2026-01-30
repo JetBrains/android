@@ -36,11 +36,9 @@ import org.junit.Test
 /** Tests [AndroidSdkInferredAnnotationProvider]. */
 class AndroidSdkInferredAnnotationProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   @RunsInEdt
@@ -50,15 +48,17 @@ class AndroidSdkInferredAnnotationProviderTest {
 
     // We'll use Java API `System.clearProperty(String)` to test annotations; the parameter is marked @RecentlyNonNull in android.jar
     // but is left unannotated in sources. We mock java/util/System.java here because we don't have the real SDK sources handy.
-    val javaLangSystemSource = fixture.addFileToProject(
-      "android-sdk-sources/java/lang/System.java",
-      """
-      package java.lang;
-      class System {
-        public static String clearProperty(String key) { return ""; }
-      }
-      """.trimIndent()
-    )
+    val javaLangSystemSource =
+      fixture.addFileToProject(
+        "android-sdk-sources/java/lang/System.java",
+        """
+        package java.lang;
+        class System {
+          public static String clearProperty(String key) { return ""; }
+        }
+        """
+          .trimIndent(),
+      )
     val sdkSourceDir = checkNotNull(javaLangSystemSource.virtualFile.parent.parent.parent)
     val androidSdk = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()).single()
     val sdkModifier = androidSdk.sdkModificator
@@ -92,19 +92,20 @@ class AndroidSdkInferredAnnotationProviderTest {
     assertThat(inferredAnnotationsManager.findInferredAnnotation(sourceParam, RECENTLY_NULLABLE)).isNull()
 
     // Check that our inferred annotations affect IntelliJ inspections.
-    val testUsage = fixture.addFileToProject(
-      "src/Test.java",
-      """
-      package com.example;
-      class Test {
-        void foo() {
-          System.clearProperty(<warning descr="Passing 'null' argument to parameter annotated as non-null">null</warning>);
+    val testUsage =
+      fixture.addFileToProject(
+        "src/Test.java",
+        """
+        package com.example;
+        class Test {
+          void foo() {
+            System.clearProperty(<warning descr="Passing 'null' argument to parameter annotated as non-null">null</warning>);
+          }
         }
-      }
-      """.trimIndent()
-    )
-    @Suppress("UnstableApiUsage")
-    fixture.enableInspections(DataFlowInspection::class.java)
+        """
+          .trimIndent(),
+      )
+    @Suppress("UnstableApiUsage") fixture.enableInspections(DataFlowInspection::class.java)
     fixture.openFileInEditor(testUsage.virtualFile)
     fixture.checkHighlighting()
   }

@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Process SyncIssues with type [IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED]. It will add [RemoveJcenterHyperlink] when the project is
  * initialized and the quickfix can be applied.
  */
-class JcenterDeprecatedReporter: SimpleDeduplicatingSyncIssueReporter() {
+class JcenterDeprecatedReporter : SimpleDeduplicatingSyncIssueReporter() {
   public override fun getSupportedIssueType(): Int {
     return IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED
   }
@@ -36,17 +36,20 @@ class JcenterDeprecatedReporter: SimpleDeduplicatingSyncIssueReporter() {
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun getCustomLinks(project: Project,
-                              syncIssues: MutableList<IdeSyncIssue>,
-                              affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: MutableList<IdeSyncIssue>,
+    affectedModules: MutableList<Module>,
+    buildFileMap: MutableMap<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> {
     return createQuickFixes(project, affectedModules, RemoveJcenterHyperlink::canBeApplied)
   }
 
   @VisibleForTesting
-  fun createQuickFixes(project: Project,
-                       affectedModules: MutableList<Module>,
-                       canBeApplied: (project: Project, affectedModules: MutableList<Module>) -> Boolean
+  fun createQuickFixes(
+    project: Project,
+    affectedModules: MutableList<Module>,
+    canBeApplied: (project: Project, affectedModules: MutableList<Module>) -> Boolean,
   ): List<SyncIssueNotificationHyperlink> {
     val quickFixes = mutableListOf<SyncIssueNotificationHyperlink>()
     if (project.isInitialized && canBeApplied(project, affectedModules)) {

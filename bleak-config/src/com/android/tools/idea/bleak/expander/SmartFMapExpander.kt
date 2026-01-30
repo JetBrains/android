@@ -17,14 +17,13 @@ package com.android.tools.idea.bleak.expander
 
 import com.intellij.util.SmartFMap
 
-/** [SmartFMap] is a map optimized for holding a small number of items. It has an Object field 'myMap' which either
- * contains an Object[] containing keys and corresponding values in consecutive slots, or a Map once the size grows
- * past [SmartFMap.ARRAY_THRESHOLD].
- * Without the handling provided by this class, BLeak would not be able to follow the expansion of the map across
- * this boundary.
+/**
+ * [SmartFMap] is a map optimized for holding a small number of items. It has an Object field 'myMap' which either contains an Object[]
+ * containing keys and corresponding values in consecutive slots, or a Map once the size grows past [SmartFMap.ARRAY_THRESHOLD]. Without the
+ * handling provided by this class, BLeak would not be able to follow the expansion of the map across this boundary.
  */
-class SmartFMapExpander(): Expander() {
-  override fun canExpand(obj: Any) = obj is SmartFMap<*,*>
+class SmartFMapExpander() : Expander() {
+  override fun canExpand(obj: Any) = obj is SmartFMap<*, *>
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true
 
@@ -32,16 +31,17 @@ class SmartFMapExpander(): Expander() {
     val map = myMapField.get(n.obj)
     when (map) {
       is Array<*> -> map.filterNotNull().forEach { n.addEdgeTo(it, ObjectLabel(it)) }
-      is Map<*, *> -> map.entries.forEach {
-        val key = it.key
-        val value = it.value
-        if (key != null) {
-          n.addEdgeTo(key, ObjectLabel(key))
+      is Map<*, *> ->
+        map.entries.forEach {
+          val key = it.key
+          val value = it.value
+          if (key != null) {
+            n.addEdgeTo(key, ObjectLabel(key))
+          }
+          if (value != null) {
+            n.addEdgeTo(value, ObjectLabel(value))
+          }
         }
-        if (value != null) {
-          n.addEdgeTo(value, ObjectLabel(value))
-        }
-      }
     }
   }
 

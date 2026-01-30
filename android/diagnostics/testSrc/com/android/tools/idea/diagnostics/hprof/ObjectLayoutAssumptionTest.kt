@@ -17,12 +17,12 @@ package com.android.tools.idea.diagnostics.hprof
 
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.Disposer
-import org.junit.Test
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.isAccessible
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import org.junit.Test
 
 class ObjectLayoutAssumptionTest {
 
@@ -33,17 +33,14 @@ class ObjectLayoutAssumptionTest {
     assertEquals("com.intellij.openapi.util.Disposer", disposerClass.qualifiedName)
 
     // Disposer.ourTree validation
-    val ourTreeClass =
-      disposerClass.members.first { c -> c.name == "ourTree" }.returnType.classifier as KClass<*>
-    assertEquals("com.intellij.openapi.util.ObjectTree",
-                 ourTreeClass.qualifiedName)
+    val ourTreeClass = disposerClass.members.first { c -> c.name == "ourTree" }.returnType.classifier as KClass<*>
+    assertEquals("com.intellij.openapi.util.ObjectTree", ourTreeClass.qualifiedName)
   }
 
   @Test
   fun objectTreeAssumptions() {
     val disposerClass = Disposer::class
-    val objectTreeInstance =
-      disposerClass.members.first { c -> c.name == "ourTree" }.apply { isAccessible = true }.call()!!
+    val objectTreeInstance = disposerClass.members.first { c -> c.name == "ourTree" }.apply { isAccessible = true }.call()!!
     val myObject2NodeMapField = objectTreeInstance.javaClass.getDeclaredField("myObject2ParentNode").apply { isAccessible = true }
     val map = myObject2NodeMapField.get(objectTreeInstance)
 

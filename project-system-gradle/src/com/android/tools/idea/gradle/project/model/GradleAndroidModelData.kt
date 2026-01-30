@@ -35,12 +35,10 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
-/**
- * Suffix for the cached sync files version to allow for changes between development versions that have the same version
- */
+/** Suffix for the cached sync files version to allow for changes between development versions that have the same version */
 private const val ourAndroidSyncVersionSuffix = "2025-09-11/1"
 
 /**
@@ -57,8 +55,8 @@ data class GradleAndroidModelData(
   val androidProject: IdeAndroidProjectImpl,
   val declaredDependencies: IdeDeclaredDependenciesImpl,
   val variants: List<IdeVariantCoreImpl>,
-  val selectedVariantName: String
-): ModuleModel {
+  val selectedVariantName: String,
+) : ModuleModel {
   init {
     require(androidSyncVersion == ourAndroidSyncVersion) {
       "Attempting to deserialize a model of incompatible version '$androidSyncVersion'. Current IDE model version is '$ourAndroidSyncVersion'"
@@ -67,7 +65,8 @@ data class GradleAndroidModelData(
 
   override fun getModuleName(): String = moduleNameField
 
-  val agpVersion: AgpVersion get() = AgpVersion.parse(androidProject.agpVersion)
+  val agpVersion: AgpVersion
+    get() = AgpVersion.parse(androidProject.agpVersion)
 
   fun findVariantCoreByName(variantName: String): IdeVariantCore? {
     // Note, when setting up projects models contain just one variant.
@@ -84,7 +83,8 @@ data class GradleAndroidModelData(
     return IdeVariantImpl(selectedVariantCore, resolver as IdeLibraryModelResolverImpl)
   }
 
-  val mainArtifactCore: IdeAndroidArtifactCoreImpl get() = selectedVariantCore.mainArtifact
+  val mainArtifactCore: IdeAndroidArtifactCoreImpl
+    get() = selectedVariantCore.mainArtifact
 
   fun getJavaSourceLanguageLevel(): LanguageLevel? {
     val compileOptions = androidProject.javaCompileOptions ?: return null
@@ -108,8 +108,7 @@ data class GradleAndroidModelData(
     }
   }
 
-  fun getTestSuiteSourceProviders(suiteName: String): List<IdeSourceProvider> =
-    testSuiteSourceProviders[suiteName] ?: emptyList()
+  fun getTestSuiteSourceProviders(suiteName: String): List<IdeSourceProvider> = testSuiteSourceProviders[suiteName] ?: emptyList()
 
   companion object {
     fun findFromModuleDataNode(dataNode: DataNode<*>): GradleAndroidModelData? {
@@ -127,7 +126,7 @@ data class GradleAndroidModelData(
       androidProject: IdeAndroidProjectImpl,
       declaredDependencies: IdeDeclaredDependenciesImpl,
       cachedVariants: Collection<IdeVariantCoreImpl>,
-      variantName: String
+      variantName: String,
     ): GradleAndroidModelData {
       return GradleAndroidModelData(
         ourAndroidSyncVersion,
@@ -136,7 +135,7 @@ data class GradleAndroidModelData(
         androidProject,
         declaredDependencies,
         cachedVariants.toList(),
-        variantName
+        variantName,
       )
     }
   }

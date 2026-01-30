@@ -36,7 +36,8 @@ class TargetSdkDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     val processor = TargetSdkDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
   }
 
   @Test
@@ -44,9 +45,11 @@ class TargetSdkDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = TargetSdkDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
   }
 
   @Test
@@ -55,7 +58,8 @@ class TargetSdkDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     projectRule.fixture.addFileToProject("gradle.properties", "android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
     val processor = TargetSdkDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=false")
   }
 
   @Test
@@ -64,7 +68,8 @@ class TargetSdkDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     projectRule.fixture.addFileToProject("gradle.properties", "android.sdk.defaultTargetSdkToCompileSdkIfUnset=true")
     val processor = TargetSdkDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.sdk.defaultTargetSdkToCompileSdkIfUnset=true")
   }
 
   @Test

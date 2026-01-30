@@ -27,8 +27,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** [TestRule] that implements the [before] and [after] setup specific for wear tile unit tests. */
-private class WearTileProjectRuleImpl(private val projectRule: AndroidProjectRule) :
-  NamedExternalResource() {
+private class WearTileProjectRuleImpl(private val projectRule: AndroidProjectRule) : NamedExternalResource() {
   val buildSystemServices = FakeBuildSystemFilePreviewServices()
 
   override fun before(description: Description) {
@@ -39,13 +38,8 @@ private class WearTileProjectRuleImpl(private val projectRule: AndroidProjectRul
   override fun after(description: Description) {}
 }
 
-/**
- * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for
- * testing wear tile preview elements.
- */
-class WearTileProjectRule(
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
-) : TestRule {
+/** A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for testing wear tile preview elements. */
+class WearTileProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()) : TestRule {
   val project: Project
     get() = projectRule.project
 
@@ -59,6 +53,5 @@ class WearTileProjectRule(
 
   private val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
-  override fun apply(base: Statement, description: Description): Statement =
-    delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 }

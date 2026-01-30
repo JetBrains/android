@@ -64,21 +64,14 @@ internal class ArgsClassResolveExtensionFile(
       destination.arguments
     }
 
-  override fun KaSession.getNavigationElementForDeclaration(
-    symbol: KaDeclarationSymbol
-  ): PsiElement? =
+  override fun KaSession.getNavigationElementForDeclaration(symbol: KaDeclarationSymbol): PsiElement? =
     when (symbol) {
       is KaVariableSymbol -> getNavigationElementForVariableSymbol(symbol)
       else -> destinationXmlTag
     }
 
-  private fun KaSession.getNavigationElementForVariableSymbol(
-    symbol: KaVariableSymbol
-  ): PsiElement? {
-    val matchingArgument =
-      resolvedArguments.firstOrNull {
-        it.name.toCamelCase() == symbol.name.identifierOrNullIfSpecial
-      }
+  private fun KaSession.getNavigationElementForVariableSymbol(symbol: KaVariableSymbol): PsiElement? {
+    val matchingArgument = resolvedArguments.firstOrNull { it.name.toCamelCase() == symbol.name.identifierOrNullIfSpecial }
     return matchingArgument?.argumentTag ?: destinationXmlTag
   }
 
@@ -88,9 +81,7 @@ internal class ArgsClassResolveExtensionFile(
   override fun StringBuilder.buildClassBody() {
     appendLine("data class ${classId.shortClassName.toEscapedString()}(")
     for (arg in resolvedArguments) {
-      append(
-        "  val ${arg.name.toCamelCase().escapeKeywords()}: ${arg.resolveKotlinType(navInfo.packageName)}"
-      )
+      append("  val ${arg.name.toCamelCase().escapeKeywords()}: ${arg.resolveKotlinType(navInfo.packageName)}")
       val defaultValue = arg.defaultValue
       if (defaultValue != null) {
         appendLine(" = TODO(),  // ${defaultValue.escapeNewlinesForComment()}")
@@ -106,21 +97,15 @@ internal class ArgsClassResolveExtensionFile(
     appendLine()
     appendLine("  companion object {")
     appendLine("    @kotlin.jvm.JvmStatic")
-    appendLine(
-      "    fun fromBundle(bundle: android.os.Bundle): ${classId.toEscapedString()} = TODO()"
-    )
+    appendLine("    fun fromBundle(bundle: android.os.Bundle): ${classId.toEscapedString()} = TODO()")
     if (navInfo.navFeatures.contains(SafeArgsFeature.FROM_SAVED_STATE_HANDLE)) {
       appendLine("    @kotlin.jvm.JvmStatic")
-      appendLine(
-        "    fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): ${classId.toEscapedString()} = TODO()"
-      )
+      appendLine("    fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): ${classId.toEscapedString()} = TODO()")
     }
     appendLine("  }")
     appendLine("}")
   }
 
   private val NavArgumentData.argumentTag: XmlTag?
-    get() =
-      destinationXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, name)
-        ?: destinationXmlTag
+    get() = destinationXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, name) ?: destinationXmlTag
 }

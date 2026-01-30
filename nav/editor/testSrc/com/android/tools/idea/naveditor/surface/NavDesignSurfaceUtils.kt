@@ -45,10 +45,7 @@ fun createNavDesignSurfaceZoomController(
   )
 }
 
-fun mockNavDesignSurface(
-  focusedSceneView: SceneView?,
-  surfaceSize: Dimension = Dimension(),
-): NavDesignSurface {
+fun mockNavDesignSurface(focusedSceneView: SceneView?, surfaceSize: Dimension = Dimension()): NavDesignSurface {
   val width = 100
   val height = 500
 

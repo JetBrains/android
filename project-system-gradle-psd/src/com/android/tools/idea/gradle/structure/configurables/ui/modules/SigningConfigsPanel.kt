@@ -38,17 +38,9 @@ import com.intellij.util.IconUtil
 import org.jetbrains.annotations.VisibleForTesting
 
 const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
-class SigningConfigsPanel(
-  val module: PsAndroidModule,
-  val treeModel: ConfigurablesTreeModel,
-  psUiSettings: PsUISettings
-) :
-    ConfigurablesMasterDetailsPanel<PsSigningConfig>(
-      SIGNING_CONFIGS_DISPLAY_NAME,
-      "android.psd.signing_config",
-      treeModel,
-      psUiSettings
-    ) {
+
+class SigningConfigsPanel(val module: PsAndroidModule, val treeModel: ConfigurablesTreeModel, psUiSettings: PsUISettings) :
+  ConfigurablesMasterDetailsPanel<PsSigningConfig>(SIGNING_CONFIGS_DISPLAY_NAME, "android.psd.signing_config", treeModel, psUiSettings) {
   private val nameValidator = NameValidator { module.validateSigningConfigName(it.orEmpty()) }
 
   override fun getRemoveAction(): AnAction? {
@@ -60,12 +52,14 @@ class SigningConfigsPanel(
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
       override fun actionPerformed(e: AnActionEvent) {
-        if (Messages.showYesNoDialog(
+        if (
+          Messages.showYesNoDialog(
             e.project,
             "Remove signing config '${selectedConfigurable?.displayName}' from the module?",
             "Remove Signing Config",
-            Messages.getQuestionIcon()
-          ) == YES) {
+            Messages.getQuestionIcon(),
+          ) == YES
+        ) {
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_REMOVE)
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeSigningConfig(selectedNode.getModel() ?: return)
@@ -90,7 +84,7 @@ class SigningConfigsPanel(
           true,
           "Also update references",
           selectedConfigurable?.displayName,
-          nameValidator
+          nameValidator,
         ) { newName, alsoRenameReferences ->
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_RENAME)
           (selectedNode.getModel<PsSigningConfig>() ?: return@renameWithDialog).rename(newName, alsoRenameReferences)
@@ -101,26 +95,20 @@ class SigningConfigsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
-        object : DumbAwareAction("Add Signing Config", "", IconUtil.addIcon) {
-          override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+      object : DumbAwareAction("Add Signing Config", "", IconUtil.addIcon) {
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-          override fun actionPerformed(e: AnActionEvent) {
-            val newName =
-                Messages.showInputDialog(
-                  e.project,
-                  "Enter a new signing config name:",
-                  "Create New Signing Config",
-                  null,
-                  "",
-                  nameValidator)
-            if (newName != null) {
-              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_ADD)
-              val signingConfig = module.addNewSigningConfig(newName)
-              val node = treeModel.rootNode.findChildFor(signingConfig)
-              selectNode(node)
-            }
+        override fun actionPerformed(e: AnActionEvent) {
+          val newName =
+            Messages.showInputDialog(e.project, "Enter a new signing config name:", "Create New Signing Config", null, "", nameValidator)
+          if (newName != null) {
+            module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_ADD)
+            val signingConfig = module.addNewSigningConfig(newName)
+            val node = treeModel.rootNode.findChildFor(signingConfig)
+            selectNode(node)
           }
         }
+      }
     )
   }
 

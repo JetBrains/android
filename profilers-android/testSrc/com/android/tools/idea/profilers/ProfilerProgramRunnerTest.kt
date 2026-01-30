@@ -40,16 +40,21 @@ class ProfilerProgramRunnerTest {
   private fun verifyProfileableRequirementMessage(isProjectSupported: Boolean, isApiLevelSupported: Boolean, isSystemSupported: Boolean) {
     val actual = ProfilerProgramRunner.buildProfileableRequirementMessage(isProjectSupported, isApiLevelSupported, isSystemSupported)
 
-    if (isProjectSupported)  {assertThat(actual).doesNotContain("Gradle")}
-    else {assertThat(actual).contains("Gradle")}
-    if (isApiLevelSupported) assertThat(actual).doesNotContain("API")
-    else assertThat(actual).contains("API")
+    if (isProjectSupported) {
+      assertThat(actual).doesNotContain("Gradle")
+    } else {
+      assertThat(actual).contains("Gradle")
+    }
+    if (isApiLevelSupported) assertThat(actual).doesNotContain("API") else assertThat(actual).contains("API")
     if (isSystemSupported) assertThat(actual).doesNotContain("a system that is not debuggable")
     else assertThat(actual).contains("a system that is not debuggable")
 
     assertThat(actual).startsWith("<html>“Run as profileable (low overhead)” is not available because it requires")
-    assertThat(actual).endsWith("<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the " +
-                                "app with \"Profiler: Run as debuggable (complete data)\". " +
-                                "<a href=\"https://d.android.com/r/studio-ui/profiler/profileable\">More Info</a></html>")
+    assertThat(actual)
+      .endsWith(
+        "<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the " +
+          "app with \"Profiler: Run as debuggable (complete data)\". " +
+          "<a href=\"https://d.android.com/r/studio-ui/profiler/profileable\">More Info</a></html>"
+      )
   }
 }

@@ -30,10 +30,7 @@ internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
   private val classToJarMultimap: Map<String, List<Jar>>
 
   init {
-    classToJarMultimap = jars.asSequence()
-      .map { Jar(it) }
-      .flatMap { it.entries }
-      .groupBy( { it.toString() }, {it.jar})
+    classToJarMultimap = jars.asSequence().map { Jar(it) }.flatMap { it.entries }.groupBy({ it.toString() }, { it.jar })
   }
 
   override fun findClassFile(c: String): ClassContent? {
@@ -50,14 +47,15 @@ internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
       fun initEntries(jar: Path, container: Jar): Collection<Entry> {
         try {
           JarFile(jar.toFile()).use { jar ->
-            return jar.stream().asSequence()
+            return jar
+              .stream()
+              .asSequence()
               .map { Entry(it, container) }
               .filter { it.isNotDirectory }
               .filter { it.isNotInMetaInfDirectory }
               .toList()
           }
-        }
-        catch (exception: IOException) {
+        } catch (exception: IOException) {
           Logger.getInstance(BazelClassFileFinder::class.java).warn(exception)
           return emptyList()
         }
@@ -67,10 +65,7 @@ internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
     fun getContent(c: String?): ClassContent? {
       try {
         JarFile(this.jar).use { jar ->
-          return ClassContent.Companion.fromJarEntryContent(
-            this.jar,
-            jar.getInputStream(jar.getEntry(c)).readAllBytes()
-          )
+          return ClassContent.Companion.fromJarEntryContent(this.jar, jar.getInputStream(jar.getEntry(c)).readAllBytes())
         }
       } catch (exception: IOException) {
         Logger.getInstance(BazelClassFileFinder::class.java).warn(exception)

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.File
 
-
 data class IdeJavaArtifactCoreImpl(
   override val name: IdeArtifactName,
   override val compileTaskName: String?,
@@ -39,7 +38,7 @@ data class IdeJavaArtifactCoreImpl(
   override val mockablePlatformJar: FileImpl?,
   override val generatedClassPaths: Map<String, FileImpl>,
   override val bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
-  ) : IdeJavaArtifactCore {
+) : IdeJavaArtifactCore {
   constructor(
     name: IdeArtifactName,
     compileTaskName: String?,
@@ -56,7 +55,7 @@ data class IdeJavaArtifactCoreImpl(
     mockablePlatformJar: File?,
     generatedClassPaths: Map<String, File>,
     bytecodeTransforms: List<IdeBytecodeTransformationImpl>?,
-    unused: String = "" // to prevent clash
+    unused: String = "", // to prevent clash
   ) : this(
     name,
     compileTaskName,
@@ -72,14 +71,12 @@ data class IdeJavaArtifactCoreImpl(
     unresolvedDependencies,
     mockablePlatformJar?.toImpl(),
     generatedClassPaths.toImpl(),
-    bytecodeTransforms
+    bytecodeTransforms,
   )
 }
 
-class IdeJavaArtifactImpl(
-  private val core: IdeJavaArtifactCoreImpl,
-  resolver: IdeLibraryModelResolverImpl
-) : IdeJavaArtifact, IdeJavaArtifactCore {
+class IdeJavaArtifactImpl(private val core: IdeJavaArtifactCoreImpl, resolver: IdeLibraryModelResolverImpl) :
+  IdeJavaArtifact, IdeJavaArtifactCore {
 
   override val mockablePlatformJar: FileImpl? = core.mockablePlatformJar
   override val compileClasspathCore: IdeDependenciesCoreImpl = core.compileClasspathCore

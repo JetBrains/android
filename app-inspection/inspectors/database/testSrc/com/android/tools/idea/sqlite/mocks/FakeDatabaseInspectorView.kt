@@ -44,10 +44,7 @@ open class FakeDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {}
 
-  override fun updateDatabaseSchema(
-    viewDatabase: ViewDatabase,
-    diffOperations: List<SchemaDiffOperation>,
-  ) {}
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {}
 
   override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     lastDisplayedResultSetTabId = tabId

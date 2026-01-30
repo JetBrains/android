@@ -52,8 +52,7 @@ import studio.network.inspection.NetworkInspectorProtocol.StartInspectionRespons
 class NetworkInspectorDetailsPanelTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
-    override suspend fun startInspection(): StartInspectionResponse =
-      StartInspectionResponse.getDefaultInstance()
+    override suspend fun startInspection(): StartInspectionResponse = StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: InterceptCommand) = Unit
   }
@@ -79,11 +78,7 @@ class NetworkInspectorDetailsPanelTest {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
-    scope =
-      AndroidCoroutineScope(
-        disposableRule.disposable,
-        MoreExecutors.directExecutor().asCoroutineDispatcher(),
-      )
+    scope = AndroidCoroutineScope(disposableRule.disposable, MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
       NetworkInspectorModel(
         services,
@@ -93,25 +88,14 @@ class NetworkInspectorDetailsPanelTest {
           private val dataList = listOf(DEFAULT_DATA)
 
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-            return dataList.filter {
-              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
-                it.requestStartTimeUs <= timeCurrentRangeUs.max
-            }
+            return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
           }
         },
       )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        disposableRule.disposable,
-      )
+      NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, disposableRule.disposable)
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
   }

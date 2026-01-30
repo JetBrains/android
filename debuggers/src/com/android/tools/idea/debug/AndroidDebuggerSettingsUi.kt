@@ -21,9 +21,7 @@ import javax.swing.JCheckBox
 
 internal class AndroidDebuggerSettingsUi : ConfigurableUi<AndroidDebuggerSettings> {
   private val filterAndroidRuntimeClasses = JCheckBox("Do not step into Android internal classes")
-  private val panel = BorderLayoutPanel().apply {
-    addToLeft(filterAndroidRuntimeClasses)
-  }
+  private val panel = BorderLayoutPanel().apply { addToLeft(filterAndroidRuntimeClasses) }
 
   override fun reset(settings: AndroidDebuggerSettings) {
     filterAndroidRuntimeClasses.isSelected = settings.filterAndroidRuntimeClasses

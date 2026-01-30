@@ -45,7 +45,7 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
-class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class ProjectJdkRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   var jdk17: Sdk? = null
 

@@ -30,26 +30,21 @@ import java.util.concurrent.TimeUnit
 /**
  * Class that calls out to the C++Filt tool to demangle itanium names on windows.
  *
- * llvm-c++filt speaks a simple text protocol
- *  stdin: <mangled c++ name>
- * stdout: <demangled name>
- * stdout: _______<empty line>________
+ * llvm-c++filt speaks a simple text protocol stdin: <mangled c++ name> stdout: <demangled name> stdout: _______<empty line>________
  *
- * For example:
- * _ZN7android6Parcel13continueWriteEm
- * android::Parcel::continueWrite(unsigned long)
+ * For example: _ZN7android6Parcel13continueWriteEm android::Parcel::continueWrite(unsigned long)
  *
  * More info about c++filt: https://llvm.org/docs/CommandGuide/llvm-cxxfilt.html
  */
 class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
   private fun getLlvmCppFiltPath(): String {
     val exe = "x86_64-linux-android-c++filt.exe"
-    val result = if (StudioPathManager.isRunningFromSources()) {
-      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/windows-x86_64/lldb/bin/$exe")
-    }
-    else {
-      Paths.get(PathManager.getHomePath(), "plugins/android-ndk/resources/lldb/bin/$exe")
-    }
+    val result =
+      if (StudioPathManager.isRunningFromSources()) {
+        StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/windows-x86_64/lldb/bin/$exe")
+      } else {
+        Paths.get(PathManager.getHomePath(), "plugins/android-ndk/resources/lldb/bin/$exe")
+      }
     return result.toString()
   }
 
@@ -75,17 +70,15 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
           val response = holder.stdout.readLine() ?: frame.name
           duplicatesMap[frame.name] = response
           frame.name = response
-
         }
-      }
-      catch (ex: Exception) {
+      } catch (ex: Exception) {
         getLogger().error(ex)
       }
     }
     holder.dispose()
   }
 
-  private fun start() : ProcessHolder? {
+  private fun start(): ProcessHolder? {
     var procHolder: ProcessHolder?
     try {
       val llvmfiltPath = getLlvmCppFiltPath()
@@ -109,10 +102,8 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
     return Logger.getInstance("CppNameDemangler")
   }
 
-  private class ProcessHolder(val process: Process,
-                              val stdout: BufferedReader,
-                              val stdin: OutputStreamWriter,
-                              val timeoutMsc: Long) : Disposable {
+  private class ProcessHolder(val process: Process, val stdout: BufferedReader, val stdin: OutputStreamWriter, val timeoutMsc: Long) :
+    Disposable {
     override fun dispose() {
       process.destroy()
       process.waitFor(timeoutMsc, TimeUnit.MILLISECONDS)

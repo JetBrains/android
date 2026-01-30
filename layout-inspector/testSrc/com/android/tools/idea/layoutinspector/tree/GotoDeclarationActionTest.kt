@@ -90,17 +90,13 @@ class GotoDeclarationActionTest {
     runBlocking { GotoDeclaration.lastAction?.join() }
     assertThat(notificationModel.notifications).hasSize(1)
     assertThat(notificationModel.notifications.first().message)
-      .isEqualTo(
-        "Cannot navigate to source because LinearLayout in the layout demo.xml doesn't have an id."
-      )
+      .isEqualTo("Cannot navigate to source because LinearLayout in the layout demo.xml doesn't have an id.")
     model.setSelection(model[5], SelectionOrigin.INTERNAL)
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclaration.lastAction?.join() }
     assertThat(notificationModel.notifications).hasSize(1)
     assertThat(notificationModel.notifications.first().message)
-      .isEqualTo(
-        "Cannot navigate to source because TextView in the layout demo.xml doesn't have an id."
-      )
+      .isEqualTo("Cannot navigate to source because TextView in the layout demo.xml doesn't have an id.")
   }
 
   @Test
@@ -113,11 +109,7 @@ class GotoDeclarationActionTest {
     assertThat(event.presentation.isEnabled).isTrue()
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclaration.lastAction?.join() }
-    fileOpenCaptureRule.checkEditor(
-      "MyCompose.kt",
-      17,
-      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),",
-    )
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     checkStats(stats, keyStrokeCount = 1)
   }
 
@@ -140,24 +132,14 @@ class GotoDeclarationActionTest {
     val notificationModel = NotificationModel(projectRule.project)
 
     // Make sure an earlier missing compose source information warning is cleared
-    notificationModel.addNotification(
-      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
-      "Source information for composable not found",
-    )
+    notificationModel.addNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY, "Source information for composable not found")
 
     val capabilities = setOf(InspectorClient.Capability.SUPPORTS_COMPOSE)
     val inspector = createLayoutInspector(model, stats, capabilities, notificationModel)
-    GotoDeclaration.navigateToSelectedView(
-      inspector.coroutineScope,
-      model,
-      inspector.currentClient,
-      notificationModel,
-    )
+    GotoDeclaration.navigateToSelectedView(inspector.coroutineScope, model, inspector.currentClient, notificationModel)
     waitForCondition(10.seconds) { notificationModel.hasNotification(VIEW_NOT_FOUND_KEY) }
     assertThat(notificationModel.notifications.single().message)
-      .isEqualTo(
-        "Cannot navigate to source because AndroidComposeView in the layout defaultLayout.xml doesn't have an id."
-      )
+      .isEqualTo("Cannot navigate to source because AndroidComposeView in the layout defaultLayout.xml doesn't have an id.")
   }
 
   @Test
@@ -171,19 +153,10 @@ class GotoDeclarationActionTest {
     notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
 
     val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
-    GotoDeclaration.navigateToSelectedView(
-      inspector.coroutineScope,
-      model,
-      inspector.currentClient,
-      notificationModel,
-    )
-    waitForCondition(10.seconds) {
-      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
-    }
+    GotoDeclaration.navigateToSelectedView(inspector.coroutineScope, model, inspector.currentClient, notificationModel)
+    waitForCondition(10.seconds) { notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY) }
     assertThat(notificationModel.notifications.single().message)
-      .isEqualTo(
-        "No source information found for Greeting Composable. Perhaps the code is from an obfuscated 3rd party library ?"
-      )
+      .isEqualTo("No source information found for Greeting Composable. Perhaps the code is from an obfuscated 3rd party library ?")
   }
 
   @Test
@@ -195,22 +168,12 @@ class GotoDeclarationActionTest {
 
     // Make sure an earlier missing view id or missing compose source information warning is cleared
     notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
-    notificationModel.addNotification(
-      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
-      "Source information for composable not found",
-    )
+    notificationModel.addNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY, "Source information for composable not found")
 
     val capabilities = setOf(InspectorClient.Capability.SUPPORTS_COMPOSE)
     val inspector = createLayoutInspector(model, stats, capabilities, notificationModel)
-    GotoDeclaration.navigateToSelectedView(
-      inspector.coroutineScope,
-      model,
-      inspector.currentClient,
-      notificationModel,
-    )
-    waitForCondition(10.seconds) {
-      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_APP_KEY)
-    }
+    GotoDeclaration.navigateToSelectedView(inspector.coroutineScope, model, inspector.currentClient, notificationModel)
+    waitForCondition(10.seconds) { notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_APP_KEY) }
     assertThat(notificationModel.notifications.single().message)
       .isEqualTo(
         "No compose source information found. For full inspector functionality: Make sure that sourceInformation is turned on for the Kotlin compiler plugin and the app code is not obfuscated."
@@ -226,23 +189,12 @@ class GotoDeclarationActionTest {
 
     // Make sure an earlier missing view id or missing compose source information warning is cleared
     notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
-    notificationModel.addNotification(
-      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
-      "Source information for composable not found",
-    )
+    notificationModel.addNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY, "Source information for composable not found")
 
     val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
-    GotoDeclaration.navigateToSelectedView(
-      inspector.coroutineScope,
-      model,
-      inspector.currentClient,
-      notificationModel,
-    )
-    waitForCondition(10.seconds) {
-      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY)
-    }
-    assertThat(notificationModel.notifications.single().message)
-      .isEqualTo("No source information found for inlined Text Composable.")
+    GotoDeclaration.navigateToSelectedView(inspector.coroutineScope, model, inspector.currentClient, notificationModel)
+    waitForCondition(10.seconds) { notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY) }
+    assertThat(notificationModel.notifications.single().message).isEqualTo("No source information found for inlined Text Composable.")
   }
 
   @Test
@@ -272,8 +224,7 @@ class GotoDeclarationActionTest {
 
   private fun loadComposeFiles() {
     val fixture = projectRule.fixture
-    fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
@@ -288,9 +239,7 @@ class GotoDeclarationActionTest {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
               compose(-3, "Text", "MyCompose.kt", -1, -1, 0, composeFlags = FLAG_IS_INLINED)
-              compose(-4, "Greeting", "MyCompose.kt", -1, -1, 0) {
-                compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
-              }
+              compose(-4, "Greeting", "MyCompose.kt", -1, -1, 0) { compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3) }
             }
           }
         },

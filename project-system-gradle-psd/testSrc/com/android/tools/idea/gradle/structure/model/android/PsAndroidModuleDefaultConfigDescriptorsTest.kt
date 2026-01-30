@@ -43,35 +43,31 @@ import org.junit.Test
 @RunsInEdt
 class PsAndroidModuleDefaultConfigDescriptorsTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()!!
+  @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 
   private fun PsTestProject.doTestDescriptor() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
     val defaultConfig = appModule.defaultConfig
 
-    assertThat(defaultConfig.descriptor.testEnumerateProperties(),
-               equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
+    assertThat(
+      defaultConfig.descriptor.testEnumerateProperties(),
+      equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()),
+    )
   }
 
   @Test
   fun testDescriptorGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestDescriptor()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestDescriptor() }
   }
 
   @Test
   fun testDescriptorKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestDescriptor()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestDescriptor() }
   }
 
   private fun PsTestProject.doTestProperties() {
@@ -98,8 +94,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       val resConfigs = PsAndroidModuleDefaultConfigDescriptors.resConfigs.bind(defaultConfig).getValue()
       val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
       val editableManifestPlaceholders =
-        PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getEditableValues()
-          .mapValues { it.value.getValue() }
+        PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getEditableValues().mapValues {
+          it.value.getValue()
+        }
 
       assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
       assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))
@@ -175,8 +172,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
 
       assertThat(versionCode.resolved.asTestValue(), equalTo(1))
-      assertThat(versionCode.parsedValue.value,
-                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
+      assertThat(versionCode.parsedValue.value, equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
       // TODO(b/111779356): Uncommented when fixed.
       // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
     }
@@ -185,17 +181,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
   @Test
   fun testPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestProperties() }
   }
 
   @Test
   fun testPropertiesKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestProperties() }
   }
 
   private fun PsTestProject.doTestSetProperties() {
@@ -220,8 +212,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.versionNameSuffix = "newVns".asParsed()
     val mySigningConfigDslText = "signingConfigs.myConfig"
-    PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).setParsedValue(
-      ParsedValue.Set.Parsed(Unit, DslText.Reference(mySigningConfigDslText)))
+    PsAndroidModuleDefaultConfigDescriptors.signingConfig
+      .bind(defaultConfig)
+      .setParsedValue(ParsedValue.Set.Parsed(Unit, DslText.Reference(mySigningConfigDslText)))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {
       getEditableValues()["aa"]?.setParsedValue("EEE".asParsed())
       changeEntryKey("aa", "ee")
@@ -236,13 +229,15 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
       assertThat(
         PsAndroidModuleDefaultConfigDescriptors.getParsed(defaultConfig)?.minSdkVersion()?.valueType,
-        equalTo(GradlePropertyModel.ValueType.INTEGER))
+        equalTo(GradlePropertyModel.ValueType.INTEGER),
+      )
       val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
       val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
       val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
       assertThat(
         PsAndroidModuleDefaultConfigDescriptors.getParsed(defaultConfig)?.targetSdkVersion()?.valueType,
-        equalTo(GradlePropertyModel.ValueType.INTEGER))
+        equalTo(GradlePropertyModel.ValueType.INTEGER),
+      )
       val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
       val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
       val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
@@ -261,7 +256,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()),
+      )
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
@@ -280,7 +276,10 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
         assertThat(matchHashStrings(null, minSdkVersion.parsedValue.asTestValue(), minSdkVersion.resolved.asTestValue()!!), equalTo(true))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
-        assertThat(matchHashStrings(null, targetSdkVersion.parsedValue.asTestValue(), targetSdkVersion.resolved.asTestValue()!!), equalTo(true))
+        assertThat(
+          matchHashStrings(null, targetSdkVersion.parsedValue.asTestValue(), targetSdkVersion.resolved.asTestValue()!!),
+          equalTo(true),
+        )
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
         assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
@@ -305,17 +304,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
   @Test
   fun testSetPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestSetProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestSetProperties() }
   }
 
   @Test
   fun testSetPropertiesKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestSetProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestSetProperties() }
   }
 
   private fun PsTestProject.doTestDeleteMapProperties() {
@@ -325,9 +320,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
     val defaultConfig = appModule.defaultConfig
     assertThat(defaultConfig, notNullValue())
 
-    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {
-      deleteEntry("bb")
-    }
+    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run { deleteEntry("bb") }
 
     fun verifyValues(defaultConfig: PsAndroidModuleDefaultConfig, afterSync: Boolean = false) {
       val manifestPlaceholders = PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).getValue()
@@ -352,17 +345,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
   @Test
   fun testDeleteMapPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestDeleteMapProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestDeleteMapProperties() }
   }
 
   @Test
   fun testDeleteMapPropertiesKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestDeleteMapProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestDeleteMapProperties() }
   }
 
   private fun PsTestProject.doTestEditorInsertMapProperties() {
@@ -383,7 +372,10 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true, "q" to "q")))
 
       if (afterSync) {
-        assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf<String, Any>("aa" to "aaa", "bb" to "bbb", "cc" to "true", "q" to "q")))
+        assertThat(
+          manifestPlaceholders.resolved.asTestValue(),
+          equalTo(mapOf<String, Any>("aa" to "aaa", "bb" to "bbb", "cc" to "true", "q" to "q")),
+        )
       }
     }
 
@@ -400,17 +392,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
   @Test
   fun testEditorInsertMapPropertiesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestEditorInsertMapProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestEditorInsertMapProperties() }
   }
 
   @Test
   fun testEditorInsertMapPropertiesKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestEditorInsertMapProperties()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestEditorInsertMapProperties() }
   }
 
   private fun PsTestProject.doTestProGuardKnownValues() {
@@ -422,24 +410,22 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
 
     val context = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.bindContext(defaultConfig)
     val knownValues = context.getKnownValues().get()
-    assertThat(knownValues.literals.map { it.value.getText { toString() } }.toSet(),
-               equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")))
+    assertThat(
+      knownValues.literals.map { it.value.getText { toString() } }.toSet(),
+      equalTo(setOf("other.pro", "proguard-rules.txt", "\$getDefaultProguardFile('proguard-android.txt')")),
+    )
   }
 
   @Test
   fun testProGuardKnownValuesGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestProGuardKnownValues()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestProGuardKnownValues() }
   }
 
   @Test
   fun testProGuardKnownValuesKotlin() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-    projectRule.psTestWithProject(preparedProject) {
-      doTestProGuardKnownValues()
-    }
+    projectRule.psTestWithProject(preparedProject) { doTestProGuardKnownValues() }
   }
 
   private fun PsTestProject.doTestSetReferences(expectedValues: List<String>) {
@@ -466,22 +452,31 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(15))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("1.3"))
       assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(true))
-      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.applicationId()?.getRawValue(GradlePropertyModel.STRING_TYPE),
-                 equalTo<Any>(expectedValues[0]))
-      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.applicationIdSuffix()?.getRawValue(GradlePropertyModel.STRING_TYPE),
-                 equalTo<Any>(expectedValues[1]))
-      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.maxSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
-                 equalTo<Any>(expectedValues[2]))
-      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.minSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
-                 equalTo<Any>(expectedValues[3]))
-      assertThat(appModule.parsedModel?.android()?.defaultConfig()?.multiDexEnabled()?.getRawValue(GradlePropertyModel.STRING_TYPE),
-                 equalTo<Any>(expectedValues[4]))
+      assertThat(
+        appModule.parsedModel?.android()?.defaultConfig()?.applicationId()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+        equalTo<Any>(expectedValues[0]),
+      )
+      assertThat(
+        appModule.parsedModel?.android()?.defaultConfig()?.applicationIdSuffix()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+        equalTo<Any>(expectedValues[1]),
+      )
+      assertThat(
+        appModule.parsedModel?.android()?.defaultConfig()?.maxSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+        equalTo<Any>(expectedValues[2]),
+      )
+      assertThat(
+        appModule.parsedModel?.android()?.defaultConfig()?.minSdkVersion()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+        equalTo<Any>(expectedValues[3]),
+      )
+      assertThat(
+        appModule.parsedModel?.android()?.defaultConfig()?.multiDexEnabled()?.getRawValue(GradlePropertyModel.STRING_TYPE),
+        equalTo<Any>(expectedValues[4]),
+      )
     }
 
     verifyValues(appModule, expectedValues)
     appModule.applyChanges()
     verifyValues(appModule, expectedValues)
-
   }
 
   @Test
@@ -499,8 +494,11 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
     projectRule.psTestWithProject(preparedProject) {
       val expectedValues =
         listOf(
-          "localMap[\"KTSApp\"]", "(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
-          "project.extra[\"valVersion\"] as Int", "variable1", "rootProject.extra[\"boolRoot\"] as Boolean"
+          "localMap[\"KTSApp\"]",
+          "(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
+          "project.extra[\"valVersion\"] as Int",
+          "variable1",
+          "rootProject.extra[\"boolRoot\"] as Boolean",
         )
       doTestSetReferences(expectedValues)
     }

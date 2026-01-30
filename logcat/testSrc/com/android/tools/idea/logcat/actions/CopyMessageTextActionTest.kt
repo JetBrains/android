@@ -41,8 +41,7 @@ class CopyMessageTextActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor
@@ -89,10 +88,7 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(
-      editor.document.getLineStartOffset(1),
-      editor.document.getLineStartOffset(2),
-    )
+    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1), editor.document.getLineStartOffset(2))
     val action = CopyMessageTextAction()
 
     action.update(event)
@@ -110,10 +106,7 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(
-      editor.document.getLineStartOffset(1) - 1,
-      editor.document.getLineStartOffset(2) + 1,
-    )
+    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1) - 1, editor.document.getLineStartOffset(2) + 1)
     val action = CopyMessageTextAction()
 
     action.update(event)
@@ -143,10 +136,7 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(
-      editor.document.getLineStartOffset(1),
-      editor.document.getLineStartOffset(2),
-    )
+    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1), editor.document.getLineStartOffset(2))
     val action = CopyMessageTextAction()
 
     action.actionPerformed(event)
@@ -163,10 +153,7 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(
-      editor.document.getLineStartOffset(1) - 1,
-      editor.document.getLineStartOffset(2) + 1,
-    )
+    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1) - 1, editor.document.getLineStartOffset(2) + 1)
     val action = CopyMessageTextAction()
 
     action.actionPerformed(event)
@@ -174,11 +161,11 @@ class CopyMessageTextActionTest {
     assertThat(getClipboardText())
       .isEqualTo(
         """
-      Message 1
-      Message 2
-      Message 3
+        Message 1
+        Message 2
+        Message 3
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -199,10 +186,7 @@ class CopyMessageTextActionTest {
 }
 
 private fun testActionEvent(editor: EditorEx): AnActionEvent {
-  return TestActionEvent.createTestEvent(
-    SimpleDataContext.builder().add(LogcatPresenter.EDITOR, editor).build()
-  )
+  return TestActionEvent.createTestEvent(SimpleDataContext.builder().add(LogcatPresenter.EDITOR, editor).build())
 }
 
-private fun getClipboardText() =
-  CopyPasteManager.getInstance().contents?.getTransferData(DataFlavor.stringFlavor)
+private fun getClipboardText() = CopyPasteManager.getInstance().contents?.getTransferData(DataFlavor.stringFlavor)

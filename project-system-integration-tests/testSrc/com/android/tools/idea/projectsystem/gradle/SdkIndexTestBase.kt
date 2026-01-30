@@ -24,11 +24,11 @@ import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import org.junit.Rule
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
 import kotlin.io.path.exists
+import org.junit.Rule
 
 open class SdkIndexTestBase {
   private val snapshotPath = "system/sdk_index/snapshot.gz"
@@ -40,17 +40,15 @@ open class SdkIndexTestBase {
   // TODO(b/243691427): Change the way we confirm no more issues were created, on test runs it is around 10 ms between issues
   private val timeoutBetweenIssuesSeconds: Long = 2
 
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
-  fun verifySdkIndexIsInitializedAndUsedWhen(showFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)?,
-                                             beforeClose: (() -> Unit)?,
-                                             expectedIssues: List<List<String>>) {
+  fun verifySdkIndexIsInitializedAndUsedWhen(
+    showFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)?,
+    beforeClose: (() -> Unit)?,
+    expectedIssues: List<List<String>>,
+  ) {
     val project = AndroidProject(testProjectPath)
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo(testRepoManifest))
@@ -90,8 +88,12 @@ open class SdkIndexTestBase {
       while (true) {
         try {
           // TODO(b/243691427): Change the way we confirm no more issues were created
-          val matcher = system.installation.ideaLog.waitForMatchingLine(".*IdeGooglePlaySdkIndex - (.*)$", timeoutBetweenIssuesSeconds,
-                                                                        TimeUnit.SECONDS)
+          val matcher =
+            system.installation.ideaLog.waitForMatchingLine(
+              ".*IdeGooglePlaySdkIndex - (.*)$",
+              timeoutBetweenIssuesSeconds,
+              TimeUnit.SECONDS,
+            )
           val header = matcher.group(1)
           for (issue in expectedIssues) {
             if (header == issue[0]) {
@@ -102,8 +104,7 @@ open class SdkIndexTestBase {
                 val escapedLine = "${Pattern.quote(line)}$"
                 try {
                   system.installation.ideaLog.waitForMatchingLine(escapedLine, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)
-                }
-                catch (unexpected: InterruptedException) {
+                } catch (unexpected: InterruptedException) {
                   println("    Could not find line \"$line\"")
                   allLinesFound = false
                   break
@@ -114,8 +115,7 @@ open class SdkIndexTestBase {
             }
           }
           foundHeaders.add(header)
-        }
-        catch (expected: InterruptedException) {
+        } catch (expected: InterruptedException) {
           // This means that no more matches were found
           break
         }
@@ -126,15 +126,14 @@ open class SdkIndexTestBase {
     }
   }
 
-  protected fun verifyPsdIssues(numErrors:Int, numWarnings: Int) {
+  protected fun verifyPsdIssues(numErrors: Int, numWarnings: Int) {
     val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
     val expectedSummary = "$numErrors errors, $numWarnings warnings, 2 information, 0 updates, 0 other"
     val foundSummary: String
     try {
       val matcher = system.installation.ideaLog.waitForMatchingLine(summaryRegex, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)
       foundSummary = matcher.group(1)
-    }
-    catch (exc: InterruptedException) {
+    } catch (exc: InterruptedException) {
       print("Test failed because no summary message was found")
       throw exc
     }
@@ -146,9 +145,8 @@ open class SdkIndexTestBase {
       try {
         // Wait for summary to appear
         val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
-        system.installation.ideaLog.waitForMatchingLine(summaryRegex, null,true, timeoutPsdShowSeconds, TimeUnit.SECONDS)
-      }
-      finally {
+        system.installation.ideaLog.waitForMatchingLine(summaryRegex, null, true, timeoutPsdShowSeconds, TimeUnit.SECONDS)
+      } finally {
         // Close PSD even if summary could not be found so executeAction("ShowProjectStructureSettings") is finished
         studio.invokeComponent("OK")
       }

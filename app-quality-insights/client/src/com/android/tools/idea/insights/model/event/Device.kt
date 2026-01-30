@@ -26,6 +26,5 @@ data class Device(
     val ALL = Device(manufacturer = "", model = "")
   }
 
-  override fun compareTo(other: Device): Int =
-    compareValuesBy(this, other, { it.model }, { it.manufacturer })
+  override fun compareTo(other: Device): Int = compareValuesBy(this, other, { it.model }, { it.manufacturer })
 }

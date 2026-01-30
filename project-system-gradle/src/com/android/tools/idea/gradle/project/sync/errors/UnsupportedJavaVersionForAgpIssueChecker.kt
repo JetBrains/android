@@ -22,9 +22,8 @@ package com.android.tools.idea.gradle.project.sync.errors
 @Suppress("KDocUnresolvedReference")
 class UnsupportedJavaVersionForAgpIssueChecker : RuntimeJavaCompiledVersionIssueChecker() {
 
-  override val expectedErrorRegex = Regex(
-    "Android Gradle plugin requires Java (\\d+\\.?\\d*) to run. You are currently using Java (\\d+\\.?\\d*)."
-  )
+  override val expectedErrorRegex =
+    Regex("Android Gradle plugin requires Java (\\d+\\.?\\d*) to run. You are currently using Java (\\d+\\.?\\d*).")
 
   override fun parseErrorRegexMatch(matchResult: MatchResult): Pair<String, String>? {
     val agpMinCompatibleJdkVersion = matchResult.groups[1]?.value

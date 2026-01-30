@@ -47,8 +47,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
 /**
- * Helper method that navigates back to the pre`vious [PreviewMode] for all [PreviewModeManager]s in
- * the given [AnActionEvent]'s [DataContext].
+ * Helper method that navigates back to the pre`vious [PreviewMode] for all [PreviewModeManager]s in the given [AnActionEvent]'s
+ * [DataContext].
  *
  * @param e the [AnActionEvent] holding the context of the action
  */
@@ -57,12 +57,11 @@ fun navigateBack(e: AnActionEvent) {
 }
 
 /**
- * Returns a preview manager [T] related to the current context (which is implied to be bound to a
- * particular file), or null if one is not found. The search is done among the open preview parts
- * and [PreviewRepresentation] of the selected file editor.
+ * Returns a preview manager [T] related to the current context (which is implied to be bound to a particular file), or null if one is not
+ * found. The search is done among the open preview parts and [PreviewRepresentation] of the selected file editor.
  *
- * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
- * thread. For actions using it, they should use [ActionUpdateThread.BGT].
+ * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT thread. For actions using it, they should
+ * use [ActionUpdateThread.BGT].
  */
 @RequiresBackgroundThread
 inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
@@ -78,30 +77,24 @@ inline fun <reified T> DataContext.findPreviewManager(key: DataKey<T>): T? {
   return FileEditorManager.getInstance(project)?.getSelectedEditor(file)?.getPreviewManager<T>()
 }
 
-/**
- * Returns the preview manager of type [T] or null if this [FileEditor]'s preview representation is
- * not of type [T].
- */
+/** Returns the preview manager of type [T] or null if this [FileEditor]'s preview representation is not of type [T]. */
 inline fun <reified T> FileEditor.getPreviewManager(): T? =
   when (this) {
     is MultiRepresentationPreview -> this.currentRepresentation as? T
-    is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
-      this.preview.currentRepresentation as? T
+    is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> -> this.preview.currentRepresentation as? T
     else -> null
   }
 
 /**
- * Makes the given list of actions only visible when the preview is not in interactive or animation
- * modes. Returns an [ActionGroup] that handles the visibility.
+ * Makes the given list of actions only visible when the preview is not in interactive or animation modes. Returns an [ActionGroup] that
+ * handles the visibility.
  */
 fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
-  ShowGroupUnderConditionWrapper(DefaultActionGroup(this)) {
-    it.getData(PreviewModeManager.KEY)?.mode?.value?.isNormal == true
-  }
+  ShowGroupUnderConditionWrapper(DefaultActionGroup(this)) { it.getData(PreviewModeManager.KEY)?.mode?.value?.isNormal == true }
 
 /**
- * Makes the given action only visible when the preview is not in interactive or animation modes.
- * Returns an [AnAction] that handles the visibility.
+ * Makes the given action only visible when the preview is not in interactive or animation modes. Returns an [AnAction] that handles the
+ * visibility.
  */
 fun AnAction.visibleOnlyInStaticPreview(): AnAction = listOf(this).visibleOnlyInStaticPreview()
 
@@ -109,16 +102,11 @@ fun AnAction.visibleOnlyInStaticPreview(): AnAction = listOf(this).visibleOnlyIn
 fun AnAction.hideIfRenderErrors(): AnAction = listOf(this).hideIfRenderErrors().first()
 
 /** Hide the given actions if the [SceneView] contains render errors. */
-fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
-  ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) }
-}
+fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map { ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) } }
 
 /** Disables the given actions if the rendered image in the [SceneView] is missing or empty. */
 fun List<AnAction>.disabledIfRenderedImageMissing(): List<AnAction> =
-  disabledIf(
-    { context -> !hasRenderedImage(context) },
-    { message("action.disabled.rendered.image.empty") },
-  )
+  disabledIf({ context -> !hasRenderedImage(context) }, { message("action.disabled.rendered.image.empty") })
 
 /**
  * The given disables the actions if any of the following conditions are met:
@@ -152,49 +140,36 @@ private fun DataContext.hasErrors() = previewHasSyntaxErrors(this) || hasSceneVi
  * Disables the action if the `predicate` is true when given the action's context.
  *
  * @param predicate Decides if the action is disabled (returns true).
- * @param reasonForDisabling (Optional) Explains why the action is disabled. It will replace
- *   original description of action if not null.
+ * @param reasonForDisabling (Optional) Explains why the action is disabled. It will replace original description of action if not null.
  * @return A new list of actions.
  */
 fun List<AnAction>.disabledIf(
   predicate: (DataContext) -> Boolean,
   reasonForDisabling: (context: DataContext) -> String? = { null },
-): List<AnAction> = map {
-  EnableUnderConditionWrapper(it, { context -> !predicate(context) }, reasonForDisabling)
-}
+): List<AnAction> = map { EnableUnderConditionWrapper(it, { context -> !predicate(context) }, reasonForDisabling) }
 
 /**
- * Returns if the preview attached to the given [DataContext] is refreshing or not. The preview
- * needs to have set a [PreviewViewModelStatus] using the [PREVIEW_VIEW_MODEL_STATUS] key in the
- * [DataContext].
+ * Returns if the preview attached to the given [DataContext] is refreshing or not. The preview needs to have set a [PreviewViewModelStatus]
+ * using the [PREVIEW_VIEW_MODEL_STATUS] key in the [DataContext].
  *
  * @param dataContext
  */
-fun isPreviewRefreshing(dataContext: DataContext) =
-  dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.isRefreshing == true
+fun isPreviewRefreshing(dataContext: DataContext) = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.isRefreshing == true
 
 /**
  * Returns if the preview file attached to the given [DataContext] has syntax errors or not.
  *
  * @param dataContext
  */
-private fun previewHasSyntaxErrors(dataContext: DataContext) =
-  dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasSyntaxErrors == true
+private fun previewHasSyntaxErrors(dataContext: DataContext) = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.hasSyntaxErrors == true
 
-fun hasSceneViewErrors(dataContext: DataContext) =
-  dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
+fun hasSceneViewErrors(dataContext: DataContext) = dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
 
-/**
- * Returns true if the [SceneView] in the given [DataContext] has a rendered image that is not
- * missing or empty.
- */
+/** Returns true if the [SceneView] in the given [DataContext] has a rendered image that is not missing or empty. */
 private fun hasRenderedImage(dataContext: DataContext): Boolean {
-  val sceneView =
-    dataContext.getData(SCENE_VIEW) ?: dataContext.getData(DESIGN_SURFACE)?.focusedSceneView
+  val sceneView = dataContext.getData(SCENE_VIEW) ?: dataContext.getData(DESIGN_SURFACE)?.focusedSceneView
   val sceneManager = sceneView?.sceneManager as? LayoutlibSceneManager
-  return sceneManager?.renderResult?.renderedImage?.let { image ->
-    image != ImagePool.NULL_POOLED_IMAGE
-  } == true
+  return sceneManager?.renderResult?.renderedImage?.let { image -> image != ImagePool.NULL_POOLED_IMAGE } == true
 }
 
 // TODO(b/292057010) Enable group filtering for Gallery mode.
@@ -204,15 +179,13 @@ private class PreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGrou
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.getData(PreviewModeManager.KEY)?.let {
-      e.presentation.isVisible = it.mode.value is PreviewMode.Default
-    }
+    e.getData(PreviewModeManager.KEY)?.let { e.presentation.isVisible = it.mode.value is PreviewMode.Default }
   }
 }
 
 /**
- * Makes the given action only visible when the preview is in the [PreviewMode.Default] mode.
- * Returns an [AnAction] that handles the visibility.
+ * Makes the given action only visible when the preview is in the [PreviewMode.Default] mode. Returns an [AnAction] that handles the
+ * visibility.
  */
 fun AnAction.visibleOnlyInDefaultPreview(): AnAction = PreviewDefaultWrapper(listOf(this))
 
@@ -221,21 +194,15 @@ fun AnAction.visibleOnlyInFocus(): AnAction =
   object : AnActionWrapper(this) {
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isVisible =
-        e.presentation.isVisible &&
-          e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
+      e.presentation.isVisible = e.presentation.isVisible && e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Focus
     }
   }
 
-/**
- * Makes the given action only visible when the preview is in the [PreviewMode.Interactive] mode.
- */
+/** Makes the given action only visible when the preview is in the [PreviewMode.Interactive] mode. */
 fun AnAction.visibleOnlyInInteractive(): AnAction =
   object : AnActionWrapper(this) {
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isVisible =
-        e.presentation.isVisible &&
-          e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Interactive
+      e.presentation.isVisible = e.presentation.isVisible && e.getData(PreviewModeManager.KEY)?.mode?.value is PreviewMode.Interactive
     }
   }

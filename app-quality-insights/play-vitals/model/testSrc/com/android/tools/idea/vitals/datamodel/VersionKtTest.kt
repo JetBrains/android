@@ -28,8 +28,7 @@ class VersionKtTest {
     val tracks = listOf(TRACK_UNKNOWN, TRACK_PRODUCTION)
 
     val versions = tracks.extract()
-    assertThat(versions)
-      .containsExactly(Version(buildVersion = "1", tracks = setOf(PlayTrack.PRODUCTION)))
+    assertThat(versions).containsExactly(Version(buildVersion = "1", tracks = setOf(PlayTrack.PRODUCTION)))
   }
 
   @Test

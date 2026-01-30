@@ -27,33 +27,15 @@ private const val ISSUE_CACHE_MAX_SIZE = 100L
 private const val VARIANT_CACHE_MAX_SIZE = 10L
 
 class AiInsightCache(
-  private val cache: Cache<Connection, Cache<IssueId, Cache<AiInsightKey, AiInsight>>> =
-    createNew(CONNECTION_CACHE_MAX_SIZE)
+  private val cache: Cache<Connection, Cache<IssueId, Cache<AiInsightKey, AiInsight>>> = createNew(CONNECTION_CACHE_MAX_SIZE)
 ) {
 
-  fun getAiInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    contextSharingState: ContextSharingState,
-  ) =
-    cache
-      .getIfPresent(connection)
-      ?.getIfPresent(issueId)
-      ?.getIfPresent(AiInsightKey(variantId, contextSharingState))
-      ?.copy(isCached = true)
+  fun getAiInsight(connection: Connection, issueId: IssueId, variantId: String?, contextSharingState: ContextSharingState) =
+    cache.getIfPresent(connection)?.getIfPresent(issueId)?.getIfPresent(AiInsightKey(variantId, contextSharingState))?.copy(isCached = true)
 
-  fun putAiInsight(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    aiInsight: AiInsight,
-  ) {
+  fun putAiInsight(connection: Connection, issueId: IssueId, variantId: String?, aiInsight: AiInsight) {
     val issuesCache = cache.get(connection) { createNew(ISSUE_CACHE_MAX_SIZE) }
     val aiInsightCache = issuesCache.get(issueId) { createNew(VARIANT_CACHE_MAX_SIZE) }
-    aiInsightCache.put(
-      AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState),
-      aiInsight,
-    )
+    aiInsightCache.put(AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState), aiInsight)
   }
 }

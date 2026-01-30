@@ -17,16 +17,15 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import kotlin.test.assertNotNull
+import kotlin.test.assertSame
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertSame
 
 class FrameworkDrawableRendererTest {
 
-  @get:Rule
-  var rule = AndroidProjectRule.inMemory()
+  @get:Rule var rule = AndroidProjectRule.inMemory()
 
   @Before
   fun setup() {

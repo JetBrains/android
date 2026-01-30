@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-/**
- * The helper class provides the general utility functions of visualization tool (a.k.a. Validation
- * Tool).
- */
+/** The helper class provides the general utility functions of visualization tool (a.k.a. Validation Tool). */
 object VisualizationUtil {
 
   /** Helper function to update custom configuration set for the given id. */
@@ -33,8 +30,7 @@ object VisualizationUtil {
 
   fun getUserMadeConfigurationSets(): List<ConfigurationSet> {
     val sets = mutableListOf<ConfigurationSet>()
-    val configurationSets =
-      VisualizationToolSettings.getInstance().globalState.customConfigurationSets
+    val configurationSets = VisualizationToolSettings.getInstance().globalState.customConfigurationSets
     for ((id, configSet) in configurationSets) {
       if (configSet != null) {
         val customSet = UserDefinedCustom(id, configSet)

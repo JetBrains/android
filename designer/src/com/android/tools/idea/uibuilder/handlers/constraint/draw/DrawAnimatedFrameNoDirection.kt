@@ -36,15 +36,7 @@ class DrawAnimatedFrameNoDirection(
   companion object {
     private const val REPAT_MS = 1000
     private const val PATERN_LENGTH = 20
-    private val myAnimationStroke: Stroke =
-      BasicStroke(
-        2f,
-        BasicStroke.CAP_SQUARE,
-        BasicStroke.JOIN_MITER,
-        1f,
-        floatArrayOf(10f, 10f),
-        0f,
-      )
+    private val myAnimationStroke: Stroke = BasicStroke(2f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 1f, floatArrayOf(10f, 10f), 0f)
 
     @JvmStatic
     fun add(list: DisplayList, @AndroidDpCoordinate rect: Rectangle) {

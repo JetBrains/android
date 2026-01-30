@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.project.build.events
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
-import com.android.tools.idea.util.PositionInFile
 import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -27,23 +25,22 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.SystemIndependent
 
-/**
- * Quick fix provider to provide quick fixes for Gradle build/sync errors.
- */
+/** Quick fix provider to provide quick fixes for Gradle build/sync errors. */
 interface GradleErrorQuickFixProvider {
 
   /**
    * Creates a [DescribedBuildIssueQuickFix] that is provided for build outputs.
    *
-   * This function analyzes a [BuildEvent] and a corresponding [ExternalSystemTaskId] to determine
-   * if a quick fix can be offered to the user for a build issue.
+   * This function analyzes a [BuildEvent] and a corresponding [ExternalSystemTaskId] to determine if a quick fix can be offered to the user
+   * for a build issue.
    */
   fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix?
+
   fun createSyncMessageAdditionalLink(
     syncMessage: SyncMessage,
     affectedModules: List<Module>,
     buildFileMap: Map<Module, VirtualFile>,
-    rootProjectPath: @SystemIndependent String
+    rootProjectPath: @SystemIndependent String,
   ): SyncMessageHyperlink?
 
   companion object {

@@ -19,11 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 
-class WearHealthServicesEventLogger(
-  private val logFunction: (AndroidStudioEvent.Builder) -> Unit = { event ->
-    UsageTracker.log(event)
-  }
-) {
+class WearHealthServicesEventLogger(private val logFunction: (AndroidStudioEvent.Builder) -> Unit = { event -> UsageTracker.log(event) }) {
 
   fun logApplyChangesSuccess() {
     logFunction(newEventOfKind(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS))

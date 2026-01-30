@@ -39,8 +39,7 @@ internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = nu
   KVALUE,
   STRING_KVALUE,
   REGEX_KVALUE,
-  VALUE(HighlighterColors.TEXT),
-  ;
+  VALUE(HighlighterColors.TEXT);
 
   val key = TextAttributesKey.createTextAttributesKey("LOGCAT_FILTER_$name", fallback)
   val keys = arrayOf(key)
@@ -64,8 +63,5 @@ internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
 }
 
 internal class LogcatFilterSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
-  override fun getSyntaxHighlighter(
-    project: Project?,
-    virtualFile: VirtualFile?,
-  ): SyntaxHighlighter = LogcatFilterSyntaxHighlighter()
+  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?): SyntaxHighlighter = LogcatFilterSyntaxHighlighter()
 }

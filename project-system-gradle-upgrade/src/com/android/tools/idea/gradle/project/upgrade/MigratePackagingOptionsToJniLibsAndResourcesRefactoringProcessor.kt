@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -27,8 +27,9 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
 class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(AgpVersion.parse("4.2.0-alpha08"), AgpVersion.parse("9.0.0-alpha01"))
 
@@ -40,20 +41,23 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
         listOfModels.forEach forEach@{ m ->
           val psiElement = m.psiElement ?: return@forEach
           val wrappedPsiElement = WrappedPsiElement(psiElement, this, SPLIT_PROPERTY)
-          val value: Any = when (m.valueType) {
-            GradlePropertyModel.ValueType.STRING -> m.getValue(GradlePropertyModel.STRING_TYPE)!!
-            GradlePropertyModel.ValueType.REFERENCE -> m.getValue(GradlePropertyModel.OBJECT_TYPE)!!
-            else -> return@forEach
-          }
-          val resolvedValue: Any = when (m.resolve().valueType) {
-            GradlePropertyModel.ValueType.STRING -> m.resolve().getValue(GradlePropertyModel.STRING_TYPE)!!
-            else -> value
-          }
-          val usageInfo = when (GlobDestination.of(resolvedValue)) {
-            GlobDestination.JNI_LIBS -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(jniLibs))
-            GlobDestination.RESOURCES -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(resources))
-            GlobDestination.BOTH -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(jniLibs, resources))
-          }
+          val value: Any =
+            when (m.valueType) {
+              GradlePropertyModel.ValueType.STRING -> m.getValue(GradlePropertyModel.STRING_TYPE)!!
+              GradlePropertyModel.ValueType.REFERENCE -> m.getValue(GradlePropertyModel.OBJECT_TYPE)!!
+              else -> return@forEach
+            }
+          val resolvedValue: Any =
+            when (m.resolve().valueType) {
+              GradlePropertyModel.ValueType.STRING -> m.resolve().getValue(GradlePropertyModel.STRING_TYPE)!!
+              else -> value
+            }
+          val usageInfo =
+            when (GlobDestination.of(resolvedValue)) {
+              GlobDestination.JNI_LIBS -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(jniLibs))
+              GlobDestination.RESOURCES -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(resources))
+              GlobDestination.BOTH -> SplitPropertiesUsageInfo(wrappedPsiElement, value, listOf(jniLibs, resources))
+            }
           usages.add(usageInfo)
         }
       }
@@ -74,13 +78,14 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
   override fun getShortDescription(): String? =
     """
-      Directives to affect packaging have been split into those affecting
-      libraries (.so files) and those affecting all other resources.
-    """.trimIndent()
+    Directives to affect packaging have been split into those affecting
+    libraries (.so files) and those affecting all other resources.
+    """
+      .trimIndent()
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder
-    // TODO(xof)
-    = builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_PACKAGING_OPTIONS)
+  // TODO(xof)
+  = builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_PACKAGING_OPTIONS)
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -97,44 +102,43 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
     val SPLIT_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.split.usageType"))
     val REMOVE_PROPERTY = UsageType(AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.remove.usageType"))
 
-    val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = MovePropertiesInfo(
-      listOf(
-        Pair({ android().packaging().doNotStrip() }, { android().packaging().jniLibs().keepDebugSymbols() }),
-        Pair({ android().packaging().merges() }, { android().packaging().resources().merges() }),
-      ),
-      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
-      usageType = MOVE_PROPERTY
-    )
-    val REMOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = RemovePropertiesInfo(
-      { listOf(android().packaging().excludes(), android().packaging().pickFirsts()) },
-      tooltipTextSupplier = AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
-      usageType = REMOVE_PROPERTY
-    )
+    val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO =
+      MovePropertiesInfo(
+        listOf(
+          Pair({ android().packaging().doNotStrip() }, { android().packaging().jniLibs().keepDebugSymbols() }),
+          Pair({ android().packaging().merges() }, { android().packaging().resources().merges() }),
+        ),
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
+        usageType = MOVE_PROPERTY,
+      )
+    val REMOVE_PACKAGING_OPTIONS_PROPERTIES_INFO =
+      RemovePropertiesInfo(
+        { listOf(android().packaging().excludes(), android().packaging().pickFirsts()) },
+        tooltipTextSupplier = AgpUpgradeBundle.messagePointer("migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
+        usageType = REMOVE_PROPERTY,
+      )
   }
 
   enum class GlobDestination {
     JNI_LIBS,
     RESOURCES,
-    BOTH
-    ;
+    BOTH;
 
     companion object {
-      fun of(value: Any): GlobDestination = when {
-        value is String && value.endsWith(".so") -> JNI_LIBS
-        value is String && !value.contains("[?}*\\]].{0,2}$".toRegex()) -> RESOURCES
-        else -> BOTH
-      }
+      fun of(value: Any): GlobDestination =
+        when {
+          value is String && value.endsWith(".so") -> JNI_LIBS
+          value is String && !value.contains("[?}*\\]].{0,2}$".toRegex()) -> RESOURCES
+          else -> BOTH
+        }
     }
   }
 }
 
-class SplitPropertiesUsageInfo(
-  element: WrappedPsiElement, val value: Any, val destinations: List<GradlePropertyModel>
-): GradleBuildModelUsageInfo(element) {
+class SplitPropertiesUsageInfo(element: WrappedPsiElement, val value: Any, val destinations: List<GradlePropertyModel>) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    destinations.forEach {
-      it.addListValue()?.setValue(value)
-    }
+    destinations.forEach { it.addListValue()?.setValue(value) }
   }
 
   override fun getTooltipText(): String = AgpUpgradeBundle.message("migratePackagingOptionsRefactoringProcessor.split.tooltipText")

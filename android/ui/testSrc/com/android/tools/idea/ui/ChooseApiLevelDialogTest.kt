@@ -27,13 +27,14 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLabel
+import java.nio.file.Path
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
-private const val TEST_JSON = """
+private const val TEST_JSON =
+  """
 [
   {
     "name": "R",
@@ -70,8 +71,7 @@ class ChooseApiLevelDialogTest {
   lateinit var testDirectoryPath: Path
   private val dialog by lazy { ChooseApiLevelDialog(projectRule.project, 0) }
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   @Before
   fun setUp() {
@@ -90,8 +90,10 @@ class ChooseApiLevelDialogTest {
   @Test
   fun testLastUpdatedDate() {
     createModalDialogAndInteractWithIt(dialog::show) {
-      val label = TreeWalker(dialog.rootPane).descendants().filterIsInstance<JBLabel>()
-        .firstOrNull { (it as? JBLabel)?.text == "Last updated: May 9th, 2022" }
+      val label =
+        TreeWalker(dialog.rootPane).descendants().filterIsInstance<JBLabel>().firstOrNull {
+          (it as? JBLabel)?.text == "Last updated: May 9th, 2022"
+        }
 
       assertThat(label).isNotNull()
     }

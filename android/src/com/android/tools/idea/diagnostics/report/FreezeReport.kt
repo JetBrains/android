@@ -21,33 +21,30 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.common.base.Charsets
 import com.google.gson.stream.JsonWriter
 import com.intellij.diagnostic.ThreadDumper
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.mime.MultipartEntityBuilder
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.TreeMap
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.mime.MultipartEntityBuilder
 
 class FreezeReport
 @JvmOverloads
-constructor(val threadDumpPath: Path?,
-            val reportParts: Map<String, Path>,
-            val binaryReportParts: Map<String, Path>,
-            val timedOut: Boolean,
-            val totalDuration: Long?,
-            val description: String?,
-            baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport(REPORT_TYPE, baseProperties) {
+constructor(
+  val threadDumpPath: Path?,
+  val reportParts: Map<String, Path>,
+  val binaryReportParts: Map<String, Path>,
+  val timedOut: Boolean,
+  val totalDuration: Long?,
+  val description: String?,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : DiagnosticReport(REPORT_TYPE, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
     if (threadDumpPath != null) writer.name("threadDumpPath").value(threadDumpPath.toString())
-    reportParts.forEach {
-      writer.name(it.key + "Path").value(it.value.toString())
-    }
-    binaryReportParts.forEach {
-      writer.name(it.key + "BinaryPath").value(it.value.toString())
-    }
+    reportParts.forEach { writer.name(it.key + "Path").value(it.value.toString()) }
+    binaryReportParts.forEach { writer.name(it.key + "BinaryPath").value(it.value.toString()) }
     writer.name("timedOut").value(timedOut.toString())
     if (totalDuration != null) writer.name("totalDuration").value(totalDuration)
     if (description != null) writer.name("description").value(description)
@@ -56,8 +53,8 @@ constructor(val threadDumpPath: Path?,
   @Throws(IOException::class)
   override fun asCrashReport(): CrashReport {
     val edtStack =
-      threadDumpPath?.let { ThreadDumper.getEdtStackForCrash(String(Files.readAllBytes(it)),
-                                         "com.android.ApplicationNotResponding") } ?: EMPTY_ANR_STACKTRACE
+      threadDumpPath?.let { ThreadDumper.getEdtStackForCrash(String(Files.readAllBytes(it)), "com.android.ApplicationNotResponding") }
+        ?: EMPTY_ANR_STACKTRACE
 
     val contents = TreeMap<String, String>()
     reportParts.forEach { (name, path) -> contents[name] = String(Files.readAllBytes(path)) }
@@ -71,9 +68,7 @@ constructor(val threadDumpPath: Path?,
         contents.forEach { name, contents ->
           GoogleCrashReporter.addBodyToBuilder(builder, name, contents, ContentType.create("text/plain", Charsets.UTF_8))
         }
-        binaryReportParts.forEach { (name, path) ->
-          builder.addBinaryBody(name, path.toFile())
-        }
+        binaryReportParts.forEach { (name, path) -> builder.addBinaryBody(name, path.toFile()) }
       }
     }
   }
@@ -81,46 +76,27 @@ constructor(val threadDumpPath: Path?,
   companion object {
     const val REPORT_TYPE = "Freeze"
     private const val EXCEPTION_TYPE = "com.android.ApplicationNotResponding"
-    private val EMPTY_ANR_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                       "\tat " + FreezeReport::class.java.name + ".missingEdtStack(Unknown source)"
+    private val EMPTY_ANR_STACKTRACE =
+      EXCEPTION_TYPE + ": \n" + "\tat " + FreezeReport::class.java.name + ".missingEdtStack(Unknown source)"
 
-    fun deserialize(baseProperties: DiagnosticReportProperties,
-                    properties: Map<String, String>,
-                    format: Long): FreezeReport {
+    fun deserialize(baseProperties: DiagnosticReportProperties, properties: Map<String, String>, format: Long): FreezeReport {
       if (format >= 1L) {
         val dynamicProperties = TreeMap<String, String>(properties)
         val totalDuration = dynamicProperties.remove("totalDuration")?.toLong()
         val description = dynamicProperties.remove("description")
-        val threadDumpPath = dynamicProperties.remove("threadDumpPath")?.let {
-          fixDirectoryPathAndCheckIfReadable(
-            Paths.get(it))
-        }
+        val threadDumpPath = dynamicProperties.remove("threadDumpPath")?.let { fixDirectoryPathAndCheckIfReadable(Paths.get(it)) }
         val timedOut = dynamicProperties.remove("timedOut")?.toBoolean() ?: false
 
         val paths = TreeMap<String, Path>()
         val binaryPaths = TreeMap<String, Path>()
         dynamicProperties.forEach { (name, pathName) ->
           if (name.endsWith("BinaryPath")) {
-            fixDirectoryPathAndCheckIfReadable(
-              Paths.get(pathName))?.let {
-              binaryPaths[name.dropLast("BinaryPath".length)] = it
-            }
+            fixDirectoryPathAndCheckIfReadable(Paths.get(pathName))?.let { binaryPaths[name.dropLast("BinaryPath".length)] = it }
           } else if (name.endsWith("Path")) {
-            fixDirectoryPathAndCheckIfReadable(
-              Paths.get(pathName))?.let {
-              paths[name.dropLast("Path".length)] = it
-            }
+            fixDirectoryPathAndCheckIfReadable(Paths.get(pathName))?.let { paths[name.dropLast("Path".length)] = it }
           }
         }
-        return FreezeReport(
-          threadDumpPath,
-          paths,
-          binaryPaths,
-          timedOut,
-          totalDuration,
-          description,
-          baseProperties
-        )
+        return FreezeReport(threadDumpPath, paths, binaryPaths, timedOut, totalDuration, description, baseProperties)
       }
       throw IllegalArgumentException("Unrecognized format version: $format")
     }

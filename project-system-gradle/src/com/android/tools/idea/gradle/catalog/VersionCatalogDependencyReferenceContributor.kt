@@ -35,9 +35,7 @@ import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.ext.name
 
-/**
- * Contributes references for bundle literals to library alias declarations
- */
+/** Contributes references for bundle literals to library alias declarations */
 class VersionCatalogDependencyReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
     registrar.registerReferenceProvider(bundleDeclarationPattern, VersionCatalogBundleReferenceProvider())
@@ -47,16 +45,20 @@ class VersionCatalogDependencyReferenceContributor : PsiReferenceContributor() {
 internal val bundleDeclarationPattern: PsiElementPattern.Capture<TomlLiteral> =
   psiElement(TomlLiteral::class.java)
     .withParent(psiElement(TomlArray::class.java))
-    .withSuperParent(3, psiElement(TomlTable::class.java).with(
-   object : PatternCondition<TomlTable>(null) {
-     override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
-       tomlTable.header.key?.segments?.map { it.name } == listOf("bundles")
-   }
- ))
+    .withSuperParent(
+      3,
+      psiElement(TomlTable::class.java)
+        .with(
+          object : PatternCondition<TomlTable>(null) {
+            override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
+              tomlTable.header.key?.segments?.map { it.name } == listOf("bundles")
+          }
+        ),
+    )
 
 private class VersionCatalogBundleReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-    if(element !is TomlLiteral || element.parent !is TomlArray) return emptyArray()
+    if (element !is TomlLiteral || element.parent !is TomlArray) return emptyArray()
     val text = StringUtil.unquoteString(element.text)
     return arrayOf(VersionCatalogDeclarationReference(element, text))
   }
@@ -69,5 +71,4 @@ private class VersionCatalogBundleReferenceProvider : PsiReferenceProvider() {
       return libs.find { it.name == text }
     }
   }
-
 }

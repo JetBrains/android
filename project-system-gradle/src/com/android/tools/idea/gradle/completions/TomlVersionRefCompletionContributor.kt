@@ -36,77 +36,81 @@ import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlVisitor
 
-val VERSION_REF_KEY_VALUE_PATTERN = psiElement(TomlKeyValue::class.java)
-  .with(
-    object : PatternCondition<TomlKeyValue>(null) {
-      override fun accepts(t: TomlKeyValue, context: ProcessingContext?) =
-        t.key.segments.map { it.name } == listOf("version", "ref")
-    }
-  )
+val VERSION_REF_KEY_VALUE_PATTERN =
+  psiElement(TomlKeyValue::class.java)
+    .with(
+      object : PatternCondition<TomlKeyValue>(null) {
+        override fun accepts(t: TomlKeyValue, context: ProcessingContext?) = t.key.segments.map { it.name } == listOf("version", "ref")
+      }
+    )
 
-val VERSION_KEY_VALUE_PATTERN = psiElement(TomlKeyValue::class.java)
-  .with(
-    object : PatternCondition<TomlKeyValue>(null) {
-      override fun accepts(t: TomlKeyValue, context: ProcessingContext?) =
-        t.key.segments.map { it.name } == listOf("version")
-    }
-  )
+val VERSION_KEY_VALUE_PATTERN =
+  psiElement(TomlKeyValue::class.java)
+    .with(
+      object : PatternCondition<TomlKeyValue>(null) {
+        override fun accepts(t: TomlKeyValue, context: ProcessingContext?) = t.key.segments.map { it.name } == listOf("version")
+      }
+    )
 
-val REF_KEY_VALUE_PATTERN = psiElement(TomlKeyValue::class.java)
-  .with(
-    object : PatternCondition<TomlKeyValue>(null) {
-      override fun accepts(t: TomlKeyValue, context: ProcessingContext?) =
-        t.key.segments.map { it.name } == listOf("ref")
-    }
-  )
+val REF_KEY_VALUE_PATTERN =
+  psiElement(TomlKeyValue::class.java)
+    .with(
+      object : PatternCondition<TomlKeyValue>(null) {
+        override fun accepts(t: TomlKeyValue, context: ProcessingContext?) = t.key.segments.map { it.name } == listOf("ref")
+      }
+    )
 
-internal val TOML_PLUGINS_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
-  object : PatternCondition<TomlTable>(null) {
-    override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
-      tomlTable.header.key?.segments?.map { it.name } == listOf("plugins")
-  }
-)
+internal val TOML_PLUGINS_TABLE_PATTERN =
+  psiElement(TomlTable::class.java)
+    .with(
+      object : PatternCondition<TomlTable>(null) {
+        override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
+          tomlTable.header.key?.segments?.map { it.name } == listOf("plugins")
+      }
+    )
 
-val TOML_VERSION_REF_PATTERN = psiElement()
-  .withLanguage(TomlLanguage)
-  .withParent(TomlLiteral::class.java)
-  .inFile(INSIDE_VERSIONS_TOML_FILE)
-  .andOr(
-    psiElement().withSuperParent(2, VERSION_REF_KEY_VALUE_PATTERN),
-    psiElement()
-      .withSuperParent(2, REF_KEY_VALUE_PATTERN)
-      .withSuperParent(4, VERSION_KEY_VALUE_PATTERN))
-  .andOr(
-    psiElement().inside(TOML_LIBRARIES_TABLE_PATTERN),
-    psiElement().inside(TOML_PLUGINS_TABLE_PATTERN)
-  )
+val TOML_VERSION_REF_PATTERN =
+  psiElement()
+    .withLanguage(TomlLanguage)
+    .withParent(TomlLiteral::class.java)
+    .inFile(INSIDE_VERSIONS_TOML_FILE)
+    .andOr(
+      psiElement().withSuperParent(2, VERSION_REF_KEY_VALUE_PATTERN),
+      psiElement().withSuperParent(2, REF_KEY_VALUE_PATTERN).withSuperParent(4, VERSION_KEY_VALUE_PATTERN),
+    )
+    .andOr(psiElement().inside(TOML_LIBRARIES_TABLE_PATTERN), psiElement().inside(TOML_PLUGINS_TABLE_PATTERN))
 
 class TomlVersionRefCompletionContributor : CompletionContributor() {
   init {
-    extend(CompletionType.BASIC,
-           TOML_VERSION_REF_PATTERN,
-            object : CompletionProvider<CompletionParameters>() {
-              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-                val originalFile = parameters.originalFile as? TomlFile ?: return
-                result.addAllElements(findVersionKeys(originalFile).map { LookupElementBuilder.create(it) })
-              }
-            }
+    extend(
+      CompletionType.BASIC,
+      TOML_VERSION_REF_PATTERN,
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          val originalFile = parameters.originalFile as? TomlFile ?: return
+          result.addAllElements(findVersionKeys(originalFile).map { LookupElementBuilder.create(it) })
+        }
+      },
     )
   }
 
   private fun findVersionKeys(tomlFile: TomlFile): List<String> {
     val result = mutableListOf<String>()
-    tomlFile.children.filter { it is TomlTable }.forEach {
-      it.accept(object : TomlVisitor() {
-        override fun visitTable(element: TomlTable) {
-          if (element.header.key?.segments?.map { it.name } == listOf("versions")) {
-            element.entries.forEach { kv ->
-              kv.key.takeIf { it.segments.size == 1 }?.let { it.segments[0].name?.let { name -> result.add(name) } }
+    tomlFile.children
+      .filter { it is TomlTable }
+      .forEach {
+        it.accept(
+          object : TomlVisitor() {
+            override fun visitTable(element: TomlTable) {
+              if (element.header.key?.segments?.map { it.name } == listOf("versions")) {
+                element.entries.forEach { kv ->
+                  kv.key.takeIf { it.segments.size == 1 }?.let { it.segments[0].name?.let { name -> result.add(name) } }
+                }
+              }
             }
           }
-        }
-      })
-    }
+        )
+      }
     return result
   }
 }

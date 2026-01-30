@@ -36,8 +36,7 @@ class TopLeftCornerScrollerTest {
     whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val scroller =
-      TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
+    val scroller = TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
     scroller.scroll(viewport)
     Assert.assertEquals(Point(0, 0), viewport.viewPosition)
   }
@@ -52,8 +51,7 @@ class TopLeftCornerScrollerTest {
     whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val scroller =
-      TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
+    val scroller = TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
     scroller.scroll(viewport)
     Assert.assertEquals(Point(500, 500), viewport.viewPosition)
   }
@@ -68,8 +66,7 @@ class TopLeftCornerScrollerTest {
     whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val scroller =
-      TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
+    val scroller = TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
     scroller.scroll(viewport)
     Assert.assertEquals(Point(0, 300), viewport.viewPosition)
   }
@@ -84,8 +81,7 @@ class TopLeftCornerScrollerTest {
     whenever(viewComponent.preferredSize).thenReturn(newViewSize)
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
-    val scroller =
-      TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
+    val scroller = TopLeftCornerScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
     scroller.scroll(viewport)
     Assert.assertEquals(Point(375, 500), viewport.viewPosition)
   }

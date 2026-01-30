@@ -26,21 +26,17 @@ import com.intellij.icons.AllIcons
 import java.io.File
 import javax.swing.Icon
 
-class PsEmptyModule(
-  parent: PsProject,
-  override val gradlePath: String
-) : PsModule(parent, ModuleKind.EMPTY) {
+class PsEmptyModule(parent: PsProject, override val gradlePath: String) : PsModule(parent, ModuleKind.EMPTY) {
 
-  override val descriptor get() = PsModelDescriptor.None
-  override val dependencies = object: PsDependencyCollectionBase<PsModule, Nothing, Nothing, Nothing>(this) {}
+  override val descriptor
+    get() = PsModelDescriptor.None
+
+  override val dependencies = object : PsDependencyCollectionBase<PsModule, Nothing, Nothing, Nothing>(this) {}
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
   override val rootDir: File? = null
   override val icon: Icon? = AllIcons.Nodes.Module
 
-  fun init(
-    name: String,
-    parentModule: PsModule?
-  ) {
+  fun init(name: String, parentModule: PsModule?) {
     super.init(name, parentModule, null)
   }
 
@@ -58,5 +54,6 @@ class PsEmptyModule(
     throw UnsupportedOperationException()
 
   override fun maybeAddConfiguration(configurationName: String) = throw UnsupportedOperationException()
+
   override fun maybeRemoveConfiguration(configurationName: String) = throw UnsupportedOperationException()
 }

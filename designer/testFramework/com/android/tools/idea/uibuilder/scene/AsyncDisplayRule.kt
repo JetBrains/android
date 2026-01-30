@@ -22,9 +22,8 @@ import java.awt.image.BufferedImage
 import org.junit.rules.ExternalResource
 
 /**
- * JUnit rule that enabled the ability of rendering and waiting for the background [Display] renders
- * to complete. When using this rule, call [renderInFakeUi] to ensure the render is completed
- * correctly.
+ * JUnit rule that enabled the ability of rendering and waiting for the background [Display] renders to complete. When using this rule, call
+ * [renderInFakeUi] to ensure the render is completed correctly.
  */
 class AsyncDisplayRule : ExternalResource() {
   private var previousCaptureRepaintsValue = false

@@ -56,10 +56,8 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
  * - is populated with data from [NativeWorkspaceService] instead of [NdkModuleModel], which gets the information from AGP
  * - is per module rather than per artifact
  */
-class IncludesViewNodeV2(
-  project: Project,
-  nativeHeaderDirs: List<NativeHeaderDir>,
-  viewSettings: ViewSettings) : ProjectViewNode<List<NativeHeaderDir>>(project, nativeHeaderDirs, viewSettings), FolderGroupNode {
+class IncludesViewNodeV2(project: Project, nativeHeaderDirs: List<NativeHeaderDir>, viewSettings: ViewSettings) :
+  ProjectViewNode<List<NativeHeaderDir>>(project, nativeHeaderDirs, viewSettings), FolderGroupNode {
 
   companion object {
     fun create(module: Module, settings: ViewSettings): IncludesViewNodeV2? {
@@ -71,18 +69,18 @@ class IncludesViewNodeV2(
       val variant = selectedVariantAbi.variant
       val abi = selectedVariantAbi.abi
       val nativeWorkspaceService = NativeWorkspaceService.getInstance(project)
-      val nativeHeaderDirs = nativeWorkspaceService.getNativeHeaderDirs(
-        ModuleVariantAbi(module.name, variant, abi)).filter { nativeHeaderDir ->
-        val nativeHeaderDirVirtualFile = VfsUtil.findFileByIoFile(nativeHeaderDir.dir, false) ?: return@filter true
+      val nativeHeaderDirs =
+        nativeWorkspaceService.getNativeHeaderDirs(ModuleVariantAbi(module.name, variant, abi)).filter { nativeHeaderDir ->
+          val nativeHeaderDirVirtualFile = VfsUtil.findFileByIoFile(nativeHeaderDir.dir, false) ?: return@filter true
 
-        // Only show this include directory if it's not under any source folders, or if it is under a source folder but it's also excluded.
-        sourceRoots.none { sourceRoot -> VfsUtil.isAncestor(sourceRoot.toIoFile(), nativeHeaderDir.dir, false) } ||
-        projectFileIndex.isExcluded(nativeHeaderDirVirtualFile)
-      }
+          // Only show this include directory if it's not under any source folders, or if it is under a source folder but it's also
+          // excluded.
+          sourceRoots.none { sourceRoot -> VfsUtil.isAncestor(sourceRoot.toIoFile(), nativeHeaderDir.dir, false) } ||
+            projectFileIndex.isExcluded(nativeHeaderDirVirtualFile)
+        }
       return if (nativeHeaderDirs.isEmpty()) {
         null
-      }
-      else {
+      } else {
         IncludesViewNodeV2(project, nativeHeaderDirs, settings)
       }
     }
@@ -105,14 +103,17 @@ class IncludesViewNodeV2(
     val startTime = System.currentTimeMillis()
     return try {
       getChildrenImpl()
-    }
-    finally {
-      log(AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
-            .setCppHeadersViewEvent(CppHeadersViewEvent.newBuilder()
-                                      .setEventDurationMs(System.currentTimeMillis() - startTime)
-                                      .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)).withProjectId(
-          project))
+    } finally {
+      log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
+          .setCppHeadersViewEvent(
+            CppHeadersViewEvent.newBuilder()
+              .setEventDurationMs(System.currentTimeMillis() - startTime)
+              .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)
+          )
+          .withProjectId(project)
+      )
     }
   }
 
@@ -130,13 +131,18 @@ class IncludesViewNodeV2(
     for (include in includes) {
       if (include is ShadowingIncludeValue) {
         val concrete = include
-        result.addAll(IncludeViewNodes.getIncludeFolderNodesWithShadowing(
-          concrete.includePathsInOrder, VirtualFiles.convertToVirtualFile(concrete.myExcludes), false, project!!, settings))
-      }
-      else if (include is SimpleIncludeValue) {
+        result.addAll(
+          IncludeViewNodes.getIncludeFolderNodesWithShadowing(
+            concrete.includePathsInOrder,
+            VirtualFiles.convertToVirtualFile(concrete.myExcludes),
+            false,
+            project!!,
+            settings,
+          )
+        )
+      } else if (include is SimpleIncludeValue) {
         result.add(SimpleIncludeViewNode(include, includeDirs, true, project, settings))
-      }
-      else if (include is ClassifiedIncludeValue) {
+      } else if (include is ClassifiedIncludeValue) {
         // Add folders to the list of folders to exclude from the simple path group
         result.add(IncludeViewNode.createIncludeView(include, includeDirs, true, project, settings))
       }
@@ -144,7 +150,8 @@ class IncludesViewNodeV2(
     return result
   }
 
-  override val folders: List<PsiDirectory> get() = emptyList()
+  override val folders: List<PsiDirectory>
+    get() = emptyList()
 
   override fun getTypeSortWeight(sortByType: Boolean): Int = -100
 }

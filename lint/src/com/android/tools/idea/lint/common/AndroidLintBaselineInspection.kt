@@ -21,23 +21,11 @@ import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
 
 class AndroidLintBaselineInspection :
-  AbstractBaselineInspection(
-    message("android.lint.inspections.lint.baseline"),
-    IssueRegistry.BASELINE_USED,
-  ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    message: String,
-    fixData: LintFix?,
-  ): Array<LintIdeQuickFix> {
+  AbstractBaselineInspection(message("android.lint.inspections.lint.baseline"), IssueRegistry.BASELINE_USED) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
     return arrayOf(
       object : DefaultLintQuickFix("Temporarily turn off the baseline and re-run the analysis") {
-        override fun apply(
-          startElement: PsiElement,
-          endElement: PsiElement,
-          context: AndroidQuickfixContexts.Context,
-        ) {
+        override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
           ourSkipBaselineNextRun = true
           rerun()
         }

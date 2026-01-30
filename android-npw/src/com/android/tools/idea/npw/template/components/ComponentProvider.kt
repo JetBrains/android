@@ -19,8 +19,8 @@ import com.android.tools.idea.observable.AbstractProperty
 import javax.swing.JComponent
 
 /**
- * An interface for providing a Swing component and an [AbstractProperty] that controls it.
- * To use this class, simply call [createComponent] and [createProperty] with the component it returns.
+ * An interface for providing a Swing component and an [AbstractProperty] that controls it. To use this class, simply call [createComponent]
+ * and [createProperty] with the component it returns.
  */
 abstract class ComponentProvider<T : JComponent> {
   abstract fun createComponent(): T
@@ -28,8 +28,8 @@ abstract class ComponentProvider<T : JComponent> {
   open fun createProperty(component: T): AbstractProperty<*>? = null
 
   /**
-   * Gives subclasses a chance to handle the user accepting the current value. Most components
-   * won't do anything but some may save their values into a Recents database, for example.
+   * Gives subclasses a chance to handle the user accepting the current value. Most components won't do anything but some may save their
+   * values into a Recents database, for example.
    */
   open fun accept(component: T) {}
 }

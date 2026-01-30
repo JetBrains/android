@@ -33,28 +33,21 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.runBlocking
 
-class AndroidBinaryLiveEditDataExtractor(
-  private val project: Project,
-  private val binaryTarget: Label
-): LiveEditDataExtractor {
+class AndroidBinaryLiveEditDataExtractor(private val project: Project, private val binaryTarget: Label) : LiveEditDataExtractor {
   private var preparedInvocation: DependencyBuilder.PreparedInvocation? = null
   private val outcome: CompletableDeferred<BuildOutcome> = CompletableDeferred()
 
-  override fun prepareInvocation(
-    context: BlazeContext,
-    buildInvoker: BuildSystem.BuildInvoker,
-    commandBuilder: BlazeCommand.Builder,
-  ) {
+  override fun prepareInvocation(context: BlazeContext, buildInvoker: BuildSystem.BuildInvoker, commandBuilder: BlazeCommand.Builder) {
     val dependencyBuilder = QuerySyncManager.getInstance(project).assertProjectLoaded().dependencyBuilder
     val outputGroups =
       DependencyBuildRequest.getOutputGroups(listOf(QuerySyncLanguage.JVM), DependencyBuildRequest.RequestType.LIVE_EDIT_BUILD_APK)
-    val invocation = dependencyBuilder
-      .prepareInvocation(
+    val invocation =
+      dependencyBuilder.prepareInvocation(
         context,
         maybeBuildTargets = emptySet(), // This is supported by the dependency builder.
         outputGroups,
         replaceOutputGroups = false,
-        buildInvoker
+        buildInvoker,
       )
     invocation.updateCommand(commandBuilder)
     this.preparedInvocation = invocation

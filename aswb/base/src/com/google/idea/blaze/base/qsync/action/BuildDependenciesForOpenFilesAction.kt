@@ -26,9 +26,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.asDeferred
 
-/**
- * Action to build dependencies and enable analysis for all open editor tabs.
- */
+/** Action to build dependencies and enable analysis for all open editor tabs. */
 class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
   override fun querySyncSupport(): QuerySyncStatus = QuerySyncStatus.REQUIRED
 
@@ -41,8 +39,7 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
     // Each open source file may map to multiple targets, either because they're a build file
     // or because a source file is included in multiple targets.
     val openFiles = FileEditorManager.getInstance(project).allEditors.map { it.file }
-    val querySyncActionStats =
-      QuerySyncActionStatsScope.createForFiles(project, javaClass, event, ImmutableList.copyOf(openFiles))
+    val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(project, javaClass, event, ImmutableList.copyOf(openFiles))
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, openFiles),
@@ -50,9 +47,7 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
-      syncManager
-        .enableAnalysis(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
-        .asDeferred()
+      syncManager.enableAnalysis(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION).asDeferred()
     }
   }
 }

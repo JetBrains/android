@@ -50,19 +50,13 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   protected var model: InspectorModel? = null
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
 
   @Before
   fun setUp() {
     val project = projectRule.project
     model = runInEdtAndGet {
-      model(
-        projectRule.testRootDisposable,
-        project,
-        FakeTreeSettings(),
-        body = DemoExample.setUpDemo(projectRule.fixture),
-      )
+      model(projectRule.testRootDisposable, project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     }
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     model!!.resourceLookup.dpi = 560
@@ -75,75 +69,27 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   }
 
   protected suspend fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem =
-    createTestProperty(
-      "x",
-      PropertyType.DIMENSION_DP,
-      value,
-      null,
-      emptyList(),
-      fakeComposeNode,
-      model!!,
-    )
+    createTestProperty("x", PropertyType.DIMENSION_DP, value, null, emptyList(), fakeComposeNode, model!!)
 
   protected suspend fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem =
-    createTestProperty(
-      "textSize",
-      PropertyType.DIMENSION_SP,
-      value,
-      null,
-      emptyList(),
-      fakeComposeNode,
-      model!!,
-    )
+    createTestProperty("textSize", PropertyType.DIMENSION_SP, value, null, emptyList(), fakeComposeNode, model!!)
 
   protected suspend fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem =
-    createTestProperty(
-      "lineSpacing",
-      PropertyType.DIMENSION_EM,
-      value,
-      null,
-      emptyList(),
-      fakeComposeNode,
-      model!!,
-    )
+    createTestProperty("lineSpacing", PropertyType.DIMENSION_EM, value, null, emptyList(), fakeComposeNode, model!!)
 
   protected suspend fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
     val node = model!!["title"]!!
-    return createTestProperty(
-      ATTR_PADDING_TOP,
-      PropertyType.DIMENSION,
-      value,
-      null,
-      emptyList(),
-      node,
-      model!!,
-    )
+    return createTestProperty(ATTR_PADDING_TOP, PropertyType.DIMENSION, value, null, emptyList(), node, model!!)
   }
 
   protected suspend fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
     val node = model!!["title"]!!
-    return createTestProperty(
-      ATTR_PADDING_TOP,
-      PropertyType.DIMENSION_FLOAT,
-      value,
-      null,
-      emptyList(),
-      node,
-      model!!,
-    )
+    return createTestProperty(ATTR_PADDING_TOP, PropertyType.DIMENSION_FLOAT, value, null, emptyList(), node, model!!)
   }
 
   protected suspend fun textSizePropertyOf(value: String?): InspectorPropertyItem {
     val node = model!!["title"]!!
-    return createTestProperty(
-      ATTR_TEXT_SIZE,
-      PropertyType.DIMENSION_FLOAT,
-      value,
-      null,
-      emptyList(),
-      node,
-      model!!,
-    )
+    return createTestProperty(ATTR_TEXT_SIZE, PropertyType.DIMENSION_FLOAT, value, null, emptyList(), node, model!!)
   }
 
   private val fakeComposeNode: ComposeViewNode =
@@ -165,27 +111,14 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
       0,
     )
 
-  protected suspend fun browseProperty(
-    attrName: String,
-    type: PropertyType,
-    source: ResourceReference?,
-  ) {
+  protected suspend fun browseProperty(attrName: String, type: PropertyType, source: ResourceReference?) {
     val node = model!!["title"]!!
-    val property =
-      createTestProperty(attrName, type, null, source ?: node.layout, emptyList(), node, model!!)
+    val property = createTestProperty(attrName, type, null, source ?: node.layout, emptyList(), node, model!!)
     runInEdtAndWait { property.helpSupport.browse() }
   }
 
   protected suspend fun colorPropertyOf(value: String?): InspectorPropertyItem =
-    createTestProperty(
-      "color",
-      PropertyType.COLOR,
-      value,
-      null,
-      emptyList(),
-      fakeComposeNode,
-      model!!,
-    )
+    createTestProperty("color", PropertyType.COLOR, value, null, emptyList(), fakeComposeNode, model!!)
 }
 
 class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
@@ -403,21 +336,15 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
 class InspectorPropertyItemTestWithSdk :
   InspectorPropertyItemTestBase(
     AndroidProjectRule.withAndroidModel(
-        createAndroidProjectBuilderForDefaultTestProjectStructure()
-          .copy(applicationIdFor = { variant -> "com.example" })
+        createAndroidProjectBuilderForDefaultTestProjectStructure().copy(applicationIdFor = { variant -> "com.example" })
       )
       .named(InspectorPropertyItemTestWithSdk::class.simpleName)
   ) {
 
   @Test
   fun testBrowseTextSizeFromTextAppearance() = runBlocking {
-    val textAppearance =
-      ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
+    val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
     browseProperty(ATTR_TEXT_SIZE, PropertyType.INT32, textAppearance)
-    fileOpenCaptureRule.checkEditor(
-      "styles_material.xml",
-      228,
-      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>",
-    )
+    fileOpenCaptureRule.checkEditor("styles_material.xml", 228, "<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
   }
 }

@@ -22,9 +22,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 private const val bannedSymbols = "/\\:<>\"?*|"
 
-/**
- * Validates a project name.
- */
+/** Validates a project name. */
 class ProjectNameValidator : Validator<String> {
   override fun validate(value: String): Result {
     val firstIllegalSymbolIx = value.indexOfFirst { it in bannedSymbols }

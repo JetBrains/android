@@ -27,25 +27,24 @@ class DesignToolsTroubleInfoCollectorTest {
 
   @Test
   fun `verify default collectors with Gradle Project System`() {
-    ProjectSystemService.getInstance(projectRule.project)
-      .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
+    ProjectSystemService.getInstance(projectRule.project).replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
     val output = DesignToolsTroubleInfoCollector().collectInfo(projectRule.project)
     assertEquals(
       """
-        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
+      LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
-        FastPreviewStatus: available=true
+      FastPreviewStatus: available=true
 
-        Project:
-        Module(light_idea_test_case): isLoaded=true type=TYPE_NON_ANDROID isDisposed=false
-          isGradleModule=false isAndroidTest=false isUnitTest=false
-          scopeType=MAIN useAndroidX=true rClassTransitive=true
-          libDepCount=0
+      Project:
+      Module(light_idea_test_case): isLoaded=true type=TYPE_NON_ANDROID isDisposed=false
+        isGradleModule=false isAndroidTest=false isUnitTest=false
+        scopeType=MAIN useAndroidX=true rClassTransitive=true
+        libDepCount=0
 
 
-        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
+      PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
 
-        IssuePanelService: nIssues=0
+      IssuePanelService: nIssues=0
 
 
       """
@@ -59,20 +58,20 @@ class DesignToolsTroubleInfoCollectorTest {
     val output = DesignToolsTroubleInfoCollector().collectInfo(projectRule.project)
     assertEquals(
       """
-        LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
+      LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
-        FastPreviewStatus: available=true
+      FastPreviewStatus: available=true
 
-        Project:
-        Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false
-          isGradleModule=false
-          useAndroidX=false rClassTransitive=true
-          libDepCount=0
+      Project:
+      Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false
+        isGradleModule=false
+        useAndroidX=false rClassTransitive=true
+        libDepCount=0
 
 
-        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
+      PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
 
-        IssuePanelService: nIssues=0
+      IssuePanelService: nIssues=0
 
 
       """

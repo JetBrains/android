@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 /**
  * Returns a [Flow] that will notify when a change in the compilation status happens.
  *
- * [onReady] will be called once the flow is ready to start processing values. Useful when using the flow in tests to ensure no elements
- * are lost.
+ * [onReady] will be called once the flow is ready to start processing values. Useful when using the flow in tests to ensure no elements are
+ * lost.
  */
 fun fastPreviewCompileFlow(
   project: Project,
@@ -42,10 +42,7 @@ fun fastPreviewCompileFlow(
             trySend(true)
           }
 
-          override fun onCompilationComplete(
-            result: CompilationResult,
-            files: Collection<PsiFile>
-          ) {
+          override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
             trySend(false)
           }
         }

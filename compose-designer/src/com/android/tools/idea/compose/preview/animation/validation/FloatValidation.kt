@@ -20,21 +20,18 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.preview.message
 
-val FloatValidation =
-  createFloatValidator(message("animation.inspector.picker.validation.float.nan"))
+val FloatValidation = createFloatValidator(message("animation.inspector.picker.validation.float.nan"))
 
 val DpValidation = createFloatValidator(message("animation.inspector.picker.validation.dp.nan"))
 
 /**
- * [EditingValidation] validates that [editedValue] corresponds to a valid Float number. An
- * [EditingErrorCategory] representing the validation result with its corresponding display
- * [message].
+ * [EditingValidation] validates that [editedValue] corresponds to a valid Float number. An [EditingErrorCategory] representing the
+ * validation result with its corresponding display [message].
  */
-private fun createFloatValidator(message: String): EditingValidation =
-  validator@{ editedValue: String? ->
-    return@validator when {
-      editedValue.isNullOrBlank() -> EDITOR_NO_ERROR
-      editedValue.trim().toFloatOrNull() == null -> Pair(EditingErrorCategory.ERROR, message)
-      else -> EDITOR_NO_ERROR
-    }
+private fun createFloatValidator(message: String): EditingValidation = validator@{ editedValue: String? ->
+  return@validator when {
+    editedValue.isNullOrBlank() -> EDITOR_NO_ERROR
+    editedValue.trim().toFloatOrNull() == null -> Pair(EditingErrorCategory.ERROR, message)
+    else -> EDITOR_NO_ERROR
   }
+}

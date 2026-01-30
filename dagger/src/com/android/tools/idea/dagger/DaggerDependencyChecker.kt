@@ -29,14 +29,10 @@ class DaggerDependencyChecker(private val project: Project) {
 
   fun isDaggerPresent(): Boolean =
     CachedValuesManager.getManager(project).getCachedValue(project) {
-      CachedValueProvider.Result(
-        calculateIsDaggerPresent(),
-        ProjectRootModificationTracker.getInstance(project),
-      )
+      CachedValueProvider.Result(calculateIsDaggerPresent(), ProjectRootModificationTracker.getInstance(project))
     }
 
   private fun calculateIsDaggerPresent(): Boolean {
-    return JavaPsiFacade.getInstance(project)
-      .findClass(DaggerClasses.Module.fqNameString, GlobalSearchScope.allScope(project)) != null
+    return JavaPsiFacade.getInstance(project).findClass(DaggerClasses.Module.fqNameString, GlobalSearchScope.allScope(project)) != null
   }
 }

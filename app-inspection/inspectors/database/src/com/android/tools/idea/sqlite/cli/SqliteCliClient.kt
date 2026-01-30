@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress(
-  "BlockingMethodInNonBlockingContext"
-) // A dispatcher is passed in as a parameter, but it's not explicitly Kotlin's IO one.
+@file:Suppress("BlockingMethodInNonBlockingContext") // A dispatcher is passed in as a parameter, but it's not explicitly Kotlin's IO one.
 
 package com.android.tools.idea.sqlite.cli
 
@@ -53,10 +51,7 @@ interface SqliteCliClient {
 
 data class SqliteCliArg(val rawArg: String)
 
-/**
- * Note in some cases [exitCode] can be `0` despite an error - inspecting [errOutput] can be used to
- * detect such scenarios.
- */
+/** Note in some cases [exitCode] can be `0` despite an error - inspecting [errOutput] can be used to detect such scenarios. */
 data class SqliteCliResponse(val exitCode: Int, val stdOutput: String, val errOutput: String)
 
 class SqliteCliArgs private constructor() {
@@ -69,9 +64,7 @@ class SqliteCliArgs private constructor() {
 
     fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
 
-    fun output(path: Path) = apply {
-      args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}"))
-    }
+    fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}")) }
 
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
 
@@ -83,9 +76,7 @@ class SqliteCliArgs private constructor() {
 
     fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '$separator'")) }
 
-    fun queryTableContents(tableName: String) = apply {
-      args.add(SqliteCliArg("${selectTableContents(tableName)};"))
-    }
+    fun queryTableContents(tableName: String) = apply { args.add(SqliteCliArg("${selectTableContents(tableName)};")) }
 
     fun queryTableList() = apply { args.add(SqliteCliArg("$SELECT_TABLE_NAMES;")) }
 
@@ -98,29 +89,22 @@ class SqliteCliArgs private constructor() {
      *
      * [SQLite documentation](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint)
      */
-    fun walCheckpointTruncate() = apply {
-      args.add(SqliteCliArg("PRAGMA wal_checkpoint(TRUNCATE);"))
-    }
+    fun walCheckpointTruncate() = apply { args.add(SqliteCliArg("PRAGMA wal_checkpoint(TRUNCATE);")) }
 
-    private fun quit() = apply {
-      args.add(SqliteCliArg(".quit"))
-    } // exits the sqlite3 interactive mode
+    private fun quit() = apply { args.add(SqliteCliArg(".quit")) } // exits the sqlite3 interactive mode
 
     fun build() = this.quit().args.toList() // appends the ".quit" command as the last argument
   }
 }
 
 object SqliteQueries {
-  const val SELECT_TABLE_NAMES =
-    "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
-  const val SELECT_VIEW_NAMES =
-    "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+  const val SELECT_TABLE_NAMES = "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
+  const val SELECT_VIEW_NAMES = "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
 
   fun selectTableContents(tableName: String) = "select * from '$tableName'"
 }
 
-class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) :
-  SqliteCliClient {
+class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: CoroutineDispatcher) : SqliteCliClient {
   private val logger = logger<SqliteCliClientImpl>()
 
   @WorkerThread
@@ -128,43 +112,27 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
     withContext(dispatcher) {
       val sqlCliPath = sqlite3.toAbsolutePath()
       val stringArgs = args.map { it.rawArg }
-      logger.info(
-        "Executing external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}"
-      )
+      logger.info("Executing external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
 
       // The sqlite3 .output parameter proved buggy on Windows with non-ascii characters, so we use
       // stream redirection instead.
       // If the parameter is not present, we use a StringWriter.
       // Note that the .clone command does not have the same issue as .output, so we don't need to
       // do anything special in the .clone case.
-      val (outputArgs, inputLines) =
-        stringArgs.partition { it.startsWith("$sqliteCliOutputArgPrefix ") }
+      val (outputArgs, inputLines) = stringArgs.partition { it.startsWith("$sqliteCliOutputArgPrefix ") }
       val outputArg = outputArgs.firstOrNull()
       val outputPath = outputArg?.removePrefix("$sqliteCliOutputArgPrefix ")
       val outputFile = outputPath?.let { File(it) }
-      val outputWriter =
-        outputFile?.let { BufferedWriter(OutputStreamWriter(FileOutputStream(it, false), UTF_8)) }
-          ?: StringWriter()
+      val outputWriter = outputFile?.let { BufferedWriter(OutputStreamWriter(FileOutputStream(it, false), UTF_8)) } ?: StringWriter()
 
       val errWriter = StringWriter()
 
       outputWriter.use {
-        val exitCode =
-          ProcessExecutor.exec(
-            sqlCliPath.toString(),
-            inputLines,
-            outputWriter,
-            errWriter,
-            dispatcher,
-          )
-        val stdOutput =
-          if (outputWriter is StringWriter) outputWriter.toString()
-          else "" // in the "else" case we assume a file output
+        val exitCode = ProcessExecutor.exec(sqlCliPath.toString(), inputLines, outputWriter, errWriter, dispatcher)
+        val stdOutput = if (outputWriter is StringWriter) outputWriter.toString() else "" // in the "else" case we assume a file output
         val errOutput = errWriter.toString()
         SqliteCliResponse(exitCode, stdOutput, errOutput).also {
-          logger.info(
-            "Successfully executed external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}"
-          )
+          logger.info("Successfully executed external command $sqlCliPath with arguments ${stringArgs.toString().ellipsize(500)}")
         }
       }
     }
@@ -187,12 +155,8 @@ private object ProcessExecutor {
       val process = ProcessBuilder(listOf(executable)).start()
 
       val exitCode = async { process.awaitExit() }
-      val errOutput = async {
-        consumeProcessOutput(process.errorStream, errWriter, process, dispatcher)
-      }
-      val stdOutput = async {
-        consumeProcessOutput(process.inputStream, stdWriter, process, dispatcher)
-      }
+      val errOutput = async { consumeProcessOutput(process.errorStream, errWriter, process, dispatcher) }
+      val stdOutput = async { consumeProcessOutput(process.inputStream, stdWriter, process, dispatcher) }
       val input = async { feedProcessInput(process.outputStream, inputLines) }
 
       input.await()
@@ -213,12 +177,7 @@ private object ProcessExecutor {
 
   // Consumes output stream as the process is being executed - otherwise on Windows the process
   // would block when the output buffer is full.
-  private suspend fun consumeProcessOutput(
-    source: InputStream?,
-    outputWriter: Writer,
-    process: Process,
-    dispatcher: CoroutineDispatcher,
-  ) =
+  private suspend fun consumeProcessOutput(source: InputStream?, outputWriter: Writer, process: Process, dispatcher: CoroutineDispatcher) =
     withContext(dispatcher) {
       if (source == null) return@withContext
 

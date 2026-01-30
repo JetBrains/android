@@ -21,20 +21,19 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.dsl.listCellRenderer.listCellRenderer
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
+import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Provides a combobox which presents the user with a list of modules
- */
+/** Provides a combobox which presents the user with a list of modules */
 class ModuleComboProvider : ComponentProvider<ComboBox<Module>>() {
-  override fun createComponent(): ComboBox<Module> = ComboBox<Module>(DefaultComboBoxModel()).apply {
-    renderer = listCellRenderer(message("android.wizard.module.config.new.base.missing")) {
-      icon(ModuleType.get(value).icon)
-      text(value.name)
+  override fun createComponent(): ComboBox<Module> =
+    ComboBox<Module>(DefaultComboBoxModel()).apply {
+      renderer =
+        listCellRenderer(message("android.wizard.module.config.new.base.missing")) {
+          icon(ModuleType.get(value).icon)
+          text(value.name)
+        }
     }
-  }
 
   override fun createProperty(component: ComboBox<Module>): AbstractProperty<*> = SelectedItemProperty<String>(component)
 }
-

@@ -30,11 +30,7 @@ class ProjectServiceRule<T : Any>(
   private val disposable = Disposer.newDisposable("ProjectServiceRule")
 
   override fun before() {
-    projectRule.project.registerOrReplaceServiceInstance(
-      serviceInterface,
-      instanceProvider(),
-      disposable,
-    )
+    projectRule.project.registerOrReplaceServiceInstance(serviceInterface, instanceProvider(), disposable)
   }
 
   override fun after() {
@@ -42,11 +38,7 @@ class ProjectServiceRule<T : Any>(
   }
 
   companion object {
-    operator fun <T : Any> invoke(
-      projectRule: ProjectRule,
-      serviceInterface: Class<T>,
-      instance: T,
-    ): ProjectServiceRule<T> {
+    operator fun <T : Any> invoke(projectRule: ProjectRule, serviceInterface: Class<T>, instance: T): ProjectServiceRule<T> {
       return ProjectServiceRule(projectRule, serviceInterface) { instance }
     }
   }

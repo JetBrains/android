@@ -50,8 +50,7 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
 
       if (schema == null) {
         writer.println("Failed to get Room schema.")
-      }
-      else {
+      } else {
         schema.databases.forEach(writer::println)
         schema.tables.forEach(writer::println)
         schema.daos.forEach(writer::println)
@@ -63,8 +62,13 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
     }
 
     ScratchRootType.getInstance()
-        .createScratchFile(
-            project, "roomSchema.txt", PlainTextLanguage.INSTANCE, output.toString(), ScratchFileService.Option.create_new_always)
-        .let { FileEditorManager.getInstance(project).openFile(it!!, true) }
+      .createScratchFile(
+        project,
+        "roomSchema.txt",
+        PlainTextLanguage.INSTANCE,
+        output.toString(),
+        ScratchFileService.Option.create_new_always,
+      )
+      .let { FileEditorManager.getInstance(project).openFile(it!!, true) }
   }
 }

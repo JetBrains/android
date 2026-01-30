@@ -30,7 +30,7 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun `test Given ProjectTableJdk containing multiple entries When finding an existing one Then expected entry is returned` () {
+  fun `test Given ProjectTableJdk containing multiple entries When finding an existing one Then expected entry is returned`() {
     val jdk9 = IdeaTestUtil.getMockJdk9()
     runWriteActionAndWait {
       ProjectJdkTable.getInstance().addJdk(jdk9)
@@ -45,14 +45,12 @@ class ProjectJdkTableUtilsTest : LightPlatformTestCase() {
     }
   }
 
-  fun `test Given ProjectTableJdk containing multiple entries When finding a not existing one Then null is returned` () {
+  fun `test Given ProjectTableJdk containing multiple entries When finding a not existing one Then null is returned`() {
     runWriteActionAndWait {
       ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk9())
       ProjectJdkTable.getInstance().addJdk(IdeaTestUtil.getMockJdk17())
     }
 
-    ProjectJdkTableUtils.findProjectTableJdkWithVersion(11).also {
-      assertNull(it)
-    }
+    ProjectJdkTableUtils.findProjectTableJdkWithVersion(11).also { assertNull(it) }
   }
 }

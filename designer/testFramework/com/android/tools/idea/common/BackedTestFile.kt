@@ -21,8 +21,7 @@ import com.intellij.testFramework.LightVirtualFile
 
 /** Backed [LightVirtualFile] class for testing purpose. */
 @Suppress("UnstableApiUsage")
-class BackedTestFile(private val path: String, private val sourceFile: VirtualFile) :
-  LightVirtualFile(), BackedVirtualFile {
+class BackedTestFile(private val path: String, private val sourceFile: VirtualFile) : LightVirtualFile(), BackedVirtualFile {
   override fun getPath(): String = path
 
   override fun getOriginFile(): VirtualFile = sourceFile

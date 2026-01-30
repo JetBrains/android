@@ -41,8 +41,7 @@ fun VirtualFile.getVcsManager(project: Project): AbstractVcs? {
 fun RepoInfo.locateRepository(project: Project): Repository? {
   return VcsRepositoryManager.getInstance(project).getRepositories().firstOrNull { repoCandidate ->
     // 1. Check if vcs category is matching or not.
-    if (VcsForAppInsights.getExtensionByKey(vcsKey)?.isApplicable(repoCandidate.vcs) != true)
-      return@firstOrNull false
+    if (VcsForAppInsights.getExtensionByKey(vcsKey)?.isApplicable(repoCandidate.vcs) != true) return@firstOrNull false
 
     // 2. Check vcs root path. TODO: update this once we expand to support multi-repo case.
     rootPath == PROJECT_ROOT_PREFIX || rootPath == ABOVE_PROJECT_ROOT_PREFIX
@@ -61,18 +60,12 @@ fun createShortRevisionString(vcsKey: VCS_CATEGORY, revision: String): String? {
   return VcsUtil.getShortRevisionString(revisionNumber)
 }
 
-fun createVcsDocument(
-  vcsKey: VCS_CATEGORY,
-  virtualFile: VirtualFile,
-  revision: String,
-  project: Project,
-): Document? {
+fun createVcsDocument(vcsKey: VCS_CATEGORY, virtualFile: VirtualFile, revision: String, project: Project): Document? {
   // There's underlying cache layer: `ContentRevisionCache`.
   val vcsContentText =
-    VcsForAppInsights.getExtensionByKey(vcsKey)
-      ?.createVcsContent(virtualFile.toVcsFilePath(), revision, project)
-      ?.content
-      ?.let { StringUtilRt.convertLineSeparators(it, "\n") } ?: return null
+    VcsForAppInsights.getExtensionByKey(vcsKey)?.createVcsContent(virtualFile.toVcsFilePath(), revision, project)?.content?.let {
+      StringUtilRt.convertLineSeparators(it, "\n")
+    } ?: return null
 
   return DocumentImpl(vcsContentText)
 }

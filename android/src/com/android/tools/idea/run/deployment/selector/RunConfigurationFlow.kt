@@ -24,28 +24,24 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-internal fun runConfigurationFlow(project: Project): Flow<RunnerAndConfigurationSettings?> =
-  callbackFlow {
-    val connection = project.messageBus.connect()
-    connection.subscribe(
-      RunManagerListener.TOPIC,
-      object : RunManagerListener {
-        override fun runConfigurationSelected(settings: RunnerAndConfigurationSettings?) {
-          trySendBlocking(settings)
-        }
+internal fun runConfigurationFlow(project: Project): Flow<RunnerAndConfigurationSettings?> = callbackFlow {
+  val connection = project.messageBus.connect()
+  connection.subscribe(
+    RunManagerListener.TOPIC,
+    object : RunManagerListener {
+      override fun runConfigurationSelected(settings: RunnerAndConfigurationSettings?) {
+        trySendBlocking(settings)
+      }
 
-        override fun runConfigurationChanged(
-          settings: RunnerAndConfigurationSettings,
-          existingId: String?,
-        ) {
-          trySendBlocking(settings)
-        }
+      override fun runConfigurationChanged(settings: RunnerAndConfigurationSettings, existingId: String?) {
+        trySendBlocking(settings)
+      }
 
-        override fun runConfigurationRemoved(settings: RunnerAndConfigurationSettings) {}
+      override fun runConfigurationRemoved(settings: RunnerAndConfigurationSettings) {}
 
-        override fun runConfigurationAdded(settings: RunnerAndConfigurationSettings) {}
-      },
-    )
-    send(RunManager.getInstance(project).selectedConfiguration)
-    awaitClose { connection.disconnect() }
-  }
+      override fun runConfigurationAdded(settings: RunnerAndConfigurationSettings) {}
+    },
+  )
+  send(RunManager.getInstance(project).selectedConfiguration)
+  awaitClose { connection.disconnect() }
+}

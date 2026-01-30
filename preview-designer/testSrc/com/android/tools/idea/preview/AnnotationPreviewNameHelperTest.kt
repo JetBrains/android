@@ -87,7 +87,7 @@ class AnnotationPreviewNameHelperTest {
 
         @Many
         fun f() {}
-      """
+        """
           .trimIndent(),
       )
     runInEdtAndWait { fixture.openFileInEditor(file.virtualFile) }
@@ -96,28 +96,18 @@ class AnnotationPreviewNameHelperTest {
   @Test
   fun `nameParameter is used if available`() =
     runBlocking<Unit> {
-      val method = readAction {
-        fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!!
-      }
+      val method = readAction { fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!! }
       val nodeInfo = method.findAllAnnotationsInGraph { it.isPreviewAnnotation() }.take(1).single()
       val helper = AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
 
-      assertEquals(
-        "someParameterName - f",
-        helper.buildPreviewName(nameParameter = "someParameterName"),
-      )
-      assertEquals(
-        "someParameterName",
-        helper.buildParameterName(nameParameter = "someParameterName"),
-      )
+      assertEquals("someParameterName - f", helper.buildPreviewName(nameParameter = "someParameterName"))
+      assertEquals("someParameterName", helper.buildParameterName(nameParameter = "someParameterName"))
     }
 
   @Test
   fun `nodeInfo is used when available and nameParameter is not passed`() =
     runBlocking<Unit> {
-      val method = readAction {
-        fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!!
-      }
+      val method = readAction { fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!! }
       val nodeInfo = method.findAllAnnotationsInGraph { it.isPreviewAnnotation() }.take(1).single()
       val helper = AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
 
@@ -137,26 +127,17 @@ class AnnotationPreviewNameHelperTest {
   @Test
   fun `test method 'a' builds names based on MultiPreviews 'Annot1', 'Annot2', 'Annot3' and a direct preview`() =
     runBlocking<Unit> {
-      val a = readAction {
-        fixture.findElementByText<KtFunction>("fun a() {}", KtFunction::class.java).toUElement()!!
-      }
+      val a = readAction { fixture.findElementByText<KtFunction>("fun a() {}", KtFunction::class.java).toUElement()!! }
       val aPreviewNames = mutableListOf<String>()
       val aParameterNames = mutableListOf<String?>()
       a.findAllAnnotationsInGraph { it.isPreviewAnnotation() }
         .map { nodeInfo ->
-          aPreviewNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "a") { isPreviewAnnotation() }
-              .buildPreviewName(null)
-          aParameterNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "a") { isPreviewAnnotation() }
-              .buildParameterName(null)
+          aPreviewNames += AnnotationPreviewNameHelper.create(nodeInfo, "a") { isPreviewAnnotation() }.buildPreviewName(null)
+          aParameterNames += AnnotationPreviewNameHelper.create(nodeInfo, "a") { isPreviewAnnotation() }.buildParameterName(null)
         }
         .collect()
 
-      assertContentEquals(
-        listOf("1 Annot2 - a", "a", "1 Annot1 - a", "1 Annot3 - a"),
-        aPreviewNames,
-      )
+      assertContentEquals(listOf("1 Annot2 - a", "a", "1 Annot1 - a", "1 Annot3 - a"), aPreviewNames)
 
       assertContentEquals(listOf("1 Annot2", null, "1 Annot1", "1 Annot3"), aParameterNames)
     }
@@ -164,19 +145,13 @@ class AnnotationPreviewNameHelperTest {
   @Test
   fun `test method 'c' builds names based on MultiPreview 'Annot1' and a direct preview`() =
     runBlocking<Unit> {
-      val c = readAction {
-        fixture.findElementByText<KtFunction>("fun c() {}", KtFunction::class.java).toUElement()!!
-      }
+      val c = readAction { fixture.findElementByText<KtFunction>("fun c() {}", KtFunction::class.java).toUElement()!! }
       val cPreviewNames = mutableListOf<String>()
       val cParameterNames = mutableListOf<String?>()
       c.findAllAnnotationsInGraph { it.isPreviewAnnotation() }
         .map { nodeInfo ->
-          cPreviewNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "c") { isPreviewAnnotation() }
-              .buildPreviewName(null)
-          cParameterNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "c") { isPreviewAnnotation() }
-              .buildParameterName(null)
+          cPreviewNames += AnnotationPreviewNameHelper.create(nodeInfo, "c") { isPreviewAnnotation() }.buildPreviewName(null)
+          cParameterNames += AnnotationPreviewNameHelper.create(nodeInfo, "c") { isPreviewAnnotation() }.buildParameterName(null)
         }
         .collect()
 
@@ -188,19 +163,13 @@ class AnnotationPreviewNameHelperTest {
   @Test
   fun `test method 'f' builds padded preview names based on a MultiPreview declaring 10 previews`() =
     runBlocking<Unit> {
-      val f = readAction {
-        fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!!
-      }
+      val f = readAction { fixture.findElementByText<KtFunction>("fun f() {}", KtFunction::class.java).toUElement()!! }
       val fPreviewNames = mutableListOf<String>()
       val fParameterNames = mutableListOf<String?>()
       f.findAllAnnotationsInGraph { it.isPreviewAnnotation() }
         .map { nodeInfo ->
-          fPreviewNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
-              .buildPreviewName(null)
-          fParameterNames +=
-            AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
-              .buildParameterName(null)
+          fPreviewNames += AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }.buildPreviewName(null)
+          fParameterNames += AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }.buildParameterName(null)
         }
         .collect()
 
@@ -221,23 +190,10 @@ class AnnotationPreviewNameHelperTest {
       )
 
       assertContentEquals(
-        listOf(
-          "01 Many",
-          "02 Many",
-          "03 Many",
-          "04 Many",
-          "05 Many",
-          "06 Many",
-          "07 Many",
-          "08 Many",
-          "09 Many",
-          "10 Many",
-        ),
+        listOf("01 Many", "02 Many", "03 Many", "04 Many", "05 Many", "06 Many", "07 Many", "08 Many", "09 Many", "10 Many"),
         fParameterNames,
       )
     }
 
-  private fun UElement?.isPreviewAnnotation() = runReadAction {
-    (this as? UAnnotation)?.qualifiedName == "Preview"
-  }
+  private fun UElement?.isPreviewAnnotation() = runReadAction { (this as? UAnnotation)?.qualifiedName == "Preview" }
 }

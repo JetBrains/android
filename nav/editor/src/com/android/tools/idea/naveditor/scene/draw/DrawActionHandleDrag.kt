@@ -36,10 +36,6 @@ class DrawActionHandleDrag(
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircle(center, innerRadius)
-    return listOf(
-      FillShape(outerCircle, primaryPanelBackground),
-      FillShape(innerCircle, SELECTED),
-      DrawLineToMouse(center),
-    )
+    return listOf(FillShape(outerCircle, primaryPanelBackground), FillShape(innerCircle, SELECTED), DrawLineToMouse(center))
   }
 }

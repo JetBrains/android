@@ -50,10 +50,7 @@ class ReloadStringResourcesActionTest {
   @Before
   fun setUp() {
     val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, project)
-        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-        .build()
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor).build()
     event = TestActionEvent.createTestEvent(dataContext)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)

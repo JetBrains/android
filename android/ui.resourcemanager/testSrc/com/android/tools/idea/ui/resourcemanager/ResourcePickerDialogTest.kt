@@ -35,24 +35,22 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
 
 @RunsInEdt
 class ResourcePickerDialogTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private lateinit var pickerDialog: ResourcePickerDialog
 
@@ -76,9 +74,7 @@ class ResourcePickerDialogTest {
     Disposer.register(projectRule.project, pickerDialog.disposable)
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
 
-    waitAndAssert<AssetListView>(explorerView) {
-      it != null && it.model.size > 0
-    }
+    waitAndAssert<AssetListView>(explorerView) { it != null && it.model.size > 0 }
 
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
     list.setUI(HeadlessListUI())
@@ -110,19 +106,20 @@ class ResourcePickerDialogTest {
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
 
     var sampleDataList: AssetListView? = null
-    val waitForSampleDataList = object : WaitFor(WAIT_TIMEOUT) {
-      public override fun condition(): Boolean {
-        val listViews = UIUtil.findComponentsOfType(explorerView, AssetListView::class.java)
-        listViews.forEach { listView ->
-          if (listView.model.getElementAt(0).assets.first().resourceItem.type == ResourceType.SAMPLE_DATA) {
-            // Make sure there are actually sample data resources being displayed.
-            sampleDataList = listView
-            return true
+    val waitForSampleDataList =
+      object : WaitFor(WAIT_TIMEOUT) {
+        public override fun condition(): Boolean {
+          val listViews = UIUtil.findComponentsOfType(explorerView, AssetListView::class.java)
+          listViews.forEach { listView ->
+            if (listView.model.getElementAt(0).assets.first().resourceItem.type == ResourceType.SAMPLE_DATA) {
+              // Make sure there are actually sample data resources being displayed.
+              sampleDataList = listView
+              return true
+            }
           }
+          return false
         }
-        return false
       }
-    }
     assertThat(waitForSampleDataList.isConditionRealized).isTrue()
 
     sampleDataList!!.setUI(HeadlessListUI())
@@ -158,8 +155,8 @@ class ResourcePickerDialogTest {
 
   @Test
   fun openWithInitialResource() {
-    pickerDialog = createResourcePickerDialog(
-      false, "@drawable/png", setOf(ResourceType.STRING, ResourceType.DRAWABLE), ResourceType.STRING)
+    pickerDialog =
+      createResourcePickerDialog(false, "@drawable/png", setOf(ResourceType.STRING, ResourceType.DRAWABLE), ResourceType.STRING)
     Disposer.register(projectRule.project, pickerDialog.disposable)
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
 
@@ -196,13 +193,11 @@ class ResourcePickerDialogTest {
   @Test
   fun manualRefreshRequiredOnExternalResourceChange() {
     runInEdtAndWait {
-      createModalDialogAndInteractWithIt(
-        {
-          // Add a new resource, outside the dialog modal
-          projectRule.fixture.copyFileToProject("designAssets/add_dark.png", "res/drawable/add.png")
-          pickerDialog.show()
-        }
-      ) { dialogWrapper ->
+      createModalDialogAndInteractWithIt({
+        // Add a new resource, outside the dialog modal
+        projectRule.fixture.copyFileToProject("designAssets/add_dark.png", "res/drawable/add.png")
+        pickerDialog.show()
+      }) { dialogWrapper ->
         val explorerView = UIUtil.findComponentOfType(dialogWrapper.rootPane, ResourceExplorerView::class.java)!!
         waitAndAssert<AssetListView>(explorerView) {
           UIUtil.dispatchAllInvocationEvents()
@@ -221,11 +216,12 @@ class ResourcePickerDialogTest {
         assertFalse {
           // Wait just a short time, we are testing for failure
           object : WaitFor(100) {
-            override fun condition(): Boolean {
-              UIUtil.dispatchAllInvocationEvents()
-              return UIUtil.findComponentOfType(explorerView, AssetListView::class.java)?.model?.size == 3
+              override fun condition(): Boolean {
+                UIUtil.dispatchAllInvocationEvents()
+                return UIUtil.findComponentOfType(explorerView, AssetListView::class.java)?.model?.size == 3
+              }
             }
-          }.isConditionRealized
+            .isConditionRealized
         }
         assertNull(pickerDialog.resourceName) // Still nothing, need to manually update
 
@@ -247,19 +243,20 @@ class ResourcePickerDialogTest {
     showSampleData: Boolean,
     initialResourceUrl: String? = null,
     supportedTypes: Set<ResourceType> = setOf(ResourceType.DRAWABLE),
-    preferredType: ResourceType = ResourceType.DRAWABLE
+    preferredType: ResourceType = ResourceType.DRAWABLE,
   ): ResourcePickerDialog {
     var explorerDialog: ResourcePickerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourcePickerDialog(
-        facet = AndroidFacet.getInstance(projectRule.module)!!,
-        initialResourceUrl = initialResourceUrl,
-        supportedTypes = supportedTypes,
-        preferredType = preferredType,
-        showSampleData = showSampleData,
-        showThemeAttributes = true,
-        currentFile = null
-      )
+      explorerDialog =
+        ResourcePickerDialog(
+          facet = AndroidFacet.getInstance(projectRule.module)!!,
+          initialResourceUrl = initialResourceUrl,
+          supportedTypes = supportedTypes,
+          preferredType = preferredType,
+          showSampleData = showSampleData,
+          showThemeAttributes = true,
+          currentFile = null,
+        )
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->

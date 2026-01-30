@@ -28,9 +28,7 @@ fun SceneComponent.isSibling(other: SceneComponent): Boolean {
 }
 
 /** Helper function to convert a SceneComponent's draw rectangle to a [SwingRectangle]. */
-fun SceneComponent.inlineDrawRect(context: SceneContext) =
-  SwingRectangle(getSwingRectDip(context, this.fillDrawRect2D(0, null)))
+fun SceneComponent.inlineDrawRect(context: SceneContext) = SwingRectangle(getSwingRectDip(context, this.fillDrawRect2D(0, null)))
 
 /** Helper function to convert a SceneComponent's draw rectangle to a [SwingRectangle]. */
-fun SceneComponent.inlineDrawRect(view: SceneView) =
-  SwingRectangle(getSwingRectDip(view, this.fillDrawRect2D(0, null)))
+fun SceneComponent.inlineDrawRect(view: SceneView) = SwingRectangle(getSwingRectDip(view, this.fillDrawRect2D(0, null)))

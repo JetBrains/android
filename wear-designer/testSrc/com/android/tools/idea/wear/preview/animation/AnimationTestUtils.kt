@@ -17,8 +17,7 @@ package com.android.tools.idea.wear.preview.animation
 
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 
-class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FLOAT) :
-  DynamicTypeAnimator {
+class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FLOAT) : DynamicTypeAnimator {
   class FloatEvaluator : DynamicTypeAnimator.TypeEvaluator<Float> {
     override fun evaluate(fraction: Float, startValue: Float, endValue: Float): Float {
       return if (fraction == 0f) startValue else endValue

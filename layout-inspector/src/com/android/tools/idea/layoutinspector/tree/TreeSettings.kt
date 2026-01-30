@@ -33,8 +33,7 @@ const val KEY_SUPPORT_LINES = "live.layout.inspector.tree.lines"
 const val DEFAULT_SUPPORT_LINES = true
 
 const val KEY_RECOMPOSITIONS = "live.layout.inspector.tree.recompositions"
-val DEFAULT_RECOMPOSITIONS: Boolean =
-  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_COUNTS_DEFAULT.get()
+val DEFAULT_RECOMPOSITIONS: Boolean = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_COUNTS_DEFAULT.get()
 
 /** Miscellaneous tree settings. */
 interface TreeSettings {
@@ -51,9 +50,7 @@ interface TreeSettings {
 /** [TreeSettings] with persistence. */
 class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : TreeSettings {
   override var hideSystemNodes: Boolean
-    get() =
-      hasCapability(Capability.SUPPORTS_SYSTEM_NODES) &&
-        get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
+    get() = hasCapability(Capability.SUPPORTS_SYSTEM_NODES) && get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
     set(value) = set(KEY_HIDE_SYSTEM_NODES, value, DEFAULT_HIDE_SYSTEM_NODES)
 
   override var composeAsCallstack: Boolean
@@ -67,9 +64,7 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
     set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
 
   override var showRecompositions: Boolean
-    get() =
-      hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
-        get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS)
+    get() = hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) && get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS)
     set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
   @Suppress("SameParameterValue")
@@ -81,20 +76,17 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
     return client.capabilities.contains(capability)
   }
 
-  private fun get(key: String, defaultValue: Boolean): Boolean =
-    PropertiesComponent.getInstance().getBoolean(key, defaultValue)
+  private fun get(key: String, defaultValue: Boolean): Boolean = PropertiesComponent.getInstance().getBoolean(key, defaultValue)
 
-  private fun set(key: String, value: Boolean, defaultValue: Boolean) =
-    PropertiesComponent.getInstance().setValue(key, value, defaultValue)
+  private fun set(key: String, value: Boolean, defaultValue: Boolean) = PropertiesComponent.getInstance().setValue(key, value, defaultValue)
 }
 
 /**
- * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by
- * the [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
+ * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by the
+ * [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
  */
 class EditorTreeSettings(capabilities: Set<Capability>) : TreeSettings {
-  override var hideSystemNodes: Boolean =
-    DEFAULT_HIDE_SYSTEM_NODES && capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
+  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES && capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
   override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
   override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES

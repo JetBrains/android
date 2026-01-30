@@ -37,7 +37,15 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.Instant
+import java.util.IdentityHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import jdk.jfr.consumer.RecordingFile
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
@@ -47,14 +55,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.Instant
-import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.time.Duration.Companion.seconds
 
 private const val JFR_SERVER_FLAG_NAME = "diagnostics/jfr"
 internal val JFR_RECORDING_DURATION = 30.seconds
@@ -66,10 +66,9 @@ class RecordingManager : Disposable {
   private val logger: Logger = thisLogger()
   private val initDone = AtomicBoolean()
   private val mutex = Mutex()
-  @GuardedBy("mutex")
-  private val pendingCaptures: MutableList<JfrReportGenerator.Capture> = mutableListOf();
-  @GuardedBy("mutex")
-  private val recordings = RecordingBuffer()
+  @GuardedBy("mutex") private val pendingCaptures: MutableList<JfrReportGenerator.Capture> = mutableListOf()
+
+  @GuardedBy("mutex") private val recordings = RecordingBuffer()
   private lateinit var reportCallback: ReportCallback
   private lateinit var coroutineScope: CoroutineScope
   private var lowMemoryWatcher: LowMemoryWatcher? = null
@@ -77,10 +76,7 @@ class RecordingManager : Disposable {
   private var previousRecordingEnd: Instant = Instant.MIN
 
   @JvmOverloads
-  fun init(
-    reportCallback: ReportCallback,
-    coroutineScope: CoroutineScope = AndroidCoroutineScope(this),
-  ) {
+  fun init(reportCallback: ReportCallback, coroutineScope: CoroutineScope = AndroidCoroutineScope(this)) {
     // We should fail loudly if anyone tries to init this a second time, but we don't know what that will do now, so just warn.
     if (!initDone.compareAndSet(false, true)) {
       logger.warn("Multiple init() calls attempted on RecordingManager!")
@@ -99,23 +95,20 @@ class RecordingManager : Disposable {
     createReportManagers()
   }
 
-  override fun dispose() { }
+  override fun dispose() {}
 
   fun startCapture(capture: JfrReportGenerator.Capture) {
-    coroutineScope.launch {
-      mutex.withLock { pendingCaptures.add(capture) }
-    }
+    coroutineScope.launch { mutex.withLock { pendingCaptures.add(capture) } }
   }
 
-  class DumpJfrAction: AnAction() {
+  class DumpJfrAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
       getInstance().dumpJfrTo(File(PathManager.getLogPath()).toPath())
     }
   }
 
-  private fun dumpJfrTo(directory: Path): Path? = runBlocking(coroutineScope.coroutineContext) {
-    mutex.withLock { recordings.dumpJfrTo(directory) }
-  }
+  private fun dumpJfrTo(directory: Path): Path? =
+    runBlocking(coroutineScope.coroutineContext) { mutex.withLock { recordings.dumpJfrTo(directory) } }
 
   private fun createReportManagers() {
     JfrFreezeReports.createFreezeReportManager(this)
@@ -124,19 +117,27 @@ class RecordingManager : Disposable {
   }
 
   private fun setupActionEvents() {
-    ApplicationManager.getApplication().messageBus.connect(this).subscribe(AnActionListener.TOPIC, object : AnActionListener {
-      val jfrEventMap = IdentityHashMap<AnActionEvent, Action>()
-      override fun beforeActionPerformed(action: AnAction, event: AnActionEvent) {
-        jfrEventMap[event] = Action().apply {
-          actionId = ActionManager.getInstance().getId(action)
-          begin()
-        }
-      }
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect(this)
+      .subscribe(
+        AnActionListener.TOPIC,
+        object : AnActionListener {
+          val jfrEventMap = IdentityHashMap<AnActionEvent, Action>()
 
-      override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
-        jfrEventMap.remove(event)?.commit()
-      }
-    })
+          override fun beforeActionPerformed(action: AnAction, event: AnActionEvent) {
+            jfrEventMap[event] =
+              Action().apply {
+                actionId = ActionManager.getInstance().getId(action)
+                begin()
+              }
+          }
+
+          override fun afterActionPerformed(action: AnAction, event: AnActionEvent, result: AnActionResult) {
+            jfrEventMap.remove(event)?.commit()
+          }
+        },
+      )
   }
 
   private fun scheduleRecording() {
@@ -146,19 +147,13 @@ class RecordingManager : Disposable {
           // If we are canceled, we need to record one last time before shutdown.
           try {
             delay(JFR_RECORDING_DURATION)
-          }
-          finally {
-            withContext(NonCancellable) {
-              doRecording()
-            }
+          } finally {
+            withContext(NonCancellable) { doRecording() }
           }
         }
-      }
-      finally {
+      } finally {
         // One more time to get the last bit of data.
-        withContext(NonCancellable) {
-          doRecording()
-        }
+        withContext(NonCancellable) { doRecording() }
       }
     }
   }
@@ -176,14 +171,13 @@ class RecordingManager : Disposable {
             recording.close()
             readAndDispatchRecordingEventsLocked(recPath)
             Files.deleteIfExists(recPath)
-          }
-          catch (e: IOException) {
+          } catch (e: IOException) {
             logger.warn(e)
           }
         }
       }
       pendingCaptures.removeIf { it.completeAndGenerateReport(previousRecordingEnd, reportCallback) }
-      previousRecordingEnd = recordingEnd;
+      previousRecordingEnd = recordingEnd
     }
   }
 
@@ -198,7 +192,6 @@ class RecordingManager : Disposable {
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(): RecordingManager = service()
+    @JvmStatic fun getInstance(): RecordingManager = service()
   }
 }

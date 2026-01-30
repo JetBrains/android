@@ -29,30 +29,19 @@ class DeviceManagerConnectionTest {
 
   @Test
   fun createDevices() {
-    val deviceManager =
-      DeviceManager.createInstance(sdkManager.sdkHandler, NoErrorsOrWarningsLogger(), { true })
+    val deviceManager = DeviceManager.createInstance(sdkManager.sdkHandler, NoErrorsOrWarningsLogger(), { true })
     val deviceManagerConnection = DeviceManagerConnection(deviceManager)
-    val device =
-      Device.Builder(deviceManagerConnection.devices.first())
-        .apply { setName("TestDevice") }
-        .build()
+    val device = Device.Builder(deviceManagerConnection.devices.first()).apply { setName("TestDevice") }.build()
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(
-        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
-      )
-      .containsExactly("TestDevice")
+    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }).containsExactly("TestDevice")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(
-        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
-      )
+    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName })
       .containsExactly("TestDevice", "TestDevice_2")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(
-        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
-      )
+    assertThat(deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName })
       .containsExactly("TestDevice", "TestDevice_2", "TestDevice_3")
   }
 }

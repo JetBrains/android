@@ -38,14 +38,9 @@ private const val TIMESTAMP = "(?<timestamp>\\d+:\\d+:\\d+\\.\\d+)"
 private const val THREAD = "(?<thread>\\d+)"
 private const val LOCATION = "(?<location>[\\w-]+\\.[A-Za-z]+:\\d+)"
 
-/**
- * A process handler for an emulator process.
- */
-class EmulatorProcessHandler(
-  process: Process,
-  commandLine: String,
-  private val avd: AvdInfo
-) : BaseOSProcessHandler(process, commandLine, null) {
+/** A process handler for an emulator process. */
+class EmulatorProcessHandler(process: Process, commandLine: String, private val avd: AvdInfo) :
+  BaseOSProcessHandler(process, commandLine, null) {
 
   private val avdName = avd.displayName
   private val log = Logger.getInstance("Emulator: $avdName")
@@ -84,20 +79,19 @@ class EmulatorProcessHandler(
     ProcessTerminatedListener.attach(this)
   }
 
-  private fun notifyListeners(processHandle: ProcessHandle,
-                              avdFolder: Path,
-                              severity: EmulatorLogListener.Severity,
-                              notifyUser: Boolean,
-                              message: String) {
+  private fun notifyListeners(
+    processHandle: ProcessHandle,
+    avdFolder: Path,
+    severity: EmulatorLogListener.Severity,
+    notifyUser: Boolean,
+    message: String,
+  ) {
     try {
       messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(processHandle, avdFolder, severity, notifyUser, message)
-    }
-    catch (_: AlreadyDisposedException) {
-    }
+    } catch (_: AlreadyDisposedException) {}
   }
 
-  override fun readerOptions(): BaseOutputReader.Options =
-      BaseOutputReader.Options.forMostlySilentProcess()
+  override fun readerOptions(): BaseOutputReader.Options = BaseOutputReader.Options.forMostlySilentProcess()
 
   private inner class EmulatorProcessListener : ProcessListener {
 
@@ -132,16 +126,20 @@ class EmulatorProcessHandler(
         notifyUser = groups["notifyUser"] != null
         severity = mapSeverity(groups["severity"]!!.value)
         message = groups["message"]!!.value
-      }
-      else {
+      } else {
         groups = verboseMessagePattern.matchEntire(text)?.groups as MatchNamedGroupCollection?
         if (groups != null) {
           notifyUser = groups["notifyUser"] != null
           severity = mapSeverity(groups["severity"]!!.value)
-          message = groups["timestamp"]!!.value + ' ' + groups["thread"]!!.value + ' ' + groups["location"]!!.value + ' ' +
-                    groups["message"]!!.value
-        }
-        else {
+          message =
+            groups["timestamp"]!!.value +
+              ' ' +
+              groups["thread"]!!.value +
+              ' ' +
+              groups["location"]!!.value +
+              ' ' +
+              groups["message"]!!.value
+        } else {
           // Legacy unstructured message.
           notifyUser = false
           severity = EmulatorLogListener.Severity.INFO
@@ -154,7 +152,8 @@ class EmulatorProcessHandler(
         EmulatorLogListener.Severity.INFO -> log.info(message)
         // Emulator errors are logged as warning to prevent them from appearing in Studio crash reports.
         // Such crash reports would not be actionable due to insufficient information.
-        EmulatorLogListener.Severity.WARNING, EmulatorLogListener.Severity.ERROR -> log.warn(message)
+        EmulatorLogListener.Severity.WARNING,
+        EmulatorLogListener.Severity.ERROR -> log.warn(message)
         EmulatorLogListener.Severity.FATAL -> {
           log.warn(message)
           notify("Emulator: $avdName", message, NotificationType.ERROR)
@@ -165,9 +164,7 @@ class EmulatorProcessHandler(
 
     private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {
       val notificationGroup = if (runType == RunType.EMBEDDED) "Running Devices Messages" else "Device Manager Messages"
-      NotificationGroup.findRegisteredGroup(notificationGroup)
-        ?.createNotification(title, content, notificationType)
-        ?.notify(null)
+      NotificationGroup.findRegisteredGroup(notificationGroup)?.createNotification(title, content, notificationType)?.notify(null)
     }
   }
 }

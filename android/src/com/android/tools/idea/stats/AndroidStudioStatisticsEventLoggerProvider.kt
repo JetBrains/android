@@ -21,14 +21,14 @@ import com.intellij.internal.statistic.utils.StatisticsUploadAssistant
 import com.intellij.openapi.application.ApplicationManager
 
 @Suppress("UnstableApiUsage")
-class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider("FUS", 1, DEFAULT_SEND_FREQUENCY_MS, DEFAULT_MAX_FILE_SIZE_BYTES) {
+class AndroidStudioStatisticsEventLoggerProvider :
+  StatisticsEventLoggerProvider("FUS", 1, DEFAULT_SEND_FREQUENCY_MS, DEFAULT_MAX_FILE_SIZE_BYTES) {
   override val logger: StatisticsEventLogger by lazy { createLogger() }
 
   override fun isRecordEnabled(): Boolean {
     // This logic is needed to ensure we initialize the usage tracker and
     // IJ settings for data collection interaction properly.
-    return !ApplicationManager.getApplication().isHeadlessEnvironment &&
-           StatisticsUploadAssistant.isCollectAllowed()
+    return !ApplicationManager.getApplication().isHeadlessEnvironment && StatisticsUploadAssistant.isCollectAllowed()
   }
 
   override fun isSendEnabled(): Boolean {

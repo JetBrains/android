@@ -49,8 +49,7 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule).around(popupRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule).around(popupRule)!!
 
   @Test
   fun `gutter popup shows correct information`() =
@@ -63,14 +62,10 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
       val actionEvent = createTestActionEvent(gutterIconAction, mouseEvent)
       gutterIconAction.actionPerformed(actionEvent)
 
-      val fakeUi =
-        FakeUi((popupRule.fakePopupFactory.getPopup<Unit>(0) as FakeComponentPopup).contentPanel)
+      val fakeUi = FakeUi((popupRule.fakePopupFactory.getPopup<Unit>(0) as FakeComponentPopup).contentPanel)
       val list = fakeUi.findComponent<ListWithFilter<*>>()!!.list as JBList
       with(list.model) {
-        Truth.assertThat(size)
-          .isEqualTo(
-            insights.size + sortedGroupedInsights.size + maxOf(sortedGroupedInsights.size - 1, 0)
-          )
+        Truth.assertThat(size).isEqualTo(insights.size + sortedGroupedInsights.size + maxOf(sortedGroupedInsights.size - 1, 0))
         var checkedIndex = 0
         sortedGroupedInsights.forEach { (displayName, insights) ->
           if (checkedIndex != 0) {
@@ -86,8 +81,7 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
         }
       }
 
-      val bottomPanel =
-        fakeUi.findComponent<JPanel> { it.name == "bottom panel" } ?: fail("Bottom panel not found")
+      val bottomPanel = fakeUi.findComponent<JPanel> { it.name == "bottom panel" } ?: fail("Bottom panel not found")
       val selectAnIssuePanel = bottomPanel.components[0]
       Truth.assertThat(selectAnIssuePanel.toString()).isEqualTo("Select an issue to see details")
 
@@ -95,16 +89,10 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
         val countPanel = bottomPanel.components[1] as JPanel
         val eventsPanel = countPanel.components[0]
         Truth.assertThat(eventsPanel.toString())
-          .isEqualTo(
-            insights.sumOf { it.issue.issueDetails.eventsCount }.formatNumberToPrettyString()
-          )
+          .isEqualTo(insights.sumOf { it.issue.issueDetails.eventsCount }.formatNumberToPrettyString())
         val usersPanel = countPanel.components[1]
         Truth.assertThat(usersPanel.toString())
-          .isEqualTo(
-            insights
-              .sumOf { it.issue.issueDetails.impactedDevicesCount }
-              .formatNumberToPrettyString()
-          )
+          .isEqualTo(insights.sumOf { it.issue.issueDetails.impactedDevicesCount }.formatNumberToPrettyString())
       } else if (sortedGroupedInsights.size == 1) {
         Truth.assertThat(bottomPanel.componentCount).isEqualTo(1)
       }

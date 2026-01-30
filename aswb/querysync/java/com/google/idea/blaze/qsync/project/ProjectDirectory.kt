@@ -22,14 +22,11 @@ interface ProjectDirectory {
   val containsSources: Boolean
 }
 
-enum class QuerySyncProjectDirectory(
-  override val directoryName: String,
-  override val containsSources: Boolean
-) : ProjectDirectory {
+enum class QuerySyncProjectDirectory(override val directoryName: String, override val containsSources: Boolean) : ProjectDirectory {
   BAZEL_ARTIFACTS(".bazel", true),
   BAZEL_SYSTEM(".blaze", true),
   BUILD_CACHE(".buildcache", true),
-  EXTERNAL_REPOSITORIES(".external", true)
+  EXTERNAL_REPOSITORIES(".external", true),
 }
 
 interface ProjectDirectoryConfigurator {

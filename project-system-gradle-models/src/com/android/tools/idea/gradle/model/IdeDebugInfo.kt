@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * A model that includes all the debug information collected during build action execution.
- */
+/** A model that includes all the debug information collected during build action execution. */
 interface IdeDebugInfo {
-  /**
-   * A map of all ProjectImportModelProvider class name and the corresponding classpath
-   */
+  /** A map of all ProjectImportModelProvider class name and the corresponding classpath */
   val projectImportModelProviderClasspath: Map<String, String>
 }

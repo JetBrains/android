@@ -32,6 +32,5 @@ internal class DeviceIdParameterRule(override val name: String) : ParameterRule(
     return availableDevices.associateBy { it.id }.containsKey(value)
   }
 
-  override fun attemptFix(value: String, dataProvider: DataProvider): String? =
-    null // can't provide any fix
+  override fun attemptFix(value: String, dataProvider: DataProvider): String? = null // can't provide any fix
 }

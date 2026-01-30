@@ -25,26 +25,29 @@ import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 import javax.imageio.ImageIO
 
-/**
- * [ResourceImporter] that handles the importation of raster type images
- * (png, jpg, etc...)
- */
+/** [ResourceImporter] that handles the importation of raster type images (png, jpg, etc...) */
 class RasterResourceImporter : ResourceImporter {
-  private val iOsMapper = StaticStringMapper(mapOf(
-    "@4x" to DensityQualifier(Density.XXXHIGH),
-    "@3x" to DensityQualifier(Density.XXHIGH),
-    "@2x" to DensityQualifier(Density.XHIGH),
-    "@1x" to DensityQualifier(Density.MEDIUM)
-  ))
+  private val iOsMapper =
+    StaticStringMapper(
+      mapOf(
+        "@4x" to DensityQualifier(Density.XXXHIGH),
+        "@3x" to DensityQualifier(Density.XXHIGH),
+        "@2x" to DensityQualifier(Density.XHIGH),
+        "@1x" to DensityQualifier(Density.MEDIUM),
+      )
+    )
 
-  private val androidMapper = StaticStringMapper(mapOf(
-    "xxxhdpi" to DensityQualifier(Density.XXXHIGH),
-    "xxhdpi" to DensityQualifier(Density.XXHIGH),
-    "xhdpi" to DensityQualifier(Density.XHIGH),
-    "hdpi" to DensityQualifier(Density.HIGH),
-    "mdpi" to DensityQualifier(Density.MEDIUM),
-    "ldpi" to DensityQualifier(Density.LOW)
-  ))
+  private val androidMapper =
+    StaticStringMapper(
+      mapOf(
+        "xxxhdpi" to DensityQualifier(Density.XXXHIGH),
+        "xxhdpi" to DensityQualifier(Density.XXHIGH),
+        "xhdpi" to DensityQualifier(Density.XHIGH),
+        "hdpi" to DensityQualifier(Density.HIGH),
+        "mdpi" to DensityQualifier(Density.MEDIUM),
+        "ldpi" to DensityQualifier(Density.LOW),
+      )
+    )
 
   val matcher = QualifierMatcher(androidMapper, iOsMapper)
 

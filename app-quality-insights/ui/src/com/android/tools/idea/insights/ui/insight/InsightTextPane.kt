@@ -100,8 +100,7 @@ class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider
     (editorKit as? HTMLEditorKit)?.apply { styleSheet.addCodeBackgroundRule() }
   }
 
-  override fun performCopy(dataContext: DataContext) =
-    CopyPasteManager.copyTextToClipboard(selectedText ?: renderedText.trimIndent())
+  override fun performCopy(dataContext: DataContext) = CopyPasteManager.copyTextToClipboard(selectedText ?: renderedText.trimIndent())
 
   override fun isCopyEnabled(dataContext: DataContext) = renderedText.isNotBlank()
 

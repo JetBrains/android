@@ -57,17 +57,14 @@ class LayoutBindingSafeDeleteProcessorTest {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
-  /**
-   * Checks that calling find usages of a layout element will find the equivalent DataBinding
-   * classes.
-   */
+  /** Checks that calling find usages of a layout element will find the equivalent DataBinding classes. */
   @Test
   fun assertSafeDeletePreventsDeletingBindingLayoutFiles() {
     val activityWithUsagesFile =
@@ -75,13 +72,13 @@ class LayoutBindingSafeDeleteProcessorTest {
         "res/layout/activity_with_usages.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
-      </layout>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent" />
+        </layout>
+        """
           .trimIndent(),
       )
 
@@ -90,13 +87,13 @@ class LayoutBindingSafeDeleteProcessorTest {
         "res/layout/activity_without_usages.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
-      </layout>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent" />
+        </layout>
+        """
           .trimIndent(),
       )
 
@@ -105,11 +102,11 @@ class LayoutBindingSafeDeleteProcessorTest {
         "res/layout/activity_without_binding.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <LinearLayout
-          android:layout_width="fill_parent"
-          android:layout_height="fill_parent" />
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+        """
           .trimIndent(),
       )
 
@@ -118,11 +115,11 @@ class LayoutBindingSafeDeleteProcessorTest {
         "res/values/strings.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <resources>
-          <string name="hello">Hello World</string>
-      </resources>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <string name="hello">Hello World</string>
+        </resources>
+        """
           .trimIndent(),
       )
 
@@ -131,30 +128,27 @@ class LayoutBindingSafeDeleteProcessorTest {
         "src/java/test/db/WithUsagesActivity.java",
         // language=JAVA
         """
-      package test.db;
+        package test.db;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      import test.db.databinding.ActivityWithUsagesBinding;
+        import test.db.databinding.ActivityWithUsagesBinding;
 
-      public class WithUsagesActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              ActivityWithUsagesBinding binding = ActivityWithUsagesBinding.inflate(getLayoutInflater());
-              setContentView(binding.getRoot());
-          }
-      }
-    """
+        public class WithUsagesActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                ActivityWithUsagesBinding binding = ActivityWithUsagesBinding.inflate(getLayoutInflater());
+                setContentView(binding.getRoot());
+            }
+        }
+        """
           .trimIndent(),
       )
 
     // Make sure we take precedence over the regular android resource file SafeDeleteProcessor
-    val safeDeleteProcessor =
-      SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(
-        LayoutBindingSafeDeleteProcessor::class.java
-      )
+    val safeDeleteProcessor = SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(LayoutBindingSafeDeleteProcessor::class.java)
     assertThat(safeDeleteProcessor.handlesElement(activityWithUsagesFile)).isTrue()
     assertThat(safeDeleteProcessor.handlesElement(activityWithoutUsagesFile)).isTrue()
     assertThat(safeDeleteProcessor.handlesElement(activityWithoutBindingFile)).isFalse()
@@ -172,8 +166,8 @@ class LayoutBindingSafeDeleteProcessorTest {
 
     // But we can delete everything at once
     // Assertion ignored due to b/437036798 issue, causing test to fail with IntelliJ 2025.2
-    //SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithUsagesFile, classFile), true)
-    //assertThat(activityWithUsagesFile.virtualFile.exists()).isFalse()
+    // SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithUsagesFile, classFile), true)
+    // assertThat(activityWithUsagesFile.virtualFile.exists()).isFalse()
 
     // No issues deleting a binding layout without any usages
     SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithoutUsagesFile), true)
@@ -183,11 +177,7 @@ class LayoutBindingSafeDeleteProcessorTest {
     // to work
     assertThat(activityWithoutBindingFile.virtualFile.exists()).isTrue()
     assertThat(nonLayoutResourceFile.virtualFile.exists()).isTrue()
-    SafeDeleteHandler.invoke(
-      projectRule.project,
-      arrayOf(activityWithoutBindingFile, nonLayoutResourceFile),
-      true,
-    )
+    SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithoutBindingFile, nonLayoutResourceFile), true)
     assertThat(activityWithoutBindingFile.virtualFile.exists()).isFalse()
     assertThat(nonLayoutResourceFile.virtualFile.exists()).isFalse()
   }

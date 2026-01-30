@@ -31,8 +31,7 @@ import java.awt.event.MouseEvent
 import javax.swing.Icon
 
 /** A gear action that when clicked shows a popup containing [actions]. */
-class GearAction(vararg val actions: AnAction) :
-  DumbAwareAction("More Options", null, AllIcons.General.GearPlain) {
+class GearAction(vararg val actions: AnAction) : DumbAwareAction("More Options", null, AllIcons.General.GearPlain) {
   override fun actionPerformed(event: AnActionEvent) {
     var x = 0
     var y = 0
@@ -48,8 +47,7 @@ class GearAction(vararg val actions: AnAction) :
 private fun showGearPopup(component: Component, x: Int, y: Int, actions: List<AnAction>) {
   val group = DefaultActionGroup()
   actions.forEach { group.add(it) }
-  val popupMenu =
-    ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group)
+  val popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group)
   popupMenu.component.show(component, x, y)
 }
 
@@ -127,10 +125,7 @@ class SwapHorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConf
     updateUi,
   )
 
-/**
- * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
- * top
- */
+/** Split the UI to have both panels vertically stacked on the left of the device, tree panel at the top */
 class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("left.vertical"),
@@ -140,10 +135,7 @@ class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig
     updateUi,
   )
 
-/**
- * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
- * bottom.
- */
+/** Split the UI to have both panels vertically stacked on the left of the device, tree panel at the bottom. */
 class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("left.vertical.swap"),
@@ -153,10 +145,7 @@ class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiCo
     updateUi,
   )
 
-/**
- * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
- * top
- */
+/** Split the UI to have both panels vertically stacked on the right of the device, tree panel at the top */
 class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("right.vertical"),
@@ -166,10 +155,7 @@ class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfi
     updateUi,
   )
 
-/**
- * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
- * bottom.
- */
+/** Split the UI to have both panels vertically stacked on the right of the device, tree panel at the bottom. */
 class SwapRightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("right.vertical.swap"),

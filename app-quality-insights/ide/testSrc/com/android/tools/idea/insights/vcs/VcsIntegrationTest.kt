@@ -47,9 +47,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 class VcsIntegrationTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule =
-    AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `test git single repo project`() {
@@ -65,16 +63,13 @@ class VcsIntegrationTest {
           console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, buildAppVcsInfo(gitRepository))
 
           // Ensure our class file exists
-          val targetFile =
-            projectBaseDir.findFileByRelativePath(
-              "app/src/main/java/com/example/myapplication/MyActivity.java"
-            )!!
+          val targetFile = projectBaseDir.findFileByRelativePath("app/src/main/java/com/example/myapplication/MyActivity.java")!!
 
           // Prepare: print and apply filters
           console.printAndHighlight(
             """
-              java.lang.RuntimeException:
-                  com.example.myapplication.MyActivity.onCreate(MyActivity.java:14)
+            java.lang.RuntimeException:
+                com.example.myapplication.MyActivity.onCreate(MyActivity.java:14)
             """
               .trimIndent()
           )
@@ -100,8 +95,7 @@ class VcsIntegrationTest {
           val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
           val openedFile = fileEditorManager.openFiles.first()
           with(openedFile as InsightsDiffVirtualFile) {
-            val expectedContext =
-              buildContextDataForDiff(targetFile, lineNumber = 14, gitRepository)
+            val expectedContext = buildContextDataForDiff(targetFile, lineNumber = 14, gitRepository)
             assertThat(provider.insightsContext).isEqualTo(expectedContext)
           }
         } finally {
@@ -127,21 +121,11 @@ class VcsIntegrationTest {
 
   private fun buildAppVcsInfo(repo: GitRepository): AppVcsInfo {
     return AppVcsInfo.ValidInfo(
-      listOf(
-        RepoInfo(
-          vcsKey = VCS_CATEGORY.GIT,
-          rootPath = PROJECT_ROOT_PREFIX,
-          revision = repo.currentRevision.toString(),
-        )
-      )
+      listOf(RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = repo.currentRevision.toString()))
     )
   }
 
-  private fun buildContextDataForDiff(
-    targetFile: VirtualFile,
-    lineNumber: Int,
-    repo: GitRepository,
-  ): ContextDataForDiff {
+  private fun buildContextDataForDiff(targetFile: VirtualFile, lineNumber: Int, repo: GitRepository): ContextDataForDiff {
     return ContextDataForDiff(
       vcsKey = VCS_CATEGORY.GIT,
       revision = repo.currentRevision.toString(),

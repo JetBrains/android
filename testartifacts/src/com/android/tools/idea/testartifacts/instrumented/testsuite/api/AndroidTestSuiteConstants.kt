@@ -17,12 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.intellij.openapi.util.Key
 
-/**
- * A key to access to [AndroidTestResultListener] from [com.intellij.openapi.util.UserDataHolder].
- */
+/** A key to access to [AndroidTestResultListener] from [com.intellij.openapi.util.UserDataHolder]. */
 @JvmField
-val ANDROID_TEST_RESULT_LISTENER_KEY = Key<AndroidTestResultListener>(
-  "android.testartifacts.instrumented.testsuite.ANDROID_TEST_RESULT_LISTENER_KEY")
+val ANDROID_TEST_RESULT_LISTENER_KEY =
+  Key<AndroidTestResultListener>("android.testartifacts.instrumented.testsuite.ANDROID_TEST_RESULT_LISTENER_KEY")
 
 object ActionPlaces {
   const val ANDROID_TEST_SUITE_TABLE = "AndroidTestSuiteTable"

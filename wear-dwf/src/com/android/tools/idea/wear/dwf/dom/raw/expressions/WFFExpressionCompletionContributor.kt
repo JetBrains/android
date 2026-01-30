@@ -49,66 +49,41 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
 
   private val functionIdsProvider =
     object : CompletionProvider<CompletionParameters>() {
-      override fun addCompletions(
-        parameters: CompletionParameters,
-        context: ProcessingContext,
-        resultSet: CompletionResultSet,
-      ) {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion =
-          module?.let {
-            CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion
-          }
+        val wffVersion = module?.let { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
         val availableFunctions =
-          if (wffVersion == null) Functions.ALL
-          else Functions.ALL_AVAILABLE_FUNCTIONS_BY_VERSION.getValue(wffVersion)
+          if (wffVersion == null) Functions.ALL else Functions.ALL_AVAILABLE_FUNCTIONS_BY_VERSION.getValue(wffVersion)
 
         availableFunctions.forEach {
-          resultSet.addElement(
-            LookupElementBuilder.create(it.id)
-              .withPresentableText("${it.id}()")
-              .insertParenthesisAfterIfNeeded()
-          )
+          resultSet.addElement(LookupElementBuilder.create(it.id).withPresentableText("${it.id}()").insertParenthesisAfterIfNeeded())
         }
       }
     }
 
   private val dataSourcesProvider =
     object : CompletionProvider<CompletionParameters>() {
-      override fun addCompletions(
-        parameters: CompletionParameters,
-        context: ProcessingContext,
-        resultSet: CompletionResultSet,
-      ) {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
         val module = parameters.position.getModuleSystem()?.module
-        val wffVersion =
-          module?.let {
-            CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion
-          }
+        val wffVersion = module?.let { CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
 
         val availablePatternedDataSource =
-          if (wffVersion == null) DataSources.ALL_PATTERNS
-          else DataSources.ALL_AVAILABLE_PATTERNS_BY_VERSION.getValue(wffVersion)
+          if (wffVersion == null) DataSources.ALL_PATTERNS else DataSources.ALL_AVAILABLE_PATTERNS_BY_VERSION.getValue(wffVersion)
 
         val prefix = resultSet.prefixMatcher.prefix
-        val lookupElementsWithUserInput =
-          availablePatternedDataSource.getLookupElementsWithUserTokenInput(prefix)
+        val lookupElementsWithUserInput = availablePatternedDataSource.getLookupElementsWithUserTokenInput(prefix)
         if (lookupElementsWithUserInput != null) {
           resultSet.addAllElements(lookupElementsWithUserInput)
           return
         }
 
-        val availableStaticDataSources =
-          getAvailableStaticDataSources(wffVersion, parameters.position)
+        val availableStaticDataSources = getAvailableStaticDataSources(wffVersion, parameters.position)
 
-        resultSet.addAllElements(
-          availableStaticDataSources.map { createDataSourceLookupElement(it.id) }
-        )
+        resultSet.addAllElements(availableStaticDataSources.map { createDataSourceLookupElement(it.id) })
 
         resultSet.addAllElements(
           availablePatternedDataSource.map {
-            createDataSourceLookupElement(it.lookupString).withInsertHandler { context, lookupItem
-              ->
+            createDataSourceLookupElement(it.lookupString).withInsertHandler { context, lookupItem ->
               insertBracketsAroundIfNeeded(context, lookupItem)
               moveCursorToCursorTokenAndRemoveIt(context, lookupItem, it)
             }
@@ -120,28 +95,22 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
   /**
    * Returns all the static data sources for a given [WFFVersion] and [PsiElement].
    *
-   * If the version is not null, the list will only include static data sources that are available
-   * for that version.
+   * If the version is not null, the list will only include static data sources that are available for that version.
    *
-   * If the given [PsiElement] is located under a `<Complication>` tag, it will include any
-   * complication data sources that are compatible with that complication's type.
+   * If the given [PsiElement] is located under a `<Complication>` tag, it will include any complication data sources that are compatible
+   * with that complication's type.
    *
-   * @see <a
-   *   href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
    */
-  private fun getAvailableStaticDataSources(
-    wffVersion: WFFVersion?,
-    element: PsiElement,
-  ): List<StaticDataSource> {
+  private fun getAvailableStaticDataSources(wffVersion: WFFVersion?, element: PsiElement): List<StaticDataSource> {
     val allStaticDataSources =
-      if (wffVersion == null) DataSources.ALL_STATIC
-      else DataSources.ALL_AVAILABLE_STATIC_BY_VERSION.getValue(wffVersion)
+      if (wffVersion == null) DataSources.ALL_STATIC else DataSources.ALL_AVAILABLE_STATIC_BY_VERSION.getValue(wffVersion)
 
     val complicationParentTag = getParentComplicationTag(element)
     val complicationsForType =
-      DataSources.COMPLICATION_BY_TYPE[
-          complicationParentTag?.getAttribute(SdkConstants.ATTR_TYPE)?.value]
-        ?.filter { wffVersion == null || it.requiredVersion <= wffVersion }
+      DataSources.COMPLICATION_BY_TYPE[complicationParentTag?.getAttribute(SdkConstants.ATTR_TYPE)?.value]?.filter {
+        wffVersion == null || it.requiredVersion <= wffVersion
+      }
     if (complicationsForType == null) {
       return allStaticDataSources
     }
@@ -152,90 +121,57 @@ class WFFExpressionCompletionContributor : CompletionContributor() {
     extend(
       CompletionType.BASIC,
       and(
-        or(
-          psiElement().withAncestor(3, psiElement(LITERAL_EXPR)),
-          psiElement().withParent(psiElement(FUNCTION_ID)),
-        ),
+        or(psiElement().withAncestor(3, psiElement(LITERAL_EXPR)), psiElement().withParent(psiElement(FUNCTION_ID))),
         not(psiElement().afterLeaf(psiElement(OPEN_BRACKET))),
       ),
       functionIdsProvider,
     )
 
-    extend(
-      CompletionType.BASIC,
-      psiElement().withAncestor(3, psiElement(LITERAL_EXPR)),
-      dataSourcesProvider,
-    )
+    extend(CompletionType.BASIC, psiElement().withAncestor(3, psiElement(LITERAL_EXPR)), dataSourcesProvider)
   }
 
-  fun LookupElementBuilder.insertParenthesisAfterIfNeeded() =
-    withInsertHandler { context, lookupItem ->
-      val areParenthesisNeeded =
-        context.document.textLength < context.tailOffset + 1 ||
-          context.document.getText(TextRange(context.tailOffset, context.tailOffset + 1)) != "("
+  fun LookupElementBuilder.insertParenthesisAfterIfNeeded() = withInsertHandler { context, lookupItem ->
+    val areParenthesisNeeded =
+      context.document.textLength < context.tailOffset + 1 ||
+        context.document.getText(TextRange(context.tailOffset, context.tailOffset + 1)) != "("
 
-      if (areParenthesisNeeded) {
-        context.document.replaceString(
-          context.startOffset,
-          context.tailOffset,
-          "${lookupItem.lookupString}()",
-        )
-      }
-      // move the cursor to after the open parenthesis
-      val openParenthesisOffset =
-        if (areParenthesisNeeded) context.tailOffset - 1 else context.tailOffset + 1
-      context.editor.caretModel.moveToOffset(openParenthesisOffset)
+    if (areParenthesisNeeded) {
+      context.document.replaceString(context.startOffset, context.tailOffset, "${lookupItem.lookupString}()")
     }
+    // move the cursor to after the open parenthesis
+    val openParenthesisOffset = if (areParenthesisNeeded) context.tailOffset - 1 else context.tailOffset + 1
+    context.editor.caretModel.moveToOffset(openParenthesisOffset)
+  }
 
   /**
-   * Replaces patterned data sources with user's input for given tokens, if the user has specified a
-   * value for the token. The user's token input is found in the given [prefix]. If the user has not
-   * specified a token value, then return `null`.
+   * Replaces patterned data sources with user's input for given tokens, if the user has specified a value for the token. The user's token
+   * input is found in the given [prefix]. If the user has not specified a token value, then return `null`.
    *
-   * For example, if the prefix is `WEATHER.DAYS.5.`, the user's input will be `5` against, the
-   * pattern `WEATHER.DAYS.<days>`. The lookup elements will replace all `<days>` string in the
-   * lookup strings with `5`.
+   * For example, if the prefix is `WEATHER.DAYS.5.`, the user's input will be `5` against, the pattern `WEATHER.DAYS.<days>`. The lookup
+   * elements will replace all `<days>` string in the lookup strings with `5`.
    *
-   * If the prefix is `WEATHER.`, then the prefix will not match any patterns, so `null` will be
-   * returned.
+   * If the prefix is `WEATHER.`, then the prefix will not match any patterns, so `null` will be returned.
    */
-  private fun List<PatternedDataSource>.getLookupElementsWithUserTokenInput(
-    prefix: String
-  ): List<LookupElementBuilder>? {
-    val patternsToTokens =
-      mapOf(
-        DataSources.WEATHER_DAYS_PATTERN to DAYS_TOKEN,
-        DataSources.WEATHER_HOURS_PATTERN to HOURS_TOKEN,
-      )
+  private fun List<PatternedDataSource>.getLookupElementsWithUserTokenInput(prefix: String): List<LookupElementBuilder>? {
+    val patternsToTokens = mapOf(DataSources.WEATHER_DAYS_PATTERN to DAYS_TOKEN, DataSources.WEATHER_HOURS_PATTERN to HOURS_TOKEN)
 
     for ((pattern, token) in patternsToTokens) {
       val userTokenInput = pattern.find(prefix)?.groups?.get(1)
       if (userTokenInput == null) continue
-      return map {
-        createDataSourceLookupElement(it.lookupString.replace(token, userTokenInput.value))
-      }
+      return map { createDataSourceLookupElement(it.lookupString.replace(token, userTokenInput.value)) }
     }
     return null
   }
 
   /**
-   * Finds the [PatternedDataSource.lookupCursorToken] in the `lookupItem`, moves the cursor to that
-   * location and then removes the token.
+   * Finds the [PatternedDataSource.lookupCursorToken] in the `lookupItem`, moves the cursor to that location and then removes the token.
    */
-  private fun moveCursorToCursorTokenAndRemoveIt(
-    context: InsertionContext,
-    lookupItem: LookupElement,
-    dataSource: PatternedDataSource,
-  ) {
+  private fun moveCursorToCursorTokenAndRemoveIt(context: InsertionContext, lookupItem: LookupElement, dataSource: PatternedDataSource) {
     val tokenOffsetInLookupString = lookupItem.lookupString.indexOf(dataSource.lookupCursorToken)
     if (tokenOffsetInLookupString < 0) return
     val cursorOffset = context.startOffset + tokenOffsetInLookupString + 1
 
     context.editor.caretModel.moveToOffset(cursorOffset)
-    context.document.replaceString(
-      cursorOffset,
-      cursorOffset + dataSource.lookupCursorToken.length,
-      "",
-    )
+    context.document.replaceString(cursorOffset, cursorOffset + dataSource.lookupCursorToken.length, "")
   }
 }

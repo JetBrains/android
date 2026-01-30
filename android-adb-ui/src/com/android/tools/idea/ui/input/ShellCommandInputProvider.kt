@@ -21,25 +21,20 @@ import com.android.adblib.withTextCollector
 import com.android.tools.idea.adblib.AdbLibService
 import com.intellij.openapi.project.Project
 
-
-/**
- * Mostly just return `input [<source>] [-d DISPLAY_ID] <command> [<arg>...]`
- * but correcting some common mistakes by the LLM.
- */
+/** Mostly just return `input [<source>] [-d DISPLAY_ID] <command> [<arg>...]` but correcting some common mistakes by the LLM. */
 class ShellCommandInputProvider {
-  suspend fun input(project: Project, serialNumber: String,
-                    source: String, displayID: Int, command: String, args: List<String>): String {
+  suspend fun input(project: Project, serialNumber: String, source: String, displayID: Int, command: String, args: List<String>): String {
 
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     val adbLibService = AdbLibService.getInstance(project)
 
-    val shell = adbLibService.session.deviceServices
-      .shellCommand(deviceSelector, "input $source -d $displayID ${getCommandLine(command, args)}")
+    val shell =
+      adbLibService.session.deviceServices.shellCommand(deviceSelector, "input $source -d $displayID ${getCommandLine(command, args)}")
     val stdoutBuilder = StringBuilder()
     val stderrBuilder = StringBuilder()
     var exitCode = 0
 
-    shell.withTextCollector().execute().collect {value ->
+    shell.withTextCollector().execute().collect { value ->
       stdoutBuilder.append(value.stdout)
       stderrBuilder.append(value.stderr)
       exitCode = value.exitCode
@@ -53,13 +48,12 @@ class ShellCommandInputProvider {
   }
 }
 
-internal fun getCommandLine(command: String, args: List<String>) : String {
+internal fun getCommandLine(command: String, args: List<String>): String {
   return when (command) {
     "text" -> {
       if (args.size == 1) {
         val arg = args.single()
-        if ((arg.startsWith('\'') && arg.endsWith('\''))  ||
-            (arg.startsWith('"') && arg.endsWith('"')) ) {
+        if ((arg.startsWith('\'') && arg.endsWith('\'')) || (arg.startsWith('"') && arg.endsWith('"'))) {
           "text $arg"
         } else {
           "text ${arg.replace(" ", "%s")}"

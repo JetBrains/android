@@ -37,13 +37,9 @@ class TestProcessDiscovery : ProcessDiscovery {
 
   fun removeDevice(device: DeviceDescriptor) = devices.remove(device)
 
-  fun fireConnected(process: ProcessDescriptor) = fire { listener ->
-    listener.onProcessConnected(process)
-  }
+  fun fireConnected(process: ProcessDescriptor) = fire { listener -> listener.onProcessConnected(process) }
 
-  fun fireDisconnected(process: ProcessDescriptor) = fire { listener ->
-    listener.onProcessDisconnected(process)
-  }
+  fun fireDisconnected(process: ProcessDescriptor) = fire { listener -> listener.onProcessDisconnected(process) }
 
   private fun fire(block: (ProcessListener) -> Unit) {
     listeners.forEach { (listener, executor) -> executor.execute { block(listener) } }

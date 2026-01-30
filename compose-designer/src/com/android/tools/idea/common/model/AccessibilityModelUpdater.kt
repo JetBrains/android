@@ -30,11 +30,7 @@ import com.intellij.psi.xml.XmlTag
 /** Updates the [NlModel] for Compose Preview to match data coming following a render result. */
 class AccessibilityModelUpdater : NlModelUpdaterInterface {
   /** Updates the root component of the [NlModel]. */
-  override fun updateFromTagSnapshot(
-    model: NlModel,
-    newRoot: XmlTag?,
-    roots: List<TagSnapshotTreeNode>,
-  ) {
+  override fun updateFromTagSnapshot(model: NlModel, newRoot: XmlTag?, roots: List<TagSnapshotTreeNode>) {
     var currentRootComponent = model.treeReader.components.firstOrNull()
     if (newRoot != null) {
       val currentRoot = currentRootComponent?.let { runReadAction { it.tag } }
@@ -45,10 +41,7 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
     model.treeReader.setRootComponent(currentRootComponent)
   }
 
-  /**
-   * Creates the [NlComponent] hierarchy based on the [AccessibilityNodeInfo] coming from the
-   * [ViewInfo].
-   */
+  /** Creates the [NlComponent] hierarchy based on the [AccessibilityNodeInfo] coming from the [ViewInfo]. */
   override fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>) {
     val tagToViewInfo = mutableMapOf<XmlTag, ViewInfo>()
     viewInfos.forEach {
@@ -59,11 +52,7 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
       val tag = runReadAction { it.tag }
       val viewInfo = tagToViewInfo[tag]
       it.accessibilityId = viewInfo?.getAccessibilitySourceId() ?: return@forEach
-      val composeViewInfos =
-        parseViewInfo(
-          rootViewInfo = viewInfo,
-          logger = Logger.getInstance(AccessibilityModelUpdater::class.java),
-        )
+      val composeViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = Logger.getInstance(AccessibilityModelUpdater::class.java))
       createTree(it, composeViewInfos, viewInfo.children, model, viewInfo.left, viewInfo.top)
     }
   }
@@ -92,8 +81,7 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
         midPointX = minOf(midPointX, globalBounds.right)
         midPointY = minOf(midPointY, globalBounds.bottom)
       }
-      val navigatable =
-        findNavigatableComponentHit(model.module, composeViewInfos, midPointX, midPointY)
+      val navigatable = findNavigatableComponentHit(model.module, composeViewInfos, midPointX, midPointY)
       if (navigatable != null) {
         childComponent.setNavigatable(navigatable)
       }

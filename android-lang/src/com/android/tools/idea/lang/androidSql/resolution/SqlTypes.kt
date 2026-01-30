@@ -33,10 +33,7 @@ interface SqlType {
  */
 class JavaFieldSqlType(override val typeName: String) : SqlType
 
-/**
- * Type used by the special columns added by FTS (full-text search) extensions.
- */
+/** Type used by the special columns added by FTS (full-text search) extensions. */
 object FtsSqlType : SqlType {
   override val typeName = "(full-text search only)"
 }
-

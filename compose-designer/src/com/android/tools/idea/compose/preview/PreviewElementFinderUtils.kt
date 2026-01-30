@@ -66,8 +66,7 @@ import org.jetbrains.uast.UMethod
  */
 @RequiresReadLock
 fun UAnnotation.isPreviewAnnotation(includingMultiplatform: Boolean = true) =
-  (COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
-    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) ||
+  (COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") && COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) ||
     (includingMultiplatform && MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName)
 
 /**
@@ -75,59 +74,48 @@ fun UAnnotation.isPreviewAnnotation(includingMultiplatform: Boolean = true) =
  *
  * This method must be called under a read lock.
  */
-@RequiresReadLock
-private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewAnnotation() == true
+@RequiresReadLock private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewAnnotation() == true
 
 /**
- * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration
- * indirect annotations with MultiPreview.
+ * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration indirect annotations with MultiPreview.
  */
 @RequiresBackgroundThread
 internal fun UMethod?.hasPreviewElements(): Boolean =
   // TODO(b/381827960): avoid using runBlockingCancellable
   this?.let {
-    ProgressManager.getInstance().runProcess(Computable {
-      runBlockingCancellable { getPreviewElements(it).firstOrNull() }
-    }, EmptyProgressIndicator())
+    ProgressManager.getInstance()
+      .runProcess(Computable { runBlockingCancellable { getPreviewElements(it).firstOrNull() } }, EmptyProgressIndicator())
   } != null
 
 /**
- * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
- * annotation that is annotated with @Preview or with other MultiPreview.
+ * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an annotation that is annotated with @Preview or
+ * with other MultiPreview.
  */
 @RequiresReadLock
 @RequiresBackgroundThread
 fun UAnnotation?.isMultiPreviewAnnotation(): Boolean =
   this?.let {
     !it.isPreviewAnnotation() &&
-    // TODO(b/381827960): avoid using runBlockingCancellable
-    ProgressManager.getInstance().runProcess(Computable {
-      runBlockingCancellable { it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null }
-    }, EmptyProgressIndicator())
+      // TODO(b/381827960): avoid using runBlockingCancellable
+      ProgressManager.getInstance()
+        .runProcess(
+          Computable { runBlockingCancellable { it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null } },
+          EmptyProgressIndicator(),
+        )
   } == true
 
-/**
- * Given a Composable method, return a sequence of [ComposePreviewElement] corresponding to its
- * Preview annotations
- */
+/** Given a Composable method, return a sequence of [ComposePreviewElement] corresponding to its Preview annotations */
 private suspend fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = null) =
   getPreviewNodes(uMethod, overrideGroupName, false).mapNotNull { it as? ComposePreviewElement<*> }
 
 /**
- * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's
- * MultiPreview graph. Notes:
- * - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but
- *   specifically a [ComposePreviewElement].
- * - When [includeAllNodes] is true, the returned sequence will also include nodes corresponding to
- *   the MultiPreview annotations and the root composable [composableMethod]. These nodes, will be
- *   not just a [PreviewNode], but specifically a [MultiPreviewNode]
+ * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's MultiPreview graph. Notes:
+ * - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but specifically a [ComposePreviewElement].
+ * - When [includeAllNodes] is true, the returned sequence will also include nodes corresponding to the MultiPreview annotations and the
+ *   root composable [composableMethod]. These nodes, will be not just a [PreviewNode], but specifically a [MultiPreviewNode]
  */
 @Slow
-suspend fun getPreviewNodes(
-  composableMethod: UMethod,
-  overrideGroupName: String? = null,
-  includeAllNodes: Boolean,
-) =
+suspend fun getPreviewNodes(composableMethod: UMethod, overrideGroupName: String? = null, includeAllNodes: Boolean) =
   getPreviewNodes(
     composableMethod = composableMethod,
     overrideGroupName = overrideGroupName,
@@ -136,8 +124,7 @@ suspend fun getPreviewNodes(
   )
 
 /**
- * Given a root search [UElement], return a sequence of [PreviewNode] that are part of that
- * element's MultiPreview graph.
+ * Given a root search [UElement], return a sequence of [PreviewNode] that are part of that element's MultiPreview graph.
  *
  * @see getPreviewNodes
  */
@@ -158,22 +145,15 @@ private suspend fun getPreviewNodes(
         onTraversal =
           if (includeAllNodes)
             onTraversal@{ node ->
-              val annotationFqn =
-                readAction { (node.element as? UAnnotation)?.qualifiedName } ?: return@onTraversal
-              val multiPreviewNode =
-                node.toMultiPreviewNode(multiPreviewNodesByFqn, composableFqn) ?: return@onTraversal
+              val annotationFqn = readAction { (node.element as? UAnnotation)?.qualifiedName } ?: return@onTraversal
+              val multiPreviewNode = node.toMultiPreviewNode(multiPreviewNodesByFqn, composableFqn) ?: return@onTraversal
               multiPreviewNodesByFqn[annotationFqn] = multiPreviewNode
             }
           else null
       ) {
         readAction { it.isPreviewAnnotation() }
       }
-      .mapNotNull {
-        it.toPreviewElement(
-          composableMethod = composableMethod,
-          overrideGroupName = overrideGroupName,
-        )
-      }
+      .mapNotNull { it.toPreviewElement(composableMethod = composableMethod, overrideGroupName = overrideGroupName) }
       .collect { emit(it) }
 
     if (includeAllNodes) {
@@ -184,19 +164,15 @@ private suspend fun getPreviewNodes(
 }
 
 /**
- * Convenience method for returning a sequence of [PreviewNode]s for a given [UAnnotation]. This
- * method calls [getPreviewNodes] with the composable [UMethod] attached to the [UAnnotation]. If
- * the given [UAnnotation] is not attached to a composable method then an empty sequence will be
- * returned instead.
+ * Convenience method for returning a sequence of [PreviewNode]s for a given [UAnnotation]. This method calls [getPreviewNodes] with the
+ * composable [UMethod] attached to the [UAnnotation]. If the given [UAnnotation] is not attached to a composable method then an empty
+ * sequence will be returned instead.
  *
  * @see getPreviewNodes
  */
 @RequiresReadLock
 @Slow
-private suspend fun UAnnotation.getPreviewNodes(
-  overrideGroupName: String? = null,
-  includeAllNodes: Boolean,
-): Flow<PreviewNode> {
+private suspend fun UAnnotation.getPreviewNodes(overrideGroupName: String? = null, includeAllNodes: Boolean): Flow<PreviewNode> {
   val composableMethod = getContainingComposableUMethod() ?: return emptyFlow()
   return getPreviewNodes(
     composableMethod = composableMethod,
@@ -207,12 +183,11 @@ private suspend fun UAnnotation.getPreviewNodes(
 }
 
 /**
- * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating a
- * method, or if the method is not also annotated with @Composable
+ * Returns the Composable [UMethod] annotated by this annotation, or null if it is not annotating a method, or if the method is not also
+ * annotated with @Composable
  */
 @RequiresReadLock
-internal fun UAnnotation.getContainingComposableUMethod() =
-  this.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
+internal fun UAnnotation.getContainingComposableUMethod() = this.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
@@ -230,17 +205,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues, composableMethod)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod =
-    UastAnnotatedMethod(
-      composableMethod,
-      setOf(
-        COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN,
-        MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN,
-      ),
-    )
-  val nameHelper =
-    AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
-      readAction { isPreviewAnnotation() }
-    }
+    UastAnnotatedMethod(composableMethod, setOf(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN, MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
+  val nameHelper = AnnotationPreviewNameHelper.create(this, annotatedMethod.name) { readAction { isPreviewAnnotation() } }
   return smartReadAction(project = composableMethod.project) {
     previewAnnotationToPreviewElement(
       attributesProvider,
@@ -259,12 +225,10 @@ private val areAssertionsEnabled = MultiPreviewNodeImpl::class.java.desiredAsser
 /**
  * Converts a composable [UMethod] to a [MultiPreviewNodeImpl].
  *
- * @param multiPreviewNodesByFqn a hashmap storing [MultiPreviewNode]s for this [UMethod]'s
- *   previews. The keys are the FQNs of their elements.
+ * @param multiPreviewNodesByFqn a hashmap storing [MultiPreviewNode]s for this [UMethod]'s previews. The keys are the FQNs of their
+ *   elements.
  */
-private suspend fun UMethod.toMultiPreviewNode(
-  multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>
-): MultiPreviewNodeImpl {
+private suspend fun UMethod.toMultiPreviewNode(multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>): MultiPreviewNodeImpl {
   if (areAssertionsEnabled) {
     // This assertion is expensive as it runs a read action. We don't want to compute the value if
     // the assertions are not enabled.
@@ -273,26 +237,20 @@ private suspend fun UMethod.toMultiPreviewNode(
   val nonPreviewChildNodes = getUAnnotations().nonPreviewNodes(multiPreviewNodesByFqn)
 
   return MultiPreviewNodeImpl(
-    MultiPreviewNodeInfo(
-        ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-      )
-      .withChildNodes(
-        nonPreviewChildNodes,
-        directPreviewChildrenCount { readAction { isPreviewAnnotation() } },
-      )
+    MultiPreviewNodeInfo(ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE)
+      .withChildNodes(nonPreviewChildNodes, directPreviewChildrenCount { readAction { isPreviewAnnotation() } })
       .withDepthLevel(0)
       .withComposableFqn(readAction { qualifiedName })
   )
 }
 
 /**
- * Converts a [NodeInfo] to a [MultiPreviewNodeImpl] if [NodeInfo.element] is a MultiPreview
- * annotation. A MultiPreview annotation is an annotation that potentially has descendant preview
- * annotations and is **not** a preview annotation itself. This method returns null if
+ * Converts a [NodeInfo] to a [MultiPreviewNodeImpl] if [NodeInfo.element] is a MultiPreview annotation. A MultiPreview annotation is an
+ * annotation that potentially has descendant preview annotations and is **not** a preview annotation itself. This method returns null if
  * [NodeInfo.element] is a preview annotation. See [isPreviewAnnotation] for more information.
  *
- * @param multiPreviewNodesByFqn a hashmap storing [MultiPreviewNode]s for this [NodeInfo]'s
- *   children and siblings. The keys are the FQNs of their elements.
+ * @param multiPreviewNodesByFqn a hashmap storing [MultiPreviewNode]s for this [NodeInfo]'s children and siblings. The keys are the FQNs of
+ *   their elements.
  * @param composableFqn the FQN of the top composable method these previews are attached to
  */
 private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
@@ -301,32 +259,21 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
 ): MultiPreviewNodeImpl? {
   if (readAction { element.isPreviewAnnotation() }) return null
   val nonPreviewChildNodes =
-    subtreeInfo
-      ?.children
-      ?.mapNotNull { it.element as? UAnnotation }
-      ?.nonPreviewNodes(multiPreviewNodesByFqn) ?: emptyList()
+    subtreeInfo?.children?.mapNotNull { it.element as? UAnnotation }?.nonPreviewNodes(multiPreviewNodesByFqn) ?: emptyList()
 
   return MultiPreviewNodeImpl(
-    MultiPreviewNodeInfo(
-        ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-      )
-      .withChildNodes(
-        nonPreviewChildNodes,
-        element.directPreviewChildrenCount { readAction { isPreviewAnnotation() } },
-      )
+    MultiPreviewNodeInfo(ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE)
+      .withChildNodes(nonPreviewChildNodes, element.directPreviewChildrenCount { readAction { isPreviewAnnotation() } })
       .withDepthLevel(subtreeInfo?.depth ?: -1)
       .withComposableFqn(composableFqn)
   )
 }
 
 /**
- * Convenience method that returns all [MultiPreviewNodeInfo]s for all [UAnnotation]s in the given
- * list that are not preview annotations. The [MultiPreviewNodeInfo]s are retrieved using the
- * [multiPreviewNodesByFqn] parameter, using the [UAnnotation]'s FQNs as keys.
+ * Convenience method that returns all [MultiPreviewNodeInfo]s for all [UAnnotation]s in the given list that are not preview annotations.
+ * The [MultiPreviewNodeInfo]s are retrieved using the [multiPreviewNodesByFqn] parameter, using the [UAnnotation]'s FQNs as keys.
  */
-private suspend fun Collection<UAnnotation>.nonPreviewNodes(
-  multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>
-) =
+private suspend fun Collection<UAnnotation>.nonPreviewNodes(multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>) =
   filter { readAction { !it.isPreviewAnnotation() } }
     .mapNotNull { readAction { it.qualifiedName } }
     .map { multiPreviewNodesByFqn[it]?.nodeInfo }

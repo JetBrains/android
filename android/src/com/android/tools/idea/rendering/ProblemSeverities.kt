@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 @file:JvmName("ProblemSeverities")
+
 package com.android.tools.idea.rendering
 
 import com.android.tools.rendering.ProblemSeverity
 import com.intellij.lang.annotation.HighlightSeverity
 
-fun ProblemSeverity.toHighlightSeverity() = when(this) {
-  ProblemSeverity.ERROR -> HighlightSeverity.ERROR
-  ProblemSeverity.WARNING -> HighlightSeverity.WARNING
-}
+fun ProblemSeverity.toHighlightSeverity() =
+  when (this) {
+    ProblemSeverity.ERROR -> HighlightSeverity.ERROR
+    ProblemSeverity.WARNING -> HighlightSeverity.WARNING
+  }

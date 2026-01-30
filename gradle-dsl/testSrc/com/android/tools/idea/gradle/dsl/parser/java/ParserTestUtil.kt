@@ -28,6 +28,7 @@ private const val LIGHT_RED = 91
 private const val LIGHT_MAGENTA = 95
 private const val LIGHT_CYAN = 96
 private const val LIGHT_YELLOW = 93
+
 private fun color(code: Int): String {
   return "\u001B[${code}m"
 }
@@ -38,11 +39,16 @@ fun GradleDslElement.print() {
   println(builder.toString())
 }
 
-private val String.blue get() = if (isEmpty()) "" else color(LIGHT_BLUE) + this + color(RESET)
-private val String.red get() = if (isEmpty()) "" else color(LIGHT_RED) + this + color(RESET)
-private val String.magenta get() = if (isEmpty()) "" else color(LIGHT_MAGENTA) + this + color(RESET)
-private val String.cyan get() = if (isEmpty()) "" else color(LIGHT_CYAN) + this + color(RESET)
-private val String.yellow get() = if (isEmpty()) "" else color(LIGHT_YELLOW) + this + color(RESET)
+private val String.blue
+  get() = if (isEmpty()) "" else color(LIGHT_BLUE) + this + color(RESET)
+private val String.red
+  get() = if (isEmpty()) "" else color(LIGHT_RED) + this + color(RESET)
+private val String.magenta
+  get() = if (isEmpty()) "" else color(LIGHT_MAGENTA) + this + color(RESET)
+private val String.cyan
+  get() = if (isEmpty()) "" else color(LIGHT_CYAN) + this + color(RESET)
+private val String.yellow
+  get() = if (isEmpty()) "" else color(LIGHT_YELLOW) + this + color(RESET)
 
 private fun GradleDslElement.printElement(builder: StringBuilder, indent: Int) {
   when (this) {

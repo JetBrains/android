@@ -42,14 +42,10 @@ import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
-class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
-  ScreenViewProvider {
+class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) : ScreenViewProvider {
   override val displayName: String = "Compose"
 
-  override fun createPrimarySceneView(
-    surface: NlDesignSurface,
-    manager: LayoutlibSceneManager,
-  ): ScreenView =
+  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
     ScreenView.newBuilder(surface, manager)
       .withLayersProvider {
         ImmutableList.builder<Layer>()
@@ -71,8 +67,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true
                 setShowOnHoverFilter { sceneView ->
-                  (previewManager.mode.value.isNormal ||
-                    previewManager.mode.value is PreviewMode.UiCheck) &&
+                  (previewManager.mode.value.isNormal || previewManager.mode.value is PreviewMode.UiCheck) &&
                     sceneView.isRootComponentSelected()
                 }
               }
@@ -80,18 +75,12 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             add(
               UiCheckWarningLayer(it) {
                 previewManager.mode.value is PreviewMode.UiCheck &&
-                  ProblemsView.getToolWindow(surface.project)
-                    ?.contentManager
-                    ?.selectedContent
-                    ?.tabName == surface.visualLintIssueProvider.uiCheckInstanceId
+                  ProblemsView.getToolWindow(surface.project)?.contentManager?.selectedContent?.tabName ==
+                    surface.visualLintIssueProvider.uiCheckInstanceId
               }
             )
-            StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
-              add(ClassLoadingDebugLayer(surface.models.first().facet.module))
-            }
-            StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled {
-              add(DiagnosticsLayer(surface, surface.project))
-            }
+            StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled { add(ClassLoadingDebugLayer(surface.models.first().facet.module)) }
+            StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled { add(DiagnosticsLayer(surface, surface.project)) }
             StudioFlags.COMPOSE_PREVIEW_RESIZING.ifEnabled {
               add(
                 CanvasResizeLayer(it, surface::repaint) {
@@ -104,12 +93,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
           .build()
       }
       .withShapePolicy(
-        if (
-          manager.model.dataProvider
-            ?.getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-            ?.displaySettings
-            ?.showDecoration == true
-        )
+        if (manager.model.dataProvider?.getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.showDecoration == true)
           DEVICE_CONFIGURATION_SHAPE_POLICY
         else SQUARE_SHAPE_POLICY
       )

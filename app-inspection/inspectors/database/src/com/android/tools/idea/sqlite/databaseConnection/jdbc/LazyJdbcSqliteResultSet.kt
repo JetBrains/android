@@ -23,11 +23,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.sql.Connection
 import java.util.concurrent.Executor
 
-class LazyJdbcSqliteResultSet(
-  taskExecutor: Executor,
-  connection: Connection,
-  private val sqliteStatement: SqliteStatement,
-) : JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
+class LazyJdbcSqliteResultSet(taskExecutor: Executor, connection: Connection, private val sqliteStatement: SqliteStatement) :
+  JdbcSqliteResultSet(taskExecutor, connection, sqliteStatement) {
   override val totalRowCount: ListenableFuture<Int>
     get() =
       getRowCount(sqliteStatement) {

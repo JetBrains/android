@@ -40,27 +40,25 @@ import org.jetbrains.concurrency.catchError
  *
  * Actual execution for a configuration, after build, happens in [run] method.
  */
-abstract class AndroidConfigurationProgramRunner(
-  private val getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
-) : AsyncProgramRunner<RunnerSettings>() {
+abstract class AndroidConfigurationProgramRunner(private val getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?) :
+  AsyncProgramRunner<RunnerSettings>() {
   constructor() : this({ project, profile -> getAvailableAndroidTarget(project, profile) })
 
   companion object {
     private fun getAvailableAndroidTarget(project: Project, profile: RunConfiguration): AndroidExecutionTarget? {
-      return ExecutionTargetManager.getInstance(project).getTargetsFor(profile)
-        .filterIsInstance<AndroidExecutionTarget>()
-        .firstOrNull()
+      return ExecutionTargetManager.getInstance(project).getTargetsFor(profile).filterIsInstance<AndroidExecutionTarget>().firstOrNull()
     }
   }
 
   protected abstract fun canRunWithMultipleDevices(executorId: String): Boolean
+
   protected abstract val supportedConfigurationTypeIds: List<String>
 
   @kotlin.jvm.Throws(ExecutionException::class)
   protected abstract fun run(
     environment: ExecutionEnvironment,
     executor: AndroidConfigurationExecutor,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): RunContentDescriptor
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
@@ -100,52 +98,51 @@ abstract class AndroidConfigurationProgramRunner(
     promise.onSuccess { descriptor ->
       if (descriptor == null) {
         stats.abort()
-      }
-      else {
+      } else {
         stats.success()
       }
     }
 
-    promise.then {
-      stats.endLaunchTasks()
-    }
+    promise.then { stats.endLaunchTasks() }
 
     if (state !is AndroidConfigurationExecutor) {
       // For custom RunProfileState. See [DeployTarget.hasCustomRunProfileState]
       promise.catchError {
-        val executionResult = (state.execute(environment.executor, this@AndroidConfigurationProgramRunner)
-                               ?: throw ExecutionException("Can't execute state ${state::class}"))
+        val executionResult =
+          (state.execute(environment.executor, this@AndroidConfigurationProgramRunner)
+            ?: throw ExecutionException("Can't execute state ${state::class}"))
         promise.setResult(ExecutionUiService.getInstance().showRunContent(executionResult, environment))
       }
       return promise
     }
 
-    ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
-      override fun run(indicator: ProgressIndicator) {
-        try {
-          val runContentDescriptor = run(environment, state, indicator)
-          promise.setResult(runContentDescriptor)
-        }
-        catch (e: ExecutionException) {
-          promise.setError(e)
-        }
-        catch (t: Throwable) {
-          // We can throw Exception which are later ignored by Intellij (e.g.: TimeoutCancellationException). If that
-          // were to happen, we wrap them into something that will not be ignored (ExecutionException).
-          promise.setError(ExecutionException(t))
-        }
-      }
+    ProgressManager.getInstance()
+      .run(
+        object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
+          override fun run(indicator: ProgressIndicator) {
+            try {
+              val runContentDescriptor = run(environment, state, indicator)
+              promise.setResult(runContentDescriptor)
+            } catch (e: ExecutionException) {
+              promise.setError(e)
+            } catch (t: Throwable) {
+              // We can throw Exception which are later ignored by Intellij (e.g.: TimeoutCancellationException). If that
+              // were to happen, we wrap them into something that will not be ignored (ExecutionException).
+              promise.setError(ExecutionException(t))
+            }
+          }
 
-      override fun onCancel() {
-        promise.setResult(null)
-        super.onCancel()
-      }
+          override fun onCancel() {
+            promise.setResult(null)
+            super.onCancel()
+          }
 
-      override fun onThrowable(error: Throwable) {
-        promise.setError(error)
-        super.onThrowable(error)
-      }
-    })
+          override fun onThrowable(error: Throwable) {
+            promise.setError(error)
+            super.onThrowable(error)
+          }
+        }
+      )
 
     return promise
   }

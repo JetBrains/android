@@ -34,8 +34,7 @@ val Option.icon: Icon?
 fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl, followupSurvey: Survey? = null): DialogWrapper {
   return if (survey.answerCount > 1) {
     MultipleChoiceDialog(survey, choiceLogger, followupSurvey)
-  }
-  else {
+  } else {
     SingleChoiceDialog(survey, choiceLogger, followupSurvey)
   }
 }

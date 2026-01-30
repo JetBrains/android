@@ -54,9 +54,7 @@ class TerminateAppActionsTest {
       WaitForIndexRule(projectRule),
       editorRule,
       fakeAdbRule,
-      ProjectServiceRule(projectRule, AdbLibService::class.java) {
-        TestAdbLibService(fakeAdbRule.adbSession)
-      },
+      ProjectServiceRule(projectRule, AdbLibService::class.java) { TestAdbLibService(fakeAdbRule.adbSession) },
       EdtRule(),
     )
 
@@ -72,11 +70,9 @@ class TerminateAppActionsTest {
   private val adbSession
     get() = fakeAdbRule.adbSession
 
-  private val device30 =
-    Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device30 = Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
 
-  private val device25 =
-    Device.createPhysical("device", true, "10", AndroidVersion(25, 0), "Google", "Pixel")
+  private val device25 = Device.createPhysical("device", true, "10", AndroidVersion(25, 0), "Google", "Pixel")
 
   @Test
   fun forceStopAppAction_processExists_isEnabled(): Unit =
@@ -242,10 +238,7 @@ class TerminateAppActionsTest {
       assertThat(event.presentation.isVisible).isTrue()
     }
 
-  /**
-   * This runs with runBlockingWithTimeout instead of runTest because the action launches a
-   * coroutine in another scope
-   */
+  /** This runs with runBlockingWithTimeout instead of runTest because the action launches a coroutine in another scope */
   @Test
   fun forceStopAppAction_actionPerformed(): Unit =
     runBlockingWithTimeout(timeout = Duration.ofSeconds(5)) {
@@ -273,10 +266,7 @@ class TerminateAppActionsTest {
       waitForCondition { device.getClient(101) == null }
     }
 
-  /**
-   * This runs with runBlockingWithTimeout instead of runTest because the action launches a
-   * coroutine in another scope
-   */
+  /** This runs with runBlockingWithTimeout instead of runTest because the action launches a coroutine in another scope */
   @Test
   fun crashAppAction_actionPerformed(): Unit =
     runBlockingWithTimeout(timeout = Duration.ofSeconds(5)) {
@@ -293,25 +283,15 @@ class TerminateAppActionsTest {
 
   private fun createEvent(device: Device) =
     TestActionEvent.createTestEvent(
-      SimpleDataContext.builder()
-        .add(PROJECT, project)
-        .add(EDITOR, editor)
-        .add(CONNECTED_DEVICE, device)
-        .build()
+      SimpleDataContext.builder().add(PROJECT, project).add(EDITOR, editor).add(CONNECTED_DEVICE, device).build()
     )
 
   /** Connect a device and wait for AdbSession to see it */
   private suspend fun FakeAdbServerProvider.connectDevice(device: Device): DeviceState {
     val deviceState =
-      connectDevice(
-          device.serialNumber,
-          "manufacturer",
-          "model",
-          device.release,
-          device.apiLevel,
-          USB,
-        )
-        .also { it.deviceStatus = DeviceState.DeviceStatus.ONLINE }
+      connectDevice(device.serialNumber, "manufacturer", "model", device.release, device.apiLevel, USB).also {
+        it.deviceStatus = DeviceState.DeviceStatus.ONLINE
+      }
 
     val connectedDevice = adbSession.connectedDevicesTracker.waitForDevice(device.serialNumber)
     connectedDevice.waitUntilOnline()
@@ -319,11 +299,7 @@ class TerminateAppActionsTest {
   }
 
   /** Start a client and wait for AdbSession to see it */
-  private suspend fun DeviceState.startClient(
-    pid: Int,
-    processName: String = "processName",
-    packageName: String = "packageName",
-  ) {
+  private suspend fun DeviceState.startClient(pid: Int, processName: String = "processName", packageName: String = "packageName") {
     startClient(pid, 0, processName, packageName, false)
     val device =
       adbSession.connectedDevicesTracker.connectedDevices.value.find { it.serialNumber == deviceId }

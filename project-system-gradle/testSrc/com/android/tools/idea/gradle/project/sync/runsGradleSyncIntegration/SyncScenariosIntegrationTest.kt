@@ -43,7 +43,6 @@ import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.TruthJUnit.assume
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
@@ -59,19 +58,16 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
 import com.intellij.testFramework.RunsInEdt
-import org.gradle.util.GradleVersion
+import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.fail
 
 @RunsInEdt
 class SyncScenariosIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testPsdDependencyUpgradeLibraryModule() {
@@ -88,21 +84,18 @@ class SyncScenariosIntegrationTest {
     preparedProject.open { project ->
       val beforeLibUpgrade = project.dumpTestedModules()
       PsProjectImpl(project).let { projectModel ->
-        projectModel
-          .findModuleByGradlePath(":modulePlus")!!
-          .dependencies
-          .findLibraryDependencies("com.example.libs", "lib1")
-          .forEach { it.version = "1.0".asParsed() }
-        projectModel
-          .findModuleByGradlePath(":mainModule")!!
-          .dependencies
-          .findLibraryDependencies("com.example.libs", "lib1")
-          .forEach { it.version = "0.9.1".asParsed() }
+        projectModel.findModuleByGradlePath(":modulePlus")!!.dependencies.findLibraryDependencies("com.example.libs", "lib1").forEach {
+          it.version = "1.0".asParsed()
+        }
+        projectModel.findModuleByGradlePath(":mainModule")!!.dependencies.findLibraryDependencies("com.example.libs", "lib1").forEach {
+          it.version = "0.9.1".asParsed()
+        }
         projectModel
           .findModuleByGradlePath(":mainModule")!!
           .dependencies
           .findLibraryDependencies("com.example.jlib", "lib3")
-          .single().version = "0.9.1".asParsed()
+          .single()
+          .version = "0.9.1".asParsed()
         projectModel.applyChanges()
       }
       project.requestSyncAndWait()
@@ -113,19 +106,14 @@ class SyncScenariosIntegrationTest {
       }
 
       // Note: in fact the test downgrades the version in `:mainModule`.
-      expect.that(afterLibUpgrade.mainMain)
-        .isEqualTo(beforeLibUpgrade.mainMain.replaceVersions(from = "1\\.0", to = "0.9.1"))
-      expect.that(afterLibUpgrade.mainAndroidTest)
-        .isEqualTo(beforeLibUpgrade.mainAndroidTest.replaceVersions(from = "1\\.0", to = "0.9.1"))
+      expect.that(afterLibUpgrade.mainMain).isEqualTo(beforeLibUpgrade.mainMain.replaceVersions(from = "1\\.0", to = "0.9.1"))
+      expect.that(afterLibUpgrade.mainAndroidTest).isEqualTo(beforeLibUpgrade.mainAndroidTest.replaceVersions(from = "1\\.0", to = "0.9.1"))
 
-      expect.that(afterLibUpgrade.modulePlusMain)
-        .isEqualTo(beforeLibUpgrade.modulePlusMain.replaceVersions(from = "0\\.9\\.1", to = "1.0"))
+      expect.that(afterLibUpgrade.modulePlusMain).isEqualTo(beforeLibUpgrade.modulePlusMain.replaceVersions(from = "0\\.9\\.1", to = "1.0"))
     }
   }
 
-  /**
-   * Manually added Sources on Librarys should only be removed if Gradle does not provide any.
-   */
+  /** Manually added Sources on Librarys should only be removed if Gradle does not provide any. */
   @Test
   fun testAddedSourcesOnNoSourceLibraryArentRemoved() {
     // TODO(b/384022658): This is tricky to fix with phased sync right now, because the dependencies are not modeled as entities.
@@ -136,12 +124,15 @@ class SyncScenariosIntegrationTest {
     val libWithSources = "junit:junit:4.12"
 
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
-    buildFile.writeText(buildFile.readText() + """
+    buildFile.writeText(
+      buildFile.readText() +
+        """
       dependencies {
         implementation("$libWithNoSources")
         implementation("$libWithSources")
       }
-    """)
+    """
+    )
 
     preparedProject.open { project ->
       // Emulate adding source to the lib1 library.
@@ -150,7 +141,6 @@ class SyncScenariosIntegrationTest {
       var sourceLib = table.getLibraryByName("Gradle: $libWithSources")!!
       assertThat(noSourceLib.getUrls(OrderRootType.SOURCES)).isEmpty()
       assertThat(sourceLib.getUrls(OrderRootType.SOURCES)).isNotNull()
-
 
       val fakeSourceRoot = "/some/path/to/a/source/jar.jar"
       noSourceLib.modifiableModel.apply {
@@ -201,9 +191,7 @@ class SyncScenariosIntegrationTest {
         }
         projectModel.applyChanges()
       }
-      WriteAction.run<Throwable> {
-        project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
-      }
+      WriteAction.run<Throwable> { project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1") }
       ApplicationManager.getApplication().saveAll()
       project.requestSyncAndWait()
       expect.that(project.gradleModule(":nested1:deep")).isNull()
@@ -217,24 +205,29 @@ class SyncScenariosIntegrationTest {
   fun testUnsupportedAbisIgnored() {
     val preparedProject = projectRule.prepareTestProject(TestProject.BASIC_CMAKE_APP)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
-    buildFile.writeText(buildFile.readText() + """
-      
-      android {
-        defaultConfig {
-          ndk {
-            abiFilters 'invalidABIName'
+    buildFile.writeText(
+      buildFile.readText() +
+        """
+
+        android {
+          defaultConfig {
+            ndk {
+              abiFilters 'invalidABIName'
+            }
           }
         }
-      }
-    """.trimIndent())
+        """
+          .trimIndent()
+    )
 
     projectRule.openPreparedProject(
       "project",
       OpenPreparedProjectOptions(
         expectedSyncIssues = setOf(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION),
-        outputHandler = { },
-        syncExceptionHandler = { fail() }
-      )) { project ->
+        outputHandler = {},
+        syncExceptionHandler = { fail() },
+      ),
+    ) { project ->
       val abis = GradleAndroidModel.get(project.findAppModule())!!.supportedAbis
       assertThat(abis).containsExactly(Abi.X86)
     }
@@ -245,47 +238,56 @@ class SyncScenariosIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     /**
-     * With Gradle 9.0 this Groovy code needs to first create and later get by named().
-     *  org.gradle.api.InvalidUserDataException: Cannot add a SourceSet with name 'test1' as a SourceSet with that name already exists
-     * We also cannot use name 'test' as it collides with a name we're already using, resulting in:
-     *  Cannot add a configuration with name 'testImplementation' as a configuration with that name already exists
+     * With Gradle 9.0 this Groovy code needs to first create and later get by named(). org.gradle.api.InvalidUserDataException: Cannot add
+     * a SourceSet with name 'test1' as a SourceSet with that name already exists We also cannot use name 'test' as it collides with a name
+     * we're already using, resulting in: Cannot add a configuration with name 'testImplementation' as a configuration with that name
+     * already exists
      */
-    buildFile.writeText(buildFile.readText() + "\n\n" +
-      "sourceSets {\n" +
-      "    def k = create(\"test1\")\n" +
-      "    k.resources.srcDirs += 'src/test/resources'\n" +
-      "}\n"
+    buildFile.writeText(
+      buildFile.readText() +
+        "\n\n" +
+        "sourceSets {\n" +
+        "    def k = create(\"test1\")\n" +
+        "    k.resources.srcDirs += 'src/test/resources'\n" +
+        "}\n"
     )
 
     val received = mutableListOf<Notification>()
 
-    preparedProject.open(updateOptions = {
-      it.copy(
-        subscribe = { connection ->
-          connection.subscribe(Notifications.TOPIC, object : Notifications {
-            override fun notify(notification: Notification) {
-              received.add(notification)
-            }
+    preparedProject.open(
+      updateOptions = {
+        it.copy(
+          subscribe = { connection ->
+            connection.subscribe(
+              Notifications.TOPIC,
+              object : Notifications {
+                override fun notify(notification: Notification) {
+                  received.add(notification)
+                }
+              },
+            )
           }
-          )
-        }
-      )
-    })
-    { project ->
+        )
+      }
+    ) { project ->
       val modules = ModuleManager.getInstance(project).modules
       assertThat(modules).hasLength(5)
-      assertThat(modules.map(Module::getName).sorted()).containsExactly(
-        "project", "project.app", "project.app.androidTest", "project.app.main", "project.app.unitTest")
+      assertThat(modules.map(Module::getName).sorted())
+        .containsExactly("project", "project.app", "project.app.androidTest", "project.app.main", "project.app.unitTest")
       val unitTestModule = modules.first { it.name == "project.app.unitTest" }
       val roots = ModuleRootManager.getInstance(unitTestModule).contentRoots
-      assertThat(roots.map { it.url }).doesNotContain(
-        preparedProject.root.resolve("app/src/test/resources").toPath()
-          .toVirtualFileUrl(WorkspaceModel.getInstance(project).getVirtualFileUrlManager()).url)
+      assertThat(roots.map { it.url })
+        .doesNotContain(
+          preparedProject.root
+            .resolve("app/src/test/resources")
+            .toPath()
+            .toVirtualFileUrl(WorkspaceModel.getInstance(project).getVirtualFileUrlManager())
+            .url
+        )
       val notification = received.find { it.groupId == "Detected Gradle source sets" }
       assertThat(notification).isNotNull()
       assertThat(notification!!.title).isEqualTo("Non-Android source sets detected in 'app'")
       assertThat(notification.content).isEqualTo("Gradle source sets ignored: test1.")
-
     }
   }
 
@@ -295,14 +297,15 @@ class SyncScenariosIntegrationTest {
     preparedProject.open { project ->
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
       val beforeAndroidToJava = project.saveAndDump()
-      val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
-        val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
-        val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
-        val moduleCContent = moduleCFile.contentsToByteArray()
-        val jModuleMContent = jModuleMFile.contentsToByteArray()
-        moduleCFile.setBinaryContent(jModuleMContent)
-        moduleCContent
-      }
+      val oldModuleCContent =
+        WriteAction.compute<ByteArray, Throwable> {
+          val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
+          val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
+          val moduleCContent = moduleCFile.contentsToByteArray()
+          val jModuleMContent = jModuleMFile.contentsToByteArray()
+          moduleCFile.setBinaryContent(jModuleMContent)
+          moduleCContent
+        }
       ApplicationManager.getApplication().saveAll()
       project.requestSyncAndWait()
       WriteAction.run<Throwable> {
@@ -311,11 +314,7 @@ class SyncScenariosIntegrationTest {
       }
       ApplicationManager.getApplication().saveAll()
       val textAfterSecondChange = project.syncAndDumpProject()
-      assertThat(textAfterSecondChange).isEqualTo(
-        beforeAndroidToJava
-          .split("\n")
-          .joinToString("\n")
-      )
+      assertThat(textAfterSecondChange).isEqualTo(beforeAndroidToJava.split("\n").joinToString("\n"))
     }
   }
 
@@ -340,9 +339,7 @@ class SyncScenariosIntegrationTest {
     preparedProject.open { project ->
       AndroidGradleTests.syncProject(project, testRequest(SyncTestMode.TEST_EXCEPTION_HANDLING)) { syncListener ->
         if (syncListener.isSyncFinished) {
-          val syncIssues = ModuleManager.getInstance(project)
-            .modules
-            .flatMap { it.syncIssues() }
+          val syncIssues = ModuleManager.getInstance(project).modules.flatMap { it.syncIssues() }
           expect.that(syncIssues).hasSize(1)
           expect.that(syncIssues[0].message).contains("**internal error for tests**")
         }
@@ -354,8 +351,8 @@ class SyncScenariosIntegrationTest {
   fun `fatal errors are failing sync and not ignored`() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      val result = kotlin.runCatching { project.requestSyncAndWait(syncRequest = testRequest(
-        SyncTestMode.TEST_EXCEPTION_WITH_UNRESOLVED_MODULE)) }
+      val result =
+        kotlin.runCatching { project.requestSyncAndWait(syncRequest = testRequest(SyncTestMode.TEST_EXCEPTION_WITH_UNRESOLVED_MODULE)) }
       expect.that(result.exceptionOrNull()?.message).contains("**internal error for tests**")
     }
   }
@@ -366,11 +363,8 @@ class SyncScenariosIntegrationTest {
   }
 }
 
-private fun Project.dumpModule(moduleName: String, sourcesetModule: Module.() -> Module?) =
-      saveAndDump { project, dumper ->
-        project.gradleModule(moduleName)!!.sourcesetModule()?.also {
-          dumper.dump(it)
-        }
-      }
+private fun Project.dumpModule(moduleName: String, sourcesetModule: Module.() -> Module?) = saveAndDump { project, dumper ->
+  project.gradleModule(moduleName)!!.sourcesetModule()?.also { dumper.dump(it) }
+}
 
 private fun <T : Any> T.asParsed() = ParsedValue.Set.Parsed(this, DslText.Literal)

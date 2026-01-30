@@ -26,13 +26,11 @@ import kotlin.reflect.KClass
 
 class RoomNameElementTest : BasePlatformTestCase() {
 
-  /**
-   * Parses the given string and finds the first [PsiElement] of the requested class.
-   */
+  /** Parses the given string and finds the first [PsiElement] of the requested class. */
   private fun <T : PsiElement> parseAndFind(input: String, kclass: KClass<T>): T {
     return PsiTreeUtil.findChildOfType(
       PsiFileFactory.getInstance(project).createFileFromText("sample.rsql", AndroidSqlFileType.INSTANCE, input),
-      kclass.java
+      kclass.java,
     )!!
   }
 
@@ -47,4 +45,3 @@ class RoomNameElementTest : BasePlatformTestCase() {
     assertThat(parseAndFind("select * from `some``table`", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some`table")
   }
 }
-

@@ -20,8 +20,7 @@ import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_F
 import java.io.File
 import java.net.URL
 
-private const val METADATA_DOWNLOAD_URL =
-  "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
+private const val METADATA_DOWNLOAD_URL = "https://fonts.google.com/metadata/icons?key=material_symbols&incomplete=true"
 private const val EXISTING_METADATA_FILE_NAME = METADATA_FILE_NAME
 private const val DOWNLOADED_METADATA_FILE_NAME = "icons_metadata_temp.txt"
 

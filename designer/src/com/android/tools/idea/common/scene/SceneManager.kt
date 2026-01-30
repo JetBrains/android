@@ -49,51 +49,37 @@ private val NL_MODEL_CHANGE_TYPE =
  *
  * @param model the [NlModel] linked to this [SceneManager].
  * @param designSurface the [DesignSurface] where the model will be rendered.
- * @param sceneComponentProvider a [SceneComponentHierarchyProvider] that will generate the
- *   [SceneComponent]s from the given [NlComponent].
- * @param listenToResourceChanges if true, a change in resources will automatically trigger a
- *   re-render and will clear the caches.
- * @param notificationExecutorService the [ExecutorService] to be used for running the resource
- *   change notifications.
+ * @param sceneComponentProvider a [SceneComponentHierarchyProvider] that will generate the [SceneComponent]s from the given [NlComponent].
+ * @param listenToResourceChanges if true, a change in resources will automatically trigger a re-render and will clear the caches.
+ * @param notificationExecutorService the [ExecutorService] to be used for running the resource change notifications.
  */
 abstract class SceneManager(
   val model: NlModel,
   protected open val designSurface: DesignSurface<*>,
   private val sceneComponentProvider: SceneComponentHierarchyProvider,
   private val listenToResourceChanges: Boolean,
-  protected val notificationExecutorServiceProvider: (Disposable) -> ExecutorService =
-    ::defaultNotificationExecutorService,
+  protected val notificationExecutorServiceProvider: (Disposable) -> ExecutorService = ::defaultNotificationExecutorService,
 ) : Disposable {
-  /**
-   * [ResourceChangeListener] used to clean up the resources cache when a build happens or resources
-   * are modified.
-   */
-  protected class ResourceChangeListenerImpl(
-    val model: NlModel,
-    @VisibleForTesting val notificationExecutorService: ExecutorService,
-  ) : ResourceChangeListener {
+  /** [ResourceChangeListener] used to clean up the resources cache when a build happens or resources are modified. */
+  protected class ResourceChangeListenerImpl(val model: NlModel, @VisibleForTesting val notificationExecutorService: ExecutorService) :
+    ResourceChangeListener {
     val configuration = model.configuration
 
     override fun resourcesChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
       if (notificationExecutorService.isShutdown) {
-        Logger.getInstance(ResourceChangeListenerImpl::class.java)
-          .warn("Notification executor service is shut down")
+        Logger.getInstance(ResourceChangeListenerImpl::class.java).warn("Notification executor service is shut down")
         return
       }
       val shouldClearRenderCache =
         reason
           .map { NL_MODEL_CHANGE_TYPE.getOrDefault(it, ChangeType.BUILD) }
-          .any { changeType ->
-            changeType == ChangeType.BUILD || changeType == ChangeType.RESOURCE_CHANGED
-          }
+          .any { changeType -> changeType == ChangeType.BUILD || changeType == ChangeType.RESOURCE_CHANGED }
 
       if (shouldClearRenderCache) RenderUtils.clearCache(ImmutableList.of(model.configuration))
       notificationExecutorService.submit {
         if (model.isDisposed) return@submit
         // TODO(b/365124075): add support for using a set of reasons and not only the last one.
-        model.notifyModified(
-          NL_MODEL_CHANGE_TYPE.getOrDefault(reason.lastOrNull() ?: return@submit, ChangeType.BUILD)
-        )
+        model.notifyModified(NL_MODEL_CHANGE_TYPE.getOrDefault(reason.lastOrNull() ?: return@submit, ChangeType.BUILD))
       }
     }
   }
@@ -103,8 +89,7 @@ abstract class SceneManager(
   val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val isActive = AtomicBoolean(false)
-  protected val resourceChangeListener =
-    ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
+  protected val resourceChangeListener = ResourceChangeListenerImpl(model, notificationExecutorServiceProvider(this))
 
   // This will be initialized when constructor calls updateSceneView().
   protected var sceneView: SceneView? = null
@@ -120,14 +105,12 @@ abstract class SceneManager(
       field = value
     }
 
-  /**
-   * Update the [SceneView]s of this [SceneManager]. The [SceneView]s will be recreated if needed.
-   */
+  /** Update the [SceneView]s of this [SceneManager]. The [SceneView]s will be recreated if needed. */
   abstract fun updateSceneViews()
 
   /**
-   * A list of not null scene views. The first element is always the primary scene view, and the
-   * second element, if present, will be the secondary scene view.
+   * A list of not null scene views. The first element is always the primary scene view, and the second element, if present, will be the
+   * secondary scene view.
    */
   val sceneViews: List<SceneView>
     get() {
@@ -138,15 +121,13 @@ abstract class SceneManager(
     }
 
   /**
-   * In the layout editor, Scene uses [AndroidDpCoordinate]s whereas rendering is done in (zoomed
-   * and offset) [AndroidCoordinate]s. The scaling factor between them is the ratio of the screen
-   * density to the standard density (160).
+   * In the layout editor, Scene uses [AndroidDpCoordinate]s whereas rendering is done in (zoomed and offset) [AndroidCoordinate]s. The
+   * scaling factor between them is the ratio of the screen density to the standard density (160).
    */
   abstract val sceneScalingFactor: Float
 
   /**
-   * Returns the actual android.view.View (or child class) object. This can be used to query the
-   * object properties that are not in the XML.
+   * Returns the actual android.view.View (or child class) object. This can be used to query the object properties that are not in the XML.
    */
   val viewObject: Any?
     get() = root?.viewInfo?.viewObject
@@ -169,8 +150,8 @@ abstract class SceneManager(
   }
 
   /**
-   * Update the [Scene] with the components in the current [NlModel]. This method needs to be called
-   * in the dispatch thread. This includes marking the display list as dirty.
+   * Update the [Scene] with the components in the current [NlModel]. This method needs to be called in the dispatch thread. This includes
+   * marking the display list as dirty.
    */
   open fun update() {
     val components: List<NlComponent> = model.treeReader.components
@@ -202,16 +183,11 @@ abstract class SceneManager(
           val minY = hierarchy.minOf { it.drawY }
           val maxX = hierarchy.maxOf { it.drawX + it.drawWidth }
           val maxY = hierarchy.maxOf { it.drawY + it.drawHeight }
-          SceneComponent(
-              scene,
-              modelRootComponent,
-              scene.sceneManager.getHitProvider(modelRootComponent),
-            )
-            .apply {
-              hierarchy.forEach { addChild(it) }
-              setPosition(minX, minY)
-              setSize(maxX - minX, maxY - minY)
-            }
+          SceneComponent(scene, modelRootComponent, scene.sceneManager.getHitProvider(modelRootComponent)).apply {
+            hierarchy.forEach { addChild(it) }
+            setPosition(minX, minY)
+            setSize(maxX - minX, maxY - minY)
+          }
         }
       }
     scene.root = rootSceneComponent
@@ -234,13 +210,9 @@ abstract class SceneManager(
    * Update the SceneComponent paired to the given [NlComponent] and its children.
    *
    * @param component the root SceneComponent to update
-   * @param seenComponents Collector of components that were seen during [NlComponent] tree
-   *   traversal.
+   * @param seenComponents Collector of components that were seen during [NlComponent] tree traversal.
    */
-  protected fun updateFromComponent(
-    component: SceneComponent,
-    seenComponents: MutableSet<SceneComponent>,
-  ) {
+  protected fun updateFromComponent(component: SceneComponent, seenComponents: MutableSet<SceneComponent>) {
     seenComponents.add(component)
     sceneComponentProvider.syncFromNlComponent(component)
     component.children.forEach { updateFromComponent(it, seenComponents) }
@@ -249,15 +221,14 @@ abstract class SceneManager(
   /**
    * Request a new render of the model and wait for the new render to finish.
    *
-   * It shouldn't be used when it is not relevant for the caller to wait for the render to finish,
-   * in those cases [requestRender] should be used instead.
+   * It shouldn't be used when it is not relevant for the caller to wait for the render to finish, in those cases [requestRender] should be
+   * used instead.
    */
   abstract suspend fun requestRenderAndWait()
 
   /**
-   * Request a new render of the model. This request may not be processed immediately, but it could
-   * be scheduled for later instead. It is responsibility of the subclasses to define the exact
-   * behaviour of this method.
+   * Request a new render of the model. This request may not be processed immediately, but it could be scheduled for later instead. It is
+   * responsibility of the subclasses to define the exact behaviour of this method.
    *
    * See also [requestRenderAndWait].
    */
@@ -287,8 +258,8 @@ abstract class SceneManager(
     }
 
   /**
-   * Notify this [SceneManager] that it's not active. This means it can stop watching for events
-   * etc. It may be activated again in the future.
+   * Notify this [SceneManager] that it's not active. This means it can stop watching for events etc. It may be activated again in the
+   * future.
    *
    * @returns true if the [SceneManager] was active before and was deactivated.
    */
@@ -296,12 +267,7 @@ abstract class SceneManager(
     isActive.getAndSet(false).also { isDeactivating ->
       if (isDeactivating && listenToResourceChanges) {
         ResourceNotificationManager.getInstance(model.project)
-          .removeListener(
-            resourceChangeListener,
-            model.facet,
-            model.virtualFile,
-            model.configuration,
-          )
+          .removeListener(resourceChangeListener, model.facet, model.virtualFile, model.configuration)
         // Assert that the configuration has not changed.
         // The configuration is mutable in the NlModel to allow for model re-use in Compose.
         // Compose does not listen to resource changes so this should never happen. If it happens

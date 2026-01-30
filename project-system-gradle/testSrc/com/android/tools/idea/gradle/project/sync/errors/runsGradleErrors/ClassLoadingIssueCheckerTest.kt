@@ -33,7 +33,7 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
   fun testCheckIssueWhenMethodNotFound() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
-    preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply( "new org.example.LibClass().method();")
+    preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply("new org.example.LibClass().method();")
 
     /*
     Additional setup required to trigger `java.lang.NoSuchMethodError`.
@@ -46,43 +46,61 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       buildSrc.resolve("lib1/src/main/java/org/example/").mkdirs()
       buildSrc.resolve("lib2/src/main/java/org/example/").mkdirs()
       buildSrc.resolve("lib1/build.gradle").writeText("apply plugin: 'java'")
-      buildSrc.resolve("lib1/src/main/java/org/example/LibClass.java").writeText("""
-        package org.example;
+      buildSrc
+        .resolve("lib1/src/main/java/org/example/LibClass.java")
+        .writeText(
+          """
+          package org.example;
 
-        public class LibClass {
-            public void method() {
-              System.out.println("Hello from buildSrc LibClass!");
-            }
-        }
-      """.trimIndent())
+          public class LibClass {
+              public void method() {
+                System.out.println("Hello from buildSrc LibClass!");
+              }
+          }
+          """
+            .trimIndent()
+        )
 
       buildSrc.resolve("lib2/build.gradle").writeText("apply plugin: 'java'")
-      buildSrc.resolve("lib2/src/main/java/org/example/LibClass.java").writeText("""
-        package org.example;
+      buildSrc
+        .resolve("lib2/src/main/java/org/example/LibClass.java")
+        .writeText(
+          """
+          package org.example;
 
-        public class LibClass {}
-      """.trimIndent())
+          public class LibClass {}
+          """
+            .trimIndent()
+        )
       buildSrc.resolve(SdkConstants.FN_SETTINGS_GRADLE).writeText("include ':lib1', ':lib2'")
-      buildSrc.resolve(SdkConstants.FN_BUILD_GRADLE).appendText("""
-        // Line needed to ensure line break
-        dependencies {
-            compileOnly project(':lib1')
-            runtimeOnly project(':lib2')
-        }
-      """.trimIndent())
+      buildSrc
+        .resolve(SdkConstants.FN_BUILD_GRADLE)
+        .appendText(
+          """
+          // Line needed to ensure line break
+          dependencies {
+              compileOnly project(':lib1')
+              runtimeOnly project(':lib2')
+          }
+          """
+            .trimIndent()
+        )
     }
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
       verifyBuildIssue = ::verifyBuildIssue,
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND,
-      expectedPhasesReported = """
+      expectedPhasesReported =
+        """
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent(),
-      expectedFailureDetailsString = """
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -95,28 +113,33 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
               at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
-  //TODO(b/292231180): also add a separate test for 'cannot cast' in groovy code, it produces a different error and is not caught by any checker.
+  // TODO(b/292231180): also add a separate test for 'cannot cast' in groovy code, it produces a different error and is not caught by any
+  // checker.
   @Test
   fun testCheckIssueWhenClassCannotBeCast() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
-    preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply( "Date a = (Date) (Object)\"123\";")
+    preparedProject.setUpCustomPluginInBuildSrcWithCodeInApply("Date a = (Date) (Object)\"123\";")
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
       verifyBuildIssue = ::verifyBuildIssue,
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO,
-      expectedPhasesReported = """
+      expectedPhasesReported =
+        """
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent(),
-      expectedFailureDetailsString = """
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -131,7 +154,8 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
               at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -147,13 +171,16 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
       preparedProject = preparedProject,
       verifyBuildIssue = ::verifyBuildIssue,
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND,
-      expectedPhasesReported = """
+      expectedPhasesReported =
+        """
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent(),
-      expectedFailureDetailsString = """
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -170,7 +197,8 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
               at: [0]org.gradle.internal.classloader.VisitableURLClassLoader${'$'}InstrumentingVisitableURLClassLoader#findClass
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -178,7 +206,8 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
     val message = buildIssue.description
     expect.that(message).contains("Gradle's dependency cache may be corrupt")
     expect.that(message).contains("Re-download dependencies and sync project")
-    expect.that(message)
+    expect
+      .that(message)
       .contains("In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
 
     val restartCapable = ApplicationManager.getApplication().isRestartCapable
@@ -196,26 +225,34 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
     root.resolve("buildSrc").let { buildSrc ->
       buildSrc.mkdir()
       buildSrc.resolve(SdkConstants.FN_SETTINGS_GRADLE).writeText("")
-      buildSrc.resolve(SdkConstants.FN_BUILD_GRADLE).writeText("""
-        plugins {
-            id 'java-gradle-plugin'
-        }
+      buildSrc
+        .resolve(SdkConstants.FN_BUILD_GRADLE)
+        .writeText(
+          """
+          plugins {
+              id 'java-gradle-plugin'
+          }
 
-        repositories {
-            mavenCentral()
-        }
+          repositories {
+              mavenCentral()
+          }
 
-        gradlePlugin {
-            plugins {
-                simplePlugin {
-                    id = 'org.example.testPlugin'
-                    implementationClass = 'org.example.TestPlugin'
-                }
-            }
-        }
-      """.trimIndent())
+          gradlePlugin {
+              plugins {
+                  simplePlugin {
+                      id = 'org.example.testPlugin'
+                      implementationClass = 'org.example.TestPlugin'
+                  }
+              }
+          }
+          """
+            .trimIndent()
+        )
       buildSrc.resolve("src/main/java/org/example").mkdirs()
-      buildSrc.resolve("src/main/java/org/example/TestPlugin.java").writeText("""
+      buildSrc
+        .resolve("src/main/java/org/example/TestPlugin.java")
+        .writeText(
+          """
         package org.example;
 
         import java.util.Date;
@@ -228,7 +265,9 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
           }
 
         }
-      """.trimIndent())
+      """
+            .trimIndent()
+        )
     }
 
     val buildFile = root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)

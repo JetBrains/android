@@ -52,21 +52,11 @@ class GoogleAuthServiceTest {
   private val disposableRule = DisposableRule()
   private val loginUsersRule = LoginUsersRule()
 
-  @get:Rule
-  val rules: RuleChain =
-    RuleChain.outerRule(applicationRule)
-      .around(flagRule)
-      .around(disposableRule)
-      .around(loginUsersRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule).around(loginUsersRule)
 
   @Before
   fun setUp() {
-    ExtensionTestUtil.maskExtensions(
-      LoginFeature.EP_NAME,
-      listOf(feature, USER_INFO),
-      disposableRule.disposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(LoginFeature.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
   }
 
   @Test
@@ -83,13 +73,7 @@ class GoogleAuthServiceTest {
     // Verify
     assertThat(users)
       .containsExactly(
-        SettingsSyncUserData(
-          id = TEST_EMAIL,
-          providerCode = PROVIDER_CODE_GOOGLE,
-          name = null,
-          email = TEST_EMAIL,
-          printableName = null,
-        )
+        SettingsSyncUserData(id = TEST_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = TEST_EMAIL, printableName = null)
       )
   }
 
@@ -107,13 +91,7 @@ class GoogleAuthServiceTest {
     // Verify
     assertThat(users)
       .containsExactly(
-        SettingsSyncUserData(
-          id = TEST_EMAIL,
-          providerCode = PROVIDER_CODE_GOOGLE,
-          name = null,
-          email = TEST_EMAIL,
-          printableName = null,
-        )
+        SettingsSyncUserData(id = TEST_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = TEST_EMAIL, printableName = null)
       )
   }
 
@@ -130,13 +108,7 @@ class GoogleAuthServiceTest {
     // Verify
     assertThat(users)
       .containsExactly(
-        SettingsSyncUserData(
-          id = TEST_EMAIL,
-          providerCode = PROVIDER_CODE_GOOGLE,
-          name = null,
-          email = TEST_EMAIL,
-          printableName = null,
-        )
+        SettingsSyncUserData(id = TEST_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = TEST_EMAIL, printableName = null)
       )
   }
 
@@ -154,13 +126,7 @@ class GoogleAuthServiceTest {
     // Verify
     assertThat(users)
       .containsExactly(
-        SettingsSyncUserData(
-          id = TEST_EMAIL,
-          providerCode = PROVIDER_CODE_GOOGLE,
-          name = null,
-          email = TEST_EMAIL,
-          printableName = null,
-        )
+        SettingsSyncUserData(id = TEST_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = TEST_EMAIL, printableName = null)
       )
   }
 
@@ -185,13 +151,7 @@ class GoogleAuthServiceTest {
           email = "foo@bar.com",
           printableName = null,
         ),
-        SettingsSyncUserData(
-          id = TEST_EMAIL,
-          providerCode = PROVIDER_CODE_GOOGLE,
-          name = null,
-          email = TEST_EMAIL,
-          printableName = null,
-        ),
+        SettingsSyncUserData(id = TEST_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = TEST_EMAIL, printableName = null),
       )
   }
 
@@ -226,12 +186,7 @@ class GoogleAuthServiceTest {
   @Test
   fun `wizard doesnt show on login`() = runTest {
     val wizardProvider: BackupAndSyncWizardProvider = mock()
-    ApplicationManager.getApplication()
-      .replaceService(
-        BackupAndSyncWizardProvider::class.java,
-        wizardProvider,
-        disposableRule.disposable,
-      )
+    ApplicationManager.getApplication().replaceService(BackupAndSyncWizardProvider::class.java, wizardProvider, disposableRule.disposable)
     GoogleAuthService().login(null)
     withContext(Dispatchers.Main) { executeSomeCoroutineTasksAndDispatchAllInvocationEvents() }
     verifyNoInteractions(wizardProvider)

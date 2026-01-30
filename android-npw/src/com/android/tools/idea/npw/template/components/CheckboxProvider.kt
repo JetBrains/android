@@ -21,10 +21,9 @@ import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.Parameter
 import javax.swing.JCheckBox
 
-/**
- * Provides a checkbox well suited for handling [BooleanParameter].
- */
+/** Provides a checkbox well suited for handling [BooleanParameter]. */
 class CheckboxProvider(parameter: BooleanParameter) : ParameterComponentProvider<JCheckBox>(parameter) {
   override fun createComponent(parameter: Parameter<*>): JCheckBox = JCheckBox(parameter.name)
+
   override fun createProperty(component: JCheckBox): AbstractProperty<*>? = SelectedProperty(component)
 }

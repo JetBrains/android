@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [SyncIssueUsageReporter]
- */
+/** Tests for [SyncIssueUsageReporter] */
 class SyncIssueUsageReporterTest {
   @Test
   fun testAllSyncIssueTypesHaveGradleSyncIssueType() {
@@ -35,9 +33,7 @@ class SyncIssueUsageReporterTest {
     }
   }
 
-  /**
-   * Test that SyncIssues and IdeSyncIssues match.
-   */
+  /** Test that SyncIssues and IdeSyncIssues match. */
   @Test
   fun testSyncIssuesMatchIdeSyncIssues() {
     val syncIssues =

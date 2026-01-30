@@ -65,14 +65,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorMainToolbarTest {
   private val androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule =
-    AppInspectionInspectorRule(androidProjectRule, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(androidProjectRule, withDefaultResponse = false)
   private val layoutInspectorRule =
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
@@ -81,11 +79,7 @@ class LayoutInspectorMainToolbarTest {
     )
 
   @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(androidProjectRule)
-      .around(appInspectorRule)
-      .around(layoutInspectorRule)
-      .around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(androidProjectRule).around(appInspectorRule).around(layoutInspectorRule).around(EdtRule())
 
   @Before
   fun setUp() {
@@ -308,17 +302,13 @@ class LayoutInspectorMainToolbarTest {
   @Test
   fun testDeviceSelectionToolbarIsImportant() {
     val toolbar = createStandaloneToolbar()
-    val isImportant =
-      toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean
-        ?: false
+    val isImportant = toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
     assertThat(isImportant).isTrue()
   }
 
   @Test
   fun showLayerSpacingSliderOnlyIfModelIsRotated() {
-    val sliderBeforeRotation =
-      createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction }
-        as? LayerSpacingSliderAction
+    val sliderBeforeRotation = createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction } as? LayerSpacingSliderAction
 
     sliderBeforeRotation?.let {
       // If the action is not null, check that is disabled.
@@ -329,9 +319,7 @@ class LayoutInspectorMainToolbarTest {
 
     layoutInspectorRule.inspector.renderModel.rotate(10.0, 10.0)
 
-    val sliderAfterRotation =
-      createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction }
-        as LayerSpacingSliderAction
+    val sliderAfterRotation = createStandaloneToolbar().actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
 
     val presentationEnabled = getPresentation(sliderAfterRotation)
     assertThat(presentationEnabled.isEnabled).isTrue()
@@ -388,17 +376,8 @@ class LayoutInspectorMainToolbarTest {
   private fun createStandaloneToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
     val toolbar =
-      createStandaloneLayoutInspectorToolbar(
-        androidProjectRule.testRootDisposable,
-        JPanel(),
-        layoutInspectorRule.inspector,
-        fakeAction,
-      )
-    FakeUi(
-      toolbar.component,
-      createFakeWindow = true,
-      parentDisposable = androidProjectRule.testRootDisposable,
-    )
+      createStandaloneLayoutInspectorToolbar(androidProjectRule.testRootDisposable, JPanel(), layoutInspectorRule.inspector, fakeAction)
+    FakeUi(toolbar.component, createFakeWindow = true, parentDisposable = androidProjectRule.testRootDisposable)
     waitForCondition(5.seconds) { toolbar.component.components.isNotEmpty() }
     return toolbar
   }
@@ -406,50 +385,27 @@ class LayoutInspectorMainToolbarTest {
   private fun createEmbeddedToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
     val toolbarPanel =
-      createEmbeddedLayoutInspectorToolbar(
-        androidProjectRule.testRootDisposable,
-        JPanel(),
-        layoutInspectorRule.inspector,
-        fakeAction,
-      )
+      createEmbeddedLayoutInspectorToolbar(androidProjectRule.testRootDisposable, JPanel(), layoutInspectorRule.inspector, fakeAction)
 
     val toolbars =
-      toolbarPanel.allChildren().filterIsInstance<ActionToolbar>().filter {
-        it.component.name == LAYOUT_INSPECTOR_MAIN_TOOLBAR
-      }
+      toolbarPanel.allChildren().filterIsInstance<ActionToolbar>().filter { it.component.name == LAYOUT_INSPECTOR_MAIN_TOOLBAR }
 
     assertThat(toolbars).hasSize(1)
     val toolbar = toolbars.first()
 
-    FakeUi(
-      toolbarPanel,
-      createFakeWindow = true,
-      parentDisposable = androidProjectRule.testRootDisposable,
-    )
+    FakeUi(toolbarPanel, createFakeWindow = true, parentDisposable = androidProjectRule.testRootDisposable)
 
     waitForCondition(5.seconds) { toolbar.component.components.isNotEmpty() }
     return toolbar
   }
 
-  private fun <T : AnAction> findActionButton(
-    actionClass: Class<T>,
-    toolbar: ActionToolbar = createStandaloneToolbar(),
-  ): ActionButton? {
-    return toolbar.component.components.filterIsInstance<ActionButton>().find {
-      actionClass.isInstance(it.action)
-    }
+  private fun <T : AnAction> findActionButton(actionClass: Class<T>, toolbar: ActionToolbar = createStandaloneToolbar()): ActionButton? {
+    return toolbar.component.components.filterIsInstance<ActionButton>().find { actionClass.isInstance(it.action) }
   }
 
   private fun getPresentation(action: AnAction): Presentation {
     val presentation = Presentation()
-    val event =
-      AnActionEvent.createEvent(
-        DataContext.EMPTY_CONTEXT,
-        presentation,
-        "LayoutInspector.MainToolbar",
-        ActionUiKind.NONE,
-        null,
-      )
+    val event = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, presentation, "LayoutInspector.MainToolbar", ActionUiKind.NONE, null)
     action.update(event)
     return presentation
   }

@@ -23,8 +23,8 @@ import com.android.tools.idea.common.layout.positionable.PositionableContent
  *
  * @param canvasTopPadding is the top padding from the surface.
  * @param canvasLeftPadding is the left padding from the surface.
- * @param previewPaddingProvider is to provide the horizontal and vertical paddings of every. The
- *   input value is the scale value of the current [PositionableContent].
+ * @param previewPaddingProvider is to provide the horizontal and vertical paddings of every. The input value is the scale value of the
+ *   current [PositionableContent].
  */
 open class GroupPadding(
   @SwingCoordinate val canvasTopPadding: Int,

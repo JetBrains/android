@@ -31,9 +31,7 @@ open class InspectorGroupPropertyItem(
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
   override val children: MutableList<InspectorPropertyItem>,
-) :
-  InspectorPropertyItem(namespace, name, name, type, value, section, source, viewId, lookup),
-  PTableGroupItem {
+) : InspectorPropertyItem(namespace, name, name, type, value, section, source, viewId, lookup), PTableGroupItem {
 
   /** This item need a ResolutionEditor for display */
   override val needsResolutionEditor: Boolean

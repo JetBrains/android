@@ -254,7 +254,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
                 fun method() {
                 }
             }
-           """
+            """
               .trimIndent(),
           )
       },
@@ -369,13 +369,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         )
       }
       val composite: LintFix = LintFix.create().name("Add multiple annotations").composite(fixes)
-      return LintIdeFixPerformer.createIdeFixes(
-        project,
-        element.containingFile,
-        element.getIncident(),
-        composite,
-        true,
-      )
+      return LintIdeFixPerformer.createIdeFixes(project, element.containingFile, element.getIncident(), composite, true)
     } else {
       val fixes = mutableListOf<AnnotateQuickFix>()
       for ((name, annotationSource, replace) in annotations) {
@@ -390,8 +384,7 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       ) : ModCommandAction {
 
         override fun getPresentation(context: ActionContext): Presentation? =
-          if (myFixes.any { it.getPresentation(context) == null }) null
-          else Presentation.of(displayName)
+          if (myFixes.any { it.getPresentation(context) == null }) null else Presentation.of(displayName)
 
         @Suppress("UnstableApiUsage")
         override fun perform(context: ActionContext) =
@@ -449,29 +442,9 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     expected: String,
   ) {
     // Test with PSI-based annotation insertion (AnnotateQuickFix)
-    check(
-      fileName,
-      originalSource,
-      selected,
-      expected,
-      annotations,
-      extraSetup,
-      rangeFactory,
-      extraVerify,
-      false,
-    )
+    check(fileName, originalSource, selected, expected, annotations, extraSetup, rangeFactory, extraVerify, false)
     // Test with lint-based annotation insertion (LintIdeFixPerformer)
-    check(
-      fileName,
-      originalSource,
-      selected,
-      expected,
-      annotations,
-      extraSetup,
-      rangeFactory,
-      extraVerify,
-      true,
-    )
+    check(fileName, originalSource, selected, expected, annotations, extraSetup, rangeFactory, extraVerify, true)
   }
 
   private fun check(

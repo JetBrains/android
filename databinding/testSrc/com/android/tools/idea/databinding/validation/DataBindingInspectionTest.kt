@@ -32,9 +32,7 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class DataBindingInspectionTest(private val mode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
@@ -47,11 +45,12 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
     fixture.addFileToProject(
       "AndroidManifest.xml",
       // language=xml
-      """<?xml version="1.0" encoding="utf-8"?>
-         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
-           <application />
-         </manifest>
-    """
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+               <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
+                 <application />
+               </manifest>
+      """
         .trimIndent(),
     )
 

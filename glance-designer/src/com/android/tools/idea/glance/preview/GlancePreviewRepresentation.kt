@@ -39,8 +39,7 @@ private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE
 internal class GlancePreviewRepresentation(
   adapterViewFqcn: String,
   psiFile: PsiFile,
-  previewProviderConstructor:
-    (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiGlancePreviewElement>,
+  previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<PsiGlancePreviewElement>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<PsiGlancePreviewElement, NlModel>,
 ) :
   CommonPreviewRepresentation<PsiGlancePreviewElement>(
@@ -54,21 +53,13 @@ internal class GlancePreviewRepresentation(
     renderingTopic = RenderAsyncActionExecutor.RenderingTopic.GLANCE_PREVIEW,
     useCustomInflater = false,
     createRefreshEventBuilder = { surface ->
-      PreviewRefreshEventBuilder(
-        PreviewRefreshEvent.PreviewType.GLANCE,
-        PreviewRefreshTracker.getInstance(surface),
-      )
+      PreviewRefreshEventBuilder(PreviewRefreshEvent.PreviewType.GLANCE, PreviewRefreshTracker.getInstance(surface))
     },
   )
 
 private fun NlSurfaceBuilder.configureDesignSurface(navigationHandler: NavigationHandler) {
   setActionManagerProvider { surface ->
-    CommonPreviewActionManager(
-      surface,
-      navigationHandler,
-      supportAnimationPreview = false,
-      supportInteractivePreview = false,
-    )
+    CommonPreviewActionManager(surface, navigationHandler, supportAnimationPreview = false, supportInteractivePreview = false)
   }
   setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
   setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false)

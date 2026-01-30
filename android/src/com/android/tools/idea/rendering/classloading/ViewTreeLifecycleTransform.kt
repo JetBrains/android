@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Label
@@ -26,30 +25,26 @@ private const val ORIGINAL_SUFFIX = "_Original"
 const val FAKE_SAVEDSTATE_REGISTRY_PATH = "_layoutlib_/_internal_/androidx/lifecycle/FakeSavedStateRegistry"
 
 /**
- * Transforms [androidx.lifecycle.ViewTreeLifecycleOwner].
- * Creates a new Lifecycle owner in case the getter returns a null [LifecycleOwner], otherwise we keep the behavior.
- * see also [FakeSavedStateRegistryClassDump] to see how the dependency [SavedStateRegistry] is generated
+ * Transforms [androidx.lifecycle.ViewTreeLifecycleOwner]. Creates a new Lifecycle owner in case the getter returns a null [LifecycleOwner],
+ * otherwise we keep the behavior. see also [FakeSavedStateRegistryClassDump] to see how the dependency [SavedStateRegistry] is generated
  */
 class ViewTreeLifecycleTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
 
   private var isViewTreeLifecycleOwner = false
   override val uniqueId: String = ViewTreeLifecycleTransform::class.qualifiedName!!
 
-  override fun visit(version: Int,
-                     access: Int,
-                     name: String?,
-                     signature: String?,
-                     superName: String?,
-                     interfaces: Array<out String>?) {
+  override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
     isViewTreeLifecycleOwner = name == "androidx/lifecycle/ViewTreeLifecycleOwner"
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitMethod(access: Int,
-                           name: String?,
-                           descriptor: String?,
-                           signature: String?,
-                           exceptions: Array<out String>?): MethodVisitor {
+  override fun visitMethod(
+    access: Int,
+    name: String?,
+    descriptor: String?,
+    signature: String?,
+    exceptions: Array<out String>?,
+  ): MethodVisitor {
     if (!isViewTreeLifecycleOwner) {
       return super.visitMethod(access, name, descriptor, signature, exceptions)
     }
@@ -65,8 +60,8 @@ class ViewTreeLifecycleTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
   }
 
   /**
-   * Wrapper for the original get().
-   * If the original get() (renamed to get_Original) returns null, the wrapper generates a new fake LifecycleOwner with [FakeSavedStateRegistry].
+   * Wrapper for the original get(). If the original get() (renamed to get_Original) returns null, the wrapper generates a new fake
+   * LifecycleOwner with [FakeSavedStateRegistry].
    *
    * See the comments below the code to check how the method wrapper generates the ASM code.
    */
@@ -78,7 +73,7 @@ class ViewTreeLifecycleTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
       "androidx/lifecycle/ViewTreeLifecycleOwner",
       "get$ORIGINAL_SUFFIX",
       "(Landroid/view/View;)Landroidx/lifecycle/LifecycleOwner;",
-      false
+      false,
     )
     mv.visitVarInsn(Opcodes.ASTORE, 1)
     // if (owner != null) {
@@ -88,25 +83,13 @@ class ViewTreeLifecycleTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
     // return owner;
     mv.visitVarInsn(Opcodes.ALOAD, 1)
     mv.visitInsn(Opcodes.ARETURN)
-    //}else{
+    // }else{
     mv.visitLabel(label2)
-    mv.visitFrame(
-      Opcodes.F_APPEND,
-      1,
-      arrayOf<Any>("androidx/lifecycle/LifecycleOwner"),
-      0,
-      null
-    )
+    mv.visitFrame(Opcodes.F_APPEND, 1, arrayOf<Any>("androidx/lifecycle/LifecycleOwner"), 0, null)
     // FakeSavedStateRegistry savedStateRegistryOwner = new FakeSavedStateRegistry();
     mv.visitTypeInsn(Opcodes.NEW, FAKE_SAVEDSTATE_REGISTRY_PATH)
     mv.visitInsn(Opcodes.DUP)
-    mv.visitMethodInsn(
-      Opcodes.INVOKESPECIAL,
-      FAKE_SAVEDSTATE_REGISTRY_PATH,
-      "<init>",
-      "()V",
-      false
-    )
+    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, FAKE_SAVEDSTATE_REGISTRY_PATH, "<init>", "()V", false)
     mv.visitVarInsn(Opcodes.ASTORE, 2)
     val label4 = Label()
     mv.visitLabel(label4)
@@ -118,13 +101,13 @@ class ViewTreeLifecycleTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
       "androidx/savedstate/ViewTreeSavedStateRegistryOwner",
       "set",
       "(Landroid/view/View;Landroidx/savedstate/SavedStateRegistryOwner;)V",
-      false
+      false,
     )
     // return savedStateRegistryOwner; }
     mv.visitVarInsn(Opcodes.ALOAD, 2)
     mv.visitInsn(Opcodes.ARETURN)
 
-    //<--- ends to visit the method
+    // <--- ends to visit the method
     mv.visitMaxs(2, 3)
     mv.visitEnd()
   }
@@ -231,5 +214,3 @@ mw.visitEnd()
 Replace all the occurrences of FakeSavedStateRegistryClass with the const FAKE_SAVEDSTATE_REGISTRY_PATH
 paste the code in a wrapper function eg: [wrapperForGetMethod].
  */
-
-

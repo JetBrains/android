@@ -52,9 +52,9 @@ import kotlinx.coroutines.withContext
 @SwingCoordinate private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 
 /**
- * A Swing component associated to the given [SceneView]. There will be one of this components in
- * the [DesignSurface] per every [SceneView] available. This panel will be positioned on the
- * coordinates of the [SceneView] and can be used to paint Swing elements on top of the [SceneView].
+ * A Swing component associated to the given [SceneView]. There will be one of this components in the [DesignSurface] per every [SceneView]
+ * available. This panel will be positioned on the coordinates of the [SceneView] and can be used to paint Swing elements on top of the
+ * [SceneView].
  */
 class SceneViewPeerPanel(
   val scope: CoroutineScope,
@@ -70,16 +70,12 @@ class SceneViewPeerPanel(
 ) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
-    scope.launch {
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect {
-        withContext(uiThread) { invalidate() }
-      }
-    }
+    scope.launch { sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { withContext(uiThread) { invalidate() } } }
   }
 
   /**
-   * Contains cached layout data that can be used by this panel to verify when it's been invalidated
-   * without having to explicitly call [revalidate]
+   * Contains cached layout data that can be used by this panel to verify when it's been invalidated without having to explicitly call
+   * [revalidate]
    */
   private var layoutData = LayoutData.fromSceneView(sceneView)
 
@@ -129,8 +125,7 @@ class SceneViewPeerPanel(
       }
 
       override fun getContentSize(dimension: Dimension?): Dimension =
-        if (sceneView.hasContentSize())
-          sceneView.getContentSize(dimension).also { cachedContentSize.size = it }
+        if (sceneView.hasContentSize()) sceneView.getContentSize(dimension).also { cachedContentSize.size = it }
         else if (!sceneView.isVisible || sceneView.hasRenderErrors()) {
           dimension?.apply { setSize(0, 0) } ?: Dimension(0, 0)
         } else {
@@ -151,15 +146,13 @@ class SceneViewPeerPanel(
       }
 
       /**
-       * Calculates total size for [SceneViewPeerPanel] including margins and content for target
-       * [scale]
+       * Calculates total size for [SceneViewPeerPanel] including margins and content for target [scale]
        *
        * Total size for [SceneViewPeerPanel] is contentSize * scale + margin(scale)
-       * * contentSize is the size of the content without any scaling. contentSize is a "raw" size
-       *   of the preview and is not changing unless preview is updated. It should be scaled
-       *   proportionally to get size to be used in surface.
-       * * margin is mostly fixed size, they are not scaled proportionally with scale. margin covers
-       *   the size of labels, toolbars or extra panels surrounding the preview.
+       * * contentSize is the size of the content without any scaling. contentSize is a "raw" size of the preview and is not changing unless
+       *   preview is updated. It should be scaled proportionally to get size to be used in surface.
+       * * margin is mostly fixed size, they are not scaled proportionally with scale. margin covers the size of labels, toolbars or extra
+       *   panels surrounding the preview.
        */
       override fun sizeForScale(scale: Double): Dimension {
         val size = getContentSize(null)
@@ -181,16 +174,10 @@ class SceneViewPeerPanel(
       }
     }
 
-  fun PositionableContent.isEmptyContent() =
-    scaledContentSize.let { it.height == 0 && it.width == 0 }
+  fun PositionableContent.isEmptyContent() = scaledContentSize.let { it.height == 0 && it.width == 0 }
 
-  /**
-   * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
-   * aligned (the toolbar).
-   */
-  @VisibleForTesting
-  val sceneViewTopPanel =
-    SceneViewTopPanel(this, statusIconAction, toolbarActions, toolbarOverflowActions, labelPanel)
+  /** This panel wraps both the label and the toolbar and puts them left aligned (label) and right aligned (the toolbar). */
+  @VisibleForTesting val sceneViewTopPanel = SceneViewTopPanel(this, statusIconAction, toolbarActions, toolbarOverflowActions, labelPanel)
 
   val sceneViewLeftPanel = wrapPanel(leftPanel)
   val sceneViewRightPanel = wrapPanel(rightPanel)
@@ -244,12 +231,7 @@ class SceneViewPeerPanel(
     //       preferredWidth                    preferredWidth
 
     if (sceneViewTopPanel.isVisible) {
-      sceneViewTopPanel.setBounds(
-        0,
-        0,
-        width + insets.horizontal,
-        sceneViewTopPanel.preferredSize.height,
-      )
+      sceneViewTopPanel.setBounds(0, 0, width + insets.horizontal, sceneViewTopPanel.preferredSize.height)
     }
     val leftSectionWidth = sceneViewLeftPanel.preferredSize.width
     val centerPanelHeight =
@@ -264,12 +246,7 @@ class SceneViewPeerPanel(
       width + insets.horizontal - leftSectionWidth,
       centerPanelHeight,
     )
-    sceneViewLeftPanel.setBounds(
-      0,
-      sceneViewTopPanel.preferredSize.height,
-      sceneViewLeftPanel.preferredSize.width,
-      centerPanelHeight,
-    )
+    sceneViewLeftPanel.setBounds(0, sceneViewTopPanel.preferredSize.height, sceneViewLeftPanel.preferredSize.width, centerPanelHeight)
     sceneViewRightPanel.setBounds(
       sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
       sceneViewTopPanel.preferredSize.height,
@@ -284,26 +261,20 @@ class SceneViewPeerPanel(
     positionableAdapter.getScaledContentSize(cachedPreferredSize).also {
       val shouldShowCenterPanel = it.width == 0 && it.height == 0
       val width = if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.width else it.width
-      val height =
-        if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.height else it.height
+      val height = if (shouldShowCenterPanel) sceneViewCenterPanel.preferredSize.height else it.height
 
       it.width = width + positionableAdapter.margin.horizontal
       it.height = height + positionableAdapter.margin.vertical
     }
 
   override fun getMinimumSize(): Dimension {
-    val shouldShowCenterPanel =
-      positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
+    val shouldShowCenterPanel = positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
     val centerPanelWidth = if (shouldShowCenterPanel) sceneViewCenterPanel.minimumSize.width else 0
-    val centerPanelHeight =
-      if (shouldShowCenterPanel) sceneViewCenterPanel.minimumSize.height else 0
+    val centerPanelHeight = if (shouldShowCenterPanel) sceneViewCenterPanel.minimumSize.height else 0
 
     return Dimension(
       maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
-      BOTTOM_BORDER_HEIGHT +
-      centerPanelHeight +
-      sceneViewTopPanel.minimumSize.height +
-      JBUI.scale(20),
+      BOTTOM_BORDER_HEIGHT + centerPanelHeight + sceneViewTopPanel.minimumSize.height + JBUI.scale(20),
     )
   }
 
@@ -312,8 +283,7 @@ class SceneViewPeerPanel(
   }
 
   private fun isHiddenInOrganizationGroup() =
-    isOrganizationEnabled.value &&
-    sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
+    isOrganizationEnabled.value && sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SCENE_VIEW] = sceneView

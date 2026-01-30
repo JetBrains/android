@@ -17,7 +17,5 @@ package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 
-internal data class AvdIsAlreadyRunningException(
-  val avdName: String,
-  val pid: Long
-) : DeviceActionException("$avdName is already running as process $pid.")
+internal data class AvdIsAlreadyRunningException(val avdName: String, val pid: Long) :
+  DeviceActionException("$avdName is already running as process $pid.")

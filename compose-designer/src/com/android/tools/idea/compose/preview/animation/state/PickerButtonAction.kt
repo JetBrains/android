@@ -53,18 +53,8 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
       init {
         addActionListener {
           val ctx = DataManager.getInstance().getDataContext(it.source as Component)
-          val event =
-            AnActionEvent.createEvent(
-              this@PickerButtonAction,
-              ctx,
-              null,
-              ActionPlaces.TOOLBAR,
-              ActionUiKind.TOOLBAR,
-              null,
-            )
-          ActionUtil.performDumbAwareWithCallbacks(this@PickerButtonAction, event) {
-            this@PickerButtonAction.actionPerformed(event)
-          }
+          val event = AnActionEvent.createEvent(this@PickerButtonAction, ctx, null, ActionPlaces.TOOLBAR, ActionUiKind.TOOLBAR, null)
+          ActionUtil.performDumbAwareWithCallbacks(this@PickerButtonAction, event) { this@PickerButtonAction.actionPerformed(event) }
         }
         stateListeners.add { text = stateText }
       }
@@ -76,10 +66,7 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
       location = e.locationFromEvent(),
       displayTitle = state.value.first.getPickerTitle(),
       balloonPosition = Balloon.Position.above,
-      model =
-        AnimatedPropertiesModel(state.value.first, state.value.second) { initial, target ->
-          updateState(initial, target)
-        },
+      model = AnimatedPropertiesModel(state.value.first, state.value.second) { initial, target -> updateState(initial, target) },
     )
     tracker.openPicker()
   }

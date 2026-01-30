@@ -52,56 +52,60 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
 import com.intellij.platform.debugger.impl.shared.XDebuggerActionsCollector
 import com.intellij.util.application
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
-import org.jetbrains.kotlin.statistics.metrics.StringMetrics
-import org.jetbrains.kotlin.statistics.metrics.StringListMetrics
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
+import org.jetbrains.kotlin.statistics.metrics.StringListMetrics
+import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 
 @Service(Service.Level.APP)
 class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : StatisticsEventLogger {
 
   override fun cleanup() {}
+
   override fun getActiveLogFile(): Nothing? = null
+
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
+
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
-    val callbacks = mapOf("debugger.breakpoints.usage" to ::logDebuggerBreakpointsUsage,
-                          "documentation" to ::logQuickDocEvent,
-                          "experimental.ui.interactions" to ::logNewUIStateChange,
-                          "file.types" to ::logFileType,
-                          "file.types.usage" to ::logFileTypeUsage,
-                          "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
-                          "kotlin.gradle.performance_v2" to ::logKotlinGradlePerformance,
-                          "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
-                          "reopen.project.startup.performance" to ::logReopenProjectStartupPerformance,
-                          "run.configuration.exec" to ::logRunConfigurationExec,
-                          "startup" to ::logStartupEvent,
-                          "vfs" to ::logVfsEvent,
-                          "xdebugger.actions" to ::logDebuggerEvent)
+    val callbacks =
+      mapOf(
+        "debugger.breakpoints.usage" to ::logDebuggerBreakpointsUsage,
+        "documentation" to ::logQuickDocEvent,
+        "experimental.ui.interactions" to ::logNewUIStateChange,
+        "file.types" to ::logFileType,
+        "file.types.usage" to ::logFileTypeUsage,
+        "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
+        "kotlin.gradle.performance_v2" to ::logKotlinGradlePerformance,
+        "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
+        "reopen.project.startup.performance" to ::logReopenProjectStartupPerformance,
+        "run.configuration.exec" to ::logRunConfigurationExec,
+        "startup" to ::logStartupEvent,
+        "vfs" to ::logVfsEvent,
+        "xdebugger.actions" to ::logDebuggerEvent,
+      )
     val builder = callbacks[group.id]?.invoke(eventId, data) ?: return CompletableFuture.completedFuture(null)
     val job = coroutineScope.launch { UsageTracker.log(builder) }
     // This silliness is required because "Void" does not play nicely with Kotlin at all.
     return CompletableFuture<Void>().also {
-      job.invokeOnCompletion { cause ->
-        if (cause === null) it.complete(null)
-        else it.completeExceptionally(cause)
-      }
+      job.invokeOnCompletion { cause -> if (cause === null) it.complete(null) else it.completeExceptionally(cause) }
     }
   }
 
-  override fun logAsync(group: EventLogGroup,
-                        eventId: String,
-                        dataProvider: () -> Map<String, Any>?,
-                        isState: Boolean): CompletableFuture<Void> {
+  override fun logAsync(
+    group: EventLogGroup,
+    eventId: String,
+    dataProvider: () -> Map<String, Any>?,
+    isState: Boolean,
+  ): CompletableFuture<Void> {
     val data = dataProvider() ?: return CompletableFuture.completedFuture(null)
     return logAsync(group, eventId, data, isState)
   }
 
-  override fun computeAsync(computation: (backgroundThreadExecutor: Executor) -> Unit) {
-  }
+  override fun computeAsync(computation: (backgroundThreadExecutor: Executor) -> Unit) {}
 
   override fun rollOver() {}
 
@@ -112,21 +116,24 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
 
     return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.INTELLIJ_NEW_UI_SWITCH
-      intellijNewUiSwitch = IntelliJNewUISwitch.newBuilder().apply {
-        switchSource = getSwitchSource(data)
-        (data["exp_ui"] as? Boolean)?.let { newUi = it }
-      }.build()
+      intellijNewUiSwitch =
+        IntelliJNewUISwitch.newBuilder()
+          .apply {
+            switchSource = getSwitchSource(data)
+            (data["exp_ui"] as? Boolean)?.let { newUi = it }
+          }
+          .build()
     }
   }
 
   private fun getSwitchSource(data: Map<String, Any>): IntelliJNewUISwitch.SwitchSource {
     val s = data["switch_source"] as? String ?: return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
-    val source = try {
-      ExperimentalUiCollector.SwitchSource.valueOf(s)
-    }
-    catch (_: IllegalArgumentException) {
-      return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
-    }
+    val source =
+      try {
+        ExperimentalUiCollector.SwitchSource.valueOf(s)
+      } catch (_: IllegalArgumentException) {
+        return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+      }
 
     return when (source) {
       ExperimentalUiCollector.SwitchSource.ENABLE_NEW_UI_ACTION -> IntelliJNewUISwitch.SwitchSource.ENABLE_NEW_UI_ACTION
@@ -143,14 +150,19 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
       return null
     }
 
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.FILE_TYPE
-      fileType = FileType.newBuilder().apply {
-        (data["file_type"] as? String)?.let { fileType = it }
-        (data["plugin_type"] as? String)?.let { pluginType = it }
-        (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
-      }.build()
-    }.withProjectId(data)
+    return AndroidStudioEvent.newBuilder()
+      .apply {
+        kind = AndroidStudioEvent.EventKind.FILE_TYPE
+        fileType =
+          FileType.newBuilder()
+            .apply {
+              (data["file_type"] as? String)?.let { fileType = it }
+              (data["plugin_type"] as? String)?.let { pluginType = it }
+              (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
+            }
+            .build()
+      }
+      .withProjectId(data)
   }
 
   private fun logFileTypeUsage(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
@@ -159,22 +171,28 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
       return null
     }
 
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.FILE_USAGE
-      fileUsage = FileUsage.newBuilder().apply {
-        (data["file_path"] as? String)?.let { filePath = it }
-        (data["file_type"] as? String)?.let { fileType = it }
-        (data["plugin_type"] as? String)?.let { pluginType = it }
-        (data["plugin_version"] as? String)?.let { pluginVersion = it }
-        eventType = when (eventId) {
-          "select" -> FileUsage.EventType.SELECT
-          "edit" -> FileUsage.EventType.EDIT
-          "open" -> FileUsage.EventType.OPEN
-          "close" -> FileUsage.EventType.CLOSE
-          else -> FileUsage.EventType.UNKNOWN_TYPE
-        }
-      }.build()
-    }.withProjectId(data)
+    return AndroidStudioEvent.newBuilder()
+      .apply {
+        kind = AndroidStudioEvent.EventKind.FILE_USAGE
+        fileUsage =
+          FileUsage.newBuilder()
+            .apply {
+              (data["file_path"] as? String)?.let { filePath = it }
+              (data["file_type"] as? String)?.let { fileType = it }
+              (data["plugin_type"] as? String)?.let { pluginType = it }
+              (data["plugin_version"] as? String)?.let { pluginVersion = it }
+              eventType =
+                when (eventId) {
+                  "select" -> FileUsage.EventType.SELECT
+                  "edit" -> FileUsage.EventType.EDIT
+                  "open" -> FileUsage.EventType.OPEN
+                  "close" -> FileUsage.EventType.CLOSE
+                  else -> FileUsage.EventType.UNKNOWN_TYPE
+                }
+            }
+            .build()
+      }
+      .withProjectId(data)
   }
 
   private fun logKotlinGradlePerformance(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
@@ -182,25 +200,30 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
       return null
     }
 
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
-      kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
-        data.getString(StringListMetrics.USE_FIR)?.let { useFir = firUsage(it) }
-        data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
-        data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
-        data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
-        data.getString(StringMetrics.KOTLIN_STDLIB_VERSION)?.let { kotlinStdlibVersion = it }
-        (data["plugin_version"] as? String)?.let { pluginVersion = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN)?.let { enabledCompilerPluginAllOpen = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU)?.let { enabledCompilerPluginAtomicfu = it }
-        (data["enabled_compiler_plugin_jpasupport"] as? Boolean)?.let { enabledCompilerPluginJpaSupport = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK)?.let { enabledCompilerPluginLombok = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG)?.let { enabledCompilerPluginNoArg = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE)?.let { enabledCompilerPluginParcelize = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
-        data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
-      }.build()
-    }.withProjectId(data, "project_path")
+    return AndroidStudioEvent.newBuilder()
+      .apply {
+        kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
+        kotlinGradlePerformanceEvent =
+          KotlinGradlePerformance.newBuilder()
+            .apply {
+              data.getString(StringListMetrics.USE_FIR)?.let { useFir = firUsage(it) }
+              data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
+              data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
+              data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
+              data.getString(StringMetrics.KOTLIN_STDLIB_VERSION)?.let { kotlinStdlibVersion = it }
+              (data["plugin_version"] as? String)?.let { pluginVersion = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN)?.let { enabledCompilerPluginAllOpen = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU)?.let { enabledCompilerPluginAtomicfu = it }
+              (data["enabled_compiler_plugin_jpasupport"] as? Boolean)?.let { enabledCompilerPluginJpaSupport = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK)?.let { enabledCompilerPluginLombok = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG)?.let { enabledCompilerPluginNoArg = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE)?.let { enabledCompilerPluginParcelize = it }
+              data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
+              data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
+            }
+            .build()
+      }
+      .withProjectId(data, "project_path")
   }
 
   private fun Map<String, Any>.getBoolean(metric: BooleanMetrics): Boolean? {
@@ -234,42 +257,56 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
       return null
     }
 
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
-      kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
-        (data["system"] as? String?)?.let { system = it }
-        (data["plugin_version"] as? String?)?.let { pluginVersion = it }
-        (data["plugin"] as? String?)?.let { plugin = it }
-        (data["plugin_type"] as? String?)?.let { pluginType = it }
-        (data["platform"] as? String?)?.let { platform = it }
-        (data["isMPP"] as? Boolean?)?.let { isMultiplatform = it }
-        (data["eventFlags"] as? Long?)?.let { eventFlags = it }
-        eventType = when (eventId) {
-          "Build" -> KotlinProjectConfiguration.EventType.BUILD
-          else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
-        }
-      }.build()
-    }.withProjectId(data)
+    return AndroidStudioEvent.newBuilder()
+      .apply {
+        kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
+        kotlinProjectConfiguration =
+          KotlinProjectConfiguration.newBuilder()
+            .apply {
+              (data["system"] as? String?)?.let { system = it }
+              (data["plugin_version"] as? String?)?.let { pluginVersion = it }
+              (data["plugin"] as? String?)?.let { plugin = it }
+              (data["plugin_type"] as? String?)?.let { pluginType = it }
+              (data["platform"] as? String?)?.let { platform = it }
+              (data["isMPP"] as? Boolean?)?.let { isMultiplatform = it }
+              (data["eventFlags"] as? Long?)?.let { eventFlags = it }
+              eventType =
+                when (eventId) {
+                  "Build" -> KotlinProjectConfiguration.EventType.BUILD
+                  else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
+                }
+            }
+            .build()
+      }
+      .withProjectId(data)
   }
 
   private fun logRunConfigurationExec(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     return when (eventId) {
-      "started" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.RUN_START_DATA
-        runStartData = RunStartData.newBuilder().apply {
-          (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
-          (data["executor"] as? String?)?.let { executor = it }
-          (data["id"] as? String?)?.let { runConfiguration = it }
-        }.build()
-      }
+      "started" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.RUN_START_DATA
+          runStartData =
+            RunStartData.newBuilder()
+              .apply {
+                (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
+                (data["executor"] as? String?)?.let { executor = it }
+                (data["id"] as? String?)?.let { runConfiguration = it }
+              }
+              .build()
+        }
 
-      "finished" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
-        runFinishData = RunFinishData.newBuilder().apply {
-          (data["duration_ms"] as? String?)?.toLongOrNull()?.let { durationMs = it }
-          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
-        }.build()
-      }
+      "finished" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
+          runFinishData =
+            RunFinishData.newBuilder()
+              .apply {
+                (data["duration_ms"] as? String?)?.toLongOrNull()?.let { durationMs = it }
+                (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
+              }
+              .build()
+        }
 
       else -> return null
     }.withProjectId(data)
@@ -288,82 +325,103 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     return null
   }
 
-  private fun logStartupEvent(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
-    val type = when (eventId) {
-      "totalDuration" -> StartupEvent.Type.TOTAL_DURATION
+  private fun logStartupEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    val type =
+      when (eventId) {
+        "totalDuration" -> StartupEvent.Type.TOTAL_DURATION
 
-      "splash" -> StartupEvent.Type.SPLASH
+        "splash" -> StartupEvent.Type.SPLASH
 
-      "bootstrap" -> StartupEvent.Type.BOOTSTRAP
+        "bootstrap" -> StartupEvent.Type.BOOTSTRAP
 
-      "appInit" -> StartupEvent.Type.APP_INIT
+        "appInit" -> StartupEvent.Type.APP_INIT
 
-      "splashShown" -> StartupEvent.Type.SPLASH_SHOWN
+        "splashShown" -> StartupEvent.Type.SPLASH_SHOWN
 
-      "splashHidden" -> StartupEvent.Type.SPLASH_HIDDEN
+        "splashHidden" -> StartupEvent.Type.SPLASH_HIDDEN
 
-      "projectFrameVisible" -> StartupEvent.Type.PROJECT_FRAME_VISIBLE
+        "projectFrameVisible" -> StartupEvent.Type.PROJECT_FRAME_VISIBLE
 
-      else -> return null
-    }
-    return AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.STARTUP_EVENT).setStartupEvent(
-      StartupEvent.newBuilder().setType(type).setDurationMs(data["duration"] as Int))
+        else -> return null
+      }
+    return AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.STARTUP_EVENT)
+      .setStartupEvent(StartupEvent.newBuilder().setType(type).setDurationMs(data["duration"] as Int))
   }
 
-  private fun logReopenProjectStartupPerformance(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
+  private fun logReopenProjectStartupPerformance(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     return when (eventId) {
-      "first.ui.shown" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FIRST_UI_SHOWN
-        startupPerformanceFirstUiShownEvent = StartupPerformanceFirstUiShownEvent.newBuilder().apply {
-          (data["duration_ms"] as? Int?)?.let { durationMs = it }
-          (data["type"] as? String?)?.let {
-            type = when (it) {
-              "Splash" -> StartupPerformanceFirstUiShownEvent.UiResponseType.SPLASH
-              "Frame" -> StartupPerformanceFirstUiShownEvent.UiResponseType.FRAME
-              else -> StartupPerformanceFirstUiShownEvent.UiResponseType.UNKNOWN_UI_RESPONSE_TYPE
-            }
-          }
-        }.build()
-      }
+      "first.ui.shown" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FIRST_UI_SHOWN
+          startupPerformanceFirstUiShownEvent =
+            StartupPerformanceFirstUiShownEvent.newBuilder()
+              .apply {
+                (data["duration_ms"] as? Int?)?.let { durationMs = it }
+                (data["type"] as? String?)?.let {
+                  type =
+                    when (it) {
+                      "Splash" -> StartupPerformanceFirstUiShownEvent.UiResponseType.SPLASH
+                      "Frame" -> StartupPerformanceFirstUiShownEvent.UiResponseType.FRAME
+                      else -> StartupPerformanceFirstUiShownEvent.UiResponseType.UNKNOWN_UI_RESPONSE_TYPE
+                    }
+                }
+              }
+              .build()
+        }
 
-      "frame.became.visible" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE
-        startupPerformanceFrameBecameVisibleEvent = StartupPerformanceFrameBecameVisibleEvent.newBuilder().apply {
-          (data["duration_ms"] as? Int?)?.let { durationMs = it }
-          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
-          (data["projects_type"] as? String?)?.let {
-            projectType = when (it) {
-              "Reopened" -> ProjectType.REOPENED
-              "FromFilesToLoad" -> ProjectType.FROM_FILES_TO_LOAD
-              "FromArgs" -> ProjectType.FROM_ARGS
-              else -> ProjectType.UNKNOWN_PROJECT_TYPE
-            }
-          }
-        }.build()
-      }
+      "frame.became.visible" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE
+          startupPerformanceFrameBecameVisibleEvent =
+            StartupPerformanceFrameBecameVisibleEvent.newBuilder()
+              .apply {
+                (data["duration_ms"] as? Int?)?.let { durationMs = it }
+                (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+                (data["projects_type"] as? String?)?.let {
+                  projectType =
+                    when (it) {
+                      "Reopened" -> ProjectType.REOPENED
+                      "FromFilesToLoad" -> ProjectType.FROM_FILES_TO_LOAD
+                      "FromArgs" -> ProjectType.FROM_ARGS
+                      else -> ProjectType.UNKNOWN_PROJECT_TYPE
+                    }
+                }
+              }
+              .build()
+        }
 
-      "frame.became.interactive" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE
-        startupPerformanceFrameBecameInteractiveEvent = StartupPerformanceFrameBecameInteractiveEvent.newBuilder().apply {
-          (data["duration_ms"] as? Int?)?.let { durationMs = it }
-        }.build()
-      }
+      "frame.became.interactive" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE
+          startupPerformanceFrameBecameInteractiveEvent =
+            StartupPerformanceFrameBecameInteractiveEvent.newBuilder()
+              .apply { (data["duration_ms"] as? Int?)?.let { durationMs = it } }
+              .build()
+        }
 
-      "code.loaded.and.visible.in.editor" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR
-        startupPerformanceCodeLoadedAndVisibleInEditor = StartupPerformanceCodeLoadedAndVisibleInEditor.newBuilder().apply {
-          (data["duration_ms"] as? Int?)?.let { durationMs = it }
-          (data["file_type"] as? String?)?.let { fileType = it }
-          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
-          (data["loaded_cached_markup"] as? Boolean?)?.let { loadedCachedMarkup = it }
-          (data["no_editors_to_open"] as? Boolean?)?.let { noEditorsToOpen = it }
-          (data["source_of_selected_editor"] as? String?)?.let { sourceOfSelectedEditor = when(it) {
-            "TextEditor" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.TEXT_EDITOR
-            "FoundReadmeFile" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.FOUND_README_FILE
-            else -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.UNKNOWN_SOURCE_OF_SELECTED_EDITOR
-          } }
-        }.build()
-      }
+      "code.loaded.and.visible.in.editor" ->
+        AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR
+          startupPerformanceCodeLoadedAndVisibleInEditor =
+            StartupPerformanceCodeLoadedAndVisibleInEditor.newBuilder()
+              .apply {
+                (data["duration_ms"] as? Int?)?.let { durationMs = it }
+                (data["file_type"] as? String?)?.let { fileType = it }
+                (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+                (data["loaded_cached_markup"] as? Boolean?)?.let { loadedCachedMarkup = it }
+                (data["no_editors_to_open"] as? Boolean?)?.let { noEditorsToOpen = it }
+                (data["source_of_selected_editor"] as? String?)?.let {
+                  sourceOfSelectedEditor =
+                    when (it) {
+                      "TextEditor" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.TEXT_EDITOR
+                      "FoundReadmeFile" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.FOUND_README_FILE
+                      else -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.UNKNOWN_SOURCE_OF_SELECTED_EDITOR
+                    }
+                }
+              }
+              .build()
+        }
 
       else -> null
     }
@@ -382,10 +440,7 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
             DebuggerEvent.newBuilder()
               .setType(DebuggerEvent.Type.BREAKPOINT_ADDED_EVENT)
               .setBreakpointAdded(
-                DebuggerEvent.BreakpointAdded.newBuilder()
-                  .setType(type)
-                  .setPluginType(pluginType)
-                  .setInSession(withinSession)
+                DebuggerEvent.BreakpointAdded.newBuilder().setType(type).setPluginType(pluginType).setInSession(withinSession)
               )
           )
       }
@@ -393,38 +448,30 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     return null
   }
 
+  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    val event =
+      when (eventId) {
+        XDebuggerActionsCollector.EVENT_FRAMES_UPDATED -> {
+          @Suppress("UnstableApiUsage") val durationMs = data[EventFields.DurationMs.name] as? Long ?: return null
+          val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return null
 
-  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
-    val event = when (eventId) {
-      XDebuggerActionsCollector.EVENT_FRAMES_UPDATED -> {
-        @Suppress("UnstableApiUsage")
-        val durationMs = data[EventFields.DurationMs.name] as? Long ?: return null
-        val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return null
+          @Suppress("UNCHECKED_CAST") val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return null
 
-        @Suppress("UNCHECKED_CAST")
-        val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return null
+          @Suppress("UNCHECKED_CAST") val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return null
 
-        @Suppress("UNCHECKED_CAST")
-        val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return null
-
-        val fileTypeInfos = fileTypes.zip(framesPerFileType).map { (type, frames) ->
-          FileTypeInfo.newBuilder()
-            .setFileType(type)
-            .setNumFrames(frames)
-            .build()
+          val fileTypeInfos =
+            fileTypes.zip(framesPerFileType).map { (type, frames) ->
+              FileTypeInfo.newBuilder().setFileType(type).setNumFrames(frames).build()
+            }
+          DebuggerEvent.newBuilder()
+            .setType(FRAMES_VIEW_UPDATED)
+            .setFramesViewUpdated(
+              FramesViewUpdated.newBuilder().setDurationMs(durationMs).setTotalFrames(totalFrames).addAllFileTypeInfos(fileTypeInfos)
+            )
         }
-        DebuggerEvent.newBuilder()
-          .setType(FRAMES_VIEW_UPDATED)
-          .setFramesViewUpdated(
-            FramesViewUpdated.newBuilder()
-              .setDurationMs(durationMs)
-              .setTotalFrames(totalFrames)
-              .addAllFileTypeInfos(fileTypeInfos)
-          )
-      }
 
-      else -> return null
-    }
+        else -> return null
+      }
     return AndroidStudioEvent.newBuilder().setKind(DEBUGGER_EVENT).setDebuggerEvent(event)
   }
 
@@ -448,24 +495,21 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
     val valAny = get(key)
     val valTyped = valAny as? V
     if (valTyped == null) {
-      this@AndroidStudioEventLogger.thisLogger()
-        .warn("$key not ${V::class.java}, was ${valAny?.javaClass}: $valAny")
+      this@AndroidStudioEventLogger.thisLogger().warn("$key not ${V::class.java}, was ${valAny?.javaClass}: $valAny")
     }
     return valTyped
   }
 
-  /**
-   * Adds the associated project from the IntelliJ anonymization project id to the builder
-   */
+  /** Adds the associated project from the IntelliJ anonymization project id to the builder */
   private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>, key: String = "project"): AndroidStudioEvent.Builder {
     val id = data[key] as? String? ?: return this
     val eventLogConfiguration = EventLogConfiguration.getInstance().getOrCreate("FUS")
-    val project = ProjectManager.getInstance().openProjects
-      .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
+    val project =
+      ProjectManager.getInstance().openProjects.firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
     return this.withProjectId(project)
   }
 
   companion object {
-    fun getInstance() : AndroidStudioEventLogger = application.service()
+    fun getInstance(): AndroidStudioEventLogger = application.service()
   }
 }

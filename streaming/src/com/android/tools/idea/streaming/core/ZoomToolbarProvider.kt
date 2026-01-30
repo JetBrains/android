@@ -26,24 +26,24 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
-internal class ZoomToolbarProvider private constructor(
-  component: JComponent,
-  parentDisposable: Disposable
-) : EditorActionsFloatingToolbarProvider(component, parentDisposable) {
+internal class ZoomToolbarProvider private constructor(component: JComponent, parentDisposable: Disposable) :
+  EditorActionsFloatingToolbarProvider(component, parentDisposable) {
 
   init {
     updateToolbar()
   }
 
-  override fun getActionGroups() = object : EditorActionsToolbarActionGroups {
-    override val zoomControlsGroup: ActionGroup
-      get() = DefaultActionGroup().apply {
-        add(ZoomInAction.getInstance())
-        add(ZoomOutAction.getInstance())
-        add(ZoomActualAction.getInstance())
-        add(ZoomToFitAction.getInstance())
-      }
-  }
+  override fun getActionGroups() =
+    object : EditorActionsToolbarActionGroups {
+      override val zoomControlsGroup: ActionGroup
+        get() =
+          DefaultActionGroup().apply {
+            add(ZoomInAction.getInstance())
+            add(ZoomOutAction.getInstance())
+            add(ZoomActualAction.getInstance())
+            add(ZoomToFitAction.getInstance())
+          }
+    }
 
   companion object {
     @JvmStatic

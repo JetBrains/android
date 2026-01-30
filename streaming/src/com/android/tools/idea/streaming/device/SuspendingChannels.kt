@@ -25,8 +25,7 @@ import kotlinx.coroutines.runBlocking
 /**
  * Creates a new output stream backed by the given [SuspendingSocketChannel].
  *
- * Please keep in mind that all [OutputStream] operations are synchronous and therefore potentially
- * blocking.
+ * Please keep in mind that all [OutputStream] operations are synchronous and therefore potentially blocking.
  */
 fun newOutputStream(channel: SuspendingSocketChannel, bufferSize: Int): OutputStream {
   return SuspendingChannelOutputStream(channel, bufferSize)
@@ -35,9 +34,8 @@ fun newOutputStream(channel: SuspendingSocketChannel, bufferSize: Int): OutputSt
 /**
  * Creates a new input stream backed by the given [SuspendingSocketChannel].
  *
- * Please keep in mind that all [InputStream] operations are synchronous and therefore potentially
- * blocking. To avoid blocking the calling thread while waiting for data to arrive, use
- * the [SuspendingInputStream.waitForData] method before attempting to read from the stream.
+ * Please keep in mind that all [InputStream] operations are synchronous and therefore potentially blocking. To avoid blocking the calling
+ * thread while waiting for data to arrive, use the [SuspendingInputStream.waitForData] method before attempting to read from the stream.
  */
 fun newInputStream(channel: SuspendingSocketChannel, bufferSize: Int): SuspendingInputStream {
   return SuspendingChannelInputStream(channel, bufferSize)
@@ -45,8 +43,8 @@ fun newInputStream(channel: SuspendingSocketChannel, bufferSize: Int): Suspendin
 
 abstract class SuspendingInputStream : InputStream() {
   /**
-   * Reads from the channel until the internal buffer of the stream contains at least [numBytes]
-   * not yet consumed bytes or the timeout expires.
+   * Reads from the channel until the internal buffer of the stream contains at least [numBytes] not yet consumed bytes or the timeout
+   * expires.
    *
    * @throws InterruptedByTimeoutException if the timeout expired.
    */
@@ -99,9 +97,7 @@ private class SuspendingChannelOutputStream(val channel: SuspendingSocketChannel
   }
 
   private fun blockingWriteAndClearBuffer() {
-    runBlocking {
-      writeAndClearBuffer()
-    }
+    runBlocking { writeAndClearBuffer() }
   }
 
   private suspend fun writeAndClearBuffer() {
@@ -148,9 +144,7 @@ private class SuspendingChannelInputStream(val channel: SuspendingSocketChannel,
   }
 
   override fun close() {
-    runBlocking {
-      channel.close()
-    }
+    runBlocking { channel.close() }
   }
 
   override fun available(): Int {

@@ -45,13 +45,11 @@ fun interface ClientFactory {
 }
 
 /**
- * Class responsible for listening to active process connections and launching the correct
- * [InspectorClient] to handle it.
+ * Class responsible for listening to active process connections and launching the correct [InspectorClient] to handle it.
  *
- * @param clientFactories A list of [ClientFactory] that will be triggered in order. The first
- *   non-null client will be used.
- * @param executor The executor which will handle connecting / launching the current client. This
- *   should not be the UI thread, in order to avoid blocking the UI during this time.
+ * @param clientFactories A list of [ClientFactory] that will be triggered in order. The first non-null client will be used.
+ * @param executor The executor which will handle connecting / launching the current client. This should not be the UI thread, in order to
+ *   avoid blocking the UI during this time.
  */
 class InspectorClientLauncher(
   private val processes: ProcessesModel,
@@ -65,10 +63,7 @@ class InspectorClientLauncher(
 ) {
   companion object {
 
-    /**
-     * Convenience method for creating a launcher with useful client creation rules used in
-     * production
-     */
+    /** Convenience method for creating a launcher with useful client creation rules used in production */
     fun createDefaultLauncher(
       processes: ProcessesModel,
       model: InspectorModel,
@@ -141,9 +136,7 @@ class InspectorClientLauncher(
           }
         }
 
-    processes.addSelectedProcessListeners(realExecutor) {
-      handleProcessInWorkerThread(executor, processes.selectedProcess)
-    }
+    processes.addSelectedProcessListeners(realExecutor) { handleProcessInWorkerThread(executor, processes.selectedProcess) }
 
     Disposer.register(parentDisposable) {
       threadSequenceNumber.set(++sequenceNumber)
@@ -202,10 +195,7 @@ class InspectorClientLauncher(
           try {
             val latch = CountDownLatch(1)
             client.registerStateCallback { state ->
-              if (
-                state == InspectorClient.State.CONNECTED ||
-                  state == InspectorClient.State.DISCONNECTED
-              ) {
+              if (state == InspectorClient.State.CONNECTED || state == InspectorClient.State.DISCONNECTED) {
                 validClientConnected = (state == InspectorClient.State.CONNECTED)
                 latch.countDown()
               }
@@ -217,14 +207,8 @@ class InspectorClientLauncher(
             latch.await()
 
             // The current selected process changed out from under us, abort the whole thing.
-            if (
-              processes.selectedProcess?.isRunning != true ||
-                processes.selectedProcess?.pid != process.pid
-            ) {
-              metrics.logEvent(
-                DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
-                client.stats,
-              )
+            if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
+              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
               return
             }
             if (validClientConnected) {
@@ -237,10 +221,7 @@ class InspectorClientLauncher(
           } catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process
             client.disconnect()
-            metrics.logEvent(
-              DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
-              client.stats,
-            )
+            metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
             throw cancellationException
           } catch (ignored: Exception) {
             ignored.printStackTrace()
@@ -260,9 +241,7 @@ class InspectorClientLauncher(
         // when we're reenabled, so leave the process selected.
         processes.setLayoutInspectorSelectedProcess(null)
       }
-      notifications.forEach {
-        notificationModel.addNotification(it.id, it.message, it.status, it.actions, it.sticky)
-      }
+      notifications.forEach { notificationModel.addNotification(it.id, it.message, it.status, it.actions, it.sticky) }
     }
   }
 
@@ -301,12 +280,11 @@ class InspectorClientLauncher(
     }
 
   /**
-   * Whether or not this launcher will currently respond to new processes or not. With this
-   * property, we can stop launching new inspectors when the parent tool window is minimized.
+   * Whether or not this launcher will currently respond to new processes or not. With this property, we can stop launching new inspectors
+   * when the parent tool window is minimized.
    *
-   * If the launcher is enabled while the current client is disconnected, this class will attempt to
-   * relaunch the currently selected process, if any. This mimics the user starting an activity if
-   * the tool window had been open at the time.
+   * If the launcher is enabled while the current client is disconnected, this class will attempt to relaunch the currently selected
+   * process, if any. This mimics the user starting an activity if the tool window had been open at the time.
    */
   var enabled = true
     set(value) {
@@ -320,8 +298,7 @@ class InspectorClientLauncher(
           // we try to autoconnect but only if we find a valid, running process.
           processes.selectedProcess?.let { process ->
             val runningProcess =
-              process.takeIf { it.isRunning }
-                ?: processes.processes.firstOrNull { it.pid == process.pid && it.isRunning }
+              process.takeIf { it.isRunning } ?: processes.processes.firstOrNull { it.pid == process.pid && it.isRunning }
 
             if (runningProcess != null) {
               // Reset the process to cause us to connect.
@@ -338,8 +315,7 @@ class InspectorClientLauncher(
   /**
    * Register a callback that is triggered whenever the active client changes.
    *
-   * Such listeners are useful for handling setup that should happen just before client connection
-   * happens.
+   * Such listeners are useful for handling setup that should happen just before client connection happens.
    */
   fun addClientChangedListener(callback: (InspectorClient) -> Unit) {
     clientChangedCallbacks.add(callback)
@@ -349,9 +325,7 @@ class InspectorClientLauncher(
   fun disconnectActiveClient(timeout: Long = Long.MAX_VALUE, unit: TimeUnit = TimeUnit.SECONDS) {
     if (activeClient.isConnected) {
       val latch = CountDownLatch(1)
-      activeClient.registerStateCallback { state ->
-        if (state == InspectorClient.State.DISCONNECTED) latch.countDown()
-      }
+      activeClient.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) latch.countDown() }
       activeClient.disconnect()
       latch.await(timeout, unit)
     }

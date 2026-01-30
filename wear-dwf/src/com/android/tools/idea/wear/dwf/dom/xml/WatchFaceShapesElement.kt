@@ -46,13 +46,9 @@ interface WatchFaceShapesElement : AndroidDomElement {
 
     @get:Convert(ShapeConverter::class) val shape: GenericAttributeValue<String>
 
-    @get:AndroidResourceType("dimen")
-    @get:Convert(ResourceReferenceConverter::class)
-    val height: GenericAttributeValue<ResourceValue>
+    @get:AndroidResourceType("dimen") @get:Convert(ResourceReferenceConverter::class) val height: GenericAttributeValue<ResourceValue>
 
-    @get:AndroidResourceType("dimen")
-    @get:Convert(ResourceReferenceConverter::class)
-    val width: GenericAttributeValue<ResourceValue>
+    @get:AndroidResourceType("dimen") @get:Convert(ResourceReferenceConverter::class) val width: GenericAttributeValue<ResourceValue>
 
     private class ShapeConverter : StaticEnumConverter("CIRCLE", "RECTANGLE")
   }

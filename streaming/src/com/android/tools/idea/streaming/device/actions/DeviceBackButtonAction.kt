@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_BACK
 
-/**
- * Simulates pressing the Back button on an Android device.
- */
+/** Simulates pressing the Back button on an Android device. */
 internal class DeviceBackButtonAction : DevicePushButtonAction(AKEYCODE_BACK, configFilter = { !it.isAutomotive })

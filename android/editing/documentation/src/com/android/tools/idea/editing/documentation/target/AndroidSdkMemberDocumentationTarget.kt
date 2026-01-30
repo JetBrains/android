@@ -28,15 +28,8 @@ internal sealed class AndroidSdkMemberDocumentationTarget<T : PsiMember>(
 ) : AndroidSdkDocumentationTarget<T>(targetElement, sourceElement, url, localJavaDocInfo) {
   override val displayName = containingClass.qualifiedName + "#" + targetElement.name
 
-  override fun create(
-    targetElement: T,
-    sourceElement: PsiElement?,
-    url: String,
-    localJavaDocInfo: String?,
-  ) =
-    targetElement.containingClass?.let {
-      create(targetElement, it, sourceElement, url, localJavaDocInfo)
-    }
+  override fun create(targetElement: T, sourceElement: PsiElement?, url: String, localJavaDocInfo: String?) =
+    targetElement.containingClass?.let { create(targetElement, it, sourceElement, url, localJavaDocInfo) }
 
   /** Creates a new [AndroidSdkMemberDocumentationTarget] with the given parameters. */
   protected abstract fun create(

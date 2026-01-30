@@ -27,27 +27,26 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TE
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.instantapp.InstantApps
-import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Application id provider for Gradle projects.
- */
-class GradleApplicationIdProvider private constructor(
+/** Application id provider for Gradle projects. */
+class GradleApplicationIdProvider
+private constructor(
   private val androidFacet: AndroidFacet,
   private val forTests: Boolean,
   private val androidModel: GradleAndroidModel,
   private val basicVariant: IdeBasicVariant,
-  private val variant: IdeVariantCore?
+  private val variant: IdeVariantCore?,
 ) : ApplicationIdProvider {
 
   companion object {
@@ -57,7 +56,7 @@ class GradleApplicationIdProvider private constructor(
       forTests: Boolean,
       androidModel: GradleAndroidModel,
       basicVariant: IdeBasicVariant,
-      variant: IdeVariantCore
+      variant: IdeVariantCore,
     ): GradleApplicationIdProvider {
       require(basicVariant.name == variant.name) { "variant.name(${variant.name}) != basicVariant.name(${basicVariant.name})" }
       return GradleApplicationIdProvider(androidFacet, forTests, androidModel, basicVariant, variant)
@@ -84,8 +83,9 @@ class GradleApplicationIdProvider private constructor(
     fun getBaseFeatureApplicationIdProvider(baseFeatureGetter: (AndroidFacet) -> Module?): ApplicationIdProvider {
       val baseModule =
         baseFeatureGetter(androidFacet) ?: throw ApkProvisionException("Can't get base-app module for ${androidFacet.module.name}")
-      val baseFacet = AndroidFacet.getInstance(baseModule)
-        ?: throw ApkProvisionException("Can't get base-app Android Facet for ${androidFacet.module.name}")
+      val baseFacet =
+        AndroidFacet.getInstance(baseModule)
+          ?: throw ApkProvisionException("Can't get base-app Android Facet for ${androidFacet.module.name}")
       val baseModel =
         GradleAndroidModel.get(baseFacet) ?: throw ApkProvisionException("Can't get base-app Android Facet for ${androidFacet.module.name}")
       return createForBaseModule(baseFacet, baseModel, baseModel.selectedBasicVariant)
@@ -95,19 +95,23 @@ class GradleApplicationIdProvider private constructor(
     // This is called self-instrumenting test: https://source.android.com/compatibility/tests/development/instr-self-e2e
     // For this reason, this method should return test package name for Android library project.
     val projectType = androidModel.androidProject.projectType
-    val applicationId = when (projectType) {
-      PROJECT_TYPE_LIBRARY, PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> testPackageName
-      PROJECT_TYPE_TEST ->
-        getTestProjectTargetApplicationIdProvider(
-          variant ?: throw ApkProvisionException("Cannot resolve test only project target")
-        )?.packageName
-      PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
-      PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.module.getHolderModule()) }.packageName
-      PROJECT_TYPE_APP -> basicVariant.applicationId.nullize()
-      PROJECT_TYPE_ATOM, PROJECT_TYPE_FUSED_LIBRARY -> null
-      PROJECT_TYPE_FEATURE -> if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
-      else getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
-    }
+    val applicationId =
+      when (projectType) {
+        PROJECT_TYPE_LIBRARY,
+        PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> testPackageName
+        PROJECT_TYPE_TEST ->
+          getTestProjectTargetApplicationIdProvider(variant ?: throw ApkProvisionException("Cannot resolve test only project target"))
+            ?.packageName
+        PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
+        PROJECT_TYPE_DYNAMIC_FEATURE ->
+          getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.module.getHolderModule()) }.packageName
+        PROJECT_TYPE_APP -> basicVariant.applicationId.nullize()
+        PROJECT_TYPE_ATOM,
+        PROJECT_TYPE_FUSED_LIBRARY -> null
+        PROJECT_TYPE_FEATURE ->
+          if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
+          else getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
+      }
     if (applicationId == null) {
       val errorMessage = "Could not get applicationId for ${androidFacet.module.name}. Project type: $projectType"
       logger.warn(errorMessage, Throwable())
@@ -124,9 +128,7 @@ class GradleApplicationIdProvider private constructor(
       (if (androidModel.androidProject.projectType === PROJECT_TYPE_TEST) basicVariant.applicationId else basicVariant.testApplicationId)
         .nullize()
 
-    return result
-      ?: throw ApkProvisionException("[${androidFacet.module.name}] Unable to obtain test package.")
-        .also { logger.warn(it) }
+    return result ?: throw ApkProvisionException("[${androidFacet.module.name}] Unable to obtain test package.").also { logger.warn(it) }
   }
 
   // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
@@ -137,16 +139,16 @@ class GradleApplicationIdProvider private constructor(
   private fun getTestProjectTargetApplicationIdProvider(variant: IdeVariantCore): ApplicationIdProvider? {
     val testedTargetVariant =
       variant.testedTargetVariants.singleOrNull()
-        ?: return null // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
+        ?: return null // There is no tested variant or more than one (what should never happen currently) and then we can't get package
+    // name.
 
     val targetFacet =
-      androidFacet
-        .module.getHolderModule()
+      androidFacet.module
+        .getHolderModule()
         .getGradleProjectPath()
         ?.let { GradleHolderProjectPath(it.buildRoot, testedTargetVariant.targetProjectPath) }
         ?.resolveIn(androidFacet.module.project)
-        ?.androidFacet
-        ?: return null
+        ?.androidFacet ?: return null
 
     val targetModel = GradleAndroidModel.get(targetFacet) ?: return null
     val targetBasicVariant = targetModel.findBasicVariantByName(testedTargetVariant.targetVariant) ?: return null
@@ -158,7 +160,5 @@ class GradleApplicationIdProvider private constructor(
   }
 }
 
-/**
- * Default suffix for test packages (as added by Android Gradle plugin).
- */
+/** Default suffix for test packages (as added by Android Gradle plugin). */
 private val logger = Logger.getInstance(GradleApplicationIdProvider::class.java)

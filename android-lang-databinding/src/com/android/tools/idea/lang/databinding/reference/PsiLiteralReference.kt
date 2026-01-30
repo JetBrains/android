@@ -23,10 +23,9 @@ import com.intellij.psi.PsiType
 /**
  * Reference for literals that does not support [resolveTo] on purpose.
  *
- * For example:
- * In data binding expression "@{var.call(123)}", "123" is a literal expression that has null [resolveTo] value so that
- * "Go to Declaration" is disabled as required. However, as a parameter in "var.call", "123" should have an int [resolvedType]
- * so that we can choose the correct method with acceptable parameters,
+ * For example: In data binding expression "@{var.call(123)}", "123" is a literal expression that has null [resolveTo] value so that "Go to
+ * Declaration" is disabled as required. However, as a parameter in "var.call", "123" should have an int [resolvedType] so that we can
+ * choose the correct method with acceptable parameters,
  */
 internal class PsiLiteralReference(element: PsiElement, private val type: PsiType) : DbExprReference(element, null) {
 

@@ -17,13 +17,12 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.model
 
 import java.io.File
 
-/**
- * Package grouping key. This key groups packages by package type, package name, and base folder for the package family.
- */
+/** Package grouping key. This key groups packages by package type, package name, and base folder for the package family. */
 data class PackageKey(
   // The packaging kind. For example, NDK component.
   val packageType: PackageType,
   // The name of the package
   val simplePackageName: String,
   // The root folder of the packaging. For example Android NDK root folder
-  val packagingFamilyBaseFolder: File)
+  val packagingFamilyBaseFolder: File,
+)

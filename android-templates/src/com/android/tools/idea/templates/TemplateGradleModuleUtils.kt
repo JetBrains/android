@@ -20,20 +20,19 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.intellij.openapi.project.Project
 
-/**
- * Determine if the new module's dependencies are managed by Version Catalogs.
- */
+/** Determine if the new module's dependencies are managed by Version Catalogs. */
 @Slow
 fun determineVersionCatalogUseForNewModule(
   project: Project,
   isNewProject: Boolean,
-  detector: GradleVersionCatalogDetector = GradleVersionCatalogDetector.getInstance(project)): Boolean {
+  detector: GradleVersionCatalogDetector = GradleVersionCatalogDetector.getInstance(project),
+): Boolean {
   return StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() &&
-         (isNewProject ||
-          when (detector.versionCatalogDetectorResult) {
-            GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS -> true
-            GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL -> project.baseDir?.findChild("gradle")?.findChild(
-              "libs.versions.toml") != null
-            else -> false
-          })
+    (isNewProject ||
+      when (detector.versionCatalogDetectorResult) {
+        GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS -> true
+        GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL ->
+          project.baseDir?.findChild("gradle")?.findChild("libs.versions.toml") != null
+        else -> false
+      })
 }

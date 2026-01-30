@@ -81,17 +81,11 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
     return Pair(ByteArrayInputStream(version.content), version.versionId)
   }
 
-  override fun writeFileInternal(
-    filePath: String,
-    versionId: String?,
-    content: InputStream,
-  ): String? {
+  override fun writeFileInternal(filePath: String, versionId: String?, content: InputStream): String? {
     checkConnected()
     val currentVersion = filesAndVersions[filePath]
     if (versionId != null && currentVersion != null && currentVersion.versionId != versionId) {
-      throw InvalidVersionIdException(
-        "Expected version $versionId, but actual is ${currentVersion.versionId}"
-      )
+      throw InvalidVersionIdException("Expected version $versionId, but actual is ${currentVersion.versionId}")
     }
     val version = Version(content.readAllBytes())
     filesAndVersions[filePath] = version
@@ -120,11 +114,7 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
     return PushResult(snapshot = pushedSnapshot, result = pushedResult)
   }
 
-  override fun push(
-    snapshot: SettingsSnapshot,
-    force: Boolean,
-    expectedServerVersionId: String?,
-  ): SettingsSyncPushResult {
+  override fun push(snapshot: SettingsSnapshot, force: Boolean, expectedServerVersionId: String?): SettingsSyncPushResult {
     val result = super.push(snapshot, force, expectedServerVersionId)
     settingsPushed(snapshot, result)
     return result
@@ -155,24 +145,16 @@ internal class FakeCommunicatorProvider(
   private val remoteCommunicator: SettingsSyncRemoteCommunicator,
   override val authService: SettingsSyncAuthService =
     FakeAuthService(
-      SettingsSyncUserData(
-        id = USER_EMAIL,
-        providerCode = PROVIDER_CODE_GOOGLE,
-        name = null,
-        email = USER_EMAIL,
-        printableName = null,
-      )
+      SettingsSyncUserData(id = USER_EMAIL, providerCode = PROVIDER_CODE_GOOGLE, name = null, email = USER_EMAIL, printableName = null)
     ),
 ) : SettingsSyncCommunicatorProvider {
   override val providerCode: String
     get() = PROVIDER_CODE_GOOGLE
 
-  override fun createCommunicator(userId: String): SettingsSyncRemoteCommunicator? =
-    remoteCommunicator
+  override fun createCommunicator(userId: String): SettingsSyncRemoteCommunicator? = remoteCommunicator
 }
 
-internal class FakeAuthService(private val userData: SettingsSyncUserData) :
-  SettingsSyncAuthService {
+internal class FakeAuthService(private val userData: SettingsSyncUserData) : SettingsSyncAuthService {
   override val providerCode: String
     get() = PROVIDER_CODE_GOOGLE
 

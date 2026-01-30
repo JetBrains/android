@@ -22,14 +22,14 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
+import org.jetbrains.annotations.Nls
 
 const val MODULES_VIEW = "ModulesView"
 @Nls val modulesPerspectiveDisplayName: String = AndroidGradlePsdBundle.message("android.modules.perspective.configurable.display.name")
 
-class ModulesPerspectiveConfigurable(context: PsContext)
-  : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
+class ModulesPerspectiveConfigurable(context: PsContext) :
+  BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_MODULES
 
@@ -42,11 +42,10 @@ class ModulesPerspectiveConfigurable(context: PsContext)
       else -> ModuleUnsupportedConfigurable(context, this, module)
     }
 
-  @Nls
-  override fun getDisplayName() = modulesPerspectiveDisplayName
+  @Nls override fun getDisplayName() = modulesPerspectiveDisplayName
 
   private fun createConfigurable(module: PsAndroidModule) =
-      AndroidModuleRootConfigurable(context, this, module).apply { history = myHistory }
+    AndroidModuleRootConfigurable(context, this, module).apply { history = myHistory }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = MODULES_VIEW }
 }

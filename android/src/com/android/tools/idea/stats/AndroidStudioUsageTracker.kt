@@ -62,17 +62,6 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.NewUI
 import com.intellij.ui.scale.JBUIScale
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import org.apache.http.client.utils.URIBuilder
-import org.jetbrains.android.AndroidPluginDisposable
- 
 import java.io.File
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -86,10 +75,18 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import org.apache.http.client.utils.URIBuilder
+import org.jetbrains.android.AndroidPluginDisposable
 
-/**
- * Tracks Android Studio specific metrics
- */
+/** Tracks Android Studio specific metrics */
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
@@ -101,9 +98,7 @@ object AndroidStudioUsageTracker {
   private const val SENTIMENT_SURVEY_URL_FLAG_NAME = "analytics/surveys/sentiment/url"
   private const val SENTIMENT_SURVEY_PARAMETER = "guid"
 
-  /**
-   * See [kotlinx.coroutines.channels.Channel.CHANNEL_DEFAULT_CAPACITY]
-   */
+  /** See [kotlinx.coroutines.channels.Channel.CHANNEL_DEFAULT_CAPACITY] */
   private const val DEFAULT_CHANNEL_CAPACITY = 64
   private val eventLogFlow_ = MutableSharedFlow<AndroidStudioEvent.Builder>(extraBufferCapacity = DEFAULT_CHANNEL_CAPACITY)
   val eventLogFlow: SharedFlow<AndroidStudioEvent.Builder> = eventLogFlow_.asSharedFlow()
@@ -115,47 +110,51 @@ object AndroidStudioUsageTracker {
       val productKind =
         if (IdeInfo.isGameTool()) {
           ProductDetails.ProductKind.GAME_TOOLS
-        }
-        else {
+        } else {
           ProductDetails.ProductKind.STUDIO
         }
-      return ProductDetails.newBuilder().apply {
-        product = productKind
-        build = application.build.asString()
-        version = application.strictVersion
-        osArchitecture = CommonMetricsData.osArchitecture
-        channel = lifecycleChannelFromUpdateSettings()
-        theme = currentIdeTheme()
-        serverFlagsChangelist = ServerFlagService.instance.configurationVersion
-        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.flagAssignments.keys))
-        runningInsideIdx = (System.getenv(IDX_ENVIRONMENT_VARIABLE) == "true")
-        addAllActiveExperiments(buildActiveExperimentsFromServerFlags(ServerFlagService.instance.flagAssignments))
-      }.build()
+      return ProductDetails.newBuilder()
+        .apply {
+          product = productKind
+          build = application.build.asString()
+          version = application.strictVersion
+          osArchitecture = CommonMetricsData.osArchitecture
+          channel = lifecycleChannelFromUpdateSettings()
+          theme = currentIdeTheme()
+          serverFlagsChangelist = ServerFlagService.instance.configurationVersion
+          addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.flagAssignments.keys))
+          runningInsideIdx = (System.getenv(IDX_ENVIRONMENT_VARIABLE) == "true")
+          addAllActiveExperiments(buildActiveExperimentsFromServerFlags(ServerFlagService.instance.flagAssignments))
+        }
+        .build()
     }
 
-  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) = map.map {
-    ProductDetails.ActiveExperiment.newBuilder().apply {
-      experimentId = it.key
-      valueIndex = it.value
-    }.build()
-  }
+  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) =
+    map.map {
+      ProductDetails.ActiveExperiment.newBuilder()
+        .apply {
+          experimentId = it.key
+          valueIndex = it.value
+        }
+        .build()
+    }
 
   /** Gets list of active experiments. */
   @JvmStatic
   fun buildActiveExperimentList(): Collection<String> {
     val experimentOverridesProperty = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
 
-    val experimentOverrides = if (experimentOverridesProperty.isNullOrEmpty()) {
-      emptyList()
-    }
-    else {
-      experimentOverridesProperty.split(',')
-    }
+    val experimentOverrides =
+      if (experimentOverridesProperty.isNullOrEmpty()) {
+        emptyList()
+      } else {
+        experimentOverridesProperty.split(',')
+      }
     val activeMendelExperimentIds = MendelFlagsProvider.getActiveExperimentIds().map { it.toString() }
     return experimentOverrides + activeMendelExperimentIds
   }
 
-  /** Gets information about all the displays connected to this machine.  */
+  /** Gets information about all the displays connected to this machine. */
   private val displayDetails: Iterable<DisplayDetails>
     get() {
       val displays = ArrayList<DisplayDetails>()
@@ -170,7 +169,8 @@ object AndroidStudioUsageTracker {
               .setHeight(bounds.height.toLong())
               .setWidth(bounds.width.toLong())
               .setSystemScale(JBUIScale.sysScale(defaultConfiguration))
-              .build())
+              .build()
+          )
         }
       }
       return displays
@@ -236,12 +236,7 @@ object AndroidStudioUsageTracker {
       pluginInfoProto.addPlugins(pluginProto)
     }
 
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(EventKind.IDE_PLUGIN_INFO)
-        .setIdePluginInfo(pluginInfoProto))
-
-
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.IDE_PLUGIN_INFO).setIdePluginInfo(pluginInfoProto))
   }
 
   private fun reportSafeModeStats() {
@@ -250,20 +245,19 @@ object AndroidStudioUsageTracker {
 
     if (SystemInfo.isWindows) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.WINDOWS)
-    }
-    else if (SystemInfo.isMac) {
+    } else if (SystemInfo.isMac) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.MAC)
-    }
-    else if (SystemInfo.isUnix) {
+    } else if (SystemInfo.isUnix) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.LINUX)
-    }
-    else {
+    } else {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.UNKNOWN_OS)
     }
 
     safeModeStatsProto.setEntryPoint(SafeModeStatsEvent.EntryPoint.SCRIPT)
-    safeModeStatsProto.setTrigger(if (System.getProperty("studio.safe.mode") == null) SafeModeStatsEvent.Trigger.UNKNOWN_TRIGGER
-                                  else SafeModeStatsEvent.Trigger.STARTUP_FAILED)
+    safeModeStatsProto.setTrigger(
+      if (System.getProperty("studio.safe.mode") == null) SafeModeStatsEvent.Trigger.UNKNOWN_TRIGGER
+      else SafeModeStatsEvent.Trigger.STARTUP_FAILED
+    )
     safeModeStatsProto.setStartUpResult(SafeModeStatsEvent.StartUpResult.SAFE_MODE_SUCCESS)
     safeModeStatsProto.setStudioVersion(ApplicationInfo.getInstance().strictVersion)
     safeModeStatsProto.setJdkModified(IdeSdks.getInstance().getRunningVersionOrDefault().toString())
@@ -279,10 +273,7 @@ object AndroidStudioUsageTracker {
       }
     }
 
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(EventKind.SAFE_MODE_STATS_EVENT)
-        .setSafeModeStatsEvent(safeModeStatsProto))
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.SAFE_MODE_STATS_EVENT).setSafeModeStatsEvent(safeModeStatsProto))
   }
 
   private fun runDailyReports() {
@@ -297,25 +288,24 @@ object AndroidStudioUsageTracker {
         .setKind(EventKind.STUDIO_PING)
         .setProductDetails(productDetails)
         .setMachineDetails(getMachineDetails(File(PathManager.getHomePath())))
-        .setJvmDetails(CommonMetricsData.jvmDetails))
+        .setJvmDetails(CommonMetricsData.jvmDetails)
+    )
   }
 
   private fun logNewUI() {
     val enabled =
       try {
         NewUI.isEnabled()
-      }
-      catch (_: Throwable) {
+      } catch (_: Throwable) {
         // Don't send the message if the new UI check fails
         return
       }
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
-        intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
-          isEnabled = enabled
-        }.build()
-      })
+        intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply { isEnabled = enabled }.build()
+      }
+    )
   }
 
   // Persist the initial new UI state for this session, so the
@@ -324,8 +314,7 @@ object AndroidStudioUsageTracker {
     val enabled =
       try {
         NewUI.isEnabled()
-      }
-      catch (_: Throwable) {
+      } catch (_: Throwable) {
         return
       }
 
@@ -334,21 +323,21 @@ object AndroidStudioUsageTracker {
     // If the user disabled the new UI during the previous
     // session, display a survey asking them why
     if (StudioFlags.EXPERIMENTAL_UI_SURVEY_ENABLED.get() && !enabled && instance.enabled) {
-      showNewUISurvey();
+      showNewUISurvey()
     }
 
     instance.enabled = enabled
   }
 
   private fun showNewUISurvey() {
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
+    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
 
-    val notification = notificationGroup.createNotification(
-      "New UI Survey",
-      "We noticed that you recently disabled the New UI. Please tell us why so we can improve the experience.",
-      NotificationType.INFORMATION
-    )
+    val notification =
+      notificationGroup.createNotification(
+        "New UI Survey",
+        "We noticed that you recently disabled the New UI. Please tell us why so we can improve the experience.",
+        NotificationType.INFORMATION,
+      )
 
     notification.addAction(FeatureSurveyNotificationAction(EXPERIMENTAL_UI_INTERACTION_SURVEY))
 
@@ -381,16 +370,14 @@ object AndroidStudioUsageTracker {
     // not the magic date for that user.
     val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
     if (lastSentimentQuestionDate != null) {
-      val daysToWaitForRequestingSentimentAgain = if (isASwB()) {
-        DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_ASWB
-      }
-      else {
-        ServerFlagService.instance.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME,
-                                          DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO)
-      }
+      val daysToWaitForRequestingSentimentAgain =
+        if (isASwB()) {
+          DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_ASWB
+        } else {
+          ServerFlagService.instance.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME, DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO)
+        }
 
-      val startOfWaitForRequest =
-        daysFromNow(now, -daysToWaitForRequestingSentimentAgain)
+      val startOfWaitForRequest = daysFromNow(now, -daysToWaitForRequestingSentimentAgain)
       return !lastSentimentQuestionDate.after(startOfWaitForRequest)
     }
 
@@ -400,67 +387,57 @@ object AndroidStudioUsageTracker {
     // Otherwise, only request on the magic date for the user, to spread user sentiment data throughout the year.
     val daysSinceJanFirst = ChronoUnit.DAYS.between(startOfYear.toInstant(), now.toInstant())
     val offset =
-      abs(
-        Hashing.farmHashFingerprint64()
-          .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
-          .asLong()
-      ) % popupSentimentQuestionFrequency
+      abs(Hashing.farmHashFingerprint64().hashString(AnalyticsSettings.userId, Charsets.UTF_8).asLong()) % popupSentimentQuestionFrequency
     return daysSinceJanFirst == offset
   }
 
-  /**
-   * returning UNKNOWN_SATISFACTION_LEVEL means that the user hit the Cancel button in the dialog.
-   */
+  /** returning UNKNOWN_SATISFACTION_LEVEL means that the user hit the Cancel button in the dialog. */
   @OptIn(FlowPreview::class)
   fun requestUserSentiment() {
     val id = UUID.randomUUID().toString()
 
     val benchmarkSurveyUrl = benchmarkSurveyUrl()
 
-    val surveyType = benchmarkSurveyUrl?.let {
-      SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER
-    } ?: SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
+    val surveyType =
+      benchmarkSurveyUrl?.let { SentimentSurveyEvent.SurveyType.SURVEY_TYPE_BROWSER }
+        ?: SentimentSurveyEvent.SurveyType.SURVEY_TYPE_IN_PRODUCT
 
     logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED, surveyType)
 
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     scope.launch(Dispatchers.EDT) {
-      IdleTracker.getInstance().events
-        .debounce(timeout = IDLE_TIME_BEFORE_SHOWING_DIALOG.milliseconds)
-        .first {
-          val now = AnalyticsSettings.dateProvider.now()
-          logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED, surveyType)
+      IdleTracker.getInstance().events.debounce(timeout = IDLE_TIME_BEFORE_SHOWING_DIALOG.milliseconds).first {
+        val now = AnalyticsSettings.dateProvider.now()
+        logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED, surveyType)
 
-          if (benchmarkSurveyUrl != null) {
-            showBenchmarkSurveyDialog(id, benchmarkSurveyUrl, now)
-          }
-          else {
-            val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
-            val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+        if (benchmarkSurveyUrl != null) {
+          showBenchmarkSurveyDialog(id, benchmarkSurveyUrl, now)
+        } else {
+          val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+          val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
-            val dialog = survey?.let { createDialog(it, followupSurvey = followupSurvey) }
-                         ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, followupSurvey)
+          val dialog =
+            survey?.let { createDialog(it, followupSurvey = followupSurvey) }
+              ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, followupSurvey)
 
-            dialog.show()
+          dialog.show()
 
-            AnalyticsSettings.lastSentimentQuestionDate = now
-            AnalyticsSettings.lastSentimentAnswerDate = now
-            AnalyticsSettings.saveSettings()
-          }
-          true
+          AnalyticsSettings.lastSentimentQuestionDate = now
+          AnalyticsSettings.lastSentimentAnswerDate = now
+          AnalyticsSettings.saveSettings()
         }
+        true
+      }
     }
   }
 
   private fun showBenchmarkSurveyDialog(id: String, baseUrl: String, now: Date) {
-    val url = if (optedIn) {
-      URIBuilder(baseUrl)
-        .addParameter(SENTIMENT_SURVEY_PARAMETER, id)
-        .toString()
-    }
-    else {
-      baseUrl
-    }
+    val url =
+      if (optedIn) {
+        URIBuilder(baseUrl).addParameter(SENTIMENT_SURVEY_PARAMETER, id).toString()
+      } else {
+        baseUrl
+      }
 
     AnalyticsSettings.lastSentimentQuestionDate = now
 
@@ -472,8 +449,7 @@ object AndroidStudioUsageTracker {
       BrowserUtil.browse(url)
       type = SentimentSurveyEvent.Type.TYPE_INVOKED
       lastSentimentAnswerDate = now
-    }
-    else {
+    } else {
       type = SentimentSurveyEvent.Type.TYPE_CANCELLED
       lastSentimentAnswerDate = null
     }
@@ -484,43 +460,45 @@ object AndroidStudioUsageTracker {
   }
 
   private fun logSentimentSurveyEvent(id: String, type: SentimentSurveyEvent.Type, surveyType: SentimentSurveyEvent.SurveyType) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(EventKind.SENTIMENT_SURVEY_EVENT)
-                       .setSentimentSurveyEvent(SentimentSurveyEvent.newBuilder().apply {
-                         this.id = id
-                         this.type = type
-                         this.surveyType = surveyType
-                       }))
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(EventKind.SENTIMENT_SURVEY_EVENT)
+        .setSentimentSurveyEvent(
+          SentimentSurveyEvent.newBuilder().apply {
+            this.id = id
+            this.type = type
+            this.surveyType = surveyType
+          }
+        )
+    )
   }
 
   private fun getPopupQuestionFrequency(): Int {
     val settingsValue = AnalyticsSettings.popSentimentQuestionFrequency
     return if (settingsValue > 0) {
       settingsValue
-    }
-    else {
+    } else {
       ServerFlagService.instance.getInt(SENTIMENT_SURVEY_INTERVAL_FLAG_NAME, AnalyticsSettings.daysInYear())
     }
   }
 
   private fun runHourlyReports() {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
-                       .setKind(EventKind.STUDIO_PROCESS_STATS)
-                       .setJavaProcessStats(CommonMetricsData.javaProcessStats))
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
+        .setKind(EventKind.STUDIO_PROCESS_STATS)
+        .setJavaProcessStats(CommonMetricsData.javaProcessStats)
+    )
     CompletionStats.reportCompletionStats()
     ManifestMergerStatsTracker.reportMergerStats()
   }
 
-
-  /**
-   * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings
-   */
+  /** Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings */
   private fun currentIdeTheme(): ProductDetails.IdeTheme {
-    val theme = LafManager.getInstance().getCurrentUIThemeLookAndFeel()?.name?.lowercase(Locale.US)
-                ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
-    val author = LafManager.getInstance().currentUIThemeLookAndFeel.author?.lowercase(Locale.US)
-                 ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
+    val theme =
+      LafManager.getInstance().getCurrentUIThemeLookAndFeel()?.name?.lowercase(Locale.US) ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
+    val author =
+      LafManager.getInstance().currentUIThemeLookAndFeel.author?.lowercase(Locale.US) ?: return ProductDetails.IdeTheme.UNKNOWN_THEME
     return when {
       author == "jetbrains" ->
         when {
@@ -536,9 +514,7 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  /**
-   * Reads the channel selected by the user from UpdateSettings and converts it into a [SoftwareLifeCycleChannel] value.
-   */
+  /** Reads the channel selected by the user from UpdateSettings and converts it into a [SoftwareLifeCycleChannel] value. */
   private fun lifecycleChannelFromUpdateSettings(): SoftwareLifeCycleChannel {
     return when (UpdateSettings.getInstance().selectedChannelStatus) {
       ChannelStatus.EAP -> SoftwareLifeCycleChannel.CANARY
@@ -551,11 +527,7 @@ object AndroidStudioUsageTracker {
 
   private fun setupMetricsListener() {
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
-    UsageTracker.listener = { event ->
-      scope.launch {
-        eventLogFlow_.emit(event)
-      }
-    }
+    UsageTracker.listener = { event -> scope.launch { eventLogFlow_.emit(event) } }
 
     scope.launch {
       eventLogFlow.collect {

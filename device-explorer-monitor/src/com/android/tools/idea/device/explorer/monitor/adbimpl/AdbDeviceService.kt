@@ -32,25 +32,21 @@ import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import java.io.File
+import java.io.FileNotFoundException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileNotFoundException
 
 @UiThread
 @Service(PROJECT)
-class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () -> File?)
-  : Disposable, DeviceService {
+class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () -> File?) : Disposable, DeviceService {
 
-  @Suppress("unused")
-  constructor(project: Project) : this({ AdbFileProvider.fromProject(project).get() })
+  @Suppress("unused") constructor(project: Project) : this({ AdbFileProvider.fromProject(project).get() })
 
-  /**
-   * The [CoroutineScope] used for cancelling coroutines when [dispose] is called.
-   */
+  /** The [CoroutineScope] used for cancelling coroutines when [dispose] is called. */
   private val coroutineScope: CoroutineScope = AndroidCoroutineScope(this)
 
   private val devices: MutableMap<String, IDevice> = HashMap()
@@ -63,7 +59,9 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
   private var deviceListSynced = CompletableDeferred<Unit>(coroutineScope.coroutineContext[Job])
 
   enum class State {
-    Initial, SetupRunning, SetupDone
+    Initial,
+    SetupRunning,
+    SetupDone,
   }
 
   override fun dispose() {
@@ -125,14 +123,12 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: () ->
       deviceListSynced.await()
 
       state = State.SetupDone
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       LOGGER.warn("Unable to obtain debug bridge", t)
       state = State.Initial
       if (t.message != null) {
         throw t
-      }
-      else {
+      } else {
         throw RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), t)
       }
     }

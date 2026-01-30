@@ -35,21 +35,17 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 
 /**
- * Inspection that checks that a complication data source is properly located under the right
- * complication slot.
+ * Inspection that checks that a complication data source is properly located under the right complication slot.
  *
- * Complication data sources, for example `[COMPLICATION.TEXT]`, can only be used in
- * [WFFExpressionLanguage] if the WFF expression is located under a `<Complication>` tag within a
- * Declarative Watch Face. The complication data sources available depend on the type of the
+ * Complication data sources, for example `[COMPLICATION.TEXT]`, can only be used in [WFFExpressionLanguage] if the WFF expression is
+ * located under a `<Complication>` tag within a Declarative Watch Face. The complication data sources available depend on the type of the
  * `<Complication>` tag as well the Watch Face's [WFFVersion].
  *
  * @see WFFConstants.DataSources.COMPLICATION_BY_TYPE
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
  */
 class InvalidComplicationDataSourceLocationInspection : LocalInspectionTool() {
-  override fun getStaticDescription() =
-    message("inspection.invalid.complication.data.source.location.description")
+  override fun getStaticDescription() = message("inspection.invalid.complication.data.source.location.description")
 
   override fun isAvailableForFile(file: PsiFile): Boolean {
     if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return false
@@ -60,8 +56,7 @@ class InvalidComplicationDataSourceLocationInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : WFFExpressionVisitor() {
       override fun visitDataSource(element: WFFExpressionDataSource) {
-        val complicationDataSource =
-          DataSources.COMPLICATION_ALL.find { it.id == element.id.text } ?: return
+        val complicationDataSource = DataSources.COMPLICATION_ALL.find { it.id == element.id.text } ?: return
         val parentComplicationTag = getParentComplicationTag(element)
         if (parentComplicationTag == null) {
           holder.registerProblem(
@@ -91,8 +86,5 @@ class InvalidComplicationDataSourceLocationInspection : LocalInspectionTool() {
   }
 
   private fun compatibleComplicationTypes(dataSource: StaticDataSource) =
-    DataSources.COMPLICATION_BY_TYPE.filter { (_, dataSources) ->
-        dataSource.id in dataSources.map { it.id }
-      }
-      .keys
+    DataSources.COMPLICATION_BY_TYPE.filter { (_, dataSources) -> dataSource.id in dataSources.map { it.id } }.keys
 }

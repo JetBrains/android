@@ -31,8 +31,7 @@ interface PseudoLocalesToken : Token {
   }
 
   companion object {
-    val EP_NAME: ExtensionPointName<PseudoLocalesToken> =
-      ExtensionPointName("com.android.tools.idea.projectsystem.pseudoLocalesToken")
+    val EP_NAME: ExtensionPointName<PseudoLocalesToken> = ExtensionPointName("com.android.tools.idea.projectsystem.pseudoLocalesToken")
 
     @JvmStatic
     fun AndroidProjectSystem.isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesState =

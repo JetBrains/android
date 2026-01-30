@@ -17,11 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented.orchestrator
 
 import com.android.tools.idea.model.TestExecutionOption
 
-/**
- * A map of [IdeTestOptions.Execution] and the master android process name.
- */
+/** A map of [IdeTestOptions.Execution] and the master android process name. */
 @JvmField
-val MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME = mapOf<TestExecutionOption, String>(
-  TestExecutionOption.ANDROID_TEST_ORCHESTRATOR to "android.support.test.orchestrator",
-  TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR to "androidx.test.orchestrator"
-)
+val MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME =
+  mapOf<TestExecutionOption, String>(
+    TestExecutionOption.ANDROID_TEST_ORCHESTRATOR to "android.support.test.orchestrator",
+    TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR to "androidx.test.orchestrator",
+  )

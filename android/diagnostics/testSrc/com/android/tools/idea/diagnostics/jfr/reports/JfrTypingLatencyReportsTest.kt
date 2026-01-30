@@ -20,6 +20,8 @@ import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -29,15 +31,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.kotlin.mock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class JfrTypingLatencyReportsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private val mockEditor: Editor = mock()
 
@@ -45,13 +44,14 @@ class JfrTypingLatencyReportsTest {
   private val dispatcher = StandardTestDispatcher(scheduler)
   private val testScope = TestScope(dispatcher)
 
-  private val testLatencyConfig = JfrTypingLatencyConfig.newBuilder()
-    .setMaxReportLengthBytes(200_000)
-    .setTypingTimeoutMillis(2_000L) // 2 seconds
-    .setSessionTimeoutMillis(10_000L) // 10 seconds
-    .setCooldownTimeoutMillis(1_000L * 60L * 10L) // 10 minutes
-    .setLatencyReportingThresholdMillis(1_000L)  // 1 second
-    .build()
+  private val testLatencyConfig =
+    JfrTypingLatencyConfig.newBuilder()
+      .setMaxReportLengthBytes(200_000)
+      .setTypingTimeoutMillis(2_000L) // 2 seconds
+      .setSessionTimeoutMillis(10_000L) // 10 seconds
+      .setCooldownTimeoutMillis(1_000L * 60L * 10L) // 10 minutes
+      .setLatencyReportingThresholdMillis(1_000L) // 1 second
+      .build()
 
   private var startCaptureCalls = 0
   private val stopCaptureArgs: MutableList<Int> = mutableListOf()

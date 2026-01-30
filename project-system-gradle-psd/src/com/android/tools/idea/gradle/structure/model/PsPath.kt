@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 
-/**
- * A UI independent reference to a place in a build configuration.
- */
+/** A UI independent reference to a place in a build configuration. */
 interface PsPath : Comparable<PsPath> {
 
   /**
@@ -27,9 +25,11 @@ interface PsPath : Comparable<PsPath> {
    *
    * For example, a module would be a parent for its dependencies.
    */
-  val parent: PsPath? get() = null
+  val parent: PsPath?
+    get() = null
 
-  val canHide: Boolean get() = false
+  val canHide: Boolean
+    get() = false
 
   fun getHyperlinkDestination(context: PsContext): String?
 
@@ -41,4 +41,5 @@ interface PsPath : Comparable<PsPath> {
  *
  * For example, a module would be a parent for its dependencies.
  */
-val PsPath.parents: List<PsPath> get() = parent?.let { it.parents + it } ?: listOf()
+val PsPath.parents: List<PsPath>
+  get() = parent?.let { it.parents + it } ?: listOf()

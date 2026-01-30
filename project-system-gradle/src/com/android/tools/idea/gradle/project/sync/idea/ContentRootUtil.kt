@@ -38,55 +38,54 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.kotlin.idea.base.externalSystem.NodeWithData
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 
 /**
- * Processes all sources contained within this [SourceProvider] using the given [processor]. This
- * [processor] is called with the absolute path to the file and the type of the source.
+ * Processes all sources contained within this [SourceProvider] using the given [processor]. This [processor] is called with the absolute
+ * path to the file and the type of the source.
  */
-fun IdeSourceProvider.processAll(
-  forTest: Boolean = false,
-  processor: (String, ExternalSystemSourceType?) -> Unit
-) {
-  val allResources = resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + baselineProfileDirectories +
-                    customSourceDirectories.map { it.directory }
-  allResources.distinctBy { it.absolutePath }.forEach {
-    processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
-  }
+fun IdeSourceProvider.processAll(forTest: Boolean = false, processor: (String, ExternalSystemSourceType?) -> Unit) {
+  val allResources =
+    resourcesDirectories +
+      resDirectories +
+      assetsDirectories +
+      mlModelsDirectories +
+      baselineProfileDirectories +
+      customSourceDirectories.map { it.directory }
+  allResources.distinctBy { it.absolutePath }.forEach { processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE) }
 
   manifestFile?.let { processor(it.absolutePath, null) }
 
-  val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories + keepRulesDirectories
+  val allSources =
+    aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories + keepRulesDirectories
 
-  allSources.distinctBy { it.absolutePath }.forEach {
-    processor(it.absolutePath, if (forTest) TEST else SOURCE)
-  }
+  allSources.distinctBy { it.absolutePath }.forEach { processor(it.absolutePath, if (forTest) TEST else SOURCE) }
 }
 
 fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: GradleAndroidModelData) {
   val variant = androidModel.selectedVariantCore
 
-  fun populateContentEntries(
-    artifact: IdeBaseArtifactCore?,
-    sourceProviders: List<IdeSourceProvider>
-  ): List<DataNode<ContentRootData>> {
+  fun populateContentEntries(artifact: IdeBaseArtifactCore?, sourceProviders: List<IdeSourceProvider>): List<DataNode<ContentRootData>> {
     val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
     val contentRoots = collectContentRootDataForArtifact(artifact, sourceProviders, androidModel)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
-  fun populateContentEntries(artifact: IdeTestSuiteVariantTarget?, sourceProviders: List<IdeSourceProvider>): List<DataNode<ContentRootData>> {
+  fun populateContentEntries(
+    artifact: IdeTestSuiteVariantTarget?,
+    sourceProviders: List<IdeSourceProvider>,
+  ): List<DataNode<ContentRootData>> {
     val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
     val contentRoots = collectContentRootDataForTestSuite(sourceProviders)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
   val sourceSetContentRoots =
-    mutableSetOf(populateContentEntries (variant.mainArtifact,  androidModel.activeSourceProviders)).apply {
+    mutableSetOf(populateContentEntries(variant.mainArtifact, androidModel.activeSourceProviders)).apply {
       variant.hostTestArtifacts.forEach { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
       variant.deviceTestArtifacts
         .find { it.name == IdeArtifactName.ANDROID_TEST }
@@ -104,7 +103,7 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
 
 private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
   holderModuleRoots: List<NodeWithData<ContentRootData>>,
-  sourceSetContentRoots: List<DataNode<ContentRootData>>
+  sourceSetContentRoots: List<DataNode<ContentRootData>>,
 ) {
   val sourceSetContentRootsByPath = sourceSetContentRoots.associateBy { it.data.rootPath }
 
@@ -123,8 +122,8 @@ private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
 private fun collectContentRootDataForArtifact(
   artifact: IdeBaseArtifactCore?,
   sourceProviders: List<IdeSourceProvider>,
-  androidModel: GradleAndroidModelData
-) : Collection<ContentRootData> {
+  androidModel: GradleAndroidModelData,
+): Collection<ContentRootData> {
   checkNotNull(artifact) { "Couldn't find artifact for descriptor" }
 
   val newContentRoots = mutableListOf<ContentRootData>()
@@ -133,13 +132,9 @@ private fun collectContentRootDataForArtifact(
     newContentRoots.add(createContentRootData(it.absolutePath, type))
   }
 
-  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach {
-    newContentRoots.add(createContentRootData(it, type))
-  }
+  fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { newContentRoots.add(createContentRootData(it, type)) }
 
-  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
-    artifact, androidModel.androidProject
-  ).map(File::getAbsolutePath).toSet()
+  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(artifact, androidModel.androidProject).map(File::getAbsolutePath).toSet()
   sourceProviders.forEach { sourceProvider ->
     sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
       // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.
@@ -168,15 +163,11 @@ private fun createContentRootData(path: @SystemDependent String, sourceType: Ext
   return contentRootData
 }
 
-private fun collectContentRootDataForTestSuite(
-  sourceProviders: List<IdeSourceProvider>,
-) : Collection<ContentRootData> {
+private fun collectContentRootDataForTestSuite(sourceProviders: List<IdeSourceProvider>): Collection<ContentRootData> {
 
   val newContentRoots = mutableListOf<ContentRootData>()
   sourceProviders.forEach { sourceProvider ->
-    sourceProvider.processAll(true) { path, sourceType ->
-      newContentRoots.add(createContentRootData(path, sourceType))
-    }
+    sourceProvider.processAll(true) { path, sourceType -> newContentRoots.add(createContentRootData(path, sourceType)) }
   }
   return newContentRoots
 }

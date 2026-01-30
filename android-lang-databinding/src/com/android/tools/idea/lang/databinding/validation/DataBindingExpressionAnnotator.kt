@@ -57,15 +57,10 @@ import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.utils.addIfNotNull
 
-
-/**
- * This handles annotation in the data binding expressions (inside `@{}`).
- */
+/** This handles annotation in the data binding expressions (inside `@{}`). */
 class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
 
-  /**
-   * Matches attribute types that are assignable from binding expression types and their conversions.
-   */
+  /** Matches attribute types that are assignable from binding expression types and their conversions. */
   private class AttributeTypeMatcher(dbExprType: PsiType, facet: AndroidFacet) {
     private val bindingConversionTypes: List<PsiModelClass>
 
@@ -76,17 +71,15 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       val bindingConversionAnnotation = facade.findClass(mode.bindingConversion, moduleScope)
       bindingConversionTypes = mutableListOf(PsiModelClass(dbExprType, mode).unwrapped)
       if (bindingConversionAnnotation != null) {
-        AnnotatedElementsSearch.searchElements(
-          bindingConversionAnnotation, moduleScope, PsiMethod::class.java)
-          .findAll()
-          .forEach { annotatedMethod ->
-            val parameters = annotatedMethod.parameterList.parameters
-            val returnType = annotatedMethod.returnType ?: return@forEach
-            // Convert parameters[0] to its erasure to remove unwanted type parameter e.g. "T" in List<T> when assigned from List<String>.
-            if (parameters.size == 1 && TypeConversionUtil.erasure(parameters[0].type).isAssignableFrom(dbExprType)) {
-              bindingConversionTypes.add(PsiModelClass(returnType, mode).unwrapped)
-            }
+        AnnotatedElementsSearch.searchElements(bindingConversionAnnotation, moduleScope, PsiMethod::class.java).findAll().forEach {
+          annotatedMethod ->
+          val parameters = annotatedMethod.parameterList.parameters
+          val returnType = annotatedMethod.returnType ?: return@forEach
+          // Convert parameters[0] to its erasure to remove unwanted type parameter e.g. "T" in List<T> when assigned from List<String>.
+          if (parameters.size == 1 && TypeConversionUtil.erasure(parameters[0].type).isAssignableFrom(dbExprType)) {
+            bindingConversionTypes.add(PsiModelClass(returnType, mode).unwrapped)
           }
+        }
       }
     }
 
@@ -100,8 +93,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       this.holder = holder
       element.accept(this)
       matchAttributeTypeWhenAtRoot(element)
-    }
-    finally {
+    } finally {
       this.holder = null
     }
   }
@@ -113,8 +105,8 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   /**
    * Matches element type with its associated XML attribute when at the root of the data binding expression.
    *
-   * As the attribute and its data binding expression may not be resolved properly,
-   * we match their types only when both have at least one candidate type.
+   * As the attribute and its data binding expression may not be resolved properly, we match their types only when both have at least one
+   * candidate type.
    */
   private fun matchAttributeTypeWhenAtRoot(rootExpression: PsiElement) {
     if (rootExpression.parent !is DbFile) {
@@ -137,8 +129,8 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val androidFacet = AndroidFacet.getInstance(rootExpression) ?: return
     val attributeMatcher = AttributeTypeMatcher(dbExprType.type, androidFacet)
     val attributeSetterTypes = attribute.getAllSetterTypes()
-    val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullOfOrNull { it.resolve() as? PsiClass }?.name
-                  ?: SdkConstants.VIEW_TAG
+    val tagName =
+      attribute.parentOfType<XmlTag>()?.references?.firstNotNullOfOrNull { it.resolve() as? PsiClass }?.name ?: SdkConstants.VIEW_TAG
     if (attributeSetterTypes.isNotEmpty() && attributeSetterTypes.none { attributeMatcher.matches(it.unwrapped.erasure()) }) {
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
     }
@@ -152,8 +144,10 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       }
 
       val attributeGetterTypes = attribute.getAllGetterTypes()
-      if (attributeGetterTypes.isNotEmpty() &&
-          attributeGetterTypes.none { attributeType -> assignableType.erasure().unwrapped.isAssignableFrom(attributeType) }) {
+      if (
+        attributeGetterTypes.isNotEmpty() &&
+          attributeGetterTypes.none { attributeType -> assignableType.erasure().unwrapped.isAssignableFrom(attributeType) }
+      ) {
         annotateError(rootExpression, GETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
       }
     }
@@ -170,20 +164,16 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
     val inverseMethodAnnotation = facade.findClass(mode.inverseMethod, moduleScope) ?: return setOf()
     val nameSet = mutableSetOf<String>()
-    AnnotatedElementsSearch.searchElements(
-      inverseMethodAnnotation, moduleScope, PsiMethod::class.java)
-      .findAll()
-      .forEach { annotatedMethod ->
-        nameSet.addIfNotNull(annotatedMethod.name)
-        val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseMethod) ?: return@forEach
-        nameSet.addIfNotNull((annotation.findAttributeValue(null) as? PsiLiteralExpression)?.value as? String)
-      }
+    AnnotatedElementsSearch.searchElements(inverseMethodAnnotation, moduleScope, PsiMethod::class.java).findAll().forEach { annotatedMethod
+      ->
+      nameSet.addIfNotNull(annotatedMethod.name)
+      val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseMethod) ?: return@forEach
+      nameSet.addIfNotNull((annotation.findAttributeValue(null) as? PsiLiteralExpression)?.value as? String)
+    }
     return nameSet
   }
 
-  /**
-   * Returns the type that can be assigned to a two-way data binding expression.
-   */
+  /** Returns the type that can be assigned to a two-way data binding expression. */
   private fun findAssignableTypeToBindingExpression(dbExpr: PsiElement, invertibleMethodNames: Set<String>): PsiModelClass? {
     val type = dbExpr.references.firstNotNullOfOrNull { (it as? ModelClassResolvable)?.resolvedType } ?: return null
     // Observable types can be assigned to its unwrapped directly.
@@ -192,10 +182,11 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     }
     // Return dbExpr's resolved type when it can be resolved to setter, field or variable.
     if (dbExpr is PsiDbRefExpr) {
-      val settable = dbExpr.references
-        .any {
-          (it as? PsiMethodReference)?.isSetterReferenceFrom(dbExpr.id.text) == true
-          || it is PsiFieldReference || it is XmlVariableReference
+      val settable =
+        dbExpr.references.any {
+          (it as? PsiMethodReference)?.isSetterReferenceFrom(dbExpr.id.text) == true ||
+            it is PsiFieldReference ||
+            it is XmlVariableReference
         }
       if (settable) {
         // When dbExpr references a setter method without a resolved type, we will use the getter's instead.
@@ -224,20 +215,19 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    */
   private fun annotateMethodsWithUnmatchedSignatures(rootExpression: PsiElement) {
     val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
-    val attributeMethods = attribute.references
-      .filterIsInstance<PsiParameterReference>()
-      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
+    val attributeMethods =
+      attribute.references.filterIsInstance<PsiParameterReference>().mapNotNull {
+        LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type)
+      }
     if (attributeMethods.isEmpty()) {
       return
     }
 
-    val dbMethods = rootExpression.references
-      .filterIsInstance<PsiMethodReference>()
-      .mapNotNull { it.resolve() as? PsiMethod }
+    val dbMethods = rootExpression.references.filterIsInstance<PsiMethodReference>().mapNotNull { it.resolve() as? PsiMethod }
     if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
-      val listenerClassName = attribute.references
-                                .filterIsInstance<PsiParameterReference>()
-                                .firstNotNullOfOrNull { it.resolvedType.type.canonicalText } ?: "Listener"
+      val listenerClassName =
+        attribute.references.filterIsInstance<PsiParameterReference>().firstNotNullOfOrNull { it.resolvedType.type.canonicalText }
+          ?: "Listener"
       annotateError(rootExpression, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
     }
   }
@@ -258,8 +248,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   /**
    * Returns true if the name is occurred in the lambda expression as a parameter.
    *
-   * As we can not resolve parameter types for lambda expression, these
-   * parameters should be left unresolved without annotation.
+   * As we can not resolve parameter types for lambda expression, these parameters should be left unresolved without annotation.
    */
   private fun isLambdaParameter(psiElement: PsiElement, name: String): Boolean {
     var element: PsiElement? = psiElement
@@ -276,11 +265,9 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   /**
    * Annotates unresolvable [PsiDbId] with "Cannot find identifier" error.
    *
-   * A [PsiDbId] is unresolvable when its container expression does not have
-   * a valid reference.
+   * A [PsiDbId] is unresolvable when its container expression does not have a valid reference.
    *
-   * From db.bnf, we have three kinds of possible container expression:
-   * [PsiDbRefExpr], [PsiDbFunctionRefExpr] and [PsiDbFunctionRefExpr]
+   * From db.bnf, we have three kinds of possible container expression: [PsiDbRefExpr], [PsiDbFunctionRefExpr] and [PsiDbFunctionRefExpr]
    *
    * ```
    * fake refExpr ::= expr? '.' id
@@ -290,8 +277,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    * callExpr ::= refExpr '(' expressionList? ')'
    * ```
    *
-   * If the container is unresolvable because of its expr element, we will
-   * not annotate its id element.
+   * If the container is unresolvable because of its expr element, we will not annotate its id element.
    */
   override fun visitId(id: PsiDbId) {
     super.visitId(id)
@@ -343,24 +329,23 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   /**
    * Annotates duplicate parameters in lambda expression.
    *
-   * e.g.
-   * `@{(s, s) -> s.doSomething()}`
+   * e.g. `@{(s, s) -> s.doSomething()}`
    */
   override fun visitInferredFormalParameterList(parameters: PsiDbInferredFormalParameterList) {
     super.visitInferredFormalParameterList(parameters)
 
     annotateIfLambdaParameterCountMismatch(parameters)
-    parameters.inferredFormalParameterList.filter { parameter ->
-      parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
-    }.forEach {
-      annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
-    }
+    parameters.inferredFormalParameterList
+      .filter { parameter -> parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1 }
+      .forEach { annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text) }
   }
 
   private fun isMethodMatchingAttribute(method: PsiMethod, attributeMethods: List<PsiMethod>): Boolean =
     attributeMethods.any { attributeMethod ->
-      MethodSignatureUtil.areErasedParametersEqual(method.getSignature(PsiSubstitutor.EMPTY),
-                                                   attributeMethod.getSignature(PsiSubstitutor.EMPTY))
+      MethodSignatureUtil.areErasedParametersEqual(
+        method.getSignature(PsiSubstitutor.EMPTY),
+        attributeMethod.getSignature(PsiSubstitutor.EMPTY),
+      )
     }
 
   private fun annotateIfLambdaParameterCountMismatch(parameters: PsiDbInferredFormalParameterList) {
@@ -371,11 +356,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
 
     val lambdaParameters = parameters.parent ?: return
     // The lambdaParameters should reference a functional class from [LambdaParametersReferenceProvider]
-    val listenerMethod = lambdaParameters.references
-                           .filterIsInstance<PsiMethodReference>()
-                           .firstOrNull()
-                           ?.resolve() as? PsiMethod
-                         ?: return
+    val listenerMethod = lambdaParameters.references.filterIsInstance<PsiMethodReference>().firstOrNull()?.resolve() as? PsiMethod ?: return
     val expected = listenerMethod.parameterList.parameters.size
     if (found != expected) {
       annotateError(parameters, ARGUMENT_COUNT_MISMATCH, expected, found)

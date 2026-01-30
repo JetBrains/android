@@ -17,6 +17,8 @@ package com.android.tools.idea.diagnostics.hprof.util
 
 interface ListProvider {
   fun createUByteList(name: String, size: Long): UByteList
+
   fun createUShortList(name: String, size: Long): UShortList
+
   fun createIntList(name: String, size: Long): IntList
 }

@@ -22,28 +22,24 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import org.jetbrains.annotations.TestOnly
 
 /**
- * Class that manages preview
- * [PreviewRepresentation.onActivate]/[PreviewRepresentation.onDeactivate] lifecycle. It allows to
- * specify actions that should be executed when the lifecycle events happen and execute custom code
- * scoped to the active mode only.
+ * Class that manages preview [PreviewRepresentation.onActivate]/[PreviewRepresentation.onDeactivate] lifecycle. It allows to specify
+ * actions that should be executed when the lifecycle events happen and execute custom code scoped to the active mode only.
  *
  * @param parentScope the [PreviewRepresentation] [CoroutineScope]
  * @param onInitActivate the code that should be executed on the very first activation
- * @param onResumeActivate the code that should be executed on the following activations but not the
- *   first one
+ * @param onResumeActivate the code that should be executed on the following activations but not the first one
  * @param onDeactivate the code that should be executed right away after deactivation
- * @param onDelayedDeactivate the deactivation code that can be delayed and not needed to be
- *   executed right away after the deactivation. This could be because this deactivation will make
- *   the next activation take a long time and we want to make sure that we only fully deactivate
- *   when we unlikely to activate again.
+ * @param onDelayedDeactivate the deactivation code that can be delayed and not needed to be executed right away after the deactivation.
+ *   This could be because this deactivation will make the next activation take a long time and we want to make sure that we only fully
+ *   deactivate when we unlikely to activate again.
  */
 class PreviewLifecycleManager
 private constructor(
@@ -59,13 +55,11 @@ private constructor(
    * @param project the project for the [PreviewRepresentation]
    * @param parentScope the [PreviewRepresentation] [CoroutineScope]
    * @param onInitActivate the code that should be executed on the very first activation
-   * @param onResumeActivate the code that should be executed on the following activations but not
-   *   the first one
+   * @param onResumeActivate the code that should be executed on the following activations but not the first one
    * @param onDeactivate the code that should be executed right away after deactivation
-   * @param onDelayedDeactivate the deactivation code that can be delayed and not needed to be
-   *   executed right away after the deactivation. This could be because this deactivation will make
-   *   the next activation take a long time and we want to make sure that we only fully deactivate
-   *   when we unlikely to activate again.
+   * @param onDelayedDeactivate the deactivation code that can be delayed and not needed to be executed right away after the deactivation.
+   *   This could be because this deactivation will make the next activation take a long time and we want to make sure that we only fully
+   *   deactivate when we unlikely to activate again.
    */
   constructor(
     project: Project,
@@ -80,33 +74,29 @@ private constructor(
     onResumeActivate,
     onDeactivate,
     onDelayedDeactivate,
-    project.getService(PreviewDeactivationProjectService::class.java).deactivationQueue::
-      addDelayedAction,
+    project.getService(PreviewDeactivationProjectService::class.java).deactivationQueue::addDelayedAction,
   )
 
   private val scopeDisposable = parentScope.scopeDisposable()
 
   /**
-   * [CoroutineScope] that is valid while this is active. The scope will be cancelled as soon as
-   * this becomes inactive. This scope is used to launch the tasks that only make sense while in the
-   * active mode.
+   * [CoroutineScope] that is valid while this is active. The scope will be cancelled as soon as this becomes inactive. This scope is used
+   * to launch the tasks that only make sense while in the active mode.
    */
   @get:Synchronized @set:Synchronized private var activationScope: CoroutineScope? = null
 
   /**
-   * Lock used during the [onInitActivate]/[onResumeActivate]/[onDeactivate]/[onDelayedDeactivate]
-   * to avoid activations happening in the middle.
+   * Lock used during the [onInitActivate]/[onResumeActivate]/[onDeactivate]/[onDelayedDeactivate] to avoid activations happening in the
+   * middle.
    */
   private val activationLock = ReentrantLock()
 
-  /**
-   * Tracks whether this is active or not. The value tracks the [activate] and [deactivate] calls.
-   */
+  /** Tracks whether this is active or not. The value tracks the [activate] and [deactivate] calls. */
   private val isActive = AtomicBoolean(false)
 
   /**
-   * Tracks whether [activate] call has been before or not. This is used to decide whether
-   * [onInitActivate] or [onResumeActivate] must be called.
+   * Tracks whether [activate] call has been before or not. This is used to decide whether [onInitActivate] or [onResumeActivate] must be
+   * called.
    */
   @GuardedBy("activationLock") private var isFirstActivation = true
 
@@ -138,9 +128,8 @@ private constructor(
     }
 
   /**
-   * The user should call this to indicate that the parent was deactivated. If
-   * [deactivateImmediately] is false, part of the deactivation might run later, allowing for a
-   * quicker re-activation.
+   * The user should call this to indicate that the parent was deactivated. If [deactivateImmediately] is false, part of the deactivation
+   * might run later, allowing for a quicker re-activation.
    */
   private fun deactivate(deactivateImmediately: Boolean = false): Unit =
     activationLock.withLock {
@@ -162,8 +151,8 @@ private constructor(
     }
 
   /**
-   * Call this method to indicate that the parent is being deactivated. The full deactivation might
-   * be delayed allowing for a quick re-activation.
+   * Call this method to indicate that the parent is being deactivated. The full deactivation might be delayed allowing for a quick
+   * re-activation.
    */
   fun deactivate() = deactivate(false)
 
@@ -183,13 +172,6 @@ private constructor(
       onDelayedDeactivate: () -> Unit = {},
       scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> },
     ): PreviewLifecycleManager =
-      PreviewLifecycleManager(
-        parentScope,
-        onInitActivate,
-        onResumeActivate,
-        onDeactivate,
-        onDelayedDeactivate,
-        scheduleDelayed,
-      )
+      PreviewLifecycleManager(parentScope, onInitActivate, onResumeActivate, onDeactivate, onDelayedDeactivate, scheduleDelayed)
   }
 }

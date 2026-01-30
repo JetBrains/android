@@ -34,6 +34,13 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
@@ -53,13 +60,6 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.concurrent.thread
 
 const val UI_THREAD = "UI thread"
 const val WORKER_THREAD = "Worker thread"
@@ -67,8 +67,7 @@ const val IO_THREAD = "IO thread"
 
 class CoroutineUtilsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var uiExecutor: ExecutorService
   private lateinit var workerExecutor: ExecutorService
@@ -106,9 +105,7 @@ class CoroutineUtilsTest {
   fun apiExample() {
     val textUpdated = CountDownLatch(1)
 
-    /**
-     * Simulated module service.
-     */
+    /** Simulated module service. */
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
 
       override fun dispose() {}
@@ -129,10 +126,11 @@ class CoroutineUtilsTest {
 
       /** Fake method that is aware of coroutines and enforces its own threading rules. */
       @AnyThread
-      private suspend fun suspendComputeData(): String = withContext(workerThread) {
-        checkThread(WORKER_THREAD)
-        "computed"
-      }
+      private suspend fun suspendComputeData(): String =
+        withContext(workerThread) {
+          checkThread(WORKER_THREAD)
+          "computed"
+        }
 
       @UiThread
       fun buttonClicked() {
@@ -161,23 +159,21 @@ class CoroutineUtilsTest {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
 
-      fun compute1() = launch {
-        error("expected failure")
-      }
+      fun compute1() = launch { error("expected failure") }
 
-      fun compute2() = launch(CoroutineName("computing")) {
-        error("expected failure")
-      }
+      fun compute2() = launch(CoroutineName("computing")) { error("expected failure") }
     }
 
     val messages = mutableListOf<String>()
 
-    LoggedErrorProcessor.executeWith<RuntimeException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
-        messages.add(message)
-        return Action.NONE
+    LoggedErrorProcessor.executeWith<RuntimeException>(
+      object : LoggedErrorProcessor() {
+        override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
+          messages.add(message)
+          return Action.NONE
+        }
       }
-    }) {
+    ) {
       val fooManager = FooManager()
       Disposer.register(projectRule.project, fooManager)
 
@@ -202,9 +198,7 @@ class CoroutineUtilsTest {
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
 
-      suspend fun updateUi() = withContext(uiThread) {
-        uiUpdated.set(true)
-      }
+      suspend fun updateUi() = withContext(uiThread) { uiUpdated.set(true) }
 
       fun computeAndUpdateUi() = launch {
         checkThread(WORKER_THREAD)
@@ -212,12 +206,10 @@ class CoroutineUtilsTest {
           computationStarted.countDown()
           computationFinished.await()
           updateUi()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           exception.set(e)
           throw e
-        }
-        finally {
+        } finally {
           done.countDown()
         }
       }
@@ -248,9 +240,10 @@ class CoroutineUtilsTest {
 
       private val scope = AndroidCoroutineScope(this)
 
-      fun run() = scope.launch {
-        // work
-      }
+      fun run() =
+        scope.launch {
+          // work
+        }
 
       override fun dispose() {}
     }
@@ -274,27 +267,22 @@ class CoroutineUtilsTest {
     runBlocking(workerThread) {
       val writeActionExecuted = CompletableDeferred<Boolean>()
       try {
-        val smartReadJob = launch(workerThread) {
-          assertThat(writeActionExecuted.isCompleted).isFalse()
-          runWriteActionAndWait {
-            writeActionExecuted.complete(true)
+        val smartReadJob =
+          launch(workerThread) {
+            assertThat(writeActionExecuted.isCompleted).isFalse()
+            runWriteActionAndWait { writeActionExecuted.complete(true) }
+            assertThat(writeActionExecuted.isCompleted).isTrue()
           }
-          assertThat(writeActionExecuted.isCompleted).isTrue()
-        }
         try {
           withTimeout(2000) {
             // This be block and the timeout will expire
             writeActionExecuted.await()
           }
           fail("The read lock is still being held, timeout was expected")
-        }
-        catch (_: TimeoutCancellationException) {
-        }
-        finally {
+        } catch (_: TimeoutCancellationException) {} finally {
           smartReadJob.cancel()
         }
-      }
-      finally {
+      } finally {
         // Release the lock
         readLatch.countDown()
       }
@@ -304,10 +292,17 @@ class CoroutineUtilsTest {
   @Test
   fun `run psi file safely`() = runBlocking {
     val project = projectRule.project
-    val virtualFile = projectRule.fixture.addFileToProject("src/Test.kt", """
-      fun Test() {
-      }
-    """.trimIndent()).virtualFile
+    val virtualFile =
+      projectRule.fixture
+        .addFileToProject(
+          "src/Test.kt",
+          """
+          fun Test() {
+          }
+          """
+            .trimIndent(),
+        )
+        .virtualFile
     runWriteActionAndWait { PsiManager.getInstance(project).dropPsiCaches() }
     assertTrue(getPsiFileSafely(project, virtualFile)!!.isValid)
   }
@@ -318,28 +313,20 @@ class CoroutineUtilsTest {
     progressIndicator.start()
     val coroutineCompleted = CompletableDeferred<Unit>()
     launchWithProgress(progressIndicator) {
-      try {
-        while (true) {
-          delay(1000)
+        try {
+          while (true) {
+            delay(1000)
+          }
+        } catch (_: CancellationException) {} catch (t: Throwable) {
+          fail("Unexpected exception $t")
         }
       }
-      catch (_: CancellationException) {
-      }
-      catch (t: Throwable) {
-        fail("Unexpected exception $t")
-      }
-    }.invokeOnCompletion {
-      coroutineCompleted.complete(Unit)
-    }
+      .invokeOnCompletion { coroutineCompleted.complete(Unit) }
 
     try {
-      withTimeout(500) {
-        coroutineCompleted.await()
-      }
+      withTimeout(500) { coroutineCompleted.await() }
       fail("Expected timeout")
-    }
-    catch (_: TimeoutCancellationException) {
-    }
+    } catch (_: TimeoutCancellationException) {}
     // This will cancel the indicator which should stop the launched coroutine
     progressIndicator.cancel()
     coroutineCompleted.await()
@@ -354,11 +341,7 @@ class CoroutineUtilsTest {
     val waitPoint = CompletableDeferred<Unit>()
     val coroutineCompleted = CompletableDeferred<Unit>()
 
-    launchWithProgress(progressIndicator) {
-      waitPoint.await()
-    }.invokeOnCompletion {
-      coroutineCompleted.complete(Unit)
-    }
+    launchWithProgress(progressIndicator) { waitPoint.await() }.invokeOnCompletion { coroutineCompleted.complete(Unit) }
 
     assertTrue(progressIndicator.isRunning)
     waitPoint.complete(Unit)
@@ -375,23 +358,27 @@ class CoroutineUtilsTest {
   fun `disposable callback flow`() {
     val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
     val callbackDeferred = CompletableDeferred<TestCallback>()
-    val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
-      callbackDeferred.complete(object : TestCallback {
-        override fun send() {
-          this@disposableCallbackFlow.trySend(Unit)
-        }
-      })
-    }
+    val disposableFlow =
+      disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
+        callbackDeferred.complete(
+          object : TestCallback {
+            override fun send() {
+              this@disposableCallbackFlow.trySend(Unit)
+            }
+          }
+        )
+      }
 
     val flowReceiverCount = AtomicInteger(0)
     val countDownLatch = CountDownLatch(10)
     runBlocking {
-      val collectJob = launch(workerThread) {
-        disposableFlow.collect {
-          flowReceiverCount.incrementAndGet()
-          countDownLatch.countDown()
+      val collectJob =
+        launch(workerThread) {
+          disposableFlow.collect {
+            flowReceiverCount.incrementAndGet()
+            countDownLatch.countDown()
+          }
         }
-      }
 
       val callback = callbackDeferred.await()
       repeat(10) { callback.send() }
@@ -417,22 +404,20 @@ class CoroutineUtilsTest {
     val expectedModeChanges = 2
     val flowReceiverCount = AtomicInteger(0)
     val countDownLatch = CountDownLatch(expectedModeChanges)
-    val job = GlobalScope.launch(workerThread) {
-      smartModeFlow.collect {
-        flowReceiverCount.incrementAndGet()
-        countDownLatch.countDown()
+    val job =
+      GlobalScope.launch(workerThread) {
+        smartModeFlow.collect {
+          flowReceiverCount.incrementAndGet()
+          countDownLatch.countDown()
+        }
       }
-    }
 
     runBlocking { connected.await() }
 
     val publisher = project.messageBus.syncPublisher(DumbService.DUMB_MODE)
     val dumbModeEvents = arrayOf(true, true, false, true, false, true)
     for (isDumb in dumbModeEvents) {
-      runInEdtAndWait {
-        if (isDumb) publisher.enteredDumbMode()
-        else publisher.exitDumbMode()
-      }
+      runInEdtAndWait { if (isDumb) publisher.enteredDumbMode() else publisher.exitDumbMode() }
     }
 
     // Wait for the changes to be processed.

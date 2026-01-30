@@ -34,9 +34,7 @@ interface VcsForAppInsights {
   fun createVcsRevision(revision: String): VcsRevisionNumber
 
   companion object {
-    @JvmField
-    val EP_NAME =
-      ExtensionPointName<VcsForAppInsights>("com.android.tools.idea.insights.vcs.vcsForAppInsights")
+    @JvmField val EP_NAME = ExtensionPointName<VcsForAppInsights>("com.android.tools.idea.insights.vcs.vcsForAppInsights")
 
     fun getExtensionByKey(key: VCS_CATEGORY): VcsForAppInsights? {
       return EP_NAME.extensionList.firstOrNull { it.key == key }

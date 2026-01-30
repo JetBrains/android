@@ -32,45 +32,62 @@ import java.io.File
 fun Project.hookExecuteTasks(): List<GradleBuildInvoker.Request> {
   val buildInvoker = GradleBuildInvoker.getInstance(this)
   val capturedRequests = mutableListOf<GradleBuildInvoker.Request>()
-  val requestCapturingInvoker = object : GradleBuildInvoker {
-    override val project: Project get() = buildInvoker.project
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated")
-    override val internalIsBuildRunning: Boolean get() = buildInvoker.internalIsBuildRunning
+  val requestCapturingInvoker =
+    object : GradleBuildInvoker {
+      override val project: Project
+        get() = buildInvoker.project
 
-    override fun executeTasks(request: GradleBuildInvoker.Request): ListenableFuture<GradleInvocationResult> {
-      capturedRequests.add(request)
-      return buildInvoker.executeTasks(request)
+      @Suppress("DEPRECATION")
+      @Deprecated("Deprecated")
+      override val internalIsBuildRunning: Boolean
+        get() = buildInvoker.internalIsBuildRunning
+
+      override fun executeTasks(request: GradleBuildInvoker.Request): ListenableFuture<GradleInvocationResult> {
+        capturedRequests.add(request)
+        return buildInvoker.executeTasks(request)
+      }
+
+      override fun executeTasks(request: List<GradleBuildInvoker.Request>): ListenableFuture<GradleMultiInvocationResult> {
+        capturedRequests.addAll(request)
+        return buildInvoker.executeTasks(request)
+      }
+
+      override fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean) = notHooked()
+
+      override fun cleanProject() = notHooked()
+
+      override fun generateSources(modules: Array<Module>) = notHooked()
+
+      override fun compileJava(modules: Array<Module>) = notHooked()
+
+      override fun compileJava() = notHooked()
+
+      override fun assembleWithTests() = notHooked()
+
+      override fun assemble() = notHooked()
+
+      override fun assemble(modules: Array<Module>) = notHooked()
+
+      override fun bundle(modules: Array<Module>) = notHooked()
+
+      override fun rebuild() = notHooked()
+
+      override fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>) = notHooked()
+
+      override fun generateBaselineProfileSources(
+        taskId: ExternalSystemTaskId,
+        modules: Array<Module>,
+        envVariables: Map<String, String>,
+        args: List<String>,
+        generateAllVariants: Boolean,
+      ): ListenableFuture<GradleMultiInvocationResult> = notHooked()
+
+      override fun executeAssembleTasks(assembledModules: Array<Module>, request: List<GradleBuildInvoker.Request>) = notHooked()
+
+      override fun stopBuild(id: ExternalSystemTaskId): Boolean = notHooked()
+
+      private fun notHooked(): Nothing = error("This method is not supported by 'Project.hookExecuteTasks'")
     }
-
-    override fun executeTasks(request: List<GradleBuildInvoker.Request>): ListenableFuture<GradleMultiInvocationResult> {
-      capturedRequests.addAll(request)
-      return buildInvoker.executeTasks(request)
-    }
-
-    override fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean) = notHooked()
-    override fun cleanProject() = notHooked()
-    override fun generateSources(modules: Array<Module>) = notHooked()
-    override fun compileJava(modules: Array<Module>) = notHooked()
-    override fun compileJava() = notHooked()
-    override fun assembleWithTests() = notHooked()
-    override fun assemble() = notHooked()
-    override fun assemble(modules: Array<Module>) = notHooked()
-    override fun bundle(modules: Array<Module>) = notHooked()
-    override fun rebuild() = notHooked()
-    override fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>) = notHooked()
-    override fun generateBaselineProfileSources(
-      taskId: ExternalSystemTaskId,
-      modules: Array<Module>,
-      envVariables: Map<String, String>,
-      args: List<String>,
-      generateAllVariants: Boolean
-    ): ListenableFuture<GradleMultiInvocationResult> = notHooked()
-    override fun executeAssembleTasks(assembledModules: Array<Module>, request: List<GradleBuildInvoker.Request>) = notHooked()
-    override fun stopBuild(id: ExternalSystemTaskId): Boolean = notHooked()
-
-    private fun notHooked(): Nothing = error("This method is not supported by 'Project.hookExecuteTasks'")
-  }
   replaceService(GradleBuildInvoker::class.java, requestCapturingInvoker, this)
   return capturedRequests
 }

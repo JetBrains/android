@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -27,31 +27,34 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
 /**
- * Starting with AGP 9.0.0, the previously deprecated `targetSdkVersion` property in the
- * `defaultConfig` block of library modules will be removed. This processor finds all occurrences
- * of `android.defaultConfig.targetSdkVersion` and migrates the value to `android.lint.targetSdkVersion`
- * and `android.testOptions.targetSdkVersion`, deleting the original property.
+ * Starting with AGP 9.0.0, the previously deprecated `targetSdkVersion` property in the `defaultConfig` block of library modules will be
+ * removed. This processor finds all occurrences of `android.defaultConfig.targetSdkVersion` and migrates the value to
+ * `android.lint.targetSdkVersion` and `android.testOptions.targetSdkVersion`, deleting the original property.
  */
 class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
-    val usages = projectBuildModel.allIncludedBuildModels.mapNotNull { model ->
-      val plugins = model.appliedPlugins()
-      if (plugins.find { it.name().toString() == "com.android.library" } == null) {
-        return@mapNotNull null
-      }
+    val usages =
+      projectBuildModel.allIncludedBuildModels
+        .mapNotNull { model ->
+          val plugins = model.appliedPlugins()
+          if (plugins.find { it.name().toString() == "com.android.library" } == null) {
+            return@mapNotNull null
+          }
 
-      val targetSdkProperty = model.android().defaultConfig().targetSdkVersion()
-      val targetSdkPsiElement = targetSdkProperty.psiElement ?: return@mapNotNull null
-      val wrappedPsiElement = WrappedPsiElement(targetSdkPsiElement, this, REMOVE_DEPRECATED_PROPERTY_USAGE_TYPE )
+          val targetSdkProperty = model.android().defaultConfig().targetSdkVersion()
+          val targetSdkPsiElement = targetSdkProperty.psiElement ?: return@mapNotNull null
+          val wrappedPsiElement = WrappedPsiElement(targetSdkPsiElement, this, REMOVE_DEPRECATED_PROPERTY_USAGE_TYPE)
 
-      val sdkVersionValue = targetSdkProperty.toInt() ?: return@mapNotNull null
-      RefactoringUsageInfo(wrappedPsiElement, model, sdkVersionValue)
-    }.toTypedArray()
+          val sdkVersionValue = targetSdkProperty.toInt() ?: return@mapNotNull null
+          RefactoringUsageInfo(wrappedPsiElement, model, sdkVersionValue)
+        }
+        .toTypedArray()
 
     return usages
   }
@@ -61,22 +64,19 @@ class DeprecatedLibraryTargetSdkRefactoringProcessor : AgpUpgradeComponentRefact
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_DEPRECATED_LIBRARY_TARGET_SDK)
 
-  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
-    override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
-    override fun getProcessedElementsHeader() =
-      AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.commandName")
-  }
+  override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
+    object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
+
+      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.commandName")
+    }
 
   companion object {
     val REMOVE_DEPRECATED_PROPERTY_USAGE_TYPE = UsageType(AgpUpgradeBundle.messagePointer("deprecatedLibraryTargetSdk.usageType"))
   }
 
-  class RefactoringUsageInfo(
-    element: WrappedPsiElement,
-    val buildModel: GradleBuildModel,
-    val sdkVersion: Int
-
-  ) : GradleBuildModelUsageInfo(element) {
+  class RefactoringUsageInfo(element: WrappedPsiElement, val buildModel: GradleBuildModel, val sdkVersion: Int) :
+    GradleBuildModelUsageInfo(element) {
     override fun getTooltipText(): String = AgpUpgradeBundle.message("deprecatedLibraryTargetSdk.tooltipText")
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

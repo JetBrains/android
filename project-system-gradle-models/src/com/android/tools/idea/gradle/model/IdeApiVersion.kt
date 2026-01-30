@@ -26,18 +26,17 @@ interface IdeApiVersion {
   /**
    * Returns the version code name if applicable, null otherwise.
    *
-   * If the codename is non null, then the API level should be ignored, and this should be
-   * used as a unique identifier of the target instead.
+   * If the codename is non null, then the API level should be ignored, and this should be used as a unique identifier of the target
+   * instead.
    */
   val codename: String?
 
   /**
    * Returns the API value as a string.
    *
-   * If there's a codename, this returns it, otherwise this returns the string version
-   * of the integer api level.
+   * If there's a codename, this returns it, otherwise this returns the string version of the integer api level.
+   *
    * @return a String.
    */
   val apiString: String
-
 }

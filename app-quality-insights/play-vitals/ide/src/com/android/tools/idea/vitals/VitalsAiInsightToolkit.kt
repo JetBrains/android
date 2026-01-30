@@ -43,30 +43,19 @@ class VitalsAiInsightToolkit(
     event: Event,
   ): LoadingState.Done<AiInsight> {
     when {
-      failureType != FailureType.FATAL ->
-        return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
-      event.isNativeCrash() ->
-        return LoadingState.UnsupportedOperation(
-          "Insights are currently not available for native crashes"
-        )
+      failureType != FailureType.FATAL -> return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
+      event.isNativeCrash() -> return LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
     }
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     return runGrpcCatchingWithSupervisorScope(failure) {
-      LoadingState.Ready(
-        aiInsightClient.fetchCrashInsight(
-          createGeminiInsightRequest(connection, issueId, variantId, event)
-        )
-      )
+      LoadingState.Ready(aiInsightClient.fetchCrashInsight(createGeminiInsightRequest(connection, issueId, variantId, event)))
     }
   }
 }
 
-private const val ANDROID_NATIVE_CRASH_HEADER =
-  "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
+private const val ANDROID_NATIVE_CRASH_HEADER = "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
 private val PID_REGEX = Regex("^pid: (\\d+), tid: (\\d+) >>> (.+?) <<<$")
 
-private fun Event.isNativeCrash() =
-  stacktraceGroup.exceptions.any { it.rawExceptionMessage.isNativeCrashHeader() }
+private fun Event.isNativeCrash() = stacktraceGroup.exceptions.any { it.rawExceptionMessage.isNativeCrashHeader() }
 
-private fun String.isNativeCrashHeader() =
-  equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")
+private fun String.isNativeCrashHeader() = equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")

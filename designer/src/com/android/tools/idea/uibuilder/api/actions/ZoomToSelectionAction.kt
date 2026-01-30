@@ -30,10 +30,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 
-/**
- * [AnAction] that zooms the current [com.android.tools.idea.common.model.NlComponent] under the
- * mouse in a given sceneView that.
- */
+/** [AnAction] that zooms the current [com.android.tools.idea.common.model.NlComponent] under the mouse in a given sceneView that. */
 class ZoomToSelectionAction : AnAction("Zoom to Selection") {
   override fun update(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) ?: return
@@ -52,16 +49,8 @@ class ZoomToSelectionAction : AnAction("Zoom to Selection") {
     val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
     val sceneView = surface.focusedSceneView ?: return
     val component = surface.selectionModel.primary ?: return
-    val topLeftCorner =
-      Point(
-        Coordinates.getSwingDimension(sceneView, component.x),
-        Coordinates.getSwingDimension(sceneView, component.y),
-      )
-    val size =
-      Dimension(
-        Coordinates.getSwingDimension(sceneView, component.w),
-        Coordinates.getSwingDimension(sceneView, component.h),
-      )
+    val topLeftCorner = Point(Coordinates.getSwingDimension(sceneView, component.x), Coordinates.getSwingDimension(sceneView, component.y))
+    val size = Dimension(Coordinates.getSwingDimension(sceneView, component.w), Coordinates.getSwingDimension(sceneView, component.h))
     surface.zoomAndCenter(sceneView, Rectangle(topLeftCorner, size))
   }
 }

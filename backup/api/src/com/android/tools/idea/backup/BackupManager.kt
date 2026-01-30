@@ -46,13 +46,7 @@ interface BackupManager {
    * @param applicationId Application ID (package name) of the app
    * @param notify If true, will post a notification on completion
    */
-  @UiThread
-  fun showBackupDialog(
-    serialNumber: String,
-    applicationId: String?,
-    source: Source,
-    notify: Boolean = true,
-  )
+  @UiThread fun showBackupDialog(serialNumber: String, applicationId: String?, source: Source, notify: Boolean = true)
 
   /**
    * Restore an app from a local file and show a progress dialog
@@ -61,13 +55,7 @@ interface BackupManager {
    * @param backupFile A path to write the backup data to
    * @param notify If true, will post a notification on completion
    */
-  @UiThread
-  fun restoreModal(
-    serialNumber: String,
-    backupFile: Path,
-    source: Source,
-    notify: Boolean = true,
-  ): BackupResult
+  @UiThread fun restoreModal(serialNumber: String, backupFile: Path, source: Source, notify: Boolean = true): BackupResult
 
   /**
    * Restore an app from a local file
@@ -120,11 +108,8 @@ interface BackupManager {
 
     const val NOTIFICATION_GROUP: String = "Backup"
 
-    @JvmStatic
-    fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
+    @JvmStatic fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
 
-    @JvmStatic
-    fun tryGetInstance(project: Project): BackupManager? =
-      project.getServiceIfCreated(BackupManager::class.java)
+    @JvmStatic fun tryGetInstance(project: Project): BackupManager? = project.getServiceIfCreated(BackupManager::class.java)
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -47,7 +47,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
-import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.NopProcessHandler
@@ -60,6 +59,8 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Computable
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -67,34 +68,33 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import java.text.SimpleDateFormat
-import java.util.Locale
 
-/**
- * Implementation of [AndroidConfigurationExecutor] for [AndroidTestRunConfiguration] without using Gradle.
- */
-class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
+/** Implementation of [AndroidConfigurationExecutor] for [AndroidTestRunConfiguration] without using Gradle. */
+class AndroidTestRunConfigurationExecutor
+@JvmOverloads
+constructor(
   env: ExecutionEnvironment,
   private val deviceFutures: DeviceFutures,
-  getApkProvider: (AndroidTestRunConfiguration) -> ApkProvider = { it.apkProvider ?: throw RuntimeException("Cannot get ApkProvider") }
+  getApkProvider: (AndroidTestRunConfiguration) -> ApkProvider = { it.apkProvider ?: throw RuntimeException("Cannot get ApkProvider") },
 ) : AndroidTestRunConfigurationExecutorBase(env) {
   val project = env.project
   val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
   val apkProvider = getApkProvider(configuration)
-  var runner = configuration.INSTRUMENTATION_RUNNER_CLASS.takeIf { it.isNotBlank() }
-    ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
+  var runner =
+    configuration.INSTRUMENTATION_RUNNER_CLASS.takeIf { it.isNotBlank() }
+      ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
 
   /**
    * Returns a target Android process ID to be monitored by [AndroidProcessHandler].
    *
    * If this run is instrumentation test without test orchestration, the target Android process ID is simply the application name.
-   * Otherwise, we should monitor the test orchestration process because the orchestrator starts and
-   * kills the target application process per test case which confuses AndroidProcessHandler (b/150320657).
+   * Otherwise, we should monitor the test orchestration process because the orchestrator starts and kills the target application process
+   * per test case which confuses AndroidProcessHandler (b/150320657).
    */
   private fun getMasterAndroidProcessId(): String {
     return MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME.getOrDefault(
       configuration.getTestExecutionOption(AndroidFacet.getInstance(configuration.configurationModule.module!!)),
-      applicationIdProvider.testPackageName!!
+      applicationIdProvider.testPackageName!!,
     )
   }
 
@@ -107,9 +107,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     }
     devices.forEach {
       LOG.info("Target device for run: ${it.name}, serial: ${it.serialNumber}, isOnline: ${it.isOnline}")
-      require(it.isOnline) {
-        "Device (${it.name}) is offline."
-      }
+      require(it.isOnline) { "Device (${it.name}) is offline." }
     }
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -136,7 +134,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     devices: List<IDevice>,
     processHandler: ProcessHandler,
     indicator: ProgressIndicator,
-    console: AndroidTestSuiteView
+    console: AndroidTestSuiteView,
   ) = coroutineScope {
     RunStats.from(env).apply { setPackage(packageName) }
     printLaunchTaskStartedMessage(console)
@@ -147,40 +145,40 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     // A list of devices that we have launched application successfully.
     indicator.text = "Launching on devices"
     val deferredRuns = mutableListOf<Deferred<*>>()
-    devices.map { device ->
-      async {
-        LOG.info("Launching on device ${device.name}")
-        if (configuration.CLEAR_LOGCAT) {
-          project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+    devices
+      .map { device ->
+        async {
+          LOG.info("Launching on device ${device.name}")
+          if (configuration.CLEAR_LOGCAT) {
+            project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+          }
+          LaunchUtils.initiateDismissKeyguard(device)
+          getDeployTask(device).run(device, indicator)
+          // Notify listeners of the deployment.
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
         }
-        LaunchUtils.initiateDismissKeyguard(device)
-        getDeployTask(device).run(device, indicator)
-        // Notify listeners of the deployment.
-        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
       }
-    }.awaitAll()
+      .awaitAll()
 
     val appExecutorService = AppExecutorUtil.getAppExecutorService()
-    val futures = devices.map {
-      Futures.submit({ getApplicationLaunchTask(testPackageName).run(it, console, processHandler) }, appExecutorService)
-    }
+    val futures =
+      devices.map { Futures.submit({ getApplicationLaunchTask(testPackageName).run(it, console, processHandler) }, appExecutorService) }
     Futures.whenAllComplete(futures).call({ processHandler.detachProcess() }, appExecutorService)
   }
-
 
   private fun getDeployTask(device: IDevice): DeployTask {
     val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
     val packages = apkProvider.getApks(device)
-    val pmInstallOptions = if (device.version.apiLevel >= 23) {
-      "-t -g"
-    } else {
-      "-t"
-    }
+    val pmInstallOptions =
+      if (device.version.apiLevel >= 23) {
+        "-t -g"
+      } else {
+        "-t"
+      }
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
     return DeployTask(project, packages, pmInstallOptions, false, false, false, containsMakeBeforeRun)
   }
-
 
   /**
    * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
@@ -196,7 +194,6 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     return Joiner.on(" ").join(builder.build())
   }
 
-
   @VisibleForTesting
   fun getApplicationLaunchTask(testAppId: String): AndroidTestApplicationLaunchTask {
     val androidModel = AndroidModel.get(facet)
@@ -209,61 +206,55 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     val testExecutionOption = testOptions?.executionOption
 
     return when (configuration.TESTING_TYPE) {
-      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> allInModuleTest(
-        runner,
-        testAppId,
-        waitForDebugger,
-        instrumentationOptions,
-        testLibrariesInUse,
-        testExecutionOption
-      )
+      AndroidTestRunConfiguration.TEST_ALL_IN_MODULE ->
+        allInModuleTest(runner, testAppId, waitForDebugger, instrumentationOptions, testLibrariesInUse, testExecutionOption)
 
-      AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> allInPackageTest(
-        runner,
-        testAppId,
-        waitForDebugger,
-        instrumentationOptions,
-        testLibrariesInUse,
-        testExecutionOption,
-        configuration.PACKAGE_NAME
-      )
+      AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE ->
+        allInPackageTest(
+          runner,
+          testAppId,
+          waitForDebugger,
+          instrumentationOptions,
+          testLibrariesInUse,
+          testExecutionOption,
+          configuration.PACKAGE_NAME,
+        )
 
-      AndroidTestRunConfiguration.TEST_CLASS -> classTest(
-        runner,
-        testAppId,
-        waitForDebugger,
-        instrumentationOptions,
-        testLibrariesInUse,
-        testExecutionOption,
-        configuration.CLASS_NAME
-      )
+      AndroidTestRunConfiguration.TEST_CLASS ->
+        classTest(
+          runner,
+          testAppId,
+          waitForDebugger,
+          instrumentationOptions,
+          testLibrariesInUse,
+          testExecutionOption,
+          configuration.CLASS_NAME,
+        )
 
-      AndroidTestRunConfiguration.TEST_METHOD -> methodTest(
-        runner,
-        testAppId,
-        waitForDebugger,
-        instrumentationOptions,
-        testLibrariesInUse,
-        testExecutionOption,
-        configuration.CLASS_NAME,
-        configuration.METHOD_NAME
-      )
+      AndroidTestRunConfiguration.TEST_METHOD ->
+        methodTest(
+          runner,
+          testAppId,
+          waitForDebugger,
+          instrumentationOptions,
+          testLibrariesInUse,
+          testExecutionOption,
+          configuration.CLASS_NAME,
+          configuration.METHOD_NAME,
+        )
 
       else -> throw java.lang.RuntimeException("Unknown testing type is selected")
     }
   }
 
-  private suspend fun waitPreviousProcessTermination(
-    devices: List<IDevice>,
-    applicationId: String,
-    indicator: ProgressIndicator
-  ) = coroutineScope {
-    indicator.text = "Terminating the app"
-    val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
-    if (results.any { !it }) {
-      throw ExecutionException("Couldn't terminate previous instance of app")
+  private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
+    coroutineScope {
+      indicator.text = "Terminating the app"
+      val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      if (results.any { !it }) {
+        throw ExecutionException("Couldn't terminate previous instance of app")
+      }
     }
-  }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -283,21 +274,23 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
-    val session = startDebuggerSession(indicator, device,
-                                       FacetBasedApplicationProjectContext(packageName, facet),
-                                       console).apply {
-      processHandler.addProcessListener(object : ProcessAdapter() {
-        override fun processTerminated(event: ProcessEvent) {
-          processHandler.destroyProcess()
-        }
-      })
-    }
+    val session =
+      startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageName, facet), console).apply {
+        processHandler.addProcessListener(
+          object : ProcessAdapter() {
+            override fun processTerminated(event: ProcessEvent) {
+              processHandler.destroyProcess()
+            }
+          }
+        )
+      }
     session.runContentDescriptor
   }
 
-  private suspend fun createAndroidTestSuiteView() = withContext(uiThread) {
-    AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
-  }
+  private suspend fun createAndroidTestSuiteView() =
+    withContext(uiThread) {
+      AndroidTestSuiteView(project, project, configuration.configurationModule.androidTestModule, env.executor.toolWindowId, configuration)
+    }
 
   private fun printLaunchTaskStartedMessage(consoleView: AndroidTestSuiteView) {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)

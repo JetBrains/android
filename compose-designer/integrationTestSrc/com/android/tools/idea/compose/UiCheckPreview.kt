@@ -19,11 +19,11 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
 class UiCheckPreview {
   @get:Rule val system = AndroidSystem.standard()
@@ -54,10 +54,7 @@ class UiCheckPreview {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val path: Path =
-        project.targetProject.resolve(
-          "app/src/main/java/com/example/composepreviewtest/SingleUiCheckPreview.kt"
-        )
+      val path: Path = project.targetProject.resolve("app/src/main/java/com/example/composepreviewtest/SingleUiCheckPreview.kt")
       studio.openFile("ComposePreviewTest", path.toString())
 
       // Internal action that shows the scene view toolbar which is normally hidden by default
@@ -73,11 +70,7 @@ class UiCheckPreview {
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
 
       studio.invokeByIcon("studio/icons/compose/toolbar/ui-check.svg")
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 7 errors found",
-        10,
-        TimeUnit.SECONDS,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*Visual Lint analysis finished, 7 errors found", 10, TimeUnit.SECONDS)
     }
   }
 }

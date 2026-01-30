@@ -57,12 +57,8 @@ class LongTextAnalyzerTest {
 
   @Test
   fun testTextSplitOnSeveralLines() {
-    val file =
-      projectRule.fixture
-        .addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT)
-        .virtualFile
-    val configuration =
-      RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
+    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -79,12 +75,8 @@ class LongTextAnalyzerTest {
 
   @Test
   fun testTextOnOneLongLine() {
-    val file =
-      projectRule.fixture
-        .addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT)
-        .virtualFile
-    val configuration =
-      RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
+    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
@@ -93,10 +85,7 @@ class LongTextAnalyzerTest {
         val result = task.render().get()
         val issues = LongTextAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals(
-          "textview1 <TextView> has lines containing more than 120 characters",
-          issues[0].message,
-        )
+        Assert.assertEquals("textview1 <TextView> has lines containing more than 120 characters", issues[0].message)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }

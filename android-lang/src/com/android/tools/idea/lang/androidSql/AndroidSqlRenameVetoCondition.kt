@@ -19,13 +19,12 @@ import com.intellij.openapi.util.Condition
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
-
 /**
  * Prevents renaming of fake PSI elements created by Room.
  *
- * There are cases when we can navigate to element (reference.resolveTo() != null), but don't want to allow user to rename it.
- * In such cases we wrap original element into [NotRenamableElement]
- * e.g see [com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference.resolve].
+ * There are cases when we can navigate to element (reference.resolveTo() != null), but don't want to allow user to rename it. In such cases
+ * we wrap original element into [NotRenamableElement] e.g see
+ * [com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference.resolve].
  */
 class AndroidSqlRenameVetoCondition : Condition<PsiElement> {
 
@@ -34,10 +33,8 @@ class AndroidSqlRenameVetoCondition : Condition<PsiElement> {
   }
 }
 
-/**
- * Wrapper for [PsiElement] that prevents renaming from reference that resolves to it.
- */
-internal class NotRenamableElement(val delegate:PsiElement): PsiElement by delegate {
+/** Wrapper for [PsiElement] that prevents renaming from reference that resolves to it. */
+internal class NotRenamableElement(val delegate: PsiElement) : PsiElement by delegate {
   override fun isEquivalentTo(another: PsiElement?): Boolean {
     return PsiManager.getInstance(delegate.project)
       .areElementsEquivalent(delegate, if (another is NotRenamableElement) another.delegate else another)

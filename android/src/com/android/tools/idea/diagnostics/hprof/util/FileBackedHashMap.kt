@@ -18,11 +18,7 @@ package com.android.tools.idea.diagnostics.hprof.util
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 
-class FileBackedHashMap(
-  private val buffer: ByteBuffer,
-  private val keySize: Int,
-  private val valueSize: Int
-) {
+class FileBackedHashMap(private val buffer: ByteBuffer, private val keySize: Int, private val valueSize: Int) {
   private val bucketCount: Int
   private val bucketSize = keySize + valueSize
   private var filledBuckets = 0
@@ -71,8 +67,7 @@ class FileBackedHashMap(
         if (toWrite == emptyBuf.remaining().toLong()) {
           channel.write(emptyBuf)
           emptyBuf.rewind()
-        }
-        else {
+        } else {
           assert(toWrite <= bufferSize)
           emptyBuf.limit(toWrite.toInt())
           channel.write(emptyBuf)
@@ -84,21 +79,17 @@ class FileBackedHashMap(
   }
 
   operator fun get(key: Long): ByteBuffer? {
-    if (key == 0L)
-      return null
+    if (key == 0L) return null
     val hashcode = getBucketIndex(key)
     buffer.position(hashcode * bucketSize)
     var inspectedBuckets = 0
     while (inspectedBuckets < bucketCount) {
       val inspectedKey = readKey()
-      if (inspectedKey == key)
-        return buffer
-      if (inspectedKey == 0L)
-        return null
+      if (inspectedKey == key) return buffer
+      if (inspectedKey == 0L) return null
       if (buffer.remaining() <= valueSize) {
         buffer.position(0)
-      }
-      else {
+      } else {
         buffer.position(buffer.position() + valueSize)
       }
       inspectedBuckets++
@@ -121,8 +112,7 @@ class FileBackedHashMap(
       if (inspectedKey == key || inspectedKey == 0L) {
         if (keySize == 4) {
           buffer.putInt(buffer.position() - keySize, key.toInt())
-        }
-        else {
+        } else {
           buffer.putLong(buffer.position() - keySize, key)
         }
         if (inspectedKey == 0L) {
@@ -132,8 +122,7 @@ class FileBackedHashMap(
       }
       if (buffer.remaining() <= valueSize) {
         buffer.position(0)
-      }
-      else {
+      } else {
         buffer.position(buffer.position() + valueSize)
       }
       inspectedBuckets++
@@ -145,5 +134,4 @@ class FileBackedHashMap(
     if (key == 0L) return true
     return get(key) != null
   }
-
 }

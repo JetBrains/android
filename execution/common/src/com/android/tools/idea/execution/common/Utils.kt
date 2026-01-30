@@ -31,14 +31,12 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
-
 fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project, devices: List<IDevice>): List<ProcessHandler> {
   return ExecutionManager.getInstance(project)
     .getRunningDescriptors { it.isOfSameType(this) }
     .mapNotNull { it.processHandler }
     .filter { AndroidSessionInfo.from(it)?.devices?.intersect(devices.toSet())?.isNotEmpty() == true }
 }
-
 
 /**
  * Clears app storage data.
@@ -68,7 +66,6 @@ suspend fun restoreAppFromFile(project: Project, device: IDevice, backupFile: St
     }
   }
 }
-
 
 private fun IDevice.shellToString(command: String): String {
   val receiver = CollectingOutputReceiver()

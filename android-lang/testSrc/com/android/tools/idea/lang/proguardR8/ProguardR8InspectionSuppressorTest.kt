@@ -31,9 +31,7 @@ class ProguardR8InspectionSuppressorTest(private val fileType: LanguageFileType)
   private fun suppressInspection() {
     val action = myFixture.getIntentionAction("Suppress for statement")
     assertThat(action).isNotNull()
-    WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    }
+    WriteCommandAction.runWriteCommandAction(myFixture.project) { action!!.invoke(myFixture.project, myFixture.editor, myFixture.file) }
   }
 
   @Test
@@ -41,65 +39,74 @@ class ProguardR8InspectionSuppressorTest(private val fileType: LanguageFileType)
     myFixture.configureByText(
       fileType,
       """
-        -keep class <caret>${"not.existing.Class".highlightedAs(HighlightSeverity.ERROR, "Unresolved class name")}
-      """.trimIndent()
+      -keep class <caret>${"not.existing.Class".highlightedAs(HighlightSeverity.ERROR, "Unresolved class name")}
+      """
+        .trimIndent(),
     )
     myFixture.checkHighlighting()
 
     suppressInspection()
 
-    //Suppress above rule with class specification
+    // Suppress above rule with class specification
     myFixture.checkResult(
       """
       #noinspection ShrinkerUnresolvedReference
       -keep class not.existing.Class
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.checkHighlighting()
 
     myFixture.configureByText(
       fileType,
       """
-        ${"<caret>-notexistingflag".highlightedAs(HighlightSeverity.ERROR, "Invalid flag")}
-      """.trimIndent()
+      ${"<caret>-notexistingflag".highlightedAs(HighlightSeverity.ERROR, "Invalid flag")}
+      """
+        .trimIndent(),
     )
     myFixture.checkHighlighting()
 
     suppressInspection()
 
-    //Suppress above regular rule
+    // Suppress above regular rule
     myFixture.checkResult(
       """
       #noinspection ShrinkerInvalidFlags
       -notexistingflag
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.checkHighlighting()
 
     myFixture.configureByText(
       fileType,
       """
-        -keep class java.lang.String {
-          ${"<caret>notExistingField".highlightedAs(HighlightSeverity.ERROR, "The rule matches no class members")};
-        }
-      """.trimIndent()
+      -keep class java.lang.String {
+        ${"<caret>notExistingField".highlightedAs(HighlightSeverity.ERROR, "The rule matches no class members")};
+      }
+      """
+        .trimIndent(),
     )
     myFixture.checkHighlighting()
 
     suppressInspection()
 
-    //Suppress above class member
+    // Suppress above class member
     myFixture.checkResult(
       """
       -keep class java.lang.String {
         #noinspection ShrinkerUnresolvedReference
         notExistingField;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.checkHighlighting()
 
-    //Suppress few comments above
+    // Suppress few comments above
     myFixture.configureByText(
       fileType,
       """
@@ -109,7 +116,9 @@ class ProguardR8InspectionSuppressorTest(private val fileType: LanguageFileType)
         #more comment
         notExistingField;
       }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.checkHighlighting()
   }

@@ -20,7 +20,7 @@ import org.jetbrains.annotations.PropertyKey
 
 private const val BUNDLE_NAME = "messages.AndroidWearPairingBundle"
 
-class AndroidWearPairingBundle private constructor(){
+class AndroidWearPairingBundle private constructor() {
   companion object {
     private var ourBundle = DynamicBundle(this::class.java, BUNDLE_NAME)
 

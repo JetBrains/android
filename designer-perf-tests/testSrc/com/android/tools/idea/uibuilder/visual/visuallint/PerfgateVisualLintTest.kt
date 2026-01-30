@@ -33,9 +33,7 @@ internal const val NUMBER_OF_SAMPLES = 5
 val visualLintingBenchmark =
   Benchmark.Builder("Visual Linting Benchmark")
     .setProject("Design Tools")
-    .setDescription(
-      "Benchmark for measuring performance of Visual Linting, using $NUMBER_OF_SAMPLES samples."
-    )
+    .setDescription("Benchmark for measuring performance of Visual Linting, using $NUMBER_OF_SAMPLES samples.")
     .build()
 
 class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PATH) {
@@ -59,13 +57,9 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
   @Test
   fun backgroundLintingTimeForPhone() {
     val facet = projectRule.mainAndroidFacet(":app")
-    val visualLintIssueProvider =
-      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
-    val dashboardLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/fragment_dashboard.xml"
-      )!!
+    val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
@@ -84,12 +78,7 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(
-          projectRule.fixture.testRootDisposable,
-          visualLintIssueProvider,
-          listOf(nlModel),
-          emptyMap(),
-        )
+        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), emptyMap())
     }
   }
 
@@ -98,15 +87,10 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
     projectRule.load("projects/visualLintApplication")
     val module = projectRule.getModule("app")
     val facet = projectRule.mainAndroidFacet(":app")
-    val visualLintIssueProvider =
-      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
-    val wearLayout =
-      projectRule.project.baseDir.findFileByRelativePath(
-        "app/src/main/res/layout/wear_layout.xml"
-      )!!
-    val wearConfiguration =
-      RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
+    val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
+    val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
     val wearModel =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
@@ -126,12 +110,7 @@ class PerfgateVisualLintTest : ComposeRenderTestBase(VISUAL_LINT_APPLICATION_PAT
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(
-          projectRule.fixture.testRootDisposable,
-          visualLintIssueProvider,
-          listOf(wearModel),
-          emptyMap(),
-        )
+        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), emptyMap())
     }
   }
 }

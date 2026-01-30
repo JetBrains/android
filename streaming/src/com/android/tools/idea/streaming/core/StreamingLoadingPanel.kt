@@ -33,12 +33,9 @@ import java.awt.LayoutManager
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-/**
- * Loading panel with a rounded rectangle around the icon and the text.
- */
-class StreamingLoadingPanel(
-  parentDisposable: Disposable
-) : JBLoadingPanel(BorderLayout(), { panel -> EmulatorLoadingDecorator(panel, parentDisposable, startDelayMs = 200) }) {
+/** Loading panel with a rounded rectangle around the icon and the text. */
+class StreamingLoadingPanel(parentDisposable: Disposable) :
+  JBLoadingPanel(BorderLayout(), { panel -> EmulatorLoadingDecorator(panel, parentDisposable, startDelayMs = 200) }) {
 
   private var roundedPanel: RoundedPanel? = null
 
@@ -47,9 +44,7 @@ class StreamingLoadingPanel(
     super.startLoading()
   }
 
-  /**
-   * Similar to [stopLoading] but without a fade-out animation.
-   */
+  /** Similar to [stopLoading] but without a fade-out animation. */
   fun stopLoadingInstantly() {
     stopLoading()
     findRoundedPanel()?.isVisible = false
@@ -64,25 +59,24 @@ class StreamingLoadingPanel(
     return roundedPanel
   }
 
-  private class EmulatorLoadingDecorator(
-    panel: JPanel,
-    parentDisposable: Disposable,
-    startDelayMs: Int = 0
-  ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.createBig("Loading")) {
+  private class EmulatorLoadingDecorator(panel: JPanel, parentDisposable: Disposable, startDelayMs: Int = 0) :
+    LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.createBig("Loading")) {
 
     override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AnimatedIcon): NonOpaquePanel {
       @Suppress("UnstableApiUsage")
-      val roundedPanel = RoundedPanel(ListLayout.horizontal(JLabel().iconTextGap * 3, vertGrow = ListLayout.GrowPolicy.GROW), 8).apply {
-        border = JBEmptyBorder(8)
-        background = primaryPanelBackground
-        add(icon)
-        add(text)
-      }
+      val roundedPanel =
+        RoundedPanel(ListLayout.horizontal(JLabel().iconTextGap * 3, vertGrow = ListLayout.GrowPolicy.GROW), 8).apply {
+          border = JBEmptyBorder(8)
+          background = primaryPanelBackground
+          add(icon)
+          add(text)
+        }
 
-      val containerPanel = NonOpaquePanel(GridBagLayout()).apply {
-        border = JBUI.Borders.empty()
-        add(roundedPanel)
-      }
+      val containerPanel =
+        NonOpaquePanel(GridBagLayout()).apply {
+          border = JBUI.Borders.empty()
+          add(roundedPanel)
+        }
 
       parent.layout = BorderLayout()
       parent.add(containerPanel)

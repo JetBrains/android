@@ -23,21 +23,18 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.JCheckBox
 import javax.swing.JTextArea
 import javax.swing.JTextField
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [EditSnapshotDialog].
- */
+/** Tests for [EditSnapshotDialog]. */
 @RunsInEdt
 class EditSnapshotDialogTest {
 
   private val projectRule = ProjectRule()
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   @Test
   fun testDialog() {

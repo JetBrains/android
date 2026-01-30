@@ -30,16 +30,8 @@ object AdaptiveIconFileType : XmlDesignerEditorFileType {
 
   override fun isResourceTypeOf(file: PsiFile): Boolean {
     return file is XmlFile &&
-      (FileDescriptionUtils.isResourceOfTypeWithRootTag(
-        file,
-        ResourceFolderType.MIPMAP,
-        ADAPTIVE_ICON_TAGS,
-      ) ||
-        FileDescriptionUtils.isResourceOfTypeWithRootTag(
-          file,
-          ResourceFolderType.DRAWABLE,
-          ADAPTIVE_ICON_TAGS,
-        ))
+      (FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.MIPMAP, ADAPTIVE_ICON_TAGS) ||
+        FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, ADAPTIVE_ICON_TAGS))
   }
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>) = AdaptiveIconActionGroups(surface)

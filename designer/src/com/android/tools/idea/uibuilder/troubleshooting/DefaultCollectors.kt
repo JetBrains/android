@@ -30,8 +30,8 @@ import com.intellij.troubleshooting.TroubleInfoCollector
 import org.jetbrains.kotlin.idea.base.util.isGradleModule
 
 /**
- * List of prefixes of libraries that we want to collect version info from the project. This list is
- * used to prevent collecting unnecessary information of the user libraries.
+ * List of prefixes of libraries that we want to collect version info from the project. This list is used to prevent collecting unnecessary
+ * information of the user libraries.
  */
 private val libraryAllowedPrefixes = listOf("com.google.", "androidx.", "org.jetbrains.kotlin.")
 
@@ -43,10 +43,7 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
     output.appendLine("Project:")
     project.modules.forEach { module ->
       val moduleSystem = module.getModuleSystem()
-      val token =
-        project
-          .getProjectSystem()
-          .getTokenOrNull(LibraryDependenciesTroubleInfoCollectorToken.EP_NAME)
+      val token = project.getProjectSystem().getTokenOrNull(LibraryDependenciesTroubleInfoCollectorToken.EP_NAME)
       val libraryDependencies =
         token?.run { getDependencies(moduleSystem, module) }
           // fall back to the library dependencies of the main artifact, if the module system can
@@ -58,9 +55,7 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
   libDepCount=${libraryDependencies.size}"""
       )
       libraryDependencies.forEach { library ->
-        val libraryName =
-          if (libraryAllowedPrefixes.any { library.address.startsWith(it) }) library.address
-          else "<user-lib>"
+        val libraryName = if (libraryAllowedPrefixes.any { library.address.startsWith(it) }) library.address else "<user-lib>"
         output.appendLine("  Library: $libraryName hasResources=${library.hasResources}")
       }
     }
@@ -80,8 +75,7 @@ internal class BuildStatusTroubleInfoCollector : TroubleInfoCollector {
 internal class FastPreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val fastPreview = FastPreviewManager.getInstance(project)
-    return if (fastPreview.isEnabled) "FastPreviewStatus: available=${fastPreview.isAvailable}"
-    else ""
+    return if (fastPreview.isEnabled) "FastPreviewStatus: available=${fastPreview.isAvailable}" else ""
   }
 }
 

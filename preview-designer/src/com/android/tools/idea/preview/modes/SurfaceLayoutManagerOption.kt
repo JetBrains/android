@@ -45,10 +45,7 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
     shouldStoreScale = false,
   )
 
-/**
- * Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups.
- * Grouping is done by Composable.
- */
+/** Grid layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. Grouping is done by Composable. */
 val GRID_LAYOUT_OPTION =
   SurfaceLayoutOption(
     displayName = message("grid.layout.title"),
@@ -59,8 +56,7 @@ val GRID_LAYOUT_OPTION =
   )
 
 /**
- * Previews are grouped by UI Check type - for example "Screen sizes", "Font scales". See
- * [UiCheckModeFilter] for different types of checks.
+ * Previews are grouped by UI Check type - for example "Screen sizes", "Font scales". See [UiCheckModeFilter] for different types of checks.
  */
 val UI_CHECK_LAYOUT_OPTION =
   SurfaceLayoutOption(

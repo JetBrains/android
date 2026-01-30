@@ -33,18 +33,14 @@ abstract class AbstractProfilerExecutorGroup<T : AbstractProfilerExecutorGroup.A
   companion object {
     const val EXECUTOR_ID = "Android Profiler Group"
 
-    /**
-     * Flag name for setting profiling mode in the build system.
-     */
+    /** Flag name for setting profiling mode in the build system. */
     const val PROFILING_MODE_PROPERTY_NAME = "android.profilingMode"
 
     fun getInstance(): AbstractProfilerExecutorGroup<*>? {
       return ExecutorRegistry.getInstance().getExecutorById(EXECUTOR_ID) as? AbstractProfilerExecutorGroup<*>
     }
 
-    /**
-     * @return the [RunExecutorSettings] associated with the given [executorId], or null if not found.
-     */
+    /** @return the [RunExecutorSettings] associated with the given [executorId], or null if not found. */
     fun getExecutorSetting(executorId: String): AbstractProfilerSetting? {
       return getInstance()?.getRegisteredSettings(executorId)
     }
@@ -57,10 +53,12 @@ abstract class AbstractProfilerExecutorGroup<T : AbstractProfilerExecutorGroup.A
  * @param shouldInjectProjectProperty true if the mode should inject project property override to the build system.
  * @param analyticsProtoType metadata for analytics tracking.
  */
-enum class ProfilingMode(val value: String,
-                         val shouldInjectProjectProperty: Boolean,
-                         val analyticsProtoType: RunWithProfilingMetadata.ProfilingMode) {
+enum class ProfilingMode(
+  val value: String,
+  val shouldInjectProjectProperty: Boolean,
+  val analyticsProtoType: RunWithProfilingMetadata.ProfilingMode,
+) {
   NOT_SET("", false, RunWithProfilingMetadata.ProfilingMode.UNKNOWN_PROFILING_MODE),
   DEBUGGABLE("debuggable", true, RunWithProfilingMetadata.ProfilingMode.DEBUGGABLE),
-  PROFILEABLE("profileable", true, RunWithProfilingMetadata.ProfilingMode.PROFILEABLE);
+  PROFILEABLE("profileable", true, RunWithProfilingMetadata.ProfilingMode.PROFILEABLE),
 }

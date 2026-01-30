@@ -25,8 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class DeclarativeFormatterTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -34,75 +33,94 @@ class DeclarativeFormatterTest {
 
   @Test
   fun testBlock() {
-    doTest("""
-      block{}""","""
+    doTest(
+      """
+      block{}""",
+      """
       block {
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testBlockWithAssignment() {
-    doTest("""
+    doTest(
+      """
       block{key="value" 
       key2="value2"}
-      ""","""
+      """,
+      """
       block {
           key = "value"
           key2 = "value2"
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testBlockWithFunction() {
-    doTest("""
+    doTest(
+      """
       block{function("parameter")     ; function2("parameter2")}
-      ""","""
+      """,
+      """
       block {
           function("parameter");
           function2("parameter2")
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testEmbeddedBlockWithContent() {
-    doTest("""
+    doTest(
+      """
       block{block{key="value"}}
-      ""","""
+      """,
+      """
       block {
           block {
               key = "value"
           }
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testFactoryMultiArgument() {
-    doTest("""
+    doTest(
+      """
       factory(    "val1",123,
 false    )
-      ""","""
+      """,
+      """
       factory("val1", 123, false)
-      """)
+      """,
+    )
   }
 
   @Test
   fun testFactoryMultiArgumentAndEmbeddedFunctions() {
-    doTest("""
+    doTest(
+      """
       factory(    factory2(   "val1"
       ),123,
 false    )
-      ""","""
+      """,
+      """
       factory(factory2("val1"), 123, false)
-      """)
+      """,
+    )
   }
 
   @Test
   fun testElementsWithDot() {
-    doTest("""
+    doTest(
+      """
       rootProject  .
       name
       = 
@@ -115,33 +133,39 @@ false    )
       .version("")
       id("").
       version("")
-      ""","""
+      """,
+      """
       rootProject.name = "name"
       rootProject.name = "name"
       id("").version("")
       id("").version("")
-      """)
+      """,
+    )
   }
 
   @Test
   fun testFactoryBlock() {
-    doTest("""
+    doTest(
+      """
         buildType
         (   "debug")
         {
            prop
            = "value" }
-        ""","""
+        """,
+      """
         buildType("debug") {
             prop = "value"
         }
-        """)
+        """,
+    )
   }
 
   @Test
   fun testLongString() {
     val quotes = "\"\"\""
-    doTest("""
+    doTest(
+      """
       f(
       $quotes "myValue" $quotes)
       f($quotes "" "myValue" "" $quotes)
@@ -154,7 +178,8 @@ false    )
       a= $quotes
       long string
       $quotes
-      ""","""
+      """,
+      """
       f($quotes "myValue" $quotes)
       f($quotes "" "myValue" "" $quotes)
       f($quotes\"myValue\"$quotes)
@@ -164,43 +189,51 @@ false    )
       a = $quotes
       long string
       $quotes
-      """)
+      """,
+    )
   }
 
   @Test
   fun testFileProperty() {
-    doTest("""
+    doTest(
+      """
       androidApp{ bundle{
           deviceTargetingConfig = layout
           .projectDirectory.   file( "someDir"
           )
           } }
-      ""","""
+      """,
+      """
       androidApp {
           bundle {
               deviceTargetingConfig = layout.projectDirectory.file("someDir")
           }
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testEnum() {
-    doTest("""
+    doTest(
+      """
       androidApp{
           someEnumProperty =
             Enum
           }
-      ""","""
+      """,
+      """
       androidApp {
           someEnumProperty = Enum
       }
-      """)
+      """,
+    )
   }
 
   @Test
   fun testComplexFile() {
-    val before = """
+    val before =
+      """
         plugins{ id("org.gradle.experimental.android-application")  }      
         androidApplication
         {namespace = "com.example.myapplication"
@@ -229,39 +262,43 @@ false    )
 
   @Test
   fun testPlugins() {
-    doTest("""
+    doTest(
+      """
       plugins{id("some").version("1")
        id("other").version("2")
       }
-      """, """
+      """,
+      """
       plugins {
           id("some").version("1")
           id("other").version("2")
       }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testMapCreation() {
-    doTest("""
+    doTest(
+      """
       map  += "a"
       to     "b"
       map2 = mapOf (   "first" to    "value1", 
       "second"    to  factory("file")  )
-      """, """
+      """,
+      """
       map  += "a" to "b"
       map2 = mapOf("first" to "value1", "second" to factory("file"))
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
   }
 
   private fun doTest(before: String, after: String) {
-    myFixture.loadNewFile(
-      "build.gradle.dcl",
-      before.trimIndent()
-    )
+    myFixture.loadNewFile("build.gradle.dcl", before.trimIndent())
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project)
-        .reformatText(myFixture.file, listOf(myFixture.file.textRange))
+      CodeStyleManager.getInstance(project).reformatText(myFixture.file, listOf(myFixture.file.textRange))
     }
     myFixture.checkResult(after.trimIndent())
   }

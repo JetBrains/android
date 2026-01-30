@@ -19,7 +19,8 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 
-/** Historically, the interfaces and implementations were separated, but we don't need that distinction anymore as the interfaces are not
+/**
+ * Historically, the interfaces and implementations were separated, but we don't need that distinction anymore as the interfaces are not
  * exposed anymore. Providing the data class here goes against the pattern in the rest of the package but it's the easiest and cleanest
  * solution to be able to provide and use this cleanly without changing much in the code while refactoring.
  *
@@ -28,22 +29,18 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 class IdeDependencies(
   internal val classpath: IdeDependenciesCoreImpl,
   /** Utility method to provide easy access to a resolver without having to re-create one from the library table. */
-  val resolver: IdeLibraryModelResolverImpl
+  val resolver: IdeLibraryModelResolverImpl,
 ) {
-  @Transient
-  private var librariesField: List<IdeLibrary>? = null
+  @Transient private var librariesField: List<IdeLibrary>? = null
 
   /** Returns the libraries of all types, both direct and transitive */
-  val libraries: List<IdeLibrary> get() = synchronized(this) {
-    librariesField ?: classpath.dependencies.flatMap { resolver.resolve(it) }.also {
-      librariesField = it
-    }
-  }
+  val libraries: List<IdeLibrary>
+    get() = synchronized(this) { librariesField ?: classpath.dependencies.flatMap { resolver.resolve(it) }.also { librariesField = it } }
 
   /**
-   * Returns the list of all dependencies, both direct and transitive as [IdeDependencyCore]s.
-   * These contain an unresolved library reference [IdeDependencyCore.target] which should be resolved with a [IdeLibraryModelResolver].
-   * They also contain a list of indexes of their dependencies, these are indices back into this list of dependencies.
+   * Returns the list of all dependencies, both direct and transitive as [IdeDependencyCore]s. These contain an unresolved library reference
+   * [IdeDependencyCore.target] which should be resolved with a [IdeLibraryModelResolver]. They also contain a list of indexes of their
+   * dependencies, these are indices back into this list of dependencies.
    */
   val unresolvedDependencies: List<IdeDependencyCoreImpl> = classpath.dependencies
 }

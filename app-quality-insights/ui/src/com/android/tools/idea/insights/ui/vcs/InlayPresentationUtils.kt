@@ -29,15 +29,8 @@ import java.util.EnumSet
 import javax.swing.JPanel
 import org.jetbrains.annotations.VisibleForTesting
 
-internal fun InlayPresentation.withOnClick(
-  factory: PresentationFactory,
-  onClick: (MouseEvent, Point) -> Unit,
-): InlayPresentation {
-  return factory.onClick(
-    base = this,
-    buttons = EnumSet.of(MouseButton.Left, MouseButton.Middle),
-    onClick = onClick,
-  )
+internal fun InlayPresentation.withOnClick(factory: PresentationFactory, onClick: (MouseEvent, Point) -> Unit): InlayPresentation {
+  return factory.onClick(base = this, buttons = EnumSet.of(MouseButton.Left, MouseButton.Middle), onClick = onClick)
 }
 
 internal fun InlayPresentation.withHandCursor(editor: Editor): InlayPresentation {
@@ -46,10 +39,7 @@ internal fun InlayPresentation.withHandCursor(editor: Editor): InlayPresentation
 
 /** Inspired by [PresentationFactory.withTooltip]. */
 @VisibleForTesting
-fun InlayPresentation.withTooltip(
-  tooltipText: HelpTooltip,
-  factory: PresentationFactory,
-): InlayPresentation {
+fun InlayPresentation.withTooltip(tooltipText: HelpTooltip, factory: PresentationFactory): InlayPresentation {
   // We are using a workaround to show and hide tooltips reliably, but it is not the best solution.
   val tempComponent = JPanel().apply { tooltipText.installOn(this) }
 

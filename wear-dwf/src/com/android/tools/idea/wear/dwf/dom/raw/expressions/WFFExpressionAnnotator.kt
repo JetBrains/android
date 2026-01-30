@@ -32,8 +32,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 
 /**
- * An [Annotator] that applies highlighting based on the PSI structure, not just lexer tokens. The
- * lexer tokens are highlighted by [WFFExpressionSyntaxHighlighter].
+ * An [Annotator] that applies highlighting based on the PSI structure, not just lexer tokens. The lexer tokens are highlighted by
+ * [WFFExpressionSyntaxHighlighter].
  */
 class WFFExpressionAnnotator() : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -51,19 +51,14 @@ class WFFExpressionAnnotator() : Annotator {
     }
   }
 
-  private fun annotatePredefinedDataSource(
-    dataSource: WFFExpressionDataSource,
-    holder: AnnotationHolder,
-  ) {
+  private fun annotatePredefinedDataSource(dataSource: WFFExpressionDataSource, holder: AnnotationHolder) {
     annotateSymbol(
       holder,
       element = dataSource.id,
       textAttributes = WFFExpressionTextAttributes.DATA_SOURCE,
       // The data source can be a complication data source used under the wrong type. This will
       // be reported as an error by InvalidComplicationDataSourceLocationInspection
-      isUnknown =
-        dataSource.findDataSourceDefinition() == null &&
-          DataSources.COMPLICATION_ALL.none { it.id == dataSource.id.text },
+      isUnknown = dataSource.findDataSourceDefinition() == null && DataSources.COMPLICATION_ALL.none { it.id == dataSource.id.text },
       unknownMessage = message("wff.expression.annotator.unknown.datasource"),
     )
   }
@@ -78,10 +73,7 @@ class WFFExpressionAnnotator() : Annotator {
     )
   }
 
-  private fun annotateConfiguration(
-    configuration: WFFExpressionDataSource,
-    holder: AnnotationHolder,
-  ) {
+  private fun annotateConfiguration(configuration: WFFExpressionDataSource, holder: AnnotationHolder) {
     annotateSymbol(
       holder,
       configuration.id,
@@ -93,9 +85,7 @@ class WFFExpressionAnnotator() : Annotator {
 
   private fun annotateReference(reference: WFFExpressionDataSource, holder: AnnotationHolder) {
     val currentWFFVersion =
-      reference.getModuleSystem()?.module?.let { module ->
-        CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion
-      }
+      reference.getModuleSystem()?.module?.let { module -> CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module)?.wffVersion }
     val versionSupportsReferences = currentWFFVersion != null && currentWFFVersion >= WFFVersion4
     annotateSymbol(
       holder = holder,
@@ -122,24 +112,13 @@ class WFFExpressionAnnotator() : Annotator {
         .range(element)
         .create()
     }
-    holder
-      .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(element)
-      .textAttributes(textAttributes.key)
-      .create()
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(textAttributes.key).create()
   }
 
   private val WFFExpressionDataSource.userConfigurationReference
     get() =
-      parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
-        ?.references
-        ?.filterIsInstance<UserConfigurationReference>()
-        ?.firstOrNull()
+      parentOfType<WFFExpressionLiteralExpr>(withSelf = true)?.references?.filterIsInstance<UserConfigurationReference>()?.firstOrNull()
 
   private val WFFExpressionDataSource.referenceTagReference
-    get() =
-      parentOfType<WFFExpressionLiteralExpr>(withSelf = true)
-        ?.references
-        ?.filterIsInstance<ReferenceTagReference>()
-        ?.firstOrNull()
+    get() = parentOfType<WFFExpressionLiteralExpr>(withSelf = true)?.references?.filterIsInstance<ReferenceTagReference>()?.firstOrNull()
 }

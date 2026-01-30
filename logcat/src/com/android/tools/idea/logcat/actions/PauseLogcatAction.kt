@@ -23,12 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
 /** Pauses/Resumes Logcat collection */
-internal class PauseLogcatAction :
-  DumbAwareAction(
-    LogcatBundle.message("logcat.pause.action.pause.text"),
-    "",
-    AllIcons.Actions.Pause,
-  ) {
+internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return

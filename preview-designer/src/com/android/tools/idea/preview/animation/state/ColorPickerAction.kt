@@ -40,11 +40,7 @@ interface ColorPicker {
 // Real implementation using createAndShowColorPickerPopup
 private object ColorPickerImpl : ColorPicker {
 
-  override fun show(
-    initialColor: Color,
-    restoreFocusComponent: Component?,
-    onColorPicked: (Color) -> Unit,
-  ) {
+  override fun show(initialColor: Color, restoreFocusComponent: Component?, onColorPicked: (Color) -> Unit) {
     createAndShowColorPickerPopup(
       initialColor,
       initialColorResource = null,
@@ -75,12 +71,7 @@ class ColorPickerAction(
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
 
     return object :
-      ActionButton(
-        this,
-        PresentationFactory().getPresentation(this),
-        ActionPlaces.TOOLBAR,
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-      ) {
+      ActionButton(this, PresentationFactory().getPresentation(this), ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
 
       override fun paintComponent(g: Graphics) {
         super.paintComponent(g)

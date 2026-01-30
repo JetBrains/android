@@ -24,10 +24,10 @@ import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 
 /**
- * When running Profiler executors, the Run tool window's icon stripe title gets overridden with the executor's actionName.
- * This happens when a process start is scheduled and when a process is started from {@link com.intellij.execution.impl.}
- * and more specifically in {@link com.intellij.execution.ui.RunContentManagerImpl#getOrCreateContentManagerForToolWindow}
- * when the run tool window is either updated or registered.
+ * When running Profiler executors, the Run tool window's icon stripe title gets overridden with the executor's actionName. This happens
+ * when a process start is scheduled and when a process is started from {@link com.intellij.execution.impl.} and more specifically in {@link
+ * com.intellij.execution.ui.RunContentManagerImpl#getOrCreateContentManagerForToolWindow} when the run tool window is either updated or
+ * registered.
  *
  * This listener's purpose is to restore the Run window's stripe title to "Run" after it gets overridden.
  */

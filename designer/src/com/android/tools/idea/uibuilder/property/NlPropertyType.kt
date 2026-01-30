@@ -99,8 +99,7 @@ enum class NlPropertyType {
   /**
    * Check the specified [literal] value and return the error if any or null.
    *
-   * This method does not check resource values, theme values, and enum values. Those checks should
-   * be made BEFORE calling this method.
+   * This method does not check resource values, theme values, and enum values. Those checks should be made BEFORE calling this method.
    */
   fun validateLiteral(literal: String): String? {
     if (literal.isEmpty()) {
@@ -108,25 +107,18 @@ enum class NlPropertyType {
     }
     return when (this) {
       THREE_STATE_BOOLEAN,
-      BOOLEAN ->
-        error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) {
-          "Invalid bool value: '$literal'"
-        }
+      BOOLEAN -> error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) { "Invalid bool value: '$literal'" }
       COLOR_STATE_LIST,
       COLOR,
       DRAWABLE -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
       DIMENSION_PIXEL,
-      DIMENSION ->
-        error(DimensionConverter.doFromString(literal) == null) {
-          getDimensionError(literal)
-        }
+      DIMENSION -> error(DimensionConverter.doFromString(literal) == null) { getDimensionError(literal) }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
       FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
       FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'" }
-      INTEGER ->
-        error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'" }
+      INTEGER -> error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'" }
       ID -> "Invalid id: '$literal'"
       else -> null
     }

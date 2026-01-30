@@ -78,10 +78,7 @@ class DeviceMenuActionTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
   @get:Rule
   val flagRules =
-    RuleChain(
-      FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true),
-      FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true),
-    )
+    RuleChain(FlagRule(StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED, true), FlagRule(StudioFlags.XR_GLASSES_DEVICE_SUPPORT_ENABLED, true))
 
   private fun getReferenceDevicesExpected(): String {
     return """
@@ -96,19 +93,14 @@ class DeviceMenuActionTest {
   @Test
   fun testDefaultDevicesRendering() = runBlocking {
     val configuration = Mockito.mock(Configuration::class.java)
-    val configurationModelModule: ConfigurationModelModule =
-      StudioConfigurationModelModule(projectRule.projectRule.module)
-    whenever(configuration.settings)
-      .thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    val configurationModelModule: ConfigurationModelModule = StudioConfigurationModelModule(projectRule.projectRule.module)
+    whenever(configuration.settings).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
     val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
 
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)
-    val actual =
-      withContext(Dispatchers.EDT) {
-        prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext)
-      }
+    val actual = withContext(Dispatchers.EDT) { prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext) }
 
     assertThat(actual.trimEnd())
       .isEqualTo(
@@ -210,7 +202,7 @@ class DeviceMenuActionTest {
                   13.5" Freeform (1707 × 960 dp, hdpi)
                   10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
               Add Device Definition
-      """
+          """
             .trimIndent()
       )
   }
@@ -227,13 +219,12 @@ class DeviceMenuActionTest {
           android:layout_height="match_parent"
           android:orientation="vertical">
          </LinearLayout>
-      """
+        """
           .trimIndent(),
       )
 
     val configuration = readAction {
-      ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
-        .getConfiguration(layoutFile.virtualFile)
+      ConfigurationManager.getOrCreateInstance(layoutFile.module!!).getConfiguration(layoutFile.virtualFile)
     }
     val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
 
@@ -243,9 +234,7 @@ class DeviceMenuActionTest {
     assertThat(configuration.device?.displayName).isEqualTo("Pixel")
 
     val pixelFoldAction = menuAction.findActionByText("Pixel Fold (841 × 701 dp, 420dpi)")!!
-    withContext(Dispatchers.EDT) {
-      pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
-    }
+    withContext(Dispatchers.EDT) { pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext)) }
 
     assertThat(configuration.device?.displayName).isEqualTo("Pixel Fold")
   }
@@ -260,8 +249,7 @@ class DeviceMenuActionTest {
     val device = nexusXlDevices!!.first()
     val testDevices = listOf(device, device)
     val configurationSettings = TestConfigurationSettings(testDevices)
-    val configuration =
-      Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configurationSettings, FolderConfiguration.createDefault())
     configuration.setEffectiveDevice(device, device.defaultState)
 
     val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
@@ -295,13 +283,12 @@ class DeviceMenuActionTest {
           android:layout_height="match_parent"
           android:orientation="vertical">
          </LinearLayout>
-      """
+        """
           .trimIndent(),
       )
 
     val configuration = readAction {
-      ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
-        .getConfiguration(layoutFile.virtualFile)
+      ConfigurationManager.getOrCreateInstance(layoutFile.module!!).getConfiguration(layoutFile.virtualFile)
     }
 
     val menuAction = DeviceMenuAction()
@@ -309,8 +296,7 @@ class DeviceMenuActionTest {
     menuAction.updateActions(dataContext)
 
     // Set a custom device that matches the Foldable reference device
-    val foldableDevice =
-      (menuAction.findActionByText("Foldable (673 × 841 dp, 420dpi)") as SetDeviceAction).device
+    val foldableDevice = (menuAction.findActionByText("Foldable (673 × 841 dp, 420dpi)") as SetDeviceAction).device
     val builder = Device.Builder(foldableDevice)
     builder.setId(Configuration.CUSTOM_DEVICE_ID)
     val customDevice = builder.build()
@@ -340,13 +326,12 @@ class DeviceMenuActionTest {
           android:layout_height="match_parent"
           android:orientation="vertical">
          </LinearLayout>
-      """
+        """
           .trimIndent(),
       )
 
     val configuration = readAction {
-      ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
-        .getConfiguration(layoutFile.virtualFile)
+      ConfigurationManager.getOrCreateInstance(layoutFile.module!!).getConfiguration(layoutFile.virtualFile)
     }
 
     val menuAction = DeviceMenuAction()
@@ -410,16 +395,12 @@ class DeviceMenuActionTest {
     val otherDevice = otherDeviceBuilder.build()
 
     val configurationSettings = TestConfigurationSettings(listOf(otherDevice))
-    val configuration =
-      Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configurationSettings, FolderConfiguration.createDefault())
     val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
 
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)
-    val actual =
-      withContext(Dispatchers.EDT) {
-        prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext)
-      }
+    val actual = withContext(Dispatchers.EDT) { prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext) }
 
     // prettyPrintActions adds indentation, so we check for the expected formatted block.
     val expectedSection =
@@ -432,8 +413,7 @@ class DeviceMenuActionTest {
   }
 }
 
-private class TestConfigurationSettings(private val testDevices: List<Device>) :
-  ConfigurationSettings {
+private class TestConfigurationSettings(private val testDevices: List<Device>) : ConfigurationSettings {
   override val defaultDevice: Device?
     get() = null
 

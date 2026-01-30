@@ -33,7 +33,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLoadingPanel
 import icons.StudioIllustrations
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
@@ -41,8 +40,10 @@ import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JTabbedPane
+import org.jetbrains.annotations.TestOnly
 
-class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorerModel, private val toolWindowID: String): DeviceExplorerView {
+class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorerModel, private val toolWindowID: String) :
+  DeviceExplorerView {
   private val listeners: MutableList<DeviceExplorerViewListener> = ArrayList()
   private val loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), project)
   private val panel = DeviceExplorerPanel()
@@ -50,7 +51,6 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
 
   val component: JComponent
     get() = loadingPanel
-
 
   override fun addListener(listener: DeviceExplorerViewListener) {
     listeners.add(listener)
@@ -68,8 +68,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
       val sel = panel.deviceCombo.selectedItem
       if (sel is DeviceHandle) {
         listeners.forEach(Consumer { it.deviceSelected(sel) })
-      }
-      else {
+      } else {
         listeners.forEach(Consumer { it.noDeviceSelected() })
       }
     }
@@ -78,9 +77,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
       if (newSelectedTabIndex != selectedTabIndex) {
         selectedTabIndex = newSelectedTabIndex
         val tabName = (it.source as JTabbedPane).getTitleAt(newSelectedTabIndex)
-        TAB_TO_ACTION_MAP[tabName]?.let { action ->
-          trackAction(action)
-        }
+        TAB_TO_ACTION_MAP[tabName]?.let { action -> trackAction(action) }
       }
     }
     showPanel()
@@ -110,12 +107,12 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   }
 
   override suspend fun trackActiveDeviceChanges() {
-    model.activeDevice.collect {
-      panel.deviceCombo.selectedItem = it
-    }
+    model.activeDevice.collect { panel.deviceCombo.selectedItem = it }
   }
 
-  override fun reportErrorGeneric(message: String, t: Throwable) { reportError(message, t) }
+  override fun reportErrorGeneric(message: String, t: Throwable) {
+    reportError(message, t)
+  }
 
   private fun reportError(message: String, t: Throwable) {
     if (t is CancellationException) {
@@ -125,9 +122,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
     val updatedMessage = if (t.message != null) "$message: ${t.message}" else message
     val notification = Notification(toolWindowID, toolWindowID, updatedMessage, NotificationType.WARNING)
 
-    ApplicationManager.getApplication().invokeLater {
-      Notifications.Bus.notify(notification)
-    }
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private fun showPanel() {
@@ -146,7 +141,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
     panel.showMessageLayer(
       "Connect a device via USB cable or run an Android Virtual Device",
       StudioIllustrations.Common.DEVICES_LINEUP,
-      false
+      false,
     )
   }
 
@@ -154,21 +149,22 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-        .setDeviceExplorerEvent(
-          DeviceExplorerEvent.newBuilder()
-            .setAction(action)
-        )
+        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder().setAction(action))
     )
   }
 
-  @TestOnly
-  fun getDeviceCombo(): JComboBox<DeviceHandle> = panel.deviceCombo
+  @TestOnly fun getDeviceCombo(): JComboBox<DeviceHandle> = panel.deviceCombo
 
-  @TestOnly
-  fun getTabPane(): JTabbedPane = panel.tabPane
+  @TestOnly fun getTabPane(): JTabbedPane = panel.tabPane
 
   private class DeviceNameRenderer : ColoredListCellRenderer<DeviceHandle>() {
-    override fun customizeCellRenderer(list: JList<out DeviceHandle>, value: DeviceHandle?, index: Int, selected: Boolean, hasFocus: Boolean) {
+    override fun customizeCellRenderer(
+      list: JList<out DeviceHandle>,
+      value: DeviceHandle?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ) {
       if (value == null) {
         append("No Connected Devices", SimpleTextAttributes.ERROR_ATTRIBUTES)
         return
@@ -179,9 +175,10 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   }
 
   companion object {
-    val TAB_TO_ACTION_MAP = mapOf(
-      DeviceExplorerTab.Files.name to DeviceExplorerEvent.Action.FILES_TAB_CLICKED,
-      DeviceExplorerTab.Processes.name to DeviceExplorerEvent.Action.PROCESS_TAB_CLICKED
-    )
+    val TAB_TO_ACTION_MAP =
+      mapOf(
+        DeviceExplorerTab.Files.name to DeviceExplorerEvent.Action.FILES_TAB_CLICKED,
+        DeviceExplorerTab.Processes.name to DeviceExplorerEvent.Action.PROCESS_TAB_CLICKED,
+      )
   }
 }

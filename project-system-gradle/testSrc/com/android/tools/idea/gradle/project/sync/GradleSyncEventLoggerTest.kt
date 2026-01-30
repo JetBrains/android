@@ -24,27 +24,24 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_CONFIGURE_BUILD
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_CONFIGURE_ROOT_BUILD
-import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.PROJECT_SETUP
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_RUN_MAIN_TASKS
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.GRADLE_RUN_WORK
+import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.PROJECT_SETUP
 import com.google.wireless.android.sdk.stats.GradleSyncStats.GradleSyncPhaseData.SyncPhase.SYNC_TOTAL
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 
 class GradleSyncEventLoggerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val expect: Expect = Expect.create()
+  @get:Rule val expect: Expect = Expect.create()
 
   private var now: Long = 0
 
   private val eventLogger = GradleSyncEventLogger { now }
 
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
+  @get:Rule val ignoreTests = IgnoreTestRule()
 
   @Test
   fun whenStarted() {
@@ -111,15 +108,17 @@ class GradleSyncEventLoggerTest {
     expect.that(event.gradleSyncStats.gradleTimeMs).named("gradleTimeMs").isEqualTo(4)
     expect.that(event.gradleSyncStats.ideTimeMs).named("ideTimeMs").isEqualTo(1)
     expect.that(event.gradleSyncStats.totalTimeMs).named("totalTimeMs").isEqualTo(5)
-    expect.that(event.gradleSyncStats.gradleSyncPhasesDataList).containsExactly(
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_CONFIGURE_BUILD), 1, 2, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_RUN_WORK), 2, 3, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD), 1, 3, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_RUN_MAIN_TASKS, GRADLE_RUN_WORK), 3, 4, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_RUN_MAIN_TASKS), 3, 4, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, PROJECT_SETUP), 4, 5, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL), 0, 5, PhaseResult.SUCCESS)
-    )
+    expect
+      .that(event.gradleSyncStats.gradleSyncPhasesDataList)
+      .containsExactly(
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_CONFIGURE_BUILD), 1, 2, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_RUN_WORK), 2, 3, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD), 1, 3, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_RUN_MAIN_TASKS, GRADLE_RUN_WORK), 3, 4, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_RUN_MAIN_TASKS), 3, 4, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, PROJECT_SETUP), 4, 5, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL), 0, 5, PhaseResult.SUCCESS),
+      )
   }
 
   @Test
@@ -147,23 +146,21 @@ class GradleSyncEventLoggerTest {
     expect.that(event.gradleSyncStats.gradleTimeMs).named("gradleTimeMs").isEqualTo(-1)
     expect.that(event.gradleSyncStats.ideTimeMs).named("ideTimeMs").isEqualTo(-1)
     expect.that(event.gradleSyncStats.totalTimeMs).named("totalTimeMs").isEqualTo(4)
-    expect.that(event.gradleSyncStats.gradleSyncPhasesDataList).containsExactly(
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_CONFIGURE_BUILD), 1, 2, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_RUN_WORK), 2, 3, PhaseResult.SUCCESS),
-      phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD), 1, 4, PhaseResult.FAILURE),
-      phase(listOf(SYNC_TOTAL), 0, 4, PhaseResult.FAILURE)
-    )
+    expect
+      .that(event.gradleSyncStats.gradleSyncPhasesDataList)
+      .containsExactly(
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_CONFIGURE_BUILD), 1, 2, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD, GRADLE_RUN_WORK), 2, 3, PhaseResult.SUCCESS),
+        phase(listOf(SYNC_TOTAL, GRADLE_CONFIGURE_ROOT_BUILD), 1, 4, PhaseResult.FAILURE),
+        phase(listOf(SYNC_TOTAL), 0, 4, PhaseResult.FAILURE),
+      )
   }
 
-  private fun phase(
-    phase: List<SyncPhase>,
-    startTimestamp: Long,
-    endTimestamp: Long,
-    status: PhaseResult
-  ) = GradleSyncStats.GradleSyncPhaseData.newBuilder()
-    .addAllPhaseStack(phase)
-    .setPhaseStartTimestampMs(startTimestamp)
-    .setPhaseEndTimestampMs(endTimestamp)
-    .setPhaseResult(status)
-    .build()
+  private fun phase(phase: List<SyncPhase>, startTimestamp: Long, endTimestamp: Long, status: PhaseResult) =
+    GradleSyncStats.GradleSyncPhaseData.newBuilder()
+      .addAllPhaseStack(phase)
+      .setPhaseStartTimestampMs(startTimestamp)
+      .setPhaseEndTimestampMs(endTimestamp)
+      .setPhaseResult(status)
+      .build()
 }

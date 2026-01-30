@@ -17,11 +17,8 @@ package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.idea.diagnostics.crash.BaseStudioReport
 
-open class DiagnosticCrashReport(type: String,
-                                 private val properties: DiagnosticReportProperties) :
-  BaseStudioReport(properties.studioVersion,
-                   properties.asProductDataMap(),
-                   type) {
+open class DiagnosticCrashReport(type: String, private val properties: DiagnosticReportProperties) :
+  BaseStudioReport(properties.studioVersion, properties.asProductDataMap(), type) {
 
   override fun overrideDefaultParameters(parameters: MutableMap<String, String>) {
     parameters["ptime"] = properties.uptime.toString()

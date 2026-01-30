@@ -31,21 +31,7 @@ object InspectorPainter {
     private const val MINIMUM_TICK_DISTANCE = 150
 
     private val TICK_INCREMENTS =
-      arrayOf(
-        1_000_000_000,
-        100_000_000,
-        10_000_000,
-        1_000_000,
-        100_000,
-        10_000,
-        10_000,
-        1_000,
-        200,
-        50,
-        10,
-        5,
-        2,
-      )
+      arrayOf(1_000_000_000, 100_000_000, 10_000_000, 1_000_000, 100_000, 10_000, 10_000, 1_000, 200, 50, 10, 5, 2)
 
     /**
      * Get the dynamic tick increment for horizontal slider:
@@ -54,11 +40,8 @@ object InspectorPainter {
      */
     fun getTickIncrement(slider: JSlider, minimumTickSize: Int = MINIMUM_TICK_DISTANCE): Int {
       if (slider.maximum == 0 || slider.width == 0) return slider.maximum
-      val increment =
-        (minimumTickSize.toFloat() / slider.width * (slider.maximum - slider.minimum)).toInt()
-      TICK_INCREMENTS.forEach {
-        if (increment >= it) return@getTickIncrement (increment / (it - 1)) * it
-      }
+      val increment = (minimumTickSize.toFloat() / slider.width * (slider.maximum - slider.minimum)).toInt()
+      TICK_INCREMENTS.forEach { if (increment >= it) return@getTickIncrement (increment / (it - 1)) * it }
       return 1
     }
   }
@@ -96,22 +79,8 @@ object InspectorPainter {
       // (x + halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one
       // (right side)
       val handleHeight = HANDLE_HALF_HEIGHT * 2
-      val xPoints =
-        intArrayOf(
-          x,
-          x - HANDLE_HALF_WIDTH,
-          x - HANDLE_HALF_WIDTH,
-          x + HANDLE_HALF_WIDTH,
-          x + HANDLE_HALF_WIDTH,
-        )
-      val yPoints =
-        intArrayOf(
-          y,
-          y - HANDLE_HALF_HEIGHT,
-          y - handleHeight,
-          y - handleHeight,
-          y - HANDLE_HALF_HEIGHT,
-        )
+      val xPoints = intArrayOf(x, x - HANDLE_HALF_WIDTH, x - HANDLE_HALF_WIDTH, x + HANDLE_HALF_WIDTH, x + HANDLE_HALF_WIDTH)
+      val yPoints = intArrayOf(y, y - HANDLE_HALF_HEIGHT, y - handleHeight, y - handleHeight, y - HANDLE_HALF_HEIGHT)
       g.fillPolygon(xPoints, yPoints, xPoints.size)
     }
   }

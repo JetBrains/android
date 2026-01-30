@@ -58,23 +58,27 @@ class NativeDebugOnRemoteDeviceChecker(private val project: Project) {
   }
 
   private fun showWarningIfNeeded(): Boolean {
-    val proceed = if (showWarning) {
-      MessageDialogBuilder.yesNo(
-        title = "Poor debugger performance",
-        message = "Using a Native debugger with a remote device may result in very poor debugger performance. Do you want to proceed?",
-      ).doNotAsk(object : DoNotAskOption.Adapter() {
-        override fun getDoNotShowMessage() = "Don't show me again"
+    val proceed =
+      if (showWarning) {
+        MessageDialogBuilder.yesNo(
+            title = "Poor debugger performance",
+            message = "Using a Native debugger with a remote device may result in very poor debugger performance. Do you want to proceed?",
+          )
+          .doNotAsk(
+            object : DoNotAskOption.Adapter() {
+              override fun getDoNotShowMessage() = "Don't show me again"
 
-        override fun isSelectedByDefault() = false
+              override fun isSelectedByDefault() = false
 
-        override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
-          showWarning = !isSelected
-        }
-      }).guessWindowAndAsk()
-    }
-    else {
-      true
-    }
+              override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
+                showWarning = !isSelected
+              }
+            }
+          )
+          .guessWindowAndAsk()
+      } else {
+        true
+      }
     if (proceed) {
       val notification =
         Notification(

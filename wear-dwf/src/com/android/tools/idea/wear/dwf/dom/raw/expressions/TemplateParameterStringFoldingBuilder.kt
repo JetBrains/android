@@ -39,50 +39,38 @@ import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * [FoldingBuilderEx] that folds string resource references in `expression` attributes of
- * `<Parameter>` tags that are within `<Template>` tags.
+ * [FoldingBuilderEx] that folds string resource references in `expression` attributes of `<Parameter>` tags that are within `<Template>`
+ * tags.
  *
- * These should only be folded if the whole expression is a string resource reference. There cannot
- * be multiple string resource references in the same expression.
+ * These should only be folded if the whole expression is a string resource reference. There cannot be multiple string resource references
+ * in the same expression.
  *
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/group/part/text/formatter/template">Template</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/group/part/text/formatter/template">Template</a>
  */
 class TemplateParameterStringFoldingBuilder : FoldingBuilderEx() {
-  override fun buildFoldRegions(
-    root: PsiElement,
-    document: Document,
-    quick: Boolean,
-  ): Array<out FoldingDescriptor?> {
-    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get())
-      return FoldingDescriptor.EMPTY_ARRAY
+  override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<out FoldingDescriptor?> {
+    if (!StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) return FoldingDescriptor.EMPTY_ARRAY
     val facet = AndroidFacet.getInstance(root) ?: return FoldingDescriptor.EMPTY_ARRAY
 
     return PsiTreeUtil.findChildrenOfType(root, XmlAttributeValue::class.java)
       .filter {
         val parentAttribute = it.parentOfType<XmlAttribute>()
         val parentTag = parentAttribute?.parentOfType<XmlTag>()
-        parentAttribute?.name == ATTRIBUTE_EXPRESSION &&
-          parentTag?.name == TAG_PARAMETER &&
-          parentTag.parentTag?.name == TAG_TEMPLATE
+        parentAttribute?.name == ATTRIBUTE_EXPRESSION && parentTag?.name == TAG_PARAMETER && parentTag.parentTag?.name == TAG_TEMPLATE
       }
       .mapNotNull { xmlAttributeValue ->
         val resourceName = xmlAttributeValue.value.removeSurroundingQuotes()
         if (!ResourceUrl.isValidName(resourceName, ResourceType.STRING)) return@mapNotNull null
-        val reference =
-          ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, resourceName)
+        val reference = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, resourceName)
         val resourceResolver =
-          AndroidAnnotatorUtil.pickConfiguration(xmlAttributeValue.containingFile, facet)
-            ?.resourceResolver ?: return@mapNotNull null
-        val resolvedValue =
-          resourceResolver.getResolvedResource(reference)?.value ?: return@mapNotNull null
+          AndroidAnnotatorUtil.pickConfiguration(xmlAttributeValue.containingFile, facet)?.resourceResolver ?: return@mapNotNull null
+        val resolvedValue = resourceResolver.getResolvedResource(reference)?.value ?: return@mapNotNull null
         FoldingDescriptor(xmlAttributeValue.node, xmlAttributeValue.textRange, null, resolvedValue)
       }
       .toTypedArray()
   }
 
-  override fun isCollapsedByDefault(node: ASTNode) =
-    AndroidFoldingSettings.getInstance().isCollapseAndroidStrings
+  override fun isCollapsedByDefault(node: ASTNode) = AndroidFoldingSettings.getInstance().isCollapseAndroidStrings
 
   override fun getPlaceholderText(node: ASTNode) = node.text
 }

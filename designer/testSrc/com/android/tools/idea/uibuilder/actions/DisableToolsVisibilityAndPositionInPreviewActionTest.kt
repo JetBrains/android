@@ -32,9 +32,7 @@ import org.junit.runners.JUnit4
 class DisableToolsVisibilityAndPositionInPreviewActionTest {
   @get:Rule val applicationRule = ApplicationRule()
   private val disableToolsAction = DisableToolsVisibilityAndPositionInPreviewAction
-  private val context by lazy {
-    SimpleDataContext.builder().add(LAYOUT_PREVIEW_HANDLER_KEY, previewHandler).build()
-  }
+  private val context by lazy { SimpleDataContext.builder().add(LAYOUT_PREVIEW_HANDLER_KEY, previewHandler).build() }
 
   private val previewHandler: LayoutPreviewHandler =
     object : LayoutPreviewHandler {
@@ -42,13 +40,7 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
     }
 
   private fun createActionEvent() =
-    AnActionEvent.createEvent(
-      context,
-      disableToolsAction.templatePresentation.clone(),
-      "DesignSurface",
-      ActionUiKind.NONE,
-      null,
-    )
+    AnActionEvent.createEvent(context, disableToolsAction.templatePresentation.clone(), "DesignSurface", ActionUiKind.NONE, null)
 
   @Test
   fun isSelected() {

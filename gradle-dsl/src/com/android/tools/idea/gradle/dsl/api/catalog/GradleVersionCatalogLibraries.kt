@@ -30,9 +30,9 @@ interface GradleVersionCatalogLibraries : GradleBlockModel {
 
   fun addDeclaration(alias: String, dependencySpec: LibraryDeclarationSpec)
 
-  fun addDeclaration(alias: String, name:String, group:String, versionReference: ReferenceTo)
+  fun addDeclaration(alias: String, name: String, group: String, versionReference: ReferenceTo)
 
-  fun addDeclaration(alias: String, name:String, group:String)
+  fun addDeclaration(alias: String, name: String, group: String)
 
   fun remove(alias: String)
 }

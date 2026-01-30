@@ -62,8 +62,7 @@ class AppInspectorConnectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService)
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
@@ -100,8 +99,7 @@ class AppInspectorConnectionTest {
     runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection()
 
-      assertThat(connection.sendRawCommand("TestData".toByteArray()))
-        .isEqualTo("TestData".toByteArray())
+      assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("TestData".toByteArray())
     }
 
   @Test
@@ -112,23 +110,17 @@ class AppInspectorConnectionTest {
           commandHandler =
             TestAppInspectorCommandHandler(
               timer,
-              rawInspectorResponse =
-                createRawResponse(AppInspection.AppInspectionResponse.Status.ERROR, "error"),
+              rawInspectorResponse = createRawResponse(AppInspection.AppInspectionResponse.Status.ERROR, "error"),
             )
         )
 
-      assertThat(connection.sendRawCommand("TestData".toByteArray()))
-        .isEqualTo("error".toByteArray())
+      assertThat(connection.sendRawCommand("TestData".toByteArray())).isEqualTo("error".toByteArray())
     }
 
   // One payload event carries a single chunk of data
   private fun AppInspectionTransport.queryAllPayloads(): List<AppInspection.AppInspectionPayload> {
     return client.transportStub
-      .getEventGroups(
-        Transport.GetEventGroupsRequest.newBuilder()
-          .setKind(Event.Kind.APP_INSPECTION_PAYLOAD)
-          .build()
-      )
+      .getEventGroups(Transport.GetEventGroupsRequest.newBuilder().setKind(Event.Kind.APP_INSPECTION_PAYLOAD).build())
       .groupsList
       .flatMap { group -> group.eventsList }
       .map { event -> event.appInspectionPayload }
@@ -141,26 +133,16 @@ class AppInspectorConnectionTest {
       val payloadId = 1L
       val connection =
         appInspectionRule.launchInspectorConnection(
-          commandHandler =
-            TestAppInspectorCommandHandler(
-              timer,
-              rawInspectorResponse = createRawResponse(payloadId),
-            )
+          commandHandler = TestAppInspectorCommandHandler(timer, rawInspectorResponse = createRawResponse(payloadId))
         )
 
       // Initialize the payload cache *before* sending a command (which will then trigger a payload
       // response)
       // Also, choose a chunk size smaller than the payload itself, to ensure chunking works
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayloadChunks("TestResponse".toByteArray(), 2),
-      )
-      assertThat(appInspectionRule.transport.queryAllPayloads())
-        .hasSize(6) // "TestResponse" broken up into chunk size 2
-      assertThat(connection.sendRawCommand("TestCommand".toByteArray()))
-        .isEqualTo("TestResponse".toByteArray())
-      assertThat(appInspectionRule.transport.queryAllPayloads())
-        .isEmpty() // Cache is cleared when queried
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayloadChunks("TestResponse".toByteArray(), 2))
+      assertThat(appInspectionRule.transport.queryAllPayloads()).hasSize(6) // "TestResponse" broken up into chunk size 2
+      assertThat(connection.sendRawCommand("TestCommand".toByteArray())).isEqualTo("TestResponse".toByteArray())
+      assertThat(appInspectionRule.transport.queryAllPayloads()).isEmpty() // Cache is cleared when queried
     }
 
   @Test
@@ -193,18 +175,9 @@ class AppInspectorConnectionTest {
       val data3 = byteArrayOf(0x1, 0x2, 0x3) // Make sure we can handle large chunk sizes
 
       // Send the payloads first
-      appInspectionRule.addAppInspectionPayload(
-        payloadId1,
-        createPayloadChunks(data1, 5),
-      ) // 26 chunks
-      appInspectionRule.addAppInspectionPayload(
-        payloadId2,
-        createPayloadChunks(data2, 2),
-      ) // 128 chunks
-      appInspectionRule.addAppInspectionPayload(
-        payloadId3,
-        createPayloadChunks(data3, 999),
-      ) // 1 chunk
+      appInspectionRule.addAppInspectionPayload(payloadId1, createPayloadChunks(data1, 5)) // 26 chunks
+      appInspectionRule.addAppInspectionPayload(payloadId2, createPayloadChunks(data2, 2)) // 128 chunks
+      appInspectionRule.addAppInspectionPayload(payloadId3, createPayloadChunks(data3, 999)) // 1 chunk
 
       // Send payload events out of order, just to stress test that payloads can be queried anytime
       // after they are sent
@@ -238,36 +211,12 @@ class AppInspectorConnectionTest {
       var chunkIndex = 0
 
       // Send duplicated payloads events:
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, chunkIndex, data1),
-        isEnded = false,
-      )
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, chunkIndex, data1),
-        isEnded = false,
-      )
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, ++chunkIndex, data2),
-        isEnded = false,
-      )
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, ++chunkIndex, data3),
-        isEnded = true,
-      )
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, chunkIndex, data3),
-        isEnded = true,
-      )
-      appInspectionRule.addAppInspectionPayload(
-        payloadId,
-        createPayload(chunkCount, chunkIndex, data3),
-        isEnded = true,
-      )
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, chunkIndex, data1), isEnded = false)
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, chunkIndex, data1), isEnded = false)
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, ++chunkIndex, data2), isEnded = false)
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, ++chunkIndex, data3), isEnded = true)
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, chunkIndex, data3), isEnded = true)
+      appInspectionRule.addAppInspectionPayload(payloadId, createPayload(chunkCount, chunkIndex, data3), isEnded = true)
 
       // Send payload events out of order, just to stress test that payloads can be queried anytime
       // after they are sent
@@ -340,8 +289,7 @@ class AppInspectorConnectionTest {
 
       disposedDeferred.join()
 
-      assertThat(client.awaitForDisposal())
-        .isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
+      assertThat(client.awaitForDisposal()).isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
     }
 
   @Test
@@ -356,8 +304,7 @@ class AppInspectorConnectionTest {
           .build()
       )
 
-      assertThat(client.awaitForDisposal())
-        .isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
+      assertThat(client.awaitForDisposal()).isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
     }
 
   @Test
@@ -368,9 +315,7 @@ class AppInspectorConnectionTest {
       appInspectionRule.addAppInspectionEvent(
         AppInspectionEvent.newBuilder()
           .setInspectorId(INSPECTOR_ID)
-          .setDisposedEvent(
-            AppInspection.DisposedEvent.newBuilder().setErrorMessage("ERROR").build()
-          )
+          .setDisposedEvent(AppInspection.DisposedEvent.newBuilder().setErrorMessage("ERROR").build())
           .build()
       )
 
@@ -391,8 +336,7 @@ class AppInspectorConnectionTest {
         client.sendRawCommand("Data".toByteArray())
         fail()
       } catch (e: CancellationException) {
-        assertThat(e.cause!!.message)
-          .isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
+        assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
       }
     }
 
@@ -430,9 +374,7 @@ class AppInspectorConnectionTest {
         appInspectionRule.addAppInspectionEvent(
           AppInspectionEvent.newBuilder()
             .setInspectorId(INSPECTOR_ID)
-            .setDisposedEvent(
-              AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build()
-            )
+            .setDisposedEvent(AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build())
             .build()
         )
 
@@ -507,8 +449,7 @@ class AppInspectorConnectionTest {
               commandId = command.appInspectionCommand.commandId
               cancelReadyDeferred.complete(Unit)
             } else if (command.appInspectionCommand.hasCancellationCommand()) {
-              assertThat(command.appInspectionCommand.cancellationCommand.cancelledCommandId)
-                .isEqualTo(commandId)
+              assertThat(command.appInspectionCommand.cancellationCommand.cancelledCommandId).isEqualTo(commandId)
               cancelCompletedDeferred.complete(Unit)
             }
           }
@@ -550,10 +491,7 @@ class AppInspectorConnectionTest {
       }
 
       sendRawCommandCalled.join()
-      transportService.setCommandHandler(
-        Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer),
-      )
+      transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
       appInspectionRule.scope.cancel()
 
       client.awaitForDisposal()
@@ -596,10 +534,7 @@ class AppInspectorConnectionTest {
       }
 
       sendRawCommandCalled.join()
-      transportService.setCommandHandler(
-        Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer),
-      )
+      transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
       client.scope.cancel()
       sendJob.cancelAndJoin()
 
@@ -624,9 +559,7 @@ class AppInspectorConnectionTest {
       appInspectionRule.addAppInspectionEvent(
         AppInspectionEvent.newBuilder()
           .setInspectorId(INSPECTOR_ID)
-          .setDisposedEvent(
-            AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build()
-          )
+          .setDisposedEvent(AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build())
           .build()
       )
       assertThat(client3.awaitForDisposal()).isInstanceOf(AppInspectionCrashException::class.java)

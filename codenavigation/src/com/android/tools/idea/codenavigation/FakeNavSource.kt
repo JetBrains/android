@@ -17,9 +17,7 @@ package com.android.tools.idea.codenavigation
 
 import com.intellij.pom.Navigatable
 
-/**
- * A test-only [NavSource] that says that no code location is navigable.
- */
+/** A test-only [NavSource] that says that no code location is navigable. */
 class FakeNavSource : NavSource {
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     return null

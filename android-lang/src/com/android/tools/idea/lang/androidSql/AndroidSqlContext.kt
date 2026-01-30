@@ -21,9 +21,7 @@ import com.android.tools.idea.lang.androidSql.resolution.BindParameter
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.util.Processor
 
-/**
- * Describes context in which a query ([com.android.tools.idea.lang.androidSql.psi.AndroidSqlFile]) will execute.
- */
+/** Describes context in which a query ([com.android.tools.idea.lang.androidSql.psi.AndroidSqlFile]) will execute. */
 interface AndroidSqlContext {
 
   /** Runs the [processor] on all [AndroidSqlTable]s in the context schema. */
@@ -38,15 +36,14 @@ interface AndroidSqlContext {
     fun getContext(query: AndroidSqlFile): AndroidSqlContext?
 
     companion object {
-      val EP_NAME: ExtensionPointName<AndroidSqlContext.Provider> = ExtensionPointName.create(
-        "com.android.tools.idea.lang.androidSql.contextProvider");
+      val EP_NAME: ExtensionPointName<AndroidSqlContext.Provider> =
+        ExtensionPointName.create("com.android.tools.idea.lang.androidSql.contextProvider")
     }
   }
 }
 
-/**
- * Finds the [AndroidSqlContext] applicable to this [AndroidSqlFile], if known.
- */
-val AndroidSqlFile.sqlContext: AndroidSqlContext? get() {
-  return AndroidSqlContext.Provider.EP_NAME.extensionList.asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
-}
+/** Finds the [AndroidSqlContext] applicable to this [AndroidSqlFile], if known. */
+val AndroidSqlFile.sqlContext: AndroidSqlContext?
+  get() {
+    return AndroidSqlContext.Provider.EP_NAME.extensionList.asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
+  }

@@ -59,14 +59,12 @@ import org.junit.Rule
 import org.junit.Test
 
 class SyncFailureUsageReporterTest {
-  
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-  
+
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
   private val syncViewListeners = DisposableWrapperList<BuildProgressListener>()
   private lateinit var buildId: ExternalSystemTaskId
-
 
   @Before
   fun setUp() {
@@ -80,7 +78,7 @@ class SyncFailureUsageReporterTest {
           }
         }
       },
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
     UsageTracker.setWriterForTest(usageTracker)
   }
@@ -95,11 +93,15 @@ class SyncFailureUsageReporterTest {
   fun detectedAndReportedFailureReasonReportedAsIs() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
-    SyncFailureUsageReporter.getInstance().collectUnprocessedGradleError(
-      projectRule.project.basePath!!,
-      // This is not a full stack, but close enough for this test.
-      GradleScriptException("A problem occurred evaluating project ':app'.", RuntimeException(ClassNotFoundException("not.existing.MyClass")))
-    )
+    SyncFailureUsageReporter.getInstance()
+      .collectUnprocessedGradleError(
+        projectRule.project.basePath!!,
+        // This is not a full stack, but close enough for this test.
+        GradleScriptException(
+          "A problem occurred evaluating project ':app'.",
+          RuntimeException(ClassNotFoundException("not.existing.MyClass")),
+        ),
+      )
     SyncFailureUsageReporter.getInstance().collectFailure(projectRule.project.basePath!!, CLASS_NOT_FOUND)
 
     val exception = BuildIssueException(BuildIssueComposer("Test error").composeBuildIssue())
@@ -107,11 +109,12 @@ class SyncFailureUsageReporterTest {
 
     sendBuildFinishedEvent(exception)
 
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(CLASS_NOT_FOUND)
-    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
+      .isEqualTo(
+        """
       errors {
         exceptions {
           exception_class_name: "${GradleScriptException::class.java.name}"
@@ -141,7 +144,9 @@ class SyncFailureUsageReporterTest {
           }
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -153,28 +158,28 @@ class SyncFailureUsageReporterTest {
 
     sendBuildFinishedEvent(exception)
 
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
   }
 
   /**
-   * The build issue under test here is generated in platform in [UnsupportedGradleVersionIssueChecker]. We detect this issue
-   * by matching the name as the class became private.
-   * This test is needed to make sure this does not change silently without us knowing, it uses the same code path of generating
-   * this issue as in production code.
+   * The build issue under test here is generated in platform in [UnsupportedGradleVersionIssueChecker]. We detect this issue by matching
+   * the name as the class became private. This test is needed to make sure this does not change silently without us knowing, it uses the
+   * same code path of generating this issue as in production code.
    */
   @Test
   fun detectedInPlatformCodeUnsupportedGradleBuildIssue() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
     // Emulate process of issue being handled by platform's UnsupportedGradleVersionIssueChecker
-    val issueData = GradleIssueData(
-      projectRule.project.basePath!!,
-      GradleExecutionHelper.UnsupportedGradleVersionByIdeaException(GradleVersion.version("2.6")),
-      null, null
-    )
+    val issueData =
+      GradleIssueData(
+        projectRule.project.basePath!!,
+        GradleExecutionHelper.UnsupportedGradleVersionByIdeaException(GradleVersion.version("2.6")),
+        null,
+        null,
+      )
     val issue = UnsupportedGradleVersionIssueChecker().check(issueData)!!
     val exception = BuildIssueException(issue)
 
@@ -182,8 +187,7 @@ class SyncFailureUsageReporterTest {
 
     sendBuildFinishedEvent(exception)
 
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNSUPPORTED_GRADLE_VERSION)
   }
@@ -192,30 +196,31 @@ class SyncFailureUsageReporterTest {
   fun detectedInPlatformCodeBuildIssue() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
-    val exception = BuildIssueException(
-      DeprecatedGradleVersionIssue(GradleVersion.version("1.0.0"), projectRule.project.basePath!!)
-    )
+    val exception = BuildIssueException(DeprecatedGradleVersionIssue(GradleVersion.version("1.0.0"), projectRule.project.basePath!!))
     SyncFailureUsageReporter.getInstance().collectProcessedError(buildId, projectRule.project, projectRule.project.basePath!!, exception)
 
     sendBuildFinishedEvent(exception)
 
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
-    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
-      errors {
-        exceptions {
-          exception_class_name: "com.intellij.openapi.externalSystem.issue.BuildIssueException"
-          top_frame_info {
-            class_name: "com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporterTest"
-            method_name: "detectedInPlatformCodeBuildIssue"
-            file_name: "SyncFailureUsageReporterTest.kt"
-            frame_index: 0
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
+      .isEqualTo(
+        """
+        errors {
+          exceptions {
+            exception_class_name: "com.intellij.openapi.externalSystem.issue.BuildIssueException"
+            top_frame_info {
+              class_name: "com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporterTest"
+              method_name: "detectedInPlatformCodeBuildIssue"
+              file_name: "SyncFailureUsageReporterTest.kt"
+              frame_index: 0
+            }
           }
         }
-      }
-    """.trimIndent())
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -227,11 +232,12 @@ class SyncFailureUsageReporterTest {
 
     sendBuildFinishedEvent(exception)
 
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val event = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNKNOWN_GRADLE_FAILURE)
-    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString())
+      .isEqualTo(
+        """
       errors {
         exceptions {
           exception_class_name: "${ExternalSystemException::class.java.name}"
@@ -243,22 +249,22 @@ class SyncFailureUsageReporterTest {
           }
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testReporterOnSyncSuccess() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
-    sendEventToListeners(
-      buildId,
-      FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "finished", SuccessResultImpl())
-    )
+    sendEventToListeners(buildId, FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "finished", SuccessResultImpl()))
 
     // check that listener was removed up after event
     Truth.assertThat(syncViewListeners).hasSize(0)
     // check no stats reported
-    Truth.assertThat(usageTracker.usages.filter{ it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }).isEmpty()
+    Truth.assertThat(usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS })
+      .isEmpty()
   }
 
   @Test
@@ -282,14 +288,20 @@ class SyncFailureUsageReporterTest {
 
     sendEventToListeners(
       buildId,
-      FinishBuildEventImpl(buildId, null, System.currentTimeMillis(), "failed", ExternalSystemUtil.createFailureResult(
-        "Gradle project reload failed",
-        exception,
-        GradleConstants.SYSTEM_ID,
-        projectRule.project,
-        projectRule.project.basePath!!,
-        DataContext.EMPTY_CONTEXT
-      ))
+      FinishBuildEventImpl(
+        buildId,
+        null,
+        System.currentTimeMillis(),
+        "failed",
+        ExternalSystemUtil.createFailureResult(
+          "Gradle project reload failed",
+          exception,
+          GradleConstants.SYSTEM_ID,
+          projectRule.project,
+          projectRule.project.basePath!!,
+          DataContext.EMPTY_CONTEXT,
+        ),
+      ),
     )
 
     // check that listener was removed up after event
@@ -301,6 +313,5 @@ class SyncFailureUsageReporterTest {
   }
 }
 
-private fun GradleFailureDetails.toTestString(): String = printToString().lineSequence()
-  .filterNot { it.contains("line_number: ") }
-  .joinToString(separator = "\n").trim()
+private fun GradleFailureDetails.toTestString(): String =
+  printToString().lineSequence().filterNot { it.contains("line_number: ") }.joinToString(separator = "\n").trim()

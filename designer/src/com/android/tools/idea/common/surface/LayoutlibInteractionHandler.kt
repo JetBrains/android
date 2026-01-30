@@ -25,26 +25,17 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
 /** [InteractionHandler] used during interactive mode in the layout/compose previews. */
-class LayoutlibInteractionHandler(
-  private val surface: InteractableScenesSurface,
-  private val pannable: Pannable,
-) : InteractionHandler {
-  override fun createInteractionOnPressed(
-    mouseX: Int,
-    mouseY: Int,
-    modifiersEx: Int,
-  ): Interaction? {
+class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface, private val pannable: Pannable) : InteractionHandler {
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     return LayoutlibInteraction(view)
   }
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
-    null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
-  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
-    null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? = null
 
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
 
@@ -64,8 +55,7 @@ class LayoutlibInteractionHandler(
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
 
-  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
-    surface.scene?.mouseCursor
+  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = surface.scene?.mouseCursor
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {

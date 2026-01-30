@@ -28,44 +28,39 @@ import kotlin.properties.Delegates
 
 // TODO convert to the Observable framework
 
-/**
- * Classes used to create a binding between a SwingComponent and a property.
- */
-abstract class InputParam<T : Any?>(
-  var placeholder: String? = null
-) : Observable() {
+/** Classes used to create a binding between a SwingComponent and a property. */
+abstract class InputParam<T : Any?>(var placeholder: String? = null) : Observable() {
 
-  var paramValue: T? by Delegates.observable<T?>(null) { _, old, new ->
-    if (new != old) setChanged(); notifyObservers(new)
-  }
+  var paramValue: T? by
+    Delegates.observable<T?>(null) { _, old, new ->
+      if (new != old) setChanged()
+      notifyObservers(new)
+    }
 
   override fun toString(): String = this::class.simpleName + " " + this::class.typeParameters.joinToString()
 }
 
-/**
- * Class used to bind ComboBoxes to a collection and a selected value.
- */
-open class CollectionParam<T>(values: Collection<T>,
-                              placeholder: String? = null,
-                              var parser: ((T?) -> String?)? = null
-) : InputParam<T>(placeholder) {
-  var values: Collection<T> by Delegates.observable(values) { _, old, new -> if (old != new) setChanged(); notifyObservers(new) }
+/** Class used to bind ComboBoxes to a collection and a selected value. */
+open class CollectionParam<T>(values: Collection<T>, placeholder: String? = null, var parser: ((T?) -> String?)? = null) :
+  InputParam<T>(placeholder) {
+  var values: Collection<T> by
+    Delegates.observable(values) { _, old, new ->
+      if (old != new) setChanged()
+      notifyObservers(new)
+    }
 }
 
 /**
  * Class used to bind a text field to integer
+ *
  * @param range An optional [IntRange] used to validate the input.
  */
 data class IntParam(val range: IntRange? = null) : InputParam<Int?>()
 
-/**
- * Class used to bind a text field to String
- */
+/** Class used to bind a text field to String */
 data class TextParam(val validator: (String) -> Boolean) : InputParam<String>()
 
-/**
- * Class that run the runnable provided in [update] only if it's not already being invoked.
- */
+/** Class that run the runnable provided in [update] only if it's not already being invoked. */
 private class UpdateLock {
   private var isRunning = false
 
@@ -80,9 +75,8 @@ private class UpdateLock {
 }
 
 /**
- * Binds a [JComboBox] to a [CollectionParam], setting [CollectionParam.paramValue] when an item
- * is selected in the comboBox.
- * The [JComboBox] items are automatically updated when [CollectionParam.values] is updated.
+ * Binds a [JComboBox] to a [CollectionParam], setting [CollectionParam.paramValue] when an item is selected in the comboBox. The
+ * [JComboBox] items are automatically updated when [CollectionParam.values] is updated.
  */
 fun <T, ComboBox : JComboBox<T>> CollectionParam<T>.bind(comboBox: ComboBox): ComboBox {
   val lock = UpdateLock()
@@ -108,8 +102,7 @@ fun <T, ComboBox : JComboBox<T>> CollectionParam<T>.bind(comboBox: ComboBox): Co
 }
 
 /**
- * Binds a [JTextField] to a [TextParam].
- * This creates a two way binding between the [JTextField] document and the [TextParam.paramValue].
+ * Binds a [JTextField] to a [TextParam]. This creates a two way binding between the [JTextField] document and the [TextParam.paramValue].
  */
 fun TextParam.bind(document: Document) {
   val lock = UpdateLock()
@@ -118,14 +111,16 @@ fun TextParam.bind(document: Document) {
   document.remove(0, document.length)
   document.insertString(0, paramValue.toString(), null)
 
-  document.addDocumentListener(object : DocumentAdapter() {
-    override fun textChanged(e: DocumentEvent) {
-      lock.update {
-        val text = e.document.getText(0, e.document.length)
-        paramValue = if (validator(text)) text else null
+  document.addDocumentListener(
+    object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        lock.update {
+          val text = e.document.getText(0, e.document.length)
+          paramValue = if (validator(text)) text else null
+        }
       }
     }
-  })
+  )
 
   addObserver { _, text ->
     lock.update {
@@ -136,10 +131,9 @@ fun TextParam.bind(document: Document) {
 }
 
 /**
- * Binds a [JTextField] to an [IntParam] and parses the content of the field as an int if possible.
- * If the text cannot be parsed as an Int, or a [IntParam.range] is provided and the value is outside the range,
- * [IntParam.paramValue] is set to null.
- * This creates a two way binding between the [JTextField] document and the [IntParam.paramValue].
+ * Binds a [JTextField] to an [IntParam] and parses the content of the field as an int if possible. If the text cannot be parsed as an Int,
+ * or a [IntParam.range] is provided and the value is outside the range, [IntParam.paramValue] is set to null. This creates a two way
+ * binding between the [JTextField] document and the [IntParam.paramValue].
  */
 fun IntParam.bind(document: Document) {
   val lock = UpdateLock()
@@ -148,19 +142,21 @@ fun IntParam.bind(document: Document) {
   document.remove(0, document.length)
   document.insertString(0, paramValue.toString(), null)
 
-  document.addDocumentListener(object : DocumentAdapter() {
-    override fun textChanged(e: DocumentEvent) {
-      lock.update {
-        paramValue = try {
-          val parsedInt = Integer.parseInt(e.document.getText(0, e.document.length))
-          if (range == null || parsedInt in range) parsedInt else null
-        }
-        catch (numberFormatException: NumberFormatException) {
-          null
+  document.addDocumentListener(
+    object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        lock.update {
+          paramValue =
+            try {
+              val parsedInt = Integer.parseInt(e.document.getText(0, e.document.length))
+              if (range == null || parsedInt in range) parsedInt else null
+            } catch (numberFormatException: NumberFormatException) {
+              null
+            }
         }
       }
     }
-  })
+  )
 
   addObserver { _, _ ->
     lock.update {

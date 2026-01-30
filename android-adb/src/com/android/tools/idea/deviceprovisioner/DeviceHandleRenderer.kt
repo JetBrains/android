@@ -34,56 +34,34 @@ object DeviceHandleRenderer {
   }
 
   /**
-   * Renders the given [DeviceHandle] to a [ColoredTextContainer], attempting to disambiguate it if
-   * it has the same label as another device in the given list.
+   * Renders the given [DeviceHandle] to a [ColoredTextContainer], attempting to disambiguate it if it has the same label as another device
+   * in the given list.
    */
   @JvmStatic
-  fun renderDevice(
-    component: ColoredTextContainer,
-    device: DeviceHandle,
-    allDevices: Iterable<DeviceHandle>,
-  ) {
+  fun renderDevice(component: ColoredTextContainer, device: DeviceHandle, allDevices: Iterable<DeviceHandle>) {
     val name = device.state.properties.title
     val isDuplicated = allDevices.any { it != device && it.state.properties.title == name }
 
     renderDevice(component, device, name, isDuplicated)
   }
 
-  private fun renderDevice(
-    component: ColoredTextContainer,
-    device: DeviceHandle,
-    name: String,
-    isDuplicated: Boolean,
-  ) {
+  private fun renderDevice(component: ColoredTextContainer, device: DeviceHandle, name: String, isDuplicated: Boolean) {
     component.setIcon(device.state.properties.icon)
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
 
     when (val deviceState = device.state.connectedDevice?.deviceInfo?.deviceState) {
-      null ->
-        component.append(
-          " [${device.state.javaClass.simpleName}]",
-          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES,
-        )
+      null -> component.append(" [${device.state.javaClass.simpleName}]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
       DeviceState.ONLINE -> {}
-      else ->
-        component.append(
-          " [${titleCase(deviceState.toString())}]",
-          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES,
-        )
+      else -> component.append(" [${titleCase(deviceState.toString())}]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
     }
 
     if (isDuplicated) {
-      device.state.properties.disambiguator?.let {
-        component.append(" [$it]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
-      }
+      device.state.properties.disambiguator?.let { component.append(" [$it]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES) }
     }
 
     // E.g. "Android 5.1 (Lollipop)"
     device.state.properties.androidVersion?.let {
-      component.append(
-        " ${it.getFullReleaseName(includeApiLevel = false, includeCodeName = true)}",
-        SimpleTextAttributes.GRAY_ATTRIBUTES,
-      )
+      component.append(" ${it.getFullReleaseName(includeApiLevel = false, includeCodeName = true)}", SimpleTextAttributes.GRAY_ATTRIBUTES)
     }
   }
 }

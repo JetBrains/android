@@ -22,55 +22,57 @@ import com.google.testing.platform.proto.api.core.PathProto
 import com.google.testing.platform.proto.api.core.TestArtifactProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.intellij.openapi.util.io.FileUtil
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
-/**
- * Unit tests for functions in BenchmarkUtils.kt.
- */
+/** Unit tests for functions in BenchmarkUtils.kt. */
 @RunWith(JUnit4::class)
 class BenchmarkUtilsTest {
-  @get:Rule
-  val tempFolder: TemporaryFolder = TemporaryFolder()
+  @get:Rule val tempFolder: TemporaryFolder = TemporaryFolder()
 
   @Test
   fun testSetBenchmarkContextAndPrepareFiles() {
-    val benchmarkMessageFile = tempFolder.newFile("benchmarkMessage.txt").apply {
-      writeText("benchmarkMessage")
-    }
-    val benchmarkTraceFile = tempFolder.newFile("benchmarkTraceFile").apply {
-      writeText("benchmarkTrace")
-    }
+    val benchmarkMessageFile = tempFolder.newFile("benchmarkMessage.txt").apply { writeText("benchmarkMessage") }
+    val benchmarkTraceFile = tempFolder.newFile("benchmarkTraceFile").apply { writeText("benchmarkTrace") }
 
-    val testResultProto = TestResultProto.TestResult.newBuilder().apply {
-      testCaseBuilder.apply {
-        testPackage = "com.example.test"
-        testClass = "ExampleTest"
-        testMethod = "testExample"
-      }
-      addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-        label = LabelProto.Label.newBuilder().apply {
-          namespace = "android"
-          label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
-        }.build()
-        sourcePath = PathProto.Path.newBuilder().apply {
-          path = benchmarkMessageFile.absolutePath
-        }.build()
-      })
-      addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
-        label = LabelProto.Label.newBuilder().apply {
-          namespace = "android"
-          label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
-        }.build()
-        sourcePath = PathProto.Path.newBuilder().apply {
-          path = benchmarkTraceFile.absolutePath
-        }.build()
-      })
-    }.build()
+    val testResultProto =
+      TestResultProto.TestResult.newBuilder()
+        .apply {
+          testCaseBuilder.apply {
+            testPackage = "com.example.test"
+            testClass = "ExampleTest"
+            testMethod = "testExample"
+          }
+          addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().apply {
+              label =
+                LabelProto.Label.newBuilder()
+                  .apply {
+                    namespace = "android"
+                    label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_MESSAGE_LABEL
+                  }
+                  .build()
+              sourcePath = PathProto.Path.newBuilder().apply { path = benchmarkMessageFile.absolutePath }.build()
+            }
+          )
+          addOutputArtifact(
+            TestArtifactProto.Artifact.newBuilder().apply {
+              label =
+                LabelProto.Label.newBuilder()
+                  .apply {
+                    namespace = "android"
+                    label = ADDITIONAL_TEST_OUTPUT_PLUGIN_BENCHMARK_TRACE_LABEL
+                  }
+                  .build()
+              sourcePath = PathProto.Path.newBuilder().apply { path = benchmarkTraceFile.absolutePath }.build()
+            }
+          )
+        }
+        .build()
 
     val testCase = AndroidTestCase("id", "methodName", "className", "packageName")
 

@@ -25,37 +25,37 @@ import org.junit.Test
 
 private val SINGLE_TRACE_GROUP =
   """
-      Exception java.lang.OutOfMemoryError:
-        at java.util.Arrays.copyOf (Arrays.java:3766)
-        at java.lang.AbstractStringBuilder.ensureCapacityInternal (AbstractStringBuilder.java:125)
-        at java.lang.AbstractStringBuilder.append (AbstractStringBuilder.java:449)
-        at java.lang.StringBuilder.append (StringBuilder.java:137)
-        at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)
-        at java.lang.String.valueOf (String.java:3657)
-        at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)
-        at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)
-        at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1137)
-        at java.lang.Thread.run (Thread.java:1012)
-    """
+  Exception java.lang.OutOfMemoryError:
+    at java.util.Arrays.copyOf (Arrays.java:3766)
+    at java.lang.AbstractStringBuilder.ensureCapacityInternal (AbstractStringBuilder.java:125)
+    at java.lang.AbstractStringBuilder.append (AbstractStringBuilder.java:449)
+    at java.lang.StringBuilder.append (StringBuilder.java:137)
+    at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)
+    at java.lang.String.valueOf (String.java:3657)
+    at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)
+    at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1137)
+    at java.lang.Thread.run (Thread.java:1012)
+  """
     .trimIndent()
 
 private val MULTIPLE_TRACE_GROUPS_NO_AT_IDENTIFIER =
   """
-    Exception java.lang.SecurityException:
-      android.os.Parcel.createException (Parcel.java:2071)
-      android.os.Parcel.readException (Parcel.java:2039)
-    Caused by android.os.RemoteException: Remote stack trace:
-      com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)
+  Exception java.lang.SecurityException:
+    android.os.Parcel.createException (Parcel.java:2071)
+    android.os.Parcel.readException (Parcel.java:2039)
+  Caused by android.os.RemoteException: Remote stack trace:
+    com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)
   """
     .trimIndent()
 
 private val MULTIPLE_TRACE_GROUPS =
   """
-    Exception java.lang.SecurityException:
-      at android.os.Parcel.createException (Parcel.java:2071)
-      at android.os.Parcel.readException (Parcel.java:2039)
-    Caused by android.os.RemoteException: Remote stack trace:
-      at com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)
+  Exception java.lang.SecurityException:
+    at android.os.Parcel.createException (Parcel.java:2071)
+    at android.os.Parcel.readException (Parcel.java:2039)
+  Caused by android.os.RemoteException: Remote stack trace:
+    at com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)
   """
     .trimIndent()
 
@@ -64,20 +64,20 @@ private val NATIVE_CRASH =
   backtrace:
     #00  pc 0x00000000005b7664  /data/app/~~SNE_UVeZUo4zwNCuxWwuHQ==/com.redhotlabs.bingo-dVfGb9wVnpJONeVLGBR-Ug==/lib/arm64/libunity.so (bool UnityDefaultAllocator\u003cLowLevelAllocator\u003e::AllocationPage\u003c(RequestType)0\u003e(void const*) const)
     #01  pc 0x00000000005b7204  /data/app/~~SNE_UVeZUo4zwNCuxWwuHQ==/com.redhotlabs.bingo-dVfGb9wVnpJONeVLGBR-Ug==/lib/arm64/libunity.so (UnityDefaultAllocator\u003cLowLevelAllocator\u003e::RegisterAllocation(void const*))
-"""
+  """
     .trimIndent()
 
 private val THREAD_DUMP =
   """
-"main" tid=1 Native
-  #00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)
-  #01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)
-  at android.os.MessageQueue.nativePollOnce (Native method)
-  at android.os.MessageQueue.next (MessageQueue.java:335)
+  "main" tid=1 Native
+    #00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)
+    #01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)
+    at android.os.MessageQueue.nativePollOnce (Native method)
+    at android.os.MessageQueue.next (MessageQueue.java:335)
 
-"FinalizerDaemon" tid=12 Runnable
-  at android.os.Looper.getMainLooper (Looper.java:141)
-  at java.lang.DaemonsFinalizerDaemon.doFinalize (Daemons.java:291)
+  "FinalizerDaemon" tid=12 Runnable
+    at android.os.Looper.getMainLooper (Looper.java:141)
+    at java.lang.DaemonsFinalizerDaemon.doFinalize (Daemons.java:291)
   """
     .trimIndent()
 
@@ -172,11 +172,7 @@ class IntellijStackTraceGroupParserTest {
         ExceptionStack(
           stacktrace =
             Stacktrace(
-              caption =
-                Caption(
-                  title = "Caused by android.os.RemoteException",
-                  subtitle = "Remote stack trace",
-                ),
+              caption = Caption(title = "Caused by android.os.RemoteException", subtitle = "Remote stack trace"),
               blames = Blames.UNKNOWN_BLAMED,
               frames =
                 listOf(
@@ -185,8 +181,7 @@ class IntellijStackTraceGroupParserTest {
                     file = "ActivityStackSupervisor.java",
                     rawSymbol =
                       "com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)",
-                    symbol =
-                      "com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission",
+                    symbol = "com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -243,11 +238,7 @@ class IntellijStackTraceGroupParserTest {
         ExceptionStack(
           stacktrace =
             Stacktrace(
-              caption =
-                Caption(
-                  title = "Caused by android.os.RemoteException",
-                  subtitle = "Remote stack trace",
-                ),
+              caption = Caption(title = "Caused by android.os.RemoteException", subtitle = "Remote stack trace"),
               blames = Blames.UNKNOWN_BLAMED,
               frames =
                 listOf(
@@ -256,8 +247,7 @@ class IntellijStackTraceGroupParserTest {
                     file = "ActivityStackSupervisor.java",
                     rawSymbol =
                       "at com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission (ActivityStackSupervisor.java:1121)",
-                    symbol =
-                      "com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission",
+                    symbol = "com.android.server.wm.ActivityStackSupervisor.checkStartAnyActivityPermission",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -298,8 +288,7 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 125,
                     file = "AbstractStringBuilder.java",
-                    rawSymbol =
-                      "at java.lang.AbstractStringBuilder.ensureCapacityInternal (AbstractStringBuilder.java:125)",
+                    rawSymbol = "at java.lang.AbstractStringBuilder.ensureCapacityInternal (AbstractStringBuilder.java:125)",
                     symbol = "java.lang.AbstractStringBuilder.ensureCapacityInternal",
                     offset = 0,
                     address = 0,
@@ -309,8 +298,7 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 449,
                     file = "AbstractStringBuilder.java",
-                    rawSymbol =
-                      "at java.lang.AbstractStringBuilder.append (AbstractStringBuilder.java:449)",
+                    rawSymbol = "at java.lang.AbstractStringBuilder.append (AbstractStringBuilder.java:449)",
                     symbol = "java.lang.AbstractStringBuilder.append",
                     offset = 0,
                     address = 0,
@@ -330,10 +318,8 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 0,
                     file = "",
-                    rawSymbol =
-                      "at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)",
-                    symbol =
-                      "at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)",
+                    rawSymbol = "at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)",
+                    symbol = "at asj.toString (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):4)",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -352,10 +338,8 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 0,
                     file = "",
-                    rawSymbol =
-                      "at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)",
-                    symbol =
-                      "at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)",
+                    rawSymbol = "at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)",
+                    symbol = "at aks.d (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):6)",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -364,10 +348,8 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 0,
                     file = "",
-                    rawSymbol =
-                      "at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)",
-                    symbol =
-                      "at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)",
+                    rawSymbol = "at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)",
+                    symbol = "at ajk.run (:com.google.android.gms.dynamite_dynamitemodulesc@230914044@23.09.14 (190400-0):1)",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -376,8 +358,7 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 1137,
                     file = "ThreadPoolExecutor.java",
-                    rawSymbol =
-                      "at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1137)",
+                    rawSymbol = "at java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1137)",
                     symbol = "java.util.concurrent.ThreadPoolExecutor.runWorker",
                     offset = 0,
                     address = 0,
@@ -418,10 +399,8 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 0,
                     file = "",
-                    rawSymbol =
-                      "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
-                    symbol =
-                      "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
+                    rawSymbol = "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
+                    symbol = "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
                     offset = 0,
                     address = 0,
                     library = "",
@@ -430,10 +409,8 @@ class IntellijStackTraceGroupParserTest {
                   Frame(
                     line = 0,
                     file = "",
-                    rawSymbol =
-                      "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
-                    symbol =
-                      "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
+                    rawSymbol = "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
+                    symbol = "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
                     offset = 0,
                     address = 0,
                     library = "",

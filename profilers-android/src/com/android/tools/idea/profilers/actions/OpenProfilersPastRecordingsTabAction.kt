@@ -17,9 +17,7 @@ package com.android.tools.idea.profilers.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Test only action, opens the "Past Recordings" tab in the Profiler tool window.
- */
+/** Test only action, opens the "Past Recordings" tab in the Profiler tool window. */
 class OpenProfilersPastRecordingsTabAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {

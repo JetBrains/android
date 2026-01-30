@@ -53,8 +53,8 @@ private const val CANNOT_LAUNCH_SKP_RENDERER_KEY = "skp.renderer.launch.error"
 /**
  * An [AndroidWindow] used by the app inspection view inspector.
  *
- * @param isInterrupted A callback which will be called occasionally. If it ever returns true, we
- *   will abort our image processing at the earliest chance.
+ * @param isInterrupted A callback which will be called occasionally. If it ever returns true, we will abort our image processing at the
+ *   earliest chance.
  */
 class ViewAndroidWindow(
   private val notificationModel: NotificationModel,
@@ -73,8 +73,7 @@ class ViewAndroidWindow(
   ) {
 
   // capturing screenshots can be disabled, in which case the event will have no screenshot
-  private var screenshotBytes =
-    if (event.hasScreenshot()) event.screenshot.bytes.toByteArray() else null
+  private var screenshotBytes = if (event.hasScreenshot()) event.screenshot.bytes.toByteArray() else null
 
   override var image: BufferedImage? = null
 
@@ -119,9 +118,7 @@ class ViewAndroidWindow(
             }
             else -> {
               image = null
-              logEvent(
-                DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
-              ) // Shouldn't happen
+              logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
             }
           }
         }
@@ -143,8 +140,7 @@ class ViewAndroidWindow(
         val requests =
           allNodes
             .mapNotNull {
-              val bounds =
-                it.renderBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+              val bounds = it.renderBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
               if (bounds.isEmpty) null
               else
                 LayoutInspectorUtils.makeRequestedNodeInfo(
@@ -170,8 +166,8 @@ class ViewAndroidWindow(
   }
 
   /**
-   * Creates the [DrawViewImage] and [DrawViewChild]ren, which will be used to render the image and
-   * borders. The image is optional, so the [DrawViewImage] might not be created.
+   * Creates the [DrawViewImage] and [DrawViewChild]ren, which will be used to render the image and borders. The image is optional, so the
+   * [DrawViewImage] might not be created.
    */
   private fun createDrawChildren(image: BufferedImage?) {
     ViewNode.writeAccess {
@@ -195,17 +191,11 @@ class ViewAndroidWindow(
         skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
       } catch (ex: InvalidPictureException) {
         // It looks like what we got wasn't an SKP at all.
-        notificationModel.addNotification(
-          INVALID_SKP_KEY,
-          LayoutInspectorBundle.message(INVALID_SKP_KEY),
-        )
+        notificationModel.addNotification(INVALID_SKP_KEY, LayoutInspectorBundle.message(INVALID_SKP_KEY))
         null
       } catch (ex: ParsingFailedException) {
         // It looked like a valid picture, but we were unable to parse it.
-        notificationModel.addNotification(
-          INVALID_SKP_KEY,
-          LayoutInspectorBundle.message(INVALID_SKP_KEY),
-        )
+        notificationModel.addNotification(INVALID_SKP_KEY, LayoutInspectorBundle.message(INVALID_SKP_KEY))
         null
       } catch (ex: UnsupportedPictureVersionException) {
         notificationModel.addNotification(
@@ -214,10 +204,7 @@ class ViewAndroidWindow(
         )
         null
       } catch (ex: Exception) {
-        notificationModel.addNotification(
-          CANNOT_LAUNCH_SKP_RENDERER_KEY,
-          LayoutInspectorBundle.message(CANNOT_LAUNCH_SKP_RENDERER_KEY),
-        )
+        notificationModel.addNotification(CANNOT_LAUNCH_SKP_RENDERER_KEY, LayoutInspectorBundle.message(CANNOT_LAUNCH_SKP_RENDERER_KEY))
         Logger.getInstance(ViewAndroidWindow::class.java).warn(ex)
         null
       }
@@ -243,9 +230,5 @@ fun processBitmap(bytes: ByteArray): BufferedImage {
   val width = inflatedBytes.toInt()
   val height = inflatedBytes.sliceArray(4..7).toInt()
   val bitmapType = BitmapType.fromByteVal(inflatedBytes[8])
-  return bitmapType.createImage(
-    ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE),
-    width,
-    height,
-  )
+  return bitmapType.createImage(ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE), width, height)
 }

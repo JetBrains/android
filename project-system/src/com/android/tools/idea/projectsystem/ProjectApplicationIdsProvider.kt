@@ -18,9 +18,7 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.Topic
 
-/**
- * Provides a set of application ids associated with the project
- */
+/** Provides a set of application ids associated with the project */
 interface ProjectApplicationIdsProvider {
   fun getPackageNames(): Set<String>
 

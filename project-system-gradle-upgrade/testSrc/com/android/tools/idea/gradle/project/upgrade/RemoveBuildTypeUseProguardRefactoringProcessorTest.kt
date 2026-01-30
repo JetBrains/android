@@ -24,22 +24,22 @@ import org.junit.Test
 
 @RunsInEdt
 class RemoveBuildTypeUseProguardRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   fun RemoveBuildTypeUseProguardRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("3.3.0" to "3.4.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("3.3.0" to "3.5.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
-      ("3.6.0" to "4.2.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
-      ("4.2.0" to "7.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
-      ("3.3.0" to "7.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("7.0.0" to "7.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
-    )
+    val expectedNecessitiesMap =
+      mapOf(
+        ("3.3.0" to "3.4.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+        ("3.3.0" to "3.5.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
+        ("3.6.0" to "4.2.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
+        ("4.2.0" to "7.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
+        ("3.3.0" to "7.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+        ("7.0.0" to "7.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+      )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)

@@ -62,8 +62,7 @@ val TEST_ISSUE1 =
       eventData =
         EventData(
           device = MOST_AFFECTED_DEVICE,
-          operatingSystemInfo =
-            OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
+          operatingSystemInfo = OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)"),
           eventTime = FAKE_6_DAYS_AGO,
         ),
       stacktraceGroup =
@@ -73,21 +72,15 @@ val TEST_ISSUE1 =
               ExceptionStack(
                 stacktrace =
                   Stacktrace(
-                    caption =
-                      Caption(
-                        title = "Non-fatal Exception: retrofit2.HttpException",
-                        subtitle = "HTTP 401 ",
-                      ),
+                    caption = Caption(title = "Non-fatal Exception: retrofit2.HttpException", subtitle = "HTTP 401 "),
                     blames = Blames.BLAMED,
                     frames =
                       listOf(
                         Frame(
                           line = 23,
                           file = "ResponseWrapper.kt",
-                          rawSymbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
-                          symbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
+                          rawSymbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
+                          symbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
                           offset = 23,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -98,8 +91,7 @@ val TEST_ISSUE1 =
                           file = "ResponseWrapper.kt",
                           rawSymbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)",
-                          symbol =
-                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
+                          symbol = "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
                           offset = 31,
                           address = 0,
                           library = "dev.firebase.appdistribution.debug",
@@ -141,8 +133,7 @@ val TEST_ISSUE2 =
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),
-          operatingSystemInfo =
-            OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
+          operatingSystemInfo = OperatingSystemInfo(displayVersion = "10", displayName = "Android (12)"),
           eventTime = FAKE_25_DAYS_AGO,
         ),
       stacktraceGroup =
@@ -153,18 +144,14 @@ val TEST_ISSUE2 =
                 stacktrace =
                   Stacktrace(
                     caption =
-                      Caption(
-                        title = "javax.net.ssl.SSLHandshakeException",
-                        subtitle = "Trust anchor for certification path not found.",
-                      ),
+                      Caption(title = "javax.net.ssl.SSLHandshakeException", subtitle = "Trust anchor for certification path not found."),
                     blames = Blames.NOT_BLAMED,
                     frames =
                       listOf(
                         Frame(
                           line = 362,
                           file = "SSLUtils.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
+                          rawSymbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
                           symbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException",
                           offset = 23,
                           address = 0,
@@ -174,8 +161,7 @@ val TEST_ISSUE2 =
                         Frame(
                           line = 1134,
                           file = "ConscryptEngine.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
+                          rawSymbol = "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
                           symbol = "com.android.org.conscrypt.ConscryptEngine.convertException",
                           offset = 31,
                           address = 0,
@@ -186,8 +172,7 @@ val TEST_ISSUE2 =
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage =
-                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                rawExceptionMessage = "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
               ExceptionStack(
                 stacktrace =
@@ -203,8 +188,7 @@ val TEST_ISSUE2 =
                         Frame(
                           line = 677,
                           file = "TrustManagerImpl.java",
-                          rawSymbol =
-                            "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
+                          rawSymbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
                           symbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain",
                           offset = 23,
                           address = 0,
@@ -214,8 +198,7 @@ val TEST_ISSUE2 =
                         Frame(
                           line = 320,
                           file = "RealConnection.java",
-                          rawSymbol =
-                            "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
+                          rawSymbol = "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
                           symbol = "okhttp3.internal.connection.RealConnection.connectTls",
                           offset = 31,
                           address = 0,
@@ -226,8 +209,7 @@ val TEST_ISSUE2 =
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
                 exceptionMessage = "Trust anchor for certification path not found ",
-                rawExceptionMessage =
-                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
+                rawExceptionMessage = "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found ",
               ),
             )
         ),

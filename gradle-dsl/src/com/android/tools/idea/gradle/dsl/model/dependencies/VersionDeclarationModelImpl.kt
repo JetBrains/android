@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.intellij.psi.PsiElement
 
-abstract class VersionDeclarationModelImpl(open val dslElement: GradleDslElement) : GradleVersionCatalogPropertyModel(
-  dslElement), VersionDeclarationModel {
+abstract class VersionDeclarationModelImpl(open val dslElement: GradleDslElement) :
+  GradleVersionCatalogPropertyModel(dslElement), VersionDeclarationModel {
 
   override fun getSpec(): VersionDeclarationSpec =
     VersionDeclarationSpecImpl(require().toString(), strictly().toString(), prefer().toString())
@@ -39,63 +39,50 @@ abstract class VersionDeclarationModelImpl(open val dslElement: GradleDslElement
   override fun compactNotation(): String? = getSpec().compactNotation()
 
   override fun getPsiElement(): PsiElement? = dslElement.psiElement
-
 }
 
 class MapVersionDeclarationModel(override val dslElement: GradleDslExpressionMap) : VersionDeclarationModelImpl(dslElement) {
   companion object {
     @JvmStatic
-    fun createNew(parent: GradlePropertiesDslElement,
-                  alias: String,
-                  version: VersionDeclarationSpec): MapVersionDeclarationModel? {
+    fun createNew(parent: GradlePropertiesDslElement, alias: String, version: VersionDeclarationSpec): MapVersionDeclarationModel? {
       val declaration = GradleDslExpressionMap(parent, GradleNameElement.create(alias))
-      version.getStrictly()?.let {
-        declaration.addNewLiteral("strictly", it)
-      }
-      version.getPrefer()?.let {
-        declaration.addNewLiteral("prefer", it)
-      }
-      version.getRequire()?.let {
-        declaration.addNewLiteral("require", it)
-      }
+      version.getStrictly()?.let { declaration.addNewLiteral("strictly", it) }
+      version.getPrefer()?.let { declaration.addNewLiteral("prefer", it) }
+      version.getRequire()?.let { declaration.addNewLiteral("require", it) }
       parent.setNewElement(declaration)
       return MapVersionDeclarationModel(declaration)
     }
   }
 
-  override fun require(): ResolvedPropertyModel =
-    GradlePropertyModelBuilder.create(dslElement, "require").buildResolved()
+  override fun require(): ResolvedPropertyModel = GradlePropertyModelBuilder.create(dslElement, "require").buildResolved()
 
-  override fun strictly(): ResolvedPropertyModel =
-    GradlePropertyModelBuilder.create(dslElement, "strictly").buildResolved()
+  override fun strictly(): ResolvedPropertyModel = GradlePropertyModelBuilder.create(dslElement, "strictly").buildResolved()
 
-  override fun prefer(): ResolvedPropertyModel =
-    GradlePropertyModelBuilder.create(dslElement, "prefer").buildResolved()
+  override fun prefer(): ResolvedPropertyModel = GradlePropertyModelBuilder.create(dslElement, "prefer").buildResolved()
 
-  override fun completeModel(): ResolvedPropertyModel? =
-    GradlePropertyModelBuilder.create(dslElement).buildResolved()
+  override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
 }
 
 class LiteralVersionDeclarationModel(override val dslElement: GradleDslLiteral) : VersionDeclarationModelImpl(dslElement) {
 
   companion object {
     @JvmStatic
-    fun createNew(parent: GradlePropertiesDslElement,
-                  alias: String,
-                  version: String): LiteralVersionDeclarationModel? {
-      if(version.isBlank()) return null
-      val literal = parent.setNewLiteral(alias,version)
+    fun createNew(parent: GradlePropertiesDslElement, alias: String, version: String): LiteralVersionDeclarationModel? {
+      if (version.isBlank()) return null
+      val literal = parent.setNewLiteral(alias, version)
       return LiteralVersionDeclarationModel(literal)
     }
   }
 
-  private fun createModelFor(name: String,
-                             getFunc: (VersionDeclarationSpec) -> String?,
-                             setFunc: (VersionDeclarationSpecImpl, String) -> Unit): ResolvedPropertyModel {
+  private fun createModelFor(
+    name: String,
+    getFunc: (VersionDeclarationSpec) -> String?,
+    setFunc: (VersionDeclarationSpecImpl, String) -> Unit,
+  ): ResolvedPropertyModel {
     val element = dslElement
     assert(element.parent != null)
-    val fakeElement: FakeElement = FakeVariableDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc, setFunc,
-                                                                  false)
+    val fakeElement: FakeElement =
+      FakeVariableDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc, setFunc, false)
     val builder = GradlePropertyModelBuilder.create(fakeElement)
     return builder.addTransform(FakeElementTransform()).buildResolved()
   }
@@ -109,20 +96,20 @@ class LiteralVersionDeclarationModel(override val dslElement: GradleDslLiteral) 
   override fun prefer(): ResolvedPropertyModel =
     createModelFor("prefer", VersionDeclarationSpec::getPrefer, VersionDeclarationSpecImpl::setPrefer)
 
-  override fun completeModel(): ResolvedPropertyModel? =
-    GradlePropertyModelBuilder.create(dslElement).buildResolved()
+  override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
 }
 
 class FakeVersionDeclarationModel(override val dslElement: FakeElement) : VersionDeclarationModelImpl(dslElement) {
 
-  private fun createModelFor(name: String,
-                             getFunc: (VersionDeclarationSpec) -> String?,
-                             setFunc: (VersionDeclarationSpecImpl, String) -> Unit
+  private fun createModelFor(
+    name: String,
+    getFunc: (VersionDeclarationSpec) -> String?,
+    setFunc: (VersionDeclarationSpecImpl, String) -> Unit,
   ): ResolvedPropertyModel {
     val element = dslElement
     assert(element.parent != null)
-    val fakeElement: FakeElement = FakeVariableDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc, setFunc,
-                                                                  false)
+    val fakeElement: FakeElement =
+      FakeVariableDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc, setFunc, false)
     val builder = GradlePropertyModelBuilder.create(fakeElement)
     return builder.addTransform(FakeElementTransform()).buildResolved()
   }
@@ -136,6 +123,5 @@ class FakeVersionDeclarationModel(override val dslElement: FakeElement) : Versio
   override fun prefer(): ResolvedPropertyModel =
     createModelFor("prefer", VersionDeclarationSpec::getPrefer, VersionDeclarationSpecImpl::setPrefer)
 
-  override fun completeModel(): ResolvedPropertyModel? =
-    GradlePropertyModelBuilder.create(dslElement).buildResolved()
+  override fun completeModel(): ResolvedPropertyModel? = GradlePropertyModelBuilder.create(dslElement).buildResolved()
 }

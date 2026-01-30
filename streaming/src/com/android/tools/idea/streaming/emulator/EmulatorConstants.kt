@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 @file:JvmName("EmulatorConstants")
+
 package com.android.tools.idea.streaming.emulator
 
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Embedded Emulator constants. */
-
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
 @JvmField internal val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")

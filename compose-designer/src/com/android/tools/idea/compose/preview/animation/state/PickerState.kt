@@ -23,11 +23,8 @@ import com.android.tools.idea.preview.animation.state.SwapAction
 import com.intellij.openapi.actionSystem.AnAction
 import kotlinx.coroutines.flow.MutableStateFlow
 
-/**
- * [AnimationState] for animations where initial and target states should be selected with a picker.
- */
-class PickerState(tracker: ComposeAnimationTracker, initial: Any?, target: Any?) :
-  FromToState<AnimationUnit.Unit<*>> {
+/** [AnimationState] for animations where initial and target states should be selected with a picker. */
+class PickerState(tracker: ComposeAnimationTracker, initial: Any?, target: Any?) : FromToState<AnimationUnit.Unit<*>> {
 
   private val buttonAction =
     PickerButtonAction(tracker).apply {
@@ -35,9 +32,7 @@ class PickerState(tracker: ComposeAnimationTracker, initial: Any?, target: Any?)
       updateTargetState(target)
     }
 
-  override val state: MutableStateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> =
-    buttonAction.state
+  override val state: MutableStateFlow<Pair<AnimationUnit.Unit<*>, AnimationUnit.Unit<*>>> = buttonAction.state
 
-  override val changeStateActions: List<AnAction> =
-    listOf(SwapAction(tracker) { buttonAction.swapStates() }, buttonAction)
+  override val changeStateActions: List<AnAction> = listOf(SwapAction(tracker) { buttonAction.swapStates() }, buttonAction)
 }

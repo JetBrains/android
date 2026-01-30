@@ -28,13 +28,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
-import java.util.concurrent.CompletableFuture
 
 @Service
 class GradleJdkConfigurationInitializer private constructor() {
@@ -48,47 +48,48 @@ class GradleJdkConfigurationInitializer private constructor() {
 
   private val logger = Logger.getInstance(GradleJdkConfigurationInitializer::class.java)
 
-  @VisibleForTesting
-  var canInitializeDaemonJvmCriteria = !ApplicationManager.getApplication().isUnitTestMode
+  @VisibleForTesting var canInitializeDaemonJvmCriteria = !ApplicationManager.getApplication().isUnitTestMode
 
   fun initialize(
     project: Project,
     externalProjectPath: @SystemIndependent String,
     projectSettings: GradleProjectSettings,
-    newProjectConfiguration: GradleNewProjectConfiguration
+    newProjectConfiguration: GradleNewProjectConfiguration,
   ) {
     if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, projectSettings.externalProjectPath)) {
       // Skip initialization and reuse the already defined daemon JVM criteria
       return
     }
 
-    setUpDaemonJvmCriteria(project, externalProjectPath, projectSettings, newProjectConfiguration).handle { result, exception ->
-      if (result == false || exception != null) {
-        if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
-          setUpLocalJavaHomeAsGradleJvm(project, externalProjectPath, projectSettings)
-        } else {
-          setUpProjectJdkAsGradleJvm(project, projectSettings)
+    setUpDaemonJvmCriteria(project, externalProjectPath, projectSettings, newProjectConfiguration)
+      .handle { result, exception ->
+        if (result == false || exception != null) {
+          if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
+            setUpLocalJavaHomeAsGradleJvm(project, externalProjectPath, projectSettings)
+          } else {
+            setUpProjectJdkAsGradleJvm(project, projectSettings)
+          }
         }
       }
-    }.get()
+      .get()
   }
 
   private fun setUpDaemonJvmCriteria(
     project: Project,
     externalProjectPath: @SystemIndependent String,
     projectSettings: GradleProjectSettings,
-    newProjectConfiguration: GradleNewProjectConfiguration
+    newProjectConfiguration: GradleNewProjectConfiguration,
   ): CompletableFuture<Boolean> {
     GradleInstallationManager.guessGradleVersion(projectSettings)?.let { gradleVersion ->
       // Test projects will continue using the old behaviour until b/392565928 is addressed separately
       if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion) && canInitializeDaemonJvmCriteria) {
-        return GradleDaemonJvmCriteriaInitializer(project, externalProjectPath, gradleVersion).initialize(
-          newProjectConfiguration.useDefaultDaemonJvmCriteria
-        ).whenComplete { _, error ->
-          if (error != null) {
-            logger.warn("Unable to initialize project Daemon JVM criteria", error)
+        return GradleDaemonJvmCriteriaInitializer(project, externalProjectPath, gradleVersion)
+          .initialize(newProjectConfiguration.useDefaultDaemonJvmCriteria)
+          .whenComplete { _, error ->
+            if (error != null) {
+              logger.warn("Unable to initialize project Daemon JVM criteria", error)
+            }
           }
-        }
       }
     }
     return CompletableFuture.completedFuture(false)

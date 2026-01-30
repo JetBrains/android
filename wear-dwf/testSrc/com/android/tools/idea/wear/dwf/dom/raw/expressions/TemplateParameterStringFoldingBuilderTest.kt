@@ -28,16 +28,14 @@ class TemplateParameterStringFoldingBuilderTest {
 
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
 
   private val fixture
     get() = projectRule.fixture
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
 
     fixture.addFileToProject(
       "res/values/strings.xml",
@@ -47,7 +45,7 @@ class TemplateParameterStringFoldingBuilderTest {
       <resources>
           <string name="greeting">Hello, World!</string>
       </resources>
-    """
+      """
         .trimIndent(),
     )
     projectRule.waitForResourceRepositoryUpdates()
@@ -60,18 +58,13 @@ class TemplateParameterStringFoldingBuilderTest {
 
   @Test
   fun `string references in template parameter expressions are not folded when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     fixture.testFolding("${fixture.testDataPath}/res/raw/watch_face_folding_disabled.xml")
   }
 
   // Regression test for b/441987780
   @Test
   fun `does not throw exceptions on invalid resource names`() {
-    fixture.testFolding(
-      "${fixture.testDataPath}/res/raw/watch_face_folding_with_invalid_resource_name.xml"
-    )
+    fixture.testFolding("${fixture.testDataPath}/res/raw/watch_face_folding_with_invalid_resource_name.xml")
   }
 }

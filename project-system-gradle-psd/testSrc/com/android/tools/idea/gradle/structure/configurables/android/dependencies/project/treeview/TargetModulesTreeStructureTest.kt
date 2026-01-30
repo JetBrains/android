@@ -28,54 +28,55 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.RunsInEdt
+import java.util.function.Consumer
 import org.junit.Rule
 import org.junit.Test
-import java.util.function.Consumer
 
 @RunsInEdt
 class TargetModulesTreeStructureTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testTreeStructure() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
     projectRule.psTestWithProject(preparedProject) {
-
       val targetModulesTreeStructure = TargetModulesTreeStructure(PsUISettings())
       val node = targetModulesTreeStructure.rootElement as AbstractPsNode
 
       targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib1"))
 
       // Note: indentation matters!
-      var expectedProjectStructure = """
-      (null)
-          mainModule
-              freeDebug
-                  (by) implementation
-                  (by) debugImplementation
-              freeRelease
-                  (by) implementation
-                  (by) releaseImplementation
-              paidDebug
-                  (by) implementation
-                  (by) debugImplementation
-              paidRelease
-                  (by) implementation
-                  (by) releaseImplementation
-              freeDebug (androidTest)
-              paidDebug (androidTest)
-              freeDebug (test)
-              paidDebug (test)
-          modulePlus
-              debug
-                  (by) implementation
-              release
-                  (by) implementation
-                  (by) releaseImplementation
-              debug (androidTest)
-              debug (test)""".trimIndent()
+      var expectedProjectStructure =
+        """
+        (null)
+            mainModule
+                freeDebug
+                    (by) implementation
+                    (by) debugImplementation
+                freeRelease
+                    (by) implementation
+                    (by) releaseImplementation
+                paidDebug
+                    (by) implementation
+                    (by) debugImplementation
+                paidRelease
+                    (by) implementation
+                    (by) releaseImplementation
+                freeDebug (androidTest)
+                paidDebug (androidTest)
+                freeDebug (test)
+                paidDebug (test)
+            modulePlus
+                debug
+                    (by) implementation
+                release
+                    (by) implementation
+                    (by) releaseImplementation
+                debug (androidTest)
+                debug (test)
+        """
+          .trimIndent()
       var treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
       Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
@@ -84,115 +85,121 @@ class TargetModulesTreeStructureTest {
 
       // Note: indentation matters!
       // TODO(b/84996111): Tests artifact chains should also end with a declared dependency.
-      expectedProjectStructure = """
-      (null)
-          mainModule
-              freeDebug
-                  (via) lib1:1.0 (com.example.libs)
-                      (by) implementation
-                      (by) debugImplementation
-              freeRelease
-                  (via) lib1:1.0 (com.example.libs)
-                      (by) implementation
-                      (by) releaseImplementation
-              paidDebug
-                  (via) lib1:1.0 (com.example.libs)
-                      (by) implementation
-                      (by) debugImplementation
-              paidRelease
-                  (via) lib1:1.0 (com.example.libs)
-                      (by) implementation
-                      (by) releaseImplementation
-              freeDebug (androidTest)
-                  (via) lib1:1.0 (com.example.libs)
-              paidDebug (androidTest)
-                  (via) lib1:1.0 (com.example.libs)
-              freeDebug (test)
-                  (via) lib1:1.0 (com.example.libs)
-              paidDebug (test)
-                  (via) lib1:1.0 (com.example.libs)
-          modulePlus
-              debug
-                  (via) lib1:0.9.1 (com.example.libs)
-                      (by) implementation
-              release
-                  (via) lib1:0.9.1 (com.example.libs)
-                      (by) implementation
-                      (by) releaseImplementation
-              debug (androidTest)
-                  (via) lib1:0.9.1 (com.example.libs)
-              debug (test)
-                  (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
+      expectedProjectStructure =
+        """
+        (null)
+            mainModule
+                freeDebug
+                    (via) lib1:1.0 (com.example.libs)
+                        (by) implementation
+                        (by) debugImplementation
+                freeRelease
+                    (via) lib1:1.0 (com.example.libs)
+                        (by) implementation
+                        (by) releaseImplementation
+                paidDebug
+                    (via) lib1:1.0 (com.example.libs)
+                        (by) implementation
+                        (by) debugImplementation
+                paidRelease
+                    (via) lib1:1.0 (com.example.libs)
+                        (by) implementation
+                        (by) releaseImplementation
+                freeDebug (androidTest)
+                    (via) lib1:1.0 (com.example.libs)
+                paidDebug (androidTest)
+                    (via) lib1:1.0 (com.example.libs)
+                freeDebug (test)
+                    (via) lib1:1.0 (com.example.libs)
+                paidDebug (test)
+                    (via) lib1:1.0 (com.example.libs)
+            modulePlus
+                debug
+                    (via) lib1:0.9.1 (com.example.libs)
+                        (by) implementation
+                release
+                    (via) lib1:0.9.1 (com.example.libs)
+                        (by) implementation
+                        (by) releaseImplementation
+                debug (androidTest)
+                    (via) lib1:0.9.1 (com.example.libs)
+                debug (test)
+                    (via) lib1:0.9.1 (com.example.libs)
+        """
+          .trimIndent()
       treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
       Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
 
       targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.jlib", "lib4"))
-      expectedProjectStructure = """
-      (null)
-          mainModule
-              freeDebug
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-                              (by) implementation
-                              (by) debugImplementation
-                      (by) freeImplementation
-              freeRelease
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-                              (by) implementation
-                              (by) releaseImplementation
-                      (by) freeImplementation
-              paidDebug
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-                              (by) implementation
-                              (by) debugImplementation
-              paidRelease
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-                              (by) implementation
-                              (by) releaseImplementation
-              freeDebug (androidTest)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-              paidDebug (androidTest)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-              freeDebug (test)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-              paidDebug (test)
-                  (via) lib3:1.0 (com.example.jlib)
-                      (via) lib2:1.0 (com.example.libs)
-                          (via) lib1:1.0 (com.example.libs)
-          modulePlus
-              debug
-                  (via) lib3:0.9.1 (com.example.jlib)
-                      (via) lib2:0.9.1 (com.example.libs)
-                          (via) lib1:0.9.1 (com.example.libs)
-                              (by) implementation
-              release
-                  (via) lib3:0.9.1 (com.example.jlib)
-                      (via) lib2:0.9.1 (com.example.libs)
-                          (via) lib1:0.9.1 (com.example.libs)
-                              (by) implementation
-                              (by) releaseImplementation
-              debug (androidTest)
-                  (via) lib3:0.9.1 (com.example.jlib)
-                      (via) lib2:0.9.1 (com.example.libs)
-                          (via) lib1:0.9.1 (com.example.libs)
-              debug (test)
-                  (via) lib3:0.9.1 (com.example.jlib)
-                      (via) lib2:0.9.1 (com.example.libs)
-                          (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
+      expectedProjectStructure =
+        """
+        (null)
+            mainModule
+                freeDebug
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                                (by) implementation
+                                (by) debugImplementation
+                        (by) freeImplementation
+                freeRelease
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                                (by) implementation
+                                (by) releaseImplementation
+                        (by) freeImplementation
+                paidDebug
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                                (by) implementation
+                                (by) debugImplementation
+                paidRelease
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                                (by) implementation
+                                (by) releaseImplementation
+                freeDebug (androidTest)
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                paidDebug (androidTest)
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                freeDebug (test)
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+                paidDebug (test)
+                    (via) lib3:1.0 (com.example.jlib)
+                        (via) lib2:1.0 (com.example.libs)
+                            (via) lib1:1.0 (com.example.libs)
+            modulePlus
+                debug
+                    (via) lib3:0.9.1 (com.example.jlib)
+                        (via) lib2:0.9.1 (com.example.libs)
+                            (via) lib1:0.9.1 (com.example.libs)
+                                (by) implementation
+                release
+                    (via) lib3:0.9.1 (com.example.jlib)
+                        (via) lib2:0.9.1 (com.example.libs)
+                            (via) lib1:0.9.1 (com.example.libs)
+                                (by) implementation
+                                (by) releaseImplementation
+                debug (androidTest)
+                    (via) lib3:0.9.1 (com.example.jlib)
+                        (via) lib2:0.9.1 (com.example.libs)
+                            (via) lib1:0.9.1 (com.example.libs)
+                debug (test)
+                    (via) lib3:0.9.1 (com.example.jlib)
+                        (via) lib2:0.9.1 (com.example.libs)
+                            (via) lib1:0.9.1 (com.example.libs)
+        """
+          .trimIndent()
       treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
       Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
@@ -203,16 +210,16 @@ class TargetModulesTreeStructureTest {
     val nodeModels = mutableListOf<PsAndroidDependency>()
 
     // Simulate all-modules dependencies view single node selection.
-    project.forEachModule(Consumer { module ->
-      if (module is PsAndroidModule) {
-        nodeModels.addAll(module.dependencies.findLibraryDependencies(groupId, name))
-        module.resolvedVariants.forEach { variant ->
-          variant.forEachArtifact { artifact ->
-            nodeModels.addAll(artifact.dependencies.findLibraryDependencies(groupId, name))
+    project.forEachModule(
+      Consumer { module ->
+        if (module is PsAndroidModule) {
+          nodeModels.addAll(module.dependencies.findLibraryDependencies(groupId, name))
+          module.resolvedVariants.forEach { variant ->
+            variant.forEachArtifact { artifact -> nodeModels.addAll(artifact.dependencies.findLibraryDependencies(groupId, name)) }
           }
         }
       }
-    })
+    )
     return listOf(nodeModels)
   }
 }

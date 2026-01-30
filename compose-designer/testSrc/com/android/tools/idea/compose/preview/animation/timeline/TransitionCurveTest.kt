@@ -135,14 +135,12 @@ class TransitionCurveTest {
           positionProxy = slider.sliderUI.positionProxy,
         )
         .apply { Disposer.register(projectRule.testRootDisposable, this) }
-    transitionCurve.timelineUnits =
-      listOf(null, null, AnimationUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
+    transitionCurve.timelineUnits = listOf(null, null, AnimationUnit.TimelineUnit("Property", ComposeUnit.IntSize(5, 5)))
     slider.sliderUI.elements = listOf(transitionCurve)
     // Timeline has tooltips.
     ui.render() // paint() method within render() should be called to update BoxedLabel positions.
     val tooltips = slider.scanForTooltips()
-    val expected =
-      setOf(TooltipInfo("Property", "width ( 5 , _ )"), TooltipInfo("Property", "height ( _ , 5 )"))
+    val expected = setOf(TooltipInfo("Property", "width ( 5 , _ )"), TooltipInfo("Property", "height ( _ , 5 )"))
     assertEquals(expected, tooltips)
     // Uncomment to preview ui.
     // ui.render()
@@ -163,17 +161,12 @@ class TransitionCurveTest {
           positionProxy = slider.sliderUI.positionProxy,
         )
         .apply { Disposer.register(projectRule.testRootDisposable, this) }
-    transitionCurve.timelineUnits =
-      listOf(AnimationUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
+    transitionCurve.timelineUnits = listOf(AnimationUnit.TimelineUnit("Property Two", ComposeUnit.IntSize(5, 5)))
     slider.sliderUI.elements = listOf(transitionCurve)
     // Timeline has tooltips.
     ui.render() // paint() method within render() should be called to update BoxedLabel positions.
     val tooltips = slider.scanForTooltips()
-    val expected =
-      setOf(
-        TooltipInfo("Property Two", "width ( 5 , _ )"),
-        TooltipInfo("Property Two", "height ( _ , 5 )"),
-      )
+    val expected = setOf(TooltipInfo("Property Two", "width ( 5 , _ )"), TooltipInfo("Property Two", "height ( _ , 5 )"))
     assertEquals(expected, tooltips)
     // Uncomment to preview ui.
     // ui.render()

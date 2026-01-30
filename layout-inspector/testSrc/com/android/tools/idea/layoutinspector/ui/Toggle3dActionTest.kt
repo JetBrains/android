@@ -81,11 +81,7 @@ class Toggle3dActionTest {
   @Before
   fun setUp() {
     val application = ApplicationManager.getApplication()
-    application.registerServiceInstance(
-      PropertiesComponent::class.java,
-      PropertiesComponentMock(),
-      disposableRule.disposable,
-    )
+    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     val notificationModel = NotificationModel(projectRule.project)
     val treeSettings = FakeTreeSettings()
 
@@ -152,12 +148,8 @@ class Toggle3dActionTest {
     assertThat(fakeEvent.presentation.isEnabled).isTrue()
     assertThat(fakeEvent.presentation.text).isEqualTo("2D Mode")
     assertThat(fakeEvent.presentation.description)
-      .isEqualTo(
-        "Inspect the layout in 2D mode. " +
-          "Enabling this mode has less impact on your device's runtime performance."
-      )
-    assertThat(fakeEvent.presentation.icon)
-      .isEqualTo(StudioIcons.LayoutInspector.Toolbar.RESET_VIEW)
+      .isEqualTo("Inspect the layout in 2D mode. " + "Enabling this mode has less impact on your device's runtime performance.")
+    assertThat(fakeEvent.presentation.icon).isEqualTo(StudioIcons.LayoutInspector.Toolbar.RESET_VIEW)
   }
 
   @Test
@@ -171,8 +163,7 @@ class Toggle3dActionTest {
 
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
-    assertThat(fakeEvent.presentation.text)
-      .isEqualTo("Rotation not available when overlay is active")
+    assertThat(fakeEvent.presentation.text).isEqualTo("Rotation not available when overlay is active")
   }
 
   @Test
@@ -182,8 +173,7 @@ class Toggle3dActionTest {
     capabilities.clear()
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
-    assertThat(fakeEvent.presentation.text)
-      .isEqualTo("Error while rendering device image, rotation not available")
+    assertThat(fakeEvent.presentation.text).isEqualTo("Error while rendering device image, rotation not available")
   }
 
   @Test
@@ -194,8 +184,7 @@ class Toggle3dActionTest {
     capabilities.clear()
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
-    assertThat(fakeEvent.presentation.text)
-      .isEqualTo("Rotation not available for devices below API 29")
+    assertThat(fakeEvent.presentation.text).isEqualTo("Rotation not available for devices below API 29")
   }
 
   @Test
@@ -211,8 +200,7 @@ class Toggle3dActionTest {
     inspectorModel.update(window, listOf(3), 0)
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
-    assertThat(fakeEvent.presentation.text)
-      .isEqualTo("Error while rendering device image, rotation not available")
+    assertThat(fakeEvent.presentation.text).isEqualTo("Error while rendering device image, rotation not available")
   }
 
   @Test

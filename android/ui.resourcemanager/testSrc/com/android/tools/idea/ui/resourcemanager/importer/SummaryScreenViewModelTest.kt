@@ -42,33 +42,33 @@ import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class SummaryScreenViewModelTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val facet: AndroidFacet
     get() = rule.module.androidFacet!!
+
   private val viewModel: SummaryScreenViewModel by lazy {
     SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet, getSourceSetsResDirs(facet))
   }
 
   @Before
   fun setUp() {
-    val token = object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
-      override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
-        File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
-    }
+    val token =
+      object : CreateDefaultResDirectoryToken<AndroidProjectSystem>, DefaultToken {
+        override fun createDefaultResDirectory(projectSystem: AndroidProjectSystem, facet: AndroidFacet): File? =
+          File(VfsUtil.virtualToIoFile(facet.module.rootManager.contentRoots.first()), "res").also { it.mkdirs() }
+      }
     maskExtensions(CreateDefaultResDirectoryToken.EP_NAME, listOf(token), rule.testRootDisposable)
   }
 
@@ -88,38 +88,44 @@ class SummaryScreenViewModelTest {
     val trueFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
     viewModel.assetSetsToImport =
       setOf(
-        ResourceAssetSet("asset1", listOf(
-          DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE),
-          DesignAsset(FakeVirtualFile(resDir, "image2.png"), listOf(DensityQualifier(Density.MEDIUM)), ResourceType.DRAWABLE)
-        )),
-        ResourceAssetSet("asset2", listOf(
-          DesignAsset(FakeVirtualFile(resDir, "image3.png"), listOf(
-            HighDynamicRangeQualifier(HighDynamicRange.HIGHDR),
-            DensityQualifier(Density.MEDIUM)),
-                      ResourceType.DRAWABLE),
-          DesignAsset(trueFile, listOf(), ResourceType.DRAWABLE)
-        )))
+        ResourceAssetSet(
+          "asset1",
+          listOf(
+            DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE),
+            DesignAsset(FakeVirtualFile(resDir, "image2.png"), listOf(DensityQualifier(Density.MEDIUM)), ResourceType.DRAWABLE),
+          ),
+        ),
+        ResourceAssetSet(
+          "asset2",
+          listOf(
+            DesignAsset(
+              FakeVirtualFile(resDir, "image3.png"),
+              listOf(HighDynamicRangeQualifier(HighDynamicRange.HIGHDR), DensityQualifier(Density.MEDIUM)),
+              ResourceType.DRAWABLE,
+            ),
+            DesignAsset(trueFile, listOf(), ResourceType.DRAWABLE),
+          ),
+        ),
+      )
 
     assertThat(viewModel.assetSetsToImport).hasSize(2)
     val fileTreeModel = viewModel.fileTreeModel
 
-    val firstLevelDirs = (0..3)
-      .map { fileTreeModel.root.getChild(it) }
-      .map { FileUtil.toSystemIndependentName(it.file.relativeTo (projectResDir.parentFile).path) }
+    val firstLevelDirs =
+      (0..3)
+        .map { fileTreeModel.root.getChild(it) }
+        .map { FileUtil.toSystemIndependentName(it.file.relativeTo(projectResDir.parentFile).path) }
 
-    val files = (0..3)
-      .map { fileTreeModel.root.getChild(it).getChild(0) }
-      .map { it.file.name }
+    val files = (0..3).map { fileTreeModel.root.getChild(it).getChild(0) }.map { it.file.name }
 
-    assertThat(firstLevelDirs).containsExactly("res/drawable", "res/drawable-highdr-mdpi", "res/drawable-mdpi",
-                                               "res/drawable-night").inOrder()
+    assertThat(firstLevelDirs)
+      .containsExactly("res/drawable", "res/drawable-highdr-mdpi", "res/drawable-mdpi", "res/drawable-night")
+      .inOrder()
     assertThat(files).containsExactly("asset2.png", "asset2.png", "asset1.png", "asset1.png").inOrder()
 
     viewModel.selectedFile = fileTreeModel.root.getChild(0).getChild(0).file
-    assertThat(viewModel.metadata).containsExactly("File name", "asset2.png",
-                                                   "File type", "PNG",
-                                                   "File size", "4.75 kB",
-                                                   "Dimensions (px)", "181x119")
+    assertThat(viewModel.metadata)
+      .containsExactly("File name", "asset2.png", "File type", "PNG", "File size", "4.75 kB", "Dimensions (px)", "181x119")
 
     assertThat(viewModel.getPreview().join()).isNotNull()
   }
@@ -132,8 +138,12 @@ class SummaryScreenViewModelTest {
     val resDir = rule.fixture.tempDirFixture.findOrCreateDir("res")
 
     viewModel.assetSetsToImport =
-      setOf(ResourceAssetSet("asset1", listOf(
-        DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE))))
+      setOf(
+        ResourceAssetSet(
+          "asset1",
+          listOf(DesignAsset(FakeVirtualFile(resDir, "image1.png"), listOf(NightModeQualifier(NightMode.NIGHT)), ResourceType.DRAWABLE)),
+        )
+      )
     viewModel.selectedFile = viewModel.fileTreeModel.root.getChild(0).getChild(0).file
     assertThat(callBackCalled).isTrue()
   }
@@ -141,14 +151,25 @@ class SummaryScreenViewModelTest {
   @Test
   fun sourceSetSelection() {
     val modulePath = ModuleUtil.getModuleDirPath(facet.module)
-    val viewModel2 = SummaryScreenViewModel(DesignAssetImporter(), DesignAssetRendererManager.getInstance(), facet,
-                                            arrayOf(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
-                                               SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
-                                               SourceSetResDir(File(modulePath, "src/demo/res2"), "demo")))
+    val viewModel2 =
+      SummaryScreenViewModel(
+        DesignAssetImporter(),
+        DesignAssetRendererManager.getInstance(),
+        facet,
+        arrayOf(
+          SourceSetResDir(File(modulePath, "src/main/res"), "main"),
+          SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
+          SourceSetResDir(File(modulePath, "src/demo/res2"), "demo"),
+        ),
+      )
     assertThat(viewModel2.selectedResDir).isEqualTo(SourceSetResDir(File(modulePath, "src/main/res"), "main"))
-    assertThat(viewModel2.availableResDirs).asList().containsExactly(SourceSetResDir(File(modulePath, "src/main/res"), "main"),
-                                                                     SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
-                                                                     SourceSetResDir(File(modulePath, "src/demo/res2"), "demo"))
+    assertThat(viewModel2.availableResDirs)
+      .asList()
+      .containsExactly(
+        SourceSetResDir(File(modulePath, "src/main/res"), "main"),
+        SourceSetResDir(File(modulePath, "src/full/res1"), "full"),
+        SourceSetResDir(File(modulePath, "src/demo/res2"), "demo"),
+      )
     viewModel2.selectedResDir = viewModel2.availableResDirs[1]
     assertThat(viewModel2.fileTreeModel.root.file).isEqualTo(File(modulePath, "src/full/res1"))
     val trueFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
@@ -161,7 +182,7 @@ class SummaryScreenViewModelTest {
   @Test
   fun getUserFormattedPath() {
     val moduleDir = facet.module.guessModuleDir()
-    if(moduleDir != null) {
+    if (moduleDir != null) {
       val moduleDirPath = moduleDir.path
       val pathInside = File(moduleDirPath, "some_dir/file.png")
       assertThat(File(viewModel.getUserFormattedPath(pathInside))).isEqualTo(File("some_dir/file.png"))

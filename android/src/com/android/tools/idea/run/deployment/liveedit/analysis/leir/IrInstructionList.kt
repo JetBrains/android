@@ -22,15 +22,20 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode
 import org.jetbrains.org.objectweb.asm.tree.InsnList
 
-class IrInstructionList(insnList: InsnList): Iterable<IrInstruction> {
+class IrInstructionList(insnList: InsnList) : Iterable<IrInstruction> {
   private val list = mutableListOf<IrInstruction>()
 
   val labels = IrLabels()
   val lines: List<Int>
 
-  val size get() = list.size
-  val first get() = list.firstOrNull()
-  val last get() = list.lastOrNull()
+  val size
+    get() = list.size
+
+  val first
+    get() = list.firstOrNull()
+
+  val last
+    get() = list.lastOrNull()
 
   init {
     val parser = InstructionParser(labels)
@@ -84,19 +89,16 @@ class IrLabels {
   private val labels = mutableMapOf<Label?, IrLabel>()
   private val indexMap = mutableMapOf<Label?, Int>()
 
-  /**
-   * The number of labels encountered in the instruction list.
-   */
+  /** The number of labels encountered in the instruction list. */
   val size: Int
     get() {
       return nextIndex
     }
 
   inner class IrLabel(private val label: Label?) {
-    /**
-     * The index of the label based on its position in the method bytecode. The first label is label 0, the second is 1, etc.
-     */
-    val index get() = indexMap[label] ?: -1
+    /** The index of the label based on its position in the method bytecode. The first label is label 0, the second is 1, etc. */
+    val index
+      get() = indexMap[label] ?: -1
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
@@ -121,9 +123,7 @@ class IrLabels {
     indexMap[label] = nextIndex++
   }
 
-  /**
-   * Returns the [IrLabel] associated with this [IrLabel], creating one if it doesn't exist.
-   */
+  /** Returns the [IrLabel] associated with this [IrLabel], creating one if it doesn't exist. */
   fun get(label: Label?): IrLabel {
     return labels.computeIfAbsent(label) { IrLabel(label) }
   }
@@ -178,10 +178,12 @@ private class InstructionParser(private val labels: IrLabels) : MethodVisitor(Op
     handle(opcode, listOf(owner, name, descriptor, isInterface))
   }
 
-  override fun visitInvokeDynamicInsn(name: String?,
-                                      descriptor: String?,
-                                      bootstrapMethodHandle: Handle?,
-                                      vararg bootstrapMethodArguments: Any?) {
+  override fun visitInvokeDynamicInsn(
+    name: String?,
+    descriptor: String?,
+    bootstrapMethodHandle: Handle?,
+    vararg bootstrapMethodArguments: Any?,
+  ) {
     // TODO: decompose Handle? into constituent parts
     handle(Opcodes.INVOKEDYNAMIC, listOf(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments))
   }
@@ -222,4 +224,3 @@ private class InstructionParser(private val labels: IrLabels) : MethodVisitor(Op
     handleLine(line, labels.get(start))
   }
 }
-

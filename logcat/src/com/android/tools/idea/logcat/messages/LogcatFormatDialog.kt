@@ -48,7 +48,6 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ActionEvent
 import java.time.Instant
 import java.time.ZoneId
@@ -58,6 +57,7 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MIN_TAG_LENGTH = 10
 private const val MAX_TAG_LENGTH = 120
@@ -65,56 +65,23 @@ private const val MIN_APP_NAME_LENGTH = 10
 private const val MAX_APP_NAME_LENGTH = 120
 private const val MAX_PROCESS_NAME_LENGTH = 120
 private val previewZoneId = ZoneId.of("GMT")
-private val previewTimestamp =
-  Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, previewZoneId))
+private val previewTimestamp = Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, previewZoneId))
 private val previewMessages =
   listOf(
     LogcatMessage(
-      LogcatHeader(
-        LogLevel.DEBUG,
-        27217,
-        3814,
-        "com.example.app1",
-        "com.example.app1:process",
-        "ExampleTag1",
-        previewTimestamp,
-      ),
+      LogcatHeader(LogLevel.DEBUG, 27217, 3814, "com.example.app1", "com.example.app1:process", "ExampleTag1", previewTimestamp),
       "Sample logcat message 1.",
     ),
     LogcatMessage(
-      LogcatHeader(
-        LogLevel.INFO,
-        27217,
-        3814,
-        "com.example.app1",
-        "com.example.app1:process",
-        "ExampleTag1",
-        previewTimestamp,
-      ),
+      LogcatHeader(LogLevel.INFO, 27217, 3814, "com.example.app1", "com.example.app1:process", "ExampleTag1", previewTimestamp),
       "Sample logcat message 2.",
     ),
     LogcatMessage(
-      LogcatHeader(
-        LogLevel.WARN,
-        24395,
-        24395,
-        "com.example.app2",
-        "com.example.app2:process",
-        "ExampleTag2",
-        previewTimestamp,
-      ),
+      LogcatHeader(LogLevel.WARN, 24395, 24395, "com.example.app2", "com.example.app2:process", "ExampleTag2", previewTimestamp),
       "Sample logcat message 3.",
     ),
     LogcatMessage(
-      LogcatHeader(
-        LogLevel.ERROR,
-        24395,
-        24395,
-        "com.example.app2",
-        "com.example.app2:process",
-        "ExampleTag2",
-        previewTimestamp,
-      ),
+      LogcatHeader(LogLevel.ERROR, 24395, 24395, "com.example.app2", "com.example.app2:process", "ExampleTag2", previewTimestamp),
       "Sample logcat multiline\nmessage.",
     ),
   )
@@ -149,44 +116,31 @@ internal class LogcatFormatDialog(
   private var setAsDefault = propertyGraph.property(initialFormatting == defaultFormatting)
 
   // Timestamp
-  private val showTimestamp =
-    observableProperty(initialFormatting.formattingOptions.timestampFormat.enabled)
-  private var timestampStyle =
-    observableProperty(initialFormatting.formattingOptions.timestampFormat.style)
+  private val showTimestamp = observableProperty(initialFormatting.formattingOptions.timestampFormat.enabled)
+  private var timestampStyle = observableProperty(initialFormatting.formattingOptions.timestampFormat.style)
 
   // Tag
   private val showTag = observableProperty(initialFormatting.formattingOptions.tagFormat.enabled)
   private var tagWidth = observableProperty(initialFormatting.formattingOptions.tagFormat.maxLength)
-  private var tagShowDuplicates =
-    observableProperty(!initialFormatting.formattingOptions.tagFormat.hideDuplicates)
-  private var tagColorize =
-    observableProperty(initialFormatting.formattingOptions.tagFormat.colorize)
+  private var tagShowDuplicates = observableProperty(!initialFormatting.formattingOptions.tagFormat.hideDuplicates)
+  private var tagColorize = observableProperty(initialFormatting.formattingOptions.tagFormat.colorize)
 
   // Level
-  private var showLevel =
-    observableProperty(initialFormatting.formattingOptions.levelFormat.enabled)
+  private var showLevel = observableProperty(initialFormatting.formattingOptions.levelFormat.enabled)
 
   // PID/TID
-  private var showPid =
-    observableProperty(initialFormatting.formattingOptions.processThreadFormat.enabled)
-  private var showTid =
-    observableProperty(initialFormatting.formattingOptions.processThreadFormat.style == BOTH)
+  private var showPid = observableProperty(initialFormatting.formattingOptions.processThreadFormat.enabled)
+  private var showTid = observableProperty(initialFormatting.formattingOptions.processThreadFormat.style == BOTH)
 
   // Package
-  private var showPackage =
-    observableProperty(initialFormatting.formattingOptions.appNameFormat.enabled)
-  private var packageWidth =
-    observableProperty(initialFormatting.formattingOptions.appNameFormat.maxLength)
-  private var packageShowDuplicates =
-    observableProperty(!initialFormatting.formattingOptions.appNameFormat.hideDuplicates)
+  private var showPackage = observableProperty(initialFormatting.formattingOptions.appNameFormat.enabled)
+  private var packageWidth = observableProperty(initialFormatting.formattingOptions.appNameFormat.maxLength)
+  private var packageShowDuplicates = observableProperty(!initialFormatting.formattingOptions.appNameFormat.hideDuplicates)
 
   // Process name
-  private var showProcess =
-    observableProperty(initialFormatting.formattingOptions.processNameFormat.enabled)
-  private var processWidth =
-    observableProperty(initialFormatting.formattingOptions.processNameFormat.maxLength)
-  private var processShowDuplicates =
-    observableProperty(!initialFormatting.formattingOptions.processNameFormat.hideDuplicates)
+  private var showProcess = observableProperty(initialFormatting.formattingOptions.processNameFormat.enabled)
+  private var processWidth = observableProperty(initialFormatting.formattingOptions.processNameFormat.maxLength)
+  private var processShowDuplicates = observableProperty(!initialFormatting.formattingOptions.processNameFormat.hideDuplicates)
 
   private val disposable = Disposer.newDisposable("LogcatFormatDialog")
 
@@ -249,11 +203,7 @@ internal class LogcatFormatDialog(
         .setType(LogcatUsageEvent.Type.FORMAT_DIALOG)
         .setFormatDialogApplied(getLogcatFormatDialogEvent().setIsApplyButtonUsed(isApplyButton))
     )
-    applyAction.apply(
-      standardFormattingOptions.copy(),
-      compactFormattingOptions.copy(),
-      defaultFormatting,
-    )
+    applyAction.apply(standardFormattingOptions.copy(), compactFormattingOptions.copy(), defaultFormatting)
   }
 
   private fun createPanel(): DialogPanel {
@@ -268,14 +218,8 @@ internal class LogcatFormatDialog(
     panel {
       row(LogcatBundle.message("logcat.format.presets.dialog.view")) {
         comboBox(FormattingOptions.Style.entries).bindItem(formattingStyle).named("formattingStyle")
-        checkBox(LogcatBundle.message("logcat.format.presets.dialog.default"))
-          .bindSelected(setAsDefault)
-          .named("setAsDefault")
-        cell(
-          ActionLink(LogcatBundle.message("logcat.format.presets.dialog.restore.default")) {
-            restoreDefault()
-          }
-        )
+        checkBox(LogcatBundle.message("logcat.format.presets.dialog.default")).bindSelected(setAsDefault).named("setAsDefault")
+        cell(ActionLink(LogcatBundle.message("logcat.format.presets.dialog.restore.default")) { restoreDefault() })
       }
     }
   }
@@ -302,25 +246,15 @@ internal class LogcatFormatDialog(
   }
 
   private fun Panel.footerPanel() {
-    row {
-      cell(previewEditor.component).applyToComponent {
-        border = JBUI.Borders.customLine(NamedColorUtil.getBoundsColor())
-      }
-    }
+    row { cell(previewEditor.component).applyToComponent { border = JBUI.Borders.customLine(NamedColorUtil.getBoundsColor()) } }
   }
 
   private fun Panel.timestampGroup() {
     group(LogcatBundle.message("logcat.header.options.timestamp.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.timestamp.show"))
-          .named("showTimestamp")
-          .bindSelected(showTimestamp)
-      }
+      row { checkBox(LogcatBundle.message("logcat.header.options.timestamp.show")).named("showTimestamp").bindSelected(showTimestamp) }
       indent {
           row(LogcatBundle.message("logcat.header.options.timestamp.format")) {
-            comboBox(TimestampFormat.Style.entries)
-              .bindItem(timestampStyle)
-              .named("timestampFormat")
+            comboBox(TimestampFormat.Style.entries).bindItem(timestampStyle).named("timestampFormat")
           }
         }
         .enabledIf(showTimestamp)
@@ -329,28 +263,18 @@ internal class LogcatFormatDialog(
 
   private fun Panel.tagGroup() {
     group(LogcatBundle.message("logcat.header.options.tag.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.tag.show"))
-          .bindSelected(showTag)
-          .named("showTag")
-      }
+      row { checkBox(LogcatBundle.message("logcat.header.options.tag.show")).bindSelected(showTag).named("showTag") }
       indent {
           row {
             label(LogcatBundle.message("logcat.header.options.tag.width")).named("tagWidthLabel")
-            spinner(IntRange(MIN_TAG_LENGTH, MAX_TAG_LENGTH), step = 1)
-              .bindIntValue(tagWidth)
-              .named("tagWidth")
+            spinner(IntRange(MIN_TAG_LENGTH, MAX_TAG_LENGTH), step = 1).bindIntValue(tagWidth).named("tagWidth")
           }
           row {
             checkBox(LogcatBundle.message("logcat.header.options.tag.show.repeated"))
               .bindSelected(tagShowDuplicates)
               .named("showRepeatedTags")
           }
-          row {
-            checkBox(LogcatBundle.message("logcat.header.options.tag.colorize"))
-              .bindSelected(tagColorize)
-              .named("colorizeTags")
-          }
+          row { checkBox(LogcatBundle.message("logcat.header.options.tag.colorize")).bindSelected(tagColorize).named("colorizeTags") }
         }
         .enabledIf(showTag)
     }
@@ -358,46 +282,25 @@ internal class LogcatFormatDialog(
 
   private fun Panel.levelGroup() {
     group(LogcatBundle.message("logcat.header.options.level.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.level.show"))
-          .bindSelected(showLevel)
-          .named("showLevel")
-      }
+      row { checkBox(LogcatBundle.message("logcat.header.options.level.show")).bindSelected(showLevel).named("showLevel") }
     }
   }
 
   private fun Panel.pidGroup() {
     group(LogcatBundle.message("logcat.header.options.process.id.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.process.id.show.pid"))
-          .bindSelected(showPid)
-          .named("showPid")
-      }
-      indent {
-          row {
-            checkBox(LogcatBundle.message("logcat.header.options.process.id.show.tid"))
-              .bindSelected(showTid)
-              .named("showTid")
-          }
-        }
+      row { checkBox(LogcatBundle.message("logcat.header.options.process.id.show.pid")).bindSelected(showPid).named("showPid") }
+      indent { row { checkBox(LogcatBundle.message("logcat.header.options.process.id.show.tid")).bindSelected(showTid).named("showTid") } }
         .enabledIf(showPid)
     }
   }
 
   private fun Panel.packageGroup() {
     group(LogcatBundle.message("logcat.header.options.package.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.package.show"))
-          .bindSelected(showPackage)
-          .named("showPackage")
-      }
+      row { checkBox(LogcatBundle.message("logcat.header.options.package.show")).bindSelected(showPackage).named("showPackage") }
       indent {
           row {
-            label(LogcatBundle.message("logcat.header.options.package.width"))
-              .named("packageWidthLabel")
-            spinner(IntRange(MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH), step = 1)
-              .bindIntValue(packageWidth)
-              .named("packageWidth")
+            label(LogcatBundle.message("logcat.header.options.package.width")).named("packageWidthLabel")
+            spinner(IntRange(MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH), step = 1).bindIntValue(packageWidth).named("packageWidth")
           }
           row {
             checkBox(LogcatBundle.message("logcat.header.options.package.show.repeated"))
@@ -411,18 +314,11 @@ internal class LogcatFormatDialog(
 
   private fun Panel.processGroup() {
     group(LogcatBundle.message("logcat.header.options.process.title"), indent = false) {
-      row {
-        checkBox(LogcatBundle.message("logcat.header.options.process.show"))
-          .bindSelected(showProcess)
-          .named("showPackage")
-      }
+      row { checkBox(LogcatBundle.message("logcat.header.options.process.show")).bindSelected(showProcess).named("showPackage") }
       indent {
           row {
-            label(LogcatBundle.message("logcat.header.options.process.width"))
-              .named("packageWidthLabel")
-            spinner(IntRange(MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH), step = 1)
-              .bindIntValue(processWidth)
-              .named("processNameWidth")
+            label(LogcatBundle.message("logcat.header.options.process.width")).named("packageWidthLabel")
+            spinner(IntRange(MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH), step = 1).bindIntValue(processWidth).named("processNameWidth")
           }
           row {
             checkBox(LogcatBundle.message("logcat.header.options.process.show.repeated"))
@@ -441,12 +337,9 @@ internal class LogcatFormatDialog(
     options.apply {
       timestampFormat = TimestampFormat(timestampStyle.get(), showTimestamp.get())
       processThreadFormat = ProcessThreadFormat(if (showTid.get()) BOTH else PID, showPid.get())
-      tagFormat =
-        TagFormat(tagWidth.get(), !tagShowDuplicates.get(), showTag.get(), tagColorize.get())
-      appNameFormat =
-        AppNameFormat(packageWidth.get(), !packageShowDuplicates.get(), showPackage.get())
-      processNameFormat =
-        ProcessNameFormat(processWidth.get(), !processShowDuplicates.get(), showProcess.get())
+      tagFormat = TagFormat(tagWidth.get(), !tagShowDuplicates.get(), showTag.get(), tagColorize.get())
+      appNameFormat = AppNameFormat(packageWidth.get(), !packageShowDuplicates.get(), showPackage.get())
+      processNameFormat = ProcessNameFormat(processWidth.get(), !processShowDuplicates.get(), showProcess.get())
       levelFormat = LevelFormat(showLevel.get())
     }
   }
@@ -487,19 +380,13 @@ internal class LogcatFormatDialog(
     try {
       previewEditor.document.setReadOnly(false)
       previewEditor.document.setText("")
-      DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE)
-        .appendToDocument(textAccumulator)
-      previewEditor.document.insertString(
-        previewEditor.document.textLength,
-        " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH),
-      )
+      DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)
+      previewEditor.document.insertString(previewEditor.document.textLength, " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH))
     } finally {
       previewEditor.document.setReadOnly(true)
     }
 
-    applyComponentsToOptions(
-      if (formattingStyle.get() == STANDARD) standardFormattingOptions else compactFormattingOptions
-    )
+    applyComponentsToOptions(if (formattingStyle.get() == STANDARD) standardFormattingOptions else compactFormattingOptions)
     applyButton.isEnabled = true
   }
 
@@ -535,24 +422,18 @@ internal class LogcatFormatDialog(
     applyOptionsToComponents(formattingOptions)
   }
 
-  private fun <T> observableProperty(initial: T) =
-    propertyGraph.property(initial).apply { afterChange { onComponentsChanged() } }
+  private fun <T> observableProperty(initial: T) = propertyGraph.property(initial).apply { afterChange { onComponentsChanged() } }
 
   fun interface ApplyAction {
-    fun apply(
-      standardOptions: FormattingOptions,
-      compactOptions: FormattingOptions,
-      defaultStyle: FormattingOptions.Style,
-    )
+    fun apply(standardOptions: FormattingOptions, compactOptions: FormattingOptions, defaultStyle: FormattingOptions.Style)
   }
 
   /**
-   * We need to extend DialogWrapper ourselves rather than use `components.dialog()` because we need
-   * to add an `Apply` button and there seems no easy way to do this with the `components.dialog()`
-   * version.
+   * We need to extend DialogWrapper ourselves rather than use `components.dialog()` because we need to add an `Apply` button and there
+   * seems no easy way to do this with the `components.dialog()` version.
    *
-   * It does provide a way to set the actions but in a way that completely replaces the default `OK`
-   * and `Cancel` buttons. There seems to be no way to reuse them.
+   * It does provide a way to set the actions but in a way that completely replaces the default `OK` and `Cancel` buttons. There seems to be
+   * no way to reuse them.
    */
   private inner class MyDialogWrapper(project: Project, private val panel: JComponent) :
     DialogWrapper(project, null, true, IdeModalityType.IDE) {
@@ -587,9 +468,7 @@ private fun <T : JComponent> Cell<T>.named(name: String) = applyToComponent { th
  *
  * https://youtrack.jetbrains.com/issue/IDEA-320805/Kotlin-DSL-2-Doesnt-Have-ObservableMutableProperty-Binding-For-Spinners
  */
-private fun <T : JBIntSpinner> Cell<T>.bindIntValue(
-  property: ObservableMutableProperty<Int>
-): Cell<T> {
+private fun <T : JBIntSpinner> Cell<T>.bindIntValue(property: ObservableMutableProperty<Int>): Cell<T> {
   applyToComponent {
     value = property.get()
     val mutex = AtomicBoolean()

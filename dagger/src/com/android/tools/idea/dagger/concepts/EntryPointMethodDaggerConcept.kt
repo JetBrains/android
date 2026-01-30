@@ -62,10 +62,8 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
  */
 object EntryPointMethodDaggerConcept : DaggerConcept {
   override val indexers = DaggerConceptIndexers(methodIndexers = listOf(EntryPointMethodIndexer))
-  override val indexValueReaders: List<IndexValue.Reader> =
-    listOf(EntryPointMethodIndexValue.Reader)
-  override val daggerElementIdentifiers =
-    DaggerElementIdentifiers.of(EntryPointMethodIndexValue.identifiers)
+  override val indexValueReaders: List<IndexValue.Reader> = listOf(EntryPointMethodIndexValue.Reader)
+  override val daggerElementIdentifiers = DaggerElementIdentifiers.of(EntryPointMethodIndexValue.identifiers)
 }
 
 private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
@@ -83,16 +81,12 @@ private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodW
     val classId = containingClass.getClassId()
     val methodSimpleName = wrapper.getSimpleName()
 
-    indexEntries.addIndexValue(
-      methodReturnTypeSimpleName,
-      EntryPointMethodIndexValue(classId, methodSimpleName),
-    )
+    indexEntries.addIndexValue(methodReturnTypeSimpleName, EntryPointMethodIndexValue(classId, methodSimpleName))
   }
 }
 
 @VisibleForTesting
-internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodSimpleName: String) :
-  IndexValue() {
+internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodSimpleName: String) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
@@ -103,8 +97,7 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ENTRY_POINT_METHOD
 
-    override fun read(input: DataInput) =
-      EntryPointMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = EntryPointMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -140,19 +133,15 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.methods
-      ?.asSequence()
-      ?.filter { it.name == methodSimpleName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.methods?.asSequence()?.filter {
+      it.name == methodSimpleName
+    } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
 
-internal data class EntryPointMethodDaggerElement(
-  override val psiElement: PsiElement,
-  override val rawType: PsiType,
-) : ConsumerDaggerElementBase() {
+internal data class EntryPointMethodDaggerElement(override val psiElement: PsiElement, override val rawType: PsiType) :
+  ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
 
@@ -166,7 +155,6 @@ internal data class EntryPointMethodDaggerElement(
   override val relationDescriptionKey: String = "navigate.to.provider.from.component"
 
   companion object {
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>("EntryPointMethodDaggerElement_RelatedElements")
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("EntryPointMethodDaggerElement_RelatedElements")
   }
 }

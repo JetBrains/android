@@ -19,19 +19,19 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBTextField
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import javax.swing.JLabel
 
 private const val EXAMPLE_URL = "http://example.com"
 private const val EXAMPLE_ACTIVITY_NAME = "com.example.MyActivity"
 
 internal class DeepLinkConfigurableTest {
 
-  @get:Rule
-  val rule = ProjectRule()
-  private val project get() = rule.project
+  @get:Rule val rule = ProjectRule()
+  private val project
+    get() = rule.project
 
   @Test
   fun panel() {
@@ -56,10 +56,11 @@ internal class DeepLinkConfigurableTest {
   fun resetFromState() {
     val configurable = DeepLinkConfigurable(project, mock())
     val panel = configurable.createComponent()
-    val state = DeepLinkLaunch.State().apply {
-      DEEP_LINK = EXAMPLE_URL
-      ACTIVITY = EXAMPLE_ACTIVITY_NAME
-    }
+    val state =
+      DeepLinkLaunch.State().apply {
+        DEEP_LINK = EXAMPLE_URL
+        ACTIVITY = EXAMPLE_ACTIVITY_NAME
+      }
     configurable.resetFrom(state)
 
     val components = panel.components

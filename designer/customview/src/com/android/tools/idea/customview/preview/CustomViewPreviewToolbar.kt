@@ -43,8 +43,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     }
   }
 
-  private class CustomViewSelector :
-    DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
+  private class CustomViewSelector : DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()
@@ -67,14 +66,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     val customViews = CustomViewSelector()
 
     val wrapWidth =
-      object :
-        ToggleAction(
-          "Wrap content horizontally",
-          "Set preview width to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH,
-        ) {
-        override fun isSelected(e: AnActionEvent) =
-          findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
+      object : ToggleAction("Wrap content horizontally", "Set preview width to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH) {
+        override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
 
         override fun setSelected(e: AnActionEvent, state: Boolean) {
           findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkWidth = state }
@@ -84,14 +77,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
       }
 
     val wrapHeight =
-      object :
-        ToggleAction(
-          "Wrap content vertically",
-          "Set preview height to wrap content",
-          StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT,
-        ) {
-        override fun isSelected(e: AnActionEvent) =
-          findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }
+      object : ToggleAction("Wrap content vertically", "Set preview height to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT) {
+        override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }
 
         override fun setSelected(e: AnActionEvent, state: Boolean) {
           findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkHeight = state }
@@ -107,8 +94,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     return customViewPreviewActions
   }
 
-  override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup().apply { add(IssueNotificationAction.getInstance()) }
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply { add(IssueNotificationAction.getInstance()) }
 }
 
 private fun findPreviewEditorsForContext(context: DataContext): List<CustomViewPreviewManager> {

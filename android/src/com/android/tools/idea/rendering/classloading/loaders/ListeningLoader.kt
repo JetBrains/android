@@ -21,17 +21,18 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
  * A [DelegatingClassLoader.Loader] that delegates the loads to [delegate] and calls [onBeforeLoad] and [onAfterLoad] before and after
  * loading the classes.
  */
-open class ListeningLoader(private val delegate: DelegatingClassLoader.Loader,
-                           private val onBeforeLoad: (fqcn: String) -> Unit = {},
-                           private val onAfterLoad: (fqcn: String, bytes: ByteArray) -> Unit = { _, _ -> },
-                           private val onNotFound: (fqcn: String) -> Unit = {}) : DelegatingClassLoader.Loader {
+open class ListeningLoader(
+  private val delegate: DelegatingClassLoader.Loader,
+  private val onBeforeLoad: (fqcn: String) -> Unit = {},
+  private val onAfterLoad: (fqcn: String, bytes: ByteArray) -> Unit = { _, _ -> },
+  private val onNotFound: (fqcn: String) -> Unit = {},
+) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
     onBeforeLoad(fqcn)
     val bytes = delegate.loadClass(fqcn)
     if (bytes != null) {
       onAfterLoad(fqcn, bytes)
-    }
-    else onNotFound(fqcn)
+    } else onNotFound(fqcn)
     return bytes
   }
 }

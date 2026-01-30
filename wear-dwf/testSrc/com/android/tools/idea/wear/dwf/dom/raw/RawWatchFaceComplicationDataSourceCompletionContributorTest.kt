@@ -42,8 +42,7 @@ class RawWatchFaceComplicationDataSourceCompletionContributorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/$RES_RAW_FOLDER").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/$RES_RAW_FOLDER").toString()
     // add a manifest file for the `res/` folder to be considered a resource folder
     fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "")
 
@@ -54,53 +53,29 @@ class RawWatchFaceComplicationDataSourceCompletionContributorTest {
 
   @Test
   fun `complication image resource completion is empty when the studio flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
 
-    assertEquals(
-      emptyList(),
-      domRule.getCompletionResults("watch_face_completion_complication_image_variants.xml"),
-    )
+    assertEquals(emptyList(), domRule.getCompletionResults("watch_face_completion_complication_image_variants.xml"))
   }
 
   @Test
   fun `complication image resource completion contains complication data sources`() {
     assertEquals(
-      listOf(
-        "COMPLICATION.MONOCHROMATIC_IMAGE",
-        "COMPLICATION.PHOTO_IMAGE",
-        "COMPLICATION.SMALL_IMAGE",
-        "another_image",
-        "some_image",
-      ),
+      listOf("COMPLICATION.MONOCHROMATIC_IMAGE", "COMPLICATION.PHOTO_IMAGE", "COMPLICATION.SMALL_IMAGE", "another_image", "some_image"),
       domRule.getCompletionResults("watch_face_completion_complication_image_variants.xml"),
     )
   }
 
   @Test
   fun `regular image resource completion does not contain complication data sources`() {
-    assertEquals(
-      listOf("another_image", "some_image"),
-      domRule.getCompletionResults("watch_face_completion_regular_image_variants.xml"),
-    )
+    assertEquals(listOf("another_image", "some_image"), domRule.getCompletionResults("watch_face_completion_regular_image_variants.xml"))
   }
 
   @Test
   fun `autocomplete surrounds the complication data source reference with brackets`() {
-    domRule.testCompletion(
-      "watch_face_completion_complication_image.xml",
-      "watch_face_completion_complication_image_after.xml",
-    )
-    domRule.testCompletion(
-      "watch_face_completion_complication_image_2.xml",
-      "watch_face_completion_complication_image_after.xml",
-    )
-    domRule.testCompletion(
-      "watch_face_completion_complication_image_3.xml",
-      "watch_face_completion_complication_image_after.xml",
-    )
+    domRule.testCompletion("watch_face_completion_complication_image.xml", "watch_face_completion_complication_image_after.xml")
+    domRule.testCompletion("watch_face_completion_complication_image_2.xml", "watch_face_completion_complication_image_after.xml")
+    domRule.testCompletion("watch_face_completion_complication_image_3.xml", "watch_face_completion_complication_image_after.xml")
   }
 
   @Test

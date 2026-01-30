@@ -91,8 +91,7 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
     try {
       check("\u0000")
       fail()
-    }
-    catch (e: AssertionError) {
+    } catch (e: AssertionError) {
       // Expected.
     }
   }
@@ -112,15 +111,16 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
         AgslTokenImpl(TOKEN)
           AgslUnsupportedKeywordImpl(UNSUPPORTED_KEYWORD)
             PsiElement(AgslTokenType.discard)('discard')
-      """.trimIndent(),
-
+      """
+        .trimIndent(),
       toParseTreeText(
-        //language=AGSL
+        // language=AGSL
         """
         in vec3 FrontColor;
         discard
-        """.trimIndent()
-      )
+        """
+          .trimIndent()
+      ),
     )
   }
 
@@ -153,16 +153,17 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
           PsiElement(AgslTokenType.;)(';')
         AgslTokenImpl(TOKEN)
           PsiElement(AgslTokenType.})('}')
-      """.trimIndent(),
-
+      """
+        .trimIndent(),
       toParseTreeText(
-        //language=AGSL
+        // language=AGSL
         """
         void main() {
           const double scale = 2.0;
         }
-        """.trimIndent()
-      )
+        """
+          .trimIndent()
+      ),
     )
   }
 
@@ -187,16 +188,17 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
         PsiElement(AgslTokenType.IDENTIFIER)('bar')
         PsiElement(AgslTokenType.=)('=')
         PsiElement(AgslTokenType.INTCONSTANT)('3')
-      """.trimIndent(),
-
+      """
+        .trimIndent(),
       toParseTreeText(
-        //language=AGSL
+        // language=AGSL
         """
         int foo = 1
         #define FOO 2
         int bar = 3
-        """.trimIndent()
-      )
+        """
+          .trimIndent()
+      ),
     )
   }
 }

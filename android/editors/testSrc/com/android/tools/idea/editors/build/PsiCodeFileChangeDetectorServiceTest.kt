@@ -32,8 +32,7 @@ class PsiCodeFileChangeDetectorServiceTest {
 
   private val projectRule2 = ProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, projectRule2)
+  @get:Rule val ruleChain = RuleChain(projectRule, projectRule2)
 
   private lateinit var myPsiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter
   private lateinit var myPsiCodeFileOutOfDateStatusReporter2: PsiCodeFileOutOfDateStatusReporter
@@ -45,24 +44,21 @@ class PsiCodeFileChangeDetectorServiceTest {
 
   @Before
   fun setUp() {
-    myPsiCodeFileOutOfDateStatusReporter =
-      PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule.project)
+    myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule.project)
 
-    myPsiCodeFileOutOfDateStatusReporter2 =
-      PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule2.project)
+    myPsiCodeFileOutOfDateStatusReporter2 = PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule2.project)
 
-    myPsiCodeFileUpToDateStatusRecorder =
-      PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
+    myPsiCodeFileUpToDateStatusRecorder = PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
 
     fixture.addFileToProject(
       "src/a/declarations.kt",
       // language=kotlin
       """
-        package a
+      package a
 
-        annotation class Annotation(value: String)
+      annotation class Annotation(value: String)
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     kotlinFile =
@@ -90,8 +86,8 @@ class PsiCodeFileChangeDetectorServiceTest {
             primary = 1,
             secondary = 2,
         )
-      """
-          .trimIndent()
+        """
+          .trimIndent(),
       )
     secondKotlinFile =
       fixture.addFileToProject(
@@ -103,8 +99,8 @@ class PsiCodeFileChangeDetectorServiceTest {
         fun otherTest() {
           // INSERT CODE
         }
-      """
-          .trimIndent()
+        """
+          .trimIndent(),
       )
     javaFile =
       fixture.addFileToProject(
@@ -116,8 +112,8 @@ class PsiCodeFileChangeDetectorServiceTest {
         class MyClass {
             // INSERT METHOD
         }
-      """
-          .trimIndent()
+        """
+          .trimIndent(),
       )
     xmlFile =
       fixture.addFileToProject(
@@ -125,8 +121,8 @@ class PsiCodeFileChangeDetectorServiceTest {
         // language=xml
         """
         <hello>Hello<!--INSERT XML--></hello>
-      """
-          .trimIndent()
+        """
+          .trimIndent(),
       )
   }
 
@@ -181,13 +177,12 @@ class PsiCodeFileChangeDetectorServiceTest {
 
           fun hello() {}
 
-        """
+          """
             .trimIndent()
         )
       }
     }
-    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name })
-      .containsExactly("test.kt")
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name }).containsExactly("test.kt")
 
     semaphore.acquire()
     myPsiCodeFileUpToDateStatusRecorder.markAsUpToDate(setOf(kotlinFile))
@@ -243,9 +238,7 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.editor.executeAndSave { replaceText("// INSERT CODE", "// INSERT CODE MORE COMMENT") }
       fixture.editor.executeAndSave { replaceText("LONG COMMENT", "LONGER COMMENT") }
       fixture.openFileInEditor(javaFile.virtualFile)
-      fixture.editor.executeAndSave {
-        replaceText("// INSERT METHOD", "// INSERT METHOD MORE COMMENT")
-      }
+      fixture.editor.executeAndSave { replaceText("// INSERT METHOD", "// INSERT METHOD MORE COMMENT") }
     }
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
   }
@@ -256,8 +249,7 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.openFileInEditor(kotlinFile.virtualFile)
       fixture.editor.executeAndSave { replaceText("primary = 1", "primary = 2") }
     }
-    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name })
-      .containsExactly("test.kt")
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name }).containsExactly("test.kt")
   }
 
   @Test
@@ -273,9 +265,15 @@ class PsiCodeFileChangeDetectorServiceTest {
   fun `virtual fragment changes are ignored`() {
     val psiFactory = KtPsiFactory(projectRule.project)
     val file = runReadAction {
-      KtBlockCodeFragment(projectRule.project, "fragment.kt", """
+      KtBlockCodeFragment(
+        projectRule.project,
+        "fragment.kt",
+        """
         fun test() {}
-      """, "", kotlinFile)
+      """,
+        "",
+        kotlinFile,
+      )
     }
 
     // Modify the fragment to generate a PSI change event that should be ignored.
@@ -298,17 +296,14 @@ class PsiCodeFileChangeDetectorServiceTest {
 
     // File is now out of date
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isNotEmpty()
-    @Suppress("UnstableApiUsage")
-    edtWriteAction {
-      kotlinFile.delete()
-    }
+    @Suppress("UnstableApiUsage") edtWriteAction { kotlinFile.delete() }
     // File is still out of date before marking everything up to date
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isNotEmpty()
 
     // Marking everything up to date should remove deleted files
-    PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project).prepareMarkUpToDate().markUpToDate(
-      GlobalSearchScope.allScope(projectRule.project))
+    PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
+      .prepareMarkUpToDate()
+      .markUpToDate(GlobalSearchScope.allScope(projectRule.project))
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
-
   }
 }

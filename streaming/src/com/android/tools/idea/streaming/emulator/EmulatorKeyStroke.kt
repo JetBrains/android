@@ -84,9 +84,5 @@ private fun EmulatorController.releaseModifierKeys(modifiers: Int) {
 }
 
 /** Modifiers and their corresponding Emulator key names. */
-private val EMULATOR_MODIFIER_KEYS = listOf(
-  Pair(ALT_DOWN_MASK, "Alt"),
-  Pair(SHIFT_DOWN_MASK, "Shift"),
-  Pair(CTRL_DOWN_MASK, "Control"),
-  Pair(META_DOWN_MASK, "Meta"),
-)
+private val EMULATOR_MODIFIER_KEYS =
+  listOf(Pair(ALT_DOWN_MASK, "Alt"), Pair(SHIFT_DOWN_MASK, "Shift"), Pair(CTRL_DOWN_MASK, "Control"), Pair(META_DOWN_MASK, "Meta"))

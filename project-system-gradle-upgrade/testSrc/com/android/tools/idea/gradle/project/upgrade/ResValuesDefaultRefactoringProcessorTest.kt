@@ -30,11 +30,10 @@ import org.junit.Test
 
 @RunsInEdt
 class ResValuesDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
-  override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
-  )
+  override val projectRule =
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() })
 
-  private lateinit var gradlePropertiesFile : VirtualFile
+  private lateinit var gradlePropertiesFile: VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {
@@ -68,7 +67,7 @@ class ResValuesDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     assertThat(gradlePropertiesFile.load()).contains("android.defaults.buildfeatures.resvalues=true")
   }
 
-  fun VirtualFile.load():String = VfsUtilCore.loadText(this).normalize()
+  fun VirtualFile.load(): String = VfsUtilCore.loadText(this).normalize()
 
   fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
 }

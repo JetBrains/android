@@ -19,11 +19,9 @@ import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 
 /**
- * Returns an unboxed type if it's applicable and PsiPrimitiveType.getUnboxedType doesn't return
- * null otherwise returns itself.
+ * Returns an unboxed type if it's applicable and PsiPrimitiveType.getUnboxedType doesn't return null otherwise returns itself.
  *
- * We need to unbox types before comparison because Dagger considers two types as equal if they are
- * equal after unboxing.
+ * We need to unbox types before comparison because Dagger considers two types as equal if they are equal after unboxing.
  */
 internal val PsiType.unboxed: PsiType
   get() = PsiPrimitiveType.getUnboxedType(this) ?: this

@@ -92,8 +92,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
     val facet = projectRule.mainAndroidFacet(":app")
-    val uiCheckPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
+    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
       val renderResult =
@@ -123,18 +122,12 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
       measures =
         listOf(
           ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            null,
-            Metric("${analyzer.type}_memory_use"),
-          ),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use")),
           LayoutlibNativeMemoryMeasurement(Metric("${analyzer.type}_layoutlib_native_memory_use")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
-      resultToModelMap.forEach { (renderResult, nlModel) ->
-        analyzer.findIssues(renderResult, nlModel.configuration)
-      }
+      resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel.configuration) }
     }
   }
 }

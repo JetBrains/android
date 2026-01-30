@@ -33,18 +33,17 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings
 private val LOG = Logger.getInstance(ProjectJdkUtils::class.java)
 
 /**
- * Collection of utils for the Project JDK stored under 'project-jdk-name' attribute
- * on '.idea/misc.xml' file located on project root. Its value represented usually as
- * vendor-version i.e. jbr-17 points to a JDK table.
+ * Collection of utils for the Project JDK stored under 'project-jdk-name' attribute on '.idea/misc.xml' file located on project root. Its
+ * value represented usually as vendor-version i.e. jbr-17 points to a JDK table.
  *
- * The Project JDK is used for those modules that doesn't define their own JDK to inherit it
- * allowing to resolve project symbols.
+ * The Project JDK is used for those modules that doesn't define their own JDK to inherit it allowing to resolve project symbols.
  */
 object ProjectJdkUtils {
 
   /**
-   * Updates project jdk used to resolve symbols given a jdk path after a valid jdk.table.xml
-   * entry has been added or recreated in case was already present but corrupted
+   * Updates project jdk used to resolve symbols given a jdk path after a valid jdk.table.xml entry has been added or recreated in case was
+   * already present but corrupted
+   *
    * @param project One of the projects currently open in the IDE.
    * @param jdkPath A jdk absolute path
    */
@@ -64,17 +63,14 @@ object ProjectJdkUtils {
   }
 
   /**
-   * Update gradleJvm of project linked settings stored under .idea/gradle.xml which indicates where JDK is located when current
-   * Gradle JDK configuration is resolved to execute build
+   * Update gradleJvm of project linked settings stored under .idea/gradle.xml which indicates where JDK is located when current Gradle JDK
+   * configuration is resolved to execute build
+   *
    * @param project Project to be modified
    * @param gradleRootPath Gradle project root absolute path
    * @param gradleJvm This can be supported macros like #JAVA_HOME, #GRADLE_LOCAL_JAVA_HOME but also jdk.table.xml entries
    */
-  fun updateProjectGradleJvm(
-    project: Project,
-    gradleRootPath: @SystemIndependent String,
-    gradleJvm: String
-  ) {
+  fun updateProjectGradleJvm(project: Project, gradleRootPath: @SystemIndependent String, gradleJvm: String) {
     val projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
     projectSettings?.gradleJvm = gradleJvm
   }
@@ -83,9 +79,7 @@ object ProjectJdkUtils {
     WriteAction.runAndWait<RuntimeException> {
       val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
       val jdkTableEntry = ProjectJdkTableUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
-      ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
-        ProjectRootManager.getInstance(project).projectSdk = it
-      }
+      ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let { ProjectRootManager.getInstance(project).projectSdk = it }
     }
   }
 

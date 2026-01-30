@@ -41,25 +41,11 @@ fun createVitalsFilters(
   /** Selection of [Version]s. */
   versions: MultiSelection<WithCount<Version>> = MultiSelection.emptySelection(),
   /** Selection of [TimeIntervalFilter]s. */
-  timeInterval: Selection<TimeIntervalFilter> =
-    Selection(TimeIntervalFilter.SEVEN_DAYS, VitalsTimeIntervals),
+  timeInterval: Selection<TimeIntervalFilter> = Selection(TimeIntervalFilter.SEVEN_DAYS, VitalsTimeIntervals),
   failureTypeToggles: MultiSelection<FailureType> =
-    MultiSelection(
-      setOf(FailureType.FATAL, FailureType.ANR),
-      listOf(FailureType.FATAL, FailureType.ANR),
-    ),
+    MultiSelection(setOf(FailureType.FATAL, FailureType.ANR), listOf(FailureType.FATAL, FailureType.ANR)),
   devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
-  operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
-    MultiSelection.emptySelection(),
+  operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> = MultiSelection.emptySelection(),
   signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
   visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL),
-) =
-  Filters(
-    versions,
-    timeInterval,
-    failureTypeToggles,
-    devices,
-    operatingSystems,
-    signal,
-    visibilityTypes,
-  )
+) = Filters(versions, timeInterval, failureTypeToggles, devices, operatingSystems, signal, visibilityTypes)

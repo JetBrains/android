@@ -25,18 +25,14 @@ import org.junit.Rule
 import org.junit.Test
 
 class SourceProviderManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun selfDisposesOnProjectRootsChange() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
-    runWriteActionAndWait {
-      projectRule.project.invalidateProjectRoots(RootsChangeRescanningInfo.NO_RESCAN_NEEDED)
-    }
+    runWriteActionAndWait { projectRule.project.invalidateProjectRoots(RootsChangeRescanningInfo.NO_RESCAN_NEEDED) }
     val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
   }
 }
-

@@ -20,25 +20,22 @@ import com.android.ddmlib.ClientData
 import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.CountDownLatch
 
-/**
- * Metadata of an ongoing profiling session of an app.
- */
+/** Metadata of an ongoing profiling session of an app. */
 internal class LegacyCpuTraceRecord {
   // Set after trace start is successful.
   var traceInfo: Trace.TraceInfo.Builder? = null
   var startFailureMessage = ""
 
   /**
-   * The latch that the profiler waits on when sending a start profiling request.
-   * If the start fails, LegacyCpuProfilingHandler.onEndFailure(..) would be triggered which
-   * counts down the latch. There is no known way to count down if the start succeeds.
+   * The latch that the profiler waits on when sending a start profiling request. If the start fails,
+   * LegacyCpuProfilingHandler.onEndFailure(..) would be triggered which counts down the latch. There is no known way to count down if the
+   * start succeeds.
    */
   val startLatch = CountDownLatch(1)
   /**
-   * The latch that the profiler waits on when sending a stop profiling request.
-   * If the stop succeeds, LegacyCpuProfilingHandler.onSuccess(..) would be triggered which
-   * counts down the latch. If the stop fails, LegacyCpuProfilingHandler.onEndFailure(..)
-   * would be triggered which counts down the latch.
+   * The latch that the profiler waits on when sending a stop profiling request. If the stop succeeds,
+   * LegacyCpuProfilingHandler.onSuccess(..) would be triggered which counts down the latch. If the stop fails,
+   * LegacyCpuProfilingHandler.onEndFailure(..) would be triggered which counts down the latch.
    */
   val stopLatch = CountDownLatch(1)
 

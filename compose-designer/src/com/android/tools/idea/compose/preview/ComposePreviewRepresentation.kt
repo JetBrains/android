@@ -169,14 +169,13 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
- * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
- * render result, using the [View] hierarchy.
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose render result, using the [View] hierarchy.
  */
 private val defaultModelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 
 /**
- * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
- * render result, using the [AccessibilityNodeInfo] hierarchy.
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose render result, using the
+ * [AccessibilityNodeInfo] hierarchy.
  */
 private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityModelUpdater()
 
@@ -185,8 +184,7 @@ private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityMo
  *
  * @param project the [Project] used by the current view.
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
- * @param previewFlowManager the [PreviewFlowManager] that manages flows of
- *   [ComposePreviewElementInstance]
+ * @param previewFlowManager the [PreviewFlowManager] that manages flows of [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
  */
@@ -229,17 +227,15 @@ private fun createPreviewElementDataProvider(
   }
 
 /**
- * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently,
- * this will configure if the preview elements will be displayed with "full device size" or simply
- * containing the previewed components (shrink mode).
+ * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this will configure if the preview
+ * elements will be displayed with "full device size" or simply containing the previewed components (shrink mode).
  *
- * @param showDecorations when true, the rendered content will be shown with the full device size
- *   specified in the device configuration and with the frame decorations.
+ * @param showDecorations when true, the rendered content will be shown with the full device size specified in the device configuration and
+ *   with the frame decorations.
  * @param previewMode the current [PreviewMode], under which the preview will be rendered.
- * @param runVisualAnalysis whether to run Accessibility checks and Visual Lint analysis on the
- *   preview after it has been rendered. This will run the ATF scanner to detect issues affecting
- *   accessibility (e.g. low contrast, missing content description...), and the Visual Lint
- *   analyzers that are enabled to detect issues (e.g. components too wide, text too long...).
+ * @param runVisualAnalysis whether to run Accessibility checks and Visual Lint analysis on the preview after it has been rendered. This
+ *   will run the ATF scanner to detect issues affecting accessibility (e.g. low contrast, missing content description...), and the Visual
+ *   Lint analyzers that are enabled to detect issues (e.g. components too wide, text too long...).
  */
 @VisibleForTesting
 fun configureLayoutlibSceneManager(
@@ -260,8 +256,7 @@ fun configureLayoutlibSceneManager(
       // valid image even if subsequent renders fail. But do not cache in interactive mode as it
       // does not help, and it would make unnecessary copies of the bitmap.
       config.cacheSuccessfulRenderImage = previewMode !is PreviewMode.Interactive
-      config.classesToPreload =
-        if (previewMode is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+      config.classesToPreload = if (previewMode is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
       config.sessionClockProvider = {
         // For static preview use a clock that increments the time by 500ms on each read so that
         // callbacks are executed in a deterministic way and without needing to actually wait for
@@ -277,8 +272,7 @@ fun configureLayoutlibSceneManager(
       // Scene Manager to not report it via the regular log.
       config.reportOutOfDateUserClasses = false
       config.quality = quality
-      config.customContentHierarchyParser =
-        if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
+      config.customContentHierarchyParser = if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
       config.layoutScannerConfig.isLayoutScannerEnabled = runVisualAnalysis
       // During configure of SceneManager, always clear the override render size in SceneManagers,
       // as they are reused and may have old resize data.
@@ -295,13 +289,11 @@ fun configureLayoutlibSceneManager(
   }
 
 /**
- * A [PreviewRepresentation] that provides a compose elements preview representation of the given
- * `psiFile`.
+ * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
- * A [component] is implied to display previews for all declared `@Composable` functions that also
- * use the `@Preview` (see [com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN]) annotation.
- * For every preview element a small XML is generated that allows Layoutlib to render a
- * `@Composable` functions.
+ * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
+ * [com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN]) annotation. For every preview element a small XML is generated that allows
+ * Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
@@ -311,12 +303,7 @@ class ComposePreviewRepresentation(
   psiFile: PsiFile,
   override val preferredInitialVisibility: PreferredVisibility,
   composePreviewViewProvider: ComposePreviewViewProvider,
-) :
-  PreviewRepresentation,
-  ComposePreviewManagerEx,
-  UserDataHolderEx by UserDataHolderBase(),
-  AndroidCoroutinesAware,
-  FastPreviewSurface {
+) : PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, FastPreviewSurface {
 
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
@@ -328,12 +315,7 @@ class ComposePreviewRepresentation(
   override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
-    PreviewBuildListenersManager(
-      isFastPreviewSupported = true,
-      ::invalidate,
-      ::requestRefresh,
-      ::requestVisibilityAndNotificationsUpdate,
-    )
+    PreviewBuildListenersManager(isFastPreviewSupported = true, ::invalidate, ::requestRefresh, ::requestVisibilityAndNotificationsUpdate)
 
   private val refreshManager = PreviewRefreshManager.getInstance(RenderingTopic.COMPOSE_PREVIEW)
 
@@ -367,28 +349,21 @@ class ComposePreviewRepresentation(
       },
     )
 
-  /**
-   * Gives access to the rendered preview elements. For testing only. Users of this class should not
-   * use this method.
-   */
-  @TestOnly
-  fun renderedPreviewElementsInstancesFlowForTest() =
-    composePreviewFlowManager.renderedPreviewElementsFlow
+  /** Gives access to the rendered preview elements. For testing only. Users of this class should not use this method. */
+  @TestOnly fun renderedPreviewElementsInstancesFlowForTest() = composePreviewFlowManager.renderedPreviewElementsFlow
 
   private val renderingBuildStatusManager = RenderingBuildStatusManager.create(this, psiFile)
 
   /**
-   * This field will be false until the preview has rendered at least once. If the preview has not
-   * rendered once we do not have enough information about errors and the rendering to show the
-   * preview. Once it has rendered, even with errors, we can display additional information about
-   * the state of the preview.
+   * This field will be false until the preview has rendered at least once. If the preview has not rendered once we do not have enough
+   * information about errors and the rendering to show the preview. Once it has rendered, even with errors, we can display additional
+   * information about the state of the preview.
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
-   * Indicates if a preview mode change is in progress. This field is set to true from the time
-   * [PreviewModeManager.setMode] is called until the preview has finished rendering with the new
-   * [PreviewMode].
+   * Indicates if a preview mode change is in progress. This field is set to true from the time [PreviewModeManager.setMode] is called until
+   * the preview has finished rendering with the new [PreviewMode].
    */
   private val isPreviewModeChanging = AtomicBoolean(true)
 
@@ -398,10 +373,9 @@ class ComposePreviewRepresentation(
   private val invalidated = AtomicBoolean(true)
 
   /**
-   * Preview element provider corresponding to the current state of the Preview. Different modes
-   * might require a different provider to be set, e.g. UI check mode needs a provider that produces
-   * previews with reference devices. When exiting the mode and returning to static preview, the
-   * element provider should be reset to [defaultPreviewElementProvider].
+   * Preview element provider corresponding to the current state of the Preview. Different modes might require a different provider to be
+   * set, e.g. UI check mode needs a provider that produces previews with reference devices. When exiting the mode and returning to static
+   * preview, the element provider should be reset to [defaultPreviewElementProvider].
    *
    * TODO(b/305011776): remove it to only use the flow from ComposePreviewFlowManager
    */
@@ -409,10 +383,7 @@ class ComposePreviewRepresentation(
     @VisibleForTesting get() = composePreviewFlowManager.uiCheckFilterFlow
 
   @VisibleForTesting
-  val navigationHandler =
-    ComposePreviewNavigationHandler().apply {
-      Disposer.register(this@ComposePreviewRepresentation, this)
-    }
+  val navigationHandler = ComposePreviewNavigationHandler().apply { Disposer.register(this@ComposePreviewRepresentation, this) }
 
   // TODO(b/445947658): remove variable and TestOnly setter method below
   // Preview should never rely on fallback mechanisms in production, so it should not rely on them
@@ -429,10 +400,7 @@ class ComposePreviewRepresentation(
 
   private val emptyUiCheckPanel =
     object : JPanel() {
-      val label =
-        JLabel(message("ui.check.mode.empty.message"), SwingConstants.CENTER).apply {
-          isVisible = false
-        }
+      val label = JLabel(message("ui.check.mode.empty.message"), SwingConstants.CENTER).apply { isVisible = false }
 
       init {
         layout = BorderLayout()
@@ -467,8 +435,9 @@ class ComposePreviewRepresentation(
         var hasVisiblePreviews = false
         if (newValue) {
           surface.updateSceneViewVisibilities {
-            (uiCheckFilterFlow.value.modelsWithErrors?.contains(it.sceneManager.model) == true)
-              .also { visible -> hasVisiblePreviews = hasVisiblePreviews || visible }
+            (uiCheckFilterFlow.value.modelsWithErrors?.contains(it.sceneManager.model) == true).also { visible ->
+              hasVisiblePreviews = hasVisiblePreviews || visible
+            }
           }
         } else {
           hasVisiblePreviews = true
@@ -499,10 +468,7 @@ class ComposePreviewRepresentation(
         }
         val models = mutableSetOf<NlModel>()
         val facet = surface.models.firstOrNull()?.facet
-        surface.visualLintIssueProvider
-          .getUnsuppressedIssues()
-          .map { it.source }
-          .forEach { models.addAll(it.models) }
+        surface.visualLintIssueProvider.getUnsuppressedIssues().map { it.source }.forEach { models.addAll(it.models) }
         if (models == uiCheckFilterFlow.value.modelsWithErrors) {
           // No changes in which models have error, so no need to recompute preview visibilities
           return
@@ -511,9 +477,7 @@ class ComposePreviewRepresentation(
         if (isUiCheckFilterEnabled) {
           ApplicationManager.getApplication().invokeLater {
             var count = 0
-            surface.updateSceneViewVisibilities {
-              (it.sceneManager.model in models).also { visible -> if (visible) count++ }
-            }
+            surface.updateSceneViewVisibilities { (it.sceneManager.model in models).also { visible -> if (visible) count++ } }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
             val totalContentToShow = surface.sceneManagers.flatMap { it.sceneViews }.size
@@ -564,21 +528,15 @@ class ComposePreviewRepresentation(
     val quickRefresh = peerPreviews == 1
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    invalidateAndRefresh(
-      if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL
-    )
+    invalidateAndRefresh(if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL)
     // Currently it will re-create classloader and will be slower than switch from static
-    InteractivePreviewUsageTracker.getInstance(surface)
-      .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
+    InteractivePreviewUsageTracker.getInstance(surface).logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
     interactiveManager.start()
     requestVisibilityAndNotificationsUpdate()
     ActivityTracker.getInstance().inc()
   }
 
-  private suspend fun startUiCheckPreview(
-    instance: PsiComposePreviewElementInstance,
-    isWearPreview: Boolean,
-  ) {
+  private suspend fun startUiCheckPreview(instance: PsiComposePreviewElementInstance, isWearPreview: Boolean) {
     log.debug("Starting UI check.")
     val startTime = System.currentTimeMillis()
     surface.resetColorBlindMode()
@@ -598,10 +556,7 @@ class ComposePreviewRepresentation(
         invokeOnCompletion {
           postIssueUpdateListenerForUiCheck.activate()
           VisualLintUsageTracker.getInstance()
-            .trackFirstRunTime(
-              System.currentTimeMillis() - startTime,
-              surface.models.firstOrNull()?.facet,
-            )
+            .trackFirstRunTime(System.currentTimeMillis() - startTime, surface.models.firstOrNull()?.facet)
         }
       }
     invalidate()
@@ -614,9 +569,7 @@ class ComposePreviewRepresentation(
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListenerForUiCheck)
     uiCheckIssuePanel.issueProvider.activate()
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)
-    (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStart(
-      instance.instanceId
-    )
+    (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStart(instance.instanceId)
   }
 
   private suspend fun onUiCheckPreviewStop() {
@@ -632,8 +585,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun uiCheckPanelCleanup(instanceId: String) {
-    val panel =
-      ProblemsViewToolWindowUtils.getTabById(project, instanceId) as? DesignerCommonIssuePanel
+    val panel = ProblemsViewToolWindowUtils.getTabById(project, instanceId) as? DesignerCommonIssuePanel
     panel?.removeIssueSelectionListener(surface.issueListener)
     panel?.issueProvider?.removeUpdateListener(postIssueUpdateListenerForUiCheck)
     panel?.issueProvider?.deactivate()
@@ -687,12 +639,8 @@ class ComposePreviewRepresentation(
   private val delegateInteractionHandler = DelegateInteractionHandler()
   private val sceneComponentProvider = ComposeSceneComponentProvider()
 
-  /**
-   * Cached previous [ComposePreviewManager.Status] used to trigger notifications if there's been a
-   * change.
-   */
-  private val previousStatusRef: AtomicReference<ComposePreviewManager.Status?> =
-    AtomicReference(null)
+  /** Cached previous [ComposePreviewManager.Status] used to trigger notifications if there's been a change. */
+  private val previousStatusRef: AtomicReference<ComposePreviewManager.Status?> = AtomicReference(null)
 
   private val composeWorkBench: ComposePreviewView =
     UIUtil.invokeAndWaitIfNeeded(
@@ -719,26 +667,16 @@ class ComposePreviewRepresentation(
       )
       .apply { mainSurface.background = Colors.DEFAULT_BACKGROUND_COLOR }
       .also {
-        psiFilePointer.virtualFile?.let { vFile ->
-          it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(vFile, project)
-        }
+        psiFilePointer.virtualFile?.let { vFile -> it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(vFile, project) }
       }
 
-  val staticNavHandler =
-    NavigatingInteractionHandler(
-      composeWorkBench.mainSurface,
-      navigationHandler,
-      isSelectionEnabled = true,
-    )
+  val staticNavHandler = NavigatingInteractionHandler(composeWorkBench.mainSurface, navigationHandler, isSelectionEnabled = true)
 
   @VisibleForTesting
   val staticPreviewInteractionHandler =
-    ComposeNavigationInteractionHandler(staticNavHandler).also {
-      delegateInteractionHandler.delegate = it
-    }
+    ComposeNavigationInteractionHandler(staticNavHandler).also { delegateInteractionHandler.delegate = it }
 
-  private val fpsLimitFlow =
-    essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
+  private val fpsLimitFlow = essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
 
   @VisibleForTesting
   val interactiveManager =
@@ -756,18 +694,13 @@ class ComposePreviewRepresentation(
     get() = composeWorkBench.mainSurface
 
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
-  private val qualityPolicy = DefaultRenderQualityPolicy {
-    surface.zoomController.screenScalingFactor
-  }
+  private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
     if (StudioFlags.PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(surface, qualityPolicy) {
-        requestRefresh(type = ComposePreviewRefreshType.QUALITY)
-      }
+      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
     else SimpleRenderQualityManager { getDefaultPreviewQuality() }
 
-  private val myPsiCodeFileOutOfDateStatusReporter =
-    PsiCodeFileOutOfDateStatusReporter.getInstance(project)
+  private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
@@ -778,9 +711,7 @@ class ComposePreviewRepresentation(
         previewFlowManager = composePreviewFlowManager,
         previewModeManager = previewModeManager,
         onUpdatedFromPreviewEssentialsMode = {
-          logComposePreviewLiteModeEvent(
-            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
-          )
+          logComposePreviewLiteModeEvent(ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH)
         },
         requestRefresh = ::requestRefresh,
       )
@@ -801,9 +732,8 @@ class ComposePreviewRepresentation(
   /**
    * The [ResizePanel] instance used when [PreviewMode.Focus] is active.
    *
-   * This panel allows modifying the device configuration for the focused preview element. It is
-   * `null` when not in Focus mode and its lifecycle (creation/disposal) is tied to entering and
-   * exiting [PreviewMode.Focus].
+   * This panel allows modifying the device configuration for the focused preview element. It is `null` when not in Focus mode and its
+   * lifecycle (creation/disposal) is tied to entering and exiting [PreviewMode.Focus].
    */
   private var activeResizePanelInFocusMode: ResizePanel? = null
 
@@ -815,9 +745,7 @@ class ComposePreviewRepresentation(
       previewModeManager.mode.collect {
         surface.zoomController.resetZoomToFitSettings(false, surface.size)
 
-        (it.selected as? PsiComposePreviewElementInstance).let { element ->
-          composePreviewFlowManager.setSingleFilter(element)
-        }
+        (it.selected as? PsiComposePreviewElementInstance).let { element -> composePreviewFlowManager.setSingleFilter(element) }
         if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
           // The layout update needs to happen before onEnter, so that any zooming performed
@@ -827,10 +755,7 @@ class ComposePreviewRepresentation(
           isPreviewModeChanging.set(true)
           // A mode change requires recalculating zoom-to-fit, so the zoom notifier is reset.
           // However, a resize of the surface is not expected for all mode changes.
-          surface.zoomController.resetZoomToFitSettings(
-            shouldWaitForResize = it.expectResizeOnEnter(lastMode, project),
-            surface.size,
-          )
+          surface.zoomController.resetZoomToFitSettings(shouldWaitForResize = it.expectResizeOnEnter(lastMode, project), surface.size)
           onEnter(it)
         } else {
           updateLayoutManager(it)
@@ -871,18 +796,13 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
-    withContext(Dispatchers.EDT) {
-      surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
-    }
+    withContext(Dispatchers.EDT) { surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption }
   }
 
   override val component: JComponent
     get() = composeWorkBench.component
 
-  /**
-   * Completes the initialization of the preview. This method is only called once after the first
-   * [onActivate] happens.
-   */
+  /** Completes the initialization of the preview. This method is only called once after the first [onActivate] happens. */
   private fun onInit() {
     log.debug("onInit")
     if (isDisposed.get()) {
@@ -894,11 +814,7 @@ class ComposePreviewRepresentation(
     // want that to happen if the animation inspection was open at the beginning of the build. This
     // ensures the animations panel is showed again after the build completes
     val shouldRefreshAfterBuildFailed = { mode.value is PreviewMode.AnimationInspection }
-    previewBuildListenersManager.setupPreviewBuildListeners(
-      disposable = this,
-      psiFilePointer,
-      shouldRefreshAfterBuildFailed,
-    ) {
+    previewBuildListenersManager.setupPreviewBuildListeners(disposable = this, psiFilePointer, shouldRefreshAfterBuildFailed) {
       composeWorkBench.updateProgress(message("panel.building"))
       // When building, invalidate the Animation Preview, since the animations are now obsolete and
       // new ones will be subscribed once build is complete and refresh is triggered.
@@ -907,8 +823,7 @@ class ComposePreviewRepresentation(
     }
   }
 
-  @TestOnly
-  fun hasBuildListenerSetupFinished() = previewBuildListenersManager.buildListenerSetupFinished
+  @TestOnly fun hasBuildListenerSetupFinished() = previewBuildListenersManager.buildListenerSetupFinished
 
   override fun onActivate() {
     lifecycleManager.activate()
@@ -955,8 +870,7 @@ class ComposePreviewRepresentation(
     // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
     //   a full refresh will happen
     if (myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()) invalidate()
-    val anyKtFilesOutOfDate =
-      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
+    val anyKtFilesOutOfDate = myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable(project) && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
@@ -990,17 +904,13 @@ class ComposePreviewRepresentation(
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
     composePreviewFlowManager.hasRenderedPreviewElements() &&
-      (!hasRenderedAtLeastOnce.get() ||
-        surface.sceneManagers.any { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) })
+      (!hasRenderedAtLeastOnce.get() || surface.sceneManagers.any { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) })
 
   private fun hasSyntaxErrors(): Boolean {
     val vFile = psiFilePointer.virtualFile
 
     if (vFile == null) {
-      thisLogger()
-        .warn(
-          "virtualFile is null for $psiFilePointer element=${psiFilePointer.element} file=${psiFilePointer.containingFile}"
-        )
+      thisLogger().warn("virtualFile is null for $psiFilePointer element=${psiFilePointer.element} file=${psiFilePointer.containingFile}")
       return false
     }
 
@@ -1021,12 +931,8 @@ class ComposePreviewRepresentation(
         hasRenderErrors = !isRefreshing && hasErrorsAndNeedsBuild(),
         hasSyntaxErrors = !isRefreshing && hasSyntaxErrors(),
         isOutOfDate =
-          !isRefreshing &&
-            (projectBuildStatus is RenderingBuildStatus.OutOfDate ||
-              projectBuildStatus is RenderingBuildStatus.NeedsBuild),
-        areResourcesOutOfDate =
-          !isRefreshing &&
-            (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
+          !isRefreshing && (projectBuildStatus is RenderingBuildStatus.OutOfDate || projectBuildStatus is RenderingBuildStatus.NeedsBuild),
+        areResourcesOutOfDate = !isRefreshing && (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing = isRefreshing,
         psiFilePointer = psiFilePointer,
       )
@@ -1044,12 +950,10 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is
-   * called by the [ComposeNewPreviewNotificationProvider] when the editor needs to refresh the
-   * notifications.
+   * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is called by the
+   * [ComposeNewPreviewNotificationProvider] when the editor needs to refresh the notifications.
    */
-  override fun updateNotifications(parentEditor: FileEditor) =
-    composeWorkBench.updateNotifications(parentEditor)
+  override fun updateNotifications(parentEditor: FileEditor) = composeWorkBench.updateNotifications(parentEditor)
 
   private fun configureLayoutlibSceneManagerForPreviewElement(
     displaySettings: PreviewDisplaySettings,
@@ -1069,9 +973,7 @@ class ComposePreviewRepresentation(
   private fun onAfterRender(previewsCount: Int) {
     composeWorkBench.hasRendered = true
     surface.sceneManagers.forEach {
-      ComposeAnimationToolbarUpdater.update(this, it) {
-        AnimationToolingUsageTracker.getInstance(surface)
-      }
+      ComposeAnimationToolbarUpdater.update(this, it) { AnimationToolingUsageTracker.getInstance(surface) }
       InteractivePreviewBackNavigationUpdater.update(this, it)
     }
 
@@ -1082,9 +984,7 @@ class ComposePreviewRepresentation(
     // only happen if at least one preview is (attempted to be) rendered.
     if (previewsCount > 0) {
       if (!hasRenderedAtLeastOnce.getAndSet(true)) {
-        logComposePreviewLiteModeEvent(
-          ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
-        )
+        logComposePreviewLiteModeEvent(ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER)
       }
       // If this render was triggered by a mode change, check if we have stored scale, if we do we
       // try to restore it.
@@ -1101,8 +1001,8 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Updates the [activeResizePanelInFocusMode] with the currently focused [LayoutlibSceneManager].
-   * This is called after a render completes in Focus mode.
+   * Updates the [activeResizePanelInFocusMode] with the currently focused [LayoutlibSceneManager]. This is called after a render completes
+   * in Focus mode.
    */
   private fun updateResizePanel() {
     activeResizePanelInFocusMode?.let { panel ->
@@ -1116,12 +1016,10 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Logs a [ComposePreviewLiteModeEvent], which should happen after the first render and when the
-   * user enables or disables Compose Preview Essentials Mode.
+   * Logs a [ComposePreviewLiteModeEvent], which should happen after the first render and when the user enables or disables Compose Preview
+   * Essentials Mode.
    */
-  private fun logComposePreviewLiteModeEvent(
-    eventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType?
-  ) {
+  private fun logComposePreviewLiteModeEvent(eventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType?) {
     if (eventType == null) return
     ApplicationManager.getApplication().executeOnPooledThread {
       UsageTracker.log(
@@ -1137,12 +1035,10 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those
-   * elements. The call will block until all the given [ComposePreviewElementInstance]s have
-   * completed rendering. If [quickRefresh] is true the preview surfaces for the same
-   * [ComposePreviewElementInstance]s do not get reinflated, this allows to save time for e.g.
-   * static to animated preview transition. A [ProgressIndicator] that runs while refresh is in
-   * progress is given, and this method should return early if the indicator is cancelled.
+   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements. The call will block until all
+   * the given [ComposePreviewElementInstance]s have completed rendering. If [quickRefresh] is true the preview surfaces for the same
+   * [ComposePreviewElementInstance]s do not get reinflated, this allows to save time for e.g. static to animated preview transition. A
+   * [ProgressIndicator] that runs while refresh is in progress is given, and this method should return early if the indicator is cancelled.
    */
   private suspend fun doRefreshSync(
     filteredPreviews: List<PsiComposePreviewElementInstance>,
@@ -1205,9 +1101,8 @@ class ComposePreviewRepresentation(
   /**
    * Hides the panels before rendering.
    *
-   * We need to hide the interaction panel if in focus mode to avoid the flickering b/287484743.
-   * Also, we need to clear the resize panel before rendering otherwise it will be shown during
-   * rendering as configuration can be updated.
+   * We need to hide the interaction panel if in focus mode to avoid the flickering b/287484743. Also, we need to clear the resize panel
+   * before rendering otherwise it will be shown during rendering as configuration can be updated.
    */
   private fun hidePanelsBeforeRender() {
     if (previewModeManager.mode.value.isFocus) {
@@ -1231,23 +1126,12 @@ class ComposePreviewRepresentation(
     }
     // Make sure not to request refreshes when deactivated, unless it is an allowed quality refresh,
     // which is expected to happen to decrease the quality of the previews when deactivating.
-    if (
-      !lifecycleManager.isActive() &&
-        !(type == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.get())
-    ) {
+    if (!lifecycleManager.isActive() && !(type == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.get())) {
       completableDeferred?.completeExceptionally(IllegalStateException("Not active"))
       return
     }
 
-    refreshManager.requestRefresh(
-      ComposePreviewRefreshRequest(
-        surface,
-        this.hashCode().toString(),
-        ::refresh,
-        completableDeferred,
-        type,
-      )
-    )
+    refreshManager.requestRefresh(ComposePreviewRefreshRequest(surface, this.hashCode().toString(), ::refresh, completableDeferred, type))
   }
 
   @TestOnly
@@ -1259,16 +1143,12 @@ class ComposePreviewRepresentation(
   private fun requestVisibilityAndNotificationsUpdate() {
     if (!hasRenderedAtLeastOnce.get()) return
 
-    composePreviewFlowManager.run {
-      this@ComposePreviewRepresentation.updateVisibilityAndNotifications(
-        ::updateAnimationPanelVisibility
-      )
-    }
+    composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateAnimationPanelVisibility) }
   }
 
   /**
-   * Completes the [CompletableDeferred] exceptionally with an [IllegalStateException] that says
-   * this [ComposePreviewRepresentation] is already disposed.
+   * Completes the [CompletableDeferred] exceptionally with an [IllegalStateException] that says this [ComposePreviewRepresentation] is
+   * already disposed.
    */
   private fun CompletableDeferred<Unit>.completeAlreadyDisposed() {
     this.completeExceptionally(IllegalStateException("Already disposed"))
@@ -1280,18 +1160,15 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and
-   * render those elements. The refresh will only happen if the Preview elements have changed from
-   * the last render.
+   * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements. The refresh will
+   * only happen if the Preview elements have changed from the last render.
    */
   private fun refresh(refreshRequest: ComposePreviewRefreshRequest): Job {
     if (isDisposed.get()) return CompletableDeferred<Unit>().also { it.completeAlreadyDisposed() }
 
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     val containingFileName = runReadAction { psiFilePointer.containingFile?.name }
-    requestLogger.debug(
-      "Refresh triggered editor=$containingFileName. Refresh type: ${refreshRequest.refreshType}"
-    )
+    requestLogger.debug("Refresh triggered editor=$containingFileName. Refresh type: ${refreshRequest.refreshType}")
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
     // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
@@ -1300,18 +1177,14 @@ class ComposePreviewRepresentation(
     // cancelling the refresh mid-way when a simple tab change happens.
     if (
       !lifecycleManager.isActive() &&
-        !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
-          allowQualityChangeIfInactive.getAndSet(false))
+        !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.getAndSet(false))
     ) {
       requestLogger.debug("Inactive representation ($containingFileName), no work being done")
       return CompletableDeferred(Unit)
     }
 
     // Return early when quality refresh won't actually refresh anything
-    if (
-      refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
-        !qualityManager.needsQualityChange(surface)
-    ) {
+    if (refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY && !qualityManager.needsQualityChange(surface)) {
       return CompletableDeferred(Unit)
     }
 
@@ -1341,9 +1214,7 @@ class ComposePreviewRepresentation(
 
     val refreshJob =
       launchWithProgress(refreshProgressIndicator, workerThread) {
-        refreshTriggers.forEach {
-          requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", it)
-        }
+        refreshTriggers.forEach { requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", it) }
 
         if (DumbService.isDumb(project)) {
           requestLogger.debug("Project is in dumb mode, not able to refresh")
@@ -1375,42 +1246,32 @@ class ComposePreviewRepresentation(
                 return@launchWithProgress
               }
 
-          val needsFullRefresh =
-            refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY &&
-              invalidated.getAndSet(false)
+          val needsFullRefresh = refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY && invalidated.getAndSet(false)
           invalidateIfCancelled = needsFullRefresh
 
-          composeWorkBench.hasContent =
-            previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
+          composeWorkBench.hasContent = previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
           if (!needsFullRefresh) {
-            requestLogger.debug(
-              "No updates on the PreviewElements, just refreshing the existing ones"
-            )
+            requestLogger.debug("No updates on the PreviewElements, just refreshing the existing ones")
             // In this case, there are no new previews. We need to make sure that the surface is
             // still correctly configured and that we are showing the right size for components.
             // For example, if the user switches on/off decorations, that will not generate/remove
             // new PreviewElements but will change the surface settings.
-            refreshProgressIndicator.text =
-              message("refresh.progress.indicator.reusing.existing.previews")
+            refreshProgressIndicator.text = message("refresh.progress.indicator.reusing.existing.previews")
             surface.refreshExistingPreviewElements(
               refreshProgressIndicator,
               previewElementModelAdapter::modelToElement,
               this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement,
               refreshFilter = { sceneManager ->
-                refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
-                  qualityManager.needsQualityChange(sceneManager)
+                refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY || qualityManager.needsQualityChange(sceneManager)
               },
               refreshOrder = { sceneManager ->
                 // decreasing quality before increasing
-                qualityManager
-                  .getTargetQuality(sceneManager)
-                  .compareTo(sceneManager.lastRenderQuality)
+                qualityManager.getTargetQuality(sceneManager).compareTo(sceneManager.lastRenderQuality)
               },
               refreshEventBuilder = refreshRequest.refreshEventBuilder,
             )
           } else {
-            refreshProgressIndicator.text =
-              message("refresh.progress.indicator.refreshing.all.previews")
+            refreshProgressIndicator.text = message("refresh.progress.indicator.refreshing.all.previews")
             composeWorkBench.updateProgress(message("panel.initializing"))
             postIssueUpdateListenerForUiCheck.deactivate()
             emptyUiCheckPanel.isVisible = previewModeManager.mode.value is PreviewMode.UiCheck
@@ -1451,13 +1312,9 @@ class ComposePreviewRepresentation(
         postIssueUpdateListenerForUiCheck.activate()
       }
 
-      if (
-        !composeWorkBench.isMessageBeingDisplayed &&
-          refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
-      ) {
+      if (!composeWorkBench.isMessageBeingDisplayed && refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY) {
         // Only notify the preview refresh time if there are previews to show.
-        val durationString =
-          Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
+        val durationString = Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
         requestLogger.debug(message("event.log.refresh.total.elapsed.time", durationString))
       }
     }
@@ -1471,20 +1328,12 @@ class ComposePreviewRepresentation(
   override fun hasPreviewsCached() = hasPreviewsCachedValue.get()
 
   /**
-   * Iterate over the Composables of this file and returns true as soon as we find one with a
-   * `@Preview` or MultiPreview annotations. This function also updates the value of
-   * [hasPreviewsCachedValue] accordingly.
+   * Iterate over the Composables of this file and returns true as soon as we find one with a `@Preview` or MultiPreview annotations. This
+   * function also updates the value of [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
     val vFile = readAction { psiFilePointer.virtualFile } ?: return false
-    findAnnotatedMethodsValues(
-        project,
-        vFile,
-        COMPOSABLE_ANNOTATION_FQ_NAME,
-        COMPOSABLE_ANNOTATION_NAME,
-      ) { methods ->
-        methods.asFlow()
-      }
+    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods -> methods.asFlow() }
       .forEach { composableMethod ->
         if (composableMethod.hasPreviewElements()) {
           hasPreviewsCachedValue.set(true)
@@ -1496,12 +1345,10 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Whether the scene manager should use a private ClassLoader. Currently, that's done for
-   * interactive preview and animation inspector, where it's crucial not to share the state (which
-   * includes the compose framework).
+   * Whether the scene manager should use a private ClassLoader. Currently, that's done for interactive preview and animation inspector,
+   * where it's crucial not to share the state (which includes the compose framework).
    */
-  private fun usePrivateClassLoader() =
-    mode.value is PreviewMode.Interactive || mode.value is PreviewMode.AnimationInspection
+  private fun usePrivateClassLoader() = mode.value is PreviewMode.Interactive || mode.value is PreviewMode.AnimationInspection
 
   override fun invalidate() {
     invalidated.set(true)
@@ -1511,14 +1358,11 @@ class ComposePreviewRepresentation(
   @TestOnly internal fun isInvalid(): Boolean = invalidated.get()
 
   /**
-   * Same as [requestRefresh] but does a previous [invalidate] to ensure the preview definitions are
-   * re-loaded from the files. This function will suspend until the refresh job completes normally
-   * or exceptionally. A successful completion doesn't mean the refresh was successful, as it might
-   * have failed or been cancelled.
+   * Same as [requestRefresh] but does a previous [invalidate] to ensure the preview definitions are re-loaded from the files. This function
+   * will suspend until the refresh job completes normally or exceptionally. A successful completion doesn't mean the refresh was
+   * successful, as it might have failed or been cancelled.
    */
-  private suspend fun invalidateAndRefresh(
-    type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL
-  ) {
+  private suspend fun invalidateAndRefresh(type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL) {
     CompletableDeferred<Unit>().let {
       invalidate()
       requestRefresh(type, it)
@@ -1527,9 +1371,9 @@ class ComposePreviewRepresentation(
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
-    BuildAndRefresh { psiFilePointer.element }
-      .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+    BuildAndRefresh { psiFilePointer.element }.registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
+
   private val delegateFastPreviewSurface =
     CommonFastPreviewSurface(
       parentDisposable = this,
@@ -1539,8 +1383,7 @@ class ComposePreviewRepresentation(
       delegateRefresh = ::invalidateAndRefresh,
     )
 
-  override fun requestFastPreviewRefreshAsync() =
-    delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
+  override fun requestFastPreviewRefreshAsync() = delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
 
   /** Waits for any preview to be populated. */
   @TestOnly
@@ -1557,9 +1400,7 @@ class ComposePreviewRepresentation(
     previewModeManager.setMode(mode)
   }
 
-  /**
-   * Performs setup for [mode] when this mode is started from a previous mode of a different class.
-   */
+  /** Performs setup for [mode] when this mode is started from a previous mode of a different class. */
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
       is PreviewMode.Default -> {
@@ -1572,15 +1413,10 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.UiCheck -> {
         val uiCheckInstance = mode.baseInstance
-        startUiCheckPreview(
-          uiCheckInstance.baseElement as PsiComposePreviewElementInstance,
-          uiCheckInstance.isWearPreview,
-        )
+        startUiCheckPreview(uiCheckInstance.baseElement as PsiComposePreviewElementInstance, uiCheckInstance.isWearPreview)
       }
       is PreviewMode.AnimationInspection -> {
-        ComposeAnimationListener.messageBus
-          .syncPublisher(ComposeAnimationListener.TOPIC)
-          .newAnimationPreviewIsOpening()
+        ComposeAnimationListener.messageBus.syncPublisher(ComposeAnimationListener.TOPIC).newAnimationPreviewIsOpening()
         sceneComponentProvider.enabled = false
 
         withContext(Dispatchers.EDT) {
@@ -1611,9 +1447,7 @@ class ComposePreviewRepresentation(
           }
           composeWorkBench.focusMode =
             activeResizePanelInFocusMode?.let { resizePanel ->
-              FocusMode(composeWorkBench.mainSurface, resizePanel).apply {
-                addSelectionListener { resizePanel.clear() }
-              }
+              FocusMode(composeWorkBench.mainSurface, resizePanel).apply { addSelectionListener { resizePanel.clear() } }
             } ?: FocusMode(composeWorkBench.mainSurface)
         }
         // Only refresh if exiting the previous mode invalidated the state of the preview. This is
@@ -1665,9 +1499,7 @@ class ComposePreviewRepresentation(
     }
   }
 
-  private fun createAnimationPreviewPanel(
-    surface: DesignSurface<LayoutlibSceneManager>
-  ): ComposeAnimationPreview {
+  private fun createAnimationPreviewPanel(surface: DesignSurface<LayoutlibSceneManager>): ComposeAnimationPreview {
     return ComposeAnimationPreview(
         this@ComposePreviewRepresentation.createCoroutineScope(),
         surface.project,
@@ -1681,8 +1513,8 @@ class ComposePreviewRepresentation(
   private var currentAnimationPreview: ComposeAnimationPreview? = null
 
   /**
-   * Manages the preview's response to caret movements, including highlighting components at the
-   * caret's position and scrolling components into view.
+   * Manages the preview's response to caret movements, including highlighting components at the caret's position and scrolling components
+   * into view.
    */
   inner class CaretNavigationHandlerImpl : PreviewRepresentation.CaretNavigationHandler {
     override var isNavigatingToCode: Boolean = false
@@ -1709,8 +1541,7 @@ class ComposePreviewRepresentation(
 
       lifecycleManager.executeIfActive {
         launch(Dispatchers.EDT) {
-          val filePreviewElements =
-            withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
+          val filePreviewElements = withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
           // Workaround for b/238735830: The following withContext(Dispatchers.EDT) should not be
           // needed but the code below ends up being executed in a worker thread under some
           // circumstances so we need to prevent that from happening by forcing the context switch.
@@ -1724,9 +1555,7 @@ class ComposePreviewRepresentation(
                       element.previewElementDefinition?.psiRange.containsOffset(offset)
                   }
                   ?.let { selectedPreviewElement ->
-                    surface.models.find {
-                      previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
-                    }
+                    surface.models.find { previewElementModelAdapter.modelToElement(it) == selectedPreviewElement }
                   }
                   ?.let { surface.scrollToVisible(it, true) }
               }

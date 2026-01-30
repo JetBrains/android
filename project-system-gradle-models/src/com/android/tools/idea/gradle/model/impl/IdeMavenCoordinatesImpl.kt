@@ -22,5 +22,5 @@ data class IdeMavenCoordinatesImpl(
   override val artifactId: String,
   override val version: String,
   override val packaging: String,
-  override val classifier: String?
+  override val classifier: String?,
 ) : IdeMavenCoordinates

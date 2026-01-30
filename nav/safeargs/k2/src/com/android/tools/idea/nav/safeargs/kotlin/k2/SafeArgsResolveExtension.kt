@@ -45,18 +45,10 @@ import org.jetbrains.kotlin.name.FqName
 @OptIn(KaExperimentalApi::class)
 class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension() {
 
-  private data class Status(
-    val args: List<ArgsClassResolveExtensionFile>,
-    val directions: List<DirectionsClassResolveExtensionFile>,
-  )
+  private data class Status(val args: List<ArgsClassResolveExtensionFile>, val directions: List<DirectionsClassResolveExtensionFile>)
 
   private val currentStatus by
-    NavStatusCache(
-      parent = this,
-      module = module,
-      mode = SafeArgsMode.KOTLIN,
-      onCacheInvalidate = ::fireInvalidateEvent,
-    ) {
+    NavStatusCache(parent = this, module = module, mode = SafeArgsMode.KOTLIN, onCacheInvalidate = ::fireInvalidateEvent) {
       logger.info("Updating status for module $module")
       Status(createArgsFiles(it), createDirectionsFiles(it))
     }
@@ -70,12 +62,9 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
   private val allClasses: List<KaResolveExtensionFile>
     get() = args + directions
 
-  @KaSpiExtensionPoint
-  override fun getKtFiles(): List<KaResolveExtensionFile> = allClasses
+  @KaSpiExtensionPoint override fun getKtFiles(): List<KaResolveExtensionFile> = allClasses
 
-  @KaSpiExtensionPoint
-  override fun getContainedPackages(): Set<FqName> =
-    allClasses.map { it.getFilePackageName() }.toSet()
+  @KaSpiExtensionPoint override fun getContainedPackages(): Set<FqName> = allClasses.map { it.getFilePackageName() }.toSet()
 
   @KaSpiExtensionPoint
   override fun getShadowedScope(): GlobalSearchScope {
@@ -92,18 +81,10 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
     // Filter out any source roots under "generated/source/navigation-args".
     val matchingRoots =
       module.sourceRoots.filter {
-        it.hasPathComponents(
-          FilenameConstants.GENERATED,
-          SdkConstants.FD_SOURCE_GEN,
-          FilenameConstants.SAFE_ARG_CLASS_SOURCES,
-        )
+        it.hasPathComponents(FilenameConstants.GENERATED, SdkConstants.FD_SOURCE_GEN, FilenameConstants.SAFE_ARG_CLASS_SOURCES)
       }
 
-    return GlobalSearchScopesCore.directoriesScope(
-      module.project,
-      /* withSubdirectories: */ true,
-      *matchingRoots.toTypedArray(),
-    )
+    return GlobalSearchScopesCore.directoriesScope(module.project, /* withSubdirectories: */ true, *matchingRoots.toTypedArray())
   }
 
   private fun fireInvalidateEvent(reason: NavInfoChangeReason) {
@@ -133,12 +114,7 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
       navEntry.data.resolvedDestinations
         .filter { it.arguments.isNotEmpty() }
         .map { destination ->
-          ArgsClassResolveExtensionFile(
-            navInfo,
-            destination,
-            destination.resolveClassId(navInfo, "Args"),
-            destination.resolveTag(navEntry),
-          )
+          ArgsClassResolveExtensionFile(navInfo, destination, destination.resolveClassId(navInfo, "Args"), destination.resolveTag(navEntry))
         }
     }
 
@@ -162,8 +138,7 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
     return ClassId.topLevel(FqName("${packageNamePrefix}$name${suffix}"))
   }
 
-  private fun NavDestinationData.resolveTag(navEntry: NavEntry): XmlTag? =
-    navEntry.backingXmlFile?.run { findXmlTagById(id) ?: rootTag }
+  private fun NavDestinationData.resolveTag(navEntry: NavEntry): XmlTag? = navEntry.backingXmlFile?.run { findXmlTagById(id) ?: rootTag }
 
   companion object {
     private val logger = thisLogger()

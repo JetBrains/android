@@ -34,8 +34,7 @@ fun androidManifestXml(
         val deviceFeaturesBlock =
           deviceFeatures.joinToString("\n") {
             when (it.deviceFeatureType.get()) {
-              DeviceFeatureKind.NAME ->
-                """                    <dist:device-feature dist:name="${it.deviceFeatureValue}" />"""
+              DeviceFeatureKind.NAME -> """                    <dist:device-feature dist:name="${it.deviceFeatureValue}" />"""
               DeviceFeatureKind.GL_ES_VERSION ->
                 """                    <dist:device-feature
                         dist:name="android.hardware.opengles.version"

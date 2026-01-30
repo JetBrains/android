@@ -20,20 +20,14 @@ import com.intellij.ide.util.newProjectWizard.WizardDelegate
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.openapi.Disposable
 
-interface IdeaWizardDelegate: WizardDelegate, Disposable {
+interface IdeaWizardDelegate : WizardDelegate, Disposable {
 
-  /**
-   * Custom UI to be shown on the first wizard page
-   */
+  /** Custom UI to be shown on the first wizard page */
   fun getCustomOptionsStep(): ModuleWizardStep
 
-  /**
-   * Update the buttons on the host wizard to reflect the state of the guest wizard
-   */
+  /** Update the buttons on the host wizard to reflect the state of the guest wizard */
   fun updateButtons()
 
-  /**
-   * Set a new [ModelWizard]
-   */
+  /** Set a new [ModelWizard] */
   fun setModelWizard(modelWizard: ModelWizard) {}
 }

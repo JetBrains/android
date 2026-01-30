@@ -22,11 +22,12 @@ import com.google.gson.stream.JsonWriter
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
-class AnalyzedHeapReport(val text: String,
-                         val summary: String,
-                         heapProperties: HeapReportProperties,
-                         baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : HeapReport("Heap", heapProperties, baseProperties) {
+class AnalyzedHeapReport(
+  val text: String,
+  val summary: String,
+  heapProperties: HeapReportProperties,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : HeapReport("Heap", heapProperties, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
     super.serializeReportProperties(writer)
@@ -48,7 +49,6 @@ class AnalyzedHeapReport(val text: String,
   companion object {
     private const val EXCEPTION_TYPE = "com.android.OutOfMemory"
 
-    private val EMPTY_OOM_STACKTRACE = EXCEPTION_TYPE + ": \n" +
-                                       "\tat " + HeapReport::class.java.name + ".missingEdtStack(Unknown source)"
+    private val EMPTY_OOM_STACKTRACE = EXCEPTION_TYPE + ": \n" + "\tat " + HeapReport::class.java.name + ".missingEdtStack(Unknown source)"
   }
 }

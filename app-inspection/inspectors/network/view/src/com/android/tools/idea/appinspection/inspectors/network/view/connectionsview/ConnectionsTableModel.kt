@@ -19,8 +19,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import javax.swing.table.AbstractTableModel
 
-internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
-  AbstractTableModel() {
+internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) : AbstractTableModel() {
   private var dataList: List<ConnectionData> = emptyList()
 
   init {
@@ -36,8 +35,7 @@ internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDa
 
   override fun getColumnName(column: Int) = ConnectionColumn.entries[column].displayString
 
-  override fun getValueAt(rowIndex: Int, columnIndex: Int) =
-    ConnectionColumn.entries[columnIndex].getValueFrom(dataList[rowIndex])
+  override fun getValueAt(rowIndex: Int, columnIndex: Int) = ConnectionColumn.entries[columnIndex].getValueFrom(dataList[rowIndex])
 
   override fun getColumnClass(columnIndex: Int) = ConnectionColumn.entries[columnIndex].type
 

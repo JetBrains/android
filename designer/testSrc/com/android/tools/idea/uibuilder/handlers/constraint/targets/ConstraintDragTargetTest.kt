@@ -57,26 +57,14 @@ class ConstraintDragTargetTest : SceneTest() {
         .id("@+id/root")
         .withBounds(0, 0, 1000, 1000)
         .children(
-          component(SdkConstants.BUTTON)
-            .id("@+id/textView")
-            .withBounds(0, 0, 10, 10)
-            .width("5dp")
-            .height("5dp"),
+          component(SdkConstants.BUTTON).id("@+id/textView").withBounds(0, 0, 10, 10).width("5dp").height("5dp"),
           component(SdkConstants.TEXT_VIEW)
             .id("@id/button")
             .withBounds(10, 10, 10, 10)
             .width("5dp")
             .height("5dp")
-            .withAttribute(
-              SdkConstants.SHERPA_URI,
-              SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-              "@id/textView",
-            )
-            .withAttribute(
-              SdkConstants.ANDROID_URI,
-              SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-              "@id/textView",
-            ),
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF, "@id/textView")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, "@id/textView"),
         ),
     )
   }

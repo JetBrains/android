@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
 import com.android.tools.idea.wizard.template.renderIf
 
-fun appAndroidManifest(needsTargetFlag: Boolean) = """
+fun appAndroidManifest(needsTargetFlag: Boolean) =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 ${renderIf(needsTargetFlag) { "xmlns:tools=\"http://schemas.android.com/tools\"" }}>
@@ -27,4 +28,5 @@ ${renderIf(needsTargetFlag) { "xmlns:tools=\"http://schemas.android.com/tools\""
   </application>
 
 </manifest>
-""".trimIndent()
+"""
+    .trimIndent()

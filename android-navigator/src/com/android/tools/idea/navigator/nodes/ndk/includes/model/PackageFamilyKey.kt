@@ -17,15 +17,12 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.model
 
 import java.io.File
 
-
-/**
- * A key value for a packaging family. Groups by package type and the base folder of the include.
- */
+/** A key value for a packaging family. Groups by package type and the base folder of the include. */
 data class PackageFamilyKey(
   // The packaging kind. For example, NDK component.
-  val packageType : PackageType,
+  val packageType: PackageType,
   // The unique description of this package (like NDK r19c).
-  val description : String,
+  val description: String,
   // The root folder of the packaging. For example Android NDK root folder
-  val packagingFamilyBaseFolder: File
+  val packagingFamilyBaseFolder: File,
 )

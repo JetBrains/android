@@ -100,12 +100,7 @@ var NlComponent.viewInfo: ViewInfo?
     this.nlComponentData.viewInfo = value
   }
 
-fun NlComponent.setBounds(
-  @AndroidCoordinate x: Int,
-  @AndroidCoordinate y: Int,
-  @AndroidCoordinate w: Int,
-  @AndroidCoordinate h: Int,
-) {
+fun NlComponent.setBounds(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, @AndroidCoordinate w: Int, @AndroidCoordinate h: Int) {
   this.x = x
   this.y = y
   this.w = w
@@ -125,14 +120,13 @@ fun NlComponent.containsY(@AndroidCoordinate y: Int): Boolean {
 }
 
 /**
- * Determines whether the given new component should have an id attribute. This is generally false
- * for layouts, and generally true for other views, not including the `<include>` and `<merge>`
- * tags. Note that `<fragment>` tags **should** specify an id.
+ * Determines whether the given new component should have an id attribute. This is generally false for layouts, and generally true for other
+ * views, not including the `<include>` and `<merge>` tags. Note that `<fragment>` tags **should** specify an id.
  *
  * @return true if the component should have a default id
  *
- * Note: if this is called on the UI thread this function may return false for components the
- * ViewHandlerManager need to do a background lookup for.
+ * Note: if this is called on the UI thread this function may return false for components the ViewHandlerManager need to do a background
+ * lookup for.
  */
 fun NlComponent.needsDefaultId(): Boolean {
   if (!hasNlComponentInfo) {
@@ -143,11 +137,7 @@ fun NlComponent.needsDefaultId(): Boolean {
   }
 
   // Handle <Space> in the compatibility library b
-  if (
-    tagName.endsWith(SPACE) &&
-      tagName.length > SPACE.length &&
-      tagName[tagName.length - SPACE.length] == '.'
-  ) {
+  if (tagName.endsWith(SPACE) && tagName.length > SPACE.length && tagName[tagName.length - SPACE.length] == '.') {
     return false
   }
 
@@ -232,10 +222,7 @@ fun NlComponent.getPadding(force: Boolean): Insets {
       val layoutParams = viewInfo.viewObject
       val layoutClass = layoutParams.javaClass
 
-      val left =
-        fixDefault(
-          layoutClass.getMethod("getPaddingLeft").invoke(layoutParams) as Int
-        ) // TODO: getPaddingStart!
+      val left = fixDefault(layoutClass.getMethod("getPaddingLeft").invoke(layoutParams) as Int) // TODO: getPaddingStart!
       val top = fixDefault(layoutClass.getMethod("getPaddingTop").invoke(layoutParams) as Int)
       val right = fixDefault(layoutClass.getMethod("getPaddingRight").invoke(layoutParams) as Int)
       val bottom = fixDefault(layoutClass.getMethod("getPaddingBottom").invoke(layoutParams) as Int)
@@ -273,8 +260,7 @@ fun NlComponent.isGroup(): Boolean {
 }
 
 /**
- * Returns true if this NlComponent's class is the specified class, or if one of its super classes
- * is the specified class.
+ * Returns true if this NlComponent's class is the specified class, or if one of its super classes is the specified class.
  *
  * @param className A fully qualified class name
  */
@@ -284,10 +270,7 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
   }
   val viewInfo = viewInfo
   if (viewInfo != null) {
-    val viewObject =
-      viewInfo.viewObject
-        ?: return ApplicationManager.getApplication().isUnitTestMode &&
-          isOrHasSuperclassInTest(className)
+    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && isOrHasSuperclassInTest(className)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (className == viewClass.name) {
@@ -302,8 +285,7 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
 }
 
 /**
- * Returns true if this NlComponent's class is the specified class, or if one of its super classes
- * is the specified class.
+ * Returns true if this NlComponent's class is the specified class, or if one of its super classes is the specified class.
  *
  * @param className A fully qualified class name
  */
@@ -314,8 +296,8 @@ fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
 /**
  * Return true if this NlComponent's class is derived from the specified [className].
  *
- * In tests the classes from ConstraintLayout may not be available on the classpath and the
- * viewObject check in [isOrHasSuperclass] will not work.
+ * In tests the classes from ConstraintLayout may not be available on the classpath and the viewObject check in [isOrHasSuperclass] will not
+ * work.
  *
  * Instead check the [NlComponent.getTagName] or if this is a constraint helper.
  */
@@ -331,9 +313,7 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
   val viewInfo = viewInfo
   if (viewInfo != null) {
     val viewObject =
-      viewInfo.viewObject
-        ?: return ApplicationManager.getApplication().isUnitTestMode &&
-          tagName.startsWith(ANDROIDX_PKG_PREFIX)
+      viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(ANDROIDX_PKG_PREFIX)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
@@ -346,8 +326,7 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
 }
 
 /**
- * Returns the class within the className set that is the the most derived (specific) class that
- * matches NlComponent's class
+ * Returns the class within the className set that is the the most derived (specific) class that matches NlComponent's class
  *
  * @param classNames Set of class names to search
  */
@@ -367,67 +346,51 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 /**
- * Return the [ViewHandler] for the current [NlComponent] or <code>null</code> if the project is
- * disposed or a handler is not know at this time.
- *
- * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
- *   performed on a background thread and {@link ViewHandlerManager#TEMP} is returned. This callback
- *   is called if the background finds a handler.
- */
-fun NlComponent.getViewHandler(handlerUpdated: Runnable): ViewHandler? =
-  if (!model.project.isDisposed)
-    ViewHandlerManager.get(model.project).getHandler(this, handlerUpdated)
-  else null
-
-/**
- * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if the project
- * is disposed, a handler is not know at this time, or the handler is not a ViewGroupHandler.
- *
- * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
- *   performed on a background thread and <code>null</code> is returned. This callback is called if
- *   the background finds a handler.
- */
-fun NlComponent.getViewGroupHandler(handlerUpdated: Runnable): ViewGroupHandler? =
-  getViewHandler(handlerUpdated) as? ViewGroupHandler
-
-/**
- * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent] or
- * <code>null</code> if the project is disposed or a handler is not known for that component at this
+ * Return the [ViewHandler] for the current [NlComponent] or <code>null</code> if the project is disposed or a handler is not know at this
  * time.
  *
- * If the current [NlComponent] is a ViewGroup then return the view handler for the current
- * [NlComponent]. Otherwise a view handler for a parent component is returned (if such a view
- * handler exists).
- *
- * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
- *   performed on a background thread and <code>null</code> is returned. This callback is called if
- *   the background finds a handler.
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is performed on a background thread and {@link
+ *   ViewHandlerManager#TEMP} is returned. This callback is called if the background finds a handler.
  */
-fun NlComponent.getLayoutHandler(handlerUpdated: Runnable): ViewGroupHandler? =
-  if (!model.project.isDisposed)
-    ViewHandlerManager.get(model.project).findLayoutHandler(this, false, handlerUpdated)
-  else null
+fun NlComponent.getViewHandler(handlerUpdated: Runnable): ViewHandler? =
+  if (!model.project.isDisposed) ViewHandlerManager.get(model.project).getHandler(this, handlerUpdated) else null
 
 /**
- * Creates a new child of the given type, and inserts it before the given sibling (or null to append
- * at the end). Note: This operation can only be called when the caller is already holding a write
- * lock. This will be the case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and
- * [DragHandler.commit].
+ * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if the project is disposed, a handler is not know at
+ * this time, or the handler is not a ViewGroupHandler.
+ *
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is performed on a background thread and
+ *   <code>null</code> is returned. This callback is called if the background finds a handler.
+ */
+fun NlComponent.getViewGroupHandler(handlerUpdated: Runnable): ViewGroupHandler? = getViewHandler(handlerUpdated) as? ViewGroupHandler
+
+/**
+ * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent] or <code>null</code> if the project is
+ * disposed or a handler is not known for that component at this time.
+ *
+ * If the current [NlComponent] is a ViewGroup then return the view handler for the current [NlComponent]. Otherwise a view handler for a
+ * parent component is returned (if such a view handler exists).
+ *
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is performed on a background thread and
+ *   <code>null</code> is returned. This callback is called if the background finds a handler.
+ */
+fun NlComponent.getLayoutHandler(handlerUpdated: Runnable): ViewGroupHandler? =
+  if (!model.project.isDisposed) ViewHandlerManager.get(model.project).findLayoutHandler(this, false, handlerUpdated) else null
+
+/**
+ * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end). Note: This operation can
+ * only be called when the caller is already holding a write lock. This will be the case from [ViewHandler] callbacks such as
+ * [ViewHandler.onCreate] and [DragHandler.commit].
  *
  * @param editor The editor showing the component
- * @param fqcn The fully qualified name of the widget to insert, such as
- *   `android.widget.LinearLayout` You can also pass XML tags here (this is typically the same as
- *   the fully qualified class name of the custom view, but for Android framework views in the
- *   android.view or android.widget packages, you can omit the package.)
+ * @param fqcn The fully qualified name of the widget to insert, such as `android.widget.LinearLayout` You can also pass XML tags here (this
+ *   is typically the same as the fully qualified class name of the custom view, but for Android framework views in the android.view or
+ *   android.widget packages, you can omit the package.)
  * @param before The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
  */
 // FIXME: Remove editor.
-fun NlComponent.createChild(
-  fqcn: String,
-  before: NlComponent?,
-  insertType: InsertType,
-): NlComponent? {
+fun NlComponent.createChild(fqcn: String, before: NlComponent?, insertType: InsertType): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   return createChild(tagName, false, null, null, before, insertType)
 }
@@ -435,10 +398,9 @@ fun NlComponent.createChild(
 /**
  * See [createChild]
  *
- * @param tagName The new tag name of the child. Not the fully qualified name such as
- *   'android.widget.LinearLayout' but rather 'LinearLayout'.
- * @param enforceNamespacesDeep If you pass some xml tags to {@code bodyText} parameter, this flag
- *   sets namespace prefixes for them.
+ * @param tagName The new tag name of the child. Not the fully qualified name such as 'android.widget.LinearLayout' but rather
+ *   'LinearLayout'.
+ * @param enforceNamespacesDeep If you pass some xml tags to {@code bodyText} parameter, this flag sets namespace prefixes for them.
  * @param namespace Namespaces of the tag name.
  * @param before The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
@@ -452,10 +414,7 @@ fun NlComponent.createChild(
   insertType: InsertType = InsertType.CREATE,
 ): NlComponent? {
   val tag = backend.tag ?: return null
-  val childTag =
-    WriteAction.compute<XmlTag, Throwable> {
-      tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
-    }
+  val childTag = WriteAction.compute<XmlTag, Throwable> { tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep) }
   return model.treeWriter.createComponent(childTag, this, before, insertType)
 }
 
@@ -517,19 +476,11 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
 
     // Pretend the style was referenced from a proper resource by constructing a temporary
     // ResourceValue. TODO: aapt namespace?
-    val tmpResourceValue =
-      ResourceValueImpl(
-        ResourceNamespace.TODO(),
-        ResourceType.STYLE,
-        component.tagName,
-        styleAttributeValue,
-      )
+    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO(), ResourceType.STYLE, component.tagName, styleAttributeValue)
 
-    val styleResourceValue =
-      resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
+    val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
 
-    val itemResourceValue =
-      resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
+    val itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
 
     return itemResourceValue.value
   }
@@ -571,18 +522,12 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
 
   override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
     // AssignId
-    if (
-      component.needsDefaultId() && insertType != InsertType.MOVE && insertType != InsertType.PASTE
-    ) {
+    if (component.needsDefaultId() && insertType != InsertType.MOVE && insertType != InsertType.PASTE) {
       component.incrementId(ids)
     }
   }
 
-  override fun afterMove(
-    insertType: InsertType,
-    previousParent: NlComponent?,
-    receiver: NlComponent,
-  ) {
+  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent) {
     if (previousParent != receiver) {
       previousParent?.getLayoutHandler {}?.onChildRemoved(previousParent, component, insertType)
     }
@@ -595,26 +540,18 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     if (parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
       if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
-        WriteAction.run<Throwable> {
-          realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
-        }
+        WriteAction.run<Throwable> { realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT) }
       }
       if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
-        WriteAction.run<Throwable> {
-          realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
-        }
+        WriteAction.run<Throwable> { realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT) }
       }
     } else {
       // No namespace yet: use the default prefix instead
       if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
-        WriteAction.run<Throwable> {
-          realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
-        }
+        WriteAction.run<Throwable> { realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT) }
       }
       if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
-        WriteAction.run<Throwable> {
-          realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
-        }
+        WriteAction.run<Throwable> { realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT) }
       }
     }
   }
@@ -623,9 +560,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     val realTag = component.tagDeprecated
     // Add the layout attributes if missing and needed. This will trigger a write action so only
     // do it if necessary. If we are in CHECK_PREVIEW mode, we don't need them either.
-    if (
-      NlComponentHelper.needsLayoutAttributes(component) && insertType != InsertType.CHECK_PREVIEW
-    ) {
+    if (NlComponentHelper.needsLayoutAttributes(component) && insertType != InsertType.CHECK_PREVIEW) {
       addLayoutAttributes(component.parent, realTag)
     }
 
@@ -635,10 +570,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     if (childHandler != null) {
       var ok = childHandler.onCreate(component.parent, component, insertType)
       if (component.parent != null) {
-        ok =
-          ok and
-            NlDependencyManager.getInstance()
-              .addDependencies((listOf(component)), component.model.facet, true)
+        ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet, true)
       }
       if (!ok) {
         WriteAction.run<Throwable> {
@@ -657,8 +589,7 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     component.h = dndComponent.height
   }
 
-  override fun getIcon(): Icon =
-    component.getViewHandler {}?.getIcon(component) ?: StudioIcons.LayoutEditor.Palette.VIEW
+  override fun getIcon(): Icon = component.getViewHandler {}?.getIcon(component) ?: StudioIcons.LayoutEditor.Palette.VIEW
 }
 
 /**
@@ -686,17 +617,11 @@ object NlComponentHelper {
       .build()
 
   private val TAGS_THAT_DONT_NEED_LAYOUT_ATTRIBUTES: Collection<String> =
-    ImmutableSet.Builder<String>()
-      .add(TAG_ITEM)
-      .add(VIEW_INCLUDE)
-      .add(VIEW_MERGE)
-      .addAll(PreferenceUtils.VALUES)
-      .build()
+    ImmutableSet.Builder<String>().add(TAG_ITEM).add(VIEW_INCLUDE).add(VIEW_MERGE).addAll(PreferenceUtils.VALUES).build()
 
   /**
-   * Maps a custom view class to the corresponding layout tag; e.g. `android.widget.LinearLayout`
-   * maps to just `LinearLayout`, but `android.support.v4.widget.DrawerLayout` maps to
-   * `android.support.v4.widget.DrawerLayout`.
+   * Maps a custom view class to the corresponding layout tag; e.g. `android.widget.LinearLayout` maps to just `LinearLayout`, but
+   * `android.support.v4.widget.DrawerLayout` maps to `android.support.v4.widget.DrawerLayout`.
    *
    * @param fqcn fully qualified class name *
    * @return the corresponding view tag
@@ -710,23 +635,19 @@ object NlComponentHelper {
   }
 
   /**
-   * Returns true if views with the given fully qualified class name need to include their package
-   * in the layout XML tag
+   * Returns true if views with the given fully qualified class name need to include their package in the layout XML tag
    *
    * @param fqcn the fully qualified class name, such as android.widget.Button *
    * @return true if the full package path should be included in the layout XML element
    * * tag
    */
   private fun viewNeedsPackage(fqcn: String): Boolean {
-    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) ||
-      fqcn.startsWith(ANDROID_VIEW_PKG) ||
-      fqcn.startsWith(ANDROID_WEBKIT_PKG))
+    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) || fqcn.startsWith(ANDROID_VIEW_PKG) || fqcn.startsWith(ANDROID_WEBKIT_PKG))
   }
 
   fun hasNlComponentInfo(component: NlComponent): Boolean {
     return component.mixin is NlComponentMixin
   }
 
-  fun needsLayoutAttributes(component: NlComponent): Boolean =
-    !TAGS_THAT_DONT_NEED_LAYOUT_ATTRIBUTES.contains(component.tagName)
+  fun needsLayoutAttributes(component: NlComponent): Boolean = !TAGS_THAT_DONT_NEED_LAYOUT_ATTRIBUTES.contains(component.tagName)
 }

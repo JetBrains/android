@@ -18,27 +18,20 @@ package com.android.tools.idea.ui.resourcemanager.importer
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.intellij.openapi.diagnostic.Logger
 
-private val LOG : Logger by lazy { Logger.getInstance(ImportersProvider::class.java) }
+private val LOG: Logger by lazy { Logger.getInstance(ImportersProvider::class.java) }
 
-/**
- * Provides methods to get aggregated data from the registered [ResourceImporter].
- */
-class ImportersProvider(
-    val importers: Set<ResourceImporter> = ResourceImporter.EP_NAME.extensionList.toSet()
-) {
+/** Provides methods to get aggregated data from the registered [ResourceImporter]. */
+class ImportersProvider(val importers: Set<ResourceImporter> = ResourceImporter.EP_NAME.extensionList.toSet()) {
 
-  private val typeToImporter = importers
+  private val typeToImporter =
+    importers
       .flatMap { importer -> importer.getSupportedFileTypes().map { Pair(it, importer) }.toList() }
-      .groupBy({ it.first }, {it.second})
+      .groupBy({ it.first }, { it.second })
 
-  /**
-   * Returns the all the file extension supported by the available plugins
-   */
+  /** Returns the all the file extension supported by the available plugins */
   val supportedFileTypes = importers.flatMap { importer -> importer.getSupportedFileTypes() }.toSet()
 
-  /**
-   * Returns a list of [ResourceImporter] that supports the provided extension.
-   */
+  /** Returns a list of [ResourceImporter] that supports the provided extension. */
   fun getImportersForExtension(extension: String): List<ResourceImporter> {
     val importers = typeToImporter[extension] ?: emptyList()
     if (importers.isEmpty()) {

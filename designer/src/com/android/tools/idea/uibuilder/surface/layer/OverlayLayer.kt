@@ -33,10 +33,7 @@ import org.jetbrains.annotations.VisibleForTesting
 @VisibleForTesting const val PLACEHOLDER_ALPHA = 0.7f
 
 /** The Overlay Layer to be displayed on top of the layout preview */
-class OverlayLayer(
-  private val sceneView: SceneView,
-  private val overlayConfiguration: () -> OverlayConfiguration,
-) : Layer() {
+class OverlayLayer(private val sceneView: SceneView, private val overlayConfiguration: () -> OverlayConfiguration) : Layer() {
   private var screenViewSize = Dimension()
 
   private fun paintPlaceholder(g: Graphics2D) {
@@ -66,10 +63,7 @@ class OverlayLayer(
       return
     }
     g.composite = AlphaComposite.SrcOver.derive(overlayConfiguration.overlayAlpha)
-    g.setRenderingHint(
-      RenderingHints.KEY_INTERPOLATION,
-      RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-    )
+    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     g.drawImage(image, sceneView.x, sceneView.y, screenViewSize.width, screenViewSize.height, null)
   }
 

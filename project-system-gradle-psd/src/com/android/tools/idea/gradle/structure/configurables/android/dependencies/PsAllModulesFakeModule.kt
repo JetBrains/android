@@ -25,8 +25,12 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import java.io.File
 
 open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", ModuleKind.FAKE, parent) {
-  override val descriptor get() = PsModelDescriptor.None
-  override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing, Nothing> get() = throw UnsupportedOperationException()
+  override val descriptor
+    get() = PsModelDescriptor.None
+
+  override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing, Nothing>
+    get() = throw UnsupportedOperationException()
+
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
   override val gradlePath: String = "<All Modules>"
   override val rootDir: File? = null
@@ -45,5 +49,6 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
     throw UnsupportedOperationException()
 
   override fun maybeAddConfiguration(configurationName: String) = throw UnsupportedOperationException()
+
   override fun maybeRemoveConfiguration(configurationName: String) = throw UnsupportedOperationException()
 }

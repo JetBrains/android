@@ -25,20 +25,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.replaceService
+import java.nio.file.Path
+import javax.swing.event.HyperlinkEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import java.nio.file.Path
-import javax.swing.event.HyperlinkEvent
 
 class HtmlLabelTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var htmlLabel: HtmlLabel
   val browserLauncher = createFakeBrowserLauncher()
@@ -87,23 +85,23 @@ class HtmlLabelTest {
     assertThat(launchedUrls).containsExactly(DEMO_URL)
   }
 
-  private fun createFakeBrowserLauncher(): BrowserLauncher = object : BrowserLauncher() {
-    override fun open(url: String) {
-      launchedUrls += url
-    }
+  private fun createFakeBrowserLauncher(): BrowserLauncher =
+    object : BrowserLauncher() {
+      override fun open(url: String) {
+        launchedUrls += url
+      }
 
-    override fun browse(file: Path) = throw IllegalStateException()
+      override fun browse(file: Path) = throw IllegalStateException()
 
-    override fun browse(url: String, browser: WebBrowser?, project: Project?) {
-      launchedUrls += url
+      override fun browse(url: String, browser: WebBrowser?, project: Project?) {
+        launchedUrls += url
+      }
     }
-  }
 
   private fun emitDemoEvent() {
     val event = HyperlinkEvent(htmlLabel, HyperlinkEvent.EventType.ACTIVATED, null, DEMO_URL)
     htmlLabel.hyperlinkListeners.onEach { it.hyperlinkUpdate(event) }
   }
-
 
   companion object {
     const val DEMO_URL = "http://android.com"

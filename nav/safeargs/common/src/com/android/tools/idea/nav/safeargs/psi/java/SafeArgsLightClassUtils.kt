@@ -52,27 +52,18 @@ private val NAV_TO_JAVA_TYPE_MAP =
   )
 
 /**
- * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType] for
- * them.
+ * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType] for them.
  *
- * @param modulePackage The current package that safe args are being generated into. This will be
- *   used if `typeStr` is specified with a relative path name (i.e. if it starts with '.')
- * @param context The [PsiElement] context we are in when creating this [PsiType] -- this is needed
- *   for IntelliJ machinery.
- * @param typeStr A String of the type we want to create, e.g. "com.example.SomeClass". This value
- *   can start with a '.', e.g. ".util.SomeClass", at which point it will be placed within the
- *   current module package. This value can also be a special type as documented here:
- *   https://developer.android.com/guide/navigation/navigation-pass-data#supported_argument_types If
- *   null, `defaultValue` will be used to infer the type.
- * @param defaultValue The default value specified for this type. This is used as a fallback if
- *   `typeStr` itself is not specified.
+ * @param modulePackage The current package that safe args are being generated into. This will be used if `typeStr` is specified with a
+ *   relative path name (i.e. if it starts with '.')
+ * @param context The [PsiElement] context we are in when creating this [PsiType] -- this is needed for IntelliJ machinery.
+ * @param typeStr A String of the type we want to create, e.g. "com.example.SomeClass". This value can start with a '.', e.g.
+ *   ".util.SomeClass", at which point it will be placed within the current module package. This value can also be a special type as
+ *   documented here: https://developer.android.com/guide/navigation/navigation-pass-data#supported_argument_types If null, `defaultValue`
+ *   will be used to infer the type.
+ * @param defaultValue The default value specified for this type. This is used as a fallback if `typeStr` itself is not specified.
  */
-fun parsePsiType(
-  modulePackage: String,
-  typeStr: String?,
-  defaultValue: String?,
-  context: PsiElement,
-): PsiType {
+fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
   val psiTypeStr = getPsiTypeStr(modulePackage, typeStr, defaultValue)
   return try {
     PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
@@ -99,8 +90,7 @@ fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?
   return if (!psiTypeStr.startsWith('.')) psiTypeStr else "$modulePackage$psiTypeStr"
 }
 
-fun NavArgumentData.getPsiTypeStr(modulePackage: String): String =
-  getPsiTypeStr(modulePackage, type, defaultValue)
+fun NavArgumentData.getPsiTypeStr(modulePackage: String): String = getPsiTypeStr(modulePackage, type, defaultValue)
 
 private fun guessFromDefaultValue(defaultValue: String?): String? {
   if (defaultValue == null || defaultValue == "@null") {
@@ -171,33 +161,20 @@ internal fun PsiClass.createConstructor(
   modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR,
 ): LightMethodBuilder {
   val fallback = this.navigationElement
-  return LightMethodBuilder(this, JavaLanguage.INSTANCE)
-    .setConstructor(true)
-    .addModifiers(*modifiers)
-    .apply { this.navigationElement = navigationElement ?: fallback }
+  return LightMethodBuilder(this, JavaLanguage.INSTANCE).setConstructor(true).addModifiers(*modifiers).apply {
+    this.navigationElement = navigationElement ?: fallback
+  }
 }
 
-internal fun PsiClass.createField(
-  arg: NavArgumentData,
-  modulePackage: String,
-  xmlTag: XmlTag?,
-): LightFieldBuilder {
+internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag?): LightFieldBuilder {
   val psiType = arg.parsePsiType(modulePackage, this)
   val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
-  return NullabilityLightFieldBuilder(
-      manager,
-      arg.name,
-      psiType,
-      nonNull,
-      PsiModifier.PUBLIC,
-      PsiModifier.FINAL,
-    )
-    .apply { this.navigationElement = xmlTag ?: this.navigationElement }
+  return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
+    this.navigationElement = xmlTag ?: this.navigationElement
+  }
 }
 
-/**
- * Annotate the target type with the proper nullability based on the <argument> nullable attribute.
- */
+/** Annotate the target type with the proper nullability based on the <argument> nullable attribute. */
 internal fun PsiClass.annotateNullability(psiType: PsiType, isNonNull: Boolean = true): PsiType {
   val nonNull = psiType is PsiPrimitiveType || isNonNull
 
@@ -217,9 +194,6 @@ internal fun PsiClass.createMethod(
     .apply { this.navigationElement = navigationElement ?: this@createMethod.navigationElement }
 }
 
-fun String.toCamelCase() =
-  this.split("_")
-    .mapIndexed { index, s -> if (index > 0) s.usLocaleCapitalize() else s }
-    .joinToString("")
+fun String.toCamelCase() = this.split("_").mapIndexed { index, s -> if (index > 0) s.usLocaleCapitalize() else s }.joinToString("")
 
 fun String.toUpperCamelCase() = this.toCamelCase().usLocaleCapitalize()

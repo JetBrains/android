@@ -34,9 +34,7 @@ class StudioLayoutlibContextTest {
     val layoutlibContext = StudioLayoutlibContext(project)
 
     layoutlibContext.register(layoutLibrary)
-    assertThrows(AssertionError::class.java) {
-      layoutlibContext.register(layoutLibrary)
-    }
+    assertThrows(AssertionError::class.java) { layoutlibContext.register(layoutLibrary) }
 
     Disposer.dispose(disposable)
 

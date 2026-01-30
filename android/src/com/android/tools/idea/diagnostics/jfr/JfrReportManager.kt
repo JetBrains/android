@@ -19,36 +19,41 @@ import com.intellij.concurrency.JobScheduler
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-/** Manages the setup process and provides hooks to trigger captures for a single type of JFR report.
- * For each report, the manager will invoke the generatorSupplier to get a new instance of JfrReportGenerator.
- * setupTask should be used to set up whatever hooks are necessary to determine when to trigger a capture (e.g.
- * subscribing to a message bus to get notified when a freeze starts), at which point startCapture() and
- * stopCapture() should be called.
+/**
+ * Manages the setup process and provides hooks to trigger captures for a single type of JFR report. For each report, the manager will
+ * invoke the generatorSupplier to get a new instance of JfrReportGenerator. setupTask should be used to set up whatever hooks are necessary
+ * to determine when to trigger a capture (e.g. subscribing to a message bus to get notified when a freeze starts), at which point
+ * startCapture() and stopCapture() should be called.
  *
  * JfrReportManagers should be initialized in [RecordingManager.createReportManagers]
  */
 sealed class JfrReportManager<T : JfrReportGenerator>(val generatorSupplier: () -> T) {
   var currentReportGenerator: T? = null
+
   abstract fun startCapture()
+
   abstract fun stopCapture()
 
   companion object {
-    fun <T : JfrReportGenerator> create(generatorSupplier: () -> T,
-                                        aggregation: Duration? = null, // null means no aggregation
-                                        setupTask: JfrReportManager<T>.() -> Unit): JfrReportManager<T> {
-      val manager = if (aggregation == null) {
-        ReportPerCaptureJfrReportManager(generatorSupplier)
-      }
-      else {
-        AggregatingJfrReportManager(aggregation, generatorSupplier)
-      }
-      manager.setupTask();
+    fun <T : JfrReportGenerator> create(
+      generatorSupplier: () -> T,
+      aggregation: Duration? = null, // null means no aggregation
+      setupTask: JfrReportManager<T>.() -> Unit,
+    ): JfrReportManager<T> {
+      val manager =
+        if (aggregation == null) {
+          ReportPerCaptureJfrReportManager(generatorSupplier)
+        } else {
+          AggregatingJfrReportManager(aggregation, generatorSupplier)
+        }
+      manager.setupTask()
       return manager
     }
   }
 }
 
-private class ReportPerCaptureJfrReportManager<T : JfrReportGenerator>(generatorSupplier: () -> T): JfrReportManager<T>(generatorSupplier) {
+private class ReportPerCaptureJfrReportManager<T : JfrReportGenerator>(generatorSupplier: () -> T) :
+  JfrReportManager<T>(generatorSupplier) {
   override fun startCapture() {
     if (currentReportGenerator != null) {
       throw IllegalStateException("Overlapping JFR capture intervals not permitted.")
@@ -66,15 +71,22 @@ private class ReportPerCaptureJfrReportManager<T : JfrReportGenerator>(generator
   }
 }
 
-private class AggregatingJfrReportManager<T : JfrReportGenerator>(aggregationPeriod: Duration,
-                                                                  generatorSupplier: () -> T): JfrReportManager<T>(generatorSupplier) {
+private class AggregatingJfrReportManager<T : JfrReportGenerator>(aggregationPeriod: Duration, generatorSupplier: () -> T) :
+  JfrReportManager<T>(generatorSupplier) {
   init {
     currentReportGenerator = generatorSupplier()
-    JobScheduler.getScheduler().scheduleWithFixedDelay({
-      currentReportGenerator?.finish()
-      currentReportGenerator = generatorSupplier()
-    }, aggregationPeriod.seconds, aggregationPeriod.seconds, TimeUnit.SECONDS);
+    JobScheduler.getScheduler()
+      .scheduleWithFixedDelay(
+        {
+          currentReportGenerator?.finish()
+          currentReportGenerator = generatorSupplier()
+        },
+        aggregationPeriod.seconds,
+        aggregationPeriod.seconds,
+        TimeUnit.SECONDS,
+      )
   }
+
   override fun startCapture() {
     currentReportGenerator?.startCapture()
   }

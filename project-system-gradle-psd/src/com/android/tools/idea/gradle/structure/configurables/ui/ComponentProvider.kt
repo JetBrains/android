@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.intellij.openapi.Disposable
 import javax.swing.JComponent
 
-/**
- * A Swing [JComponent] provider.
- */
+/** A Swing [JComponent] provider. */
 interface ComponentProvider : Disposable {
   fun getComponent(): JComponent
 }

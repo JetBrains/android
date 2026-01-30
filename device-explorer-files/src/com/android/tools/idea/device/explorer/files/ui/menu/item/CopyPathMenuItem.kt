@@ -22,7 +22,9 @@ import javax.swing.Icon
 
 class CopyPathMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String =
-    if (nodes.size > 1) { "Copy Paths" } else "Copy Path"
+    if (nodes.size > 1) {
+      "Copy Paths"
+    } else "Copy Path"
 
   override val icon: Icon
     get() = AllIcons.Actions.Copy

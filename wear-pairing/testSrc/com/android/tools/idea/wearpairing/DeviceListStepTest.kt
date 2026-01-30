@@ -83,8 +83,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
-    WearPairingManager.getInstance()
-      .loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   override fun tearDown() {
@@ -130,8 +129,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     assertThat(fakeUi.getPhoneEmptyComponent().isVisible).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
-    assertThat(getWearPairingTrackingEvents().last().studioEvent.kind)
-      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
     assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind)
       .isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
   }
@@ -202,14 +200,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     model.phoneList.set(listOf(phoneDevice))
 
     val phoneList = fakeUi.getPhoneList()
-    val cellList =
-      phoneList.cellRenderer.getListCellRendererComponent(
-        phoneList,
-        phoneList.model.getElementAt(0),
-        0,
-        false,
-        false,
-      )
+    val cellList = phoneList.cellRenderer.getListCellRendererComponent(phoneList, phoneList.model.getElementAt(0), 0, false, false)
     val cellListFakeUi = FakeUi(cellList)
 
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
@@ -226,17 +217,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
         phoneDevice, // Selectable
         phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED),
         phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"), // Selectable
-        phoneDevice.copy(
-          deviceID = "id4",
-          displayName = "My Phone4",
-          androidVersion = AndroidVersion(29),
-        ),
-        phoneDevice.copy(
-          deviceID = "id5",
-          displayName = "My Phone5",
-          isEmulator = true,
-          hasPlayStore = false,
-        ),
+        phoneDevice.copy(deviceID = "id4", displayName = "My Phone4", androidVersion = AndroidVersion(29)),
+        phoneDevice.copy(deviceID = "id5", displayName = "My Phone5", isEmulator = true, hasPlayStore = false),
         phoneDevice.copy(deviceID = "id6", displayName = "My Phone6", state = DISCONNECTED),
         phoneDevice.copy(deviceID = "id7", displayName = "My Phone7"), // Selectable
       )
@@ -263,8 +245,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(selectedIndex).isEqualTo(2) // Selecting 4 should be rejected (no play store)
 
       selectedIndex = 5
-      assertThat(selectedIndex)
-        .isEqualTo(2) // Selecting 5 should be rejected (paired but disconnected)
+      assertThat(selectedIndex).isEqualTo(2) // Selecting 5 should be rejected (paired but disconnected)
 
       selectedIndex = 6
       assertThat(selectedIndex).isEqualTo(2) // Selecting 6 should be rejected (Disconnected)
@@ -276,24 +257,14 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking(workerThread) {
-      WearPairingManager.getInstance()
-        .createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false)
+      WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false)
     }
 
     model.phoneList.set(
       listOf(
-        phoneDevice.copy(
-          deviceID = "id3",
-          displayName = "My Phone2",
-          androidVersion = AndroidVersion(29),
-        ),
+        phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", androidVersion = AndroidVersion(29)),
         phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", hasPlayStore = false),
-        phoneDevice.copy(
-          deviceID = "id5",
-          displayName = "My Phone3",
-          androidVersion = AndroidVersion(29),
-          isEmulator = false,
-        ),
+        phoneDevice.copy(deviceID = "id5", displayName = "My Phone3", androidVersion = AndroidVersion(29), isEmulator = false),
         phoneDevice,
         wearDevice.copy(deviceID = "id6", androidVersion = AndroidVersion(25)),
       )
@@ -304,40 +275,20 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     fun getListItemTooltip(index: Int): String? {
       val rect = phoneList.getCellBounds(index, index)
-      val mouseEvent =
-        MouseEvent(
-          phoneList,
-          MouseEvent.MOUSE_ENTERED,
-          0,
-          0,
-          rect.width / 2,
-          rect.y + rect.height / 2,
-          0,
-          false,
-          0,
-        )
+      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, rect.width / 2, rect.y + rect.height / 2, 0, false, 0)
       phoneList.mouseListeners.forEach { it.mouseEntered(mouseEvent) } // Simulate mouse enter
-      phoneList.mouseListeners.forEach {
-        it.mousePressed(mouseEvent)
-      } // Fix javax.swing.ToolTipManager memory/focus leak
-      val installed =
-        phoneList.getClientProperty(
-          "JComponent.helpTooltip"
-        ) // HelpTooltip.TOOLTIP_PROPERTY is private
-      installed.javaClass.superclass
-        .getDeclaredField("masterPopupOpenCondition")
-        .apply { // "description" is private, use reflection
-          isAccessible = true
-          if (!(get(installed) as BooleanSupplier).asBoolean) {
-            return null
-          }
+      phoneList.mouseListeners.forEach { it.mousePressed(mouseEvent) } // Fix javax.swing.ToolTipManager memory/focus leak
+      val installed = phoneList.getClientProperty("JComponent.helpTooltip") // HelpTooltip.TOOLTIP_PROPERTY is private
+      installed.javaClass.superclass.getDeclaredField("masterPopupOpenCondition").apply { // "description" is private, use reflection
+        isAccessible = true
+        if (!(get(installed) as BooleanSupplier).asBoolean) {
+          return null
         }
-      installed.javaClass.superclass
-        .getDeclaredField("description")
-        .apply { // "description" is private, use reflection
-          isAccessible = true
-          return get(installed)?.toString()
-        }
+      }
+      installed.javaClass.superclass.getDeclaredField("description").apply { // "description" is private, use reflection
+        isAccessible = true
+        return get(installed)?.toString()
+      }
     }
 
     // Assert that list was sorted. Enabled first, disabled last.
@@ -366,11 +317,9 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
   private fun FakeUi.getWearList() = getComponent<JBList<PairingDevice>> { it.name == "wearList" }
 
-  private fun FakeUi.getPhoneEmptyComponent() =
-    getComponent<JEditorPane> { it.name == "phoneListEmptyText" }
+  private fun FakeUi.getPhoneEmptyComponent() = getComponent<JEditorPane> { it.name == "phoneListEmptyText" }
 
-  private fun FakeUi.getWearEmptyComponent() =
-    getComponent<JEditorPane> { it.name == "wearListEmptyText" }
+  private fun FakeUi.getWearEmptyComponent() = getComponent<JEditorPane> { it.name == "wearListEmptyText" }
 
   private fun FakeUi.getLabelWithText(text: String) = getComponent<JBLabel> { it.text == text }
 

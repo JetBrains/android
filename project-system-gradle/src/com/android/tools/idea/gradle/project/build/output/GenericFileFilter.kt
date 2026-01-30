@@ -22,20 +22,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 
 enum class ParsingState {
-  NORMAL, PATH, CANCELED_PATH
+  NORMAL,
+  PATH,
+  CANCELED_PATH,
 }
 
 /**
- *  Filter that highlights absolute path as hyperlinks in console output. This filter is effective in all console output, including build
- *  output, sync output, run test output, built-in terminal emulator, etc. Therefore, we manually parse the string instead of using regex
- *  for maximum performance.
+ * Filter that highlights absolute path as hyperlinks in console output. This filter is effective in all console output, including build
+ * output, sync output, run test output, built-in terminal emulator, etc. Therefore, we manually parse the string instead of using regex for
+ * maximum performance.
  */
 class GenericFileFilter(private val project: Project, private val localFileSystem: LocalFileSystem) : Filter {
   companion object {
     /**
-     *  Max filename considered during parsing. Do not confuse with file path, which may contain several file names separated by '/' or '\'.
+     * Max filename considered during parsing. Do not confuse with file path, which may contain several file names separated by '/' or '\'.
      *
-     * Modern popular FS do not allow file names longer than 255.*/
+     * Modern popular FS do not allow file names longer than 255.
+     */
     const val FILENAME_MAX = 255
 
     /**
@@ -62,7 +65,7 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
       candidateItem = null
     }
 
-    fun startPathMode(){
+    fun startPathMode() {
       state = ParsingState.PATH
       pathStartIndex = i
       lastPathSegmentStart = i
@@ -89,19 +92,16 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
         // other than the file system root (e.g. progress indicators like "[10 / 1,000]").
         return null
       }
-      val file = try {
-        localFileSystem.findFileByPathIfCached(path)
-      } catch (t: Throwable) {
-        // We interpret any exception to mean the file is not found.
-        null
-      }
+      val file =
+        try {
+          localFileSystem.findFileByPathIfCached(path)
+        } catch (t: Throwable) {
+          // We interpret any exception to mean the file is not found.
+          null
+        }
       return if (file != null) {
-        Filter.ResultItem(
-          indexOffset + pathStartIndex,
-          indexOffset + i,
-          OpenFileHyperlinkInfo(project, file, lineNumber, columnNumber))
-      }
-      else {
+        Filter.ResultItem(indexOffset + pathStartIndex, indexOffset + i, OpenFileHyperlinkInfo(project, file, lineNumber, columnNumber))
+      } else {
         null
       }
     }
@@ -120,15 +120,12 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
             i += 2
           }
         }
-      }
-      else {
+      } else {
         // Try to parse as path:line:column:
         lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
         columnNumber =
-          if (line.getOrNull(++i) == ':')
-            line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-          else
-            1
+          if (line.getOrNull(++i) == ':') line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+          else 1
       }
       return findValidResult(pathEndIndex, lineNumber - 1, columnNumber - 1)
     }
@@ -141,7 +138,7 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
               // Start parsing a Linux path
               startPathMode()
             }
-            line[i] in 'A'..'Z' && (line.startsWith(":\\", startIndex = i + 1) || line.startsWith(":/", startIndex = i + 1) ) -> {
+            line[i] in 'A'..'Z' && (line.startsWith(":\\", startIndex = i + 1) || line.startsWith(":/", startIndex = i + 1)) -> {
               // Start parsing a Windows path
               startPathMode()
               i += 2
@@ -151,59 +148,58 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
         ParsingState.PATH -> {
           if ((i - lastPathSegmentStart) > FILENAME_MAX) {
             startCanceledMode()
-          }
-          else when {
-            line[i] == '\\' || line[i] == '/' -> {
-              lastPathSegmentStart = i + 1
-              if (i - pathStartIndex > 1){
-                val currentCandidate = findValidResult(i, 0, 0)
-                if (currentCandidate == null) {
-                  /* This is not a valid path it means that continuing as a path no longer will result in a valid file, but this could be
-                     the start of a new path. Need to move back up to 4 characters since the path could include a drive letter.
-                   */
-                  if ((i - 3) > pathStartIndex && line[i - 1] == ':' && line[i - 2] in 'A'..'Z' && line[i - 3].isWhitespace()) {
-                    i -= 5
-                    startNormalMode()
+          } else
+            when {
+              line[i] == '\\' || line[i] == '/' -> {
+                lastPathSegmentStart = i + 1
+                if (i - pathStartIndex > 1) {
+                  val currentCandidate = findValidResult(i, 0, 0)
+                  if (currentCandidate == null) {
+                    /* This is not a valid path it means that continuing as a path no longer will result in a valid file, but this could be
+                      the start of a new path. Need to move back up to 4 characters since the path could include a drive letter.
+                    */
+                    if ((i - 3) > pathStartIndex && line[i - 1] == ':' && line[i - 2] in 'A'..'Z' && line[i - 3].isWhitespace()) {
+                      i -= 5
+                      startNormalMode()
+                    } else if ((i - 1) > pathStartIndex && line[i - 1].isWhitespace()) {
+                      i -= 2
+                      startNormalMode()
+                    } else {
+                      startCanceledMode()
+                    }
                   }
-                  else if ((i - 1) > pathStartIndex && line[i -1].isWhitespace()) {
+                }
+              }
+              line[i] == ':' -> {
+                val previousI = i
+                val longestCandidate = findValidResultWithNumbers(i)
+                if (longestCandidate != null) {
+                  candidateItem = longestCandidate
+                } else {
+                  // Could not parse numbers correctly (or is not a valid path, restore i)
+                  i = previousI
+                  // Could be the start of a windows path, move back in that case
+                  if (
+                    ((i - 1) > pathStartIndex) &&
+                      (line[i - 1] in 'A'..'Z') &&
+                      ((i + 1) < line.length) &&
+                      (line[i + 1] == '/' || line[i + 1] == '\\')
+                  ) {
                     i -= 2
-                    startNormalMode()
                   }
-                  else {
-                    startCanceledMode()
-                  }
+                }
+                startNormalMode()
+              }
+              // Paths can have white spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
+              // Or can be a valid path but be the prefix of a longer path (for example "/work projects/" and "/work projects 2" exist,
+              // https://issuetracker.google.com/issues/167701951)
+              line[i].isWhitespace() -> {
+                val possibleCandidate = findValidResult(i, 0, 0)
+                if (possibleCandidate != null) {
+                  candidateItem = possibleCandidate
                 }
               }
             }
-            line[i] == ':' -> {
-              val previousI = i
-              val longestCandidate = findValidResultWithNumbers(i)
-              if (longestCandidate != null) {
-                candidateItem = longestCandidate
-              }
-              else {
-                // Could not parse numbers correctly (or is not a valid path, restore i)
-                i = previousI
-                // Could be the start of a windows path, move back in that case
-                if (((i - 1) > pathStartIndex)
-                    && (line[i - 1] in 'A'..'Z')
-                    && ((i + 1) < line.length)
-                    && (line[i + 1] == '/' || line[i + 1] == '\\')) {
-                  i -= 2
-                }
-              }
-              startNormalMode()
-            }
-            // Paths can have white spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
-            // Or can be a valid path but be the prefix of a longer path (for example "/work projects/" and "/work projects 2" exist,
-            // https://issuetracker.google.com/issues/167701951)
-            line[i].isWhitespace() -> {
-              val possibleCandidate = findValidResult(i, 0, 0)
-              if (possibleCandidate != null) {
-                candidateItem = possibleCandidate
-              }
-            }
-          }
         }
         ParsingState.CANCELED_PATH -> if (line[i].isWhitespace()) startNormalMode()
       }
@@ -217,12 +213,12 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
   }
 }
 
-private fun String?.safeToIntOrDefault(default: Int): Int = try {
-  this?.toInt() ?: default
-}
-catch (e: NumberFormatException) {
-  default
-}
+private fun String?.safeToIntOrDefault(default: Int): Int =
+  try {
+    this?.toInt() ?: default
+  } catch (e: NumberFormatException) {
+    default
+  }
 
 private fun String.takeWhileFromIndex(index: Int, predicate: (Char) -> Boolean): String? {
   for (i in index until length) {
@@ -236,4 +232,3 @@ private fun String.takeWhileFromIndex(index: Int, predicate: (Char) -> Boolean):
 class GenericFileFilterProvider : ConsoleFilterProvider {
   override fun getDefaultFilters(project: Project) = arrayOf(GenericFileFilter(project, LocalFileSystem.getInstance()))
 }
-

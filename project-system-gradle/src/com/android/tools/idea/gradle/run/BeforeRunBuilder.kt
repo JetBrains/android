@@ -20,5 +20,3 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 internal interface BeforeRunBuilder {
   fun build(commandLineArguments: List<String>): AssembleInvocationResult?
 }
-
-

@@ -56,32 +56,27 @@ import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they
- * can be recognized elsewhere and included in the search scope when necessary.
+ * Key used to mark the [VirtualFile]s backing any light classes created in this cache, so that they can be recognized elsewhere and
+ * included in the search scope when necessary.
  */
 private val BACKING_FILE_MARKER: Key<Any> = Key("LIGHT_BINDING_CLASS_BACKING_FILE_MARKER")
 
 @ThreadSafe
 class LayoutBindingModuleCache(val module: Module) : Disposable {
   companion object {
-    @JvmStatic
-    fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.module.service()
+    @JvmStatic fun getInstance(facet: AndroidFacet): LayoutBindingModuleCache = facet.module.service()
   }
 
   /** Value to be stored with [BACKING_FILE_MARKER], unique to this module. */
   private val moduleBindingClassMarker = Any()
 
   /**
-   * [LightBindingClassSearchScope] representing only the current module. When accessed via
-   * [lightBindingClassSearchScope], additional modules needed for light binding class resolution
-   * will be included as well.
+   * [LightBindingClassSearchScope] representing only the current module. When accessed via [lightBindingClassSearchScope], additional
+   * modules needed for light binding class resolution will be included as well.
    */
   private val singleModuleSearchScope = LightBindingClassSearchScope(moduleBindingClassMarker)
 
-  /**
-   * Search scope which includes any light binding classes generated in this cache for the current
-   * module.
-   */
+  /** Search scope which includes any light binding classes generated in this cache for the current module. */
   val lightBindingClassSearchScope: GlobalSearchScope
     get() = makeLightBindingClassSearchScope()
 
@@ -139,10 +134,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
 
     module.project.messageBus
       .connect(this)
-      .subscribe(
-        PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { syncModeWithDependencies() },
-      )
+      .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, ProjectSystemSyncManager.SyncResultListener { syncModeWithDependencies() })
     syncModeWithDependencies()
   }
 
@@ -161,9 +153,8 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    *
    * If this is the first time requesting this information, it will be created on the fly.
    *
-   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if we
-   * were not able to obtain enough information from the given facet at this time (e.g. because we
-   * couldn't determine the class's fully-qualified name).
+   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if we were not able to obtain enough
+   * information from the given facet at this time (e.g. because we couldn't determine the class's fully-qualified name).
    */
   val lightBrClass: LightBrClass?
     get() =
@@ -174,8 +165,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
         if (clazz != null) return@updateAndGet clazz
 
         val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return@updateAndGet null
-        LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
-          .withMarkedBackingFile()
+        LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName).withMarkedBackingFile()
       }
 
   private val _lightDataBindingComponentClass = AtomicReference<LightDataBindingComponentClass?>()
@@ -184,25 +174,22 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
    *
    * If this is the first time requesting this information, it will be created on the fly.
    *
-   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if the
-   * current module doesn't provide one (e.g. it's not an app module).
+   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if the current module doesn't provide one
+   * (e.g. it's not an app module).
    */
   val lightDataBindingComponentClass: LightDataBindingComponentClass?
     get() =
       _lightDataBindingComponentClass.updateAndGet { clazz ->
-        val facet =
-          AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject }
-            ?: return@updateAndGet null
+        val facet = AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject } ?: return@updateAndGet null
 
         // Reuse the existing class if it's already been created.
         if (clazz != null) return@updateAndGet clazz
-        LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
-          .withMarkedBackingFile()
+        LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet).withMarkedBackingFile()
       }
 
   /**
-   * Returns all [BindingLayoutGroup] instances associated with this module, representing all
-   * layouts that should have bindings generated for them.
+   * Returns all [BindingLayoutGroup] instances associated with this module, representing all layouts that should have bindings generated
+   * for them.
    *
    * See also [getLightBindingClasses].
    */
@@ -220,8 +207,7 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
     return CachedValuesManager.getManager(project).getCachedValue(facet) {
       val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
       val modificationTracker = ModificationTracker { moduleResources.modificationCount }
-      val layoutResources =
-        moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+      val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
       val bindingLayoutGroups =
         layoutResources
           .values()
@@ -230,55 +216,39 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
           .map { entry -> BindingLayoutGroup(entry.value) }
           .toSet()
 
-      val groupsWithClasses =
-        bindingLayoutGroups.associateWith { createLightBindingClasses(facet, it) }
+      val groupsWithClasses = bindingLayoutGroups.associateWith { createLightBindingClasses(facet, it) }
 
       // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
       // so we must incorporate both into the modification count (see b/283753328).
-      CachedValueProvider.Result(
-        groupsWithClasses,
-        modificationTracker,
-        BindingXmlIndexModificationTracker.getInstance(project),
-      )
+      CachedValueProvider.Result(groupsWithClasses, modificationTracker, BindingXmlIndexModificationTracker.getInstance(project))
     }
   }
 
   /**
-   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
-   * associated with this facet.
+   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files associated with this facet.
    *
-   * If there is only one layout.xml for a given group (i.e. single configuration), this will return
-   * a single light class for that group (a "Binding"). If there are multiple layout.xmls (i.e.
-   * multi- configuration), this will return a main light class ("Binding") as well as several
-   * additional implementation light classes ("BindingImpl"s) for the group, one for each layout.
+   * If there is only one layout.xml for a given group (i.e. single configuration), this will return a single light class for that group (a
+   * "Binding"). If there are multiple layout.xmls (i.e. multi- configuration), this will return a main light class ("Binding") as well as
+   * several additional implementation light classes ("BindingImpl"s) for the group, one for each layout.
    *
-   * The groupFilter function is used to filter the [BindingLayoutGroup]s that correspond to the
-   * light classes; only classes for the filtered groups will be returned.
+   * The groupFilter function is used to filter the [BindingLayoutGroup]s that correspond to the light classes; only classes for the
+   * filtered groups will be returned.
    */
-  fun getLightBindingClasses(
-    groupFilter: ((BindingLayoutGroup) -> Boolean)? = null
-  ): List<LightBindingClass> {
+  fun getLightBindingClasses(groupFilter: ((BindingLayoutGroup) -> Boolean)? = null): List<LightBindingClass> {
     val groupsAndClasses = getLayoutGroupsAndLightClasses()
-    val filteredGroupsAndClasses =
-      if (groupFilter != null) groupsAndClasses.filterKeys(groupFilter) else groupsAndClasses
+    val filteredGroupsAndClasses = if (groupFilter != null) groupsAndClasses.filterKeys(groupFilter) else groupsAndClasses
 
     return filteredGroupsAndClasses.values.flatten()
   }
 
-  private fun createLightBindingClasses(
-    facet: AndroidFacet,
-    group: BindingLayoutGroup,
-  ): List<LightBindingClass> {
+  private fun createLightBindingClasses(facet: AndroidFacet, group: BindingLayoutGroup): List<LightBindingClass> {
     val configs = buildList {
       // Always add a full "Binding" class.
       add(BindingClassConfig(facet, group))
 
       // "Impl" classes are only necessary if we have more than a single configuration.
       // Also, only create "Impl" bindings for data binding; view binding does not generate them
-      if (
-        group.layouts.size > 1 &&
-          group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
-      ) {
+      if (group.layouts.size > 1 && group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT) {
         for (layoutIndex in group.layouts.indices) {
           add(BindingImplClassConfig(facet, group, layoutIndex))
         }
@@ -296,15 +266,11 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   override fun dispose() {}
 
   private fun <T : AndroidLightClassBase> T.withMarkedBackingFile() = apply {
-    requireNotNull(containingFile)
-      .viewProvider
-      .virtualFile
-      .putUserData(BACKING_FILE_MARKER, moduleBindingClassMarker)
+    requireNotNull(containingFile).viewProvider.virtualFile.putUserData(BACKING_FILE_MARKER, moduleBindingClassMarker)
   }
 
   /** Search scope which recognizes any light classes created with the given marker. */
-  private class LightBindingClassSearchScope(private val bindingClassMarker: Any) :
-    GlobalSearchScope() {
+  private class LightBindingClassSearchScope(private val bindingClassMarker: Any) : GlobalSearchScope() {
     override fun contains(file: VirtualFile): Boolean {
       return file.getUserData(BACKING_FILE_MARKER) === bindingClassMarker
     }

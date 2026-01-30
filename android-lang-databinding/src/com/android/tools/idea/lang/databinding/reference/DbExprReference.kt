@@ -27,10 +27,11 @@ import com.intellij.psi.PsiReference
  * @param resolveTo target of the reference and the return value of [resolve]
  * @param textRange the part of the underlying element which serves as a reference, and the return value of [getRangeInElement]
  */
-internal abstract class DbExprReference(private val psiElement: PsiElement,
-                                        private val resolveTo: PsiElement?,
-                                        private val textRange: TextRange = TextRange(0, psiElement.textLength))
-  : ModelClassResolvable, PsiReference {
+internal abstract class DbExprReference(
+  private val psiElement: PsiElement,
+  private val resolveTo: PsiElement?,
+  private val textRange: TextRange = TextRange(0, psiElement.textLength),
+) : ModelClassResolvable, PsiReference {
 
   override fun getElement(): PsiElement {
     return psiElement

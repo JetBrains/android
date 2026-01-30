@@ -32,9 +32,7 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
             .withBounds(0, 0, 800, 1300)
             .withMockView()
             .children(
-              component("com.google.android.material.bottomnavigation.BottomNavigationView")
-                .withBounds(0, 0, 800, 100)
-                .withMockView()
+              component("com.google.android.material.bottomnavigation.BottomNavigationView").withBounds(0, 0, 800, 100).withMockView()
             ),
         )
         .build()
@@ -51,18 +49,13 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
             .withBounds(0, 0, 2000, 1300)
             .withMockView()
             .children(
-              component("com.google.android.material.bottomnavigation.BottomNavigationView")
-                .withBounds(0, 0, 2000, 100)
-                .withMockView()
+              component("com.google.android.material.bottomnavigation.BottomNavigationView").withBounds(0, 0, 2000, 100).withMockView()
             ),
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = BottomNavAnalyzer.findIssues(renderResult, model.configuration)
     assertEquals(1, issues.size)
-    assertEquals(
-      "Bottom navigation bar is not recommended for breakpoints over 600dp",
-      issues[0].message,
-    )
+    assertEquals("Bottom navigation bar is not recommended for breakpoints over 600dp", issues[0].message)
   }
 }

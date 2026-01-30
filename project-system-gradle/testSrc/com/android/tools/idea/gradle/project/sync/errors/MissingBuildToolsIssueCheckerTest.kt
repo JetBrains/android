@@ -25,33 +25,39 @@ class MissingBuildToolsIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: failed to find Build Tools revision ",
-        "Caused by: java.lang.IllegalStateException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: failed to find Build Tools revision ",
+          "Caused by: java.lang.IllegalStateException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: Failed to find Build Tools revision ",
-        "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: Failed to find Build Tools revision ",
+          "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Cause: failed to find Build Tools revision ",
-        "Caused by: java.net.SocketException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(false)
+        missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Cause: failed to find Build Tools revision ",
+          "Caused by: java.net.SocketException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(false)
   }
 }

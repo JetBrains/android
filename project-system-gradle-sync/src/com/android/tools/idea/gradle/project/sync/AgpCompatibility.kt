@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -28,16 +27,21 @@ import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginC
 
 internal val MINIMUM_SUPPORTED_AGP_VERSION = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
 
-internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVersion?, agpVersion: AgpVersion, flags: GradleSyncStudioFlags) {
+internal fun checkAgpVersionCompatibility(
+  minimumModelConsumer: ModelConsumerVersion?,
+  agpVersion: AgpVersion,
+  flags: GradleSyncStudioFlags,
+) {
   val latestKnown = AgpVersion.parse(flags.studioLatestKnownAgpVersion)
 
   /**
-   * For AGPs that support minimumModelConsumerVersion, use that to determine the maximum supported,
-   * otherwise fall back to [computeAndroidGradlePluginCompatibility]
+   * For AGPs that support minimumModelConsumerVersion, use that to determine the maximum supported, otherwise fall back to
+   * [computeAndroidGradlePluginCompatibility]
    */
   if (minimumModelConsumer != null && flags.studioFlagSupportFutureAgpVersions) {
-     return when {
-      // TODO(b/272491108): Include the human readable minimum model consumer version (i.e the version of Studio to update to) in this error message
+    return when {
+      // TODO(b/272491108): Include the human readable minimum model consumer version (i.e the version of Studio to update to) in this error
+      // message
       agpVersion < MINIMUM_SUPPORTED_AGP_VERSION -> throw AgpVersionTooOld(agpVersion)
       (minimumModelConsumer > flags.modelConsumerVersion) -> throw AgpVersionTooNew(agpVersion, latestKnown)
       else -> Unit // Compatible
@@ -48,10 +52,10 @@ internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVer
     // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,
     // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.
     BEFORE_MINIMUM -> throw AgpVersionTooOld(agpVersion)
-    DIFFERENT_PREVIEW ->
-      if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion, latestKnown) else Unit
-    AFTER_MAXIMUM ->
-      if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion, latestKnown) else Unit
-    COMPATIBLE, DEPRECATED, OBSOLETE -> Unit
+    DIFFERENT_PREVIEW -> if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion, latestKnown) else Unit
+    AFTER_MAXIMUM -> if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion, latestKnown) else Unit
+    COMPATIBLE,
+    DEPRECATED,
+    OBSOLETE -> Unit
   }
 }

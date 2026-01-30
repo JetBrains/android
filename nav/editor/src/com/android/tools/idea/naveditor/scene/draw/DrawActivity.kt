@@ -62,16 +62,8 @@ class DrawActivity(
     list.add(DrawShape(imageRectangle, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
 
     val textHeight = rectangle.height - imageRectangle.height - (imageRectangle.x - rectangle.x)
-    val textRectangle =
-      SwingRectangle(
-        rectangle.x,
-        imageRectangle.y + imageRectangle.height,
-        rectangle.width,
-        textHeight,
-      )
-    list.add(
-      DrawTruncatedText("Activity", textRectangle, textColor, scaledFont(scale, Font.BOLD), true)
-    )
+    val textRectangle = SwingRectangle(rectangle.x, imageRectangle.y + imageRectangle.height, rectangle.width, textHeight)
+    list.add(DrawTruncatedText("Activity", textRectangle, textColor, scaledFont(scale, Font.BOLD), true))
 
     return list
   }

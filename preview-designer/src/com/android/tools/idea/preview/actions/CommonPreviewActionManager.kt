@@ -41,25 +41,18 @@ open class CommonPreviewActionManager(
   supportAnimationPreview: Boolean = true,
   supportInteractivePreview: Boolean = true,
 ) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
-  private val animationPreviewAction =
-    if (supportAnimationPreview) AnimationInspectorAction() else null
-  private val interactivePreviewAction =
-    if (supportInteractivePreview) EnableInteractiveAction() else null
+  private val animationPreviewAction = if (supportAnimationPreview) AnimationInspectorAction() else null
+  private val interactivePreviewAction = if (supportInteractivePreview) EnableInteractiveAction() else null
 
   protected val copyResultImageAction =
-    CopyResultImageAction(
-      message("copy.result.image.action.title"),
-      message("copy.result.image.action.done.text"),
-    )
+    CopyResultImageAction(message("copy.result.image.action.title"), message("copy.result.image.action.done.text"))
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun getPopupMenuActions(
-    leafComponent: NlComponent?,
-    mouseEvent: MouseEvent,
-  ): DefaultActionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
+  override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup =
+    DefaultActionGroup().apply { add(copyResultImageAction) }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
@@ -82,10 +75,6 @@ open class CommonPreviewActionManager(
     listOfNotNull(animationPreviewAction, interactivePreviewAction)
       .takeIf { it.isNotEmpty() }
       ?.let {
-        listOf(Separator()) +
-          it
-            .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
-            .hideIfRenderErrors()
-            .visibleOnlyInStaticPreview()
+        listOf(Separator()) + it.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild().hideIfRenderErrors().visibleOnlyInStaticPreview()
       } ?: emptyList()
 }

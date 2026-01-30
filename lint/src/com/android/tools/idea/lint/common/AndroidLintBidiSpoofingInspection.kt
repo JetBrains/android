@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.BidirectionalTextDetector
 
 class AndroidLintBidiSpoofingInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.bidi.spoofing"),
-    BidirectionalTextDetector.BIDI_SPOOFING,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.bidi.spoofing"), BidirectionalTextDetector.BIDI_SPOOFING)

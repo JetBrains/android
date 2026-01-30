@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
 
 class AndroidLintKaptUsageInsteadOfKspInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.kapt.usage.instead.of.ksp"),
-    GradleDetector.KAPT_USAGE_INSTEAD_OF_KSP,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.kapt.usage.instead.of.ksp"), GradleDetector.KAPT_USAGE_INSTEAD_OF_KSP)

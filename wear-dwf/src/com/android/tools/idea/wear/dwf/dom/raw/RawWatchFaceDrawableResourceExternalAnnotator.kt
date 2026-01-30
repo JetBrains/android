@@ -34,18 +34,15 @@ import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * An Annotator that puts icons in the gutter for drawables referenced in a Declarative Watch Face
- * file (in res/raw) to help the user recognise which drawables are being used. The drawables
- * referenced in the XML file do not have a `@drawable` prefix. Furthermore, the attributes are not
- * defined through [org.jetbrains.android.dom.AndroidDomElement]s as we use an
- * [com.intellij.xml.XmlSchemaProvider].
+ * An Annotator that puts icons in the gutter for drawables referenced in a Declarative Watch Face file (in res/raw) to help the user
+ * recognise which drawables are being used. The drawables referenced in the XML file do not have a `@drawable` prefix. Furthermore, the
+ * attributes are not defined through [org.jetbrains.android.dom.AndroidDomElement]s as we use an [com.intellij.xml.XmlSchemaProvider].
  *
- * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. These
- * attributes can be used by multiple different tags.
+ * Drawable resources can be referenced in the [DRAWABLE_RESOURCE_ATTRIBUTES] attributes. These attributes can be used by multiple different
+ * tags.
  *
  * @see RawWatchfaceXmlSchemaProvider
- * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
- *   Face Format reference</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
  */
 class RawWatchFaceDrawableResourceExternalAnnotator : AndroidResourceExternalAnnotatorBase() {
   override fun collectInformation(file: PsiFile, editor: Editor): FileAnnotationInfo? {
@@ -84,8 +81,7 @@ class RawWatchFaceDrawableResourceExternalAnnotator : AndroidResourceExternalAnn
             return
           }
           // The namespace is null as declarative watch faces can only reference project resources
-          val resourceUrl =
-            ResourceUrl.create(/* namespace */ null, ResourceType.DRAWABLE, attributeValue.value)
+          val resourceUrl = ResourceUrl.create(/* namespace */ null, ResourceType.DRAWABLE, attributeValue.value)
           val reference = resourceUrl.resolve(attributeValue) ?: return
           if (reference.resourceType == ResourceType.DRAWABLE) {
             annotationInfo.elements += AnnotatableElement(reference, attributeValue)

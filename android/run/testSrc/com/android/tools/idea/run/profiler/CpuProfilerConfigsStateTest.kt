@@ -24,12 +24,14 @@ class CpuProfilerConfigsStateTest {
   @Test
   fun testDefaultConfigs() {
     val configs = CpuProfilerConfigsState.getDefaultConfigs()
-    assertThat(configs.map { it.name }).containsExactly(
+    assertThat(configs.map { it.name })
+      .containsExactly(
         CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
         CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
         CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
         CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
-    ).inOrder()
+      )
+      .inOrder()
   }
 
   @Test
@@ -52,7 +54,7 @@ class CpuProfilerConfigsStateTest {
     configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
     // Verify set task configs
-    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault;
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     assertThat(result.size).isEqualTo(3)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")

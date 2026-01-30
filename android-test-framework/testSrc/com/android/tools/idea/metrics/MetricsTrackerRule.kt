@@ -21,8 +21,7 @@ import com.android.tools.analytics.UsageTracker
 import org.junit.rules.ExternalResource
 
 /** Rule that sets up and tears down a [TestUsageTracker] */
-class MetricsTrackerRule(scheduler: VirtualTimeScheduler = VirtualTimeScheduler()) :
-  ExternalResource() {
+class MetricsTrackerRule(scheduler: VirtualTimeScheduler = VirtualTimeScheduler()) : ExternalResource() {
   val testTracker: TestUsageTracker = TestUsageTracker(scheduler)
 
   override fun before() {

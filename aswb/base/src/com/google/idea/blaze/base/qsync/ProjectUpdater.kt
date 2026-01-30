@@ -78,7 +78,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
 
   enum class ProjectStructure {
     SHARDED_LIBRARY,
-    LIBRARY_PER_TARGET
+    LIBRARY_PER_TARGET,
   }
 
   companion object {
@@ -91,11 +91,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
 
   private val logger = Logger.getInstance(ProjectUpdater::class.java)
 
-  override fun onNewProjectStructure(
-    context: Context<*>,
-    querySyncProject: ReadonlyQuerySyncProject,
-    graph: QuerySyncProjectSnapshot,
-  ) {
+  override fun onNewProjectStructure(context: Context<*>, querySyncProject: ReadonlyQuerySyncProject, graph: QuerySyncProjectSnapshot) {
     val newProjectProtoSnapshot = graph.project
     if (lastProjectProtoSnapshot == newProjectProtoSnapshot) {
       context.output(PrintOutput.output("IDE project structure up-to-date"))
@@ -112,15 +108,12 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     }
   }
 
-  data class ProjectData(
-    val modules: List<ModuleData>,
-    val libraries: List<LibraryData>,
-  ) {
+  data class ProjectData(val modules: List<ModuleData>, val libraries: List<LibraryData>) {
     companion object
   }
 
   @JvmInline
-  value class LibraryName private constructor (private val name: String) {
+  value class LibraryName private constructor(private val name: String) {
     fun asString(): String = name
 
     companion object {
@@ -139,7 +132,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
   }
 
   @JvmInline
-  value class IdeaUrl private constructor (private val url: String) {
+  value class IdeaUrl private constructor(private val url: String) {
     companion object {
       fun fromPath(path: Path, innerJarPath: Path): IdeaUrl {
         return IdeaUrl(UrlUtil.pathToUrl(path.toString(), innerJarPath))
@@ -159,28 +152,15 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     }
   }
 
-  data class LibraryData(
-    val name: LibraryName,
-    val jarUrls: List<IdeaUrl>,
-    val sourceUrls: List<IdeaUrl>,
-  ) {
+  data class LibraryData(val name: LibraryName, val jarUrls: List<IdeaUrl>, val sourceUrls: List<IdeaUrl>) {
     companion object
   }
 
-  data class ContentRootData(
-    val url: IdeaUrl,
-    val sourceRoots: List<SourceRootData>,
-    val excludedRoots: List<IdeaUrl>,
-  ) {
+  data class ContentRootData(val url: IdeaUrl, val sourceRoots: List<SourceRootData>, val excludedRoots: List<IdeaUrl>) {
     companion object
   }
 
-  data class SourceRootData(
-    val url: IdeaUrl,
-    val rootTypeId: SourceRootTypeId,
-    val isGenerated: Boolean,
-    val packagePrefix: String,
-  ) {
+  data class SourceRootData(val url: IdeaUrl, val rootTypeId: SourceRootTypeId, val isGenerated: Boolean, val packagePrefix: String) {
     companion object
   }
 
@@ -195,8 +175,9 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     private val projectPathResolver = querySyncProject.projectPathResolver
 
     fun ProjectPath.toIdeaUrl(): IdeaUrl {
-      return IdeaUrl.fromPath(projectPathResolver.resolve(this), innerPath)
-        .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
+      return IdeaUrl.fromPath(projectPathResolver.resolve(this), innerPath).also {
+        virtualFileManager.findFileByUrl(it)
+      } // Register roots in a background thread.
     }
 
     fun ModuleData.Companion.from(
@@ -209,7 +190,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
         dependencies = dependencies,
         contentRoots = contentRoots,
         isAndroidModule = module.isAndroidModule,
-        kotlinCompilerFlags = module.kotlinCompilerFlags
+        kotlinCompilerFlags = module.kotlinCompilerFlags,
       )
     }
 
@@ -239,7 +220,7 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
         url = projectPath.toIdeaUrl(),
         rootTypeId = if (isTest) JAVA_TEST_ROOT_ENTITY_TYPE_ID else JAVA_SOURCE_ROOT_ENTITY_TYPE_ID,
         isGenerated = isGenerated,
-        packagePrefix = packagePrefix
+        packagePrefix = packagePrefix,
       )
     }
 
@@ -250,37 +231,31 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     ): ContentRootData {
       return ContentRootData(
         url = root.toIdeaUrl(),
-        sourceRoots = sources.map {
-          SourceRootData.from(
-            it.projectPath,
-            it.isTest,
-            it.isGenerated,
-            it.packagePrefix)
-        },
+        sourceRoots = sources.map { SourceRootData.from(it.projectPath, it.isTest, it.isGenerated, it.packagePrefix) },
         excludedRoots = excludedRoots.map { it.toIdeaUrl() },
       )
     }
 
     fun ProjectData.Companion.from(project: ProjectProto.Project): ProjectData {
-      val libraries = when (projectStructureExperiment.value) {
-        ProjectStructure.LIBRARY_PER_TARGET ->
-          project.libraries.values.map { LibraryData.from(it) }
+      val libraries =
+        when (projectStructureExperiment.value) {
+          ProjectStructure.LIBRARY_PER_TARGET -> project.libraries.values.map { LibraryData.from(it) }
 
-        ProjectStructure.SHARDED_LIBRARY -> let {
-          val shards = libraryShardsExperiment.value.toULong()
-          project.libraries.values
-            .groupBy { it.name.hashCode().toULong() % shards }
-            .map {
-              LibraryData.from("Lib ${it.key}", it.value)
+          ProjectStructure.SHARDED_LIBRARY ->
+            let {
+              val shards = libraryShardsExperiment.value.toULong()
+              project.libraries.values.groupBy { it.name.hashCode().toULong() % shards }.map { LibraryData.from("Lib ${it.key}", it.value) }
             }
         }
-      }
       return ProjectData(
-        modules = project.modules.map {
-          ModuleData.from(it, libraries.map { it.name }, it.contentEntries.values.map {
-            ContentRootData.from(it.root, sources = it.sourceFolders, excludedRoots = it.excludes)
-          })
-        },
+        modules =
+          project.modules.map {
+            ModuleData.from(
+              it,
+              libraries.map { it.name },
+              it.contentEntries.values.map { ContentRootData.from(it.root, sources = it.sourceFolders, excludedRoots = it.excludes) },
+            )
+          },
         libraries = libraries,
       )
     }
@@ -329,119 +304,127 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
     }
   }
 
-  private fun buildChanges(
-    storage: MutableEntityStorage,
-    projectData: ProjectData
-  ) {
+  private fun buildChanges(storage: MutableEntityStorage, projectData: ProjectData) {
     val virtualFileUrlManager = WorkspaceModel.getInstance(project).getVirtualFileUrlManager()
     val replaceJpsSourceEntities =
       !coexistWithJpsSourceEntitiesExperiment.value ||
-      storage.entitiesBySource {it is BazelEntitySource}.none() // Conversion of an older project.
+        storage.entitiesBySource { it is BazelEntitySource }.none() // Conversion of an older project.
     storage.replaceBySource(
       { it is BazelEntitySource || replaceJpsSourceEntities && it is JpsProjectFileEntitySource },
       MutableEntityStorage.create().apply {
-        val libraries = projectData.libraries.associate {
-          it.name to addEntity(LibraryEntity(
-            name = it.name.asString(),
-            tableId = LibraryTableId.ProjectLibraryTableId,
-            roots = it.jarUrls.map {
-              LibraryRoot(
-                url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.COMPILED)
-            } + it.sourceUrls.map {
-              LibraryRoot(
-                url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.SOURCES)
-            },
-            entitySource = BazelEntitySource
-          ))
-        }
+        val libraries =
+          projectData.libraries.associate {
+            it.name to
+              addEntity(
+                LibraryEntity(
+                  name = it.name.asString(),
+                  tableId = LibraryTableId.ProjectLibraryTableId,
+                  roots =
+                    it.jarUrls.map { LibraryRoot(url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.COMPILED) } +
+                      it.sourceUrls.map {
+                        LibraryRoot(url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.SOURCES)
+                      },
+                  entitySource = BazelEntitySource,
+                )
+              )
+          }
 
         for (moduleData in projectData.modules) {
-          val dependencies = listOf(ModuleSourceDependency, InheritedSdkDependency) +
-                             moduleData.dependencies.map {
-                               LibraryDependency(libraries[it]?.symbolicId ?: error("Unresolved library dependency: $it"),
-                                                 exported = false,
-                                                 scope = DependencyScope.COMPILE)
-                             }
-          val moduleEntity = addEntity(
-            ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {
-              this.contentRoots = moduleData.contentRoots.map {
-                ContentRootEntity(
-                  url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
-                  excludedPatterns = listOf(),
-                  entitySource = BazelEntitySource
-                ) {
-                  this.sourceRoots = it.sourceRoots.map {
-                    SourceRootEntity(
-                      url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
-                      rootTypeId = it.rootTypeId,
-                      entitySource = BazelEntitySource
-                    ) {
-                      this.javaSourceRoots += JavaSourceRootPropertiesEntity(
-                        generated = it.isGenerated,
-                        packagePrefix = it.packagePrefix,
-                        entitySource = BazelEntitySource
-                      )
-                    }
-                  }
-                  this.excludedUrls = it.excludedRoots.map {
-                    ExcludeUrlEntity(
-                      url = virtualFileUrlManager.getOrCreateFromUrl(it),
-                      entitySource = BazelEntitySource
-                    ) { }
-                  }
-                }
-              }
-              if (moduleData.isAndroidModule) {
-                addEntity(FacetEntity(
-                  moduleId = ModuleId(this@ModuleEntity.name),
-                  name = AndroidFacet.NAME,
-                  typeId = FacetEntityTypeId(AndroidFacetType.TYPE_ID),
-                  entitySource = BazelEntitySource
-                ) {
-                  module = this@ModuleEntity // Needed despite moduleId is required above.
-                  val facetConfiguration = AndroidFacet.getFacetType().createDefaultConfiguration().apply {
-                    state.apply {
-                      ALLOW_USER_CONFIGURATION = false
-                      PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-                      MANIFEST_FILE_RELATIVE_PATH = ""
-                      RES_FOLDER_RELATIVE_PATH = ""
-                      ASSETS_FOLDER_RELATIVE_PATH = ""
-                    }
-                  }
-                  configurationXmlTag = JDOMUtil.write(FacetUtil.saveFacetConfiguration(facetConfiguration) ?: error("Failed to save facet configuration"))
-                })
-              }
-              let { // Setup Kotlin.
-                addEntity(
-                  KotlinSettingsEntity(
-                    moduleId = ModuleId(this@ModuleEntity.name),
-                    name = KotlinFacetType.NAME,
-                    sourceRoots = emptyList(),
-                    configFileItems = emptyList(),
-                    useProjectSettings = false,
-                    implementedModuleNames = emptyList(),
-                    dependsOnModuleNames = emptyList(),
-                    additionalVisibleModuleNames = emptySet(),
-                    sourceSetNames = emptyList(),
-                    isTestModule = false,
-                    externalProjectId = "",
-                    isHmppEnabled = false,
-                    pureKotlinSourceFolders = emptyList(),
-                    kind = KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER,
-                    externalSystemRunTasks = emptyList(),
-                    version = KotlinFacetSettings.CURRENT_VERSION,
-                    flushNeeded = false,
-                    entitySource = BazelEntitySource
-                    ) {
-                    module = this@ModuleEntity
-                    updatePluginOptions(KotlinFacetSettingsWorkspaceModel(this), listOf(), moduleData.kotlinCompilerFlags)
-                  }
+          val dependencies =
+            listOf(ModuleSourceDependency, InheritedSdkDependency) +
+              moduleData.dependencies.map {
+                LibraryDependency(
+                  libraries[it]?.symbolicId ?: error("Unresolved library dependency: $it"),
+                  exported = false,
+                  scope = DependencyScope.COMPILE,
                 )
               }
-            }
-          )
+          val moduleEntity =
+            addEntity(
+              ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {
+                this.contentRoots =
+                  moduleData.contentRoots.map {
+                    ContentRootEntity(
+                      url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
+                      excludedPatterns = listOf(),
+                      entitySource = BazelEntitySource,
+                    ) {
+                      this.sourceRoots =
+                        it.sourceRoots.map {
+                          SourceRootEntity(
+                            url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
+                            rootTypeId = it.rootTypeId,
+                            entitySource = BazelEntitySource,
+                          ) {
+                            this.javaSourceRoots +=
+                              JavaSourceRootPropertiesEntity(
+                                generated = it.isGenerated,
+                                packagePrefix = it.packagePrefix,
+                                entitySource = BazelEntitySource,
+                              )
+                          }
+                        }
+                      this.excludedUrls =
+                        it.excludedRoots.map {
+                          ExcludeUrlEntity(url = virtualFileUrlManager.getOrCreateFromUrl(it), entitySource = BazelEntitySource) {}
+                        }
+                    }
+                  }
+                if (moduleData.isAndroidModule) {
+                  addEntity(
+                    FacetEntity(
+                      moduleId = ModuleId(this@ModuleEntity.name),
+                      name = AndroidFacet.NAME,
+                      typeId = FacetEntityTypeId(AndroidFacetType.TYPE_ID),
+                      entitySource = BazelEntitySource,
+                    ) {
+                      module = this@ModuleEntity // Needed despite moduleId is required above.
+                      val facetConfiguration =
+                        AndroidFacet.getFacetType().createDefaultConfiguration().apply {
+                          state.apply {
+                            ALLOW_USER_CONFIGURATION = false
+                            PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+                            MANIFEST_FILE_RELATIVE_PATH = ""
+                            RES_FOLDER_RELATIVE_PATH = ""
+                            ASSETS_FOLDER_RELATIVE_PATH = ""
+                          }
+                        }
+                      configurationXmlTag =
+                        JDOMUtil.write(FacetUtil.saveFacetConfiguration(facetConfiguration) ?: error("Failed to save facet configuration"))
+                    }
+                  )
+                }
+                let { // Setup Kotlin.
+                  addEntity(
+                    KotlinSettingsEntity(
+                      moduleId = ModuleId(this@ModuleEntity.name),
+                      name = KotlinFacetType.NAME,
+                      sourceRoots = emptyList(),
+                      configFileItems = emptyList(),
+                      useProjectSettings = false,
+                      implementedModuleNames = emptyList(),
+                      dependsOnModuleNames = emptyList(),
+                      additionalVisibleModuleNames = emptySet(),
+                      sourceSetNames = emptyList(),
+                      isTestModule = false,
+                      externalProjectId = "",
+                      isHmppEnabled = false,
+                      pureKotlinSourceFolders = emptyList(),
+                      kind = KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER,
+                      externalSystemRunTasks = emptyList(),
+                      version = KotlinFacetSettings.CURRENT_VERSION,
+                      flushNeeded = false,
+                      entitySource = BazelEntitySource,
+                    ) {
+                      module = this@ModuleEntity
+                      updatePluginOptions(KotlinFacetSettingsWorkspaceModel(this), listOf(), moduleData.kotlinCompilerFlags)
+                    }
+                  )
+                }
+              }
+            )
         }
-      }
+      },
     )
   }
 
@@ -463,23 +446,23 @@ class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
             querySyncProject.workspaceRoot,
             module,
             moduleSpec.androidSourcePackages.toSet() + moduleSpec.androidCustomPackages.toSet(),
-            querySyncProject.languageSettings
+            querySyncProject.languageSettings,
           )
         }
-        ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(
-          EmptyRunnable.getInstance(), RootsChangeRescanningInfo.RESCAN_DEPENDENCIES_IF_NEEDED
-        )
+        ProjectRootManagerEx.getInstanceEx(project)
+          .makeRootsChange(EmptyRunnable.getInstance(), RootsChangeRescanningInfo.RESCAN_DEPENDENCIES_IF_NEEDED)
       }
     }
   }
 
-  /** Entry point for instantiating [ProjectUpdater].  */
+  /** Entry point for instantiating [ProjectUpdater]. */
   class Provider : QuerySyncProjectListenerProvider {
     override fun createListener(querySyncManager: QuerySyncManager): QuerySyncProjectListener {
       return ProjectUpdater(querySyncManager.ideProject)
     }
   }
 }
+
 private val qsyncDisableCompose = BoolExperiment("qsync.disable.compose", false)
 
 private fun updatePluginOptions(
@@ -501,12 +484,8 @@ private fun updatePluginOptions(
     // user's plugin class path with it.
     // Note: This implementation may need updating if the Kotlin plugin alters its provider
     // replacement logic.
-    commonArguments.pluginClasspaths = arrayOf(
-      KotlinK2BundledCompilerPlugins.COMPOSE_COMPILER_PLUGIN.bundledJarLocation
-        .toString(),
-    )
+    commonArguments.pluginClasspaths = arrayOf(KotlinK2BundledCompilerPlugins.COMPOSE_COMPILER_PLUGIN.bundledJarLocation.toString())
   }
   commonArguments.pluginOptions = newPluginOptions.toTypedArray<String>()
   facetSettings.compilerArguments = commonArguments
 }
-

@@ -43,7 +43,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.asSafely
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -52,10 +51,10 @@ import org.mockito.kotlin.whenever
 
 class CodeSwapActionTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
 
-  val project get() = projectRule.project
+  val project
+    get() = projectRule.project
 
   private val APPLICATION_ID = "google.simpleapplication"
 
@@ -64,15 +63,14 @@ class CodeSwapActionTest {
   fun `enabled when running on device`() {
     // Set up
     val device = createMockDevice()
-    val service = mock<DeploymentApplicationService>().also {
-      whenever(it.findClient(device, APPLICATION_ID)).thenReturn(listOf(mock<Client>()))
-    }
+    val service =
+      mock<DeploymentApplicationService>().also { whenever(it.findClient(device, APPLICATION_ID)).thenReturn(listOf(mock<Client>())) }
     ApplicationManager.getApplication().replaceService(DeploymentApplicationService::class.java, service, projectRule.testRootDisposable)
     setExecutionTargetForConfiguration(
       project,
       device,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     // Update
@@ -90,15 +88,14 @@ class CodeSwapActionTest {
   fun applyCodeChangesAction_executesApplyCodeChanges() {
     // Set up
     val device = createMockDevice()
-    val service = mock<DeploymentApplicationService>().also {
-      whenever(it.findClient(device, APPLICATION_ID)).thenReturn(listOf(mock<Client>()))
-    }
+    val service =
+      mock<DeploymentApplicationService>().also { whenever(it.findClient(device, APPLICATION_ID)).thenReturn(listOf(mock<Client>())) }
     ApplicationManager.getApplication().replaceService(DeploymentApplicationService::class.java, service, projectRule.testRootDisposable)
     setExecutionTargetForConfiguration(
       project,
       device,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     var applyCodeChangesExecuted = false
@@ -136,8 +133,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because there is no configuration selected.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because there is no configuration selected.")
   }
 
   @Test
@@ -158,8 +155,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because can't detect applicationId.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because can't detect applicationId.")
   }
 
   @Test
@@ -178,8 +175,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because unsupported execution target.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because unsupported execution target.")
   }
 
   @Test
@@ -192,7 +189,7 @@ class CodeSwapActionTest {
       project,
       device,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     // Update
@@ -203,8 +200,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because its API level is lower than 26.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because its API level is lower than 26.")
   }
 
   @Test
@@ -215,7 +212,7 @@ class CodeSwapActionTest {
       project,
       null,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     // Update
@@ -226,8 +223,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because the selected devices are not connected.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because the selected devices are not connected.")
   }
 
   @Test
@@ -240,7 +237,7 @@ class CodeSwapActionTest {
       project,
       device,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     // Update
@@ -251,8 +248,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because the selected device is not ready yet.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because the selected device is not ready yet.")
   }
 
   @Test
@@ -265,7 +262,7 @@ class CodeSwapActionTest {
       project,
       device,
       RunManager.getInstance(project).selectedConfiguration!!.configuration,
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
 
     // Update
@@ -276,8 +273,8 @@ class CodeSwapActionTest {
     // Assert
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because the app is not yet running or not debuggable.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because the app is not yet running or not debuggable.")
   }
 
   @Test
@@ -296,10 +293,9 @@ class CodeSwapActionTest {
 
     // Assert
     assertThat(event.presentation.isVisible).isFalse()
-    assertThat(event.presentation.description).isEqualTo(
-      "Apply Code Changes is disabled for this device because the selected configuration is not supported.")
+    assertThat(event.presentation.description)
+      .isEqualTo("Apply Code Changes is disabled for this device because the selected configuration is not supported.")
   }
-
 
   private fun createMockDevice(apiLevel: Int = 33, propertiesSet: Boolean = true): IDevice {
     val mockDevice = mock<IDevice>()

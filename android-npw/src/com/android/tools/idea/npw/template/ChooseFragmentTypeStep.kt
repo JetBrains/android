@@ -21,29 +21,26 @@ import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Step for the gallery for Fragment templates.
- */
-class ChooseFragmentTypeStep(
-  renderModel: RenderTemplateModel,
-  formFactor: FormFactor,
-  targetDirectory: VirtualFile
-) : ChooseGalleryItemStep(
-  renderModel, formFactor, targetDirectory,
-  messageKeys = fragmentGalleryStepMessageKeys,
-  emptyItemLabel = "Blank Fragment"
-) {
-  override val templateRenderers: List<TemplateRenderer> = TemplateResolver.getAllTemplates()
-    .filter { WizardUiContext.FragmentGallery in it.uiContexts }
-    .map(::NewTemplateRenderer)
+/** Step for the gallery for Fragment templates. */
+class ChooseFragmentTypeStep(renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile) :
+  ChooseGalleryItemStep(
+    renderModel,
+    formFactor,
+    targetDirectory,
+    messageKeys = fragmentGalleryStepMessageKeys,
+    emptyItemLabel = "Blank Fragment",
+  ) {
+  override val templateRenderers: List<TemplateRenderer> =
+    TemplateResolver.getAllTemplates().filter { WizardUiContext.FragmentGallery in it.uiContexts }.map(::NewTemplateRenderer)
 }
 
 @VisibleForTesting
-val fragmentGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
-  "android.wizard.fragment.add",
-  "android.wizard.config.fragment.title",
-  "android.wizard.fragment.not.found",
-  "android.wizard.fragment.invalid.min.sdk",
-  "android.wizard.fragment.invalid.androidx",
-  "android.wizard.fragment.invalid.needs.kotlin"
-)
+val fragmentGalleryStepMessageKeys =
+  WizardGalleryItemsStepMessageKeys(
+    "android.wizard.fragment.add",
+    "android.wizard.config.fragment.title",
+    "android.wizard.fragment.not.found",
+    "android.wizard.fragment.invalid.min.sdk",
+    "android.wizard.fragment.invalid.androidx",
+    "android.wizard.fragment.invalid.needs.kotlin",
+  )

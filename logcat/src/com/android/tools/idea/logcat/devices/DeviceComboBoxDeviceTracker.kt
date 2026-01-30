@@ -34,10 +34,7 @@ import org.jetbrains.annotations.VisibleForTesting
 /** An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession] */
 internal class DeviceComboBoxDeviceTracker
 @VisibleForTesting
-constructor(
-  private val deviceProvisioner: DeviceProvisioner,
-  private val preexistingDevice: Device?,
-) : IDeviceComboBoxDeviceTracker {
+constructor(private val deviceProvisioner: DeviceProvisioner, private val preexistingDevice: Device?) : IDeviceComboBoxDeviceTracker {
 
   constructor(
     project: Project,

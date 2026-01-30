@@ -41,145 +41,109 @@ import org.junit.Ignore
 import org.junit.Test
 
 /**
- * An entry point to all tests asserting certain properties of synced projects.  See: [SyncedProjectTest.Companion.getTests] for the exact
+ * An entry point to all tests asserting certain properties of synced projects. See: [SyncedProjectTest.Companion.getTests] for the exact
  * list of assertions applied.
  *
  * This abstract test class allows to run tests in the IDE by running a specific test method below or by running a concrete class
  * representing an AGP version and/or other aspects of the environment.
  */
 @RunsInEdt
-abstract class SyncedProjectTest(
-  selfTest: Boolean = false,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-) : SyncedProjectTestBase<TestProject>(agpVersion, selfTest) {
+abstract class SyncedProjectTest(selfTest: Boolean = false, agpVersion: AgpVersionSoftwareEnvironmentDescriptor) :
+  SyncedProjectTestBase<TestProject>(agpVersion, selfTest) {
 
   companion object {
-    val tests = (
-      IdeModelSnapshotComparisonTestDefinition.tests() +
-      SourceProvidersTestDef.tests +
-      ProjectStructureSnapshotTestDef.tests +
-      AndroidProjectViewSnapshotComparisonTestDef.tests +
-      GradleSyncLoggedEventsTestDef.tests +
-      GradleModuleHierarchyProviderTest.tests +
-      GradleProjectSystemIntegrationTest.tests +
-      HighlightProjectTestDef.tests +
-      GradleTaskManagerTest.tests +
-      GradleAndroidTestsTaskManagerTestDef.tests +
-      PhasedSyncSnapshotConsistencyTestDef.tests +
-      selfChecks()
-      ).groupBy { it.testProject }
+    val tests =
+      (IdeModelSnapshotComparisonTestDefinition.tests() +
+          SourceProvidersTestDef.tests +
+          ProjectStructureSnapshotTestDef.tests +
+          AndroidProjectViewSnapshotComparisonTestDef.tests +
+          GradleSyncLoggedEventsTestDef.tests +
+          GradleModuleHierarchyProviderTest.tests +
+          GradleProjectSystemIntegrationTest.tests +
+          HighlightProjectTestDef.tests +
+          GradleTaskManagerTest.tests +
+          GradleAndroidTestsTaskManagerTestDef.tests +
+          PhasedSyncSnapshotConsistencyTestDef.tests +
+          selfChecks())
+        .groupBy { it.testProject }
   }
 
-  @Test
-  fun testAndroidKotlinMultiplatform() = testProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
+  @Test fun testAndroidKotlinMultiplatform() = testProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
 
-  @Test
-  fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
+  @Test fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
 
-  @Test
-  fun testSimpleApplication_noParallelSync() = testProject(TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC)
+  @Test fun testSimpleApplication_noParallelSync() = testProject(TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC)
 
-  @Test
-  fun testSimpleApplication_viaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK)
+  @Test fun testSimpleApplication_viaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK)
 
-  @Test
-  fun testSimpleApplication_appViaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK)
+  @Test fun testSimpleApplication_appViaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK)
 
-  @Test
-  fun testCustomNamespace() = testProject(TestProject.CUSTOM_NAMESPACE)
+  @Test fun testCustomNamespace() = testProject(TestProject.CUSTOM_NAMESPACE)
 
-  @Test
-  fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
+  @Test fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
 
-  @Test
-  fun testAppWithBuildSrc() = testProject(TestProject.APP_WITH_BUILDSRC)
+  @Test fun testAppWithBuildSrc() = testProject(TestProject.APP_WITH_BUILDSRC)
 
-  @Test
-  fun testAppWithBuildSrcAndSettingsPlugin() = testProject(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN)
+  @Test fun testAppWithBuildSrcAndSettingsPlugin() = testProject(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN)
 
-  @Test
-  fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
+  @Test fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
 
-  @Test
-  fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
+  @Test fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
 
   @Test
   fun testSimpleApplicationWithAdditionalGradleSourceSets() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS)
 
-  @Test
-  fun testSimpleApplicationNotAtRoot() = testProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+  @Test fun testSimpleApplicationNotAtRoot() = testProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+
+  @Test fun testSimpleApplicationMultipleRoots() = testProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
+
+  @Test fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
+
+  @Test fun testSimpleApplication_withTransitiveDependencies() = testProject(TestProject.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES)
+
+  @Test fun testSimpleApplication_withAndroidCar() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR)
+
+  @Test fun testSimpleApplication_syncFailed() = testProject(TestProject.SIMPLE_APPLICATION_SYNC_FAILED)
+
+  @Test fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)
+
+  @Test fun testBasicCmakeApp() = testProject(TestProject.BASIC_CMAKE_APP)
+
+  @Test fun testPsdSampleGroovy() = testProject(TestProject.PSD_SAMPLE_GROOVY)
+
+  @Test fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
+
+  @Test fun testCompositeBuildWithDependencySubs() = testProject(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS)
+
+  @Test fun testNonStandardSourceSets() = testProject(TestProject.NON_STANDARD_SOURCE_SETS)
+
+  @Test fun testNonStandardSourceSetDependencies() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
 
   @Test
-  fun testSimpleApplicationMultipleRoots() = testProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
+  fun testNonStandardSourceSetDependencies_manualTestFixturesWorkaround() =
+    testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND)
 
-  @Test
-  fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
+  @Test fun testLinked() = testProject(TestProject.LINKED)
 
-  @Test
-  fun testSimpleApplication_withTransitiveDependencies() = testProject(TestProject.SIMPLE_APPLICATION_WITH_TRANSITIVE_DEPENDENCIES)
+  @Test fun testKotlinKapt() = testProject(TestProject.KOTLIN_KAPT)
 
-  @Test
-  fun testSimpleApplication_withAndroidCar() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR)
+  @Test fun testLintCustomChecks() = testProject(TestProject.LINT_CUSTOM_CHECKS)
 
-  @Test
-  fun testSimpleApplication_syncFailed() = testProject(TestProject.SIMPLE_APPLICATION_SYNC_FAILED)
+  @Test fun testTestFixtures() = testProject(TestProject.TEST_FIXTURES)
 
-  @Test
-  fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)
+  @Test fun testTestOnlyModule() = testProject(TestProject.TEST_ONLY_MODULE)
 
-  @Test
-  fun testBasicCmakeApp() = testProject(TestProject.BASIC_CMAKE_APP)
+  @Test fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
 
-  @Test
-  fun testPsdSampleGroovy() = testProject(TestProject.PSD_SAMPLE_GROOVY)
+  @Test fun testKotlinMultiplatformModuleOnly() = testProject(TestProject.KOTLIN_MULTIPLATFORM_MODULE_ONLY)
 
-  @Test
-  fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
+  @Test fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
 
-  @Test
-  fun testCompositeBuildWithDependencySubs() = testProject(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS)
+  @Test fun testKotlinMultiplatform_ios() = testProject(TestProject.KOTLIN_MULTIPLATFORM_IOS)
 
-  @Test
-  fun testNonStandardSourceSets() = testProject(TestProject.NON_STANDARD_SOURCE_SETS)
+  @Test fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
 
-  @Test
-  fun testNonStandardSourceSetDependencies() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
-
-  @Test
-  fun testNonStandardSourceSetDependencies_manualTestFixturesWorkaround() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND)
-
-  @Test
-  fun testLinked() = testProject(TestProject.LINKED)
-
-  @Test
-  fun testKotlinKapt() = testProject(TestProject.KOTLIN_KAPT)
-
-  @Test
-  fun testLintCustomChecks() = testProject(TestProject.LINT_CUSTOM_CHECKS)
-
-  @Test
-  fun testTestFixtures() = testProject(TestProject.TEST_FIXTURES)
-
-  @Test
-  fun testTestOnlyModule() = testProject(TestProject.TEST_ONLY_MODULE)
-
-  @Test
-  fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
-
-  @Test
-  fun testKotlinMultiplatformModuleOnly() = testProject(TestProject.KOTLIN_MULTIPLATFORM_MODULE_ONLY)
-
-  @Test
-  fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
-
-  @Test
-  fun testKotlinMultiplatform_ios() = testProject(TestProject.KOTLIN_MULTIPLATFORM_IOS)
-
-  @Test
-  fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
-
-  @Test
-  fun testKotlinMultiplatform_jvm_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP)
+  @Test fun testKotlinMultiplatform_jvm_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP)
 
   @Test
   fun testKotlinMultiplatform_jvm_kmpapp_withintermediate() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE)
@@ -188,114 +152,78 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform_multiple_source_set_per_android_compilation() =
     testProject(TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION)
 
-  @Test
-  fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
+  @Test fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
 
-  @Test
-  fun testMultiFlavor_switchVariant() = testProject(TestProject.MULTI_FLAVOR_SWITCH_VARIANT)
+  @Test fun testMultiFlavor_switchVariant() = testProject(TestProject.MULTI_FLAVOR_SWITCH_VARIANT)
 
-  @Test
-  fun testMultiFlavorWithFiltering() = testProject(TestProject.MULTI_FLAVOR_WITH_FILTERING)
+  @Test fun testMultiFlavorWithFiltering() = testProject(TestProject.MULTI_FLAVOR_WITH_FILTERING)
 
-  @Test
-  fun testNamespaces() = testProject(TestProject.NAMESPACES)
+  @Test fun testNamespaces() = testProject(TestProject.NAMESPACES)
 
-  @Test
-  fun testIncludeFromLib() = testProject(TestProject.INCLUDE_FROM_LIB)
+  @Test fun testIncludeFromLib() = testProject(TestProject.INCLUDE_FROM_LIB)
 
-  @Test
-  fun testLocalAarsAsModules() = testProject(TestProject.LOCAL_AARS_AS_MODULES)
+  @Test fun testLocalAarsAsModules() = testProject(TestProject.LOCAL_AARS_AS_MODULES)
 
-  @Test
-  fun testBasic() = testProject(TestProject.BASIC)
+  @Test fun testBasic() = testProject(TestProject.BASIC)
 
-  @Test
-  fun testBasicWithEmptySettingsFile() = testProject(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE)
+  @Test fun testBasicWithEmptySettingsFile() = testProject(TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE)
 
-  @Test
-  fun testMainInRoot() = testProject(TestProject.MAIN_IN_ROOT)
+  @Test fun testMainInRoot() = testProject(TestProject.MAIN_IN_ROOT)
 
-  @Test
-  fun testNestedModule() = testProject(TestProject.NESTED_MODULE)
+  @Test fun testNestedModule() = testProject(TestProject.NESTED_MODULE)
 
-  @Test
-  fun testTransitiveDependencies() = testProject(TestProject.TRANSITIVE_DEPENDENCIES)
+  @Test fun testTransitiveDependencies() = testProject(TestProject.TRANSITIVE_DEPENDENCIES)
 
-  @Test
-  fun testTransitiveDependenciesNoTargetSdkInLibs() = testProject(TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS)
+  @Test fun testTransitiveDependenciesNoTargetSdkInLibs() = testProject(TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS)
 
-  @Test
-  fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
+  @Test fun testKotlinGradleDsl() = testProject(TestProject.KOTLIN_GRADLE_DSL)
 
-  @Test
-  fun testNewSyncKotlinTest() = testProject(TestProject.NEW_SYNC_KOTLIN_TEST)
+  @Test fun testNewSyncKotlinTest() = testProject(TestProject.NEW_SYNC_KOTLIN_TEST)
 
-  @Test
-  fun testTwoJas() = testProject(TestProject.TWO_JARS)
+  @Test fun testTwoJas() = testProject(TestProject.TWO_JARS)
 
-  @Test
-  fun testApiDependency() = testProject(TestProject.API_DEPENDENCY)
+  @Test fun testApiDependency() = testProject(TestProject.API_DEPENDENCY)
 
-  @Test
-  fun testNavigatorPackageViewCommonRoots() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS)
+  @Test fun testNavigatorPackageViewCommonRoots() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS)
 
-  @Test
-  fun testNavigatorPackageViewSimple() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE)
+  @Test fun testNavigatorPackageViewSimple() = testProject(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE)
 
-  @Test
-  fun testSimpleApplicationVersionCatalog() = testProject(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
+  @Test fun testSimpleApplicationVersionCatalog() = testProject(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
 
-  @Test
-  fun testSimpleApplicationWithScreenshotTest() = testProject(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST)
+  @Test fun testSimpleApplicationWithScreenshotTest() = testProject(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST)
 
-  @Test
-  fun testCustomSourceType() = testProject(TestProject.CUSTOM_SOURCE_TYPE)
+  @Test fun testCustomSourceType() = testProject(TestProject.CUSTOM_SOURCE_TYPE)
 
-  @Test
-  fun testLightSyncReference() = testProject(TestProject.LIGHT_SYNC_REFERENCE)
+  @Test fun testLightSyncReference() = testProject(TestProject.LIGHT_SYNC_REFERENCE)
 
-  @Test
-  fun testMigrateToNonTransitiveRClasses() = testProject(TestProject.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES)
+  @Test fun testMigrateToNonTransitiveRClasses() = testProject(TestProject.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES)
 
-  @Test
-  fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
+  @Test fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
   /** Some snapshots have incorrect data, see IDEA-322947. */
-  @Test
-  fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
+  @Test fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
-  @Test
-  fun testAppWithBuildFeaturesEnabled() = testProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
+  @Test fun testAppWithBuildFeaturesEnabled() = testProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
 
-  @Test
-  fun testNonTransitiveRClassSymbol() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL)
+  @Test fun testNonTransitiveRClassSymbol() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL)
 
-  @Test
-  fun testNonTransitiveRClassSymbolTrue() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE)
+  @Test fun testNonTransitiveRClassSymbolTrue() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE)
 
-  @Test
-  fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME)
+  @Test fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME)
 
-  @Test
-  fun testIndependentLibraryOnlyRuntime() = testProject(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME)
+  @Test fun testIndependentLibraryOnlyRuntime() = testProject(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME)
 
-  @Test
-  fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
+  @Test fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
 
-  @Test
-  fun testGradleDeclarative() = testProject(TestProject.GRADLE_DECLARATIVE)
+  @Test fun testGradleDeclarative() = testProject(TestProject.GRADLE_DECLARATIVE)
 
-  @Test
-  fun testAddTestStaticDir() = testProject(TestProject.TEST_STATIC_DIR)
+  @Test fun testAddTestStaticDir() = testProject(TestProject.TEST_STATIC_DIR)
 
-  @Test
-  fun testSimpleApplication_optimization_enabled() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
+  @Test fun testSimpleApplication_optimization_enabled() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED)
 
-  @Test
-  fun testSimpleApplication_optimization_enabled_old() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED_OLD)
+  @Test fun testSimpleApplication_optimization_enabled_old() = testProject(TestProject.SIMPLE_APPLICATION_OPTIMIZATION_ENABLED_OLD)
 
-  @Test
-  fun testTestSuites() = testProject(TestProject.TEST_SUITES)
+  @Test fun testTestSuites() = testProject(TestProject.TEST_SUITES)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
@@ -304,7 +232,7 @@ abstract class SyncedProjectTest(
   override fun setupAdditionalEnvironment() {
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
       CapturePlatformModelsProjectResolverExtension.IdeModels(),
-      projectRule.testRootDisposable
+      projectRule.testRootDisposable,
     )
   }
 
@@ -319,28 +247,21 @@ abstract class SyncedProjectTest(
   }
 }
 
-@Ignore
-@Suppress("JUnitMalformedDeclaration")
-private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
+@Ignore @Suppress("JUnitMalformedDeclaration") private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
 
-/**
- * A test case that ensures all test projects defined in [TestProject] are added to [SyncedProjectTest] test methods.
- */
-class SyncedProjectTestSelfCheck : SyncedProjectTestSelfCheckBase<SyncedProjectTest>(
-  syncedProjectTestCase = SyncedProjectTest::class,
-  instance = AllTestsForSelfChecks(),
-  allProjects = TestProject.values().toList()
-)
+/** A test case that ensures all test projects defined in [TestProject] are added to [SyncedProjectTest] test methods. */
+class SyncedProjectTestSelfCheck :
+  SyncedProjectTestSelfCheckBase<SyncedProjectTest>(
+    syncedProjectTestCase = SyncedProjectTest::class,
+    instance = AllTestsForSelfChecks(),
+    allProjects = TestProject.values().toList(),
+  )
 
 private fun selfChecks(): List<SyncedProjectTestDef> {
-  return listOf(
-    KotlinScriptIndexingDisabled(AGP_CURRENT)
-  )
+  return listOf(KotlinScriptIndexingDisabled(AGP_CURRENT))
 }
 
-/**
- * Verifies that classes normally contributed to the project scope by Gradle Kotlin scripting support are not indexed in tests.
- */
+/** Verifies that classes normally contributed to the project scope by Gradle Kotlin scripting support are not indexed in tests. */
 data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) : SyncedProjectTestDef {
   override val testProject: TestProject
     get() = TestProject.KOTLIN_GRADLE_DSL

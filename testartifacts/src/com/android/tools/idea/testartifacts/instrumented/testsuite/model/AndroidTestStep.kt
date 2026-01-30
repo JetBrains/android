@@ -20,15 +20,13 @@ import java.io.File
 /**
  * Represents a single step in a test case.
  *
- * A test step represents one of potentially many steps that make up a test case. For example, in a
- * Journeys test, each action in the test is a test step. If any of the test steps fails, then the
- * test case as a whole fails, and subsequent steps will not be run.
+ * A test step represents one of potentially many steps that make up a test case. For example, in a Journeys test, each action in the test
+ * is a test step. If any of the test steps fails, then the test case as a whole fails, and subsequent steps will not be run.
  *
- * This model allows us to display the steps in the test tree hierarchy without affecting the
- * overall test counts (e.g. number of passed/failed tests).
+ * This model allows us to display the steps in the test tree hierarchy without affecting the overall test counts (e.g. number of
+ * passed/failed tests).
  *
- * **Note**: When importing test results with test steps into the standard IntelliJ test panel, the
- * test steps will not be displayed.
+ * **Note**: When importing test results with test steps into the standard IntelliJ test panel, the test steps will not be displayed.
  */
 data class AndroidTestStep(
   val id: String,
@@ -42,5 +40,5 @@ data class AndroidTestStep(
   var benchmark: String = "",
   var retentionInfo: File? = null,
   var retentionSnapshot: File? = null,
-  val additionalTestArtifacts: MutableMap<String, String> = mutableMapOf()
+  val additionalTestArtifacts: MutableMap<String, String> = mutableMapOf(),
 )

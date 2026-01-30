@@ -18,8 +18,7 @@ package com.android.tools.idea.layoutinspector.stateinspection
 import com.intellij.openapi.util.Key
 
 /** The key to indicate which composable is currently being inspected for state reads */
-val LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY =
-  Key.create<ComposableDefinition>("ComposableDefinition")
+val LAYOUT_INSPECTOR_COMPOSABLE_INSPECTED_KEY = Key.create<ComposableDefinition>("ComposableDefinition")
 
 /** Specifies a composable. */
 data class ComposableDefinition(

@@ -35,13 +35,14 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 const val VARIABLES_VIEW = "VariablesView"
-/**
- * Configurable defining the Variables panel in the Project Structure Dialog
- */
-class VariablesConfigurable(private val project: Project, private val context: PsContext)
-  : BaseConfigurable(), ValidationAggregateDisplayConfigurable, ValidationResultsKeeper, TrackedConfigurable, Disposable {
+
+/** Configurable defining the Variables panel in the Project Structure Dialog */
+class VariablesConfigurable(private val project: Project, private val context: PsContext) :
+  BaseConfigurable(), ValidationAggregateDisplayConfigurable, ValidationResultsKeeper, TrackedConfigurable, Disposable {
   private var uiDisposed = true
+
   override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.variables.configurable.display.name")
+
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
   private val myEventDispatcher = EventDispatcher.create(ValidationAggregateDisplayConfigurable.ValidationChangeListener::class.java)
   private var myHasValidationErrors = false
@@ -53,19 +54,20 @@ class VariablesConfigurable(private val project: Project, private val context: P
     val table = VariablesTable(project, context, context.project, this, this)
     this.table = table
     panel.add(
-      ToolbarDecorator
-        .createDecorator(table)
+      ToolbarDecorator.createDecorator(table)
         .setAddAction { executeAfterAddAction(it, table) }
         .setAddActionUpdater { table.addVariableAvailable() }
         .setRemoveAction { table.deleteSelectedVariables() }
         .setRemoveActionUpdater { table.removeVariableAvailable() }
-        .createPanel(), BorderLayout.CENTER)
+        .createPanel(),
+      BorderLayout.CENTER,
+    )
     panel.name = VARIABLES_VIEW
     return panel
   }
 
   private fun executeAfterAddAction(button: AnActionButton, table: VariablesTable) {
-    //next action could be creating a popup or start editing for version catalog
+    // next action could be creating a popup or start editing for version catalog
     table.runToolbarAddAction(button.preferredPopupPoint!!)
   }
 
@@ -108,7 +110,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override fun hasValidationErrors(): Boolean = myHasValidationErrors ?: false
 
   override fun updateValidationResult(hasValidationErrors: Boolean) {
-    if(myHasValidationErrors != hasValidationErrors){
+    if (myHasValidationErrors != hasValidationErrors) {
       myHasValidationErrors = hasValidationErrors
       myEventDispatcher.multicaster.validationResultChanges()
     }

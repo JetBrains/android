@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.ui.LiveEditConfigurable
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -43,39 +43,45 @@ internal class LiveEditNotifications() {
 
     shouldNotifyProjectOfLiveEdit = false
     val shortcut = LiveEditService.getLiveEditShortcut()
-    NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
+    NotificationGroupManager.getInstance()
+      .getNotificationGroup("Deploy")
       .createNotification(
         "Enable Live Edit on Device",
         "Push code edits to the device without rerunning the app${
           if (Strings.isEmpty(shortcut)) ""
           else " ($shortcut)"
         }.${getBuildSystemRequirements(project).let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
-        NotificationType.INFORMATION)
+        NotificationType.INFORMATION,
+      )
       .also {
         if (LiveEditProjectMonitor.supportLiveEdits(device)) {
-          it.addAction(object : AnAction("Enable Live Edit") {
+          it.addAction(
+            object : AnAction("Enable Live Edit") {
+              override fun actionPerformed(e: AnActionEvent) {
+                LiveEditApplicationConfiguration.getInstance().mode = LIVE_EDIT
+                it.expire()
+              }
+
+              override fun getActionUpdateThread(): ActionUpdateThread {
+                return ActionUpdateThread.BGT
+              }
+            }
+          )
+        }
+      }
+      .also {
+        it.addAction(
+          object : AnAction(AndroidBundle.message("live.edit.configurable.action.name")) {
             override fun actionPerformed(e: AnActionEvent) {
-              LiveEditApplicationConfiguration.getInstance().mode = LIVE_EDIT
+              ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveEditConfigurable::class.java)
               it.expire()
             }
 
             override fun getActionUpdateThread(): ActionUpdateThread {
               return ActionUpdateThread.BGT
             }
-          })
-        }
-      }
-      .also {
-        it.addAction(object : AnAction(AndroidBundle.message("live.edit.configurable.action.name")) {
-          override fun actionPerformed(e: AnActionEvent) {
-            ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveEditConfigurable::class.java)
-            it.expire()
           }
-
-          override fun getActionUpdateThread(): ActionUpdateThread {
-            return ActionUpdateThread.BGT
-          }
-        })
+        )
       }
       .notify(project)
   }
@@ -86,9 +92,7 @@ internal class LiveEditNotifications() {
       return ""
     }
     val moduleSystems = project.getAndroidFacets().map { it.getModuleSystem() }
-    return if (moduleSystems.all { it.desugarLibraryConfigFilesKnown })
-      ""
-    else
-      moduleSystems.firstNotNullOfOrNull { it.desugarLibraryConfigFilesNotKnownUserMessage } ?: ""
+    return if (moduleSystems.all { it.desugarLibraryConfigFilesKnown }) ""
+    else moduleSystems.firstNotNullOfOrNull { it.desugarLibraryConfigFilesNotKnownUserMessage } ?: ""
   }
 }

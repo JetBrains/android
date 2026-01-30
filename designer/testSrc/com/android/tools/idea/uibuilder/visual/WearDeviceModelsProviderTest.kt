@@ -61,8 +61,7 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     for (nlModel in nlModels) {
       val device = nlModel.configuration.device
       TestCase.assertNotNull(device)
-      val expected =
-        if (device!!.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+      val expected = if (device!!.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       TestCase.assertEquals(expected, nlModel.configuration.deviceState!!.orientation)
     }
   }

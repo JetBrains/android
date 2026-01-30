@@ -30,13 +30,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import jdk.jfr.consumer.RecordedEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 object JfrTypingLatencyReports {
   private const val SERVER_FLAG_NAME = "diagnostics/jfr_typing_latency"
@@ -58,18 +58,19 @@ object JfrTypingLatencyReports {
       if (config?.hasMaxReportLengthBytes() == true) config.maxReportLengthBytes else DEFAULT_MAX_REPORTING_LENGTH_BYTES
 
     return JfrReportManager.create({ MyReportGenerator(maxReportLengthBytes) }) {
-      val stopCapture = fun(keystrokes: Int) {
-        this.currentReportGenerator?.keystrokeCount = keystrokes
-        this.stopCapture()
-      }
+      val stopCapture =
+        fun(keystrokes: Int) {
+          this.currentReportGenerator?.keystrokeCount = keystrokes
+          this.stopCapture()
+        }
       val coroutineScope = AndroidCoroutineScope(parentDisposable, uiThread)
       val latencyListener = MyLatencyListener(config, ::startCapture, stopCapture, coroutineScope)
       ApplicationManager.getApplication().messageBus.connect(parentDisposable).subscribe(LatencyListener.TOPIC, latencyListener)
     }
   }
 
-private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES) {
-  var keystrokeCount: Int = -1
+  private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrReportGenerator(REPORT_TYPE, EventFilter.CPU_SAMPLES) {
+    var keystrokeCount: Int = -1
 
     private val callTreeAggregator = CallTreeAggregator(CallTreeAggregator.THREAD_FILTER_ALL)
 
@@ -84,19 +85,20 @@ private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrRepo
     override fun generateReport(): Map<String, String> {
       return mapOf(
         CALL_TREES_FIELD to callTreeAggregator.generateReport(maxReportLengthBytes),
-        KEYSTROKE_COUNT_FIELD to keystrokeCount.toString())
+        KEYSTROKE_COUNT_FIELD to keystrokeCount.toString(),
+      )
     }
   }
 
   /**
    * A [LatencyListener] responsible for starting and stopping JFR reports related to typing latency.
    *
-   * When we see a latency above our reporting threshold, we want to start a recording session.
-   * That session should continue until one of the following is true:
-   *   1. We see a latency below the threshold (indicating the lag has resolved)
-   *   2. There are no typing events for a set amount of time (indicating the user has stopped typing)
-   *   3. The session reaches a maximum length of time
-   * After a session completes, we want to wait a "cooldown" amount of time before starting any new sessions.
+   * When we see a latency above our reporting threshold, we want to start a recording session. That session should continue until one of
+   * the following is true:
+   * 1. We see a latency below the threshold (indicating the lag has resolved)
+   * 2. There are no typing events for a set amount of time (indicating the user has stopped typing)
+   * 3. The session reaches a maximum length of time After a session completes, we want to wait a "cooldown" amount of time before starting
+   *    any new sessions.
    */
   @VisibleForTesting
   internal class MyLatencyListener(
@@ -133,11 +135,12 @@ private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrRepo
       COOLDOWN,
     }
 
-    private fun TimeoutType.timeout() = when (this) {
-      TimeoutType.TYPING -> typingTimeout
-      TimeoutType.SESSION -> sessionTimeout
-      TimeoutType.COOLDOWN -> cooldownTimeout
-    }
+    private fun TimeoutType.timeout() =
+      when (this) {
+        TimeoutType.TYPING -> typingTimeout
+        TimeoutType.SESSION -> sessionTimeout
+        TimeoutType.COOLDOWN -> cooldownTimeout
+      }
 
     // State variables are only accessed on the UI Thread, so do not need any locking.
     private var state: State = State.WAITING_TO_RECORD
@@ -147,24 +150,25 @@ private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrRepo
     @UiThread
     override fun recordTypingLatency(editor: Editor, action: String?, latencyMs: Long) {
       when (state) {
-        State.WAITING_TO_RECORD -> if (latencyMs.milliseconds > latencyReportingThreshold) {
-          // Start recording when there's a latency above the threshold.
-          keystrokeCount = 1
-          cancelAllTimeouts()
-          startTimeout(TimeoutType.TYPING)
-          startTimeout(TimeoutType.SESSION)
-          startCapture()
+        State.WAITING_TO_RECORD ->
+          if (latencyMs.milliseconds > latencyReportingThreshold) {
+            // Start recording when there's a latency above the threshold.
+            keystrokeCount = 1
+            cancelAllTimeouts()
+            startTimeout(TimeoutType.TYPING)
+            startTimeout(TimeoutType.SESSION)
+            startCapture()
 
-          state = State.RECORDING
-        }
+            state = State.RECORDING
+          }
 
-        State.RECORDING -> if (latencyMs.milliseconds > latencyReportingThreshold) {
-          keystrokeCount++
-          startTimeout(TimeoutType.TYPING)
-        }
-        else {
-          doStopRecording()
-        }
+        State.RECORDING ->
+          if (latencyMs.milliseconds > latencyReportingThreshold) {
+            keystrokeCount++
+            startTimeout(TimeoutType.TYPING)
+          } else {
+            doStopRecording()
+          }
 
         State.COOLDOWN -> {} // Do nothing.
       }
@@ -175,16 +179,18 @@ private class MyReportGenerator(private val maxReportLengthBytes: Int) : JfrRepo
       // First cancel and remove any previous instance of this timeout type. There should only ever be one of each timeout type running.
       timeouts.remove(timeoutType)?.cancel()
 
-      timeouts[timeoutType] = coroutineScope.launch {
-        delay(timeoutType.timeout())
-        handleTimeout(timeoutType)
-      }
+      timeouts[timeoutType] =
+        coroutineScope.launch {
+          delay(timeoutType.timeout())
+          handleTimeout(timeoutType)
+        }
     }
 
     @UiThread
     private fun handleTimeout(timeoutType: TimeoutType) {
       when (timeoutType) {
-        TimeoutType.TYPING, TimeoutType.SESSION -> {
+        TimeoutType.TYPING,
+        TimeoutType.SESSION -> {
           if (state == State.RECORDING) doStopRecording()
         }
 

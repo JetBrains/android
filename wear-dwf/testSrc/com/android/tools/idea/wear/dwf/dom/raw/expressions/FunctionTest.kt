@@ -24,10 +24,8 @@ class FunctionTest {
 
   @Test
   fun `finds by id`() {
-    assertThat(findFunction("log10"))
-      .isEqualTo(Function(id = "log10", requiredVersion = WFFVersion1))
-    assertThat(findFunction("extractColorFromColors"))
-      .isEqualTo(Function(id = "extractColorFromColors", requiredVersion = WFFVersion4))
+    assertThat(findFunction("log10")).isEqualTo(Function(id = "log10", requiredVersion = WFFVersion1))
+    assertThat(findFunction("extractColorFromColors")).isEqualTo(Function(id = "extractColorFromColors", requiredVersion = WFFVersion4))
 
     assertThat(findFunction("log100")).isNull()
     assertThat(findFunction("nonExistent")).isNull()

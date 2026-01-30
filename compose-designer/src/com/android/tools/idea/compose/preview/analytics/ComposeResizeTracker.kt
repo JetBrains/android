@@ -35,12 +35,7 @@ class ComposeResizeTracker : ResizeTracker {
     return sceneManager.model.dataProvider?.previewElement() != null
   }
 
-  override fun reportResizeStopped(
-    sceneManager: SceneManager,
-    widthDp: Int,
-    heightDp: Int,
-    dpi: Int,
-  ) {
+  override fun reportResizeStopped(sceneManager: SceneManager, widthDp: Int, heightDp: Int, dpi: Int) {
     val layoutlibSceneManager = sceneManager as? LayoutlibSceneManager ?: return
     val showDecorations = layoutlibSceneManager.sceneRenderConfiguration.showDecorations
     val mode = if (showDecorations) ResizeMode.DEVICE_RESIZE else ResizeMode.COMPOSABLE_RESIZE
@@ -56,9 +51,7 @@ class ComposeResizeTracker : ResizeTracker {
 }
 
 val LayoutlibSceneManager.resizeMode
-  get(): ResizeMode =
-    if (this.sceneRenderConfiguration.showDecorations) ResizeMode.DEVICE_RESIZE
-    else ResizeMode.COMPOSABLE_RESIZE
+  get(): ResizeMode = if (this.sceneRenderConfiguration.showDecorations) ResizeMode.DEVICE_RESIZE else ResizeMode.COMPOSABLE_RESIZE
 
 /** Usage tracker for the Compose Resize tooling. */
 object ComposeResizeToolingUsageTracker {
@@ -84,12 +77,7 @@ object ComposeResizeToolingUsageTracker {
     }
   }
 
-  fun logResizeStopped(
-    surface: DesignSurface<*>?,
-    mode: ResizeMode,
-    source: ResizeComposePreviewEvent.ResizeSource,
-    deviceId: String,
-  ) {
+  fun logResizeStopped(surface: DesignSurface<*>?, mode: ResizeMode, source: ResizeComposePreviewEvent.ResizeSource, deviceId: String) {
     logEvent(surface) {
       eventType = EventType.RESIZE_STOPPED
       resizeMode = mode
@@ -98,13 +86,7 @@ object ComposeResizeToolingUsageTracker {
     }
   }
 
-  fun logResizeSaved(
-    surface: DesignSurface<*>?,
-    mode: ResizeMode,
-    widthDp: Int,
-    heightDp: Int,
-    dpi: Int,
-  ) {
+  fun logResizeSaved(surface: DesignSurface<*>?, mode: ResizeMode, widthDp: Int, heightDp: Int, dpi: Int) {
     logEvent(surface) {
       eventType = EventType.RESIZE_SAVED
       resizeMode = mode
@@ -121,21 +103,15 @@ object ComposeResizeToolingUsageTracker {
     }
   }
 
-  private fun logEvent(
-    surface: DesignSurface<*>?,
-    eventBuilder: ResizeComposePreviewEvent.Builder.() -> Unit,
-  ) {
+  private fun logEvent(surface: DesignSurface<*>?, eventBuilder: ResizeComposePreviewEvent.Builder.() -> Unit) {
     if (!ApplicationManager.getApplication().isUnitTestMode || forceEnableForUnitTests) {
       UsageTracker.log(createAndroidStudioEvent(eventBuilder).setApplicationId(surface))
     }
   }
 
   /** Creates and returns an [AndroidStudioEvent.Builder] with an [ResizeComposePreviewEvent]. */
-  private fun createAndroidStudioEvent(
-    eventBuilder: ResizeComposePreviewEvent.Builder.() -> Unit
-  ): AndroidStudioEvent.Builder {
-    val resizeComposePreviewEvent =
-      ResizeComposePreviewEvent.newBuilder().apply(eventBuilder).build()
+  private fun createAndroidStudioEvent(eventBuilder: ResizeComposePreviewEvent.Builder.() -> Unit): AndroidStudioEvent.Builder {
+    val resizeComposePreviewEvent = ResizeComposePreviewEvent.newBuilder().apply(eventBuilder).build()
     return AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.RESIZE_COMPOSE_PREVIEW_EVENT)
       .setResizeComposePreviewEvent(resizeComposePreviewEvent)

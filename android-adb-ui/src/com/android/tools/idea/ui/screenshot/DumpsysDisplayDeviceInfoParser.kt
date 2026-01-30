@@ -51,8 +51,7 @@ object DumpsysDisplayDeviceInfoParser {
         val density: Int = densityRegex.find(section)?.groupValues?.get(1)?.toInt() ?: 0
         val isRound = section.contains(isRoundRegex)
         result.add(DisplayDeviceInfo(logicalId, physicalId, size, orientationQuadrants, density, isRound))
-      }
-      catch (_: NumberFormatException) {
+      } catch (_: NumberFormatException) {
         continue
       }
     }

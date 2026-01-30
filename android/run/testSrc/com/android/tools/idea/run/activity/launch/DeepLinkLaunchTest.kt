@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity.launch;
+package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
@@ -22,19 +22,17 @@ import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.testing.AndroidProjectRule
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
-import java.util.concurrent.TimeUnit
 
 class DeepLinkLaunchTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val usageTrackerRule = UsageTrackerRule()
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   @Test
   fun testLaunch() {
@@ -43,17 +41,18 @@ class DeepLinkLaunchTest {
     val device = mock<IDevice>()
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
-    val stats = RunStats(projectRule.project);
+    val stats = RunStats(projectRule.project)
     state.launch(device, app, { emptyList() }, false, "", EmptyTestConsoleView(), stats)
 
     stats.success()
     assertTaskPresentedInStats(usageTrackerRule.usages, "LAUNCH_DEEP_LINK")
 
-    Mockito.verify(device).executeShellCommand(
-      Mockito.eq(
-        "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'com.example'"),
-      Mockito.any(IShellOutputReceiver::class.java),
-      Mockito.eq(15L),
-      Mockito.eq(TimeUnit.SECONDS))
+    Mockito.verify(device)
+      .executeShellCommand(
+        Mockito.eq("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'com.example'"),
+        Mockito.any(IShellOutputReceiver::class.java),
+        Mockito.eq(15L),
+        Mockito.eq(TimeUnit.SECONDS),
+      )
   }
 }

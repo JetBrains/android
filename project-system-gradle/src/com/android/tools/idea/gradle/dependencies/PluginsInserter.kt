@@ -32,27 +32,27 @@ interface PluginsInserter {
     buildModels: List<GradleBuildModel>,
     matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) },
     classpathMatcher: DependencyMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
-    config: PluginInsertionConfig = defaultInsertionConfig()
+    config: PluginInsertionConfig = defaultInsertionConfig(),
   ): Set<PsiFile>
 
   fun findPlaceAndAddPlugin(
     pluginId: String,
     version: String,
     buildModels: List<GradleBuildModel>,
-    matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) }
+    matcherFactory: (String, String) -> PluginMatcher = { id, _ -> IdPluginMatcher(id) },
   ): Set<PsiFile>
 
-  fun addClasspathDependency(dependency: String,
-                             excludes: List<ArtifactDependencySpec> = listOf(),
-                             matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME,
-                                                                                 dependency)): Set<PsiFile>
+  fun addClasspathDependency(
+    dependency: String,
+    excludes: List<ArtifactDependencySpec> = listOf(),
+    matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, dependency),
+  ): Set<PsiFile>
 
   fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)): PsiFile?
 
   fun addRepositoryFor(version: String, model: RepositoriesModel): PsiFile?
 
-  fun applySettingsPlugin(pluginId: String,
-                          version: String): Set<PsiFile>
+  fun applySettingsPlugin(pluginId: String, version: String): Set<PsiFile>
 
   // Files may be already in proper state, so we need additional flag `succeed` to make sure
   // all changes already there

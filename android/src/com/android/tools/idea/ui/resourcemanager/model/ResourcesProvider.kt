@@ -38,15 +38,14 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Returns the list of local resources of the [forFacet] module.
- */
+/** Returns the list of local resources of the [forFacet] module. */
 @Slow
 fun getModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection {
   val moduleRepository = StudioResourceRepositoryManager.getModuleResources(forFacet)
-  val sortedResources = moduleRepository.namespaces.flatMap { namespace ->
-    moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters, forFacet)
-  }.sortedBy { it.name }
+  val sortedResources =
+    moduleRepository.namespaces
+      .flatMap { namespace -> moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters, forFacet) }
+      .sortedBy { it.name }
 
   return createResourceSection(forFacet.module.name, sortedResources)
 }
@@ -59,66 +58,69 @@ fun getModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: 
  * If **moduleA** depends on **moduleB**, this function returns the list of local resources of **moduleB**.
  */
 @Slow
-fun getDependentModuleResources(forFacet: AndroidFacet,
-                                type: ResourceType,
-                                typeFilters: List<TypeFilter>): List<ResourceSection> {
-  return AndroidDependenciesCache.getAndroidResourceDependencies(forFacet.module).asSequence()
+fun getDependentModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): List<ResourceSection> {
+  return AndroidDependenciesCache.getAndroidResourceDependencies(forFacet.module)
+    .asSequence()
     .flatMap { dependentFacet ->
       val moduleRepository = StudioResourceRepositoryManager.getModuleResources(dependentFacet)
-      moduleRepository.namespaces.asSequence()
+      moduleRepository.namespaces
+        .asSequence()
         .map { namespace -> moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters, forFacet) }
         .filter { it.isNotEmpty() }
         .map { createResourceSection(dependentFacet.module.name, it.sortedBy(ResourceItem::getName)) }
-    }.toList()
+    }
+    .toList()
 }
 
-/**
- * Returns a map from the library name to its resource items
- */
+/** Returns a map from the library name to its resource items */
 @Slow
 fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): List<ResourceSection> {
   val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
-  return repoManager.libraryResources
-    .flatMap { lib ->
-      // Create a section for each library
-      lib.namespaces.asSequence()
-        .map { namespace -> return@map lib.getResourcesAndApplyFilters(namespace, type, false, typeFilters, forFacet) }
-        .filter { it.isNotEmpty() }
-        .map { createResourceSection(userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }.toList()
-    }
+  return repoManager.libraryResources.flatMap { lib ->
+    // Create a section for each library
+    lib.namespaces
+      .asSequence()
+      .map { namespace ->
+        return@map lib.getResourcesAndApplyFilters(namespace, type, false, typeFilters, forFacet)
+      }
+      .filter { it.isNotEmpty() }
+      .map { createResourceSection(userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }
+      .toList()
+  }
 }
 
 /** Returns [ResourceType.SAMPLE_DATA] resources that match the content type of the requested [type]. E.g: Images for Drawables. */
 @Slow
 fun getSampleDataResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
   val repoManager = StudioResourceRepositoryManager.getInstance(forFacet).appResources
-  val resources = repoManager.namespaces.flatMap { namespace ->
-    repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
-      if (sampleItem is SampleDataResourceItem) {
-        when (type) {
-          ResourceType.SAMPLE_DATA -> true
-          ResourceType.DRAWABLE -> sampleItem.contentType == SampleDataResourceItem.ContentType.IMAGE
-          ResourceType.STRING -> sampleItem.contentType != SampleDataResourceItem.ContentType.IMAGE
-          else -> false
-        }
+  val resources =
+    repoManager.namespaces.flatMap { namespace ->
+      repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
+        if (sampleItem is SampleDataResourceItem) {
+          when (type) {
+            ResourceType.SAMPLE_DATA -> true
+            ResourceType.DRAWABLE -> sampleItem.contentType == SampleDataResourceItem.ContentType.IMAGE
+            ResourceType.STRING -> sampleItem.contentType != SampleDataResourceItem.ContentType.IMAGE
+            else -> false
+          }
+        } else false
       }
-      else false
     }
-  }
   return createResourceSection(ResourceType.SAMPLE_DATA.displayName, resources)
 }
 
-/**
- * Returns a [ResourceSection] of the Android Framework resources.
- */
+/** Returns a [ResourceSection] of the Android Framework resources. */
 @Slow
 fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection? {
   val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
   val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
   val frameworkRepo = repoManager.getFrameworkResources(languages) ?: return null
-  val resources = frameworkRepo.namespaces.flatMap { namespace ->
-    return@flatMap frameworkRepo.getResourcesAndApplyFilters(namespace, type, false, typeFilters, forFacet)
-  }.sortedBy { it.name }
+  val resources =
+    frameworkRepo.namespaces
+      .flatMap { namespace ->
+        return@flatMap frameworkRepo.getResourcesAndApplyFilters(namespace, type, false, typeFilters, forFacet)
+      }
+      .sortedBy { it.name }
   return createResourceSection(SdkConstants.ANDROID_NS_NAME, resources)
 }
 
@@ -130,37 +132,36 @@ fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters:
  * not set up correctly.
  */
 @Slow
-fun getThemeAttributes(forFacet: AndroidFacet,
-                       type: ResourceType,
-                       typeFilters: List<TypeFilter>,
-                       resourceResolver: ResourceResolver): ResourceSection {
+fun getThemeAttributes(
+  forFacet: AndroidFacet,
+  type: ResourceType,
+  typeFilters: List<TypeFilter>,
+  resourceResolver: ResourceResolver,
+): ResourceSection {
   val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
   val projectThemeAttributes =
     repoManager.projectResources.let { resourceRepository ->
-      resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
-                                                         resourceResolver,
-                                                         forFacet,
-                                                         type,
-                                                         typeFilters)
+      resourceRepository.getNonPrivateAttributeResources(
+        resourceRepository.namespaces.toList(),
+        resourceResolver,
+        forFacet,
+        type,
+        typeFilters,
+      )
     }
   val libraryThemeAttributes = hashMapOf<String, ResourceItem>()
   repoManager.libraryResources.forEach { resourceRepository ->
-    resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
-                                                       resourceResolver,
-                                                       forFacet,
-                                                       type,
-                                                       typeFilters).let { libraryThemeAttributes.putAll(it) }
+    resourceRepository
+      .getNonPrivateAttributeResources(resourceRepository.namespaces.toList(), resourceResolver, forFacet, type, typeFilters)
+      .let { libraryThemeAttributes.putAll(it) }
   }
   // Framework resources should have visibility properly defined. So we only get the public ones.
   val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
   val frameworkResources = StudioResourceRepositoryManager.getInstance(forFacet).getFrameworkResources(languages)
-  val androidThemeAttributes = frameworkResources?.let {
-    frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID),
-                                                       resourceResolver,
-                                                       forFacet,
-                                                       type,
-                                                       typeFilters)
-  } ?: hashMapOf()
+  val androidThemeAttributes =
+    frameworkResources?.let {
+      frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID), resourceResolver, forFacet, type, typeFilters)
+    } ?: hashMapOf()
 
   // If any attributes are repeated, override them.
   // Project attributes takes precedence over external libraries attributes.
@@ -176,26 +177,25 @@ fun getThemeAttributes(forFacet: AndroidFacet,
 
 private fun userReadableLibraryName(lib: AarResourceRepository) = lib.displayName
 
-private fun ResourceRepository.getResourcesAndApplyFilters(namespace: ResourceNamespace,
-                                                           type: ResourceType,
-                                                           isLocalRepo: Boolean,
-                                                           typeFilters: List<TypeFilter>,
-                                                           facet: AndroidFacet): Collection<ResourceItem> {
+private fun ResourceRepository.getResourcesAndApplyFilters(
+  namespace: ResourceNamespace,
+  type: ResourceType,
+  isLocalRepo: Boolean,
+  typeFilters: List<TypeFilter>,
+  facet: AndroidFacet,
+): Collection<ResourceItem> {
   if (isLocalRepo) {
     if (typeFilters.isEmpty()) {
       return getResources(namespace, type).values()
-    }
-    else {
+    } else {
       return getResources(namespace, type) { resourceItem -> resourceItem.isValidForFilters(typeFilters, facet) }
     }
-  }
-  else {
+  } else {
     // Only public resources for external resources.
     val publicResources = getPublicResources(namespace, type)
     if (typeFilters.isEmpty()) {
       return publicResources
-    }
-    else {
+    } else {
       return publicResources.filter { resourceItem -> resourceItem.isValidForFilters(typeFilters, facet) }
     }
   }
@@ -213,8 +213,7 @@ private fun ResourceItem.isValidForFilters(typeFilters: List<TypeFilter>, facet:
         if (filter.kind == TypeFilterKind.XML_TAG) {
           if (tag.name == filter.value) {
             return true
-          }
-          else if (tag.name == SdkConstants.TAG_LAYOUT) {
+          } else if (tag.name == SdkConstants.TAG_LAYOUT) {
             // Is data-binding, look for the non-data tag.
             val dataBindingViewTag = tag.childrenOfType<XmlTag>().firstOrNull { it.name != SdkConstants.TAG_DATA } ?: return false
             if (dataBindingViewTag.name == filter.value) {
@@ -246,11 +245,13 @@ private fun ResourceItem.isValidForFilters(typeFilters: List<TypeFilter>, facet:
 }
 
 /** Returns only the attributes in a [ResourceRepository] that are explicitly [ResourceVisibility.PUBLIC]. */
-private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<ResourceNamespace>,
-                                                               resourceResolver: ResourceResolver,
-                                                               facet: AndroidFacet,
-                                                               targetType: ResourceType,
-                                                               typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
+private fun ResourceRepository.getPublicOnlyAttributeResources(
+  namespaces: List<ResourceNamespace>,
+  resourceResolver: ResourceResolver,
+  facet: AndroidFacet,
+  targetType: ResourceType,
+  typeFilters: List<TypeFilter>,
+): HashMap<String, ResourceItem> {
   return getAttributeResources(namespaces, resourceResolver, facet, targetType, typeFilters) {
     return@getAttributeResources (it as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
@@ -260,31 +261,34 @@ private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<
  * Returns the attributes in a [ResourceRepository] that are not explicitly [ResourceVisibility.PRIVATE]. So it's assumed that if they are
  * not [ResourceVisibility.PRIVATE] they're as good as public since visibility is not always specified.
  */
-private fun ResourceRepository.getNonPrivateAttributeResources(namespaces: List<ResourceNamespace>,
-                                                               resourceResolver: ResourceResolver,
-                                                               facet: AndroidFacet,
-                                                               targetType: ResourceType,
-                                                               typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
+private fun ResourceRepository.getNonPrivateAttributeResources(
+  namespaces: List<ResourceNamespace>,
+  resourceResolver: ResourceResolver,
+  facet: AndroidFacet,
+  targetType: ResourceType,
+  typeFilters: List<TypeFilter>,
+): HashMap<String, ResourceItem> {
   return getAttributeResources(namespaces, resourceResolver, facet, targetType, typeFilters) {
     return@getAttributeResources if (it is ResourceItemWithVisibility) {
       it.visibility != ResourceVisibility.PRIVATE
-    }
-    else true
+    } else true
   }
 }
 
 /**
  * Common function to extract theme attributes resources. Returns a map of the resource name and the actual [ResourceItem].
  *
- * Returns a map since it's expected for some of these attributes to be overridden from different [ResourceRepository]s. The map
- * simplifies that process.
+ * Returns a map since it's expected for some of these attributes to be overridden from different [ResourceRepository]s. The map simplifies
+ * that process.
  */
-private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNamespace>,
-                                                     resourceResolver: ResourceResolver,
-                                                     facet: AndroidFacet,
-                                                     targetType: ResourceType,
-                                                     typeFilters: List<TypeFilter>,
-                                                     visibilityFilter: (ResourceItem) -> Boolean): HashMap<String, ResourceItem> {
+private fun ResourceRepository.getAttributeResources(
+  namespaces: List<ResourceNamespace>,
+  resourceResolver: ResourceResolver,
+  facet: AndroidFacet,
+  targetType: ResourceType,
+  typeFilters: List<TypeFilter>,
+  visibilityFilter: (ResourceItem) -> Boolean,
+): HashMap<String, ResourceItem> {
   val attributesMap = hashMapOf<String, ResourceItem>()
   accept { resourceItem ->
     if (resourceItem.type == ResourceType.ATTR && namespaces.contains(resourceItem.namespace) && visibilityFilter(resourceItem)) {
@@ -296,8 +300,7 @@ private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNa
             if (resolvedThemeAttribute is ResourceItem && resolvedThemeAttribute.isValidForFilters(typeFilters, facet)) {
               attributesMap[resourceItem.name] = resourceItem
             }
-          }
-          else {
+          } else {
             attributesMap[resourceItem.name] = resourceItem
           }
         }

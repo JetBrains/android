@@ -50,8 +50,7 @@ class StringResourceTableModelTest {
   fun setUp() {
     whenever(stringResourceData.keys).thenReturn(keys)
     whenever(stringResourceData.localeList).thenReturn(locales)
-    model =
-      StringResourceTableModel(stringResourceRepository, projectRule.project, stringResourceData)
+    model = StringResourceTableModel(stringResourceRepository, projectRule.project, stringResourceData)
   }
 
   @Test
@@ -69,9 +68,7 @@ class StringResourceTableModelTest {
     assertThat(StringResourceTableModel.isStringValueColumn(RESOURCE_FOLDER_COLUMN)).isFalse()
     assertThat(StringResourceTableModel.isStringValueColumn(UNTRANSLATABLE_COLUMN)).isFalse()
     assertThat(StringResourceTableModel.isStringValueColumn(DEFAULT_VALUE_COLUMN)).isTrue()
-    repeat(10) {
-      assertThat(StringResourceTableModel.isStringValueColumn(FIXED_COLUMN_COUNT + it)).isTrue()
-    }
+    repeat(10) { assertThat(StringResourceTableModel.isStringValueColumn(FIXED_COLUMN_COUNT + it)).isTrue() }
   }
 
   @Test
@@ -122,8 +119,7 @@ class StringResourceTableModelTest {
       whenever(stringResourceData.getStringResource(keys.last())).thenReturn(resource)
       for (failureMessage in failureMessages) {
         whenever(resource.validateTranslation(locales.last())).thenReturn(failureMessage)
-        assertThat(model.getCellProblem(rowAndColumn, FIXED_COLUMN_COUNT + rowAndColumn))
-          .isEqualTo(failureMessage)
+        assertThat(model.getCellProblem(rowAndColumn, FIXED_COLUMN_COUNT + rowAndColumn)).isEqualTo(failureMessage)
       }
     }
   }

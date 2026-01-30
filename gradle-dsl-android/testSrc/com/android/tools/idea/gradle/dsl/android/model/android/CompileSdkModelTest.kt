@@ -18,20 +18,20 @@ package com.android.tools.idea.gradle.dsl.android.model.android
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkAddonModel
+import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPreviewModel
 import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPropertyModel
 import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkReleaseModel
-import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkPreviewModel
-import com.android.tools.idea.gradle.dsl.android.api.android.CompileSdkAddonModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 
-class CompileSdkModelTest: AndroidGradleFileModelTestCase() {
+class CompileSdkModelTest : AndroidGradleFileModelTestCase() {
 
   @Test
   fun testReadCompileSdkVersionBlock() {
@@ -272,7 +272,7 @@ class CompileSdkModelTest: AndroidGradleFileModelTestCase() {
     val compileSdkVersion = android.compileSdkVersion()
     assertThat(compileSdkVersion).isNotNull()
     val config = compileSdkVersion.toCompileSdkConfig()
-    config!!.setReleaseVersion(35,0, null)
+    config!!.setReleaseVersion(35, 0, null)
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.CREATE_WITH_ZERO_MINOR_VERSION_EXPECTED)
   }
@@ -289,7 +289,7 @@ class CompileSdkModelTest: AndroidGradleFileModelTestCase() {
     assertThat(compileSdkVersion).isNotNull()
     assertThat(compileSdkVersion.toString()).contains("Version=null")
     val config = compileSdkVersion.toCompileSdkConfig()
-    config!!.setReleaseVersion(35,0, null)
+    config!!.setReleaseVersion(35, 0, null)
     assertThat(compileSdkVersion.toString()).contains("Version=android-35")
   }
 
@@ -310,7 +310,7 @@ class CompileSdkModelTest: AndroidGradleFileModelTestCase() {
     assertThat(compileSdkVersion.valueType).isEqualTo(ValueType.NONE)
 
     val config = compileSdkVersion.toCompileSdkConfig()
-    config!!.setReleaseVersion(35,0, null)
+    config!!.setReleaseVersion(35, 0, null)
     val newValue = compileSdkVersion.getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
     assertThat(newValue).isNotNull()
     // for non null value - it's CUSTOM
@@ -447,8 +447,7 @@ class CompileSdkModelTest: AndroidGradleFileModelTestCase() {
     CREATE_WITH_ADDON_VERSION_EXPECTED("createWithAddonVersionExpected"),
     CREATE_WITH_ZERO_MINOR_VERSION_EXPECTED("createWithZeroNumberVersionExpected"),
     WRITE_RELEASE_BLOCK_AFTER_ELEMENT_EXPECTED("releaseBlockAfterElementExpected"),
-    WRITE_RELEASE_BLOCK_AFTER_ELEMENT_OLD_AGP_EXPECTED("releaseBlockAfterElementOldAgpExpected"),
-    ;
+    WRITE_RELEASE_BLOCK_AFTER_ELEMENT_OLD_AGP_EXPECTED("releaseBlockAfterElementOldAgpExpected");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/compileSdk/$path", extension)

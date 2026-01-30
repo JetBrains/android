@@ -23,8 +23,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Invokes (internal) TestDuplicateClassesAction to ensure that there are no duplicate
- * instances of any classes on any plugin's classpath at runtime.
+ * Invokes (internal) TestDuplicateClassesAction to ensure that there are no duplicate instances of any classes on any plugin's classpath at
+ * runtime.
  */
 class DuplicateClassesTest {
   @get:Rule val system: AndroidSystem = AndroidSystem.standard()
@@ -38,11 +38,7 @@ class DuplicateClassesTest {
   fun testDuplicateClasses() {
     system.runStudioWithoutProject().use { studio ->
       studio.executeAction("Internal.TestDuplicateClasses")
-      system.installation.ideaLog.waitForMatchingLine(
-        ".*duplicate classes scan done",
-        3,
-        TimeUnit.MINUTES,
-      )
+      system.installation.ideaLog.waitForMatchingLine(".*duplicate classes scan done", 3, TimeUnit.MINUTES)
       if (!system.installation.ideaLog.hasMatchingLine(".*No duplicate classes found!")) {
         fail("Duplicate classes found, see idea.log for details.")
       }

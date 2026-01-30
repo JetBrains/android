@@ -28,15 +28,17 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFi
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.junit.Rule
-import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.util.stream.Collectors
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
 enum class CMakeDirGetterResponse {
-  FILE_PRESENT, FILE_ABSENT, THROW_IO_EXCEPTION
+  FILE_PRESENT,
+  FILE_ABSENT,
+  THROW_IO_EXCEPTION,
 }
 
 /**
@@ -62,8 +64,7 @@ fun createRemotePackage(cmakeVersion: String): RemotePackage {
 }
 
 class MissingCMakeIssueCheckerTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private fun doTestAlreadyInstalledRemote(error: String) {
     val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
@@ -157,7 +158,7 @@ class MissingCMakeIssueCheckerTest {
   @Test
   fun testFindBestMatchWithPlusExactMatch() {
     assertThat(findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.8.2", true)))
-      .isEqualTo(Revision.parseRevision("3.8.2"),)
+      .isEqualTo(Revision.parseRevision("3.8.2"))
   }
 
   @Test
@@ -169,7 +170,7 @@ class MissingCMakeIssueCheckerTest {
   @Test
   fun testFindBestMatchWithPlusSelectsFirstMatch() {
     // Plus matches both available versions (preview version is ignored). The first match is selected.
-    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")),createRevision("3.8.2", true)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")), createRevision("3.8.2", true)))
       .isEqualTo(Revision.parseRevision("3.8.2-rc1"))
     assertThat(findBestMatch(listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")), createRevision("3.8.2-rc3", true)))
       .isEqualTo(Revision.parseRevision("3.8.2-rc1"))
@@ -231,79 +232,90 @@ class MissingCMakeIssueCheckerTest {
   fun testCheckIssueHandled() {
     val missingCMakeIssueChecker = MissingCMakeIssueChecker()
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception was not found in PATH or by cmake.dir property",
-        "CMake options was not found in PATH or by cmake.dir property",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception was not found in PATH or by cmake.dir property",
+          "CMake options was not found in PATH or by cmake.dir property",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Failed to install the following Android SDK packages as some licences have not been accepted. \n" +
-        "Please check CMake options",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Failed to install the following Android SDK packages as some licences have not been accepted. \n" + "Please check CMake options",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Failed to install the following SDK components: cmake",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Failed to install the following SDK components: cmake",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Unable to find CMake with version: ABC",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Unable to find CMake with version: ABC",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Failed to find CMake. \n Please fix.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Failed to find CMake. \n Please fix.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
 
     assertThat(
-      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Unable to get the CMake version ABC for the project",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Unable to get the CMake version ABC for the project",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
   }
 
   private fun createRevision(revision: String?, orHigher: Boolean): RevisionOrHigher {
     return RevisionOrHigher(Revision.parseRevision(revision!!), orHigher)
   }
 
-  class MissingCmakeIssueCheckerFake(private val localPackages: List<String>,
-                                     private val remotePackages: List<String>,
-                                     private val cmakeDirGetterResponse: CMakeDirGetterResponse) : MissingCMakeIssueChecker() {
+  class MissingCmakeIssueCheckerFake(
+    private val localPackages: List<String>,
+    private val remotePackages: List<String>,
+    private val cmakeDirGetterResponse: CMakeDirGetterResponse,
+  ) : MissingCMakeIssueChecker() {
     override fun getLocalProperties(projectPath: String): File? {
-      if (cmakeDirGetterResponse == CMakeDirGetterResponse.THROW_IO_EXCEPTION)
-        throw IOException()
-      else if (cmakeDirGetterResponse == CMakeDirGetterResponse.FILE_PRESENT)
-        return File("path/to/cmake")
+      if (cmakeDirGetterResponse == CMakeDirGetterResponse.THROW_IO_EXCEPTION) throw IOException()
+      else if (cmakeDirGetterResponse == CMakeDirGetterResponse.FILE_PRESENT) return File("path/to/cmake")
       return null
     }
 
@@ -311,8 +323,9 @@ class MissingCMakeIssueCheckerTest {
       return FakeRepoManager(
         null,
         RepositoryPackages(
-          localPackages.stream().map{e -> createLocalPackage(e)}.collect(Collectors.toList()),
-          remotePackages.stream().map{e -> createRemotePackage(e)}.collect(Collectors.toList()))
+          localPackages.stream().map { e -> createLocalPackage(e) }.collect(Collectors.toList()),
+          remotePackages.stream().map { e -> createRemotePackage(e) }.collect(Collectors.toList()),
+        ),
       )
     }
   }

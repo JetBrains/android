@@ -16,15 +16,15 @@
 package com.android.tools.idea.concurrency
 
 import com.intellij.openapi.Disposable
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Duration
 
 /** Version of Alarm that is scoped and uses suspension. */
 class SuspendingAlarm(parentDisposable: Disposable, context: CoroutineContext = EmptyCoroutineContext) {
@@ -34,10 +34,11 @@ class SuspendingAlarm(parentDisposable: Disposable, context: CoroutineContext = 
     coroutineScope = AndroidCoroutineScope(parentDisposable, context)
   }
 
-  fun cancelAll() { coroutineScope.coroutineContext.cancelChildren() }
+  fun cancelAll() {
+    coroutineScope.coroutineContext.cancelChildren()
+  }
 
-  private fun requestInternal(
-    initialDelay: Duration, iterations: Long, period: Duration, request: suspend () -> Unit): Job {
+  private fun requestInternal(initialDelay: Duration, iterations: Long, period: Duration, request: suspend () -> Unit): Job {
     return coroutineScope.launch {
       delay(initialDelay)
       var i = 0L
@@ -50,15 +51,13 @@ class SuspendingAlarm(parentDisposable: Disposable, context: CoroutineContext = 
   }
 
   /** Runs the [request] after [initialDelay]. */
-  fun request(initialDelay: Duration, request: suspend () -> Unit) =
-    requestInternal(initialDelay, 1, Duration.ZERO, request)
-
+  fun request(initialDelay: Duration, request: suspend () -> Unit) = requestInternal(initialDelay, 1, Duration.ZERO, request)
 
   /** Runs the [request] every [period] after waiting [initialDelay], up to [iterations] times. */
   fun requestRepeating(
     period: Duration,
     initialDelay: Duration = Duration.ZERO,
     iterations: Long = Long.MAX_VALUE, // > 292 years of nanoseconds, so effectively infinite.
-    request: suspend () -> Unit) =
-    requestInternal(initialDelay, iterations, period, request)
+    request: suspend () -> Unit,
+  ) = requestInternal(initialDelay, iterations, period, request)
 }

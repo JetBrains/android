@@ -29,7 +29,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
-
 open class TransformTestCase : GradleFileModelTestCase() {
   protected val gradleDslFile: GradleDslFile by lazy {
     // This is in order to get a valid GradleDslFile object so that we can
@@ -45,9 +44,7 @@ open class TransformTestCase : GradleFileModelTestCase() {
     return field.get(this) as GradlePropertiesDslElement
   }
 
-  /**
-   * We use this method to copy strings to ensure that bugs to do with using "==" aren't present.
-   */
+  /** We use this method to copy strings to ensure that bugs to do with using "==" aren't present. */
   protected fun String.copy(): String {
     return "" + this
   }
@@ -63,9 +60,11 @@ open class TransformTestCase : GradleFileModelTestCase() {
     return GradleDslLiteral(parent, GradleNameElement.fake(name.copy()))
   }
 
-  protected fun createMethodCall(methodName: String,
-                                 statement: String = "unusedStatement",
-                                 parent: GradleDslElement = gradleDslFile): GradleDslMethodCall {
+  protected fun createMethodCall(
+    methodName: String,
+    statement: String = "unusedStatement",
+    parent: GradleDslElement = gradleDslFile,
+  ): GradleDslMethodCall {
     return GradleDslMethodCall(parent, GradleNameElement.create(statement.copy()), methodName.copy())
   }
 

@@ -62,9 +62,7 @@ class SyncEventsMetrics : SettingsSyncEventListener, Disposable {
   override fun enabledStateChanged(syncEnabled: Boolean) {
     val event = backupAndSyncEvent {
       providerInUse = getProvider()
-      type =
-        if (syncEnabled) BackupAndSyncEvent.Type.TYPE_ENABLED
-        else BackupAndSyncEvent.Type.TYPE_DISABLED
+      type = if (syncEnabled) BackupAndSyncEvent.Type.TYPE_ENABLED else BackupAndSyncEvent.Type.TYPE_DISABLED
     }
 
     trackEvent(event)

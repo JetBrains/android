@@ -42,10 +42,9 @@ private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 /**
  * Abstract base class for managing supported Compose animations in the Animation Preview tool.
  *
- * This class provides a common framework for handling different types of Compose animations,
- * including their interaction with the animation preview timeline, playback controls, and state
- * management. Subclasses specialize this behavior for specific animation types (e.g., from-to
- * animations, visibility animations).
+ * This class provides a common framework for handling different types of Compose animations, including their interaction with the animation
+ * preview timeline, playback controls, and state management. Subclasses specialize this behavior for specific animation types (e.g.,
+ * from-to animations, visibility animations).
  */
 abstract class ComposeSupportedAnimationManager(
   final override val animation: ComposeAnimation,
@@ -54,8 +53,7 @@ abstract class ComposeSupportedAnimationManager(
   protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
   getCurrentTime: () -> Int,
-  protected val executeInRenderSession:
-    suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
+  protected val executeInRenderSession: suspend (longTimeout: Boolean, requestRender: Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -80,11 +78,7 @@ abstract class ComposeSupportedAnimationManager(
 
     try {
       val composeTransitions =
-        animationClock.getTransitionsFunction.invoke(
-          animationClock.clock,
-          animation,
-          clockTimeMsStep,
-        ) as List<TransitionInfo>
+        animationClock.getTransitionsFunction.invoke(animationClock.clock, animation, clockTimeMsStep) as List<TransitionInfo>
       for ((index, composeTransition) in composeTransitions.withIndex()) {
         val builder =
           AnimatedProperty.Builder()
@@ -115,10 +109,7 @@ abstract class ComposeSupportedAnimationManager(
     executeInRenderSession(longTimeout, false) {
       animationClock.apply {
         try {
-          properties =
-            getAnimatedProperties(animation).map {
-              AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it.value))
-            }
+          properties = getAnimatedProperties(animation).map { AnimationUnit.TimelineUnit(it.label, ComposeUnit.parseStateUnit(it.value)) }
         } catch (e: Exception) {
           LOG.warn("Failed to get the Compose Animation properties", e)
         }

@@ -40,13 +40,11 @@ class NonComposeProjectTest {
         """
         fun testMethod() {
         }
-      """
+        """
           .trimIndent(),
       )
 
-    val previewProvider = ComposePreviewRepresentationProvider {
-      AnnotationFilePreviewElementFinder
-    }
+    val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
     runBlocking { assertFalse(previewProvider.accept(project, file)) }
   }
 }

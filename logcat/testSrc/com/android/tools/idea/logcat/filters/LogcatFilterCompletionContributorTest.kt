@@ -42,15 +42,13 @@ private val STRING_KEYS = listOf("line", "message", "package", "tag")
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val IS_VALUES =
-  listOf("crash ", "firebase ", "stacktrace ") + LogLevel.entries.map { "${it.stringValue} " }
+private val IS_VALUES = listOf("crash ", "firebase ", "stacktrace ") + LogLevel.entries.map { "${it.stringValue} " }
 
 /** Tests for [LogcatFilterCompletionContributor] */
 class LogcatFilterCompletionContributorTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chain: RuleChain = RuleChain(projectRule, EdtRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
+  @get:Rule val chain: RuleChain = RuleChain(projectRule, EdtRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
   private val history by lazy { AndroidLogcatFilterHistory() }
@@ -60,16 +58,8 @@ class LogcatFilterCompletionContributorTest {
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     val application = ApplicationManager.getApplication()
-    application.replaceService(
-      AndroidLogcatFilterHistory::class.java,
-      history,
-      projectRule.fixture.testRootDisposable,
-    )
-    application.replaceService(
-      AndroidLogcatSettings::class.java,
-      settings,
-      projectRule.fixture.testRootDisposable,
-    )
+    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.fixture.testRootDisposable)
+    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.fixture.testRootDisposable)
   }
 
   @Test
@@ -79,18 +69,7 @@ class LogcatFilterCompletionContributorTest {
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "age:",
-        "is:",
-        "level:",
-        "message:",
-        "name:",
-        "package:",
-        "package:mine ",
-        "process:",
-        "tag:",
-        "line:",
-      )
+      .containsExactly("age:", "is:", "level:", "message:", "name:", "package:", "package:mine ", "process:", "tag:", "line:")
   }
 
   @Test
@@ -122,8 +101,7 @@ class LogcatFilterCompletionContributorTest {
   /**
    * This test uses the message key, but it represents the behavior of the other keys as well.
    *
-   * This is not ideal but having a pair of tests for each key seems like overkill and a generic
-   * test will be unreadable.
+   * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
    */
   @Test
   fun complete_message() {
@@ -131,22 +109,13 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "message:",
-        "message~:",
-        "-message:",
-        "-message~:",
-        "message=:",
-        "-message=:",
-      )
+    assertThat(fixture.lookupElementStrings).containsExactly("message:", "message~:", "-message:", "-message~:", "message=:", "-message=:")
   }
 
   /**
    * This test uses the message key, but it represents the behavior of the other keys as well.
    *
-   * This is not ideal but having a pair of tests for each key seems like overkill and a generic
-   * test will be unreadable.
+   * This is not ideal but having a pair of tests for each key seems like overkill and a generic test will be unreadable.
    */
   @Test
   fun complete_message_withHistory() {
@@ -160,16 +129,7 @@ class LogcatFilterCompletionContributorTest {
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "message:",
-        "message~:",
-        "-message:",
-        "-message~:",
-        "message=:",
-        "-message=:",
-        "message:favorite",
-        "message:history",
-      )
+      .containsExactly("message:", "message~:", "-message:", "-message~:", "message=:", "-message=:", "message:favorite", "message:history")
   }
 
   @Test
@@ -181,9 +141,7 @@ class LogcatFilterCompletionContributorTest {
 
       if (key.isPackageKey()) {
         // Package always has a "mine" item even if not apps are present.
-        assertThat(fixture.lookupElementStrings)
-          .named("$key with whitespace")
-          .containsExactly("mine ")
+        assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactly("mine ")
       } else {
         assertThat(fixture.lookupElementStrings).named("$key with whitespace").isEmpty()
       }
@@ -199,9 +157,7 @@ class LogcatFilterCompletionContributorTest {
 
       if (key.isPackageKey()) {
         // Package always has a "mine" item even if not apps are present.
-        assertThat(fixture.lookupElementStrings)
-          .named("$key with whitespace")
-          .containsExactly("mine ")
+        assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactly("mine ")
       } else {
         assertThat(fixture.lookupElementStrings).named("$key with whitespace").isEmpty()
       }
@@ -279,14 +235,7 @@ class LogcatFilterCompletionContributorTest {
     fixture.completeBasic()
 
     assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "level:verbose ",
-        "level:debug ",
-        "level:info ",
-        "level:warn ",
-        "level:error ",
-        "level:assert ",
-      )
+      .containsExactly("level:verbose ", "level:debug ", "level:info ", "level:warn ", "level:error ", "level:assert ")
   }
 
   @Test
@@ -295,9 +244,7 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .named("is with no whitespace")
-      .containsExactlyElementsIn(IS_VALUES)
+    assertThat(fixture.lookupElementStrings).named("is with no whitespace").containsExactlyElementsIn(IS_VALUES)
   }
 
   @Test
@@ -306,9 +253,7 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .named("is with no whitespace")
-      .containsExactlyElementsIn(IS_VALUES)
+    assertThat(fixture.lookupElementStrings).named("is with no whitespace").containsExactlyElementsIn(IS_VALUES)
   }
 
   @Test
@@ -327,9 +272,7 @@ class LogcatFilterCompletionContributorTest {
 
       fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings)
-        .named("$key without whitespace")
-        .containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+      assertThat(fixture.lookupElementStrings).named("$key without whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
     }
   }
 
@@ -340,9 +283,7 @@ class LogcatFilterCompletionContributorTest {
 
       fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings)
-        .named("$key with whitespace")
-        .containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
     }
   }
 
@@ -353,9 +294,7 @@ class LogcatFilterCompletionContributorTest {
 
       fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings)
-        .named("$key with whitespace")
-        .containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
     }
   }
 
@@ -371,9 +310,7 @@ class LogcatFilterCompletionContributorTest {
           .named("$key with whitespace")
           .containsExactlyElementsIn(setOf("mine ", "package1 ", "package2 "))
       } else {
-        assertThat(fixture.lookupElementStrings)
-          .named("$key with whitespace")
-          .containsExactlyElementsIn(setOf("package1 ", "package2 "))
+        assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("package1 ", "package2 "))
       }
     }
   }
@@ -390,9 +327,7 @@ class LogcatFilterCompletionContributorTest {
           .named("$key with whitespace")
           .containsExactlyElementsIn(setOf("mine ", "package1 ", "package2 "))
       } else {
-        assertThat(fixture.lookupElementStrings)
-          .named("$key with whitespace")
-          .containsExactlyElementsIn(setOf("package1 ", "package2 "))
+        assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("package1 ", "package2 "))
       }
     }
   }
@@ -439,18 +374,7 @@ class LogcatFilterCompletionContributorTest {
 
       assertThat(fixture.lookupElementStrings)
         .named(it)
-        .containsExactly(
-          "age:",
-          "is:",
-          "level:",
-          "message:",
-          "name:",
-          "package:",
-          "package:mine ",
-          "process:",
-          "tag:",
-          "line:",
-        )
+        .containsExactly("age:", "is:", "level:", "message:", "name:", "package:", "package:mine ", "process:", "tag:", "line:")
     }
   }
 
@@ -460,24 +384,12 @@ class LogcatFilterCompletionContributorTest {
 
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings)
-      .containsExactly(
-        "package:",
-        "package~:",
-        "-package:",
-        "-package~:",
-        "package=:",
-        "-package=:",
-      )
+    assertThat(fixture.lookupElementStrings).containsExactly("package:", "package~:", "-package:", "-package~:", "package=:", "-package=:")
   }
 
   @Test
   fun nonAndroidProject_doesNotProvideProjectPackageValue() {
-    fixture.configure(
-      "package:$caret",
-      packages = setOf("foo"),
-      androidProjectDetector = FakeAndroidProjectDetector(false),
-    )
+    fixture.configure("package:$caret", packages = setOf("foo"), androidProjectDetector = FakeAndroidProjectDetector(false))
 
     fixture.completeBasic()
 
@@ -491,9 +403,7 @@ class LogcatFilterCompletionContributorTest {
 
       fixture.completeBasic()
 
-      assertThat(fixture.lookupElementStrings)
-        .named("it")
-        .containsExactlyElementsIn(setOf("Tag ", "tag "))
+      assertThat(fixture.lookupElementStrings).named("it").containsExactlyElementsIn(setOf("Tag ", "tag "))
     }
   }
 }

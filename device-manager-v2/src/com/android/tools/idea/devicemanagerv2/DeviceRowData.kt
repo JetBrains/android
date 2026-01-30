@@ -27,14 +27,11 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataSink
 import javax.swing.Icon
 
-/**
- * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
- * CategoryTable.
- */
+/** Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in CategoryTable. */
 data class DeviceRowData(
   /**
-   * If this row represents a template, this value is set and handle is null. Otherwise, handle must
-   * be set, and this is also set to handle.sourceTemplate (which may be null).
+   * If this row represents a template, this value is set and handle is null. Otherwise, handle must be set, and this is also set to
+   * handle.sourceTemplate (which may be null).
    */
   val template: DeviceTemplate?,
   val handle: DeviceHandle?,

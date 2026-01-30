@@ -22,29 +22,25 @@ import org.jetbrains.android.AndroidTestCase
 class ThemeHelperTest : AndroidTestCase(getAndroidVersion()) {
   fun testThemeExists() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     assertTrue(ThemeHelper.themeExists(configuration, "@android:style/Theme.DeviceDefault"))
   }
 
   fun testNoThemeExists() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     assertFalse(ThemeHelper.themeExists(configuration, "@NoExistingTheme"))
   }
 
   fun testThemeWithNoAtSymbol() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     assertFalse(ThemeHelper.themeExists(configuration, "android:style/Theme.DeviceDefault"))
   }
 
   fun testHasActionBar() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration =
-      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     assertTrue(ThemeHelper.hasActionBar(configuration, "@android:style/Theme.DeviceDefault")!!)
   }
 }

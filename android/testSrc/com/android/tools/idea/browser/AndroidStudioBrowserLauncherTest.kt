@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.browser
 
-import org.junit.Test
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.browser.AndroidStudioBrowserLauncher.Companion.addUtmParameters
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
 class AndroidStudioBrowserLauncherTest {
   @Test
@@ -90,7 +90,8 @@ class AndroidStudioBrowserLauncherTest {
   @Test
   fun addUrlParams_withFragment_paramsAddedBeforeFragment() {
     val input = "https://developer.android.com/guide/topics/manifest/manifest-intro#core-components"
-    val expected = "https://developer.android.com/guide/topics/manifest/manifest-intro?utm_source=android-studio-app&utm_medium=app#core-components"
+    val expected =
+      "https://developer.android.com/guide/topics/manifest/manifest-intro?utm_source=android-studio-app&utm_medium=app#core-components"
     assertThat(addUtmParameters(input)).isEqualTo(expected)
   }
 

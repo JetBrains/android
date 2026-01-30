@@ -25,13 +25,13 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
-import java.io.File
 
 @RunWith(Parameterized::class)
 @RunsInEdt
@@ -41,26 +41,28 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameters(name = "minSdk={0}")
-    val data = listOf(
-      arrayOf<Any>(28, /* expectWarning = */ true),
-      arrayOf<Any>(29, /* expectWarning = */ true),
-      arrayOf<Any>(30, /* expectWarning = */ false),
-      arrayOf<Any>(31, /* expectWarning = */ false),
-      arrayOf<Any>(32, /* expectWarning = */ false))
+    val data =
+      listOf(
+        arrayOf<Any>(28, /* expectWarning= */ true),
+        arrayOf<Any>(29, /* expectWarning= */ true),
+        arrayOf<Any>(30, /* expectWarning= */ false),
+        arrayOf<Any>(31, /* expectWarning= */ false),
+        arrayOf<Any>(32, /* expectWarning= */ false),
+      )
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule
-    .withAndroidModels(
-      prepareProjectSources = { dir -> assertThat(File(dir, "src").mkdirs()).isTrue() },
-      AndroidModuleModelBuilder(
-        gradlePath = ":",
-        selectedBuildVariant = "debug",
-        projectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
-          .withMinSdk { this@RoomSqlBooleanLiteralInspectionTest.minSdk }
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        prepareProjectSources = { dir -> assertThat(File(dir, "src").mkdirs()).isTrue() },
+        AndroidModuleModelBuilder(
+          gradlePath = ":",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk { this@RoomSqlBooleanLiteralInspectionTest.minSdk },
+        ),
       )
-    )
-    .onEdt()
+      .onEdt()
 
   val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -71,35 +73,41 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     // that directory, and updating it would require changing many tests. Instead, just manually creating a few interfaces here suffices.
     myFixture.addFileToProject(
       "src/androidx/room/Query.java",
-      //language=java
+      // language=java
       """
       package androidx.room;
       public @interface Query { String value(); }
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.addFileToProject(
       "src/androidx/room/Dao.java",
-      //language=java
+      // language=java
       """
       package androidx.room;
       public @interface Dao {}
-      """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     myFixture.enableInspections(RoomSqlBooleanLiteralInspection::class.java)
   }
 
   @Test
   fun booleanLiteral() {
-    val booleanLiteralText = if (expectWarning) {
-      """<warning descr="Boolean literals require API level 30 (current min is $minSdk).">TRUE</warning>"""
-    } else {
-      """TRUE"""
-    }
+    val booleanLiteralText =
+      if (expectWarning) {
+        """<warning descr="Boolean literals require API level 30 (current min is $minSdk).">TRUE</warning>"""
+      } else {
+        """TRUE"""
+      }
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/UserDao.java",
-      //language=java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/UserDao.java",
+        // language=java
+        """
       package com.example;
 
       import androidx.room.Dao;
@@ -111,7 +119,9 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
         @Query("SELECT * FROM user WHERE isActive = $booleanLiteralText")
         List<Object> getObjects();
       }
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.checkHighlighting()
@@ -120,22 +130,25 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
   @Test
   fun booleanLiteralInPragma() {
     // true/false in pragma statements is supported regardless of API level, so ensure it's never highlighted as a warning.
-    val file = myFixture.addFileToProject(
-      "src/com/example/UserDao.java",
-      //language=java
-      """
-      package com.example;
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/UserDao.java",
+        // language=java
+        """
+        package com.example;
 
-      import androidx.room.Dao;
-      import androidx.room.Query;
-      import java.util.List;
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
 
-      @Dao
-      public interface UserDao {
-        @Query("PRAGMA foreign_keys=true")
-        List<Object> getObjects();
-      }
-      """.trimIndent())
+        @Dao
+        public interface UserDao {
+          @Query("PRAGMA foreign_keys=true")
+          List<Object> getObjects();
+        }
+        """
+          .trimIndent(),
+      )
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.checkHighlighting()
@@ -146,37 +159,41 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     // For API levels that don't show the warning, there's nothing to verify.
     if (!expectWarning) return
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/UserDao.java",
-      //language=java
-      """
-      package com.example;
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/UserDao.java",
+        // language=java
+        """
+        package com.example;
 
-      import androidx.room.Dao;
-      import androidx.room.Query;
-      import java.util.List;
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
 
-      @Dao
-      public interface UserDao {
-        @Query("SELECT * FROM user WHERE isActive = TRUE")
-        List<Object> getObjects();
-      }
-      """.trimIndent())
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user WHERE isActive = TRUE")
+          List<Object> getObjects();
+        }
+        """
+          .trimIndent(),
+      )
     myFixture.openFileInEditor(file.virtualFile)
     myFixture.moveCaret("SELECT * FROM user WHERE isActive = TR|UE")
 
     val intention = myFixture.getAvailableIntention("Replace Boolean literal 'TRUE' with '1'")
     assertThat(intention).isNotNull()
 
-    CommandProcessor.getInstance().executeCommand(
-      myFixture.project,
-      { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
-      /* name = */ "Apply Quick Fix",
-      /* groupId = */ null
-    )
+    CommandProcessor.getInstance()
+      .executeCommand(
+        myFixture.project,
+        { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
+        /* name = */ "Apply Quick Fix",
+        /* groupId = */ null,
+      )
 
     myFixture.checkResult(
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -189,7 +206,9 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
         @Query("SELECT * FROM user WHERE isActive = 1")
         List<Object> getObjects();
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -197,37 +216,41 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     // For API levels that don't show the warning, there's nothing to verify.
     if (!expectWarning) return
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/UserDao.java",
-      //language=java
-      """
-      package com.example;
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/UserDao.java",
+        // language=java
+        """
+        package com.example;
 
-      import androidx.room.Dao;
-      import androidx.room.Query;
-      import java.util.List;
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
 
-      @Dao
-      public interface UserDao {
-        @Query("SELECT * FROM user WHERE isActive = FALSE")
-        List<Object> getObjects();
-      }
-      """.trimIndent())
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM user WHERE isActive = FALSE")
+          List<Object> getObjects();
+        }
+        """
+          .trimIndent(),
+      )
     myFixture.openFileInEditor(file.virtualFile)
     myFixture.moveCaret("SELECT * FROM user WHERE isActive = FAL|SE")
 
     val intention = myFixture.getAvailableIntention("Replace Boolean literal 'FALSE' with '0'")
     assertThat(intention).isNotNull()
 
-    CommandProcessor.getInstance().executeCommand(
-      myFixture.project,
-      { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
-      /* name = */ "Apply Quick Fix",
-      /* groupId = */ null
-    )
+    CommandProcessor.getInstance()
+      .executeCommand(
+        myFixture.project,
+        { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
+        /* name = */ "Apply Quick Fix",
+        /* groupId = */ null,
+      )
 
     myFixture.checkResult(
-      //language=java
+      // language=java
       """
       package com.example;
 
@@ -240,6 +263,8 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
         @Query("SELECT * FROM user WHERE isActive = 0")
         List<Object> getObjects();
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 }

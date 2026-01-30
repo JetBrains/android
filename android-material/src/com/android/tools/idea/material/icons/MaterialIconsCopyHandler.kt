@@ -38,16 +38,13 @@ private val LOG = Logger.getInstance(MaterialIconsCopyHandler::class.java)
 /**
  * Takes care of copying material icons files to another path.
  *
- * Copies icon by icon, meaning that it will first copy all styles of a single icon before moving to
- * the next one.
+ * Copies icon by icon, meaning that it will first copy all styles of a single icon before moving to the next one.
  *
- * Creates a temporary File([METADATA_TEMP_FILE_NAME]) in the same directory while it's copying the
- * icons, it will record every icon that has been fully copied so far. This allows us to pick-up the
- * copying process in case it was interrupted.
+ * Creates a temporary File([METADATA_TEMP_FILE_NAME]) in the same directory while it's copying the icons, it will record every icon that
+ * has been fully copied so far. This allows us to pick-up the copying process in case it was interrupted.
  *
- * When finished, it renames the file to [METADATA_FILE_NAME], so if there's already an existing
- * File([METADATA_FILE_NAME]) in the target copy path, it will not copy anything, since the copy has
- * already been performed to that path. This is a one-time process.
+ * When finished, it renames the file to [METADATA_FILE_NAME], so if there's already an existing File([METADATA_FILE_NAME]) in the target
+ * copy path, it will not copy anything, since the copy has already been performed to that path. This is a one-time process.
  *
  * @param metadata The metadata for the existing icons
  * @param materialVdIcons Model of existing material icons files.
@@ -70,9 +67,7 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
         val iconName = vdIcon.displayName.replace(" ", "_")
         if (!iconNameToStyleAndUrl.contains(iconName)) {
           iconNameToStyleAndUrl[iconName] =
-            HashMap<String, VdIconURLWithFileName>().apply {
-              put(style, VdIconURLWithFileName(vdIcon.url, vdIcon.name))
-            }
+            HashMap<String, VdIconURLWithFileName>().apply { put(style, VdIconURLWithFileName(vdIcon.url, vdIcon.name)) }
         } else {
           iconNameToStyleAndUrl[iconName]!![style] = VdIconURLWithFileName(vdIcon.url, vdIcon.name)
         }
@@ -109,9 +104,7 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
     copyIcons(iconsToCopy, metadataBuilder, targetPath)
   }
 
-  private fun getRemainingIconsToCopy(
-    metadataBuilder: MaterialIconsMetadataBuilder
-  ): Set<VdIconWriteData> {
+  private fun getRemainingIconsToCopy(metadataBuilder: MaterialIconsMetadataBuilder): Set<VdIconWriteData> {
     val iconsToCopy = iconNameToWriteData.toMutableSet()
 
     metadataBuilder.build().icons.forEach { iconMetadata ->
@@ -121,11 +114,7 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
     return iconsToCopy
   }
 
-  private fun copyIcons(
-    iconsToCopy: Set<VdIconWriteData>,
-    metadataBuilder: MaterialIconsMetadataBuilder,
-    targetPath: File,
-  ) {
+  private fun copyIcons(iconsToCopy: Set<VdIconWriteData>, metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
     var cancelled = false
     iconsToCopy.forEach { writeData ->
       if (ProgressManager.getInstance().progressIndicator?.isCanceled == true) {
@@ -146,22 +135,12 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
     }
   }
 
-  private fun copyIcon(
-    iconUrl: URL,
-    iconFileName: String,
-    family: String,
-    iconMetadata: MaterialMetadataIcon,
-    targetPath: File,
-  ) {
-    val vdIconDir =
-      targetPath.resolve(family.toDirFormat()).resolve(iconMetadata.name).apply { mkdirs() }
+  private fun copyIcon(iconUrl: URL, iconFileName: String, family: String, iconMetadata: MaterialMetadataIcon, targetPath: File) {
+    val vdIconDir = targetPath.resolve(family.toDirFormat()).resolve(iconMetadata.name).apply { mkdirs() }
     File(vdIconDir, iconFileName).writeText(iconUrl.readText())
   }
 
-  private fun updateTemporaryMetadataFile(
-    metadataBuilder: MaterialIconsMetadataBuilder,
-    targetPath: File,
-  ) {
+  private fun updateTemporaryMetadataFile(metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
     val tempFilePath = targetPath.toPath().resolve(METADATA_TEMP_FILE_NAME)
     MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), tempFilePath, LOG)
   }
@@ -171,8 +150,7 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
   }
 
   private fun restoreMetadata(targetPath: File): MaterialIconsMetadataBuilder {
-    val metadataBuilder =
-      MaterialIconsMetadataBuilder(host = host, urlPattern = urlPattern, families = families)
+    val metadataBuilder = MaterialIconsMetadataBuilder(host = host, urlPattern = urlPattern, families = families)
     val metadataTempFile = File(targetPath, METADATA_TEMP_FILE_NAME)
     if (metadataTempFile.exists() && !metadataTempFile.isDirectory) {
       LOG.info("Continuing icons copy")
@@ -193,20 +171,13 @@ class MaterialIconsCopyHandler(metadata: MaterialIconsMetadata, materialVdIcons:
     }
 
     try {
-      Files.move(
-        metadataTempFile.toPath(),
-        metadataFinishedFile.toPath(),
-        StandardCopyOption.REPLACE_EXISTING,
-      )
+      Files.move(metadataTempFile.toPath(), metadataFinishedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
     } catch (e: IOException) {
       LOG.warn("Failed to rename temporary metadata file", e)
     }
   }
 }
 
-private data class VdIconWriteData(
-  val stylesToURLAndName: HashMap<String, VdIconURLWithFileName>,
-  val metadataIcon: MaterialMetadataIcon,
-)
+private data class VdIconWriteData(val stylesToURLAndName: HashMap<String, VdIconURLWithFileName>, val metadataIcon: MaterialMetadataIcon)
 
 private data class VdIconURLWithFileName(val url: URL, val fileName: String)

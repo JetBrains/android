@@ -106,22 +106,13 @@ class AssistedFactoryDaggerConceptTest {
         .trimIndent(),
     )
 
-    val myAssistedFactoryDaggerElement =
-      ProviderDaggerElement(
-        myFixture.findParentElement<KtClassOrObject>("interface MyAssisted|Factory")
-      )
+    val myAssistedFactoryDaggerElement = ProviderDaggerElement(myFixture.findParentElement<KtClassOrObject>("interface MyAssisted|Factory"))
 
-    assertThat(
-        AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
-        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
+        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID).resolveToDaggerElements(myProject, myProject.projectScope()).toList()
       )
       .isEmpty()
   }
@@ -146,20 +137,13 @@ class AssistedFactoryDaggerConceptTest {
         .trimIndent(),
     )
 
-    val myAssistedFactoryDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<PsiClass>("interface MyAssisted|Factory"))
+    val myAssistedFactoryDaggerElement = ProviderDaggerElement(myFixture.findParentElement<PsiClass>("interface MyAssisted|Factory"))
 
-    assertThat(
-        AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
-        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
+        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID).resolveToDaggerElements(myProject, myProject.projectScope()).toList()
       )
       .isEmpty()
   }
@@ -198,8 +182,7 @@ class AssistedFactoryDaggerConceptTest {
         .trimIndent(),
     )
 
-    val myAssistedFactoryMethodDaggerElement =
-      AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun creat|e1"))
+    val myAssistedFactoryMethodDaggerElement = AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun creat|e1"))
 
     // Expected to resolve
     assertThat(
@@ -247,9 +230,7 @@ class AssistedFactoryDaggerConceptTest {
     )
 
     val myAssistedFactoryMethodDaggerElement =
-      AssistedFactoryMethodDaggerElement(
-        myFixture.findParentElement<PsiMethod>("CreatedObject crea|te1")
-      )
+      AssistedFactoryMethodDaggerElement(myFixture.findParentElement<PsiMethod>("CreatedObject crea|te1"))
 
     // Expected to resolve
     assertThat(
@@ -297,13 +278,10 @@ class AssistedFactoryDaggerConceptTest {
         .trimIndent(),
     )
 
-    val assistedFactoryMethodDaggerElement =
-      AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun cre|ate"))
+    val assistedFactoryMethodDaggerElement = AssistedFactoryMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun cre|ate"))
 
     val assistedInjectConstructorDaggerElement =
-      AssistedInjectConstructorDaggerElement(
-        myFixture.findParentElement<KtConstructor<*>>("CreatedObject @AssistedInject const|ructor")
-      )
+      AssistedInjectConstructorDaggerElement(myFixture.findParentElement<KtConstructor<*>>("CreatedObject @AssistedInject const|ructor"))
 
     assertThat(assistedFactoryMethodDaggerElement.getRelatedDaggerElements())
       .containsExactly(

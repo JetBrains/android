@@ -33,11 +33,7 @@ class AndroidApiLevelComboBoxTest {
   fun testDefaultSelectedItem() =
     runBlocking(AndroidDispatchers.uiThread) {
       val formFactor = FormFactor.MOBILE
-      assertEquals(
-        "none",
-        PropertiesComponent.getInstance()
-          .getValue(getPropertiesComponentMinSdkKey(formFactor), "none"),
-      )
+      assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
       val items: MutableList<VersionItem> =
         Lists.newArrayList(
           VersionItem.fromStableVersion(formFactor.defaultApi - 1),
@@ -59,15 +55,12 @@ class AndroidApiLevelComboBoxTest {
       apiComboBox.init(formFactor, items)
       assertEquals(0, apiComboBox.selectedIndex)
       apiComboBox.selectedIndex = 2
-      val savedApi =
-        PropertiesComponent.getInstance()
-          .getValue(getPropertiesComponentMinSdkKey(formFactor), "none")
+      val savedApi = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none")
       assertEquals(items[2].minSdk.apiStringWithExtension, savedApi)
 
       // Makes sure that if you already have a previously saved API level, we force it up to at
       // least the recommended API level
-      PropertiesComponent.getInstance()
-        .setValue(getPropertiesComponentMinSdkKey(formFactor), LOWEST_ACTIVE_API.toString())
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), LOWEST_ACTIVE_API.toString())
       ensureDefaultApiLevelAtLeastRecommended()
       val apiLevelItems = mutableListOf<VersionItem>()
       for (level in LOWEST_ACTIVE_API..HIGHEST_KNOWN_API) {

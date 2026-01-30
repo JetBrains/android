@@ -26,23 +26,23 @@ private val MESSAGE =
   logcatMessage(
     message =
       """
-       	at S0.a.e(SourceFile:30)
-       	at H.a.k(SourceFile:160)
-       	at m.n.m(SourceFile:132)
-       	at Z0.a.d(SourceFile:9)
+      at S0.a.e(SourceFile:30)
+      at H.a.k(SourceFile:160)
+      at m.n.m(SourceFile:132)
+      at Z0.a.d(SourceFile:9)
       """
         .trimIndent()
   )
 
 private val CLEAR_MESSAGE =
   """
-    at com.example.myapplication.Foo.foo(Foo.kt:7) (Show original)
-    at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
-    at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
-    at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)
-    at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke(ClickablePointerInputNode.java:981)
-    at androidx.compose.foundation.gestures.TapGestureDetectorKt${'$'}detectTapAndPress$2$1.invokeSuspend(TapGestureDetector.kt:255)
-    at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+  at com.example.myapplication.Foo.foo(Foo.kt:7) (Show original)
+  at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
+  at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
+  at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)
+  at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke(ClickablePointerInputNode.java:981)
+  at androidx.compose.foundation.gestures.TapGestureDetectorKt${'$'}detectTapAndPress$2$1.invokeSuspend(TapGestureDetector.kt:255)
+  at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
   """
     .trimIndent()
 

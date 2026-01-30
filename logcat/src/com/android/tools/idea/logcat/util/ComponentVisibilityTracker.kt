@@ -24,10 +24,7 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-/**
- * Tracks the visibility of a [JComponent] by creating a [Flow<Boolean>] where each item represents
- * the visibility state
- */
+/** Tracks the visibility of a [JComponent] by creating a [Flow<Boolean>] where each item represents the visibility state */
 internal fun JComponent.trackVisibility(): Flow<Boolean> {
   return callbackFlow {
     val callback =

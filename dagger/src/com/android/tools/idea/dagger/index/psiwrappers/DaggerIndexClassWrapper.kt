@@ -24,9 +24,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /** A [DaggerIndexPsiWrapper] representing a class. */
 interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
-  /**
-   * Returns the fully-qualified class ID of the class, including package and containing classes.
-   */
+  /** Returns the fully-qualified class ID of the class, including package and containing classes. */
   fun getClassId(): ClassId
 
   /**
@@ -37,25 +35,20 @@ interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
   fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean
 }
 
-internal class KtClassOrObjectWrapper(
-  private val ktClassOrObject: KtClassOrObject,
-  private val importHelper: KotlinImportHelper,
-) : DaggerIndexAnnotatedKotlinWrapper(ktClassOrObject, importHelper), DaggerIndexClassWrapper {
+internal class KtClassOrObjectWrapper(private val ktClassOrObject: KtClassOrObject, private val importHelper: KotlinImportHelper) :
+  DaggerIndexAnnotatedKotlinWrapper(ktClassOrObject, importHelper), DaggerIndexClassWrapper {
   override fun getClassId(): ClassId = ktClassOrObject.getClassId()!!
 
   override fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean =
     getIsAnnotatedWith(annotation) ||
       (ktClassOrObject is KtObjectDeclaration &&
         ktClassOrObject.isCompanion() &&
-        ktClassOrObject.containingClassOrObject?.let {
-          KtClassOrObjectWrapper(it, importHelper).getIsAnnotatedWith(annotation)
-        } == true)
+        ktClassOrObject.containingClassOrObject?.let { KtClassOrObjectWrapper(it, importHelper).getIsAnnotatedWith(annotation) } == true)
 }
 
 internal class PsiClassWrapper(private val psiClass: PsiClass, importHelper: JavaImportHelper) :
   DaggerIndexAnnotatedJavaWrapper(psiClass, importHelper), DaggerIndexClassWrapper {
   override fun getClassId(): ClassId = psiClass.classIdIfNonLocal!!
 
-  override fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean =
-    getIsAnnotatedWith(annotation)
+  override fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean = getIsAnnotatedWith(annotation)
 }

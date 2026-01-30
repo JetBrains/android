@@ -27,38 +27,28 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
 
-/**
- * Returns true if the ADB is ready to handle commands for the device with [serialNumber] in [project].
- */
+/** Returns true if the ADB is ready to handle commands for the device with [serialNumber] in [project]. */
 fun isReadyForAdbCommands(project: Project, serialNumber: String): Boolean =
   project.service<EmulatorAdbReadyService>().isReadyForAdbCommands(serialNumber)
 
 @Service(Service.Level.PROJECT)
-internal class EmulatorAdbReadyService(private val project: Project): Disposable {
+internal class EmulatorAdbReadyService(private val project: Project) : Disposable {
 
   private val deviceHandleMap = ConcurrentCollectionFactory.createConcurrentMap<String, DeviceHandle>()
   private val scope = createCoroutineScope()
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   init {
     scope.launch {
       val deviceProvisioner = project.getService(DeviceProvisionerService::class.java).deviceProvisioner
       deviceProvisioner.devices.collect { devices ->
-        devices.forEach { device ->
-          scope.launch {
-            device.stateFlow.collect {
-              device.update()
-            }
-          }
-        }
+        devices.forEach { device -> scope.launch { device.stateFlow.collect { device.update() } } }
       }
     }
   }
 
-  fun isReadyForAdbCommands(serialNumber: String): Boolean =
-    deviceHandleMap[serialNumber]?.state?.isReady ?: false
+  fun isReadyForAdbCommands(serialNumber: String): Boolean = deviceHandleMap[serialNumber]?.state?.isReady ?: false
 
   private fun DeviceHandle.update() {
     val connectedDevice = state.connectedDevice
@@ -67,13 +57,10 @@ internal class EmulatorAdbReadyService(private val project: Project): Disposable
       if (state.isReady) {
         ActivityTracker.getInstance().inc()
       }
-    }
-    else {
+    } else {
       val serialNumber = deviceHandleMap.keys.find { deviceHandleMap[it] == this }
       deviceHandleMap.values.remove(this)
-      serialNumber?.let {
-        ActivityTracker.getInstance().inc()
-      }
+      serialNumber?.let { ActivityTracker.getInstance().inc() }
     }
   }
 }

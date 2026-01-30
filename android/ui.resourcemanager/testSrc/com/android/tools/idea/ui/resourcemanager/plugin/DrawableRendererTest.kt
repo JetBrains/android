@@ -24,20 +24,18 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.util.ui.ImageUtil
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class DrawableRendererTest {
 
-  @Suppress("MemberVisibilityCanBePrivate")
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @Suppress("MemberVisibilityCanBePrivate") @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
@@ -63,7 +61,7 @@ class DrawableRendererTest {
     val viewer = DrawableAssetRenderer()
     assertTrue { viewer.isFileSupported(virtualFile) }
     val image = checkNotNull(viewer.getImage(virtualFile, projectRule.module, Dimension(32, 32)).get(60, TimeUnit.SECONDS))
-    ImageDiffUtil.assertImageSimilar(Path.of(getPluginsResourcesDirectory (), "golden.png"), ImageUtil.toBufferedImage(image), 0.05)
+    ImageDiffUtil.assertImageSimilar(Path.of(getPluginsResourcesDirectory(), "golden.png"), ImageUtil.toBufferedImage(image), 0.05)
   }
 
   private fun saveProjectOnDisk() {

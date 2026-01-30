@@ -65,100 +65,88 @@ class TestSuiteUtilsTest {
               listOf(
                 IdeTestSuiteImpl(
                   name = "myTestSuite",
-                  sources = listOf(
-                    createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuite")
-                    )
-                  ),
+                  sources = listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuite"))),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("debug")
+                  targetedVariants = listOf("debug"),
                 ),
                 IdeTestSuiteImpl(
                   name = "myTestSuiteWithoutTargets",
-                  sources = listOf(
-                    createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithoutTargets")
-                    )
-                  ),
+                  sources = listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithoutTargets"))),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("debug")
+                  targetedVariants = listOf("debug"),
                 ),
                 IdeTestSuiteImpl(
                   name = "myTestSuiteWithNonTargetedVariant",
-                  sources = listOf(
-                    createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithNonTargetedVariant")
-                    )
-                  ),
+                  sources =
+                    listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithNonTargetedVariant"))),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("release")
+                  targetedVariants = listOf("release"),
                 ),
                 IdeTestSuiteImpl(
                   name = "myTestSuiteWithMultipleTargets",
-                  sources = listOf(
-                    createAssetsTestSuiteSource(
-                      testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithMultipleTargets")
-                    )
-                  ),
+                  sources =
+                    listOf(createAssetsTestSuiteSource(testSuitePath = moduleBasePath.resolve("src/myTestSuiteWithMultipleTargets"))),
                   junitEngineInfo = IdeJUnitEngineInfoImpl(includedEngines = setOf("engine1")),
-                  targetedVariants = listOf("debug")
+                  targetedVariants = listOf("debug"),
                 ),
               )
             },
             testSuiteArtifactsStub = { variant ->
               when (variant) {
-                "debug" -> listOf(
-                  IdeTestSuiteVariantTargetImpl(
-                    suiteName = "myTestSuite",
-                    targetedVariantName = "debug",
-                    targets = listOf(
-                      IdeTestSuiteTargetImpl(
-                        targetName = "connectedTest", testTaskName = "myTestSuiteTaskName",
-                        targetedDevices = emptyList()
-                      )
-                    )
-                  ),
-                  IdeTestSuiteVariantTargetImpl(
-                    suiteName = "myTestSuiteWithoutTargets",
-                    targetedVariantName = "debug",
-                    targets = emptyList()
-                  ),
-                  IdeTestSuiteVariantTargetImpl(
-                    suiteName = "myTestSuiteWithMultipleTargets",
-                    targetedVariantName = "debug",
-                    targets = listOf(
-                      IdeTestSuiteTargetImpl(
-                        targetName = "target1", testTaskName = "myTarget1TaskName",
-                        targetedDevices = emptyList()
-                      ),
-                      IdeTestSuiteTargetImpl(
-                        targetName = "target2", testTaskName = "myTarget2TaskName",
-                        targetedDevices = emptyList()
-                      ),
-                      IdeTestSuiteTargetImpl(
-                        targetName = "target3", testTaskName = "myTarget3TaskName",
-                        targetedDevices = listOf("deviceId")
-                      ),
-                    )
+                "debug" ->
+                  listOf(
+                    IdeTestSuiteVariantTargetImpl(
+                      suiteName = "myTestSuite",
+                      targetedVariantName = "debug",
+                      targets =
+                        listOf(
+                          IdeTestSuiteTargetImpl(
+                            targetName = "connectedTest",
+                            testTaskName = "myTestSuiteTaskName",
+                            targetedDevices = emptyList(),
+                          )
+                        ),
+                    ),
+                    IdeTestSuiteVariantTargetImpl(
+                      suiteName = "myTestSuiteWithoutTargets",
+                      targetedVariantName = "debug",
+                      targets = emptyList(),
+                    ),
+                    IdeTestSuiteVariantTargetImpl(
+                      suiteName = "myTestSuiteWithMultipleTargets",
+                      targetedVariantName = "debug",
+                      targets =
+                        listOf(
+                          IdeTestSuiteTargetImpl(targetName = "target1", testTaskName = "myTarget1TaskName", targetedDevices = emptyList()),
+                          IdeTestSuiteTargetImpl(targetName = "target2", testTaskName = "myTarget2TaskName", targetedDevices = emptyList()),
+                          IdeTestSuiteTargetImpl(
+                            targetName = "target3",
+                            testTaskName = "myTarget3TaskName",
+                            targetedDevices = listOf("deviceId"),
+                          ),
+                        ),
+                    ),
                   )
-                )
 
-                "release" -> listOf(
-                  IdeTestSuiteVariantTargetImpl(
-                    suiteName = "myTestSuiteWithNonTargetedVariant",
-                    targetedVariantName = "release",
-                    targets = listOf(
-                      IdeTestSuiteTargetImpl(
-                        targetName = "connectedTest", testTaskName = "myTestSuiteWithNonTargetedVariantTaskName",
-                        targetedDevices = emptyList()
-                      )
+                "release" ->
+                  listOf(
+                    IdeTestSuiteVariantTargetImpl(
+                      suiteName = "myTestSuiteWithNonTargetedVariant",
+                      targetedVariantName = "release",
+                      targets =
+                        listOf(
+                          IdeTestSuiteTargetImpl(
+                            targetName = "connectedTest",
+                            testTaskName = "myTestSuiteWithNonTargetedVariantTaskName",
+                            targetedDevices = emptyList(),
+                          )
+                        ),
                     )
                   )
-                )
 
                 else -> emptyList()
               }
-            }
+            },
           ),
       ),
     )
@@ -186,36 +174,33 @@ class TestSuiteUtilsTest {
     assertEquals("assets", testSuite.sources.first().name)
 
     val folder = rule.fixture.project.guessProjectDir()!!.resolveFromRootOrRelative("app/src/myTestSuite")!!.toIoFile()
-    assertEquals(IdeSourceProvider(
-      name = "assets",
-      folder = folder,
-      manifestFile = "AndroidManifest.xml",
-      javaDirectories = emptyList(),
-      kotlinDirectories = emptyList(),
-      resourcesDirectories = emptyList(),
-      aidlDirectories = emptyList(),
-      renderscriptDirectories = emptyList(),
-      resDirectories = emptyList(),
-      assetsDirectories = emptyList(),
-      jniLibsDirectories = emptyList(),
-      shadersDirectories = emptyList(),
-      mlModelsDirectories = emptyList(),
-      customSourceDirectories = listOf(
-        IdeCustomSourceDirectoryImpl(
-          sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY,
-          myFolder = folder,
-          path = "."
-        )
+    assertEquals(
+      IdeSourceProvider(
+        name = "assets",
+        folder = folder,
+        manifestFile = "AndroidManifest.xml",
+        javaDirectories = emptyList(),
+        kotlinDirectories = emptyList(),
+        resourcesDirectories = emptyList(),
+        aidlDirectories = emptyList(),
+        renderscriptDirectories = emptyList(),
+        resDirectories = emptyList(),
+        assetsDirectories = emptyList(),
+        jniLibsDirectories = emptyList(),
+        shadersDirectories = emptyList(),
+        mlModelsDirectories = emptyList(),
+        customSourceDirectories =
+          listOf(IdeCustomSourceDirectoryImpl(sourceTypeName = TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY, myFolder = folder, path = ".")),
+        baselineProfileDirectories = emptyList(),
+        keepRulesDirectoriesField = emptyList(),
       ),
-      baselineProfileDirectories = emptyList(),
-      keepRulesDirectoriesField = emptyList(),
-    ), testSuite.sources.first().sourceProvider)
+      testSuite.sources.first().sourceProvider,
+    )
   }
 
   @Test
   fun getTestSuiteContainingFile_returnsNull_whenFileNotInTestSuite() {
-    val nonTestSuiteFile = rule.fixture
-      .addFileToProject("app/src/main/java/com/example/app/MainActivity.kt", "")
+    val nonTestSuiteFile = rule.fixture.addFileToProject("app/src/main/java/com/example/app/MainActivity.kt", "")
 
     val testSuite = TestSuiteUtils.getTestSuiteContainingFile(gradleAndroidModel.testSuites, nonTestSuiteFile.virtualFile)
 
@@ -327,11 +312,8 @@ class TestSuiteUtilsTest {
 
   @Test
   fun getTestSuiteModule_returnsModule() {
-    val runConfiguration = TestSuiteRunConfiguration(
-      rule.project,
-      TestSuiteRunConfigurationType().configurationFactories[0],
-      "Test Suite Config"
-    )
+    val runConfiguration =
+      TestSuiteRunConfiguration(rule.project, TestSuiteRunConfigurationType().configurationFactories[0], "Test Suite Config")
     runConfiguration.addTaskName("myTestSuiteTaskName")
     runConfiguration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)!!
 
@@ -343,11 +325,8 @@ class TestSuiteUtilsTest {
 
   @Test
   fun getTestSuiteModule_returnsNull_whenTaskNameNotFound() {
-    val runConfiguration = TestSuiteRunConfiguration(
-      rule.project,
-      TestSuiteRunConfigurationType().configurationFactories[0],
-      "Test Suite Config"
-    )
+    val runConfiguration =
+      TestSuiteRunConfiguration(rule.project, TestSuiteRunConfigurationType().configurationFactories[0], "Test Suite Config")
     runConfiguration.addTaskName("unknownTaskName")
     runConfiguration.settings.externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(testSuiteModule)!!
 
@@ -358,11 +337,8 @@ class TestSuiteUtilsTest {
 
   @Test
   fun getTestSuiteModule_returnsNull_whenExternalProjectPathNotFound() {
-    val runConfiguration = TestSuiteRunConfiguration(
-      rule.project,
-      TestSuiteRunConfigurationType().configurationFactories[0],
-      "Test Suite Config"
-    )
+    val runConfiguration =
+      TestSuiteRunConfiguration(rule.project, TestSuiteRunConfigurationType().configurationFactories[0], "Test Suite Config")
     runConfiguration.addTaskName("myTestSuiteTaskName")
     runConfiguration.settings.externalProjectPath = "/unknown/path"
 

@@ -52,10 +52,7 @@ class ProgressBarHandlerTest {
   }
 
   private fun createProgressBar(styleValue: String): NlComponent {
-    val progressBar =
-      createNlModelFromTagName(AndroidFacet.getInstance(myRule.module)!!)
-        .getRoot()
-        .addChild(progressBarTag(styleValue))
+    val progressBar = createNlModelFromTagName(AndroidFacet.getInstance(myRule.module)!!).getRoot().addChild(progressBarTag(styleValue))
     Truth.assertThat(progressBar.tagName).isEqualTo(SdkConstants.PROGRESS_BAR)
     Truth.assertThat(progressBar.getAttribute(null, "style")).isEqualTo(styleValue)
     return progressBar

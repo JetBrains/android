@@ -27,13 +27,8 @@ import java.awt.Component
 import javax.swing.JComponent
 import org.jetbrains.annotations.TestOnly
 
-/**
- * Utility method that ensures the current [TextEditorWithPreview.Layout] for this editor is the
- * given [layout].
- */
-fun <P : FileEditor> SeamlessTextEditorWithPreview<P>.setEditorLayout(
-  layout: TextEditorWithPreview.Layout
-) =
+/** Utility method that ensures the current [TextEditorWithPreview.Layout] for this editor is the given [layout]. */
+fun <P : FileEditor> SeamlessTextEditorWithPreview<P>.setEditorLayout(layout: TextEditorWithPreview.Layout) =
   when (layout) {
     TextEditorWithPreview.Layout.SHOW_PREVIEW -> selectDesignMode(false)
     TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW -> selectSplitMode(false)
@@ -42,19 +37,15 @@ fun <P : FileEditor> SeamlessTextEditorWithPreview<P>.setEditorLayout(
   }
 
 /**
- * This Editor allows seamless switch between pure [TextEditor] and [TextEditorWithPreview]. It
- * allows switching between those by changing [isPureTextEditor] property. This editor records the
- * true state of [TextEditorWithPreview] and hides toolbar and preview part of the
- * [TextEditorWithPreview] leaving only [TextEditor] visible when [isPureTextEditor] is true. When
- * [isPureTextEditor] is false it behaves as [TextEditorWithPreview].
+ * This Editor allows seamless switch between pure [TextEditor] and [TextEditorWithPreview]. It allows switching between those by changing
+ * [isPureTextEditor] property. This editor records the true state of [TextEditorWithPreview] and hides toolbar and preview part of the
+ * [TextEditorWithPreview] leaving only [TextEditor] visible when [isPureTextEditor] is true. When [isPureTextEditor] is false it behaves as
+ * [TextEditorWithPreview].
  *
  * This is useful in case we want to show preview or not depending on the file content.
  */
-open class SeamlessTextEditorWithPreview<P : FileEditor>(
-  textEditor: TextEditor,
-  preview: P,
-  editorName: String,
-) : SplitEditor<P>(textEditor, preview, editorName) {
+open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor, preview: P, editorName: String) :
+  SplitEditor<P>(textEditor, preview, editorName) {
 
   private var toolbarComponent: Component? = null
 
@@ -101,10 +92,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
     }
   }
 
-  /**
-   * Sets the visibility values of both [myEditor] and [myPreview] components when
-   * [isPureTextEditor] is true.
-   */
+  /** Sets the visibility values of both [myEditor] and [myPreview] components when [isPureTextEditor] is true. */
   private fun setPureTextEditorVisibility() {
     myEditor.component.isVisible = true
     myPreview.component.isVisible = false

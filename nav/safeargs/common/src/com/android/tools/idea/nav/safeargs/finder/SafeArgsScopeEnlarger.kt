@@ -34,8 +34,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 
 /**
- * Scope enlarger for safe args, necessary to allow the IntelliJ framework to add safe args light
- * classes to their corresponding module scope.
+ * Scope enlarger for safe args, necessary to allow the IntelliJ framework to add safe args light classes to their corresponding module
+ * scope.
  */
 class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
@@ -56,10 +56,7 @@ class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
 private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
   return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
     val allFacets =
-      listOf(facet) +
-        ModuleRootManager.getInstance(facet.module).getDependencies(false).mapNotNull { module ->
-          module.androidFacet
-        }
+      listOf(facet) + ModuleRootManager.getInstance(facet.module).getDependencies(false).mapNotNull { module -> module.androidFacet }
 
     val scopeIncludingDeps =
       allFacets

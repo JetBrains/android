@@ -18,98 +18,92 @@ package org.jetbrains.kotlin.android
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaSeverity
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.psi.KtFile
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 object DirectiveBasedActionUtils {
-  const val FRONTEND = "K2"
+    const val FRONTEND = "K2"
 
-  private fun Array<out String>.expandByFrontend(separator: Char, prefix: String): List<String> {
-    val frontend = FRONTEND
-    return flatMap {
-      val directive = it.removePrefix(prefix)
-      listOf("${prefix}${frontend}${separator}${directive}", "${prefix}${directive}")
-    }
-  }
-
-  fun findLinesWithPrefixesRemovedByFrontend(
-      fileText: String,
-      vararg prefixes: String,
-      separator: Char = '_',
-      prefix: String = "// "): List<String> =
-    InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, *prefixes.expandByFrontend(separator, prefix).toTypedArray())
-
-  fun isDirectiveDefinedForFrontend(
-      fileText: String,
-      directive: String,
-      separator: Char = '_',
-      prefix: String = "// "): Boolean =
-    findLinesWithPrefixesRemovedByFrontend(fileText, directive, separator = separator, prefix = prefix).isNotEmpty()
-
-  fun findStringWithPrefixesByFrontend(
-      fileText: String,
-      vararg directives: String,
-      separator: Char = '_',
-      prefix: String = "// "): String? {
-    for (directive in directives.expandByFrontend(separator, prefix)) {
-      InTextDirectivesUtils.findStringWithPrefixes(fileText, directive)?.let { return it }
-    }
-    return null
-  }
-
-
-  private fun checkForUnexpectedErrorsBase(
-    file: KtFile,
-    diagnosticsCollectAndRenderer: (KtFile) -> Collection<String>,
-  ) {
-    if (InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// DISABLE-ERRORS").isNotEmpty()) {
-      return
-    }
-
-    val expected =
-      InTextDirectivesUtils.findLinesWithPrefixesRemoved(
-        file.text, "// ERROR:", "// $FRONTEND-ERROR:"
-      ).sorted()
-    val actual = diagnosticsCollectAndRenderer(file)
-
-    UsefulTestCase.assertOrderedEquals(
-      "All actual errors should be mentioned in test data with '// ERROR:' directive. But no unnecessary errors should be mentioned",
-      actual, expected
-    )
-  }
-
-  @OptIn(KaAllowAnalysisOnEdt::class)
-  fun checkForUnexpectedErrorsK2(file: KtFile) {
-    checkForUnexpectedErrorsBase(
-      file,
-    ) { ktFile ->
-      allowAnalysisOnEdt {
-        analyze(ktFile) {
-          ktFile.collectDiagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
-            .filter { it.severity == KaSeverity.ERROR }
-            .map { "${it.factoryName}: ${it.psi.text.lines().first()}" }
-            .sorted()
+    private fun Array<out String>.expandByFrontend(separator: Char, prefix: String): List<String> {
+        val frontend = FRONTEND
+        return flatMap {
+            val directive = it.removePrefix(prefix)
+            listOf("${prefix}${frontend}${separator}${directive}", "${prefix}${directive}")
         }
-      }
-    }
-  }
-
-  fun checkAvailableActionsAreExpected(file: PsiFile, availableActions: Collection<IntentionAction>) {
-    if (InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// IGNORE_IRRELEVANT_ACTIONS").isNotEmpty()) {
-      return
     }
 
-    val expectedActions = InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// ACTION:").sorted()
-    val actualActions = availableActions.map { it.text }.sorted()
+    fun findLinesWithPrefixesRemovedByFrontend(
+        fileText: String,
+        vararg prefixes: String,
+        separator: Char = '_',
+        prefix: String = "// ",
+    ): List<String> =
+        InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, *prefixes.expandByFrontend(separator, prefix).toTypedArray())
 
-    UsefulTestCase.assertOrderedEquals(
-      "Some unexpected actions available at current position. Use // ACTION: directive",
-      actualActions, expectedActions
-    )
-  }
+    fun isDirectiveDefinedForFrontend(fileText: String, directive: String, separator: Char = '_', prefix: String = "// "): Boolean =
+        findLinesWithPrefixesRemovedByFrontend(fileText, directive, separator = separator, prefix = prefix).isNotEmpty()
+
+    fun findStringWithPrefixesByFrontend(
+        fileText: String,
+        vararg directives: String,
+        separator: Char = '_',
+        prefix: String = "// ",
+    ): String? {
+        for (directive in directives.expandByFrontend(separator, prefix)) {
+            InTextDirectivesUtils.findStringWithPrefixes(fileText, directive)?.let {
+                return it
+            }
+        }
+        return null
+    }
+
+    private fun checkForUnexpectedErrorsBase(file: KtFile, diagnosticsCollectAndRenderer: (KtFile) -> Collection<String>) {
+        if (InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// DISABLE-ERRORS").isNotEmpty()) {
+            return
+        }
+
+        val expected = InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// ERROR:", "// $FRONTEND-ERROR:").sorted()
+        val actual = diagnosticsCollectAndRenderer(file)
+
+        UsefulTestCase.assertOrderedEquals(
+            "All actual errors should be mentioned in test data with '// ERROR:' directive. But no unnecessary errors should be mentioned",
+            actual,
+            expected,
+        )
+    }
+
+    @OptIn(KaAllowAnalysisOnEdt::class)
+    fun checkForUnexpectedErrorsK2(file: KtFile) {
+        checkForUnexpectedErrorsBase(file) { ktFile ->
+            allowAnalysisOnEdt {
+                analyze(ktFile) {
+                    ktFile
+                        .collectDiagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
+                        .filter { it.severity == KaSeverity.ERROR }
+                        .map { "${it.factoryName}: ${it.psi.text.lines().first()}" }
+                        .sorted()
+                }
+            }
+        }
+    }
+
+    fun checkAvailableActionsAreExpected(file: PsiFile, availableActions: Collection<IntentionAction>) {
+        if (InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// IGNORE_IRRELEVANT_ACTIONS").isNotEmpty()) {
+            return
+        }
+
+        val expectedActions = InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// ACTION:").sorted()
+        val actualActions = availableActions.map { it.text }.sorted()
+
+        UsefulTestCase.assertOrderedEquals(
+            "Some unexpected actions available at current position. Use // ACTION: directive",
+            actualActions,
+            expectedActions,
+        )
+    }
 }

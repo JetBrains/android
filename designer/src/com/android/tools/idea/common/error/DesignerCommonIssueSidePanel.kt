@@ -47,7 +47,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Font
@@ -60,6 +59,7 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.ToolTipManager
 import javax.swing.event.HyperlinkListener
+import org.jetbrains.annotations.TestOnly
 
 /** The side panel to show the detail of issue and its source code if available */
 class DesignerCommonIssueSidePanel(
@@ -88,14 +88,10 @@ class DesignerCommonIssueSidePanel(
       )
   }
 
-  /**
-   * Load the data from the given [issueNode]. Return true if there is any content to display, or
-   * false otherwise.
-   */
+  /** Load the data from the given [issueNode]. Return true if there is any content to display, or false otherwise. */
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
     val issue = (issueNode as? IssueNode)?.issue
-    splitter.firstComponent =
-      issue?.let { DesignerCommonIssueDetailPanel(project, it, fixWithAiActionProvider) }
+    splitter.firstComponent = issue?.let { DesignerCommonIssueDetailPanel(project, it, fixWithAiActionProvider) }
     return splitter.firstComponent != null
   }
 
@@ -121,9 +117,7 @@ private class DesignerCommonIssueDetailPanel(
     border = JBUI.Borders.empty(18, 12, 0, 0)
     add(createTitle(), BorderLayout.NORTH)
     add(createContent(), BorderLayout.CENTER)
-    createBottomPanel(issue.messageTips, issue.hyperlinkListener)?.let {
-      add(it, BorderLayout.SOUTH)
-    }
+    createBottomPanel(issue.messageTips, issue.hyperlinkListener)?.let { add(it, BorderLayout.SOUTH) }
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
@@ -142,11 +136,7 @@ private class DesignerCommonIssueDetailPanel(
       val contentPanel = JPanel(BorderLayout())
       contentPanel.add(descriptionPane, BorderLayout.NORTH)
       contentPanel.addVisualRenderIssue(issue)
-      return JBScrollPane(
-          contentPanel,
-          ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
-        )
+      return JBScrollPane(contentPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
         .apply { border = JBUI.Borders.emptyTop(12) }
     }
 
@@ -157,18 +147,11 @@ private class DesignerCommonIssueDetailPanel(
     }
     contentPanel.add(descriptionPane)
 
-    return JBScrollPane(
-        contentPanel,
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER,
-      )
+    return JBScrollPane(contentPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
       .apply { border = JBUI.Borders.emptyTop(12) }
   }
 
-  private fun createBottomPanel(
-    tips: List<MessageTip>,
-    hyperlinkListener: HyperlinkListener?,
-  ): JComponent? {
+  private fun createBottomPanel(tips: List<MessageTip>, hyperlinkListener: HyperlinkListener?): JComponent? {
     if (tips.isEmpty()) return null
     return JBPanel<JBPanel<*>>(VerticalLayout(1)).apply {
       border = JBUI.Borders.empty(3, 2)
@@ -232,13 +215,8 @@ private class DesignerCommonIssueDetailPanel(
     }
 
   private fun createAffectedFileLink(projectBasePath: String, file: VirtualFile): ActionLink {
-    val pathToDisplay =
-      FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: file.path
-    return object :
-        ActionLink(
-          pathToDisplay,
-          { OpenFileDescriptor(project, file).navigateInEditor(project, true) },
-        ) {
+    val pathToDisplay = FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: file.path
+    return object : ActionLink(pathToDisplay, { OpenFileDescriptor(project, file).navigateInEditor(project, true) }) {
         override fun getToolTipText(): String? {
           return if (size.width < minimumSize.width) pathToDisplay else null
         }
@@ -263,12 +241,10 @@ private class DesignerCommonIssueDetailPanel(
   private fun createToolbar(targetComponent: JComponent, fixWithAiAction: AnAction): ActionToolbar {
     fixWithAiAction.templatePresentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     val actionGroup = DefaultActionGroup(fixWithAiAction)
-    return ActionManager.getInstance()
-      .createActionToolbar("DesignerCommonIssuesToolbar", actionGroup, true)
-      .apply {
-        this.targetComponent = targetComponent
-        component.isOpaque = true
-        component.border = JBUI.Borders.empty()
-      }
+    return ActionManager.getInstance().createActionToolbar("DesignerCommonIssuesToolbar", actionGroup, true).apply {
+      this.targetComponent = targetComponent
+      component.isOpaque = true
+      component.border = JBUI.Borders.empty()
+    }
   }
 }

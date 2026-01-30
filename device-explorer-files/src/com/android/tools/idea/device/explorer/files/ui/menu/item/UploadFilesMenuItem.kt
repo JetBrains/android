@@ -25,26 +25,24 @@ import java.awt.event.KeyEvent
 import javax.swing.Icon
 import javax.swing.KeyStroke
 
-class UploadFilesMenuItem(
-  listener: DeviceFileExplorerActionListener,
-  private val context: MenuContext
-) : SingleSelectionTreeMenuItem(listener) {
+class UploadFilesMenuItem(listener: DeviceFileExplorerActionListener, private val context: MenuContext) :
+  SingleSelectionTreeMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Upload..."
 
   override val icon: Icon
     get() = AllIcons.Actions.Upload
 
   override val shortcuts: Array<Shortcut?>
-    get() = arrayOf(
-      KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
-      KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null))
+    get() =
+      arrayOf(
+        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
+        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
+      )
 
   override val isVisible: Boolean
-    get() =
-      if (context == MenuContext.Toolbar) true else super.isVisible
+    get() = if (context == MenuContext.Toolbar) true else super.isVisible
 
-  override fun isVisible(node: DeviceFileEntryNode): Boolean =
-    node.entry.isDirectory || node.isSymbolicLinkToDirectory
+  override fun isVisible(node: DeviceFileEntryNode): Boolean = node.entry.isDirectory || node.isSymbolicLinkToDirectory
 
   override fun run(node: DeviceFileEntryNode) {
     listener.uploadFile(node)

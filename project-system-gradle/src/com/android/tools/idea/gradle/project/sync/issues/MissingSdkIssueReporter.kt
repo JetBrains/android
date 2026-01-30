@@ -25,10 +25,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
-  override fun getCustomLinks(project: Project,
-                              syncIssues: List<IdeSyncIssue>,
-                              affectedModules: List<Module>,
-                              buildFileMap: Map<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: List<IdeSyncIssue>,
+    affectedModules: List<Module>,
+    buildFileMap: Map<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> {
     val localPropertiesPaths = syncIssues.mapNotNull { it.data }.distinct()
     return if (localPropertiesPaths.isEmpty()) emptyList() else listOf(SetSdkDirHyperlink(project, localPropertiesPaths))
   }
@@ -38,11 +40,13 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun setupSyncMessage(project: Project,
-                                syncIssues: List<IdeSyncIssue>,
-                                affectedModules: List<Module>,
-                                buildFileMap: Map<Module, VirtualFile>,
-                                type: MessageType): SyncMessage {
+  override fun setupSyncMessage(
+    project: Project,
+    syncIssues: List<IdeSyncIssue>,
+    affectedModules: List<Module>,
+    buildFileMap: Map<Module, VirtualFile>,
+    type: MessageType,
+  ): SyncMessage {
     val message = super.setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type)
     val uniqueLocalPropertiesPaths = syncIssues.map { it.data }.distinct()
     return SyncMessage(
@@ -50,7 +54,7 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
       type,
       message.navigatable,
       "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by " +
-        "setting the sdk.dir path in your project's $FN_LOCAL_PROPERTIES file${if (uniqueLocalPropertiesPaths.size == 1) "" else "s"}."
+        "setting the sdk.dir path in your project's $FN_LOCAL_PROPERTIES file${if (uniqueLocalPropertiesPaths.size == 1) "" else "s"}.",
     )
   }
 }

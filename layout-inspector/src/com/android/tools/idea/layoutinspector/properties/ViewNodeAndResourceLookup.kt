@@ -39,9 +39,8 @@ interface ViewNodeAndResourceLookup {
   /**
    * Perform a lookup of a compose parameter item given a parameter reference
    *
-   * @param callback containing a [ParameterGroupItem] with the wanted child elements and the
-   *   [PTableGroupModification] performed on that [ParameterGroupItem] to retrieve those child
-   *   elements.
+   * @param callback containing a [ParameterGroupItem] with the wanted child elements and the [PTableGroupModification] performed on that
+   *   [ParameterGroupItem] to retrieve those child elements.
    *
    * TODO: b/182196505 we should split out view PropertyItems and Compose ParameterItems.
    */

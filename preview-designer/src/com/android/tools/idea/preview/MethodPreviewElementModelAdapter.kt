@@ -24,24 +24,18 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 
 /** Base model adapter for [MethodPreviewElement]s. */
-abstract class MethodPreviewElementModelAdapter<
-  T : MethodPreviewElement<*>,
-  M : NlDataProviderHolder,
-  >(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
+abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement<*>, M : NlDataProviderHolder>(private val elementKey: DataKey<T>) :
+  PreviewElementModelAdapter<T, M> {
 
   override fun modelToElement(model: M): T? =
     if (!Disposer.isDisposed(model)) {
       model.dataProvider?.getData(elementKey) as? T
     } else null
 
-  /**
-   * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
-   * [modelToElement] call against that model.
-   */
+  /** Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with [modelToElement] call against that model. */
   override fun createDataProvider(previewElement: T): NlDataProvider? =
     object : NlDataProvider(elementKey) {
-      override fun getData(dataId: String): Any? =
-        previewElement.takeIf { dataId == elementKey.name }
+      override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == elementKey.name }
     }
 
   override fun toLogString(previewElement: T): String =

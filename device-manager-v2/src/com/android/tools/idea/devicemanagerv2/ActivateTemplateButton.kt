@@ -23,15 +23,11 @@ import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-internal class ActivateTemplateButton(scope: CoroutineScope, private val template: DeviceTemplate) :
-  IconButton(StudioIcons.Avd.RUN) {
+internal class ActivateTemplateButton(scope: CoroutineScope, private val template: DeviceTemplate) : IconButton(StudioIcons.Avd.RUN) {
 
   init {
     addActionListener {
-      template.launchCatchingDeviceActionException(
-        scope,
-        projectFromComponentContext(this@ActivateTemplateButton),
-      ) {
+      template.launchCatchingDeviceActionException(scope, projectFromComponentContext(this@ActivateTemplateButton)) {
         activationAction.activate()
       }
     }

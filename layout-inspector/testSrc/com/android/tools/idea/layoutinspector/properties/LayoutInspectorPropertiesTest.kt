@@ -34,36 +34,22 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val MODERN_PROCESS =
-  DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS = DEVICE_1.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorPropertiesTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule =
-    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
-      it.name == MODERN_PROCESS.name
-    }
+    LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) { it.name == MODERN_PROCESS.name }
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun testInfoPanelVisibility() {
     val properties = LayoutInspectorProperties(projectRule.testRootDisposable)
-    FakeUi(
-      properties.component,
-      createFakeWindow = true,
-      parentDisposable = projectRule.testRootDisposable,
-    )
-    val infoText =
-      UIUtil.findComponentsOfType(properties.component, JPanel::class.java).single {
-        it.name == INFO_TEXT
-      }
-    val props =
-      UIUtil.findComponentsOfType(properties.component, JPanel::class.java).single {
-        it.name == PROPERTIES_COMPONENT_NAME
-      }
+    FakeUi(properties.component, createFakeWindow = true, parentDisposable = projectRule.testRootDisposable)
+    val infoText = UIUtil.findComponentsOfType(properties.component, JPanel::class.java).single { it.name == INFO_TEXT }
+    val props = UIUtil.findComponentsOfType(properties.component, JPanel::class.java).single { it.name == PROPERTIES_COMPONENT_NAME }
     assertThat(infoText.isShowing).isTrue()
     assertThat(props.isShowing).isFalse()
 

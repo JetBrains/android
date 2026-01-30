@@ -49,15 +49,7 @@ class EditorHyperlinkDetectorTest {
   private val logcatEditorRule = LogcatEditorRule(projectRule)
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-      logcatEditorRule,
-      disposableRule,
-      EdtRule(),
-    )
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, disposableRule, EdtRule())
 
   private val project
     get() = projectRule.project
@@ -66,25 +58,17 @@ class EditorHyperlinkDetectorTest {
     get() = logcatEditorRule.editor
 
   /**
-   * Tests that we are using the correct filter as provided by
-   * ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that wraps a set of filters
-   * provided by the IDEA.
+   * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that wraps
+   * a set of filters provided by the IDEA.
    */
   @Test
   fun usesCorrectFilters_containsAllConsoleFilters() {
-    val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(
-        project,
-        /* consoleView= */ null,
-        GlobalSearchScope.allScope(project),
-      )
+    val expectedFilters = ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
     val expected = expectedFilters.map { it::class }
-    waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
-    }
+    waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected) }
   }
 
   /** Tests that we include filters from the extensions. */
@@ -97,34 +81,22 @@ class EditorHyperlinkDetectorTest {
           return filter
         }
       }
-    ApplicationManager.getApplication()
-      .registerExtension(LogcatConsoleFilterProvider.EP_NAME, ext, disposableRule.disposable)
+    ApplicationManager.getApplication().registerExtension(LogcatConsoleFilterProvider.EP_NAME, ext, disposableRule.disposable)
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
-    waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(filter::class)
-    }
+    waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(filter::class) }
   }
 
   /** Tests that we are always using the SimpleFileLink filter. */
   @Test
   fun usesCorrectFilters_containsSimpleFileLinkFilter() {
-    val consoleFilters =
-      ConsoleViewUtil.computeConsoleFilters(
-        project,
-        /* consoleView= */ null,
-        GlobalSearchScope.allScope(project),
-      )
+    val consoleFilters = ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
     val expected = consoleFilters.map { it::class } + SimpleFileLinkFilter::class
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    waitForCondition {
-      hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected)
-    }
-    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class })
-      .containsAllIn(expected)
-      .inOrder()
+    waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected) }
+    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class }).containsAllIn(expected).inOrder()
   }
 
   /** Tests that we are always using the DeobfuscatedFilter filter. */
@@ -132,8 +104,7 @@ class EditorHyperlinkDetectorTest {
   fun usesCorrectFilters_containsDeobfuscatedFilter() {
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class })
-      .contains(DeobfuscatedFilter::class)
+    assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class }).contains(DeobfuscatedFilter::class)
   }
 
   /**
@@ -151,11 +122,7 @@ class EditorHyperlinkDetectorTest {
     detector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
-    assertThat(
-        hyperlinkSupport.findAllHyperlinksOnLine(0).map {
-          editor.document.text.substring(it.startOffset, it.endOffset)
-        }
-      )
+    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map { editor.document.text.substring(it.startOffset, it.endOffset) })
       .containsExactly("http://www.google.com")
   }
 
@@ -171,11 +138,7 @@ class EditorHyperlinkDetectorTest {
     editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
-    assertThat(
-        hyperlinkSupport.findAllHyperlinksOnLine(0).map {
-          editor.document.text.substring(it.startOffset, it.endOffset)
-        }
-      )
+    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map { editor.document.text.substring(it.startOffset, it.endOffset) })
       .containsExactly("Foo", "Bar")
   }
 
@@ -183,11 +146,7 @@ class EditorHyperlinkDetectorTest {
   fun detectHyperlinks_passesSdk() {
     val editorHyperlinkDetector = editorHyperlinkDetector(editor)
 
-    editorHyperlinkDetector.detectHyperlinks(
-      0,
-      editor.document.lineCount - 1,
-      sdk = AndroidApiLevel(23),
-    )
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = AndroidApiLevel(23))
 
     assertThat(editorHyperlinkDetector.filter.apiLevel).isEqualTo(AndroidApiLevel(23))
   }
@@ -208,11 +167,5 @@ class EditorHyperlinkDetectorTest {
   }
 
   private fun editorHyperlinkDetector(editor: EditorEx) =
-    EditorHyperlinkDetector(
-      project,
-      editor,
-      disposableRule.disposable,
-      ModalityState.any(),
-      MoreExecutors.newDirectExecutorService(),
-    )
+    EditorHyperlinkDetector(project, editor, disposableRule.disposable, ModalityState.any(), MoreExecutors.newDirectExecutorService())
 }

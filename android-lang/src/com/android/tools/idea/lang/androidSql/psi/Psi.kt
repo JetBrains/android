@@ -28,19 +28,21 @@ import com.intellij.psi.tree.IFileElementType
 import javax.swing.Icon
 
 class AndroidSqlTokenType(debugName: String) : IElementType(debugName, AndroidSqlLanguage.INSTANCE) {
-  override fun toString(): String = when (val token = super.toString()) {
-    "," -> "comma"
-    ";" -> "semicolon"
-    "'" -> "single quote"
-    "\"" -> "double quote"
-    else -> token
-  }
+  override fun toString(): String =
+    when (val token = super.toString()) {
+      "," -> "comma"
+      ";" -> "semicolon"
+      "'" -> "single quote"
+      "\"" -> "double quote"
+      else -> token
+    }
 }
 
 class AndroidSqlAstNodeType(debugName: String) : IElementType(debugName, AndroidSqlLanguage.INSTANCE)
 
 class AndroidSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, AndroidSqlLanguage.INSTANCE) {
   override fun getFileType(): FileType = AndroidSqlFileType.INSTANCE
+
   override fun getIcon(flags: Int): Icon? = ANDROID_SQL_ICON
 }
 

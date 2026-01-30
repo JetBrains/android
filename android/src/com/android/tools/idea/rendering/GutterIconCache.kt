@@ -30,11 +30,8 @@ import kotlin.properties.Delegates.observable
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
-private fun defaultRenderIcon(
-  file: VirtualFile,
-  renderResources: RenderResources?,
-  facet: AndroidFacet
-) = GutterIconFactory.createIcon(file, renderResources, facet, JBUI.scale(16), JBUI.scale(16))
+private fun defaultRenderIcon(file: VirtualFile, renderResources: RenderResources?, facet: AndroidFacet) =
+  GutterIconFactory.createIcon(file, renderResources, facet, JBUI.scale(16), JBUI.scale(16))
 
 @Service(Service.Level.PROJECT)
 class GutterIconCache
@@ -42,37 +39,24 @@ class GutterIconCache
 constructor(
   private val project: Project,
   private val highDpiSupplier: () -> Boolean,
-  private val renderIcon: (VirtualFile, RenderResources?, AndroidFacet) -> Icon?
+  private val renderIcon: (VirtualFile, RenderResources?, AndroidFacet) -> Icon?,
 ) {
   private val thumbnailCache: MutableMap<String, TimestampedIcon> = Maps.newConcurrentMap()
-  private var highDpiDisplay by
-    observable(false) { _, oldValue, newValue -> if (oldValue != newValue) thumbnailCache.clear() }
+  private var highDpiDisplay by observable(false) { _, oldValue, newValue -> if (oldValue != newValue) thumbnailCache.clear() }
 
   constructor(project: Project) : this(project, UIUtil::isRetina, ::defaultRenderIcon)
 
-  /**
-   * Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be
-   * rendered.
-   */
+  /** Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be rendered. */
   @Slow
   fun getIcon(file: VirtualFile, resolver: RenderResources?, facet: AndroidFacet): Icon? =
     (getTimestampedIconFromCache(file) ?: renderAndCacheIcon(file, resolver, facet)).icon
 
-  /**
-   * Returns the [Icon] for the associated [file] if it is already rendered and stored in the cache,
-   * otherwise `null`.
-   */
+  /** Returns the [Icon] for the associated [file] if it is already rendered and stored in the cache, otherwise `null`. */
   fun getIconIfCached(file: VirtualFile): Icon? = getTimestampedIconFromCache(file)?.icon
 
   @Slow
-  private fun renderAndCacheIcon(
-    file: VirtualFile,
-    resolver: RenderResources?,
-    facet: AndroidFacet
-  ): TimestampedIcon =
-    TimestampedIcon(renderIcon(file, resolver, facet), file.modificationStamp).also {
-      thumbnailCache[file.path] = it
-    }
+  private fun renderAndCacheIcon(file: VirtualFile, resolver: RenderResources?, facet: AndroidFacet): TimestampedIcon =
+    TimestampedIcon(renderIcon(file, resolver, facet), file.modificationStamp).also { thumbnailCache[file.path] = it }
 
   private fun getTimestampedIconFromCache(file: VirtualFile): TimestampedIcon? {
     highDpiDisplay = highDpiSupplier()
@@ -80,8 +64,7 @@ constructor(
   }
 
   data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
-    fun isAsNewAs(file: VirtualFile) =
-      timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
+    fun isAsNewAs(file: VirtualFile) = timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
   }
 
   companion object {

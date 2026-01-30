@@ -62,7 +62,9 @@ import com.intellij.psi.util.findParentOfType
 class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWriter, DeclarativeDslNameConverter {
 
   override fun getContext(): BuildModelContext = context
+
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
+
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     if (element.isAlreadyCreated()) return element.psiElement
     if (element.isNewEmptyBlockElement()) {
@@ -71,58 +73,58 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
 
     val parent = element.parent ?: return null
     val psiElementOfParent = parent.create() ?: return null
-    val parentPsiElement = when (psiElementOfParent) {
-      is DeclarativeBlock -> psiElementOfParent.blockGroup
-      is DeclarativeSimpleFactory -> psiElementOfParent.argumentsList ?: psiElementOfParent
-      else -> psiElementOfParent
-    }
+    val parentPsiElement =
+      when (psiElementOfParent) {
+        is DeclarativeBlock -> psiElementOfParent.blockGroup
+        is DeclarativeSimpleFactory -> psiElementOfParent.argumentsList ?: psiElementOfParent
+        else -> psiElementOfParent
+      }
     val project = parentPsiElement.project
     val factory = DeclarativePsiFactory(project)
     val name = getNameTrimmedForParent(element)
     val externalNameInfo = maybeTrimForParent(element, this)
     val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
     element.externalSyntax = syntax
-    val psiElement = when (element) {
-      is GradleDslInfixExpression -> factory.createPrefixedFactory()
-      is GradleDslExpressionList, is GradleDslExpressionMap ->
-        when (syntax) {
-          ASSIGNMENT -> factory.createAssignment(name, "\"placeholder\"")
-          AUGMENTED_ASSIGNMENT -> factory.createAppendAssignment(name, "\"placeholder\"")
-          else -> null
+    val psiElement =
+      when (element) {
+        is GradleDslInfixExpression -> factory.createPrefixedFactory()
+        is GradleDslExpressionList,
+        is GradleDslExpressionMap ->
+          when (syntax) {
+            ASSIGNMENT -> factory.createAssignment(name, "\"placeholder\"")
+            AUGMENTED_ASSIGNMENT -> factory.createAppendAssignment(name, "\"placeholder\"")
+            else -> null
+          }
+        is GradleDslLiteral ->
+          if (parent is GradleDslExpressionMap) {
+            // when mapOf("first" to "second") argument is being created
+            factory.createArgument(factory.createPair(element.name, element.value))
+          } else if (parentPsiElement is DeclarativeArgumentsList) factory.createArgument(factory.createLiteral(element.value))
+          else if (parent is DependenciesDslElement || externalNameInfo.syntax == METHOD)
+            factory.createOneParameterFactory(name, "\"placeholder\"")
+          else if (parent is GradleDslInfixExpression) {
+            // this is only for id("").value("") with restriction to one parameter function call chain
+            val literal = factory.createLiteral(element.value)
+            factory.createOneParameterFactory(element.name, literal.text)
+          } else if (parent is GradleDslExpressionList && parentPsiElement is DeclarativeSimpleFactory) {
+            // when listOf("argument") argument is being created
+            factory.createArgument(factory.createLiteral(element.value))
+          } else // default syntax
+           factory.createAssignment(name, "\"placeholder\"")
+        is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
+        is GradleDslElementList,
+        is GradleDslBlockElement,
+        is GradleDslNamedDomainContainer -> factory.createBlock(name)
+        is GradleDslMethodCall -> {
+          val function =
+            if (element.isDoubleFunction()) {
+              val internal = factory.createFactory(element.methodName)
+              factory.createOneParameterFactory(name, internal.text)
+            } else factory.createFactory(name)
+          if (parentPsiElement is DeclarativeArgumentsList) factory.createArgument(function) else function
         }
-      is GradleDslLiteral ->
-         if (parent is GradleDslExpressionMap) {
-          // when mapOf("first" to "second") argument is being created
-          factory.createArgument(factory.createPair(element.name, element.value))
-        } else
-        if (parentPsiElement is DeclarativeArgumentsList)
-          factory.createArgument(factory.createLiteral(element.value))
-        else if (parent is DependenciesDslElement || externalNameInfo.syntax == METHOD)
-          factory.createOneParameterFactory(name, "\"placeholder\"")
-        else if (parent is GradleDslInfixExpression) {
-          // this is only for id("").value("") with restriction to one parameter function call chain
-          val literal = factory.createLiteral(element.value)
-          factory.createOneParameterFactory(element.name, literal.text)
-        } else if (parent is GradleDslExpressionList && parentPsiElement is DeclarativeSimpleFactory) {
-          // when listOf("argument") argument is being created
-          factory.createArgument(factory.createLiteral(element.value))
-        }
-        else // default syntax
-          factory.createAssignment(name, "\"placeholder\"")
-      is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
-      is GradleDslElementList, is GradleDslBlockElement, is GradleDslNamedDomainContainer -> factory.createBlock(name)
-      is GradleDslMethodCall -> {
-        val function = if (element.isDoubleFunction()) {
-          val internal = factory.createFactory(element.methodName)
-          factory.createOneParameterFactory(name, internal.text)
-        }
-        else factory.createFactory(name)
-        if (parentPsiElement is DeclarativeArgumentsList)
-          factory.createArgument(function)
-        else function
+        else -> null
       }
-      else -> null
-    }
     psiElement ?: return null
 
     val anchor = getAnchor(parentPsiElement, element.anchor)
@@ -134,21 +136,19 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       is DeclarativeReceiverPrefixedFactory ->
         // if it's only one element in prefixedFactory it's not fully
         // constructed yet and methods may return exceptions/wrong results
-        if(parentPsiElement.children.filterIsInstance<DeclarativeFactoryReceiver>().size > 1 )
+        if (parentPsiElement.children.filterIsInstance<DeclarativeFactoryReceiver>().size > 1)
           parentPsiElement.addBefore(factory.createDot(), addedElement)
       is DeclarativeBlockGroup -> addedElement.addAfter(factory.createNewline(), null)
-      is DeclarativeArgumentsList ->
-        if (parentPsiElement.arguments.size > 1)
-          parentPsiElement.addBefore(comma, addedElement)
-        else Unit
-        // TODO add logic for inserting attribute in the first place
+      is DeclarativeArgumentsList -> if (parentPsiElement.arguments.size > 1) parentPsiElement.addBefore(comma, addedElement) else Unit
+    // TODO add logic for inserting attribute in the first place
     }
 
-    element.psiElement = when (addedElement) {
-      is DeclarativeAssignment -> addedElement.value
-      is DeclarativeArgument -> addedElement.value
-      else -> addedElement
-    }
+    element.psiElement =
+      when (addedElement) {
+        is DeclarativeAssignment -> addedElement.value
+        is DeclarativeArgument -> addedElement.value
+        else -> addedElement
+      }
 
     return element.psiElement
   }
@@ -156,20 +156,18 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   private fun getNameTrimmedForParent(element: GradleDslElement): String {
     val defaultName = element.name // use this when other mechanisms fail
     val externalNameInfo = maybeTrimForParent(element, this)
-    return externalNameInfo.externalNameParts.getOrElse(0){
+    return externalNameInfo.externalNameParts.getOrElse(0) {
       // fallback to external naming mechanism for blocks
       val parent = element.parent
       if (parent is GradlePropertiesDslElement) {
         val name = element.nameElement.fullNameParts().lastOrNull() ?: defaultName
         externalNameForPropertiesParent(name, parent)
-      }
-      else defaultName
+      } else defaultName
     }
   }
 
   // this is DSL function like `implementation project(":my")` where `implementation` is name and `project` is function name
-  private fun GradleDslMethodCall.isDoubleFunction(): Boolean =
-    methodName != name && methodName.isNotEmpty()
+  private fun GradleDslMethodCall.isDoubleFunction(): Boolean = methodName != name && methodName.isNotEmpty()
 
   private fun getAnchor(parent: PsiElement, dslAnchor: GradleDslAnchor?): PsiElement? {
     val lastParentChild = parent.lastChild
@@ -196,11 +194,11 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     deletePsiElement(element)
   }
 
-  private fun isInSameFile(element: GradleDslElement, psi:PsiElement) =
+  private fun isInSameFile(element: GradleDslElement, psi: PsiElement) =
     SharedImplUtil.getContainingFile(psi.node) == getFileThroughDsl(element)
 
   private fun getFileThroughDsl(element: GradleDslElement): PsiFile? {
-    var currentElement:GradleDslElement? = element
+    var currentElement: GradleDslElement? = element
     while (currentElement != null && currentElement !is GradleScriptFile) {
       currentElement = currentElement.parent
     }
@@ -213,11 +211,11 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       call.argumentsList?.arguments?.forEach {
         (it as? DeclarativeSimpleFactory)?.argumentsList?.let { arg -> methodCall.argumentsElement.psiElement = arg }
       }
-    else
-      methodCall.argumentsElement.psiElement = call.argumentsList
+    else methodCall.argumentsElement.psiElement = call.argumentsList
     methodCall.arguments.forEach { it.create() }
     return call
   }
+
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {
     maybeUpdateName(methodCall)
     methodCall.argumentsElement.applyChanges()
@@ -250,6 +248,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
 
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = maybeUpdateName(expressionMap)
+
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = maybeUpdateName(element)
 
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? {
@@ -307,14 +306,12 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       element.nameElement.commitNameChange(oldName, this, element.parent)
     }
   }
-  private fun GradleDslElement.isAlreadyCreated(): Boolean =
-    psiElement?.findParentOfType<DeclarativeFile>(strict = false) != null &&
-    psiElement != null && isInSameFile(this, psiElement!!)
 
-    /**
-   * Delete the psiElement for the given dslElement.
-   */
-  private fun deletePsiElement(dslElement : GradleDslElement) {
+  private fun GradleDslElement.isAlreadyCreated(): Boolean =
+    psiElement?.findParentOfType<DeclarativeFile>(strict = false) != null && psiElement != null && isInSameFile(this, psiElement!!)
+
+  /** Delete the psiElement for the given dslElement. */
+  private fun deletePsiElement(dslElement: GradleDslElement) {
     val psiElement = dslElement.psiElement
     if (psiElement == null || !psiElement.isValid) return
 
@@ -329,26 +326,21 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     element ?: return
     if (!element.isValid) {
       // Skip deleting
-    }
-    else {
+    } else {
       when (element) {
         is DeclarativeBlock -> {
-          if(element.isEmptyBlock()){
+          if (element.isEmptyBlock()) {
             element.delete()
           } else {
             return
           }
         }
-        is DeclarativeArgumentsList ->
-          if (element.arguments.isEmpty())
-            element.delete()
-          else return
+        is DeclarativeArgumentsList -> if (element.arguments.isEmpty()) element.delete() else return
 
         is DeclarativeSimpleFactory ->
           if (element.argumentsList == null || element.argumentsList?.arguments?.isEmpty() == true) {
             element.delete()
-          }
-          else return
+          } else return
 
         is DeclarativeFile -> return
       }
@@ -359,6 +351,6 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       maybeDeleteIfEmpty(dslParent)
     }
   }
-  private fun DeclarativeBlock.isEmptyBlock():Boolean = entries.isEmpty()
 
+  private fun DeclarativeBlock.isEmptyBlock(): Boolean = entries.isEmpty()
 }

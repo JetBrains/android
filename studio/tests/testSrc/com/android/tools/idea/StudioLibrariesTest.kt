@@ -15,26 +15,20 @@
  */
 package com.android.tools.idea
 
-
 import com.android.tools.idea.com.google.rpc.ErrorInfo
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusException
 import com.android.tools.idea.io.grpc.protobuf.StatusProto
 import org.junit.Test
 
-/**
- * Tests related to libraries used by studio, especially if some testable logic goes into constructing those libraries.
- */
+/** Tests related to libraries used by studio, especially if some testable logic goes into constructing those libraries. */
 class StudioLibrariesTest {
-  /**
-   * Test that protos used by grpc are appropriately jarjar'd. See issue 243979004
-   */
+  /** Test that protos used by grpc are appropriately jarjar'd. See issue 243979004 */
   @Test
   fun testGrpcProtoJarJar() {
     // If proto-google-common-protos is not included in studio-grpc.jar, the below code will result
     // in attempting to use a com.google.protobuf.Message as a com.android.tools.idea.Message.
-    StatusProto.fromThrowable(
-      StatusProto.toStatusRuntimeException(StatusProto.fromThrowable(StatusException(Status.ABORTED))))
+    StatusProto.fromThrowable(StatusProto.toStatusRuntimeException(StatusProto.fromThrowable(StatusException(Status.ABORTED))))
   }
 
   @Test

@@ -28,10 +28,8 @@ sealed interface IdeModuleSourceSet {
   val canBeConsumed: Boolean
 }
 
-data class IdeModuleSourceSetImpl(
-  override val sourceSetName: String,
-  override val canBeConsumed: Boolean
-) : IdeModuleSourceSet, Serializable {
+data class IdeModuleSourceSetImpl(override val sourceSetName: String, override val canBeConsumed: Boolean) :
+  IdeModuleSourceSet, Serializable {
   init {
     if (sourceSetName.isEmpty()) error("sourceSetName cannot be empty")
     if (IdeModuleWellKnownSourceSet.values().any { it.sourceSetName == sourceSetName }) {
@@ -50,4 +48,3 @@ data class IdeModuleSourceSetImpl(
     return "${sourceSetName}${if (!canBeConsumed) "(non-consumable)" else ""}"
   }
 }
-

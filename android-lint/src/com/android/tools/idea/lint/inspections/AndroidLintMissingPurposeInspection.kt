@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PurposeDeclarationDetector
 
 class AndroidLintMissingPurposeInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.missing.purpose"),
-    PurposeDeclarationDetector.MISSING_PURPOSE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.missing.purpose"), PurposeDeclarationDetector.MISSING_PURPOSE)

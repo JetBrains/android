@@ -20,14 +20,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
 import org.junit.runner.RunWith
 import org.junit.runners.Suite
 
-
 /**
  * This test suite is not supposed to run in Bazel, and it is supposed to be used as a convenient shortcut to run all tests required to
  * update IDE model snapshot files.
  */
-@RunWith(Suite::class)
-@Suite.SuiteClasses(
-  SyncedProjectTest::class,
-  SyncedProjectsAllAgpTest::class,
-)
-class IdeModelTestSuite
+@RunWith(Suite::class) @Suite.SuiteClasses(SyncedProjectTest::class, SyncedProjectsAllAgpTest::class) class IdeModelTestSuite

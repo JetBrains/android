@@ -31,17 +31,11 @@ import org.mockito.kotlin.mock
 
 class AndroidVersionsInfoTest {
   companion object {
-    /**
-     * This is overridden in NewProjectWizardTestSuite, but we want to override it differently here.
-     */
-    @get:ClassRule
-    val compileSdkFlagRule: FlagRule<AndroidApiLevel> =
-      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36, 1))
+    /** This is overridden in NewProjectWizardTestSuite, but we want to override it differently here. */
+    @get:ClassRule val compileSdkFlagRule: FlagRule<AndroidApiLevel> = FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, AndroidApiLevel(36, 1))
   }
 
-  /**
-   * For versions without an Android target, the Build API should be the highest known stable API
-   */
+  /** For versions without an Android target, the Build API should be the highest known stable API */
   @Test
   fun stableVersion() {
     val versionItem = AndroidVersionsInfo.VersionItem.fromStableVersion(OLDER_VERSION)
@@ -58,23 +52,17 @@ class AndroidVersionsInfoTest {
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
   }
 
-  /**
-   * For versions without an Android target, the Build API should be the highest known stable API
-   */
+  /** For versions without an Android target, the Build API should be the highest known stable API */
   @Test
   fun stableAndroidTarget() {
-    val versionItem =
-      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
+    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
   }
 
   /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun withPreviewAndroidTarget() {
-    val versionItem =
-      AndroidVersionsInfo.VersionItem.fromAndroidVersion(
-        AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
-      )
+    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME"))
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
   }
@@ -82,8 +70,7 @@ class AndroidVersionsInfoTest {
   /** For future Android target versions, the Build API should be updated too */
   @Test
   fun futureAndroidVersion() {
-    val versionItem =
-      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
+    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
   }
 

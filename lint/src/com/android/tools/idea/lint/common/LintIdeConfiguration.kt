@@ -74,8 +74,8 @@ fun getDefinedSeverityImpl(
 }
 
 /**
- * Configuration used in IDE projects, unless it's a Gradle project with custom lint.xml or severity
- * overrides, in which case [LintIdeGradleConfiguration] is used instead
+ * Configuration used in IDE projects, unless it's a Gradle project with custom lint.xml or severity overrides, in which case
+ * [LintIdeGradleConfiguration] is used instead
  */
 class LintIdeConfiguration(
   configurations: ConfigurationHierarchy,
@@ -84,11 +84,7 @@ class LintIdeConfiguration(
   private val disabledIssues: Set<Issue>?,
 ) : LintXmlConfiguration(configurations, project) {
 
-  override fun getDefinedSeverity(
-    issue: Issue,
-    source: Configuration,
-    visibleDefault: Severity,
-  ): Severity? =
+  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? =
     getDefinedSeverityImpl(
       superGetDefinedSeverity = { super.getDefinedSeverity(issue, source, visibleDefault) },
       issue = issue,
@@ -98,10 +94,7 @@ class LintIdeConfiguration(
     )
 }
 
-/**
- * Configuration used in Gradle projects which specify a custom lint.xml file or severity overrides
- * or both
- */
+/** Configuration used in Gradle projects which specify a custom lint.xml file or severity overrides or both */
 class LintIdeGradleConfiguration(
   configurations: ConfigurationHierarchy,
   lintOptions: LintModelLintOptions,
@@ -109,11 +102,7 @@ class LintIdeGradleConfiguration(
   private val disabledIssues: Set<Issue>?,
 ) : LintOptionsConfiguration(configurations, lintOptions) {
 
-  override fun getDefinedSeverity(
-    issue: Issue,
-    source: Configuration,
-    visibleDefault: Severity,
-  ): Severity? =
+  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? =
     getDefinedSeverityImpl(
       superGetDefinedSeverity = { super.getDefinedSeverity(issue, source, visibleDefault) },
       issue = issue,

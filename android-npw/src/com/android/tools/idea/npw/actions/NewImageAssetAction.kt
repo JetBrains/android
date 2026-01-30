@@ -21,14 +21,12 @@ import com.android.tools.idea.npw.toUrl
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.File
 import java.net.URL
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Action to invoke the Image Asset Wizard that allows user to generate various kinds of Android icons.
- */
+/** Action to invoke the Image Asset Wizard that allows user to generate various kinds of Android icons. */
 class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset Studio to create an image asset") {
 
   override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {

@@ -23,9 +23,8 @@ import kotlin.test.assertNull
 import org.junit.Test
 
 /**
- * A [TestBasePreviewElement] that uses a string as the type for the "Psi" references like the body
- * or the annotation element. This is useful in test as we can use strings to replace cases where a
- * Psi element would be used.
+ * A [TestBasePreviewElement] that uses a string as the type for the "Psi" references like the body or the annotation element. This is
+ * useful in test as we can use strings to replace cases where a Psi element would be used.
  */
 private typealias TestPreviewElementString = TestBasePreviewElement<String>
 
@@ -36,8 +35,7 @@ class PreviewModeManagerTest {
     val selected = TestPreviewElement("Selected")
     val mode = PreviewMode.Focus(selected)
     val newElements = listOf(TestPreviewElement("First"), selected, TestPreviewElement("Second"))
-    val previousElements =
-      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
+    val previousElements = setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode = mode.newMode(newElements = newElements, previousElements = previousElements)
     assertEquals(mode, newMode)
   }
@@ -47,11 +45,8 @@ class PreviewModeManagerTest {
     val selected = TestPreviewElement("Selected")
     val newSelected = TestPreviewElement("NewSelected")
     val newElements = listOf(newSelected, TestPreviewElement("Second"))
-    val previousElements =
-      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
-    val newMode =
-      PreviewMode.Focus(selected)
-        .newMode(newElements = newElements, previousElements = previousElements)
+    val previousElements = setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
+    val newMode = PreviewMode.Focus(selected).newMode(newElements = newElements, previousElements = previousElements)
     assertNotNull(newMode)
     assertEquals(newSelected, newMode.selected)
   }
@@ -59,11 +54,8 @@ class PreviewModeManagerTest {
   @Test
   fun modeSelectionIsNull() {
     val selected = TestPreviewElement("Selected")
-    val previousElements =
-      setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
-    val newMode =
-      PreviewMode.Focus(selected)
-        .newMode(newElements = emptyList(), previousElements = previousElements)
+    val previousElements = setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
+    val newMode = PreviewMode.Focus(selected).newMode(newElements = emptyList(), previousElements = previousElements)
     assertNull(newMode.selected)
   }
 
@@ -71,8 +63,7 @@ class PreviewModeManagerTest {
   fun modeIsFound() {
     val selected = TestPreviewElement("Selected")
     val newElements = listOf(selected, TestPreviewElement("First"), TestPreviewElement("Selected"))
-    val newMode =
-      PreviewMode.Focus(selected).newMode(newElements = newElements, previousElements = emptySet())
+    val newMode = PreviewMode.Focus(selected).newMode(newElements = newElements, previousElements = emptySet())
     assertEquals(selected, newMode.selected)
   }
 
@@ -87,10 +78,8 @@ class PreviewModeManagerTest {
 
   @Test
   fun whenAllDefinitionsChangePreferSamePreviewElementDefinition() {
-    val currentSelected =
-      TestPreviewElementString("Selected", previewElementDefinition = "definition_selected")
-    val newSelected =
-      TestPreviewElementString("New Selected", previewElementDefinition = "definition_selected")
+    val currentSelected = TestPreviewElementString("Selected", previewElementDefinition = "definition_selected")
+    val newSelected = TestPreviewElementString("New Selected", previewElementDefinition = "definition_selected")
     val mode = PreviewMode.Focus(currentSelected)
     val previousElements =
       listOf(

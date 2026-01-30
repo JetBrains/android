@@ -41,21 +41,16 @@ abstract class AbstractEmulatorAction(private val configFilter: Predicate<Emulat
     presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
-  protected open fun isEnabled(event: AnActionEvent): Boolean =
-      isEmulatorConnected(event)
+  protected open fun isEnabled(event: AnActionEvent): Boolean = isEmulatorConnected(event)
 }
 
-internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
-    event.getData(EMULATOR_CONTROLLER_KEY)
+internal fun getEmulatorController(event: AnActionEvent): EmulatorController? = event.getData(EMULATOR_CONTROLLER_KEY)
 
-internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? =
-    getEmulatorController(event)?.emulatorConfig
+internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? = getEmulatorController(event)?.emulatorConfig
 
-internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =
-    event.getData(EMULATOR_VIEW_KEY)
+internal fun getEmulatorView(event: AnActionEvent): EmulatorView? = event.getData(EMULATOR_VIEW_KEY)
 
-internal fun getNumberOfDisplays(event: AnActionEvent): Int =
-    event.getData(NUMBER_OF_DISPLAYS_KEY) ?: 0
+internal fun getNumberOfDisplays(event: AnActionEvent): Int = event.getData(NUMBER_OF_DISPLAYS_KEY) ?: 0
 
 internal fun isEmulatorConnected(event: AnActionEvent) =
-    getEmulatorController(event)?.connectionState == EmulatorController.ConnectionState.CONNECTED
+  getEmulatorController(event)?.connectionState == EmulatorController.ConnectionState.CONNECTED

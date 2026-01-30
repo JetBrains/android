@@ -24,21 +24,17 @@ import java.io.File
  * - optional libraries
  * - SDK add-ons
  *
- * Note that bootclasspath may contain more entries, such as core-lambda-stubs from the build tools,
- * but that jar should not be available in the IDE.
+ * Note that bootclasspath may contain more entries, such as core-lambda-stubs from the build tools, but that jar should not be available in
+ * the IDE.
  */
 fun getUsefulBootClasspathLibraries(bootClasspath: Collection<String>): Collection<File> {
   val androidJar = bootClasspath.asSequence().map { File(it) }.firstOrNull { it.name == "android.jar" } ?: return emptyList()
   val optionalDir = androidJar.parentFile.resolve("optional")
   val sdkAddOnDir: File? = androidJar.parentFile?.parentFile?.parentFile?.resolve(SdkConstants.FD_ADDONS)
 
-  fun isOptionalLibrary(file: File): Boolean = file.parentFile.path == optionalDir.path // Assumes 'optional` won't be created as `Optional` etc.
-  fun isSdkAddOn(file: File): Boolean = sdkAddOnDir?.let {
-    FileUtils.isFileInDirectory(file, sdkAddOnDir)
-  } ?: false
+  fun isOptionalLibrary(file: File): Boolean =
+    file.parentFile.path == optionalDir.path // Assumes 'optional` won't be created as `Optional` etc.
+  fun isSdkAddOn(file: File): Boolean = sdkAddOnDir?.let { FileUtils.isFileInDirectory(file, sdkAddOnDir) } ?: false
 
-  return bootClasspath.asSequence()
-    .map { File(it) }
-    .filter { isOptionalLibrary(it) || isSdkAddOn(it) }
-    .toList()
+  return bootClasspath.asSequence().map { File(it) }.filter { isOptionalLibrary(it) || isSdkAddOn(it) }.toList()
 }

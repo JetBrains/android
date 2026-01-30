@@ -22,9 +22,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 
 object TestAppInsightsTracker : AppInsightsTracker {
-  override fun logZeroState(
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails
-  ) = Unit
+  override fun logZeroState(event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails) = Unit
 
   override fun logCrashesFetched(
     unanonymizedAppId: String,
@@ -32,24 +30,13 @@ object TestAppInsightsTracker : AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails,
   ) = Unit
 
-  override fun logCrashListDetailView(
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails
-  ) = Unit
+  override fun logCrashListDetailView(event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails) = Unit
 
-  override fun logStacktraceClicked(
-    mode: ConnectionMode?,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails,
-  ) = Unit
+  override fun logStacktraceClicked(mode: ConnectionMode?, event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails) = Unit
 
-  override fun logConsoleLinkClicked(
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails,
-  ) = Unit
+  override fun logConsoleLinkClicked(mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails) = Unit
 
-  override fun logError(
-    mode: ConnectionMode,
-    event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails,
-  ) = Unit
+  override fun logError(mode: ConnectionMode, event: AppQualityInsightsUsageEvent.AppQualityInsightsErrorDetails) = Unit
 
   override fun logIssueStatusChanged(
     unanonymizedAppId: String,
@@ -69,19 +56,9 @@ object TestAppInsightsTracker : AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails,
   ) = Unit
 
-  override fun logEventViewed(
-    unanonymizedAppId: String,
-    mode: ConnectionMode,
-    issueId: String,
-    eventId: String,
-  ) = Unit
+  override fun logEventViewed(unanonymizedAppId: String, mode: ConnectionMode, issueId: String, eventId: String) = Unit
 
-  override fun logEventsFetched(
-    unanonymizedAppId: String,
-    issueId: String,
-    crashType: FailureType,
-    isFirstFetch: Boolean,
-  ) = Unit
+  override fun logEventsFetched(unanonymizedAppId: String, issueId: String, crashType: FailureType, isFirstFetch: Boolean) = Unit
 
   override fun logInsightSentiment(
     sentiment: AppQualityInsightsUsageEvent.InsightSentiment.Sentiment,
@@ -89,12 +66,7 @@ object TestAppInsightsTracker : AppInsightsTracker {
     insight: AiInsight,
   ) = Unit
 
-  override fun logInsightFetch(
-    unanonymizedAppId: String,
-    crashType: FailureType,
-    insight: AiInsight,
-    contextLimit: Int,
-  ) = Unit
+  override fun logInsightFetch(unanonymizedAppId: String, crashType: FailureType, insight: AiInsight, contextLimit: Int) = Unit
 
   override fun logServiceDeprecated(
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,

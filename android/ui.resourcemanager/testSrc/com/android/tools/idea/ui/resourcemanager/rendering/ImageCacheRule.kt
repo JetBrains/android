@@ -22,9 +22,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import org.junit.Before
 import org.junit.runner.Description
 
-/**
- * A rule to use an [ImageCache]
- */
+/** A rule to use an [ImageCache] */
 class ImageCacheRule : NamedExternalResource() {
 
   lateinit var imageCache: ImageCache
@@ -33,10 +31,12 @@ class ImageCacheRule : NamedExternalResource() {
   @Before
   override fun before(description: Description) {
     disposable = Disposer.newDisposable()
-    imageCache = ImageCache.createImageCache(
-      disposable,
-      mergingUpdateQueue = MergingUpdateQueue("queue", 0, true, MergingUpdateQueue.ANY_COMPONENT, disposable, null,
-                                              false).apply { isPassThrough = true })
+    imageCache =
+      ImageCache.createImageCache(
+        disposable,
+        mergingUpdateQueue =
+          MergingUpdateQueue("queue", 0, true, MergingUpdateQueue.ANY_COMPONENT, disposable, null, false).apply { isPassThrough = true },
+      )
   }
 
   override fun after(description: Description) {

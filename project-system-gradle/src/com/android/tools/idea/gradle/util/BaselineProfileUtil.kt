@@ -18,14 +18,10 @@ package com.android.tools.idea.gradle.util
 import com.android.ide.common.repository.AgpVersion
 
 object BaselineProfileUtil {
-  /**
-   * Baseline profiles Gradle plugin is only available from this version of AGP.
-   */
+  /** Baseline profiles Gradle plugin is only available from this version of AGP. */
   val BP_PLUGIN_MIN_SUPPORTED = AgpVersion(8, 0, 0)
 
-  /**
-   * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
-   */
+  /** Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP. */
   val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
 
   fun getGenerateBaselineProfileTaskName(variant: String, agpVersion: AgpVersion): String? =

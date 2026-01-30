@@ -23,21 +23,24 @@ import com.android.tools.idea.npw.multiplatform.ConfigureKotlinMultiplatformLibr
 import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import javax.swing.Icon
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.idea.KotlinIcons
-import javax.swing.Icon
 
 class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOfNotNull(
-    JavaModuleTemplateGalleryEntry(),
-    if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) KotlinMultiplatformLibraryModuleTemplateGalleryEntry() else null,
-  )
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
+    listOfNotNull(
+      JavaModuleTemplateGalleryEntry(),
+      if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) KotlinMultiplatformLibraryModuleTemplateGalleryEntry() else null,
+    )
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = KotlinIcons.SMALL_LOGO
     override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
     override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")
+
     override fun toString() = name
+
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
       ConfigureLibraryModuleStep(NewLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
   }
@@ -49,7 +52,9 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       return ConfigureKotlinMultiplatformLibraryModuleStep(
-        NewKotlinMultiplatformLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
+        NewKotlinMultiplatformLibraryModuleModel(project, moduleParent, projectSyncInvoker),
+        name,
+      )
     }
   }
 }

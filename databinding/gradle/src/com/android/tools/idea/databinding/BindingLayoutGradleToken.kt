@@ -22,13 +22,9 @@ import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.intellij.openapi.module.Module
 
 internal class BindingLayoutGradleToken : BindingLayoutToken<GradleProjectSystem>, GradleToken {
-  override fun isTestModule(projectSystem: GradleProjectSystem, module: Module) =
-    module.isAndroidTestModule()
+  override fun isTestModule(projectSystem: GradleProjectSystem, module: Module) = module.isAndroidTestModule()
 
-  override fun additionalModulesForLightBindingScope(
-    projectSystem: GradleProjectSystem,
-    module: Module,
-  ): List<Module> =
+  override fun additionalModulesForLightBindingScope(projectSystem: GradleProjectSystem, module: Module): List<Module> =
     when {
       module.isAndroidTestModule() -> listOf(module.getMainModule())
       else -> emptyList()

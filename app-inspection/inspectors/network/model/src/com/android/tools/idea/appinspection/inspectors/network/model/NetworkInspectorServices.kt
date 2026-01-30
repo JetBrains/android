@@ -31,9 +31,7 @@ interface NetworkInspectorServices {
   val ideServices: AppInspectionIdeServices
 }
 
-/**
- * Contains the suite of services on which the network inspector relies. Ex: Timeline and updater.
- */
+/** Contains the suite of services on which the network inspector relies. Ex: Timeline and updater. */
 class NetworkInspectorServicesImpl(
   override val navigationProvider: CodeNavigationProvider,
   override val client: NetworkInspectorClient,

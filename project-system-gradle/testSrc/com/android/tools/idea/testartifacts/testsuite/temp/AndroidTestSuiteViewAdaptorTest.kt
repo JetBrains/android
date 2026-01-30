@@ -145,13 +145,7 @@ class AndroidTestSuiteViewAdaptorTest {
         version = AndroidVersion.DEFAULT,
       )
     val expectedTestSuite =
-      AndroidTestSuite(
-        id = "1.1",
-        name = "Gradle Test Executor 1",
-        testCaseCount = 0,
-        result = null,
-        runConfiguration = runConfiguration,
-      )
+      AndroidTestSuite(id = "1.1", name = "Gradle Test Executor 1", testCaseCount = 0, result = null, runConfiguration = runConfiguration)
 
     // Start internal Gradle test suites
     adaptor.processEvent(
@@ -181,8 +175,7 @@ class AndroidTestSuiteViewAdaptorTest {
         name = "Gradle Test Executor 1",
         displayName = "Gradle Test Executor 1",
         className = "",
-        content =
-          "W2FkZGl0aW9uYWxUZXN0QXJ0aWZhY3RzXWRldmljZUlkPVByZXZpZXcK", // [additionalTestArtifacts]deviceId=Preview
+        content = "W2FkZGl0aW9uYWxUZXN0QXJ0aWZhY3RzXWRldmljZUlkPVByZXZpZXcK", // [additionalTestArtifacts]deviceId=Preview
       ),
       testSuiteView,
     )
@@ -255,12 +248,7 @@ class AndroidTestSuiteViewAdaptorTest {
         packageName = "com.example.screenshottesting",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
-    verify(testSuiteView, times(1))
-      .onTestCaseStarted(
-        expectedDevice,
-        expectedTestSuite.copy(testCaseCount = 1),
-        expectedFirstTestCase,
-      )
+    verify(testSuiteView, times(1)).onTestCaseStarted(expectedDevice, expectedTestSuite.copy(testCaseCount = 1), expectedFirstTestCase)
 
     // Report artifacts
     adaptor.processEvent(
@@ -321,10 +309,8 @@ class AndroidTestSuiteViewAdaptorTest {
           endTimestampMillis = 1749122532948,
           additionalTestArtifacts =
             mutableMapOf(
-              "PreviewScreenshot.newImagePath" to
-                "ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png",
-              "PreviewScreenshot.refImagePath" to
-                "ExamplePreviewsScreenshots/GreetingPreview_238a7281_0.png",
+              "PreviewScreenshot.newImagePath" to "ExamplePreviewsScreenshots/GreetingPreview_748aa731_0.png",
+              "PreviewScreenshot.refImagePath" to "ExamplePreviewsScreenshots/GreetingPreview_238a7281_0.png",
             ),
         ),
       )
@@ -422,12 +408,7 @@ class AndroidTestSuiteViewAdaptorTest {
         packageName = "com.example.screenshottesting",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
-    verify(testSuiteView, times(1))
-      .onTestCaseStarted(
-        expectedDevice,
-        expectedTestSuite.copy(testCaseCount = 2),
-        expectedSecondTestCase,
-      )
+    verify(testSuiteView, times(1)).onTestCaseStarted(expectedDevice, expectedTestSuite.copy(testCaseCount = 2), expectedSecondTestCase)
 
     // Report artifacts
     adaptor.processEvent(
@@ -471,10 +452,7 @@ class AndroidTestSuiteViewAdaptorTest {
           startTimestampMillis = 1749122532994,
           endTimestampMillis = 1749122533001,
           additionalTestArtifacts =
-            mutableMapOf(
-              "PreviewScreenshot.newImagePath" to
-                "ExamplePreviewsScreenshots2/GreetingPreview_748aa731_0.png"
-            ),
+            mutableMapOf("PreviewScreenshot.newImagePath" to "ExamplePreviewsScreenshots2/GreetingPreview_748aa731_0.png"),
         ),
       )
 
@@ -548,10 +526,7 @@ class AndroidTestSuiteViewAdaptorTest {
     )
 
     verify(testSuiteView, times(1))
-      .onTestSuiteFinished(
-        expectedDevice,
-        expectedTestSuite.copy(testCaseCount = 2, result = AndroidTestSuiteResult.FAILED),
-      )
+      .onTestSuiteFinished(expectedDevice, expectedTestSuite.copy(testCaseCount = 2, result = AndroidTestSuiteResult.FAILED))
 
     // Both tests share the same root test suite, so the test suite callbacks should have only been
     // called once
@@ -612,13 +587,7 @@ class AndroidTestSuiteViewAdaptorTest {
     )
   }
 
-  private fun createBeforeTestXml(
-    id: String,
-    parentId: String,
-    name: String,
-    displayName: String,
-    className: String,
-  ): TestEventXPPXmlView {
+  private fun createBeforeTestXml(id: String, parentId: String, name: String, displayName: String, className: String): TestEventXPPXmlView {
     return TestEventXPPXmlView(
       """
         <ijLog>

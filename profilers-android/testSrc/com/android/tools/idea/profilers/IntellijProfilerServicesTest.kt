@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.profilers
+
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
@@ -29,6 +30,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Before
@@ -36,20 +40,15 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class IntellijProfilerServicesTest {
 
   private lateinit var project: Project
   private lateinit var intellijProfilerServices: IntellijProfilerServices
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun before() {
@@ -132,7 +131,7 @@ class IntellijProfilerServicesTest {
     CpuProfilerConfigsState.getInstance(project).taskConfigs = configsToSave
 
     // Updated config should be reflected
-    val resultNew = intellijProfilerServices.getTaskCpuProfilerConfigs(9);
+    val resultNew = intellijProfilerServices.getTaskCpuProfilerConfigs(9)
     assertThat(resultNew.size).isEqualTo(2)
     assertThat(resultNew[0].name).isEqualTo("HelloTest1")
     assertThat(resultNew[1].name).isEqualTo("HelloTest2")
@@ -156,8 +155,7 @@ class IntellijProfilerServicesTest {
 
       // 2048 is default samplingRateBytes value for native memory
       assertEquals(intellijProfilerServicesNow.nativeAllocationsMemorySamplingRate, 2048)
-    }
-    finally {
+    } finally {
       Disposer.dispose(intellijProfilerServicesNow)
     }
   }

@@ -18,19 +18,18 @@ package com.android.tools.idea.gradle.project
 import com.android.ide.common.repository.AgpVersion
 import com.intellij.pom.java.LanguageLevel
 
-/**
- * AGP specific version mapping with the compatible Java compiled version
- */
+/** AGP specific version mapping with the compatible Java compiled version */
 enum class AgpCompatibleJdkVersion(val languageLevel: LanguageLevel) {
-    JDK8(LanguageLevel.JDK_1_8),
-    JDK11(LanguageLevel.JDK_11),
-    JDK17(LanguageLevel.JDK_17);
+  JDK8(LanguageLevel.JDK_1_8),
+  JDK11(LanguageLevel.JDK_11),
+  JDK17(LanguageLevel.JDK_17);
 
-    companion object {
-        fun getCompatibleJdkVersion(agpVersion: AgpVersion): AgpCompatibleJdkVersion = when {
-            agpVersion < "7.0.0-alpha01" -> JDK8
-            agpVersion < "8.0.0-beta01" -> JDK11
-            else -> JDK17
-        }
-    }
+  companion object {
+    fun getCompatibleJdkVersion(agpVersion: AgpVersion): AgpCompatibleJdkVersion =
+      when {
+        agpVersion < "7.0.0-alpha01" -> JDK8
+        agpVersion < "8.0.0-beta01" -> JDK11
+        else -> JDK17
+      }
+  }
 }

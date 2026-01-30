@@ -33,8 +33,7 @@ import org.junit.Test
 
 class BackgroundTaskTreeModelTest {
 
-  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
-    AppInspectorMessenger {
+  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = rawData
 
     override val eventFlow = emptyFlow<ByteArray>()
@@ -85,8 +84,7 @@ class BackgroundTaskTreeModelTest {
           backgroundTaskEventBuilder.apply {
             taskId = 0L
             jobScheduledBuilder.apply {
-              jobBuilder.backoffPolicy =
-                BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+              jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
             }
           }
         }
@@ -97,9 +95,7 @@ class BackgroundTaskTreeModelTest {
         .apply {
           backgroundTaskEventBuilder.apply {
             taskId = 1L
-            alarmSetBuilder.apply {
-              type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE
-            }
+            alarmSetBuilder.apply { type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE }
           }
         }
         .build()
@@ -109,10 +105,7 @@ class BackgroundTaskTreeModelTest {
         .apply {
           backgroundTaskEventBuilder.apply {
             taskId = 2L
-            wakeLockAcquiredBuilder.apply {
-              level =
-                BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
-            }
+            wakeLockAcquiredBuilder.apply { level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL }
           }
         }
         .build()
@@ -160,10 +153,8 @@ class BackgroundTaskTreeModelTest {
           backgroundTaskEventBuilder.apply {
             taskId = 0L
             jobScheduledBuilder.apply {
-              jobBuilder.backoffPolicy =
-                BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
-              jobBuilder.extras =
-                BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("test")
+              jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+              jobBuilder.extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("test")
             }
           }
         }
@@ -180,10 +171,7 @@ class BackgroundTaskTreeModelTest {
     val entryNode = workChild.firstChild as DefaultMutableTreeNode
     assertThat(entryNode).isEqualTo(model.getTreeNode("test"))
 
-    val removeWorkEvent =
-      WorkManagerInspectorProtocol.Event.newBuilder()
-        .apply { workRemovedBuilder.apply { id = "test" } }
-        .build()
+    val removeWorkEvent = WorkManagerInspectorProtocol.Event.newBuilder().apply { workRemovedBuilder.apply { id = "test" } }.build()
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, removeWorkEvent.toByteArray()))
 
     assertThat(entryNode.parent).isNull()
@@ -195,8 +183,7 @@ class BackgroundTaskTreeModelTest {
   fun emptyMessageAddedAndRemoved() {
     val root = model.root as DefaultMutableTreeNode
     assertThat(root.childCount).isEqualTo(4)
-    val categoryNodes =
-      root.children().toList().filterIsInstance<BackgroundTaskCategoryNode>().toList()
+    val categoryNodes = root.children().toList().filterIsInstance<BackgroundTaskCategoryNode>().toList()
     assertThat(categoryNodes).hasSize(4)
 
     assertThat(categoryNodes.map { (it.firstChild as DefaultMutableTreeNode).userObject as String })
@@ -223,8 +210,7 @@ class BackgroundTaskTreeModelTest {
           backgroundTaskEventBuilder.apply {
             taskId = 0L
             jobScheduledBuilder.apply {
-              jobBuilder.backoffPolicy =
-                BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
+              jobBuilder.backoffPolicy = BackgroundTaskInspectorProtocol.JobInfo.BackoffPolicy.UNDEFINED_BACKOFF_POLICY
             }
           }
         }
@@ -235,9 +221,7 @@ class BackgroundTaskTreeModelTest {
         .apply {
           backgroundTaskEventBuilder.apply {
             taskId = 1L
-            alarmSetBuilder.apply {
-              type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE
-            }
+            alarmSetBuilder.apply { type = BackgroundTaskInspectorProtocol.AlarmSet.Type.UNDEFINED_ALARM_TYPE }
           }
         }
         .build()
@@ -247,10 +231,7 @@ class BackgroundTaskTreeModelTest {
         .apply {
           backgroundTaskEventBuilder.apply {
             taskId = 2L
-            wakeLockAcquiredBuilder.apply {
-              level =
-                BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL
-            }
+            wakeLockAcquiredBuilder.apply { level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.UNDEFINED_WAKE_LOCK_LEVEL }
           }
         }
         .build()
@@ -260,7 +241,6 @@ class BackgroundTaskTreeModelTest {
     }
     client.handleEvent(EventWrapper(EventWrapper.Case.WORK, newWorkEvent.toByteArray()))
 
-    assertThat(categoryNodes.map { (it.firstChild as DefaultMutableTreeNode).userObject })
-      .isNotInstanceOf(String::class.java)
+    assertThat(categoryNodes.map { (it.firstChild as DefaultMutableTreeNode).userObject }).isNotInstanceOf(String::class.java)
   }
 }

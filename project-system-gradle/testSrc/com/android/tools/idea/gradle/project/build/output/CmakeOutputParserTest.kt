@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
+import java.io.File
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class CmakeOutputParserTest : BuildOutputParserTest() {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private lateinit var file: File
 
@@ -38,336 +37,441 @@ class CmakeOutputParserTest : BuildOutputParserTest() {
   @Test
   fun multilineCmakeWarningInFileWithoutLineNumberOrColumn() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at
 $filePath::
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath::",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:0:0-0:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath::",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:0:0-0:0",
+            description =
+              """
           CMake Warning: Warning in cmake code at
           $filePath::
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun multilineCmakeWarningInFileWithLineNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at
 $filePath:13:
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath:13:",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:13:0-13:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath:13:",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:13:0-13:0",
+            description =
+              """
           CMake Warning: Warning in cmake code at
           $filePath:13:
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun multilineCmakeWarningInFileWithLineNumberAndColumnNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at
 $filePath:13:42
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath:13:42",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:13:42-13:42",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath:13:42",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:13:42-13:42",
+            description =
+              """
           CMake Warning: Warning in cmake code at
           $filePath:13:42
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun multilineCmakeErrorInFileWithoutLineNumberOrColumn() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at
 $filePath::
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath::",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:0:0-0:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath::",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:0:0-0:0",
+            description =
+              """
           CMake Error: Error in cmake code at
           $filePath::
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun multilineCmakeErrorInFileWithLineNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at
 $filePath:13:
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath:13:",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:13:0-13:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath:13:",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:13:0-13:0",
+            description =
+              """
           CMake Error: Error in cmake code at
           $filePath:13:
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun multilineCmakeErrorInFileWithLineNumberAndColumnNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at
 $filePath:13:42
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath:13:42",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:13:42-13:42",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath:13:42",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:13:42-13:42",
+            description =
+              """
           CMake Error: Error in cmake code at
           $filePath:13:42
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeWarningInFileWithoutLineNumberOrColumn() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at $filePath::
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath::",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:0:0-0:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath::",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:0:0-0:0",
+            description =
+              """
           CMake Warning: Warning in cmake code at $filePath::
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeWarningInFileWithLineNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at $filePath:13:
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath:13:",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:13:0-13:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath:13:",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:13:0-13:0",
+            description =
+              """
           CMake Warning: Warning in cmake code at $filePath:13:
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeWarningInFileWithLineNumberAndColumnNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Warning: Warning in cmake code at $filePath:13:42
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Warning: Warning in cmake code at $filePath:13:42",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake warnings",
-        kind= MessageEvent.Kind.WARNING,
-        parentId = "testId",
-        filePosition = "$filePath:13:42-13:42",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Warning: Warning in cmake code at $filePath:13:42",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake warnings",
+            kind = MessageEvent.Kind.WARNING,
+            parentId = "testId",
+            filePosition = "$filePath:13:42-13:42",
+            description =
+              """
           CMake Warning: Warning in cmake code at $filePath:13:42
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeErrorInFileWithoutLineNumberOrColumn() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at $filePath::
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath::",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:0:0-0:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath::",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:0:0-0:0",
+            description =
+              """
           CMake Error: Error in cmake code at $filePath::
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeErrorInFileWithLineNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at $filePath:13:
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath:13:",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:13:0-13:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath:13:",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:13:0-13:0",
+            description =
+              """
           CMake Error: Error in cmake code at $filePath:13:
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun singleLineCmakeErrorInFileWithLineNumberAndColumnNumber() {
     val filePath = file.absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
 CMake Error: Error in cmake code at $filePath:13:42
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "CMake Error: Error in cmake code at $filePath:13:42",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$filePath:13:42-13:42",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "CMake Error: Error in cmake code at $filePath:13:42",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$filePath:13:42-13:42",
+            description =
+              """
           CMake Error: Error in cmake code at $filePath:13:42
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
   @Test
   fun longErrorMessage() {
     val makefile = temporaryFolder.newFile("CMakeLists.txt").absolutePath
-    val buildOutput = """
+    val buildOutput =
+      """
       CMake Error at $makefile:49 (message): Lorem ipsum dolor
       amet, consectetur adipiscing elit.  Etiam ac aliquam lacus.  Nullam suscipit nisl
       vitae sodales varius.  Donec eu enim ante.  Maecenas congue ante a nibh tristique,
       in sagittis velit suscipit.  Ut hendrerit molestie augue quis sodales.  Praesent ac
       consectetur est.  Duis at auctor neque.
-    """.trimIndent()
+    """
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Lorem ipsum dolor "
-                  + "amet, consectetur adipiscing elit.  Etiam ac aliquam lacus.  Nullam suscipit nisl "
-                  + "vitae sodales varius.  Donec eu enim ante.  Maecenas congue ante a nibh tristique, "
-                  + "in sagittis velit suscipit.  Ut hendrerit molestie augue quis sodales.  Praesent ac "
-                  + "consectetur est.  Duis at auctor neque.",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = false,
-        group = "CMake errors",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$makefile:49:0-49:0",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message =
+              "Lorem ipsum dolor " +
+                "amet, consectetur adipiscing elit.  Etiam ac aliquam lacus.  Nullam suscipit nisl " +
+                "vitae sodales varius.  Donec eu enim ante.  Maecenas congue ante a nibh tristique, " +
+                "in sagittis velit suscipit.  Ut hendrerit molestie augue quis sodales.  Praesent ac " +
+                "consectetur est.  Duis at auctor neque.",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = false,
+            group = "CMake errors",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$makefile:49:0-49:0",
+            description =
+              """
           CMake Error at $makefile:49 (message): Lorem ipsum dolor
           amet, consectetur adipiscing elit.  Etiam ac aliquam lacus.  Nullam suscipit nisl
           vitae sodales varius.  Donec eu enim ante.  Maecenas congue ante a nibh tristique,
           in sagittis velit suscipit.  Ut hendrerit molestie augue quis sodales.  Praesent ac
           consectetur est.  Duis at auctor neque.
-        """.trimIndent()))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 }

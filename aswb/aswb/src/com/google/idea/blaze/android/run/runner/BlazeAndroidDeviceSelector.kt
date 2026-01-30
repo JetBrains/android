@@ -22,28 +22,22 @@ import com.intellij.execution.Executor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 
-/** Selects a device.  */
+/** Selects a device. */
 interface BlazeAndroidDeviceSelector {
-  /** A device session  */
+  /** A device session */
   class DeviceSession(val deployTarget: DeployTarget, val deviceFutures: DeviceFutures?)
 
   @Throws(ExecutionException::class)
-  fun getDevice(
-    project: Project,
-    executor: Executor,
-    env: ExecutionEnvironment,
-    debug: Boolean,
-    runConfigId: Int
-  ): DeviceSession?
+  fun getDevice(project: Project, executor: Executor, env: ExecutionEnvironment, debug: Boolean, runConfigId: Int): DeviceSession?
 
-  /** Standard device selector  */
+  /** Standard device selector */
   class NormalDeviceSelector : BlazeAndroidDeviceSelector {
     override fun getDevice(
       project: Project,
       executor: Executor,
       env: ExecutionEnvironment,
       debug: Boolean,
-      runConfigId: Int
+      runConfigId: Int,
     ): DeviceSession? {
       val deployTarget = BlazeDeployTargetService.getInstance(project).getDeployTarget() ?: return null
       var deviceFutures: DeviceFutures? = null

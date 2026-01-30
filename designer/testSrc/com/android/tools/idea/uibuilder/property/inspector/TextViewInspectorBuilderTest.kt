@@ -153,31 +153,11 @@ class TextViewInspectorBuilderTest {
     assertThat(util.inspector.lines).hasSize(12)
     val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
     assertThat(line.models).hasSize(5)
-    checkToggleButtonModel(
-      line.models[0],
-      "Align Start of View",
-      TEXT_ALIGN_LAYOUT_LEFT,
-      TextAlignment.VIEW_START,
-    )
-    checkToggleButtonModel(
-      line.models[1],
-      "Align Start of Text",
-      TEXT_ALIGN_LEFT,
-      TextAlignment.TEXT_START,
-    )
+    checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
+    checkToggleButtonModel(line.models[1], "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START)
     checkToggleButtonModel(line.models[2], "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
-    checkToggleButtonModel(
-      line.models[3],
-      "Align End of Text",
-      TEXT_ALIGN_RIGHT,
-      TextAlignment.TEXT_END,
-    )
-    checkToggleButtonModel(
-      line.models[4],
-      "Align End of View",
-      TEXT_ALIGN_LAYOUT_RIGHT,
-      TextAlignment.VIEW_END,
-    )
+    checkToggleButtonModel(line.models[3], "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END)
+    checkToggleButtonModel(line.models[4], "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END)
   }
 
   private fun checkToggleButtonModel(
@@ -220,20 +200,11 @@ class TextViewInspectorBuilderTest {
     val textAppearance = util.inspector.lines[4]
     assertThat(title.expandable).isTrue()
     assertThat(title.expanded).isTrue()
-    assertThat(title.childProperties)
-      .containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE)
-      .inOrder()
+    assertThat(title.childProperties).containsExactly(ATTR_TEXT, ATTR_TEXT, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE).inOrder()
     assertThat(textAppearance.expandable).isTrue()
     assertThat(textAppearance.expanded).isFalse()
     assertThat(textAppearance.childProperties)
-      .containsExactly(
-        ATTR_FONT_FAMILY,
-        ATTR_TYPEFACE,
-        ATTR_TEXT_SIZE,
-        ATTR_LINE_SPACING_EXTRA,
-        ATTR_TEXT_COLOR,
-        ATTR_TEXT_STYLE,
-      )
+      .containsExactly(ATTR_FONT_FAMILY, ATTR_TYPEFACE, ATTR_TEXT_SIZE, ATTR_LINE_SPACING_EXTRA, ATTR_TEXT_COLOR, ATTR_TEXT_STYLE)
       .inOrder()
   }
 
@@ -245,11 +216,7 @@ class TextViewInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.FONT_SIZE)
     util.addProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NlPropertyType.DIMENSION)
     util.addProperty(ANDROID_URI, ATTR_TEXT_STYLE, NlPropertyType.STRING)
-    util.addFlagsProperty(
-      ANDROID_URI,
-      ATTR_TEXT_STYLE,
-      listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC),
-    )
+    util.addFlagsProperty(ANDROID_URI, ATTR_TEXT_STYLE, listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC))
     util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NlPropertyType.THREE_STATE_BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR)
   }

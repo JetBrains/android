@@ -42,9 +42,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     coroutineScope: CoroutineScope,
     adbSession: AdbSession,
     project: Project?,
-    avdScanner: () -> List<AvdInfo> = {
-      AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
-    },
+    avdScanner: () -> List<AvdInfo> = { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) },
   ): DeviceProvisionerPlugin {
     val icons =
       DeviceIcons(
@@ -58,18 +56,10 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     return StudioLocalEmulatorProvisionerPlugin(
       scope = coroutineScope,
       basePlugin =
-        LocalEmulatorProvisionerPlugin(
-          scope = coroutineScope,
-          adbSession = adbSession,
-          refreshAvds = avdScanner,
-          deviceIcons = icons,
-        ),
+        LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, refreshAvds = avdScanner, deviceIcons = icons),
       context =
         LocalEmulatorContext(
-          logger =
-            adbSession.host.loggerFactory.createLogger(
-              StudioLocalEmulatorProvisionerPlugin::class.java
-            ),
+          logger = adbSession.host.loggerFactory.createLogger(StudioLocalEmulatorProvisionerPlugin::class.java),
           deviceIcons = icons,
           clock = Clock.System,
         ),

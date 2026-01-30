@@ -41,36 +41,12 @@ class AnimationToolbarAnalyticsManagerTest {
     manager.trackAction(AnimationToolbarType.LIMITED, AnimationToolbarAction.PAUSE)
     manager.trackAction(AnimationToolbarType.LIMITED, AnimationToolbarAction.FRAME_CONTROL)
 
-    assertLog(
-      logger.logs[0],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.PLAY,
-    )
-    assertLog(
-      logger.logs[1],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.STOP,
-    )
-    assertLog(
-      logger.logs[2],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.FRAME_FORWARD,
-    )
-    assertLog(
-      logger.logs[3],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.FRAME_BACKWARD,
-    )
-    assertLog(
-      logger.logs[4],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.PAUSE,
-    )
-    assertLog(
-      logger.logs[5],
-      AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.FRAME_CONTROL,
-    )
+    assertLog(logger.logs[0], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.PLAY)
+    assertLog(logger.logs[1], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.STOP)
+    assertLog(logger.logs[2], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.FRAME_FORWARD)
+    assertLog(logger.logs[3], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.FRAME_BACKWARD)
+    assertLog(logger.logs[4], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.PAUSE)
+    assertLog(logger.logs[5], AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION, AnimationPreviewEvent.UserAction.FRAME_CONTROL)
   }
 
   @Test
@@ -84,31 +60,11 @@ class AnimationToolbarAnalyticsManagerTest {
     manager.trackAction(AnimationToolbarType.UNLIMITED, AnimationToolbarAction.FRAME_BACKWARD)
     manager.trackAction(AnimationToolbarType.UNLIMITED, AnimationToolbarAction.PAUSE)
 
-    assertLog(
-      logger.logs[0],
-      AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.PLAY,
-    )
-    assertLog(
-      logger.logs[1],
-      AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.STOP,
-    )
-    assertLog(
-      logger.logs[2],
-      AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.FRAME_FORWARD,
-    )
-    assertLog(
-      logger.logs[3],
-      AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.FRAME_BACKWARD,
-    )
-    assertLog(
-      logger.logs[4],
-      AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION,
-      AnimationPreviewEvent.UserAction.PAUSE,
-    )
+    assertLog(logger.logs[0], AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION, AnimationPreviewEvent.UserAction.PLAY)
+    assertLog(logger.logs[1], AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION, AnimationPreviewEvent.UserAction.STOP)
+    assertLog(logger.logs[2], AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION, AnimationPreviewEvent.UserAction.FRAME_FORWARD)
+    assertLog(logger.logs[3], AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION, AnimationPreviewEvent.UserAction.FRAME_BACKWARD)
+    assertLog(logger.logs[4], AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION, AnimationPreviewEvent.UserAction.PAUSE)
   }
 
   @Test
@@ -118,50 +74,17 @@ class AnimationToolbarAnalyticsManagerTest {
 
     manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.PLAY)
     manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.STOP)
-    manager.trackAction(
-      AnimationToolbarType.ANIMATED_SELECTOR,
-      AnimationToolbarAction.FRAME_FORWARD,
-    )
-    manager.trackAction(
-      AnimationToolbarType.ANIMATED_SELECTOR,
-      AnimationToolbarAction.FRAME_BACKWARD,
-    )
+    manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.FRAME_FORWARD)
+    manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.FRAME_BACKWARD)
     manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.PAUSE)
-    manager.trackAction(
-      AnimationToolbarType.ANIMATED_SELECTOR,
-      AnimationToolbarAction.SELECT_ANIMATION,
-    )
+    manager.trackAction(AnimationToolbarType.ANIMATED_SELECTOR, AnimationToolbarAction.SELECT_ANIMATION)
 
-    assertLog(
-      logger.logs[0],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.PLAY,
-    )
-    assertLog(
-      logger.logs[1],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.STOP,
-    )
-    assertLog(
-      logger.logs[2],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.FRAME_FORWARD,
-    )
-    assertLog(
-      logger.logs[3],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.FRAME_BACKWARD,
-    )
-    assertLog(
-      logger.logs[4],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.PAUSE,
-    )
-    assertLog(
-      logger.logs[5],
-      AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR,
-      AnimationPreviewEvent.UserAction.SELECT_ANIMATION,
-    )
+    assertLog(logger.logs[0], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.PLAY)
+    assertLog(logger.logs[1], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.STOP)
+    assertLog(logger.logs[2], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.FRAME_FORWARD)
+    assertLog(logger.logs[3], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.FRAME_BACKWARD)
+    assertLog(logger.logs[4], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.PAUSE)
+    assertLog(logger.logs[5], AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR, AnimationPreviewEvent.UserAction.SELECT_ANIMATION)
   }
 }
 
@@ -173,10 +96,7 @@ private fun assertLog(
   assertEquals(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR, event.category)
   assertEquals(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT, event.kind)
 
-  assertEquals(
-    LayoutEditorEvent.LayoutEditorEventType.ANIMATION_PREVIEW,
-    event.layoutEditorEvent.type,
-  )
+  assertEquals(LayoutEditorEvent.LayoutEditorEventType.ANIMATION_PREVIEW, event.layoutEditorEvent.type)
 
   assertEquals(toolbarType, event.layoutEditorEvent.animationPreviewEvent.toolbarType)
   assertEquals(userAction, event.layoutEditorEvent.animationPreviewEvent.userAction)

@@ -29,11 +29,7 @@ private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
 private val DEOBFUSCATED_ANNOTATION_ATTRIBUTES = TextAttributes(null, null, null, null, Font.ITALIC)
 
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
-internal class MessageFormatter(
-  project: Project,
-  private val logcatColors: LogcatColors,
-  private val zoneId: ZoneId,
-) {
+internal class MessageFormatter(project: Project, private val logcatColors: LogcatColors, private val zoneId: ZoneId) {
   private var softWrapEnabled = false
 
   // Keeps track of the previous tag, so we can omit on consecutive lines
@@ -52,11 +48,7 @@ internal class MessageFormatter(
     softWrapEnabled = value
   }
 
-  fun formatMessages(
-    formattingOptions: FormattingOptions,
-    textAccumulator: TextAccumulator,
-    messages: List<LogcatMessage>,
-  ) {
+  fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val headerWidth = formattingOptions.getHeaderWidth()
     val newline = if (softWrapEnabled) "\n" else "\n".padEnd(headerWidth + 1)
@@ -70,24 +62,14 @@ internal class MessageFormatter(
         val tag = header.tag
         val appName = header.getAppName()
 
-        textAccumulator.accumulate(
-          formattingOptions.timestampFormat.format(header.timestamp, zoneId)
-        )
-        textAccumulator.accumulate(
-          formattingOptions.processThreadFormat.format(header.pid, header.tid)
-        )
+        textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
+        textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
         textAccumulator.accumulate(
           text = formattingOptions.tagFormat.format(tag, previousTag),
-          textAttributes =
-            if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null,
+          textAttributes = if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null,
         )
-        textAccumulator.accumulate(
-          text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid)
-        )
-        textAccumulator.accumulate(
-          text =
-            formattingOptions.processNameFormat.format(header.processName, header.pid, previousPid)
-        )
+        textAccumulator.accumulate(text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid))
+        textAccumulator.accumulate(text = formattingOptions.processNameFormat.format(header.processName, header.pid, previousPid))
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
         val isException = exceptionLinePattern.containsMatchIn(message.message)
@@ -98,10 +80,7 @@ internal class MessageFormatter(
             false -> message.message
           }
 
-        textAccumulator.accumulate(
-          text = msg.replace("\n", newline),
-          textAttributesKey = logcatColors.getMessageKey(header.logLevel),
-        )
+        textAccumulator.accumulate(text = msg.replace("\n", newline), textAttributesKey = logcatColors.getMessageKey(header.logLevel))
         previousTag = tag
         previousPid = header.pid
       }
@@ -122,10 +101,7 @@ internal class MessageFormatter(
     return result
   }
 
-  private fun deobfuscateException(
-    message: LogcatMessage,
-    onDeobfuscated: (Path?) -> Unit,
-  ): String {
+  private fun deobfuscateException(message: LogcatMessage, onDeobfuscated: (Path?) -> Unit): String {
     if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
       if (StudioFlags.LOGCAT_AUTO_DEOBFUSCATE.get()) {
         val msg = autoProguardMessageRewriter.rewrite(message.message)
@@ -145,10 +121,7 @@ internal class MessageFormatter(
 
   private fun appendRetraceInfo(mapping: Path?, textAccumulator: TextAccumulator, newline: String) {
     if (mapping != null) {
-      textAccumulator.accumulate(
-        "Stack has been retraced with $mapping$newline",
-        DEOBFUSCATED_ANNOTATION_ATTRIBUTES,
-      )
+      textAccumulator.accumulate("Stack has been retraced with $mapping$newline", DEOBFUSCATED_ANNOTATION_ATTRIBUTES)
     }
   }
 }

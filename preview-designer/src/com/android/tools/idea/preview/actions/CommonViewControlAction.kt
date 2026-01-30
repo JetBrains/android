@@ -21,8 +21,7 @@ import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 
 /** View control action containing the preview layouts and color-blind mode options. */
-open class CommonViewControlAction() :
-  ViewControlAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }) {
+open class CommonViewControlAction() : ViewControlAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }) {
 
   init {
     add(

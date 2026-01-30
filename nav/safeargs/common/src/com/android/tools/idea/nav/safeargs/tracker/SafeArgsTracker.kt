@@ -57,17 +57,14 @@ abstract class SafeArgsTracker(private val project: Project) {
 
   private fun track(safeArgsEvent: NavSafeArgsEvent.Builder) {
     val studioEvent =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT)
-        .setNavSafeArgsEvent(safeArgsEvent)
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT).setNavSafeArgsEvent(safeArgsEvent)
 
     UsageTracker.log(studioEvent.withProjectId(project))
   }
 
   /**
-   * Some of these metrics are collected when Gradle syncs, and we don't want to add any perceived
-   * time delay to this critical operations. Therefore, we delegate slow work to some sort of
-   * handler (which in production should be a background thread).
+   * Some of these metrics are collected when Gradle syncs, and we don't want to add any perceived time delay to this critical operations.
+   * Therefore, we delegate slow work to some sort of handler (which in production should be a background thread).
    */
   protected abstract fun runSlowWork(block: () -> Unit)
 }

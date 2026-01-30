@@ -30,6 +30,9 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,13 +48,8 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
-/**
- * Unit tests for [SingleDeviceAndroidProcessMonitor].
- */
+/** Unit tests for [SingleDeviceAndroidProcessMonitor]. */
 class SingleDeviceAndroidProcessMonitorTest {
   companion object {
     const val TARGET_APP_NAME: String = "example.target.app"
@@ -64,25 +62,18 @@ class SingleDeviceAndroidProcessMonitorTest {
     return mockDevice
   }
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  var mockitoJunit = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule var mockitoJunit = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
   var mockDevice = createDevice()
 
-  @Mock
-  lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
 
-  @Mock
-  lateinit var mockTextEmitter: TextEmitter
+  @Mock lateinit var mockTextEmitter: TextEmitter
 
-  @Mock(answer = Answers.RETURNS_MOCKS)
-  lateinit var mockScheduledExecutor: ScheduledExecutorService
-  @Mock
-  lateinit var mockStateUpdaterScheduledFuture: ScheduledFuture<*>
-  @Mock
-  lateinit var mockTimeoutScheduledFuture: ScheduledFuture<*>
+  @Mock(answer = Answers.RETURNS_MOCKS) lateinit var mockScheduledExecutor: ScheduledExecutorService
+  @Mock lateinit var mockStateUpdaterScheduledFuture: ScheduledFuture<*>
+  @Mock lateinit var mockTimeoutScheduledFuture: ScheduledFuture<*>
 
   var capturedCurrentState: SingleDeviceAndroidProcessMonitorState = WAITING_FOR_PROCESS
 
@@ -119,21 +110,20 @@ class SingleDeviceAndroidProcessMonitorTest {
     finishAndroidProcessCallback: (IDevice) -> Unit = { it.forceStop(AndroidProcessMonitorManagerTest.TARGET_APP_NAME) }
   ): SingleDeviceAndroidProcessMonitor {
     return SingleDeviceAndroidProcessMonitor(
-      TARGET_APP_NAME,
-      mockDevice,
-      object : SingleDeviceAndroidProcessMonitorStateListener {
-        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-          capturedCurrentState = newState
-        }
-      },
-      mockDeploymentAppService,
-      mockTextEmitter,
-      finishAndroidProcessCallback,
-      listenerExecutor = MoreExecutors.directExecutor(),
-      stateUpdaterExecutor = mockScheduledExecutor,
-    ).apply {
-      start()
-    }
+        TARGET_APP_NAME,
+        mockDevice,
+        object : SingleDeviceAndroidProcessMonitorStateListener {
+          override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
+            capturedCurrentState = newState
+          }
+        },
+        mockDeploymentAppService,
+        mockTextEmitter,
+        finishAndroidProcessCallback,
+        listenerExecutor = MoreExecutors.directExecutor(),
+        stateUpdaterExecutor = mockScheduledExecutor,
+      )
+      .apply { start() }
   }
 
   private fun updateMonitorState() {
@@ -250,11 +240,13 @@ class SingleDeviceAndroidProcessMonitorTest {
 
     // Now replace the listener and detach the target process by replaceListenerAndClose.
     var isListenerReplacedAndDetached = false
-    monitor.replaceListenerAndClose(object : SingleDeviceAndroidProcessMonitorStateListener {
-      override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-        isListenerReplacedAndDetached = newState == PROCESS_FINISHED
+    monitor.replaceListenerAndClose(
+      object : SingleDeviceAndroidProcessMonitorStateListener {
+        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
+          isListenerReplacedAndDetached = newState == PROCESS_FINISHED
+        }
       }
-    })
+    )
 
     assertThat(isListenerReplacedAndDetached).isTrue()
     verify(mockDevice, times(1)).forceStop(TARGET_APP_NAME)

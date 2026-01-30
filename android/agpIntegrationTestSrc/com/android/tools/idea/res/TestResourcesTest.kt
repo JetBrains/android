@@ -29,8 +29,7 @@ import org.junit.Test
 
 @RunsInEdt
 class TestResourcesTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 

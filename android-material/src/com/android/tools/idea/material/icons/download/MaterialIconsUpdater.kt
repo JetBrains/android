@@ -53,19 +53,15 @@ private val log = Logger.getInstance(MaterialIconsUpdater::class.java)
  *
  * Icon directories not referenced by [existingMetadata] may be deleted.
  *
- * Based on the contents of [newMetadata], new icon files may be downloaded or their reference in
- * the metadata file may be removed.
+ * Based on the contents of [newMetadata], new icon files may be downloaded or their reference in the metadata file may be removed.
  *
- * Icons that are both part of the [existingMetadata] and [newMetadata] will be checked for
- * corruption (for example, the icons being deleted). If they are not found, they will be
- * re-downloaded. The [iconsUrlProvider] is used to check the presence of the icons.
+ * Icons that are both part of the [existingMetadata] and [newMetadata] will be checked for corruption (for example, the icons being
+ * deleted). If they are not found, they will be re-downloaded. The [iconsUrlProvider] is used to check the presence of the icons.
  *
- * For each icon that needs to be downloaded, all variants of the icon are first downloaded and then
- * the metadata file is updated, once the metadata file is updated, the download for that icon is
- * considered finished.
+ * For each icon that needs to be downloaded, all variants of the icon are first downloaded and then the metadata file is updated, once the
+ * metadata file is updated, the download for that icon is considered finished.
  *
- * Checks for a progress indicator between each delete/download operation. So the update process may
- * be interrupted and continued later.
+ * Checks for a progress indicator between each delete/download operation. So the update process may be interrupted and continued later.
  *
  * Returns true if any icons were updated.
  */
@@ -81,11 +77,7 @@ internal fun updateIconsAtDir(
   // The metadata builder should reflect the current status of the metadata during the process, so
   // deletions or additions of icons should be updated here.
   val metadataBuilder =
-    MaterialIconsMetadataBuilder(
-      host = newMetadata.host,
-      urlPattern = newMetadata.urlPattern,
-      families = newMetadata.families,
-    )
+    MaterialIconsMetadataBuilder(host = newMetadata.host, urlPattern = newMetadata.urlPattern, families = newMetadata.families)
   existingMetadata.icons.forEach(metadataBuilder::addIconMetadata)
 
   val updateData = getIconsUpdateData(existingMetadata, newMetadata, iconsUrlProvider)
@@ -107,26 +99,18 @@ internal fun updateIconsAtDir(
       downloadIconStyles(newMetadata, targetDir, it)
       metadataBuilder.addIconMetadata(it)
     }
-  } catch (e: ProcessCanceledException) {} catch (e: CancellationException) {} catch (
-    e: Exception) {
+  } catch (e: ProcessCanceledException) {} catch (e: CancellationException) {} catch (e: Exception) {
     log.warn("Download error", e)
   } finally {
     // Update metadata file
-    MaterialIconsMetadata.writeAsJson(
-      metadataBuilder.build(),
-      targetDir.resolve(METADATA_FILE_NAME),
-      log,
-    )
-    log.info(
-      "Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}"
-    )
+    MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
+    log.info("Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}")
     return true
   }
 }
 
 /**
- * Look through the icon directories in [targetDir], and delete all of those that are not present in
- * [existingMetadata].
+ * Look through the icon directories in [targetDir], and delete all of those that are not present in [existingMetadata].
  *
  * Note that this involves looking through the directories of each Icon for each style/family.
  */
@@ -181,11 +165,7 @@ private fun cleanupUnusedIcons(existingMetadata: MaterialIconsMetadata, targetDi
  *
  * Deletes existing files of [iconMetadata] before downloading.
  */
-private fun downloadIconStyles(
-  metadata: MaterialIconsMetadata,
-  targetDir: Path,
-  iconMetadata: MaterialMetadataIcon,
-) {
+private fun downloadIconStyles(metadata: MaterialIconsMetadata, targetDir: Path, iconMetadata: MaterialMetadataIcon) {
   log.info("downloadIconStyles to $targetDir")
   val fileDescriptions =
     metadata.families
@@ -194,18 +174,14 @@ private fun downloadIconStyles(
         targetDir.resolve(style.toDirFormat()).createDirectories()
         createMaterialIconFileDescription(metadata, iconMetadata, style)
       }
-  val downloader =
-    DownloadableFileService.getInstance().createDownloader(fileDescriptions, "Material Icons")
+  val downloader = DownloadableFileService.getInstance().createDownloader(fileDescriptions, "Material Icons")
   val downloaded = downloader.download(targetDir.toFile()).map { it.first }
   log.info("downloadIconStyles downloaded ${downloaded.size} files")
   val renamedFiles = renameDownloadedFiles(downloaded)
   cleanUpDownloadDirectories(renamedFiles)
 }
 
-/**
- * Returns a [DownloadableFileDescription] using the url pattern from
- * [MaterialIconsMetadata.urlPattern].
- */
+/** Returns a [DownloadableFileDescription] using the url pattern from [MaterialIconsMetadata.urlPattern]. */
 private fun createMaterialIconFileDescription(
   metadata: MaterialIconsMetadata,
   iconMetadata: MaterialMetadataIcon,
@@ -214,9 +190,7 @@ private fun createMaterialIconFileDescription(
   val styleDirName = style.toDirFormat()
   val iconName = iconMetadata.name
   val host = metadata.host
-  val basePattern =
-    if (style.contains("Symbols")) "/s/i/short-term/release/{family}/{icon}/default/{asset}"
-    else metadata.urlPattern
+  val basePattern = if (style.contains("Symbols")) "/s/i/short-term/release/{family}/{icon}/default/{asset}" else metadata.urlPattern
   val pattern =
     basePattern
       .replace("{family}", styleDirName)
@@ -225,12 +199,7 @@ private fun createMaterialIconFileDescription(
       .replace("{asset}", "24px.xml")
   val downloadUrl = "https://%1s%2s".format(host, pattern)
   val fileName =
-    styleDirName +
-      File.separatorChar +
-      iconName +
-      File.separatorChar +
-      getIconFileNameWithoutExtension(iconName, styleDirName) +
-      ".tmp"
+    styleDirName + File.separatorChar + iconName + File.separatorChar + getIconFileNameWithoutExtension(iconName, styleDirName) + ".tmp"
   return DownloadableFileService.getInstance().createFileDescription(downloadUrl, fileName)
 }
 
@@ -239,10 +208,9 @@ private fun createMaterialIconFileDescription(
  *
  * Icons to delete are those in [oldMetadata] that are not present in [newMetadata].
  *
- * Icons to download are those in [newMetadata] that are not present in [oldMetadata] or that have a
- * higher [MaterialMetadataIcon.version]. [iconsUrlProvider] will allow this method to look for
- * broken icons that are part of the [oldMetadata] and [newMetadata] but that, for some reason, the
- * icon is not present.
+ * Icons to download are those in [newMetadata] that are not present in [oldMetadata] or that have a higher [MaterialMetadataIcon.version].
+ * [iconsUrlProvider] will allow this method to look for broken icons that are part of the [oldMetadata] and [newMetadata] but that, for
+ * some reason, the icon is not present.
  */
 @Slow
 private fun getIconsUpdateData(
@@ -258,14 +226,9 @@ private fun getIconsUpdateData(
       else
         commonIcons
           .filter { icon ->
-            if (icon.unsupportedFamilies.contains(family))
-              return@filter false // This is not broken since it's not supported by this family
-            val expectedFileName =
-              getIconFileNameWithoutExtension(iconName = icon.name, styleName = family) +
-                SdkConstants.DOT_XML
-            val uri =
-              iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.toURI()
-                ?: return@filter false
+            if (icon.unsupportedFamilies.contains(family)) return@filter false // This is not broken since it's not supported by this family
+            val expectedFileName = getIconFileNameWithoutExtension(iconName = icon.name, styleName = family) + SdkConstants.DOT_XML
+            val uri = iconsUrlProvider.getIconUrl(family, icon.name, expectedFileName)?.toURI() ?: return@filter false
 
             !Path.of(uri).exists()
           }
@@ -291,17 +254,15 @@ private fun getIconsUpdateData(
 }
 
 /**
- * Removes any remaining files in the directories of the downloaded icons, so that there's only the
- * downloaded file in each of the icon directories.
+ * Removes any remaining files in the directories of the downloaded icons, so that there's only the downloaded file in each of the icon
+ * directories.
  *
- * E.g. if after the download .../my_icon/ contains 'old_icon.xml' and 'new_icon.xml',
- * 'old_icon.xml' is removed.
+ * E.g. if after the download .../my_icon/ contains 'old_icon.xml' and 'new_icon.xml', 'old_icon.xml' is removed.
  */
 private fun cleanUpDownloadDirectories(downloadedFiles: List<File>) {
   downloadedFiles.forEach { downloadedFile ->
     val iconDirectory = downloadedFile.parentFile
-    val filesToCleanUp =
-      iconDirectory.listFiles()?.filter { it.name != downloadedFile.name } ?: emptyList()
+    val filesToCleanUp = iconDirectory.listFiles()?.filter { it.name != downloadedFile.name } ?: emptyList()
     filesToCleanUp.forEach {
       if (!it.delete()) {
         // Only one file is expected in the icon directory, so not being able to delete old files
@@ -322,21 +283,12 @@ private fun renameDownloadedFiles(downloadedFiles: List<File>): List<File> {
     val iconDir = downloadedFile.parentFile
     val iconName = iconDir.name
     val styleDirName = iconDir.parentFile.name
-    val newIconFileName =
-      getIconFileNameWithoutExtension(iconName, styleDirName) + SdkConstants.DOT_XML
+    val newIconFileName = getIconFileNameWithoutExtension(iconName, styleDirName) + SdkConstants.DOT_XML
     val destFile = iconDir.resolve(newIconFileName)
-    return@map Files.move(
-        downloadedFile.toPath(),
-        destFile.toPath(),
-        StandardCopyOption.REPLACE_EXISTING,
-      )
-      .toFile()
+    return@map Files.move(downloadedFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING).toFile()
   }
 }
 
-private data class IconsUpdateData(
-  val iconsToRemove: Set<MaterialMetadataIcon>,
-  val iconsToDownload: Set<MaterialMetadataIcon>,
-) {
+private data class IconsUpdateData(val iconsToRemove: Set<MaterialMetadataIcon>, val iconsToDownload: Set<MaterialMetadataIcon>) {
   fun isEmpty() = iconsToRemove.isEmpty() && iconsToDownload.isEmpty()
 }

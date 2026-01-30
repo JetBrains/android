@@ -59,11 +59,8 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     val inspector = LayoutInspectorRootPanel.get(event)
     val hasSourceCodeInfo = inspector?.inspectorModel?.selection?.hasSourceCodeInformation ?: true
     // Finding the navigatable is expensive. Only perform a cheap check on update:
-    event.presentation.isEnabled =
-      hasSourceCodeInfo && (inspector?.inspectorModel?.resourceLookup?.hasResolver == true)
-    event.presentation.text =
-      if (hasSourceCodeInfo) "Go To Declaration"
-      else "Go To Declaration (No Source Information Found)"
+    event.presentation.isEnabled = hasSourceCodeInfo && (inspector?.inspectorModel?.resourceLookup?.hasResolver == true)
+    event.presentation.text = if (hasSourceCodeInfo) "Go To Declaration" else "Go To Declaration (No Source Information Found)"
   }
 }
 
@@ -78,18 +75,13 @@ object GotoDeclaration {
   ) {
     lastAction =
       coroutineScope.launch {
-        val navigatable =
-          findNavigatable(inspectorModel, client, notificationModel) ?: return@launch
+        val navigatable = findNavigatable(inspectorModel, client, notificationModel) ?: return@launch
         withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
       }
   }
 
   @Slow
-  private suspend fun findNavigatable(
-    model: InspectorModel,
-    client: InspectorClient,
-    notificationModel: NotificationModel,
-  ): Navigatable? =
+  private suspend fun findNavigatable(model: InspectorModel, client: InspectorClient, notificationModel: NotificationModel): Navigatable? =
     withContext(AndroidDispatchers.workerThread) {
       val resourceLookup = model.resourceLookup
       val node = model.selection ?: return@withContext null
@@ -97,9 +89,7 @@ object GotoDeclaration {
         if (node is ComposeViewNode) {
           resourceLookup.findComposableNavigatable(node)
         } else {
-          withContext(AndroidDispatchers.uiThread) {
-            resourceLookup.findFileLocation(node)?.navigatable
-          }
+          withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation(node)?.navigatable }
         }
       updateNotifications(notificationModel, navigatable, client, node)
       navigatable
@@ -113,8 +103,7 @@ object GotoDeclaration {
   ) {
     val layout = node.layout?.name
     when {
-      navigatable == null && node is ComposeViewNode ->
-        reportMissingSourceInformation(notificationModel, client, node)
+      navigatable == null && node is ComposeViewNode -> reportMissingSourceInformation(notificationModel, client, node)
       navigatable == null && node.viewId == null && layout != null && !node.isSystemNode ->
         reportViewNotFound(notificationModel, node, layout)
       else -> {
@@ -123,19 +112,11 @@ object GotoDeclaration {
     }
   }
 
-  private fun reportViewNotFound(
-    notificationModel: NotificationModel,
-    node: ViewNode,
-    layout: String,
-  ) {
+  private fun reportViewNotFound(notificationModel: NotificationModel, node: ViewNode, layout: String) {
     notificationModel.showWarning(VIEW_NOT_FOUND_KEY, node, layout)
   }
 
-  private fun reportMissingSourceInformation(
-    notificationModel: NotificationModel,
-    client: InspectorClient,
-    node: ComposeViewNode,
-  ) {
+  private fun reportMissingSourceInformation(notificationModel: NotificationModel, client: InspectorClient, node: ComposeViewNode) {
     val appHasNoSourceInformation =
       client.capabilities.contains(InspectorClient.Capability.SUPPORTS_COMPOSE) &&
         !client.capabilities.contains(InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION)
@@ -150,20 +131,11 @@ object GotoDeclaration {
 
   private fun NotificationModel.showWarning(key: String, node: ViewNode, layout: String = "") {
     removeWarnings(key)
-    addNotification(
-      key,
-      LayoutInspectorBundle.message(key, node.unqualifiedName, layout),
-      Status.Warning,
-    )
+    addNotification(key, LayoutInspectorBundle.message(key, node.unqualifiedName, layout), Status.Warning)
   }
 
   private fun NotificationModel.removeWarnings(except: String = "") {
-    for (msg in
-      listOf(
-        VIEW_NOT_FOUND_KEY,
-        NO_COMPOSE_SOURCE_INFO_NODE_KEY,
-        NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY,
-      )) {
+    for (msg in listOf(VIEW_NOT_FOUND_KEY, NO_COMPOSE_SOURCE_INFO_NODE_KEY, NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY)) {
       if (msg != except) {
         removeNotification(msg)
       }

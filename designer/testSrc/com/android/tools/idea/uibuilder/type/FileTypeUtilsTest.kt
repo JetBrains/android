@@ -41,9 +41,8 @@ import org.junit.Test
  *
  * Note: We don't provide the test case for a file with [AdaptiveIconFileType] type here.
  *
- * [AdaptiveIconFileType] checks the type by checking if the parent folder is a resource folder in
- * the project system. But the resource folder is not defined in a legacy project system, so it
- * always returns false. See
+ * [AdaptiveIconFileType] checks the type by checking if the parent folder is a resource folder in the project system. But the resource
+ * folder is not defined in a legacy project system, so it always returns false. See
  * [com.android.tools.idea.projectsystem.LegacyDelegate.resourcesDirectoryUrls] and
  * [com.android.tools.idea.projectsystem.LegacyDelegate.resourcesDirectories]
  */
@@ -56,10 +55,7 @@ class FileTypeUtilsTest {
     DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
-  /**
-   * This tests if the [Configuration] is same as before when getting the [Configuration] from same
-   * file again.
-   */
+  /** This tests if the [Configuration] is same as before when getting the [Configuration] from same file again. */
   @Test
   fun testCreateConfigurationForVirtualFile() {
     // We didn't register any file type here, so the file is always recognized as
@@ -90,9 +86,7 @@ class FileTypeUtilsTest {
     // The content doesn't matter
     val file = projectRule.fixture.addFileToProject("res/drawable/my_drawable.xml", TEST_ROOT_TAG)
     val type = file.typeOf()
-    assertTrue(
-      type is DrawableFileType
-    ) // The type must be DrawableFileType otherwise this testing is meaningless.
+    assertTrue(type is DrawableFileType) // The type must be DrawableFileType otherwise this testing is meaningless.
 
     val config = file.virtualFile.getConfiguration(manager)
     val configDevice = config.device
@@ -104,10 +98,7 @@ class FileTypeUtilsTest {
     assertEquals(configDevice, config2.device)
   }
 
-  /**
-   * When the user changes the theme, the configuration should remember the change. Regression test
-   * for b/380783679.
-   */
+  /** When the user changes the theme, the configuration should remember the change. Regression test for b/380783679. */
   @Test
   fun testDrawableRemembersThemeSetting() {
     DesignerTypeRegistrar.register(TestDrawableFileType)
@@ -136,19 +127,12 @@ class FileTypeUtilsTest {
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.module)
     // The content doesn't matter
     val file1 = projectRule.fixture.addFileToProject("res/drawable/my_drawable1.xml", TEST_ROOT_TAG)
-    assertTrue(
-      file1.typeOf() is DrawableFileType
-    ) // The type must be DrawableFileType otherwise this testing is meaningless.
+    assertTrue(file1.typeOf() is DrawableFileType) // The type must be DrawableFileType otherwise this testing is meaningless.
 
     val file2 = projectRule.fixture.addFileToProject("res/drawable/my_drawable2.xml", TEST_ROOT_TAG)
-    assertTrue(
-      file2.typeOf() is DrawableFileType
-    ) // The type must be DrawableFileType otherwise this testing is meaningless.
+    assertTrue(file2.typeOf() is DrawableFileType) // The type must be DrawableFileType otherwise this testing is meaningless.
 
-    assertEquals(
-      file1.virtualFile.getConfiguration(manager).device,
-      file2.virtualFile.getConfiguration(manager).device,
-    )
+    assertEquals(file1.virtualFile.getConfiguration(manager).device, file2.virtualFile.getConfiguration(manager).device)
   }
 
   private fun createTestDevice(): Device {
@@ -181,6 +165,5 @@ private const val TEST_ROOT_TAG = "<test>"
 object TestDrawableFileType : DrawableFileType(setOf(TEST_ROOT_TAG)) {
   override fun isResourceTypeOf(file: PsiFile): Boolean = true
 
-  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups =
-    ToolbarActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups = ToolbarActionGroups(surface)
 }

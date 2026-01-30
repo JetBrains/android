@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidProjectView")
+
 package com.android.tools.idea.navigator
 
 const val ID: String = "AndroidView"

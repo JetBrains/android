@@ -26,13 +26,15 @@ import javax.swing.table.DefaultTableCellRenderer
  * @see FontUtil.getFontAbleToDisplay
  */
 class I18nStringCellRenderer : DefaultTableCellRenderer() {
-  override fun getTableCellRendererComponent(table: JTable?,
-                                             value: Any?,
-                                             isSelected: Boolean,
-                                             hasFocus: Boolean,
-                                             row: Int,
-                                             column: Int): Component {
-    val defaultRenderer =  super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+  override fun getTableCellRendererComponent(
+    table: JTable?,
+    value: Any?,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int,
+  ): Component {
+    val defaultRenderer = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
     val s = value.toString()
     table?.font?.let { defaultRenderer.font = FontUtil.getFontAbleToDisplay(s, it) }
     return defaultRenderer

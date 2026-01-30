@@ -33,11 +33,7 @@ class SelectedViewModelTest {
   @Test
   fun testButtonWithId() {
     val view =
-      view(
-        drawId = 10,
-        qualifiedName = FQCN_BUTTON,
-        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "button1"),
-      )
+      view(drawId = 10, qualifiedName = FQCN_BUTTON, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "button1"))
     val model = SelectedViewModel(view)
     assertThat(model.id).isEqualTo("@id/button1")
     assertThat(model.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.BUTTON)

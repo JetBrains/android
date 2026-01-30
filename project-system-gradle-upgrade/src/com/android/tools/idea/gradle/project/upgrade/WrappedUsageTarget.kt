@@ -32,60 +32,81 @@ import javax.swing.Action
  * - the refactoring usageViewDescriptor contains at least one target, and;
  * - the target is a ConfigurableUsageTarget.
  *
- * In order to work around the bug in the UsageView leading to inconsistent tree views when findUsages is re-executed, we always have
- * a target, generating [PsiElement2UsageTargetAdapter]s from our [WrappedPsiElement]s.  However: the PsiElement2UsageTargetAdapter
- * implements [ConfigurableUsageTarget], which leads to a settings icon even if our refactoring has no meaningful settings; and the
- * implementation of showSettings() on [PsiElement2UsageTargetAdapter] in any case does not do what we want, in a non-overrideable way.
+ * In order to work around the bug in the UsageView leading to inconsistent tree views when findUsages is re-executed, we always have a
+ * target, generating [PsiElement2UsageTargetAdapter]s from our [WrappedPsiElement]s. However: the PsiElement2UsageTargetAdapter implements
+ * [ConfigurableUsageTarget], which leads to a settings icon even if our refactoring has no meaningful settings; and the implementation of
+ * showSettings() on [PsiElement2UsageTargetAdapter] in any case does not do what we want, in a non-overrideable way.
  *
  * Therefore, instead of using raw [PsiElement2UsageTargetAdapter]s, we wrap them in one of these delegating classes: one which implements
  * [UsageTarget], for use when there is no suitable showSettings() action, and one which implements [ConfigurableUsageTarget], when there
  * is.
  */
-internal class WrappedUsageTarget(
-  private val usageTarget: PsiElement2UsageTargetAdapter
-): PsiElementUsageTarget by usageTarget,
-   DataProvider by usageTarget,
-   PsiElementNavigationItem by usageTarget,
-   ItemPresentation by usageTarget,
-   UsageTarget by usageTarget {
+internal class WrappedUsageTarget(private val usageTarget: PsiElement2UsageTargetAdapter) :
+  PsiElementUsageTarget by usageTarget,
+  DataProvider by usageTarget,
+  PsiElementNavigationItem by usageTarget,
+  ItemPresentation by usageTarget,
+  UsageTarget by usageTarget {
   // We need these overrides (here and in WrappedConfigurableUsageTarget) because of multiple implementations
   override fun canNavigate() = usageTarget.canNavigate()
+
   override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+
   override fun getName() = usageTarget.getName()
+
   override fun findUsages() = usageTarget.findUsages()
+
   override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+
   override fun isValid() = usageTarget.isValid()
+
   override fun getPresentation() = usageTarget.getPresentation()
+
   // We need these because otherwise the default methods get called
   override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+
   override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
     usageTarget.highlightUsages(file, editor, clearHighlights)
+
   override fun isReadOnly() = usageTarget.isReadOnly()
+
   override fun getFiles() = usageTarget.getFiles()
+
   override fun update() = usageTarget.update()
 }
 
 internal class WrappedConfigurableUsageTarget(
   private val usageTarget: PsiElement2UsageTargetAdapter,
-  private val showSettingsAction: Action
-): PsiElementUsageTarget by usageTarget,
-   DataProvider by usageTarget,
-   PsiElementNavigationItem by usageTarget,
-   ItemPresentation by usageTarget,
-   ConfigurableUsageTarget by usageTarget {
+  private val showSettingsAction: Action,
+) :
+  PsiElementUsageTarget by usageTarget,
+  DataProvider by usageTarget,
+  PsiElementNavigationItem by usageTarget,
+  ItemPresentation by usageTarget,
+  ConfigurableUsageTarget by usageTarget {
   override fun canNavigate() = usageTarget.canNavigate()
+
   override fun navigate(requestFocus: Boolean) = usageTarget.navigate(requestFocus)
+
   override fun getName() = usageTarget.getName()
+
   override fun findUsages() = usageTarget.findUsages()
+
   override fun canNavigateToSource() = usageTarget.canNavigateToSource()
+
   override fun isValid() = usageTarget.isValid()
+
   override fun getPresentation() = usageTarget.getPresentation()
 
   override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
+
   override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
     usageTarget.highlightUsages(file, editor, clearHighlights)
+
   override fun isReadOnly() = usageTarget.isReadOnly()
+
   override fun getFiles() = usageTarget.getFiles()
+
   override fun update() = usageTarget.update()
 
   override fun showSettings() = showSettingsAction.actionPerformed(null)

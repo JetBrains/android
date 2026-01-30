@@ -30,10 +30,7 @@ interface MaterialIconsUrlProvider {
   /** Returns the [URL] of the files under a particular material icon style. */
   fun getStyleUrl(style: String): URL?
 
-  /**
-   * Returns the [URL] of the actual Material Icon file for the given style, icon name and its file
-   * name.
-   */
+  /** Returns the [URL] of the actual Material Icon file for the given style, icon name and its file name. */
   fun getIconUrl(style: String, iconName: String, iconFileName: String): URL?
 }
 

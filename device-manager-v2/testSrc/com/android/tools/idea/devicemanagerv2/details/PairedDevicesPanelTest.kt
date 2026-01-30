@@ -46,9 +46,7 @@ class PairedDevicesPanelTest {
   fun removeButtonEnabledStatus() = runTestWithFixture {
     val handle2 = createHandle("2")
     deviceHandles.send(listOf(mainHandle, handle2))
-    pairedDevices.send(
-      mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTING)))
-    )
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTING))))
 
     assertThat(panel.removeButton.isEnabled).isFalse()
 
@@ -65,20 +63,14 @@ class PairedDevicesPanelTest {
 
     assertThat(panel.pairingsTable.values).isEmpty()
 
-    pairedDevices.send(
-      mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTING)))
-    )
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTING))))
 
     assertThat(panel.pairingsTable.values).hasSize(1)
-    assertThat(panel.pairingsTable.values)
-      .containsExactly(handle2.pairedDeviceData(WearPairingManager.PairingState.CONNECTING))
+    assertThat(panel.pairingsTable.values).containsExactly(handle2.pairedDeviceData(WearPairingManager.PairingState.CONNECTING))
 
-    pairedDevices.send(
-      mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED)))
-    )
+    pairedDevices.send(mapOf("1" to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))))
 
-    assertThat(panel.pairingsTable.values)
-      .containsExactly(handle2.pairedDeviceData(WearPairingManager.PairingState.CONNECTED))
+    assertThat(panel.pairingsTable.values).containsExactly(handle2.pairedDeviceData(WearPairingManager.PairingState.CONNECTED))
 
     pairedDevices.send(emptyMap())
     assertThat(panel.pairingsTable.values).isEmpty()
@@ -89,11 +81,7 @@ class PairedDevicesPanelTest {
     val handle2 = createHandle("2")
     val handle3 = createHandle("3")
     deviceHandles.send(listOf(mainHandle, handle2, handle3))
-    pairedDevices.send(
-      mapOf(
-        mainHandle.name to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))
-      )
-    )
+    pairedDevices.send(mapOf(mainHandle.name to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))))
 
     assertThat(pairingTable.values).hasSize(1)
 
@@ -119,11 +107,7 @@ class PairedDevicesPanelTest {
 
     assertThat(pairingTable.values).hasSize(2)
 
-    pairedDevices.send(
-      mapOf(
-        mainHandle.name to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))
-      )
-    )
+    pairedDevices.send(mapOf(mainHandle.name to listOf(handle2.pairingStatus(WearPairingManager.PairingState.CONNECTED))))
 
     assertThat(pairingTable.values).hasSize(1)
 
@@ -178,11 +162,9 @@ class PairedDevicesPanelTest {
       )
   }
 
-  private fun FakeDeviceHandle.pairingStatus(state: WearPairingManager.PairingState) =
-    PairingStatus(name, name, state)
+  private fun FakeDeviceHandle.pairingStatus(state: WearPairingManager.PairingState) = PairingStatus(name, name, state)
 
-  private fun FakeDeviceHandle.pairedDeviceData(state: WearPairingManager.PairingState) =
-    PairedDeviceData(this, name, null, null, state)
+  private fun FakeDeviceHandle.pairedDeviceData(state: WearPairingManager.PairingState) = PairedDeviceData(this, name, null, null, state)
 
   open class TestPairingManager : PairedDevicesPanel.PairingManager {
     override fun showPairDeviceWizard(pairingId: String) {}

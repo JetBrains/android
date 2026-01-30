@@ -19,5 +19,5 @@ import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.output.BuildOutputInstantReader
 
 interface TomlErrorHandler {
-  fun tryExtractMessage(reader: BuildOutputInstantReader):List<BuildIssueEvent>
+  fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent>
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -39,8 +39,7 @@ import org.junit.Test
 @RunsInEdt
 class PsProjectImplTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val changedModules = mutableSetOf<String>()
 
@@ -51,18 +50,29 @@ class PsProjectImplTest {
 
       // settings.gradle does not list modules in the lexicographic order.
       assumeThat(
-        project.parsedModel.projectSettingsModel?.modulePaths()?.toList(), equalTo(
+        project.parsedModel.projectSettingsModel?.modulePaths()?.toList(),
+        equalTo(
           listOf(
-            ":", ":app", ":lib", ":jav", ":nested1", ":nested2", ":nested1:deep", ":nested2:deep", ":nested2:trans:deep2", ":dyn_feature"
+            ":",
+            ":app",
+            ":lib",
+            ":jav",
+            ":nested1",
+            ":nested2",
+            ":nested1:deep",
+            ":nested2:deep",
+            ":nested2:trans:deep2",
+            ":dyn_feature",
           )
-        )
+        ),
       )
 
       // Lexicographically ordered by gradlePath.
       // Includes not declared module ":nested2:trans".
       val modulesBeforeGradleModelsResolved = project.modules.map { it.gradlePath }
       assertThat<List<String?>>(
-        modulesBeforeGradleModelsResolved, equalTo(
+        modulesBeforeGradleModelsResolved,
+        equalTo(
           listOf(
             ":app",
             ":dyn_feature",
@@ -73,9 +83,9 @@ class PsProjectImplTest {
             ":nested2",
             ":nested2:deep",
             ":nested2:trans",
-            ":nested2:trans:deep2"
+            ":nested2:trans:deep2",
           )
-        )
+        ),
       )
 
       project.testResolve()
@@ -83,7 +93,8 @@ class PsProjectImplTest {
       // Includes not declared module ":nested2:trans".
       val modulesAfterGradleModelsResolved = project.modules.map { it.gradlePath }
       assertThat<List<String?>>(
-        modulesAfterGradleModelsResolved, equalTo(
+        modulesAfterGradleModelsResolved,
+        equalTo(
           listOf(
             ":app",
             ":dyn_feature",
@@ -94,9 +105,9 @@ class PsProjectImplTest {
             ":nested2",
             ":nested2:deep",
             ":nested2:trans",
-            ":nested2:trans:deep2"
+            ":nested2:trans:deep2",
           )
-        )
+        ),
       )
 
       assertThat(project.findModuleByGradlePath(":nested2:trans")?.isDeclared, equalTo(false))
@@ -112,10 +123,10 @@ class PsProjectImplTest {
       project.removeModule(gradlePath = ":nested2:deep")
       assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
 
-      project.applyChanges()  // applyChanges() discards resolved models.
+      project.applyChanges() // applyChanges() discards resolved models.
       assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
 
-      project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
+      project.testResolve() // A removed module should not reappear unless it is in the middle of a hierarchy.
       assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, nullValue())
     }
   }
@@ -133,7 +144,7 @@ class PsProjectImplTest {
           ?.dynamicFeatures()
           ?.getListValue(":dyn_feature")
           ?.getValue(STRING_TYPE),
-        equalTo(":dyn_feature")
+        equalTo(":dyn_feature"),
       )
 
       project.removeModule(gradlePath = ":dyn_feature")
@@ -141,7 +152,7 @@ class PsProjectImplTest {
 
       assertThat(project.findModuleByGradlePath(":app")?.isModified, equalTo(true))
 
-      project.applyChanges()  // applyChanges() discards resolved models.
+      project.applyChanges() // applyChanges() discards resolved models.
       assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, nullValue())
       assertThat(
         project
@@ -151,10 +162,10 @@ class PsProjectImplTest {
           ?.dynamicFeatures()
           ?.getListValue(":dyn_feature")
           ?.getValue(STRING_TYPE),
-        nullValue()
+        nullValue(),
       )
 
-      project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
+      project.testResolve() // A removed module should not reappear unless it is in the middle of a hierarchy.
       assertThat(project.findModuleByGradlePath(":dyn_feature")?.isDeclared, nullValue())
     }
   }
@@ -166,16 +177,14 @@ class PsProjectImplTest {
       assumeThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(true))
 
       project.removeModule(gradlePath = ":nested2")
-      runWriteAction {
-        project.ideProject.baseDir.findFileByRelativePath("/nested2/build.gradle")!!.delete("test")
-      }
+      runWriteAction { project.ideProject.baseDir.findFileByRelativePath("/nested2/build.gradle")!!.delete("test") }
       assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
 
-      project.applyChanges()  // applyChanges() discards resolved models.
+      project.applyChanges() // applyChanges() discards resolved models.
       // A removed module should reappear because it is in the middle of the hierarchy.
       assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
 
-      project.testResolve()  // A removed module should still exist because it is in the middle of the hierarchy.
+      project.testResolve() // A removed module should still exist because it is in the middle of the hierarchy.
       assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
     }
   }
@@ -211,7 +220,7 @@ class PsProjectImplTest {
         // Any previously pending changes should be applied and visible at this point.
         assertThat(
           (anotherProjectInstance.findModuleByGradlePath(":app") as PsAndroidModule).findBuildType("debug")!!.applicationIdSuffix,
-          equalTo(newSuffix.asParsed())
+          equalTo(newSuffix.asParsed()),
         )
 
         // Add :nested2:deep back to the project.
@@ -229,7 +238,7 @@ class PsProjectImplTest {
 
       // The module collection should be refreshed and the removed module should disappear.
       assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
-      project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
+      project.testResolve() // A removed module should not reappear unless it is in the middle of a hierarchy.
       assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
 
       // Reset changed module set and assert that the change handler has been auto-subscribed to the notifications from the new module.
@@ -290,13 +299,9 @@ class PsProjectImplTest {
       assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
 
       val existingAgpDependency =
-        project
-          .parsedModel
-          .projectBuildModel
-          ?.buildscript()
-          ?.dependencies()
-          ?.artifacts("classpath")
-          ?.first { it.compactNotation().startsWith("com.android.tools.build:gradle:") }!!
+        project.parsedModel.projectBuildModel?.buildscript()?.dependencies()?.artifacts("classpath")?.first {
+          it.compactNotation().startsWith("com.android.tools.build:gradle:")
+        }!!
       // Remove it and make sure the property can still be configured.
       project.parsedModel.projectBuildModel?.buildscript()?.dependencies()?.remove(existingAgpDependency)
       assertThrows(UnsupportedOperationException::class.java) { project.androidGradlePluginVersion = "1.23".asParsed() }
@@ -309,10 +314,7 @@ class PsProjectImplTest {
     preparedProject.open { ideProject ->
       var project = PsProjectImpl(ideProject)
 
-      assertThat(
-        project.gradleVersion,
-        equalTo(GradleWrapper.find(project.ideProject)?.gradleVersion?.asParsed())
-      )
+      assertThat(project.gradleVersion, equalTo(GradleWrapper.find(project.ideProject)?.gradleVersion?.asParsed()))
 
       project.gradleVersion = "1.1".asParsed()
       project.applyChanges()

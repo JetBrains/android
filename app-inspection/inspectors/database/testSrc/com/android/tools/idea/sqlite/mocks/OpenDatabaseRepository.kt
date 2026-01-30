@@ -31,10 +31,7 @@ open class OpenDatabaseRepository(
 
   val openDatabases = mutableListOf<SqliteDatabaseId>()
 
-  override suspend fun addDatabaseConnection(
-    databaseId: SqliteDatabaseId,
-    databaseConnection: DatabaseConnection,
-  ) {
+  override suspend fun addDatabaseConnection(databaseId: SqliteDatabaseId, databaseConnection: DatabaseConnection) {
     databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
     openDatabases.add(databaseId)
   }

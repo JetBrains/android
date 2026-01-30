@@ -38,30 +38,21 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
   val mockPopUp: JBPopup = mock(JBPopup::class.java)
   var callback: Consumer<in SqliteDatabaseId>? = null
 
-  override fun setRenderer(
-    renderer: ListCellRenderer<in SqliteDatabaseId>?
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setRenderer(renderer: ListCellRenderer<in SqliteDatabaseId>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setItemChosenCallback(
-    callback: Consumer<in SqliteDatabaseId>
-  ): IPopupChooserBuilder<SqliteDatabaseId> {
+  override fun setItemChosenCallback(callback: Consumer<in SqliteDatabaseId>): IPopupChooserBuilder<SqliteDatabaseId> {
     this.callback = callback
     return this
   }
 
-  override fun setItemsChosenCallback(
-    callback: Consumer<in MutableSet<out SqliteDatabaseId>>
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<out SqliteDatabaseId>>): IPopupChooserBuilder<SqliteDatabaseId> =
+    this
 
-  override fun setCancelOnClickOutside(
-    cancelOnClickOutside: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelOnClickOutside(cancelOnClickOutside: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setTitle(title: String): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCouldPin(
-    callback: Processor<in JBPopup>?
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCouldPin(callback: Processor<in JBPopup>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setRequestFocus(requestFocus: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
@@ -71,29 +62,19 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setDimensionServiceKey(key: String?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setUseDimensionServiceForXYLocation(
-    use: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setUseDimensionServiceForXYLocation(use: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCancelCallback(
-    callback: Computable<Boolean>?
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelCallback(callback: Computable<Boolean>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setAlpha(alpha: Float): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setAutoselectOnMouseMove(
-    doAutoSelect: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setAutoselectOnMouseMove(doAutoSelect: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setNamerForFiltering(
-    namer: Function<in SqliteDatabaseId, String>?
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setNamerForFiltering(namer: Function<in SqliteDatabaseId, String>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setFilterAlwaysVisible(state: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setAutoPackHeightOnFiltering(
-    autoPackHeightOnFiltering: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setAutoPackHeightOnFiltering(autoPackHeightOnFiltering: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setModalContext(modalContext: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
@@ -101,18 +82,13 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setMinSize(dimension: Dimension?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun registerKeyboardAction(
-    keyStroke: KeyStroke?,
-    actionListener: ActionListener?,
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun registerKeyboardAction(keyStroke: KeyStroke?, actionListener: ActionListener?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setAutoSelectIfEmpty(autoselect: Boolean): IPopupChooserBuilder<SqliteDatabaseId> =
-    this
+  override fun setAutoSelectIfEmpty(autoselect: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setCancelKeyEnabled(enabled: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun addListener(listener: JBPopupListener?): IPopupChooserBuilder<SqliteDatabaseId> =
-    this
+  override fun addListener(listener: JBPopupListener?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setSettingButton(button: Component?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
@@ -126,36 +102,25 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setAdvertiser(advertiser: JComponent?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCancelOnWindowDeactivation(
-    cancelOnWindowDeactivation: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelOnWindowDeactivation(cancelOnWindowDeactivation: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCancelOnOtherWindowOpen(
-    cancelOnWindow: Boolean
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelOnOtherWindowOpen(cancelOnWindow: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setSelectionMode(selection: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setSelectedValue(
-    preselection: SqliteDatabaseId?,
-    shouldScroll: Boolean,
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setSelectedValue(preselection: SqliteDatabaseId?, shouldScroll: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setAccessibleName(title: String?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setItemSelectedCallback(
-    c: Consumer<in SqliteDatabaseId>?
-  ): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setItemSelectedCallback(c: Consumer<in SqliteDatabaseId>?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun withHintUpdateSupply(): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setFont(f: Font?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setVisibleRowCount(visibleRowCount: Int): IPopupChooserBuilder<SqliteDatabaseId> =
-    this
+  override fun setVisibleRowCount(visibleRowCount: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> =
-    this
+  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun getBackgroundUpdater(): GenericListComponentUpdater<SqliteDatabaseId>? = null
 }

@@ -35,56 +35,49 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Tests for DataBinding Reference and Completion across different modules.
- */
+/** Tests for DataBinding Reference and Completion across different modules. */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingCrossModuleTest(private val mode: DataBindingMode) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
   @get:Rule
   val projectRule =
     AndroidProjectRule.testProject(
       testProjectTemplateFromPath(
-        path = when (mode) {
-          DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
-          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
-        },
-        testDataPath = getTestDataPath()
+        path =
+          when (mode) {
+            DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
+            else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
+          },
+        testDataPath = getTestDataPath(),
       )
     )
 
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture
 
   @Test
   fun dbReferencesIncludedLayoutBindingFromLibModule() {
-    val assembleDebug = projectRule.project.buildAndWait {
-      it.assemble()
-    }
+    val assembleDebug = projectRule.project.buildAndWait { it.assemble() }
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
     VfsTestUtil.syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
-    val activityFile = projectRule.project.baseDir.findFileByRelativePath(
-      "app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java")!!
+    val activityFile =
+      projectRule.project.baseDir.findFileByRelativePath("app/src/main/java/com/android/example/appwithdatabinding/MainActivity.java")!!
     fixture.configureFromExistingVirtualFile(activityFile)
 
     // Move caret into "binding.included.setStr("x");"

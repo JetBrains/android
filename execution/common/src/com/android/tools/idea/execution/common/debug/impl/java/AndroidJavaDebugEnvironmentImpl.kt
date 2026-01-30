@@ -41,7 +41,7 @@ internal class AndroidJavaDebugEnvironmentImpl(
   private val client: Client,
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
-  private val detachIsDefault: Boolean
+  private val detachIsDefault: Boolean,
 ) : AndroidJavaDebugEnvironment(), Disposable {
   init {
     Disposer.register(project, this)
@@ -53,6 +53,7 @@ internal class AndroidJavaDebugEnvironmentImpl(
   private val myRemoteConnection = RemoteConnection(true, "localhost", client.debuggerListenPort.toString(), false)
 
   private val searchScope = DebuggerGlobalSearchScope(GlobalSearchScope.allScope(project), project)
+
   override fun getSearchScope() = searchScope
 
   override fun createExecutionResult(): ExecutionResult {
@@ -63,11 +64,7 @@ internal class AndroidJavaDebugEnvironmentImpl(
 
     val console = consoleViewToReuse ?: TextConsoleBuilderFactory.getInstance().createBuilder(project).console
     Disposer.register(project, console)
-    val debugProcessHandler = AndroidRemoteDebugProcessHandler(
-      project,
-      client,
-      detachIsDefault
-    )
+    val debugProcessHandler = AndroidRemoteDebugProcessHandler(project, client, detachIsDefault)
     console.attachToProcess(debugProcessHandler)
 
     return DefaultExecutionResult(console, debugProcessHandler)

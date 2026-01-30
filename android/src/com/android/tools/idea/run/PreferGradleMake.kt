@@ -16,5 +16,4 @@
 package com.android.tools.idea.run
 
 // Gradle-aware Make marker interface
-interface PreferGradleMake {
-}
+interface PreferGradleMake {}

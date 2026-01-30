@@ -30,18 +30,13 @@ open class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   }
 
   private fun fakeDefaultActionGroup(): DefaultActionGroup {
-    return DefaultActionGroup(
-        "previewAgents",
-        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")),
-    )
+    return DefaultActionGroup("previewAgents", listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")))
   }
 
   private fun fakeDropDownAction(): DropDownAction {
     return object : DropDownAction("previewAgents", null, null) {
       init {
-        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")).forEach {
-          add(it)
-        }
+        listOf(transformPreviewAction(), fakeAction("Match UI"), fakeAction("Fix UI")).forEach { add(it) }
       }
     }
   }

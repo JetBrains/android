@@ -86,9 +86,7 @@ class ServerFlagServiceTest {
 
   @Before
   fun setup() {
-    ServerFlagServiceImpl.initializer = {
-      ServerFlagInitializationData(CONFIGURATION_VERSION, FLAGS)
-    }
+    ServerFlagServiceImpl.initializer = { ServerFlagInitializationData(CONFIGURATION_VERSION, FLAGS) }
     service = ServerFlagServiceImpl()
   }
 
@@ -134,8 +132,7 @@ class ServerFlagServiceTest {
       FlagValue.newBuilder()
         .apply {
           percentEnabled = 100
-          protoValue =
-            Any.newBuilder().apply { value = ByteString.copyFromUtf8("some bytes") }.build()
+          protoValue = Any.newBuilder().apply { value = ByteString.copyFromUtf8("some bytes") }.build()
         }
         .build()
 
@@ -167,39 +164,37 @@ class ServerFlagServiceTest {
     val default = ServerFlagTest.newBuilder().apply { content = "default" }.build()
 
     assertThat((service.getProto("proto", default) as ServerFlagTest).content).isEqualTo("content")
-    assertThat((service.getProto("missing", default) as ServerFlagTest).content)
-      .isEqualTo("default")
+    assertThat((service.getProto("missing", default) as ServerFlagTest).content).isEqualTo("default")
     assertThat(CONFIGURATION_VERSION).isEqualTo(service.configurationVersion)
-    assertThat(listOf("boolean", "int", "float", "string", "proto"))
-      .containsExactlyElementsIn(service.flagAssignments.keys)
+    assertThat(listOf("boolean", "int", "float", "string", "proto")).containsExactlyElementsIn(service.flagAssignments.keys)
   }
 
   @Test
   fun testToString() {
     val expected =
       """
-Name: boolean
-PercentEnabled: 0
-Value: true
+      Name: boolean
+      PercentEnabled: 0
+      Value: true
 
-Name: float
-PercentEnabled: 50
-Value: 1.0
+      Name: float
+      PercentEnabled: 50
+      Value: 1.0
 
-Name: int
-PercentEnabled: 25
-Value: 1
+      Name: int
+      PercentEnabled: 25
+      Value: 1
 
-Name: proto
-PercentEnabled: 100
-Value: custom proto
+      Name: proto
+      PercentEnabled: 100
+      Value: custom proto
 
-Name: string
-PercentEnabled: 75
-Value: foo
+      Name: string
+      PercentEnabled: 75
+      Value: foo
 
 
-"""
+      """
         .trimIndent()
     assertThat(service.toString()).isEqualTo(expected)
   }
@@ -211,27 +206,15 @@ Value: foo
     assertThat(service.toString()).isEqualTo("No server flags are enabled.")
   }
 
-  private fun <T> checkRetrieval(
-    service: ServerFlagService,
-    name: String,
-    retrieve: (ServerFlagService, String) -> T,
-    expected: T,
-  ) {
+  private fun <T> checkRetrieval(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T, expected: T) {
     assertThat(retrieve(service, name)).isEqualTo(expected)
   }
 
-  private fun <T> checkDefault(
-    service: ServerFlagService,
-    retrieve: (ServerFlagService, String, T) -> T,
-    default: T,
-  ) {
+  private fun <T> checkDefault(service: ServerFlagService, retrieve: (ServerFlagService, String, T) -> T, default: T) {
     assertThat(retrieve(service, "missing", default)).isEqualTo(default)
   }
 
-  private fun <T> checkNull(
-    service: ServerFlagService,
-    retrieve: (ServerFlagService, String) -> T?,
-  ) {
+  private fun <T> checkNull(service: ServerFlagService, retrieve: (ServerFlagService, String) -> T?) {
     assertThat(retrieve(service, "missing")).isNull()
   }
 
@@ -243,11 +226,7 @@ Value: foo
     assertThat(service.getProtoOrNull(name, TEST_PROTO)).isNull()
   }
 
-  private fun <T> checkIncorrectType(
-    service: ServerFlagService,
-    name: String,
-    retrieve: (ServerFlagService, String) -> T?,
-  ) {
+  private fun <T> checkIncorrectType(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T?) {
     assertThat(retrieve(service, name)).isNull()
   }
 }

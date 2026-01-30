@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
@@ -43,48 +44,35 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
 @RunsInEdt
 @RunWith(JUnit4::class)
 class ConfigureVersionCatalogProjectTest {
 
-    private val projectRule = withAndroidModels(
-      rootModuleBuilder,
-      AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder())
-    ).initAndroid(true)
-
+    private val projectRule =
+        withAndroidModels(rootModuleBuilder, AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder())).initAndroid(true)
 
     companion object {
         private val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
         private const val GRADLE_CATALOG_DIR = "idea-android/testData/configuration/android-gradle/catalog"
     }
 
-    @get:Rule
-    val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+    @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
     private lateinit var buildFile: VirtualFile
     private lateinit var catalogFile: VirtualFile
     private lateinit var topBuildFile: VirtualFile
 
-    @Test
-    fun testAndroidStudioDefault() =
-      doTestWithCatalog("$GRADLE_CATALOG_DIR/androidStudioDefault", "gradle")
+    @Test fun testAndroidStudioDefault() = doTestWithCatalog("$GRADLE_CATALOG_DIR/androidStudioDefault", "gradle")
 
-    @Test
-    fun testEmptyFile() =
-      doTestWithCatalog("$GRADLE_CATALOG_DIR/emptyFile", "gradle")
+    @Test fun testEmptyFile() = doTestWithCatalog("$GRADLE_CATALOG_DIR/emptyFile", "gradle")
 
-    @Test
-    fun testLibraryFile() =
-      doTestWithCatalog("$GRADLE_CATALOG_DIR/libraryFile", "gradle")
+    @Test fun testLibraryFile() = doTestWithCatalog("$GRADLE_CATALOG_DIR/libraryFile", "gradle")
 
-    @Test
-    fun testEmptyCatalog() =
-      doTestWithCatalog("$GRADLE_CATALOG_DIR/emptyCatalog", "gradle")
+    @Test fun testEmptyCatalog() = doTestWithCatalog("$GRADLE_CATALOG_DIR/emptyCatalog", "gradle")
 
     // Does test with module and root build files, version catalog and minimal settings file.
-    private fun doTestWithCatalog(path: String,  extension: String) {
+    private fun doTestWithCatalog(path: String, extension: String) {
         runWriteAction {
             buildFile = projectRule.fixture.tempDirFixture.createFile("app/build.${extension}")
             topBuildFile = projectRule.fixture.tempDirFixture.createFile("build.${extension}")
@@ -115,12 +103,25 @@ class ConfigureVersionCatalogProjectTest {
         val configurator = KotlinAndroidGradleModuleConfigurator()
         val jvmTarget = JvmTarget.JVM_1_8.description
         val changeTracker = ChangedConfiguratorFiles()
-        configurator.configureModule(projectRule.module, topBuildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version,
-                                     jvmTarget,
-                                     collector, changeTracker)
+        configurator.configureModule(
+            projectRule.module,
+            topBuildFile.toPsiFile(project)!!,
+            isTopLevelProjectFile = true,
+            version,
+            jvmTarget,
+            collector,
+            changeTracker,
+        )
         val appModule = projectRule.project.gradleModule(":app")!!
-        configurator.configureModule(appModule, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
-                                     collector, changeTracker)
+        configurator.configureModule(
+            appModule,
+            buildFile.toPsiFile(project)!!,
+            isTopLevelProjectFile = false,
+            version,
+            jvmTarget,
+            collector,
+            changeTracker,
+        )
 
         collector.showNotification()
 
@@ -130,13 +131,9 @@ class ConfigureVersionCatalogProjectTest {
         val afterTopFile = File(testRoot, "${path}_top_after.$extension")
 
         val afterCatalogFile = File(testRoot, "${path}_after.versions.toml")
-        assertEqualsToFile(afterCatalogFile, VfsUtil.loadText(catalogFile)) {
-            it.replace("\$VERSION$", DEFAULT_VERSION)
-        }
+        assertEqualsToFile(afterCatalogFile, VfsUtil.loadText(catalogFile)) { it.replace("\$VERSION$", DEFAULT_VERSION) }
 
         // Clear JDK table
-        ProjectJdkTable.getInstance().allJdks.forEach {
-            SdkConfigurationUtil.removeSdk(it)
-        }
+        ProjectJdkTable.getInstance().allJdks.forEach { SdkConfigurationUtil.removeSdk(it) }
     }
 }

@@ -39,11 +39,8 @@ import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
 /** A simple implementation of [PreviewView] based on [NlDesignSurface]. */
-class CommonNlDesignSurfacePreviewView(
-  private val project: Project,
-  surfaceBuilder: NlSurfaceBuilder,
-  parentDisposable: Disposable,
-) : PreviewView, PreviewRepresentationView {
+class CommonNlDesignSurfacePreviewView(private val project: Project, surfaceBuilder: NlSurfaceBuilder, parentDisposable: Disposable) :
+  PreviewView, PreviewRepresentationView {
 
   override val mainSurface = surfaceBuilder.build()
 
@@ -74,31 +71,22 @@ class CommonNlDesignSurfacePreviewView(
     }
 
   /**
-   * Vertical splitter where the top component is the [mainSurface] and the bottom component, when
-   * visible, is an auxiliary panel associated with the preview. For example, it can be an animation
-   * inspector that lists all the animations the preview has.
+   * Vertical splitter where the top component is the [mainSurface] and the bottom component, when visible, is an auxiliary panel associated
+   * with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter =
-    OnePixelSplitter(true, 0.7f)
-      .apply { this.setBlindZone { Insets(1, 0, 1, 0) } }
-      .apply { firstComponent = editorPanel }
+    OnePixelSplitter(true, 0.7f).apply { this.setBlindZone { Insets(1, 0, 1, 0) } }.apply { firstComponent = editorPanel }
 
   private val workbench: WorkBench<DesignSurface<*>> =
-    object :
-      WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
-      UiDataProvider {
-      override fun uiDataSnapshot(sink: DataSink) {
-        sink[DESIGN_SURFACE] = mainSurface
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
+        override fun uiDataSnapshot(sink: DataSink) {
+          sink[DESIGN_SURFACE] = mainSurface
+        }
       }
-    }
       .apply { init(mainPanelSplitter, mainSurface, listOf(), false) }
 
   @UiThread
-  override fun showErrorMessage(
-    message: String,
-    recoveryUrl: UrlData?,
-    actionToRecover: ActionData?,
-  ) {
+  override fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?) {
     workbench.hideContent()
     workbench.loadingStopped(message, null, recoveryUrl, actionToRecover)
   }

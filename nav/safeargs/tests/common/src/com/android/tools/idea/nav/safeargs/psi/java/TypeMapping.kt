@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
-/**
- * Used for tests which verify that arguments inside nav XML files generate the expected PSI output.
- */
+/** Used for tests which verify that arguments inside nav XML files generate the expected PSI output. */
 data class TypeMapping(val before: String, val after: String) {
   constructor(beforeAndAfter: String) : this(beforeAndAfter, beforeAndAfter)
 }

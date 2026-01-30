@@ -20,23 +20,24 @@ import java.util.ArrayDeque
 import java.util.IdentityHashMap
 
 /**
- * An expander that elides some internal structure of an object so that its children align
- * more closely with some more abstract notion of ownership (e.g. collections should have
- * the objects they contain as their children, despite not necessarily having direct references
- * to them).
+ * An expander that elides some internal structure of an object so that its children align more closely with some more abstract notion of
+ * ownership (e.g. collections should have the objects they contain as their children, despite not necessarily having direct references to
+ * them).
  */
-class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
+class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>) : Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
+
   override fun canExpand(obj: Any) = obj.javaClass.name == baseTypeName
 
   override fun expand(n: Node) {
     val children = childFinder(n.obj)
-    val map = if (children.size > LABEL_MAP_DEGREE_THRESHOLD) {
-      labelToNodeMap[n] = mutableMapOf()
-      labelToNodeMap[n]
-    } else null
+    val map =
+      if (children.size > LABEL_MAP_DEGREE_THRESHOLD) {
+        labelToNodeMap[n] = mutableMapOf()
+        labelToNodeMap[n]
+      } else null
     for (child in childFinder(n.obj)) {
-      val label = ObjectLabel(child);
+      val label = ObjectLabel(child)
       val childNode = n.addEdgeTo(child, ObjectLabel(child))
       if (childNode != null && map != null && map[label] == null) {
         map[label] = childNode
@@ -50,7 +51,8 @@ class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<
 
   companion object {
     private fun List<Any>.fields(vararg names: String): List<Any> = flatMap { obj ->
-      names.mapNotNull { name -> ReflectionUtil.getAllFields(obj.javaClass).find { it.name == name }?.get(obj) } }
+      names.mapNotNull { name -> ReflectionUtil.getAllFields(obj.javaClass).find { it.name == name }?.get(obj) }
+    }
 
     private fun List<Any>.expandArrays(): List<Any> = flatMap { obj ->
       if (obj is Array<*>) {
@@ -75,15 +77,20 @@ class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<
 
     private fun List<Any>.recFields(vararg names: String): List<Any> = flatMap { it.recFields(*names) }
 
-    private val childFinders = listOf<Pair<String, (Any) -> List<Any>>>(
-      "java.util.HashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
-      "java.util.LinkedHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
-      "java.util.concurrent.ConcurrentHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "val") },
-      "java.util.TreeMap" to { tm -> listOf(tm).fields("root").recFields("left", "right").fields("key", "value") },
-      "java.util.LinkedList" to { ll -> listOf(ll).fields("first").recFields("next").fields("item") }
-    )
+    private val childFinders =
+      listOf<Pair<String, (Any) -> List<Any>>>(
+        "java.util.HashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
+        "java.util.LinkedHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
+        "java.util.concurrent.ConcurrentHashMap" to
+          { hm ->
+            listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "val")
+          },
+        "java.util.TreeMap" to { tm -> listOf(tm).fields("root").recFields("left", "right").fields("key", "value") },
+        "java.util.LinkedList" to { ll -> listOf(ll).fields("first").recFields("next").fields("item") },
+      )
 
     fun getExpanders() = childFinders.map { ElidingExpander(it.first, it.second) }
+
     private const val LABEL_MAP_DEGREE_THRESHOLD = 50
   }
 }

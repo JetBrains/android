@@ -21,26 +21,23 @@ import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.util.Key
+import java.io.File
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
-import java.io.File
 
-/**
- * Executes Gradle tasks.
- */
+/** Executes Gradle tasks. */
 class AndroidGradleTaskManager : GradleTaskManagerExtension {
 
   /**
    * Gradle task execution process.
    *
    * @param projectPath path to project, where tasks are executed
-   * @param id          id of operation in IDEA terms
-   * @param settings    gradle execution settings
-   * @param listener    should be called to notify IDEA on tasks' progress and status
-   * @return false - if tasks were not executed and IDEA should proceed with default logic,
-   * true - if tasks are executed and no more actions are required
-   *
+   * @param id id of operation in IDEA terms
+   * @param settings gradle execution settings
+   * @param listener should be called to notify IDEA on tasks' progress and status
+   * @return false - if tasks were not executed and IDEA should proceed with default logic, true - if tasks are executed and no more actions
+   *   are required
    * @throws ExternalSystemException if gradle task execution fails
    */
   override fun executeTasks(
@@ -52,23 +49,22 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
     val gradleBuildInvoker = findGradleInvoker(id) ?: return false
     GradleTaskManager.setupGradleScriptDebugging(settings)
     GradleTaskManager.setupDebuggerDispatchPort(settings)
-    @Suppress("DEPRECATION") val doNotShowBuildOutputOnFailure =
-      settings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
-    val request = GradleBuildInvoker.Request(
-      mode = null,
-      project = gradleBuildInvoker.project,
-      rootProjectPath = File(projectPath),
-      gradleTasks = settings.tasks,
-      taskId = id,
-      listener = listener,
-      executionSettings = settings,
-      isWaitForCompletion = true,
-      doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure
-    )
+    @Suppress("DEPRECATION")
+    val doNotShowBuildOutputOnFailure = settings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+    val request =
+      GradleBuildInvoker.Request(
+        mode = null,
+        project = gradleBuildInvoker.project,
+        rootProjectPath = File(projectPath),
+        gradleTasks = settings.tasks,
+        taskId = id,
+        listener = listener,
+        executionSettings = settings,
+        isWaitForCompletion = true,
+        doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
+      )
     val invocationResult = gradleBuildInvoker.executeTasks(request).get()
-    with(invocationResult) {
-      buildError?.let { throw it.toFriendlyError() }
-    }
+    with(invocationResult) { buildError?.let { throw it.toFriendlyError() } }
     return true
   }
 
@@ -78,16 +74,16 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
 }
 
 /**
- * You can use this key to put a user data to [GradleExecutionSettings] when you run a
- * Gradle task from Android Studio. The value is passed to the request and set by
- * [GradleBuildInvoker.Request.Builder.setDoNotShowBuildOutputOnFailure].
+ * You can use this key to put a user data to [GradleExecutionSettings] when you run a Gradle task from Android Studio. The value is passed
+ * to the request and set by [GradleBuildInvoker.Request.Builder.setDoNotShowBuildOutputOnFailure].
  */
 @Deprecated("Please use GradleBuildInvoker directly")
 val ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE =
   Key.create<Boolean>("ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE")
 
 private fun findGradleInvoker(id: ExternalSystemTaskId): GradleBuildInvoker? {
-  val project = id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio || CommonAndroidUtil.getInstance().isAndroidProject(it) }
-    ?: return null
+  val project =
+    id.findProject()?.takeIf { IdeInfo.getInstance().isAndroidStudio || CommonAndroidUtil.getInstance().isAndroidProject(it) }
+      ?: return null
   return GradleBuildInvoker.getInstance(project)
 }

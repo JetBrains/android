@@ -85,6 +85,5 @@ internal object FlagsFormatter {
 
   fun intentFlagsAsString(i: Int): String = INTENT_FLAGS.asString(i)
 
-  private fun List<Flag>.asString(i: Int): String =
-    filter { i and it.value != 0 }.joinToString { it.name }
+  private fun List<Flag>.asString(i: Int): String = filter { i and it.value != 0 }.joinToString { it.name }
 }

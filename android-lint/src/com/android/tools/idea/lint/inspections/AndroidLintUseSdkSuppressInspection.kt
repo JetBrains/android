@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.SdkSuppressDetector
 
 class AndroidLintUseSdkSuppressInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.use.sdk.suppress"),
-    SdkSuppressDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.use.sdk.suppress"), SdkSuppressDetector.ISSUE)

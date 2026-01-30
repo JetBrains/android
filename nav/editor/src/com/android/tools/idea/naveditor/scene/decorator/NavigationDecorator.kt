@@ -33,12 +33,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 /** [SceneDecorator] for the whole of a navigation flow (that is, the root component). */
 object NavigationDecorator : NavBaseDecorator() {
 
-  override fun addContent(
-    list: DisplayList,
-    time: Long,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     if (isDisplayRoot(sceneContext, component)) {
       return
     }
@@ -56,12 +51,7 @@ object NavigationDecorator : NavBaseDecorator() {
     list.add(DrawNestedGraph(drawRectangle, scale, frameColor, frameThickness, text, textColor))
   }
 
-  override fun buildListChildren(
-    list: DisplayList,
-    time: Long,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun buildListChildren(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     if (isDisplayRoot(sceneContext, component)) {
       if (component.childCount > 0) {
         list.pushClip(sceneContext, component.fillRect(null))
@@ -78,22 +68,13 @@ object NavigationDecorator : NavBaseDecorator() {
   }
 
   /**
-   * Build the displaylist for the root component, ensuring that the right components are on top.
-   * Specifically:
-   * - If a destination is selected or considered to be selected, it is drawn on top of destinations
-   *   that aren't selected.
-   * - If an action is selected or considered to be selected, it as well as its source and
-   *   destination are drawn on top of destinations that aren't selected. A destination is
-   *   considered to be selected if it is in fact selected, or if an action to or from it is in fact
-   *   selected. An action is considered to be selected if it is in fact selected, or if its source
-   *   or target are in fact selected.
+   * Build the displaylist for the root component, ensuring that the right components are on top. Specifically:
+   * - If a destination is selected or considered to be selected, it is drawn on top of destinations that aren't selected.
+   * - If an action is selected or considered to be selected, it as well as its source and destination are drawn on top of destinations that
+   *   aren't selected. A destination is considered to be selected if it is in fact selected, or if an action to or from it is in fact
+   *   selected. An action is considered to be selected if it is in fact selected, or if its source or target are in fact selected.
    */
-  private fun buildRootList(
-    list: DisplayList,
-    time: Long,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  private fun buildRootList(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val selectedComponents = mutableSetOf<SceneComponent>()
 
     // Find all actions that should be considered to be selected, and mark them as well as their
@@ -104,12 +85,8 @@ object NavigationDecorator : NavBaseDecorator() {
     for (child in component.children) {
       val childNlComponent = child.nlComponent
       if (childNlComponent.isAction) {
-        val destination =
-          childNlComponent.effectiveDestination?.let { component.getSceneComponent(it) }
-        val source =
-          childNlComponent.getEffectiveSource(component.nlComponent)?.let {
-            component.getSceneComponent(it)
-          }
+        val destination = childNlComponent.effectiveDestination?.let { component.getSceneComponent(it) }
+        val source = childNlComponent.getEffectiveSource(component.nlComponent)?.let { component.getSceneComponent(it) }
         if (child.isSelected || destination?.isSelected == true || source?.isSelected == true) {
           selectedComponents.add(child)
           source?.let { selectedComponents.add(it) }
@@ -135,7 +112,6 @@ object NavigationDecorator : NavBaseDecorator() {
   }
 
   private fun isDisplayRoot(sceneContext: SceneContext, sceneComponent: SceneComponent): Boolean {
-    return (sceneContext.surface as NavDesignSurface?)?.currentNavigation ==
-      sceneComponent.nlComponent
+    return (sceneContext.surface as NavDesignSurface?)?.currentNavigation == sceneComponent.nlComponent
   }
 }

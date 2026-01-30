@@ -49,7 +49,7 @@ internal class LogcatColorSettingsPage : ColorSettingsPage {
     2022-01-06 14:19:34.697 <w> W </w> <wm>Sample warn text</wm>
     2022-01-06 14:19:34.697 <e> E </e> <em>Sample error text</em>
     2022-01-06 14:19:34.697 <a> A </a> <am>Sample assert text</am>
-  """
+    """
       .trimIndent()
 
   override fun getAttributeDescriptors(): Array<AttributesDescriptor> = ATTRIBUTES_DESCRIPTORS
@@ -58,8 +58,7 @@ internal class LogcatColorSettingsPage : ColorSettingsPage {
 
   override fun getDisplayName() = LogcatBundle.message("logcat.color.page.name")
 
-  override fun getAdditionalHighlightingTagToDescriptorMap():
-    MutableMap<String, TextAttributesKey> = ADDITIONAL_HIGHLIGHT_DESCRIPTORS
+  override fun getAdditionalHighlightingTagToDescriptorMap(): MutableMap<String, TextAttributesKey> = ADDITIONAL_HIGHLIGHT_DESCRIPTORS
 }
 
 private class LogcatDescriptorInfo(
@@ -74,66 +73,18 @@ private class LogcatDescriptorInfo(
 
 private val DESCRIPTOR_INFO =
   arrayOf(
-    LogcatDescriptorInfo(
-      VERBOSE,
-      LogcatColors.LEVEL_VERBOSE_KEY,
-      "v",
-      LogcatColors.MESSAGE_VERBOSE_KEY,
-      "vm",
-    ),
-    LogcatDescriptorInfo(
-      DEBUG,
-      LogcatColors.LEVEL_DEBUG_KEY,
-      "d",
-      LogcatColors.MESSAGE_DEBUG_KEY,
-      "dm",
-    ),
-    LogcatDescriptorInfo(
-      INFO,
-      LogcatColors.LEVEL_INFO_KEY,
-      "i",
-      LogcatColors.MESSAGE_INFO_KEY,
-      "im",
-    ),
-    LogcatDescriptorInfo(
-      WARN,
-      LogcatColors.LEVEL_WARNING_KEY,
-      "w",
-      LogcatColors.MESSAGE_WARNING_KEY,
-      "wm",
-    ),
-    LogcatDescriptorInfo(
-      ERROR,
-      LogcatColors.LEVEL_ERROR_KEY,
-      "e",
-      LogcatColors.MESSAGE_ERROR_KEY,
-      "em",
-    ),
-    LogcatDescriptorInfo(
-      ASSERT,
-      LogcatColors.LEVEL_ASSERT_KEY,
-      "a",
-      LogcatColors.MESSAGE_ASSERT_KEY,
-      "am",
-    ),
+    LogcatDescriptorInfo(VERBOSE, LogcatColors.LEVEL_VERBOSE_KEY, "v", LogcatColors.MESSAGE_VERBOSE_KEY, "vm"),
+    LogcatDescriptorInfo(DEBUG, LogcatColors.LEVEL_DEBUG_KEY, "d", LogcatColors.MESSAGE_DEBUG_KEY, "dm"),
+    LogcatDescriptorInfo(INFO, LogcatColors.LEVEL_INFO_KEY, "i", LogcatColors.MESSAGE_INFO_KEY, "im"),
+    LogcatDescriptorInfo(WARN, LogcatColors.LEVEL_WARNING_KEY, "w", LogcatColors.MESSAGE_WARNING_KEY, "wm"),
+    LogcatDescriptorInfo(ERROR, LogcatColors.LEVEL_ERROR_KEY, "e", LogcatColors.MESSAGE_ERROR_KEY, "em"),
+    LogcatDescriptorInfo(ASSERT, LogcatColors.LEVEL_ASSERT_KEY, "a", LogcatColors.MESSAGE_ASSERT_KEY, "am"),
   )
 
 private val ATTRIBUTES_DESCRIPTORS =
-  (DESCRIPTOR_INFO.map {
-      AttributesDescriptor(
-        LogcatBundle.message("logcat.color.page.indicator", it.name),
-        it.levelKey,
-      )
-    } +
-      DESCRIPTOR_INFO.map {
-        AttributesDescriptor(
-          LogcatBundle.message("logcat.color.page.message", it.name),
-          it.messageKey,
-        )
-      })
+  (DESCRIPTOR_INFO.map { AttributesDescriptor(LogcatBundle.message("logcat.color.page.indicator", it.name), it.levelKey) } +
+      DESCRIPTOR_INFO.map { AttributesDescriptor(LogcatBundle.message("logcat.color.page.message", it.name), it.messageKey) })
     .toTypedArray()
 
 private val ADDITIONAL_HIGHLIGHT_DESCRIPTORS =
-  DESCRIPTOR_INFO.flatMap { listOf(it.levelTag to it.levelKey, it.messageTag to it.messageKey) }
-    .toMap()
-    .toMutableMap()
+  DESCRIPTOR_INFO.flatMap { listOf(it.levelTag to it.levelKey, it.messageTag to it.messageKey) }.toMap().toMutableMap()

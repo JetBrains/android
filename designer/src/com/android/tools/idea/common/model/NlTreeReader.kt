@@ -63,9 +63,7 @@ class NlTreeReader(private val file: () -> XmlFile) {
   }
 
   fun flattenComponents(): Stream<NlComponent> {
-    return if (nlRootComponent != null)
-      Stream.of(nlRootComponent).flatMap { obj: NlComponent? -> obj!!.flatten() }
-    else Stream.empty()
+    return if (nlRootComponent != null) Stream.of(nlRootComponent).flatMap { obj: NlComponent? -> obj!!.flatten() } else Stream.empty()
   }
 
   fun findViewByAccessibilityId(id: Long): NlComponent? {

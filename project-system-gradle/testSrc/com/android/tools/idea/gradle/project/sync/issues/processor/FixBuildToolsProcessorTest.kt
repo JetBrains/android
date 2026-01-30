@@ -24,8 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class FixBuildToolsProcessorTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testRemoveUsageViewDescriptor() {
@@ -43,4 +42,3 @@ class FixBuildToolsProcessorTest {
     assertThat(usageDescriptor.processedElementsHeader).isEqualTo("Update Android Build Tools Versions")
   }
 }
-

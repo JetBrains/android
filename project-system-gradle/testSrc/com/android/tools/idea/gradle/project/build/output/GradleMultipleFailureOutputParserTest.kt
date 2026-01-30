@@ -22,101 +22,109 @@ import org.junit.rules.TemporaryFolder
 
 class GradleMultipleFailureOutputParserTest : BuildOutputParserTest() {
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   @Test
   fun multipleBuildExceptions_withTaskWithoutLocation() {
-    val buildOutput = """
-FAILURE: Build completed with 2 failures.
+    val buildOutput =
+      """
+      FAILURE: Build completed with 2 failures.
 
-1: Task failed with an exception.
------------
-* What went wrong:
-Execution failed for task ':lib:compileJava'.
-> General fake failure 1
-  error: error description 1
-  error: error description 2
-  2 errors
+      1: Task failed with an exception.
+      -----------
+      * What went wrong:
+      Execution failed for task ':lib:compileJava'.
+      > General fake failure 1
+        error: error description 1
+        error: error description 2
+        2 errors
 
-* Try:
-> Check your code and dependencies to fix the compilation error(s)
-> Run with --scan to get full insights.
-==============================================================================
+      * Try:
+      > Check your code and dependencies to fix the compilation error(s)
+      > Run with --scan to get full insights.
+      ==============================================================================
 
-2: Task failed with an exception.
------------
-* What went wrong:
-Execution failed for task ':app:compileDebugJavaWithJavac'.
-> General fake failure 2
-  some
-  multiline
-  description
+      2: Task failed with an exception.
+      -----------
+      * What went wrong:
+      Execution failed for task ':app:compileDebugJavaWithJavac'.
+      > General fake failure 2
+        some
+        multiline
+        description
 
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --debug option to get more log output.
-> Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
-==============================================================================
+      * Try:
+      > Run with --stacktrace option to get the stack trace.
+      > Run with --debug option to get more log output.
+      > Run with --scan to get full insights.
+      > Get more help at https://help.gradle.org.
+      ==============================================================================
 
-BUILD FAILED in 4s
-50 actionable tasks: 48 executed, 2 up-to-date
-""".trimIndent()
+      BUILD FAILED in 4s
+      50 actionable tasks: 48 executed, 2 up-to-date
+      """
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
       // Compilation errors are filtered out, as they should be reported by separate parsers
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "General fake failure 1",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = true,
-          group = "Other Messages",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = ":lib:compileJava",
-          description = """
-          Execution failed for task ':lib:compileJava'.
-          > General fake failure 1
-            error: error description 1
-            error: error description 2
-            2 errors
-          
-          * Try:
-          > Check your code and dependencies to fix the compilation error(s)
-          > Run with --scan to get full insights.
-        """.trimIndent()
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "General fake failure 1",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":lib:compileJava",
+            description =
+              """
+              Execution failed for task ':lib:compileJava'.
+              > General fake failure 1
+                error: error description 1
+                error: error description 2
+                2 errors
+
+              * Try:
+              > Check your code and dependencies to fix the compilation error(s)
+              > Run with --scan to get full insights.
+              """
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "General fake failure 2",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":app:compileDebugJavaWithJavac",
+            description =
+              """
+              Execution failed for task ':app:compileDebugJavaWithJavac'.
+              > General fake failure 2
+                some
+                multiline
+                description
+
+              * Try:
+              > Run with --stacktrace option to get the stack trace.
+              > Run with --debug option to get more log output.
+              > Run with --scan to get full insights.
+              > Get more help at https://help.gradle.org.
+              """
+                .trimIndent(),
+          ),
         ),
-        ExpectedEvent(
-        message = "General fake failure 2",
-        isFileMessageEvent = false,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = true,
-        group = "Other Messages",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = ":app:compileDebugJavaWithJavac",
-        description = """
-        Execution failed for task ':app:compileDebugJavaWithJavac'.
-        > General fake failure 2
-          some
-          multiline
-          description
-        
-        * Try:
-        > Run with --stacktrace option to get the stack trace.
-        > Run with --debug option to get more log output.
-        > Run with --scan to get full insights.
-        > Get more help at https://help.gradle.org.
-        """.trimIndent()
-      ))
     )
   }
 
   @Test
   fun multipleBuildExceptions_duplicated_noTask_withFile() {
     val buildGradle = temporaryFolder.newFile("/build.gradle")
-    val buildOutput = """
+    val buildOutput =
+      """
 FAILURE: Build completed with 2 failures.
 
 1: Task failed with an exception.
@@ -158,21 +166,26 @@ You can use '--warning-mode all' to show the individual deprecation warnings and
 For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
 BUILD FAILED in 251ms
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
       // Errors are duplicated, events get deduplicated resulting to single instance.
-      expectedEvents = listOf(ExpectedEvent(
-        message = "Could not set unknown property 'useIR' for object of type org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPlugin${'$'}apply\$1\$1${'$'}kotlinOptions\$1",
-        isFileMessageEvent = true,
-        isBuildIssueEvent = false,
-        isDuplicateMessageAware = true,
-        group = "Other Messages",
-        kind= MessageEvent.Kind.ERROR,
-        parentId = "testId",
-        filePosition = "$buildGradle:62:1-62:1",
-        description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message =
+              "Could not set unknown property 'useIR' for object of type org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPlugin${'$'}apply\$1\$1${'$'}kotlinOptions\$1",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$buildGradle:62:1-62:1",
+            description =
+              """
           Build file '$buildGradle' line: 62
           
           A problem occurred evaluating project ':app'.
@@ -183,8 +196,10 @@ BUILD FAILED in 251ms
           > Run with --info or --debug option to get more log output.
           > Run with --scan to get full insights.
           > Get more help at https://help.gradle.org.
-        """.trimIndent()
-      ))
+        """
+                .trimIndent(),
+          )
+        ),
     )
   }
 
@@ -192,7 +207,8 @@ BUILD FAILED in 251ms
   fun testWithStacktrace() {
     val stacktrace = RuntimeException("Error Message").stackTraceToString()
 
-    val buildOutput = """
+    val buildOutput =
+      """
 FAILURE: Build completed with 2 failures.
 
 1: Task failed with an exception.
@@ -235,21 +251,24 @@ $stacktrace
 
 BUILD FAILED in 4s
 50 actionable tasks: 48 executed, 2 up-to-date
-""".trimIndent()
+"""
+        .trimIndent()
     parseOutput(
       parentEventId = "testId",
       gradleOutput = buildOutput,
       // Compilation errors are filtered out, as they should be reported by separate parsers
-      expectedEvents = listOf(
-        ExpectedEvent(
-          message = "General fake failure 1",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = true,
-          group = "Other Messages",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = ":lib:compileJava",
-          description = """
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "General fake failure 1",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":lib:compileJava",
+            description =
+              """
 Execution failed for task ':lib:compileJava'.
 > General fake failure 1
   error: error description 1
@@ -261,17 +280,19 @@ Execution failed for task ':lib:compileJava'.
 > Run with --scan to get full insights.
 
 * Exception is:
-$stacktrace""".trimIndent()
-        ),
-        ExpectedEvent(
-          message = "General fake failure 2",
-          isFileMessageEvent = false,
-          isBuildIssueEvent = false,
-          isDuplicateMessageAware = true,
-          group = "Other Messages",
-          kind= MessageEvent.Kind.ERROR,
-          parentId = ":app:compileDebugJavaWithJavac",
-          description = """
+$stacktrace"""
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "General fake failure 2",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = ":app:compileDebugJavaWithJavac",
+            description =
+              """
 Execution failed for task ':app:compileDebugJavaWithJavac'.
 > General fake failure 2
   some
@@ -285,8 +306,10 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Get more help at https://help.gradle.org.
 
 * Exception is:
-$stacktrace""".trimIndent()
-        ))
+$stacktrace"""
+                .trimIndent(),
+          ),
+        ),
     )
   }
 }

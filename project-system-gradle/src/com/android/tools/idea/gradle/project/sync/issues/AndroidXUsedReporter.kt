@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
-class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
+class AndroidXUsedReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getSupportedIssueType(): Int {
     return IdeSyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
   }
@@ -40,9 +40,8 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
     project: Project,
     syncIssues: MutableList<IdeSyncIssue>,
     affectedModules: MutableList<Module>,
-    buildFileMap: MutableMap<Module, VirtualFile>
-  ): List<SyncIssueNotificationHyperlink> = createQuickFixes(
-    GradleProjectSystemUtil.getUserGradlePropertiesFile(project))
+    buildFileMap: MutableMap<Module, VirtualFile>,
+  ): List<SyncIssueNotificationHyperlink> = createQuickFixes(GradleProjectSystemUtil.getUserGradlePropertiesFile(project))
 
   @VisibleForTesting
   fun createQuickFixes(propertiesPath: File): List<SyncIssueNotificationHyperlink> {
@@ -54,7 +53,7 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
     quickFixes.add(
       OpenUrlSyncMessageHyperlink(
         "https://developer.android.com/jetpack/androidx/migrate",
-        "More information about migrating to AndroidX..."
+        "More information about migrating to AndroidX...",
       )
     )
     return quickFixes

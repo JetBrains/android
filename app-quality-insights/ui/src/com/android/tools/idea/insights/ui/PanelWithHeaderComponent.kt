@@ -19,8 +19,8 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 
 /**
- * [JPanel] with [BorderLayout] that has a header component. Header component height can be set with
- * a call to [setHeaderHeight] with the new [height].
+ * [JPanel] with [BorderLayout] that has a header component. Header component height can be set with a call to [setHeaderHeight] with the
+ * new [height].
  */
 abstract class PanelWithHeaderComponent : JPanel(BorderLayout()) {
   abstract fun setHeaderHeight(height: Int)

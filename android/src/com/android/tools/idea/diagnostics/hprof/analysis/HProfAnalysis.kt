@@ -29,24 +29,19 @@ import com.android.tools.idea.diagnostics.hprof.util.PartialProgressIndicator
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.progress.ProgressIndicator
-import org.jetbrains.annotations.TestOnly
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import org.jetbrains.annotations.TestOnly
 
-class HProfAnalysis(private val hprofFileChannel: FileChannel,
-                    private val tempFilenameSupplier: TempFilenameSupplier) {
+class HProfAnalysis(private val hprofFileChannel: FileChannel, private val tempFilenameSupplier: TempFilenameSupplier) {
 
   interface TempFilenameSupplier {
     fun getTempFilePath(type: String): Path
   }
 
-  private data class TempFile(
-    val type: String,
-    val path: Path,
-    val channel: FileChannel
-  )
+  private data class TempFile(val type: String, val path: Path, val channel: FileChannel)
 
   private val tempFiles = mutableListOf<TempFile>()
 
@@ -60,22 +55,28 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
   private fun openTempEmptyFileChannel(type: String): FileChannel {
     val tempPath = tempFilenameSupplier.getTempFilePath(type)
 
-    val tempChannel = FileChannel.open(tempPath,
-                                       StandardOpenOption.READ,
-                                       StandardOpenOption.WRITE,
-                                       StandardOpenOption.CREATE,
-                                       StandardOpenOption.TRUNCATE_EXISTING,
-                                       StandardOpenOption.DELETE_ON_CLOSE)
+    val tempChannel =
+      FileChannel.open(
+        tempPath,
+        StandardOpenOption.READ,
+        StandardOpenOption.WRITE,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING,
+        StandardOpenOption.DELETE_ON_CLOSE,
+      )
 
     tempFiles.add(TempFile(type, tempPath, tempChannel))
     return tempChannel
   }
 
-  private val fileBackedListProvider = object: ListProvider {
-    override fun createUByteList(name: String, size: Long) = FileBackedUByteList.createEmpty(openTempEmptyFileChannel(name), size)
-    override fun createUShortList(name: String, size: Long) = FileBackedUShortList.createEmpty(openTempEmptyFileChannel(name), size)
-    override fun createIntList(name: String, size: Long) = FileBackedIntList.createEmpty(openTempEmptyFileChannel(name), size)
-  }
+  private val fileBackedListProvider =
+    object : ListProvider {
+      override fun createUByteList(name: String, size: Long) = FileBackedUByteList.createEmpty(openTempEmptyFileChannel(name), size)
+
+      override fun createUShortList(name: String, size: Long) = FileBackedUShortList.createEmpty(openTempEmptyFileChannel(name), size)
+
+      override fun createIntList(name: String, size: Long) = FileBackedIntList.createEmpty(openTempEmptyFileChannel(name), size)
+    }
 
   data class AnalysisResult(val report: String, val summary: String)
 
@@ -115,9 +116,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       }
 
       val idMappingChannel = openTempEmptyFileChannel("id-mapping")
-      val remapIDsVisitor = RemapIDsVisitor.createFileBased(
-        idMappingChannel,
-        histogram.instanceCount)
+      val remapIDsVisitor = RemapIDsVisitor.createFileBased(idMappingChannel, histogram.instanceCount)
 
       parser.accept(remapIDsVisitor, "id mapping")
       val idMapper = remapIDsVisitor.getIDMapper()
@@ -127,13 +126,14 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       progress.text2 = "Create reference graph"
       progress.fraction = 0.3
 
-      val navigator = ObjectNavigator.createOnAuxiliaryFiles(
-        parser,
-        openTempEmptyFileChannel("auxOffset"),
-        openTempEmptyFileChannel("aux"),
-        hprofMetadata,
-        histogram.instanceCount
-      )
+      val navigator =
+        ObjectNavigator.createOnAuxiliaryFiles(
+          parser,
+          openTempEmptyFileChannel("auxOffset"),
+          openTempEmptyFileChannel("aux"),
+          hprofMetadata,
+          histogram.instanceCount,
+        )
 
       prepareFilesStopwatch.stop()
 
@@ -145,17 +145,12 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       analysisStopwatch.start()
 
       val nominatedClassNames = nominatedClasses.map { it.classDefinition.name }
-      val analysisConfig = AnalysisConfig(perClassOptions = AnalysisConfig.PerClassOptions(classNames = nominatedClassNames),
-                                          metaInfoOptions = AnalysisConfig.MetaInfoOptions(include = includeMetaInfo))
-      val analysisContext = AnalysisContext(
-        navigator,
-        analysisConfig,
-        parentList,
-        sizesList,
-        visitedList,
-        refIndexList,
-        histogram
-      )
+      val analysisConfig =
+        AnalysisConfig(
+          perClassOptions = AnalysisConfig.PerClassOptions(classNames = nominatedClassNames),
+          metaInfoOptions = AnalysisConfig.MetaInfoOptions(include = includeMetaInfo),
+        )
+      val analysisContext = AnalysisContext(navigator, analysisConfig, parentList, sizesList, visitedList, refIndexList, histogram)
 
       val analysisReport = AnalyzeGraph(analysisContext, fileBackedListProvider).analyze(PartialProgressIndicator(progress, 0.4, 0.4))
       summary = analysisReport.summary.toString()
@@ -180,8 +175,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
         }
         result.appendLine(analysisReport.metaInfo)
       }
-    }
-    finally {
+    } finally {
       parser.close()
       closeAndDeleteTemporaryFiles()
     }
@@ -198,14 +192,10 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
     tempFiles.forEach { tempFile ->
       try {
         tempFile.channel.close()
-      }
-      catch (ignored: Throwable) {
-      }
+      } catch (ignored: Throwable) {}
       try {
         tempFile.path.let { Files.deleteIfExists(it) }
-      }
-      catch (ignored: Throwable) {
-      }
+      } catch (ignored: Throwable) {}
     }
     tempFiles.clear()
   }

@@ -53,22 +53,16 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 // Helper class to format artifact to maven url.
-data class Artifact(
-  val groupId: String,
-  val artifactId: String,
-  val version: String?,
-) {
+data class Artifact(val groupId: String, val artifactId: String, val version: String?) {
 
   val fileName = "${artifactId}-${version}.aar"
 
-  fun toGMavenUrl() = URL(
-    "${GMAVEN_BASE_URL}/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
+  fun toGMavenUrl() = URL("${GMAVEN_BASE_URL}/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
 }
 
 // Command handler that triggers on perfetto traces. This enables the tracing of apps that use the perfetto SDK.
-class CpuTraceInterceptCommandHandler(val device: IDevice,
-                                      private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub)
-  : TransportProxy.ProxyCommandHandler {
+class CpuTraceInterceptCommandHandler(val device: IDevice, private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub) :
+  TransportProxy.ProxyCommandHandler {
 
   // Field exists solely for testing (not used for any other reason)
   @VisibleForTesting
@@ -97,37 +91,38 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     assert(command.type == Commands.Command.CommandType.START_TRACE)
     setUpComposeTracing(command)
-    return transportStub.execute(Transport.ExecuteRequest.newBuilder()
-                                   .setCommand(command)
-                                   .build())
+    return transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
   }
 
   private fun setUpComposeTracing(command: Commands.Command) {
     var handshakeResult = HandshakeResult.UNKNOWN_RESULT
 
     try {
-      val handshake = PerfettoSdkHandshake(
-        targetPackage = command.startTrace.configuration.appName,
-        // Kotlin doesn't have a native json parser. As such a handler needs to be created to
-        // map the broadcast output to a key/value pair for the library.
-        parseJsonMap = { jsonString: String ->
-          sequence {
-            JsonReader(StringReader(jsonString)).use { reader ->
-              reader.beginObject()
-              while (reader.hasNext()) yield(reader.nextName() to reader.nextString())
-              reader.endObject()
-            }
-          }.toMap()
-        },
-        // The library doesn't have details about communicating with a device.
-        // This callback is used to issue commands to the device and capture the output.
-        executeShellCommand = {
-          val latch = CountDownLatch(1)
-          val receiver = CollectingOutputReceiver(latch)
-          device.executeShellCommand(it, receiver)
-          latch.await(5, TimeUnit.SECONDS)
-          receiver.output
-        })
+      val handshake =
+        PerfettoSdkHandshake(
+          targetPackage = command.startTrace.configuration.appName,
+          // Kotlin doesn't have a native json parser. As such a handler needs to be created to
+          // map the broadcast output to a key/value pair for the library.
+          parseJsonMap = { jsonString: String ->
+            sequence {
+                JsonReader(StringReader(jsonString)).use { reader ->
+                  reader.beginObject()
+                  while (reader.hasNext()) yield(reader.nextName() to reader.nextString())
+                  reader.endObject()
+                }
+              }
+              .toMap()
+          },
+          // The library doesn't have details about communicating with a device.
+          // This callback is used to issue commands to the device and capture the output.
+          executeShellCommand = {
+            val latch = CountDownLatch(1)
+            val receiver = CollectingOutputReceiver(latch)
+            device.executeShellCommand(it, receiver)
+            latch.await(5, TimeUnit.SECONDS)
+            receiver.output
+          },
+        )
       // Try to enable the perfetto library using the app's built-in binary
       // If that fails try to download the requested version and
       // enable tracing using that library
@@ -138,10 +133,10 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
         val path = resolveArtifact(checkNotNull(response.requiredVersion))
         if (path != null) {
           val baseApk = File(path.toUri())
-          val libraryProvider = PerfettoSdkHandshake.LibrarySource.aarLibrarySource(baseApk, File(FileUtilRt.getTempDirectory())
-          ) { tmpFile, dstFile ->
-            device.pushFile(tmpFile.absolutePath, dstFile.absolutePath)
-          }
+          val libraryProvider =
+            PerfettoSdkHandshake.LibrarySource.aarLibrarySource(baseApk, File(FileUtilRt.getTempDirectory())) { tmpFile, dstFile ->
+              device.pushFile(tmpFile.absolutePath, dstFile.absolutePath)
+            }
           // provide binaries and retry
           response = enableTracing(handshake, isStartupTracing, libraryProvider)
         }
@@ -149,29 +144,27 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
 
       // process the response
       lastResponseCode = response.resultCode
-      val error = when (response.resultCode) {
-        0 -> "The broadcast to enable tracing was not received. This most likely means " +
-             "that the app does not contain the `androidx.tracing.tracing-perfetto` " +
-             "library as its dependency."
-        RESULT_CODE_SUCCESS -> null
-        RESULT_CODE_ALREADY_ENABLED -> "Perfetto SDK already enabled."
-        RESULT_CODE_ERROR_BINARY_MISSING ->
-          "Perfetto SDK binary dependencies missing. " +
-          "Required version: ${response.requiredVersion}. " +
-          "Error: ${response.message}."
-        RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH ->
-          "Perfetto SDK binary mismatch. " +
-          "Required version: ${response.requiredVersion}. " +
-          "Error: ${response.message}."
-        RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR ->
-          "Perfetto SDK binary verification failed. " +
-          "Required version: ${response.requiredVersion}. " +
-          "Error: ${response.message}. " +
-          "If working with an unreleased snapshot, ensure all modules are built " +
-          "against the same snapshot (e.g. clear caches and rebuild)."
-        RESULT_CODE_ERROR_OTHER -> "Error: ${response.message}."
-        else -> throw RuntimeException("Unrecognized exit code: ${response.resultCode}.")
-      }
+      val error =
+        when (response.resultCode) {
+          0 ->
+            "The broadcast to enable tracing was not received. This most likely means " +
+              "that the app does not contain the `androidx.tracing.tracing-perfetto` " +
+              "library as its dependency."
+          RESULT_CODE_SUCCESS -> null
+          RESULT_CODE_ALREADY_ENABLED -> "Perfetto SDK already enabled."
+          RESULT_CODE_ERROR_BINARY_MISSING ->
+            "Perfetto SDK binary dependencies missing. " + "Required version: ${response.requiredVersion}. " + "Error: ${response.message}."
+          RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH ->
+            "Perfetto SDK binary mismatch. " + "Required version: ${response.requiredVersion}. " + "Error: ${response.message}."
+          RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR ->
+            "Perfetto SDK binary verification failed. " +
+              "Required version: ${response.requiredVersion}. " +
+              "Error: ${response.message}. " +
+              "If working with an unreleased snapshot, ensure all modules are built " +
+              "against the same snapshot (e.g. clear caches and rebuild)."
+          RESULT_CODE_ERROR_OTHER -> "Error: ${response.message}."
+          else -> throw RuntimeException("Unrecognized exit code: ${response.resultCode}.")
+        }
       if (error != null) {
         log.warn(error)
       }
@@ -185,8 +178,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
         RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR -> handshakeResult = HandshakeResult.ERROR_BINARY_VERIFICATION_ERROR
         RESULT_CODE_ERROR_OTHER -> handshakeResult = HandshakeResult.ERROR_OTHER
       }
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       // Due to a bug in the current library an exception may be thrown that is a no-op.
       if (t.message == null || !t.message!!.contains("result=0")) {
         log.warn(t)
@@ -200,7 +192,8 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
             AndroidProfilerEvent.newBuilder()
               .setType(AndroidProfilerEvent.Type.PERFETTO_SDK_HANDSHAKE)
               .setPerfettoSdkHandshakeMetadata(PerfettoSdkHandshakeMetadata.newBuilder().setHandshakeResult(handshakeResult))
-          ).also { lastMetricsEvent = it }
+          )
+          .also { lastMetricsEvent = it }
       )
     }
   }
@@ -208,27 +201,22 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
   private fun enableTracing(
     handshake: PerfettoSdkHandshake,
     isStartupTracing: Boolean,
-    libraryProvider: PerfettoSdkHandshake.LibrarySource?
-  ) = when {
-    isStartupTracing -> handshake.enableTracingColdStart(persistent = false, libraryProvider)
-    else -> handshake.enableTracingImmediate(libraryProvider)
-  }
+    libraryProvider: PerfettoSdkHandshake.LibrarySource?,
+  ) =
+    when {
+      isStartupTracing -> handshake.enableTracingColdStart(persistent = false, libraryProvider)
+      else -> handshake.enableTracingImmediate(libraryProvider)
+    }
 
   private fun resolveArtifact(artifactVersion: String): Path? {
-    val artifact = Artifact("androidx.tracing",
-                            "tracing-perfetto-binary",
-                            artifactVersion)
+    val artifact = Artifact("androidx.tracing", "tracing-perfetto-binary", artifactVersion)
     return try {
       val tmpDir = IdeFileService("profiler-artifacts").getOrCreateTempDir("http-tmp")
       val tmpFile = tmpDir.resolve(artifact.fileName)
       log.debug("StudioDownloader downloading: ${artifact.fileName}")
-      StudioDownloader().downloadFullyWithCaching(artifact.toGMavenUrl(),
-                                                  tmpFile,
-                                                  null,
-                                                  ConsoleProgressIndicator())
+      StudioDownloader().downloadFullyWithCaching(artifact.toGMavenUrl(), tmpFile, null, ConsoleProgressIndicator())
       tmpFile
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       null
     }
   }

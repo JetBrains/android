@@ -58,8 +58,7 @@ fun minSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
 
 fun targetSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(androidSdkSuggestions().targetSdks)
 
-fun maxSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
-  immediateFuture(androidSdkSuggestions().maxSdks)
+fun maxSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> = immediateFuture(androidSdkSuggestions().maxSdks)
 
 fun buildToolsVersionValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(androidSdkSuggestions().buildTools)
@@ -69,59 +68,57 @@ fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescri
   return immediateFuture((listOfNotNull(defaultNdkVersion) + androidSdkSuggestions().ndks).distinct())
 }
 
-fun compileSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(androidSdkSuggestions().compileSdks)
+fun compileSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(androidSdkSuggestions().compileSdks)
 
 fun languageLevels(model: PsAndroidModule): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> {
-  val languageLevels = mutableListOf(
-    ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
-    ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
-    ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
-    ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11")
-  )
+  val languageLevels =
+    mutableListOf(
+      ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
+      ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
+      ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
+      ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11"),
+    )
   model.compileSdkVersion.maybeValue?.toIntOrNull()?.let { compileSdkVersion ->
     // API 34 supports Java 17 https://developer.android.com/build/jdks
-    if(compileSdkVersion >= VersionCodes.UPSIDE_DOWN_CAKE) {
+    if (compileSdkVersion >= VersionCodes.UPSIDE_DOWN_CAKE) {
       languageLevels.add(ValueDescriptor(value = LanguageLevel.JDK_17, description = "Java 17"))
     }
   }
   return immediateFuture(languageLevels)
 }
 
-fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
-  ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}")))
-})
+fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> =
+  immediateFuture(
+    module.signingConfigs.map { ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}"))) }
+  )
 
 fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
-  module.parent.ideProject.getHolderModuleByGradlePath(module.gradlePath)?.let { ideModule ->
-    FilenameIndex.getAllFilesByExt(
-      ideModule.project,
-      "pro",
-      ideModule.moduleContentScope)
-      .mapNotNull {
+  module.parent.ideProject
+    .getHolderModuleByGradlePath(module.gradlePath)
+    ?.let { ideModule ->
+      FilenameIndex.getAllFilesByExt(ideModule.project, "pro", ideModule.moduleContentScope).mapNotNull {
         module.resolvedModel?.rootDirPath?.let { rootPath ->
           ValueDescriptor(ParsedValue.Set.Parsed(File(it.path).relativeTo(rootPath), DslText.Literal))
         }
       } +
-    FilenameIndex.getAllFilesByExt(
-      ideModule.project,
-      "txt",
-      ideModule.moduleContentScope)
-      .filter { it.name.startsWith("proguard", ignoreCase = true) }
-      .mapNotNull {
-        module.resolvedModel?.rootDirPath?.let { rootPath ->
-          ValueDescriptor(ParsedValue.Set.Parsed(File(it.path).relativeTo(rootPath), DslText.Literal))
-        }
-      }
-  }.orEmpty() +
-  ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("getDefaultProguardFile('proguard-android.txt')")))
+        FilenameIndex.getAllFilesByExt(ideModule.project, "txt", ideModule.moduleContentScope)
+          .filter { it.name.startsWith("proguard", ignoreCase = true) }
+          .mapNotNull {
+            module.resolvedModel?.rootDirPath?.let { rootPath ->
+              ValueDescriptor(ParsedValue.Set.Parsed(File(it.path).relativeTo(rootPath), DslText.Literal))
+            }
+          }
+    }
+    .orEmpty() +
+    ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("getDefaultProguardFile('proguard-android.txt')")))
 
-fun proGuardFileValues(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<File>>> =
-  readOnPooledThread { proGuardFileValuesCore(module) }
+fun proGuardFileValues(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<File>>> = readOnPooledThread {
+  proGuardFileValuesCore(module)
+}
 
 fun buildTypeMatchingFallbackValuesCore(project: PsProject): List<ValueDescriptor<String>> =
-  project
-    .modules.asSequence()
+  project.modules
+    .asSequence()
     .flatMap { (it as? PsAndroidModule)?.buildTypes?.asSequence()?.map { it.name } ?: emptySequence() }
     .distinct()
     .sorted()
@@ -129,14 +126,14 @@ fun buildTypeMatchingFallbackValuesCore(project: PsProject): List<ValueDescripto
     .toList()
 
 fun productFlavorMatchingFallbackValuesCore(project: PsProject, dimension: String?): List<ValueDescriptor<String>> =
-  project
-    .modules.asSequence()
+  project.modules
+    .asSequence()
     .flatMap {
       (it as? PsAndroidModule)
-        ?.productFlavors?.asSequence()
+        ?.productFlavors
+        ?.asSequence()
         ?.filter { dimension == null || it.configuredDimension.maybeValue == dimension }
-        ?.map { it.name }
-      ?: emptySequence()
+        ?.map { it.name } ?: emptySequence()
     }
     .distinct()
     .sorted()
@@ -149,26 +146,40 @@ fun buildTypeMatchingFallbackValues(project: PsProject): ListenableFuture<List<V
 fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(productFlavorMatchingFallbackValuesCore(project, dimension))
 
-private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+private const val MAX_ARTIFACTS_TO_REQUEST = 50 // Note: we do not expect more than one result per repository.
+
 fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
   model.spec.group?.let { group ->
     val name = model.spec.name
     val currentVersion = model.spec.version
-    val filter: (Version) -> Boolean = when (group) {
-      "com.google.guava" -> when {
-        currentVersion == null -> { { true } }
-        currentVersion.endsWith("-jre") -> { { v -> v.toString().endsWith("-jre") } }
-        currentVersion.endsWith("-android") -> { { v -> v.toString().endsWith("-android") } }
-        else -> { { true } }
+    val filter: (Version) -> Boolean =
+      when (group) {
+        "com.google.guava" ->
+          when {
+            currentVersion == null -> {
+              { true }
+            }
+            currentVersion.endsWith("-jre") -> {
+              { v -> v.toString().endsWith("-jre") }
+            }
+            currentVersion.endsWith("-android") -> {
+              { v -> v.toString().endsWith("-android") }
+            }
+            else -> {
+              { true }
+            }
+          }
+        else -> {
+          { true }
+        }
       }
-      else -> { { true } }
-    }
     Futures.transform(
       model.parent.parent.repositorySearchFactory
         .create(model.parent.getArtifactRepositories())
         .search(SearchRequest(SingleModuleSearchQuery(group, name), MAX_ARTIFACTS_TO_REQUEST, 0)),
       { it!!.toVersionValueDescriptors(filter) },
-      directExecutor())
+      directExecutor(),
+    )
   } ?: immediateFuture(listOf())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
@@ -188,28 +199,26 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
         computeGradlePluginUpgradeState(agpVersion, latestKnown, versions).importance != FORCE
       }
     },
-    directExecutor())
+    directExecutor(),
+  )
 
 fun versionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transformNullable(directExecutor()) { versions: List<String>? ->
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> =
         versions?.sortedByDescending { Version.parse(it) }?.map { ValueDescriptor(it) } ?: emptyList()
+
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }
 
 @VisibleForTesting
 fun SearchResult.toVersionValueDescriptors(filter: (Version) -> Boolean = { true }): List<ValueDescriptor<String>> =
-  artifacts
-    .flatMap { it.versions }
-    .distinct()
-    .filter(filter)
-    .sortedDescending()
-    .map { version -> ValueDescriptor(version.toString()) }
+  artifacts.flatMap { it.versions }.distinct().filter(filter).sortedDescending().map { version -> ValueDescriptor(version.toString()) }
 
 fun <T : PsChildModel> ListProperty<T, File>.withProFileSelector(module: T.() -> PsAndroidModule) =
   withFileSelectionRoot(
     masks = listOf("*.pro", "*.txt"),
     browseRoot = { module().parent.ideProject.basePath?.let { File(it) } },
-    resolveRoot = { module().rootDir })
+    resolveRoot = { module().rootDir },
+  )

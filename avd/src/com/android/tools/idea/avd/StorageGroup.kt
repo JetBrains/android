@@ -47,10 +47,7 @@ import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun StorageGroup(device: VirtualDevice, state: StorageGroupState) {
-  Column(
-    Modifier.testTag("StorageGroup"),
-    verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM),
-  ) {
+  Column(Modifier.testTag("StorageGroup"), verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
 
     Row(Modifier.testTag("InternalStorageRow")) {
@@ -62,14 +59,9 @@ internal fun StorageGroup(device: VirtualDevice, state: StorageGroupState) {
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
-      LaunchedEffect(Unit) {
-        state.internalStorage.storageCapacity.collect { device.internalStorage = it }
-      }
+      LaunchedEffect(Unit) { state.internalStorage.storageCapacity.collect { device.internalStorage = it } }
 
-      InfoOutlineIcon(
-        "The amount of non-removable space available to store data on the AVD",
-        Modifier.align(Alignment.CenterVertically),
-      )
+      InfoOutlineIcon("The amount of non-removable space available to store data on the AVD", Modifier.align(Alignment.CenterVertically))
     }
 
     if (device.formFactor != FormFactors.WEAR) {
@@ -98,8 +90,7 @@ private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
       value = ExpandedStorageRadioButton.CUSTOM,
       selectedValue = state.selectedRadioButton,
       onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.CUSTOM },
-      modifier =
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
+      modifier = Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
     )
 
     val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.CUSTOM
@@ -127,8 +118,7 @@ private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
       Icon(
         StudioIconsCompose.Common.Warning,
         "Warning",
-        Modifier.align(Alignment.CenterVertically)
-          .padding(start = Padding.MEDIUM, end = Padding.SMALL_MEDIUM),
+        Modifier.align(Alignment.CenterVertically).padding(start = Padding.MEDIUM, end = Padding.SMALL_MEDIUM),
       )
 
       Text("Modifying storage size erases existing content", Modifier.alignByBaseline())
@@ -140,8 +130,7 @@ private fun ExpandedStorage(device: VirtualDevice, state: StorageGroupState) {
       value = ExpandedStorageRadioButton.EXISTING_IMAGE,
       selectedValue = state.selectedRadioButton,
       onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.EXISTING_IMAGE },
-      modifier =
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
+      modifier = Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
     )
 
     val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE
@@ -197,17 +186,11 @@ private fun <E : Enum<E>> RadioButtonRow(
 }
 
 internal class StorageGroupState(private val device: VirtualDevice) {
-  val internalStorage =
-    StorageCapacityFieldState(
-      requireNotNull(device.internalStorage),
-      VirtualDevice.MIN_INTERNAL_STORAGE,
-    )
+  val internalStorage = StorageCapacityFieldState(requireNotNull(device.internalStorage), VirtualDevice.MIN_INTERNAL_STORAGE)
 
-  var selectedRadioButton by
-    mutableStateOf(ExpandedStorageRadioButton.valueOf(requireNotNull(device.expandedStorage)))
+  var selectedRadioButton by mutableStateOf(ExpandedStorageRadioButton.valueOf(requireNotNull(device.expandedStorage)))
 
-  val custom =
-    StorageCapacityFieldState(customValue(device), VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE)
+  val custom = StorageCapacityFieldState(customValue(device), VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE)
 
   var existingImage by mutableStateOf((device.expandedStorage as? ExistingImage)?.path)
 
@@ -241,8 +224,7 @@ internal class StorageGroupState(private val device: VirtualDevice) {
       selectedRadioButton != ExpandedStorageRadioButton.CUSTOM -> false
       !isValid -> false
       device.existingCustomExpandedStorage == null -> false
-      else ->
-        device.existingCustomExpandedStorage != Custom(custom.valid().storageCapacity).withMaxUnit()
+      else -> device.existingCustomExpandedStorage != Custom(custom.valid().storageCapacity).withMaxUnit()
     }
 
   companion object {

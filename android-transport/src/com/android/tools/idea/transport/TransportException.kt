@@ -17,12 +17,8 @@ package com.android.tools.idea.transport
 
 abstract class TransportException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
 
-/**
- * Attempt to push file to device failed because the file doesn't exist.
- */
+/** Attempt to push file to device failed because the file doesn't exist. */
 class TransportNonExistingFileException(message: String, val path: String) : TransportException(message)
 
-/**
- * The daemon process could not be started on the device.
- */
+/** The daemon process could not be started on the device. */
 class FailedToStartServerException(reason: String) : TransportException(reason)

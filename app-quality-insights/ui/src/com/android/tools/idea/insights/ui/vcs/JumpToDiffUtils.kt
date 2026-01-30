@@ -53,8 +53,7 @@ import java.util.Objects
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-private fun getLogger() =
-  Logger.getInstance("com.android.tools.idea.insights.ui.vcs.JumpToDiffUtils")
+private fun getLogger() = Logger.getInstance("com.android.tools.idea.insights.ui.vcs.JumpToDiffUtils")
 
 /**
  * Context data for requesting a diff view.
@@ -76,8 +75,7 @@ data class ContextDataForDiff(
 /**
  * Brings up a diff view.
  *
- * The left panel is for the historical source file from the given commit in the [context]. The
- * right panel is for the current source file.
+ * The left panel is for the historical source file from the given commit in the [context]. The right panel is for the current source file.
  *
  * The caret is placed on the line of the left panel where the crash is associated to.
  */
@@ -89,15 +87,11 @@ fun goToDiff(context: ContextDataForDiff, project: Project) {
       // TestEditorManagerImpl#openFileImpl3.
       it.putUserData(
         FileEditorProvider.KEY,
-        FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { ex ->
-          ex.accept(project, it)
-        },
+        FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { ex -> ex.accept(project, it) },
       )
     }
 
-  val fileEditor =
-    FileEditorManager.getInstance(project).openFile(diffVFile, true).first()
-      as DiffEditorViewerFileEditor
+  val fileEditor = FileEditorManager.getInstance(project).openFile(diffVFile, true).first() as DiffEditorViewerFileEditor
 
   // If it's the already opened file, the previously scrolled position is preserved and might not
   // be what we want. So we scroll to the desired position ourselves.
@@ -123,8 +117,7 @@ private fun DiffEditorViewerFileEditor.scrollToLocation(context: ContextDataForD
   }
 }
 
-class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) :
-  DiffViewerVirtualFile(provider.insightsContext.filePath.name) {
+class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) : DiffViewerVirtualFile(provider.insightsContext.filePath.name) {
   override fun createViewer(project: Project): DiffEditorViewer {
     return provider.createDiffRequestProcessor()
   }
@@ -141,15 +134,9 @@ class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) :
   }
 }
 
-data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val project: Project) :
-  DiffPreviewProvider {
+data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val project: Project) : DiffPreviewProvider {
 
-  data class OwnerObject(
-    val vcsKey: VCS_CATEGORY,
-    val revision: String,
-    val filePath: FilePath,
-    val project: Project,
-  )
+  data class OwnerObject(val vcsKey: VCS_CATEGORY, val revision: String, val filePath: FilePath, val project: Project)
 
   override fun createDiffRequestProcessor(): DiffRequestProcessor {
     // Note this object will be disposed when the corresponding DiffRequestProcessorEditor is
@@ -163,10 +150,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
         return ChangeDiffRequestProducer.create(project, change, viewConfiguration)
       }
 
-      override fun loadRequest(
-        provider: ChangeDiffRequestProducer,
-        indicator: ProgressIndicator,
-      ): DiffRequest {
+      override fun loadRequest(provider: ChangeDiffRequestProducer, indicator: ProgressIndicator): DiffRequest {
         val request = provider.process(context, indicator)
 
         return if (request is ErrorDiffRequest) {
@@ -183,12 +167,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
 
   override fun getOwner(): Any {
     // We will bring up the existing diff view if the associated historical source file is the same.
-    return OwnerObject(
-      vcsKey = insightsContext.vcsKey,
-      revision = insightsContext.revision,
-      filePath = insightsContext.filePath,
-      project,
-    )
+    return OwnerObject(vcsKey = insightsContext.vcsKey, revision = insightsContext.revision, filePath = insightsContext.filePath, project)
   }
 
   override fun getEditorTabName(processor: DiffRequestProcessor?): String {
@@ -199,10 +178,7 @@ data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val
     mapOf<Key<*>, Any>(
       // Customize titles.
       DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
-        listOfNotNull(
-          createEditorTitleFromContext(insightsContext, project),
-          createEditorTitle("Current source"),
-        ),
+        listOfNotNull(createEditorTitleFromContext(insightsContext, project), createEditorTitle("Current source")),
       // Customize caret place
       DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, insightsContext.lineNumber - 1),
       // Customize diff alignment.
@@ -223,10 +199,7 @@ private fun createEditorTitle(title: String): DiffEditorTitleCustomizer {
   return DiffEditorTitleCustomizer { JBLabel(title) }
 }
 
-private fun createEditorTitleFromContext(
-  vcsContext: ContextDataForDiff,
-  project: Project,
-): DiffEditorTitleCustomizer {
+private fun createEditorTitleFromContext(vcsContext: ContextDataForDiff, project: Project): DiffEditorTitleCustomizer {
   val shortVcsRevisionNumber = createShortRevisionString(vcsContext.vcsKey, vcsContext.revision)
 
   val displayText =

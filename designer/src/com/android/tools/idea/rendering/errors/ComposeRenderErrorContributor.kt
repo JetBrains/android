@@ -25,8 +25,8 @@ import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
 
 /**
- * Contributor for generating Compose-specific render errors. This object analyzes [Throwable]s and
- * log messages from rendering and maps them to user-friendly error reports.
+ * Contributor for generating Compose-specific render errors. This object analyzes [Throwable]s and log messages from rendering and maps
+ * them to user-friendly error reports.
  */
 object ComposeRenderErrorContributor {
 
@@ -40,8 +40,8 @@ object ComposeRenderErrorContributor {
       """
 
   /**
-   * Hint for [ClassCastException] when trying to cast `BridgeContext` (used in Layoutlib for
-   * previews) to a platform `Context` like `Activity`.
+   * Hint for [ClassCastException] when trying to cast `BridgeContext` (used in Layoutlib for previews) to a platform `Context` like
+   * `Activity`.
    */
   const val CLASS_CAST_EXCEPTION_HINT =
     """
@@ -81,15 +81,13 @@ object ComposeRenderErrorContributor {
 
   /** Checks if the given [Throwable] is one of the types that this contributor can handle. */
   @JvmStatic
-  fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
-    ComposeRenderErrorType.entries.any { it.predicate(throwable) }
+  fun isHandledByComposeContributor(throwable: Throwable?): Boolean = ComposeRenderErrorType.entries.any { it.predicate(throwable) }
 
   /**
-   * Returns true if the [Throwable] represents a failure to find a CompositionLocal. We are only
-   * catching the missing CompositionLocal errors coming from the androidx library by matching the
-   * error message they provide. If a developer provides their own error, this will not catch it by
-   * design as they might want to have their own messages. In androidx this error message is defined
-   * here: androidx/compose/ui/platform/CompositionLocals.kt, in function noLocalProvidedFor.
+   * Returns true if the [Throwable] represents a failure to find a CompositionLocal. We are only catching the missing CompositionLocal
+   * errors coming from the androidx library by matching the error message they provide. If a developer provides their own error, this will
+   * not catch it by design as they might want to have their own messages. In androidx this error message is defined here:
+   * androidx/compose/ui/platform/CompositionLocals.kt, in function noLocalProvidedFor.
    */
   @JvmStatic
   fun isCompositionLocalThrowable(throwable: Throwable?): Boolean =
@@ -98,40 +96,32 @@ object ComposeRenderErrorContributor {
       throwable.message?.endsWith("not present") == true
 
   /**
-   * Returns true if the given [Throwable] corresponds to a failure when instantiating a ViewModel.
-   * This is used to detect when a @Preview fails to render because a ViewModel is being used.
+   * Returns true if the given [Throwable] corresponds to a failure when instantiating a ViewModel. This is used to detect when a @Preview
+   * fails to render because a ViewModel is being used.
    */
   @JvmStatic
   fun isViewModelThrowable(throwable: Throwable?): Boolean =
     throwable?.let { throwable ->
       throwable.stackTrace.any {
-        (it.methodName == "viewModel" ||
-          it.className.endsWith("ViewModelProvider") ||
-          it.className.endsWith("ViewModelKt")) && it.className.startsWith("androidx.lifecycle")
+        (it.methodName == "viewModel" || it.className.endsWith("ViewModelProvider") || it.className.endsWith("ViewModelKt")) &&
+          it.className.startsWith("androidx.lifecycle")
       }
     } ?: false
 
   /**
-   * Returns true if the given [Throwable] corresponds to a ClassCastException when casting to
-   * Activity. This is used to detect when a @Preview fails to render because layoutlib's
-   * `BridgeContext` can not be cast to an activity.
+   * Returns true if the given [Throwable] corresponds to a ClassCastException when casting to Activity. This is used to detect when
+   * a @Preview fails to render because layoutlib's `BridgeContext` can not be cast to an activity.
    */
   @JvmStatic
   fun isClassCastException(throwable: Throwable?): Boolean {
     if (throwable !is ClassCastException) return false
     val message = throwable.message ?: return false
-    return message.startsWith(
-      "class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity"
-    )
+    return message.startsWith("class com.android.layoutlib.bridge.android.BridgeContext cannot be cast to class android.app.Activity")
   }
 
   /** Analyzes the logged errors and returns a list of [Issue] for Compose-specific problems. */
   @JvmStatic
-  fun reportComposeErrors(
-    logger: RenderLogger,
-    linkManager: HtmlLinkManager,
-    linkHandler: HyperlinkListener,
-  ): List<Issue> =
+  fun reportComposeErrors(logger: RenderLogger, linkManager: HtmlLinkManager, linkHandler: HyperlinkListener): List<Issue> =
     logger.messages.mapNotNull { message ->
       ComposeRenderErrorType.entries
         .firstOrNull { it.predicate(message.throwable) }
@@ -143,12 +133,8 @@ object ComposeRenderErrorContributor {
               .setLinkHandler(linkHandler)
               .setThrowable(message.throwable)
 
-          errorType.htmlContentProvider?.let { provider ->
-            builder.setHtmlContent(provider(linkManager, message.throwable))
-          }
-          errorType.messageTipProvider?.let { provider ->
-            builder.addMessageTip(provider(linkManager, message.throwable))
-          }
+          errorType.htmlContentProvider?.let { provider -> builder.setHtmlContent(provider(linkManager, message.throwable)) }
+          errorType.messageTipProvider?.let { provider -> builder.addMessageTip(provider(linkManager, message.throwable)) }
 
           builder.build()
         }
@@ -159,55 +145,45 @@ object ComposeRenderErrorContributor {
   // region Internal implementation details
 
   /**
-   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable. This
-   * means that the user probably added one or more previews and a build is needed.
+   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable. This means that the user probably added one
+   * or more previews and a build is needed.
    */
   private fun isComposeNotFoundThrowable(throwable: Throwable?): Boolean {
     return throwable is NoSuchMethodException &&
-      throwable.stackTrace.getOrNull(1)?.methodName?.startsWith("invokeComposableViaReflection") ==
-        true
+      throwable.stackTrace.getOrNull(1)?.methodName?.startsWith("invokeComposableViaReflection") == true
   }
 
   /**
-   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with
-   * `PreviewParameterProvider`. This will detect the case where the parameter type does not match
-   * the `PreviewParameterProvider`.
+   * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with `PreviewParameterProvider`. This will
+   * detect the case where the parameter type does not match the `PreviewParameterProvider`.
    */
   private fun isPreviewParameterMismatchThrowable(throwable: Throwable?): Boolean {
     return throwable is IllegalArgumentException &&
       throwable.message == "argument type mismatch" &&
-      (throwable.stackTrace.drop(5).firstOrNull()?.methodName?.startsWith("invokeComposable") ==
-        true)
+      (throwable.stackTrace.drop(5).firstOrNull()?.methodName?.startsWith("invokeComposable") == true)
   }
 
   /**
-   * Returns true if [throwable] is a [NoSuchMethodException] that fails to find a method called
-   * `FailToLoadPreviewParameterProvider`. This is a fake name defined in `ComposePreviewElement`,
-   * and we use it as a fake PreviewElement name when there is a failure to load a
-   * `PreviewParameterProvider`, otherwise the crash will cause no previews to be displayed.
-   * Instead, we want to display a Preview containing errors and let the user know there was an
-   * error to load their PreviewParameterProvider.
+   * Returns true if [throwable] is a [NoSuchMethodException] that fails to find a method called `FailToLoadPreviewParameterProvider`. This
+   * is a fake name defined in `ComposePreviewElement`, and we use it as a fake PreviewElement name when there is a failure to load a
+   * `PreviewParameterProvider`, otherwise the crash will cause no previews to be displayed. Instead, we want to display a Preview
+   * containing errors and let the user know there was an error to load their PreviewParameterProvider.
    */
   private fun isFailToLoadPreviewParameterProvider(throwable: Throwable?): Boolean {
     val providerClass = "${'$'}FailToLoadPreviewParameterProvider"
     return throwable is NoSuchMethodException &&
-      (throwable.message?.endsWith(providerClass) == true ||
-        throwable.message?.endsWith("$providerClass not found") == true)
+      (throwable.message?.endsWith(providerClass) == true || throwable.message?.endsWith("$providerClass not found") == true)
   }
 
-  /**
-   * Returns true if [throwable] is a [TimeoutException] happening during the rendering of a Compose
-   * Preview.
-   */
+  /** Returns true if [throwable] is a [TimeoutException] happening during the rendering of a Compose Preview. */
   private fun isTimeoutToLoadPreview(throwable: Throwable?): Boolean {
     return throwable is TimeoutException
   }
 
   /**
-   * Enum representing the different types of Compose render errors that we can handle. Each error
-   * type has a predicate to detect it, a severity, a summary, and functions to generate the HTML
-   * for the report. The order of the enum values is important, as it defines the order in which we
-   * check for errors. More specific errors should come before more generic ones.
+   * Enum representing the different types of Compose render errors that we can handle. Each error type has a predicate to detect it, a
+   * severity, a summary, and functions to generate the HTML for the report. The order of the enum values is important, as it defines the
+   * order in which we check for errors. More specific errors should come before more generic ones.
    */
   private enum class ComposeRenderErrorType(
     val predicate: (Throwable?) -> Boolean,
@@ -247,10 +223,7 @@ object ComposeRenderErrorContributor {
       severity = HighlightSeverity.WARNING,
       summary = { throwable -> "Unable to find @Preview '${throwable!!.message}'" },
       messageTipProvider = { linkManager, _ ->
-        createBuildTheProjectMessage(
-          linkManager,
-          "The preview will display after rebuilding the project.",
-        )
+        createBuildTheProjectMessage(linkManager, "The preview will display after rebuilding the project.")
       },
     ),
     TIMEOUT_TO_LOAD_PREVIEW(
@@ -259,13 +232,9 @@ object ComposeRenderErrorContributor {
       summary = { "Timeout error" },
       htmlContentProvider = { _, _ ->
         HtmlBuilder()
-          .add(
-            "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code."
-          )
+          .add("The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code.")
           .newline()
-          .add(
-            "If you think this issue is not caused by your code, you can report a bug in our issue tracker."
-          )
+          .add("If you think this issue is not caused by your code, you can report a bug in our issue tracker.")
       },
       messageTipProvider = { linkManager, _ -> createAddReportBugMessage(linkManager, null) },
     ),
@@ -308,12 +277,7 @@ object ComposeRenderErrorContributor {
       summary = { "Failed to instantiate a ViewModel" },
       htmlContentProvider = { linkManager, throwable ->
         HtmlBuilder()
-          .addLink(
-            "This preview uses a ",
-            "ViewModel",
-            ". ",
-            "https://developer.android.com/topic/libraries/architecture/viewmodel",
-          )
+          .addLink("This preview uses a ", "ViewModel", ". ", "https://developer.android.com/topic/libraries/architecture/viewmodel")
           .add(
             "ViewModels often trigger operations not supported by Compose Preview, " +
               "such as database access, I/O operations, or network requests. "

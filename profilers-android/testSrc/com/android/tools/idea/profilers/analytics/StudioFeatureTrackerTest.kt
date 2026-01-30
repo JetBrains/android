@@ -35,8 +35,7 @@ import org.mockito.Mockito
 
 class StudioFeatureTrackerTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   lateinit var project: Project
   private lateinit var studioFeatureTracker: StudioFeatureTracker
@@ -51,103 +50,71 @@ class StudioFeatureTrackerTest {
   fun testBuildStatsTaskStopFailedMetadata() {
     // Build CPU capture metadata
     val cpuCaptureMetadata = CpuCaptureMetadata(PerfettoSystemTraceConfiguration("Testing", false))
-    val metadataWithCpuCapture = TaskStopFailedMetadata(
-      traceStopStatus = null,
-      allocationTrackStatus = null,
-      cpuCaptureMetadata = cpuCaptureMetadata
-    )
+    val metadataWithCpuCapture =
+      TaskStopFailedMetadata(traceStopStatus = null, allocationTrackStatus = null, cpuCaptureMetadata = cpuCaptureMetadata)
     val resultWithCpuCapture = studioFeatureTracker.buildStatsTaskStopFailedMetadata(metadataWithCpuCapture)
     assertEquals(resultWithCpuCapture.cpuCaptureMetadata, CpuCaptureParser.getCpuCaptureMetadata(cpuCaptureMetadata))
 
     // Build trace stop status
-    val traceStopStatus = Trace.TraceStopStatus.newBuilder()
-      .setStatus(Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
-      .setStoppingDurationNs(1000)
-      .setErrorCode(123)
-      .build()
-    val metadataWithTraceStopStatus = TaskStopFailedMetadata(
-      traceStopStatus = traceStopStatus,
-      allocationTrackStatus = null,
-      cpuCaptureMetadata = null
-    )
+    val traceStopStatus =
+      Trace.TraceStopStatus.newBuilder()
+        .setStatus(Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+        .setStoppingDurationNs(1000)
+        .setErrorCode(123)
+        .build()
+    val metadataWithTraceStopStatus =
+      TaskStopFailedMetadata(traceStopStatus = traceStopStatus, allocationTrackStatus = null, cpuCaptureMetadata = null)
     val resultWithTraceStopStatus = studioFeatureTracker.buildStatsTaskStopFailedMetadata(metadataWithTraceStopStatus)
-    assertEquals(resultWithTraceStopStatus.traceStopStatus,
-                 traceStopStatus.toStatsProto())
+    assertEquals(resultWithTraceStopStatus.traceStopStatus, traceStopStatus.toStatsProto())
 
     // Build allocation track status
     val allocationTrackStatus = buildAllocationTrackStatus()
-    val metadataWithAllocationTrackStatus = TaskStopFailedMetadata(
-      traceStopStatus = null,
-      allocationTrackStatus = allocationTrackStatus,
-      cpuCaptureMetadata = null
-    )
+    val metadataWithAllocationTrackStatus =
+      TaskStopFailedMetadata(traceStopStatus = null, allocationTrackStatus = allocationTrackStatus, cpuCaptureMetadata = null)
     val resultWithAllocationTrackStatus = studioFeatureTracker.buildStatsTaskStopFailedMetadata(metadataWithAllocationTrackStatus)
-    assertEquals(resultWithAllocationTrackStatus.trackStatus,
-                 allocationTrackStatus.toStatsProto())
+    assertEquals(resultWithAllocationTrackStatus.trackStatus, allocationTrackStatus.toStatsProto())
   }
 
   @Test
   fun testBuildStatsTaskStartFailedMetadata() {
     // Build heapDump metadata
-    val heapDumpMetadata = Memory.HeapDumpStatus.newBuilder()
-      .setStartTime(10002)
-      .setStatus(Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN)
-      .build()
-    val heapDumpFailedMetadata = TaskStartFailedMetadata(
-      traceStartStatus = null,
-      allocationTrackStatus = null,
-      heapDumpStatus = heapDumpMetadata
-    )
+    val heapDumpMetadata =
+      Memory.HeapDumpStatus.newBuilder().setStartTime(10002).setStatus(Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN).build()
+    val heapDumpFailedMetadata =
+      TaskStartFailedMetadata(traceStartStatus = null, allocationTrackStatus = null, heapDumpStatus = heapDumpMetadata)
     val resultWithCpuCapture = studioFeatureTracker.buildStatsTaskStartFailedMetadata(heapDumpFailedMetadata)
     assertEquals(resultWithCpuCapture.heapDumpStartStatus, heapDumpMetadata.toStatsProto())
 
     // Build trace start status
-    val traceStartStatus = Trace.TraceStartStatus.newBuilder()
-      .setStatus(Trace.TraceStartStatus.Status.FAILURE)
-      .setStartTimeNs(1234)
-      .setErrorCode(455)
-      .build()
-    val metadataWithTraceStartStatus = TaskStartFailedMetadata(
-      traceStartStatus = traceStartStatus,
-      allocationTrackStatus = null,
-      heapDumpStatus = null
-    )
+    val traceStartStatus =
+      Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.FAILURE).setStartTimeNs(1234).setErrorCode(455).build()
+    val metadataWithTraceStartStatus =
+      TaskStartFailedMetadata(traceStartStatus = traceStartStatus, allocationTrackStatus = null, heapDumpStatus = null)
     val resultWithTraceStopStatus = studioFeatureTracker.buildStatsTaskStartFailedMetadata(metadataWithTraceStartStatus)
     assertEquals(resultWithTraceStopStatus.traceStartStatus, traceStartStatus.toStatsProto())
 
     // Build allocation track status
     val allocationTrackStatus = buildAllocationTrackStatus()
-    val metadataWithAllocationTrackStatus = TaskStartFailedMetadata(
-      traceStartStatus = null,
-      allocationTrackStatus = allocationTrackStatus,
-      heapDumpStatus = null
-    )
+    val metadataWithAllocationTrackStatus =
+      TaskStartFailedMetadata(traceStartStatus = null, allocationTrackStatus = allocationTrackStatus, heapDumpStatus = null)
     val resultWithAllocationTrackStatus = studioFeatureTracker.buildStatsTaskStartFailedMetadata(metadataWithAllocationTrackStatus)
-    assertEquals(resultWithAllocationTrackStatus.trackStatus,
-                 allocationTrackStatus.toStatsProto())
+    assertEquals(resultWithAllocationTrackStatus.trackStatus, allocationTrackStatus.toStatsProto())
   }
 
   @Test
   fun testBuildStatsTaskProcessingFailedMetadata() {
     // Build CPU capture metadata
     val cpuCaptureMetadata = CpuCaptureMetadata(PerfettoSystemTraceConfiguration("Testing", false))
-    val metadataWithCpuCapture = TaskProcessingFailedMetadata(
-      cpuCaptureMetadata = cpuCaptureMetadata
-    )
+    val metadataWithCpuCapture = TaskProcessingFailedMetadata(cpuCaptureMetadata = cpuCaptureMetadata)
     val resultWithCpuCapture = studioFeatureTracker.buildStatsTaskProcessingFailedMetadata(metadataWithCpuCapture)
     assertEquals(resultWithCpuCapture.cpuCaptureMetadata, CpuCaptureParser.getCpuCaptureMetadata(cpuCaptureMetadata))
 
-    val metadataWithCpuCaptureNull = TaskProcessingFailedMetadata(
-      cpuCaptureMetadata = null
-    )
+    val metadataWithCpuCaptureNull = TaskProcessingFailedMetadata(cpuCaptureMetadata = null)
     // Check when cpuCaptureMetadata is null (No errors)
     studioFeatureTracker.buildStatsTaskProcessingFailedMetadata(metadataWithCpuCaptureNull)
   }
 
   private fun buildAllocationTrackStatus(): Memory.TrackStatus {
-    return  Memory.TrackStatus.newBuilder()
-      .setStatus(Memory.TrackStatus.Status.FAILURE_UNKNOWN)
-      .setStartTime(1000)
-      .build()
+    return Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.FAILURE_UNKNOWN).setStartTime(1000).build()
   }
 }

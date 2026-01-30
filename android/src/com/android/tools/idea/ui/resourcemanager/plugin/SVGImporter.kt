@@ -34,7 +34,8 @@ private val supportedFileTypes = setOf("svg")
 class SVGImporter : ResourceImporter {
   override val presentableName = "SVG Importer"
 
-  override val userCanEditQualifiers get() = true
+  override val userCanEditQualifiers
+    get() = true
 
   override fun getSupportedFileTypes() = supportedFileTypes
 
@@ -50,12 +51,13 @@ class SVGImporter : ResourceImporter {
 
   private fun convertSVGToVectorDrawable(it: File): LightVirtualFile? {
     val byteArrayOutputStream = ByteArrayOutputStream()
-    val errors = try {
-      Svg2Vector.parseSvgToXml(it.toPath(), byteArrayOutputStream)
-    } catch (e: Exception) {
-      Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable - ${e.localizedMessage}")
-      return null
-    }
+    val errors =
+      try {
+        Svg2Vector.parseSvgToXml(it.toPath(), byteArrayOutputStream)
+      } catch (e: Exception) {
+        Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable - ${e.localizedMessage}")
+        return null
+      }
     if (errors.isNotBlank()) {
       Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable:\n$errors")
     }

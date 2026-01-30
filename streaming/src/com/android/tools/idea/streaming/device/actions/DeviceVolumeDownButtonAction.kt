@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_VOLUME_DOWN
 
-/**
- * Simulates pressing the Volume Down button on an Android device.
- */
+/** Simulates pressing the Volume Down button on an Android device. */
 internal class DeviceVolumeDownButtonAction : DevicePushButtonAction(AKEYCODE_VOLUME_DOWN, configFilter = { !it.isWatch })

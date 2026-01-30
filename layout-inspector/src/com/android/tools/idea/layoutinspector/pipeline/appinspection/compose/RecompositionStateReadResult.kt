@@ -27,9 +27,7 @@ class RecomposeStateReadResult(
   val hasStateReadsForPreviousRecomposition: Boolean = false,
 )
 
-/**
- * Holds data for a single state read in compose for a given composable and recomposition number.
- */
+/** Holds data for a single state read in compose for a given composable and recomposition number. */
 data class RecomposeStateReadData(
   /** The [value] of the state variable read. */
   val value: ParameterItem,

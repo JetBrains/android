@@ -19,9 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
 
-/**
- * Tests for functions defined in StreamingUtils.kt.
- */
+/** Tests for functions defined in StreamingUtils.kt. */
 class StreamingUtilsTest {
 
   @Test

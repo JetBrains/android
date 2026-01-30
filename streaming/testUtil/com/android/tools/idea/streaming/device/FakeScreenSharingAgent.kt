@@ -117,9 +117,7 @@ import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.Pointer
 
-/**
- * Fake Screen Sharing Agent for use in tests.
- */
+/** Fake Screen Sharing Agent for use in tests. */
 class FakeScreenSharingAgent(
   val displaySize: Dimension,
   private val fakeDeviceState: FakeDeviceState,
@@ -127,8 +125,8 @@ class FakeScreenSharingAgent(
   private val foldedSize: Dimension? = null,
 ) : Disposable {
 
-  private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
+  private val executor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
   private val singleThreadedDispatcher = executor.asCoroutineDispatcher()
   private val agentsScope = CoroutineScope(singleThreadedDispatcher + Job())
   private val featureLevel = AndroidVersionUtil.androidVersionFromDeviceProperties(this.fakeDeviceState.properties)?.featureLevel ?: 0
@@ -143,15 +141,16 @@ class FakeScreenSharingAgent(
   private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
   private val videoEncoder: AVCodec by lazy {
     // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
-    val codecId = when (codecName) {
-      "vp8" -> AV_CODEC_ID_VP8
-      "vp9" -> AV_CODEC_ID_VP9
-      "av01" -> AV_CODEC_ID_AV1
-      "avc" -> AV_CODEC_ID_H264
-      "hevc" -> AV_CODEC_ID_HEVC
-      "vvc" -> AV_CODEC_ID_VVC
-      else -> throw RuntimeException("$codecName encoder not found")
-    }
+    val codecId =
+      when (codecName) {
+        "vp8" -> AV_CODEC_ID_VP8
+        "vp9" -> AV_CODEC_ID_VP9
+        "av01" -> AV_CODEC_ID_AV1
+        "avc" -> AV_CODEC_ID_H264
+        "hevc" -> AV_CODEC_ID_HEVC
+        "vvc" -> AV_CODEC_ID_VVC
+        else -> throw RuntimeException("$codecName encoder not found")
+      }
 
     avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
   }
@@ -173,22 +172,24 @@ class FakeScreenSharingAgent(
         }
       }
     }
-  private val supportedDeviceStates = when (foldedSize) {
-    null -> listOf()
-    else -> listOf(
-      DeviceState(0, "CLOSE"),
-      DeviceState(1, "TENT"),
-      DeviceState(2, "HALF_FOLDED"),
-      DeviceState(3, "OPEN"),
-      DeviceState(4, "REAR_DISPLAY_STATE"),
-      DeviceState(5, "CONCURRENT_INNER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
-      DeviceState(6, "REAR_DUAL"),
-      DeviceState(7, "FLIPPED"),
-    )
-  }
 
-  @Volatile
-  private var deviceState: DeviceState? = supportedDeviceStates.find { it.name == "OPEN" }
+  private val supportedDeviceStates =
+    when (foldedSize) {
+      null -> listOf()
+      else ->
+        listOf(
+          DeviceState(0, "CLOSE"),
+          DeviceState(1, "TENT"),
+          DeviceState(2, "HALF_FOLDED"),
+          DeviceState(3, "OPEN"),
+          DeviceState(4, "REAR_DISPLAY_STATE"),
+          DeviceState(5, "CONCURRENT_INNER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
+          DeviceState(6, "REAR_DUAL"),
+          DeviceState(7, "FLIPPED"),
+        )
+    }
+
+  @Volatile private var deviceState: DeviceState? = supportedDeviceStates.find { it.name == "OPEN" }
   private val deviceStateIdentifier: Int
     get() = deviceState?.id ?: -1
 
@@ -201,18 +202,20 @@ class FakeScreenSharingAgent(
   @Volatile
   var commandLine: String? = null
     private set
+
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
   var isRunning: Boolean = false
     private set
+
   val videoStreamActive: Boolean
     get() = displayStreamers.isNotEmpty()
+
   val audioStreamActive: Boolean
     get() = audioStreamer != null
-  @Volatile
-  var crashOnStart: Boolean = false
-  @Volatile
-  var startDelayMillis: Long = 0
+
+  @Volatile var crashOnStart: Boolean = false
+  @Volatile var startDelayMillis: Long = 0
   @Volatile
   var bitRate: Int = VIDEO_DEFAULT_BIT_RATE
     set(value) {
@@ -224,22 +227,18 @@ class FakeScreenSharingAgent(
       }
     }
 
-  @Volatile
-  var gestureOverlayInstalled = true
-  @Volatile
-  var talkBackInstalled = false
-  @Volatile
-  var foregroundProcess = ""
-  @Volatile
-  var fontScaleSettable = true
-  @Volatile
-  var screenDensitySettable = true
+  @Volatile var gestureOverlayInstalled = true
+  @Volatile var talkBackInstalled = false
+  @Volatile var foregroundProcess = ""
+  @Volatile var fontScaleSettable = true
+  @Volatile var screenDensitySettable = true
+
   data class UiSettings(
     var darkMode: Boolean = false,
     var fontScale: Int = 100,
     var screenDensity: Int = 480,
     var talkBackOn: Boolean = false,
-    var selectToSpeakOn: Boolean  = false,
+    var selectToSpeakOn: Boolean = false,
     var gestureNavigation: Boolean = true,
     var debugLayout: Boolean = false,
     var appLocales: String = "",
@@ -255,6 +254,7 @@ class FakeScreenSharingAgent(
       appLocales = other.appLocales
     }
   }
+
   val currentUiSettings = UiSettings()
   private val originalUiSettings = UiSettings()
   val originalValues: Boolean
@@ -269,9 +269,7 @@ class FakeScreenSharingAgent(
 
   /** Runs the agent. Returns when the agent terminates. */
   suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
-    withContext(singleThreadedDispatcher) {
-      runInternal(protocol, command, hostPort)
-    }
+    withContext(singleThreadedDispatcher) { runInternal(protocol, command, hostPort) }
   }
 
   private suspend fun runInternal(protocol: ShellV2Protocol, command: String, hostPort: Int) {
@@ -315,13 +313,11 @@ class FakeScreenSharingAgent(
     if (startTime == 0L) {
       // Shutdown has been triggered - abort run.
       shutdownChannels()
-    }
-    else {
+    } else {
       isRunning = true
       try {
         controller.run()
-      }
-      finally {
+      } finally {
         isRunning = false
       }
     }
@@ -339,18 +335,12 @@ class FakeScreenSharingAgent(
     videoChannel.writeFully(header)
   }
 
-  /**
-   * Stops the agent.
-   */
+  /** Stops the agent. */
   suspend fun stop(exitCode: Int = 0) {
-    withContext(singleThreadedDispatcher) {
-      terminateAgent(exitCode)
-    }
+    withContext(singleThreadedDispatcher) { terminateAgent(exitCode) }
   }
 
-  /**
-   * Simulates a crash of the agent. The agent dies without a normal shutdown.
-   */
+  /** Simulates a crash of the agent. The agent dies without a normal shutdown. */
   suspend fun crash() {
     stop(AGENT_SIGSEGV)
   }
@@ -361,8 +351,7 @@ class FakeScreenSharingAgent(
       if (displays.find { it.displayId == displayId } == null) {
         displays = (displays + DisplayDescriptor(displayId, width, height, 0, displayType)).sortedBy { it.displayId }
         sendNotificationOrResponse(DisplayAddedOrChangedNotification(displayId, width, height, 0, displayType.ordinal))
-      }
-      else {
+      } else {
         thisLogger().error("Display $displayId already exists")
       }
     }
@@ -381,9 +370,7 @@ class FakeScreenSharingAgent(
   }
 
   suspend fun writeToStderr(message: String) {
-    withContext(singleThreadedDispatcher) {
-      shellProtocol?.writeStderr(message)
-    }
+    withContext(singleThreadedDispatcher) { shellProtocol?.writeStderr(message) }
   }
 
   fun getFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
@@ -415,11 +402,9 @@ class FakeScreenSharingAgent(
   private suspend fun terminateAgent(exitCode: Int) {
     try {
       shellProtocol?.writeExitCode(exitCode)
-    }
-    catch (_: SocketException) {
+    } catch (_: SocketException) {
       // Can happen if the shellProtocol's socket is already closed.
-    }
-    catch(_: ClosedChannelException) {
+    } catch (_: ClosedChannelException) {
       // Can happen if the shellProtocol's socket is already closed.
     }
     shellProtocol = null
@@ -427,11 +412,7 @@ class FakeScreenSharingAgent(
   }
 
   override fun dispose() {
-    runBlocking {
-      withContext(singleThreadedDispatcher) {
-        shutdown()
-      }
-    }
+    runBlocking { withContext(singleThreadedDispatcher) { shutdown() } }
     executor.shutdown()
   }
 
@@ -452,34 +433,24 @@ class FakeScreenSharingAgent(
   }
 
   suspend fun renderDisplay(displayId: Int) {
-    return withContext(singleThreadedDispatcher) {
-      displayStreamers[displayId]?.renderDisplay()
-    }
+    return withContext(singleThreadedDispatcher) { displayStreamers[displayId]?.renderDisplay() }
   }
 
   suspend fun renderDisplay(displayId: Int, flavor: Int) {
-    return withContext(singleThreadedDispatcher) {
-      displayStreamers[displayId]?.renderDisplay(flavor)
-    }
+    return withContext(singleThreadedDispatcher) { displayStreamers[displayId]?.renderDisplay(flavor) }
   }
 
   /** Produces an empty video frame that represents a black screen. */
   suspend fun produceEmptyVideoFrame(displayId: Int) {
-    return withContext(singleThreadedDispatcher) {
-      displayStreamers[displayId]?.produceEmptyFrame()
-    }
+    return withContext(singleThreadedDispatcher) { displayStreamers[displayId]?.produceEmptyFrame() }
   }
 
   suspend fun produceInvalidVideoFrame(displayId: Int) {
-    return withContext(singleThreadedDispatcher) {
-      displayStreamers[displayId]?.produceInvalidFrame()
-    }
+    return withContext(singleThreadedDispatcher) { displayStreamers[displayId]?.produceInvalidFrame() }
   }
 
   suspend fun beep(frequencyHz: Double, durationMillis: Int) {
-    return withContext(singleThreadedDispatcher) {
-      audioStreamer?.beep(frequencyHz, durationMillis)
-    }
+    return withContext(singleThreadedDispatcher) { audioStreamer?.beep(frequencyHz, durationMillis) }
   }
 
   suspend fun setDisplayOrientationCorrection(displayId: Int, value: Int) {
@@ -492,9 +463,9 @@ class FakeScreenSharingAgent(
   }
 
   /**
-   * Waits for the next control message to be received by the agent while dispatching UI events.
-   * Returns the next control message and removes it from the queue of recorded messages. Throws
-   * TimeoutException if the control message is not received within the specified timeout.
+   * Waits for the next control message to be received by the agent while dispatching UI events. Returns the next control message and
+   * removes it from the queue of recorded messages. Throws TimeoutException if the control message is not received within the specified
+   * timeout.
    */
   @UiThread
   @Throws(TimeoutException::class)
@@ -513,9 +484,7 @@ class FakeScreenSharingAgent(
     throw TimeoutException()
   }
 
-  /**
-   * Clears the command log.
-   */
+  /** Clears the command log. */
   @UiThread
   fun clearCommandLog() {
     commandLog.clear()
@@ -526,12 +495,13 @@ class FakeScreenSharingAgent(
     val g = image.createGraphics()
     g.paint = Color.WHITE
     g.fillRect(0, 0, size.width, size.height) // Create white background so that antialiasing is done against that background.
-    val hints = RenderingHints(
-      mapOf(
-        RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-        RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY
+    val hints =
+      RenderingHints(
+        mapOf(
+          RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+          RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+        )
       )
-    )
     g.setRenderingHints(hints)
     val n = 10
     val m = 10
@@ -546,18 +516,20 @@ class FakeScreenSharingAgent(
       for (j in 0 until m) {
         val x = w * i
         val y = h * j
-        val triangle1 = Path2D.Double().apply {
-          moveTo(x, y)
-          lineTo(x + w, y)
-          lineTo(x, y + h)
-          closePath()
-        }
-        val triangle2 = Path2D.Double().apply {
-          moveTo(x + w, y + h)
-          lineTo(x + w, y)
-          lineTo(x, y + h)
-          closePath()
-        }
+        val triangle1 =
+          Path2D.Double().apply {
+            moveTo(x, y)
+            lineTo(x + w, y)
+            lineTo(x, y + h)
+            closePath()
+          }
+        val triangle2 =
+          Path2D.Double().apply {
+            moveTo(x + w, y + h)
+            lineTo(x + w, y)
+            lineTo(x, y + h)
+            closePath()
+          }
         g.paint = interpolate(startColor1, endColor1, i.toDouble() / (n - 1))
         g.fill(triangle1)
         g.paint = interpolate(startColor2, endColor2, j.toDouble() / (m - 1))
@@ -633,12 +605,13 @@ class FakeScreenSharingAgent(
       maxVideoResolution = message.maxVideoSize
     }
     val display = displays.find { it.displayId == displayId } ?: return
-    val displayStreamer = displayStreamers.computeIfAbsent(
+    val displayStreamer =
+      displayStreamers.computeIfAbsent(
         displayId,
-        Int2ObjectFunction {
-          dispId -> DisplayStreamer(dispId, message.maxVideoSize, rotatedWithDevice = display.type == DisplayType.INTERNAL,
-                                    bitRate, videoChannel!!)
-        })
+        Int2ObjectFunction { dispId ->
+          DisplayStreamer(dispId, message.maxVideoSize, rotatedWithDevice = display.type == DisplayType.INTERNAL, bitRate, videoChannel!!)
+        },
+      )
     displayStreamer.renderDisplay()
     assert(videoStreamActive)
   }
@@ -648,9 +621,7 @@ class FakeScreenSharingAgent(
   }
 
   private fun startAudioStream() {
-    audioChannel?.let { channel ->
-      audioStreamer = AudioStreamer(channel)
-    }
+    audioChannel?.let { channel -> audioStreamer = AudioStreamer(channel) }
   }
 
   private fun stopAudioStream() {
@@ -696,11 +667,26 @@ class FakeScreenSharingAgent(
   }
 
   private fun sendUiSettings(message: UiSettingsRequest) {
-    with (currentUiSettings) {
+    with(currentUiSettings) {
       sendNotificationOrResponse(
-        UiSettingsResponse(message.requestId, darkMode, fontScale, screenDensity, talkBackOn, selectToSpeakOn, gestureNavigation,
-                           debugLayout, foregroundProcess, appLocales, originalValues, fontScaleSettable, screenDensitySettable,
-                           talkBackInstalled, gestureOverlayInstalled))
+        UiSettingsResponse(
+          message.requestId,
+          darkMode,
+          fontScale,
+          screenDensity,
+          talkBackOn,
+          selectToSpeakOn,
+          gestureNavigation,
+          debugLayout,
+          foregroundProcess,
+          appLocales,
+          originalValues,
+          fontScaleSettable,
+          screenDensitySettable,
+          talkBackInstalled,
+          gestureOverlayInstalled,
+        )
+      )
     }
   }
 
@@ -742,12 +728,17 @@ class FakeScreenSharingAgent(
     private val packetHeader = VideoPacketHeader(displayId, displaySize, initialBitRate, roundDisplay)
     var bitRate: Int
       get() = packetHeader.bitRate
-      set(value) { packetHeader.bitRate = value }
+      set(value) {
+        packetHeader.bitRate = value
+      }
+
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
     var displayOrientationCorrection: Int = 0
-    @Volatile var frameNumber: UInt = 0u
+    @Volatile
+    var frameNumber: UInt = 0u
       private set
+
     private var nextFrameIsInvalid = false
 
     /** Renders display content using the last used image flavor and sends all produced video frames. */
@@ -761,25 +752,27 @@ class FakeScreenSharingAgent(
 
       val size = computeDisplayImageSize()
       val videoSize = Dimension(size.width, size.height.roundUpToMultipleOf8())
-      val encoderContext = avcodec_alloc_context3(videoEncoder)?.apply {
-        bit_rate(8000000L)
-        time_base(av_make_q(1, 1000))
-        framerate(av_make_q(VIDEO_FRAME_RATE, 1))
-        gop_size(2)
-        max_b_frames(1)
-        pix_fmt(videoEncoder.pix_fmts().get())
-        width(videoSize.width)
-        height(videoSize.height)
-      } ?: throw RuntimeException("Could not allocate video encoder context")
+      val encoderContext =
+        avcodec_alloc_context3(videoEncoder)?.apply {
+          bit_rate(8000000L)
+          time_base(av_make_q(1, 1000))
+          framerate(av_make_q(VIDEO_FRAME_RATE, 1))
+          gop_size(2)
+          max_b_frames(1)
+          pix_fmt(videoEncoder.pix_fmts().get())
+          width(videoSize.width)
+          height(videoSize.height)
+        } ?: throw RuntimeException("Could not allocate video encoder context")
 
       if (avcodec_open2(encoderContext, videoEncoder, null as AVDictionary?) < 0) {
         throw RuntimeException("avcodec_open2 failed")
       }
-      val encodingFrame = av_frame_alloc().apply {
-        format(encoderContext.pix_fmt())
-        width(videoSize.width)
-        height(videoSize.height)
-      }
+      val encodingFrame =
+        av_frame_alloc().apply {
+          format(encoderContext.pix_fmt())
+          width(videoSize.width)
+          height(videoSize.height)
+        }
       if (av_frame_get_buffer(encodingFrame, 1) < 0) {
         throw RuntimeException("av_frame_get_buffer failed")
       }
@@ -790,11 +783,12 @@ class FakeScreenSharingAgent(
       val orientation = if (rotatedWithDevice) deviceOrientation else 0
       val image = drawDisplayImage(size.rotatedByQuadrants(-orientation), imageFlavor, displayId).rotatedByQuadrants(orientation)
 
-      val rgbFrame = av_frame_alloc().apply {
-        format(AV_PIX_FMT_BGR24)
-        width(videoSize.width)
-        height(videoSize.height)
-      }
+      val rgbFrame =
+        av_frame_alloc().apply {
+          format(AV_PIX_FMT_BGR24)
+          width(videoSize.width)
+          height(videoSize.height)
+        }
       if (av_frame_get_buffer(rgbFrame, 1) < 0) {
         throw RuntimeException("Could not allocate the video frame data")
       }
@@ -809,9 +803,19 @@ class FakeScreenSharingAgent(
       byteBuffer.put(dataBufferByte.data)
       // Fill the extra strip at the bottom with black three bytes per pixel.
       byteBuffer.fill(0.toByte(), (videoSize.height - y - size.height) * rgbFrame.width() * 3)
-      val swsContext = sws_getContext(rgbFrame.width(), rgbFrame.height(), rgbFrame.format(),
-                                      encodingFrame.width(), encodingFrame.height(), encodingFrame.format(),
-                                      SWS_BICUBIC, null, null, null as DoublePointer?)!!
+      val swsContext =
+        sws_getContext(
+          rgbFrame.width(),
+          rgbFrame.height(),
+          rgbFrame.format(),
+          encodingFrame.width(),
+          encodingFrame.height(),
+          encodingFrame.format(),
+          SWS_BICUBIC,
+          null,
+          null,
+          null as DoublePointer?,
+        )!!
       sws_scale(swsContext, rgbFrame.data(), rgbFrame.linesize(), 0, rgbFrame.height(), encodingFrame.data(), encodingFrame.linesize())
       sws_freeContext(swsContext)
       av_frame_free(rgbFrame)
@@ -824,8 +828,7 @@ class FakeScreenSharingAgent(
       try {
         sendFrame(encoderContext, encodingFrame, packet)
         sendFrame(encoderContext, null, packet) // Process delayed frames.
-      }
-      finally {
+      } finally {
         av_packet_free(packet)
         av_frame_free(encodingFrame)
         avcodec_free_context(encoderContext)
@@ -845,8 +848,7 @@ class FakeScreenSharingAgent(
       buffer.flip()
       try {
         channel.writeFully(buffer)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
           throw e
         }
@@ -876,8 +878,7 @@ class FakeScreenSharingAgent(
         val pts = packet.pts()
         if (pts == AV_NOPTS_VALUE) {
           packetHeader.presentationTimestampUs = 0
-        }
-        else {
+        } else {
           val ptsUs = pts * 1000
           if (presentationTimestampOffset == 0L) {
             presentationTimestampOffset = ptsUs - 1
@@ -898,15 +899,13 @@ class FakeScreenSharingAgent(
           println("Producing an invalid video frame for display $displayId")
           nextFrameIsInvalid = false
           buffer.fill(0, packetSize)
-        }
-        else {
+        } else {
           buffer.put(packetData)
         }
         buffer.flip()
         try {
           channel.writeFully(buffer)
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
           if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
             throw e
           }
@@ -922,8 +921,11 @@ class FakeScreenSharingAgent(
       val displayHeight = rotatedDisplaySize.height.toDouble()
       val maxResolutionWidth = min(max(maxVideoResolution.width, rotatedDisplaySize.width / 2), maxVideoEncoderResolution)
       val maxResolutionHeight = min(max(maxVideoResolution.height, rotatedDisplaySize.height / 2), maxVideoEncoderResolution)
-      val scale = max(min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
-                      max(VIDEO_MIN_RESOLUTION / displayWidth, VIDEO_MIN_RESOLUTION / displayHeight))
+      val scale =
+        max(
+          min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
+          max(VIDEO_MIN_RESOLUTION / displayWidth, VIDEO_MIN_RESOLUTION / displayHeight),
+        )
       val width = (displayWidth * scale).roundToInt().roundUpToMultipleOf8()
       val height = (width * displayHeight / displayWidth).roundToInt().roundUpToMultipleOf2()
       return Dimension(width, height)
@@ -932,19 +934,19 @@ class FakeScreenSharingAgent(
     private fun getFoldedDisplaySize(): Dimension {
       val display = displays[displayId]
       return when (displayId) {
-        PRIMARY_DISPLAY_ID -> when (deviceState?.name) {
-          "CLOSE", "TENT" -> foldedSize ?: displaySize
-          else -> displaySize
-        }
+        PRIMARY_DISPLAY_ID ->
+          when (deviceState?.name) {
+            "CLOSE",
+            "TENT" -> foldedSize ?: displaySize
+            else -> displaySize
+          }
         else -> display.size
       }
     }
 
-    private fun Int.roundUpToMultipleOf8(): Int =
-      (this + 7) and 7.inv()
+    private fun Int.roundUpToMultipleOf8(): Int = (this + 7) and 7.inv()
 
-    private fun Int.roundUpToMultipleOf2(): Int =
-      (this + 1) and 1.inv()
+    private fun Int.roundUpToMultipleOf2(): Int = (this + 1) and 1.inv()
   }
 
   private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, bitRate: Int, val roundDisplay: Boolean = false) {
@@ -959,6 +961,7 @@ class FakeScreenSharingAgent(
         }
         field = value
       }
+
     var frameNumber: UInt = 0u
     var originationTimestampUs: Long = 0
     var presentationTimestampUs: Long = 0
@@ -981,8 +984,7 @@ class FakeScreenSharingAgent(
     }
 
     companion object {
-      fun createBuffer(packetSize: Int): ByteBuffer =
-          ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+      fun createBuffer(packetSize: Int): ByteBuffer = ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
 
       // Flag definitions from video_packet_header.h.
       /** Device display is round. */
@@ -991,7 +993,7 @@ class FakeScreenSharingAgent(
       private const val FLAG_BIT_RATE_REDUCED = 0x02
 
       private const val WIRE_SIZE =
-          4 + // displayId
+        4 + // displayId
           4 + // width
           4 + // height
           1 + // displayOrientation
@@ -1001,7 +1003,7 @@ class FakeScreenSharingAgent(
           4 + // frameNumber
           8 + // originationTimestampUs
           8 + // presentationTimestampUs
-          4   // packetSize
+          4 // packetSize
     }
   }
 
@@ -1009,23 +1011,25 @@ class FakeScreenSharingAgent(
 
     /** Produces a monochromatic sound of the given duration. */
     suspend fun beep(frequencyHz: Double, durationMillis: Int) {
-      val encoderContext = avcodec_alloc_context3(audioEncoder)?.apply {
-        ch_layout(AVChannelLayout().nb_channels(AUDIO_CHANNEL_COUNT))
-        sample_rate(AUDIO_SAMPLE_RATE)
-        sample_fmt(AV_SAMPLE_FMT_S16)
-        time_base(av_make_q(1, 1000000)) // Microseconds.
-      } ?: throw RuntimeException("Could not allocate audio encoder context")
+      val encoderContext =
+        avcodec_alloc_context3(audioEncoder)?.apply {
+          ch_layout(AVChannelLayout().nb_channels(AUDIO_CHANNEL_COUNT))
+          sample_rate(AUDIO_SAMPLE_RATE)
+          sample_fmt(AV_SAMPLE_FMT_S16)
+          time_base(av_make_q(1, 1000000)) // Microseconds.
+        } ?: throw RuntimeException("Could not allocate audio encoder context")
 
       var ret = avcodec_open2(encoderContext, audioEncoder, null as AVDictionary?)
       if (ret < 0) {
         throw RuntimeException("avcodec_open2 returned $ret")
       }
-      val encodingFrame = av_frame_alloc().apply {
-        ch_layout(encoderContext.ch_layout())
-        nb_samples(AUDIO_SAMPLES_PER_FRAME)
-        sample_rate(encoderContext.sample_rate())
-        format(encoderContext.sample_fmt())
-      }
+      val encodingFrame =
+        av_frame_alloc().apply {
+          ch_layout(encoderContext.ch_layout())
+          nb_samples(AUDIO_SAMPLES_PER_FRAME)
+          sample_rate(encoderContext.sample_rate())
+          format(encoderContext.sample_fmt())
+        }
 
       try {
         ret = av_frame_get_buffer(encodingFrame, 1)
@@ -1057,8 +1061,7 @@ class FakeScreenSharingAgent(
           sendFrame(encodingFrame, encoderContext)
         }
         sendFrame(null, encoderContext) // Flush the encoder.
-      }
-      finally {
+      } finally {
         av_frame_free(encodingFrame)
         avcodec_free_context(encoderContext)
       }
@@ -1091,15 +1094,13 @@ class FakeScreenSharingAgent(
           buffer.flip()
           try {
             channel.writeFully(buffer)
-          }
-          catch (e: IOException) {
+          } catch (e: IOException) {
             if (!isLostConnection(e)) { // Lost connection is not an error because it means that the other end closed the socket connection.
               throw e
             }
           }
         }
-      }
-      finally {
+      } finally {
         av_packet_free(packet)
       }
     }
@@ -1115,8 +1116,7 @@ class FakeScreenSharingAgent(
     }
 
     companion object {
-      fun createBuffer(packetSize: Int): ByteBuffer =
-        ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+      fun createBuffer(packetSize: Int): ByteBuffer = ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
 
       private const val WIRE_SIZE = 4
     }
@@ -1148,16 +1148,12 @@ class FakeScreenSharingAgent(
           val message = ControlMessage.deserialize(codedInput)
           processControlMessage(message)
         }
-      }
-      catch (_: EOFException) {
-      }
-      catch (e: IOException) {
+      } catch (_: EOFException) {} catch (e: IOException) {
         if (!isLostConnection(e)) {
           exitCode = 139
           throw e
         }
-      }
-      finally {
+      } finally {
         terminateAgent(exitCode)
       }
     }
@@ -1169,18 +1165,14 @@ class FakeScreenSharingAgent(
     }
 
     override fun dispose() {
-      runBlocking {
-        shutdown()
-      }
+      runBlocking { shutdown() }
     }
 
     fun sendNotificationOrResponse(message: ControlMessage) {
       try {
         message.serialize(codedOutput)
         codedOutput.flush()
-      }
-      catch (_: ClosedChannelException) {
-      }
+      } catch (_: ClosedChannelException) {}
     }
 
     private suspend fun processControlMessage(message: ControlMessage) {
@@ -1220,10 +1212,8 @@ class FakeScreenSharingAgent(
     }
   }
 
-  /**
-   * Makes sure that when one of the given channels is closed, other channels are closed too.
-   */
-  private class ChannelClosingSynchronizer(disposableParent: Disposable, private val channels: List<SuspendingSocketChannel>): Disposable {
+  /** Makes sure that when one of the given channels is closed, other channels are closed too. */
+  private class ChannelClosingSynchronizer(disposableParent: Disposable, private val channels: List<SuspendingSocketChannel>) : Disposable {
 
     var job: Job? = null
 
@@ -1232,25 +1222,24 @@ class FakeScreenSharingAgent(
     }
 
     fun start() {
-      job = createCoroutineScope(Dispatchers.IO).launch {
-        while (true) {
-          for (channel1 in channels) {
-            if (!channel1.isOpen) {
-              for (channel2 in channels) {
-                if (channel2 != channel1 && channel2.isOpen) {
-                  try {
-                    channel2.close()
-                  }
-                  catch (_: IOException) {
+      job =
+        createCoroutineScope(Dispatchers.IO).launch {
+          while (true) {
+            for (channel1 in channels) {
+              if (!channel1.isOpen) {
+                for (channel2 in channels) {
+                  if (channel2 != channel1 && channel2.isOpen) {
+                    try {
+                      channel2.close()
+                    } catch (_: IOException) {}
                   }
                 }
+                return@launch
               }
-              return@launch
             }
+            delay(100)
           }
-          delay(100)
         }
-      }
     }
 
     override fun dispose() {
@@ -1259,8 +1248,7 @@ class FakeScreenSharingAgent(
   }
 
   companion object {
-    @JvmStatic
-    val defaultControlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE)
+    @JvmStatic val defaultControlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE)
   }
 }
 
@@ -1281,24 +1269,24 @@ private fun ByteBuffer.fill(b: Byte, count: Int) {
   }
 }
 
-private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
-    BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
+private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer = BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
 
 private fun DisplayDescriptor.withDeviceOrientation(orientation: Int): DisplayDescriptor =
-    if (type != DisplayType.INTERNAL || orientation == this.orientation) this else DisplayDescriptor(displayId, size, orientation, type)
+  if (type != DisplayType.INTERNAL || orientation == this.orientation) this else DisplayDescriptor(displayId, size, orientation, type)
 
-private fun List<DisplayDescriptor>.withDeviceOrientation(orientation: Int) =
-    map { it.withDeviceOrientation(orientation) }
+private fun List<DisplayDescriptor>.withDeviceOrientation(orientation: Int) = map { it.withDeviceOrientation(orientation) }
 
-private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
-    ImageUtils.rotateByQuadrants(this, quadrants)
+private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage = ImageUtils.rotateByQuadrants(this, quadrants)
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
-private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
-                                   ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
-                                   ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
-                                   ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
+private val COLOR_SCHEMES =
+  listOf(
+    ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
+    ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
+    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
+    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)),
+  )
 
 private const val VIDEO_FRAME_RATE = 60
 private const val VIDEO_DEFAULT_BIT_RATE = 10000000

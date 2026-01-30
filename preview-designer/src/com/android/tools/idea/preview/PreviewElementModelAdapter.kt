@@ -23,18 +23,16 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 /**
- * Ideally, this functionality should be a part of the model (currently only [NlModel])
- * implementation for the case where the previewable is not a Xml file. However, currently [NlModel]
- * and the rest of the rendering pipeline assumes that only a Xml layout can be previewed. This
- * interface is a way to adapt that rigidity of the system to be able to preview a generic
- * [PreviewElement].
+ * Ideally, this functionality should be a part of the model (currently only [NlModel]) implementation for the case where the previewable is
+ * not a Xml file. However, currently [NlModel] and the rest of the rendering pipeline assumes that only a Xml layout can be previewed. This
+ * interface is a way to adapt that rigidity of the system to be able to preview a generic [PreviewElement].
  */
 interface PreviewElementModelAdapter<T : PreviewElement<*>, M> {
   fun toXml(previewElement: T): String
 
   /**
-   * Technically it should be applied to the model, however, we have the cases (see
-   * PreviewElementRenderer) where we can render without a model instance
+   * Technically it should be applied to the model, however, we have the cases (see PreviewElementRenderer) where we can render without a
+   * model instance
    */
   fun applyToConfiguration(previewElement: T, configuration: Configuration)
 
@@ -45,17 +43,14 @@ interface PreviewElementModelAdapter<T : PreviewElement<*>, M> {
   fun toLogString(previewElement: T): String
 
   /**
-   * Creates an in-memory XML file that model can pass to Layoutlib so that the [PreviewElement] can
-   * be rendered.
+   * Creates an in-memory XML file that model can pass to Layoutlib so that the [PreviewElement] can be rendered.
    *
-   * @param content text content of an XML file, usually some custom view adapter for the
-   *   [PreviewElement].
+   * @param content text content of an XML file, usually some custom view adapter for the [PreviewElement].
    * @param backedFile the actual file where the [PreviewElement] is located.
    * @param id an identifier used for debugging purposes.
    */
   fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile
 }
 
-open class DelegatingPreviewElementModelAdapter<T : PreviewElement<*>, M>(
-  private val delegate: PreviewElementModelAdapter<T, M>
-) : PreviewElementModelAdapter<T, M> by delegate
+open class DelegatingPreviewElementModelAdapter<T : PreviewElement<*>, M>(private val delegate: PreviewElementModelAdapter<T, M>) :
+  PreviewElementModelAdapter<T, M> by delegate

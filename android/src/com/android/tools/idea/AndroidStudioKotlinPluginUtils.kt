@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidStudioKotlinPluginUtils")
+
 package com.android.tools.idea
 
 import com.intellij.facet.ProjectFacetManager

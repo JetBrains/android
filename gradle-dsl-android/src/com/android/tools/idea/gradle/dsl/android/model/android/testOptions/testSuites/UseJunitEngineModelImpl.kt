@@ -20,10 +20,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.dsl.model.dependencies.NotationStrategy
 import com.android.tools.idea.gradle.dsl.model.dependencies.CompactNotationStrategy
-import com.android.tools.idea.gradle.dsl.model.dependencies.MapNotationStrategy
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyCollectorDependencyModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.MapNotationStrategy
+import com.android.tools.idea.gradle.dsl.model.dependencies.NotationStrategy
 import com.android.tools.idea.gradle.dsl.android.parser.android.testOptions.testSuites.UseJunitEngineDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
@@ -39,9 +39,7 @@ import com.android.tools.idea.gradle.dsl.utils.resolveElement
 
 class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslBlockModel(dslElement), UseJunitEngineModel {
 
-  /**
-   * Returns the [ResolvedPropertyModel] for the "inputs" property.
-   */
+  /** Returns the [ResolvedPropertyModel] for the "inputs" property. */
   override fun inputs(): ResolvedPropertyModel {
     return getModelForProperty(INPUTS)
   }
@@ -64,9 +62,7 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     return model
   }
 
-  /**
-   * Returns the [ResolvedPropertyModel] for the "includeEngines" property.
-   */
+  /** Returns the [ResolvedPropertyModel] for the "includeEngines" property. */
   override fun includeEngines(): ResolvedPropertyModel {
     return getModelForProperty(INCLUDED_ENGINES)
   }
@@ -89,12 +85,9 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     return model
   }
 
-  /**
-   * Returns the list of engine dependencies declared for this JUnit engine configuration.
-   */
+  /** Returns the list of engine dependencies declared for this JUnit engine configuration. */
   override fun enginesDependencies(): List<DependencyCollectorDependencyModel> {
-    return myDslElement.allPropertyElements
-      .flatMap { parseEngineDependency(it) }
+    return myDslElement.allPropertyElements.flatMap { parseEngineDependency(it) }
   }
 
   private fun parseEngineDependency(dslElement: GradleDslElement): List<DependencyCollectorDependencyModel> {
@@ -125,27 +118,22 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     }
 
     val notationStrategy = getNotationStrategy(element) ?: return null
-    return DependencyCollectorDependencyModel(
-      element,
-      notationStrategy,
-      isInVersionCatalogFile(resolved)
-    )
+    return DependencyCollectorDependencyModel(element, notationStrategy, isInVersionCatalogFile(resolved))
   }
 
   private fun getNotationStrategy(dslExpression: GradleDslExpression): NotationStrategy? {
     val resolvedExpression: GradleDslExpression = resolveElement(dslExpression) as? GradleDslExpression ?: dslExpression
     if (resolvedExpression is GradleDslExpressionMap) {
       return MapNotationStrategy(resolvedExpression)
-    }
-    else if (dslExpression is GradleDslSimpleExpression) {
+    } else if (dslExpression is GradleDslSimpleExpression) {
       return CompactNotationStrategy(dslExpression, false)
     }
     return null
   }
 
   /**
-   * Adds an engine dependency to this JUnit engine configuration using a compact notation.
-   * If the dependency already exists, this method does nothing.
+   * Adds an engine dependency to this JUnit engine configuration using a compact notation. If the dependency already exists, this method
+   * does nothing.
    *
    * @param compactNotation The dependency in compact notation (e.g., "group:name:version").
    */
@@ -159,17 +147,15 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     myDslElement.setNewElement(methodCall)
   }
 
-  /**
-   * Returns true if an engine dependency with the given [compactNotation] already exists.
-   */
+  /** Returns true if an engine dependency with the given [compactNotation] already exists. */
   override fun hasEngineDependency(compactNotation: String): Boolean {
     val enginesDependencies = enginesDependencies().map { it.compactNotation() }
     return enginesDependencies.contains(compactNotation)
   }
 
   /**
-   * Adds an engine dependency to this JUnit engine configuration using a [ReferenceTo].
-   * If the dependency already exists, this method does nothing.
+   * Adds an engine dependency to this JUnit engine configuration using a [ReferenceTo]. If the dependency already exists, this method does
+   * nothing.
    *
    * @param reference A [ReferenceTo] object pointing to a dependency.
    */
@@ -185,20 +171,16 @@ class UseJunitEngineModelImpl(dslElement: UseJunitEngineDslElement) : GradleDslB
     myDslElement.setNewElement(methodCall)
   }
 
-  /**
-   * Returns true if an engine dependency referring to the given [reference] already exists.
-   */
+  /** Returns true if an engine dependency referring to the given [reference] already exists. */
   override fun hasEngineDependency(reference: ReferenceTo): Boolean {
     val existingDependencies = enginesDependencies().map { it.dslElement }
     return existingDependencies.any { resolveElement(it) == reference.referredElement }
   }
 
   companion object {
-    @JvmField
-    val INPUTS: ModelPropertyDescription = ModelPropertyDescription("mInputs", ModelPropertyType.MUTABLE_LIST)
+    @JvmField val INPUTS: ModelPropertyDescription = ModelPropertyDescription("mInputs", ModelPropertyType.MUTABLE_LIST)
 
-    @JvmField
-    val INCLUDED_ENGINES: ModelPropertyDescription = ModelPropertyDescription("mIncludeEngines", ModelPropertyType.MUTABLE_LIST)
+    @JvmField val INCLUDED_ENGINES: ModelPropertyDescription = ModelPropertyDescription("mIncludeEngines", ModelPropertyType.MUTABLE_LIST)
 
     private const val ENGINES_DEPENDENCIES = "enginesDependencies"
   }

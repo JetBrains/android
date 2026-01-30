@@ -32,10 +32,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.util.text.nullize
 
-internal fun createDeviceEnumSupport(
-  enumSupportValuesProvider: EnumSupportValuesProvider,
-  property: PsiPropertyItem,
-) =
+internal fun createDeviceEnumSupport(enumSupportValuesProvider: EnumSupportValuesProvider, property: PsiPropertyItem) =
   EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
     val trimmedValue = stringValue.trim()
     Device.values()
@@ -77,31 +74,16 @@ internal fun createDeviceEnumSupport(
 
 internal object DensityEnumSupport : EnumSupport {
   override val values: List<EnumValue> =
-    listOf(
-        Density.LOW,
-        Density.MEDIUM,
-        Density.HIGH,
-        Density.XHIGH,
-        Density.XXHIGH,
-        Density.XXXHIGH,
-      )
-      .map { it.toEnumValue() }
+    listOf(Density.LOW, Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, Density.XXXHIGH).map { it.toEnumValue() }
 
   override fun createValue(stringValue: String): EnumValue =
-    Densities.getCommonScreenDensity(
-        false,
-        stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(),
-        0,
-      )
-      .toEnumValue()
+    Densities.getCommonScreenDensity(false, stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(), 0).toEnumValue()
 
-  private fun Density.toEnumValue() =
-    EnumValue.item(dpiValue.toString(), "$resourceValue (${dpiValue} dpi)")
+  private fun Density.toEnumValue() = EnumValue.item(dpiValue.toString(), "$resourceValue (${dpiValue} dpi)")
 }
 
 internal object OrientationEnumSupport : EnumSupport {
-  override val values: List<EnumValue> =
-    Orientation.values().map { orientation -> EnumValue.item(orientation.name) }
+  override val values: List<EnumValue> = Orientation.values().map { orientation -> EnumValue.item(orientation.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val orientation = enumValueOfOrDefault(stringValue, Orientation.portrait)
@@ -110,8 +92,7 @@ internal object OrientationEnumSupport : EnumSupport {
 }
 
 internal object DimensionUnitEnumSupport : EnumSupport {
-  override val values: List<EnumValue> =
-    DimUnit.values().map { dimUnit -> EnumValue.item(dimUnit.name) }
+  override val values: List<EnumValue> = DimUnit.values().map { dimUnit -> EnumValue.item(dimUnit.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val dimUnit = enumValueOfOrDefault(stringValue, DimUnit.px)
@@ -120,8 +101,7 @@ internal object DimensionUnitEnumSupport : EnumSupport {
 }
 
 internal object CutoutEnumSupport : EnumSupport {
-  override val values: List<EnumValue> =
-    Cutout.values().map { cutout -> EnumValue.item(cutout.name) }
+  override val values: List<EnumValue> = Cutout.values().map { cutout -> EnumValue.item(cutout.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val cutout = enumValueOfOrDefault(stringValue, Cutout.none)
@@ -130,8 +110,7 @@ internal object CutoutEnumSupport : EnumSupport {
 }
 
 internal object NavigationEnumSupport : EnumSupport {
-  override val values: List<EnumValue> =
-    Navigation.values().map { navigation -> EnumValue.item(navigation.name) }
+  override val values: List<EnumValue> = Navigation.values().map { navigation -> EnumValue.item(navigation.name) }
 
   override fun createValue(stringValue: String): EnumValue {
     val navigation = enumValueOfOrDefault(stringValue, Navigation.gesture)

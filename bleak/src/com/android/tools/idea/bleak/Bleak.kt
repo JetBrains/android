@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("Bleak")
+
 package com.android.tools.idea.bleak
 
 import com.android.tools.idea.bleak.HeapGraph.Companion.jniHelper
@@ -29,21 +30,18 @@ import java.time.Duration
 import java.util.function.Supplier
 
 /**
- * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
- * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
- * terminate in objects that are consistently growing (i.e., have an increasing number of outgoing
- * references) each iteration.
+ * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking and analyzing memory snapshots
+ * between each run. It looks for paths from GC roots through the heap that terminate in objects that are consistently growing (i.e., have
+ * an increasing number of outgoing references) each iteration.
  *
- * Initially, all non-primitive arrays are marked as potentially growing, since these are the only objects
- * that can theoretically grow indefinitely. On subsequent iterations, the shortest path to each growing
- * object in the previous iteration is found, and the corresponding path is followed (if it exists) in the
- * new graph. If the degree of the node at the tip of this path has increased, it is marked as growing in
- * the new graph. This process whittles down the set of consistently growing nodes (called "leak roots"),
- * ideally discarding any growth unrelated to the operations under test.
+ * Initially, all non-primitive arrays are marked as potentially growing, since these are the only objects that can theoretically grow
+ * indefinitely. On subsequent iterations, the shortest path to each growing object in the previous iteration is found, and the
+ * corresponding path is followed (if it exists) in the new graph. If the degree of the node at the tip of this path has increased, it is
+ * marked as growing in the new graph. This process whittles down the set of consistently growing nodes (called "leak roots"), ideally
+ * discarding any growth unrelated to the operations under test.
  *
  * Based on "BLeak: Automatically Debugging Memory Leaks in Web Applications" by John Vilk and Emery D. Berger
  */
-
 fun runWithBleak(options: BleakOptions, scenario: Runnable) {
   runWithBleak(options) { scenario.run() }
 }
@@ -55,11 +53,12 @@ fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
   }
 }
 
-class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
-                     customExpanderSupplier: Supplier<List<Expander>>,
-                     private val forbiddenObjects: List<Any> = listOf(),
-                     private val dominatorTimeout: Duration = Duration.ofSeconds(60)):
-  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList) {
+class MainBleakCheck(
+  ignoreList: IgnoreList<LeakInfo>,
+  customExpanderSupplier: Supplier<List<Expander>>,
+  private val forbiddenObjects: List<Any> = listOf(),
+  private val dominatorTimeout: Duration = Duration.ofSeconds(60),
+) : BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList) {
   lateinit var g1: HeapGraph
   lateinit var g2: HeapGraph
 
@@ -92,24 +91,21 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
   companion object {
     private const val INCREMENTAL_PROPAGATION_THRESHOLD = 5_000
   }
-
 }
 
 // get a new ExpanderChooser instance each time, since some Expanders may hold references to Nodes from
 // the graphs (notably the label to node maps in ArrayObjectIdentityExpander). Using a single instance
 // of ArrayObjectIdentityExpander across all iterations would keep all of the graphs in memory at once.
-private fun getExpanderChooser(customExpanderSupplier: Supplier<List<Expander>>) = ExpanderChooser(listOf(
-  RootExpander(),
-  ArrayObjectIdentityExpander(),
-  ClassLoaderExpander(jniHelper),
-  ClassStaticsExpander()) +
-  ElidingExpander.getExpanders() +
-  customExpanderSupplier.get() +
-  listOf(DefaultObjectExpander()))
-
+private fun getExpanderChooser(customExpanderSupplier: Supplier<List<Expander>>) =
+  ExpanderChooser(
+    listOf(RootExpander(), ArrayObjectIdentityExpander(), ClassLoaderExpander(jniHelper), ClassStaticsExpander()) +
+      ElidingExpander.getExpanders() +
+      customExpanderSupplier.get() +
+      listOf(DefaultObjectExpander())
+  )
 
 private fun iterativeLeakCheck(options: BleakOptions, scenario: () -> Unit): BleakResult {
-  scenario()  // warm up
+  scenario() // warm up
   options.checks.forEach { it.firstIterationFinished() }
   for (i in 0 until options.iterations - 1) {
     scenario()

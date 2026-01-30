@@ -25,8 +25,8 @@ import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.ui.speedSearch.SpeedSearch
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Interface for the view model of [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListView].
@@ -34,9 +34,7 @@ import java.util.concurrent.CompletableFuture
  * The production implementation is [ResourceExplorerListViewModelImpl].
  */
 interface ResourceExplorerListViewModel {
-  /**
-   * The reason why [updateUiCallback] is being called.
-   */
+  /** The reason why [updateUiCallback] is being called. */
   enum class UpdateUiReason {
     /**
      * Resource information has changed, caused by adding/editing/removing resources or from changing Module, so the list of resources has
@@ -48,28 +46,21 @@ interface ResourceExplorerListViewModel {
      * other state, like showing resource configurations.
      */
     RESOURCE_TYPE_CHANGED,
-    /**
-     * The Image Cache has changed, it might be necessary to repaint.
-     */
-    IMAGE_CACHE_CHANGED
+    /** The Image Cache has changed, it might be necessary to repaint. */
+    IMAGE_CACHE_CHANGED,
   }
 
-  /**
-   * Callback called when the model has changed. Could happened for anything listed in [UpdateUiReason].
-   */
+  /** Callback called when the model has changed. Could happened for anything listed in [UpdateUiReason]. */
   var updateUiCallback: ((UpdateUiReason) -> Unit)?
 
-  /**
-   * Callback called when the [AndroidFacet] is changed.
-   */
+  /** Callback called when the [AndroidFacet] is changed. */
   var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)?
 
-  /**
-   * The current [ResourceType] of resources being fetched.
-   */
+  /** The current [ResourceType] of resources being fetched. */
   var currentResourceType: ResourceType
 
-  val selectedTabName: String get() = ""
+  val selectedTabName: String
+    get() = ""
 
   val assetPreviewManager: AssetPreviewManager
 
@@ -98,24 +89,18 @@ interface ResourceExplorerListViewModel {
   fun clearImageCache(asset: DesignAsset)
 
   /**
-   * Returns a list of [ResourceSection] with one section per namespace, the first section being the
-   * one containing the resource of the current module.
+   * Returns a list of [ResourceSection] with one section per namespace, the first section being the one containing the resource of the
+   * current module.
    */
   fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>>
 
-  /**
-   * Similar to [getCurrentModuleResourceLists], but fetches resources for all other modules excluding the ones being displayed.
-   */
+  /** Similar to [getCurrentModuleResourceLists], but fetches resources for all other modules excluding the ones being displayed. */
   fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>>
 
-  /**
-   * Delegate method to handle calls to [UiDataSnapshotProvider.uiDataSnapshot].
-   */
+  /** Delegate method to handle calls to [UiDataSnapshotProvider.uiDataSnapshot]. */
   fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>)
 
-  /**
-   * Returns a map of some specific resource details, typically: name, reference, type, configuration, value.
-   */
+  /** Returns a map of some specific resource details, typically: name, reference, type, configuration, value. */
   fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>>
 
   /**
@@ -129,9 +114,7 @@ interface ResourceExplorerListViewModel {
    */
   fun getResourceConfigurationMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>>
 
-  /**
-   * Action when selecting an [asset] (double click or select + ENTER key).
-   */
+  /** Action when selecting an [asset] (double click or select + ENTER key). */
   val doSelectAssetAction: (asset: Asset) -> Unit
 
   val updateSelectedAssetSet: ((assetSet: ResourceAssetSet) -> Unit)

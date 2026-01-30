@@ -42,8 +42,8 @@ import java.io.File
 typealias SdkUpdatedCallback = (sdkPath: File) -> Unit
 
 /**
- * A service responsible for showing the SDK setup wizard. This wizard guides the user through the
- * process of downloading and installing the Android SDK.
+ * A service responsible for showing the SDK setup wizard. This wizard guides the user through the process of downloading and installing the
+ * Android SDK.
  */
 @Service(Service.Level.APP)
 class SetupSdkApplicationService : Disposable {
@@ -52,22 +52,21 @@ class SetupSdkApplicationService : Disposable {
    * Displays the SDK setup wizard.
    *
    * @param sdkPathString The initial SDK path to use. If empty, a default location is used.
-   * @param sdkUpdatedCallback A callback invoked when the SDK setup is complete, providing the
-   *   final SDK path.
+   * @param sdkUpdatedCallback A callback invoked when the SDK setup is complete, providing the final SDK path.
    */
   @UiThread
-  fun showSdkSetupWizard(sdkPathString: String,
-                         sdkUpdatedCallback: SdkUpdatedCallback?,
-                         sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
-                         tracker: FirstRunWizardTracker) {
+  fun showSdkSetupWizard(
+    sdkPathString: String,
+    sdkUpdatedCallback: SdkUpdatedCallback?,
+    sdkComponentInstaller: SdkComponentInstaller = SdkComponentInstaller(),
+    tracker: FirstRunWizardTracker,
+  ) {
     val sdkPath: File =
       if (StringUtil.isEmpty(sdkPathString)) {
         // getInitialSdkLocation creates a non-blocking read action
         // (in AndroidSdksImpl.getAllAndroidSdks()), which is not allowed on the EDT, so wrap it in
         // a blocking read action.
-        ReadAction.compute<File, Throwable> {
-          getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK)
-        }
+        ReadAction.compute<File, Throwable> { getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK) }
       } else {
         File(sdkPathString)
       }
@@ -79,12 +78,14 @@ class SetupSdkApplicationService : Disposable {
 
   override fun dispose() {}
 
-  private fun showWizard(sdkPath: File,
-                            sdkUpdatedCallback: SdkUpdatedCallback?,
-                            sdkComponentInstaller: SdkComponentInstaller,
-                            tracker: FirstRunWizardTracker) {
-    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, sdkComponentInstaller,
-                                    tracker)
+  private fun showWizard(
+    sdkPath: File,
+    sdkUpdatedCallback: SdkUpdatedCallback?,
+    sdkComponentInstaller: SdkComponentInstaller,
+    tracker: FirstRunWizardTracker,
+  ) {
+    val model =
+      FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), installUpdates = false, sdkComponentInstaller, tracker)
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
@@ -105,9 +106,7 @@ class SetupSdkApplicationService : Disposable {
       }
 
     val builder = ModelWizard.Builder()
-    builder.addStep(
-      SdkComponentsStep(model, null, FirstRunWizardMode.MISSING_SDK, licenseAgreementStep, tracker)
-    )
+    builder.addStep(SdkComponentsStep(model, null, FirstRunWizardMode.MISSING_SDK, licenseAgreementStep, tracker))
     builder.addStep(InstallSummaryStep(model, supplier, tracker))
     builder.addStep(licenseAgreementStep)
     builder.addStep(progressStep)
@@ -125,8 +124,7 @@ class SetupSdkApplicationService : Disposable {
       object : WizardListener {
         override fun onWizardFinished(result: WizardResult) {
           tracker.trackWizardFinished(
-            if (result == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
-            else SetupWizardEvent.CompletionStatus.CANCELED
+            if (result == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED else SetupWizardEvent.CompletionStatus.CANCELED
           )
 
           if (!result.isFinished) {

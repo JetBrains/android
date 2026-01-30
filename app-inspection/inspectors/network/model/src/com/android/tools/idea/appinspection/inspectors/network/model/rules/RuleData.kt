@@ -66,8 +66,7 @@ class RuleData(
   class CriteriaData {
     @get:Transient var listener: (() -> Unit)? = null
 
-    private fun <T> delegate(initialValue: T) =
-      Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
+    private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 
     var protocol: Protocol by delegate(Protocol.HTTPS)
     var host: String by delegate("")
@@ -77,8 +76,7 @@ class RuleData(
     var method: Method by delegate(Method.GET)
 
     val url: String
-      get() =
-        "$protocol://${host.ifBlank { "<Any>" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
+      get() = "$protocol://${host.ifBlank { "<Any>" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
 
     fun toProto(variables: List<RuleVariable>): InterceptCriteria =
       InterceptCriteria.newBuilder()
@@ -108,15 +106,13 @@ class RuleData(
     fun toProto(variables: List<RuleVariable>): Transformation
   }
 
-  class StatusCodeRuleData(findCode: String?, isActive: Boolean?, newCode: String?) :
-    TransformationRuleData {
+  class StatusCodeRuleData(findCode: String?, isActive: Boolean?, newCode: String?) : TransformationRuleData {
     @Suppress("unused") // invoked via reflection by PersistentStateComponent
     private constructor() : this(null, null, null)
 
     @get:Transient var listener: (() -> Unit)? = null
 
-    private fun <T> delegate(initialValue: T) =
-      Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
+    private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 
     var findCode: String by delegate(findCode ?: "")
     var newCode: String by delegate(newCode ?: "")
@@ -271,10 +267,7 @@ class RuleData(
     override fun toProto(variables: List<RuleVariable>): Transformation =
       Transformation.newBuilder()
         .apply {
-          bodyReplacedBuilder.apply {
-            body =
-              ByteString.copyFrom(variables.applyTo(this@BodyReplacedRuleData.body)!!.toByteArray())
-          }
+          bodyReplacedBuilder.apply { body = ByteString.copyFrom(variables.applyTo(this@BodyReplacedRuleData.body)!!.toByteArray()) }
         }
         .build()
   }
@@ -355,10 +348,8 @@ class RuleData(
     }
   }
 
-  var name: String by
-    Delegates.observable(name) { _, _, _ -> ruleDataListener.onRuleNameChanged(this) }
-  var isActive: Boolean by
-    Delegates.observable(isActive) { _, _, _ -> ruleDataListener.onRuleIsActiveChanged(this) }
+  var name: String by Delegates.observable(name) { _, _, _ -> ruleDataListener.onRuleNameChanged(this) }
+  var isActive: Boolean by Delegates.observable(isActive) { _, _, _ -> ruleDataListener.onRuleIsActiveChanged(this) }
 
   // These must be public vars for PersistentStateComponent to set them.
   var criteria = CriteriaData()
@@ -396,14 +387,7 @@ private object MyRenderer : ColoredTableCellRenderer() {
   @Suppress("unused") // a `ColoredTableCellRenderer` must implement `readResolve`
   private fun readResolve(): Any = MyRenderer
 
-  override fun customizeCellRenderer(
-    table: JTable,
-    item: Any?,
-    selected: Boolean,
-    hasFocus: Boolean,
-    row: Int,
-    column: Int,
-  ) {
+  override fun customizeCellRenderer(table: JTable, item: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
     clear()
     border = JBUI.Borders.empty()
     when (item) {
@@ -411,8 +395,7 @@ private object MyRenderer : ColoredTableCellRenderer() {
         if (item.first == null && item.second == null) {
           append("Unchanged", SimpleTextAttributes.GRAYED_ATTRIBUTES)
         } else {
-          (item.first as? String)?.let { append(it) }
-            ?: append("Any", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          (item.first as? String)?.let { append(it) } ?: append("Any", SimpleTextAttributes.GRAYED_ATTRIBUTES)
           (item.second as? String)?.let {
             append("  ➔  ", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES)
             append(it)

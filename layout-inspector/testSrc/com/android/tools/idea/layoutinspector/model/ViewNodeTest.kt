@@ -27,12 +27,9 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-private val LAYOUT_SCREEN_SIMPLE =
-  ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
-private val LAYOUT_APPCOMPAT_SCREEN_SIMPLE =
-  ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-private val LAYOUT_MAIN =
-  ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private val LAYOUT_SCREEN_SIMPLE = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+private val LAYOUT_APPCOMPAT_SCREEN_SIMPLE = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+private val LAYOUT_MAIN = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class ViewNodeTest {
   private val disposableRule = DisposableRule()
@@ -55,13 +52,9 @@ class ViewNodeTest {
         }
       }
 
-    assertThat(model[ROOT]!!.flattenedList().map { it.drawId }.toList())
-      .containsExactly(VIEW3, VIEW4, VIEW1, VIEW2, ROOT)
-      .inOrder()
+    assertThat(model[ROOT]!!.flattenedList().map { it.drawId }.toList()).containsExactly(VIEW3, VIEW4, VIEW1, VIEW2, ROOT).inOrder()
 
-    assertThat(model[VIEW1]!!.flattenedList().map { it.drawId }.toList())
-      .containsExactly(VIEW3, VIEW4, VIEW1)
-      .inOrder()
+    assertThat(model[VIEW1]!!.flattenedList().map { it.drawId }.toList()).containsExactly(VIEW3, VIEW4, VIEW1).inOrder()
   }
 
   @Test
@@ -81,9 +74,7 @@ class ViewNodeTest {
       .containsExactly(VIEW2, VIEW4, VIEW3, VIEW1, ROOT)
       .inOrder()
 
-    assertThat(model[VIEW1]!!.reversePostOrderFlattenedList().map { it.drawId }.toList())
-      .containsExactly(VIEW4, VIEW3, VIEW1)
-      .inOrder()
+    assertThat(model[VIEW1]!!.reversePostOrderFlattenedList().map { it.drawId }.toList()).containsExactly(VIEW4, VIEW3, VIEW1).inOrder()
   }
 
   @Test
@@ -93,9 +84,7 @@ class ViewNodeTest {
         view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
           view(VIEW1, layout = LAYOUT_SCREEN_SIMPLE) {
             view(VIEW2, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
-              view(VIEW3, layout = LAYOUT_MAIN) {
-                view(VIEW4, layout = null, qualifiedName = "com.acme.MyImageView")
-              }
+              view(VIEW3, layout = LAYOUT_MAIN) { view(VIEW4, layout = null, qualifiedName = "com.acme.MyImageView") }
             }
           }
         }
@@ -134,9 +123,7 @@ class ViewNodeTest {
       model(disposable) {
         view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
           view(VIEW1, layout = LAYOUT_MAIN) {
-            view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
-              view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {}
-            }
+            view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) { view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {} }
           }
         }
       }

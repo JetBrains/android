@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -24,6 +23,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
@@ -31,6 +31,8 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import java.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,12 +42,8 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
-import java.io.File
-import java.time.Duration
 
-/**
- * Unit tests for [AndroidTestSuiteDetailsView].
- */
+/** Unit tests for [AndroidTestSuiteDetailsView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class AndroidTestSuiteDetailsViewTest {
@@ -55,10 +53,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   private val headerActions = emptyList<AnAction>()
 
-  @get:Rule val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
   @Mock lateinit var mockController: AndroidTestSuiteViewController
   @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
@@ -71,19 +66,20 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
     assertThat(view.contentView.myDeviceTestResultLabel.text).isEqualTo("<html>deviceName</html>")
-    assertThat(view.contentView.myTestResultLabel.text)
-      .isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
+    assertThat(view.contentView.myTestResultLabel.text).isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
   }
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
     view.setAndroidTestResults(createTestResults(null))
@@ -95,7 +91,8 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoMethodName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, ""))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className")
@@ -103,7 +100,8 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsWithNoClassName() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED, "", "", ""))
 
     assertThat(view.titleTextView.text).isEqualTo("Test Results")
@@ -111,37 +109,58 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
+    val view =
+      AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger, headerActions)
 
     view.closeButton.doClick()
 
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  private fun createTestResults(testCaseResult: AndroidTestCaseResult?,
-                                methodName: String = "methodName",
-                                className: String = "className",
-                                packageName: String = "packageName"): AndroidTestResults {
-    return object: AndroidTestResults {
+  private fun createTestResults(
+    testCaseResult: AndroidTestCaseResult?,
+    methodName: String = "methodName",
+    className: String = "className",
+    packageName: String = "packageName",
+  ): AndroidTestResults {
+    return object : AndroidTestResults {
       override val methodName: String = methodName
       override val className: String = className
       override val packageName: String = packageName
+
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
+
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
-      override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
+
+      override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult =
+        testCaseResult ?: AndroidTestCaseResult.SCHEDULED
+
       override fun getTestResultSummaryText(devices: List<AndroidDevice>): String = ""
+
       override fun getResultStats() = AndroidTestResultStats()
+
       override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()
+
       override fun getResultStats(devices: List<AndroidDevice>) = AndroidTestResultStats()
+
       override fun getLogcat(device: AndroidDevice): String = ""
+
       override fun getStartTime(device: AndroidDevice): Long? = null
+
       override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO
+
       override fun getTotalDuration(): Duration = Duration.ZERO
+
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
+
       override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
+
       override fun getRetentionInfo(device: AndroidDevice): File? = null
+
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+
       override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
+
       override fun getAllTestCases() = emptyList<AndroidTestCase>()
     }
   }

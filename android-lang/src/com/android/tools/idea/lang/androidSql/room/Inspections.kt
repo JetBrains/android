@@ -55,7 +55,6 @@ abstract class RoomSqlKnownContextInspection : LocalInspectionTool() {
   }
 
   abstract override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor
-
 }
 
 /** Reports unnamed bind parameters, which are not supported by Room. */
@@ -70,7 +69,6 @@ class RoomBindParameterSyntaxInspection : RoomSqlKnownContextInspection() {
       }
     }
   }
-
 }
 
 /** Reports usages of boolean "TRUE" or "FALSE" literals, which are unsupported before API level 30. */
@@ -84,14 +82,15 @@ class RoomSqlBooleanLiteralInspection : RoomSqlKnownContextInspection() {
 
         val minSdk = literal.androidFacet?.let { AndroidModel.get(it)?.minSdkVersion?.apiLevel } ?: return
         if (minSdk < 30) {
-          val literalValue = when (literal.firstChild?.node?.elementType) {
-            AndroidSqlPsiTypes.TRUE -> true
-            AndroidSqlPsiTypes.FALSE -> false
-            else -> {
-              thisLogger().error("Unexpected element type: ${literal.firstChild?.node?.elementType}")
-              null
+          val literalValue =
+            when (literal.firstChild?.node?.elementType) {
+              AndroidSqlPsiTypes.TRUE -> true
+              AndroidSqlPsiTypes.FALSE -> false
+              else -> {
+                thisLogger().error("Unexpected element type: ${literal.firstChild?.node?.elementType}")
+                null
+              }
             }
-          }
 
           val problemDescription = "Boolean literals require API level 30 (current min is $minSdk)."
 
@@ -107,8 +106,7 @@ class RoomSqlBooleanLiteralInspection : RoomSqlKnownContextInspection() {
 
   private class RoomSqlBooleanLiteralFix(private val literalValue: Boolean) : LocalQuickFix {
     override fun getName(): String =
-      if (literalValue) "Replace Boolean literal 'TRUE' with '1'"
-      else "Replace Boolean literal 'FALSE' with '0'"
+      if (literalValue) "Replace Boolean literal 'TRUE' with '1'" else "Replace Boolean literal 'FALSE' with '0'"
 
     override fun getFamilyName(): String = "Replace Boolean literal"
 

@@ -49,8 +49,7 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
 
 class GradleBuildSystemLiveEditServices :
-  BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>,
-  GradleToken {
+  BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>, GradleToken {
 
   override fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean {
     return applicationProjectContext is FacetBasedApplicationProjectContext &&
@@ -61,62 +60,52 @@ class GradleBuildSystemLiveEditServices :
     return GradleApplicationLiveEditServices(applicationProjectContext.facet.module)
   }
 
-  override fun disqualifyingBytecodeTransformation(applicationProjectContext: FacetBasedApplicationProjectContext): BuildSystemBytecodeTransformation? {
+  override fun disqualifyingBytecodeTransformation(
+    applicationProjectContext: FacetBasedApplicationProjectContext
+  ): BuildSystemBytecodeTransformation? {
     val gradleModel = GradleAndroidModel.get(applicationProjectContext.facet.module)
-    val descriptions = gradleModel?.selectedVariant?.mainArtifact?.bytecodeTransforms?.map {
-      it.description
-    } ?: return null
+    val descriptions = gradleModel?.selectedVariant?.mainArtifact?.bytecodeTransforms?.map { it.description } ?: return null
     return BuildSystemBytecodeTransformation(descriptions.isNotEmpty(), descriptions)
   }
 }
 
-internal class GradleApplicationLiveEditServices(private val module: Module): ApplicationLiveEditServices {
+internal class GradleApplicationLiveEditServices(private val module: Module) : ApplicationLiveEditServices {
   val classFileFinder = GradleClassFileFinder.createWithoutTests(module)
 
-  data class GradleCompilationDependencies(val module: Module): ApplicationLiveEditServices.CompilationDependencies {
+  data class GradleCompilationDependencies(val module: Module) : ApplicationLiveEditServices.CompilationDependencies {
     override fun getExternalLibraries(): List<Path> {
       return AndroidGradleClassJarProvider.getModuleExternalLibraries(module).map { it.toPath() }
     }
 
     override fun getBootClasspath(): List<Path> {
-      return GradleAndroidModel.get(module)
-        ?.androidProject
-        ?.bootClasspath
-        ?.map { Path.of(it) }
-        ?: emptyList()
+      return GradleAndroidModel.get(module)?.androidProject?.bootClasspath?.map { Path.of(it) } ?: emptyList()
     }
   }
 
-  override fun getClassContent(
-    file: VirtualFile,
-    className: String,
-  ): ClassContent? {
+  override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
     return classFileFinder.findClassFile(className)
   }
 
   override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
-    return file.module?.let { GradleCompilationDependencies(it)}
+    return file.module?.let { GradleCompilationDependencies(it) }
   }
 
   override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
     val module = ktFile.module ?: return CompilerConfiguration.create()
-    val compilerConfiguration = CompilerConfiguration.create().apply {
-      put(
-        CommonConfigurationKeys.MODULE_NAME,
-        module.name
-      )
-      KotlinFacet.get(module)?.let { kotlinFacet ->
-        val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-          is K2JVMCompilerArguments -> compilerArguments.moduleName
-          is K2MetadataCompilerArguments -> compilerArguments.moduleName
-          else -> null
+    val compilerConfiguration =
+      CompilerConfiguration.create().apply {
+        put(CommonConfigurationKeys.MODULE_NAME, module.name)
+        KotlinFacet.get(module)?.let { kotlinFacet ->
+          val moduleName =
+            when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+              is K2JVMCompilerArguments -> compilerArguments.moduleName
+              is K2MetadataCompilerArguments -> compilerArguments.moduleName
+              else -> null
+            }
+          moduleName?.let { put(CommonConfigurationKeys.MODULE_NAME, it) }
         }
-        moduleName?.let {
-          put(CommonConfigurationKeys.MODULE_NAME, it)
-        }
+        setOptions(ktFile.languageVersionSettings)
       }
-      setOptions(ktFile.languageVersionSettings)
-    }
     return compilerConfiguration
   }
 

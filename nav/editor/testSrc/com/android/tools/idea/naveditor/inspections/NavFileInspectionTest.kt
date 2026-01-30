@@ -65,7 +65,7 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """
+        """
           .trimIndent(),
       )
 
@@ -97,7 +97,7 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """
+        """
           .trimIndent(),
       )
 
@@ -129,7 +129,7 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """
+        """
           .trimIndent(),
       )
 
@@ -161,7 +161,7 @@ class NavFileInspectionTest {
             android:label="activity_main"
             tools:layout="@layout/activity_main" />
         </navigation>
-      """
+        """
           .trimIndent(),
       )
 

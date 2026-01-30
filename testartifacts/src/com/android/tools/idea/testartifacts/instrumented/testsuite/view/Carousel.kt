@@ -86,8 +86,7 @@ fun Carousel(
     } else {
       0.dp
     }
-  var carouselWidth by
-    remember(initialWidth.value.toInt()) { mutableIntStateOf(initialWidth.value.toInt()) }
+  var carouselWidth by remember(initialWidth.value.toInt()) { mutableIntStateOf(initialWidth.value.toInt()) }
 
   val resolvedItemWidth =
     itemWidth
@@ -106,11 +105,7 @@ fun Carousel(
         iconKey = AllIconsKeys.General.ArrowLeft,
         contentDescription = "Previous",
         enabled = listState.canScrollBackward,
-        onClick = {
-          coroutineScope.launch {
-            listState.animateScrollToItem((listState.firstVisibleItemIndex - 1).coerceAtLeast(0))
-          }
-        },
+        onClick = { coroutineScope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex - 1).coerceAtLeast(0)) } },
       )
     }
 
@@ -121,39 +116,22 @@ fun Carousel(
         Modifier.weight(1f).onSizeChanged { size -> carouselWidth = size.width }
       }
     Column(modifier = contentModifier) {
-      LazyRow(
-        state = listState,
-        modifier = Modifier.weight(1f),
-        horizontalArrangement = Arrangement.spacedBy(gapWidth),
-      ) {
+      LazyRow(state = listState, modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gapWidth)) {
         items(count = itemCount) { index ->
-          Box(
-            modifier = Modifier.width(resolvedItemWidth).fillMaxHeight(),
-            contentAlignment = Alignment.Center,
-          ) {
-            itemContent(index)
-          }
+          Box(modifier = Modifier.width(resolvedItemWidth).fillMaxHeight(), contentAlignment = Alignment.Center) { itemContent(index) }
         }
       }
 
       if (itemCount > 1) {
         Spacer(modifier = Modifier.height(8.dp))
-        Row(
-          modifier = Modifier.align(Alignment.CenterHorizontally),
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Row(modifier = Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
           repeat(itemCount) { index ->
             val isSelected = mostInViewIndex == index
-            val borderColor =
-              rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray8)
+            val borderColor = rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray8)
             Box(
               modifier =
                 Modifier.size(6.dp)
-                  .border(
-                    width = 1.dp,
-                    color = borderColor,
-                    shape = RoundedCornerShape(size = 8.dp),
-                  )
+                  .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(size = 8.dp))
                   .clip(CircleShape)
                   .background(color = if (isSelected) borderColor else Color.Transparent)
                   .clickable { coroutineScope.launch { listState.animateScrollToItem(index) } }
@@ -170,11 +148,7 @@ fun Carousel(
         contentDescription = "Next",
         enabled = listState.canScrollForward,
         onClick = {
-          coroutineScope.launch {
-            listState.animateScrollToItem(
-              (listState.firstVisibleItemIndex + 1).coerceAtMost(itemCount - 1)
-            )
-          }
+          coroutineScope.launch { listState.animateScrollToItem((listState.firstVisibleItemIndex + 1).coerceAtMost(itemCount - 1)) }
         },
       )
     }
@@ -213,16 +187,9 @@ private fun rememberMostInViewItemIndex(listState: LazyListState, itemCount: Int
 }
 
 @Composable
-private fun CarouselArrow(
-  iconKey: IntelliJIconKey,
-  contentDescription: String,
-  enabled: Boolean,
-  onClick: () -> Unit,
-) {
-  val enabledTintColor =
-    rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray7)
-  val disabledTintColor =
-    rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
+private fun CarouselArrow(iconKey: IntelliJIconKey, contentDescription: String, enabled: Boolean, onClick: () -> Unit) {
+  val enabledTintColor = rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray7)
+  val disabledTintColor = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
   val tintColor = if (enabled) enabledTintColor else disabledTintColor
 
   IconButton(
@@ -238,12 +205,7 @@ private fun CarouselArrow(
     onClick = { onClick() },
     enabled = enabled,
   ) {
-    Icon(
-      key = iconKey,
-      contentDescription = contentDescription,
-      modifier = Modifier.size(16.dp),
-      tint = tintColor,
-    )
+    Icon(key = iconKey, contentDescription = contentDescription, modifier = Modifier.size(16.dp), tint = tintColor)
   }
 }
 

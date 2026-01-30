@@ -23,18 +23,10 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.uast.UMethod
 
-/**
- * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
- * in a unit test file.
- */
-class WearTilePreviewNotSupportedInUnitTestFiles :
-  WearTilePreviewInspectionBase(isUnitTestInspection = true) {
+/** Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not in a unit test file. */
+class WearTilePreviewNotSupportedInUnitTestFiles : WearTilePreviewInspectionBase(isUnitTestInspection = true) {
 
-  override fun checkMethod(
-    method: UMethod,
-    manager: InspectionManager,
-    isOnTheFly: Boolean,
-  ): Array<ProblemDescriptor>? {
+  override fun checkMethod(method: UMethod, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
     // We are only interested in methods annotated with the tile preview annotation
     if (!method.hasTilePreviewAnnotation()) {
       return super.checkMethod(method, manager, isOnTheFly)

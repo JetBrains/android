@@ -28,11 +28,8 @@ import kotlinx.coroutines.launch
 
 typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
 
-class BackgroundTaskTreeModel(
-  private val client: BackgroundTaskInspectorClient,
-  scope: CoroutineScope,
-  uiDispatcher: CoroutineDispatcher,
-) : DefaultTreeModel(DefaultMutableTreeNode()) {
+class BackgroundTaskTreeModel(private val client: BackgroundTaskInspectorClient, scope: CoroutineScope, uiDispatcher: CoroutineDispatcher) :
+  DefaultTreeModel(DefaultMutableTreeNode()) {
   private val nodeMap = mutableMapOf<BackgroundTaskEntry, DefaultMutableTreeNode>()
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
   private val filterListeners = mutableListOf<BackgroundTaskOnFilteredListener>()
@@ -141,17 +138,13 @@ class BackgroundTaskTreeModel(
   /** Reconstructs the entire tree while respecting the current filter and sort ordering. */
   private fun refreshTree() {
     categoryRoots.forEach { it.removeAllChildren() }
-    val groupedByParentNode =
-      nodeMap.entries
-        .filter { entry -> entry.key.acceptedByFilter() }
-        .groupBy { entry -> parentFinder(entry.key) }
+    val groupedByParentNode = nodeMap.entries.filter { entry -> entry.key.acceptedByFilter() }.groupBy { entry -> parentFinder(entry.key) }
 
     (currentSortComparator?.let { comparator ->
         groupedByParentNode.mapValues { entry ->
           val result =
             entry.value.sortedWith { o1, o2 ->
-              val value =
-                (comparator as Comparator<DefaultMutableTreeNode>).compare(o1.value, o2.value)
+              val value = (comparator as Comparator<DefaultMutableTreeNode>).compare(o1.value, o2.value)
               value
             }
           result

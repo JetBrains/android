@@ -53,9 +53,7 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
       }
     }
 
-    return Drive.Builder(transport, jsonFactory, initializer)
-      .apply { applicationName = "Google IDE Settings Sync" }
-      .build()
+    return Drive.Builder(transport, jsonFactory, initializer).apply { applicationName = "Google IDE Settings Sync" }.build()
   }
 
   /**
@@ -75,16 +73,14 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
 
     val file = drive.files().create(fileMetadata, fileContent).setFields("id").execute()
 
-    thisLogger()
-      .info("Successfully write $filePath to the google drive, reference file id = ${file.id}")
+    thisLogger().info("Successfully write $filePath to the google drive, reference file id = ${file.id}")
     return DriveFileMetadata(versionId = file.id)
   }
 
   /**
    * Reads the content of a file from Google Drive.
    *
-   * This function retrieves the latest version of the file with the given name from Google Drive
-   * and returns its content as an InputStream.
+   * This function retrieves the latest version of the file with the given name from Google Drive and returns its content as an InputStream.
    *
    * @param filePath The name of the file to read on Google Drive.
    * @return A Pair containing the following:
@@ -109,11 +105,11 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
   /**
    * Retrieves information about the latest version of a file on Google Drive.
    *
-   * This function searches for files on Google Drive with a name matching the provided file path.
-   * It returns information about the most recently modified file found.
+   * This function searches for files on Google Drive with a name matching the provided file path. It returns information about the most
+   * recently modified file found.
    *
-   * @param filePath The File object representing the file to search for. The path of this file is
-   *   used to find matching files on Google Drive.
+   * @param filePath The File object representing the file to search for. The path of this file is used to find matching files on Google
+   *   Drive.
    * @return The metadata of the most recently updated file in Google Drive.
    */
   fun getLatestUpdatedFileMetadata(filePath: String): DriveFileMetadata? {
@@ -125,9 +121,8 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
   /**
    * Ensures a limit on the number of files with the same name on Google Drive.
    *
-   * This function retrieves all files on Google Drive with a name matching the provided file path,
-   * sorted by modification time (latest first). If the number of files exceeds the
-   * `FILE_COUNT_LIMIT`, it deletes the oldest files to enforce the limit.
+   * This function retrieves all files on Google Drive with a name matching the provided file path, sorted by modification time (latest
+   * first). If the number of files exceeds the `FILE_COUNT_LIMIT`, it deletes the oldest files to enforce the limit.
    */
   fun deleteOldestFilesOverLimit(filePath: String) {
     val files = listAllFilesLatestFirst(filePath) ?: return

@@ -47,8 +47,8 @@ import kotlin.io.path.isRegularFile
 /**
  * Scope to be used while create the [CompileRoots].
  *
- * [traverseTestDependencies] will be true in those cases where the compiler roots should include the
- * test dependencies as part of the outpu.
+ * [traverseTestDependencies] will be true in those cases where the compiler roots should include the test dependencies as part of the
+ * outpu.
  */
 private enum class CompileRootsScope(val traverseTestDependencies: Boolean) {
   /** Include only main sourceset */
@@ -60,40 +60,30 @@ private enum class CompileRootsScope(val traverseTestDependencies: Boolean) {
 }
 
 /**
- * [CompileRoots] of a module, including dependencies. [directories] is the list of paths to
- * directories containing class outputs. [jars] constains a list of the jar outputs in the
- * [CompileRoots] (typically R.jar files).
+ * [CompileRoots] of a module, including dependencies. [directories] is the list of paths to directories containing class outputs. [jars]
+ * constains a list of the jar outputs in the [CompileRoots] (typically R.jar files).
  */
 private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarManager?) {
   private val RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$")
 
   /** Returns true if [className] is an R class name. */
-  private fun isResourceClassName(className: String): Boolean =
-    RESOURCE_CLASS_NAME.matcher(className).matches()
+  private fun isResourceClassName(className: String): Boolean = RESOURCE_CLASS_NAME.matcher(className).matches()
 
   /** Cache to avoid querying the CompileRoots on every query since many of them are repeated. */
   private val cache: Cache<String, Optional<ClassContent>> =
-    CacheBuilder.newBuilder()
-      .softValues()
-      .maximumSize(StudioFlags.GRADLE_CLASS_FINDER_CACHE_LIMIT.get())
-      .build()
+    CacheBuilder.newBuilder().softValues().maximumSize(StudioFlags.GRADLE_CLASS_FINDER_CACHE_LIMIT.get()).build()
 
   /** List of paths to directories containing class outputs */
   private val directories: List<Path>
-    get() = allRoots
-      .filter { Files.isDirectory(it) }
+    get() = allRoots.filter { Files.isDirectory(it) }
 
   /** Contains a list of the jar outputs in the [CompileRoots] (typically R.jar files) */
-  private val jars: List<Path> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    allRoots.filter { it.isRegularFile() && it.extension == SdkConstants.EXT_JAR }
-  }
+  private val jars: List<Path> by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { allRoots.filter { it.isRegularFile() && it.extension == SdkConstants.EXT_JAR } }
 
   /** Finds a class in the directories included in this [CompileRoots]. */
   private fun findClassInDirectoryRoots(fqcn: String): ClassContent? {
-    return directories
-      .map { it.resolve(getPathFromFqcn(fqcn)).toFile() }
-      .firstOrNull { it.isFile() }
-      ?.let { ClassContent.loadFromFile(it) }
+    return directories.map { it.resolve(getPathFromFqcn(fqcn)).toFile() }.firstOrNull { it.isFile() }?.let { ClassContent.loadFromFile(it) }
   }
 
   /** Finds a class in the jars included in this [CompileRoots]. */
@@ -124,9 +114,7 @@ private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarMan
   }
 }
 
-/**
- * Map [CompileRootsScope] to the [ScopeType] dependencies to be included in the search. [ScopeType.MAIN] is always included.
- */
+/** Map [CompileRootsScope] to the [ScopeType] dependencies to be included in the search. [ScopeType.MAIN] is always included. */
 private fun getAllCompileOutputScopes(scope: CompileRootsScope): EnumSet<ScopeType> =
   when (scope) {
     CompileRootsScope.MAIN -> EnumSet.of(ScopeType.MAIN)
@@ -138,25 +126,17 @@ private fun getAllCompileOutputScopes(scope: CompileRootsScope): EnumSet<ScopeTy
  * Calculates the output roots for the module, including all the dependencies for the given [scope]. The resulting [CompileRoots] will
  * contain the paths to the given sourcesets.
  */
-private fun Module.getNonCachedCompileOutputsIncludingDependencies(
-  scope: CompileRootsScope
-): CompileRoots =
-    CompileRoots(
+private fun Module.getNonCachedCompileOutputsIncludingDependencies(scope: CompileRootsScope): CompileRoots =
+  CompileRoots(
       (this.getAllDependencies(scope.traverseTestDependencies))
-        .flatMap {
-          GradleClassFinderUtil.getModuleCompileOutputs(it, getAllCompileOutputScopes(scope)).toList()
-        }
+        .flatMap { GradleClassFinderUtil.getModuleCompileOutputs(it, getAllCompileOutputScopes(scope)).toList() }
         .map { it.toPath() }
         .toList(),
       JarManager.getInstance(project),
     )
-      .also {
-        Logger.getInstance(GradleClassFileFinder::class.java).debug("CompileRoots recalculated $it")
-      }
+    .also { Logger.getInstance(GradleClassFileFinder::class.java).debug("CompileRoots recalculated $it") }
 
-/**
- * Returns a set containing the current [Module] and all its direct and transitive dependencies.
- */
+/** Returns a set containing the current [Module] and all its direct and transitive dependencies. */
 fun Module.getAllDependencies(includeAndroidTests: Boolean): Set<Module> {
   val dependencies = mutableSetOf(this)
   val queue = ArrayDeque<Module>()
@@ -173,43 +153,39 @@ fun Module.getAllDependencies(includeAndroidTests: Boolean): Set<Module> {
   return dependencies
 }
 
-
 /** Key used to cache the [CompileRoots] for a non test module. */
-private val PRODUCTION_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> =
-  Key.create("production roots")
+private val PRODUCTION_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> = Key.create("production roots")
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a non test module. */
 private val PRODUCTION_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN),
       ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker
+      GradleBuildState.getInstance(module.project).modificationTracker,
     )
   }
 
 /** Key used to cache the [CompileRoots] for a `androidTest` module. */
-private val ANDROID_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> =
-  Key.create("androidTest roots")
+private val ANDROID_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> = Key.create("androidTest roots")
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a test module. */
 private val ANDROID_TEST_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_ANDROID_TEST),
       ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker
+      GradleBuildState.getInstance(module.project).modificationTracker,
     )
   }
 
 /** Key used to cache the [CompileRoots] for a `screenshotTest` module. */
-private val SCREENSHOT_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> =
-  Key.create("screenshotTest roots")
+private val SCREENSHOT_TEST_ROOTS_KEY: Key<ParameterizedCachedValue<CompileRoots, Module>> = Key.create("screenshotTest roots")
 /** [ParameterizedCachedValueProvider] to calculate the output roots for a `screenshotTest` module. */
 private val SCREENSHOT_TEST_ROOTS_PROVIDER =
   ParameterizedCachedValueProvider<CompileRoots, Module> { module ->
     CachedValueProvider.Result.create(
       module.getNonCachedCompileOutputsIncludingDependencies(CompileRootsScope.MAIN_AND_SCREENSHOT_TEST),
       ProjectSyncModificationTracker.getInstance(module.project),
-      GradleBuildState.getInstance(module.project).modificationTracker
+      GradleBuildState.getInstance(module.project).modificationTracker,
     )
   }
 
@@ -220,27 +196,22 @@ private fun Module.getCompileOutputs(scope: CompileRootsScope): CompileRoots {
   }
 
   return when (scope) {
-    CompileRootsScope.MAIN -> CachedValuesManager.getManager(project)
-      .getParameterizedCachedValue(
-        this,
-        PRODUCTION_ROOTS_KEY,
-        PRODUCTION_ROOTS_PROVIDER,
-        false,
-        this
-      )
+    CompileRootsScope.MAIN ->
+      CachedValuesManager.getManager(project)
+        .getParameterizedCachedValue(this, PRODUCTION_ROOTS_KEY, PRODUCTION_ROOTS_PROVIDER, false, this)
 
-    CompileRootsScope.MAIN_AND_ANDROID_TEST -> CachedValuesManager.getManager(project)
-      .getParameterizedCachedValue(this, ANDROID_TEST_ROOTS_KEY, ANDROID_TEST_ROOTS_PROVIDER, false, this)
+    CompileRootsScope.MAIN_AND_ANDROID_TEST ->
+      CachedValuesManager.getManager(project)
+        .getParameterizedCachedValue(this, ANDROID_TEST_ROOTS_KEY, ANDROID_TEST_ROOTS_PROVIDER, false, this)
 
-    CompileRootsScope.MAIN_AND_SCREENSHOT_TEST -> CachedValuesManager.getManager(project)
-      .getParameterizedCachedValue(this, SCREENSHOT_TEST_ROOTS_KEY, SCREENSHOT_TEST_ROOTS_PROVIDER, false, this)
+    CompileRootsScope.MAIN_AND_SCREENSHOT_TEST ->
+      CachedValuesManager.getManager(project)
+        .getParameterizedCachedValue(this, SCREENSHOT_TEST_ROOTS_KEY, SCREENSHOT_TEST_ROOTS_PROVIDER, false, this)
   }
 }
 
 /** A [ClassFileFinder] that finds classes into the compile roots of a Gradle project. */
-class GradleClassFileFinder
-private constructor(private val module: Module, private val scope: CompileRootsScope) :
-  ClassFileFinder {
+class GradleClassFileFinder private constructor(private val module: Module, private val scope: CompileRootsScope) : ClassFileFinder {
 
   init {
     if (module.isLinkedAndroidModule() && module.isHolderModule()) {
@@ -257,23 +228,14 @@ private constructor(private val module: Module, private val scope: CompileRootsS
   }
 
   companion object {
-    /**
-     * Create a [GradleClassFileFinder] that includes dependencies of the given [module] excluding any tests.
-     */
-    fun createWithoutTests(module: Module) =
-      GradleClassFileFinder(module, CompileRootsScope.MAIN)
+    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] excluding any tests. */
+    fun createWithoutTests(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN)
 
-    /**
-     * Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `androidTest` tests.
-     */
-    fun createIncludingAndroidTest(module: Module) =
-      GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_ANDROID_TEST)
+    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `androidTest` tests. */
+    fun createIncludingAndroidTest(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_ANDROID_TEST)
 
-    /**
-     * Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `screenshotTest` tests.
-     */
-    fun createIncludingScreenshotTest(module: Module) =
-      GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
+    /** Create a [GradleClassFileFinder] that includes dependencies of the given [module] including `screenshotTest` tests. */
+    fun createIncludingScreenshotTest(module: Module) = GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
 
     private val LOG = Logger.getInstance(GradleClassFileFinder::class.java)
   }

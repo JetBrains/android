@@ -100,11 +100,7 @@ class ColorPickerActionTest {
   fun `test actionPerformed calls callback`() {
     val colorPicker =
       object : ColorPicker {
-        override fun show(
-          initialColor: Color,
-          restoreFocusComponent: Component?,
-          onColorPicked: (Color) -> Unit,
-        ) {
+        override fun show(initialColor: Color, restoreFocusComponent: Component?, onColorPicked: (Color) -> Unit) {
           onColorPicked(Color.GREEN) // Simulate picking a color
         }
       }

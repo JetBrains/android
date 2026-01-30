@@ -26,33 +26,39 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
+import java.util.Collections.swap
 import org.junit.Test
 import org.mockito.Mockito
-import java.util.Collections.swap
 
 class CatalogTomlDslWriterTest : LightPlatformTestCase() {
 
   @Test
   fun testAddTablesInReverseOrder() {
     val contents = mapOf("libraries" to mapOf("lib1" to "lib1val"), "versions" to mapOf("version1" to "version1val"))
-    val expected = """
+    val expected =
+      """
       [versions]
       version1 = "version1val"
       [libraries]
       lib1 = "lib1val"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   @Test
   fun testAddTablesInMixedOrderExhaustive() {
-    val list = listOf("versions" to mapOf("version1" to "version1val"),
-                      "libraries" to mapOf("lib1" to "lib1val"),
-                      "plugins" to mapOf("plugin1" to "plugin1value"),
-                      "bundles" to mapOf("bundle1" to "bundle1value"))
+    val list =
+      listOf(
+        "versions" to mapOf("version1" to "version1val"),
+        "libraries" to mapOf("lib1" to "lib1val"),
+        "plugins" to mapOf("plugin1" to "plugin1value"),
+        "bundles" to mapOf("bundle1" to "bundle1value"),
+      )
 
-    val expected = """
+    val expected =
+      """
       [versions]
       version1 = "version1val"
       [libraries]
@@ -61,26 +67,30 @@ class CatalogTomlDslWriterTest : LightPlatformTestCase() {
       plugin1 = "plugin1value"
       [bundles]
       bundle1 = "bundle1value"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     list.permutate().map { permutation -> permutation.associate { it } }.forEach { doTest(it, expected) }
-
   }
 
   @Test
   fun testAddTablesInMixedOrder2() {
-    val contents = mapOf(
-      "versions" to mapOf("version1" to "version1val"),
-      "plugins" to mapOf("plugin1" to "plugin1value"),
-      "libraries" to mapOf("lib1" to "lib1val"))
-    val expected = """
+    val contents =
+      mapOf(
+        "versions" to mapOf("version1" to "version1val"),
+        "plugins" to mapOf("plugin1" to "plugin1value"),
+        "libraries" to mapOf("lib1" to "lib1val"),
+      )
+    val expected =
+      """
       [versions]
       version1 = "version1val"
       [libraries]
       lib1 = "lib1val"
       [plugins]
       plugin1 = "plugin1value"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -88,13 +98,16 @@ class CatalogTomlDslWriterTest : LightPlatformTestCase() {
   // main goal here to check that toml will be valid as such situation is extremely rare
   @Test
   fun testAddTablesInWithNonCatalogTables() {
-    val contents = mapOf("foo" to mapOf("bar" to "baz"),
-                         "libraries" to mapOf("lib1" to "lib1val"),
-                         "plugins" to mapOf("plugin1" to "plugin1value"),
-                         "foo2" to mapOf("bar2" to "baz2"),
-                         "versions" to mapOf("version1" to "version1val")
-    )
-    val expected = """
+    val contents =
+      mapOf(
+        "foo" to mapOf("bar" to "baz"),
+        "libraries" to mapOf("lib1" to "lib1val"),
+        "plugins" to mapOf("plugin1" to "plugin1value"),
+        "foo2" to mapOf("bar2" to "baz2"),
+        "versions" to mapOf("version1" to "version1val"),
+      )
+    val expected =
+      """
       [foo]
       bar = "baz"
       [versions]
@@ -105,7 +118,8 @@ class CatalogTomlDslWriterTest : LightPlatformTestCase() {
       plugin1 = "plugin1value"
       [foo2]
       bar2 = "baz2"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }

@@ -28,8 +28,7 @@ private const val MAX_HISTORY_SIZE = 20
 /**
  * A list of filters used as history for [FilterTextField].
  *
- * This is actually maintained as 2 separate lists. A favorites list followed by a non-favorite
- * list.
+ * This is actually maintained as 2 separate lists. A favorites list followed by a non-favorite list.
  */
 @State(name = "AndroidLogcatFilterHistory", storages = [Storage("androidLogcatFilterHistory.xml")])
 internal class AndroidLogcatFilterHistory(
@@ -73,7 +72,6 @@ internal class AndroidLogcatFilterHistory(
   }
 
   companion object {
-    fun getInstance(): AndroidLogcatFilterHistory =
-      ApplicationManager.getApplication().getService(AndroidLogcatFilterHistory::class.java)
+    fun getInstance(): AndroidLogcatFilterHistory = ApplicationManager.getApplication().getService(AndroidLogcatFilterHistory::class.java)
   }
 }

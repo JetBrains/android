@@ -109,9 +109,7 @@ internal class BackupAppActionTest {
     fakeBackupManager.waitForBackupInvocations(1)
 
     assertThat(fakeBackupManager.showBackupDialogInvocations)
-      .containsExactly(
-        ShowBackupDialogInvocation("serial", "com.app", BACKUP_APP_ACTION, notify = true)
-      )
+      .containsExactly(ShowBackupDialogInvocation("serial", "com.app", BACKUP_APP_ACTION, notify = true))
     assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
@@ -125,8 +123,7 @@ internal class BackupAppActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
   }
 
   @Test
@@ -139,9 +136,7 @@ internal class BackupAppActionTest {
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(
-        DialogData("Cannot Backup App Data", "Action is not supported for multiple devices")
-      )
+      .containsExactly(DialogData("Cannot Backup App Data", "Action is not supported for multiple devices"))
   }
 
   @Test
@@ -154,8 +149,7 @@ internal class BackupAppActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
   }
 }
 

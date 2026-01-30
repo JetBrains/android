@@ -22,7 +22,6 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.junit.Test
 
-
 class MergedManifestRefreshListenerTest : HeavyPlatformTestCase() {
   @Test
   fun testTopLevelDependents() {

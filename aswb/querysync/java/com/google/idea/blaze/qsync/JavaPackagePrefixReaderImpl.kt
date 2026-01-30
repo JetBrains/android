@@ -28,7 +28,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
-class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
+class JavaPackagePrefixReaderImpl
+@JvmOverloads
+constructor(
   private val workspaceRoot: Path,
   private val packageReader: PackageReader,
   private val parallelPackageReader: PackageReader.ParallelReader,
@@ -38,75 +40,66 @@ class JavaPackagePrefixReaderImpl @JvmOverloads constructor(
   // TODO(b/449955674): Colocate file existence check and file reading by changing the signature of
   //  readPackage to take an InputStream instead of a Path.
 
-  override suspend fun readPrefixes(
-    context: Context<*>, packages: PackageSet, sourceFiles: Collection<Path>,
-  ): Map<Path, String> = withContext(QuerySyncDispatchers.IO) {
+  override suspend fun readPrefixes(context: Context<*>, packages: PackageSet, sourceFiles: Collection<Path>): Map<Path, String> =
+    withContext(QuerySyncDispatchers.IO) {
+      val filesByPath = sourceFiles.groupBy { it.parent }
+      // A map from directory to the candidate chosen to represent that directory.
+      // For each directory, we select the lexicographically first file that actually exists.
+      val candidates: Map<Path, Path> = coroutineScope {
+        filesByPath.entries
+          .map { (dir, filesInDir) ->
+            async {
+              try {
+                // Find the lexicographically smallest file that exists in the directory.
+                sequence {
+                    val queue = java.util.PriorityQueue<Path>(Comparator.comparing { it.fileName.toString() })
+                    queue.addAll(filesInDir)
+                    while (queue.isNotEmpty()) {
+                      yield(queue.poll())
+                    }
+                  }
+                  .filter {
+                    try {
+                      fileExistenceCheck(it)
+                    } catch (e: Exception) {
+                      context.output(PrintOutput.log("Warning: File existence check failed for $it: ${e.message}"))
+                      false // Treat as non-existent on error
+                    }
+                  }
+                  .firstOrNull()
+                  ?.let { chosenCandidate -> dir to chosenCandidate }
+              } catch (e: Exception) {
+                context.output(PrintOutput.log("Warning: Error processing directory $dir: ${e.message}"))
+                null // Skip this directory on error
+              }
+            }
+          }
+          .awaitAll()
+          .filterNotNull()
+          .toMap()
+      }
 
-    val filesByPath = sourceFiles.groupBy { it.parent }
-    // A map from directory to the candidate chosen to represent that directory.
-    // For each directory, we select the lexicographically first file that actually exists.
-    val candidates: Map<Path, Path> = coroutineScope {
-      filesByPath.entries.map { (dir, filesInDir) ->
-        async {
-          try {
-            // Find the lexicographically smallest file that exists in the directory.
-            sequence {
-                val queue = java.util.PriorityQueue<Path>(Comparator.comparing { it.fileName.toString() })
-                queue.addAll(filesInDir)
-                while (queue.isNotEmpty()) {
-                  yield(queue.poll())
-                }
-              }
-              .filter {
-                try {
-                  fileExistenceCheck(it)
-                } catch (e: Exception) {
-                  context.output(
-                    PrintOutput.log("Warning: File existence check failed for $it: ${e.message}")
-                  )
-                  false // Treat as non-existent on error
-                }
-              }
-              .firstOrNull()
-              ?.let { chosenCandidate -> dir to chosenCandidate }
-          } catch (e: Exception) {
-            context.output(PrintOutput.log("Warning: Error processing directory $dir: ${e.message}"))
-            null // Skip this directory on error
+      // Filter the files that are top level files only.
+      val chosenFiles = candidates.values.filter { file -> isTopLevel(packages, candidates, file) }
+      val (allPackages, elapsed) = measureTimedValue { parallelPackageReader.readPackages(context, packageReader, chosenFiles) }
+      context.output(PrintOutput.log("%-10d Java files read (%d ms)", chosenFiles.size, elapsed.inWholeMilliseconds))
+      allPackages.entries
+        .groupBy({ it.key.parent }, { it.value })
+        .mapNotNull { (parent, pkgs) ->
+          if (pkgs.size > 1) {
+            context.output(PrintOutput.log("Warning: Multiple package prefixes found for directory $parent: $pkgs. Skipping."))
+            null
+          } else {
+            parent to pkgs.single()
           }
         }
-      }.awaitAll().filterNotNull().toMap()
+        .toMap()
     }
-
-    // Filter the files that are top level files only.
-    val chosenFiles = candidates.values.filter { file -> isTopLevel(packages, candidates, file) }
-    val (allPackages, elapsed) = measureTimedValue {
-      parallelPackageReader.readPackages(context, packageReader, chosenFiles)
-    }
-    context.output(
-      PrintOutput.log(
-        "%-10d Java files read (%d ms)", chosenFiles.size, elapsed.inWholeMilliseconds))
-    allPackages.entries
-      .groupBy({ it.key.parent }, { it.value })
-      .mapNotNull { (parent, pkgs) ->
-        if (pkgs.size > 1) {
-          context.output(
-            PrintOutput.log(
-              "Warning: Multiple package prefixes found for directory $parent: $pkgs. Skipping."
-            )
-          )
-          null
-        } else {
-          parent to pkgs.single()
-        }
-      }
-      .toMap()
-  }
 
   /**
-   * Checks if a file is a "top-level" file for package prefix purposes.
-   * A file is considered top-level if its directory is part of the [packages] set,
-   * and no parent directory within the [packages] set has a different representative file.
-   * This helps in identifying the highest level directory in a package hierarchy that contains sources.
+   * Checks if a file is a "top-level" file for package prefix purposes. A file is considered top-level if its directory is part of the
+   * [packages] set, and no parent directory within the [packages] set has a different representative file. This helps in identifying the
+   * highest level directory in a package hierarchy that contains sources.
    */
   private fun isTopLevel(packages: PackageSet, candidates: Map<Path, Path>, file: Path): Boolean {
     var dir = file.parent

@@ -16,11 +16,10 @@
 package com.android.tools.idea.actions
 
 /**
- * List all the Action Ids for Android Designer Tools. The registered Actions in
- * designer/src/META-INF/designer.xml should use the Ids listed in this class.
+ * List all the Action Ids for Android Designer Tools. The registered Actions in designer/src/META-INF/designer.xml should use the Ids
+ * listed in this class.
  *
- * The action system doesn't allow ID duplications, so all the below Group and Action Ids should
- * have "Android.Designer." prefix.
+ * The action system doesn't allow ID duplications, so all the below Group and Action Ids should have "Android.Designer." prefix.
  */
 @Suppress("unused") // values are mapped to META-INF/designer.xml
 object DesignerActions {

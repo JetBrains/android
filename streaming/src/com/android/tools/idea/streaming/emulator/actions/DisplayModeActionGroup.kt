@@ -27,9 +27,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import icons.StudioIcons
 
-/**
- * Displays a popup menu of display modes of a resizable AVD.
- */
+/** Displays a popup menu of display modes of a resizable AVD. */
 internal class DisplayModeActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
@@ -38,20 +36,27 @@ internal class DisplayModeActionGroup : DefaultActionGroup(), DumbAware {
 
   override fun actionPerformed(event: AnActionEvent) {
     val currentDisplayMode = getCurrentDisplayMode(event)
-    val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
-        { action -> action is DisplayModeAction && action.mode == currentDisplayMode },
-        ActionPlaces.getPopupPlace(EMULATOR_MAIN_TOOLBAR_ID))
+    val popup =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          null,
+          this,
+          event.dataContext,
+          JBPopupFactory.ActionSelectionAid.MNEMONICS,
+          true,
+          null,
+          -1,
+          { action -> action is DisplayModeAction && action.mode == currentDisplayMode },
+          ActionPlaces.getPopupPlace(EMULATOR_MAIN_TOOLBAR_ID),
+        )
     val inputEvent = event.inputEvent
     if (inputEvent == null) {
       popup.showInFocusCenter()
-    }
-    else {
+    } else {
       val component = inputEvent.component
       if (component is ActionButtonComponent) {
         popup.showUnderneathOf(component)
-      }
-      else {
+      } else {
         popup.showInCenterOf(component)
       }
     }
@@ -63,13 +68,14 @@ internal class DisplayModeActionGroup : DefaultActionGroup(), DumbAware {
     presentation.isVisible = hasDisplayModes
     if (hasDisplayModes) {
       presentation.isEnabled = isEmulatorConnected(event)
-      presentation.icon = when (getCurrentDisplayMode(event)) {
-        DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Toolbar.RESIZE_DESKTOP
-        DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Toolbar.RESIZE_FOLDABLE
-        DisplayModeValue.PHONE -> StudioIcons.Emulator.Toolbar.RESIZE_PHONE
-        DisplayModeValue.TABLET -> StudioIcons.Emulator.Toolbar.RESIZE_TABLET
-        else -> AllIcons.Toolbar.Unknown
-      }
+      presentation.icon =
+        when (getCurrentDisplayMode(event)) {
+          DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Toolbar.RESIZE_DESKTOP
+          DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Toolbar.RESIZE_FOLDABLE
+          DisplayModeValue.PHONE -> StudioIcons.Emulator.Toolbar.RESIZE_PHONE
+          DisplayModeValue.TABLET -> StudioIcons.Emulator.Toolbar.RESIZE_TABLET
+          else -> AllIcons.Toolbar.Unknown
+        }
     }
   }
 

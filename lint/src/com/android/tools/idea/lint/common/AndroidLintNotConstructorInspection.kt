@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.WrongConstructorDetector
 
 class AndroidLintNotConstructorInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.not.constructor"),
-    WrongConstructorDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.not.constructor"), WrongConstructorDetector.ISSUE)

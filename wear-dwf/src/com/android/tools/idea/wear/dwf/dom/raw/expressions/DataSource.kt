@@ -19,28 +19,24 @@ import com.android.tools.idea.wear.dwf.WFFConstants.DataSources
 import com.android.tools.wear.wff.WFFVersion
 
 /**
- * Represents a data source that can be used in an expression. A data source can either be
- * [StaticDataSource], when the ID is fixed or [PatternedDataSource] when it follows a pattern.
+ * Represents a data source that can be used in an expression. A data source can either be [StaticDataSource], when the ID is fixed or
+ * [PatternedDataSource] when it follows a pattern.
  *
  * @see DataSources
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/source-type">Source
- *   Type</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/common/attributes/source-type">Source Type</a>
  */
 sealed class DataSource(open val requiredVersion: WFFVersion)
 
-data class StaticDataSource(val id: String, override val requiredVersion: WFFVersion) :
-  DataSource(requiredVersion)
+data class StaticDataSource(val id: String, override val requiredVersion: WFFVersion) : DataSource(requiredVersion)
 
 /**
  * a [DataSource] that follows a specific pattern.
  *
  * For example `WEATHER.HOURS.<integer>.IS_AVAILABLE`, where <integer> is not pre-defined.
  *
- * The [lookupString] is the string that will be shown to the user when showing autocomplete
- * variants. The [lookupCursorToken] is the token within the [lookupString] that will be removed and
- * replaced by the cursor. For example `lookupString` can be `WEATHER.DAYS.<days>.IS_AVAILABLE` and
- * the `lookupCursorToken` would be `<days.`. If the user autocompletes that value, they would have
+ * The [lookupString] is the string that will be shown to the user when showing autocomplete variants. The [lookupCursorToken] is the token
+ * within the [lookupString] that will be removed and replaced by the cursor. For example `lookupString` can be
+ * `WEATHER.DAYS.<days>.IS_AVAILABLE` and the `lookupCursorToken` would be `<days.`. If the user autocompletes that value, they would have
  * the following: `WEATHER.DAYS.$caret.IS_AVAILABLE.
  */
 data class PatternedDataSource(

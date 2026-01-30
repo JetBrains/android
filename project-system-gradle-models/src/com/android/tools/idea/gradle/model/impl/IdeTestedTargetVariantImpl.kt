@@ -18,7 +18,5 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import java.io.Serializable
 
-data class IdeTestedTargetVariantImpl(
-  override val targetProjectPath: String,
-  override val targetVariant: String
-) : IdeTestedTargetVariant, Serializable
+data class IdeTestedTargetVariantImpl(override val targetProjectPath: String, override val targetVariant: String) :
+  IdeTestedTargetVariant, Serializable

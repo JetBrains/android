@@ -19,9 +19,8 @@ import com.android.tools.profilers.taskbased.TaskEntranceTabModel.Companion.HIDE
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Test only action, which sets HIDE_NEW_TASK_PROMPT = true.
- * Which prevents the dialog prompt from appearing when starting/importing new tasks,
- * allowing the test to proceed without closing the task tab.
+ * Test only action, which sets HIDE_NEW_TASK_PROMPT = true. Which prevents the dialog prompt from appearing when starting/importing new
+ * tasks, allowing the test to proceed without closing the task tab.
  */
 class SetHideNewTaskPromptToTrueAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")

@@ -18,12 +18,12 @@ package com.android.tools.idea.diagnostics.hprof
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.lang.ref.WeakReference
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.lang.ref.WeakReference
 
 class HeapAnalysisTest {
 
@@ -46,22 +46,21 @@ class HeapAnalysisTest {
     nominatedClassNames: List<String>? = null,
     classNameMapping: ((Class<*>) -> String)? = null,
     config: AnalysisConfig? = null,
-    summaryBaselineFileName: String? = null) {
+    summaryBaselineFileName: String? = null,
+  ) {
     object : HProfScenarioRunner(tmpFolder, remapInMemory) {
-      override fun mapClassName(clazz: Class<*>): String = classNameMapping?.invoke(clazz) ?: super.mapClassName(clazz)
-    }.run(scenario, baselineFileName, nominatedClassNames, config = config, summaryBaselineFileName = summaryBaselineFileName)
+        override fun mapClassName(clazz: Class<*>): String = classNameMapping?.invoke(clazz) ?: super.mapClassName(clazz)
+      }
+      .run(scenario, baselineFileName, nominatedClassNames, config = config, summaryBaselineFileName = summaryBaselineFileName)
   }
 
-  /**
-   * Current JVM version: 8,11,17
-   */
+  /** Current JVM version: 8,11,17 */
   private fun javaVersion(): Int {
     val version = System.getProperty("java.specification.version")
     val dot = version.indexOf('.')
     return if (dot >= 0) {
       version.substring(dot + 1).toInt()
-    }
-    else {
+    } else {
       version.toInt()
     }
   }
@@ -80,16 +79,16 @@ class HeapAnalysisTest {
     ReferenceStore().use { refStore ->
       val scenario: HProfBuilder.() -> Unit = {
         val a = TestClassA()
-        addRootGlobalJNI(listOf(MyRef(MyRef(MyRef(a))),
-                                TestClassA(),
-                                refStore.createWeakReference(TestClassA()),
-                                refStore.createWeakReference(a)))
+        addRootGlobalJNI(
+          listOf(MyRef(MyRef(MyRef(a))), TestClassA(), refStore.createWeakReference(TestClassA()), refStore.createWeakReference(a))
+        )
         addRootUnknown(TestClassA())
       }
-      runHProfScenario(scenario, if (javaVersion()<=17) "testPathsThroughDifferentFields17.txt" else "testPathsThroughDifferentFields.txt",
-                       listOf("TestClassB",
-                              "TestClassA",
-                              "TestString"))
+      runHProfScenario(
+        scenario,
+        if (javaVersion() <= 17) "testPathsThroughDifferentFields17.txt" else "testPathsThroughDifferentFields.txt",
+        listOf("TestClassB", "TestClassA", "TestString"),
+      )
     }
   }
 
@@ -101,22 +100,16 @@ class HeapAnalysisTest {
     val scenario: HProfBuilder.() -> Unit = {
       addRootUnknown(MyTestClass1())
       addRootGlobalJNI(MyTestClass2())
-
     }
     val classNameMapping: (Class<*>) -> String = { c ->
-      if (c == MyTestClass1::class.java ||
-          c == MyTestClass2::class.java) {
+      if (c == MyTestClass1::class.java || c == MyTestClass2::class.java) {
         "MyTestClass"
-      }
-      else {
+      } else {
         c.name
       }
     }
 
-    runHProfScenario(scenario, "testClassNameClash.txt",
-                     listOf("MyTestClass!1",
-                            "MyTestClass!2"),
-                     classNameMapping)
+    runHProfScenario(scenario, "testClassNameClash.txt", listOf("MyTestClass!1", "MyTestClass!2"), classNameMapping)
   }
 
   @Test
@@ -134,8 +127,7 @@ class HeapAnalysisTest {
       // This objects sole reference is from a frame
       addRootJavaFrame(o2, threadSerialNumber, 1)
     }
-    runHProfScenario(scenario, "testJavaFrameGCRootPriority.txt",
-                     listOf("C1", "C2"))
+    runHProfScenario(scenario, "testJavaFrameGCRootPriority.txt", listOf("C1", "C2"))
   }
 
   @Test
@@ -147,8 +139,7 @@ class HeapAnalysisTest {
       internalWriter.writeRootUnknown(999_999_999) // id without matching object
     }
     remapInMemory = false
-    runHProfScenario(scenario, "testIgnoreRootWithNoMatchingObject.txt",
-                     listOf("C1"))
+    runHProfScenario(scenario, "testIgnoreRootWithNoMatchingObject.txt", listOf("C1"))
   }
 
   @Test
@@ -156,8 +147,7 @@ class HeapAnalysisTest {
     val objectTree = ObjectTreeTestWrapper()
 
     open class MyDisposable : Disposable {
-      override fun dispose() {
-      }
+      override fun dispose() {}
     }
 
     class MyDisposableRoot : MyDisposable()
@@ -178,9 +168,7 @@ class HeapAnalysisTest {
 
     objectTree.register(Disposer.newDisposable(), MyDisposableChild())
 
-    val scenario: HProfBuilder.() -> Unit = {
-      addDisposer(this, objectTree)
-    }
+    val scenario: HProfBuilder.() -> Unit = { addDisposer(this, objectTree) }
 
     runHProfScenario(scenario, "testDisposerTreeSummarySection.txt", config = configWithDisposerTreeSummaryOnly())
   }
@@ -196,13 +184,13 @@ class HeapAnalysisTest {
     class C1(val field: Any)
     class C2(val field: Any)
     class DisposableParent1(val field: Any) : Disposable {
-      override fun dispose() { }
+      override fun dispose() {}
     }
     class DisposableParent2(val field: Any, val field2: Any) : Disposable {
-      override fun dispose() { }
+      override fun dispose() {}
     }
     class DisposableChild : Disposable {
-      override fun dispose() { }
+      override fun dispose() {}
     }
 
     val observedParent1 = Observed1()
@@ -248,13 +236,13 @@ class HeapAnalysisTest {
   fun testDominatorTreeFlameGraph() {
     val scenario: HProfBuilder.() -> Unit = {
       abstract class N
-      class A(val b: N, val c : N, val d: N): N()
-      class B(val e: N, val f: N): N()
-      class C(val f: N): N()
-      class D(): N()
-      class E(val g: N): N()
-      class F: N()
-      class G(var b: N?): N()
+      class A(val b: N, val c: N, val d: N) : N()
+      class B(val e: N, val f: N) : N()
+      class C(val f: N) : N()
+      class D() : N()
+      class E(val g: N) : N()
+      class F : N()
+      class G(var b: N?) : N()
       val g = G(null)
       val f = F()
       val e = E(g)
@@ -279,22 +267,17 @@ class HeapAnalysisTest {
       val c = listOf(b)
       addRootGlobalJNI(c)
     }
-    HProfScenarioRunner(tmpFolder, remapInMemory).run(
-      scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false,
-      config = configWithInnerClassSectionOnly())
+    HProfScenarioRunner(tmpFolder, remapInMemory)
+      .run(scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false, config = configWithInnerClassSectionOnly())
   }
 
   @Test
   fun testMissingObjectInObjectArray() {
     val scenario: HProfBuilder.() -> Unit = {
-      class A(val x: Any) {
-      }
+      class A(val x: Any) {}
       val s = "object excluded from hprof"
       setObjectFilter { o ->
-        if (o === s)
-          HProfBuilder.FilterResult.INCLUDE_REFERENCES_ONLY
-        else
-          HProfBuilder.FilterResult.INCLUDE_REFERENCES_AND_INSTANCE
+        if (o === s) HProfBuilder.FilterResult.INCLUDE_REFERENCES_ONLY else HProfBuilder.FilterResult.INCLUDE_REFERENCES_AND_INSTANCE
       }
       // This will keep a reference to the object from the array, but object itself will not be
       //   included.
@@ -316,10 +299,14 @@ class HeapAnalysisTest {
       val c = listOf(a, b)
       addRootGlobalJNI(c)
     }
-    HProfScenarioRunner(tmpFolder, remapInMemory).run(
-      scenario, "testReportSummary_report.txt", listOf("A", "B"),
-      config = configWithSummary("A", "B"),
-      summaryBaselineFileName = "testReportSummary_summary.txt")
+    HProfScenarioRunner(tmpFolder, remapInMemory)
+      .run(
+        scenario,
+        "testReportSummary_report.txt",
+        listOf("A", "B"),
+        config = configWithSummary("A", "B"),
+        summaryBaselineFileName = "testReportSummary_summary.txt",
+      )
   }
 
   @Test
@@ -331,131 +318,78 @@ class HeapAnalysisTest {
       val editors = listOf(activeEditor, releasedEditor)
       addRootGlobalJNI(editors)
     }
-    runHProfScenario(scenario,
-                     "testReleasedEditor.txt",
-                     classNameMapping = { if (it === MockEditor::class.java) "com.intellij.openapi.editor.impl.EditorImpl" else it.name },
-                     nominatedClassNames = listOf("com.intellij.openapi.editor.impl.EditorImpl")
+    runHProfScenario(
+      scenario,
+      "testReleasedEditor.txt",
+      classNameMapping = { if (it === MockEditor::class.java) "com.intellij.openapi.editor.impl.EditorImpl" else it.name },
+      nominatedClassNames = listOf("com.intellij.openapi.editor.impl.EditorImpl"),
     )
   }
 
-  private fun configWithSummary(vararg classes: String) = AnalysisConfig(
-    AnalysisConfig.PerClassOptions(
-      classNames = classes.asList(),
-      includeClassList = false
-    ),
-    AnalysisConfig.HistogramOptions(includeByCount = false,
-                                    includeBySize = false,
-                                    includeSummary = false),
-    summaryOptions = AnalysisConfig.SummaryOptions(
-      minimumSubgraphSize = 0,
-      maximumTreeDepth = 40
-    ),
-    metaInfoOptions = AnalysisConfig.MetaInfoOptions(
-      include = false
+  private fun configWithSummary(vararg classes: String) =
+    AnalysisConfig(
+      AnalysisConfig.PerClassOptions(classNames = classes.asList(), includeClassList = false),
+      AnalysisConfig.HistogramOptions(includeByCount = false, includeBySize = false, includeSummary = false),
+      summaryOptions = AnalysisConfig.SummaryOptions(minimumSubgraphSize = 0, maximumTreeDepth = 40),
+      metaInfoOptions = AnalysisConfig.MetaInfoOptions(include = false),
     )
-  )
 
-  private fun configWithDisposerTreeSummaryOnly() = AnalysisConfig(
-    AnalysisConfig.PerClassOptions(
-      classNames = listOf(),
-      includeClassList = false,
-    ),
-    AnalysisConfig.HistogramOptions(includeByCount = false,
-                                    includeBySize = false,
-                                    includeSummary = false),
-    AnalysisConfig.DisposerOptions(
-      includeDisposerTreeSummary = true,
-      includeDisposedObjectsSummary = false,
-      includeDisposedObjectsDetails = false,
-      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
-        nodeCutoff = 0
-      )
-    ),
-    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
-      includeDominatorTree = false,
-    ),
-    innerClassOptions = AnalysisConfig.InnerClassOptions(
-      includeInnerClassSection = false
+  private fun configWithDisposerTreeSummaryOnly() =
+    AnalysisConfig(
+      AnalysisConfig.PerClassOptions(classNames = listOf(), includeClassList = false),
+      AnalysisConfig.HistogramOptions(includeByCount = false, includeBySize = false, includeSummary = false),
+      AnalysisConfig.DisposerOptions(
+        includeDisposerTreeSummary = true,
+        includeDisposedObjectsSummary = false,
+        includeDisposedObjectsDetails = false,
+        disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(nodeCutoff = 0),
+      ),
+      dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(includeDominatorTree = false),
+      innerClassOptions = AnalysisConfig.InnerClassOptions(includeInnerClassSection = false),
     )
-  )
 
-  private fun configWithDominatorTreeOnly() = AnalysisConfig(
-    AnalysisConfig.PerClassOptions(
-      classNames = listOf(),
-      includeClassList = false,
-    ),
-    AnalysisConfig.HistogramOptions(includeByCount = false,
-                                    includeBySize = false,
-                                    includeSummary = false),
-    AnalysisConfig.DisposerOptions(
-      includeDisposerTreeSummary = false,
-      includeDisposedObjectsSummary = false,
-      includeDisposedObjectsDetails = false,
-      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
-        nodeCutoff = 0
-      )
-    ),
-    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
-      includeDominatorTree = true,
-      minNodeSize = 0
-    ),
-    innerClassOptions = AnalysisConfig.InnerClassOptions(
-      includeInnerClassSection = false
+  private fun configWithDominatorTreeOnly() =
+    AnalysisConfig(
+      AnalysisConfig.PerClassOptions(classNames = listOf(), includeClassList = false),
+      AnalysisConfig.HistogramOptions(includeByCount = false, includeBySize = false, includeSummary = false),
+      AnalysisConfig.DisposerOptions(
+        includeDisposerTreeSummary = false,
+        includeDisposedObjectsSummary = false,
+        includeDisposedObjectsDetails = false,
+        disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(nodeCutoff = 0),
+      ),
+      dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(includeDominatorTree = true, minNodeSize = 0),
+      innerClassOptions = AnalysisConfig.InnerClassOptions(includeInnerClassSection = false),
     )
-  )
 
-  private fun configWithInnerClassSectionOnly() = AnalysisConfig(
-    AnalysisConfig.PerClassOptions(
-      classNames = listOf(),
-      includeClassList = false,
-    ),
-    AnalysisConfig.HistogramOptions(includeByCount = false,
-                                    includeBySize = false,
-                                    includeSummary = false),
-    AnalysisConfig.DisposerOptions(
-      includeDisposerTreeSummary = false,
-      includeDisposedObjectsSummary = false,
-      includeDisposedObjectsDetails = false,
-      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
-        nodeCutoff = 0
-      )
-    ),
-    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
-      includeDominatorTree = false,
-      minNodeSize = 0
-    ),
-    innerClassOptions = AnalysisConfig.InnerClassOptions(
-      includeInnerClassSection = true
+  private fun configWithInnerClassSectionOnly() =
+    AnalysisConfig(
+      AnalysisConfig.PerClassOptions(classNames = listOf(), includeClassList = false),
+      AnalysisConfig.HistogramOptions(includeByCount = false, includeBySize = false, includeSummary = false),
+      AnalysisConfig.DisposerOptions(
+        includeDisposerTreeSummary = false,
+        includeDisposedObjectsSummary = false,
+        includeDisposedObjectsDetails = false,
+        disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(nodeCutoff = 0),
+      ),
+      dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(includeDominatorTree = false, minNodeSize = 0),
+      innerClassOptions = AnalysisConfig.InnerClassOptions(includeInnerClassSection = true),
     )
-  )
 
-  private fun configWithDisposedObjectsSummaryAndDetails(vararg classes: String) = AnalysisConfig(
-    AnalysisConfig.PerClassOptions(
-      classNames = classes.asList(),
-      includeClassList = false,
-    ),
-    AnalysisConfig.HistogramOptions(includeByCount = false,
-                                    includeBySize = false,
-                                    includeSummary = false),
-    AnalysisConfig.DisposerOptions(
-      includeDisposerTreeSummary = false,
-      includeDisposedObjectsSummary = true,
-      includeDisposedObjectsDetails = true,
-      disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(
-        nodeCutoff = 0
-      )
-    ),
-    dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(
-      includeDominatorTree = false,
-      minNodeSize = 0
-    ),
-    innerClassOptions = AnalysisConfig.InnerClassOptions(
-      includeInnerClassSection = false
-    ),
-    metaInfoOptions = AnalysisConfig.MetaInfoOptions(
-      include = false
+  private fun configWithDisposedObjectsSummaryAndDetails(vararg classes: String) =
+    AnalysisConfig(
+      AnalysisConfig.PerClassOptions(classNames = classes.asList(), includeClassList = false),
+      AnalysisConfig.HistogramOptions(includeByCount = false, includeBySize = false, includeSummary = false),
+      AnalysisConfig.DisposerOptions(
+        includeDisposerTreeSummary = false,
+        includeDisposedObjectsSummary = true,
+        includeDisposedObjectsDetails = true,
+        disposerTreeSummaryOptions = AnalysisConfig.DisposerTreeSummaryOptions(nodeCutoff = 0),
+      ),
+      dominatorTreeOptions = AnalysisConfig.DominatorTreeOptions(includeDominatorTree = false, minNodeSize = 0),
+      innerClassOptions = AnalysisConfig.InnerClassOptions(includeInnerClassSection = false),
+      metaInfoOptions = AnalysisConfig.MetaInfoOptions(include = false),
     )
-  )
 
   /**
    * Adds disposer to the hprof. Disposer is simplified and contains only ourTree static field, all other static fields are omitted.
@@ -464,18 +398,14 @@ class HeapAnalysisTest {
    */
   private fun addDisposer(builder: HProfBuilder, objectTree: ObjectTreeTestWrapper) {
     class DisposerStatics {
-      @JvmField
-      var ourTree = objectTree.getTree()
+      @JvmField var ourTree = objectTree.getTree()
     }
     builder.registerStaticsForClass(Disposer::class.java, DisposerStatics())
     builder.addObject(Disposer::class.java)
   }
 }
 
-
-/**
- * Helper class to keep strong references to objects referenced by newly created weak references.
- */
+/** Helper class to keep strong references to objects referenced by newly created weak references. */
 private class ReferenceStore : AutoCloseable {
   private val set = HashSet<Any?>()
 

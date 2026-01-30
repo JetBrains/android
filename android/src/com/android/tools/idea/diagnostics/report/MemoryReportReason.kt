@@ -29,12 +29,13 @@ enum class MemoryReportReason {
     return this == UserInvoked || this == InternalUserInvoked
   }
 
-  fun asHeapReportEventReason() = when (this) {
+  fun asHeapReportEventReason() =
+    when (this) {
       None -> HeapReportEvent.Reason.NONE
       UserInvoked -> HeapReportEvent.Reason.USER_INVOKED
       InternalUserInvoked -> HeapReportEvent.Reason.INTERNAL_USER_INVOKED
       FrequentLowMemoryNotification -> HeapReportEvent.Reason.FREQUENT_LOW_MEMORY_NOTIFICATION
       LowMemory -> HeapReportEvent.Reason.LOW_MEMORY
       OutOfMemory -> HeapReportEvent.Reason.OUT_OF_MEMORY
-  }
+    }
 }

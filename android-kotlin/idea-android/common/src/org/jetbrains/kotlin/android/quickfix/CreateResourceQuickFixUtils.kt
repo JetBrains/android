@@ -28,7 +28,7 @@ import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
-fun getCreateResourceQuickFixActions(expression: KtSimpleNameExpression) : List<IntentionAction> {
+fun getCreateResourceQuickFixActions(expression: KtSimpleNameExpression): List<IntentionAction> {
     val contextModule = ModuleUtil.findModuleForPsiElement(expression) ?: return emptyList()
     val facet = AndroidFacet.getInstance(contextModule) ?: return emptyList()
     // The module containing the code must have a manifest with a defined package name to be

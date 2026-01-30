@@ -39,24 +39,17 @@ import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent
 
 /**
- * Show a warning message with HTML link about alignment problems of an ELF file.
- * FUTURE: This panel could be promoted to an more general ElfViewer if we
- *         ever want to show more details about the file the user clicked.
+ * Show a warning message with HTML link about alignment problems of an ELF file. FUTURE: This panel could be promoted to an more general
+ * ElfViewer if we ever want to show more details about the file the user clicked.
  */
 class AlignmentWarningViewer(val alignment: AlignmentFinding) : ApkFileEditorComponent {
 
-  /**
-   * True if there are LOAD alignment problems.
-   * We only show the Play Store message if there are any LOAD alignment problems.
-   */
-  private val hasLoadAlignmentProblem =
-    alignment.problems?.any { it is LoadSectionNotAligned } ?: false
+  /** True if there are LOAD alignment problems. We only show the Play Store message if there are any LOAD alignment problems. */
+  private val hasLoadAlignmentProblem = alignment.problems?.any { it is LoadSectionNotAligned } ?: false
 
-  /**
-   * Generates the warning content.
-   */
+  /** Generates the warning content. */
   @VisibleForTesting
-  fun warningContent() : String {
+  fun warningContent(): String {
     val sb = StringBuilder()
 
     if (isPageAlignMessageEnabled() && hasLoadAlignmentProblem) {
@@ -66,14 +59,14 @@ class AlignmentWarningViewer(val alignment: AlignmentFinding) : ApkFileEditorCom
 
     if (alignment.problems != null) {
       sb.append("<h3>All ELF Alignment Problems</h3>")
-      for(problem in alignment.problems) {
+      for (problem in alignment.problems) {
         sb.append("<li>${problem.toDetailedDisplayString()}</li>")
       }
     }
     return "$sb"
   }
 
-  override fun getComponent() : JComponent {
+  override fun getComponent(): JComponent {
     val editorPane = JTextPane()
     editorPane.isEditable = false
     editorPane.setContentType("text/html")
@@ -100,12 +93,10 @@ class AlignmentWarningViewer(val alignment: AlignmentFinding) : ApkFileEditorCom
     return JBScrollPane(editorPane)
   }
 
-  override fun dispose() { }
+  override fun dispose() {}
 
-  /**
-   * Generate HTML with the relevant part of the program header highlighted.
-   */
-  private fun AlignmentProblem.toDetailedDisplayString() : String {
+  /** Generate HTML with the relevant part of the program header highlighted. */
+  private fun AlignmentProblem.toDetailedDisplayString(): String {
     return when (this) {
       is ZipEntryNotAligned -> toString()
       is LoadSectionNotAligned -> "${ph.toPresentationHtml(ALIGN)} $this"
@@ -114,19 +105,15 @@ class AlignmentWarningViewer(val alignment: AlignmentFinding) : ApkFileEditorCom
     }
   }
 
-  /**
-   * The field within the program header to highlight.
-   */
+  /** The field within the program header to highlight. */
   enum class HighlightField {
     START,
     END,
-    ALIGN
+    ALIGN,
   }
 
-  /**
-   * Generate highlighted HTML for a program header.
-   */
-  fun ProgramHeader.toPresentationHtml(vararg highlights: HighlightField) : String {
+  /** Generate highlighted HTML for a program header. */
+  fun ProgramHeader.toPresentationHtml(vararg highlights: HighlightField): String {
     val sb = StringBuilder()
     sb.append(programHeaderType)
     if (highlights.contains(START)) {

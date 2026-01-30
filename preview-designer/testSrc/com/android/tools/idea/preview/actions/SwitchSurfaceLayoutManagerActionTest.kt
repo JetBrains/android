@@ -47,14 +47,11 @@ class SwitchSurfaceLayoutManagerActionTest {
   fun testPreviewModeIsUpdatedWithFocusModeOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
-    val (dataContext, previewModeManager, _) =
-      setupTestData(listOf(previewElement1, previewElement2))
+    val (dataContext, previewModeManager, _) = setupTestData(listOf(previewElement1, previewElement2))
 
-    val actionWithFocusModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
+    val actionWithFocusModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
-    val setFocusModeOption =
-      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(FOCUS_MODE_LAYOUT_OPTION)
+    val setFocusModeOption = actionWithFocusModeOption.SetSurfaceLayoutManagerAction(FOCUS_MODE_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -94,16 +91,11 @@ class SwitchSurfaceLayoutManagerActionTest {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
     val (dataContext, previewModeManager, _) =
-      setupTestData(
-        listOf(previewElement1, previewElement2),
-        currentPreviewMode = PreviewMode.Focus(previewElement2),
-      )
+      setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = PreviewMode.Focus(previewElement2))
 
-    val actionWithFocusModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
+    val actionWithFocusModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
-    val setGridLayoutOption =
-      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
+    val setGridLayoutOption = actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -122,19 +114,12 @@ class SwitchSurfaceLayoutManagerActionTest {
   fun testPreviewModeDerivesCurrentModeWithLayoutWithFocusModeOption() {
     val previewElement1 = TestPreviewElement("preview element 1")
     val previewElement2 = TestPreviewElement("preview element 2")
-    val uiCheckMode =
-      PreviewMode.UiCheck(
-        UiCheckInstance(previewElement2, isWearPreview = false),
-        layoutOption = GRID_LAYOUT_OPTION,
-      )
-    val (dataContext, previewModeManager, _) =
-      setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
+    val uiCheckMode = PreviewMode.UiCheck(UiCheckInstance(previewElement2, isWearPreview = false), layoutOption = GRID_LAYOUT_OPTION)
+    val (dataContext, previewModeManager, _) = setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
 
-    val actionWithFocusModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
+    val actionWithFocusModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, FOCUS_MODE_LAYOUT_OPTION))
 
-    val setGridLayoutOption =
-      actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
+    val setGridLayoutOption = actionWithFocusModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
@@ -161,8 +146,7 @@ class SwitchSurfaceLayoutManagerActionTest {
     currentPreviewMode: PreviewMode = PreviewMode.Default(),
   ): TestData {
     val previewFlowManager = mock<PreviewFlowManager<*>>()
-    whenever(previewFlowManager.allPreviewElementsFlow)
-      .thenReturn(MutableStateFlow(FlowableCollection.Present(previewElements)))
+    whenever(previewFlowManager.allPreviewElementsFlow).thenReturn(MutableStateFlow(FlowableCollection.Present(previewElements)))
 
     val previewModeManager = mock<PreviewModeManager>()
     whenever(previewModeManager.mode).thenReturn(MutableStateFlow(currentPreviewMode))

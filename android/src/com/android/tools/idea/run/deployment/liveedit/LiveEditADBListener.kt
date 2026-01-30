@@ -19,11 +19,11 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 
-interface AllAdbEventsListener: IClientChangeListener, IDeviceChangeListener
+interface AllAdbEventsListener : IClientChangeListener, IDeviceChangeListener
 
 /**
- * LiveEdit needs to listen for event from ADB regarding device lifecycle but also app process (Client) lifecycle
- * in order to maintain its GUI state.
+ * LiveEdit needs to listen for event from ADB regarding device lifecycle but also app process (Client) lifecycle in order to maintain its
+ * GUI state.
  */
 open class LiveEditAdbEventsListener {
   open fun addListener(listener: AllAdbEventsListener) {

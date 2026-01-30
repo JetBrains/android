@@ -157,25 +157,13 @@ object MockAppCompat {
 
   fun setUp(facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
     val appCompatArtifact =
-      TestProjectSystem.Artifact(
-        GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
-        TestVersion.create(MOST_RECENT_API_LEVEL),
-      )
+      TestProjectSystem.Artifact(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, TestVersion.create(MOST_RECENT_API_LEVEL))
     val projectSystem = TestProjectSystem(facet.module.project, ImmutableList.of(appCompatArtifact))
     projectSystem.useInTests()
 
-    fixture.addFileToProject(
-      "src/android/support/v7/app/AppCompatImageView.java",
-      APPCOMPAT_ACTIVITY,
-    )
-    fixture.addFileToProject(
-      "src/android/support/v7/widget/AppCompatImageView.java",
-      APPCOMPAT_IMAGE_VIEW_SOURCE,
-    )
-    fixture.addFileToProject(
-      "src/android/support/v7/widget/AppCompatTextView.java",
-      APPCOMPAT_TEXT_VIEW_SOURCE,
-    )
+    fixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY)
+    fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE)
+    fixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE)
     fixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS)
     fixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY)
   }

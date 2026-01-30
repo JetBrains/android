@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.util.io.write
+import java.nio.file.Files
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -28,11 +29,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 
 class ProjectSystemClassLoaderTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @After
   fun tearDown() {
@@ -46,13 +45,8 @@ class ProjectSystemClassLoaderTest {
     val classContent1 = ClassContent.loadFromFile(classFile1)
     val classFile2 = outputDirectory.resolve("file2").write("contents2").toFile()
     val classContent2 = ClassContent.loadFromFile(classFile2)
-    val classes = mapOf(
-      "a.class1" to classContent1,
-      "a.class2" to classContent2
-    )
-    val loader = ProjectSystemClassLoader {
-      classes[it]
-    }
+    val classes = mapOf("a.class1" to classContent1, "a.class2" to classContent2)
+    val loader = ProjectSystemClassLoader { classes[it] }
 
     assertNull(loader.loadClass("not.found.class"))
     assertEquals(0, loader.getClassCache().count())
@@ -71,9 +65,7 @@ class ProjectSystemClassLoaderTest {
   fun `test files removed`() {
     val outputDirectory = Files.createTempDirectory("out")
     val classFile1 = outputDirectory.resolve("file1").write("contents1").toFile()
-    val loader = ProjectSystemClassLoader {
-      if (it == "a.class1" && classFile1.isFile) ClassContent.loadFromFile(classFile1) else null
-    }
+    val loader = ProjectSystemClassLoader { if (it == "a.class1" && classFile1.isFile) ClassContent.loadFromFile(classFile1) else null }
     assertArrayEquals(classFile1.readBytes(), loader.loadClass("a.class1"))
     assertTrue(classFile1.delete())
     assertNull(loader.loadClass("a.class1"))
@@ -86,13 +78,8 @@ class ProjectSystemClassLoaderTest {
     val classContent1 = ClassContent.loadFromFile(classFile1)
     val classFile2 = outputDirectory.resolve("file2").write("contents2").toFile()
     val classContent2 = ClassContent.loadFromFile(classFile2)
-    val classes = mapOf(
-      "a.class1" to classContent1,
-      "a.class2" to classContent2
-    )
-    val loader = ProjectSystemClassLoader {
-      classes[it]
-    }
+    val classes = mapOf("a.class1" to classContent1, "a.class2" to classContent2)
+    val loader = ProjectSystemClassLoader { classes[it] }
 
     assertArrayEquals(classFile1.readBytes(), loader.loadClass("a.class1"))
     assertArrayEquals(classFile2.readBytes(), loader.loadClass("a.class2"))
@@ -119,14 +106,9 @@ class ProjectSystemClassLoaderTest {
     val classContent2 = ClassContent.loadFromFile(classFile2)
     val classFile3 = outputDirectory.resolve("file3").write("contents3").toFile()
     val classContent3 = ClassContent.loadFromFile(classFile3)
-    val classes = mapOf(
-      "_layoutlib_._internal_..class1" to classContent1,
-      "java.lang.Test" to classContent2,
-      "test.package.A" to classContent3
-    )
-    val loader = ProjectSystemClassLoader {
-      classes[it]
-    }
+    val classes =
+      mapOf("_layoutlib_._internal_..class1" to classContent1, "java.lang.Test" to classContent2, "test.package.A" to classContent3)
+    val loader = ProjectSystemClassLoader { classes[it] }
 
     assertNull(loader.loadClass("_layoutlib_._internal_..Class1"))
     assertNull(loader.loadClass("java.lang.Test"))
@@ -134,9 +116,7 @@ class ProjectSystemClassLoaderTest {
     assertEquals(1, loader.getClassCache().count())
   }
 
-  /**
-   * Regression test for b/216309775. If a class is not found, but then added by a build, the project class loader should pick it up.
-   */
+  /** Regression test for b/216309775. If a class is not found, but then added by a build, the project class loader should pick it up. */
   @Test
   fun `verify failed class loads are not cached`() {
     val outputDirectory = Files.createTempDirectory("out")
@@ -144,12 +124,8 @@ class ProjectSystemClassLoaderTest {
     val classContent1 = ClassContent.loadFromFile(classFile1)
     val classFile2 = outputDirectory.resolve("file2").write("contents2").toFile()
     val classContent2 = ClassContent.loadFromFile(classFile2)
-    val classes = mutableMapOf(
-      "test.package.A" to classContent1
-    )
-    val loader = ProjectSystemClassLoader {
-      classes[it]
-    }
+    val classes = mutableMapOf("test.package.A" to classContent1)
+    val loader = ProjectSystemClassLoader { classes[it] }
 
     assertNull(loader.loadClass("test.package.B"))
     classes["test.package.B"] = classContent2
@@ -157,16 +133,13 @@ class ProjectSystemClassLoaderTest {
   }
 
   /**
-   * Regression test for b/218453131 where we need to check that we get the latest version of the class file and not the
-   * VFS cached version.
+   * Regression test for b/218453131 where we need to check that we get the latest version of the class file and not the VFS cached version.
    */
   @Test
   fun `ensure latest version of the class file is accessed`() {
     val tempDirectory = Files.createTempDirectory("out").toFile()
 
-    val classFile = tempDirectory.resolve("A.class").also {
-      it.writeText("Initial content")
-    }
+    val classFile = tempDirectory.resolve("A.class").also { it.writeText("Initial content") }
 
     val loader = ProjectSystemClassLoader { fqcn ->
       when (fqcn) {
@@ -178,9 +151,7 @@ class ProjectSystemClassLoaderTest {
     assertEquals("Initial content", String(loader.loadClass("test.package.A")!!))
 
     // Write the file externally (not using VFS) and check the contents
-    classFile.writeText("Updated content").also {
-      classFile.setLastModified(111)
-    }
+    classFile.writeText("Updated content").also { classFile.setLastModified(111) }
     assertEquals("Updated content", String(loader.loadClass("test.package.A")!!))
   }
 
@@ -189,20 +160,22 @@ class ProjectSystemClassLoaderTest {
     val tempDirectory = Files.createTempDirectory("out").toFile()
     val outputJar = tempDirectory.resolve("classes.jar")
 
-    createJarFile(outputJar.toPath(), mapOf(
-      "ClassA.class" to "contents1".encodeToByteArray(),
-      "ClassB.class" to "contents2".encodeToByteArray(),
-      "test/package/ClassC.class" to "contents3".encodeToByteArray(),
-    ))
-
-    val classes = mutableMapOf(
-      "A" to ClassContent.fromJarEntryContent(outputJar, "contents1".encodeToByteArray()),
-      "B" to ClassContent.fromJarEntryContent(outputJar, "contents2".encodeToByteArray()),
-      "test.package.C" to ClassContent.fromJarEntryContent(outputJar, "contents3".encodeToByteArray())
+    createJarFile(
+      outputJar.toPath(),
+      mapOf(
+        "ClassA.class" to "contents1".encodeToByteArray(),
+        "ClassB.class" to "contents2".encodeToByteArray(),
+        "test/package/ClassC.class" to "contents3".encodeToByteArray(),
+      ),
     )
-    val loader = ProjectSystemClassLoader {
-      classes[it]
-    }
+
+    val classes =
+      mutableMapOf(
+        "A" to ClassContent.fromJarEntryContent(outputJar, "contents1".encodeToByteArray()),
+        "B" to ClassContent.fromJarEntryContent(outputJar, "contents2".encodeToByteArray()),
+        "test.package.C" to ClassContent.fromJarEntryContent(outputJar, "contents3".encodeToByteArray()),
+      )
+    val loader = ProjectSystemClassLoader { classes[it] }
     assertEquals("contents1", String(loader.loadClass("A")!!))
     assertEquals("contents2", String(loader.loadClass("B")!!))
     assertEquals("contents3", String(loader.loadClass("test.package.C")!!))

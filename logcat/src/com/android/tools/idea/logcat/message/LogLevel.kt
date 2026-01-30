@@ -22,16 +22,7 @@ import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 
-private val LEVEL_BY_LETTER =
-  mapOf(
-    "V" to VERBOSE,
-    "D" to DEBUG,
-    "I" to INFO,
-    "W" to WARN,
-    "E" to ERROR,
-    "F" to ASSERT,
-    "A" to ASSERT,
-  )
+private val LEVEL_BY_LETTER = mapOf("V" to VERBOSE, "D" to DEBUG, "I" to INFO, "W" to WARN, "E" to ERROR, "F" to ASSERT, "A" to ASSERT)
 
 /** Log Level enum. */
 enum class LogLevel(val stringValue: String, val priorityLetter: Char) {

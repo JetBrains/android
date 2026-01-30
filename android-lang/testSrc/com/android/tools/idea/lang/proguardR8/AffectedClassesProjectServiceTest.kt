@@ -25,25 +25,25 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class AffectedClassesProjectServiceTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule
-    .withAndroidModels(
-      prepareProjectSources = { dir -> assertThat(File(dir, "src").mkdirs()).isTrue() },
-      AndroidModuleModelBuilder(
-        gradlePath = ":",
-        selectedBuildVariant = "debug",
-        projectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        prepareProjectSources = { dir -> assertThat(File(dir, "src").mkdirs()).isTrue() },
+        AndroidModuleModelBuilder(
+          gradlePath = ":",
+          selectedBuildVariant = "debug",
+          projectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure(),
+        ),
       )
-    )
-    .onEdt()
+      .onEdt()
 
   private fun fixture(): JavaCodeInsightTestFixture {
     return projectRule.fixture as JavaCodeInsightTestFixture
@@ -55,9 +55,10 @@ class AffectedClassesProjectServiceTest {
 
   @Before
   fun setUp() {
-    fixture().addFileToProject(
-      "src/com/packageA/X.java",
-      """
+    fixture()
+      .addFileToProject(
+        "src/com/packageA/X.java",
+        """
         package com.packageA;
 
         class X {
@@ -65,12 +66,14 @@ class AffectedClassesProjectServiceTest {
 
           }
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
-    fixture().addFileToProject(
-      "src/com/packageA/XY.java",
-      """
+    fixture()
+      .addFileToProject(
+        "src/com/packageA/XY.java",
+        """
         package com.packageA;
 
         class XY {
@@ -78,12 +81,14 @@ class AffectedClassesProjectServiceTest {
 
           }
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
-    fixture().addFileToProject(
-      "src/com/packageA/XYZ.java",
-      """
+    fixture()
+      .addFileToProject(
+        "src/com/packageA/XYZ.java",
+        """
         package com.packageA;
 
         class XYZ {
@@ -91,12 +96,14 @@ class AffectedClassesProjectServiceTest {
 
           }
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
-    fixture().addFileToProject(
-      "src/com/packageB/A.java",
-      """
+    fixture()
+      .addFileToProject(
+        "src/com/packageB/A.java",
+        """
         package com.packageB;
 
         class A {
@@ -104,12 +111,14 @@ class AffectedClassesProjectServiceTest {
 
           }
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
 
-    fixture().addFileToProject(
-      "src/com/packageB/AB.java",
-      """
+    fixture()
+      .addFileToProject(
+        "src/com/packageB/AB.java",
+        """
         package com.packageB;
 
         class AB {
@@ -117,78 +126,55 @@ class AffectedClassesProjectServiceTest {
 
           }
         }
-    """.trimIndent()
-    )
+        """
+          .trimIndent(),
+      )
   }
 
   @Test
   fun matchAllModuleSources() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "**.*",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 5)
+    val count = affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "**.*", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 5)
   }
 
   @Test
   fun matchPackageA() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "com.packageA.**",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 3)
+    val count =
+      affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "com.packageA.**", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 3)
   }
 
   @Test
   fun matchPackageB() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "com.packageB.**",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 2)
+    val count =
+      affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "com.packageB.**", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 2)
   }
 
   @Test
   fun matchPackageBWildCardPattern1() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "**.packageB.**",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 2)
+    val count =
+      affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "**.packageB.**", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 2)
   }
 
   @Test
   fun matchPackageBWildCardsPattern2() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.packageB.**",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 2)
+    val count =
+      affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "*.packageB.**", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 2)
   }
 
   @Test
   fun matchPackageBWildCardsPattern3() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.p*B.**",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 2)
+    val count =
+      affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "*.p*B.**", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 2)
   }
 
   @Test
   fun matchAllModuleSourcesWildCardsPattern1() {
-    val count = affectedClassesProjectService()
-      .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.**.*",
-        limit = CLASSES_AFFECTED_LIMIT
-      )
-    assertThat(count).isEqualTo(/* expected = */ 5)
+    val count = affectedClassesProjectService().affectedClassesForQualifiedName(qualifiedPattern = "*.**.*", limit = CLASSES_AFFECTED_LIMIT)
+    assertThat(count).isEqualTo(/* expected= */ 5)
   }
-
 }

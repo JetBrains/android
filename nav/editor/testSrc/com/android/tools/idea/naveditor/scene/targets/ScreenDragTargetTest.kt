@@ -33,9 +33,7 @@ class ScreenDragTargetTest : NavTestCase() {
     val model =
       model("nav.xml") {
         navigation(startDestination = "fragment2") {
-          fragment("fragment1", layout = "activity_main") {
-            action("action1", destination = "fragment2")
-          }
+          fragment("fragment1", layout = "activity_main") { action("action1", destination = "fragment2") }
           fragment("fragment2", layout = "activity_main2")
         }
       }
@@ -54,13 +52,7 @@ class ScreenDragTargetTest : NavTestCase() {
       @NavCoordinate val x = component.drawX
       @NavCoordinate val y = component.drawY
 
-      LayoutTestUtilities.pressMouse(
-        guiInputHandler,
-        BUTTON1,
-        Coordinates.getSwingX(view, x + 10),
-        Coordinates.getSwingY(view, y + 10),
-        0,
-      )
+      LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, Coordinates.getSwingX(view, x + 10), Coordinates.getSwingY(view, y + 10), 0)
       LayoutTestUtilities.dragMouse(
         guiInputHandler,
         Coordinates.getSwingX(view, x),

@@ -58,10 +58,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Logic for setting up Android virtual device */
-class AndroidVirtualDeviceSdkComponentTreeNode(
-  private val androidVersion: AndroidVersion?,
-  installUpdates: Boolean,
-) :
+class AndroidVirtualDeviceSdkComponentTreeNode(private val androidVersion: AndroidVersion?, installUpdates: Boolean) :
   InstallableSdkComponentTreeNode(
     "Android Virtual Device",
     "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
@@ -76,14 +73,11 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     remotePackages: Collection<RemotePackage>,
     installUpdates: Boolean,
   ) : this(
-    findLatestPlatform(remotePackages, true)?.let {
-      (it.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion
-    },
+    findLatestPlatform(remotePackages, true)?.let { (it.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion },
     installUpdates,
   )
 
-  private val IS_ARM64_HOST_OS =
-    CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
+  private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
 
   // After this we use x86-64 system images
   private val MAX_X86_API_LEVEL = 30
@@ -94,10 +88,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     if (androidVersion == null) {
       throw WizardException("Missing system image required for an AVD setup")
     }
-    val systemImages =
-      sdkHandler
-        .getSystemImageManager(progress)
-        .lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
+    val systemImages = sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, androidVersion, ID_VENDOR_GOOGLE)
     if (systemImages.isEmpty()) {
       throw WizardException("Missing system image required for an AVD setup")
     }
@@ -136,10 +127,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
 
     val avdBuilder = avdManager.createAvdBuilder(device)
     with(avdBuilder) {
-      displayName =
-        avdManager.uniquifyDisplayName(
-          AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version)
-        )
+      displayName = avdManager.uniquifyDisplayName(AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version))
       avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(displayName))
       systemImage = systemImageDescription.systemImage
       sdCard = InternalSdCard(EmulatedProperties.DEFAULT_SDCARD_SIZE.size)
@@ -147,11 +135,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
         device.defaultHardware.skinFile
           ?.let { sdkHandler.toCompatiblePath(it) }
           ?.let { defaultHardwareSkin ->
-            OnDiskSkin(
-              DeviceSkinUpdaterService.getInstance()
-                .updateSkins(defaultHardwareSkin, systemImageDescription)
-                .get()
-            )
+            OnDiskSkin(DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get())
           } ?: device.defaultGenericSkin()
 
       gpuMode = GpuMode.AUTO
@@ -198,17 +182,13 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
   }
 
   override val requiredSdkPackages: Collection<String>
-    get() =
-      if (androidVersion == null) emptyList() else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
+    get() = if (androidVersion == null) emptyList() else listOf(getRequiredSysimgPath(IS_ARM64_HOST_OS))
 
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
       installContext.progressIndicator.isIndeterminate = true
       installContext.progressIndicator.text = "Creating Android virtual device"
-      installContext.print(
-        "Creating Android virtual device\n",
-        ConsoleViewContentType.SYSTEM_OUTPUT,
-      )
+      installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
       val avd = createAvd(sdkHandler)
       val successMessage = "Android virtual device ${avd.name} was successfully created\n"
       installContext.print(successMessage, ConsoleViewContentType.SYSTEM_OUTPUT)
@@ -239,8 +219,7 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
     return true
   }
 
-  override fun sdkComponentsMetricKind() =
-    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_VIRTUAL_DEVICE
+  override fun sdkComponentsMetricKind() = SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_VIRTUAL_DEVICE
 
   companion object {
     val LOG = Logger.getInstance(AndroidVirtualDeviceSdkComponentTreeNode::class.java)
@@ -252,9 +231,8 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
 
     @Throws(WizardException::class)
     private fun getDevice(sdkPath: Path): Device {
-      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find {
-        it.id == DEFAULT_DEVICE_ID
-      } ?: throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
+      return DeviceManagerConnection.getDeviceManagerConnection(sdkPath).devices.find { it.id == DEFAULT_DEVICE_ID }
+        ?: throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
   }
 }
@@ -262,17 +240,13 @@ class AndroidVirtualDeviceSdkComponentTreeNode(
 /**
  * Returns the latest platform from a given list.
  *
- * It is possible to select whether one wants the last extension of the latest platform or whether
- * one wants the latest base extension.
+ * It is possible to select whether one wants the last extension of the latest platform or whether one wants the latest base extension.
  *
  * @param remotePackages the list of packages to search for the last platform.
  * @param returnBaseExtension whether to always return the base extension of the latest platform.
  * @return
  */
-fun findLatestPlatform(
-  remotePackages: Collection<RemotePackage>,
-  returnBaseExtension: Boolean,
-): RemotePackage? {
+fun findLatestPlatform(remotePackages: Collection<RemotePackage>, returnBaseExtension: Boolean): RemotePackage? {
   var max: AndroidVersion? = null
   var latest: RemotePackage? = null
   for (pkg in remotePackages) {

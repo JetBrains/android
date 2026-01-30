@@ -21,20 +21,20 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
- * Replaces all the occurrences of constructors and superclasses of [fromFqcn] class with the [toFqcn] class. It is the
- * callers responsibility to make sure that the classes are compatible so that replacement does not break the bytecode.
+ * Replaces all the occurrences of constructors and superclasses of [fromFqcn] class with the [toFqcn] class. It is the callers
+ * responsibility to make sure that the classes are compatible so that replacement does not break the bytecode.
  */
-open class ConstructorAndSuperclassReplacingTransform(
-  delegate: ClassVisitor,
-  private val fromFqcn: String,
-  private val toFqcn: String) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+open class ConstructorAndSuperclassReplacingTransform(delegate: ClassVisitor, private val fromFqcn: String, private val toFqcn: String) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = this::class.qualifiedName!!
 
-  override fun visitMethod(access: Int,
-                           name: String?,
-                           descriptor: String?,
-                           signature: String?,
-                           exceptions: Array<out String>?): MethodVisitor {
+  override fun visitMethod(
+    access: Int,
+    name: String?,
+    descriptor: String?,
+    signature: String?,
+    exceptions: Array<out String>?,
+  ): MethodVisitor {
     return ConstructorReplacingMethodVisitor(super.visitMethod(access, name, descriptor, signature, exceptions), fromFqcn, toFqcn)
   }
 
@@ -44,13 +44,9 @@ open class ConstructorAndSuperclassReplacingTransform(
   }
 }
 
-/**
- * Replaces every [replaceeFqcn] class constructor with [replacementFqcn] class constructor.
- */
-private class ConstructorReplacingMethodVisitor(
-  delegate: MethodVisitor,
-  val replaceeFqcn: String,
-  val replacementFqcn: String) : MethodVisitor(Opcodes.ASM9, delegate) {
+/** Replaces every [replaceeFqcn] class constructor with [replacementFqcn] class constructor. */
+private class ConstructorReplacingMethodVisitor(delegate: MethodVisitor, val replaceeFqcn: String, val replacementFqcn: String) :
+  MethodVisitor(Opcodes.ASM9, delegate) {
 
   override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
     val newOwner = if (owner == replaceeFqcn && name == "<init>") replacementFqcn else owner

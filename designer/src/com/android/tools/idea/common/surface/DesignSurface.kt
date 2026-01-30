@@ -124,17 +124,14 @@ private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
  * A generic design surface for use in a graphical editor.
  *
  * Setup the layers for the [DesignSurface] If the surface is scrollable, we use four layers:
- * 1. ScrollPane layer: Layer that contains the ScreenViews and does all the rendering, including
- *    the interaction layers.
+ * 1. ScrollPane layer: Layer that contains the ScreenViews and does all the rendering, including the interaction layers.
  * 2. Progress layer: Displays the progress icon while a rendering is happening
- * 3. Mouse click display layer: It allows displaying clicks on the surface with a translucent
- *    bubble
+ * 3. Mouse click display layer: It allows displaying clicks on the surface with a translucent bubble
  * 4. Zoom controls layer: Used to display the zoom controls of the surface
  *
  * (4) sits at the top of the stack so is the first one to receive events like clicks.
  *
- * If the surface is NOT scrollable, the zoom controls will not be added and the scroll pane will be
- * replaced by the actual content.
+ * If the surface is NOT scrollable, the zoom controls will not be added and the scroll pane will be replaced by the actual content.
  */
 abstract class DesignSurface<T : SceneManager>(
   val project: Project,
@@ -144,18 +141,12 @@ abstract class DesignSurface<T : SceneManager>(
   positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open. "open" can be removed if we remove the mocks.
-  open val actionHandlerProvider:
-    (DesignSurface<T>) -> DesignSurfaceActionHandler<DesignSurface<T>>,
+  open val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler<DesignSurface<T>>,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
-) :
-  EditorDesignSurface(BorderLayout()),
-  Disposable,
-  InteractableScenesSurface,
-  ScaleListener,
-  UiDataProvider {
+) : EditorDesignSurface(BorderLayout()), Disposable, InteractableScenesSurface, ScaleListener, UiDataProvider {
 
   /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
   protected val scope = AndroidCoroutineScope(this)
@@ -177,24 +168,19 @@ abstract class DesignSurface<T : SceneManager>(
     selectionModel.addListener(selectionListener)
   }
 
-  /**
-   * Responsible for converting this surface state and send it for tracking (if logging is enabled).
-   */
+  /** Responsible for converting this surface state and send it for tracking (if logging is enabled). */
   open val analyticsManager: DesignerAnalyticsManager = DesignerAnalyticsManager(this)
 
   private val hasZoomControls: Boolean = zoomControlsPolicy != ZoomControlsPolicy.HIDDEN
 
   val layeredPane: JLayeredPane = JLayeredPane().apply { setFocusable(true) }
 
-  val guiInputHandler =
-    GuiInputHandler(this, interactableProvider(this), interactionProviderCreator(this))
+  val guiInputHandler = GuiInputHandler(this, interactableProvider(this), interactionProviderCreator(this))
 
   private val mouseClickDisplayPanel = MouseClickDisplayPanel(parentDisposable = this)
 
   private val progressPanel =
-    SurfaceProgressPanel(parentDisposable = this, ::useSmallProgressIcon).apply {
-      name = "Layout Editor Progress Panel"
-    }
+    SurfaceProgressPanel(parentDisposable = this, ::useSmallProgressIcon).apply { name = "Layout Editor Progress Panel" }
 
   private val zoomControlsLayerPane: JPanel? =
     if (zoomControlsPolicy != ZoomControlsPolicy.HIDDEN)
@@ -222,11 +208,7 @@ abstract class DesignSurface<T : SceneManager>(
       .apply {
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
-        scope.launch {
-          componentsUpdated.collect {
-            (zoomController as DesignSurfaceZoomController).notifyDesignSurfaceCreated()
-          }
-        }
+        scope.launch { componentsUpdated.collect { (zoomController as DesignSurfaceZoomController).notifyDesignSurfaceCreated() } }
       }
 
   /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
@@ -252,16 +234,14 @@ abstract class DesignSurface<T : SceneManager>(
 
   private fun getLayers() = guiInputHandler.layers
 
-  val actionManager: ActionManager<out DesignSurface<T>> =
-    actionManagerProvider(this).apply { registerActionsShortcuts(layeredPane) }
+  val actionManager: ActionManager<out DesignSurface<T>> = actionManagerProvider(this).apply { registerActionsShortcuts(layeredPane) }
 
   val viewport: DesignSurfaceViewport =
-    if (scrollPane != null) ScrollableDesignSurfaceViewport(scrollPane.viewport)
-    else NonScrollableDesignSurfaceViewport(viewport = this)
+    if (scrollPane != null) ScrollableDesignSurfaceViewport(scrollPane.viewport) else NonScrollableDesignSurfaceViewport(viewport = this)
 
   /**
-   * Component that wraps the displayed content. If this is a scrollable surface, that will be the
-   * Scroll Pane. Otherwise, it will be the ScreenViewPanel container.
+   * Component that wraps the displayed content. If this is a scrollable surface, that will be the Scroll Pane. Otherwise, it will be the
+   * ScreenViewPanel container.
    */
   private val contentContainerPane: JComponent = scrollPane ?: sceneViewPanel
 
@@ -283,16 +263,10 @@ abstract class DesignSurface<T : SceneManager>(
 
   private val onHoverListener: AWTEventListener =
     if (zoomControlsLayerPane != null && zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
-      createZoomControlAutoHiddenListener(
-        zoomControlPaneOwner = this,
-        zoomControlComponent = zoomControlsLayerPane,
-      )
+      createZoomControlAutoHiddenListener(zoomControlPaneOwner = this, zoomControlComponent = zoomControlsLayerPane)
     } else AWTEventListener {}
 
-  /**
-   * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
-   * surface.
-   */
+  /** Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface. */
   fun enableMouseClickDisplay() {
     mouseClickDisplayPanel.isEnabled = true
   }
@@ -307,10 +281,7 @@ abstract class DesignSurface<T : SceneManager>(
     sceneViewPanel.setToolTipText(text)
   }
 
-  /**
-   * Asks the [ScreenView]s contained in this [DesignSurface] for a re-layouts. The re-layout will
-   * not happen immediately in this call.
-   */
+  /** Asks the [ScreenView]s contained in this [DesignSurface] for a re-layouts. The re-layout will not happen immediately in this call. */
   @UiThread
   fun revalidateScrollArea() {
     // Mark the scene view panel as invalid to force a revalidation when the scroll pane is
@@ -416,9 +387,7 @@ abstract class DesignSurface<T : SceneManager>(
   private val myIssueListeners: MutableList<IssueListener> = ArrayList()
 
   val issueListener: IssueListener = IssueListener { issue: Issue? ->
-    myIssueListeners.forEach(
-      Consumer { listener: IssueListener -> listener.onIssueSelected(issue) }
-    )
+    myIssueListeners.forEach(Consumer { listener: IssueListener -> listener.onIssueSelected(issue) })
   }
 
   fun addIssueListener(listener: IssueListener) {
@@ -432,8 +401,8 @@ abstract class DesignSurface<T : SceneManager>(
   private var _fileEditorDelegate = WeakReference<FileEditor?>(null)
 
   /**
-   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if
-   * this DesignSurface is not a child of a [FileEditor].
+   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child of a
+   * [FileEditor].
    *
    * The surface will only keep a [WeakReference] to the editor.
    */
@@ -447,9 +416,7 @@ abstract class DesignSurface<T : SceneManager>(
   protected fun updateNotifications() {
     val fileEditor: FileEditor? = _fileEditorDelegate.get()
     val file = fileEditor?.file ?: return
-    UIUtil.invokeLaterIfNeeded {
-      EditorNotifications.getInstance(project).updateNotifications(file)
-    }
+    UIUtil.invokeLaterIfNeeded { EditorNotifications.getInstance(project).updateNotifications(file) }
   }
 
   /** Calls [repaint] with delay. */
@@ -483,10 +450,7 @@ abstract class DesignSurface<T : SceneManager>(
     listenersLock.withLock { listeners.clear() }
   }
 
-  /**
-   * Gets a copy of [listeners] under a lock. Use this method instead of accessing the listeners
-   * directly.
-   */
+  /** Gets a copy of [listeners] under a lock. Use this method instead of accessing the listeners directly. */
   private fun getSurfaceListeners(): List<DesignSurfaceListener> {
     listenersLock.withLock {
       return listeners.toList()
@@ -548,16 +512,10 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * @param x the x coordinate of the double click converted to pixels in the Android coordinate
-   *   system
-   * @param y the y coordinate of the double click converted to pixels in the Android coordinate
-   *   system
+   * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
+   * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
-  open fun notifyComponentActivate(
-    component: NlComponent,
-    @AndroidCoordinate x: Int,
-    @AndroidCoordinate y: Int,
-  ) {
+  open fun notifyComponentActivate(component: NlComponent, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
     notifyComponentActivate(component)
   }
 
@@ -565,10 +523,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   abstract val selectionAsTransferable: ItemTransferable
 
-  /**
-   * Returns whether render error panels should be rendered when [SceneView]s in this surface have
-   * render errors.
-   */
+  /** Returns whether render error panels should be rendered when [SceneView]s in this surface have render errors. */
   open fun shouldRenderErrorsPanel(): Boolean {
     return false
   }
@@ -576,27 +531,18 @@ abstract class DesignSurface<T : SceneManager>(
   /** When not null, returns a [JPanel] to be rendered next to the primary panel of the editor. */
   open val accessoryPanel: JPanel? = null
 
-  /**
-   * When true, it allows to store the scale change in the settings preferences, it doesn't store
-   * any scale change if it's false.
-   */
+  /** When true, it allows to store the scale change in the settings preferences, it doesn't store any scale change if it's false. */
   open val shouldStoreScale: Boolean = true
 
-  /**
-   * Scroll to the center of a list of given components. Usually the center of the area containing
-   * these elements.
-   */
+  /** Scroll to the center of a list of given components. Usually the center of the area containing these elements. */
   abstract fun scrollToCenter(list: List<NlComponent>)
 
-  /**
-   * The offsets to the left and top edges when scrolling to a component by calling
-   * [scrollToVisible].
-   */
+  /** The offsets to the left and top edges when scrolling to a component by calling [scrollToVisible]. */
   @get:SwingCoordinate protected abstract val scrollToVisibleOffset: Dimension
 
   /**
-   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the
-   * [SceneView] is partially visible and [forceScroll] is set to `false`, no scroll will happen.
+   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the [SceneView] is partially visible and
+   * [forceScroll] is set to `false`, no scroll will happen.
    */
   fun scrollToVisible(sceneView: SceneView, forceScroll: Boolean) {
     sceneViewPanel.findSceneViewRectangle(sceneView)?.let { sceneViewRectangle ->
@@ -608,37 +554,30 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the
-   * [NlModel] is partially visible and [forceScroll] is set to false, no scroll will happen.
+   * Ensures that the given model is visible in the surface by scrolling to it if needed. If the [NlModel] is partially visible and
+   * [forceScroll] is set to false, no scroll will happen.
    */
   fun scrollToVisible(model: NlModel, forceScroll: Boolean) {
-    sceneViews
-      .firstOrNull { it.sceneManager.model == model }
-      ?.let { view -> scrollToVisible(view, forceScroll) }
+    sceneViews.firstOrNull { it.sceneManager.model == model }?.let { view -> scrollToVisible(view, forceScroll) }
   }
 
   /**
-   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
-   * center such rectangle. See [scrollToCenter]
+   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to center such rectangle. See [scrollToCenter]
    *
    * @param sceneView the [SceneView] that contains the given rectangle.
-   * @param rectangle the rectangle that should be visible, with its coordinates relative to the
-   *   sceneView.
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the sceneView.
    */
   protected fun scrollToCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle) {
     val availableSpace = viewport.extentSize
-    sceneViewPanel.findMeasuredSceneViewRectangle(sceneView, availableSpace)?.let {
-      sceneViewRectangle ->
-      val topLeftCorner =
-        Point(sceneViewRectangle.x + rectangle.x, sceneViewRectangle.y + rectangle.y)
+    sceneViewPanel.findMeasuredSceneViewRectangle(sceneView, availableSpace)?.let { sceneViewRectangle ->
+      val topLeftCorner = Point(sceneViewRectangle.x + rectangle.x, sceneViewRectangle.y + rectangle.y)
       scrollToCenter(Rectangle(topLeftCorner, rectangle.size))
     }
   }
 
   /**
-   * Move the scroll position to make the given rectangle visible and centered. If the given
-   * rectangle is too big for the available space, it will be centered anyway and some of its
-   * borders will probably not be visible at the new scroll position.
+   * Move the scroll position to make the given rectangle visible and centered. If the given rectangle is too big for the available space,
+   * it will be centered anyway and some of its borders will probably not be visible at the new scroll position.
    *
    * @param rectangle the rectangle that should be centered.
    */
@@ -650,10 +589,7 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   @TestOnly
-  fun setScrollViewSizeAndValidateForTest(
-    @SwingCoordinate width: Int,
-    @SwingCoordinate height: Int,
-  ) {
+  fun setScrollViewSizeAndValidateForTest(@SwingCoordinate width: Int, @SwingCoordinate height: Int) {
     scrollPane?.let {
       it.setSize(width, height)
       it.doLayout()
@@ -664,8 +600,7 @@ abstract class DesignSurface<T : SceneManager>(
   /**
    * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
    *
-   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no
-   *   model.
+   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no model.
    */
   @VisibleForTesting
   @UiThread
@@ -679,8 +614,7 @@ abstract class DesignSurface<T : SceneManager>(
   /**
    * Load the saved zoom level from the file.
    *
-   * @return true if the previous zoom level is restored, returns false if the previous zoom level
-   *   is not restored or [NlModel] is null.
+   * @return true if the previous zoom level is restored, returns false if the previous zoom level is not restored or [NlModel] is null.
    */
   fun restorePreviousScale(): Boolean {
     val model = model ?: return false
@@ -688,8 +622,7 @@ abstract class DesignSurface<T : SceneManager>(
       return false
     }
     val state = getInstance(model.project).surfaceState
-    val previousScale =
-      state.loadFileScale(project, model.virtualFile, zoomController) ?: return false
+    val previousScale = state.loadFileScale(project, model.virtualFile, zoomController) ?: return false
     zoomController.setScale(previousScale)
     return true
   }
@@ -758,10 +691,7 @@ abstract class DesignSurface<T : SceneManager>(
     val scaledSize = Dimension()
     for (view in sceneViews) {
       view.getScaledContentSize(scaledSize)
-      if (
-        (view.x <= x && x <= view.x + scaledSize.width && view.y <= y) &&
-          y <= (view.y + scaledSize.height)
-      ) {
+      if ((view.x <= x && x <= view.x + scaledSize.width && view.y <= y) && y <= (view.y + scaledSize.height)) {
         return view
       }
     }
@@ -769,23 +699,16 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   @Deprecated("b/352512443")
-  override fun getSceneViewAtOrPrimary(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-  ): SceneView? {
+  override fun getSceneViewAtOrPrimary(@SwingCoordinate x: Int, @SwingCoordinate y: Int): SceneView? {
     // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView
     // when there is no hovered SceneView.
     return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneViews?.firstOrNull()
   }
 
-  /**
-   * Returns the [SceneView] under the mouse cursor if the mouse is within the coordinates of this
-   * surface or null otherwise.
-   */
+  /** Returns the [SceneView] under the mouse cursor if the mouse is within the coordinates of this surface or null otherwise. */
   val sceneViewAtMousePosition: SceneView?
     get() {
-      val mouseLocation =
-        if (!GraphicsEnvironment.isHeadless()) MouseInfo.getPointerInfo().location else null
+      val mouseLocation = if (!GraphicsEnvironment.isHeadless()) MouseInfo.getPointerInfo().location else null
       if (mouseLocation == null || contains(mouseLocation) || !isVisible || !isEnabled) {
         return null
       }
@@ -801,19 +724,14 @@ abstract class DesignSurface<T : SceneManager>(
   val layoutType: DesignerEditorFileType
     get() = model?.type ?: DefaultDesignerFileType
 
-  /**
-   * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
-   */
+  /** @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise. */
   val isEditable: Boolean
     get() = layoutType.isEditable()
 
   override val configurations: List<Configuration>
     get() = models.map { it.configuration }
 
-  /**
-   * Update the status of [GuiInputHandler]. It will start or stop listening depending on the
-   * current layout type.
-   */
+  /** Update the status of [GuiInputHandler]. It will start or stop listening depending on the current layout type. */
   private fun reactivateGuiInputHandler() {
     if (isEditable) {
       guiInputHandler.startListening()
@@ -835,10 +753,9 @@ abstract class DesignSurface<T : SceneManager>(
         get() = true
 
       /**
-       * Sets the offset for the scroll viewer to the specified x and y values The offset will never
-       * be less than zero, and never greater that the maximum value allowed by the sizes of the
-       * underlying view and the extent. If the zoom factor is large enough that a scroll bars isn't
-       * visible, the position will be set to zero.
+       * Sets the offset for the scroll viewer to the specified x and y values The offset will never be less than zero, and never greater
+       * that the maximum value allowed by the sizes of the underlying view and the extent. If the zoom factor is large enough that a scroll
+       * bars isn't visible, the position will be set to zero.
        */
       @set:SwingCoordinate
       @get:SwingCoordinate
@@ -864,9 +781,8 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * This is called before [setModel]. After the returned future completes, we'll wait for smart
-   * mode and then invoke [setModel]. If a [DesignSurface] needs to do any extra work before the
-   * model is set it should be done here.
+   * This is called before [setModel]. After the returned future completes, we'll wait for smart mode and then invoke [setModel]. If a
+   * [DesignSurface] needs to do any extra work before the model is set it should be done here.
    */
   open fun goingToSetModel(model: NlModel?): CompletableFuture<*> {
     return CompletableFuture.completedFuture<Any?>(null)
@@ -879,22 +795,19 @@ abstract class DesignSurface<T : SceneManager>(
    */
   open fun setModel(newModel: NlModel?) {
     scope.launch {
-      modelsManager.replaceAllModels(
-        newModel?.let { listOf(it to getOrCreateSceneManager(it)) } ?: emptyList()
-      )
+      modelsManager.replaceAllModels(newModel?.let { listOf(it to getOrCreateSceneManager(it)) } ?: emptyList())
       sceneManagers.forEach { it.requestRenderAndWait() }
       withContext(Dispatchers.EDT) { restoreZoomOrZoomToFit() }
     }
   }
 
   /**
-   * Adds the [models] to this surface and returns their associated [SceneManager]s. A new
-   * [SceneManager] is created for each new model, but if a model was already present in the
-   * surface, then its already associated manager is reused, and it is simply moved to the
+   * Adds the [models] to this surface and returns their associated [SceneManager]s. A new [SceneManager] is created for each new model, but
+   * if a model was already present in the surface, then its already associated manager is reused, and it is simply moved to the
    * corresponding position.
    *
-   * This method is expected to be called in the background thread, and it will schedule the
-   * corresponding call to [DesignSurfaceListener.modelsChanged] in EDT for later.
+   * This method is expected to be called in the background thread, and it will schedule the corresponding call to
+   * [DesignSurfaceListener.modelsChanged] in EDT for later.
    */
   @RequiresBackgroundThread
   fun addModelsWithoutRender(models: List<NlModel>): List<T> {
@@ -903,8 +816,7 @@ abstract class DesignSurface<T : SceneManager>(
     return modelsAndManagers.map { it.second }
   }
 
-  private fun getOrCreateSceneManager(model: NlModel): T =
-    getSceneManager(model) ?: createSceneManager(model)
+  private fun getOrCreateSceneManager(model: NlModel): T = getSceneManager(model) ?: createSceneManager(model)
 
   private var lintIssueProvider: LintIssueProvider? = null
   val issueModel: IssueModel = IssueModel(this, project)
@@ -962,23 +874,14 @@ abstract class DesignSurface<T : SceneManager>(
       val view = focusedSceneView ?: return null
       val selection = selectionModel.primary ?: return null
       val sceneComponent = scene?.getSceneComponent(selection) ?: return null
-      return Point(
-        Coordinates.getSwingXDip(view, sceneComponent.centerX),
-        Coordinates.getSwingYDip(view, sceneComponent.centerY),
-      )
+      return Point(Coordinates.getSwingXDip(view, sceneComponent.centerX), Coordinates.getSwingYDip(view, sceneComponent.centerY))
     }
     sink[PlatformDataKeys.CONTEXT_MENU_POINT] = getMenuPoint()
     sink[PlatformDataKeys.MODULE] = model?.module
 
-    sink.lazy(CommonDataKeys.PSI_ELEMENT) {
-      focusedSceneView?.selectionModel?.primary?.tagDeprecated
-    }
+    sink.lazy(CommonDataKeys.PSI_ELEMENT) { focusedSceneView?.selectionModel?.primary?.tagDeprecated }
     sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
-      focusedSceneView
-        ?.selectionModel
-        ?.selection
-        ?.map { it.tagDeprecated }
-        ?.toArray<XmlTag>(XmlTag.EMPTY)
+      focusedSceneView?.selectionModel?.selection?.map { it.tagDeprecated }?.toArray<XmlTag>(XmlTag.EMPTY)
     }
   }
 
@@ -1024,21 +927,16 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Manages the lifecycle of [NlModel]s and their associated [SceneManager]s within the design
-   * surface. This class is responsible for adding, removing, and replacing models, and ensures
-   * resources are disposed, and that listeners are correctly attached/detached and notified in
-   * response to these changes.
+   * Manages the lifecycle of [NlModel]s and their associated [SceneManager]s within the design surface. This class is responsible for
+   * adding, removing, and replacing models, and ensures resources are disposed, and that listeners are correctly attached/detached and
+   * notified in response to these changes.
    *
    * This class is thread-safe.
    */
   private inner class ModelsManager {
-    private val filterDisposedModels = { input: NlModel? ->
-      input != null && !input.module.isDisposed
-    }
+    private val filterDisposedModels = { input: NlModel? -> input != null && !input.module.isDisposed }
 
-    private val filterDisposedSceneManagers = { input: T? ->
-      input != null && filterDisposedModels.invoke(input.model)
-    }
+    private val filterDisposedSceneManagers = { input: T? -> input != null && filterDisposedModels.invoke(input.model) }
 
     private val modelListener: ModelListener =
       object : ModelListener {
@@ -1056,8 +954,8 @@ abstract class DesignSurface<T : SceneManager>(
       }
 
     /**
-     * Represents a state transition for a [NlModel], capturing the [model] itself, its previous
-     * [SceneManager] (if any), and its new [SceneManager] (if any).
+     * Represents a state transition for a [NlModel], capturing the [model] itself, its previous [SceneManager] (if any), and its new
+     * [SceneManager] (if any).
      *
      * See [onModelsChanged].
      */
@@ -1067,10 +965,7 @@ abstract class DesignSurface<T : SceneManager>(
 
     @GuardedBy("modelsLock") private val modelToSceneManagers = LinkedHashMap<NlModel, T>()
 
-    /**
-     * Adds or replaces a model and its manager in the internal map. This method must be called
-     * within a [modelsLock] [write] block.
-     */
+    /** Adds or replaces a model and its manager in the internal map. This method must be called within a [modelsLock] [write] block. */
     @GuardedBy("modelsLock")
     private fun addModel(model: NlModel, manager: T): ModelChange {
       val oldManager = modelToSceneManagers.remove(model)
@@ -1078,10 +973,7 @@ abstract class DesignSurface<T : SceneManager>(
       return ModelChange(model, oldManager, manager)
     }
 
-    /**
-     * Removes a model from the internal map. This method must be called within a [modelsLock]
-     * [write] block.
-     */
+    /** Removes a model from the internal map. This method must be called within a [modelsLock] [write] block. */
     @GuardedBy("modelsLock")
     private fun removeModel(model: NlModel): ModelChange? {
       val oldManager = modelToSceneManagers.remove(model)
@@ -1089,9 +981,8 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
     /**
-     * Processes a list of model changes, handling resource disposal, listener registration and
-     * notification. This method must be called without holding the [modelsLock] to prevent
-     * deadlocks.
+     * Processes a list of model changes, handling resource disposal, listener registration and notification. This method must be called
+     * without holding the [modelsLock] to prevent deadlocks.
      */
     private fun onModelsChanged(modelChanges: List<ModelChange>) {
       // Assertion to prevent introducing deadlocks/freezes
@@ -1140,52 +1031,40 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
     /**
-     * Adds the [models] to the surface with their associated [SceneManager]s. If a [model] was
-     * already present, then its previously associated manager is replaced.
+     * Adds the [models] to the surface with their associated [SceneManager]s. If a [model] was already present, then its previously
+     * associated manager is replaced.
      *
-     * The models (pre-existing and new) will also be moved to the last positions in the surface,
-     * affecting the rendering order.
+     * The models (pre-existing and new) will also be moved to the last positions in the surface, affecting the rendering order.
      */
     fun addModels(modelsAndManagers: List<Pair<NlModel, T>>) {
-      val changes =
-        modelsLock.write { modelsAndManagers.map { (model, manager) -> addModel(model, manager) } }
+      val changes = modelsLock.write { modelsAndManagers.map { (model, manager) -> addModel(model, manager) } }
       onModelsChanged(changes)
     }
 
-    /**
-     * Removes a list of models from the surface. Any model not present in the surface is ignored.
-     */
+    /** Removes a list of models from the surface. Any model not present in the surface is ignored. */
     fun removeModels(models: List<NlModel>) {
       val changes = modelsLock.write { models.mapNotNull { model -> removeModel(model) } }
       onModelsChanged(changes)
     }
 
-    /**
-     * Replaces all models on the surface with the given new set of models and their associated
-     * managers.
-     */
+    /** Replaces all models on the surface with the given new set of models and their associated managers. */
     fun replaceAllModels(newModelsAndManagers: List<Pair<NlModel, T>>) {
       val changes =
         modelsLock.write {
           // Remove and add models under the same lock to provide an atomic replacement logic and
           // avoid race conditions
           val newModelsSet = newModelsAndManagers.map { it.first }.toSet()
-          val removals =
-            modelToSceneManagers.keys.filter { it !in newModelsSet }.mapNotNull { removeModel(it) }
-          val additionsAndReplacements =
-            newModelsAndManagers.map { (model, manager) -> addModel(model, manager) }
+          val removals = modelToSceneManagers.keys.filter { it !in newModelsSet }.mapNotNull { removeModel(it) }
+          val additionsAndReplacements = newModelsAndManagers.map { (model, manager) -> addModel(model, manager) }
           removals + additionsAndReplacements
         }
       onModelsChanged(changes)
     }
 
-    fun getModels(): List<NlModel> =
-      modelsLock.read { modelToSceneManagers.keys.filter(filterDisposedModels) }
+    fun getModels(): List<NlModel> = modelsLock.read { modelToSceneManagers.keys.filter(filterDisposedModels) }
 
-    fun getSceneManagers(): List<T> =
-      modelsLock.read { modelToSceneManagers.values.filter(filterDisposedSceneManagers) }
+    fun getSceneManagers(): List<T> = modelsLock.read { modelToSceneManagers.values.filter(filterDisposedSceneManagers) }
 
-    fun getSceneManager(model: NlModel): T? =
-      modelsLock.read { modelToSceneManagers.get(model) }.takeIf { !isDisposed() }
+    fun getSceneManager(model: NlModel): T? = modelsLock.read { modelToSceneManagers.get(model) }.takeIf { !isDisposed() }
   }
 }

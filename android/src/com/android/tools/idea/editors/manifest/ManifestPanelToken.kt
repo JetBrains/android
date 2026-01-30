@@ -24,7 +24,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import java.io.File
 
-interface ManifestPanelToken<P: AndroidProjectSystem> : Token {
+interface ManifestPanelToken<P : AndroidProjectSystem> : Token {
   companion object {
     @JvmField
     val EP_NAME = ExtensionPointName<ManifestPanelToken<AndroidProjectSystem>>("com.android.tools.idea.editors.manifest.manifestPanelToken")
@@ -32,30 +32,22 @@ interface ManifestPanelToken<P: AndroidProjectSystem> : Token {
 
   fun getExternalAndroidLibraryDisplayName(library: ExternalAndroidLibrary): String
 
-  /**
-   * Return true if this record is handled by the Project System.
-   */
+  /** Return true if this record is handled by the Project System. */
   fun recordLocationReference(record: Actions.Record, files: MutableSet<File>): Boolean
 
   fun handleReferencedFiles(
     referenced: Set<File>,
     sortedFiles: MutableList<ManifestFileWithMetadata>,
     sortedOtherFiles: MutableList<ManifestFileWithMetadata>,
-    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata
+    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata,
   )
 
   fun getMetadataForRecord(
     record: Actions.Record,
-    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata
+    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata,
   ): ManifestFileWithMetadata?
 
-  fun createMetadataForFile(
-    file: File?,
-    module: Module
-  ): ManifestFileWithMetadata?
+  fun createMetadataForFile(file: File?, module: Module): ManifestFileWithMetadata?
 
-  fun generateMinSdkSettingRunnable(
-    module: Module,
-    minSdk: Int
-  ): Runnable?
+  fun generateMinSdkSettingRunnable(module: Module, minSdk: Int): Runnable?
 }

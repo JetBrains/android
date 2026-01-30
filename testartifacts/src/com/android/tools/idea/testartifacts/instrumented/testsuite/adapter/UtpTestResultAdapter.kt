@@ -18,6 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.protobuf.Timestamp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -26,8 +28,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto.AndroidTestDeviceInfo
-import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestArtifactProto.Artifact
 import com.google.testing.platform.proto.api.core.TestResultProto.TestResult
 import com.google.testing.platform.proto.api.core.TestStatusProto.TestStatus
@@ -38,34 +38,21 @@ import java.nio.charset.Charset
 import java.util.Locale
 import java.util.UUID
 
-
-/**
- * An adapter to parse Unified Test Platform (UTP) result protobuf, and forward them to
- * AndroidTestResultListener.
- */
+/** An adapter to parse Unified Test Platform (UTP) result protobuf, and forward them to AndroidTestResultListener. */
 class UtpTestResultAdapter(private val protoFile: File) {
 
   private val resultProto: TestSuiteResultProto.TestSuiteResult by lazy {
     if (protoFile.extension == "textproto") {
       val builder = TestSuiteResultProto.TestSuiteResult.newBuilder()
-      TextFormat.merge(protoFile.readText(Charset.defaultCharset()),
-                       builder)
+      TextFormat.merge(protoFile.readText(Charset.defaultCharset()), builder)
       builder.build()
     } else {
-      protoFile.inputStream().use {
-        TestSuiteResultProto.TestSuiteResult.parseFrom(it)
-      }
+      protoFile.inputStream().use { TestSuiteResultProto.TestSuiteResult.parseFrom(it) }
     }
   }
 
-  /**
-   * The first package name in the test suite. Null if there is no package name.
-   */
-  val packageName: String? by lazy {
-    resultProto.testResultList.mapNotNull {
-      it?.testCase?.testPackage
-    }.firstOrNull()
-  }
+  /** The first package name in the test suite. Null if there is no package name. */
+  val packageName: String? by lazy { resultProto.testResultList.mapNotNull { it?.testCase?.testPackage }.firstOrNull() }
 
   /**
    * Parse UTP test results and forward to the listener
@@ -81,24 +68,24 @@ class UtpTestResultAdapter(private val protoFile: File) {
 
     resultProto.testResultList.forEach { testResult ->
       val device = androidDeviceResolver.getAndroidDevice(testResult)
-      deviceToTestCountMap.compute(device) { _, currentValue ->
-        currentValue?.plus(1) ?: 1
-      }
+      deviceToTestCountMap.compute(device) { _, currentValue -> currentValue?.plus(1) ?: 1 }
     }
 
     resultProto.testResultList.forEach { testResult ->
       val device = androidDeviceResolver.getAndroidDevice(testResult)
-      val testSuite = deviceToTestSuiteMap.computeIfAbsent(device) { newDevice ->
-        AndroidTestSuite(
-          resultProto.testSuiteMetaData.testSuiteName,
-          resultProto.testSuiteMetaData.testSuiteName,
-          deviceToTestCountMap.getOrDefault(device, 0),
-          AndroidTestSuiteResult.PASSED
-        ).also {
-          listener.onTestSuiteScheduled(newDevice)
-          listener.onTestSuiteStarted(newDevice, it)
+      val testSuite =
+        deviceToTestSuiteMap.computeIfAbsent(device) { newDevice ->
+          AndroidTestSuite(
+              resultProto.testSuiteMetaData.testSuiteName,
+              resultProto.testSuiteMetaData.testSuiteName,
+              deviceToTestCountMap.getOrDefault(device, 0),
+              AndroidTestSuiteResult.PASSED,
+            )
+            .also {
+              listener.onTestSuiteScheduled(newDevice)
+              listener.onTestSuiteStarted(newDevice, it)
+            }
         }
-      }
 
       val testCase = createTestCase(testResult, artifactFileResolver)
       if (testResult.testStatus == TestStatus.FAILED) {
@@ -115,31 +102,32 @@ class UtpTestResultAdapter(private val protoFile: File) {
   private fun createTestCase(testResult: TestResult, artifactFileResolver: ArtifactFileResolver): AndroidTestCase {
     val testCase = testResult.testCase
     return AndroidTestCase(
-      id = "${testCase.testPackage}.${testCase.testClass}#${testCase.testMethod}",
-      methodName = testCase.testMethod,
-      className = testCase.testClass,
-      packageName = testCase.testPackage,
-      retentionInfo = artifactFileResolver.getArtifactFile(testResult, "icebox.info"),
-      retentionSnapshot = getIceboxArtifact(testResult, artifactFileResolver),
-      result = when (testResult.testStatus) {
-        TestStatus.PASSED -> AndroidTestCaseResult.PASSED
-        TestStatus.FAILED -> AndroidTestCaseResult.FAILED
-        else -> AndroidTestCaseResult.SKIPPED
-      },
-      logcat = artifactFileResolver.getArtifactFile(testResult, "logcat")?.readText() ?: "",
-      startTimestampMillis = testCase.startTime.millis(),
-      endTimestampMillis = testCase.endTime.millis(),
-    ).apply {
-      setBenchmarkContextAndPrepareFiles(testResult, this) { outputArtifactPath ->
-        artifactFileResolver.resolveFile(outputArtifactPath) ?: File(outputArtifactPath)
+        id = "${testCase.testPackage}.${testCase.testClass}#${testCase.testMethod}",
+        methodName = testCase.testMethod,
+        className = testCase.testClass,
+        packageName = testCase.testPackage,
+        retentionInfo = artifactFileResolver.getArtifactFile(testResult, "icebox.info"),
+        retentionSnapshot = getIceboxArtifact(testResult, artifactFileResolver),
+        result =
+          when (testResult.testStatus) {
+            TestStatus.PASSED -> AndroidTestCaseResult.PASSED
+            TestStatus.FAILED -> AndroidTestCaseResult.FAILED
+            else -> AndroidTestCaseResult.SKIPPED
+          },
+        logcat = artifactFileResolver.getArtifactFile(testResult, "logcat")?.readText() ?: "",
+        startTimestampMillis = testCase.startTime.millis(),
+        endTimestampMillis = testCase.endTime.millis(),
+      )
+      .apply {
+        setBenchmarkContextAndPrepareFiles(testResult, this) { outputArtifactPath ->
+          artifactFileResolver.resolveFile(outputArtifactPath) ?: File(outputArtifactPath)
+        }
       }
-    }
   }
 
   private fun getIceboxArtifact(testResult: TestResult, artifactFileResolver: ArtifactFileResolver): File? {
     val iceboxArtifactRegrex =
-      "snapshot-${testResult.testCase.testClass}-${testResult.testCase.testMethod}-failure[0-9]+(\\.tar(\\.gz)?)?"
-      .toRegex()
+      "snapshot-${testResult.testCase.testClass}-${testResult.testCase.testMethod}-failure[0-9]+(\\.tar(\\.gz)?)?".toRegex()
     return artifactFileResolver.getArtifactFile(testResult) { artifact ->
       iceboxArtifactRegrex.matches(File(artifact.sourcePath.path).name)
     }
@@ -150,22 +138,15 @@ class UtpTestResultAdapter(private val protoFile: File) {
   }
 }
 
-/**
- * Resolves associated AndroidDevice for a given test result.
- */
+/** Resolves associated AndroidDevice for a given test result. */
 private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFileResolver) {
 
   companion object {
     private const val DEFAULT_DEVICE_NAME = "Unknown device"
     private val DEFAULT_DEVICE_TYPE = AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
 
-    private val DEFAULT_ANDROID_DEVICE = AndroidDevice(
-      DEFAULT_DEVICE_NAME,
-      DEFAULT_DEVICE_NAME,
-      DEFAULT_DEVICE_NAME,
-      DEFAULT_DEVICE_TYPE,
-      AndroidVersion.DEFAULT
-    )
+    private val DEFAULT_ANDROID_DEVICE =
+      AndroidDevice(DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_TYPE, AndroidVersion.DEFAULT)
   }
 
   private val deviceMap: MutableMap<File, AndroidDevice> = mutableMapOf()
@@ -173,39 +154,39 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
   fun getAndroidDevice(testResult: TestResult): AndroidDevice {
     val resolvedFile = artifactFileResolver.getArtifactFile(testResult, "device-info") ?: return DEFAULT_ANDROID_DEVICE
     return deviceMap.computeIfAbsent(resolvedFile) {
-      val deviceInfo = resolvedFile.inputStream().use { inputStream ->
-        AndroidTestDeviceInfo.parseFrom(inputStream)
-      }
+      val deviceInfo = resolvedFile.inputStream().use { inputStream -> AndroidTestDeviceInfo.parseFrom(inputStream) }
       createAndroidDevice(deviceInfo)
     }
   }
 
   private fun createAndroidDevice(deviceInfo: AndroidTestDeviceInfo): AndroidDevice {
-    val deviceType = when {
-      deviceInfo.avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-      deviceInfo.gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
-      else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
-    }
+    val deviceType =
+      when {
+        deviceInfo.avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+        deviceInfo.gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
+        else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
+      }
     return AndroidDevice(
-      UUID.randomUUID().toString(),
-      deviceInfo.displayName(),
-      deviceInfo.avdName,
-      deviceType,
-      SdkVersionInfo.getVersion(deviceInfo.apiLevel, null) ?: AndroidVersion.DEFAULT,
-    ).apply {
-      if (deviceInfo.manufacturer.isNotBlank()) {
-        additionalInfo["Manufacturer"] = deviceInfo.manufacturer
+        UUID.randomUUID().toString(),
+        deviceInfo.displayName(),
+        deviceInfo.avdName,
+        deviceType,
+        SdkVersionInfo.getVersion(deviceInfo.apiLevel, null) ?: AndroidVersion.DEFAULT,
+      )
+      .apply {
+        if (deviceInfo.manufacturer.isNotBlank()) {
+          additionalInfo["Manufacturer"] = deviceInfo.manufacturer
+        }
+        if (deviceInfo.model.isNotBlank()) {
+          additionalInfo["Model"] = deviceInfo.model
+        }
+        if (deviceInfo.processorsCount > 0) {
+          additionalInfo["Processor"] = deviceInfo.processorsList.joinToString("\n")
+        }
+        if (deviceInfo.ramInBytes > 0) {
+          additionalInfo["RAM"] = String.format(Locale.ROOT, "%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
+        }
       }
-      if (deviceInfo.model.isNotBlank()) {
-        additionalInfo["Model"] = deviceInfo.model
-      }
-      if (deviceInfo.processorsCount > 0) {
-        additionalInfo["Processor"] = deviceInfo.processorsList.joinToString("\n")
-      }
-      if (deviceInfo.ramInBytes > 0) {
-        additionalInfo["RAM"] = String.format(Locale.ROOT, "%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
-      }
-    }
   }
 
   private fun AndroidTestDeviceInfo.displayName(): String {
@@ -217,42 +198,30 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
   }
 }
 
-/**
- * Resolves an output artifact file from a given test result.
- */
+/** Resolves an output artifact file from a given test result. */
 private class ArtifactFileResolver(private val parentDir: File) {
   private val relativePathToFile: MutableMap<String, File?> = mutableMapOf()
 
   fun getArtifactFile(testResult: TestResult, label: String, namespace: String = "android"): File? {
     return getArtifactFile(testResult) { artifact ->
-      artifact.label.label == label &&
-      artifact.label.namespace == namespace &&
-      artifact.sourcePath.path.isNotBlank()
+      artifact.label.label == label && artifact.label.namespace == namespace && artifact.sourcePath.path.isNotBlank()
     }
   }
 
   fun getArtifactFile(testResult: TestResult, filterFunc: (Artifact) -> Boolean): File? {
     val relativePath = getRelativePath(testResult, filterFunc) ?: return null
-    return relativePathToFile.computeIfAbsent(relativePath) {
-      resolveFile(it)
-    }
+    return relativePathToFile.computeIfAbsent(relativePath) { resolveFile(it) }
   }
 
   private fun getRelativePath(testResult: TestResult, filterFunc: (Artifact) -> Boolean): String? {
-    return testResult.outputArtifactList.asSequence()
-      .filter(filterFunc)
-      .map { artifact ->
-        artifact.sourcePath.path
-      }
-      .firstOrNull()
+    return testResult.outputArtifactList.asSequence().filter(filterFunc).map { artifact -> artifact.sourcePath.path }.firstOrNull()
   }
 
   /**
    * Try to find a file. The fallbacks of file path is as follows:
    *
-   * (1) Try absolute path.
-   * (2) Try relative path.
-   * (3) Try to get the file name and use it as relative path. This is useful because currently UTP writes absolute path in the proto.
+   * (1) Try absolute path. (2) Try relative path. (3) Try to get the file name and use it as relative path. This is useful because
+   * currently UTP writes absolute path in the proto.
    */
   fun resolveFile(relativePath: String): File? {
     if (exists(relativePath)) {

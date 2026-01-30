@@ -37,10 +37,7 @@ class OnDeviceRendererPanel(
   scope: CoroutineScope,
   private val model: OnDeviceRendererModel,
   private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
-  private val showRightClickMenu:
-    suspend (
-      source: JComponent, selectedView: ViewNode?, views: List<ViewNode>, coordinates: Point,
-    ) -> Unit =
+  private val showRightClickMenu: suspend (source: JComponent, selectedView: ViewNode?, views: List<ViewNode>, coordinates: Point) -> Unit =
     { source, selectedView, views, coordinates ->
       withContext(Dispatchers.EDT) {
         showViewContextMenu(
@@ -98,25 +95,15 @@ class OnDeviceRendererPanel(
         // where the cursor is.
         .filter { isMouseOnPanel }
         .collect { event ->
-          val views =
-            model.renderModel.rightClickNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
+          val views = model.renderModel.rightClickNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
           // There should always be a lastMousePosition available, if for some reason it's missing,
           // show the popup in them middle of the panel.
           val rightClickCoordinates = lastMousePosition ?: Point(width / 2, height / 2)
-          showRightClickMenu(
-            this@OnDeviceRendererPanel,
-            model.inspectorModel.selection,
-            views.toList(),
-            rightClickCoordinates,
-          )
+          showRightClickMenu(this@OnDeviceRendererPanel, model.inspectorModel.selection, views.toList(), rightClickCoordinates)
         }
     }
 
-    childScope.launch {
-      model.interceptClicks.collect { interceptClicks ->
-        enableSendRightClicksToDevice(interceptClicks)
-      }
-    }
+    childScope.launch { model.interceptClicks.collect { interceptClicks -> enableSendRightClicksToDevice(interceptClicks) } }
   }
 
   override fun dispose() {}

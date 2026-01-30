@@ -28,12 +28,11 @@ import kotlin.jvm.optionals.getOrNull
 /**
  * Adds Kotlin compiler flags from toolchain targets to the project proto.
  *
- * This operation identifies Kotlin toolchain targets and extracts their compiler flags,
- * adding them to the workspace module in the project proto.
+ * This operation identifies Kotlin toolchain targets and extracts their compiler flags, adding them to the workspace module in the project
+ * proto.
  *
- * NOTE: As a workaround, we currently take the flags from the first available Kotlin toolchain
- * and apply them to the single IDE workspace module. This is because Query Sync currently
- * merges all project targets into a single IDE module, but we need toolchain-level
+ * NOTE: As a workaround, we currently take the flags from the first available Kotlin toolchain and apply them to the single IDE workspace
+ * module. This is because Query Sync currently merges all project targets into a single IDE module, but we need toolchain-level
  * configuration to correctly set up the Kotlin facet.
  */
 class AddProjectKotlinCompilerFlags : ProjectProtoUpdateOperation {
@@ -45,20 +44,19 @@ class AddProjectKotlinCompilerFlags : ProjectProtoUpdateOperation {
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
-    val toolchains = artifactState.targets()
-      .filter { it.javaInfo().getOrNull()?.isKotlinToolchain ?: false }
+    val toolchains = artifactState.targets().filter { it.javaInfo().getOrNull()?.isKotlinToolchain ?: false }
 
     if (toolchains.isEmpty()) return
 
     if (toolchains.size > 1) {
-      context.output(PrintOutput.error(
-        "Multiple Kotlin toolchains found: ${toolchains.joinToString { it.label().toString() }}. Using flags from the first one."
-      ))
+      context.output(
+        PrintOutput.error(
+          "Multiple Kotlin toolchains found: ${toolchains.joinToString { it.label().toString() }}. Using flags from the first one."
+        )
+      )
     }
 
     val javaInfo = toolchains.first().javaInfo().get()
-    update.module(Label.of("@aswb_workspace_module//")) {
-      addKotlinCompilerFlags(javaInfo.kotlinCompilerFlags())
-    }
+    update.module(Label.of("@aswb_workspace_module//")) { addKotlinCompilerFlags(javaInfo.kotlinCompilerFlags()) }
   }
 }

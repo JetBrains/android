@@ -23,10 +23,7 @@ import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import java.awt.Dimension
 import java.awt.Insets
 
-/**
- * Class that provides an interface for content that can be positioned on the
- * [com.android.tools.idea.common.surface.DesignSurface]
- */
+/** Class that provides an interface for content that can be positioned on the [com.android.tools.idea.common.surface.DesignSurface] */
 interface PositionableContent {
 
   /** [PositionableContent] are grouped by [organizationGroup]. */
@@ -45,16 +42,10 @@ interface PositionableContent {
 
   @get:SwingCoordinate val y: Int
 
-  /**
-   * This value is true if this [PositionableContent] has got the focus in the surface (eg: is
-   * selected), false otherwise.
-   */
+  /** This value is true if this [PositionableContent] has got the focus in the surface (eg: is selected), false otherwise. */
   val isFocusedContent: Boolean
 
-  /**
-   * Returns the current size of the view content, excluding margins. This doesn't account the
-   * current [scale].
-   */
+  /** Returns the current size of the view content, excluding margins. This doesn't account the current [scale]. */
   @AndroidDpCoordinate fun getContentSize(dimension: Dimension?): Dimension
 
   fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
@@ -64,8 +55,7 @@ interface PositionableContent {
 }
 
 /** Sorts the [Collection<PositionableContent>] by its x and y coordinates. */
-internal fun Collection<PositionableContent>.sortByPosition() =
-  sortedWith(compareBy({ it.y }, { it.x }))
+internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compareBy({ it.y }, { it.x }))
 
 /** Get the margin with the current [PositionableContent.scale] value. */
 @Deprecated("Use PositionableContent properties directly")
@@ -77,15 +67,14 @@ val PositionableContent.scaledContentSize: Dimension
   @SwingCoordinate get() = getScaledContentSize(Dimension())
 
 /**
- * Returns the current size of the view content, excluding margins. This is the same as
- * {@link #getContentSize()} but accounts for the current [PositionableContent.scale].
+ * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+ * current [PositionableContent.scale].
  *
  * This function is implemented as an extension because it should not be overridden.
  *
- * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the
- *   values will be set and this instance returned.
+ * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+ *   returned.
  */
 @SwingCoordinate
 @Deprecated("Use PositionableContent properties directly")
-fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
-  getContentSize(dimension).scaleBy(scale)
+fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension = getContentSize(dimension).scaleBy(scale)

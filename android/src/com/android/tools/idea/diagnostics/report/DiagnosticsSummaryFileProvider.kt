@@ -24,15 +24,16 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
-  FileInfo contains a pair of values used for creating a diagnostic report
-  @param source: the path to the file
-  @param destination: the path where the file should be stored in the report
+ * FileInfo contains a pair of values used for creating a diagnostic report
+ *
+ * @param source: the path to the file
+ * @param destination: the path where the file should be stored in the report
  */
 data class FileInfo(val source: Path, val destination: Path)
 
 /*
-  DiagnosticsSummaryFileProvider returns a list of source/destination pairs corresponding to debugging artifacts
-  */
+DiagnosticsSummaryFileProvider returns a list of source/destination pairs corresponding to debugging artifacts
+*/
 interface DiagnosticsSummaryFileProvider {
   val name: String
 
@@ -40,43 +41,48 @@ interface DiagnosticsSummaryFileProvider {
 
   companion object {
     /**
-     * Extension point for [DiagnosticsSummaryFileProvider] to specify additional providers other than
-     * the [defaultDiagnosticSummaryFileProviders]. These will be used when the user uses `Help/Collect Logs and Diagnostics Data...`.
+     * Extension point for [DiagnosticsSummaryFileProvider] to specify additional providers other than the
+     * [defaultDiagnosticSummaryFileProviders]. These will be used when the user uses `Help/Collect Logs and Diagnostics Data...`.
      */
     private val providersExtensionPoint: ExtensionPointName<DiagnosticsSummaryFileProvider> =
       ExtensionPointName.create("com.android.tools.idea.diagnostics.report.logsProvider")
 
-    private val defaultDiagnosticSummaryFileProviders: List<DiagnosticsSummaryFileProvider> = listOf(
-      DefaultLogFileProvider,
-      SystemInfoFileProvider,
-      DefaultMetricsLogFileProvider,
-      HeapReportProvider,
-      StudioFlagsDiagnosticFileProvider,
-      ThreadDumpProvider,
-      UIFreezeProvider,
-      AdbHostLogFileProvider)
+    private val defaultDiagnosticSummaryFileProviders: List<DiagnosticsSummaryFileProvider> =
+      listOf(
+        DefaultLogFileProvider,
+        SystemInfoFileProvider,
+        DefaultMetricsLogFileProvider,
+        HeapReportProvider,
+        StudioFlagsDiagnosticFileProvider,
+        ThreadDumpProvider,
+        UIFreezeProvider,
+        AdbHostLogFileProvider,
+      )
 
     /*
-       Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
-       relative to the name associated with the provider that created it.
-     */
+      Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
+      relative to the name associated with the provider that created it.
+    */
     @JvmStatic
-    fun buildFileList(project: Project? = null,
-                      providers: List<DiagnosticsSummaryFileProvider> = defaultDiagnosticSummaryFileProviders + providersExtensionPoint.extensions): List<FileInfo> {
+    fun buildFileList(
+      project: Project? = null,
+      providers: List<DiagnosticsSummaryFileProvider> = defaultDiagnosticSummaryFileProviders + providersExtensionPoint.extensions,
+    ): List<FileInfo> {
       val list = mutableListOf<FileInfo>()
       for (provider in providers) {
-        val files = provider.getFiles(project)
-          .filter { Files.exists(it.source) }
-          .map { FileInfo(it.source, Paths.get(provider.name).resolve(it.destination)) }
+        val files =
+          provider
+            .getFiles(project)
+            .filter { Files.exists(it.source) }
+            .map { FileInfo(it.source, Paths.get(provider.name).resolve(it.destination)) }
         list.addAll(files)
       }
       return list.sortedBy { it.destination }
     }
 
     /**
-     * Returns the diagnostics file directory based on the log path
-     * Will create the diagnostics directory if it doesn't exist
-     * Assumes that the log directory exists
+     * Returns the diagnostics file directory based on the log path Will create the diagnostics directory if it doesn't exist Assumes that
+     * the log directory exists
      */
     fun getDiagnosticsDirectoryPath(logDir: String): Path {
       val dir = Paths.get(logDir).resolve(DIAGNOSTICS_REPORTS_DIR)

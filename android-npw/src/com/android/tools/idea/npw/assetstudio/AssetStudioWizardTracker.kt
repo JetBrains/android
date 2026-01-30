@@ -39,9 +39,7 @@ class AssetStudioWizardTrackerImpl(private val project: Project) : AssetStudioWi
     AndroidStudioEvent.newBuilder()
       .withProjectId(project)
       .setKind(AndroidStudioEvent.EventKind.ASSET_STUDIO_WIZARD_EVENT)
-      .setAssetStudioWizardEvent(
-        AssetStudioWizardEvent.newBuilder().setType(type).setAction(action).build()
-      )
+      .setAssetStudioWizardEvent(AssetStudioWizardEvent.newBuilder().setType(type).setAction(action).build())
 
   /**
    * Logs an event for the Asset Studio.
@@ -50,11 +48,8 @@ class AssetStudioWizardTrackerImpl(private val project: Project) : AssetStudioWi
    * @param type The type of Asset Studio wizard event.
    * @param action The action performed within the Asset Studio wizard.
    */
-  private fun log(
-    project: Project?,
-    type: AssetStudioWizardEvent.Type,
-    action: AssetStudioWizardEvent.Action,
-  ) = UsageTracker.log(createEvent(project, type, action))
+  private fun log(project: Project?, type: AssetStudioWizardEvent.Type, action: AssetStudioWizardEvent.Action) =
+    UsageTracker.log(createEvent(project, type, action))
 
   /**
    * Logs that a monochrome icon was generated using the Asset Studio.
@@ -62,9 +57,5 @@ class AssetStudioWizardTrackerImpl(private val project: Project) : AssetStudioWi
    * @param project The current project.
    */
   override fun logMonochromeIconGenerated() =
-    log(
-      project,
-      AssetStudioWizardEvent.Type.ADAPTIVE_LAUNCHER_ICON,
-      AssetStudioWizardEvent.Action.MONOCHROME_ICON_CREATED,
-    )
+    log(project, AssetStudioWizardEvent.Type.ADAPTIVE_LAUNCHER_ICON, AssetStudioWizardEvent.Action.MONOCHROME_ICON_CREATED)
 }

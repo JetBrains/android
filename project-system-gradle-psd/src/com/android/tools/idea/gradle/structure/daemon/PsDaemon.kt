@@ -27,7 +27,9 @@ import javax.swing.JComponent
 abstract class PsDaemon protected constructor(protected val parentDisposable: Disposable) : Disposable {
   protected abstract val mainQueue: MergingUpdateQueue
   protected abstract val resultsUpdaterQueue: MergingUpdateQueue
-  protected val isStopped: Boolean get() = stopped.get()
+  protected val isStopped: Boolean
+    get() = stopped.get()
+
   val isRunning: Boolean
     // Note: resultsUpdaterQueue.isFlushing is ok to be true since it happens on EDT.
     @UiThread get() = !mainQueue.isEmpty || mainQueue.isFlushing || !resultsUpdaterQueue.isEmpty
@@ -39,16 +41,25 @@ abstract class PsDaemon protected constructor(protected val parentDisposable: Di
   }
 
   protected fun createQueue(name: String, modalityStateComponent: JComponent?): MergingUpdateQueue =
-    MergingUpdateQueue(name, 300, false, modalityStateComponent, this, null,
-                       if (modalityStateComponent != null) Alarm.ThreadToUse.SWING_THREAD else Alarm.ThreadToUse.POOLED_THREAD)
+    MergingUpdateQueue(
+      name,
+      300,
+      false,
+      modalityStateComponent,
+      this,
+      null,
+      if (modalityStateComponent != null) Alarm.ThreadToUse.SWING_THREAD else Alarm.ThreadToUse.POOLED_THREAD,
+    )
 
   fun reset() {
     reset(mainQueue, resultsUpdaterQueue)
-    mainQueue.queue(object : Update("reset") {
-      override fun run() {
-        stopped.set(false)
+    mainQueue.queue(
+      object : Update("reset") {
+        override fun run() {
+          stopped.set(false)
+        }
       }
-    })
+    )
   }
 
   private fun reset(vararg queues: MergingUpdateQueue) {

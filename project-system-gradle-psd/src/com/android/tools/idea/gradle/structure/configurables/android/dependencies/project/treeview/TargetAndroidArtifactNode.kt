@@ -27,11 +27,9 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
 
-class TargetAndroidArtifactNode internal constructor(
-  val artifact: PsAndroidArtifact,
-  private val myVersion: String?,
-  uiSettings: PsUISettings
-) : AbstractPsModelNode<PsAndroidArtifact>(uiSettings), CellAppearanceEx {
+class TargetAndroidArtifactNode
+internal constructor(val artifact: PsAndroidArtifact, private val myVersion: String?, uiSettings: PsUISettings) :
+  AbstractPsModelNode<PsAndroidArtifact>(uiSettings), CellAppearanceEx {
   private var myChildren = emptyList<AbstractPsNode>()
 
   override val models: List<PsAndroidArtifact> = listOf(artifact)

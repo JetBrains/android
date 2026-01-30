@@ -27,6 +27,5 @@ class EmptyJavaModelImpl : EmptyGradleBlockModel(), JavaModel {
   override fun targetCompatibility(): LanguageLevelPropertyModel =
     throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun toolchain(): ToolchainModel =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun toolchain(): ToolchainModel = throw UnsupportedOperationException("Call is not supported for Declarative")
 }

@@ -56,12 +56,7 @@ class GoogleLoginStateListenerTest {
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
   private val disposableRule = DisposableRule()
   private val loginUsersRule = LoginUsersRule()
-  @get:Rule
-  val rules: RuleChain =
-    RuleChain.outerRule(applicationRule)
-      .around(flagRule)
-      .around(disposableRule)
-      .around(loginUsersRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule).around(loginUsersRule)
 
   private val loginStates = mutableListOf<Boolean>()
   private val syncEvents = mutableListOf<SyncSettingsEvent>()
@@ -74,18 +69,9 @@ class GoogleLoginStateListenerTest {
   fun setUp() {
     googleLoginStateListener = GoogleLoginStateListener(scope)
     ApplicationManager.getApplication()
-      .replaceService(
-        GoogleLoginStateListener::class.java,
-        googleLoginStateListener,
-        disposableRule.disposable,
-      )
+      .replaceService(GoogleLoginStateListener::class.java, googleLoginStateListener, disposableRule.disposable)
 
-    ExtensionTestUtil.maskExtensions(
-      LoginFeature.Companion.EP_NAME,
-      listOf(feature, USER_INFO),
-      disposableRule.disposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
 
     testListener =
       object : SettingsSyncEventListener {
@@ -121,12 +107,7 @@ class GoogleLoginStateListenerTest {
 
     // Verify
     assertThat(loginStates).containsExactly(false, true, false)
-    assertThat(syncEvents)
-      .containsExactly(
-        SyncSettingsEvent.SyncRequest,
-        SyncSettingsEvent.SyncRequest,
-        SyncSettingsEvent.SyncRequest,
-      )
+    assertThat(syncEvents).containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
   }
 
   @Test
@@ -143,12 +124,7 @@ class GoogleLoginStateListenerTest {
 
     // Verify
     assertThat(loginStates).containsExactly(false, true, false)
-    assertThat(syncEvents)
-      .containsExactly(
-        SyncSettingsEvent.SyncRequest,
-        SyncSettingsEvent.SyncRequest,
-        SyncSettingsEvent.SyncRequest,
-      )
+    assertThat(syncEvents).containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
   }
 
   @Test
@@ -182,8 +158,7 @@ class GoogleLoginStateListenerTest {
 
     // Verify
     assertThat(loginStates).containsExactly(false, true)
-    assertThat(syncEvents)
-      .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
+    assertThat(syncEvents).containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
   }
 
   @Test
@@ -231,8 +206,7 @@ class GoogleLoginStateListenerTest {
 
     // Verify
     assertThat(loginStates).containsExactly(false, true)
-    assertThat(syncEvents)
-      .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
+    assertThat(syncEvents).containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
 
     // Action
     SettingsSyncSettings.getInstance().syncEnabled = false
@@ -243,8 +217,7 @@ class GoogleLoginStateListenerTest {
 
     // Verify
     assertThat(loginStates).containsExactly(false, true)
-    assertThat(syncEvents)
-      .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
+    assertThat(syncEvents).containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
   }
 }
 
@@ -255,9 +228,7 @@ class GoogleLoginStateListenerSimpleTest() {
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rules: RuleChain =
-    RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule)
 
   private val loginStates = mutableListOf<Boolean>()
   private val syncEvents = mutableListOf<SyncSettingsEvent>()
@@ -280,32 +251,18 @@ class GoogleLoginStateListenerSimpleTest() {
           get() = _allUsersFlow
       }
 
-    ApplicationManager.getApplication()
-      .replaceService(GoogleLoginService::class.java, loginService, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(GoogleLoginService::class.java, loginService, disposableRule.disposable)
 
     googleLoginStateListener = GoogleLoginStateListener(scope)
     ApplicationManager.getApplication()
-      .replaceService(
-        GoogleLoginStateListener::class.java,
-        googleLoginStateListener,
-        disposableRule.disposable,
-      )
+      .replaceService(GoogleLoginStateListener::class.java, googleLoginStateListener, disposableRule.disposable)
 
-    ExtensionTestUtil.maskExtensions(
-      LoginFeature.Companion.EP_NAME,
-      listOf(feature, USER_INFO),
-      disposableRule.disposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature, USER_INFO), disposableRule.disposable, false)
 
     testListener =
       object : SettingsSyncEventListener {
         override fun loginStateChanged() {
-          loginStates.add(
-            loginService.allUsersFlow.value
-              .filterKeys { it == TEST_EMAIL }
-              .any { it.value.isLoggedIn(feature) }
-          )
+          loginStates.add(loginService.allUsersFlow.value.filterKeys { it == TEST_EMAIL }.any { it.value.isLoggedIn(feature) })
         }
 
         override fun settingChanged(event: SyncSettingsEvent) {
@@ -329,10 +286,7 @@ class GoogleLoginStateListenerSimpleTest() {
   fun `pick up login event on startup`() = runTest {
     googleLoginStateListener.startListening()
     _allUsersFlow.emit(
-      mapOf<String, CredentialedUser>(
-        TEST_EMAIL to
-          mock<CredentialedUser>().apply { `when`(isLoggedIn(feature)).thenReturn(true) }
-      )
+      mapOf<String, CredentialedUser>(TEST_EMAIL to mock<CredentialedUser>().apply { `when`(isLoggedIn(feature)).thenReturn(true) })
     )
 
     _isInitialized = true

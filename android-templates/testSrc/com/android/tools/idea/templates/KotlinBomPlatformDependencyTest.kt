@@ -53,8 +53,7 @@ class KotlinBomPlatformDependencyTest {
   // The test SDK Manager needs to be set, and loadProject also changes the project files to the specified version
   private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_12.withCompileSdk(AndroidApiLevel(35))
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)
   private val module by lazy { projectRule.getModule("app") }
   private val mockModuleTemplateData = mock<ModuleTemplateData>()
   private val myModule = "mymodule"
@@ -67,7 +66,7 @@ class KotlinBomPlatformDependencyTest {
       mockModuleTemplateData,
       moduleRoot = module.getModuleDir(),
       dryRun = false,
-      showErrors = true
+      showErrors = true,
     )
   }
 
@@ -91,18 +90,17 @@ class KotlinBomPlatformDependencyTest {
       projectSyncInvoker = emptyProjectSyncInvoker,
       formFactor = FormFactor.Mobile,
       category = Category.Activity,
-      isLibrary = false
+      isLibrary = false,
     )
   }
 
-  private val recipeExecutor by lazy {
-    DefaultRecipeExecutor(renderingContext)
-  }
+  private val recipeExecutor by lazy { DefaultRecipeExecutor(renderingContext) }
 
   // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
-  private val emptyProjectSyncInvoker = object: ProjectSyncInvoker {
-    override fun syncProject(project: Project) { }
-  }
+  private val emptyProjectSyncInvoker =
+    object : ProjectSyncInvoker {
+      override fun syncProject(project: Project) {}
+    }
 
   @Before
   fun setUp() {

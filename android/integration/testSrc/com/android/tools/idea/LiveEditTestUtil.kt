@@ -19,16 +19,12 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 
-/**
- * Helper for tests that uses the mini Live Edit test project so we can update everything in one place.
- *
- */
-
-internal fun createLiveEditProject() = AndroidProject("tools/adt/idea/android/integration/testData/liveedit").also {
-  it.setDistribution("tools/external/gradle/gradle-9.0.0-bin.zip")
-}
+/** Helper for tests that uses the mini Live Edit test project so we can update everything in one place. */
+internal fun createLiveEditProject() =
+  AndroidProject("tools/adt/idea/android/integration/testData/liveedit").also {
+    it.setDistribution("tools/external/gradle/gradle-9.0.0-bin.zip")
+  }
 
 internal fun AndroidSystem.installLiveEditMavenDependencies() {
   this.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
 }
-

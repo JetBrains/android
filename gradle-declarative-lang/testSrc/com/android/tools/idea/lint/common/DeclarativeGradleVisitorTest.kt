@@ -20,7 +20,6 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.client.api.Configuration
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.client.api.UastGradleVisitor
-import com.android.tools.lint.detector.api.Context
 import com.android.tools.lint.detector.api.Detector
 import com.android.tools.lint.detector.api.GradleContext
 import com.android.tools.lint.detector.api.GradleScanner
@@ -166,15 +165,14 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
 
     val client = LintIdeSupport.get().createClient(project)
 
-    //val javaContext = contexts.first()
-    //val project = javaContext.project
-    //val driver = javaContext.driver
+    // val javaContext = contexts.first()
+    // val project = javaContext.project
+    // val driver = javaContext.driver
     val project = Mockito.mock(Project::class.java)
     val configuration = Mockito.mock(Configuration::class.java)
     whenever(project.getConfiguration(any())).thenReturn(configuration)
 
-    val request =
-      LintIdeRequest(client, myFixture.project, listOf(file.virtualFile), emptyList(), true)
+    val request = LintIdeRequest(client, myFixture.project, listOf(file.virtualFile), emptyList(), true)
 
     val driver = Mockito.mock(LintDriver::class.java)
     whenever(driver.client).thenReturn(client)
@@ -228,13 +226,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     valueCookie: Any,
     statementCookie: Any,
   ) {
-    log(
-      "checkDslPropertyAssignment",
-      "property" to property,
-      "value" to value,
-      "parent" to parent,
-      "parentParent" to parentParent,
-    )
+    log("checkDslPropertyAssignment", "property" to property, "value" to value, "parent" to parent, "parentParent" to parentParent)
   }
 
   override fun checkMethodCall(

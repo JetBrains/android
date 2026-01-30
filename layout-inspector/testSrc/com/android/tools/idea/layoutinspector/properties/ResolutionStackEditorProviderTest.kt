@@ -64,20 +64,9 @@ class ResolutionStackEditorProviderTest {
 
   @Test
   fun createTextEditor() {
-    val property =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        ATTR_TEXT,
-        PropertyType.STRING,
-        "Hello",
-        PropertySection.DECLARED,
-        null,
-        2,
-        mock(),
-      )
+    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT, PropertyType.STRING, "Hello", PropertySection.DECLARED, null, 2, mock())
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
-    val provider =
-      ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
+    val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
     assertThat(editor).isInstanceOf(PropertyLabel::class.java)
   }
@@ -85,19 +74,9 @@ class ResolutionStackEditorProviderTest {
   @Test
   fun createColorEditor() {
     val property =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        ATTR_BACKGROUND,
-        PropertyType.COLOR,
-        "#220088",
-        PropertySection.DECLARED,
-        null,
-        2,
-        mock(),
-      )
+      InspectorPropertyItem(ANDROID_URI, ATTR_BACKGROUND, PropertyType.COLOR, "#220088", PropertySection.DECLARED, null, 2, mock())
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
-    val provider =
-      ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
+    val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
     assertThat(editor).isInstanceOf(PropertyTextFieldWithLeftButton::class.java)
     assertThat(editor.getComponent(0)).isInstanceOf(IconWithFocusBorder::class.java)
@@ -105,43 +84,16 @@ class ResolutionStackEditorProviderTest {
 
   @Test
   fun createLambdaEditor() {
-    val property =
-      LambdaParameterItem(
-        "onText",
-        PropertySection.DEFAULT,
-        -2,
-        -1,
-        0,
-        "com.example",
-        "Text.kt",
-        "f1$1",
-        "",
-        34,
-        34,
-        mock(),
-      )
+    val property = LambdaParameterItem("onText", PropertySection.DEFAULT, -2, -1, 0, "com.example", "Text.kt", "f1$1", "", 34, 34, mock())
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
-    val provider =
-      ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
+    val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
     assertThat(editor).isInstanceOf(PropertyLink::class.java)
   }
 
   @Test
   fun createResolutionStackEditor() {
-    val children =
-      mutableListOf(
-        InspectorPropertyItem(
-          "",
-          "",
-          PropertyType.COLOR,
-          "#880088",
-          PropertySection.DECLARED,
-          null,
-          2,
-          mock(),
-        )
-      )
+    val children = mutableListOf(InspectorPropertyItem("", "", PropertyType.COLOR, "#880088", PropertySection.DECLARED, null, 2, mock()))
     val property =
       InspectorGroupPropertyItem(
         ANDROID_URI,
@@ -156,8 +108,7 @@ class ResolutionStackEditorProviderTest {
         children,
       )
     val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
-    val provider =
-      ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
+    val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
     assertThat(editor).isInstanceOf(ResolutionElementEditor::class.java)
   }

@@ -20,24 +20,17 @@ import java.awt.Shape
 import java.awt.image.BufferedImage
 
 /**
- * Container for window-level information in the layout inspector. [refreshImages] should be called
- * when e.g. the zoom level changes, to regenerate the images associated with this window's view
- * tree, if necessary.
+ * Container for window-level information in the layout inspector. [refreshImages] should be called when e.g. the zoom level changes, to
+ * regenerate the images associated with this window's view tree, if necessary.
  *
  * @param root The root view node associated with this layout tree.
- * @param id An arbitrary ID, which can be any unique value, the details of which are left up to
- *   each implementing class.
+ * @param id An arbitrary ID, which can be any unique value, the details of which are left up to each implementing class.
  * @param displayId The id of the display the root view of this window is attached to.
- * @param imageType The type of image backing this window's screenshot. Note that this value is
- *   mutable and may change after receiving new layout events.
+ * @param imageType The type of image backing this window's screenshot. Note that this value is mutable and may change after receiving new
+ *   layout events.
  */
 // TODO(b/177374701): Investigate separating the response parsing logic from the window model data
-abstract class AndroidWindow(
-  val root: ViewNode,
-  val displayId: Int?,
-  val id: Any,
-  imageType: ImageType,
-) {
+abstract class AndroidWindow(val root: ViewNode, val displayId: Int?, val id: Any, imageType: ImageType) {
   var imageType: ImageType = imageType
     private set
 
@@ -65,10 +58,7 @@ abstract class AndroidWindow(
 
   open val deviceClip: Shape? = null
 
-  /**
-   * The latest bitmap image captured for this window. Can be missing if bitmap capturing is
-   * disabled
-   */
+  /** The latest bitmap image captured for this window. Can be missing if bitmap capturing is disabled */
   open var image: BufferedImage? = null
 
   open fun copyFrom(other: AndroidWindow) {
@@ -80,11 +70,11 @@ abstract class AndroidWindow(
   }
 
   /**
-   * Method triggered whenever the rendering of the window should change, for example because of a
-   * change in scale or because a new screenshot is ready.
+   * Method triggered whenever the rendering of the window should change, for example because of a change in scale or because a new
+   * screenshot is ready.
    *
-   * Subclasses are expected to respect this window's [imageType] and call
-   * [ViewNode.writeDrawChildren] to generate draw results into [ViewNode.drawChildren].
+   * Subclasses are expected to respect this window's [imageType] and call [ViewNode.writeDrawChildren] to generate draw results into
+   * [ViewNode.drawChildren].
    */
   abstract fun refreshImages(scale: Double)
 

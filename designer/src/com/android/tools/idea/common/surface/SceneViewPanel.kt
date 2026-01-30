@@ -64,13 +64,11 @@ import org.jetbrains.annotations.TestOnly
 /**
  * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
  *
- * @param interactionLayersProvider A [Layer] provider that returns the additional interaction
- *   [Layer]s, if any
+ * @param interactionLayersProvider A [Layer] provider that returns the additional interaction [Layer]s, if any
  * @param actionManagerProvider provides an [ActionManager]
- * @param shouldRenderErrorsPanel Returns true whether render error panels should be rendered when
- *   [SceneView] in this surface have render errors.
- * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and
- *   measuring the [SceneView]s
+ * @param shouldRenderErrorsPanel Returns true whether render error panels should be rendered when [SceneView] in this surface have render
+ *   errors.
+ * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
 class SceneViewPanel(
   private val scope: CoroutineScope,
@@ -83,9 +81,8 @@ class SceneViewPanel(
 ) : JPanel(layoutManager) {
 
   /**
-   * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
-   * the {@link SceneView} is less than the minimum, this enum describes how to align the content
-   * within the rectangle formed by the minimum size.
+   * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of the {@link SceneView} is less than the
+   * minimum, this enum describes how to align the content within the rectangle formed by the minimum size.
    */
   var sceneViewAlignment: Float = CENTER_ALIGNMENT
     set(value) {
@@ -98,12 +95,7 @@ class SceneViewPanel(
 
   /** Returns the components of this panel that are visible [PositionableContent] */
   val positionableContent: Collection<PositionableContent>
-    get() =
-      components
-        .filterIsInstance<PositionablePanel>()
-        .filter { it.isVisible() }
-        .map { it.positionableAdapter }
-        .toList()
+    get() = components.filterIsInstance<PositionablePanel>().filter { it.isVisible() }.map { it.positionableAdapter }.toList()
 
   private val _organizationState: MutableSharedFlow<Unit> = MutableSharedFlow()
 
@@ -138,33 +130,23 @@ class SceneViewPanel(
         val isOpenedFlow = combine(it.map { it.isOpened }) {}.conflate()
         isOpenedFlow.collect {
           // Wait for the first layoutContainerFlow before calling _organizationState.
-          launch {
-            layoutManager.layoutContainerFlow.first().apply { _organizationState.emit(Unit) }
-          }
+          launch { layoutManager.layoutContainerFlow.first().apply { _organizationState.emit(Unit) } }
           revalidate()
         }
       }
     }
   }
 
-  /**
-   * Listen for changes in [layoutManager] to update [isOrganizationEnabled] - if organization is
-   * enabled at the moment.
-   */
+  /** Listen for changes in [layoutManager] to update [isOrganizationEnabled] - if organization is enabled at the moment. */
   private fun launchOrganizationUpdate() {
     (layoutManager as? LayoutManagerSwitcher)?.let {
-      scope.launch {
-        it.currentLayoutOption.collect { layoutOption ->
-          isOrganizationEnabled.value = layoutOption.organizationEnabled
-        }
-      }
+      scope.launch { it.currentLayoutOption.collect { layoutOption -> isOrganizationEnabled.value = layoutOption.organizationEnabled } }
     }
   }
 
   /**
-   * Listen for changes in [isOrganizationEnabled] and [sceneViews] to updates [activeGroups] and
-   * the list of [components]. If [componets] are created - call [componentsUpdated] to let know
-   * what layout is created.
+   * Listen for changes in [isOrganizationEnabled] and [sceneViews] to updates [activeGroups] and the list of [components]. If [componets]
+   * are created - call [componentsUpdated] to let know what layout is created.
    */
   private fun launchLayoutUpdate() {
     scope.launch {
@@ -174,13 +156,11 @@ class SceneViewPanel(
         .collectLatest { collected ->
           val isOrganizationEnabled = collected.first
           val sceneViews = collected.second
-          activeGroups.value =
-            if (isOrganizationEnabled) sceneViews.findGroups() else persistentSetOf()
+          activeGroups.value = if (isOrganizationEnabled) sceneViews.findGroups() else persistentSetOf()
 
           // Remove old scenes.
           val existingScenePanels = components.filterIsInstance<SceneViewPeerPanel>()
-          val panelsToRemove =
-            existingScenePanels.filter { panel -> !sceneViews.contains(panel.sceneView) }
+          val panelsToRemove = existingScenePanels.filter { panel -> !sceneViews.contains(panel.sceneView) }
           panelsToRemove.forEach { panel ->
             panel.scope.cancel()
             withContext(uiThreadDispatcher) { remove(panel) }
@@ -188,10 +168,7 @@ class SceneViewPanel(
 
           // Remove old headers
           val existingHeaders = components.filterIsInstance<SceneViewHeader>()
-          val headerToRemove =
-            existingHeaders.filter {
-              !activeGroups.value.contains(it.positionableAdapter.organizationGroup)
-            }
+          val headerToRemove = existingHeaders.filter { !activeGroups.value.contains(it.positionableAdapter.organizationGroup) }
           headerToRemove.forEach { header -> withContext(uiThreadDispatcher) { remove(header) } }
 
           // Create or reuse scene panels.
@@ -200,11 +177,7 @@ class SceneViewPanel(
               .mapIndexed { index, sceneView ->
                 existingScenePanels.firstOrNull { it.sceneView == sceneView }
                   ?: withContext(uiThreadDispatcher) {
-                    createScenePanel(
-                      sceneView,
-                      index,
-                      scope.createChildScope(parentDisposable = sceneView),
-                    )
+                    createScenePanel(sceneView, index, scope.createChildScope(parentDisposable = sceneView))
                   }
               }
               .toMutableList()
@@ -212,24 +185,20 @@ class SceneViewPanel(
           // Create or reuse headers.
           activeGroups.value
             .map { group ->
-              components.filterIsInstance<SceneViewHeader>().firstOrNull {
-                it.positionableAdapter.organizationGroup == group
-              }
+              components.filterIsInstance<SceneViewHeader>().firstOrNull { it.positionableAdapter.organizationGroup == group }
                 ?: withContext(uiThreadDispatcher) {
                   // Previews in this organization group might not be available at all (not just
                   // hidden in collapsed state).
                   // For example in UI Check or in other filtering as available.
                   // In this case header should also be filtered out.
-                  val groupViews =
-                    sceneViews.filter { it.sceneManager.model.organizationGroup == group }
+                  val groupViews = sceneViews.filter { it.sceneManager.model.organizationGroup == group }
                   createHeader(group) { groupViews.any { it.isVisible } }
                 }
             }
             .forEach { header ->
               orderedComponents
                 .indexOfFirst {
-                  (it as? SceneViewPeerPanel)?.positionableAdapter?.organizationGroup ==
-                    header.positionableAdapter.organizationGroup
+                  (it as? SceneViewPeerPanel)?.positionableAdapter?.organizationGroup == header.positionableAdapter.organizationGroup
                 }
                 .takeIf { index -> index >= 0 }
                 ?.let { index -> orderedComponents.add(index, header) }
@@ -254,40 +223,27 @@ class SceneViewPanel(
    * Create [SceneViewPeerPanel] for target [sceneView]
    *
    * @param index of the [sceneView] in layout
-   * @param sceneScope [CoroutineScope] of the [SceneViewPeerPanel]. Should be cancelled if
-   *   [SceneViewPeerPanel] is removed
+   * @param sceneScope [CoroutineScope] of the [SceneViewPeerPanel]. Should be cancelled if [SceneViewPeerPanel] is removed
    */
   @UiThread
-  private suspend fun createScenePanel(
-    sceneView: SceneView,
-    index: Int,
-    sceneScope: CoroutineScope,
-  ): SceneViewPeerPanel {
+  private suspend fun createScenePanel(sceneView: SceneView, index: Int, sceneScope: CoroutineScope): SceneViewPeerPanel {
     val partOfTheGroup =
-      combine(activeGroups, isOrganizationEnabled, organizationGroups) {
-          activeGroups,
-          isOrganizationEnabled,
-          _ ->
-          isOrganizationEnabled &&
-            activeGroups.contains(sceneView.sceneManager.model.organizationGroup)
+      combine(activeGroups, isOrganizationEnabled, organizationGroups) { activeGroups, isOrganizationEnabled, _ ->
+          isOrganizationEnabled && activeGroups.contains(sceneView.sceneManager.model.organizationGroup)
         }
         .stateIn(sceneScope)
 
     return SceneViewPeerPanel(
         scope = sceneScope,
         sceneView = sceneView,
-        labelPanel =
-          actionManagerProvider().createSceneViewLabel(sceneView, sceneScope, partOfTheGroup),
+        labelPanel = actionManagerProvider().createSceneViewLabel(sceneView, sceneScope, partOfTheGroup),
         statusIconAction = actionManagerProvider().sceneViewStatusIconAction,
         toolbarActions = actionManagerProvider().sceneViewContextToolbarActions,
         toolbarOverflowActions = actionManagerProvider().sceneViewContextToolbarOverflowActions,
         // The left bar is only added for the first panel
-        leftPanel =
-          if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null,
+        leftPanel = if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null,
         rightPanel = actionManagerProvider().getSceneViewRightBar(sceneView),
-        errorsPanel =
-          if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView)
-          else null,
+        errorsPanel = if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null,
         isOrganizationEnabled = partOfTheGroup,
       )
       .also { it.alignmentX = sceneViewAlignment }
@@ -307,11 +263,10 @@ class SceneViewPanel(
   private var useTestNonComposeHeaders = false
 
   /**
-   * Due to issue b/346722476 in Compose for Desktop, some of FakeUI tests are failing with some of
-   * the Compose for Desktop components. [setNoComposeHeadersForTests] allows to use test
-   * non-compose component [createTestOrganizationHeader] instead of compose
-   * [createOrganizationHeader] for these tests. Should ONLY be used if a FakeUI test is failing
-   * with same b/346722476 error. The method will be removed once issue is resolved b/383713655.
+   * Due to issue b/346722476 in Compose for Desktop, some of FakeUI tests are failing with some of the Compose for Desktop components.
+   * [setNoComposeHeadersForTests] allows to use test non-compose component [createTestOrganizationHeader] instead of compose
+   * [createOrganizationHeader] for these tests. Should ONLY be used if a FakeUI test is failing with same b/346722476 error. The method
+   * will be removed once issue is resolved b/383713655.
    */
   @TestOnly
   fun setNoComposeHeadersForTests() {
@@ -321,8 +276,7 @@ class SceneViewPanel(
   fun updateComponents() {
     sceneViewProvider().let {
       sceneViews.value = it
-      organizationGroups.value =
-        it.map { sceneView -> sceneView.sceneManager.model.organizationGroup }
+      organizationGroups.value = it.map { sceneView -> sceneView.sceneManager.model.organizationGroup }
     }
     if (!scope.isActive) {
       removeAll()
@@ -354,11 +308,9 @@ class SceneViewPanel(
       val reusableDimension = Dimension()
       val positionables = positionableContent
       val horizontalTopScanLines = positionables.findAllScanlines { it.y }
-      val horizontalBottomScanLines =
-        positionables.findAllScanlines { it.y + it.getScaledContentSize(reusableDimension).height }
+      val horizontalBottomScanLines = positionables.findAllScanlines { it.y + it.getScaledContentSize(reusableDimension).height }
       val verticalLeftScanLines = positionables.findAllScanlines { it.x }
-      val verticalRightScanLines =
-        positionables.findAllScanlines { it.x + it.getScaledContentSize(reusableDimension).width }
+      val verticalRightScanLines = positionables.findAllScanlines { it.x + it.getScaledContentSize(reusableDimension).width }
       @SwingCoordinate val viewportRight = viewportBounds.x + viewportBounds.width
       @SwingCoordinate val viewportBottom = viewportBounds.y + viewportBounds.height
       val clipBounds = Rectangle()
@@ -366,30 +318,19 @@ class SceneViewPanel(
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
         val renderErrorPanel =
-          shouldRenderErrorsPanel() &&
-            sceneViewPeerPanel.sceneView.hasRenderErrors() &&
-            !sceneViewPeerPanel.sceneView.hasValidImage()
+          shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors() && !sceneViewPeerPanel.sceneView.hasValidImage()
 
         @SwingCoordinate
-        val right =
-          positionable.x +
-            if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width
-            else size.width
+        val right = positionable.x + if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width else size.width
 
         @SwingCoordinate
-        val bottom =
-          positionable.y +
-            if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height
-            else size.height
+        val bottom = positionable.y + if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height else size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details
         // in the ScanlineUtils.kt documentation.
-        @SwingCoordinate
-        var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
-        @SwingCoordinate
-        var minY = findSmallerScanline(horizontalBottomScanLines, positionable.y, viewportBounds.y)
+        @SwingCoordinate var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
+        @SwingCoordinate var minY = findSmallerScanline(horizontalBottomScanLines, positionable.y, viewportBounds.y)
         @SwingCoordinate var maxX = findLargerScanline(verticalLeftScanLines, right, viewportRight)
-        @SwingCoordinate
-        var maxY = findLargerScanline(horizontalTopScanLines, bottom, viewportBottom)
+        @SwingCoordinate var maxY = findLargerScanline(horizontalTopScanLines, bottom, viewportBottom)
 
         // Now, (minX, minY) (maxX, maxY) describes the box that a PositionableContent could paint
         // into without painting on top of another PositionableContent render. We use this box to
@@ -426,8 +367,8 @@ class SceneViewPanel(
   }
 
   /**
-   * Find collection of component's groups. Each component group - Collection<JComponent> -
-   * corrsepond to the components with same OrnanizationGroup.
+   * Find collection of component's groups. Each component group - Collection<JComponent> - corrsepond to the components with same
+   * OrnanizationGroup.
    */
   private fun findComponentGroups(): Collection<Collection<JComponent>> =
     components
@@ -437,36 +378,20 @@ class SceneViewPanel(
       .values
 
   fun findSceneViewRectangle(sceneView: SceneView): Rectangle? =
-    components
-      .filterIsInstance<SceneViewPeerPanel>()
-      .filter { sceneView == it.sceneView }
-      .map { it.bounds }
-      .firstOrNull()
+    components.filterIsInstance<SceneViewPeerPanel>().filter { sceneView == it.sceneView }.map { it.bounds }.firstOrNull()
 
   fun findSceneViewRectangles(): Map<SceneView, Rectangle?> =
     components
       .filterIsInstance<SceneViewPeerPanel>()
       .distinctBy { it.sceneView }
-      .associate {
-        it.sceneView to it.bounds.apply { location = Point(it.sceneView.x, it.sceneView.y) }
-      }
+      .associate { it.sceneView to it.bounds.apply { location = Point(it.sceneView.x, it.sceneView.y) } }
 
-  /**
-   * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with
-   * the given [availableSize].
-   */
+  /** Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with the given [availableSize]. */
   fun findMeasuredSceneViewRectangle(sceneView: SceneView, availableSize: Dimension): Rectangle? {
-    val panel =
-      components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView }
-        ?: return null
+    val panel = components.filterIsInstance<SceneViewPeerPanel>().firstOrNull { sceneView == it.sceneView } ?: return null
 
     val layoutManager = layout as PositionableContentLayoutManager
-    val positions =
-      layoutManager.getMeasuredPositionableContentPosition(
-        positionableContent,
-        availableSize.width,
-        availableSize.height,
-      )
+    val positions = layoutManager.getMeasuredPositionableContentPosition(positionableContent, availableSize.width, availableSize.height)
     val position = positions[panel.positionableAdapter] ?: return null
     return panel.bounds.apply { location = position }
   }

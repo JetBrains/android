@@ -23,8 +23,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 
 class BuildToolsTooLowReporterTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testModuleLink() {

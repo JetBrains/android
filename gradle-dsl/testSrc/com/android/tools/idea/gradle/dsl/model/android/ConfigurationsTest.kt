@@ -21,12 +21,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.B
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import java.io.File
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
-import java.io.File
 
 class ConfigurationsTest : GradleFileModelTestCase() {
   @Test
@@ -41,7 +41,6 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     val first = configs[0]
     val second = configs[1]
     val third = configs[2]
-
 
     assertThat("goodConfig", equalTo(first.name()))
     assertMissingProperty(first.visible())
@@ -145,7 +144,6 @@ class ConfigurationsTest : GradleFileModelTestCase() {
       assertMissingProperty(second.transitive())
       verifyPropertyModel(second.visible(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1)
     }
-
   }
 
   @Test
@@ -203,9 +201,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
       val configModel = buildModel.configurations()
       val configs = configModel.all()
       assertNotEmpty(configs)
-      configs.forEach { config ->
-        assertNotEmpty(config.declaredProperties)
-      }
+      configs.forEach { config -> assertNotEmpty(config.declaredProperties) }
       assertThat(configs.map { it.name() }.toSet(), equalTo(expectedConfigurations.toSet()))
     }
   }
@@ -275,11 +271,10 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     MANUAL_EXAMPLE369("gradleManual541-ex369"),
     MANUAL_EXAMPLE377("gradleManual541-ex377"),
     MANUAL_EXAMPLE378("gradleManual541-ex378"),
-    FAIL_ON_VERSION_CONFLICT("failOnVersionConflict"),
-    ;
+    FAIL_ON_VERSION_CONFLICT("failOnVersionConflict");
+
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/configurations/$path", extension)
     }
-
   }
 }

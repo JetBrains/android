@@ -27,6 +27,7 @@ class AppInspectionShowAction : AssistActionHandler {
   }
 
   override fun getId(): String = ACTION_KEY
+
   override fun handleAction(actionData: ActionData, project: Project) {
     WhatsNewMetricsTracker.getInstance().clickActionButton(project, ACTION_KEY)
     AppInspectionToolWindow.show(project)

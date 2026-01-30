@@ -33,12 +33,8 @@ object LayoutInspectorMetrics {
     UsageTracker.log(builder)
   }
 
-  fun logTransportError(
-    transportErrorType: DynamicLayoutInspectorTransportError.Type,
-    deviceDescriptor: DeviceDescriptor,
-  ) {
-    val transportErrorInfo =
-      DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()
+  fun logTransportError(transportErrorType: DynamicLayoutInspectorTransportError.Type, deviceDescriptor: DeviceDescriptor) {
+    val transportErrorInfo = DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()
 
     val androidStudioEvent =
       AndroidStudioEvent.newBuilder().apply {

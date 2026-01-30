@@ -24,8 +24,11 @@ internal class PsPomDependencies(private val ideProject: Project) : PsPomDepende
   private val cache: MutableMap<String, List<PsArtifactDependencySpec>> = mutableMapOf()
 
   override fun getPomDependencies(libraryName: String, libraryPath: File): List<PsArtifactDependencySpec> =
-    cache.getOrPut(libraryName, {
-      val pomFilePath = LibraryFilePaths.getInstance(ideProject).findPomPathForLibrary(libraryName, libraryPath)
-      MavenPoms.findDependenciesInPomFile(pomFilePath)
-    })
+    cache.getOrPut(
+      libraryName,
+      {
+        val pomFilePath = LibraryFilePaths.getInstance(ideProject).findPomPathForLibrary(libraryName, libraryPath)
+        MavenPoms.findDependenciesInPomFile(pomFilePath)
+      },
+    )
 }

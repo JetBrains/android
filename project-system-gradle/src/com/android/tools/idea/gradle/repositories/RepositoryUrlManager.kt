@@ -55,94 +55,102 @@ import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 
-/**
- * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
- */
+/** Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc). */
 @Service
-class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
+class RepositoryUrlManager
+@NonInjectable
+@VisibleForTesting
+constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
   private val googleMavenRepositoryV2: GoogleMavenRepositoryV2,
   private val cachedGoogleMavenRepositoryV2: GoogleMavenRepositoryV2,
-  private val useEmbeddedStudioRepo: Boolean = true) {
+  private val useEmbeddedStudioRepo: Boolean = true,
+) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
   private val logger: Logger = thisLogger()
   private val useGMavenV2: Boolean = StudioFlags.ENABLE_GMAVEN_REPOSITORY_V2.get()
+
   private fun bestGoogleMavenRepository(): GoogleMavenRepository =
     if (ApplicationManager.getApplication().isDispatchThread) cachedGoogleMavenRepository else googleMavenRepository
+
   private fun bestGoogleMavenRepositoryV2(): GoogleMavenRepositoryV2 =
     if (ApplicationManager.getApplication().isDispatchThread) cachedGoogleMavenRepositoryV2 else googleMavenRepositoryV2
 
-  internal constructor() : this(
-    IdeGoogleMavenRepository,
-    OfflineIdeGoogleMavenRepository,
-    GoogleMavenRepositoryV2.create(object : GoogleMavenRepositoryV2Host {
-      override val cacheDir: Path? =
-        if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
-        else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
+  internal constructor() :
+    this(
+      IdeGoogleMavenRepository,
+      OfflineIdeGoogleMavenRepository,
+      GoogleMavenRepositoryV2.create(
+        object : GoogleMavenRepositoryV2Host {
+          override val cacheDir: Path? =
+            if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
+            else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
 
-      override fun readUrlData(url: String,
-                               timeout: Int,
-                               lastModified: Long): NetworkCache.ReadUrlDataResult = IdeNetworkCacheUtils.readHttpUrlData(url, timeout,
-                                                                                                                          lastModified)
+          override fun readUrlData(url: String, timeout: Int, lastModified: Long): NetworkCache.ReadUrlDataResult =
+            IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
 
-      override fun error(throwable: Throwable, message: String?) = Logger.getInstance(RepositoryUrlManager::class.java).warn(message,
-                                                                                                                             throwable)
+          override fun error(throwable: Throwable, message: String?) =
+            Logger.getInstance(RepositoryUrlManager::class.java).warn(message, throwable)
+        }
+      ),
+      GoogleMavenRepositoryV2.create(
+        object : GoogleMavenRepositoryV2Host {
+          override val cacheDir: Path? =
+            if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
+            else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
 
-    }),
-    GoogleMavenRepositoryV2.create(object : GoogleMavenRepositoryV2Host {
-      override val cacheDir: Path? =
-        if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
-        else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
+          override fun readUrlData(url: String, timeout: Int, lastModified: Long): NetworkCache.ReadUrlDataResult =
+            throw UnsupportedOperationException("Should not be called as it is supposed to be an offline repository")
 
-      override fun readUrlData(url: String,
-                               timeout: Int,
-                               lastModified: Long): NetworkCache.ReadUrlDataResult = throw UnsupportedOperationException(
-        "Should not be called as it is supposed to be an offline repository")
-
-      override fun error(throwable: Throwable, message: String?) = Logger.getInstance(RepositoryUrlManager::class.java).warn(message,
-                                                                                                                             throwable)
-
-    }),
-    false
-  )
+          override fun error(throwable: Throwable, message: String?) =
+            Logger.getInstance(RepositoryUrlManager::class.java).warn(message, throwable)
+        }
+      ),
+      false,
+    )
 
   fun getArtifactComponent(artifactId: GoogleMavenArtifactId, preview: Boolean): Component? =
     getArtifactComponent(artifactId, null, preview)
 
   fun getArtifactComponent(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): Component? {
-    val revision = getLibraryRevision(
-      artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()
-    ) ?: return null
+    val revision =
+      getLibraryRevision(artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()) ?: return null
     return artifactId.getComponent(revision)
   }
 
-  /**
-   * A helper function which wraps [findVersion]?.toString().
-   */
+  /** A helper function which wraps [findVersion]?.toString(). */
   fun getLibraryRevision(
-    groupId: String, artifactId: String, filter: Predicate<Version>?, includePreviews: Boolean,
+    groupId: String,
+    artifactId: String,
+    filter: Predicate<Version>?,
+    includePreviews: Boolean,
     // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
-    fileSystem: FileSystem
+    fileSystem: FileSystem,
   ): String? = findVersion(groupId, artifactId, filter, includePreviews, fileSystem)?.toString()
 
   /**
-   * Returns the string for the specific version number of the most recent version of the given library
-   * (matching the given prefix filter, if any)
+   * Returns the string for the specific version number of the most recent version of the given library (matching the given prefix filter,
+   * if any)
    *
-   * @param groupId         the group id
-   * @param artifactId      the artifact id
-   * @param filter          the optional filter constraining acceptable versions
+   * @param groupId the group id
+   * @param artifactId the artifact id
+   * @param filter the optional filter constraining acceptable versions
    * @param includePreviews whether to include preview versions of libraries
    */
   fun findVersion(
-    groupId: String, artifactId: String, filter: Predicate<Version>?, includePreviews: Boolean, fileSystem: FileSystem
+    groupId: String,
+    artifactId: String,
+    filter: Predicate<Version>?,
+    includePreviews: Boolean,
+    fileSystem: FileSystem,
   ): Version? {
-    val version: Version? = if (useGMavenV2) {
-      bestGoogleMavenRepositoryV2().findVersion(groupId, artifactId, filter, includePreviews)
-    } else {
-      bestGoogleMavenRepository().findVersion(groupId, artifactId, filter, includePreviews)
-    }
+    val version: Version? =
+      if (useGMavenV2) {
+        bestGoogleMavenRepositoryV2().findVersion(groupId, artifactId, filter, includePreviews)
+      } else {
+        bestGoogleMavenRepository().findVersion(groupId, artifactId, filter, includePreviews)
+      }
     if (ApplicationManager.getApplication().isDispatchThread) {
       refreshCacheInBackground(groupId, artifactId)
     }
@@ -153,13 +161,15 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
     if (useEmbeddedStudioRepo) {
       // Try the repo embedded in AS.
-      val embeddedVersion = GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
-        .filter { it?.isDirectory == true }
-        .firstNotNullOfOrNull {
-          val repoPath = fileSystem.getPath(it.path)
-          logger.debug("Checking $repoPath for $groupId:$artifactId...")
-          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, repoPath, filter, includePreviews)
-        }?.version
+      val embeddedVersion =
+        GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
+          .filter { it?.isDirectory == true }
+          .firstNotNullOfOrNull {
+            val repoPath = fileSystem.getPath(it.path)
+            logger.debug("Checking $repoPath for $groupId:$artifactId...")
+            MavenRepositories.getHighestInstalledVersion(groupId, artifactId, repoPath, filter, includePreviews)
+          }
+          ?.version
 
       if (embeddedVersion != null) {
         logger.debug("Found dependency $groupId:$artifactId:$embeddedVersion in embedded repo")
@@ -170,11 +180,12 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   fun findCompileDependencies(groupId: String, artifactId: String, version: Version): List<Dependency> {
-    val result: List<Dependency> = if (useGMavenV2) {
-      bestGoogleMavenRepositoryV2().findCompileDependencies(groupId, artifactId, version)
-    } else {
-      bestGoogleMavenRepository().findCompileDependencies(groupId, artifactId, version)
-    }
+    val result: List<Dependency> =
+      if (useGMavenV2) {
+        bestGoogleMavenRepositoryV2().findCompileDependencies(groupId, artifactId, version)
+      } else {
+        bestGoogleMavenRepository().findCompileDependencies(groupId, artifactId, version)
+      }
     if (ApplicationManager.getApplication().isDispatchThread) {
       refreshCacheInBackground(groupId, artifactId)
     }
@@ -184,15 +195,16 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   /**
    * Gets the file on the local filesystem that corresponds to the given [Component].
    *
-   * @param component        the [Component] to retrieve an archive file for
-   * @param sdkLocation      SDK to use
-   * @param fileSystem       the [FileSystem] to work in
+   * @param component the [Component] to retrieve an archive file for
+   * @param sdkLocation SDK to use
+   * @param fileSystem the [FileSystem] to work in
    * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
   fun getArchiveForComponent(
-    component: Component, sdkLocation: File,
+    component: Component,
+    sdkLocation: File,
     // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
-    fileSystem: FileSystem
+    fileSystem: FileSystem,
   ): File? {
     val group = component.group
     val name = component.name
@@ -213,59 +225,63 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   /**
-   * Checks the given [Dependency], and if it is not an explicit singleton, returns
-   * a [Component] with the rich dependency replaced with a specific version.
-   * This tries looking at local caches, to pick the best version that Gradle would use without hitting the network,
-   * but (if a [Project] is provided) it can also fall back to querying the network for the latest version.
-   * Works not just for a completely generic dynamic version (e.g. `+`), but for more specific Rich Versions like `23.+` and `23.1.+`,
-   * `[23,24]`, and rich versions including strict and preferred versions.
+   * Checks the given [Dependency], and if it is not an explicit singleton, returns a [Component] with the rich dependency replaced with a
+   * specific version. This tries looking at local caches, to pick the best version that Gradle would use without hitting the network, but
+   * (if a [Project] is provided) it can also fall back to querying the network for the latest version. Works not just for a completely
+   * generic dynamic version (e.g. `+`), but for more specific Rich Versions like `23.+` and `23.1.+`, `[23,24]`, and rich versions
+   * including strict and preferred versions.
    *
-   * Note that in some cases the method may return null -- such as the case for unknown artifacts not found on disk or on the network,
-   * or for valid artifacts but where there is no local cache and the network query is not successful.
+   * Note that in some cases the method may return null -- such as the case for unknown artifacts not found on disk or on the network, or
+   * for valid artifacts but where there is no local cache and the network query is not successful.
    *
    * @param dependency the [Dependency]
-   * @param project    the current project, if known. This is required if you want to perform a network lookup of
-   * the current best version if we can't find a locally cached version of the library
+   * @param project the current project, if known. This is required if you want to perform a network lookup of the current best version if
+   *   we can't find a locally cached version of the library
    * @return the corresponding [Component], or null if not successful
    */
-  fun resolveDependency(
-    dependency: Dependency, project: Project?, sdkHandler: AndroidSdkHandler?
-  ): Component? {
-    val version = resolveDependencyRichVersion( // sdkHandler is nullable for Mockito support, should have default value instead
-      dependency, project, sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()) ?: return null
+  fun resolveDependency(dependency: Dependency, project: Project?, sdkHandler: AndroidSdkHandler?): Component? {
+    val version =
+      resolveDependencyRichVersion( // sdkHandler is nullable for Mockito support, should have default value instead
+        dependency,
+        project,
+        sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler(),
+      ) ?: return null
     return Component(dependency.group ?: return null, dependency.name, Version.parse(version))
   }
 
   fun resolveDependencyRichVersion(dependency: Dependency, project: Project?, sdkHandler: AndroidSdkHandler?): String? {
-    @Suppress("NAME_SHADOWING")
-    val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
+    @Suppress("NAME_SHADOWING") val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
 
     dependency.explicitSingletonVersion?.let {
       logger.debug("Returned $dependency directly because it's a singleton")
       return it.toString()
     }
     val filter = Predicate { version: Version -> dependency.version?.contains(version) ?: true } // TODO(xof): accepts?
-    val module: Module = dependency.module ?: run {
-      logger.debug("Couldn't resolve $dependency since it doesn't correspond to a Module")
-      return null
-    }
+    val module: Module =
+      dependency.module
+        ?: run {
+          logger.debug("Couldn't resolve $dependency since it doesn't correspond to a Module")
+          return null
+        }
     if (ApplicationManager.getApplication().isDispatchThread) {
       refreshCacheInBackground(module.group, module.name)
     }
-    val stableVersion = if (useGMavenV2) {
-      bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, false)
-    } else {
-      bestGoogleMavenRepository().findVersion(module.group, module.name, filter, false)
-    }
+    val stableVersion =
+      if (useGMavenV2) {
+        bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, false)
+      } else {
+        bestGoogleMavenRepository().findVersion(module.group, module.name, filter, false)
+      }
     if (stableVersion != null) {
       logger.debug("Resolved dependency stable ${module.group}:${module.name}:$stableVersion in GMaven")
       return stableVersion.toString()
     }
-    val previewVersion = if (useGMavenV2) {
-      bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, true)
-    } else {
-      bestGoogleMavenRepository().findVersion(module.group, module.name, filter, true)
-    }
+    val previewVersion =
+      if (useGMavenV2) {
+        bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, true)
+      } else {
+        bestGoogleMavenRepository().findVersion(module.group, module.name, filter, true)
+      }
     if (previewVersion != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       logger.debug("Resolved dependency preview ${module.group}:${module.name}:$previewVersion in GMaven")
@@ -276,8 +292,8 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      var libraryCoordinate = getLibraryRevision(module.group, module.name, filter, false,
-                                                 sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
+      var libraryCoordinate =
+        getLibraryRevision(module.group, module.name, filter, false, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         logger.debug("Resolved stable ${module.group}:${module.name}:$libraryCoordinate from library (see above)")
         return libraryCoordinate
@@ -285,8 +301,8 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
       // If that didn't yield any matches, try again, this time allowing preview platforms.
       // This is necessary if the artifact prefix includes enough of a version where there are only preview matches.
-      libraryCoordinate = getLibraryRevision(module.group, module.name, filter, true,
-                                             sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
+      libraryCoordinate =
+        getLibraryRevision(module.group, module.name, filter, true, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         logger.debug("Resolved preview ${module.group}:${module.name}:$libraryCoordinate from library (see above)")
         return libraryCoordinate
@@ -300,12 +316,12 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return versionFound.toString()
     }
 
-
     // Perform network lookup to resolve current best version, if possible.
-    project ?: run {
-      logger.debug("Couldn't resolve $dependency because project is null")
-      return null
-    }
+    project
+      ?: run {
+        logger.debug("Couldn't resolve $dependency because project is null")
+        return null
+      }
     val client: LintClient = LintIdeSupport.get().createClient(project)
     val allowPreview = dependency.explicitlyIncludesPreview
     val remoteRepoVersion = getLatestVersionFromRemoteRepo(client, dependency, filter, allowPreview)?.toString()
@@ -330,8 +346,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
           } else {
             googleMavenRepository.findVersion(groupId, artifactId, { true }, true)
           }
-        }
-        finally {
+        } finally {
           pendingNetworkRequests.remove(searchKey)
         }
       }
@@ -339,7 +354,6 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   companion object {
-    @JvmStatic
-    fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(RepositoryUrlManager::class.java)
+    @JvmStatic fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(RepositoryUrlManager::class.java)
   }
 }

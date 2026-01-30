@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.AgpVersion
 import com.fasterxml.jackson.module.kotlin.isKotlinClass
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.File
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -33,6 +28,10 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
+import org.junit.Assert.fail
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class GradleAndroidModelDataTest {
@@ -59,7 +58,7 @@ private fun validate(klass: KClass<*>) {
     val propertyRawType: Type,
     val propertyType: Type,
     val fieldType: Type,
-    val isFinal: Boolean?
+    val isFinal: Boolean?,
   )
 
   val itemsToValidate =
@@ -73,19 +72,20 @@ private fun validate(klass: KClass<*>) {
           propertyRawType = propertyKType.javaType.maybeRawType(),
           propertyType = propertyKType.javaType,
           fieldType = field.type,
-          isFinal = prop !is KMutableProperty<*>
+          isFinal = prop !is KMutableProperty<*>,
         )
       }
-
 
   itemsToValidate.forEach { item ->
     with(item) {
       fun unexpected(message: String = "Unexpected type: $propertyKType"): Nothing {
         fail(
-          "\n" + """
+          "\n" +
+            """
            ${item.source}
               $message
-           """.trimIndent()
+           """
+              .trimIndent()
         )
         error("")
       }
@@ -101,7 +101,9 @@ private fun validate(klass: KClass<*>) {
       when (propertyType) {
         is ParameterizedType -> {
           when (propertyKType.classifier) {
-            Collection::class, List::class, Set::class -> {
+            Collection::class,
+            List::class,
+            Set::class -> {
               propertyKType.arguments[0].validateTypeArgument()
             }
             Map::class -> {
@@ -129,12 +131,13 @@ private fun validate(klass: KClass<*>) {
             propertyType.isLocalClass -> unexpected("Local class is not allowed: $propertyKType")
             propertyType.isSynthetic -> unexpected("Synthetic class is not allowed: $propertyKType")
             // Conditions if we are validated the set of concrete model classes
-            else -> when {
-              !kl.isSealed && propertyType.isInterface -> unexpected("Final class or sealed interface is required: $propertyKType")
-              // We allow sealed interfaces where all subclasses also pass validation.
-              propertyType.isInterface && kl.isSealed -> validate(kl).also { kl.sealedSubclasses.map { validate(it) } }
-              kl.isData -> validate(kl)
-            }
+            else ->
+              when {
+                !kl.isSealed && propertyType.isInterface -> unexpected("Final class or sealed interface is required: $propertyKType")
+                // We allow sealed interfaces where all subclasses also pass validation.
+                propertyType.isInterface && kl.isSealed -> validate(kl).also { kl.sealedSubclasses.map { validate(it) } }
+                kl.isData -> validate(kl)
+              }
           }
         }
         else -> unexpected()

@@ -43,7 +43,7 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
           val vcsRoots = ProjectLevelVcsManager.getInstance(project).getAllVcsRoots()
           startTrackers(vcsRoots)
         }
-      }
+      },
     )
   }
 
@@ -56,11 +56,13 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
   }
 
   private fun startTrackers(allVcsRoots: Array<out VcsRoot>) {
-    allVcsRoots.filter { "Git" == it.vcs?.name }.forEach { root ->
-      val gitCommitTracker = GitCommitTracker(root.path.path)
-      gitCommitTracker.startTracking()
-      gitCommitTrackers.add(gitCommitTracker)
-    }
+    allVcsRoots
+      .filter { "Git" == it.vcs?.name }
+      .forEach { root ->
+        val gitCommitTracker = GitCommitTracker(root.path.path)
+        gitCommitTracker.startTracking()
+        gitCommitTrackers.add(gitCommitTracker)
+      }
   }
 
   override fun dispose() {
@@ -73,8 +75,7 @@ class GitCommitTimestampTrackerService(private val project: Project) : Disposabl
   }
 
   fun startTracking() {
-    if (!ServerFlagService.instance.getBoolean("diagnostics/commit_timestamp", false))
-      return
+    if (!ServerFlagService.instance.getBoolean("diagnostics/commit_timestamp", false)) return
     checkAndTrackGitRepository(project)
   }
 }

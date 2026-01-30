@@ -81,19 +81,9 @@ internal fun createStateInspectionPanel(
   val inspectorModel = layoutInspector.inspectorModel
   val project = inspectorModel.project
   val stats = layoutInspector.currentClient.stats
-  val model =
-    StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) {
-      stats.stateReadsShown()
-    }
+  val model = StateInspectionModelImpl(inspectorModel, layoutInspector.coroutineScope, parentDisposable) { stats.stateReadsShown() }
   val uiScope = parentDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
-  return StateInspectionPanel(
-    model,
-    project,
-    stats,
-    uiScope,
-    parentDisposable,
-    hyperLinkDetectorFactory,
-  )
+  return StateInspectionPanel(model, project, stats, uiScope, parentDisposable, hyperLinkDetectorFactory)
 }
 
 /** A panel to display state reads for recompositions. */
@@ -124,23 +114,15 @@ internal class StateInspectionPanel(
         innerPanel =
           if (!show) null
           else
-            InnerStateInspectionPanel(
-              this@StateInspectionPanel,
-              model,
-              stats,
-              project,
-              scope,
-              hyperLinkDetectorFactory,
-              parentDisposable,
-            )
+            InnerStateInspectionPanel(this@StateInspectionPanel, model, stats, project, scope, hyperLinkDetectorFactory, parentDisposable)
       }
     }
   }
 }
 
 /**
- * This inner panel is not created before we need to show state reads, and it is destroyed when the
- * state read panel is hidden. In this way the (heavy) editor is not created unless it is needed.
+ * This inner panel is not created before we need to show state reads, and it is destroyed when the state read panel is hidden. In this way
+ * the (heavy) editor is not created unless it is needed.
  */
 private class InnerStateInspectionPanel(
   private val parent: StateInspectionPanel,
@@ -170,8 +152,7 @@ private class InnerStateInspectionPanel(
   private val foldingDetector = StateInspectionFoldingDetector(editor, scope)
   private val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
   private val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
-  private val minimize =
-    ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
+  private val minimize = ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
 
   init {
     isFocusable = false
@@ -274,13 +255,7 @@ private class InnerStateInspectionPanel(
     var startOffset = text.indexOf(INVALIDATED)
     while (startOffset > 0) {
       val endOffset = startOffset + INVALIDATED.length
-      editor.markupModel.addRangeHighlighter(
-        startOffset,
-        endOffset,
-        INVALIDATED_LAYER,
-        attrs,
-        EXACT_RANGE,
-      )
+      editor.markupModel.addRangeHighlighter(startOffset, endOffset, INVALIDATED_LAYER, attrs, EXACT_RANGE)
       startOffset = text.indexOf(INVALIDATED, endOffset)
     }
   }

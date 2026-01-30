@@ -20,8 +20,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 
 interface AndroidModuleImporter {
   companion object {
-    @JvmField
-    val IMPORTER: ExtensionPointName<AndroidModuleImporter> = ExtensionPointName.create("com.android.moduleImporter")
+    @JvmField val IMPORTER: ExtensionPointName<AndroidModuleImporter> = ExtensionPointName.create("com.android.moduleImporter")
   }
 
   fun create(context: WizardContext): ModuleImporter

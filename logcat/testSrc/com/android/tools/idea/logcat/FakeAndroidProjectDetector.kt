@@ -19,7 +19,6 @@ import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.intellij.openapi.project.Project
 
 /** Test implementation of [AndroidProjectDetector] */
-internal class FakeAndroidProjectDetector(private val isAndroidProject: Boolean) :
-  AndroidProjectDetector {
+internal class FakeAndroidProjectDetector(private val isAndroidProject: Boolean) : AndroidProjectDetector {
   override fun isAndroidProject(project: Project) = isAndroidProject
 }

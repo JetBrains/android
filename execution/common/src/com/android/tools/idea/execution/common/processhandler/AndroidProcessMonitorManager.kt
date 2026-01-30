@@ -46,42 +46,41 @@ class AndroidProcessMonitorManager(
   private val textEmitter: TextEmitter,
   private val listener: AndroidProcessMonitorManagerListener,
   finishAndroidProcessCallback: (IDevice) -> Unit,
-  private val singleDeviceAndroidProcessMonitorFactory: SingleDeviceAndroidProcessMonitorFactory =
-    { _, device, monitorListener, _ ->
-      SingleDeviceAndroidProcessMonitor(targetApplicationId,
-                                        device,
-                                        monitorListener,
-                                        deploymentApplicationService,
-                                        textEmitter,
-                                        finishAndroidProcessCallback
-      )
-    }
+  private val singleDeviceAndroidProcessMonitorFactory: SingleDeviceAndroidProcessMonitorFactory = { _, device, monitorListener, _ ->
+    SingleDeviceAndroidProcessMonitor(
+      targetApplicationId,
+      device,
+      monitorListener,
+      deploymentApplicationService,
+      textEmitter,
+      finishAndroidProcessCallback,
+    )
+  },
 ) : Closeable {
   private val myMonitors: ConcurrentMap<IDevice, SingleDeviceAndroidProcessMonitor> = ConcurrentHashMap()
   private val myIsOnAllTargetProcessesTerminatedCalled = AtomicBoolean()
 
-  private val myMonitorListener = object : SingleDeviceAndroidProcessMonitorStateListener {
-    override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
-      if (newState == PROCESS_NOT_FOUND) {
-        textEmitter.emit(
-          "Timed out waiting for process (${monitor.targetApplicationId}) to appear on ${monitor.targetDevice.name}.\n",
-          ProcessOutputTypes.STDOUT)
-      }
+  private val myMonitorListener =
+    object : SingleDeviceAndroidProcessMonitorStateListener {
+      override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
+        if (newState == PROCESS_NOT_FOUND) {
+          textEmitter.emit(
+            "Timed out waiting for process (${monitor.targetApplicationId}) to appear on ${monitor.targetDevice.name}.\n",
+            ProcessOutputTypes.STDOUT,
+          )
+        }
 
-      if (newState.isTerminalState()) {
-        remove(monitor.targetDevice)
+        if (newState.isTerminalState()) {
+          remove(monitor.targetDevice)
+        }
       }
     }
-  }
 
-  /**
-   * Adds a [device] and starts monitoring processes on the device. If the given device has been added already, it will be no-op.
-   */
+  /** Adds a [device] and starts monitoring processes on the device. If the given device has been added already, it will be no-op. */
   @AnyThread
   fun add(device: IDevice) {
     myMonitors.computeIfAbsent(device) {
-      singleDeviceAndroidProcessMonitorFactory(
-        targetApplicationId, device, myMonitorListener, deploymentApplicationService)
+      singleDeviceAndroidProcessMonitorFactory(targetApplicationId, device, myMonitorListener, deploymentApplicationService)
     }
   }
 
@@ -91,49 +90,34 @@ class AndroidProcessMonitorManager(
    */
   @WorkerThread
   fun closeAndReplace(device: IDevice): SingleDeviceAndroidProcessMonitor? {
-    return myMonitors.compute(device) {
-      _: IDevice, monitorValue: SingleDeviceAndroidProcessMonitor? ->
+    return myMonitors.compute(device) { _: IDevice, monitorValue: SingleDeviceAndroidProcessMonitor? ->
       monitorValue?.replaceListenerAndClose(null)
-      singleDeviceAndroidProcessMonitorFactory(
-        targetApplicationId, device, myMonitorListener, deploymentApplicationService)
+      singleDeviceAndroidProcessMonitorFactory(targetApplicationId, device, myMonitorListener, deploymentApplicationService)
     }
   }
 
-  /**
-   * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
-   */
+  /** Detaches a given device from target devices. No-op if the given device is not associated with this handler. */
   @WorkerThread
   fun detachDevice(device: IDevice) {
     getMonitor(device)?.detachAndClose()
     remove(device)
   }
 
-  /**
-   * Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned.
-   */
-  @WorkerThread
-  fun getMonitor(device: IDevice): SingleDeviceAndroidProcessMonitor? = myMonitors[device]
+  /** Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned. */
+  @WorkerThread fun getMonitor(device: IDevice): SingleDeviceAndroidProcessMonitor? = myMonitors[device]
 
-  /**
-   * Checks if a given device is monitored by this manager. Returns true if it is monitored otherwise false.
-   */
-  @AnyThread
-  fun isAssociated(device: IDevice) = myMonitors.contains(device)
+  /** Checks if a given device is monitored by this manager. Returns true if it is monitored otherwise false. */
+  @AnyThread fun isAssociated(device: IDevice) = myMonitors.contains(device)
 
-  @AnyThread
-  fun allMonitoringDevices() = myMonitors.keys
+  @AnyThread fun allMonitoringDevices() = myMonitors.keys
 
-  /**
-   * Returns true if there is no devices being monitored.
-   */
+  /** Returns true if there is no devices being monitored. */
   @AnyThread
   fun isEmpty(): Boolean {
     return myMonitors.isEmpty()
   }
 
-  /**
-   * Removes a [device] and notifies [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the very last one.
-   */
+  /** Removes a [device] and notifies [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the very last one. */
   @WorkerThread
   private fun remove(device: IDevice) {
     if (myMonitors.remove(device) != null) {
@@ -143,9 +127,7 @@ class AndroidProcessMonitorManager(
     }
   }
 
-  /**
-   * Terminates all target processes running on monitored devices and stops capturing logcat messages from devices.
-   */
+  /** Terminates all target processes running on monitored devices and stops capturing logcat messages from devices. */
   @WorkerThread
   override fun close() {
     myMonitors.values.forEach { it.close() }
@@ -153,8 +135,8 @@ class AndroidProcessMonitorManager(
   }
 
   /**
-   * Detaches monitor from devices and stops capturing logcat messages from devices.
-   * Unlike [close], all target processes will not be terminated and leave running.
+   * Detaches monitor from devices and stops capturing logcat messages from devices. Unlike [close], all target processes will not be
+   * terminated and leave running.
    */
   @WorkerThread
   fun detachAndClose() {
@@ -167,18 +149,16 @@ class AndroidProcessMonitorManager(
   }
 }
 
-/**
- * An interface to listen an event from [AndroidProcessMonitorManager].
- */
+/** An interface to listen an event from [AndroidProcessMonitorManager]. */
 interface AndroidProcessMonitorManagerListener {
-  /**
-   * This method is invoked when the very last target process among all target devices terminate.
-   */
+  /** This method is invoked when the very last target process among all target devices terminate. */
   fun onAllTargetProcessesTerminated()
 }
 
 private typealias SingleDeviceAndroidProcessMonitorFactory =
-  (targetApplicationId: String,
-   targetDevice: IDevice,
-   listener: SingleDeviceAndroidProcessMonitorStateListener,
-   deploymentApplicationService: DeploymentApplicationService) -> SingleDeviceAndroidProcessMonitor
+  (
+    targetApplicationId: String,
+    targetDevice: IDevice,
+    listener: SingleDeviceAndroidProcessMonitorStateListener,
+    deploymentApplicationService: DeploymentApplicationService,
+  ) -> SingleDeviceAndroidProcessMonitor

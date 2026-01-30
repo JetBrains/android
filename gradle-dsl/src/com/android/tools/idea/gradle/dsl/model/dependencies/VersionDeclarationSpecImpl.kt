@@ -18,11 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.dependencies
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
 import com.google.common.base.Splitter
 
-class VersionDeclarationSpecImpl internal constructor (
-  private var require: String?,
-  private var strictly: String?,
-  private var prefer: String?
-) : VersionDeclarationSpec {
+class VersionDeclarationSpecImpl
+internal constructor(private var require: String?, private var strictly: String?, private var prefer: String?) : VersionDeclarationSpec {
 
   override fun getRequire(): String? = require
 
@@ -47,23 +44,20 @@ class VersionDeclarationSpecImpl internal constructor (
   override fun compactNotation(): String? {
     return if (require != null && strictly != null) {
       return null
-    }
-    else if (require != null) {
+    } else if (require != null) {
       require!!
-    }
-    else if (strictly != null) {
+    } else if (strictly != null) {
       strictly!! + strictlySuffix + prefer.orEmpty()
-    }
-    else if (prefer?.isNotEmpty() == true) {
+    } else if (prefer?.isNotEmpty() == true) {
       "+$strictlySuffix$prefer"
-    }
-    else {
+    } else {
       null
     }
   }
 
   companion object {
     const val strictlySuffix = "!!"
+
     fun create(notation: String): VersionDeclarationSpecImpl? {
       return if (notation.contains(strictlySuffix)) {
         val segments = Splitter.on(strictlySuffix).trimResults().omitEmptyStrings().splitToList(notation)
@@ -72,11 +66,9 @@ class VersionDeclarationSpecImpl internal constructor (
           2 -> VersionDeclarationSpecImpl(null, segments[0], segments[1])
           else -> null
         }
-      }
-      else if (notation.isNotEmpty()) {
+      } else if (notation.isNotEmpty()) {
         VersionDeclarationSpecImpl(notation, null, null)
-      }
-      else null
+      } else null
     }
   }
 }

@@ -30,8 +30,7 @@ import java.util.function.Predicate
  * Simulates pressing and releasing a button on an Android device.
  *
  * @param keyCode the code of the button to press
- * @param modifierKeyCode if not AKEYCODE_UNKNOWN, the code of the second button that is pressed
- *     before the first and released after it
+ * @param modifierKeyCode if not AKEYCODE_UNKNOWN, the code of the second button that is pressed before the first and released after it
  * @param configFilter determines the types of devices the action is applicable to
  */
 internal open class DevicePushButtonAction(

@@ -45,8 +45,7 @@ import javax.swing.JPanel
  *
  * Based on `SpecificActivityConfigurable`
  */
-class ClassPicker(private val project: Project, private val base: String, toolTip: String? = null) :
-  JPanel(null), TextAccessor {
+class ClassPicker(private val project: Project, private val base: String, toolTip: String? = null) : JPanel(null), TextAccessor {
 
   private val editorTextField =
     ClassTextField(project, base).apply {
@@ -115,8 +114,7 @@ class ClassPicker(private val project: Project, private val base: String, toolTi
     }
   }
 
-  private class ClassTextField(project: Project, private val base: String) :
-    LanguageTextField(PlainTextLanguage.INSTANCE, project, "") {
+  private class ClassTextField(project: Project, private val base: String) : LanguageTextField(PlainTextLanguage.INSTANCE, project, "") {
     override fun createEditor(): EditorEx {
       val editor = super.createEditor()
       editor.putUserData(BASE_CLASS_KEY, base)

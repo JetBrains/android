@@ -52,13 +52,7 @@ class ComposeResizeTrackerTest {
   @Before
   fun setUp() {
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
     model.dataProvider =
       object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
@@ -83,8 +77,7 @@ class ComposeResizeTrackerTest {
   @Test
   fun testSendSizeOnCommit() {
     val view = surface.sceneViews[0] as ScreenView
-    val resizeInteraction =
-      CanvasResizeInteraction(surface, view, view.sceneManager.model.configuration)
+    val resizeInteraction = CanvasResizeInteraction(surface, view, view.sceneManager.model.configuration)
 
     // Simulate the full drag interaction to populate the internal state correctly.
     val startX = view.x
@@ -97,23 +90,12 @@ class ComposeResizeTrackerTest {
     resizeInteraction.begin(MousePressedEvent(MouseEventBuilder(startX, startY).build(), startInfo))
 
     // 2. Update (drag) to the target coordinates
-    resizeInteraction.update(
-      MouseDraggedEvent(MouseEventBuilder(targetX, targetY).build(), startInfo)
-    )
+    resizeInteraction.update(MouseDraggedEvent(MouseEventBuilder(targetX, targetY).build(), startInfo))
 
     // 3. Commit (release mouse)
-    resizeInteraction.commit(
-      MouseReleasedEvent(
-        MouseEventBuilder(targetX, targetY).build(),
-        InteractionInformation(targetX, targetY, 0),
-      )
-    )
+    resizeInteraction.commit(MouseReleasedEvent(MouseEventBuilder(targetX, targetY).build(), InteractionInformation(targetX, targetY, 0)))
 
-    val event =
-      usageTrackerRule.usages
-        .find { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }!!
-        .studioEvent
-        .resizeComposePreviewEvent
+    val event = usageTrackerRule.usages.find { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }!!.studioEvent.resizeComposePreviewEvent
 
     // The expected values are the dimensions (in dp) after conversion from Swing pixels.
     val expectedWidthDp = Coordinates.getAndroidDimensionDip(view, targetX - startX)

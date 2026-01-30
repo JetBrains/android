@@ -19,18 +19,16 @@ import com.android.tools.idea.logcat.message.LogLevel
 
 internal sealed class FilterHint {
   /**
-   * A [FilterHint] representing a Tag. Note that the length of the hint can be different from the
-   * length of the tag. For example, if the tag is elided, the length will be shorter than the
-   * actual tag.
+   * A [FilterHint] representing a Tag. Note that the length of the hint can be different from the length of the tag. For example, if the
+   * tag is elided, the length will be shorter than the actual tag.
    */
   data class Tag(override val text: String, override val length: Int) : FilterHint() {
     override fun getFilter(): String = "tag:$text"
   }
 
   /**
-   * A [FilterHint] representing an AppName. Note that the length of the hint can be different from
-   * the length of the name. For example, if the name is elided, the length will be shorter than the
-   * actual name.
+   * A [FilterHint] representing an AppName. Note that the length of the hint can be different from the length of the name. For example, if
+   * the name is elided, the length will be shorter than the actual name.
    */
   data class AppName(override val text: String, override val length: Int) : FilterHint() {
     override fun getFilter(): String = "package:$text"

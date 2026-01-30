@@ -57,30 +57,21 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     }
   }
 
-  /**
-   * Finds library dependencies with matching [group] and [name].
-   */
-  fun findLibraryDependencies(
-    group: String?,
-    name: String
-  ): List<ArtifactDependencyModel> {
+  /** Finds library dependencies with matching [group] and [name]. */
+  fun findLibraryDependencies(group: String?, name: String): List<ArtifactDependencyModel> {
     val id = createIdFrom(group, name)
     val potentialMatches = parsedArtifactDependencies[id] ?: return listOf()
     // Do not return live copy.
     return potentialMatches.toList()
   }
 
-  fun findFileDependencies(
-    filePath: String
-  ): List<FileDependencyModel> {
+  fun findFileDependencies(filePath: String): List<FileDependencyModel> {
     val potentialMatches = parsedFileDependencies[filePath] ?: return listOf()
     // Do not return live copy.
     return potentialMatches.toList()
   }
 
-  fun findFileTreeDependencies(
-    filePath: String
-  ): List<FileTreeDependencyModel> {
+  fun findFileTreeDependencies(filePath: String): List<FileTreeDependencyModel> {
     val potentialMatches = parsedFileTreeDependencies[filePath] ?: return listOf()
     // Do not return live copy.
     return potentialMatches.toList()
@@ -110,12 +101,10 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     parsedFileTreeDependencies.values().forEach(block)
   }
 
-  private fun createIdFrom(group: String?, name: String) =
-    joinAsGradlePath(listOf(group, name))
+  private fun createIdFrom(group: String?, name: String) = joinAsGradlePath(listOf(group, name))
 
   private fun createIdFrom(dependency: ArtifactDependencyModel) =
     joinAsGradlePath(listOf(dependency.group().toString(), dependency.name().toString()))
 
-  private fun joinAsGradlePath(segments: List<String?>) =
-    segments.filterNotNull().joinToString(GRADLE_PATH_SEPARATOR)
+  private fun joinAsGradlePath(segments: List<String?>) = segments.filterNotNull().joinToString(GRADLE_PATH_SEPARATOR)
 }

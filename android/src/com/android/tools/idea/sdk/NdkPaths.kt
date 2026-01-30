@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("NdkPaths")
+
 package com.android.tools.idea.sdk
 
 import com.android.io.CancellableFileIo
@@ -23,8 +24,7 @@ import com.android.tools.sdk.SdkPaths
 import java.io.File
 import java.nio.file.Path
 
-/** @see [validateAndroidNdk]
- */
+/** @see [validateAndroidNdk] */
 @Deprecated("Deprecated", replaceWith = ReplaceWith("validateAndroidNdk(ndkPath, includePathInMessage)"))
 fun validateAndroidNdk(ndkPath: File?, includePathInMessage: Boolean): SdkPaths.ValidationResult {
   return validateAndroidNdk(ndkPath?.toPath(), includePathInMessage)
@@ -33,7 +33,7 @@ fun validateAndroidNdk(ndkPath: File?, includePathInMessage: Boolean): SdkPaths.
 /**
  * Indicates whether the given path belongs to a valid Android NDK.
  *
- * @param ndkPath              the given path.
+ * @param ndkPath the given path.
  * @param includePathInMessage indicates whether the given path should be included in the result message.
  * @return the validation result.
  */
@@ -48,12 +48,12 @@ fun validateAndroidNdk(ndkPath: Path?, includePathInMessage: Boolean): SdkPaths.
   if (validationResult.success && ndkPath != null) {
     val toolchainsDirPath = ndkPath.resolve("toolchains")
     if (!CancellableFileIo.isDirectory(toolchainsDirPath)) {
-      val message = if (includePathInMessage) {
-        "The NDK at\n'${ndkPath}'\ndoes not contain any toolchains."
-      }
-      else {
-        "NDK does not contain any toolchains."
-      }
+      val message =
+        if (includePathInMessage) {
+          "The NDK at\n'${ndkPath}'\ndoes not contain any toolchains."
+        } else {
+          "NDK does not contain any toolchains."
+        }
       return SdkPaths.ValidationResult.error(message)
     }
   }

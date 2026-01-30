@@ -61,10 +61,7 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
       DaggerEditorEvent.newBuilder()
         .setType(DaggerEditorEvent.Type.NAVIGATED)
         .setNavigationMetadata(
-          DaggerEditorEvent.NavigationMetadata.newBuilder()
-            .setContext(context)
-            .setFromElement(fromElement)
-            .setToElement(toElement)
+          DaggerEditorEvent.NavigationMetadata.newBuilder().setContext(context).setFromElement(fromElement).setToElement(toElement)
         )
 
     track(daggerEventBuilder)
@@ -74,10 +71,7 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
     return random.nextInt(100) >= 100 - percentage - 1
   }
 
-  override fun trackFindUsagesNodeWasDisplayed(
-    ownerElement: DaggerEditorEvent.ElementType,
-    time: Long,
-  ) {
+  override fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
 
     val daggerEventBuilder =
       DaggerEditorEvent.newBuilder()
@@ -107,21 +101,16 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
   override fun trackClickOnGutter(ownerElement: DaggerEditorEvent.ElementType) {
 
     val daggerEventBuilder =
-      DaggerEditorEvent.newBuilder()
-        .setType(DaggerEditorEvent.Type.CLICKED_ON_GUTTER)
-        .setOwnerElementType(ownerElement)
+      DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.CLICKED_ON_GUTTER).setOwnerElementType(ownerElement)
 
     track(daggerEventBuilder)
   }
 
-  override fun trackOpenLinkFromError() =
-    track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
+  override fun trackOpenLinkFromError() = track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
 
   private fun track(daggerEventBuilder: DaggerEditorEvent.Builder) {
     val studioEvent: AndroidStudioEvent.Builder =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR)
-        .setDaggerEditorEvent(daggerEventBuilder)
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR).setDaggerEditorEvent(daggerEventBuilder)
 
     // TODO(b/153270761): Use studioEvent.withProjectId instead of
     // AnonymizerUtil.anonymizeUtf8(project.basePath!!),

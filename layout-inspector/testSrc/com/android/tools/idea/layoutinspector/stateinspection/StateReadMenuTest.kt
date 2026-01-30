@@ -75,10 +75,7 @@ class StateReadMenuTest {
   fun setUp() {
     model =
       model(disposableRule.disposable) {
-        view(
-          ROOT,
-          viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId"),
-        ) {
+        view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
           view(VIEW1) {
             compose(COMPOSE1, "Row") {
               compose(COMPOSE2, "Item") { compose(COMPOSE3, "Text") }
@@ -90,15 +87,11 @@ class StateReadMenuTest {
 
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT)
     client = mock()
-    whenever(client.capabilities)
-      .thenReturn(
-        setOf(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS, Capability.HAS_LINE_NUMBER_INFORMATION)
-      )
+    whenever(client.capabilities).thenReturn(setOf(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS, Capability.HAS_LINE_NUMBER_INFORMATION))
     whenever(client.stats).thenReturn(stats)
     mockLayoutInspector = mock()
     whenever(mockLayoutInspector.currentClient).thenReturn(client)
-    val context =
-      SimpleDataContext.builder().add(LAYOUT_INSPECTOR_DATA_KEY, mockLayoutInspector).build()
+    val context = SimpleDataContext.builder().add(LAYOUT_INSPECTOR_DATA_KEY, mockLayoutInspector).build()
     event = createFakeEvent(context)
   }
 
@@ -127,8 +120,7 @@ class StateReadMenuTest {
     val stateReadMenu = createStateReadMenuGroup(compose2, model)
     stateReadMenu.checkIsEnabled(event)
     val actions = stateReadMenu.children(event)
-    assertThat(actions.map { it.templateText })
-      .containsExactly("Observe Node", "Observe All", "Observe None")
+    assertThat(actions.map { it.templateText }).containsExactly("Observe Node", "Observe All", "Observe None")
     val observeNode = actions[0]
     observeNode.checkText(event, "Observe Node")
     ActionUtil.performAction(observeNode, event)
@@ -154,8 +146,7 @@ class StateReadMenuTest {
   }
 }
 
-private fun createFakeEvent(context: DataContext): AnActionEvent =
-  createEvent(context, null, "", ActionUiKind.NONE, null)
+private fun createFakeEvent(context: DataContext): AnActionEvent = createEvent(context, null, "", ActionUiKind.NONE, null)
 
 private fun AnAction.checkText(event: AnActionEvent, expected: String) {
   event.presentation.copyFrom(templatePresentation)
@@ -175,5 +166,6 @@ private fun AnAction.checkEnable(event: AnActionEvent, expected: Boolean) {
 
 private fun AnAction.children(event: AnActionEvent): Array<AnAction> {
   val group = this as? ActionGroup ?: return emptyArray()
-  @Suppress("OverrideOnly") return group.getChildren(event)
+  @Suppress("OverrideOnly")
+  return group.getChildren(event)
 }

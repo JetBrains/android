@@ -24,9 +24,7 @@ import org.gradle.tooling.model.GradleModuleVersion
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [PsArtifactDependencySpec].
- */
+/** Tests for [PsArtifactDependencySpec]. */
 class PsArtifactDependencySpecTest : TestCase() {
 
   fun testCreate_empty() {

@@ -26,34 +26,31 @@ import java.io.InputStream
 /**
  * Overrides for the default values for boolean flags.
  *
- * Boolean flags cannot receive their default values in the
- * constructor because they are (mostly) used for feature flags,
- * and we want to control these better during the feature lifecycle.
+ * Boolean flags cannot receive their default values in the constructor because they are (mostly) used for feature flags, and we want to
+ * control these better during the feature lifecycle.
  *
- * Therefore, this [FlagValueProvider] is used to provide default values
- * by reading the values from a file.
+ * Therefore, this [FlagValueProvider] is used to provide default values by reading the values from a file.
  *
- * It must be added to [com.android.flags.Flags] as the fileBasedDefaultContainer provider
- * since it's not actually an override.
+ * It must be added to [com.android.flags.Flags] as the fileBasedDefaultContainer provider since it's not actually an override.
  */
-class FeatureConfigurationProvider private constructor(
-  private val values: Map<String, FeatureConfiguration>
-): FlagValueProvider {
+class FeatureConfigurationProvider private constructor(private val values: Map<String, FeatureConfiguration>) : FlagValueProvider {
 
-  private val currentConfig: FeatureConfiguration get() =
-      StudioFlags.FLAG_LEVEL.get()
+  private val currentConfig: FeatureConfiguration
+    get() = StudioFlags.FLAG_LEVEL.get()
 
   override fun get(flag: Flag<*>): String? = getValueById(flag.id)
 
   /** For display in the studio flags dialog */
-  fun getConfigurationExplanation(flag: Flag<*>): String? = values[flag.id]?.let { flagConfiguration ->
-    val prefix = if (currentConfig.stabilityLevel > flagConfiguration.stabilityLevel) "Disabled by default. Enabled only in" else "Enabled only in"
-    when(flagConfiguration) {
-      FeatureConfiguration.INTERNAL -> "$prefix internal builds"
-      FeatureConfiguration.PREVIEW -> "$prefix internal, nightly and canary builds"
-      FeatureConfiguration.COMPLETE -> null // Only tag flags that vary between channels.
+  fun getConfigurationExplanation(flag: Flag<*>): String? =
+    values[flag.id]?.let { flagConfiguration ->
+      val prefix =
+        if (currentConfig.stabilityLevel > flagConfiguration.stabilityLevel) "Disabled by default. Enabled only in" else "Enabled only in"
+      when (flagConfiguration) {
+        FeatureConfiguration.INTERNAL -> "$prefix internal builds"
+        FeatureConfiguration.PREVIEW -> "$prefix internal, nightly and canary builds"
+        FeatureConfiguration.COMPLETE -> null // Only tag flags that vary between channels.
+      }
     }
-  }
 
   @VisibleForTesting
   fun getEntries(): Set<String> {
@@ -68,60 +65,55 @@ class FeatureConfigurationProvider private constructor(
     private fun featureFlagsResourceStream(): InputStream =
       requireNotNull(FeatureConfigurationProvider::class.java.getResourceAsStream(FEATURE_FLAGS_FILE))
 
-    /**
-     * The default provider for feature flags.
-     */
-    @JvmStatic
-    val currentFlags: FeatureConfigurationProvider by lazy {
-      loadValues()
-    }
+    /** The default provider for feature flags. */
+    @JvmStatic val currentFlags: FeatureConfigurationProvider by lazy { loadValues() }
 
     @VisibleForTesting
-    fun loadValues(
-      inputStream: InputStream = featureFlagsResourceStream(),
-    ): FeatureConfigurationProvider {
+    fun loadValues(inputStream: InputStream = featureFlagsResourceStream()): FeatureConfigurationProvider {
       val configsByName = FeatureConfiguration.entries.associateBy { it.name }
 
-      val map = inputStream.use { stream ->
-        stream.reader(Charsets.UTF_8).use { reader ->
-          reader.readLines().filter { !it.startsWith("#") }.associateNotNull {
-            val tokens = parseLine(it) ?: return@associateNotNull null
-            val flagConfig = configsByName[tokens.second]
-                ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
-            tokens.first to flagConfig
+      val map =
+        inputStream.use { stream ->
+          stream.reader(Charsets.UTF_8).use { reader ->
+            reader
+              .readLines()
+              .filter { !it.startsWith("#") }
+              .associateNotNull {
+                val tokens = parseLine(it) ?: return@associateNotNull null
+                val flagConfig =
+                  configsByName[tokens.second] ?: throw RuntimeException("Invalid value '${tokens.second}' for flag '${tokens.first}'")
+                tokens.first to flagConfig
+              }
           }
         }
-      }
 
       return FeatureConfigurationProvider(map)
     }
 
     @VisibleForTesting
-    fun parseLine(
-      line: String,
-      removeDate: Boolean = true,
-      throwOnInvalidValue: Boolean = false,
-      ): Pair<String, String>? {
+    fun parseLine(line: String, removeDate: Boolean = true, throwOnInvalidValue: Boolean = false): Pair<String, String>? {
 
       // remove comments
       val commentCharPos = line.indexOf('#')
-      val lineWithoutComments = when (commentCharPos) {
-        -1 -> line.trim()
-        else -> line.substring(0, commentCharPos).trim()
-      }
+      val lineWithoutComments =
+        when (commentCharPos) {
+          -1 -> line.trim()
+          else -> line.substring(0, commentCharPos).trim()
+        }
 
       val tokens = lineWithoutComments.split("=")
       if (tokens.size != 2) {
-        if (throwOnInvalidValue)
-          throw RuntimeException("line '$lineWithoutComments' does not split in 2 components around =")
-        else
-          return null
+        if (throwOnInvalidValue) throw RuntimeException("line '$lineWithoutComments' does not split in 2 components around =")
+        else return null
       }
       val flagValue = tokens[1]
 
-      return tokens[0] to if (removeDate) {
-        if (flagValue.startsWith("${FeatureConfiguration.COMPLETE.name}:")) { FeatureConfiguration.COMPLETE.name } else flagValue
-      } else flagValue
+      return tokens[0] to
+        if (removeDate) {
+          if (flagValue.startsWith("${FeatureConfiguration.COMPLETE.name}:")) {
+            FeatureConfiguration.COMPLETE.name
+          } else flagValue
+        } else flagValue
     }
   }
 

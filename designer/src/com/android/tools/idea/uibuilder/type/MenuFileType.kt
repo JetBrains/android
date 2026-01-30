@@ -27,6 +27,5 @@ object MenuFileType : LayoutEditorFileType("menu"), XmlDesignerEditorFileType {
 
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.MENU
 
-  override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && MenuDomFileDescription.isMenuFile(file)
+  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && MenuDomFileDescription.isMenuFile(file)
 }

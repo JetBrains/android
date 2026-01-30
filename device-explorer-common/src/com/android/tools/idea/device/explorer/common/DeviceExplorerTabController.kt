@@ -20,9 +20,14 @@ import javax.swing.JComponent
 
 interface DeviceExplorerTabController {
   var controllerListener: DeviceExplorerControllerListener?
+
   fun setup()
+
   fun setActiveConnectedDevice(deviceHandle: DeviceHandle?)
+
   fun getViewComponent(): JComponent
+
   fun getTabName(): String
+
   fun setPackageFilter(isActive: Boolean)
 }

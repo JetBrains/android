@@ -47,14 +47,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
 
 /**
- * The minimum version required for the `com.google.android.wearable.app.DEBUG_SURFACE` broadcast
- * receiver running on the device to support setting a declarative watch face.
+ * The minimum version required for the `com.google.android.wearable.app.DEBUG_SURFACE` broadcast receiver running on the device to support
+ * setting a declarative watch face.
  */
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 4
 
 /**
- * ADB Shell command that sets a declarative watch face on a device. The application ID of the
- * declarative watch face must be concatenated at the end of the command.
+ * ADB Shell command that sets a declarative watch face on a device. The application ID of the declarative watch face must be concatenated
+ * at the end of the command.
  */
 private const val SET_DECLARATIVE_WATCH_FACE =
   "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --es watchFaceId" // + appId
@@ -90,8 +90,7 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
       setAppComponentType(ComponentType.DECLARATIVE_WATCH_FACE)
     }
     val console = createConsole()
-    val processHandler =
-      AndroidProcessHandler(applicationId, getStopWatchFaceCallback(console, isDebug = false))
+    val processHandler = AndroidProcessHandler(applicationId, getStopWatchFaceCallback(console, isDebug = false))
 
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
@@ -102,27 +101,16 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
           val app = apkProvider.getApks(device).single()
           val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-          applicationDeployer.fullDeploy(
-            device,
-            app,
-            deployOptions,
-            containsMakeBeforeRun,
-            indicator,
-          )
+          applicationDeployer.fullDeploy(device, app, deployOptions, containsMakeBeforeRun, indicator)
         } catch (e: DeployerException) {
-          throw ExecutionException(
-            "Failed to install app '$applicationId'. ${e.details.orEmpty()}",
-            e,
-          )
+          throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
         }
       launch(device, result.app, console, indicator)
       processHandler.addTargetDevice(device)
 
       // Declarative Watch Faces are run by WATCH_FACE_RUNTIME_APPLICATION_ID, so that's where the
       // user can see if there are any errors or warnings at runtime
-      environment.project.messageBus
-        .syncPublisher(ShowLogcatListener.TOPIC)
-        .showLogcat(device, WATCH_FACE_RUNTIME_APPLICATION_ID)
+      environment.project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, WATCH_FACE_RUNTIME_APPLICATION_ID)
     }
 
     devices.map { async { onDevice(it) } }.joinAll()
@@ -135,19 +123,10 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
     throw RuntimeException("Unsupported operation")
   }
 
-  private fun launch(
-    device: IDevice,
-    app: App,
-    console: ConsoleView,
-    indicator: ProgressIndicator,
-  ) {
+  private fun launch(device: IDevice, app: App, console: ConsoleView, indicator: ProgressIndicator) {
     val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
-      throw SurfaceVersionException(
-        WATCH_FACE_MIN_DEBUG_SURFACE_VERSION,
-        version,
-        device.isEmulator,
-      )
+      throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
 
     setWatchFace(app, indicator, device)
@@ -163,23 +142,13 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
       val resultReceiver = CommandResultReceiver()
       val multiReceiver = MultiReceiver(resultReceiver, outputReceiver)
 
-      device.executeShellCommand(
-        "$SET_DECLARATIVE_WATCH_FACE ${app.appId}",
-        multiReceiver,
-        15,
-        TimeUnit.SECONDS,
-      )
+      device.executeShellCommand("$SET_DECLARATIVE_WATCH_FACE ${app.appId}", multiReceiver, 15, TimeUnit.SECONDS)
 
       if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-        throw DeployerException.componentActivationException(
-          String.format("Invalid Success code `%d`", resultReceiver.resultCode)
-        )
+        throw DeployerException.componentActivationException(String.format("Invalid Success code `%d`", resultReceiver.resultCode))
       }
     } catch (ex: Exception) {
-      throw ExecutionException(
-        "Error while launching declarative watch face, message: ${outputReceiver.getOutput()}",
-        ex,
-      )
+      throw ExecutionException("Error while launching declarative watch face, message: ${outputReceiver.getOutput()}", ex)
     }
   }
 
@@ -188,16 +157,9 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
     indicator.text = "Showing the watch face"
 
     val resultReceiver = CommandResultReceiver()
-    device.executeShellCommand(
-      WatchFace.ShellCommand.SHOW_WATCH_FACE,
-      console,
-      resultReceiver,
-      indicator = indicator,
-    )
+    device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver, indicator = indicator)
     if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      console.printlnError(
-        "Warning: Launch was successful, but you may need to bring up the watch face manually"
-      )
+      console.printlnError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }
 

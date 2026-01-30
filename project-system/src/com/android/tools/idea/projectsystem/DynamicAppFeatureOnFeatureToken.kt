@@ -20,7 +20,9 @@ import com.intellij.openapi.module.Module
 
 interface DynamicAppFeatureOnFeatureToken<P : AndroidProjectSystem> : Token {
   fun getFeatureModulesDependingOnFeature(projectSystem: P, module: Module): List<Module>
+
   fun getFeatureModuleDependenciesForFeature(projectSystem: P, module: Module): List<Module>
+
   companion object {
     @JvmField
     val EP_NAME: ExtensionPointName<DynamicAppFeatureOnFeatureToken<AndroidProjectSystem>> =

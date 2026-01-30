@@ -23,8 +23,8 @@ import com.intellij.psi.util.PsiTreeUtil
 
 class DeclarativeFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DeclarativeLanguage.INSTANCE) {
   private val fileType = viewProvider.fileType
+
   override fun getFileType(): FileType = fileType
 
   fun getEntries(): List<DeclarativeEntry> = PsiTreeUtil.getChildrenOfTypeAsList(this, DeclarativeEntry::class.java)
-
 }

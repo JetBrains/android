@@ -63,15 +63,12 @@ import java.lang.ref.WeakReference
 private const val COMPANION_CLASS_SUFFIX = "\$-CC"
 
 /**
- * AndroidPositionManager provides android java specific position manager augmentations on top of
- * [PositionManagerImpl] such as:
+ * AndroidPositionManager provides android java specific position manager augmentations on top of [PositionManagerImpl] such as:
+ * * Providing synthesized classes during android build.
+ * * Locating SDK sources that match the user's current target device.
  *
- *  * Providing synthesized classes during android build.
- *  * Locating SDK sources that match the user's current target device.
- *
- * Unlike [PositionManagerImpl], [AndroidPositionManager] is not a cover-all position
- * manager and should fall back to other position managers if it encounters a situation it cannot
- * handle.
+ * Unlike [PositionManagerImpl], [AndroidPositionManager] is not a cover-all position manager and should fall back to other position
+ * managers if it encounters a situation it cannot handle.
  */
 class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(myDebugProcess) {
 
@@ -81,15 +78,18 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     val disposable = myDebugProcess.getDisposable()
     if (disposable == null) {
       thisLogger().warn("Cannot subscribe to OnDownloadedCallback")
-    }
-    else {
-      myDebugProcess.project.messageBus.connect(disposable)
-        .subscribe(SdkInstallListener.TOPIC, SdkInstallListener { installed, uninstalled ->
-          val path = DetailsTypes.getSourcesPath(myAndroidVersion ?: return@SdkInstallListener)
-          if (installed.find { it.path == path } != null || uninstalled.find { it.path == path } != null) {
-            refreshDebugSession()
-          }
-        })
+    } else {
+      myDebugProcess.project.messageBus
+        .connect(disposable)
+        .subscribe(
+          SdkInstallListener.TOPIC,
+          SdkInstallListener { installed, uninstalled ->
+            val path = DetailsTypes.getSourcesPath(myAndroidVersion ?: return@SdkInstallListener)
+            if (installed.find { it.path == path } != null || uninstalled.find { it.path == path } != null) {
+              refreshDebugSession()
+            }
+          },
+        )
     }
   }
 
@@ -142,12 +142,9 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   @VisibleForTesting
   public override fun getPsiFileByLocation(project: Project, location: Location): PsiFile? = super.getPsiFileByLocation(project, location)
 
-  /**
-   * Listener that's responsible for closing the generated "no sources available" file when a debug session completes.
-   */
+  /** Listener that's responsible for closing the generated "no sources available" file when a debug session completes. */
   @VisibleForTesting
-  class MyXDebugSessionListener @VisibleForTesting constructor(fileToClose: VirtualFile, project: Project) :
-    XDebugSessionListener {
+  class MyXDebugSessionListener @VisibleForTesting constructor(fileToClose: VirtualFile, project: Project) : XDebugSessionListener {
 
     private val myFileToClose = WeakReference(fileToClose)
     private val myProject = project
@@ -165,12 +162,9 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
         myDebugProcess.positionManager.clearCache()
 
         // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
-        ApplicationManager.getApplication().invokeLater(
-          { myDebugProcess.session.refresh(true) },
-          { myDebugProcess.session.isStopped })
+        ApplicationManager.getApplication().invokeLater({ myDebugProcess.session.refresh(true) }, { myDebugProcess.session.isStopped })
       }
     }
-
   }
 
   // TODO(b/269626310): Remove when DebugProcessImpl exposes a disposable
@@ -178,29 +172,25 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   private fun DebugProcessImpl.getDisposable(): Disposable? {
     return when {
       ApplicationManager.getApplication().isUnitTestMode -> project
-      else -> try {
-        val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
-        field.isAccessible = true
-        field.get(this) as Disposable
-      }
-      catch (e: Exception) {
-        thisLogger().warn("Could not get DebugProcessImpl.disposable")
-        null
-      }
+      else ->
+        try {
+          val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
+          field.isAccessible = true
+          field.get(this) as Disposable
+        } catch (e: Exception) {
+          thisLogger().warn("Could not get DebugProcessImpl.disposable")
+          null
+        }
     }
   }
 
   /**
    * Returns a list of [ClassPrepareRequest] that also contains references to types synthesized by desugaring.
    *
-   *
-   * If the given requests list contains an interface type that requires desugaring, this method will add a prepare request that matches
-   * any inner type of the interface. Indeed, desugaring may have synthesized an inner companion class that contains the given position.
+   * If the given requests list contains an interface type that requires desugaring, this method will add a prepare request that matches any
+   * inner type of the interface. Indeed, desugaring may have synthesized an inner companion class that contains the given position.
    */
-  private fun getExtraPrepareRequests(
-    requestor: ClassPrepareRequestor,
-    position: SourcePosition,
-  ): List<ClassPrepareRequest> {
+  private fun getExtraPrepareRequests(requestor: ClassPrepareRequestor, position: SourcePosition): List<ClassPrepareRequest> {
     return ReadAction.compute<List<ClassPrepareRequest>, RuntimeException> {
       val element = position.elementAt ?: return@compute emptyList()
       val classHolder = element.getInterfaceParent() ?: return@compute emptyList()
@@ -221,35 +211,27 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       listOfNotNull(debugProcess.requestsManager.createClassPrepareRequest(trampolinePrepareRequestor, classPattern))
     }
   }
+
   /**
    * Returns a list of [ReferenceType] that also contains references to types synthesized by desugaring.
-   *
    *
    * If the given types list contains an interface type that requires desugaring, this method will add to the returned list any inner type
    * that contains the given position in one of its methods.
    */
-  private fun getCompanionClasses(
-    position: SourcePosition,
-    types: List<ReferenceType>,
-  ): List<ReferenceType> {
+  private fun getCompanionClasses(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
     // Find all interface classes that may have a companion class.
-    val candidatesForDesugaringCompanion = types.filter { type ->
-      DumbService.getInstance(debugProcess.project).runReadActionInSmartMode(Computable {
-        debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true
-      })
-    }
-
+    val candidatesForDesugaringCompanion =
+      types.filter { type ->
+        DumbService.getInstance(debugProcess.project)
+          .runReadActionInSmartMode(Computable { debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true })
+      }
 
     return getCompanionsOfTypes(position, candidatesForDesugaringCompanion) + getCompanionsForPositionByName(position)
   }
 
   private fun getCompanionsOfTypes(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
     val allLoadedTypes = runCatching { VirtualMachineProxy.getCurrent().allClasses() }.getOrDefault(emptyList())
-    return allLoadedTypes.filter { loadedType ->
-      types.any { candidate ->
-        loadedType.isCompanion(candidate.name(), position)
-      }
-    }
+    return allLoadedTypes.filter { loadedType -> types.any { candidate -> loadedType.isCompanion(candidate.name(), position) } }
   }
 
   private fun getCompanionsForPositionByName(position: SourcePosition): List<ReferenceType> =
@@ -265,9 +247,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   private fun ReferenceType.isCompanion(className: String, position: SourcePosition) =
     startsWith("$className$") && containsPosition(position)
 
-  private fun ReferenceType.containsPosition(position: SourcePosition) =
-    locationsOfLine(this, position).isNotEmpty()
-
+  private fun ReferenceType.containsPosition(position: SourcePosition) = locationsOfLine(this, position).isNotEmpty()
 
   companion object {
     private val LOG = Logger.getInstance(AndroidPositionManager::class.java)
@@ -282,8 +262,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
           if (sourceRoot == null) {
             LOG.debug("Could not determine source root for file: " + file.virtualFile.path)
             null
-          }
-          else {
+          } else {
             VfsUtilCore.getRelativePath(file.virtualFile, sourceRoot)
           }
         }

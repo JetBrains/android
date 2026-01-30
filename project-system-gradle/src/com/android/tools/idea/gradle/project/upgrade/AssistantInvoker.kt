@@ -25,34 +25,26 @@ interface AssistantInvoker {
    * Perform a specialized "upgrade" of the build files to convert usages of the old, long-deprecated `compile` dependency configuration
    * (and its variants) to its replacement `api` or `implementation` (depending on the context in which that dependency is declared).
    */
-  @Slow
-  fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
+  @Slow fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement)
 
   /**
-   * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to
-   * force or recommend that they use the Upgrade Assistant to update their build files.
+   * If policy, preferences and available versions of the Android Gradle plugin allow, notify the user in some fashion to force or recommend
+   * that they use the Upgrade Assistant to update their build files.
    */
   fun maybeForceOrRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo)
 
-  /**
-   * Quietly expires all notifications related to Android Gradle plugin upgrade recommendations.
-   */
+  /** Quietly expires all notifications related to Android Gradle plugin upgrade recommendations. */
   fun expireProjectUpgradeNotifications(project: Project)
 
-  /**
-   * Displays a message to alert the user if they have disabled forced upgrades
-   */
+  /** Displays a message to alert the user if they have disabled forced upgrades */
   fun displayForceUpdatesDisabledMessage(project: Project)
 
   /**
-   * Invokes the AGP Upgrade Assistant Tool Window, allowing the user to update the version of AGP used in their project.
-   * If the current version can not be determined no action is taken.
+   * Invokes the AGP Upgrade Assistant Tool Window, allowing the user to update the version of AGP used in their project. If the current
+   * version can not be determined no action is taken.
    */
   fun performRecommendedPluginUpgrade(project: Project)
 
-  /**
-   * Checks to see if we should be recommending an upgrade of the Android Gradle Plugin.
-   */
-  @Slow
-  fun shouldRecommendPluginUpgradeToLatest(project: Project): Boolean
+  /** Checks to see if we should be recommending an upgrade of the Android Gradle Plugin. */
+  @Slow fun shouldRecommendPluginUpgradeToLatest(project: Project): Boolean
 }

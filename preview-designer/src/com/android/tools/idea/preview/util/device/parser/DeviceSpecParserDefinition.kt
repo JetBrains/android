@@ -38,11 +38,9 @@ class DeviceSpecParserDefinition : ParserDefinition {
 
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
-  override fun createElement(node: ASTNode?): PsiElement =
-    DeviceSpecTypes.Factory.createElement(node)
+  override fun createElement(node: ASTNode?): PsiElement = DeviceSpecTypes.Factory.createElement(node)
 
   override fun createFile(viewProvider: FileViewProvider): PsiFile = DeviceSpecPsiFile(viewProvider)
 
-  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) =
-    ParserDefinition.SpaceRequirements.MAY
+  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
 }

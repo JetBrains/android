@@ -93,18 +93,9 @@ class FakeViewEditor : ViewEditor() {
     TODO("Not yet implemented")
   }
 
-  override fun canInsertChildren(
-    parent: NlComponent,
-    children: MutableList<NlComponent>,
-    index: Int,
-  ): Boolean = false
+  override fun canInsertChildren(parent: NlComponent, children: MutableList<NlComponent>, index: Int): Boolean = false
 
-  override fun insertChildren(
-    parent: NlComponent,
-    children: MutableList<NlComponent>,
-    index: Int,
-    insertType: InsertType,
-  ) {}
+  override fun insertChildren(parent: NlComponent, children: MutableList<NlComponent>, index: Int, insertType: InsertType) {}
 
   override fun moduleDependsOnAppCompat(): Boolean = false
 }
@@ -112,29 +103,17 @@ class FakeViewEditor : ViewEditor() {
 class TextViewHandlerTest {
   private val textViewHandler = TextViewHandler()
 
-  private fun getAssistantPresentationFor(
-    toolsText: String?,
-    text: String?,
-  ): HolderViewActionPresentation {
+  private fun getAssistantPresentationFor(toolsText: String?, text: String?): HolderViewActionPresentation {
     val component = mock(NlComponent::class.java)
-    `when`(component.getAttribute(eq(SdkConstants.ANDROID_URI), eq(SdkConstants.ATTR_TEXT)))
-      .thenReturn(text)
-    `when`(component.getAttribute(eq(SdkConstants.TOOLS_URI), eq(SdkConstants.ATTR_TEXT)))
-      .thenReturn(toolsText)
+    `when`(component.getAttribute(eq(SdkConstants.ANDROID_URI), eq(SdkConstants.ATTR_TEXT))).thenReturn(text)
+    `when`(component.getAttribute(eq(SdkConstants.TOOLS_URI), eq(SdkConstants.ATTR_TEXT))).thenReturn(toolsText)
 
     val outputActions = mutableListOf<ViewAction>()
     textViewHandler.addPopupMenuActions(mock(SceneComponent::class.java), outputActions)
     val assistantAction = outputActions.single() as ComponentAssistantViewAction
     val presentation = HolderViewActionPresentation()
 
-    assistantAction.updatePresentation(
-      presentation,
-      FakeViewEditor(),
-      textViewHandler,
-      component,
-      mutableListOf(component),
-      0,
-    )
+    assistantAction.updatePresentation(presentation, FakeViewEditor(), textViewHandler, component, mutableListOf(component), 0)
     return presentation
   }
 
@@ -150,18 +129,12 @@ class TextViewHandlerTest {
       )
       .forEach { (toolsText, text) ->
         val presentation = getAssistantPresentationFor(toolsText = toolsText, text = text)
-        assertTrue(
-          "Sample data action should be visible for toolsText='$toolsText' text='$text'",
-          presentation._visible,
-        )
+        assertTrue("Sample data action should be visible for toolsText='$toolsText' text='$text'", presentation._visible)
       }
 
     listOf("Test" to "TextView", "TextView" to "Hello World!").forEach { (toolsText, text) ->
       val presentation = getAssistantPresentationFor(toolsText = toolsText, text = text)
-      assertFalse(
-        "Sample data action should not be visible for toolsText='$toolsText' text='$text'",
-        presentation._visible,
-      )
+      assertFalse("Sample data action should not be visible for toolsText='$toolsText' text='$text'", presentation._visible)
     }
   }
 }

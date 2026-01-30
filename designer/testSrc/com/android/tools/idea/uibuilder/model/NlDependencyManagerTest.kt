@@ -31,11 +31,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   override fun setUp() {
     super.setUp()
-    projectSystem =
-      TestProjectSystem(
-        project,
-        availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
-      )
+    projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
     projectSystem.useInTests()
     model =
       model(
@@ -48,13 +44,8 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   }
 
   fun testEnsureLibraryIsIncluded() {
-    val depsShouldBeAdded =
-      listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7)
-    NlDependencyManager.getInstance()
-      .addDependencies(model.treeReader.components, model.facet, false)
-    assertSameElements(
-      projectSystem.getAddedDependencies(model.module).map { it.id },
-      depsShouldBeAdded,
-    )
+    val depsShouldBeAdded = listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7)
+    NlDependencyManager.getInstance().addDependencies(model.treeReader.components, model.facet, false)
+    assertSameElements(projectSystem.getAddedDependencies(model.module).map { it.id }, depsShouldBeAdded)
   }
 }

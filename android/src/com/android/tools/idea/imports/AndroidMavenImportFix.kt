@@ -28,10 +28,7 @@ class AndroidMavenImportFix(
   val version: String?,
 ) : LocalQuickFix {
   override fun getName(): String {
-    return AndroidBundle.message(
-      "android.suggested.dependency.action.name.prefix",
-      flagPreview(artifact, version),
-    )
+    return AndroidBundle.message("android.suggested.dependency.action.name.prefix", flagPreview(artifact, version))
   }
 
   override fun getFamilyName(): String {
@@ -40,13 +37,6 @@ class AndroidMavenImportFix(
 
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
     val element = descriptor.endElement
-    AndroidMavenImportIntentionAction.doImportSuggestion(
-      project,
-      element,
-      artifact,
-      version,
-      importSymbol = null,
-      sync = true,
-    )
+    AndroidMavenImportIntentionAction.doImportSuggestion(project, element, artifact, version, importSymbol = null, sync = true)
   }
 }

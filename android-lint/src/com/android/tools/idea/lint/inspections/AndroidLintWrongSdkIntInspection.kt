@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ApiDetector
 
 class AndroidLintWrongSdkIntInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.wrong.sdk.int"),
-    ApiDetector.WRONG_SDK_INT,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.wrong.sdk.int"), ApiDetector.WRONG_SDK_INT)

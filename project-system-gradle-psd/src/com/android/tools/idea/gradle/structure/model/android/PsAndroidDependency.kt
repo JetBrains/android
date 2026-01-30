@@ -18,6 +18,4 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 
-abstract class PsAndroidDependency internal constructor(
-  final override val parent: PsAndroidModule
-) : PsChildModel(), PsBaseDependency
+abstract class PsAndroidDependency internal constructor(final override val parent: PsAndroidModule) : PsChildModel(), PsBaseDependency

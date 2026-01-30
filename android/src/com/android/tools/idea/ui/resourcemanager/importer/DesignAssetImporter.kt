@@ -30,59 +30,54 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val IMPORT_COMMAND_NAME = "Import resources"
 
-/**
- * Manage importing a batch of resources into the project.
- */
+/** Manage importing a batch of resources into the project. */
 class DesignAssetImporter {
 
   val folderConfiguration = FolderConfiguration()
 
-  fun importDesignAssets(assetSets: Collection<ResourceAssetSet>,
-                         androidFacet: AndroidFacet,
-                         resFolder: File = getOrCreateDefaultResDirectory(androidFacet)) {
+  fun importDesignAssets(
+    assetSets: Collection<ResourceAssetSet>,
+    androidFacet: AndroidFacet,
+    resFolder: File = getOrCreateDefaultResDirectory(androidFacet),
+  ) {
 
     // Flatten all the design assets and then regroup them by folder name
     // so assets with the same folder name are imported together.
-    val groupedAssets = toIntermediateAssets(assetSets, resFolder)
-      .groupBy(IntermediateAsset::targetFolderName)
+    val groupedAssets = toIntermediateAssets(assetSets, resFolder).groupBy(IntermediateAsset::targetFolderName)
 
     LocalFileSystem.getInstance().refreshIoFiles(listOf(resFolder))
 
-    WriteCommandAction.runWriteCommandAction(androidFacet.module.project, IMPORT_COMMAND_NAME, null, {
-      groupedAssets
-        .forEach { (folderName, importingAsset) ->
-          copyAssetsInFolder(folderName, importingAsset, resFolder)
-        }
-    })
+    WriteCommandAction.runWriteCommandAction(
+      androidFacet.module.project,
+      IMPORT_COMMAND_NAME,
+      null,
+      { groupedAssets.forEach { (folderName, importingAsset) -> copyAssetsInFolder(folderName, importingAsset, resFolder) } },
+    )
   }
 
   /**
-   * Use the data available in the provided [ResourceAssetSet] to generate the [IntermediateAsset]
-   * containing data about the target path of the [DesignAsset]s.
+   * Use the data available in the provided [ResourceAssetSet] to generate the [IntermediateAsset] containing data about the target path of
+   * the [DesignAsset]s.
    */
-  fun toIntermediateAssets(assetSets: Collection<ResourceAssetSet>,
-                           resFolder: File = File("res")) =
+  fun toIntermediateAssets(assetSets: Collection<ResourceAssetSet>, resFolder: File = File("res")) =
     assetSets.flatMap { this.toIntermediateAsset(it, resFolder) }
 
-  /**
-   * Transforms the [DesignAsset] of the [assetSet] into a list of [IntermediateAsset].
-   */
+  /** Transforms the [DesignAsset] of the [assetSet] into a list of [IntermediateAsset]. */
   private fun toIntermediateAsset(assetSet: ResourceAssetSet, resFolder: File) =
     assetSet.designAssets.map { IntermediateAsset(it.file, resFolder.path, getFolderName(it), assetSet.name) }
 
   /**
    * Copy the [DesignAsset]s into [subDirName] within the provided [resFolder].
+   *
    * @param subDirName the name of the resource subdirectory.
    * @param resFolder the full path to the target resource folder.
    */
-  private fun copyAssetsInFolder(subDirName: String,
-                                 designAssets: List<IntermediateAsset>,
-                                 resFolder: File) {
+  private fun copyAssetsInFolder(subDirName: String, designAssets: List<IntermediateAsset>, resFolder: File) {
     val folder = VfsUtil.createDirectoryIfMissing(resFolder.path)
     val directory = VfsUtil.createDirectoryIfMissing(folder, subDirName)
     designAssets.forEach {
@@ -92,17 +87,14 @@ class DesignAssetImporter {
         val projectFile = directory.createChildData(this, resourceName)
         val contentsToByteArray = it.sourceFile.contentsToByteArray()
         projectFile.setBinaryContent(contentsToByteArray)
-      }
-      else {
+      } else {
         directory.findChild(resourceName)?.delete(this)
         it.sourceFile.copy(this, directory, resourceName)
       }
     }
   }
 
-  /**
-   * Get the folder name according to the qualifiers applied to the [designAsset]
-   */
+  /** Get the folder name according to the qualifiers applied to the [designAsset] */
   private fun getFolderName(designAsset: DesignAsset): String {
     folderConfiguration.reset()
     designAsset.qualifiers.forEach { folderConfiguration.addQualifier(it) }
@@ -111,72 +103,67 @@ class DesignAssetImporter {
 }
 
 /**
- * Returns the first res/ directory of the main source provider of the [androidFacet].
- * If the facet has no res/ directory, it will try to create one.
+ * Returns the first res/ directory of the main source provider of the [androidFacet]. If the facet has no res/ directory, it will try to
+ * create one.
  */
 fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
   val resDirectories =
     SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider?.resDirectoryUrls?.map { File(VfsUtil.urlToPath(it)) }
-    ?: emptyList()
+      ?: emptyList()
   if (resDirectories.isNotEmpty()) {
-    return resDirectories.firstOrNull { it.exists() }
-           ?: resDirectories.first().also { it.mkdirs() }
+    return resDirectories.firstOrNull { it.exists() } ?: resDirectories.first().also { it.mkdirs() }
   }
 
   val projectSystem = androidFacet.module.project.getProjectSystem()
   return when (val token = projectSystem.getTokenOrNull(CreateDefaultResDirectoryToken.EP_NAME)) {
     null -> null
     else -> token.createDefaultResDirectory(projectSystem, androidFacet)
-  } ?: throw(IllegalStateException("No res directory for $androidFacet and no way to make one."))
+  } ?: throw (IllegalStateException("No res directory for $androidFacet and no way to make one."))
 }
 
 interface CreateDefaultResDirectoryToken<T : AndroidProjectSystem> : Token {
   /**
-   * Called when there are no resDirectoryUrls in the main IDEA Source Provider.  Implementations should modify the
-   * project such that, after modification, there will be at least one such resDirectoryUrl and it points to a writeable
-   * directory.
+   * Called when there are no resDirectoryUrls in the main IDEA Source Provider. Implementations should modify the project such that, after
+   * modification, there will be at least one such resDirectoryUrl and it points to a writeable directory.
    */
   fun createDefaultResDirectory(projectSystem: T, facet: AndroidFacet): File?
+
   companion object {
-    val EP_NAME = ExtensionPointName<CreateDefaultResDirectoryToken<AndroidProjectSystem>>(
-      "com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken")
+    val EP_NAME =
+      ExtensionPointName<CreateDefaultResDirectoryToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.ui.resourcemanager.importer.createDefaultResDirectoryToken"
+      )
   }
 }
 
 /**
  * Returns a list of [SourceSetResDir] available in the provided [facet].
  *
- * If for some reason, no resource directory exist, it will return
- * a default one.
+ * If for some reason, no resource directory exist, it will return a default one.
  *
  * @see getOrCreateDefaultResDirectory
  */
 fun getSourceSetsResDirs(facet: AndroidFacet): Array<SourceSetResDir> {
-  val resDirs = facet.module.getModuleSystem().getModuleTemplates(null)
-    .flatMap { template ->
-      template.paths.resDirectories.map {
-        SourceSetResDir(it, template.name)
-      }
-    }.toTypedArray()
+  val resDirs =
+    facet.module
+      .getModuleSystem()
+      .getModuleTemplates(null)
+      .flatMap { template -> template.paths.resDirectories.map { SourceSetResDir(it, template.name) } }
+      .toTypedArray()
 
   return if (resDirs.isEmpty()) {
     arrayOf(SourceSetResDir(getOrCreateDefaultResDirectory(facet), "default"))
-  }
-  else {
+  } else {
     resDirs
   }
 }
 
-/**
- * A utility data class used to represent a resource directory for a sourceSet.
- */
-data class SourceSetResDir constructor(
-  /**
-   * The relative path of this resource directory from the project base path.
-   */
+/** A utility data class used to represent a resource directory for a sourceSet. */
+data class SourceSetResDir
+constructor(
+  /** The relative path of this resource directory from the project base path. */
   val absolutePath: File,
 
-  /**
-   * The name of the source set containing this directory
-   */
-  val sourceSetName: String)
+  /** The name of the source set containing this directory */
+  val sourceSetName: String,
+)

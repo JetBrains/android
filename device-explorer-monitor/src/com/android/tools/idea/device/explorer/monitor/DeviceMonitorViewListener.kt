@@ -20,12 +20,20 @@ import com.android.annotations.concurrency.UiThread
 @UiThread
 interface DeviceMonitorViewListener {
   fun refreshInvoked()
+
   fun killNodesInvoked(rows: IntArray)
+
   fun forceStopNodesInvoked(rows: IntArray)
+
   fun debugNodes(rows: IntArray)
+
   fun packageFilterToggled(isActive: Boolean)
+
   fun clearAppData(rows: IntArray)
+
   fun uninstallApp(rows: IntArray)
+
   fun backupApplication(rows: IntArray)
+
   fun restoreApplication(rows: IntArray)
 }

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import java.io.Serializable
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
-import java.io.Serializable
 
-/**
- * [BuildAction] to be used for tests that require a long running build.
- */
+/** [BuildAction] to be used for tests that require a long running build. */
 class SlowTestBuildAction : BuildAction<String>, Serializable {
   override fun execute(controller: BuildController): String {
     Thread.sleep(30000)

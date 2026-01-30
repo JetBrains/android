@@ -34,8 +34,7 @@ import org.jetbrains.android.dom.resources.ResourceValue
 @DefinesXml
 @NameStrategy(PascalNameStrategy::class)
 interface WatchFaceInfoElement : AndroidDomElement {
-  @get:Required
-  val preview: Preview
+  @get:Required val preview: Preview
   val category: Category?
   val availableInRetail: AvailableInRetail?
   val multipleInstancesAllowed: MultipleInstancesAllowed?
@@ -59,25 +58,16 @@ interface WatchFaceInfoElement : AndroidDomElement {
 
   @DefinesXml
   interface AvailableInRetail : AndroidDomElement {
-    @get:Required
-    @get:Convert(ResourceReferenceConverter::class)
-    @get:AndroidResourceType("bool")
-    val value: GenericAttributeValue<String>
+    @get:Required @get:Convert(ResourceReferenceConverter::class) @get:AndroidResourceType("bool") val value: GenericAttributeValue<String>
   }
 
   @DefinesXml
   interface MultipleInstancesAllowed : AndroidDomElement {
-    @get:Required
-    @get:Convert(ResourceReferenceConverter::class)
-    @get:AndroidResourceType("bool")
-    val value: GenericAttributeValue<String>
+    @get:Required @get:Convert(ResourceReferenceConverter::class) @get:AndroidResourceType("bool") val value: GenericAttributeValue<String>
   }
 
   @DefinesXml
   interface Editable : AndroidDomElement {
-    @get:Required
-    @get:Convert(ResourceReferenceConverter::class)
-    @get:AndroidResourceType("bool")
-    val value: GenericAttributeValue<String>
+    @get:Required @get:Convert(ResourceReferenceConverter::class) @get:AndroidResourceType("bool") val value: GenericAttributeValue<String>
   }
 }

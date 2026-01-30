@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.InternalInsetResourceDetector
 
 class AndroidLintInternalInsetResourceInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.internal.inset.resource"),
-    InternalInsetResourceDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.internal.inset.resource"), InternalInsetResourceDetector.ISSUE)

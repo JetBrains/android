@@ -17,16 +17,17 @@ package com.android.tools.idea.gradle.dcl.lang.lexer
 
 import com.intellij.testFramework.LexerTestCase
 
-class DeclarativeEscapeLexerTest: LexerTestCase() {
+class DeclarativeEscapeLexerTest : LexerTestCase() {
   fun testValidUnicode() {
     doTest(
       "\"\\u0020\\uD7FFabcd\"",
       """
-     DeclarativeTokenType.one_line_string_literal ('"')
-     VALID_STRING_ESCAPE_TOKEN ('\u0020')
-     VALID_STRING_ESCAPE_TOKEN ('\uD7FF')
-     DeclarativeTokenType.one_line_string_literal ('abcd"')
-      """.trimIndent()
+      DeclarativeTokenType.one_line_string_literal ('"')
+      VALID_STRING_ESCAPE_TOKEN ('\u0020')
+      VALID_STRING_ESCAPE_TOKEN ('\uD7FF')
+      DeclarativeTokenType.one_line_string_literal ('abcd"')
+      """
+        .trimIndent(),
     )
   }
 
@@ -38,11 +39,12 @@ class DeclarativeEscapeLexerTest: LexerTestCase() {
       INVALID_UNICODE_ESCAPE_TOKEN ('\u002m')
       INVALID_UNICODE_ESCAPE_TOKEN ('\uD7Fp')
       DeclarativeTokenType.one_line_string_literal ('ppp"')
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
-  fun testValidSymbols(){
+  fun testValidSymbols() {
     doTest(
       "\"\\b\\n\\r\\t\\\"\\\\\"",
       """
@@ -54,9 +56,12 @@ class DeclarativeEscapeLexerTest: LexerTestCase() {
       VALID_STRING_ESCAPE_TOKEN ('\"')
       VALID_STRING_ESCAPE_TOKEN ('\\')
       DeclarativeTokenType.one_line_string_literal ('"')
-        """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
+
   override fun createLexer() = DeclarativeHighlightingLexer()
+
   override fun getDirPath() = ""
 }

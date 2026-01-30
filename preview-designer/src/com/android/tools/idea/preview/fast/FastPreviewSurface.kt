@@ -41,9 +41,8 @@ import org.jetbrains.kotlin.psi.KtFile
 /** Interface to be implemented by surfaces (like the Preview) that support FastPreview. */
 interface FastPreviewSurface {
   /**
-   * Request a fast preview refresh. The result [Deferred] will contain the result of the
-   * compilation or the method will return [CompilationResult.CompilationAborted] if the compilation
-   * request could not be scheduled (e.g. the code has syntax errors).
+   * Request a fast preview refresh. The result [Deferred] will contain the result of the compilation or the method will return
+   * [CompilationResult.CompilationAborted] if the compilation request could not be scheduled (e.g. the code has syntax errors).
    */
   fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>
 
@@ -53,9 +52,8 @@ interface FastPreviewSurface {
 }
 
 /**
- * Default implementation of [FastPreviewSurface], that triggers a fast preview compilation via
- * [requestFastPreviewRefreshAndTrack], and delegates the refresh after a successful compilation to
- * [delegateRefresh].
+ * Default implementation of [FastPreviewSurface], that triggers a fast preview compilation via [requestFastPreviewRefreshAndTrack], and
+ * delegates the refresh after a successful compilation to [delegateRefresh].
  */
 class CommonFastPreviewSurface(
   parentDisposable: Disposable,
@@ -65,8 +63,7 @@ class CommonFastPreviewSurface(
   private val delegateRefresh: suspend () -> Unit,
 ) : Disposable, FastPreviewSurface {
 
-  private val myPsiCodeFileOutOfDateStatusReporter =
-    PsiCodeFileOutOfDateStatusReporter.getInstance(psiFilePointer.project)
+  private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(psiFilePointer.project)
 
   private val coroutineScope: CoroutineScope
 
@@ -75,47 +72,33 @@ class CommonFastPreviewSurface(
     coroutineScope = this.createCoroutineScope()
   }
 
-  /**
-   * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a
-   * time.
-   */
+  /** [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a time. */
   private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
-    }
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher") }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
     lifecycleManager.executeIfActive { async { requestFastPreviewRefreshSync() } }
       ?: CompletableDeferred(CompilationResult.CompilationAborted())
 
   /**
-   * Request a fast preview compilation, followed by preview refresh when the compilation is
-   * successful. Note that this method waits for the compilation to complete, returning its result,
-   * but it doesn't wait for the refresh to finish.
+   * Request a fast preview compilation, followed by preview refresh when the compilation is successful. Note that this method waits for the
+   * compilation to complete, returning its result, but it doesn't wait for the refresh to finish.
    */
   suspend fun requestFastPreviewRefreshSync(): CompilationResult {
     val previewFile =
-      readAction { psiFilePointer.element }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File is not valid")
-        )
+      readAction { psiFilePointer.element } ?: return CompilationResult.RequestException(IllegalStateException("Preview File is not valid"))
     val previewFileBuildTargetReference =
       readAction { BuildTargetReference.from(previewFile) }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid module")
-        )
+        ?: return CompilationResult.RequestException(IllegalStateException("Preview File does not have a valid module"))
     val previewFileAndroidModule =
       previewFileBuildTargetReference.module.findAndroidModule()
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid Android module")
-        )
+        ?: return CompilationResult.RequestException(IllegalStateException("Preview File does not have a valid Android module"))
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileBuildTargetReference =
-            readAction { BuildTargetReference.from(modifiedFile) } ?: return@filter false
+          val modifiedFileBuildTargetReference = readAction { BuildTargetReference.from(modifiedFile) } ?: return@filter false
 
           // Keep the file if the file is from this module or from a module we depend on
           modifiedFileBuildTargetReference == previewFileBuildTargetReference ||
@@ -135,8 +118,7 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
-        .pushOverlayPath(File(outputAbsolutePath).toPath())
+      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule).pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }
   }

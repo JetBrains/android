@@ -68,10 +68,12 @@ class PrimaryModuleImportSettings : ModuleImportSettings {
   }
 
   override fun addActionListener(actionListener: ActionListener) {
-    moduleNameField.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        actionListener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, "changed"))
+    moduleNameField.document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          actionListener.actionPerformed(ActionEvent(this, ActionEvent.ACTION_PERFORMED, "changed"))
+        }
       }
-    })
+    )
   }
 }

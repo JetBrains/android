@@ -44,8 +44,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ConfigureCcSourcesTest {
-  @get:Rule
-  val intellij: IntellijRule = IntellijRule()
+  @get:Rule val intellij: IntellijRule = IntellijRule()
 
   @Before
   fun setUp() {
@@ -53,15 +52,16 @@ class ConfigureCcSourcesTest {
   }
 
   private val context: Context<*> = NoopContext()
-  private val syncRunner = TestDataSyncRunner(
-    context,
-    JavaPackagePrefixReaderImpl(
-      workspaceRoot = Path.of("/"),
-      packageReader = PackageStatementParser(),
-      parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
-      fileExistenceCheck = { true }
+  private val syncRunner =
+    TestDataSyncRunner(
+      context,
+      JavaPackagePrefixReaderImpl(
+        workspaceRoot = Path.of("/"),
+        packageReader = PackageStatementParser(),
+        parallelPackageReader = QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER,
+        fileExistenceCheck = { true },
+      ),
     )
-  )
 
   @Test
   fun empty() {
@@ -79,20 +79,26 @@ class ConfigureCcSourcesTest {
     ConfigureCcSources().update(update, original.graph, context)
     val project = update.build()
     val ccTarget = Label.of("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc:cc")
-    val testClassCcPath = ProjectPath.WorkspaceRelativeProjectPath(
-      Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc/TestClass.cc"), Path.of(""))
-    assertThat(project.ccWorkspace).isEqualTo(
-      CcWorkspace.getDefaultInstance()
-        .copy(
-          targets = mapOf(
-            ccTarget to ProjectProto.CcTarget(
-              target = ccTarget,
-              sources = mapOf(testClassCcPath to ProjectProto.CcSourceFile(testClassCcPath, ProjectProto.CcLanguage.CPP)),
-              contexts = emptyMap()
-            )
+    val testClassCcPath =
+      ProjectPath.WorkspaceRelativeProjectPath(
+        Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/cc/TestClass.cc"),
+        Path.of(""),
+      )
+    assertThat(project.ccWorkspace)
+      .isEqualTo(
+        CcWorkspace.getDefaultInstance()
+          .copy(
+            targets =
+              mapOf(
+                ccTarget to
+                  ProjectProto.CcTarget(
+                    target = ccTarget,
+                    sources = mapOf(testClassCcPath to ProjectProto.CcSourceFile(testClassCcPath, ProjectProto.CcLanguage.CPP)),
+                    contexts = emptyMap(),
+                  )
+              )
           )
-        )
-    )
+      )
   }
 
   @Test
@@ -108,13 +114,8 @@ class ConfigureCcSourcesTest {
     val workspace = project.ccWorkspace
     val ccTarget = Iterables.getOnlyElement(workspace.targets.values)
     val sourceFile = Iterables.getOnlyElement(ccTarget.sources.values)
-    assertThat<ProjectProto.CcLanguage>(sourceFile.language)
-      .isEqualTo(ProjectProto.CcLanguage.CPP)
+    assertThat<ProjectProto.CcLanguage>(sourceFile.language).isEqualTo(ProjectProto.CcLanguage.CPP)
     assertThat(sourceFile.workspacePath)
-      .isEqualTo(
-        workspaceRelativeForTests(
-          TestData.CC_LIBRARY_QUERY.onlySourcePath.resolve("TestClass.cc")
-        )
-      )
+      .isEqualTo(workspaceRelativeForTests(TestData.CC_LIBRARY_QUERY.onlySourcePath.resolve("TestClass.cc")))
   }
 }

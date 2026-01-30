@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.project.sync
 import java.io.Serializable
 
 data class SelectedVariants(
-  /**
-   * Dimension name to selected variant name map.
-   */
+  /** Dimension name to selected variant name map. */
   val selectedVariants: Map<String, SelectedVariant>
 ) : Serializable {
   fun getSelectedVariant(moduleId: String): String? = selectedVariants[moduleId]?.variantName
+
   fun getSelectedAbi(moduleId: String): String? = selectedVariants[moduleId]?.abiName
 }

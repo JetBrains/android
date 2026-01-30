@@ -110,10 +110,7 @@ class ComposeAnimationSubscriberTest : AnimationPreviewTests() {
   @Test
   @Throws(IOException::class, ClassNotFoundException::class)
   fun classLoaderRedirectsSubscriptionToAnimationManager() = runTest {
-    val animationPreview =
-      createAnimationPreview(scope = backgroundScope).apply {
-        this.component.size = Dimension(400, 400)
-      }
+    val animationPreview = createAnimationPreview(scope = backgroundScope).apply { this.component.size = Dimension(400, 400) }
     val ui =
       FakeUi(animationPreview.component).apply {
         withContext(Dispatchers.EDT) {
@@ -130,32 +127,26 @@ class ComposeAnimationSubscriberTest : AnimationPreviewTests() {
           toClassTransform({ PreviewAnimationClockMethodTransform(it) }),
           ClassLoaderLoader(
             createUrlClassLoader(
-              listOf(
-                resolveWorkspacePath("tools/adt/idea/compose-designer/testData/classloader")
-                  .resolve("composeanimation.jar")
-              )
+              listOf(resolveWorkspacePath("tools/adt/idea/compose-designer/testData/classloader").resolve("composeanimation.jar"))
             )
           ),
           NopClassLocator,
         ),
       ) {
-      fun loadPreviewAnimationClock(): Class<*> =
-        loadClass("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
+      fun loadPreviewAnimationClock(): Class<*> = loadClass("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
     }
 
     // Subscribe to animation
     val previewAnimationClockClassLoader = PreviewAnimationClockClassLoader()
     val previewAnimationClock = previewAnimationClockClassLoader.loadPreviewAnimationClock()
-    val notifySubscribe =
-      previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
+    val notifySubscribe = previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
     val animation = createComposeAnimation()
     notifySubscribe.invoke(previewAnimationClock.newInstance(), animation)
     runCurrent()
     assertFalse(animationPreview.hasNoAnimationsForTests())
 
     // Unsubscribe from animation
-    val notifyUnsubscribe =
-      previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
+    val notifyUnsubscribe = previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
     notifyUnsubscribe.invoke(previewAnimationClock.newInstance(), animation)
     runCurrent()
     assertTrue(animationPreview.hasNoAnimationsForTests())

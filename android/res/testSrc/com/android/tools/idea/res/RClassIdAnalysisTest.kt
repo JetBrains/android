@@ -61,15 +61,10 @@ class RClassIdAnalysisTest {
       when (it) {
         ResourceType.STRING ->
           assertThat(resources.getResources(it)!!)
-            .containsExactlyEntriesIn(
-              mapOf("app_name" to 101, "ok_text" to 102, "cancel_text" to 103)
-            )
+            .containsExactlyEntriesIn(mapOf("app_name" to 101, "ok_text" to 102, "cancel_text" to 103))
         ResourceType.DRAWABLE ->
-          assertThat(resources.getResources(it)!!)
-            .containsExactlyEntriesIn(mapOf("ic_first" to 201, "ic_second" to 202))
-        ResourceType.LAYOUT ->
-          assertThat(resources.getResources(ResourceType.LAYOUT)!!)
-            .containsExactlyEntriesIn(mapOf("main_page" to 301))
+          assertThat(resources.getResources(it)!!).containsExactlyEntriesIn(mapOf("ic_first" to 201, "ic_second" to 202))
+        ResourceType.LAYOUT -> assertThat(resources.getResources(ResourceType.LAYOUT)!!).containsExactlyEntriesIn(mapOf("main_page" to 301))
         else -> assertThat(resources.getResources(it)).isNull()
       }
     }
@@ -95,10 +90,8 @@ class RClassIdAnalysisTest {
         .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.ATTR))
-      .containsExactlyEntriesIn(mapOf("a1" to 101))
-    assertThat(resources.getResources(ResourceType.STYLEABLE))
-      .containsExactlyEntriesIn(mapOf("x1" to 201, "x2" to 202))
+    assertThat(resources.getResources(ResourceType.ATTR)).containsExactlyEntriesIn(mapOf("a1" to 101))
+    assertThat(resources.getResources(ResourceType.STYLEABLE)).containsExactlyEntriesIn(mapOf("x1" to 201, "x2" to 202))
   }
 
   @Test
@@ -121,8 +114,7 @@ class RClassIdAnalysisTest {
         .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING))
-      .containsExactlyEntriesIn(mapOf("app_name" to 101))
+    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 101))
   }
 
   @Test
@@ -142,8 +134,7 @@ class RClassIdAnalysisTest {
         .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING))
-      .containsExactlyEntriesIn(mapOf("app_name" to 100))
+    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 100))
   }
 
   @Test
@@ -165,8 +156,7 @@ class RClassIdAnalysisTest {
         .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING))
-      .containsExactlyEntriesIn(mapOf("app_name" to 100))
+    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 100))
     assertThat(resources.getResources(ResourceType.LAYOUT)).isNull()
   }
 

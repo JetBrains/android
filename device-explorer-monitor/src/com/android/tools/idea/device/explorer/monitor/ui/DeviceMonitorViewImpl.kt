@@ -43,8 +43,8 @@ import kotlinx.coroutines.launch
 class DeviceMonitorViewImpl(
   private val project: Project,
   private val model: DeviceMonitorModel,
-  private val table: JBTable = ProcessListTableBuilder().build(model.tableModel)
-): DeviceMonitorView, DeviceMonitorActionsListener {
+  private val table: JBTable = ProcessListTableBuilder().build(model.tableModel),
+) : DeviceMonitorView, DeviceMonitorActionsListener {
 
   private val panel = DeviceMonitorPanel()
   private val listeners = mutableListOf<DeviceMonitorViewListener>()
@@ -67,16 +67,13 @@ class DeviceMonitorViewImpl(
       }
     }
 
-    coroutineScope.launch {
-      model.isApplicationIdsEmpty.collect {
-        packageFilterMenuItem.shouldBeEnabled = !it
-      }
-    }
+    coroutineScope.launch { model.isApplicationIdsEmpty.collect { packageFilterMenuItem.shouldBeEnabled = !it } }
   }
 
   override fun addListener(listener: DeviceMonitorViewListener) {
     listeners.add(listener)
   }
+
   override fun removeListener(listener: DeviceMonitorViewListener) {
     listeners.remove(listener)
   }
@@ -112,7 +109,7 @@ class DeviceMonitorViewImpl(
   }
 
   override fun debugNodes() {
-    listeners.forEach{ it.debugNodes(getModelRows(table.selectedRows)) }
+    listeners.forEach { it.debugNodes(getModelRows(table.selectedRows)) }
     table.clearSelection()
   }
 
@@ -164,31 +161,30 @@ class DeviceMonitorViewImpl(
   }
 
   private fun createToolbar() {
-    createToolbarSubSection(DefaultActionGroup().apply {
-      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar, RunManager.getInstance(project)).action)
-      if (StudioFlags.CLEAR_APP_DATA_ACTION.get()) {
-        add(ClearAppDataMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+    createToolbarSubSection(
+      DefaultActionGroup().apply {
+        add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+        add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+        add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar, RunManager.getInstance(project)).action)
+        if (StudioFlags.CLEAR_APP_DATA_ACTION.get()) {
+          add(ClearAppDataMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+        }
+        if (StudioFlags.UNINSTALL_APP_ACTION.get()) {
+          add(UninstallAppMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+        }
+        add(RefreshMenuItem(this@DeviceMonitorViewImpl).action)
+        if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
       }
-      if (StudioFlags.UNINSTALL_APP_ACTION.get()) {
-        add(UninstallAppMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      }
-      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action)
-      if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
-    })
+    )
   }
 
   private fun createToolbarSubSection(group: DefaultActionGroup) {
     val actionManager = ActionManager.getInstance()
-    val actionToolbar = actionManager.createActionToolbar("Device Monitor Toolbar", group, true).apply {
-      targetComponent = panel.processTablePane
-    }
+    val actionToolbar =
+      actionManager.createActionToolbar("Device Monitor Toolbar", group, true).apply { targetComponent = panel.processTablePane }
     panel.toolbar.add(actionToolbar.component, BorderLayout.WEST)
   }
 
   private fun getModelRows(viewRows: IntArray): IntArray =
-    IntArray(viewRows.size) { index ->
-      table.convertRowIndexToModel(viewRows[index])
-    }
+    IntArray(viewRows.size) { index -> table.convertRowIndexToModel(viewRows[index]) }
 }

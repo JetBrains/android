@@ -21,24 +21,27 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class MatchingCharacterTest(private val fileType: LanguageFileType)  : ProguardR8TestCase() {
+class MatchingCharacterTest(private val fileType: LanguageFileType) : ProguardR8TestCase() {
   @Test
   fun testMatchesBraces() {
     myFixture.configureByText(
       fileType,
       """
       -keep class MyClass <caret>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.type('{')
 
     myFixture.checkResult(
       """
-        -keep class MyClass {}
-      """.trimIndent()
+      -keep class MyClass {}
+      """
+        .trimIndent()
     )
   }
+
   @Test
   fun testMatchesParenthesis() {
     myFixture.configureByText(
@@ -46,47 +49,54 @@ class MatchingCharacterTest(private val fileType: LanguageFileType)  : ProguardR
       """
       -keep class MyClass {
         int method<caret>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.type('(')
 
     myFixture.checkResult(
       """
-        -keep class MyClass {
-          int method()
-      """.trimIndent()
+      -keep class MyClass {
+        int method()
+      """
+        .trimIndent()
     )
   }
+
   @Test
   fun testMatchesQuotes() {
     myFixture.configureByText(
       fileType,
       """
       -include <caret>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.type('\'')
 
     myFixture.checkResult(
       """
-        -include ''
-      """.trimIndent()
+      -include ''
+      """
+        .trimIndent()
     )
     myFixture.configureByText(
       fileType,
       """
       -include <caret>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.type('"')
 
     myFixture.checkResult(
       """
-        -include ""
-      """.trimIndent()
+      -include ""
+      """
+        .trimIndent()
     )
   }
 }

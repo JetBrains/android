@@ -19,7 +19,6 @@ import java.lang.management.ManagementFactory
 import java.util.Arrays
 import java.util.function.BiConsumer
 
-
 class CPUUseReportContributor : DiagnosticReportContributor {
   private var report = "Disabled"
   private var enabled = false
@@ -28,7 +27,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
   private lateinit var initialCpuTimePerThreadId: LongArray
 
   private var initialUptimeMs: Long = 0L
-  private var previousCpuTimeEnabledState: Boolean? = null;
+  private var previousCpuTimeEnabledState: Boolean? = null
 
   override fun setup(configuration: DiagnosticReportConfiguration) {}
 
@@ -42,17 +41,14 @@ class CPUUseReportContributor : DiagnosticReportContributor {
       initialUptimeMs = runtimeBean.uptime
       initialCpuTimePerThreadId = getCpuTimeForThreadIds(threadIds)
       enabled = true
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       report = "ERROR: $t"
       enabled = false
     }
   }
 
   override fun stopCollection(totalDurationMs: Long) {
-    previousCpuTimeEnabledState?.let {
-      threadBean.isThreadCpuTimeEnabled = it
-    }
+    previousCpuTimeEnabledState?.let { threadBean.isThreadCpuTimeEnabled = it }
     if (!enabled) return
 
     val durationMs = runtimeBean.uptime - initialUptimeMs
@@ -66,8 +62,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
     val cpuUsagePerThreadId: DoubleArray = DoubleArray(threadIds.size)
     for (i in threadIds.indices) {
       // Ignore if thread is not alive anymore
-      if (initialCpuTimePerThreadId[i] == -1L ||
-        currentCpuTimePerThreadId[i] == -1L) {
+      if (initialCpuTimePerThreadId[i] == -1L || currentCpuTimePerThreadId[i] == -1L) {
         cpuUsagePerThreadId[i] = -1.0
         continue
       }
@@ -79,9 +74,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
     }
     val sb = StringBuilder()
     val threadsWithCpuUse =
-      threadIds.zip(cpuUsagePerThreadId.toTypedArray())
-      .sortedByDescending { it.first }
-      .sortedByDescending { it.second }
+      threadIds.zip(cpuUsagePerThreadId.toTypedArray()).sortedByDescending { it.first }.sortedByDescending { it.second }
 
     for ((id, cpuUse) in threadsWithCpuUse) {
       if (cpuUse < 0.01) continue
@@ -114,6 +107,7 @@ class CPUUseReportContributor : DiagnosticReportContributor {
     private val threadBean = ManagementFactory.getThreadMXBean()
     private val runtimeBean = ManagementFactory.getRuntimeMXBean()
     private val osBean = ManagementFactory.getOperatingSystemMXBean()
+
     private fun getCpuTimeForThreadIds(ids: LongArray): LongArray {
       val longArray = LongArray(ids.size)
       for (i in ids.indices) {

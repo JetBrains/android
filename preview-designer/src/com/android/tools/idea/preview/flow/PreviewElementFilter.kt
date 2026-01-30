@@ -23,26 +23,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 /**
- * Filter mode that can be set in the preview. The preview will accept any of these types of filters
- * and will apply it to the input [PreviewElement] from the file.
+ * Filter mode that can be set in the preview. The preview will accept any of these types of filters and will apply it to the input
+ * [PreviewElement] from the file.
  */
 sealed class PreviewElementFilter<T : PreviewElement<*>> {
-  /**
-   * Filters the given input [PreviewElement]s using the given [filterGroup] and returns only the
-   * ones that belong to that group.
-   */
-  class Group<T : PreviewElement<*>>(val filterGroup: PreviewGroup.Named) :
-    PreviewElementFilter<T>() {
+  /** Filters the given input [PreviewElement]s using the given [filterGroup] and returns only the ones that belong to that group. */
+  class Group<T : PreviewElement<*>>(val filterGroup: PreviewGroup.Named) : PreviewElementFilter<T>() {
     override fun filter(input: FlowableCollection<T>): FlowableCollection<T> =
-      input.filter inner@{
-        PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup
-      }
+      input.filter inner@{ PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup }
   }
 
   /** Filter that selects a single element. */
   data class Single<T : PreviewElement<*>>(val instance: T) : PreviewElementFilter<T>() {
-    override fun filter(input: FlowableCollection<T>): FlowableCollection<T> =
-      input.filter { it == instance }
+    override fun filter(input: FlowableCollection<T>): FlowableCollection<T> = input.filter { it == instance }
   }
 
   /** Filtering disabled. */

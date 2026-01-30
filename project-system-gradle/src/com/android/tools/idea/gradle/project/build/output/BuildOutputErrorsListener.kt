@@ -37,13 +37,13 @@ import java.io.File
 class BuildOutputErrorsListener(
   private val externalSystemTaskId: ExternalSystemTaskId,
   private val listenerDisposable: Disposable,
-  private val onFailureFinishBuildEvent: (List<BuildErrorMessage>) -> Unit
+  private val onFailureFinishBuildEvent: (List<BuildErrorMessage>) -> Unit,
 ) : BuildProgressListener {
   private val buildErrorMessages = ArrayList<BuildErrorMessage>()
 
   override fun onEvent(buildId: Any, event: BuildEvent) {
     if (buildId != externalSystemTaskId) return
-    toBuildErrorMessage(event)?.let { buildErrorMessages.add(it)  }
+    toBuildErrorMessage(event)?.let { buildErrorMessages.add(it) }
     if (event is FinishBuildEvent) {
       try {
         // When running tests, this result is 'successful' even if build failed with e.g. compilation failure.
@@ -51,8 +51,7 @@ class BuildOutputErrorsListener(
         if (event.result is FailureResult || buildErrorMessages.isNotEmpty()) {
           onFailureFinishBuildEvent(buildErrorMessages)
         }
-      }
-      finally {
+      } finally {
         Disposer.dispose(listenerDisposable)
       }
     }
@@ -73,14 +72,10 @@ fun toBuildErrorMessage(buildEvent: BuildEvent): BuildErrorMessage? {
   }
 
   val builder = BuildErrorMessage.newBuilder()
-  findErrorTypeByGroup(buildEvent.group)?.let {
-    builder.errorShownType = it
-  }
+  findErrorTypeByGroup(buildEvent.group)?.let { builder.errorShownType = it }
   if (buildEvent is FileMessageEvent) {
     builder.fileLocationIncluded = true
-    buildEvent.filePosition.file?.let {
-      builder.fileIncludedType = getFileType(it)
-    }
+    buildEvent.filePosition.file?.let { builder.fileIncludedType = getFileType(it) }
     if (buildEvent.filePosition.startLine >= 0) {
       builder.lineLocationIncluded = true
     }
@@ -89,31 +84,31 @@ fun toBuildErrorMessage(buildEvent: BuildEvent): BuildErrorMessage? {
   return builder.build()
 }
 
-private val toolNameToEnumMap = mapOf("Compiler" to BuildErrorMessage.ErrorType.JAVA_COMPILER,
-                                      "Kotlin Compiler" to BuildErrorMessage.ErrorType.KOTLIN_COMPILER,
-                                      CLANG_COMPILER_MESSAGES_GROUP_PREFIX to BuildErrorMessage.ErrorType.CLANG,
-                                      CmakeOutputParser.CMAKE to BuildErrorMessage.ErrorType.CMAKE,
-                                      DATABINDING_GROUP to BuildErrorMessage.ErrorType.DATA_BINDING,
-                                      XmlErrorOutputParser.XML_PARSING_GROUP to BuildErrorMessage.ErrorType.XML_PARSER,
-                                      @Suppress("VisibleForTests")
-                                      (AbstractAaptOutputParser.AAPT_TOOL_NAME) to BuildErrorMessage.ErrorType.AAPT,
-                                      "D8" to BuildErrorMessage.ErrorType.D8,
-                                      "R8" to BuildErrorMessage.ErrorType.R8,
-                                      MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME to BuildErrorMessage.ErrorType.RESOURCE_AND_ASSET_MERGER,
-                                      AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP to BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
-)
+private val toolNameToEnumMap =
+  mapOf(
+    "Compiler" to BuildErrorMessage.ErrorType.JAVA_COMPILER,
+    "Kotlin Compiler" to BuildErrorMessage.ErrorType.KOTLIN_COMPILER,
+    CLANG_COMPILER_MESSAGES_GROUP_PREFIX to BuildErrorMessage.ErrorType.CLANG,
+    CmakeOutputParser.CMAKE to BuildErrorMessage.ErrorType.CMAKE,
+    DATABINDING_GROUP to BuildErrorMessage.ErrorType.DATA_BINDING,
+    XmlErrorOutputParser.XML_PARSING_GROUP to BuildErrorMessage.ErrorType.XML_PARSER,
+    @Suppress("VisibleForTests") (AbstractAaptOutputParser.AAPT_TOOL_NAME) to BuildErrorMessage.ErrorType.AAPT,
+    "D8" to BuildErrorMessage.ErrorType.D8,
+    "R8" to BuildErrorMessage.ErrorType.R8,
+    MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME to BuildErrorMessage.ErrorType.RESOURCE_AND_ASSET_MERGER,
+    AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP to BuildErrorMessage.ErrorType.GENERAL_ANDROID_GRADLE_PLUGIN,
+  )
 
-private fun findErrorTypeByGroup(messageGroup: String): BuildErrorMessage.ErrorType? = toolNameToEnumMap.filterKeys {
-  messageGroup.startsWith(it)
-}.values.firstOrNull()
+private fun findErrorTypeByGroup(messageGroup: String): BuildErrorMessage.ErrorType? =
+  toolNameToEnumMap.filterKeys { messageGroup.startsWith(it) }.values.firstOrNull()
 
-/**
- * Returns whether the file is build generated or user added.
- */
+/** Returns whether the file is build generated or user added. */
 private fun getFileType(file: File): BuildErrorMessage.FileType {
   val filePath = if (file.isAbsolute) file.absolutePath else file.path
-  if (filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_GENERATED) + File.separatorChar) ||
-      filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_INTERMEDIATES) + File.separatorChar)) {
+  if (
+    filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_GENERATED) + File.separatorChar) ||
+      filePath.contains(File.separatorChar + FileUtils.join(FilenameConstants.BUILD, SdkConstants.FD_INTERMEDIATES) + File.separatorChar)
+  ) {
     return BuildErrorMessage.FileType.BUILD_GENERATED_FILE
   }
   return BuildErrorMessage.FileType.PROJECT_FILE

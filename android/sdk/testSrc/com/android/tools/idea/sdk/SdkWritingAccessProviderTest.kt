@@ -30,11 +30,9 @@ import org.junit.Test
 class SdkWritingAccessProviderTest {
 
   // TODO(b/291755082): Update to 34 once 34 sources are published
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
+  @get:Rule val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   @RunsInEdt

@@ -29,12 +29,12 @@ import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.NonNls
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import kotlin.math.roundToInt
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
 
 /** A dialog for setting the options for a screen recording. */
 internal class ScreenRecorderOptionsDialog(
@@ -48,7 +48,8 @@ internal class ScreenRecorderOptionsDialog(
   private lateinit var recordingLengthField: JEditorPane
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
   private val saveLocation: String
-    get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
+    get() = saveConfigResolver.expandSaveLocation(saveConfig.saveLocation)
+
   private lateinit var saveLocationText: JEditorPane
   private var fileExtension: String = "mp4"
 
@@ -60,14 +61,12 @@ internal class ScreenRecorderOptionsDialog(
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        text(getMaxRecordingLengthText(emulatorRecordingAvailable && settings.useEmulatorRecordingWhenAvailable))
-          .applyToComponent { recordingLengthField = this }
+        text(getMaxRecordingLengthText(emulatorRecordingAvailable && settings.useEmulatorRecordingWhenAvailable)).applyToComponent {
+          recordingLengthField = this
+        }
       }
       row(message("screenrecord.options.bit.rate")) {
-        intTextField(1..32)
-          .widthGroup("text_boxes")
-          .align(AlignX.LEFT)
-          .bindIntText(settings::bitRateMbps)
+        intTextField(1..32).widthGroup("text_boxes").align(AlignX.LEFT).bindIntText(settings::bitRateMbps)
       }
       row(message("screenrecord.options.resolution")) {
         comboBox(listOf(100, 75, 50, 37, 25))
@@ -94,19 +93,15 @@ internal class ScreenRecorderOptionsDialog(
       }
       row {
         text(message("screenrecord.options.save.directory"))
-        text(saveLocation)
-          .applyToComponent { saveLocationText = this }
-        link(message("configure.save.link.text")) { configureSave() }
-          .align(AlignX.RIGHT)
+        text(saveLocation).applyToComponent { saveLocationText = this }
+        link(message("configure.save.link.text")) { configureSave() }.align(AlignX.RIGHT)
       }
     }
   }
 
-  override fun getDimensionServiceKey(): String =
-      SCREEN_RECORDER_DIMENSIONS_KEY
+  override fun getDimensionServiceKey(): String = SCREEN_RECORDER_DIMENSIONS_KEY
 
-  override fun getHelpId(): String =
-      "${HELP_PREFIX}r/studio-ui/am-video.html"
+  override fun getHelpId(): String = "${HELP_PREFIX}r/studio-ui/am-video.html"
 
   override fun createDefaultActions() {
     super.createDefaultActions()

@@ -33,15 +33,12 @@ class OverlapAnalyzerComposeTest {
   @Test
   fun testTextOverlap() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
           visualLintPreviewFile,
-          SingleComposePreviewElementInstance.forTesting(
-            "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
-          ),
+          SingleComposePreviewElementInstance.forTesting("google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()
@@ -55,15 +52,12 @@ class OverlapAnalyzerComposeTest {
   @Test
   fun testNoOverlap() {
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
           visualLintPreviewFile,
-          SingleComposePreviewElementInstance.forTesting(
-            "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview"
-          ),
+          SingleComposePreviewElementInstance.forTesting("google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview"),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
         .get()

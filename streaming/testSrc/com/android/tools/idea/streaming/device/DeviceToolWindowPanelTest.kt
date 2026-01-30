@@ -56,7 +56,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -128,25 +127,27 @@ import org.mockito.kotlin.whenever
 @RunsInEdt
 class DeviceToolWindowPanelTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val iconRule = IconLoaderRule() // Enable icon loading in a headless test environment.
+    @JvmField @ClassRule val iconRule = IconLoaderRule() // Enable icon loading in a headless test environment.
 
     private val controlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE, SetMaxVideoResolutionMessage.TYPE)
   }
 
   private val agentRule = FakeScreenSharingAgentRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
+  @get:Rule val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
   // Fake window is necessary for the toolbars to be rendered.
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
-  private val project get() = agentRule.project
-  private val testRootDisposable get() = agentRule.disposable
-  private val agent: FakeScreenSharingAgent get() = device.agent
+  private val project
+    get() = agentRule.project
+
+  private val testRootDisposable
+    get() = agentRule.disposable
+
+  private val agent: FakeScreenSharingAgent
+    get() = device.agent
 
   @Before
   fun setUp() {
@@ -171,20 +172,25 @@ class DeviceToolWindowPanelTest {
 
     // Check appearance.
     waitForFrame(5.seconds)
-    assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06,
-                     maxPercentDifferentWindows = 0.06)
+    assertAppearance(
+      "AppearanceAndToolbarActions1",
+      maxPercentDifferentLinux = 0.03,
+      maxPercentDifferentMac = 0.06,
+      maxPercentDifferentWindows = 0.06,
+    )
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
 
     // Check push button actions.
-    val pushButtonCases = listOf(
-      Pair("Power", AKEYCODE_POWER),
-      Pair("Volume Up", AKEYCODE_VOLUME_UP),
-      Pair("Volume Down", AKEYCODE_VOLUME_DOWN),
-      Pair("Back", AKEYCODE_BACK),
-      Pair("Home", AKEYCODE_HOME),
-      Pair("Overview", AKEYCODE_APP_SWITCH),
-    )
+    val pushButtonCases =
+      listOf(
+        Pair("Power", AKEYCODE_POWER),
+        Pair("Volume Up", AKEYCODE_VOLUME_UP),
+        Pair("Volume Down", AKEYCODE_VOLUME_DOWN),
+        Pair("Back", AKEYCODE_BACK),
+        Pair("Home", AKEYCODE_HOME),
+        Pair("Overview", AKEYCODE_APP_SWITCH),
+      )
     for (case in pushButtonCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
       fakeUi.mousePressOn(button)
@@ -220,8 +226,13 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActions() {
-    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454),
-                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    device =
+      agentRule.connectDevice(
+        "Pixel Watch",
+        30,
+        Dimension(454, 454),
+        additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
+      )
     panel.createContent(false)
     assertThat(panel.primaryDisplayView).isNotNull()
 
@@ -235,11 +246,7 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.updateToolbarsIfNecessary()
     // Check push button actions.
-    val pushButtonCases = listOf(
-      Pair("Button 1", AKEYCODE_STEM_PRIMARY),
-      Pair("Button 2", AKEYCODE_POWER),
-      Pair("Back", AKEYCODE_BACK),
-    )
+    val pushButtonCases = listOf(Pair("Button 1", AKEYCODE_STEM_PRIMARY), Pair("Button 2", AKEYCODE_POWER), Pair("Back", AKEYCODE_BACK))
     for (case in pushButtonCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
       fakeUi.mousePressOn(button)
@@ -249,9 +256,7 @@ class DeviceToolWindowPanelTest {
     }
 
     // Check keypress actions.
-    val keypressCases = listOf(
-      Pair("Palm", AKEYCODE_SLEEP),
-    )
+    val keypressCases = listOf(Pair("Palm", AKEYCODE_SLEEP))
     for (case in keypressCases) {
       val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
       fakeUi.mouseClickOn(button)
@@ -286,8 +291,8 @@ class DeviceToolWindowPanelTest {
     StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.overrideForTest(true, testRootDisposable)
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
-    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
-                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device =
+      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -314,12 +319,13 @@ class DeviceToolWindowPanelTest {
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
-    val modes = mapOf(
-      "Interact with Apps" to XrInputMode.INTERACTION,
-      "View Direction" to XrInputMode.VIEW_DIRECTION,
-      "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
-      "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
-    )
+    val modes =
+      mapOf(
+        "Interact with Apps" to XrInputMode.INTERACTION,
+        "View Direction" to XrInputMode.VIEW_DIRECTION,
+        "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
+        "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
+      )
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
@@ -353,8 +359,8 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrKeyboardNavigation() {
-    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
-                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device =
+      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -375,14 +381,15 @@ class DeviceToolWindowPanelTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_ENTER, 0))
     fakeUi.keyboard.release(VK_ENTER)
 
-    val velocityKeys = mapOf(
-      VK_W to XrVelocityMessage(0f, 0f, -1f),
-      VK_A to XrVelocityMessage(-1f, 0f, 0f),
-      VK_S to XrVelocityMessage(0f, 0f, 1f),
-      VK_D to XrVelocityMessage(1f, 0f, 0f),
-      VK_Q to XrVelocityMessage(0f, -1f, 0f),
-      VK_E to XrVelocityMessage(0f, 1f, 0f),
-    )
+    val velocityKeys =
+      mapOf(
+        VK_W to XrVelocityMessage(0f, 0f, -1f),
+        VK_A to XrVelocityMessage(-1f, 0f, 0f),
+        VK_S to XrVelocityMessage(0f, 0f, 1f),
+        VK_D to XrVelocityMessage(1f, 0f, 0f),
+        VK_Q to XrVelocityMessage(0f, -1f, 0f),
+        VK_E to XrVelocityMessage(0f, 1f, 0f),
+      )
     for ((k, message) in velocityKeys) {
       fakeUi.keyboard.press(k)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(message)
@@ -391,16 +398,17 @@ class DeviceToolWindowPanelTest {
     }
 
     // Expectations are represented by strings to avoid rounding problems.
-    val angularVelocityKeys = mapOf(
-      VK_RIGHT to "XrAngularVelocityMessage(x = 0.0, y = -0.5235988)",
-      VK_LEFT to "XrAngularVelocityMessage(x = 0.0, y = 0.5235988)",
-      VK_UP to "XrAngularVelocityMessage(x = 0.5235988, y = 0.0)",
-      VK_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = 0.0)",
-      VK_PAGE_UP to "XrAngularVelocityMessage(x = 0.5235988, y = -0.5235988)",
-      VK_PAGE_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = -0.5235988)",
-      VK_HOME to "XrAngularVelocityMessage(x = 0.5235988, y = 0.5235988)",
-      VK_END to "XrAngularVelocityMessage(x = -0.5235988, y = 0.5235988)",
-    )
+    val angularVelocityKeys =
+      mapOf(
+        VK_RIGHT to "XrAngularVelocityMessage(x = 0.0, y = -0.5235988)",
+        VK_LEFT to "XrAngularVelocityMessage(x = 0.0, y = 0.5235988)",
+        VK_UP to "XrAngularVelocityMessage(x = 0.5235988, y = 0.0)",
+        VK_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = 0.0)",
+        VK_PAGE_UP to "XrAngularVelocityMessage(x = 0.5235988, y = -0.5235988)",
+        VK_PAGE_DOWN to "XrAngularVelocityMessage(x = -0.5235988, y = -0.5235988)",
+        VK_HOME to "XrAngularVelocityMessage(x = 0.5235988, y = 0.5235988)",
+        VK_END to "XrAngularVelocityMessage(x = -0.5235988, y = 0.5235988)",
+      )
     for ((k, message) in angularVelocityKeys) {
       fakeUi.keyboard.press(k)
       assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(message)
@@ -434,8 +442,8 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrMouseViewRotation() {
-    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
-                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device =
+      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -462,8 +470,8 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrMouseMovementInSpace() {
-    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
-                                     additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
+    device =
+      agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "xr"))
     panel.createContent(false)
     val displayView = panel.primaryDisplayView ?: fail()
 
@@ -522,24 +530,31 @@ class DeviceToolWindowPanelTest {
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
     waitForCondition(2.seconds) { deviceView.deviceController?.currentFoldingState != null }
-    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.isVisible }
+    waitForCondition(2.seconds) {
+      foldingGroup.update(event)
+      event.presentation.isVisible
+    }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
-    assertThat(foldingActions).asList().containsExactly(
-      DeviceFoldingAction(FoldingState(0, "Closed")),
-      DeviceFoldingAction(FoldingState(1, "Tent")),
-      DeviceFoldingAction(FoldingState(2, "Half-Open")),
-      DeviceFoldingAction(FoldingState(3, "Open")),
-      DeviceFoldingAction(FoldingState(4, "Rear Display Mode")),
-      DeviceFoldingAction(FoldingState(5, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(6, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(7, "Flipped")))
+    assertThat(foldingActions)
+      .asList()
+      .containsExactly(
+        DeviceFoldingAction(FoldingState(0, "Closed")),
+        DeviceFoldingAction(FoldingState(1, "Tent")),
+        DeviceFoldingAction(FoldingState(2, "Half-Open")),
+        DeviceFoldingAction(FoldingState(3, "Open")),
+        DeviceFoldingAction(FoldingState(4, "Rear Display Mode")),
+        DeviceFoldingAction(FoldingState(5, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+        DeviceFoldingAction(FoldingState(6, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+        DeviceFoldingAction(FoldingState(7, "Flipped")),
+      )
     val disabledModes = setOf("Dual Display Mode", "Rear Dual Mode")
     for (action in foldingActions) {
       action.update(event)
       assertWithMessage("Unexpected enablement state of the ${action.templateText} action")
-          .that(event.presentation.isEnabled).isEqualTo(action.templateText !in disabledModes)
+        .that(event.presentation.isEnabled)
+        .isEqualTo(action.templateText !in disabledModes)
       assertWithMessage("Unexpected visibility of the ${action.templateText} action").that(event.presentation.isVisible).isTrue()
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
@@ -547,7 +562,10 @@ class DeviceToolWindowPanelTest {
     val nextFrameNumber = panel.primaryDisplayView!!.frameNumber + 1u
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
-    waitForCondition(2.seconds) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
+    waitForCondition(2.seconds) {
+      foldingGroup.update(event)
+      event.presentation.text == "Fold/Unfold (currently Closed)"
+    }
     waitForFrame(minFrameNumber = nextFrameNumber)
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
@@ -556,15 +574,17 @@ class DeviceToolWindowPanelTest {
   fun testMultipleDisplays() {
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
     val displayIds = mutableSetOf<Int>()
-    panel.addDeviceDisplayListener(object: DeviceDisplayListener {
-      override fun displayAdded(displayView: AbstractDisplayView) {
-        displayIds.add(displayView.displayId)
-      }
+    panel.addDeviceDisplayListener(
+      object : DeviceDisplayListener {
+        override fun displayAdded(displayView: AbstractDisplayView) {
+          displayIds.add(displayView.displayId)
+        }
 
-      override fun displayRemoved(displayView: AbstractDisplayView) {
-        displayIds.remove(displayView.displayId)
+        override fun displayRemoved(displayView: AbstractDisplayView) {
+          displayIds.remove(displayView.displayId)
+        }
       }
-    })
+    )
     assertThat(panel.primaryDisplayView).isNull()
     assertThat(displayIds).isEmpty()
 
@@ -651,9 +671,10 @@ class DeviceToolWindowPanelTest {
   fun testAudio() {
     DeviceMirroringSettings.getInstance()::redirectAudio.override(true, testRootDisposable)
     val testDataLine = TestDataLine()
-    val testAudioSystemService = object : AudioSystemService() {
-      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
-    }
+    val testAudioSystemService =
+      object : AudioSystemService() {
+        override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+      }
     ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
 
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
@@ -684,8 +705,12 @@ class DeviceToolWindowPanelTest {
         when {
           start.isFinite() && i * 1000 / AUDIO_SAMPLE_RATE < durationMillis -> {
             val expected = sin((i - start) * 2 * PI * frequencyHz / AUDIO_SAMPLE_RATE) * Short.MAX_VALUE
-            assertEquals(expected, v, Short.MAX_VALUE * 0.03,
-                         "Unexpected signal value in channel $channel at ${i * 1000.0 / AUDIO_SAMPLE_RATE} ms")
+            assertEquals(
+              expected,
+              v,
+              Short.MAX_VALUE * 0.03,
+              "Unexpected signal value in channel $channel at ${i * 1000.0 / AUDIO_SAMPLE_RATE} ms",
+            )
           }
           volumeReached -> {
             if (channel == 1 && v >= 0 && previousValue < 0) {
@@ -706,9 +731,10 @@ class DeviceToolWindowPanelTest {
   @Test
   fun testAudioEnablementDisablement() {
     val testDataLine = TestDataLine()
-    val testAudioSystemService = object : AudioSystemService() {
-      override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
-    }
+    val testAudioSystemService =
+      object : AudioSystemService() {
+        override fun getSourceDataLine(audioFormat: AudioFormat): SourceDataLine = testDataLine
+      }
     ApplicationManager.getApplication().replaceService(AudioSystemService::class.java, testAudioSystemService, testRootDisposable)
 
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
@@ -767,8 +793,8 @@ class DeviceToolWindowPanelTest {
   private fun waitForFrame(timeout: Duration = 2.seconds, displayId: Int = PRIMARY_DISPLAY_ID, minFrameNumber: UInt = 1u) {
     waitForCondition(timeout) {
       panel.isConnected &&
-      agent.getFrameNumber(displayId) >= minFrameNumber &&
-      renderAndGetFrameNumber(displayId) == agent.getFrameNumber(displayId)
+        agent.getFrameNumber(displayId) >= minFrameNumber &&
+        renderAndGetFrameNumber(displayId) == agent.getFrameNumber(displayId)
     }
   }
 
@@ -778,19 +804,26 @@ class DeviceToolWindowPanelTest {
   }
 
   @Suppress("SameParameterValue")
-  private fun assertAppearance(goldenImageName: String,
-                               maxPercentDifferentLinux: Double = 0.0003,
-                               maxPercentDifferentMac: Double = 0.0003,
-                               maxPercentDifferentWindows: Double = 0.0003) {
+  private fun assertAppearance(
+    goldenImageName: String,
+    maxPercentDifferentLinux: Double = 0.0003,
+    maxPercentDifferentMac: Double = 0.0003,
+    maxPercentDifferentWindows: Double = 0.0003,
+  ) {
     fakeUi.updateToolbarsIfNecessary()
-    val maxPercentDifferent = when {
-      SystemInfo.isMac -> maxPercentDifferentMac
-      SystemInfo.isWindows -> maxPercentDifferentWindows
-      else -> maxPercentDifferentLinux
-    }
+    val maxPercentDifferent =
+      when {
+        SystemInfo.isMac -> maxPercentDifferentMac
+        SystemInfo.isWindows -> maxPercentDifferentWindows
+        else -> maxPercentDifferentLinux
+      }
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.7),
-                                     ignoreMissingGoldenFile = true)
+    ImageDiffUtil.assertImageSimilar(
+      getGoldenFile(goldenImageName),
+      fakeUi.render(),
+      max(maxPercentDifferent, 0.7),
+      ignoreMissingGoldenFile = true,
+    )
     // Second rendering is guaranteed to be high quality.
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), maxPercentDifferent)
   }
@@ -803,9 +836,8 @@ class DeviceToolWindowPanelTest {
     get() = primaryDisplayView?.isConnected == true
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
-      if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
+    if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
 }
-
 
 private class TestDataLine : SourceDataLine {
 
@@ -839,7 +871,7 @@ private class TestDataLine : SourceDataLine {
     open = true
   }
 
-  override fun isOpen(): Boolean  = open
+  override fun isOpen(): Boolean = open
 
   override fun getControls(): Array<Control> {
     TODO("Not yet implemented")
@@ -865,14 +897,11 @@ private class TestDataLine : SourceDataLine {
     TODO("Not yet implemented")
   }
 
-  override fun flush() {
-  }
+  override fun flush() {}
 
-  override fun start() {
-  }
+  override fun start() {}
 
-  override fun stop() {
-  }
+  override fun stop() {}
 
   override fun isRunning(): Boolean {
     TODO("Not yet implemented")

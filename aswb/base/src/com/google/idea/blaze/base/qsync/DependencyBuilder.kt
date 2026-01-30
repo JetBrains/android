@@ -26,21 +26,16 @@ import com.google.idea.blaze.qsync.deps.OutputInfo
 import java.io.IOException
 import java.time.Instant
 
-/** A query sync service that knows how to build dependencies for given targets  */
+/** A query sync service that knows how to build dependencies for given targets */
 interface DependencyBuilder {
 
   interface PreparedInvocation {
     fun updateCommand(commandBuilder: BlazeCommand.Builder)
-    fun createOutputInfo(
-      blazeBuildOutputs: BlazeBuildOutputs,
-      buildTime: Instant,
-      context: BlazeContext,
-    ): OutputInfo
+
+    fun createOutputInfo(blazeBuildOutputs: BlazeBuildOutputs, buildTime: Instant, context: BlazeContext): OutputInfo
   }
 
-  /**
-   * Note, [maybeBuildTargets] are not required to be provided as they may already be present in the command.
-   */
+  /** Note, [maybeBuildTargets] are not required to be provided as they may already be present in the command. */
   @Throws(IOException::class, BuildException::class)
   fun prepareInvocation(
     context: BlazeContext,
@@ -51,9 +46,5 @@ interface DependencyBuilder {
   ): PreparedInvocation
 
   @Throws(IOException::class, BuildException::class)
-  fun build(
-    context: BlazeContext,
-    buildTargets: Set<Label>,
-    outputGroups: Collection<OutputGroup>
-  ): OutputInfo
+  fun build(context: BlazeContext, buildTargets: Set<Label>, outputGroups: Collection<OutputGroup>): OutputInfo
 }

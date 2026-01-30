@@ -54,18 +54,12 @@ sealed class Environment {
 internal fun defaultEnvironmentsPath(): Path =
   when {
     StudioPathManager.isRunningFromSources() ->
-      StudioPathManager.resolvePathFromSourcesRoot(
-        "tools/adt/idea/artwork/resources/device-art-resources/ai_glasses_device"
-      )
-    else ->
-      Paths.get(PathManager.getHomePath())
-        .resolve("plugins/android/resources/device-art-resources/ai_glasses_device")
+      StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/artwork/resources/device-art-resources/ai_glasses_device")
+    else -> Paths.get(PathManager.getHomePath()).resolve("plugins/android/resources/device-art-resources/ai_glasses_device")
   }
 
 internal fun defaultEnvironments(): List<Environment.Default> =
-  defaultEnvironmentsPath().listDirectoryEntries().map {
-    Environment.Default(it.fileName.toString())
-  }
+  defaultEnvironmentsPath().listDirectoryEntries().map { Environment.Default(it.fileName.toString()) }
 
 @Composable
 internal fun GlassesEnvironmentSelector(device: VirtualDevice, state: ConfigureDevicePanelState) {
@@ -77,9 +71,7 @@ internal fun GlassesEnvironmentSelector(device: VirtualDevice, state: ConfigureD
       remember(device.environment) {
         val environment = device.environment
         if (environment == null) Environment.None
-        else
-          defaultEnvironments.find { it.fileName == environment.fileName.toString() }
-            ?: Environment.Custom(environment)
+        else defaultEnvironments.find { it.fileName == environment.fileName.toString() } ?: Environment.Custom(environment)
       }
     // Note that we remember on `device` so that the device's initial background value doesn't go
     // away if another is selected.

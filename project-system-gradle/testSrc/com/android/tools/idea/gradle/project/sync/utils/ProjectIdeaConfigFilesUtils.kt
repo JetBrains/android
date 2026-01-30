@@ -27,7 +27,8 @@ object ProjectIdeaConfigFilesUtils {
       |<project version="4">
       |  <component name="ProjectRootManager" version="2" project-jdk-name="$jdkName" project-jdk-type="JavaSDK" />
       |</project>
-    """.trimMargin()
+    """
+      .trimMargin()
 
   fun buildGradleXmlConfig(gradleRoots: List<GradleRoot>) =
     """
@@ -39,13 +40,11 @@ object ProjectIdeaConfigFilesUtils {
       |    </option>
       |  </component>
       |</project>
-    """.trimMargin()
+    """
+      .trimMargin()
 
-  private fun buildGradleSettings(gradleRoots: List<GradleRoot>) = buildString {
-    gradleRoots.forEach {
-      appendLine(buildGradleSettings(it))
-    }
-  }.trim()
+  private fun buildGradleSettings(gradleRoots: List<GradleRoot>) =
+    buildString { gradleRoots.forEach { appendLine(buildGradleSettings(it)) } }.trim()
 
   private fun buildGradleSettings(gradleRoot: GradleRoot) =
     """
@@ -58,11 +57,9 @@ object ProjectIdeaConfigFilesUtils {
       </GradleProjectSettings>
     """
 
-  private fun getProjectPath(rootName: String) =
-    if (rootName.isEmpty() || rootName.isBlank()) PROJECT_DIR else "$PROJECT_DIR/$rootName"
+  private fun getProjectPath(rootName: String) = if (rootName.isEmpty() || rootName.isBlank()) PROJECT_DIR else "$PROJECT_DIR/$rootName"
 
-  private fun buildGradleJvmXml(gradleJvm: String) =
-    "<option name=\"gradleJvm\" value=\"$gradleJvm\" />"
+  private fun buildGradleJvmXml(gradleJvm: String) = "<option name=\"gradleJvm\" value=\"$gradleJvm\" />"
 
   private fun buildProjectModulesXml(modules: List<String>) =
     """
@@ -71,12 +68,13 @@ object ProjectIdeaConfigFilesUtils {
          ${buildProjectModulesListXml(modules)}
        </set>
      </option>
-    """.trimIndent()
+    """
+      .trimIndent()
 
-  private fun buildProjectModulesListXml(modules: List<String>) = buildString {
-    appendLine("<option value=\"$PROJECT_DIR\" />")
-    modules.forEach {
-      appendLine("<option value=\"${getProjectPath(it)}\" />")
-    }
-  }.trim()
+  private fun buildProjectModulesListXml(modules: List<String>) =
+    buildString {
+        appendLine("<option value=\"$PROJECT_DIR\" />")
+        modules.forEach { appendLine("<option value=\"${getProjectPath(it)}\" />") }
+      }
+      .trim()
 }

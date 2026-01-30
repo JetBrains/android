@@ -29,16 +29,11 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
 import com.intellij.openapi.diagnostic.logger
 
-/**
- * Run "emulator -accel-check" to check the status for emulator acceleration on this machine. Return
- * a [AccelerationErrorCode].
- */
+/** Run "emulator -accel-check" to check the status for emulator acceleration on this machine. Return a [AccelerationErrorCode]. */
 fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
   val emulator = sdk.getEmulatorPackage(progressIndicator)
-  val emulatorBinary =
-    emulator?.emulatorBinary ?: return AccelerationErrorCode.NO_EMULATOR_INSTALLED
-  if (emulator.version < MINIMUM_EMULATOR_VERSION)
-    return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
+  val emulatorBinary = emulator?.emulatorBinary ?: return AccelerationErrorCode.NO_EMULATOR_INSTALLED
+  if (emulator.version < MINIMUM_EMULATOR_VERSION) return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
 
   // TODO: The emulator -accel-check currently does not check for the available memory, do it here
   // instead:
@@ -74,8 +69,7 @@ fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
 }
 
 private fun AndroidSdkHandler.hasPlatformToolsForQemu2Installed(): Boolean {
-  val platformTools =
-    getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progressIndicator) ?: return false
+  val platformTools = getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progressIndicator) ?: return false
   return platformTools.version >= PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2
 }
 
@@ -87,9 +81,8 @@ private fun AndroidSdkHandler.hasSystemImagesForQemu2Installed(): Boolean {
 
 private object EmulatorAccelerationChecks
 
-private val progressIndicator =
-  StudioLoggerProgressIndicator(EmulatorAccelerationChecks::class.java)
+private val progressIndicator = StudioLoggerProgressIndicator(EmulatorAccelerationChecks::class.java)
 private val PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0")
 
-@JvmField internal val MINIMUM_EMULATOR_VERSION =
-  Revision.parseRevision("35.6.11") // https://developer.android.com/studio/releases/emulator#35-6-11
+@JvmField
+internal val MINIMUM_EMULATOR_VERSION = Revision.parseRevision("35.6.11") // https://developer.android.com/studio/releases/emulator#35-6-11

@@ -54,10 +54,7 @@ class AppInsightsSettingsTest {
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
   private val settings: InsightsFilterSettings
-    get() =
-      projectRule.project
-        .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.provider.displayName]!!
+    get() = projectRule.project.service<AppInsightsSettings>().tabSettings[controllerRule.controller.provider.displayName]!!
 
   @Test
   fun `settings is only applied to the first non empty ConnectionsChanged event`() =
@@ -67,9 +64,7 @@ class AppInsightsSettingsTest {
       assertThat(controllerRule.consumeNext().connections).isEqualTo(Selection(null, emptyList()))
 
       // Mock settings
-      projectRule.project
-        .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.provider.displayName] =
+      projectRule.project.service<AppInsightsSettings>().tabSettings[controllerRule.controller.provider.displayName] =
         InsightsFilterSettings(
           connection = CONNECTION1.toSetting(),
           timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
@@ -154,9 +149,7 @@ class AppInsightsSettingsTest {
   @Test
   fun `settings are merged into filter state`() =
     runBlocking<Unit> {
-      projectRule.project
-        .service<AppInsightsSettings>()
-        .tabSettings[controllerRule.controller.provider.displayName] =
+      projectRule.project.service<AppInsightsSettings>().tabSettings[controllerRule.controller.provider.displayName] =
         InsightsFilterSettings(
           connection = CONNECTION1.toSetting(),
           timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
@@ -177,17 +170,14 @@ class AppInsightsSettingsTest {
         assertThat(filters.failureTypeToggles.selected).containsExactly(FailureType.FATAL)
         assertThat(filters.devices.selected.map { it.value }).containsExactly(device.value)
         assertThat(filters.versions.selected.map { it.value }).containsExactly(version.value)
-        assertThat(filters.operatingSystems.selected.map { it.value })
-          .containsExactly(operatingSystem.value)
+        assertThat(filters.operatingSystems.selected.map { it.value }).containsExactly(operatingSystem.value)
       }
     }
 
   @Test
   fun `settings should not apply if connection does not exist`() = runBlocking {
     // Mock settings for a connection that does not exist.
-    projectRule.project
-      .service<AppInsightsSettings>()
-      .tabSettings[controllerRule.controller.provider.displayName] =
+    projectRule.project.service<AppInsightsSettings>().tabSettings[controllerRule.controller.provider.displayName] =
       InsightsFilterSettings(
         connection = CONNECTION1.toSetting(),
         timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,

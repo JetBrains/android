@@ -21,8 +21,7 @@ import com.android.tools.adtui.stdui.UrlData
 
 /** Preview View interface in the MVVM pattern. Intended to be accessed by the ViewModel. */
 interface PreviewView {
-  @UiThread
-  fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?)
+  @UiThread fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?)
 
   @UiThread fun showLoadingMessage(message: String)
 

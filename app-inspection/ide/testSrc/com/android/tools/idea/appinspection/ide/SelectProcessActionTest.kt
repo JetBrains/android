@@ -39,13 +39,9 @@ private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 class SelectProcessActionTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, ApplicationServiceRule(ActionManager::class.java, mock()))
+  @get:Rule val rule = RuleChain(projectRule, ApplicationServiceRule(ActionManager::class.java, mock()))
 
-  private fun createFakeStream(
-    serial: String = UUID.randomUUID().toString(),
-    isEmulator: Boolean = true,
-  ): Common.Stream {
+  private fun createFakeStream(serial: String = UUID.randomUUID().toString(), isEmulator: Boolean = true): Common.Stream {
     val device =
       FakeTransportService.FAKE_DEVICE.toBuilder()
         .setSerial(serial)
@@ -56,21 +52,14 @@ class SelectProcessActionTest {
     return Common.Stream.newBuilder().setDevice(device).build()
   }
 
-  private fun Common.Stream.createFakeProcess(
-    name: String? = null,
-    pid: Int = 0,
-  ): ProcessDescriptor {
+  private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
-      FakeTransportService.FAKE_PROCESS.toBuilder()
-        .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
-        .setPid(pid)
-        .build(),
+      FakeTransportService.FAKE_PROCESS.toBuilder().setName(name ?: FakeTransportService.FAKE_PROCESS_NAME).setPid(pid).build(),
     )
   }
 
-  private fun createFakeEvent(): AnActionEvent =
-    AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
+  private fun createFakeEvent(): AnActionEvent = AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
 
   @Test
   fun testNoProcesses() {
@@ -81,8 +70,7 @@ class SelectProcessActionTest {
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(2)
     assertThat(children[0].templateText).isEqualTo(AppInspectionBundle.message("action.no.devices"))
-    assertThat(children[1].templateText)
-      .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+    assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
   }
 
   @Test
@@ -92,11 +80,9 @@ class SelectProcessActionTest {
     val physicalProcess = physicalStream.createFakeProcess("A", 100)
     val model = ProcessesModel(testNotifier) { it.name == physicalProcess.name }
 
-    val selectProcessAction =
-      SelectProcessAction(model, createProcessLabel = { process -> "Test: " + process.name })
+    val selectProcessAction = SelectProcessAction(model, createProcessLabel = { process -> "Test: " + process.name })
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    assertThat(selectProcessAction.templateText)
-      .isEqualTo(AppInspectionBundle.message("action.select.process"))
+    assertThat(selectProcessAction.templateText).isEqualTo(AppInspectionBundle.message("action.select.process"))
 
     testNotifier.fireConnected(physicalProcess)
     val selectProcessEvent = createFakeEvent()
@@ -109,11 +95,7 @@ class SelectProcessActionTest {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
     val selectProcessAction =
-      SelectProcessAction(
-        model,
-        stopPresentation =
-          SelectProcessAction.StopPresentation("Test stop label", "Test stop description"),
-      )
+      SelectProcessAction(model, stopPresentation = SelectProcessAction.StopPresentation("Test stop label", "Test stop description"))
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(2)
@@ -142,13 +124,11 @@ class SelectProcessActionTest {
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(3)
     // Physical devices prepend the manufacturer
-    assertThat(children[0].templateText)
-      .isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
+    assertThat(children[0].templateText).isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
     // Virtual devices hide the manufacturer
     assertThat(children[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
     // Stop button
-    assertThat(children[2].templateText)
-      .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+    assertThat(children[2].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
   }
 
   @Test
@@ -170,8 +150,7 @@ class SelectProcessActionTest {
     assertThat(children).hasLength(2)
     val device = children[0]
     assertThat(device.templateText).isEqualTo("FakeDevice")
-    assertThat(children[1].templateText)
-      .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+    assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
     val processes = device.getChildren()
     assertThat(processes).hasLength(3)
@@ -226,8 +205,7 @@ class SelectProcessActionTest {
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
       val children = selectProcessAction.getChildren(null)
       val deviceAction = children[0]
-      assertThat(children[1].templateText)
-        .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
       val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A")
@@ -239,8 +217,7 @@ class SelectProcessActionTest {
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
       val children = selectProcessAction.getChildren(null)
       val deviceAction = children[0]
-      assertThat(children[1].templateText)
-        .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
       val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A [DETACHED]")
@@ -263,8 +240,7 @@ class SelectProcessActionTest {
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
       val children = selectProcessAction.getChildren(null)
       val deviceAction = children[0]
-      assertThat(children[1].templateText)
-        .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
       val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A")
@@ -279,8 +255,7 @@ class SelectProcessActionTest {
       val deviceAction = children[0] as ActionGroup
       assertThat(deviceAction.getChildren().map { it.templateText })
         .containsExactly(AppInspectionBundle.message("action.no.debuggable.process"))
-      assertThat(children[1].templateText)
-        .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
+      assertThat(children[1].templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
     }
   }
 
@@ -337,11 +312,7 @@ class SelectProcessActionTest {
     processes.forEach { testNotifier.fireConnected(it) }
 
     val selectProcessAction =
-      SelectProcessAction(
-        model,
-        customDeviceAttribution = deviceAttribution,
-        customProcessAttribution = processAttribution,
-      )
+      SelectProcessAction(model, customDeviceAttribution = deviceAttribution, customProcessAttribution = processAttribution)
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     assertThat(children).hasLength(2)
@@ -377,5 +348,4 @@ private fun update(action: AnAction): AnActionEvent {
   return event
 }
 
-private fun AnAction.getChildren() =
-  (this as? DefaultActionGroup)?.getChildren(null) ?: emptyArray()
+private fun AnAction.getChildren() = (this as? DefaultActionGroup)?.getChildren(null) ?: emptyArray()

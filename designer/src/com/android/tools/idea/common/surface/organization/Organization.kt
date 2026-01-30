@@ -19,9 +19,7 @@ import com.android.tools.idea.common.surface.SceneView
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableSet
 
-/**
- * Find [OrganizationGroup]s for target list of [SceneViewHeader], each group should have size > 1.
- */
+/** Find [OrganizationGroup]s for target list of [SceneViewHeader], each group should have size > 1. */
 fun Collection<SceneView>.findGroups(): ImmutableSet<OrganizationGroup> =
   this.mapNotNull { it.sceneManager.model.organizationGroup }
     .groupingBy { it }

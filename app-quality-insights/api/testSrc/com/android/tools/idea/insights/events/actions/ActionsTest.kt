@@ -33,25 +33,19 @@ import com.android.tools.idea.insights.model.note.NoteId
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-private class CancellationEntry(
-  val cancelledBy: List<Single> = listOf(),
-  val notCancelledBy: List<Single> = listOf(),
-)
+private class CancellationEntry(val cancelledBy: List<Single> = listOf(), val notCancelledBy: List<Single> = listOf())
 
 private val ID1 = IssueId("1")
 private val ID2 = IssueId("2")
 private val NOTE_ID1 = NoteId(issueId = ID1, noteId = "1", sessionId = "1")
 private val fetchActions = listOf(Refresh, Fetch(FetchSource.FILTER), CancelFetches)
-private val nonFetchActions =
-  listOf(FetchDetails(ID1), OpenIssue(ID1), CloseIssue(ID2), FetchNotes(ID1), DeleteNote(NOTE_ID1))
+private val nonFetchActions = listOf(FetchDetails(ID1), OpenIssue(ID1), CloseIssue(ID2), FetchNotes(ID1), DeleteNote(NOTE_ID1))
 
 private val CANCELLATION_TABLE =
   mapOf(
     Refresh to CancellationEntry(cancelledBy = fetchActions, notCancelledBy = nonFetchActions),
-    Fetch(FetchSource.PROJECT_SELECTION) to
-      CancellationEntry(cancelledBy = fetchActions, notCancelledBy = nonFetchActions),
-    CancelFetches to
-      CancellationEntry(cancelledBy = fetchActions, notCancelledBy = nonFetchActions),
+    Fetch(FetchSource.PROJECT_SELECTION) to CancellationEntry(cancelledBy = fetchActions, notCancelledBy = nonFetchActions),
+    CancelFetches to CancellationEntry(cancelledBy = fetchActions, notCancelledBy = nonFetchActions),
     FetchDetails(ID1) to
       CancellationEntry(
         cancelledBy = fetchActions + listOf(FetchDetails(ID1), FetchDetails(ID2)),
@@ -72,8 +66,7 @@ private val CANCELLATION_TABLE =
         cancelledBy = fetchActions + listOf(FetchNotes(ID1), FetchNotes(ID2)),
         notCancelledBy = nonFetchActions - FetchNotes(ID1),
       ),
-    AddNote(NOTE1) to
-      CancellationEntry(cancelledBy = listOf(), notCancelledBy = fetchActions + nonFetchActions),
+    AddNote(NOTE1) to CancellationEntry(cancelledBy = listOf(), notCancelledBy = fetchActions + nonFetchActions),
     DeleteNote(NOTE_ID1) to CancellationEntry(cancelledBy = (listOf(DeleteNote(NOTE_ID1)))),
   )
 
@@ -86,8 +79,7 @@ class ActionsTest {
         assertThat(action.maybeCancel(cancellation)).isNull()
       }
       for (cancellation in cancellationEntry.notCancelledBy) {
-        assertThat((action.and(cancellation) as Multiple).actions)
-          .isEqualTo(listOf(action, cancellation))
+        assertThat((action.and(cancellation) as Multiple).actions).isEqualTo(listOf(action, cancellation))
         assertThat(action.maybeCancel(cancellation)).isEqualTo(action)
       }
     }
@@ -100,8 +92,7 @@ class ActionsTest {
 
     val anotherMultipleAction = AddNote(NOTE1) and Fetch(FetchSource.FILTER) and CloseIssue(ID2)
     val composed: Multiple = originalMultipleAction.and(anotherMultipleAction) as Multiple
-    assertThat(composed.actions)
-      .isEqualTo(listOf(AddNote(NOTE1), Fetch(FetchSource.FILTER), CloseIssue(ID2)))
+    assertThat(composed.actions).isEqualTo(listOf(AddNote(NOTE1), Fetch(FetchSource.FILTER), CloseIssue(ID2)))
   }
 
   @Test
@@ -111,15 +102,7 @@ class ActionsTest {
     val anotherMultipleAction = AddNote(NOTE1) and Fetch(FetchSource.FILTER) and CloseIssue(ID1)
     val composed = originalMultipleAction.and(anotherMultipleAction) as Multiple
     assertThat(composed.actions)
-      .isEqualTo(
-        listOf(
-          AddNote(NOTE1),
-          CloseIssue(ID2),
-          AddNote(NOTE1),
-          Fetch(FetchSource.FILTER),
-          CloseIssue(ID1),
-        )
-      )
+      .isEqualTo(listOf(AddNote(NOTE1), CloseIssue(ID2), AddNote(NOTE1), Fetch(FetchSource.FILTER), CloseIssue(ID1)))
   }
 
   @Test

@@ -18,14 +18,9 @@ package com.android.tools.idea.preview.essentials
 import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
-/**
- * Service to handle and query the state of Preview Essentials Mode. The state can be changed via
- * settings panel.
- */
+/** Service to handle and query the state of Preview Essentials Mode. The state can be changed via settings panel. */
 object PreviewEssentialsModeManager {
 
   val isEssentialsModeEnabled: Boolean
-    get() =
-      StudioFlags.PREVIEW_ESSENTIALS_MODE.get() &&
-        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled
+    get() = StudioFlags.PREVIEW_ESSENTIALS_MODE.get() && AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled
 }

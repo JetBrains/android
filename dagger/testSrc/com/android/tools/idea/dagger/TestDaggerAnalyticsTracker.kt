@@ -34,10 +34,7 @@ class TestDaggerAnalyticsTracker : DaggerAnalyticsTracker {
     calledMethods.add("trackGutterWasDisplayed owner: $ownerElement time: $time")
   }
 
-  override fun trackFindUsagesNodeWasDisplayed(
-    ownerElement: DaggerEditorEvent.ElementType,
-    time: Long,
-  ) {
+  override fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
     calledMethods.add("trackFindUsagesNodeWasDisplayed owner: $ownerElement time: $time")
   }
 

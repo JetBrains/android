@@ -49,11 +49,7 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
   }
 
   // See whether we need to add the androidx annotations library to the dependency graph
-  private fun checkModules(
-    project: Project,
-    modules: Map<Module, PsiFile>,
-    runnable: Runnable
-  ): Boolean {
+  private fun checkModules(project: Project, modules: Map<Module, PsiFile>, runnable: Runnable): Boolean {
     val artifact = getAnnotationsMavenArtifact(project)
     val modulesWithoutAnnotations = modules.keys.filter { module -> !module.dependsOn(artifact) }.toSet()
     if (modulesWithoutAnnotations.isEmpty()) {
@@ -61,27 +57,21 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
     }
     val moduleNames = StringUtil.join(modulesWithoutAnnotations, { obj: Module -> obj.name }, ", ")
     val count = modulesWithoutAnnotations.size
-    val message = String.format(
-      """
-      The %1${"$"}s %2${"$"}s %3${"$"}sn't refer to the existing '%4${"$"}s' library with Android annotations.
+    val message =
+      String.format(
+        """
+        The %1${"$"}s %2${"$"}s %3${"$"}sn't refer to the existing '%4${"$"}s' library with Android annotations.
 
-      Would you like to add the %5${"$"}s now?
-      """.trimIndent(),
-      StringUtil.pluralize("module", count),
-      moduleNames,
-      if (count > 1) "do" else "does",
-      artifact.mavenArtifactId,
-      StringUtil.pluralize("dependency", count)
-    )
-    if (Messages.showOkCancelDialog(
-        project,
-        message,
-        "Infer Annotations",
-        "OK",
-        "Cancel",
-        Messages.getErrorIcon()
-      ) == Messages.OK
-    ) {
+        Would you like to add the %5${"$"}s now?
+        """
+          .trimIndent(),
+        StringUtil.pluralize("module", count),
+        moduleNames,
+        if (count > 1) "do" else "does",
+        artifact.mavenArtifactId,
+        StringUtil.pluralize("dependency", count),
+      )
+    if (Messages.showOkCancelDialog(project, message, "Infer Annotations", "OK", "Cancel", Messages.getErrorIcon()) == Messages.OK) {
       val manager = RepositoryUrlManager.get()
       val revision = manager.getLibraryRevision(artifact.mavenGroupId, artifact.mavenArtifactId, null, false, FileSystems.getDefault())
       if (revision != null) {

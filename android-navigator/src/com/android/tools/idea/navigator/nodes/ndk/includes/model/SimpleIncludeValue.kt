@@ -17,20 +17,22 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.model
 
 import java.io.File
 
-/**
- * Information about a single include path.
- */
+/** Information about a single include path. */
 data class SimpleIncludeValue(
-   private val packageType : PackageType,
-   private val packageDescription : String,
-   val simplePackageName : String,
-   val relativeIncludeSubFolder : String,
-   val includeFolder : File,
-   private val packageFamilyBaseFolder : File
+  private val packageType: PackageType,
+  private val packageDescription: String,
+  val simplePackageName: String,
+  val relativeIncludeSubFolder: String,
+  val includeFolder: File,
+  private val packageFamilyBaseFolder: File,
 ) : ClassifiedIncludeValue() {
   override fun getSortKey() = SortOrderKey.SIMPLE_INCLUDE.myKey + toString()
+
   override fun getPackageType() = packageType
+
   override fun getPackageFamilyBaseFolder() = packageFamilyBaseFolder
+
   override fun getPackageDescription() = packageDescription
+
   override fun toString() = "$simplePackageName ($packageDescription, $packageFamilyBaseFolder, $relativeIncludeSubFolder)"
 }

@@ -27,18 +27,17 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManag
 import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.scale.JBUIScale
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * [SlowResourcePreviewProvider] for Drawable and Mipmap resources.
- */
+/** [SlowResourcePreviewProvider] for Drawable and Mipmap resources. */
 class DrawableSlowPreviewProvider(
   private val facet: AndroidFacet,
   private val resourceResolver: ResourceResolver,
-  private val contextFile: VirtualFile?) : SlowResourcePreviewProvider {
+  private val contextFile: VirtualFile?,
+) : SlowResourcePreviewProvider {
   private val project = facet.module.project
 
   override val previewPlaceholder: BufferedImage = createDrawablePlaceholderImage(JBUIScale.scale(20), JBUIScale.scale(20))
@@ -64,16 +63,17 @@ class DrawableSlowPreviewProvider(
     return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext).get()
   }
 
-  private fun renderFrameworkDrawable(resolvedValue: ResourceValue,
-                                      configContext: VirtualFile,
-                                      designAsset: DesignAsset,
-                                      dimension: Dimension): CompletableFuture<out BufferedImage?>? {
+  private fun renderFrameworkDrawable(
+    resolvedValue: ResourceValue,
+    configContext: VirtualFile,
+    designAsset: DesignAsset,
+    dimension: Dimension,
+  ): CompletableFuture<out BufferedImage?>? {
     val frameworkValue =
       if (designAsset.resourceItem.type == ResourceType.ATTR) {
         // For theme attributes, we can just use the already resolved value.
         resolvedValue
-      }
-      else {
+      } else {
         // Need a LayoutLib resolved value, so we resolve the resource's reference instead of its value.
         resourceResolver.getUnresolvedResource(designAsset.resourceItem.referenceToSelf) ?: return null
       }

@@ -35,42 +35,42 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 @RunsInEdt
 class BuildVariantTableModelTest {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  @get:Rule val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @Test
   fun withoutAbi() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(dependencyList = listOf(AndroidModuleDependency(":lib", "debug"))),
-      libModuleBuilder()
+      libModuleBuilder(),
     )
     val model = BuildVariantTableModel.create(projectRule.project)
     val appModule = projectRule.project.gradleModule(":app")!!
     val libModule = projectRule.project.gradleModule(":lib")!!
 
     expect.that(model.rows).hasSize(2)
-    expect.that(model.rows.getOrNull(0))
+    expect
+      .that(model.rows.getOrNull(0))
       .isEqualTo(
         BuildVariantTableRow(
           module = appModule,
           variant = "debug",
           abi = null,
           buildVariants = listOf(BuildVariantItem("debug"), BuildVariantItem("release")),
-          abis = emptyList()
+          abis = emptyList(),
         )
       )
-    expect.that(model.rows.getOrNull(1))
+    expect
+      .that(model.rows.getOrNull(1))
       .isEqualTo(
         BuildVariantTableRow(
           module = libModule,
           variant = "debug",
           abi = null,
           buildVariants = listOf(BuildVariantItem("debug"), BuildVariantItem("release")),
-          abis = emptyList()
+          abis = emptyList(),
         )
       )
   }
@@ -79,41 +79,34 @@ class BuildVariantTableModelTest {
   fun testDefaultVariantIndicator() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(
-        dependencyList = listOf(AndroidModuleDependency(":lib", "debug")),
-        defaultVariantName = "release"
-      ),
-      libModuleBuilder(defaultVariantName = "debug")
+      appModuleBuilder(dependencyList = listOf(AndroidModuleDependency(":lib", "debug")), defaultVariantName = "release"),
+      libModuleBuilder(defaultVariantName = "debug"),
     )
     val model = BuildVariantTableModel.create(projectRule.project)
     val appModule = projectRule.project.gradleModule(":app")!!
     val libModule = projectRule.project.gradleModule(":lib")!!
 
     expect.that(model.rows).hasSize(2)
-    expect.that(model.rows.getOrNull(0))
+    expect
+      .that(model.rows.getOrNull(0))
       .isEqualTo(
         BuildVariantTableRow(
           module = appModule,
           variant = "debug",
           abi = null,
-          buildVariants =listOf(
-            BuildVariantItem("debug"),
-            BuildVariantItem("release", isDefault = true)
-          ),
-          abis = emptyList()
+          buildVariants = listOf(BuildVariantItem("debug"), BuildVariantItem("release", isDefault = true)),
+          abis = emptyList(),
         )
       )
-    expect.that(model.rows.getOrNull(1))
+    expect
+      .that(model.rows.getOrNull(1))
       .isEqualTo(
         BuildVariantTableRow(
           module = libModule,
           variant = "debug",
           abi = null,
-          buildVariants = listOf(
-            BuildVariantItem("debug", isDefault = true),
-            BuildVariantItem("release")
-          ),
-          abis = emptyList()
+          buildVariants = listOf(BuildVariantItem("debug", isDefault = true), BuildVariantItem("release")),
+          abis = emptyList(),
         )
       )
   }
@@ -123,44 +116,47 @@ class BuildVariantTableModelTest {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(dependencyList = listOf(AndroidModuleDependency(":lib", "debug"))),
-      ndkLibModuleBuilder()
+      ndkLibModuleBuilder(),
     )
     val model = BuildVariantTableModel.create(projectRule.project)
     val appModule = projectRule.project.gradleModule(":app")!!
     val libModule = projectRule.project.gradleModule(":lib")!!
 
     expect.that(model.rows).hasSize(2)
-    expect.that(model.rows.getOrNull(0))
+    expect
+      .that(model.rows.getOrNull(0))
       .isEqualTo(
         BuildVariantTableRow(
           module = appModule,
           variant = "debug",
           abi = null,
           buildVariants = listOf(BuildVariantItem("debug"), BuildVariantItem("release")),
-          abis = emptyList()
+          abis = emptyList(),
         )
       )
-    expect.that(model.rows.getOrNull(1))
+    expect
+      .that(model.rows.getOrNull(1))
       .isEqualTo(
         BuildVariantTableRow(
           module = libModule,
           variant = "debug",
           abi = "x86_64",
           buildVariants = listOf(BuildVariantItem("debug"), BuildVariantItem("release")),
-          abis = listOf(AbiItem("arm64-v8a"), AbiItem("x86_64"))
+          abis = listOf(AbiItem("arm64-v8a"), AbiItem("x86_64")),
         )
       )
   }
 
   @Test
   fun `Given project modules with same type When create VariantTableModel Then TableRows is sorted`() {
-    val projectModules = arrayOf(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(":appB"),
-      appModuleBuilder(":appA"),
-      appModuleBuilder(":appD"),
-      appModuleBuilder(":appC")
-    )
+    val projectModules =
+      arrayOf(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        appModuleBuilder(":appB"),
+        appModuleBuilder(":appA"),
+        appModuleBuilder(":appD"),
+        appModuleBuilder(":appC"),
+      )
     projectRule.setupProjectFrom(*projectModules)
 
     val model = BuildVariantTableModel.create(projectRule.project)
@@ -175,16 +171,17 @@ class BuildVariantTableModelTest {
 
   @Test
   fun `Given project modules with different type When create VariantTableModel Then TableRows is sorted by IdeAndroidProjectType`() {
-    val projectModules = arrayOf(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(":xappC"),
-      appModuleBuilder(":appB"),
-      appModuleBuilder(":appA"),
-      featureModuleBuilder(),
-      libModuleBuilder(":libB"),
-      libModuleBuilder(":alibA"),
-      testModuleBuilder()
-    )
+    val projectModules =
+      arrayOf(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        appModuleBuilder(":xappC"),
+        appModuleBuilder(":appB"),
+        appModuleBuilder(":appA"),
+        featureModuleBuilder(),
+        libModuleBuilder(":libB"),
+        libModuleBuilder(":alibA"),
+        testModuleBuilder(),
+      )
     projectRule.setupProjectFrom(*projectModules)
 
     val model = BuildVariantTableModel.create(projectRule.project)
@@ -202,48 +199,34 @@ private fun appModuleBuilder(
   appPath: String = ":app",
   selectedVariant: String = "debug",
   dependencyList: List<AndroidModuleDependency> = emptyList(),
-  defaultVariantName: String? = null
+  defaultVariantName: String? = null,
 ) =
   AndroidModuleModelBuilder(
     appPath,
     selectedVariant,
-    AndroidProjectBuilder(androidModuleDependencyList = { dependencyList }, defaultVariantName = { defaultVariantName })
+    AndroidProjectBuilder(androidModuleDependencyList = { dependencyList }, defaultVariantName = { defaultVariantName }),
   )
 
-private fun libModuleBuilder(
-  libPath: String = ":lib",
-  selectedVariant: String = "debug",
-  defaultVariantName: String? = null
-) =
+private fun libModuleBuilder(libPath: String = ":lib", selectedVariant: String = "debug", defaultVariantName: String? = null) =
   AndroidModuleModelBuilder(
     libPath,
     selectedVariant,
-    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, defaultVariantName = { defaultVariantName })
+    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, defaultVariantName = { defaultVariantName }),
   )
 
 private fun ndkLibModuleBuilder(selectedVariant: String = "debug") =
   AndroidModuleModelBuilder(
     ":lib",
     selectedVariant,
-    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, ndkModel = { buildNdkModelStub() })
+    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, ndkModel = { buildNdkModelStub() }),
   )
 
-private fun featureModuleBuilder(
-  featurePath: String = ":feature",
-  selectedVariant: String = "debug"
-) =
+private fun featureModuleBuilder(featurePath: String = ":feature", selectedVariant: String = "debug") =
   AndroidModuleModelBuilder(
     featurePath,
     selectedVariant,
-    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_FEATURE })
+    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_FEATURE }),
   )
 
-private fun testModuleBuilder(
-  testPath: String = ":test",
-  selectedVariant: String = "debug"
-) =
-  AndroidModuleModelBuilder(
-    testPath,
-    selectedVariant,
-    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_TEST })
-  )
+private fun testModuleBuilder(testPath: String = ":test", selectedVariant: String = "debug") =
+  AndroidModuleModelBuilder(testPath, selectedVariant, AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_TEST }))

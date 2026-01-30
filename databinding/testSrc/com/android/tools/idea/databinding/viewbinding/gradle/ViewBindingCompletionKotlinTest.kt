@@ -40,8 +40,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingCompletionKotlinTest {
   private object ViewBindingCompletionTestProject : LightGradleTestProject {
-    override val templateProject: TemplateBasedTestProject =
-      AndroidCoreTestProject.SIMPLE_APPLICATION
+    override val templateProject: TemplateBasedTestProject = AndroidCoreTestProject.SIMPLE_APPLICATION
     override val modelBuilders: List<ModuleModelBuilder> =
       listOf(
         JavaModuleModelBuilder.rootModuleBuilder,
@@ -58,9 +57,7 @@ class ViewBindingCompletionKotlinTest {
       )
   }
 
-  private val projectRule =
-    AndroidProjectRule.testProject(ViewBindingCompletionTestProject)
-      .named("viewBindingCompletionTest")
+  private val projectRule = AndroidProjectRule.testProject(ViewBindingCompletionTestProject).named("viewBindingCompletionTest")
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 

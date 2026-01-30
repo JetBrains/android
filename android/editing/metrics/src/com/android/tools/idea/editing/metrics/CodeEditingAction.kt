@@ -30,38 +30,31 @@ sealed interface CodeEditingAction {
   /**
    * We do not know what caused the code to change.
    *
-   * Note that this can happen for many reasons. We may be incapable of knowing what caused the
-   * change, or we may be capable of knowing but did not believe that tracking the cause was
-   * worthwhile (effort, complexity of the stored data, etc).
+   * Note that this can happen for many reasons. We may be incapable of knowing what caused the change, or we may be capable of knowing but
+   * did not believe that tracking the cause was worthwhile (effort, complexity of the stored data, etc).
    *
-   * Here is a non-exhaustive list of "known unknowns", i.e. actions that we know will trigger
-   * [Unknown] as the source of changes:
+   * Here is a non-exhaustive list of "known unknowns", i.e. actions that we know will trigger [Unknown] as the source of changes:
    * * Undo/Redo actions
    * * Cut actions (including Emacs-style "kill" actions which are implemented separately)
    * * Hitting backspace/delete when text is selected
-   * * Changes to the document that happen while a refactor is being set up, but not actually
-   *   executed - e.g. when renaming a variable using the in-editor version, the changes to the
-   *   current document will show up as [Unknown], but once the refactor actually starts (to make
+   * * Changes to the document that happen while a refactor is being set up, but not actually executed - e.g. when renaming a variable using
+   *   the in-editor version, the changes to the current document will show up as [Unknown], but once the refactor actually starts (to make
    *   changes to other files), those will correctly report as [Refactoring].
    *
-   * **As more cases are discovered, they should be added to this list. As cases are eliminated by
-   * categorizing them correctly, they should be removed from this list.**
+   * **As more cases are discovered, they should be added to this list. As cases are eliminated by categorizing them correctly, they should
+   * be removed from this list.**
    */
   data object Unknown : SimpleCodeEditingAction(Source.UNKNOWN)
 
-  /**
-   * The user has typed characters into the editor using the keyboard, or hit backspace without
-   * selecting any text.
-   */
+  /** The user has typed characters into the editor using the keyboard, or hit backspace without selecting any text. */
   data object Typing : SimpleCodeEditingAction(Source.TYPING)
 
   /** The user has pasted content into the editor. */
   data object UserPaste : SimpleCodeEditingAction(Source.USER_PASTE)
 
   /**
-   * The user used the IDE to refactor code. This only covers the actual execution of the
-   * refactoring, and not any code editing that happens as part of configuring the refactoring
-   * action.
+   * The user used the IDE to refactor code. This only covers the actual execution of the refactoring, and not any code editing that happens
+   * as part of configuring the refactoring action.
    */
   data object Refactoring : SimpleCodeEditingAction(Source.REFACTORING)
 
@@ -69,8 +62,8 @@ sealed interface CodeEditingAction {
   data object CodeCompletion : SimpleCodeEditingAction(Source.CODE_COMPLETION)
 
   /**
-   * Represents an automatically inserted closure, such as when the user types '(' and the paired
-   * ')' character is inserted after the cursor.
+   * Represents an automatically inserted closure, such as when the user types '(' and the paired ')' character is inserted after the
+   * cursor.
    */
   data class PairedEnclosureInserted(val text: String) : CodeEditingAction {
     override fun getCodeEditedEvents(addedText: String, removedText: String): List<CodeEdited> {
@@ -87,10 +80,7 @@ sealed interface CodeEditingAction {
         // the newline as typing.
         // Additionally, if there's extra indentation it'll come in as a second bit of added text
         // without a new line; don't count that as typing either.
-        listOf(
-          CodeEdited(1, removedText.length, Source.TYPING),
-          CodeEdited(addedText.length - 1, 0, Source.IDE_ACTION),
-        )
+        listOf(CodeEdited(1, removedText.length, Source.TYPING), CodeEdited(addedText.length - 1, 0, Source.IDE_ACTION))
       } else {
         listOf(CodeEdited(addedText.length, removedText.length, Source.IDE_ACTION))
       }

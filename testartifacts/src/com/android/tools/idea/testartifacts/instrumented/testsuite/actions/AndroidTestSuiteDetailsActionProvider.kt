@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
-/**
- * Provider to get [AnAction] to be displayed in the details panel of the Android Test Suite results view.
- */
+/** Provider to get [AnAction] to be displayed in the details panel of the Android Test Suite results view. */
 interface AndroidTestSuiteDetailsActionProvider {
   companion object {
-    val EP_NAME = ExtensionPointName.create<AndroidTestSuiteDetailsActionProvider>(
-      "com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteActionProvider")
+    val EP_NAME =
+      ExtensionPointName.create<AndroidTestSuiteDetailsActionProvider>(
+        "com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteActionProvider"
+      )
 
     fun getDetailsViewHeaderActions(runConfiguration: RunConfiguration?, testResults: AndroidTestResults?): List<AnAction> {
       return runConfiguration?.let {
-        EP_NAME.extensionList.filter { it.isApplicable(runConfiguration) }
-          .flatMap { it.getDetailsViewHeaderActions(testResults) }
+        EP_NAME.extensionList.filter { it.isApplicable(runConfiguration) }.flatMap { it.getDetailsViewHeaderActions(testResults) }
       } ?: emptyList()
     }
   }

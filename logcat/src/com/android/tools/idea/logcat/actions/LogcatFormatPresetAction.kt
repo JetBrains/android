@@ -25,12 +25,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
 /** An action that selects a preset style of Logcat format. */
-sealed class LogcatFormatPresetAction(
-  private val style: FormattingOptions.Style,
-  private val logcatPresenter: LogcatPresenter,
-) :
-  SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)),
-  DumbAware {
+sealed class LogcatFormatPresetAction(private val style: FormattingOptions.Style, private val logcatPresenter: LogcatPresenter) :
+  SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)), DumbAware {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -42,9 +38,7 @@ sealed class LogcatFormatPresetAction(
 
   override fun isSelected(): Boolean = logcatPresenter.formattingOptions.getStyle() == style
 
-  internal class Standard(logcatPresenter: LogcatPresenter) :
-    LogcatFormatPresetAction(STANDARD, logcatPresenter)
+  internal class Standard(logcatPresenter: LogcatPresenter) : LogcatFormatPresetAction(STANDARD, logcatPresenter)
 
-  internal class Compact(logcatPresenter: LogcatPresenter) :
-    LogcatFormatPresetAction(COMPACT, logcatPresenter)
+  internal class Compact(logcatPresenter: LogcatPresenter) : LogcatFormatPresetAction(COMPACT, logcatPresenter)
 }

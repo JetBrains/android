@@ -22,62 +22,39 @@ import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-private class StringReplaceMethodTransform(
-  delegate: MethodVisitor,
-  private val constantMap: Map<String, String>,
-) : MethodVisitor(Opcodes.ASM9, delegate) {
+private class StringReplaceMethodTransform(delegate: MethodVisitor, private val constantMap: Map<String, String>) :
+  MethodVisitor(Opcodes.ASM9, delegate) {
   override fun visitLdcInsn(value: Any?) =
-    if (value is String) super.visitLdcInsn(constantMap.getOrDefault(value, value))
-    else super.visitLdcInsn(value)
+    if (value is String) super.visitLdcInsn(constantMap.getOrDefault(value, value)) else super.visitLdcInsn(value)
 }
 
 /**
- * A [ClassVisitor] that replaces `LDC` calls of strings with other strings passed as part of the
- * `inputReplaceMap`. The `inputReplaceMap` has a key the class name that this class will inspect.
- * Other classes will be ignored by this transform.
+ * A [ClassVisitor] that replaces `LDC` calls of strings with other strings passed as part of the `inputReplaceMap`. The `inputReplaceMap`
+ * has a key the class name that this class will inspect. Other classes will be ignored by this transform.
  *
  * The key of `inputReplaceMap` contains a map "Old String" -> "New String".
  */
-class StringReplaceTransform(
-  delegate: ClassVisitor,
-  inputReplaceMap: Map<String, Map<String, String>>,
-) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
+class StringReplaceTransform(delegate: ClassVisitor, inputReplaceMap: Map<String, Map<String, String>>) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   @Suppress("UnstableApiUsage")
   override val uniqueId: String =
     StringReplaceTransform::class.qualifiedName +
       "," +
       com.google.common.hash.Hashing.goodFastHash(64)
         .newHasher()
-        .putString(
-          inputReplaceMap.map { "${it.key}=${it.value}" }.joinToString("\n"),
-          Charsets.UTF_8,
-        )
+        .putString(inputReplaceMap.map { "${it.key}=${it.value}" }.joinToString("\n"), Charsets.UTF_8)
         .hash()
         .toString()
 
-  private val replaceMap =
-    inputReplaceMap.map { it.key.fromPackageNameToBinaryName() to it.value }.toMap()
+  private val replaceMap = inputReplaceMap.map { it.key.fromPackageNameToBinaryName() to it.value }.toMap()
   private var constantMap: Map<String, String> = emptyMap()
 
-  override fun visit(
-    version: Int,
-    access: Int,
-    name: String?,
-    signature: String?,
-    superName: String?,
-    interfaces: Array<out String>?,
-  ) {
+  override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
     constantMap = replaceMap.getOrDefault(name, emptyMap())
     super.visit(version, access, name, signature, superName, interfaces)
   }
 
-  override fun visitField(
-    access: Int,
-    name: String?,
-    descriptor: String?,
-    signature: String?,
-    value: Any?,
-  ): FieldVisitor =
+  override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor =
     if (value is String && constantMap.isNotEmpty())
       super.visitField(access, name, descriptor, signature, constantMap.getOrDefault(value, value))
     else super.visitField(access, name, descriptor, signature, value)
@@ -90,9 +67,5 @@ class StringReplaceTransform(
     exceptions: Array<out String>?,
   ): MethodVisitor =
     if (constantMap.isEmpty()) super.visitMethod(access, name, descriptor, signature, exceptions)
-    else
-      StringReplaceMethodTransform(
-        super.visitMethod(access, name, descriptor, signature, exceptions),
-        constantMap,
-      )
+    else StringReplaceMethodTransform(super.visitMethod(access, name, descriptor, signature, exceptions), constantMap)
 }

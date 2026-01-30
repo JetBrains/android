@@ -27,9 +27,7 @@ class SimpleCommand(val args: List<String>, val result: String?) {
   constructor(command: String, result: String?) : this(command.split(' '), result)
 }
 
-/**
- * A fake handler that intercepts ADB shell commands used at various points by the layout inspector.
- */
+/** A fake handler that intercepts ADB shell commands used at various points by the layout inspector. */
 class FakeShellCommandHandler : DeviceCommandHandler("shell") {
   val extraCommands = mutableListOf<SimpleCommand>()
 

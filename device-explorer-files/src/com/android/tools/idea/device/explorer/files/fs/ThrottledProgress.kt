@@ -16,8 +16,7 @@
 package com.android.tools.idea.device.explorer.files.fs
 
 /**
- * Utility class used to ensure that progress report from a long running
- * activity is throttled to the given interval.
+ * Utility class used to ensure that progress report from a long running activity is throttled to the given interval.
  *
  * <p>Usage:
  * <pre>
@@ -39,8 +38,8 @@ class ThrottledProgress(private val intervalNano: Long) {
   }
 
   /**
-   * Returns `true` if caller should report progress, i.e. if the time elapsed
-   * since the last time we returned `true` exceeds [.getIntervalMillis].
+   * Returns `true` if caller should report progress, i.e. if the time elapsed since the last time we returned `true` exceeds
+   * [.getIntervalMillis].
    */
   fun check(): Boolean {
     val currentNanoTime = System.nanoTime()

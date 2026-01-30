@@ -21,13 +21,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsD
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
 
-/**
- * Model for the table displaying the "editable" dependencies of a module.
- */
-internal class DeclaredDependenciesTableModel(
-  module: PsModule,
-  context: PsContext
-) : AbstractDeclaredDependenciesTableModel<PsBaseDependency>(module, context) {
+/** Model for the table displaying the "editable" dependencies of a module. */
+internal class DeclaredDependenciesTableModel(module: PsModule, context: PsContext) :
+  AbstractDeclaredDependenciesTableModel<PsBaseDependency>(module, context) {
 
   override fun reset() {
     reset(null)
@@ -49,8 +45,7 @@ internal class DeclaredDependenciesTableModel(
         if (atIndex === changedDependency) {
           this.fireTableRowsUpdated(index, index)
         }
-      }
-      else {
+      } else {
         while (atIndex != null && atIndex !== dependency) {
           removeRow(index)
           atIndex = current()

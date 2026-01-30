@@ -36,18 +36,7 @@ suspend fun createTestProperty(
   node: ViewNode,
   model: InspectorModel,
 ): InspectorPropertyItem {
-  val item =
-    InspectorPropertyItem(
-      SdkConstants.ANDROID_URI,
-      name,
-      name,
-      type,
-      value,
-      PropertySection.DECLARED,
-      source,
-      node.drawId,
-      model,
-    )
+  val item = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, PropertySection.DECLARED, source, node.drawId, model)
   val cache = LiveViewPropertiesCache(mock(), model)
   val provider = AppInspectionPropertiesProvider(cache, null, model)
   val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>(3, 10)

@@ -83,10 +83,8 @@ internal class PsiResourceFile(
 }
 
 /** The [ResourceItemSource] of [BasicResourceItem]s. */
-internal class VfsResourceFile(
-  override val virtualFile: VirtualFile?,
-  override val configuration: RepositoryConfiguration,
-) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
+internal class VfsResourceFile(override val virtualFile: VirtualFile?, override val configuration: RepositoryConfiguration) :
+  ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
 
   private val items = ArrayList<BasicResourceItem>()
 

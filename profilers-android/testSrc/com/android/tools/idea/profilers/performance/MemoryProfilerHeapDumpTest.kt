@@ -42,11 +42,9 @@ class MemoryProfilerHeapDumpTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService)
+  @get:Rule val grpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService)
 
   @Before
   fun setUp() {

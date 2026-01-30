@@ -57,15 +57,12 @@ import org.mockito.Mockito.verify
 class NlPropertiesModelTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(RenderTestRule()).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(RenderTestRule()).around(EdtRule())!!
 
   @Test
   fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.addListener(listener)
@@ -79,9 +76,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModelA = createNlModel(IMAGE_VIEW)
     val nlModelB = createNlModel(TEXT_VIEW)
@@ -119,9 +114,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertiesGeneratedEventBeforeValueChangedEventAfterSelectionChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -138,9 +131,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertyValuesChangedEventAfterModelChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.treeReader.find(TEXT_VIEW)!!
@@ -160,9 +151,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertyValuesChangedEventAfterLiveModelChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.treeReader.find(TEXT_VIEW)!!
@@ -181,9 +170,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertyValuesChangedEventAfterLiveComponentChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.treeReader.find(TEXT_VIEW)!!
@@ -206,23 +193,8 @@ class NlPropertiesModelTest {
     val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property =
-      NlPropertyItem(
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        null,
-        "",
-        "",
-        model,
-        listOf(textView),
-      )
-    manager.putDefaultPropertyValue(
-      textView,
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    val property = NlPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, null, "", "", model, listOf(textView))
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     model.setResolver(nlModel.configuration.resourceResolver)
     waitUntilLastSelectionUpdateCompleted(model)
@@ -234,31 +206,14 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertyValuesChangesAfterRendering() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener =
-      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    @Suppress("UNCHECKED_CAST") val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property =
-      NlPropertyItem(
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        null,
-        "",
-        "",
-        model,
-        listOf(textView),
-      )
-    manager.putDefaultPropertyValue(
-      textView,
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    val property = NlPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, null, "", "", model, listOf(textView))
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     model.setResolver(nlModel.configuration.resourceResolver)
     waitUntilLastSelectionUpdateCompleted(model)
@@ -273,12 +228,7 @@ class NlPropertiesModelTest {
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
-    manager.putDefaultPropertyValue(
-      textView,
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "@android:style/TextAppearance.Large",
-    )
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.requestRender()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
@@ -346,9 +296,8 @@ class NlPropertiesModelTest {
   }
 
   /**
-   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different
-   * [NlPropertiesModel] should still schedule one update per model. When sharing a queue, the
-   * updates would be folded into the one incorrectly.
+   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different [NlPropertiesModel] should still schedule one update
+   * per model. When sharing a queue, the updates would be folded into the one incorrectly.
    */
   @Test
   fun testMultipleModelsSharingQueue() {
@@ -393,13 +342,7 @@ class NlPropertiesModelTest {
           .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
           .children(
             *tag
-              .map {
-                component(it)
-                  .withBounds(100, 100, 100, 100)
-                  .id("@id/$it")
-                  .width("wrap_content")
-                  .height("wrap_content")
-              }
+              .map { component(it).withBounds(100, 100, 100, 100).id("@id/$it").width("wrap_content").height("wrap_content") }
               .toTypedArray()
           ),
       )
@@ -411,11 +354,7 @@ class NlPropertiesModelTest {
   private fun createModel(): NlPropertiesModel {
     val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.testRootDisposable)
     queue.isPassThrough = true
-    return NlPropertiesModel(
-      projectRule.testRootDisposable,
-      AndroidFacet.getInstance(projectRule.module)!!,
-      queue,
-    )
+    return NlPropertiesModel(projectRule.testRootDisposable, AndroidFacet.getInstance(projectRule.module)!!, queue)
   }
 
   private class RecursiveValueChangedListener : PropertiesModelListener<NlPropertyItem> {
@@ -426,10 +365,7 @@ class NlPropertiesModelTest {
       called++
     }
 
-    override fun propertyValuesChanged(
-      model: PropertiesModel<NlPropertyItem>,
-      childElementChanges: Boolean,
-    ) {
+    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
       model.addListener(RecursiveValueChangedListener())
       called++
     }
@@ -445,10 +381,7 @@ class NlPropertiesModelTest {
       }
     }
 
-    override fun propertyValuesChanged(
-      model: PropertiesModel<NlPropertyItem>,
-      childElementChanges: Boolean,
-    ) {
+    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
       if (valuesChangedCalled == 0L) {
         valuesChangedCalled = System.currentTimeMillis()
       }
@@ -475,11 +408,7 @@ class NlPropertiesModelTest {
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
       if (ApplicationManager.getApplication().isDispatchThread) {
-        PlatformTestUtil.waitWithEventsDispatching(
-          "Model was not updated",
-          { model.lastUpdateCompleted },
-          10,
-        )
+        PlatformTestUtil.waitWithEventsDispatching("Model was not updated", { model.lastUpdateCompleted }, 10)
       } else {
         waitForCondition(10, TimeUnit.SECONDS) { model.lastUpdateCompleted }
       }

@@ -64,8 +64,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val secondaryTitleSupplier: () -> JComponent? = { null },
   @TestOnly private val getLocationOnScreen: Component.() -> Point = Component::getLocationOnScreen,
 ) : DropDownAction(null, null, null) {
-  @VisibleForTesting
-  val selectionState = flow.stateIn(scope, SharingStarted.Eagerly, MultiSelection.emptySelection())
+  @VisibleForTesting val selectionState = flow.stateIn(scope, SharingStarted.Eagerly, MultiSelection.emptySelection())
 
   @VisibleForTesting
   val titleState =
@@ -153,8 +152,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
     popup.addListener(
       object : JBPopupListener {
         override fun onClosed(event: LightweightWindowEvent) {
-          Logger.getInstance(TreeDropDownPopup::class.java)
-            .info("Requesting ${dropdown.selection.selected}")
+          Logger.getInstance(TreeDropDownPopup::class.java).info("Requesting ${dropdown.selection.selected}")
           onSelected(dropdown.selection.selected.map { it.value }.toSet())
         }
       }

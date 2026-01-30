@@ -57,8 +57,6 @@ class DeadlockUIThreadWithReadAction : AnAction(), DumbAware {
     // Release second reader (with a 1 second delay)
     semaphore1.release()
     // Will wait for first reader to leave
-    runWriteAction {
-      println("Deadlock before reaching this line.")
-    }
+    runWriteAction { println("Deadlock before reaching this line.") }
   }
 }

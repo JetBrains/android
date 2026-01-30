@@ -32,8 +32,7 @@ internal fun getValuesFromIndex(key: String, scope: GlobalSearchScope): Set<Inde
   return FileBasedIndex.getInstance().getValues(DAGGER_INDEX_NAME, key, scope).flatten().toSet()
 }
 
-private val DAGGER_INDEX_NAME: ID<String, Set<IndexValue>> =
-  ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
+private val DAGGER_INDEX_NAME: ID<String, Set<IndexValue>> = ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
 
 class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
   override fun getName(): ID<String, Set<IndexValue>> = DAGGER_INDEX_NAME
@@ -49,6 +48,5 @@ class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
 
   override fun getValueExternalizer(): DataExternalizer<Set<IndexValue>> = IndexValue.Externalizer
 
-  override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> =
-    DaggerDataIndexer.INSTANCE
+  override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> = DaggerDataIndexer.INSTANCE
 }

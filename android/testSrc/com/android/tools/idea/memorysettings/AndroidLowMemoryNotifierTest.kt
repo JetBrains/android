@@ -23,10 +23,10 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.application
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.SECONDS
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests [AndroidLowMemoryNotifier]. */
 class AndroidLowMemoryNotifierTest {
@@ -38,13 +38,18 @@ class AndroidLowMemoryNotifierTest {
   fun testNotification() {
     // Trigger low-memory conditions and watch for our notification.
     val notificationReceived = CompletableFuture<Boolean>()
-    application.messageBus.connect(disposableRule.disposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        if (notification.displayId == AndroidLowMemoryNotifier.NOTIFICATION_DISPLAY_ID) {
-          notificationReceived.complete(true)
-        }
-      }
-    })
+    application.messageBus
+      .connect(disposableRule.disposable)
+      .subscribe(
+        Notifications.TOPIC,
+        object : Notifications {
+          override fun notify(notification: Notification) {
+            if (notification.displayId == AndroidLowMemoryNotifier.NOTIFICATION_DISPLAY_ID) {
+              notificationReceived.complete(true)
+            }
+          }
+        },
+      )
     LowMemoryWatcher.onLowMemorySignalReceived(true)
     notificationReceived.completeOnTimeout(false, 1, SECONDS)
     assertWithMessage("AndroidLowMemoryNotifier should send a notification").that(notificationReceived.get()).isTrue()

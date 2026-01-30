@@ -35,11 +35,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class NewModuleCompileSdkSelectionTest {
-  private val agpVersionToTest =
-    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(AndroidApiLevel(33))
+  private val agpVersionToTest = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(AndroidApiLevel(33))
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersionToTest)
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersionToTest)
 
   private val emptyProjectSyncInvoker =
     object : ProjectSyncInvoker {
@@ -48,10 +46,7 @@ class NewModuleCompileSdkSelectionTest {
 
   @Test
   fun `new module has compile SDK of highest of existing modules`() {
-    projectRule.load(
-      projectPath = TestProjectPaths.SIMPLE_APPLICATION,
-      agpVersion = agpVersionToTest,
-    )
+    projectRule.load(projectPath = TestProjectPaths.SIMPLE_APPLICATION, agpVersion = agpVersionToTest)
     generateTestLibraryModuleFiles()
     assertThat(libraryBuildGradleKts.removeSpaces())
       .contains(
@@ -79,8 +74,7 @@ class NewModuleCompileSdkSelectionTest {
         category = Category.Activity,
         isLibrary = true,
       )
-    model.androidSdkInfo.value =
-      AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
+    model.androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
     model.moduleName.set(TEST_LIBRARY_NAME)
     model.template.set(createDefaultModuleTemplate(projectRule.project, TEST_LIBRARY_NAME))
     model.packageName.set("com.example")

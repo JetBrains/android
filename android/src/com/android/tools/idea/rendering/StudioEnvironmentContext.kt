@@ -60,10 +60,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.application
+import java.lang.ref.WeakReference
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
-import java.lang.ref.WeakReference
 
 private val LOG = Logger.getInstance(StudioEnvironmentContext::class.java)
 
@@ -76,16 +76,20 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   override fun reportMissingSdkDependency(logger: IRenderLogger) {
     val message = RenderProblem.create(ProblemSeverity.ERROR)
     logger.addMessage(message)
-    message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-                                logger.linkManager.createActionLink { module ->
-                                  val project = module?.project ?: return@createActionLink
-                                  val service = ProjectSettingsService.getInstance(project)
-                                  if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
-                                    (service as AndroidProjectSettingsService).openSdkSettings()
-                                    return@createActionLink
-                                  }
-                                  AndroidSdkUtils.openModuleDependenciesConfigurable(module)
-                                })
+    message.htmlBuilder.addLink(
+      "No Android SDK found. Please ",
+      "configure",
+      " an Android SDK.",
+      logger.linkManager.createActionLink { module ->
+        val project = module?.project ?: return@createActionLink
+        val service = ProjectSettingsService.getInstance(project)
+        if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
+          (service as AndroidProjectSettingsService).openSdkSettings()
+          return@createActionLink
+        }
+        AndroidSdkUtils.openModuleDependenciesConfigurable(module)
+      },
+    )
   }
 
   override fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference =
@@ -97,8 +101,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
       val psiFile = AndroidPsiUtils.getPsiFileSafely(module.project, virtualFile)
       if (psiFile != null) {
         return if (ApplicationManager.getApplication().isReadAccessAllowed) psiFile.text
-        else ApplicationManager.getApplication().runReadAction(
-          Computable { psiFile.text } as Computable<String>)
+        else ApplicationManager.getApplication().runReadAction(Computable { psiFile.text } as Computable<String>)
       }
     }
     return null
@@ -112,10 +115,12 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
     val projectRef = WeakReference(module.project)
     return NavGraphResolver { navGraph ->
-      val project = projectRef.get() ?: run {
-        Logger.getInstance(StudioRenderSecurityManager::class.java).warn("getNavGraphResolver for disposed project")
-        return@NavGraphResolver null
-      }
+      val project =
+        projectRef.get()
+          ?: run {
+            Logger.getInstance(StudioRenderSecurityManager::class.java).warn("getNavGraphResolver for disposed project")
+            return@NavGraphResolver null
+          }
       getStartDestLayoutId(navGraph, project, resourceResolver)
     }
   }
@@ -124,8 +129,9 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
     val sdkPath = platform?.sdkData?.location?.toString()
 
     val securityManager = StudioRenderSecurityManager(sdkPath, projectPath, false)
-    securityManager.setLogger(LogWrapper(
-      Logger.getInstance(StudioRenderSecurityManager::class.java)).alwaysLogAsDebug(true).allowVerbose(false))
+    securityManager.setLogger(
+      LogWrapper(Logger.getInstance(StudioRenderSecurityManager::class.java)).alwaysLogAsDebug(true).allowVerbose(false)
+    )
     securityManager.setAppTempDir(PathManager.getTempPath())
 
     return securityManager
@@ -150,8 +156,8 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   }
 
   // We only track allocations in testing mode
-  override fun isInTest(): Boolean = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
-                                         ApplicationManager.getApplication()?.isUnitTestMode == true
+  override fun isInTest(): Boolean =
+    GuiTestingService.getInstance()?.isGuiTestingMode == true || ApplicationManager.getApplication()?.isUnitTestMode == true
 
   override fun cleanLayoutlibNativeMemory() {
     LOG.warn("Native memory usage by layoutlib is high, run GC to reclaim what is associated with Java objects.")
@@ -159,9 +165,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
       return
     }
     if (AnalyticsSettings.optedIn) {
-      val layoutEditorEventBuilder =
-        LayoutEditorEvent.newBuilder()
-          .setType(LayoutEditorEvent.LayoutEditorEventType.NATIVE_MEMORY_GC)
+      val layoutEditorEventBuilder = LayoutEditorEvent.newBuilder().setType(LayoutEditorEvent.LayoutEditorEventType.NATIVE_MEMORY_GC)
       val studioEvent =
         AndroidStudioEvent.newBuilder()
           .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)

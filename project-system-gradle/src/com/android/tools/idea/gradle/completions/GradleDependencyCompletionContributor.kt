@@ -40,8 +40,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -56,109 +56,119 @@ import org.toml.lang.psi.TomlTable
 
 private const val DEPENDENCIES = "dependencies"
 
-private val INSIDE_BUILD_SRC_PATTERN = psiFile().with(
-  object : PatternCondition<PsiFile>(null) {
-    override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
-      val rootProjectPath = psiFile.project.basePath ?: return false
-      val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
-      return vFile.path.startsWith("$rootProjectPath/buildSrc/")
-    }
-  }
-)
-
-private val INSIDE_DEPENDENCIES_CLOSURE_GROOVY_PATTERN = psiElement(GrClosableBlock::class.java).with(
-  object : PatternCondition<GrClosableBlock>(null) {
-    override fun accepts(closableBlock: GrClosableBlock, context: ProcessingContext?): Boolean {
-      var preSibling: PsiElement? = closableBlock.prevSibling
-      while (preSibling != null) {
-        if (preSibling is GrReferenceExpression) {
-          return preSibling.qualifiedReferenceName == DEPENDENCIES
+private val INSIDE_BUILD_SRC_PATTERN =
+  psiFile()
+    .with(
+      object : PatternCondition<PsiFile>(null) {
+        override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
+          val rootProjectPath = psiFile.project.basePath ?: return false
+          val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
+          return vFile.path.startsWith("$rootProjectPath/buildSrc/")
         }
-
-        preSibling = preSibling.prevSibling
       }
-      return false
-    }
-  }
-)
+    )
 
-private val INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN = psiElement(KtLambdaArgument::class.java).with(
-  object : PatternCondition<KtLambdaArgument>(null) {
-    override fun accepts(lambdaArgument: KtLambdaArgument, context: ProcessingContext?): Boolean {
-      var prevSibling: PsiElement? = lambdaArgument.prevSibling
-      while (prevSibling != null) {
-        if (prevSibling is KtNameReferenceExpression) {
-          return prevSibling.getReferencedName() == DEPENDENCIES
+private val INSIDE_DEPENDENCIES_CLOSURE_GROOVY_PATTERN =
+  psiElement(GrClosableBlock::class.java)
+    .with(
+      object : PatternCondition<GrClosableBlock>(null) {
+        override fun accepts(closableBlock: GrClosableBlock, context: ProcessingContext?): Boolean {
+          var preSibling: PsiElement? = closableBlock.prevSibling
+          while (preSibling != null) {
+            if (preSibling is GrReferenceExpression) {
+              return preSibling.qualifiedReferenceName == DEPENDENCIES
+            }
+
+            preSibling = preSibling.prevSibling
+          }
+          return false
         }
-
-        prevSibling = prevSibling.prevSibling
       }
+    )
 
-      return false
-    }
-  })
+private val INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN =
+  psiElement(KtLambdaArgument::class.java)
+    .with(
+      object : PatternCondition<KtLambdaArgument>(null) {
+        override fun accepts(lambdaArgument: KtLambdaArgument, context: ProcessingContext?): Boolean {
+          var prevSibling: PsiElement? = lambdaArgument.prevSibling
+          while (prevSibling != null) {
+            if (prevSibling is KtNameReferenceExpression) {
+              return prevSibling.getReferencedName() == DEPENDENCIES
+            }
 
-internal val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
-  object : PatternCondition<PsiFile>(null) {
-    override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
-      val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
-      return vFile.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)
-    }
-  }
-)
+            prevSibling = prevSibling.prevSibling
+          }
 
-internal val TOML_LIBRARIES_TABLE_PATTERN = psiElement(TomlTable::class.java).with(
-  object : PatternCondition<TomlTable>(null) {
-    override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
-      tomlTable.header.key?.segments?.map { it.name }?.joinToString(".") == "libraries"
-  }
-)
+          return false
+        }
+      }
+    )
 
-private val DEPENDENCIES_IN_GRADLE_FILE_PATTERN = psiElement()
-  .withLanguage(GroovyLanguage)
-  .withParent(GrLiteral::class.java)
-  .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE)))
-  .inside(true, INSIDE_DEPENDENCIES_CLOSURE_GROOVY_PATTERN)
+internal val INSIDE_VERSIONS_TOML_FILE =
+  psiFile()
+    .with(
+      object : PatternCondition<PsiFile>(null) {
+        override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
+          val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
+          return vFile.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)
+        }
+      }
+    )
 
-private val DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN = psiElement()
-  .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(KtLiteralStringTemplateEntry::class.java)
-  .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE_KTS)))
-  .inside(true, INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN)
+internal val TOML_LIBRARIES_TABLE_PATTERN =
+  psiElement(TomlTable::class.java)
+    .with(
+      object : PatternCondition<TomlTable>(null) {
+        override fun accepts(tomlTable: TomlTable, context: ProcessingContext?): Boolean =
+          tomlTable.header.key?.segments?.map { it.name }?.joinToString(".") == "libraries"
+      }
+    )
 
-private val DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN = psiElement()
-  .withLanguage(KotlinLanguage.INSTANCE)
-  .withParent(KtLiteralStringTemplateEntry::class.java)
-  .inFile(INSIDE_BUILD_SRC_PATTERN)
+private val DEPENDENCIES_IN_GRADLE_FILE_PATTERN =
+  psiElement()
+    .withLanguage(GroovyLanguage)
+    .withParent(GrLiteral::class.java)
+    .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE)))
+    .inside(true, INSIDE_DEPENDENCIES_CLOSURE_GROOVY_PATTERN)
 
-private val DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN = psiElement()
-  .withLanguage(JavaLanguage.INSTANCE)
-  .withParent(PsiLiteralExpression::class.java)
-  .inFile(INSIDE_BUILD_SRC_PATTERN)
+private val DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN =
+  psiElement()
+    .withLanguage(KotlinLanguage.INSTANCE)
+    .withParent(KtLiteralStringTemplateEntry::class.java)
+    .inFile(psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE_KTS)))
+    .inside(true, INSIDE_DEPENDENCIES_LAMBDA_KOTLIN_PATTERN)
 
-private val LIBRARIES_IN_VERSIONS_TOML_PATTTERN = psiElement()
-  .withLanguage(TomlLanguage)
-  .withParent(TomlLiteral::class.java)
-  .inFile(INSIDE_VERSIONS_TOML_FILE)
-  .withSuperParent(3, TOML_LIBRARIES_TABLE_PATTERN)
+private val DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN =
+  psiElement().withLanguage(KotlinLanguage.INSTANCE).withParent(KtLiteralStringTemplateEntry::class.java).inFile(INSIDE_BUILD_SRC_PATTERN)
+
+private val DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN =
+  psiElement().withLanguage(JavaLanguage.INSTANCE).withParent(PsiLiteralExpression::class.java).inFile(INSIDE_BUILD_SRC_PATTERN)
+
+private val LIBRARIES_IN_VERSIONS_TOML_PATTTERN =
+  psiElement()
+    .withLanguage(TomlLanguage)
+    .withParent(TomlLiteral::class.java)
+    .inFile(INSIDE_VERSIONS_TOML_FILE)
+    .withSuperParent(3, TOML_LIBRARIES_TABLE_PATTERN)
 
 // Literal in inline TOML table for library dependency
 private fun createLiteralTomlPattern(pattern: PsiElementPattern.Capture<TomlKeyValue>) =
-    psiElement()
-      .withLanguage(TomlLanguage)
-      .withParent(TomlLiteral::class.java)
-      .inFile(INSIDE_VERSIONS_TOML_FILE)
-      .withSuperParent(2, pattern)
-      .withSuperParent(5,TOML_LIBRARIES_TABLE_PATTERN)
+  psiElement()
+    .withLanguage(TomlLanguage)
+    .withParent(TomlLiteral::class.java)
+    .inFile(INSIDE_VERSIONS_TOML_FILE)
+    .withSuperParent(2, pattern)
+    .withSuperParent(5, TOML_LIBRARIES_TABLE_PATTERN)
 
 // Creates pattern for key value with given key name
-private fun createKeyValuePattern(keyName:String) =
-  psiElement(TomlKeyValue::class.java).with(
-    object : PatternCondition<TomlKeyValue>(null) {
-      override fun accepts(keyValue: TomlKeyValue, context: ProcessingContext?): Boolean =
-        keyValue.key.text == keyName
-    }
-  )
+private fun createKeyValuePattern(keyName: String) =
+  psiElement(TomlKeyValue::class.java)
+    .with(
+      object : PatternCondition<TomlKeyValue>(null) {
+        override fun accepts(keyValue: TomlKeyValue, context: ProcessingContext?): Boolean = keyValue.key.text == keyName
+      }
+    )
 
 /**
  * Allowed pattern for providing auto-completion when managing dependencies in gradle projects.
@@ -168,33 +178,35 @@ private fun createKeyValuePattern(keyName:String) =
  * - kotlin/java code in a "buildSrc" directory, which has to sit in the root project directory;
  * - a literal at the top level of the "libraries" table in a file whose name ends ".versions.toml".
  */
-private val ALLOW_CODE_COMPLETION_PATTERN = psiElement()
-  .andOr(
-    DEPENDENCIES_IN_GRADLE_FILE_PATTERN,
-    DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN,
-    DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN,
-    DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN,
-    LIBRARIES_IN_VERSIONS_TOML_PATTTERN,
-  )
+private val ALLOW_CODE_COMPLETION_PATTERN =
+  psiElement()
+    .andOr(
+      DEPENDENCIES_IN_GRADLE_FILE_PATTERN,
+      DEPENDENCIES_IN_GRADLE_KTS_FILE_PATTERN,
+      DEPENDENCIES_IN_BUILD_SRC_KOTLIN_PATTERN,
+      DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN,
+      LIBRARIES_IN_VERSIONS_TOML_PATTTERN,
+    )
 
 const val GROUP_ELEMENT_TOML = "group"
 const val MODULE_ELEMENT_TOML = "module"
 const val NAME_ELEMENT_TOML = "name"
 const val VERSION_ELEMENT_TOML = "version"
 
-private val ALLOW_INLINE_TOML_COMPLETION_PATTERN = psiElement()
-  .andOr(
-    createLiteralTomlPattern (createKeyValuePattern(GROUP_ELEMENT_TOML)),
-    createLiteralTomlPattern (createKeyValuePattern(MODULE_ELEMENT_TOML)),
-    createLiteralTomlPattern (createKeyValuePattern(NAME_ELEMENT_TOML)),
-    createLiteralTomlPattern (createKeyValuePattern(VERSION_ELEMENT_TOML))
-  )
-
+private val ALLOW_INLINE_TOML_COMPLETION_PATTERN =
+  psiElement()
+    .andOr(
+      createLiteralTomlPattern(createKeyValuePattern(GROUP_ELEMENT_TOML)),
+      createLiteralTomlPattern(createKeyValuePattern(MODULE_ELEMENT_TOML)),
+      createLiteralTomlPattern(createKeyValuePattern(NAME_ELEMENT_TOML)),
+      createLiteralTomlPattern(createKeyValuePattern(VERSION_ELEMENT_TOML)),
+    )
 
 /**
  * Code completion for managing dependencies in gradle projects in [ALLOW_CODE_COMPLETION_PATTERN] context.
  *
  * Auto-popup is enabled when the typed string is in [ALLOW_CODE_COMPLETION_PATTERN] context.
+ *
  * @see EnableAutoPopupInStringLiteralForGradleDependencyCompletion
  */
 class GradleDependencyCompletionContributor : CompletionContributor() {
@@ -208,7 +220,7 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
 
           result.addAllElements(generateLookup())
         }
-      }
+      },
     )
     extend(
       CompletionType.BASIC,
@@ -220,19 +232,20 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
           val name = keyValue?.key?.text
           result.addAllElements(generateLookupFor(name))
         }
-      }
+      },
     )
   }
 
   private fun generateLookupFor(tomlElementName: String?): Collection<LookupElement> {
     val lookUpElements = generateLookup()
-    val suggestions: Set<String> = when (tomlElementName) {
-      GROUP_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId }.toSet()
-      MODULE_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId + ":" + it.coordinate.artifactId }.toSet()
-      NAME_ELEMENT_TOML -> lookUpElements.map { it.coordinate.artifactId }.toSet()
-      VERSION_ELEMENT_TOML -> lookUpElements.map { it.coordinate.version }.toSet()
-      else -> setOf()
-    }
+    val suggestions: Set<String> =
+      when (tomlElementName) {
+        GROUP_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId }.toSet()
+        MODULE_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId + ":" + it.coordinate.artifactId }.toSet()
+        NAME_ELEMENT_TOML -> lookUpElements.map { it.coordinate.artifactId }.toSet()
+        VERSION_ELEMENT_TOML -> lookUpElements.map { it.coordinate.version }.toSet()
+        else -> setOf()
+      }
     return suggestions.map {
       object : LookupElement() {
         override fun getLookupString(): String = it
@@ -268,13 +281,11 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
   }
 }
 
-/**
- *  Allow auto-popup when it's in [ALLOW_CODE_COMPLETION_PATTERN] context.
- */
+/** Allow auto-popup when it's in [ALLOW_CODE_COMPLETION_PATTERN] context. */
 class EnableAutoPopupInStringLiteralForGradleDependencyCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
-    if (ALLOW_CODE_COMPLETION_PATTERN.accepts(contextElement) ||
-        ALLOW_INLINE_TOML_COMPLETION_PATTERN.accepts(contextElement)) return ThreeState.NO
+    if (ALLOW_CODE_COMPLETION_PATTERN.accepts(contextElement) || ALLOW_INLINE_TOML_COMPLETION_PATTERN.accepts(contextElement))
+      return ThreeState.NO
 
     return ThreeState.UNSURE
   }

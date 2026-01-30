@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.T
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.JdkConstants.JDK_17
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
@@ -38,14 +38,11 @@ import org.junit.rules.TemporaryFolder
 @Suppress("UnstableApiUsage")
 class GradleJdkConfigurationRecoveryIntegrationTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
@@ -53,71 +50,39 @@ class GradleJdkConfigurationRecoveryIntegrationTest {
   fun `Given project without gradleJvm and projectJdk When import project Then invalid configuration was restored with Embedded JDK`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(),
-      environment = TestEnvironment(
-        studioFlags = StudioFeatureFlags(
-          restoreInvalidGradleJdkConfiguration = true
-        )
-      )
+      environment = TestEnvironment(studioFlags = StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
     ) {
-      skipSyncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
-        expectedGradleJdkPath = JDK_EMBEDDED_PATH
-      )
+      skipSyncWithAssertion(expectedGradleJdkName = JDK_EMBEDDED, expectedGradleJdkPath = JDK_EMBEDDED_PATH)
     }
 
   @Test
   fun `Given project with USE_PROJECT_JDK as gradleJvm and without projectJdk When import project Then invalid configuration was restored with Embedded JDK`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaGradleJdk = USE_PROJECT_JDK
-      ),
-      environment = TestEnvironment(
-        studioFlags = StudioFeatureFlags(
-          restoreInvalidGradleJdkConfiguration = true
-        )
-      )
+      project = SimpleApplication(ideaGradleJdk = USE_PROJECT_JDK),
+      environment = TestEnvironment(studioFlags = StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
     ) {
-      skipSyncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
-        expectedGradleJdkPath = JDK_EMBEDDED_PATH
-      )
+      skipSyncWithAssertion(expectedGradleJdkName = JDK_EMBEDDED, expectedGradleJdkPath = JDK_EMBEDDED_PATH)
     }
 
   @Test
   fun `Given project without gradleJvm and invalid projectJdk When import project Then invalid configuration was restored with Embedded JDK`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaProjectJdk = "invalid"
-      ),
-      environment = TestEnvironment(
-        studioFlags = StudioFeatureFlags(
-          restoreInvalidGradleJdkConfiguration = true
-        )
-      )
+      project = SimpleApplication(ideaProjectJdk = "invalid"),
+      environment = TestEnvironment(studioFlags = StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
     ) {
-      skipSyncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
-        expectedGradleJdkPath = JDK_EMBEDDED_PATH
-      )
+      skipSyncWithAssertion(expectedGradleJdkName = JDK_EMBEDDED, expectedGradleJdkPath = JDK_EMBEDDED_PATH)
     }
 
   @Test
   fun `Given project without gradleJvm with valid gradleLocalJavaHome and projectJdk When import project Then invalid configuration was restored with defined gradleLocalJavaHome JDK`() =
     jdkIntegrationTest.run(
-      project = SimpleApplication(
-        ideaProjectJdk = JDK_17,
-        gradleLocalJavaHome = JDK_11_PATH
-      ),
-      environment = TestEnvironment(
-        studioFlags = StudioFeatureFlags(
-          restoreInvalidGradleJdkConfiguration = true
+      project = SimpleApplication(ideaProjectJdk = JDK_17, gradleLocalJavaHome = JDK_11_PATH),
+      environment =
+        TestEnvironment(
+          studioFlags = StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true),
+          environmentVariables = mapOf(JDK_17 to JDK_17_PATH),
         ),
-        environmentVariables = mapOf(JDK_17 to JDK_17_PATH)
-      )
     ) {
-      skipSyncWithAssertion(
-        expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME,
-        expectedGradleJdkPath = JDK_11_PATH
-      )
+      skipSyncWithAssertion(expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME, expectedGradleJdkPath = JDK_11_PATH)
     }
 }

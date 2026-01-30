@@ -48,25 +48,21 @@ object WFFConstants {
   /**
    * Attributes that can reference drawable resources.
    *
-   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
-   *   Face Format reference</a>
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
    */
   val DRAWABLE_RESOURCE_ATTRIBUTES = setOf("resource", "icon", "defaultImageResource")
 
   /**
    * Attributes that can reference colors.
    *
-   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
-   *   Face Format reference</a>
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch Face Format reference</a>
    */
   val COLOR_ATTRIBUTES = setOf("color", "backgroundColor", "tintColor")
 
   /**
    * Data sources that can be used in an expression.
    *
-   * @see <a
-   *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/source-type">Source
-   *   Type</a>
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/common/attributes/source-type">Source Type</a>
    */
   object DataSources {
     val WEATHER_DAYS_PATTERN = "WEATHER\\.DAYS\\.(\\d+)".toRegex()
@@ -189,8 +185,7 @@ object WFFConstants {
         StaticDataSource(id = "HEART_RATE", requiredVersion = WFFVersion1),
       )
 
-    val NOTIFICATION =
-      listOf(StaticDataSource(id = "UNREAD_NOTIFICATION_COUNT", requiredVersion = WFFVersion1))
+    val NOTIFICATION = listOf(StaticDataSource(id = "UNREAD_NOTIFICATION_COUNT", requiredVersion = WFFVersion1))
 
     val WEATHER =
       listOf(
@@ -308,124 +303,63 @@ object WFFConstants {
         ),
       )
 
-    /**
-     * @see <a
-     *   href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a>
-     */
+    /** @see <a href="https://developer.android.com/reference/wear-os/wff/complication/complication">Complication</a> */
     val COMPLICATION_BY_TYPE =
       mapOf(
         "LONG_TEXT" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion1,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.SMALL_IMAGE", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TEXT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TITLE", requiredVersion = WFFVersion1),
           ),
         "MONOCHROMATIC_IMAGE" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion1,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT",
-              requiredVersion = WFFVersion1,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion1),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT", requiredVersion = WFFVersion1),
           ),
-        "PHOTO_IMAGE" to
-          setOf(StaticDataSource(id = "COMPLICATION.PHOTO_IMAGE", requiredVersion = WFFVersion1)),
+        "PHOTO_IMAGE" to setOf(StaticDataSource(id = "COMPLICATION.PHOTO_IMAGE", requiredVersion = WFFVersion1)),
         "RANGED_VALUE" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion1,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT",
-              requiredVersion = WFFVersion1,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion1),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TEXT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TITLE", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.RANGED_VALUE_MIN", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.RANGED_VALUE_MAX", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.RANGED_VALUE_VALUE", requiredVersion = WFFVersion1),
-            StaticDataSource(
-              id = "COMPLICATION.RANGED_VALUE_COLORS",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE",
-              requiredVersion = WFFVersion2,
-            ),
+            StaticDataSource(id = "COMPLICATION.RANGED_VALUE_COLORS", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.RANGED_VALUE_COLORS_INTERPOLATE", requiredVersion = WFFVersion2),
           ),
         "SHORT_TEXT" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion1,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT",
-              requiredVersion = WFFVersion1,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion1),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE_AMBIENT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TEXT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.TITLE", requiredVersion = WFFVersion1),
           ),
         "SMALL_IMAGE" to
           setOf(
             StaticDataSource(id = "COMPLICATION.SMALL_IMAGE", requiredVersion = WFFVersion1),
-            StaticDataSource(
-              id = "COMPLICATION.SMALL_IMAGE_AMBIENT",
-              requiredVersion = WFFVersion1,
-            ),
+            StaticDataSource(id = "COMPLICATION.SMALL_IMAGE_AMBIENT", requiredVersion = WFFVersion1),
             StaticDataSource(id = "COMPLICATION.IMAGE_STYLE", requiredVersion = WFFVersion1),
           ),
         "GOAL_PROGRESS" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.GOAL_PROGRESS_VALUE",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.GOAL_PROGRESS_TARGET_VALUE",
-              requiredVersion = WFFVersion2,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.GOAL_PROGRESS_VALUE", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.GOAL_PROGRESS_TARGET_VALUE", requiredVersion = WFFVersion2),
             StaticDataSource(id = "COMPLICATION.TEXT", requiredVersion = WFFVersion2),
             StaticDataSource(id = "COMPLICATION.TITLE", requiredVersion = WFFVersion2),
-            StaticDataSource(
-              id = "COMPLICATION.GOAL_PROGRESS_COLORS",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.GOAL_PROGRESS_COLORS_INTERPOLATE",
-              requiredVersion = WFFVersion2,
-            ),
+            StaticDataSource(id = "COMPLICATION.GOAL_PROGRESS_COLORS", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.GOAL_PROGRESS_COLORS_INTERPOLATE", requiredVersion = WFFVersion2),
           ),
         "WEIGHTED_ELEMENTS" to
           setOf(
-            StaticDataSource(
-              id = "COMPLICATION.MONOCHROMATIC_IMAGE",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.WEIGHTED_ELEMENTS_COLORS",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.WEIGHTED_ELEMENTS_WEIGHTS",
-              requiredVersion = WFFVersion2,
-            ),
-            StaticDataSource(
-              id = "COMPLICATION.WEIGHTED_ELEMENTS_BACKGROUND_COLOR",
-              requiredVersion = WFFVersion2,
-            ),
+            StaticDataSource(id = "COMPLICATION.MONOCHROMATIC_IMAGE", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.WEIGHTED_ELEMENTS_COLORS", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.WEIGHTED_ELEMENTS_WEIGHTS", requiredVersion = WFFVersion2),
+            StaticDataSource(id = "COMPLICATION.WEIGHTED_ELEMENTS_BACKGROUND_COLOR", requiredVersion = WFFVersion2),
             StaticDataSource(id = "COMPLICATION.TITLE", requiredVersion = WFFVersion2),
             StaticDataSource(id = "COMPLICATION.TEXT", requiredVersion = WFFVersion2),
           ),
@@ -434,41 +368,27 @@ object WFFConstants {
     val COMPLICATION_ALL = COMPLICATION_BY_TYPE.values.flatten().toSet()
 
     /**
-     * Contains all static data sources, such as `[STEP_COUNT]`, does not include patterned data
-     * sources, such as `[WEATHER.DAYS.<days>.IS_AVAILABLE]`, and does not contain complication data
-     * sources, such as `[COMPLICATION.TEXT]` which depend on the type of complication.
+     * Contains all static data sources, such as `[STEP_COUNT]`, does not include patterned data sources, such as
+     * `[WEATHER.DAYS.<days>.IS_AVAILABLE]`, and does not contain complication data sources, such as `[COMPLICATION.TEXT]` which depend on
+     * the type of complication.
      */
-    val ALL_STATIC =
-      TIME_UNIT +
-        TIME_SOURCE +
-        LANGUAGE +
-        BATTERY +
-        MOON_PHASE +
-        SENSOR +
-        HEALTH +
-        NOTIFICATION +
-        WEATHER
+    val ALL_STATIC = TIME_UNIT + TIME_SOURCE + LANGUAGE + BATTERY + MOON_PHASE + SENSOR + HEALTH + NOTIFICATION + WEATHER
 
     val ALL_STATIC_BY_ID = ALL_STATIC.associateBy { it.id }
 
     val ALL_AVAILABLE_STATIC_BY_VERSION =
-      WFFVersion.entries.associateWith { version ->
-        ALL_STATIC.filter { it.requiredVersion <= version }
-      }
+      WFFVersion.entries.associateWith { version -> ALL_STATIC.filter { it.requiredVersion <= version } }
 
     val ALL_PATTERNS = WEATHER_PATTERNS
 
     val ALL_AVAILABLE_PATTERNS_BY_VERSION =
-      WFFVersion.entries.associateWith { version ->
-        ALL_PATTERNS.filter { it.requiredVersion <= version }
-      }
+      WFFVersion.entries.associateWith { version -> ALL_PATTERNS.filter { it.requiredVersion <= version } }
   }
 
   /**
    * Functions that can be called in an expression.
    *
-   * @see <a
-   *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/arithmetic-expression#functions">Functions</a>
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/common/attributes/arithmetic-expression#functions">Functions</a>
    */
   object Functions {
     val ALL =
@@ -509,7 +429,6 @@ object WFFConstants {
 
     val ALL_BY_ID = ALL.associateBy { it.id }
 
-    val ALL_AVAILABLE_FUNCTIONS_BY_VERSION =
-      WFFVersion.entries.associateWith { version -> ALL.filter { it.requiredVersion <= version } }
+    val ALL_AVAILABLE_FUNCTIONS_BY_VERSION = WFFVersion.entries.associateWith { version -> ALL.filter { it.requiredVersion <= version } }
   }
 }

@@ -28,13 +28,14 @@ class AndroidSqlFileType private constructor() : LanguageFileType(AndroidSqlLang
   }
 
   override fun getName(): String = ANDROID_SQL_DESCRIPTION
+
   override fun getDescription(): String = ANDROID_SQL_DESCRIPTION
+
   override fun getDefaultExtension(): String = ""
+
   override fun getIcon(): Icon = ANDROID_SQL_ICON
 }
 
-/**
- * Icon used for all things related to our SQL support.
- */
+/** Icon used for all things related to our SQL support. */
 val ANDROID_SQL_ICON: Icon
   get() = StudioIcons.DeviceExplorer.DATABASE_FOLDER

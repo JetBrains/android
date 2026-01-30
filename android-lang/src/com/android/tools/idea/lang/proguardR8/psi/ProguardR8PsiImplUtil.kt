@@ -40,25 +40,22 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
-private class ProguardR8JavaClassReferenceProvider(
-  val scope: GlobalSearchScope,
-  val treatDollarAsSeparator: Boolean
-) : JavaClassReferenceProvider() {
+private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope, val treatDollarAsSeparator: Boolean) :
+  JavaClassReferenceProvider() {
 
   override fun getScope(project: Project): GlobalSearchScope = scope
 
   override fun getReferencesByString(str: String, position: PsiElement, offsetInPosition: Int): Array<PsiReference> {
     return if (StringUtil.isEmpty(str)) {
       PsiReference.EMPTY_ARRAY
-    }
-    else {
+    } else {
       object : JavaClassReferenceSet(str, position, offsetInPosition, false, this) {
-        // If true allows inner classes to be separated by a dollar sign "$", e.g.java.lang.Thread$State
-        // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want
-        // language of PsiElement that we parse should be an instance of XMLLanguage.
-        override fun isAllowDollarInNames() = treatDollarAsSeparator
-
-      }.allReferences as Array<PsiReference>
+          // If true allows inner classes to be separated by a dollar sign "$", e.g.java.lang.Thread$State
+          // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want
+          // language of PsiElement that we parse should be an instance of XMLLanguage.
+          override fun isAllowDollarInNames() = treatDollarAsSeparator
+        }
+        .allReferences as Array<PsiReference>
     }
   }
 }
@@ -98,9 +95,7 @@ fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHead
   return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
-/**
- * Returns classes in header that specified after "extends"/"implements" keywords.
- */
+/** Returns classes in header that specified after "extends"/"implements" keywords. */
 fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
   return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
@@ -134,21 +129,17 @@ fun getNumberOfDimensions(array: ProguardR8ArrayType): Int {
   return (array.node as CompositeElement).countChildren(TokenSet.create(ProguardR8PsiTypes.OPEN_BRACKET))
 }
 
-/**
- * Returns true if ProguardR8Type would match given "other" PsiType otherwise returns false
- */
+/** Returns true if ProguardR8Type would match given "other" PsiType otherwise returns false */
 fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
   if (PsiTreeUtil.hasErrorElements(type)) return false
 
   var typeToMatch = other
   if (type.arrayType != null) {
-    for (x in 0 until type.arrayType!!.numberOfDimensions)
-      if (typeToMatch is PsiArrayType) {
-        typeToMatch = typeToMatch.componentType
-      }
-      else {
-        return false
-      }
+    for (x in 0 until type.arrayType!!.numberOfDimensions) if (typeToMatch is PsiArrayType) {
+      typeToMatch = typeToMatch.componentType
+    } else {
+      return false
+    }
   }
   return when {
     type.javaPrimitive != null -> type.javaPrimitive!!.psiPrimitive == typeToMatch
@@ -164,9 +155,9 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
 /**
  * Returns true if ProguardR8Parameters doesn't have errors and matches given "other" PsiParameterList otherwise returns false
  *
- * In general, it checks if every type within ProguardR8Parameters [matchesPsiType] type in PsiParameterList at the same position.
- * Tricky case is when ProguardR8Parameters ends with '...' (matches any number of arguments of any type). In this case we need to check
- * that all types at positions before '...' match and after if there are still some types remain at PsiParameterList, we just ignore them.
+ * In general, it checks if every type within ProguardR8Parameters [matchesPsiType] type in PsiParameterList at the same position. Tricky
+ * case is when ProguardR8Parameters ends with '...' (matches any number of arguments of any type). In this case we need to check that all
+ * types at positions before '...' match and after if there are still some types remain at PsiParameterList, we just ignore them.
  */
 fun matchesPsiParameterList(parameters: ProguardR8Parameters, psiParameterList: PsiParameterList): Boolean {
   if (PsiTreeUtil.hasErrorElements(parameters)) return false
@@ -193,8 +184,8 @@ fun matchesPsiParameterList(parameters: ProguardR8Parameters, psiParameterList: 
 
 fun isAcceptAnyParameters(parameters: ProguardR8Parameters): Boolean {
   return !PsiTreeUtil.hasErrorElements(parameters) &&
-         PsiTreeUtil.findChildOfType(parameters, ProguardR8TypeList::class.java) == null &&
-         parameters.node.findChildByType(ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS) != null
+    PsiTreeUtil.findChildOfType(parameters, ProguardR8TypeList::class.java) == null &&
+    parameters.node.findChildByType(ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS) != null
 }
 
 fun getParameters(field: ProguardR8Field): ProguardR8Parameters? = null
@@ -211,36 +202,36 @@ fun isNegated(modifier: ProguardR8Modifier) = modifier.firstChild.node.elementTy
 
 fun isAccessModifier(modifier: ProguardR8Modifier) = accessModifiers.contains(modifier.toPsiModifier())
 
-fun toPsiModifier(modifier: ProguardR8Modifier) = when {
-  modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
-  modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
-  modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
-  modifier.node.findChildByType(ProguardR8PsiTypes.STATIC) != null -> PsiModifier.STATIC
-  modifier.node.findChildByType(ProguardR8PsiTypes.FINAL) != null -> PsiModifier.FINAL
-  modifier.node.findChildByType(ProguardR8PsiTypes.ABSTRACT) != null -> PsiModifier.ABSTRACT
-  modifier.node.findChildByType(ProguardR8PsiTypes.VOLATILE) != null -> PsiModifier.VOLATILE
-  modifier.node.findChildByType(ProguardR8PsiTypes.TRANSIENT) != null -> PsiModifier.TRANSIENT
-  modifier.node.findChildByType(ProguardR8PsiTypes.SYNCHRONIZED) != null -> PsiModifier.SYNCHRONIZED
-  modifier.node.findChildByType(ProguardR8PsiTypes.NATIVE) != null -> PsiModifier.NATIVE
-  modifier.node.findChildByType(ProguardR8PsiTypes.STRICTFP) != null -> PsiModifier.STRICTFP
-  else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
-}
+fun toPsiModifier(modifier: ProguardR8Modifier) =
+  when {
+    modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
+    modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
+    modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
+    modifier.node.findChildByType(ProguardR8PsiTypes.STATIC) != null -> PsiModifier.STATIC
+    modifier.node.findChildByType(ProguardR8PsiTypes.FINAL) != null -> PsiModifier.FINAL
+    modifier.node.findChildByType(ProguardR8PsiTypes.ABSTRACT) != null -> PsiModifier.ABSTRACT
+    modifier.node.findChildByType(ProguardR8PsiTypes.VOLATILE) != null -> PsiModifier.VOLATILE
+    modifier.node.findChildByType(ProguardR8PsiTypes.TRANSIENT) != null -> PsiModifier.TRANSIENT
+    modifier.node.findChildByType(ProguardR8PsiTypes.SYNCHRONIZED) != null -> PsiModifier.SYNCHRONIZED
+    modifier.node.findChildByType(ProguardR8PsiTypes.NATIVE) != null -> PsiModifier.NATIVE
+    modifier.node.findChildByType(ProguardR8PsiTypes.STRICTFP) != null -> PsiModifier.STRICTFP
+    else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
+  }
 
 fun getType(fullyQualifiedNameConstructor: ProguardR8FullyQualifiedNameConstructor): ProguardR8Type? = null
 
 fun isQuoted(file: ProguardR8File): Boolean {
   return file.singleQuotedString != null ||
-         file.unterminatedSingleQuotedString != null ||
-         file.doubleQuotedString != null ||
-         file.unterminatedDoubleQuotedString != null
+    file.unterminatedSingleQuotedString != null ||
+    file.doubleQuotedString != null ||
+    file.unterminatedDoubleQuotedString != null
 }
 
 fun getReferences(file: ProguardR8File): Array<FileReference> {
   return if (file.isQuoted) {
     val lastIndex = if (file.singleQuotedString != null || file.doubleQuotedString != null) file.text.length - 1 else file.text.length
     FileReferenceSet(file.text.substring(1, lastIndex), file, 1, null, true).allReferences
-  }
-  else {
+  } else {
     FileReferenceSet(file).allReferences
   }
 }

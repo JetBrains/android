@@ -25,13 +25,11 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class LaunchCompatibilityCheckerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
 
   @Test
   fun create() {
-    val checker = LaunchCompatibilityCheckerImpl.create(projectRule.module.androidFacet!!)
-      as? LaunchCompatibilityCheckerImpl
+    val checker = LaunchCompatibilityCheckerImpl.create(projectRule.module.androidFacet!!) as? LaunchCompatibilityCheckerImpl
     assertThat(checker).isNotNull()
     // Verify that we got a non-default AndroidVersion from the model
     assertThat(checker!!.myMinSdkVersion.apiLevel).isGreaterThan(1)

@@ -48,15 +48,12 @@ class IssueAtPositionHandler : TomlErrorHandler {
     return listOf()
   }
 
-  private data class ErrorDescription(
-    val absolutePath: String?,
-    val line: Int?,
-    val column: Int?
-  )
+  private data class ErrorDescription(val absolutePath: String?, val line: Int?, val column: Int?)
 
-  private fun extractIssueInformation(catalog: String,
-                                      description: StringBuilder,
-                                      reader: BuildOutputInstantReader
+  private fun extractIssueInformation(
+    catalog: String,
+    description: StringBuilder,
+    reader: BuildOutputInstantReader,
   ): List<BuildIssueEvent> {
     val errorDescriptions = mutableListOf<ErrorDescription>()
 
@@ -71,8 +68,7 @@ class IssueAtPositionHandler : TomlErrorHandler {
             val (file, line, column) = it.destructured
             errorDescriptions.add(ErrorDescription(file, line.toIntOrNull(), column.toIntOrNull()))
           }
-        }
-        else {
+        } else {
           REASON_FILE_AND_POSITION_PATTERN_CONTINUATION.matchEntire(descriptionLine)?.let {
             val (file, line, column) = it.destructured
             errorDescriptions.add(ErrorDescription(file, line.toIntOrNull(), column.toIntOrNull()))
@@ -82,15 +78,17 @@ class IssueAtPositionHandler : TomlErrorHandler {
     )
 
     return errorDescriptions.map { error ->
-      val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-        override fun getNavigatable(project: Project): Navigatable? {
-          val tomlFile = when {
-                           error.absolutePath != null -> VfsUtil.findFile(Paths.get(error.absolutePath), false)
-                           else -> project.findCatalogFile(catalog)
-                         } ?: return null
-          return OpenFileDescriptor(project, tomlFile, error.line?.minus(1) ?: 0, error.column?.minus(1) ?: 0)
+      val buildIssue =
+        object : TomlErrorMessageAwareIssue(description.toString()) {
+          override fun getNavigatable(project: Project): Navigatable? {
+            val tomlFile =
+              when {
+                error.absolutePath != null -> VfsUtil.findFile(Paths.get(error.absolutePath), false)
+                else -> project.findCatalogFile(catalog)
+              } ?: return null
+            return OpenFileDescriptor(project, tomlFile, error.line?.minus(1) ?: 0, error.column?.minus(1) ?: 0)
+          }
         }
-      }
       BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
     }
   }

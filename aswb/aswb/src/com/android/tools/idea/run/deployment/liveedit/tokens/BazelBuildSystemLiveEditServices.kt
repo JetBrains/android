@@ -16,30 +16,24 @@
 package com.android.tools.idea.run.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
-import com.android.tools.idea.run.classes.BuildOutcome
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
-import com.google.idea.blaze.common.Label
-import com.google.idea.common.experiments.BoolExperiment
 
-class BazelBuildSystemLiveEditServices :  BuildSystemLiveEditServices<BazelProjectSystem, BazelApplicationProjectContext>, BazelToken {
+class BazelBuildSystemLiveEditServices : BuildSystemLiveEditServices<BazelProjectSystem, BazelApplicationProjectContext>, BazelToken {
 
-  override fun isApplicable(
-    applicationProjectContext: ApplicationProjectContext
-  ): Boolean {
+  override fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean {
     return (applicationProjectContext as? BazelApplicationProjectContext)?.liveEditDataExtractor != null
   }
 
-  override fun getApplicationServices(
-    bazelApplicationProjectContext: BazelApplicationProjectContext
-  ): ApplicationLiveEditServices {
+  override fun getApplicationServices(bazelApplicationProjectContext: BazelApplicationProjectContext): ApplicationLiveEditServices {
     val liveEditData = bazelApplicationProjectContext.liveEditDataExtractor ?: error("Internal error: liveEditDataExtractor == null")
     return BazelApplicationLiveEditServices(
       project = bazelApplicationProjectContext.project,
-      buildOutcomeProvider = liveEditData::getBuildOutcomeBlocking
+      buildOutcomeProvider = liveEditData::getBuildOutcomeBlocking,
     )
   }
+
   override fun disqualifyingBytecodeTransformation(
     bazelApplicationProjectContext: BazelApplicationProjectContext
   ): BuildSystemBytecodeTransformation? = null

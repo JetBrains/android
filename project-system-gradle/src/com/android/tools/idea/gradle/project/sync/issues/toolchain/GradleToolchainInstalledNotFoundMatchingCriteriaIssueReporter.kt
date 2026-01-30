@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.NOT_FOUND_INSTALLED_TOOLCHAIN_MATCHING_CRITERIA
 import org.jetbrains.plugins.gradle.issue.GradleToolchainInstalledNotFoundMatchingCriteriaIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleToolchainInstalledNotFoundMatchingCriteriaIssueChecker]
- */
-class GradleToolchainInstalledNotFoundMatchingCriteriaIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleToolchainInstalledNotFoundMatchingCriteriaIssueChecker(),
-  errorEvent = NOT_FOUND_INSTALLED_TOOLCHAIN_MATCHING_CRITERIA
-)
+/** Gradle build error analytics tracker for [GradleToolchainInstalledNotFoundMatchingCriteriaIssueChecker] */
+class GradleToolchainInstalledNotFoundMatchingCriteriaIssueReporter :
+  DaemonJvmCriteriaIssueReporter(
+    checker = GradleToolchainInstalledNotFoundMatchingCriteriaIssueChecker(),
+    errorEvent = NOT_FOUND_INSTALLED_TOOLCHAIN_MATCHING_CRITERIA,
+  )

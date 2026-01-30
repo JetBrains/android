@@ -46,14 +46,7 @@ class DatabaseInspectorConfigurableProviderTest {
   private val project
     get() = projectRule.project
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      FlagRule(EXPERIMENTAL_FLAG, true),
-      FlagRule(ADDITIONAL_DRIVER_FLAG, true),
-      EdtRule(),
-    )
+  @get:Rule val rule = RuleChain(projectRule, FlagRule(EXPERIMENTAL_FLAG, true), FlagRule(ADDITIONAL_DRIVER_FLAG, true), EdtRule())
 
   private val settings by lazy { DatabaseInspectorSettings.getInstance() }
   private val projectSettings by lazy { DatabaseInspectorProjectSettings.getInstance(project) }
@@ -209,27 +202,21 @@ class DatabaseInspectorConfigurableProviderTest {
   @Test
   fun testAdditionalClasses_flagDisabled_notShown() {
     val provider = DatabaseInspectorConfigurableProvider(project)
-    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass"))
-      .isTrue()
-    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass"))
-      .isTrue()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass")).isTrue()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass")).isTrue()
 
     ADDITIONAL_DRIVER_FLAG.override(false)
-    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass"))
-      .isFalse()
-    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass"))
-      .isFalse()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("driverClass")).isFalse()
+    assertThat(provider.createConfigurable().hasNamedComponent<TextAccessor>("connectionClass")).isFalse()
   }
 
   @Test
   fun testIsIgnoreFramework_flagDisabled_notShown() {
     val provider = DatabaseInspectorConfigurableProvider(project)
-    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi"))
-      .isTrue()
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi")).isTrue()
 
     ADDITIONAL_DRIVER_FLAG.override(false)
-    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi"))
-      .isFalse()
+    assertThat(provider.createConfigurable().hasNamedComponent<JCheckBox>("ignoreFrameworkApi")).isFalse()
   }
 
   private fun createConfigurable(): Configurable {
@@ -259,8 +246,7 @@ private fun Configurable.getDriverClass() = getNamedComponent<TextAccessor>("dri
 
 private fun Configurable.getConnectionClass() = getNamedComponent<TextAccessor>("connectionClass")
 
-private fun Configurable.getIgnoreFrameworkApi() =
-  getNamedComponent<JCheckBox>("ignoreFrameworkApi")
+private fun Configurable.getIgnoreFrameworkApi() = getNamedComponent<JCheckBox>("ignoreFrameworkApi")
 
 private inline fun <reified T : Any> Configurable.getNamedComponent(name: String): T {
   val component = createComponent() ?: fail("Unexpected null component")

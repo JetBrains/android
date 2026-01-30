@@ -17,12 +17,8 @@ package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 
-/**
- * A [DelegatingClassLoader.Loader] that allows re-mapping the FQCN before passing it to the [delegate].
- */
-class NameRemapperLoader(
-  private val delegate: DelegatingClassLoader.Loader,
-  private val mapping: (String) -> (String)): DelegatingClassLoader.Loader {
-  override fun loadClass(fqcn: String): ByteArray? =
-    delegate.loadClass(mapping(fqcn))
+/** A [DelegatingClassLoader.Loader] that allows re-mapping the FQCN before passing it to the [delegate]. */
+class NameRemapperLoader(private val delegate: DelegatingClassLoader.Loader, private val mapping: (String) -> (String)) :
+  DelegatingClassLoader.Loader {
+  override fun loadClass(fqcn: String): ByteArray? = delegate.loadClass(mapping(fqcn))
 }

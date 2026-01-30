@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.dsl.parser.elements
 
 sealed interface GradleDslAnchor {
   val parentDslElement: GradleDslElement?
+
   data class Start(override val parentDslElement: GradleDslElement) : GradleDslAnchor
-  data class After @JvmOverloads constructor(
-    val dslElement: GradleDslElement,
-    override val parentDslElement: GradleDslElement? = dslElement.parent
-  ) : GradleDslAnchor
+
+  data class After
+  @JvmOverloads
+  constructor(val dslElement: GradleDslElement, override val parentDslElement: GradleDslElement? = dslElement.parent) : GradleDslAnchor
 }

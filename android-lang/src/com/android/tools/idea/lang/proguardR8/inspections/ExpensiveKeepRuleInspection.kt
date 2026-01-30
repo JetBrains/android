@@ -41,7 +41,6 @@ import com.intellij.psi.util.childrenOfType
  * Reports when overly broad Proguard rules are used.
  *
  * Examples include:
- *
  * ```
  * -keep class com.**.*
  * -keep class **.* { <fields>; }
@@ -55,39 +54,30 @@ class ExpensiveKeepRuleInspection : LocalInspectionTool() {
         val expensiveKeepRule = expensiveKeepRuleOrNull(rule)
         if (expensiveKeepRule != null) {
           // Expand on this by using the qualified name to identify the blast radius.
-          holder.registerProblem(
-            expensiveKeepRule.elementToHighlight,
-            expensiveKeepRule.description,
-            ProblemHighlightType.WARNING
-          )
+          holder.registerProblem(expensiveKeepRule.elementToHighlight, expensiveKeepRule.description, ProblemHighlightType.WARNING)
         }
       }
     }
   }
 
   companion object {
-    /**
-     * The maximum number of classes that are allowed to be affected by a proguard rule.
-     */
+    /** The maximum number of classes that are allowed to be affected by a proguard rule. */
     const val CLASSES_AFFECTED_LIMIT = 100
 
-    /**
-     * The inspection description when a proguard rule affects a large number of classes.
-     */
+    /** The inspection description when a proguard rule affects a large number of classes. */
     const val TOO_MANY_AFFECTED_CLASSES_DESCRIPTION =
       "Overly broad keep rule affecting more than $CLASSES_AFFECTED_LIMIT classes." +
-      " Scope rules using annotations, specific classes, or using specific field/method selectors"
+        " Scope rules using annotations, specific classes, or using specific field/method selectors"
 
     const val RULE_USES_NEGATION_DESCRIPTION =
-      "Rules that use negation typically end up keeping a lot more classes than intended," +
-      " prefer one that does not use (!)"
+      "Rules that use negation typically end up keeping a lot more classes than intended," + " prefer one that does not use (!)"
   }
 }
 
 private data class ExpensiveProguardR8Rule(
   val elementToHighlight: PsiElement,
   val qualifiedName: ProguardR8QualifiedName,
-  val description: String
+  val description: String,
 )
 
 private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification): ExpensiveProguardR8Rule? {
@@ -101,7 +91,7 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
     // Only interested in unconditional keep rules at the moment.
     return null
   }
-  val isClass = classType != null && classType.textMatches(/* text = */ "class")
+  val isClass = classType != null && classType.textMatches(/* text= */ "class")
   if (!isClass) {
     // Interfaces are not as problematic as class rules.
     return null
@@ -114,14 +104,13 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
   // Check for Negation in Rules
   // Check if the class name has a ! which represents negation of a rule.
   // These rules are super hard to reason about, and they cannot scale because 2 rules with negation is effectively keep everything.
-  val negation = className.childrenOfType<PsiElement>()
-    .firstOrNull { it.textMatches("!") }
+  val negation = className.childrenOfType<PsiElement>().firstOrNull { it.textMatches("!") }
 
   if (negation != null) {
     return ExpensiveProguardR8Rule(
       elementToHighlight = rule,
       qualifiedName = className.qualifiedName,
-      description = RULE_USES_NEGATION_DESCRIPTION
+      description = RULE_USES_NEGATION_DESCRIPTION,
     )
   }
 
@@ -137,10 +126,7 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
   }
 
   // We have now identified that the name of the class has a wildcard.
-  val countAffected = service.affectedClassesForQualifiedName(
-    qualifiedName = className.qualifiedName,
-    CLASSES_AFFECTED_LIMIT
-  )
+  val countAffected = service.affectedClassesForQualifiedName(qualifiedName = className.qualifiedName, CLASSES_AFFECTED_LIMIT)
 
   val body = rule.classSpecificationBody
   if (body == null) {
@@ -148,32 +134,27 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
       ExpensiveProguardR8Rule(
         elementToHighlight = rule,
         qualifiedName = className.qualifiedName,
-        description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
+        description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION,
       )
-    }
-    else {
+    } else {
       null
     }
   }
 
-  val isBodyExpensive = body.childrenOfType<ProguardR8JavaRule>()
-    .any { proguardR8JavaRule ->
+  val isBodyExpensive =
+    body.childrenOfType<ProguardR8JavaRule>().any { proguardR8JavaRule ->
       val fieldSpecs = proguardR8JavaRule.childrenOfType<ProguardR8FieldsSpecification>()
       val fields = fieldSpecs.asSequence().flatMap { it.childrenOfType<ProguardR8Field>() }
       val methodSpecs = proguardR8JavaRule.childrenOfType<ProguardR8MethodSpecification>()
 
-      fieldSpecs.any { it.isExpensive() } ||
-      fields.any { it.isExpensive() } ||
-      methodSpecs.any { it.isExpensive() }
+      fieldSpecs.any { it.isExpensive() } || fields.any { it.isExpensive() } || methodSpecs.any { it.isExpensive() }
     }
-
-
 
   if (isBodyExpensive && countAffected >= CLASSES_AFFECTED_LIMIT) {
     return ExpensiveProguardR8Rule(
       elementToHighlight = rule,
       qualifiedName = className.qualifiedName,
-      description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
+      description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION,
     )
   }
 
@@ -189,10 +170,7 @@ internal fun ProguardR8QualifiedName.isExpensive(): Boolean {
   // We are excluding wildcards that include suffixes intentionally
   // E.g. **.*R$* is an example pattern that we are attempting to exclude.
   return lastPsiElementDoubleAsterisk ||
-         (
-           doubleAsteriskPresent &&
-           elements.takeLast(n = 2).joinToString(separator = "") { it.text } == ".*"
-         )
+    (doubleAsteriskPresent && elements.takeLast(n = 2).joinToString(separator = "") { it.text } == ".*")
 }
 
 private fun ProguardR8FieldsSpecification.isExpensive(): Boolean {

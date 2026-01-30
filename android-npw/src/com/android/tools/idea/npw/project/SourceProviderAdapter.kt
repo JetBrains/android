@@ -21,8 +21,7 @@ import com.android.builder.model.v2.CustomSourceDirectory
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import java.io.File
 
-class SourceProviderAdapter(private val name: String, private val paths: AndroidModulePaths) :
-  SourceProvider {
+class SourceProviderAdapter(private val name: String, private val paths: AndroidModulePaths) : SourceProvider {
 
   override fun getName(): String {
     return name

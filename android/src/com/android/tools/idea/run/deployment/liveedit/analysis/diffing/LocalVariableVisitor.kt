@@ -19,8 +19,12 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 
 interface LocalVariableVisitor {
   fun visitName(old: String, new: String) {}
+
   fun visitDesc(old: String, new: String) {}
+
   fun visitSignature(old: String?, new: String?) {}
+
   fun visitStart(old: IrLabels.IrLabel, new: IrLabels.IrLabel) {}
+
   fun visitEnd(old: IrLabels.IrLabel, new: IrLabels.IrLabel) {}
 }

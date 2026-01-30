@@ -21,25 +21,10 @@ import org.junit.Test
 class ArtifactCoordinateTest {
   @Test
   fun testSameArtifact() {
-    assertThat(
-        ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a1", "1.0"))
-      )
-      .isTrue()
-    assertThat(
-        ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a1", "2.0"))
-      )
-      .isTrue()
-    assertThat(
-        ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a2", "1.0"))
-      )
-      .isFalse()
-    assertThat(
-        ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g2", "a1", "1.0"))
-      )
-      .isFalse()
-    assertThat(
-        ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g2", "a2", "1.0"))
-      )
-      .isFalse()
+    assertThat(ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a1", "1.0"))).isTrue()
+    assertThat(ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a1", "2.0"))).isTrue()
+    assertThat(ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g1", "a2", "1.0"))).isFalse()
+    assertThat(ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g2", "a1", "1.0"))).isFalse()
+    assertThat(ArtifactCoordinate("g1", "a1", "1.0").sameArtifact(ArtifactCoordinate("g2", "a2", "1.0"))).isFalse()
   }
 }

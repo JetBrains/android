@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.testutils.TestUtils
@@ -21,27 +22,27 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
-import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.EDivisiveAnalyzer
+import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.UTestAnalyzer
 import com.google.common.truth.Truth
-import org.junit.rules.ExternalResource
 import java.io.File
 import java.nio.file.Files
+import org.junit.rules.ExternalResource
 
 // If `capture_heap` system property is set to `true` the test will also capture the heap alongside
-class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
-                                         private val disableAnalyzers: Boolean = false,
-                                         private val projectToCompareAgainst: String? = null) : ExternalResource() {
+class CaptureSyncMemoryFromHistogramRule(
+  private val projectName: String,
+  private val disableAnalyzers: Boolean = false,
+  private val projectToCompareAgainst: String? = null,
+) : ExternalResource() {
   override fun before() {
     StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(true)
 
-    mutateGradleProperties {
-      setJvmArgs("$jvmArgs -XX:SoftRefLRUPolicyMSPerMB=0")
-    }
-    val captureTypes = setOf(CaptureType.HEAP_HISTOGRAM) +
-                       if (System.getProperty("capture_heap").toBoolean()) setOf(CaptureType.HEAP_DUMP) else emptySet()
+    mutateGradleProperties { setJvmArgs("$jvmArgs -XX:SoftRefLRUPolicyMSPerMB=0") }
+    val captureTypes =
+      setOf(CaptureType.HEAP_HISTOGRAM) + if (System.getProperty("capture_heap").toBoolean()) setOf(CaptureType.HEAP_DUMP) else emptySet()
     MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes)
   }
 
@@ -58,57 +59,53 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String,
       val lines = metricFilePath.readLines()
       // Files less than three lines are likely not heap snapshots
       if (lines.size < 3) continue
-      val totalBytes = lines
-        .last()
-        .trim()
-        .split("\\s+".toRegex())[2]
-        .toLong()
+      val totalBytes = lines.last().trim().split("\\s+".toRegex())[2].toLong()
       val totalMegabytes = totalBytes shr 20
       val metricName = metricFilePath.toMetricName()
       val timestamp = metricFilePath.toTimestamp()
       println("Recording ${projectName}_$metricName -> $totalBytes bytes ($totalMegabytes MBs)")
       val metricToCompareAgainst = projectToCompareAgainst?.let { "${it}_$metricName" }
 
-      recordMemoryMeasurement(capturedMetricNames, "${projectName}_$metricName", TimestampedMeasurement(
-        timestamp,
-        totalBytes
-        ), metricToCompareAgainst)
+      recordMemoryMeasurement(
+        capturedMetricNames,
+        "${projectName}_$metricName",
+        TimestampedMeasurement(timestamp, totalBytes),
+        metricToCompareAgainst,
+      )
       Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "hprof" }.asIterable()) {
       Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
-    Truth.assertThat(capturedMetricNames).containsExactly(
-      "${projectName}_Configuration_Finished",
-      "${projectName}_Android_Started",
-      "${projectName}_Android_Finished",
-      "${projectName}_Sync_Finished",
-    )
+    Truth.assertThat(capturedMetricNames)
+      .containsExactly(
+        "${projectName}_Configuration_Finished",
+        "${projectName}_Android_Started",
+        "${projectName}_Android_Finished",
+        "${projectName}_Sync_Finished",
+      )
   }
 
   private fun recordMemoryMeasurement(
     capturedMetricNames: MutableList<String>,
     metricName: String,
     measurement: TimestampedMeasurement,
-    metricToCompareAgainst: String?) {
+    metricToCompareAgainst: String?,
+  ) {
     Metric(metricName).apply {
-      addSamples(MEMORY_BENCHMARK, Metric.MetricSample(
-        measurement.first.toEpochMilliseconds(),
-        measurement.second
-      ))
+      addSamples(MEMORY_BENCHMARK, Metric.MetricSample(measurement.first.toEpochMilliseconds(), measurement.second))
       if (!disableAnalyzers) {
         val runningFromReleaseBranch = System.getProperty("running.from.release.branch").toBoolean()
         val toleratedChange = 0.05 // 5%
-        val analyzer = when {
-          metricToCompareAgainst != null ->
-            UTestAnalyzer.forMetricComparison(metricToCompareAgainst, relativeShiftValue = toleratedChange)
-          // When running from a release branch, an additional analyzer to make a comparison
-          // between the release branch and the main branch is added.
-          runningFromReleaseBranch ->
-            UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange)
-          else ->
-            EDivisiveAnalyzer
-        }
+        val analyzer =
+          when {
+            metricToCompareAgainst != null ->
+              UTestAnalyzer.forMetricComparison(metricToCompareAgainst, relativeShiftValue = toleratedChange)
+            // When running from a release branch, an additional analyzer to make a comparison
+            // between the release branch and the main branch is added.
+            runningFromReleaseBranch -> UTestAnalyzer.forComparingWithMainBranch(relativeShiftValue = toleratedChange)
+            else -> EDivisiveAnalyzer
+          }
         val usingUTestAnalyzers = runningFromReleaseBranch || metricToCompareAgainst != null
         if (usingUTestAnalyzers) {
           // U-Test analyzers expect at least 3 points in the data to be available to make a meaningful comparison.

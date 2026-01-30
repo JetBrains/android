@@ -34,13 +34,7 @@ class WearTilePreviewDeviceSpecInspection : WearTilePreviewInspectionBase() {
           if (!node.isTilePreviewAnnotation()) {
             return super.visitAnnotation(node)
           }
-          DeviceSpecCheck.checkAnnotation(
-              node,
-              holder.manager,
-              isOnTheFly,
-              DEFAULT_WEAROS_DEVICE_ID,
-            )
-            ?.let { holder.registerProblem(it) }
+          DeviceSpecCheck.checkAnnotation(node, holder.manager, isOnTheFly, DEFAULT_WEAROS_DEVICE_ID)?.let { holder.registerProblem(it) }
           return super.visitAnnotation(node)
         }
       },

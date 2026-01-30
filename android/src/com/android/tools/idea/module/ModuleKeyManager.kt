@@ -20,14 +20,13 @@ import com.intellij.openapi.module.Module
 import java.util.WeakHashMap
 
 /**
- * Class that maintains a 1:1 mapping between a [Module] and a [ModuleKey]. The key can be used as a replacement key
- * in maps without forcing a strong reference to a Module that would make leaks harder to debug.
+ * Class that maintains a 1:1 mapping between a [Module] and a [ModuleKey]. The key can be used as a replacement key in maps without forcing
+ * a strong reference to a Module that would make leaks harder to debug.
  *
  * You are not meant to use this as a two way mapping so there is no way to get the [Module] from the [ModuleKey].
  */
 object ModuleKeyManager {
   private val moduleKeyMapping = WeakHashMap<Module, ModuleKey>()
 
-  fun getKey(module: Module): ModuleKey =
-    moduleKeyMapping.getOrPut(module) { ModuleKey() }
+  fun getKey(module: Module): ModuleKey = moduleKeyMapping.getOrPut(module) { ModuleKey() }
 }

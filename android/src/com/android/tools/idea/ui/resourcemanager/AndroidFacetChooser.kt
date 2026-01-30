@@ -28,33 +28,28 @@ import org.jetbrains.android.facet.AndroidFacet
 internal const val MODULE_NAME_KEY = "ModuleName"
 
 /**
- * Find the facet corresponding to the current opened editor if any, otherwise returns the
- * facet of the first Android module if any is found.
+ * Find the facet corresponding to the current opened editor if any, otherwise returns the facet of the first Android module if any is
+ * found.
  */
 internal fun findCompatibleFacetFromOpenedFiles(project: Project): AndroidFacet? =
   // Find facet for active files in editor
-  FileEditorManager.getInstance(project).selectedFiles.mapNotNull { file ->
-    ModuleUtilCore.findModuleForFile(file, project)?.getModuleSystem()?.getProductionAndroidModule()?.androidFacet
-  }.firstOrNull() ?:
-  // Fallback to the first facet we can find
-  findCompatibleFacets(project).firstOrNull()
+  FileEditorManager.getInstance(project)
+    .selectedFiles
+    .mapNotNull { file -> ModuleUtilCore.findModuleForFile(file, project)?.getModuleSystem()?.getProductionAndroidModule()?.androidFacet }
+    .firstOrNull()
+    ?:
+    // Fallback to the first facet we can find
+    findCompatibleFacets(project).firstOrNull()
 
-/**
- * Find the Facet that was last selected in a ResourceExplorer for a given project.
- *
- */
+/** Find the Facet that was last selected in a ResourceExplorer for a given project. */
 internal fun findLastSelectedFacet(project: Project): AndroidFacet? =
   getFacetForModuleName(PropertiesComponent.getInstance(project).getValue("$RES_MANAGER_PREF_KEY.$MODULE_NAME_KEY"), project)
 
-/**
- * Returns [AndroidFacet]s corresponding only to the main module.
- */
+/** Returns [AndroidFacet]s corresponding only to the main module. */
 internal fun findCompatibleFacets(project: Project): List<AndroidFacet> =
   ModuleManager.getInstance(project).modules.filter { it.getModuleSystem().isProductionAndroidModule() }.map { it.androidFacet!! }
 
-/**
- * True if the given [androidFacet] is supported in the ResourceExplorer.
- */
+/** True if the given [androidFacet] is supported in the ResourceExplorer. */
 internal fun compatibleFacetExists(androidFacet: AndroidFacet): Boolean =
   when (val mainFacet = androidFacet.getProductionAndroidModule().androidFacet) {
     null -> false

@@ -53,18 +53,13 @@ class UnknownWFFVersionInspection : LocalInspectionTool() {
         val wffVersion = androidFacet.resolvePlaceholders(wffVersionAttribute.value)
         if (!wffVersion.isInteger()) return
         if (wffVersion !in knownWffVersions) {
-          holder.registerProblem(
-            wffVersionAttribute,
-            message("inspection.unknown.wff.version.description"),
-            ProblemHighlightType.WARNING,
-          )
+          holder.registerProblem(wffVersionAttribute, message("inspection.unknown.wff.version.description"), ProblemHighlightType.WARNING)
         }
       }
     }
 
   private fun XmlTag.isWFFVersionProperty() =
-    name == TAG_PROPERTY &&
-      getAttributeValue(ATTR_NAME, ANDROID_URI) == WATCH_FACE_FORMAT_VERSION_PROPERTY
+    name == TAG_PROPERTY && getAttributeValue(ATTR_NAME, ANDROID_URI) == WATCH_FACE_FORMAT_VERSION_PROPERTY
 
   private fun AndroidFacet.resolvePlaceholders(value: String?) =
     if (value == null) null else getModuleSystem().getManifestOverrides().resolvePlaceholders(value)

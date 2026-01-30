@@ -67,9 +67,6 @@ class EssentialsModeFlowTest {
 
   private fun setPreviewEssentialsMode(value: Boolean) {
     settings.isPreviewEssentialsModeEnabled = value
-    ApplicationManager.getApplication()
-      .messageBus
-      .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
-      .onOptionsChanged()
+    ApplicationManager.getApplication().messageBus.syncPublisher(NlOptionsConfigurable.Listener.TOPIC).onOptionsChanged()
   }
 }

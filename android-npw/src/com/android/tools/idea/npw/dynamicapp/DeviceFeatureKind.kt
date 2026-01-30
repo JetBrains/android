@@ -17,9 +17,7 @@ package com.android.tools.idea.npw.dynamicapp
 
 import com.android.tools.idea.observable.core.StringValueProperty
 
-/**
- * Enum defining the various distribution options for a device feature of a dynamic feature module.
- */
+/** Enum defining the various distribution options for a device feature of a dynamic feature module. */
 enum class DeviceFeatureKind(val displayName: String) {
   GL_ES_VERSION("OpenGL ES Version") {
     override fun newStringValueProperty() = StringValueProperty("0x00020000")

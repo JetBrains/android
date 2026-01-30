@@ -37,8 +37,7 @@ class JobEntryTest {
                     .apply {
                       jobId = 222
                       serviceName = "package.SERVICE"
-                      extras =
-                        BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
+                      extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
                     }
                     .build()
                 result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
@@ -54,10 +53,7 @@ class JobEntryTest {
           jobStarted =
             BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 workOngoing = false
               }
               .build()
@@ -72,10 +68,7 @@ class JobEntryTest {
           jobFinished =
             BackgroundTaskInspectorProtocol.JobFinished.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 needsReschedule = false
               }
               .build()
@@ -101,11 +94,7 @@ class JobEntryTest {
 
     jobEntry.consumeAndAssertJob(jobFinished, 3) {
       assertThat(isValid).isTrue()
-      assertThat(callstacks)
-        .containsExactly(
-          BackgroundTaskCallStack(1, "SCHEDULED"),
-          BackgroundTaskCallStack(3, "FINISHED"),
-        )
+      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"), BackgroundTaskCallStack(3, "FINISHED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -125,8 +114,7 @@ class JobEntryTest {
                     .apply {
                       jobId = 222
                       serviceName = "SERVICE"
-                      extras =
-                        BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
+                      extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
                     }
                     .build()
                 result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
@@ -142,10 +130,7 @@ class JobEntryTest {
           jobStarted =
             BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 workOngoing = false
               }
               .build()
@@ -159,10 +144,7 @@ class JobEntryTest {
           jobStopped =
             BackgroundTaskInspectorProtocol.JobStopped.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 reschedule = true
               }
               .build()
@@ -206,10 +188,7 @@ class JobEntryTest {
           jobStarted =
             BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 workOngoing = false
               }
               .build()
@@ -224,10 +203,7 @@ class JobEntryTest {
           jobFinished =
             BackgroundTaskInspectorProtocol.JobFinished.newBuilder()
               .apply {
-                params =
-                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
-                    .apply { jobId = 222 }
-                    .build()
+                params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply { jobId = 222 }.build()
                 needsReschedule = false
               }
               .build()
@@ -258,14 +234,10 @@ private fun JobEntry.consumeAndAssertJob(
     assertThat(status)
       .isEqualTo(
         when (event.metadataCase) {
-          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED ->
-            JobEntry.State.SCHEDULED
-          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STARTED ->
-            JobEntry.State.STARTED
-          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STOPPED ->
-            JobEntry.State.STOPPED
-          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_FINISHED ->
-            JobEntry.State.FINISHED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED -> JobEntry.State.SCHEDULED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STARTED -> JobEntry.State.STARTED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STOPPED -> JobEntry.State.STOPPED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_FINISHED -> JobEntry.State.FINISHED
           else -> JobEntry.State.UNSPECIFIED
         }.name
       )

@@ -57,9 +57,7 @@ class GenerateBaselineProfileModuleTest {
     private const val MODULE_NAME_APP = "app"
   }
 
-  @get:Rule
-  val projectRule =
-    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AGP_CURRENT_WITH_UPDATED_SDK)
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AGP_CURRENT_WITH_UPDATED_SDK)
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
@@ -77,16 +75,13 @@ class GenerateBaselineProfileModuleTest {
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
-    assertThat(buildGradleContent)
-      .isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT)
+    assertThat(buildGradleContent).isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.kt").readText()
-    assertThat(baselineProfileGeneratorContent)
-      .isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT)
+    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.kt").readText()
-    assertThat(startupBenchmarksContent)
-      .isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT)
+    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT)
   }
 
   @Test
@@ -98,21 +93,17 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Kotlin,
         useGradleKts = true,
         useGmd = true,
-        projectRuleAgpVersion =
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
-    assertThat(buildGradleContent)
-      .isEqualTo(FixturesAgp810.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0)
+    assertThat(buildGradleContent).isEqualTo(FixturesAgp810.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.kt").readText()
-    assertThat(baselineProfileGeneratorContent)
-      .isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0)
+    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.kt").readText()
-    assertThat(startupBenchmarksContent)
-      .isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0)
+    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0)
   }
 
   @Test
@@ -128,16 +119,13 @@ class GenerateBaselineProfileModuleTest {
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
-    assertThat(buildGradleContent)
-      .isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT)
+    assertThat(buildGradleContent).isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.java").readText()
-    assertThat(baselineProfileGeneratorContent)
-      .isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT)
+    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.java").readText()
-    assertThat(startupBenchmarksContent)
-      .isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT)
+    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT)
   }
 
   @Test
@@ -149,21 +137,17 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Java,
         useGradleKts = false,
         useGmd = false,
-        projectRuleAgpVersion =
-          AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
-    assertThat(buildGradleContent)
-      .isEqualTo(FixturesAgp810.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0)
+    assertThat(buildGradleContent).isEqualTo(FixturesAgp810.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.java").readText()
-    assertThat(baselineProfileGeneratorContent)
-      .isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0)
+    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.java").readText()
-    assertThat(startupBenchmarksContent)
-      .isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0)
+    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0)
   }
 
   private fun runTemplateGeneration(
@@ -183,10 +167,7 @@ class GenerateBaselineProfileModuleTest {
     val srcDir = tmpFolderRule.root.resolve("src").also { it.mkdir() }
     val rootDir = tmpFolderRule.root
 
-    projectRule.loadProject(
-      projectPath = TestProjectPaths.ANDROIDX_SIMPLE,
-      agpVersion = projectRuleAgpVersion,
-    )
+    projectRule.loadProject(projectPath = TestProjectPaths.ANDROIDX_SIMPLE, agpVersion = projectRuleAgpVersion)
 
     val mockProjectTemplateData = mock<ProjectTemplateData>()
     whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
@@ -219,13 +200,7 @@ class GenerateBaselineProfileModuleTest {
             }
             .build(),
         themesData = ThemesData("appname"),
-        apis =
-          ApiTemplateData(
-            buildApi = buildApi,
-            targetApi = targetApi,
-            minApi = minApi,
-            appCompatVersion = 0,
-          ),
+        apis = ApiTemplateData(buildApi = buildApi, targetApi = targetApi, minApi = minApi, appCompatVersion = 0),
         srcDir = srcDir,
         resDir = tmpFolderRule.root.resolve("res").also { it.mkdir() },
         manifestDir = tmpFolderRule.root.resolve("manifest").also { it.mkdir() },
@@ -369,68 +344,142 @@ androidComponents {
 
   val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT =
     """
-package com.test.packagename;
+    package com.test.packagename;
 
-import androidx.benchmark.macro.junit4.BaselineProfileRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
-import androidx.test.platform.app.InstrumentationRegistry;
-import kotlin.Unit;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    import androidx.benchmark.macro.junit4.BaselineProfileRule;
+    import androidx.test.ext.junit.runners.AndroidJUnit4;
+    import androidx.test.filters.LargeTest;
+    import androidx.test.platform.app.InstrumentationRegistry;
+    import kotlin.Unit;
+    import org.junit.Rule;
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
 
-/**
- * This test class generates a basic startup baseline profile for the target package.
- * <p>
- * We recommend you start with this but add important user flows to the profile to improve their performance.
- * Refer to the <a href="https://d.android.com/topic/performance/baselineprofiles">baseline profile documentation</a>
- * for more information.
- * <p>
- * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
- * the equivalent {@code generateBaselineProfile} gradle task:
- * <pre>
- * ./gradlew :app:generateReleaseBaselineProfile
- * </pre>
- * The run configuration runs the Gradle task and applies filtering to run only the generators.
- * <p>
- * Check <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">documentation</a>
- * for more information about instrumentation arguments.
- * <p>
- * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
- *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
- *
- * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
- **/
-@RunWith(AndroidJUnit4.class)
-@LargeTest
-public class BaselineProfileGenerator {
-    @Rule
-    public BaselineProfileRule baselineProfileRule = new BaselineProfileRule();
+    /**
+     * This test class generates a basic startup baseline profile for the target package.
+     * <p>
+     * We recommend you start with this but add important user flows to the profile to improve their performance.
+     * Refer to the <a href="https://d.android.com/topic/performance/baselineprofiles">baseline profile documentation</a>
+     * for more information.
+     * <p>
+     * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+     * the equivalent {@code generateBaselineProfile} gradle task:
+     * <pre>
+     * ./gradlew :app:generateReleaseBaselineProfile
+     * </pre>
+     * The run configuration runs the Gradle task and applies filtering to run only the generators.
+     * <p>
+     * Check <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">documentation</a>
+     * for more information about instrumentation arguments.
+     * <p>
+     * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
+     *
+     * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+     *
+     * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
+     **/
+    @RunWith(AndroidJUnit4.class)
+    @LargeTest
+    public class BaselineProfileGenerator {
+        @Rule
+        public BaselineProfileRule baselineProfileRule = new BaselineProfileRule();
 
-    @Test
-    public void generate() {
-        // The application id for the running build variant is read from the instrumentation arguments.
-String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
-if (targetAppId == null) {
-    throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
-}
-        baselineProfileRule.collect(
-            /* packageName = */ targetAppId,
-            /* maxIterations = */ 15,
-            /* stableIterations = */ 3,
-            /* outputFilePrefix = */ null,
-            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-            /* includeInStartupProfile = */ true,
-            scope -> {
+        @Test
+        public void generate() {
+            // The application id for the running build variant is read from the instrumentation arguments.
+    String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
+    if (targetAppId == null) {
+        throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
+    }
+            baselineProfileRule.collect(
+                /* packageName = */ targetAppId,
+                /* maxIterations = */ 15,
+                /* stableIterations = */ 3,
+                /* outputFilePrefix = */ null,
+                // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+                /* includeInStartupProfile = */ true,
+                scope -> {
+                    // This block defines the app's critical user journey. Here we are interested in
+                    // optimizing for app startup. But you can also navigate and scroll
+                    // through your most important UI.
+
+                    // Start default activity for your app
+                    scope.pressHome();
+                    scope.startActivityAndWait();
+
+                    // TODO Write more interactions to optimize advanced journeys of your app.
+                    // For example:
+                    // 1. Wait until the content is asynchronously loaded
+                    // 2. Scroll the feed content
+                    // 3. Navigate to detail screen
+
+                    // Check UiAutomator documentation for more information how to interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+
+                    return Unit.INSTANCE;
+            });
+        }
+    }
+    """
+      .trimIndent()
+
+  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT =
+    """
+    package com.test.packagename
+
+    import androidx.benchmark.macro.junit4.BaselineProfileRule
+    import androidx.test.ext.junit.runners.AndroidJUnit4
+    import androidx.test.filters.LargeTest
+    import androidx.test.platform.app.InstrumentationRegistry
+    import org.junit.Rule
+    import org.junit.Test
+    import org.junit.runner.RunWith
+
+    /**
+     * This test class generates a basic startup baseline profile for the target package.
+     *
+     * We recommend you start with this but add important user flows to the profile to improve their performance.
+     * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
+     * for more information.
+     *
+     * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+     * the equivalent `generateBaselineProfile` gradle task:
+     * ```
+     * ./gradlew :app:generateReleaseBaselineProfile
+     * ```
+     * The run configuration runs the Gradle task and applies filtering to run only the generators.
+     *
+     * Check [documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args)
+     * for more information about available instrumentation arguments.
+     *
+     * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
+     *
+     * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+     *
+     * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
+     **/
+    @RunWith(AndroidJUnit4::class)
+    @LargeTest
+    class BaselineProfileGenerator {
+
+        @get:Rule
+        val rule = BaselineProfileRule()
+
+        @Test
+        fun generate() {
+            // The application id for the running build variant is read from the instrumentation arguments.
+            rule.collect(
+                packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
+
+                // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+                includeInStartupProfile = true
+            ) {
                 // This block defines the app's critical user journey. Here we are interested in
-                // optimizing for app startup. But you can also navigate and scroll
-                // through your most important UI.
+                // optimizing for app startup. But you can also navigate and scroll through your most important UI.
 
                 // Start default activity for your app
-                scope.pressHome();
-                scope.startActivityAndWait();
+                pressHome()
+                startActivityAndWait()
 
                 // TODO Write more interactions to optimize advanced journeys of your app.
                 // For example:
@@ -440,255 +489,181 @@ if (targetAppId == null) {
 
                 // Check UiAutomator documentation for more information how to interact with the app.
                 // https://d.android.com/training/testing/other-components/ui-automator
-
-                return Unit.INSTANCE;
-        });
-    }
-}
-"""
-      .trimIndent()
-
-  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT =
-    """
-package com.test.packagename
-
-import androidx.benchmark.macro.junit4.BaselineProfileRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
-import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-
-/**
- * This test class generates a basic startup baseline profile for the target package.
- *
- * We recommend you start with this but add important user flows to the profile to improve their performance.
- * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
- * for more information.
- *
- * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
- * the equivalent `generateBaselineProfile` gradle task:
- * ```
- * ./gradlew :app:generateReleaseBaselineProfile
- * ```
- * The run configuration runs the Gradle task and applies filtering to run only the generators.
- *
- * Check [documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args)
- * for more information about available instrumentation arguments.
- *
- * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
- *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
- *
- * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
- **/
-@RunWith(AndroidJUnit4::class)
-@LargeTest
-class BaselineProfileGenerator {
-
-    @get:Rule
-    val rule = BaselineProfileRule()
-
-    @Test
-    fun generate() {
-        // The application id for the running build variant is read from the instrumentation arguments.
-        rule.collect(
-            packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
-
-            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-            includeInStartupProfile = true
-        ) {
-            // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll through your most important UI.
-
-            // Start default activity for your app
-            pressHome()
-            startActivityAndWait()
-
-            // TODO Write more interactions to optimize advanced journeys of your app.
-            // For example:
-            // 1. Wait until the content is asynchronously loaded
-            // 2. Scroll the feed content
-            // 3. Navigate to detail screen
-
-            // Check UiAutomator documentation for more information how to interact with the app.
-            // https://d.android.com/training/testing/other-components/ui-automator
+            }
         }
     }
-}
-"""
+    """
       .trimIndent()
 
   val STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT =
     """
-package com.test.packagename;
+    package com.test.packagename;
 
-import androidx.benchmark.macro.BaselineProfileMode;
-import androidx.benchmark.macro.CompilationMode;
-import androidx.benchmark.macro.StartupMode;
-import androidx.benchmark.macro.StartupTimingMetric;
-import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
-import androidx.test.platform.app.InstrumentationRegistry;
-import kotlin.Unit;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    import androidx.benchmark.macro.BaselineProfileMode;
+    import androidx.benchmark.macro.CompilationMode;
+    import androidx.benchmark.macro.StartupMode;
+    import androidx.benchmark.macro.StartupTimingMetric;
+    import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
+    import androidx.test.ext.junit.runners.AndroidJUnit4;
+    import androidx.test.filters.LargeTest;
+    import androidx.test.platform.app.InstrumentationRegistry;
+    import kotlin.Unit;
+    import org.junit.Rule;
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
 
-import java.util.Collections;
+    import java.util.Collections;
 
-/**
- * This test class benchmarks the speed of app startup.
- * Run this benchmark to verify how effective a Baseline Profile is.
- * It does this by comparing {@code CompilationMode.None}, which represents the app with no Baseline
- * Profiles optimizations, and {@code CompilationMode.Partial}, which uses Baseline Profiles.
- * <p>
- * Run this benchmark to see startup measurements and captured system traces for verifying
- * the effectiveness of your Baseline Profiles. You can run it directly from Android
- * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
- * with this Gradle task:
- * <pre>
- * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
- * </pre>
- * <p>
- * You should run the benchmarks on a physical device, not an Android emulator, because the
- * emulator doesn't represent real world performance and shares system resources with its host.
- * <p>
- * For more information, see the <a href="https://d.android.com/macrobenchmark#create-macrobenchmark">Macrobenchmark documentation</a>
- * and the <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">instrumentation arguments documentation</a>.
- **/
-@RunWith(AndroidJUnit4.class)
-@LargeTest
-public class StartupBenchmarks {
+    /**
+     * This test class benchmarks the speed of app startup.
+     * Run this benchmark to verify how effective a Baseline Profile is.
+     * It does this by comparing {@code CompilationMode.None}, which represents the app with no Baseline
+     * Profiles optimizations, and {@code CompilationMode.Partial}, which uses Baseline Profiles.
+     * <p>
+     * Run this benchmark to see startup measurements and captured system traces for verifying
+     * the effectiveness of your Baseline Profiles. You can run it directly from Android
+     * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
+     * with this Gradle task:
+     * <pre>
+     * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
+     * </pre>
+     * <p>
+     * You should run the benchmarks on a physical device, not an Android emulator, because the
+     * emulator doesn't represent real world performance and shares system resources with its host.
+     * <p>
+     * For more information, see the <a href="https://d.android.com/macrobenchmark#create-macrobenchmark">Macrobenchmark documentation</a>
+     * and the <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">instrumentation arguments documentation</a>.
+     **/
+    @RunWith(AndroidJUnit4.class)
+    @LargeTest
+    public class StartupBenchmarks {
 
-    @Rule
-    public MacrobenchmarkRule rule = new MacrobenchmarkRule();
+        @Rule
+        public MacrobenchmarkRule rule = new MacrobenchmarkRule();
 
-    @Test
-    public void startupCompilationNone() {
-        benchmark(new CompilationMode.None());
+        @Test
+        public void startupCompilationNone() {
+            benchmark(new CompilationMode.None());
+        }
+
+        @Test
+        public void startupCompilationBaselineProfiles() {
+            benchmark(new CompilationMode.Partial(BaselineProfileMode.Require));
+        }
+
+        private void benchmark(CompilationMode compilationMode) {
+            // The application id for the running build variant is read from the instrumentation arguments.
+    String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
+    if (targetAppId == null) {
+        throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
     }
+            rule.measureRepeated(
+                targetAppId,
+                Collections.singletonList(new StartupTimingMetric()),
+                compilationMode,
+                StartupMode.COLD,
+                10,
+                setupScope -> {
+                    setupScope.pressHome();
+                    return Unit.INSTANCE;
+                },
+                measureScope -> {
+                    measureScope.startActivityAndWait();
 
-    @Test
-    public void startupCompilationBaselineProfiles() {
-        benchmark(new CompilationMode.Partial(BaselineProfileMode.Require));
+                    // TODO Add interactions to wait for when your app is fully drawn.
+                    // The app is fully drawn when Activity.reportFullyDrawn is called.
+                    // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
+                    // from the AndroidX Activity library.
+
+                    // Check the UiAutomator documentation for more information on how to
+                    // interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+                    return Unit.INSTANCE;
+                }
+            );
+        }
     }
-
-    private void benchmark(CompilationMode compilationMode) {
-        // The application id for the running build variant is read from the instrumentation arguments.
-String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
-if (targetAppId == null) {
-    throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
-}
-        rule.measureRepeated(
-            targetAppId,
-            Collections.singletonList(new StartupTimingMetric()),
-            compilationMode,
-            StartupMode.COLD,
-            10,
-            setupScope -> {
-                setupScope.pressHome();
-                return Unit.INSTANCE;
-            },
-            measureScope -> {
-                measureScope.startActivityAndWait();
-
-                // TODO Add interactions to wait for when your app is fully drawn.
-                // The app is fully drawn when Activity.reportFullyDrawn is called.
-                // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
-                // from the AndroidX Activity library.
-
-                // Check the UiAutomator documentation for more information on how to
-                // interact with the app.
-                // https://d.android.com/training/testing/other-components/ui-automator
-                return Unit.INSTANCE;
-            }
-        );
-    }
-}
-"""
+    """
       .trimIndent()
 
   val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT =
     """
-package com.test.packagename
+    package com.test.packagename
 
-import androidx.benchmark.macro.BaselineProfileMode
-import androidx.benchmark.macro.CompilationMode
-import androidx.benchmark.macro.StartupMode
-import androidx.benchmark.macro.StartupTimingMetric
-import androidx.benchmark.macro.junit4.MacrobenchmarkRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
-import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+    import androidx.benchmark.macro.BaselineProfileMode
+    import androidx.benchmark.macro.CompilationMode
+    import androidx.benchmark.macro.StartupMode
+    import androidx.benchmark.macro.StartupTimingMetric
+    import androidx.benchmark.macro.junit4.MacrobenchmarkRule
+    import androidx.test.ext.junit.runners.AndroidJUnit4
+    import androidx.test.filters.LargeTest
+    import androidx.test.platform.app.InstrumentationRegistry
+    import org.junit.Rule
+    import org.junit.Test
+    import org.junit.runner.RunWith
 
-/**
- * This test class benchmarks the speed of app startup.
- * Run this benchmark to verify how effective a Baseline Profile is.
- * It does this by comparing [CompilationMode.None], which represents the app with no Baseline
- * Profiles optimizations, and [CompilationMode.Partial], which uses Baseline Profiles.
- *
- * Run this benchmark to see startup measurements and captured system traces for verifying
- * the effectiveness of your Baseline Profiles. You can run it directly from Android
- * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
- * with this Gradle task:
- * ```
- * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
- * ```
- *
- * You should run the benchmarks on a physical device, not an Android emulator, because the
- * emulator doesn't represent real world performance and shares system resources with its host.
- *
- * For more information, see the [Macrobenchmark documentation](https://d.android.com/macrobenchmark#create-macrobenchmark)
- * and the [instrumentation arguments documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args).
- **/
-@RunWith(AndroidJUnit4::class)
-@LargeTest
-class StartupBenchmarks {
+    /**
+     * This test class benchmarks the speed of app startup.
+     * Run this benchmark to verify how effective a Baseline Profile is.
+     * It does this by comparing [CompilationMode.None], which represents the app with no Baseline
+     * Profiles optimizations, and [CompilationMode.Partial], which uses Baseline Profiles.
+     *
+     * Run this benchmark to see startup measurements and captured system traces for verifying
+     * the effectiveness of your Baseline Profiles. You can run it directly from Android
+     * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
+     * with this Gradle task:
+     * ```
+     * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
+     * ```
+     *
+     * You should run the benchmarks on a physical device, not an Android emulator, because the
+     * emulator doesn't represent real world performance and shares system resources with its host.
+     *
+     * For more information, see the [Macrobenchmark documentation](https://d.android.com/macrobenchmark#create-macrobenchmark)
+     * and the [instrumentation arguments documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args).
+     **/
+    @RunWith(AndroidJUnit4::class)
+    @LargeTest
+    class StartupBenchmarks {
 
-    @get:Rule
-    val rule = MacrobenchmarkRule()
+        @get:Rule
+        val rule = MacrobenchmarkRule()
 
-    @Test
-    fun startupCompilationNone() =
-        benchmark(CompilationMode.None())
+        @Test
+        fun startupCompilationNone() =
+            benchmark(CompilationMode.None())
 
-    @Test
-    fun startupCompilationBaselineProfiles() =
-        benchmark(CompilationMode.Partial(BaselineProfileMode.Require))
+        @Test
+        fun startupCompilationBaselineProfiles() =
+            benchmark(CompilationMode.Partial(BaselineProfileMode.Require))
 
-    private fun benchmark(compilationMode: CompilationMode) {
-        // The application id for the running build variant is read from the instrumentation arguments.
-        rule.measureRepeated(
-            packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
-            metrics = listOf(StartupTimingMetric()),
-            compilationMode = compilationMode,
-            startupMode = StartupMode.COLD,
-            iterations = 10,
-            setupBlock = {
-                pressHome()
-            },
-            measureBlock = {
-                startActivityAndWait()
+        private fun benchmark(compilationMode: CompilationMode) {
+            // The application id for the running build variant is read from the instrumentation arguments.
+            rule.measureRepeated(
+                packageName = InstrumentationRegistry.getArguments().getString("targetAppId") ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
+                metrics = listOf(StartupTimingMetric()),
+                compilationMode = compilationMode,
+                startupMode = StartupMode.COLD,
+                iterations = 10,
+                setupBlock = {
+                    pressHome()
+                },
+                measureBlock = {
+                    startActivityAndWait()
 
-                // TODO Add interactions to wait for when your app is fully drawn.
-                // The app is fully drawn when Activity.reportFullyDrawn is called.
-                // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
-                // from the AndroidX Activity library.
+                    // TODO Add interactions to wait for when your app is fully drawn.
+                    // The app is fully drawn when Activity.reportFullyDrawn is called.
+                    // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
+                    // from the AndroidX Activity library.
 
-                // Check the UiAutomator documentation for more information on how to
-                // interact with the app.
-                // https://d.android.com/training/testing/other-components/ui-automator
-            }
-        )
+                    // Check the UiAutomator documentation for more information on how to
+                    // interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+                }
+            )
+        }
     }
-}
-"""
+    """
       .trimIndent()
 }
 
@@ -783,64 +758,138 @@ dependencies {
 
   val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0 =
     """
-package com.test.packagename;
+    package com.test.packagename;
 
-import androidx.benchmark.macro.junit4.BaselineProfileRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
+    import androidx.benchmark.macro.junit4.BaselineProfileRule;
+    import androidx.test.ext.junit.runners.AndroidJUnit4;
+    import androidx.test.filters.LargeTest;
 
-import kotlin.Unit;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    import kotlin.Unit;
+    import org.junit.Rule;
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
 
-/**
- * This test class generates a basic startup baseline profile for the target package.
- * <p>
- * We recommend you start with this but add important user flows to the profile to improve their performance.
- * Refer to the <a href="https://d.android.com/topic/performance/baselineprofiles">baseline profile documentation</a>
- * for more information.
- * <p>
- * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
- * the equivalent {@code generateBaselineProfile} gradle task:
- * <pre>
- * ./gradlew :app:generateReleaseBaselineProfile
- * </pre>
- * The run configuration runs the Gradle task and applies filtering to run only the generators.
- * <p>
- * Check <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">documentation</a>
- * for more information about instrumentation arguments.
- * <p>
- * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
- *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
- *
- * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
- **/
-@RunWith(AndroidJUnit4.class)
-@LargeTest
-public class BaselineProfileGenerator {
-    @Rule
-    public BaselineProfileRule baselineProfileRule = new BaselineProfileRule();
+    /**
+     * This test class generates a basic startup baseline profile for the target package.
+     * <p>
+     * We recommend you start with this but add important user flows to the profile to improve their performance.
+     * Refer to the <a href="https://d.android.com/topic/performance/baselineprofiles">baseline profile documentation</a>
+     * for more information.
+     * <p>
+     * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+     * the equivalent {@code generateBaselineProfile} gradle task:
+     * <pre>
+     * ./gradlew :app:generateReleaseBaselineProfile
+     * </pre>
+     * The run configuration runs the Gradle task and applies filtering to run only the generators.
+     * <p>
+     * Check <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">documentation</a>
+     * for more information about instrumentation arguments.
+     * <p>
+     * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
+     *
+     * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+     *
+     * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
+     **/
+    @RunWith(AndroidJUnit4.class)
+    @LargeTest
+    public class BaselineProfileGenerator {
+        @Rule
+        public BaselineProfileRule baselineProfileRule = new BaselineProfileRule();
 
-    @Test
-    public void generate() {
-        // This example works only with the variant with application id `com.example.google.androidx`.
-        baselineProfileRule.collect(
-            /* packageName = */ "com.example.google.androidx",
-            /* maxIterations = */ 15,
-            /* stableIterations = */ 3,
-            /* outputFilePrefix = */ null,
-            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-            /* includeInStartupProfile = */ true,
-            scope -> {
+        @Test
+        public void generate() {
+            // This example works only with the variant with application id `com.example.google.androidx`.
+            baselineProfileRule.collect(
+                /* packageName = */ "com.example.google.androidx",
+                /* maxIterations = */ 15,
+                /* stableIterations = */ 3,
+                /* outputFilePrefix = */ null,
+                // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+                /* includeInStartupProfile = */ true,
+                scope -> {
+                    // This block defines the app's critical user journey. Here we are interested in
+                    // optimizing for app startup. But you can also navigate and scroll
+                    // through your most important UI.
+
+                    // Start default activity for your app
+                    scope.pressHome();
+                    scope.startActivityAndWait();
+
+                    // TODO Write more interactions to optimize advanced journeys of your app.
+                    // For example:
+                    // 1. Wait until the content is asynchronously loaded
+                    // 2. Scroll the feed content
+                    // 3. Navigate to detail screen
+
+                    // Check UiAutomator documentation for more information how to interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+
+                    return Unit.INSTANCE;
+            });
+        }
+    }
+    """
+      .trimIndent()
+
+  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0 =
+    """
+    package com.test.packagename
+
+    import androidx.benchmark.macro.junit4.BaselineProfileRule
+    import androidx.test.ext.junit.runners.AndroidJUnit4
+    import androidx.test.filters.LargeTest
+
+    import org.junit.Rule
+    import org.junit.Test
+    import org.junit.runner.RunWith
+
+    /**
+     * This test class generates a basic startup baseline profile for the target package.
+     *
+     * We recommend you start with this but add important user flows to the profile to improve their performance.
+     * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
+     * for more information.
+     *
+     * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+     * the equivalent `generateBaselineProfile` gradle task:
+     * ```
+     * ./gradlew :app:generateReleaseBaselineProfile
+     * ```
+     * The run configuration runs the Gradle task and applies filtering to run only the generators.
+     *
+     * Check [documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args)
+     * for more information about available instrumentation arguments.
+     *
+     * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
+     *
+     * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+     *
+     * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
+     **/
+    @RunWith(AndroidJUnit4::class)
+    @LargeTest
+    class BaselineProfileGenerator {
+
+        @get:Rule
+        val rule = BaselineProfileRule()
+
+        @Test
+        fun generate() {
+            // This example works only with the variant with application id `com.example.google.androidx`."
+            rule.collect(
+                packageName = "com.example.google.androidx",
+
+                // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+                includeInStartupProfile = true
+            ) {
                 // This block defines the app's critical user journey. Here we are interested in
-                // optimizing for app startup. But you can also navigate and scroll
-                // through your most important UI.
+                // optimizing for app startup. But you can also navigate and scroll through your most important UI.
 
                 // Start default activity for your app
-                scope.pressHome();
-                scope.startActivityAndWait();
+                pressHome()
+                startActivityAndWait()
 
                 // TODO Write more interactions to optimize advanced journeys of your app.
                 // For example:
@@ -850,250 +899,176 @@ public class BaselineProfileGenerator {
 
                 // Check UiAutomator documentation for more information how to interact with the app.
                 // https://d.android.com/training/testing/other-components/ui-automator
-
-                return Unit.INSTANCE;
-        });
-    }
-}
-"""
-      .trimIndent()
-
-  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0 =
-    """
-package com.test.packagename
-
-import androidx.benchmark.macro.junit4.BaselineProfileRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
-
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-
-/**
- * This test class generates a basic startup baseline profile for the target package.
- *
- * We recommend you start with this but add important user flows to the profile to improve their performance.
- * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
- * for more information.
- *
- * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
- * the equivalent `generateBaselineProfile` gradle task:
- * ```
- * ./gradlew :app:generateReleaseBaselineProfile
- * ```
- * The run configuration runs the Gradle task and applies filtering to run only the generators.
- *
- * Check [documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args)
- * for more information about available instrumentation arguments.
- *
- * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
- *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
- *
- * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
- **/
-@RunWith(AndroidJUnit4::class)
-@LargeTest
-class BaselineProfileGenerator {
-
-    @get:Rule
-    val rule = BaselineProfileRule()
-
-    @Test
-    fun generate() {
-        // This example works only with the variant with application id `com.example.google.androidx`."
-        rule.collect(
-            packageName = "com.example.google.androidx",
-
-            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-            includeInStartupProfile = true
-        ) {
-            // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll through your most important UI.
-
-            // Start default activity for your app
-            pressHome()
-            startActivityAndWait()
-
-            // TODO Write more interactions to optimize advanced journeys of your app.
-            // For example:
-            // 1. Wait until the content is asynchronously loaded
-            // 2. Scroll the feed content
-            // 3. Navigate to detail screen
-
-            // Check UiAutomator documentation for more information how to interact with the app.
-            // https://d.android.com/training/testing/other-components/ui-automator
+            }
         }
     }
-}
-"""
+    """
       .trimIndent()
 
   val STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0 =
     """
-package com.test.packagename;
+    package com.test.packagename;
 
-import androidx.benchmark.macro.BaselineProfileMode;
-import androidx.benchmark.macro.CompilationMode;
-import androidx.benchmark.macro.StartupMode;
-import androidx.benchmark.macro.StartupTimingMetric;
-import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
+    import androidx.benchmark.macro.BaselineProfileMode;
+    import androidx.benchmark.macro.CompilationMode;
+    import androidx.benchmark.macro.StartupMode;
+    import androidx.benchmark.macro.StartupTimingMetric;
+    import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
+    import androidx.test.ext.junit.runners.AndroidJUnit4;
+    import androidx.test.filters.LargeTest;
 
-import kotlin.Unit;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    import kotlin.Unit;
+    import org.junit.Rule;
+    import org.junit.Test;
+    import org.junit.runner.RunWith;
 
-import java.util.Collections;
+    import java.util.Collections;
 
-/**
- * This test class benchmarks the speed of app startup.
- * Run this benchmark to verify how effective a Baseline Profile is.
- * It does this by comparing {@code CompilationMode.None}, which represents the app with no Baseline
- * Profiles optimizations, and {@code CompilationMode.Partial}, which uses Baseline Profiles.
- * <p>
- * Run this benchmark to see startup measurements and captured system traces for verifying
- * the effectiveness of your Baseline Profiles. You can run it directly from Android
- * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
- * with this Gradle task:
- * <pre>
- * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
- * </pre>
- * <p>
- * You should run the benchmarks on a physical device, not an Android emulator, because the
- * emulator doesn't represent real world performance and shares system resources with its host.
- * <p>
- * For more information, see the <a href="https://d.android.com/macrobenchmark#create-macrobenchmark">Macrobenchmark documentation</a>
- * and the <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">instrumentation arguments documentation</a>.
- **/
-@RunWith(AndroidJUnit4.class)
-@LargeTest
-public class StartupBenchmarks {
+    /**
+     * This test class benchmarks the speed of app startup.
+     * Run this benchmark to verify how effective a Baseline Profile is.
+     * It does this by comparing {@code CompilationMode.None}, which represents the app with no Baseline
+     * Profiles optimizations, and {@code CompilationMode.Partial}, which uses Baseline Profiles.
+     * <p>
+     * Run this benchmark to see startup measurements and captured system traces for verifying
+     * the effectiveness of your Baseline Profiles. You can run it directly from Android
+     * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
+     * with this Gradle task:
+     * <pre>
+     * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
+     * </pre>
+     * <p>
+     * You should run the benchmarks on a physical device, not an Android emulator, because the
+     * emulator doesn't represent real world performance and shares system resources with its host.
+     * <p>
+     * For more information, see the <a href="https://d.android.com/macrobenchmark#create-macrobenchmark">Macrobenchmark documentation</a>
+     * and the <a href="https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args">instrumentation arguments documentation</a>.
+     **/
+    @RunWith(AndroidJUnit4.class)
+    @LargeTest
+    public class StartupBenchmarks {
 
-    @Rule
-    public MacrobenchmarkRule rule = new MacrobenchmarkRule();
+        @Rule
+        public MacrobenchmarkRule rule = new MacrobenchmarkRule();
 
-    @Test
-    public void startupCompilationNone() {
-        benchmark(new CompilationMode.None());
+        @Test
+        public void startupCompilationNone() {
+            benchmark(new CompilationMode.None());
+        }
+
+        @Test
+        public void startupCompilationBaselineProfiles() {
+            benchmark(new CompilationMode.Partial(BaselineProfileMode.Require));
+        }
+
+        private void benchmark(CompilationMode compilationMode) {
+            // This example works only with the variant with application id `com.example.google.androidx`.
+            rule.measureRepeated(
+                "com.example.google.androidx",
+                Collections.singletonList(new StartupTimingMetric()),
+                compilationMode,
+                StartupMode.COLD,
+                10,
+                setupScope -> {
+                    setupScope.pressHome();
+                    return Unit.INSTANCE;
+                },
+                measureScope -> {
+                    measureScope.startActivityAndWait();
+
+                    // TODO Add interactions to wait for when your app is fully drawn.
+                    // The app is fully drawn when Activity.reportFullyDrawn is called.
+                    // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
+                    // from the AndroidX Activity library.
+
+                    // Check the UiAutomator documentation for more information on how to
+                    // interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+                    return Unit.INSTANCE;
+                }
+            );
+        }
     }
-
-    @Test
-    public void startupCompilationBaselineProfiles() {
-        benchmark(new CompilationMode.Partial(BaselineProfileMode.Require));
-    }
-
-    private void benchmark(CompilationMode compilationMode) {
-        // This example works only with the variant with application id `com.example.google.androidx`.
-        rule.measureRepeated(
-            "com.example.google.androidx",
-            Collections.singletonList(new StartupTimingMetric()),
-            compilationMode,
-            StartupMode.COLD,
-            10,
-            setupScope -> {
-                setupScope.pressHome();
-                return Unit.INSTANCE;
-            },
-            measureScope -> {
-                measureScope.startActivityAndWait();
-
-                // TODO Add interactions to wait for when your app is fully drawn.
-                // The app is fully drawn when Activity.reportFullyDrawn is called.
-                // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
-                // from the AndroidX Activity library.
-
-                // Check the UiAutomator documentation for more information on how to
-                // interact with the app.
-                // https://d.android.com/training/testing/other-components/ui-automator
-                return Unit.INSTANCE;
-            }
-        );
-    }
-}
-"""
+    """
       .trimIndent()
 
   val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0 =
     """
-package com.test.packagename
+    package com.test.packagename
 
-import androidx.benchmark.macro.BaselineProfileMode
-import androidx.benchmark.macro.CompilationMode
-import androidx.benchmark.macro.StartupMode
-import androidx.benchmark.macro.StartupTimingMetric
-import androidx.benchmark.macro.junit4.MacrobenchmarkRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
+    import androidx.benchmark.macro.BaselineProfileMode
+    import androidx.benchmark.macro.CompilationMode
+    import androidx.benchmark.macro.StartupMode
+    import androidx.benchmark.macro.StartupTimingMetric
+    import androidx.benchmark.macro.junit4.MacrobenchmarkRule
+    import androidx.test.ext.junit.runners.AndroidJUnit4
+    import androidx.test.filters.LargeTest
 
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+    import org.junit.Rule
+    import org.junit.Test
+    import org.junit.runner.RunWith
 
-/**
- * This test class benchmarks the speed of app startup.
- * Run this benchmark to verify how effective a Baseline Profile is.
- * It does this by comparing [CompilationMode.None], which represents the app with no Baseline
- * Profiles optimizations, and [CompilationMode.Partial], which uses Baseline Profiles.
- *
- * Run this benchmark to see startup measurements and captured system traces for verifying
- * the effectiveness of your Baseline Profiles. You can run it directly from Android
- * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
- * with this Gradle task:
- * ```
- * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
- * ```
- *
- * You should run the benchmarks on a physical device, not an Android emulator, because the
- * emulator doesn't represent real world performance and shares system resources with its host.
- *
- * For more information, see the [Macrobenchmark documentation](https://d.android.com/macrobenchmark#create-macrobenchmark)
- * and the [instrumentation arguments documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args).
- **/
-@RunWith(AndroidJUnit4::class)
-@LargeTest
-class StartupBenchmarks {
+    /**
+     * This test class benchmarks the speed of app startup.
+     * Run this benchmark to verify how effective a Baseline Profile is.
+     * It does this by comparing [CompilationMode.None], which represents the app with no Baseline
+     * Profiles optimizations, and [CompilationMode.Partial], which uses Baseline Profiles.
+     *
+     * Run this benchmark to see startup measurements and captured system traces for verifying
+     * the effectiveness of your Baseline Profiles. You can run it directly from Android
+     * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
+     * with this Gradle task:
+     * ```
+     * ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest
+     * ```
+     *
+     * You should run the benchmarks on a physical device, not an Android emulator, because the
+     * emulator doesn't represent real world performance and shares system resources with its host.
+     *
+     * For more information, see the [Macrobenchmark documentation](https://d.android.com/macrobenchmark#create-macrobenchmark)
+     * and the [instrumentation arguments documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args).
+     **/
+    @RunWith(AndroidJUnit4::class)
+    @LargeTest
+    class StartupBenchmarks {
 
-    @get:Rule
-    val rule = MacrobenchmarkRule()
+        @get:Rule
+        val rule = MacrobenchmarkRule()
 
-    @Test
-    fun startupCompilationNone() =
-        benchmark(CompilationMode.None())
+        @Test
+        fun startupCompilationNone() =
+            benchmark(CompilationMode.None())
 
-    @Test
-    fun startupCompilationBaselineProfiles() =
-        benchmark(CompilationMode.Partial(BaselineProfileMode.Require))
+        @Test
+        fun startupCompilationBaselineProfiles() =
+            benchmark(CompilationMode.Partial(BaselineProfileMode.Require))
 
-    private fun benchmark(compilationMode: CompilationMode) {
-        // This example works only with the variant with application id `com.example.google.androidx`."
-        rule.measureRepeated(
-            packageName = "com.example.google.androidx",
-            metrics = listOf(StartupTimingMetric()),
-            compilationMode = compilationMode,
-            startupMode = StartupMode.COLD,
-            iterations = 10,
-            setupBlock = {
-                pressHome()
-            },
-            measureBlock = {
-                startActivityAndWait()
+        private fun benchmark(compilationMode: CompilationMode) {
+            // This example works only with the variant with application id `com.example.google.androidx`."
+            rule.measureRepeated(
+                packageName = "com.example.google.androidx",
+                metrics = listOf(StartupTimingMetric()),
+                compilationMode = compilationMode,
+                startupMode = StartupMode.COLD,
+                iterations = 10,
+                setupBlock = {
+                    pressHome()
+                },
+                measureBlock = {
+                    startActivityAndWait()
 
-                // TODO Add interactions to wait for when your app is fully drawn.
-                // The app is fully drawn when Activity.reportFullyDrawn is called.
-                // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
-                // from the AndroidX Activity library.
+                    // TODO Add interactions to wait for when your app is fully drawn.
+                    // The app is fully drawn when Activity.reportFullyDrawn is called.
+                    // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
+                    // from the AndroidX Activity library.
 
-                // Check the UiAutomator documentation for more information on how to
-                // interact with the app.
-                // https://d.android.com/training/testing/other-components/ui-automator
-            }
-        )
+                    // Check the UiAutomator documentation for more information on how to
+                    // interact with the app.
+                    // https://d.android.com/training/testing/other-components/ui-automator
+                }
+            )
+        }
     }
-}
-"""
+    """
       .trimIndent()
 }

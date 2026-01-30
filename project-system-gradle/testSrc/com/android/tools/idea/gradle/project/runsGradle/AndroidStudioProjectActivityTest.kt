@@ -31,51 +31,40 @@ import org.junit.rules.TemporaryFolder
 @RunsInEdt
 class AndroidStudioProjectActivityTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.Companion.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.Companion.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
   fun `Given invalid Daemon JVM criteria When import project Then project doesn't restore configuration`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
-        gradleDaemonToolchain = GradleDaemonToolchain("invalid")
-      ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)
-      )
+      project = JdkTestProject.SimpleApplication(gradleDaemonToolchain = GradleDaemonToolchain("invalid")),
+      environment =
+        JdkIntegrationTest.TestEnvironment(studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
     ) {
       sync(
         assertOnFailure = {
           assertException(BuildIssueException::class, "Value 'invalid' given for toolchainVersion is an invalid Java version")
         },
-        assertSyncEvents = {
-          assertExceptionMessage("Invalid Gradle Daemon JVM Criteria")
-        }
+        assertSyncEvents = { assertExceptionMessage("Invalid Gradle Daemon JVM Criteria") },
       )
     }
 
   @Test
   fun `Given invalid Gradle JDK configuration When import project Then project restore configuration`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
-        ideaGradleJdk = "invalid"
-      ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)
-      )
+      project = JdkTestProject.SimpleApplication(ideaGradleJdk = "invalid"),
+      environment =
+        JdkIntegrationTest.TestEnvironment(studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)),
     ) {
       syncWithAssertion(
         expectedGradleJdkName = JdkConstants.JDK_EMBEDDED,
         expectedProjectJdkName = JdkConstants.JDK_EMBEDDED,
-        expectedProjectJdkPath = JdkConstants.JDK_EMBEDDED_PATH
+        expectedProjectJdkPath = JdkConstants.JDK_EMBEDDED_PATH,
       )
     }
 }

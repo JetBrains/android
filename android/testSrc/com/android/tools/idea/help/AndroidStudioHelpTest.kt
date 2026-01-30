@@ -24,26 +24,29 @@ import com.intellij.openapi.help.HelpManager
 import com.intellij.openapi.help.WebHelpProvider
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.replaceService
-import org.jetbrains.android.AndroidTestCase
+import java.io.File
 import java.nio.file.Path
+import org.jetbrains.android.AndroidTestCase
 
 class AndroidStudioHelpTest : AndroidTestCase() {
 
   fun testAndroidTopic() {
-    val androidWebHelpProvider = ApplicationManager.getApplication().extensionArea
-      .getExtensionPoint<WebHelpProvider>("com.intellij.webHelpProvider")
-      .extensionList.filterIsInstance<AndroidWebHelpProvider>().first()
+    val androidWebHelpProvider =
+      ApplicationManager.getApplication()
+        .extensionArea
+        .getExtensionPoint<WebHelpProvider>("com.intellij.webHelpProvider")
+        .extensionList
+        .filterIsInstance<AndroidWebHelpProvider>()
+        .first()
 
-    assertThat(androidWebHelpProvider.getHelpPageUrl("org.jetbrains.android.foo/bar"))
-      .isEqualTo("https://developer.android.com/foo/bar")
+    assertThat(androidWebHelpProvider.getHelpPageUrl("org.jetbrains.android.foo/bar")).isEqualTo("https://developer.android.com/foo/bar")
   }
 
   fun testAndroidHelp() {
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, TestBrowserLauncher, testRootDisposable)
     HelpManager.getInstance().invokeHelp("org.jetbrains.android.r/studio-ui/rundebugconfig.html")
 
-    assertThat(TestBrowserLauncher.lastUrl)
-      .isEqualTo("https://developer.android.com/r/studio-ui/rundebugconfig.html")
+    assertThat(TestBrowserLauncher.lastUrl).isEqualTo("https://developer.android.com/r/studio-ui/rundebugconfig.html")
   }
 
   fun testIdeaHelp() {
@@ -51,8 +54,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     HelpManager.getInstance().invokeHelp(null)
 
     val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersion}"
-    assertThat(TestBrowserLauncher.lastUrl)
-      .startsWith("https://www.jetbrains.com/help/idea/$version/?top")
+    assertThat(TestBrowserLauncher.lastUrl).startsWith("https://www.jetbrains.com/help/idea/$version/?top")
   }
 
   object TestBrowserLauncher : BrowserLauncher() {
@@ -62,7 +64,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
       lastUrl = url
     }
 
-    override fun browse(file: Path) { }
+    override fun browse(file: Path) {}
 
     override fun browse(url: String, browser: WebBrowser?, project: Project?) {
       lastUrl = url

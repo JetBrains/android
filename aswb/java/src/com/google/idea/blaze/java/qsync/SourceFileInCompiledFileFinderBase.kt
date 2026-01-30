@@ -22,14 +22,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import java.nio.file.Path
 
-/**
- * A base class used to find source files existed in source jar.
- */
+/** A base class used to find source files existed in source jar. */
 abstract class SourceFileInCompiledFileFinderBase(clsFile: PsiFile) : SourceFileFinderBase(clsFile) {
 
   override fun convertToVirtualFile(path: Path): VirtualFile? {
-    val localFile = JarFileSystem.getInstance().findLocalVirtualFileByPath(path.toString())
-                    ?: return null
+    val localFile = JarFileSystem.getInstance().findLocalVirtualFileByPath(path.toString()) ?: return null
     return JarFileSystem.getInstance().getJarRootForLocalFile(localFile) ?: localFile
   }
 

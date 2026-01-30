@@ -30,13 +30,10 @@ import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 @State(name = "NetworkInspectorViewState", storages = [Storage("networkInspectorViewState.xml")])
 internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspectorViewState> {
 
-  @XCollection(style = v2)
-  var columns: MutableList<ColumnInfo> =
-    ConnectionColumn.entries.map { it.toColumnInfo() }.toMutableList()
+  @XCollection(style = v2) var columns: MutableList<ColumnInfo> = ConnectionColumn.entries.map { it.toColumnInfo() }.toMutableList()
 
   companion object {
-    fun getInstance(): NetworkInspectorViewState =
-      ApplicationManager.getApplication().getService(NetworkInspectorViewState::class.java)
+    fun getInstance(): NetworkInspectorViewState = ApplicationManager.getApplication().getService(NetworkInspectorViewState::class.java)
   }
 
   override fun getState(): NetworkInspectorViewState {

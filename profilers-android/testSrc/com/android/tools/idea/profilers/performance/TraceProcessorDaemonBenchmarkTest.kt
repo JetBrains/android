@@ -25,31 +25,38 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.google.common.base.Ticker
 import com.intellij.openapi.util.Disposer
-import org.junit.After
-import org.junit.Test
 import java.io.File
 import kotlin.system.measureTimeMillis
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.Test
 
 class TraceProcessorDaemonBenchmarkTest {
-  private val tpdQueryTimeBenchmark = Benchmark.Builder("TraceProcessorDaemon Query Time (millis)")
-    .setProject("Android Studio Profilers")
-    .build()
-  private val tpdQueryResponseSizeBenchmark = Benchmark.Builder("TraceProcessorDaemon Query Response Size (kb)")
-    .setProject("Android Studio Profilers")
-    .build()
+  private val tpdQueryTimeBenchmark =
+    Benchmark.Builder("TraceProcessorDaemon Query Time (millis)").setProject("Android Studio Profilers").build()
+  private val tpdQueryResponseSizeBenchmark =
+    Benchmark.Builder("TraceProcessorDaemon Query Response Size (kb)").setProject("Android Studio Profilers").build()
 
   private val tpdClient: TraceProcessorDaemonClient = TraceProcessorDaemonClient(Ticker.systemTicker())
   private val fakeTracker = FakeFeatureTracker()
 
   private enum class TestCase(val traceFile: File, val tradeId: Long, val processes: List<Int>) {
-    TRACE_10S(CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"), 10L,
-              listOf(7366 /* com.google.android.tanks */, 606 /* surfaceflinger */)),
-    TRACE_60S(CpuProfilerTestUtils.getTraceFile("performance/perfetto_60s_tanks.trace"), 60L,
-              listOf(9796 /* com.google.android.tanks */, 645 /* surfaceflinger */)),
-    TRACE_120S(CpuProfilerTestUtils.getTraceFile("performance/perfetto_120s_tanks.trace"), 120L,
-               listOf(10679 /* com.google.android.tanks */, 626 /* surfaceflinger */)),
+    TRACE_10S(
+      CpuProfilerTestUtils.getTraceFile("performance/perfetto_10s_tanks.trace"),
+      10L,
+      listOf(7366 /* com.google.android.tanks */, 606 /* surfaceflinger */),
+    ),
+    TRACE_60S(
+      CpuProfilerTestUtils.getTraceFile("performance/perfetto_60s_tanks.trace"),
+      60L,
+      listOf(9796 /* com.google.android.tanks */, 645 /* surfaceflinger */),
+    ),
+    TRACE_120S(
+      CpuProfilerTestUtils.getTraceFile("performance/perfetto_120s_tanks.trace"),
+      120L,
+      listOf(10679 /* com.google.android.tanks */, 626 /* surfaceflinger */),
+    ),
   }
 
   @After
@@ -81,18 +88,24 @@ class TraceProcessorDaemonBenchmarkTest {
     // Now we measure the time to load a trace:
     val loadTraceProto = genLoadTraceRequestProto(case.traceFile, case.tradeId)
     lateinit var loadResponse: TraceProcessorDaemonQueryResult<TraceProcessor.LoadTraceResponse>
-    tpdQueryTimeBenchmark.log("${case.name}-TraceLoad", measureTimeMillis {
-      loadResponse = tpdClient.loadTrace(loadTraceProto, fakeTracker)
-    })
+    tpdQueryTimeBenchmark.log(
+      "${case.name}-TraceLoad",
+      measureTimeMillis { loadResponse = tpdClient.loadTrace(loadTraceProto, fakeTracker) },
+    )
     assertTrue(loadResponse.completed)
     assertTrue(loadResponse.response!!.ok)
 
-    val cpuDataRequestProto = TraceProcessorServiceImpl.buildCpuDataRequestProto(case.tradeId, case.processes.map(::fakeProcess),
-                                                                                 ProcessModel(123, "", emptyMap(), emptyMap()))
+    val cpuDataRequestProto =
+      TraceProcessorServiceImpl.buildCpuDataRequestProto(
+        case.tradeId,
+        case.processes.map(::fakeProcess),
+        ProcessModel(123, "", emptyMap(), emptyMap()),
+      )
     lateinit var queryBatchResponse: TraceProcessorDaemonQueryResult<TraceProcessor.QueryBatchResponse>
-    tpdQueryTimeBenchmark.log("${case.name}-CpuData", measureTimeMillis {
-      queryBatchResponse = tpdClient.queryBatchRequest(cpuDataRequestProto, fakeTracker)
-    })
+    tpdQueryTimeBenchmark.log(
+      "${case.name}-CpuData",
+      measureTimeMillis { queryBatchResponse = tpdClient.queryBatchRequest(cpuDataRequestProto, fakeTracker) },
+    )
     assertTrue(queryBatchResponse.completed)
     assertTrue(queryBatchResponse.response!!.resultList.all { it.ok })
 
@@ -100,10 +113,8 @@ class TraceProcessorDaemonBenchmarkTest {
     tpdQueryResponseSizeBenchmark.log("${case.name}-CpuData", responseSizeKb)
   }
 
-  private fun genLoadTraceRequestProto(trace: File, id: Long) = TraceProcessor.LoadTraceRequest.newBuilder()
-      .setTraceId(id)
-      .setTracePath(trace.absolutePath)
-      .build()
+  private fun genLoadTraceRequestProto(trace: File, id: Long) =
+    TraceProcessor.LoadTraceRequest.newBuilder().setTraceId(id).setTracePath(trace.absolutePath).build()
 
   companion object {
     fun fakeProcess(id: Int) = ProcessModel(id, id.toString(), mapOf(), mapOf())

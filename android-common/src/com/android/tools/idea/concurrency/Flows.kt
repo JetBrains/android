@@ -35,15 +35,10 @@ sealed class SyntaxErrorUpdate(val file: VirtualFile) {
 }
 
 /**
- * A [Flow] for the [ProblemListener] callback. It will emit a new value for every change in the
- * problem status with the file that changed an one of [SyntaxErrorUpdate].
+ * A [Flow] for the [ProblemListener] callback. It will emit a new value for every change in the problem status with the file that changed
+ * an one of [SyntaxErrorUpdate].
  */
-fun syntaxErrorFlow(
-  project: Project,
-  parentDisposable: Disposable,
-  logger: Logger? = null,
-  onConnected: (() -> Unit)? = null
-) =
+fun syntaxErrorFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null) =
   disposableCallbackFlow("SyntaxErrorFlow", logger, parentDisposable) {
     project.messageBus
       .connect(disposable)
@@ -61,34 +56,30 @@ fun syntaxErrorFlow(
           override fun problemsDisappeared(file: VirtualFile) {
             trySend(SyntaxErrorUpdate.Disappeared(file))
           }
-        }
+        },
       )
 
     onConnected?.let { launch(workerThread) { it() } }
   }
 
 /**
- * A wrapper for [Collection] when used in [kotlinx.coroutines.flow.Flow]s.
- * This class is meant to be used in those cases where differentiating between an empty collection
- * or an uninitialized value is important.
+ * A wrapper for [Collection] when used in [kotlinx.coroutines.flow.Flow]s. This class is meant to be used in those cases where
+ * differentiating between an empty collection or an uninitialized value is important.
  */
 sealed class FlowableCollection<out T> {
   /**
-   * Value used when there is no collection available yet. Usually the expectation is that a flow
-   * serving [FlowableCollection] will have this as the first value and this value will only be seen
-   * once.
+   * Value used when there is no collection available yet. Usually the expectation is that a flow serving [FlowableCollection] will have
+   * this as the first value and this value will only be seen once.
    */
   object Uninitialized : FlowableCollection<Nothing>()
 
-  /**
-   * Value used when the collection is available. The collection might be empty.
-   */
+  /** Value used when the collection is available. The collection might be empty. */
   data class Present<T>(val collection: Collection<T>) : FlowableCollection<T>()
 }
 
 /**
- * Utility method that extracts the [Collection] out of a [FlowableCollection]. If the [FlowableCollection]
- * is [FlowableCollection.Uninitialized], this will return an empty collection.
+ * Utility method that extracts the [Collection] out of a [FlowableCollection]. If the [FlowableCollection] is
+ * [FlowableCollection.Uninitialized], this will return an empty collection.
  */
 fun <T> FlowableCollection<T>.asCollection(): Collection<T> =
   when (this) {
@@ -132,10 +123,7 @@ fun <T> FlowableCollection<T>.getOrNull(index: Int): T? =
     is FlowableCollection.Present -> (this.collection as? List<T>)?.getOrNull(index)
   }
 
-/**
- * Returns the size of the collection, or null for uninitialized collections
- * ([FlowableCollection.Uninitialized]).
- */
+/** Returns the size of the collection, or null for uninitialized collections ([FlowableCollection.Uninitialized]). */
 fun <T> FlowableCollection<T>.sizeOrNull(): Int? =
   when (this) {
     is FlowableCollection.Uninitialized -> null

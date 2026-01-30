@@ -27,12 +27,11 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Ensures JetBrains feedback surveys are suppressed in Android Studio (b/402895189).
- * See [com.intellij.platform.feedback.FeedbackSurvey] and related classes for context.
+ * Ensures JetBrains feedback surveys are suppressed in Android Studio (b/402895189). See [com.intellij.platform.feedback.FeedbackSurvey]
+ * and related classes for context.
  */
 class AndroidStudioJetBrainsSurveysTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
   @Test
   fun testSurveysAreDisabled() {

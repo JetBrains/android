@@ -131,10 +131,7 @@ class AttachStatistics(
   }
 
   private fun assertErrorNotGeneric(errorCode: AttachErrorCode) {
-    if (
-      !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR.get() &&
-        !StudioPathManager.isRunningFromSources()
-    ) {
+    if (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR.get() && !StudioPathManager.isRunningFromSources()) {
       return
     }
 

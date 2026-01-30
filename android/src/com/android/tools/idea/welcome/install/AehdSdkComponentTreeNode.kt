@@ -61,31 +61,24 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
   /**
    * Specifies what to do with the AEHD package.
    *
-   * For most packages managed by the SDK manager, "installation" means simply unpacking the
-   * packages into the appropriate directory beneath the SDK root. For the AEHD packages, however,
-   * the contents of the package are only installation (and uninstallation) scripts that install the
-   * AEHD in the operating system.
+   * For most packages managed by the SDK manager, "installation" means simply unpacking the packages into the appropriate directory beneath
+   * the SDK root. For the AEHD packages, however, the contents of the package are only installation (and uninstallation) scripts that
+   * install the AEHD in the operating system.
    *
-   * Thus, installation has two phases: unpacking the packages (which we call "installation", and
-   * running the setup script (which we call "configuration").
+   * Thus, installation has two phases: unpacking the packages (which we call "installation", and running the setup script (which we call
+   * "configuration").
    *
-   * The AEHD needs to be installed and configured. (Note that "install" here means unpacking the
-   * package files into their installation directory below the SDK root, and "configure" means
-   * running the installation script that installs the components in the OS.)
+   * The AEHD needs to be installed and configured. (Note that "install" here means unpacking the package files into their installation
+   * directory below the SDK root, and "configure" means running the installation script that installs the components in the OS.)
    */
   enum class InstallationIntention {
-    /**
-     * Install and configure. If it is already installed, it will be updated if there is a newer
-     * version.
-     */
+    /** Install and configure. If it is already installed, it will be updated if there is a newer version. */
     INSTALL_WITH_UPDATES,
     /** Install and configure. If it is already installed, do nothing. */
     INSTALL_WITHOUT_UPDATES,
     /** Only configure; the package should already be installed. */
     CONFIGURE_ONLY,
-    /**
-     * Run the uninstallation script to remove it from the operating system, and remove the package.
-     */
+    /** Run the uninstallation script to remove it from the operating system, and remove the package. */
     UNINSTALL;
 
     fun isInstall(): Boolean = this == INSTALL_WITHOUT_UPDATES || this == INSTALL_WITH_UPDATES
@@ -97,8 +90,7 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
   public override val requiredSdkPackages
     get() = listOf("extras;google;Android_Emulator_Hypervisor_Driver")
 
-  override fun sdkComponentsMetricKind() =
-    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.AEHD
+  override fun sdkComponentsMetricKind() = SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.AEHD
 
   /**
    * Create a platform-dependant command line for running the silent installer.
@@ -122,8 +114,7 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
   }
 
   @Throws(WizardException::class, IOException::class)
-  protected open fun getUninstallCommandLine(sdk: File): GeneralCommandLine =
-    getInstallerBaseCommandLine(sdk).apply { addParameters("-u") }
+  protected open fun getUninstallCommandLine(sdk: File): GeneralCommandLine = getInstallerBaseCommandLine(sdk).apply { addParameters("-u") }
 
   @Throws(IOException::class)
   protected fun getWindowsBaseCommandLine(source: File): GeneralCommandLine {
@@ -184,10 +175,7 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
         "${MemorySettingsUtil.getMachineMemoryBytes()} memory size",
       e,
     )
-    installContext.print(
-      "Unable to install Android Emulator hypervisor driver\n",
-      ConsoleViewContentType.ERROR_OUTPUT,
-    )
+    installContext.print("Unable to install Android Emulator hypervisor driver\n", ConsoleViewContentType.ERROR_OUTPUT)
     var message = e.message ?: "(unknown)"
     if (!StringUtil.endsWithLineBreak(message)) {
       message += "\n"
@@ -292,10 +280,7 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
         }
         // The vm is not required so we do not stop setup process if this install failed.
         if (installationIntention == InstallationIntention.UNINSTALL) {
-          installContext.print(
-            "Android Emulator hypervisor driver uninstallation failed",
-            ConsoleViewContentType.ERROR_OUTPUT,
-          )
+          installContext.print("Android Emulator hypervisor driver uninstallation failed", ConsoleViewContentType.ERROR_OUTPUT)
         } else {
           installContext.print(
             "Android Emulator hypervisor driver installation failed. To install Android Emulator hypervisor driver " +
@@ -303,24 +288,14 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
             ConsoleViewContentType.ERROR_OUTPUT,
           )
         }
-        val file =
-          Regex("installation log:\\s*\"(.*)\"").find(output.toString())?.groupValues?.get(1)
+        val file = Regex("installation log:\\s*\"(.*)\"").find(output.toString())?.groupValues?.get(1)
         if (file != null) {
-          installContext.print(
-            "Installer log is located at ${file}",
-            ConsoleViewContentType.ERROR_OUTPUT,
-          )
+          installContext.print("Installer log is located at ${file}", ConsoleViewContentType.ERROR_OUTPUT)
           try {
             installContext.print("Installer log contents:\n", ConsoleViewContentType.ERROR_OUTPUT)
-            installContext.print(
-              FileUtil.loadFile(File(file), "UTF-16"),
-              ConsoleViewContentType.NORMAL_OUTPUT,
-            )
+            installContext.print(FileUtil.loadFile(File(file), "UTF-16"), ConsoleViewContentType.NORMAL_OUTPUT)
           } catch (e: IOException) {
-            installContext.print(
-              "Failed to read installer output log.\n",
-              ConsoleViewContentType.ERROR_OUTPUT,
-            )
+            installContext.print("Failed to read installer output log.\n", ConsoleViewContentType.ERROR_OUTPUT)
           }
         }
         isInstallerSuccessfullyCompleted = false
@@ -341,13 +316,9 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
   protected fun ensureExistsAndIsExecutable(path: File, exeName: String): File {
     val executable = File(path, exeName)
     return when {
-      !executable.isFile ->
-        throw WizardException("Installer executable is missing: ${executable.absolutePath}")
+      !executable.isFile -> throw WizardException("Installer executable is missing: ${executable.absolutePath}")
       executable.canExecute() || executable.setExecutable(true) -> executable
-      else ->
-        throw WizardException(
-          "Unable to set execute permission bit on installer executable: ${executable.absolutePath}"
-        )
+      else -> throw WizardException("Unable to set execute permission bit on installer executable: ${executable.absolutePath}")
     }
   }
 
@@ -385,13 +356,9 @@ class AehdSdkComponentTreeNode(@JvmField val installationIntention: Installation
      * For some of these error conditions the user may rectify the problem and install Aehd later.
      */
     fun checkInstallation(): AccelerationErrorCode =
-      incompatibleSystemError
-        ?: checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      incompatibleSystemError ?: checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
-    /**
-     * Return true if it is possible to install on the current machine without any other
-     * configuration changes.
-     */
+    /** Return true if it is possible to install on the current machine without any other configuration changes. */
     fun canRun(): Boolean {
       val check = ourInitialCheck ?: checkInstallation().also { ourInitialCheck = it }
       return when (check) {

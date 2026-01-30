@@ -31,10 +31,7 @@ class AnimationToolingUsageTrackerTest {
 
   @Test
   fun testLogEvent() {
-    val animationToolingEvent =
-      AnimationToolingEvent(
-        WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_START_STATE
-      )
+    val animationToolingEvent = AnimationToolingEvent(WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_START_STATE)
     val androidStudioEvent = animationToolingUsageTracker.logEvent(animationToolingEvent)
 
     assertEquals(AndroidStudioEvent.EventKind.WEAR_TILE_ANIMATION_TOOLING, androidStudioEvent.kind)
@@ -47,17 +44,11 @@ class AnimationToolingUsageTrackerTest {
   @Test
   fun testSpeedMultiplier() {
     val animationToolingEvent =
-      AnimationToolingEvent(
-          WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_ANIMATION_SPEED
-        )
+      AnimationToolingEvent(WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_ANIMATION_SPEED)
         .withAnimationMultiplier(1.5f)
 
-    val wearTileAnimationToolingEvent =
-      animationToolingUsageTracker.logEvent(animationToolingEvent).wearTileAnimationToolingEvent
-    assertEquals(
-      WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_ANIMATION_SPEED,
-      wearTileAnimationToolingEvent.type,
-    )
+    val wearTileAnimationToolingEvent = animationToolingUsageTracker.logEvent(animationToolingEvent).wearTileAnimationToolingEvent
+    assertEquals(WearTileAnimationToolingEvent.WearTileAnimationToolingEventType.CHANGE_ANIMATION_SPEED, wearTileAnimationToolingEvent.type)
     assertEquals(1.5f, wearTileAnimationToolingEvent.animationSpeedMultiplier)
   }
 }

@@ -19,10 +19,11 @@ import com.google.gson.stream.JsonWriter
 
 abstract class HeapReport
 @JvmOverloads
-constructor(type: String,
-            val heapProperties: HeapReportProperties,
-            baseProperties: DiagnosticReportProperties = DiagnosticReportProperties())
-  : DiagnosticReport(type, baseProperties) {
+constructor(
+  type: String,
+  val heapProperties: HeapReportProperties,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties(),
+) : DiagnosticReport(type, baseProperties) {
 
   override fun serializeReportProperties(writer: JsonWriter) {
     writer.name("reason").value(heapProperties.reason.toString())

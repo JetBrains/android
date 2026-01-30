@@ -31,62 +31,74 @@ class CatalogTomlDslChangerTest : LightPlatformTestCase() {
 
   @Test
   fun testDeleteSingleLiteralInTable() {
-    val toml = """
+    val toml =
+      """
       [table]
       foo = "bar"
-    """.trimIndent()
-    val expected = """
+      """
+        .trimIndent()
+    val expected =
+      """
       [table]
 
-    """.trimIndent()
+      """
+        .trimIndent()
     doTest(toml, expected) { (getPropertyElement("table") as? GradleDslExpressionMap)?.removeProperty("foo") }
   }
 
   @Test
   fun testDeleteSingleLiteralInSegmentedTable() {
-    val toml = """
+    val toml =
+      """
       [table1.table2]
       foo = "bar"
-    """.trimIndent()
-    val expected = """
+      """
+        .trimIndent()
+    val expected =
+      """
       [table1.table2]
 
-    """.trimIndent()
+      """
+        .trimIndent()
     doTest(toml, expected) {
       val table1 = (getPropertyElement("table1") as? GradleDslExpressionMap)
-      val table2  = table1?.getPropertyElement("table2") as? GradleDslExpressionMap
+      val table2 = table1?.getPropertyElement("table2") as? GradleDslExpressionMap
       table2?.removeProperty("foo")
     }
   }
 
   @Test
   fun testDeleteSingleLiteralInInlineTable() {
-    val toml = """
+    val toml =
+      """
       foo = { bar = "baz" }
-    """.trimIndent()
-    val expected = """
+      """
+        .trimIndent()
+    val expected =
+      """
       foo = { }
-    """.trimIndent()
+      """
+        .trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
   }
 
   @Test
   fun testDeleteSingleLiteralInArray() {
-    val toml = """
+    val toml =
+      """
       foo = ["bar"]
-    """.trimIndent()
-    val expected = """
+      """
+        .trimIndent()
+    val expected =
+      """
       foo = []
-    """.trimIndent()
+      """
+        .trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
   }
 
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
-    val libsTomlFile = createFile(
-      project.guessProjectDir()!!,
-      "gradle/libs.versions.toml",
-      toml
-    )
+    val libsTomlFile = createFile(project.guessProjectDir()!!, "gradle/libs.versions.toml", toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     changer(dslFile)

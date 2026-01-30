@@ -63,23 +63,12 @@ class SdkFixture(
   val deviceManager: DeviceManager = DeviceManagers.getDeviceManager(sdkHandler),
   val avdManager: AvdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger),
 ) {
-  internal fun systemImageState(
-    hasLocal: Boolean = true,
-    hasRemote: Boolean = true,
-    error: String? = null,
-  ) =
+  internal fun systemImageState(hasLocal: Boolean = true, hasRemote: Boolean = true, error: String? = null) =
     SystemImageState(
       hasLocal = hasLocal,
       hasRemote = hasRemote,
       error = error,
-      images =
-        SystemImageSupplier(
-            repoManager,
-            sdkHandler.getSystemImageManager(FakeProgressIndicator()),
-            logger,
-          )
-          .get()
-          .toImmutableList(),
+      images = SystemImageSupplier(repoManager, sdkHandler.getSystemImageManager(FakeProgressIndicator()), logger).get().toImmutableList(),
     )
 
   fun createLocalSystemImage(
@@ -91,17 +80,7 @@ class SdkFixture(
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
     skins: List<String> = emptyList(),
   ): FakeLocalPackage =
-    createSystemImage(
-      false,
-      path,
-      tags,
-      androidVersion,
-      displayName,
-      listOf(abi),
-      vendor = vendor,
-      skins = skins,
-    )
-      as FakeLocalPackage
+    createSystemImage(false, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor, skins = skins) as FakeLocalPackage
 
   fun createRemoteSystemImage(
     path: String,
@@ -110,9 +89,7 @@ class SdkFixture(
     abi: String = recommendedAbiForHost(),
     displayName: String = (tags.map { it.display } + abi + "System Image").joinToString(" "),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
-  ): FakeRemotePackage =
-    createSystemImage(true, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor)
-      as FakeRemotePackage
+  ): FakeRemotePackage = createSystemImage(true, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor) as FakeRemotePackage
 
   fun createSystemImage(
     isRemote: Boolean,
@@ -159,11 +136,7 @@ class SdkFixture(
   fun ComposeContentTestRule.setContentWithSdkLocals(content: @Composable () -> Unit) {
     val swingPanel = JPanel()
     setContent {
-      CompositionLocalProvider(
-        LocalComponent provides swingPanel,
-        LocalFileSystem provides fileSystem,
-        LocalProject provides null,
-      ) {
+      CompositionLocalProvider(LocalComponent provides swingPanel, LocalFileSystem provides fileSystem, LocalProject provides null) {
         content()
       }
     }

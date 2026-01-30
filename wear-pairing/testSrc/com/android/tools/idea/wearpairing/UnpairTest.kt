@@ -44,8 +44,7 @@ class UnpairTest {
       hasPlayStore = true,
       state = ConnectionState.ONLINE,
     )
-  private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
+  private val wearPropertiesMap = mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
     AvdInfo(
       iniFile = Paths.get("ini"),
@@ -86,10 +85,7 @@ class UnpairTest {
       }
 
     val wearIDevice =
-      wearDevice.buildIDevice(
-        avdInfo = avdWearInfo,
-        systemProperties = mapOf("ro.oem.companion_package" to ""),
-      ) { request ->
+      wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->
         return@buildIDevice handleWearAdbRequest(request)
           ?: when {
             request.contains("settings get secure") -> PIXEL_COMPANION_APP_ID
@@ -100,17 +96,12 @@ class UnpairTest {
           }
       }
 
-    WearPairingManager.getInstance()
-      .setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
-    WearPairingManager.getInstance()
-      .createPairedDeviceBridge(phoneDevice, phoneIDevice, wearDevice, wearIDevice)
+    WearPairingManager.getInstance().setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
+    WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, phoneIDevice, wearDevice, wearIDevice)
     val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(wearIDevice.name)
     WearPairingManager.getInstance().removePairedDevices(phoneWearPair.single())
     assertTrue("Companion app must be cleared in Pixel devices", clearedCompanion)
-    assertTrue(
-      "Unexpected ADB requests\n${unexpectedAdbRequests.joinToString("\n")}",
-      unexpectedAdbRequests.isEmpty(),
-    )
+    assertTrue("Unexpected ADB requests\n${unexpectedAdbRequests.joinToString("\n")}", unexpectedAdbRequests.isEmpty())
   }
 
   @Test
@@ -126,10 +117,7 @@ class UnpairTest {
       }
 
     val wearIDevice =
-      wearDevice.buildIDevice(
-        avdInfo = avdWearInfo,
-        systemProperties = mapOf("ro.oem.companion_package" to ""),
-      ) { request ->
+      wearDevice.buildIDevice(avdInfo = avdWearInfo, systemProperties = mapOf("ro.oem.companion_package" to "")) { request ->
         return@buildIDevice handleWearAdbRequest(request)
           ?: when {
             request.contains("settings get secure") -> ""
@@ -140,15 +128,10 @@ class UnpairTest {
           }
       }
 
-    WearPairingManager.getInstance()
-      .setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
-    WearPairingManager.getInstance()
-      .createPairedDeviceBridge(phoneDevice, phoneIDevice, wearDevice, wearIDevice)
+    WearPairingManager.getInstance().setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
+    WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, phoneIDevice, wearDevice, wearIDevice)
     val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(wearDevice.deviceID)
     WearPairingManager.getInstance().removePairedDevices(phoneWearPair.single())
-    assertTrue(
-      "Unexpected ADB requests\n${unexpectedAdbRequests.joinToString("\n")}",
-      unexpectedAdbRequests.isEmpty(),
-    )
+    assertTrue("Unexpected ADB requests\n${unexpectedAdbRequests.joinToString("\n")}", unexpectedAdbRequests.isEmpty())
   }
 }

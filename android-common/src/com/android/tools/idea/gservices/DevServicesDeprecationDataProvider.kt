@@ -24,18 +24,11 @@ interface DevServicesDeprecationDataProvider {
    * Returns the current deprecation policy data for a service of the given name.
    *
    * @param serviceName Name of the service
-   * @param userFriendlyServiceName Name of the service that will be substituted and shown to the
-   *   user
+   * @param userFriendlyServiceName Name of the service that will be substituted and shown to the user
    */
-  fun getCurrentDeprecationData(
-    serviceName: String,
-    userFriendlyServiceName: String,
-  ): DevServicesDeprecationData
+  fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String): DevServicesDeprecationData
 
-  /**
-   * Register the [serviceName] and returns a [StateFlow] of [DevServicesDeprecationData] Stateflow
-   * contains the latest available data.
-   */
+  /** Register the [serviceName] and returns a [StateFlow] of [DevServicesDeprecationData] Stateflow contains the latest available data. */
   fun registerServiceForChange(
     serviceName: String,
     userFriendlyServiceName: String,

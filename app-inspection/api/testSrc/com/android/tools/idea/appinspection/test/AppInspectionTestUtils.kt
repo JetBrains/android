@@ -38,22 +38,13 @@ const val INSPECTOR_ID_2 = "test.inspector.2"
 const val INSPECTOR_ID_3 = "test.inspector.3"
 
 val TEST_JAR_PATH: Path = Paths.get("test", "resolved")
-val TEST_JAR =
-  AppInspectorJar(
-    TEST_JAR_PATH.fileName.toString(),
-    TEST_JAR_PATH.parent.toString(),
-    TEST_JAR_PATH.parent.toString(),
-  )
+val TEST_JAR = AppInspectorJar(TEST_JAR_PATH.fileName.toString(), TEST_JAR_PATH.parent.toString(), TEST_JAR_PATH.parent.toString())
 
 const val TEST_PROJECT = "test.project"
 
 const val MIN_VERSION = "0.0.0-dev"
 
-fun mockMinimumArtifactCoordinate(
-  groupId: String,
-  artifactId: String,
-  version: String,
-): MinimumArtifactCoordinate =
+fun mockMinimumArtifactCoordinate(groupId: String, artifactId: String, version: String): MinimumArtifactCoordinate =
   mock(MinimumArtifactCoordinate::class.java).also {
     `when`(it.groupId).thenReturn(groupId)
     `when`(it.artifactId).thenReturn(artifactId)
@@ -70,48 +61,32 @@ val TEST_COMPATIBILITY = LibraryCompatibility(TEST_ARTIFACT)
 object AppInspectionTestUtils {
 
   /**
-   * Creates a list of [AppInspection.AppInspectionPayload] messages, containing the original [data]
-   * broken up into chunks of [chunkSize] bytes.
+   * Creates a list of [AppInspection.AppInspectionPayload] messages, containing the original [data] broken up into chunks of [chunkSize]
+   * bytes.
    *
    * This chunks should be sent, in order
    */
-  fun createPayloadChunks(
-    data: ByteArray,
-    chunkSize: Int,
-  ): List<AppInspection.AppInspectionPayload> {
+  fun createPayloadChunks(data: ByteArray, chunkSize: Int): List<AppInspection.AppInspectionPayload> {
     val chunks = data.toList().chunked(chunkSize)
     val count = chunks.size
     return chunks.mapIndexed { index, chunk -> createPayload(count, index, chunk.toByteArray()) }
   }
 
   fun createPayload(count: Int, index: Int, data: ByteArray) =
-    AppInspection.AppInspectionPayload.newBuilder()
-      .setChunk(ByteString.copyFrom(data))
-      .setChunkCount(count)
-      .setChunkIndex(index)
-      .build()
+    AppInspection.AppInspectionPayload.newBuilder().setChunk(ByteString.copyFrom(data)).setChunkCount(count).setChunkIndex(index).build()
 
   /** Creates an [AppInspectionEvent] with the provided [data] and inspector [name]. */
-  fun createRawAppInspectionEvent(
-    data: ByteArray,
-    name: String = INSPECTOR_ID,
-  ): AppInspection.AppInspectionEvent =
+  fun createRawAppInspectionEvent(data: ByteArray, name: String = INSPECTOR_ID): AppInspection.AppInspectionEvent =
     AppInspection.AppInspectionEvent.newBuilder()
       .setInspectorId(name)
-      .setRawEvent(
-        AppInspection.RawEvent.newBuilder().setContent(ByteString.copyFrom(data)).build()
-      )
+      .setRawEvent(AppInspection.RawEvent.newBuilder().setContent(ByteString.copyFrom(data)).build())
       .build()
 
   /**
-   * Creates an [AppInspectionEvent] with the provided inspector [name], along with a unique
-   * [payloadId] which will be used after this event is received to search a cache for some byte
-   * array data.
+   * Creates an [AppInspectionEvent] with the provided inspector [name], along with a unique [payloadId] which will be used after this event
+   * is received to search a cache for some byte array data.
    */
-  fun createRawAppInspectionEvent(
-    payloadId: Long,
-    name: String = INSPECTOR_ID,
-  ): AppInspection.AppInspectionEvent =
+  fun createRawAppInspectionEvent(payloadId: Long, name: String = INSPECTOR_ID): AppInspection.AppInspectionEvent =
     AppInspection.AppInspectionEvent.newBuilder()
       .setInspectorId(name)
       .setRawEvent(AppInspection.RawEvent.newBuilder().setPayloadId(payloadId).build())
@@ -132,8 +107,7 @@ object AppInspectionTestUtils {
     project: String = TEST_PROJECT,
   ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_COMPATIBILITY)
 
-  fun createArtifactCoordinate(groupId: String, artifactId: String, version: String) =
-    ArtifactCoordinate(groupId, artifactId, version)
+  fun createArtifactCoordinate(groupId: String, artifactId: String, version: String) = ArtifactCoordinate(groupId, artifactId, version)
 
   /** Keeps track of the copied jar so tests could verify the operation happened. */
   object TestTransportJarCopier : AppInspectionJarCopier {

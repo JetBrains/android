@@ -28,10 +28,8 @@ import com.google.protobuf.GeneratedMessageV3
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.channels.SendChannel
 
-class FakeReportingService(
-  private val connection: VitalsConnection,
-  private val requestChannel: SendChannel<GeneratedMessageV3>? = null,
-) : ReportingServiceImplBase() {
+class FakeReportingService(private val connection: VitalsConnection, private val requestChannel: SendChannel<GeneratedMessageV3>? = null) :
+  ReportingServiceImplBase() {
   override fun fetchReleaseFilterOptions(
     request: FetchReleaseFilterOptionsRequest,
     responseObserver: StreamObserver<ReleaseFilterOptions>,
@@ -62,10 +60,7 @@ class FakeReportingService(
     responseObserver.onCompleted()
   }
 
-  override fun searchAccessibleApps(
-    request: SearchAccessibleAppsRequest,
-    responseObserver: StreamObserver<SearchAccessibleAppsResponse>,
-  ) {
+  override fun searchAccessibleApps(request: SearchAccessibleAppsRequest, responseObserver: StreamObserver<SearchAccessibleAppsResponse>) {
     requestChannel?.trySend(request)
     responseObserver.onNext(
       SearchAccessibleAppsResponse.newBuilder()

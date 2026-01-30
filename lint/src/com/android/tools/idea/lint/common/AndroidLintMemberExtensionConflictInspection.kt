@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.MemberExtensionConflictDetector
 
 class AndroidLintMemberExtensionConflictInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.member.extension.conflict"),
-    MemberExtensionConflictDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.member.extension.conflict"), MemberExtensionConflictDetector.ISSUE)

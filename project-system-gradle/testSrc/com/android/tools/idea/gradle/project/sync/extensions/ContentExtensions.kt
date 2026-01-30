@@ -18,5 +18,4 @@ package com.android.tools.idea.gradle.project.sync.extensions
 import org.jdom.Content
 import org.jdom.Element
 
-fun Content.getOptionElementName(optionName: String): Element? =
-  (this as? Element)?.getOptionElement(optionName)
+fun Content.getOptionElementName(optionName: String): Element? = (this as? Element)?.getOptionElement(optionName)

@@ -20,7 +20,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.application
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 
-class AndroidStudioGradleInstallationManager: GradleInstallationManager() {
+class AndroidStudioGradleInstallationManager : GradleInstallationManager() {
 
   companion object {
     @JvmStatic
@@ -30,7 +30,7 @@ class AndroidStudioGradleInstallationManager: GradleInstallationManager() {
 
   @Deprecated(
     "use resolveGradleJvmPath, since getGradleJvmPath reports an error when current thread doesn't have a ProgressIndicator or Job",
-    ReplaceWith("resolveGradleJvmPath")
+    ReplaceWith("resolveGradleJvmPath"),
   )
   override fun getGradleJvmPath(project: Project, linkedProjectPath: String): String? {
     return super.getGradleJvmPath(project, linkedProjectPath)

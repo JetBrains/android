@@ -31,45 +31,35 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
-import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
+import org.jetbrains.annotations.SystemIndependent
 
 object JdkTableUtils {
 
   /**
    * Simple JDK model used to create a jdk.table entry during tests
+   *
    * @param name The jdk.table entry JDK name
    * @param path The jdk.table entry JDK absolute path system independent
    * @param rootsType The jdk.table entry JDK roots type
    */
-  data class Jdk(
-    val name: String,
-    val path: @SystemIndependent String?,
-    val rootsType: JdkRootsType = VALID
-  )
+  data class Jdk(val name: String, val path: @SystemIndependent String?, val rootsType: JdkRootsType = VALID)
 
-  /**
-   * Represents the different roots path type for the jdk.table entry that will be taken into consideration during the creation of it
-   */
+  /** Represents the different roots path type for the jdk.table entry that will be taken into consideration during the creation of it */
   enum class JdkRootsType {
     VALID,
     INVALID,
-    DETACHED
+    DETACHED,
   }
 
   fun removeAllJavaSdkFromJdkTable() {
-    ProjectJdkTable.getInstance()
-      .allJdks
-      .filter { it.sdkType is JavaSdk }
-      .forEach { SdkConfigurationUtil.removeSdk(it) }
+    ProjectJdkTable.getInstance().allJdks.filter { it.sdkType is JavaSdk }.forEach { SdkConfigurationUtil.removeSdk(it) }
   }
 
   fun removeAllSdkFromJdkTable() {
-    ProjectJdkTable.getInstance()
-      .allJdks
-      .forEach { SdkConfigurationUtil.removeSdk(it) }
+    ProjectJdkTable.getInstance().allJdks.forEach { SdkConfigurationUtil.removeSdk(it) }
   }
 
   fun getJdkPathFromJdkTable(jdkName: String): String? {
@@ -80,22 +70,15 @@ object JdkTableUtils {
   fun containsValidJdkTableEntry(jdkName: String): Boolean {
     return ProjectJdkTable.getInstance().findJdk(jdkName)?.let { jdkTableEntry ->
       val recreatedJdkTableEntry = JavaSdk.getInstance().createJdk(jdkName, jdkTableEntry.homePath.orEmpty())
-      jdkTableEntry.isEqualTo(recreatedJdkTableEntry).also {
-        Disposer.dispose(recreatedJdkTableEntry as Disposable)
-      }
-    } ?: run {
-      false
-    }
+      jdkTableEntry.isEqualTo(recreatedJdkTableEntry).also { Disposer.dispose(recreatedJdkTableEntry as Disposable) }
+    } ?: run { false }
   }
 
   fun populateJdkTableWith(jdk: Jdk, tempDir: File) {
     populateJdkTableWith(listOf(jdk), tempDir)
   }
 
-  fun populateJdkTableWith(
-    jdks: List<Jdk>,
-    tempDir: File
-  ) {
+  fun populateJdkTableWith(jdks: List<Jdk>, tempDir: File) {
     jdks.forEach { (name, path, rootsType) ->
       val jdkPath = findOrCreateTempDir(path.orEmpty(), tempDir).path
       val createdJdk = JavaSdk.getInstance().createJdk(name, jdkPath)
@@ -120,28 +103,29 @@ object JdkTableUtils {
     }
   }
 
-  private fun generateCorruptedJdkRoots(
-    jdk: Sdk,
-    tempDir: File
-  ): List<Pair<VirtualFile, OrderRootType>> {
+  private fun generateCorruptedJdkRoots(jdk: Sdk, tempDir: File): List<Pair<VirtualFile, OrderRootType>> {
     val tempCorruptedJdk = findOrCreateTempDir("jdk-corrupted", tempDir)
-    val jdkRootsMap = mapOf<OrderRootType, Array<VirtualFile>>(
-      OrderRootType.SOURCES to jdk.rootProvider.getFiles(OrderRootType.SOURCES),
-      OrderRootType.CLASSES to jdk.rootProvider.getFiles(OrderRootType.CLASSES)
-    ).flatMap { (rootType, files) ->
-      files.map {
-        val fakeFile = VfsTestUtil.createFile(tempCorruptedJdk, it.name)
-        Pair(fakeFile, rootType)
-      }.toList()
-    }
+    val jdkRootsMap =
+      mapOf<OrderRootType, Array<VirtualFile>>(
+          OrderRootType.SOURCES to jdk.rootProvider.getFiles(OrderRootType.SOURCES),
+          OrderRootType.CLASSES to jdk.rootProvider.getFiles(OrderRootType.CLASSES),
+        )
+        .flatMap { (rootType, files) ->
+          files
+            .map {
+              val fakeFile = VfsTestUtil.createFile(tempCorruptedJdk, it.name)
+              Pair(fakeFile, rootType)
+            }
+            .toList()
+        }
     return jdkRootsMap
   }
 
   private fun findOrCreateTempDir(path: String, tempDir: File): VirtualFile {
-    return VfsUtil.findFile(Path(path), true) ?: run {
-      val vfsTempDir = VfsUtil.findFile(tempDir.toPath(), true)
-                       ?: throw FileNotFoundException("Unable to find ${tempDir.path}")
-      VfsTestUtil.createDir(vfsTempDir, path)
-    }
+    return VfsUtil.findFile(Path(path), true)
+      ?: run {
+        val vfsTempDir = VfsUtil.findFile(tempDir.toPath(), true) ?: throw FileNotFoundException("Unable to find ${tempDir.path}")
+        VfsTestUtil.createDir(vfsTempDir, path)
+      }
   }
 }

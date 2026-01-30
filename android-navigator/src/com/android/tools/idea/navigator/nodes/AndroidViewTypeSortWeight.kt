@@ -17,5 +17,5 @@ package com.android.tools.idea.navigator.nodes
 
 enum class AndroidViewTypeSortWeight(val weight: Int) {
   PACKAGE(2),
-  FILE(3)
+  FILE(3),
 }

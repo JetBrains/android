@@ -25,9 +25,8 @@ import java.nio.file.Paths
 private const val outputLogFileName: String = "UITools.log"
 
 /**
- * A [DiagnosticsSummaryFileProvider] that leverages [DesignToolsTroubleInfoCollector] to collect UI
- * Tools specific troubleshooting information that will be put into a log for the users to send it
- * in bug reports.
+ * A [DiagnosticsSummaryFileProvider] that leverages [DesignToolsTroubleInfoCollector] to collect UI Tools specific troubleshooting
+ * information that will be put into a log for the users to send it in bug reports.
  */
 class DesignToolsDiagnosticsSummaryFileProvider : DiagnosticsSummaryFileProvider {
   override val name: String = "UI Tools"
@@ -35,9 +34,7 @@ class DesignToolsDiagnosticsSummaryFileProvider : DiagnosticsSummaryFileProvider
   override fun getFiles(project: Project?): List<FileInfo> {
     if (project == null) return emptyList()
 
-    val outputFile =
-      DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
-        .resolve(outputLogFileName)
+    val outputFile = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath()).resolve(outputLogFileName)
     Files.writeString(outputFile, DesignToolsTroubleInfoCollector().collectInfo(project))
     return listOf(FileInfo(outputFile, Paths.get(outputLogFileName)))
   }

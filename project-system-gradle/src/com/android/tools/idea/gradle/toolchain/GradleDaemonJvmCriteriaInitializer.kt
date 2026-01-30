@@ -19,16 +19,16 @@ import com.android.tools.idea.gradle.extensions.getRecommendedJavaVersion
 import com.android.tools.idea.gradle.jdk.GradleDefaultJvmCriteriaStore
 import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
 import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria
-import java.util.concurrent.CompletableFuture
 
 class GradleDaemonJvmCriteriaInitializer(
   private val project: Project,
   private val externalProjectPath: @SystemIndependent String,
-  private val gradleVersion: GradleVersion
+  private val gradleVersion: GradleVersion,
 ) {
 
   fun initialize(useDefault: Boolean): CompletableFuture<Boolean> {

@@ -35,26 +35,20 @@ internal interface InternalMultiViewMetricTracker {
   fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel)
 }
 
-/**
- * Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event
- * drop-policy etc.
- */
+/** Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event drop-policy etc. */
 internal class InternalMultiViewMetricTrackerFactory {
 
   companion object {
     private val MANAGER =
       DesignerUsageTrackerManager<InternalMultiViewMetricTracker, DesignSurface<*>>(
-        { executor, surface, eventLogger ->
-          MultiViewMetricTrackerImpl(executor, surface, eventLogger)
-        },
+        { executor, surface, eventLogger -> MultiViewMetricTrackerImpl(executor, surface, eventLogger) },
         MultiViewNopTracker,
       )
 
     /**
      * Gets a shared instance of the tracker.
      *
-     * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker]
-     *   will be used.
+     * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker] will be used.
      */
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
@@ -73,16 +67,12 @@ private class MultiViewMetricTrackerImpl(
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>,
 ) : InternalMultiViewMetricTracker {
 
-  /**
-   * Returns the [MultiViewEvent.AssociatedSplitEditorMode] for the associated editor to track it.
-   */
+  /** Returns the [MultiViewEvent.AssociatedSplitEditorMode] for the associated editor to track it. */
   private fun getAssociatedEditorMode(): MultiViewEvent.AssociatedSplitEditorMode {
     return when ((surface?.fileEditorDelegate as? DesignToolsSplitEditor)?.getLayout()) {
-      TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW ->
-        MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
+      TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
       TextEditorWithPreview.Layout.SHOW_EDITOR -> MultiViewEvent.AssociatedSplitEditorMode.TEXT_MODE
-      TextEditorWithPreview.Layout.SHOW_PREVIEW ->
-        MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
+      TextEditorWithPreview.Layout.SHOW_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
       else -> MultiViewEvent.AssociatedSplitEditorMode.UNKNOWN_MODE
     }
   }
@@ -94,10 +84,7 @@ private class MultiViewMetricTrackerImpl(
           AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
             .setMultiViewEvent(
-              MultiViewEvent.newBuilder()
-                .setType(eventType)
-                .setAssociatedSplitEditorMode(getAssociatedEditorMode())
-                .build()
+              MultiViewEvent.newBuilder().setType(eventType).setAssociatedSplitEditorMode(getAssociatedEditorMode()).build()
             )
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
@@ -115,10 +102,7 @@ private class MultiViewMetricTrackerImpl(
           AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
             .setMultiViewEvent(
-              MultiViewEvent.newBuilder()
-                .setAssociatedSplitEditorMode(getAssociatedEditorMode())
-                .setToggleIssuePanel(event)
-                .build()
+              MultiViewEvent.newBuilder().setAssociatedSplitEditorMode(getAssociatedEditorMode()).setToggleIssuePanel(event).build()
             )
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 

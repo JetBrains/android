@@ -46,14 +46,11 @@ class UpgradeAssistant90ContentManagerTest {
   val supportedAgpVersion = AgpVersion.parse("8.0.0")
   val latestAgpVersion = AgpVersion.parse("9.0.0")
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
 
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
+  @get:Rule val ignoreTests = IgnoreTestRule()
 
-  @get:Rule
-  val expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect = Expect.createAndEnableStackTrace()
 
   val project by lazy { projectRule.project }
 
@@ -65,19 +62,16 @@ class UpgradeAssistant90ContentManagerTest {
   fun replaceSyncInvoker() {
     syncRequest = null
     val ideComponents = IdeComponents(projectRule.fixture)
-    val fakeSyncInvoker = object : GradleSyncInvoker.FakeInvoker() {
-      override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-        syncRequest = request
-        super.requestProjectSync(project, request, listener)
+    val fakeSyncInvoker =
+      object : GradleSyncInvoker.FakeInvoker() {
+        override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+          syncRequest = request
+          super.requestProjectSync(project, request, listener)
+        }
       }
-    }
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
 
-    IdeSdks.getInstance().jdk?.let {
-      Disposer.register(projectRule.testRootDisposable) {
-        SdkConfigurationUtil.removeSdk(it)
-      }
-    }
+    IdeSdks.getInstance().jdk?.let { Disposer.register(projectRule.testRootDisposable) { SdkConfigurationUtil.removeSdk(it) } }
   }
 
   private fun addMinimalBuildGradleKtsToProject(version: AgpVersion = supportedAgpVersion): PsiFile {
@@ -87,7 +81,8 @@ class UpgradeAssistant90ContentManagerTest {
         plugins {
           id("com.android.application") version "$version" apply false
         }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
@@ -95,19 +90,20 @@ class UpgradeAssistant90ContentManagerTest {
     return projectRule.fixture.addFileToProject(
       "gradle.properties",
       """
-        android.useAndroidX=true
-        android.defaults.buildfeatures.shaders=false
-        android.defaults.buildfeatures.resvalues=false
-        android.sdk.defaultTargetSdkToCompileSdkIfUnset=true
-        android.enableAppCompileTimeRClass=true
-        android.usesSdkInManifest.disallowed=true
-        android.uniquePackageNames=true
-        android.dependency.useConstraints=false
-        android.r8.strictFullModeForKeepRules=true
-        android.r8.optimizedResourceShrinking=true
-        android.builtInKotlin=true
-        android.newDsl=true
-      """.trimIndent()
+      android.useAndroidX=true
+      android.defaults.buildfeatures.shaders=false
+      android.defaults.buildfeatures.resvalues=false
+      android.sdk.defaultTargetSdkToCompileSdkIfUnset=true
+      android.enableAppCompileTimeRClass=true
+      android.usesSdkInManifest.disallowed=true
+      android.uniquePackageNames=true
+      android.dependency.useConstraints=false
+      android.r8.strictFullModeForKeepRules=true
+      android.r8.optimizedResourceShrinking=true
+      android.builtInKotlin=true
+      android.newDsl=true
+      """
+        .trimIndent(),
     )
   }
 
@@ -145,8 +141,9 @@ class UpgradeAssistant90ContentManagerTest {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = UpgradeAssistantWindowModel(project, { supportedAgpVersion }, latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
-    assertThat(treeString(view.tree)).isEqualTo(
-      """
+    assertThat(treeString(view.tree))
+      .isEqualTo(
+        """
         Upgrade
           Disable Usage of AndroidX Libraries
           Enable resValues build feature
@@ -160,8 +157,9 @@ class UpgradeAssistant90ContentManagerTest {
           Disable built-in Kotlin support
           Preserve the old (internal) AGP Dsl APIs
           Upgrade AGP dependency from $supportedAgpVersion to $latestAgpVersion
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -171,12 +169,14 @@ class UpgradeAssistant90ContentManagerTest {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     val model = UpgradeAssistantWindowModel(project, { supportedAgpVersion }, latestKnownVersion = latestAgpVersion)
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
-    assertThat(treeString(view.tree)).isEqualTo(
-      """
+    assertThat(treeString(view.tree))
+      .isEqualTo(
+        """
         Upgrade
           Upgrade AGP dependency from $supportedAgpVersion to $latestAgpVersion
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
   }
 
   // TODO(xof): this is a direct copy of the one in UpgradeAssistantContentManagerTest

@@ -88,9 +88,7 @@ class WizardFlowTest {
   private val composeTestRule = createStudioComposeTestRule()
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
 
-  @get:Rule
-  val rules =
-    RuleChain.outerRule(projectRule).around(flagRule).around(disposableRule).around(composeTestRule)
+  @get:Rule val rules = RuleChain.outerRule(projectRule).around(flagRule).around(disposableRule).around(composeTestRule)
 
   private lateinit var communicator: FakeRemoteCommunicator
   private lateinit var communicatorProvider: FakeCommunicatorProvider
@@ -101,8 +99,7 @@ class WizardFlowTest {
   private val step3 = ChooseCategoriesStepPage()
   private val pages = listOf(step1, step2, step3)
 
-  private val tracker =
-    TestUsageTracker(VirtualTimeScheduler()).also { UsageTracker.setWriterForTest(it) }
+  private val tracker = TestUsageTracker(VirtualTimeScheduler()).also { UsageTracker.setWriterForTest(it) }
 
   private val dispatcher = UnconfinedTestDispatcher()
   private val scope = TestScope(dispatcher)
@@ -118,35 +115,26 @@ class WizardFlowTest {
         disposableRule.disposable,
       )
 
-    communicator =
-      FakeRemoteCommunicator(USER_EMAIL).apply {
-        Disposer.register(disposableRule.disposable, this)
-      }
+    communicator = FakeRemoteCommunicator(USER_EMAIL).apply { Disposer.register(disposableRule.disposable, this) }
     communicatorProvider = FakeCommunicatorProvider(communicator)
 
-    val communicatorProviderBean = object : SettingsSyncCommunicatorBean() {
-      override fun createInstance(componentManager: ComponentManager,
-                                  pluginDescriptor: PluginDescriptor): SettingsSyncCommunicatorProvider {
-        return communicatorProvider
+    val communicatorProviderBean =
+      object : SettingsSyncCommunicatorBean() {
+        override fun createInstance(
+          componentManager: ComponentManager,
+          pluginDescriptor: PluginDescriptor,
+        ): SettingsSyncCommunicatorProvider {
+          return communicatorProvider
+        }
       }
-    }
     val pluginManager = PluginManager.getInstance()
     val androidPluginId = checkNotNull(PluginId.findId("org.jetbrains.android"))
     val androidPluginDescriptor = checkNotNull(pluginManager.findEnabledPlugin(androidPluginId))
     communicatorProviderBean.pluginDescriptor = androidPluginDescriptor
 
-    (getSyncProviderPoint() as ExtensionPointImpl).maskAll(
-      listOf(communicatorProviderBean),
-      disposableRule.disposable,
-      false,
-    )
+    (getSyncProviderPoint() as ExtensionPointImpl).maskAll(listOf(communicatorProviderBean), disposableRule.disposable, false)
 
-    ExtensionTestUtil.maskExtensions(
-      LoginFeature.Companion.EP_NAME,
-      listOf(feature),
-      disposableRule.disposable,
-      false,
-    )
+    ExtensionTestUtil.maskExtensions(LoginFeature.Companion.EP_NAME, listOf(feature), disposableRule.disposable, false)
 
     initCommunicatorFromClean()
 
@@ -216,23 +204,15 @@ class WizardFlowTest {
     // 1. check locally stored data
     assertThat(SettingsSyncSettings.getInstance().syncEnabled).isTrue()
     assertThat(SettingsSyncSettings.getInstance().state)
-      .isEqualTo(
-        wizardState
-          .getOrCreateState { SyncConfigurationState() }
-          .syncCategoryStates
-          .toLocallyStoredState(syncEnabled = true)
-      )
+      .isEqualTo(wizardState.getOrCreateState { SyncConfigurationState() }.syncCategoryStates.toLocallyStoredState(syncEnabled = true))
     assertThat(SettingsSyncSettings.getInstance().state.disabledCategories).isEmpty()
     assertThat(SettingsSyncSettings.getInstance().state.disabledSubcategories).isEmpty()
 
-    assertThat(SettingsSyncLocalSettings.getInstance().providerCode)
-      .isEqualTo(communicatorProvider.providerCode)
+    assertThat(SettingsSyncLocalSettings.getInstance().providerCode).isEqualTo(communicatorProvider.providerCode)
     assertThat(SettingsSyncLocalSettings.getInstance().userId).isEqualTo(USER_EMAIL)
     assertThat(SettingsSyncLocalSettings.getInstance().isCrossIdeSyncEnabled).isFalse()
 
-    waitForCondition(1.seconds) {
-      SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null
-    }
+    waitForCondition(1.seconds) { SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null }
 
     // 2. check push result
     assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
@@ -272,25 +252,15 @@ class WizardFlowTest {
     // 1. check locally stored data
     assertThat(SettingsSyncSettings.getInstance().syncEnabled).isTrue()
     assertThat(SettingsSyncSettings.getInstance().state)
-      .isEqualTo(
-        wizardState
-          .getOrCreateState { SyncConfigurationState() }
-          .syncCategoryStates
-          .toLocallyStoredState(syncEnabled = true)
-      )
-    assertThat(SettingsSyncSettings.getInstance().state.disabledCategories)
-      .containsExactly(SettingsCategory.PLUGINS)
-    assertThat(SettingsSyncSettings.getInstance().state.disabledSubcategories.values)
-      .containsExactly(listOf("bundled"))
+      .isEqualTo(wizardState.getOrCreateState { SyncConfigurationState() }.syncCategoryStates.toLocallyStoredState(syncEnabled = true))
+    assertThat(SettingsSyncSettings.getInstance().state.disabledCategories).containsExactly(SettingsCategory.PLUGINS)
+    assertThat(SettingsSyncSettings.getInstance().state.disabledSubcategories.values).containsExactly(listOf("bundled"))
 
-    assertThat(SettingsSyncLocalSettings.getInstance().providerCode)
-      .isEqualTo(communicatorProvider.providerCode)
+    assertThat(SettingsSyncLocalSettings.getInstance().providerCode).isEqualTo(communicatorProvider.providerCode)
     assertThat(SettingsSyncLocalSettings.getInstance().userId).isEqualTo(USER_EMAIL)
     assertThat(SettingsSyncLocalSettings.getInstance().isCrossIdeSyncEnabled).isFalse()
 
-    waitForCondition(1.seconds) {
-      SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null
-    }
+    waitForCondition(1.seconds) { SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null }
     // 2. check push result
     assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
     assertThat(pushResult.result).isInstanceOf(SettingsSyncPushResult.Success::class.java)
@@ -356,11 +326,7 @@ class WizardFlowTest {
     // Action
     // 1. Select to configure using the new account.
     composeTestRule
-      .onNodeWithText(
-        "Sync settings to $USER_EMAIL instead.",
-        substring = true,
-        useUnmergedTree = true,
-      )
+      .onNodeWithText("Sync settings to $USER_EMAIL instead.", substring = true, useUnmergedTree = true)
       .assertIsDisplayed()
       .performClick()
     // 2. Click "Next" button.
@@ -393,10 +359,7 @@ class WizardFlowTest {
 
     // Action
     // 1. click to use the settings from the remote.
-    composeTestRule
-      .onNodeWithText("Use the settings from your Google account storage", substring = true)
-      .assertIsDisplayed()
-      .performClick()
+    composeTestRule.onNodeWithText("Use the settings from your Google account storage", substring = true).assertIsDisplayed().performClick()
     // 2. click "Next" to proceed.
     composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
 
@@ -405,8 +368,7 @@ class WizardFlowTest {
       assertThat(pushOrPull).isEqualTo(PushOrPull.PULL)
 
       assertThat(cloudStatusCache.size).isEqualTo(1)
-      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot)
-        .isEqualTo(SAMPLE_SNAPSHOT)
+      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot).isEqualTo(SAMPLE_SNAPSHOT)
 
       syncCategoryStates.checkSynCategories(
         listOf(
@@ -457,12 +419,7 @@ class WizardFlowTest {
       composeTestRule.onNodeWithText("Last updated: 5/8/24", substring = true).assertIsDisplayed()
     }
     // remote/local build info
-    with(
-      composeTestRule.onAllNodesWithText(
-        "Android Studio version: Android Studio dev build",
-        substring = true,
-      )
-    ) {
+    with(composeTestRule.onAllNodesWithText("Android Studio version: Android Studio dev build", substring = true)) {
       assertCountEquals(2)
       this[0].assertIsDisplayed()
       this[1].assertIsDisplayed()
@@ -471,10 +428,7 @@ class WizardFlowTest {
     // Action
     // 1. click to use the settings from the remote.
     composeTestRule
-      .onNodeWithText(
-        "Use the local settings and upload them to your Google account storage",
-        substring = true,
-      )
+      .onNodeWithText("Use the local settings and upload them to your Google account storage", substring = true)
       .assertIsDisplayed()
       .performClick()
     // 2. click "Next" to proceed.
@@ -485,8 +439,7 @@ class WizardFlowTest {
       assertThat(pushOrPull).isEqualTo(PushOrPull.PUSH)
 
       assertThat(cloudStatusCache.size).isEqualTo(1)
-      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot)
-        .isEqualTo(SAMPLE_SNAPSHOT)
+      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot).isEqualTo(SAMPLE_SNAPSHOT)
 
       syncCategoryStates.checkSynCategories(
         listOf(
@@ -515,8 +468,7 @@ class WizardFlowTest {
     val wizardState =
       WizardState().apply {
         // Make sure we won't skip the page
-        getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+        getOrCreateState { GoogleSignInWizard.SignInState() }.apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
       }
     val controller = initWizard(pages, wizardState, expectedInitialPage = step1, scope)
     composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
@@ -532,24 +484,14 @@ class WizardFlowTest {
 
   private fun List<CheckboxNode>.toLocallyStoredState(syncEnabled: Boolean): State {
     return with(toSettingsSyncState(syncEnabled)) {
-      State(
-        disabledCategories,
-        disabledSubcategories,
-        migrationFromOldStorageChecked,
-        this.syncEnabled,
-      )
+      State(disabledCategories, disabledSubcategories, migrationFromOldStorageChecked, this.syncEnabled)
     }
   }
 
   private fun checkMetrics() {
-    val events =
-      tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == BACKUP_AND_SYNC_EVENT }
-        .map { it.backupAndSyncEvent }
+    val events = tracker.usages.map { it.studioEvent }.filter { it.kind == BACKUP_AND_SYNC_EVENT }.map { it.backupAndSyncEvent }
 
     assertThat(events[0].providerInUse).isEqualTo(BackupAndSyncEvent.Provider.GOOGLE)
-    assertThat(events[1].enablementFlow)
-      .isEqualTo(BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW)
+    assertThat(events[1].enablementFlow).isEqualTo(BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW)
   }
 }

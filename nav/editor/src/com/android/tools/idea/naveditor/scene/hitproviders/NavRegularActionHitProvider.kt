@@ -31,11 +31,7 @@ import java.awt.Rectangle
 private const val STEPS = 30
 
 object NavRegularActionHitProvider : NavActionHitProviderBase() {
-  override fun addShapeHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     val source = sourceRectangle(component, sceneTransform) ?: return
     val destination = destinationRectangle(component, sceneTransform) ?: return
 
@@ -55,30 +51,20 @@ object NavRegularActionHitProvider : NavActionHitProviderBase() {
     )
   }
 
-  override fun iconRectangle(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-  ): SwingRectangle? {
+  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
     val source = sourceRectangle(component, sceneTransform) ?: return null
     val destination = destinationRectangle(component, sceneTransform) ?: return null
 
     return getRegularActionIconRect(source, destination, sceneTransform.inlineScale)
   }
 
-  private fun destinationRectangle(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-  ): SwingRectangle? {
+  private fun destinationRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
     val destinationId = component.nlComponent.effectiveDestinationId ?: return null
     val destination = component.scene.root?.getSceneComponent(destinationId) ?: return null
     return destination.inlineDrawRect(sceneTransform)
   }
 
-  override fun intersects(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    @AndroidDpCoordinate rectangle: Rectangle,
-  ): Boolean {
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
     val source = sourceRectangle(component, sceneTransform) ?: return false
     val destination = destinationRectangle(component, sceneTransform) ?: return false
 

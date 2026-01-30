@@ -28,28 +28,25 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.withLock
 
 /**
- * Provides an api to use a [ProjectBuildModel] while refreshing the model if the Gradle build files change,
- * this means that both [read] or [modify] could result in reparsing the Gradle build files.
+ * Provides an api to use a [ProjectBuildModel] while refreshing the model if the Gradle build files change, this means that both [read] or
+ * [modify] could result in reparsing the Gradle build files.
  *
- * Also provides synchronization by using a [ReentrantReadWriteLock] to guard both [read] and [modify].
- * These methods should not be called from the UI thread.
+ * Also provides synchronization by using a [ReentrantReadWriteLock] to guard both [read] and [modify]. These methods should not be called
+ * from the UI thread.
  *
- * This handler shares an instance of the [ProjectBuildModel] and commits all changes on every call to
- * [modify] if you require more fine grained control please use [ProjectBuildModel.get].
+ * This handler shares an instance of the [ProjectBuildModel] and commits all changes on every call to [modify] if you require more fine
+ * grained control please use [ProjectBuildModel.get].
  */
 @Service
 class ProjectBuildModelHandler @VisibleForTesting constructor(val project: Project) {
-  /**
-   * The time stamp of the last sync before the [ProjectBuildModel] was created.
-   */
-  private var modelSyncTime : Long = -1L
+  /** The time stamp of the last sync before the [ProjectBuildModel] was created. */
+  private var modelSyncTime: Long = -1L
   private var projectBuildModel: ProjectBuildModel? = null
   private val lock: Lock = ReentrantLock()
 
   companion object {
-    fun getInstance(project: Project) : ProjectBuildModelHandler = project.getService(ProjectBuildModelHandler::class.java)
+    fun getInstance(project: Project): ProjectBuildModelHandler = project.getService(ProjectBuildModelHandler::class.java)
   }
-
 
   fun <T> read(block: ProjectBuildModel.() -> T): T {
     // TODO: assert is not dispatch thread once all callers are not using it
@@ -70,29 +67,20 @@ class ProjectBuildModelHandler @VisibleForTesting constructor(val project: Proje
       try {
         return block.invoke(model)
       } finally {
-        ApplicationManager.getApplication().invokeAndWait {
-          ApplicationManager.getApplication().runWriteAction {
-            model.applyChanges()
-          }
-        }
+        ApplicationManager.getApplication().invokeAndWait { ApplicationManager.getApplication().runWriteAction { model.applyChanges() } }
       }
     }
   }
 
-  /**
-   * Returns the [ProjectBuildModel], refreshes it if it falls out of date.
-   */
+  /** Returns the [ProjectBuildModel], refreshes it if it falls out of date. */
   private fun projectModel(): ProjectBuildModel {
     val lastKnownSyncTime = GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
 
-    return projectBuildModel?.takeUnless {
-      GradleFiles.getInstance(project).areGradleFilesModified() || modelSyncTime != lastKnownSyncTime
-    } ?: ProjectBuildModel.get(project).also { modelSyncTime = lastKnownSyncTime }
+    return projectBuildModel?.takeUnless { GradleFiles.getInstance(project).areGradleFilesModified() || modelSyncTime != lastKnownSyncTime }
+      ?: ProjectBuildModel.get(project).also { modelSyncTime = lastKnownSyncTime }
   }
 
-  /**
-   * DO NOT use outside of tests.
-   */
+  /** DO NOT use outside of tests. */
   @VisibleForTesting
   constructor(project: Project, projectModel: ProjectBuildModel, lastSync: Long = -1L) : this(project) {
     projectBuildModel = projectModel

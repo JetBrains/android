@@ -86,8 +86,7 @@ class NextDeviceAction private constructor() : SwitchDeviceAction() {
   companion object {
     @JvmStatic
     fun getInstance(): NextDeviceAction {
-      return ActionManager.getInstance().getAction(DesignerActions.ACTION_NEXT_DEVICE)
-        as NextDeviceAction
+      return ActionManager.getInstance().getAction(DesignerActions.ACTION_NEXT_DEVICE) as NextDeviceAction
     }
   }
 }
@@ -115,8 +114,7 @@ class PreviousDeviceAction private constructor() : SwitchDeviceAction() {
   companion object {
     @JvmStatic
     fun getInstance(): PreviousDeviceAction {
-      return ActionManager.getInstance().getAction(DesignerActions.ACTION_PREVIOUS_DEVICE)
-        as PreviousDeviceAction
+      return ActionManager.getInstance().getAction(DesignerActions.ACTION_PREVIOUS_DEVICE) as PreviousDeviceAction
     }
   }
 }

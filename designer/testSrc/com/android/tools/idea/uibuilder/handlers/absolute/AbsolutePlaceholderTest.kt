@@ -116,14 +116,8 @@ class AbsolutePlaceholderTest : SceneTest() {
     mySceneManager.update()
 
     val nlComponent = textView.authoritativeNlComponent
-    assertEquals(
-      "50dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X),
-    )
-    assertEquals(
-      "60dp",
-      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y),
-    )
+    assertEquals("50dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X))
+    assertEquals("60dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y))
   }
 
   override fun createModel(): ModelBuilder {
@@ -134,13 +128,7 @@ class AbsolutePlaceholderTest : SceneTest() {
         .id("@id/absolute")
         .matchParentWidth()
         .matchParentHeight()
-        .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(0, 0, 200, 200)
-            .id("@id/textView")
-            .width("100dp")
-            .height("100dp")
-        ),
+        .children(component(SdkConstants.TEXT_VIEW).withBounds(0, 0, 200, 200).id("@id/textView").width("100dp").height("100dp")),
     )
   }
 }

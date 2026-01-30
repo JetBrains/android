@@ -26,14 +26,16 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 
 class SuggestionViewer(
-    private val context: PsContext,
-    private val renderer: IssueRenderer,
-    issue: PsIssue,
-    scope: PsPath?,
-    isLast: Boolean
+  private val context: PsContext,
+  private val renderer: IssueRenderer,
+  issue: PsIssue,
+  scope: PsPath?,
+  isLast: Boolean,
 ) : SuggestionViewerUi(isLast) {
 
-  val component: Component get() = myPanel
+  val component: Component
+    get() = myPanel
+
   private val hyperlinkListener = NavigationHyperlinkListener(context)
 
   init {
@@ -59,4 +61,3 @@ private fun action(text: String, handler: () -> Unit): Action =
   object : AbstractAction(text) {
     override fun actionPerformed(e: ActionEvent?) = handler()
   }
-

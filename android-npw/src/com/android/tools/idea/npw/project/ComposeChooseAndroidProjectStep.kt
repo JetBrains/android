@@ -34,30 +34,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.jewel.foundation.theme.JewelTheme
-import com.android.tools.adtui.compose.copyWithSize
-import com.android.tools.idea.npw.ui.getTemplateTitle
-import com.android.tools.idea.wizard.template.Template
-import com.intellij.openapi.diagnostic.fileLogger
-import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
-import icons.StudioIllustrationsCompose
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
-import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
-import org.jetbrains.jewel.foundation.lazy.SelectionMode
-import org.jetbrains.jewel.foundation.lazy.itemsIndexed
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextArea
+import com.android.tools.adtui.compose.copyWithSize
 import org.jetbrains.jewel.ui.typography
 
 // This should be unified with com.android.studio.ml.bot.ui.compose.timeline.emptystate.Greeting.kt
@@ -80,17 +65,9 @@ val colors =
 val stops = listOf(0f, .09f, .2f, .24f, .35f, .44f, .5f, .56f, .75f, 1f)
 
 @Composable
-internal fun GeminiRightPanel(
-  textStateFlow: MutableStateFlow<String>,
-  geminiPluginAvailable: Boolean,
-  hasContextSharing: Boolean,
-) {
+internal fun GeminiRightPanel(textStateFlow: MutableStateFlow<String>, geminiPluginAvailable: Boolean, hasContextSharing: Boolean) {
   Row(modifier = Modifier.fillMaxSize()) {
-    Divider(
-      orientation = Orientation.Vertical,
-      modifier = Modifier.fillMaxHeight(),
-      thickness = 1.dp,
-    )
+    Divider(orientation = Orientation.Vertical, modifier = Modifier.fillMaxHeight(), thickness = 1.dp)
     Column(
       modifier = Modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
@@ -123,9 +100,7 @@ private fun NewProjectWizardWithGemini(textStateFlow: MutableStateFlow<String>) 
   // Need to do animation here.
   val brush = CssGradientBrush(angleDegrees = -16.0, colors = colors, stops = stops, scaleX = 4f)
 
-  LaunchedEffect(textFieldState) {
-    snapshotFlow { textFieldState.text.toString() }.collectLatest { textStateFlow.value = it }
-  }
+  LaunchedEffect(textFieldState) { snapshotFlow { textFieldState.text.toString() }.collectLatest { textStateFlow.value = it } }
 
   Text(
     modifier = Modifier.padding(bottom = 8.dp),
@@ -138,13 +113,7 @@ private fun NewProjectWizardWithGemini(textStateFlow: MutableStateFlow<String>) 
   Text(
     modifier = Modifier.padding(bottom = 24.dp),
     text = "Bring your app to life faster",
-    style =
-      TextStyle(
-        fontSize = 13.sp,
-        lineHeight = 16.sp,
-        fontWeight = FontWeight(500),
-        color = JewelTheme.globalColors.text.info,
-      ),
+    style = TextStyle(fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight(500), color = JewelTheme.globalColors.text.info),
   )
   TextArea(
     modifier = Modifier.size(450.dp, 150.dp),

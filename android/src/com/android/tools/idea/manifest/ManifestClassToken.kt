@@ -18,7 +18,6 @@ package com.android.tools.idea.manifest
 import com.android.tools.idea.manifest.ManifestClassToken.Companion.projectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -30,16 +29,12 @@ interface ManifestClassToken<P : AndroidProjectSystem> : Token {
   companion object {
     private const val DEFAULT_GENERATE_MANIFEST_LIGHT_CLASS = true
 
-    val EP_NAME =
-      ExtensionPointName<ManifestClassToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.manifest.manifestClassToken"
-      )
+    val EP_NAME = ExtensionPointName<ManifestClassToken<AndroidProjectSystem>>("com.android.tools.idea.manifest.manifestClassToken")
 
     @JvmStatic
     fun shouldGenerateManifestLightClasses(module: Module) =
-      module.projectSystem.let {
-        it.getTokenOrNull(EP_NAME)?.shouldGenerateManifestLightClasses(it, module)
-      } ?: DEFAULT_GENERATE_MANIFEST_LIGHT_CLASS
+      module.projectSystem.let { it.getTokenOrNull(EP_NAME)?.shouldGenerateManifestLightClasses(it, module) }
+        ?: DEFAULT_GENERATE_MANIFEST_LIGHT_CLASS
 
     private inline val Module.projectSystem: AndroidProjectSystem
       get() = project.getProjectSystem()

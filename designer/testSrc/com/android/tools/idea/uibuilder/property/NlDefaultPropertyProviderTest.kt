@@ -35,23 +35,13 @@ import org.junit.rules.RuleChain
 class NlDefaultPropertyProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain =
-    RuleChain.outerRule(projectRule).around(RenderTestRule()).around(MinApiRule(projectRule))!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(RenderTestRule()).around(MinApiRule(projectRule))!!
 
   @Test
   fun testAttributeWithoutDefaultValue() {
     val components = createComponents(projectRule, component(TEXT_VIEW))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
-    val defaultProvider =
-      NlDefaultPropertyValueProvider(property.model.surface!!.focusedSceneView!!.sceneManager)
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
+    val defaultProvider = NlDefaultPropertyValueProvider(property.model.surface!!.focusedSceneView!!.sceneManager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
   }
@@ -59,21 +49,9 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testAttributeWithDefaultValue() {
     val components = createComponents(projectRule, component(TEXT_VIEW))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isEqualTo("@android:style/TextAppearance.Material.Small")
@@ -82,27 +60,10 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testMultipleComponentsWithDifferentDefaultValues() {
     val components = createComponents(projectRule, component(TEXT_VIEW), component(BUTTON))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
-    manager.putDefaultPropertyValue(
-      components[1],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceLarge",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
+    manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
@@ -111,21 +72,9 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testMultipleComponentsWithSomeMissingDefaultValues() {
     val components = createComponents(projectRule, component(TEXT_VIEW), component(BUTTON))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
@@ -134,27 +83,10 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testMultipleComponentsWithIdenticalDefaultValues() {
     val components = createComponents(projectRule, component(TEXT_VIEW), component(BUTTON))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceLarge",
-    )
-    manager.putDefaultPropertyValue(
-      components[1],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceLarge",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
+    manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isEqualTo("@android:style/TextAppearance.Material.Large")
@@ -163,21 +95,9 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testMultipleComponentsWithOneMissingSnapshot() {
     val components = createComponents(projectRule, component(TEXT_VIEW), component(BUTTON))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceLarge",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     components[1].snapshot = null
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
@@ -187,30 +107,13 @@ class NlDefaultPropertyProviderTest {
   @Test
   fun testDefaultChanged() {
     val components = createComponents(projectRule, component(TEXT_VIEW))
-    val property =
-      createPropertyItem(
-        projectRule,
-        ANDROID_URI,
-        ATTR_TEXT_APPEARANCE,
-        NlPropertyType.STYLE,
-        components,
-      )
+    val property = createPropertyItem(projectRule, ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, components)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     val defaultProvider = NlDefaultPropertyValueProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isEqualTo("@android:style/TextAppearance.Material.Small")
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceLarge",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
     assertThat(defaultProvider.hasDefaultValuesChanged()).isTrue()
   }
 

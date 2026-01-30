@@ -78,8 +78,7 @@ class TestSceneManager(
 
   override fun requestRender() {}
 
-  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
-    CompletableFuture.completedFuture(null)
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override val sceneDecoratorFactory: SceneDecoratorFactory =
     object : SceneDecoratorFactory() {
@@ -90,10 +89,7 @@ class TestSceneManager(
     resourceChangeListener.resourcesChanged(reason)
     runInEdtAndWait {
       // Ensure all queued notifications have completed
-      PlatformTestUtil.waitForFuture(
-        resourceChangeListener.notificationExecutorService.submit {},
-        10_000,
-      )
+      PlatformTestUtil.waitForFuture(resourceChangeListener.notificationExecutorService.submit {}, 10_000)
     }
   }
 }
@@ -110,21 +106,11 @@ class SceneManagerTest {
     return this
   }
 
-  /**
-   * Checks that when multiple top level components are provided, this is handled correctly by the
-   * SceneManager.
-   */
+  /** Checks that when multiple top level components are provided, this is handled correctly by the SceneManager. */
   @RunsInEdt
   @Test
   fun testMultipleRootHierarchyProvider() {
-    val model =
-      model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter"),
-        )
-        .build()
+    val model = model(projectRule, "layout", "layout.xml", ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter")).build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelsWithoutRender(listOf(model))
     val scene = surface.sceneManagers.first().scene
@@ -135,10 +121,7 @@ class SceneManagerTest {
         model,
         surface,
         object : SceneComponentHierarchyProvider {
-          override fun createHierarchy(
-            manager: SceneManager,
-            component: NlComponent,
-          ): MutableList<SceneComponent> =
+          override fun createHierarchy(manager: SceneManager, component: NlComponent): MutableList<SceneComponent> =
             mutableListOf(
               SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
               SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
@@ -166,9 +149,7 @@ class SceneManagerTest {
   fun testDoNotRegisterDuplicatedListenerToResourceNotificationManager() {
     val mockedManager = projectRule.mockProjectService(ResourceNotificationManager::class.java)
 
-    val model =
-      model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
-        .build()
+    val model = model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT)).build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelsWithoutRender(listOf(model))
     val sceneManager = TestSceneManager(model, surface)
@@ -192,9 +173,7 @@ class SceneManagerTest {
 
   @Test
   fun testMultipleResourceChangesTriggersSingleModification() {
-    val model =
-      model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
-        .build()
+    val model = model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT)).build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelsWithoutRender(listOf(model))
     val sceneManager = TestSceneManager(model, surface)
@@ -211,10 +190,7 @@ class SceneManagerTest {
     )
 
     sceneManager.simulateResourceChanged(
-      ImmutableSet.of(
-        ResourceNotificationManager.Reason.EDIT,
-        ResourceNotificationManager.Reason.CONFIGURATION_CHANGED,
-      )
+      ImmutableSet.of(ResourceNotificationManager.Reason.EDIT, ResourceNotificationManager.Reason.CONFIGURATION_CHANGED)
     )
     assertEquals(1, modelChangedCount)
   }

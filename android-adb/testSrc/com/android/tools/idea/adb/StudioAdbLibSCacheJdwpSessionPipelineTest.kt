@@ -27,8 +27,7 @@ import org.junit.Test
 
 class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
   /**
-   * Note: We force jdwp trace to be enabled to ensure the [JDWPTracer] specific code in
-   * [StudioAdbLibSCacheJdwpSessionPipeline] is covered.
+   * Note: We force jdwp trace to be enabled to ensure the [JDWPTracer] specific code in [StudioAdbLibSCacheJdwpSessionPipeline] is covered.
    */
   private val enableJdwpTracer = true
 
@@ -59,15 +58,10 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
   @Test
   fun externalDebuggerCanDetachAndReAttach() = runBlockingWithTimeout {
     // Prepare
-    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(
-      session,
-      enableForDevice = { _ -> true },
-      enableJdwpTracer = { enableJdwpTracer },
-    )
+    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(session, enableForDevice = { _ -> true }, enableJdwpTracer = { enableJdwpTracer })
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpProcess = jdwpSessionInfo.process
-    val debuggerSocketAddress =
-      jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
+    val debuggerSocketAddress = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
 
     // Act
     val jdwpSession1 = jdwpSessionInfo.debuggerJdwpSession
@@ -75,11 +69,8 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
 
     // Close JDWP session and wait for process to reflect new status
     jdwpSession1.close()
-    CoroutineTestUtils.yieldUntil {
-      !jdwpProcess.jdwpProxySocketServer.proxyStatus.isExternalDebuggerAttached
-    }
-    val debuggerSocketAddress2 =
-      jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
+    CoroutineTestUtils.yieldUntil { !jdwpProcess.jdwpProxySocketServer.proxyStatus.isExternalDebuggerAttached }
+    val debuggerSocketAddress2 = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
 
     // Open 2nd session
     val jdwpSession2 = attachDebuggerSession(jdwpProcess)

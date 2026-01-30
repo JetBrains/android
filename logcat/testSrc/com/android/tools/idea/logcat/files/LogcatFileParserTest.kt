@@ -23,12 +23,7 @@ private val zoneId = ZoneId.of("Asia/Yerevan")
 class LogcatFileParserTest {
   private val androidLogcatSettings = AndroidLogcatSettings()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      ApplicationRule(),
-      ApplicationServiceRule(AndroidLogcatSettings::class.java, androidLogcatSettings),
-    )
+  @get:Rule val rule = RuleChain(ApplicationRule(), ApplicationServiceRule(AndroidLogcatSettings::class.java, androidLogcatSettings))
 
   @Test
   fun parseLogcatFile_threadTime() {
@@ -38,9 +33,7 @@ class LogcatFileParserTest {
 
     assertThat(data.metadata).isNull()
     val expectedMessages = loadExpectedLogcat("/logcatFiles/logcat-threadtime-api-25-expected.txt")
-    assertThat(data.logcatMessages.removeTimestamp())
-      .containsExactlyElementsIn(expectedMessages.removeTimestamp())
-      .inOrder()
+    assertThat(data.logcatMessages.removeTimestamp()).containsExactlyElementsIn(expectedMessages.removeTimestamp()).inOrder()
   }
 
   @Test
@@ -51,20 +44,14 @@ class LogcatFileParserTest {
 
     assertThat(data.metadata).isNull()
     val expectedMessages = loadExpectedLogcat("/logcatFiles/logcat-firebase-expected.txt")
-    assertThat(data.logcatMessages.removeTimestamp())
-      .containsExactlyElementsIn(expectedMessages.removeTimestamp())
-      .inOrder()
+    assertThat(data.logcatMessages.removeTimestamp()).containsExactlyElementsIn(expectedMessages.removeTimestamp()).inOrder()
   }
 }
 
-private fun List<LogcatMessage>.removeTimestamp() = map {
-  it.copy(header = it.header.copy(timestamp = Instant.MIN))
-}
+private fun List<LogcatMessage>.removeTimestamp() = map { it.copy(header = it.header.copy(timestamp = Instant.MIN)) }
 
 private fun loadExpectedLogcat(filename: String): List<LogcatMessage> {
-  return TestResources.getFile(filename).reader().use {
-    gson.fromJson(it, object : TypeToken<List<LogcatMessage>>() {})
-  }
+  return TestResources.getFile(filename).reader().use { gson.fromJson(it, object : TypeToken<List<LogcatMessage>>() {}) }
 }
 
 private fun getResourcePath(filename: String): Path {

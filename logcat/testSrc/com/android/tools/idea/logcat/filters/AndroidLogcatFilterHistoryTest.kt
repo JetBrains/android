@@ -30,15 +30,12 @@ import org.junit.Test
 class AndroidLogcatFilterHistoryTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), EdtRule())
 
   private val project
     get() = projectRule.project
 
-  private val logcatFilterParser by lazy {
-    LogcatFilterParser(projectRule.project, FakeProjectApplicationIdsProvider(project))
-  }
+  private val logcatFilterParser by lazy { LogcatFilterParser(projectRule.project, FakeProjectApplicationIdsProvider(project)) }
 
   @Test
   fun add_maxNonFavoriteItems() {
@@ -67,9 +64,7 @@ class AndroidLogcatFilterHistoryTest {
     for (filter in listOf("name:foo1", "name:foo2", "name:foo3", "name:foo4")) {
       history.add(logcatFilterParser, filter, isFavorite = false)
     }
-    assertThat(history.named)
-      .containsExactly("name:foo4", "name:foo3", "name:foo2", "name:foo1")
-      .inOrder()
+    assertThat(history.named).containsExactly("name:foo4", "name:foo3", "name:foo2", "name:foo1").inOrder()
   }
 
   @Test

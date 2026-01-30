@@ -57,8 +57,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 private const val DEV_SITE_ROOT = "http://developer.android.com"
 private val HREF_REGEX = Regex("(<A.*?HREF=\")(/[^/])", RegexOption.IGNORE_CASE)
 
-private fun isNavigatableQuickDoc(source: PsiElement?, target: PsiElement) =
-  target !== source && target !== source?.parent
+private fun isNavigatableQuickDoc(source: PsiElement?, target: PsiElement) = target !== source && target !== source?.parent
 
 /** [DocumentationTarget] for an item in the Android SDK. */
 sealed class AndroidSdkDocumentationTarget<T>(
@@ -81,29 +80,19 @@ sealed class AndroidSdkDocumentationTarget<T>(
   override val navigatable = targetElement
 
   override fun computeDocumentationHint(): String? {
-    return SingleTargetElementInfo.generateInfo(
-      targetElement,
-      sourceElement,
-      isNavigatableQuickDoc(sourceElement, targetElement),
-    )
+    return SingleTargetElementInfo.generateInfo(targetElement, sourceElement, isNavigatableQuickDoc(sourceElement, targetElement))
   }
 
   override fun computeDocumentation(): DocumentationResult {
     val urlWithHeaders = createUrlWithHeaders()
     val deferredPathAndStats =
-      UrlFileCache.getInstance(targetElement.project).getWithStats(
-        urlWithHeaders,
-        maxFileAge = 1.days,
-      ) {
-        it.filterStream()
-      }
+      UrlFileCache.getInstance(targetElement.project).getWithStats(urlWithHeaders, maxFileAge = 1.days) { it.filterStream() }
     return if (deferredPathAndStats.isCompleted) {
       DocumentationResult.documentation(getDocumentationHtml(deferredPathAndStats)).externalUrl(url)
     } else {
       DocumentationResult.asyncDocumentation {
         deferredPathAndStats.join() // It will be completed after this.
-        DocumentationResult.documentation(getDocumentationHtml(deferredPathAndStats))
-          .externalUrl(url)
+        DocumentationResult.documentation(getDocumentationHtml(deferredPathAndStats)).externalUrl(url)
       }
     }
   }
@@ -121,9 +110,8 @@ sealed class AndroidSdkDocumentationTarget<T>(
   }
 
   /**
-   * Takes the input from [reader] and writes some of it into [stringBuilder], possibly modifying it
-   * along the way. The default implementation uses the platform's
-   * [JavaDocExternalFilter.doBuildFromStream] to do this work.
+   * Takes the input from [reader] and writes some of it into [stringBuilder], possibly modifying it along the way. The default
+   * implementation uses the platform's [JavaDocExternalFilter.doBuildFromStream] to do this work.
    */
   protected open fun filter(reader: BufferedReader, stringBuilder: StringBuilder) {
     val androidReader = AndroidJavaDocExternalFilter(targetElement.project)
@@ -148,22 +136,16 @@ sealed class AndroidSdkDocumentationTarget<T>(
     val suffix = URLEncoder.encode(url.substringAfterLast(".html"), StandardCharsets.UTF_8)
     val urlEncodedUrl = URLEncoder.encode(uri.host + uri.path, StandardCharsets.UTF_8)
     val apiUrl = String.format(HOST + PATH, urlEncodedUrl, contentServingApiKey)
-    return UrlFileCache.UrlWithHeaders(
-      apiUrl,
-      mapOf("Accept" to JSON, "Content-Type" to JSON, "X-URL-Suffix" to suffix),
-    )
+    return UrlFileCache.UrlWithHeaders(apiUrl, mapOf("Accept" to JSON, "Content-Type" to JSON, "X-URL-Suffix" to suffix))
   }
 
   /**
-   * Retrieves the documentation HTML from the file pointed to by [deferredPathAndStats], which must
-   * be a completed [Deferred]. We wait to unwrap the [Deferred] until inside this method so we need
-   * not write the exception-handling logic twice.
+   * Retrieves the documentation HTML from the file pointed to by [deferredPathAndStats], which must be a completed [Deferred]. We wait to
+   * unwrap the [Deferred] until inside this method so we need not write the exception-handling logic twice.
    *
    * This method also logs metrics related to the fetch/display.
    */
-  private fun getDocumentationHtml(
-    completedDeferredPathAndStats: Deferred<Pair<Path, FetchStats>>
-  ): String {
+  private fun getDocumentationHtml(completedDeferredPathAndStats: Deferred<Pair<Path, FetchStats>>): String {
     require(completedDeferredPathAndStats.isCompleted) { "Can only pass a completed Deferred!" }
     @OptIn(ExperimentalCoroutinesApi::class)
     try {
@@ -184,10 +166,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
     return "Unable to load documentation for <code>$displayName</code>."
   }
 
-  /**
-   * Filters `this` [InputStream] to a new [InputStream] by invoking [filter] and fixing up URL
-   * links.
-   */
+  /** Filters `this` [InputStream] to a new [InputStream] by invoking [filter] and fixing up URL links. */
   private fun InputStream.filterStream(): InputStream {
     // If we're receiving SafeHTML from contentserving, we need to unwrap it
     val contentStream = if (contentServingApiKey != null) unwrapSafeHtmlFromStream(this) else this
@@ -206,11 +185,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
     val json = JsonParser.parseString(contents).asJsonObject
     val safeHtml =
       "${AndroidJavaDocExternalFilter.START_SECTION}\n" +
-        json
-          .get("htmlBody")
-          .asJsonObject
-          .get("privateDoNotAccessOrElseSafeHtmlWrappedValue")
-          .asString
+        json.get("htmlBody").asJsonObject.get("privateDoNotAccessOrElseSafeHtmlWrappedValue").asString
     return ByteArrayInputStream(safeHtml.toByteArray())
   }
 
@@ -219,9 +194,7 @@ sealed class AndroidSdkDocumentationTarget<T>(
       AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
         editingMetricsEventBuilder.apply {
           externalQuickDocEventBuilder.apply {
-            fileType =
-              sourceElement?.language?.id?.let(::getEditorFileTypeForAnalytics)
-                ?: EditorFileType.UNKNOWN
+            fileType = sourceElement?.language?.id?.let(::getEditorFileTypeForAnalytics) ?: EditorFileType.UNKNOWN
             fetchDurationMs = fetchStats.fetchDuration.inWholeMilliseconds
             success = fetchStats.success
             cacheHit = fetchStats.cacheHit
@@ -246,15 +219,11 @@ sealed class AndroidSdkDocumentationTarget<T>(
       val classHierarchy = generateSequence(this) { it.containingClass }.toList().reversed()
       val topClass = classHierarchy.first()
       val relClassPath = topClass.qualifiedName?.replace('.', '/') ?: return null
-      val relInnerClassPath =
-        classHierarchy.drop(1).mapNotNull(PsiClass::getName).joinToString { ".$it" }
+      val relInnerClassPath = classHierarchy.drop(1).mapNotNull(PsiClass::getName).joinToString { ".$it" }
       return "$DEV_SITE_ROOT/reference/${relClassPath + relInnerClassPath}.html"
     }
 
-    /**
-     * Creates the appropriate kind of [AndroidSdkDocumentationTarget] for [element], or `null` if
-     * there is none.
-     */
+    /** Creates the appropriate kind of [AndroidSdkDocumentationTarget] for [element], or `null` if there is none. */
     fun create(element: PsiElement, originalElement: PsiElement?) =
       when (element) {
         is PsiClass -> AndroidSdkClassDocumentationTarget.create(element, originalElement)

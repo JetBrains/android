@@ -37,25 +37,22 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.RunsInEdt
+import java.util.Collections
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.util.Collections
-import java.util.concurrent.TimeUnit
 
 @RunWith(JUnit4::class)
 @RunsInEdt
 class StringResourceDataTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val fixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    }
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
   }
   private val project by lazy { androidProjectRule.project }
   private val module by lazy { fixture.module }
@@ -74,8 +71,8 @@ class StringResourceDataTest {
     val dynamicRepository =
       DynamicValueResourceRepository.createForTest(facet, ResourceNamespace.RES_AUTO, Collections.singletonMap("dynamic_key1", field))
 
-    val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO,
-                                                                  dynamicRepository)
+    val moduleRepository =
+      ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicRepository)
 
     data = create(module.project, Utils.createStringRepository(moduleRepository, module.project))
   }
@@ -92,8 +89,8 @@ class StringResourceDataTest {
 
     assertThat(summarizeLocales(localeListOf("en", "fr", "hi", "no"))).isEqualTo("English (en), French (fr), Hindi (hi) and 1 more")
 
-    assertThat(summarizeLocales(localeListOf("en", "fr", "hi", "no", "ta", "es", "ro"))).isEqualTo(
-      "English (en), French (fr), Hindi (hi) and 4 more")
+    assertThat(summarizeLocales(localeListOf("en", "fr", "hi", "no", "ta", "es", "ro")))
+      .isEqualTo("English (en), French (fr), Hindi (hi) and 4 more")
   }
 
   @Test
@@ -115,8 +112,8 @@ class StringResourceDataTest {
 
     assertThat(data.getStringResource(newStringResourceKey("key8")).getTranslationAsString(locale)).isEqualTo("L'Étranger")
     assertThat(data.getStringResource(newStringResourceKey("key9")).getTranslationAsString(locale)).isEqualTo("<![CDATA[L'Étranger]]>")
-    assertThat(data.getStringResource(newStringResourceKey("key10")).getTranslationAsString(locale)).isEqualTo(
-      "<xliff:g>L'Étranger</xliff:g>")
+    assertThat(data.getStringResource(newStringResourceKey("key10")).getTranslationAsString(locale))
+      .isEqualTo("<xliff:g>L'Étranger</xliff:g>")
   }
 
   @Test
@@ -126,39 +123,34 @@ class StringResourceDataTest {
 
   @Test
   fun validation() {
-    assertThat(data.validateKey(newStringResourceKey("key1"))
-    ).isEqualTo("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)")
+    assertThat(data.validateKey(newStringResourceKey("key1")))
+      .isEqualTo("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)")
 
     assertThat(data.validateKey(newStringResourceKey("key2"))).isNull()
     assertThat(data.validateKey(newStringResourceKey("key3"))).isNull()
     assertThat(data.validateKey(newStringResourceKey("key4"))).isEqualTo("Key 'key4' missing default value")
     assertThat(data.validateKey(newStringResourceKey("key5"))).isNull()
 
-    assertThat(data.validateKey(newStringResourceKey("key6"))
-    ).isEqualTo("Key 'key6' is marked as non translatable, but is translated in locale French (fr)")
+    assertThat(data.validateKey(newStringResourceKey("key6")))
+      .isEqualTo("Key 'key6' is marked as non translatable, but is translated in locale French (fr)")
 
-    assertThat(data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi"))
-    ).isEqualTo("Key \"key1\" is missing its Hindi (hi) translation")
+    assertThat(data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi")))
+      .isEqualTo("Key \"key1\" is missing its Hindi (hi) translation")
 
     assertThat(data.getStringResource(newStringResourceKey("key2")).validateTranslation(Locale.create("hi"))).isNull()
 
-    assertThat(data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr"))
-    ).isEqualTo("Key \"key6\" is untranslatable and should not be translated to French (fr)")
+    assertThat(data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr")))
+      .isEqualTo("Key \"key6\" is untranslatable and should not be translated to French (fr)")
 
     assertThat(data.getStringResource(newStringResourceKey("key1")).validateDefaultValue()).isNull()
-    assertThat(data.getStringResource(newStringResourceKey("key4")).validateDefaultValue()).isEqualTo(
-      "Key \"key4\" is missing its default value")
+    assertThat(data.getStringResource(newStringResourceKey("key4")).validateDefaultValue())
+      .isEqualTo("Key \"key4\" is missing its default value")
   }
 
   @Test
   fun getMissingTranslations() {
     assertThat(data.getMissingTranslations(newStringResourceKey("key7")))
-      .containsExactly(
-        Locale.create("en"),
-        Locale.create("en-rGB"),
-        Locale.create("en-rIN"),
-        Locale.create("fr"),
-        Locale.create("hi"))
+      .containsExactly(Locale.create("en"), Locale.create("en-rGB"), Locale.create("en-rIN"), Locale.create("fr"), Locale.create("hi"))
   }
 
   @Test
@@ -207,7 +199,8 @@ class StringResourceDataTest {
 
   @Test
   fun editingCdata() {
-    var expected = """<![CDATA[
+    var expected =
+      """<![CDATA[
         <b>Google I/O 2014</b><br>
         Version %s<br><br>
         <a href="http://www.google.com/policies/privacy/">Privacy Policy</a>
@@ -218,7 +211,8 @@ class StringResourceDataTest {
 
     assertThat(resource.getTranslationAsString(locale)).isEqualTo(expected)
 
-    expected = """<![CDATA[
+    expected =
+      """<![CDATA[
         <b>Google I/O 2014</b><br>
         Version %1${"$"}s<br><br>
         <a href="http://www.google.com/policies/privacy/">Privacy Policy</a>
@@ -309,9 +303,7 @@ class StringResourceDataTest {
     val resources = tag2.parentTag!!
     val newTag = resources.createChildTag("string", "", "New Text", false)
     newTag.setAttribute(SdkConstants.ATTR_NAME, "newKey")
-    WriteCommandAction.runWriteCommandAction(project) {
-      resources.addAfter(newTag, tag2)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { resources.addAfter(newTag, tag2) }
     val moduleRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO)
     data = create(module.project, Utils.createStringRepository(moduleRepository, module.project))
 
@@ -337,27 +329,57 @@ class StringResourceDataTest {
 
   @Test
   fun keyChangeKeepsIterationOrder() {
-    assertThat(data.resources.map { it.key.name }).containsExactly(
-      "key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2", "dynamic_key1"
-    ).inOrder()
+    assertThat(data.resources.map { it.key.name })
+      .containsExactly(
+        "key1",
+        "key2",
+        "key3",
+        "key5",
+        "key6",
+        "key7",
+        "key8",
+        "key4",
+        "key9",
+        "key10",
+        "donottranslate_key1",
+        "donottranslate_key2",
+        "dynamic_key1",
+      )
+      .inOrder()
     val key2 = data.resources.map { it.key }.single { it.name == "key2" }
     val value2 = data.getStringResource(key2)
     assertThat(value2.defaultValueAsString).isEqualTo("Key 2 default")
     val expectedTranslations =
       mapOf("en" to "Key 2 en", "en-GB" to "Key 2 en-rGB", "en-IN" to "Key 2 en-rIN", "fr" to "Key 2 fr", "hi" to "Key 2 hi")
-    assertThat(value2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) }).isEqualTo(expectedTranslations)
+    assertThat(value2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) })
+      .isEqualTo(expectedTranslations)
 
     // Change the name of a key:
     val future = data.setKeyName(key2, "new_key2")
     waitForCondition(2, TimeUnit.SECONDS) { future.isDone }
 
-    assertThat(data.keys.map { it.name }).containsExactly(
-      "key1", "new_key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2", "dynamic_key1"
-    ).inOrder()
+    assertThat(data.keys.map { it.name })
+      .containsExactly(
+        "key1",
+        "new_key2",
+        "key3",
+        "key5",
+        "key6",
+        "key7",
+        "key8",
+        "key4",
+        "key9",
+        "key10",
+        "donottranslate_key1",
+        "donottranslate_key2",
+        "dynamic_key1",
+      )
+      .inOrder()
     val newKey2 = data.resources.map { it.key }.single { it.name == "new_key2" }
     val newValue2 = data.getStringResource(newKey2)
     assertThat(newValue2.defaultValueAsString).isEqualTo("Key 2 default")
-    assertThat(newValue2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) }).isEqualTo(expectedTranslations)
+    assertThat(newValue2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) })
+      .isEqualTo(expectedTranslations)
   }
 
   private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean {

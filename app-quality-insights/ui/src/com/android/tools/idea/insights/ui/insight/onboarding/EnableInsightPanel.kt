@@ -39,20 +39,12 @@ class EnableInsightPanel(
     AppInsightsStatusText(this) { true }
       .apply {
         appendText("Insights require Gemini", EMPTY_STATE_TITLE_FORMAT)
-        appendLine(
-          "You can set up Gemini and enable insights via the button below.",
-          EMPTY_STATE_TEXT_FORMAT,
-          null,
-        )
+        appendLine("You can set up Gemini and enable insights via the button below.", EMPTY_STATE_TEXT_FORMAT, null)
       }
 
   val button =
     JButton("Enable Insights").apply {
-      addActionListener {
-        selectedConnectionStateFlow.value?.let {
-          insightsOnboardingProvider.performOnboardingAction(it)
-        }
-      }
+      addActionListener { selectedConnectionStateFlow.value?.let { insightsOnboardingProvider.performOnboardingAction(it) } }
     }
 
   private val gbc =
@@ -71,9 +63,6 @@ class EnableInsightPanel(
     gbc.apply { gridy = 3 }
     add(button, gbc)
 
-    insightsOnboardingProvider
-      .buttonEnabledState()
-      .onEach { enabled -> button.isEnabled = enabled }
-      .launchIn(scope)
+    insightsOnboardingProvider.buttonEnabledState().onEach { enabled -> button.isEnabled = enabled }.launchIn(scope)
   }
 }

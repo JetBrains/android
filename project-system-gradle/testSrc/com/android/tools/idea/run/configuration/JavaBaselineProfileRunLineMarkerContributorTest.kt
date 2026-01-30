@@ -27,30 +27,27 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
+import kotlin.test.assertNotNull
 import org.jetbrains.kotlin.analysis.api.KaImplementationDetail
 import org.jetbrains.kotlin.analysis.api.permissions.KaAnalysisPermissionRegistry
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 @OptIn(KaImplementationDetail::class)
 class JavaBaselineProfileRunLineMarkerContributorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val expectedGenerateBaselineProfileAction by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
-  }
+  private val expectedGenerateBaselineProfileAction by
+    lazy(LazyThreadSafetyMode.PUBLICATION) { ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate") }
 
-  private val contributor by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    BaselineProfileRunLineMarkerContributor()
-  }
+  private val contributor by lazy(LazyThreadSafetyMode.PUBLICATION) { BaselineProfileRunLineMarkerContributor() }
 
   companion object {
-    private val JAVA_SRC_FILE_HEADER = """
+    private val JAVA_SRC_FILE_HEADER =
+      """
       package com.example.baselineprofile;
 
       import androidx.benchmark.macro.junit4.BaselineProfileRule;
@@ -60,7 +57,8 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
       import org.junit.rules.TemporaryFolder;
       import org.junit.runner.RunWith;
 
-    """.trimIndent()
+      """
+        .trimIndent()
   }
 
   @Before
@@ -75,48 +73,61 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
     data class FileAndContent(val projectFilePath: String, val content: String)
     listOf(
-      FileAndContent(
-        projectFilePath = "src/androidx/benchmark/macro/junit4/BaselineProfileRule.kt",
-        content = """
-          package androidx.benchmark.macro.junit4
-          open class BaselineProfileRule
-      """.trimIndent()
-      ),
-      FileAndContent(
-        projectFilePath = "src/androidx/benchmark/macro/junit4/MacrobenchmarkRule.kt",
-        content = """
-          package androidx.benchmark.macro.junit4
-          open class MacrobenchmarkRule
-      """.trimIndent()
-      ),
-      FileAndContent(
-        projectFilePath = "src/org/junit/Annotations.kt",
-        content = """
-          package org.junit
-          annotation class Rule
-          annotation class Test
-      """.trimIndent()
-      ),
-      FileAndContent(
-        projectFilePath = "src/org/junit/runner/RunWith.kt",
-        content = """
-          package org.junit.runner
-          open class RunWith
-      """.trimIndent()
+        FileAndContent(
+          projectFilePath = "src/androidx/benchmark/macro/junit4/BaselineProfileRule.kt",
+          content =
+            """
+            package androidx.benchmark.macro.junit4
+            open class BaselineProfileRule
+            """
+              .trimIndent(),
+        ),
+        FileAndContent(
+          projectFilePath = "src/androidx/benchmark/macro/junit4/MacrobenchmarkRule.kt",
+          content =
+            """
+            package androidx.benchmark.macro.junit4
+            open class MacrobenchmarkRule
+            """
+              .trimIndent(),
+        ),
+        FileAndContent(
+          projectFilePath = "src/org/junit/Annotations.kt",
+          content =
+            """
+            package org.junit
+            annotation class Rule
+            annotation class Test
+            """
+              .trimIndent(),
+        ),
+        FileAndContent(
+          projectFilePath = "src/org/junit/runner/RunWith.kt",
+          content =
+            """
+            package org.junit.runner
+            open class RunWith
+            """
+              .trimIndent(),
+        ),
       )
-    ).forEach { projectRule.fixture.addFileToProject(it.projectFilePath, it.content) }
+      .forEach { projectRule.fixture.addFileToProject(it.projectFilePath, it.content) }
   }
 
   @Test
   @RunsInEdt
   fun `when Java class does NOT have BaselineProfileRule, it should NOT show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
           @Test
           public void generate() { }
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
   }
@@ -124,7 +135,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun `when Java class has BaselineProfileRule, it should show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
 
@@ -136,7 +149,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
           public void notGenerate() { }
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
 
@@ -148,7 +163,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun `when Java inner class has BaselineProfileRule, outer class methods should NOT show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
 
@@ -160,7 +177,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
           @Test
           public void generate() { }
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     // Outer class
     assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
@@ -172,7 +191,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun `when Java outer class has BaselineProfileRule, inner class methods should not show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
 
@@ -184,7 +205,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
             public void generate() { }
           }
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     // Outer class
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
@@ -196,7 +219,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun `when Java class has a rule before BaselineProfileRule, it should still show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
 
@@ -206,7 +231,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
           @Rule
           public BaselineProfileRule rule = new BaselineProfileRule();
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     // Outer class
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
@@ -215,7 +242,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun `when Java class has MacroBenchmarkRule, it should show, it should not show contributor`() {
-    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+    val sourceFile =
+      addJavaBaselineProfileGeneratorToProject(
+        """
         package com.example.baselineprofile;
 
         import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
@@ -236,7 +265,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
           public void bar() {}
         }
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     // Outer class
     assertTestContributorInfo(sourceFile.classIdentifierNamed("StartupBenchmarks"))
@@ -250,12 +281,8 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
   private fun assertContributorInfo(psiElement: PsiElement) {
     val info = contributor.getInfo(psiElement)
-    assertNotNull(info) {
-      "No line marker contributor was produced for psi element."
-    }
-    assert(info.actions.size == 5) {
-      "Unexpected number of actions for line marker contributor."
-    }
+    assertNotNull(info) { "No line marker contributor was produced for psi element." }
+    assert(info.actions.size == 5) { "Unexpected number of actions for line marker contributor." }
     assert(info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
       "Line marker contributor should contain a single BaselineProfileAction."
     }
@@ -263,12 +290,8 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
   private fun assertTestContributorInfo(psiElement: PsiElement) {
     val info = contributor.getInfo(psiElement)
-    assertNotNull(info) {
-      "No line marker contributor was produced for psi element."
-    }
-    assert(info.actions.size == 3) {
-      "Unexpected number of actions for line marker contributor."
-    }
+    assertNotNull(info) { "No line marker contributor was produced for psi element." }
+    assert(info.actions.size == 3) { "Unexpected number of actions for line marker contributor." }
     assert(!info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
       "Line marker contributor should not contain a BaselineProfileAction."
     }
@@ -281,17 +304,12 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
   private fun addJavaBaselineProfileGeneratorToProject(content: String): JavaBaselineProfileGeneratorSourceFile =
     JavaBaselineProfileGeneratorSourceFile(
-      projectRule.fixture.addFileToProject(
-        "src/com/example/baselineprofile/BaselineProfileGenerator.java",
-        content
-      )
+      projectRule.fixture.addFileToProject("src/com/example/baselineprofile/BaselineProfileGenerator.java", content)
     )
 
   private class JavaBaselineProfileGeneratorSourceFile(private val psiFile: PsiFile) {
     fun classIdentifierNamed(name: String): PsiElement {
-      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiClass }
-        .toList()
-        .firstOrNull { (it as PsiClass).name == name }
+      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiClass }.toList().firstOrNull { (it as PsiClass).name == name }
       assertNotNull(el) { "No class named `$name` was found." }
       val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull { it.text == name }
       assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
@@ -299,11 +317,9 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
     }
 
     fun methodIdentifierNamed(name: String): PsiElement {
-      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiMethod }
-        .toList()
-        .firstOrNull { (it as PsiMethod).name == name }
+      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiMethod }.toList().firstOrNull { (it as PsiMethod).name == name }
       assertNotNull(el) { "No class named `$name` was found." }
-      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull {it.text == name }
+      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull { it.text == name }
       assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
       return identifier
     }

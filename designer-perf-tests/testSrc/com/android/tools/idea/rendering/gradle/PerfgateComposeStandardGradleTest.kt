@@ -27,14 +27,7 @@ import org.junit.Test
 class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
   @Test
   fun standardMode_5Previews() = runBlocking {
-    Assert.assertEquals(
-      1,
-      composePreviewRepresentation
-        .renderedPreviewElementsInstancesFlowForTest()
-        .value
-        .asCollection()
-        .size,
-    )
+    Assert.assertEquals(1, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(
       4,
       5,
@@ -42,26 +35,10 @@ class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
         // Measures the full rendering time, including ModuleClassLoader instantiation, inflation
         // and render.
         ElapsedTimeMeasurement(Metric("standard_5_previews_refresh_time")),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          null,
-          Metric("standard_5_previews_total_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "rendering",
-          Metric("standard_5_previews_rendering_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "layoutEditor",
-          Metric("standard_5_previews_layoutEditor_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "layoutlib",
-          Metric("standard_5_previews_layoutlib_memory"),
-        ),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("standard_5_previews_total_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("standard_5_previews_rendering_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("standard_5_previews_layoutEditor_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("standard_5_previews_layoutlib_memory")),
         LayoutlibNativeMemoryMeasurement(Metric("standard_5_previews_layoutlib_native_memory")),
       ),
     )
@@ -69,14 +46,7 @@ class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
 
   @Test
   fun standardMode_30Previews() = runBlocking {
-    Assert.assertEquals(
-      1,
-      composePreviewRepresentation
-        .renderedPreviewElementsInstancesFlowForTest()
-        .value
-        .asCollection()
-        .size,
-    )
+    Assert.assertEquals(1, composePreviewRepresentation.renderedPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(
       29,
       30,
@@ -84,26 +54,10 @@ class PerfgateComposeStandardGradleTest : PerfgateComposeGradleTestBase() {
         // Measures the full rendering time, including ModuleClassLoader instantiation, inflation
         // and render.
         ElapsedTimeMeasurement(Metric("standard_30_previews_refresh_time")),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          null,
-          Metric("standard_30_previews_total_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "rendering",
-          Metric("standard_30_previews_rendering_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "layoutEditor",
-          Metric("standard_30_previews_layoutEditor_memory"),
-        ),
-        HeapSnapshotMemoryUseMeasurement(
-          "android:designTools",
-          "layoutlib",
-          Metric("standard_30_previews_layoutlib_memory"),
-        ),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("standard_30_previews_total_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("standard_30_previews_rendering_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("standard_30_previews_layoutEditor_memory")),
+        HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("standard_30_previews_layoutlib_memory")),
         LayoutlibNativeMemoryMeasurement(Metric("standard_30_previews_layoutlib_native_memory")),
       ),
     )

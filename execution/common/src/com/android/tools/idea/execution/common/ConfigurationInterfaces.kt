@@ -16,11 +16,8 @@
 package com.android.tools.idea.execution.common
 
 import com.android.tools.deployer.model.component.ComponentType
-import com.intellij.openapi.module.Module
 
-/**
- * Describes any start of Android Process that contains 2 steps: deploy and launch.
- */
+/** Describes any start of Android Process that contains 2 steps: deploy and launch. */
 interface AppRunSettings {
   val deployOptions: DeployOptions
   val componentLaunchOptions: ComponentLaunchOptions
@@ -35,5 +32,3 @@ interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
   var componentName: String?
   val componentBaseClassesFqNames: Array<String>
 }
-
-

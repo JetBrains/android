@@ -39,32 +39,27 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.nio.file.Files
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.rules.TestRule
-import java.nio.file.Files
-import java.time.Duration
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
-import org.junit.Assert.assertThrows
 
 class AdbDeviceFileSystemTest {
   private val myParentDisposable = Disposer.newDisposable()
   private val myCallbackExecutor =
-    AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "EDT Simulation Thread",
-      PooledThreadExecutor.INSTANCE,
-      1,
-      myParentDisposable
-    )
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("EDT Simulation Thread", PooledThreadExecutor.INSTANCE, 1, myParentDisposable)
 
   private lateinit var myFileSystem: AdbDeviceFileSystem
   private lateinit var deviceHandle: DeviceHandle
@@ -73,15 +68,9 @@ class AdbDeviceFileSystemTest {
 
   private val shellCommands = TestShellCommands()
 
-  @JvmField
-  @Rule
-  val thrown = ExpectedException.none()
+  @JvmField @Rule val thrown = ExpectedException.none()
 
-  @JvmField
-  @Rule
-  val deviceProvisionerRule = DeviceProvisionerRule {
-    installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
-  }
+  @JvmField @Rule val deviceProvisionerRule = DeviceProvisionerRule { installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands)) }
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
@@ -99,15 +88,12 @@ class AdbDeviceFileSystemTest {
         deviceModel = "Pixel 10",
         release = "8.0",
         sdk = AndroidApiLevel(31),
-        hostConnectionType = DeviceState.HostConnectionType.USB
+        hostConnectionType = DeviceState.HostConnectionType.USB,
       )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
 
     setUserIsRoot(false)
-    deviceHandle =
-      runBlockingWithTimeout(Duration.ofSeconds(5)) {
-        deviceProvisionerRule.deviceProvisioner.waitForOnlineDevice()
-      }
+    deviceHandle = runBlockingWithTimeout(Duration.ofSeconds(5)) { deviceProvisionerRule.deviceProvisioner.waitForOnlineDevice() }
 
     connectedDevice = checkNotNull(deviceHandle.state.connectedDevice)
 
@@ -115,6 +101,7 @@ class AdbDeviceFileSystemTest {
     val fileNameGenerator: UniqueFileNameGenerator =
       object : UniqueFileNameGenerator() {
         private var myNextId = 0
+
         override fun getUniqueFileName(prefix: String, suffix: String): String {
           return String.format("%s%d%s", prefix, myNextId++, suffix)
         }
@@ -315,7 +302,7 @@ class AdbDeviceFileSystemTest {
 
     // Act/Assert
     thrown.expect(IllegalArgumentException::class.java)
-    /*DeviceFileEntry result = */getEntry("/data/invalid/path", myFileSystem)
+    /*DeviceFileEntry result = */ getEntry("/data/invalid/path", myFileSystem)
   }
 
   @Test
@@ -328,15 +315,19 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    val result = dataEntry.uploadFile(tempFile, object : FileTransferProgress {
-      override fun progress(currentBytes: Long, totalBytes: Long) {
-        totalBytesRef.set(totalBytes)
-      }
+    val result =
+      dataEntry.uploadFile(
+        tempFile,
+        object : FileTransferProgress {
+          override fun progress(currentBytes: Long, totalBytes: Long) {
+            totalBytesRef.set(totalBytes)
+          }
 
-      override fun isCancelled(): Boolean {
-        return false
-      }
-    })
+          override fun isCancelled(): Boolean {
+            return false
+          }
+        },
+      )
 
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
@@ -356,15 +347,19 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    val result = deviceEntry.downloadFile(tempFile, object : FileTransferProgress {
-      override fun progress(currentBytes: Long, totalBytes: Long) {
-        totalBytesRef.set(totalBytes)
-      }
+    val result =
+      deviceEntry.downloadFile(
+        tempFile,
+        object : FileTransferProgress {
+          override fun progress(currentBytes: Long, totalBytes: Long) {
+            totalBytesRef.set(totalBytes)
+          }
 
-      override fun isCancelled(): Boolean {
-        return false
-      }
-    })
+          override fun isCancelled(): Boolean {
+            return false
+          }
+        },
+      )
 
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
@@ -388,20 +383,24 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    val exception = assertThrows(AdbShellCommandException::class.java) {
-      runBlocking {
-        dataEntry.uploadFile(tempFile, "build.prop",
-          object : FileTransferProgress {
-            override fun progress(currentBytes: Long, totalBytes: Long) {
-              totalBytesRef.set(totalBytes)
-            }
+    val exception =
+      assertThrows(AdbShellCommandException::class.java) {
+        runBlocking {
+          dataEntry.uploadFile(
+            tempFile,
+            "build.prop",
+            object : FileTransferProgress {
+              override fun progress(currentBytes: Long, totalBytes: Long) {
+                totalBytesRef.set(totalBytes)
+              }
 
-            override fun isCancelled(): Boolean {
-              return false
-            }
-          })
+              override fun isCancelled(): Boolean {
+                return false
+              }
+            },
+          )
+        }
       }
-    }
     assertThat(exception.message).contains("cp: /system/build.prop: Read-only file system")
 
     // Ensure all progress callbacks have been executed
@@ -421,15 +420,19 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    val result = deviceEntry.downloadFile(tempFile, object : FileTransferProgress {
-      override fun progress(currentBytes: Long, totalBytes: Long) {
-        totalBytesRef.set(totalBytes)
-      }
+    val result =
+      deviceEntry.downloadFile(
+        tempFile,
+        object : FileTransferProgress {
+          override fun progress(currentBytes: Long, totalBytes: Long) {
+            totalBytesRef.set(totalBytes)
+          }
 
-      override fun isCancelled(): Boolean {
-        return false
-      }
-    })
+          override fun isCancelled(): Boolean {
+            return false
+          }
+        },
+      )
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
@@ -451,15 +454,19 @@ class AdbDeviceFileSystemTest {
 
     // Act
     val totalBytesRef = AtomicReference<Long>()
-    val result = deviceEntry.downloadFile(tempFile, object : FileTransferProgress {
-      override fun progress(currentBytes: Long, totalBytes: Long) {
-        totalBytesRef.set(totalBytes)
-      }
+    val result =
+      deviceEntry.downloadFile(
+        tempFile,
+        object : FileTransferProgress {
+          override fun progress(currentBytes: Long, totalBytes: Long) {
+            totalBytesRef.set(totalBytes)
+          }
 
-      override fun isCancelled(): Boolean {
-        return false
-      }
-    })
+          override fun isCancelled(): Boolean {
+            return false
+          }
+        },
+      )
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
@@ -491,10 +498,7 @@ class AdbDeviceFileSystemTest {
     return resolvePathSegments(root, pathSegments)
   }
 
-  private suspend fun resolvePathSegments(
-    rootEntry: DeviceFileEntry,
-    segments: List<String>
-  ): DeviceFileEntry {
+  private suspend fun resolvePathSegments(rootEntry: DeviceFileEntry, segments: List<String>): DeviceFileEntry {
     var currentEntry = rootEntry
     for (segment in segments) {
       currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
@@ -512,6 +516,4 @@ class AdbDeviceFileSystemTest {
   }
 }
 
-suspend fun DeviceProvisioner.waitForOnlineDevice() = waitNonNull {
-  devices.firstOrNull()?.firstOrNull()?.takeIf { it.state.isOnline() }
-}
+suspend fun DeviceProvisioner.waitForOnlineDevice() = waitNonNull { devices.firstOrNull()?.firstOrNull()?.takeIf { it.state.isOnline() } }

@@ -25,10 +25,7 @@ import org.junit.Test
 
 private const val TICKER_STEP_MILLIS = 100L
 
-/**
- * This is a workaround to fix the fact that [VirtualTimeScheduler] is blocking thread on
- * [awaitTermination]
- */
+/** This is a workaround to fix the fact that [VirtualTimeScheduler] is blocking thread on [awaitTermination] */
 private class VirtualTimeSchedulerNonBlocking : VirtualTimeScheduler() {
   override fun isTerminated() = true
 }
@@ -51,12 +48,7 @@ class ControllableTickerTest {
       }
     val counterIncrementer: () -> Unit = { tickCounter.counter++ }
 
-    val ticker =
-      ControllableTicker(
-        counterIncrementer,
-        Duration.ofMillis(TICKER_STEP_MILLIS),
-        executorProvider,
-      )
+    val ticker = ControllableTicker(counterIncrementer, Duration.ofMillis(TICKER_STEP_MILLIS), executorProvider)
 
     ticker.start()
 

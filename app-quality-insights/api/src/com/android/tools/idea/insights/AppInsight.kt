@@ -23,8 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 /**
  * Models an issue finding in the code.
  *
- * Do not keep references to instances of this class any longer that you would to for plain
- * [PsiElement]s.
+ * Do not keep references to instances of this class any longer that you would to for plain [PsiElement]s.
  */
 data class AppInsight(
   /** The 0-based line number where the Insight was found. */
@@ -45,9 +44,8 @@ data class AppInsight(
   /**
    * Lambda used to make this insight the active/selected one.
    *
-   * The [CrashlyticsState] uses the concept of a [Selection] to represent the list of issues, and
-   * to mark one of them as the currently active/selected one. This action modifies the state this
-   * Insight belongs to mark it as selected.
+   * The [CrashlyticsState] uses the concept of a [Selection] to represent the list of issues, and to mark one of them as the currently
+   * active/selected one. This action modifies the state this Insight belongs to mark it as selected.
    */
   private val markAsSelectedCallback: (AppInsightsIssue) -> Unit,
 ) {

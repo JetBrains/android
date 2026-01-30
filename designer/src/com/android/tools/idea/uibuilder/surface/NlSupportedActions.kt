@@ -18,11 +18,10 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.surface.DesignSurface
 
 /**
- * The supported action in [NlDesignSurface]. To setup the action to [NlDesignSurface], use
- * [NlSurfaceBuilder.setSupportedActions] to assign the supported actions.
+ * The supported action in [NlDesignSurface]. To setup the action to [NlDesignSurface], use [NlSurfaceBuilder.setSupportedActions] to assign
+ * the supported actions.
  *
- * TODO(b/183243031): These mechanism should be integrated into
- *   [com.android.tools.idea.common.editor.ActionManager]
+ * TODO(b/183243031): These mechanism should be integrated into [com.android.tools.idea.common.editor.ActionManager]
  */
 enum class NlSupportedActions {
   SWITCH_DEVICE,
@@ -33,9 +32,6 @@ enum class NlSupportedActions {
   REFRESH,
 }
 
-/**
- * TODO(b/183243031): These mechanism should be integrated into
- *   [com.android.tools.idea.common.editor.ActionManager]
- */
+/** TODO(b/183243031): These mechanism should be integrated into [com.android.tools.idea.common.editor.ActionManager] */
 fun DesignSurface<*>?.isActionSupported(action: NlSupportedActions) =
   (this as? NlDesignSurface)?.supportedActions?.contains(action) ?: false

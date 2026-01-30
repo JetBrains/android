@@ -25,10 +25,10 @@ import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
 class InspectorArtifactServiceTest {
 
@@ -40,34 +40,27 @@ class InspectorArtifactServiceTest {
     )
 
   @Test
-  fun getInspectorJar() =
-    runBlocking {
-      val fileService = TestFileService()
-      val artifactResolverFactory =
-        object : ArtifactResolverFactory {
-          override fun getArtifactResolver(project: Project): ArtifactResolver {
-            return object : BlockingArtifactResolver() {
-              override fun resolveArtifactBlocking(
-                artifactCoordinate: RunningArtifactCoordinate
-              ): Path {
-                return libraryPath
-              }
+  fun getInspectorJar() = runBlocking {
+    val fileService = TestFileService()
+    val artifactResolverFactory =
+      object : ArtifactResolverFactory {
+        override fun getArtifactResolver(project: Project): ArtifactResolver {
+          return object : BlockingArtifactResolver() {
+            override fun resolveArtifactBlocking(artifactCoordinate: RunningArtifactCoordinate): Path {
+              return libraryPath
             }
           }
         }
-      val artifactService = InspectorArtifactServiceImpl(fileService, artifactResolverFactory)
+      }
+    val artifactService = InspectorArtifactServiceImpl(fileService, artifactResolverFactory)
 
-      val resolvedArtifactPath =
-        artifactService.getOrResolveInspectorArtifact(
-          RunningArtifactCoordinate(
-            mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
-            "2.5.0-beta01",
-          ),
-          projectRule.project,
-        )
+    val resolvedArtifactPath =
+      artifactService.getOrResolveInspectorArtifact(
+        RunningArtifactCoordinate(mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"), "2.5.0-beta01"),
+        projectRule.project,
+      )
 
-      assertThat(resolvedArtifactPath).isNotNull()
-      assertThat(resolvedArtifactPath.fileName.toString())
-        .isEqualTo("work-runtime-2.5.0-beta01.aar")
-    }
+    assertThat(resolvedArtifactPath).isNotNull()
+    assertThat(resolvedArtifactPath.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
+  }
 }

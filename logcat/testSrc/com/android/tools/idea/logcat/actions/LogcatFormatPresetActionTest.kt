@@ -29,8 +29,7 @@ import org.junit.Test
 /** Tests for [LogcatFormatPresetAction] */
 class LogcatFormatPresetActionTest {
   private val projectRule = ProjectRule()
-  @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 

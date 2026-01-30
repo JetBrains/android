@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api
 
-interface GradleDeclarativeSettingsModel: GradleSettingsModel {
+interface GradleDeclarativeSettingsModel : GradleSettingsModel {
   fun defaults(): SoftwareTypesModel
 }

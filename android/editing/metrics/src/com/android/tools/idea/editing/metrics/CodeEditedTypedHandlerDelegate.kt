@@ -21,40 +21,19 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
-/**
- * [TypedHandlerDelegate] that intercepts typing actions and sets the appropriate
- * [CodeEditingAction].
- */
+/** [TypedHandlerDelegate] that intercepts typing actions and sets the appropriate [CodeEditingAction]. */
 class CodeEditedTypedHandlerDelegate : TypedHandlerDelegate() {
-  override fun beforeClosingParenInserted(
-    c: Char,
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-  ): Result {
-    CodeEditedMetricsService.getInstance()
-      .setCodeEditingAction(CodeEditingAction.PairedEnclosureInserted(c.toString()))
+  override fun beforeClosingParenInserted(c: Char, project: Project, editor: Editor, file: PsiFile): Result {
+    CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.PairedEnclosureInserted(c.toString()))
     return super.beforeClosingParenInserted(c, project, editor, file)
   }
 
-  override fun beforeClosingQuoteInserted(
-    quote: CharSequence,
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-  ): Result {
-    CodeEditedMetricsService.getInstance()
-      .setCodeEditingAction(CodeEditingAction.PairedEnclosureInserted(quote.toString()))
+  override fun beforeClosingQuoteInserted(quote: CharSequence, project: Project, editor: Editor, file: PsiFile): Result {
+    CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.PairedEnclosureInserted(quote.toString()))
     return super.beforeClosingQuoteInserted(quote, project, editor, file)
   }
 
-  override fun beforeCharTyped(
-    c: Char,
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-    fileType: FileType,
-  ): Result {
+  override fun beforeCharTyped(c: Char, project: Project, editor: Editor, file: PsiFile, fileType: FileType): Result {
     CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.Typing)
     return super.beforeCharTyped(c, project, editor, file, fileType)
   }

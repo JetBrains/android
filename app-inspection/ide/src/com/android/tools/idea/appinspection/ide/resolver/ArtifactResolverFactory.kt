@@ -27,24 +27,17 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 class ArtifactResolverFactory(private val fileService: FileService) : ArtifactResolverFactory {
-  private val httpArtifactResolver =
-    HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
+  private val httpArtifactResolver = HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
 
   override fun getArtifactResolver(project: Project): ArtifactResolver {
     val projectSystem = project.getProjectSystem()
-    val token =
-      projectSystem.getTokenOrNull(ArtifactResolverFactoryToken.EP_NAME)
-        ?: return httpArtifactResolver
+    val token = projectSystem.getTokenOrNull(ArtifactResolverFactoryToken.EP_NAME) ?: return httpArtifactResolver
     return token.getArtifactResolver(projectSystem, fileService, httpArtifactResolver)
   }
 }
 
 interface ArtifactResolverFactoryToken<P : AndroidProjectSystem> : Token {
-  fun getArtifactResolver(
-    projectSystem: P,
-    fileService: FileService,
-    httpArtifactResolver: HttpArtifactResolver,
-  ): ArtifactResolver
+  fun getArtifactResolver(projectSystem: P, fileService: FileService, httpArtifactResolver: HttpArtifactResolver): ArtifactResolver
 
   companion object {
     val EP_NAME =

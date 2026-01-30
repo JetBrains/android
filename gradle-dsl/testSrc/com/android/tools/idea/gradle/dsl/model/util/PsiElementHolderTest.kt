@@ -19,17 +19,17 @@ import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class PsiElementHolderTest : GradleFileModelTestCase() {
-  /** These tests make slightly more stringent requirements on the implementation of the Dsl parsers and on
-   * [PsiElementHolder.getRepresentativeContainedPsiElement] than the documentation implies: they implicitly assume that the
-   * parser will assign psiElements to lexically apparent blocks and leaf properties, and that the Dsl element tree will be traversed
-   * in breadth-first order.  (Both of these features are useful, but not essential, to the rest of the Dsl implementation).
+  /**
+   * These tests make slightly more stringent requirements on the implementation of the Dsl parsers and on
+   * [PsiElementHolder.getRepresentativeContainedPsiElement] than the documentation implies: they implicitly assume that the parser will
+   * assign psiElements to lexically apparent blocks and leaf properties, and that the Dsl element tree will be traversed in breadth-first
+   * order. (Both of these features are useful, but not essential, to the rest of the Dsl implementation).
    */
-
   @Test
   fun testBlocks() {
     writeToBuildFile(TestFile.BLOCKS)
@@ -74,9 +74,7 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
       assertNull(psiElement)
       assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
     }
-    buildModel.android().defaultConfig().applicationId().run {
-      assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().defaultConfig().applicationId().run { assertEquals(applicationIdPsiElement, representativeContainedPsiElement) }
     buildModel.dependencies().run {
       assertNull(psiElement)
       assertNull(representativeContainedPsiElement)
@@ -95,16 +93,12 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
       assertNotNull(psiElement)
       assertEquals(psiElement, representativeContainedPsiElement)
     }
-    buildModel.android().run {
-      assertEquals(androidPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().run { assertEquals(androidPsiElement, representativeContainedPsiElement) }
     buildModel.android().defaultConfig().run {
       assertNull(psiElement)
       assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
     }
-    buildModel.android().defaultConfig().applicationId().run {
-      assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().defaultConfig().applicationId().run { assertEquals(applicationIdPsiElement, representativeContainedPsiElement) }
     buildModel.dependencies().run {
       assertNull(psiElement)
       assertNull(representativeContainedPsiElement)
@@ -127,12 +121,8 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
       assertNull(psiElement)
       assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
     }
-    buildModel.android().defaultConfig().run {
-      assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
-    }
-    buildModel.android().defaultConfig().applicationId().run {
-      assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().defaultConfig().run { assertEquals(defaultConfigPsiElement, representativeContainedPsiElement) }
+    buildModel.android().defaultConfig().applicationId().run { assertEquals(applicationIdPsiElement, representativeContainedPsiElement) }
     buildModel.dependencies().run {
       assertNull(psiElement)
       assertNull(representativeContainedPsiElement)
@@ -157,12 +147,8 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
       assertNull(psiElement)
       assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
     }
-    buildModel.android().defaultConfig().run {
-      assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
-    }
-    buildModel.android().defaultConfig().applicationId().run {
-      assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().defaultConfig().run { assertEquals(defaultConfigPsiElement, representativeContainedPsiElement) }
+    buildModel.android().defaultConfig().applicationId().run { assertEquals(applicationIdPsiElement, representativeContainedPsiElement) }
     buildModel.android().defaultConfig().applicationIdSuffix().run {
       assertEquals(applicationIdSuffixPsiElement, representativeContainedPsiElement)
     }
@@ -190,12 +176,8 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
       assertNull(psiElement)
       assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
     }
-    buildModel.android().defaultConfig().run {
-      assertEquals(defaultConfigPsiElement, representativeContainedPsiElement)
-    }
-    buildModel.android().defaultConfig().applicationId().run {
-      assertEquals(applicationIdPsiElement, representativeContainedPsiElement)
-    }
+    buildModel.android().defaultConfig().run { assertEquals(defaultConfigPsiElement, representativeContainedPsiElement) }
+    buildModel.android().defaultConfig().applicationId().run { assertEquals(applicationIdPsiElement, representativeContainedPsiElement) }
     buildModel.android().defaultConfig().applicationIdSuffix().run {
       assertEquals(applicationIdSuffixPsiElement, representativeContainedPsiElement)
     }
@@ -211,11 +193,10 @@ class PsiElementHolderTest : GradleFileModelTestCase() {
     BLOCK_STATEMENT("blockStatement"),
     STATEMENTS("statements"),
     STATEMENT_AND_BLOCK("statementAndBlock"),
-    STATEMENT_BLOCK("statementBlock"),
-    ;
+    STATEMENT_BLOCK("statementBlock");
+
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/psiElementHolder/$path", extension)
     }
-
   }
 }

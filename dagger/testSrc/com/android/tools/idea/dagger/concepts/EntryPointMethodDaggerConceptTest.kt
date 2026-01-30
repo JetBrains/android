@@ -73,10 +73,7 @@ class EntryPointMethodDaggerConceptTest {
     assertThat(indexResults)
       .containsExactly(
         "Bar",
-        setOf(
-          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1"),
-          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2"),
-        ),
+        setOf(EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1"), EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")),
       )
   }
 
@@ -113,24 +110,14 @@ class EntryPointMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val bar1DaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun ba|r1(): Bar"))
-    val bar2DaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun ba|r2(): Bar"))
+    val bar1DaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun ba|r1(): Bar"))
+    val bar2DaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<KtFunction>("fun ba|r2(): Bar"))
 
     // Expected to resolve
-    assertThat(
-        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1").resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(bar1DaggerElement)
 
-    assertThat(
-        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2").resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(bar2DaggerElement)
 
     // Expected to not resolve
@@ -143,11 +130,7 @@ class EntryPointMethodDaggerConceptTest {
       )
 
     for ((classId, methodName) in nonResolving) {
-      assertThat(
-          EntryPointMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+      assertThat(EntryPointMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
     }
   }
@@ -178,40 +161,21 @@ class EntryPointMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val bar1DaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r1();"))
-    val bar2DaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r2();"))
+    val bar1DaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r1();"))
+    val bar2DaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r2();"))
 
     // Expected to resolve
-    assertThat(
-        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1").resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(bar1DaggerElement)
 
-    assertThat(
-        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
-          .resolveToDaggerElements(myProject, myProject.projectScope())
-          .toList()
-      )
+    assertThat(EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2").resolveToDaggerElements(myProject, myProject.projectScope()).toList())
       .containsExactly(bar2DaggerElement)
 
     // Expected to not resolve
-    val nonResolving =
-      listOf(
-        MY_ENTRY_POINT_ID to "barWithArgument",
-        NOT_AN_ENTRY_POINT_ID to "bar3",
-        NOT_AN_ENTRY_POINT_ID to "bar4",
-      )
+    val nonResolving = listOf(MY_ENTRY_POINT_ID to "barWithArgument", NOT_AN_ENTRY_POINT_ID to "bar3", NOT_AN_ENTRY_POINT_ID to "bar4")
 
     for ((classId, methodName) in nonResolving) {
-      assertThat(
-          EntryPointMethodIndexValue(classId, methodName)
-            .resolveToDaggerElements(myProject, myProject.projectScope())
-            .toList()
-        )
+      assertThat(EntryPointMethodIndexValue(classId, methodName).resolveToDaggerElements(myProject, myProject.projectScope()).toList())
         .isEmpty()
     }
   }
@@ -242,46 +206,21 @@ class EntryPointMethodDaggerConceptTest {
         .trimIndent(),
     )
 
-    val bar1EntryPointDaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r1();"))
-    val bar2EntryPointDaggerElement =
-      EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r2();"))
+    val bar1EntryPointDaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r1();"))
+    val bar2EntryPointDaggerElement = EntryPointMethodDaggerElement(myFixture.findParentElement<PsiMethod>("Bar ba|r2();"))
 
-    val barProviderDaggerElement =
-      ProviderDaggerElement(myFixture.findParentElement<PsiMethod>("public Ba|r()"))
+    val barProviderDaggerElement = ProviderDaggerElement(myFixture.findParentElement<PsiMethod>("public Ba|r()"))
 
     assertThat(bar1EntryPointDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          barProviderDaggerElement,
-          "Providers",
-          "navigate.to.provider.from.component",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(barProviderDaggerElement, "Providers", "navigate.to.provider.from.component"))
 
     assertThat(bar2EntryPointDaggerElement.getRelatedDaggerElements())
-      .containsExactly(
-        DaggerRelatedElement(
-          barProviderDaggerElement,
-          "Providers",
-          "navigate.to.provider.from.component",
-        )
-      )
+      .containsExactly(DaggerRelatedElement(barProviderDaggerElement, "Providers", "navigate.to.provider.from.component"))
 
     assertThat(barProviderDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(
-          bar1EntryPointDaggerElement,
-          "Exposed by entry points",
-          "navigate.to.component.exposes",
-          "MyEntryPoint",
-        ),
-        DaggerRelatedElement(
-          bar2EntryPointDaggerElement,
-          "Exposed by entry points",
-          "navigate.to.component.exposes",
-          "MyEntryPoint",
-        ),
+        DaggerRelatedElement(bar1EntryPointDaggerElement, "Exposed by entry points", "navigate.to.component.exposes", "MyEntryPoint"),
+        DaggerRelatedElement(bar2EntryPointDaggerElement, "Exposed by entry points", "navigate.to.component.exposes", "MyEntryPoint"),
       )
   }
 

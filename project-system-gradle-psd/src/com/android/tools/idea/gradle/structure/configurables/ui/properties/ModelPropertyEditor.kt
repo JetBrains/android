@@ -27,94 +27,64 @@ import javax.swing.table.TableCellEditor
 /**
  * A model property editor.
  *
- * The editor wraps a component configured for editing of a specific property of type [ValueT].  The editor is bound to the property and the
+ * The editor wraps a component configured for editing of a specific property of type [ValueT]. The editor is bound to the property and the
  * property is automatically updated with the current value of the editor.
  */
 interface ModelPropertyEditor<out ValueT : Any> : Disposable {
-  /**
-   * The component to be added to the model editor.
-   */
+  /** The component to be added to the model editor. */
   val component: JComponent
 
-  /**
-   * The component to be added to the model editor to represent the label of the property editor.
-   */
+  /** The component to be added to the model editor to represent the label of the property editor. */
   val labelComponent: JComponent
 
-  /**
-   * The component to be added to the model editor to represent the current status of the property editor.
-   */
+  /** The component to be added to the model editor to represent the current status of the property editor. */
   val statusComponent: JComponent?
 
-  /**
-   * Returns the current value of the editor.
-   */
+  /** Returns the current value of the editor. */
   fun getValue(): Annotated<ParsedValue<ValueT>>
 
-  /**
-   * Attempts to update the bound property to the current value of the editor and returns the outcome of the action.
-   */
+  /** Attempts to update the bound property to the current value of the editor and returns the outcome of the action. */
   fun updateProperty(): UpdatePropertyOutcome
 
-  /**
-   * Reloads the editor from the bound property.
-   */
+  /** Reloads the editor from the bound property. */
   fun reload()
 
-  /**
-   * Reloads the editor from the bound property and keeps the value if it has been modified by the user.
-   */
+  /** Reloads the editor from the bound property and keeps the value if it has been modified by the user. */
   fun reloadIfNotChanged() = reload()
 
-  /**
-   * Adds [listener] to the core editor component(s).
-   */
+  /** Adds [listener] to the core editor component(s). */
   fun addFocusListener(listener: FocusListener)
 
   val property: ModelPropertyCore<out ValueT>
 }
 
-/**
- * The outcome of [ModelPropertyEditor.updateProperty].
- */
+/** The outcome of [ModelPropertyEditor.updateProperty]. */
 enum class UpdatePropertyOutcome {
-  /**
-   * The value of the editor hasn't changed.
-   */
+  /** The value of the editor hasn't changed. */
   NOT_CHANGED,
-  /**
-   * The property has been updated with the current value of the editor.
-   */
+  /** The property has been updated with the current value of the editor. */
   UPDATED,
-  /**
-   * The operation cannot be performed. The current value of the editor is invalid.
-   */
-  INVALID
+  /** The operation cannot be performed. The current value of the editor is invalid. */
+  INVALID,
 }
 
-/**
- * A descriptor of an additional property editor action provided as an editor extension.
- */
+/** A descriptor of an additional property editor action provided as an editor extension. */
 interface EditorExtensionAction<T : Any, ModelPropertyCoreT : ModelPropertyCore<T>> {
   val title: String
   val tooltip: String
   val icon: Icon
   val isMainAction: Boolean
+
   fun isAvailableFor(property: ModelPropertyCoreT, isPropertyContext: Boolean): Boolean
-  fun invoke(
-    property: ModelPropertyCoreT,
-    editor: ModelPropertyEditor<T>,
-    editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>
-  )
+
+  fun invoke(property: ModelPropertyCoreT, editor: ModelPropertyEditor<T>, editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>)
 }
 
-/**
- * A factory to create property editors with the preconfigured property context.
- */
+/** A factory to create property editors with the preconfigured property context. */
 interface ModelPropertyEditorFactory<ValueT : Any, in ModelPropertyCoreT : ModelPropertyCore<ValueT>> {
   fun createNew(
     property: ModelPropertyCoreT,
     cellEditor: TableCellEditor? = null,
-    isPropertyContext: Boolean = true
+    isPropertyContext: Boolean = true,
   ): ModelPropertyEditor<ValueT>
 }

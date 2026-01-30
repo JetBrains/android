@@ -30,7 +30,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private class TestBuildListener: BuildListener {
+private class TestBuildListener : BuildListener {
   private val log = StringBuilder()
 
   override fun buildStarted() {
@@ -54,15 +54,14 @@ private class TestBuildListener: BuildListener {
 
 @RunsInEdt
 class BuildListenerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val edtRule = EdtRule()
 
   private val project: Project
     get() = projectRule.project
 
-  private val buildTargetReference get() = BuildTargetReference.gradleOnly(projectRule.module)
+  private val buildTargetReference
+    get() = BuildTargetReference.gradleOnly(projectRule.module)
 
   private val buildSystemServices = FakeBuildSystemFilePreviewServices()
 
@@ -79,9 +78,7 @@ class BuildListenerTest {
     return listener
   }
 
-  private fun processEvents() = UIUtil.invokeAndWaitIfNeeded(Runnable {
-    UIUtil.dispatchAllInvocationEvents()
-  })
+  private fun processEvents() = UIUtil.invokeAndWaitIfNeeded(Runnable { UIUtil.dispatchAllInvocationEvents() })
 
   @Test
   fun testBuildSuccessful() {
@@ -93,10 +90,14 @@ class BuildListenerTest {
 
     completion.set(Unit)
     processEvents()
-    assertThat(buildListener.getLog()).isEqualTo("""
-      Build Started
-      Build Succeeded
-    """.trimIndent())
+    assertThat(buildListener.getLog())
+      .isEqualTo(
+        """
+        Build Started
+        Build Succeeded
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -105,10 +106,14 @@ class BuildListenerTest {
 
     buildSystemServices.simulateArtifactBuild(BuildStatus.FAILED)
     processEvents()
-    assertThat(buildListener.getLog()).isEqualTo("""
-      Build Started
-      Build Failed
-    """.trimIndent())
+    assertThat(buildListener.getLog())
+      .isEqualTo(
+        """
+        Build Started
+        Build Failed
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -124,14 +129,13 @@ class BuildListenerTest {
     assertThat(buildListener.getLog()).isEqualTo("Build Cleaned")
   }
 
-  /**
-   * Regression test for b/177355531. Disposing the first build listener would remove all listeners.
-   */
+  /** Regression test for b/177355531. Disposing the first build listener would remove all listeners. */
   @Test
   fun testRemoveSecondListener() {
-    val secondListener = object : BuildListener {
-      override fun buildSucceeded() {}
-    }
+    val secondListener =
+      object : BuildListener {
+        override fun buildSucceeded() {}
+      }
     val secondDisposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, secondListener, secondDisposable)
 
@@ -140,10 +144,14 @@ class BuildListenerTest {
     val buildListener = setupBuildListener()
     buildSystemServices.simulateArtifactBuild(BuildStatus.SUCCESS)
     processEvents()
-    assertThat(buildListener.getLog()).isEqualTo("""
-      Build Started
-      Build Succeeded
-    """.trimIndent())
+    assertThat(buildListener.getLog())
+      .isEqualTo(
+        """
+        Build Started
+        Build Succeeded
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -152,11 +160,12 @@ class BuildListenerTest {
     processEvents()
 
     var listenerCalls = 0
-    val listener = object : BuildListener {
-      override fun buildStarted() {
-        listenerCalls++
+    val listener =
+      object : BuildListener {
+        override fun buildStarted() {
+          listenerCalls++
+        }
       }
-    }
     val disposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, listener, disposable)
 
@@ -168,20 +177,22 @@ class BuildListenerTest {
   @Test
   fun testOnlyOneSubscriptionPerProject() {
     var firstListenerCalls = 0
-    val firstListener = object : BuildListener {
-      override fun buildStarted() {
-        firstListenerCalls++
+    val firstListener =
+      object : BuildListener {
+        override fun buildStarted() {
+          firstListenerCalls++
+        }
       }
-    }
     val firstDisposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, firstListener, firstDisposable)
 
     var secondListenerCalls = 0
-    val secondListener = object : BuildListener {
-      override fun buildStarted() {
-        secondListenerCalls++
+    val secondListener =
+      object : BuildListener {
+        override fun buildStarted() {
+          secondListenerCalls++
+        }
       }
-    }
     val secondDisposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, secondListener, secondDisposable)
 
@@ -200,11 +211,12 @@ class BuildListenerTest {
     assertThat(secondListenerCalls).isEqualTo(2)
 
     var thirdListenerCalls = 0
-    val thirdListener = object : BuildListener {
-      override fun buildStarted() {
-        thirdListenerCalls++
+    val thirdListener =
+      object : BuildListener {
+        override fun buildStarted() {
+          thirdListenerCalls++
+        }
       }
-    }
     val thirdDisposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, thirdListener, thirdDisposable)
 
@@ -227,11 +239,12 @@ class BuildListenerTest {
     assertThat(thirdListenerCalls).isEqualTo(2)
 
     var fourthListenerCalls = 0
-    val fourthListener = object : BuildListener {
-      override fun buildStarted() {
-        fourthListenerCalls++
+    val fourthListener =
+      object : BuildListener {
+        override fun buildStarted() {
+          fourthListenerCalls++
+        }
       }
-    }
     val fourthDisposable = Disposer.newDisposable()
     setupBuildListener(buildTargetReference, fourthListener, fourthDisposable)
 

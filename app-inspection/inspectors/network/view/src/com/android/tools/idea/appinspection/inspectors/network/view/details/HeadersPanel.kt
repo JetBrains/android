@@ -27,8 +27,7 @@ import javax.swing.text.StyleContext.DEFAULT_STYLE
 import javax.swing.text.StyledDocument
 
 /** Displays headers from a connection */
-internal class HeadersPanel(map: Map<String, List<String>>) :
-  JBScrollPane(VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
+internal class HeadersPanel(map: Map<String, List<String>>) : JBScrollPane(VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
   init {
     val textPane = JTextPane()
     val document = textPane.styledDocument

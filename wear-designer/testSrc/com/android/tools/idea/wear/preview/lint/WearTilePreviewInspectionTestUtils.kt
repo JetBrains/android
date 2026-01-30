@@ -26,17 +26,10 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.elementsInRange
 
 /**
- * Retrieves the name of the method containing the [PsiElement] associated with the [highlightInfo]
- * in the given [PsiFile]. This method assumes that only a single method contains the [PsiElement].
- * This method supports both Kotlin and Java.
+ * Retrieves the name of the method containing the [PsiElement] associated with the [highlightInfo] in the given [PsiFile]. This method
+ * assumes that only a single method contains the [PsiElement]. This method supports both Kotlin and Java.
  */
 internal fun PsiFile.containingMethodName(highlightInfo: HighlightInfo) =
-  runReadAction {
-      elementsInRange(TextRange.create(highlightInfo.startOffset, highlightInfo.endOffset))
-    }
-    .mapNotNull {
-      runReadAction {
-        it.parentOfType<PsiMethod>()?.name ?: it.parentOfType<KtNamedFunction>()?.name
-      }
-    }
+  runReadAction { elementsInRange(TextRange.create(highlightInfo.startOffset, highlightInfo.endOffset)) }
+    .mapNotNull { runReadAction { it.parentOfType<PsiMethod>()?.name ?: it.parentOfType<KtNamedFunction>()?.name } }
     .single()

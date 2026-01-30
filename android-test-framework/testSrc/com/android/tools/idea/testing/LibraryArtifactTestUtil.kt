@@ -25,8 +25,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 
 fun getLibraryAdditionalArtifactPaths(project: Project, pathType: LibraryPathType): List<String> {
   val projectDataManager = ProjectDataManager.getInstance()
-  val externalProjectsData =
-    projectDataManager.getExternalProjectsData(project, GradleConstants.SYSTEM_ID)
+  val externalProjectsData = projectDataManager.getExternalProjectsData(project, GradleConstants.SYSTEM_ID)
   val result = mutableListOf<String>()
 
   for (externalProjectData in externalProjectsData) {
@@ -46,10 +45,7 @@ private fun findLibraryDataNodes(dataNode: DataNode<*>): List<DataNode<LibraryDa
   return result
 }
 
-private fun findLibraryDataNodesRecursive(
-  dataNode: DataNode<*>,
-  result: MutableList<DataNode<LibraryData>>,
-) {
+private fun findLibraryDataNodesRecursive(dataNode: DataNode<*>, result: MutableList<DataNode<LibraryData>>) {
   if (dataNode.key == ProjectKeys.LIBRARY && dataNode.data is LibraryData) {
     @Suppress("UNCHECKED_CAST") result.add(dataNode as DataNode<LibraryData>)
   }

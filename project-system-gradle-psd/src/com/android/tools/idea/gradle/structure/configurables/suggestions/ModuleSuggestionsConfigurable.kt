@@ -27,31 +27,31 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 import java.awt.BorderLayout
 
-open class ModuleSuggestionsConfigurable(
-  context: PsContext,
-  perspectiveConfigurable: BasePerspectiveConfigurable,
-  module: PsModule
-) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
+open class ModuleSuggestionsConfigurable(context: PsContext, perspectiveConfigurable: BasePerspectiveConfigurable, module: PsModule) :
+  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
   override fun getId() = "android.psd.suggestions." + displayName
 
-  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
-    private val panel = createInnerPanel().also {
-      add(it.panel, BorderLayout.CENTER)
-    }
+  override fun createPanel(): AbstractMainPanel =
+    object : AbstractMainPanel(context) {
+      private val panel = createInnerPanel().also { add(it.panel, BorderLayout.CENTER) }
 
-    override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
-    override fun queryPlace(place: Place) = panel.queryPlace(place)
-    override fun restoreUiState() = Unit
-    override fun dispose() {
-      Disposer.dispose(panel)
+      override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
+
+      override fun queryPlace(place: Place) = panel.queryPlace(place)
+
+      override fun restoreUiState() = Unit
+
+      override fun dispose() {
+        Disposer.dispose(panel)
+      }
     }
-  }
 
   private fun createInnerPanel(): SuggestionsForm {
-    val psModulePath = when (module) {
-      is PsAllModulesFakeModule -> null
-      else -> PsModulePath(module)
-    }
+    val psModulePath =
+      when (module) {
+        is PsAllModulesFakeModule -> null
+        else -> PsModulePath(module)
+      }
     val issueRenderer = SuggestionsViewIssueRenderer(context)
     return SuggestionsForm(context, issueRenderer).apply {
       renderIssues(getIssues(context, psModulePath), psModulePath)
@@ -61,9 +61,7 @@ open class ModuleSuggestionsConfigurable(
           renderIssues(getIssues(context, psModulePath), psModulePath)
         }
       }
-      context.analyzerDaemon.onRunningChange(this) @UiThread {
-        updateLoading()
-      }
+      context.analyzerDaemon.onRunningChange(this) @UiThread { updateLoading() }
     }
   }
 
@@ -74,4 +72,3 @@ open class ModuleSuggestionsConfigurable(
 
 internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> =
   psContext.analyzerDaemon.issues.findIssues(psModulePath, null)
-

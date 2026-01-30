@@ -25,11 +25,11 @@ import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
 
 /**
- * This internal action is only used for checking the consistency of the final system.  Since interfaces of [Token]
- * define extension points, implemented by concrete classes and looked up at runtime, it is easy to imagine a
- * flawed distribution that does not provide implementation classes.  We would expect some other end-to-end tests
- * to fail in those circumstances, as that would presumably mean that some feature didn't operate as expected, but
- * having the explicit consistency checks here should help diagnose the issue if that is what has happened.
+ * This internal action is only used for checking the consistency of the final system. Since interfaces of [Token] define extension points,
+ * implemented by concrete classes and looked up at runtime, it is easy to imagine a flawed distribution that does not provide
+ * implementation classes. We would expect some other end-to-end tests to fail in those circumstances, as that would presumably mean that
+ * some feature didn't operate as expected, but having the explicit consistency checks here should help diagnose the issue if that is what
+ * has happened.
  */
 class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
   override fun actionPerformed(e: AnActionEvent) {
@@ -45,7 +45,8 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
 
       ClassGraph()
         .overrideClasspath(classLoaderUrls)
-        .enableClassInfo().scan()
+        .enableClassInfo()
+        .scan()
         .allClasses
         .filter { it.implementsInterface(tokenClass) }
         .forEach {
@@ -60,24 +61,30 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
         }
 
       interfaces.forEach { i ->
-        classes.filter { c -> c.implementsInterface(i.name) && c.implementsInterface(gradleTokenClass) }.let { l ->
-          when {
-            l.isEmpty() -> problems.add(i).also { LOG.info("no GradleToken class implementing ${i.name}") }
-            l.size > 1 -> problems.add(i).also { LOG.info("more than one GradleToken class ($l) implementing ${i.name}") }
-            else -> LOG.debug("${l[0].name} implements ${i.name}")
-          }
-        }
-      }
-
-      classes.filter { it.implementsInterface(gradleTokenClass) }
-        .forEach { c ->
-          interfaces.filter { i -> c.implementsInterface(i.name) }.let { l ->
+        classes
+          .filter { c -> c.implementsInterface(i.name) && c.implementsInterface(gradleTokenClass) }
+          .let { l ->
             when {
-              l.isEmpty() -> problems.add(c).also { LOG.info("GradleToken subclass ${c.name} does not implement any interface") }
-              l.size > 1 -> problems.add(c).also { LOG.info("GradleToken subclass ${c.name} implements more than one Token interface: $l") }
-              else -> LOG.debug("${c.name} implements ${l[0].name}")
+              l.isEmpty() -> problems.add(i).also { LOG.info("no GradleToken class implementing ${i.name}") }
+              l.size > 1 -> problems.add(i).also { LOG.info("more than one GradleToken class ($l) implementing ${i.name}") }
+              else -> LOG.debug("${l[0].name} implements ${i.name}")
             }
           }
+      }
+
+      classes
+        .filter { it.implementsInterface(gradleTokenClass) }
+        .forEach { c ->
+          interfaces
+            .filter { i -> c.implementsInterface(i.name) }
+            .let { l ->
+              when {
+                l.isEmpty() -> problems.add(c).also { LOG.info("GradleToken subclass ${c.name} does not implement any interface") }
+                l.size > 1 ->
+                  problems.add(c).also { LOG.info("GradleToken subclass ${c.name} implements more than one Token interface: $l") }
+                else -> LOG.debug("${c.name} implements ${l[0].name}")
+              }
+            }
         }
 
       LOG.info("${problems.size}/${interfaces.size} problem${if (problems.size == 1) "" else "s"} found")

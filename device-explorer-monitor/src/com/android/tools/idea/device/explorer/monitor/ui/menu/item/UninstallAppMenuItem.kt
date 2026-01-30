@@ -20,10 +20,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext.P
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext.Toolbar
 import icons.StudioIcons
 
-class UninstallAppMenuItem(
-  listener: DeviceMonitorActionsListener,
-  private val context: MenuContext,
-) : TreeMenuItem(listener) {
+class UninstallAppMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val appStr = if (numOfNodes > 1) "apps" else "app"
     return if (context == Toolbar) {

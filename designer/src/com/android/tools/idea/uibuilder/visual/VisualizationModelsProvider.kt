@@ -22,17 +22,10 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 
-/**
- * [VisualizationForm] uses this interface to create [NlModel]s. Implement this interface to custom
- * the [NlModel] creation logic.
- */
+/** [VisualizationForm] uses this interface to create [NlModel]s. Implement this interface to custom the [NlModel] creation logic. */
 interface VisualizationModelsProvider {
   /** The actions shown in ActionBar for this models provider. */
   fun createActions(): ActionGroup = DefaultActionGroup()
 
-  fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel>
+  fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel>
 }

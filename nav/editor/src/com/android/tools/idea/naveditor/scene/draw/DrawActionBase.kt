@@ -31,24 +31,15 @@ import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.BasicStroke
 import java.awt.Color
 
-private val ACTION_STROKE =
-  SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+private val ACTION_STROKE = SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-abstract class DrawActionBase(
-  protected val scale: Scale,
-  protected val color: Color,
-  protected val isPopAction: Boolean,
-  level: Int = 0,
-) : CompositeDrawCommand(level) {
+abstract class DrawActionBase(protected val scale: Scale, protected val color: Color, protected val isPopAction: Boolean, level: Int = 0) :
+  CompositeDrawCommand(level) {
 
   final override fun buildCommands(): List<DrawCommand> {
     val (shape, arrowRectangle, direction) = buildAction()
 
-    val list =
-      mutableListOf(
-        DrawShape(shape, color, ACTION_STROKE),
-        makeDrawArrowCommand(arrowRectangle, direction),
-      )
+    val list = mutableListOf(DrawShape(shape, color, ACTION_STROKE), makeDrawArrowCommand(arrowRectangle, direction))
 
     if (isPopAction) {
       list.add(DrawIcon(POP_ACTION, getPopIconRectangle(), color))
@@ -57,10 +48,7 @@ abstract class DrawActionBase(
     return list
   }
 
-  private fun makeDrawArrowCommand(
-    rectangle: SwingRectangle,
-    direction: ArrowDirection,
-  ): DrawCommand {
+  private fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection): DrawCommand {
     val left = rectangle.x
     val right = left + rectangle.width
 
@@ -96,9 +84,5 @@ abstract class DrawActionBase(
 
   protected abstract fun buildAction(): Action
 
-  protected data class Action(
-    val shape: SwingShape,
-    val arrowRectangle: SwingRectangle,
-    val direction: ArrowDirection,
-  )
+  protected data class Action(val shape: SwingShape, val arrowRectangle: SwingRectangle, val direction: ArrowDirection)
 }

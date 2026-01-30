@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.android.model.android
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.android.model.AndroidGradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class KotlinOptionsModelTest : AndroidGradleFileModelTestCase() {
   @Test
@@ -74,7 +74,6 @@ class KotlinOptionsModelTest : AndroidGradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_FREE_COMPILER_ARGS_EXPECTED)
   }
 
-
   @Test
   fun remove() {
     writeToBuildFile(TestFile.REMOVE)
@@ -116,8 +115,7 @@ class KotlinOptionsModelTest : AndroidGradleFileModelTestCase() {
     verifyListProperty("freeCompilerArgs", kotlinOptions.freeCompilerArgs(), listOf("-XX:1", "-XX:2"))
   }
 
-
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ADD("add"),
     ADD_EXPECTED("addExpected"),
     ADD_FREE_COMPILER_ARGS_EXPECTED("addFreeCompilerArgsExpected"),
@@ -126,10 +124,10 @@ class KotlinOptionsModelTest : AndroidGradleFileModelTestCase() {
     MODIFY("modify"),
     MODIFY_EXPECTED("modifyExpected"),
     REMOVE("remove"),
-    REMOVE_EXPECTED("removeExpected"),
-    ;
+    REMOVE_EXPECTED("removeExpected");
+
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/kotlinOptionsModel/$path", extension)
-    }   
+    }
   }
 }

@@ -31,8 +31,7 @@ interface PreviewRefreshTracker {
   fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder
 
   companion object {
-    private val MANAGER =
-      DesignerUsageTrackerManager(::PreviewRefreshDefaultTracker, PreviewRefreshNopTracker)
+    private val MANAGER = DesignerUsageTrackerManager(::PreviewRefreshDefaultTracker, PreviewRefreshNopTracker)
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
 
@@ -52,9 +51,7 @@ interface PreviewRefreshTracker {
 
 /** Creates and returns an [AndroidStudioEvent.Builder] from a [PreviewRefreshEvent]. */
 private fun PreviewRefreshEvent.createAndroidStudioEvent(): AndroidStudioEvent.Builder {
-  return AndroidStudioEvent.newBuilder()
-    .setKind(AndroidStudioEvent.EventKind.PREVIEW_REFRESH_EVENT)
-    .setPreviewRefreshEvent(this)
+  return AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.PREVIEW_REFRESH_EVENT).setPreviewRefreshEvent(this)
 }
 
 /** Empty [PreviewRefreshTracker] implementation, used when the user is not opt-in or in tests. */
@@ -66,18 +63,14 @@ private val PreviewRefreshNopTracker =
   }
 
 @TestOnly
-class PreviewRefreshTrackerForTest(private val onLogEvent: (PreviewRefreshEvent) -> Unit) :
-  PreviewRefreshTracker {
+class PreviewRefreshTrackerForTest(private val onLogEvent: (PreviewRefreshEvent) -> Unit) : PreviewRefreshTracker {
   override fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder {
     onLogEvent(event)
     return event.createAndroidStudioEvent()
   }
 }
 
-/**
- * Default [PreviewRefreshTracker] implementation that sends the event to the analytics backend
- * through the [studioEventTracker].
- */
+/** Default [PreviewRefreshTracker] implementation that sends the event to the analytics backend through the [studioEventTracker]. */
 private class PreviewRefreshDefaultTracker(
   private val executor: Executor,
   private val surface: DesignSurface<*>?,
@@ -145,13 +138,10 @@ class PreviewRefreshEventBuilder(
   /**
    * To indicate that the request is skipped, possibly without even being enqueued.
    *
-   * This method is terminal, meaning that calling any method after this one won't have any effect
-   * in the tracked data.
+   * This method is terminal, meaning that calling any method after this one won't have any effect in the tracked data.
    */
   fun onRequestSkipped() {
-    eventBuilder.setInQueueTimeMillis(
-      (enqueueMs?.let { System.currentTimeMillis() - it } ?: 0).toInt()
-    )
+    eventBuilder.setInQueueTimeMillis((enqueueMs?.let { System.currentTimeMillis() - it } ?: 0).toInt())
     eventBuilder.setResult(PreviewRefreshEvent.RefreshResult.SKIPPED)
     track()
   }
@@ -166,8 +156,7 @@ class PreviewRefreshEventBuilder(
   /**
    * To indicate that the request finished executing with the given [result].
    *
-   * This method is terminal, meaning that calling any method after this one won't have any effect
-   * in the tracked data.
+   * This method is terminal, meaning that calling any method after this one won't have any effect in the tracked data.
    */
   fun onRefreshCompleted(result: PreviewRefreshEvent.RefreshResult) {
     if (startMs == null) logger.warn("Expected not null startMs")

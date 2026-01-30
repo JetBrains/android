@@ -32,12 +32,9 @@ class PlayPolicyInsightIntegrationTest {
 
   @Test
   fun loadPolicyRulesFromBundledJar() {
-    val projectArtifactsPath =
-      Paths.get("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_project_model")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_project_model")
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
-    system.installRepo(
-      MavenRepo("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_deps.manifest")
-    )
+    system.installRepo(MavenRepo("tools/adt/idea/app-quality-insights/play-policy/integration/minapp_deps.manifest"))
 
     system.installation.copySystemDir(projectArtifactsPath)
     system.runStudio(project, watcher.dashboardName) { studio ->

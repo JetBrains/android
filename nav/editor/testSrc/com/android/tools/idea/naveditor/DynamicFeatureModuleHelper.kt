@@ -31,19 +31,10 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
 
-fun addDynamicFeatureModule(
-  moduleName: String,
-  module: Module,
-  fixture: JavaCodeInsightTestFixture,
-) {
+fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCodeInsightTestFixture) {
   val project = module.project
   val dynamicFeatureModule =
-    PsiTestUtil.addModule(
-      project,
-      JavaModuleType.getModuleType(),
-      moduleName,
-      fixture.tempDirFixture.findOrCreateDir(moduleName),
-    )
+    PsiTestUtil.addModule(project, JavaModuleType.getModuleType(), moduleName, fixture.tempDirFixture.findOrCreateDir(moduleName))
   AndroidTestCase.addAndroidFacetAndSdk(dynamicFeatureModule, false)
 
   val newModuleSystem =
@@ -67,12 +58,7 @@ fun addDynamicFeatureModule(
   )
 
   val lib = findFragmentLibrary(module)
-  ModuleRootModificationUtil.addDependency(
-    dynamicFeatureModule,
-    lib,
-    DependencyScope.PROVIDED,
-    true,
-  )
+  ModuleRootModificationUtil.addDependency(dynamicFeatureModule, lib, DependencyScope.PROVIDED, true)
 }
 
 private fun findFragmentLibrary(module: Module): Library {

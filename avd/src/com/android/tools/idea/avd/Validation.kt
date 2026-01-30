@@ -27,10 +27,7 @@ sealed class Validation<out T> {
     get() = (this as? Valid)?.value
 
   companion object {
-    /**
-     * Validates [value] with [validator], which should return a String in case of error, or null
-     * for a valid value.
-     */
+    /** Validates [value] with [validator], which should return a String in case of error, or null for a valid value. */
     fun <T> validate(value: T, validator: (T) -> String?): Validation<T> =
       when (val errorMessage = validator(value)) {
         null -> Valid(value)
@@ -38,15 +35,13 @@ sealed class Validation<out T> {
       }
 
     /**
-     * Validates [value] with [validator], which should return a String in case of error, or null
-     * for a valid value. If the value is null, the validator may check this and return an
-     * appropriate error message, or a default error message will be used. Regardless, the resulting
-     * Validation will contain a non-null type.
+     * Validates [value] with [validator], which should return a String in case of error, or null for a valid value. If the value is null,
+     * the validator may check this and return an appropriate error message, or a default error message will be used. Regardless, the
+     * resulting Validation will contain a non-null type.
      */
     fun <T : Any> validateNotNull(value: T?, validator: (T?) -> String?): Validation<T> =
       when (val result = validate(value, validator)) {
-        is Valid ->
-          if (result.value == null) Error("Required value is null.") else Valid(result.value)
+        is Valid -> if (result.value == null) Error("Required value is null.") else Valid(result.value)
         is Error -> result
       }
   }

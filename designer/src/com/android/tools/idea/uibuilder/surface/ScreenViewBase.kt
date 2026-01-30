@@ -22,11 +22,8 @@ import com.android.tools.rendering.RenderResult
 
 /** View of a device/screen/layout. This is actually painted by [ScreenViewLayer]. */
 internal abstract class ScreenViewBase
-protected constructor(
-  surface: NlDesignSurface,
-  manager: LayoutlibSceneManager,
-  shapePolicy: ShapePolicy,
-) : SceneView(surface, manager, shapePolicy) {
+protected constructor(surface: NlDesignSurface, manager: LayoutlibSceneManager, shapePolicy: ShapePolicy) :
+  SceneView(surface, manager, shapePolicy) {
 
   override val sceneManager: LayoutlibSceneManager
     get() = super.sceneManager as LayoutlibSceneManager
@@ -37,9 +34,6 @@ protected constructor(
   val result: RenderResult?
     get() = sceneManager.renderResult
 
-  /**
-   * True if this is second [SceneView] in the associated Scene/SceneManager, false otherwise. The
-   * default value is false.
-   */
+  /** True if this is second [SceneView] in the associated Scene/SceneManager, false otherwise. The default value is false. */
   var isSecondary: Boolean = false
 }

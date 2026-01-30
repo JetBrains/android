@@ -25,31 +25,24 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.ThreadingAssertions
-import org.junit.Assert.assertEquals
-import org.junit.Rule
-import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.util.concurrent.TimeUnit
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for the local repository utility class
- */
+/** Tests for the local repository utility class */
 class RepositoryUrlManagerCachingTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
   private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create(FakeGoogleMavenRepositoryV2Host())
-  private val repositoryUrlManager = RepositoryUrlManager(
-    networkRepo,
-    localRepo  /* force repository checks */,
-    googleMavenRepositoryV2,
-    googleMavenRepositoryV2
-  )
+  private val repositoryUrlManager =
+    RepositoryUrlManager(networkRepo, localRepo /* force repository checks */, googleMavenRepositoryV2, googleMavenRepositoryV2)
   private val fileSystem = createInMemoryFileSystem()
 
   private class TestGoogleMavenRepository : GoogleMavenRepository() {
@@ -75,8 +68,7 @@ class RepositoryUrlManagerCachingTest {
 
       try {
         return ByteArrayInputStream(result.toByteArray(charset("UTF-8")))
-      }
-      catch (e: UnsupportedEncodingException) {
+      } catch (e: UnsupportedEncodingException) {
         return null
       }
     }
@@ -89,7 +81,7 @@ class RepositoryUrlManagerCachingTest {
   @Test
   @RunsInEdt
   fun calledFromDispatchThread() {
-    ThreadingAssertions.assertEventDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread()
     repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the dispatch thread, we return the dependency value from the local cache and post a network request on background.
@@ -99,7 +91,7 @@ class RepositoryUrlManagerCachingTest {
 
   @Test
   fun calledFromWorkerThread() {
-    ApplicationManager.getApplication().assertIsNonDispatchThread();
+    ApplicationManager.getApplication().assertIsNonDispatchThread()
     repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the worker thread, we return the dependency value from the network only.

@@ -93,14 +93,7 @@ class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
     private fun getClasses(component: NlComponent): List<EnumValue> {
       return getClassesForTag(component.model.module, component.tagName)
         .filterKeys { it.qualifiedName != null }
-        .map {
-          ClassEnumValue(
-            it.key.qualifiedName!!,
-            displayString(it.key.qualifiedName!!),
-            it.value,
-            it.key.isInProject(),
-          )
-        }
+        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key.qualifiedName!!), it.value, it.key.isInProject()) }
         .sortedWith(compareBy({ !it.isInProject }, { it.display }))
         .toList()
     }

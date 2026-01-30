@@ -23,8 +23,8 @@ import com.intellij.openapi.diagnostic.thisLogger
 /**
  * Base class to log usage for Compose pickers.
  *
- * Registers field modifications for a session when using the picker (a session starts when the user
- * opens the picker and ends when it's closed).
+ * Registers field modifications for a session when using the picker (a session starts when the user opens the picker and ends when it's
+ * closed).
  *
  * So a session may contain several modifications.
  *
@@ -85,8 +85,7 @@ internal abstract class BaseComposePickerTracker : ComposePickerTracker {
   /** Holds basic data that will later be processed for tracking. */
   protected data class PickerModification(
     val propertyName: String,
-    val assignedValue:
-      EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
+    val assignedValue: EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue,
     val deviceBeforeModification: Device?,
   )
 }

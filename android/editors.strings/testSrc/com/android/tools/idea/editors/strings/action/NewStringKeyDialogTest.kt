@@ -91,10 +91,7 @@ class NewStringKeyDialogTest {
     val validationInfo = dialog.doValidate()
     assertThat(validationInfo).isNotNull()
     assertThat(validationInfo!!.message)
-      .isEqualTo(
-        IdeResourceNameValidator.forResourceName(ResourceType.STRING)
-          .getErrorText(bogusResourceName)
-      )
+      .isEqualTo(IdeResourceNameValidator.forResourceName(ResourceType.STRING).getErrorText(bogusResourceName))
     assertThat(dialog.isOK).isFalse()
   }
 
@@ -120,15 +117,10 @@ class NewStringKeyDialogTest {
     val resourceDirectory: VirtualFile = mock()
     whenever(resourceDirectory.path).thenReturn("${projectRule.project.basePath}/$resourceDirName")
     val resourceFolderManager: ResourceFolderManager = mock()
-    projectRule.module.replaceService(
-      ResourceFolderManager::class.java,
-      resourceFolderManager,
-      projectRule.testRootDisposable,
-    )
+    projectRule.module.replaceService(ResourceFolderManager::class.java, resourceFolderManager, projectRule.testRootDisposable)
     whenever(resourceFolderManager.folders).thenReturn(listOf(resourceDirectory))
     val resourceName = "my_excellent_resource_name"
-    val dialog =
-      NewStringKeyDialog(facet, listOf(StringResourceKey(resourceName, resourceDirectory)))
+    val dialog = NewStringKeyDialog(facet, listOf(StringResourceKey(resourceName, resourceDirectory)))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) {
       it.keyField.text = resourceName
@@ -138,8 +130,7 @@ class NewStringKeyDialogTest {
 
     val validationInfo = dialog.doValidate()
     assertThat(validationInfo).isNotNull()
-    assertThat(validationInfo!!.message)
-      .isEqualTo("$resourceName already exists in $resourceDirName")
+    assertThat(validationInfo!!.message).isEqualTo("$resourceName already exists in $resourceDirName")
     assertThat(dialog.isOK).isFalse()
   }
 

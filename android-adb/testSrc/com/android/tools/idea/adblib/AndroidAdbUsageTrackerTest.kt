@@ -32,11 +32,6 @@ class AndroidAdbUsageTrackerTest {
 
     tracker.logUsage(AdbUsageTracker.Event(null, null))
 
-    assertEquals(
-      1,
-      usageTrackerRule.usages.count {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.ADB_USAGE_EVENT
-      },
-    )
+    assertEquals(1, usageTrackerRule.usages.count { it.studioEvent.kind == AndroidStudioEvent.EventKind.ADB_USAGE_EVENT })
   }
 }

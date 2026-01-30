@@ -19,13 +19,22 @@ import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 
 interface DeviceFileExplorerActionListener {
   val selectedNodes: List<DeviceFileEntryNode>?
+
   fun copyNodePaths(nodes: List<DeviceFileEntryNode>)
+
   fun openNodes(nodes: List<DeviceFileEntryNode>)
+
   fun saveNodesAs(nodes: List<DeviceFileEntryNode>)
+
   fun deleteNodes(nodes: List<DeviceFileEntryNode>)
+
   fun synchronizeNodes()
+
   fun newFile(node: DeviceFileEntryNode)
+
   fun newDirectory(node: DeviceFileEntryNode)
+
   fun uploadFile(node: DeviceFileEntryNode)
+
   fun setPackageFilter(isActive: Boolean)
 }

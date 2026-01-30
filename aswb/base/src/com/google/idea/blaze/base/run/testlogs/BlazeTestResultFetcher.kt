@@ -20,20 +20,20 @@ import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStream
 import com.intellij.openapi.diagnostic.thisLogger
 
 /**
- * A holder class through which the results of a "blaze test" are communicated to the test console
- * responsible for displaying the results of the test.
+ * A holder class through which the results of a "blaze test" are communicated to the test console responsible for displaying the results of
+ * the test.
  */
 class BlazeTestResultFetcher : BlazeTestResultsProvider {
   private var testResults: BlazeTestResults = BlazeTestResults.NO_RESULTS
 
   fun setTestResults(bepProvider: BuildEventStreamProvider) {
-    testResults = runCatching { BuildResultParser.getTestResults(bepProvider) }
-      .getOrElse {
-        thisLogger().warn("Failed to parse test results from bep for build id: ${bepProvider.getId()}", it)
-        BlazeTestResults.NO_RESULTS
-      }
+    testResults =
+      runCatching { BuildResultParser.getTestResults(bepProvider) }
+        .getOrElse {
+          thisLogger().warn("Failed to parse test results from bep for build id: ${bepProvider.getId()}", it)
+          BlazeTestResults.NO_RESULTS
+        }
   }
 
   override fun findTestResults(): BlazeTestResults = testResults
-
 }

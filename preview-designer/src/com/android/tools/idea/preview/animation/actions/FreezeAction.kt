@@ -30,11 +30,7 @@ class FreezeAction(
   private val getCurrentTime: () -> Int,
   private val frozenState: MutableStateFlow<FrozenState>,
   val tracker: AnimationTracker,
-) :
-  ToggleAction(
-    Supplier { message("animation.inspector.action.freeze") },
-    StudioIcons.Compose.Toolbar.FREEZE_ANIMATION,
-  ) {
+) : ToggleAction(Supplier { message("animation.inspector.action.freeze") }, StudioIcons.Compose.Toolbar.FREEZE_ANIMATION) {
 
   override fun setSelected(e: AnActionEvent, frozen: Boolean) {
     frozenState.value = FrozenState(frozen, getCurrentTime())

@@ -34,8 +34,7 @@ import org.junit.Test
 class SyncEventsMetricsTest {
   @get:Rule val projectRule = ProjectRule()
 
-  private val tracker =
-    TestUsageTracker(VirtualTimeScheduler()).also { UsageTracker.setWriterForTest(it) }
+  private val tracker = TestUsageTracker(VirtualTimeScheduler()).also { UsageTracker.setWriterForTest(it) }
 
   @After
   fun tearDown() {
@@ -82,8 +81,7 @@ class SyncEventsMetricsTest {
     SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
     assertThat(tracker.usages.count { it.studioEvent.kind == BACKUP_AND_SYNC_EVENT }).isEqualTo(2)
     event = tracker.usages.map { it.studioEvent }.last { it.kind == BACKUP_AND_SYNC_EVENT }
-    assertThat(event.backupAndSyncEvent.providerInUse)
-      .isEqualTo(BackupAndSyncEvent.Provider.JETBRAINS)
+    assertThat(event.backupAndSyncEvent.providerInUse).isEqualTo(BackupAndSyncEvent.Provider.JETBRAINS)
     assertThat(event.backupAndSyncEvent.type).isEqualTo(BackupAndSyncEvent.Type.TYPE_SYNC)
 
     // Subsequent events with same provider shouldn't be logged

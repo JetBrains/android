@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.model.kotlin
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.truth.Truth
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class KotlinSourceSetModelTest : GradleFileModelTestCase() {
 
@@ -163,8 +163,7 @@ class KotlinSourceSetModelTest : GradleFileModelTestCase() {
     DEPENDENCIES_EDIT_AND_APPLY_EXPECTED("dependenciesEditAndApplyExpected"),
     SINGLE_DEPENDENCY_REMOVE_AND_APPLY("singleDependencyRemoveAndApply"),
     SINGLE_DEPENDENCY_REMOVE_AND_APPLY_EXPECTED("singleDependencyRemoveAndApplyExpected"),
-    DEPENDENCIES_BLOCK_REMOVE_AND_APPLY("dependenciesBlockRemoveAndApply"),
-    ;
+    DEPENDENCIES_BLOCK_REMOVE_AND_APPLY("dependenciesBlockRemoveAndApply");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/kotlinSourceSetModel/$path", extension)

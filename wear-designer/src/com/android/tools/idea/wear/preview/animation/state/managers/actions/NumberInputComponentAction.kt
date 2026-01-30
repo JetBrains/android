@@ -34,18 +34,15 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 
 /**
- * An abstract base class for creating custom Swing components that allow user input of numeric
- * values (either Float or Int). It handles the creation of the input field, validation of user
- * input, and provides a callback mechanism to notify clients of valid value changes.
+ * An abstract base class for creating custom Swing components that allow user input of numeric values (either Float or Int). It handles the
+ * creation of the input field, validation of user input, and provides a callback mechanism to notify clients of valid value changes.
  *
  * @param T The numeric type accepted by this component (either Float or Int).
  * @param initialValue The initial value to display in the input field.
  * @param callback A function that will be called when the user enters a valid new value.
  */
-abstract class NumberInputComponentAction<T : Number>(
-  private val initialValue: T,
-  val callback: (T) -> Unit,
-) : AnAction(), CustomComponentAction {
+abstract class NumberInputComponentAction<T : Number>(private val initialValue: T, val callback: (T) -> Unit) :
+  AnAction(), CustomComponentAction {
 
   private var inputField: JBTextField? = null
   private var containerPanel: JBPanel<*>? = null
@@ -78,10 +75,7 @@ abstract class NumberInputComponentAction<T : Number>(
   }
 
   private fun handleValueChange() {
-    val editor =
-      inputField?.let {
-        CommonDataKeys.EDITOR.getData(DataManager.getInstance().getDataContext(it))
-      }
+    val editor = inputField?.let { CommonDataKeys.EDITOR.getData(DataManager.getInstance().getDataContext(it)) }
     try {
       val newValue = parseInput(inputField!!.text.trim())
       callback(newValue)
@@ -110,7 +104,6 @@ class FloatInputComponentAction(initialValue: Float, function: (Float) -> Unit) 
   override fun parseInput(input: String): Float = input.toFloat()
 }
 
-class IntInputComponentAction(initialValue: Int, function: (Int) -> Unit) :
-  NumberInputComponentAction<Int>(initialValue, function) {
+class IntInputComponentAction(initialValue: Int, function: (Int) -> Unit) : NumberInputComponentAction<Int>(initialValue, function) {
   override fun parseInput(input: String): Int = input.toInt()
 }

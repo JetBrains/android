@@ -39,9 +39,7 @@ enum class IrAccessFlag(val bitmask: Int) {
   DEPRECATED(Opcodes.ACC_DEPRECATED),
 }
 
-/**
- * Translates an ASM access bitmask to a set of [IrAccessFlag].
- */
+/** Translates an ASM access bitmask to a set of [IrAccessFlag]. */
 fun parseAccess(access: Int): Set<IrAccessFlag> {
   val flags = mutableSetOf<IrAccessFlag>()
   for (flag in IrAccessFlag.values()) {

@@ -38,28 +38,30 @@ fun getSubmodules(project: Project, parent: Module?): Collection<Module> {
   var rootModuleCount = 0
   val submodules = mutableListOf<Module>()
   // 1. Create the submodules nodes
-  modules.mapNotNull { module ->
-    // If there is only one root project node, don't display it.
-    if (module.isIgnoredRootModule()) rootModuleCount++
-    module.groupPathIfMatchesParent()?.let { groupPath -> module to groupPath }
-  }.sortedBy {
-    // Ensures parents go before their children.
-    it.second.size
-  }.forEach moduleForEach@{ (module, groupPath) ->
-    // Remove the root module if it is the only one. This hides the root module node when only one
-    // project is present.
-    if (rootModuleCount == 1 && module.isIgnoredRootModule()) return@moduleForEach
-    for (size in 0 until groupPath.size) {
-      if (groupPath.isNotEmpty() && seenParents.contains(groupPath.subList(0, size))) return@moduleForEach
+  modules
+    .mapNotNull { module ->
+      // If there is only one root project node, don't display it.
+      if (module.isIgnoredRootModule()) rootModuleCount++
+      module.groupPathIfMatchesParent()?.let { groupPath -> module to groupPath }
     }
-    seenParents.add(groupPath)
-    submodules.add(module)
-  }
+    .sortedBy {
+      // Ensures parents go before their children.
+      it.second.size
+    }
+    .forEach moduleForEach@{ (module, groupPath) ->
+      // Remove the root module if it is the only one. This hides the root module node when only one
+      // project is present.
+      if (rootModuleCount == 1 && module.isIgnoredRootModule()) return@moduleForEach
+      for (size in 0 until groupPath.size) {
+        if (groupPath.isNotEmpty() && seenParents.contains(groupPath.subList(0, size))) return@moduleForEach
+      }
+      seenParents.add(groupPath)
+      submodules.add(module)
+    }
   return submodules
 }
 
-private fun Module.isIgnoredRootModule() =
-  ModuleRootManager.getInstance(this).sourceRoots.isEmpty() && ApkFacet.getInstance(this) == null
+private fun Module.isIgnoredRootModule() = ModuleRootManager.getInstance(this).sourceRoots.isEmpty() && ApkFacet.getInstance(this) == null
 
 private fun List<String>.startsWith(prefix: List<String>): Boolean {
   if (size < prefix.size) return false

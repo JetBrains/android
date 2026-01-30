@@ -27,16 +27,15 @@ import javax.swing.Icon
  *
  * Relies on two functions to obtain the image and label for the model object.
  */
-class WizardGallery<E>(
-  title: String, iconProvider: (E?) -> Icon?, labelProvider: (E?) -> String?
-) : ASGallery<E>(
-  JBList.createDefaultListModel<Any?>(),
-  Function<E, Icon?> { iconProvider(it) },
-  Function<E, String?> { labelProvider(it) },
-  DEFAULT_GALLERY_THUMBNAIL_SIZE,
-  null,
-  false
-) {
+class WizardGallery<E>(title: String, iconProvider: (E?) -> Icon?, labelProvider: (E?) -> String?) :
+  ASGallery<E>(
+    JBList.createDefaultListModel<Any?>(),
+    Function<E, Icon?> { iconProvider(it) },
+    Function<E, String?> { labelProvider(it) },
+    DEFAULT_GALLERY_THUMBNAIL_SIZE,
+    null,
+    false,
+  ) {
   init {
     border = null
     getAccessibleContext().accessibleDescription = title

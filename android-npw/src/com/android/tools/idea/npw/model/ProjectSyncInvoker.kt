@@ -20,14 +20,10 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 
 interface ProjectSyncInvoker {
-  /**
-   * Triggers synchronizing the IDE model with the build system model of the project.
-   */
+  /** Triggers synchronizing the IDE model with the build system model of the project. */
   fun syncProject(project: Project)
 
-  /**
-   * Triggers synchronizing using [ProjectSyncInvoker].
-   */
+  /** Triggers synchronizing using [ProjectSyncInvoker]. */
   class DefaultProjectSyncInvoker : ProjectSyncInvoker {
     override fun syncProject(project: Project) {
       project.getProjectSystem().getSyncManager().requestSyncProject(PROJECT_MODIFIED)

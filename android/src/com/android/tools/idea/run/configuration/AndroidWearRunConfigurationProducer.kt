@@ -26,25 +26,26 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 
 /**
- * Producer of [AndroidWearConfiguration] for classes that extend `Wearable Services`. The configuration created is
- * initially named after the name of the Service class name and its fully qualified name is properly set in the configuration.
+ * Producer of [AndroidWearConfiguration] for classes that extend `Wearable Services`. The configuration created is initially named after
+ * the name of the Service class name and its fully qualified name is properly set in the configuration.
  */
-abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>(val type: Class<out ConfigurationType>)
-  : LazyRunConfigurationProducer<T>() {
+abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>(val type: Class<out ConfigurationType>) :
+  LazyRunConfigurationProducer<T>() {
 
   abstract fun isValidService(psiElement: PsiElement): Boolean
 
-  override fun getConfigurationFactory(): ConfigurationFactory =
-    ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
+  override fun getConfigurationFactory(): ConfigurationFactory = ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
 
   override fun isConfigurationFromContext(configuration: T, context: ConfigurationContext): Boolean {
     val serviceName = context.psiLocation.getClassQualifiedName()
     return configuration.componentLaunchOptions.componentName == serviceName
   }
 
-  public override fun setupConfigurationFromContext(configuration: T,
-                                                    context: ConfigurationContext,
-                                                    sourceElement: Ref<PsiElement>): Boolean {
+  public override fun setupConfigurationFromContext(
+    configuration: T,
+    context: ConfigurationContext,
+    sourceElement: Ref<PsiElement>,
+  ): Boolean {
     val psiClass = context.psiLocation?.parent
     if (psiClass == null || !isValidService(psiClass)) {
       return false

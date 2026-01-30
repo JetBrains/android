@@ -17,58 +17,51 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 /**
  * A custom [AdbDeviceFileEntry] implementation for the the "/data" directory of a device.
  *
- * The purpose is to allow file operations on files under "/data/data/packageName" using the
- * "run-as" command shell prefix.
+ * The purpose is to allow file operations on files under "/data/data/packageName" using the "run-as" command shell prefix.
  */
-class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
-  : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(entry.fileSystem, entry.myEntry, entry.parent, null)) {
+class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry) :
+  AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(entry.fileSystem, entry.myEntry, entry.parent, null)) {
 
   override suspend fun entries(): List<DeviceFileEntry> =
     withContext(fileSystem.dispatcher) {
-      listOf(AdbDeviceDataAppDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "app")),
-             AdbDeviceDataDataDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "data")),
-             AdbDeviceDataLocalDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "local")))
+      listOf(
+        AdbDeviceDataAppDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "app")),
+        AdbDeviceDataDataDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "data")),
+        AdbDeviceDataLocalDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "local")),
+      )
     }
 
   /**
    * A custom [AdbDeviceFileEntry] implementation for the the "/data/data" directory of a device.
    *
-   *
-   * The purpose is to allow file operations on files under "/data/data/packageName" using the
-   * "run-as" command shell prefix.
+   * The purpose is to allow file operations on files under "/data/data/packageName" using the "run-as" command shell prefix.
    */
-  private class AdbDeviceDataDataDirectoryEntry(
-    parent: AdbDeviceFileEntry,
-    entry: AdbFileListingEntry
-  ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
+  private class AdbDeviceDataDataDirectoryEntry(parent: AdbDeviceFileEntry, entry: AdbFileListingEntry) :
+    AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
     override suspend fun entries(): List<DeviceFileEntry> =
-        // Create an entry for each package returned by "pm list packages"
-        fileSystem.adbFileOperations.listPackages().map { packageName: String ->
-          AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, packageName), packageName)
-        }
+      // Create an entry for each package returned by "pm list packages"
+      fileSystem.adbFileOperations.listPackages().map { packageName: String ->
+        AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, packageName), packageName)
+      }
   }
 
   /**
    * A custom [AdbDeviceFileEntry] implementation for the the "/data/app" directory of a device.
    *
-   *
-   * The purpose is to allow file operations on files under "/data/app/packageName" using the
-   * "run-as" command shell prefix.
+   * The purpose is to allow file operations on files under "/data/app/packageName" using the "run-as" command shell prefix.
    */
-  private class AdbDeviceDataAppDirectoryEntry(
-    parent: AdbDeviceFileEntry,
-    entry: AdbFileListingEntry
-  ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
+  private class AdbDeviceDataAppDirectoryEntry(parent: AdbDeviceFileEntry, entry: AdbFileListingEntry) :
+    AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
     override suspend fun entries(): List<DeviceFileEntry> =
-        // Create an entry for each package returned by "pm list packages"
+      // Create an entry for each package returned by "pm list packages"
       fileSystem.adbFileOperations.listPackageInfo().mapNotNull { info: AdbFileOperations.PackageInfo ->
         val segments = AdbPathUtil.getSegments(info.path)
         if (segments.size >= 3 && segments[0] == "data" && segments[1] == "app") {
@@ -79,42 +72,30 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
             // Most package paths are directories inside the "/data/app" directory
             AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, segments[2]), info.packageName)
           }
-        }
-        else null
+        } else null
       }
-
-
   }
 
-  private class AdbDeviceDataLocalDirectoryEntry(
-    parent: AdbDeviceFileEntry,
-    entry: AdbFileListingEntry
-  ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
+  private class AdbDeviceDataLocalDirectoryEntry(parent: AdbDeviceFileEntry, entry: AdbFileListingEntry) :
+    AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
     override suspend fun entries(): List<DeviceFileEntry> =
       withContext(fileSystem.dispatcher) {
-        listOf(AdbDeviceDirectFileEntry(
-          fileSystem, createDirectoryEntry(myEntry, "tmp"), this@AdbDeviceDataLocalDirectoryEntry, null))
+        listOf(AdbDeviceDirectFileEntry(fileSystem, createDirectoryEntry(myEntry, "tmp"), this@AdbDeviceDataLocalDirectoryEntry, null))
       }
   }
 
   /**
    * A custom [AdbDeviceFileEntry] implementation for a "/data/data/package-name" directory of a device.
    *
-   *
    * Use the "run-as" command shell prefix for all file operations.
    */
-  private class AdbDevicePackageDirectoryEntry(
-    parent: AdbDeviceFileEntry,
-    entry: AdbFileListingEntry,
-    private val myPackageName: String
-  ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, myPackageName)) {
+  private class AdbDevicePackageDirectoryEntry(parent: AdbDeviceFileEntry, entry: AdbFileListingEntry, private val myPackageName: String) :
+    AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, myPackageName)) {
 
     override suspend fun entries(): List<DeviceFileEntry> =
       // Create "run-as" entries for child entries
-      fileSystem.adbFileListing.getChildrenRunAs(myEntry, myPackageName).map {
-        AdbDevicePackageDirectoryEntry(this, it, myPackageName)
-      }
+      fileSystem.adbFileListing.getChildrenRunAs(myEntry, myPackageName).map { AdbDevicePackageDirectoryEntry(this, it, myPackageName) }
 
     override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) {
       // Note: We should reach this code only if the device is not root, in which case
@@ -130,20 +111,13 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
       //
       // We do this directly instead of doing it as a fallback to attempting a regular push
       // because of https://code.google.com/p/android/issues/detail?id=241157.
-      fileSystem.adbFileTransfer.uploadFileViaTempLocation(
-        localPath,
-        AdbPathUtil.resolve(fullPath, fileName),
-        progress,
-        myPackageName
-      )
+      fileSystem.adbFileTransfer.uploadFileViaTempLocation(localPath, AdbPathUtil.resolve(fullPath, fileName), progress, myPackageName)
     }
   }
 
   companion object {
     private fun createDirectoryEntry(parent: AdbFileListingEntry, name: String): AdbFileListingEntry {
-      return AdbFileListingEntryBuilder(parent)
-        .setPath(AdbPathUtil.resolve(parent.fullPath, name))
-        .build()
+      return AdbFileListingEntryBuilder(parent).setPath(AdbPathUtil.resolve(parent.fullPath, name)).build()
     }
 
     private fun createFileEntry(parent: AdbFileListingEntry, name: String): AdbFileListingEntry {

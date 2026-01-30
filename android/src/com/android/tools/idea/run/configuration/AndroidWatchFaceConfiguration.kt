@@ -35,23 +35,26 @@ class AndroidWatchFaceConfigurationType :
     ID,
     AndroidBundle.message("android.watchface.configuration.type.name"),
     AndroidBundle.message("android.run.configuration.type.description"),
-    StudioIcons.Wear.WATCH_FACE_RUN_CONFIG
-  ), DumbAware {
+    StudioIcons.Wear.WATCH_FACE_RUN_CONFIG,
+  ),
+  DumbAware {
   companion object {
     const val ID = "AndroidWatchFaceConfigurationType"
   }
 
   init {
-    addFactory(object : AndroidWearConfigurationFactory(this) {
-      override fun getId() = "AndroidWatchFaceConfigurationFactory"
-      override fun createTemplateConfiguration(project: Project) = AndroidWatchFaceConfiguration(project, this)
-    })
+    addFactory(
+      object : AndroidWearConfigurationFactory(this) {
+        override fun getId() = "AndroidWatchFaceConfigurationFactory"
+
+        override fun createTemplateConfiguration(project: Project) = AndroidWatchFaceConfiguration(project, this)
+      }
+    )
   }
 }
 
 /**
- * Represents a run configuration for
- * [Watch Face Services](https://developer.android.com/training/wearables/watch-faces/service?hl=en)
+ * Represents a run configuration for [Watch Face Services](https://developer.android.com/training/wearables/watch-faces/service?hl=en)
  * [which are now deprecated](https://support.google.com/wearos/thread/284572445).
  *
  * @see [AndroidDeclarativeWatchFaceConfiguration]
@@ -65,9 +68,6 @@ class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFact
     appRunSettings: AppRunSettings,
     apkProvider: ApkProvider,
     applicationContext: ApplicationProjectContext,
-    deployer: ApplicationDeployer
-  ) = AndroidWatchFaceConfigurationExecutor(
-    environment, deviceFutures, appRunSettings, apkProvider, applicationContext,
-    deployer
-  )
+    deployer: ApplicationDeployer,
+  ) = AndroidWatchFaceConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer)
 }

@@ -21,11 +21,10 @@ import java.awt.Dimension
 import java.awt.Point
 
 /**
- * When the view size is changed, the new center position should have same weight in both x-axis and
- * y-axis as before. Consider the size of the view is 1000 * 2000 and the zoom center is at (800,
- * 1500). So the weight is 0.8 on x-axis and 0.75 on y-axis. When view size changes to 500 * 1000,
- * the new center should be (400, 750) because we want to keep same weights We calculate the new
- * viewport position to achieve above behavior.
+ * When the view size is changed, the new center position should have same weight in both x-axis and y-axis as before. Consider the size of
+ * the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on y-axis. When view size changes
+ * to 500 * 1000, the new center should be (400, 750) because we want to keep same weights We calculate the new viewport position to achieve
+ * above behavior.
  */
 class ZoomCenterScroller(
   @SwingCoordinate private val oldViewSize: Dimension,
@@ -47,14 +46,8 @@ class ZoomCenterScroller(
     val newZoomCenterInViewY = newViewHeight * weightInPaneY
 
     // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
-    val newViewPositionX =
-      (newZoomCenterInViewX - zoomCenter.x)
-        .toInt()
-        .coerceIn(0, newViewWidth - port.viewportComponent.width)
-    val newViewPositionY =
-      (newZoomCenterInViewY - zoomCenter.y)
-        .toInt()
-        .coerceIn(0, newViewHeight - port.viewportComponent.height)
+    val newViewPositionX = (newZoomCenterInViewX - zoomCenter.x).toInt().coerceIn(0, newViewWidth - port.viewportComponent.width)
+    val newViewPositionY = (newZoomCenterInViewY - zoomCenter.y).toInt().coerceIn(0, newViewHeight - port.viewportComponent.height)
 
     port.viewPosition = Point(newViewPositionX, newViewPositionY)
   }

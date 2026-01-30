@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PendingIntentMutableImplicitDetector
 
 class AndroidLintMutableImplicitPendingIntentInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.mutable.implicit.pending.intent"),
-    PendingIntentMutableImplicitDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.mutable.implicit.pending.intent"), PendingIntentMutableImplicitDetector.ISSUE)

@@ -46,36 +46,30 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.modification.publishModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 /**
- * A project-wide listener that determines which modules' merged manifests are affected by VFS
- * changes or Document changes and tells the corresponding [MergedManifestModificationTracker]s to
- * increment counter. [MergedManifestModificationListener] registers itself to start actively listening for
- * VFS changes and Document changes after the first project sync of the session.
+ * A project-wide listener that determines which modules' merged manifests are affected by VFS changes or Document changes and tells the
+ * corresponding [MergedManifestModificationTracker]s to increment counter. [MergedManifestModificationListener] registers itself to start
+ * actively listening for VFS changes and Document changes after the first project sync of the session.
  */
-class MergedManifestModificationListener(
-  project: Project
-) : PoliteAndroidVirtualFileListener(project),
-    DocumentListener,
-    FileDocumentManagerListener {
+class MergedManifestModificationListener(project: Project) :
+  PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
 
   private val lastModificationTrackerUpdateTask = AtomicReference<Pair<AndroidFacet, Future<*>>?>()
 
-  private val trackerUpdaterExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
-    "Merged Manifest Modification Tracker Updater Pool",
-    1
-  )
+  private val trackerUpdaterExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("Merged Manifest Modification Tracker Updater Pool", 1)
 
   @TestOnly
   fun waitAllUpdatesCompletedWithTimeout(timeout: Long, unit: TimeUnit) {
@@ -87,13 +81,13 @@ class MergedManifestModificationListener(
   override fun isPossiblyRelevant(file: VirtualFile) = file.isDirectory || file.extension == "xml"
 
   /**
-   * Determines if the changed file contributes to merged manifest attributes computed using the [AndroidManifestIndex].
-   * This means the file is either:
+   * Determines if the changed file contributes to merged manifest attributes computed using the [AndroidManifestIndex]. This means the file
+   * is either:
    * 1. An AndroidManifest.xml belonging to one of the containing module's source providers.
    * 2. A directory that is an ancestor of a file matching (1).
    *
-   * Note that we don't care about navigation files here, since we don't use navigation files for
-   * any [AndroidManifestIndex]-based attribute computations.
+   * Note that we don't care about navigation files here, since we don't use navigation files for any [AndroidManifestIndex]-based attribute
+   * computations.
    *
    * @see [MergedManifestModificationTracker]
    */
@@ -125,8 +119,7 @@ class MergedManifestModificationListener(
 
     if (psiFile == null) {
       fileDocumentManager.getFile(document)?.let { possiblyIrrelevantFileChanged(it) }
-    }
-    else {
+    } else {
       psiFile.virtualFile?.let { possiblyIrrelevantFileChanged(it) }
     }
   }
@@ -145,10 +138,14 @@ class MergedManifestModificationListener(
 
   @OptIn(KaPlatformInterface::class)
   private fun flushCaches(facet: AndroidFacet) {
-    val ktModules = facet.module.getTransitiveResourceDependents().flatMap {
-      MergedManifestModificationTracker.getInstance(it).manifestChanged()
-      it.toKaModulesForModificationEvents()
-    }.toList()
+    val ktModules =
+      facet.module
+        .getTransitiveResourceDependents()
+        .flatMap {
+          MergedManifestModificationTracker.getInstance(it).manifestChanged()
+          it.toKaModulesForModificationEvents()
+        }
+        .toList()
 
     runInEdt {
       runWriteAction {
@@ -161,8 +158,8 @@ class MergedManifestModificationListener(
   }
 
   /**
-   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
-   * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
+   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener] subscribed to listen for both
+   * VFS and Document changes once the initial project sync has completed.
    */
   internal class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
@@ -172,20 +169,20 @@ class MergedManifestModificationListener(
 
   @Service(Service.Level.PROJECT)
   private class SubscriptionService(private val project: Project) : Disposable.Default {
-    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project),
-                                                                                             this) {
-      override fun subscribe() {
-        // To receive all changes happening in the VFS. File modifications may
-        // not be picked up immediately if such changes are not saved on the disk yet
-        VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+    val subscriber =
+      object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project), this) {
+        override fun subscribe() {
+          // To receive all changes happening in the VFS. File modifications may
+          // not be picked up immediately if such changes are not saved on the disk yet
+          VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
 
-        // To receive all changes to documents that are open in an editor
-        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+          // To receive all changes to documents that are open in an editor
+          EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
 
-        // To receive notifications when any Documents are saved or reloaded from disk
-        project.messageBus.connect().subscribe(FileDocumentManagerListener.TOPIC, listener)
+          // To receive notifications when any Documents are saved or reloaded from disk
+          project.messageBus.connect().subscribe(FileDocumentManagerListener.TOPIC, listener)
+        }
       }
-    }
 
     fun onProjectOpened() {
       project.listenUntilNextSync { subscriber.ensureSubscribed() }
@@ -195,13 +192,11 @@ class MergedManifestModificationListener(
   }
 
   companion object {
-    @JvmStatic
-    fun ensureSubscribed(project: Project) = project.getService(SubscriptionService::class.java).ensureSubscribed()
+    @JvmStatic fun ensureSubscribed(project: Project) = project.getService(SubscriptionService::class.java).ensureSubscribed()
   }
 }
 
 private fun Module.getTransitiveResourceDependents() = TRANSITIVE_RESOURCE_DEPENDENTS.`fun`(this)
 
-private val TRANSITIVE_RESOURCE_DEPENDENTS = TreeTraversal.PLAIN_BFS.unique().traversal<Module> {
-  it.getModuleSystem().getDirectResourceModuleDependents()
-}
+private val TRANSITIVE_RESOURCE_DEPENDENTS =
+  TreeTraversal.PLAIN_BFS.unique().traversal<Module> { it.getModuleSystem().getDirectResourceModuleDependents() }

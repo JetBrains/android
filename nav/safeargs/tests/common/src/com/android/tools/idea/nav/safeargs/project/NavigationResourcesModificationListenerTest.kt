@@ -54,8 +54,7 @@ class NavigationResourcesModificationListenerTest {
 
     project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
     NavigationResourcesModificationListener.ensureSubscribed(project)
-    myModuleNavResourcesTracker =
-      ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
+    myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
     myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)
     assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(0L)
@@ -67,20 +66,20 @@ class NavigationResourcesModificationListenerTest {
       "res/navigation/main.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/fragment1">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+          app:startDestination="@id/fragment1">
 
-          <fragment
-              android:id="@+id/fragment1"
-              android:name="test.safeargs.Fragment1"
-              android:label="Fragment1">
-            <argument
-                android:name="arg"
-                app:argType="string" />
-          </fragment>
-        </navigation>
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="test.safeargs.Fragment1"
+            android:label="Fragment1">
+          <argument
+              android:name="arg"
+              app:argType="string" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -93,20 +92,20 @@ class NavigationResourcesModificationListenerTest {
       "res/navigation/other.xml",
       // language=XML
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/other"
-            app:startDestination="@id/fragment2">
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/other"
+          app:startDestination="@id/fragment2">
 
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
-            <argument
-                android:name="arg"
-                app:argType="integer" />
-          </fragment>
-        </navigation>
+        <fragment
+            android:id="@+id/fragment2"
+            android:name="test.safeargs.Fragment2"
+            android:label="Fragment2">
+          <argument
+              android:name="arg"
+              app:argType="integer" />
+        </fragment>
+      </navigation>
       """
         .trimIndent(),
     )
@@ -137,7 +136,7 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """
+        """
           .trimIndent(),
       )
 
@@ -172,7 +171,7 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """
+        """
           .trimIndent(),
       )
     safeArgsRule.waitForPendingUpdates()
@@ -180,17 +179,13 @@ class NavigationResourcesModificationListenerTest {
     verifyModuleChangeEventsFired(2)
 
     // modify without saving
-    WriteCommandAction.runWriteCommandAction(project) {
-      navFile.virtualFile.replaceWithoutSaving("fragment1", "fragment2", project)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.replaceWithoutSaving("fragment1", "fragment2", project) }
     safeArgsRule.waitForPendingUpdates()
     // picked up 1 document change
     verifyModuleChangeEventsFired(1)
 
     // modify and save afterwards
-    WriteCommandAction.runWriteCommandAction(project) {
-      navFile.virtualFile.replaceWithSaving("fragment2", "fragment3", project)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.replaceWithSaving("fragment2", "fragment3", project) }
     safeArgsRule.waitForPendingUpdates()
     // picked up 1 vfs change
     verifyModuleChangeEventsFired(1)

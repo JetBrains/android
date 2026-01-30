@@ -123,15 +123,10 @@ class RevertToOriginalActionTest {
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(CONFIGURATIONS, listOf(config))
-        .add(HAS_BEEN_RESIZED, true)
-        .build()
+    val dataContext = SimpleDataContext.builder().add(CONFIGURATIONS, listOf(config)).add(HAS_BEEN_RESIZED, true).build()
 
     val menuAction = DeviceMenuAction(listener).apply { updateActions(dataContext) }
-    val revertAction =
-      menuAction.getChildren(ActionManager.getInstance()).first { it.templateText == "Original" }
+    val revertAction = menuAction.getChildren(ActionManager.getInstance()).first { it.templateText == "Original" }
 
     revertAction.actionPerformed(TestActionEvent.createTestEvent(revertAction))
 

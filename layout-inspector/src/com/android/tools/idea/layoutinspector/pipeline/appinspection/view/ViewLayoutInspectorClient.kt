@@ -77,14 +77,13 @@ private val JAR =
   )
 
 /**
- * The client responsible for interacting with the view layout inspector running on the target
- * device.
+ * The client responsible for interacting with the view layout inspector running on the target device.
  *
- * @param scope A coroutine scope used for asynchronously responding to events coming in from the
- *   inspector and other miscellaneous coroutine tasks.
+ * @param scope A coroutine scope used for asynchronously responding to events coming in from the inspector and other miscellaneous
+ *   coroutine tasks.
  * @param messenger The messenger that lets us communicate with the view inspector.
- * @param composeInspector An inspector which, if provided, lets us fetch additional data useful for
- *   compose related values contained within our view tree.
+ * @param composeInspector An inspector which, if provided, lets us fetch additional data useful for compose related values contained within
+ *   our view tree.
  */
 class ViewLayoutInspectorClient(
   private val model: InspectorModel,
@@ -101,24 +100,15 @@ class ViewLayoutInspectorClient(
 
   private val project = model.project
 
-  /**
-   * Data packaged up and sent via [fireTreeEvent], needed for constructing the tree view in the
-   * layout inspector.
-   */
-  class Data(
-    val generation: Int,
-    val rootIds: List<Long>,
-    val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResult?,
-  )
+  /** Data packaged up and sent via [fireTreeEvent], needed for constructing the tree view in the layout inspector. */
+  class Data(val generation: Int, val rootIds: List<Long>, val viewEvent: LayoutEvent, val composeEvent: GetComposablesResult?)
 
   companion object {
     /**
-     * Helper function for launching the view layout inspector and creating a client to interact
-     * with it.
+     * Helper function for launching the view layout inspector and creating a client to interact with it.
      *
-     * @param eventScope Scope which will be used for processing incoming inspector events. It's
-     *   expected that this will be a scope associated with a background dispatcher.
+     * @param eventScope Scope which will be used for processing incoming inspector events. It's expected that this will be a scope
+     *   associated with a background dispatcher.
      */
     suspend fun launch(
       apiServices: AppInspectionApiServices,
@@ -134,8 +124,7 @@ class ViewLayoutInspectorClient(
     ): ViewLayoutInspectorClient {
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
       // version was left running for some reason.
-      val params =
-        LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
+      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
       return ViewLayoutInspectorClient(
         model,
@@ -175,8 +164,7 @@ class ViewLayoutInspectorClient(
   private var lastData = ConcurrentHashMap<Long, Data>()
   private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
   private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
-  private val recentLayouts =
-    ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
+  private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
 
   val onDeviceRendering = OnDeviceRenderingClient(messenger)
 
@@ -249,30 +237,20 @@ class ViewLayoutInspectorClient(
     isFetchingContinuously = continuous
     launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
     val response =
-      messenger.sendCommand {
-        startFetchCommand =
-          StartFetchCommand.newBuilder().apply { this.continuous = continuous }.build()
-      }
+      messenger.sendCommand { startFetchCommand = StartFetchCommand.newBuilder().apply { this.continuous = continuous }.build() }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
-      throw ConnectionFailedException(
-        response.startFetchResponse.error,
-        response.startFetchResponse.code.toAttachErrorCode(),
-      )
+      throw ConnectionFailedException(response.startFetchResponse.error, response.startFetchResponse.code.toAttachErrorCode())
     }
   }
 
   suspend fun enableBitmapScreenshots(enable: Boolean) {
     messenger.sendCommand {
-      enableBitmapScreenshotCommand =
-        EnableBitmapScreenshotCommand.newBuilder().apply { this.enable = enable }.build()
+      enableBitmapScreenshotCommand = EnableBitmapScreenshotCommand.newBuilder().apply { this.enable = enable }.build()
     }
   }
 
   suspend fun enableXrInspection(enable: Boolean) {
-    messenger.sendCommand {
-      enableXrInspectionCommand =
-        EnableXrInspectionCommand.newBuilder().apply { this.enable = enable }.build()
-    }
+    messenger.sendCommand { enableXrInspectionCommand = EnableXrInspectionCommand.newBuilder().apply { this.enable = enable }.build() }
   }
 
   fun updateScreenshotType(type: Screenshot.Type?, scale: Float = 1.0f) {
@@ -341,12 +319,7 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.node.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.node.id)
 
-    val composablesResult =
-      composeInspector?.getComposeables(
-        layoutEvent.rootView.node.id,
-        generation,
-        !isFetchingContinuously,
-      )
+    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.node.id, generation, !isFetchingContinuously)
 
     val data = Data(generation, currRoots, layoutEvent, composablesResult)
     if (!isFetchingContinuously) {
@@ -391,10 +364,7 @@ class ViewLayoutInspectorClient(
       }
     } catch (e: CancellationException) {
       LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
-        .logEvent(
-          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
-          stats,
-        )
+        .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED, stats)
       // Delete the file in case we wrote out partial data
       Files.delete(path)
       throw e
@@ -405,11 +375,7 @@ class ViewLayoutInspectorClient(
   private suspend fun saveNonLiveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
     // If we just switched to snapshot mode we may not have received data from the device yet. Wait
     // until we have.
-    while (
-      lastData.isEmpty() ||
-        lastProperties.isEmpty() ||
-        (composeInspector != null && lastComposeParameters.isEmpty())
-    ) {
+    while (lastData.isEmpty() || lastProperties.isEmpty() || (composeInspector != null && lastComposeParameters.isEmpty())) {
       delay(200)
     }
     // There could be a synchronization issue here, if we get an update just as these maps are being
@@ -418,38 +384,20 @@ class ViewLayoutInspectorClient(
     val data = HashMap(lastData)
     val properties = HashMap(lastProperties)
     val composeParameters = HashMap(lastComposeParameters)
-    saveAppInspectorSnapshot(
-      path,
-      data,
-      properties,
-      composeParameters,
-      snapshotMetadata,
-      model.foldInfo,
-    )
+    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
   }
 
-  private suspend fun fetchAndSaveSnapshot(
-    path: Path,
-    snapshotMetadata: SnapshotMetadata,
-    screenshotType: Screenshot.Type,
-  ) {
+  private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata, screenshotType: Screenshot.Type) {
     val response =
-      messenger.sendCommand {
-        captureSnapshotCommand =
-          CaptureSnapshotCommand.newBuilder().setScreenshotType(screenshotType).build()
-      }
+      messenger.sendCommand { captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().setScreenshotType(screenshotType).build() }
 
-    val snapshotResponse =
-      response.captureSnapshotResponse ?: throw Exception("Failed to receive snapshot from agent.")
+    val snapshotResponse = response.captureSnapshotResponse ?: throw Exception("Failed to receive snapshot from agent.")
 
     val composeInfo =
       if (composeInspector != null) {
         generation++
         snapshotResponse.windowRoots.idsList.associateWith { rootViewId ->
-          Pair(
-            composeInspector.getComposeables(rootViewId, generation, forSnapshot = true),
-            composeInspector.getAllParameters(rootViewId),
-          )
+          Pair(composeInspector.getComposeables(rootViewId, generation, forSnapshot = true), composeInspector.getAllParameters(rootViewId))
         }
       } else {
         emptyMap()
@@ -459,13 +407,8 @@ class ViewLayoutInspectorClient(
   }
 }
 
-/**
- * Convenience method for wrapping a specific view-inspector command inside a parent app inspection
- * command.
- */
-internal suspend fun AppInspectorMessenger.sendCommand(
-  initCommand: Command.Builder.() -> Unit
-): Response {
+/** Convenience method for wrapping a specific view-inspector command inside a parent app inspection command. */
+internal suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
   val command = Command.newBuilder()
   command.initCommand()
   return Response.parseFrom(sendRawCommand(command.build().toByteArray()))

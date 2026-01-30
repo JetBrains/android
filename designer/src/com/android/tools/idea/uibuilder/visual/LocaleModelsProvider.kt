@@ -40,19 +40,14 @@ private const val EFFECTIVE_FLAGS =
     ConfigurationListener.CFG_FONT_SCALE
 
 /**
- * This class provides the [NlModel]s with projects locales for [VisualizationForm].<br> The
- * provided [NlModel]s are associated with [Locale.ANY] (which is the default locale) and all
- * specific [Locale] in the project. Note that even there is no particular layout file a project
- * locale, the corresponding [NlModel] is still created. In that case the file of [NlModel] is the
- * default layout file. This is same as Android runtime behaviour.
+ * This class provides the [NlModel]s with projects locales for [VisualizationForm].<br> The provided [NlModel]s are associated with
+ * [Locale.ANY] (which is the default locale) and all specific [Locale] in the project. Note that even there is no particular layout file a
+ * project locale, the corresponding [NlModel] is still created. In that case the file of [NlModel] is the default layout file. This is same
+ * as Android runtime behaviour.
  */
 object LocaleModelsProvider : VisualizationModelsProvider {
 
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
@@ -76,11 +71,8 @@ object LocaleModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
 
     // The layout file used when there is no particular layout for device's locale.
-    val defaultFile =
-      ConfigurationMatcher.getBetterMatch(currentFileConfig, null, null, Locale.ANY, null)
-        ?: currentFile
-    val defaultLocaleConfig =
-      ConfigurationForFile.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY }
+    val defaultFile = ConfigurationMatcher.getBetterMatch(currentFileConfig, null, null, Locale.ANY, null) ?: currentFile
+    val defaultLocaleConfig = ConfigurationForFile.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY }
 
     run {
       val firstModel =
@@ -91,30 +83,18 @@ object LocaleModelsProvider : VisualizationModelsProvider {
       firstModel.displaySettings.setDisplayName("Default (no locale)")
       models.add(firstModel)
 
-      registerModelsProviderConfigurationListener(
-        firstModel,
-        currentFileConfig,
-        defaultLocaleConfig,
-        EFFECTIVE_FLAGS,
-      )
+      registerModelsProviderConfigurationListener(firstModel, currentFileConfig, defaultLocaleConfig, EFFECTIVE_FLAGS)
     }
 
     val locales =
-      StudioResourceRepositoryManager.getInstance(buildTarget.facet)
-        .localesInProject
-        .sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
+      StudioResourceRepositoryManager.getInstance(buildTarget.facet).localesInProject.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
 
     for (locale in locales) {
-      val betterFile =
-        ConfigurationMatcher.getBetterMatch(defaultLocaleConfig, null, null, locale, null)
-          ?: defaultFile
+      val betterFile = ConfigurationMatcher.getBetterMatch(defaultLocaleConfig, null, null, locale, null) ?: defaultFile
       val config = ConfigurationForFile.create(defaultLocaleConfig, betterFile)
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
-      val model =
-        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
-          .withComponentRegistrar(NlComponentRegistrar)
-          .build()
+      val model = NlModel.Builder(parentDisposable, buildTarget, betterFile, config).withComponentRegistrar(NlComponentRegistrar).build()
       model.displaySettings.setTooltip(config.toHtmlTooltip())
       model.displaySettings.setDisplayName(label)
       models.add(model)

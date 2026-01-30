@@ -82,47 +82,28 @@ class DecoratorTest : NavTestCase() {
   }
 
   fun testFragmentWithStartDestination() {
-    val model =
-      model("nav.xml") { navigation(startDestination = FRAGMENT_ID) { fragment(FRAGMENT_ID) } }
+    val model = model("nav.xml") { navigation(startDestination = FRAGMENT_ID) { fragment(FRAGMENT_ID) } }
     testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testFragmentWithDeepLink() {
-    val model =
-      model("nav.xml") {
-        navigation { fragment(FRAGMENT_ID) { deeplink("deepLink1", "www.android.com") } }
-      }
+    val model = model("nav.xml") { navigation { fragment(FRAGMENT_ID) { deeplink("deepLink1", "www.android.com") } } }
     testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
   fun testFragmentWithLayout() {
     val model = model("nav.xml") { navigation { fragment(FRAGMENT_ID, layout = "mylayout") } }
-    testFragmentDecorator(
-      model,
-      SceneComponent.DrawState.NORMAL,
-      previewType = PreviewType.UNAVAILABLE,
-    )
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   fun testFragmentWithName() {
     val model = model("nav.xml") { navigation { fragment(FRAGMENT_ID, name = "foo.Bar") } }
-    testFragmentDecorator(
-      model,
-      SceneComponent.DrawState.NORMAL,
-      previewType = PreviewType.UNAVAILABLE,
-    )
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   fun testFragmentWithLayoutAndName() {
-    val model =
-      model("nav.xml") {
-        navigation { fragment(FRAGMENT_ID, layout = "mylayout", name = "foo.Bar") }
-      }
-    testFragmentDecorator(
-      model,
-      SceneComponent.DrawState.NORMAL,
-      previewType = PreviewType.UNAVAILABLE,
-    )
+    val model = model("nav.xml") { navigation { fragment(FRAGMENT_ID, layout = "mylayout", name = "foo.Bar") } }
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   private fun testFragmentDecorator(
@@ -147,15 +128,7 @@ class DecoratorTest : NavTestCase() {
       }
 
     verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        headerRect,
-        surface.zoomController.scale,
-        FRAGMENT_ID,
-        isStart,
-        hasDeepLink,
-      )
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, FRAGMENT_ID, isStart, hasDeepLink)
       verifyDrawFragment(inOrder, g, drawRect, surface.zoomController.scale, color, previewType)
     }
   }
@@ -164,8 +137,7 @@ class DecoratorTest : NavTestCase() {
     val layoutFile =
       myFixture.addFileToProject(
         "res/layout/mylayout.xml",
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-          "<android.support.constraint.ConstraintLayout/>",
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<android.support.constraint.ConstraintLayout/>",
       ) as XmlFile
     waitForResourceRepositoryUpdates()
     val model = model("nav.xml") { navigation { fragment(FRAGMENT_ID, layout = "mylayout") } }
@@ -185,37 +157,19 @@ class DecoratorTest : NavTestCase() {
     val dimensions = Dimension(drawRect.width.toInt(), drawRect.height.toInt())
     val scaleContext = ScaleContext.createIdentity()
 
-    Mockito.doReturn(refinableImage)
-      .whenever(thumbnailManager)
-      .getThumbnail(layoutFile, configuration, dimensions, scaleContext)
+    Mockito.doReturn(refinableImage).whenever(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions, scaleContext)
 
     try {
       ThumbnailManager.setInstance(myFacet, thumbnailManager)
       verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-        verifyDrawHeader(
-          inOrder,
-          g,
-          headerRect,
-          surface.zoomController.scale,
-          FRAGMENT_ID,
-          false,
-          false,
-        )
-        verifyDrawFragment(
-          inOrder,
-          g,
-          drawRect,
-          surface.zoomController.scale,
-          null,
-          PreviewType.IMAGE,
-        )
+        verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, FRAGMENT_ID, false, false)
+        verifyDrawFragment(inOrder, g, drawRect, surface.zoomController.scale, null, PreviewType.IMAGE)
       }
     } finally {
       ThumbnailManager.setInstance(myFacet, origThumbnailManager)
     }
 
-    Mockito.verify(thumbnailManager)
-      .getThumbnail(layoutFile, configuration, dimensions, scaleContext)
+    Mockito.verify(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions, scaleContext)
   }
 
   fun testActivity() {
@@ -229,16 +183,12 @@ class DecoratorTest : NavTestCase() {
   }
 
   fun testActivityWithStartDestination() {
-    val model =
-      model("nav.xml") { navigation(startDestination = ACTIVITY_ID) { activity(ACTIVITY_ID) } }
+    val model = model("nav.xml") { navigation(startDestination = ACTIVITY_ID) { activity(ACTIVITY_ID) } }
     testActivityDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testActivityWithDeepLink() {
-    val model =
-      model("nav.xml") {
-        navigation { activity(ACTIVITY_ID) { deeplink("deepLink1", "www.android.com") } }
-      }
+    val model = model("nav.xml") { navigation { activity(ACTIVITY_ID) { deeplink("deepLink1", "www.android.com") } } }
     testActivityDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
@@ -266,15 +216,7 @@ class DecoratorTest : NavTestCase() {
     val imageRect = Rectangle2D.Float(x, y, width, height)
 
     verifyDecorator(ActivityDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        headerRect,
-        surface.zoomController.scale,
-        ACTIVITY_ID,
-        isStart,
-        hasDeepLink,
-      )
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, ACTIVITY_ID, isStart, hasDeepLink)
       verifyDrawActivity(
         inOrder,
         g,
@@ -299,16 +241,12 @@ class DecoratorTest : NavTestCase() {
   }
 
   fun testNestedGraphWithStartDestination() {
-    val model =
-      model("nav.xml") { navigation(startDestination = NESTED_ID) { navigation(NESTED_ID) } }
+    val model = model("nav.xml") { navigation(startDestination = NESTED_ID) { navigation(NESTED_ID) } }
     testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testNestedGraphWithDeepLink() {
-    val model =
-      model("nav.xml") {
-        navigation { navigation(NESTED_ID) { deeplink("deepLink1", "www.android.com") } }
-      }
+    val model = model("nav.xml") { navigation { navigation(NESTED_ID) { deeplink("deepLink1", "www.android.com") } } }
     testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
@@ -327,15 +265,7 @@ class DecoratorTest : NavTestCase() {
     val headerRect = makeHeaderRectangle(drawRect)
 
     verifyDecorator(NavigationDecorator, sceneComponent, sceneView.context) { inOrder, g ->
-      verifyDrawHeader(
-        inOrder,
-        g,
-        headerRect,
-        surface.zoomController.scale,
-        NESTED_ID,
-        isStart,
-        hasDeepLink,
-      )
+      verifyDrawHeader(inOrder, g, headerRect, surface.zoomController.scale, NESTED_ID, isStart, hasDeepLink)
       verifyDrawNestedGraph(
         inOrder,
         g,
@@ -375,9 +305,7 @@ class DecoratorTest : NavTestCase() {
     val model =
       model("nav.xml") {
         navigation {
-          fragment("fragment1") {
-            action("f1_to_f2", destination = "fragment2", popUpTo = "fragment2")
-          }
+          fragment("fragment1") { action("f1_to_f2", destination = "fragment2", popUpTo = "fragment2") }
           fragment("fragment2")
         }
       }
@@ -385,10 +313,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   fun testSelfAction() {
-    val model =
-      model("nav.xml") {
-        navigation { fragment("fragment1") { action("f1_to_f1", destination = "fragment1") } }
-      }
+    val model = model("nav.xml") { navigation { fragment("fragment1") { action("f1_to_f1", destination = "fragment1") } } }
     testActionDecorator(model, "f1_to_f1", SceneComponent.DrawState.NORMAL)
   }
 
@@ -416,21 +341,11 @@ class DecoratorTest : NavTestCase() {
     }
   }
 
-  private fun testActionDecorator(
-    model: NlModel,
-    id: String,
-    drawState: SceneComponent.DrawState,
-    isPop: Boolean = false,
-  ) {
+  private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean = false) {
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val sceneView = surface.focusedSceneView!!
 
-    val sceneComponent =
-      SceneComponent(
-        surface.scene!!,
-        surface.models.first().treeReader.find(id)!!,
-        mock<HitProvider>(),
-      )
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().treeReader.find(id)!!, mock<HitProvider>())
     if (drawState == SceneComponent.DrawState.SELECTED) {
       sceneComponent.isSelected = true
     }
@@ -465,12 +380,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun makeSceneComponent(id: String, state: SceneComponent.DrawState): SceneComponent {
-    val sceneComponent =
-      SceneComponent(
-        surface.scene!!,
-        surface.models.first().treeReader.find(id)!!,
-        mock<HitProvider>(),
-      )
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().treeReader.find(id)!!, mock<HitProvider>())
 
     sceneComponent.setPosition(40, 40)
     sceneComponent.setSize(80, 120)

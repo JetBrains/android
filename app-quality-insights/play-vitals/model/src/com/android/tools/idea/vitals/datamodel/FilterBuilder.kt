@@ -25,45 +25,38 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
- * `apiLevel`: Matches error issues that occurred in the requested Android versions (specified as
- * the numeric API level) only. Example: `apiLevel = 28 OR apiLevel = 29`.
+ * `apiLevel`: Matches error issues that occurred in the requested Android versions (specified as the numeric API level) only. Example:
+ * `apiLevel = 28 OR apiLevel = 29`.
  */
 private const val API_LEVEL = "apiLevel"
 
 /**
- * `versionCode`: Matches error issues that occurred in the requested app version codes only.
- * Example: `versionCode = 123 OR versionCode = 456`.
+ * `versionCode`: Matches error issues that occurred in the requested app version codes only. Example: `versionCode = 123 OR versionCode =
+ * 456`.
  */
 private const val VERSION_CODE = "versionCode"
 
 /**
- * `deviceModel`: Matches error issues that occurred in the requested devices. Example: `deviceModel
- * = "walleye" OR deviceModel = "marlin"`.
+ * `deviceModel`: Matches error issues that occurred in the requested devices. Example: `deviceModel = "walleye" OR deviceModel = "marlin"`.
  */
 private const val DEVICE_MODEL = "deviceModel"
 
 /**
- * `errorIssueType`: Matches error issues of the requested types only. Valid candidates: `CRASH`,
- * `ANR`. Example: `errorIssueType = CRASH OR errorIssueType = ANR`.
+ * `errorIssueType`: Matches error issues of the requested types only. Valid candidates: `CRASH`, `ANR`. Example: `errorIssueType = CRASH OR
+ * errorIssueType = ANR`.
  */
 private const val ERROR_ISSUE_TYPE = "errorIssueType"
 
-/**
- * `isUserPerceived`: Matches error issues that are user-perceived. It is not accompanied by any
- * operators. Example: `isUserPerceived`.
- */
+/** `isUserPerceived`: Matches error issues that are user-perceived. It is not accompanied by any operators. Example: `isUserPerceived`. */
 private const val IS_USER_PERCEIVED = "isUserPerceived"
 
 /**
- * `errorIssueId`: Matches error reports belonging to the requested error issue ids only. Example:
- * `errorIssueId = 1234 OR errorIssueId = 4567`.
+ * `errorIssueId`: Matches error reports belonging to the requested error issue ids only. Example: `errorIssueId = 1234 OR errorIssueId =
+ * 4567`.
  */
 private const val ERROR_ISSUE_ID = "errorIssueId"
 
-/**
- * `errorReportId`: Matches error reports with the requested error report id. Example:
- * `errorReportId = 1234 OR errorReportId = 4567`.
- */
+/** `errorReportId`: Matches error reports with the requested error report id. Example: `errorReportId = 1234 OR errorReportId = 4567`. */
 private const val ERROR_REPORT_ID = "errorReportId"
 
 private data class Filter(val qualifier: String, val value: String) {
@@ -78,8 +71,8 @@ class FilterBuilder {
   /**
    * Can filter by failure types.
    *
-   * The reason we have multiple failure types filters (see [addFailureTypes]) is we have different
-   * filter qualifiers on the server side for different API calls.
+   * The reason we have multiple failure types filters (see [addFailureTypes]) is we have different filter qualifiers on the server side for
+   * different API calls.
    */
   fun addReportTypes(failureTypes: Collection<FailureType>) {
     failureTypes.mapNotNull {
@@ -98,8 +91,8 @@ class FilterBuilder {
   /**
    * Can filter by failure types.
    *
-   * The reason we have multiple failure types filters (see [addReportTypes]) is we have different
-   * filter qualifiers on the server side for different API calls.
+   * The reason we have multiple failure types filters (see [addReportTypes]) is we have different filter qualifiers on the server side for
+   * different API calls.
    */
   fun addFailureTypes(failureTypes: Collection<FailureType>) {
     failureTypes.mapNotNull {
@@ -125,28 +118,22 @@ class FilterBuilder {
 
   /** Filter by device model name (e.g. samsung/hlte). */
   fun addDevices(devices: Collection<Device>) {
-    devices
-      .filterNot { it == Device.ALL }
-      .onEach { rawFilters.add(Filter(DEVICE_MODEL, "${it.manufacturer}/${it.model}")) }
+    devices.filterNot { it == Device.ALL }.onEach { rawFilters.add(Filter(DEVICE_MODEL, "${it.manufacturer}/${it.model}")) }
   }
 
   fun addOperatingSystems(operatingSystems: Collection<OperatingSystemInfo>) {
-    operatingSystems
-      .filterNot { it == OperatingSystemInfo.ALL }
-      .onEach { rawFilters.add(Filter(API_LEVEL, it.displayVersion)) }
+    operatingSystems.filterNot { it == OperatingSystemInfo.ALL }.onEach { rawFilters.add(Filter(API_LEVEL, it.displayVersion)) }
   }
 
   fun addVersions(versions: Collection<Version>) {
-    versions
-      .filterNot { it == Version.ALL }
-      .onEach { rawFilters.add(Filter(VERSION_CODE, it.buildVersion)) }
+    versions.filterNot { it == Version.ALL }.onEach { rawFilters.add(Filter(VERSION_CODE, it.buildVersion)) }
   }
 
   /**
    * Can filter by issue id.
    *
-   * The reason we have multiple issue id filters (see [addIssue]) is we have different filter
-   * qualifiers on the server side for different API calls.
+   * The reason we have multiple issue id filters (see [addIssue]) is we have different filter qualifiers on the server side for different
+   * API calls.
    */
   fun addErrorIssue(issueId: IssueId) {
     rawFilters.add(Filter(ERROR_ISSUE_ID, issueId.value))
@@ -155,8 +142,8 @@ class FilterBuilder {
   /**
    * Can filter by issue id.
    *
-   * The reason we have multiple issue id filters (see [addErrorIssue]) is we have different filter
-   * qualifiers on the server side for different API calls.
+   * The reason we have multiple issue id filters (see [addErrorIssue]) is we have different filter qualifiers on the server side for
+   * different API calls.
    */
   fun addIssue(issueId: IssueId) {
     rawFilters.add(Filter(DimensionType.ISSUE_ID.value, issueId.value))
@@ -170,9 +157,7 @@ class FilterBuilder {
     return rawFilters
       .groupBy { it.qualifier }
       .map { grouped ->
-        grouped.value
-          .sortedBy { it.value }
-          .joinToString(separator = " OR ", prefix = "(", postfix = ")") { it.toString() }
+        grouped.value.sortedBy { it.value }.joinToString(separator = " OR ", prefix = "(", postfix = ")") { it.toString() }
       }
       .sorted()
       .joinToString(separator = " AND ") { it }

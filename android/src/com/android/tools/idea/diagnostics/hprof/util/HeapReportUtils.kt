@@ -43,20 +43,20 @@ object HeapReportUtils {
     val uppercaseName = name.uppercase(Locale.US)
     return if (uppercaseName.length >= SECTION_HEADER_SIZE - 2) {
       uppercaseName
-    }
-    else {
-      StringBuilder().apply {
-        append("=".repeat((SECTION_HEADER_SIZE - uppercaseName.length) / 2))
-        append(" $uppercaseName ")
-        append("=".repeat((SECTION_HEADER_SIZE - uppercaseName.length - 1) / 2))
-      }.toString()
+    } else {
+      StringBuilder()
+        .apply {
+          append("=".repeat((SECTION_HEADER_SIZE - uppercaseName.length) / 2))
+          append(" $uppercaseName ")
+          append("=".repeat((SECTION_HEADER_SIZE - uppercaseName.length - 1) / 2))
+        }
+        .toString()
     }
   }
 
   /**
-   * @return String representing {@code num} with 3 most significant digits using SI prefixes.
-   * <p>
-   * Examples: 12 returns "12", 12345 returns "12.3K", 123456789 returns "123M"
+   * @return String representing {@code num} with 3 most significant digits using SI prefixes. <p> Examples: 12 returns "12", 12345 returns
+   *   "12.3K", 123456789 returns "123M"
    */
   private fun toShortString(num: Long): String {
     var shiftCount = 0
@@ -70,14 +70,16 @@ object HeapReportUtils {
       assert(siPrefixIndex < SI_PREFIXES.size)
 
       val suffix = SI_PREFIXES[siPrefixIndex]
-      val value = when (shiftCount % 3) {
-        0 -> localNum.toString()
-        1 -> (localNum.toDouble() / 100).toString()
-        2 -> (localNum.toDouble() / 10).toString()
-        else -> {
-          assert(false); "????"
+      val value =
+        when (shiftCount % 3) {
+          0 -> localNum.toString()
+          1 -> (localNum.toDouble() / 100).toString()
+          2 -> (localNum.toDouble() / 10).toString()
+          else -> {
+            assert(false)
+            "????"
+          }
         }
-      }
       return value + suffix
     }
     return localNum.toString()

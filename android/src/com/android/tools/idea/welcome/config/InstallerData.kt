@@ -40,12 +40,7 @@ private val log: Logger = logger<InstallerData>()
  *
  * <p>You can find the scripts used to generate installers in the 'native/installer' directory
  */
-class InstallerData(
-  val androidDest: File?,
-  private val createAvd: Boolean,
-  val timestamp: String?,
-  private val version: String?,
-) {
+class InstallerData(val androidDest: File?, private val createAvd: Boolean, val timestamp: String?, private val version: String?) {
   val isCurrentVersion: Boolean
     get() = (ApplicationInfo.getInstance().build.components.lastOrNull() ?: 0).toString() == version
 

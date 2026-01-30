@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidEnvironmentUtils")
+
 package com.android.tools.idea
 
 import com.android.tools.idea.util.CommonAndroidUtil
@@ -21,14 +22,9 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Returns true if called in Android Studio or if the project has an Android facet.
- */
+/** Returns true if called in Android Studio or if the project has an Android facet. */
 fun isAndroidEnvironment(project: Project): Boolean =
   IdeInfo.getInstance().isAndroidStudio || CommonAndroidUtil.getInstance().isAndroidProject(project)
 
-/**
- * Checks if the project contains a module with an Android facet.
- */
-fun Project.hasAndroidFacet(): Boolean =
-  ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID)
+/** Checks if the project contains a module with an Android facet. */
+fun Project.hasAndroidFacet(): Boolean = ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID)

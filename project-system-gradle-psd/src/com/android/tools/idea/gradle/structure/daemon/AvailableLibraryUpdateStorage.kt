@@ -56,15 +56,16 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       val updateKey = PsLibraryKey(artifact.groupId, artifact.name)
       updatesByKey[updateKey]?.let { myState.updates.remove(it) }
 
-      val update = AvailableLibraryUpdate().apply {
-        groupId = artifact.groupId
-        name = artifact.name
-        stableVersion = artifact.versions.firstOrNull { !it.isPreview }?.toString()
-        stableOrPreviewVersion = artifact.versions.firstOrNull()?.toString()
-        versions = artifact.versions.map { it.toString() }.toMutableList()
-        repository = artifact.repositoryNames.joinToString(",")
-        lastSearchTimeMillis = timestamp
-      }
+      val update =
+        AvailableLibraryUpdate().apply {
+          groupId = artifact.groupId
+          name = artifact.name
+          stableVersion = artifact.versions.firstOrNull { !it.isPreview }?.toString()
+          stableOrPreviewVersion = artifact.versions.firstOrNull()?.toString()
+          versions = artifact.versions.map { it.toString() }.toMutableList()
+          repository = artifact.repositoryNames.joinToString(",")
+          lastSearchTimeMillis = timestamp
+        }
       myState.updates.add(update)
       updatesByKey[updateKey] = update
     }
@@ -84,20 +85,24 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       if (versions.isEmpty()) return null
       val parsedVersion = Version.parse(version)
       return when {
-        version.endsWith("-jre") -> versions.firstOrNull { it.endsWith("-jre") }
-        version.endsWith("-android") -> versions.firstOrNull { it.endsWith("-android") }
-        else -> throw(IllegalStateException("version ends with neither -jre nor -android: $version"))
-      }?.let { Version.parse(it) }?.takeIf { it > parsedVersion }
+          version.endsWith("-jre") -> versions.firstOrNull { it.endsWith("-jre") }
+          version.endsWith("-android") -> versions.firstOrNull { it.endsWith("-android") }
+          else -> throw (IllegalStateException("version ends with neither -jre nor -android: $version"))
+        }
+        ?.let { Version.parse(it) }
+        ?.takeIf { it > parsedVersion }
     }
     fun findUpdatedNativeMtVersionForKotlinxCoroutines(update: AvailableLibraryUpdate, version: String): Version? {
       val versions = update.versions
       if (versions.isEmpty()) return null
       val parsedVersion = Version.parse(version)
       return when {
-        version.contains("-native-mt-2") -> versions.firstOrNull { it.contains("-native-mt-2") }
-        version.contains("-native-mt") -> versions.firstOrNull { it.contains("-native-mt") && !it.contains("-native-mt-2") }
-        else -> throw(IllegalStateException("version is not a -native-mt version: $version"))
-      }?.let { Version.parse(it) }?.takeIf { it > parsedVersion }
+          version.contains("-native-mt-2") -> versions.firstOrNull { it.contains("-native-mt-2") }
+          version.contains("-native-mt") -> versions.firstOrNull { it.contains("-native-mt") && !it.contains("-native-mt-2") }
+          else -> throw (IllegalStateException("version is not a -native-mt version: $version"))
+        }
+        ?.let { Version.parse(it) }
+        ?.takeIf { it > parsedVersion }
     }
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
@@ -110,21 +115,21 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       if (key.group == "org.jetbrains.kotlinx" && key.name.contains("kotlinx-coroutines")) {
         if (version.contains("-native-mt")) {
           return findUpdatedNativeMtVersionForKotlinxCoroutines(update, version)
-        }
-        else {
+        } else {
           stableOrPreviewVersion = update.versions.firstOrNull { !it.contains("-native-mt") }
         }
       }
       val parsedVersion = Version.parse(version)
       val infimum = parsedVersion.previewInfimum
       val supremum = parsedVersion.previewSupremum
-      val suggestPreview = when {
-        parsedVersion.major == null -> false
-        infimum == null || supremum == null -> false
-        stableOrPreviewVersion == null -> false
-        Version.parse(stableOrPreviewVersion).let { infimum < it && it < supremum } -> true
-        else -> false
-      }
+      val suggestPreview =
+        when {
+          parsedVersion.major == null -> false
+          infimum == null || supremum == null -> false
+          stableOrPreviewVersion == null -> false
+          Version.parse(stableOrPreviewVersion).let { infimum < it && it < supremum } -> true
+          else -> false
+        }
       val updateString = (if (suggestPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null
       val foundVersion = Version.parse(updateString)
       return if (foundVersion > parsedVersion) foundVersion else null
@@ -137,8 +142,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
   }
 
   class AvailableLibraryUpdates {
-    @XCollection(propertyElementName = "library-updates")
-    var updates: MutableList<AvailableLibraryUpdate> = mutableListOf()
+    @XCollection(propertyElementName = "library-updates") var updates: MutableList<AvailableLibraryUpdate> = mutableListOf()
   }
 
   @Tag("library-update")
@@ -147,10 +151,9 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     @Tag("name") var name: String? = null,
     @Tag("stableOrPreviewVersion") var stableOrPreviewVersion: String? = null,
     @Tag("stableVersion") var stableVersion: String? = null,
-    @XCollection(propertyElementName = "versions", style = v2, elementName = "version")
-    var versions: MutableList<String> = mutableListOf(),
+    @XCollection(propertyElementName = "versions", style = v2, elementName = "version") var versions: MutableList<String> = mutableListOf(),
     @Tag("repository") var repository: String? = null,
-    @Tag("last-search-timestamp") var lastSearchTimeMillis: Long = -1L
+    @Tag("last-search-timestamp") var lastSearchTimeMillis: Long = -1L,
   ) {
     fun toLibraryKey() = PsLibraryKey(groupId.orEmpty(), name.orEmpty())
   }

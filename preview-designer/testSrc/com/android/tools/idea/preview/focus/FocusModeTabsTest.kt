@@ -112,19 +112,9 @@ class FocusModeTabsTest {
 
   @Test
   fun `update provided tabs`() {
-    val keys =
-      setOf(
-        TestKey(simpleSettings.copy(name = "Second Tab")),
-        TestKey(simpleSettings.copy(name = "Third Tab")),
-      )
+    val keys = setOf(TestKey(simpleSettings.copy(name = "Second Tab")), TestKey(simpleSettings.copy(name = "Third Tab")))
     var providedKeys = setOf(TestKey(simpleSettings.copy(name = "First Tab"))) + keys
-    val tabs =
-      FocusModeTabs(
-        rootComponent,
-        { TestKey(simpleSettings.copy(name = "Second Tab")) },
-        { providedKeys },
-        { _, _ -> },
-      )
+    val tabs = FocusModeTabs(rootComponent, { TestKey(simpleSettings.copy(name = "Second Tab")) }, { providedKeys }, { _, _ -> })
     providedKeys = keys
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
@@ -219,68 +209,14 @@ class FocusModeTabsTest {
   fun `more toolbar group created`() {
     val keys =
       mutableSetOf(
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 1",
-            parameterName = "1",
-            organizationGroup = "group1",
-            organizationName = "name1",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 2",
-            parameterName = "2",
-            organizationGroup = "group1",
-            organizationName = "name1",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 3",
-            parameterName = "3",
-            organizationGroup = "group1",
-            organizationName = "name1",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 4",
-            parameterName = "4",
-            organizationGroup = "no group1",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 5",
-            parameterName = "5",
-            organizationGroup = "no group",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 6",
-            parameterName = "6",
-            organizationGroup = "group2",
-            organizationName = "name2",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 7",
-            parameterName = "7",
-            organizationGroup = "group2",
-            organizationName = "name2",
-          )
-        ),
-        TestKey(
-          simpleSettings.copy(
-            name = "name - 8",
-            parameterName = "8",
-            organizationGroup = "group2",
-            organizationName = "name2",
-          )
-        ),
+        TestKey(simpleSettings.copy(name = "name - 1", parameterName = "1", organizationGroup = "group1", organizationName = "name1")),
+        TestKey(simpleSettings.copy(name = "name - 2", parameterName = "2", organizationGroup = "group1", organizationName = "name1")),
+        TestKey(simpleSettings.copy(name = "name - 3", parameterName = "3", organizationGroup = "group1", organizationName = "name1")),
+        TestKey(simpleSettings.copy(name = "name - 4", parameterName = "4", organizationGroup = "no group1")),
+        TestKey(simpleSettings.copy(name = "name - 5", parameterName = "5", organizationGroup = "no group")),
+        TestKey(simpleSettings.copy(name = "name - 6", parameterName = "6", organizationGroup = "group2", organizationName = "name2")),
+        TestKey(simpleSettings.copy(name = "name - 7", parameterName = "7", organizationGroup = "group2", organizationName = "name2")),
+        TestKey(simpleSettings.copy(name = "name - 8", parameterName = "8", organizationGroup = "group2", organizationName = "name2")),
       )
     val tabs = FocusModeTabs(rootComponent, { keys.first() }, { keys }) { _, _ -> }
     FakeUi(tabs)
@@ -331,9 +267,8 @@ class FocusModeTabsTest {
   @Ignore
   @Test
   /**
-   * This test is used to verify and preview the tabs. It's ignored, so it's only run on demand. See
-   * ui.render() to visually verify preview if required - it shows three tabs with first tab
-   * selected.
+   * This test is used to verify and preview the tabs. It's ignored, so it's only run on demand. See ui.render() to visually verify preview
+   * if required - it shows three tabs with first tab selected.
    */
   fun `preview tabs`() {
     val selected = TestKey(simpleSettings.copy(name = "First Tab"))
@@ -484,8 +419,7 @@ class FocusModeTabsTest {
   @Test
   fun `empty focus`() {
     var selected: TestKey? = null
-    val tabs =
-      FocusModeTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
+    val tabs = FocusModeTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
     tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
@@ -519,11 +453,7 @@ class FocusModeTabsTest {
   }
 
   private fun findScrollPane(parent: Component): JBScrollPane =
-    TreeWalker(parent)
-      .descendantStream()
-      .filter { it is JBScrollPane }
-      .collect(Collectors.toList())
-      .first() as JBScrollPane
+    TreeWalker(parent).descendantStream().filter { it is JBScrollPane }.collect(Collectors.toList()).first() as JBScrollPane
 
   private fun findAllActionButtons(parent: Component): List<ActionButtonWithText> =
     TreeWalker(parent)

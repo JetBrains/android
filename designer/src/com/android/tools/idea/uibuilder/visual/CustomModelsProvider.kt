@@ -58,11 +58,10 @@ data class CustomConfigurationSet(
 data class NamedConfiguration(val name: String, val config: Configuration)
 
 /**
- * The name with attributes which are used to create [Configuration]. Note that [name] never be
- * null. If there is no given name then the name is treated as empty string.
+ * The name with attributes which are used to create [Configuration]. Note that [name] never be null. If there is no given name then the
+ * name is treated as empty string.
  *
- * The initial values of properties are given for serializing and deserializing by
- * [VisualizationToolSettings].
+ * The initial values of properties are given for serializing and deserializing by [VisualizationToolSettings].
  */
 data class CustomConfigurationAttribute(
   var name: String = "",
@@ -80,8 +79,8 @@ private object CustomModelDataProvider : NlDataProvider(IS_CUSTOM_MODEL) {
 }
 
 /**
- * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br> The
- * custom [Configuration] is added by [AddCustomConfigurationAction].
+ * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br> The custom [Configuration] is added by
+ * [AddCustomConfigurationAction].
  */
 class CustomModelsProvider(
   val customId: String,
@@ -90,12 +89,10 @@ class CustomModelsProvider(
 ) : VisualizationModelsProvider {
 
   /**
-   * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for
-   * removing [CustomConfigurationAttribute]. We use [WeakHashMap] here to avoid leaking
-   * [Configuration].
+   * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for removing [CustomConfigurationAttribute].
+   * We use [WeakHashMap] here to avoid leaking [Configuration].
    */
-  private val configurationToConfigurationAttributesMap =
-    WeakHashMap<Configuration, CustomConfigurationAttribute>()
+  private val configurationToConfigurationAttributesMap = WeakHashMap<Configuration, CustomConfigurationAttribute>()
 
   fun addCustomConfigurationAttributes(config: CustomConfigurationAttribute) {
     customConfigSet.addConfigAttribute(config)
@@ -115,11 +112,7 @@ class CustomModelsProvider(
     return DefaultActionGroup(addAction)
   }
 
-  override fun createNlModels(
-    parentDisposable: Disposable,
-    file: PsiFile,
-    buildTarget: AndroidBuildTargetReference,
-  ): List<NlModel> {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, buildTarget: AndroidBuildTargetReference): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
@@ -144,13 +137,8 @@ class CustomModelsProvider(
 
       val config = customConfig.config
       val betterFile =
-        ConfigurationMatcher.getBetterMatch(
-          currentFileConfig,
-          config.device,
-          config.deviceState?.name,
-          config.locale,
-          config.target,
-        ) ?: currentFile
+        ConfigurationMatcher.getBetterMatch(currentFileConfig, config.device, config.deviceState?.name, config.locale, config.target)
+          ?: currentFile
 
       val model =
         NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
@@ -166,9 +154,7 @@ class CustomModelsProvider(
   }
 }
 
-private fun CustomConfigurationAttribute.toNamedConfiguration(
-  defaultConfig: ConfigurationForFile
-): NamedConfiguration? {
+private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: ConfigurationForFile): NamedConfiguration? {
   val settings = defaultConfig.settings
   val id = deviceId ?: return null
   val device = settings.getDeviceById(id)

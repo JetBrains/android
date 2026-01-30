@@ -30,36 +30,26 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-data class PairingStatus(
-  val id: String,
-  val displayName: String,
-  val state: WearPairingManager.PairingState,
-)
+data class PairingStatus(val id: String, val displayName: String, val state: WearPairingManager.PairingState)
 
 /**
- * Listens to updates from the [WearPairingManager], producing a Flow describing the pairing status
- * of all devices. Each device's wear pairing ID is mapped to a list of [PairingStatus].
+ * Listens to updates from the [WearPairingManager], producing a Flow describing the pairing status of all devices. Each device's wear
+ * pairing ID is mapped to a list of [PairingStatus].
  */
-fun ObservablePairedDevicesList.pairedDevicesFlow():
-  Flow<ImmutableMap<String, ImmutableList<PairingStatus>>> = callbackFlow {
+fun ObservablePairedDevicesList.pairedDevicesFlow(): Flow<ImmutableMap<String, ImmutableList<PairingStatus>>> = callbackFlow {
 
   // Our state is kept here, updated by the listener, then published to the flow.
   var pairedDevices = persistentHashMapOf<String, PersistentList<PairingStatus>>()
 
-  /**
-   * Given a PhoneWearPair that has had a pairing status change, updates the mapping for both the
-   * phone and the wear device.
-   */
+  /** Given a PhoneWearPair that has had a pairing status change, updates the mapping for both the phone and the wear device. */
   fun update(
     pair: WearPairingManager.PhoneWearPair,
     updateList: (PersistentList<PairingStatus>, PairingDevice) -> PersistentList<PairingStatus>,
   ) {
     pairedDevices =
       pairedDevices.mutate {
-        it[pair.wear.deviceID] =
-          updateList(pairedDevices[pair.wear.deviceID] ?: persistentListOf(), pair.phone)
-        it[pair.phone.deviceID] =
-          updateList(pairedDevices[pair.phone.deviceID] ?: persistentListOf(), pair.wear)
+        it[pair.wear.deviceID] = updateList(pairedDevices[pair.wear.deviceID] ?: persistentListOf(), pair.phone)
+        it[pair.phone.deviceID] = updateList(pairedDevices[pair.phone.deviceID] ?: persistentListOf(), pair.wear)
       }
     trySendBlocking(pairedDevices)
   }
@@ -68,12 +58,7 @@ fun ObservablePairedDevicesList.pairedDevicesFlow():
     object : WearPairingManager.PairingStatusChangedListener {
       override fun pairingStatusChanged(phoneWearPair: WearPairingManager.PhoneWearPair) {
         update(phoneWearPair) { currentDevices, pairingDevice ->
-          val newStatus =
-            PairingStatus(
-              pairingDevice.deviceID,
-              pairingDevice.displayName,
-              phoneWearPair.pairingStatus,
-            )
+          val newStatus = PairingStatus(pairingDevice.deviceID, pairingDevice.displayName, phoneWearPair.pairingStatus)
           when (val index = currentDevices.indexOfFirst { it.id == pairingDevice.deviceID }) {
             -1 -> currentDevices + newStatus
             else -> currentDevices.set(index, newStatus)
@@ -82,9 +67,7 @@ fun ObservablePairedDevicesList.pairedDevicesFlow():
       }
 
       override fun pairingDeviceRemoved(phoneWearPair: WearPairingManager.PhoneWearPair) {
-        update(phoneWearPair) { currentDevices, pairingDevice ->
-          currentDevices.removeAll { it.id == pairingDevice.deviceID }
-        }
+        update(phoneWearPair) { currentDevices, pairingDevice -> currentDevices.removeAll { it.id == pairingDevice.deviceID } }
       }
     }
 

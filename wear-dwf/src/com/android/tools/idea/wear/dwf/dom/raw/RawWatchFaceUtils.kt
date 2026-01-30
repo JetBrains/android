@@ -48,19 +48,17 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
 /**
- * Adds an [InsertHandler] that inserts the `[` and `]` around
- * [LookupElementBuilder.getLookupString] after the auto-complete happens, if needed.
+ * Adds an [InsertHandler] that inserts the `[` and `]` around [LookupElementBuilder.getLookupString] after the auto-complete happens, if
+ * needed.
  *
  * This helps prevent having the brackets appear in double.
  */
-fun LookupElementBuilder.insertBracketsAroundIfNeeded() =
-  withInsertHandler { context, lookupElement ->
-    insertBracketsAroundIfNeeded(context, lookupElement)
-  }
+fun LookupElementBuilder.insertBracketsAroundIfNeeded() = withInsertHandler { context, lookupElement ->
+  insertBracketsAroundIfNeeded(context, lookupElement)
+}
 
 /**
- * Inserts the `[` and `]` around a [LookupElementBuilder.getLookupString] after the auto-complete
- * happens, if needed.
+ * Inserts the `[` and `]` around a [LookupElementBuilder.getLookupString] after the auto-complete happens, if needed.
  *
  * This helps prevent having the brackets appear in double.
  */
@@ -74,13 +72,10 @@ fun insertBracketsAroundIfNeeded(context: InsertionContext, lookupElement: Looku
     textWithBrackets.append("]")
   }
 
-  val hasOpenBracket =
-    context.startOffset > 0 && context.document.charsSequence[context.startOffset - 1] == '['
+  val hasOpenBracket = context.startOffset > 0 && context.document.charsSequence[context.startOffset - 1] == '['
   val startOffset = if (hasOpenBracket) context.startOffset - 1 else context.startOffset
 
-  val hasExtraCloseBracket =
-    context.tailOffset < context.document.textLength &&
-      context.document.charsSequence[context.tailOffset] == ']'
+  val hasExtraCloseBracket = context.tailOffset < context.document.textLength && context.document.charsSequence[context.tailOffset] == ']'
   val tailOffset = if (hasExtraCloseBracket) context.tailOffset + 1 else context.tailOffset
 
   context.document.replaceString(startOffset, tailOffset, textWithBrackets.toString())
@@ -90,9 +85,7 @@ fun insertBracketsAroundIfNeeded(context: InsertionContext, lookupElement: Looku
 @RequiresReadLock
 fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
   if (rootTag?.name != TAG_WATCH_FACE) return emptyList()
-  val userConfigurationTags =
-    rootTag?.findSubTags(TAG_USER_CONFIGURATIONS)?.flatMap { it.subTags.toList() }
-      ?: return emptyList()
+  val userConfigurationTags = rootTag?.findSubTags(TAG_USER_CONFIGURATIONS)?.flatMap { it.subTags.toList() } ?: return emptyList()
 
   return userConfigurationTags.mapNotNull { userConfigurationTag ->
     val id = userConfigurationTag.getAttribute(ATTRIBUTE_ID)?.value ?: return@mapNotNull null
@@ -102,9 +95,7 @@ fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
         val availableColorIndices =
           userConfigurationTag.subTags
             .filter { it.name == TAG_COLOR_OPTION }
-            .firstNotNullOfOrNull { colorOptionTag ->
-              colorOptionTag.getAttribute(ATTRIBUTE_COLORS)?.value?.split("\\s+".toRegex())
-            }
+            .firstNotNullOfOrNull { colorOptionTag -> colorOptionTag.getAttribute(ATTRIBUTE_COLORS)?.value?.split("\\s+".toRegex()) }
             ?.indices ?: IntRange.EMPTY
         ColorConfiguration(id, userConfigurationTag, availableColorIndices)
       }
@@ -120,9 +111,8 @@ fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
 fun String.removeSurroundingQuotes() = removeSurrounding("\"").removeSurrounding("'")
 
 /**
- * Creates a [LookupElementBuilder] for a data source. A data source is surrounded by brackets. The
- * lookup element has lookup strings with and without the brackets to make the autocomplete trigger
- * both when the user starts with or without a bracket.
+ * Creates a [LookupElementBuilder] for a data source. A data source is surrounded by brackets. The lookup element has lookup strings with
+ * and without the brackets to make the autocomplete trigger both when the user starts with or without a bracket.
  *
  * @param lookupString the data source id **without** the brackets, e.g `STEP_COUNT`
  */
@@ -135,28 +125,23 @@ fun createDataSourceLookupElement(lookupString: String) =
 /**
  * Whether this data source is a user configuration.
  *
- * @see <a
- *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">
- *   User configurations</a>
+ * @see <a href="https://developer.android.com/training/wearables/wff/personalization/user-configurations"> User configurations</a>
  */
 fun WFFExpressionDataSource.isUserConfiguration() = id.text.startsWith(CONFIGURATION_PREFIX)
 
 /**
  * Whether this data source is a reference data source.
  *
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/common/reference/reference">Reference</a>
  */
 fun WFFExpressionDataSource.isReference() = id.text.startsWith(REFERENCE_PREFIX)
 
 /** Finds the [DataSource] that matches [WFFExpressionDataSource]'s ID, if any. */
 fun WFFExpressionDataSource.findDataSourceDefinition(): DataSource? {
-  return if (id.isComplicationDataSource()) id.findComplicationDataSource()
-  else id.findStaticDataSource() ?: id.findPatternDataSource()
+  return if (id.isComplicationDataSource()) id.findComplicationDataSource() else id.findStaticDataSource() ?: id.findPatternDataSource()
 }
 
-private fun PsiElement.isComplicationDataSource() =
-  text.startsWith(WFFConstants.COMPLICATION_PREFIX)
+private fun PsiElement.isComplicationDataSource() = text.startsWith(WFFConstants.COMPLICATION_PREFIX)
 
 private fun PsiElement.findComplicationDataSource(): StaticDataSource? {
   val complicationType = getParentComplicationTag(this)?.getAttribute(ATTR_TYPE)?.value
@@ -165,5 +150,4 @@ private fun PsiElement.findComplicationDataSource(): StaticDataSource? {
 
 private fun PsiElement.findStaticDataSource() = DataSources.ALL_STATIC_BY_ID[text]
 
-private fun PsiElement.findPatternDataSource() =
-  DataSources.ALL_PATTERNS.find { it.pattern.matches(text) }
+private fun PsiElement.findPatternDataSource() = DataSources.ALL_PATTERNS.find { it.pattern.matches(text) }

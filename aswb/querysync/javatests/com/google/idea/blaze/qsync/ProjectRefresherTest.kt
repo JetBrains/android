@@ -36,21 +36,19 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ProjectRefresherTest {
-  private fun createRefresher(
-    existingSnapshot: QuerySyncProjectSnapshot? = QuerySyncProjectSnapshot.EMPTY
-  ): ProjectRefresher {
+  private fun createRefresher(existingSnapshot: QuerySyncProjectSnapshot? = QuerySyncProjectSnapshot.EMPTY): ProjectRefresher {
     return createRefresher(QuerySyncTestUtils.noFilesChangedDiffer(), existingSnapshot)
   }
 
   private fun createRefresher(
     vcsDiffer: VcsStateDiffer?,
-    existingSnapshot: QuerySyncProjectSnapshot? = QuerySyncProjectSnapshot.EMPTY
+    existingSnapshot: QuerySyncProjectSnapshot? = QuerySyncProjectSnapshot.EMPTY,
   ): ProjectRefresher {
     return ProjectRefresher(
       vcsDiffer,
       Path.of("/"),
       QuerySpec.QueryStrategy.PLAIN,
-      Suppliers.ofInstance(Optional.ofNullable(existingSnapshot))
+      Suppliers.ofInstance(Optional.ofNullable(existingSnapshot)),
     )
   }
 
@@ -59,16 +57,7 @@ class ProjectRefresherTest {
   fun testStartPartialRefresh_pluginVersionChanged() {
     val project =
       PostQuerySyncData.EMPTY.toBuilder()
-        .setVcsState(
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          )
-        )
+        .setVcsState(Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())))
         .setQuerySummary(create(Query.Summary.newBuilder().setVersion(-1).build()))
         .build()
 
@@ -79,7 +68,7 @@ class ProjectRefresherTest {
           project,
           project.vcsState(),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
     Truth.assertThat(update).isInstanceOf(FullProjectUpdate::class.java)
   }
@@ -87,18 +76,9 @@ class ProjectRefresherTest {
   @Test
   @Throws(Exception::class)
   fun testStartPartialRefresh_vcsSnapshotUnchanged_existingProjectSnapshotWithVcsState() {
-    val vcsState =
-      VcsState(
-        "workspaceId",
-        "1",
-        ImmutableSet.of(),
-        Optional.of(Path.of("/my/workspace/.snapshot/1"))
-      )
+    val vcsState = VcsState("workspaceId", "1", ImmutableSet.of(), Optional.of(Path.of("/my/workspace/.snapshot/1")))
     val project: PostQuerySyncData =
-      PostQuerySyncData.EMPTY.toBuilder()
-        .setVcsState(Optional.of(vcsState))
-        .setQuerySummary(QuerySummary.EMPTY)
-        .build()
+      PostQuerySyncData.EMPTY.toBuilder().setVcsState(Optional.of(vcsState)).setQuerySummary(QuerySummary.EMPTY).build()
     val existingProject = QuerySyncProjectSnapshot.EMPTY
     val update =
       createRefresher(QuerySyncTestUtils.NO_CHANGES_DIFFER)
@@ -107,16 +87,11 @@ class ProjectRefresherTest {
           project,
           project.vcsState(),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
     Truth.assertThat(update).isInstanceOf(NoopProjectRefresh::class.java)
     Truth.assertThat(update.createPostQuerySyncData(QuerySummary.EMPTY))
-      .isEqualTo(
-        existingProject.queryData
-          .toBuilder()
-          .setVcsState(Optional.of(vcsState))
-          .build()
-      )
+      .isEqualTo(existingProject.queryData.toBuilder().setVcsState(Optional.of(vcsState)).build())
   }
 
   @Test
@@ -124,16 +99,7 @@ class ProjectRefresherTest {
   fun testStartPartialRefresh_vcsSnapshotUnchanged_noExistingProjectSnapshot() {
     val project: PostQuerySyncData =
       PostQuerySyncData.EMPTY.toBuilder()
-        .setVcsState(
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.of(Path.of("/my/workspace/.snapshot/1"))
-            )
-          )
-        )
+        .setVcsState(Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.of(Path.of("/my/workspace/.snapshot/1")))))
         .setQuerySummary(QuerySummary.EMPTY)
         .build()
     val update =
@@ -143,7 +109,7 @@ class ProjectRefresherTest {
           project,
           project.vcsState(),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
     Truth.assertThat(update).isInstanceOf(PartialProjectRefresh::class.java)
   }
@@ -152,34 +118,16 @@ class ProjectRefresherTest {
   @Throws(Exception::class)
   fun testStartPartialRefresh_workspaceChange() {
     val project =
-      PostQuerySyncData.EMPTY.toBuilder()
-        .setVcsState(
-          Optional.of(
-            VcsState(
-              "workspace1",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          )
-        )
-        .build()
+      PostQuerySyncData.EMPTY.toBuilder().setVcsState(Optional.of(VcsState("workspace1", "1", ImmutableSet.of(), Optional.empty()))).build()
 
     val update =
       createRefresher()
         .startPartialRefresh(
           QuerySyncTestUtils.LOGGING_CONTEXT,
           project,
-          Optional.of(
-            VcsState(
-              "workspace2",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          ),
+          Optional.of(VcsState("workspace2", "1", ImmutableSet.of(), Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
     Truth.assertThat(update).isInstanceOf(FullProjectUpdate::class.java)
   }
@@ -189,16 +137,7 @@ class ProjectRefresherTest {
   fun testStartPartialRefresh_upstreamRevisionChange() {
     val project =
       PostQuerySyncData.EMPTY.toBuilder()
-        .setVcsState(
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          )
-        )
+        .setVcsState(Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())))
         .build()
 
     val update =
@@ -206,16 +145,9 @@ class ProjectRefresherTest {
         .startPartialRefresh(
           QuerySyncTestUtils.LOGGING_CONTEXT,
           project,
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "2",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          ),
+          Optional.of(VcsState("workspaceId", "2", ImmutableSet.of(), Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
     Truth.assertThat(update).isInstanceOf(FullProjectUpdate::class.java)
   }
@@ -231,12 +163,8 @@ class ProjectRefresherTest {
             VcsState(
               "workspaceId",
               "1",
-              ImmutableSet.of(
-                WorkspaceFileChange(
-                  WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD")
-                )
-              ),
-              Optional.empty()
+              ImmutableSet.of(WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD"))),
+              Optional.empty(),
             )
           )
         )
@@ -262,7 +190,7 @@ class ProjectRefresherTest {
           project,
           project.vcsState(),
           Optional.of("2.0.0"),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(FullProjectUpdate::class.java)
@@ -279,13 +207,8 @@ class ProjectRefresherTest {
             VcsState(
               "workspaceId",
               "1",
-              ImmutableSet.of(
-                WorkspaceFileChange(
-                  WorkspaceFileChange.Operation.ADD,
-                  Path.of("package/path/BUILD")
-                )
-              ),
-              Optional.empty()
+              ImmutableSet.of(WorkspaceFileChange(WorkspaceFileChange.Operation.ADD, Path.of("package/path/BUILD"))),
+              Optional.empty(),
             )
           )
         )
@@ -308,16 +231,9 @@ class ProjectRefresherTest {
         .startPartialRefresh(
           QuerySyncTestUtils.LOGGING_CONTEXT,
           project,
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          ),
+          Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(PartialProjectRefresh::class.java)
@@ -336,12 +252,8 @@ class ProjectRefresherTest {
             VcsState(
               "workspaceId",
               "1",
-              ImmutableSet.of(
-                WorkspaceFileChange(
-                  WorkspaceFileChange.Operation.DELETE, Path.of("package/path/BUILD")
-                )
-              ),
-              Optional.empty()
+              ImmutableSet.of(WorkspaceFileChange(WorkspaceFileChange.Operation.DELETE, Path.of("package/path/BUILD"))),
+              Optional.empty(),
             )
           )
         )
@@ -364,16 +276,9 @@ class ProjectRefresherTest {
         .startPartialRefresh(
           QuerySyncTestUtils.LOGGING_CONTEXT,
           project,
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          ),
+          Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(PartialProjectRefresh::class.java)
@@ -385,19 +290,11 @@ class ProjectRefresherTest {
   @Test
   @Throws(Exception::class)
   fun testStartPartialRefresh_buildFileModified() {
-    val workingSet =
-      ImmutableSet.of(
-        WorkspaceFileChange(
-          WorkspaceFileChange.Operation.MODIFY,
-          Path.of("package/path/BUILD")
-        )
-      )
+    val workingSet = ImmutableSet.of(WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD")))
     val project =
       PostQuerySyncData.EMPTY.toBuilder()
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//package/path:rule"))
-        .setVcsState(
-          Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty()))
-        )
+        .setVcsState(Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty())))
         .setProjectDefinition(
           ProjectDefinition(
             projectIncludes = setOf(Path.of("package")),
@@ -419,7 +316,7 @@ class ProjectRefresherTest {
           project,
           Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(PartialProjectRefresh::class.java)
@@ -434,17 +331,12 @@ class ProjectRefresherTest {
     val workingSet =
       ImmutableSet.of(
         WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD")),
-        WorkspaceFileChange(
-          WorkspaceFileChange.Operation.MODIFY,
-          Path.of("package/path/Class.java")
-        )
+        WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/Class.java")),
       )
     val project =
       PostQuerySyncData.EMPTY.toBuilder()
         .setQuerySummary(QuerySummaryTestUtil.createProtoForPackages("//package/path:rule"))
-        .setVcsState(
-          Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty()))
-        )
+        .setVcsState(Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty())))
         .setProjectDefinition(
           ProjectDefinition(
             projectIncludes = setOf(Path.of("package")),
@@ -466,7 +358,7 @@ class ProjectRefresherTest {
           project,
           Optional.of(VcsState("workspaceId", "1", workingSet, Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(NoopProjectRefresh::class.java)
@@ -483,12 +375,8 @@ class ProjectRefresherTest {
             VcsState(
               "workspaceId",
               "1",
-              ImmutableSet.of(
-                WorkspaceFileChange(
-                  WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD")
-                )
-              ),
-              Optional.empty()
+              ImmutableSet.of(WorkspaceFileChange(WorkspaceFileChange.Operation.MODIFY, Path.of("package/path/BUILD"))),
+              Optional.empty(),
             )
           )
         )
@@ -511,16 +399,9 @@ class ProjectRefresherTest {
         .startPartialRefresh(
           QuerySyncTestUtils.LOGGING_CONTEXT,
           project,
-          Optional.of(
-            VcsState(
-              "workspaceId",
-              "1",
-              ImmutableSet.of(),
-              Optional.empty()
-            )
-          ),
+          Optional.of(VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty())),
           project.bazelVersion(),
-          project.projectDefinition()
+          project.projectDefinition(),
         )
 
     Truth.assertThat(update).isInstanceOf(PartialProjectRefresh::class.java)

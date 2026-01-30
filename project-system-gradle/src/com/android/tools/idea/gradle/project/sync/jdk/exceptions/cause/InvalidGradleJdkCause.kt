@@ -27,51 +27,81 @@ import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkRea
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_LOCAL_JAVA_HOME
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_PROPERTIES_JAVA_HOME
-import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
+import org.jetbrains.android.util.AndroidBundle
 
-/**
- * Enum that contains all the cases of project invalid Gradle JDK configuration
- */
-sealed class InvalidGradleJdkCause(
-  val description: String,
-  val reason: InvalidJdkReason
-) {
+/** Enum that contains all the cases of project invalid Gradle JDK configuration */
+sealed class InvalidGradleJdkCause(val description: String, val reason: InvalidJdkReason) {
 
-  object InvalidProjectJdk: InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradle.project.jdk.invalid"), InvalidJdkReason.INVALID_JDK_PROJECT_JDK_UNDEFINED
-  )
-  object UndefinedGradleLocalJavaHome: InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradle.local.java.home.undefined"), UNDEFINED_GRADLE_LOCAL_JAVA_HOME
-  )
-  class InvalidGradleLocalJavaHome(path: Path): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradle.local.java.home.invalid", path), INVALID_GRADLE_LOCAL_JAVA_HOME
-  )
-  object UndefinedGradlePropertiesJavaHome: InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradle.properties.java.home.undefined"), UNDEFINED_GRADLE_PROPERTIES_JAVA_HOME
-  )
-  class InvalidGradlePropertiesJavaHome(path: Path): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradle.properties.java.home.invalid", path), INVALID_GRADLE_PROPERTIES_JAVA_HOME
-  )
-  object UndefinedEnvironmentVariableJavaHome: InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.environment.variable.java.home.undefined"), UNDEFINED_ENVIRONMENT_VARIABLE_JAVA_HOME
-  )
-  class InvalidEnvironmentVariableJavaHome(path: Path): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.environment.variable.java.home.invalid", path), INVALID_ENVIRONMENT_VARIABLE_JAVA_HOME
-  )
-  object UndefinedEnvironmentVariableStudioGradleJdk: InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.environment.variable.studio.gradle.jdk.undefined"), UNDEFINED_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK
-  )
-  class InvalidEnvironmentVariableStudioGradleJdk(path: Path): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.environment.variable.studio.gradle.jdk.invalid", path), INVALID_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK
-  )
-  class UndefinedGradleJvmTableEntry(name: String): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.undefined", name), UNDEFINED_GRADLE_JVM_TABLE_ENTRY
-  )
-  class UndefinedGradleJvmTableEntryJavaHome(name: String): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.java.home.undefined", name), UNDEFINED_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
-  )
-  class InvalidGradleJvmTableEntryJavaHome(path: Path, name: String): InvalidGradleJdkCause(
-    AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.java.home.invalid", path, name), INVALID_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
-  )
+  object InvalidProjectJdk :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradle.project.jdk.invalid"),
+      InvalidJdkReason.INVALID_JDK_PROJECT_JDK_UNDEFINED,
+    )
+
+  object UndefinedGradleLocalJavaHome :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradle.local.java.home.undefined"),
+      UNDEFINED_GRADLE_LOCAL_JAVA_HOME,
+    )
+
+  class InvalidGradleLocalJavaHome(path: Path) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradle.local.java.home.invalid", path),
+      INVALID_GRADLE_LOCAL_JAVA_HOME,
+    )
+
+  object UndefinedGradlePropertiesJavaHome :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradle.properties.java.home.undefined"),
+      UNDEFINED_GRADLE_PROPERTIES_JAVA_HOME,
+    )
+
+  class InvalidGradlePropertiesJavaHome(path: Path) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradle.properties.java.home.invalid", path),
+      INVALID_GRADLE_PROPERTIES_JAVA_HOME,
+    )
+
+  object UndefinedEnvironmentVariableJavaHome :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.environment.variable.java.home.undefined"),
+      UNDEFINED_ENVIRONMENT_VARIABLE_JAVA_HOME,
+    )
+
+  class InvalidEnvironmentVariableJavaHome(path: Path) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.environment.variable.java.home.invalid", path),
+      INVALID_ENVIRONMENT_VARIABLE_JAVA_HOME,
+    )
+
+  object UndefinedEnvironmentVariableStudioGradleJdk :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.environment.variable.studio.gradle.jdk.undefined"),
+      UNDEFINED_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK,
+    )
+
+  class InvalidEnvironmentVariableStudioGradleJdk(path: Path) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.environment.variable.studio.gradle.jdk.invalid", path),
+      INVALID_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK,
+    )
+
+  class UndefinedGradleJvmTableEntry(name: String) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.undefined", name),
+      UNDEFINED_GRADLE_JVM_TABLE_ENTRY,
+    )
+
+  class UndefinedGradleJvmTableEntryJavaHome(name: String) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.java.home.undefined", name),
+      UNDEFINED_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME,
+    )
+
+  class InvalidGradleJvmTableEntryJavaHome(path: Path, name: String) :
+    InvalidGradleJdkCause(
+      AndroidBundle.message("project.sync.exception.gradlejvm.table.entry.java.home.invalid", path, name),
+      INVALID_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME,
+    )
 }

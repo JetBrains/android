@@ -28,19 +28,12 @@ import org.junit.rules.ExternalResource
 class TestAdbLibService(override val session: AdbSession) : AdbLibService
 
 /** Replaces production [AdbLibService] with [TestAdbLibService]. */
-open class TestAdbLibServiceRule<T : AdbSession>(
-  private val projectRule: ProjectRule,
-  val adbSession: T,
-) : ExternalResource() {
+open class TestAdbLibServiceRule<T : AdbSession>(private val projectRule: ProjectRule, val adbSession: T) : ExternalResource() {
 
   private val disposable = Disposer.newDisposable("ProjectServiceRule")
 
   override fun before() {
-    projectRule.project.registerOrReplaceServiceInstance(
-      AdbLibService::class.java,
-      TestAdbLibService(adbSession),
-      disposable,
-    )
+    projectRule.project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
   }
 
   override fun after() {
@@ -49,9 +42,7 @@ open class TestAdbLibServiceRule<T : AdbSession>(
 }
 
 /** Replaces production [AdbLibService] with [TestAdbLibService] with a [FakeAdbSession]. */
-class FakeAdbSessionRule(
-  projectRule: ProjectRule,
-) : TestAdbLibServiceRule<FakeAdbSession>(projectRule, FakeAdbSession()) {
+class FakeAdbSessionRule(projectRule: ProjectRule) : TestAdbLibServiceRule<FakeAdbSession>(projectRule, FakeAdbSession()) {
 
   override fun after() {
     runBlocking { adbSession.closeAndJoin() }

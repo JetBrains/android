@@ -23,13 +23,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * [AnAction] wrapper that calls the MoreFontsDialog to add new font resources.
- */
-class AddFontAction(
-  private val facet: AndroidFacet,
-  private val createdResourceCallback: (String, ResourceType) -> Unit
-): AnAction(MoreFontsDialog.ACTION_NAME, "Add font resources to project", null) {
+/** [AnAction] wrapper that calls the MoreFontsDialog to add new font resources. */
+class AddFontAction(private val facet: AndroidFacet, private val createdResourceCallback: (String, ResourceType) -> Unit) :
+  AnAction(MoreFontsDialog.ACTION_NAME, "Add font resources to project", null) {
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = MoreFontsDialog(facet, null, false)
     if (dialog.showAndGet()) {
@@ -37,7 +33,8 @@ class AddFontAction(
         createdResourceCallback(
           // This returns a font name as a resource url '@font/name', but we just need the name.
           findLocalName(ResolutionUtils.getQualifiedNameFromResourceUrl(it)),
-          ResourceType.FONT)
+          ResourceType.FONT,
+        )
       }
     }
   }

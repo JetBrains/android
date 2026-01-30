@@ -22,10 +22,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Changes a folding pose of a foldable physical device.
- * Value semantics is intended for comparisons in tests.
- */
+/** Changes a folding pose of a foldable physical device. Value semantics is intended for comparisons in tests. */
 internal data class EmulatorFoldingAction(val posture: PostureDescriptor) : AbstractEmulatorAction() {
 
   init {
@@ -38,16 +35,17 @@ internal data class EmulatorFoldingAction(val posture: PostureDescriptor) : Abst
     if (posture != emulatorView.currentPosture) {
       val emulator = emulatorView.emulator
       val type = if (posture.valueType == PostureDescriptor.ValueType.HINGE_ANGLE) PhysicalType.HINGE_ANGLE0 else PhysicalType.ROLLABLE0
-      val physicalModelValue = PhysicalModelValue.newBuilder()
-        .setTarget(type)
-        .setValue(ParameterValue.newBuilder().addData(getPostureValue(posture, emulator.emulatorConfig.postures).toFloat()))
+      val physicalModelValue =
+        PhysicalModelValue.newBuilder()
+          .setTarget(type)
+          .setValue(ParameterValue.newBuilder().addData(getPostureValue(posture, emulator.emulatorConfig.postures).toFloat()))
       emulator.setPhysicalModel(physicalModelValue.build())
     }
   }
 
   /**
-   * Returns the minimum or the maximum allowed posture value if it belongs to the [posture]'s value range.
-   * Otherwise, returns the middle of the [posture]'s value range.
+   * Returns the minimum or the maximum allowed posture value if it belongs to the [posture]'s value range. Otherwise, returns the middle of
+   * the [posture]'s value range.
    */
   private fun getPostureValue(posture: PostureDescriptor, postures: List<PostureDescriptor>): Double {
     var minValue = Double.MAX_VALUE

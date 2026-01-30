@@ -22,8 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class LiveEditApplicationConfigurationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testMigrateLegacyModes() {

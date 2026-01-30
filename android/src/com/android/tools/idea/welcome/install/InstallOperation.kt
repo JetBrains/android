@@ -51,8 +51,7 @@ abstract class InstallOperation<Return, Argument>(
       try {
         context.run(
           ThrowableComputable {
-            val indicator =
-              ProgressManager.getInstance().progressIndicator ?: EmptyProgressIndicator()
+            val indicator = ProgressManager.getInstance().progressIndicator ?: EmptyProgressIndicator()
             perform(indicator, argument)
           },
           progressRatio,
@@ -60,20 +59,13 @@ abstract class InstallOperation<Return, Argument>(
       } catch (e: ProcessCanceledException) {
         throw InstallationCancelledException()
       } catch (e: Exception) {
-        Throwables.propagateIfPossible(
-          e,
-          WizardException::class.java,
-          InstallationCancelledException::class.java,
-        )
+        Throwables.propagateIfPossible(e, WizardException::class.java, InstallationCancelledException::class.java)
         throw RuntimeException(e)
       }
     }
   }
 
-  /**
-   * Shows a retry prompt. Throws an exception to stop the setup process if the user preses cancel
-   * or returns normally otherwise.
-   */
+  /** Shows a retry prompt. Throws an exception to stop the setup process if the user preses cancel or returns normally otherwise. */
   @Throws(InstallationCancelledException::class)
   protected fun promptToRetry(prompt: String, failureDescription: String, e: Exception?) {
     val response = AtomicBoolean(false)
@@ -82,9 +74,7 @@ abstract class InstallOperation<Return, Argument>(
       {
         val wrappedPrompt = prompt.replace("(\\p{Print}{30,50}([\\h\\n]|$))".toRegex(), "$1\n")
         val wrappedFailure =
-          failureDescription
-            .replace("(\\p{Print}{30,50}([\\h\\n]|$))".toRegex(), "$1\n")
-            .replace("(\\p{Print}{30,50}/)".toRegex(), "$1\n")
+          failureDescription.replace("(\\p{Print}{30,50}([\\h\\n]|$))".toRegex(), "$1\n").replace("(\\p{Print}{30,50}/)".toRegex(), "$1\n")
         val i =
           Messages.showDialog(
             null,
@@ -113,21 +103,17 @@ abstract class InstallOperation<Return, Argument>(
   abstract fun cleanup(result: Return)
 
   /** This allows combining a sequence of operations into one, assisting with the cleanup. */
-  fun <FinalResult> then(
-    next: InstallOperation<FinalResult, Return>
-  ): InstallOperation<FinalResult, Argument> {
+  fun <FinalResult> then(next: InstallOperation<FinalResult, Return>): InstallOperation<FinalResult, Argument> {
     return OperationChain(this, next)
   }
 
   /**
    * Adds a function to a sequence, wrapping it into InstallOperation.
    *
-   * Note that currently it is expected that the function is fast and there is no progress to
-   * report. Another option is to manage progress manually.
+   * Note that currently it is expected that the function is fast and there is no progress to report. Another option is to manage progress
+   * manually.
    */
-  fun <FinalResult> then(
-    next: Function<Return, FinalResult>
-  ): InstallOperation<FinalResult, Argument> = then(wrap(context, next, 0.0))
+  fun <FinalResult> then(next: Function<Return, FinalResult>): InstallOperation<FinalResult, Argument> = then(wrap(context, next, 0.0))
 
   private class OperationChain<FinalResult, Argument, Return>(
     private val first: InstallOperation<Return, Argument>,

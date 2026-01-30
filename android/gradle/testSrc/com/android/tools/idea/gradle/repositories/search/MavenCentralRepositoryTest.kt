@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.gradle.Version
 import com.google.common.truth.Truth.assertThat
+import java.io.StringReader
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.io.StringReader
 
-/**
- * Tests for [MavenCentralRepository].
- */
+/** Tests for [MavenCentralRepository]. */
 class MavenCentralRepositoryTest {
   @Test
   fun testCreateUrlWithGroupId() {
@@ -65,7 +63,8 @@ class MavenCentralRepositoryTest {
   @Throws(Exception::class)
   fun testParseArbitraryModulesResponse() {
     @Language("XML")
-    val response = """
+    val response =
+      """
       <response>
         <lst name="responseHeader">
           <int name="status">0</int>
@@ -175,26 +174,37 @@ class MavenCentralRepositoryTest {
           </doc>
         </result>
       </response>
-    """.trimIndent()
+      """
+        .trimIndent()
     val responseReader = StringReader(response)
     val result = MavenCentralRepository.parseArbitraryModulesResponse(responseReader)
     val coordinates = result.artifactCoordinates
-    assertThat(coordinates).containsExactly(
-      "com.google.demo:abc:1.0.0",
-      "com.google.demo:abc:1.0.1",
-      "com.google.demo:abc:1.0.2",
-      "com.google.demo:def:1.0.0",
-      "com.google.demo:def:1.0.1",
-      "com.google.demo:def:1.0.2"
-    )
-    assertThat(result.artifacts).isEqualTo(
-      listOf(
-        FoundArtifact(MavenCentralRepository.name, "com.google.demo", "abc",
-                      setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2"))),
-        FoundArtifact(MavenCentralRepository.name, "com.google.demo", "def",
-                      setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2")))
+    assertThat(coordinates)
+      .containsExactly(
+        "com.google.demo:abc:1.0.0",
+        "com.google.demo:abc:1.0.1",
+        "com.google.demo:abc:1.0.2",
+        "com.google.demo:def:1.0.0",
+        "com.google.demo:def:1.0.1",
+        "com.google.demo:def:1.0.2",
       )
-    )
+    assertThat(result.artifacts)
+      .isEqualTo(
+        listOf(
+          FoundArtifact(
+            MavenCentralRepository.name,
+            "com.google.demo",
+            "abc",
+            setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2")),
+          ),
+          FoundArtifact(
+            MavenCentralRepository.name,
+            "com.google.demo",
+            "def",
+            setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2")),
+          ),
+        )
+      )
   }
 
   @Test
@@ -214,67 +224,71 @@ class MavenCentralRepositoryTest {
   @Test
   fun testParseSingleModuleResponse() {
     @Language("XML")
-    val response = """<metadata modelVersion="1.1.0">
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <versioning>
-        <latest>2.12.0</latest>
-        <release>2.12.0</release>
-        <versions>
-          <version>0.1</version>
-          <version>1.0</version>
-          <version>1.1</version>
-          <version>1.2</version>
-          <version>1.3</version>
-          <version>1.3.1</version>
-          <version>1.3.2</version>
-          <version>1.4</version>
-          <version>2.0</version>
-          <version>2.0.1</version>
-          <version>2.1</version>
-          <version>2.2</version>
-          <version>2.3</version>
-          <version>2.4</version>
-          <version>2.5</version>
-          <version>2.6</version>
-          <version>2.7</version>
-          <version>2.8.0</version>
-          <version>2.9.0</version>
-          <version>2.10.0</version>
-          <version>2.11.0</version>
-          <version>2.12.0</version>
-        </versions>
-        <lastUpdated>20230516171153</lastUpdated>
-      </versioning></metadata>
-      """.trimIndent()
+    val response =
+      """
+      <metadata modelVersion="1.1.0">
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <versioning>
+              <latest>2.12.0</latest>
+              <release>2.12.0</release>
+              <versions>
+                <version>0.1</version>
+                <version>1.0</version>
+                <version>1.1</version>
+                <version>1.2</version>
+                <version>1.3</version>
+                <version>1.3.1</version>
+                <version>1.3.2</version>
+                <version>1.4</version>
+                <version>2.0</version>
+                <version>2.0.1</version>
+                <version>2.1</version>
+                <version>2.2</version>
+                <version>2.3</version>
+                <version>2.4</version>
+                <version>2.5</version>
+                <version>2.6</version>
+                <version>2.7</version>
+                <version>2.8.0</version>
+                <version>2.9.0</version>
+                <version>2.10.0</version>
+                <version>2.11.0</version>
+                <version>2.12.0</version>
+              </versions>
+              <lastUpdated>20230516171153</lastUpdated>
+            </versioning></metadata>
+      """
+        .trimIndent()
 
     val query = SingleModuleSearchQuery("commons-io", "commons-io")
     val responseReader = StringReader(response)
     val result = MavenCentralRepository.parseSingleModuleResponse(responseReader, query)
     val coordinates = result.artifactCoordinates
-    assertThat(coordinates).containsExactly(
-      "commons-io:commons-io:0.1",
-      "commons-io:commons-io:1.0",
-      "commons-io:commons-io:1.1",
-      "commons-io:commons-io:1.2",
-      "commons-io:commons-io:1.3",
-      "commons-io:commons-io:1.3.1",
-      "commons-io:commons-io:1.3.2",
-      "commons-io:commons-io:1.4",
-      "commons-io:commons-io:2.0",
-      "commons-io:commons-io:2.0.1",
-      "commons-io:commons-io:2.1",
-      "commons-io:commons-io:2.2",
-      "commons-io:commons-io:2.3",
-      "commons-io:commons-io:2.4",
-      "commons-io:commons-io:2.5",
-      "commons-io:commons-io:2.6",
-      "commons-io:commons-io:2.7",
-      "commons-io:commons-io:2.8.0",
-      "commons-io:commons-io:2.9.0",
-      "commons-io:commons-io:2.10.0",
-      "commons-io:commons-io:2.11.0",
-      "commons-io:commons-io:2.12.0",
-    )
+    assertThat(coordinates)
+      .containsExactly(
+        "commons-io:commons-io:0.1",
+        "commons-io:commons-io:1.0",
+        "commons-io:commons-io:1.1",
+        "commons-io:commons-io:1.2",
+        "commons-io:commons-io:1.3",
+        "commons-io:commons-io:1.3.1",
+        "commons-io:commons-io:1.3.2",
+        "commons-io:commons-io:1.4",
+        "commons-io:commons-io:2.0",
+        "commons-io:commons-io:2.0.1",
+        "commons-io:commons-io:2.1",
+        "commons-io:commons-io:2.2",
+        "commons-io:commons-io:2.3",
+        "commons-io:commons-io:2.4",
+        "commons-io:commons-io:2.5",
+        "commons-io:commons-io:2.6",
+        "commons-io:commons-io:2.7",
+        "commons-io:commons-io:2.8.0",
+        "commons-io:commons-io:2.9.0",
+        "commons-io:commons-io:2.10.0",
+        "commons-io:commons-io:2.11.0",
+        "commons-io:commons-io:2.12.0",
+      )
   }
 }

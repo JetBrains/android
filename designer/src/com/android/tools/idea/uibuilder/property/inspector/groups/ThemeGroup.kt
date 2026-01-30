@@ -29,10 +29,8 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 private const val THEME_STYLEABLE = "Theme"
 
-class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NlPropertyItem>) :
-  GroupSpec<NlPropertyItem> {
-  private val themeProperty =
-    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_THEME)
+class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NlPropertyItem>) : GroupSpec<NlPropertyItem> {
+  private val themeProperty = properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_THEME)
   private val attrs = findThemeAttrs(facet)
 
   override val name: String
@@ -48,12 +46,8 @@ class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NlPropertyItem
     get() = FilteredPTableModel.alphabeticalSortOrder
 
   private fun findThemeAttrs(facet: AndroidFacet): Set<AttributeDefinition> {
-    val definitions =
-      ModuleResourceManagers.getInstance(facet).frameworkResourceManager?.attributeDefinitions
-    val styleable =
-      definitions?.getStyleableDefinition(
-        ResourceReference.styleable(ResourceNamespace.ANDROID, THEME_STYLEABLE)
-      )
+    val definitions = ModuleResourceManagers.getInstance(facet).frameworkResourceManager?.attributeDefinitions
+    val styleable = definitions?.getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.ANDROID, THEME_STYLEABLE))
     return styleable?.attributes?.toHashSet() ?: emptySet()
   }
 }

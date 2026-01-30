@@ -35,9 +35,7 @@ class DeadlockUIThreadWithLocksTimeout : AnAction(), DumbAware {
     lock2.withLock {
       semaphore2.release()
       semaphore1.acquire()
-      lock1.withLock {
-        println("Deadlock before reaching this line.")
-      }
+      lock1.withLock { println("Deadlock before reaching this line.") }
     }
   }
 

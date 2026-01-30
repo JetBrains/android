@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action;
+package com.android.tools.idea.editors.strings.action
 
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
@@ -25,10 +25,10 @@ import com.intellij.openapi.editor.actions.TextComponentEditorAction
 import com.intellij.openapi.editor.ex.EditorEx
 
 /**
- * This is a copy of [com.intellij.openapi.editor.actions.PasteAction] with handling for languages that can't be displayed by the
- * default font.
+ * This is a copy of [com.intellij.openapi.editor.actions.PasteAction] with handling for languages that can't be displayed by the default
+ * font.
  */
- class TranslationsEditorPasteAction : TextComponentEditorAction(Handler()) {
+class TranslationsEditorPasteAction : TextComponentEditorAction(Handler()) {
 
   init {
     copyShortcutFrom(ActionManager.getInstance().getAction("EditorPaste"))
@@ -37,11 +37,12 @@ import com.intellij.openapi.editor.ex.EditorEx
   private class Handler : BasePasteHandler() {
     override fun executeWriteAction(editor: Editor, caret: Caret?, dataContext: DataContext?) {
       // This stuff is adapted from PasteAction
-      when(myTransferable) {
+      when (myTransferable) {
         null -> editor.putUserData(EditorEx.LAST_PASTED_REGION, null)
-        else -> EditorCopyPasteHelper.getInstance().pasteTransferable(editor, myTransferable)?.let {
-          if (it.size == 1) editor.putUserData(EditorEx.LAST_PASTED_REGION, it[0])
-        }
+        else ->
+          EditorCopyPasteHelper.getInstance().pasteTransferable(editor, myTransferable)?.let {
+            if (it.size == 1) editor.putUserData(EditorEx.LAST_PASTED_REGION, it[0])
+          }
       }
     }
   }

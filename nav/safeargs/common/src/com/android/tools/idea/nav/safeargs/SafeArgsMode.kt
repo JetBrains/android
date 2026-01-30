@@ -43,9 +43,8 @@ enum class SafeArgsFeature {
 var AndroidFacet.safeArgsMode: SafeArgsMode
   get() = SafeArgsModeModuleService.getInstance(module).safeArgsMode
   /**
-   * Allow tests to set the [SafeArgsMode] directly -- however, this value may get overwritten if
-   * testing with a Gradle project. In that case, you should control the mode by applying the
-   * appropriate safeargs plugin instead.
+   * Allow tests to set the [SafeArgsMode] directly -- however, this value may get overwritten if testing with a Gradle project. In that
+   * case, you should control the mode by applying the appropriate safeargs plugin instead.
    */
   @TestOnly
   set(value) {
@@ -55,19 +54,15 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
 var AndroidFacet.safeArgsFeatures: Set<SafeArgsFeature>
   get() = SafeArgsModeModuleService.getInstance(module).safeArgsFeatures
   /**
-   * Allow tests to set the set of [SafeArgsFeature]s directly, for use in non-Gradle environments.
-   * (In Gradle environments, make sure that the version of [ANDROIDX_NAVIGATION_COMMON] applied to
-   * the module is appropriate for the set of desired features.)
+   * Allow tests to set the set of [SafeArgsFeature]s directly, for use in non-Gradle environments. (In Gradle environments, make sure that
+   * the version of [ANDROIDX_NAVIGATION_COMMON] applied to the module is appropriate for the set of desired features.)
    */
   @TestOnly
   set(value) {
     SafeArgsModeModuleService.getInstance(module).safeArgsFeatures = value
   }
 
-/**
- * A project-wide tracker which gets updated whenever [safeArgsMode] is updated on any of its
- * modules.
- */
+/** A project-wide tracker which gets updated whenever [safeArgsMode] is updated on any of its modules. */
 val Project.safeArgsModeTracker: ModificationTracker
   get() = SafeArgsModeTrackerProjectService.getInstance(this)
 

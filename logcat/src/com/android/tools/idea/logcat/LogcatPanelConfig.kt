@@ -39,8 +39,7 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
 /**
  * Configuration for a logcat panel.
  *
- * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by
- * [SplittingTabsToolWindowFactory].
+ * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
  */
 internal data class LogcatPanelConfig(
   val device: Device?,
@@ -53,12 +52,11 @@ internal data class LogcatPanelConfig(
 ) {
 
   /**
-   * Ensures that the contents of LogcatPanelConfig are in a normal state; i.e. all non-nullable
-   * fields are not null. (Gson can deserialize objects into this broken state. In this state, the
-   * copy() method throws an exception because it tries to pass the null to a non-null parameter.)
+   * Ensures that the contents of LogcatPanelConfig are in a normal state; i.e. all non-nullable fields are not null. (Gson can deserialize
+   * objects into this broken state. In this state, the copy() method throws an exception because it tries to pass the null to a non-null
+   * parameter.)
    */
-  private fun normalize(): LogcatPanelConfig? =
-    runCatching { copy(device = runCatching { device?.copy() }.getOrNull()) }.getOrNull()
+  private fun normalize(): LogcatPanelConfig? = runCatching { copy(device = runCatching { device?.copy() }.getOrNull()) }.getOrNull()
 
   companion object {
     /** Decodes a JSON string into a [LogcatPanelConfig]. */
@@ -74,14 +72,12 @@ internal data class LogcatPanelConfig(
     /**
      * Encodes a [LogcatPanelConfig] into a JSON string.
      *
-     * We replace all double quotes with single quotes because the XML serializer will replace
-     * double quotes with `@quot;` while single quotes seem to be fine. This makes the JSON string
-     * more human-readable.
+     * We replace all double quotes with single quotes because the XML serializer will replace double quotes with `@quot;` while single
+     * quotes seem to be fine. This makes the JSON string more human-readable.
      *
      * GSON can handle single quoted JSON strings.
      */
-    fun toJson(config: LogcatPanelConfig): String =
-      gson.toJson(config).replace(Regex("(?<!\\\\)\""), "'")
+    fun toJson(config: LogcatPanelConfig): String = gson.toJson(config).replace(Regex("(?<!\\\\)\""), "'")
   }
 
   sealed class FormattingConfig {
@@ -97,13 +93,8 @@ internal data class LogcatPanelConfig(
     }
 
     // This is required since Gson can't deal with the sealed base class.
-    internal class Serializer :
-      JsonSerializer<FormattingConfig>, JsonDeserializer<FormattingConfig> {
-      override fun serialize(
-        src: FormattingConfig,
-        type: Type,
-        context: JsonSerializationContext,
-      ): JsonElement {
+    internal class Serializer : JsonSerializer<FormattingConfig>, JsonDeserializer<FormattingConfig> {
+      override fun serialize(src: FormattingConfig, type: Type, context: JsonSerializationContext): JsonElement {
         val obj = JsonObject()
         when (src) {
           is Preset -> obj.addProperty(PROPERTY_NAME_PRESET, src.style.name)
@@ -112,17 +103,11 @@ internal data class LogcatPanelConfig(
         return obj
       }
 
-      override fun deserialize(
-        element: JsonElement,
-        type: Type,
-        context: JsonDeserializationContext,
-      ): FormattingConfig {
+      override fun deserialize(element: JsonElement, type: Type, context: JsonDeserializationContext): FormattingConfig {
         return element.asJsonObject.run {
           when {
-            has(PROPERTY_NAME_PRESET) ->
-              Preset(FormattingOptions.Style.valueOf(get(PROPERTY_NAME_PRESET).asString))
-            has(PROPERTY_NAME_CUSTOM) ->
-              Custom(Gson().fromJson(get(PROPERTY_NAME_CUSTOM), FormattingOptions::class.java))
+            has(PROPERTY_NAME_PRESET) -> Preset(FormattingOptions.Style.valueOf(get(PROPERTY_NAME_PRESET).asString))
+            has(PROPERTY_NAME_CUSTOM) -> Custom(Gson().fromJson(get(PROPERTY_NAME_CUSTOM), FormattingOptions::class.java))
             else -> throw IllegalStateException("Invalid FormattingConfig element: $element")
           }
         }

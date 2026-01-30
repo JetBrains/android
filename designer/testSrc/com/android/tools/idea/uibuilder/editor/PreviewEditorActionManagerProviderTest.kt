@@ -28,13 +28,7 @@ import org.junit.Test
 import org.mockito.Mockito
 
 val ANIMATION_TYPES =
-  listOf(
-    AnimatedImageFileType,
-    AnimatedStateListFileType,
-    AnimatedStateListTempFileType,
-    AnimatedVectorFileType,
-    AnimationListFileType,
-  )
+  listOf(AnimatedImageFileType, AnimatedStateListFileType, AnimatedStateListTempFileType, AnimatedVectorFileType, AnimationListFileType)
 
 class PreviewEditorActionManagerProviderTest {
 

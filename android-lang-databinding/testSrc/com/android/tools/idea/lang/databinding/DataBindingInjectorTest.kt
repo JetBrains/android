@@ -34,9 +34,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * A collection of various code injection tests that verify DbLanguageInjector works as expected.
- */
+/** A collection of various code injection tests that verify DbLanguageInjector works as expected. */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class DataBindingInjectorTest(private val mode: DataBindingMode) {
@@ -51,18 +49,15 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
 
   // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
   // initialized on the EDT.
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -79,7 +74,8 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingInjectionWithCustomAttribute() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
 
       import android.view.View;
@@ -94,9 +90,14 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
           System.out.println(v.getClass() + ": " + text);
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -107,16 +108,18 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
             android:id="@+id/c_0_0"
             app:print="@{${caret}member.doSomething()}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertThat(fixture.elementAtCaret.text).isEqualTo("<variable name=\"member\" type=\"ModelWithBindingAdapters\" />")
   }
 
-
   @Test
   fun testDataBindingInjectionWithAndroidAttribute() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {
@@ -124,9 +127,14 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
           return "string";
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -137,7 +145,9 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
             android:id="@+id/c_0_0"
             android:text="@{${caret}member.doSomething()}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertThat(fixture.elementAtCaret.text).isEqualTo("<variable name=\"member\" type=\"Model\" />")
@@ -149,7 +159,8 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
    */
   @Test
   fun testDataBindingInjectionWithUnknownAttribute() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {
@@ -157,9 +168,14 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
           return "string";
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -170,7 +186,9 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
             android:id="@+id/c_0_0"
             app:print="@{${caret}member.doSomething()}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertThat(fixture.elementAtCaret.text).isEqualTo("<variable name=\"member\" type=\"Model\" />")
@@ -178,7 +196,8 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingInjectionWithInvalidPrefix() {
-    fixture.addClass("""
+    fixture.addClass(
+      """
       package test.langdb;
       import android.view.View;
       public class Model {
@@ -186,9 +205,14 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
           return "string";
         }
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/test_layout.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -199,15 +223,16 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
             android:id="@+id/c_0_0"
             app:print="@DataBinding{${caret}member.doSomething()}"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     // TODO: use assertThrows instead after JUnit 4.13 is released
     try {
       fixture.elementAtCaret
       fail("fixture.elementAtCaret did not throw expected AssertionError")
-    }
-    catch (e: AssertionError) {
+    } catch (e: AssertionError) {
       assertThat(e.message!!).contains("element not found in file")
     }
   }

@@ -32,18 +32,19 @@ class AndroidSqlPairedBraceMatcher : PairedBraceMatcher {
   private val _pairs = arrayOf(BracePair(AndroidSqlPsiTypes.LPAREN, AndroidSqlPsiTypes.RPAREN, true))
 
   override fun getPairs(): Array<BracePair> = _pairs
+
   override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?): Boolean = true
+
   override fun getCodeConstructStart(file: PsiFile?, openingBraceOffset: Int): Int = openingBraceOffset
 }
 
-/**
- * [com.intellij.codeInsight.editorActions.QuoteHandler] for RoomSql. Makes the IDE insert the matching quote when typing.
- */
-class AndroidSqlQuoteHandler : SimpleTokenSetQuoteHandler(
-  AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
-  AndroidSqlPsiTypes.DOUBLE_QUOTE_STRING_LITERAL,
-  AndroidSqlPsiTypes.BACKTICK_LITERAL,
-  UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
-  UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
-  UNTERMINATED_BACKTICK_LITERAL
-)
+/** [com.intellij.codeInsight.editorActions.QuoteHandler] for RoomSql. Makes the IDE insert the matching quote when typing. */
+class AndroidSqlQuoteHandler :
+  SimpleTokenSetQuoteHandler(
+    AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
+    AndroidSqlPsiTypes.DOUBLE_QUOTE_STRING_LITERAL,
+    AndroidSqlPsiTypes.BACKTICK_LITERAL,
+    UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
+    UNTERMINATED_BACKTICK_LITERAL,
+  )

@@ -74,42 +74,23 @@ class ToggleLayoutInspectorActionTest {
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
 
-    tab1 =
-      TabInfo(
-        DeviceId.ofPhysicalDevice("tab1"),
-        BorderLayoutPanel(),
-        JPanel(),
-        listOf(displayViewRule.newEmulatorView()),
-      )
+    tab1 = TabInfo(DeviceId.ofPhysicalDevice("tab1"), BorderLayoutPanel(), JPanel(), listOf(displayViewRule.newEmulatorView()))
 
     toolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1))
 
     // replace ToolWindowManager with fake one
-    displayViewRule.project.replaceService(
-      ToolWindowManager::class.java,
-      toolWindowManager,
-      displayViewRule.disposable,
-    )
+    displayViewRule.project.replaceService(ToolWindowManager::class.java, toolWindowManager, displayViewRule.disposable)
 
     displayView = spy(displayViewRule.newEmulatorView())
 
     // replace CustomActionsSchema with mocked one
     val mockCustomActionSchema = mock<CustomActionsSchema>()
     whenever(mockCustomActionSchema.getCorrectedAction(any())).thenAnswer { getFakeAction() }
-    ApplicationManager.getApplication()
-      .replaceService(
-        CustomActionsSchema::class.java,
-        mockCustomActionSchema,
-        displayViewRule.disposable,
-      )
+    ApplicationManager.getApplication().replaceService(CustomActionsSchema::class.java, mockCustomActionSchema, displayViewRule.disposable)
 
     // replace LayoutInspectorManager with fake one
     fakeLayoutInspectorManager = FakeLayoutInspectorManager()
-    displayViewRule.project.replaceService(
-      LayoutInspectorManager::class.java,
-      fakeLayoutInspectorManager,
-      displayViewRule.disposable,
-    )
+    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, fakeLayoutInspectorManager, displayViewRule.disposable)
   }
 
   @Test
@@ -160,11 +141,7 @@ class ToggleLayoutInspectorActionTest {
   fun testLayoutInspectorManagerNotCreatedWhenEmbeddedLayoutInspectorIsDisabled() =
     withEmbeddedLayoutInspector(false) {
       val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
-      displayViewRule.project.replaceService(
-        LayoutInspectorManager::class.java,
-        mockLayoutInspectorManager,
-        displayViewRule.disposable,
-      )
+      displayViewRule.project.replaceService(LayoutInspectorManager::class.java, mockLayoutInspectorManager, displayViewRule.disposable)
 
       val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
       val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
@@ -186,9 +163,7 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
 
-    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(
-      DeviceId.ofPhysicalDevice("device1")
-    )
+    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(DeviceId.ofPhysicalDevice("device1"))
 
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
@@ -208,8 +183,7 @@ class ToggleLayoutInspectorActionTest {
   @Test
   fun testActionPerformedShowsDiscoverPopUpWhenDeviceIdIsNull() = withEmbeddedLayoutInspector {
     var isTriggered = false
-    val toggleLayoutInspectorAction =
-      ToggleLayoutInspectorAction(showNotificationDiscovery = { isTriggered = true })
+    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction(showNotificationDiscovery = { isTriggered = true })
 
     val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceId = null)
 
@@ -233,10 +207,7 @@ class ToggleLayoutInspectorActionTest {
         .add(STREAMING_CONTENT_PANEL_KEY, contentPanel)
         .add(DISPLAY_VIEW_KEY, displayView)
         .add(DEVICE_ID_KEY, deviceId)
-        .add(
-          CONTENT_MANAGER,
-          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager,
-        )
+        .add(CONTENT_MANAGER, toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager)
         .build()
 
     return createEvent(this, dataContext, null, "", ActionUiKind.NONE, null)

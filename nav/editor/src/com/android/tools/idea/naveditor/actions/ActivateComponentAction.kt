@@ -32,8 +32,7 @@ class ActivateComponentAction(text: String?, private val component: NlComponent)
     if (e.getData(DESIGN_SURFACE) == null) {
       e.presentation.isEnabled = false
     } else {
-      e.presentation.isEnabled =
-        component.isNavigation || component.className != null || component.layout != null
+      e.presentation.isEnabled = component.isNavigation || component.className != null || component.layout != null
     }
   }
 

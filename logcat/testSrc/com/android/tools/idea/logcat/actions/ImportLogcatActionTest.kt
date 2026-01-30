@@ -46,11 +46,7 @@ class ImportLogcatActionTest {
 
   @get:Rule
   val rule =
-    RuleChain(
-      projectRule,
-      WaitForIndexRule(projectRule),
-      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
-    )
+    RuleChain(projectRule, WaitForIndexRule(projectRule), ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
 
   @Test
   fun actionPerformed() {
@@ -72,18 +68,13 @@ class ImportLogcatActionTest {
 
   private class FakeFileChooserFactory : FileChooserFactoryImpl() {
     private val fileSystem = createInMemoryFileSystem()
-    private val path =
-      this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply { writeText("") }
+    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply { writeText("") }
     val virtualFile =
       object : LightVirtualFile(path.name) {
         override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
       }
 
-    override fun createFileChooser(
-      descriptor: FileChooserDescriptor,
-      project: Project?,
-      parent: Component?,
-    ): FileChooserDialog {
+    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
       return FileChooserDialog { _, _ -> arrayOf(virtualFile) }
     }
   }

@@ -229,13 +229,8 @@ class NlPropertyItemTest {
   @Test
   fun testColorPropertyWithColorStateList() =
     testScope.runTest {
-      val util =
-        SupportTestUtil(
-          projectRule,
-          createTextViewWithTextColor("@android:color/primary_text_dark"),
-        )
-      val property =
-        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+      val util = SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
+      val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
       withContext(uiThread) {
         property.model.showResolvedValues = false
         assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
@@ -253,10 +248,7 @@ class NlPropertyItemTest {
 
       property.model.addListener(
         object : PropertiesModelListener<NlPropertyItem> {
-          override fun propertyValuesChanged(
-            model: PropertiesModel<NlPropertyItem>,
-            childElementChanges: Boolean,
-          ) {
+          override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
             updatedPropertiesDeferrable.complete(Unit)
           }
         }
@@ -268,8 +260,7 @@ class NlPropertyItemTest {
       updatedPropertiesDeferrable.await()
       delayUntilCondition(100L) { readAction { colorButton.actionIcon } == colorIcon }
       val browseButton = property.browseButton!!
-      assertThat(readAction { browseButton.actionIcon })
-        .isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+      assertThat(readAction { browseButton.actionIcon }).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
     }
 
   @RunsInEdt
@@ -297,10 +288,8 @@ class NlPropertyItemTest {
 
     assertThat(resolvedValue(util, NlPropertyType.BOOLEAN, "@bool/useBorder")).isEqualTo("true")
     assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/opaqueRed")).isEqualTo("#f00")
-    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/opaqueRedIndirect"))
-      .isEqualTo("#f00")
-    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/translucentRed"))
-      .isEqualTo("#80ff0000")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/opaqueRedIndirect")).isEqualTo("#f00")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/translucentRed")).isEqualTo("#80ff0000")
     assertThat(resolvedValue(util, NlPropertyType.DIMENSION, "@dimen/ballRadius")).isEqualTo("30dp")
     assertThat(resolvedValue(util, NlPropertyType.DIMENSION, "@dimen/fontSize")).isEqualTo("16sp")
     assertThat(resolvedValue(util, NlPropertyType.FRACTION, "@fraction/part")).isEqualTo("0.125")
@@ -309,14 +298,10 @@ class NlPropertyItemTest {
     assertThat(resolvedValue(util, NlPropertyType.STRING, "@string/hello")).isEqualTo("Hello")
 
     // The following resources will resolve to a file path. Check that we do NOT show the file:
-    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/text"))
-      .isEqualTo("@android:color/primary_text_dark")
-    assertThat(resolvedValue(util, NlPropertyType.DRAWABLE, "@drawable/cancel"))
-      .isEqualTo("@android:drawable/ic_delete")
-    assertThat(resolvedValue(util, NlPropertyType.STYLE, "@style/stdButton"))
-      .isEqualTo("@style/stdButton")
-    assertThat(resolvedValue(util, NlPropertyType.LAYOUT, "@layout/my_layout"))
-      .isEqualTo("@layout/my_layout")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "@color/text")).isEqualTo("@android:color/primary_text_dark")
+    assertThat(resolvedValue(util, NlPropertyType.DRAWABLE, "@drawable/cancel")).isEqualTo("@android:drawable/ic_delete")
+    assertThat(resolvedValue(util, NlPropertyType.STYLE, "@style/stdButton")).isEqualTo("@style/stdButton")
+    assertThat(resolvedValue(util, NlPropertyType.LAYOUT, "@layout/my_layout")).isEqualTo("@layout/my_layout")
   }
 
   /** Regression test for b/301922960. */
@@ -325,16 +310,10 @@ class NlPropertyItemTest {
   fun testResolveOverlayValues() {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.addFileToProject("res/values/styles.xml", STYLES)
-    val util =
-      SupportTestUtil(
-        projectRule,
-        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay"),
-      )
+    val util = SupportTestUtil(projectRule, createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay"))
 
-    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenBackgroundColor"))
-      .isEqualTo("#123456")
-    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenTextColor"))
-      .isEqualTo("#ABCDEF")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenBackgroundColor")).isEqualTo("#123456")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenTextColor")).isEqualTo("#ABCDEF")
   }
 
   @Test
@@ -376,8 +355,7 @@ class NlPropertyItemTest {
 
     // The value should immediately be available on the snapshot, which would eliminate flickering
     // if the snapshot is available:
-    @Suppress("DEPRECATION")
-    assertThat(component.snapshot?.getAttribute(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
+    @Suppress("DEPRECATION") assertThat(component.snapshot?.getAttribute(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
 
     // However the XmlTag will not have this value before later:
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -447,12 +425,7 @@ class NlPropertyItemTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     val components = property.components
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      "?attr/textAppearanceSmall",
-    )
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     waitUntilLastSelectionUpdateCompleted(property.model)
 
     assertThat(property.value).isNull()
@@ -483,36 +456,20 @@ class NlPropertyItemTest {
   fun testToolTipForValue() {
     val util = SupportTestUtil(projectRule, createTextView(), listenToResourceChanges = false)
     val components = util.components
-    val emptyProperty =
-      util.makeProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
-    val hardcodedProperty =
-      util.makeProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NlPropertyType.DIMENSION)
+    val emptyProperty = util.makeProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
+    val hardcodedProperty = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NlPropertyType.DIMENSION)
     val referenceProperty = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
-    val hardcodedFromDefaultProperty =
-      util.makeProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NlPropertyType.DIMENSION)
-    val referenceFromDefaultProperty =
-      util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.DIMENSION)
+    val hardcodedFromDefaultProperty = util.makeProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NlPropertyType.DIMENSION)
+    val referenceFromDefaultProperty = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.DIMENSION)
     val manager = getSceneManager(hardcodedFromDefaultProperty)
-    val keyStroke =
-      KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT) // Platform dependent !!!
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_LINE_SPACING_EXTRA,
-      "16sp",
-    )
-    manager.putDefaultPropertyValue(
-      components[0],
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_SIZE,
-      "@dimen/text_size_button_material",
-    )
+    val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT) // Platform dependent !!!
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
     waitUntilLastSelectionUpdateCompleted(util.model)
 
     assertThat(emptyProperty.tooltipForValue).isEmpty()
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()
-    assertThat(referenceProperty.tooltipForValue)
-      .isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
+    assertThat(referenceProperty.tooltipForValue).isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
     assertThat(hardcodedFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"16sp\"")
     assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"14sp\"")
   }
@@ -524,20 +481,15 @@ class NlPropertyItemTest {
     val text = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val values = text.editingSupport.completion("")
     assertThat(values.size).isAtLeast(25)
-    assertThat(values.filter { it.startsWith("@string/") })
-      .containsExactly("@string/demo", "@string/design")
-      .inOrder()
-    assertThat(values)
-      .containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
+    assertThat(values.filter { it.startsWith("@string/") }).containsExactly("@string/demo", "@string/design").inOrder()
+    assertThat(values).containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
   }
 
   // Completions are not run on the EDT
   @Test
   fun testIdCompletion() {
     val util = SupportTestUtil(projectRule, createMultipleComponents())
-    util.components.retainAll(
-      listOf(util.components.first())
-    ) // Select the first components for the property
+    util.components.retainAll(listOf(util.components.first())) // Select the first components for the property
     val toEndOf = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_TO_END_OF, NlPropertyType.ID)
     val values = toEndOf.editingSupport.completion("")
     assertThat(values).containsExactly("@id/button1", "@id/text2", "@id/button2").inOrder()
@@ -589,76 +541,48 @@ class NlPropertyItemTest {
     val color = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
     assertThat(color.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(color.editingSupport.validation("#FF00FF")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(color.editingSupport.validation("?android:attr/colorPrimary"))
-      .isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("?android:attr/colorPrimary")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(color.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(color.editingSupport.validation("@android:color/holo_blue_bright"))
-      .isEqualTo(EDITOR_NO_ERROR)
+    assertThat(color.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(color.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(color.editingSupport.validation("@android:drawable/btn_minus"))
       .isEqualTo(Pair(ERROR, "Unexpected resource type: 'drawable' expected: color"))
-    assertThat(color.editingSupport.validation("#XYZ"))
-      .isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(color.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
     assertThat(color.editingSupport.validation("?android:attr/no_color"))
       .isEqualTo(Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
-    assertThat(color.editingSupport.validation("@hello/hello"))
-      .isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(color.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
     assertThat(color.editingSupport.validation("@string/hello"))
       .isEqualTo(Pair(ERROR, "Unexpected resource type: 'string' expected: color"))
-    assertThat(color.editingSupport.validation("@android:color/no_color"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
-    assertThat(color.editingSupport.validation("@color/no_color"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(color.editingSupport.validation("@android:color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(color.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
   }
 
   @Test
   fun testDrawableValidation() {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
-    projectRule.fixture.copyFileToProject(
-      "mipmap/mipmap-hdpi/ic_launcher.png",
-      "res/mipmap-hdpi/ic_launcher.png",
-    )
-    projectRule.fixture.copyFileToProject(
-      "mipmap/mipmap-mdpi/ic_launcher.png",
-      "res/mipmap-mdpi/ic_launcher.png",
-    )
-    projectRule.fixture.copyFileToProject(
-      "mipmap/mipmap-xhdpi/ic_launcher.png",
-      "res/mipmap-xhdpi/ic_launcher.png",
-    )
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-hdpi/ic_launcher.png", "res/mipmap-hdpi/ic_launcher.png")
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-mdpi/ic_launcher.png", "res/mipmap-mdpi/ic_launcher.png")
+    projectRule.fixture.copyFileToProject("mipmap/mipmap-xhdpi/ic_launcher.png", "res/mipmap-xhdpi/ic_launcher.png")
     val util = SupportTestUtil(projectRule, createImageView())
     val srcCompat = util.makeProperty(ANDROID_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
     assertThat(srcCompat.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("#FF00FF")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("?android:attr/colorPrimary"))
-      .isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("?android:attr/colorPrimary")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("@android:color/holo_blue_bright"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("@color/translucentRed"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("@android:drawable/btn_minus"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("#XYZ"))
-      .isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
-    assertThat(srcCompat.editingSupport.validation("@+drrawable/x"))
-      .isEqualTo(Pair(ERROR, "Invalid syntax"))
+    assertThat(srcCompat.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@android:drawable/btn_minus")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(srcCompat.editingSupport.validation("@+drrawable/x")).isEqualTo(Pair(ERROR, "Invalid syntax"))
     assertThat(srcCompat.editingSupport.validation("?android:attr/no_color"))
       .isEqualTo(Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
-    assertThat(srcCompat.editingSupport.validation("@hello/hello"))
-      .isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(srcCompat.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
     assertThat(srcCompat.editingSupport.validation("@string/hello"))
-      .isEqualTo(
-        Pair(ERROR, "Unexpected resource type: 'string' expected one of: color, drawable, mipmap")
-      )
-    assertThat(srcCompat.editingSupport.validation("@android:color/no_color"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
-    assertThat(srcCompat.editingSupport.validation("@color/no_color"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
-    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_launcher"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
+      .isEqualTo(Pair(ERROR, "Unexpected resource type: 'string' expected one of: color, drawable, mipmap"))
+    assertThat(srcCompat.editingSupport.validation("@android:color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(srcCompat.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
+    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_launcher")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
   }
 
   @Test
@@ -667,19 +591,14 @@ class NlPropertyItemTest {
     val util = SupportTestUtil(projectRule, createButton())
     val animator = util.makeProperty(ANDROID_URI, ATTR_STATE_LIST_ANIMATOR, NlPropertyType.ANIMATOR)
     assertThat(animator.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(animator.editingSupport.validation("@animator/my_animator"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(animator.editingSupport.validation("@android:animator/fade_in"))
-      .isEqualTo(EDITOR_NO_ERROR)
-    assertThat(animator.editingSupport.validation("@android:anim/fade_in"))
-      .isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@animator/my_animator")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:anim/fade_in")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@android:color/holo_blue_bright"))
       .isEqualTo(Pair(ERROR, "Unexpected resource type: 'color' expected one of: anim, animator"))
-    assertThat(animator.editingSupport.validation("@animator/no_animator"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_animator'"))
-    assertThat(animator.editingSupport.validation("@hello/hello"))
-      .isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(animator.editingSupport.validation("@animator/no_animator")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_animator'"))
+    assertThat(animator.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
   @Test
@@ -690,8 +609,7 @@ class NlPropertyItemTest {
     assertThat(visibility.editingSupport.validation("visible")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(visibility.editingSupport.validation("invisible")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(visibility.editingSupport.validation("gone")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(visibility.editingSupport.validation("blue"))
-      .isEqualTo(Pair(ERROR, "Invalid value: 'blue'"))
+    assertThat(visibility.editingSupport.validation("blue")).isEqualTo(Pair(ERROR, "Invalid value: 'blue'"))
   }
 
   @Test
@@ -715,8 +633,7 @@ class NlPropertyItemTest {
       .isEqualTo(Pair(ERROR, "Unexpected resource type: 'bool' expected one of: id, string"))
     assertThat(src.editingSupport.validation("@color/opaqueRed"))
       .isEqualTo(Pair(ERROR, "Unexpected resource type: 'color' expected one of: id, string"))
-    assertThat(src.editingSupport.validation("@hello/hello"))
-      .isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
   @Test
@@ -727,14 +644,10 @@ class NlPropertyItemTest {
     val src = util.makeProperty(AUTO_URI, ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, NlPropertyType.XML)
     assertThat(src.editingSupport.validation("@xml/motion_scene")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(src.editingSupport.validation("@xml/other_scene")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(src.editingSupport.validation("@xml/nowhere"))
-      .isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'nowhere'"))
-    assertThat(src.editingSupport.validation("@string/demo"))
-      .isEqualTo(Pair(ERROR, "Unexpected resource type: 'string' expected: xml"))
-    assertThat(src.editingSupport.validation("@id/go"))
-      .isEqualTo(Pair(ERROR, "Unexpected resource type: 'id' expected: xml"))
-    assertThat(src.editingSupport.validation("@hello/hello"))
-      .isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+    assertThat(src.editingSupport.validation("@xml/nowhere")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'nowhere'"))
+    assertThat(src.editingSupport.validation("@string/demo")).isEqualTo(Pair(ERROR, "Unexpected resource type: 'string' expected: xml"))
+    assertThat(src.editingSupport.validation("@id/go")).isEqualTo(Pair(ERROR, "Unexpected resource type: 'id' expected: xml"))
+    assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
   @RunsInEdt
@@ -744,20 +657,17 @@ class NlPropertyItemTest {
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NlPropertyType.DRAWABLE)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(background.colorButton?.actionIcon)
-      .isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
 
     background.value = "@drawable/non-existent-drawable"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(background.colorButton?.actionIcon)
-      .isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     background.value = "@color/non-existent-color"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(background.colorButton?.actionIcon)
-      .isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+    assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
   }
 
   @RunsInEdt
@@ -768,8 +678,7 @@ class NlPropertyItemTest {
     src.value = null
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(src.colorButton?.actionIcon)
-      .isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     src.value = "@color/non-existent-color"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -779,8 +688,7 @@ class NlPropertyItemTest {
     src.value = "@drawable/non-existent-drawable"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(src.colorButton?.actionIcon)
-      .isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+    assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
   }
 
   @RunsInEdt
@@ -794,11 +702,7 @@ class NlPropertyItemTest {
     property.helpSupport.browse()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    fileOpenRule.checkEditor(
-      "styles_material.xml",
-      177,
-      "<style name=\"TextAppearance.Material.Display2\">",
-    )
+    fileOpenRule.checkEditor("styles_material.xml", 177, "<style name=\"TextAppearance.Material.Display2\">")
   }
 
   @Test
@@ -830,14 +734,8 @@ class NlPropertyItemTest {
   @Test
   fun testLazyResolverLoading() =
     testScope.runTest {
-      val util =
-        SupportTestUtil(
-          projectRule,
-          createTextViewWithTextColor("@android:color/primary_text_dark"),
-          initResolver = false,
-        )
-      val property =
-        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+      val util = SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"), initResolver = false)
+      val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
       // The resolver: "property.model.resolver" will usually be null at this point.
 
       // The resolver must eventually be loaded:
@@ -847,20 +745,11 @@ class NlPropertyItemTest {
   @Test
   fun testNavigationItems() =
     testScope.runTest {
-      val util =
-        SupportTestUtil(
-          projectRule,
-          parentTag = "action",
-          resourceFolder = FD_RES_NAVIGATION,
-          fileName = "navigation.xml",
-        )
-      val property =
-        util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
+      val util = SupportTestUtil(projectRule, parentTag = "action", resourceFolder = FD_RES_NAVIGATION, fileName = "navigation.xml")
+      val property = util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
       withContext(uiThread) {
-        assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator"))
-          .isEqualTo(EDITOR_NO_ERROR)
-        assertThat(property.editingSupport.validation("@android:animator/fade_in"))
-          .isEqualTo(EDITOR_NO_ERROR)
+        assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator")).isEqualTo(EDITOR_NO_ERROR)
+        assertThat(property.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
       }
     }
 
@@ -874,12 +763,7 @@ class NlPropertyItemTest {
     val styleName = "?android:attr/textAppearanceLarge"
     whenever(snapshot.getAttribute(ATTR_STYLE, "")).thenReturn(styleName)
     val manager = getSceneManager(property)
-    manager.putDefaultPropertyValue(
-      textView,
-      ResourceNamespace.ANDROID,
-      ATTR_TEXT_APPEARANCE,
-      styleName,
-    )
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, styleName)
     waitUntilLastSelectionUpdateCompleted(property.model)
 
     assertThat(property.value).isNull()
@@ -972,14 +856,8 @@ class NlPropertyItemTest {
           .id(NEW_ID_PREFIX + "button1")
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design"),
-        ComponentDescriptor(TEXT_VIEW)
-          .withBounds(0, 40, 200, 20)
-          .id(NEW_ID_PREFIX + "text2")
-          .withAttribute(ANDROID_URI, ATTR_TEXT, "demo"),
-        ComponentDescriptor(BUTTON)
-          .withBounds(0, 60, 200, 20)
-          .id(NEW_ID_PREFIX + "button2")
-          .withAttribute(ANDROID_URI, ATTR_TEXT, "other"),
+        ComponentDescriptor(TEXT_VIEW).withBounds(0, 40, 200, 20).id(NEW_ID_PREFIX + "text2").withAttribute(ANDROID_URI, ATTR_TEXT, "demo"),
+        ComponentDescriptor(BUTTON).withBounds(0, 60, 200, 20).id(NEW_ID_PREFIX + "button2").withAttribute(ANDROID_URI, ATTR_TEXT, "other"),
       )
 
   private fun isReferenceValue(property: NlPropertyItem, value: String): Boolean {
@@ -997,66 +875,69 @@ class NlPropertyItemTest {
 
   @Language("XML")
   private val VALUE_RESOURCES =
-    """<?xml version="1.0" encoding="utf-8"?>
-    <resources>
-      <bool name="useBorder">true</bool>
-      <color name="opaqueRed">#f00</color>
-      <color name="translucentRed">#80ff0000</color>
-      <color name="opaqueRedIndirect">@color/opaqueRed</color>
-      <dimen name="ballRadius">30dp</dimen>
-      <dimen name="fontSize">16sp</dimen>
-      <fraction name="part">0.125</fraction>
-      <item type="id" name="button_ok" />
-      <integer name="records">67</integer>
-      <string name="hello">Hello</string>
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+          <bool name="useBorder">true</bool>
+          <color name="opaqueRed">#f00</color>
+          <color name="translucentRed">#80ff0000</color>
+          <color name="opaqueRedIndirect">@color/opaqueRed</color>
+          <dimen name="ballRadius">30dp</dimen>
+          <dimen name="fontSize">16sp</dimen>
+          <fraction name="part">0.125</fraction>
+          <item type="id" name="button_ok" />
+          <integer name="records">67</integer>
+          <string name="hello">Hello</string>
 
-      <color name="text">@android:color/primary_text_dark</color>
-      <drawable name="cancel">@android:drawable/ic_delete</drawable>
-      <style name="stdButton" parent="@android:style/TextAppearance.Material.Widget.Button"/>
-    </resources>
-  """
+          <color name="text">@android:color/primary_text_dark</color>
+          <drawable name="cancel">@android:drawable/ic_delete</drawable>
+          <style name="stdButton" parent="@android:style/TextAppearance.Material.Widget.Button"/>
+        </resources>
+    """
       .trimIndent()
 
   @Language("XML")
   private val ANIMATOR_RESOURCE =
-    """<?xml version="1.0" encoding="utf-8"?>
-    <selector xmlns:android="http://schemas.android.com/apk/res/android">
-        <!-- the pressed state; increase x and y size to 150% -->
-        <item android:state_pressed="true">
-            <set>
-                <objectAnimator android:propertyName="scaleX"
-                        android:duration="@android:integer/config_shortAnimTime"
-                        android:valueTo="5.0"
-                        android:valueType="floatType"/>
-                <objectAnimator android:propertyName="scaleY"
-                        android:duration="@android:integer/config_shortAnimTime"
-                        android:valueTo="2.0"
-                        android:valueType="floatType"/>
-            </set>
-        </item>
-        <!-- the default, non-pressed state; set x and y size to 100% -->
-        <item android:state_pressed="false">
-            <set>
-                <objectAnimator android:propertyName="scaleX"
-                        android:duration="@android:integer/config_shortAnimTime"
-                        android:valueTo="1"
-                        android:valueType="floatType"/>
-                <objectAnimator android:propertyName="scaleY"
-                        android:duration="@android:integer/config_shortAnimTime"
-                        android:valueTo="1"
-                        android:valueType="floatType"/>
-            </set>
-        </item>
-    </selector>
-  """
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+        <selector xmlns:android="http://schemas.android.com/apk/res/android">
+            <!-- the pressed state; increase x and y size to 150% -->
+            <item android:state_pressed="true">
+                <set>
+                    <objectAnimator android:propertyName="scaleX"
+                            android:duration="@android:integer/config_shortAnimTime"
+                            android:valueTo="5.0"
+                            android:valueType="floatType"/>
+                    <objectAnimator android:propertyName="scaleY"
+                            android:duration="@android:integer/config_shortAnimTime"
+                            android:valueTo="2.0"
+                            android:valueType="floatType"/>
+                </set>
+            </item>
+            <!-- the default, non-pressed state; set x and y size to 100% -->
+            <item android:state_pressed="false">
+                <set>
+                    <objectAnimator android:propertyName="scaleX"
+                            android:duration="@android:integer/config_shortAnimTime"
+                            android:valueTo="1"
+                            android:valueType="floatType"/>
+                    <objectAnimator android:propertyName="scaleY"
+                            android:duration="@android:integer/config_shortAnimTime"
+                            android:valueTo="1"
+                            android:valueType="floatType"/>
+                </set>
+            </item>
+        </selector>
+    """
       .trimIndent()
 
   @Language("XML")
   private val MOTION_SCENE =
-    """<?xml version="1.0" encoding="utf-8"?>
-    <MotionScene>
-    </MotionScene>
-  """
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+        <MotionScene>
+        </MotionScene>
+    """
       .trimIndent()
 
   @Language("XML")

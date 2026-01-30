@@ -23,17 +23,16 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.util.indexing.FileContent
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtFile
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
-fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
-  serializeAndDeserializeIndexValues(setOf(indexValue)).single()
+fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue = serializeAndDeserializeIndexValues(setOf(indexValue)).single()
 
 fun serializeAndDeserializeIndexValues(indexValues: Set<IndexValue>): Set<IndexValue> {
   val bytes =
@@ -42,21 +41,14 @@ fun serializeAndDeserializeIndexValues(indexValues: Set<IndexValue>): Set<IndexV
       baos.toByteArray()
     }
 
-  return ByteArrayInputStream(bytes).use { bais ->
-    DataInputStream(bais).use { dis -> IndexValue.Externalizer.read(dis) }
-  }
+  return ByteArrayInputStream(bytes).use { bais -> DataInputStream(bais).use { dis -> IndexValue.Externalizer.read(dis) } }
 }
 
-fun DaggerConceptIndexers.runIndexerOn(ktFile: KtFile): Map<String, Set<IndexValue>> =
-  runIndexerOn(ktFile, KotlinFileType.INSTANCE)
+fun DaggerConceptIndexers.runIndexerOn(ktFile: KtFile): Map<String, Set<IndexValue>> = runIndexerOn(ktFile, KotlinFileType.INSTANCE)
 
-fun DaggerConceptIndexers.runIndexerOn(javaFile: PsiJavaFile): Map<String, Set<IndexValue>> =
-  runIndexerOn(javaFile, JavaFileType.INSTANCE)
+fun DaggerConceptIndexers.runIndexerOn(javaFile: PsiJavaFile): Map<String, Set<IndexValue>> = runIndexerOn(javaFile, JavaFileType.INSTANCE)
 
-private fun DaggerConceptIndexers.runIndexerOn(
-  psiFile: PsiFile,
-  fileType: FileType,
-): Map<String, Set<IndexValue>> {
+private fun DaggerConceptIndexers.runIndexerOn(psiFile: PsiFile, fileType: FileType): Map<String, Set<IndexValue>> {
   val fileContent: FileContent = mock {
     on { this.psiFile } doReturn psiFile
     on { contentAsText } doReturn psiFile.text

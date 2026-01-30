@@ -27,10 +27,9 @@ import org.jetbrains.annotations.VisibleForTesting
 
 object ComposeAnimationToolbarUpdater {
   /**
-   * Sets the `hasAnimations` property of the [previewElement] to true if the given root component
-   * contains animations, which is checked by calling the homonym method from ComposeViewAdapter via
-   * reflection. This will determine the visibility of the animation inspector icon in the scene
-   * toolbar.
+   * Sets the `hasAnimations` property of the [previewElement] to true if the given root component contains animations, which is checked by
+   * calling the homonym method from ComposeViewAdapter via reflection. This will determine the visibility of the animation inspector icon
+   * in the scene toolbar.
    */
   @VisibleForTesting
   fun update(
@@ -41,26 +40,15 @@ object ComposeAnimationToolbarUpdater {
   ) {
     if (!previewManager.mode.value.isNormal) return
     try {
-      val hasAnimationsMethod =
-        viewObj::class
-          .java
-          .declaredMethods
-          .single { it.name == "hasAnimations" }
-          .also { it.isAccessible = true }
+      val hasAnimationsMethod = viewObj::class.java.declaredMethods.single { it.name == "hasAnimations" }.also { it.isAccessible = true }
       val previewHasAnimations = hasAnimationsMethod.invoke(viewObj) as Boolean
       if (!previewElement.hasAnimations && previewHasAnimations) {
         animationToolingUsageTrackerFactory()
-          .logEvent(
-            AnimationToolingEvent(
-              ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-                .ANIMATION_INSPECTOR_AVAILABLE
-            )
-          )
+          .logEvent(AnimationToolingEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ANIMATION_INSPECTOR_AVAILABLE))
       }
       previewElement.hasAnimations = previewHasAnimations
     } catch (e: Throwable) {
-      Logger.getInstance(ComposeAnimationToolbarUpdater::class.java)
-        .debug("Could not check if the Composable has animations.", e)
+      Logger.getInstance(ComposeAnimationToolbarUpdater::class.java).debug("Could not check if the Composable has animations.", e)
     }
   }
 
@@ -69,8 +57,7 @@ object ComposeAnimationToolbarUpdater {
     layoutlibSceneManager: LayoutlibSceneManager,
     animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker,
   ) {
-    val previewElementInstance =
-      layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
+    val previewElementInstance = layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
     val viewObj = layoutlibSceneManager.viewObject ?: return
     update(viewObj, previewManager, previewElementInstance, animationToolingUsageTrackerFactory)
   }

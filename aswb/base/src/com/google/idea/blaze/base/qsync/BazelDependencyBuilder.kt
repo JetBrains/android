@@ -79,7 +79,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.jvm.optionals.getOrNull
 import org.jetbrains.annotations.VisibleForTesting
 
-/** An object that knows how to build dependencies for given targets  */
+/** An object that knows how to build dependencies for given targets */
 open class BazelDependencyBuilder(
   protected val project: Project,
   protected val buildSystem: BuildSystem,
@@ -102,7 +102,6 @@ open class BazelDependencyBuilder(
 
   private val aspectFiles: AspectFiles = AspectFiles(workspaceRoot)
 
-
   @Throws(IOException::class, BuildException::class)
   override fun prepareInvocation(
     context: BlazeContext,
@@ -111,66 +110,39 @@ open class BazelDependencyBuilder(
     replaceOutputGroups: Boolean,
     invoker: BuildInvoker,
   ): DependencyBuilder.PreparedInvocation {
-    val buildDependenciesBazelInvocationInfo = getInvocationInfo(
-      context,
-      maybeBuildTargets,
-      invoker.capabilities,
-      outputGroups,
-      replaceOutputGroups
-    )
+    val buildDependenciesBazelInvocationInfo =
+      getInvocationInfo(context, maybeBuildTargets, invoker.capabilities, outputGroups, replaceOutputGroups)
     prepareInvocationFiles(context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles)
     return buildDependenciesBazelInvocationInfo
   }
 
   @Throws(IOException::class, BuildException::class)
-  override fun build(
-    context: BlazeContext,
-    buildTargets: Set<Label>,
-    outputGroups: Collection<OutputGroup>,
-  ): OutputInfo {
-    application
-      .service<BuildDependenciesLockService>()
-      .lockWorkspace(workspaceRoot.path().toString())
-      .use {
-        val invoker = buildSystem.getBuildInvoker(project)
-        val buildDependenciesBazelInvocationInfo = prepareInvocation(
-          context,
-          buildTargets,
-          outputGroups,
-          replaceOutputGroups = true,
-          invoker
+  override fun build(context: BlazeContext, buildTargets: Set<Label>, outputGroups: Collection<OutputGroup>): OutputInfo {
+    application.service<BuildDependenciesLockService>().lockWorkspace(workspaceRoot.path().toString()).use {
+      val invoker = buildSystem.getBuildInvoker(project)
+      val buildDependenciesBazelInvocationInfo = prepareInvocation(context, buildTargets, outputGroups, replaceOutputGroups = true, invoker)
+
+      val commandBuilder = BlazeCommand.builder(BlazeCommandName.BUILD)
+      // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
+      // of flags need to be passed here.
+      val additionalBlazeFlags = BlazeFlags.blazeFlags(project, BlazeCommandName.BUILD, BlazeInvocationContext.OTHER_CONTEXT)
+      commandBuilder.addBlazeFlags(additionalBlazeFlags)
+      buildDependenciesBazelInvocationInfo.updateCommand(commandBuilder)
+
+      BuildDepsStatsScope.fromContext(context).ifPresent { it.setBlazeBinaryType(invoker.type) }
+      BuildDepsStatsScope.fromContext(context).ifPresent { it.setBuildFlags(commandBuilder.build().toArgumentList()) }
+      val buildTime = Instant.now()
+      return invoker.invoke(commandBuilder, context) { streamProvider ->
+        val outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING))
+        BazelExitCodeException.throwIfFailed(
+          commandBuilder,
+          outputs.buildResult(),
+          ThrowOption.ALLOW_PARTIAL_SUCCESS,
+          ThrowOption.ALLOW_BUILD_FAILURE,
         )
-
-        val commandBuilder = BlazeCommand.builder(BlazeCommandName.BUILD)
-        // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
-        // of flags need to be passed here.
-        val additionalBlazeFlags =
-          BlazeFlags.blazeFlags(
-            project,
-            BlazeCommandName.BUILD,
-            BlazeInvocationContext.OTHER_CONTEXT
-          )
-        commandBuilder.addBlazeFlags(additionalBlazeFlags)
-        buildDependenciesBazelInvocationInfo.updateCommand(commandBuilder)
-
-        BuildDepsStatsScope.fromContext(context).ifPresent { it.setBlazeBinaryType(invoker.type) }
-        BuildDepsStatsScope.fromContext(context).ifPresent { it.setBuildFlags(commandBuilder.build().toArgumentList()) }
-        val buildTime = Instant.now()
-        return invoker.invoke(commandBuilder, context) { streamProvider ->
-          val outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING))
-          BazelExitCodeException.throwIfFailed(
-            commandBuilder,
-            outputs.buildResult(),
-            ThrowOption.ALLOW_PARTIAL_SUCCESS,
-            ThrowOption.ALLOW_BUILD_FAILURE
-          )
-          buildDependenciesBazelInvocationInfo.createOutputInfo(
-            blazeBuildOutputs = outputs,
-            buildTime = buildTime,
-            context = context
-          )
-        }
+        buildDependenciesBazelInvocationInfo.createOutputInfo(blazeBuildOutputs = outputs, buildTime = buildTime, context = context)
       }
+    }
   }
 
   @VisibleForTesting
@@ -193,17 +165,15 @@ open class BazelDependencyBuilder(
         supportedBuildRules =
           BlazeQueryParser.getAllKnownRuleClasses(HandledRulesProvider.getNotHandledRuleKinds(handledRuleKinds)).asList(),
         generateIdlClasses = true,
-        useGeneratedSrcJars = buildGeneratedSrcJars.value
+        useGeneratedSrcJars = buildGeneratedSrcJars.value,
       )
 
     val invocationFiles = getInvocationFiles(buildTargets, buildInvokerCapabilities, parameters)
 
-
     val querySyncFlags = buildList {
       if (invocationFiles.targetPatternFileWorkspaceRelativeFile != null) {
         add("--target_pattern_file=${invocationFiles.targetPatternFileWorkspaceRelativeFile}")
-      }
-      else {
+      } else {
         addAll(buildTargets.map { it.toString() })
       }
       add("--aspects=${invocationFiles.aspectFileLabel}%collect_dependencies,${invocationFiles.aspectFileLabel}%package_dependencies")
@@ -212,19 +182,12 @@ open class BazelDependencyBuilder(
       val maybeOutputAppendPrefix = if (replaceOutputGroups) "" else "+"
       addAll(outputGroups.map { "--output_groups=$maybeOutputAppendPrefix${it.outputGroupName}" })
     }
-    return BuildDependenciesBazelInvocationInfo(
-      buildArtifactCache,
-      querySyncFlags,
-      outputGroups.toSet(),
-      invocationFiles.files
-    )
+    return BuildDependenciesBazelInvocationInfo(buildArtifactCache, querySyncFlags, outputGroups.toSet(), invocationFiles.files)
   }
 
   @JvmRecord
   data class InvocationFiles(
-    /**
-     * A workspace relative path to content map of files to be cerated in the workspace.
-     */
+    /** A workspace relative path to content map of files to be cerated in the workspace. */
     val files: Map<Path, ByteSource>,
     val aspectFileLabel: String,
     val targetPatternFileWorkspaceRelativeFile: String?,
@@ -246,17 +209,18 @@ open class BazelDependencyBuilder(
           buildFilePresent(RULES_ANDROID_RULES_BZL1, RULES_ANDROID_RULES_BZL2) -> "build_dependencies_android_rules_android_deps.bzl"
           blazeVersionData().bazelIsAtLeastVersion(7, 1, 0) -> "build_dependencies_android_deps.bzl"
           else -> "build_dependencies_android_legacy_deps.bzl"
-        }
+        },
       )
 
       // Aspects for Java and ImlModule support
       addFile(
         "build_dependencies_java_deps.bzl",
         when {
-          buildFilePresent(STUDIO_IML_MODULE_RULE) -> "build_dependencies_iml_module_java_deps.bzl"
-            .also { addFile("build_dependencies_java_deps_wrapped.bzl", "build_dependencies_java_deps.bzl") }
+          buildFilePresent(STUDIO_IML_MODULE_RULE) ->
+            "build_dependencies_iml_module_java_deps.bzl"
+              .also { addFile("build_dependencies_java_deps_wrapped.bzl", "build_dependencies_java_deps.bzl") }
           else -> "build_dependencies_java_deps.bzl"
-        }
+        },
       )
 
       addFile("build_dependencies_cc_deps.bzl", "build_dependencies_cc_deps.bzl")
@@ -268,15 +232,12 @@ open class BazelDependencyBuilder(
         when {
           buildFilePresent(RULES_KOTLIN_BZL1, RULES_KOTLIN_BZL2) -> "build_dependencies_kotlin_deps.bzl"
           else -> "build_dependencies_kotlin_stub_deps.bzl"
-        }
+        },
       )
     }
   }
 
-  /**
-   * Provides information about files that must be created in the workspace root for the aspect to
-   * operate.
-   */
+  /** Provides information about files that must be created in the workspace root for the aspect to operate. */
   @VisibleForTesting
   fun getInvocationFiles(
     buildTargets: Set<Label>,
@@ -305,8 +266,9 @@ open class BazelDependencyBuilder(
 
       targetPatternFileWorkspaceRelativeFile =
         when {
-          buildTargets.size > 3 && buildUseTargetPatternFile.value
-          && buildInvokerCapabilities.contains(BuildInvoker.Capability.SUPPORT_TARGET_PATTERN_FILE) -> {
+          buildTargets.size > 3 &&
+            buildUseTargetPatternFile.value &&
+            buildInvokerCapabilities.contains(BuildInvoker.Capability.SUPPORT_TARGET_PATTERN_FILE) -> {
             addFile("targets-$projectHash.txt", getByteSourceFromString(buildTargets.joinToString(separator = "\n") { it.toString() }))
           }
 
@@ -316,10 +278,9 @@ open class BazelDependencyBuilder(
     return InvocationFiles(
       files,
       Label.of(String.format("//$INVOCATION_FILES_DIR:$aspectFileName")).toString(),
-      targetPatternFileWorkspaceRelativeFile
+      targetPatternFileWorkspaceRelativeFile,
     )
   }
-
 
   private fun getBuildDependenciesParametersFileContent(parameters: BuildDependencyParameters): String {
     return buildString {
@@ -343,22 +304,28 @@ open class BazelDependencyBuilder(
         append("  ],\n")
       }
 
-      append("""
+      append(
+        """
         |load(':build_dependencies.bzl', _collect_dependencies = 'collect_dependencies', _package_dependencies = 'package_dependencies')
         |_config = struct(
-       """.trimMargin("|"))
+       """
+          .trimMargin("|")
+      )
       appendStrings("include", parameters.include)
       appendStrings("exclude", parameters.exclude)
       appendStrings("always_build_rules", parameters.alwaysBuildRules)
       appendStrings("supported_build_rules", parameters.supportedBuildRules)
       appendBoolean("generate_aidl_classes", parameters.generateIdlClasses)
       appendBoolean("use_generated_srcjars", parameters.useGeneratedSrcJars)
-      append("""
+      append(
+        """
         |)
         |
         |collect_dependencies = _collect_dependencies(_config)
         |package_dependencies = _package_dependencies(_config)
-      """.trimMargin("|"))
+      """
+          .trimMargin("|")
+      )
     }
   }
 
@@ -374,15 +341,12 @@ open class BazelDependencyBuilder(
   /**
    * Prepares for use, and returns the location of the `build_dependencies.bzl` aspect.
    *
-   *
-   * The return value is a string in the format expected by bazel for an aspect file, omitting
-   * the name of the aspect within that file. For example, `//package:aspect.bzl`.
+   * The return value is a string in the format expected by bazel for an aspect file, omitting the name of the aspect within that file. For
+   * example, `//package:aspect.bzl`.
    */
   @VisibleForTesting
   @Throws(IOException::class, BuildException::class)
-  override fun prepareInvocationFiles(
-    context: BlazeContext, invocationFiles: Map<Path, ByteSource>,
-  ) {
+  override fun prepareInvocationFiles(context: BlazeContext, invocationFiles: Map<Path, ByteSource>) {
     if (VersionChecker.versionMismatch()) {
       throw BuildException(
         "The IDE has been upgraded in the background. Bazel build aspect files may be incompatible. Please restart the IDE."
@@ -394,14 +358,10 @@ open class BazelDependencyBuilder(
   }
 
   companion object {
-    @VisibleForTesting
-    @JvmField
-    val buildGeneratedSrcJars: BoolExperiment =
-      BoolExperiment("qsync.build.generated.src.jars", false)
+    @VisibleForTesting @JvmField val buildGeneratedSrcJars: BoolExperiment = BoolExperiment("qsync.build.generated.src.jars", false)
 
     // Note, this is currently incompatible with the build API.
-    val buildUseTargetPatternFile: BoolExperiment =
-      BoolExperiment("qsync.build.use.target.pattern.file", true)
+    val buildUseTargetPatternFile: BoolExperiment = BoolExperiment("qsync.build.use.target.pattern.file", true)
 
     const val INVOCATION_FILES_DIR: String = ".aswb"
 
@@ -417,8 +377,7 @@ open class BazelDependencyBuilder(
 }
 
 /**
- * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build
- * dependencies and metadata required by query sync.
+ * @param argsAndFlags arguments and flags to be passed to `bazel build` command to build dependencies and metadata required by query sync.
  * @param requestedOutputGroups lists output groups that are requested by `argsAndFlags`.
  */
 class BuildDependenciesBazelInvocationInfo(
@@ -433,11 +392,7 @@ class BuildDependenciesBazelInvocationInfo(
   }
 
   @Throws(BuildException::class)
-  override fun createOutputInfo(
-    blazeBuildOutputs: BlazeBuildOutputs,
-    buildTime: Instant,
-    context: BlazeContext,
-  ): OutputInfo {
+  override fun createOutputInfo(blazeBuildOutputs: BlazeBuildOutputs, buildTime: Instant, context: BlazeContext): OutputInfo {
     val allArtifacts = GroupedOutputArtifacts.create(blazeBuildOutputs, requestedOutputGroups)
 
     val artifactInfoFiles = allArtifacts[OutputGroup.ARTIFACT_INFO_FILE]
@@ -476,12 +431,12 @@ class BuildDependenciesBazelInvocationInfo(
       ccInfos.values.toList(),
       blazeBuildOutputs.targetsWithErrors().map { Label.of(it) }.toSet(),
       blazeBuildOutputs.buildResult().exitCode,
-      buildContext)
+      buildContext,
+    )
   }
 
   private fun interface CheckedTransform<T, R> {
-    @Throws(BuildException::class)
-    fun apply(t: T): R
+    @Throws(BuildException::class) fun apply(t: T): R
   }
 
   @Throws(BuildException::class)
@@ -498,25 +453,22 @@ class BuildDependenciesBazelInvocationInfo(
     // files.
     try {
       listenableFuture.get()
-    }
-    catch (e: InterruptedException) {
+    } catch (e: InterruptedException) {
       Thread.currentThread().interrupt()
       throw BuildException(e)
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       throw BuildException(e)
     }
     context.output(PrintOutput.output("Fetched ${artifactInfoFiles.size} info files in ${sw.elapsed().toMillis()}ms"))
     val artifactFutures =
-      artifactInfoFiles
-        .mapNotNull { outputArtifact ->
-          val result = buildArtifactCache.get(outputArtifact.getDigest()).getOrNull()
-          if (result == null) {
-            context.output(PrintOutput.error("Failed to get artifact future for: ${outputArtifact.getDigest()}"))
-            context.setHasError()
-          }
-          result?.transform(directExecutor()) { cachedArtifact -> outputArtifact.getArtifactPath() to cachedArtifact }
+      artifactInfoFiles.mapNotNull { outputArtifact ->
+        val result = buildArtifactCache.get(outputArtifact.getDigest()).getOrNull()
+        if (result == null) {
+          context.output(PrintOutput.error("Failed to get artifact future for: ${outputArtifact.getDigest()}"))
+          context.setHasError()
         }
+        result?.transform(directExecutor()) { cachedArtifact -> outputArtifact.getArtifactPath() to cachedArtifact }
+      }
 
     val futures =
       artifactFutures.map { future ->
@@ -528,12 +480,10 @@ class BuildDependenciesBazelInvocationInfo(
 
     try {
       return Futures.allAsList(futures).get().toMap()
-    }
-    catch (e: InterruptedException) {
+    } catch (e: InterruptedException) {
       Thread.currentThread().interrupt()
       throw BuildException(e)
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       throw BuildException(e)
     }
   }
@@ -548,8 +498,7 @@ class BuildDependenciesBazelInvocationInfo(
     return ProtoStringInterner.intern(
       try {
         file.openStream().use { Deps.Dependencies.parseFrom(it) }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         throw BuildException(e)
       }
     )
@@ -561,10 +510,7 @@ class BuildDependenciesBazelInvocationInfo(
   }
 
   companion object {
-    /**
-     * Logs message if the number of artifact info files fetched is greater than
-     * FILE_NUMBER_LOG_THRESHOLD
-     */
+    /** Logs message if the number of artifact info files fetched is greater than FILE_NUMBER_LOG_THRESHOLD */
     private const val FILE_NUMBER_LOG_THRESHOLD = 1
 
     @VisibleForTesting
@@ -577,16 +523,12 @@ class BuildDependenciesBazelInvocationInfo(
           parser.merge(InputStreamReader(inputStream, StandardCharsets.UTF_8), builder)
           return builder
         }
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         throw BuildException(e)
       }
     }
 
-    /**
-     * Logs message if the size of all artifact info files fetched is greater than
-     * FETCH_SIZE_LOG_THRESHOLD
-     */
+    /** Logs message if the size of all artifact info files fetched is greater than FETCH_SIZE_LOG_THRESHOLD */
     private val FETCH_SIZE_LOG_THRESHOLD = (1 shl 20).toLong() // 1 mB
   }
 }

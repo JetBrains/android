@@ -20,9 +20,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
 
-/**
- * Uses the class name to navigate to a Java/Kotlin method.
- */
+/** Uses the class name to navigate to a Java/Kotlin method. */
 class PsiInnerClass(project: Project) : NavSource {
   private val manager = PsiManager.getInstance(project)
 

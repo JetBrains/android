@@ -49,8 +49,7 @@ import kotlinx.coroutines.launch
 
 private const val STUDIO_FLAG_NAME = "studio"
 private const val NOTIFICATION_GROUP_NAME = "StudioDeprecationNotification"
-private const val DEPRECATION_DATE_PROPERTIES_KEY =
-  "com.android.tools.idea.gservices.deprecation.last.date.checked"
+private const val DEPRECATION_DATE_PROPERTIES_KEY = "com.android.tools.idea.gservices.deprecation.last.date.checked"
 private const val DEPRECATION_DATE_PATTERN = "yyyy-MM-dd"
 private const val SHOW_NOTIFICATION_THRESHOLD = 30
 
@@ -73,38 +72,33 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
 
   init {
     scope.launch {
-      service<DevServicesDeprecationDataProvider>()
-        .registerServiceForChange(STUDIO_FLAG_NAME, "", this@StudioDeprecationChecker)
-        .collect { deprecationData ->
-          // If there's an existing notification, clear it.
-          notification = null
-          if (deprecationData.isSupported()) {
+      service<DevServicesDeprecationDataProvider>().registerServiceForChange(STUDIO_FLAG_NAME, "", this@StudioDeprecationChecker).collect {
+        deprecationData ->
+        // If there's an existing notification, clear it.
+        notification = null
+        if (deprecationData.isSupported()) {
+          return@collect
+        }
+
+        if (deprecationData.isDeprecated()) {
+          val date = deprecationData.date
+          if (!shouldShowNotificationForData(date)) {
             return@collect
           }
-
-          if (deprecationData.isDeprecated()) {
-            val date = deprecationData.date
-            if (!shouldShowNotificationForData(date)) {
-              return@collect
-            }
-          }
-
-          notification =
-            createNotification(deprecationData).apply {
-              showNotification()
-              trackEvent(deprecationData.status, userNotified = true)
-            }
         }
+
+        notification =
+          createNotification(deprecationData).apply {
+            showNotification()
+            trackEvent(deprecationData.status, userNotified = true)
+          }
+      }
     }
   }
 
   private fun createNotification(deprecationData: DevServicesDeprecationData) =
     notificationGroup
-      .createNotification(
-        deprecationData.getHeader(),
-        deprecationData.getDescription(),
-        deprecationData.getNotificationType(),
-      )
+      .createNotification(deprecationData.getHeader(), deprecationData.getDescription(), deprecationData.getNotificationType())
       .apply {
         if (deprecationData.showUpdateAction) {
           // Shows the update action as a button.
@@ -150,10 +144,8 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
 
   private fun DevServicesDeprecationData.getDescription() =
     when {
-      isDeprecated() ->
-        "Please update Android Studio to ensure uninterrupted access to cloud services."
-      isUnsupported() ->
-        "This version of Android Studio is no longer compatible with cloud services."
+      isDeprecated() -> "Please update Android Studio to ensure uninterrupted access to cloud services."
+      isUnsupported() -> "This version of Android Studio is no longer compatible with cloud services."
       else -> throw IllegalStateException("Cannot request description for $this")
     }
 
@@ -163,10 +155,7 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
       return false
     }
     if (checkDateDiff(date)) {
-      thisLogger()
-        .info(
-          "Skip showing deprecation notification because diff is more than $SHOW_NOTIFICATION_THRESHOLD days"
-        )
+      thisLogger().info("Skip showing deprecation notification because diff is more than $SHOW_NOTIFICATION_THRESHOLD days")
       return false
     }
     if (hasShownForDate(date)) {
@@ -180,8 +169,7 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
     ChronoUnit.DAYS.between(LocalDate.now(), deprecationDate) > SHOW_NOTIFICATION_THRESHOLD
 
   private fun hasShownForDate(deprecationDate: LocalDate): Boolean {
-    val lastCheckedDateProp =
-      PropertiesComponent.getInstance().getValue(DEPRECATION_DATE_PROPERTIES_KEY, "")
+    val lastCheckedDateProp = PropertiesComponent.getInstance().getValue(DEPRECATION_DATE_PROPERTIES_KEY, "")
     if (lastCheckedDateProp.isNotEmpty()) {
       val formatter = createDateFormatter()
       val lastCheckedDate = LocalDate.parse(lastCheckedDateProp, formatter)
@@ -249,8 +237,7 @@ class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
                       when (deprStatus) {
                         DEPRECATED -> DeprecationStatus.DEPRECATED
                         UNSUPPORTED -> DeprecationStatus.UNSUPPORTED
-                        else ->
-                          throw IllegalArgumentException("SUPPORTED state should not log event")
+                        else -> throw IllegalArgumentException("SUPPORTED state should not log event")
                       }
                     deliveryType = DevServiceDeprecationInfo.DeliveryType.NOTIFICATION
                     userNotified?.let { this.userNotified = it }

@@ -28,13 +28,8 @@ import javax.swing.SwingConstants
 private const val SIDE_PADDING = 12
 private val CONTENT_BORDER = JBUI.Borders.empty(6, SIDE_PADDING, 12, SIDE_PADDING)
 
-/**
- * Base panel for Assistant that applies the correct margin the the provided [content] and displays
- * a title label.
- */
-open class AssistantPopupPanel
-@JvmOverloads
-constructor(title: String = "Design-time View Attributes", val content: JComponent? = null) :
+/** Base panel for Assistant that applies the correct margin the the provided [content] and displays a title label. */
+open class AssistantPopupPanel @JvmOverloads constructor(title: String = "Design-time View Attributes", val content: JComponent? = null) :
   AdtSecondaryPanel() {
 
   private val titleLabel =

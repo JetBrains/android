@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import java.io.PrintWriter
+import java.io.StringWriter
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
-import java.io.PrintWriter
-import java.io.StringWriter
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class TestClass
 
@@ -39,31 +39,31 @@ class RepackageTransformTest {
     val classReader = ClassReader(testClassBytes)
     val outputTrace = StringWriter()
     val classOutputWriter = TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
-    val repackageTransform = RepackageTransform(classOutputWriter, listOf("com.android.tools.idea.rendering.classloading."), "internal.test.")
+    val repackageTransform =
+      RepackageTransform(classOutputWriter, listOf("com.android.tools.idea.rendering.classloading."), "internal.test.")
     classReader.accept(repackageTransform, ClassReader.EXPAND_FRAMES)
 
     // Find all references to the class name and make sure they've been transformed.
     val referenceRegex = Regex("([a-z./]+com/android/tools/[a-z./]+)")
 
-    assertEquals("internal/test/com/android/tools/idea/rendering/classloading/", referenceRegex.findAll(outputTrace.toString())
-      .map { it.value }
-      .distinct()
-      .joinToString("\n"))
+    assertEquals(
+      "internal/test/com/android/tools/idea/rendering/classloading/",
+      referenceRegex.findAll(outputTrace.toString()).map { it.value }.distinct().joinToString("\n"),
+    )
 
     assertEquals(
       """
-        LDC "com.android.tools.idea.rendering.classloading.TestClass"
-        LDC "internal.test.com.android.tools.idea.rendering.classloading.TestClass"
-        INVOKESTATIC internal/test/com/android/tools/idea/rendering/classloading/ClassForNameHandler.forName (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;
-      """.trimIndent(),
+      LDC "com.android.tools.idea.rendering.classloading.TestClass"
+      LDC "internal.test.com.android.tools.idea.rendering.classloading.TestClass"
+      INVOKESTATIC internal/test/com/android/tools/idea/rendering/classloading/ClassForNameHandler.forName (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;
+      """
+        .trimIndent(),
       outputTrace
         .toString()
         .lines()
-        .filter {
-          it.trimStart().startsWith("LDC") || it.trimStart().startsWith("INVOKESTATIC")
-        }
+        .filter { it.trimStart().startsWith("LDC") || it.trimStart().startsWith("INVOKESTATIC") }
         .map { it.trim() }
-        .joinToString("\n")
+        .joinToString("\n"),
     )
   }
 }

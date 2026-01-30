@@ -28,17 +28,18 @@ class TomlErrorParser : FailureDetailsHandler {
     failure: GradleBuildFailureParser.ParsedFailureDetails,
     location: FilePosition?,
     parentEventId: Any,
-    messageConsumer: Consumer<in BuildEvent>
+    messageConsumer: Consumer<in BuildEvent>,
   ): Boolean {
-    val handlers = listOf(
-      UnknownTopLevelElementHandler(),
-      InvalidAliasHandler(),
-      ReferenceIssueHandler(),
-      IssueAtPositionHandler(),
-      AliasInvalidHandler(),
-      UnexpectedElementHandler(),
-      WrongBundleReferenceHandler()
-    )
+    val handlers =
+      listOf(
+        UnknownTopLevelElementHandler(),
+        InvalidAliasHandler(),
+        ReferenceIssueHandler(),
+        IssueAtPositionHandler(),
+        AliasInvalidHandler(),
+        UnexpectedElementHandler(),
+        WrongBundleReferenceHandler(),
+      )
 
     handlers.forEach { handler ->
       val newReader = LinesBuildOutputInstantReader(failure.whatWentWrongSectionLines, parentEventId)
@@ -61,15 +62,11 @@ class TomlErrorParser : FailureDetailsHandler {
     const val BUILD_ISSUE_TITLE: String = "${definition}."
     const val BUILD_ISSUE_TOML_TITLE: String = "${tomlDefinition}."
 
-
     const val BUILD_ISSUE_TOML_STOP_LINE: String = "> $tomlDefinition"
     const val BUILD_ISSUE_STOP_LINE: String = "> $definition"
 
     fun Throwable.isTomlError(): Boolean {
-      return message?.let {
-        it.startsWith(BUILD_ISSUE_TOML_START) || it.startsWith(BUILD_ISSUE_START)
-      } ?: false
+      return message?.let { it.startsWith(BUILD_ISSUE_TOML_START) || it.startsWith(BUILD_ISSUE_START) } ?: false
     }
   }
-
 }

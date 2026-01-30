@@ -20,8 +20,8 @@ import com.android.tools.idea.ui.validation.validators.PathValidator.Builder
 import java.nio.file.Path
 
 /**
- * Checks the given file is a valid location for a existing project directory.
- * Used for Opening and Importing projects.
+ * Checks the given file is a valid location for a existing project directory. Used for Opening and Importing projects.
+ *
  * @param path is used as part of the output message.
  */
 class ProjectImportPathValidator(path: String) : Validator<Path> {

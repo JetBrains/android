@@ -29,7 +29,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.EDT
-import org.jetbrains.annotations.VisibleForTesting
 import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.time.Duration
@@ -39,20 +38,19 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MAX_GC_EVENTS = 2_000
 
 @Service(Service.Level.APP)
-class SystemHealthDataCollection: Disposable {
+class SystemHealthDataCollection : Disposable {
   private val freezeCounter = AtomicInteger(0)
   private var deadlockStatus = DeadlockStatus.UNKNOWN
   private val freezeHeartbeat = FreezeHeartbeat { durationMs: Long -> freezeHeartbeat(durationMs) }
 
-  @VisibleForTesting
-  var clock = Clock { System.nanoTime() / 1_000_000 }
+  @VisibleForTesting var clock = Clock { System.nanoTime() / 1_000_000 }
 
-  @VisibleForTesting
-  var dedicatedThreadExecutor = AppExecutorUtil.createBoundedScheduledExecutorService("SystemHealthDataCollection", 1)
+  @VisibleForTesting var dedicatedThreadExecutor = AppExecutorUtil.createBoundedScheduledExecutorService("SystemHealthDataCollection", 1)
 
   val triggers = Triggers()
 
@@ -64,6 +62,7 @@ class SystemHealthDataCollection: Disposable {
 
   inner class Triggers {
     private val gcEventsCounter = AtomicInteger(0)
+
     fun gcThresholdMet() {
       if (gcEventsCounter.incrementAndGet() <= MAX_GC_EVENTS) {
         logLowMemoryWarning(LowMemoryWatcher.LowMemoryWatcherType.ALWAYS)
@@ -77,21 +76,14 @@ class SystemHealthDataCollection: Disposable {
     }
 
     fun outOfMemoryErrorRaised() {
-      logSystemHealthEvent(
-        SystemHealthEvent.newBuilder()
-          .setEventType(SystemHealthEvent.SystemHealthEventType.MEMORY_OOM_ERROR)
-      )
+      logSystemHealthEvent(SystemHealthEvent.newBuilder().setEventType(SystemHealthEvent.SystemHealthEventType.MEMORY_OOM_ERROR))
     }
 
     fun jvmCrashDetected(sessionID: String, signalName: String) {
       logSystemHealthEvent(
         SystemHealthEvent.newBuilder()
           .setEventType(SystemHealthEvent.SystemHealthEventType.EXIT_JVM_CRASH)
-          .setExit(
-            SystemHealthEvent.Exit.newBuilder()
-              .setStudioSessionId(sessionID)
-              .setJvmSignalNumber(getSignalNumber(signalName))
-          )
+          .setExit(SystemHealthEvent.Exit.newBuilder().setStudioSessionId(sessionID).setJvmSignalNumber(getSignalNumber(signalName)))
       )
     }
 
@@ -99,10 +91,7 @@ class SystemHealthDataCollection: Disposable {
       logSystemHealthEvent(
         SystemHealthEvent.newBuilder()
           .setEventType(SystemHealthEvent.SystemHealthEventType.EXIT_GRACEFUL)
-          .setExit(
-            SystemHealthEvent.Exit.newBuilder()
-              .setStudioSessionId(sessionId)
-          )
+          .setExit(SystemHealthEvent.Exit.newBuilder().setStudioSessionId(sessionId))
       )
     }
 
@@ -110,10 +99,7 @@ class SystemHealthDataCollection: Disposable {
       logSystemHealthEvent(
         SystemHealthEvent.newBuilder()
           .setEventType(SystemHealthEvent.SystemHealthEventType.EXIT_NONGRACEFUL)
-          .setExit(
-            SystemHealthEvent.Exit.newBuilder()
-              .setStudioSessionId(sessionId)
-          )
+          .setExit(SystemHealthEvent.Exit.newBuilder().setStudioSessionId(sessionId))
       )
     }
 
@@ -130,25 +116,17 @@ class SystemHealthDataCollection: Disposable {
 
   private fun setUpMemoryTelemetry() {
     // Low memory notifications
-    LowMemoryWatcher.register(
-      triggers::gcThresholdMet,
-      LowMemoryWatcher.LowMemoryWatcherType.ALWAYS, this)
-    LowMemoryWatcher.register(
-      triggers::gcThresholdMetAfterCollection,
-      LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC, this)
+    LowMemoryWatcher.register(triggers::gcThresholdMet, LowMemoryWatcher.LowMemoryWatcherType.ALWAYS, this)
+    LowMemoryWatcher.register(triggers::gcThresholdMetAfterCollection, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC, this)
 
-    AndroidStudioSystemHealthMonitor.getInstance()
-      ?.registerOutOfMemoryErrorListener({ triggers.outOfMemoryErrorRaised() }, this)
+    AndroidStudioSystemHealthMonitor.getInstance()?.registerOutOfMemoryErrorListener({ triggers.outOfMemoryErrorRaised() }, this)
   }
 
   private fun logLowMemoryWarning(type: LowMemoryWatcher.LowMemoryWatcherType) {
     logSystemHealthEvent(
       SystemHealthEvent.newBuilder()
         .setEventType(SystemHealthEvent.SystemHealthEventType.MEMORY_LOW_MEMORY_WARNING)
-        .setMemory(
-          SystemHealthEvent.Memory.newBuilder()
-            .setLowMemoryWarningType(getLowMemoryWarningType(type))
-        )
+        .setMemory(SystemHealthEvent.Memory.newBuilder().setLowMemoryWarningType(getLowMemoryWarningType(type)))
     )
   }
 
@@ -172,11 +150,14 @@ class SystemHealthDataCollection: Disposable {
     }
     application.messageBus
       .connect(this)
-      .subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
-        override fun appClosing() {
-          triggers.gracefulExitDetected(UsageTracker.sessionId)
-        }
-      })
+      .subscribe(
+        AppLifecycleListener.TOPIC,
+        object : AppLifecycleListener {
+          override fun appClosing() {
+            triggers.gracefulExitDetected(UsageTracker.sessionId)
+          }
+        },
+      )
   }
 
   private fun getSignalNumber(signalName: String): Int {
@@ -191,15 +172,20 @@ class SystemHealthDataCollection: Disposable {
 
   private fun setUpFreezeTelemetry() {
     val application = ApplicationManager.getApplication()
-    application.messageBus.connect(this).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
-      override fun uiFreezeStarted(reportDir: Path) {
-        triggers.uiFreezeStarted()
-      }
+    application.messageBus
+      .connect(this)
+      .subscribe(
+        IdePerformanceListener.TOPIC,
+        object : IdePerformanceListener {
+          override fun uiFreezeStarted(reportDir: Path) {
+            triggers.uiFreezeStarted()
+          }
 
-      override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
-        triggers.uiFreezeFinished(durationMs)
-      }
-    })
+          override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
+            triggers.uiFreezeFinished(durationMs)
+          }
+        },
+      )
   }
 
   fun interface Clock {
@@ -214,10 +200,7 @@ class SystemHealthDataCollection: Disposable {
       SystemHealthEvent.newBuilder()
         .setEventType(SystemHealthEvent.SystemHealthEventType.UI_FREEZE_STARTED)
         .setUiFreeze(
-          SystemHealthEvent.UIFreeze.newBuilder()
-            .setFreezeId(freezeID.toLong())
-            .setDeadlock(deadlockStatus)
-            .setDurationMs(durationMs)
+          SystemHealthEvent.UIFreeze.newBuilder().setFreezeId(freezeID.toLong()).setDeadlock(deadlockStatus).setDurationMs(durationMs)
         )
     )
     freezeHeartbeat.start(freezeStartTime)
@@ -259,9 +242,7 @@ class SystemHealthDataCollection: Disposable {
     }
 
     // Freezes longer than 90 seconds are suspected to have a deadlock
-    if (deadlockStatus == DeadlockStatus.UNKNOWN &&
-      freezeTimeMs >= TimeUnit.SECONDS.toMillis(90)
-    ) {
+    if (deadlockStatus == DeadlockStatus.UNKNOWN && freezeTimeMs >= TimeUnit.SECONDS.toMillis(90)) {
       deadlockStatus = DeadlockStatus.SUSPECTED
     }
     val bean = ManagementFactory.getThreadMXBean()
@@ -275,17 +256,17 @@ class SystemHealthDataCollection: Disposable {
     }
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
-  @JvmRecord
-  private data class FreezeHeartbeatDelay(val duration: Duration, val interval: Duration)
+  @JvmRecord private data class FreezeHeartbeatDelay(val duration: Duration, val interval: Duration)
+
   private inner class FreezeHeartbeat(private val callback: Consumer<Long>) {
     private var isRunning = false
     private var freezeStart: Long = 0
     private var future: ScheduledFuture<*>? = null
     private var delayIterator = HEARTBEAT_DELAYS.iterator()
     private var currentDelay: FreezeHeartbeatDelay? = null
+
     fun start(freezeStart: Long) {
       if (isRunning) {
         stop()
@@ -314,7 +295,7 @@ class SystemHealthDataCollection: Disposable {
 
     private fun advanceDelayIterator(): FreezeHeartbeatDelay? {
       if (currentDelay == null) {
-         if (delayIterator.hasNext()) {
+        if (delayIterator.hasNext()) {
           currentDelay = delayIterator.next()
         } else {
           return null
@@ -344,20 +325,19 @@ class SystemHealthDataCollection: Disposable {
   }
 
   companion object {
-    private val HEARTBEAT_DELAYS = listOf(
-      FreezeHeartbeatDelay(Duration.ofSeconds(10), Duration.ofSeconds(5)),
-      FreezeHeartbeatDelay(Duration.ofMinutes(1), Duration.ofSeconds(10)),
-      FreezeHeartbeatDelay(Duration.ofMinutes(5), Duration.ofMinutes(1)),
-      FreezeHeartbeatDelay(Duration.ofMinutes(30), Duration.ofMinutes(5)),
-      FreezeHeartbeatDelay(Duration.ofHours(6), Duration.ofMinutes(30))
-    )
+    private val HEARTBEAT_DELAYS =
+      listOf(
+        FreezeHeartbeatDelay(Duration.ofSeconds(10), Duration.ofSeconds(5)),
+        FreezeHeartbeatDelay(Duration.ofMinutes(1), Duration.ofSeconds(10)),
+        FreezeHeartbeatDelay(Duration.ofMinutes(5), Duration.ofMinutes(1)),
+        FreezeHeartbeatDelay(Duration.ofMinutes(30), Duration.ofMinutes(5)),
+        FreezeHeartbeatDelay(Duration.ofHours(6), Duration.ofMinutes(30)),
+      )
     const val INVALID_SIGNAL = -1
     const val UNKNOWN_SIGNAL = -2
     @JvmStatic
     val instance: SystemHealthDataCollection
-      get() = ApplicationManager.getApplication().getService(
-        SystemHealthDataCollection::class.java
-      )
+      get() = ApplicationManager.getApplication().getService(SystemHealthDataCollection::class.java)
 
     private fun createSignalMap(): Map<String, Int> =
       mapOf(
@@ -393,15 +373,13 @@ class SystemHealthDataCollection: Disposable {
         "POLL" to 29,
         "PWR" to 30,
         "SYS" to 31,
-        "UNUSED" to 31
+        "UNUSED" to 31,
       )
-    }
+  }
 
   private fun logSystemHealthEvent(systemHealthEvent: SystemHealthEvent.Builder) {
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.SYSTEM_HEALTH_EVENT)
-        .setSystemHealthEvent(systemHealthEvent)
+      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.SYSTEM_HEALTH_EVENT).setSystemHealthEvent(systemHealthEvent)
     )
   }
 }

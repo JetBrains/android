@@ -26,31 +26,30 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-/**
- * Contains Android-Blaze related state necessary for configuring an IDEA project based on a
- * user-selected build variant.
- */
-abstract class BlazeAndroidModelBase protected constructor(
+/** Contains Android-Blaze related state necessary for configuring an IDEA project based on a user-selected build variant. */
+abstract class BlazeAndroidModelBase
+protected constructor(
   protected val project: Project,
   rootDirPath: File,
   private val applicationIdFuture: ListenableFuture<String>,
-  private val minSdkVersionInt: Int
+  private val minSdkVersionInt: Int,
 ) : AndroidModel {
   override val applicationId: String
     get() {
-    try {
-      return applicationIdFuture.get(1, TimeUnit.SECONDS)
-    } catch (e: InterruptedException) {
-      Thread.currentThread().interrupt()
-    } catch (e: TimeoutException) {
-      Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
-    } catch (e: ExecutionException) {
-      Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
+      try {
+        return applicationIdFuture.get(1, TimeUnit.SECONDS)
+      } catch (e: InterruptedException) {
+        Thread.currentThread().interrupt()
+      } catch (e: TimeoutException) {
+        Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
+      } catch (e: ExecutionException) {
+        Logger.getInstance(BlazeAndroidModelBase::class.java).warn("Application Id not initialized yet", e)
+      }
+      return uninitializedApplicationId()
     }
-    return uninitializedApplicationId()
-  }
 
   protected abstract fun uninitializedApplicationId(): String
+
   override val allApplicationIds: Set<String>
     get() = setOf<String>(applicationId)
 

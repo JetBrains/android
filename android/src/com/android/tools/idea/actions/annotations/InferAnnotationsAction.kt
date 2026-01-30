@@ -70,10 +70,10 @@ import com.intellij.usages.UsageViewPresentation
 import com.intellij.util.Processor
 import com.intellij.util.SequentialModalProgressTask
 import com.intellij.util.SequentialTask
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.CancellationException
 import javax.swing.JComponent
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.psi.KtFile
 
 /** Analyze support annotations */
 class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", INFER_SUPPORT_ANNOTATIONS) {
@@ -91,9 +91,11 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
 
   override fun update(event: AnActionEvent) {
     val project = event.project
-    if (project == null || StudioFlags.INFER_ANNOTATIONS_REFACTORING_ENABLED.get().not() ||
-      // don't show this action in IDEA in non-android projects
-      !CommonAndroidUtil.getInstance().isAndroidProject(project)
+    if (
+      project == null ||
+        StudioFlags.INFER_ANNOTATIONS_REFACTORING_ENABLED.get().not() ||
+        // don't show this action in IDEA in non-android projects
+        !CommonAndroidUtil.getInstance().isAndroidProject(project)
     ) {
       event.presentation.isEnabledAndVisible = false
       return
@@ -134,8 +136,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
 
   private fun syncAndRestartAnalysis(project: Project, scope: AnalysisScope) {
     assert(ApplicationManager.getApplication().isDispatchThread)
-    val syncResult = project.getProjectSystem()
-      .getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    val syncResult = project.getProjectSystem().getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     Futures.addCallback(
       syncResult,
       object : FutureCallback<ProjectSystemSyncManager.SyncResult?> {
@@ -151,7 +152,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
           }
         }
       },
-      MoreExecutors.directExecutor()
+      MoreExecutors.directExecutor(),
     )
   }
 
@@ -179,11 +180,9 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     options = null
   }
 
-  private class AnnotateTask constructor(
-    private val myProject: Project,
-    private val myTask: SequentialModalProgressTask,
-    private val myInfos: Array<UsageInfo>
-  ) : SequentialTask {
+  private class AnnotateTask
+  constructor(private val myProject: Project, private val myTask: SequentialModalProgressTask, private val myInfos: Array<UsageInfo>) :
+    SequentialTask {
     private var myCount = 0
     private val myTotal: Int = myInfos.size
 
@@ -211,11 +210,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     private const val INFER_SUPPORT_ANNOTATIONS: String = "Infer Support Annotations"
     private const val MAX_ANNOTATIONS_WITHOUT_PREVIEW = 0
 
-    private fun showReport(
-      inferrer: InferAnnotations,
-      scope: AnalysisScope,
-      project: Project
-    ) {
+    private fun showReport(inferrer: InferAnnotations, scope: AnalysisScope, project: Project) {
 
       val usages = ArrayList<UsageInfo>()
       inferrer.collect(usages, scope, settings.includeBinaries)
@@ -239,56 +234,59 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
       project: Project,
       scope: AnalysisScope,
       fileCount: Int,
-      inferrer: InferAnnotations = InferAnnotations(settings, project)
+      inferrer: InferAnnotations = InferAnnotations(settings, project),
     ): Array<UsageInfo>? {
       val psiManager = PsiManager.getInstance(project)
       val searchForUsages = Runnable {
-        scope.accept(object : PsiElementVisitor() {
-          var myFileCount = 0
-          override fun visitFile(file: PsiFile) {
-            myFileCount++
-            if (file is PsiCompiledElement) {
-              // Skip binaries (calling viewProvider?.document below would invoke the decompiler etc).
-              // This is necessary since our scope seems to include libraries. There could be some
-              // value in inferring things about the implementations of libraries, but for now
-              // we'll leave this out.
-              return
-            }
-            val virtualFile = file.virtualFile
-            val viewProvider = psiManager.findViewProvider(virtualFile)
-            val document = viewProvider?.document
-            if (document == null || virtualFile.fileType.isBinary) return // do not inspect binary files
-            val progressIndicator = ProgressManager.getInstance().progressIndicator
-            if (progressIndicator != null && !progressIndicator.isIndeterminate) {
-              progressIndicator.text2 = calcRelativeToProjectPath(virtualFile, project)
-              progressIndicator.fraction = myFileCount.toDouble() / (MAX_PASSES * fileCount)
-            }
-            if (file is PsiJavaFile || file is KtFile) {
-              try {
-                inferrer.collect(file)
-              } catch (t: Throwable) {
-                Logger.getInstance(InferAnnotationsAction::class.java).warn(t)
+        scope.accept(
+          object : PsiElementVisitor() {
+            var myFileCount = 0
+
+            override fun visitFile(file: PsiFile) {
+              myFileCount++
+              if (file is PsiCompiledElement) {
+                // Skip binaries (calling viewProvider?.document below would invoke the decompiler etc).
+                // This is necessary since our scope seems to include libraries. There could be some
+                // value in inferring things about the implementations of libraries, but for now
+                // we'll leave this out.
+                return
+              }
+              val virtualFile = file.virtualFile
+              val viewProvider = psiManager.findViewProvider(virtualFile)
+              val document = viewProvider?.document
+              if (document == null || virtualFile.fileType.isBinary) return // do not inspect binary files
+              val progressIndicator = ProgressManager.getInstance().progressIndicator
+              if (progressIndicator != null && !progressIndicator.isIndeterminate) {
+                progressIndicator.text2 = calcRelativeToProjectPath(virtualFile, project)
+                progressIndicator.fraction = myFileCount.toDouble() / (MAX_PASSES * fileCount)
+              }
+              if (file is PsiJavaFile || file is KtFile) {
+                try {
+                  inferrer.collect(file)
+                } catch (t: Throwable) {
+                  Logger.getInstance(InferAnnotationsAction::class.java).warn(t)
+                }
               }
             }
           }
-        })
+        )
       }
 
       /*
-      Collect these files and visit repeatedly. Consider this
-      scenario, where I visit files A, B, C in alphabetical order.
-      Let's say a method in A unconditionally calls a method in B
-      calls a method in C. In file C I discover that the method
-      requires permission P. At this point it's too late for me to
-      therefore conclude that the method in B also requires it. If I
-      make a whole separate pass again, I could now add that
-      constraint. But only after that second pass can I infer that
-      the method in A also requires it. In short, I need to keep
-      passing through all files until I make no more progress. It
-      would be much more efficient to handle this with a global call
-      graph such that as soon as I make an inference I can flow it
-      backwards.
-     */
+       Collect these files and visit repeatedly. Consider this
+       scenario, where I visit files A, B, C in alphabetical order.
+       Let's say a method in A unconditionally calls a method in B
+       calls a method in C. In file C I discover that the method
+       requires permission P. At this point it's too late for me to
+       therefore conclude that the method in B also requires it. If I
+       make a whole separate pass again, I could now add that
+       constraint. But only after that second pass can I infer that
+       the method in A also requires it. In short, I need to keep
+       passing through all files until I make no more progress. It
+       would be much more efficient to handle this with a global call
+       graph such that as soon as I make an inference I can flow it
+       backwards.
+      */
       val multipass = Runnable {
         for (i in 0 until MAX_PASSES) {
           searchForUsages.run()
@@ -351,10 +349,14 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     private fun showUsageView(project: Project, usageInfos: Array<UsageInfo>, scope: AnalysisScope) {
       val targets = UsageTarget.EMPTY_ARRAY
       val convertUsagesRef = Ref<Array<UsageInfo2UsageAdapter>>()
-      if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
-          { ApplicationManager.getApplication().runReadAction { convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos)) } },
-          "Preprocess usages", true, project
-        )
+      if (
+        !ProgressManager.getInstance()
+          .runProcessWithProgressSynchronously(
+            { ApplicationManager.getApplication().runReadAction { convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos)) } },
+            "Preprocess usages",
+            true,
+            project,
+          )
       ) {
         return
       }
@@ -366,19 +368,14 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
       presentation.isShowCancelButton = true
       presentation.searchString = RefactoringBundle.message("usageView.usagesText")
       val usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope))
-      val refactoringRunnable = applyRunnable(project) {
-        val infos = UsageViewUtil.getNotExcludedUsageInfos(usageView)
-        infos.toTypedArray()
-      }
+      val refactoringRunnable =
+        applyRunnable(project) {
+          val infos = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+          infos.toTypedArray()
+        }
       val canNotMakeString =
         "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again."
-      usageView.addPerformOperationAction(
-        refactoringRunnable,
-        INFER_SUPPORT_ANNOTATIONS,
-        canNotMakeString,
-        "Apply Suggestions",
-        false
-      )
+      usageView.addPerformOperationAction(refactoringRunnable, INFER_SUPPORT_ANNOTATIONS, canNotMakeString, "Apply Suggestions", false)
     }
 
     private fun rerunFactory(project: Project, scope: AnalysisScope): Factory<UsageSearcher> {

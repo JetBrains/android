@@ -23,10 +23,10 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
+import javax.swing.JList
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.JList
 
 class AssetListViewTest {
 
@@ -40,7 +40,6 @@ class AssetListViewTest {
     assertThat(assetListView.layoutOrientation).isEqualTo(JList.VERTICAL)
     assertThat(assetListView.visibleRowCount).isEqualTo(0)
   }
-
 
   @Test
   fun listMode() {
@@ -85,13 +84,14 @@ class AssetListViewTest {
   @Test
   fun filtering() {
     val speedSearch = SpeedSearch(true)
-    val assetList = listOf(
-      createMockAssetSet("abc"),
-      createMockAssetSet("def"),
-      createMockAssetSet("ad"),
-      createMockStringAssetSet("dog", "dog", "hund", "perro", "cane", "пас"),
-      createMockStringAssetSet("cat", "cat", "kat", "gata", "gatta")
-    )
+    val assetList =
+      listOf(
+        createMockAssetSet("abc"),
+        createMockAssetSet("def"),
+        createMockAssetSet("ad"),
+        createMockStringAssetSet("dog", "dog", "hund", "perro", "cane", "пас"),
+        createMockStringAssetSet("cat", "cat", "kat", "gata", "gatta"),
+      )
     val assetListView = AssetListView(assetList, speedSearch)
     assertThat(assetListView.model.size).isEqualTo(5)
     speedSearch.updatePattern("a")
@@ -115,17 +115,18 @@ class AssetListViewTest {
   }
 
   private fun createMockAssetSet(name: String) =
-    ResourceAssetSet(name, listOf(
-      DesignAsset(MockVirtualFile("$name.png"), emptyList(), ResourceType.DRAWABLE)
-    ))
+    ResourceAssetSet(name, listOf(DesignAsset(MockVirtualFile("$name.png"), emptyList(), ResourceType.DRAWABLE)))
 
   private fun createMockStringAssetSet(name: String, vararg values: String) =
-    ResourceAssetSet(name, values.map {
-      val item = mock<ResourceItem>()
-      val resValue = mock<ResourceValue>()
-      whenever(item.name).thenReturn(name)
-      whenever(item.resourceValue).thenReturn(resValue)
-      whenever(resValue.value).thenReturn(it)
-      DesignAsset(MockVirtualFile("strings.xml"), emptyList(), ResourceType.STRING, resourceItem = item)
-    })
+    ResourceAssetSet(
+      name,
+      values.map {
+        val item = mock<ResourceItem>()
+        val resValue = mock<ResourceValue>()
+        whenever(item.name).thenReturn(name)
+        whenever(item.resourceValue).thenReturn(resValue)
+        whenever(resValue.value).thenReturn(it)
+        DesignAsset(MockVirtualFile("strings.xml"), emptyList(), ResourceType.STRING, resourceItem = item)
+      },
+    )
 }

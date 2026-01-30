@@ -27,22 +27,22 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import org.jetbrains.android.AndroidResourceExternalAnnotatorBase
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
-/**
- * Annotator which puts colors and image icons in the editor gutter when referenced in Kotlin files.
- */
+/** Annotator which puts colors and image icons in the editor gutter when referenced in Kotlin files. */
 abstract class AndroidKotlinResourceExternalAnnotatorBase : AndroidResourceExternalAnnotatorBase() {
     override fun collectInformation(file: PsiFile, editor: Editor): FileAnnotationInfo? {
-        if (EssentialHighlightingMode.isEnabled()) return null;
+        if (EssentialHighlightingMode.isEnabled()) return null
         val facet = file.androidFacet ?: return null
         val annotationInfo = FileAnnotationInfo(facet, file, editor)
-        file.accept(object : PsiRecursiveElementWalkingVisitor() {
-            override fun visitElement(element: PsiElement) {
-                super.visitElement(element)
-                val reference = element as? KtNameReferenceExpression ?: return
-                val resourceReference = reference.resolveToResourceReference() ?: return
-                annotationInfo.elements.add(FileAnnotationInfo.AnnotatableElement(resourceReference, element))
+        file.accept(
+            object : PsiRecursiveElementWalkingVisitor() {
+                override fun visitElement(element: PsiElement) {
+                    super.visitElement(element)
+                    val reference = element as? KtNameReferenceExpression ?: return
+                    val resourceReference = reference.resolveToResourceReference() ?: return
+                    annotationInfo.elements.add(FileAnnotationInfo.AnnotatableElement(resourceReference, element))
+                }
             }
-        })
+        )
         return annotationInfo.takeIf { annotationInfo.elements.isNotEmpty() }
     }
 

@@ -33,12 +33,7 @@ internal object BackupFileType : FileType {
         .withExtensionFilter(EXT)
 
   val FILE_SAVER_DESCRIPTOR: FileSaverDescriptor
-    get() =
-      FileSaverDescriptor(
-        message("backup.choose.backup.file.dialog.title"),
-        "",
-        BackupFileType.defaultExtension,
-      )
+    get() = FileSaverDescriptor(message("backup.choose.backup.file.dialog.title"), "", BackupFileType.defaultExtension)
 
   override fun getName() = "Android Backup File"
 

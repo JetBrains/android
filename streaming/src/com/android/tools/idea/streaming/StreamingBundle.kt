@@ -6,12 +6,9 @@ import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 
-@NonNls
-private const val BUNDLE = "messages.StreamingBundle"
+@NonNls private const val BUNDLE = "messages.StreamingBundle"
 
 internal object StreamingBundle : DynamicBundle(BUNDLE) {
 
-  @Nls
-  @JvmStatic
-  fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) = getMessage(key, *params)
+  @Nls @JvmStatic fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) = getMessage(key, *params)
 }

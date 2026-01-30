@@ -24,11 +24,11 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
+import java.util.function.Consumer
+import java.util.regex.Pattern
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
-import java.util.regex.Pattern
 
 private const val INVOKE_CUSTOM = "Invoke-customs are only supported starting with Android O"
 private const val DEFAULT_INTERFACE_METHOD = "Default interface methods are only supported starting with Android N (--min-api 24)"
@@ -40,7 +40,6 @@ class DexDisabledIssueChecker : GradleIssueChecker {
   /**
    * Looks for errors related to DexArchiveBuilderException caused when desugaring is not enabled. The expected errors have a root cause
    * with a message like these:
-   *
    * - Error: Invoke-customs are only supported starting with Android O (--min-api 26)
    * - Error: Default interface methods are only supported starting with Android N (--min-api 24): <method>
    * - Error: Static interface methods are only supported starting with Android N (--min-api 24): <method>
@@ -55,9 +54,11 @@ class DexDisabledIssueChecker : GradleIssueChecker {
     }
     var rootMessage = rootCause.message ?: return null
     rootMessage = rootMessage.removePrefix("Error: ")
-    if ((!rootMessage.startsWith(INVOKE_CUSTOM))
-        && (!rootMessage.startsWith(DEFAULT_INTERFACE_METHOD))
-        && (!rootMessage.startsWith(STATIC_INTERFACE_METHOD))) {
+    if (
+      (!rootMessage.startsWith(INVOKE_CUSTOM)) &&
+        (!rootMessage.startsWith(DEFAULT_INTERFACE_METHOD)) &&
+        (!rootMessage.startsWith(STATIC_INTERFACE_METHOD))
+    ) {
       return null
     }
 
@@ -77,15 +78,19 @@ class DexDisabledIssueChecker : GradleIssueChecker {
     return DexDisabledIssue(issueComposer.composeBuildIssue())
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() &&
-           (failureCause.startsWith("Error: $INVOKE_CUSTOM") || failureCause.startsWith("Error: $DEFAULT_INTERFACE_METHOD") ||
-            failureCause.startsWith("Error: $STATIC_INTERFACE_METHOD"))
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
+    return stacktrace != null &&
+      EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() &&
+      (failureCause.startsWith("Error: $INVOKE_CUSTOM") ||
+        failureCause.startsWith("Error: $DEFAULT_INTERFACE_METHOD") ||
+        failureCause.startsWith("Error: $STATIC_INTERFACE_METHOD"))
   }
 }
 
@@ -93,6 +98,7 @@ class DexDisabledIssue(private val buildIssue: BuildIssue) : BuildIssue {
   override val title = buildIssue.title
   override val description = buildIssue.description
   override val quickFixes = buildIssue.quickFixes
+
   override fun getNavigatable(project: Project) = buildIssue.getNavigatable(project)
 }
 

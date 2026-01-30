@@ -20,10 +20,10 @@ import com.intellij.openapi.extensions.ExtensionPointName
 interface GoogleApiKeyProvider {
   enum class GoogleApi(val apiName: String) {
     CONTENT_SERVING("developerscontentserving-pa"),
-    CHIME("notifications-pa")
+    CHIME("notifications-pa"),
   }
 
-  fun getApiKey(api: GoogleApi) : String?
+  fun getApiKey(api: GoogleApi): String?
 
   companion object {
     val EP_NAME = ExtensionPointName.create<GoogleApiKeyProvider>("com.android.googleapis.googleApiKeyProvider")

@@ -42,27 +42,31 @@ class NamedContainerConfigurableBaseTest {
     Disposer.dispose(rootDisposable)
   }
 
-
-  val testData = mapOf(
-    "ROOT" to listOf("A", "B"),
-    "A" to listOf("A1", "A2"),
-    "A1" to listOf("A1X", "A1Y"),
-    "A2" to listOf("A2K", "A2L"),
-    "Z" to listOf("Z1", "Z2", "Z3"),
-    "B" to listOf()
-  )
+  val testData =
+    mapOf(
+      "ROOT" to listOf("A", "B"),
+      "A" to listOf("A1", "A2"),
+      "A1" to listOf("A1X", "A1Y"),
+      "A2" to listOf("A2K", "A2L"),
+      "Z" to listOf("Z1", "Z2", "Z3"),
+      "B" to listOf(),
+    )
 
   inner class TestConfigurable(val name: String) : NamedContainerConfigurableBase<String>(name), ContainerConfigurable<String> {
     val changeDispatcher = ChangeDispatcher()
-    val children = ObservableList<String>().also {
-      it.addAll(testData[name].orEmpty())
-      it.addListener { changeDispatcher.changed() }
-    }
+    val children =
+      ObservableList<String>().also {
+        it.addAll(testData[name].orEmpty())
+        it.addListener { changeDispatcher.changed() }
+      }
+
     override fun getChildrenModels(): Collection<String> = children
-    override fun createChildConfigurable(model: String): NamedConfigurable<String> = TestConfigurable(model).also {
-      Disposer.register(this, it)
-    }
+
+    override fun createChildConfigurable(model: String): NamedConfigurable<String> =
+      TestConfigurable(model).also { Disposer.register(this, it) }
+
     override fun onChange(disposable: Disposable, listener: () -> Unit) = changeDispatcher.add(disposable, listener)
+
     override fun dispose() = Unit
   }
 
@@ -71,16 +75,23 @@ class NamedContainerConfigurableBaseTest {
     val root = TestConfigurable("ROOT").also { Disposer.register(rootDisposable, it) }
     val model = createTreeModel(root)
     val testTree = model.rootNode.testStructure()
-    assertThat(testTree.toString(), equalTo("""
-      ROOT
-          A
-              A1
-                  A1X
-                  A1Y
-              A2
-                  A2K
-                  A2L
-          B""".trimIndent()))
+    assertThat(
+      testTree.toString(),
+      equalTo(
+        """
+        ROOT
+            A
+                A1
+                    A1X
+                    A1Y
+                A2
+                    A2K
+                    A2L
+            B
+        """
+          .trimIndent()
+      ),
+    )
   }
 
   @Test
@@ -90,15 +101,21 @@ class NamedContainerConfigurableBaseTest {
     root.children.removeAt(1)
     model.getConfigurable(0, 1)?.children?.removeAt(1)
     val testTree = model.rootNode.testStructure()
-    assertThat(testTree.toString(), equalTo("""
-      ROOT
-          A
-              A1
-                  A1X
-                  A1Y
-              A2
-                  A2K
-              """.trimIndent()))
+    assertThat(
+      testTree.toString(),
+      equalTo(
+        """
+        ROOT
+            A
+                A1
+                    A1X
+                    A1Y
+                A2
+                    A2K
+        """
+          .trimIndent()
+      ),
+    )
   }
 
   @Test
@@ -109,24 +126,31 @@ class NamedContainerConfigurableBaseTest {
     model.getConfigurable(0, 1)?.children?.add(1, "Z")
     model.getConfigurable(0, 1, 1)?.children?.add(1, "A2")
     val testTree = model.rootNode.testStructure()
-    assertThat(testTree.toString(), equalTo("""
-      ROOT
-          A
-              A1
-                  A1X
-                  A1Y
-              A2
-                  A2K
-                  Z
-                      Z1
-                      A2
-                          A2K
-                          A2L
-                      Z2
-                      Z3
-                  A2L
-          B
-          Q""".trimIndent()))
+    assertThat(
+      testTree.toString(),
+      equalTo(
+        """
+        ROOT
+            A
+                A1
+                    A1X
+                    A1Y
+                A2
+                    A2K
+                    Z
+                        Z1
+                        A2
+                            A2K
+                            A2L
+                        Z2
+                        Z3
+                    A2L
+            B
+            Q
+        """
+          .trimIndent()
+      ),
+    )
   }
 
   @Test
@@ -141,24 +165,29 @@ class NamedContainerConfigurableBaseTest {
     model.getConfigurable(0 /* still at old index */)?.children?.add(0, "Z")
     root.children.endUpdate()
     val testTree = model.rootNode.testStructure()
-    assertThat(testTree.toString(), equalTo("""
-      ROOT
-          B
-          A
-              Z
-                  Z1
-                  Z2
-                  Z3
-              A2
-                  A2K
-                  A2L
-              A1
-                  A1X
-                  A1Y""".trimIndent()))
+    assertThat(
+      testTree.toString(),
+      equalTo(
+        """
+        ROOT
+            B
+            A
+                Z
+                    Z1
+                    Z2
+                    Z3
+                A2
+                    A2K
+                    A2L
+                A1
+                    A1X
+                    A1Y
+        """
+          .trimIndent()
+      ),
+    )
   }
 
   private fun ConfigurablesTreeModel.getConfigurable(vararg indexes: Int): TestConfigurable? =
-    (indexes.fold(root) { parent, index -> getChild(parent, index) } as? MasterDetailsComponent.MyNode)
-      ?.configurable as? TestConfigurable
+    (indexes.fold(root) { parent, index -> getChild(parent, index) } as? MasterDetailsComponent.MyNode)?.configurable as? TestConfigurable
 }
-

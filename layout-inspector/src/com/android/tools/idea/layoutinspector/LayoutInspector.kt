@@ -88,9 +88,7 @@ private constructor(
   val renderLogic: RenderLogic,
 ) {
 
-  /**
-   * Construct a LayoutInspector that can launch new [InspectorClient]s as needed using [launcher].
-   */
+  /** Construct a LayoutInspector that can launch new [InspectorClient]s as needed using [launcher]. */
   constructor(
     coroutineScope: CoroutineScope,
     processModel: ProcessesModel,
@@ -103,8 +101,7 @@ private constructor(
     treeSettings: TreeSettings,
     renderSettings: RenderSettings = InspectorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel =
-      RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
     renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     layoutInspectorModel,
@@ -126,10 +123,7 @@ private constructor(
     launcher.addClientChangedListener(::onClientChanged)
   }
 
-  /**
-   * Construct a LayoutInspector tied to a specific [InspectorClient], e.g. for viewing a snapshot
-   * file.
-   */
+  /** Construct a LayoutInspector tied to a specific [InspectorClient], e.g. for viewing a snapshot file. */
   constructor(
     coroutineScope: CoroutineScope,
     layoutInspectorClientSettings: InspectorClientSettings,
@@ -139,8 +133,7 @@ private constructor(
     treeSettings: TreeSettings,
     renderSettings: RenderSettings = EditorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel =
-      RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
     renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     inspectorModel = layoutInspectorModel,
@@ -184,8 +177,8 @@ private constructor(
   val stopInspectorListeners: MutableList<() -> Unit> = mutableListOf()
 
   /**
-   * Stops LayoutInspector. If a device is selected, stops foreground process detection. If a device
-   * is not selected, stops process inspection by setting the selected process to null.
+   * Stops LayoutInspector. If a device is selected, stops foreground process detection. If a device is not selected, stops process
+   * inspection by setting the selected process to null.
    *
    * A process can be selected when a device does not support foreground process detection.
    */
@@ -208,12 +201,8 @@ private constructor(
       client.registerErrorCallback(::showErrorMessage)
       client.registerRootsEventCallback(::adjustRoots)
       client.registerTreeEventCallback(::loadComponentTree)
-      client.registerStateCallback { state ->
-        if (state == InspectorClient.State.CONNECTED) updateConnection(client)
-      }
-      client.registerConnectionTimeoutCallback { state ->
-        inspectorModel.fireAttachStateEvent(state)
-      }
+      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
+      client.registerConnectionTimeoutCallback { state -> inspectorModel.fireAttachStateEvent(state) }
       client.stats.start()
     } else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the
@@ -249,9 +238,7 @@ private constructor(
       val time = System.currentTimeMillis()
       val treeLoader = currentClient.treeLoader
       val allIds = treeLoader.getAllWindowIds(event)
-      val data =
-        treeLoader.loadComponentTree(event, inspectorModel.resourceLookup, currentClient.process)
-          ?: return@execute
+      val data = treeLoader.loadComponentTree(event, inspectorModel.resourceLookup, currentClient.process) ?: return@execute
       currentClient.updateProgress(AttachErrorState.PARSED_COMPONENT_TREE)
       currentClient.addDynamicCapabilities(data.dynamicCapabilities)
       if (allIds != null) {
@@ -266,9 +253,7 @@ private constructor(
               currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
               if (logger.isDebugEnabled) {
                 // This logger.debug statement is for integration tests
-                logger.debug(
-                  "g:${data.generation} Model Updated for process: ${currentClient.process.name}"
-                )
+                logger.debug("g:${data.generation} Model Updated for process: ${currentClient.process.name}")
               }
             }
             if (
@@ -298,12 +283,9 @@ private constructor(
     notificationModel.addNotification(errorMessage, errorMessage, Status.Error)
 
     if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
-      invokeLater {
-        Messages.showErrorDialog(inspectorModel.project, errorMessage, "Inspector Error")
-      }
+      invokeLater { Messages.showErrorDialog(inspectorModel.project, errorMessage, "Inspector Error") }
     }
   }
 }
 
-fun LayoutInspector?.hasCapability(capability: Capability): Boolean =
-  this?.currentClient?.capabilities?.contains(capability) ?: false
+fun LayoutInspector?.hasCapability(capability: Capability): Boolean = this?.currentClient?.capabilities?.contains(capability) ?: false

@@ -57,7 +57,6 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -75,6 +74,7 @@ import javax.swing.JScrollPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.event.DocumentEvent
 import kotlin.properties.Delegates
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val CELL_WIDTH = 300
 private const val PANEL_WIDTH = 300
@@ -98,70 +98,70 @@ class CompactResourcePicker(
   selectedPickerSources: List<ResourcePickerSources> = ResourcePickerSources.allSources(),
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : JPanel(BorderLayout()) {
-  private val sources: List<ResourcePickerSources> = if (selectedPickerSources.isEmpty()) {
-    // Make sure that the sources parameter does not return an empty list, otherwise default to all sources
-    thisLogger().warn("Parameter selectedPickerSources is empty, will use all sources")
-    ResourcePickerSources.allSources()
-  }
-  else {
-    selectedPickerSources
-  }
+  private val sources: List<ResourcePickerSources> =
+    if (selectedPickerSources.isEmpty()) {
+      // Make sure that the sources parameter does not return an empty list, otherwise default to all sources
+      thisLogger().warn("Parameter selectedPickerSources is empty, will use all sources")
+      ResourcePickerSources.allSources()
+    } else {
+      selectedPickerSources
+    }
 
   private val componentPadding = JBEmptyBorder(8, 12, 8, 12)
 
   private val scaledCellHeight = resourceType.getScaledCellHeight()
 
-  private var resourcesModel: Map<ResourcePickerSources, List<ResourceAssetSet>> by Delegates.observable(emptyMap()) { _, _, _ ->
-    updateResourcesList(sources.first())
-  }
+  private var resourcesModel: Map<ResourcePickerSources, List<ResourceAssetSet>> by
+    Delegates.observable(emptyMap()) { _, _, _ -> updateResourcesList(sources.first()) }
 
-  /**
-   * The current list model for the [resourcesList] that can filter its items by name.
-   */
+  /** The current list model for the [resourcesList] that can filter its items by name. */
   private var resourcesListModel: NameFilteringListModel<ResourceAssetSet>? = null
 
-  /**
-   * The [SpeedSearch] object used by the [resourcesListModel] to filter items.
-   */
-  private val speedSearch = SpeedSearch().apply {
-    setEnabled(true)
-    addChangeListener {
-      resourcesListModel?.refilter()
+  /** The [SpeedSearch] object used by the [resourcesListModel] to filter items. */
+  private val speedSearch =
+    SpeedSearch().apply {
+      setEnabled(true)
+      addChangeListener { resourcesListModel?.refilter() }
     }
-  }
 
-  private val searchTextField = SearchTextField(true).apply {
-    background = PICKER_BACKGROUND_COLOR
-    addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        speedSearch.updatePattern(e.document.getText(0, e.document.length))
-      }
-    })
-  }
+  private val searchTextField =
+    SearchTextField(true).apply {
+      background = PICKER_BACKGROUND_COLOR
+      addDocumentListener(
+        object : DocumentAdapter() {
+          override fun textChanged(e: DocumentEvent) {
+            speedSearch.updatePattern(e.document.getText(0, e.document.length))
+          }
+        }
+      )
+    }
 
   private val resourceSourceComboBoxModel = DefaultCommonComboBoxModel<ResourcePickerSources>(sources.first().displayableName, sources)
 
-  private val resourceSourceComboBox = ComboBox<ResourcePickerSources>(resourceSourceComboBoxModel).apply {
-    isEditable = false
-    isEnabled = false
-    addItemListener { event ->
-      if (event.stateChange == ItemEvent.SELECTED) {
-        updateResourcesList(event.itemSelectable.selectedObjects.first() as ResourcePickerSources)
+  private val resourceSourceComboBox =
+    ComboBox<ResourcePickerSources>(resourceSourceComboBoxModel).apply {
+      isEditable = false
+      isEnabled = false
+      addItemListener { event ->
+        if (event.stateChange == ItemEvent.SELECTED) {
+          updateResourcesList(event.itemSelectable.selectedObjects.first() as ResourcePickerSources)
+        }
       }
     }
-  }
 
-  private val headerToolbar = JPanel(BorderLayout()).apply {
-    background = PICKER_BACKGROUND_COLOR
-    add(searchTextField, BorderLayout.WEST)
-    add(resourceSourceComboBox, BorderLayout.CENTER)
-    border = BorderFactory.createCompoundBorder(
-      BorderFactory.createMatteBorder(0, 0, JBUIScale.scale(1), 0, JBUI.CurrentTheme.Popup.separatorColor()),
-      componentPadding
-    )
-  }
+  private val headerToolbar =
+    JPanel(BorderLayout()).apply {
+      background = PICKER_BACKGROUND_COLOR
+      add(searchTextField, BorderLayout.WEST)
+      add(resourceSourceComboBox, BorderLayout.CENTER)
+      border =
+        BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(0, 0, JBUIScale.scale(1), 0, JBUI.CurrentTheme.Popup.separatorColor()),
+          componentPadding,
+        )
+    }
 
   /**
    * A [JBList] used to display resources grouped in [ResourceAssetSet]s.
@@ -172,68 +172,85 @@ class CompactResourcePicker(
    * @see AssetPreviewManagerImpl
    * @see CompactResourceListCellRenderer
    */
-  private val resourcesList = JBList<ResourceAssetSet>().apply {
-    border = componentPadding
-    emptyText.text = "" // No need to show any text right away (before loading is even started)
-    background = PICKER_BACKGROUND_COLOR
-    fixedCellHeight = scaledCellHeight
-    fixedCellWidth = JBUIScale.scale(CELL_WIDTH)
-    cellRenderer =
-      CompactResourceListCellRenderer(
-        AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
-        scaledCellHeight
+  private val resourcesList =
+    JBList<ResourceAssetSet>().apply {
+      border = componentPadding
+      emptyText.text = "" // No need to show any text right away (before loading is even started)
+      background = PICKER_BACKGROUND_COLOR
+      fixedCellHeight = scaledCellHeight
+      fixedCellWidth = JBUIScale.scale(CELL_WIDTH)
+      cellRenderer =
+        CompactResourceListCellRenderer(
+          AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
+          scaledCellHeight,
+        )
+      addListSelectionListener { event ->
+        if (!event.valueIsAdjusting) {
+          selectedValue?.getHighestDensityAsset()?.resourceUrl?.toString()?.let { resourceName -> selectedResourceCallback(resourceName) }
+        }
+      }
+      addFocusListener(
+        object : FocusAdapter() {
+          override fun focusGained(e: FocusEvent?) {
+            // Auto-select the first element if the list gains focus and there's no selection.
+            if (selectionModel.isSelectionEmpty && !selectionModel.valueIsAdjusting && model.size > 0) {
+              selectionModel.setSelectionInterval(0, 0)
+            }
+          }
+        }
       )
-    addListSelectionListener { event ->
-      if (!event.valueIsAdjusting) {
-        selectedValue?.getHighestDensityAsset()?.resourceUrl?.toString()?.let { resourceName ->
-          selectedResourceCallback(resourceName)
-        }
-      }
     }
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(e: FocusEvent?) {
-        // Auto-select the first element if the list gains focus and there's no selection.
-        if (selectionModel.isSelectionEmpty && !selectionModel.valueIsAdjusting && model.size > 0) {
-          selectionModel.setSelectionInterval(0, 0)
-        }
-      }
-    })
-  }
 
-  private val resourcesView = JBScrollPane(resourcesList).apply {
-    border = JBEmptyBorder(0)
-    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-  }
+  private val resourcesView =
+    JBScrollPane(resourcesList).apply {
+      border = JBEmptyBorder(0)
+      verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+      horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+    }
 
-  private val bottomToolbar = JPanel(BorderLayout()).apply {
-    isOpaque = false
-    border = BorderFactory.createCompoundBorder(
-      BorderFactory.createMatteBorder(JBUIScale.scale(1), 0, 0, 0, JBUI.CurrentTheme.Popup.separatorColor()),
-      componentPadding)
-    val action = BrowseAction(facet, resourceType, contextFile, sources.contains(ResourcePickerSources.THEME_ATTR),
-                              selectedResourceCallback, resourcePickerDialogOpenedCallback)
-    add(ActionButtonWithText(action,
-                             action.templatePresentation.clone(),
-                             "",
-                             JBUI.size(60, 0)).apply {
-      foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
-      isFocusable = true
-    }, BorderLayout.EAST)
-  }
+  private val bottomToolbar =
+    JPanel(BorderLayout()).apply {
+      isOpaque = false
+      border =
+        BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(JBUIScale.scale(1), 0, 0, 0, JBUI.CurrentTheme.Popup.separatorColor()),
+          componentPadding,
+        )
+      val action =
+        BrowseAction(
+          facet,
+          resourceType,
+          contextFile,
+          sources.contains(ResourcePickerSources.THEME_ATTR),
+          selectedResourceCallback,
+          resourcePickerDialogOpenedCallback,
+        )
+      add(
+        ActionButtonWithText(action, action.templatePresentation.clone(), "", JBUI.size(60, 0)).apply {
+          foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
+          isFocusable = true
+        },
+        BorderLayout.EAST,
+      )
+    }
 
   /**
    * JobScheduler future that when run, will make the resources list look like if it's loading. If the list loads before the job is run,
    * then it will simply be cancelled.
    */
-  private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
-    {
-      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
-        // Schedule the 'loading' state of the list, to avoid flashing in the UI
-        resourcesList.setPaintBusy(true)
-        resourcesList.emptyText.text = "Loading..."
-      }
-    }, 250L, TimeUnit.MILLISECONDS)
+  private val showAsLoadingFuture =
+    JobScheduler.getScheduler()
+      .schedule(
+        {
+          ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
+            // Schedule the 'loading' state of the list, to avoid flashing in the UI
+            resourcesList.setPaintBusy(true)
+            resourcesList.emptyText.text = "Loading..."
+          }
+        },
+        250L,
+        TimeUnit.MILLISECONDS,
+      )
 
   init {
     populatePanel()
@@ -253,57 +270,60 @@ class CompactResourcePicker(
     // Setup focus logic
     isFocusCycleRoot = true
     isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-      override fun getDefaultComponent(aContainer: Container?): Component {
-        return searchTextField
-      }
-    }
-    addPropertyChangeListener("ancestor") {
-      searchTextField.requestFocusInWindow()
-    }
-  }
-
-  /**
-   * Load every resource that can be displayed in a background thread, then populate the [resourcesModel] in the EDT.
-   */
-  private fun loadResources(facet: AndroidFacet,
-                            resourceResolver: ResourceResolver,
-                            type: ResourceType) {
-    CompletableFuture.supplyAsync(Supplier {
-      val resourcesMap = mutableMapOf<ResourcePickerSources, List<ResourceAssetSet>>()
-
-      for (source in sources) {
-        resourcesMap[source] = when (source) {
-          // Project resources come from the current module and its dependencies.
-          ResourcePickerSources.PROJECT -> ArrayList<ResourceAssetSet>().apply {
-            addAll(getModuleResources(facet, type, emptyList()).assetSets)
-            addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
-          }
-          ResourcePickerSources.LIBRARY -> getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
-          ResourcePickerSources.ANDROID -> getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
-          ResourcePickerSources.THEME_ATTR -> getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
+    focusTraversalPolicy =
+      object : LayoutFocusTraversalPolicy() {
+        override fun getDefaultComponent(aContainer: Container?): Component {
+          return searchTextField
         }
       }
-      return@Supplier resourcesMap
-    }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync(BiConsumer { resourcesMap, _ ->
-      showAsLoadingFuture.cancel(true)
-      resourcesModel = resourcesMap
-    }, EdtExecutorService.getScheduledExecutorInstance())
+    addPropertyChangeListener("ancestor") { searchTextField.requestFocusInWindow() }
   }
 
-  /**
-   * Update the [resourcesList] with the resources from the selected [ResourcePickerSources].
-   */
+  /** Load every resource that can be displayed in a background thread, then populate the [resourcesModel] in the EDT. */
+  private fun loadResources(facet: AndroidFacet, resourceResolver: ResourceResolver, type: ResourceType) {
+    CompletableFuture.supplyAsync(
+        Supplier {
+          val resourcesMap = mutableMapOf<ResourcePickerSources, List<ResourceAssetSet>>()
+
+          for (source in sources) {
+            resourcesMap[source] =
+              when (source) {
+                // Project resources come from the current module and its dependencies.
+                ResourcePickerSources.PROJECT ->
+                  ArrayList<ResourceAssetSet>().apply {
+                    addAll(getModuleResources(facet, type, emptyList()).assetSets)
+                    addAll(getDependentModuleResources(facet, type, emptyList()).flatMap { it.assetSets })
+                  }
+                ResourcePickerSources.LIBRARY -> getLibraryResources(facet, type, emptyList()).flatMap { it.assetSets }
+                ResourcePickerSources.ANDROID -> getAndroidResources(facet, type, emptyList())?.assetSets ?: emptyList()
+                ResourcePickerSources.THEME_ATTR -> getThemeAttributes(facet, type, emptyList(), resourceResolver)?.assetSets ?: emptyList()
+              }
+          }
+          return@Supplier resourcesMap
+        },
+        AppExecutorUtil.getAppExecutorService(),
+      )
+      .whenCompleteAsync(
+        BiConsumer { resourcesMap, _ ->
+          showAsLoadingFuture.cancel(true)
+          resourcesModel = resourcesMap
+        },
+        EdtExecutorService.getScheduledExecutorInstance(),
+      )
+  }
+
+  /** Update the [resourcesList] with the resources from the selected [ResourcePickerSources]. */
   private fun updateResourcesList(source: ResourcePickerSources) {
     resourcesList.setPaintBusy(false)
     resourcesList.emptyText.text = StatusText.getDefaultEmptyText()
-    resourcesListModel = NameFilteringListModel<ResourceAssetSet>(
-      // Re-apply the filter from the SearchField to the new list
-      CollectionListModel<ResourceAssetSet>(resourcesModel.getValue(source)),
-      { it.name },
-      speedSearch::shouldBeShowing,
-      { StringUtil.notNullize(speedSearch.filter) }
-    )
+    resourcesListModel =
+      NameFilteringListModel<ResourceAssetSet>(
+        // Re-apply the filter from the SearchField to the new list
+        CollectionListModel<ResourceAssetSet>(resourcesModel.getValue(source)),
+        { it.name },
+        speedSearch::shouldBeShowing,
+        { StringUtil.notNullize(speedSearch.filter) },
+      )
     resourcesList.model = resourcesListModel
     resourceSourceComboBox.isEnabled = true
   }
@@ -315,26 +335,25 @@ private class BrowseAction(
   contextFile: VirtualFile?,
   showThemeAttributes: Boolean,
   selectedResourceCallback: (String) -> Unit,
-  resourcePickerDialogOpenedCallback: () -> Unit
+  resourcePickerDialogOpenedCallback: () -> Unit,
 ) : AnAction("Browse", "Open the Resource Picker dialog", null) {
   private val openResourcePickerDialog = {
     // Open the ResourcePickerDialog, the selected resource in the dialog is returned through the selection callback
-    val resourcePickerDialog = createResourcePickerDialog(
-      "Pick a Resource",
-      null,
-      facet,
-      setOf(resourceType),
-      resourceType,
-      true,
-      false,
-      showThemeAttributes,
-      contextFile
-    )
+    val resourcePickerDialog =
+      createResourcePickerDialog(
+        "Pick a Resource",
+        null,
+        facet,
+        setOf(resourceType),
+        resourceType,
+        true,
+        false,
+        showThemeAttributes,
+        contextFile,
+      )
     resourcePickerDialogOpenedCallback()
     if (resourcePickerDialog.showAndGet()) {
-      resourcePickerDialog.resourceName?.let {
-        selectedResourceCallback(it)
-      }
+      resourcePickerDialog.resourceName?.let { selectedResourceCallback(it) }
     }
   }
 

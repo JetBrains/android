@@ -20,11 +20,7 @@ import java.awt.Rectangle
 open class DefaultHitProvider : HitProvider {
   private val rect = Rectangle()
 
-  override fun addHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     component.fillRect(rect)
 
     picker.addRect(
@@ -37,11 +33,7 @@ open class DefaultHitProvider : HitProvider {
     )
   }
 
-  override fun intersects(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    rectangle: Rectangle,
-  ): Boolean {
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, rectangle: Rectangle): Boolean {
     component.fillRect(rect)
     return rectangle.intersects(rect)
   }

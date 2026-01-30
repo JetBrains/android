@@ -20,26 +20,22 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 
 interface DaggerIndexAnnotatedWrapper : DaggerIndexPsiWrapper {
   /**
-   * Returns whether the element might be annotated by the given type (specified by fully-qualified
-   * name).
+   * Returns whether the element might be annotated by the given type (specified by fully-qualified name).
    *
-   * For example, given an element with the annotation "@Inject",
-   * `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long as the file has
-   * appropriate import statements.
+   * For example, given an element with the annotation "@Inject", `getIsAnnotatedWith("javax.inject.Inject", ...)` would return true as long
+   * as the file has appropriate import statements.
    *
-   * Because this evaluation is happening at index time, it's not possible to say that the type
-   * actually matches. This function indicates at best that an annotation *may* be of the given
-   * type. A return value of `false` means that it definitively will not be of that type.
+   * Because this evaluation is happening at index time, it's not possible to say that the type actually matches. This function indicates at
+   * best that an annotation *may* be of the given type. A return value of `false` means that it definitively will not be of that type.
    */
   fun getIsAnnotatedWith(annotation: DaggerAnnotation) = getAnnotations(annotation).any()
 
   /** Same as [getIsAnnotatedWith], but allowing multiple annotation names. */
-  fun getIsAnnotatedWithAnyOf(vararg annotations: DaggerAnnotation) =
-    annotations.any { annotation -> getIsAnnotatedWith(annotation) }
+  fun getIsAnnotatedWithAnyOf(vararg annotations: DaggerAnnotation) = annotations.any { annotation -> getIsAnnotatedWith(annotation) }
 
   /**
-   * Gets a list of annotations on this element that might correspond to the given fully-qualified
-   * name. (See [getIsAnnotatedWith] for an explanation of why this is not a guaranteed match.)
+   * Gets a list of annotations on this element that might correspond to the given fully-qualified name. (See [getIsAnnotatedWith] for an
+   * explanation of why this is not a guaranteed match.)
    */
   fun getAnnotations(annotation: DaggerAnnotation): Sequence<DaggerIndexAnnotationWrapper>
 }
@@ -52,9 +48,7 @@ internal abstract class DaggerIndexAnnotatedKotlinWrapper(
     ktAnnotated.annotationEntries
       .asSequence()
       .map { KtAnnotationEntryWrapper(it) }
-      .filter {
-        importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource())
-      }
+      .filter { importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource()) }
 }
 
 internal abstract class DaggerIndexAnnotatedJavaWrapper(
@@ -65,7 +59,5 @@ internal abstract class DaggerIndexAnnotatedJavaWrapper(
     psiModifierListOwner.annotations
       .asSequence()
       .map { PsiAnnotationWrapper(it) }
-      .filter {
-        importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource())
-      }
+      .filter { importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource()) }
 }

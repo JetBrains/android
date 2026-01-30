@@ -44,12 +44,7 @@ class ComposePreviewRepresentationProviderTest {
 
   private val androidEditorSettings = AndroidEditorSettings()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings),
-    )
+  @get:Rule val rule = RuleChain(projectRule, ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings))
 
   private val project
     get() = projectRule.project
@@ -57,9 +52,7 @@ class ComposePreviewRepresentationProviderTest {
   private val fixture
     get() = projectRule.fixture
 
-  private val previewProvider = ComposePreviewRepresentationProvider {
-    AnnotationFilePreviewElementFinder
-  }
+  private val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
 
   @Test
   fun testDefaultLayout_withPreview() = runBlocking {
@@ -82,7 +75,7 @@ class ComposePreviewRepresentationProviderTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -129,7 +122,7 @@ class ComposePreviewRepresentationProviderTest {
         @Composable
         fun Composable2() {
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -156,7 +149,7 @@ class ComposePreviewRepresentationProviderTest {
 
         fun helloMethod() {
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -193,7 +186,7 @@ class ComposePreviewRepresentationProviderTest {
 
         class Java {
         }
-      """
+        """
           .trimIndent(),
       )
 
@@ -232,15 +225,13 @@ class ComposePreviewRepresentationProviderTest {
         @Composable
         fun Composable2() {
         }
-      """
+        """
           .trimIndent(),
       )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     assertTrue(previewProvider.accept(project, file))
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      runBlocking { assertFalse(previewProvider.accept(project, file)) }
-    }
+    DumbModeTestUtils.runInDumbModeSynchronously(project) { runBlocking { assertFalse(previewProvider.accept(project, file)) } }
   }
 
   private fun PsiFile.getPreferredVisibility() =

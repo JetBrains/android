@@ -29,11 +29,7 @@ class AndroidSessionInfo private constructor(val devices: List<IDevice>, val app
     val ANDROID_DEVICE_API_LEVEL = Key<AndroidVersion>("ANDROID_DEVICE_API_LEVEL")
 
     @JvmStatic
-    fun create(
-      processHandler: ProcessHandler,
-      devices: List<IDevice>,
-      applicationId: String
-    ): AndroidSessionInfo {
+    fun create(processHandler: ProcessHandler, devices: List<IDevice>, applicationId: String): AndroidSessionInfo {
       val result = AndroidSessionInfo(devices, applicationId)
       processHandler.putUserData(KEY, result)
       return result
@@ -41,9 +37,7 @@ class AndroidSessionInfo private constructor(val devices: List<IDevice>, val app
 
     fun from(processHandler: ProcessHandler): AndroidSessionInfo? = processHandler.getUserData(KEY)
 
-    /**
-     * Find all the actively running session in the given project.
-     */
+    /** Find all the actively running session in the given project. */
     @JvmStatic
     fun findActiveSession(project: Project): List<AndroidSessionInfo> {
       return ExecutionManager.getInstance(project).getRunningProcesses().mapNotNull { handler -> handler.getUserData(KEY) }

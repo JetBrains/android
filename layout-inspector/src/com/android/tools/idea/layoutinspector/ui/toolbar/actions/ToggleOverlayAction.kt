@@ -44,8 +44,8 @@ private const val SLIDER_KEY = "SliderKey"
 const val INITIAL_ALPHA_VALUE = 0.6f
 
 /**
- * An action group containing an action to provide an overlay image and a slider to control the
- * image alpha. The slider is shown only when the image is present.
+ * An action group containing an action to provide an overlay image and a slider to control the image alpha. The slider is shown only when
+ * the image is present.
  */
 class OverlayActionGroup(
   inspectorModel: InspectorModel,
@@ -55,8 +55,7 @@ class OverlayActionGroup(
 ) : DefaultActionGroup() {
 
   private val toggleButton = ToggleOverlayAction(inspectorModel, getImage, setImage)
-  private val alphaSlider =
-    AlphaSliderAction(setAlpha = setAlpha, isVisible = { getImage() != null })
+  private val alphaSlider = AlphaSliderAction(setAlpha = setAlpha, isVisible = { getImage() != null })
 
   override fun getChildren(e: AnActionEvent?): Array<out AnAction> {
     return arrayOf(toggleButton, alphaSlider)
@@ -98,10 +97,8 @@ private class ToggleOverlayAction(
       FileChooserDescriptorFactory.createSingleFileDescriptor()
         .withTitle("Choose Overlay")
         .withExtensionFilter("Image files", "svg", "png", "jpg")
-    val fileChooserDialog =
-      FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val toSelect =
-      LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
+    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
+    val toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
     val files = fileChooserDialog.choose(null, toSelect!!)
     if (files.isEmpty()) {
       return
@@ -117,23 +114,17 @@ private class ToggleOverlayAction(
       ImageIO.read(file.inputStream)
       file.inputStream.readAllBytes()
     } catch (e: IOException) {
-      Messages.showErrorDialog(
-        "Failed to read image from \"" + file.name + "\" Error: " + e.message,
-        "Error",
-      )
+      Messages.showErrorDialog("Failed to read image from \"" + file.name + "\" Error: " + e.message, "Error")
       return null
     }
   }
 }
 
 /** Action that shows a slider to control the overlay image's transparency. */
-private class AlphaSliderAction(
-  private val setAlpha: (Float) -> Unit,
-  private val isVisible: () -> Boolean,
-) : AnAction(), CustomComponentAction {
+private class AlphaSliderAction(private val setAlpha: (Float) -> Unit, private val isVisible: () -> Boolean) :
+  AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
-    val component =
-      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
+    val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
     // The event for Custom components actions are constructed differently than normal actions.
     // If this action is shown in a popup toolbar (when there is not enough space to show the whole
@@ -148,15 +139,7 @@ private class AlphaSliderAction(
     val slider = JSlider(JSlider.HORIZONTAL, 0, 100, (INITIAL_ALPHA_VALUE * 100).toInt())
     slider.addChangeListener {
       val dataContext = DataManager.getInstance().getDataContext(slider)
-      actionPerformed(
-        AnActionEvent.createEvent(
-          dataContext,
-          presentation,
-          ActionPlaces.TOOLBAR,
-          ActionUiKind.TOOLBAR,
-          null,
-        )
-      )
+      actionPerformed(AnActionEvent.createEvent(dataContext, presentation, ActionPlaces.TOOLBAR, ActionUiKind.TOOLBAR, null))
     }
     panel.add(slider)
     panel.putClientProperty(SLIDER_KEY, slider)

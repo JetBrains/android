@@ -32,13 +32,12 @@ val TEXT_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_1
 val COLOR_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_2
 
 /**
- * Comparator that is sorting [PTableItem] in Android sorting order. This implies layout attributes
- * first and layout_width before layout_height.
+ * Comparator that is sorting [PTableItem] in Android sorting order. This implies layout attributes first and layout_width before
+ * layout_height.
  */
 val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
-class InspectorPropertiesView(model: InspectorPropertiesModel) :
-  PropertiesView<InspectorPropertyItem>(VIEW_NAME, model) {
+class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<InspectorPropertyItem>(VIEW_NAME, model) {
 
   private val enumSupportProvider =
     object : EnumSupportProvider<InspectorPropertyItem> {
@@ -51,13 +50,11 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
       override fun invoke(property: InspectorPropertyItem): ControlType {
         return when (property.type) {
           PropertyType.DRAWABLE,
-          PropertyType.COLOR ->
-            if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
+          PropertyType.COLOR -> if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
           PropertyType.LAMBDA,
           PropertyType.FUNCTION_REFERENCE,
           PropertyType.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
-          else ->
-            if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
+          else -> if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
         }
       }
     }
@@ -65,8 +62,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) :
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedViewBuilder(model))
-    val attributeSections =
-      setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
+    val attributeSections = setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")
     tab.builders.add(DimensionBuilder)
     tab.builders.add(InlineNotificationBuilder(model))

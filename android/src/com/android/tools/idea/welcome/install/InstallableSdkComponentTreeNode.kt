@@ -26,8 +26,7 @@ import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import com.intellij.openapi.diagnostic.thisLogger
 
-private val PROGRESS_LOGGER =
-  StudioLoggerProgressIndicator(InstallableSdkComponentTreeNode::class.java)
+private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableSdkComponentTreeNode::class.java)
 
 /** Base class for leaf components (the ones that are immediately installed). */
 abstract class InstallableSdkComponentTreeNode(
@@ -44,8 +43,8 @@ abstract class InstallableSdkComponentTreeNode(
   @JvmField protected var sdkHandler: AndroidSdkHandler? = null
 
   /**
-   * Gets the packages that this component would actually install (the required packages that aren't
-   * already installed or have an update available, if we're installing updates).
+   * Gets the packages that this component would actually install (the required packages that aren't already installed or have an update
+   * available, if we're installing updates).
    */
   val packagesToInstall: Collection<UpdatablePackage>
     get() =
@@ -56,8 +55,7 @@ abstract class InstallableSdkComponentTreeNode(
 
   val unavailablePackages: Collection<String>
     get() {
-      val installedPackages =
-        requiredSdkPackages.mapNotNull { repositoryPackages.consolidatedPkgs[it]?.local?.path }
+      val installedPackages = requiredSdkPackages.mapNotNull { repositoryPackages.consolidatedPkgs[it]?.local?.path }
       return requiredSdkPackages.minus(packagesToInstall.map { it.path }).minus(installedPackages)
     }
 
@@ -113,10 +111,7 @@ abstract class InstallableSdkComponentTreeNode(
     isInstalled = packagesToInstall.isEmpty() && unavailablePackages.isEmpty()
     isUnavailable = unavailablePackages.isNotEmpty()
     if (isUnavailable) {
-      thisLogger()
-        .warn(
-          "$name depends on the the packages that are not available: ${unavailablePackages.joinToString(", ")}"
-        )
+      thisLogger().warn("$name depends on the the packages that are not available: ${unavailablePackages.joinToString(", ")}")
     }
   }
 

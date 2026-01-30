@@ -60,18 +60,23 @@ class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResult
 
 class ReportProjectSizeTask(val project: Project) : Runnable {
 
-  @VisibleForTesting
-  val repostStatsJobs = mutableListOf<Job>()
+  @VisibleForTesting val repostStatsJobs = mutableListOf<Job>()
 
-  private enum class FileType(private val fileType: com.intellij.openapi.fileTypes.FileType,
-                              private val statsFileType: IntellijProjectSizeStats.FileType) {
+  private enum class FileType(
+    private val fileType: com.intellij.openapi.fileTypes.FileType,
+    private val statsFileType: IntellijProjectSizeStats.FileType,
+  ) {
     JAVA(JavaFileType.INSTANCE, IntellijProjectSizeStats.FileType.JAVA),
     XML(XmlFileType.INSTANCE, IntellijProjectSizeStats.FileType.XML),
     JAVA_CLASS(JavaClassFileType.INSTANCE, IntellijProjectSizeStats.FileType.DOT_CLASS),
-    KOTLIN(FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
-           IntellijProjectSizeStats.FileType.KOTLIN),
-    NATIVE(FileTypeRegistry.getInstance().findFileTypeByName("ObjectiveC") ?: PlainTextFileType.INSTANCE,
-           IntellijProjectSizeStats.FileType.NATIVE);
+    KOTLIN(
+      FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
+      IntellijProjectSizeStats.FileType.KOTLIN,
+    ),
+    NATIVE(
+      FileTypeRegistry.getInstance().findFileTypeByName("ObjectiveC") ?: PlainTextFileType.INSTANCE,
+      IntellijProjectSizeStats.FileType.NATIVE,
+    );
 
     fun languageFileType(): com.intellij.openapi.fileTypes.FileType {
       return fileType
@@ -83,34 +88,29 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
   }
 
   override fun run() {
-    project.coroutineScope.launch {
-      Observation.awaitConfiguration(project)
-      withBackgroundProgress(project, "Computing project size", true) {
-        val builder = AndroidStudioEvent
-          .newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-          .withProjectId(project)
+    project.coroutineScope
+      .launch {
+        Observation.awaitConfiguration(project)
+        withBackgroundProgress(project, "Computing project size", true) {
+          val builder =
+            AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS).withProjectId(project)
 
-        FileType.entries.forEach { fileType ->
-          smartReadAction(project) {
-            builder.addIntellijProjectSizeStatsForFileType(fileType)
-          }
+          FileType.entries.forEach { fileType -> smartReadAction(project) { builder.addIntellijProjectSizeStatsForFileType(fileType) } }
+
+          UsageTracker.log(builder)
         }
-
-        UsageTracker.log(builder)
       }
-    }.also {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        repostStatsJobs.removeIf { it.isCompleted }
-        repostStatsJobs.add(it)
+      .also {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+          repostStatsJobs.removeIf { it.isCompleted }
+          repostStatsJobs.add(it)
+        }
       }
-    }
   }
 
   private fun AndroidStudioEvent.Builder.addIntellijProjectSizeStatsForFileType(fileType: FileType) {
     addIntellijProjectSizeStats(
-      IntellijProjectSizeStats
-        .newBuilder()
+      IntellijProjectSizeStats.newBuilder()
         .setScope(IntellijProjectSizeStats.Scope.PROJECT)
         .setType(fileType.statsFileType())
         .setCount(fileCount(fileType))
@@ -122,22 +122,25 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
       // If kotlin plugin is not enabled, we will get PlainTextFileType. In such case, we do not want to collect kotlin
       // file count since it will include so many unrelated plain text file
       return 0
-    }
-    else {
+    } else {
       val cap = ServerFlagService.instance.getInt("analytics/projectsize/filecap", FILE_CAP)
       var numFiles = 0
-      FileTypeIndex.processFiles(fileType.languageFileType(), object : Processor<VirtualFile> {
+      FileTypeIndex.processFiles(
+        fileType.languageFileType(),
+        object : Processor<VirtualFile> {
 
-        override fun process(t: VirtualFile?): Boolean {
-          if (numFiles % 100 == 0) {
-            // Make sure to check if cancelled to avoid UI freezes - see https://issuetracker.google.com/316496921
-            ProgressManager.checkCanceled()
+          override fun process(t: VirtualFile?): Boolean {
+            if (numFiles % 100 == 0) {
+              // Make sure to check if cancelled to avoid UI freezes - see https://issuetracker.google.com/316496921
+              ProgressManager.checkCanceled()
+            }
+            numFiles++
+            return (numFiles < cap)
           }
-          numFiles++
-          return (numFiles < cap)
-        }
-      }, ProjectScope.getProjectScope(project))
-      return numFiles;
+        },
+        ProjectScope.getProjectScope(project),
+      )
+      return numFiles
     }
   }
 }

@@ -56,27 +56,18 @@ private data class ErrorUpdate(
   private val project: Project,
   private val updateRenderIssueProviders: (ImmutableList<RenderIssueProvider>) -> Unit,
 ) {
-  private fun triggerRenderIssueProvidersUpdate(
-    renderResults: Map<out SceneManager, RenderResult>
-  ) {
+  private fun triggerRenderIssueProvidersUpdate(renderResults: Map<out SceneManager, RenderResult>) {
     var newRenderIssueProviders: ImmutableList<RenderIssueProvider>? = null
     if (project.getProjectSystem().getBuildManager().isBuilding) {
       for ((manager, renderResult) in renderResults) {
-        if (
-          renderResult.logger.hasErrors()
-        ) { // We are still building, display the message to the user.
-          newRenderIssueProviders =
-            persistentListOf(
-              RenderIssueProvider(manager.model, RenderErrorModel.STILL_BUILDING_ERROR_MODEL)
-            )
+        if (renderResult.logger.hasErrors()) { // We are still building, display the message to the user.
+          newRenderIssueProviders = persistentListOf(RenderIssueProvider(manager.model, RenderErrorModel.STILL_BUILDING_ERROR_MODEL))
           break
         }
       }
     }
 
-    if (
-      newRenderIssueProviders == null
-    ) { // createErrorModel needs to run in Smart mode to resolve the classes correctly
+    if (newRenderIssueProviders == null) { // createErrorModel needs to run in Smart mode to resolve the classes correctly
       newRenderIssueProviders =
         renderResults
           .map {
@@ -103,12 +94,7 @@ private data class ErrorUpdate(
       }
       hasRunAtfOnMainPreview = renderResultsForAnalysis.isNotEmpty()
       VisualLintService.getInstance(project)
-        .runVisualLintAnalysis(
-          parentDisposable,
-          visualLintIssueProvider,
-          modelsForBackgroundRun,
-          renderResultsForAnalysis,
-        )
+        .runVisualLintAnalysis(parentDisposable, visualLintIssueProvider, modelsForBackgroundRun, renderResultsForAnalysis)
     }
 
     if (!hasRunAtfOnMainPreview) {
@@ -134,16 +120,11 @@ private data class ErrorUpdate(
 }
 
 /** [MergingUpdateQueue] to update */
-class ErrorQueue(private val parentDisposable: Disposable, private val project: Project) :
-  Disposable {
+class ErrorQueue(private val parentDisposable: Disposable, private val project: Project) : Disposable {
 
   private val coroutineScope = parentDisposable.createCoroutineScope()
   private val updateFlow =
-    MutableSharedFlow<ErrorUpdate>(
-      replay = 1,
-      onBufferOverflow = BufferOverflow.DROP_OLDEST,
-      extraBufferCapacity = 0,
-    )
+    MutableSharedFlow<ErrorUpdate>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST, extraBufferCapacity = 0)
 
   init {
     Disposer.register(parentDisposable, this)
@@ -162,9 +143,7 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
   private var renderIssueProviders: ImmutableList<IssueProvider> = persistentListOf()
 
   fun deactivate(issueModel: IssueModel) {
-    renderIssueProviders.forEach { renderIssueProvider ->
-      issueModel.removeIssueProvider(renderIssueProvider)
-    }
+    renderIssueProviders.forEach { renderIssueProvider -> issueModel.removeIssueProvider(renderIssueProvider) }
     renderIssueProviders = persistentListOf()
   }
 

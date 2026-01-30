@@ -39,9 +39,7 @@ class TestConfigurationTestingUtil {
   companion object {
     @JvmOverloads
     @JvmStatic
-    inline fun <reified T : RunConfiguration> PsiElement.createRunConfiguration(
-      check: T.() -> Boolean = { true }
-    ): T? {
+    inline fun <reified T : RunConfiguration> PsiElement.createRunConfiguration(check: T.() -> Boolean = { true }): T? {
       val project = this.project
       val context = createContext(project, this)
       val settings = context.configuration ?: return null
@@ -59,13 +57,9 @@ class TestConfigurationTestingUtil {
       // https://youtrack.jetbrains.com/issue/IDEA-277826.
       createRunConfiguration { settings.taskNames.isNotEmpty() }
 
-    @JvmStatic
-    fun PsiElement.createAndroidTestRunConfiguration(): AndroidTestRunConfiguration? =
-      createRunConfiguration()
+    @JvmStatic fun PsiElement.createAndroidTestRunConfiguration(): AndroidTestRunConfiguration? = createRunConfiguration()
 
-    @JvmStatic
-    fun PsiElement.createConfigurations() =
-      createContext(this.project, this).configurationsFromContext
+    @JvmStatic fun PsiElement.createConfigurations() = createContext(this.project, this).configurationsFromContext
 
     @JvmStatic
     fun createContext(project: Project, psiElement: PsiElement) =
@@ -90,9 +84,7 @@ class TestConfigurationTestingUtil {
     @JvmStatic
     fun Project.getPsiElement(source: PsiElementSource): PsiElement =
       when (source) {
-        is Class ->
-          JavaPsiFacade.getInstance(this)
-            .findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
+        is Class -> JavaPsiFacade.getInstance(this).findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
         is Method ->
           JavaPsiFacade.getInstance(this)
             .findClass(source.qualifiedName, GlobalSearchScope.projectScope(this))!!
@@ -109,8 +101,7 @@ class TestConfigurationTestingUtil {
 
   class Method(val qualifiedName: String, val methodName: String) : PsiElementSource
 
-  abstract class FileSystemPsiElementSource(val name: String, val isDirectory: Boolean) :
-    PsiElementSource
+  abstract class FileSystemPsiElementSource(val name: String, val isDirectory: Boolean) : PsiElementSource
 
   class File(name: String) : FileSystemPsiElementSource(name, false)
 

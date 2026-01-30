@@ -59,10 +59,7 @@ import org.mockito.kotlin.whenever
 class ConfigureTemplateParametersStepTest {
   private lateinit var step: ConfigureTemplateParametersStep
 
-  @get:Rule
-  val projectRule =
-    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure())
-      .onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure()).onEdt()
 
   private lateinit var facet: AndroidFacet
   private val myInvokeStrategy = TestInvokeStrategy()
@@ -111,8 +108,7 @@ class ConfigureTemplateParametersStepTest {
     val modelWizard = createTemplateWizard(templateModel, moduleTemplates)
     val fakeUI = FakeUi(modelWizard.contentPanel)
 
-    val targetSourceSetSelector =
-      checkNotNull(fakeUI.findComponent<JLabel> { it.text.contains("Target Source Set") })
+    val targetSourceSetSelector = checkNotNull(fakeUI.findComponent<JLabel> { it.text.contains("Target Source Set") })
     assertTrue(fakeUI.isShowing(targetSourceSetSelector))
   }
 
@@ -134,15 +130,7 @@ class ConfigureTemplateParametersStepTest {
     val moduleTemplates = facet.getModuleTemplates(null)
     val template = appWidgetTemplate
     val templateModel =
-      fromFacet(
-        facet,
-        "",
-        facet.getModuleTemplates(null)[0],
-        "New activity",
-        DefaultProjectSyncInvoker(),
-        true,
-        MENU_GALLERY,
-      )
+      fromFacet(facet, "", facet.getModuleTemplates(null)[0], "New activity", DefaultProjectSyncInvoker(), true, MENU_GALLERY)
     templateModel.newTemplate = template
 
     // Create and show the wizard
@@ -164,15 +152,7 @@ class ConfigureTemplateParametersStepTest {
 
     // Create a new template model using the same template
     val newTemplateModel =
-      fromFacet(
-        facet,
-        "",
-        facet.getModuleTemplates(null)[0],
-        "New activity",
-        DefaultProjectSyncInvoker(),
-        true,
-        MENU_GALLERY,
-      )
+      fromFacet(facet, "", facet.getModuleTemplates(null)[0], "New activity", DefaultProjectSyncInvoker(), true, MENU_GALLERY)
     newTemplateModel.newTemplate = template
 
     // Re-create and show the wizard with the new template model
@@ -188,37 +168,18 @@ class ConfigureTemplateParametersStepTest {
     assertEquals("NewAppWidget", newClassNameTextField.text)
   }
 
-  private fun createTemplate(
-    templateName: String,
-    moduleTemplates: List<NamedModuleTemplate>,
-  ): RenderTemplateModel {
-    val templateModel =
-      fromFacet(
-        facet,
-        "",
-        moduleTemplates[0],
-        "New activity",
-        DefaultProjectSyncInvoker(),
-        true,
-        MENU_GALLERY,
-      )
+  private fun createTemplate(templateName: String, moduleTemplates: List<NamedModuleTemplate>): RenderTemplateModel {
+    val templateModel = fromFacet(facet, "", moduleTemplates[0], "New activity", DefaultProjectSyncInvoker(), true, MENU_GALLERY)
     val newActivity =
-      TemplateResolver.getAllTemplates()
-        .filter { WizardUiContext.MenuEntry in it.uiContexts }
-        .find { it.name == templateName }
+      TemplateResolver.getAllTemplates().filter { WizardUiContext.MenuEntry in it.uiContexts }.find { it.name == templateName }
     templateModel.newTemplate = newActivity!!
 
     return templateModel
   }
 
-  private fun createTemplateWizard(
-    templateModel: RenderTemplateModel,
-    moduleTemplates: List<NamedModuleTemplate>,
-  ): ModelWizard {
+  private fun createTemplateWizard(templateModel: RenderTemplateModel, moduleTemplates: List<NamedModuleTemplate>): ModelWizard {
     val wizardBuilder = ModelWizard.Builder()
-    wizardBuilder.addStep(
-      ConfigureTemplateParametersStep(templateModel, "Add new Activity test", moduleTemplates)
-    )
+    wizardBuilder.addStep(ConfigureTemplateParametersStep(templateModel, "Add new Activity test", moduleTemplates))
 
     val modelWizard = wizardBuilder.build()
     Disposer.register(projectRule.project, modelWizard)

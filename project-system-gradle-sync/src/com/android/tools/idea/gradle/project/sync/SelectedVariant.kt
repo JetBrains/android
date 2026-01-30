@@ -18,17 +18,11 @@ package com.android.tools.idea.gradle.project.sync
 import java.io.Serializable
 
 data class SelectedVariant(
-  /**
-   * The id of the module in the form returned by [Modules.createUniqueModuleId].
-   */
+  /** The id of the module in the form returned by [Modules.createUniqueModuleId]. */
   val moduleId: String,
-
   val variantName: String,
-
   val abiName: String?,
 
-  /**
-   * An instance of [VariantDetails] which describes [variantName]. `null` if no models were available when constructing this instance.
-   */
-  val details: VariantDetails?
+  /** An instance of [VariantDetails] which describes [variantName]. `null` if no models were available when constructing this instance. */
+  val details: VariantDetails?,
 ) : Serializable

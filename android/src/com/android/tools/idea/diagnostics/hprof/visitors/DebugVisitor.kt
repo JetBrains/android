@@ -29,34 +29,42 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
   }
 
   override fun visitLoadClass(classSerialNumber: Long, classObjectId: Long, stackSerialNumber: Long, classNameStringId: Long) {
-    printer.invoke("LoadClass: " +
-                   "classSerialNumber=$classSerialNumber, " +
-                   "classObjectId=$classObjectId, " +
-                   "stackSerialNumber=$stackSerialNumber, " +
-                   "classNameStringId=$classNameStringId")
+    printer.invoke(
+      "LoadClass: " +
+        "classSerialNumber=$classSerialNumber, " +
+        "classObjectId=$classObjectId, " +
+        "stackSerialNumber=$stackSerialNumber, " +
+        "classNameStringId=$classNameStringId"
+    )
   }
 
-  override fun visitStackFrame(stackFrameId: Long,
-                               methodNameStringId: Long,
-                               methodSignatureStringId: Long,
-                               sourceFilenameStringId: Long,
-                               classSerialNumber: Long,
-                               lineNumber: Int) {
-    printer.invoke("StackFrame: " +
-                   "stackFrameId=$stackFrameId, " +
-                   "methodNameStringId=$methodNameStringId, " +
-                   "methodSignatureStringId=$methodSignatureStringId, " +
-                   "sourceFilenameStringId=$sourceFilenameStringId, " +
-                   "classSerialNumber=$classSerialNumber, " +
-                   "lineNumber=$lineNumber")
+  override fun visitStackFrame(
+    stackFrameId: Long,
+    methodNameStringId: Long,
+    methodSignatureStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Long,
+    lineNumber: Int,
+  ) {
+    printer.invoke(
+      "StackFrame: " +
+        "stackFrameId=$stackFrameId, " +
+        "methodNameStringId=$methodNameStringId, " +
+        "methodSignatureStringId=$methodSignatureStringId, " +
+        "sourceFilenameStringId=$sourceFilenameStringId, " +
+        "classSerialNumber=$classSerialNumber, " +
+        "lineNumber=$lineNumber"
+    )
   }
 
   override fun visitStackTrace(stackTraceSerialNumber: Long, threadSerialNumber: Long, numberOfFrames: Int, stackFrameIds: LongArray) {
-    printer.invoke("StackTrace: " +
-                   "stackTraceSerialNumber: $stackTraceSerialNumber, " +
-                   "threadSerialNumber: $threadSerialNumber, " +
-                   "numberOfFrames: $numberOfFrames, " +
-                   "stackFrameIds: ${stackFrameIds.arrayToString()}")
+    printer.invoke(
+      "StackTrace: " +
+        "stackTraceSerialNumber: $stackTraceSerialNumber, " +
+        "threadSerialNumber: $threadSerialNumber, " +
+        "numberOfFrames: $numberOfFrames, " +
+        "stackFrameIds: ${stackFrameIds.arrayToString()}"
+    )
   }
 
   override fun visitAllocSites() {
@@ -64,11 +72,13 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
   }
 
   override fun visitHeapSummary(totalLiveBytes: Long, totalLiveInstances: Long, totalBytesAllocated: Long, totalInstancesAllocated: Long) {
-    printer.invoke("HeapSummary: " +
-                   "totalLiveBytes: $totalLiveBytes, " +
-                   "totalLiveInstances: $totalLiveInstances, " +
-                   "totalBytesAllocated: $totalBytesAllocated, " +
-                   "totalInstancesAllocated: $totalInstancesAllocated")
+    printer.invoke(
+      "HeapSummary: " +
+        "totalLiveBytes: $totalLiveBytes, " +
+        "totalLiveInstances: $totalLiveInstances, " +
+        "totalBytesAllocated: $totalBytesAllocated, " +
+        "totalInstancesAllocated: $totalInstancesAllocated"
+    )
   }
 
   override fun visitStartThread() {
@@ -128,49 +138,61 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
   }
 
   override fun visitRootThreadObject(objectId: Long, threadSerialNumber: Long, stackTraceSerialNumber: Long) {
-    printer.invoke("RootThreadObject: " +
-                   "objectId=$objectId, " +
-                   "threadSerialNumber=$threadSerialNumber, " +
-                   "stackTraceSerialNumber=$stackTraceSerialNumber")
+    printer.invoke(
+      "RootThreadObject: " +
+        "objectId=$objectId, " +
+        "threadSerialNumber=$threadSerialNumber, " +
+        "stackTraceSerialNumber=$stackTraceSerialNumber"
+    )
   }
 
   override fun visitPrimitiveArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Long, numberOfElements: Long, elementType: Type) {
-    printer.invoke("PrimitiveArrayDump: " +
-                   "arrayObjectId=$arrayObjectId, " +
-                   "stackTraceSerialNumber=$stackTraceSerialNumber, " +
-                   "numberOfElements=$numberOfElements, " +
-                   "elementType=${elementType.name}")
+    printer.invoke(
+      "PrimitiveArrayDump: " +
+        "arrayObjectId=$arrayObjectId, " +
+        "stackTraceSerialNumber=$stackTraceSerialNumber, " +
+        "numberOfElements=$numberOfElements, " +
+        "elementType=${elementType.name}"
+    )
   }
 
-  override fun visitClassDump(classId: Long,
-                              stackTraceSerialNumber: Long,
-                              superClassId: Long,
-                              classloaderClassId: Long,
-                              instanceSize: Long,
-                              constants: Array<ConstantPoolEntry>,
-                              staticFields: Array<StaticFieldEntry>,
-                              instanceFields: Array<InstanceFieldEntry>) {
-    printer.invoke("ClassDump: " +
-                   "classId=$classId, " +
-                   "stackTraceSerialNumber=$stackTraceSerialNumber, " +
-                   "superClassId=$superClassId, " +
-                   "classloaderClassId=$classloaderClassId, " +
-                   "instanceSize=$instanceSize")
+  override fun visitClassDump(
+    classId: Long,
+    stackTraceSerialNumber: Long,
+    superClassId: Long,
+    classloaderClassId: Long,
+    instanceSize: Long,
+    constants: Array<ConstantPoolEntry>,
+    staticFields: Array<StaticFieldEntry>,
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {
+    printer.invoke(
+      "ClassDump: " +
+        "classId=$classId, " +
+        "stackTraceSerialNumber=$stackTraceSerialNumber, " +
+        "superClassId=$superClassId, " +
+        "classloaderClassId=$classloaderClassId, " +
+        "instanceSize=$instanceSize"
+    )
   }
 
   override fun visitObjectArrayDump(arrayObjectId: Long, stackTraceSerialNumber: Long, arrayClassObjectId: Long, objects: LongArray) {
-    printer.invoke("ObjectArrayDump: arrayObjectId=$arrayObjectId, " +
-                   "stackTraceSerialNumber=$stackTraceSerialNumber, " +
-                   "arrayClassObjectId=$arrayClassObjectId, " +
-                   "objects=id[${objects.size}")
+    printer.invoke(
+      "ObjectArrayDump: arrayObjectId=$arrayObjectId, " +
+        "stackTraceSerialNumber=$stackTraceSerialNumber, " +
+        "arrayClassObjectId=$arrayClassObjectId, " +
+        "objects=id[${objects.size}"
+    )
   }
 
   override fun visitInstanceDump(objectId: Long, stackTraceSerialNumber: Long, classObjectId: Long, bytes: ByteBuffer) {
-    printer.invoke("InstanceDump: " +
-                   "objectId=$objectId, " +
-                   "stackTraceSerialNumber: $stackTraceSerialNumber, " +
-                   "classObjectId=$classObjectId," +
-                   "bytes=byte[${bytes.limit()}]")
+    printer.invoke(
+      "InstanceDump: " +
+        "objectId=$objectId, " +
+        "stackTraceSerialNumber: $stackTraceSerialNumber, " +
+        "classObjectId=$classObjectId," +
+        "bytes=byte[${bytes.limit()}]"
+    )
   }
 
   override fun visitUnloadClass(classSerialNumber: Long) {
@@ -180,8 +202,7 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
   private fun LongArray.arrayToString(): String = buildString {
     append('[')
     for (i in this@arrayToString.indices) {
-      if (i > 0)
-        append(", ")
+      if (i > 0) append(", ")
       append(this@arrayToString[i])
     }
     append(']')

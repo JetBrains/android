@@ -41,7 +41,10 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
 
   fun prepareReport(name: String, topClassCount: Int): String = buildString {
     appendLine("Histogram. Top $topClassCount by instance count:")
-    val appendToResult = { s: String -> appendLine(s); Unit }
+    val appendToResult = { s: String ->
+      appendLine(s)
+      Unit
+    }
     var counter = 1
 
     TruncatingPrintBuffer(topClassCount, 0, appendToResult).use { buffer ->
@@ -67,16 +70,17 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
       return histogramVisitor.createHistogram()
     }
 
-    fun prepareMergedHistogramReport(mainHistogram: Histogram, mainHistogramName: String,
-                                     secondaryHistogram: Histogram, secondaryHistogramName: String,
-                                     options: AnalysisConfig.HistogramOptions): String = buildString {
+    fun prepareMergedHistogramReport(
+      mainHistogram: Histogram,
+      mainHistogramName: String,
+      secondaryHistogram: Histogram,
+      secondaryHistogramName: String,
+      options: AnalysisConfig.HistogramOptions,
+    ): String = buildString {
       val mapClassNameToEntrySecondary = HashMap<String, HistogramEntry>()
-      secondaryHistogram.entries.forEach {
-        mapClassNameToEntrySecondary[it.classDefinition.name] = it
-      }
+      secondaryHistogram.entries.forEach { mapClassNameToEntrySecondary[it.classDefinition.name] = it }
 
-      val summary =
-        "${getSummaryLine(mainHistogram, mainHistogramName)}\n${getSummaryLine(secondaryHistogram, secondaryHistogramName)}"
+      val summary = "${getSummaryLine(mainHistogram, mainHistogramName)}\n${getSummaryLine(secondaryHistogram, secondaryHistogramName)}"
 
       if (options.includeByCount) {
         appendLine("Histogram. Top ${options.classByCountLimit} by instance count [All-objects] [Only-strong-ref]:")
@@ -111,37 +115,41 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
       }
     }
 
-    private fun getSummaryLine(histogram: Histogram,
-                               histogramName: String): String {
+    private fun getSummaryLine(histogram: Histogram, histogramName: String): String {
       val (totalInstances, totalBytes) = histogram.getTotals()
-      return String.format(Locale.getDefault(),
-                    "Total - %10s: %s %s %d classes (Total instances: %d)",
-                           histogramName,
-                           toPaddedShortStringAsCount(totalInstances),
-                           toPaddedShortStringAsSize(totalBytes),
-                           histogram.entries.size,
-                           histogram.instanceCount)
+      return String.format(
+        Locale.getDefault(),
+        "Total - %10s: %s %s %d classes (Total instances: %d)",
+        histogramName,
+        toPaddedShortStringAsCount(totalInstances),
+        toPaddedShortStringAsSize(totalBytes),
+        histogram.entries.size,
+        histogram.instanceCount,
+      )
     }
 
     private fun formatEntryLineMerged(counter: Int, entry: HistogramEntry, entry2: HistogramEntry?): String {
-      return String.format(Locale.getDefault(),
-                           "%5d: [%s/%s] [%s/%s] %s",
-                           counter,
-                           toPaddedShortStringAsCount(entry.totalInstances),
-                           toPaddedShortStringAsSize(entry.totalBytes),
-                           toPaddedShortStringAsCount(entry2?.totalInstances ?: 0),
-                           toPaddedShortStringAsSize(entry2?.totalBytes ?: 0),
-                           entry.classDefinition.prettyName)
+      return String.format(
+        Locale.getDefault(),
+        "%5d: [%s/%s] [%s/%s] %s",
+        counter,
+        toPaddedShortStringAsCount(entry.totalInstances),
+        toPaddedShortStringAsSize(entry.totalBytes),
+        toPaddedShortStringAsCount(entry2?.totalInstances ?: 0),
+        toPaddedShortStringAsSize(entry2?.totalBytes ?: 0),
+        entry.classDefinition.prettyName,
+      )
     }
 
     private fun formatEntryLine(counter: Int, entry: HistogramEntry): String {
-      return String.format(Locale.getDefault(),
-                           "%5d: [%s/%s] %s",
-                           counter,
-                           toPaddedShortStringAsCount(entry.totalInstances),
-                           toPaddedShortStringAsSize(entry.totalBytes),
-                           entry.classDefinition.prettyName)
+      return String.format(
+        Locale.getDefault(),
+        "%5d: [%s/%s] %s",
+        counter,
+        toPaddedShortStringAsCount(entry.totalInstances),
+        toPaddedShortStringAsSize(entry.totalBytes),
+        entry.classDefinition.prettyName,
+      )
     }
-
   }
 }

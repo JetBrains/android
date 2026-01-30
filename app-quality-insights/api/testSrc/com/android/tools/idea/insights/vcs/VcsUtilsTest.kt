@@ -35,12 +35,7 @@ class VcsUtilsTest {
   @Before
   fun setUp() {
     fakeVcsForAppInsights = FakeVcsForAppInsights()
-    maskExtensions(
-      VcsForAppInsights.EP_NAME,
-      listOf(fakeVcsForAppInsights),
-      disposableRule.disposable,
-      false,
-    )
+    maskExtensions(VcsForAppInsights.EP_NAME, listOf(fakeVcsForAppInsights), disposableRule.disposable, false)
   }
 
   @Test

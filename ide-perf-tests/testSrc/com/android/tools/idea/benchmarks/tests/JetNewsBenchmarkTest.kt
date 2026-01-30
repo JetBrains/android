@@ -30,9 +30,7 @@ class JetNewsBenchmarkTest : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    @JvmField
-    @ClassRule
-    val staticRule = AndroidGradleProjectRule()
+    @JvmField @ClassRule val staticRule = AndroidGradleProjectRule()
 
     private const val PROJECT_NAME = "JetNews"
 
@@ -49,13 +47,7 @@ class JetNewsBenchmarkTest : FullProjectBenchmark() {
     val fileTypes = listOf(KotlinFileType.INSTANCE, TomlFileType)
     runInEdtAndWait {
       for (fileType in fileTypes) {
-        measureHighlighting(
-          fileType,
-          PROJECT_NAME,
-          maxFiles = 1,
-          doWarmup = false,
-          doLogging = false
-        )
+        measureHighlighting(fileType, PROJECT_NAME, maxFiles = 1, doWarmup = false, doLogging = false)
       }
     }
   }
@@ -63,12 +55,6 @@ class JetNewsBenchmarkTest : FullProjectBenchmark() {
   // No warmup, only one file per language
   @Test
   fun fullProjectLintInspection() {
-    runInEdtAndWait {
-      measureLintInspections(
-        PROJECT_NAME,
-        doWarmup = false,
-        doLogging = false
-      )
-    }
+    runInEdtAndWait { measureLintInspections(PROJECT_NAME, doWarmup = false, doLogging = false) }
   }
 }

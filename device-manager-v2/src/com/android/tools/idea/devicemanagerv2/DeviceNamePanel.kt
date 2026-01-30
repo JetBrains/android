@@ -36,8 +36,8 @@ import kotlin.math.min
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A panel that renders the name of the device, along with its wear pairing status and a second line
- * to indicate more details, such as its Android version or an error state.
+ * A panel that renders the name of the device, along with its wear pairing status and a second line to indicate more details, such as its
+ * Android version or an error state.
  */
 internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
   internal val deviceIcon = IconLabel(null)
@@ -97,10 +97,8 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
 
     fun PairingStatus.pairingStatusString() =
       when (state) {
-        PairingState.CONNECTED ->
-          message("wear.assistant.device.list.accessible.description.status.connected", displayName)
-        else ->
-          message("wear.assistant.device.list.accessible.description.status.paired", displayName)
+        PairingState.CONNECTED -> message("wear.assistant.device.list.accessible.description.status.connected", displayName)
+        else -> message("wear.assistant.device.list.accessible.description.status.paired", displayName)
       }
 
     pairedLabel.accessibleContext.accessibleDescription =
@@ -111,8 +109,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
   }
 
   /**
-   * Returns the appropriate text for the second line of the device cell, using the following in
-   * order:
+   * Returns the appropriate text for the second line of the device cell, using the following in order:
    * 1. The status message, if the device state is transitioning and one is present.
    * 2. The error message, if there's an error.
    * 3. Reservation information, if present.
@@ -120,18 +117,13 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
    * 5. Android version
    */
   private fun DeviceRowData.toLine2Text() =
-    stateTransitionText()
-      ?: errorText()
-      ?: reservationText()
-      ?: wifiPairingText()
-      ?: androidVersionText()
+    stateTransitionText() ?: errorText() ?: reservationText() ?: wifiPairingText() ?: androidVersionText()
 
   private fun DeviceRowData.errorText() = error?.message
 
   private fun DeviceRowData.reservationText() = handle?.state?.reservation?.line2Text()
 
-  private fun DeviceRowData.wifiPairingText() =
-    handle?.takeIf { it.wifiPairDeviceAction != null }?.state?.status
+  private fun DeviceRowData.wifiPairingText() = handle?.takeIf { it.wifiPairDeviceAction != null }?.state?.status
 
   private fun DeviceRowData.androidVersionText() =
     when (androidVersion) {
@@ -145,9 +137,7 @@ internal fun AndroidVersion.toLabelText(): String {
   return name + (details?.let { " ($details)" } ?: "")
 }
 
-/**
- * Makes this color closer to the background color (lighter in light theme, darker in dark theme).
- */
+/** Makes this color closer to the background color (lighter in light theme, darker in dark theme). */
 @VisibleForTesting
 internal fun Color.lighten() =
   JBColor.lazy {
@@ -158,14 +148,12 @@ internal fun Color.lighten() =
     JBColor(Color(red, green, blue), darker())
   }
 
-internal fun DeviceRowData.stateTransitionText() =
-  handle?.state?.takeIf { it.isTransitioning }?.status?.takeIf { it.isNotEmpty() }
+internal fun DeviceRowData.stateTransitionText() = handle?.state?.takeIf { it.isTransitioning }?.status?.takeIf { it.isNotEmpty() }
 
 internal fun Reservation.line2Text(zoneId: ZoneId = ZoneId.systemDefault()): String? =
   when {
     endTime != null -> {
-      val formattedDate =
-        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(zoneId).format(endTime)
+      val formattedDate = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(zoneId).format(endTime)
       when {
         stateMessage.isEmpty() -> "Device will expire at $formattedDate"
         else -> "${stateMessage}; device will expire at $formattedDate"

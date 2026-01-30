@@ -26,9 +26,9 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
- * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
- * to all Android modules.  This class should not be accessed directly from outside the Gradle project system.
+ * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules that are based on the same Gradle
+ * project. In Gradle projects, instances of this class will be attached to all Android modules. This class should not be accessed directly
+ * from outside the Gradle project system.
  */
 data class LinkedAndroidGradleModuleGroup(
   val holder: ModulePointer,
@@ -37,64 +37,85 @@ data class LinkedAndroidGradleModuleGroup(
   val androidTest: ModulePointer?,
   val testFixtures: ModulePointer?,
   val screenshotTest: ModulePointer?,
-  val testSuites: Collection<ModulePointer>
+  val testSuites: Collection<ModulePointer>,
 ) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest,
-                                   *testSuites.toTypedArray()).mapNotNull { it.module }
+  fun getModules() =
+    listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest, *testSuites.toTypedArray()).mapNotNull { it.module }
+
   override fun toString(): String =
     "holder=${holder.moduleName}, main=${main.moduleName}, unitTest=${unitTest?.moduleName}, " +
-    "androidTest=${androidTest?.moduleName}, testFixtures=${testFixtures?.moduleName}, screenshotTest=${screenshotTest?.moduleName}" +
-    { if (testSuites.isNotEmpty()) ", testSuites=${testSuites.map { it.moduleName }}" else "" }
+      "androidTest=${androidTest?.moduleName}, testFixtures=${testFixtures?.moduleName}, screenshotTest=${screenshotTest?.moduleName}" +
+      {
+        if (testSuites.isNotEmpty()) ", testSuites=${testSuites.map { it.moduleName }}" else ""
+      }
 }
 
 /**
- * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project.  This key should
- * not be accessed from outside the Gradle project system.
+ * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project. This key should not be
+ * accessed from outside the Gradle project system.
  */
 val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
-fun Module.isHolderModule() : Boolean = getHolderModule() == this
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder?.getMandatoryModuleOrLog(this) ?: this
-fun Module.isMainModule() : Boolean = getMainModule() == this
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main?.getMandatoryModuleOrLog(this) ?: this
-fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
-fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest?.module
-fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest?.module
-fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
-fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest?.module
-fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures?.module
-fun Module.getTestSuiteModules(): List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testSuites?.mapNotNull { it.module }
-                                                 ?: emptyList()
+fun Module.isHolderModule(): Boolean = getHolderModule() == this
+
+fun Module.getHolderModule(): Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder?.getMandatoryModuleOrLog(this) ?: this
+
+fun Module.isMainModule(): Boolean = getMainModule() == this
+
+fun Module.getMainModule(): Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main?.getMandatoryModuleOrLog(this) ?: this
+
+fun Module.isUnitTestModule(): Boolean = getUnitTestModule() == this
+
+fun Module.getUnitTestModule(): Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest?.module
+
+fun Module.isAndroidTestModule(): Boolean = getAndroidTestModule() == this
+
+fun Module.getAndroidTestModule(): Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest?.module
+
+fun Module.isScreenshotTestModule(): Boolean = getScreenshotTestModule() == this
+
+fun Module.getScreenshotTestModule(): Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest?.module
+
+fun Module.isTestFixturesModule(): Boolean = getTestFixturesModule() == this
+
+fun Module.getTestFixturesModule(): Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures?.module
+
+fun Module.getTestSuiteModules(): List<Module> =
+  getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testSuites?.mapNotNull { it.module } ?: emptyList()
 
 fun Module.isTestSuiteModule(): Boolean = getTestSuiteModules().contains(this)
 
-private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? = module.also {
-  if (it == null) {
-    Logger.getInstance(LinkedAndroidGradleModuleGroup::class.java).error("Missing mandatory module $moduleName in group for $originalModule")
+private fun ModulePointer.getMandatoryModuleOrLog(originalModule: Module): Module? =
+  module.also {
+    if (it == null) {
+      Logger.getInstance(LinkedAndroidGradleModuleGroup::class.java)
+        .error("Missing mandatory module $moduleName in group for $originalModule")
+    }
   }
-}
 
 /**
- * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures/testSuites)
- * or the holder module used as the parent of these source set modules.
+ * Utility method to find out if a module is derived from an Android Gradle project. This will return true if the given module is the module
+ * representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures/testSuites) or the holder module used
+ * as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) != null
-fun Module.getAllLinkedModules() : List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.getModules() ?: listOf(this)
+
+fun Module.getAllLinkedModules(): List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.getModules() ?: listOf(this)
 
 /** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
 fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
-  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      // We are running some tests that don't set up real-world project structure, so fetch all modules.
-      // See http://b/258162266 for more details.
-      it
+  return ProjectFacetManager.getInstance(this)
+    .getModulesWithFacet(AndroidFacet.ID)
+    .asSequence()
+    .let {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        // We are running some tests that don't set up real-world project structure, so fetch all modules.
+        // See http://b/258162266 for more details.
+        it
+      } else {
+        // Holder module has associated facet, but it can be ignored.
+        it.filter { module -> !module.isHolderModule() }
+      }
     }
-    else {
-      // Holder module has associated facet, but it can be ignored.
-      it.filter { module -> !module.isHolderModule() }
-    }
-  }.mapNotNull { it.androidFacet }
+    .mapNotNull { it.androidFacet }
 }

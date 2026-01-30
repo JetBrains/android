@@ -24,11 +24,7 @@ import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.naveditor.model.popUpTo
 
 abstract class NavActionHitProviderBase : HitProvider {
-  final override fun addHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  final override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     addShapeHit(component, sceneTransform, picker)
 
     if (component.nlComponent.popUpTo == null) {
@@ -36,35 +32,16 @@ abstract class NavActionHitProviderBase : HitProvider {
     }
 
     iconRectangle(component, sceneTransform)?.let {
-      picker.addRect(
-        component,
-        0,
-        it.x.toInt(),
-        it.y.toInt(),
-        (it.x + it.width).toInt(),
-        (it.y + it.height).toInt(),
-      )
+      picker.addRect(component, 0, it.x.toInt(), it.y.toInt(), (it.x + it.width).toInt(), (it.y + it.height).toInt())
     }
   }
 
-  abstract fun addShapeHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  )
+  abstract fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer)
 
-  abstract fun iconRectangle(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-  ): SwingRectangle?
+  abstract fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle?
 
-  protected fun sourceRectangle(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-  ): SwingRectangle? {
-    val source =
-      component.nlComponent.parent?.let { component.scene.root?.getSceneComponent(it) }
-        ?: return null
+  protected fun sourceRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+    val source = component.nlComponent.parent?.let { component.scene.root?.getSceneComponent(it) } ?: return null
     return source.inlineDrawRect(sceneTransform)
   }
 }

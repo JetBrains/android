@@ -21,15 +21,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import org.jetbrains.android.util.AndroidBundle.message
 
-
-/**
- * Expand/collapse action.
- */
-open class ExpandAction :
-  DumbAwareAction(message("resource.manager.collapse.section"), null, AllIcons.Ide.Notification.Expand) {
+/** Expand/collapse action. */
+open class ExpandAction : DumbAwareAction(message("resource.manager.collapse.section"), null, AllIcons.Ide.Notification.Expand) {
 
   var expanded = true
     private set
+
   override fun actionPerformed(e: AnActionEvent) {
     expanded = !expanded
   }
@@ -40,8 +37,7 @@ open class ExpandAction :
       if (expanded) {
         icon = AllIcons.Ide.Notification.Expand
         text = message("resource.manager.collapse.section")
-      }
-      else {
+      } else {
         icon = AllIcons.Ide.Notification.Collapse
         text = message("resource.manager.expand.section")
       }

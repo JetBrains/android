@@ -35,22 +35,21 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
-class ConfigurationForFile(
-  val file: VirtualFile,
-  manager: ConfigurationManager,
-  editedConfig: FolderConfiguration
-) : Configuration(manager, editedConfig) {
+class ConfigurationForFile(val file: VirtualFile, manager: ConfigurationManager, editedConfig: FolderConfiguration) :
+  Configuration(manager, editedConfig) {
   private var psiFile: PsiFile? = null
 
   override fun calculateActivity(): String? {
-    return ApplicationManager.getApplication().runReadAction(
+    return ApplicationManager.getApplication()
+      .runReadAction(
         Computable {
           if (psiFile == null) {
-            psiFile = PsiManager.getInstance(settings.project).findFile(file);
+            psiFile = PsiManager.getInstance(settings.project).findFile(file)
           }
           val psiXmlFile = psiFile as? XmlFile
           psiXmlFile?.rootTag?.getAttribute(SdkConstants.ATTR_CONTEXT, SdkConstants.TOOLS_URI)?.value
-        })
+        }
+      )
   }
 
   override fun computeBestDevice(): Device? {
@@ -79,8 +78,7 @@ class ConfigurationForFile(
               }
             }
           }
-        }
-        else {
+        } else {
           val types = FolderTypeRelationship.getRelatedResourceTypes(folderType)
           if (types.isNotEmpty()) {
             val type = types[0]
@@ -91,11 +89,9 @@ class ConfigurationForFile(
             }
           }
         }
-      }
-      else if ("Kotlin" == file.fileType.name) {
+      } else if ("Kotlin" == file.fileType.name) {
         return device
-      }
-      else if (file == settings.project.projectFile) {
+      } else if (file == settings.project.projectFile) {
         return device // Takes care of correct device selection for Theme Editor.
       }
     }
@@ -119,10 +115,12 @@ class ConfigurationForFile(
 
   companion object {
     @JvmStatic
-    fun create(manager: ConfigurationManager,
-               file: VirtualFile,
-               fileState: ConfigurationFileState?,
-               editedConfig: FolderConfiguration): ConfigurationForFile {
+    fun create(
+      manager: ConfigurationManager,
+      file: VirtualFile,
+      fileState: ConfigurationFileState?,
+      editedConfig: FolderConfiguration,
+    ): ConfigurationForFile {
       val configuration = ConfigurationForFile(file, manager, editedConfig)
       configuration.startBulkEditing()
       fileState?.loadState(configuration)

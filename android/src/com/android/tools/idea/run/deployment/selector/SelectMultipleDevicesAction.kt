@@ -22,9 +22,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 class SelectMultipleDevicesAction
-internal constructor(
-  private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service
-) : AnAction() {
+internal constructor(private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service) : AnAction() {
   override fun update(event: AnActionEvent) {
     val project = event.project
     val presentation = event.presentation
@@ -32,9 +30,7 @@ internal constructor(
       presentation.setEnabledAndVisible(false)
       return
     }
-    presentation.setEnabledAndVisible(
-      devicesService(project).loadedDevicesOrNull()?.isNotEmpty() ?: false
-    )
+    presentation.setEnabledAndVisible(devicesService(project).loadedDevicesOrNull()?.isNotEmpty() ?: false)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

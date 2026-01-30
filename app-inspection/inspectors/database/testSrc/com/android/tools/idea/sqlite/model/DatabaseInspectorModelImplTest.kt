@@ -52,11 +52,7 @@ class DatabaseInspectorModelImplTest {
     model.addDatabaseSchema(fileDb, schema)
 
     assertThat(listener.events)
-      .containsExactly(
-        DatabasesChangedEvent(),
-        DatabasesChangedEvent(listOf(liveDb)),
-        DatabasesChangedEvent(listOf(liveDb, fileDb)),
-      )
+      .containsExactly(DatabasesChangedEvent(), DatabasesChangedEvent(listOf(liveDb)), DatabasesChangedEvent(listOf(liveDb, fileDb)))
       .inOrder()
   }
 
@@ -85,18 +81,11 @@ class DatabaseInspectorModelImplTest {
   private class Listener : DatabaseInspectorModel.Listener {
     val events = mutableListOf<Event>()
 
-    override fun onDatabasesChanged(
-      openDatabaseIds: List<SqliteDatabaseId>,
-      closeDatabaseIds: List<SqliteDatabaseId>,
-    ) {
+    override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
       events.add(DatabasesChangedEvent(openDatabaseIds, closeDatabaseIds))
     }
 
-    override fun onSchemaChanged(
-      databaseId: SqliteDatabaseId,
-      oldSchema: SqliteSchema,
-      newSchema: SqliteSchema,
-    ) {
+    override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       events.add(SchemaChangedEvent(databaseId, oldSchema, newSchema))
     }
 
@@ -106,11 +95,7 @@ class DatabaseInspectorModelImplTest {
         val closeDatabaseIds: List<SqliteDatabaseId> = emptyList(),
       ) : Event()
 
-      data class SchemaChangedEvent(
-        val databaseId: SqliteDatabaseId,
-        val oldSchema: SqliteSchema,
-        val newSchema: SqliteSchema,
-      ) : Event()
+      data class SchemaChangedEvent(val databaseId: SqliteDatabaseId, val oldSchema: SqliteSchema, val newSchema: SqliteSchema) : Event()
     }
   }
 }

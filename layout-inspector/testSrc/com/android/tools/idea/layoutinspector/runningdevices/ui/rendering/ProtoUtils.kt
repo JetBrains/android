@@ -22,22 +22,14 @@ import java.awt.Rectangle
 val enableOnDeviceRenderingCommand =
   Command.newBuilder()
     .apply {
-      enableOnDeviceRenderingCommand =
-        LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder()
-          .setEnable(true)
-          .build()
+      enableOnDeviceRenderingCommand = LayoutInspectorViewProtocol.EnableOnDeviceRenderingCommand.newBuilder().setEnable(true).build()
     }
     .build()
     .toByteArray()
 
 val enableInterceptTouchEventsCommand =
   Command.newBuilder()
-    .apply {
-      interceptTouchEventsCommand =
-        LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder()
-          .setIntercept(true)
-          .build()
-    }
+    .apply { interceptTouchEventsCommand = LayoutInspectorViewProtocol.InterceptTouchEventsCommand.newBuilder().setIntercept(true).build() }
     .build()
     .toByteArray()
 
@@ -101,13 +93,7 @@ fun buildUserInputEventProto(
   y: Float,
   type: LayoutInspectorViewProtocol.UserInputEvent.Type,
 ): LayoutInspectorViewProtocol.Event {
-  val userInputEvent =
-    LayoutInspectorViewProtocol.UserInputEvent.newBuilder()
-      .setType(type)
-      .setRootId(rootId)
-      .setX(x)
-      .setY(y)
-      .build()
+  val userInputEvent = LayoutInspectorViewProtocol.UserInputEvent.newBuilder().setType(type).setRootId(rootId).setX(x).setY(y).build()
 
   return LayoutInspectorViewProtocol.Event.newBuilder().setUserInputEvent(userInputEvent).build()
 }
@@ -123,8 +109,5 @@ fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstruction {
       }
       .build()
 
-  return LayoutInspectorViewProtocol.DrawInstruction.newBuilder()
-    .setRootId(rootViewId)
-    .setBounds(boundsRect)
-    .build()
+  return LayoutInspectorViewProtocol.DrawInstruction.newBuilder().setRootId(rootViewId).setBounds(boundsRect).build()
 }

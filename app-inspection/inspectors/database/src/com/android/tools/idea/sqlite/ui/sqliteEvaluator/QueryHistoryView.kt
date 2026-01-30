@@ -28,11 +28,9 @@ import javax.swing.event.ListSelectionEvent
 /**
  * Class responsible for showing a popup containing a list of previously executed statements.
  *
- * When the selection model of the list changes, the selected item is temporarily shown in
- * [editorTextField]. When the user press enter and an item is selected in the list, the text of
- * that item is permanently shown in [editorTextField] and the popup is closed. If the popup is
- * closed without enter being pressed (esc or click outside), the text originally shown in
- * [editorTextField] is restored.
+ * When the selection model of the list changes, the selected item is temporarily shown in [editorTextField]. When the user press enter and
+ * an item is selected in the list, the text of that item is permanently shown in [editorTextField] and the popup is closed. If the popup is
+ * closed without enter being pressed (esc or click outside), the text originally shown in [editorTextField] is restored.
  */
 class QueryHistoryView(private val editorTextField: EditorTextField) {
   private val listModel = DefaultListModel<String>()
@@ -44,10 +42,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
 
   private var editorPermanentQuery = ""
 
-  /**
-   * if [shouldRestorePermanentQuery] is true, [editorPermanentQuery] should be restored when the
-   * hint popup is closed.
-   */
+  /** if [shouldRestorePermanentQuery] is true, [editorPermanentQuery] should be restored when the hint popup is closed. */
   private var shouldRestorePermanentQuery = true
 
   init {
@@ -158,13 +153,7 @@ class QueryHistoryView(private val editorTextField: EditorTextField) {
   }
 
   private class MyListCellRenderer : ColoredListCellRenderer<String>() {
-    override fun customizeCellRenderer(
-      list: JList<out String>,
-      value: String,
-      index: Int,
-      selected: Boolean,
-      hasFocus: Boolean,
-    ) {
+    override fun customizeCellRenderer(list: JList<out String>, value: String, index: Int, selected: Boolean, hasFocus: Boolean) {
       append("${index + 1}.")
       append("  ")
       append(value)

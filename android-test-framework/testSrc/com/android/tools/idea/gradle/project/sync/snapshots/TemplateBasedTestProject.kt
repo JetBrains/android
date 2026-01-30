@@ -59,8 +59,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * The path under the project root to open as an IDE project.
    *
-   * A non-empty value is useful when defining a test project based on a composite build Gradle
-   * project.
+   * A non-empty value is useful when defining a test project based on a composite build Gradle project.
    */
   val pathToOpen: String
     get() = ""
@@ -73,15 +72,15 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     get() = { true }
 
   /**
-   * If `true` the test framework will attempt, when needed, to migrate manifest package attributes
-   * to Gradle build configuration for compatibility with AGP 8.0
+   * If `true` the test framework will attempt, when needed, to migrate manifest package attributes to Gradle build configuration for
+   * compatibility with AGP 8.0
    */
   val autoMigratePackageAttribute: Boolean
     get() = true
 
   /**
-   * Additional setup logic required for this test project. Returns a function that should be used
-   * to undo any configuration changes made by the setup logic.
+   * Additional setup logic required for this test project. Returns a function that should be used to undo any configuration changes made by
+   * the setup logic.
    *
    * It is usually used to configure Studio flags and similar settings.
    */
@@ -96,8 +95,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     get() = emptySet()
 
   /**
-   * A function to check that the project was opened correctly. If not provided, the project is
-   * expected to open with Gradle sync succeeding without sync issues except [expectedSyncIssues].
+   * A function to check that the project was opened correctly. If not provided, the project is expected to open with Gradle sync succeeding
+   * without sync issues except [expectedSyncIssues].
    */
   val verifyOpened: ((Project) -> Unit)?
     get() = null
@@ -110,16 +109,15 @@ interface TemplateBasedTestProject : TestProjectDefinition {
 
   /** For compatibility with existing tests. */
   override val projectName: String
-    get() =
-      "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+    get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
 
   /** Returns the root directory of the source test project in the test data directory. */
   val templateAbsolutePath: File
     get() = resolveTestDataPath(template)
 
   /**
-   * Returns the path to the test data directory containing test projects relative to the workspace.
-   * For example, `tools/adt/idea/android/testData`.
+   * Returns the path to the test data directory containing test projects relative to the workspace. For example,
+   * `tools/adt/idea/android/testData`.
    */
   fun getTestDataDirectoryWorkspaceRelativePath(): String
 
@@ -144,9 +142,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
         ndkVersion = ndkVersion,
         syncReady,
       )
-    if (
-      autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80
-    ) {
+    if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
     }
     if (agpVersion <= AgpVersionSoftwareEnvironmentDescriptor.AGP_81) {
@@ -156,13 +152,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
       it.invoke(agpVersion, root)
       VfsUtil.markDirtyAndRefresh(false, true, true, root)
     }
-    return PreparedTemplateBasedTestProject(
-      this,
-      root,
-      resolvedAgpVersion,
-      integrationTestEnvironment,
-      name,
-    )
+    return PreparedTemplateBasedTestProject(this, root, resolvedAgpVersion, integrationTestEnvironment, name)
   }
 }
 
@@ -190,27 +180,16 @@ class PreparedTemplateBasedTestProject(
     templateBasedTestProject.usingTestProjectSetup {
       val embeddedJdkPath = getEmbeddedJdkPathWithVersion(resolvedAgpVersion.jdkVersion)
       val options =
-        updateOptions(
-          templateBasedTestProject
-            .defaultOpenPreparedProjectOptions()
-            .copy(overrideProjectGradleJdkPath = embeddedJdkPath)
-        )
-      integrationTestEnvironment.openPreparedProject(
-        name = "$name${templateBasedTestProject.pathToOpen}",
-        options = options,
-      ) { project ->
+        updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectGradleJdkPath = embeddedJdkPath))
+      integrationTestEnvironment.openPreparedProject(name = "$name${templateBasedTestProject.pathToOpen}", options = options) { project ->
         IndexingTestUtil.waitUntilIndexesAreReady(project)
         invokeAndWaitIfNeeded { AndroidGradleTests.waitForProjectStructureUsageTracker(project) }
         invokeAndWaitIfNeeded { AndroidGradleTests.waitForCreateRunConfigurations(project) }
-        invokeAndWaitIfNeeded {
-          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-        }
+        invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
         if (!options.skipSwitchingVariants) {
           templateBasedTestProject.switchVariant?.let { switchVariant ->
             switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-            invokeAndWaitIfNeeded {
-              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-            }
+            invokeAndWaitIfNeeded { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
             templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
           }
         }
@@ -270,11 +249,9 @@ fun TemplateBasedTestProject.withAdditionalPatch(
       override val templateAbsolutePath: File
         get() = this@withAdditionalPatch.templateAbsolutePath
 
-      override fun getTestDataDirectoryWorkspaceRelativePath() =
-        this@withAdditionalPatch.getTestDataDirectoryWorkspaceRelativePath()
+      override fun getTestDataDirectoryWorkspaceRelativePath() = this@withAdditionalPatch.getTestDataDirectoryWorkspaceRelativePath()
 
-      override fun getAdditionalRepos(): Collection<File> =
-        this@withAdditionalPatch.getAdditionalRepos()
+      override fun getAdditionalRepos(): Collection<File> = this@withAdditionalPatch.getAdditionalRepos()
 
       override val patch: AgpVersionSoftwareEnvironment.(File) -> Unit
         get() = { e: AgpVersionSoftwareEnvironment, f: File ->
@@ -285,9 +262,7 @@ fun TemplateBasedTestProject.withAdditionalPatch(
   return result
 }
 
-fun TemplateBasedTestProject.withAdditionalExpectedSyncIssues(
-  additionalSyncIssues: Set<Int>
-): TemplateBasedTestProject {
+fun TemplateBasedTestProject.withAdditionalExpectedSyncIssues(additionalSyncIssues: Set<Int>): TemplateBasedTestProject {
 
   val result =
     object : TemplateBasedTestProject {
@@ -330,8 +305,7 @@ fun TemplateBasedTestProject.withAdditionalExpectedSyncIssues(
       override fun getTestDataDirectoryWorkspaceRelativePath() =
         this@withAdditionalExpectedSyncIssues.getTestDataDirectoryWorkspaceRelativePath()
 
-      override fun getAdditionalRepos(): Collection<File> =
-        this@withAdditionalExpectedSyncIssues.getAdditionalRepos()
+      override fun getAdditionalRepos(): Collection<File> = this@withAdditionalExpectedSyncIssues.getAdditionalRepos()
 
       override val expectedSyncIssues: Set<Int>
         get() = this@withAdditionalExpectedSyncIssues.expectedSyncIssues.union(additionalSyncIssues)
@@ -368,9 +342,7 @@ fun migratePackageAttribute(root: File) {
     .forEach { manifestPath ->
       val namespace =
         updateXmlDoc(manifestPath) { doc ->
-          val attribute =
-            doc.documentElement.getAttribute("package").takeUnless { it.isEmpty() }
-              ?: return@updateXmlDoc null
+          val attribute = doc.documentElement.getAttribute("package").takeUnless { it.isEmpty() } ?: return@updateXmlDoc null
           doc.documentElement.removeAttribute("package")
           attribute
         } ?: return@forEach
@@ -378,8 +350,7 @@ fun migratePackageAttribute(root: File) {
       when (manifestPath.parent.fileName.toString()) {
         "main" -> Unit
         "androidMain" -> Unit
-        "androidTest" ->
-          return@forEach // It is ignored and does not play the role of `testNamespace`.
+        "androidTest" -> return@forEach // It is ignored and does not play the role of `testNamespace`.
         else -> return@forEach
       }
 
@@ -396,24 +367,17 @@ fun migratePackageAttribute(root: File) {
           VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts)
         }
         else -> {
-          error(
-            "Cannot find a build file to store the value of 'package' attribute in $manifestPath"
-          )
+          error("Cannot find a build file to store the value of 'package' attribute in $manifestPath")
         }
       }
     }
 }
 
-/**
- * Patches library modules for compatibility with AGP 8.1 and older by moving `targetSdk` into the
- * `defaultConfig` block.
- */
+/** Patches library modules for compatibility with AGP 8.1 and older by moving `targetSdk` into the `defaultConfig` block. */
 fun patchLegacyLibraryTargetSdk(root: File) {
   Files.walk(root.toPath())
     .asSequence()
-    .filter {
-      it.fileName.toString().let { name -> name == "build.gradle" || name == "build.gradle.kts" }
-    }
+    .filter { it.fileName.toString().let { name -> name == "build.gradle" || name == "build.gradle.kts" } }
     .forEach { buildFile ->
       var content = buildFile.toFile().readText()
       if (!content.contains("com.android.library")) return@forEach
@@ -438,10 +402,7 @@ fun String.placeNamespaceProperty(namespace: String): String {
   val marker = "\nandroid {\n"
   val firstIndex = indexOf(marker)
   val insertionIndex = if (firstIndex < 0) -1 else firstIndex + marker.length
-  return if (insertionIndex >= 0)
-    substring(0, insertionIndex) +
-      "\n  namespace = \"$namespace\"\n" +
-      substring(insertionIndex, length)
+  return if (insertionIndex >= 0) substring(0, insertionIndex) + "\n  namespace = \"$namespace\"\n" + substring(insertionIndex, length)
   else
     this +
       """
@@ -466,18 +427,12 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
   return result
 }
 
-private fun TemplateBasedTestProject.resolveTestDataPath(
-  testDataPath: @SystemIndependent String
-): File {
-  val testDataDirectory =
-    TestUtils.resolveWorkspacePath(
-      FileUtil.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath())
-    )
+private fun TemplateBasedTestProject.resolveTestDataPath(testDataPath: @SystemIndependent String): File {
+  val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtil.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
   return testDataDirectory.resolve(FileUtil.toSystemDependentName(testDataPath)).toFile()
 }
 
-private fun TemplateBasedTestProject.defaultOpenPreparedProjectOptions():
-  OpenPreparedProjectOptions {
+private fun TemplateBasedTestProject.defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {
   return OpenPreparedProjectOptions(expectedSyncIssues = expectedSyncIssues).let {
     val verifyOpened = verifyOpened
     if (verifyOpened != null) it.copy(verifyOpened = verifyOpened) else it
@@ -504,11 +459,7 @@ fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject 
   }
 }
 
-fun testProjectTemplateFromPath(
-  path: String,
-  testDataPath: String,
-  autoMigratePackageAttribute: Boolean = true,
-): TemplateBasedTestProject {
+fun testProjectTemplateFromPath(path: String, testDataPath: String, autoMigratePackageAttribute: Boolean = true): TemplateBasedTestProject {
   return object : TemplateBasedTestProject {
     override val name: String
       get() = File(path).name

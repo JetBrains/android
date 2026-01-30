@@ -17,6 +17,12 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
 import com.google.common.truth.Truth.assertThat
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.TestTimeSource
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -28,12 +34,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import kotlin.time.TestTimeSource
 
 private const val INPUT_RATE_HZ = 5
 private val INPUTS = 1..500
@@ -101,8 +101,7 @@ class BenchmarkerTest {
     // Should now be in SENDING_INPUTS
     val expectedFrameDurationMillis = (1.seconds / INPUT_RATE_HZ).inWholeMilliseconds
     val taskCaptor = argumentCaptor<TimerTask>()
-    verify(mockTimer)
-      .scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
     assertThat(dispatched).isEmpty()
 
     taskCaptor.firstValue.run()
@@ -233,9 +232,7 @@ class BenchmarkerTest {
     // This distribution just increases linearly, so each percentile is a relative fraction of the
     // max.
     val maxDurationMillis = (numValues - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
-    results[0].percentiles.forEach { (k, v) ->
-      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100)
-    }
+    results[0].percentiles.forEach { (k, v) -> assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100) }
   }
 
   @Test

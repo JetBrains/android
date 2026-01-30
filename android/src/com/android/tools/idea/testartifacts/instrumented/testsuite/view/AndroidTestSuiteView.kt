@@ -18,8 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.AndroidTestSuiteDetailsActionProvider
+import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
@@ -34,9 +34,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.Andro
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
@@ -135,16 +135,19 @@ private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
  *
  * @param parentDisposable a parent disposable which this view's lifespan is tied with.
  * @param project a project which this test suite view belongs to.
- * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup
- * will be disabled in this view.
+ * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup will be
+ *   disabled in this view.
  * @param toolWindowId a tool window ID of which this view is to be displayed in.
- * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML. Null is given
- * when this view displays an imported test result.
+ * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML. Null is given when this view
+ *   displays an imported test result.
  * @param myClock a clock used for time-related operations, defaults to the system clock.
  * @param myIsImportedResult indicates if the displayed results are imported from a file (true) or from a live execution (false).
  * @param canExportTestResults determines if exporting test results is allowed
  */
-class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
+class AndroidTestSuiteView
+@UiThread
+@JvmOverloads
+constructor(
   parentDisposable: Disposable,
   private val myProject: Project,
   module: Module?,
@@ -152,50 +155,56 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   val runConfiguration: RunConfiguration? = null,
   private val myClock: Clock = Clock.systemDefaultZone(),
   @VisibleForTesting val myIsImportedResult: Boolean = false,
-  private val canExportTestResults: Boolean = true
-) : ConsoleView,
-    UserDataHolderBase(),
-    BuildViewSettingsProvider,
-    AndroidTestResultListener,
-    AndroidTestResultsTableListener,
-    AndroidTestSuiteDetailsViewListener,
-    AndroidTestSuiteViewController {
-  @VisibleForTesting val myProgressBar: JProgressBar = JProgressBar().apply {
-    preferredSize = Dimension(170, preferredSize.height)
-    maximumSize = preferredSize
-  }
+  private val canExportTestResults: Boolean = true,
+) :
+  ConsoleView,
+  UserDataHolderBase(),
+  BuildViewSettingsProvider,
+  AndroidTestResultListener,
+  AndroidTestResultsTableListener,
+  AndroidTestSuiteDetailsViewListener,
+  AndroidTestSuiteViewController {
+  @VisibleForTesting
+  val myProgressBar: JProgressBar =
+    JProgressBar().apply {
+      preferredSize = Dimension(170, preferredSize.height)
+      maximumSize = preferredSize
+    }
   @VisibleForTesting val myStatusText: JBLabel = JBLabel()
   @VisibleForTesting val myStatusBreakdownText: JBLabel = JBLabel()
 
   @VisibleForTesting val myDeviceAndApiLevelFilterComboBoxAction = DeviceAndApiLevelFilterComboBoxAction()
 
-  @VisibleForTesting val myPassedToggleButton = MyToggleAction(
-    "Show passed tests", getIconFor(AndroidTestCaseResult.PASSED, false),
-    PASSED_TOGGLE_BUTTON_STATE_KEY, true)
-  @VisibleForTesting val mySkippedToggleButton = MyToggleAction(
-    "Show skipped tests", getIconFor(AndroidTestCaseResult.SKIPPED, false),
-    SKIPPED_TOGGLE_BUTTON_STATE_KEY, true)
+  @VisibleForTesting
+  val myPassedToggleButton =
+    MyToggleAction("Show passed tests", getIconFor(AndroidTestCaseResult.PASSED, false), PASSED_TOGGLE_BUTTON_STATE_KEY, true)
+  @VisibleForTesting
+  val mySkippedToggleButton =
+    MyToggleAction("Show skipped tests", getIconFor(AndroidTestCaseResult.SKIPPED, false), SKIPPED_TOGGLE_BUTTON_STATE_KEY, true)
 
-  @VisibleForTesting val myExportTestResultsAction = ExportAndroidTestResultsAction().apply {
-    toolWindowId = this@AndroidTestSuiteView.toolWindowId
-    runConfiguration = this@AndroidTestSuiteView.runConfiguration
-  }
-
-  private val myComponentsSplitter: OnePixelSplitter = object: OnePixelSplitter() {
-    init {
-      setHonorComponentsMinimumSize(false)
-      isFocusTraversalPolicyProvider = true
-      focusTraversalPolicy = LayoutFocusTraversalPolicy()
+  @VisibleForTesting
+  val myExportTestResultsAction =
+    ExportAndroidTestResultsAction().apply {
+      toolWindowId = this@AndroidTestSuiteView.toolWindowId
+      runConfiguration = this@AndroidTestSuiteView.runConfiguration
     }
 
-    override fun doLayout() {
-      // The internal proportion value can be greater than maxProportion and smaller
-      // than minProportion when you change component's side (b/170234515).
-      proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+  private val myComponentsSplitter: OnePixelSplitter =
+    object : OnePixelSplitter() {
+      init {
+        setHonorComponentsMinimumSize(false)
+        isFocusTraversalPolicyProvider = true
+        focusTraversalPolicy = LayoutFocusTraversalPolicy()
+      }
 
-      super.doLayout()
+      override fun doLayout() {
+        // The internal proportion value can be greater than maxProportion and smaller
+        // than minProportion when you change component's side (b/170234515).
+        proportion = max(MIN_FIRST_COMPONENT_PROPORTION, min(proportion, MAX_FIRST_COMPONENT_PROPORTION))
+
+        super.doLayout()
+      }
     }
-  }
 
   @VisibleForTesting val myResultsTableView: AndroidTestResultsTableView
   @VisibleForTesting val myDetailsView: AndroidTestSuiteDetailsView
@@ -224,26 +233,26 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // duration by myClock.
   var testExecutionDurationOverride: Duration? = null
 
-  private var eventPublisher: AndroidTestResultListener? = myProject.messageBus.syncPublisher(
-    ANDROID_TEST_SUITE_TOPIC
-  )
+  private var eventPublisher: AndroidTestResultListener? = myProject.messageBus.syncPublisher(ANDROID_TEST_SUITE_TOPIC)
 
   init {
-    val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager? = if (runConfiguration is AndroidTestRunConfiguration) {
-      val scheduledDeviceIds = HashSet<String>()
-      myScheduledDevices.forEach { scheduledDeviceIds.add(it.id) }
-      AndroidTestResultsUserPreferencesManager(runConfiguration, scheduledDeviceIds) }
-    else {
-      null
-    }
-    myResultsTableView = AndroidTestResultsTableView(
-      this,
-      myProject,
-      module,
-      myLogger,
-      androidTestResultsUserPreferencesManager,
-      runConfiguration?.let { TestResultsPsiElementProvider.getProvider(runConfiguration) },
-    )
+    val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager? =
+      if (runConfiguration is AndroidTestRunConfiguration) {
+        val scheduledDeviceIds = HashSet<String>()
+        myScheduledDevices.forEach { scheduledDeviceIds.add(it.id) }
+        AndroidTestResultsUserPreferencesManager(runConfiguration, scheduledDeviceIds)
+      } else {
+        null
+      }
+    myResultsTableView =
+      AndroidTestResultsTableView(
+        this,
+        myProject,
+        module,
+        myLogger,
+        androidTestResultsUserPreferencesManager,
+        runConfiguration?.let { TestResultsPsiElementProvider.getProvider(runConfiguration) },
+      )
     myResultsTableView.setRowFilter { testResults: AndroidTestResults ->
       if (testResults.isRootAggregationResult()) {
         return@setRowFilter true
@@ -255,11 +264,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
     }
     myResultsTableView.setColumnFilter(myDeviceAndApiLevelFilterComboBoxAction.filter)
-    myDeviceAndApiLevelFilterComboBoxAction.listener = object: DeviceAndApiLevelFilterComboBoxActionListener {
-      override fun onFilterUpdated() {
-        myResultsTableView.refreshTable()
+    myDeviceAndApiLevelFilterComboBoxAction.listener =
+      object : DeviceAndApiLevelFilterComboBoxActionListener {
+        override fun onFilterUpdated() {
+          myResultsTableView.refreshTable()
+        }
       }
-    }
 
     val testFilterActionGroup = DefaultActionGroup()
     testFilterActionGroup.addAll(
@@ -278,70 +288,79 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     // Importing/exporting of test results is currently only supported for the
     // AndroidTestRunConfiguration run configuration
     if (runConfiguration == null || runConfiguration is AndroidTestRunConfiguration) {
-      testFilterActionGroup.addAll(
-        Separator.getInstance(),
-        ImportTestGroup(),
-        ImportTestsFromFileAction(),
-        myExportTestResultsAction
-      )
+      testFilterActionGroup.addAll(Separator.getInstance(), ImportTestGroup(), ImportTestsFromFileAction(), myExportTestResultsAction)
     }
 
-    val myFocusableActionToolbar: ActionToolbar = object: ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE,
-                                                                            testFilterActionGroup, true) {
-      override fun createToolbarButton(action: AnAction,
-                                       look: ActionButtonLook?,
-                                       place: String,
-                                       presentation: Presentation,
-                                       minimumSize: Supplier<out Dimension>): ActionButton {
-        return super.createToolbarButton(action, look, place, presentation, minimumSize).apply {
-          // Toolbar buttons are not accessible by tab key in IntelliJ's default implementation
-          // when the screen reader is disabled. We override the behavior here and make it
-          // always focusable so that you can navigate through buttons by tab key.
-          isFocusable = true
+    val myFocusableActionToolbar: ActionToolbar =
+      object : ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE, testFilterActionGroup, true) {
+        override fun createToolbarButton(
+          action: AnAction,
+          look: ActionButtonLook?,
+          place: String,
+          presentation: Presentation,
+          minimumSize: Supplier<out Dimension>,
+        ): ActionButton {
+          return super.createToolbarButton(action, look, place, presentation, minimumSize).apply {
+            // Toolbar buttons are not accessible by tab key in IntelliJ's default implementation
+            // when the screen reader is disabled. We override the behavior here and make it
+            // always focusable so that you can navigate through buttons by tab key.
+            isFocusable = true
+          }
         }
       }
-    }
     myFocusableActionToolbar.setTargetComponent(myResultsTableView.getComponent())
-    val contentPanel = JPanel(BorderLayout()).apply {
-      add(JPanel().apply {
-        layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
-        add(JPanel().apply {
-          layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-          GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
-          add(Box.createRigidArea(Dimension(10, 0)))
-          add(JBLabel("Status"))
-          add(Box.createRigidArea(Dimension(10, 0)))
-          add(myProgressBar)
-          add(MyItemSeparator())
-          add(myStatusText)
-          add(MyItemSeparator())
-          add(myStatusBreakdownText)
-          add(Box.createHorizontalGlue())
-        })
-        add(JPanel().apply {
-          layout = BoxLayout(this, BoxLayout.LINE_AXIS)
-          GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
-          add(Box.createRigidArea(Dimension(10, 0)))
-          add(JBLabel("Filter tests:"))
-          add(myFocusableActionToolbar.component)
-        })
-      }, BorderLayout.NORTH)
-      add(myResultsTableView.getComponent(), BorderLayout.CENTER)
-      minimumSize = Dimension()
-    }
+    val contentPanel =
+      JPanel(BorderLayout()).apply {
+        add(
+          JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
+            add(
+              JPanel().apply {
+                layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+                GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
+                add(Box.createRigidArea(Dimension(10, 0)))
+                add(JBLabel("Status"))
+                add(Box.createRigidArea(Dimension(10, 0)))
+                add(myProgressBar)
+                add(MyItemSeparator())
+                add(myStatusText)
+                add(MyItemSeparator())
+                add(myStatusBreakdownText)
+                add(Box.createHorizontalGlue())
+              }
+            )
+            add(
+              JPanel().apply {
+                layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+                GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
+                add(Box.createRigidArea(Dimension(10, 0)))
+                add(JBLabel("Filter tests:"))
+                add(myFocusableActionToolbar.component)
+              }
+            )
+          },
+          BorderLayout.NORTH,
+        )
+        add(myResultsTableView.getComponent(), BorderLayout.CENTER)
+        minimumSize = Dimension()
+      }
 
     myComponentsSplitter.firstComponent = contentPanel
-    val headerActions = AndroidTestSuiteDetailsActionProvider.getDetailsViewHeaderActions(runConfiguration, myResultsTableView.rootResultsNode.results)
-    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger, headerActions).apply {
-      isDeviceSelectorListVisible = false
-      rootPanel.isVisible = false
-      rootPanel.minimumSize = Dimension()
-    }
+    val headerActions =
+      AndroidTestSuiteDetailsActionProvider.getDetailsViewHeaderActions(runConfiguration, myResultsTableView.rootResultsNode.results)
+    myDetailsView =
+      AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger, headerActions).apply {
+        isDeviceSelectorListVisible = false
+        rootPanel.isVisible = false
+        rootPanel.minimumSize = Dimension()
+      }
     myComponentsSplitter.secondComponent = myDetailsView.rootPanel
     myResultsTableView.selectRootItem()
     updateProgress()
-    myLogger.addImpressions(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
-                            ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
+    myLogger.addImpressions(
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW,
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW,
+    )
     Disposer.register(parentDisposable, this)
   }
 
@@ -352,15 +371,13 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       myProgressBar.value = 0
       myProgressBar.isIndeterminate = false
       myProgressBar.foreground = ColorProgressBar.BLUE
-    }
-    else {
+    } else {
       myProgressBar.maximum = scheduledTestCases * myScheduledDevices.size
       myProgressBar.value = completedTestCases * myStartedDevices.size
       myProgressBar.isIndeterminate = false
       if (failedTestCases > 0) {
         myProgressBar.foreground = ColorProgressBar.RED
-      }
-      else if (completedTestCases == scheduledTestCases) {
+      } else if (completedTestCases == scheduledTestCases) {
         myProgressBar.foreground = ColorProgressBar.GREEN
       }
     }
@@ -371,8 +388,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private fun updateStatusText() {
     val statusText = StringBuilder()
     if (failedTestCases > 0) {
-      statusText.append(
-        "<b><font color='#${ColorUtil.toHex(ColorProgressBar.RED)}'>${failedTestCases} failed</font></b>")
+      statusText.append("<b><font color='#${ColorUtil.toHex(ColorProgressBar.RED)}'>${failedTestCases} failed</font></b>")
     }
     if (passedTestCases > 0) {
       if (statusText.isNotEmpty()) {
@@ -400,11 +416,12 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
     if (myTestFinishedTimeMillis != 0L) {
       val testDuration = testExecutionDurationOverride ?: Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
-      val roundedTestDuration = if (testDuration < Duration.ofHours(1)) {
-        testDuration
-      } else {
-        Duration.ofSeconds(testDuration.seconds)
-      }
+      val roundedTestDuration =
+        if (testDuration < Duration.ofHours(1)) {
+          testDuration
+        } else {
+          Duration.ofSeconds(testDuration.seconds)
+        }
       statusBreakdownText.append(", ${Formats.formatDuration(roundedTestDuration.toMillis(), "\u2009")}")
     }
 
@@ -428,8 +445,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         updateProgress()
 
         if (myComponentsSplitter.width > 0) {
-          myComponentsSplitter.proportion =
-            min(0.6f, myResultsTableView.preferredTableWidth.toFloat() / myComponentsSplitter.width)
+          myComponentsSplitter.proportion = min(0.6f, myResultsTableView.preferredTableWidth.toFloat() / myComponentsSplitter.width)
         }
       }
     }
@@ -446,9 +462,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   @AnyThread
-  override fun onTestCaseStarted(device: AndroidDevice,
-                                 testSuite: AndroidTestSuite,
-                                 testCase: AndroidTestCase) {
+  override fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
     eventPublisher?.onTestCaseStarted(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
@@ -460,34 +474,28 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   @AnyThread
   override fun onTestStepStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     eventPublisher?.onTestStepStarted(device, testSuite, testCase, testStep)
-    AppUIUtil.invokeOnEdt {
-      myResultsTableView.addTestStep(device, testCase, testStep)
-    }
+    AppUIUtil.invokeOnEdt { myResultsTableView.addTestStep(device, testCase, testStep) }
   }
 
   @AnyThread
   override fun onTestStepUpdated(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     eventPublisher?.onTestStepStarted(device, testSuite, testCase, testStep)
-    AppUIUtil.invokeOnEdt {
-      myDetailsView.reloadAndroidTestResults()
-    }
+    AppUIUtil.invokeOnEdt { myDetailsView.reloadAndroidTestResults() }
   }
 
   @AnyThread
-  override fun onTestStepFinished(device: AndroidDevice,
-                                  testSuite: AndroidTestSuite,
-                                  testCase: AndroidTestCase,
-                                  testStep: AndroidTestStep) {
+  override fun onTestStepFinished(
+    device: AndroidDevice,
+    testSuite: AndroidTestSuite,
+    testCase: AndroidTestCase,
+    testStep: AndroidTestStep,
+  ) {
     eventPublisher?.onTestStepFinished(device, testSuite, testCase, testStep)
-    AppUIUtil.invokeOnEdt {
-      myResultsTableView.refreshTable()
-    }
+    AppUIUtil.invokeOnEdt { myResultsTableView.refreshTable() }
   }
 
   @AnyThread
-  override fun onTestCaseFinished(device: AndroidDevice,
-                                  testSuite: AndroidTestSuite,
-                                  testCase: AndroidTestCase) {
+  override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
     eventPublisher?.onTestCaseFinished(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
@@ -517,7 +525,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
   }
 
-
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
     eventPublisher?.onTestSuiteFinished(device, testSuite)
@@ -543,8 +550,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         }
       }
       updateProgress()
-      myResultsTableView.setTestSuiteResultForDevice(
-        device, testSuite.result ?: AndroidTestSuiteResult.CANCELLED)
+      myResultsTableView.setTestSuiteResultForDevice(device, testSuite.result ?: AndroidTestSuiteResult.CANCELLED)
       myDetailsView.reloadAndroidTestResults()
     }
   }
@@ -574,9 +580,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       return
     }
     val group = NotificationGroupManager.getInstance().getNotificationGroup("Test Results")
-    group.createNotification(notificationTitle, notificationContent, notificationType)
-      .setToolWindowId(toolWindowId)
-      .notify(myProject)
+    group.createNotification(notificationTitle, notificationContent, notificationType).setToolWindowId(toolWindowId).notify(myProject)
   }
 
   @get:UiThread
@@ -631,56 +635,64 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     val runConfiguration = runConfiguration ?: return
-    ProgressManager.getInstance().run(
-      object : Task.Backgroundable(
-        myProject,
-        SmRunnerBundle.message("sm.test.runner.results.form.save.test.results.title"),
-        false,
-        PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+    ProgressManager.getInstance()
+      .run(
+        object :
+          Task.Backgroundable(
+            myProject,
+            SmRunnerBundle.message("sm.test.runner.results.form.save.test.results.title"),
+            false,
+            PerformInBackgroundOption.ALWAYS_BACKGROUND,
+          ) {
 
-        private lateinit var myResultFile: File
+          private lateinit var myResultFile: File
 
-        override fun run(indicator: ProgressIndicator) {
-          indicator.isIndeterminate = true
-          val historyFileName =
-            PathUtil.suggestFileName(runConfiguration.name) + " - " +
-            SimpleDateFormat(SMTestRunnerResultsForm.HISTORY_DATE_FORMAT, Locale.US).format(Date(myClock.millis())) + ".xml"
-          val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject!!), historyFileName)
-          FileUtilRt.createParentDirs(outputFile)
+          override fun run(indicator: ProgressIndicator) {
+            indicator.isIndeterminate = true
+            val historyFileName =
+              PathUtil.suggestFileName(runConfiguration.name) +
+                " - " +
+                SimpleDateFormat(SMTestRunnerResultsForm.HISTORY_DATE_FORMAT, Locale.US).format(Date(myClock.millis())) +
+                ".xml"
+            val outputFile = File(TestStateStorage.getTestHistoryRoot(myProject!!), historyFileName)
+            FileUtilRt.createParentDirs(outputFile)
 
-          val transformerFactory = TransformerFactory.newDefaultInstance() as SAXTransformerFactory
-          val transformerHandler = transformerFactory.newTransformerHandler().apply {
-            transformer.apply {
-              setOutputProperty(OutputKeys.INDENT, "yes")
-              setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
+            val transformerFactory = TransformerFactory.newDefaultInstance() as SAXTransformerFactory
+            val transformerHandler =
+              transformerFactory.newTransformerHandler().apply {
+                transformer.apply {
+                  setOutputProperty(OutputKeys.INDENT, "yes")
+                  setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
+                }
+                setResult(StreamResult(FileWriter(outputFile)))
+              }
+            val rootResultsNode = Ref.create<AndroidTestResultsTreeNode>()
+            ApplicationManager.getApplication().invokeAndWait { rootResultsNode.set(myResultsTableView.rootResultsNode) }
+            AndroidTestResultsXmlFormatter(
+                Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
+                rootResultsNode.get(),
+                myScheduledDevices.toList(),
+                runConfiguration,
+                transformerHandler,
+              )
+              .execute()
+
+            myResultFile = outputFile
+          }
+
+          override fun onSuccess() {
+            if (::myResultFile.isInitialized && myResultFile.exists()) {
+              AbstractImportTestsAction.adjustHistory(myProject)
+              TestHistoryConfiguration.getInstance(myProject)
+                .registerHistoryItem(myResultFile.name, runConfiguration.name, runConfiguration.type.id)
             }
-            setResult(StreamResult(FileWriter(outputFile)))
-          }
-          val rootResultsNode = Ref.create<AndroidTestResultsTreeNode>()
-          ApplicationManager.getApplication().invokeAndWait { rootResultsNode.set(myResultsTableView.rootResultsNode) }
-          AndroidTestResultsXmlFormatter(
-            Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
-            rootResultsNode.get(),
-            myScheduledDevices.toList(),
-            runConfiguration,
-            transformerHandler).execute()
-
-          myResultFile = outputFile
-        }
-
-        override fun onSuccess() {
-          if (::myResultFile.isInitialized && myResultFile.exists()) {
-            AbstractImportTestsAction.adjustHistory(myProject)
-            TestHistoryConfiguration.getInstance(myProject).registerHistoryItem(
-              myResultFile.name, runConfiguration.name, runConfiguration.type.id)
           }
         }
-      })
+      )
   }
 
   @UiThread
-  override fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,
-                                               selectedDevice: AndroidDevice?) {
+  override fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults, selectedDevice: AndroidDevice?) {
     openAndroidTestSuiteDetailsView(selectedResults, selectedDevice)
   }
 
@@ -690,21 +702,18 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   @UiThread
-  private fun openAndroidTestSuiteDetailsView(results: AndroidTestResults,
-                                              selectedDevice: AndroidDevice?) {
+  private fun openAndroidTestSuiteDetailsView(results: AndroidTestResults, selectedDevice: AndroidDevice?) {
     myLogger.addImpression(
       if (orientation === AndroidTestSuiteViewController.Orientation.HORIZONTAL) {
         ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_HORIZONTAL_VIEW
-      }
-      else {
+      } else {
         ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DETAILS_VERTICAL_VIEW
       }
     )
     myDetailsView.setAndroidTestResults(results)
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice)
-    }
-    else if (results.isRootAggregationResult()) {
+    } else if (results.isRootAggregationResult()) {
       myDetailsView.selectRawOutput()
     }
     if (!myDetailsView.rootPanel.isVisible) {
@@ -726,8 +735,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       return if (isVertical) AndroidTestSuiteViewController.Orientation.VERTICAL else AndroidTestSuiteViewController.Orientation.HORIZONTAL
     }
     set(orientation) {
-      myComponentsSplitter.orientation =
-        orientation === AndroidTestSuiteViewController.Orientation.VERTICAL
+      myComponentsSplitter.orientation = orientation === AndroidTestSuiteViewController.Orientation.VERTICAL
     }
 
   override fun print(text: String, contentType: ConsoleViewContentType) {
@@ -737,10 +745,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     myDetailsView.rawTestLogConsoleView.print(text, contentType)
   }
 
-  /**
-   * Copied from [org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsole].
-   */
+  /** Copied from [org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsole]. */
   private var lastMessageWasEmptyLine = false
+
   private fun detectUnwantedEmptyLine(s: String, contentType: ConsoleViewContentType): Boolean {
     if (contentType != ConsoleViewContentType.NORMAL_OUTPUT) {
       return false
@@ -766,9 +773,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this)
-    Disposer.register(this) {
-      processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, null)
-    }
+    Disposer.register(this) { processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, null) }
     myDetailsView.rawTestLogConsoleView.attachToProcess(processHandler)
   }
 
@@ -837,7 +842,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   class MyItemSeparator : JComponent() {
     init {
-      val mySize = JBDimension(JBUIScale.scale(20), JBUIScale.scale(24), /*preScaled=*/true)
+      val mySize = JBDimension(JBUIScale.scale(20), JBUIScale.scale(24), /* preScaled= */ true)
       minimumSize = mySize
       maximumSize = mySize
       preferredSize = mySize
@@ -850,25 +855,22 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       val gap = JBUIScale.scale(2)
       val y2 = parent.height - gap * 2
       g.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-      LinePainter2D.paint((g as Graphics2D),
-                          center, gap.toDouble(),
-                          center, y2.toDouble())
+      LinePainter2D.paint((g as Graphics2D), center, gap.toDouble(), center, y2.toDouble())
     }
   }
 
   @VisibleForTesting
-  inner class MyToggleAction(actionText: String,
-                             actionIcon: Icon?,
-                             private val propertiesComponentKey: String,
-                             private val defaultState: Boolean) : ToggleAction(Supplier { actionText },
-                                                                               actionIcon) {
+  inner class MyToggleAction(
+    actionText: String,
+    actionIcon: Icon?,
+    private val propertiesComponentKey: String,
+    private val defaultState: Boolean,
+  ) : ToggleAction(Supplier { actionText }, actionIcon) {
 
-    var isSelected: Boolean = PropertiesComponent.getInstance(myProject).getBoolean(
-      propertiesComponentKey, defaultState)
+    var isSelected: Boolean = PropertiesComponent.getInstance(myProject).getBoolean(propertiesComponentKey, defaultState)
       set(value) {
         field = value
-        PropertiesComponent.getInstance(myProject).setValue(
-          propertiesComponentKey, isSelected, defaultState)
+        PropertiesComponent.getInstance(myProject).setValue(propertiesComponentKey, isSelected, defaultState)
         myResultsTableView.refreshTable()
       }
 
@@ -878,20 +880,18 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       isSelected = state
-      PropertiesComponent.getInstance(myProject)
-        .setValue(propertiesComponentKey, isSelected, defaultState)
+      PropertiesComponent.getInstance(myProject).setValue(propertiesComponentKey, isSelected, defaultState)
       myResultsTableView.refreshTable()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
   }
 
   override fun isExecutionViewHidden(): Boolean = true
 
   companion object {
     @Topic.ProjectLevel
-    val ANDROID_TEST_SUITE_TOPIC: Topic<AndroidTestResultListener> = Topic("Android Test Suite Topic",
-                                                                           AndroidTestResultListener::class.java)
+    val ANDROID_TEST_SUITE_TOPIC: Topic<AndroidTestResultListener> =
+      Topic("Android Test Suite Topic", AndroidTestResultListener::class.java)
   }
 }

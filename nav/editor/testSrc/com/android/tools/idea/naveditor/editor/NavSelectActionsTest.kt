@@ -124,19 +124,12 @@ class NavSelectActionsTest : NavTestCase() {
 
     val action = SelectAllAction()
 
-    action.actionPerformed(
-      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
-    )
-    assertEquals(
-      listOf(root, action1, fragment1, fragment2, fragment3),
-      surface.selectionModel.selection,
-    )
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
+    assertEquals(listOf(root, action1, fragment1, fragment2, fragment3), surface.selectionModel.selection)
   }
 
   private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
-    action.actionPerformed(
-      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
-    )
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     val component = surface.model?.treeReader?.find(id)!!
     AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
   }

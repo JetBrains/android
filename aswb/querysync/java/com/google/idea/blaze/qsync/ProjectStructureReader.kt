@@ -16,16 +16,15 @@
 package com.google.idea.blaze.qsync
 
 import com.google.idea.blaze.common.Context
+import com.google.idea.blaze.qsync.project.FileExtensions
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectStructureData
-import com.google.idea.blaze.qsync.project.FileExtensions
 import java.nio.file.Path
 
 /**
  * Interface for reading the project structure from the file system.
  *
- * Implementations are expected to scan the workspace based on the project definition
- * and return a [ProjectStructureData] object.
+ * Implementations are expected to scan the workspace based on the project definition and return a [ProjectStructureData] object.
  */
 interface ProjectStructureReader {
   /**
@@ -36,14 +35,9 @@ interface ProjectStructureReader {
    * @param projectDefinition The project definition containing includes and excludes.
    * @return A [ProjectStructureData] instance representing the project structure.
    */
-  fun read(
-    context: Context<*>,
-    workspaceRoot: Path,
-    projectDefinition: ProjectDefinition,
-  ): ProjectStructureData
+  fun read(context: Context<*>, workspaceRoot: Path, projectDefinition: ProjectDefinition): ProjectStructureData
 
   companion object {
-    fun create(fileExtensions: FileExtensions): ProjectStructureReader =
-      ProjectStructureReaderImpl(fileExtensions)
+    fun create(fileExtensions: FileExtensions): ProjectStructureReader = ProjectStructureReaderImpl(fileExtensions)
   }
 }

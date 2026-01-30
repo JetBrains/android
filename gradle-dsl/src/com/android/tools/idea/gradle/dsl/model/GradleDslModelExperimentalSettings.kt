@@ -22,9 +22,8 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "GradleDslModelExperimentalSettings", storages = [(Storage("gradle.dsl.model.xml"))])
-data class GradleDslModelExperimentalSettings(
-  var isVersionCatalogEnabled: Boolean = true
-) : PersistentStateComponent<GradleDslModelExperimentalSettings> {
+data class GradleDslModelExperimentalSettings(var isVersionCatalogEnabled: Boolean = true) :
+  PersistentStateComponent<GradleDslModelExperimentalSettings> {
   override fun getState(): GradleDslModelExperimentalSettings = this
 
   override fun loadState(state: GradleDslModelExperimentalSettings) {

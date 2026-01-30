@@ -24,8 +24,7 @@ import com.intellij.openapi.components.service
 private const val DEPRECATION_SERVICE_NAME = "aqi/policy"
 private const val DEPRECATION_USER_FRIENDLY_SERVICE_NAME = "Play Policy Insights"
 @VisibleForTesting
-const val DEPRECATION_PREFIX =
-  "Outdated Insight: Play Policy Insights is no longer compatible with this version of Android Studio.\n"
+const val DEPRECATION_PREFIX = "Outdated Insight: Play Policy Insights is no longer compatible with this version of Android Studio.\n"
 
 fun Incident.updateMessageWithDeprecationInfo() {
   if (!message.contains(DEPRECATION_PREFIX)) {

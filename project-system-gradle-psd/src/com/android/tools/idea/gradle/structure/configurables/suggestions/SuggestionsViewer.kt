@@ -25,14 +25,12 @@ import java.util.Comparator.comparingInt
 import java.util.SortedMap
 import javax.swing.JPanel
 
-class SuggestionsViewer(
-    private val context: PsContext,
-    private val renderer: IssueRenderer
-) : SuggestionsViewerUi(), Disposable {
+class SuggestionsViewer(private val context: PsContext, private val renderer: IssueRenderer) : SuggestionsViewerUi(), Disposable {
   private val updateQueue = createMergingUpdateQueue("SuggestionsViewer update queue", parent = this, activationComponent = panel)
   private val groups = mutableListOf<SuggestionGroupViewer>()
 
-  val panel: JPanel get() = myMainPanel
+  val panel: JPanel
+    get() = myMainPanel
 
   private var lastDisplayedIssues: Set<PsIssue>? = null
 
@@ -49,8 +47,7 @@ class SuggestionsViewer(
     if (panel.isShowing) {
       updateQueue.cancelAllUpdates()
       render()
-    }
-    else {
+    } else {
       updateQueue.enqueueTagged(this) { render() }
     }
   }
@@ -72,8 +69,7 @@ class SuggestionsViewer(
         val groupViewerUi = SuggestionGroupViewer(severity)
         groups.add(groupIndex, groupViewerUi)
         myMainPanel.add(groupViewerUi.panel, groupIndex)
-      }
-      else {
+      } else {
         val group = groups[groupIndex]
         group.view.removeAll()
         myMainPanel.add(group.panel, groupIndex)
@@ -83,8 +79,7 @@ class SuggestionsViewer(
     for (group in groups) {
       val groupIssues = issues[group.severity].orEmpty()
       for ((rowIndex, issue) in groupIssues.withIndex()) {
-        group.view.add(
-            SuggestionViewer(context, renderer, issue, scope, isLast = rowIndex == groupIssues.size - 1).component)
+        group.view.add(SuggestionViewer(context, renderer, issue, scope, isLast = rowIndex == groupIssues.size - 1).component)
       }
     }
     if (selectedBounds != null) {

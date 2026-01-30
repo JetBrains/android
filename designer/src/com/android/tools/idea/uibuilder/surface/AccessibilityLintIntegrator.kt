@@ -70,15 +70,8 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
     issueProvider.notifyModified()
   }
 
-  /**
-   * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order
-   * for issues to be visible.
-   */
-  fun createIssue(
-    result: ValidatorData.Issue,
-    component: NlComponent,
-    eventListener: NlAtfIssue.EventListener? = null,
-  ) {
+  /** Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible. */
+  fun createIssue(result: ValidatorData.Issue, component: NlComponent, eventListener: NlAtfIssue.EventListener? = null) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
       if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
         return
@@ -90,11 +83,8 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 }
 
 /** Issue created by [ValidatorData.Issue] */
-class NlAtfIssue(
-  val result: ValidatorData.Issue,
-  issueSource: NlComponentIssueSource,
-  private val eventListener: EventListener? = null,
-) : Issue() {
+class NlAtfIssue(val result: ValidatorData.Issue, issueSource: NlComponentIssueSource, private val eventListener: EventListener? = null) :
+  Issue() {
 
   /** Event listeners for the ATF issue */
   interface EventListener {
@@ -177,19 +167,14 @@ class NlAtfIssue(
     if (fix is ValidatorData.SetViewAttributeFix && fix.mSuggestedValue.isEmpty()) {
       // If the suggested value is an empty string, let the user pick a string
       // resource as the suggested value
-      source.component?.model?.let {
-        applySetViewAttributeFixWithEmptySuggestedValue(it, fix.mViewAttribute)
-      }
+      source.component?.model?.let { applySetViewAttributeFixWithEmptySuggestedValue(it, fix.mViewAttribute) }
     } else {
       applyFixImpl(fix, source)
     }
   }
 
   /** Let the user to pick a new string resource as the suggested value. */
-  private fun applySetViewAttributeFixWithEmptySuggestedValue(
-    model: NlModel,
-    viewAttribute: ValidatorData.ViewAttribute,
-  ) {
+  private fun applySetViewAttributeFixWithEmptySuggestedValue(model: NlModel, viewAttribute: ValidatorData.ViewAttribute) {
     val source = source
     val dialog: ResourcePickerDialog =
       createResourcePickerDialog(
@@ -213,14 +198,9 @@ class NlAtfIssue(
 @VisibleForTesting
 fun applyFixImpl(fix: ValidatorData.Fix, source: NlAttributesHolder) {
   when (fix) {
-    is ValidatorData.RemoveViewAttributeFix ->
-      source.removeAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName)
+    is ValidatorData.RemoveViewAttributeFix -> source.removeAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName)
     is ValidatorData.SetViewAttributeFix ->
-      source.setAttribute(
-        fix.mViewAttribute.mNamespaceUri,
-        fix.mViewAttribute.mAttributeName,
-        fix.mSuggestedValue,
-      )
+      source.setAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName, fix.mSuggestedValue)
     is ValidatorData.CompoundFix -> fix.mFixes.forEach { applyFixImpl(it, source) }
     else -> {
       // Do not apply the fix

@@ -19,21 +19,18 @@ import com.intellij.openapi.options.UnnamedConfigurable
 
 interface ExperimentalConfigurable : UnnamedConfigurable {
   /**
-   * return [ApplyState.BLOCK] if the state to be applied is invalid in any way.  If it is, display
-   * UI indications to the user to highlight the problem(s).  Return [ApplyState.RESTART] if the state
-   * is ready to be applied but requires the IDE to restart to take effect, or [ApplyState.OK] otherwise.
+   * return [ApplyState.BLOCK] if the state to be applied is invalid in any way. If it is, display UI indications to the user to highlight
+   * the problem(s). Return [ApplyState.RESTART] if the state is ready to be applied but requires the IDE to restart to take effect, or
+   * [ApplyState.OK] otherwise.
    */
   fun preApplyCallback(): ApplyState = ApplyState.OK
 
-  /**
-   * perform any necessary actions to clean up after applying new settings, not including restarting
-   * the IDE.
-   */
+  /** perform any necessary actions to clean up after applying new settings, not including restarting the IDE. */
   fun postApplyCallback() = Unit
 
   enum class ApplyState {
     OK,
     BLOCK,
-    RESTART
+    RESTART,
   }
 }

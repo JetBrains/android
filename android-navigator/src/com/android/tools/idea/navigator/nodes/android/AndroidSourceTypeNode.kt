@@ -34,25 +34,26 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import com.intellij.ui.SimpleTextAttributes
+import java.util.Objects
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
-import java.util.Objects
 
 /**
- * [AndroidSourceTypeNode] is a virtual node in the package view of an Android module under which all sources
- * corresponding to a particular [AndroidSourceType] are grouped together.
+ * [AndroidSourceTypeNode] is a virtual node in the package view of an Android module under which all sources corresponding to a particular
+ * [AndroidSourceType] are grouped together.
  */
 open class AndroidSourceTypeNode(
   project: Project,
   androidFacet: AndroidFacet,
   settings: ViewSettings,
   private val sourceType: AndroidSourceType,
-  sourceRoots: Set<VirtualFile>
+  sourceRoots: Set<VirtualFile>,
 ) : ProjectViewNode<AndroidFacet?>(project, androidFacet, settings), FolderGroupNode {
-  private val sortedSourceRoots: List<VirtualFile> = sourceRoots.sortedBy {
-    val (name) = findSourceProvider(it)
-    AndroidPsiDirectoryNode.getSourceProviderSortKeyPart(name)
-  }
+  private val sortedSourceRoots: List<VirtualFile> =
+    sourceRoots.sortedBy {
+      val (name) = findSourceProvider(it)
+      AndroidPsiDirectoryNode.getSourceProviderSortKeyPart(name)
+    }
 
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     val projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject)
@@ -85,12 +86,10 @@ open class AndroidSourceTypeNode(
 
   protected fun findSourceProvider(virtualFile: VirtualFile): Pair<String?, VirtualFile?> {
     val androidFacet = value!!
-    return AndroidViewNodes.getSourceProviders(androidFacet)
-      .firstNotNullOfOrNull { provider ->
-        val root = provider.findSourceRoot(virtualFile) ?: return@firstNotNullOfOrNull null
-        provider.name to root
-      }
-      ?: (null to null)
+    return AndroidViewNodes.getSourceProviders(androidFacet).firstNotNullOfOrNull { provider ->
+      val root = provider.findSourceRoot(virtualFile) ?: return@firstNotNullOfOrNull null
+      provider.name to root
+    } ?: (null to null)
   }
 
   protected val sourceFolders: List<PsiDirectory>
@@ -116,8 +115,8 @@ open class AndroidSourceTypeNode(
   }
 
   override fun contains(file: VirtualFile): Boolean {
-    //TODO: first check if the file is of my source type
-    return sortedSourceRoots.any {root -> VfsUtilCore.isAncestor(root, file, false)}
+    // TODO: first check if the file is of my source type
+    return sortedSourceRoots.any { root -> VfsUtilCore.isAncestor(root, file, false) }
   }
 
   override fun canRepresent(element: Any): Boolean {

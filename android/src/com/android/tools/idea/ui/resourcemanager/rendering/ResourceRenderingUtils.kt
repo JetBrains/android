@@ -39,26 +39,26 @@ import kotlin.math.max
 internal val EMPTY_IMAGE = createIcon(if (RESOURCE_DEBUG) JBColor.GREEN else Color(0, 0, 0, 0))
 internal val ERROR_IMAGE = createIcon(if (RESOURCE_DEBUG) JBColor.RED else Color(10, 10, 10, 10))
 
-internal fun createIcon(color: Color?): BufferedImage = ImageUtil.createImage(
-  80, 80, BufferedImage.TYPE_INT_ARGB
-).apply {
-  with(createGraphics()) {
-    this.color = color
-    fillRect(0, 0, 80, 80)
-    dispose()
+internal fun createIcon(color: Color?): BufferedImage =
+  ImageUtil.createImage(80, 80, BufferedImage.TYPE_INT_ARGB).apply {
+    with(createGraphics()) {
+      this.color = color
+      fillRect(0, 0, 80, 80)
+      dispose()
+    }
   }
-}
 
 internal fun createFailedIcon(dimension: Dimension): BufferedImage {
   @Suppress("UndesirableClassUsage") // Dimensions for BufferedImage are pre-scaled.
   val image = BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB)
-  val label = JBLabel("Failed preview", StudioIcons.Common.WARNING, SwingConstants.CENTER).apply {
-    verticalTextPosition = SwingConstants.BOTTOM
-    horizontalTextPosition = SwingConstants.CENTER
-    foreground = AdtUiUtils.DEFAULT_FONT_COLOR
-    bounds = Rectangle(0, 0, dimension.width, dimension.height)
-    validate()
-  }
+  val label =
+    JBLabel("Failed preview", StudioIcons.Common.WARNING, SwingConstants.CENTER).apply {
+      verticalTextPosition = SwingConstants.BOTTOM
+      horizontalTextPosition = SwingConstants.CENTER
+      foreground = AdtUiUtils.DEFAULT_FONT_COLOR
+      bounds = Rectangle(0, 0, dimension.width, dimension.height)
+      validate()
+    }
   image.createGraphics().let { g ->
     val labelFont = JBUI.Fonts.label(10f)
     val stringWidth = labelFont.getStringBounds(label.text, g.fontRenderContext).width
@@ -72,23 +72,20 @@ internal fun createFailedIcon(dimension: Dimension): BufferedImage {
 }
 
 internal fun createDrawablePlaceholderImage(width: Int, height: Int): BufferedImage {
-  return createImageAndPaint(width, height) {
-    paintDrawablePlaceholderImage(it, width, height)
-  }
+  return createImageAndPaint(width, height) { paintDrawablePlaceholderImage(it, width, height) }
 }
 
 private fun paintDrawablePlaceholderImage(g: Graphics2D, width: Int, height: Int) {
-  val label = JBLabel(StudioIcons.Shell.ToolWindows.VISUAL_ASSETS, SwingConstants.CENTER).apply {
-    bounds = Rectangle(0, 0, width, height)
-    validate()
-  }
+  val label =
+    JBLabel(StudioIcons.Shell.ToolWindows.VISUAL_ASSETS, SwingConstants.CENTER).apply {
+      bounds = Rectangle(0, 0, width, height)
+      validate()
+    }
   label.paint(g)
 }
 
 internal fun createLayoutPlaceholderImage(width: Int, height: Int): BufferedImage {
-  return createImageAndPaint(width, height) {
-    paintLayoutPlaceHolderImage(it, width, height)
-  }
+  return createImageAndPaint(width, height) { paintLayoutPlaceHolderImage(it, width, height) }
 }
 
 private val LAYOUT_PH_BAR_BACKGROUND = Color(0xBF808080.toInt(), true)
@@ -151,9 +148,7 @@ private fun paintFakeLayout(g: Graphics2D, width: Int, height: Int, x: Int, y: I
 }
 
 internal fun createNavigationPlaceHolder(width: Int, height: Int, layoutImage: BufferedImage?): BufferedImage {
-  return createImageAndPaint(width, height) {
-    paintNavigationPlaceHolder(it, width, height, layoutImage)
-  }
+  return createImageAndPaint(width, height) { paintNavigationPlaceHolder(it, width, height, layoutImage) }
 }
 
 private const val SIZE_TO_HEIGHT_CONSTANT = 0.866f // from 'h = sqrt(3)/2 * a' for an equilateral triangle
@@ -178,8 +173,7 @@ private fun paintNavigationPlaceHolder(g: Graphics2D, width: Int, height: Int, l
   val arrowTipHeight = (arrowTipUnscaledSize * SIZE_TO_HEIGHT_CONSTANT + 0.5f).toInt()
   val arrow1LineStartY = layoutY + (layoutHeight * 0.5f + 0.5f).toInt()
   val arrow1LineStartX = layoutX + layoutWidth
-  val arrowLineEndX = (width - JBUIScale.scale(arrowTipHeight)).coerceAtMost(
-    arrow1LineStartX + (layoutWidth * 0.6f + 0.2f).toInt())
+  val arrowLineEndX = (width - JBUIScale.scale(arrowTipHeight)).coerceAtMost(arrow1LineStartX + (layoutWidth * 0.6f + 0.2f).toInt())
   val arrow2LineStartX = ((arrow1LineStartX + arrowLineEndX) * 0.5f + 0.5f).toInt()
   val arrow2LineStartY = arrow1LineStartY + arrowSeparation
   val arrowEndX = width - arrowMargin
@@ -188,9 +182,12 @@ private fun paintNavigationPlaceHolder(g: Graphics2D, width: Int, height: Int, l
   val arrow2X = arrowLineEndX
   val arrow2Y = arrow1Y + arrowSeparation
 
-  val arrowPoly = Polygon(arrayOf(0, arrowTipHeight, 0).map(JBUIScale::scale).toIntArray(),
-                          arrayOf(0, (arrowTipUnscaledSize * 0.5f + 0.5f).toInt(), arrowTipUnscaledSize).map(JBUIScale::scale).toIntArray(),
-                          3)
+  val arrowPoly =
+    Polygon(
+      arrayOf(0, arrowTipHeight, 0).map(JBUIScale::scale).toIntArray(),
+      arrayOf(0, (arrowTipUnscaledSize * 0.5f + 0.5f).toInt(), arrowTipUnscaledSize).map(JBUIScale::scale).toIntArray(),
+      3,
+    )
 
   val connectionStrokeSize = (arrowSeparation * 0.1f + 0.5f).toInt().coerceAtLeast(2).toFloat().let(JBUIScale::scale)
 
@@ -219,8 +216,7 @@ private fun paintNavigationPlaceHolder(g: Graphics2D, width: Int, height: Int, l
   // Paint layout image/placeholder
   if (image == null) {
     paintFakeLayout(g, layoutWidth, layoutHeight, layoutX, layoutY)
-  }
-  else {
+  } else {
     g.drawImage(image, null, layoutX, layoutY)
   }
 }
@@ -230,8 +226,7 @@ private fun createImageAndPaint(width: Int, height: Int, doPaint: (Graphics2D) -
     val g = createGraphics()
     try {
       doPaint(g)
-    }
-    finally {
+    } finally {
       g.dispose()
     }
   }

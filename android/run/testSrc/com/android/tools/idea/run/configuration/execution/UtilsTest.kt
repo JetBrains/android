@@ -31,8 +31,7 @@ import org.mockito.kotlin.whenever
 
 class UtilsTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testWearDebugSurfaceVersion() {
@@ -53,8 +52,7 @@ class UtilsTest {
   fun testWearDebugSurfaceVersionWhenInvalidResult() {
     val device = getMockDevice { request ->
       when (request) {
-        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
-          "Broadcast completed: result=0"
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" -> "Broadcast completed: result=0"
 
         else -> "Unknown request: $request"
       }
@@ -77,14 +75,11 @@ class UtilsTest {
     assertThrows(ExecutionException::class.java, "Device software is out of date") {
       device.getWearDebugSurfaceVersion(EmptyProgressIndicator())
     }
-
   }
 
   private fun getMockDevice(replies: (request: String) -> String = { request -> "Mock reply: $request" }): IDevice {
     val device = mock<IDevice>()
-    whenever(
-      device.executeShellCommand(any(), any(), any(), any())
-    ).thenAnswer { invocation ->
+    whenever(device.executeShellCommand(any(), any(), any(), any())).thenAnswer { invocation ->
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver
       val reply = replies(request)

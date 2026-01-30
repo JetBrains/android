@@ -32,16 +32,11 @@ import org.jetbrains.annotations.VisibleForTesting
 /** Handles analytics that are common across animation toolbar. */
 class AnimationToolbarAnalyticsManager
 @VisibleForTesting
-constructor(
-  private val logger: Consumer<AndroidStudioEvent.Builder>,
-  private val asynchronous: Boolean,
-) {
+constructor(private val logger: Consumer<AndroidStudioEvent.Builder>, private val asynchronous: Boolean) {
   constructor() : this(Consumer { eventBuilder -> UsageTracker.log(eventBuilder) }, true)
 
   companion object {
-    private val EXECUTOR: ThreadPoolExecutor by lazy {
-      ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
-    }
+    private val EXECUTOR: ThreadPoolExecutor by lazy { ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10)) }
   }
 
   private val tracker: AnimationToolbarUsageTracker by lazy {
@@ -54,8 +49,7 @@ constructor(
       when (type) {
         AnimationToolbarType.LIMITED -> AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION
         AnimationToolbarType.UNLIMITED -> AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION
-        AnimationToolbarType.ANIMATED_SELECTOR ->
-          AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR
+        AnimationToolbarType.ANIMATED_SELECTOR -> AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR
       }
 
     val userAction =
@@ -75,20 +69,11 @@ constructor(
 
 @VisibleForTesting
 interface AnimationToolbarUsageTracker {
-  fun logToolbarEvent(
-    toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction,
-  )
+  fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType, userAction: AnimationPreviewEvent.UserAction)
 }
 
-private class AsyncTracker(
-  private val executor: Executor,
-  val delegator: AnimationToolbarUsageTracker,
-) : AnimationToolbarUsageTracker {
-  override fun logToolbarEvent(
-    toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction,
-  ) {
+private class AsyncTracker(private val executor: Executor, val delegator: AnimationToolbarUsageTracker) : AnimationToolbarUsageTracker {
+  override fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType, userAction: AnimationPreviewEvent.UserAction) {
     try {
       executor.execute { delegator.logToolbarEvent(toolbarType, userAction) }
     } catch (e: RejectedExecutionException) {
@@ -97,19 +82,11 @@ private class AsyncTracker(
   }
 }
 
-private class AnimationToolbarUsageTrackerImpl(
-  private val eventLogger: Consumer<AndroidStudioEvent.Builder>
-) : AnimationToolbarUsageTracker {
+private class AnimationToolbarUsageTrackerImpl(private val eventLogger: Consumer<AndroidStudioEvent.Builder>) :
+  AnimationToolbarUsageTracker {
 
-  override fun logToolbarEvent(
-    toolbarType: AnimationPreviewEvent.ToolbarType,
-    userAction: AnimationPreviewEvent.UserAction,
-  ) {
-    val animationEvent =
-      AnimationPreviewEvent.newBuilder()
-        .setToolbarType(toolbarType)
-        .setUserAction(userAction)
-        .build()
+  override fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType, userAction: AnimationPreviewEvent.UserAction) {
+    val animationEvent = AnimationPreviewEvent.newBuilder().setToolbarType(toolbarType).setUserAction(userAction).build()
 
     val layoutEditorEvent =
       LayoutEditorEvent.newBuilder()

@@ -33,9 +33,7 @@ import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
-/**
- * Action to build the currently selected run configuration.
- */
+/** Action to build the currently selected run configuration. */
 class AssembleRunConfigurationAction : AbstractBuildRunConfigurationAction()
 
 abstract class AbstractBuildRunConfigurationAction :
@@ -75,24 +73,25 @@ abstract class AbstractBuildRunConfigurationAction :
   }
 
   /**
-   * We currently only support the GradleRunConfiguration and we have two cases possible:
-   * first: The run configuration is a test one, and in this case, we can get the module from the test task because we do populate the
-   * module data nodes with the tasks data during Sync.
-   * Second: The run configuration is a random Gradle one, and in this case it applies to the Gradle project of this run config, so we extract
-   * the module from [ExternalSystemRunConfiguration.getSettings]'s externalProjectPath.
+   * We currently only support the GradleRunConfiguration and we have two cases possible: first: The run configuration is a test one, and in
+   * this case, we can get the module from the test task because we do populate the module data nodes with the tasks data during Sync.
+   * Second: The run configuration is a random Gradle one, and in this case it applies to the Gradle project of this run config, so we
+   * extract the module from [ExternalSystemRunConfiguration.getSettings]'s externalProjectPath.
    */
   private fun getExternalSystemConfigurationModule(configuration: RunConfiguration): Array<Module>? {
     val project = configuration.project
     if (configuration is GradleRunConfiguration && configuration.isRunAsTest) {
       // The test task is the first one in the taskNames.
       val testTask = configuration.settings.taskNames.firstOrNull() ?: return null
-      val modules = ModuleManager.getInstance(project).modules.filter {
-        CachedModuleDataFinder
-          .getGradleModuleData(it)?.findAll(ProjectKeys.TEST)?.filter { x -> x.testTaskName == testTask }?.isNotEmpty() == true
-      }
+      val modules =
+        ModuleManager.getInstance(project).modules.filter {
+          CachedModuleDataFinder.getGradleModuleData(it)
+            ?.findAll(ProjectKeys.TEST)
+            ?.filter { x -> x.testTaskName == testTask }
+            ?.isNotEmpty() == true
+        }
       // As this is a unitTest run config, it will belong to the unitTest module.
       return modules.firstOrNull { it.isUnitTestModule() }?.let { arrayOf(it) }
-
     } else if (configuration is GradleRunConfiguration) {
       val configurationProjectPath = configuration.settings.externalProjectPath
       // Get the modules that have the same Gradle project path as the Run Configuration.
@@ -126,11 +125,12 @@ abstract class AbstractBuildRunConfigurationAction :
     val runConfigurationName = runConfiguration?.name
     presentation.isEnabled =
       runConfigurationName != null && isValidRunConfigurationToBuild(runConfiguration) && !isGradleSyncInProgress(project)
-    val presentationText = if (!presentation.isEnabled && runConfigurationName == null) {
-      "Assemble Run Configuration (No Configuration Selected)"
-    } else {
-      "Assemble '$runConfigurationName' Run Configuration"
-    }
+    val presentationText =
+      if (!presentation.isEnabled && runConfigurationName == null) {
+        "Assemble Run Configuration (No Configuration Selected)"
+      } else {
+        "Assemble '$runConfigurationName' Run Configuration"
+      }
     presentation.text = presentationText
   }
 }

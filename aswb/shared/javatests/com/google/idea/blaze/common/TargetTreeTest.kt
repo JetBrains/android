@@ -47,116 +47,55 @@ class TargetTreeTest {
 
   @Test
   fun test_getDirectTargets() {
-    val tt =
-      create(
-        listOf(
-          Label.of("//a/b:b"),
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/c:e"),
-          Label.of("//a/b/c/d:d")
-        )
-      )
-    Truth.assertThat(tt.getDirectTargets(Path.of("a/b/c")).toList())
-      .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/c:e"))
+    val tt = create(listOf(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/c:e"), Label.of("//a/b/c/d:d")))
+    Truth.assertThat(tt.getDirectTargets(Path.of("a/b/c")).toList()).containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/c:e"))
   }
 
   @Test
   fun test_getSubpackages_selfAndChildren() {
-    val tt =
-      create(
-        listOf(
-          Label.of("//a/b:b"),
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//z/y/z:z")
-        )
-      )
+    val tt = create(listOf(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//z/y/z:z")))
     Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
       .containsExactly(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"))
   }
 
   @Test
   fun test_getSubpackages_directChildren() {
-    val tt =
-      create(
-        listOf(
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//x/y/z:z")
-        )
-      )
-    Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
-      .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"))
+    val tt = create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//x/y/z:z")))
+    Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList()).containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"))
   }
 
   @Test
   fun test_getSubpackages_indirectChildren() {
-    val tt =
-      create(
-        listOf(
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//a/b/k/l/m:n"),
-          Label.of("//x/y/z:z")
-        )
-      )
+    val tt = create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/k/l/m:n"), Label.of("//x/y/z:z")))
     Truth.assertThat(tt.getSubpackages(Path.of("a")).toList())
       .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/k/l/m:n"))
   }
 
   @Test
   fun test_getSubpackages_none() {
-    val tt =
-      create(
-        listOf(
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//x/y/z:z")
-        )
-      )
+    val tt = create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//x/y/z:z")))
     Truth.assertThat(tt.getSubpackages(Path.of("b")).toList().isEmpty()).isTrue()
   }
 
   @Test
   fun test_getSubpackages_subTree() {
     val tt =
-      create(
-        listOf(
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//a/b/c/d:d"),
-          Label.of("//a/b/c/e:e"),
-          Label.of("//x/y/z:z")
-        )
-      )
+      create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/c/d:d"), Label.of("//a/b/c/e:e"), Label.of("//x/y/z:z")))
     Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
-      .containsExactly(
-        Label.of("//a/b/c:c"),
-        Label.of("//a/b/d:d"),
-        Label.of("//a/b/c/d:d"),
-        Label.of("//a/b/c/e:e")
-      )
+      .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/c/d:d"), Label.of("//a/b/c/e:e"))
   }
 
   @Test
   fun test_iterator() {
     val tt =
-      create(
-        listOf(
-          Label.of("//a/b/c:c"),
-          Label.of("//a/b/d:d"),
-          Label.of("//a/b/c/d:d"),
-          Label.of("//a/b/c/e:e"),
-          Label.of("//x/y/z:z")
-        )
-      )
+      create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/c/d:d"), Label.of("//a/b/c/e:e"), Label.of("//x/y/z:z")))
     Truth.assertThat(tt.getSubpackages(Path.of("")).toList())
       .containsExactly(
         Label.of("//a/b/c:c"),
         Label.of("//a/b/d:d"),
         Label.of("//a/b/c/d:d"),
         Label.of("//a/b/c/e:e"),
-        Label.of("//x/y/z:z")
+        Label.of("//x/y/z:z"),
       )
   }
 

@@ -19,8 +19,8 @@ import com.android.tools.idea.streaming.device.actions.DevicePowerAndVolumeUpBut
 import com.android.tools.idea.streaming.emulator.actions.EmulatorPowerAndVolumeUpButtonAction
 
 /**
- * Simulates pressing the Power and the Volume Up buttons together on an Android device.
- * This button combination invokes Android Power Menu on devices with API >= 31.
+ * Simulates pressing the Power and the Volume Up buttons together on an Android device. This button combination invokes Android Power Menu
+ * on devices with API >= 31.
  */
 internal class StreamingPowerAndVolumeUpButtonAction :
   StreamingPushButtonAction(EmulatorPowerAndVolumeUpButtonAction(), DevicePowerAndVolumeUpButtonAction())

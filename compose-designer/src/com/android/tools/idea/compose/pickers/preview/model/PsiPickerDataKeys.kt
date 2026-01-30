@@ -21,8 +21,8 @@ import com.intellij.openapi.actionSystem.DataKey
 /**
  * Key to obtain the currently active Device based on the @Preview.device field.
  *
- * If the value corresponds to device specs ("spec:...") it will return a custom Device instance
- * with those parameters, otherwise, it will be a Device that matches the display name or id.
+ * If the value corresponds to device specs ("spec:...") it will return a custom Device instance with those parameters, otherwise, it will
+ * be a Device that matches the display name or id.
  *
  * @see com.android.tools.preview.config.findOrParseFromDefinition
  */

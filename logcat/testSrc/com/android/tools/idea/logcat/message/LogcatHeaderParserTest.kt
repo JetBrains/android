@@ -21,11 +21,11 @@ import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.STANDARD_FORMAT
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 /** Tests for [LogcatHeaderParser] */
 internal class LogcatHeaderParserTest {
@@ -37,26 +37,13 @@ internal class LogcatHeaderParserTest {
 
     assertThat(logCatHeaderParser.parseHeader("[ 1517266949.472 5755:601 I/Tag ]", "device"))
       .isEqualTo(
-        LogcatHeader(
-          INFO,
-          5755,
-          601,
-          "pid-5755",
-          "pid-5755",
-          "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
+        LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)))
       )
   }
 
   @Test
   fun parseHeader_withDateTime() {
-    val logCatHeaderParser =
-      logcatHeaderParser(
-        STANDARD_FORMAT,
-        defaultYear = 2022,
-        defaultZoneId = ZoneId.of("Asia/Yerevan"),
-      )
+    val logCatHeaderParser = logcatHeaderParser(STANDARD_FORMAT, defaultYear = 2022, defaultZoneId = ZoneId.of("Asia/Yerevan"))
 
     assertThat(logCatHeaderParser.parseHeader("[ 05-26 14:58:23.972 5755:601 I/Tag ]", "device"))
       .isEqualTo(
@@ -67,18 +54,7 @@ internal class LogcatHeaderParserTest {
           "pid-5755",
           "pid-5755",
           "Tag",
-          Instant.from(
-            ZonedDateTime.of(
-              2022,
-              5,
-              26,
-              14,
-              58,
-              23,
-              TimeUnit.MILLISECONDS.toNanos(972).toInt(),
-              ZoneId.of("Asia/Yerevan"),
-            )
-          ),
+          Instant.from(ZonedDateTime.of(2022, 5, 26, 14, 58, 23, TimeUnit.MILLISECONDS.toNanos(972).toInt(), ZoneId.of("Asia/Yerevan"))),
         )
       )
   }
@@ -87,22 +63,9 @@ internal class LogcatHeaderParserTest {
   fun parseHeader_withSpaces() {
     val logCatHeaderParser = logcatHeaderParser(EPOCH_FORMAT)
 
-    assertThat(
-        logCatHeaderParser.parseHeader(
-          "[     1517266949.472     5755:601     I/Tag     ]",
-          "device",
-        )
-      )
+    assertThat(logCatHeaderParser.parseHeader("[     1517266949.472     5755:601     I/Tag     ]", "device"))
       .isEqualTo(
-        LogcatHeader(
-          INFO,
-          5755,
-          601,
-          "pid-5755",
-          "pid-5755",
-          "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
+        LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)))
       )
   }
 
@@ -112,15 +75,7 @@ internal class LogcatHeaderParserTest {
 
     assertThat(logCatHeaderParser.parseHeader("[ 1517266949.472 5755:0x100 I/Tag ]", "device"))
       .isEqualTo(
-        LogcatHeader(
-          INFO,
-          5755,
-          256,
-          "pid-5755",
-          "pid-5755",
-          "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
+        LogcatHeader(INFO, 5755, 256, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)))
       )
   }
 
@@ -130,15 +85,7 @@ internal class LogcatHeaderParserTest {
 
     assertThat(logCatHeaderParser.parseHeader("[ 1517266949.472 0:601 I/Tag ]", "device"))
       .isEqualTo(
-        LogcatHeader(
-          INFO,
-          0,
-          601,
-          "kernel",
-          "kernel",
-          "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
+        LogcatHeader(INFO, 0, 601, "kernel", "kernel", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)))
       )
   }
 
@@ -165,22 +112,9 @@ internal class LogcatHeaderParserTest {
   fun parseHeader_withInvalidPid() {
     val logCatHeaderParser = logcatHeaderParser(EPOCH_FORMAT)
 
-    assertThat(
-        logCatHeaderParser.parseHeader(
-          "[ 1517266949.472 1234567890123456789012345678901234567890:601 I/Tag ]",
-          "device",
-        )
-      )
+    assertThat(logCatHeaderParser.parseHeader("[ 1517266949.472 1234567890123456789012345678901234567890:601 I/Tag ]", "device"))
       .isEqualTo(
-        LogcatHeader(
-          INFO,
-          -1,
-          601,
-          "pid--1",
-          "pid--1",
-          "Tag",
-          Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
+        LogcatHeader(INFO, -1, 601, "pid--1", "pid--1", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472)))
       )
   }
 
@@ -188,23 +122,8 @@ internal class LogcatHeaderParserTest {
   fun parseHeader_withInvalidEpochSeconds() {
     val logCatHeaderParser = logcatHeaderParser(EPOCH_FORMAT)
 
-    assertThat(
-        logCatHeaderParser.parseHeader(
-          "[ 1234567890123456789012345678901234567890.472 5755:601 I/Tag ]",
-          "device",
-        )
-      )
-      .isEqualTo(
-        LogcatHeader(
-          INFO,
-          5755,
-          601,
-          "pid-5755",
-          "pid-5755",
-          "Tag",
-          Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472)),
-        )
-      )
+    assertThat(logCatHeaderParser.parseHeader("[ 1234567890123456789012345678901234567890.472 5755:601 I/Tag ]", "device"))
+      .isEqualTo(LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   private fun logcatHeaderParser(

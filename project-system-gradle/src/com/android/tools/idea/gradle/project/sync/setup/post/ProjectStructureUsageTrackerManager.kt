@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
@@ -58,26 +58,23 @@ import org.jetbrains.annotations.TestOnly
 
 class ProjectStructureUsageTrackerManager(private val project: Project) {
 
-  private val operationsStates= mutableListOf<Job>()
+  private val operationsStates = mutableListOf<Job>()
 
   fun trackProjectStructure() {
-    project.coroutineScope.async {
-      doTrackProjectStructure()
-    }.also {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        synchronized(operationsStates) {
-          operationsStates.removeIf { it.isCompleted }
-          operationsStates.add(it)
+    project.coroutineScope
+      .async { doTrackProjectStructure() }
+      .also {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+          synchronized(operationsStates) {
+            operationsStates.removeIf { it.isCompleted }
+            operationsStates.add(it)
+          }
         }
       }
-    }
   }
 
   private suspend fun doTrackProjectStructure() {
-    val allModules = ModuleManager
-      .getInstance(project)
-      .modules
-      .filter { it.getGradleProjectPath() != null }
+    val allModules = ModuleManager.getInstance(project).modules.filter { it.getGradleProjectPath() != null }
 
     fun countHolderModules(): Long {
       return allModules.asSequence().filter { it.getGradleProjectPath() is GradleHolderProjectPath }.count().toLong()
@@ -85,19 +82,14 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
 
     fun countExternalLibraries(): Long {
       val allLibraries = hashSetOf<Library>()
-      allModules.asSequence()
+      allModules
+        .asSequence()
         .map { ModuleRootManagerEx.getInstanceEx(it) }
         .forEach { module ->
-          module
-            .orderEntries()
-            .withoutSdk()
-            .withoutModuleSourceEntries()
-            .withoutDepModules()
-            .librariesOnly()
-            .forEachLibrary {
-              allLibraries.add(it)
-              true // Continue processing.
-            }
+          module.orderEntries().withoutSdk().withoutModuleSourceEntries().withoutDepModules().librariesOnly().forEachLibrary {
+            allLibraries.add(it)
+            true // Continue processing.
+          }
         }
       return allLibraries.size.toLong()
     }
@@ -149,27 +141,29 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
       gradleVersionString = "0.0.0"
     }
 
-    val gradleModule = GradleModule.newBuilder()
-      .setTotalModuleCount(countHolderModules())
-      .setAppModuleCount(appCount.toLong())
-      .setLibModuleCount(libCount.toLong())
-      .setDynamicFeatureModuleCount(dynamicFeatureCount.toLong())
-      .setTestModuleCount(testCount.toLong())
-      .setKotlinMultiplatformModuleCount(kmpCount.toLong())
-      .build()
+    val gradleModule =
+      GradleModule.newBuilder()
+        .setTotalModuleCount(countHolderModules())
+        .setAppModuleCount(appCount.toLong())
+        .setLibModuleCount(libCount.toLong())
+        .setDynamicFeatureModuleCount(dynamicFeatureCount.toLong())
+        .setTestModuleCount(testCount.toLong())
+        .setKotlinMultiplatformModuleCount(kmpCount.toLong())
+        .build()
 
     for (facet in project.getAndroidFacets()) {
       val androidModel = GradleAndroidModel.get(facet)
       if (androidModel != null) {
         val moduleAndroidProject = androidModel.androidProject
         val androidModule = GradleAndroidModule.newBuilder()
-        androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(facet.module.name))
+        androidModule
+          .setModuleName(AnonymizerUtil.anonymizeUtf8(facet.module.name))
           .setSigningConfigCount(moduleAndroidProject.signingConfigs.size.toLong())
           .setIsLibrary(moduleAndroidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
           .setBuildTypeCount(androidModel.buildTypeNames.size.toLong())
-          .setFlavorCount(androidModel.productFlavorNames.size.toLong()).flavorDimension =
-          moduleAndroidProject.flavorDimensions.size.toLong()
-        if (!androidModule.isLibrary && isWatchHardwareRequired(facet)) {  // Ignore library modules to query Manifest Index less.
+          .setFlavorCount(androidModel.productFlavorNames.size.toLong())
+          .flavorDimension = moduleAndroidProject.flavorDimensions.size.toLong()
+        if (!androidModule.isLibrary && isWatchHardwareRequired(facet)) { // Ignore library modules to query Manifest Index less.
           androidModule.requiredHardware = UsesFeature.HARDWARE_TYPE_WATCH
         }
         gradleAndroidModules.add(androidModule.build())
@@ -193,28 +187,24 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
       }
       if (shouldReportNative) {
         val nativeModule = GradleNativeAndroidModule.newBuilder()
-        nativeModule
-          .setModuleName(moduleName)
-          .setBuildSystemType(buildSystemType)
-          .setNdkVersion(ndkVersion)
+        nativeModule.setModuleName(moduleName).setBuildSystemType(buildSystemType).setNdkVersion(ndkVersion)
         gradleNativeAndroidModules.add(nativeModule.build())
       }
     }
-    val gradleBuild = GradleBuildDetails
-      .newBuilder()
-      .setAppId(appId)
-      .setAndroidPluginVersion(androidProject.agpVersion)
-      .setGradleVersion(gradleVersionString)
-      .addAllLibraries(gradleLibraries)
-      .addModules(gradleModule)
-      .addAllAndroidModules(gradleAndroidModules)
-      .addAllNativeAndroidModules(gradleNativeAndroidModules)
-      .setModuleCount(countHolderModules())
-      .setLibCount(countExternalLibraries())
+    val gradleBuild =
+      GradleBuildDetails.newBuilder()
+        .setAppId(appId)
+        .setAndroidPluginVersion(androidProject.agpVersion)
+        .setGradleVersion(gradleVersionString)
+        .addAllLibraries(gradleLibraries)
+        .addModules(gradleModule)
+        .addAllAndroidModules(gradleAndroidModules)
+        .addAllNativeAndroidModules(gradleNativeAndroidModules)
+        .setModuleCount(countHolderModules())
+        .setLibCount(countExternalLibraries())
 
     val event =
-      AndroidStudioEvent
-        .newBuilder()
+      AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.GRADLE)
         .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
         .setGradleBuildDetails(gradleBuild)
@@ -226,8 +216,8 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
     try {
       return smartReadAction(project) {
         val usedFeatures = facet.queryUsedFeaturesFromManifestIndex()
-        (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
-         || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
+        (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null)) ||
+          usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
       }
     } catch (e: CancellationException) {
       throw e
@@ -243,9 +233,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
       return project.getService(ProjectStructureUsageTrackerManager::class.java)
     }
 
-    private val LOG = Logger.getInstance(
-      ProjectStructureUsageTrackerSyncListener::class.java
-    )
+    private val LOG = Logger.getInstance(ProjectStructureUsageTrackerSyncListener::class.java)
 
     @VisibleForTesting
     @JvmStatic

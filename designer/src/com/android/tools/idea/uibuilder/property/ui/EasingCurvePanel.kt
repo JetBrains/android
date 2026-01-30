@@ -31,11 +31,8 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 
 /** Custom panel to support direct editing of transition easing curves */
-class EasingCurvePanel(
-  private val model: NlPropertiesModel,
-  easingAttributeName: String,
-  properties: PropertiesTable<NlPropertyItem>,
-) : JPanel(BorderLayout()) {
+class EasingCurvePanel(private val model: NlPropertiesModel, easingAttributeName: String, properties: PropertiesTable<NlPropertyItem>) :
+  JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH
@@ -48,10 +45,7 @@ class EasingCurvePanel(
 
   private val modelListener =
     object : PropertiesModelListener<NlPropertyItem> {
-      override fun propertyValuesChanged(
-        model: PropertiesModel<NlPropertyItem>,
-        childElementChanges: Boolean,
-      ) {
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>, childElementChanges: Boolean) {
         updateFromValues()
       }
     }
@@ -71,10 +65,7 @@ class EasingCurvePanel(
           TransactionGuard.submitTransaction(
             transitionEasing.model,
             Runnable {
-              NlWriteCommandActionUtil.run(
-                transitionEasing.components,
-                "Set $component.${transitionEasing.name} to ${it.actionCommand}",
-              ) {
+              NlWriteCommandActionUtil.run(transitionEasing.components, "Set $component.${transitionEasing.name} to ${it.actionCommand}") {
                 var cubic = it.actionCommand
                 if (transitionEasing.name == "transitionEasing") {
                   when (cubic) {

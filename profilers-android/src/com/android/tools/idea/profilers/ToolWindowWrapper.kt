@@ -40,7 +40,7 @@ class ToolWindowWrapperImpl(project: Project, private val toolWindow: ToolWindow
   }
 
   override fun setIcon(icon: Icon) {
-      toolWindow.setIcon(icon)
+    toolWindow.setIcon(icon)
   }
 
   override fun getContentManager() = toolWindow.contentManager

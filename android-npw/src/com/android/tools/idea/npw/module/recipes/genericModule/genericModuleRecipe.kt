@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.module.recipes.genericModule
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generateGenericModule(
-  data: ModuleTemplateData
-) {
+fun RecipeExecutor.generateGenericModule(data: ModuleTemplateData) {
   // TODO(qumeric): generate something? See commonModuleRecipe
 }

@@ -21,6 +21,9 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
+import java.net.URL
+import java.nio.file.Path
+import java.util.concurrent.TimeoutException
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -34,9 +37,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import java.net.URL
-import java.nio.file.Path
-import java.util.concurrent.TimeoutException
 
 @RunWith(JUnit4::class)
 class WhatsNewBundleCreatorTest {
@@ -53,17 +53,12 @@ class WhatsNewBundleCreatorTest {
     mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = getTestDataPath().resolve("whatsnewassistant/server-3.3.0.xml")
-    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
-      .thenReturn(URL("file:$serverFile"))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString())).thenReturn(URL("file:$serverFile"))
 
     val resourceFile = getTestDataPath().resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    whenever(
-        mockUrlProvider.getResourceFileAsStream(
-          Mockito.any(),
-          Mockito.anyString()
-        )
-      )
-      .thenAnswer { URL("file:$resourceFile").openStream() }
+    whenever(mockUrlProvider.getResourceFileAsStream(Mockito.any(), Mockito.anyString())).thenAnswer {
+      URL("file:$resourceFile").openStream()
+    }
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     localPath = tmpDir.resolve("local-3.3.0.xml")
@@ -96,13 +91,12 @@ class WhatsNewBundleCreatorTest {
   }
 
   /**
-   * Test with a file that does not exist, simulating no internet, and also without an already
-   * downloaded/unpacked file, so the bundle file will be from the class resource
+   * Test with a file that does not exist, simulating no internet, and also without an already downloaded/unpacked file, so the bundle file
+   * will be from the class resource
    */
   @Test
   fun downloadDoesNotExist() {
-    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
-      .thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
 
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision)
@@ -114,10 +108,7 @@ class WhatsNewBundleCreatorTest {
     }
   }
 
-  /**
-   * First test a downloaded file, then with one that doesn't exist, simulating losing internet
-   * connection after having it earlier
-   */
+  /** First test a downloaded file, then with one that doesn't exist, simulating losing internet connection after having it earlier */
   @Test
   fun downloadDoesNotExistWithExistingDownloaded() {
     // First expected bundle file is server-3.3.0.xml
@@ -130,8 +121,7 @@ class WhatsNewBundleCreatorTest {
     }
 
     // Change server file to one that doesn't exist, meaning no connection
-    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
-      .thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString())).thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
     // Expected bundle file is still server-3.3.0.xml because it was downloaded on the first fetch
     val newBundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(newBundle)
@@ -145,8 +135,7 @@ class WhatsNewBundleCreatorTest {
   @Test
   fun downloadFlagDisabled() {
     // Expected bundle file is defaultresource-3.3.0.xml
-    val bundleCreator =
-      WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
+    val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(bundle)
     if (bundle != null) {
@@ -158,14 +147,10 @@ class WhatsNewBundleCreatorTest {
   @Test
   fun downloadTimeout() {
     val mockConnectionOpener = mock(WhatsNewConnectionOpener::class.java)
-    whenever(
-        mockConnectionOpener.openConnection(Mockito.isNotNull(), Mockito.anyInt())
-      )
-      .thenThrow(TimeoutException())
+    whenever(mockConnectionOpener.openConnection(Mockito.isNotNull(), Mockito.anyInt())).thenThrow(TimeoutException())
 
     // Expected bundle file is defaultresource-3.3.0.xml
-    val bundleCreator =
-      WhatsNewBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener, true)
+    val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener, true)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(bundle)
     if (bundle != null) {
@@ -180,8 +165,7 @@ class WhatsNewBundleCreatorTest {
     // Trying to read empty xml will cause parser to throw exception...
     val emptyFile = getTestDataPath().resolve("whatsnewassistant/empty.xml")
     FileUtil.copy(emptyFile.toFile(), localPath.toFile())
-    val bundleCreator =
-      WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
+    val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
 
     // So parseBundle should delete the empty file and retry, resulting in defaultresource-3.3.0.xml
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
@@ -193,15 +177,13 @@ class WhatsNewBundleCreatorTest {
   }
 
   /**
-   * Test that WNA bundle creator correctly identifies when an updated config has a higher version
-   * field than the previous existing config
+   * Test that WNA bundle creator correctly identifies when an updated config has a higher version field than the previous existing config
    */
   @Test
   fun newConfigVersion() {
     // Since download is disabled, the current file will be defaultresource-3.3.0.xml, version
     // "3.3.0"
-    val bundleCreator =
-      WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
+    val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
 
     // Disabled download means last seen version is from default resource, so "3.3.0" = "3.3.0"
     assertFalse(bundleCreator.isNewConfigVersion)
@@ -221,8 +203,7 @@ class WhatsNewBundleCreatorTest {
 
   @Test
   fun hasResourceConfig() {
-    val bundleCreator =
-      WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
+    val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, WhatsNewConnectionOpener(), false)
 
     // Both the resource file and the Studio version are 3.3.0
     assertTrue(bundleCreator.hasResourceConfig())

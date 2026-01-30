@@ -18,10 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues.toolchain
 import com.google.wireless.android.sdk.stats.GradleDaemonJvmCriteriaErrorEvent.Error.FAILED_TO_DOWNLOAD_TOOLCHAIN
 import org.jetbrains.plugins.gradle.issue.GradleToolchainDownloadingErrorIssueChecker
 
-/**
- * Gradle build error analytics tracker for [GradleToolchainDownloadingErrorIssueChecker]
- */
-class GradleToolchainDownloadingErrorIssueReporter : DaemonJvmCriteriaIssueReporter(
-  checker = GradleToolchainDownloadingErrorIssueChecker(),
-  errorEvent = FAILED_TO_DOWNLOAD_TOOLCHAIN
-)
+/** Gradle build error analytics tracker for [GradleToolchainDownloadingErrorIssueChecker] */
+class GradleToolchainDownloadingErrorIssueReporter :
+  DaemonJvmCriteriaIssueReporter(checker = GradleToolchainDownloadingErrorIssueChecker(), errorEvent = FAILED_TO_DOWNLOAD_TOOLCHAIN)

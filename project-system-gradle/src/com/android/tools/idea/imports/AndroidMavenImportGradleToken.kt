@@ -32,16 +32,13 @@ class AndroidMavenImportGradleToken : AndroidMavenImportToken<GradleProjectSyste
     return moduleSystem.getResolvedDependency(gradleModule, DependencyScopeType.MAIN) != null
   }
 
-  override fun addDependency(projectSystem: GradleProjectSystem,
-                             module: Module,
-                             artifact: String,
-                             version: String?,
-                             type: DependencyType) {
+  override fun addDependency(projectSystem: GradleProjectSystem, module: Module, artifact: String, version: String?, type: DependencyType) {
     val moduleSystem = projectSystem.getModuleSystem(module)
-    val dependency = when {
-      version.isNullOrEmpty() -> Dependency.parse("$artifact:+")
-      else -> Dependency.parse("$artifact:$version")
-    }
+    val dependency =
+      when {
+        version.isNullOrEmpty() -> Dependency.parse("$artifact:+")
+        else -> Dependency.parse("$artifact:$version")
+      }
     moduleSystem.registerDependency(dependency, type)
   }
 

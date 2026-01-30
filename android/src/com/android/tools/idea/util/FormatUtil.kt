@@ -22,14 +22,17 @@ import com.google.common.collect.Iterables
 /**
  * Formats a message picking the format string depending on number of arguments
  *
- * @param values                       values that will be used as format argument.
- * @param oneElementMessage            message when only one value is in the list. Should accept one string argument.
- * @param twoOrThreeElementsMessage    message format when there's 2 or 3 values. Should accept two string arguments.
+ * @param values values that will be used as format argument.
+ * @param oneElementMessage message when only one value is in the list. Should accept one string argument.
+ * @param twoOrThreeElementsMessage message format when there's 2 or 3 values. Should accept two string arguments.
  * @param moreThenThreeElementsMessage message format for over 3 values. Should accept one string and one number.
  * @return formatted message string
  */
 fun formatElementListString(
-  values: Iterable<String>, oneElementMessage: String, twoOrThreeElementsMessage: String, moreThenThreeElementsMessage: String
+  values: Iterable<String>,
+  oneElementMessage: String,
+  twoOrThreeElementsMessage: String,
+  moreThenThreeElementsMessage: String,
 ): String {
   val size = Iterables.size(values)
   return when {
@@ -41,5 +44,4 @@ fun formatElementListString(
   }
 }
 
-private fun atMostTwo(names: Iterable<String>, size: Int): String =
-  names.take((size - 1).coerceAtMost(2)).joinToString(", ")
+private fun atMostTwo(names: Iterable<String>, size: Int): String = names.take((size - 1).coerceAtMost(2)).joinToString(", ")

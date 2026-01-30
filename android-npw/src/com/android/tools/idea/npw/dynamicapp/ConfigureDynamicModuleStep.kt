@@ -51,9 +51,7 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
     panel {
         row("Base Application Module") { cell(baseApplication).align(AlignX.FILL) }
 
-        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
-          cell(moduleName).align(AlignX.FILL)
-        }
+        row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) { cell(moduleName).align(AlignX.FILL) }
 
         row("Package name") { cell(packageName).align(AlignX.FILL) }
 
@@ -68,9 +66,10 @@ class ConfigureDynamicModuleStep(model: DynamicFeatureModel, basePackage: String
       .withBorder(empty(6))
 
   init {
-    AndroidProjectInfo.getInstance(model.project)
-      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
-      .forEach { module: Module -> baseApplication.addItem(module) }
+    AndroidProjectInfo.getInstance(model.project).getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP).forEach { module: Module
+      ->
+      baseApplication.addItem(module)
+    }
     val baseApplication: OptionalProperty<Module> = model.baseApplication
     bindings.bind(baseApplication, SelectedItemProperty(this.baseApplication))
 

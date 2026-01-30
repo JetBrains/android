@@ -27,13 +27,10 @@ import com.intellij.openapi.startup.ProjectActivity
  *
  * Note: Prefer implementing [ProjectActivity] directly in Kotlin as it utilizes resources more efficiently.
  */
-abstract class ProjectActivityJavaShim: ProjectActivity {
+abstract class ProjectActivityJavaShim : ProjectActivity {
   final override suspend fun execute(project: Project) {
-    blockingContext {
-      runActivity(project)
-    }
+    blockingContext { runActivity(project) }
   }
 
-  @WorkerThread
-  abstract fun runActivity(project: Project)
+  @WorkerThread abstract fun runActivity(project: Project)
 }

@@ -18,9 +18,7 @@ package com.android.tools.idea.streaming.emulator.settings
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 
-/**
- * Provider for the Emulator settings page.
- */
+/** Provider for the Emulator settings page. */
 class EmulatorConfigurableProvider : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable = EmulatorSettingsPage()

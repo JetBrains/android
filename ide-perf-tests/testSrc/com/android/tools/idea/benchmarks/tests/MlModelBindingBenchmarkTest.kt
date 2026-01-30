@@ -29,8 +29,7 @@ import org.junit.Test
 // Runs simplified versions of the perfgate benchmarks in MlModelBindingBenchmark
 // to catch breakages in presubmit.
 class MlModelBindingBenchmarkTest {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+  @get:Rule val gradleRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
@@ -56,10 +55,10 @@ class MlModelBindingBenchmarkTest {
           action = {
             val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
             assert(info.isEmpty())
-          }
+          },
         )
       },
-      { }
+      {},
     )
   }
 
@@ -77,12 +76,10 @@ class MlModelBindingBenchmarkTest {
             PsiManager.getInstance(gradleRule.project).dropPsiCaches()
             System.gc()
           },
-          action = {
-            gradleRule.fixture.complete(CompletionType.BASIC)
-          }
+          action = { gradleRule.fixture.complete(CompletionType.BASIC) },
         )
       },
-      { }
+      {},
     )
   }
 }

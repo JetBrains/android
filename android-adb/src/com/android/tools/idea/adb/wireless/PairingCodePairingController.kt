@@ -52,8 +52,7 @@ class PairingCodePairingController(
         val now = System.currentTimeMillis()
         val adbVersion = pairingService.getAdbVersion()
         try {
-          val pairingResult =
-            pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
+          val pairingResult = pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
           view.showWaitingForDeviceProgress(pairingResult)
           LOG.info(
             "Pairing code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect"
@@ -67,18 +66,11 @@ class PairingCodePairingController(
             device.properties["ro.build.version.codename"],
             System.currentTimeMillis() - now,
           )
-          LOG.info(
-            "Device ${device} corresponding to mDNS service ${view.model.service} is now connected"
-          )
+          LOG.info("Device ${device} corresponding to mDNS service ${view.model.service} is now connected")
           // TODO: Ensure not disposed and state still the same
           view.showPairingSuccess(view.model.service, device)
         } catch (e: Throwable) {
-          WifiPairingUsageTracker.trackFailure(
-            adbVersion,
-            PAIRING_CODE,
-            e,
-            System.currentTimeMillis() - now,
-          )
+          WifiPairingUsageTracker.trackFailure(adbVersion, PAIRING_CODE, e, System.currentTimeMillis() - now)
           LOG.warn("Pairing code pairing process failed", e)
           // TODO: Ensure not disposed and state still the same
           view.showPairingError(view.model.service, e)

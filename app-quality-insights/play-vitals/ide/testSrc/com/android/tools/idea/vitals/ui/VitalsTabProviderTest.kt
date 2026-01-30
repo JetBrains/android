@@ -70,17 +70,9 @@ class VitalsTabProviderTest {
     val mockDeprecationDataProvider =
       mock<DevServicesDeprecationDataProvider>().apply {
         doReturn(deprecationDataFlow.value).whenever(this).getCurrentDeprecationData(any(), any())
-        runBlocking {
-          doReturn(deprecationDataFlow)
-            .whenever(this@apply)
-            .registerServiceForChange(any(), any(), any<Disposable>())
-        }
+        runBlocking { doReturn(deprecationDataFlow).whenever(this@apply).registerServiceForChange(any(), any(), any<Disposable>()) }
       }
-    application.replaceService(
-      DevServicesDeprecationDataProvider::class.java,
-      mockDeprecationDataProvider,
-      projectRule.disposable,
-    )
+    application.replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationDataProvider, projectRule.disposable)
 
     modelStateFlow = MutableStateFlow(AppInsightsModel.Uninitialized)
     manager =
@@ -94,11 +86,7 @@ class VitalsTabProviderTest {
 
     service = mock()
     Mockito.`when`(service.manager).thenReturn(manager)
-    projectRule.project.replaceService(
-      VitalsConfigurationService::class.java,
-      service,
-      projectRule.disposable,
-    )
+    projectRule.project.replaceService(VitalsConfigurationService::class.java, service, projectRule.disposable)
 
     tabProvider = VitalsTabProvider()
     tabPanel = AppInsightsTabPanel()
@@ -110,9 +98,7 @@ class VitalsTabProviderTest {
     // Setup
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
 
-    delayUntilCondition(200) {
-      tabPanel.components.firstOrNull().toString().contains("placeholderContent")
-    }
+    delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains("placeholderContent") }
     val stubController =
       object : StubAppInsightsProjectLevelController() {
         override val project = projectRule.project
@@ -129,9 +115,7 @@ class VitalsTabProviderTest {
     delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains(expect) }
 
     modelStateFlow.value = AppInsightsModel.InitializationFailed
-    delayUntilCondition(200) {
-      tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent")
-    }
+    delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent") }
     println("InitializationFailed delay complete")
   }
 
@@ -160,9 +144,7 @@ class VitalsTabProviderTest {
     delayUntilCondition(200) { controller.refreshCount == 1 }
 
     modelStateFlow.value = AppInsightsModel.InitializationFailed
-    delayUntilCondition(200) {
-      tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent")
-    }
+    delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent") }
     assertThat(controller.refreshCount).isEqualTo(1)
 
     modelStateFlow.value = AppInsightsModel.Authenticated(controller)
@@ -172,15 +154,7 @@ class VitalsTabProviderTest {
 
   @Test
   fun `show service unsupported panel when service is unsupported`() = runTest {
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.UNSUPPORTED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.UNSUPPORTED) }
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
@@ -188,15 +162,7 @@ class VitalsTabProviderTest {
 
   @Test
   fun `show deprecated banner when service is deprecated`() = runTest {
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.DEPRECATED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.DEPRECATED) }
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
@@ -211,29 +177,13 @@ class VitalsTabProviderTest {
   @Test
   fun `service restored when deprecation data changes from UNSUPPORTED to SUPPORTED`() = runTest {
     modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.UNSUPPORTED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.UNSUPPORTED) }
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
 
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.SUPPORTED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.SUPPORTED) }
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
     delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
@@ -242,29 +192,13 @@ class VitalsTabProviderTest {
   @Test
   fun `service restored when deprecation data changes from UNSUPPORTED to DEPRECATED`() = runTest {
     modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.UNSUPPORTED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.UNSUPPORTED) }
 
     tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
 
-    deprecationDataFlow.update {
-      DevServicesDeprecationData(
-        "header",
-        "desc",
-        "url",
-        true,
-        DevServicesDeprecationStatus.DEPRECATED,
-      )
-    }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.DEPRECATED) }
     withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     delayUntilCondition(200) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
     delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
@@ -272,33 +206,16 @@ class VitalsTabProviderTest {
   }
 
   @Test
-  fun `deprecation banner hidden when deprecation data changes from DEPRECATED TO SUPPORTED`() =
-    runTest {
-      modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
-      deprecationDataFlow.update {
-        DevServicesDeprecationData(
-          "header",
-          "desc",
-          "url",
-          true,
-          DevServicesDeprecationStatus.DEPRECATED,
-        )
-      }
-      tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
-      withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-      delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
-      delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
+  fun `deprecation banner hidden when deprecation data changes from DEPRECATED TO SUPPORTED`() = runTest {
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.DEPRECATED) }
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    delayUntilCondition(200) { tabPanel.components.any { it is DeprecationBanner } }
+    delayUntilCondition(200) { tabPanel.components.any { it is VitalsTab } }
 
-      deprecationDataFlow.update {
-        DevServicesDeprecationData(
-          "header",
-          "desc",
-          "url",
-          true,
-          DevServicesDeprecationStatus.SUPPORTED,
-        )
-      }
+    deprecationDataFlow.update { DevServicesDeprecationData("header", "desc", "url", true, DevServicesDeprecationStatus.SUPPORTED) }
 
-      delayUntilCondition(200) { tabPanel.components.none { it is DeprecationBanner } }
-    }
+    delayUntilCondition(200) { tabPanel.components.none { it is DeprecationBanner } }
+  }
 }

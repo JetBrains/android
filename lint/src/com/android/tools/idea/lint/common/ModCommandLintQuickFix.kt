@@ -24,8 +24,8 @@ import com.intellij.modcommand.ActionContext
 import com.intellij.modcommand.ModCommand
 import com.intellij.modcommand.ModCommandAction
 import com.intellij.modcommand.ModCommandService
-import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.modcommand.Presentation
+import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -73,10 +73,7 @@ class ModCommandLintQuickFix(private val quickFixAction: ModCommandAction) : Lin
     return quickFixAction.asIntention()
   }
 
-
-  /**
-   * Convenience wrapper for injecting default behaviors, such as custom priority and analytics.
-   */
+  /** Convenience wrapper for injecting default behaviors, such as custom priority and analytics. */
   private class ModCommandWrapper(
     private val action: ModCommandAction,
     private val priority: Priority,

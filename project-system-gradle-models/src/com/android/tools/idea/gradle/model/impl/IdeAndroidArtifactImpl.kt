@@ -82,7 +82,7 @@ data class IdeAndroidArtifactCoreImpl(
     generatedAssetFolders: List<File>,
     mappingR8TextFile: File?,
     mappingR8PartitionFile: File?,
-    unused: String = "" // to prevent clash
+    unused: String = "", // to prevent clash
   ) : this(
     name,
     compileTaskName,
@@ -111,14 +111,12 @@ data class IdeAndroidArtifactCoreImpl(
     bytecodeTransforms,
     generatedAssetFolders.toImpl(),
     mappingR8TextFile?.toImpl(),
-    mappingR8PartitionFile?.toImpl()
+    mappingR8PartitionFile?.toImpl(),
   )
 }
 
-class IdeAndroidArtifactImpl(
-  private val core: IdeAndroidArtifactCoreImpl,
-  resolver: IdeLibraryModelResolverImpl
-) : IdeAndroidArtifact, IdeAndroidArtifactCore  {
+class IdeAndroidArtifactImpl(private val core: IdeAndroidArtifactCoreImpl, resolver: IdeLibraryModelResolverImpl) :
+  IdeAndroidArtifact, IdeAndroidArtifactCore {
   override val name: IdeArtifactName = core.name
   override val compileTaskName: String? = core.compileTaskName
   override val assembleTaskName: String? = core.assembleTaskName

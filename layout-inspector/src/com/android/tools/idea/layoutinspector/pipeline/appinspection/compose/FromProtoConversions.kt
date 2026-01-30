@@ -46,8 +46,7 @@ fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
     LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_SP -> PropertyType.DIMENSION_SP
     LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_EM -> PropertyType.DIMENSION_EM
     LayoutInspectorComposeProtocol.Parameter.Type.LAMBDA -> PropertyType.LAMBDA
-    LayoutInspectorComposeProtocol.Parameter.Type.FUNCTION_REFERENCE ->
-      PropertyType.FUNCTION_REFERENCE
+    LayoutInspectorComposeProtocol.Parameter.Type.FUNCTION_REFERENCE -> PropertyType.FUNCTION_REFERENCE
     LayoutInspectorComposeProtocol.Parameter.Type.ITERABLE -> PropertyType.ITERABLE
     else -> error { "Unhandled parameter type $this" }
   }
@@ -56,10 +55,8 @@ fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
 fun LayoutInspectorComposeProtocol.ParameterReference.Kind.convert(): ParameterKind =
   when (this) {
     LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL -> ParameterKind.Normal
-    LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS ->
-      ParameterKind.MergedSemantics
-    LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS ->
-      ParameterKind.UnmergedSemantics
+    LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS -> ParameterKind.MergedSemantics
+    LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS -> ParameterKind.UnmergedSemantics
     else -> ParameterKind.Unknown
   }
 
@@ -67,13 +64,7 @@ fun LayoutInspectorComposeProtocol.ParameterReference.convert(): ParameterRefere
   if (this == LayoutInspectorComposeProtocol.ParameterReference.getDefaultInstance()) {
     return null
   }
-  return ParameterReference(
-    composableId,
-    anchorHash,
-    kind.convert(),
-    parameterIndex,
-    convertCompositeIndexList(compositeIndexList),
-  )
+  return ParameterReference(composableId, anchorHash, kind.convert(), parameterIndex, convertCompositeIndexList(compositeIndexList))
 }
 
 private fun convertCompositeIndexList(reference: List<Int>): IntArray {
@@ -107,10 +98,7 @@ fun convertStateRead(
   val result = mutableMapOf<Int, List<RecomposeStateReadData>>()
   val stringTable = StringTableImpl(response.stringsList)
   val valueGenerator = ComposeParametersDataGenerator(stringTable, lookup)
-  response.readList.forEach { read ->
-    result[read.recompositionNumber] =
-      convertRecompositionStateRead(read, stringTable, valueGenerator)
-  }
+  response.readList.forEach { read -> result[read.recompositionNumber] = convertRecompositionStateRead(read, stringTable, valueGenerator) }
   return result
 }
 

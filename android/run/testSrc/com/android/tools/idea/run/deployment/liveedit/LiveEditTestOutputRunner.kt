@@ -23,32 +23,33 @@ import java.net.URLClassLoader
  *
  * Support classes and any extraClasses will also be loaded in the SAME classloader.
  */
-internal fun loadClass(output: LiveEditCompilerOutput,
-                       target: String = output.classesMap.keys.first(),
-                       extraClasses: Map<String, ByteArray> = mapOf()) : Class<*> {
+internal fun loadClass(
+  output: LiveEditCompilerOutput,
+  target: String = output.classesMap.keys.first(),
+  extraClasses: Map<String, ByteArray> = mapOf(),
+): Class<*> {
 
   // We use a temp classloader so we can have the same class name across different classes without conflict.
-  val tempLoader = object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
-    override fun findClass(name: String): Class<*>? {
-      return if (output.classesMap.containsKey(name)) {
-        // load it from the target
-        defineClass(name, output.classesMap[name], 0, output.classesMap[name]!!.size)
-      } else if (output.supportClassesMap.containsKey(name)) {
-        // try to see if it is one of the support classes
-        defineClass(name, output.supportClassesMap[name], 0, output.supportClassesMap[name]!!.size)
-      } else if (extraClasses.containsKey(name)) {
-        return defineClass(name, extraClasses[name], 0, extraClasses[name]!!.size)
-      } else {
-        return super.findClass(name)
+  val tempLoader =
+    object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
+      override fun findClass(name: String): Class<*>? {
+        return if (output.classesMap.containsKey(name)) {
+          // load it from the target
+          defineClass(name, output.classesMap[name], 0, output.classesMap[name]!!.size)
+        } else if (output.supportClassesMap.containsKey(name)) {
+          // try to see if it is one of the support classes
+          defineClass(name, output.supportClassesMap[name], 0, output.supportClassesMap[name]!!.size)
+        } else if (extraClasses.containsKey(name)) {
+          return defineClass(name, extraClasses[name], 0, extraClasses[name]!!.size)
+        } else {
+          return super.findClass(name)
+        }
       }
     }
-  }
   return tempLoader.loadClass(target)
 }
 
-/**
- * Invoke a given function of a given class and return the return value.
- */
-internal fun invokeStatic(name: String, clazz: Class<*>) : Any? {
+/** Invoke a given function of a given class and return the return value. */
+internal fun invokeStatic(name: String, clazz: Class<*>): Any? {
   return clazz.getMethod(name).invoke(null)
 }

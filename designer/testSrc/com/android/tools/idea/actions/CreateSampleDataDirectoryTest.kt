@@ -36,12 +36,7 @@ class CreateSampleDataDirectoryTest {
   fun createDirectorySuccess() {
     val createAction = CreateSampleDataDirectory()
     val event =
-      TestActionEvent(
-        SimpleDataContext.builder()
-          .add(LangDataKeys.MODULE_CONTEXT_ARRAY, arrayOf(projectRule.module))
-          .build(),
-        createAction,
-      )
+      TestActionEvent(SimpleDataContext.builder().add(LangDataKeys.MODULE_CONTEXT_ARRAY, arrayOf(projectRule.module)).build(), createAction)
 
     createAction.actionPerformed(event)
     assertTrue(Files.exists(Path.of(projectRule.project.basePath!!, "sampledata")))

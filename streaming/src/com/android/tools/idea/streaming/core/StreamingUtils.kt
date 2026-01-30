@@ -54,24 +54,19 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-fun ByteBuffer.getUInt(): UInt =
-   getInt().toUInt()
+fun ByteBuffer.getUInt(): UInt = getInt().toUInt()
 
-fun ByteBuffer.putUInt(value: UInt): ByteBuffer =
-   putInt(value.toInt())
+fun ByteBuffer.putUInt(value: UInt): ByteBuffer = putInt(value.toInt())
 
 /**
- * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component.
- * Otherwise, returns the first found component associated with the given action belonging to
- * the Running Devices tool window.
+ * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component. Otherwise, returns the first found
+ * component associated with the given action belonging to the Running Devices tool window.
  */
-fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
-    findComponentForAction(action, RUNNING_DEVICES_TOOL_WINDOW_ID)
+fun AnActionEvent.findComponentForAction(action: AnAction): Component? = findComponentForAction(action, RUNNING_DEVICES_TOOL_WINDOW_ID)
 
 /**
- * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component.
- * Otherwise, returns the first found component associated with the given action belonging to
- * the given tool window.
+ * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component. Otherwise, returns the first found
+ * component associated with the given action belonging to the given tool window.
  */
 private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId: String): Component? {
   val project = project ?: return null
@@ -84,8 +79,7 @@ private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId:
 }
 
 /**
- * Searches the AWT component tree starting from this [Component] for a component that is
- * an [AnActionHolder] and holds the given action.
+ * Searches the AWT component tree starting from this [Component] for a component that is an [AnActionHolder] and holds the given action.
  */
 private fun Component.findComponentForAction(action: AnAction): Component? {
   if (isComponentForAction(action)) {
@@ -107,11 +101,9 @@ private fun Component.findComponentForAction(action: AnAction): Component? {
   return null
 }
 
-private fun Component.isComponentForAction(action: AnAction): Boolean =
-    this is AnActionHolder && this.action.isEquivalentTo(action)
+private fun Component.isComponentForAction(action: AnAction): Boolean = this is AnActionHolder && this.action.isEquivalentTo(action)
 
-private fun AnAction.isEquivalentTo(action: AnAction): Boolean =
-    this === action || (this is StreamingAction && mayDelegate(action))
+private fun AnAction.isEquivalentTo(action: AnAction): Boolean = this === action || (this is StreamingAction && mayDelegate(action))
 
 // TODO(b/289230363): use DeviceHandle.state.properties.icon, since it is the source of truth for device icons.
 internal val AvdInfo.icon: Icon
@@ -126,40 +118,34 @@ internal val AvdInfo.icon: Icon
     }
   }
 
-/**
- * Returns this integer multiplied by [scale] and rounded down towards zero.
- */
-internal fun Int.scaledDown(scale: Double): Int =
-    (this * scale).toInt()
+/** Returns this integer multiplied by [scale] and rounded down towards zero. */
+internal fun Int.scaledDown(scale: Double): Int = (this * scale).toInt()
 
 /**
  * Returns this integer scaled and rounded up away from zero.
  *
  * @param scale the scale factor
  */
-internal fun Int.scaledUp(scale: Double): Int =
-    ceil(this * scale).roundToInt()
+internal fun Int.scaledUp(scale: Double): Int = ceil(this * scale).roundToInt()
 
 /** Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator]. */
-internal fun Int.scaledDown(numerator: Int, denominator: Int): Int =
-    ((this.toLong() * numerator) / denominator).toInt()
+internal fun Int.scaledDown(numerator: Int, denominator: Int): Int = ((this.toLong() * numerator) / denominator).toInt()
 
 /**
- * Converts this value from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`interval by scaling by
- * the [toRange]/[fromRange] factor while maintaining symmetry with respect to the centers of the two intervals.
+ * Converts this value from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`interval by scaling by the [toRange]/[fromRange] factor
+ * while maintaining symmetry with respect to the centers of the two intervals.
  *
- * The conversion is reversible, i.e. if `fromRange <= toRange`, then for every `i` in the `[0, fromRange-1]`
- * interval `i.scaledUnbiased(fromRange, toRange).scaledUnbiased(toRange, fromRange) = i`.
+ * The conversion is reversible, i.e. if `fromRange <= toRange`, then for every `i` in the `[0, fromRange-1]` interval
+ * `i.scaledUnbiased(fromRange, toRange).scaledUnbiased(toRange, fromRange) = i`.
  */
-internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int =
-    ((this * 2L + 1) * toRange / (2 * fromRange)).toInt()
+internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int = ((this * 2L + 1) * toRange / (2 * fromRange)).toInt()
 
 internal fun Point.scaledUnbiased(fromDim: Dimension, toDim: Dimension): Point =
-    Point(x.scaledUnbiased(fromDim.width, toDim.width), y.scaledUnbiased(fromDim.height, toDim.height))
+  Point(x.scaledUnbiased(fromDim.width, toDim.width), y.scaledUnbiased(fromDim.height, toDim.height))
 
 /**
- * Checks if the ratio between [width1] and [height1] is the same as the ratio between
- * [width2] and [height2] within the given relative [tolerance].
+ * Checks if the ratio between [width1] and [height1] is the same as the ratio between [width2] and [height2] within the given relative
+ * [tolerance].
  */
 internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: Int, tolerance: Double): Boolean {
   val a = width1.toDouble() * height2
@@ -169,8 +155,8 @@ internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: 
 }
 
 /**
- * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise
- * returns this Dimension scaled down to satisfy this requirement while preserving the aspect ratio.
+ * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise returns this Dimension scaled down to
+ * satisfy this requirement while preserving the aspect ratio.
  */
 internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
   if (width <= maximumValue.width && height <= maximumValue.height) {
@@ -183,8 +169,7 @@ internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
 internal val Container.sizeWithoutInsets: Dimension
   get() = Dimension(max(width - insets.left - insets.right, 0), max(height - insets.top - insets.bottom, 0))
 
-internal fun Point.constrainInside(d: Dimension) =
-    if (this in d) this else Point(x.coerceIn(0, d.width - 1), y.coerceIn(0, d.height - 1))
+internal fun Point.constrainInside(d: Dimension) = if (this in d) this else Point(x.coerceIn(0, d.width - 1), y.coerceIn(0, d.height - 1))
 
 internal operator fun Dimension.contains(p: Point) = p.x in 0 until width && p.y in 0 until height
 
@@ -198,12 +183,11 @@ internal val MouseEvent.location: Point
   get() = Point(x, y)
 
 /** Wraps the string with &lt;font color=...>, &lt;/font> tags. */
-internal fun String.htmlColored(color: Color): String =
-    "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>$this</font>"
+internal fun String.htmlColored(color: Color): String = "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>$this</font>"
 
 /** Returns an HTML hyperlink for showing the log. */
 internal fun getShowLogHyperlink(): String =
-    if (ShowLogAction.isSupported()) "<a href='ShowLog'>log</a>".htmlColored(JBUI.CurrentTheme.Link.Foreground.ENABLED) else "log"
+  if (ShowLogAction.isSupported()) "<a href='ShowLog'>log</a>".htmlColored(JBUI.CurrentTheme.Link.Foreground.ENABLED) else "log"
 
 /** Returns a hyperlink listener for showing the log. */
 internal fun createShowLogHyperlinkListener(): HyperlinkListener {
@@ -218,7 +202,7 @@ internal fun createShowLogHyperlinkListener(): HyperlinkListener {
 internal fun textComponent(
   @NlsContexts.Label text: String,
   maxLineLength: Int = MAX_LINE_LENGTH_WORD_WRAP,
-  action: HyperlinkEventAction = HyperlinkEventAction.HTML_HYPERLINK_INSTANCE
+  action: HyperlinkEventAction = HyperlinkEventAction.HTML_HYPERLINK_INSTANCE,
 ): JEditorPane {
   @Suppress("UnstableApiUsage")
   return DslLabel(DslLabelType.LABEL).apply {

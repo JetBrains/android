@@ -62,9 +62,7 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
 
     // Add library dependency to build.gradle
     val buildGradleFile = getPsiFile(SimpleComposeAppPaths.APP_BUILD_GRADLE.path)
-    ApplicationManager.getApplication().invokeAndWait {
-      fixture.openFileInEditor(buildGradleFile.virtualFile)
-    }
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(buildGradleFile.virtualFile) }
     runWriteActionAndWait {
       fixture.moveCaret("dependencies {|")
       fixture.editor.executeAndSave {
@@ -80,9 +78,7 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
 
     // Use MultiPreview from the added library
     val mainFile = getPsiFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
-    ApplicationManager.getApplication().invokeAndWait {
-      fixture.openFileInEditor(mainFile.virtualFile)
-    }
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(mainFile.virtualFile) }
     runWriteActionAndWait {
       fixture.moveCaret("|class MainActivity")
       fixture.editor.moveCaretLines(-1)
@@ -96,7 +92,7 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
           fun MyNewTestFun() {
           }
 
-        """
+          """
             .trimIndent()
         )
       }
@@ -107,41 +103,21 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
     projectRule.requestSyncAndWait()
     projectRule.buildAndAssertIsSuccessful()
 
-    val previewElements =
-      ArrayList(
-        runBlocking {
-          AnnotationFilePreviewElementFinder.findPreviewElements(project, mainFile.virtualFile)
-        }
-      )
+    val previewElements = ArrayList(runBlocking { AnnotationFilePreviewElementFinder.findPreviewElements(project, mainFile.virtualFile) })
 
     assertEquals("preview 1 - MyNewTestFun", previewElements[0].displaySettings.name)
     assertEquals("group 1-2", previewElements[0].displaySettings.group)
-    assertEquals(
-      "#FF00FF01",
-      (previewElements[0].displaySettings.background as PreviewDisplaySettings.Background.Color)
-        .color
-        .uppercase(),
-    )
+    assertEquals("#FF00FF01", (previewElements[0].displaySettings.background as PreviewDisplaySettings.Background.Color).color.uppercase())
     assertEquals("id:pixel_5", previewElements[0].configuration.deviceSpec)
 
     assertEquals("preview 2 - MyNewTestFun", previewElements[1].displaySettings.name)
     assertEquals("group 1-2", previewElements[1].displaySettings.group)
-    assertEquals(
-      "#FF00FF02",
-      (previewElements[1].displaySettings.background as PreviewDisplaySettings.Background.Color)
-        .color
-        .uppercase(),
-    )
+    assertEquals("#FF00FF02", (previewElements[1].displaySettings.background as PreviewDisplaySettings.Background.Color).color.uppercase())
     assertEquals("id:pixel_5", previewElements[1].configuration.deviceSpec)
 
     assertEquals("test name - MyNewTestFun", previewElements[2].displaySettings.name)
     assertEquals("test group", previewElements[2].displaySettings.group)
-    assertEquals(
-      "#FF00FF00",
-      (previewElements[2].displaySettings.background as PreviewDisplaySettings.Background.Color)
-        .color
-        .uppercase(),
-    )
+    assertEquals("#FF00FF00", (previewElements[2].displaySettings.background as PreviewDisplaySettings.Background.Color).color.uppercase())
     assertEquals("id:pixel_5", previewElements[2].configuration.deviceSpec)
   }
 }

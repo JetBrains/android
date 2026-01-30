@@ -24,14 +24,9 @@ import icons.StudioIcons
 
 open class ViewControlAction(
   private val isEnabled: (e: AnActionEvent) -> Boolean,
-  private val essentialModeDescription: String =
-    message("action.scene.view.control.essentials.mode.description"),
+  private val essentialModeDescription: String = message("action.scene.view.control.essentials.mode.description"),
 ) :
-  DropDownAction(
-    message("action.scene.view.control.title"),
-    message("action.scene.view.control.description"),
-    StudioIcons.Common.LAYOUT,
-  ) {
+  DropDownAction(message("action.scene.view.control.title"), message("action.scene.view.control.description"), StudioIcons.Common.LAYOUT) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)

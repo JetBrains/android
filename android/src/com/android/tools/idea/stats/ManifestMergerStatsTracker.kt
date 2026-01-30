@@ -23,15 +23,17 @@ import com.android.utils.mapValuesNotNull
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ManifestMergerStats
 import com.intellij.openapi.application.ApplicationManager
-import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
+import org.HdrHistogram.SingleWriterRecorder
 
 /** Object used to record metrics related to running the Manifest Merger within the IDE. */
 object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
 
   enum class MergeResult {
-    CANCELED, FAILED, SUCCESS
+    CANCELED,
+    FAILED,
+    SUCCESS,
   }
 
   private val histogramsByResult = ConcurrentHashMap<MergeResult, SingleWriterRecorder>()
@@ -53,9 +55,8 @@ object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
   fun reportMergerStats() {
     val statsBuilder = ManifestMergerStats.newBuilder()
 
-    val histogramsWithValues = histogramsByResult.mapValuesNotNull {
-      it.value.intervalHistogram?.takeIf { histogram -> histogram.totalCount > 0L }?.toProto()
-    }
+    val histogramsWithValues =
+      histogramsByResult.mapValuesNotNull { it.value.intervalHistogram?.takeIf { histogram -> histogram.totalCount > 0L }?.toProto() }
 
     if (histogramsWithValues.isEmpty()) return
 
@@ -67,9 +68,11 @@ object ManifestMergerStatsTracker : MergedManifestSnapshotComputeListener {
       }
     }
 
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.MANIFEST_MERGER_STATS
-      manifestMergerStats = statsBuilder.build()
-    })
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.MANIFEST_MERGER_STATS
+        manifestMergerStats = statsBuilder.build()
+      }
+    )
   }
 }

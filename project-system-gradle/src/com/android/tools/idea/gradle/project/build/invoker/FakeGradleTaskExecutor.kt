@@ -29,17 +29,12 @@ class FakeGradleTaskExecutor : GradleTasksExecutor {
     request: GradleBuildInvoker.Request,
     buildAction: BuildAction<*>?,
     buildStopper: BuildStopper,
-    listener: ExternalSystemTaskNotificationListener
+    listener: ExternalSystemTaskNotificationListener,
   ): ListenableFuture<GradleInvocationResult> {
     invoked++
     lastRequest = request
     return Futures.immediateFuture(
-      GradleInvocationResult(
-        rootProjectPath = request.rootProjectPath,
-        tasks = request.gradleTasks,
-        buildError = null,
-        model = null
-      )
+      GradleInvocationResult(rootProjectPath = request.rootProjectPath, tasks = request.gradleTasks, buildError = null, model = null)
     )
   }
 

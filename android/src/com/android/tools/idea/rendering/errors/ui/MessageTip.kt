@@ -20,13 +20,10 @@ import javax.swing.Icon
 
 /**
  * Defines the types of messages that could be shown on the bottom of the [IssuePanel]
+ *
  * @param icon the icon to be shown aside of the message
  * @param htmlText the message in html format (it could also include links).
  */
 data class MessageTip(val icon: Icon?, val htmlText: String) {
-  constructor(icon: Icon?, htmlBuilder: HtmlBuilder) : this(
-    icon,
-    htmlBuilder.stringBuilder.toString(),
-  )
+  constructor(icon: Icon?, htmlBuilder: HtmlBuilder) : this(icon, htmlBuilder.stringBuilder.toString())
 }
-

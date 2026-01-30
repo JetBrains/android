@@ -25,8 +25,7 @@ import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import org.mockito.Mockito.mock
 
-class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu = mock()) :
-  ActionPopupMenu {
+class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu = mock()) : ActionPopupMenu {
   private var dataProvider: Supplier<out DataContext>? = null
 
   override fun getComponent(): JPopupMenu = popup

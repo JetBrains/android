@@ -34,10 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
 class GradleAddDestinationMenuToken : AddDestinationMenuToken<GradleProjectSystem>, GradleToken {
-  override fun modifyProject(
-    projectSystem: GradleProjectSystem,
-    data: AddDestinationMenuToken.Data,
-  ) {
+  override fun modifyProject(projectSystem: GradleProjectSystem, data: AddDestinationMenuToken.Data) {
     val module = data.surface.model?.module ?: return
     if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT)) {
       return
@@ -60,15 +57,7 @@ class GradleNavDesignSurfaceToken : NavDesignSurfaceToken<GradleProjectSystem>, 
       .invokeAndWait(
         {
           try {
-            didAdd.set(
-              module
-                .addDependenciesWithUiConfirmation(
-                  artifacts,
-                  promptUserBeforeAdding = true,
-                  requestSync = false,
-                )
-                .isEmpty()
-            )
+            didAdd.set(module.addDependenciesWithUiConfirmation(artifacts, promptUserBeforeAdding = true, requestSync = false).isEmpty())
           } catch (t: Throwable) {
             Logger.getInstance(NavDesignSurface::class.java).warn("Failed to add dependencies", t)
             didAdd.set(false)
@@ -87,8 +76,7 @@ class GradleAddDeeplinkDialogToken : AddDeeplinkDialogToken<GradleProjectSystem>
     val module = parent.model.module
     val moduleSystem = projectSystem.getModuleSystem(module)
     val externalModule = GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getModule()
-    val component =
-      moduleSystem.getResolvedDependency(externalModule, DependencyScopeType.MAIN) ?: return true
+    val component = moduleSystem.getResolvedDependency(externalModule, DependencyScopeType.MAIN) ?: return true
     val version = component.version
     return version >= EXTENDED_VERSION
   }

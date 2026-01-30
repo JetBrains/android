@@ -28,8 +28,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
-class ReplaceCallFix(private val mySuggest: String, element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class ReplaceCallFix(private val mySuggest: String, element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   private val methodName: String
     get() {
       val start = if (mySuggest.startsWith("#")) 1 else 0
@@ -40,8 +39,7 @@ class ReplaceCallFix(private val mySuggest: String, element: PsiElement) :
       return mySuggest.substring(start, parameters).trim()
     }
 
-  override fun getPresentation(context: ActionContext, element: PsiElement) =
-    Presentation.of("Call $methodName instead")
+  override fun getPresentation(context: ActionContext, element: PsiElement) = Presentation.of("Call $methodName instead")
 
   override fun getFamilyName() = "ReplaceCallFix"
 
@@ -56,8 +54,7 @@ class ReplaceCallFix(private val mySuggest: String, element: PsiElement) :
   }
 
   private fun handleJava(element: PsiElement) {
-    val methodCall =
-      PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
+    val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
     val file = methodCall.containingFile ?: return
     val document = file.fileDocument
     val methodExpression = methodCall.methodExpression
@@ -83,8 +80,7 @@ class ReplaceCallFix(private val mySuggest: String, element: PsiElement) :
   }
 
   private fun handleKotlin(element: PsiElement) {
-    val methodCall =
-      PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
+    val methodCall = PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
     val methodExpression = methodCall.calleeExpression
     if (methodExpression is KtNameReferenceExpression) {
       val identifier: PsiElement? = methodExpression.getIdentifier()

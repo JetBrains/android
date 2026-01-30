@@ -26,12 +26,10 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /** Returns the [PsiPropertyItem]s that will be available for the given [PsiCallPropertiesModel]. */
-internal typealias PsiPropertiesProvider =
-  (Project, PsiCallPropertiesModel) -> Collection<PsiPropertyItem>
+internal typealias PsiPropertiesProvider = (Project, PsiCallPropertiesModel) -> Collection<PsiPropertyItem>
 
 /**
- * [PsiPropertiesModel] for pickers handling calls. This is common in Compose where most pickers
- * interact with method calls.
+ * [PsiPropertiesModel] for pickers handling calls. This is common in Compose where most pickers interact with method calls.
  *
  * For example, a theme in Compose is a method call. This model allows editing those properties.
  *
@@ -41,8 +39,7 @@ internal typealias PsiPropertiesProvider =
  * )
  * ```
  *
- * The same applies for annotations, where the parameters are considered by the PSI parsing as a
- * method call.
+ * The same applies for annotations, where the parameters are considered by the PSI parsing as a method call.
  *
  * ```
  * @Preview(name = "Hello", group = "group")
@@ -56,8 +53,7 @@ internal constructor(
   val module: Module,
   val ktFile: KtFile,
   psiPropertiesProvider: PsiPropertiesProvider,
-  override val tracker:
-    ComposePickerTracker, // TODO(b/205195408): Refactor tracker to a more general use
+  override val tracker: ComposePickerTracker, // TODO(b/205195408): Refactor tracker to a more general use
 ) : PsiPropertiesModel(), DataProvider {
 
   val psiFactory: KtPsiFactory by lazy(LazyThreadSafetyMode.NONE) { KtPsiFactory(project, true) }
@@ -65,9 +61,7 @@ internal constructor(
   override val properties: PropertiesTable<PsiPropertyItem> =
     PropertiesTable.create(
       HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
-        psiPropertiesProvider(project, this@PsiCallPropertiesModel).forEach {
-          table.put(it.namespace, it.name, it)
-        }
+        psiPropertiesProvider(project, this@PsiCallPropertiesModel).forEach { table.put(it.namespace, it.name, it) }
       }
     )
 }

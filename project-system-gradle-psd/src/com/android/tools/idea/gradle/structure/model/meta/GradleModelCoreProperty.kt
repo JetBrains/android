@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 
-/**
- * A core property bound to a Gradle model property.
- */
+/** A core property bound to a Gradle model property. */
 interface GradleModelCoreProperty<PropertyT : Any, out ModelPropertyCoreT : ModelPropertyCore<PropertyT>> {
   /**
    * Returns a new core property bound to the given [resolvedProperty]. The receiver property is used as a prototype for the binding

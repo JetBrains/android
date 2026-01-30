@@ -21,5 +21,4 @@ import com.android.resources.ResourceFolderType
 import com.intellij.openapi.vfs.VirtualFile
 
 /** Studio Independent resource folder util functions */
-fun getFolderType(file: VirtualFile?): ResourceFolderType? =
-  file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
+fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }

@@ -26,8 +26,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 
-class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(STRING_LITERALS),
-                                MultiCharQuoteHandler {
+class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(STRING_LITERALS), MultiCharQuoteHandler {
   override fun isClosingQuote(iterator: HighlighterIterator, offset: Int): Boolean {
     if (iterator.tokenType === MULTILINE_STRING_LITERAL) {
       val start = iterator.start
@@ -38,9 +37,7 @@ class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(STRING_LITERALS),
   }
 
   override fun getClosingQuote(iterator: HighlighterIterator, offset: Int): CharSequence? {
-    return if ((iterator.tokenType === MULTILINE_STRING_LITERAL)
-               && offset == iterator.start + 3) "\"\"\""
-    else null
+    return if ((iterator.tokenType === MULTILINE_STRING_LITERAL) && offset == iterator.start + 3) "\"\"\"" else null
   }
 
   override fun hasNonClosedLiteral(editor: Editor, iterator: HighlighterIterator, offset: Int): Boolean {
@@ -71,4 +68,3 @@ class DeclarativeQuoteHandler : SimpleTokenSetQuoteHandler(STRING_LITERALS),
     }
   }
 }
-

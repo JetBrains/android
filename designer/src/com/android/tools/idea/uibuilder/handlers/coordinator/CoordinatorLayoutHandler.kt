@@ -47,8 +47,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   override fun handlesPainting() = true
 
-  override fun getInspectorProperties(): List<String> =
-    listOf(ATTR_CONTEXT, ATTR_FITS_SYSTEM_WINDOWS)
+  override fun getInspectorProperties(): List<String> = listOf(ATTR_CONTEXT, ATTR_FITS_SYSTEM_WINDOWS)
 
   override fun getLayoutInspectorProperties(): List<String> {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
@@ -87,13 +86,9 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
    * @param component the component target of the interaction
    * @return a new instance of ConstraintInteraction
    */
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
-    SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) = SceneInteraction(screenView)
 
-  override fun createChildTargets(
-    parentComponent: SceneComponent,
-    childComponent: SceneComponent,
-  ): MutableList<Target> {
+  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): MutableList<Target> {
     val listBuilder = ImmutableList.builder<Target>()
 
     if (childComponent !is TemporarySceneComponent) {
@@ -121,11 +116,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) =
     component.children
       .filterNot { component.scene.selection.contains(it.nlComponent) }
-      .flatMap { child ->
-        CoordinatorPlaceholder.Type.values().map { type ->
-          CoordinatorPlaceholder(component, child, type)
-        }
-      }
+      .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }
       .toList()
       .plus(ViewGroupPlaceholder(component))
 

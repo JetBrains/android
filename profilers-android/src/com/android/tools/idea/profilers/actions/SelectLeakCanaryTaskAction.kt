@@ -21,14 +21,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * These profiler task actions are to be performed in a sequential format:
  *
- * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (LeakCanary) ->
- * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
- * StartProfilerTaskAction -> StopProfilerTaskAction
+ * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (LeakCanary) -> Select dropdown actions
+ * (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) -> StartProfilerTaskAction ->
+ * StopProfilerTaskAction
  */
 class SelectLeakCanaryTaskAction : ProfilerTaskActionBase() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     selectTask(e.project!!, ProfilerTaskType.LEAKCANARY)
   }
-
 }

@@ -27,20 +27,22 @@ class AndroidAnnotationSupport : AnnotationPackageSupport {
     // com.android.annotations: internal annotation in the dev tools, not recommended for apps
     // RecentlyNonNull,RecentlyNullable: internal annotation, not recommended for apps
     when (nullability) {
-      Nullability.NOT_NULL -> mutableListOf(
-        "androidx.annotation.NonNull",
-        "android.support.annotation.NonNull",
-        "android.annotation.NonNull",
-        "com.android.annotations.NonNull",
-        "androidx.annotation.RecentlyNonNull"
-      )
-      Nullability.NULLABLE -> mutableListOf(
-        "androidx.annotation.Nullable",
-        "android.support.annotation.Nullable",
-        "android.annotation.Nullable",
-        "com.android.annotations.Nullable",
-        "androidx.annotation.RecentlyNullable"
-      )
+      Nullability.NOT_NULL ->
+        mutableListOf(
+          "androidx.annotation.NonNull",
+          "android.support.annotation.NonNull",
+          "android.annotation.NonNull",
+          "com.android.annotations.NonNull",
+          "androidx.annotation.RecentlyNonNull",
+        )
+      Nullability.NULLABLE ->
+        mutableListOf(
+          "androidx.annotation.Nullable",
+          "android.support.annotation.Nullable",
+          "android.annotation.Nullable",
+          "com.android.annotations.Nullable",
+          "androidx.annotation.RecentlyNullable",
+        )
       else -> mutableListOf()
     }
 }

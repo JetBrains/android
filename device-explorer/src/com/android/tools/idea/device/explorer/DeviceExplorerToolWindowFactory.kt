@@ -45,10 +45,7 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     toolWindow.title = TOOL_WINDOW_ID
     val model = DeviceExplorerModel(project)
     val view = DeviceExplorerViewImpl(project, model, TOOL_WINDOW_ID)
-    val tabController = listOf(
-      createDeviceFilesController(project),
-      createDeviceMonitorController(project)
-    )
+    val tabController = listOf(createDeviceFilesController(project), createDeviceMonitorController(project))
     val deviceExplorerController = DeviceExplorerController(project, model, view, tabController)
     deviceExplorerController.setup()
     val contentManager = toolWindow.contentManager
@@ -68,19 +65,22 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     val fileManager = project.getService(DeviceExplorerFileManager::class.java)
     val model = DeviceFileExplorerModel()
     val view = DeviceFileExplorerViewImpl(project, model, TOOL_WINDOW_ID)
-    return DeviceFileExplorerControllerImpl(project, model, view, fileManager,
-                                        object : DeviceFileExplorerControllerImpl.FileOpener {
-                                          @UiThread
-                                          override suspend fun openFile(localPath: Path) {
-                                            fileManager.openFile(localPath)
-                                          }
-                                        })
+    return DeviceFileExplorerControllerImpl(
+      project,
+      model,
+      view,
+      fileManager,
+      object : DeviceFileExplorerControllerImpl.FileOpener {
+        @UiThread
+        override suspend fun openFile(localPath: Path) {
+          fileManager.openFile(localPath)
+        }
+      },
+    )
   }
 
   companion object {
-    /**
-     * IntelliJ tool window ID. This should be the same value as the "id" attribute of the "toolWindow" XML tag.
-     */
+    /** IntelliJ tool window ID. This should be the same value as the "id" attribute of the "toolWindow" XML tag. */
     const val TOOL_WINDOW_ID = "Device Explorer"
     private const val DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled"
   }

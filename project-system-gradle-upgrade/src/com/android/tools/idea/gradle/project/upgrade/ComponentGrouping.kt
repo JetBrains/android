@@ -28,21 +28,21 @@ import com.intellij.usages.rules.UsageGroupingRuleProvider
 /**
  * Usage Grouping by component.
  *
- * In [UsageView] and related classes (e.g. [UsageViewDescriptor], [UsageViewDescriptorAdapter]) there is the notion of grouping by
- * various attributes: file, module, and so on.
+ * In [UsageView] and related classes (e.g. [UsageViewDescriptor], [UsageViewDescriptorAdapter]) there is the notion of grouping by various
+ * attributes: file, module, and so on.
  *
- * Superficially, the grouping by Usage Type looks like we could adapt or override it to our purpose: to provide a grouping of usages
- * by component (on the assumption that that is a more meaningful grouping for the kind of whole-project refactoring that we are aiming
- * to provide.  However, the UsageView apparatus allows us only to compute a UsageType from [PsiElement]s, not [UsageInfo]s, and in general
- * we can have an arbitrary number of different [UsageInfo]s, with different semantics, related to the same [PsiElement].
+ * Superficially, the grouping by Usage Type looks like we could adapt or override it to our purpose: to provide a grouping of usages by
+ * component (on the assumption that that is a more meaningful grouping for the kind of whole-project refactoring that we are aiming to
+ * provide. However, the UsageView apparatus allows us only to compute a UsageType from [PsiElement]s, not [UsageInfo]s, and in general we
+ * can have an arbitrary number of different [UsageInfo]s, with different semantics, related to the same [PsiElement].
  *
  * Therefore, we need our own [UsageGroupingRuleProvider].
  *
- * Unfortunately, the groups that providers can create cannot replace or interpose themselves between other provided rules.  We cannot
+ * Unfortunately, the groups that providers can create cannot replace or interpose themselves between other provided rules. We cannot
  * replace, as far as I can tell, the Usage Type grouping -- at least not without re-implementing everything (or the "gross hack" as in
- * ASwB's UsageGroupingRuleProviderOverride).  This is fine, in that it probably makes sense for the component grouping to be outermost,
- * but it does render the default [UsageViewDescriptorAdapter.getCodeReferencesText] meaningless, as the usagesCount/filesCount arguments
- * are apparently over the whole refactoring, not the group.
+ * ASwB's UsageGroupingRuleProviderOverride). This is fine, in that it probably makes sense for the component grouping to be outermost, but
+ * it does render the default [UsageViewDescriptorAdapter.getCodeReferencesText] meaningless, as the usagesCount/filesCount arguments are
+ * apparently over the whole refactoring, not the group.
  */
 class ComponentGroupingRuleProvider : UsageGroupingRuleProvider {
   override fun getActiveRules(project: Project): Array<UsageGroupingRule> = arrayOf(ComponentGroupingRule())
@@ -70,8 +70,9 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
 
   override fun getPresentableGroupText(): String = usageName
 
-  override fun compareTo(other: UsageGroup?): Int = when (other) {
-    is ComponentUsageGroup -> usageName.compareTo(other.usageName)
-    else -> -1
-  }
+  override fun compareTo(other: UsageGroup?): Int =
+    when (other) {
+      is ComponentUsageGroup -> usageName.compareTo(other.usageName)
+      else -> -1
+    }
 }

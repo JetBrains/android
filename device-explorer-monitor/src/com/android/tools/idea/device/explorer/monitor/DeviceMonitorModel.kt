@@ -32,16 +32,19 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @UiThread
-class DeviceMonitorModel @NonInjectable constructor(
-  private val processService: DeviceProcessService,
-  private val packageNamesProvider: ProjectApplicationIdsProvider) {
+class DeviceMonitorModel
+@NonInjectable
+constructor(private val processService: DeviceProcessService, private val packageNamesProvider: ProjectApplicationIdsProvider) {
   private var activeDevice: AdbDevice? = null
   private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
   val isPackageFilterActive = MutableStateFlow(DeviceExplorerSettings.getInstance().isPackageFilterActive)
   val isApplicationIdsEmpty = MutableStateFlow(true)
 
-  constructor(project: Project, processService: DeviceProcessService) : this(processService, ProjectApplicationIdsProvider.getInstance(project))
+  constructor(
+    project: Project,
+    processService: DeviceProcessService,
+  ) : this(processService, ProjectApplicationIdsProvider.getInstance(project))
 
   suspend fun setPackageFilter(isActive: Boolean) {
     if (isPackageFilterActive.value != isActive) {
@@ -58,15 +61,11 @@ class DeviceMonitorModel @NonInjectable constructor(
   suspend fun activeDeviceChanged(device: IDevice?) {
     if (device != null) {
       if (activeDevice?.device != device) {
-        activeDeviceMutex.withLock {
-          activeDevice = AdbDevice(device)
-        }
+        activeDeviceMutex.withLock { activeDevice = AdbDevice(device) }
         refreshCurrentDeviceProcessList()
       }
     } else {
-      activeDeviceMutex.withLock {
-        activeDevice = null
-      }
+      activeDeviceMutex.withLock { activeDevice = null }
       tableModel.clearProcesses()
     }
   }
@@ -82,43 +81,23 @@ class DeviceMonitorModel @NonInjectable constructor(
   }
 
   suspend fun killNodesInvoked(rows: IntArray) {
-    invokeOnProcessInfo(rows) { processInfo ->
-      activeDevice?.let {
-        processService.killProcess(processInfo, it.device)
-      }
-    }
+    invokeOnProcessInfo(rows) { processInfo -> activeDevice?.let { processService.killProcess(processInfo, it.device) } }
   }
 
   suspend fun forceStopNodesInvoked(rows: IntArray) {
-    invokeOnProcessInfo(rows) { processInfo ->
-      activeDevice?.let {
-        processService.forceStopProcess(processInfo, it.device)
-      }
-    }
+    invokeOnProcessInfo(rows) { processInfo -> activeDevice?.let { processService.forceStopProcess(processInfo, it.device) } }
   }
 
   suspend fun debugNodesInvoked(project: Project, rows: IntArray) {
-    invokeOnProcessInfo(rows) { processInfo ->
-      activeDevice?.let {
-        processService.debugProcess(project, processInfo, it.device)
-      }
-    }
+    invokeOnProcessInfo(rows) { processInfo -> activeDevice?.let { processService.debugProcess(project, processInfo, it.device) } }
   }
 
   suspend fun clearAppData(rows: IntArray) {
-    invokeOnProcessInfo(rows) { processInfo ->
-      activeDevice?.let {
-        processService.clearAppData(processInfo, it.device)
-      }
-    }
+    invokeOnProcessInfo(rows) { processInfo -> activeDevice?.let { processService.clearAppData(processInfo, it.device) } }
   }
 
   suspend fun uninstallApp(rows: IntArray) {
-    invokeOnProcessInfo(rows) { processInfo ->
-      activeDevice?.let {
-        processService.uninstallApp(processInfo, it.device)
-      }
-    }
+    invokeOnProcessInfo(rows) { processInfo -> activeDevice?.let { processService.uninstallApp(processInfo, it.device) } }
   }
 
   suspend fun backupApplication(project: Project, rows: IntArray) {

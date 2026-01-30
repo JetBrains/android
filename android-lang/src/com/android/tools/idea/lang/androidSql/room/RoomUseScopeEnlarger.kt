@@ -27,16 +27,18 @@ import org.jetbrains.kotlin.psi.KtProperty
  *
  * Returns a use scope of containing file of the given PsiField/KtProperty.
  *
- * We need to extend useScope [com.intellij.psi.search.PsiSearchHelper.getUseScope] for a private PsiField/KtProperty because they
- * can be used in a Room query in any file of the module (default useScope doesn't include all files in the module for
- * the private/protected fields)
+ * We need to extend useScope [com.intellij.psi.search.PsiSearchHelper.getUseScope] for a private PsiField/KtProperty because they can be
+ * used in a Room query in any file of the module (default useScope doesn't include all files in the module for the private/protected
+ * fields)
  */
 class RoomUseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
-    if (RoomDependencyChecker.getInstance(element.project).isRoomPresent() &&
+    if (
+      RoomDependencyChecker.getInstance(element.project).isRoomPresent() &&
         (element is PsiField || element is KtProperty) &&
         element.definesRoomSchema &&
-        element.containingFile != null) {
+        element.containingFile != null
+    ) {
       return ResolveScopeManager.getElementUseScope(element.containingFile)
     }
     return null

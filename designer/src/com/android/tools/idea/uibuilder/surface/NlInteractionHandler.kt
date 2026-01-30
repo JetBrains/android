@@ -30,14 +30,9 @@ import java.awt.Cursor
 import java.awt.Rectangle
 import org.intellij.lang.annotations.JdkConstants
 
-open class NlInteractionHandler(private val surface: DesignSurface<*>) :
-  InteractionHandlerBase(surface) {
+open class NlInteractionHandler(private val surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
 
-  override fun createInteractionOnPressed(
-    @SwingCoordinate mouseX: Int,
-    @SwingCoordinate mouseY: Int,
-    modifiersEx: Int,
-  ): Interaction? {
+  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
     getViewInResizeZone(mouseX, mouseY)?.let { view ->
       val configuration = view.sceneManager.model.configuration
       return CanvasResizeInteraction(surface as NlDesignSurface, view as ScreenView, configuration)
@@ -90,14 +85,10 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   }
 
   /**
-   * Returns SceneView if it's focused mode and the given [mouseX] and [mouseY] coordinates are
-   * within the resizing handle area. If resizing is disabled or the coordinates are outside the
-   * resize handler area of SceneView, this method returns null.
+   * Returns SceneView if it's focused mode and the given [mouseX] and [mouseY] coordinates are within the resizing handle area. If resizing
+   * is disabled or the coordinates are outside the resize handler area of SceneView, this method returns null.
    */
-  protected open fun getViewInResizeZone(
-    @SwingCoordinate mouseX: Int,
-    @SwingCoordinate mouseY: Int,
-  ): SceneView? {
+  protected open fun getViewInResizeZone(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): SceneView? {
     if (surface.sceneManagers.size != 1) {
       // Only available when one Preview is shown
       return null

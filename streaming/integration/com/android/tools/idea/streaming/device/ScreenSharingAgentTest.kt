@@ -66,17 +66,15 @@ import org.junit.runners.JUnit4
 import org.junit.runners.Suite
 import org.junit.runners.Suite.SuiteClasses
 
-@RunWith(Suite::class)
-@SuiteClasses(ScreenSharingAgentTest::class)
-class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
+@RunWith(Suite::class) @SuiteClasses(ScreenSharingAgentTest::class) class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 
 /**
  * Tests the functionality of the Screen Sharing Agent.
  *
  * Works by starting an emulator and then creating a [DeviceView] that starts screen sharing on the emulator.
  *
- * To debug this test in IntelliJ, run `bazel run //tools/adt/idea/streaming:ScreenSharingAgentTest_linux`
- * first to download the system image into `bazel-out/../../../external`.
+ * To debug this test in IntelliJ, run `bazel run //tools/adt/idea/streaming:ScreenSharingAgentTest_linux` first to download the system
+ * image into `bazel-out/../../../external`.
  */
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -117,7 +115,8 @@ class ScreenSharingAgentTest {
               ".*: KEY UP: ${char.androidCode}",
               ".*: KEY UP: $AKEYCODE_SHIFT_LEFT",
             ),
-            INPUT_TIMEOUT)
+            INPUT_TIMEOUT,
+          )
         }
       }
     }
@@ -140,20 +139,21 @@ class ScreenSharingAgentTest {
 
   @Test
   fun keyEvents_navigationKeyStrokes() {
-    val navigationKeyStrokeCases = mapOf(
-      KeyEvent.VK_LEFT to AKEYCODE_DPAD_LEFT,
-      KeyEvent.VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
-      KeyEvent.VK_RIGHT to AKEYCODE_DPAD_RIGHT,
-      KeyEvent.VK_KP_RIGHT to AKEYCODE_DPAD_RIGHT,
-      KeyEvent.VK_UP to AKEYCODE_DPAD_UP,
-      KeyEvent.VK_KP_UP to AKEYCODE_DPAD_UP,
-      KeyEvent.VK_DOWN to AKEYCODE_DPAD_DOWN,
-      KeyEvent.VK_KP_DOWN to AKEYCODE_DPAD_DOWN,
-      KeyEvent.VK_HOME to AKEYCODE_MOVE_HOME,
-      KeyEvent.VK_END to AKEYCODE_MOVE_END,
-      KeyEvent.VK_PAGE_DOWN to AKEYCODE_PAGE_DOWN,
-      KeyEvent.VK_PAGE_UP to AKEYCODE_PAGE_UP,
-    )
+    val navigationKeyStrokeCases =
+      mapOf(
+        KeyEvent.VK_LEFT to AKEYCODE_DPAD_LEFT,
+        KeyEvent.VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
+        KeyEvent.VK_RIGHT to AKEYCODE_DPAD_RIGHT,
+        KeyEvent.VK_KP_RIGHT to AKEYCODE_DPAD_RIGHT,
+        KeyEvent.VK_UP to AKEYCODE_DPAD_UP,
+        KeyEvent.VK_KP_UP to AKEYCODE_DPAD_UP,
+        KeyEvent.VK_DOWN to AKEYCODE_DPAD_DOWN,
+        KeyEvent.VK_KP_DOWN to AKEYCODE_DPAD_DOWN,
+        KeyEvent.VK_HOME to AKEYCODE_MOVE_HOME,
+        KeyEvent.VK_END to AKEYCODE_MOVE_END,
+        KeyEvent.VK_PAGE_DOWN to AKEYCODE_PAGE_DOWN,
+        KeyEvent.VK_PAGE_UP to AKEYCODE_PAGE_UP,
+      )
 
     runEventLogger {
       fakeUi.keyboard.setFocus(deviceView)
@@ -170,13 +170,14 @@ class ScreenSharingAgentTest {
 
   @Test
   fun keyEvents_controlCharacters() {
-    val controlCharacterCases = mapOf(
-      KeyEvent.VK_ENTER to AKEYCODE_ENTER,
-      KeyEvent.VK_TAB to AKEYCODE_TAB,
-      KeyEvent.VK_ESCAPE to AKEYCODE_ESCAPE,
-      KeyEvent.VK_BACK_SPACE to AKEYCODE_DEL,
-      KeyEvent.VK_DELETE to if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL,
-    )
+    val controlCharacterCases =
+      mapOf(
+        KeyEvent.VK_ENTER to AKEYCODE_ENTER,
+        KeyEvent.VK_TAB to AKEYCODE_TAB,
+        KeyEvent.VK_ESCAPE to AKEYCODE_ESCAPE,
+        KeyEvent.VK_BACK_SPACE to AKEYCODE_DEL,
+        KeyEvent.VK_DELETE to if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL,
+      )
 
     runEventLogger {
       fakeUi.keyboard.setFocus(deviceView)
@@ -242,9 +243,7 @@ class ScreenSharingAgentTest {
         }
 
         // Build a set of points in the rectangle from (50, 150) to (150, 250) spaced out by 10 pixels in each dimension.
-        val pointsToTouch: List<Point> = (50..150 step 10).flatMap { x ->
-          (150..250 step 10).map { y -> Point(x,y) }
-        }
+        val pointsToTouch: List<Point> = (50..150 step 10).flatMap { x -> (150..250 step 10).map { y -> Point(x, y) } }
 
         // Seed our RNG so every instance of the test will behave the same.
         val random = Random(42)
@@ -257,7 +256,7 @@ class ScreenSharingAgentTest {
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           waitForLog(path.first().pressLog(), INPUT_TIMEOUT)
 
-          for(p in path.drop(1)) {
+          for (p in path.drop(1)) {
             fakeUi.mouse.dragTo(p)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
             waitForLog(p.dragToLog(), INPUT_TIMEOUT)
@@ -283,7 +282,7 @@ class ScreenSharingAgentTest {
       adb.logcat {
         // Ensure that motion events can be received by the app. We don't really care if this first point takes a few tries.
         executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
-          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1)  // Vertical scrolling on Android is backward
+          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1) // Vertical scrolling on Android is backward
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           waitForLog(firstScroll.scrollLog(v = ANDROID_SCROLL_ADJUSTMENT_FACTOR.toFloat()), INPUT_TIMEOUT)
         }
@@ -320,7 +319,7 @@ class ScreenSharingAgentTest {
       adb.logcat {
         // Ensure that motion events can be received by the app. We don't really care if this first point takes a few tries.
         executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
-          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1)  // Vertical scrolling on Android is backward
+          fakeUi.mouse.wheel(firstScroll.x, firstScroll.y, -1) // Vertical scrolling on Android is backward
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           waitForLog(firstScroll.scrollLog(v = ANDROID_SCROLL_ADJUSTMENT_FACTOR.toFloat()), INPUT_TIMEOUT)
         }
@@ -354,15 +353,10 @@ class ScreenSharingAgentTest {
         val logLine = Pattern.quote("Starting: Intent { flg=0x${NO_ANIMATIONS.toString(16)} cmp=$APP_PKG/.$ACTIVITY }")
         waitForLog(logLine, LONG_DEVICE_OPERATION_TIMEOUT)
       }
-      adb.logcat {
-        waitForLog(".*: RESUMED", SHORT_DEVICE_OPERATION_TIMEOUT)
-      }
+      adb.logcat { waitForLog(".*: RESUMED", SHORT_DEVICE_OPERATION_TIMEOUT) }
       block()
-    }
-    finally {
-      adb.runCommand("shell", CLEAR_DATA_COMMAND, emulator = emulator) {
-        waitForLog("Success", SHORT_DEVICE_OPERATION_TIMEOUT)
-      }
+    } finally {
+      adb.runCommand("shell", CLEAR_DATA_COMMAND, emulator = emulator) { waitForLog("Success", SHORT_DEVICE_OPERATION_TIMEOUT) }
     }
   }
 
@@ -391,8 +385,7 @@ class ScreenSharingAgentTest {
 
     @get:ClassRule
     @get:JvmStatic
-    val ruleChain: RuleChain =
-      RuleChain(projectRule, disposableRule, InitAdbLibApplicationServiceRule(), system, EdtRule())
+    val ruleChain: RuleChain = RuleChain(projectRule, disposableRule, InitAdbLibApplicationServiceRule(), system, EdtRule())
 
     private lateinit var adb: Adb
     private lateinit var emulator: Emulator
@@ -402,16 +395,20 @@ class ScreenSharingAgentTest {
     private var framesReceived = 0
     private val project
       get() = projectRule.project
+
     private val testRootDisposable
       get() = disposableRule.disposable
+
     private val emptyDeviceConfiguration =
-      DeviceConfiguration(DeviceProperties.buildForTest {
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        androidVersion = AndroidVersion(30, 0)
-        manufacturer = "Google"
-        model = "Pixel 5"
-        isRemote = false
-      })
+      DeviceConfiguration(
+        DeviceProperties.buildForTest {
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          androidVersion = AndroidVersion(30, 0)
+          manufacturer = "Google"
+          model = "Pixel 5"
+          isRemote = false
+        }
+      )
     private var classDisposable: Disposable? = null
 
     @JvmStatic
@@ -458,9 +455,7 @@ class ScreenSharingAgentTest {
         fail("$eventLoggerApk does not exist.")
       }
       executeWithRetries<InterruptedException>(EVENT_LOGGER_INSTALLATION_MAX_RETRIES) {
-        adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
-          waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)
-        }
+        adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) { waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT) }
       }
       System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY)
     }
@@ -489,12 +484,13 @@ class ScreenSharingAgentTest {
     }
 
     private val Char.androidCode: Int
-      get() = when (this) {
-        in 'a'..'z' -> this.code - 'a'.code + AKEYCODE_A
-        in 'A'..'Z' -> this.code - 'A'.code + AKEYCODE_A
-        in '0'..'9' -> this.code - '0'.code + AKEYCODE_0
-        else -> throw IllegalArgumentException("Only alphanumeric characters are supported!")
-      }
+      get() =
+        when (this) {
+          in 'a'..'z' -> this.code - 'a'.code + AKEYCODE_A
+          in 'A'..'Z' -> this.code - 'A'.code + AKEYCODE_A
+          in '0'..'9' -> this.code - '0'.code + AKEYCODE_0
+          else -> throw IllegalArgumentException("Only alphanumeric characters are supported!")
+        }
 
     private fun Adb.logcat(block: Adb.() -> Unit) {
       runCommand("logcat", "-c", emulator = emulator).waitForProcess(SHORT_DEVICE_OPERATION_TIMEOUT)
@@ -504,10 +500,15 @@ class ScreenSharingAgentTest {
     private fun Int.downUp(): List<String> = listOf(".*: KEY DOWN: $this", ".*: KEY UP: $this")
 
     private fun Point.clickLogs(): List<String> = listOf(pressLog(), releaseLog())
+
     private fun Point.pressLog(): String = logForTouchEventAction("ACTION_DOWN")
+
     private fun Point.releaseLog(): String = logForTouchEventAction("ACTION_UP")
+
     private fun Point.dragToLog(): String = logForTouchEventAction("ACTION_MOVE")
+
     private fun Point.logForTouchEventAction(action: String): String = ".*: TOUCH EVENT: $action $coordinates"
+
     private fun Point.scrollLog(v: Float = 0.0f, h: Float = 0.0f): String = ".*: MOTION EVENT: ACTION_SCROLL $coordinates v=$v h=$h"
 
     private val Point.coordinates: String

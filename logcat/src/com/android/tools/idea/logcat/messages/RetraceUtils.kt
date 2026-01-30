@@ -57,11 +57,7 @@ internal fun RetraceCommand.Builder.rewrite(message: String): String {
 
 internal fun createTextRetracer(path: Path): RetraceCommand.Builder {
   return RetraceCommand.builder()
-    .setMappingSupplier(
-      ProguardMappingSupplier.builder()
-        .setProguardMapProducer(ProguardMapProducer.fromPath(path))
-        .build()
-    )
+    .setMappingSupplier(ProguardMappingSupplier.builder().setProguardMapProducer(ProguardMapProducer.fromPath(path)).build())
 }
 
 internal fun createPartitionedRetracer(path: Path): RetraceCommand.Builder {

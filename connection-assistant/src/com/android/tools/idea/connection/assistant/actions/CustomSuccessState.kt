@@ -24,13 +24,13 @@ import javax.swing.Icon
 // Custom state that avoids colouring the text because we don't want all output to be green/red.
 object CustomSuccessState : AssistActionState {
 
-    override fun isButtonVisible(): Boolean = true
+  override fun isButtonVisible(): Boolean = true
 
-    override fun isButtonEnabled(): Boolean = true
+  override fun isButtonEnabled(): Boolean = true
 
-    override fun isMessageVisible(): Boolean = true
+  override fun isMessageVisible(): Boolean = true
 
-    override fun getIcon(): Icon? = AllIcons.RunConfigurations.TestPassed
+  override fun getIcon(): Icon? = AllIcons.RunConfigurations.TestPassed
 
-    override fun getForeground(): Color = JBColor.BLACK
+  override fun getForeground(): Color = JBColor.BLACK
 }

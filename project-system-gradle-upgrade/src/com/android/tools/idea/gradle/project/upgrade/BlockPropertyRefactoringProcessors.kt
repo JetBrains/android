@@ -37,9 +37,10 @@ import com.intellij.usageView.UsageViewDescriptor
  * Derived processors are intended to be used for properties whose default values were not changed prior to being removed. If the property
  * default value was changed, use [AbstractBlockPropertyWithPreviousDefaultProcessor].
  */
-abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+abstract class AbstractBlockPropertyUnlessNoOpProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   private var _isPropertyAppliedCache: Boolean? = null
 
@@ -74,12 +75,14 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
 
   override fun getCommandName() = "Remove $propertyKey if set to $noOpValue"
 
-  override fun getShortDescription() = """
+  override fun getShortDescription() =
+    """
     The property $propertyKey is being removed.
     Upgrading to AGP $propertyRemovedVersion or newer
     will be blocked if this property is present and
     not set to $noOpValue.
-  """.trimIndent()
+  """
+      .trimIndent()
 
   override fun blockProcessorReasons(): List<BlockReason> {
     val reasons: MutableList<BlockReason> = mutableListOf()
@@ -110,7 +113,11 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
     _isPropertyAppliedCache = isPropertyAppliedNoCache()
   }
 
-  protected inner class PropertyUsedAfterRemoval: BlockReason("Property $propertyKey has been removed in $propertyRemovedVersion.", description = "Remove it from gradle.properties and make sure your project builds correctly before continuing")
+  protected inner class PropertyUsedAfterRemoval :
+    BlockReason(
+      "Property $propertyKey has been removed in $propertyRemovedVersion.",
+      description = "Remove it from gradle.properties and make sure your project builds correctly before continuing",
+    )
 
   inner class RemovedPropertyUsageInfo(private val wrappedElement: WrappedPsiElement) : GradleBuildModelUsageInfo(wrappedElement) {
     override fun getTooltipText(): String = "This property has been removed in AGP $propertyRemovedVersion"
@@ -158,12 +165,13 @@ abstract class AbstractBlockPropertyUnlessNoOpProcessor: AgpUpgradeComponentRefa
  * Abstract processor that looks for a Gradle property and blocks upgrades unless this property is not present. If the property is present
  * and its value is the same as a noop, then instead of blocking it will simply remove the property and allow the upgrade.
  *
- * These types of processors are intended to be used when there is already another refactoring that change the default value of the property.
- * If there are no previous changes in default value, use [AbstractBlockPropertyUnlessNoOpProcessor] instead.
+ * These types of processors are intended to be used when there is already another refactoring that change the default value of the
+ * property. If there are no previous changes in default value, use [AbstractBlockPropertyUnlessNoOpProcessor] instead.
  */
-abstract class AbstractBlockPropertyWithPreviousDefaultProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+abstract class AbstractBlockPropertyWithPreviousDefaultProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   abstract val defaultChangedVersion: AgpVersion
 
@@ -174,14 +182,21 @@ abstract class AbstractBlockPropertyWithPreviousDefaultProcessor: AbstractBlockP
     return super.blockProcessorReasons()
   }
 
-  inner class AgpVersionTooOldForPropertyRemoved: BlockReason("There have been changes in how $featureName is configured.",description = "Please first update AGP to a version greater or equal to $defaultChangedVersion but lower than $propertyRemovedVersion to make the applicable changes")
+  inner class AgpVersionTooOldForPropertyRemoved :
+    BlockReason(
+      "There have been changes in how $featureName is configured.",
+      description =
+        "Please first update AGP to a version greater or equal to $defaultChangedVersion but lower than $propertyRemovedVersion to make the applicable changes",
+    )
 }
 
 /**
- * Processor that blocks AGP upgrades if android.defaults.buildfeatures.aidl is present in gradle.properties after moving to AGP 9.0.0-alpha01
+ * Processor that blocks AGP upgrades if android.defaults.buildfeatures.aidl is present in gradle.properties after moving to AGP
+ * 9.0.0-alpha01
  */
-class BlockAidlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+class BlockAidlProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "AIDL"
@@ -189,14 +204,14 @@ class BlockAidlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_AIDL_PROPERTY_PRESENT
   override val noOpValue = false
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.aidlBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.experimental.lint.analysisPerComponent is used after AGP 9.0.0-alpha01
- */
-class BlockAnalysisPerComponentProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.experimental.lint.analysisPerComponent is used after AGP 9.0.0-alpha01 */
+class BlockAnalysisPerComponentProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Lint Analysis Per Component"
@@ -204,14 +219,14 @@ class BlockAnalysisPerComponentProcessor: AbstractBlockPropertyUnlessNoOpProcess
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_LINT_ANALYSIS_PER_COMPONENT_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.lintAnalysisPerComponentBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.experimental.androidTest.enableEmulatorControl is used after AGP 9.0.0-alpha01
- */
-class BlockEmulatorControlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.experimental.androidTest.enableEmulatorControl is used after AGP 9.0.0-alpha01 */
+class BlockEmulatorControlProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Android Test Emulator Control"
@@ -219,14 +234,14 @@ class BlockEmulatorControlProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_EMULATOR_CONTROL_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.emulatorControlBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.disableMinifyLocalDependenciesForLibraries is used after AGP 9.0.0-alpha01
- */
-class BlockMinifyLocalDependenciesLibrariesProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.disableMinifyLocalDependenciesForLibraries is used after AGP 9.0.0-alpha01 */
+class BlockMinifyLocalDependenciesLibrariesProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Disable Minify Local Dependencies For Libraries"
@@ -234,14 +249,14 @@ class BlockMinifyLocalDependenciesLibrariesProcessor: AbstractBlockPropertyUnles
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_MINIFY_LOCAL_DEPENDENCIES_LIBRARY_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.minifyLocalDependenciesLibrariesBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.enableNewResourceShrinker.preciseShrinking is used after AGP 9.0.0-alpha01
- */
-class BlockPreciseShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.enableNewResourceShrinker.preciseShrinking is used after AGP 9.0.0-alpha01 */
+class BlockPreciseShrinkingProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Precise Shrinking"
@@ -249,14 +264,16 @@ class BlockPreciseShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_PRECISE_SHRINKING_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.preciseShrinkingBlockProperty"
 }
 
 /**
  * Processor that blocks AGP upgrades if android.defaults.buildfeatures.renderscript is present in gradle.properties after moving to AGP 9.0
  */
-class BlockRenderScriptProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+class BlockRenderScriptProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Render Script"
@@ -264,14 +281,14 @@ class BlockRenderScriptProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RENDER_SCRIPT_PROPERTY_PRESENT
   override val noOpValue = false
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.enableResourceOptimizations is used after AGP 9.0.0-alpha01
- */
-class BlockResourceOptimizationsProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.enableResourceOptimizations is used after AGP 9.0.0-alpha01 */
+class BlockResourceOptimizationsProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Resource Optimizations"
@@ -279,14 +296,14 @@ class BlockResourceOptimizationsProcessor: AbstractBlockPropertyUnlessNoOpProces
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RESOURCE_OPTIMIZATIONS_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.resourceOptimizationsBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.experimental.androidTest.useUnifiedTestPlatform is used after AGP 9.0.0-alpha01
- */
-class BlockUnifiedTestPlatformProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.experimental.androidTest.useUnifiedTestPlatform is used after AGP 9.0.0-alpha01 */
+class BlockUnifiedTestPlatformProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "Android Test Unified Test Platform"
@@ -294,44 +311,47 @@ class BlockUnifiedTestPlatformProcessor: AbstractBlockPropertyUnlessNoOpProcesso
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_UNIFIED_TEST_PLATFORM_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.unifiedTestPlatformBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.r8.integratedResourceShrinking is used after AGP 9.0.0-alpha01
- */
-class BlockR8IntegratedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.r8.integratedResourceShrinking is used after AGP 9.0.0-alpha01 */
+class BlockR8IntegratedResourceShrinkingProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
   override val featureName = "R8 integrated resource shrinking"
   override val propertyKey = "android.r8.integratedResourceShrinking"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha02")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_INTEGRATED_RESOURCE_SHRINKING_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8IntegratedResourceShrinkingBlockProperty"
+
   override val readMoreUrlRedirect: ReadMoreUrlRedirect = ReadMoreUrlRedirect("r8-integrated-resource-shrinking")
 }
 
-/**
- * Processor that blocks AGP upgrades if android.defaults.buildfeatures.buildconfig is used after AGP 9.0.0-alpha01
- */
-class BlockBuildFeaturesBuildConfigProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+/** Processor that blocks AGP upgrades if android.defaults.buildfeatures.buildconfig is used after AGP 9.0.0-alpha01 */
+class BlockBuildFeaturesBuildConfigProcessor : AbstractBlockPropertyWithPreviousDefaultProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
   override val featureName = "Default Build Features Buildconfig"
   override val propertyKey = "android.defaults.buildfeatures.buildconfig"
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_BUILD_FEATURE_BUILD_CONFIG_PRESENT
   override val defaultChangedVersion = BuildConfigDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.buildFeaturesBuildConfigBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.r8.optimizedResourceShrinking is used after AGP 10.0.0-alpha01
- */
-class BlockR8OptimizedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+/** Processor that blocks AGP upgrades if android.r8.optimizedResourceShrinking is used after AGP 10.0.0-alpha01 */
+class BlockR8OptimizedResourceShrinkingProcessor : AbstractBlockPropertyUnlessNoOpProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val featureName = "R8 Optimized Resource Shrinking"
@@ -339,37 +359,42 @@ class BlockR8OptimizedResourceShrinkingProcessor: AbstractBlockPropertyUnlessNoO
   override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_OPTIMIZED_RESOURCE_SHRINKING_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.r8OptimizedResourceShrinkingBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.r8.strictFullModeForKeepRules is used after AGP 10.0.0-alpha01
- */
-class BlockR8StrictFullModeForKeepRulesProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+/** Processor that blocks AGP upgrades if android.r8.strictFullModeForKeepRules is used after AGP 10.0.0-alpha01 */
+class BlockR8StrictFullModeForKeepRulesProcessor : AbstractBlockPropertyWithPreviousDefaultProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
   override val defaultChangedVersion: AgpVersion
     get() = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor.DEFAULT_CHANGED
+
   override val featureName = "R8 strict full mode for keep rules"
   override val propertyKey = "android.r8.strictFullModeForKeepRules"
   override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_STRICT_FULL_MODE_FOR_KEEP_RULES_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.strictFullModeForKeepRulesBlockProperty"
 }
 
-/**
- * Processor that blocks AGP upgrades if android.usesSdkInManifest.disallowed is used after AGP 10.0.0-alpha01
- */
-class BlockUsesSdkInManifestProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+/** Processor that blocks AGP upgrades if android.usesSdkInManifest.disallowed is used after AGP 10.0.0-alpha01 */
+class BlockUsesSdkInManifestProcessor : AbstractBlockPropertyWithPreviousDefaultProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
   override val defaultChangedVersion: AgpVersion
     get() = DisallowUsesSdkInManifestDefaultRefactoringProcessor.DEFAULT_CHANGED
+
   override val featureName = "Disallow <uses-sdk> in the main Android manifest"
   override val propertyKey = "android.usesSdkInManifest.disallowed"
   override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_DISALLOW_USES_SDK_IN_MANIFEST_PRESENT
   override val noOpValue = true
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.blockDisallowUsesSdkInManifestPresent"
 }

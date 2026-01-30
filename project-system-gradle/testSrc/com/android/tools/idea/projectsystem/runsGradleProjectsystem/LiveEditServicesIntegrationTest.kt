@@ -29,55 +29,54 @@ import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 
-
 class LiveEditServicesIntegrationTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testByteCodeTransformationModules() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val appBuildGradle = preparedProject.root.resolve("app/build.gradle")
 
-    appBuildGradle.appendText("""
+    appBuildGradle.appendText(
+      """
 
-    import com.android.build.api.artifact.ScopedArtifact
-    import com.android.build.api.artifact.SingleArtifact
-    import com.android.build.api.variant.ScopedArtifacts.Scope
+      import com.android.build.api.artifact.ScopedArtifact
+      import com.android.build.api.artifact.SingleArtifact
+      import com.android.build.api.variant.ScopedArtifacts.Scope
 
-    abstract class ModifyClassesTask extends DefaultTask {
-        @OutputFile
-        abstract RegularFileProperty getOutputClasses()
-        @InputFiles
-        abstract ListProperty<RegularFile> getInputJars()
-        @InputFiles
-        abstract ListProperty<Directory> getInputDirectories()
+      abstract class ModifyClassesTask extends DefaultTask {
+          @OutputFile
+          abstract RegularFileProperty getOutputClasses()
+          @InputFiles
+          abstract ListProperty<RegularFile> getInputJars()
+          @InputFiles
+          abstract ListProperty<Directory> getInputDirectories()
 
-        @TaskAction
-        void taskAction() {
-           // do nothing as this tas will not be executed
-        }
-    }
-    androidComponents {
-        onVariants(selector().all(), { variant ->
-            TaskProvider<?> taskProvider = project.tasks.register(variant.getName() + "ModifyClasses", ModifyClassesTask.class)
-            variant.artifacts.forScope(Scope.PROJECT).use(taskProvider)
-                .toTransform(
-                    ScopedArtifact.CLASSES.INSTANCE,
-                    ModifyClassesTask::getInputJars,
-                    ModifyClassesTask::getInputDirectories,
-                    ModifyClassesTask::getOutputClasses
-                )
-        })
-    }
-    """.trimIndent())
+          @TaskAction
+          void taskAction() {
+             // do nothing as this tas will not be executed
+          }
+      }
+      androidComponents {
+          onVariants(selector().all(), { variant ->
+              TaskProvider<?> taskProvider = project.tasks.register(variant.getName() + "ModifyClasses", ModifyClassesTask.class)
+              variant.artifacts.forScope(Scope.PROJECT).use(taskProvider)
+                  .toTransform(
+                      ScopedArtifact.CLASSES.INSTANCE,
+                      ModifyClassesTask::getInputJars,
+                      ModifyClassesTask::getInputDirectories,
+                      ModifyClassesTask::getOutputClasses
+                  )
+          })
+      }
+      """
+        .trimIndent()
+    )
     preparedProject.open { project ->
       val bytecodeTransformation = project.getBuildSystemTransformation()
       assertThat(bytecodeTransformation).isNotNull()
       assertThat(bytecodeTransformation!!.buildHasTransformation).isTrue()
-      assertThat(bytecodeTransformation.transformationPoints).containsExactly(
-        "Modified class files in Gradle project"
-      ).inOrder()
+      assertThat(bytecodeTransformation.transformationPoints).containsExactly("Modified class files in Gradle project").inOrder()
     }
   }
 
@@ -93,10 +92,10 @@ class LiveEditServicesIntegrationTest {
   }
 
   private fun Project.getBuildSystemTransformation(): BuildSystemBytecodeTransformation {
-    val context = getProjectSystem()
-      .getApplicationProjectContext(RunningApplicationIdentity(applicationId = "google.simpleapplication", processName = null))
+    val context =
+      getProjectSystem()
+        .getApplicationProjectContext(RunningApplicationIdentity(applicationId = "google.simpleapplication", processName = null))
     val services = context!!.getBuildSystemLiveEditServices()
     return services!!.disqualifyingBytecodeTransformation(context)!!
   }
-
 }

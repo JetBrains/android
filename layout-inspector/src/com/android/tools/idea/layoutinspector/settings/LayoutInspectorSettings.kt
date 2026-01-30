@@ -35,17 +35,14 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
   }
 
   private val embeddedLayoutInspectorSetting =
-    FlagControlledSetting(true) {
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
-    }
+    FlagControlledSetting(true) { StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get() }
 
   // Property needs to have public setters and getters in order to be persisted.
   var autoConnectEnabled = true
 
   /**
-   * [embeddedLayoutInspectorEnabled] needs to be the source of truth. The platform needs a property
-   * in order to be able to serialize it. So we need both the property and this flow to observe
-   * changes.
+   * [embeddedLayoutInspectorEnabled] needs to be the source of truth. The platform needs a property in order to be able to serialize it. So
+   * we need both the property and this flow to observe changes.
    */
   private val _embeddedLayoutInspectorChanges = ephemeralFlow<Boolean>()
   /** Used to observe future changes in [embeddedLayoutInspectorEnabled] */
@@ -66,8 +63,7 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
 }
 
 /**
- * A setting that is also controlled by the state of a flag. The setting is enabled only if it is
- * both enabled in settings and in the flag.
+ * A setting that is also controlled by the state of a flag. The setting is enabled only if it is both enabled in settings and in the flag.
  */
 class FlagControlledSetting(val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
   private var isEnabled = defaultValue

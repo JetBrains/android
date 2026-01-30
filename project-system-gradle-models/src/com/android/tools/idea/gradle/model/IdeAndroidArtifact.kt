@@ -24,73 +24,58 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
    * The application ID of this artifact.
    *
    * Known for:
-   *  - Application plugin main artifacts
-   *  - AndroidTest components of all project types
-   *  - Test-only plugin main artifacts
+   * - Application plugin main artifacts
+   * - AndroidTest components of all project types
+   * - Test-only plugin main artifacts
    *
-   *  Not included (null) for:
-   *   - Library plugin main artifacts, as no APK is produced
-   *   - UnitTest components, also as no APK is produced
-   *   - Dynamic feature plugin main artifacts, as the application ID comes from the base
-   *     application, and is therefore not available in dynamic feature projects during
-   *     configuration. In this case Android Studio must look at the dependency graph to find the
-   *     base application to find this value.
+   * Not included (null) for:
+   * - Library plugin main artifacts, as no APK is produced
+   * - UnitTest components, also as no APK is produced
+   * - Dynamic feature plugin main artifacts, as the application ID comes from the base application, and is therefore not available in
+   *   dynamic feature projects during configuration. In this case Android Studio must look at the dependency graph to find the base
+   *   application to find this value.
    */
   val applicationId: String?
 
   /**
-   * Returns the name of the [IdeSigningConfig] used for the signing. If none are setup or if
-   * this is not the main artifact of an application project, then this is null.
+   * Returns the name of the [IdeSigningConfig] used for the signing. If none are setup or if this is not the main artifact of an
+   * application project, then this is null.
    */
   val signingConfigName: String?
 
-  /**
-   * Returns whether the output file is signed. This can only be true for the main apk of an
-   * application project.
-   */
+  /** Returns whether the output file is signed. This can only be true for the main apk of an application project. */
   val isSigned: Boolean
 
   val generatedResourceFolders: Collection<File>
 
   /**
-   * Returns a list of additional APKs that need to installed on the device for this artifact to
-   * work correctly.
+   * Returns a list of additional APKs that need to installed on the device for this artifact to work correctly.
    *
-   *
-   * For test artifacts, these will be "buddy APKs" from the `androidTestUtil`
-   * configuration.
+   * For test artifacts, these will be "buddy APKs" from the `androidTestUtil` configuration.
    */
   val additionalRuntimeApks: List<File>
 
-  /**
-   * Returns the test options only if the variant type is testing.
-   */
+  /** Returns the test options only if the variant type is testing. */
   val testOptions: IdeTestOptions?
 
   val abiFilters: Set<String>
 
   val buildInformation: IdeBuildTasksAndOutputInformation
 
-  /**
-   * Returns the code shrinker used by this artifact or null if no shrinker is used to build this
-   * artifact.
-   */
+  /** Returns the code shrinker used by this artifact or null if no shrinker is used to build this artifact. */
   val codeShrinker: CodeShrinker?
 
   /**
    * Details about privacy sandbox SDK consumption.
    *
-   * Null if the feature is not enabled, but may be present even if there are
-   * no privacy sandbox SDKs that need to be deployed.
+   * Null if the feature is not enabled, but may be present even if there are no privacy sandbox SDKs that need to be deployed.
    */
   val privacySandboxSdkInfo: IdePrivacySandboxSdkInfo?
 
   val compileClasspathCore: IdeDependenciesCore
   val runtimeClasspathCore: IdeDependenciesCore
 
-  /**
-   * Files listing any D8 backported desugared methods or core library desugared methods for this artifact
-   */
+  /** Files listing any D8 backported desugared methods or core library desugared methods for this artifact */
   val desugaredMethodsFiles: Collection<File>
 
   val generatedAssetFolders: Collection<File>

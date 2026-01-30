@@ -26,11 +26,7 @@ internal typealias AppNameFormat = NameFormat
 internal typealias ProcessNameFormat = NameFormat
 
 /** Provides formatting for the app name. */
-internal data class NameFormat(
-  val maxLength: Int = DEFAULT_LENGTH,
-  val hideDuplicates: Boolean = false,
-  val enabled: Boolean = true,
-) {
+internal data class NameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
   init {
     assert(maxLength >= MIN_LENGTH)
   }

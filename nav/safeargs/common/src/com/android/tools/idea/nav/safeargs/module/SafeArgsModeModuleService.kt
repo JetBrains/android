@@ -41,8 +41,7 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
   }
 
   companion object {
-    fun getInstance(module: Module): SafeArgsModeModuleService =
-      module.getService(SafeArgsModeModuleService::class.java)
+    fun getInstance(module: Module): SafeArgsModeModuleService = module.getService(SafeArgsModeModuleService::class.java)
 
     val MODE_CHANGED: Topic<SafeArgsModeChangedListener> =
       Topic(SafeArgsModeChangedListener::class.java, Topic.BroadcastDirection.TO_CHILDREN, true)
@@ -58,8 +57,7 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
       }
     }
 
-  private val atomicSafeArgsFeatures: AtomicReference<Set<SafeArgsFeature>> =
-    AtomicReference(setOf())
+  private val atomicSafeArgsFeatures: AtomicReference<Set<SafeArgsFeature>> = AtomicReference(setOf())
 
   internal var safeArgsFeatures: Set<SafeArgsFeature>
     get() = atomicSafeArgsFeatures.get()
@@ -75,10 +73,7 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
     updateSafeArgsInfo()
     module.project.messageBus
       .connect(this)
-      .subscribe(
-        PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsInfo() },
-      )
+      .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, ProjectSystemSyncManager.SyncResultListener { updateSafeArgsInfo() })
   }
 
   private fun updateSafeArgsInfo() {
@@ -96,8 +91,6 @@ interface SafeArgsModeToken<P : AndroidProjectSystem> : Token {
 
   companion object {
     val EP_NAME =
-      ExtensionPointName<SafeArgsModeToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.nav.safeargs.module.safeArgsModeToken"
-      )
+      ExtensionPointName<SafeArgsModeToken<AndroidProjectSystem>>("com.android.tools.idea.nav.safeargs.module.safeArgsModeToken")
   }
 }

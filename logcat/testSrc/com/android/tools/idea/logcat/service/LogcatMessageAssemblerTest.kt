@@ -86,21 +86,7 @@ class LogcatMessageAssemblerTest {
       advanceUntilIdle()
       channel.close()
       assertThat(channel.toList())
-        .containsExactly(
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag",
-              1619900000L,
-              123L,
-              "Message 1",
-            )
-          )
-        )
+        .containsExactly(listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 123L, "Message 1")))
     }
 
   @Test
@@ -127,42 +113,10 @@ class LogcatMessageAssemblerTest {
       assertThat(channel.toList())
         .containsExactly(
           listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag",
-              1619900000L,
-              101L,
-              "Message 1",
-            ),
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag",
-              1619900000L,
-              102L,
-              "Message 2",
-            ),
+            logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 101L, "Message 1"),
+            logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 102L, "Message 2"),
           ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag",
-              1619900000L,
-              103L,
-              "Message 3",
-            )
-          ),
+          listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 103L, "Message 3")),
         )
     }
 
@@ -194,45 +148,9 @@ class LogcatMessageAssemblerTest {
       channel.close()
       assertThat(channel.toList())
         .containsExactly(
-          listOf(
-            logcatMessage(
-              DEBUG,
-              2,
-              2000,
-              "app-2.2",
-              "process-2.2",
-              "Tag1",
-              1619900000L,
-              123L,
-              "Message 1",
-            )
-          ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              2,
-              2000,
-              "app-2.2",
-              "process-2.2",
-              "Tag2",
-              1619900000L,
-              123L,
-              "Message 2 Line 1\nMessage 2 Line 2",
-            )
-          ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-2.1",
-              "process-2.1",
-              "Tag3",
-              1619900000L,
-              123L,
-              "Message 3",
-            )
-          ),
+          listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
+          listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2 Line 1\nMessage 2 Line 2")),
+          listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3")),
         )
     }
 
@@ -266,56 +184,12 @@ class LogcatMessageAssemblerTest {
       channel.close()
       assertThat(channel.toList())
         .containsExactly(
+          listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
           listOf(
-            logcatMessage(
-              DEBUG,
-              2,
-              2000,
-              "app-2.2",
-              "process-2.2",
-              "Tag1",
-              1619900000L,
-              123L,
-              "Message 1",
-            )
+            logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2"),
+            logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3"),
           ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              2,
-              2000,
-              "app-2.2",
-              "process-2.2",
-              "Tag2",
-              1619900000L,
-              123L,
-              "Message 2",
-            ),
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-2.1",
-              "process-2.1",
-              "Tag3",
-              1619900000L,
-              123L,
-              "Message 3",
-            ),
-          ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-2.1",
-              "process-2.1",
-              "Tag4",
-              1619900000L,
-              123L,
-              "Message 4",
-            )
-          ),
+          listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag4", 1619900000L, 123L, "Message 4")),
         )
     }
 
@@ -348,45 +222,11 @@ class LogcatMessageAssemblerTest {
       channel.close()
       assertThat(channel.toList())
         .containsExactly(
+          listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1")),
           listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag1",
-              1619900000L,
-              123L,
-              "Message 1",
-            )
+            logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2 Line 1\n\nMessage 2 Line 3")
           ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag2",
-              1619900000L,
-              123L,
-              "Message 2 Line 1\n\nMessage 2 Line 3",
-            )
-          ),
-          listOf(
-            logcatMessage(
-              DEBUG,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag3",
-              1619900000L,
-              123L,
-              "Message 3",
-            )
-          ),
+          listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3")),
         )
     }
 
@@ -434,19 +274,7 @@ class LogcatMessageAssemblerTest {
               "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3",
             )
           ),
-          listOf(
-            logcatMessage(
-              INFO,
-              1,
-              2000,
-              "app-1.1",
-              "process-1.1",
-              "Tag2",
-              1619900000L,
-              123L,
-              "Message 2",
-            )
-          ),
+          listOf(logcatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2")),
         )
     }
 
@@ -475,31 +303,9 @@ class LogcatMessageAssemblerTest {
           listOf(
             LogcatMessage(SYSTEM_HEADER, "--------- beginning of crash"),
             LogcatMessage(SYSTEM_HEADER, "--------- beginning of system"),
-            logcatMessage(
-              INFO,
-              1,
-              1000,
-              "app-1.1",
-              "process-1.1",
-              "Tag1",
-              1619900001L,
-              123L,
-              "Message 1",
-            ),
+            logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag1", 1619900001L, 123L, "Message 1"),
           ),
-          listOf(
-            logcatMessage(
-              INFO,
-              1,
-              1000,
-              "app-1.1",
-              "process-1.1",
-              "Tag2",
-              1619900001L,
-              123L,
-              "Message 2",
-            )
-          ),
+          listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
         )
     }
 
@@ -521,29 +327,13 @@ class LogcatMessageAssemblerTest {
       advanceUntilIdle()
       channel.close()
       assertThat(channel.toList())
-        .containsExactly(
-          listOf(
-            logcatMessage(
-              INFO,
-              1,
-              1000,
-              "app-1.1",
-              "process-1.1",
-              "Tag2",
-              1619900001L,
-              123L,
-              "Message 2",
-            )
-          )
-        )
+        .containsExactly(listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")))
     }
 
   /**
-   * This test sends 3 small batches with a small interval between them simulating a running Logcat
-   * process that emits data periodically.
+   * This test sends 3 small batches with a small interval between them simulating a running Logcat process that emits data periodically.
    *
-   * In contrast to the other tests in this file, it asserts the state of the channel after each
-   * batch rather than at the end.
+   * In contrast to the other tests in this file, it asserts the state of the channel after each batch rather than at the end.
    */
   @Test
   fun multipleBatchesWithIntervals() =
@@ -561,36 +351,12 @@ class LogcatMessageAssemblerTest {
       """
       )
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag1",
-            1619900000L,
-            123L,
-            "Message 1",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
       assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag2",
-            1619900000L,
-            123L,
-            "Message 2",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
 
       assembler.processNewLines(
         """
@@ -603,36 +369,12 @@ class LogcatMessageAssemblerTest {
       """
       )
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag3",
-            1619900000L,
-            123L,
-            "Message 3",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
       assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag4",
-            1619900000L,
-            123L,
-            "Message 4",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
 
       assembler.processNewLines(
         """
@@ -645,36 +387,12 @@ class LogcatMessageAssemblerTest {
       """
       )
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag5",
-            1619900000L,
-            123L,
-            "Message 5",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
       assertThat(channel.isEmpty).isTrue()
       testScheduler.advanceTimeBy(100)
       testScheduler.runCurrent()
       assertThat(channel.receive())
-        .containsExactly(
-          logcatMessage(
-            DEBUG,
-            1,
-            2000,
-            "app-1.1",
-            "process-1.1",
-            "Tag6",
-            1619900000L,
-            123L,
-            "Message 6",
-          )
-        )
+        .containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
       advanceUntilIdle()
       assertThat(channel.isEmpty).isTrue()
       channel.close()
@@ -685,15 +403,12 @@ class LogcatMessageAssemblerTest {
     runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
-      assembler.processNewLines(
-        TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLines()
-      )
+      assembler.processNewLines(TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLines())
 
       advanceUntilIdle()
       channel.close()
       val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-      val expectedLines =
-        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
       assertThat(actualLines).hasSize(expectedLines.size)
       actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
         assertThat(actual).named("Line $index").isEqualTo(expected)
@@ -705,15 +420,12 @@ class LogcatMessageAssemblerTest {
     runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
-      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
-        .readLinesInBatches(50)
-        .forEach { assembler.processNewLines(it) }
+      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(50).forEach { assembler.processNewLines(it) }
 
       advanceUntilIdle()
       channel.close()
       val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-      val expectedLines =
-        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
       assertThat(actualLines).hasSize(expectedLines.size)
       actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
         assertThat(actual).named("Line $index").isEqualTo(expected)
@@ -725,15 +437,12 @@ class LogcatMessageAssemblerTest {
     runTest(timeout = 5.seconds) {
       val assembler = logcatMessageAssembler("device1", channel)
 
-      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
-        .readLinesInBatches(8192)
-        .forEach { assembler.processNewLines(it) }
+      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(8192).forEach { assembler.processNewLines(it) }
 
       advanceUntilIdle()
       channel.close()
       val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-      val expectedLines =
-        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
       assertThat(actualLines).hasSize(expectedLines.size)
       actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
         assertThat(actual).named("Line $index").isEqualTo(expected)
@@ -758,11 +467,7 @@ class LogcatMessageAssemblerTest {
       advanceUntilIdle()
       channel.close()
       assertThat(channel.toList())
-        .containsExactly(
-          listOf(
-            logcatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")
-          )
-        )
+        .containsExactly(listOf(logcatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")))
     }
 
   private fun TestScope.logcatMessageAssembler(
@@ -771,14 +476,7 @@ class LogcatMessageAssemblerTest {
     processNameMonitor: ProcessNameMonitor = this@LogcatMessageAssemblerTest.processNameMonitor,
   ): LogcatMessageAssembler {
     val logcatMessageAssembler =
-      LogcatMessageAssembler(
-        serialNumber,
-        EPOCH_FORMAT,
-        channel,
-        processNameMonitor,
-        coroutineContext,
-        lastMessageDelayMs = 100,
-      )
+      LogcatMessageAssembler(serialNumber, EPOCH_FORMAT, channel, processNameMonitor, coroutineContext, lastMessageDelayMs = 100)
     Disposer.register(disposableRule.disposable, logcatMessageAssembler)
     return logcatMessageAssembler
   }
@@ -796,20 +494,11 @@ private fun logcatMessage(
   message: String,
 ) =
   LogcatMessage(
-    LogcatHeader(
-      level,
-      pid,
-      tid,
-      appId,
-      processName,
-      tag,
-      Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis)),
-    ),
+    LogcatHeader(level, pid, tid, appId, processName, tag, Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis))),
     message,
   )
 
-private suspend fun LogcatMessageAssembler.processNewLines(lines: String) =
-  processNewLines(lines.replaceIndent().split("\n").toList())
+private suspend fun LogcatMessageAssembler.processNewLines(lines: String) = processNewLines(lines.replaceIndent().split("\n").toList())
 
 /**
  * Reads lines from a file in batches.

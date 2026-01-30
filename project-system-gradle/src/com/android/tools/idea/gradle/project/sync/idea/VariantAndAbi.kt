@@ -17,14 +17,10 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.project.model.VariantAbi
 
-data class VariantAndAbi(
-  val variant: String,
-  val abi: String?
-) {
+data class VariantAndAbi(val variant: String, val abi: String?) {
   fun toVariantAbi(): VariantAbi? = abi?.let { VariantAbi(variant, abi) }
 
   companion object {
-    @JvmStatic
-    fun fromVariantAbi(variantAbi: VariantAbi): VariantAndAbi = VariantAndAbi(variantAbi.variant, variantAbi.abi)
+    @JvmStatic fun fromVariantAbi(variantAbi: VariantAbi): VariantAndAbi = VariantAndAbi(variantAbi.variant, variantAbi.abi)
   }
 }

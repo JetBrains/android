@@ -20,9 +20,7 @@ import com.android.tools.idea.compose.pickers.base.enumsupport.EnumValuesProvide
 import com.android.tools.property.panel.api.EnumValue
 
 /** [EnumSupportValuesProvider] that uses a backing map to return the provider functions. */
-class PsiCallEnumSupportValuesProvider(
-  private val providersMap: Map<String, () -> List<EnumValue>>
-) : EnumSupportValuesProvider {
+class PsiCallEnumSupportValuesProvider(private val providersMap: Map<String, () -> List<EnumValue>>) : EnumSupportValuesProvider {
 
   override fun getValuesProvider(key: String): EnumValuesProvider? = providersMap[key]
 }

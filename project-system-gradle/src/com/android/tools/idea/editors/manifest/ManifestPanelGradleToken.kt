@@ -21,6 +21,7 @@ import com.android.ide.common.blame.SourcePosition
 import com.android.ide.common.gradle.Component
 import com.android.manifmerger.Actions
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -33,28 +34,24 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import java.io.File
 
 class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, GradleToken {
   /**
-   * We don't have an exact position for values coming from the
-   * Gradle model. This file is used as a marker pointing to the
-   * Gradle model.
+   * We don't have an exact position for values coming from the Gradle model. This file is used as a marker pointing to the Gradle model.
    */
   companion object {
     private val GRADLE_MODEL_MARKER_FILE = File(SdkConstants.FN_BUILD_GRADLE)
   }
 
   /**
-   * Computes a library name intended for display purposes; names may not be unique
-   * (and separator is always ":"). It will show only the artifact id, if that id contains hyphens; otherwise
-   * it will include the last component of the group id (unless identical to the artifact id).
+   * Computes a library name intended for display purposes; names may not be unique (and separator is always ":"). It will show only the
+   * artifact id, if that id contains hyphens; otherwise it will include the last component of the group id (unless identical to the
+   * artifact id).
+   *
    * <p>
-   * E.g.
-   * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
-   * android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
-   * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
+   * E.g. com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1 android.arch.lifecycle:extensions:1.0.0-beta1@aar
+   * -> lifecycle:extensions:1.0.0-beta1 com.google.guava:guava:11.0.2@jar -> guava:11.0.2
    */
   override fun getExternalAndroidLibraryDisplayName(library: ExternalAndroidLibrary): String {
     val artifactAddress = library.address
@@ -96,7 +93,7 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
     referenced: Set<File>,
     sortedFiles: MutableList<ManifestFileWithMetadata>,
     sortedOtherFiles: MutableList<ManifestFileWithMetadata>,
-    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata
+    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata,
   ) {
     // Build.gradle - injected
     if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
@@ -106,11 +103,12 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
 
   override fun getMetadataForRecord(
     record: Actions.Record,
-    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata
-  ) : ManifestFileWithMetadata? = when (record.actionType) {
-    Actions.ActionType.INJECTED -> metadataForFileCreator(SourceFilePosition(GRADLE_MODEL_MARKER_FILE, SourcePosition.UNKNOWN))
-    else -> null
-  }
+    metadataForFileCreator: (SourceFilePosition) -> ManifestFileWithMetadata,
+  ): ManifestFileWithMetadata? =
+    when (record.actionType) {
+      Actions.ActionType.INJECTED -> metadataForFileCreator(SourceFilePosition(GRADLE_MODEL_MARKER_FILE, SourcePosition.UNKNOWN))
+      else -> null
+    }
 
   override fun createMetadataForFile(file: File?, module: Module): ManifestFileWithMetadata? {
     if (file == null) return null
@@ -119,45 +117,38 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
       return if (gradleBuildFile != null) {
         val ioFile = VfsUtilCore.virtualToIoFile(gradleBuildFile)
         InjectedBuildDotGradleFile(ioFile)
-      }
-      else {
+      } else {
         InjectedBuildDotGradleFile(null)
       }
     }
     return null
   }
 
-  override fun generateMinSdkSettingRunnable(module: Module, minSdk: Int): Runnable? =
-    Runnable {
-      val linkAction = Runnable linkAction@{
-        val project = module.project
-        val pbm = ProjectBuildModel.get(project)
-        val gbm: GradleBuildModel = pbm.getModuleBuildModel(module) ?: return@linkAction
-        gbm.android().defaultConfig().minSdkVersion().setValue(minSdk)
-        ApplicationManager.getApplication().invokeAndWait {
-          WriteCommandAction
-            .runWriteCommandAction(project, "Update build file minSdkVersion", null,
-                                   { pbm.applyChanges() },
-                                   gbm.psiFile)
-        }
-        // We must make sure that the files have been updated before we sync, we block above but not here.
-        val syncRunnable = Runnable { project.getSyncManager().requestSyncProject(PROJECT_MODIFIED) }
-        if (ApplicationManager.getApplication().isUnitTestMode) {
-          syncRunnable.run()
-        }
-        else {
-          ApplicationManager.getApplication().invokeLater(syncRunnable)
-        }
+  override fun generateMinSdkSettingRunnable(module: Module, minSdk: Int): Runnable? = Runnable {
+    val linkAction = Runnable linkAction@{
+      val project = module.project
+      val pbm = ProjectBuildModel.get(project)
+      val gbm: GradleBuildModel = pbm.getModuleBuildModel(module) ?: return@linkAction
+      gbm.android().defaultConfig().minSdkVersion().setValue(minSdk)
+      ApplicationManager.getApplication().invokeAndWait {
+        WriteCommandAction.runWriteCommandAction(project, "Update build file minSdkVersion", null, { pbm.applyChanges() }, gbm.psiFile)
       }
+      // We must make sure that the files have been updated before we sync, we block above but not here.
+      val syncRunnable = Runnable { project.getSyncManager().requestSyncProject(PROJECT_MODIFIED) }
       if (ApplicationManager.getApplication().isUnitTestMode) {
-        linkAction.run()
-      }
-      else {
-        ApplicationManager.getApplication().executeOnPooledThread(linkAction)
+        syncRunnable.run()
+      } else {
+        ApplicationManager.getApplication().invokeLater(syncRunnable)
       }
     }
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      linkAction.run()
+    } else {
+      ApplicationManager.getApplication().executeOnPooledThread(linkAction)
+    }
+  }
 }
 
 data class InjectedBuildDotGradleFile(override val file: File?) : InjectedFile() {
-  override val isProjectFile = true;
+  override val isProjectFile = true
 }

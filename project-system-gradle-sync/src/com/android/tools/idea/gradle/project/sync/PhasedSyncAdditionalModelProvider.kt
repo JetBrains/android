@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.utils.appendCapitalized
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -24,30 +23,29 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
-import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
 class PhasedSyncAdditionalModelProvider(val cachedModels: ModelProviderCachedData) : ProjectImportModelProvider {
   override fun getPhase() = GradleModelFetchPhase.ADDITIONAL_MODEL_PHASE
 
-  override fun populateModels(controller: BuildController,
-                              buildModels: Collection<GradleBuild>,
-                              modelConsumer: ProjectImportModelProvider.GradleModelConsumer) {
+  override fun populateModels(
+    controller: BuildController,
+    buildModels: Collection<GradleBuild>,
+    modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+  ) {
     if (cachedModels.shouldRunLegacyModelProviders) {
       return
     }
-    val actions = buildModels.flatMap { buildModel ->
-      buildModel.projects
-        .mapNotNull { gradleProject ->
+    val actions =
+      buildModels.flatMap { buildModel ->
+        buildModel.projects.mapNotNull { gradleProject ->
           BuildAction { controller ->
             gradleProject to controller.fetchModel<KotlinGradleModel>(gradleProject, cachedModels.data[gradleProject]?.selectedVariantName)
           }
         }
-    }
+      }
 
     controller.run(actions).filterNotNull().forEach { (gradleProject, kotlinModel) ->
-      kotlinModel?.let {
-        modelConsumer.consumeProjectModel(gradleProject, it, KotlinGradleModel::class.java)
-      }
+      kotlinModel?.let { modelConsumer.consumeProjectModel(gradleProject, it, KotlinGradleModel::class.java) }
       createIdeAndroidModels(cachedModels, gradleProject)?.let {
         modelConsumer.consumeProjectModel(gradleProject, it, IdeAndroidModels::class.java)
       }
@@ -56,16 +54,14 @@ class PhasedSyncAdditionalModelProvider(val cachedModels: ModelProviderCachedDat
   }
 }
 
-private fun createIdeAndroidModels(
-  cachedModels: ModelProviderCachedData,
-  gradleProject: BasicGradleProject
-) = cachedModels.data[gradleProject]?.let { data ->
-  IdeAndroidModels(
-    data.ideAndroidProject as IdeAndroidProjectImpl,
-    listOf(cachedModels.selectedVariant[gradleProject]!!),
-    data.selectedVariantName,
-    selectedAbiName = null,
-    v2NativeModule = null,
-    kaptGradleModel = null
-  )
-}
+private fun createIdeAndroidModels(cachedModels: ModelProviderCachedData, gradleProject: BasicGradleProject) =
+  cachedModels.data[gradleProject]?.let { data ->
+    IdeAndroidModels(
+      data.ideAndroidProject as IdeAndroidProjectImpl,
+      listOf(cachedModels.selectedVariant[gradleProject]!!),
+      data.selectedVariantName,
+      selectedAbiName = null,
+      v2NativeModule = null,
+      kaptGradleModel = null,
+    )
+  }

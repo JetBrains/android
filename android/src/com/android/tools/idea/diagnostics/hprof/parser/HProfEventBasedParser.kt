@@ -65,17 +65,18 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
   fun accept(visitor: HProfVisitor, description: String?) {
     val stopwatch = Stopwatch.createStarted()
     buffer.position(reparsePosition)
-    visitor.visitorContext = object : VisitorContext {
-      override val currentHeapRecordOffset: Long
-        get() {
-          return heapRecordPosition
-        }
+    visitor.visitorContext =
+      object : VisitorContext {
+        override val currentHeapRecordOffset: Long
+          get() {
+            return heapRecordPosition
+          }
 
-      override val idSize: Int
-        get() {
-          return this@HProfEventBasedParser.idSize
-        }
-    }
+        override val idSize: Int
+          get() {
+            return this@HProfEventBasedParser.idSize
+          }
+      }
     visitor.preVisit()
 
     while (!buffer.isEof()) {
@@ -95,8 +96,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
         RecordType.HeapDumpSegment,
         RecordType.HeapDump -> acceptHeapDumpSegment(visitor, length)
         RecordType.HeapDumpEnd -> visitor.visitHeapDumpEnd()
-        RecordType.HeapSummary -> visitor.visitHeapSummary(
-          readUnsignedInt(), readUnsignedInt(), readLong(), readLong())
+        RecordType.HeapSummary -> visitor.visitHeapSummary(readUnsignedInt(), readUnsignedInt(), readLong(), readLong())
         RecordType.AllocSites -> {
           visitor.visitAllocSites()
           skip(length)
@@ -109,9 +109,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
           val stackTraceSerialNumber = readUnsignedInt()
           val threadSerialNumber = readUnsignedInt()
           val numberOfFrames = readInt()
-          val frameIds = LongArray(numberOfFrames) {
-            readRawId()
-          }
+          val frameIds = LongArray(numberOfFrames) { readRawId() }
           visitor.visitStackTrace(stackTraceSerialNumber, threadSerialNumber, numberOfFrames, frameIds)
         }
         RecordType.CPUSamples -> {
@@ -148,8 +146,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
       if (visitor.isEnabled(heapDumpRecordType)) {
         saveHeapRecordPosition(currentPosition)
         acceptHeapDumpRecord(heapDumpRecordType, visitor)
-      }
-      else {
+      } else {
         skipHeapDumpRecord(heapDumpRecordType)
       }
       currentPosition = buffer.position()
@@ -231,10 +228,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     val classObjectId = readId()
     val remainingBytes = readInt()
     val byteBuffer = buffer.getByteBuffer(remainingBytes)
-    visitor.visitInstanceDump(objectId,
-                              stackTraceSerialNumber,
-                              classObjectId,
-                              byteBuffer)
+    visitor.visitInstanceDump(objectId, stackTraceSerialNumber, classObjectId, byteBuffer)
   }
 
   private fun acceptObjectArrayDump(visitor: HProfVisitor) {
@@ -246,10 +240,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     for (i in objects.indices) {
       objects[i] = readId()
     }
-    visitor.visitObjectArrayDump(arrayObjectId,
-                                 stackTraceSerialNumber,
-                                 arrayClassObjectId,
-                                 objects)
+    visitor.visitObjectArrayDump(arrayObjectId, stackTraceSerialNumber, arrayClassObjectId, objects)
   }
 
   private fun acceptPrimitiveArrayDump(visitor: HProfVisitor) {
@@ -259,12 +250,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     val elementTypeId = readUnsignedByte()
     val elementType = Type.getType(elementTypeId)
     skip(numberOfElements * elementType.size)
-    visitor.visitPrimitiveArrayDump(
-      arrayObjectId,
-      stackTraceSerialNumber,
-      numberOfElements,
-      elementType
-    )
+    visitor.visitPrimitiveArrayDump(arrayObjectId, stackTraceSerialNumber, numberOfElements, elementType)
   }
 
   private fun acceptClassDump(visitor: HProfVisitor) {
@@ -277,35 +263,36 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     val instanceSize = readUnsignedInt()
     val countOfConstantPool = readUnsignedShort()
 
-    val constants = Array(countOfConstantPool) {
-      val constantPoolIndex = readUnsignedShort()
-      val elementType = Type.getType(readUnsignedByte())
-      val value = readTypeSizeValue(elementType)
-      if (elementType === Type.OBJECT) {
-        ConstantPoolEntry(constantPoolIndex, elementType, remap(value))
+    val constants =
+      Array(countOfConstantPool) {
+        val constantPoolIndex = readUnsignedShort()
+        val elementType = Type.getType(readUnsignedByte())
+        val value = readTypeSizeValue(elementType)
+        if (elementType === Type.OBJECT) {
+          ConstantPoolEntry(constantPoolIndex, elementType, remap(value))
+        } else {
+          ConstantPoolEntry(constantPoolIndex, elementType, value)
+        }
       }
-      else {
-        ConstantPoolEntry(constantPoolIndex, elementType, value)
-      }
-    }
     val countOfStaticFields = readUnsignedShort()
-    val staticFields = Array(countOfStaticFields) {
-      val staticFieldStringId = readRawId()
-      val elementType = Type.getType(readUnsignedByte())
-      val value = readTypeSizeValue(elementType)
-      if (elementType === Type.OBJECT) {
-        StaticFieldEntry(staticFieldStringId, elementType, remap(value))
+    val staticFields =
+      Array(countOfStaticFields) {
+        val staticFieldStringId = readRawId()
+        val elementType = Type.getType(readUnsignedByte())
+        val value = readTypeSizeValue(elementType)
+        if (elementType === Type.OBJECT) {
+          StaticFieldEntry(staticFieldStringId, elementType, remap(value))
+        } else {
+          StaticFieldEntry(staticFieldStringId, elementType, value)
+        }
       }
-      else {
-        StaticFieldEntry(staticFieldStringId, elementType, value)
-      }
-    }
     val countOfInstanceFields = readUnsignedShort()
-    val instanceFields = Array(countOfInstanceFields) {
-      val fieldNameStringId = readRawId()
-      val elementType = Type.getType(readUnsignedByte())
-      InstanceFieldEntry(fieldNameStringId, elementType)
-    }
+    val instanceFields =
+      Array(countOfInstanceFields) {
+        val fieldNameStringId = readRawId()
+        val elementType = Type.getType(readUnsignedByte())
+        InstanceFieldEntry(fieldNameStringId, elementType)
+      }
     visitor.visitClassDump(
       classId,
       stackTraceSerialNumber,
@@ -314,7 +301,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
       instanceSize,
       constants,
       staticFields,
-      instanceFields
+      instanceFields,
     )
   }
 
@@ -337,10 +324,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
   }
 
   private fun getElementTypeSize(elementType: Type): Int {
-    return if (elementType === Type.OBJECT)
-      idSize
-    else
-      elementType.size
+    return if (elementType === Type.OBJECT) idSize else elementType.size
   }
 
   private fun readNonNullTerminatedString(length: Long): String {
@@ -363,8 +347,7 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     val initialPosition = buffer.position()
     do {
       c = buffer.get().toInt()
-    }
-    while (c > 0)
+    } while (c > 0)
     if (c == -1) throw EOFException()
     val bytes = ByteArray((buffer.position() - initialPosition - 1).toInt())
     buffer.position(initialPosition)

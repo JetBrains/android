@@ -169,8 +169,7 @@ class StorageGroupTest {
 
     // Assert
     assertThat(state.selectedRadioButton).isEqualTo(ExpandedStorageRadioButton.CUSTOM)
-    assertThat(device.expandedStorage)
-      .isEqualTo(Custom(StorageCapacity(512, StorageCapacity.Unit.MB)))
+    assertThat(device.expandedStorage).isEqualTo(Custom(StorageCapacity(512, StorageCapacity.Unit.MB)))
   }
 
   @Test
@@ -224,8 +223,7 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onTooltips().assertCountEquals(0)
-    assertThat(device.expandedStorage)
-      .isEqualTo(Custom(StorageCapacity(513, StorageCapacity.Unit.MB)))
+    assertThat(device.expandedStorage).isEqualTo(Custom(StorageCapacity(513, StorageCapacity.Unit.MB)))
   }
 
   @Test
@@ -285,10 +283,7 @@ class StorageGroupTest {
   @Test
   fun existingCustomExpandedStorageDoesntEqualState() {
     // Arrange
-    val device =
-      TestDevices.pixel6().apply {
-        existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
-      }
+    val device = TestDevices.pixel6().apply { existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)) }
     val state = StorageGroupState(device)
 
     setContent { StorageGroup(device, state) }

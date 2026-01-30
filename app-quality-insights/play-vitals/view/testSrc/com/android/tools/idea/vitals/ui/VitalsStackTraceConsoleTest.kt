@@ -39,13 +39,9 @@ import org.junit.rules.RuleChain
 
 class VitalsStackTraceConsoleTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val controllerRule =
-    AppInsightsProjectLevelControllerRule(projectRule, VitalsInsightsProvider)
+  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule, VitalsInsightsProvider)
 
-  private val fetchState =
-    LoadingState.Ready(
-      IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL)
-    )
+  private val fetchState = LoadingState.Ready(IssueResponse(listOf(ISSUE1, ISSUE2), emptyList(), emptyList(), emptyList(), Permission.FULL))
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
@@ -53,14 +49,11 @@ class VitalsStackTraceConsoleTest {
   fun `when issue is selected, correct stack trace is printed`() {
     val stackTraceConsole =
       runBlocking(AndroidDispatchers.uiThread) {
-        StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker)
-          .apply {
-            ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach {
-              consoleView.addMessageFilter(it)
-            }
+        StackTraceConsole(controllerRule.controller, projectRule.project, controllerRule.tracker).apply {
+          ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach { consoleView.addMessageFilter(it) }
 
-            (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
-          }
+          (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
+        }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
     executeWithErrorProcessor {
@@ -72,10 +65,10 @@ class VitalsStackTraceConsoleTest {
         Truth.assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
           .isEqualTo(
             """
-             retrofit2.HttpException: HTTP 401 
-                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
-          """
+            retrofit2.HttpException: HTTP 401 
+                dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+                dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+            """
               .trimIndent()
           )
       }

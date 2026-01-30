@@ -44,9 +44,7 @@ class InstallationIdTest {
   fun get_existingValidId_returnsExistingId() {
     val existingUuid = UUID.randomUUID().toString()
     whenever(mockUserRootPrefs.node(NODE_NAME)).thenReturn(mockNodePrefs)
-    mockNodePrefs.stub {
-      on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn existingUuid
-    }
+    mockNodePrefs.stub { on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn existingUuid }
 
     val result = InstallationId.get(mockUserRootPrefs)
 
@@ -59,9 +57,7 @@ class InstallationIdTest {
   @Test
   fun get_noExistingId_generatesAndSavesNewId() {
     whenever(mockUserRootPrefs.node(NODE_NAME)).thenReturn(mockNodePrefs)
-    mockNodePrefs.stub {
-      on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn ""
-    }
+    mockNodePrefs.stub { on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn "" }
 
     val result = InstallationId.get(mockUserRootPrefs)
 
@@ -76,9 +72,7 @@ class InstallationIdTest {
   fun get_invalidExistingId_generatesAndSavesNewId() {
     val invalidUuid = "not-a-valid-uuid"
     whenever(mockUserRootPrefs.node(NODE_NAME)).thenReturn(mockNodePrefs)
-    mockNodePrefs.stub {
-      on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn invalidUuid
-    }
+    mockNodePrefs.stub { on { get(eq(INSTALLATION_ID_KEY), any()) } doReturn invalidUuid }
 
     val result = InstallationId.get(mockUserRootPrefs)
 
@@ -94,8 +88,7 @@ class InstallationIdTest {
     return try {
       UUID.fromString(this)
       true
-    }
-    catch (_: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
   }

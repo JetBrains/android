@@ -32,11 +32,7 @@ private const val SHOW_RECOMPOSITION_COUNTS = "Show Recomposition Counts"
 
 /** Filter menu group */
 class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
-  DropDownAction(
-    "Filter",
-    "View Options for Component Tree",
-    StudioIcons.Common.VISIBILITY_INLINE,
-  ) {
+  DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
     add(SystemNodeFilterAction(renderModelProvider))
     add(HighlightSemanticsAction)
@@ -47,8 +43,7 @@ class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
 }
 
 /** Filter system nodes from view hierarchy and compose hierarchy. */
-class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) :
-  ToggleAction("Filter System-Defined Layers") {
+class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspectorRootPanel.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
@@ -62,10 +57,7 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
       val model = inspector.inspectorModel
       val selectedNode = model.selection
       if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
-        model.setSelection(
-          selectedNode.findClosestUnfilteredNode(treeSettings),
-          SelectionOrigin.COMPONENT_TREE,
-        )
+        model.setSelection(selectedNode.findClosestUnfilteredNode(treeSettings), SelectionOrigin.COMPONENT_TREE)
       }
       val hoveredNode = model.hoveredNode
       if (hoveredNode != null && !hoveredNode.isInComponentTree(treeSettings)) {
@@ -88,8 +80,7 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
 
 object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspectorRootPanel.get(event)?.treeSettings?.highlightSemantics
-      ?: DEFAULT_HIGHLIGHT_SEMANTICS
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.highlightSemantics ?: DEFAULT_HIGHLIGHT_SEMANTICS
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspectorRootPanel.get(event)?.treeSettings?.highlightSemantics = state
@@ -109,8 +100,7 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
 object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspectorRootPanel.get(event)?.treeSettings?.composeAsCallstack
-      ?: DEFAULT_COMPOSE_AS_CALLSTACK
+    LayoutInspectorRootPanel.get(event)?.treeSettings?.composeAsCallstack ?: DEFAULT_COMPOSE_AS_CALLSTACK
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspectorRootPanel.get(event)?.treeSettings?.composeAsCallstack = state
@@ -157,22 +147,16 @@ object RecompositionCounts : ToggleAction(SHOW_RECOMPOSITION_COUNTS, null, null)
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible =
-      isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-        LayoutInspectorRootPanel.get(event)?.currentClient !is FileEditorInspectorClient
+      isActionActive(event, Capability.SUPPORTS_COMPOSE) && LayoutInspectorRootPanel.get(event)?.currentClient !is FileEditorInspectorClient
 
     // The compose inspector is tracking the recompositions based on a compiler generated key
     // based on the source information. If the source information is missing we cannot track
     // recompositions.
     event.presentation.isEnabled =
-      isActionActive(
-        event,
-        Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
-        Capability.HAS_LINE_NUMBER_INFORMATION,
-      )
+      isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS, Capability.HAS_LINE_NUMBER_INFORMATION)
     event.presentation.text =
       if (event.presentation.isEnabled || !isActionActive(event)) SHOW_RECOMPOSITION_COUNTS
-      else if (!isActionActive(event, Capability.HAS_LINE_NUMBER_INFORMATION))
-        "$SHOW_RECOMPOSITION_COUNTS (No Source Information Found)"
+      else if (!isActionActive(event, Capability.HAS_LINE_NUMBER_INFORMATION)) "$SHOW_RECOMPOSITION_COUNTS (No Source Information Found)"
       else "$SHOW_RECOMPOSITION_COUNTS (Needs Compose 1.2.1+)"
   }
 }
@@ -185,6 +169,4 @@ fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boole
 
 fun inLiveMode(event: AnActionEvent): Boolean =
   // If not running, default to visible so user can modify selection when next client is connected
-  LayoutInspectorRootPanel.get(event)?.currentClient?.let { client ->
-    client.inLiveMode || !client.isConnected
-  } ?: true
+  LayoutInspectorRootPanel.get(event)?.currentClient?.let { client -> client.inLiveMode || !client.isConnected } ?: true

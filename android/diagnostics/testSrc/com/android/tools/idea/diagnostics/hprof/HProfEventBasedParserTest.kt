@@ -23,16 +23,16 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.intellij.openapi.util.SystemInfo
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class HProfEventBasedParserTest {
 
@@ -109,26 +109,26 @@ class HProfEventBasedParserTest {
 
   @Test
   fun testReport() {
-    val analysis = HProfAnalysis(channel, object : HProfAnalysis.TempFilenameSupplier {
-      override fun getTempFilePath(type: String): Path {
-        return tmpFolder.newFile().toPath()
-      }
-    })
+    val analysis =
+      HProfAnalysis(
+        channel,
+        object : HProfAnalysis.TempFilenameSupplier {
+          override fun getTempFilePath(type: String): Path {
+            return tmpFolder.newFile().toPath()
+          }
+        },
+      )
     analysis.setIncludeMetaInfo(false)
-    val progress = object : AbstractProgressIndicatorBase() {
-    }
+    val progress = object : AbstractProgressIndicatorBase() {}
     progress.isIndeterminate = false
     val generatedReport = analysis.analyze(progress).report
     val baselinePath = getBaselinePath("sample-report.txt")
     val baselineReport = getBaselineContents(baselinePath)
 
-    assertEquals("Report doesn't match the baseline from file:\n$baselinePath",
-                        baselineReport, generatedReport)
+    assertEquals("Report doesn't match the baseline from file:\n$baselinePath", baselineReport, generatedReport)
   }
 
-  /**
-   * Get the contents of the baseline file, with UNIX line endings.
-   */
+  /** Get the contents of the baseline file, with UNIX line endings. */
   private fun getBaselineContents(path: Path): String {
     return if (SystemInfo.isWindows) {
       String(Files.readAllBytes(path), StandardCharsets.UTF_8).replace(Regex("(\r\n)"), "\n")
@@ -137,7 +137,5 @@ class HProfEventBasedParserTest {
     }
   }
 
-  private fun getBaselinePath(fileName: String) =
-    resolveWorkspacePath("tools/adt/idea/android/testData/profiling/$fileName")
-
+  private fun getBaselinePath(fileName: String) = resolveWorkspacePath("tools/adt/idea/android/testData/profiling/$fileName")
 }

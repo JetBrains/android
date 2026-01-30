@@ -31,10 +31,7 @@ internal class MarginTextIcon(private val myText: String) : Icon {
     g.font = g.font.deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE).toFloat())
     val metrics = g.fontMetrics
     val strWidth = metrics.stringWidth(myText)
-    (g as Graphics2D).setRenderingHint(
-      RenderingHints.KEY_TEXT_ANTIALIASING,
-      RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
-    )
+    (g as Graphics2D).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
     val stringY = (iconHeight - metrics.height) / 2 + metrics.ascent
     g.drawString(myText, x + (iconWidth - strWidth) / 2, y + stringY - 1)
     g.color = JBColor.foreground().darker()

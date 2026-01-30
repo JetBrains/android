@@ -25,11 +25,7 @@ import com.intellij.openapi.vcs.VcsKey
 import com.intellij.openapi.vfs.VirtualFile
 
 class FakeVcsRepositoryCreator(private val fakeVcs: AbstractVcs) : VcsRepositoryCreator {
-  override fun createRepositoryIfValid(
-    project: Project,
-    root: VirtualFile,
-    parentDisposable: Disposable,
-  ): Repository {
+  override fun createRepositoryIfValid(project: Project, root: VirtualFile, parentDisposable: Disposable): Repository {
     return object : RepositoryImpl(project, root, parentDisposable) {
       override fun getState(): Repository.State {
         TODO("Not yet implemented")

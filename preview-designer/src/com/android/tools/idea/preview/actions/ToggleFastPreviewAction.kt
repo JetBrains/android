@@ -26,9 +26,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.EditorNotifications
 
 /** Action that toggles the Fast Preview state. */
-class ToggleFastPreviewAction(
-  private val fastPreviewSurfaceProvider: (DataContext) -> FastPreviewSurface?
-) : AnAction(null, null, null) {
+class ToggleFastPreviewAction(private val fastPreviewSurfaceProvider: (DataContext) -> FastPreviewSurface?) : AnAction(null, null, null) {
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -56,8 +54,7 @@ class ToggleFastPreviewAction(
       return
     }
     if (PreviewEssentialsModeManager.isEssentialsModeEnabled) {
-      presentation.description =
-        message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
+      presentation.description = message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
       presentation.isEnabled = false
     } else {
       presentation.description = message("action.preview.fast.refresh.toggle.description")

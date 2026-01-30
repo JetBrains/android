@@ -20,9 +20,9 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
+import java.nio.file.Files
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.nio.file.Files
 
 /** Test for functions defined in PhysicalDisplayIdResolver.kt. */
 internal class PhysicalDisplayIdResolverTest {
@@ -45,11 +45,9 @@ internal class PhysicalDisplayIdResolverTest {
     assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 0)).isEqualTo(4619827259835644672)
     assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 2)).isEqualTo(4619827551948147201)
     assertThat(getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 3)).isEqualTo(4619827124781842690)
-    assertThrows(RuntimeException::class.java) {
-      getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 1)
-    }
+    assertThrows(RuntimeException::class.java) { getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput, 1) }
   }
 }
 
 private fun getDumpsysOutput(filename: String): String =
-    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
+  Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))

@@ -65,14 +65,11 @@ class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEd
     }
 
     when (val toolbar = e.getData(ANIMATION_TOOLBAR)) {
-      null ->
-        e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
+      null -> e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
       is AnimatedSelectorToolbar -> {
         e.presentation.isVisible = true
         e.presentation.isEnabled = !toolbar.isTransitionSelected()
-        e.presentation.description =
-          if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition"
-          else null
+        e.presentation.description = if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition" else null
       }
       else -> e.presentation.isEnabledAndVisible = false
     }
@@ -83,8 +80,7 @@ class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEd
     val button = e.inputEvent?.component ?: return
 
     // Setup callback to reset the animated selector toolbar when state is changed.
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+    val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
     val toolbar = ANIMATION_TOOLBAR.getData(dataContext) as? AnimatedSelectorToolbar
     val callback: () -> Unit = { toolbar?.setNoTransition() }
 
@@ -117,11 +113,7 @@ class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit) : JCo
   }
 }
 
-private fun createStateItem(
-  designSurface: DesignSurface<*>,
-  state: State,
-  callback: () -> Unit,
-): JPanel {
+private fun createStateItem(designSurface: DesignSurface<*>, state: State, callback: () -> Unit): JPanel {
   val stateItemPanel =
     JPanel(GridBagLayout()).apply {
       preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
@@ -185,8 +177,7 @@ private fun isSelected(surface: DesignSurface<*>, state: State): Boolean {
 }
 
 private fun getImageView(surface: DesignSurface<*>): ImageView? {
-  val layoutlibSceneManager =
-    surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager ?: return null
+  val layoutlibSceneManager = surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager ?: return null
   return layoutlibSceneManager.renderResult?.rootViews?.firstOrNull()?.viewObject as? ImageView
 }
 
@@ -201,21 +192,13 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
       sceneManager
-        .executeInRenderSessionAsync(
-          { image.setImageState(ArrayUtil.append(states, stateValue), false) },
-          0,
-          TimeUnit.SECONDS,
-        )
+        .executeInRenderSessionAsync({ image.setImageState(ArrayUtil.append(states, stateValue), false) }, 0, TimeUnit.SECONDS)
         .whenComplete { _, _ -> sceneManager.requestRender() }
     }
   } else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
     sceneManager
-      .executeInRenderSessionAsync(
-        { image.setImageState(ArrayUtil.remove(states, i), false) },
-        0,
-        TimeUnit.SECONDS,
-      )
+      .executeInRenderSessionAsync({ image.setImageState(ArrayUtil.remove(states, i), false) }, 0, TimeUnit.SECONDS)
       .whenComplete { _, _ -> sceneManager.requestRender() }
   }
 }

@@ -24,21 +24,19 @@ import javax.swing.UIManager
 /** List of colors used for various UI parts of the "Wi-Fi pairing" window */
 object UIColors {
   /**
-   * The background of a QR code is always white, since a QR code should always be displayed with
-   * black dots on white background to be "scanner friendly".
+   * The background of a QR code is always white, since a QR code should always be displayed with black dots on white background to be
+   * "scanner friendly".
    */
   @JvmField val QR_CODE_BACKGROUND: Color = Color.WHITE
 
   /**
-   * The foreground (i.e. "dots") of a QR code are always black, since a QR code should always be
-   * displayed with black dots on white background to be "scanner friendly".
+   * The foreground (i.e. "dots") of a QR code are always black, since a QR code should always be displayed with black dots on white
+   * background to be "scanner friendly".
    */
   @JvmField val QR_CODE_FOREGROUND: Color = Color.BLACK
 
   /** Color for various "one pixel" line dividers */
-  @JvmField
-  val ONE_PIXEL_DIVIDER: Color =
-    UIManager.getColor("DialogWrapper.southPanelDivider") ?: OnePixelDivider.BACKGROUND
+  @JvmField val ONE_PIXEL_DIVIDER: Color = UIManager.getColor("DialogWrapper.southPanelDivider") ?: OnePixelDivider.BACKGROUND
 
   /** The background color for the "pairing" contents (QR code and pairing code panels) */
   @JvmField val PAIRING_CONTENT_BACKGROUND: Color = UIUtil.getTreeBackground()

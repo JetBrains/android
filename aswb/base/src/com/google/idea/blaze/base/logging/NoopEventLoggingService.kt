@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.base.logging
 
-import com.intellij.openapi.project.Project
-
 /** An [EventLoggingService] that does nothing, used in case there isn't one registered. */
 class NoopEventLoggingService : EventLoggingService() {
   override fun log(loggedEvent: LoggedEvent) = Unit

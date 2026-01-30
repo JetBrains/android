@@ -32,11 +32,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.SmartPsiElementPointer
 
-val TAB_PREVIEW_DEFINITION: Key<SmartPsiElementPointer<*>> =
-  Key.create(IssuePanelService::class.java.name + "_UiCheckPreviewDef")
+val TAB_PREVIEW_DEFINITION: Key<SmartPsiElementPointer<*>> = Key.create(IssuePanelService::class.java.name + "_UiCheckPreviewDef")
 
-val TAB_IS_WEAR_PREVIEW: Key<Boolean> =
-  Key.create(IssuePanelService::class.java.name + "_UiCheckWearPreview")
+val TAB_IS_WEAR_PREVIEW: Key<Boolean> = Key.create(IssuePanelService::class.java.name + "_UiCheckWearPreview")
 
 class UiCheckPanelProvider(
   private val instance: ComposePreviewElementInstance<*>,
@@ -57,9 +55,7 @@ class UiCheckPanelProvider(
       { "UI Check did not find any issues to report" },
       ::fixWithAiActionProvider,
     ) { content ->
-      (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let {
-        content.putUserData(TAB_PREVIEW_DEFINITION, it)
-      }
+      (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let { content.putUserData(TAB_PREVIEW_DEFINITION, it) }
       content.putUserData(TAB_IS_WEAR_PREVIEW, isWearPreview)
       content.isPinnable = true
       content.isCloseable = true
@@ -77,15 +73,12 @@ class UiCheckPanelProvider(
   }
 
   /**
-   * Returns an [AnAction] that fixes the Visual Lint issues using StudioBot. The issue to be fixed
-   * is provided via DataContext, and it's expected to be an accessibility issue found in the UI
-   * Check Panel.
+   * Returns an [AnAction] that fixes the Visual Lint issues using StudioBot. The issue to be fixed is provided via DataContext, and it's
+   * expected to be an accessibility issue found in the UI Check Panel.
    */
   private fun fixWithAiActionProvider(): AnAction? {
     if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get())
-      return ComposeStudioBotActionFactory.EP_NAME.extensionList
-        .firstOrNull()
-        ?.fixVisualLintIssuesAction(instance.methodFqn)
+      return ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.fixVisualLintIssuesAction(instance.methodFqn)
     return null
   }
 }

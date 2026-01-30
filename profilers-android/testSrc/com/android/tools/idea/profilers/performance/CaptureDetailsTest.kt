@@ -40,29 +40,27 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class CaptureDetailsTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", FakeTransportService(FakeTimer(), false))
+  @get:Rule var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", FakeTransportService(FakeTimer(), false))
 
-  private fun benchmarkInit(prefix: String) =
-    benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
-  private fun benchmarkRangeChange(prefix: String) =
-    benchmarkMemoryAndTime("$prefix Range Change", "Range-Change", memUnit = MemoryUnit.KB)
+  private fun benchmarkInit(prefix: String) = benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
+
+  private fun benchmarkRangeChange(prefix: String) = benchmarkMemoryAndTime("$prefix Range Change", "Range-Change", memUnit = MemoryUnit.KB)
+
   private fun benchmarkFilterChange(prefix: String) =
     benchmarkMemoryAndTime("$prefix Filter Change", "Filter-Change", memUnit = MemoryUnit.KB)
+
   private lateinit var benchmarkTopDownInit: BenchmarkRunner
   private lateinit var benchmarkBottomUpInit: BenchmarkRunner
   private lateinit var benchmarkFlameChartInit: BenchmarkRunner
@@ -87,40 +85,52 @@ class CaptureDetailsTest {
   }
 
   @Test
-  fun benchmarkTopDown() = benchmarkInitAndUpdate(benchmarkTopDownInit,
-                                                  benchmarkTopDownRangeChange,
-                                                  benchmarkTopDownFilterChange,
-                                                  CaptureDetails.Type.TOP_DOWN.build,
-                                                  ::TopDownDetailsView)
+  fun benchmarkTopDown() =
+    benchmarkInitAndUpdate(
+      benchmarkTopDownInit,
+      benchmarkTopDownRangeChange,
+      benchmarkTopDownFilterChange,
+      CaptureDetails.Type.TOP_DOWN.build,
+      ::TopDownDetailsView,
+    )
 
   @Test
-  fun benchmarkBottomUp() = benchmarkInitAndUpdate(benchmarkBottomUpInit,
-                                                   benchmarkBottomUpRangeChange,
-                                                   benchmarkBottomUpFilterChange,
-                                                   CaptureDetails.Type.BOTTOM_UP.build,
-                                                   ::BottomUpDetailsView)
+  fun benchmarkBottomUp() =
+    benchmarkInitAndUpdate(
+      benchmarkBottomUpInit,
+      benchmarkBottomUpRangeChange,
+      benchmarkBottomUpFilterChange,
+      CaptureDetails.Type.BOTTOM_UP.build,
+      ::BottomUpDetailsView,
+    )
 
   @Test
-  fun benchmarkFlameChart() = benchmarkInitAndUpdate(benchmarkFlameChartInit,
-                                                     benchmarkFlameChartRangeChange,
-                                                     benchmarkFlameChartFilterChange,
-                                                     CaptureDetails.Type.FLAME_CHART.build,
-                                                     ::FlameChartDetailsView)
+  fun benchmarkFlameChart() =
+    benchmarkInitAndUpdate(
+      benchmarkFlameChartInit,
+      benchmarkFlameChartRangeChange,
+      benchmarkFlameChartFilterChange,
+      CaptureDetails.Type.FLAME_CHART.build,
+      ::FlameChartDetailsView,
+    )
 
-  private fun<T: CaptureDetails>
-    benchmarkInitAndUpdate(benchmarkInit: BenchmarkRunner,
-                           benchmarkRangeUpdate: BenchmarkRunner,
-                           benchmarkFilterChange: BenchmarkRunner,
-                           initModel: (ClockType, Range, List<CaptureNode>, CpuCapture, (Runnable) -> Unit) -> CaptureDetails,
-                           initTree: (StudioProfilersView, T) -> CaptureDetailsView) {
+  private fun <T : CaptureDetails> benchmarkInitAndUpdate(
+    benchmarkInit: BenchmarkRunner,
+    benchmarkRangeUpdate: BenchmarkRunner,
+    benchmarkFilterChange: BenchmarkRunner,
+    initModel: (ClockType, Range, List<CaptureNode>, CpuCapture, (Runnable) -> Unit) -> CaptureDetails,
+    initTree: (StudioProfilersView, T) -> CaptureDetailsView,
+  ) {
     withTestData { range, captureNodes, cpuCapture ->
       val profilersView = fakeProfilersView()
       val executor = Executors.newSingleThreadExecutor()
 
-      val treeView = benchmarkInit("synthetic") {
-        SwingUtilities.invokeAndWait { initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
-                                                                         executor::execute) as T) }
-      }
+      val treeView =
+        benchmarkInit("synthetic") {
+          SwingUtilities.invokeAndWait {
+            initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture, executor::execute) as T)
+          }
+        }
 
       benchmarkRangeUpdate("synthetic") {
         val lo = range.min
@@ -135,11 +145,7 @@ class CaptureDetailsTest {
       }
 
       benchmarkFilterChange("synthetic") {
-        listOf("100", "42", "n/a", "").forEach { str ->
-          captureNodes.forEach { node ->
-            node.applyFilter(Filter(str))
-          }
-        }
+        listOf("100", "42", "n/a", "").forEach { str -> captureNodes.forEach { node -> node.applyFilter(Filter(str)) } }
       }
 
       treeView.hashCode() // keep it live to make sure it reacts to range change
@@ -149,36 +155,49 @@ class CaptureDetailsTest {
   }
 
   private fun fakeProfilersView(): StudioProfilersView {
-    val profilers = object: StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
-      override fun update(elapsedNs: Long) {}
-    }
+    val profilers =
+      object : StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
+        override fun update(elapsedNs: Long) {}
+      }
     return SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
-  private fun<A> withTestData(test: (Range, List<CaptureNode>, CpuCapture) -> A): A {
+  private fun <A> withTestData(test: (Range, List<CaptureNode>, CpuCapture) -> A): A {
     val lo = 0
     val hi = Int.MAX_VALUE
     // for the purpose of benchmarking, we avoid mockito, because it can insert code that slows down
     // the program in an irrelevant way.
-    val cpuCapture = object : CpuCapture {
-      override fun getTraceId(): Long = TODO()
-      override fun getType(): TraceType = TODO()
-      override fun getTimeline(): Timeline = TODO()
-      override fun isDualClock(): Boolean= TODO()
-      override fun getDualClockDisabledMessage(): String = TODO()
-      override fun updateClockType(clockType: ClockType)= TODO()
-      override fun getMainThreadId(): Int = TODO()
-      override fun getThreads(): MutableSet<CpuThreadInfo> = TODO()
-      override fun containsThread(threadId: Int): Boolean = TODO()
-      override fun getCaptureNode(threadId: Int): CaptureNode? = TODO()
-      override fun getCaptureNodes(): MutableCollection<CaptureNode> = TODO()
-      override fun collapseNodesWithTags(tagsToCollapse: MutableSet<String>) = TODO()
-      override fun getCollapsedTags(): MutableSet<String> = TODO()
-      override fun getTags(): MutableSet<String> = TODO()
-    }
-    return test(Range(lo.toDouble(), hi.toDouble()),
-                testTrees(lo.toLong(), hi.toLong()),
-                cpuCapture)
+    val cpuCapture =
+      object : CpuCapture {
+        override fun getTraceId(): Long = TODO()
+
+        override fun getType(): TraceType = TODO()
+
+        override fun getTimeline(): Timeline = TODO()
+
+        override fun isDualClock(): Boolean = TODO()
+
+        override fun getDualClockDisabledMessage(): String = TODO()
+
+        override fun updateClockType(clockType: ClockType) = TODO()
+
+        override fun getMainThreadId(): Int = TODO()
+
+        override fun getThreads(): MutableSet<CpuThreadInfo> = TODO()
+
+        override fun containsThread(threadId: Int): Boolean = TODO()
+
+        override fun getCaptureNode(threadId: Int): CaptureNode? = TODO()
+
+        override fun getCaptureNodes(): MutableCollection<CaptureNode> = TODO()
+
+        override fun collapseNodesWithTags(tagsToCollapse: MutableSet<String>) = TODO()
+
+        override fun getCollapsedTags(): MutableSet<String> = TODO()
+
+        override fun getTags(): MutableSet<String> = TODO()
+      }
+    return test(Range(lo.toDouble(), hi.toDouble()), testTrees(lo.toLong(), hi.toLong()), cpuCapture)
   }
 
   private fun testTrees(lo: Long, hi: Long): List<CaptureNode> {
@@ -186,21 +205,20 @@ class CaptureDetailsTest {
     var nextId = 0
 
     fun captureTree(branching: Int, depth: Int, lo: Long, hi: Long): CaptureNode {
-      val rootNode = CaptureNode(model("${nextId++ % numIds}")).apply {
-        SwingUtilities.invokeAndWait {
-          startGlobal = lo
-          endGlobal = hi
-          startThread = lo
-          endThread = hi
+      val rootNode =
+        CaptureNode(model("${nextId++ % numIds}")).apply {
+          SwingUtilities.invokeAndWait {
+            startGlobal = lo
+            endGlobal = hi
+            startThread = lo
+            endThread = hi
+          }
         }
-      }
       if (depth > 0) {
         val l = (hi - lo) / branching
         (0 until branching).forEach { i ->
           val childNode = captureTree(branching, depth - 1, lo + i * l, lo + (i + 1) * l)
-          SwingUtilities.invokeAndWait {
-            rootNode.addChild(childNode)
-          }
+          SwingUtilities.invokeAndWait { rootNode.addChild(childNode) }
         }
       }
 
@@ -208,15 +226,20 @@ class CaptureDetailsTest {
     }
 
     val l = (hi - lo) / 4
-    return listOf(captureTree(4, 8, lo, lo + l),
-                  captureTree(16, 4, lo + l, lo + 2*l),
-                  captureTree(2, 16, lo + 2*l,lo + 3*l),
-                  captureTree(1, 1000, lo + 3*l, hi))
+    return listOf(
+      captureTree(4, 8, lo, lo + l),
+      captureTree(16, 4, lo + l, lo + 2 * l),
+      captureTree(2, 16, lo + 2 * l, lo + 3 * l),
+      captureTree(1, 1000, lo + 3 * l, hi),
+    )
   }
 
-  private fun model(name: String) = object : CaptureNodeModel {
-    override fun getName() = name
-    override fun getFullName() = name
-    override fun getId() = name
-  }
+  private fun model(name: String) =
+    object : CaptureNodeModel {
+      override fun getName() = name
+
+      override fun getFullName() = name
+
+      override fun getId() = name
+    }
 }

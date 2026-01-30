@@ -54,13 +54,14 @@ internal class LiveEditNotificationActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, fakeAdbRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbRule)
 
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
+
   private val testRootDisposable
     get() = projectRule.testRootDisposable
 
@@ -68,7 +69,9 @@ internal class LiveEditNotificationActionTest {
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     LiveEditApplicationConfiguration.getInstance()::leTriggerMode.override(
-      LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC, testRootDisposable)
+      LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC,
+      testRootDisposable,
+    )
     LiveEditDeviceMap.deviceMap.clear()
     Disposer.register(testRootDisposable) { LiveEditDeviceMap.unregisterProject(project) }
   }
@@ -79,25 +82,24 @@ internal class LiveEditNotificationActionTest {
     val device = mock<IDevice>()
 
     whenever(device.version).thenReturn(AndroidVersion(30, 0))
-    LiveEditDeviceMap.deviceMap[project] = object : DeviceGetter {
-      override fun serial(dataContext: DataContext): String = "serial"
+    LiveEditDeviceMap.deviceMap[project] =
+      object : DeviceGetter {
+        override fun serial(dataContext: DataContext): String = "serial"
 
-      override fun device(dataContext: DataContext): IDevice = device
+        override fun device(dataContext: DataContext): IDevice = device
 
-      override fun devices(): List<IDevice> = listOf(device)
-    }
+        override fun devices(): List<IDevice> = listOf(device)
+      }
     service.getDeployMonitor().liveEditDevices.addDevice(device, LiveEditStatus.UpToDate)
 
-    val context = SimpleDataContext.builder()
-      .add(CommonDataKeys.PROJECT, project)
-      .build()
+    val context = SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build()
     val action = LiveEditNotificationAction()
     val event = TestActionEvent.createTestEvent(context)
     action.update(event)
     assertThat(event.presentation.icon.toString()).isEqualTo("general/inspectionsOK.svg")
     assertThat(event.presentation.text).isNull()
-    assertThat(event.presentation.description).isEqualTo(
-      "App is up-to-date. Code changes will be automatically applied to the running app.")
+    assertThat(event.presentation.description)
+      .isEqualTo("App is up-to-date. Code changes will be automatically applied to the running app.")
   }
 
   @Test
@@ -109,17 +111,19 @@ internal class LiveEditNotificationActionTest {
       deviceModel = "model",
       release = "10.0.0",
       sdk = AndroidApiLevel(30),
-      hostConnectionType = DeviceState.HostConnectionType.USB)
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val file = fixture.configureByText("A.kt", "")
     runBlocking(Dispatchers.EDT) { fixture.openFileInEditor(file.virtualFile) }
 
-    val context = SimpleDataContext.builder()
-      .add(CommonDataKeys.EDITOR, fixture.editor)
-      .add(CommonDataKeys.PROJECT, project)
-      .add(SERIAL_NUMBER_KEY, device.serialNumber)
-      .build()
+    val context =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.EDITOR, fixture.editor)
+        .add(CommonDataKeys.PROJECT, project)
+        .add(SERIAL_NUMBER_KEY, device.serialNumber)
+        .build()
 
     service.getDeployMonitor().liveEditDevices.addDevice(device, LiveEditStatus.UpToDate)
 
@@ -129,7 +133,7 @@ internal class LiveEditNotificationActionTest {
 
     assertThat(event.presentation.icon.toString()).isEqualTo("general/inspectionsOK.svg")
     assertThat(event.presentation.text).isNull()
-    assertThat(event.presentation.description).isEqualTo(
-      "App is up-to-date. Code changes will be automatically applied to the running app.")
+    assertThat(event.presentation.description)
+      .isEqualTo("App is up-to-date. Code changes will be automatically applied to the running app.")
   }
 }

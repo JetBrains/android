@@ -16,8 +16,6 @@
 package com.google.idea.blaze.java.qsync
 
 import com.google.idea.blaze.base.settings.Bazel.isBazelProject
-import com.google.idea.blaze.base.settings.Blaze
-import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType
 import com.intellij.openapi.project.Project
 
 fun Project.isQuerySyncProject(): Boolean {

@@ -47,83 +47,81 @@ const val SUBSET_2000_AGP_8_13_PHASED_SYNC_OFF_NAME = "2000Modules_AGP_8.13_Phas
 const val SUBSET_2000_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME = "2000Modules_WithDependencyResolutionPhase"
 const val SUBSET_2000_AGP_8_13_WITH_DEPENDENCY_RESOLUTION_PHASE_NAME = "2000Modules_AGP_8.13_WithDependencyResolutionPhase"
 
-
 // Feature benchmark names
 const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
 
-fun createCpuBenchmarkTestRule(projectName: String,
-                               project: BenchmarkProject,
-                               useLatestGradle: Boolean = false,
-                               useLatestKotlin: Boolean = false) =
-  createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, CPU_BENCHMARK)
+fun createCpuBenchmarkTestRule(
+  projectName: String,
+  project: BenchmarkProject,
+  useLatestGradle: Boolean = false,
+  useLatestKotlin: Boolean = false,
+) = createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, CPU_BENCHMARK)
 
-fun createMemoryBenchmarkTestRule(projectName: String,
-                               project: BenchmarkProject,
-                               useLatestGradle: Boolean = false,
-                               useLatestKotlin: Boolean = false) =
-  createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, MEMORY_BENCHMARK)
+fun createMemoryBenchmarkTestRule(
+  projectName: String,
+  project: BenchmarkProject,
+  useLatestGradle: Boolean = false,
+  useLatestKotlin: Boolean = false,
+) = createBenchmarkTestRule(projectName, project, useLatestGradle, useLatestKotlin, MEMORY_BENCHMARK)
 
-private fun createBenchmarkTestRule(projectName: String,
-                            project: BenchmarkProject,
-                            useLatestGradle: Boolean = false,
-                            useLatestKotlin: Boolean = false,
-                            benchmark: com.android.tools.perflogger.Benchmark): BenchmarkTestRule {
-  val projectSetupRule = ProjectSetupRuleImpl(
-    projectName,
-    project,
-    useLatestGradle,
-    useLatestKotlin
-  ) { AndroidProjectRule.withIntegrationTestEnvironment() }
-  val wrappedRules =  RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
-    .around(projectSetupRule)
-    .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB, benchmark).also {
-      projectSetupRule.addListener(it.listener)
-    })
-    .around(CollectDaemonLogsRule())
-    .around(ConfigurePhasedSyncFlagsRule())
-    .maybeDisableLibraryConstraints(project)
-    .maybeDisableBuiltInKotlin(project)
-    .maybeDisableNewDsl(project)
-    .maybeDisableRuntimeClasspath(project)
-    .around(ConfigurePhasedSyncFlagsRule())
-    .maybeAddCaptureJfrRule(projectSetupRule)
-  return object : BenchmarkTestRule,
-                  ProjectSetupRule by projectSetupRule,
-                  TestRule by wrappedRules {}
+private fun createBenchmarkTestRule(
+  projectName: String,
+  project: BenchmarkProject,
+  useLatestGradle: Boolean = false,
+  useLatestKotlin: Boolean = false,
+  benchmark: com.android.tools.perflogger.Benchmark,
+): BenchmarkTestRule {
+  val projectSetupRule =
+    ProjectSetupRuleImpl(projectName, project, useLatestGradle, useLatestKotlin) { AndroidProjectRule.withIntegrationTestEnvironment() }
+  val wrappedRules =
+    RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
+      .around(projectSetupRule)
+      .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB, benchmark).also { projectSetupRule.addListener(it.listener) })
+      .around(CollectDaemonLogsRule())
+      .around(ConfigurePhasedSyncFlagsRule())
+      .maybeDisableLibraryConstraints(project)
+      .maybeDisableBuiltInKotlin(project)
+      .maybeDisableNewDsl(project)
+      .maybeDisableRuntimeClasspath(project)
+      .around(ConfigurePhasedSyncFlagsRule())
+      .maybeAddCaptureJfrRule(projectSetupRule)
+  return object : BenchmarkTestRule, ProjectSetupRule by projectSetupRule, TestRule by wrappedRules {}
 }
 
-fun RuleChain.maybeDisableLibraryConstraints(project: BenchmarkProject): RuleChain = if (project.useAgp813) {
-  // This is done by default in 9.0 but not in 8.13. Disabling makes the metrics more comparable.
-  this.around(DisableLibraryConstraintsRule())
-} else {
-  this
-}
+fun RuleChain.maybeDisableLibraryConstraints(project: BenchmarkProject): RuleChain =
+  if (project.useAgp813) {
+    // This is done by default in 9.0 but not in 8.13. Disabling makes the metrics more comparable.
+    this.around(DisableLibraryConstraintsRule())
+  } else {
+    this
+  }
 
-fun RuleChain.maybeDisableBuiltInKotlin(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
-  this.around(DisableBuiltInKotlinRule())
-} else {
-  this
-}
+fun RuleChain.maybeDisableBuiltInKotlin(project: BenchmarkProject): RuleChain =
+  if (project == BenchmarkProject.KMP_2000) {
+    this.around(DisableBuiltInKotlinRule())
+  } else {
+    this
+  }
 
-fun RuleChain.maybeDisableNewDsl(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
-  this.around(DisableNewDslRule())
-} else {
-  this
-}
+fun RuleChain.maybeDisableNewDsl(project: BenchmarkProject): RuleChain =
+  if (project == BenchmarkProject.KMP_2000) {
+    this.around(DisableNewDslRule())
+  } else {
+    this
+  }
 
-fun RuleChain.maybeDisableRuntimeClasspath(project: BenchmarkProject): RuleChain = if (project == BenchmarkProject.KMP_2000) {
-  this.around(DisableRuntimeClasspath())
-} else {
-  this
-}
+fun RuleChain.maybeDisableRuntimeClasspath(project: BenchmarkProject): RuleChain =
+  if (project == BenchmarkProject.KMP_2000) {
+    this.around(DisableRuntimeClasspath())
+  } else {
+    this
+  }
 
 fun RuleChain.maybeAddCaptureJfrRule(projectSetupRule: ProjectSetupRule): RuleChain =
   if (CaptureJfrRule.shouldEnable()) {
-    this.around(CaptureJfrRule().also {
-      projectSetupRule.addListener(it.listener)
-    })
+    this.around(CaptureJfrRule().also { projectSetupRule.addListener(it.listener) })
   } else {
     this
   }

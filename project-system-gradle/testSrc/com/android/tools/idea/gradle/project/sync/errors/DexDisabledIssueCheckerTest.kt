@@ -96,46 +96,54 @@ class DexDisabledIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Error: Invoke-customs are only supported starting with Android O",
-        "Caused by: java.lang.RuntimeException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Error: Invoke-customs are only supported starting with Android O",
+          "Caused by: java.lang.RuntimeException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Error: Default interface methods are only supported starting with Android N (--min-api 24)",
-        "Caused by: java.lang.RuntimeException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Error: Default interface methods are only supported starting with Android N (--min-api 24)",
+          "Caused by: java.lang.RuntimeException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Error: Static interface methods are only supported starting with Android N (--min-api 24)",
-        "Caused by: java.lang.RuntimeException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Error: Static interface methods are only supported starting with Android N (--min-api 24)",
+          "Caused by: java.lang.RuntimeException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
 
     // Check that if the stacktrace is not corresponding to the expected type, the issueChecker doesn't handle the failure.
     assertThat(
-      issueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
-        "what went wrong: \nJava home is different.\n Please check your build files.",
-        "Caused by: java.net.SocketException",
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(false)
+        issueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+            "what went wrong: \nJava home is different.\n Please check your build files.",
+          "Caused by: java.net.SocketException",
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(false)
   }
 
   private fun verifyWithModule(pattern: String) {
@@ -144,9 +152,7 @@ class DexDisabledIssueCheckerTest {
     assertThat(quickFixes.filterIsInstance<SetJavaLanguageLevelAllQuickFix>()).hasSize(1)
     assertThat(quickFixes.filterIsInstance<SetJavaLanguageLevelModuleQuickFix>()).hasSize(1)
     assertThat(quickFixes.map { it.id }).containsNoDuplicates()
-    quickFixes.forEach {
-      assertThat((it as AbstractSetJavaLanguageLevelQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
-    }
+    quickFixes.forEach { assertThat((it as AbstractSetJavaLanguageLevelQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8) }
   }
 
   private fun verifyBuildIssueAndGetQuickfixes(rootPattern: String, taskPattern: String): List<BuildIssueQuickFix> {

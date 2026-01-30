@@ -24,21 +24,15 @@ import java.awt.Component
 import javax.swing.JList
 
 /**
- * Custom presenter used as a render on [GradleJdkComboBox] allowing to be able to display the homePath given a [SdkListItem]
- * a part of their name and version i.e: jbr-17 Jetbrains Runtime version 17.0.4 /user/jdks/jdk-17
+ * Custom presenter used as a render on [GradleJdkComboBox] allowing to be able to display the homePath given a [SdkListItem] a part of
+ * their name and version i.e: jbr-17 Jetbrains Runtime version 17.0.4 /user/jdks/jdk-17
  */
 class GradleJdkListPathPresenter(
   private val sdkReferenceItemsHomePathMap: Map<String, String?> = mapOf(),
-  producerSdkList: Producer<SdkListModel>
+  producerSdkList: Producer<SdkListModel>,
 ) : SdkListPresenter(producerSdkList) {
 
-  override fun customizeCellRenderer(
-    list: JList<out SdkListItem>,
-    value: SdkListItem?,
-    index: Int,
-    selected: Boolean,
-    hasFocus: Boolean
-  ) {
+  override fun customizeCellRenderer(list: JList<out SdkListItem>, value: SdkListItem?, index: Int, selected: Boolean, hasFocus: Boolean) {
     super.customizeCellRenderer(list, value, index, selected, hasFocus)
     when (value) {
       is SdkListItem.SdkItem -> value.sdk.homePath?.let { appendHomePath(it) }
@@ -51,14 +45,16 @@ class GradleJdkListPathPresenter(
     value: SdkListItem?,
     index: Int,
     selected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ): Component {
     val component = super.getListCellRendererComponent(list, value, index, selected, hasFocus)
-    list.toolTipText = when {
-      value is SdkListItem.SdkItem && value.sdk.homePath != null -> value.sdk.homePath
-      value is SdkListItem.SdkReferenceItem && sdkReferenceItemsHomePathMap.containsKey(value.name) -> sdkReferenceItemsHomePathMap[value.name]
-      else -> ""
-    }
+    list.toolTipText =
+      when {
+        value is SdkListItem.SdkItem && value.sdk.homePath != null -> value.sdk.homePath
+        value is SdkListItem.SdkReferenceItem && sdkReferenceItemsHomePathMap.containsKey(value.name) ->
+          sdkReferenceItemsHomePathMap[value.name]
+        else -> ""
+      }
     return component
   }
 

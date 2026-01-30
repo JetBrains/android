@@ -26,32 +26,43 @@ import org.toml.lang.psi.TomlFile
 
 class VersionCatalogFindKeyTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
-  private val fixture get() = projectRule.fixture
-
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  private val fixture
+    get() = projectRule.fixture
 
   @Test
   fun testFindInLibraries() {
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       plugins.groovy-core = "plugin"
       [libraries]
       groovy-core = "lib"
-    """.trimIndent(), "groovy.core") {
+      """
+        .trimIndent(),
+      "groovy.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("groovy-core = \"lib\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       libraries = { groovy-core = "lib" }
-    """.trimIndent(), "groovy.core") {
+      """
+        .trimIndent(),
+      "groovy.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("groovy-core = \"lib\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       libraries.groovy-core = "lib"
-    """.trimIndent(), "groovy.core") {
+      """
+        .trimIndent(),
+      "groovy.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("libraries.groovy-core = \"lib\"")
     }
@@ -59,24 +70,36 @@ class VersionCatalogFindKeyTest {
 
   @Test
   fun testFindInBundles() {
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [bundles]
       bundle = ["lib"]
-    """.trimIndent(), "bundles.bundle") {
+      """
+        .trimIndent(),
+      "bundles.bundle",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("bundle = [\"lib\"]")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       bundles = { bundle-core = ["lib"] }
-    """.trimIndent(), "bundles.bundle.core") {
+      """
+        .trimIndent(),
+      "bundles.bundle.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("bundle-core = [\"lib\"]")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       bundles.bundle-core = "lib"
-    """.trimIndent(), "bundles.bundle.core") {
+      """
+        .trimIndent(),
+      "bundles.bundle.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("bundles.bundle-core = \"lib\"")
     }
@@ -84,24 +107,36 @@ class VersionCatalogFindKeyTest {
 
   @Test
   fun testFindInPlugins() {
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [plugins]
       plugin = "plugin"
-    """.trimIndent(), "plugins.plugin") {
+      """
+        .trimIndent(),
+      "plugins.plugin",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("plugin = \"plugin\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       plugins = { plugin_core = ["plugin"] }
-    """.trimIndent(), "plugins.plugin.core") {
+      """
+        .trimIndent(),
+      "plugins.plugin.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("plugin_core = [\"plugin\"]")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       plugins.plugin_core = "plugin"
-    """.trimIndent(), "plugins.plugin.core") {
+      """
+        .trimIndent(),
+      "plugins.plugin.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("plugins.plugin_core = \"plugin\"")
     }
@@ -109,27 +144,39 @@ class VersionCatalogFindKeyTest {
 
   @Test
   fun testFindComplexPath() {
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-ext = "aaa"
-    """.trimIndent(), "alias_core-ext") {
+      """
+        .trimIndent(),
+      "alias_core-ext",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-core-ext = \"aaa\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-ext = "aaa"
-    """.trimIndent(), "alias.core.ext") {
+      """
+        .trimIndent(),
+      "alias.core.ext",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-core-ext = \"aaa\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-ext = "aaa"
       alias-core = "aaa"
-    """.trimIndent(), "alias.core") {
+      """
+        .trimIndent(),
+      "alias.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-core = \"aaa\"")
     }
@@ -137,42 +184,56 @@ class VersionCatalogFindKeyTest {
 
   @Test
   fun testFindFirstLetterWithDifferentCase() {
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-Core-ext = "aaa"
-    """.trimIndent(), "alias_core-ext") {
+      """
+        .trimIndent(),
+      "alias_core-ext",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-Core-ext = \"aaa\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-Ext = "aaa"
-    """.trimIndent(), "alias.core.ext") {
+      """
+        .trimIndent(),
+      "alias.core.ext",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-core-Ext = \"aaa\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-ext = "aaa"
       alias-Core = "aaa"
-    """.trimIndent(), "alias.core") {
+      """
+        .trimIndent(),
+      "alias.core",
+    ) {
       assertThat(it).isNotNull()
       assertThat(it!!.text).isEqualTo("alias-Core = \"aaa\"")
     }
 
-    testFindKeyInCatalog("""
+    testFindKeyInCatalog(
+      """
       [libraries]
       alias-core-ext = "aaa"
-    """.trimIndent(), "alias.core.Ext") {
+      """
+        .trimIndent(),
+      "alias.core.Ext",
+    ) {
       assertThat(it).isNull()
     }
   }
 
-  private fun testFindKeyInCatalog(versionCatalogText: String,
-                                   path:String,
-                                   checker: (PsiElement?) -> Unit) {
+  private fun testFindKeyInCatalog(versionCatalogText: String, path: String, checker: (PsiElement?) -> Unit) {
     fixture.run {
       val psiFile = addFileToProject("gradle/libs.versions.toml", versionCatalogText)
 

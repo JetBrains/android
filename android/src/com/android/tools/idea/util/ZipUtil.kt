@@ -31,9 +31,7 @@ fun zipFiles(files: Array<ZipData>, destination: String) {
         zip.putNextEntry(ZipEntry(zipData.name))
         try {
           Files.copy(Paths.get(zipData.path), zip)
-        }
-        catch (_: IOException) {
-        }
+        } catch (_: IOException) {}
         zip.closeEntry()
       }
     }

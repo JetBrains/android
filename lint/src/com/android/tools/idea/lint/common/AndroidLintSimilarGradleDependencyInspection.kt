@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.GradleDetector
 
 class AndroidLintSimilarGradleDependencyInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.similar.gradle.dependency"),
-    GradleDetector.MULTIPLE_VERSIONS_DEPENDENCY,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.similar.gradle.dependency"), GradleDetector.MULTIPLE_VERSIONS_DEPENDENCY)

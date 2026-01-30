@@ -22,7 +22,8 @@ import java.io.File
 import java.io.Serializable
 
 /** This is collapsed similarly to [IdeDependencies]. See the note there. */
-data class IdeSourceProvider constructor(
+data class IdeSourceProvider
+constructor(
   private val nameField: String,
   private val folderField: FileImpl?,
   private val manifestFileField: FileImpl?,
@@ -57,7 +58,7 @@ data class IdeSourceProvider constructor(
     mlModelsDirectories: List<File>,
     customSourceDirectories: List<IdeCustomSourceDirectoryImpl>,
     baselineProfileDirectories: List<File>,
-    keepRulesDirectories: List<FileImpl>
+    keepRulesDirectories: List<FileImpl>,
   ) : this(
     nameField = name,
     folderField = folder?.toImpl(),
@@ -74,7 +75,7 @@ data class IdeSourceProvider constructor(
     mlModelsDirectoriesField = mlModelsDirectories.toImpl(),
     customSourceDirectoriesField = customSourceDirectories,
     baselineProfileDirectoriesField = baselineProfileDirectories.toImpl(),
-    keepRulesDirectoriesField = keepRulesDirectories.toImpl()
+    keepRulesDirectoriesField = keepRulesDirectories.toImpl(),
   )
 
   constructor(
@@ -114,24 +115,25 @@ data class IdeSourceProvider constructor(
   )
 
   // Used for serialization by the IDE.
-  constructor() : this(
-    nameField = "",
-    folderField = FileImpl(""),
-    manifestFileField = null,
-    javaDirectoriesField = mutableListOf(),
-    kotlinDirectoriesField = mutableListOf(),
-    resourcesDirectoriesField = mutableListOf(),
-    aidlDirectoriesField = mutableListOf(),
-    renderscriptDirectoriesField = mutableListOf(),
-    resDirectoriesField = mutableListOf(),
-    assetsDirectoriesField = mutableListOf(),
-    jniLibsDirectoriesField = mutableListOf(),
-    shadersDirectoriesField = mutableListOf(),
-    mlModelsDirectoriesField = mutableListOf(),
-    customSourceDirectoriesField = mutableListOf(),
-    baselineProfileDirectoriesField = mutableListOf(),
-    keepRulesDirectoriesField = mutableListOf()
-  )
+  constructor() :
+    this(
+      nameField = "",
+      folderField = FileImpl(""),
+      manifestFileField = null,
+      javaDirectoriesField = mutableListOf(),
+      kotlinDirectoriesField = mutableListOf(),
+      resourcesDirectoriesField = mutableListOf(),
+      aidlDirectoriesField = mutableListOf(),
+      renderscriptDirectoriesField = mutableListOf(),
+      resDirectoriesField = mutableListOf(),
+      assetsDirectoriesField = mutableListOf(),
+      jniLibsDirectoriesField = mutableListOf(),
+      shadersDirectoriesField = mutableListOf(),
+      mlModelsDirectoriesField = mutableListOf(),
+      customSourceDirectoriesField = mutableListOf(),
+      baselineProfileDirectoriesField = mutableListOf(),
+      keepRulesDirectoriesField = mutableListOf(),
+    )
 
   fun appendDirectories(
     javaDirectories: List<File> = emptyList(),
@@ -145,44 +147,71 @@ data class IdeSourceProvider constructor(
     shadersDirectories: List<File> = emptyList(),
     mlModelsDirectories: List<File> = emptyList(),
     baselineProfileDirectories: List<File> = emptyList(),
-    keepRulesDirectories: List<File> = emptyList()
-  ): IdeSourceProvider = copy(
-    javaDirectoriesField = javaDirectoriesField + javaDirectories.map { normalize(folderField, it) },
-    kotlinDirectoriesField = kotlinDirectoriesField + kotlinDirectories.map { normalize(folderField, it) },
-    resourcesDirectoriesField = resourcesDirectoriesField + resourcesDirectories.map { normalize(folderField, it) },
-    aidlDirectoriesField = aidlDirectoriesField + aidlDirectories.map { normalize(folderField, it) },
-    renderscriptDirectoriesField = renderscriptDirectoriesField + renderscriptDirectories.map { normalize(folderField, it) },
-    resDirectoriesField = resDirectoriesField + resDirectories.map { normalize(folderField, it) },
-    assetsDirectoriesField = assetsDirectoriesField + assetsDirectories.map { normalize(folderField, it) },
-    jniLibsDirectoriesField = jniLibsDirectoriesField + jniLibsDirectories.map { normalize(folderField, it) },
-    shadersDirectoriesField = shadersDirectoriesField + shadersDirectories.map { normalize(folderField, it) },
-    mlModelsDirectoriesField = mlModelsDirectoriesField + mlModelsDirectories.map { normalize(folderField, it) },
-    baselineProfileDirectoriesField = baselineProfileDirectoriesField + baselineProfileDirectories.map { normalize(folderField, it) },
-    keepRulesDirectoriesField = keepRulesDirectoriesField + keepRulesDirectories.map { normalize(folderField, it) },
+    keepRulesDirectories: List<File> = emptyList(),
+  ): IdeSourceProvider =
+    copy(
+      javaDirectoriesField = javaDirectoriesField + javaDirectories.map { normalize(folderField, it) },
+      kotlinDirectoriesField = kotlinDirectoriesField + kotlinDirectories.map { normalize(folderField, it) },
+      resourcesDirectoriesField = resourcesDirectoriesField + resourcesDirectories.map { normalize(folderField, it) },
+      aidlDirectoriesField = aidlDirectoriesField + aidlDirectories.map { normalize(folderField, it) },
+      renderscriptDirectoriesField = renderscriptDirectoriesField + renderscriptDirectories.map { normalize(folderField, it) },
+      resDirectoriesField = resDirectoriesField + resDirectories.map { normalize(folderField, it) },
+      assetsDirectoriesField = assetsDirectoriesField + assetsDirectories.map { normalize(folderField, it) },
+      jniLibsDirectoriesField = jniLibsDirectoriesField + jniLibsDirectories.map { normalize(folderField, it) },
+      shadersDirectoriesField = shadersDirectoriesField + shadersDirectories.map { normalize(folderField, it) },
+      mlModelsDirectoriesField = mlModelsDirectoriesField + mlModelsDirectories.map { normalize(folderField, it) },
+      baselineProfileDirectoriesField = baselineProfileDirectoriesField + baselineProfileDirectories.map { normalize(folderField, it) },
+      keepRulesDirectoriesField = keepRulesDirectoriesField + keepRulesDirectories.map { normalize(folderField, it) },
+    )
 
-  )
+  val name: String
+    get() = nameField
 
+  val manifestFile: FileImpl?
+    get() = manifestFileField
 
-  val name: String get() = nameField
-  val manifestFile: FileImpl? get() = manifestFileField
-  val javaDirectories: List<FileImpl> get() = javaDirectoriesField
-  val kotlinDirectories: List<FileImpl> get() = kotlinDirectoriesField
-  val resourcesDirectories: List<FileImpl> get() = resourcesDirectoriesField
-  val aidlDirectories: List<FileImpl> get() = aidlDirectoriesField
-  val renderscriptDirectories: List<FileImpl> get() = renderscriptDirectoriesField
-  val resDirectories: List<FileImpl> get() = resDirectoriesField
-  val assetsDirectories: List<FileImpl> get() = assetsDirectoriesField
-  val jniLibsDirectories: List<FileImpl> get() = jniLibsDirectoriesField
-  val shadersDirectories: List<FileImpl> get() = shadersDirectoriesField
-  val mlModelsDirectories: List<FileImpl> get() = mlModelsDirectoriesField
+  val javaDirectories: List<FileImpl>
+    get() = javaDirectoriesField
+
+  val kotlinDirectories: List<FileImpl>
+    get() = kotlinDirectoriesField
+
+  val resourcesDirectories: List<FileImpl>
+    get() = resourcesDirectoriesField
+
+  val aidlDirectories: List<FileImpl>
+    get() = aidlDirectoriesField
+
+  val renderscriptDirectories: List<FileImpl>
+    get() = renderscriptDirectoriesField
+
+  val resDirectories: List<FileImpl>
+    get() = resDirectoriesField
+
+  val assetsDirectories: List<FileImpl>
+    get() = assetsDirectoriesField
+
+  val jniLibsDirectories: List<FileImpl>
+    get() = jniLibsDirectoriesField
+
+  val shadersDirectories: List<FileImpl>
+    get() = shadersDirectoriesField
+
+  val mlModelsDirectories: List<FileImpl>
+    get() = mlModelsDirectoriesField
+
   val customSourceDirectories: List<IdeCustomSourceDirectoryImpl>
     get() = customSourceDirectoriesField
+
   val baselineProfileDirectories: List<FileImpl>
     get() = baselineProfileDirectoriesField
-  val keepRulesDirectories:List<FileImpl> get() = keepRulesDirectoriesField
+
+  val keepRulesDirectories: List<FileImpl>
+    get() = keepRulesDirectoriesField
 }
 
-private fun normalize(folder: File?, file: File): FileImpl = (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
+private fun normalize(folder: File?, file: File): FileImpl =
+  (if (folder != null) file.relativeToOrSelf(folder).path else file.path).translate(folder)
 
 private fun String.translate(folder: File?): FileImpl = (folder?.resolve(this) ?: FileImpl(this)).normalize().toImpl()
 

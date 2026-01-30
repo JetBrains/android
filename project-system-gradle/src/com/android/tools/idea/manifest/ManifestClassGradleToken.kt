@@ -17,15 +17,11 @@ package com.android.tools.idea.manifest
 
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.intellij.openapi.module.Module
 
 /** Implementation of [ManifestClassToken] for the Android Gradle build system. */
 class ManifestClassGradleToken : ManifestClassToken<GradleProjectSystem>, GradleToken {
-  override fun shouldGenerateManifestLightClasses(
-    projectSystem: GradleProjectSystem,
-    module: Module,
-  ) = projectSystem.getModuleSystem(module).generateManifestClass
+  override fun shouldGenerateManifestLightClasses(projectSystem: GradleProjectSystem, module: Module) =
+    projectSystem.getModuleSystem(module).generateManifestClass
 }

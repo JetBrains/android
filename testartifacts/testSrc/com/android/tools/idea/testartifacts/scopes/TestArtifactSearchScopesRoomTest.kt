@@ -22,14 +22,13 @@ import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.writeChild
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class TestArtifactSearchScopesRoomTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
   @Before
   fun setup() {
@@ -46,19 +45,25 @@ class TestArtifactSearchScopesRoomTest {
   }
 
   private fun File.createEntity(className: String, path: String) {
-    this.resolve(path).apply { parentFile.mkdirs() }.writeText("""
+    this.resolve(path)
+      .apply { parentFile.mkdirs() }
+      .writeText(
+        """
       package com.example;
 
       import android.arch.persistence.room.Entity;
 
       @Entity
       public class $className {}
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
   }
 
   private fun doTest(path: String, vararg expected: String) {
     val daoName = Files.getNameWithoutExtension(path)
-    val dao = projectRule.project.baseDir.writeChild(
+    val dao =
+      projectRule.project.baseDir.writeChild(
         path,
         """
           package com.example;
@@ -72,15 +77,16 @@ class TestArtifactSearchScopesRoomTest {
             @Query("SELECT * FROM <caret>")
             List<User> getAll();
           }
-          """.trimIndent())
+          """
+          .trimIndent(),
+      )
     projectRule.fixture.configureFromExistingVirtualFile(dao)
     assertThat(projectRule.fixture.completeBasic().map { it.lookupString }).containsExactly(*expected)
   }
 
-  @Test
-  fun testMainScope() = doTest("app/src/main/java/com/example/UserDao.java", "User")
-  @Test
-  fun testTestScope() = doTest("app/src/test/java/com/example/TestUserDao.java", "User", "TestUser")
-  @Test
-  fun testAndroidTestScope() = doTest("app/src/androidTest/java/com/example/AndroidTestUserDao.java", "User", "AndroidTestUser")
+  @Test fun testMainScope() = doTest("app/src/main/java/com/example/UserDao.java", "User")
+
+  @Test fun testTestScope() = doTest("app/src/test/java/com/example/TestUserDao.java", "User", "TestUser")
+
+  @Test fun testAndroidTestScope() = doTest("app/src/androidTest/java/com/example/AndroidTestUserDao.java", "User", "AndroidTestUser")
 }

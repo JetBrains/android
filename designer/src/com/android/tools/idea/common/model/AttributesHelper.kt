@@ -26,23 +26,16 @@ import org.jetbrains.android.dom.AttributeProcessingUtil
 /**
  * Returns the obsolete attributes for this NlComponent
  *
- * Obsolete attributes are attributes no longer needed for the provided [component]. For example
- * `orientation` will be removed for a `RelativeLayout`
+ * Obsolete attributes are attributes no longer needed for the provided [component]. For example `orientation` will be removed for a
+ * `RelativeLayout`
  */
 fun getObsoleteAttributes(component: NlComponent): Set<QualifiedName> {
   val tag = component.tagDeprecated
   val facet = component.model.facet
-  val domElement =
-    DomManager.getDomManager(tag.project).getDomElement(tag) as? AndroidDomElement
-      ?: return emptySet()
+  val domElement = DomManager.getDomManager(tag.project).getDomElement(tag) as? AndroidDomElement ?: return emptySet()
   val validAttributes = mutableListOf<QualifiedName>() // Pair of namespace and name
-  AttributeProcessingUtil.processAttributes(domElement, facet, false) {
-    xmlName,
-    attributeDefinition,
-    _ ->
-    validAttributes.add(
-      QualifiedName(xmlName.namespaceKey ?: ANDROID_URI, attributeDefinition.name)
-    )
+  AttributeProcessingUtil.processAttributes(domElement, facet, false) { xmlName, attributeDefinition, _ ->
+    validAttributes.add(QualifiedName(xmlName.namespaceKey ?: ANDROID_URI, attributeDefinition.name))
     return@processAttributes null
   }
   if (tag.name == TAG_INCLUDE) {
@@ -51,10 +44,7 @@ fun getObsoleteAttributes(component: NlComponent): Set<QualifiedName> {
     validAttributes.add(QualifiedName("", TAG_LAYOUT))
     validAttributes.add(QualifiedName("", TAG_STYLE))
   }
-  val currentAttibutes =
-    tag.attributes
-      .map { attibute -> QualifiedName(attibute.namespace, attibute.localName) }
-      .toList()
+  val currentAttibutes = tag.attributes.map { attibute -> QualifiedName(attibute.namespace, attibute.localName) }.toList()
   return currentAttibutes.subtract(validAttributes)
 }
 

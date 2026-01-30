@@ -32,21 +32,20 @@ import org.junit.Test
 @OldAgpTest(gradleVersions = ["8.13"], agpVersions = ["8.13.0"])
 @RunsInEdt
 class KaptSingleVariantSyncIntegrationTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule var expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun kaptSingleVariantSync() {
     registerTestHelperProjectResolver(CapturePlatformModelsProjectResolverExtension.IdeModels(), projectRule.testRootDisposable)
     // The `KaptGradleModel` is not available when the built-in Kotlin Gradle plugin is used (the default in AGP 9.0+).
     // This test is pinned to an older AGP version to maintain test coverage for the Kapt model.
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT,
-                                                         agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13)
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_8_13)
     preparedProject.open { project ->
-      expect.that(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+      expect
+        .that(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
         .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
     }
   }

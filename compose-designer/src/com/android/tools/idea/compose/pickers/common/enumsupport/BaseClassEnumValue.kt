@@ -36,15 +36,12 @@ internal interface BaseClassEnumValue : EnumValue {
   /** Value to use in case the [fqClass] cannot be imported */
   val fqFallbackValue: String
 
-  /**
-   * Resolved primitive value for this [EnumValue], used for comparing with other references that
-   * may lead to the same value
-   */
+  /** Resolved primitive value for this [EnumValue], used for comparing with other references that may lead to the same value */
   val resolvedValue: String
 
   /**
-   * One of the supported tracking options that best represents the value assigned by this instance,
-   * use [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
+   * One of the supported tracking options that best represents the value assigned by this instance, use
+   * [PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
    */
   val trackableValue: PreviewPickerValue
 

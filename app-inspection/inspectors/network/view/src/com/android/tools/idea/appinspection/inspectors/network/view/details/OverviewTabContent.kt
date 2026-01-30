@@ -96,9 +96,7 @@ internal class OverviewTabContent : TabContent() {
     updateRowSizing()
   }
 
-  /**
-   * This is a hyperlink which will break and wrap when it hits the right border of its container.
-   */
+  /** This is a hyperlink which will break and wrap when it hits the right border of its container. */
   private class WrappedHyperlink(url: String) : JTextArea(url) {
     init {
       lineWrap = true
@@ -138,9 +136,7 @@ internal class OverviewTabContent : TabContent() {
         }
 
         override fun mouseMoved(e: MouseEvent) {
-          cursor =
-            if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-            else Cursor.getDefaultCursor()
+          cursor = if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) else Cursor.getDefaultCursor()
         }
 
         private fun isMouseOverText(e: MouseEvent): Boolean {
@@ -154,8 +150,7 @@ internal class OverviewTabContent : TabContent() {
     // If there is a payload component, restrict its height to 40%.
     val sizingRule =
       when {
-        contentPanel.components.size > 1 ->
-          SizingRule(FIXED, (overviewScroll.viewport.height * 0.4f).toInt())
+        contentPanel.components.size > 1 -> SizingRule(FIXED, (overviewScroll.viewport.height * 0.4f).toInt())
         else -> SizingRule(PROPORTIONAL, 1)
       }
     layout.setRowSizing(0, sizingRule)
@@ -164,9 +159,7 @@ internal class OverviewTabContent : TabContent() {
 
   companion object {
     private val TIME_FORMATTER: LongFunction<String> =
-      LongFunction<String> { time: Long ->
-        if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*"
-      }
+      LongFunction<String> { time: Long -> if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*" }
     @VisibleForTesting const val ID_REQUEST_TYPE = "REQUEST_TYPE"
     @VisibleForTesting const val ID_REQUEST_SIZE = "REQUEST_SIZE"
     @VisibleForTesting const val ID_RESPONSE_TYPE = "RESPONSE_TYPE"
@@ -280,9 +273,7 @@ internal class OverviewTabContent : TabContent() {
       val range =
         Range(
           data.requestStartTimeUs.toDouble(),
-          (if (data.connectionEndTimeUs > 0) data.connectionEndTimeUs
-            else data.requestStartTimeUs + 1)
-            .toDouble(),
+          (if (data.connectionEndTimeUs > 0) data.connectionEndTimeUs else data.requestStartTimeUs + 1).toDouble(),
         )
       val connectionsChart = ConnectionsStateChart(data, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
@@ -304,25 +295,9 @@ internal class OverviewTabContent : TabContent() {
       legendModel.add(receivedLegend)
 
       // TODO: Add waiting time in (currently hidden because it's always 0)
-      val legend: LegendComponent =
-        LegendComponent.Builder(legendModel)
-          .setLeftPadding(0)
-          .setVerticalPadding(JBUI.scale(8))
-          .build()
-      legend.configure(
-        sentLegend,
-        LegendConfig(
-          LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.SENDING),
-        ),
-      )
-      legend.configure(
-        receivedLegend,
-        LegendConfig(
-          LegendConfig.IconType.BOX,
-          connectionsChart.colors.getColor(NetworkState.RECEIVING),
-        ),
-      )
+      val legend: LegendComponent = LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build()
+      legend.configure(sentLegend, LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.SENDING)))
+      legend.configure(receivedLegend, LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.RECEIVING)))
       panel.add(legend)
       return panel
     }

@@ -20,13 +20,11 @@ import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.SystemInfo
+import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.nio.file.Paths
 
-/**
- * Looks for the existence of system32\\ucrtbase.dll to check whether Universal C Runtime for Windows is installed
- */
+/** Looks for the existence of system32\\ucrtbase.dll to check whether Universal C Runtime for Windows is installed */
 class WindowsCRuntimeChecker : ProjectActivity {
   init {
     if (!SystemInfo.isWindows || !StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
@@ -35,9 +33,7 @@ class WindowsCRuntimeChecker : ProjectActivity {
   }
 
   override suspend fun execute(project: Project) {
-    withContext(Dispatchers.IO) {
-      checkCRT()
-    }
+    withContext(Dispatchers.IO) { checkCRT() }
   }
 
   private fun checkCRT() {
@@ -45,9 +41,10 @@ class WindowsCRuntimeChecker : ProjectActivity {
     if (!dllPath.toFile().exists()) {
       val systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance()
       systemHealthMonitor?.showNotification(
-        "windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
+        "windows.ucrt.warn.message",
+        AndroidStudioSystemHealthMonitor.detailsAction(
           "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"
-        )
+        ),
       )
     }
   }

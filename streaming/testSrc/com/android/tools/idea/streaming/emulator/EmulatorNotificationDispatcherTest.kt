@@ -35,8 +35,7 @@ import org.junit.Test
 class EmulatorNotificationDispatcherTest {
 
   private val disposableRule = DisposableRule()
-  @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), disposableRule, ProcessHandleProviderRule(), EdtRule())
+  @get:Rule val ruleChain = RuleChain(ApplicationRule(), disposableRule, ProcessHandleProviderRule(), EdtRule())
 
   private val testRootDisposable
     get() = disposableRule.disposable
@@ -53,11 +52,14 @@ class EmulatorNotificationDispatcherTest {
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.WARNING, false, "warning 2")
     publisher.messageLogged(unrelatedProcessHandle, avdFolder, EmulatorLogListener.Severity.WARNING, true, "warning 3")
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.INFO, true, "info 1")
-    notificationDispatcher.addListener(processHandle, object : EmulatorNotificationDispatcher.Listener {
-      override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
-        receivedMessages.add(message)
-      }
-    })
+    notificationDispatcher.addListener(
+      processHandle,
+      object : EmulatorNotificationDispatcher.Listener {
+        override fun notificationMessageLogged(severity: EmulatorLogListener.Severity, message: String) {
+          receivedMessages.add(message)
+        }
+      },
+    )
     assertThat(receivedMessages).containsExactly("warning 1", "info 1").inOrder()
     publisher.messageLogged(processHandle, avdFolder, EmulatorLogListener.Severity.INFO, true, "info 2")
     assertThat(receivedMessages).containsExactly("warning 1", "info 1", "info 2").inOrder()

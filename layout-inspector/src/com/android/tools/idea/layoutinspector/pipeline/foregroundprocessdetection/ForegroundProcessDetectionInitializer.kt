@@ -32,8 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Object used to create an initialized instance of [ForegroundProcessDetection]. Doing this in a
- * designated object is useful to facilitate testing.
+ * Object used to create an initialized instance of [ForegroundProcessDetection]. Doing this in a designated object is useful to facilitate
+ * testing.
  */
 object ForegroundProcessDetectionInitializer {
 
@@ -93,9 +93,7 @@ object ForegroundProcessDetectionInitializer {
         }
 
         // set the foreground process to be the selected process.
-        processModel.setLayoutInspectorSelectedProcess(
-          foregroundProcess.matchToProcessDescriptor(processModel)
-        )
+        processModel.setLayoutInspectorSelectedProcess(foregroundProcess.matchToProcessDescriptor(processModel))
       }
     }
   }
@@ -115,8 +113,7 @@ object ForegroundProcessDetectionInitializer {
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
     streamManager: TransportStreamManager,
-    foregroundProcessListener: ForegroundProcessListener =
-      getDefaultForegroundProcessListener(parentDisposable, deviceModel, processModel),
+    foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(parentDisposable, deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
     layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics,

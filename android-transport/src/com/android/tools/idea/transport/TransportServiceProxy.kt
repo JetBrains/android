@@ -42,9 +42,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Transport.BytesInChunksResponse
 import com.android.tools.profiler.proto.Transport.BytesRequest
-import com.android.tools.profiler.proto.Transport.FileResponse
 import com.android.tools.profiler.proto.Transport.ExecuteRequest
 import com.android.tools.profiler.proto.Transport.ExecuteResponse
+import com.android.tools.profiler.proto.Transport.FileResponse
 import com.android.tools.profiler.proto.Transport.GetEventsRequest
 import com.android.tools.profiler.proto.Transport.GetProcessesRequest
 import com.android.tools.profiler.proto.Transport.GetProcessesResponse
@@ -58,8 +58,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -71,24 +69,26 @@ import java.util.Random
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
 import kotlin.math.max
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A proxy TransportService on host that intercepts grpc requests from transport-database to device perfd.
- * This enables us to support legacy workflows based on device's API levels.
+ * A proxy TransportService on host that intercepts grpc requests from transport-database to device perfd. This enables us to support legacy
+ * workflows based on device's API levels.
  *
- * @param ddmlibDevice        the [IDevice] for retrieving process information.
- * @param transportDevice     the [Common.Device] corresponding to the device,
- * as generated via [.transportDeviceFromIDevice]
- * @param channel             the channel that is used for communicating with the device daemon.
- * @param proxyEventQueue     event queue shared by the proxy layer.
- * @param proxyFilePathCache  filePath cache shared by the proxy layer.
+ * @param ddmlibDevice the [IDevice] for retrieving process information.
+ * @param transportDevice the [Common.Device] corresponding to the device, as generated via [.transportDeviceFromIDevice]
+ * @param channel the channel that is used for communicating with the device daemon.
+ * @param proxyEventQueue event queue shared by the proxy layer.
+ * @param proxyFilePathCache filePath cache shared by the proxy layer.
  */
-class TransportServiceProxy(private val ddmlibDevice: IDevice,
-                            private val transportDevice: Common.Device,
-                            channel: ManagedChannel,
-                            private val proxyEventQueue: BlockingDeque<Common.Event>,
-                            private val proxyFilePathCache: MutableMap<String, String>)
-  : ServiceProxy(TransportServiceGrpc.getServiceDescriptor()), IClientChangeListener, IDeviceChangeListener {
+class TransportServiceProxy(
+  private val ddmlibDevice: IDevice,
+  private val transportDevice: Common.Device,
+  channel: ManagedChannel,
+  private val proxyEventQueue: BlockingDeque<Common.Event>,
+  private val proxyFilePathCache: MutableMap<String, String>,
+) : ServiceProxy(TransportServiceGrpc.getServiceDescriptor()), IClientChangeListener, IDeviceChangeListener {
   private val serviceStub = TransportServiceGrpc.newBlockingStub(channel)
   @TestOnly val cachedProcesses: MutableMap<Int, Common.Process> = Collections.synchronizedMap(HashMap())
   // Unsupported device are expected to have the unsupportedReason field set.
@@ -112,14 +112,10 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
 
   fun registerCommandHandler(commandType: CommandType, handler: ProxyCommandHandler) = commandHandlers.put(commandType, handler)
 
-  /**
-   * Registers an event preprocessor that preprocesses events in [.getEvents].
-   */
+  /** Registers an event preprocessor that preprocesses events in [.getEvents]. */
   fun registerEventPreprocessor(eventPreprocessor: TransportEventPreprocessor) = eventPreprocessors.add(eventPreprocessor)
 
-  /**
-   * Registers an event preprocessor that preprocesses events in [.getEvents].
-   */
+  /** Registers an event preprocessor that preprocesses events in [.getEvents]. */
   fun registerDataPreprocessor(dataPreprocessor: TransportBytesPreprocessor) = dataPreprocessors.add(dataPreprocessor)
 
   override fun disconnect() {
@@ -128,7 +124,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     eventStreamingLatch?.let {
       try {
         it.await()
-      } catch (ignored: InterruptedException) { }
+      } catch (ignored: InterruptedException) {}
     }
   }
 
@@ -142,7 +138,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     startThread {
       try {
         serviceStub.getEvents(request).forEach { it?.let(proxyEventQueue::offer) } // If the device is disconnected, response is null
-      } catch (ignored: StatusRuntimeException) { } // disconnect handle generally outside of the exception.
+      } catch (ignored: StatusRuntimeException) {} // disconnect handle generally outside of the exception.
       eventsListenerThread?.let {
         it.interrupt()
         eventsListenerThread = null
@@ -188,101 +184,108 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   @VisibleForTesting
-  fun getFile(request: BytesRequest, responseObserver: StreamObserver<FileResponse>) = synchronized(proxyFilePathCache) {
-    val startTimeNs = System.nanoTime()
-    // Step 1: Get the initial content, either from the device or the cache.
-    var content = when (val cachedPath = proxyFilePathCache.remove(request.id)) {
-      null -> {
-        // Not in cache, fetch from device
-        TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
-      }
-      else -> {
-        // In cache, read from file
-        try {
-          ByteString.readFrom(FileInputStream(cachedPath))
+  fun getFile(request: BytesRequest, responseObserver: StreamObserver<FileResponse>) =
+    synchronized(proxyFilePathCache) {
+      val startTimeNs = System.nanoTime()
+      // Step 1: Get the initial content, either from the device or the cache.
+      var content =
+        when (val cachedPath = proxyFilePathCache.remove(request.id)) {
+          null -> {
+            // Not in cache, fetch from device
+            TransportServiceUtils.aggregateByteChunks(serviceStub.getBytesInChunks(request))
+          }
+          else -> {
+            // In cache, read from file
+            try {
+              ByteString.readFrom(FileInputStream(cachedPath))
+            } catch (e: IOException) {
+              log.warn("Failed to read from cached file: $cachedPath", e)
+              ByteString.EMPTY
+            }
+          }
         }
-        catch (e: IOException) {
-          log.warn("Failed to read from cached file: $cachedPath", e)
-          ByteString.EMPTY
+
+      // Step 2: Run registered preprocessors on the content.
+      content =
+        dataPreprocessors.fold(content) { contents, preprocessor ->
+          if (preprocessor.shouldPreprocess(request)) preprocessor.preprocessBytes(request.id, contents) else contents
         }
-      }
-    }
 
-    // Step 2: Run registered preprocessors on the content.
-    content = dataPreprocessors.fold(content) { contents, preprocessor ->
-      if (preprocessor.shouldPreprocess(request)) preprocessor.preprocessBytes(request.id, contents) else contents
-    }
+      // Step 3: Save the final (possibly preprocessed) content to a file and return the path.
+      val path =
+        if (content.isEmpty) {
+          log.warn("Content for stream ${request.streamId}, id ${request.id} is empty after fetch/preprocessing. Not saving to file.")
+          "" // Return an empty string for the path
+        } else {
+          FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).absolutePath.also {
+            content.writeTo(FileOutputStream(it))
+            val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
+            val seconds = totalDurationMs / 1000
+            val remainingMs = totalDurationMs % 1000
+            log.info(
+              "Processed bytes (stream ${request.streamId}, id ${request.id}),\nsize ${StringUtil.formatFileSize(content.size().toLong())}, saved in file\n$it. " +
+                "Total time was ${seconds}s and ${remainingMs}ms."
+            )
+          }
+        }
 
-    // Step 3: Save the final (possibly preprocessed) content to a file and return the path.
-    val path = if (content.isEmpty) {
-      log.warn("Content for stream ${request.streamId}, id ${request.id} is empty after fetch/preprocessing. Not saving to file.")
-      "" // Return an empty string for the path
+      responseObserver.onLast(FileResponse.newBuilder().setFilePath(path).build())
     }
-    else {
-      FileUtil.createTempFile("transport-bytes-${request.streamId}-${request.id}", ".tmp", true).absolutePath.also {
-        content.writeTo(FileOutputStream(it))
-        val totalDurationMs = (System.nanoTime() - startTimeNs) / 1_000_000
-        val seconds = totalDurationMs / 1000
-        val remainingMs = totalDurationMs % 1000
-        log.info("Processed bytes (stream ${request.streamId}, id ${request.id}),\nsize ${StringUtil.formatFileSize(content.size().toLong())}, saved in file\n$it. " +
-                 "Total time was ${seconds}s and ${remainingMs}ms.")
-      }
-    }
-
-    responseObserver.onLast(FileResponse.newBuilder().setFilePath(path).build())
-  }
 
   fun getBytesInChunks(request: BytesRequest, responseObserver: StreamObserver<BytesInChunksResponse>) {
     throw Exception("`getBytesInChunks` is designed for the inter-machine transportation. Use `getFile` for same-machine usage.")
   }
 
-  private fun generateEndEvent(previousEvent: Common.Event) = Common.Event.newBuilder()
-    .setKind(previousEvent.kind)
-    .setGroupId(previousEvent.groupId)
-    .setPid(previousEvent.pid)
-    .setTimestamp(latestEventTimestampNs + 1)
-    .setIsEnded(true)
-    .build()
+  private fun generateEndEvent(previousEvent: Common.Event) =
+    Common.Event.newBuilder()
+      .setKind(previousEvent.kind)
+      .setGroupId(previousEvent.groupId)
+      .setPid(previousEvent.pid)
+      .setTimestamp(latestEventTimestampNs + 1)
+      .setIsEnded(true)
+      .build()
 
   private fun getCurrentTime(request: TimeRequest, responseObserver: StreamObserver<TimeResponse>) {
-    val response = when {
-      // if device API is supported, use grpc to get the current time
-      isDeviceApiSupported ->
-        try {
-          serviceStub.getCurrentTime(request)
-        } catch (e: StatusRuntimeException) {
-          responseObserver.onError(e)
-          return
-        }
-      // otherwise, return a default (any) instance of TimeResponse
-      else -> TimeResponse.getDefaultInstance()
-    }
+    val response =
+      when {
+        // if device API is supported, use grpc to get the current time
+        isDeviceApiSupported ->
+          try {
+            serviceStub.getCurrentTime(request)
+          } catch (e: StatusRuntimeException) {
+            responseObserver.onError(e)
+            return
+          }
+        // otherwise, return a default (any) instance of TimeResponse
+        else -> TimeResponse.getDefaultInstance()
+      }
     responseObserver.onLast(response)
   }
 
   private fun getProcesses(request: GetProcessesRequest, responseObserver: StreamObserver<GetProcessesResponse>) =
     responseObserver.onLast(
-      GetProcessesResponse.newBuilder().addAllProcess(synchronized(cachedProcesses) { cachedProcesses.values }).build())
+      GetProcessesResponse.newBuilder().addAllProcess(synchronized(cachedProcesses) { cachedProcesses.values }).build()
+    )
 
   @VisibleForTesting
-  fun execute(request: ExecuteRequest, responseObserver: StreamObserver<ExecuteResponse>) = request.command.let { command ->
-    try {
-      responseObserver.onLast(commandHandlers[command.type]?.let {
-        if (it.shouldHandle(command)) it.execute(command) else null
-      } ?: serviceStub.execute(request))
+  fun execute(request: ExecuteRequest, responseObserver: StreamObserver<ExecuteResponse>) =
+    request.command.let { command ->
+      try {
+        responseObserver.onLast(
+          commandHandlers[command.type]?.let { if (it.shouldHandle(command)) it.execute(command) else null } ?: serviceStub.execute(request)
+        )
+      } catch (t: StatusRuntimeException) {
+        // There is one known case where this exception can show up: in the interval of time between when an emulator
+        // is stopped and Studio detects it stopped, it's possible for clients of the Transport to send messages to
+        // that emulator. Doing so causes "StatusRuntimeException: UNAVAILABLE: Network closed for unknown reason" to
+        // be thrown by grpc.
+        log.warn(t)
+      }
     }
-    catch (t: StatusRuntimeException) {
-      // There is one known case where this exception can show up: in the interval of time between when an emulator
-      // is stopped and Studio detects it stopped, it's possible for clients of the Transport to send messages to
-      // that emulator. Doing so causes "StatusRuntimeException: UNAVAILABLE: Network closed for unknown reason" to
-      // be thrown by grpc.
-      log.warn(t)
-    }
-  }
 
-  override fun deviceConnected(device: IDevice) { } // Don't care
+  override fun deviceConnected(device: IDevice) {} // Don't care
 
-  override fun deviceDisconnected(device: IDevice) { } // Don't care
+  override fun deviceDisconnected(device: IDevice) {} // Don't care
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
     // This event can be triggered when a device goes offline. However, `update{Debuggables,Profileables}` expect
@@ -293,8 +296,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     }
   }
 
-  private fun isProfileableSupported() =
-    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S
+  private fun isProfileableSupported() = ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S
 
   override fun clientChanged(client: Client, changeMask: Int) {
     if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.processName != null) {
@@ -303,21 +305,23 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   override fun getServiceDefinition(): ServerServiceDefinition {
-    infix fun<Req, Res> MethodDescriptor<Req, Res>.to(f: (Req, StreamObserver<Res>) -> Unit) = this to ServerCalls.asyncUnaryCall(f)
+    infix fun <Req, Res> MethodDescriptor<Req, Res>.to(f: (Req, StreamObserver<Res>) -> Unit) = this to ServerCalls.asyncUnaryCall(f)
     // The map erases types, so use above helper to ensure each entry is well-typed
-    val overrides = mapOf<MethodDescriptor<*, *>, ServerCallHandler<*, *>>(
-      TransportServiceGrpc.getGetVersionMethod() to ::getVersion,
-      TransportServiceGrpc.getGetProcessesMethod() to ::getProcesses,
-      TransportServiceGrpc.getGetCurrentTimeMethod() to ::getCurrentTime,
-      TransportServiceGrpc.getGetEventsMethod() to ::getEvents,
-      TransportServiceGrpc.getGetFileMethod() to ::getFile,
-      TransportServiceGrpc.getGetBytesInChunksMethod() to ::getBytesInChunks,
-      TransportServiceGrpc.getExecuteMethod() to ::execute
-    )
+    val overrides =
+      mapOf<MethodDescriptor<*, *>, ServerCallHandler<*, *>>(
+        TransportServiceGrpc.getGetVersionMethod() to ::getVersion,
+        TransportServiceGrpc.getGetProcessesMethod() to ::getProcesses,
+        TransportServiceGrpc.getGetCurrentTimeMethod() to ::getCurrentTime,
+        TransportServiceGrpc.getGetEventsMethod() to ::getEvents,
+        TransportServiceGrpc.getGetFileMethod() to ::getFile,
+        TransportServiceGrpc.getGetBytesInChunksMethod() to ::getBytesInChunks,
+        TransportServiceGrpc.getExecuteMethod() to ::execute,
+      )
     return generatePassThroughDefinitions(overrides, serviceStub)
   }
 
   private fun updateProfileables() = updateProcesses(IDevice::getProfileableClients, ClientSummary::of, ExposureLevel.PROFILEABLE)
+
   private fun updateDebuggables() = updateProcesses(IDevice::getClients, ClientSummary::of, ExposureLevel.DEBUGGABLE)
 
   private fun updateProcesses() {
@@ -325,12 +329,11 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     if (isProfileableSupported()) updateProfileables()
   }
 
-  private fun<C> updateProcesses(getList: IDevice.() -> Array<C>, summarizeClient: (C) -> ClientSummary?, level: ExposureLevel) {
+  private fun <C> updateProcesses(getList: IDevice.() -> Array<C>, summarizeClient: (C) -> ClientSummary?, level: ExposureLevel) {
     if (isDeviceApiSupported) {
       val currentProcesses = ddmlibDevice.getList().mapNotNull(summarizeClient)
-      val previousProcessIds = synchronized(cachedProcesses) {
-        cachedProcesses.mapNotNullTo(mutableSetOf()) { (id, p) -> id.takeIf { p.exposureLevel >= level } }
-      }
+      val previousProcessIds =
+        synchronized(cachedProcesses) { cachedProcesses.mapNotNullTo(mutableSetOf()) { (id, p) -> id.takeIf { p.exposureLevel >= level } } }
       val addedProcesses = currentProcesses.filterNot { it.pid in previousProcessIds }
       val removedProcessIds = previousProcessIds - currentProcesses.map(ClientSummary::pid)
 
@@ -355,58 +358,67 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     }
   }
 
-  private fun addProcess(client: ClientSummary, timestampNs: Long, level: ExposureLevel) = client.name.let { description ->
-    // Process is started up and is ready
-    // Parse cpu arch from client abi info, for example, "arm64" from "64-bit (arm64)". Abi string indicates whether application is
-    // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
-    // TODO: Remove when moving process discovery.
-    val processAbiCpuArch = client.abi.let { abi -> when {
-      abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
-      else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
-    }}
+  private fun addProcess(client: ClientSummary, timestampNs: Long, level: ExposureLevel) =
+    client.name.let { description ->
+      // Process is started up and is ready
+      // Parse cpu arch from client abi info, for example, "arm64" from "64-bit (arm64)". Abi string indicates whether application is
+      // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
+      // TODO: Remove when moving process discovery.
+      val processAbiCpuArch =
+        client.abi.let { abi ->
+          when {
+            abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
+            else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
+          }
+        }
 
-    // TODO: Set this to the applications actual start time.
-    val newProcess = Common.Process.newBuilder()
-      .setName(description)
-      .setPid(client.pid)
-      .setDeviceId(transportDevice.deviceId)
-      .setState(Common.Process.State.ALIVE)
-      .setStartTimestampNs(timestampNs)
-      .setAbiCpuArch(processAbiCpuArch)
-      .setExposureLevel(level)
-      .setPackageName(client.packageName)
-      .build()
-    synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
-    // New pipeline event - create a ProcessStarted event for each process.
-    proxyEventQueue.offer(
-      Common.Event.newBuilder()
-        .setGroupId(newProcess.pid.toLong())
-        .setPid(newProcess.pid)
-        .setKind(Common.Event.Kind.PROCESS)
-        .setProcess(Common.ProcessData.newBuilder()
-                      .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder().setProcess(newProcess)))
-        .setTimestamp(timestampNs)
-        .build()
-    )
-  }
-
-  private fun removeProcess(clientPid: Int, timestampNs: Long) = synchronized(cachedProcesses) {
-    cachedProcesses.remove(clientPid)?.let { process ->
-      // New data pipeline event.
+      // TODO: Set this to the applications actual start time.
+      val newProcess =
+        Common.Process.newBuilder()
+          .setName(description)
+          .setPid(client.pid)
+          .setDeviceId(transportDevice.deviceId)
+          .setState(Common.Process.State.ALIVE)
+          .setStartTimestampNs(timestampNs)
+          .setAbiCpuArch(processAbiCpuArch)
+          .setExposureLevel(level)
+          .setPackageName(client.packageName)
+          .build()
+      synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
+      // New pipeline event - create a ProcessStarted event for each process.
       proxyEventQueue.offer(
         Common.Event.newBuilder()
-          .setGroupId(process.pid.toLong())
-          .setPid(process.pid)
+          .setGroupId(newProcess.pid.toLong())
+          .setPid(newProcess.pid)
           .setKind(Common.Event.Kind.PROCESS)
-          .setIsEnded(true)
+          .setProcess(
+            Common.ProcessData.newBuilder().setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder().setProcess(newProcess))
+          )
           .setTimestamp(timestampNs)
           .build()
       )
     }
-  }
+
+  private fun removeProcess(clientPid: Int, timestampNs: Long) =
+    synchronized(cachedProcesses) {
+      cachedProcesses.remove(clientPid)?.let { process ->
+        // New data pipeline event.
+        proxyEventQueue.offer(
+          Common.Event.newBuilder()
+            .setGroupId(process.pid.toLong())
+            .setPid(process.pid)
+            .setKind(Common.Event.Kind.PROCESS)
+            .setIsEnded(true)
+            .setTimestamp(timestampNs)
+            .build()
+        )
+      }
+    }
 
   companion object {
-    private val log get() = Logger.getInstance(TransportServiceProxy::class.java)
+    private val log
+      get() = Logger.getInstance(TransportServiceProxy::class.java)
+
     private const val EMULATOR = "Emulator"
     const val PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported."
 
@@ -439,60 +451,70 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
         .build()
     }
 
-    private fun IDevice.getId(bootId: String) = try {
-      val digest = MessageDigest.getInstance("SHA-256")
-      digest.update(bootId.toByteArray())
-      digest.update(serialNumber.toByteArray())
-      ByteBuffer.wrap(digest.digest()).long
-    } catch (e: NoSuchAlgorithmException) {
-      log.info("SHA-256 is not available", e)
-      // Randomly generate an id if we cannot SHA.
-      Random(System.currentTimeMillis()).nextLong()
-    }
+    private fun IDevice.getId(bootId: String) =
+      try {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(bootId.toByteArray())
+        digest.update(serialNumber.toByteArray())
+        ByteBuffer.wrap(digest.digest()).long
+      } catch (e: NoSuchAlgorithmException) {
+        log.info("SHA-256 is not available", e)
+        // Randomly generate an id if we cannot SHA.
+        Random(System.currentTimeMillis()).nextLong()
+      }
 
     private fun IDevice.getBootId(): String {
       var bootId: String? = null
       try {
-        executeShellCommand("cat /proc/sys/kernel/random/boot_id", object : MultiLineReceiver() {
-          override fun processNewLines(lines: Array<String>) {
-            // There should only be one-line here.
-            assert(lines.size == 1)
-            // check for empty string because processNewLines() could be called twice.
-            // For example if the output of the command terminates with new line,
-            // it will be called once with the boot id, then with an empty string. We don't want to overwrite the first value.
-            if (lines[0].isNotEmpty()) {
-              bootId = lines[0]
+        executeShellCommand(
+          "cat /proc/sys/kernel/random/boot_id",
+          object : MultiLineReceiver() {
+            override fun processNewLines(lines: Array<String>) {
+              // There should only be one-line here.
+              assert(lines.size == 1)
+              // check for empty string because processNewLines() could be called twice.
+              // For example if the output of the command terminates with new line,
+              // it will be called once with the boot id, then with an empty string. We don't want to overwrite the first value.
+              if (lines[0].isNotEmpty()) {
+                bootId = lines[0]
+              }
             }
-          }
-          override fun isCancelled() = false
-        })
+
+            override fun isCancelled() = false
+          },
+        )
       } catch (e: Exception) {
         when (e) {
-          is TimeoutException, is AdbCommandRejectedException, is IOException, is ShellCommandUnresponsiveException ->
-            log.warn("Unable to retrieve boot_id from device $this", e)
+          is TimeoutException,
+          is AdbCommandRejectedException,
+          is IOException,
+          is ShellCommandUnresponsiveException -> log.warn("Unable to retrieve boot_id from device $this", e)
           else -> throw e
         }
       }
       return bootId ?: serialNumber.hashCode().toString()
     }
 
-    private fun convertState(state: IDevice.DeviceState) = when (state) {
-      IDevice.DeviceState.OFFLINE -> Common.Device.State.OFFLINE
-      IDevice.DeviceState.ONLINE -> Common.Device.State.ONLINE
-      IDevice.DeviceState.DISCONNECTED -> Common.Device.State.DISCONNECTED
-      else -> Common.Device.State.UNSPECIFIED
-    }
+    private fun convertState(state: IDevice.DeviceState) =
+      when (state) {
+        IDevice.DeviceState.OFFLINE -> Common.Device.State.OFFLINE
+        IDevice.DeviceState.ONLINE -> Common.Device.State.ONLINE
+        IDevice.DeviceState.DISCONNECTED -> Common.Device.State.DISCONNECTED
+        else -> Common.Device.State.UNSPECIFIED
+      }
 
-    private fun getDeviceUnsupportedReason(device: IDevice) = when {
-      device.version.featureLevel < AndroidVersion.VersionCodes.LOLLIPOP -> PRE_LOLLIPOP_FAILURE_REASON
-      else -> ""
-    }
+    private fun getDeviceUnsupportedReason(device: IDevice) =
+      when {
+        device.version.featureLevel < AndroidVersion.VersionCodes.LOLLIPOP -> PRE_LOLLIPOP_FAILURE_REASON
+        else -> ""
+      }
 
     @JvmStatic
-    fun getDeviceModel(device: IDevice) = when {
-      device.isEmulator -> StringUtil.notNullize(device.avdName, device.serialNumber)
-      else -> DevicePropertyUtil.getModel(device, "Unknown")
-    }
+    fun getDeviceModel(device: IDevice) =
+      when {
+        device.isEmulator -> StringUtil.notNullize(device.avdName, device.serialNumber)
+        else -> DevicePropertyUtil.getModel(device, "Unknown")
+      }
 
     @JvmStatic
     fun getDeviceManufacturer(device: IDevice) = DevicePropertyUtil.getManufacturer(device, if (device.isEmulator) EMULATOR else "")
@@ -500,32 +522,37 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
 }
 
 private typealias EventGrouping = MutableMap<Common.Event.Kind, Long2ObjectMap<Common.Event>>
-private fun EventGrouping.remove(event: Common.Event) = computeIfPresent(event.kind) { _, map -> with (map) {
-  remove(event.groupId)
-  takeIf { it.isNotEmpty() }
-}}
-private fun EventGrouping.add(event: Common.Event) = compute(event.kind) { _, map -> (map ?: Long2ObjectOpenHashMap()).apply {
-  put(event.groupId, event)
-}}
 
-private fun<V> StreamObserver<V>.onLast(response: V) {
+private fun EventGrouping.remove(event: Common.Event) =
+  computeIfPresent(event.kind) { _, map ->
+    with(map) {
+      remove(event.groupId)
+      takeIf { it.isNotEmpty() }
+    }
+  }
+
+private fun EventGrouping.add(event: Common.Event) =
+  compute(event.kind) { _, map -> (map ?: Long2ObjectOpenHashMap()).apply { put(event.groupId, event) } }
+
+private fun <V> StreamObserver<V>.onLast(response: V) {
   onNext(response)
   onCompleted()
 }
 
 private operator fun Int.contains(bitMask: Int) = this and bitMask != 0
+
 private fun startThread(f: Runnable) = Thread(f).apply { start() }
 
 /**
  * Adapter for `Client` and `ProfileableClient`
  *
- * Package name is empty  for profileable processes because it comes from JDWP's HELO.
+ * Package name is empty for profileable processes because it comes from JDWP's HELO.
  */
 private data class ClientSummary(val pid: Int, val name: String, val packageName: String, val abi: String?) {
   companion object {
     fun of(client: Client) = with(client.clientData) { of(pid, processName, packageName, abi) }
-    fun of(client: ProfileableClient) =
-      with(client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, null, abi) }
+
+    fun of(client: ProfileableClient) = with(client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, null, abi) }
 
     fun of(pid: Int, name: String?, packageName: String?, abi: String?) = name?.let { ClientSummary(pid, it, packageName ?: "", abi) }
   }

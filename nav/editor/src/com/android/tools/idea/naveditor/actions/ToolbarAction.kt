@@ -22,8 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import javax.swing.Icon
 
-abstract class ToolbarAction(description: String, icon: Icon) :
-  IconWithTextAction("", description, icon) {
+abstract class ToolbarAction(description: String, icon: Icon) : IconWithTextAction("", description, icon) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

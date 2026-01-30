@@ -30,8 +30,6 @@ class WifiPairableDeviceModel {
   }
 
   fun removeMdnsService(adbServiceName: String) {
-    _devices.update {
-      it.filterNot { service -> service.service.serviceInstanceName.instance == adbServiceName }
-    }
+    _devices.update { it.filterNot { service -> service.service.serviceInstanceName.instance == adbServiceName } }
   }
 }

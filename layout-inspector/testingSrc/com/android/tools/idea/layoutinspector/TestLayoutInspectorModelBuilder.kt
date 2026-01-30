@@ -59,10 +59,7 @@ fun model(
   scheduler: ScheduledExecutorService? = null,
   displayId: Int? = null,
   body: InspectorModelDescriptor.() -> Unit,
-) =
-  InspectorModelDescriptor(disposable, project, scheduler, displayId = displayId)
-    .also(body)
-    .build(treeSettings)
+) = InspectorModelDescriptor(disposable, project, scheduler, displayId = displayId).also(body).build(treeSettings)
 
 fun viewWindow(
   rootViewDrawId: Long,
@@ -93,8 +90,7 @@ fun viewWindow(
       .also(body)
       .build()
 
-  val layoutEvent =
-    LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
+  val layoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
 
   return ViewAndroidWindow(
     notificationModel = mock(),
@@ -151,8 +147,7 @@ fun window(
   }
 }
 
-private val defaultLayout =
-  ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
+private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
 
 fun view(
   drawId: Long,
@@ -170,20 +165,7 @@ fun view(
   layout: ResourceReference? = defaultLayout,
   body: InspectorViewDescriptor.() -> Unit = {},
 ) =
-  InspectorViewDescriptor(
-      drawId,
-      qualifiedName,
-      x,
-      y,
-      width,
-      height,
-      bounds,
-      viewId,
-      textValue,
-      layoutFlags,
-      isDerivedFromWebView,
-      layout,
-    )
+  InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, isDerivedFromWebView, layout)
     .also(body)
     .build()
 
@@ -216,8 +198,7 @@ fun compose(
       composePackageHash = composePackageHash,
       composeOffset = composeOffset,
       composeLineNumber = composeLineNumber,
-      composeFlags =
-        if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
+      composeFlags = if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
     )
     .also(body)
 
@@ -321,8 +302,7 @@ class InspectorViewDescriptor(
     composePackageHash: Int = -1,
     composeOffset: Int = 0,
     composeLineNumber: Int = 0,
-    composeFlags: Int =
-      if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
+    composeFlags: Int = if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
     composeCount: Int = 0,
     composeSkips: Int = 0,
     anchorHash: Int = drawId.toInt(),
@@ -362,17 +342,7 @@ class InspectorViewDescriptor(
 
     val result =
       if (composePackageHash == 0) {
-        ViewNode(
-          drawId,
-          qualifiedName,
-          layout,
-          layoutBounds,
-          renderBounds,
-          viewId,
-          textValue,
-          layoutFlags,
-          isDerivedFromWebView,
-        )
+        ViewNode(drawId, qualifiedName, layout, layoutBounds, renderBounds, viewId, textValue, layoutFlags, isDerivedFromWebView)
       } else {
         ComposeViewNode(
           drawId,
@@ -503,9 +473,7 @@ class InspectorModelDescriptor(
               // since we can't know where in the order
               // of children it should be, or if it should still be there at all.
               if (
-                drawChildren.filterIsInstance<DrawViewChild>().map { drawChild ->
-                  drawChild.findFilteredOwner(treeSettings)
-                } == children
+                drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.findFilteredOwner(treeSettings) } == children
               ) {
                 // No changes, great.
               } else {
@@ -523,21 +491,13 @@ class InspectorModelDescriptor(
       }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (project.isOpen) {
-      ProjectFacetManager.getInstance(project)
-        .getFacets(AndroidFacet.ID)
-        .singleOrNull()
-        ?.setApplicationIdForTest("com.example")
+      ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()?.setApplicationIdForTest("com.example")
       val strings = TestStringTable()
       val builder = ConfigurationParamsBuilder(strings)
       val context = builder.makeSampleContext(project)
       val theme = context.theme.createReference(strings)
       val process = builder.makeSampleProcess(project)
-      model.resourceLookup.updateConfiguration(
-        FolderConfiguration.createDefault(),
-        theme,
-        process,
-        displays = emptyList(),
-      )
+      model.resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), theme, process, displays = emptyList())
     }
     // This is usually added by DeviceViewPanel
     model.addModificationListener { _, new, _ -> runBlocking { new?.refreshImages(1.0) } }

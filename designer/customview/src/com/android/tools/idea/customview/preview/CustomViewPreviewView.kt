@@ -32,21 +32,13 @@ import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
 /** UI of the [CustomViewPreviewRepresentation]. */
-internal class CustomViewPreviewView(
-  surfaceBuilder: NlSurfaceBuilder,
-  parentDisposable: Disposable,
-  project: Project,
-) {
+internal class CustomViewPreviewView(surfaceBuilder: NlSurfaceBuilder, parentDisposable: Disposable, project: Project) {
   internal val surface = surfaceBuilder.build().apply { name = "Custom View" }
 
   private val actionsToolbar = invokeAndWaitIfNeeded { ActionsToolbar(parentDisposable, surface) }
 
   internal val notificationsPanel =
-    NotificationPanel(
-      ExtensionPointName.create(
-        "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"
-      )
-    )
+    NotificationPanel(ExtensionPointName.create("com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val editorPanel =
     JPanel(BorderLayout()).apply {
@@ -71,9 +63,7 @@ internal class CustomViewPreviewView(
 
   /** [WorkBench] used to contain all the preview elements. */
   internal val workbench: WorkBench<DesignSurface<*>> =
-    object :
-        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
-        UiDataProvider {
+    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
         override fun uiDataSnapshot(sink: DataSink) {
           sink[DESIGN_SURFACE] = surface
         }

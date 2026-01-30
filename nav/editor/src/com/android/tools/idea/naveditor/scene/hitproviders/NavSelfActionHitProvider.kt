@@ -28,31 +28,16 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import java.awt.Rectangle
 
 object NavSelfActionHitProvider : NavActionHitProviderBase() {
-  override fun addShapeHit(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    picker: ScenePicker.Writer,
-  ) {
+  override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer) {
     val source = sourceRectangle(component, sceneTransform) ?: return
     val points = selfActionPoints(source, sceneTransform.inlineScale)
 
     for (i in 1 until points.size) {
-      picker.addLine(
-        component,
-        0,
-        points[i - 1].x.toInt(),
-        points[i - 1].y.toInt(),
-        points[i].x.toInt(),
-        points[i].y.toInt(),
-        5,
-      )
+      picker.addLine(component, 0, points[i - 1].x.toInt(), points[i - 1].y.toInt(), points[i].x.toInt(), points[i].y.toInt(), 5)
     }
   }
 
-  override fun iconRectangle(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-  ): SwingRectangle? {
+  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
     val source = sourceRectangle(component, sceneTransform) ?: return null
     val scale = sceneTransform.inlineScale
     val points = selfActionPoints(source, scale)
@@ -60,11 +45,7 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
     return getSelfActionIconRect(points[0], scale)
   }
 
-  override fun intersects(
-    component: SceneComponent,
-    sceneTransform: SceneContext,
-    @AndroidDpCoordinate rectangle: Rectangle,
-  ): Boolean {
+  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
     val source = sourceRectangle(component, sceneTransform) ?: return false
     val points = selfActionPoints(source, sceneTransform.inlineScale)
     val bounds = SwingRectangle(getSwingRectDip(sceneTransform, rectangle))

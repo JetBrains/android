@@ -21,61 +21,47 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
-private val LOG : Logger by lazy { Logger.getInstance(ResourceImporter::class.java) }
+private val LOG: Logger by lazy { Logger.getInstance(ResourceImporter::class.java) }
 
-/**
- * Plugin interface to add resources importation plugins.
- */
+/** Plugin interface to add resources importation plugins. */
 interface ResourceImporter {
 
   companion object {
     val EP_NAME: ExtensionPointName<ResourceImporter> = ExtensionPointName.create<ResourceImporter>("com.android.resourceImporter")
   }
 
-  /**
-   * The name of the plugin as it should be shown to the user
-   */
+  /** The name of the plugin as it should be shown to the user */
   val presentableName: String
 
-  /**
-   * Returns a list of the file extensions supported by this plugin.
-   */
+  /** Returns a list of the file extensions supported by this plugin. */
   fun getSupportedFileTypes(): Set<String>
 
-  /**
-   * Returns true if the plugin can import multiple files at a time or
-   * false if each file needs to be imported separately.
-   */
+  /** Returns true if the plugin can import multiple files at a time or false if each file needs to be imported separately. */
   val supportsBatchImport: Boolean
     get() = true
 
   /**
    * Invoke a custom panel that handles the importation.
-   * @param filePaths the paths of the files to import.
-   * If [supportsBatchImport] is false, the list will only contain a single element.
+   *
+   * @param filePaths the paths of the files to import. If [supportsBatchImport] is false, the list will only contain a single element.
    */
   fun invokeCustomImporter(facet: AndroidFacet, filePaths: Collection<String>) {}
 
   /**
-   * If true, the implementing class should handle the import flow itself.
-   * The [com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider] will just invoke
-   * the implementing class with the selected files.
+   * If true, the implementing class should handle the import flow itself. The
+   * [com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider] will just invoke the implementing class with the selected files.
    */
   val hasCustomImport: Boolean
     get() = false
 
-  /**
-   * Returns true if we should let the user configure the qualifiers or if the plugin handles it itself.
-   */
+  /** Returns true if we should let the user configure the qualifiers or if the plugin handles it itself. */
   val userCanEditQualifiers: Boolean
     get() = true
 
-  /**
-   * Return the [DesignAssetRenderer] needed to preview the source file of the provided [asset]
-   */
+  /** Return the [DesignAssetRenderer] needed to preview the source file of the provided [asset] */
   fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer?
 
   /**
@@ -93,11 +79,9 @@ interface ResourceImporter {
     return if (DesignAssetRendererManager.getInstance().hasViewer(virtualFile)) {
       val qualifierMatcherResult = QualifierMatcher().parsePath(file.path)
       DesignAsset(virtualFile, qualifierMatcherResult.qualifiers.toList(), ResourceType.RAW, qualifierMatcherResult.resourceName)
-    }
-    else {
+    } else {
       LOG.warn("No viewer for: ${virtualFile.name}.")
       null
     }
   }
 }
-

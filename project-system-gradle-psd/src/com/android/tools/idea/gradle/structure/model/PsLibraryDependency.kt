@@ -25,18 +25,24 @@ interface PsLibraryDependency : PsBaseDependency {
   override val parent: PsModule
   val spec: PsArtifactDependencySpec
 
-  override val path: PsLibraryDependencyNavigationPath get() = PsLibraryDependencyNavigationPath(this)
-  override val icon: Icon get() = LIBRARY_ICON
+  override val path: PsLibraryDependencyNavigationPath
+    get() = PsLibraryDependencyNavigationPath(this)
+
+  override val icon: Icon
+    get() = LIBRARY_ICON
 }
 
-interface PsDeclaredLibraryDependency: PsLibraryDependency, PsDeclaredDependency {
+interface PsDeclaredLibraryDependency : PsLibraryDependency, PsDeclaredDependency {
   var version: ParsedValue<String>
   val versionProperty: ModelSimpleProperty<Unit, String>
+
   fun canExtractVariable(): Boolean
+
   override fun toKey() = spec.toString()
 }
 
 interface PsResolvedLibraryDependency : PsLibraryDependency, PsResolvedDependency {
   fun hasPromotedVersion(): Boolean
+
   fun getTransitiveDependencies(): Set<PsResolvedLibraryDependency> = setOf()
 }

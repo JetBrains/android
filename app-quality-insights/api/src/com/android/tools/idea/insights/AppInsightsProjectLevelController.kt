@@ -48,9 +48,8 @@ interface AppInsightsProjectLevelController {
    * * Active and available issues of the app(crashes).
    * * Active and available filters used to fetch the above issues.
    *
-   * It contains many pieces of data all of which can change independently resulting in a new value
-   * produced, as a result it is more convenient to [map] this flow into multiple sub flows that
-   * "focus" on a subset of the data you care about. e.g.
+   * It contains many pieces of data all of which can change independently resulting in a new value produced, as a result it is more
+   * convenient to [map] this flow into multiple sub flows that "focus" on a subset of the data you care about. e.g.
    *
    * ```kotlin
    * val connections: Flow<Selection<VariantConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
@@ -120,8 +119,7 @@ interface AppInsightsProjectLevelController {
   /**
    * Enables the [action].
    *
-   * **Enabling an action does not call it**. It is the enabler's responsibility to call the enabled
-   * action.
+   * **Enabling an action does not call it**. It is the enabler's responsibility to call the enabled action.
    *
    * Use [disableAction] to disable the action.
    */

@@ -117,9 +117,7 @@ class InspectorModelTest {
     val image1 = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png").readImage()
     val model =
       model(disposable) {
-        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { image(image1) }
-        }
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") { view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { image(image1) } }
       }
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
@@ -160,47 +158,19 @@ class InspectorModelTest {
 
       val model = model(disposable) {}
       val window1 =
-        viewWindow(
-          rootViewDrawId = ROOT,
-          x = 0,
-          y = 0,
-          width = largeWindowWidth,
-          height = windowHeight,
-          isXr = true,
-        ) {
+        viewWindow(rootViewDrawId = ROOT, x = 0, y = 0, width = largeWindowWidth, height = windowHeight, isXr = true) {
           view(VIEW1, 0, 0, 2, 2, qualifiedName = "view1")
         }
       val window2 =
-        viewWindow(
-          rootViewDrawId = ROOT2,
-          x = 0,
-          y = 0,
-          width = largeWindowWidth,
-          height = windowHeight,
-          isXr = true,
-        ) {
+        viewWindow(rootViewDrawId = ROOT2, x = 0, y = 0, width = largeWindowWidth, height = windowHeight, isXr = true) {
           view(VIEW2, 0, 0, 2, 2, qualifiedName = "view2")
         }
       val window3 =
-        viewWindow(
-          rootViewDrawId = ROOT3,
-          x = 0,
-          y = 0,
-          width = smallWindowWidth,
-          height = windowHeight,
-          isXr = true,
-        ) {
+        viewWindow(rootViewDrawId = ROOT3, x = 0, y = 0, width = smallWindowWidth, height = windowHeight, isXr = true) {
           view(VIEW3, 0, 0, 2, 2, qualifiedName = "view3")
         }
       val window4 =
-        viewWindow(
-          rootViewDrawId = ROOT4,
-          x = 0,
-          y = 0,
-          width = smallWindowWidth,
-          height = windowHeight,
-          isXr = true,
-        ) {
+        viewWindow(rootViewDrawId = ROOT4, x = 0, y = 0, width = smallWindowWidth, height = windowHeight, isXr = true) {
           view(VIEW4, 0, 0, 2, 2, qualifiedName = "view4")
         }
       var isModified = false
@@ -261,9 +231,7 @@ class InspectorModelTest {
     val model =
       model(disposable) {
         view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-          }
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
         }
       }
     var isModified = false
@@ -271,10 +239,7 @@ class InspectorModelTest {
     model.hoveredNode = model[VIEW3]
     model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
-    val newWindow =
-      window(ROOT, ROOT, 1, 2, 3, 4, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type")
-      }
+    val newWindow = window(ROOT, ROOT, 1, 2, 3, 4, rootViewQualifiedName = "rootType") { view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") }
 
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
@@ -347,10 +312,7 @@ class InspectorModelTest {
     assertThat(model.isEmpty).isTrue()
 
     // add first window
-    val newWindow =
-      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
-      }
+    val newWindow = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") { view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") }
     model.update(newWindow, listOf(ROOT), 0)
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
@@ -360,9 +322,7 @@ class InspectorModelTest {
 
     // add second window
     var window2 =
-      window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") {
-        view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
-      }
+      window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") { view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type") }
     model.update(window2, listOf(ROOT, VIEW2), 0)
     assertThat(model.isEmpty).isFalse()
     assertThat(model[VIEW1]).isNotNull()
@@ -373,10 +333,7 @@ class InspectorModelTest {
 
     // reverse order of windows
     // same content but new instances, so model.update sees a change
-    window2 =
-      window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") {
-        view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
-      }
+    window2 = window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") { view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type") }
     model.update(window2, listOf(VIEW2, ROOT), 1)
     assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(VIEW2, ROOT))
 
@@ -400,9 +357,7 @@ class InspectorModelTest {
     val model = model(disposable) {}
     val newWindow =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-        }
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
     // Clear out the drawChildren added by the test fixture so we only get the ones generated by
@@ -413,17 +368,14 @@ class InspectorModelTest {
     // Verify that drawChildren are created corresponding to the tree
     ViewNode.readAccess {
       model.root.flatten().forEach { node ->
-        assertThat(node.drawChildren.map { (it as DrawViewChild).unfilteredOwner })
-          .containsExactlyElementsIn(node.children)
+        assertThat(node.drawChildren.map { (it as DrawViewChild).unfilteredOwner }).containsExactlyElementsIn(node.children)
       }
     }
 
     val view2 = model[VIEW2]
     val newWindow2 =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-        }
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
         view(VIEW4, 10, 11, 12, 13, qualifiedName = "v4Type")
       }
 
@@ -443,26 +395,20 @@ class InspectorModelTest {
     val model =
       model(disposable) {
         view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
-          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-            view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-          }
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
           view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
         }
       }
 
     val window1 =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-        }
+        view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
 
     val window2 =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
-          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
-        }
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") { view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type") }
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
 
@@ -644,10 +590,7 @@ class InspectorModelTest {
     val lock = Object()
     fun check() {
       synchronized(lock) {
-        val running =
-          ViewNode.readAccess {
-            model.maxHighlight > 0f || compose2.recompositions.highlightCount < DECREASE_BREAK_OFF
-          }
+        val running = ViewNode.readAccess { model.maxHighlight > 0f || compose2.recompositions.highlightCount < DECREASE_BREAK_OFF }
         if (!running) {
           stop = true
           countdownStopped = true
@@ -701,19 +644,12 @@ class InspectorModelTest {
     val model =
       model(disposable) {
         view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-            view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
-          }
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") { view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type") }
           view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
         }
       }
 
-    model.foldInfo =
-      InspectorModel.FoldInfo(
-        97,
-        InspectorModel.Posture.HALF_OPEN,
-        InspectorModel.FoldOrientation.VERTICAL,
-      )
+    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
     model.clear()
     assertThat(model.foldInfo).isNull()
   }
@@ -722,8 +658,7 @@ class InspectorModelTest {
   fun testModelIsClearedOnProcessChange() {
     val latch = CountDownLatch(1)
     val processModel = ProcessesModel(TestProcessDiscovery())
-    val inspectorModel =
-      InspectorModel(mock(), AndroidCoroutineScope(disposable), processesModel = processModel)
+    val inspectorModel = InspectorModel(mock(), AndroidCoroutineScope(disposable), processesModel = processModel)
     assertThat(inspectorModel.isEmpty).isTrue()
 
     val observedNewWindows = mutableListOf<AndroidWindow?>()
@@ -736,10 +671,7 @@ class InspectorModelTest {
     }
 
     // add first window
-    val newWindow =
-      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
-      }
+    val newWindow = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") { view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") }
     inspectorModel.update(newWindow, listOf(ROOT), 0)
 
     assertThat(observedNewWindows).containsExactly(newWindow)
@@ -772,17 +704,12 @@ class InspectorModelTest {
     model.setSelection(root, SelectionOrigin.INTERNAL)
     val observedSelectedNodes = mutableListOf<Triple<ViewNode?, ViewNode?, SelectionOrigin>>()
 
-    model.addSelectionListener { oldNode, newNode, origin ->
-      observedSelectedNodes.add(Triple(oldNode, newNode, origin))
-    }
+    model.addSelectionListener { oldNode, newNode, origin -> observedSelectedNodes.add(Triple(oldNode, newNode, origin)) }
     assertThat(observedSelectedNodes).containsExactly(Triple(root, root, SelectionOrigin.INTERNAL))
 
     model.setSelection(view2, SelectionOrigin.COMPONENT_TREE)
     assertThat(observedSelectedNodes)
-      .containsExactly(
-        Triple(root, root, SelectionOrigin.INTERNAL),
-        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
-      )
+      .containsExactly(Triple(root, root, SelectionOrigin.INTERNAL), Triple(root, view2, SelectionOrigin.COMPONENT_TREE))
 
     model.setSelection(view3, SelectionOrigin.INTERNAL)
     assertThat(observedSelectedNodes)
@@ -825,8 +752,7 @@ class InspectorModelTest {
     assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2))
 
     model.hoveredNode = null
-    assertThat(observedHoverNodes)
-      .containsExactly(Pair(view1, view1), Pair(view1, view2), Pair(view2, null))
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2), Pair(view2, null))
 
     // Modification
     val newWindow = window(VIEW2, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType")
@@ -851,8 +777,7 @@ class InspectorModelTest {
     model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
     val observedStates = mutableListOf<DynamicLayoutInspectorErrorInfo.AttachErrorState>()
     model.addAttachStageListener { observedStates.add(it) }
-    assertThat(observedStates)
-      .containsExactly(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    assertThat(observedStates).containsExactly(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
   @Test
@@ -864,9 +789,7 @@ class InspectorModelTest {
         view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
           view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
             compose(COMPOSE1, "Column", "App.kt", 123) {
-              compose(COMPOSE2, "Button", "App.kt", 123) {
-                compose(COMPOSE3, "Text", "Button.kt", 234)
-              }
+              compose(COMPOSE2, "Button", "App.kt", 123) { compose(COMPOSE3, "Text", "Button.kt", 234) }
             }
           }
         }
@@ -907,9 +830,7 @@ class InspectorModelTest {
     val originalNodes = Collections.newSetFromMap<ViewNode>(IdentityHashMap())
     originalNodes.addAll(model.root.flattenedList())
     var hadStructuralChange = false
-    model.addModificationListener { _, _, structuralChange ->
-      hadStructuralChange = structuralChange
-    }
+    model.addModificationListener { _, _, structuralChange -> hadStructuralChange = structuralChange }
     model.update(newWindow, listOf(ROOT), 1)
 
     // Check that all the node instances were maintained:
@@ -935,16 +856,11 @@ class InspectorModelTest {
       val allDrawChildren = model.root.drawChildren.flatMap { flattenDrawChildren(it) }
       // Check that the drawView tree contains exactly the drawChildren of every element of the view
       // tree
-      assertThat(allDrawChildren)
-        .containsExactlyElementsIn(
-          model.root.flatten().flatMap { it.drawChildren.asSequence() }.toList()
-        )
+      assertThat(allDrawChildren).containsExactlyElementsIn(model.root.flatten().flatMap { it.drawChildren.asSequence() }.toList())
       // Check that the unfiltered owners of the drawViews are all in the view tree
-      assertThat(model.root.flattenedList())
-        .containsAllIn(allDrawChildren.map { it.unfilteredOwner })
+      assertThat(model.root.flattenedList()).containsAllIn(allDrawChildren.map { it.unfilteredOwner })
       // Check that the owners of the drawViews are all in the view tree or null
-      assertThat(model.root.flattenedList().plus(null).toList())
-        .containsAllIn(allDrawChildren.map { it.findFilteredOwner(treeSettings) })
+      assertThat(model.root.flattenedList().plus(null).toList()).containsAllIn(allDrawChildren.map { it.findFilteredOwner(treeSettings) })
     }
   }
 }

@@ -40,22 +40,13 @@ class IssuePanelProjectActivityTest {
 
   @Before
   fun setup() {
-    rule.projectRule.replaceProjectService(
-      ToolWindowManager::class.java,
-      TestToolWindowManager(rule.project),
-    )
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     runInEdtAndWait {
       val contentManager = toolWindow.contentManager
-      val content =
-        contentManager.factory.createContent(mock(), "Current File", true).apply {
-          isCloseable = false
-        }
+      val content = contentManager.factory.createContent(mock(), "Current File", true).apply { isCloseable = false }
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
     }
@@ -66,9 +57,7 @@ class IssuePanelProjectActivityTest {
   fun testHavingIssuePanelEvenThereIsNoDesignSurface() {
     runBlocking {
       var called = 0
-      rule.project.messageBus
-        .connect()
-        .subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
+      rule.project.messageBus.connect().subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
 
       // Before calling IssuePanelStartupActivity().setupIssuePanel(), there is only "Current File"
       // tab.
@@ -82,9 +71,7 @@ class IssuePanelProjectActivityTest {
       // The instance of IssuePanelService should be setup already because of
       // IssuePanelStartupActivity.
       waitUntil(timeout = 5.seconds) { toolWindow.contentManager.contentCount == 2 }
-      waitUntil(timeout = 5.seconds) {
-        "Layout and Qualifiers".toTabTitle() == toolWindow.contentManager.getContent(1)?.displayName
-      }
+      waitUntil(timeout = 5.seconds) { "Layout and Qualifiers".toTabTitle() == toolWindow.contentManager.getContent(1)?.displayName }
 
       // Verify the issue panel exists even there is no IssueModel created.
       assertEquals(0, called)

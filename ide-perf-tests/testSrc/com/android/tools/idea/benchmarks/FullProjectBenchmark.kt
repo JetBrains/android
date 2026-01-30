@@ -48,6 +48,7 @@ import com.intellij.psi.util.descendantsOfType
 import com.intellij.testFramework.createGlobalContextForTool
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import java.io.File
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -59,26 +60,15 @@ import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.nextLeafs
 import org.junit.After
 import org.junit.Ignore
-import java.io.File
 
+/** Contains the inputs necessary to run a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark */
+data class LayoutCompletionInput(val activityPath: String, val activityWindow: String, val layoutPath: String, val layoutWindow: String)
 
-/**
- * Contains the inputs necessary to run a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
- */
-data class LayoutCompletionInput(
-  val activityPath: String,
-  val activityWindow: String,
-  val layoutPath: String,
-  val layoutWindow: String
-)
-
-/**
- * Contains the results of a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
- */
+/** Contains the results of a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark */
 data class LayoutCompletionSample(
   val fastPathTime: Metric.MetricSample,
   val mediumPathTime: Metric.MetricSample,
-  val slowPathTime: Metric.MetricSample
+  val slowPathTime: Metric.MetricSample,
 )
 
 /**
@@ -90,17 +80,13 @@ data class LayoutCompletionSample(
  * @property completionCount the amount of lookupElements returned from calling completion.
  * @property sample time taken for all completion results to be fetched.
  */
-data class CompletionSample(
-  val fileName: String,
-  val completionCount: Int,
-  val sample: Metric.MetricSample
-)
+data class CompletionSample(val fileName: String, val completionCount: Int, val sample: Metric.MetricSample)
 
 /**
  * Contains performance tests for a particular project defined by the subclasses.
  *
- * The gradleRule is shared between tests to preserve the sync state for benchmarks between tests.
- * The subclass must provide an AndroidGradleProjectRule and call FullProjectBenchmark.loadProject in @BeforeClass function.
+ * The gradleRule is shared between tests to preserve the sync state for benchmarks between tests. The subclass must provide an
+ * AndroidGradleProjectRule and call FullProjectBenchmark.loadProject in @BeforeClass function.
  */
 @Ignore
 abstract class FullProjectBenchmark {
@@ -108,9 +94,7 @@ abstract class FullProjectBenchmark {
 
   @After
   fun tearDown() {
-    runInEdtAndWait {
-      clearCaches()
-    }
+    runInEdtAndWait { clearCaches() }
   }
 
   fun fullProjectHighlighting(fileTypes: List<FileType>, projectName: String) {
@@ -122,9 +106,7 @@ abstract class FullProjectBenchmark {
   }
 
   open fun fullProjectLintInspection(projectName: String) {
-    runInEdtAndWait {
-      measureLintInspections(projectName)
-    }
+    runInEdtAndWait { measureLintInspections(projectName) }
   }
 
   fun layoutAttributeCompletion(layoutAttributeCompletionInput: LayoutCompletionInput, projectName: String) {
@@ -140,7 +122,7 @@ abstract class FullProjectBenchmark {
       collectElements = { collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 50) },
       warmupAction = { performLocalCompletionForFile(it, 1) },
       benchmarkAction = { performLocalCompletionForFile(it, 5) },
-      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "Local") }
+      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "Local") },
     )
   }
 
@@ -149,7 +131,7 @@ abstract class FullProjectBenchmark {
       collectElements = { collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 50) },
       warmupAction = { performTopLevelCompletionForFile(it) },
       benchmarkAction = { performTopLevelCompletionForFile(it) },
-      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "TopLevel") }
+      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "TopLevel") },
     )
   }
 
@@ -168,11 +150,7 @@ abstract class FullProjectBenchmark {
         val arrayOfLookupElements = fixture.completeBasic()
         lookupElementCount = arrayOfLookupElements.size
       }
-      samples.add(
-        CompletionSample(
-          file.name,
-          lookupElementCount,
-          Metric.MetricSample(System.currentTimeMillis(), elapsedMillis)))
+      samples.add(CompletionSample(file.name, lookupElementCount, Metric.MetricSample(System.currentTimeMillis(), elapsedMillis)))
     }
     return samples
   }
@@ -216,7 +194,7 @@ abstract class FullProjectBenchmark {
     samples: List<CompletionSample>,
     projectName: String,
     language: Language,
-    completionType: String
+    completionType: String,
   ) {
     writeCsv(
       samples,
@@ -224,7 +202,7 @@ abstract class FullProjectBenchmark {
       completionBenchmark,
       resultName = completionType,
       columns = listOf("fileName", "completionCount", "time"),
-      values = { listOf(fileName, completionCount, sample.sampleData) }
+      values = { listOf(fileName, completionCount, sample.sampleData) },
     )
 
     val metric = Metric("${projectName}_${language.displayName}_${completionType}")
@@ -236,7 +214,7 @@ abstract class FullProjectBenchmark {
     runBenchmark(
       recordResults = { runLayoutEditingCuj(layoutCompletionInput) },
       runBetweenIterations = { clearCaches() },
-      commitResults = { commitLayoutCompletionSamplesToBenchmark(it, projectName, completionType) }
+      commitResults = { commitLayoutCompletionSamplesToBenchmark(it, projectName, completionType) },
     )
   }
 
@@ -254,25 +232,29 @@ abstract class FullProjectBenchmark {
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
     assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
       .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_ENTIRE_CLASS_MAP)
-    val slowPathSample = Metric.MetricSample(
-      System.currentTimeMillis(),
-      measureElapsedMillis {
-        val lookupElements = fixture.completeBasic()
-        assertThat(lookupElements).isNotEmpty()
-      })
+    val slowPathSample =
+      Metric.MetricSample(
+        System.currentTimeMillis(),
+        measureElapsedMillis {
+          val lookupElements = fixture.completeBasic()
+          assertThat(lookupElements).isNotEmpty()
+        },
+      )
 
     // Measure completion time, fast path
     // TODO: http://b/162400668
-    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+    // assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
     //  .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
-    val fastPathSample = Metric.MetricSample(
-      System.currentTimeMillis(),
-      measureElapsedMillis {
-        val lookupElements = fixture.completeBasic()
-        assertThat(lookupElements).isNotEmpty()
-      })
+    val fastPathSample =
+      Metric.MetricSample(
+        System.currentTimeMillis(),
+        measureElapsedMillis {
+          val lookupElements = fixture.completeBasic()
+          assertThat(lookupElements).isNotEmpty()
+        },
+      )
 
     // Edit something in the activity file
     fixture.openFileInEditor(activityFile)
@@ -285,14 +267,16 @@ abstract class FullProjectBenchmark {
     fixture.editor.caretModel.moveToOffset(0)
     fixture.moveCaret(layoutCompletionInput.layoutWindow)
     // TODO: http://b/162400668
-    //assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+    // assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
     //  .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
-    val mediumPathSample = Metric.MetricSample(
-      System.currentTimeMillis(),
-      measureElapsedMillis {
-        val lookupElements = fixture.completeBasic()
-        assertThat(lookupElements).isNotEmpty()
-      })
+    val mediumPathSample =
+      Metric.MetricSample(
+        System.currentTimeMillis(),
+        measureElapsedMillis {
+          val lookupElements = fixture.completeBasic()
+          assertThat(lookupElements).isNotEmpty()
+        },
+      )
 
     return LayoutCompletionSample(fastPathSample, mediumPathSample, slowPathSample)
   }
@@ -303,7 +287,7 @@ abstract class FullProjectBenchmark {
     benchmark: Benchmark,
     resultName: String?,
     columns: List<String>,
-    values: (T).() -> List<Any>
+    values: (T).() -> List<Any>,
   ) {
     val outputsDir = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
     if (outputsDir != null) {
@@ -321,17 +305,14 @@ abstract class FullProjectBenchmark {
     }
   }
 
-  fun commitLayoutCompletionSamplesToBenchmark(
-    samples: List<LayoutCompletionSample>,
-    projectName: String,
-    completionType: String
-  ) {
+  fun commitLayoutCompletionSamplesToBenchmark(samples: List<LayoutCompletionSample>, projectName: String, completionType: String) {
     val slowSamples = samples.map { it.slowPathTime }
     val mediumSamples = samples.map { it.mediumPathTime }
     val fastSamples = samples.map { it.fastPathTime }
 
     // Diagnostic logging.
-    println("""
+    println(
+      """
       ===
       Project: $projectName
       Benchmark name: ${layoutCompletionBenchmark.name}
@@ -340,7 +321,9 @@ abstract class FullProjectBenchmark {
       Average Medium time: ${mediumSamples.map { it.sampleData }.average()} ms
       Average Fast time: ${fastSamples.map { it.sampleData }.average()} ms
       ===
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     writeCsv(
       samples,
@@ -348,7 +331,7 @@ abstract class FullProjectBenchmark {
       layoutCompletionBenchmark,
       resultName = completionType,
       columns = listOf("fastPathTime", "mediumPathTime", "slowPathTime"),
-      values = { listOf(fastPathTime.sampleData, mediumPathTime.sampleData, slowPathTime.sampleData) }
+      values = { listOf(fastPathTime.sampleData, mediumPathTime.sampleData, slowPathTime.sampleData) },
     )
 
     val slowPathMetric = Metric("${projectName}_${completionType}_Slow_Path")
@@ -382,63 +365,78 @@ abstract class FullProjectBenchmark {
     }
 
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val highlightingBenchmark = Benchmark.Builder("Full Project Highlighting")
-      .setDescription("""
-        For each test project, this benchmark runs syntax highlighting on all files of a given file type
-        and records the time elapsed per file. All measurements are given in milliseconds.
+    val highlightingBenchmark =
+      Benchmark.Builder("Full Project Highlighting")
+        .setDescription(
+          """
+          For each test project, this benchmark runs syntax highlighting on all files of a given file type
+          and records the time elapsed per file. All measurements are given in milliseconds.
 
-        Perfgate will by default only show the *average* per-file highlighting time. To get a
-        better sense of performance on large/complex files, enable the 95th percentile trend line.
-        This is especially important for XML because many XML files are trivial string resources.
+          Perfgate will by default only show the *average* per-file highlighting time. To get a
+          better sense of performance on large/complex files, enable the 95th percentile trend line.
+          This is especially important for XML because many XML files are trivial string resources.
 
-        Note: "syntax highlighting" includes Android Lint and other inspections that are enabled by default.
-      """.trimIndent())
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
-
-    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val lintInspectionBenchmark = Benchmark.Builder("Full Project Lint Inspection")
-      .setDescription("""
-        For each test project, this benchmark runs the full suite of Android Lint inspections,
-        on all files of a given file type and records the time elapsed per file. All measurements are
-        given in milliseconds.
-
-        Perfgate will by default only show the *average* per-file inspection time. To get a
-        better sense of performance on large/complex files, enable the 95th percentile trend line.
-        This is especially important for XML because many XML files are trivial string resources.
-      """.trimIndent())
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
-
+          Note: "syntax highlighting" includes Android Lint and other inspections that are enabled by default.
+          """
+            .trimIndent()
+        )
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
 
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val layoutCompletionBenchmark = Benchmark.Builder("Layout Completion Benchmark")
-      .setDescription("""
-        This test record the time taken to provide completion results for view attributes and tags in layout 
-          files in three typical scenarios. All measurements are given in milliseconds.
+    val lintInspectionBenchmark =
+      Benchmark.Builder("Full Project Lint Inspection")
+        .setDescription(
+          """
+          For each test project, this benchmark runs the full suite of Android Lint inspections,
+          on all files of a given file type and records the time elapsed per file. All measurements are
+          given in milliseconds.
 
-        Fast Path relates to time where completion results are cached and should be near instant.
-        Medium Path relates to time where completion results are only cached for SDK and library results,
-          all local completion elements must be recalculated. This happens after a change is made in Kotlin or Java
-          files.
-        Slow Path relates to time where there is no cache. Local, SDK and library results must be recalculated.
-          This happens on project open, or after Gradle sync.
-      """.trimIndent())
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
+          Perfgate will by default only show the *average* per-file inspection time. To get a
+          better sense of performance on large/complex files, enable the 95th percentile trend line.
+          This is especially important for XML because many XML files are trivial string resources.
+          """
+            .trimIndent()
+        )
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
 
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
-    val completionBenchmark = Benchmark.Builder("Completion Benchmark")
-      .setDescription("""
-        This test records the time taken to provide completion results in various languages.
+    val layoutCompletionBenchmark =
+      Benchmark.Builder("Layout Completion Benchmark")
+        .setDescription(
+          """
+          This test record the time taken to provide completion results for view attributes and tags in layout 
+            files in three typical scenarios. All measurements are given in milliseconds.
 
-        This measures the total time to collect all completion results in top level and local scenarios, given
-        little context or restraints. Therefore the completion results are many. This is a worst case scenario.
+          Fast Path relates to time where completion results are cached and should be near instant.
+          Medium Path relates to time where completion results are only cached for SDK and library results,
+            all local completion elements must be recalculated. This happens after a change is made in Kotlin or Java
+            files.
+          Slow Path relates to time where there is no cache. Local, SDK and library results must be recalculated.
+            This happens on project open, or after Gradle sync.
+          """
+            .trimIndent()
+        )
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
 
-        This does not measure completion insert latency or popup latency.
-      """.trimIndent())
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
+    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
+    val completionBenchmark =
+      Benchmark.Builder("Completion Benchmark")
+        .setDescription(
+          """
+          This test records the time taken to provide completion results in various languages.
+
+          This measures the total time to collect all completion results in top level and local scenarios, given
+          little context or restraints. Therefore the completion results are many. This is a worst case scenario.
+
+          This does not measure completion insert latency or popup latency.
+          """
+            .trimIndent()
+        )
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
   }
 
   fun clearCaches() {
@@ -448,10 +446,7 @@ abstract class FullProjectBenchmark {
     gradleRule.project.modules.asList().forEach { TagToClassMapper.getInstance(it).resetAllClassMaps() }
   }
 
-  fun measureLintInspections(projectName: String,
-                             maxFiles: Int? = null,
-                             doWarmup: Boolean = true,
-                             doLogging: Boolean = true) {
+  fun measureLintInspections(projectName: String, maxFiles: Int? = null, doWarmup: Boolean = true, doLogging: Boolean = true) {
     // Setup
     val project = gradleRule.project
     val profileManager = InspectionProjectProfileManager.getInstance(project)
@@ -464,15 +459,14 @@ abstract class FullProjectBenchmark {
     val scopeProvider: () -> AnalysisScope = {
       if (maxFiles == null) {
         AnalysisScope(project)
-      }
-      else {
+      } else {
         val allFiles = mutableListOf<VirtualFile>()
         // take up to maxFiles from each file type
         for (fileType in listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType)) {
-          val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).filter {
-            it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true
-          }
-            .take(maxFiles)
+          val files =
+            FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))
+              .filter { it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true }
+              .take(maxFiles)
           assert(files.isNotEmpty())
           allFiles.addAll(files)
         }
@@ -484,35 +478,30 @@ abstract class FullProjectBenchmark {
 
     // Warmup
     if (doWarmup) {
-      @Suppress("UnstableApiUsage")
-      context.doInspections(scopeProvider.invoke())
+      @Suppress("UnstableApiUsage") context.doInspections(scopeProvider.invoke())
 
       do {
         UIUtil.dispatchAllInvocationEvents()
-      }
-      while (!context.isFinished)
+      } while (!context.isFinished)
     }
 
     // Reset
     clearCaches()
 
     // Measure
-    val timeMs = measureElapsedMillis {
-      @Suppress("UnstableApiUsage")
-      context.doInspections(scopeProvider.invoke())
-    }
+    val timeMs = measureElapsedMillis { @Suppress("UnstableApiUsage") context.doInspections(scopeProvider.invoke()) }
 
     do {
       UIUtil.dispatchAllInvocationEvents()
-    }
-    while (!context.isFinished)
+    } while (!context.isFinished)
 
     val samples = listOf(Metric.MetricSample(System.currentTimeMillis(), timeMs))
 
     if (!doLogging) return
 
     // Diagnostic logging
-    println("""
+    println(
+      """
       ===
       Project: $projectName
       Java files: ${FileTypeIndex.getFiles(JavaFileType.INSTANCE, ProjectScope.getContentScope(project)).size}
@@ -520,16 +509,11 @@ abstract class FullProjectBenchmark {
       XML files: ${FileTypeIndex.getFiles(XmlFileType.INSTANCE, ProjectScope.getContentScope(project)).size}
       Total time: $timeMs ms
       ===
-    """.trimIndent())
-
-    writeCsv(
-      samples,
-      projectName,
-      lintInspectionBenchmark,
-      resultName = "Lint Analysis",
-      columns = listOf("time"),
-      values = { samples }
+    """
+        .trimIndent()
     )
+
+    writeCsv(samples, projectName, lintInspectionBenchmark, resultName = "Lint Analysis", columns = listOf("time"), values = { samples })
 
     // Perfgate
     val metric = Metric("${projectName}_Lint_Inspection")
@@ -547,10 +531,10 @@ abstract class FullProjectBenchmark {
   ) {
     // Collect files.
     val project = gradleRule.project
-    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).filter {
-      it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true
-    }
-      .take(maxFiles)
+    val files =
+      FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))
+        .filter { it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true }
+        .take(maxFiles)
     assert(files.isNotEmpty())
 
     val fixture = gradleRule.fixture
@@ -581,9 +565,7 @@ abstract class FullProjectBenchmark {
     val timePerFile = mutableListOf<Pair<String, Long>>()
     for (file in files) {
       fixture.openFileInEditor(file)
-      val timeMs = measureElapsedMillis {
-        fixture.doHighlighting(HighlightSeverity.ERROR)
-      }
+      val timeMs = measureElapsedMillis { fixture.doHighlighting(HighlightSeverity.ERROR) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), timeMs))
       timePerFile.add(Pair(file.name, timeMs))
       totalTimeMs += timeMs
@@ -593,7 +575,8 @@ abstract class FullProjectBenchmark {
     if (!doLogging) return
 
     // Diagnostic logging.
-    println("""
+    println(
+      """
       ===
       Project: $projectName
       File type: ${fileType.description}
@@ -602,7 +585,9 @@ abstract class FullProjectBenchmark {
       Total time: $totalTimeMs ms
       Average time: ${totalTimeMs / files.size} ms
       ===
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     timePerFile.sortByDescending { (_, timeMs) -> timeMs }
     for ((fileName, timeMs) in timePerFile) {
       println("$timeMs ms --- ${fileName}")
@@ -614,7 +599,7 @@ abstract class FullProjectBenchmark {
       highlightingBenchmark,
       resultName = fileType.name,
       columns = listOf("fileName", "time"),
-      values = { toList() }
+      values = { toList() },
     )
 
     // Perfgate.

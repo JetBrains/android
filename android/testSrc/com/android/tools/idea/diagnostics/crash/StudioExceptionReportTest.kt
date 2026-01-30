@@ -16,13 +16,13 @@
 
 package com.android.tools.idea.diagnostics.crash
 
-import org.junit.Test
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class StudioExceptionReportTest {
 
   @Test
-  fun `test getRootCause`(){
+  fun `test getRootCause`() {
     val rootException = IllegalArgumentException("Root exception", null)
     val outerException = IllegalStateException("Outer exception", rootException)
     val exampleException = RuntimeException("Example exception", outerException)

@@ -41,18 +41,15 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.CaseFormat
 import kotlin.reflect.KProperty
 
-open class PsDeclaredLibraryAndroidDependency(
-  parent: PsAndroidModule
-) : PsLibraryAndroidDependency(parent),
-    PsDeclaredDependency, PsDeclaredLibraryDependency {
-  final override lateinit var parsedModel: ArtifactDependencyModel ; private set
+open class PsDeclaredLibraryAndroidDependency(parent: PsAndroidModule) :
+  PsLibraryAndroidDependency(parent), PsDeclaredDependency, PsDeclaredLibraryDependency {
+  final override lateinit var parsedModel: ArtifactDependencyModel
+    private set
+
   override val descriptor by Descriptor
   override val spec: PsArtifactDependencySpec
-    get() = PsArtifactDependencySpec.create(
-      parsedModel.group().toString(),
-      parsedModel.name().forceString(),
-      parsedModel.version().toString()
-    )
+    get() =
+      PsArtifactDependencySpec.create(parsedModel.group().toString(), parsedModel.name().forceString(), parsedModel.version().toString())
 
   fun init(parsedModel: ArtifactDependencyModel) {
     this.parsedModel = parsedModel
@@ -61,20 +58,28 @@ open class PsDeclaredLibraryAndroidDependency(
   override fun canExtractVariable(): Boolean = !parsedModel.isVersionCatalogDependency
 
   override val isDeclared: Boolean = true
-  final override val configurationName: String get() = parsedModel.configurationName()
-  override val joinedConfigurationNames: String get() = configurationName
+  final override val configurationName: String
+    get() = parsedModel.configurationName()
+
+  override val joinedConfigurationNames: String
+    get() = configurationName
 
   override var version by Descriptor.version
   override val versionProperty: ModelSimpleProperty<Unit, String>
-    get() = object : ModelSimpleProperty<Unit, String> {
-      override val description: String get() = Descriptor.version.description
-      override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryAndroidDependency)
-      override fun bindContext(model: Unit): ModelPropertyContext<String> =
-        Descriptor.version.bindContext(this@PsDeclaredLibraryAndroidDependency)
+    get() =
+      object : ModelSimpleProperty<Unit, String> {
+        override val description: String
+          get() = Descriptor.version.description
 
-      override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
-      override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
-    }
+        override fun bind(model: Unit): ModelPropertyCore<String> = Descriptor.version.bind(this@PsDeclaredLibraryAndroidDependency)
+
+        override fun bindContext(model: Unit): ModelPropertyContext<String> =
+          Descriptor.version.bindContext(this@PsDeclaredLibraryAndroidDependency)
+
+        override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<String> = throw UnsupportedOperationException()
+
+        override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<String>) = throw UnsupportedOperationException()
+      }
 
   object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
@@ -89,29 +94,33 @@ open class PsDeclaredLibraryAndroidDependency(
       model.isModified = true
       // TODO(solodkyy): Make setModified() customizable at the property level since some properties will need to call resetDependencies().
       model.parent.resetResolvedDependencies()
-      model.parent.fireDependencyModifiedEvent(lazy {
-        model.parent.dependencies.findLibraryDependencies(
-          model.spec.toLibraryKey()).firstOrNull { it.configurationName == model.configurationName }
-      })
+      model.parent.fireDependencyModifiedEvent(
+        lazy {
+          model.parent.dependencies.findLibraryDependencies(model.spec.toLibraryKey()).firstOrNull {
+            it.configurationName == model.configurationName
+          }
+        }
+      )
     }
 
-    private fun preferredVariableName (model: ArtifactDependencyModel): String {
+    private fun preferredVariableName(model: ArtifactDependencyModel): String {
       val name = model.name().getValue(GradlePropertyModel.STRING_TYPE) ?: return "var"
       return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, "$name-version")
     }
 
-    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
-      "Version",
-      preferredVariableName = { preferredVariableName(this.parsedModel) },
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { this.version() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString,
-      knownValuesGetter = ::dependencyVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
-      variableScope = { versionScope() },
-    )
+    val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> =
+      property(
+        "Version",
+        preferredVariableName = { preferredVariableName(this.parsedModel) },
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { this.version() },
+        getter = { asString() },
+        setter = { setValue(it) },
+        parser = ::parseString,
+        knownValuesGetter = ::dependencyVersionValues,
+        variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+        variableScope = { versionScope() },
+      )
     override val properties: Collection<ModelProperty<PsDeclaredLibraryAndroidDependency, *, *, *>> = listOf(version)
   }
 
@@ -129,15 +138,15 @@ open class PsResolvedLibraryAndroidDependency(
   val collection: PsAndroidArtifactDependencyCollection,
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
-  override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
+  override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>,
 ) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
   internal val transitiveDependencies = mutableListOf<PsArtifactDependencySpec>()
-  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
+  override val isDeclared: Boolean
+    get() = declaredDependencies.isNotEmpty()
 
   override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 
-  fun getReverseDependencies(): Set<ReverseDependency> =
-    artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
+  fun getReverseDependencies(): Set<ReverseDependency> = artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
 
   override fun getTransitiveDependencies(): Set<PsResolvedLibraryAndroidDependency> =
     transitiveDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
@@ -148,11 +157,10 @@ open class PsResolvedLibraryAndroidDependency(
   }
 }
 
-abstract class PsLibraryAndroidDependency internal constructor(
-  parent: PsAndroidModule
-) : PsAndroidDependency(parent), PsLibraryDependency {
+abstract class PsLibraryAndroidDependency internal constructor(parent: PsAndroidModule) : PsAndroidDependency(parent), PsLibraryDependency {
 
-  override val name: String get() = spec.name
+  override val name: String
+    get() = spec.name
 
   override fun toText(): String = spec.toString()
 

@@ -118,10 +118,7 @@ class DeviceTableTest {
   @Test
   fun columnSort() {
     val widths = listOf(1200, 400, 800, 20)
-    val devices =
-      widths.map {
-        TestDevices.mediumPhone.copy(name = "Phone $it", resolution = Resolution(it, 2400))
-      }
+    val devices = widths.map { TestDevices.mediumPhone.copy(name = "Phone $it", resolution = Resolution(it, 2400)) }
 
     composeTestRule.setContent {
       val source = TestDeviceSource()
@@ -151,9 +148,7 @@ class DeviceTableTest {
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()
     composeTestRule.onNodeWithText(TestDevices.automotive.name).assertDoesNotExist()
 
-    composeTestRule
-      .onNode(hasText("Phone") and hasAnySibling(hasText("Form Factor")))
-      .performClick()
+    composeTestRule.onNode(hasText("Phone") and hasAnySibling(hasText("Form Factor"))).performClick()
     composeTestRule.onNodeWithText("Automotive").performClick()
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertDoesNotExist()
@@ -171,11 +166,7 @@ class DeviceTableTest {
         devices,
         columns = testDeviceTableColumns,
         filterContent = {
-          SetFilter(
-            Manufacturer.uniqueValuesOf(devices),
-            filterState.oemFilter,
-            renderer = { Text("$it custom renderer") },
-          )
+          SetFilter(Manufacturer.uniqueValuesOf(devices), filterState.oemFilter, renderer = { Text("$it custom renderer") })
         },
         filterState = filterState,
       )
@@ -204,9 +195,7 @@ class DeviceTableTest {
     }
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertIsDisplayed()
-    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).performMouseInput {
-      click(button = MouseButton.Secondary)
-    }
+    composeTestRule.onNodeWithText(TestDevices.pixelFold.name).performMouseInput { click(button = MouseButton.Secondary) }
 
     assertThat(clicks).containsExactly(TestDevices.pixelFold)
   }
@@ -297,12 +286,7 @@ class DeviceTableTest {
     val devices = (0..20).map { TestDevices.mediumPhone.copy(name = "Phone ${'A' + it}") }.toList()
 
     composeTestRule.setContent {
-      DeviceTable(
-        devices,
-        columns = testDeviceTableColumns,
-        filterContent = {},
-        modifier = Modifier.size(400.dp, 200.dp),
-      )
+      DeviceTable(devices, columns = testDeviceTableColumns, filterContent = {}, modifier = Modifier.size(400.dp, 200.dp))
     }
 
     composeTestRule.onNodeWithText("Phone A").performClick()
@@ -369,10 +353,7 @@ class DeviceTableTest {
   @Test
   fun formFactorOrder() {
     with(FormFactors) {
-      assertThat(
-          listOf(TV, TABLET, PHONE, "Shoe", AUTO, "Chrome", WEAR, DESKTOP)
-            .sortedWith(FormFactor.comparator)
-        )
+      assertThat(listOf(TV, TABLET, PHONE, "Shoe", AUTO, "Chrome", WEAR, DESKTOP).sortedWith(FormFactor.comparator))
         .containsExactlyElementsIn(formFactorOrder.plus("Chrome").plus("Shoe"))
         .inOrder()
     }

@@ -22,70 +22,86 @@ import org.intellij.lang.annotations.Language
 
 class DeclarativeCommenterTest : LightPlatformCodeInsightTestCase() {
   fun testComment() = toggleLineComment("test", "//test")
+
   fun testUncomment() = toggleLineComment("//test", "test")
+
   fun testCommentOnEmptyLine() = toggleLineComment("<caret>\n", "//<caret>\n")
+
   fun testUncommentOnEmptyLine() = toggleLineComment("// <caret>\n", "\n<caret>")
-  fun testLineCommentBlock() = toggleLineComment(
-    """
-    android {
-      <block>multi line comment
-      description</block>
-      defaultConfig { }
-    }
-    """.trimIndent(),
-    """
-    android {
-    //  multi line comment
-    //  description
-      defaultConfig { }
-    }
-    """.trimIndent()
-  )
 
-  fun testLineUncommentBlock() = toggleLineComment(
-    """
-    android {
-    <block>//  compileOptions {
-    //    sourceCompatibility = JavaVersion.VERSION_1_8
-    //    targetCompatibility = JavaVersion.VERSION_1_8
-    //  }</block>
-      defaultConfig { }
-    }
-    """.trimIndent(),
-    """
-    android {
-      compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+  fun testLineCommentBlock() =
+    toggleLineComment(
+      """
+      android {
+        <block>multi line comment
+        description</block>
+        defaultConfig { }
       }
-      defaultConfig { }
-    }
-    """.trimIndent()
-  )
+      """
+        .trimIndent(),
+      """
+      android {
+      //  multi line comment
+      //  description
+        defaultConfig { }
+      }
+      """
+        .trimIndent(),
+    )
 
-  fun testCommentBlock() = toggleBlockComment(
-    """
-    <block>comment</block> plugins{}
-    """.trimIndent(),
-    """
-    /*comment*/ plugins{}
-    """.trimIndent()
-  )
+  fun testLineUncommentBlock() =
+    toggleLineComment(
+      """
+      android {
+      <block>//  compileOptions {
+      //    sourceCompatibility = JavaVersion.VERSION_1_8
+      //    targetCompatibility = JavaVersion.VERSION_1_8
+      //  }</block>
+        defaultConfig { }
+      }
+      """
+        .trimIndent(),
+      """
+      android {
+        compileOptions {
+          sourceCompatibility = JavaVersion.VERSION_1_8
+          targetCompatibility = JavaVersion.VERSION_1_8
+        }
+        defaultConfig { }
+      }
+      """
+        .trimIndent(),
+    )
 
-  fun testUncommentBlock() = toggleBlockComment(
-    """
-    plugins{
-      <block>/*apply(libs.plugins.app)*/</block>
-      apply(libs.plugins.lib)
-    }
-    """.trimIndent(),
-    """
-    plugins{
-      apply(libs.plugins.app)
-      apply(libs.plugins.lib)
-    }
-    """.trimIndent()
-  )
+  fun testCommentBlock() =
+    toggleBlockComment(
+      """
+      <block>comment</block> plugins{}
+      """
+        .trimIndent(),
+      """
+      /*comment*/ plugins{}
+      """
+        .trimIndent(),
+    )
+
+  fun testUncommentBlock() =
+    toggleBlockComment(
+      """
+      plugins{
+        <block>/*apply(libs.plugins.app)*/</block>
+        apply(libs.plugins.lib)
+      }
+      """
+        .trimIndent(),
+      """
+      plugins{
+        apply(libs.plugins.app)
+        apply(libs.plugins.lib)
+      }
+      """
+        .trimIndent(),
+    )
 
   private fun toggleLineComment(@Language("Declarative") before: String, @Language("Declarative") after: String) {
     doTest(before, after, IdeActions.ACTION_COMMENT_LINE)

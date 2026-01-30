@@ -24,21 +24,16 @@ import kotlin.io.extension
 sealed class FileProcessResult {
   data class Package(val packagePath: Path) : FileProcessResult()
 
-  data class SourceFile(val relativePath: Path, val language: QuerySyncLanguage?) :
-    FileProcessResult()
+  data class SourceFile(val relativePath: Path, val language: QuerySyncLanguage?) : FileProcessResult()
 
   object Ignored : FileProcessResult()
 }
 
 /**
- * This class is responsible for analyzing individual files encountered during workspace traversal
- * and determining their role within the project structure. It helps in categorizing files into
- * packages, source files of different languages, or files to be ignored.
+ * This class is responsible for analyzing individual files encountered during workspace traversal and determining their role within the
+ * project structure. It helps in categorizing files into packages, source files of different languages, or files to be ignored.
  */
-class FileProcessor(
-  private val workspaceRoot: Path,
-  private val fileExtensions: FileExtensions,
-) {
+class FileProcessor(private val workspaceRoot: Path, private val fileExtensions: FileExtensions) {
 
   private companion object {
     val BUILD_FILE_NAMES: Set<String> = setOf("BUILD", "BUILD.bazel")

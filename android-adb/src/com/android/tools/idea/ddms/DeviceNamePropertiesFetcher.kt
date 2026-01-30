@@ -35,15 +35,13 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.Future
 
 /**
- * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming In such
- * case, this class can be used to get property without blocking thread
- * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not
- * available. At the same time, it check whether a retrieving task is running and start one if it's
- * not. After got value, it will be updated in propertiesMap and FutureCallback will be invoked. It
- * would work as normal propertiesMap for device if value has been retrieved successfully.
+ * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming In such case, this class can be used to get
+ * property without blocking thread [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not available.
+ * At the same time, it check whether a retrieving task is running and start one if it's not. After got value, it will be updated in
+ * propertiesMap and FutureCallback will be invoked. It would work as normal propertiesMap for device if value has been retrieved
+ * successfully.
  *
- * @param uiCallback: a customized FutureCallback which is used to refresh UI component when
- *   ListenableFuture completed
+ * @param uiCallback: a customized FutureCallback which is used to refresh UI component when ListenableFuture completed
  * @param parent: Disposable parent
  */
 class DeviceNamePropertiesFetcher
@@ -54,8 +52,7 @@ constructor(
   private val isDisposed: (Disposable) -> Boolean,
 ) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
-  private val taskExecutor =
-    SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
+  private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
   private val defaultValue = DeviceNameProperties(null, null, null, null)
   // This cache is for ListenableFuture<DeviceNameProperties> and must be accessed by taskExecutor
   // only
@@ -72,10 +69,7 @@ constructor(
 
   internal constructor(parent: Disposable) : this(parent, DefaultCallback())
 
-  constructor(
-    parent: Disposable,
-    uiCallback: FutureCallback<DeviceNameProperties?>,
-  ) : this(parent, uiCallback, Disposer::isDisposed)
+  constructor(parent: Disposable, uiCallback: FutureCallback<DeviceNameProperties?>) : this(parent, uiCallback, Disposer::isDisposed)
 
   @VisibleForTesting
   class DefaultCallback : FutureCallback<DeviceNameProperties?> {
@@ -108,14 +102,7 @@ constructor(
       .listenInPoolThread(taskExecutor)
       .whenAllComplete()
       .call(
-        Callable<DeviceNameProperties> {
-          DeviceNameProperties(
-            futures[0].get(),
-            futures[1].get(),
-            futures[2].get(),
-            futures[3].get(),
-          )
-        },
+        Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
         MoreExecutors.directExecutor(),
       )
   }
@@ -153,10 +140,7 @@ constructor(
     if (application != null && !application.isUnitTestMode) {
       when (callBy) {
         ThreadType.EDT -> application.assertIsDispatchThread()
-        ThreadType.TASK ->
-          assert(!application.isDispatchThread) {
-            "This operation is time consuming and must not be called on EDT"
-          }
+        ThreadType.TASK -> assert(!application.isDispatchThread) { "This operation is time consuming and must not be called on EDT" }
       }
     }
   }
@@ -165,8 +149,7 @@ constructor(
     assertThreadMatch(ThreadType.EDT)
 
     if (isDisposed(this)) {
-      Logger.getInstance(DeviceNamePropertiesFetcher::class.java)
-        .warn("DeviceNamePropertiesFetcher has been disposed")
+      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn("DeviceNamePropertiesFetcher has been disposed")
       return defaultValue
     }
 

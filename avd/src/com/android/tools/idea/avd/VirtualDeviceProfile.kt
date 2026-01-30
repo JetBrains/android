@@ -67,11 +67,7 @@ internal data class VirtualDeviceProfile(
         // TODO: Add icon for tablet
         else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
-    org.jetbrains.jewel.ui.component.Icon(
-      iconKey,
-      contentDescription = "$formFactor AVD",
-      modifier = modifier,
-    )
+    org.jetbrains.jewel.ui.component.Icon(iconKey, contentDescription = "$formFactor AVD", modifier = modifier)
   }
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDeviceProfile) }
@@ -127,8 +123,7 @@ private val Device.androidVersionRange: Range<Int>
     allSoftware
       .map {
         val minLevel = max(1, it.minSdkLevel)
-        if (it.maxSdkLevel == Int.MAX_VALUE) Range.atLeast(minLevel)
-        else Range.closed(minLevel, it.maxSdkLevel)
+        if (it.maxSdkLevel == Int.MAX_VALUE) Range.atLeast(minLevel) else Range.closed(minLevel, it.maxSdkLevel)
       }
       .reduce(Range<Int>::span)
 
@@ -151,6 +146,5 @@ internal val Device.formFactor: String
       else -> FormFactors.PHONE
     }
 
-internal fun VirtualDeviceProfile.update(
-  block: VirtualDeviceProfile.Builder.() -> Unit
-): VirtualDeviceProfile = toBuilder().apply(block).build()
+internal fun VirtualDeviceProfile.update(block: VirtualDeviceProfile.Builder.() -> Unit): VirtualDeviceProfile =
+  toBuilder().apply(block).build()

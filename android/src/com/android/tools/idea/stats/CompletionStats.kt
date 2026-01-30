@@ -29,17 +29,17 @@ import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManagerListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.HdrHistogram.SingleWriterRecorder
 import org.jetbrains.android.AndroidPluginDisposable
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 /**
- * Collects performance metrics on code completion, such as popup latency and completion insertion latency.
- * To log an [AndroidStudioEvent] with the collected data, call [reportCompletionStats].
+ * Collects performance metrics on code completion, such as popup latency and completion insertion latency. To log an [AndroidStudioEvent]
+ * with the collected data, call [reportCompletionStats].
  */
 object CompletionStats {
   private const val MAX_LATENCY_MS = 60 * 1000
@@ -66,9 +66,8 @@ object CompletionStats {
   private val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
 
   /**
-   * Logs an [AndroidStudioEvent] with editor completion latency information.
-   * Resets statistics so that latencies are not double-counted in the next report.
-   * May be called from any thread.
+   * Logs an [AndroidStudioEvent] with editor completion latency information. Resets statistics so that latencies are not double-counted in
+   * the next report. May be called from any thread.
    */
   fun reportCompletionStats() {
     val allStats = EditorCompletionStats.newBuilder()
@@ -117,14 +116,15 @@ object CompletionStats {
         return
       }
       val file = FileDocumentManager.getInstance().getFile(newLookup.editor.document)
-      activeFileType = when (file) {
-        null -> unknownFileType
-        else -> {
-          // Capture a local reference to the project in the current thread in case the reference changes by the time the below executes.
-          val project = newLookup.editor.project
-          coroutineScope.async { getEditorFileTypeForAnalytics(file, project) }
+      activeFileType =
+        when (file) {
+          null -> unknownFileType
+          else -> {
+            // Capture a local reference to the project in the current thread in case the reference changes by the time the below executes.
+            val project = newLookup.editor.project
+            coroutineScope.async { getEditorFileTypeForAnalytics(file, project) }
+          }
         }
-      }
       newLookup.addLookupListener(MyLookupListener())
     }
   }
@@ -136,8 +136,7 @@ object CompletionStats {
       if (isCompletionRunning) {
         // Completion just started.
         completionStartMs = System.currentTimeMillis()
-      }
-      else {
+      } else {
         // Completion just finished.
         // Note: waitingForAdditionalCompletions will be false in the case where lookup was canceled or interrupted.
         if (waitingForAdditionalCompletions) {

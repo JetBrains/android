@@ -43,6 +43,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
@@ -63,14 +66,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 /**
- * A service that produces the [DeploymentTargetDevice] objects used by the target selection
- * dropdown, by joining the current set of devices and device templates from the [DeviceProvisioner]
- * with their [LaunchCompatibility] state and connection time.
+ * A service that produces the [DeploymentTargetDevice] objects used by the target selection dropdown, by joining the current set of devices
+ * and device templates from the [DeviceProvisioner] with their [LaunchCompatibility] state and connection time.
  */
 class DeploymentTargetDevicesService
 @NonInjectable
@@ -95,13 +94,10 @@ constructor(
   )
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): DeploymentTargetDevicesService =
-      project.service<DeploymentTargetDevicesService>()
+    @JvmStatic fun getInstance(project: Project): DeploymentTargetDevicesService = project.service<DeploymentTargetDevicesService>()
   }
 
-  val coroutineScope =
-    overrideCoroutineScope ?: AndroidCoroutineScope(this, CoroutineName("DevicesService"))
+  val coroutineScope = overrideCoroutineScope ?: AndroidCoroutineScope(this, CoroutineName("DevicesService"))
 
   override fun dispose() {}
 
@@ -129,36 +125,34 @@ constructor(
   }
 
   private fun Flow<Iterable<DeviceHandle>>.pairWithDeviceAndActivationState():
-    Flow<List<Pair<DeviceHandle, Pair<DeviceState, ActivationState>>>> =
-    pairWithNestedState { handle ->
-      val actionFlow = handle.activationAction?.presentation ?: flowOf(null)
-      handle.stateFlow.combine(actionFlow) { deviceState, presentation ->
-        Pair(
-          deviceState,
-          when {
-            deviceState.isOnline() -> Online
-            deviceState.isTransitioning -> Activatable
-            presentation == null -> NotActivatable("Unavailable")
-            presentation.enabled -> Activatable
-            else -> NotActivatable(presentation.detail ?: "Unavailable")
-          },
-        )
-      }
+    Flow<List<Pair<DeviceHandle, Pair<DeviceState, ActivationState>>>> = pairWithNestedState { handle ->
+    val actionFlow = handle.activationAction?.presentation ?: flowOf(null)
+    handle.stateFlow.combine(actionFlow) { deviceState, presentation ->
+      Pair(
+        deviceState,
+        when {
+          deviceState.isOnline() -> Online
+          deviceState.isTransitioning -> Activatable
+          presentation == null -> NotActivatable("Unavailable")
+          presentation.enabled -> Activatable
+          else -> NotActivatable(presentation.detail ?: "Unavailable")
+        },
+      )
     }
+  }
 
   private fun Flow<Iterable<DeviceTemplate>>.pairWithTemplateAndActivationState():
-    Flow<List<Pair<DeviceTemplate, Pair<TemplateState, ActivationState>>>> =
-    pairWithNestedState { template ->
-      template.stateFlow.combine(template.activationAction.presentation) { state, presentation ->
-        val activationState =
-          when {
-            presentation.enabled -> Activatable
-            state.isActivating -> Activatable
-            else -> NotActivatable(presentation.detail ?: "Unavailable")
-          }
-        Pair(state, activationState)
-      }
+    Flow<List<Pair<DeviceTemplate, Pair<TemplateState, ActivationState>>>> = pairWithNestedState { template ->
+    template.stateFlow.combine(template.activationAction.presentation) { state, presentation ->
+      val activationState =
+        when {
+          presentation.enabled -> Activatable
+          state.isActivating -> Activatable
+          else -> NotActivatable(presentation.detail ?: "Unavailable")
+        }
+      Pair(state, activationState)
     }
+  }
 
   /** A StateFlow that tracks DeviceHandles to build [DeviceHandleState]s. */
   private val deviceStateFlow: StateFlow<List<DeviceHandleState>> =
@@ -181,8 +175,8 @@ constructor(
       .stateIn(scope = coroutineScope, SharingStarted.Eagerly, emptyList())
 
   /**
-   * Provides a flow of DeploymentTargetDevice based on DeviceHandles, by combining the
-   * deviceStateFlow with the current ADB and LaunchCompatibilityChecker.
+   * Provides a flow of DeploymentTargetDevice based on DeviceHandles, by combining the deviceStateFlow with the current ADB and
+   * LaunchCompatibilityChecker.
    */
   private fun deviceHandleFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
@@ -191,11 +185,7 @@ constructor(
     deviceStateFlow.map {
       it.map {
         val device = DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state)
-        val launchCompatibility =
-          it.activationState
-            .toLaunchCompatibilityChecker()
-            .combine(launchCompatibilityChecker)
-            .validate(device)
+        val launchCompatibility = it.activationState.toLaunchCompatibilityChecker().combine(launchCompatibilityChecker).validate(device)
         val snapshots = it.handle.bootSnapshotAction?.snapshots() ?: emptyList()
         DeploymentTargetDevice(
           DeviceHandleAndroidDevice(ddmlibDeviceLookup, it.handle, it.state),
@@ -210,15 +200,9 @@ constructor(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker,
   ): Flow<List<DeploymentTargetDevice>> =
-    templatesFlow.pairWithTemplateAndActivationState().mapChangedState {
-      template,
-      (_, activationState) ->
+    templatesFlow.pairWithTemplateAndActivationState().mapChangedState { template, (_, activationState) ->
       val device = DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template)
-      val launchCompatibility =
-        activationState
-          .toLaunchCompatibilityChecker()
-          .combine(launchCompatibilityChecker)
-          .validate(device)
+      val launchCompatibility = activationState.toLaunchCompatibilityChecker().combine(launchCompatibilityChecker).validate(device)
       DeploymentTargetDevice(device, null, emptyList(), launchCompatibility)
     }
 
@@ -250,25 +234,19 @@ constructor(
   }
 }
 
-/**
- * Returns the current value of the StateFlow, like StateFlow.value, but if the flow is lazy, also
- * starts collecting the flow.
- */
+/** Returns the current value of the StateFlow, like StateFlow.value, but if the flow is lazy, also starts collecting the flow. */
 internal fun <T> StateFlow<T>.firstValue() = runBlocking { first() }
 
 private fun adbFlow(): Flow<DdmlibDeviceLookup?> = callbackFlow {
-  val listener =
-    AndroidDebugBridge.IDebugBridgeChangeListener { bridge ->
-      trySendBlocking(bridge?.asDdmlibDeviceLookup())
-    }
+  val listener = AndroidDebugBridge.IDebugBridgeChangeListener { bridge -> trySendBlocking(bridge?.asDdmlibDeviceLookup()) }
   trySendBlocking(null)
   AndroidDebugBridge.addDebugBridgeChangeListener(listener)
   awaitClose { AndroidDebugBridge.removeDebugBridgeChangeListener(listener) }
 }
 
 /**
- * A [DdmlibDeviceLookup] that just uses the current value of [AndroidDebugBridge] at lookup time,
- * rather than holding a reference that may go stale.
+ * A [DdmlibDeviceLookup] that just uses the current value of [AndroidDebugBridge] at lookup time, rather than holding a reference that may
+ * go stale.
  */
 internal object AdbDeviceLookup : DdmlibDeviceLookup {
   override suspend fun findDdmlibDevice(connectedDevice: ConnectedDevice): IDevice =
@@ -276,12 +254,8 @@ internal object AdbDeviceLookup : DdmlibDeviceLookup {
       ?: throw IllegalStateException("No ADB connection")
 }
 
-/**
- * A flow that emits [AdbDeviceLookup] whenever [AndroidDebugBridge] is not null, and null
- * otherwise.
- */
-private fun adbDeviceLookupFlow() =
-  adbFlow().map { if (it == null) null else AdbDeviceLookup }.distinctUntilChanged()
+/** A flow that emits [AdbDeviceLookup] whenever [AndroidDebugBridge] is not null, and null otherwise. */
+private fun adbDeviceLookupFlow() = adbFlow().map { if (it == null) null else AdbDeviceLookup }.distinctUntilChanged()
 
 /** Ignore the dumb mode switch unless it lasts for a little while. */
 private fun debouncedDumbModeFlow(project: Project): Flow<DumbModeStatus> =
@@ -294,11 +268,9 @@ private fun debouncedDumbModeFlow(project: Project): Flow<DumbModeStatus> =
 
 internal fun launchCompatibilityCheckerFlow(project: Project): Flow<LaunchCompatibilityChecker> =
   runConfigurationFlow(project).combine(debouncedDumbModeFlow(project)) { runSettings, dumbMode ->
-    (runSettings?.takeIf { dumbMode == DumbModeStatus.SMART_MODE }?.configuration
-        as? ModuleBasedConfiguration<*, *>)
+    (runSettings?.takeIf { dumbMode == DumbModeStatus.SMART_MODE }?.configuration as? ModuleBasedConfiguration<*, *>)
       ?.configurationModule
       ?.module
       ?.let { module -> AndroidFacet.getInstance(module) }
-      ?.let { facet -> LaunchCompatibilityCheckerImpl.create(facet) }
-      ?: LaunchCompatibilityChecker { LaunchCompatibility.YES }
+      ?.let { facet -> LaunchCompatibilityCheckerImpl.create(facet) } ?: LaunchCompatibilityChecker { LaunchCompatibility.YES }
   }

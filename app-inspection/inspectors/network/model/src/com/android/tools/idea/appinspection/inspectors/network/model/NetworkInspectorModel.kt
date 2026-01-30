@@ -81,16 +81,13 @@ class NetworkInspectorModel(
       true -> NetworkTimeline(services.updater)
       else -> StreamingTimeline(services.updater)
     }
-  val networkUsage =
-    NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
+  val networkUsage = NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
   val legends = LegendsModel(networkUsage, timeline.dataRange, false)
   val tooltipLegends = LegendsModel(networkUsage, timeline.tooltipRange, true)
-  val trafficAxis =
-    ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
+  val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
-  val selectionRangeDataFetcher =
-    SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
+  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
 
   var tooltip: TooltipModel? = null
     set(value) {
@@ -115,8 +112,7 @@ class NetworkInspectorModel(
             timeline.dataRange.min = timestampUs - TIMELINE_PADDING_MS
           }
           // Minimum data range is VIEW_LENGTH_US (30 seconds)
-          timeline.dataRange.max =
-            max(timestampUs + TIMELINE_PADDING_MS, timeline.dataRange.min + VIEW_LENGTH_US)
+          timeline.dataRange.max = max(timestampUs + TIMELINE_PADDING_MS, timeline.dataRange.min + VIEW_LENGTH_US)
           if (isLive) {
             timeline.resetZoom()
           }
@@ -130,8 +126,8 @@ class NetworkInspectorModel(
   }
 
   /**
-   * Sets the active connection, or clears the previously selected active connection if given data
-   * is null. Setting a non-null connection will deselect [selectedRule].
+   * Sets the active connection, or clears the previously selected active connection if given data is null. Setting a non-null connection
+   * will deselect [selectedRule].
    */
   fun setSelectedConnection(data: ConnectionData?): Boolean {
     if (selectedConnection == data) {
@@ -146,8 +142,8 @@ class NetworkInspectorModel(
   }
 
   /**
-   * Sets the active interception rule, or clears the previously selected one if given rule is null.
-   * Setting a non-null rule will deselect [selectedConnection].
+   * Sets the active interception rule, or clears the previously selected one if given rule is null. Setting a non-null rule will deselect
+   * [selectedConnection].
    */
   fun setSelectedRule(rule: RuleData?): Boolean {
     if (selectedRule == rule) {
@@ -170,6 +166,5 @@ class NetworkInspectorModel(
   }
 
   /** Returns true if the timeline in live mode. */
-  private fun isLive() =
-    timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)
+  private fun isLive() = timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)
 }

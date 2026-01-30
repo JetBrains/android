@@ -41,18 +41,15 @@ import org.jetbrains.jewel.ui.component.items
 /**
  * Represents a node in a hierarchical checkbox structure.
  *
- * Each node can have multiple children, forming a tree. The state of a checkbox can be
- * [ToggleableState.On], [ToggleableState.Off], or [ToggleableState.Indeterminate] (if it has
- * children with mixed states).
+ * Each node can have multiple children, forming a tree. The state of a checkbox can be [ToggleableState.On], [ToggleableState.Off], or
+ * [ToggleableState.Indeterminate] (if it has children with mixed states).
  *
  * @property id A unique identifier for this checkbox node.
  * @property label The user-facing label text for the checkbox.
  * @property description Additional descriptive text providing more context about the checkbox.
- * @property isChildrenComplete Indicates whether [children] contains all the possible children for
- *   this node. This affects how the parent's indeterminate state is calculated. If true, the
- *   parent's state will be indeterminate only if some children are checked. If false, the parent's
- *   state will be indeterminate if no children are checked, assuming there might be more checked
- *   children not present in the list.
+ * @property isChildrenComplete Indicates whether [children] contains all the possible children for this node. This affects how the parent's
+ *   indeterminate state is calculated. If true, the parent's state will be indeterminate only if some children are checked. If false, the
+ *   parent's state will be indeterminate if no children are checked, assuming there might be more checked children not present in the list.
  * @property children A list of child [CheckboxNode]s.
  */
 internal class CheckboxNode(
@@ -62,10 +59,7 @@ internal class CheckboxNode(
   val isChildrenComplete: Boolean,
   val children: List<CheckboxNode> = emptyList(),
 ) {
-  /**
-   * The current checked state of this checkbox. Indeterminate state is typically derived from the
-   * state of its children.
-   */
+  /** The current checked state of this checkbox. Indeterminate state is typically derived from the state of its children. */
   var isCheckedState by mutableStateOf(ToggleableState.On)
 
   fun toggle() {
@@ -89,8 +83,7 @@ internal class CheckboxNode(
 
   fun refreshFromChildren() {
     val allChildrenChecked = children.all { it.isCheckedState == ToggleableState.On }
-    val someChildrenChecked =
-      !isChildrenComplete || children.any { it.isCheckedState == ToggleableState.On }
+    val someChildrenChecked = !isChildrenComplete || children.any { it.isCheckedState == ToggleableState.On }
 
     isCheckedState =
       when {
@@ -101,47 +94,27 @@ internal class CheckboxNode(
   }
 }
 
-/**
- * Converts an IJ defined [Category] object into a [CheckboxNode] for the following rendering
- * purposes.
- */
+/** Converts an IJ defined [Category] object into a [CheckboxNode] for the following rendering purposes. */
 internal fun Category.toCheckboxNode(state: SettingsSyncState): CheckboxNode {
   return CheckboxNode(
       id = name,
       label = name,
       description = description,
       isChildrenComplete = secondaryGroup?.isComplete() != false,
-      children =
-        secondaryGroup?.getDescriptors()?.map {
-          it.toSubCheckboxNode(parentCategory = category, state)
-        } ?: emptyList(),
+      children = secondaryGroup?.getDescriptors()?.map { it.toSubCheckboxNode(parentCategory = category, state) } ?: emptyList(),
     )
-    .apply {
-      isCheckedState =
-        if (state.isCategoryEnabled(category)) ToggleableState.On else ToggleableState.Off
-    }
+    .apply { isCheckedState = if (state.isCategoryEnabled(category)) ToggleableState.On else ToggleableState.Off }
 }
 
-/**
- * Converts an IJ defined [SettingsSyncSubcategoryDescriptor] object into a sub-[CheckboxNode] for
- * the following rendering purposes.
- */
-internal fun SettingsSyncSubcategoryDescriptor.toSubCheckboxNode(
-  parentCategory: SettingsCategory,
-  state: SettingsSyncState,
-): CheckboxNode {
+/** Converts an IJ defined [SettingsSyncSubcategoryDescriptor] object into a sub-[CheckboxNode] for the following rendering purposes. */
+internal fun SettingsSyncSubcategoryDescriptor.toSubCheckboxNode(parentCategory: SettingsCategory, state: SettingsSyncState): CheckboxNode {
   return CheckboxNode(id = id, label = name, description = "", isChildrenComplete = true).apply {
-    isCheckedState =
-      if (state.isSubcategoryEnabled(parentCategory, id)) ToggleableState.On
-      else ToggleableState.Off
+    isCheckedState = if (state.isSubcategoryEnabled(parentCategory, id)) ToggleableState.On else ToggleableState.Off
   }
 }
 
 @Composable
-internal fun HierarchicalCheckboxes(
-  checkboxNodes: List<CheckboxNode>,
-  modifier: Modifier = Modifier,
-) {
+internal fun HierarchicalCheckboxes(checkboxNodes: List<CheckboxNode>, modifier: Modifier = Modifier) {
   LazyColumn(modifier) {
     items(checkboxNodes.size) { index ->
       CheckboxItem(checkboxNodes.elementAt(index))
@@ -170,10 +143,7 @@ internal fun CheckboxItem(topLevelNode: CheckboxNode, indentation: Int = 0) {
     Spacer(Modifier.width(8.dp))
 
     // Configure dropdown link
-    if (
-      topLevelNode.children.isNotEmpty() &&
-        (topLevelNode.isChildrenComplete || topLevelNode.isCheckedState != ToggleableState.Off)
-    ) {
+    if (topLevelNode.children.isNotEmpty() && (topLevelNode.isChildrenComplete || topLevelNode.isCheckedState != ToggleableState.Off)) {
       val allChildNodes = topLevelNode.children
 
       fun CheckboxNode.onChildNodeClick() {

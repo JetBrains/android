@@ -48,18 +48,11 @@ class InsightFeedbackSubmittedTest {
         currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
       )
 
-    val transition =
-      InsightFeedbackSubmitted(InsightFeedback.THUMBS_UP)
-        .transition(startingState, tracker, FAKE_INSIGHTS_PROVIDER, cache)
+    val transition = InsightFeedbackSubmitted(InsightFeedback.THUMBS_UP).transition(startingState, tracker, FAKE_INSIGHTS_PROVIDER, cache)
 
     val expectedInsight = DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP)
     assertThat(transition.newState.currentInsight.valueOrNull()).isEqualTo(expectedInsight)
 
-    verify(tracker)
-      .logInsightSentiment(
-        Sentiment.THUMBS_UP,
-        ISSUE1.issueDetails.fatality.toCrashType(),
-        DEFAULT_AI_INSIGHT,
-      )
+    verify(tracker).logInsightSentiment(Sentiment.THUMBS_UP, ISSUE1.issueDetails.fatality.toCrashType(), DEFAULT_AI_INSIGHT)
   }
 }

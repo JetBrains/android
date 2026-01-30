@@ -33,8 +33,8 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 /**
- * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for
- * a code completion on a [KtValueArgument].
+ * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for a code completion on a
+ * [KtValueArgument].
  *
  * See also [IntDef](https://developer.android.com/reference/androidx/annotation/IntDef),
  * [LongDef](https://developer.android.com/reference/androidx/annotation/LongDef), and
@@ -47,24 +47,19 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
 
   override val insertHandler =
     object : TypeDefInsertHandler() {
-      override fun shouldOptimizeImports(project: Project) =
-        KotlinCodeInsightWorkspaceSettings.getInstance(project).optimizeImportsOnTheFly
+      override fun shouldOptimizeImports(project: Project) = KotlinCodeInsightWorkspaceSettings.getInstance(project).optimizeImportsOnTheFly
 
       override fun bindToTarget(context: InsertionContext, target: PsiElement) {
         val expr = context.getParent() as? KtReferenceExpression ?: return
-        (expr.mainReference as? KtSimpleNameReference)?.bindToElement(
-          target,
-          ShorteningMode.FORCED_SHORTENING,
-        )
+        (expr.mainReference as? KtSimpleNameReference)?.bindToElement(target, ShorteningMode.FORCED_SHORTENING)
       }
     }
 
-  override fun computeConstrainingTypeDef(position: PsiElement) =
-    position.parentOfType<KtValueArgument>()?.getTypeDef()
+  override fun computeConstrainingTypeDef(position: PsiElement) = position.parentOfType<KtValueArgument>()?.getTypeDef()
 
   /**
-   * Returns typedef values for the first typedef annotation encountered, or `null` if there is no
-   * typedef annotation for this [KtValueArgument].
+   * Returns typedef values for the first typedef annotation encountered, or `null` if there is no typedef annotation for this
+   * [KtValueArgument].
    */
   private fun KtValueArgument.getTypeDef(): TypeDef? {
     if (this is KtLambdaArgument) return null

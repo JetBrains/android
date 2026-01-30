@@ -74,11 +74,7 @@ class IssuePanelViewOptionActionGroupTest {
       SeverityRegistrar.getSeverityRegistrar(rule.project)
         .allSeverities
         .reversed()
-        .filter {
-          it != HighlightSeverity.INFO &&
-            it > HighlightSeverity.INFORMATION &&
-            it < HighlightSeverity.ERROR
-        }
+        .filter { it != HighlightSeverity.INFO && it > HighlightSeverity.INFORMATION && it < HighlightSeverity.ERROR }
         .iterator()
 
     showWarningAction.let {
@@ -122,10 +118,7 @@ class SeverityFilterActionTest {
 
   @Before
   fun setUp() {
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
   }
 
   @Test
@@ -176,18 +169,11 @@ class VisualLintFilterActionTest {
 
   @Test
   fun testPerform() {
-    ToolWindowManager.getInstance(rule.project)
-      .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    runBlocking(workerThread) {
-      ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project))
-    }
+    ToolWindowManager.getInstance(rule.project).registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
+    runBlocking(workerThread) { ProblemsViewToolWindowUtils.addTab(rule.project, SharedIssuePanelProvider(rule.project)) }
     val panel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     val visualLintIssue = mock<VisualLintRenderIssue>()
-    val dataContext =
-      SimpleDataContext.builder()
-        .add(DESIGNER_COMMON_ISSUE_PANEL, panel)
-        .add(CommonDataKeys.PROJECT, rule.project)
-        .build()
+    val dataContext = SimpleDataContext.builder().add(DESIGNER_COMMON_ISSUE_PANEL, panel).add(CommonDataKeys.PROJECT, rule.project).build()
 
     VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected = true
     val action = VisualLintFilterAction()

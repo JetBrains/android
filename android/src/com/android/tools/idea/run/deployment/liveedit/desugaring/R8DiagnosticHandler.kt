@@ -20,7 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.r8.Diagnostic
 import com.android.tools.r8.DiagnosticsHandler
 
-class R8DiagnosticHandler(private val logger: LiveEditLogger) : DiagnosticsHandler{
+class R8DiagnosticHandler(private val logger: LiveEditLogger) : DiagnosticsHandler {
   override fun error(error: Diagnostic?) {
     super.error(error)
     error?.let {

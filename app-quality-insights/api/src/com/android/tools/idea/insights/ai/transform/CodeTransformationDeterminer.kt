@@ -24,10 +24,8 @@ interface CodeTransformationDeterminer {
   suspend fun getApplicableTransformation(text: String): CodeTransformation
 }
 
-class CodeTransformationDeterminerImpl(
-  private val project: Project,
-  private val codeContextResolver: CodeContextResolver,
-) : CodeTransformationDeterminer {
+class CodeTransformationDeterminerImpl(private val project: Project, private val codeContextResolver: CodeContextResolver) :
+  CodeTransformationDeterminer {
 
   private val contentChars = setOf(' ', '\t', '.', '/', ',')
 
@@ -61,8 +59,7 @@ class CodeTransformationDeterminerImpl(
       }
     }
     val fileNames = fileNameString.split(',').map { it.trim() }
-    val files =
-      fileNames.flatMap { codeContextResolver.getSourceVirtualFiles(it.removeSuffix(".")) }
+    val files = fileNames.flatMap { codeContextResolver.getSourceVirtualFiles(it.removeSuffix(".")) }
 
     if (files.isEmpty()) return NoopTransformation
     return CodeTransformationImpl(project, text, files)

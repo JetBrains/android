@@ -32,23 +32,20 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
+import java.util.concurrent.TimeUnit
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.assertNull
 import junit.framework.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.util.concurrent.TimeUnit
 
-/**
- * Tests for [PsAndroidModule].
- */
+/** Tests for [PsAndroidModule]. */
 @RunsInEdt
 class PsAndroidModuleTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   val changedModules = mutableSetOf<String>()
   var buildTypesChanged = 0
@@ -63,13 +60,11 @@ class PsAndroidModuleTest {
   fun testFlavorDimensions() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       val appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
 
       val flavorDimensions = getFlavorDimensions(appModule)
-      assertThat(flavorDimensions)
-        .containsExactly("foo", "bar").inOrder()
+      assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder()
     }
   }
 
@@ -77,13 +72,11 @@ class PsAndroidModuleTest {
   fun testFallbackFlavorDimensions() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       val appModule = moduleWithoutSyncedModel(project, "app")
       assertNotNull(appModule)
 
       val flavorDimensions = getFlavorDimensions(appModule)
-      assertThat(flavorDimensions)
-        .containsExactly("foo", "bar").inOrder()
+      assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder()
     }
   }
 
@@ -91,7 +84,6 @@ class PsAndroidModuleTest {
   fun testScriptedFlavorDimensions() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SCRIPTED_DIMENSIONS)
     projectRule.psTestWithProject(preparedProject) {
-
       run {
         val appModule = moduleWithoutSyncedModel(project, "app")
         assertNotNull(appModule)
@@ -105,8 +97,7 @@ class PsAndroidModuleTest {
         assertNotNull(appModule)
 
         val flavorDimensions = getFlavorDimensions(appModule)
-        assertThat(flavorDimensions)
-          .containsExactly("dimScripted").inOrder()
+        assertThat(flavorDimensions).containsExactly("dimScripted").inOrder()
       }
     }
   }
@@ -115,7 +106,6 @@ class PsAndroidModuleTest {
   fun testValidateFlavorDimensionName() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       val appModule = moduleWithoutSyncedModel(project, "app")
       assertNotNull(appModule)
 
@@ -136,7 +126,6 @@ class PsAndroidModuleTest {
   fun testAddFlavorDimension() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       var appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
       appModule.testSubscribeToChangeNotifications()
@@ -153,8 +142,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       val flavorDimensions = getFlavorDimensions(appModule)
-      assertThat(flavorDimensions)
-        .containsExactly("foo", "bar", "new").inOrder()
+      assertThat(flavorDimensions).containsExactly("foo", "bar", "new").inOrder()
     }
   }
 
@@ -162,7 +150,6 @@ class PsAndroidModuleTest {
   fun testAddFirstFlavorDimension() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       var libModule = moduleWithSyncedModel(project, "lib")
       assertNotNull(libModule)
       libModule.testSubscribeToChangeNotifications()
@@ -188,7 +175,6 @@ class PsAndroidModuleTest {
   fun testRemoveFlavorDimension() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
-
       var appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
       appModule.testSubscribeToChangeNotifications()
@@ -223,8 +209,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       val productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid").inOrder()
       assertThat(productFlavors).hasSize(2)
 
       val basic = appModule.findProductFlavor("foo", "basic")
@@ -245,8 +230,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       val productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid").inOrder()
       assertThat(productFlavors).hasSize(2)
 
       val basic = appModule.findProductFlavor("foo", "basic")
@@ -275,28 +259,17 @@ class PsAndroidModuleTest {
       assertThat(appModule.validateProductFlavorName("testable", "foo")).isEqualTo("Product flavor name cannot start with 'test'.")
       assertThat(appModule.validateProductFlavorName("testable", "bar")).isEqualTo("Product flavor name cannot start with 'test'.")
       assertThat(appModule.validateProductFlavorName("testable", null)).isEqualTo("Product flavor name cannot start with 'test'.")
-      assertThat(
-        appModule.validateProductFlavorName(
-          "androidTest",
-          "foo"
-        )
-      ).isEqualTo("Product flavor name cannot start with 'androidTest'.")
-      assertThat(
-        appModule.validateProductFlavorName(
-          "androidTest",
-          "bar"
-        )
-      ).isEqualTo("Product flavor name cannot start with 'androidTest'.")
+      assertThat(appModule.validateProductFlavorName("androidTest", "foo"))
+        .isEqualTo("Product flavor name cannot start with 'androidTest'.")
+      assertThat(appModule.validateProductFlavorName("androidTest", "bar"))
+        .isEqualTo("Product flavor name cannot start with 'androidTest'.")
       assertThat(appModule.validateProductFlavorName("androidTest", null)).isEqualTo("Product flavor name cannot start with 'androidTest'.")
-      assertThat(appModule.validateProductFlavorName("androidTestable", "foo")).isEqualTo(
-        "Product flavor name cannot start with 'androidTest'."
-      )
-      assertThat(appModule.validateProductFlavorName("androidTestable", "bar")).isEqualTo(
-        "Product flavor name cannot start with 'androidTest'."
-      )
-      assertThat(appModule.validateProductFlavorName("androidTestable", null)).isEqualTo(
-        "Product flavor name cannot start with 'androidTest'."
-      )
+      assertThat(appModule.validateProductFlavorName("androidTestable", "foo"))
+        .isEqualTo("Product flavor name cannot start with 'androidTest'.")
+      assertThat(appModule.validateProductFlavorName("androidTestable", "bar"))
+        .isEqualTo("Product flavor name cannot start with 'androidTest'.")
+      assertThat(appModule.validateProductFlavorName("androidTestable", null))
+        .isEqualTo("Product flavor name cannot start with 'androidTest'.")
       assertThat(appModule.validateProductFlavorName("main", "foo")).isEqualTo("Product flavor name cannot be 'main'.")
       assertThat(appModule.validateProductFlavorName("main", "bar")).isEqualTo("Product flavor name cannot be 'main'.")
       assertThat(appModule.validateProductFlavorName("main", null)).isEqualTo("Product flavor name cannot be 'main'.")
@@ -345,8 +318,7 @@ class PsAndroidModuleTest {
       assertThat(appModule.validateProductFlavorName("paidLittle", "foo")).isEqualTo("Duplicate product flavor name: 'paidLittle'")
 
       // even in the first flavor dimension, the first character will end up capitalized in some configuration names...
-      assertThat(appModule.validateProductFlavorName("Paid", "foo"))
-        .isEqualTo("Duplicate product flavor name: 'Paid'")
+      assertThat(appModule.validateProductFlavorName("Paid", "foo")).isEqualTo("Duplicate product flavor name: 'Paid'")
       // ... but characters after the first in names are not case-converted
       assertThat(appModule.validateProductFlavorName("pAid", "foo")).isNull()
 
@@ -388,15 +360,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid").inOrder()
 
       appModule.addNewProductFlavor("foo", "new_flavor")
       assertThat(productFlavorsChanged).isEqualTo(1)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid", "new_flavor").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid", "new_flavor").inOrder()
 
       var newFlavor = appModule.findProductFlavor("foo", "new_flavor")
       assertNotNull(newFlavor)
@@ -409,8 +379,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid", "new_flavor").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid", "new_flavor").inOrder()
 
       newFlavor = appModule.findProductFlavor("foo", "new_flavor")
       assertNotNull(newFlavor)
@@ -427,15 +396,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
       appModule.removeProductFlavor(appModule.findProductFlavor("foo", "paid")!!)
       assertThat(productFlavorsChanged).isEqualTo(1)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "bar", "otherBar").inOrder()
 
       appModule.applyChanges()
       requestSyncAndWait()
@@ -444,8 +411,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "bar", "otherBar").inOrder()
     }
   }
 
@@ -458,15 +424,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paid", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar").inOrder()
 
       appModule.findProductFlavor("foo", "paid")!!.rename("paidLittle")
       assertThat(productFlavorsChanged).isEqualTo(1)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paidLittle", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paidLittle", "bar", "otherBar").inOrder()
 
       appModule.applyChanges()
       requestSyncAndWait()
@@ -475,8 +439,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       productFlavors = appModule.productFlavors
-      assertThat(productFlavors.map { it.name })
-        .containsExactly("basic", "paidLittle", "bar", "otherBar").inOrder()
+      assertThat(productFlavors.map { it.name }).containsExactly("basic", "paidLittle", "bar", "otherBar").inOrder()
     }
   }
 
@@ -488,8 +451,7 @@ class PsAndroidModuleTest {
       assertNotNull(libModule)
 
       val buildTypes = libModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug").inOrder()
       assertThat(buildTypes).hasSize(2)
 
       val release = libModule.findBuildType("release")
@@ -533,8 +495,7 @@ class PsAndroidModuleTest {
       assertThat(appModule.validateBuildTypeName("androidTestable")).isEqualTo("Build type name cannot start with 'androidTest'.")
       assertThat(appModule.validateBuildTypeName("main")).isEqualTo("Build type name cannot be 'main'.")
       assertThat(appModule.validateBuildTypeName("lint")).isEqualTo("Build type name cannot be 'lint'.")
-      assertThat(appModule.validateBuildTypeName("otherBar"))
-        .isEqualTo("Build type name cannot collide with product flavor: 'otherBar'")
+      assertThat(appModule.validateBuildTypeName("otherBar")).isEqualTo("Build type name cannot collide with product flavor: 'otherBar'")
       assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
       assertThat(appModule.validateBuildTypeName("ok")).isNull()
       DISALLOWED_NAME_CHARS.forEach {
@@ -571,8 +532,7 @@ class PsAndroidModuleTest {
 
       val app4Module = moduleWithoutSyncedModel(project, "app4")
       assertNotNull(app4Module)
-      assertThat(app4Module.validateBuildTypeName("Experimental"))
-        .isEqualTo("Duplicate build type name: 'Experimental'")
+      assertThat(app4Module.validateBuildTypeName("Experimental")).isEqualTo("Duplicate build type name: 'Experimental'")
       assertThat(app4Module.validateBuildTypeName("exPerimental")).isNull()
     }
   }
@@ -586,15 +546,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug").inOrder()
 
       appModule.addNewBuildType("new_build_type")
       assertThat(buildTypesChanged).isEqualTo(1)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "new_build_type").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "new_build_type").inOrder()
 
       var newBuildType = appModule.findBuildType("new_build_type")
       assertNotNull(newBuildType)
@@ -607,8 +565,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "new_build_type").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "new_build_type").inOrder()
 
       newBuildType = appModule.findBuildType("new_build_type")
       assertNotNull(newBuildType)
@@ -625,15 +582,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "specialRelease").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "specialRelease").inOrder()
 
       appModule.removeBuildType(appModule.findBuildType("release")!!)
       assertThat(buildTypesChanged).isEqualTo(1)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("specialRelease", "debug")
+      assertThat(buildTypes.map { it.name }).containsExactly("specialRelease", "debug")
 
       appModule.applyChanges()
       requestSyncAndWait()
@@ -642,8 +597,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "specialRelease").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "specialRelease").inOrder()
 
       val release = appModule.findBuildType("release")
       assertNotNull(release)
@@ -660,15 +614,13 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       var buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "specialRelease").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "specialRelease").inOrder()
 
       appModule.findBuildType("release")!!.rename("almostRelease")
       assertThat(buildTypesChanged).isEqualTo(1)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("almostRelease", "specialRelease", "debug")
+      assertThat(buildTypes.map { it.name }).containsExactly("almostRelease", "specialRelease", "debug")
 
       appModule.applyChanges()
       requestSyncAndWait()
@@ -677,8 +629,7 @@ class PsAndroidModuleTest {
       assertNotNull(appModule)
 
       buildTypes = appModule.buildTypes
-      assertThat(buildTypes.map { it.name })
-        .containsExactly("release", "debug", "almostRelease", "specialRelease").inOrder()
+      assertThat(buildTypes.map { it.name }).containsExactly("release", "debug", "almostRelease", "specialRelease").inOrder()
 
       val release = appModule.findBuildType("release")
       assertNotNull(release)
@@ -738,7 +689,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       val signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs).hasSize(2)
@@ -778,7 +730,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
       appModule.testSubscribeToChangeNotifications()
 
       var signingConfigs = appModule.signingConfigs
@@ -798,7 +751,8 @@ class PsAndroidModuleTest {
       requestSyncAndWait()
       reparse()
       appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig", "config2").inOrder()
@@ -810,7 +764,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
       appModule.testSubscribeToChangeNotifications()
 
       var signingConfigs = appModule.signingConfigs
@@ -818,7 +773,7 @@ class PsAndroidModuleTest {
 
       appModule.removeSigningConfig(appModule.findSigningConfig("myConfig")!!)
       assertThat(signingConfigsChanged).isEqualTo(1)
-      appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
+      appModule.removeBuildType(appModule.findBuildType("debug")!!) // Remove (clean) the build type that refers to the signing config.
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug")
@@ -827,7 +782,8 @@ class PsAndroidModuleTest {
       requestSyncAndWait()
       reparse()
       appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug")
@@ -839,7 +795,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
       appModule.testSubscribeToChangeNotifications()
 
       var signingConfigs = appModule.signingConfigs
@@ -847,7 +804,7 @@ class PsAndroidModuleTest {
 
       appModule.findSigningConfig("myConfig")!!.rename("yourConfig")
       assertThat(signingConfigsChanged).isEqualTo(1)
-      appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
+      appModule.removeBuildType(appModule.findBuildType("debug")!!) // Remove (clean) the build type that refers to the signing config.
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
@@ -856,7 +813,8 @@ class PsAndroidModuleTest {
       requestSyncAndWait()
       reparse()
       appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
@@ -868,7 +826,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       var appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
       appModule.testSubscribeToChangeNotifications()
 
       var signingConfigs = appModule.signingConfigs
@@ -884,7 +843,8 @@ class PsAndroidModuleTest {
       requestSyncAndWait()
       reparse()
       appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       signingConfigs = appModule.signingConfigs
       assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
@@ -900,22 +860,17 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       val appModule = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(appModule); appModule!!
+      assertNotNull(appModule)
+      appModule!!
 
       appModule.buildTypes.toList()[0].jniDebuggable = true.asParsed()
       project.applyChanges()
       assertThat(appModule).isSameAs(project.findModuleByGradlePath(":") as PsAndroidModule?)
 
       assertThat(appModule.resolvedModel).isNull()
-      appModule.buildTypes.forEach { buildType ->
-        assertThat(buildType.resolvedModel).isNull()
-      }
-      appModule.productFlavors.forEach { productFlavor ->
-        assertThat(productFlavor.resolvedModel).isNull()
-      }
-      appModule.signingConfigs.forEach { signingConfig ->
-        assertThat(signingConfig.resolvedModel).isNull()
-      }
+      appModule.buildTypes.forEach { buildType -> assertThat(buildType.resolvedModel).isNull() }
+      appModule.productFlavors.forEach { productFlavor -> assertThat(productFlavor.resolvedModel).isNull() }
+      appModule.signingConfigs.forEach { signingConfig -> assertThat(signingConfig.resolvedModel).isNull() }
       // TODO(b/110194207): Populate variant collection when unsynced.
       assertThat(appModule.resolvedVariants).isEmpty()
     }
@@ -926,7 +881,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
       (project.findModuleByGradlePath(":app") as PsAndroidModule?).let { appModule ->
-        assertNotNull(appModule); appModule!!
+        assertNotNull(appModule)
+        appModule!!
 
         val debugBuildType = appModule.buildTypes.find { it.name == "debug" }!!
         debugBuildType.jniDebuggable = true.asParsed()
@@ -949,10 +905,11 @@ class PsAndroidModuleTest {
           assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
           assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" })
             .containsExactly(
-              "api appcompat-v7", "api libs",
+              "api appcompat-v7",
+              "api libs",
               "implementation constraint-layout",
               "implementation runner",
-              "implementation espresso-core"
+              "implementation espresso-core",
             )
         } finally {
           Disposer.dispose(disposable)
@@ -960,7 +917,8 @@ class PsAndroidModuleTest {
       }
 
       (project.findModuleByGradlePath(":nested2:trans:deep2") as PsAndroidModule?).let { nestedModules ->
-        assertNotNull(nestedModules); nestedModules!!
+        assertNotNull(nestedModules)
+        nestedModules!!
 
         val debugBuildType = nestedModules.buildTypes.find { it.name == "debug" }!!
         debugBuildType.jniDebuggable = true.asParsed()
@@ -994,7 +952,8 @@ class PsAndroidModuleTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BASIC)
     projectRule.psTestWithProject(preparedProject) {
       val module = project.findModuleByGradlePath(":") as PsAndroidModule?
-      assertNotNull(module); module!!
+      assertNotNull(module)
+      module!!
 
       assertThat(module.buildTypes.map { it.name }).containsExactly("debug", "release")
       assertThat(module.productFlavors.map { it.name }).isEmpty()
@@ -1035,7 +994,6 @@ class PsAndroidModuleTest {
       val appModule = moduleWithSyncedModel(project, "app")
       val libModule = moduleWithSyncedModel(project, "lib")
 
-
       appModule.addNewBuildType("newBuildType")
       libModule.addNewBuildType("newBuildType")
 
@@ -1058,38 +1016,33 @@ class PsAndroidModuleTest {
       val appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
 
-      assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY)).containsExactly(
-        "implementation",
-        "releaseImplementation",
-        "specialReleaseImplementation",
-        "debugImplementation",
-        "basicImplementation",
-        "paidImplementation",
-        "barImplementation",
-        "otherBarImplementation",
-        "testImplementation",
-        "testReleaseImplementation",
-        "testSpecialReleaseImplementation",
-        "testDebugImplementation",
-        "testBasicImplementation",
-        "testPaidImplementation",
-        "testBarImplementation",
-        "testOtherBarImplementation",
-        "androidTestImplementation",
-        "androidTestBasicImplementation",
-        "androidTestPaidImplementation",
-        "androidTestBarImplementation",
-        "androidTestOtherBarImplementation"
-      )
+      assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY))
+        .containsExactly(
+          "implementation",
+          "releaseImplementation",
+          "specialReleaseImplementation",
+          "debugImplementation",
+          "basicImplementation",
+          "paidImplementation",
+          "barImplementation",
+          "otherBarImplementation",
+          "testImplementation",
+          "testReleaseImplementation",
+          "testSpecialReleaseImplementation",
+          "testDebugImplementation",
+          "testBasicImplementation",
+          "testPaidImplementation",
+          "testBarImplementation",
+          "testOtherBarImplementation",
+          "androidTestImplementation",
+          "androidTestBasicImplementation",
+          "androidTestPaidImplementation",
+          "androidTestBarImplementation",
+          "androidTestOtherBarImplementation",
+        )
 
-      assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE)).containsExactly(
-        "implementation",
-        "api",
-        "testImplementation",
-        "testApi",
-        "androidTestImplementation",
-        "androidTestApi"
-      )
+      assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE))
+        .containsExactly("implementation", "api", "testImplementation", "testApi", "androidTestImplementation", "androidTestApi")
     }
   }
 
@@ -1100,297 +1053,294 @@ class PsAndroidModuleTest {
       val appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
 
-      assertThat(appModule.getConfigurations()).containsExactly(
-        "implementation",
-        "releaseImplementation",
-        "specialReleaseImplementation",
-        "debugImplementation",
-        "basicImplementation",
-        "paidImplementation",
-        "barImplementation",
-        "otherBarImplementation",
-        "basicBarImplementation",
-        "basicBarReleaseImplementation",
-        "basicBarSpecialReleaseImplementation",
-        "basicBarDebugImplementation",
-        "paidBarImplementation",
-        "paidBarReleaseImplementation",
-        "paidBarSpecialReleaseImplementation",
-        "paidBarDebugImplementation",
-        "basicOtherBarImplementation",
-        "basicOtherBarReleaseImplementation",
-        "basicOtherBarSpecialReleaseImplementation",
-        "basicOtherBarDebugImplementation",
-        "paidOtherBarImplementation",
-        "paidOtherBarReleaseImplementation",
-        "paidOtherBarSpecialReleaseImplementation",
-        "paidOtherBarDebugImplementation",
-        "testImplementation",
-        "testReleaseImplementation",
-        "testSpecialReleaseImplementation",
-        "testDebugImplementation",
-        "testBasicImplementation",
-        "testPaidImplementation",
-        "testBarImplementation",
-        "testOtherBarImplementation",
-        "testBasicBarImplementation",
-        "testBasicBarReleaseImplementation",
-        "testBasicBarSpecialReleaseImplementation",
-        "testBasicBarDebugImplementation",
-        "testPaidBarImplementation",
-        "testPaidBarReleaseImplementation",
-        "testPaidBarSpecialReleaseImplementation",
-        "testPaidBarDebugImplementation",
-        "testBasicOtherBarImplementation",
-        "testBasicOtherBarReleaseImplementation",
-        "testBasicOtherBarSpecialReleaseImplementation",
-        "testBasicOtherBarDebugImplementation",
-        "testPaidOtherBarImplementation",
-        "testPaidOtherBarReleaseImplementation",
-        "testPaidOtherBarSpecialReleaseImplementation",
-        "testPaidOtherBarDebugImplementation",
-        "androidTestImplementation",
-        "androidTestBasicImplementation",
-        "androidTestPaidImplementation",
-        "androidTestBarImplementation",
-        "androidTestBasicBarImplementation",
-        "androidTestPaidBarImplementation",
-        "androidTestOtherBarImplementation",
-        "androidTestBasicOtherBarImplementation",
-        "androidTestPaidOtherBarImplementation",
-
-        "api",
-        "releaseApi",
-        "specialReleaseApi",
-        "debugApi",
-        "basicApi",
-        "paidApi",
-        "barApi",
-        "otherBarApi",
-        "basicBarApi",
-        "basicBarReleaseApi",
-        "basicBarSpecialReleaseApi",
-        "basicBarDebugApi",
-        "paidBarApi",
-        "paidBarReleaseApi",
-        "paidBarSpecialReleaseApi",
-        "paidBarDebugApi",
-        "basicOtherBarApi",
-        "basicOtherBarReleaseApi",
-        "basicOtherBarSpecialReleaseApi",
-        "basicOtherBarDebugApi",
-        "paidOtherBarApi",
-        "paidOtherBarReleaseApi",
-        "paidOtherBarSpecialReleaseApi",
-        "paidOtherBarDebugApi",
-        "testApi",
-        "testReleaseApi",
-        "testSpecialReleaseApi",
-        "testDebugApi",
-        "testBasicApi",
-        "testPaidApi",
-        "testBarApi",
-        "testOtherBarApi",
-        "testBasicBarApi",
-        "testBasicBarReleaseApi",
-        "testBasicBarSpecialReleaseApi",
-        "testBasicBarDebugApi",
-        "testPaidBarApi",
-        "testPaidBarReleaseApi",
-        "testPaidBarSpecialReleaseApi",
-        "testPaidBarDebugApi",
-        "testBasicOtherBarApi",
-        "testBasicOtherBarReleaseApi",
-        "testBasicOtherBarSpecialReleaseApi",
-        "testBasicOtherBarDebugApi",
-        "testPaidOtherBarApi",
-        "testPaidOtherBarReleaseApi",
-        "testPaidOtherBarSpecialReleaseApi",
-        "testPaidOtherBarDebugApi",
-        "androidTestApi",
-        "androidTestBasicApi",
-        "androidTestPaidApi",
-        "androidTestBarApi",
-        "androidTestBasicBarApi",
-        "androidTestPaidBarApi",
-        "androidTestOtherBarApi",
-        "androidTestBasicOtherBarApi",
-        "androidTestPaidOtherBarApi",
-
-        "compileOnly",
-        "releaseCompileOnly",
-        "specialReleaseCompileOnly",
-        "debugCompileOnly",
-        "basicCompileOnly",
-        "paidCompileOnly",
-        "barCompileOnly",
-        "otherBarCompileOnly",
-        "basicBarCompileOnly",
-        "basicBarReleaseCompileOnly",
-        "basicBarSpecialReleaseCompileOnly",
-        "basicBarDebugCompileOnly",
-        "paidBarCompileOnly",
-        "paidBarReleaseCompileOnly",
-        "paidBarSpecialReleaseCompileOnly",
-        "paidBarDebugCompileOnly",
-        "basicOtherBarCompileOnly",
-        "basicOtherBarReleaseCompileOnly",
-        "basicOtherBarSpecialReleaseCompileOnly",
-        "basicOtherBarDebugCompileOnly",
-        "paidOtherBarCompileOnly",
-        "paidOtherBarReleaseCompileOnly",
-        "paidOtherBarSpecialReleaseCompileOnly",
-        "paidOtherBarDebugCompileOnly",
-        "testCompileOnly",
-        "testReleaseCompileOnly",
-        "testSpecialReleaseCompileOnly",
-        "testDebugCompileOnly",
-        "testBasicCompileOnly",
-        "testPaidCompileOnly",
-        "testBarCompileOnly",
-        "testOtherBarCompileOnly",
-        "testBasicBarCompileOnly",
-        "testBasicBarReleaseCompileOnly",
-        "testBasicBarSpecialReleaseCompileOnly",
-        "testBasicBarDebugCompileOnly",
-        "testPaidBarCompileOnly",
-        "testPaidBarReleaseCompileOnly",
-        "testPaidBarSpecialReleaseCompileOnly",
-        "testPaidBarDebugCompileOnly",
-        "testBasicOtherBarCompileOnly",
-        "testBasicOtherBarReleaseCompileOnly",
-        "testBasicOtherBarSpecialReleaseCompileOnly",
-        "testBasicOtherBarDebugCompileOnly",
-        "testPaidOtherBarCompileOnly",
-        "testPaidOtherBarReleaseCompileOnly",
-        "testPaidOtherBarSpecialReleaseCompileOnly",
-        "testPaidOtherBarDebugCompileOnly",
-        "androidTestCompileOnly",
-        "androidTestBasicCompileOnly",
-        "androidTestPaidCompileOnly",
-        "androidTestBarCompileOnly",
-        "androidTestBasicBarCompileOnly",
-        "androidTestPaidBarCompileOnly",
-        "androidTestOtherBarCompileOnly",
-        "androidTestBasicOtherBarCompileOnly",
-        "androidTestPaidOtherBarCompileOnly",
-
-        "runtimeOnly",
-        "releaseRuntimeOnly",
-        "specialReleaseRuntimeOnly",
-        "debugRuntimeOnly",
-        "basicRuntimeOnly",
-        "paidRuntimeOnly",
-        "barRuntimeOnly",
-        "otherBarRuntimeOnly",
-        "basicBarRuntimeOnly",
-        "basicBarReleaseRuntimeOnly",
-        "basicBarSpecialReleaseRuntimeOnly",
-        "basicBarDebugRuntimeOnly",
-        "paidBarRuntimeOnly",
-        "paidBarReleaseRuntimeOnly",
-        "paidBarSpecialReleaseRuntimeOnly",
-        "paidBarDebugRuntimeOnly",
-        "basicOtherBarRuntimeOnly",
-        "basicOtherBarReleaseRuntimeOnly",
-        "basicOtherBarSpecialReleaseRuntimeOnly",
-        "basicOtherBarDebugRuntimeOnly",
-        "paidOtherBarRuntimeOnly",
-        "paidOtherBarReleaseRuntimeOnly",
-        "paidOtherBarSpecialReleaseRuntimeOnly",
-        "paidOtherBarDebugRuntimeOnly",
-        "testRuntimeOnly",
-        "testReleaseRuntimeOnly",
-        "testSpecialReleaseRuntimeOnly",
-        "testDebugRuntimeOnly",
-        "testBasicRuntimeOnly",
-        "testPaidRuntimeOnly",
-        "testBarRuntimeOnly",
-        "testOtherBarRuntimeOnly",
-        "testBasicBarRuntimeOnly",
-        "testBasicBarReleaseRuntimeOnly",
-        "testBasicBarSpecialReleaseRuntimeOnly",
-        "testBasicBarDebugRuntimeOnly",
-        "testPaidBarRuntimeOnly",
-        "testPaidBarReleaseRuntimeOnly",
-        "testPaidBarSpecialReleaseRuntimeOnly",
-        "testPaidBarDebugRuntimeOnly",
-        "testBasicOtherBarRuntimeOnly",
-        "testBasicOtherBarReleaseRuntimeOnly",
-        "testBasicOtherBarSpecialReleaseRuntimeOnly",
-        "testBasicOtherBarDebugRuntimeOnly",
-        "testPaidOtherBarRuntimeOnly",
-        "testPaidOtherBarReleaseRuntimeOnly",
-        "testPaidOtherBarSpecialReleaseRuntimeOnly",
-        "testPaidOtherBarDebugRuntimeOnly",
-        "androidTestRuntimeOnly",
-        "androidTestBasicRuntimeOnly",
-        "androidTestPaidRuntimeOnly",
-        "androidTestBarRuntimeOnly",
-        "androidTestBasicBarRuntimeOnly",
-        "androidTestPaidBarRuntimeOnly",
-        "androidTestOtherBarRuntimeOnly",
-        "androidTestBasicOtherBarRuntimeOnly",
-        "androidTestPaidOtherBarRuntimeOnly",
-
-        "annotationProcessor",
-        "releaseAnnotationProcessor",
-        "specialReleaseAnnotationProcessor",
-        "debugAnnotationProcessor",
-        "basicAnnotationProcessor",
-        "paidAnnotationProcessor",
-        "barAnnotationProcessor",
-        "otherBarAnnotationProcessor",
-        "basicBarAnnotationProcessor",
-        "basicBarReleaseAnnotationProcessor",
-        "basicBarSpecialReleaseAnnotationProcessor",
-        "basicBarDebugAnnotationProcessor",
-        "paidBarAnnotationProcessor",
-        "paidBarReleaseAnnotationProcessor",
-        "paidBarSpecialReleaseAnnotationProcessor",
-        "paidBarDebugAnnotationProcessor",
-        "basicOtherBarAnnotationProcessor",
-        "basicOtherBarReleaseAnnotationProcessor",
-        "basicOtherBarSpecialReleaseAnnotationProcessor",
-        "basicOtherBarDebugAnnotationProcessor",
-        "paidOtherBarAnnotationProcessor",
-        "paidOtherBarReleaseAnnotationProcessor",
-        "paidOtherBarSpecialReleaseAnnotationProcessor",
-        "paidOtherBarDebugAnnotationProcessor",
-        "testAnnotationProcessor",
-        "testReleaseAnnotationProcessor",
-        "testSpecialReleaseAnnotationProcessor",
-        "testDebugAnnotationProcessor",
-        "testBasicAnnotationProcessor",
-        "testPaidAnnotationProcessor",
-        "testBarAnnotationProcessor",
-        "testOtherBarAnnotationProcessor",
-        "testBasicBarAnnotationProcessor",
-        "testBasicBarReleaseAnnotationProcessor",
-        "testBasicBarSpecialReleaseAnnotationProcessor",
-        "testBasicBarDebugAnnotationProcessor",
-        "testPaidBarAnnotationProcessor",
-        "testPaidBarReleaseAnnotationProcessor",
-        "testPaidBarSpecialReleaseAnnotationProcessor",
-        "testPaidBarDebugAnnotationProcessor",
-        "testBasicOtherBarAnnotationProcessor",
-        "testBasicOtherBarReleaseAnnotationProcessor",
-        "testBasicOtherBarSpecialReleaseAnnotationProcessor",
-        "testBasicOtherBarDebugAnnotationProcessor",
-        "testPaidOtherBarAnnotationProcessor",
-        "testPaidOtherBarReleaseAnnotationProcessor",
-        "testPaidOtherBarSpecialReleaseAnnotationProcessor",
-        "testPaidOtherBarDebugAnnotationProcessor",
-        "androidTestAnnotationProcessor",
-        "androidTestBasicAnnotationProcessor",
-        "androidTestPaidAnnotationProcessor",
-        "androidTestBarAnnotationProcessor",
-        "androidTestBasicBarAnnotationProcessor",
-        "androidTestPaidBarAnnotationProcessor",
-        "androidTestOtherBarAnnotationProcessor",
-        "androidTestBasicOtherBarAnnotationProcessor",
-        "androidTestPaidOtherBarAnnotationProcessor"
-      )
+      assertThat(appModule.getConfigurations())
+        .containsExactly(
+          "implementation",
+          "releaseImplementation",
+          "specialReleaseImplementation",
+          "debugImplementation",
+          "basicImplementation",
+          "paidImplementation",
+          "barImplementation",
+          "otherBarImplementation",
+          "basicBarImplementation",
+          "basicBarReleaseImplementation",
+          "basicBarSpecialReleaseImplementation",
+          "basicBarDebugImplementation",
+          "paidBarImplementation",
+          "paidBarReleaseImplementation",
+          "paidBarSpecialReleaseImplementation",
+          "paidBarDebugImplementation",
+          "basicOtherBarImplementation",
+          "basicOtherBarReleaseImplementation",
+          "basicOtherBarSpecialReleaseImplementation",
+          "basicOtherBarDebugImplementation",
+          "paidOtherBarImplementation",
+          "paidOtherBarReleaseImplementation",
+          "paidOtherBarSpecialReleaseImplementation",
+          "paidOtherBarDebugImplementation",
+          "testImplementation",
+          "testReleaseImplementation",
+          "testSpecialReleaseImplementation",
+          "testDebugImplementation",
+          "testBasicImplementation",
+          "testPaidImplementation",
+          "testBarImplementation",
+          "testOtherBarImplementation",
+          "testBasicBarImplementation",
+          "testBasicBarReleaseImplementation",
+          "testBasicBarSpecialReleaseImplementation",
+          "testBasicBarDebugImplementation",
+          "testPaidBarImplementation",
+          "testPaidBarReleaseImplementation",
+          "testPaidBarSpecialReleaseImplementation",
+          "testPaidBarDebugImplementation",
+          "testBasicOtherBarImplementation",
+          "testBasicOtherBarReleaseImplementation",
+          "testBasicOtherBarSpecialReleaseImplementation",
+          "testBasicOtherBarDebugImplementation",
+          "testPaidOtherBarImplementation",
+          "testPaidOtherBarReleaseImplementation",
+          "testPaidOtherBarSpecialReleaseImplementation",
+          "testPaidOtherBarDebugImplementation",
+          "androidTestImplementation",
+          "androidTestBasicImplementation",
+          "androidTestPaidImplementation",
+          "androidTestBarImplementation",
+          "androidTestBasicBarImplementation",
+          "androidTestPaidBarImplementation",
+          "androidTestOtherBarImplementation",
+          "androidTestBasicOtherBarImplementation",
+          "androidTestPaidOtherBarImplementation",
+          "api",
+          "releaseApi",
+          "specialReleaseApi",
+          "debugApi",
+          "basicApi",
+          "paidApi",
+          "barApi",
+          "otherBarApi",
+          "basicBarApi",
+          "basicBarReleaseApi",
+          "basicBarSpecialReleaseApi",
+          "basicBarDebugApi",
+          "paidBarApi",
+          "paidBarReleaseApi",
+          "paidBarSpecialReleaseApi",
+          "paidBarDebugApi",
+          "basicOtherBarApi",
+          "basicOtherBarReleaseApi",
+          "basicOtherBarSpecialReleaseApi",
+          "basicOtherBarDebugApi",
+          "paidOtherBarApi",
+          "paidOtherBarReleaseApi",
+          "paidOtherBarSpecialReleaseApi",
+          "paidOtherBarDebugApi",
+          "testApi",
+          "testReleaseApi",
+          "testSpecialReleaseApi",
+          "testDebugApi",
+          "testBasicApi",
+          "testPaidApi",
+          "testBarApi",
+          "testOtherBarApi",
+          "testBasicBarApi",
+          "testBasicBarReleaseApi",
+          "testBasicBarSpecialReleaseApi",
+          "testBasicBarDebugApi",
+          "testPaidBarApi",
+          "testPaidBarReleaseApi",
+          "testPaidBarSpecialReleaseApi",
+          "testPaidBarDebugApi",
+          "testBasicOtherBarApi",
+          "testBasicOtherBarReleaseApi",
+          "testBasicOtherBarSpecialReleaseApi",
+          "testBasicOtherBarDebugApi",
+          "testPaidOtherBarApi",
+          "testPaidOtherBarReleaseApi",
+          "testPaidOtherBarSpecialReleaseApi",
+          "testPaidOtherBarDebugApi",
+          "androidTestApi",
+          "androidTestBasicApi",
+          "androidTestPaidApi",
+          "androidTestBarApi",
+          "androidTestBasicBarApi",
+          "androidTestPaidBarApi",
+          "androidTestOtherBarApi",
+          "androidTestBasicOtherBarApi",
+          "androidTestPaidOtherBarApi",
+          "compileOnly",
+          "releaseCompileOnly",
+          "specialReleaseCompileOnly",
+          "debugCompileOnly",
+          "basicCompileOnly",
+          "paidCompileOnly",
+          "barCompileOnly",
+          "otherBarCompileOnly",
+          "basicBarCompileOnly",
+          "basicBarReleaseCompileOnly",
+          "basicBarSpecialReleaseCompileOnly",
+          "basicBarDebugCompileOnly",
+          "paidBarCompileOnly",
+          "paidBarReleaseCompileOnly",
+          "paidBarSpecialReleaseCompileOnly",
+          "paidBarDebugCompileOnly",
+          "basicOtherBarCompileOnly",
+          "basicOtherBarReleaseCompileOnly",
+          "basicOtherBarSpecialReleaseCompileOnly",
+          "basicOtherBarDebugCompileOnly",
+          "paidOtherBarCompileOnly",
+          "paidOtherBarReleaseCompileOnly",
+          "paidOtherBarSpecialReleaseCompileOnly",
+          "paidOtherBarDebugCompileOnly",
+          "testCompileOnly",
+          "testReleaseCompileOnly",
+          "testSpecialReleaseCompileOnly",
+          "testDebugCompileOnly",
+          "testBasicCompileOnly",
+          "testPaidCompileOnly",
+          "testBarCompileOnly",
+          "testOtherBarCompileOnly",
+          "testBasicBarCompileOnly",
+          "testBasicBarReleaseCompileOnly",
+          "testBasicBarSpecialReleaseCompileOnly",
+          "testBasicBarDebugCompileOnly",
+          "testPaidBarCompileOnly",
+          "testPaidBarReleaseCompileOnly",
+          "testPaidBarSpecialReleaseCompileOnly",
+          "testPaidBarDebugCompileOnly",
+          "testBasicOtherBarCompileOnly",
+          "testBasicOtherBarReleaseCompileOnly",
+          "testBasicOtherBarSpecialReleaseCompileOnly",
+          "testBasicOtherBarDebugCompileOnly",
+          "testPaidOtherBarCompileOnly",
+          "testPaidOtherBarReleaseCompileOnly",
+          "testPaidOtherBarSpecialReleaseCompileOnly",
+          "testPaidOtherBarDebugCompileOnly",
+          "androidTestCompileOnly",
+          "androidTestBasicCompileOnly",
+          "androidTestPaidCompileOnly",
+          "androidTestBarCompileOnly",
+          "androidTestBasicBarCompileOnly",
+          "androidTestPaidBarCompileOnly",
+          "androidTestOtherBarCompileOnly",
+          "androidTestBasicOtherBarCompileOnly",
+          "androidTestPaidOtherBarCompileOnly",
+          "runtimeOnly",
+          "releaseRuntimeOnly",
+          "specialReleaseRuntimeOnly",
+          "debugRuntimeOnly",
+          "basicRuntimeOnly",
+          "paidRuntimeOnly",
+          "barRuntimeOnly",
+          "otherBarRuntimeOnly",
+          "basicBarRuntimeOnly",
+          "basicBarReleaseRuntimeOnly",
+          "basicBarSpecialReleaseRuntimeOnly",
+          "basicBarDebugRuntimeOnly",
+          "paidBarRuntimeOnly",
+          "paidBarReleaseRuntimeOnly",
+          "paidBarSpecialReleaseRuntimeOnly",
+          "paidBarDebugRuntimeOnly",
+          "basicOtherBarRuntimeOnly",
+          "basicOtherBarReleaseRuntimeOnly",
+          "basicOtherBarSpecialReleaseRuntimeOnly",
+          "basicOtherBarDebugRuntimeOnly",
+          "paidOtherBarRuntimeOnly",
+          "paidOtherBarReleaseRuntimeOnly",
+          "paidOtherBarSpecialReleaseRuntimeOnly",
+          "paidOtherBarDebugRuntimeOnly",
+          "testRuntimeOnly",
+          "testReleaseRuntimeOnly",
+          "testSpecialReleaseRuntimeOnly",
+          "testDebugRuntimeOnly",
+          "testBasicRuntimeOnly",
+          "testPaidRuntimeOnly",
+          "testBarRuntimeOnly",
+          "testOtherBarRuntimeOnly",
+          "testBasicBarRuntimeOnly",
+          "testBasicBarReleaseRuntimeOnly",
+          "testBasicBarSpecialReleaseRuntimeOnly",
+          "testBasicBarDebugRuntimeOnly",
+          "testPaidBarRuntimeOnly",
+          "testPaidBarReleaseRuntimeOnly",
+          "testPaidBarSpecialReleaseRuntimeOnly",
+          "testPaidBarDebugRuntimeOnly",
+          "testBasicOtherBarRuntimeOnly",
+          "testBasicOtherBarReleaseRuntimeOnly",
+          "testBasicOtherBarSpecialReleaseRuntimeOnly",
+          "testBasicOtherBarDebugRuntimeOnly",
+          "testPaidOtherBarRuntimeOnly",
+          "testPaidOtherBarReleaseRuntimeOnly",
+          "testPaidOtherBarSpecialReleaseRuntimeOnly",
+          "testPaidOtherBarDebugRuntimeOnly",
+          "androidTestRuntimeOnly",
+          "androidTestBasicRuntimeOnly",
+          "androidTestPaidRuntimeOnly",
+          "androidTestBarRuntimeOnly",
+          "androidTestBasicBarRuntimeOnly",
+          "androidTestPaidBarRuntimeOnly",
+          "androidTestOtherBarRuntimeOnly",
+          "androidTestBasicOtherBarRuntimeOnly",
+          "androidTestPaidOtherBarRuntimeOnly",
+          "annotationProcessor",
+          "releaseAnnotationProcessor",
+          "specialReleaseAnnotationProcessor",
+          "debugAnnotationProcessor",
+          "basicAnnotationProcessor",
+          "paidAnnotationProcessor",
+          "barAnnotationProcessor",
+          "otherBarAnnotationProcessor",
+          "basicBarAnnotationProcessor",
+          "basicBarReleaseAnnotationProcessor",
+          "basicBarSpecialReleaseAnnotationProcessor",
+          "basicBarDebugAnnotationProcessor",
+          "paidBarAnnotationProcessor",
+          "paidBarReleaseAnnotationProcessor",
+          "paidBarSpecialReleaseAnnotationProcessor",
+          "paidBarDebugAnnotationProcessor",
+          "basicOtherBarAnnotationProcessor",
+          "basicOtherBarReleaseAnnotationProcessor",
+          "basicOtherBarSpecialReleaseAnnotationProcessor",
+          "basicOtherBarDebugAnnotationProcessor",
+          "paidOtherBarAnnotationProcessor",
+          "paidOtherBarReleaseAnnotationProcessor",
+          "paidOtherBarSpecialReleaseAnnotationProcessor",
+          "paidOtherBarDebugAnnotationProcessor",
+          "testAnnotationProcessor",
+          "testReleaseAnnotationProcessor",
+          "testSpecialReleaseAnnotationProcessor",
+          "testDebugAnnotationProcessor",
+          "testBasicAnnotationProcessor",
+          "testPaidAnnotationProcessor",
+          "testBarAnnotationProcessor",
+          "testOtherBarAnnotationProcessor",
+          "testBasicBarAnnotationProcessor",
+          "testBasicBarReleaseAnnotationProcessor",
+          "testBasicBarSpecialReleaseAnnotationProcessor",
+          "testBasicBarDebugAnnotationProcessor",
+          "testPaidBarAnnotationProcessor",
+          "testPaidBarReleaseAnnotationProcessor",
+          "testPaidBarSpecialReleaseAnnotationProcessor",
+          "testPaidBarDebugAnnotationProcessor",
+          "testBasicOtherBarAnnotationProcessor",
+          "testBasicOtherBarReleaseAnnotationProcessor",
+          "testBasicOtherBarSpecialReleaseAnnotationProcessor",
+          "testBasicOtherBarDebugAnnotationProcessor",
+          "testPaidOtherBarAnnotationProcessor",
+          "testPaidOtherBarReleaseAnnotationProcessor",
+          "testPaidOtherBarSpecialReleaseAnnotationProcessor",
+          "testPaidOtherBarDebugAnnotationProcessor",
+          "androidTestAnnotationProcessor",
+          "androidTestBasicAnnotationProcessor",
+          "androidTestPaidAnnotationProcessor",
+          "androidTestBarAnnotationProcessor",
+          "androidTestBasicBarAnnotationProcessor",
+          "androidTestPaidBarAnnotationProcessor",
+          "androidTestOtherBarAnnotationProcessor",
+          "androidTestBasicOtherBarAnnotationProcessor",
+          "androidTestPaidOtherBarAnnotationProcessor",
+        )
     }
   }
 
@@ -1401,194 +1351,189 @@ class PsAndroidModuleTest {
       val appModule = moduleWithSyncedModel(project, "app")
       assertNotNull(appModule)
 
-      assertThat(appModule.getConfigurations().filter { appModule.configurationRequiresWorkaround(it) }).containsExactly(
-        "basicBarImplementation",
-        "basicBarReleaseImplementation",
-        "basicBarSpecialReleaseImplementation",
-        "basicBarDebugImplementation",
-        "paidBarImplementation",
-        "paidBarReleaseImplementation",
-        "paidBarSpecialReleaseImplementation",
-        "paidBarDebugImplementation",
-        "basicOtherBarImplementation",
-        "basicOtherBarReleaseImplementation",
-        "basicOtherBarSpecialReleaseImplementation",
-        "basicOtherBarDebugImplementation",
-        "paidOtherBarImplementation",
-        "paidOtherBarReleaseImplementation",
-        "paidOtherBarSpecialReleaseImplementation",
-        "paidOtherBarDebugImplementation",
-
-        "testBasicBarImplementation",
-        "testBasicBarReleaseImplementation",
-        "testBasicBarSpecialReleaseImplementation",
-        "testBasicBarDebugImplementation",
-        "testPaidBarImplementation",
-        "testPaidBarReleaseImplementation",
-        "testPaidBarSpecialReleaseImplementation",
-        "testPaidBarDebugImplementation",
-        "testBasicOtherBarImplementation",
-        "testBasicOtherBarReleaseImplementation",
-        "testBasicOtherBarSpecialReleaseImplementation",
-        "testBasicOtherBarDebugImplementation",
-        "testPaidOtherBarImplementation",
-        "testPaidOtherBarReleaseImplementation",
-        "testPaidOtherBarSpecialReleaseImplementation",
-        "testPaidOtherBarDebugImplementation",
-
-        "androidTestBasicBarImplementation",
-        "androidTestPaidBarImplementation",
-        "androidTestBasicOtherBarImplementation",
-        "androidTestPaidOtherBarImplementation",
-
-        "basicBarApi",
-        "basicBarReleaseApi",
-        "basicBarSpecialReleaseApi",
-        "basicBarDebugApi",
-        "paidBarApi",
-        "paidBarReleaseApi",
-        "paidBarSpecialReleaseApi",
-        "paidBarDebugApi",
-        "basicOtherBarApi",
-        "basicOtherBarReleaseApi",
-        "basicOtherBarSpecialReleaseApi",
-        "basicOtherBarDebugApi",
-        "paidOtherBarApi",
-        "paidOtherBarReleaseApi",
-        "paidOtherBarSpecialReleaseApi",
-        "paidOtherBarDebugApi",
-        "testBasicBarApi",
-        "testBasicBarReleaseApi",
-        "testBasicBarSpecialReleaseApi",
-        "testBasicBarDebugApi",
-        "testPaidBarApi",
-        "testPaidBarReleaseApi",
-        "testPaidBarSpecialReleaseApi",
-        "testPaidBarDebugApi",
-        "testBasicOtherBarApi",
-        "testBasicOtherBarReleaseApi",
-        "testBasicOtherBarSpecialReleaseApi",
-        "testBasicOtherBarDebugApi",
-        "testPaidOtherBarApi",
-        "testPaidOtherBarReleaseApi",
-        "testPaidOtherBarSpecialReleaseApi",
-        "testPaidOtherBarDebugApi",
-        "androidTestBasicBarApi",
-        "androidTestPaidBarApi",
-        "androidTestBasicOtherBarApi",
-        "androidTestPaidOtherBarApi",
-
-        "basicBarCompileOnly",
-        "basicBarReleaseCompileOnly",
-        "basicBarSpecialReleaseCompileOnly",
-        "basicBarDebugCompileOnly",
-        "paidBarCompileOnly",
-        "paidBarReleaseCompileOnly",
-        "paidBarSpecialReleaseCompileOnly",
-        "paidBarDebugCompileOnly",
-        "basicOtherBarCompileOnly",
-        "basicOtherBarReleaseCompileOnly",
-        "basicOtherBarSpecialReleaseCompileOnly",
-        "basicOtherBarDebugCompileOnly",
-        "paidOtherBarCompileOnly",
-        "paidOtherBarReleaseCompileOnly",
-        "paidOtherBarSpecialReleaseCompileOnly",
-        "paidOtherBarDebugCompileOnly",
-        "testBasicBarCompileOnly",
-        "testBasicBarReleaseCompileOnly",
-        "testBasicBarSpecialReleaseCompileOnly",
-        "testBasicBarDebugCompileOnly",
-        "testPaidBarCompileOnly",
-        "testPaidBarReleaseCompileOnly",
-        "testPaidBarSpecialReleaseCompileOnly",
-        "testPaidBarDebugCompileOnly",
-        "testBasicOtherBarCompileOnly",
-        "testBasicOtherBarReleaseCompileOnly",
-        "testBasicOtherBarSpecialReleaseCompileOnly",
-        "testBasicOtherBarDebugCompileOnly",
-        "testPaidOtherBarCompileOnly",
-        "testPaidOtherBarReleaseCompileOnly",
-        "testPaidOtherBarSpecialReleaseCompileOnly",
-        "testPaidOtherBarDebugCompileOnly",
-        "androidTestBasicBarCompileOnly",
-        "androidTestPaidBarCompileOnly",
-        "androidTestBasicOtherBarCompileOnly",
-        "androidTestPaidOtherBarCompileOnly",
-
-        "basicBarRuntimeOnly",
-        "basicBarReleaseRuntimeOnly",
-        "basicBarSpecialReleaseRuntimeOnly",
-        "basicBarDebugRuntimeOnly",
-        "paidBarRuntimeOnly",
-        "paidBarReleaseRuntimeOnly",
-        "paidBarSpecialReleaseRuntimeOnly",
-        "paidBarDebugRuntimeOnly",
-        "basicOtherBarRuntimeOnly",
-        "basicOtherBarReleaseRuntimeOnly",
-        "basicOtherBarSpecialReleaseRuntimeOnly",
-        "basicOtherBarDebugRuntimeOnly",
-        "paidOtherBarRuntimeOnly",
-        "paidOtherBarReleaseRuntimeOnly",
-        "paidOtherBarSpecialReleaseRuntimeOnly",
-        "paidOtherBarDebugRuntimeOnly",
-        "testBasicBarRuntimeOnly",
-        "testBasicBarReleaseRuntimeOnly",
-        "testBasicBarSpecialReleaseRuntimeOnly",
-        "testBasicBarDebugRuntimeOnly",
-        "testPaidBarRuntimeOnly",
-        "testPaidBarReleaseRuntimeOnly",
-        "testPaidBarSpecialReleaseRuntimeOnly",
-        "testPaidBarDebugRuntimeOnly",
-        "testBasicOtherBarRuntimeOnly",
-        "testBasicOtherBarReleaseRuntimeOnly",
-        "testBasicOtherBarSpecialReleaseRuntimeOnly",
-        "testBasicOtherBarDebugRuntimeOnly",
-        "testPaidOtherBarRuntimeOnly",
-        "testPaidOtherBarReleaseRuntimeOnly",
-        "testPaidOtherBarSpecialReleaseRuntimeOnly",
-        "testPaidOtherBarDebugRuntimeOnly",
-        "androidTestBasicBarRuntimeOnly",
-        "androidTestPaidBarRuntimeOnly",
-        "androidTestBasicOtherBarRuntimeOnly",
-        "androidTestPaidOtherBarRuntimeOnly",
-
-        "basicBarAnnotationProcessor",
-        "basicBarReleaseAnnotationProcessor",
-        "basicBarSpecialReleaseAnnotationProcessor",
-        "basicBarDebugAnnotationProcessor",
-        "paidBarAnnotationProcessor",
-        "paidBarReleaseAnnotationProcessor",
-        "paidBarSpecialReleaseAnnotationProcessor",
-        "paidBarDebugAnnotationProcessor",
-        "basicOtherBarAnnotationProcessor",
-        "basicOtherBarReleaseAnnotationProcessor",
-        "basicOtherBarSpecialReleaseAnnotationProcessor",
-        "basicOtherBarDebugAnnotationProcessor",
-        "paidOtherBarAnnotationProcessor",
-        "paidOtherBarReleaseAnnotationProcessor",
-        "paidOtherBarSpecialReleaseAnnotationProcessor",
-        "paidOtherBarDebugAnnotationProcessor",
-        "testBasicBarAnnotationProcessor",
-        "testBasicBarReleaseAnnotationProcessor",
-        "testBasicBarSpecialReleaseAnnotationProcessor",
-        "testBasicBarDebugAnnotationProcessor",
-        "testPaidBarAnnotationProcessor",
-        "testPaidBarReleaseAnnotationProcessor",
-        "testPaidBarSpecialReleaseAnnotationProcessor",
-        "testPaidBarDebugAnnotationProcessor",
-        "testBasicOtherBarAnnotationProcessor",
-        "testBasicOtherBarReleaseAnnotationProcessor",
-        "testBasicOtherBarSpecialReleaseAnnotationProcessor",
-        "testBasicOtherBarDebugAnnotationProcessor",
-        "testPaidOtherBarAnnotationProcessor",
-        "testPaidOtherBarReleaseAnnotationProcessor",
-        "testPaidOtherBarSpecialReleaseAnnotationProcessor",
-        "testPaidOtherBarDebugAnnotationProcessor",
-        "androidTestBasicBarAnnotationProcessor",
-        "androidTestPaidBarAnnotationProcessor",
-        "androidTestBasicOtherBarAnnotationProcessor",
-        "androidTestPaidOtherBarAnnotationProcessor"
-      )
+      assertThat(appModule.getConfigurations().filter { appModule.configurationRequiresWorkaround(it) })
+        .containsExactly(
+          "basicBarImplementation",
+          "basicBarReleaseImplementation",
+          "basicBarSpecialReleaseImplementation",
+          "basicBarDebugImplementation",
+          "paidBarImplementation",
+          "paidBarReleaseImplementation",
+          "paidBarSpecialReleaseImplementation",
+          "paidBarDebugImplementation",
+          "basicOtherBarImplementation",
+          "basicOtherBarReleaseImplementation",
+          "basicOtherBarSpecialReleaseImplementation",
+          "basicOtherBarDebugImplementation",
+          "paidOtherBarImplementation",
+          "paidOtherBarReleaseImplementation",
+          "paidOtherBarSpecialReleaseImplementation",
+          "paidOtherBarDebugImplementation",
+          "testBasicBarImplementation",
+          "testBasicBarReleaseImplementation",
+          "testBasicBarSpecialReleaseImplementation",
+          "testBasicBarDebugImplementation",
+          "testPaidBarImplementation",
+          "testPaidBarReleaseImplementation",
+          "testPaidBarSpecialReleaseImplementation",
+          "testPaidBarDebugImplementation",
+          "testBasicOtherBarImplementation",
+          "testBasicOtherBarReleaseImplementation",
+          "testBasicOtherBarSpecialReleaseImplementation",
+          "testBasicOtherBarDebugImplementation",
+          "testPaidOtherBarImplementation",
+          "testPaidOtherBarReleaseImplementation",
+          "testPaidOtherBarSpecialReleaseImplementation",
+          "testPaidOtherBarDebugImplementation",
+          "androidTestBasicBarImplementation",
+          "androidTestPaidBarImplementation",
+          "androidTestBasicOtherBarImplementation",
+          "androidTestPaidOtherBarImplementation",
+          "basicBarApi",
+          "basicBarReleaseApi",
+          "basicBarSpecialReleaseApi",
+          "basicBarDebugApi",
+          "paidBarApi",
+          "paidBarReleaseApi",
+          "paidBarSpecialReleaseApi",
+          "paidBarDebugApi",
+          "basicOtherBarApi",
+          "basicOtherBarReleaseApi",
+          "basicOtherBarSpecialReleaseApi",
+          "basicOtherBarDebugApi",
+          "paidOtherBarApi",
+          "paidOtherBarReleaseApi",
+          "paidOtherBarSpecialReleaseApi",
+          "paidOtherBarDebugApi",
+          "testBasicBarApi",
+          "testBasicBarReleaseApi",
+          "testBasicBarSpecialReleaseApi",
+          "testBasicBarDebugApi",
+          "testPaidBarApi",
+          "testPaidBarReleaseApi",
+          "testPaidBarSpecialReleaseApi",
+          "testPaidBarDebugApi",
+          "testBasicOtherBarApi",
+          "testBasicOtherBarReleaseApi",
+          "testBasicOtherBarSpecialReleaseApi",
+          "testBasicOtherBarDebugApi",
+          "testPaidOtherBarApi",
+          "testPaidOtherBarReleaseApi",
+          "testPaidOtherBarSpecialReleaseApi",
+          "testPaidOtherBarDebugApi",
+          "androidTestBasicBarApi",
+          "androidTestPaidBarApi",
+          "androidTestBasicOtherBarApi",
+          "androidTestPaidOtherBarApi",
+          "basicBarCompileOnly",
+          "basicBarReleaseCompileOnly",
+          "basicBarSpecialReleaseCompileOnly",
+          "basicBarDebugCompileOnly",
+          "paidBarCompileOnly",
+          "paidBarReleaseCompileOnly",
+          "paidBarSpecialReleaseCompileOnly",
+          "paidBarDebugCompileOnly",
+          "basicOtherBarCompileOnly",
+          "basicOtherBarReleaseCompileOnly",
+          "basicOtherBarSpecialReleaseCompileOnly",
+          "basicOtherBarDebugCompileOnly",
+          "paidOtherBarCompileOnly",
+          "paidOtherBarReleaseCompileOnly",
+          "paidOtherBarSpecialReleaseCompileOnly",
+          "paidOtherBarDebugCompileOnly",
+          "testBasicBarCompileOnly",
+          "testBasicBarReleaseCompileOnly",
+          "testBasicBarSpecialReleaseCompileOnly",
+          "testBasicBarDebugCompileOnly",
+          "testPaidBarCompileOnly",
+          "testPaidBarReleaseCompileOnly",
+          "testPaidBarSpecialReleaseCompileOnly",
+          "testPaidBarDebugCompileOnly",
+          "testBasicOtherBarCompileOnly",
+          "testBasicOtherBarReleaseCompileOnly",
+          "testBasicOtherBarSpecialReleaseCompileOnly",
+          "testBasicOtherBarDebugCompileOnly",
+          "testPaidOtherBarCompileOnly",
+          "testPaidOtherBarReleaseCompileOnly",
+          "testPaidOtherBarSpecialReleaseCompileOnly",
+          "testPaidOtherBarDebugCompileOnly",
+          "androidTestBasicBarCompileOnly",
+          "androidTestPaidBarCompileOnly",
+          "androidTestBasicOtherBarCompileOnly",
+          "androidTestPaidOtherBarCompileOnly",
+          "basicBarRuntimeOnly",
+          "basicBarReleaseRuntimeOnly",
+          "basicBarSpecialReleaseRuntimeOnly",
+          "basicBarDebugRuntimeOnly",
+          "paidBarRuntimeOnly",
+          "paidBarReleaseRuntimeOnly",
+          "paidBarSpecialReleaseRuntimeOnly",
+          "paidBarDebugRuntimeOnly",
+          "basicOtherBarRuntimeOnly",
+          "basicOtherBarReleaseRuntimeOnly",
+          "basicOtherBarSpecialReleaseRuntimeOnly",
+          "basicOtherBarDebugRuntimeOnly",
+          "paidOtherBarRuntimeOnly",
+          "paidOtherBarReleaseRuntimeOnly",
+          "paidOtherBarSpecialReleaseRuntimeOnly",
+          "paidOtherBarDebugRuntimeOnly",
+          "testBasicBarRuntimeOnly",
+          "testBasicBarReleaseRuntimeOnly",
+          "testBasicBarSpecialReleaseRuntimeOnly",
+          "testBasicBarDebugRuntimeOnly",
+          "testPaidBarRuntimeOnly",
+          "testPaidBarReleaseRuntimeOnly",
+          "testPaidBarSpecialReleaseRuntimeOnly",
+          "testPaidBarDebugRuntimeOnly",
+          "testBasicOtherBarRuntimeOnly",
+          "testBasicOtherBarReleaseRuntimeOnly",
+          "testBasicOtherBarSpecialReleaseRuntimeOnly",
+          "testBasicOtherBarDebugRuntimeOnly",
+          "testPaidOtherBarRuntimeOnly",
+          "testPaidOtherBarReleaseRuntimeOnly",
+          "testPaidOtherBarSpecialReleaseRuntimeOnly",
+          "testPaidOtherBarDebugRuntimeOnly",
+          "androidTestBasicBarRuntimeOnly",
+          "androidTestPaidBarRuntimeOnly",
+          "androidTestBasicOtherBarRuntimeOnly",
+          "androidTestPaidOtherBarRuntimeOnly",
+          "basicBarAnnotationProcessor",
+          "basicBarReleaseAnnotationProcessor",
+          "basicBarSpecialReleaseAnnotationProcessor",
+          "basicBarDebugAnnotationProcessor",
+          "paidBarAnnotationProcessor",
+          "paidBarReleaseAnnotationProcessor",
+          "paidBarSpecialReleaseAnnotationProcessor",
+          "paidBarDebugAnnotationProcessor",
+          "basicOtherBarAnnotationProcessor",
+          "basicOtherBarReleaseAnnotationProcessor",
+          "basicOtherBarSpecialReleaseAnnotationProcessor",
+          "basicOtherBarDebugAnnotationProcessor",
+          "paidOtherBarAnnotationProcessor",
+          "paidOtherBarReleaseAnnotationProcessor",
+          "paidOtherBarSpecialReleaseAnnotationProcessor",
+          "paidOtherBarDebugAnnotationProcessor",
+          "testBasicBarAnnotationProcessor",
+          "testBasicBarReleaseAnnotationProcessor",
+          "testBasicBarSpecialReleaseAnnotationProcessor",
+          "testBasicBarDebugAnnotationProcessor",
+          "testPaidBarAnnotationProcessor",
+          "testPaidBarReleaseAnnotationProcessor",
+          "testPaidBarSpecialReleaseAnnotationProcessor",
+          "testPaidBarDebugAnnotationProcessor",
+          "testBasicOtherBarAnnotationProcessor",
+          "testBasicOtherBarReleaseAnnotationProcessor",
+          "testBasicOtherBarSpecialReleaseAnnotationProcessor",
+          "testBasicOtherBarDebugAnnotationProcessor",
+          "testPaidOtherBarAnnotationProcessor",
+          "testPaidOtherBarReleaseAnnotationProcessor",
+          "testPaidOtherBarSpecialReleaseAnnotationProcessor",
+          "testPaidOtherBarDebugAnnotationProcessor",
+          "androidTestBasicBarAnnotationProcessor",
+          "androidTestPaidBarAnnotationProcessor",
+          "androidTestBasicOtherBarAnnotationProcessor",
+          "androidTestPaidOtherBarAnnotationProcessor",
+        )
     }
   }
 

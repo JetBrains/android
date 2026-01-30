@@ -20,6 +20,6 @@ package com.android.tools.idea.gradle.dsl.model
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 
-fun createGradleBuildModel(dslFile: GradleBuildFile): GradleBuildModel = GradleDeclarativeBuildModelProvider.EP.extensionList.firstNotNullOfOrNull { provider ->
-  provider.createModel(dslFile)
-} ?: GradleBuildModelImpl(dslFile)
+fun createGradleBuildModel(dslFile: GradleBuildFile): GradleBuildModel =
+  GradleDeclarativeBuildModelProvider.EP.extensionList.firstNotNullOfOrNull { provider -> provider.createModel(dslFile) }
+    ?: GradleBuildModelImpl(dslFile)

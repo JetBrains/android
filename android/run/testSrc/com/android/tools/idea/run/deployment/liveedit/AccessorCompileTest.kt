@@ -20,18 +20,16 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
+import kotlin.test.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertNotNull
-
 
 @RunWith(JUnit4::class)
 class AccessorCompileTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
   @Before
   fun setUp() {
@@ -41,7 +39,10 @@ class AccessorCompileTest {
 
   @Test
   fun test() {
-    val file = projectRule.createKtFile("Test.kt", """
+    val file =
+      projectRule.createKtFile(
+        "Test.kt",
+        """
       class Test {
         private var field = 0
         fun test() {
@@ -50,20 +51,25 @@ class AccessorCompileTest {
         }
         private fun doThing() {}
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
-    class Test {
-        private var field = 0
-        fun test() {
-          val x = {
-            doThing()
-            field = 1
+    projectRule.modifyKtFile(
+      file,
+      """
+      class Test {
+          private var field = 0
+          fun test() {
+            val x = {
+              doThing()
+              field = 1
+            }
           }
+          private fun doThing() {}
         }
-        private fun doThing() {}
-      }
-    """.trimIndent())
+      """
+        .trimIndent(),
+    )
 
     // Ensure this does not throw an incompatible change exception due to added method
     val output = compile(file, cache)
@@ -72,4 +78,3 @@ class AccessorCompileTest {
     assertNotNull(irClasses["Test"]?.methods?.find { it.name.startsWith("access\$setField") })
   }
 }
-

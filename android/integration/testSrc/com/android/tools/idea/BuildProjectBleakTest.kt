@@ -18,13 +18,11 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class BuildProjectBleakTest {
-  @JvmField
-  @Rule val system = AndroidSystem.standard()
+  @JvmField @Rule val system = AndroidSystem.standard()
 
   @Test
   fun buildProject() {

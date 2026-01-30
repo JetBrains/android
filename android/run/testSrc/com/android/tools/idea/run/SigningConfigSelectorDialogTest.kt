@@ -31,8 +31,7 @@ import org.junit.Test
 
 @RunsInEdt
 class SigningConfigSelectorDialogTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val debugSigning = FakeSigningConfigModel("debug")
   private val customSigning = FakeSigningConfigModel("custom")
@@ -62,19 +61,34 @@ private class FakeSigningConfigModel(val name: String) : SigningConfigModel {
   }
 
   override fun <T : GradleDslModel> getModel(klass: Class<T>) = throw NotImplementedError()
+
   override fun getPsiElement() = throw NotImplementedError()
+
   override fun delete() = throw NotImplementedError()
+
   override fun getHolder() = throw NotImplementedError()
+
   override fun getRawElement() = throw NotImplementedError()
+
   override fun getRawPropertyHolder() = throw NotImplementedError()
+
   override fun getFullyQualifiedName() = throw NotImplementedError()
+
   override fun getInScopeProperties() = throw NotImplementedError()
+
   override fun getDeclaredProperties() = throw NotImplementedError()
+
   override fun rename(newName: String, renameReferences: Boolean) = throw NotImplementedError()
+
   override fun storeFile(): ResolvedPropertyModel = throw NotImplementedError()
+
   override fun storePassword(): PasswordPropertyModel = throw NotImplementedError()
+
   override fun storeType(): ResolvedPropertyModel = throw NotImplementedError()
+
   override fun keyAlias(): ResolvedPropertyModel = throw NotImplementedError()
+
   override fun keyPassword(): PasswordPropertyModel = throw NotImplementedError()
+
   override fun getDslElement(): GradleDslElement = throw NotImplementedError()
 }

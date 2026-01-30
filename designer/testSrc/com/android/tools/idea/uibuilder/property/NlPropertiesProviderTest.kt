@@ -75,26 +75,21 @@ private fun PropertiesTable<NlPropertyItem>.contains(namespace: String, name: St
   return this.getOrNull(namespace, name) != null
 }
 
-private fun PropertiesTable<NlPropertyItem>.doesNotContain(
-  namespace: String,
-  name: String,
-): Boolean {
+private fun PropertiesTable<NlPropertyItem>.doesNotContain(namespace: String, name: String): Boolean {
   return !this.contains(namespace, name)
 }
 
 class NlPropertiesProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
 
   @Before
   fun setUp() {
     FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
   }
 
-  private val viewAttrs =
-    listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
+  private val viewAttrs = listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
   private val frameLayoutAttrs = listOf("layout_gravity")
   private val gridLayoutAttrs = listOf("layout_rowSpan", "layout_column")
   private val linearLayoutAttrs = listOf("layout_weight")
@@ -167,8 +162,7 @@ class NlPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
-    val components =
-      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
     val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
@@ -181,8 +175,7 @@ class NlPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
-    val components =
-      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
     components.first().setAttribute(ANDROID_URI, ATTR_SRC, "@drawable/mine")
     val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
@@ -221,11 +214,9 @@ class NlPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
-    val components =
-      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    val components = createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
     val properties = runReadAction { provider.getProperties(model, null, components) }
-    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName)
-      .isEqualTo(APPCOMPAT_IMAGE_VIEW)
+    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
   }
@@ -246,12 +237,7 @@ class NlPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val provider = NlPropertiesProvider(facet)
     val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
-    val components =
-      createComponents(
-        component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
-        PREFERENCE_SCREEN,
-        FD_RES_XML,
-      )
+    val components = createComponents(component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT), PREFERENCE_SCREEN, FD_RES_XML)
     val properties = runReadAction { provider.getProperties(model, null, components) }
 
     // From ListPreference: (2)
@@ -303,17 +289,11 @@ class NlPropertiesProviderTest {
     parentTag: String = SdkConstants.LINEAR_LAYOUT,
     resourceFolder: String = SdkConstants.FD_RES_LAYOUT,
   ): List<NlComponent> {
-    return createComponents(
-      projectRule,
-      descriptor,
-      parentTag = parentTag,
-      resourceFolder = resourceFolder,
-    )
+    return createComponents(projectRule, descriptor, parentTag = parentTag, resourceFolder = resourceFolder)
   }
 
   private fun createViewTagComponent(): List<NlComponent> {
-    val builder =
-      NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "view.xml", component(VIEW))
+    val builder = NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "view.xml", component(VIEW))
     val nlModel = builder.build()
     return nlModel.treeReader.components
   }

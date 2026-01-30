@@ -36,14 +36,11 @@ import javax.swing.JComponent
 import javax.swing.JTabbedPane
 
 /**
- * A wrapper component over a [JTabbedPane] which displays tabs in
- * a single row, ensures that the selected tab is visible and
- * shows any hidden tab in a popup menu displayed when clicking
- * an overflow button on the right.
+ * A wrapper component over a [JTabbedPane] which displays tabs in a single row, ensures that the selected tab is visible and shows any
+ * hidden tab in a popup menu displayed when clicking an overflow button on the right.
  *
- * Use this component in place of a [JTabbedPane] and use [tabbedPane]
- * to access to the underlying [JTabbedPane] and call its method
- * (e.g [JTabbedPane.addTab]...)
+ * Use this component in place of a [JTabbedPane] and use [tabbedPane] to access to the underlying [JTabbedPane] and call its method (e.g
+ * [JTabbedPane.addTab]...)
  *
  * See [tabbedPane] for restriction applying to the underlying JTabbedPane.
  *
@@ -65,15 +62,15 @@ class OverflowingTabbedPaneWrapper : JComponent() {
    * The underlying tabbedPane.
    *
    * It can be used like a normal [JTabbedPane] with few restrictions:
-   * - The layout policy is not respected because any tab that overflows the pane
-   *   will be displayed in the overflow menu
+   * - The layout policy is not respected because any tab that overflows the pane will be displayed in the overflow menu
    * - Only [JTabbedPane.TOP] tab placement is supported
    */
-  val tabbedPane = object : JTabbedPane() {
-    override fun updateUI() {
-      setUI(overflowingTabbedPaneUI)
+  val tabbedPane =
+    object : JTabbedPane() {
+      override fun updateUI() {
+        setUI(overflowingTabbedPaneUI)
+      }
     }
-  }
 
   init {
     background = tabbedPane.background
@@ -84,10 +81,7 @@ class OverflowingTabbedPaneWrapper : JComponent() {
     enableEvents(AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK)
   }
 
-  /**
-   * Lays out the [tabbedPane] and the [overflowButton] to the right.
-   * Any other component is ignored.
-   */
+  /** Lays out the [tabbedPane] and the [overflowButton] to the right. Any other component is ignored. */
   override fun doLayout() {
     val preferredSize = tabbedPane.preferredSize
     tabbedPane.setBounds(0, 0, width, preferredSize.height)
@@ -96,10 +90,12 @@ class OverflowingTabbedPaneWrapper : JComponent() {
       val tabPaneInsets = tabbedPane.insets
       val overflowButtonInset = overflowButton.insets
       val overflowButtonSize = overflowButton.preferredSize
-      overflowButton.setBounds(width - overflowButtonSize.width - tabPaneInsets.right - overflowButtonInset.right,
-                               tabPaneInsets.top + (height - overflowButtonSize.height) / 2,
-                               overflowButtonSize.width,
-                               overflowButtonSize.height)
+      overflowButton.setBounds(
+        width - overflowButtonSize.width - tabPaneInsets.right - overflowButtonInset.right,
+        tabPaneInsets.top + (height - overflowButtonSize.height) / 2,
+        overflowButtonSize.width,
+        overflowButtonSize.height,
+      )
     }
   }
 
@@ -121,34 +117,32 @@ class OverflowingTabbedPaneWrapper : JComponent() {
 private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
 
   private var overflowPopup: ListPopup? = null
-  private val resizeListener = object : ComponentAdapter() {
-    override fun componentResized(e: ComponentEvent?) {
-      overflowPopup?.cancel()
+  private val resizeListener =
+    object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent?) {
+        overflowPopup?.cancel()
+      }
     }
-  }
   private val hiddenTab = mutableListOf<Int>()
 
   private val overFlowPopupAction = OverflowPopupAction()
 
-  val overflowButton = ActionButton(overFlowPopupAction,
-                                    PresentationFactory().getPresentation(overFlowPopupAction),
-                                    "",
-                                    JBUI.size(20)).apply {
-    border = JBUI.Borders.emptyRight(2)
-  }
+  val overflowButton =
+    ActionButton(overFlowPopupAction, PresentationFactory().getPresentation(overFlowPopupAction), "", JBUI.size(20)).apply {
+      border = JBUI.Borders.emptyRight(2)
+    }
 
-  private inner class OverflowPopupAction : DumbAwareAction("Show Hidden Tabs", "Show hidden tab",
-                                                                     AllIcons.Actions.More) {
+  private inner class OverflowPopupAction : DumbAwareAction("Show Hidden Tabs", "Show hidden tab", AllIcons.Actions.More) {
     override fun actionPerformed(e: AnActionEvent) {
-      val actions = hiddenTab.map { tabIndex ->
-        object : AnAction(tabPane.getTitleAt(tabIndex)) {
-          override fun actionPerformed(e: AnActionEvent) {
-            tabPane.selectedIndex = tabIndex
+      val actions =
+        hiddenTab.map { tabIndex ->
+          object : AnAction(tabPane.getTitleAt(tabIndex)) {
+            override fun actionPerformed(e: AnActionEvent) {
+              tabPane.selectedIndex = tabIndex
+            }
           }
         }
-      }
-      val menu = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, DefaultActionGroup(actions), e.dataContext, null, true)
+      val menu = JBPopupFactory.getInstance().createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
       menu.showInBestPositionFor(e.dataContext)
       overflowPopup = menu
     }
@@ -167,9 +161,8 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
   override fun createLayoutManager(): TabbedPaneLayout = OverflowingTabPaneLayout()
 
   /**
-   * A modified copy of the base [javax.swing.plaf.basic.BasicTabbedPaneUI.TabbedPaneLayout]
-   * which always displays tabs in a single row no matter what
-   * the [javax.swing.JTabbedPane.tabLayoutPolicy] is.
+   * A modified copy of the base [javax.swing.plaf.basic.BasicTabbedPaneUI.TabbedPaneLayout] which always displays tabs in a single row no
+   * matter what the [javax.swing.JTabbedPane.tabLayoutPolicy] is.
    */
   private inner class OverflowingTabPaneLayout : TabbedPaneLayout() {
 
@@ -193,13 +186,11 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
     }
 
     /**
-     * Modified version of the base method that always displays the tabs in a single
-     * horizontal row and put any overflowing tab's index in the [hiddenTab] list.
+     * Modified version of the base method that always displays the tabs in a single horizontal row and put any overflowing tab's index in
+     * the [hiddenTab] list.
      *
-     * The tabs are first laid out from 0 to [tabCount] - 1, then they are all offset
-     * to the left to ensure that the selected tab is visible. Finally any tab that
-     * is not entirely visible is added to the overflow menu, respecting their original
-     * order.
+     * The tabs are first laid out from 0 to [tabCount] - 1, then they are all offset to the left to ensure that the selected tab is
+     * visible. Finally any tab that is not entirely visible is added to the overflow menu, respecting their original order.
      */
     override fun calculateTabRects(tabPlacement: Int, tabCount: Int) {
       val metrics = fontMetrics
@@ -226,8 +217,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
 
         if (i > 0) {
           rect.x = rects[i - 1].x + rects[i - 1].width
-        }
-        else {
+        } else {
           tabRuns[0] = 0
           runCount = 1
           maxTabWidth = 0
@@ -256,8 +246,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
   }
 
   /**
-   * Ensures that [selectedIndex] is visible by offsetting all the tabs
-   * to the left until the selected tab right bound is within the visible
+   * Ensures that [selectedIndex] is visible by offsetting all the tabs to the left until the selected tab right bound is within the visible
    * area of [tabPane].
    */
   private fun hideOverflowingTabs(tabCount: Int, selectedIndex: Int) {

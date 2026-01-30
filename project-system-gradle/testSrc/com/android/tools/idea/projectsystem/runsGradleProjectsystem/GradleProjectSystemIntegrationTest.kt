@@ -42,9 +42,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
- */
+/** Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project. */
 abstract class GradleProjectSystemIntegrationTestCase {
 
   @RunWith(Parameterized::class)
@@ -56,7 +54,7 @@ abstract class GradleProjectSystemIntegrationTestCase {
       @JvmStatic
       @Parameterized.Parameters(name = "{0}")
       fun tests(): Collection<*> {
-        return tests.filter{ it.modelsV2 }.map { listOf(it).toTypedArray() }
+        return tests.filter { it.modelsV2 }.map { listOf(it).toTypedArray() }
       }
     }
   }
@@ -65,39 +63,32 @@ abstract class GradleProjectSystemIntegrationTestCase {
     val tests =
       listOf(
         TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = false),
-        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true)
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true),
       )
   }
 
-  data class TestDefinition(
-    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-    val modelsV2: Boolean = false
-  ) : AgpIntegrationTestDefinition {
+  data class TestDefinition(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor, val modelsV2: Boolean = false) :
+    AgpIntegrationTestDefinition {
     override val name: String = ""
+
     override fun toString(): String = displayName()
+
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)
   }
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
-  @JvmField
-  @Parameterized.Parameter(0)
-  var testDefinition: TestDefinition? = null
+  @JvmField @Parameterized.Parameter(0) var testDefinition: TestDefinition? = null
 
   @Test
   fun testGetDependentLibraries() {
     runTestOn(TestProject.SIMPLE_APPLICATION) { project ->
-      val moduleSystem = project
-        .getProjectSystem()
-        .getModuleSystem(project.gradleModule(":app")!!)
+      val moduleSystem = project.getProjectSystem().getModuleSystem(project.gradleModule(":app")!!)
       val libraries = moduleSystem.getAndroidLibraryDependencies(DependencyScopeType.MAIN)
 
-      val appcompat = libraries
-        .first { library -> library.address.startsWith("com.android.support:support-compat") }
+      val appcompat = libraries.first { library -> library.address.startsWith("com.android.support:support-compat") }
 
       assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
       assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
@@ -118,8 +109,17 @@ abstract class GradleProjectSystemIntegrationTestCase {
     runTestOn(AndroidCoreTestProject.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       val agpVersion = testDefinition!!.agpVersion
-      expect.that(project.appModuleSystem().getTestPackageName())
-        .isEqualTo(if (agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80 || agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_41 || agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_42) "one.name.test" else "one.name.test_app")
+      expect
+        .that(project.appModuleSystem().getTestPackageName())
+        .isEqualTo(
+          if (
+            agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80 ||
+              agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_41 ||
+              agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_42
+          )
+            "one.name.test"
+          else "one.name.test_app"
+        )
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
@@ -140,8 +140,7 @@ abstract class GradleProjectSystemIntegrationTestCase {
     try {
       val preparedProject = projectRule.prepareTestProject(testProject, agpVersion = testDefinition.agpVersion)
       preparedProject.open(body = test)
-    }
-    finally {
+    } finally {
       if (!testDefinition.modelsV2) {
         StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
       }

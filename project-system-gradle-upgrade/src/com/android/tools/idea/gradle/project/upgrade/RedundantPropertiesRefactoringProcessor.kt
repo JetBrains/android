@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -27,9 +27,10 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
-class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+class RedundantPropertiesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = AlwaysNeeded
 
@@ -38,8 +39,8 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
       val buildToolsVersionModel = model.android().buildToolsVersion()
-      val buildToolsVersion = buildToolsVersionModel.valueAsString()?.let { Version.parse(it) }?.takeIf { it > Version.prefixInfimum("0") }
-                              ?: return@model
+      val buildToolsVersion =
+        buildToolsVersionModel.valueAsString()?.let { Version.parse(it) }?.takeIf { it > Version.prefixInfimum("0") } ?: return@model
       if (buildToolsVersion < minimumBuildToolsVersion(new)) {
         val psiElement = buildToolsVersionModel.representativeContainedPsiElement ?: return@model
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, REDUNDANT_PROPERTY_USAGE_TYPE)
@@ -50,23 +51,25 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     return usages.toTypedArray()
   }
 
-  private fun minimumBuildToolsVersion(agpVersion: AgpVersion): Version = when {
-    // When upgrading to versions earlier than 7.0.0-alpha01, don't remove buildToolsVersion.  (Make that happen by returning a
-    // version that will be earlier than the user's specified buildToolsVersion.
-    // TODO(xof): extend this table both to the future and the past, or replace it with a more automated mechanism.
-    AgpVersion.parse("7.0.0-alpha01") > agpVersion -> Version.parse("0.0.1")
-    AgpVersion.parse("7.1.0-alpha01") > agpVersion -> Version.parse("30.0.2")
-    else -> Version.parse("30.0.3")
-  }
+  private fun minimumBuildToolsVersion(agpVersion: AgpVersion): Version =
+    when {
+      // When upgrading to versions earlier than 7.0.0-alpha01, don't remove buildToolsVersion.  (Make that happen by returning a
+      // version that will be earlier than the user's specified buildToolsVersion.
+      // TODO(xof): extend this table both to the future and the past, or replace it with a more automated mechanism.
+      AgpVersion.parse("7.0.0-alpha01") > agpVersion -> Version.parse("0.0.1")
+      AgpVersion.parse("7.1.0-alpha01") > agpVersion -> Version.parse("30.0.2")
+      else -> Version.parse("30.0.3")
+    }
 
   override fun getCommandName(): String = AgpUpgradeBundle.message("redundantPropertiesRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
-      Setting buildToolsVersion to a value that is lower than the minimum supported by the
-      Android Gradle Plugin has no effect (other than a warning).  The setting can be
-      safely removed.
-    """.trimIndent()
+    Setting buildToolsVersion to a value that is lower than the minimum supported by the
+    Android Gradle Plugin has no effect (other than a warning).  The setting can be
+    safely removed.
+    """
+      .trimIndent()
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REDUNDANT_PROPERTIES)
@@ -86,10 +89,8 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
   }
 }
 
-class RemoveRedundantPropertyUsageInfo(
-  element: WrappedPsiElement,
-  val model: DeletablePsiElementHolder
-): GradleBuildModelUsageInfo(element) {
+class RemoveRedundantPropertyUsageInfo(element: WrappedPsiElement, val model: DeletablePsiElementHolder) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.delete()
   }

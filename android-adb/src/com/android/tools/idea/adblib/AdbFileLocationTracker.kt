@@ -26,9 +26,8 @@ import java.util.function.Supplier
 import kotlinx.coroutines.CancellationException
 
 /**
- * An [AdbFileLocationTracker] that keeps track of [Project] instances to retrieve the path to `adb`
- * on a "best effort" basis. If it "best effort", because Android Studio currently does not support
- * multiple `adb` paths and/or versions.
+ * An [AdbFileLocationTracker] that keeps track of [Project] instances to retrieve the path to `adb` on a "best effort" basis. If it "best
+ * effort", because Android Studio currently does not support multiple `adb` paths and/or versions.
  *
  * This class is thread-safe.
  */
@@ -37,19 +36,14 @@ internal class AdbFileLocationTracker : Supplier<File> {
   private val logger = thisLogger()
 
   /** The application [AdbFileProvider], always available */
-  private val applicationProvider by
-    lazy(LazyThreadSafetyMode.PUBLICATION) { AdbFileProvider.fromApplication() }
+  private val applicationProvider by lazy(LazyThreadSafetyMode.PUBLICATION) { AdbFileProvider.fromApplication() }
+
+  /** One [AdbFileProvider] per project (we use a LinkedHashMap to keep enumeration ordering consistent). */
+  @GuardedBy("projectProviders") private val projectProviders = LinkedHashMap<Project, AdbFileProvider>()
 
   /**
-   * One [AdbFileProvider] per project (we use a LinkedHashMap to keep enumeration ordering
-   * consistent).
-   */
-  @GuardedBy("projectProviders")
-  private val projectProviders = LinkedHashMap<Project, AdbFileProvider>()
-
-  /**
-   * Registers a [Project] as a possible source of `adb` path location. The same [Project] instance
-   * can be registered multiple times (for convenience).
+   * Registers a [Project] as a possible source of `adb` path location. The same [Project] instance can be registered multiple times (for
+   * convenience).
    */
   fun registerProject(project: Project): Boolean {
     synchronized(projectProviders) {
@@ -73,13 +67,10 @@ internal class AdbFileLocationTracker : Supplier<File> {
 
   override fun get(): File {
     // Go through projects first
-    val file =
-      synchronized(projectProviders) { projectProviders.values.firstNotNullOfOrNull { it.get() } }
+    val file = synchronized(projectProviders) { projectProviders.values.firstNotNullOfOrNull { it.get() } }
     // Then application if nothing found
     try {
-      return file
-        ?: applicationProvider.get()
-        ?: throw IllegalStateException("ADB location has not been initialized")
+      return file ?: applicationProvider.get() ?: throw IllegalStateException("ADB location has not been initialized")
     } catch (e: IllegalStateException) {
       throw if (ApplicationManager.getApplication().isDisposed) CancellationException() else e
     }

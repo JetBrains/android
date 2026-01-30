@@ -47,9 +47,8 @@ class DaggerIndexAnnotatedWrapperTest {
     myFixture = projectRule.fixture
   }
 
-  private fun DaggerIndexAnnotatedWrapper.getAnnotationByNameTestHelper(
-    annotation: DaggerAnnotation
-  ): List<String> = getAnnotations(annotation).toList().map { it.getAnnotationNameInSource() }
+  private fun DaggerIndexAnnotatedWrapper.getAnnotationByNameTestHelper(annotation: DaggerAnnotation): List<String> =
+    getAnnotations(annotation).toList().map { it.getAnnotationNameInSource() }
 
   @Test
   fun kotlinAnnotation() {
@@ -58,14 +57,14 @@ class DaggerIndexAnnotatedWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.*
+        import dagger.*
 
-      @Module
-      @javax.inject.Inject
-      class Foo {}
-      """
+        @Module
+        @javax.inject.Inject
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -76,10 +75,8 @@ class DaggerIndexAnnotatedWrapperTest {
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isFalse()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("Module")
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.INJECT))
-      .containsExactly("javax.inject.Inject")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.INJECT)).containsExactly("javax.inject.Inject")
     assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.COMPONENT)).isEmpty()
   }
 
@@ -90,13 +87,13 @@ class DaggerIndexAnnotatedWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module as Bar
+        import dagger.Module as Bar
 
-      @Bar
-      class Foo {}
-      """
+        @Bar
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -104,8 +101,7 @@ class DaggerIndexAnnotatedWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("Bar")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("Bar")
   }
 
   @Test
@@ -115,14 +111,14 @@ class DaggerIndexAnnotatedWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module
+        import dagger.Module
 
-      @Module
-      @dagger.Module
-      class Foo {}
-      """
+        @Module
+        @dagger.Module
+        class Foo {}
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -131,8 +127,7 @@ class DaggerIndexAnnotatedWrapperTest {
 
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("Module", "dagger.Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("Module", "dagger.Module")
   }
 
   @Test
@@ -170,13 +165,13 @@ class DaggerIndexAnnotatedWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import dagger.*;
+        import dagger.*;
 
-      @Module
-      class Foo {}
-      """
+        @Module
+        class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -185,8 +180,7 @@ class DaggerIndexAnnotatedWrapperTest {
 
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("Module")
   }
 
   @Test
@@ -196,11 +190,11 @@ class DaggerIndexAnnotatedWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      @dagger.Module
-      class Foo {}
-      """
+        @dagger.Module
+        class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -209,8 +203,7 @@ class DaggerIndexAnnotatedWrapperTest {
 
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("dagger.Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("dagger.Module")
   }
 
   @Test
@@ -220,14 +213,14 @@ class DaggerIndexAnnotatedWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import dagger.Module;
+        import dagger.Module;
 
-      @Module
-      @dagger.Module
-      class Foo {}
-      """
+        @Module
+        @dagger.Module
+        class Foo {}
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -236,8 +229,7 @@ class DaggerIndexAnnotatedWrapperTest {
 
     assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
-      .containsExactly("Module", "dagger.Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE)).containsExactly("Module", "dagger.Module")
   }
 
   @Test

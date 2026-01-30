@@ -64,43 +64,32 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 class ExistingProjectModelData(
   override var project: Project,
-  override val projectSyncInvoker: ProjectSyncInvoker =
-    ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+  override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
 ) : ProjectModelData {
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
-  override val useVersionCatalog =
-    BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
-  override val viewBindingSupport =
-    OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
+  override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
+  override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
-  override val language: OptionalValueProperty<Language> =
-    OptionalValueProperty(getInitialSourceLanguage(project))
+  override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val agpVersionSelector =
     ObjectValueProperty<AgpVersionSelector>(
       AgpVersionSelector.FixedVersion(
         GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
           ?: AgpVersions.newProject.also {
-            Logger.getInstance(ExistingProjectModelData::class.java)
-              .warn("Unable to determine AGP version for $project, using $it")
+            Logger.getInstance(ExistingProjectModelData::class.java).warn("Unable to determine AGP version for $project, using $it")
           }
       )
     )
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty()
-  override val imageAttachments: ObjectValueProperty<List<VirtualFile>> =
-    ObjectValueProperty(listOf())
+  override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
 
   private fun runRenderer(renderer: (Project) -> Unit) {
-    object :
-        Task.Modal(
-          project,
-          message("android.compile.messages.generating.r.java.content.name"),
-          false,
-        ) {
+    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
         override fun run(indicator: ProgressIndicator) {
           renderer(project)
         }
@@ -124,9 +113,8 @@ interface ModuleModelData : ProjectModelData {
   val moduleName: StringValueProperty
 
   /**
-   * A template that's associated with a user's request to create a new module. This may be null if
-   * the user skips creating a module, or instead modifies an existing module (for example just
-   * adding a new Activity)
+   * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a module, or
+   * instead modifies an existing module (for example just adding a new Activity)
    */
   val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
@@ -137,9 +125,8 @@ interface ModuleModelData : ProjectModelData {
   val wizardContext: WizardUiContext
 
   /**
-   * Modules with a component Render that sends metrics, should set this value to false (otherwise
-   * metrics will be duplicated). Modules without any Component Render or that have a "No Activity"
-   * selected, should leave this field set to true.
+   * Modules with a component Render that sends metrics, should set this value to false (otherwise metrics will be duplicated). Modules
+   * without any Component Render or that have a "No Activity" selected, should leave this field set to true.
    */
   val sendModuleMetrics: BoolValueProperty
 }
@@ -154,16 +141,7 @@ class NewAndroidModuleModel(
   override val isLibrary: Boolean = false,
   wizardContext: WizardUiContext,
   override val recommendedBuildSdk: AndroidVersion?,
-) :
-  ModuleModel(
-    name = "",
-    commandName,
-    isLibrary,
-    projectModelData,
-    template,
-    moduleParent,
-    wizardContext,
-  ) {
+) : ModuleModel(name = "", commandName, isLibrary, projectModelData, template, moduleParent, wizardContext) {
   override val moduleTemplateDataBuilder =
     ModuleTemplateDataBuilder(
       projectTemplateDataBuilder = projectTemplateDataBuilder,
@@ -172,8 +150,7 @@ class NewAndroidModuleModel(
     )
   override val renderer = ModuleTemplateRenderer()
 
-  val bytecodeLevel: OptionalProperty<BytecodeLevel> =
-    OptionalValueProperty(getInitialBytecodeLevel())
+  val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
     if (applicationName.isEmpty.get()) {
@@ -234,9 +211,7 @@ class NewAndroidModuleModel(
                 useVersionCatalog = useVersionCatalog.get(),
               )
             }
-          FormFactor.Generic -> { data: TemplateData ->
-              generateGenericModule(data as ModuleTemplateData)
-            }
+          FormFactor.Generic -> { data: TemplateData -> generateGenericModule(data as ModuleTemplateData) }
         }
 
     @WorkerThread
@@ -244,17 +219,10 @@ class NewAndroidModuleModel(
       super.init()
 
       moduleTemplateDataBuilder.apply {
-        setModuleRoots(
-          template.get().paths,
-          project.basePath!!,
-          moduleName.get(),
-          this@NewAndroidModuleModel.packageName.get(),
-        )
+        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
       }
       val tff = formFactor.get()
-      projectTemplateDataBuilder.includedFormFactorNames
-        .putIfAbsent(tff, mutableListOf(moduleName.get()))
-        ?.add(moduleName.get())
+      projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
     }
   }
 
@@ -313,13 +281,11 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
   }
 
 internal fun Project.hasKtsUsage(): Boolean {
-  return GradleProjectSystemUtil.projectBuildFilesTypes(this)
-    .contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
+  return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {
-  val androidPluginInfo =
-    AndroidPluginInfo.findFromModel(this) ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(this) ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
   val agpVersion = androidPluginInfo.pluginVersion ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
   return when {
     agpVersion.isAtLeast(4, 0, 0) -> ViewBindingSupport.SUPPORTED_4_0_MORE

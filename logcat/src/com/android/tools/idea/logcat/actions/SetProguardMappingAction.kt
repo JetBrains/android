@@ -30,11 +30,7 @@ private val MAPPING_FILE_EXTENSIONS = setOf("txt", "map", "pgmap")
 
 // TODO(b/366026739): Replace with final icon & text
 internal class SetProguardMappingAction :
-  DumbAwareAction(
-    LogcatBundle.message("logcat.proguard.mapping.action.name"),
-    null,
-    AllIcons.ObjectBrowser.AbbreviatePackageNames,
-  ) {
+  DumbAwareAction(LogcatBundle.message("logcat.proguard.mapping.action.name"), null, AllIcons.ObjectBrowser.AbbreviatePackageNames) {
   override fun getActionUpdateThread() = BGT
 
   override fun actionPerformed(e: AnActionEvent) {

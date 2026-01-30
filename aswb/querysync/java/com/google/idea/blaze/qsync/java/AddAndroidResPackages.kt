@@ -23,10 +23,7 @@ import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import kotlin.jvm.optionals.getOrNull
 
-/**
- * Updates the project proto with the android resources packages extracted by the aspect in a
- * dependencies build.
- */
+/** Updates the project proto with the android resources packages extracted by the aspect in a dependencies build. */
 class AddAndroidResPackages : ProjectProtoUpdateOperation {
   @Throws(BuildException::class)
   override fun update(
@@ -39,9 +36,7 @@ class AddAndroidResPackages : ProjectProtoUpdateOperation {
       .targets()
       .mapNotNull { it.javaInfo().getOrNull()?.let { javaInfo -> it.label() to javaInfo.androidResourcesPackage() } }
       .forEach { (label, randroidResourceJavaPackage) ->
-        update.module(label) {
-          addAndroidResourceJavaPackage(randroidResourceJavaPackage)
-        }
+        update.module(label) { addAndroidResourceJavaPackage(randroidResourceJavaPackage) }
       }
   }
 }

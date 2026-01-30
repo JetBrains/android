@@ -25,7 +25,7 @@ import javax.swing.Icon
 
 class StubAssetPreviewManager(
   private val iconProvider: AssetIconProvider = StubAssetIconProvider(),
-  private val dataProvider: AssetDataProvider = StubAssetDataProvider()
+  private val dataProvider: AssetDataProvider = StubAssetDataProvider(),
 ) : AssetPreviewManager {
 
   constructor(icon: Icon) : this(StubAssetIconProvider(icon))
@@ -44,11 +44,11 @@ class StubAssetIconProvider(var icon: Icon = EmptyIcon.ICON_18) : AssetIconProvi
     height: Int,
     component: Component,
     refreshCallback: () -> Unit,
-    shouldBeRendered: () -> Boolean
+    shouldBeRendered: () -> Boolean,
   ): Icon = icon
 }
 
-class StubAssetDataProvider: AssetDataProvider {
+class StubAssetDataProvider : AssetDataProvider {
   override fun getAssetData(asset: DesignAsset): AssetData {
     return AssetData("name", "file", "size")
   }

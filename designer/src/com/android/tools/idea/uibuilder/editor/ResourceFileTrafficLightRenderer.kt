@@ -43,11 +43,10 @@ private val SEVERITY_TO_ICON =
   )
 
 /**
- * Custom [TrafficLightRenderer] to be used by resource files. It shows the number of errors,
- * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
+ * Custom [TrafficLightRenderer] to be used by resource files. It shows the number of errors, warnings... displayed in the Design Tools tab
+ * of the error panel if there are Visual Lint issues.
  */
-class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
-  TrafficLightRenderer(file.project, editor) {
+class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) : TrafficLightRenderer(file.project, editor) {
   private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   override val errorCounts = IntArray(severities.size)
 

@@ -26,19 +26,10 @@ import java.awt.Graphics2D
 import java.awt.RadialGradientPaint
 import java.awt.RenderingHints
 
-private val defaultBorderColor =
-  JBColor.namedColor(
-    "ScreenView.defaultBorderColor",
-    JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80)),
-  )
-private val borderColor =
-  JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
+private val defaultBorderColor = JBColor.namedColor("ScreenView.defaultBorderColor", JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80)))
+private val borderColor = JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
 
-enum class BorderColor(
-  internal val colorInside: Color,
-  internal val colorOutside: Color,
-  internal val size: Int,
-) {
+enum class BorderColor(internal val colorInside: Color, internal val colorOutside: Color, internal val size: Int) {
   DEFAULT_WITH_SHADOW(defaultBorderColor, UIUtil.TRANSPARENT_COLOR, 4),
   DEFAULT_WITHOUT_SHADOW(defaultBorderColor, defaultBorderColor, 1),
   SELECTED(borderColor, borderColor, 2),
@@ -66,30 +57,16 @@ constructor(
     }
 
     val borderColor = colorProvider(myScreenView)
-    BorderPainter(
-        JBUI.scale(borderColor.size),
-        borderColor.colorInside,
-        borderColor.colorOutside,
-        useHighQuality = true,
-      )
+    BorderPainter(JBUI.scale(borderColor.size), borderColor.colorInside, borderColor.colorOutside, useHighQuality = true)
       .paint(g2d, myScreenView)
   }
 }
 
-class BorderPainter(
-  private val borderThickness: Int,
-  colorInside: Color,
-  colorOutside: Color,
-  val useHighQuality: Boolean,
-) {
-  private val gradLeft =
-    GradientPaint(0f, 0f, colorOutside, borderThickness.toFloat(), 0f, colorInside)
-  private val gradTop =
-    GradientPaint(0f, 0f, colorOutside, 0f, borderThickness.toFloat(), colorInside)
-  private val gradRight =
-    GradientPaint(0f, 0f, colorInside, borderThickness.toFloat(), 0f, colorOutside)
-  private val gradBottom =
-    GradientPaint(0f, 0f, colorInside, 0f, borderThickness.toFloat(), colorOutside)
+class BorderPainter(private val borderThickness: Int, colorInside: Color, colorOutside: Color, val useHighQuality: Boolean) {
+  private val gradLeft = GradientPaint(0f, 0f, colorOutside, borderThickness.toFloat(), 0f, colorInside)
+  private val gradTop = GradientPaint(0f, 0f, colorOutside, 0f, borderThickness.toFloat(), colorInside)
+  private val gradRight = GradientPaint(0f, 0f, colorInside, borderThickness.toFloat(), 0f, colorOutside)
+  private val gradBottom = GradientPaint(0f, 0f, colorInside, 0f, borderThickness.toFloat(), colorOutside)
   private val gradCorner =
     RadialGradientPaint(
       borderThickness.toFloat(),
@@ -140,10 +117,7 @@ class BorderPainter(
 
     if (useHighQuality) {
       // Smoothen the corner shadows
-      g2d.setRenderingHint(
-        RenderingHints.KEY_INTERPOLATION,
-        RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-      )
+      g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     }
 

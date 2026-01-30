@@ -54,11 +54,7 @@ internal class SdkSourceRedirectLinkInfo(
     }
   }
 
-  private fun openFileChooser(
-    psiFiles: List<PsiFile>,
-    descriptor: OpenFileDescriptor,
-    hyperlinkLocationPoint: RelativePoint?,
-  ) {
+  private fun openFileChooser(psiFiles: List<PsiFile>, descriptor: OpenFileDescriptor, hyperlinkLocationPoint: RelativePoint?) {
     // `JBPopupFactory.createPopupChooserBuilder()` doesn't want to accept PsiFiles and suggests we
     // use `PsiTargetNavigator` but that service doesn't seem to support specifying a navigation
     // offset (line number). So instead, we still use `JBPopupFactory.createPopupChooserBuilder()`
@@ -72,9 +68,7 @@ internal class SdkSourceRedirectLinkInfo(
         .createPopupChooserBuilder(files)
         .setRenderer(GotoFileCellRenderer(width))
         .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
-        .setItemChosenCallback { file: VirtualFile ->
-          openFile(map.getValue(file), descriptor.withFile(file))
-        }
+        .setItemChosenCallback { file: VirtualFile -> openFile(map.getValue(file), descriptor.withFile(file)) }
         .createPopup()
     if (hyperlinkLocationPoint != null) {
       popup.show(hyperlinkLocationPoint)
@@ -88,8 +82,7 @@ internal class SdkSourceRedirectLinkInfo(
     val androidSdks = AndroidSdks.getInstance()
     val newDescriptor =
       when {
-        androidSdks.isInAndroidSdk(psiFile) ->
-          descriptor.withFile(psiFile.getAndroidSdkFile().virtualFile)
+        androidSdks.isInAndroidSdk(psiFile) -> descriptor.withFile(psiFile.getAndroidSdkFile().virtualFile)
         else -> descriptor
       }
     newDescriptor.navigate(true)
@@ -98,16 +91,13 @@ internal class SdkSourceRedirectLinkInfo(
   private fun PsiFile.getAndroidSdkFile(): PsiFile =
     // Ignore line number since we don't use it, we just need the file. The line number will come
     // from the descriptor
-    SdkSourcePositionFinder.getInstance(project)
-      .getSourcePosition(apiLevel, this, lineNumber = -1)
-      .file
+    SdkSourcePositionFinder.getInstance(project).getSourcePosition(apiLevel, this, lineNumber = -1).file
 
   /**
    * Clones an OpenFileDescriptor to point to a different file.
    *
-   * Due to a (buggy) behavior of [OpenFileHyperlinkInfo], the descriptor can be missing a line
-   * number but have a valid offset. In case both are available, prefer a line number because the
-   * offset can be calculated from a file in a different SDK and may be incorrect.
+   * Due to a (buggy) behavior of [OpenFileHyperlinkInfo], the descriptor can be missing a line number but have a valid offset. In case both
+   * are available, prefer a line number because the offset can be calculated from a file in a different SDK and may be incorrect.
    */
   private fun OpenFileDescriptor.withFile(newFile: VirtualFile): OpenFileDescriptor {
     return when {

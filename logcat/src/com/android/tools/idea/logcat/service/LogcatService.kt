@@ -20,18 +20,16 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.Flow
 import java.time.Duration
+import kotlinx.coroutines.flow.Flow
 
 /** Reads and clears a logcat from a device */
 interface LogcatService {
   /**
    * Streams messages from logcat.
    *
-   * @param sdk the API level of the device being read; this enables more efficient log reading on
-   *   newer devices.
-   * @param duration how long to continue following the logs. If Duration.ZERO is passed, only
-   *   provide historical logs and terminate.
+   * @param sdk the API level of the device being read; this enables more efficient log reading on newer devices.
+   * @param duration how long to continue following the logs. If Duration.ZERO is passed, only provide historical logs and terminate.
    * @param maxHistoryEntries maximum number of historical log messages to include
    */
   fun readLogcat(

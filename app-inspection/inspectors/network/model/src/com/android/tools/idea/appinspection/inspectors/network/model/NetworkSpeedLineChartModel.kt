@@ -22,11 +22,8 @@ import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.Timeline
 import java.util.concurrent.Executor
 
-class NetworkSpeedLineChartModel(
-  timeline: Timeline,
-  private val dataSource: NetworkInspectorDataSource,
-  backgroundExecutor: Executor,
-) : LineChartModel(backgroundExecutor) {
+class NetworkSpeedLineChartModel(timeline: Timeline, private val dataSource: NetworkInspectorDataSource, backgroundExecutor: Executor) :
+  LineChartModel(backgroundExecutor) {
   val trafficRange = Range(0.0, 4.0)
 
   val rxSeries =
@@ -54,8 +51,7 @@ class NetworkSpeedLineChartModel(
 
   private fun createSeries(trafficType: NetworkTrafficLabel): DataSeries<Long> {
     return NetworkInspectorDataSeries(dataSource) { event ->
-      if (trafficType == NetworkTrafficLabel.BYTES_RECEIVED) event.speedEvent.rxSpeed
-      else event.speedEvent.txSpeed
+      if (trafficType == NetworkTrafficLabel.BYTES_RECEIVED) event.speedEvent.rxSpeed else event.speedEvent.txSpeed
     }
   }
 

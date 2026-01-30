@@ -23,7 +23,6 @@ internal fun interface TempFileFactory {
   fun createTempFile(prefix: String, suffix: String): Path
 
   companion object {
-    fun getInstance(): TempFileFactory =
-      ApplicationManager.getApplication().getService(TempFileFactory::class.java)
+    fun getInstance(): TempFileFactory = ApplicationManager.getApplication().getService(TempFileFactory::class.java)
   }
 }

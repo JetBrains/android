@@ -24,9 +24,7 @@ import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.XmlSerializerUtil
 import kotlin.reflect.KProperty
 
-/**
- * Settings for mirroring of physical Android devices.
- */
+/** Settings for mirroring of physical Android devices. */
 @Service
 @State(name = "DeviceMirroringSettingsV2", storages = [(Storage("device.mirroring.xml"))])
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
@@ -41,8 +39,8 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
   var turnOffDisplayWhileMirroring: Boolean by ChangeNotifyingProperty(false)
 
   /**
-   * This property indicates whether the MirroringConfirmationDialog was shown at least once.
-   * It is not reflected in `DeviceMirroringSettingsPage`.
+   * This property indicates whether the MirroringConfirmationDialog was shown at least once. It is not reflected in
+   * `DeviceMirroringSettingsPage`.
    */
   var confirmationDialogShown: Boolean = false
 
@@ -79,14 +77,14 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(): DeviceMirroringSettings = service<DeviceMirroringSettings>()
+    @JvmStatic fun getInstance(): DeviceMirroringSettings = service<DeviceMirroringSettings>()
 
     const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 5000
   }
 
   private inner class ChangeNotifyingProperty<T>(var value: T) {
     operator fun getValue(thisRef: DeviceMirroringSettings, property: KProperty<*>) = value
+
     operator fun setValue(thisRef: DeviceMirroringSettings, property: KProperty<*>, newValue: T) {
       if (value != newValue) {
         value = newValue

@@ -35,20 +35,19 @@ import kotlinx.coroutines.launch
 val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
 
 /**
- * [LayoutManager] responsible for positioning and measuring all the [PositionablePanel] in a
- * [DesignSurface]. [PositionablePanel] is accessed via [PositionableContent].
+ * [LayoutManager] responsible for positioning and measuring all the [PositionablePanel] in a [DesignSurface]. [PositionablePanel] is
+ * accessed via [PositionableContent].
  *
- * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do
- * not need to layout them, just calculate the size of the layout. Eventually, PositionableContent
- * will end up being actual Swing components and we will not need this specialized LayoutManager.
+ * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do not need to layout them, just calculate
+ * the size of the layout. Eventually, PositionableContent will end up being actual Swing components and we will not need this specialized
+ * LayoutManager.
  *
- * @param scope [CoroutineScope] for current layout manager, null for
- *   [SinglePositionableContentLayoutManager]
+ * @param scope [CoroutineScope] for current layout manager, null for [SinglePositionableContentLayoutManager]
  */
 abstract class PositionableContentLayoutManager(val scope: CoroutineScope?) : LayoutManager {
   /**
-   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the
-   * [PositionableContent]s to ask them to be laid out within the [SceneViewPanel].
+   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the [PositionableContent]s to ask them to be
+   * laid out within the [SceneViewPanel].
    */
   abstract fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension)
 
@@ -59,8 +58,8 @@ abstract class PositionableContentLayoutManager(val scope: CoroutineScope?) : La
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
   /**
-   * One extra buffer capacity is needed as [_layoutContainerFlow] is updated outside of the suspend
-   * function (using [MutableSharedFlow.tryEmit] instead of [MutableSharedFlow.emit]
+   * One extra buffer capacity is needed as [_layoutContainerFlow] is updated outside of the suspend function (using
+   * [MutableSharedFlow.tryEmit] instead of [MutableSharedFlow.emit]
    */
   private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
 
@@ -84,27 +83,15 @@ abstract class PositionableContentLayoutManager(val scope: CoroutineScope?) : La
     scope?.launch { _layoutContainerFlow.emit(Unit) }
   }
 
-  open fun minimumLayoutSize(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Dimension = Dimension(0, 0)
+  open fun minimumLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension = Dimension(0, 0)
 
   final override fun minimumLayoutSize(parent: Container): Dimension =
-    minimumLayoutSize(
-      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
-      parent.availableSize,
-    )
+    minimumLayoutSize(parent.findVisiblePositionablePanels().map { it.positionableAdapter }, parent.availableSize)
 
-  abstract fun preferredLayoutSize(
-    content: Collection<PositionableContent>,
-    availableSize: Dimension,
-  ): Dimension
+  abstract fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension
 
   final override fun preferredLayoutSize(parent: Container): Dimension =
-    preferredLayoutSize(
-      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
-      parent.availableSize,
-    )
+    preferredLayoutSize(parent.findVisiblePositionablePanels().map { it.positionableAdapter }, parent.availableSize)
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
 

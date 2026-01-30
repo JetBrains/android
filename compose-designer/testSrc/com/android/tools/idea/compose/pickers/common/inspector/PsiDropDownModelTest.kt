@@ -24,12 +24,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.ThreadingAssertions
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
 
@@ -69,8 +69,7 @@ internal class PsiDropDownModelTest {
   @Test
   // Regression test for b/321695920
   fun testEnumSupportValuesIsFetchedOnBackgroundThread() {
-    val property =
-      ClassPsiCallParameter(mock(), mock(), { _, _ -> null }, mock(), null, null, "test")
+    val property = ClassPsiCallParameter(mock(), mock(), { _, _ -> null }, mock(), null, null, "test")
     var valuesCalled = false
     val enumSupport =
       mock<EnumSupport> {

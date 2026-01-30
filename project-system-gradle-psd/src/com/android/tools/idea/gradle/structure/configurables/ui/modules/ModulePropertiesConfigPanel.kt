@@ -26,18 +26,16 @@ import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 
 class ModulePropertiesConfigPanel(module: PsAndroidModule, context: PsContext) :
-  ConfigPanel<PsAndroidModule>(
-    context,
-    module.parent,
-    module,
-    module,
-    androidModulePropertiesModel(context, module)
-  ),
+  ConfigPanel<PsAndroidModule>(context, module.parent, module, module, androidModulePropertiesModel(context, module)),
   ModelPanel<PsAndroidModule> {
 
   override val title = "Properties"
+
   override fun setHistory(history: History?) = Unit
+
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
+
   override fun queryPlace(place: Place) = Unit
+
   override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_PROPERTIES
 }

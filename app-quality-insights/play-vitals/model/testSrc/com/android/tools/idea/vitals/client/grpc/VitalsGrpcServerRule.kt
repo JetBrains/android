@@ -24,10 +24,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import java.util.concurrent.TimeUnit
 import org.junit.runner.Description
 
-class VitalsGrpcServerRule(
-  private val connection: VitalsConnection,
-  private val timeoutMs: Long = 5000,
-) : NamedExternalResource() {
+class VitalsGrpcServerRule(private val connection: VitalsConnection, private val timeoutMs: Long = 5000) : NamedExternalResource() {
   lateinit var server: Server
   val database = FakeVitalsDatabase(connection)
   val clock = FakeClock()

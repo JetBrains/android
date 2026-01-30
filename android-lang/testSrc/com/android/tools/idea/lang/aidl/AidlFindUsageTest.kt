@@ -34,7 +34,7 @@ class AidlFindUsageTest : AndroidTestCase() {
     @Suppress("UnnecessaryModifier")
     myFixture.addFileToProject(
       "src/Interface.java",
-      //language=Java
+      // language=Java
       """
       // This is the skeleton of generated file of Interface AIDL file.
       public interface Interface {
@@ -50,11 +50,12 @@ class AidlFindUsageTest : AndroidTestCase() {
         }
         void foo(int a);
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.addFileToProject(
       "src/Main.java",
-      //language=Java
+      // language=Java
       """
       class Main {
         static void main(String []args) {
@@ -62,7 +63,8 @@ class AidlFindUsageTest : AndroidTestCase() {
           i.foo(1);
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
@@ -73,7 +75,7 @@ class AidlFindUsageTest : AndroidTestCase() {
         interface Interface {
         void fo<caret>o(int a);
       }
-      """
+      """,
     )
     checkUsages(
       """
@@ -94,7 +96,7 @@ class AidlFindUsageTest : AndroidTestCase() {
       """
         interface Inter<caret>face {
         void foo(int a);
-      }"""
+      }""",
     )
     checkUsages(
       """
@@ -121,16 +123,18 @@ class AidlFindUsageTest : AndroidTestCase() {
   fun testParcelableUsage() {
     myFixture.addFileToProject(
       "src/Rect.java",
-      //language=Java
+      // language=Java
       """
       class Rect extends Parcelable {}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.configureByText(
       "file.aidl",
       """
       parcelable Rec<caret>t;
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     checkUsages(
       """
@@ -144,7 +148,7 @@ class AidlFindUsageTest : AndroidTestCase() {
     @Suppress("UnnecessaryModifier")
     myFixture.addFileToProject(
       "src/INewParcelable.java",
-      //language=Java
+      // language=Java
       """
       /*
        * This file is auto-generated.  DO NOT MODIFY.
@@ -155,18 +159,19 @@ class AidlFindUsageTest : AndroidTestCase() {
         public static final byte FOO = 1;
         public static final byte BAR = 2;
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.configureByText(
       "INewParcelable.aidl",
-      //language=AIDL
+      // language=AIDL
       """
       package com.android.tools.test.myapplication;
       enum INew<caret>Parcelable {
          FOO = 1,
          BAR = 2
       }
-      """
+      """,
     )
     checkUsages(
       """
@@ -180,7 +185,7 @@ class AidlFindUsageTest : AndroidTestCase() {
     @Suppress("UnnecessaryModifier")
     myFixture.addFileToProject(
       "src/INewParcelable.java",
-      //language=Java
+      // language=Java
       """
       /*
        * This file is auto-generated.  DO NOT MODIFY.
@@ -191,18 +196,19 @@ class AidlFindUsageTest : AndroidTestCase() {
         public static final byte FOO = 1;
         public static final byte BAR = 2;
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
     myFixture.configureByText(
       "INewParcelable.aidl",
-      //language=AIDL
+      // language=AIDL
       """
       package com.android.tools.test.myapplication;
       enum INewParcelable {
          FOO = 1,
          B<caret>AR = 2
       }
-      """
+      """,
     )
     checkUsages(
       """
@@ -221,7 +227,7 @@ class AidlFindUsageTest : AndroidTestCase() {
     @Suppress("RedundantSuppression")
     myFixture.addFileToProject(
       "src/android/aidl/tests/Union.java",
-      //language=Java
+      // language=Java
       """
       /*
        * This file is auto-generated.  DO NOT MODIFY.
@@ -373,11 +379,13 @@ class AidlFindUsageTest : AndroidTestCase() {
         private void _set(int _tag, Object _value) {
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
-    //language=AIDL
-    val aidlFile = """
+    // language=AIDL
+    val aidlFile =
+      """
       package android.aidl.tests;
       import android.aidl.tests.ByteEnum;
 
@@ -399,7 +407,7 @@ class AidlFindUsageTest : AndroidTestCase() {
     // Made up nonsensical usage:
     myFixture.addFileToProject(
       "src/UnionUsageExample.java",
-      //language=JAVA
+      // language=JAVA
       """
       import android.aidl.tests.Union;
 
@@ -414,7 +422,8 @@ class AidlFindUsageTest : AndroidTestCase() {
               }
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     myFixture.configureByText("Union.aidl", aidlFile.replace("ibinder;", "ib<caret>inder;"))

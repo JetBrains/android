@@ -16,13 +16,17 @@
 package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
+import kotlinx.coroutines.CoroutineScope
 
 interface DeviceMonitorView {
   val panelComponent: JComponent
+
   fun setup()
+
   fun addListener(listener: DeviceMonitorViewListener)
+
   fun removeListener(listener: DeviceMonitorViewListener)
+
   fun trackModelChanges(coroutineScope: CoroutineScope)
 }

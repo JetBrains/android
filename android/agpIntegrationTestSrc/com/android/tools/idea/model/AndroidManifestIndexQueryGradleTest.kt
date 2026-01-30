@@ -26,16 +26,15 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil
-import org.jetbrains.android.facet.AndroidRootUtil
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
 class AndroidManifestIndexQueryGradleTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
   val project by lazy { projectRule.project }
 
   private lateinit var modificationListener: MergedManifestModificationListener
@@ -56,13 +55,14 @@ class AndroidManifestIndexQueryGradleTest {
     val manifestContent =
       // language=xml
       """
-    <?xml version='1.0' encoding='utf-8'?>
-    <manifest xmlns:android='http://schemas.android.com/apk/res/android'>
-      <application android:theme='@style/Theme.AppCompact'>
-        <activity android:name=".MainActivityWithPackageFromGradle" android:enabled='true' android:exported='true'/>
-      </application>
-    </manifest>
-    """.trimIndent()
+      <?xml version='1.0' encoding='utf-8'?>
+      <manifest xmlns:android='http://schemas.android.com/apk/res/android'>
+        <application android:theme='@style/Theme.AppCompact'>
+          <activity android:name=".MainActivityWithPackageFromGradle" android:enabled='true' android:exported='true'/>
+        </application>
+      </manifest>
+      """
+        .trimIndent()
 
     // update manifest
     runWriteActionAndWait {

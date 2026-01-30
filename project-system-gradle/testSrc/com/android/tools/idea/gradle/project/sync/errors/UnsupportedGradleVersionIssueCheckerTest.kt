@@ -26,8 +26,7 @@ import org.junit.Test
 class UnsupportedGradleVersionIssueCheckerTest {
   private val unsupportedGradleVersionIssueChecker = UnsupportedGradleVersionIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssueOneQuickFix() {
@@ -43,13 +42,15 @@ class UnsupportedGradleVersionIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Minimum supported Gradle version is (6.3). Current version is 4.3",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Minimum supported Gradle version is (6.3). Current version is 4.3",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

@@ -64,8 +64,7 @@ class PreviewPropertiesInspectorBuilderTest {
 
   @Before
   fun setup() {
-    val enumSupportValuesProvider =
-      PreviewPickerValuesProvider.createPreviewValuesProvider(module, null)
+    val enumSupportValuesProvider = PreviewPickerValuesProvider.createPreviewValuesProvider(module, null)
     inspectorPanel = FakeInspectorPanel()
     previewPropertiesInspectorBuilder = PreviewPropertiesInspectorBuilder(enumSupportValuesProvider)
   }
@@ -233,8 +232,7 @@ class PreviewPropertiesInspectorBuilderTest {
 
     // Check "is round" line, it consists on a three-state check-box with a text field
     assertEquals("IsRound", (hardwarePanelComponents[8] as JLabel).text)
-    val isRoundCheckTextField =
-      (hardwarePanelComponents[9] as PropertyCheckBox).components[1] as PropertyTextField
+    val isRoundCheckTextField = (hardwarePanelComponents[9] as PropertyCheckBox).components[1] as PropertyTextField
     assertEquals("true", isRoundCheckTextField.text)
 
     // Check chin size line.
@@ -251,8 +249,7 @@ class PreviewPropertiesInspectorBuilderTest {
   }
 
   /**
-   * Check if the [Component] is of type [PsiPropertyDropDown] and gets the display name of the
-   * selected item of the dropdown menu.
+   * Check if the [Component] is of type [PsiPropertyDropDown] and gets the display name of the selected item of the dropdown menu.
    *
    * @return The display name of the selected item of the [PsiPropertyDropDown]
    * @throws ClassCastException if the [Component] is not of type [PsiPropertyDropDown]

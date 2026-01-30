@@ -72,9 +72,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
         _isValid = true
         alarmSet = backgroundTaskEvent.alarmSet
-        _className =
-          getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager")
-            ?: "Alarm $id"
+        _className = getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager") ?: "Alarm $id"
         _status = State.SET
         _startTime = latestEvent!!.timestamp
         if (alarmSet!!.hasListener()) {

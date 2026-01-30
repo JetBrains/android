@@ -28,10 +28,8 @@ class TargetDisambiguatorTest {
   @Test
   fun basic() {
     val targets = setOf(Label.of("//a:a"), Label.of("//b:b"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(TargetsToBuild.targetGroup (targets)),
-      TargetDisambiguationAnchors.NONE
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(setOf(TargetsToBuild.targetGroup(targets)), TargetDisambiguationAnchors.NONE)
     assertThat(disambiguator.ambiguousTargetSets).isEmpty()
     assertThat(disambiguator.unambiguousTargets).isEqualTo(targets)
   }
@@ -41,14 +39,15 @@ class TargetDisambiguatorTest {
     val targets1 = setOf(Label.of("//a:a"), Label.of("//b:b"))
     val targets2 = setOf(Label.of("//b:b"), Label.of("//c:c"))
     val srcFileTarget = setOf(Label.of("//s:s"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(
-        TargetsToBuild.targetGroup(targets1),
-        TargetsToBuild.targetGroup(targets2),
-        TargetsToBuild.forSourceFile(srcFileTarget, Path.of("some/file.kt"))
-      ),
-      TargetDisambiguationAnchors.NONE
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(
+        setOf(
+          TargetsToBuild.targetGroup(targets1),
+          TargetsToBuild.targetGroup(targets2),
+          TargetsToBuild.forSourceFile(srcFileTarget, Path.of("some/file.kt")),
+        ),
+        TargetDisambiguationAnchors.NONE,
+      )
     assertThat(disambiguator.ambiguousTargetSets).isEmpty()
     assertThat(disambiguator.unambiguousTargets).isEqualTo(targets1 + targets2 + srcFileTarget)
   }
@@ -57,12 +56,8 @@ class TargetDisambiguatorTest {
   fun oneAmbiguous() {
     val srcFileTarget = setOf(Label.of("//s:s1"), Label.of("//s:s2"))
     val sourceFileTargetGroup = TargetsToBuild.forSourceFile(srcFileTarget, Path.of("some/file.kt"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(
-        sourceFileTargetGroup
-      ),
-      TargetDisambiguationAnchors.NONE
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(setOf(sourceFileTargetGroup), TargetDisambiguationAnchors.NONE)
     assertThat(disambiguator.ambiguousTargetSets).containsExactly(sourceFileTargetGroup)
     assertThat(disambiguator.unambiguousTargets).isEmpty()
   }
@@ -72,13 +67,11 @@ class TargetDisambiguatorTest {
     val targets = setOf(Label.of("//a:a"), Label.of("//s:s2"))
     val srcFileTarget = setOf(Label.of("//s:s1"), Label.of("//s:s2"))
     val sourceFileTargetGroup = TargetsToBuild.forSourceFile(srcFileTarget, Path.of("some/file.kt"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(
-        TargetsToBuild.targetGroup(targets),
-        sourceFileTargetGroup
-      ),
-      TargetDisambiguationAnchors.NONE
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(
+        setOf(TargetsToBuild.targetGroup(targets), sourceFileTargetGroup),
+        TargetDisambiguationAnchors.NONE,
+      )
     assertThat(disambiguator.ambiguousTargetSets).isEmpty()
     assertThat(disambiguator.unambiguousTargets).isEqualTo(targets)
   }
@@ -90,14 +83,11 @@ class TargetDisambiguatorTest {
     val srcFileTarget2 = setOf(Label.of("//t:s1"), Label.of("//t:s2"))
     val sourceFileTargetGroup1 = TargetsToBuild.forSourceFile(srcFileTarget1, Path.of("some/file1.kt"))
     val sourceFileTargetGroup2 = TargetsToBuild.forSourceFile(srcFileTarget2, Path.of("some/file2.kt"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(
-        TargetsToBuild.targetGroup(targets),
-        sourceFileTargetGroup1,
-        sourceFileTargetGroup2,
-      ),
-      TargetDisambiguationAnchors.NONE
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(
+        setOf(TargetsToBuild.targetGroup(targets), sourceFileTargetGroup1, sourceFileTargetGroup2),
+        TargetDisambiguationAnchors.NONE,
+      )
     assertThat(disambiguator.ambiguousTargetSets).containsExactly(sourceFileTargetGroup2)
     assertThat(disambiguator.unambiguousTargets).isEqualTo(targets)
   }
@@ -109,14 +99,11 @@ class TargetDisambiguatorTest {
     val srcFileTarget2 = setOf(Label.of("//t:s1"), Label.of("//t:s2"))
     val sourceFileTargetGroup1 = TargetsToBuild.forSourceFile(srcFileTarget1, Path.of("some/file1.kt"))
     val sourceFileTargetGroup2 = TargetsToBuild.forSourceFile(srcFileTarget2, Path.of("some/file2.kt"))
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(
-      setOf(
-        TargetsToBuild.targetGroup(targets),
-        sourceFileTargetGroup1,
-        sourceFileTargetGroup2,
-      ),
-      TargetDisambiguationAnchors.Targets(setOf(Label.of("//t:s1")))
-    )
+    val disambiguator =
+      TargetDisambiguator.createDisambiguatorForTargetGroups(
+        setOf(TargetsToBuild.targetGroup(targets), sourceFileTargetGroup1, sourceFileTargetGroup2),
+        TargetDisambiguationAnchors.Targets(setOf(Label.of("//t:s1"))),
+      )
     assertThat(disambiguator.ambiguousTargetSets).isEmpty()
     assertThat(disambiguator.unambiguousTargets).isEqualTo(targets + Label.of("//t:s1"))
   }

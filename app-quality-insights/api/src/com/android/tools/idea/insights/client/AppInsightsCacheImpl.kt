@@ -34,24 +34,17 @@ import java.util.TreeSet
 private const val MAXIMUM_ISSUES_CACHE_SIZE = 1000L
 private const val MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE = 20L
 
-private data class IssueDetailsValue(
-  val issueDetails: IssueDetails,
-  val sampleEvents: SortedSet<Event>,
-  val state: IssueState,
-) {
-  fun toIssue(insightsProvider: InsightsProvider) =
-    AppInsightsIssue(issueDetails, sampleEvents.first(), insightsProvider, state)
+private data class IssueDetailsValue(val issueDetails: IssueDetails, val sampleEvents: SortedSet<Event>, val state: IssueState) {
+  fun toIssue(insightsProvider: InsightsProvider) = AppInsightsIssue(issueDetails, sampleEvents.first(), insightsProvider, state)
 }
 
 private data class CacheValue(val issueDetails: IssueDetailsValue?, val notes: List<Note>?)
 
 // TODO(b/249510375): persist cache
 /** Cache for storing issues used in offline and online mode. */
-class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCount: Int = 50) :
-  AppInsightsCache {
+class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCount: Int = 50) : AppInsightsCache {
 
-  private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> =
-    createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)
+  private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> = createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)
 
   override fun getRecentConnections() = compositeIssuesCache.asMap().keys.toList()
 
@@ -62,16 +55,13 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
 
   // TODO(b/249297282): Fetch top issues for "default" filter in the background
   override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? {
-    val allIssues =
-      compositeIssuesCache.getIfPresent(request.connection)?.asMap()?.values ?: return null
+    val allIssues = compositeIssuesCache.getIfPresent(request.connection)?.asMap()?.values ?: return null
     return allIssues
       .asSequence()
       .mapNotNull {
         val cachedIssue = it.issueDetails ?: return@mapNotNull null
         val matchingEvent =
-          cachedIssue.sampleEvents.firstOrNull { event ->
-            event.matchInterval(request.filters.interval)
-          } ?: return@mapNotNull null
+          cachedIssue.sampleEvents.firstOrNull { event -> event.matchInterval(request.filters.interval) } ?: return@mapNotNull null
         if (
           cachedIssue.issueDetails.matchErrorType(request.filters.eventTypes) &&
             cachedIssue.issueDetails.matchSignalType(request.filters.signal)
@@ -91,18 +81,14 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
         // here by extra sorting on id.
         compareBy({ -(it.issueDetails.eventsCount) }, { it.issueDetails.id.value })
       )
-      .map {
-        it.copy(issueDetails = it.issueDetails.copy(eventsCount = 0, impactedDevicesCount = 0))
-      }
+      .map { it.copy(issueDetails = it.issueDetails.copy(eventsCount = 0, impactedDevicesCount = 0)) }
       .take(maxIssuesCount)
       .toList()
   }
 
   override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue> {
     val cache = compositeIssuesCache.getIfPresent(connection)?.asMap() ?: return emptyList()
-    return issueIds.mapNotNull {
-      cache[it]?.let { cacheValue -> cacheValue.issueDetails?.toIssue(source) }
-    }
+    return issueIds.mapNotNull { cache[it]?.let { cacheValue -> cacheValue.issueDetails?.toIssue(source) } }
   }
 
   override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) {
@@ -116,11 +102,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
 
   override fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event? {
     val cachedEvents =
-      compositeIssuesCache
-        .getIfPresent(issueRequest.connection)
-        ?.getIfPresent(issueId)
-        ?.issueDetails
-        ?.sampleEvents ?: return null
+      compositeIssuesCache.getIfPresent(issueRequest.connection)?.getIfPresent(issueId)?.issueDetails?.sampleEvents ?: return null
     return cachedEvents.firstOrNull {
       it.matchInterval(issueRequest.filters.interval) &&
         it.eventData.device in issueRequest.filters.devices &&
@@ -171,18 +153,14 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
       // However, we do use them for sorting, so take the one with the
       // greatest count.
       if (issue.issueDetails.eventsCount < issueDetails.eventsCount) {
-        issue.issueDetails.copy(
-          eventsCount = issueDetails.eventsCount,
-          impactedDevicesCount = issueDetails.impactedDevicesCount,
-        )
+        issue.issueDetails.copy(eventsCount = issueDetails.eventsCount, impactedDevicesCount = issueDetails.impactedDevicesCount)
       } else issue.issueDetails,
       sampleEvents.apply { add(issue.sampleEvent) },
       issue.state,
     )
   }
 
-  private val comparator =
-    Comparator<Event> { e1, e2 -> e2.eventData.eventTime.compareTo(e1.eventData.eventTime) }
+  private val comparator = Comparator<Event> { e1, e2 -> e2.eventData.eventTime.compareTo(e1.eventData.eventTime) }
 
   // The list is sorted in decreasing order of timestamp.
   private fun List<Note>.insertByDecreasingTimestamp(newNote: Note): List<Note> {
@@ -209,8 +187,7 @@ class AppInsightsCacheImpl(val source: InsightsProvider, private val maxIssuesCo
     return fatality in eventTypes
   }
 
-  private fun IssueDetails.matchSignalType(signal: SignalType) =
-    signal in signals || signal == SignalType.SIGNAL_UNSPECIFIED
+  private fun IssueDetails.matchSignalType(signal: SignalType) = signal in signals || signal == SignalType.SIGNAL_UNSPECIFIED
 
   private fun getOrCreateIssuesCache(firebaseConnection: Connection): Cache<IssueId, CacheValue> =
     compositeIssuesCache.get(firebaseConnection) { createNew(MAXIMUM_ISSUES_CACHE_SIZE) }

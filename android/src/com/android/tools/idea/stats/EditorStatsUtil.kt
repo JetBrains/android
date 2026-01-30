@@ -38,8 +38,10 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.getFolderType
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.EditorFileType.DART
+import com.google.wireless.android.sdk.stats.EditorFileType.GO
 import com.google.wireless.android.sdk.stats.EditorFileType.GROOVY
 import com.google.wireless.android.sdk.stats.EditorFileType.JAVA
+import com.google.wireless.android.sdk.stats.EditorFileType.JAVASCRIPT
 import com.google.wireless.android.sdk.stats.EditorFileType.JSON
 import com.google.wireless.android.sdk.stats.EditorFileType.KOTLIN
 import com.google.wireless.android.sdk.stats.EditorFileType.KOTLIN_COMPOSE
@@ -48,13 +50,11 @@ import com.google.wireless.android.sdk.stats.EditorFileType.NATIVE
 import com.google.wireless.android.sdk.stats.EditorFileType.PROPERTIES
 import com.google.wireless.android.sdk.stats.EditorFileType.PROTO
 import com.google.wireless.android.sdk.stats.EditorFileType.PROTO_WITHOUT_PLUGIN
-import com.google.wireless.android.sdk.stats.EditorFileType.TOML
-import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.PYTHON
-import com.google.wireless.android.sdk.stats.EditorFileType.TYPESCRIPT
-import com.google.wireless.android.sdk.stats.EditorFileType.JAVASCRIPT
 import com.google.wireless.android.sdk.stats.EditorFileType.RUST
-import com.google.wireless.android.sdk.stats.EditorFileType.GO
+import com.google.wireless.android.sdk.stats.EditorFileType.TOML
+import com.google.wireless.android.sdk.stats.EditorFileType.TYPESCRIPT
+import com.google.wireless.android.sdk.stats.EditorFileType.UNKNOWN
 import com.google.wireless.android.sdk.stats.EditorFileType.XML
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_MANIFEST
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_ANIM
@@ -79,9 +79,8 @@ import java.util.Locale
 import kotlinx.coroutines.withContext
 
 /**
- * Computes the file type based on the [languageId] for analytics purposes. Use this method when you
- * have only a [String] and no ability to access the PSI or the [VirtualFile]. This could be because
- * you have no reference to it, or because you cannot suspend/block.
+ * Computes the file type based on the [languageId] for analytics purposes. Use this method when you have only a [String] and no ability to
+ * access the PSI or the [VirtualFile]. This could be because you have no reference to it, or because you cannot suspend/block.
  */
 fun getEditorFileTypeForAnalytics(languageId: String) =
   when (languageId.lowercase(Locale.getDefault())) {
@@ -135,8 +134,7 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
       }
     "protobuf" -> PROTO
     "TOML" -> TOML
-    "Dart" ->
-      DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
+    "Dart" -> DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
     else ->
       when (file.extension) {
         "proto" -> PROTO_WITHOUT_PLUGIN
@@ -150,15 +148,17 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
         "js" -> JAVASCRIPT
         // Capture C/C++ even when the Cidr plugin is disabled, as it sometimes is in ASwB
         // and also when lsp4ij used.
-        "cpp", "cc", "c", "h" -> NATIVE
+        "cpp",
+        "cc",
+        "c",
+        "h" -> NATIVE
         else -> UNKNOWN
       }
   }
 
 /**
- * This method is not expected to be slow, but it's possible the call to find the file's module
- * could take longer in some circumstances. As such, it's marked with [WorkerThread] to make sure
- * there are no long calls on the UI thread.
+ * This method is not expected to be slow, but it's possible the call to find the file's module could take longer in some circumstances. As
+ * such, it's marked with [WorkerThread] to make sure there are no long calls on the UI thread.
  */
 @WorkerThread
 private fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {

@@ -38,13 +38,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
-    val provider =
-      DesignToolsIssueProvider(
-        projectRule.testRootDisposable,
-        project,
-        EmptyFilter,
-        SHARED_ISSUE_PANEL_TAB_ID,
-      )
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, SHARED_ISSUE_PANEL_TAB_ID)
 
     var count = 0
     val listener: () -> Unit = { count++ }
@@ -61,13 +55,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
-    val provider =
-      DesignToolsIssueProvider(
-        projectRule.testRootDisposable,
-        project,
-        EmptyFilter,
-        SHARED_ISSUE_PANEL_TAB_ID,
-      )
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, SHARED_ISSUE_PANEL_TAB_ID)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -78,42 +66,26 @@ class DesignerCommonIssueProviderTest {
     val issueC = TestIssue(summary = "IssueC")
     val issueD = TestIssue(summary = "IssueD")
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(issueSource, listOf(issueA, issueB))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB))
     assertEquals(setOf(issueA, issueB), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(issueSource, listOf(issueA, issueB, issueC))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB, issueC))
     assertEquals(setOf(issueA, issueB, issueC), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(issueSource, listOf(issueB, issueC))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueC))
     assertEquals(setOf(issueB, issueC), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(issueSource, listOf(issueB, issueD))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueD))
     assertEquals(setOf(issueB, issueD), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(issueSource, emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, emptyList())
     assertEquals(setOf<Issue>(), provider.getFilteredIssues().toSet())
   }
 
   @Test
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
-    val provider =
-      DesignToolsIssueProvider(
-        projectRule.testRootDisposable,
-        project,
-        EmptyFilter,
-        SHARED_ISSUE_PANEL_TAB_ID,
-      )
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, SHARED_ISSUE_PANEL_TAB_ID)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -125,24 +97,16 @@ class DesignerCommonIssueProviderTest {
     val issueC = TestIssue(summary = "IssueC")
     val issueD = TestIssue(summary = "IssueD")
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(source1, listOf(issueA, issueB))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueA, issueB))
     assertEquals(setOf(issueA, issueB), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(source2, listOf(issueC))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueC))
     assertEquals(setOf(issueA, issueB, issueC), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(source1, listOf(issueB))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueB))
     assertEquals(setOf(issueB, issueC), provider.getFilteredIssues().toSet())
 
-    project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(source2, listOf(issueD))
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueD))
     assertEquals(setOf(issueB, issueD), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, emptyList())
@@ -159,10 +123,7 @@ class DesignerCommonIssueProviderTest {
           projectRule,
           "layout",
           "layout1.xml",
-          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
         )
         .build()
     }
@@ -176,11 +137,7 @@ class DesignerCommonIssueProviderTest {
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
             .matchParentHeight()
-            .withAttribute(
-              SdkConstants.TOOLS_URI,
-              SdkConstants.ATTR_IGNORE,
-              VisualLintErrorType.BOUNDS.ignoredAttributeValue,
-            ),
+            .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, VisualLintErrorType.BOUNDS.ignoredAttributeValue),
         )
         .build()
     }
@@ -188,20 +145,8 @@ class DesignerCommonIssueProviderTest {
     val filter = NotSuppressedFilter
 
     val issueProvider = ViewVisualLintIssueProvider(projectRule.testRootDisposable)
-    val visualLintIssue1 =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.BOUNDS,
-        model1.treeReader.components,
-        issueProvider,
-        "",
-      )
-    val visualLintIssue2 =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.BOUNDS,
-        model2.treeReader.components,
-        issueProvider,
-        "",
-      )
+    val visualLintIssue1 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.treeReader.components, issueProvider, "")
+    val visualLintIssue2 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.treeReader.components, issueProvider, "")
     assertTrue(filter.invoke(visualLintIssue1))
     assertFalse(filter.invoke(visualLintIssue2))
   }
@@ -214,10 +159,7 @@ class DesignerCommonIssueProviderTest {
           projectRule,
           "layout",
           "layout1.xml",
-          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
         )
         .build()
     }
@@ -227,30 +169,15 @@ class DesignerCommonIssueProviderTest {
           projectRule,
           "layout",
           "layout2.xml",
-          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight(),
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
         )
         .build()
     }
 
     val filter = SelectedEditorFilter(projectRule.project)
     val issueProvider = ViewVisualLintIssueProvider(projectRule.testRootDisposable)
-    val visualLintIssue1 =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.BOUNDS,
-        model1.treeReader.components,
-        issueProvider,
-        "",
-      )
-    val visualLintIssue2 =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.BOUNDS,
-        model2.treeReader.components,
-        issueProvider,
-        "",
-      )
+    val visualLintIssue1 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.treeReader.components, issueProvider, "")
+    val visualLintIssue2 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.treeReader.components, issueProvider, "")
 
     runInEdtAndWait { projectRule.fixture.openFileInEditor(model1.virtualFile) }
     assertTrue(filter.invoke(visualLintIssue1))

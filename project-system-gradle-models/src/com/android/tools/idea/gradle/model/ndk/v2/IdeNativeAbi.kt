@@ -17,22 +17,16 @@ package com.android.tools.idea.gradle.model.ndk.v2
 
 import java.io.File
 
-/**
- * Response returned by Gradle to Android Studio containing information about a native ABI under a
- * module and variant.
- */
+/** Response returned by Gradle to Android Studio containing information about a native ABI under a module and variant. */
 interface IdeNativeAbi {
-  /**
-   * The ABI name. This value aligns with [com.android.build.gradle.internal.core.Abi.tag]. For
-   * example, "x86_64", "arm64-v8a".
-   */
+  /** The ABI name. This value aligns with [com.android.build.gradle.internal.core.Abi.tag]. For example, "x86_64", "arm64-v8a". */
   val name: String
 
   /**
    * File containing compiler flags.
    *
-   * As for now this file is always a compile_commands.json. See
-   * https://clang.llvm.org/docs/JSONCompilationDatabase.html for details of the format.
+   * As for now this file is always a compile_commands.json. See https://clang.llvm.org/docs/JSONCompilationDatabase.html for details of the
+   * format.
    *
    * This file is generated if requested in `NativeModelBuilderParameter`.
    */
@@ -48,8 +42,7 @@ interface IdeNativeAbi {
   /**
    * Text file containing a list of build files for the native build system used by this projects.
    *
-   * For example, if CMake is used, this file contains a list of CMakeLists.txt used by the
-   * project.
+   * For example, if CMake is used, this file contains a list of CMakeLists.txt used by the project.
    *
    * This file is generated if requested in `NativeModelBuilderParameter`.
    */
@@ -58,8 +51,7 @@ interface IdeNativeAbi {
   /**
    * Text file containing a list of additional project files that are known to the build system.
    *
-   * For example, if CMake is used, this file contains explicitly listed header files for a user
-   * library.
+   * For example, if CMake is used, this file contains explicitly listed header files for a user library.
    *
    * This file is generated if requested in `NativeModelBuilderParameter`.
    */

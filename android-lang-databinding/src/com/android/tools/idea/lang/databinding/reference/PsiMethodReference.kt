@@ -30,14 +30,9 @@ import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.xml.XmlAttribute
 
-/**
- * Reference that refers to a [PsiMethod]
- */
-internal class PsiMethodReference private constructor(element: PsiElement,
-                                                      method: PsiModelMethod,
-                                                      textRange: TextRange,
-                                                      val kind: Kind)
-  : DbExprReference(element, method.psiMethod, textRange) {
+/** Reference that refers to a [PsiMethod] */
+internal class PsiMethodReference private constructor(element: PsiElement, method: PsiModelMethod, textRange: TextRange, val kind: Kind) :
+  DbExprReference(element, method.psiMethod, textRange) {
 
   enum class Kind {
     /**
@@ -55,24 +50,32 @@ internal class PsiMethodReference private constructor(element: PsiElement,
     METHOD_REFERENCE,
   }
 
-  constructor(expr: PsiDbCallExpr, method: PsiModelMethod)
-    : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_CALL)
+  constructor(
+    expr: PsiDbCallExpr,
+    method: PsiModelMethod,
+  ) : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_CALL)
 
-  constructor(expr: PsiDbRefExpr, method: PsiModelMethod, kind: Kind)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), kind)
+  constructor(
+    expr: PsiDbRefExpr,
+    method: PsiModelMethod,
+    kind: Kind,
+  ) : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), kind)
 
-  constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_REFERENCE)
+  constructor(
+    expr: PsiDbFunctionRefExpr,
+    method: PsiModelMethod,
+  ) : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_REFERENCE)
 
-  constructor(attr: XmlAttribute, method: PsiModelMethod, kind: Kind)
-    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), kind)
+  constructor(attr: XmlAttribute, method: PsiModelMethod, kind: Kind) : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), kind)
 
-  constructor(parameters: PsiDbLambdaParameters, method: PsiModelMethod)
-    : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset), Kind.METHOD_REFERENCE)
+  constructor(
+    parameters: PsiDbLambdaParameters,
+    method: PsiModelMethod,
+  ) : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset), Kind.METHOD_REFERENCE)
 
   /**
-   * Note: Returning null for the resolvedType prevents this expression from participating in auto completions
-   * e.g. `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
+   * Note: Returning null for the resolvedType prevents this expression from participating in auto completions e.g.
+   * `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
    */
   override val resolvedType = if (kind == Kind.METHOD_REFERENCE) null else method.returnType
 
@@ -83,8 +86,9 @@ internal class PsiMethodReference private constructor(element: PsiElement,
     val resolved = resolve() as? PsiMethod ?: return null
 
     // Create a light clone of our method so we can call the `stripPrefix` method on it
-    val lightMethod = LightMethodBuilder(resolved.manager, resolved.language, newElementName, resolved.parameterList, resolved.modifierList)
-      .setMethodReturnType(resolved.returnType)
+    val lightMethod =
+      LightMethodBuilder(resolved.manager, resolved.language, newElementName, resolved.parameterList, resolved.modifierList)
+        .setMethodReturnType(resolved.returnType)
 
     // Say the user tries to rename a method as if it were a getter, e.g. "getName". We normally
     // transform those sorts of methods to make them look like a field in data binding expressions,
@@ -96,8 +100,8 @@ internal class PsiMethodReference private constructor(element: PsiElement,
   }
 
   /**
-   * Returns true if the reference can refer a field with [fieldName] to its setter method.
-   * e.g. `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
+   * Returns true if the reference can refer a field with [fieldName] to its setter method. e.g. `user.getName().toUpperCase()` is valid
+   * while `user::getName.toUpperCase()` is not
    */
   fun isSetterReferenceFrom(fieldName: String): Boolean {
     return kind == Kind.METHOD_REFERENCE && (resolve() as PsiMethod).name == "set${fieldName.usLocaleCapitalize()}"

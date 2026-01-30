@@ -17,12 +17,8 @@ package com.android.tools.idea.res
 
 import com.android.tools.res.FrameworkResourceRepositoryManager
 
-/**
- * [FrameworkResourceRepositoryManager.Provider] that provides intellij service instance of
- * [FrameworkResourceRepositoryManager].
- */
-class StudioFrameworkResourceRepositoryManagerProvider :
-  FrameworkResourceRepositoryManager.Provider {
+/** [FrameworkResourceRepositoryManager.Provider] that provides intellij service instance of [FrameworkResourceRepositoryManager]. */
+class StudioFrameworkResourceRepositoryManagerProvider : FrameworkResourceRepositoryManager.Provider {
   override val frameworkResourceRepositoryManager: FrameworkResourceRepositoryManager
     get() = StudioFrameworkResourceRepositoryManager.getInstance()
 }

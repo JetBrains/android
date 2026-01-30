@@ -18,9 +18,7 @@ package com.android.tools.idea.execution.common.adb.shell
 import com.android.ddmlib.MultiLineReceiver
 import java.util.regex.Pattern
 
-/**
- * An output receiver which stores all output and matches error messages.
- */
+/** An output receiver which stores all output and matches error messages. */
 class ErrorMatchingReceiver : MultiLineReceiver() {
   private var errorType = NO_ERROR
   private var failureMessage: String? = null
@@ -37,8 +35,7 @@ class ErrorMatchingReceiver : MultiLineReceiver() {
         if (errorMatcher.matches()) {
           errorType = errorMatcher.group(1).toInt()
           failureMessage = line
-        }
-        else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
+        } else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
           errorType = UNTYPED_ERROR
           failureMessage = line
         }

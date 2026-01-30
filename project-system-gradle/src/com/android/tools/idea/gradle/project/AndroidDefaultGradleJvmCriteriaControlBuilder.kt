@@ -25,6 +25,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.lang.JavaVersion
 import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.JBUI
+import java.awt.GridBagConstraints
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
@@ -32,19 +33,15 @@ import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.service.settings.GradleDaemonJvmCriteriaView
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.awt.GridBagConstraints
 
 /**
- * An [AndroidDefaultGradleSystemSettingsControlBuilder] exposing settings allowing to configure
- * the default Daemon JVM criteria used for gradle builds/sync process on new created projects.
+ * An [AndroidDefaultGradleSystemSettingsControlBuilder] exposing settings allowing to configure the default Daemon JVM criteria used for
+ * gradle builds/sync process on new created projects.
  */
-class AndroidDefaultGradleJvmCriteriaControlBuilder(
-  initialSettings: GradleSettings,
-  private val disposable: Disposable
-) : AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings, disposable) {
+class AndroidDefaultGradleJvmCriteriaControlBuilder(initialSettings: GradleSettings, private val disposable: Disposable) :
+  AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings, disposable) {
 
-  @VisibleForTesting
-  lateinit var defaultGradleDaemonJvmCriteriaView: GradleDaemonJvmCriteriaView
+  @VisibleForTesting lateinit var defaultGradleDaemonJvmCriteriaView: GradleDaemonJvmCriteriaView
 
   override fun fillUi(canvas: PaintAwarePanel, indentLevel: Int) {
     super.fillUi(canvas, indentLevel)
@@ -83,11 +80,12 @@ class AndroidDefaultGradleJvmCriteriaControlBuilder(
     canvas.add(defaultGradleDaemonJvmCriteriaView, ExternalSystemUiUtil.getFillLineConstraints(indentLevel))
   }
 
-  private fun createDefaultGradleJvmCriteriaView() = GradleDaemonJvmCriteriaView(
-    criteria = GradleDaemonJvmCriteria(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature().toString(), null),
-    versionsDropdownList = GradleJvmSupportMatrix.getAllSupportedJavaVersionsByIdea().map(JavaVersion::feature),
-    vendorDropdownList =  JvmVendor.KnownJvmVendor.entries.filter { it != JvmVendor.KnownJvmVendor.UNKNOWN },
-    displayAdvancedSettings = true,
-    disposable = disposable
-  )
+  private fun createDefaultGradleJvmCriteriaView() =
+    GradleDaemonJvmCriteriaView(
+      criteria = GradleDaemonJvmCriteria(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature().toString(), null),
+      versionsDropdownList = GradleJvmSupportMatrix.getAllSupportedJavaVersionsByIdea().map(JavaVersion::feature),
+      vendorDropdownList = JvmVendor.KnownJvmVendor.entries.filter { it != JvmVendor.KnownJvmVendor.UNKNOWN },
+      displayAdvancedSettings = true,
+      disposable = disposable,
+    )
 }

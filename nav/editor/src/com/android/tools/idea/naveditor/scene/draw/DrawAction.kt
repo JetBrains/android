@@ -31,13 +31,8 @@ import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import java.awt.Color
 
 /** [DrawCommand] that draw a nav editor action (an arrow between two screens). */
-class DrawAction(
-  private val source: SwingRectangle,
-  private val dest: SwingRectangle,
-  scale: Scale,
-  color: Color,
-  isPopAction: Boolean,
-) : DrawActionBase(scale, color, isPopAction) {
+class DrawAction(private val source: SwingRectangle, private val dest: SwingRectangle, scale: Scale, color: Color, isPopAction: Boolean) :
+  DrawActionBase(scale, color, isPopAction) {
   override fun buildAction(): Action {
     val (p1, p2, p3, p4, direction) = getCurvePoints(source, dest, scale)
     val path = SwingPath()

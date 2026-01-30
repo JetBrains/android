@@ -34,8 +34,7 @@ class ToggleDeviceNightModeAction : AnAction() {
       e.presentation.isEnabled = false
       return
     }
-    e.presentation.isEnabled =
-      e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_NIGHT_MODE)
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_NIGHT_MODE)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -52,8 +51,6 @@ class ToggleDeviceNightModeAction : AnAction() {
   companion object {
     @JvmStatic
     val instance: ToggleDeviceNightModeAction
-      get() =
-        ActionManager.getInstance().getAction(ACTION_TOGGLE_DEVICE_NIGHT_MODE)
-          as ToggleDeviceNightModeAction
+      get() = ActionManager.getInstance().getAction(ACTION_TOGGLE_DEVICE_NIGHT_MODE) as ToggleDeviceNightModeAction
   }
 }

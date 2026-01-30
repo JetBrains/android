@@ -32,7 +32,6 @@ import com.android.tools.idea.lang.androidSql.resolution.UnqualifiedColumnPsiRef
 import com.android.tools.idea.lang.androidSql.resolution.WithClauseTable
 import com.intellij.psi.PsiReference
 
-
 fun getReference(tableName: AndroidSqlSelectedTableName): AndroidSqlSelectedTablePsiReference {
   return AndroidSqlSelectedTablePsiReference(tableName)
 }
@@ -92,7 +91,7 @@ fun getTableDefinition(withClauseTable: AndroidSqlWithClauseTable): AndroidSqlTa
     AliasedTable(
       name = tableName.nameAsString,
       resolveTo = tableName,
-      delegate = SubqueryTable(withClauseTable.selectStatement ?: return null)
+      delegate = SubqueryTable(withClauseTable.selectStatement ?: return null),
     )
   }
 }

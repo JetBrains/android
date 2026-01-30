@@ -20,11 +20,11 @@ import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 
 /** Ensures that Layout Editor Preview works for an XML file. */
 class LayoutEditorPreviewTest {
@@ -55,9 +55,7 @@ class LayoutEditorPreviewTest {
     project = AndroidProject("tools/adt/idea/designer/testData/projects/simpleApplication")
 
     // Enable additional logging
-    system.installation.addVmOption(
-      "-Didea.log.debug.categories=#com.android.tools.rendering.RenderResult"
-    )
+    system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.rendering.RenderResult")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/designer/layout_preview_deps.manifest"))
@@ -71,16 +69,11 @@ class LayoutEditorPreviewTest {
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
 
-      studio.openAndWaitForRender(
-        project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml")
-      )
+      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml"))
       studio.executeAction("CloseAllEditors")
-      studio.openAndWaitForRender(
-        project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml")
-      )
+      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml"))
       studio.executeAction("CloseAllEditors")
-      val complexLayoutFile =
-        project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
+      val complexLayoutFile = project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
       studio.openAndWaitForRender(complexLayoutFile)
       studio.editFile(complexLayoutFile.toString(), "\\s*<!--EASY TEXT FIND", "")
       studio.editFile(complexLayoutFile.toString(), "\\s*EASY TEXT FIND-->", "")

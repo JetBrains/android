@@ -66,10 +66,7 @@ class DeviceSkinResolverTest {
   @Test
   fun resolveImageSkinIsntNull() {
     // Arrange
-    val imageSkin =
-      SDK.resolve(
-        Path.of("system-images", "android-33", "android-wear", "x86_64", "skins", "WearSmallRound")
-      )
+    val imageSkin = SDK.resolve(Path.of("system-images", "android-33", "android-wear", "x86_64", "skins", "WearSmallRound"))
 
     val imageSkins = listOf(imageSkin)
 

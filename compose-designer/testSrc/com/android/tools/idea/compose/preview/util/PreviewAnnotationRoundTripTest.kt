@@ -59,12 +59,7 @@ class PreviewAnnotationRoundTripTest {
   }
 
   // Helper function to create a Device (copied from PreviewAnnotationGeneratorTest)
-  private fun device(
-    width: Int,
-    height: Int,
-    density: Density,
-    orientation: ScreenOrientation,
-  ): Device =
+  private fun device(width: Int, height: Int, density: Density, orientation: ScreenOrientation): Device =
     Device.Builder()
       .apply {
         setTagId("")
@@ -103,17 +98,13 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
-        .flatMap { it.resolve() }
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
     assertThat(previewElements).hasSize(1)
 
     val previewElement = previewElements.first()
@@ -133,7 +124,7 @@ class PreviewAnnotationRoundTripTest {
             widthDp = 200,
             heightDp = 300
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -150,17 +141,13 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
-        .flatMap { it.resolve() }
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
     assertThat(previewElements).hasSize(1)
 
     val previewElement = previewElements.first()
@@ -187,7 +174,7 @@ class PreviewAnnotationRoundTripTest {
             widthDp = 400,
             heightDp = 800
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -208,20 +195,15 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
-        .flatMap { it.resolve() }
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
     // Find the specific preview element for "small font"
-    val smallFontPreviewElement =
-      previewElements.find { it.displaySettings.name == "small font - MyComposable" }!!
+    val smallFontPreviewElement = previewElements.find { it.displaySettings.name == "small font - MyComposable" }!!
 
     assertThat(smallFontPreviewElement).isNotNull()
 
@@ -229,8 +211,7 @@ class PreviewAnnotationRoundTripTest {
     // valid)
     val configuration = createConfiguration(width = 100, height = 200)
 
-    val generatedText =
-      toPreviewAnnotationText(smallFontPreviewElement, configuration, "small font")
+    val generatedText = toPreviewAnnotationText(smallFontPreviewElement, configuration, "small font")
 
     // The generated text should represent the "small font" preview with default size parameters
     assertThat(generatedText)
@@ -243,7 +224,7 @@ class PreviewAnnotationRoundTripTest {
             widthDp = 100,
             heightDp = 200
         )
-      """
+        """
           .trimIndent()
       )
   }
@@ -270,17 +251,13 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
-        .flatMap { it.resolve() }
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
     assertThat(previewElements).hasSize(1)
 
     val previewElement = previewElements.first()
@@ -306,17 +283,16 @@ class PreviewAnnotationRoundTripTest {
             widthDp = 500,
             heightDp = 500
         )
-      """
+        """
           .trimIndent()
       )
   }
 
   @Test
-  fun `toPreviewAnnotationText preserves device spec and adds widthDp heightDp when showDecoration is false`() =
-    runTest {
-      @Language("kotlin")
-      val composeFileContent =
-        """
+  fun `toPreviewAnnotationText preserves device spec and adds widthDp heightDp when showDecoration is false`() = runTest {
+    @Language("kotlin")
+    val composeFileContent =
+      """
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
@@ -324,50 +300,45 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
-          .trimIndent()
+      """
+        .trimIndent()
 
-      val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
+    val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
-      val previewElements =
-        AnnotationFilePreviewElementFinder.findPreviewElements(
-            projectRule.project,
-            composeTestFile.virtualFile,
-          )
-          .flatMap { it.resolve() }
-      assertThat(previewElements).hasSize(1)
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
+    assertThat(previewElements).hasSize(1)
 
-      val previewElement = previewElements.first()
+    val previewElement = previewElements.first()
 
-      // Simulate a resize where showDecoration is false (composable resizing)
-      // The configuration should reflect the *new* desired composable size in pixels.
-      // 600px x 1200px at 160dpi (MDPI) -> 600dp x 1200dp
-      val newWidthPx = 600
-      val newHeightPx = 1200
-      val configuration =
-        createConfiguration(
-          width = newWidthPx,
-          height = newHeightPx,
-          density = Density.MEDIUM, // 160 dpi
-          orientation = ScreenOrientation.PORTRAIT,
-        )
+    // Simulate a resize where showDecoration is false (composable resizing)
+    // The configuration should reflect the *new* desired composable size in pixels.
+    // 600px x 1200px at 160dpi (MDPI) -> 600dp x 1200dp
+    val newWidthPx = 600
+    val newHeightPx = 1200
+    val configuration =
+      createConfiguration(
+        width = newWidthPx,
+        height = newHeightPx,
+        density = Density.MEDIUM, // 160 dpi
+        orientation = ScreenOrientation.PORTRAIT,
+      )
 
-      val generatedText =
-        toPreviewAnnotationText(previewElement, configuration, "DeviceWithCustomSize")
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "DeviceWithCustomSize")
 
-      assertThat(generatedText)
-        .isEqualTo(
-          """
+    assertThat(generatedText)
+      .isEqualTo(
+        """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "DeviceWithCustomSize",
             device = "spec:width=600dp,height=1200dp,dpi=160",
             widthDp = 600,
             heightDp = 1200
         )
-      """
-            .trimIndent()
-        )
-    }
+        """
+          .trimIndent()
+      )
+  }
 
   @Test
   fun `toPreviewAnnotationText with combined UiMode generates constant names`() = runTest {
@@ -388,10 +359,7 @@ class PreviewAnnotationRoundTripTest {
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElement =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile)
         .flatMap { it.resolve() }
         .first()
 
@@ -429,17 +397,13 @@ class PreviewAnnotationRoundTripTest {
       @Composable
       fun MyComposable() {
       }
-    """
+      """
         .trimIndent()
 
     val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
 
     val previewElements =
-      AnnotationFilePreviewElementFinder.findPreviewElements(
-          projectRule.project,
-          composeTestFile.virtualFile,
-        )
-        .flatMap { it.resolve() }
+      AnnotationFilePreviewElementFinder.findPreviewElements(projectRule.project, composeTestFile.virtualFile).flatMap { it.resolve() }
     assertThat(previewElements).hasSize(1)
 
     val previewElement = previewElements.first()

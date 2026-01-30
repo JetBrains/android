@@ -19,6 +19,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.BitUtil
+import java.awt.Color
+import kotlin.random.Random
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -33,20 +35,19 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import java.awt.Color
-import kotlin.random.Random
 
 class DependencyTreeNodeTest {
 
-  @Rule
-  @JvmField
-  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @Rule @JvmField val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   // We can't use the nice Mockito.spy(<class>) syntax because there's no nullary constructor
   private fun spyDependencyTreeNode(userObject: Any, referenceCount: Int): DependencyTreeNode =
-    Mockito.mock(DependencyTreeNode::class.java, // mock the abstract class
-                 withSettings().useConstructor(userObject, referenceCount) // call the real constructor
-                   .defaultAnswer(CALLS_REAL_METHODS)) // call real methods when not mocked out
+    Mockito.mock(
+      DependencyTreeNode::class.java, // mock the abstract class
+      withSettings()
+        .useConstructor(userObject, referenceCount) // call the real constructor
+        .defaultAnswer(CALLS_REAL_METHODS),
+    ) // call real methods when not mocked out
 
   @Test
   fun `text attributes are regular when node is checked`() {
@@ -85,12 +86,8 @@ class DependencyTreeNodeTest {
     whenever(attributes.style).thenReturn(SimpleTextAttributes.STYLE_STRIKEOUT)
     val color = mock<Color>()
     whenever(attributes.fgColor).thenReturn(color)
-    val derivedAttr = SimpleTextAttributes(
-      attributes.style or
-        SimpleTextAttributes.STYLE_ITALIC or
-        SimpleTextAttributes.STYLE_SMALLER,
-      color
-    )
+    val derivedAttr =
+      SimpleTextAttributes(attributes.style or SimpleTextAttributes.STYLE_ITALIC or SimpleTextAttributes.STYLE_SMALLER, color)
 
     val node = spyDependencyTreeNode(mock(), 2)
     node.renderReferenceCount(renderer, attributes)

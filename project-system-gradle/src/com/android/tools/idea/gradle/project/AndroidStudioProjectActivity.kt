@@ -56,8 +56,11 @@ class AndroidStudioProjectActivity : ProjectActivity {
         notifyOnLegacyAndroidProject(project)
         notifyOnInvalidGradleJDKEnv(project)
 
-        if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get() &&
-            (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE.get() || !ApplicationManager.getApplication().isUnitTestMode)) {
+        if (
+          StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get() &&
+            (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION_TEST_OVERRIDE.get() ||
+              !ApplicationManager.getApplication().isUnitTestMode)
+        ) {
           checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project)
         }
       }
@@ -71,8 +74,7 @@ class AndroidStudioProjectActivity : ProjectActivity {
 
 private fun notifyOnLegacyAndroidProject(project: Project) {
   val legacyAndroidProjects = LegacyAndroidProjects(project)
-  if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject
-      && !AndroidProjectInfo.getInstance(project).isApkProject) {
+  if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject && !AndroidProjectInfo.getInstance(project).isApkProject) {
     legacyAndroidProjects.trackProject()
     if (!Info.getInstance(project).isBuildWithGradle) {
       // Suggest that Android Studio users use Gradle instead of IDEA project builder.
@@ -84,13 +86,12 @@ private fun notifyOnLegacyAndroidProject(project: Project) {
 private fun notifyOnInvalidGradleJDKEnv(project: Project) {
   val ideSdks = IdeSdks.getInstance()
   if (ideSdks.isJdkEnvVariableDefined && !ideSdks.isJdkEnvVariableValid) {
-    val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
-              " is being ignored since it is set to an invalid JDK Location:\n" +
-              ideSdks.envVariableJdkValue
+    val msg =
+      IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
+        " is being ignored since it is set to an invalid JDK Location:\n" +
+        ideSdks.envVariableJdkValue
     val hyperlinks = listOfNotNull(SelectJdkFromFileSystemHyperlink.create(project, project.basePath))
-    AndroidNotification.getInstance(project).showBalloon(
-      "", msg, NotificationType.WARNING, *hyperlinks.toTypedArray()
-    )
+    AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING, *hyperlinks.toTypedArray())
   }
 }
 
@@ -99,15 +100,12 @@ private suspend fun checkForInvalidGradleJvmConfigurationAndAttemptToRecover(pro
   // but without gradle.xml file results on project not being linked
   GradleSyncExecutor.attemptToLinkGradleProject(project)
 
-  GradleSettings.getInstance(project).linkedProjectsSettings
+  GradleSettings.getInstance(project)
+    .linkedProjectsSettings
     .distinctBy { it.externalProjectPath }
     .forEach {
       GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)?.let { gradleJdkException ->
-        withContext(Dispatchers.EDT) {
-          runWriteAction {
-            gradleJdkException.recover()
-          }
-        }
+        withContext(Dispatchers.EDT) { runWriteAction { gradleJdkException.recover() } }
       }
     }
 }

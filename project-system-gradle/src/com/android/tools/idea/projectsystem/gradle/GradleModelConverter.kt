@@ -22,13 +22,10 @@ import com.android.projectmodel.RecursiveResourceFolder
 import com.android.projectmodel.ResourceFolder
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 
-/**
- * Converts a builder-model [IdeAndroidLibrary] into a [ExternalAndroidLibrary]. Returns null
- * if the input is invalid.
- */
+/** Converts a builder-model [IdeAndroidLibrary] into a [ExternalAndroidLibrary]. Returns null if the input is invalid. */
 fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidLibrary = AndroidLibraryWrapper(source)
 
-private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
+private abstract class LibraryWrapper<T : IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
   override fun libraryName(): String = lib.name
 
   @Suppress("FileComparisons")
@@ -44,15 +41,31 @@ private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T
 }
 
 private class AndroidLibraryWrapper(source: IdeAndroidLibrary) : LibraryWrapper<IdeAndroidLibrary>(source) {
-  override val address: String get() = lib.artifactAddress
-  override val location: PathString? get() = lib.artifact?.toPathString()
-  override val manifestFile: PathString get() = PathString(lib.manifest)
-  override val packageName: String? get() = null
-  override val resFolder: ResourceFolder get() = RecursiveResourceFolder(PathString(lib.resFolder))
-  override val assetsFolder: PathString get() = PathString(lib.assetsFolder)
-  override val symbolFile: PathString get() = PathString(lib.symbolFile)
-  override val resApkFile: PathString? get() = lib.resStaticLibrary?.let(::PathString)
+  override val address: String
+    get() = lib.artifactAddress
+
+  override val location: PathString?
+    get() = lib.artifact?.toPathString()
+
+  override val manifestFile: PathString
+    get() = PathString(lib.manifest)
+
+  override val packageName: String?
+    get() = null
+
+  override val resFolder: ResourceFolder
+    get() = RecursiveResourceFolder(PathString(lib.resFolder))
+
+  override val assetsFolder: PathString
+    get() = PathString(lib.assetsFolder)
+
+  override val symbolFile: PathString
+    get() = PathString(lib.symbolFile)
+
+  override val resApkFile: PathString?
+    get() = lib.resStaticLibrary?.let(::PathString)
 
   // NOTE: The intended implementation is resApkFile != null || resFolder != null, but resFolder is currently always not null.
-  override val hasResources: Boolean get() = true
+  override val hasResources: Boolean
+    get() = true
 }

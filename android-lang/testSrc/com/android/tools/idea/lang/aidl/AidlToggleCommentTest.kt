@@ -28,66 +28,69 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AidlToggleCommentTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val fixture by lazy { projectRule.fixture }
 
   // This is how this case handled in other languages
-  @Test
-  fun comment() = doTest("test", "//test")
-  @Test
-  fun uncomment() = doTest("//test", "test")
-  @Test
-  fun commentOnEmptyLine() = doTest("<caret>\n", "//<caret>\n")
-  @Test
-  fun uncommentOnEmptyLine() = doTest("// <caret>\n", "\n<caret>")
-  @Test
-  fun blockComment() = doTest(
-    """
-    enum ByteEnum {
-        <block>// Comment about FOO.
-        FOO = 1,
-        BAR =</block> 2,
-        BAZ,
-    }
-    """.trimIndent(),
-    """
-    enum ByteEnum {
-    //    // Comment about FOO.
-    //    FOO = 1,
-    //    BAR = 2,
-        BAZ,
-    }
-    """.trimIndent()
-  )
+  @Test fun comment() = doTest("test", "//test")
+
+  @Test fun uncomment() = doTest("//test", "test")
+
+  @Test fun commentOnEmptyLine() = doTest("<caret>\n", "//<caret>\n")
+
+  @Test fun uncommentOnEmptyLine() = doTest("// <caret>\n", "\n<caret>")
 
   @Test
-  fun blockUncomment() = doTest(
-    """
-    enum ByteEnum {
-        //// Co<block>mment about FOO.
-        //FOO = 1,</block>
-        //BAR = 2,
-        BAZ,
-    }
-    """.trimIndent(),
-    """
-    enum ByteEnum {
-        // Comment about FOO.
-        FOO = 1,
-        //BAR = 2,
-        BAZ,
-    }
-    """.trimIndent()
-  )
+  fun blockComment() =
+    doTest(
+      """
+      enum ByteEnum {
+          <block>// Comment about FOO.
+          FOO = 1,
+          BAR =</block> 2,
+          BAZ,
+      }
+      """
+        .trimIndent(),
+      """
+      enum ByteEnum {
+      //    // Comment about FOO.
+      //    FOO = 1,
+      //    BAR = 2,
+          BAZ,
+      }
+      """
+        .trimIndent(),
+    )
+
+  @Test
+  fun blockUncomment() =
+    doTest(
+      """
+      enum ByteEnum {
+          //// Co<block>mment about FOO.
+          //FOO = 1,</block>
+          //BAR = 2,
+          BAZ,
+      }
+      """
+        .trimIndent(),
+      """
+      enum ByteEnum {
+          // Comment about FOO.
+          FOO = 1,
+          //BAR = 2,
+          BAZ,
+      }
+      """
+        .trimIndent(),
+    )
 
   private fun doTest(@Language("AIDL") before: String, @Language("AIDL") after: String) {
     fixture.configureByText("file.agsl", before)
 
-    application.invokeAndWait {
-      PlatformTestUtil.invokeNamedAction(IdeActions.ACTION_COMMENT_LINE)
-    }
+    application.invokeAndWait { PlatformTestUtil.invokeNamedAction(IdeActions.ACTION_COMMENT_LINE) }
 
     fixture.checkResult(after)
   }

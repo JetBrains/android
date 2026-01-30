@@ -22,13 +22,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.EmptyGradleBlockModel
 class EmptyRepositoriesModelImpl : EmptyGradleBlockModel(), RepositoriesModel {
   override fun repositories(): List<RepositoryModel> = listOf()
 
-  override fun removeRepository(repository: RepositoryModel) =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun removeRepository(repository: RepositoryModel) = throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun addRepositoryByMethodName(methodName: String): Boolean = false
 
-  override fun addFlatDirRepository(dirName: String) =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun addFlatDirRepository(dirName: String) = throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun containsMethodCall(methodName: String): Boolean = false
 
@@ -42,6 +40,5 @@ class EmptyRepositoriesModelImpl : EmptyGradleBlockModel(), RepositoriesModel {
 
   override fun hasGoogleMavenRepository(): Boolean = false
 
-  override fun addGoogleMavenRepository() =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun addGoogleMavenRepository() = throw UnsupportedOperationException("Call is not supported for Declarative")
 }

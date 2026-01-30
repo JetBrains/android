@@ -15,27 +15,17 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * Name reserved the main artifact in a [IdeVariant].
- */
+/** Name reserved the main artifact in a [IdeVariant]. */
 const val ARTIFACT_NAME_MAIN = "_main_"
 
-/**
- * Name reserved the android test artifact in a [IdeVariant].
- */
+/** Name reserved the android test artifact in a [IdeVariant]. */
 const val ARTIFACT_NAME_ANDROID_TEST = "_android_test_"
 
-/**
- * Name reserved the unit test artifact in a [IdeVariant].
- */
+/** Name reserved the unit test artifact in a [IdeVariant]. */
 const val ARTIFACT_NAME_UNIT_TEST = "_unit_test_"
 
-/**
- * Name reserved the test fixtures artifact in a [IdeVariant].
- */
+/** Name reserved the test fixtures artifact in a [IdeVariant]. */
 const val ARTIFACT_NAME_TEST_FIXTURES = "_test_fixtures_"
 
-/**
- * Name reserved the screenshot test artifact in a [IdeVariant].
- */
+/** Name reserved the screenshot test artifact in a [IdeVariant]. */
 const val ARTIFACT_NAME_SCREENSHOT_TEST = "_screenshot_test_"

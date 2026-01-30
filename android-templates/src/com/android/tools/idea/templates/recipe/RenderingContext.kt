@@ -34,7 +34,7 @@ data class RenderingContext(
   val outputRoot: File = VfsUtilCore.virtualToIoFile(project.guessProjectDir() ?: project.baseDir),
   val moduleRoot: File?,
   val dryRun: Boolean,
-  val showErrors: Boolean
+  val showErrors: Boolean,
 ) {
   val plugins = mutableListOf<String>()
   val classpathEntries = mutableListOf<String>()
@@ -44,7 +44,8 @@ data class RenderingContext(
   val filesToOpen = mutableListOf<File>()
   val warnings = mutableListOf<String>()
 
-  val showWarnings: Boolean get() = showErrors && dryRun
+  val showWarnings: Boolean
+    get() = showErrors && dryRun
 
   val moduleTemplateData = templateData as? ModuleTemplateData
   val projectTemplateData = moduleTemplateData?.projectTemplateData ?: templateData as ProjectTemplateData

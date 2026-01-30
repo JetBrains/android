@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Adds C/C++ compilation information and headers to the project proto. */
-class ConfigureCcCompilation: ProjectProtoUpdateOperation {
+class ConfigureCcCompilation : ProjectProtoUpdateOperation {
 
   override fun update(
     update: ProjectProtoUpdate,
@@ -72,36 +72,38 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
      * which can have a large memory footprint. */
     private val uniqueFlagSetIds: MutableMap<Set<CcCompilerFlag>, String> = hashMapOf()
 
-
     fun visitToolchainMap(toolchainInfoMap: Map<String, CcToolchain>) {
       toolchainInfoMap.values.forEach(this::visitToolchain)
     }
 
     private fun visitToolchain(toolchain: CcToolchain) {
-      val commonFlags =
-        toolchain.builtInIncludeDirectories().map { makePathFlag("-I", it) }
+      val commonFlags = toolchain.builtInIncludeDirectories().map { makePathFlag("-I", it) }
 
-      toolchainLanguageFlags[toolchain.id()] = mapOf(
-        CcLanguage.C to commonFlags + toolchain.cOptions().map { makeStringFlag(it, "") },
-        CcLanguage.CPP to commonFlags + toolchain.cppOptions().map { makeStringFlag(it, "") }
-      )
+      toolchainLanguageFlags[toolchain.id()] =
+        mapOf(
+          CcLanguage.C to commonFlags + toolchain.cOptions().map { makeStringFlag(it, "") },
+          CcLanguage.CPP to commonFlags + toolchain.cppOptions().map { makeStringFlag(it, "") },
+        )
     }
 
     fun visitTarget(ccInfo: CcCompilationInfo, buildContext: DependencyBuildContext) {
-      val toolchain = artifactState.ccToolchainMap()[ccInfo.toolchainId()] ?: let {
-        context.output(PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId()}' referred to from ${ccInfo.target()}"))
-        return@visitTarget
-      }
+      val toolchain =
+        artifactState.ccToolchainMap()[ccInfo.toolchainId()]
+          ?: let {
+            context.output(
+              PrintOutput.error("Cannot find toolchain with id: '${ccInfo.toolchainId()}' referred to from ${ccInfo.target()}")
+            )
+            return@visitTarget
+          }
 
-      val targetFlags =
-        buildList {
-          addAll(ccInfo.copts().map { makeStringFlag(it, "") })
-          addAll(ccInfo.defines().map { makeStringFlag("-D", it) })
-          addAll(ccInfo.includeDirectories().map { makePathFlag("-I", it) })
-          addAll(ccInfo.quoteIncludeDirectories().map { p -> makePathFlag("-iquote", p) })
-          addAll(ccInfo.systemIncludeDirectories().map { p -> makePathFlag("-isystem", p) })
-          addAll(ccInfo.frameworkIncludeDirectories().map { p -> makePathFlag("-F", p) })
-        }
+      val targetFlags = buildList {
+        addAll(ccInfo.copts().map { makeStringFlag(it, "") })
+        addAll(ccInfo.defines().map { makeStringFlag("-D", it) })
+        addAll(ccInfo.includeDirectories().map { makePathFlag("-I", it) })
+        addAll(ccInfo.quoteIncludeDirectories().map { p -> makePathFlag("-iquote", p) })
+        addAll(ccInfo.systemIncludeDirectories().map { p -> makePathFlag("-isystem", p) })
+        addAll(ccInfo.frameworkIncludeDirectories().map { p -> makePathFlag("-F", p) })
+      }
 
       workspaceUpdater.target(ccInfo.target()) {
         val targetContext =
@@ -109,12 +111,15 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
             id = ccInfo.target().toString() + "%" + toolchain.targetGnuSystemName(),
             humanReadableName = ccInfo.target().toString() + " - " + toolchain.targetGnuSystemName(),
             languageToCompilerSettings =
-              toolchainLanguageFlags[toolchain.id()]?.entries?.associate {
-                it.key to CcCompilerSettings(
-                  compilerExecutablePath = toolchain.compilerExecutable(),
-                  flagSetId = addFlagSet(it.value + targetFlags)
-                )
-              }
+              toolchainLanguageFlags[toolchain.id()]
+                ?.entries
+                ?.associate {
+                  it.key to
+                    CcCompilerSettings(
+                      compilerExecutablePath = toolchain.compilerExecutable(),
+                      flagSetId = addFlagSet(it.value + targetFlags),
+                    )
+                }
                 .orEmpty(),
           )
         addContext(targetContext)
@@ -125,13 +130,13 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
           }
         }
       }
-      update.artifactDirectory(ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES.directoryName))){
+      update.artifactDirectory(ProjectPath.projectRelative(Path.of(QuerySyncProjectDirectory.EXTERNAL_REPOSITORIES.directoryName))) {
         (ccInfo.collectArtifactRepositoryNames() + toolchain.collectArtifactRepositoryNames()).forEach { externalRepositoryName ->
           addExternalRepository(
             repositoryName = externalRepositoryName,
-            absolutePath = externalRepositoryFinder.find(externalRepositoryName)
-                           ?: error("External repository $externalRepositoryName not found"),
-            buildContext = buildContext
+            absolutePath =
+              externalRepositoryFinder.find(externalRepositoryName) ?: error("External repository $externalRepositoryName not found"),
+            buildContext = buildContext,
           )
         }
       }
@@ -141,25 +146,26 @@ class ConfigureCcCompilation: ProjectProtoUpdateOperation {
     private fun addFlagSet(flags: Collection<CcCompilerFlag>): String {
       // Create a set so that two flags sets are considered equivalent if their flag order differs.
       val canonicalFlagSet: kotlin.collections.Set<CcCompilerFlag> = flags.toSet()
-      return uniqueFlagSetIds[canonicalFlagSet] ?: nextFlagSetId.incrementAndGet().toString().also { flagSetId ->
-        uniqueFlagSetIds[canonicalFlagSet] = flagSetId
-        workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet(flags.toList()))
-      }
+      return uniqueFlagSetIds[canonicalFlagSet]
+        ?: nextFlagSetId.incrementAndGet().toString().also { flagSetId ->
+          uniqueFlagSetIds[canonicalFlagSet] = flagSetId
+          workspaceUpdater.putFlagSets(flagSetId, CcCompilerFlagSet(flags.toList()))
+        }
     }
   }
 
   private fun makeStringFlag(flag: String, value: String): CcCompilerFlag {
-    return ProjectProto.CcCompilerStringFlag(flag = flag, value = value);
+    return ProjectProto.CcCompilerStringFlag(flag = flag, value = value)
   }
 
   private fun makePathFlag(flag: String, path: ProjectPath): CcCompilerFlag {
-    return ProjectProto.CcCompilerPathFlag(flag = flag, path = path);
+    return ProjectProto.CcCompilerPathFlag(flag = flag, path = path)
   }
 
   companion object {
     /**
-     * Resets the next flag set id to 1 to allow repeatable tests. This should not be done
-     * in the production since ProjectProto.Project can be combined from pieces.
+     * Resets the next flag set id to 1 to allow repeatable tests. This should not be done in the production since ProjectProto.Project can
+     * be combined from pieces.
      */
     @VisibleForTesting
     fun resetFlagIdsForTestingOnly() {

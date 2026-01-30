@@ -45,10 +45,8 @@ import org.jetbrains.kotlin.psi.psiUtil.getOutermostParenthesizerOrThis
 
 abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspection(), CleanupLocalInspectionTool {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
-        val compileSdk = AndroidFacet.getInstance(session.file)
-                ?.let { facet -> StudioAndroidModuleInfo.getInstance(facet) }
-                ?.buildSdkVersion
-                ?.apiLevel
+        val compileSdk =
+            AndroidFacet.getInstance(session.file)?.let { facet -> StudioAndroidModuleInfo.getInstance(facet) }?.buildSdkVersion?.apiLevel
 
         if (compileSdk == null || compileSdk < 26) {
             return KtVisitorVoid()
@@ -70,26 +68,26 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
                 val resultText = "$calleeName<$typeText>(...)"
 
                 holder.registerProblem(
-                        parentCast,
-                        "Can be converted to $resultText",
-                        ConvertCastToFindViewByIdWithTypeParameter(resultText, callInfo)
+                    parentCast,
+                    "Can be converted to $resultText",
+                    ConvertCastToFindViewByIdWithTypeParameter(resultText, callInfo),
                 )
             }
         }
     }
 
-    protected enum class ReturnTypeNullability { NOT_NULL, NULLABLE, PLATFORM_TYPE }
+    protected enum class ReturnTypeNullability {
+        NOT_NULL,
+        NULLABLE,
+        PLATFORM_TYPE,
+    }
 
-    protected data class FindViewCallInfo(
-        val returnTypeNullability: ReturnTypeNullability,
-    )
+    protected data class FindViewCallInfo(val returnTypeNullability: ReturnTypeNullability)
 
     protected abstract fun KtCallExpression.classifyFindViewCall(cast: KtBinaryExpressionWithTypeRHS): FindViewCallInfo?
 
-    private class ConvertCastToFindViewByIdWithTypeParameter(
-        private val resultText: String,
-        private val callInfo: FindViewCallInfo,
-    ) : LocalQuickFix {
+    private class ConvertCastToFindViewByIdWithTypeParameter(private val resultText: String, private val callInfo: FindViewCallInfo) :
+        LocalQuickFix {
         override fun getFamilyName(): String = "Convert cast to type parameter"
 
         override fun getName(): String = "Convert cast to $resultText"
@@ -118,16 +116,19 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
                 // First, we can tighten the type bound if the resultant type of the expression is
                 // definitely not null. This means that for requireViewById, even if it was previously
                 // being assigned to a View?, we can tighten the variable type to View.
-                val tightenedResultType = newCast.right!!.typeElement?.let {
-                    (it as? KtNullableType)?.innerType?.takeIf {
-                        callInfo.returnTypeNullability == ReturnTypeNullability.NOT_NULL
+                val tightenedResultType =
+                    newCast.right!!.typeElement?.let {
+                        (it as? KtNullableType)?.innerType?.takeIf {
+                            callInfo.returnTypeNullability == ReturnTypeNullability.NOT_NULL
                             // We only do this for vals, because vars may be assigned to null elsewhere.
-                            && !assignmentDeclaration.isVar
-                            // We also can't do this tightening if findViewById was invoked with a safe-call
-                            // (foo?.findViewById(...)), because that expression always has type T?.
-                            && newCall.parent !is KtSafeQualifiedExpression
-                    } ?: it
-                } ?: return
+                            &&
+                                !assignmentDeclaration.isVar
+                                // We also can't do this tightening if findViewById was invoked with a safe-call
+                                // (foo?.findViewById(...)), because that expression always has type T?.
+                                &&
+                                newCall.parent !is KtSafeQualifiedExpression
+                        } ?: it
+                    } ?: return
 
                 if (tightenedResultType.text != assignmentDeclaration.typeReference?.typeElement?.text) {
                     assignmentDeclaration.typeReference = psiFactory.createType(tightenedResultType)
@@ -147,15 +148,13 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
                 nonNullCastNeedsDoubleExcl = callInfo.returnTypeNullability != ReturnTypeNullability.NOT_NULL
             }
 
-
             // Replace the entire cast expression with the cast's LHS. This discards the `as` keyword and typename,
             // leaving only the (potentially dot-qualified) call to findViewById and friends.
             val castReplacementExpression =
                 KtPsiUtil.safeDeparenthesize(newCast.left)
                     // Add the !! if needed. We need it if our cast was to a non-null type, and the resulting type
                     // of the findView call expression could be null (based on return type as above, or a ?. call).
-                    .applyIf(!castReference.isNullable &&
-                             (nonNullCastNeedsDoubleExcl || newCall.parent is KtSafeQualifiedExpression)) {
+                    .applyIf(!castReference.isNullable && (nonNullCastNeedsDoubleExcl || newCall.parent is KtSafeQualifiedExpression)) {
                         psiFactory.createExpressionByPattern("$0!!", this, reformat = true)
                     }
 
@@ -168,12 +167,11 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
             val propertyTypeReference = typeReference ?: return true
             return propertyTypeReference.getTypeTextWithoutQuestionMark() == reference.getTypeTextWithoutQuestionMark()
         }
-
     }
 
     companion object {
         fun KtTypeReference.getTypeTextWithoutQuestionMark(): String? =
-                (typeElement as? KtNullableType)?.innerType?.text ?: typeElement?.text
+            (typeElement as? KtNullableType)?.innerType?.text ?: typeElement?.text
 
         val KtTypeReference.isNullable: Boolean
             get() = typeElement is KtNullableType
@@ -199,8 +197,7 @@ abstract class TypeParameterFindViewByIdInspectionBase : AbstractKotlinInspectio
         // Note: The receiver expression may also be labeled, parenthesized, or annotated - these cases
         // are handled by KtPsiUtil.deparenthesize(), which is also called by getBinaryWithTypeParent().
 
-        private fun KtCallExpression.parentCast(): KtBinaryExpressionWithTypeRHS? =
-            calleeExpression?.getBinaryWithTypeParent()
+        private fun KtCallExpression.parentCast(): KtBinaryExpressionWithTypeRHS? = calleeExpression?.getBinaryWithTypeParent()
 
         private fun KtBinaryExpressionWithTypeRHS.childCall(): KtCallExpression? =
             when (val left = KtPsiUtil.deparenthesize(left)) {

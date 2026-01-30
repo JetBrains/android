@@ -33,10 +33,7 @@ class NavUsageTrackerImpl(
   override fun logEvent(event: NavEditorEvent) {
     try {
       executor.execute {
-        val studioEvent =
-          AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT)
-            .setNavEditorEvent(event)
+        val studioEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT).setNavEditorEvent(event)
 
         model?.let { studioEvent.setApplicationId(model.facet) }
 

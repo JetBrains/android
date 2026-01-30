@@ -50,12 +50,7 @@ class ImportMlModelActionTest {
   @get:Rule val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   private fun setupProjectAndEvent(agpVersion: String, minSdkVersion: Int): AnActionEvent {
-    MlProjectTestUtil.setupTestMlProject(
-      projectRule.project,
-      agpVersion,
-      minSdkVersion,
-      ImmutableList.of(),
-    )
+    MlProjectTestUtil.setupTestMlProject(projectRule.project, agpVersion, minSdkVersion, ImmutableList.of())
 
     val dataContext =
       SimpleDataContext.builder()
@@ -68,8 +63,7 @@ class ImportMlModelActionTest {
 
   @Test
   fun allConditionsMet_shouldEnabledPresentation() {
-    val event =
-      setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
+    val event = setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
 
     myAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
@@ -84,42 +78,28 @@ class ImportMlModelActionTest {
     assertThat(event.presentation.isEnabled).isFalse()
     assertThat(event.presentation.text)
       .isEqualTo(
-        AndroidBundle.message(
-          "android.wizard.action.requires.new.agp",
-          ImportMlModelAction.TITLE,
-          ImportMlModelAction.MIN_AGP_VERSION,
-        )
+        AndroidBundle.message("android.wizard.action.requires.new.agp", ImportMlModelAction.TITLE, ImportMlModelAction.MIN_AGP_VERSION)
       )
   }
 
   @Test
   fun lowMinSdkApi_shouldDisablePresentation() {
-    val event =
-      setupProjectAndEvent(
-        ImportMlModelAction.MIN_AGP_VERSION,
-        ImportMlModelAction.MIN_SDK_VERSION - 2,
-      )
+    val event = setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION - 2)
 
     myAction.update(event)
 
     assertThat(event.presentation.isEnabled).isFalse()
     assertThat(event.presentation.text)
       .isEqualTo(
-        AndroidBundle.message(
-          "android.wizard.action.requires.minsdk",
-          ImportMlModelAction.TITLE,
-          ImportMlModelAction.MIN_SDK_VERSION,
-        )
+        AndroidBundle.message("android.wizard.action.requires.minsdk", ImportMlModelAction.TITLE, ImportMlModelAction.MIN_SDK_VERSION)
       )
   }
 
   @Test
   fun testDialogValidation() {
-    val tfliteModelFilePath =
-      resolveWorkspacePath("tools/adt/idea/mlkit/testData/mobilenet_quant_metadata.tflite")
+    val tfliteModelFilePath = resolveWorkspacePath("tools/adt/idea/mlkit/testData/mobilenet_quant_metadata.tflite")
 
-    val event =
-      setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
+    val event = setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
 
     val dialog = assertNotNull(myAction.createDialog(event))
 

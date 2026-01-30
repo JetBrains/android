@@ -21,21 +21,19 @@ import com.android.tools.idea.ui.resourcemanager.getPluginsResourcesDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.registerServiceInstance
-import org.junit.Assert.assertNotNull
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class SVGDesignAssetRendererTest {
 
-  @Suppress("MemberVisibilityCanBePrivate")
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @Suppress("MemberVisibilityCanBePrivate") @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setUp() {
@@ -57,12 +55,7 @@ class SVGDesignAssetRendererTest {
     val path = getPluginsResourcesDirectory() + "/svg-sample.svg"
     val file = pathToVirtualFile(path)
     val image = viewer.getImage(file, projectRule.module, Dimension(50, 50)).get()
-    ImageDiffUtil.assertImageSimilar(
-      "svg-sample",
-      ImageIO.read(File(getPluginsResourcesDirectory() + "/svg-sample-50.png")),
-      image!!,
-      5.0
-    )
+    ImageDiffUtil.assertImageSimilar("svg-sample", ImageIO.read(File(getPluginsResourcesDirectory() + "/svg-sample-50.png")), image!!, 5.0)
   }
 
   private fun svgResourceViewer(): SVGAssetRenderer {

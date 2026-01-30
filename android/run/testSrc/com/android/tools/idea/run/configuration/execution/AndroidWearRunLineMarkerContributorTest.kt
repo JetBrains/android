@@ -27,8 +27,7 @@ import org.junit.Test
 
 class AndroidWearRunLineMarkerContributorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Before
   fun setUp() {
@@ -36,23 +35,25 @@ class AndroidWearRunLineMarkerContributorTest {
     projectRule.fixture.addWearDependenciesToProject()
   }
 
-
   @Test
   @RunsInEdt
   fun testGetWatchFaceInfo() {
-    val watchFaceFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTestWatchFace.kt",
-      """
-      package com.example.myapplication
+    val watchFaceFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTestWatchFace.kt",
+        """
+        package com.example.myapplication
 
-      import android.support.wearable.watchface.WatchFaceService
+        import android.support.wearable.watchface.WatchFaceService
 
-      /**
-       * Some comment
-       */
-      class MyTestWatchFace : WatchFaceService() {
-      }
-      """.trimIndent())
+        /**
+         * Some comment
+         */
+        class MyTestWatchFace : WatchFaceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val contributor = AndroidWearRunMarkerContributor()
     assertNotNull(contributor.getSlowInfo(watchFaceFile.findElementByText("class")))
@@ -62,16 +63,19 @@ class AndroidWearRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun testGetTileInfo() {
-    val tileFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTileService.kt",
-      """
-      package com.example.myapplication
+    val tileFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTileService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.TileService
 
-      class MyTestTile : TileService() {
-      }
-      """.trimIndent())
+        class MyTestTile : TileService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val contributor = AndroidWearRunMarkerContributor()
     assertNotNull(contributor.getSlowInfo(tileFile.findElementByText("class")))
@@ -81,16 +85,19 @@ class AndroidWearRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun testGetComplicationInfo() {
-    val complicationFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyComplicationService.kt",
-      """
-      package com.example.myapplication
+    val complicationFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyComplicationService.kt",
+        """
+        package com.example.myapplication
 
-      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
 
-      class MyTestComplication : ComplicationDataSourceService() {
-      }
-      """.trimIndent())
+        class MyTestComplication : ComplicationDataSourceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val contributor = AndroidWearRunMarkerContributor()
     assertNotNull(contributor.getSlowInfo(complicationFile.findElementByText("class")))
@@ -100,16 +107,19 @@ class AndroidWearRunLineMarkerContributorTest {
   @Test
   @RunsInEdt
   fun testGetComplicationInfoJava() {
-    val complicationFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyComplicationService.java",
-      """
-      package com.example.myapplication;
+    val complicationFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyComplicationService.java",
+        """
+        package com.example.myapplication;
 
-      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService;
-        
-      public class MyComplicationService extends ComplicationDataSourceService {
-      }
-      """.trimIndent())
+        import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService;
+          
+        public class MyComplicationService extends ComplicationDataSourceService {
+        }
+        """
+          .trimIndent(),
+      )
 
     val contributor = AndroidWearRunMarkerContributor()
     assertNotNull(contributor.getSlowInfo(complicationFile.findElementByText("class")))

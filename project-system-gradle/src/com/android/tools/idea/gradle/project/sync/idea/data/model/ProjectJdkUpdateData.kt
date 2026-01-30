@@ -19,9 +19,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUp
 import com.intellij.openapi.externalSystem.model.DataNode
 
 /**
- * Class that represents [DataNode] object type containing the jdk path to be
- * used to update the project Jdk after a successful gradle sync on [ProjectJdkUpdateService]
+ * Class that represents [DataNode] object type containing the jdk path to be used to update the project Jdk after a successful gradle sync
+ * on [ProjectJdkUpdateService]
  */
-data class ProjectJdkUpdateData(
-  val jdkPath: String
-)
+data class ProjectJdkUpdateData(val jdkPath: String)

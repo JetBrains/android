@@ -29,11 +29,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 /** App Inspection specific logic that runs when the user presses "Run" or "Debug" */
 class AppInspectionExecutionListener : ExecutionListener {
 
-  override fun processStarted(
-    executorId: String,
-    env: ExecutionEnvironment,
-    handler: ProcessHandler,
-  ) {
+  override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
     val project = env.project
     val info = AndroidSessionInfo.from(handler) ?: return
 
@@ -57,12 +53,7 @@ class AppInspectionExecutionListener : ExecutionListener {
     }
   }
 
-  private fun storeRecentProcess(
-    project: Project,
-    device: IDevice,
-    applicationId: String,
-    handler: ProcessHandler,
-  ) {
+  private fun storeRecentProcess(project: Project, device: IDevice, applicationId: String, handler: ProcessHandler) {
     val recentProcess = RecentProcess(device.serialNumber, applicationId)
     RecentProcess.set(project, recentProcess)
 

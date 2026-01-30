@@ -30,7 +30,6 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.testFramework.ApplicationRule
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.ClassRule
@@ -48,19 +47,14 @@ import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /**
- * We need to use parameterized tests for several methods
- * so instead of making the whole thing parameterized and
- * dealing with that mess we wrap things in nested classes
- * and use the enclosed runner. Unfortunately, this means
- * everything needs to be in nested classes or it gets skipped.
- * Thus, even the methods with single case tests are wrapped.
+ * We need to use parameterized tests for several methods so instead of making the whole thing parameterized and dealing with that mess we
+ * wrap things in nested classes and use the enclosed runner. Unfortunately, this means everything needs to be in nested classes or it gets
+ * skipped. Thus, even the methods with single case tests are wrapped.
  */
 @RunWith(Enclosed::class)
 class AndroidModularizeActionTest {
 
-  @Rule
-  @JvmField
-  val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @Rule @JvmField val strict: MockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   /*
   The overridden methods of AndroidModularizeAction are
@@ -80,16 +74,16 @@ class AndroidModularizeActionTest {
   */
   private open class TestableAndroidModularizeAction : AndroidModularizeAction() {
     public override fun isAvailableInEditorOnly() = super.isAvailableInEditorOnly()
+
     public override fun isAvailableForFile(file: PsiFile?) = super.isAvailableForFile(file)
+
     public override fun isEnabledOnDataContext(dataContext: DataContext) = super.isEnabledOnDataContext(dataContext)
-    public override fun isAvailableOnElementInEditorAndFile(
-      element: PsiElement,
-      editor: Editor,
-      file: PsiFile,
-      context: DataContext,
-    ) = super.isAvailableOnElementInEditorAndFile(element, editor, file, context)
+
+    public override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext) =
+      super.isAvailableOnElementInEditorAndFile(element, editor, file, context)
 
     public override fun isEnabledOnElements(elements: Array<out PsiElement>) = super.isEnabledOnElements(elements)
+
     public override fun getHandler(dataContext: DataContext) = super.getHandler(dataContext)
   }
 
@@ -105,12 +99,13 @@ class AndroidModularizeActionTest {
   class IsAvailableForFileTest(val case: Case) {
     data class Case(val expected: Boolean, val fileInfo: FileInfo?) {
       val project = mock<Project>()
-      val file = fileInfo?.let { fileInfo ->
-        mock<PsiFile>().apply {
-          whenever(fileType).thenReturn(fileInfo.fileType)
-          whenever(project).thenReturn(this@Case.project)
+      val file =
+        fileInfo?.let { fileInfo ->
+          mock<PsiFile>().apply {
+            whenever(fileType).thenReturn(fileInfo.fileType)
+            whenever(project).thenReturn(this@Case.project)
+          }
         }
-      }
     }
 
     data class FileInfo(val fileType: FileType, val hasAndroidFacets: Boolean) {
@@ -124,19 +119,20 @@ class AndroidModularizeActionTest {
 
       @JvmStatic
       @Parameters(name = "{0}")
-      fun data() = listOf(
-        // null file
-        Case(expected = false, fileInfo = null),
-        // arbitrary file
-        Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = false)),
-        Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = true)),
-        // kotlin file
-        Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = false)),
-        Case(expected = true, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = true)),
-        // java file
-        Case(expected = false, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = false)),
-        Case(expected = true, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = true)),
-      )
+      fun data() =
+        listOf(
+          // null file
+          Case(expected = false, fileInfo = null),
+          // arbitrary file
+          Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = false)),
+          Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = true)),
+          // kotlin file
+          Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = false)),
+          Case(expected = true, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = true)),
+          // java file
+          Case(expected = false, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = false)),
+          Case(expected = true, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = true)),
+        )
     }
 
     @Test
@@ -163,67 +159,66 @@ class AndroidModularizeActionTest {
       val addUnavailElem: Boolean,
     ) {
       val project = lastSyncOk?.let { mock<Project>() }
-      val syncManager = lastSyncOk?.let {
-        mock<ProjectSystemSyncManager>().also {
-          val syncRes = mock<ProjectSystemSyncManager.SyncResult>()
-          whenever(it.getLastSyncResult()).thenReturn(syncRes)
-          whenever(syncRes.isSuccessful).thenReturn(lastSyncOk)
+      val syncManager =
+        lastSyncOk?.let {
+          mock<ProjectSystemSyncManager>().also {
+            val syncRes = mock<ProjectSystemSyncManager.SyncResult>()
+            whenever(it.getLastSyncResult()).thenReturn(syncRes)
+            whenever(syncRes.isSuccessful).thenReturn(lastSyncOk)
+          }
         }
-      }
-      val file = fileAvail?.let {
-        mock<PsiFile>().also { whenever(it.isValid).thenReturn(true) }
-      }
+      val file = fileAvail?.let { mock<PsiFile>().also { whenever(it.isValid).thenReturn(true) } }
       val availableFile = mock<PsiFile>()
-      private val availableElement = mock<PsiElement>().also {
-        whenever(it.containingFile).thenReturn(availableFile)
-        whenever(it.isValid).thenReturn(true)
-      }
+      private val availableElement =
+        mock<PsiElement>().also {
+          whenever(it.containingFile).thenReturn(availableFile)
+          whenever(it.isValid).thenReturn(true)
+        }
       val unavailableFile = mock<PsiFile>()
-      private val unavailableElement = mock<PsiElement>().also {
-        whenever(it.containingFile).thenReturn(unavailableFile)
-        whenever(it.isValid).thenReturn(true)
-      }
-      val elements = Array(numAvailElem) { availableElement }
-        .let { if (addUnavailElem) it + unavailableElement else it }
-        .apply { shuffle() }
+      private val unavailableElement =
+        mock<PsiElement>().also {
+          whenever(it.containingFile).thenReturn(unavailableFile)
+          whenever(it.isValid).thenReturn(true)
+        }
+      val elements =
+        Array(numAvailElem) { availableElement }.let { if (addUnavailElem) it + unavailableElement else it }.apply { shuffle() }
     }
 
     companion object {
-      @get:ClassRule
-      @JvmStatic
-      val applicationRule = ApplicationRule()
+      @get:ClassRule @JvmStatic val applicationRule = ApplicationRule()
 
       @JvmStatic
       @Parameters(name = "{0}")
-      fun data() = listOf(0, 1, 5, 10).flatMap {  // check various sizes including empty
-        listOf(
-          // last sync failures cause failure regardless of other parameters
-          Case(expect = false, lastSyncOk = false, fileAvail = false, numAvailElem = it, addUnavailElem = false),
-          Case(expect = false, lastSyncOk = false, fileAvail = false, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = false, fileAvail = true, numAvailElem = it, addUnavailElem = false),
-          Case(expect = false, lastSyncOk = false, fileAvail = true, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = false, fileAvail = null, numAvailElem = it, addUnavailElem = false),
-          Case(expect = false, lastSyncOk = false, fileAvail = null, numAvailElem = it, addUnavailElem = true),
+      fun data() =
+        listOf(0, 1, 5, 10).flatMap { // check various sizes including empty
+          listOf(
+            // last sync failures cause failure regardless of other parameters
+            Case(expect = false, lastSyncOk = false, fileAvail = false, numAvailElem = it, addUnavailElem = false),
+            Case(expect = false, lastSyncOk = false, fileAvail = false, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = false, fileAvail = true, numAvailElem = it, addUnavailElem = false),
+            Case(expect = false, lastSyncOk = false, fileAvail = true, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = false, fileAvail = null, numAvailElem = it, addUnavailElem = false),
+            Case(expect = false, lastSyncOk = false, fileAvail = null, numAvailElem = it, addUnavailElem = true),
 
-          // an unavailable file causes failure regardless of other parameters
-          Case(expect = false, lastSyncOk = true, fileAvail = false, numAvailElem = it, addUnavailElem = false),
-          Case(expect = false, lastSyncOk = true, fileAvail = false, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = null, fileAvail = false, numAvailElem = it, addUnavailElem = false),
-          Case(expect = false, lastSyncOk = null, fileAvail = false, numAvailElem = it, addUnavailElem = true),
+            // an unavailable file causes failure regardless of other parameters
+            Case(expect = false, lastSyncOk = true, fileAvail = false, numAvailElem = it, addUnavailElem = false),
+            Case(expect = false, lastSyncOk = true, fileAvail = false, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = null, fileAvail = false, numAvailElem = it, addUnavailElem = false),
+            Case(expect = false, lastSyncOk = null, fileAvail = false, numAvailElem = it, addUnavailElem = true),
 
-          // an element with an unavailable containing file causes failure regardless of other parameters
-          Case(expect = false, lastSyncOk = true, fileAvail = true, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = true, fileAvail = null, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = null, fileAvail = true, numAvailElem = it, addUnavailElem = true),
-          Case(expect = false, lastSyncOk = null, fileAvail = null, numAvailElem = it, addUnavailElem = true),
+            // an element with an unavailable containing file causes failure regardless of other parameters
+            Case(expect = false, lastSyncOk = true, fileAvail = true, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = true, fileAvail = null, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = null, fileAvail = true, numAvailElem = it, addUnavailElem = true),
+            Case(expect = false, lastSyncOk = null, fileAvail = null, numAvailElem = it, addUnavailElem = true),
 
-          // otherwise, things are ok
-          Case(expect = true, lastSyncOk = true, fileAvail = true, numAvailElem = it, addUnavailElem = false),
-          Case(expect = true, lastSyncOk = true, fileAvail = null, numAvailElem = it, addUnavailElem = false),
-          Case(expect = true, lastSyncOk = null, fileAvail = true, numAvailElem = it, addUnavailElem = false),
-          Case(expect = true, lastSyncOk = null, fileAvail = null, numAvailElem = it, addUnavailElem = false),
-        )
-      }
+            // otherwise, things are ok
+            Case(expect = true, lastSyncOk = true, fileAvail = true, numAvailElem = it, addUnavailElem = false),
+            Case(expect = true, lastSyncOk = true, fileAvail = null, numAvailElem = it, addUnavailElem = false),
+            Case(expect = true, lastSyncOk = null, fileAvail = true, numAvailElem = it, addUnavailElem = false),
+            Case(expect = true, lastSyncOk = null, fileAvail = null, numAvailElem = it, addUnavailElem = false),
+          )
+        }
     }
 
     @Test
@@ -239,17 +234,17 @@ class AndroidModularizeActionTest {
       Mockito.doReturn(true).whenever(action).isAvailableForFile(case.availableFile)
       Mockito.doReturn(false).whenever(action).isAvailableForFile(case.unavailableFile)
 
-      val dc = SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, case.project)
-        .add(CommonDataKeys.PSI_FILE, case.file)
-        .add(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY, case.elements)
-        .build()
-      val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
+      val dc =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, case.project)
+          .add(CommonDataKeys.PSI_FILE, case.file)
+          .add(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY, case.elements)
+          .build()
+      val `JVM class name containing Project extension method getSyncManager` =
+        Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
       Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
         // if there is a project then hook it up to a sync manager
-        case.project?.let {
-          whenever(it.getSyncManager()).thenReturn(case.syncManager!!)
-        }
+        case.project?.let { whenever(it.getSyncManager()).thenReturn(case.syncManager!!) }
 
         // finally, we can actually do the test
         assertThat(action.isEnabledOnDataContext(dc)).isEqualTo(case.expect)
@@ -261,30 +256,25 @@ class AndroidModularizeActionTest {
   class IsAvailableOnElementInEditorAndFileTest(val case: Case) {
     data class Case(val lastSyncSuccessful: Boolean) {
       val project = mock<Project>()
-      val file = mock<PsiFile>().also {
-        whenever(it.project).thenReturn(project)
-      }
-      val syncManager = mock<ProjectSystemSyncManager>().also {
-        val syncResult = mock<ProjectSystemSyncManager.SyncResult>()
-        whenever(it.getLastSyncResult()).thenReturn(syncResult)
-        whenever(syncResult.isSuccessful).thenReturn(lastSyncSuccessful)
-      }
+      val file = mock<PsiFile>().also { whenever(it.project).thenReturn(project) }
+      val syncManager =
+        mock<ProjectSystemSyncManager>().also {
+          val syncResult = mock<ProjectSystemSyncManager.SyncResult>()
+          whenever(it.getLastSyncResult()).thenReturn(syncResult)
+          whenever(syncResult.isSuccessful).thenReturn(lastSyncSuccessful)
+        }
     }
 
     companion object {
-      @JvmStatic
-      @Parameters(name = "{0}")
-      fun data() = listOf(
-        Case(lastSyncSuccessful = false),
-        Case(lastSyncSuccessful = true),
-      )
+      @JvmStatic @Parameters(name = "{0}") fun data() = listOf(Case(lastSyncSuccessful = false), Case(lastSyncSuccessful = true))
     }
 
     @Test
     fun `isAvailableOnElementInEditorAndFile matches last sync status`() {
       val action = TestableAndroidModularizeAction()
 
-      val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
+      val `JVM class name containing Project extension method getSyncManager` =
+        Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
       Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
         whenever(case.project.getSyncManager()).thenReturn(case.syncManager)
 
@@ -303,13 +293,7 @@ class AndroidModularizeActionTest {
     }
 
     companion object {
-      @JvmStatic
-      @Parameters(name = "{0}")
-      fun data() = listOf(
-        Case(length = 0),
-        Case(length = 1),
-        Case(length = 10),
-      )
+      @JvmStatic @Parameters(name = "{0}") fun data() = listOf(Case(length = 0), Case(length = 1), Case(length = 10))
     }
 
     @Test

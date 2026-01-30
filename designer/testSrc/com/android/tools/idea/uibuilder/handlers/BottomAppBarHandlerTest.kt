@@ -48,27 +48,20 @@ class BottomAppBarHandlerTest {
     android:layout_gravity="bottom" />
 """
     val handler = BottomAppBarHandler()
-    assertThat(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
-      .isEqualTo(expected)
-    assertThat(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.DRAG_PREVIEW))
-      .isEqualTo(expected)
+    assertThat(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION)).isEqualTo(expected)
+    assertThat(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.DRAG_PREVIEW)).isEqualTo(expected)
   }
 
   @RunsInEdt
   @Test
   fun testOnCreate() {
-    ExtensionTestUtil.maskExtensions(
-      UIBuilderHandlerToken.EP_NAME,
-      listOf(),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(UIBuilderHandlerToken.EP_NAME, listOf(), projectRule.testRootDisposable)
     val handler = BottomAppBarHandler()
     val component =
       WriteCommandAction.runWriteCommandAction(
         projectRule.project,
         Computable {
-          val component =
-            createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
+          val component = createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
           handler.onCreate(null, component, InsertType.CREATE)
           component
         },
@@ -94,23 +87,15 @@ class BottomAppBarHandlerTest {
       object : UIBuilderHandlerToken<AndroidProjectSystem> {
         override fun isApplicable(projectSystem: AndroidProjectSystem) = true
 
-        override fun getBottomAppBarStyle(
-          projectSystem: AndroidProjectSystem,
-          newChild: NlComponent,
-        ) = null
+        override fun getBottomAppBarStyle(projectSystem: AndroidProjectSystem, newChild: NlComponent) = null
       }
-    ExtensionTestUtil.maskExtensions(
-      UIBuilderHandlerToken.EP_NAME,
-      listOf(token),
-      projectRule.testRootDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(UIBuilderHandlerToken.EP_NAME, listOf(token), projectRule.testRootDisposable)
     val handler = BottomAppBarHandler()
     val component =
       WriteCommandAction.runWriteCommandAction(
         projectRule.project,
         Computable {
-          val component =
-            createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
+          val component = createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
           handler.onCreate(null, component, InsertType.CREATE)
           component
         },

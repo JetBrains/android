@@ -66,15 +66,9 @@ abstract class JdbcSqliteResultSet(
 
   abstract override val totalRowCount: ListenableFuture<Int>
 
-  abstract override fun getRowBatch(
-    rowOffset: Int,
-    rowBatchSize: Int,
-  ): ListenableFuture<SqliteQueryResult>
+  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<SqliteQueryResult>
 
-  protected fun getRowCount(
-    sqliteStatement: SqliteStatement,
-    handleResponse: (ResultSet) -> Int,
-  ): ListenableFuture<Int> {
+  protected fun getRowCount(sqliteStatement: SqliteStatement, handleResponse: (ResultSet) -> Int): ListenableFuture<Int> {
     return taskExecutor
       .executeAsync {
         check(!isDisposed) { "ResultSet has already been closed." }
@@ -105,15 +99,8 @@ abstract class JdbcSqliteResultSet(
   }
 
   @WorkerThread
-  protected fun createCurrentRow(
-    resultSet: ResultSet,
-    columns: List<ResultSetSqliteColumn>,
-  ): SqliteRow {
-    return SqliteRow(
-      columns.mapIndexed { i, column ->
-        SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1)))
-      }
-    )
+  protected fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
+    return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 
   override fun dispose() {

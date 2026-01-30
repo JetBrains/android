@@ -30,27 +30,27 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetScopedService
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetScopedService
+import org.jetbrains.ide.PooledThreadExecutor
 
-@VisibleForTesting
-const val MAX_RENDER_WIDTH = 768
+@VisibleForTesting const val MAX_RENDER_WIDTH = 768
 
-@VisibleForTesting
-const val MAX_RENDER_HEIGHT = 1024
+@VisibleForTesting const val MAX_RENDER_HEIGHT = 1024
 
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
-private fun createRenderTask(buildTarget: AndroidBuildTargetReference,
-                             xmlFile: XmlFile,
-                             configuration: Configuration,
-                             layoutRenderOptions: LayoutRenderOptions
+private fun createRenderTask(
+  buildTarget: AndroidBuildTargetReference,
+  xmlFile: XmlFile,
+  configuration: Configuration,
+  layoutRenderOptions: LayoutRenderOptions,
 ): CompletableFuture<RenderTask?> {
-  return layoutRenderOptions.applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
+  return layoutRenderOptions
+    .applyTo(StudioRenderService.getInstance(buildTarget.project).taskBuilder(buildTarget, configuration))
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .build()
@@ -58,14 +58,16 @@ private fun createRenderTask(buildTarget: AndroidBuildTargetReference,
 
 /**
  * Creates and caches small preview images of layout files.
+ *
  * @param renderTaskProvider function that return a [RenderTask]
  */
 class LayoutRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: (AndroidBuildTargetReference, XmlFile, Configuration, LayoutRenderOptions) -> CompletableFuture<RenderTask?>,
-  private val futuresManager: ImageFuturesManager<VirtualFile>
+  private val renderTaskProvider:
+    (AndroidBuildTargetReference, XmlFile, Configuration, LayoutRenderOptions) -> CompletableFuture<RenderTask?>,
+  private val futuresManager: ImageFuturesManager<VirtualFile>,
 ) : AndroidFacetScopedService(facet) {
 
   init {
@@ -74,25 +76,38 @@ constructor(
 
   override fun onServiceDisposal(facet: AndroidFacet) {}
 
-  fun getLayoutRender(xmlFile: XmlFile, configuration: Configuration, layoutRenderOptions: LayoutRenderOptions? = null): CompletableFuture<BufferedImage?> {
+  fun getLayoutRender(
+    xmlFile: XmlFile,
+    configuration: Configuration,
+    layoutRenderOptions: LayoutRenderOptions? = null,
+  ): CompletableFuture<BufferedImage?> {
     val imageRenderCallback: () -> CompletableFuture<BufferedImage?> = { getImage(xmlFile, configuration, layoutRenderOptions) }
     return futuresManager.registerAndGet(xmlFile.virtualFile, imageRenderCallback)
   }
 
-  private fun getImage(xmlFile: XmlFile, configuration: Configuration, layoutRenderOptions: LayoutRenderOptions?): CompletableFuture<BufferedImage?> {
+  private fun getImage(
+    xmlFile: XmlFile,
+    configuration: Configuration,
+    layoutRenderOptions: LayoutRenderOptions?,
+  ): CompletableFuture<BufferedImage?> {
     val options = layoutRenderOptions ?: LayoutRenderOptions()
     val renderTaskFuture = renderTaskProvider(AndroidBuildTargetReference.gradleOnly(facet), xmlFile, configuration, options)
-    return renderTaskFuture.thenCompose { it?.render() }
-      .thenApplyAsync(Function<RenderResult?, BufferedImage?> {
-        if (it == null) {
-          return@Function null
-        }
-        when {
-          it.renderResult.isSuccess -> it.renderedImage.copy
-          it.renderResult.exception != null -> throw it.renderResult.exception
-          else -> throw RenderingException(it.renderResult.status.name)
-        }
-      }, PooledThreadExecutor.INSTANCE).whenComplete { _, _ ->
+    return renderTaskFuture
+      .thenCompose { it?.render() }
+      .thenApplyAsync(
+        Function<RenderResult?, BufferedImage?> {
+          if (it == null) {
+            return@Function null
+          }
+          when {
+            it.renderResult.isSuccess -> it.renderedImage.copy
+            it.renderResult.exception != null -> throw it.renderResult.exception
+            else -> throw RenderingException(it.renderResult.status.name)
+          }
+        },
+        PooledThreadExecutor.INSTANCE,
+      )
+      .whenComplete { _, _ ->
         // Dispose the RenderTask once it has finished rendering.
         renderTaskFuture.get()?.dispose()
       }
@@ -103,11 +118,7 @@ constructor(
     fun getInstance(facet: AndroidFacet): LayoutRenderer {
       var manager = facet.getUserData(LAYOUT_KEY)
       if (manager == null) {
-        manager = LayoutRenderer(
-          facet,
-          ::createRenderTask,
-          ImageFuturesManager<VirtualFile>()
-        )
+        manager = LayoutRenderer(facet, ::createRenderTask, ImageFuturesManager<VirtualFile>())
         setInstance(facet, manager)
       }
       return manager

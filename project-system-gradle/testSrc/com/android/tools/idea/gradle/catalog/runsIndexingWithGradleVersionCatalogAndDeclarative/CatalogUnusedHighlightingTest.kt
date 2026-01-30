@@ -35,34 +35,32 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.editor.commitToPsi
 import com.intellij.testFramework.utils.editor.reloadFromDisk
 import com.intellij.testFramework.utils.vfs.createFile
+import java.io.File
+import kotlin.io.path.absolutePathString
+import kotlin.jvm.java
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
-import kotlin.io.path.absolutePathString
-import kotlin.jvm.java
 
 @RunsInEdt
 class CatalogUnusedHighlightingTest {
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val service = object: VersionCatalogFilesModel {
-    val map = mapOf("libs" to "gradle/libs.versions.toml")
-    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
-      map.mapValues { project.basePath + "/" + it.value }
-    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
-      map.mapValues { project.basePath + "/" + it.value }
-  }
+  private val service =
+    object : VersionCatalogFilesModel {
+      val map = mapOf("libs" to "gradle/libs.versions.toml")
+
+      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
+
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
+    }
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().registerExtension(
-      EP_NAME, service, projectRule.fixture.testRootDisposable
-    )
+    ApplicationManager.getApplication().registerExtension(EP_NAME, service, projectRule.fixture.testRootDisposable)
   }
 
   private val fixture
@@ -74,51 +72,72 @@ class CatalogUnusedHighlightingTest {
   @Test
   // b/297954569
   fun testNoUsageOfBundle() {
-    runTest("", """
-        [bundles]
-        <warning>ui</warning> = [ "ui1", "ui2" ]
-    """.trimIndent())
+    runTest(
+      "",
+      """
+      [bundles]
+      <warning>ui</warning> = [ "ui1", "ui2" ]
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   // b/297954569
   fun testBundleUsage() {
-    runTest("libs.bundles.ui", """
-        [bundles]
-        ui = [ "ui1", "ui2" ]
-    """.trimIndent())
+    runTest(
+      "libs.bundles.ui",
+      """
+      [bundles]
+      ui = [ "ui1", "ui2" ]
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testLibsUsage() {
-    runTest("libs.ui", """
-        [libraries]
-        ui = "group:name:version"
-    """.trimIndent())
+    runTest(
+      "libs.ui",
+      """
+      [libraries]
+      ui = "group:name:version"
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testLibsUsageInBundle() {
-    runTest("libs.bundles.bb", """
-        [libraries]
-        ui = "group:name:version"
-        [bundles]
-        bb = ["ui"]
-    """.trimIndent())
+    runTest(
+      "libs.bundles.bb",
+      """
+      [libraries]
+      ui = "group:name:version"
+      [bundles]
+      bb = ["ui"]
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testLibsNoUsage() {
-    runTest("", """
-        [libraries]
-        <warning>ui</warning> = "group:name:version"
-    """.trimIndent())
+    runTest(
+      "",
+      """
+      [libraries]
+      <warning>ui</warning> = "group:name:version"
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   // b/295282939
   fun testLibsUsageNestedCase() {
-    runTest("""
+    runTest(
+      """
       implementation(libs.androidx.compose.ui)
       debugImplementation(libs.androidx.compose.ui.test.manifest)
       androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -126,16 +145,20 @@ class CatalogUnusedHighlightingTest {
       implementation(libs.androidx.compose.ui.tooling.preview)
       implementation(libs.androidx.compose.ui.util)
 
-    """.trimIndent(), """
-        [libraries]
-        androidx-compose-ui = { module = "androidx.compose.ui:ui" }
-        androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-        androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
-        androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-        androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-        androidx-compose-ui-util = { module = "androidx.compose.ui:ui-util" }
-        <warning>androidx-compose-bom</warning> = { module = "androidx.compose:compose-bom", version.ref = "composeBom"}
-    """.trimIndent())
+      """
+        .trimIndent(),
+      """
+      [libraries]
+      androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+      androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+      androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+      androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+      androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+      androidx-compose-ui-util = { module = "androidx.compose.ui:ui-util" }
+      <warning>androidx-compose-bom</warning> = { module = "androidx.compose:compose-bom", version.ref = "composeBom"}
+      """
+        .trimIndent(),
+    )
   }
 
   private fun runTest(buildGradleText: String, catalogContent: String) {
@@ -149,9 +172,7 @@ class CatalogUnusedHighlightingTest {
     writeTextAndCommit("build.gradle", buildGradleText)
 
     val file = writeTextAndCommit("gradle/libs.versions.toml", catalogContent)
-    runInEdtAndWait {
-      fixture.testHighlighting(true, false, true, file)
-    }
+    runInEdtAndWait { fixture.testHighlighting(true, false, true, file) }
   }
 
   private fun writeTextAndCommit(relativePath: String, text: String): VirtualFile {
@@ -168,5 +189,4 @@ class CatalogUnusedHighlightingTest {
     writeText(text)
     findDocument()?.commitToPsi(project)
   }
-
 }

@@ -22,10 +22,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 interface BackgroundTaskInspectorTracker {
   fun trackTableModeSelected()
 
-  fun trackGraphModeSelected(
-    context: BackgroundTaskInspectorEvent.Context,
-    chainInfo: BackgroundTaskInspectorEvent.ChainInfo,
-  )
+  fun trackGraphModeSelected(context: BackgroundTaskInspectorEvent.Context, chainInfo: BackgroundTaskInspectorEvent.ChainInfo)
 
   fun trackJumpedToSource()
 
@@ -44,8 +41,7 @@ interface BackgroundTaskInspectorTracker {
   fun trackWakeLockUnderJobSelected()
 }
 
-fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo():
-  BackgroundTaskInspectorEvent.ChainInfo {
+fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): BackgroundTaskInspectorEvent.ChainInfo {
   val depthMap = mutableMapOf<String, Int>()
   for (work in this) {
     depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.maxOrNull() ?: 0) + 1

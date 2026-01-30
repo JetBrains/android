@@ -32,17 +32,16 @@ import java.awt.event.FocusListener
 import javax.swing.table.TableCellEditor
 
 /**
- * A property editor [ModelPropertyEditor] for catalog variables.
- * Catalog variables have string values only.
- * This is a [TextField] based editor allowing manual text entry.
-*/
+ * A property editor [ModelPropertyEditor] for catalog variables. Catalog variables have string values only. This is a [TextField] based
+ * editor allowing manual text entry.
+ */
 class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<String>,
   private val extensions: List<EditorExtensionAction<String, ModelPropertyT>>,
   cellEditor: TableCellEditor? = null,
   private val validator: PropertyEditorValidator? = null,
-  private val logValueEdited: () -> Unit = {}
+  private val logValueEdited: () -> Unit = {},
 ) :
   PropertyEditorBase<ModelPropertyT, String>(property, propertyContext, null),
   ModelPropertyEditor<String>,
@@ -53,64 +52,64 @@ class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
       "Multiple isMainAction == true editor extensions: ${extensions.filter { it.isMainAction }}"
     }
   }
+
   private var lastValueSet: String? = null
   private var disposed = false
   private val formatter = propertyContext.valueFormatter()
 
-  private val textField = object : JBTextField() {
+  private val textField =
+    object : JBTextField() {
 
-    override fun getPreferredSize(): Dimension {
-      val dimensions = super.getPreferredSize()
-      return if (dimensions.width < 200) {
-        Dimension(200, dimensions.height)
+      override fun getPreferredSize(): Dimension {
+        val dimensions = super.getPreferredSize()
+        return if (dimensions.width < 200) {
+          Dimension(200, dimensions.height)
+        } else dimensions
       }
-      else dimensions
-    }
 
-    fun addFocusLostListener(listener: () -> Unit) {
-      val focusListener = object : FocusListener {
-        override fun focusLost(e: FocusEvent?) = listener()
-        override fun focusGained(e: FocusEvent?) = Unit
+      fun addFocusLostListener(listener: () -> Unit) {
+        val focusListener =
+          object : FocusListener {
+            override fun focusLost(e: FocusEvent?) = listener()
+
+            override fun focusGained(e: FocusEvent?) = Unit
+          }
+        addFocusListener(focusListener)
       }
-      addFocusListener(focusListener)
-    }
 
-    /**
-     * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
-     *
-     * (Returns [false] if the editor has not yet been initialized).
-     */
-    fun isEditorChanged() = lastValueSet != null && lastValueSet != text
+      /**
+       * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
+       *
+       * (Returns [false] if the editor has not yet been initialized).
+       */
+      fun isEditorChanged() = lastValueSet != null && lastValueSet != text
 
-    fun applyChanges(annotatedValue: Annotated<ParsedValue<String>>) {
-      property.setParsedValue(annotatedValue.value)
-    }
-
-    init {
-      if (cellEditor != null) {
-        // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
-        // breaks property editors.
-        putClientProperty(ComboBox.TABLE_CELL_EDITOR_PROPERTY, cellEditor)
+      fun applyChanges(annotatedValue: Annotated<ParsedValue<String>>) {
+        property.setParsedValue(annotatedValue.value)
       }
-      text = property.getParsedValue().value.getText(formatter)
-      lastValueSet = text
-      isEditable = true
 
-      validator?.installValidation(this)
-      validator?.validate(this) // validate default (empty value)
+      init {
+        if (cellEditor != null) {
+          // Do not call registerTableCellEditor(cellEditor) which registers "JComboBox.isTableCellEditor" property which
+          // breaks property editors.
+          putClientProperty(ComboBox.TABLE_CELL_EDITOR_PROPERTY, cellEditor)
+        }
+        text = property.getParsedValue().value.getText(formatter)
+        lastValueSet = text
+        isEditable = true
 
-      addFocusLostListener{
-        if (!disposed) updateProperty()
+        validator?.installValidation(this)
+        validator?.validate(this) // validate default (empty value)
+
+        addFocusLostListener { if (!disposed) updateProperty() }
       }
     }
-  }
 
   override val component: JBTextField = textField
 
   override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
 
-  override fun getValue(): Annotated<ParsedValue<String>> =
-    propertyContext.parseEditorText(textField.text.trim())
+  override fun getValue(): Annotated<ParsedValue<String>> = propertyContext.parseEditorText(textField.text.trim())
 
   override fun updateProperty(): UpdatePropertyOutcome {
     if (disposed) throw IllegalStateException()
@@ -131,17 +130,11 @@ class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
     disposed = true
   }
 
-  override fun reload() {
-  }
+  override fun reload() {}
 
-  override fun reloadIfNotChanged() {
-  }
+  override fun reloadIfNotChanged() {}
 
-  override fun createNew(
-    property: ModelPropertyT,
-    cellEditor: TableCellEditor?,
-    isPropertyContext: Boolean
-  ): ModelPropertyEditor<String> =
+  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?, isPropertyContext: Boolean): ModelPropertyEditor<String> =
     stringVariablePropertyEditor(property, propertyContext, extensions, isPropertyContext, cellEditor, validator)
 
   override fun addFocusListener(listener: FocusListener) {
@@ -156,7 +149,7 @@ fun <ModelPropertyT : ModelPropertyCore<String>> stringVariablePropertyEditor(
   isPropertyContext: Boolean,
   cellEditor: TableCellEditor?,
   validator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit = { /* no usage tracking */ }
+  logValueEdited: () -> Unit = { /* no usage tracking */ },
 ): StringPropertyEditor<ModelPropertyT> =
   StringPropertyEditor(
     boundProperty,
@@ -164,4 +157,5 @@ fun <ModelPropertyT : ModelPropertyCore<String>> stringVariablePropertyEditor(
     extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
     cellEditor,
     validator,
-    logValueEdited)
+    logValueEdited,
+  )

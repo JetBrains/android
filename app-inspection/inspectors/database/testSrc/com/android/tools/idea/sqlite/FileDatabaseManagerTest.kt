@@ -55,19 +55,15 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     processDescriptor = StubProcessDescriptor()
 
     liveDatabaseId =
-      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
-        as SqliteDatabaseId.LiveSqliteDatabaseId
+      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0) as SqliteDatabaseId.LiveSqliteDatabaseId
 
     val virtualFile = mock<VirtualFile>()
     whenever(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
-    fileDatabaseId =
-      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile))
-        as SqliteDatabaseId.FileSqliteDatabaseId
+    fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as SqliteDatabaseId.FileSqliteDatabaseId
 
     deviceFileDownloaderService = mock()
 
-    fileDatabaseManager =
-      FileDatabaseManagerImpl(project, edtDispatcher, deviceFileDownloaderService)
+    fileDatabaseManager = FileDatabaseManagerImpl(project, edtDispatcher, deviceFileDownloaderService)
   }
 
   fun testOpenOfflineDatabases() = runBlocking {
@@ -86,9 +82,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
       )
 
     // Act
-    val offlineDatabaseData = runDispatching {
-      fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
-    }
+    val offlineDatabaseData = runDispatching { fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId) }
 
     // Assert
     verify(deviceFileDownloaderService)

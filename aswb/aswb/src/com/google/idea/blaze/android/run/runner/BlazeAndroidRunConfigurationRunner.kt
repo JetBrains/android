@@ -69,7 +69,6 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import java.io.IOException
 import java.util.concurrent.CancellationException
 import org.jetbrains.android.util.AndroidBundle
 
@@ -91,18 +90,18 @@ class BlazeAndroidRunConfigurationRunner(
     val isDebug = executor is DefaultDebugExecutor
 
     val deviceSelector = launchStrategy.getDeviceSelector()
-    val deviceSession =
-      deviceSelector.getDevice(project, executor, environment, isDebug, runConfig.uniqueID) ?: return null
+    val deviceSession = deviceSelector.getDevice(project, executor, environment, isDebug, runConfig.uniqueID) ?: return null
 
     val deployTarget = deviceSession.deployTarget
     if (deployTarget.hasCustomRunProfileState(executor)) {
       return deployTarget.getRunProfileState(executor, environment, DeployTargetState.DEFAULT_STATE)
     }
 
-    val deviceFutures = deviceSession.deviceFutures
-                        ?: // The user deliberately canceled, or some error was encountered and exposed by the chooser.
-                        // Quietly exit.
-                        return null
+    val deviceFutures =
+      deviceSession.deviceFutures
+        ?: // The user deliberately canceled, or some error was encountered and exposed by the chooser.
+        // Quietly exit.
+        return null
 
     if (deviceFutures.get().isEmpty()) {
       throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
@@ -126,8 +125,7 @@ class BlazeAndroidRunConfigurationRunner(
             val deployInfo = extractDeployInfo(context, environment.project, buildOutputs)
             liveEditDataExtractor?.blockingExtract(context, buildOutputs)
             launchStrategy.createBlazeAndroidRunContext(environment, deployInfo, liveEditDataExtractor, runConfig)
-          }
-          ?: throw ExecutionException("APK build failed")
+          } ?: throw ExecutionException("APK build failed")
 
         val state = runConfig.handler.getState()
 
@@ -135,8 +133,7 @@ class BlazeAndroidRunConfigurationRunner(
         val wearLaunchOptions = (state as? BlazeAndroidBinaryRunConfigurationState)?.currentWearLaunchOptions
         if (wearLaunchOptions != null) {
           getWearExecutor(wearLaunchOptions, environment, deployTarget, runContext)
-        }
-        else {
+        } else {
           val launchOptions = launchOptionsBuilder.build()
           BlazeAndroidConfigurationExecutor(
             runContext.consoleProvider,
@@ -146,7 +143,7 @@ class BlazeAndroidRunConfigurationRunner(
             runContext,
             launchStrategy,
             launchOptions,
-            LiveEditService.getInstance(environment.project)
+            LiveEditService.getInstance(environment.project),
           )
         }
       }
@@ -163,13 +160,14 @@ class BlazeAndroidRunConfigurationRunner(
     val settings: AppRunSettings =
       object : AppRunSettings {
         override val deployOptions: DeployOptions
-          get() = DeployOptions(
-            disabledDynamicFeatures = emptyList(),
-            pmInstallFlags = "",
-            installOnAllUsers = true,
-            alwaysInstallWithPm = true,
-            allowAssumeVerified = false
-          )
+          get() =
+            DeployOptions(
+              disabledDynamicFeatures = emptyList(),
+              pmInstallFlags = "",
+              installOnAllUsers = true,
+              alwaysInstallWithPm = true,
+              allowAssumeVerified = false,
+            )
 
         override val componentLaunchOptions: ComponentLaunchOptions
           get() = launchOptions
@@ -177,32 +175,21 @@ class BlazeAndroidRunConfigurationRunner(
 
     val deviceFutures = deployTarget.launchDevices(env.project)
 
-    val deployer: ApplicationDeployer =
-      ApplicationDeployerImpl(env.project, RunStats.from(env))
+    val deployer: ApplicationDeployer = ApplicationDeployerImpl(env.project, RunStats.from(env))
 
     return when (launchOptions) {
       is TileLaunchOptions -> ::AndroidTileConfigurationExecutor
       is WatchFaceLaunchOptions -> ::AndroidWatchFaceConfigurationExecutor
       is ComplicationLaunchOptions -> ::AndroidComplicationConfigurationExecutor
       else -> error("Unknown launch options " + launchOptions.javaClass.getName())
-    }(
-      env,
-      deviceFutures,
-      settings,
-      runContext.apkProvider,
-      runContext.applicationProjectContext,
-      deployer
-    )
+    }(env, deviceFutures, settings, runContext.apkProvider, runContext.applicationProjectContext, deployer)
   }
 
   override fun executeBeforeRunTask(environment: ExecutionEnvironment): Boolean {
     return true
   }
 
-  private fun <T> executeUnderBuildProgress(
-    environment: ExecutionEnvironment,
-    buildInvocation: (context: BlazeContext) -> T,
-  ): T? {
+  private fun <T> executeUnderBuildProgress(environment: ExecutionEnvironment, buildInvocation: (context: BlazeContext) -> T): T? {
     val project = environment.project
     val settings = BlazeUserSettings.getInstance()
     return Scope.root(
@@ -210,59 +197,46 @@ class BlazeAndroidRunConfigurationRunner(
         context
           .push(ProblemsViewScope(project, settings.showProblemsViewOnRun))
           .push(ExperimentScope())
-          .push(ToolWindowScope.Builder(project, Task(project, "Build apk"))
-                  .setPopupBehavior(settings.showBlazeConsoleOnRun)
-                  .setIssueParsers(
-                    BlazeIssueParser.defaultIssueParsers(
-                      project,
-                      WorkspaceRoot.fromProject(project),
-                      BlazeInvocationContext.ContextType.BeforeRunTask
-                    )
-                  )
-                  .build()
+          .push(
+            ToolWindowScope.Builder(project, Task(project, "Build apk"))
+              .setPopupBehavior(settings.showBlazeConsoleOnRun)
+              .setIssueParsers(
+                BlazeIssueParser.defaultIssueParsers(
+                  project,
+                  WorkspaceRoot.fromProject(project),
+                  BlazeInvocationContext.ContextType.BeforeRunTask,
+                )
+              )
+              .build()
           )
           .push(IdeaLogScope())
         try {
           val buildFuture =
-            ProgressiveTaskWithProgressIndicator.builder(
-              project,
-              "Executing ${Blaze.buildSystemName(project)} apk build"
-            )
+            ProgressiveTaskWithProgressIndicator.builder(project, "Executing ${Blaze.buildSystemName(project)} apk build")
               .submitTaskWithResult { progressIndicator ->
                 context.push(ProgressIndicatorScope(progressIndicator))
                 buildInvocation(context)
               }
           return@ScopedFunction Futures.getChecked(buildFuture, ExecutionException::class.java)
-        }
-        catch (e: ExecutionException) {
+        } catch (e: ExecutionException) {
           context.setHasError()
-        }
-        catch (e: CancellationException) {
+        } catch (e: CancellationException) {
           context.setCancelled()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           LOG.error(e)
         }
         return@ScopedFunction null
-      })
+      }
+    )
   }
 
   @Throws(ExecutionException::class)
-  private fun extractDeployInfo(
-    context: BlazeContext,
-    project: Project,
-    buildOutputs: BlazeBuildOutputs,
-  ): BlazeAndroidDeployInfo {
+  private fun extractDeployInfo(context: BlazeContext, project: Project, buildOutputs: BlazeBuildOutputs): BlazeAndroidDeployInfo {
     context.output(StatusOutput("Deployment information parsed from build artifacts."))
 
     return try {
-      deployInfoExtractor.extract(
-        project,
-        buildOutputs,
-        context
-      )
-    }
-    catch (e: ApkProvisionException) {
+      deployInfoExtractor.extract(project, buildOutputs, context)
+    } catch (e: ApkProvisionException) {
       LOG.warn("Unexpected error while retrieving deploy info", e)
       val message = "Error retrieving deployment info from build results: " + e.message
       IssueOutput.error(message).submit(context)
@@ -273,21 +247,18 @@ class BlazeAndroidRunConfigurationRunner(
   companion object {
     private val LOG = Logger.getInstance(BlazeAndroidRunConfigurationRunner::class.java)
 
-    private fun canDebug(
-      deviceFutures: DeviceFutures, runConfigName: String,
-    ): String? {
+    private fun canDebug(deviceFutures: DeviceFutures, runConfigName: String): String? {
       // TODO: b/475173918 - Implement isDebuggable check for a given target.
       // The old check used to say the app is debuggable or the device is debuggable, but the first check would always return true.
       // ASwB currently relies on error messages returned by deployment.
       return null
     }
-
   }
 }
 
 /**
- * A delegating executor that initializes the actual [AndroidConfigurationExecutor] lazily.
- * This is used to delay the creation of the executor until the build step is complete.
+ * A delegating executor that initializes the actual [AndroidConfigurationExecutor] lazily. This is used to delay the creation of the
+ * executor until the build step is complete.
  */
 private class LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(
   override val configuration: RunConfiguration,
@@ -295,6 +266,8 @@ private class LazilyInitializedDelegatingBlazeAndroidConfigurationExecutor(
 ) : AndroidConfigurationExecutor {
 
   private val delegate by lazy(mode = LazyThreadSafetyMode.PUBLICATION, factory)
+
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = delegate.run(indicator)
+
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = delegate.debug(indicator)
 }

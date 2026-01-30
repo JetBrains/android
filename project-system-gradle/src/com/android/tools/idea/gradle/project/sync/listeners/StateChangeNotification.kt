@@ -26,11 +26,15 @@ import com.intellij.ui.EditorNotifications
 import org.jetbrains.annotations.SystemIndependent
 
 private val LOG = Logger.getInstance(StateChangeNotification::class.java)
+
 open class StateChangeNotification(private val project: Project) : GradleSyncListenerWithRoot {
 
   override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
+
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
+
   override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) = notifyStateChanged()
+
   override fun syncSkipped(project: Project) = Unit
 
   @VisibleForTesting
@@ -44,7 +48,8 @@ open class StateChangeNotification(private val project: Project) : GradleSyncLis
           LOG.info(
             "Failed to update editor notifications for file '${
               FileUtilRt.toSystemDependentName(file.path)
-            }'", e
+            }'",
+            e,
           )
         }
       }

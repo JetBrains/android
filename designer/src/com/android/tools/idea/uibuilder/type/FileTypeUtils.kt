@@ -39,13 +39,10 @@ private val PREVIEW_CONFIG_DENSITY = Density.XXXHIGH
 private var deviceAndStateCached: Pair<Device, State>? = null
 
 /**
- * A helper function to provide the [Configuration] for a [VirtualFile]. For example, a drawable
- * file may want to use a custom [Configuration]; a layout file may just use the [Configuration]
- * provided by [ConfigurationManager.getConfiguration].
+ * A helper function to provide the [Configuration] for a [VirtualFile]. For example, a drawable file may want to use a custom
+ * [Configuration]; a layout file may just use the [Configuration] provided by [ConfigurationManager.getConfiguration].
  */
-internal fun VirtualFile.getConfiguration(
-  configurationManager: ConfigurationManager
-): Configuration {
+internal fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Configuration {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(configurationManager.project, this)
   return when (psiFile?.typeOf()) {
     is AdaptiveIconFileType,
@@ -55,14 +52,12 @@ internal fun VirtualFile.getConfiguration(
 }
 
 /**
- * Create specific configuration and device for preview resources (e.g. drawable and vector) The
- * dimension of device is [PREVIEW_CONFIG_X_DIMENSION] x [PREVIEW_CONFIG_Y_DIMENSION]. The density
- * is [PREVIEW_CONFIG_DENSITY] if it is compatible with the project api level, otherwise
- * [Density.DPI_560] is used.
+ * Create specific configuration and device for preview resources (e.g. drawable and vector) The dimension of device is
+ * [PREVIEW_CONFIG_X_DIMENSION] x [PREVIEW_CONFIG_Y_DIMENSION]. The density is [PREVIEW_CONFIG_DENSITY] if it is compatible with the project
+ * api level, otherwise [Density.DPI_560] is used.
  *
- * The given [file] is used as a template for the configuration and will be used to persist any
- * changes via the [ConfigurationManager]. If the user changes the theme, this will be persisted by
- * the [ConfigurationManager] and re-used on subsequent openings.
+ * The given [file] is used as a template for the configuration and will be used to persist any changes via the [ConfigurationManager]. If
+ * the user changes the theme, this will be persisted by the [ConfigurationManager] and re-used on subsequent openings.
  */
 internal fun ConfigurationManager.getPreviewConfig(file: VirtualFile): Configuration {
   val config = getConfiguration(file)
@@ -74,8 +69,7 @@ internal fun ConfigurationManager.getPreviewConfig(file: VirtualFile): Configura
   }
 
   val targetApiLevel = target?.version?.apiLevel ?: 1
-  val targetDensity =
-    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density(560)
+  val targetDensity = if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density(560)
 
   val device =
     Device.Builder()

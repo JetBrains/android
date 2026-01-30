@@ -23,9 +23,9 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
-import org.mockito.kotlin.doReturn
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
 fun PreparedTestProject.Context.performAndWaitForSyncEnd(invoke: () -> Unit) {
@@ -44,9 +44,7 @@ fun PreparedTestProject.Context.performAndWaitForSyncEnd(invoke: () -> Unit) {
   invoke()
 
   val results = publishedResult.get(10, TimeUnit.SECONDS)
-  assertThat(results)
-    .named("Second sync result")
-    .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
 fun checkBuildGradle(project: Project, buildFilePath: String, check: (String) -> Boolean): Boolean {
@@ -170,7 +168,7 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager> {
-      on { tryGetMavenClassRegistry() } doReturn(mavenClassRegistry)
+      on { tryGetMavenClassRegistry() } doReturn (mavenClassRegistry)
       onBlocking { getMavenClassRegistry() } doReturn (mavenClassRegistry)
     }
   }

@@ -29,16 +29,23 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 class ScreenshotTestExecutionListener : ExecutionListener {
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
     val runProfile = env.runProfile
-    if (runProfile is GradleRunConfiguration &&
+    if (
+      runProfile is GradleRunConfiguration &&
         runProfile.getUserData<Boolean>(IS_SCREENSHOT_TEST_CONFIGURATION) == true &&
-        runProfile.getUserData<Boolean>(GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey) == true) {
+        runProfile.getUserData<Boolean>(
+          GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey
+        ) == true
+    ) {
       UsageTracker.log(
-        AndroidStudioEvent.newBuilder().apply {
-          kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
-          screenshotTestComposePreviewEvent = ScreenshotTestComposePreviewEvent.newBuilder().apply {
-            type = ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED
-          }.build()
-        }.withProjectId(env.project)
+        AndroidStudioEvent.newBuilder()
+          .apply {
+            kind = AndroidStudioEvent.EventKind.SCREENSHOT_TEST_COMPOSE_PREVIEW
+            screenshotTestComposePreviewEvent =
+              ScreenshotTestComposePreviewEvent.newBuilder()
+                .apply { type = ScreenshotTestComposePreviewEvent.Type.VALIDATE_CLICKED }
+                .build()
+          }
+          .withProjectId(env.project)
       )
     }
   }

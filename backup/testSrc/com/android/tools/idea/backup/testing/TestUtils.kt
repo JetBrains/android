@@ -27,9 +27,8 @@ import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 
 internal inline fun <reified T> DialogWrapper.findComponent(name: String): T {
-  return TreeWalker(rootPane).descendants().filterIsInstance<T>().find {
-    (it as JComponent).name == name
-  } ?: fail("${T::class.simpleName} named $name was not found")
+  return TreeWalker(rootPane).descendants().filterIsInstance<T>().find { (it as JComponent).name == name }
+    ?: fail("${T::class.simpleName} named $name was not found")
 }
 
 internal fun DialogWrapper.clickOk() {
@@ -39,8 +38,7 @@ internal fun DialogWrapper.clickOk() {
 
 // It's possible to extract the actual text, but it requires knowledge of
 // implementation details that might change.
-internal fun Presentation.hasTooltip(): Boolean =
-  getClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP) != null
+internal fun Presentation.hasTooltip(): Boolean = getClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP) != null
 
 fun FakeBackupManager.waitForBackupInvocations(num: Int) {
   waitForCondition(5.seconds) { showBackupDialogInvocations.size == num }

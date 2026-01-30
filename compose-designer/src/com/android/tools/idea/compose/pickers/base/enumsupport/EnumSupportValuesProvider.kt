@@ -18,10 +18,7 @@ package com.android.tools.idea.compose.pickers.base.enumsupport
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 
-/**
- * Interface that may be used by [EnumSupport] instances to retrieve values the moment they're
- * called.
- */
+/** Interface that may be used by [EnumSupport] instances to retrieve values the moment they're called. */
 interface EnumSupportValuesProvider {
 
   fun getValuesProvider(key: String): EnumValuesProvider?

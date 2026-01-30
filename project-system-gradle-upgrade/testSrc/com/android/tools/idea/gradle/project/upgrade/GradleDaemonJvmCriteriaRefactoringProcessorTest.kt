@@ -23,12 +23,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.lang.JavaVersion
+import kotlin.io.path.readText
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.io.path.readText
 
 /*
  * Copyright (C) 2025 The Android Open Source Project
@@ -49,8 +49,7 @@ import kotlin.io.path.readText
 @RunsInEdt
 class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
 
   val project by lazy { projectRule.project }
 
@@ -109,14 +108,14 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
     }
   }
 
-
   private fun AgpUpgradeComponentRefactoringProcessor.assertRefactorProcessorIsNoOp() {
     assertTrue(findUsages().isEmpty())
   }
 
   private fun assertDaemonJvmCriteriaFor(version: Int) {
     val currentProperties = GradleDaemonJvmPropertiesFile.getPropertyPath(project.basePath!!).readText()
-    val expectedTemplateProperties = GradleDaemonJvmCriteriaTemplatesManager.getTemplateCriteriaPropertiesContent(JavaVersion.parse(version.toString()))
+    val expectedTemplateProperties =
+      GradleDaemonJvmCriteriaTemplatesManager.getTemplateCriteriaPropertiesContent(JavaVersion.parse(version.toString()))
     assertEquals(expectedTemplateProperties, currentProperties)
   }
 }

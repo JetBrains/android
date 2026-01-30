@@ -26,13 +26,14 @@ import com.intellij.psi.search.UsageSearchContext
 import com.intellij.psi.tree.TokenSet
 
 class DeclarativeTodoIndexer : LexerBasedTodoIndexer() {
-  override fun createLexer(consumer: OccurrenceConsumer): Lexer = object : BaseFilterLexer(DeclarativeLexer(), consumer) {
-    override fun advance() {
-      if (myDelegate.tokenType in TokenSet.create(BLOCK_COMMENT, LINE_COMMENT)) {
-        scanWordsInToken(UsageSearchContext.IN_COMMENTS.toInt(), false, false)
-        advanceTodoItemCountsInToken()
+  override fun createLexer(consumer: OccurrenceConsumer): Lexer =
+    object : BaseFilterLexer(DeclarativeLexer(), consumer) {
+      override fun advance() {
+        if (myDelegate.tokenType in TokenSet.create(BLOCK_COMMENT, LINE_COMMENT)) {
+          scanWordsInToken(UsageSearchContext.IN_COMMENTS.toInt(), false, false)
+          advanceTodoItemCountsInToken()
+        }
+        myDelegate.advance()
       }
-      myDelegate.advance()
     }
-  }
 }

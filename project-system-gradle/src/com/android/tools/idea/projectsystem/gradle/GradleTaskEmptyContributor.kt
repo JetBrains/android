@@ -29,18 +29,17 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.util.containers.MultiMap
 import icons.StudioIcons
-import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.awt.Cursor
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 
-/**
- * Contributor that adds a label in the Gradle tool window if the list of tasks is not built.
- */
-class GradleTaskEmptyContributor: ExternalSystemViewContributor() {
+/** Contributor that adds a label in the Gradle tool window if the list of tasks is not built. */
+class GradleTaskEmptyContributor : ExternalSystemViewContributor() {
   companion object {
     private const val LABEL_TEXT = "Task list not built..."
-    private const val TOOLTIP_TEXT = """
+    private const val TOOLTIP_TEXT =
+      """
       Only test tasks are configured during Gradle Sync. Configuring all tasks can impact Gradle Sync performance on large projects.
     """
     private const val TOOLTIP_LINK_TEXT = "Show experimental settings..."
@@ -62,7 +61,7 @@ class GradleTaskEmptyContributor: ExternalSystemViewContributor() {
 
   override fun createNodes(
     externalProjectsView: ExternalProjectsView?,
-    dataNodes: MultiMap<Key<*>, DataNode<*>>?
+    dataNodes: MultiMap<Key<*>, DataNode<*>>?,
   ): MutableList<ExternalSystemNode<*>> {
     if (externalProjectsView is ExternalProjectsViewImpl && externalProjectsView.toolbar != null) {
       addNoTaskLabelAndSetVisibility(externalProjectsView)
@@ -86,16 +85,17 @@ class GradleTaskEmptyContributor: ExternalSystemViewContributor() {
       noTasksLabel.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
       noTasksLabel.icon = StudioIcons.Common.INFO
       noTasksLabel.name = labelName
-      noTasksLabel.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          try {
-            showSettingsRunnable.run()
-          }
-          catch (ex: Exception) {
-            // Pass;
+      noTasksLabel.addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseClicked(e: MouseEvent) {
+            try {
+              showSettingsRunnable.run()
+            } catch (ex: Exception) {
+              // Pass;
+            }
           }
         }
-      })
+      )
       toolbar.add(noTasksLabel)
     }
     noTasksLabel.isVisible = GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST

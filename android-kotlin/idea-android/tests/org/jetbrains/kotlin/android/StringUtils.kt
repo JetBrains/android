@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.android
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 
 fun String.trimTrailingWhitespacesAndAddNewlineAtEOF(): String =
-  this.trimTrailingWhitespaces().let { result -> if (result.endsWith("\n")) result else result + "\n" }
+    this.trimTrailingWhitespaces().let { result -> if (result.endsWith("\n")) result else result + "\n" }
 
-fun String.trimTrailingWhitespaces(): String =
-  this.split('\n').joinToString(separator = "\n") { it.trimEnd() }
+fun String.trimTrailingWhitespaces(): String = this.split('\n').joinToString(separator = "\n") { it.trimEnd() }

@@ -89,21 +89,8 @@ class InspectorPropertiesViewTest {
         override fun get(id: Long): ViewNode? = null
       }
     val id = 3L
-    val text =
-      InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
-    val prop =
-      InspectorGroupPropertyItem(
-        ANDROID_URI,
-        "prop",
-        STRING,
-        "Value",
-        null,
-        DECLARED,
-        null,
-        id,
-        context,
-        mutableListOf(),
-      )
+    val text = InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
+    val prop = InspectorGroupPropertyItem(ANDROID_URI, "prop", STRING, "Value", null, DECLARED, null, id, context, mutableListOf())
     val inspector = createInspector(listOf(text, prop))
     assertThat(inspector.lines).hasSize(5)
     val declared = inspector.lines[2] as FakeTableLineModel
@@ -127,40 +114,15 @@ class InspectorPropertiesViewTest {
         override fun get(id: Long): ViewNode? = null
       }
     val id = 3L
-    val text =
-      InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
-    val width =
-      InspectorPropertyItem(ANDROID_URI, "layout_width", DIMENSION, "2", LAYOUT, null, id, context)
-    val alpha =
-      InspectorPropertyItem(ANDROID_URI, "alpha", FLOAT, "0.5", DEFAULT, null, id, context)
+    val text = InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
+    val width = InspectorPropertyItem(ANDROID_URI, "layout_width", DIMENSION, "2", LAYOUT, null, id, context)
+    val alpha = InspectorPropertyItem(ANDROID_URI, "alpha", FLOAT, "0.5", DEFAULT, null, id, context)
     val param = ParameterItem("modifier", STRING, "", PARAMETERS, id, context, -1, 0)
     val semantic1 = ParameterItem("Text", STRING, "Hello", MERGED, id, context, -1, 0)
-    val semantic2 =
-      ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
-    val counts =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "count",
-        INT32,
-        "7",
-        RECOMPOSITIONS,
-        null,
-        id,
-        context,
-      )
-    val skips =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "skips",
-        INT32,
-        "14",
-        RECOMPOSITIONS,
-        null,
-        id,
-        context,
-      )
-    val inspector =
-      createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
+    val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
+    val counts = InspectorPropertyItem(NAMESPACE_INTERNAL, "count", INT32, "7", RECOMPOSITIONS, null, id, context)
+    val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
+    val inspector = createInspector(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips))
     assertThat(inspector.lines).hasSize(13)
     checkStandardSections(inspector, text, width, alpha, param, semantic1, semantic2)
   }
@@ -176,43 +138,15 @@ class InspectorPropertiesViewTest {
         override fun get(id: Long): ViewNode? = null
       }
     val id = 3L
-    val text =
-      InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
-    val width =
-      InspectorPropertyItem(ANDROID_URI, "layout_width", DIMENSION, "2", LAYOUT, null, id, context)
-    val alpha =
-      InspectorPropertyItem(ANDROID_URI, "alpha", FLOAT, "0.5", DEFAULT, null, id, context)
+    val text = InspectorPropertyItem(ANDROID_URI, "text", STRING, "Hello", DECLARED, null, id, context)
+    val width = InspectorPropertyItem(ANDROID_URI, "layout_width", DIMENSION, "2", LAYOUT, null, id, context)
+    val alpha = InspectorPropertyItem(ANDROID_URI, "alpha", FLOAT, "0.5", DEFAULT, null, id, context)
     val param = ParameterItem("modifier", STRING, "", PARAMETERS, id, context, -1, 0)
     val semantic1 = ParameterItem("Text", STRING, "Hello", MERGED, id, context, -1, 0)
-    val semantic2 =
-      ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
-    val counts =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "count",
-        INT32,
-        "7",
-        RECOMPOSITIONS,
-        null,
-        id,
-        context,
-      )
-    val skips =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "skips",
-        INT32,
-        "14",
-        RECOMPOSITIONS,
-        null,
-        id,
-        context,
-      )
-    val propertiesView =
-      createView(
-        listOf(text, width, alpha, param, semantic1, semantic2, counts, skips),
-        ::showRecompositions,
-      )
+    val semantic2 = ParameterItem("ContentDescription", STRING, "Hello", UNMERGED, id, context, -1, 0)
+    val counts = InspectorPropertyItem(NAMESPACE_INTERNAL, "count", INT32, "7", RECOMPOSITIONS, null, id, context)
+    val skips = InspectorPropertyItem(NAMESPACE_INTERNAL, "skips", INT32, "14", RECOMPOSITIONS, null, id, context)
+    val propertiesView = createView(listOf(text, width, alpha, param, semantic1, semantic2, counts, skips), ::showRecompositions)
     val propertiesModel = propertiesView.model as InspectorPropertiesModel
     var inspector = FakeInspectorPanel()
     val tab = propertiesView.tabs.single()
@@ -255,28 +189,8 @@ class InspectorPropertiesViewTest {
         }
       }
     model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
-    val x =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "x",
-        DIMENSION,
-        "0",
-        PropertySection.DIMENSION,
-        null,
-        VIEW2,
-        model,
-      )
-    val y =
-      InspectorPropertyItem(
-        NAMESPACE_INTERNAL,
-        "y",
-        DIMENSION,
-        "0",
-        PropertySection.DIMENSION,
-        null,
-        VIEW2,
-        model,
-      )
+    val x = InspectorPropertyItem(NAMESPACE_INTERNAL, "x", DIMENSION, "0", PropertySection.DIMENSION, null, VIEW2, model)
+    val y = InspectorPropertyItem(NAMESPACE_INTERNAL, "y", DIMENSION, "0", PropertySection.DIMENSION, null, VIEW2, model)
     val propertiesView = createView(listOf(x, y), model = model)
     val inspector = FakeInspectorPanel()
     val tab = propertiesView.tabs.single()
@@ -329,15 +243,7 @@ class InspectorPropertiesViewTest {
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
-    val layoutInspector =
-      LayoutInspector(
-        AndroidCoroutineScope(disposable),
-        mock(),
-        client,
-        model,
-        notificationModel,
-        settings,
-      )
+    val layoutInspector = LayoutInspector(AndroidCoroutineScope(disposable), mock(), client, model, notificationModel, settings)
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView
@@ -362,16 +268,13 @@ class InspectorPropertiesViewTest {
     settings.showRecompositions = true
   }
 
-  private fun Table<String, String, InspectorPropertyItem>.addProperty(
-    property: InspectorPropertyItem
-  ): InspectorPropertyItem? = this.put(property.namespace, property.name, property)
+  private fun Table<String, String, InspectorPropertyItem>.addProperty(property: InspectorPropertyItem): InspectorPropertyItem? =
+    this.put(property.namespace, property.name, property)
 
   private fun FakeTableLineModel.getComponentFor(property: InspectorPropertyItem): Component? {
     val table: PTable = mock()
-    val renderProvider =
-      tableUI.tableCellRendererProvider.invoke(table, property, PTableColumn.VALUE)
-    val component =
-      renderProvider.getEditorComponent(table, property, PTableColumn.VALUE, 0, false, false, false)
+    val renderProvider = tableUI.tableCellRendererProvider.invoke(table, property, PTableColumn.VALUE)
+    val component = renderProvider.getEditorComponent(table, property, PTableColumn.VALUE, 0, false, false, false)
     return component?.components?.single()
   }
 

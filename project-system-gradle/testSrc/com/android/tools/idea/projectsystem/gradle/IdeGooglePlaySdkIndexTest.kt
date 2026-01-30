@@ -22,20 +22,21 @@ import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.detector.api.LintFix
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_DEPRECATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_UPDATED
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_DEPRECATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import org.jetbrains.android.AndroidTestCase
 
-internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
+internal class IdeGooglePlaySdkIndexTest : AndroidTestCase() {
   fun testGenerateSdkLinkHasOnUrlOpenCallBack() {
     val ideIndex = IdeGooglePlaySdkIndex
     ideIndex.initialize()
     val quickFix = ideIndex.generateSdkLinkLintFix("com.google.firebase", "firebase-auth", "9.0.0", null)
     assertThat(quickFix).isInstanceOf(LintFix.ShowUrl::class.java)
     assertWithMessage("onUrlOpen should be defined and ideally be used to report a $SDK_INDEX_LINK_FOLLOWED event")
-      .that((quickFix as LintFix.ShowUrl).onUrlOpen).isNotNull()
+      .that((quickFix as LintFix.ShowUrl).onUrlOpen)
+      .isNotNull()
   }
 
   fun testIssueIsBlockingReported() {
@@ -56,12 +57,24 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
   fun testIdeFlagsMatchDefaultFlags() {
     val ideIndex = IdeGooglePlaySdkIndex
     ideIndex.initializeAndSetFlags()
-    assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER and StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER should match.\n" +
-                      "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showNotesFromDeveloper).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER)
-    assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS and StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS should match.\n" +
-                      "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showRecommendedVersions).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS)
-    assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_DEPRECATION_ISSUES and StudioFlags.SHOW_SDK_INDEX_DEPRECATION_ISSUES should match.\n" +
-                      "The difference may occur if there is a channel conditional default or one was changed but not the other (see b/381276797)").that(ideIndex.showDeprecationIssues).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_DEPRECATION_ISSUES)
+    assertWithMessage(
+        "The value of GooglePlayIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER and StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER should match.\n" +
+          "The difference may occur if there is a channel conditional default or one was changed but not the other"
+      )
+      .that(ideIndex.showNotesFromDeveloper)
+      .isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER)
+    assertWithMessage(
+        "The value of GooglePlayIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS and StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS should match.\n" +
+          "The difference may occur if there is a channel conditional default or one was changed but not the other"
+      )
+      .that(ideIndex.showRecommendedVersions)
+      .isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS)
+    assertWithMessage(
+        "The value of GooglePlayIndex.DEFAULT_SHOW_DEPRECATION_ISSUES and StudioFlags.SHOW_SDK_INDEX_DEPRECATION_ISSUES should match.\n" +
+          "The difference may occur if there is a channel conditional default or one was changed but not the other (see b/381276797)"
+      )
+      .that(ideIndex.showDeprecationIssues)
+      .isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_DEPRECATION_ISSUES)
   }
 
   fun testLogUpdateLibraryGeneratesEvent() {

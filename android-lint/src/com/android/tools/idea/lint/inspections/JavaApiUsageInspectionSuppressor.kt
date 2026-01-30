@@ -21,9 +21,8 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * This suppresses JavaApiUsageInspection in Android modules, where it is superseded by the NewApi
- * Lint check. The NewApi Lint check handles various Android-specific details such as runtime
- * version checks and API desugaring.
+ * This suppresses JavaApiUsageInspection in Android modules, where it is superseded by the NewApi Lint check. The NewApi Lint check handles
+ * various Android-specific details such as runtime version checks and API desugaring.
  */
 class JavaApiUsageInspectionSuppressor : InspectionSuppressor {
 

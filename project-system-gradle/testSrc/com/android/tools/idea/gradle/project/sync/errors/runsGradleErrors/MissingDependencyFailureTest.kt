@@ -31,11 +31,11 @@ import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.containers.ContainerUtil
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyIssue
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
 
@@ -58,7 +58,10 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           events.firstOrNull()?.let {
             expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
             expect.that(it.message).isEqualTo("Could Not Resolve androidx.databinding:databinding-common:$latestKnown")
-            expect.that(it.description).isEqualTo("""
+            expect
+              .that(it.description)
+              .isEqualTo(
+                """
               |A problem occurred configuring root project 'project'.
               |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find androidx.databinding:databinding-common:$latestKnown.
@@ -68,7 +71,9 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               |
               |Possible solution:
               | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
-              |""".trimMargin())
+              |"""
+                  .trimMargin()
+              )
             expect.that((it as? BuildIssueEvent)?.issue).isInstanceOf(UnresolvedDependencyIssue::class.java)
             // When not offline mode no quickfixes are expected.
             expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).isEmpty()
@@ -79,27 +84,37 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
       },
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER)
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: org.gradle.tooling.BuildActionFailureException
-                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-              exception: org.gradle.api.ProjectConfigurationException
-                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
-              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
-              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
-                at: no info
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.api.ProjectConfigurationException
+                  at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+                exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                  at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+                exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                  at: no info
+              }
             }
-          }
-        """.trimIndent())
-      }
+            """
+              .trimIndent()
+          )
+      },
     )
   }
 
@@ -119,19 +134,29 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           events.firstOrNull()?.let {
             expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
             expect.that(it.message).isEqualTo("Could Not Resolve my.not.existing.dependency:gradle:1.2.3-dev")
-            expect.that(it.description).startsWith("""
-              |A problem occurred configuring root project 'project'.
-              |> Could not resolve all artifacts for configuration 'classpath'.
-              |   > Could not find my.not.existing.dependency:gradle:1.2.3-dev.
-              |     Searched in the following locations:
-              """.trimMargin())
-            expect.that(it.description).endsWith("""
-              |     Required by:
-              |         buildscript of root project 'project'
-              |
-              |Possible solution:
-              | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
-              |""".trimMargin())
+            expect
+              .that(it.description)
+              .startsWith(
+                """
+                |A problem occurred configuring root project 'project'.
+                |> Could not resolve all artifacts for configuration 'classpath'.
+                |   > Could not find my.not.existing.dependency:gradle:1.2.3-dev.
+                |     Searched in the following locations:
+                """
+                  .trimMargin()
+              )
+            expect
+              .that(it.description)
+              .endsWith(
+                """
+                |     Required by:
+                |         buildscript of root project 'project'
+                |
+                |Possible solution:
+                | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
+                |"""
+                  .trimMargin()
+              )
             expect.that((it as? BuildIssueEvent)?.issue).isInstanceOf(UnresolvedDependencyIssue::class.java)
             // When not offline mode no quickfixes are expected.
             expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).isEmpty()
@@ -142,27 +167,37 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
       },
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_OTHER)
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: org.gradle.tooling.BuildActionFailureException
-                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-              exception: org.gradle.api.ProjectConfigurationException
-                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
-              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
-              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
-                at: no info
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.api.ProjectConfigurationException
+                  at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+                exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                  at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+                exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                  at: no info
+              }
             }
-          }
-        """.trimIndent())
-      }
+            """
+              .trimIndent()
+          )
+      },
     )
   }
 
@@ -183,7 +218,8 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               firstSyncAllBuildEventsProcessedLatch.countDown()
               allBuildEventsProcessedLatch.countDown()
             }
-          })
+          }
+        )
       }
     ) {
       // Wait for seeing finish events for first sync.
@@ -194,10 +230,12 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
       val appBuildFile = VfsUtil.findFileByIoFile(this.projectRoot.resolve("app/build.gradle"), true)!!
       runWriteActionAndWait {
         with(appBuildFile) {
-          val text = VfsUtil.loadText(this) + "\nbuildscript { " +
-            "\nrepositories { mavenCentral() } " +
-            "\ndependencies { classpath 'my.not.existing.dependency:gradle:1.2.3-dev' }" +
-            "}"
+          val text =
+            VfsUtil.loadText(this) +
+              "\nbuildscript { " +
+              "\nrepositories { mavenCentral() } " +
+              "\ndependencies { classpath 'my.not.existing.dependency:gradle:1.2.3-dev' }" +
+              "}"
           setBinaryContent(text.toByteArray())
         }
       }
@@ -216,57 +254,75 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         events.firstOrNull()?.let {
           expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
           expect.that(it.message).isEqualTo("Could Not Resolve my.not.existing.dependency:gradle:1.2.3-dev")
-          expect.that(it.description).isEqualTo("""
-            |A problem occurred configuring project ':app'.
-            |> Could not resolve all artifacts for configuration 'classpath'.
-            |   > Could not resolve my.not.existing.dependency:gradle:1.2.3-dev.
-            |     Required by:
-            |         buildscript of project ':app'
-            |      > No cached version of my.not.existing.dependency:gradle:1.2.3-dev available for offline mode.
-            |
-            |Possible solution:
-            | - <a href="disable_offline_mode">Disable offline mode and rerun the build</a>
-            |""".trimMargin())
+          expect
+            .that(it.description)
+            .isEqualTo(
+              """
+              |A problem occurred configuring project ':app'.
+              |> Could not resolve all artifacts for configuration 'classpath'.
+              |   > Could not resolve my.not.existing.dependency:gradle:1.2.3-dev.
+              |     Required by:
+              |         buildscript of project ':app'
+              |      > No cached version of my.not.existing.dependency:gradle:1.2.3-dev available for offline mode.
+              |
+              |Possible solution:
+              | - <a href="disable_offline_mode">Disable offline mode and rerun the build</a>
+              |"""
+                .trimMargin()
+            )
           expect.that((it as? BuildIssueEvent)?.issue).isInstanceOf(UnresolvedDependencyIssue::class.java)
           // In offline mode toggle offline mode quickfix is expected.
           expect.that((it as? BuildIssueEvent)?.issue?.quickFixes).hasSize(1)
-          expect.that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.javaClass?.name)
+          expect
+            .that((it as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull()?.javaClass?.name)
             .isEqualTo("com.intellij.build.issue.ConfigurableBuildIssue\$QuickFix")
         }
       }
       // TODO (b/355417764): Currently we also generate issue from CachedDependencyNotFoundIssueChecker in this case.
       //  This is to be fixed in the following changes soon.
       expect.that(buildEvents.finishEventFailures()).hasSize(1)
-
     }
 
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    val reportedFailureDetails =
+      usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
     expect.that(reportedFailureDetails).hasSize(1)
-    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND)
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-      expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-        FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-        FAILURE : SYNC_TOTAL
-      """.trimIndent())
-      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-        failure {
-          error {
-            exception: org.gradle.tooling.BuildActionFailureException
-              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-            exception: org.gradle.api.ProjectConfigurationException
-              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
-            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
-            exception: org.gradle.internal.resolve.ModuleVersionResolveException
-              at: no info
-            exception: org.gradle.internal.resolve.ModuleVersionResolveException
-              at: no info
-          }
-        }
-        """.trimIndent())
-    }
+    reportedFailureDetails
+      .map { it.studioEvent }
+      .firstOrNull()
+      ?.let {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND)
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+          .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.api.ProjectConfigurationException
+                  at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+                exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                  at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+                exception: org.gradle.internal.resolve.ModuleVersionResolveException
+                  at: no info
+                exception: org.gradle.internal.resolve.ModuleVersionResolveException
+                  at: no info
+              }
+            }
+            """
+              .trimIndent()
+          )
+      }
   }
 }

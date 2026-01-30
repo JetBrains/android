@@ -26,37 +26,34 @@ import java.awt.image.BufferedImage
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * An [AssetPreviewManager] is used to manage [AssetIconProvider] and returns the
- * correct one for a given [ResourceType].
+ * An [AssetPreviewManager] is used to manage [AssetIconProvider] and returns the correct one for a given [ResourceType].
+ *
  * @see AssetPreviewManagerImpl
  */
 interface AssetPreviewManager {
 
-  /**
-   * Returns an [AssetIconProvider] capable of rendering [DesignAsset] of type [resourceType].
-   */
+  /** Returns an [AssetIconProvider] capable of rendering [DesignAsset] of type [resourceType]. */
   fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider
 
-  /**
-   * Returns an [AssetDataProvider] for basic [DesignAsset] data to be displayed.
-   */
+  /** Returns an [AssetDataProvider] for basic [DesignAsset] data to be displayed. */
   fun getDataProvider(resourceType: ResourceType): AssetDataProvider
 }
 
 /**
- * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE],
- * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
+ * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE], [ResourceType.LAYOUT],
+ * [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
 class AssetPreviewManagerImpl(
-  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver, private val contextFile: VirtualFile? = null, private val renderingOptions: LayoutRenderOptions? = null, private val placeHolderImage: BufferedImage? = null
+  private val facet: AndroidFacet,
+  imageCache: ImageCache,
+  private val resourceResolver: ResourceResolver,
+  private val contextFile: VirtualFile? = null,
+  private val renderingOptions: LayoutRenderOptions? = null,
+  private val placeHolderImage: BufferedImage? = null,
 ) : AssetPreviewManager {
 
-  private val colorPreviewProvider by lazy {
-    ColorIconProvider(facet.module.project, resourceResolver)
-  }
-  private val fontPreviewProvider by lazy {
-    FontIconProvider(facet)
-  }
+  private val colorPreviewProvider by lazy { ColorIconProvider(facet.module.project, resourceResolver) }
+  private val fontPreviewProvider by lazy { FontIconProvider(facet) }
   private val drawablePreviewProvider by lazy {
     SlowResourcePreviewManager(imageCache, DrawableSlowPreviewProvider(facet, resourceResolver, contextFile))
   }
@@ -67,22 +64,14 @@ class AssetPreviewManagerImpl(
     SlowResourcePreviewManager(imageCache, NavigationSlowPreviewProvider(facet, resourceResolver))
   }
 
-  private val colorDataProvider by lazy {
-    ColorAssetDataProvider(facet.module.project, resourceResolver)
-  }
-  private val valueDataProvider by lazy {
-    ValueAssetDataProvider(resourceResolver)
-  }
-  private val defaultDataProvider by lazy {
-    DefaultAssetDataProvider()
-  }
+  private val colorDataProvider by lazy { ColorAssetDataProvider(facet.module.project, resourceResolver) }
+  private val valueDataProvider by lazy { ValueAssetDataProvider(resourceResolver) }
+  private val defaultDataProvider by lazy { DefaultAssetDataProvider() }
 
-  /**
-   * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
-   */
+  /** Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT] */
   override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider {
-    return resourceType.toSlowResource()?.let { getPreviewManager(it) } ?:
-      return when (resourceType) {
+    return resourceType.toSlowResource()?.let { getPreviewManager(it) }
+      ?: return when (resourceType) {
         ResourceType.COLOR -> colorPreviewProvider
         ResourceType.FONT -> fontPreviewProvider
         else -> DefaultIconProvider.INSTANCE
@@ -91,7 +80,7 @@ class AssetPreviewManagerImpl(
 
   // TODO(b/147157808): Change return type back to SlowResourcePreviewManager once the navigation preview is enabled by default
   private fun getPreviewManager(slowResource: SlowResource): AssetIconProvider =
-    when(slowResource) {
+    when (slowResource) {
       SlowResource.IMAGE -> drawablePreviewProvider
       SlowResource.LAYOUT -> layoutPreviewProvider
       SlowResource.NAVIGATION -> navGraphPreviewProvider
@@ -115,25 +104,19 @@ class AssetPreviewManagerImpl(
     }
 }
 
-/**
- * Describes different types of resources that are slow to preview. Ie: Requires a long running service to generate a preview.
- */
+/** Describes different types of resources that are slow to preview. Ie: Requires a long running service to generate a preview. */
 enum class SlowResource(val supportedResourceTypes: ImmutableSet<ResourceType>) {
   IMAGE(ImmutableSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP)),
   LAYOUT(ImmutableSet.of(ResourceType.LAYOUT, ResourceType.MENU)),
   NAVIGATION(ImmutableSet.of(ResourceType.NAVIGATION));
 
   companion object {
-    /**
-     * Returns the [SlowResource] representation of [this] [ResourceType]. Returns null if [this] is not a [SlowResource].
-     */
+    /** Returns the [SlowResource] representation of [this] [ResourceType]. Returns null if [this] is not a [SlowResource]. */
     fun ResourceType.toSlowResource(): SlowResource? {
       return values().firstOrNull { it.supportedResourceTypes.contains(this) }
     }
 
-    /**
-     * Whether if [this] has a [SlowResource] representation.
-     */
+    /** Whether if [this] has a [SlowResource] representation. */
     fun ResourceType.isSlowResource(): Boolean {
       return values().any { it.supportedResourceTypes.contains(this) }
     }

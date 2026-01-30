@@ -36,6 +36,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
+import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -44,9 +47,6 @@ import org.junit.runners.JUnit4
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Duration
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -55,12 +55,7 @@ class ExportUtilsTest {
   private val disposableRule = DisposableRule()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
-    .around(temporaryDirectoryRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule).around(temporaryDirectoryRule)
 
   @Test
   fun exportToXml() {
@@ -68,10 +63,15 @@ class ExportUtilsTest {
     assertThat(fileContent).contains("""<suite name="testDeviceName1" duration="1234" status="passed">""")
     assertThat(fileContent).contains("""<suite name="testDeviceName2" duration="7777" status="failed">""")
     assertThat(fileContent).contains("""<androidTestMatrix executionDuration="1234">""")
-    assertThat(fileContent).contains("""<device id="testDeviceId1" deviceName="testDeviceName1" deviceType="LOCAL_EMULATOR" version="23">""")
-    assertThat(fileContent).contains("""<device id="testDeviceId2" deviceName="testDeviceName2" deviceType="LOCAL_PHYSICAL_DEVICE" version="24">""")
+    assertThat(fileContent)
+      .contains("""<device id="testDeviceId1" deviceName="testDeviceName1" deviceType="LOCAL_EMULATOR" version="23">""")
+    assertThat(fileContent)
+      .contains("""<device id="testDeviceId2" deviceName="testDeviceName2" deviceType="LOCAL_PHYSICAL_DEVICE" version="24">""")
     assertThat(fileContent).contains("""<testsuite deviceId="testDeviceId1" testCount="1" result="PASSED">""")
-    assertThat(fileContent).contains("""<testcase id="testpackage.testclass.testmethod" methodName="testmethod" className="testclass" packageName="testpackage" result="PASSED" logcat="" errorStackTrace="" startTimestampMillis="0" endTimestampMillis="1234" benchmark=""/>""")
+    assertThat(fileContent)
+      .contains(
+        """<testcase id="testpackage.testclass.testmethod" methodName="testmethod" className="testclass" packageName="testpackage" result="PASSED" logcat="" errorStackTrace="" startTimestampMillis="0" endTimestampMillis="1234" benchmark=""/>"""
+      )
   }
 
   @Test
@@ -88,20 +88,27 @@ class ExportUtilsTest {
     }
 
     val outputFile = outputVirtualFile.toIoFile()
-    val exportConfig = mock<ExportTestResultsConfiguration>().apply {
-      whenever(exportFormat).thenReturn(format)
-    }
+    val exportConfig = mock<ExportTestResultsConfiguration>().apply { whenever(exportFormat).thenReturn(format) }
 
-    val runConfig = mock<RunConfiguration>().apply {
-      whenever(name).thenReturn("testRunConfig")
-      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
-    }
+    val runConfig =
+      mock<RunConfiguration>().apply {
+        whenever(name).thenReturn("testRunConfig")
+        whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+      }
     val (devices, resultsNode) = createDevicesAndResultsNode()
 
     val countDownLatch = CountDownLatch(1)
     var fileContent: String? = null
-    exportAndroidTestMatrixResultXmlFile(projectRule.project, "run", exportConfig, outputFile,
-                                         Duration.ofMillis(1234), resultsNode, runConfig, devices) {
+    exportAndroidTestMatrixResultXmlFile(
+      projectRule.project,
+      "run",
+      exportConfig,
+      outputFile,
+      Duration.ofMillis(1234),
+      resultsNode,
+      runConfig,
+      devices,
+    ) {
       fileContent = Files.asCharSource(outputFile, Charsets.UTF_8).read()
       countDownLatch.countDown()
     }
@@ -111,67 +118,73 @@ class ExportUtilsTest {
   }
 
   private fun createDevicesAndResultsNode(): Pair<List<AndroidDevice>, AndroidTestResultsTreeNode> {
-    val device1 = AndroidDevice(
-      "testDeviceId1", "testDeviceName1", "testDeviceName1",
-      AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(23),
-      mutableMapOf("processorName" to "testProcessorName1"))
-    val device2 = AndroidDevice(
-      "testDeviceId2", "testDeviceName2", "testDeviceName1",
-      AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(24),
-      mutableMapOf("processorName" to "testProcessorName2"))
-
-    val rootResults = mock<AndroidTestResults>().apply {
-      whenever(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
-      whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
-
-      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
-
-      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
-    }
-    val classResults = mock<AndroidTestResults>().apply {
-      whenever(methodName).thenReturn("")
-      whenever(className).thenReturn("testclass")
-      whenever(packageName).thenReturn("testpackage")
-
-      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
-
-      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
-    }
-    val caseResults = mock<AndroidTestResults>().apply {
-      whenever(methodName).thenReturn("testmethod")
-      whenever(className).thenReturn("testclass")
-      whenever(packageName).thenReturn("testpackage")
-
-      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
-      whenever(getLogcat(eq(device1))).thenReturn("")
-      whenever(getErrorStackTrace(eq(device1))).thenReturn("")
-      whenever(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput.Empty)
-
-      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
-      whenever(getLogcat(eq(device2))).thenReturn("")
-      whenever(getErrorStackTrace(eq(device2))).thenReturn("")
-      whenever(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput.Empty)
-    }
-
-    return Pair(listOf(device1, device2), AndroidTestResultsTreeNode(
-      rootResults,
-      sequenceOf(
-        AndroidTestResultsTreeNode(
-          classResults,
-          sequenceOf(
-            AndroidTestResultsTreeNode(
-              caseResults,
-              sequenceOf()
-            )
-          )
-        )
+    val device1 =
+      AndroidDevice(
+        "testDeviceId1",
+        "testDeviceName1",
+        "testDeviceName1",
+        AndroidDeviceType.LOCAL_EMULATOR,
+        AndroidVersion(23),
+        mutableMapOf("processorName" to "testProcessorName1"),
       )
-    ))
+    val device2 =
+      AndroidDevice(
+        "testDeviceId2",
+        "testDeviceName2",
+        "testDeviceName1",
+        AndroidDeviceType.LOCAL_PHYSICAL_DEVICE,
+        AndroidVersion(24),
+        mutableMapOf("processorName" to "testProcessorName2"),
+      )
+
+    val rootResults =
+      mock<AndroidTestResults>().apply {
+        whenever(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
+        whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
+
+        whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+        whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+
+        whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+        whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      }
+    val classResults =
+      mock<AndroidTestResults>().apply {
+        whenever(methodName).thenReturn("")
+        whenever(className).thenReturn("testclass")
+        whenever(packageName).thenReturn("testpackage")
+
+        whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+        whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+
+        whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+        whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      }
+    val caseResults =
+      mock<AndroidTestResults>().apply {
+        whenever(methodName).thenReturn("testmethod")
+        whenever(className).thenReturn("testclass")
+        whenever(packageName).thenReturn("testpackage")
+
+        whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+        whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+        whenever(getLogcat(eq(device1))).thenReturn("")
+        whenever(getErrorStackTrace(eq(device1))).thenReturn("")
+        whenever(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput.Empty)
+
+        whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+        whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+        whenever(getLogcat(eq(device2))).thenReturn("")
+        whenever(getErrorStackTrace(eq(device2))).thenReturn("")
+        whenever(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput.Empty)
+      }
+
+    return Pair(
+      listOf(device1, device2),
+      AndroidTestResultsTreeNode(
+        rootResults,
+        sequenceOf(AndroidTestResultsTreeNode(classResults, sequenceOf(AndroidTestResultsTreeNode(caseResults, sequenceOf())))),
+      ),
+    )
   }
 }

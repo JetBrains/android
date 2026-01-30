@@ -24,9 +24,7 @@ import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 
 /** Action to refresh the content of the inspector. */
-object RefreshAction :
-  AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH),
-  TooltipDescriptionProvider {
+object RefreshAction : AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH), TooltipDescriptionProvider {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -38,7 +36,6 @@ object RefreshAction :
   override fun update(event: AnActionEvent) {
     val currentClient = LayoutInspectorRootPanel.get(event)?.currentClient
     event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.inLiveMode
-    event.presentation.description =
-      "When live updates are disabled, click to manually refresh the layout information and images."
+    event.presentation.description = "When live updates are disabled, click to manually refresh the layout information and images."
   }
 }

@@ -28,6 +28,10 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.util.lang.JavaVersion
+import java.io.File
+import java.util.Properties
+import java.util.concurrent.TimeUnit
+import kotlin.io.path.readText
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.GradleBuildScriptSupport
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getTopLevelBuildScriptSettingsPsiFile
@@ -41,25 +45,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
-import java.util.Properties
-import java.util.concurrent.TimeUnit
-import kotlin.io.path.readText
 
 /**
- * Test for Daemon JVM criteria templates stored under /resources/templates/project/toolchain used for NPW projects. The properties
- * file storing the criteria are named as 'gradle-daemon-jvm-X.properties' where X represents the JVM version.
+ * Test for Daemon JVM criteria templates stored under /resources/templates/project/toolchain used for NPW projects. The properties file
+ * storing the criteria are named as 'gradle-daemon-jvm-X.properties' where X represents the JVM version.
  *
- * Asserts that templates got generated based on expected default foojay plugin version, otherwise, will be required to run target
- * locally using '-DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES' to the jvm option from IDE or from bazel using:
- * bazel test [target]  \
- *      --jvmopt="-DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES=$(bazel info workspace)" \
- *      --sandbox_writable_path=$(bazel info workspace) \
- *      --test_strategy=standalone \
- *      --nocache_test_results \
+ * Asserts that templates got generated based on expected default foojay plugin version, otherwise, will be required to run target locally
+ * using '-DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES' to the jvm option from IDE or from bazel using: bazel test [target] \
+ * --jvmopt="-DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES=$(bazel info workspace)" \ --sandbox_writable_path=$(bazel info workspace) \
+ * --test_strategy=standalone \ --nocache_test_results \
  *
- * To be able to validate existing templates the 'updateDaemonJvm' Gradle task is executed using the applied default foojay plugin
- * version which end up making a network request to Disco API.
+ * To be able to validate existing templates the 'updateDaemonJvm' Gradle task is executed using the applied default foojay plugin version
+ * which end up making a network request to Disco API.
  */
 private const val UPDATE_DAEMON_JVM_CRITERIA_TEMPLATES = "UPDATE_DAEMON_JVM_CRITERIA_TEMPLATES"
 private const val TEMPLATE_METADATA_FOOJAY_PROPERTY = "foojayPluginVersion"
@@ -68,8 +65,7 @@ private const val TEMPLATE_WORKSPACE_PATH = "tools/adt/idea/project-system-gradl
 @RunWith(Parameterized::class)
 class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion) {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   companion object {
     @JvmStatic
@@ -79,7 +75,8 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
         .filter { GradleDaemonJvmCriteriaTemplatesManager.canGeneratePropertiesFile(it.maxLanguageLevel.toJavaVersion()) }
         .map { it.maxLanguageLevel.toJavaVersion() }
         // DEFAULT_JDK_VERSION is always added since validates missing default template given updated version
-        .plus(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion()).toSet()
+        .plus(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion())
+        .toSet()
     }
 
     @AfterClass
@@ -92,22 +89,26 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
 
     private fun getTemplatesBasedFooJayPluginVersion(): String {
       val properties = Properties()
-      GradleDaemonJvmCriteriaTemplatesManager.getTemplateMetadata().openStream().use {
-        properties.load(it)
-      }
+      GradleDaemonJvmCriteriaTemplatesManager.getTemplateMetadata().openStream().use { properties.load(it) }
       return properties.getProperty(TEMPLATE_METADATA_FOOJAY_PROPERTY)
     }
 
     private fun updateTemplatesMetadataVersionOfFoojay() {
-      val properties = Properties().apply {
-        // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
-        put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(GradleVersion.current()))
-      }
+      val properties =
+        Properties().apply {
+          // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
+          put(TEMPLATE_METADATA_FOOJAY_PROPERTY, getFoojayPluginVersion(GradleVersion.current()))
+        }
       val metadataFile = workspaceTemplateFile(TEMPLATE_METADATA_FILE)
-      PropertiesFiles.savePropertiesToFile(properties, metadataFile, """
+      PropertiesFiles.savePropertiesToFile(
+        properties,
+        metadataFile,
+        """
         Represents the version of 'org.gradle.toolchains.foojay-resolver-convention' which was
         used to generate the different 'gradle-daemon-jvm-X.properties' template files.
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     }
 
     private fun workspaceTemplateFile(fileName: String): File {
@@ -122,13 +123,16 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
       System.getProperty(UPDATE_DAEMON_JVM_CRITERIA_TEMPLATES) != null -> updateGradleDaemonJvmCriteriaTemplates()
       // FIXME: GradleVersion.current() is not a correct way of taking the version but agreed to proceed with this so far
       getTemplatesBasedFooJayPluginVersion() != getFoojayPluginVersion(GradleVersion.current()) ->
-        error("""
+        error(
+          """
           Daemon JVM criteria templates stored under 'templates/resources/toolchain' with the format 'gradle-daemon-jvm-X.properties'
           and used for NPW, have been created with different version of foojay resolver plugin.
 
           Re-run test to update templates in place using -DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES to the jvm options in the IDEA test
           configuration or from bazel using: --jvmopt=\"-DUPDATE_DAEMON_JVM_CRITERIA_TEMPLATES=$(bazel info workspace)\"
-        """.trimIndent())
+          """
+            .trimIndent()
+        )
       else -> return // Templates are valid
     }
   }
@@ -140,15 +144,12 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
 
       // Invoke updateDaemonJvm Gradle task which generates gradle-daemon-jvm.properties based on applied foojay resolved plugin
       val daemonJvmCriteria = GradleDaemonJvmCriteria(javaVersion.feature.toString(), null)
-      GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, projectRoot.path, daemonJvmCriteria)
-        .get(5, TimeUnit.MINUTES)
+      GradleDaemonJvmHelper.updateProjectDaemonJvmCriteria(project, projectRoot.path, daemonJvmCriteria).get(5, TimeUnit.MINUTES)
 
       // Update gradle-daemon-jvm-X.properties file located under /templates/project/toolchain
       val expectedProperties = GradleDaemonJvmPropertiesFile.getPropertyPath(projectRoot.absolutePath)
       val fileName = GradleDaemonJvmCriteriaTemplatesManager.getTemplatePropertiesFileName(javaVersion)
-      workspaceTemplateFile(fileName).run {
-        writeText(expectedProperties.readText())
-      }
+      workspaceTemplateFile(fileName).run { writeText(expectedProperties.readText()) }
     }
   }
 

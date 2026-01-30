@@ -26,5 +26,6 @@ abstract class PsChildModel protected constructor() : PsModel {
     }
 
   open fun changed() = Unit
+
   override fun toString(): String = name
 }

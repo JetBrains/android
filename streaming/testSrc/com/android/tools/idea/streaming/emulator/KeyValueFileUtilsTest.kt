@@ -24,18 +24,16 @@ import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.TestLoggerFactory
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
 import java.io.IOException
 import java.nio.file.CopyOption
 import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 
-/**
- * Test for functions defined in `KeyValueFileUtils.kt`.
- */
+/** Test for functions defined in `KeyValueFileUtils.kt`. */
 class KeyValueFileUtilsTest {
   private var exception: IOException? = null
   private lateinit var originalLoggerFactory: Logger.Factory
@@ -55,30 +53,41 @@ class KeyValueFileUtilsTest {
   fun testUpdateKeyValueFile() {
     val fileSystem = MockFileSystemProvider(createInMemoryFileSystem()).fileSystem
     val file = fileSystem.someRoot.resolve("test.ini")
-    Files.write(file, listOf("AvdId = Pixel_4_XL_API_30",
-                             "PlayStore.enabled = false",
-                             "avd.ini.displayname = Pixel 4 XL API 30",
-                             "fastboot.chosenSnapshotFile = snapshot42",
-                             "fastboot.forceChosenSnapshotBoot = yes",
-                             "hw.sensors.orientation = yes"))
+    Files.write(
+      file,
+      listOf(
+        "AvdId = Pixel_4_XL_API_30",
+        "PlayStore.enabled = false",
+        "avd.ini.displayname = Pixel 4 XL API 30",
+        "fastboot.chosenSnapshotFile = snapshot42",
+        "fastboot.forceChosenSnapshotBoot = yes",
+        "hw.sensors.orientation = yes",
+      ),
+    )
     // Check normal update.
-    updateKeyValueFile(file, mapOf("PlayStore.enabled" to "true",
-                                   "fastboot.chosenSnapshotFile" to null,
-                                   "fastboot.forceChosenSnapshotBoot" to "no",
-                                   "fastboot.forceFastBoot" to "yes"))
-    assertThat(file).hasContents("AvdId=Pixel_4_XL_API_30",
-                                 "PlayStore.enabled=true",
-                                 "avd.ini.displayname=Pixel 4 XL API 30",
-                                 "fastboot.forceChosenSnapshotBoot=no",
-                                 "fastboot.forceFastBoot=yes",
-                                 "hw.sensors.orientation=yes")
+    updateKeyValueFile(
+      file,
+      mapOf(
+        "PlayStore.enabled" to "true",
+        "fastboot.chosenSnapshotFile" to null,
+        "fastboot.forceChosenSnapshotBoot" to "no",
+        "fastboot.forceFastBoot" to "yes",
+      ),
+    )
+    assertThat(file)
+      .hasContents(
+        "AvdId=Pixel_4_XL_API_30",
+        "PlayStore.enabled=true",
+        "avd.ini.displayname=Pixel 4 XL API 30",
+        "fastboot.forceChosenSnapshotBoot=no",
+        "fastboot.forceFastBoot=yes",
+        "hw.sensors.orientation=yes",
+      )
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
 
     // Check with I/O errors.
     exception = IOException("simulated I/O error")
-    val errors = executeCapturingLoggedErrors {
-      updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false"))
-    }
+    val errors = executeCapturingLoggedErrors { updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false")) }
     assertThat(errors).containsExactly("Error writing $file - simulated I/O error")
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
   }

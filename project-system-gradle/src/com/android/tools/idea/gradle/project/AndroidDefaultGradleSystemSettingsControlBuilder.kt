@@ -26,13 +26,11 @@ import org.jetbrains.plugins.gradle.service.settings.IdeaGradleSystemSettingsCon
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
- * Abstract class overriding the [IdeaGradleSystemSettingsControlBuilder] implementation to allow studio
- * to have a customized gradle project settings using specified configuration as a default for new created projects.
+ * Abstract class overriding the [IdeaGradleSystemSettingsControlBuilder] implementation to allow studio to have a customized gradle project
+ * settings using specified configuration as a default for new created projects.
  */
-abstract class AndroidDefaultGradleSystemSettingsControlBuilder(
-  initialSettings: GradleSettings,
-  private val disposable: Disposable
-) : IdeaGradleSystemSettingsControlBuilder(initialSettings) {
+abstract class AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings: GradleSettings, private val disposable: Disposable) :
+  IdeaGradleSystemSettingsControlBuilder(initialSettings) {
 
   override fun fillUi(canvas: PaintAwarePanel, indentLevel: Int) {
     super.fillUi(canvas, indentLevel)

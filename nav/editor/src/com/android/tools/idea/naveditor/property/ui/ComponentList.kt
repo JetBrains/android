@@ -27,13 +27,10 @@ import javax.swing.ListModel
 import javax.swing.ListSelectionModel
 
 /**
- * UI to display a list of NlComponents in the property inspector. Parameters: [model]: the list of
- * NlComponents to display [cellRenderer]: the renderer to apply to each list item
+ * UI to display a list of NlComponents in the property inspector. Parameters: [model]: the list of NlComponents to display [cellRenderer]:
+ * the renderer to apply to each list item
  */
-class ComponentList(
-  model: ListModel<NlComponent>,
-  cellRenderer: ColoredListCellRenderer<NlComponent>,
-) : AdtSecondaryPanel(BorderLayout()) {
+class ComponentList(model: ListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>) : AdtSecondaryPanel(BorderLayout()) {
   val list = JBList(model)
 
   init {

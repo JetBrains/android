@@ -44,8 +44,7 @@ class BasicCompileTest {
   // so not having that available causes a NullPointerException when we call it.
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -53,13 +52,15 @@ class BasicCompileTest {
     disableLiveEdit()
 
     // Create mocks for the kotlin.jvm to avoid having to bring in the whole dependency
-    projectRule.fixture.configureByText("JvmName.kt", "package kotlin.jvm\n" +
-                                                      "@Target(AnnotationTarget.FILE)\n" +
-                                                      "public annotation class JvmName(val name: String)\n")
+    projectRule.fixture.configureByText(
+      "JvmName.kt",
+      "package kotlin.jvm\n" + "@Target(AnnotationTarget.FILE)\n" + "public annotation class JvmName(val name: String)\n",
+    )
 
-    projectRule.fixture.configureByText("JvmMultifileClass.kt", "package kotlin.jvm\n" +
-                                                                "@Target(AnnotationTarget.FILE)\n" +
-                                                                "public annotation class JvmMultifileClass()")
+    projectRule.fixture.configureByText(
+      "JvmMultifileClass.kt",
+      "package kotlin.jvm\n" + "@Target(AnnotationTarget.FILE)\n" + "public annotation class JvmMultifileClass()",
+    )
   }
 
   @After
@@ -69,26 +70,36 @@ class BasicCompileTest {
 
   @Test
   fun simpleChange() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       fun foo() = ""
       fun bar() = 1 
-    """)
+    """,
+      )
 
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       fun foo() = "I am foo"
       fun bar() = 1 
-    """)
+    """,
+    )
 
     var output = compile(file, cache)
     val returnedValue = invokeStatic("foo", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
 
     // Replace the return value of foo.
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       fun foo() = "I am not foo"
       fun bar() = 1 
-    """)
+    """,
+    )
 
     // Re-compile A.kt like how live edit work.
     output = compile(file, cache)
@@ -99,16 +110,23 @@ class BasicCompileTest {
   @Test
   fun recoverableErrors() {
     // Step 1: Error Free
-    val file = projectRule.createKtFile("RecoverableError.kt", """
+    val file =
+      projectRule.createKtFile(
+        "RecoverableError.kt",
+        """
         fun recoverableError() { "a".toString() }
-      """)
+      """,
+      )
 
     val cache = projectRule.initialCache(listOf(file))
 
     // Step 2: Introduce recoverable syntax errors
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
         fun recoverableError() { "a".toString() } }
-      """)
+      """,
+    )
 
     try {
       compile(file, cache)
@@ -118,9 +136,12 @@ class BasicCompileTest {
     }
 
     // Step 3: Fix syntax error
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
         fun recoverableError() { "a".toString() }
-      """)
+      """,
+    )
 
     // Should not have compiler errors.
     compile(file, cache)
@@ -141,24 +162,31 @@ class BasicCompileTest {
 
   @Test
   fun lambdaChange() {
-    val file = projectRule.createKtFile("HasLambda.kt", """
+    val file =
+      projectRule.createKtFile(
+        "HasLambda.kt",
+        """
       fun hasLambda() : String {
         var capture = "x"
         var lambda = { capture = "a" }
         lambda()
         return capture
       }
-    """)
+    """,
+      )
 
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
         fun hasLambda() : String {
           var capture = "z"
           var lambda = { capture = "y" }
           lambda()
           return capture
         }
-      """)
+      """,
+    )
     val output = compile(file, cache)
     Assert.assertEquals(1, output.supportClassesMap.size)
     val returnedValue = invokeStatic("hasLambda", loadClass(output))
@@ -167,7 +195,10 @@ class BasicCompileTest {
 
   @Test
   fun samChange() {
-    val file = projectRule.createKtFile("HasSAM.kt", """
+    val file =
+      projectRule.createKtFile(
+        "HasSAM.kt",
+        """
       fun interface A {
         fun go(): Int
       }
@@ -175,7 +206,8 @@ class BasicCompileTest {
         var test = A { 100 }
         return test.go()
       }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
@@ -183,7 +215,10 @@ class BasicCompileTest {
 
   @Test
   fun genericSamChange() {
-    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyFieldValue.kt",
+        """
       fun interface Observer<T> {
         fun onChanged(value: T)
       }
@@ -198,10 +233,13 @@ class BasicCompileTest {
         val x = Watchable<String>()
         x.callObserver("hello") { println(it) }
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       fun interface Observer<T> {
         fun onChanged(value: T)
       }
@@ -216,7 +254,8 @@ class BasicCompileTest {
         val x = Watchable<String>()
         x.callObserver("hello") { println("value: " + it) }
       }
-    """)
+    """,
+    )
 
     val output = compile(file, cache)
     Assert.assertEquals(1, output.supportClassesMap.size)
@@ -224,19 +263,25 @@ class BasicCompileTest {
 
   @Test
   fun noNewClasses() {
-    val file = projectRule.createKtFile("Test.kt", """
+    val file =
+      projectRule.createKtFile(
+        "Test.kt",
+        """
       class A {}
       class B {}
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class A {}
       class B {}
       class C {}
-    """.trimIndent())
-    val exception = Assert.assertThrows(LiveEditUpdateException::class.java) {
-      compile(file, cache)
-    }
+      """
+        .trimIndent(),
+    )
+    val exception = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, cache) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, exception.error)
     assertEquals(exception.details, "added new class C in Test.kt")
   }
@@ -250,16 +295,23 @@ class BasicCompileTest {
 
   @Test
   fun internalVar() {
-    val file = projectRule.createKtFile("HasInternalVar.kt", """
+    val file =
+      projectRule.createKtFile(
+        "HasInternalVar.kt",
+        """
       internal var x = 0
       fun getNum() = x
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
      internal var x = 0
      fun getNum() = x + 1
-    """)
+    """,
+    )
 
     val output = compile(file, cache)
     Assert.assertTrue(output.classesMap["HasInternalVarKt"]!!.isNotEmpty())
@@ -275,27 +327,33 @@ class BasicCompileTest {
       projectRule.modifyKtFile(file, "public inline fun publicInlineFun() = 2")
       compile(file, cache)
       Assert.fail("Expecting an exception thrown.")
-    }
-    catch (e: LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION, e.error)
     }
   }
 
   @Test
   fun renamedFile() {
-    val file = projectRule.createKtFile("RenamedFile.kt", """
+    val file =
+      projectRule.createKtFile(
+        "RenamedFile.kt",
+        """
       @file:kotlin.jvm.JvmName("CustomJvmName")
       @file:kotlin.jvm.JvmMultifileClass
       fun T() {}
-    """)
+    """,
+      )
 
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       @file:kotlin.jvm.JvmName("CustomJvmName")
       @file:kotlin.jvm.JvmMultifileClass
       fun T() { val x = 0 }
-    """)
+    """,
+    )
 
     val output = compile(file, cache)
     Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName__RenamedFileKt" })
@@ -304,22 +362,29 @@ class BasicCompileTest {
 
   @Test
   fun modifyConstructor() {
-    val file = projectRule.createKtFile("ModifyConstructor.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyConstructor.kt",
+        """
       class MyClass() {
         init {
           val x = 0
         }
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-   projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class MyClass() {
         init {
           val x = 999
         }
       }
-    """)
+    """,
+    )
 
     try {
       compile(file, cache)
@@ -332,26 +397,32 @@ class BasicCompileTest {
 
   @Test
   fun modifyFieldValue() {
-    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyFieldValue.kt",
+        """
       class MyClass() {
         val a = 100
         val b = 200
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       class MyClass() {
         val a = 999
         val b = 200
       }
-    """)
+    """,
+    )
 
     try {
       compile(file, cache)
       fail("Expected exception due to modified field")
-    }
-    catch (e: LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
       assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, e.error)
       assertContains(e.details, "MyClass")
       println(e.details)
@@ -360,7 +431,10 @@ class BasicCompileTest {
 
   @Test
   fun `modifying field annotations is allowed`() {
-    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyFieldValue.kt",
+        """
       @Target(AnnotationTarget.FIELD)
       @Retention(AnnotationRetention.RUNTIME)
       annotation class MyAnnotation
@@ -370,10 +444,13 @@ class BasicCompileTest {
         val a = 100
         val b = 200
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       @Target(AnnotationTarget.FIELD)
       @Retention(AnnotationRetention.RUNTIME)
       annotation class MyAnnotation
@@ -383,12 +460,12 @@ class BasicCompileTest {
         @MyAnnotation
         val b = 200
       }
-    """)
+    """,
+    )
 
     try {
       compile(file, cache)
-    }
-    catch (e: LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
       fail("Modifying field annotations should be allowed: ${e.message}")
     }
   }
@@ -397,9 +474,14 @@ class BasicCompileTest {
   fun modifyStaticInit() {
     val file = projectRule.createKtFile("ModifyStaticInit.kt", "val x = 1")
     val cache = projectRule.initialCache(listOf(file))
-    val next = projectRule.fixture.configureByText("ModifyStaticInit.kt", """
-      val x = 2
-    """.trimIndent())
+    val next =
+      projectRule.fixture.configureByText(
+        "ModifyStaticInit.kt",
+        """
+        val x = 2
+        """
+          .trimIndent(),
+      )
 
     try {
       compile(next, cache)
@@ -427,28 +509,39 @@ class BasicCompileTest {
 
   @Test
   fun `Modify when Mapping`() {
-    val enumDef = projectRule.createKtFile("Food.kt", """
+    val enumDef =
+      projectRule.createKtFile(
+        "Food.kt",
+        """
       enum class Food { Pizza, Donuts }
-    """)
+    """,
+      )
 
-    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyWhenMapping.kt",
+        """
       fun getUnits(food: Food) : String {
         return when (food) {
           Food.Pizza -> "slices"
           Food.Donuts -> "dozens"
         }
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(enumDef, file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       fun getUnits(food: Food) : String {
         return when (food) {
           Food.Donuts -> "x"
           Food.Pizza -> "y"
         }
       }
-    """)
+    """,
+    )
 
     try {
       compile(file, cache)
@@ -461,7 +554,10 @@ class BasicCompileTest {
 
   @Test
   fun `File in non-default package`() {
-    val file = projectRule.createKtFile("Package.kt", """
+    val file =
+      projectRule.createKtFile(
+        "Package.kt",
+        """
       package a.b
       class MyClass() {
         fun hasLambda() {
@@ -469,10 +565,13 @@ class BasicCompileTest {
           val y = { x + 1 }
         }
       }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       package a.b
       class MyClass() {
         fun hasLambda() {
@@ -480,7 +579,8 @@ class BasicCompileTest {
           val y = { x + 2 }
         }
       }
-    """)
+    """,
+    )
 
     val output = compile(file, cache)
     assertContains(output.classesMap, "a/b/MyClass")
@@ -489,11 +589,18 @@ class BasicCompileTest {
 
   @Test
   fun `Adding new WithMapping`() {
-    val enumDef = projectRule.createKtFile("Food.kt", """
+    val enumDef =
+      projectRule.createKtFile(
+        "Food.kt",
+        """
       enum class Food { Pizza, Donuts }
-    """)
+    """,
+      )
 
-    val file = projectRule.createKtFile("ModifyWhenMapping.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ModifyWhenMapping.kt",
+        """
       fun getUnits(food: Food) : String {
         var suffix = when (food) {
           Food.Pizza -> "!!"
@@ -505,10 +612,13 @@ class BasicCompileTest {
        fun getMessage(): String {
           return getUnits(Food.Pizza)
        }
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(enumDef, file))
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       fun getUnits(food: Food) : String {
         var suffix = when (food) {
           Food.Pizza -> "!!"
@@ -524,7 +634,8 @@ class BasicCompileTest {
        fun getMessage(): String {
           return getUnits(Food.Pizza)
        }
-    """)
+    """,
+    )
 
     val output = compile(file, irClassCache = cache)
     var apk = projectRule.directApiCompileByteArray(listOf(enumDef, file))
@@ -534,11 +645,13 @@ class BasicCompileTest {
     Assert.assertEquals("slices!!", returnedValue)
   }
 
-
   @Test
   fun diagnosticErrorForInvisibleReference() {
     try {
-      val file = projectRule.createKtFile("A.kt", """
+      val file =
+        projectRule.createKtFile(
+          "A.kt",
+          """
       open class Parent {
         protected open fun invisibleFunction() {}
       }
@@ -549,7 +662,8 @@ class BasicCompileTest {
         val child = Child()
         child.invisibleFunction()
       }
-    """)
+    """,
+        )
       compile(file)
       Assert.fail("A.kt contains a call to an invisible function invisibleFunction()")
     } catch (e: LiveEditUpdateException) {

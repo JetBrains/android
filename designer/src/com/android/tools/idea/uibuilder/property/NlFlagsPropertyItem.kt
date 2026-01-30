@@ -35,8 +35,8 @@ import com.intellij.util.text.nullize
 /**
  * Special version of [NlPropertyItem] for flag attributes.
  *
- * This class will generate a [NlFlagPropertyItem] for each flag for a particular flags attribute.
- * There is code to read and write a single flag as a boolean value.
+ * This class will generate a [NlFlagPropertyItem] for each flag for a particular flags attribute. There is code to read and write a single
+ * flag as a boolean value.
  */
 open class NlFlagsPropertyItem(
   namespace: String,
@@ -50,18 +50,7 @@ open class NlFlagsPropertyItem(
   optionalValue1: Any? = null,
   optionalValue2: Any? = null,
 ) :
-  NlPropertyItem(
-    namespace,
-    name,
-    type,
-    attrDefinition,
-    componentName,
-    libraryName,
-    model,
-    components,
-    optionalValue1,
-    optionalValue2,
-  ),
+  NlPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
   FlagsPropertyItem<NlFlagPropertyItem> {
   private val _flags = mutableListOf<NlFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
@@ -117,8 +106,7 @@ open class NlFlagsPropertyItem(
       }
       flagsValue = resolveValue(flagsValue) ?: flagsValue
     }
-    val unknown =
-      VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
+    val unknown = VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
     return when {
       unknown.isEmpty() -> EDITOR_NO_ERROR
       unknown.size == 1 -> Pair(EditingErrorCategory.ERROR, "Invalid value: ${unknown.first()}")
@@ -134,10 +122,7 @@ open class NlFlagsPropertyItem(
     val values = lastValues
     val builder = StringBuilder()
     // Enumerate over the values in attrDefinition to get a consistent order:
-    attrDefinition.values
-      .stream()
-      .filter { it == add || (values.contains(it) && it != remove) }
-      .forEach { builder.append("|").append(it) }
+    attrDefinition.values.stream().filter { it == add || (values.contains(it) && it != remove) }.forEach { builder.append("|").append(it) }
     value = if (builder.isEmpty()) null else builder.substring(1)
   }
 
@@ -192,19 +177,14 @@ open class NlFlagsPropertyItem(
     //
     // Override the value mapping for gravity: top, bottom, left, right, start, end
     // to NOT include the center values.
-    if (
-      namespace == SdkConstants.ANDROID_URI &&
-        name == SdkConstants.ATTR_GRAVITY &&
-        GRAVITY_OVERRIDES.contains(value)
-    ) {
+    if (namespace == SdkConstants.ANDROID_URI && name == SdkConstants.ATTR_GRAVITY && GRAVITY_OVERRIDES.contains(value)) {
       mappedValue = mappedValue and GRAVITY_MAPPED_VALUE_CENTER.inv()
     }
     return mappedValue
   }
 
   companion object {
-    private val GRAVITY_OVERRIDES =
-      Sets.newHashSet("top", "bottom", "right", "left", "start", "end")
+    private val GRAVITY_OVERRIDES = Sets.newHashSet("top", "bottom", "right", "left", "start", "end")
     private const val GRAVITY_MAPPED_VALUE_CENTER = 0x11
     private val VALUE_SPLITTER = Splitter.on("|").trimResults()
   }
@@ -223,18 +203,7 @@ class NlFlagsPropertyGroupItem(
   optionalValue1: Any? = null,
   optionalValue2: Any? = null,
 ) :
-  NlFlagsPropertyItem(
-    namespace,
-    name,
-    type,
-    attrDefinition,
-    componentName,
-    libraryName,
-    model,
-    components,
-    optionalValue1,
-    optionalValue2,
-  ),
+  NlFlagsPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
   FlagsPropertyGroupItem<NlFlagPropertyItem>
 
 /**
@@ -242,11 +211,7 @@ class NlFlagsPropertyGroupItem(
  *
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
-class NlFlagPropertyItem(
-  override val flags: NlFlagsPropertyItem,
-  name: String,
-  override val maskValue: Int,
-) :
+class NlFlagPropertyItem(override val flags: NlFlagsPropertyItem, name: String, override val maskValue: Int) :
   NlPropertyItem(
     flags.namespace,
     name,

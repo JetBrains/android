@@ -54,10 +54,7 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   override val usageTracker = AndroidAdbUsageTracker()
 
   private val adbSessionChannelGroup: AsynchronousChannelGroup =
-    AsynchronousChannelGroup.withCachedThreadPool(
-      AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4),
-      1,
-    )
+    AsynchronousChannelGroup.withCachedThreadPool(AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4), 1)
 
   override val asynchronousChannelGroup: AsynchronousChannelGroup = adbSessionChannelGroup
 
@@ -65,9 +62,7 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
 
   init {
     ApplicationActivationListener.TOPIC.subscribe(disposable, myActivationListener)
-    myActivationListener.boostJdwpProcessPropertiesCollector(
-      ApplicationManager.getApplication().isActive
-    )
+    myActivationListener.boostJdwpProcessPropertiesCollector(ApplicationManager.getApplication().isActive)
     delegatePropertyValue(
       property = AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECTOR_USE_APP_INFO_IF_AVAILABLE,
       valueProvider = { StudioFlags.ADBLIB_USE_APP_INFO_IF_AVAILABLE.get() },
@@ -91,13 +86,15 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
     // First, look in overridden properties...
     val value = overriddenProperties[property]
     if (value != null) {
-      @Suppress("UNCHECKED_CAST") return value as T
+      @Suppress("UNCHECKED_CAST")
+      return value as T
     }
 
     // ...then in delegated properties...
     val valueProvider = delegatedProperties[property]
     if (valueProvider != null) {
-      @Suppress("UNCHECKED_CAST") return valueProvider() as T
+      @Suppress("UNCHECKED_CAST")
+      return valueProvider() as T
     }
 
     // ...then in regular properties
@@ -107,19 +104,16 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   override fun close() {
     try {
       Disposer.dispose(disposable)
-    }
-    finally {
+    } finally {
       try {
         adbSessionChannelGroup.shutdownNow()
         if (!adbSessionChannelGroup.awaitTermination(5, TimeUnit.SECONDS)) {
           log.warn("Timed out waiting for Android ADB asynchronous channel group termination")
         }
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         Thread.currentThread().interrupt()
         log.warn("Interrupted while waiting for Android ADB asynchronous channel group termination", e)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         log.warn("Failed to shut down Android ADB asynchronous channel group", e)
       }
     }
@@ -127,18 +121,14 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
 
   inner class MyActivationListener : ApplicationActivationListener {
     /**
-     * Notifies `adblib` whether to use the shortest possible delay to track and monitor new
-     * processes, so that this instance of Studio will get priority when running/debugging new JDWP
-     * processes.
+     * Notifies `adblib` whether to use the shortest possible delay to track and monitor new processes, so that this instance of Studio will
+     * get priority when running/debugging new JDWP processes.
      *
      * See b/271572555 for more context.
      */
     fun boostJdwpProcessPropertiesCollector(value: Boolean) {
       log.debug { "boostJdwpProcessPropertiesCollector($value)" }
-      overridePropertyValue(
-        AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT,
-        value,
-      )
+      overridePropertyValue(AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT, value)
     }
 
     override fun applicationActivated(ideFrame: IdeFrame) {

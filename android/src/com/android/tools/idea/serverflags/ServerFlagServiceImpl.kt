@@ -91,9 +91,7 @@ class ServerFlagServiceImpl : ServerFlagService {
 
     val sb = StringBuilder()
     for ((name, flag) in flags.entries.sortedBy { it.key }) {
-      sb.append(
-        "Name: $name\nPercentEnabled: ${flag.value.percentEnabled}\nValue: ${prettyPrint(name, flag.value)}\n\n"
-      )
+      sb.append("Name: $name\nPercentEnabled: ${flag.value.percentEnabled}\nValue: ${prettyPrint(name, flag.value)}\n\n")
     }
 
     return sb.toString()
@@ -124,9 +122,7 @@ class ServerFlagServiceImpl : ServerFlagService {
 
     var initializer: () -> ServerFlagInitializationData = {
       val overrideParser = OverridePropertyParserImpl()
-      val overriddenFlags =
-        System.getProperty(ENABLED_OVERRIDE_KEY)?.let { overrideParser.parseProperty(it) }
-          ?: emptyMap()
+      val overriddenFlags = System.getProperty(ENABLED_OVERRIDE_KEY)?.let { overrideParser.parseProperty(it) } ?: emptyMap()
       ServerFlagInitializer.initializeService(
         localCacheDirectory,
         flagsVersion,

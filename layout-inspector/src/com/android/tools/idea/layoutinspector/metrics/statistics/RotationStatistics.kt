@@ -45,12 +45,7 @@ class RotationStatistics {
 
   /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorRotation.Builder) {
-    if (
-      imageClicksIn2D > 0 ||
-        imageClicksIn3D > 0 ||
-        componentTreeClicksIn2D > 0 ||
-        componentTreeClicksIn3D > 0
-    ) {
+    if (imageClicksIn2D > 0 || imageClicksIn3D > 0 || componentTreeClicksIn2D > 0 || componentTreeClicksIn3D > 0) {
       dataSupplier().let {
         it.imageClicksIn2D = imageClicksIn2D
         it.imageClicksIn3D = imageClicksIn3D

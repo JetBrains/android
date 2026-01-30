@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
@@ -34,6 +34,7 @@ import java.io.File
 
 class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = RegionNecessity(AgpVersion.parse("8.0.0-beta01"), AgpVersion.parse("9.0.0-beta01"))
@@ -43,13 +44,13 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
     var extractNativeLibs: Boolean? = null
     this.toVirtualFile()?.findChild("src")?.children?.forEach child@{ child ->
       if (!child.isDirectory) return@child
-      if (child.name != "main")  return@child
+      if (child.name != "main") return@child
       val manifestFile = child.findChild("AndroidManifest.xml") ?: return@child
       val xmlFile = manifestFile.takeIf { it.isValid }?.let { psiManager.findFile(it) } as? XmlFile ?: return@child
       val rootTag = xmlFile.rootTag ?: return@child
       val applicationTag = rootTag.findSubTags("application").takeIf { it.size == 1 }?.get(0) ?: return@child
-      val extractNativeLibsAttribute = applicationTag.getAttribute("extractNativeLibs", "http://schemas.android.com/apk/res/android")
-                                       ?: return@child
+      val extractNativeLibsAttribute =
+        applicationTag.getAttribute("extractNativeLibs", "http://schemas.android.com/apk/res/android") ?: return@child
       function(extractNativeLibsAttribute)
       if (extractNativeLibs == null && child.name == "main") {
         extractNativeLibsAttribute.value?.toBoolean()?.let { extractNativeLibs = it }
@@ -58,14 +59,17 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
     return extractNativeLibs
   }
 
-  override fun getCommandName(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.commandName")
+  override fun getCommandName(): String =
+    AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.commandName")
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("extract-native-libs-deprecated")
 
-  override fun getShortDescription(): String = """
+  override fun getShortDescription(): String =
+    """
     The extractNativeLibs property in AndroidManifest.xml is deprecated in
     favour of the useLegacyPackaging jniLibs option in build files.
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_EXTRACT_NATIVE_LIBS)
@@ -74,21 +78,24 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
     val usages = ArrayList<UsageInfo>()
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val moduleKind = model.moduleKind ?: return@model
-      if (moduleKind==ModuleKind.LIBRARY) {
+      if (moduleKind == ModuleKind.LIBRARY) {
         return@model
       }
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
-      val manifestValue = moduleDirectory.computeExtractNativeLibsWith { attribute ->
-        val wrappedPsiElement = WrappedPsiElement(attribute, this, REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS)
-        val usageInfo = AndroidManifestExtractNativeLibsInfo(wrappedPsiElement)
-        usages.add(usageInfo)
-      }
+      val manifestValue =
+        moduleDirectory.computeExtractNativeLibsWith { attribute ->
+          val wrappedPsiElement = WrappedPsiElement(attribute, this, REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS)
+          val usageInfo = AndroidManifestExtractNativeLibsInfo(wrappedPsiElement)
+          usages.add(usageInfo)
+        }
       manifestValue?.let {
-        if (model.android().packaging().jniLibs().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE)  return@let
-        val psiElement = model.android().packaging().jniLibs().psiElement
-                         ?: model.android().packaging().psiElement
-                         ?: model.android().psiElement ?: modelPsiElement
+        if (model.android().packaging().jniLibs().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE) return@let
+        val psiElement =
+          model.android().packaging().jniLibs().psiElement
+            ?: model.android().packaging().psiElement
+            ?: model.android().psiElement
+            ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_DSL_USE_LEGACY_PACKAGING)
         val usageInfo = AddUseLegacyPackagingInfo(wrappedPsiElement, model, manifestValue)
         usages.add(usageInfo)
@@ -103,17 +110,28 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() =
+        AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.usageView.header")
     }
   }
 
   companion object {
-    val REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS = UsageType(AgpUpgradeBundle.messagePointer("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.usageType"))
-    val ADD_DSL_USE_LEGACY_PACKAGING = UsageType(AgpUpgradeBundle.messagePointer("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"))
+    val REMOVE_MANIFEST_EXTRACT_NATIVE_LIBS =
+      UsageType(
+        AgpUpgradeBundle.messagePointer(
+          "androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.usageType"
+        )
+      )
+    val ADD_DSL_USE_LEGACY_PACKAGING =
+      UsageType(
+        AgpUpgradeBundle.messagePointer(
+          "androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.usageType"
+        )
+      )
   }
 }
 
-class AndroidManifestExtractNativeLibsInfo(element: WrappedPsiElement): GradleBuildModelUsageInfo(element) {
+class AndroidManifestExtractNativeLibsInfo(element: WrappedPsiElement) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     element?.let {
       val containingFile = it.containingFile
@@ -122,17 +140,16 @@ class AndroidManifestExtractNativeLibsInfo(element: WrappedPsiElement): GradleBu
     }
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.removeExtractNativeLibs.tooltipText")
 }
 
-class AddUseLegacyPackagingInfo(
-  element: WrappedPsiElement,
-  val model: GradleBuildModel,
-  val value: Boolean
-): GradleBuildModelUsageInfo(element) {
+class AddUseLegacyPackagingInfo(element: WrappedPsiElement, val model: GradleBuildModel, val value: Boolean) :
+  GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     model.android().packaging().jniLibs().useLegacyPackaging().setValue(value)
   }
 
-  override fun getTooltipText(): String = AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
+  override fun getTooltipText(): String =
+    AgpUpgradeBundle.message("androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")
 }

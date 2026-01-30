@@ -159,29 +159,20 @@ class InspectorClientLaunchMonitor(
     return StatusNotificationAction("Disconnect") {
       notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
       Logger.getInstance(InspectorClientLaunchMonitor::class.java)
-        .warn(
-          "Client $client timed out during attach at step $currentProgress on the users request"
-        )
+        .warn("Client $client timed out during attach at step $currentProgress on the users request")
       logAttachErrorToMetrics(AttachErrorCode.CONNECT_TIMEOUT)
       client?.disconnect()
     }
   }
 
   private fun createResumeDebuggerAction(debug: DebuggerDetection) =
-    StatusNotificationAction("Resume Debugger") {
-      synchronized(clientLock) { debug.resumeDebugger() }
-    }
+    StatusNotificationAction("Resume Debugger") { synchronized(clientLock) { debug.resumeDebugger() } }
 
   /** Log an attach error from the Dynamic Layout Inspector to metrics. */
   fun logAttachErrorToMetrics(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
     LayoutInspectorSessionMetrics(null, client?.process, null)
-      .logEvent(
-        DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR,
-        stats,
-        currentProgress,
-        errorCode,
-      )
+      .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, stats, currentProgress, errorCode)
   }
 
   fun stop() {

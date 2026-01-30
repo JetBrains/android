@@ -40,69 +40,54 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     override fun getConfigurations(): Map<String, ExceptionConfiguration> {
       val cal = GregorianCalendar()
       return mapOf(
-        "test_1" to ExceptionConfiguration.newBuilder()
-          .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
-          .setExceptionFilter(
-            ExceptionFilter.newBuilder()
-              .setSignature(ex1Sig)
-              .build())
-          .setAction(
-            ExceptionAction.newBuilder()
-              .setRequiresConfirmation(false)
-              .setIncludeExceptionMessage(false)
-              .build())
-          .build(),
-        "test_2" to ExceptionConfiguration.newBuilder()
-          .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
-          .setExceptionFilter(
-            ExceptionFilter.newBuilder()
-              .setSignature(ex2Sig)
-              .build())
-          .setAction(
-            ExceptionAction.newBuilder()
-              .setRequiresConfirmation(true)
-              .setIncludeExceptionMessage(true)
-              .build())
-          .build(),
-        "test_3" to ExceptionConfiguration.newBuilder()
-          .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
-          .setExceptionFilter(
-            ExceptionFilter.newBuilder()
-              .setSignature(ex3Sig)
-              .build())
-          .setAction(
-            ExceptionAction.newBuilder()
-              .setRequiresConfirmation(true)
-              .setIncludeExceptionMessage(true)
-              .setLogFilter(
-                LogFilter.newBuilder()
-                  .setMaxMessageCount(5)
-                  .addMessageFilter(
-                    MessageFilter.newBuilder()
-                      .setSeverity(ExceptionSeverity.INFO)
-                      .setLoggerCategory(exceptionDataCollectionTestLoggerName)
-                  )
-              )
-              .build())
-          .build(),
+        "test_1" to
+          ExceptionConfiguration.newBuilder()
+            .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
+            .setExceptionFilter(ExceptionFilter.newBuilder().setSignature(ex1Sig).build())
+            .setAction(ExceptionAction.newBuilder().setRequiresConfirmation(false).setIncludeExceptionMessage(false).build())
+            .build(),
+        "test_2" to
+          ExceptionConfiguration.newBuilder()
+            .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
+            .setExceptionFilter(ExceptionFilter.newBuilder().setSignature(ex2Sig).build())
+            .setAction(ExceptionAction.newBuilder().setRequiresConfirmation(true).setIncludeExceptionMessage(true).build())
+            .build(),
+        "test_3" to
+          ExceptionConfiguration.newBuilder()
+            .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
+            .setExceptionFilter(ExceptionFilter.newBuilder().setSignature(ex3Sig).build())
+            .setAction(
+              ExceptionAction.newBuilder()
+                .setRequiresConfirmation(true)
+                .setIncludeExceptionMessage(true)
+                .setLogFilter(
+                  LogFilter.newBuilder()
+                    .setMaxMessageCount(5)
+                    .addMessageFilter(
+                      MessageFilter.newBuilder()
+                        .setSeverity(ExceptionSeverity.INFO)
+                        .setLoggerCategory(exceptionDataCollectionTestLoggerName)
+                    )
+                )
+                .build()
+            )
+            .build(),
       )
     }
   }
 
-  private var fixtureDisposable = object : Disposable {
-    override fun dispose() = Unit
-  }
+  private var fixtureDisposable =
+    object : Disposable {
+      override fun dispose() = Unit
+    }
 
   lateinit var service: ExceptionDataCollection
 
   override fun setUp() {
     super.setUp()
-    ApplicationManager.getApplication().replaceService(
-      ExceptionDataConfiguration::class.java, ExceptionDataConfigurationMock(),
-      fixtureDisposable)
-    ApplicationManager.getApplication().replaceService(
-      ExceptionDataCollection::class.java, ExceptionDataCollection(),
-      fixtureDisposable)
+    ApplicationManager.getApplication()
+      .replaceService(ExceptionDataConfiguration::class.java, ExceptionDataConfigurationMock(), fixtureDisposable)
+    ApplicationManager.getApplication().replaceService(ExceptionDataCollection::class.java, ExceptionDataCollection(), fixtureDisposable)
     service = ExceptionDataCollection.getInstance()
   }
 
@@ -128,7 +113,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
   }
 
   fun testLogCollection() {
-    //val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    // val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
     val logger = java.util.logging.LogManager.getLogManager().getLogger(exceptionDataCollectionTestLoggerName)
     with(exceptionDataCollectionTestLogger) {
       for (i in 1..5) {
@@ -144,13 +129,17 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
-    assertThat(result.trimEnd()).isEqualTo("""
-[<time>] W [sh.ExceptionDataCollectionTest] warn message #4
-[<time>] S [sh.ExceptionDataCollectionTest] severe message #4
-[<time>] I [sh.ExceptionDataCollectionTest] info message #5
-[<time>] W [sh.ExceptionDataCollectionTest] warn message #5
-[<time>] S [sh.ExceptionDataCollectionTest] severe message #5
-    """.trimIndent())
+    assertThat(result.trimEnd())
+      .isEqualTo(
+        """
+        [<time>] W [sh.ExceptionDataCollectionTest] warn message #4
+        [<time>] S [sh.ExceptionDataCollectionTest] severe message #4
+        [<time>] I [sh.ExceptionDataCollectionTest] info message #5
+        [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
+        [<time>] S [sh.ExceptionDataCollectionTest] severe message #5
+        """
+          .trimIndent()
+      )
   }
 
   fun testCalculateSignature() {
@@ -189,62 +178,59 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
   companion object {
 
-    val exceptionDataCollectionTestLoggerName = "#" + ExceptionDataCollectionTest::class.java.name;
+    val exceptionDataCollectionTestLoggerName = "#" + ExceptionDataCollectionTest::class.java.name
+
     val exceptionDataCollectionTestLogger = Logger.getInstance(exceptionDataCollectionTestLoggerName)
 
     const val ex1Description =
       "java.lang.Exception: exception text 123456789\n" +
-      "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n"
+        "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n"
     const val ex1DescriptionWithoutMessage =
-      "java.lang.Exception: <elided>\n" +
-      "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n"
+      "java.lang.Exception: <elided>\n" + "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n"
     val ex1 = ExceptionTestUtils.createExceptionFromDesc(ex1Description)
     const val ex1Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-19432f88"
 
     const val ex2Description =
       "java.lang.Exception: random exception text -7184021398473263170\n" +
-      "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n" +
-      "\tat com.intellij.openapi.actionSystem.ex.ActionUtil.lambda\$performActionDumbAware\$5(ActionUtil.java:273)\n" +
-      "\tat com.intellij.util.SlowOperations.lambda\$allowSlowOperations\$0(SlowOperations.java:77)\n" +
-      "\tat com.intellij.util.SlowOperations.allowSlowOperations(SlowOperations.java:68)\n" +
-      "\tat com.intellij.util.SlowOperations.allowSlowOperations(SlowOperations.java:76)\n" +
-      "\tat com.intellij.openapi.actionSystem.ex.ActionUtil.performActionDumbAware(ActionUtil.java:273)\n" +
-      "\tat com.intellij.ide.actions.GotoActionAction.lambda\$performAction\$2(GotoActionAction.java:108)\n" +
-      "\tat java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)\n"
+        "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n" +
+        "\tat com.intellij.openapi.actionSystem.ex.ActionUtil.lambda\$performActionDumbAware\$5(ActionUtil.java:273)\n" +
+        "\tat com.intellij.util.SlowOperations.lambda\$allowSlowOperations\$0(SlowOperations.java:77)\n" +
+        "\tat com.intellij.util.SlowOperations.allowSlowOperations(SlowOperations.java:68)\n" +
+        "\tat com.intellij.util.SlowOperations.allowSlowOperations(SlowOperations.java:76)\n" +
+        "\tat com.intellij.openapi.actionSystem.ex.ActionUtil.performActionDumbAware(ActionUtil.java:273)\n" +
+        "\tat com.intellij.ide.actions.GotoActionAction.lambda\$performAction\$2(GotoActionAction.java:108)\n" +
+        "\tat java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)\n"
     val ex2 = ExceptionTestUtils.createExceptionFromDesc(ex2Description)
     const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-2f166b9f"
 
-    const val exNoStackDescription =
-      "java.lang.Exception: sample message\n"
+    const val exNoStackDescription = "java.lang.Exception: sample message\n"
     val exNoStack = ExceptionTestUtils.createExceptionFromDesc(exNoStackDescription)
     const val exNoStackSig = "MissingCrashedThreadStack"
 
-    const val ex3Description =
-      "java.lang.Exception: sample message\n" +
-      "\tat com.android.SomeClass.someMethod(FileName.java:100)\n"
+    const val ex3Description = "java.lang.Exception: sample message\n" + "\tat com.android.SomeClass.someMethod(FileName.java:100)\n"
 
     val ex3 = ExceptionTestUtils.createExceptionFromDesc(ex3Description)
     val ex3Sig = "java.lang.Exception at com.android.SomeClass.someMethod-d3f18885"
 
     const val ex4Description =
       "java.lang.OutOfMemoryError: <elided>\n" +
-      "\tat java.desktop/sun.java2d.metal.MTLSurfaceData.initSurfaceNow(Unknown Source)\n" +
-      "\tat java.desktop/sun.java2d.metal.MTLSurfaceData\$1.run(Unknown Source)\n" +
-      "\tat java.desktop/sun.java2d.metal.MTLRenderQueue\$QueueFlusher.run(Unknown Source)\n" +
-      "\tat java.base/java.lang.Thread.run(Unknown Source)\n"
+        "\tat java.desktop/sun.java2d.metal.MTLSurfaceData.initSurfaceNow(Unknown Source)\n" +
+        "\tat java.desktop/sun.java2d.metal.MTLSurfaceData\$1.run(Unknown Source)\n" +
+        "\tat java.desktop/sun.java2d.metal.MTLRenderQueue\$QueueFlusher.run(Unknown Source)\n" +
+        "\tat java.base/java.lang.Thread.run(Unknown Source)\n"
     val ex4 = ExceptionTestUtils.createExceptionFromDesc(ex4Description)
     val ex4Sig = "java.lang.OutOfMemoryError at java.desktop/sun.java2d.metal.MTLSurfaceData.initSurfaceNow-8edba189"
 
     const val ex5Description =
       "java.lang.RuntimeException: AWT-EventQueue-0\" RUNNABLE Frozen for 12secs\n" +
-      "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.N_AddCustomScheme(Native Method)\n" +
-      "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.addCustomScheme(CefSchemeRegistrar_N.java:13)\n" +
-      "\tat com.intellij.ui.jcef.JBCefSourceSchemeHandlerFactory.registerCustomScheme(JBCefSourceSchemeHandlerFactory.java:16)\n" +
-      "\tat com.intellij.ui.jcef.JBCefApp\$MyCefAppHandler.onRegisterCustomSchemes(JBCefApp.java:566)\n" +
-      "\tat app/jcef/org.cef.CefApp.N_Initialize(Native Method)\n" +
-      "\tat app/jcef/org.cef.CefApp\$3.lambda\$run\$0(CefApp.java:452)\n" +
-      "\tat app/jcef/org.cef.CefApp\$3\$\$Lambda\$5988/0x0000000101c23900.call(Unknown Source)\n"
-    val ex5= ExceptionTestUtils.createExceptionFromDesc(ex5Description)
+        "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.N_AddCustomScheme(Native Method)\n" +
+        "\tat app/jcef/org.cef.callback.CefSchemeRegistrar_N.addCustomScheme(CefSchemeRegistrar_N.java:13)\n" +
+        "\tat com.intellij.ui.jcef.JBCefSourceSchemeHandlerFactory.registerCustomScheme(JBCefSourceSchemeHandlerFactory.java:16)\n" +
+        "\tat com.intellij.ui.jcef.JBCefApp\$MyCefAppHandler.onRegisterCustomSchemes(JBCefApp.java:566)\n" +
+        "\tat app/jcef/org.cef.CefApp.N_Initialize(Native Method)\n" +
+        "\tat app/jcef/org.cef.CefApp\$3.lambda\$run\$0(CefApp.java:452)\n" +
+        "\tat app/jcef/org.cef.CefApp\$3\$\$Lambda\$5988/0x0000000101c23900.call(Unknown Source)\n"
+    val ex5 = ExceptionTestUtils.createExceptionFromDesc(ex5Description)
     val ex5Sig = "java.lang.RuntimeException at app/jcef/org.cef.callback.CefSchemeRegistrar_N.N_AddCustomScheme-7b65b85f"
   }
 }

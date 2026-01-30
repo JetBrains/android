@@ -38,97 +38,61 @@ private val idToName =
     DEVICE_CLASS_DESKTOP_ID to "Desktop",
     DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape",
   )
-private val wearSpecToName =
-  mapOf(
-    "id:wearos_large_round" to "Wear OS Large Round",
-    "id:wearos_small_round" to "Wear OS Small Round",
-  )
-private val fontScales =
-  mapOf(
-    0.85f to "85%",
-    1.0f to "100%",
-    1.15f to "115%",
-    1.3f to "130%",
-    1.8f to "180%",
-    2.0f to "200%",
-  )
+private val wearSpecToName = mapOf("id:wearos_large_round" to "Wear OS Large Round", "id:wearos_small_round" to "Wear OS Small Round")
+private val fontScales = mapOf(0.85f to "85%", 1.0f to "100%", 1.15f to "115%", 1.3f to "130%", 1.8f to "180%", 2.0f to "200%")
 // https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:wear/compose/compose-ui-tooling/src/main/java/androidx/wear/compose/ui/tooling/preview/WearPreviewFontScales.kt
 private val wearFontScales =
-  mapOf(
-    0.94f to "Small",
-    1.0f to "Normal",
-    1.06f to "Medium",
-    1.12f to "Large",
-    1.18f to "Larger",
-    1.24f to "Largest",
-  )
-private val lightDarkModes =
-  mapOf(Configuration.UI_MODE_NIGHT_NO to "Light", Configuration.UI_MODE_NIGHT_YES to "Dark")
+  mapOf(0.94f to "Small", 1.0f to "Normal", 1.06f to "Medium", 1.12f to "Large", 1.18f to "Larger", 1.24f to "Largest")
+private val lightDarkModes = mapOf(Configuration.UI_MODE_NIGHT_NO to "Light", Configuration.UI_MODE_NIGHT_YES to "Dark")
 
 /**
- * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance
- * and generate multiple previews, one per reference device for the user to check.
+ * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance and generate multiple previews, one per
+ * reference device for the user to check.
  */
 sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
   var modelsWithErrors: Set<NlModel>? = null
   abstract val basePreviewInstance: T?
 
-  abstract fun filterPreviewInstances(
-    previewInstances: FlowableCollection<T>
-  ): FlowableCollection<T>
+  abstract fun filterPreviewInstances(previewInstances: FlowableCollection<T>): FlowableCollection<T>
 
   abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
   class Disabled<T : PreviewElementInstance<*>> : UiCheckModeFilter<T>() {
     override val basePreviewInstance = null
 
-    override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<T>
-    ): FlowableCollection<T> = previewInstances
+    override fun filterPreviewInstances(previewInstances: FlowableCollection<T>): FlowableCollection<T> = previewInstances
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
   }
 
-  class Enabled<T : PreviewElementInstance<*>>(selected: T, isWearPreview: Boolean) :
-    UiCheckModeFilter<T>() {
+  class Enabled<T : PreviewElementInstance<*>>(selected: T, isWearPreview: Boolean) : UiCheckModeFilter<T>() {
     override val basePreviewInstance = selected
 
     private val uiCheckPreviews: Collection<T> = calculatePreviews(selected, isWearPreview)
 
     /** Calculate the groups. This will be all the groups available in [uiCheckPreviews] if any. */
     private val uiCheckPreviewGroups =
-      uiCheckPreviews
-        .mapNotNull { it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) } }
-        .toSet()
+      uiCheckPreviews.mapNotNull { it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) } }.toSet()
 
-    override fun filterPreviewInstances(
-      previewInstances: FlowableCollection<T>
-    ): FlowableCollection<T> =
+    override fun filterPreviewInstances(previewInstances: FlowableCollection<T>): FlowableCollection<T> =
       when (previewInstances) {
         is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
         is FlowableCollection.Present ->
-          if (basePreviewInstance in previewInstances.asCollection())
-            FlowableCollection.Present(uiCheckPreviews)
+          if (basePreviewInstance in previewInstances.asCollection()) FlowableCollection.Present(uiCheckPreviews)
           else FlowableCollection.Present(emptyList())
       }
 
-    override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
-      uiCheckPreviewGroups
+    override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = uiCheckPreviewGroups
 
     companion object {
       /**
-       * Calculates the collection of all the possible generated previews for the UI Check
-       * calculation.
+       * Calculates the collection of all the possible generated previews for the UI Check calculation.
        *
        * @param base The Preview to calculate all the [PreviewElementInstance]s
        * @param isWearPreview true if the Preview to calculate is a wearable Preview
-       * @return A collection of Previews showing different form factors, font sizes and color
-       *   filters.
+       * @return A collection of Previews showing different form factors, font sizes and color filters.
        */
-      fun <T : PreviewElementInstance<*>> calculatePreviews(
-        base: T?,
-        isWearPreview: Boolean,
-      ): Collection<T> {
+      fun <T : PreviewElementInstance<*>> calculatePreviews(base: T?, isWearPreview: Boolean): Collection<T> {
 
         if (base == null) {
           return emptyList()
@@ -163,8 +127,7 @@ private fun <T : PreviewElementInstance<*>> wearDevicesPreviews(baseInstance: T)
           parameterName = name,
           group = message("ui.check.mode.wear.group"),
           showDecoration = true,
-          organizationGroup =
-            baseDisplaySettings.organizationGroup + message("ui.check.mode.wear.group"),
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.wear.group"),
           organizationName = "${message("ui.check.mode.wear.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
@@ -176,11 +139,7 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   val effectiveDeviceIds =
-    referenceDeviceIds +
-      mapOf(
-        "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
-          DEVICE_CLASS_LANDSCAPE_PHONE_ID
-      )
+    referenceDeviceIds + mapOf("spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to DEVICE_CLASS_LANDSCAPE_PHONE_ID)
   return effectiveDeviceIds.keys
     .map { device ->
       val config = baseConfig.copy(deviceSpec = device)
@@ -191,20 +150,15 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
           parameterName = idToName[effectiveDeviceIds[device]],
           group = message("ui.check.mode.screen.size.group"),
           showDecoration = true,
-          organizationGroup =
-            baseDisplaySettings.organizationGroup + message("ui.check.mode.screen.size.group"),
-          organizationName =
-            "${message("ui.check.mode.screen.size.group")} - ${baseDisplaySettings.name}",
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.screen.size.group"),
+          organizationName = "${message("ui.check.mode.screen.size.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
     .filterIsInstance(baseInstance::class.java)
 }
 
-private fun <T : PreviewElementInstance<*>> fontSizePreviews(
-  baseInstance: T,
-  isWearPreview: Boolean = false,
-): List<T> {
+private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T, isWearPreview: Boolean = false): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   val fontScales = if (isWearPreview) wearFontScales else fontScales
@@ -217,10 +171,8 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(
           baseName = baseDisplaySettings.name,
           parameterName = name,
           group = message("ui.check.mode.font.scale.group"),
-          organizationGroup =
-            baseDisplaySettings.organizationGroup + message("ui.check.mode.font.scale.group"),
-          organizationName =
-            "${message("ui.check.mode.font.scale.group")} - ${baseDisplaySettings.name}",
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.font.scale.group"),
+          organizationName = "${message("ui.check.mode.font.scale.group")} - ${baseDisplaySettings.name}",
           showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
         )
       baseInstance.createDerivedInstance(displaySettings, config)
@@ -233,34 +185,27 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
   val baseDisplaySettings = baseInstance.displaySettings
   return lightDarkModes
     .map { (value, name) ->
-      val config =
-        baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
+      val config = baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "$name - ${baseDisplaySettings.name}",
           baseName = baseDisplaySettings.name,
           parameterName = name,
           group = message("ui.check.mode.light.dark.group"),
-          organizationGroup =
-            baseDisplaySettings.organizationGroup + message("ui.check.mode.light.dark.group"),
-          organizationName =
-            "${message("ui.check.mode.light.dark.group")} - ${baseDisplaySettings.name}",
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.light.dark.group"),
+          organizationName = "${message("ui.check.mode.light.dark.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
     .filterIsInstance(baseInstance::class.java)
 }
 
-private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
-  baseInstance: T,
-  isWearPreview: Boolean = false,
-): List<T> {
+private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T, isWearPreview: Boolean = false): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return ColorBlindMode.values()
     .map { colorBlindMode ->
-      val colorFilterBaseConfig =
-        baseConfig.copy(colorBlindImageTransformation = colorBlindMode.imageTransform)
+      val colorFilterBaseConfig = baseConfig.copy(colorBlindImageTransformation = colorBlindMode.imageTransform)
       val displaySettings =
         baseDisplaySettings.copy(
           name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
@@ -268,11 +213,8 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
           parameterName = colorBlindMode.displayName,
           group = message("ui.check.mode.screen.accessibility.group"),
           showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
-          organizationGroup =
-            baseDisplaySettings.organizationGroup +
-              message("ui.check.mode.screen.accessibility.group"),
-          organizationName =
-            "${message("ui.check.mode.screen.accessibility.group")} - ${baseDisplaySettings.name}",
+          organizationGroup = baseDisplaySettings.organizationGroup + message("ui.check.mode.screen.accessibility.group"),
+          organizationName = "${message("ui.check.mode.screen.accessibility.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
     }

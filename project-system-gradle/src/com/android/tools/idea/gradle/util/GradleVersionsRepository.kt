@@ -26,16 +26,15 @@ import com.google.gson.JsonParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.ide.PooledThreadExecutor
 import java.io.InputStream
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.jetbrains.ide.PooledThreadExecutor
 
 const val GRADLE_VERSIONS_URL = "https://services.gradle.org/versions/all"
 const val GRADLE_VERSIONS_CACHE_DIR_KEY = "gradle.versions"
 
-object GradleVersionsRepository : NetworkCache(
-  GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
+object GradleVersionsRepository : NetworkCache(GRADLE_VERSIONS_URL, GRADLE_VERSIONS_CACHE_DIR_KEY, getCacheDir(), cacheExpiryHours = 24) {
 
   @Slow
   override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
@@ -46,33 +45,28 @@ object GradleVersionsRepository : NetworkCache(
   override fun error(throwable: Throwable, message: String?) =
     Logger.getInstance(GradleVersionsRepository::class.java).warn(message, throwable)
 
-  fun getKnownVersionsFuture() : ListenableFuture<List<String>?> =
+  fun getKnownVersionsFuture(): ListenableFuture<List<String>?> =
     MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>?> { getKnownVersions() ?: emptyList() }
 
-  @Slow
-  fun getKnownVersions() : List<String>? = findData("")?.use { parseGradleVersionsResponse(it) }
+  @Slow fun getKnownVersions(): List<String>? = findData("")?.use { parseGradleVersionsResponse(it) }
 }
 
 /**
- * Parse json response body into versions list.
- * Same order as in response maintained.
- * Snapshot versions are filtered out.
- * <br/>
- * Response example can be found in test
+ * Parse json response body into versions list. Same order as in response maintained. Snapshot versions are filtered out. <br/> Response
+ * example can be found in test
  */
 @VisibleForTesting
 fun parseGradleVersionsResponse(response: InputStream): List<String> =
-  JsonParser().parse(response.bufferedReader()).getAsJsonArray()
-    .mapNotNull { version ->
-      version.asJsonObject
-      .takeUnless { it.get("snapshot").asBoolean }
-      ?.get("version")?.asString
-    }
+  JsonParser().parse(response.bufferedReader()).getAsJsonArray().mapNotNull { version ->
+    version.asJsonObject.takeUnless { it.get("snapshot").asBoolean }?.get("version")?.asString
+  }
 
 private fun getCacheDir(): Path? {
-  if (ApplicationManager.getApplication() == null ||
+  if (
+    ApplicationManager.getApplication() == null ||
       ApplicationManager.getApplication().isUnitTestMode ||
-      GuiTestingService.getInstance().isGuiTestingMode) {
+      GuiTestingService.getInstance().isGuiTestingMode
+  ) {
     // Test mode
     return null
   }

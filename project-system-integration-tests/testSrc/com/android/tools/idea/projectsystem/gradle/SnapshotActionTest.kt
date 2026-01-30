@@ -20,26 +20,22 @@ import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.util.EmbeddedDistributionPaths
-import org.junit.Rule
-import org.junit.Test
 import java.net.URI
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.toPath
+import org.junit.Rule
+import org.junit.Test
 
 class SnapshotActionTest {
 
-  @JvmField @Rule
-  var system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule var system: AndroidSystem = AndroidSystem.standard()
 
   @Test
   fun `Check project dump action`() {
     system.installation.apply {
       addVmOption("-Dstudio.project.sync.debug.mode=true")
       addVmOption("-Didea.is.internal=true")
-
     }
     val project = AndroidProject("tools/adt/idea/project-system-integration-tests/testData/snapshots/sample-project")
 
@@ -50,7 +46,8 @@ class SnapshotActionTest {
 
       studio.executeAction("Android.DumpProject")
       val projectDumpFile =
-        system.installation.ideaLog.waitForMatchingLine(".*Project structure dumped to file: (?<filepath>file:.*)", 1, TimeUnit.MINUTES)
+        system.installation.ideaLog
+          .waitForMatchingLine(".*Project structure dumped to file: (?<filepath>file:.*)", 1, TimeUnit.MINUTES)
           .group("filepath")
           .let { URI(it).toPath() }
       assertThat(projectDumpFile).exists()
@@ -59,7 +56,8 @@ class SnapshotActionTest {
 
       studio.executeAction("Android.DumpProjectIdeModels")
       val projectModelsDumpFile =
-        system.installation.ideaLog.waitForMatchingLine(".*Android IDE models dumped to file: (?<filepath>file:.*)", 1, TimeUnit.MINUTES)
+        system.installation.ideaLog
+          .waitForMatchingLine(".*Android IDE models dumped to file: (?<filepath>file:.*)", 1, TimeUnit.MINUTES)
           .group("filepath")
           .let { URI(it).toPath() }
       assertThat(projectModelsDumpFile).exists()

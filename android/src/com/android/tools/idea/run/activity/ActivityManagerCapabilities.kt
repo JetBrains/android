@@ -24,10 +24,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.intellij.openapi.project.Project
+import java.time.Duration
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import java.time.Duration
-
 
 class ActivityManagerCapabilities(val project: Project) {
 
@@ -40,20 +39,21 @@ class ActivityManagerCapabilities(val project: Project) {
           // This value comes from
           // frameworks/base/services/core/java/com/android/server/am/ActivityManagerShellCommand.java
           ActivityManagerCapabilities(project).checkCapability(device, "start.suspend")
-        }?: throw AndroidExecutionException("OPERATION_TIMEOUT", "Unable to retrieve suspend capability")
+        } ?: throw AndroidExecutionException("OPERATION_TIMEOUT", "Unable to retrieve suspend capability")
       }
     }
   }
 
   private suspend fun checkCapability(device: IDevice, capability: String): Boolean {
-    val caps = kotlin.runCatching {
-      val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
-      val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
+    val caps =
+      kotlin
+        .runCatching {
+          val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
+          val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
 
-      connectedDevice?.activityManager?.capabilities()?.capabilities
-    }.getOrElse { throwable ->
-      throw Exception("Error retrieving capabilities from the device ${device.serialNumber}", throwable)
-    }
+          connectedDevice?.activityManager?.capabilities()?.capabilities
+        }
+        .getOrElse { throwable -> throw Exception("Error retrieving capabilities from the device ${device.serialNumber}", throwable) }
     return caps?.contains(capability) ?: false
   }
 }

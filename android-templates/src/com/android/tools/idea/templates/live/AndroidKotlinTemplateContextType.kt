@@ -24,13 +24,13 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType
 
 /**
- * This [TemplateContextType] replicates the structure of [org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType],
- * intersecting it with the [AndroidSourceSetTemplateContextType].
+ * This [TemplateContextType] replicates the structure of [org.jetbrains.kotlin.idea.liveTemplates.KotlinTemplateContextType], intersecting
+ * it with the [AndroidSourceSetTemplateContextType].
  */
-internal sealed class AndroidKotlinTemplateContextType(
-  private val kotlin: KotlinTemplateContextType,
-) : TemplateContextType(kotlin.presentableName) {
+internal sealed class AndroidKotlinTemplateContextType(private val kotlin: KotlinTemplateContextType) :
+  TemplateContextType(kotlin.presentableName) {
   private val android = AndroidSourceSetTemplateContextType()
+
   override fun isInContext(templateActionContext: TemplateActionContext): Boolean {
     return android.isInContext(templateActionContext) && kotlin.isInContext(templateActionContext)
   }
@@ -51,16 +51,14 @@ internal sealed class AndroidKotlinTemplateContextType(
 }
 
 /**
- * Checks if the template is applied to an Android-specific source set.
- * This template is used to hide the Android-related templates from unrelated to Android source sets (like common, jvm, ios, etc.)
+ * Checks if the template is applied to an Android-specific source set. This template is used to hide the Android-related templates from
+ * unrelated to Android source sets (like common, jvm, ios, etc.)
  */
-internal class AndroidSourceSetTemplateContextType : TemplateContextType(
-  TemplatesBundle.message("templates.live.context.android")
-) {
+internal class AndroidSourceSetTemplateContextType : TemplateContextType(TemplatesBundle.message("templates.live.context.android")) {
   override fun isInContext(templateActionContext: TemplateActionContext): Boolean {
     val file = templateActionContext.file
-    val module = file.module ?: ProjectFileIndex.getInstance(file.project)
-      .getModuleForFile(file.virtualFile ?: file.viewProvider.virtualFile)
+    val module =
+      file.module ?: ProjectFileIndex.getInstance(file.project).getModuleForFile(file.virtualFile ?: file.viewProvider.virtualFile)
     if (module == null || module.isDisposed) return false
     return AndroidFacet.getInstance(module) != null
   }

@@ -34,11 +34,7 @@ import org.jetbrains.plugins.groovy.GroovyFileType
 import org.toml.lang.psi.TomlFileType
 
 /** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
-class SuppressLintIntentionAction(
-  private val id: String,
-  element: PsiElement,
-  private val issue: Issue? = null,
-) : ModCommandAction {
+class SuppressLintIntentionAction(private val id: String, element: PsiElement, private val issue: Issue? = null) : ModCommandAction {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)

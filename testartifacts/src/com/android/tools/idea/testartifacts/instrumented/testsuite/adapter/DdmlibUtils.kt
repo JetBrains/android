@@ -24,78 +24,81 @@ import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-/**
- * Converts the given IDevice into an AndroidDevice
- */
+/** Converts the given IDevice into an AndroidDevice */
 @WorkerThread
 fun convertIDeviceToAndroidDevice(device: IDevice): AndroidDevice {
-  return AndroidDevice(device.serialNumber,
-                       device.avdName ?: "",
-                       device.avdName ?: "",
-                       if (device.isEmulator) {
-                         AndroidDeviceType.LOCAL_EMULATOR
-                       }
-                       else {
-                         AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-                       },
-                       device.version,
-                       Collections.synchronizedMap(LinkedHashMap())).apply {
-    additionalInfo["SerialNumber"] = device.serialNumber
-    executeShellCommandAndProcessOutput(device, "cat /proc/meminfo").let { output ->
-      output.map {
-        val (key, value) = it.split(':', ignoreCase = true, limit = 2) + listOf("", "")
-        if (key.trim() == "MemTotal") {
-          val (ramSize, unit) = value.trim().split(' ', ignoreCase = true, limit = 2)
-          val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
-          when (unit) {
-            "kB" -> String.format(Locale.ROOT, "%.1f GB", ramSizeFloat / 1000 / 1000)
-            else -> null
+  return AndroidDevice(
+      device.serialNumber,
+      device.avdName ?: "",
+      device.avdName ?: "",
+      if (device.isEmulator) {
+        AndroidDeviceType.LOCAL_EMULATOR
+      } else {
+        AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+      },
+      device.version,
+      Collections.synchronizedMap(LinkedHashMap()),
+    )
+    .apply {
+      additionalInfo["SerialNumber"] = device.serialNumber
+      executeShellCommandAndProcessOutput(device, "cat /proc/meminfo").let { output ->
+        output
+          .map {
+            val (key, value) = it.split(':', ignoreCase = true, limit = 2) + listOf("", "")
+            if (key.trim() == "MemTotal") {
+              val (ramSize, unit) = value.trim().split(' ', ignoreCase = true, limit = 2)
+              val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
+              when (unit) {
+                "kB" -> String.format(Locale.ROOT, "%.1f GB", ramSizeFloat / 1000 / 1000)
+                else -> null
+              }
+            } else {
+              null
+            }
           }
-        }
-        else {
-          null
-        }
-      }.filterNotNull().firstOrNull()?.let {
-        additionalInfo["RAM"] = it
+          .filterNotNull()
+          .firstOrNull()
+          ?.let { additionalInfo["RAM"] = it }
       }
-    }
 
-    executeShellCommandAndProcessOutput(device, "cat /proc/cpuinfo").let { output ->
-      val cpus = output.mapNotNull {
-        val (key, value) = it.split(':', ignoreCase = true, limit = 2) + listOf("", "")
-        if (key.trim() == "model name") {
-          value.trim()
-        }
-        else {
-          null
-        }
-      }.toSet()
+      executeShellCommandAndProcessOutput(device, "cat /proc/cpuinfo").let { output ->
+        val cpus =
+          output
+            .mapNotNull {
+              val (key, value) = it.split(':', ignoreCase = true, limit = 2) + listOf("", "")
+              if (key.trim() == "model name") {
+                value.trim()
+              } else {
+                null
+              }
+            }
+            .toSet()
 
-      if (cpus.isNotEmpty()) {
-        additionalInfo["Processor"] = cpus.joinToString("\n")
+        if (cpus.isNotEmpty()) {
+          additionalInfo["Processor"] = cpus.joinToString("\n")
+        }
       }
-    }
 
-    executeShellCommandAndProcessOutput(device, "getprop ro.product.manufacturer").let {
-      it.getOrNull(0)?.let { additionalInfo["Manufacturer"] = it }
+      executeShellCommandAndProcessOutput(device, "getprop ro.product.manufacturer").let {
+        it.getOrNull(0)?.let { additionalInfo["Manufacturer"] = it }
+      }
+      executeShellCommandAndProcessOutput(device, "getprop ro.product.model").let { it.getOrNull(0)?.let { additionalInfo["Model"] = it } }
     }
-    executeShellCommandAndProcessOutput(device, "getprop ro.product.model").let { it.getOrNull(0)?.let { additionalInfo["Model"] = it } }
-  }
 }
 
-/**
- * Executes a given shell command on a given device and returns output.
- */
+/** Executes a given shell command on a given device and returns output. */
 @WorkerThread
 private fun executeShellCommandAndProcessOutput(device: IDevice, command: String): MutableList<String> {
-  val receiver = object : MultiLineReceiver() {
-    val output = mutableListOf<String>()
-    override fun isCancelled() = false
+  val receiver =
+    object : MultiLineReceiver() {
+      val output = mutableListOf<String>()
 
-    override fun processNewLines(lines: Array<out String>) {
-      output.addAll(lines)
+      override fun isCancelled() = false
+
+      override fun processNewLines(lines: Array<out String>) {
+        output.addAll(lines)
+      }
     }
-  }
   device.executeShellCommand(command, receiver, 10, TimeUnit.SECONDS)
   return receiver.output
 }

@@ -26,9 +26,8 @@ import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 
 /**
- * Default [SceneComponentHierarchyProvider] for [LayoutlibSceneManager]. It provides the
- * functionality to sync the [NlComponent] hierarchy and the data from Layoutlib to
- * [SceneComponent].
+ * Default [SceneComponentHierarchyProvider] for [LayoutlibSceneManager]. It provides the functionality to sync the [NlComponent] hierarchy
+ * and the data from Layoutlib to [SceneComponent].
  */
 class LayoutlibSceneManagerHierarchyProvider : DefaultSceneManagerHierarchyProvider() {
   override fun syncFromNlComponent(sceneComponent: SceneComponent) {
@@ -38,25 +37,11 @@ class LayoutlibSceneManagerHierarchyProvider : DefaultSceneManagerHierarchyProvi
     val manager = sceneComponent.scene.sceneManager
     if (animate) {
       val time = System.currentTimeMillis()
-      sceneComponent.setPositionTarget(
-        Coordinates.pxToDp(manager, component.x),
-        Coordinates.pxToDp(manager, component.y),
-        time,
-      )
-      sceneComponent.setSizeTarget(
-        Coordinates.pxToDp(manager, component.w),
-        Coordinates.pxToDp(manager, component.h),
-        time,
-      )
+      sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, component.x), Coordinates.pxToDp(manager, component.y), time)
+      sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, component.w), Coordinates.pxToDp(manager, component.h), time)
     } else {
-      sceneComponent.setPosition(
-        Coordinates.pxToDp(manager, component.x),
-        Coordinates.pxToDp(manager, component.y),
-      )
-      sceneComponent.setSize(
-        Coordinates.pxToDp(manager, component.w),
-        Coordinates.pxToDp(manager, component.h),
-      )
+      sceneComponent.setPosition(Coordinates.pxToDp(manager, component.x), Coordinates.pxToDp(manager, component.y))
+      sceneComponent.setSize(Coordinates.pxToDp(manager, component.w), Coordinates.pxToDp(manager, component.h))
     }
   }
 }

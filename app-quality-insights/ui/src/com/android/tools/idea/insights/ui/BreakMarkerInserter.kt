@@ -18,8 +18,7 @@ package com.android.tools.idea.insights.ui
 // This code was copied from Gemini plugin's BreakMarkerInserter
 
 /**
- * Adds [BREAK_MARKER] to tokens longer than [MIN_BREAKABLE_TOKEN_LENGTH]. This allows the text to
- * be broken in a word/line wrapped panel.
+ * Adds [BREAK_MARKER] to tokens longer than [MIN_BREAKABLE_TOKEN_LENGTH]. This allows the text to be broken in a word/line wrapped panel.
  */
 object BreakMarkerInserter {
   const val BREAK_MARKER = "%%%%%break-goes-here%%%%%"

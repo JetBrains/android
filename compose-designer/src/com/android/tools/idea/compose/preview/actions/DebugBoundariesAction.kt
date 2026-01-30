@@ -31,12 +31,10 @@ internal class ShowDebugBoundaries : ToggleAction("$SHOW Composable Bounds", nul
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isSelected(e: AnActionEvent): Boolean =
-    (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? ComposePreviewManagerEx)
-      ?.showDebugBoundaries == true
+    (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? ComposePreviewManagerEx)?.showDebugBoundaries == true
 
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
-    (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? ComposePreviewManagerEx)
-      ?.showDebugBoundaries = isSelected
+    (e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? ComposePreviewManagerEx)?.showDebugBoundaries = isSelected
   }
 
   override fun update(e: AnActionEvent) {

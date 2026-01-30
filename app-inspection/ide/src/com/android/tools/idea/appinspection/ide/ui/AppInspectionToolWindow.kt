@@ -51,18 +51,12 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
   @VisibleForTesting
   val ideServices: AppInspectionIdeServices =
     object : AppInspectionIdeServices {
-      private val notificationGroup =
-        NotificationGroupManager.getInstance().getNotificationGroup(APP_INSPECTION_NOTIFICATIONS_ID)
+      private val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup(APP_INSPECTION_NOTIFICATIONS_ID)
 
       @UiThread override fun showToolWindow() = toolWindow.show(null)
 
       @UiThread
-      override fun showNotification(
-        content: String,
-        title: String,
-        severity: AppInspectionIdeServices.Severity,
-        action: AnAction?,
-      ) {
+      override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, action: AnAction?) {
         val type =
           when (severity) {
             AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
@@ -82,22 +76,10 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
             ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
           } else {
             val fileName = codeLocation.fileName!!
-            FilenameIndex.getFilesByName(
-                project,
-                fileName,
-                GlobalSearchScope.allScope(project),
-                false,
-              )
-              .firstOrNull()
-              ?.virtualFile
-              ?.let { virtualFile ->
-                OpenFileDescriptor(
-                  project,
-                  virtualFile,
-                  codeLocation.lineNumber?.let { it - 1 } ?: -1,
-                  0,
-                )
-              }
+            FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false).firstOrNull()?.virtualFile?.let {
+              virtualFile ->
+              OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
+            }
           }
         }
 

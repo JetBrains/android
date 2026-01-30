@@ -21,28 +21,21 @@ import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * Generate the wrapper wizard step that shows list of [templates] options.
- * For now templates are limited to ones that are supported by [fragmentGalleryStepMessageKeys], with
- * [FormFactor.MOBILE].
+ * Generate the wrapper wizard step that shows list of [templates] options. For now templates are limited to ones that are supported by
+ * [fragmentGalleryStepMessageKeys], with [FormFactor.MOBILE].
  */
-class ChooseCustomFragmentTemplatesStep (
-  renderModel: RenderTemplateModel,
-  targetDirectory: VirtualFile,
-  templates: List<Template>
-) : ChooseGalleryItemStep(
-  renderModel, FormFactor.MOBILE, targetDirectory,
-  messageKeys = customSetupWizardMessageKeys,
-  emptyItemLabel = ""
-) {
+class ChooseCustomFragmentTemplatesStep(renderModel: RenderTemplateModel, targetDirectory: VirtualFile, templates: List<Template>) :
+  ChooseGalleryItemStep(renderModel, FormFactor.MOBILE, targetDirectory, messageKeys = customSetupWizardMessageKeys, emptyItemLabel = "") {
 
   override val templateRenderers: List<TemplateRenderer> = templates.map(::NewTemplateRenderer)
 }
 
-internal val customSetupWizardMessageKeys = WizardGalleryItemsStepMessageKeys(
-  "android.wizard.welcome.dialog.title",
-  "android.wizard.config.component.title",
-  "android.wizard.fragment.not.found",
-  "android.wizard.fragment.invalid.min.sdk",
-  "android.wizard.fragment.invalid.androidx",
-  "android.wizard.fragment.invalid.needs.kotlin"
-)
+internal val customSetupWizardMessageKeys =
+  WizardGalleryItemsStepMessageKeys(
+    "android.wizard.welcome.dialog.title",
+    "android.wizard.config.component.title",
+    "android.wizard.fragment.not.found",
+    "android.wizard.fragment.invalid.min.sdk",
+    "android.wizard.fragment.invalid.androidx",
+    "android.wizard.fragment.invalid.needs.kotlin",
+  )

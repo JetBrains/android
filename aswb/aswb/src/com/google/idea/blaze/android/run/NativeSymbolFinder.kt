@@ -22,23 +22,18 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.io.File
 
-/** Configures Blaze build to output native symbols and obtains symbol file paths.  */
+/** Configures Blaze build to output native symbols and obtains symbol file paths. */
 interface NativeSymbolFinder {
-  /** Returns additional build flags required to output native symbols.  */
+  /** Returns additional build flags required to output native symbols. */
   val additionalBuildFlags: String
 
-  /** Returns native symbol files present in build output and store under [reference] label.*/
-  fun getNativeSymbolsForBuild(
-    project: Project, context: BlazeContext, reference: Label, outputs: BlazeBuildOutputs
-  ): List<File>
+  /** Returns native symbol files present in build output and store under [reference] label. */
+  fun getNativeSymbolsForBuild(project: Project, context: BlazeContext, reference: Label, outputs: BlazeBuildOutputs): List<File>
 
   companion object {
-    @JvmStatic
-    fun getInstances(): List<NativeSymbolFinder> = EP_NAME.extensionList
+    @JvmStatic fun getInstances(): List<NativeSymbolFinder> = EP_NAME.extensionList
 
-    @JvmField
-    val EP_NAME: ExtensionPointName<NativeSymbolFinder> =
-      ExtensionPointName.create("com.google.idea.blaze.NativeSymbolFinder")
+    @JvmField val EP_NAME: ExtensionPointName<NativeSymbolFinder> = ExtensionPointName.create("com.google.idea.blaze.NativeSymbolFinder")
 
     @JvmStatic
     fun fetchNativeSymbols(project: Project, context: BlazeContext, reference: Label, buildOutputs: BlazeBuildOutputs): List<File> {

@@ -20,9 +20,8 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * Requests a render and updates the [com.android.tools.idea.common.scene.SceneComponent]s
- * immediately after the render has completed. This allows that, after a scroll, the coordinates of
- * the bounding boxes are correctly updated.
+ * Requests a render and updates the [com.android.tools.idea.common.scene.SceneComponent]s immediately after the render has completed. This
+ * allows that, after a scroll, the coordinates of the bounding boxes are correctly updated.
  */
 internal fun SceneManager.requestRenderAndUpdate() =
   AndroidCoroutineScope(this).launch {

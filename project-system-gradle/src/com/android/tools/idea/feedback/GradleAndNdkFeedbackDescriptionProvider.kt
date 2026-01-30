@@ -88,11 +88,8 @@ class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
     fun getCMakeDetails(): String = getCMakeDetails(project, sdkHandler, progress)
 
     suspend fun StringBuilder.item(prefix: String, getter: suspend () -> String?) {
-      runCatching {
-        getter.invoke()?.let { appendLine("$prefix: $it") }
-      }.onFailure { e ->
-        LOG.info("Unable to prepopulate additional version information - proceeding with sending feedback anyway. ", e)
-      }
+      runCatching { getter.invoke()?.let { appendLine("$prefix: $it") } }
+        .onFailure { e -> LOG.info("Unable to prepopulate additional version information - proceeding with sending feedback anyway. ", e) }
     }
 
     val description = buildString {
@@ -106,20 +103,20 @@ class GradleAndNdkFeedbackDescriptionProvider : FeedbackDescriptionProvider {
   }
 }
 
-private fun getNdkDetails(
-  project: Project?,
-  sdkHandler: AndroidSdkHandler,
-  progress: ProgressIndicator
-): String {
+private fun getNdkDetails(project: Project?, sdkHandler: AndroidSdkHandler, progress: ProgressIndicator): String {
   return buildString {
-    project?.getAndroidFacets()?.forEach(Consumer { facet: AndroidFacet ->
-      val module = facet.module
-      val ndkFacet = getInstance(module)
-      val ndkModuleModel = ndkFacet?.ndkModuleModel
-      if (ndkModuleModel != null) {
-        append("from module: ${ndkModuleModel.ndkModel.ndkVersion}, ")
-      }
-    })
+    project
+      ?.getAndroidFacets()
+      ?.forEach(
+        Consumer { facet: AndroidFacet ->
+          val module = facet.module
+          val ndkFacet = getInstance(module)
+          val ndkModuleModel = ndkFacet?.ndkModuleModel
+          if (ndkModuleModel != null) {
+            append("from module: ${ndkModuleModel.ndkModel.ndkVersion}, ")
+          }
+        }
+      )
 
     // Get version information from all the channels we know, and include it all into the bug to provide
     // the entire context.
@@ -139,14 +136,15 @@ private fun getNdkDetails(
 }
 
 /**
- * Taken with slight modifications from NdkHelper.getNdkVersion() in android-ndk, but not called directly to
- * avoid dependency of 'android' on 'android-ndk'.
+ * Taken with slight modifications from NdkHelper.getNdkVersion() in android-ndk, but not called directly to avoid dependency of 'android'
+ * on 'android-ndk'.
+ *
  * TODO: Consider factoring out all version info helpers into a separate module.
  */
 private fun getNdkVersion(ndkDir: String): String? {
   val sourcePropertiesFile = File(ndkDir, "source.properties")
   if (sourcePropertiesFile.exists()) {
-    //NDK 11+
+    // NDK 11+
     var fileInput: InputStream? = null
     return try {
       fileInput = FileInputStream(sourcePropertiesFile)
@@ -179,11 +177,7 @@ private fun getNdkVersion(ndkDir: String): String? {
   } else "UNKNOWN"
 }
 
-private fun getCMakeDetails(
-  project: Project?,
-  sdkHandler: AndroidSdkHandler,
-  progress: ProgressIndicator
-): String {
+private fun getCMakeDetails(project: Project?, sdkHandler: AndroidSdkHandler, progress: ProgressIndicator): String {
   return buildString {
     // Get version information from all the channels we know, and include it all into the bug to provide
     // the entire context.
@@ -249,12 +243,14 @@ private fun runAndGetCMakeVersion(cmakeExecutableFile: String): String? {
   return try {
     val process = CapturingAnsiEscapesAwareProcessHandler(commandLine)
     val output = StringBuffer()
-    process.addProcessListener(object : ProcessAdapter() {
-      override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-        output.append(event.text)
-        super.onTextAvailable(event, outputType)
+    process.addProcessListener(
+      object : ProcessAdapter() {
+        override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+          output.append(event.text)
+          super.onTextAvailable(event, outputType)
+        }
       }
-    })
+    )
     val exitCode = process.runProcess().exitCode
     if (exitCode == 0) {
       val m = CMAKE_VERSION_PATTERN.matcher(output.toString())

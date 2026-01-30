@@ -60,27 +60,25 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
+import java.io.File
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
-import java.io.File
-import java.util.concurrent.Future
-import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
- */
+/** Gradle task invoker to run ConnectedAndroidTask for selected devices at once. */
 class GradleConnectedAndroidTestInvoker(
   private val executionEnvironment: ExecutionEnvironment,
   private val moduleData: ModuleData,
   private val uninstallIncompatibleApks: Boolean = false,
   private val backgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
   private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() },
-  private val gradleTestResultAdapterFactory: (IDevice, String, IdeAndroidArtifact?, AndroidTestResultListener) -> GradleTestResultAdapter
-  = { iDevice, testSuiteDisplayName, artifact, listener ->
-    GradleTestResultAdapter(iDevice, testSuiteDisplayName, artifact, listener)
-  },
+  private val gradleTestResultAdapterFactory: (IDevice, String, IdeAndroidArtifact?, AndroidTestResultListener) -> GradleTestResultAdapter =
+    { iDevice, testSuiteDisplayName, artifact, listener ->
+      GradleTestResultAdapter(iDevice, testSuiteDisplayName, artifact, listener)
+    },
   private val buildToolWindowProvider: (Project) -> ToolWindow = { BuildContentManager.getInstance(it).orCreateToolWindow },
 ) {
 
@@ -88,9 +86,7 @@ class GradleConnectedAndroidTestInvoker(
     const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
   }
 
-  /**
-   * Runs connectedAndroidTest Gradle task asynchronously.
-   */
+  /** Runs connectedAndroidTest Gradle task asynchronously. */
   fun runGradleTask(
     project: Project,
     devices: List<IDevice>,
@@ -102,166 +98,184 @@ class GradleConnectedAndroidTestInvoker(
     testClassName: String,
     testMethodName: String,
     testRegex: String,
-    extraInstrumentationOptions: String
+    extraInstrumentationOptions: String,
   ) {
     androidTestSuiteView.println("Running tests")
 
-    val adapters = devices.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
-      adapter.device.id to adapter
-    }
+    val adapters =
+      devices.associate {
+        val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
+        adapter.device.id to adapter
+      }
 
     val path: File = Projects.getBaseDirPath(project)
     val taskNames: List<String> = getTaskNames(gradleAndroidModel)
-    val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
-                                                                           ExternalSystemTaskType.EXECUTE_TASK, project)
+    val externalTaskId: ExternalSystemTaskId =
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val executionId = executionEnvironment.executionId
-    val listener = object : ExternalSystemTaskNotificationListener {
-      private var view: AndroidTestSuiteView? = androidTestSuiteView
+    val listener =
+      object : ExternalSystemTaskNotificationListener {
+        private var view: AndroidTestSuiteView? = androidTestSuiteView
 
-      val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
-        override fun processLine(line: String) {
-          val processedText = taskOutputProcessor.process(line)
-          if (!(processedText.isBlank() && line != processedText)) {
-            view?.println(processedText)
-          }
-        }
-      })
-
-      val testRunIsCancelled = AtomicBoolean(false)
-      val onEndIsCalled = AtomicBoolean(false)
-
-      override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
-        testRunIsCancelled.set(true)
-      }
-
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
-        super.onTaskOutput(id, text, processOutputType)
-        if (ProcessOutputType.isStdout(processOutputType)) {
-          outputLineProcessor.append(text)
-        }
-        else {
-          view?.print(text, ConsoleViewContentType.ERROR_OUTPUT)
-        }
-      }
-
-      override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
-        if (onEndIsCalled.getAndSet(true)) {
-          return
-        }
-
-        val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
-
-        outputLineProcessor.close()
-        adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
-
-        // If there is an APK installation error due to incompatible APKs installed on device,
-        // display a popup and ask a user to rerun the Gradle task with UNINSTALL_INCOMPATIBLE_APKS
-        // option.
-        var isRerunRequested = false
-        val rerunDevices = adapters.values.filter {
-          it.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption
-        }
-        if (rerunDevices.isNotEmpty()) {
-          ApplicationManager.getApplication().invokeAndWait {
-            isRerunRequested = rerunDevices.first().showRerunWithUninstallIncompatibleApkOptionDialog(project)
-          }
-        }
-        if (isRerunRequested) {
-          // rerunInvoker will call detachProcess().
-          val rerunInvoker = GradleConnectedAndroidTestInvoker(
-            executionEnvironment,
-            moduleData,
-            uninstallIncompatibleApks = true,
-            backgroundTaskExecutor,
-            gradleTaskManagerFactory,
-            gradleTestResultAdapterFactory,
+        val outputLineProcessor =
+          TaskOutputLineProcessor(
+            object : TaskOutputLineProcessor.LineProcessor {
+              override fun processLine(line: String) {
+                val processedText = taskOutputProcessor.process(line)
+                if (!(processedText.isBlank() && line != processedText)) {
+                  view?.println(processedText)
+                }
+              }
+            }
           )
-          rerunDevices.forEach {
-            view?.onRerunScheduled(it.device)
-          }
-          rerunInvoker.runGradleTask(
-            project,
-            rerunDevices.map { it.iDevice }.toList(),
-            taskId,
-            androidTestSuiteView,
-            gradleAndroidModel,
-            waitForDebugger,
-            testPackageName,
-            testClassName,
-            testMethodName,
-            testRegex,
-            extraInstrumentationOptions
-          )
+
+        val testRunIsCancelled = AtomicBoolean(false)
+        val onEndIsCalled = AtomicBoolean(false)
+
+        override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
+          testRunIsCancelled.set(true)
         }
-        else {
-          // If Gradle task run finished before the test suite starts, show error
-          // in the Build output tool window.
-          if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
-            ApplicationManager.getApplication().invokeLater({
-                                                              val toolWindow = buildToolWindowProvider(project)
-                                                              if (toolWindow.isAvailable && !toolWindow.isVisible) {
-                                                                toolWindow.show()
-                                                              }
-                                                            }, ModalityState.nonModal(), project.disposed)
+
+        override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+          super.onTaskOutput(id, text, processOutputType)
+          if (ProcessOutputType.isStdout(processOutputType)) {
+            outputLineProcessor.append(text)
+          } else {
+            view?.print(text, ConsoleViewContentType.ERROR_OUTPUT)
           }
-          ApplicationManager.getApplication().invokeLater {
-            if (project.isDisposed) return@invokeLater
-            RunContentManager.getInstance(project).allDescriptors.find {
-              it.executionId == executionEnvironment.executionId
-            }?.let {
-              it.processHandler?.detachProcess()
+        }
+
+        override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
+          if (onEndIsCalled.getAndSet(true)) {
+            return
+          }
+
+          val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
+
+          outputLineProcessor.close()
+          adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
+
+          // If there is an APK installation error due to incompatible APKs installed on device,
+          // display a popup and ask a user to rerun the Gradle task with UNINSTALL_INCOMPATIBLE_APKS
+          // option.
+          var isRerunRequested = false
+          val rerunDevices =
+            adapters.values.filter { it.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption }
+          if (rerunDevices.isNotEmpty()) {
+            ApplicationManager.getApplication().invokeAndWait {
+              isRerunRequested = rerunDevices.first().showRerunWithUninstallIncompatibleApkOptionDialog(project)
             }
           }
+          if (isRerunRequested) {
+            // rerunInvoker will call detachProcess().
+            val rerunInvoker =
+              GradleConnectedAndroidTestInvoker(
+                executionEnvironment,
+                moduleData,
+                uninstallIncompatibleApks = true,
+                backgroundTaskExecutor,
+                gradleTaskManagerFactory,
+                gradleTestResultAdapterFactory,
+              )
+            rerunDevices.forEach { view?.onRerunScheduled(it.device) }
+            rerunInvoker.runGradleTask(
+              project,
+              rerunDevices.map { it.iDevice }.toList(),
+              taskId,
+              androidTestSuiteView,
+              gradleAndroidModel,
+              waitForDebugger,
+              testPackageName,
+              testClassName,
+              testMethodName,
+              testRegex,
+              extraInstrumentationOptions,
+            )
+          } else {
+            // If Gradle task run finished before the test suite starts, show error
+            // in the Build output tool window.
+            if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
+              ApplicationManager.getApplication()
+                .invokeLater(
+                  {
+                    val toolWindow = buildToolWindowProvider(project)
+                    if (toolWindow.isAvailable && !toolWindow.isVisible) {
+                      toolWindow.show()
+                    }
+                  },
+                  ModalityState.nonModal(),
+                  project.disposed,
+                )
+            }
+            ApplicationManager.getApplication().invokeLater {
+              if (project.isDisposed) return@invokeLater
+              RunContentManager.getInstance(project)
+                .allDescriptors
+                .find { it.executionId == executionEnvironment.executionId }
+                ?.let { it.processHandler?.detachProcess() }
+            }
+          }
+          view = null
         }
-        view = null
       }
-    }
 
     val disposable = Disposer.newDisposable()
     Disposer.register(project, disposable)
-    project.messageBus.connect(disposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
-      override fun processNotStarted(executorId: String, env: ExecutionEnvironment) {
-        if (env.executionId != executionId) {
-          return
-        }
-        Disposer.dispose(disposable)
-      }
-
-      override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
-        if (env.executionId != executionId) {
-          return
-        }
-        Disposer.dispose(disposable)
-        handler.addProcessListener(object : ProcessAdapter() {
-          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-            if (willBeDestroyed) {
-              AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+    project.messageBus
+      .connect(disposable)
+      .subscribe(
+        ExecutionManager.EXECUTION_TOPIC,
+        object : ExecutionListener {
+          override fun processNotStarted(executorId: String, env: ExecutionEnvironment) {
+            if (env.executionId != executionId) {
+              return
             }
+            Disposer.dispose(disposable)
           }
-        })
-      }
-    })
 
-    val gradleExecutionSettings = getGradleExecutionSettings(
-      project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
-      extraInstrumentationOptions)
+          override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+            if (env.executionId != executionId) {
+              return
+            }
+            Disposer.dispose(disposable)
+            handler.addProcessListener(
+              object : ProcessAdapter() {
+                override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+                  if (willBeDestroyed) {
+                    AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+                  }
+                }
+              }
+            )
+          }
+        },
+      )
+
+    val gradleExecutionSettings =
+      getGradleExecutionSettings(
+        project,
+        devices,
+        waitForDebugger,
+        testPackageName,
+        testClassName,
+        testMethodName,
+        testRegex,
+        extraInstrumentationOptions,
+      )
 
     gradleExecutionSettings.tasks = taskNames
 
     backgroundTaskExecutor {
       try {
         gradleTaskManagerFactory().executeTasks(path.path, externalTaskId, gradleExecutionSettings, listener)
-      }
-      catch (e: ExternalSystemException) {
+      } catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
         // that ends up with ExternalSystemException to be thrown on Windows.
         // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
         // for failed task and it calls listener.onFailure() callback instead.
-      }
-      finally {
+      } finally {
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
@@ -278,13 +292,11 @@ class GradleConnectedAndroidTestInvoker(
     testClassName: String,
     testMethodName: String,
     testRegex: String,
-    extraInstrumentationOptions: String
+    extraInstrumentationOptions: String,
   ): GradleExecutionSettings {
     return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
-      val deviceSerials = devices.joinToString(",") { device ->
-        device.serialNumber
-      }
+      val deviceSerials = devices.joinToString(",") { device -> device.serialNumber }
       withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
 
       withArguments(getDeviceSpecificArguments())
@@ -295,13 +307,11 @@ class GradleConnectedAndroidTestInvoker(
       // Add a test filter.
       if (testRegex.isNotBlank()) {
         withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
-      }
-      else if (testPackageName != "" || testClassName != "") {
+      } else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
-        }
-        else if (testClassName != "") {
+        } else if (testClassName != "") {
           testTypeArgs += ".class=$testClassName"
           if (testMethodName != "") {
             testTypeArgs += "#$testMethodName"
@@ -330,15 +340,12 @@ class GradleConnectedAndroidTestInvoker(
       // if there is a test failure, AGP handles it as a build failure and it hides
       // the test result panel if this option is not set.
       // TODO(b/233356642): Replace with direct GradleBuildInvoker usage.
-      @Suppress("DEPRECATION")
-      putUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE, true)
+      @Suppress("DEPRECATION") putUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE, true)
     }
   }
 
   private fun getTaskNames(gradleAndroidModel: GradleAndroidDependencyModel): List<String> {
-    return listOf(
-      moduleData.gradleIdentityPath.trimEnd(':') + ":" + gradleAndroidModel.getGradleConnectedTestTaskNameForSelectedVariant()
-    )
+    return listOf(moduleData.gradleIdentityPath.trimEnd(':') + ":" + gradleAndroidModel.getGradleConnectedTestTaskNameForSelectedVariant())
   }
 
   // TODO: This method is copied from com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider#getDeviceSpecificArguments.
@@ -355,8 +362,8 @@ class GradleConnectedAndroidTestInvoker(
         val spec = deviceSpec.deviceSpec
 
         spec.commonVersion?.let { version ->
-          val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() &&
-                                      GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+          val deviceApiOptimization =
+            API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
 
           if (deviceApiOptimization) {
             deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))

@@ -26,10 +26,9 @@ import com.intellij.openapi.components.service
 /**
  * Standalone Backup and Sync feature's setup wizard.
  *
- * This class is responsible for assembling the necessary wizard pages and initial state for the
- * feature onboarding flow. It is specifically designed to be invoked when a user authorizes an
- * account from the Google accounts settings page, providing a streamlined experience where the user
- * is already known.
+ * This class is responsible for assembling the necessary wizard pages and initial state for the feature onboarding flow. It is specifically
+ * designed to be invoked when a user authorizes an account from the Google accounts settings page, providing a streamlined experience where
+ * the user is already known.
  */
 interface BackupAndSyncWizard {
   fun createDialog(user: PreferredUser): StructuredFlowWizard

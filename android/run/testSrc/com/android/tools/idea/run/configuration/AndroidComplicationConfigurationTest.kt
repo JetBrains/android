@@ -30,16 +30,16 @@ import org.junit.Test
 
 class AndroidComplicationConfigurationTest {
 
-  @get:Rule
-  var androidProjectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule var androidProjectRule = AndroidProjectRule.inMemory().onEdt()
 
   val project: Project
     get() = androidProjectRule.project
 
   @Test
   fun testProgramRunnerAvailable() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     val runnerForRun = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForRun).isNotNull()
@@ -50,8 +50,9 @@ class AndroidComplicationConfigurationTest {
 
   @Test
   fun testDeploysToLocalDevice() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project)
+        .createConfiguration("run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configSettings.configuration)).isTrue()
   }
@@ -60,13 +61,10 @@ class AndroidComplicationConfigurationTest {
   @Test
   fun testDefaultMakeTaskIsDisabled() {
     val factory = AndroidComplicationConfigurationType().configurationFactories.single()
-    val configSettings = RunManager.getInstance(project)
-      .createConfiguration("test config", factory)
+    val configSettings = RunManager.getInstance(project).createConfiguration("test config", factory)
     val beforeRunTasks = configSettings.configuration.beforeRunTasks
 
-    val makeTasks = beforeRunTasks
-      .filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>()
-      .filter { it.isEnabled }
+    val makeTasks = beforeRunTasks.filterIsInstance<CompileStepBeforeRun.MakeBeforeRunTask>().filter { it.isEnabled }
     assertThat(makeTasks).isEmpty()
   }
 }

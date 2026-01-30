@@ -34,12 +34,11 @@ class ShowLayoutInspectorAction :
   DumbAwareAction(
     AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
     AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
+    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR,
   ) {
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabled =
-      project != null && CommonAndroidUtil.getInstance().isAndroidProject(project)
+    e.presentation.isEnabled = project != null && CommonAndroidUtil.getInstance().isAndroidProject(project)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -59,19 +58,12 @@ class ShowLayoutInspectorAction :
 /** Activates running devices toolbar and enables Layout Inspector if a device tab is present. */
 fun activateEmbeddedLayoutInspectorToolWindow(project: Project) {
   activateToolWindow(project, toolWindowId = RUNNING_DEVICES_TOOL_WINDOW_ID) { toolWindow ->
-    val toggleLayoutInspectorAction =
-      ActionManager.getInstance().getAction(TOGGLE_EMBEDDED_LAYOUT_INSPECTOR_ACTION_ID)
+    val toggleLayoutInspectorAction = ActionManager.getInstance().getAction(TOGGLE_EMBEDDED_LAYOUT_INSPECTOR_ACTION_ID)
 
     ActionManager.getInstance()
       // If there is a selected device tab in Running Devices, enable embedded Layout Inspector for
       // it
-      .tryToExecute(
-        toggleLayoutInspectorAction,
-        null,
-        toolWindow.contentManager.selectedContent?.component,
-        ActionPlaces.TOOLBAR,
-        true,
-      )
+      .tryToExecute(toggleLayoutInspectorAction, null, toolWindow.contentManager.selectedContent?.component, ActionPlaces.TOOLBAR, true)
   }
 }
 
@@ -79,11 +71,7 @@ private fun activateStandaloneLayoutInspectorToolWindow(project: Project) {
   activateToolWindow(project, toolWindowId = LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
 }
 
-private fun activateToolWindow(
-  project: Project,
-  toolWindowId: String,
-  action: (ToolWindow) -> Unit = {},
-) {
+private fun activateToolWindow(project: Project, toolWindowId: String, action: (ToolWindow) -> Unit = {}) {
   val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId)
   toolWindow?.activate { action(toolWindow) }
 }

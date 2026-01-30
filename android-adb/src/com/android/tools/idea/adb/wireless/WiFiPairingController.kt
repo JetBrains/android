@@ -22,8 +22,8 @@ import com.intellij.openapi.Disposable
 @UiThread
 interface WiFiPairingController : Disposable {
   /**
-   * Starts the modal dialog allowing pairing devices using QR and pairing codes. The newly paired
-   * devices are added to the underlying adb service implementation.
+   * Starts the modal dialog allowing pairing devices using QR and pairing codes. The newly paired devices are added to the underlying adb
+   * service implementation.
    */
   fun showDialog()
 }

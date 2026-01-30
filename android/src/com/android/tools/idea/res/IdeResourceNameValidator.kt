@@ -30,8 +30,8 @@ private sealed class InputType {
 }
 
 /**
- * Implementation of [InputValidatorEx] that delegates to validation code in sdk-common. On top of
- * that it can also check that the given resource name is not defined yet.
+ * Implementation of [InputValidatorEx] that delegates to validation code in sdk-common. On top of that it can also check that the given
+ * resource name is not defined yet.
  *
  * @see ValueResourceNameValidator
  * @see FileResourceNameValidator
@@ -47,45 +47,32 @@ private constructor(
   companion object {
 
     /**
-     * Creates an [IdeResourceNameValidator] that checks if the input is a valid resource name of a
-     * given type.
+     * Creates an [IdeResourceNameValidator] that checks if the input is a valid resource name of a given type.
      *
-     * If [existing] is non-null, the returned validator will also not accept a name that's already
-     * defined.
+     * If [existing] is non-null, the returned validator will also not accept a name that's already defined.
      *
      * @see ValueResourceNameValidator
      */
     @JvmStatic
     @JvmOverloads
-    fun forResourceName(
-      type: ResourceType,
-      existing: ResourceRepository? = null,
-    ): IdeResourceNameValidator {
+    fun forResourceName(type: ResourceType, existing: ResourceRepository? = null): IdeResourceNameValidator {
       val resourceNames = getExistingNames(existing, type)
-      return IdeResourceNameValidator(
-        InputType.ValueName(type),
-        resourceNames.mapTo(HashSet(), ValueResourceNameValidator::normalizeName),
-      )
+      return IdeResourceNameValidator(InputType.ValueName(type), resourceNames.mapTo(HashSet(), ValueResourceNameValidator::normalizeName))
     }
 
-    /**
-     * Returns a set of strings representing the names of resources already present in the given
-     * [ResourceRepository].
-     */
+    /** Returns a set of strings representing the names of resources already present in the given [ResourceRepository]. */
     private fun getExistingNames(existing: ResourceRepository?, type: ResourceType): Set<String> =
       existing?.getResources(ResourceNamespace.TODO(), type)?.keySet() ?: emptySet()
 
     /**
-     * Creates an [IdeResourceNameValidator] that checks if the input is a valid filename in a given
-     * folder type. Note that there are no restrictions on filenames in [ResourceFolderType.VALUES].
+     * Creates an [IdeResourceNameValidator] that checks if the input is a valid filename in a given folder type. Note that there are no
+     * restrictions on filenames in [ResourceFolderType.VALUES].
      *
-     * If [implicitExtension] is defined, it is assumed that the input will be used to create a file
-     * with the given extension. If the input ends with [implicitExtension], this suffix will be
-     * ignored when validating. Except for this special case, the returned validator will reject
-     * dots in the input, including any other extension suffixes.
+     * If [implicitExtension] is defined, it is assumed that the input will be used to create a file with the given extension. If the input
+     * ends with [implicitExtension], this suffix will be ignored when validating. Except for this special case, the returned validator will
+     * reject dots in the input, including any other extension suffixes.
      *
-     * Returned validator will accept less inputs than one returned by [#forResourceName], as the
-     * rules are more strict.
+     * Returned validator will accept less inputs than one returned by [#forResourceName], as the rules are more strict.
      *
      * @see FileResourceNameValidator
      */
@@ -98,16 +85,14 @@ private constructor(
     ): IdeResourceNameValidator {
       require(implicitExtension == null || implicitExtension[0] == '.')
       val resourceType = ResourceType.fromFolderName(type.getName())
-      val existingNames =
-        if (resourceType != null) getExistingNames(existing, resourceType) else null
+      val existingNames = if (resourceType != null) getExistingNames(existing, resourceType) else null
       return IdeResourceNameValidator(InputType.FileName(type, implicitExtension), existingNames)
     }
   }
 
   override fun canClose(inputString: String): Boolean = checkInput(inputString)
 
-  fun doesResourceExist(name: String): Boolean =
-    existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
+  fun doesResourceExist(name: String): Boolean = existing?.contains(ValueResourceNameValidator.normalizeName(name)) ?: false
 
   override fun getErrorText(inputString: String?): String? {
     if (inputString.isNullOrBlank()) {
@@ -117,30 +102,23 @@ private constructor(
     // Check if the name is OK from aapt point of view.
     val aaptError =
       when (inputType) {
-        is InputType.ValueName ->
-          ValueResourceNameValidator.getErrorText(inputString, inputType.type)
+        is InputType.ValueName -> ValueResourceNameValidator.getErrorText(inputString, inputType.type)
         is InputType.FileName -> {
           val inputWithoutExtension =
             when {
               inputType.type == ResourceFolderType.RAW ->
-                inputString.lastIndexOf('.').takeIf { it != -1 }?.let(inputString::take)
-                  ?: inputString
-              inputType.implicitExtension != null ->
-                inputString.removeSuffix(inputType.implicitExtension)
+                inputString.lastIndexOf('.').takeIf { it != -1 }?.let(inputString::take) ?: inputString
+              inputType.implicitExtension != null -> inputString.removeSuffix(inputType.implicitExtension)
               else -> inputString
             }
 
-          FileResourceNameValidator.getErrorTextForNameWithoutExtension(
-            inputWithoutExtension,
-            inputType.type,
-          )
+          FileResourceNameValidator.getErrorTextForNameWithoutExtension(inputWithoutExtension, inputType.type)
         }
       }
 
     return when {
       aaptError != null -> aaptError
-      doesResourceExist(inputString) ->
-        "${ValueResourceNameValidator.normalizeName(inputString)} already exists"
+      doesResourceExist(inputString) -> "${ValueResourceNameValidator.normalizeName(inputString)} already exists"
       else -> null
     }
   }

@@ -33,21 +33,19 @@ import com.intellij.openapi.util.Key
  * Provides rule-specific RunProfileState and before-run-tasks.
  */
 interface BlazeCommandRunConfigurationRunner {
-  /** Returns the [RunProfileState] corresponding to the given environment.*/
-  @Throws(ExecutionException::class)
-  fun getRunProfileState(executor: Executor, environment: ExecutionEnvironment): RunProfileState?
+  /** Returns the [RunProfileState] corresponding to the given environment. */
+  @Throws(ExecutionException::class) fun getRunProfileState(executor: Executor, environment: ExecutionEnvironment): RunProfileState?
 
   /**
    * Executes any required before run tasks.
    *
-   * Returns true if no task exists or the task was successfully completed. Otherwise, returns false
-   * if the task either failed or was cancelled.
+   * Returns true if no task exists or the task was successfully completed. Otherwise, returns false if the task either failed or was
+   * cancelled.
    */
   fun executeBeforeRunTask(environment: ExecutionEnvironment): Boolean
 
   companion object {
-    @JvmStatic
-    fun isDebugging(environment: ExecutionEnvironment): Boolean = environment.executor is DefaultDebugExecutor
+    @JvmStatic fun isDebugging(environment: ExecutionEnvironment): Boolean = environment.executor is DefaultDebugExecutor
 
     @JvmStatic
     fun getConfiguration(environment: ExecutionEnvironment): BlazeCommandRunConfiguration {
@@ -59,19 +57,16 @@ interface BlazeCommandRunConfigurationRunner {
       return when (runProfile) {
         is WrappingRunConfiguration<*> -> runProfile.peer
         else -> runProfile
-      } as? BlazeCommandRunConfiguration
+      }
+        as? BlazeCommandRunConfiguration
     }
 
     @JvmStatic
     fun getBlazeCommand(environment: ExecutionEnvironment): BlazeCommandName? {
-      return getConfiguration(environment)
-        .getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)
-        ?.commandState
-        ?.command
+      return getConfiguration(environment).getHandlerStateIfType(BlazeCommandRunConfigurationCommonState::class.java)?.commandState?.command
     }
 
-    /** Used to store a runner to an [ExecutionEnvironment].  */
-    @JvmField
-    val RUNNER_KEY: Key<BlazeCommandRunConfigurationRunner> = Key.create("blaze.run.config.runner")
+    /** Used to store a runner to an [ExecutionEnvironment]. */
+    @JvmField val RUNNER_KEY: Key<BlazeCommandRunConfigurationRunner> = Key.create("blaze.run.config.runner")
   }
 }

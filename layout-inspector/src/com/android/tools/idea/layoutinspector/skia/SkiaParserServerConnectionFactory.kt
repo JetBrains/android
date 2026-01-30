@@ -53,9 +53,8 @@ fun interface SkiaParserServerConnectionFactory {
 object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory {
 
   /**
-   * Metadata for a skia parser server version. May or may not correspond to a server on disk, but
-   * has the capability to download it if not. If [serverVersion] is null, corresponds to the
-   * locally-built server (in a dev build). Has the capability to create
+   * Metadata for a skia parser server version. May or may not correspond to a server on disk, but has the capability to download it if not.
+   * If [serverVersion] is null, corresponds to the locally-built server (in a dev build). Has the capability to create
    * [SkiaParserServerConnection]s for the corresponding server.
    */
   @VisibleForTesting
@@ -71,37 +70,22 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       return if (serverVersion == null) {
         // devbuild
         if (StudioPathManager.isRunningFromSources()) {
-          Paths.get(StudioPathManager.getBinariesRoot())
-            .resolve("tools/vendor/google/skia/${serverName}")
+          Paths.get(StudioPathManager.getBinariesRoot()).resolve("tools/vendor/google/skia/${serverName}")
         } else null
       } else {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        var serverPackage =
-          sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
+        var serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
         // If the path isn't in the map at all, it's newer than this version of studio.
-        if (
-          minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version
-        ) {
+        if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
           // Current version is too old, try to update
           val updatablePackage =
-            sdkHandler
-              .getRepoManagerAndLoadSynchronously(progressIndicator)
-              .packages
-              .consolidatedPkgs[packagePath] ?: return null
+            sdkHandler.getRepoManagerAndLoadSynchronously(progressIndicator).packages.consolidatedPkgs[packagePath] ?: return null
           if (updatablePackage.isUpdate) {
-            SdkQuickfixUtils.createDialogForPackages(
-                null,
-                listOf(updatablePackage),
-                listOf(),
-                false,
-              )
-              ?.show()
+            SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show()
           }
           serverPackage = sdkHandler.getLocalPackage(packagePath, progressIndicator) ?: return null
           // we didn't update successfully
-          if (
-            minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version
-          ) {
+          if (minimumRevisions.getOrDefault(serverPackage.path, Revision(0)) > serverPackage.version) {
             return null
           }
         }
@@ -147,11 +131,9 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
 
       var result = false
       invokeAndWaitIfNeeded {
-        SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)
-          ?.show() ?: return@invokeAndWaitIfNeeded
+        SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show() ?: return@invokeAndWaitIfNeeded
         sdkManager.reloadLocalIfNeeded(progressIndicator)
-        val newPackage =
-          sdkManager.packages.consolidatedPkgs[packagePath] ?: return@invokeAndWaitIfNeeded
+        val newPackage = sdkManager.packages.consolidatedPkgs[packagePath] ?: return@invokeAndWaitIfNeeded
         result = newPackage.hasLocal() && !newPackage.isUpdate
       }
       return result
@@ -163,21 +145,15 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
   private var latestPackagePath: String? = null
   private val mapLock = Any()
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
-  private val progressIndicator =
-    StudioLoggerProgressIndicator(SkiaParserServerConnection::class.java)
+  private val progressIndicator = StudioLoggerProgressIndicator(SkiaParserServerConnection::class.java)
 
   override fun createConnection(data: ByteArray): SkiaParserServerConnection {
     val skpVersion = getSkpVersion(data)
-    val serverInfo =
-      findServerInfoForSkpVersion(skpVersion)
-        ?: throw UnsupportedPictureVersionException(skpVersion)
+    val serverInfo = findServerInfoForSkpVersion(skpVersion) ?: throw UnsupportedPictureVersionException(skpVersion)
     return serverInfo.createServer()
   }
 
-  /**
-   * Get the [ServerInfo] for a server that can render SKPs of the given [skpVersion], or null if no
-   * valid server is found.
-   */
+  /** Get the [ServerInfo] for a server that can render SKPs of the given [skpVersion], or null if no valid server is found. */
   @VisibleForTesting
   fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo? {
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER.get()) {
@@ -205,11 +181,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
   }
 
   private fun findVersionInMap(skpVersion: Int): ServerInfo? {
-    return synchronized(mapLock) {
-      supportedVersionMap?.values?.find { serverInfo ->
-        serverInfo.skpVersionRange.contains(skpVersion)
-      }
-    }
+    return synchronized(mapLock) { supportedVersionMap?.values?.find { serverInfo -> serverInfo.skpVersionRange.contains(skpVersion) } }
   }
 
   @Slow
@@ -224,9 +196,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       StudioSettingsController.getInstance(),
     )
 
-    val latestRemote =
-      sdkHandler.getLatestRemotePackageForPrefix(PARSER_PACKAGE_NAME, null, true, progressIndicator)
-        ?: return false
+    val latestRemote = sdkHandler.getLatestRemotePackageForPrefix(PARSER_PACKAGE_NAME, null, true, progressIndicator) ?: return false
     val maybeNewPackage = latestRemote.path
     val updatablePackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage] ?: return false
     if (updatablePackage.hasLocal() && !updatablePackage.isUpdate) {
@@ -237,8 +207,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     val installResult = CompletableFuture<Boolean>()
     ApplicationManager.getApplication().invokeAndWait {
       // TODO: probably don't show dialog ever?
-      SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)
-        ?.show()
+      SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show()
 
       val newPackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage]
       if (newPackage == null || !newPackage.hasLocal() || newPackage.isUpdate) {
@@ -261,10 +230,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
           val newMap = mutableMapOf<Int?, ServerInfo>()
           for (spec in LayoutInspectorUtils.loadSkiaParserVersionMap(mappingFile).servers) {
             val existing = supportedVersionMap?.get(spec.version)
-            if (
-              existing?.skpVersionRange?.start == spec.skpStart &&
-                existing.skpVersionRange.last == spec.skpEnd
-            ) {
+            if (existing?.skpVersionRange?.start == spec.skpStart && existing.skpVersionRange.last == spec.skpEnd) {
               newMap[spec.version] = existing
             } else {
               newMap[spec.version] = ServerInfo(spec.version, spec.skpStart, spec.skpEnd)
@@ -274,26 +240,17 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
           latestPackagePath = latestPackage.path
         }
       } catch (e: Exception) {
-        Logger.getInstance(SkiaParserServerConnectionFactory::class.java)
-          .warn("Failed to parse mapping file", e)
+        Logger.getInstance(SkiaParserServerConnectionFactory::class.java).warn("Failed to parse mapping file", e)
       }
     }
   }
 
   private fun getLatestParserPackage(sdkHandler: AndroidSdkHandler): LocalPackage? {
-    return sdkHandler.getLatestLocalPackageForPrefix(
-      PARSER_PACKAGE_NAME,
-      { true },
-      true,
-      progressIndicator,
-    )
+    return sdkHandler.getLatestLocalPackageForPrefix(PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
   }
 }
 
-/**
- * Thrown if a request is made to create a server for a `SkPicture` with a version that we don't
- * know how to render.
- */
+/** Thrown if a request is made to create a server for a `SkPicture` with a version that we don't know how to render. */
 class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 /** Thrown if parsing a `SkPicture` fails in the parser. */

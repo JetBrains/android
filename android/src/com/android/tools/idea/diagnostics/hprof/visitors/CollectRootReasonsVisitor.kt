@@ -53,8 +53,7 @@ class CollectRootReasonsVisitor(private val threadsMap: Long2ObjectOpenHashMap<T
     val rootReason =
       if (frameNumber >= 0) {
         RootReason.createJavaFrameReason(threadsMap[threadSerialNumber].frames[frameNumber.toInt()])
-      }
-      else {
+      } else {
         RootReason.createJavaFrameReason("Unknown location")
       }
     // Java frame has a lower priority - if won't override any other GC-root reasons.

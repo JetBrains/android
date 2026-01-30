@@ -33,11 +33,10 @@ import java.awt.Graphics2D
 import kotlin.math.abs
 
 /**
- * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle. With a modifier
- * key, items that intersect the rectangle can be toggled instead of added to the new selection set.
+ * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle. With a modifier key, items that intersect the rectangle
+ * can be toggled instead of added to the new selection set.
  */
-class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) :
-  Interaction {
+class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) : Interaction {
   /** The [Layer] drawn for the marquee. */
   private var overlay: MarqueeLayer? = null
   private var startInfo: InteractionInformation? = null
@@ -78,9 +77,7 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun commit(event: InteractionEvent) { // Do nothing
   }
 
-  override fun cancel(
-    event: InteractionEvent
-  ) { //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+  override fun cancel(event: InteractionEvent) { // noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
     sceneView.selectionModel.clear()
   }
 
@@ -95,8 +92,8 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   }
 
   /**
-   * An [Layer] for the [MarqueeInteraction]; paints a selection overlay rectangle matching the
-   * mouse coordinate delta between gesture start and the current position.
+   * An [Layer] for the [MarqueeInteraction]; paints a selection overlay rectangle matching the mouse coordinate delta between gesture start
+   * and the current position.
    */
   private class MarqueeLayer(val colorSet: ColorSet) : Layer() {
     @SwingCoordinate private var x = 0

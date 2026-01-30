@@ -38,142 +38,173 @@ class NamespacePsiPackageReferenceProviderTest {
     fixture.addFileToProject(
       "src/main/java/com/example/myapplication/MyActivity.java",
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        import androidx.activity.ComponentActivity;
+      import androidx.activity.ComponentActivity;
 
-        class MyActivity extends ComponentActivity {
-        }
-      """.trimIndent())
+      class MyActivity extends ComponentActivity {
+      }
+      """
+        .trimIndent(),
+    )
     fixture.addFileToProject(
       "src/androidTest/java/com/example/myapplication/MyExampleInstrumentedTest.java",
       """
-        package com.example.myapplication;
+      package com.example.myapplication;
 
-        class MyExampleInstrumentedTest {
-        }
-      """.trimIndent())
+      class MyExampleInstrumentedTest {
+      }
+      """
+        .trimIndent(),
+    )
   }
 
   @Test
   fun testGroovyNamespaceAssignment() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           namespace = "com.example.myapplication"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testGroovyTestNamespaceAssignment() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           testNamespace = "com.example.myapplication.test"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testGroovyApplicationIdAssignment() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           defaultConfig {
             applicationId = "com.example.myapplication"
           }
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks(false)
   }
 
   @Test
   fun testGroovyNamespaceApplication() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           namespace "com.example.myapplication"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testGroovyTestNamespaceApplication() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           testNamespace "com.example.myapplication.test"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testGroovyApplicationIdApplication() {
-    val file = fixture.addFileToProject(
-      "build.gradle",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle",
+        """
         android {
           defaultConfig {
             applicationId "com.example.myapplication"
           }
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks(false)
   }
 
   @Test
   fun testKotlinScriptNamespace() {
-    val file = fixture.addFileToProject(
-      "build.gradle.kts",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
         android {
           namespace = "com.example.myapplication"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testKotlinScriptTestNamespace() {
-    val file = fixture.addFileToProject(
-      "build.gradle.kts",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
         android {
           testNamespace = "com.example.myapplication.test"
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks()
   }
 
   @Test
   fun testKotlinScriptApplicationId() {
-    val file = fixture.addFileToProject(
-      "build.gradle.kts",
-      """
+    val file =
+      fixture.addFileToProject(
+        "build.gradle.kts",
+        """
         android {
           defaultConfig {
             applicationId = "com.example.myapplication"
           }
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     doChecks(false)
   }
@@ -182,17 +213,19 @@ class NamespacePsiPackageReferenceProviderTest {
   fun testDeclarativeNamespace() {
     try {
       DeclarativeStudioSupport.override(true)
-      val file = fixture.addFileToProject(
-        "build.gradle.dcl",
-        """
-        android {
-          namespace = "com.example.myapplication"
-        }
-      """.trimIndent())
+      val file =
+        fixture.addFileToProject(
+          "build.gradle.dcl",
+          """
+          android {
+            namespace = "com.example.myapplication"
+          }
+          """
+            .trimIndent(),
+        )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
       doChecks()
-    }
-    finally {
+    } finally {
       DeclarativeStudioSupport.clearOverride()
     }
   }
@@ -201,17 +234,19 @@ class NamespacePsiPackageReferenceProviderTest {
   fun testDeclarativeTestNamespace() {
     try {
       DeclarativeStudioSupport.override(true)
-      val file = fixture.addFileToProject(
-        "build.gradle.dcl",
-        """
-        android {
-          testNamespace = "com.example.myapplication.test"
-        }
-      """.trimIndent())
+      val file =
+        fixture.addFileToProject(
+          "build.gradle.dcl",
+          """
+          android {
+            testNamespace = "com.example.myapplication.test"
+          }
+          """
+            .trimIndent(),
+        )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
       doChecks()
-    }
-    finally {
+    } finally {
       DeclarativeStudioSupport.clearOverride()
     }
   }
@@ -220,29 +255,32 @@ class NamespacePsiPackageReferenceProviderTest {
   fun testDeclarativeApplicationId() {
     try {
       DeclarativeStudioSupport.override(true)
-      val file = fixture.addFileToProject(
-        "build.gradle.dcl",
-        """
-        android {
-          defaultConfig {
-            applicationId = "com.example.myapplication"
+      val file =
+        fixture.addFileToProject(
+          "build.gradle.dcl",
+          """
+          android {
+            defaultConfig {
+              applicationId = "com.example.myapplication"
+            }
           }
-        }
-      """.trimIndent())
+          """
+            .trimIndent(),
+        )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
       doChecks(false)
-    }
-    finally {
+    } finally {
       DeclarativeStudioSupport.clearOverride()
     }
   }
 
   private fun doChecks(expectPackage: Boolean = true) {
     fixture.run {
-      fun check(packageName: String) = when(expectPackage) {
-        true -> assertThat(elementAtCaret).isEqualTo(findPackage(packageName))
-        false -> assertThat(file.findReferenceAt(caretOffset)?.resolve()).isNull()
-      }
+      fun check(packageName: String) =
+        when (expectPackage) {
+          true -> assertThat(elementAtCaret).isEqualTo(findPackage(packageName))
+          false -> assertThat(file.findReferenceAt(caretOffset)?.resolve()).isNull()
+        }
       moveCaret("\"co|m.e").also { check("com") }
       moveCaret("ex|ample").also { check("com.example") }
       moveCaret("my|application").also { check("com.example.myapplication") }

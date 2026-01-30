@@ -47,16 +47,11 @@ private const val EMPTY_DETAILS_LABEL = "Detailed stats unavailable."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) :
-  JPanel(CardLayout()) {
+class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) : JPanel(CardLayout()) {
   private val deviceDistributionPanel =
-    DistributionPanel().apply {
-      border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border)
-    }
+    DistributionPanel().apply { border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border) }
   private val osDistributionPanel =
-    DistributionPanel().apply {
-      border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border)
-    }
+    DistributionPanel().apply { border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border) }
 
   // The setter has the side effect of updating the UI, so it should be called from the EDT thread.
   private var isDataAvailable: Boolean = false
@@ -68,9 +63,7 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
       }
     }
 
-  @VisibleForTesting
-  val emptyText =
-    AppInsightsStatusText(this) { !isDataAvailable }.apply { appendLine(NOTHING_SELECTED_LABEL) }
+  @VisibleForTesting val emptyText = AppInsightsStatusText(this) { !isDataAvailable }.apply { appendLine(NOTHING_SELECTED_LABEL) }
 
   init {
     background = primaryContentBackground
@@ -113,11 +106,7 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
                 is LoadingState.NetworkFailure -> {
                   isDataAvailable = false
                   emptyText.text = "Request failed"
-                  emptyText.appendLine(
-                    statsState.getCauseMessageOrDefault(),
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null,
-                  )
+                  emptyText.appendLine(statsState.getCauseMessageOrDefault(), EMPTY_STATE_TEXT_FORMAT, null)
                 }
                 is LoadingState.Failure -> {
                   isDataAvailable = false

@@ -16,16 +16,16 @@
 package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_2000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
-import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_2000
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_GRADLE_LATEST_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_KOTLIN_LATEST_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
@@ -33,9 +33,9 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_KMP_2000_NAME
 import com.android.tools.idea.gradle.project.sync.createMemoryBenchmarkTestRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.intellij.util.io.createDirectories
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class Benchmark1000MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
@@ -47,49 +47,50 @@ class Benchmark1000MemoryTest {
 class Benchmark2000KotlinMultiplatformMemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_KMP_2000_NAME, KMP_2000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 open class Benchmark2000MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark4200MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
-
-
 
 class BenchmarkMultiApp100MemoryTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(MULTI_APP_100_NAME, BenchmarkProject.MULTI_APP_100)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
+
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class BenchmarkMultiApp190MemoryTest {
-  @get:Rule
-  val benchmarkTestRule = createMemoryBenchmarkTestRule(MULTI_APP_190_NAME, BenchmarkProject.MULTI_APP_190)
+  @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(MULTI_APP_190_NAME, BenchmarkProject.MULTI_APP_190)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
+
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
-class Benchmark200Repeated20TimesMemoryTest  {
+class Benchmark200Repeated20TimesMemoryTest {
   private val repeatCount = 20
 
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
-    "${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats", disableAnalyzers = true)
+  @get:Rule
+  val captureFromHistogramRule =
+    CaptureSyncMemoryFromHistogramRule("${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats", disableAnalyzers = true)
 
   @Test
   fun testSyncMemoryPost20Repeats() {
     benchmarkTestRule.openProject { project ->
-      repeat (repeatCount - 2 ) {
-        project.requestSyncAndWait()
-      }
+      repeat(repeatCount - 2) { project.requestSyncAndWait() }
       // Delete all the measurements before the final measurement.
       clearOutputDirectory()
 
@@ -106,16 +107,18 @@ class Benchmark200Repeated20TimesMemoryTest  {
 
 class Benchmark2000MemoryLatestGradleTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_1000, useLatestGradle = true)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
-    benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
+  @get:Rule
+  val captureFromHistogramRule =
+    CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark2000MemoryLatestKotlinTest {
   @get:Rule val benchmarkTestRule = createMemoryBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_1000, useLatestKotlin = true)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
-    benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
+  @get:Rule
+  val captureFromHistogramRule =
+    CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, projectToCompareAgainst = SUBSET_1000_NAME)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }

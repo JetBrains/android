@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.emulator.actions.EmulatorScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 
-/**
- * Takes a screenshot of the device display, saves it to a file, and opens it in editor.
- */
+/** Takes a screenshot of the device display, saves it to a file, and opens it in editor. */
 internal class StreamingScreenshotAction : StreamingAction(EmulatorScreenshotAction(), ScreenshotAction())

@@ -95,11 +95,9 @@ private fun ToolWindowManager.initToolWindow(project: Project, bean: ToolWindowE
     return
   }
 
-  @Suppress("UnstableApiUsage")
-  val anchor = factory.anchor ?: ToolWindowAnchor.fromText(bean.anchor ?: ToolWindowAnchor.LEFT.toString())
+  @Suppress("UnstableApiUsage") val anchor = factory.anchor ?: ToolWindowAnchor.fromText(bean.anchor ?: ToolWindowAnchor.LEFT.toString())
 
-  @Suppress("DEPRECATION")
-  val sideTool = bean.secondary || bean.side
+  @Suppress("DEPRECATION") val sideTool = bean.secondary || bean.side
 
   try {
     @Suppress("UnstableApiUsage")
@@ -113,10 +111,10 @@ private fun ToolWindowManager.initToolWindow(project: Project, bean: ToolWindowE
         canWorkInDumbMode = DumbService.isDumbAware(factory),
         shouldBeAvailable = factory.shouldBeAvailable(project),
         contentFactory = factory,
-        stripeTitle = getStripeTitleSupplier(bean.id, project, plugin)
+        stripeTitle = getStripeTitleSupplier(bean.id, project, plugin),
       )
     )
   } catch (e: IllegalArgumentException) {
-    thisLogger().info(e.message , e)
+    thisLogger().info(e.message, e)
   }
 }

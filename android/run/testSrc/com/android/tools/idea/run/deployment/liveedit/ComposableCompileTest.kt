@@ -42,17 +42,13 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class ComposableCompileTest {
 
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -68,23 +64,30 @@ class ComposableCompileTest {
 
   @Test
   fun simpleComposeChange() {
-    val file = projectRule.createKtFile("ComposeSimple.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ComposeSimple.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         var word = "Hello"
       }
       @Composable fun composableFun2() {
         var word = "World"
-      }""")
+      }""",
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         var word = "Hi!!"
       }
       @Composable fun composableFun2() {
         var word = "World"
-      }""")
+      }""",
+    )
     val output = compile(file, cache)
     // We can't really invoke any composable without a "host". Normally that host will be the
     // Android activity. There are other hosts that we can possibly run as a Compose unit test.
@@ -95,10 +98,10 @@ class ComposableCompileTest {
     Assert.assertEquals(-1332540612, output.groupIds.first())
 
     val c = loadClass(output)
-    var foundFunction = false;
+    var foundFunction = false
     for (m in c.methods) {
       if (m.toString().contains("ComposeSimpleKt.composableFun(androidx.compose.runtime.Composer,int)")) {
-        foundFunction = true;
+        foundFunction = true
       }
     }
     Assert.assertTrue(foundFunction)
@@ -106,7 +109,10 @@ class ComposableCompileTest {
 
   @Test
   fun composableLambdaArg() {
-    val file = projectRule.createKtFile("ComposeSimple.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ComposeSimple.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable
       fun word(value: String) {
@@ -123,9 +129,12 @@ class ComposableCompileTest {
         composableNested {
           word("hello")
         }
-      }""")
+      }""",
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       import androidx.compose.runtime.Composable
       @Composable
       fun word(value: String) {
@@ -142,14 +151,18 @@ class ComposableCompileTest {
         composableNested {
           word("hi")
         }
-      }""")
+      }""",
+    )
     val output = compile(file, cache)
     Assert.assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
   }
 
   @Test
   fun simpleComposeNested() {
-    val file = projectRule.createKtFile("ComposeNested.kt" , """
+    val file =
+      projectRule.createKtFile(
+        "ComposeNested.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable
       fun caller() {
@@ -157,9 +170,12 @@ class ComposableCompileTest {
       }
       fun composableNested(): @Composable (Int) -> Unit {
         return { } // group 22704048 for K1 / group 2076812637 for K2
-      }""")
+      }""",
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       import androidx.compose.runtime.Composable
       @Composable
       fun caller() {
@@ -167,19 +183,22 @@ class ComposableCompileTest {
       }
       fun composableNested(): @Composable (Int) -> Unit {
         return { val y = 0 }
-      }""")
+      }""",
+    )
     val output = compile(file, cache)
 
     Assert.assertTrue(-1369675262 in output.groupIds)
-    val groupIdForNestedLambda =
-      2076812637
+    val groupIdForNestedLambda = 2076812637
 
     Assert.assertTrue(groupIdForNestedLambda in output.groupIds)
   }
 
   @Test
   fun multipleEditsInOneUpdate() {
-    val simpleFile = projectRule.createKtFile("ComposeSimple.kt", """
+    val simpleFile =
+      projectRule.createKtFile(
+        "ComposeSimple.kt",
+        """
         import androidx.compose.runtime.Composable
         @Composable fun composableFun() : String {
           var str = "hi"
@@ -187,19 +206,26 @@ class ComposableCompileTest {
         }
         @Composable fun composableFun2() : String {
           return "hi2"
-        }""")
+        }""",
+      )
     val simpleState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(simpleFile) }
-    val nestedFile = projectRule.createKtFile("ComposeNested.kt", """
+    val nestedFile =
+      projectRule.createKtFile(
+        "ComposeNested.kt",
+        """
         import androidx.compose.runtime.Composable
         @Composable
         fun composableNested(): @Composable (Int) -> Unit {
           return { }
-         }""")
+         }""",
+      )
     val nestedState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(nestedFile) }
     val cache = projectRule.initialCache(listOf(simpleFile, nestedFile))
 
     // Testing an edit that has two files and three function modified.
-    projectRule.modifyKtFile(simpleFile, """
+    projectRule.modifyKtFile(
+      simpleFile,
+      """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() : String {
         var str = "hello"
@@ -207,23 +233,28 @@ class ComposableCompileTest {
       }
       @Composable fun composableFun2() : String {
         return "hello"
-      }""")
-    projectRule.modifyKtFile(nestedFile, """
+      }""",
+    )
+    projectRule.modifyKtFile(
+      nestedFile,
+      """
       import androidx.compose.runtime.Composable
       @Composable
       fun composableNested(): @Composable (Int) -> Unit {
         val x = 0
         return { }
-      }""")
-    val output = compile(listOf(
-      LiveEditCompilerInput(simpleFile, simpleState),
-      LiveEditCompilerInput(nestedFile, nestedState)), cache)
+      }""",
+    )
+    val output = compile(listOf(LiveEditCompilerInput(simpleFile, simpleState), LiveEditCompilerInput(nestedFile, nestedState)), cache)
 
     // We *had* an issue where a flakey test outputs only 2 classes. Printing out all the class name we got here so we
     // can see it in the test log when it flakes. If that happens, we should assign a bug to the compiler team and inform them
     // we might have a non-deterministic compiler output.
-    Assert.assertEquals("Expecting [ComposeSimpleKt, ComposableSingletons<lambda_name>, ComposeNestedKt] " +
-                        "but got ${output.classes.map { it.name }}",3, output.classes.size)
+    Assert.assertEquals(
+      "Expecting [ComposeSimpleKt, ComposableSingletons<lambda_name>, ComposeNestedKt] " + "but got ${output.classes.map { it.name }}",
+      3,
+      output.classes.size,
+    )
     Assert.assertEquals(2, output.classesMap.size)
     Assert.assertEquals(1, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
@@ -234,32 +265,46 @@ class ComposableCompileTest {
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(877730311))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
-    Assert.assertEquals(InvalidateMode.INVALIDATE_GROUPS, output.invalidateMode) // Compose only edits should not request for a full state reset.
+    Assert.assertEquals(
+      InvalidateMode.INVALIDATE_GROUPS,
+      output.invalidateMode,
+    ) // Compose only edits should not request for a full state reset.
   }
 
   @Test
   fun simpleMixed() {
-    val file = projectRule.createKtFile("Mixed.kt", """
+    val file =
+      projectRule.createKtFile(
+        "Mixed.kt",
+        """
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() {}
      fun notComposable() {}
-    """)
+    """,
+      )
     val cache = projectRule.initialCache(listOf(file))
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() { val x = 0 }
      fun notComposable() {}
-    """)
+    """,
+    )
 
     var output = compile(file, cache)
     Assert.assertEquals(-785806172, output.groupIds.first())
     Assert.assertEquals(InvalidateMode.INVALIDATE_GROUPS, output.invalidateMode)
 
-    val editNonComposable = projectRule.fixture.configureByText("Mixed.kt", """
+    val editNonComposable =
+      projectRule.fixture.configureByText(
+        "Mixed.kt",
+        """
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() {}
      fun notComposable() { val x = 0 }
-    """)
+    """,
+      )
 
     output = compile(editNonComposable, cache)
     // Editing a normal Kotlin function should not result any group IDs. Instead, it should manually trigger a full state reset every edit.
@@ -269,14 +314,18 @@ class ComposableCompileTest {
 
   @Test
   fun testModuleName() {
-    val file = projectRule.createKtFile("HasComposableSingletons.kt", """
+    val file =
+      projectRule.createKtFile(
+        "HasComposableSingletons.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable fun hasLambdaA(content: @Composable () -> Unit) { }
       @Composable fun hasLambdaB() { hasLambdaA {} }
-    """)
+    """,
+      )
     val output = projectRule.postDeploymentStateCompile(file)
 
-    val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
+    val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"]
     Assert.assertNotNull(singleton)
     val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
     val getLambda = cl.methods.find { it.name.contains("getLambda") }
@@ -286,7 +335,10 @@ class ComposableCompileTest {
 
   @Test
   fun sendAllThenOnlyChanges() {
-    val file = projectRule.createKtFile("ComposeSimple.kt", """
+    val file =
+      projectRule.createKtFile(
+        "ComposeSimple.kt",
+        """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { }
@@ -299,10 +351,13 @@ class ComposableCompileTest {
       }
       @Composable fun composableFun4() {
         val a = { }
-      }""")
+      }""",
+      )
 
-    val outputs = projectRule.postDeploymentStateCompiles(file,
-                                                          """
+    val outputs =
+      projectRule.postDeploymentStateCompiles(
+        file,
+        """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { "hello "}
@@ -316,7 +371,7 @@ class ComposableCompileTest {
       @Composable fun composableFun4() {
         val a = { }
       }""",
-                                                          """
+        """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { "hello "}
@@ -329,8 +384,8 @@ class ComposableCompileTest {
       }
       @Composable fun composableFun4() {
         val a = { }
-      }"""
-    )
+      }""",
+      )
 
     // First LE should send all classes, regardless of what has changed.
     assertEquals(9, outputs[0].classes.size)
@@ -340,53 +395,62 @@ class ComposableCompileTest {
 
     // cache.update(output.irClasses)
 
-
     // Subsequent LE operations should resume sending only changed classes.
     // TODO: (b/405994424): Differ thinks ComposeSimpleKt and ComposeSimpleKt$composableFun2$a$1$1 has changed?
     assertEquals(2, outputs[1].classes.size)
-    assertTrue { outputs[1].classes.any {it.name == "ComposeSimpleKt" } }
-    assertTrue { outputs[1].classes.any {it.name == "ComposeSimpleKt\$composableFun2\$a\$1\$1" } }
+    assertTrue { outputs[1].classes.any { it.name == "ComposeSimpleKt" } }
+    assertTrue { outputs[1].classes.any { it.name == "ComposeSimpleKt\$composableFun2\$a\$1\$1" } }
 
     assertEquals(1, outputs[1].classesMap.size)
     assertEquals(1, outputs[1].supportClassesMap.size)
   }
 
-  private val modifierCode = """
-      class Color(val value: Int) {
-          companion object {
-              val Red = Color(0)
-          }
-      }
+  private val modifierCode =
+    """
+    class Color(val value: Int) {
+        companion object {
+            val Red = Color(0)
+        }
+    }
 
-      class Dp()
-      val Int.dp: Dp get() = Dp()
+    class Dp()
+    val Int.dp: Dp get() = Dp()
 
-      interface Modifier {
-          companion object : Modifier
-      }
+    interface Modifier {
+        companion object : Modifier
+    }
 
-      fun Modifier.background(c: Color) = this
-      fun Modifier.size(size: Dp) = this
-      fun Modifier.padding(size: Dp) = this
-      """.trimIndent()
+    fun Modifier.background(c: Color) = this
+    fun Modifier.size(size: Dp) = this
+    fun Modifier.padding(size: Dp) = this
+    """
+      .trimIndent()
 
   // Regression test for invalid incremental analysis. See b/295257198.
   @Test
   fun incrementalAnalysisFunctionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file = projectRule.createKtFile(fileName, """
+    val file =
+      projectRule.createKtFile(
+        fileName,
+        """
       $modifierCode
       fun foo() {
         Modifier.background(Color.Red).size(100.dp).padding(20.dp)
-      }""".trimIndent())
+      }"""
+          .trimIndent(),
+      )
 
-
-    val output = projectRule.postDeploymentStateCompile(file, """
+    val output =
+      projectRule.postDeploymentStateCompile(
+        file,
+        """
       $modifierCode
       fun foo() {
         Modifier.background(Color.Red).size(100.dp)
-      }""")
+      }""",
+      )
 
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
@@ -400,13 +464,21 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionExpressionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file = projectRule.createKtFile(fileName, """
+    val file =
+      projectRule.createKtFile(
+        fileName,
+        """
       $modifierCode
-      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)""")
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)""",
+      )
 
-    val output = projectRule.postDeploymentStateCompile(file, """
+    val output =
+      projectRule.postDeploymentStateCompile(
+        file,
+        """
       $modifierCode
-      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""")
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""",
+      )
 
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
@@ -422,18 +494,25 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionBodyWithArgumentsTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file = projectRule.createKtFile(fileName, """
+    val file =
+      projectRule.createKtFile(
+        fileName,
+        """
       fun bar() = foo(0)
       fun foo(l: Int): Int {
         return 32
-      }""")
+      }""",
+      )
     val cache = projectRule.initialCache(listOf(file))
 
-    projectRule.modifyKtFile(file,"""
+    projectRule.modifyKtFile(
+      file,
+      """
       fun bar() = foo(0)
       fun foo(l: Int): Int {
         return 42
-      }""")
+      }""",
+    )
 
     val output = compile(file, cache)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
@@ -445,7 +524,10 @@ class ComposableCompileTest {
   fun incrementalAnalysisPropertyGetter() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file = projectRule.createKtFile(fileName, """
+    val file =
+      projectRule.createKtFile(
+        fileName,
+        """
       $modifierCode
       class A {
         val y: Modifier
@@ -454,9 +536,13 @@ class ComposableCompileTest {
       fun bar(): Int {
         A().y
         return 42
-      }""")
+      }""",
+      )
 
-    val output = projectRule.postDeploymentStateCompile(file, """
+    val output =
+      projectRule.postDeploymentStateCompile(
+        file,
+        """
       $modifierCode
       class A {
         val y: Modifier
@@ -465,7 +551,8 @@ class ComposableCompileTest {
       fun bar(): Int {
         A().y
         return 42
-      }""")
+      }""",
+      )
 
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
@@ -474,34 +561,43 @@ class ComposableCompileTest {
 
   @Test
   fun testIgnoreTraceEventStart() {
-    val file = projectRule.createKtFile("File.kt", """
-      import androidx.compose.runtime.Composable
-      @Composable fun composableFun() : String {
-        var str = "hi"
-        return str
-      }
-    """.trimIndent()) as KtFile
+    val file =
+      projectRule.createKtFile(
+        "File.kt",
+        """
+        import androidx.compose.runtime.Composable
+        @Composable fun composableFun() : String {
+          var str = "hi"
+          return str
+        }
+        """
+          .trimIndent(),
+      ) as KtFile
 
     val firstClass = projectRule.directApiCompileIr(file)["FileKt"]
     assertNotNull(firstClass)
     val firstMethod = firstClass.methods.first { it.name == "composableFun" }
 
     // Ensure we actually generated a traceEventStart() call
-    assertNotNull(firstMethod.instructions.singleOrNull {
-      it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
-    })
+    assertNotNull(
+      firstMethod.instructions.singleOrNull {
+        it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
+      }
+    )
 
     // Modifying the line numbers causes the traceEventStart() calls to change; unfortunately, it doesn't change the sourceInformation()
     // calls from within our test context. Not sure why.
-    val content = """  
-    import androidx.compose.runtime.Composable
-     
-      // Change the line offset of the @Composable to cause the argument to traceEventStart() to change
-      @Composable fun composableFun() : String {
-        var str = "hi"
-        return str
-      }
-    """.trimIndent()
+    val content =
+      """
+      import androidx.compose.runtime.Composable
+       
+        // Change the line offset of the @Composable to cause the argument to traceEventStart() to change
+        @Composable fun composableFun() : String {
+          var str = "hi"
+          return str
+        }
+      """
+        .trimIndent()
 
     projectRule.modifyKtFile(file, content)
     val secondClass = projectRule.directApiCompileIr(file)["FileKt"]
@@ -509,9 +605,11 @@ class ComposableCompileTest {
     val secondMethod = secondClass.methods.first { it.name == "composableFun" }
 
     // Ensure we actually generated a traceEventStart() call
-    assertNotNull(secondMethod.instructions.singleOrNull {
-      it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
-    })
+    assertNotNull(
+      secondMethod.instructions.singleOrNull {
+        it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
+      }
+    )
 
     assertNotNull(diff(firstClass, secondClass))
     assertTrue(onlyComposeDebugConstantChanges(firstMethod.instructions, secondMethod.instructions))
@@ -520,24 +618,34 @@ class ComposableCompileTest {
   // Check for b/326306840
   @Test
   fun doNotIgnoreLdcChanges() {
-    val file = projectRule.createKtFile("A.kt", """
-      import androidx.compose.runtime.Composable
-      @Composable
-      fun method() {
-        val color = method(0xFFFFFFFF)
-      }
-      fun method(a: Long) {
-      }
-    """.trimIndent())
-    val output = projectRule.postDeploymentStateCompile(file,  """
-      import androidx.compose.runtime.Composable
-      @Composable
-      fun method() {
-        val color = method(0xFF00FFFF)
-      }
-      fun method(a: Long) {
-      }
-    """.trimIndent())
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
+        import androidx.compose.runtime.Composable
+        @Composable
+        fun method() {
+          val color = method(0xFFFFFFFF)
+        }
+        fun method(a: Long) {
+        }
+        """
+          .trimIndent(),
+      )
+    val output =
+      projectRule.postDeploymentStateCompile(
+        file,
+        """
+        import androidx.compose.runtime.Composable
+        @Composable
+        fun method() {
+          val color = method(0xFF00FFFF)
+        }
+        fun method(a: Long) {
+        }
+        """
+          .trimIndent(),
+      )
     assertTrue(output.groupIds.isNotEmpty())
   }
 
@@ -545,7 +653,10 @@ class ComposableCompileTest {
   fun mutableState() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file = projectRule.createKtFile(fileName, """
+    val file =
+      projectRule.createKtFile(
+        fileName,
+        """
         import androidx.compose.runtime.Composable
         import androidx.compose.runtime.getValue
         import androidx.compose.runtime.mutableStateOf
@@ -553,9 +664,13 @@ class ComposableCompileTest {
         import androidx.compose.runtime.setValue
         @Composable
         fun C() { }
-      """)
+      """,
+      )
 
-    val output = projectRule.postDeploymentStateCompile(file, """
+    val output =
+      projectRule.postDeploymentStateCompile(
+        file,
+        """
         import androidx.compose.runtime.Composable
         import androidx.compose.runtime.getValue
         import androidx.compose.runtime.mutableStateOf
@@ -565,7 +680,8 @@ class ComposableCompileTest {
         fun C() {
             var c by remember { mutableStateOf(0) }
         }
-      """)
+      """,
+      )
 
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
   }

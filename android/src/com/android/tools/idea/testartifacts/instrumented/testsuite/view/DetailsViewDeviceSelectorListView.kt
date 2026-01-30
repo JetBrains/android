@@ -49,58 +49,46 @@ import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
 /**
- * Shows a list of devices. This view is intended to be used in Android test suite details page
- * in conjunction with [DetailsViewContentView].
- * A user can click on a device item to look up detailed test results for a selected device.
+ * Shows a list of devices. This view is intended to be used in Android test suite details page in conjunction with
+ * [DetailsViewContentView]. A user can click on a device item to look up detailed test results for a selected device.
  */
 class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListViewListener) {
-  /**
-   * Interface to listen events occurred in [DetailsViewDeviceSelectorListView].
-   */
+  /** Interface to listen events occurred in [DetailsViewDeviceSelectorListView]. */
   interface DetailsViewDeviceSelectorListViewListener {
-    /**
-     * Called when a user selects a device for looking up test results for the device.
-     */
-    @UiThread
-    fun onDeviceSelected(selectedDevice: AndroidDevice)
+    /** Called when a user selects a device for looking up test results for the device. */
+    @UiThread fun onDeviceSelected(selectedDevice: AndroidDevice)
 
-    /**
-     * Called when a user selects a special item, "Raw Output", in the list.
-     */
-    @UiThread
-    fun onRawOutputSelected()
+    /** Called when a user selects a special item, "Raw Output", in the list. */
+    @UiThread fun onRawOutputSelected()
   }
 
   private val myDeviceListModel: DefaultListModel<Any> = DefaultListModel()
   private val myCellRenderer: AndroidDeviceListCellRenderer = AndroidDeviceListCellRenderer()
+
   @VisibleForTesting object RawOutputItem
 
   @get:VisibleForTesting
-  val deviceList: JBList<Any> = JBList(myDeviceListModel).apply {
-    selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
-    putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
-    cellRenderer = myCellRenderer
-    fixedCellHeight = 50
-    selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    border = JBUI.Borders.empty()
-    addListSelectionListener {
-      val selectedItem = selectedValue
-      if (selectedItem is AndroidDevice) {
-        listener.onDeviceSelected(selectedItem)
-      }
-      else if (selectedItem is RawOutputItem) {
-        listener.onRawOutputSelected()
+  val deviceList: JBList<Any> =
+    JBList(myDeviceListModel).apply {
+      selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
+      putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
+      cellRenderer = myCellRenderer
+      fixedCellHeight = 50
+      selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+      border = JBUI.Borders.empty()
+      addListSelectionListener {
+        val selectedItem = selectedValue
+        if (selectedItem is AndroidDevice) {
+          listener.onDeviceSelected(selectedItem)
+        } else if (selectedItem is RawOutputItem) {
+          listener.onRawOutputSelected()
+        }
       }
     }
-  }
 
-  val rootPanel: JPanel = panel {
-    row { scrollCell(deviceList).align(Align.FILL) }.resizableRow()
-  }
+  val rootPanel: JPanel = panel { row { scrollCell(deviceList).align(Align.FILL) }.resizableRow() }
 
-  /**
-   * Adds a given device to the list.
-   */
+  /** Adds a given device to the list. */
   @UiThread
   fun addDevice(device: AndroidDevice) {
     myDeviceListModel.addElement(device)
@@ -108,6 +96,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
 
   /**
    * Select a given device in the list.
+   *
    * @param device a device to be selected
    */
   @UiThread
@@ -115,18 +104,14 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
     deviceList.setSelectedValue(device, true)
   }
 
-  /**
-   * Select the raw output item in the list.
-   */
+  /** Select the raw output item in the list. */
   @UiThread
   fun selectRawOutputItem() {
     setShowRawOutputItem(true)
     deviceList.setSelectedValue(RawOutputItem, true)
   }
 
-  /**
-   * Updates the view with a given AndroidTestResults.
-   */
+  /** Updates the view with a given AndroidTestResults. */
   @UiThread
   fun setAndroidTestResults(results: AndroidTestResults) {
     myCellRenderer.setAndroidTestResults(results)
@@ -138,8 +123,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       if (myDeviceListModel.indexOf(RawOutputItem) == -1) {
         myDeviceListModel.add(0, RawOutputItem)
       }
-    }
-    else {
+    } else {
       myDeviceListModel.removeElement(RawOutputItem)
     }
   }
@@ -166,9 +150,13 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myTestResults = results
     }
 
-    override fun getListCellRendererComponent(list: JList<*>, value: Any,
-                                              index: Int, isSelected: Boolean,
-                                              cellHasFocus: Boolean): Component {
+    override fun getListCellRendererComponent(
+      list: JList<*>,
+      value: Any,
+      index: Int,
+      isSelected: Boolean,
+      cellHasFocus: Boolean,
+    ): Component {
       super.getListCellRendererComponent(list, " ", index, isSelected, cellHasFocus)
       background = UIUtil.getTableBackground(isSelected, list.hasFocus())
       myCellRendererComponent.background = list.background
@@ -176,28 +164,29 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myDeviceLabelPanel.background = list.background
       myDeviceLabelPanel.foreground = list.foreground
       if (value is AndroidDevice) {
-        val testDurationText = myTestResults?.getRoundedDuration(value)?.let {
-          Formats.formatDuration(it.toMillis(), "\u2009")
-        } ?: ""
+        val testDurationText = myTestResults?.getRoundedDuration(value)?.let { Formats.formatDuration(it.toMillis(), "\u2009") } ?: ""
         if (StringUtil.isNotEmpty(testDurationText)) {
-          myDeviceLabel.text = String.format(Locale.US,
-                                             "<html>%s<br><font color='#%s'>API %s - %s</font></html>",
-                                             value.getName().htmlEscape(),
-                                             ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.getApiStringWithExtension(),
-                                             testDurationText.htmlEscape())
-        }
-        else {
-          myDeviceLabel.text = String.format(Locale.US,
-                                             "<html>%s<br><font color='#%s'>API %s</font></html>",
-                                             value.getName().htmlEscape(),
-                                             ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.getApiStringWithExtension()
-          )
+          myDeviceLabel.text =
+            String.format(
+              Locale.US,
+              "<html>%s<br><font color='#%s'>API %s - %s</font></html>",
+              value.getName().htmlEscape(),
+              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
+              value.version.getApiStringWithExtension(),
+              testDurationText.htmlEscape(),
+            )
+        } else {
+          myDeviceLabel.text =
+            String.format(
+              Locale.US,
+              "<html>%s<br><font color='#%s'>API %s</font></html>",
+              value.getName().htmlEscape(),
+              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
+              value.version.getApiStringWithExtension(),
+            )
         }
         myDeviceLabel.icon = getIconForDeviceType(value.deviceType)
-      }
-      else if (value is RawOutputItem) {
+      } else if (value is RawOutputItem) {
         myDeviceLabel.text = "Raw Output"
         myDeviceLabel.icon = null
       }
@@ -207,9 +196,8 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myDeviceLabel.foreground = list.foreground
       myDeviceLabel.font = list.font
       if (value is AndroidDevice) {
-        myTestResultLabel.icon  = myTestResults?.getTestCaseResult(value)?.let { getIconFor(it) }
-      }
-      else if (value is RawOutputItem) {
+        myTestResultLabel.icon = myTestResults?.getTestCaseResult(value)?.let { getIconFor(it) }
+      } else if (value is RawOutputItem) {
         myTestResultLabel.icon = null
       }
       myTestResultLabel.border = myEmptyBorder
@@ -223,7 +211,8 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
 
 private fun getIconForDeviceType(deviceType: AndroidDeviceType): Icon? {
   return when (deviceType) {
-    AndroidDeviceType.LOCAL_EMULATOR, AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+    AndroidDeviceType.LOCAL_EMULATOR,
+    AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
   }
 }

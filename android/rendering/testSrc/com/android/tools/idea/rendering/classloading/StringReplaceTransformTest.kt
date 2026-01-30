@@ -17,11 +17,11 @@ package com.android.tools.idea.rendering.classloading
 
 import java.io.PrintWriter
 import java.io.StringWriter
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class StringReplaceTestClass {
   val property = "PropertyValue"
@@ -38,8 +38,7 @@ class StringReplaceTransformTest {
 
     val classReader = ClassReader(testClassBytes)
     val outputTrace = StringWriter()
-    val classOutputWriter =
-      TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
+    val classOutputWriter = TraceClassVisitor(ClassWriter(ClassWriter.COMPUTE_MAXS), PrintWriter(outputTrace))
     val repackageTransform =
       StringReplaceTransform(
         classOutputWriter,
@@ -52,16 +51,11 @@ class StringReplaceTransformTest {
 
     assertEquals(
       """
-        LDC "RenamedPropertyValue"
-        LDC "RenamedMethodValue"
+      LDC "RenamedPropertyValue"
+      LDC "RenamedMethodValue"
       """
         .trimIndent(),
-      outputTrace
-        .toString()
-        .lines()
-        .filter { it.trimStart().startsWith("LDC") }
-        .map { it.trim() }
-        .joinToString("\n"),
+      outputTrace.toString().lines().filter { it.trimStart().startsWith("LDC") }.map { it.trim() }.joinToString("\n"),
     )
   }
 }

@@ -19,22 +19,21 @@ class IrInstruction(val type: Type, val opcode: Int, val params: List<Any?>, val
   enum class Type {
     INSTRUCTION,
     LABEL,
-    LINE
+    LINE,
   }
 
   var next: IrInstruction? = null
     private set
 
-  /**
-   * Returns the next [IrInstruction] with a [Type] of [Type.INSTRUCTION], skipping over [Type.LABEL] and [Type.LINE] instructions.
-   */
-  val nextInsn: IrInstruction? get() {
-    var cur = next
-    while (cur != null && cur.type != Type.INSTRUCTION) {
-      cur = cur.next
+  /** Returns the next [IrInstruction] with a [Type] of [Type.INSTRUCTION], skipping over [Type.LABEL] and [Type.LINE] instructions. */
+  val nextInsn: IrInstruction?
+    get() {
+      var cur = next
+      while (cur != null && cur.type != Type.INSTRUCTION) {
+        cur = cur.next
+      }
+      return cur
     }
-    return cur
-  }
 
   init {
     if (prev != null) {

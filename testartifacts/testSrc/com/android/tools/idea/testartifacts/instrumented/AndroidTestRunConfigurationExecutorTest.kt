@@ -37,6 +37,9 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assume
@@ -48,9 +51,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 
 private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
 private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
@@ -64,33 +64,28 @@ class AndroidTestRunConfigurationExecutorTest {
 
   private val usageTrackerRule = UsageTrackerRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(cleaner)
-    .around(usageTrackerRule)
-    .around(projectRule)
-    .around(fakeAdb)
+  @get:Rule val chain = RuleChain.outerRule(cleaner).around(usageTrackerRule).around(projectRule).around(fakeAdb)
 
   @After
   fun after() {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    AndroidDebugBridge.getBridge()!!.devices.forEach {
-      fakeAdb.disconnectDevice(it.serialNumber)
-    }
+    AndroidDebugBridge.getBridge()!!.devices.forEach { fakeAdb.disconnectDevice(it.serialNumber) }
   }
 
   @Test
   fun runSucceededAndSaveHistory() {
-    Assume.assumeFalse(
-      "b/403870016: FakeAdbTestRule seems to be flaky on windows.",
-      SystemInfo.isWindows)
+    Assume.assumeFalse("b/403870016: FakeAdbTestRule seems to be flaky on windows.", SystemInfo.isWindows)
 
-    val deviceState = fakeAdb.connectDevice("device149",
-                                            manufacturer = "mfg",
-                                            deviceModel = "model",
-                                            release = "10.0.0",
-                                            sdk = AndroidApiLevel(30),
-                                            hostConnectionType = DeviceState.HostConnectionType.USB)
+    val deviceState =
+      fakeAdb.connectDevice(
+        "device149",
+        manufacturer = "mfg",
+        deviceModel = "model",
+        release = "10.0.0",
+        sdk = AndroidApiLevel(30),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
     val startDownLatch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
@@ -100,23 +95,16 @@ class AndroidTestRunConfigurationExecutorTest {
 
     val historyLatch = CountDownLatch(1)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()
-    whenever(testHistoryConfiguration.registerHistoryItem(any(), eq("test"), any())).then {
-      historyLatch.countDown()
-    }
+    whenever(testHistoryConfiguration.registerHistoryItem(any(), eq("test"), any())).then { historyLatch.countDown() }
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val mockRunStats = Mockito.mock(RunStats::class.java)
-    val env = getExecutionEnvironment(listOf(device)).apply {
-      putUserData(RunStats.KEY, mockRunStats)
-    }
-    val executor = AndroidTestRunConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device))
-    ) { NoApksProvider() }
+    val env = getExecutionEnvironment(listOf(device)).apply { putUserData(RunStats.KEY, mockRunStats) }
+    val executor = AndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) { NoApksProvider() }
 
-    val runContentDescriptor = ProgressManager.getInstance()
-      .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    val runContentDescriptor =
+      ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
 
@@ -138,16 +126,17 @@ class AndroidTestRunConfigurationExecutorTest {
   fun debugSucceeded() {
     val historyLatch = CountDownLatch(1)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()
-    whenever(testHistoryConfiguration.registerHistoryItem(any(), eq("test"), any())).then {
-      historyLatch.countDown()
-    }
+    whenever(testHistoryConfiguration.registerHistoryItem(any(), eq("test"), any())).then { historyLatch.countDown() }
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
-    val deviceState = fakeAdb.connectDevice("device149",
-                                            manufacturer = "mfg",
-                                            deviceModel = "model",
-                                            release = "10.0.0",
-                                            sdk = AndroidApiLevel(30),
-                                            hostConnectionType = DeviceState.HostConnectionType.USB)
+    val deviceState =
+      fakeAdb.connectDevice(
+        "device149",
+        manufacturer = "mfg",
+        deviceModel = "model",
+        release = "10.0.0",
+        sdk = AndroidApiLevel(30),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
         FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "applicationId", true)
@@ -160,15 +149,11 @@ class AndroidTestRunConfigurationExecutorTest {
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val stats = RunStatsService.get(projectRule.project).create()
-    val env = getExecutionEnvironment(listOf(device), isDebug = true).apply {
-      putUserData(RunStats.KEY, stats)
-    }
-    val executor = AndroidTestRunConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device))) { NoApksProvider() }
+    val env = getExecutionEnvironment(listOf(device), isDebug = true).apply { putUserData(RunStats.KEY, stats) }
+    val executor = AndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) { NoApksProvider() }
 
-    val runContentDescriptor = ProgressManager.getInstance()
-      .runProcess(Computable { executor.debug(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+    val runContentDescriptor =
+      ProgressManager.getInstance().runProcess(Computable { executor.debug(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
     stats.success()
@@ -186,38 +171,41 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun runFailed() {
-    fakeAdb.connectDevice("device149",
-                                            manufacturer = "mfg",
-                                            deviceModel = "model",
-                                            release = "10.0.0",
-                                            sdk = AndroidApiLevel(30),
-                                            hostConnectionType = DeviceState.HostConnectionType.USB)
+    fakeAdb.connectDevice(
+      "device149",
+      manufacturer = "mfg",
+      deviceModel = "model",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(30),
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val env = getExecutionEnvironment(listOf(device))
-    val executor = AndroidTestRunConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device))) { ApkProvider { throw ExecutionException("Can't get apks") } }
+    val executor =
+      AndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
+        ApkProvider { throw ExecutionException("Can't get apks") }
+      }
 
     try {
-      ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+      ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
       fail("Run should fail")
-    }
-    catch (e: ExecutionException) {
+    } catch (e: ExecutionException) {
       assertThat(e.message).isEqualTo("Can't get apks")
     }
   }
 
-
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
-    val deviceState = fakeAdb.connectDevice("device149",
-                                            manufacturer = "mfg",
-                                            deviceModel = "model",
-                                            release = "10.0.0",
-                                            sdk = AndroidApiLevel(30),
-                                            hostConnectionType = DeviceState.HostConnectionType.USB)
+    val deviceState =
+      fakeAdb.connectDevice(
+        "device149",
+        manufacturer = "mfg",
+        deviceModel = "model",
+        release = "10.0.0",
+        sdk = AndroidApiLevel(30),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
     val startDownLatch = CountDownLatch(3)
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
@@ -227,79 +215,86 @@ class AndroidTestRunConfigurationExecutorTest {
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     var executionOptions = TestExecutionOption.HOST
 
-    val testConfiguration = object : AndroidTestRunConfiguration(projectRule.project,
-                                                                 AndroidTestRunConfigurationType.getInstance().factory) {
-      override fun getTestExecutionOption(facet: AndroidFacet?): TestExecutionOption {
-        return executionOptions
+    val testConfiguration =
+      object : AndroidTestRunConfiguration(projectRule.project, AndroidTestRunConfigurationType.getInstance().factory) {
+        override fun getTestExecutionOption(facet: AndroidFacet?): TestExecutionOption {
+          return executionOptions
+        }
       }
-    }
     testConfiguration.setModule(projectRule.module)
 
-    val settings = RunManager.getInstance(projectRule.project).createConfiguration(testConfiguration,
-                                                                                   AndroidTestRunConfigurationType.getInstance().factory)
+    val settings =
+      RunManager.getInstance(projectRule.project)
+        .createConfiguration(testConfiguration, AndroidTestRunConfigurationType.getInstance().factory)
 
     val mockRunStats = Mockito.mock(RunStats::class.java)
-    val env = getExecutionEnvironment(listOf(device), false, settings).apply {
-      putUserData(RunStats.KEY, mockRunStats)
-    }
-    val executor = AndroidTestRunConfigurationExecutor(
-      env,
-      FakeAndroidDevice.forDevices(listOf(device))
-    ) { NoApksProvider() }
+    val env = getExecutionEnvironment(listOf(device), false, settings).apply { putUserData(RunStats.KEY, mockRunStats) }
+    val executor = AndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) { NoApksProvider() }
     val historyLatch = CountDownLatch(3)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()
-    whenever(testHistoryConfiguration.registerHistoryItem(any(), any(), any())).then {
-      historyLatch.countDown()
-    }
+    whenever(testHistoryConfiguration.registerHistoryItem(any(), any(), any())).then { historyLatch.countDown() }
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
     run {
       executionOptions = TestExecutionOption.HOST
-      val runContentDescriptor = ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor =
+        ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply {
+          processHandler!!.startNotify()
+        }
       startDownLatch.countDown()
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-      val runContentDescriptor = ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor =
+        ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply {
+          processHandler!!.startNotify()
+        }
       startDownLatch.countDown()
-      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
-        ORCHESTRATOR_APP_ID)
+      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(ORCHESTRATOR_APP_ID)
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-      val runContentDescriptor = ProgressManager.getInstance()
-        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor =
+        ProgressManager.getInstance().runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply {
+          processHandler!!.startNotify()
+        }
       startDownLatch.countDown()
-      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
-        ANDROIDX_ORCHESTRATOR_APP_ID)
+      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(ANDROIDX_ORCHESTRATOR_APP_ID)
     }
     if (!historyLatch.await(60, TimeUnit.SECONDS)) {
       fail("History is not saved")
     }
   }
 
-
-  private fun getExecutionEnvironment(devices: List<IDevice>,
-                                      isDebug: Boolean = false,
-                                      settings: RunnerAndConfigurationSettings? = null): ExecutionEnvironment {
-    val configSettings = settings ?: RunManager.getInstance(projectRule.project).createConfiguration("test",
-                                                                                                     AndroidTestRunConfigurationType.getInstance().factory)
+  private fun getExecutionEnvironment(
+    devices: List<IDevice>,
+    isDebug: Boolean = false,
+    settings: RunnerAndConfigurationSettings? = null,
+  ): ExecutionEnvironment {
+    val configSettings =
+      settings
+        ?: RunManager.getInstance(projectRule.project).createConfiguration("test", AndroidTestRunConfigurationType.getInstance().factory)
     (configSettings.configuration as AndroidTestRunConfiguration).setModule(projectRule.module)
     val executor = if (isDebug) DefaultRunExecutor.getRunExecutorInstance() else DefaultDebugExecutor.getDebugExecutorInstance()
-    val executionEnvironment = ExecutionEnvironmentBuilder(projectRule.project, executor)
-      .runnerAndSettings(DefaultStudioProgramRunner(), configSettings)
-      .target(object : AndroidExecutionTarget() {
-        override fun getId() = "TestTarget"
-        override fun getDisplayName() = "TestTarget"
-        override fun getIcon() = null
-        override fun getAvailableDeviceCount() = devices.size
-        override fun getRunningDevices() = devices
-      })
-      .build()
+    val executionEnvironment =
+      ExecutionEnvironmentBuilder(projectRule.project, executor)
+        .runnerAndSettings(DefaultStudioProgramRunner(), configSettings)
+        .target(
+          object : AndroidExecutionTarget() {
+            override fun getId() = "TestTarget"
+
+            override fun getDisplayName() = "TestTarget"
+
+            override fun getIcon() = null
+
+            override fun getAvailableDeviceCount() = devices.size
+
+            override fun getRunningDevices() = devices
+          }
+        )
+        .build()
     return executionEnvironment
   }
 }

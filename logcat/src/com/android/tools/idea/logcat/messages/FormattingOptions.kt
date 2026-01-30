@@ -85,11 +85,7 @@ internal data class FormattingOptions(
       return Range(-1, -1)
     }
     val start =
-      timestampFormat.width() +
-        processThreadFormat.width() +
-        tagFormat.width() +
-        appNameFormat.width() +
-        processNameFormat.width()
+      timestampFormat.width() + processThreadFormat.width() + tagFormat.width() + appNameFormat.width() + processNameFormat.width()
     return Range(start, start + levelFormat.width() - 1)
   }
 }

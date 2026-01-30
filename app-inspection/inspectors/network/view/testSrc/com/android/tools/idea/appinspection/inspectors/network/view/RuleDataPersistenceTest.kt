@@ -181,14 +181,7 @@ class RuleDataPersistenceTest {
     if (::scope.isInitialized) scope.cancel()
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope)
-    return RulesTableView(
-      projectRule.project,
-      services.client,
-      scope,
-      model,
-      ruleValidator = {},
-      services.usageTracker,
-    )
+    return RulesTableView(projectRule.project, services.client, scope, model, ruleValidator = {}, services.usageTracker)
   }
 
   private fun assertRuleValues(actualRuleData: RuleData, expectedRuleData: RuleData) {

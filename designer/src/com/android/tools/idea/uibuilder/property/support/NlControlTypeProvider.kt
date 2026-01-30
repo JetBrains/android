@@ -24,8 +24,7 @@ import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 
 /** [ControlType] provider of a value editor for a [NlPropertyItem]. */
-open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NlPropertyItem>) :
-  ControlTypeProvider<NlPropertyItem> {
+open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NlPropertyItem>) : ControlTypeProvider<NlPropertyItem> {
 
   override fun invoke(actual: NlPropertyItem): ControlType {
     val property = actual.delegate ?: actual
@@ -35,8 +34,7 @@ open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<Nl
       // Instead display an action on the left of a text editor just like we do for color
       // properties.
       // The action has a custom implementation in InputTypePropertyItem.
-      property is NlFlagsPropertyItem ->
-        if (property.name == ATTR_INPUT_TYPE) ControlType.COLOR_EDITOR else ControlType.FLAG_EDITOR
+      property is NlFlagsPropertyItem -> if (property.name == ATTR_INPUT_TYPE) ControlType.COLOR_EDITOR else ControlType.FLAG_EDITOR
       enumSupportProvider(property) != null ->
         when (property.type) {
           NlPropertyType.DESTINATION,

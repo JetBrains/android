@@ -42,9 +42,8 @@ private const val maxHeaderWidth = 5000
 /**
  * Header for the group of previews.
  *
- * @param _isVisible indicates [SceneViewHeader] visibility. Previews in this organization group
- *   might not be available at all (not just hidden in collapsed state). For example in UI Check or
- *   if other filtering is enabled. In this case header should also be filtered out.
+ * @param _isVisible indicates [SceneViewHeader] visibility. Previews in this organization group might not be available at all (not just
+ *   hidden in collapsed state). For example in UI Check or if other filtering is enabled. In this case header should also be filtered out.
  */
 class SceneViewHeader(
   parentContainer: JComponent,

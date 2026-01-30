@@ -22,14 +22,13 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.pr
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 
 const val BUILD_VARIANTS_PLACE_NAME: String = "android.psd.build_variants"
+
 class BuildVariantsPanel(
-    context: PsContext,
-    val module: PsAndroidModule,
-    buildTypesTreeModel: ConfigurablesTreeModel,
-    productFlavorsTreeModel: ConfigurablesTreeModel
-) : AbstractTabbedMainPanel(
-  context, placeName = BUILD_VARIANTS_PLACE_NAME
-) {
+  context: PsContext,
+  val module: PsAndroidModule,
+  buildTypesTreeModel: ConfigurablesTreeModel,
+  productFlavorsTreeModel: ConfigurablesTreeModel,
+) : AbstractTabbedMainPanel(context, placeName = BUILD_VARIANTS_PLACE_NAME) {
   private val buildTypesPanel = BuildTypesPanel(module, buildTypesTreeModel, context.uiSettings)
   private val productFlavorsPanel = ProductFlavorsPanel(module, productFlavorsTreeModel, context.uiSettings)
 

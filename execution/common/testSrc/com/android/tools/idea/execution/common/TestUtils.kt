@@ -29,20 +29,20 @@ internal fun DeviceState.launchAndWaitForProcess(pid: Int, userId: Int, packageN
   // change, otherwise we just wait for the application ID to be returned
   val desiredEvent = if (waitingForDebugger) Client.CHANGE_DEBUGGER_STATUS else Client.CHANGE_NAME
 
-  val clientListener = AndroidDebugBridge.IClientChangeListener { client, changeMask ->
-    if (client.device.serialNumber == deviceId && client.clientData.pid == pid && changeMask == desiredEvent) {
-      assertThat(client.isValid).isTrue()
-      launchedClient = client
-      latch.countDown()
+  val clientListener =
+    AndroidDebugBridge.IClientChangeListener { client, changeMask ->
+      if (client.device.serialNumber == deviceId && client.clientData.pid == pid && changeMask == desiredEvent) {
+        assertThat(client.isValid).isTrue()
+        launchedClient = client
+        latch.countDown()
+      }
     }
-  }
 
   AndroidDebugBridge.addClientChangeListener(clientListener)
   try {
     startClient(pid, userId, packageName, waitingForDebugger)
     assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue()
-  }
-  finally {
+  } finally {
     AndroidDebugBridge.removeClientChangeListener(clientListener)
   }
 

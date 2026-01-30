@@ -16,7 +16,8 @@
 
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
-fun baseAndroidManifestXml() = """
+fun baseAndroidManifestXml() =
+  """
 <manifest
 xmlns:dist="http://schemas.android.com/apk/distribution">
 

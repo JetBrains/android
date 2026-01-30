@@ -90,18 +90,13 @@ typealias PreviewRepresentationState = Map<String, String>
 data class Representation(
   @Attribute("name") var key: RepresentationName = "",
   @Tag("settings")
-  @MapAnnotation(
-    entryTagName = "setting",
-    keyAttributeName = "name",
-    valueAttributeName = "value",
-    surroundWithTag = false,
-  )
+  @MapAnnotation(entryTagName = "setting", keyAttributeName = "name", valueAttributeName = "value", surroundWithTag = false)
   var settings: PreviewRepresentationState = mutableMapOf(),
 )
 
 /**
- * [FileEditorState] for [MultiRepresentationPreview]. It saves the state of the individual
- * [PreviewRepresentation]s and restore the state of each one.
+ * [FileEditorState] for [MultiRepresentationPreview]. It saves the state of the individual [PreviewRepresentation]s and restore the state
+ * of each one.
  */
 @Tag(MULTI_PREVIEW_STATE_TAG)
 data class MultiRepresentationPreviewFileEditorState(
@@ -117,8 +112,7 @@ data class MultiRepresentationPreviewFileEditorState(
 }
 
 /**
- * A generic preview [com.intellij.openapi.fileEditor.FileEditor] that allows you to switch between
- * different [PreviewRepresentation]s.
+ * A generic preview [com.intellij.openapi.fileEditor.FileEditor] that allows you to switch between different [PreviewRepresentation]s.
  *
  * @param psiFile the file being edited by this editor.
  * @param editor the text [Editor] for the file.
@@ -135,9 +129,7 @@ open class MultiRepresentationPreview(
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer: SmartPsiElementPointer<PsiFile> by lazy {
-    SmartPointerManager.createPointer(psiFile)
-  }
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile> by lazy { SmartPointerManager.createPointer(psiFile) }
   private var shortcutsApplicableComponent: JComponent? = null
 
   private var representationNeverShown = true
@@ -145,8 +137,7 @@ open class MultiRepresentationPreview(
   /** [MultiRepresentationPreviewFileEditorState] deserialized from disk, if any. */
   private var stateFromDisk: MultiRepresentationPreviewFileEditorState? = null
 
-  private val representations: MutableMap<RepresentationName, PreviewRepresentation> =
-    mutableMapOf()
+  private val representations: MutableMap<RepresentationName, PreviewRepresentation> = mutableMapOf()
 
   override val currentRepresentation: PreviewRepresentation?
     get() = synchronized(representations) { representations[currentRepresentationName] }
@@ -174,16 +165,14 @@ open class MultiRepresentationPreview(
         } else {
           // The preview is not active so mark the current representation as not-active
           currentRepresentationIsActive.set(false)
-          LOG.debug {
-            "[$instanceId] Did not activate '$value' since the MultiRepresentationPreview is not active."
-          }
+          LOG.debug { "[$instanceId] Did not activate '$value' since the MultiRepresentationPreview is not active." }
         }
       }
     }
 
   /**
-   * [AtomicBoolean] to track activations. Indicates whether the current preview is active. If
-   * false, the preview might be hidden or in the background.
+   * [AtomicBoolean] to track activations. Indicates whether the current preview is active. If false, the preview might be hidden or in the
+   * background.
    */
   private val _previewIsActive = AtomicBoolean(false)
 
@@ -199,11 +188,7 @@ open class MultiRepresentationPreview(
         // later.
         if (e?.keyCode == KeyEvent.VK_BACK_SPACE || e?.keyCode == KeyEvent.VK_DELETE) {
           caretListener.caretPositionChanged(
-            CaretEvent(
-              editor.caretModel.currentCaret,
-              editor.caretModel.logicalPosition,
-              editor.caretModel.logicalPosition,
-            )
+            CaretEvent(editor.caretModel.currentCaret, editor.caretModel.logicalPosition, editor.caretModel.logicalPosition)
           )
         }
         super.keyReleased(e)
@@ -213,14 +198,11 @@ open class MultiRepresentationPreview(
   private val caretListener =
     object : CaretListener {
       /**
-       * This tracks the last time the file was modified. This allows us to infer if the caret moved
-       * because the user was typing or just moving around.
+       * This tracks the last time the file was modified. This allows us to infer if the caret moved because the user was typing or just
+       * moving around.
        */
       var lastEditorModificationStamp = -1L
-      /**
-       * This is needed to force a caret event to trigger with isModificationTriggered true even
-       * though the timestamp is the same.
-       */
+      /** This is needed to force a caret event to trigger with isModificationTriggered true even though the timestamp is the same. */
       var isReset = false
 
       override fun caretPositionChanged(event: CaretEvent) {
@@ -232,9 +214,7 @@ open class MultiRepresentationPreview(
             true
           } else false
 
-        currentRepresentation?.caretNavigationHandler?.let {
-          it.onCaretPositionChanged(event, isModificationTriggered || isReset)
-        }
+        currentRepresentation?.caretNavigationHandler?.let { it.onCaretPositionChanged(event, isModificationTriggered || isReset) }
         isReset = false
       }
     }
@@ -250,13 +230,11 @@ open class MultiRepresentationPreview(
 
   private class UpdateRepresentationsRequest
 
-  private val updateRepresentationsFlow: MutableStateFlow<UpdateRepresentationsRequest?> =
-    MutableStateFlow(null)
+  private val updateRepresentationsFlow: MutableStateFlow<UpdateRepresentationsRequest?> = MutableStateFlow(null)
 
   private val updateCallbacksLock = ReentrantLock()
   @GuardedBy("updateCallbacksLock") private var allowNewUpdateCallbacks = true
-  @GuardedBy("updateCallbacksLock")
-  private val updateCallbacks: MutableSet<CompletableDeferred<Unit>> = mutableSetOf()
+  @GuardedBy("updateCallbacksLock") private val updateCallbacks: MutableSet<CompletableDeferred<Unit>> = mutableSetOf()
   // Indicates that representation is potentially being updated. Used for tracking end of processing
   // in tests.
   private val isUpdating = AtomicBoolean(false)
@@ -317,9 +295,7 @@ open class MultiRepresentationPreview(
   /** Updates the current representations and ensures the current selected one is valid. */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file =
-      withContext(workerThread) { readAction { psiFilePointer.element?.takeIf { it.isValid } } }
-        ?: return
+    val file = withContext(workerThread) { readAction { psiFilePointer.element?.takeIf { it.isValid } } } ?: return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -335,10 +311,7 @@ open class MultiRepresentationPreview(
       newRepresentations[provider.displayName] = representation
 
       // Restore the state of the representation
-      stateFromDisk
-        ?.representations
-        ?.find { it.key == provider.displayName }
-        ?.let { representation.setState(it.settings) }
+      stateFromDisk?.representations?.find { it.key == provider.displayName }?.let { representation.setState(it.settings) }
     }
 
     val providerNames = providers.map { it.displayName }.toSet()
@@ -352,9 +325,7 @@ open class MultiRepresentationPreview(
       hadAnyRepresentationsInitialized = representations.isNotEmpty()
       representations.putAll(newRepresentations)
     }
-    toDispose.forEach { representation ->
-      withContext(uiThread) { Disposer.dispose(representation) }
-    }
+    toDispose.forEach { representation -> withContext(uiThread) { Disposer.dispose(representation) } }
 
     if (!hadAnyRepresentationsInitialized) {
       // The first time we load one representation, we try to set it to the one we had saved on disk
@@ -369,15 +340,13 @@ open class MultiRepresentationPreview(
       updateCurrentRepresentationName()
 
       // Only show the bar if there is more than one representation with previews to be shown.
-      representationSelectionToolbar.isVisible =
-        representations.filter { it.value.hasPreviewsCached() }.size > 1
+      representationSelectionToolbar.isVisible = representations.filter { it.value.hasPreviewsCached() }.size > 1
       onRepresentationsUpdated?.invoke()
     }
   }
 
   /**
-   * Updates the representations and returns a [Deferred] that will be completed when the update is
-   * done. To be used in the derived classes.
+   * Updates the representations and returns a [Deferred] that will be completed when the update is done. To be used in the derived classes.
    */
   protected fun updateRepresentationsAsync(): Deferred<Unit> {
     val promise = CompletableDeferred<Unit>()
@@ -403,14 +372,12 @@ open class MultiRepresentationPreview(
   var onRepresentationsUpdated: (() -> Unit)? = null
 
   override fun updateNotifications() {
-    synchronized(representations) { representations.values.toList() }
-      .forEach { it.updateNotifications(this) }
+    synchronized(representations) { representations.values.toList() }.forEach { it.updateNotifications(this) }
   }
 
   fun registerShortcuts(appliedTo: JComponent) {
     shortcutsApplicableComponent = appliedTo
-    synchronized(representations) { representations.values.toList() }
-      .forEach { it.registerShortcuts(appliedTo) }
+    synchronized(representations) { representations.values.toList() }.forEach { it.registerShortcuts(appliedTo) }
   }
 
   @VisibleForTesting
@@ -421,9 +388,7 @@ open class MultiRepresentationPreview(
     // For any already loaded representations, restore the state.
     synchronized(representations) {
       representations.forEach { (representationName, representation) ->
-        state.representations
-          .find { it.key == representationName }
-          ?.let { representation.setState(it.settings) }
+        state.representations.find { it.key == representationName }?.let { representation.setState(it.settings) }
       }
     }
 
@@ -436,9 +401,7 @@ open class MultiRepresentationPreview(
   }
 
   override fun setState(state: FileEditorState) {
-    (state as? MultiRepresentationPreviewFileEditorState?)?.let {
-      launch { setStateAndUpdateRepresentations(it) }
-    }
+    (state as? MultiRepresentationPreviewFileEditorState?)?.let { launch { setStateAndUpdateRepresentations(it) } }
   }
 
   override fun getState(level: FileEditorStateLevel): MultiRepresentationPreviewFileEditorState {
@@ -451,10 +414,7 @@ open class MultiRepresentationPreview(
         }
         .toList()
 
-    return MultiRepresentationPreviewFileEditorState(
-      currentRepresentationName,
-      representationStates,
-    )
+    return MultiRepresentationPreviewFileEditorState(currentRepresentationName, representationStates)
   }
 
   /*
@@ -480,10 +440,8 @@ open class MultiRepresentationPreview(
     return toolbar as ActionToolbarImpl
   }
 
-  private class RepresentationOption(
-    val representationName: String,
-    val parent: MultiRepresentationPreview,
-  ) : AnAction(representationName) {
+  private class RepresentationOption(val representationName: String, val parent: MultiRepresentationPreview) :
+    AnAction(representationName) {
     override fun actionPerformed(e: AnActionEvent) {
       // Here we iterate over all editors as change in selection (write) should trigger updates in
       // all of them
@@ -491,14 +449,11 @@ open class MultiRepresentationPreview(
     }
   }
 
-  private class RepresentationsSelector :
-    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
+  private class RepresentationsSelector : DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()
-      val previewEditor =
-        (e.getData(FILE_EDITOR) as? TextEditorWithPreview)?.previewEditor
-          as? MultiRepresentationPreview ?: return
+      val previewEditor = (e.getData(FILE_EDITOR) as? TextEditorWithPreview)?.previewEditor as? MultiRepresentationPreview ?: return
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently
       // selected state
@@ -523,8 +478,8 @@ open class MultiRepresentationPreview(
   }
 
   /**
-   * Method called before [onActivate] to initialize the representations. This method will only be
-   * called once while [onActivate] and [onDeactivate] might be called multiple times.
+   * Method called before [onActivate] to initialize the representations. This method will only be called once while [onActivate] and
+   * [onDeactivate] might be called multiple times.
    */
   suspend fun onInit() {
     updateRepresentationsAsync().await()
@@ -544,10 +499,7 @@ open class MultiRepresentationPreview(
     editor.contentComponent.addKeyListener(keyListener)
   }
 
-  /**
-   * Method called when this preview becomes deactivated. Updates will not be processed un the next
-   * [onActivate].
-   */
+  /** Method called when this preview becomes deactivated. Updates will not be processed un the next [onActivate]. */
   fun onDeactivate() {
     if (!_previewIsActive.getAndSet(false)) return
     currentRepresentationIsActive.set(false)
@@ -578,10 +530,7 @@ open class MultiRepresentationPreview(
           AndroidStudioEvent.newBuilder()
             .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
             .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
-            .setLayoutEditorEvent(
-              LayoutEditorEvent.newBuilder()
-                .setType(LayoutEditorEvent.LayoutEditorEventType.COMPOSE_FILE_OPEN)
-            )
+            .setLayoutEditorEvent(LayoutEditorEvent.newBuilder().setType(LayoutEditorEvent.LayoutEditorEventType.COMPOSE_FILE_OPEN))
         UsageTracker.log(studioEvent)
       }
     }

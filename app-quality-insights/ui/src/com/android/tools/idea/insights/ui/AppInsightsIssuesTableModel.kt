@@ -25,8 +25,7 @@ import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 
-class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
-  ListTableModel<AppInsightsIssue>() {
+class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) : ListTableModel<AppInsightsIssue>() {
   init {
     columnInfos =
       arrayOf(
@@ -34,9 +33,7 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
           override fun valueOf(item: AppInsightsIssue) = item
 
           override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparing { issue ->
-              issue.issueDetails.getDisplayTitle().toList().joinToString(".")
-            }
+            return Comparator.comparing { issue -> issue.issueDetails.getDisplayTitle().toList().joinToString(".") }
           }
 
           override fun getRenderer(item: AppInsightsIssue) = renderer
@@ -47,19 +44,15 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
     isSortable = true
   }
 
-  private inner class FormattedNumberColumnInfo(
-    name: String,
-    private val selector: (AppInsightsIssue) -> Long,
-  ) : ColumnInfo<AppInsightsIssue, String>(name) {
-    override fun valueOf(item: AppInsightsIssue): String =
-      selector(item).formatNumberToPrettyString()
+  private inner class FormattedNumberColumnInfo(name: String, private val selector: (AppInsightsIssue) -> Long) :
+    ColumnInfo<AppInsightsIssue, String>(name) {
+    override fun valueOf(item: AppInsightsIssue): String = selector(item).formatNumberToPrettyString()
 
     override fun getComparator(): Comparator<AppInsightsIssue> {
       return Comparator.comparingInt { selector(it).toInt() }
     }
 
-    override fun getMaxStringValue() =
-      items.maxOfOrNull { selector(it) }?.formatNumberToPrettyString()
+    override fun getMaxStringValue() = items.maxOfOrNull { selector(it) }?.formatNumberToPrettyString()
 
     override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer = NumberColumnRenderer
   }

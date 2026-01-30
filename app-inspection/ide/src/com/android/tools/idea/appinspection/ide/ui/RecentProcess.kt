@@ -31,13 +31,10 @@ class RecentProcess(val deviceSerialNumber: String, val packageName: String) {
 
     fun get(project: Project): RecentProcess? = project.getUserData(RECENT_PROCESS_KEY)
 
-    fun set(project: Project, process: RecentProcess?) =
-      project.putUserData(RECENT_PROCESS_KEY, process)
+    fun set(project: Project, process: RecentProcess?) = project.putUserData(RECENT_PROCESS_KEY, process)
 
-    fun isRecentProcess(process: ProcessDescriptor, project: Project): Boolean =
-      get(project)?.matches(process) ?: false
+    fun isRecentProcess(process: ProcessDescriptor, project: Project): Boolean = get(project)?.matches(process) ?: false
   }
 
-  fun matches(process: ProcessDescriptor): Boolean =
-    process.device.serial == deviceSerialNumber && process.packageName == packageName
+  fun matches(process: ProcessDescriptor): Boolean = process.device.serial == deviceSerialNumber && process.packageName == packageName
 }

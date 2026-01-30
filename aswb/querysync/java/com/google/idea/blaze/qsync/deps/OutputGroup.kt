@@ -15,14 +15,12 @@
  */
 package com.google.idea.blaze.qsync.deps
 
-/** Represents an output group produced by the `build_dependencies.bzl` aspect.  */
+/** Represents an output group produced by the `build_dependencies.bzl` aspect. */
 enum class OutputGroup(
   val outputGroupName: String,
 
-  /**
-   * Indicates whether artifacts need to be added to the artifact tracker.
-   */
-  val usedBySymbolResolution: Boolean = false
+  /** Indicates whether artifacts need to be added to the artifact tracker. */
+  val usedBySymbolResolution: Boolean = false,
 ) {
   JARS("qs_jars", usedBySymbolResolution = true),
   TRANSITIVE_RUNTIME_JARS("qs_transitive_runtime_jars"),
@@ -32,5 +30,5 @@ enum class OutputGroup(
   ARTIFACT_INFO_FILE("qs_info"),
   JDEPS("qs_jdeps"),
   CC_GEN_HEADERS("qs_cc_gen_headers", usedBySymbolResolution = true),
-  CC_INFO_FILE("qs_cc_info");
+  CC_INFO_FILE("qs_cc_info"),
 }

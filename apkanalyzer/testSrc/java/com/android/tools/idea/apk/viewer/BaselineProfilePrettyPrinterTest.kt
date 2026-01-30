@@ -19,13 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.apk.analyzer.internal.ApkArchive
 import com.android.tools.apk.analyzer.internal.AppBundleArchive
 import com.intellij.testFramework.BinaryLightVirtualFile
+import java.io.File
+import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
-import java.io.InputStream
-import java.nio.file.Path
-import java.util.zip.ZipInputStream
 
 class BaselineProfilePrettyPrinterTest {
   @Test
@@ -43,33 +41,39 @@ class BaselineProfilePrettyPrinterTest {
     val prof = ApkTestUtils.getApkBytes("/app-benchmark.apk", ApkArchive.APK_BASELINE_PROFILE_PATH)
     // Full text is 779 chars pretty printed. We're passing in a much smaller limit than the normal one
     // to simulate contents too large in the test without having a massive file.
-    val text = ApkEditor.getPrettyPrintedBaseline(basefile, prof, Path.of(SdkConstants.FN_BINARY_ART_PROFILE), 600)
-        ?.replace("\r\n", "\n") ?: ""
+    val text =
+      ApkEditor.getPrettyPrintedBaseline(basefile, prof, Path.of(SdkConstants.FN_BINARY_ART_PROFILE), 600)?.replace("\r\n", "\n") ?: ""
 
     // The middle of the text contains a file which varies from run to run (it's a temp file copy of the
     // full contents), so just assert the contents before and after the path:
 
-    assertTrue(text.startsWith(
-      """
-      The contents of this baseline file is too large to show by default.
-      You can increase the maximum buffer size by setting the property
-          idea.max.content.load.filesize=779
-      (or higher)
+    assertTrue(
+      text.startsWith(
+        """
+        The contents of this baseline file is too large to show by default.
+        You can increase the maximum buffer size by setting the property
+            idea.max.content.load.filesize=779
+        (or higher)
 
-      Alternatively, the full contents have been written to the following
-      temp file:
-      """.trimIndent()
-    ))
-    assertTrue(text.endsWith(
-      """
-      .txt
+        Alternatively, the full contents have been written to the following
+        temp file:
+        """
+          .trimIndent()
+      )
+    )
+    assertTrue(
+      text.endsWith(
+        """
+        .txt
 
-      HSPLandroidx/profileinstaller/ProfileInstallerInitializer;-><init>()V
-      HSPLandroidx/startup/InitializationProvider;-><init>()V
-      HSPLandroidx/startup/Ini
-      ....truncated 629 characters.
-      """.trimIndent()
-    ))
+        HSPLandroidx/profileinstaller/ProfileInstallerInitializer;-><init>()V
+        HSPLandroidx/startup/InitializationProvider;-><init>()V
+        HSPLandroidx/startup/Ini
+        ....truncated 629 characters.
+        """
+          .trimIndent()
+      )
+    )
   }
 
   @Test
@@ -82,11 +86,12 @@ class BaselineProfilePrettyPrinterTest {
   private fun getExpectedRules() = ApkTestUtils.getResourceText("/expected-rules.txt")
 
   private fun getRulesFromApp(fileName: String, profilePath: String): String {
-    val rules = BaselineProfilePrettyPrinter.prettyPrint(
-      ApkTestUtils.getApkBytes(fileName),
-      File(profilePath).toPath(),
-      ApkTestUtils.getApkBytes(fileName, profilePath)
-    )
+    val rules =
+      BaselineProfilePrettyPrinter.prettyPrint(
+        ApkTestUtils.getApkBytes(fileName),
+        File(profilePath).toPath(),
+        ApkTestUtils.getApkBytes(fileName, profilePath),
+      )
 
     return rules.replace("\r\n", "\n").trim()
   }

@@ -25,26 +25,40 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
 import java.util.concurrent.Executor
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
 interface GradleBuildInvoker {
   fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean): ListenableFuture<AssembleInvocationResult>
+
   fun cleanProject(): ListenableFuture<GradleInvocationResult>
 
   fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
+
   fun compileJava(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
+
   fun compileJava(): ListenableFuture<GradleMultiInvocationResult>
+
   fun assembleWithTests(): ListenableFuture<AssembleInvocationResult>
+
   fun assemble(): ListenableFuture<AssembleInvocationResult>
+
   fun assemble(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
+
   fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
 
   fun rebuild(): ListenableFuture<GradleMultiInvocationResult>
+
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
 
-  fun generateBaselineProfileSources(taskId: ExternalSystemTaskId, modules: Array<Module>, envVariables: Map<String, String>, args: List<String>, generateAllVariants: Boolean): ListenableFuture<GradleMultiInvocationResult>
+  fun generateBaselineProfileSources(
+    taskId: ExternalSystemTaskId,
+    modules: Array<Module>,
+    envVariables: Map<String, String>,
+    args: List<String>,
+    generateAllVariants: Boolean,
+  ): ListenableFuture<GradleMultiInvocationResult>
 
   /**
    * Executes Gradle tasks requested in each request in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
@@ -58,10 +72,10 @@ interface GradleBuildInvoker {
   fun executeAssembleTasks(assembledModules: Array<Module>, request: List<Request>): ListenableFuture<AssembleInvocationResult>
 
   /**
-   * Executes build requests in separate Gradle invocations (in parallel or sequentially and in arbitrary order).
-   * The results (including failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [GradleMultiInvocationResult], however,
-   * any unexpected failures are returned as a failed future. The order of invocations in the [GradleMultiInvocationResult] matches the order
-   * of requests in [request].
+   * Executes build requests in separate Gradle invocations (in parallel or sequentially and in arbitrary order). The results (including
+   * failed sub-builds) are reported as [GradleInvocationResult]s wrapped into [GradleMultiInvocationResult], however, any unexpected
+   * failures are returned as a failed future. The order of invocations in the [GradleMultiInvocationResult] matches the order of requests
+   * in [request].
    */
   fun executeTasks(request: List<Request>): ListenableFuture<GradleMultiInvocationResult>
 
@@ -72,6 +86,7 @@ interface GradleBuildInvoker {
   fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
 
   fun stopBuild(id: ExternalSystemTaskId): Boolean
+
   val project: Project
 
   data class Request(
@@ -80,20 +95,31 @@ interface GradleBuildInvoker {
     val data: RequestData,
     val isWaitForCompletion: Boolean = false,
 
-    /**
-     * If true, the build output window will not automatically be shown on failure.
-     */
+    /** If true, the build output window will not automatically be shown on failure. */
     val doNotShowBuildOutputOnFailure: Boolean = false,
     val listener: ExternalSystemTaskNotificationListener? = null,
-    val executionEnvironment: ExecutionEnvironment? = null
+    val executionEnvironment: ExecutionEnvironment? = null,
   ) {
-    val mode: BuildMode? get() = data.mode
-    val rootProjectPath: File get() = data.rootProjectPath
-    val gradleTasks: List<String> get() = data.gradleTasks
-    val jvmArguments: List<String> get() = data.jvmArguments
-    val commandLineArguments: List<String> get() = data.commandLineArguments
-    val env: Map<String, String> get() = data.env
-    val isPassParentEnvs: Boolean get() = data.isPassParentEnvs
+    val mode: BuildMode?
+      get() = data.mode
+
+    val rootProjectPath: File
+      get() = data.rootProjectPath
+
+    val gradleTasks: List<String>
+      get() = data.gradleTasks
+
+    val jvmArguments: List<String>
+      get() = data.jvmArguments
+
+    val commandLineArguments: List<String>
+      get() = data.commandLineArguments
+
+    val env: Map<String, String>
+      get() = data.env
+
+    val isPassParentEnvs: Boolean
+      get() = data.isPassParentEnvs
 
     constructor(
       mode: BuildMode?,
@@ -104,18 +130,16 @@ interface GradleBuildInvoker {
       executionSettings: GradleExecutionSettings,
       isWaitForCompletion: Boolean = false,
 
-      /**
-       * If true, the build output window will not automatically be shown on failure.
-       */
+      /** If true, the build output window will not automatically be shown on failure. */
       doNotShowBuildOutputOnFailure: Boolean = false,
-      listener: ExternalSystemTaskNotificationListener? = null
+      listener: ExternalSystemTaskNotificationListener? = null,
     ) : this(
       project = project,
       taskId = taskId,
       data = RequestData(mode, rootProjectPath, gradleTasks, executionSettings),
       isWaitForCompletion = isWaitForCompletion,
       doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
-      listener = listener
+      listener = listener,
     )
 
     constructor(
@@ -130,27 +154,22 @@ interface GradleBuildInvoker {
       isPassParentEnvs: Boolean = true,
       isWaitForCompletion: Boolean = false,
 
-      /**
-       * If true, the build output window will not automatically be shown on failure.
-       */
+      /** If true, the build output window will not automatically be shown on failure. */
       doNotShowBuildOutputOnFailure: Boolean = false,
-      listener: ExternalSystemTaskNotificationListener? = null
+      listener: ExternalSystemTaskNotificationListener? = null,
     ) : this(
       project = project,
       taskId = taskId,
       data = RequestData(mode, rootProjectPath, gradleTasks, jvmArguments, commandLineArguments, env, isPassParentEnvs),
       isWaitForCompletion = isWaitForCompletion,
       doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
-      listener = listener
+      listener = listener,
     )
 
     companion object {
       @JvmStatic
-      fun builder(
-        project: Project,
-        rootProjectPath: File,
-        vararg gradleTasks: String
-      ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
+      fun builder(project: Project, rootProjectPath: File, vararg gradleTasks: String): Builder =
+        Builder(project, rootProjectPath, gradleTasks.toList())
 
       @JvmStatic
       fun builder(
@@ -162,7 +181,10 @@ interface GradleBuildInvoker {
 
       @JvmStatic
       fun copyRequest(request: Request): Request =
-        request.copy(taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project))
+        request.copy(
+          taskId =
+            ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project)
+        )
     }
 
     data class RequestData(
@@ -173,44 +195,39 @@ interface GradleBuildInvoker {
       val commandLineArguments: List<String> = emptyList(),
       val env: Map<String, String> = emptyMap(),
       val isPassParentEnvs: Boolean = true,
-      val executionSettings: GradleExecutionSettings? = null
+      val executionSettings: GradleExecutionSettings? = null,
     ) {
       constructor(
         mode: BuildMode?,
         rootProjectPath: File,
         gradleTasks: List<String>,
-        executionSettings: GradleExecutionSettings
-      ) :
-        this(
-          mode,
-          rootProjectPath,
-          gradleTasks,
-          executionSettings.jvmArguments,
-          executionSettings.arguments,
-          executionSettings.env,
-          executionSettings.isPassParentEnvs,
-          executionSettings
-        )
-
+        executionSettings: GradleExecutionSettings,
+      ) : this(
+        mode,
+        rootProjectPath,
+        gradleTasks,
+        executionSettings.jvmArguments,
+        executionSettings.arguments,
+        executionSettings.env,
+        executionSettings.isPassParentEnvs,
+        executionSettings,
+      )
     }
 
-    class Builder constructor(
-      project: Project,
-      requestData: RequestData,
-      executionEnvironment: ExecutionEnvironment?
-    ) {
-      private var request: Request = Request(
-        project = project,
-        data = requestData,
-        taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-        executionEnvironment = executionEnvironment
-      )
+    class Builder constructor(project: Project, requestData: RequestData, executionEnvironment: ExecutionEnvironment?) {
+      private var request: Request =
+        Request(
+          project = project,
+          data = requestData,
+          taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+          executionEnvironment = executionEnvironment,
+        )
 
       constructor(
         project: Project,
         rootProjectPath: File,
         gradleTasks: List<String>,
-        executionEnvironment: ExecutionEnvironment? = null
+        executionEnvironment: ExecutionEnvironment? = null,
       ) : this(project, RequestData(null, rootProjectPath, gradleTasks), executionEnvironment)
 
       fun updateData(update: (RequestData) -> RequestData): Builder {

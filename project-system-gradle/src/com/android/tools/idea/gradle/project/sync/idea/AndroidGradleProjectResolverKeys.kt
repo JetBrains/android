@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.intellij.openapi.util.Key
 
 internal object AndroidGradleProjectResolverKeys {
-  @JvmField
-  val REFRESH_EXTERNAL_NATIVE_MODELS_KEY: Key<Boolean> = Key.create("refresh.external.native.models")
+  @JvmField val REFRESH_EXTERNAL_NATIVE_MODELS_KEY: Key<Boolean> = Key.create("refresh.external.native.models")
 
-  @JvmField
-  val REQUESTED_PROJECT_RESOLUTION_MODE_KEY: Key<ProjectResolutionMode> = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE")
+  @JvmField val REQUESTED_PROJECT_RESOLUTION_MODE_KEY: Key<ProjectResolutionMode> = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE")
 }

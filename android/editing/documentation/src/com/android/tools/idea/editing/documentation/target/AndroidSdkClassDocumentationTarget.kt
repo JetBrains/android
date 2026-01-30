@@ -24,21 +24,13 @@ import java.io.BufferedReader
 
 /** A [DocumentationTarget] representing a class in the Android SDK. */
 internal class AndroidSdkClassDocumentationTarget
-private constructor(
-  targetElement: PsiClass,
-  sourceElement: PsiElement?,
-  url: String,
-  localJavaDocInfo: String?,
-) : AndroidSdkDocumentationTarget<PsiClass>(targetElement, sourceElement, url, localJavaDocInfo) {
+private constructor(targetElement: PsiClass, sourceElement: PsiElement?, url: String, localJavaDocInfo: String?) :
+  AndroidSdkDocumentationTarget<PsiClass>(targetElement, sourceElement, url, localJavaDocInfo) {
 
   override val displayName = targetElement.qualifiedName
 
-  override fun create(
-    targetElement: PsiClass,
-    sourceElement: PsiElement?,
-    url: String,
-    localJavaDocInfo: String?,
-  ) = AndroidSdkClassDocumentationTarget(targetElement, sourceElement, url, localJavaDocInfo)
+  override fun create(targetElement: PsiClass, sourceElement: PsiElement?, url: String, localJavaDocInfo: String?) =
+    AndroidSdkClassDocumentationTarget(targetElement, sourceElement, url, localJavaDocInfo)
 
   override fun filter(reader: BufferedReader, stringBuilder: StringBuilder) {
     reader.androidJavaDocExternalFilterTo(stringBuilder)
@@ -46,15 +38,14 @@ private constructor(
 
   companion object {
     /**
-     * Creates [DocumentationTarget] representing a class in the Android SDK. [targetElement] points
-     * to the class in the Android SDK that needs documentation, and [sourceElement] represents the
-     * original reference to that class from which the user is requesting the documentation.
+     * Creates [DocumentationTarget] representing a class in the Android SDK. [targetElement] points to the class in the Android SDK that
+     * needs documentation, and [sourceElement] represents the original reference to that class from which the user is requesting the
+     * documentation.
      */
     fun create(targetElement: PsiClass, sourceElement: PsiElement?): DocumentationTarget? {
       val url = targetElement.documentationUrl() ?: return null
 
-      val localJavaDocInfo =
-        JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(null)
+      val localJavaDocInfo = JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(null)
 
       return AndroidSdkClassDocumentationTarget(targetElement, sourceElement, url, localJavaDocInfo)
     }

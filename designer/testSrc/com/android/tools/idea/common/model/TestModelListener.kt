@@ -37,9 +37,7 @@ class TestModelListener : ModelListener {
   }
 
   override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
-    callLog.appendLine(
-      "modelChangedOnLayout (${model.displaySettings.modelDisplayName.value}, animate=$animate)"
-    )
+    callLog.appendLine("modelChangedOnLayout (${model.displaySettings.modelDisplayName.value}, animate=$animate)")
   }
 
   override fun modelActivated(model: NlModel) {

@@ -25,26 +25,24 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 
-/**
- * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
- */
-class UsageTrackerTestRunListener constructor(
-  testLibrariesInUse: TestLibraries?,
-  testExecutionOption: TestExecutionOption?,
-  private val device: IDevice) : ITestRunListener {
+/** [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished. */
+class UsageTrackerTestRunListener
+constructor(testLibrariesInUse: TestLibraries?, testExecutionOption: TestExecutionOption?, private val device: IDevice) : ITestRunListener {
 
-  private val testRun: TestRun.Builder = TestRun.newBuilder().apply {
-    testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
-    testKind = TestRun.TestKind.INSTRUMENTATION_TEST
-    testExecution = when (testExecutionOption) {
-      TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
-      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
-      TestExecutionOption.HOST -> TestRun.TestExecution.HOST
-      null -> TestRun.TestExecution.HOST
+  private val testRun: TestRun.Builder =
+    TestRun.newBuilder().apply {
+      testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
+      testKind = TestRun.TestKind.INSTRUMENTATION_TEST
+      testExecution =
+        when (testExecutionOption) {
+          TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+          TestExecutionOption.ANDROID_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+          TestExecutionOption.HOST -> TestRun.TestExecution.HOST
+          null -> TestRun.TestExecution.HOST
+        }
+
+      testLibrariesInUse?.let { testLibraries = it }
     }
-
-    testLibrariesInUse?.let { testLibraries = it }
-  }
 
   override fun testRunStarted(runName: String?, testCount: Int) {
     testRun.numberOfTestsExecuted = testCount
@@ -55,22 +53,27 @@ class UsageTrackerTestRunListener constructor(
   }
 
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>?) {
-    val studioEvent = AndroidStudioEvent.newBuilder().apply {
-      category = AndroidStudioEvent.EventCategory.TESTS
-      kind = AndroidStudioEvent.EventKind.TEST_RUN
-      deviceInfo = deviceToDeviceInfo(device)
-      productDetails = AndroidStudioUsageTracker.productDetails
-      testRun = this@UsageTrackerTestRunListener.testRun.build()
-    }
+    val studioEvent =
+      AndroidStudioEvent.newBuilder().apply {
+        category = AndroidStudioEvent.EventCategory.TESTS
+        kind = AndroidStudioEvent.EventKind.TEST_RUN
+        deviceInfo = deviceToDeviceInfo(device)
+        productDetails = AndroidStudioUsageTracker.productDetails
+        testRun = this@UsageTrackerTestRunListener.testRun.build()
+      }
 
     UsageTracker.log(studioEvent)
   }
 
   override fun testRunStopped(elapsedTime: Long) {}
+
   override fun testStarted(test: TestIdentifier?) {}
+
   override fun testFailed(test: TestIdentifier?, trace: String?) {}
+
   override fun testAssumptionFailure(test: TestIdentifier?, trace: String?) {}
+
   override fun testIgnored(test: TestIdentifier?) {}
+
   override fun testEnded(test: TestIdentifier?, testMetrics: MutableMap<String, String>?) {}
 }
-

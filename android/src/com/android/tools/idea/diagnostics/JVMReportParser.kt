@@ -24,9 +24,8 @@ class JVMReportParser(private val reader: BufferedReader) {
   private var currentSectionState = SectionState.BeginningOfFile
 
   /**
-   * Returns the current section type.
-   * While inside a certain section, should return the same section type.
-   * When not inside a section, e.g. at beginning of the file, will throw NullPointerException.
+   * Returns the current section type. While inside a certain section, should return the same section type. When not inside a section, e.g.
+   * at beginning of the file, will throw NullPointerException.
    */
   fun getCurrentSectionType(): SectionType {
     if (currentSectionType == SectionType.BeginningOfFile) {
@@ -54,7 +53,8 @@ class JVMReportParser(private val reader: BufferedReader) {
 
   fun goToNextSection() {
     when (currentSectionState) {
-      SectionState.SectionBody, SectionState.Start -> {
+      SectionState.SectionBody,
+      SectionState.Start -> {
         while (!isEndOfSection()) {
           readNextSectionLine()
         }
@@ -140,16 +140,20 @@ class JVMReportParser(private val reader: BufferedReader) {
 
   fun isEndOfSection(): Boolean {
     return when (currentSectionState) {
-      SectionState.EndOfSection, SectionState.EOF -> true
-      SectionState.Start, SectionState.SectionBody -> false
+      SectionState.EndOfSection,
+      SectionState.EOF -> true
+      SectionState.Start,
+      SectionState.SectionBody -> false
       SectionState.BeginningOfFile -> throw IllegalStateException("Not started reading the file yet")
     }
   }
 
   fun isEndOfSubsection(): Boolean {
     when (currentSectionState) {
-      SectionState.EndOfSection, SectionState.EOF -> return true
-      SectionState.Start, SectionState.SectionBody -> {
+      SectionState.EndOfSection,
+      SectionState.EOF -> return true
+      SectionState.Start,
+      SectionState.SectionBody -> {
         return bufferedLine.isNullOrEmpty()
       }
 

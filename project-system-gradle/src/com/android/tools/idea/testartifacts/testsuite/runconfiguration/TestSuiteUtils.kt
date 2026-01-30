@@ -38,9 +38,9 @@ object TestSuiteUtils {
 
   /**
    * Finds the [IdeTestSuite] that contains the given [VirtualFile].
-
-   * This is determined by checking if the file's path is a descendant of any source provider
-   * directories associated with the test suites in this project.
+   *
+   * This is determined by checking if the file's path is a descendant of any source provider directories associated with the test suites in
+   * this project.
    */
   fun getTestSuiteContainingFile(testSuites: List<IdeTestSuite>, virtualFile: VirtualFile): IdeTestSuite? {
     if (virtualFile.fileSystem != LocalFileSystem.getInstance()) {
@@ -53,9 +53,7 @@ object TestSuiteUtils {
     return testSuites.firstOrNull { isFileInTestSuite(file, it) }
   }
 
-  /**
-   * Returns the [IdeTestSuite] that has the given [VirtualFile] as its root directory.
-   */
+  /** Returns the [IdeTestSuite] that has the given [VirtualFile] as its root directory. */
   fun getTestSuiteAtRoot(testSuites: List<IdeTestSuite>, virtualFile: VirtualFile): IdeTestSuite? {
     if (virtualFile.fileSystem != LocalFileSystem.getInstance()) {
       return null
@@ -70,8 +68,8 @@ object TestSuiteUtils {
   /**
    * Represents a target for a test suite that can be executed.
    *
-   * A single test suite can have multiple targets (e.g., one for emulators, one for physical
-   * devices). This class holds the information needed to run a specific target.
+   * A single test suite can have multiple targets (e.g., one for emulators, one for physical devices). This class holds the information
+   * needed to run a specific target.
    *
    * @param targetName The name of the target.
    * @param testTaskName The name of the Gradle task used to run this test suite target.
@@ -82,13 +80,12 @@ object TestSuiteUtils {
    * Returns the list of [TestSuiteTarget] for the given [testSuiteName] that are applicable to the currently selected variant.
    *
    * Only targets that run on a connected device, i.e. have no target device, will be returned.
+   *
    * TODO(b/447100167): Add support for running targets configured with GMD devices
    */
   fun getTestSuiteTargets(selectedVariant: IdeVariantCore, testSuiteName: String): List<TestSuiteTarget> {
     val testSuiteVariantTarget = selectedVariant.testSuiteArtifacts.find { it.suiteName == testSuiteName } ?: return emptyList()
-    return testSuiteVariantTarget.targets
-      .filter { it.targetedDevices.isEmpty() }
-      .map { TestSuiteTarget(it.targetName, it.testTaskName) }
+    return testSuiteVariantTarget.targets.filter { it.targetedDevices.isEmpty() }.map { TestSuiteTarget(it.targetName, it.testTaskName) }
   }
 
   private fun isFileInTestSuite(file: File, testSuite: IdeTestSuite): Boolean {
@@ -126,23 +123,36 @@ object TestSuiteUtils {
   }
 
   /**
-   * Temporary function to fetch the file that represents the test suite root directory.
-   * This will be made available within the IdeTestSuite model in the future.
+   * Temporary function to fetch the file that represents the test suite root directory. This will be made available within the IdeTestSuite
+   * model in the future.
+   *
    * TODO(b/445649353): Access the root directory via the IdeTestSuite model
    */
   fun getTestSuiteRoot(testSuite: IdeTestSuite): File? {
     for (source in testSuite.sources) {
-      source.sourceProvider.customSourceDirectories.find { it.sourceTypeName == TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY && it.directory.isDirectory && it.directory.name == testSuite.name }?.let { return it.directory }
-      source.sourceProvider.javaDirectories.find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }?.let { return it.parentFile }
-      source.sourceProvider.kotlinDirectories.find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }?.let { return it.parentFile }
+      source.sourceProvider.customSourceDirectories
+        .find {
+          it.sourceTypeName == TEST_SUITE_ASSETS_CUSTOM_SOURCE_DIRECTORY && it.directory.isDirectory && it.directory.name == testSuite.name
+        }
+        ?.let {
+          return it.directory
+        }
+      source.sourceProvider.javaDirectories
+        .find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }
+        ?.let {
+          return it.parentFile
+        }
+      source.sourceProvider.kotlinDirectories
+        .find { it.parentFile.isDirectory && it.parentFile.name == testSuite.name }
+        ?.let {
+          return it.parentFile
+        }
     }
 
     return null
   }
 
-  /**
-   * Returns the root directory [File] for the given [testSuiteModule].
-   */
+  /** Returns the root directory [File] for the given [testSuiteModule]. */
   fun getTestSuiteRoot(testSuiteModule: Module): File? {
     if (!testSuiteModule.isTestSuiteModule()) return null
 
@@ -152,22 +162,19 @@ object TestSuiteUtils {
     return getTestSuiteRoot(testSuite)
   }
 
-  /**
-   * Parses the test suite name from the given [testSuiteModule]
-   */
+  /** Parses the test suite name from the given [testSuiteModule] */
   fun getTestSuiteNameFromModule(testSuiteModule: Module): String {
     val appModule = testSuiteModule.getHolderModule()
     return testSuiteModule.name.substringAfterLast("${appModule.name}.")
   }
 
-  /**
-   * Returns the [Module] for the test suite associated with the given [runConfiguration].
-   */
+  /** Returns the [Module] for the test suite associated with the given [runConfiguration]. */
   fun getTestSuiteModule(runConfiguration: TestSuiteRunConfiguration): Module? {
-    val appModule = runReadAction {
-      val file = VfsUtil.findFileByIoFile(File(runConfiguration.settings.externalProjectPath), false) ?: return@runReadAction null
-      ProjectFileIndex.getInstance(runConfiguration.project).getModuleForFile(file, false)
-    } ?: return null
+    val appModule =
+      runReadAction {
+        val file = VfsUtil.findFileByIoFile(File(runConfiguration.settings.externalProjectPath), false) ?: return@runReadAction null
+        ProjectFileIndex.getInstance(runConfiguration.project).getModuleForFile(file, false)
+      } ?: return null
 
     val testTaskName = runConfiguration.getTaskNames().firstOrNull() ?: return null
     val androidModel = GradleAndroidModel.get(appModule) ?: return null
@@ -179,10 +186,11 @@ object TestSuiteUtils {
   /**
    * Returns the test suite name associated with the given [testTaskName].
    *
-   * This is an N^3 solution, so pretty in-efficient, but it is currently the only way to get the
-   * test suite name from a run configuration - since the user can manually change the task name.
-   * TODO(b/458035847): Replace with a more efficient lookup when the test suite name, variant and
-   * target are stored against the run configuration.
+   * This is an N^3 solution, so pretty in-efficient, but it is currently the only way to get the test suite name from a run configuration -
+   * since the user can manually change the task name.
+   *
+   * TODO(b/458035847): Replace with a more efficient lookup when the test suite name, variant and target are stored against the run
+   *   configuration.
    */
   private fun getTestSuiteNameWithTestTaskName(variants: List<IdeVariantCore>, testTaskName: String): String? {
     for (variant in variants) {

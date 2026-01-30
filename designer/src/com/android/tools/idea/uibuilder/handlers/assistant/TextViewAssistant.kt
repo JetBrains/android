@@ -45,8 +45,7 @@ private const val NONE_VALUE = "None"
 class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   private val myComponent: NlComponent = context.component
   private val myOriginalTextValue: String?
-  private val myAppResources =
-    StudioResourceRepositoryManager.getAppResources(context.component.model.facet)
+  private val myAppResources = StudioResourceRepositoryManager.getAppResources(context.component.model.facet)
 
   private var myProject: Project = context.component.model.facet.module.project
 
@@ -75,8 +74,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
 
         // Retrieve the existing reference to populate the selected item. Remove the index operators
         // if present.
-        val existingToolsText =
-          context.component.getAttribute(TOOLS_URI, ATTR_TEXT).orEmpty().substringBefore('[')
+        val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT).orEmpty().substringBefore('[')
 
         val model = DefaultCommonComboBoxModel("", elements)
         val combo =
@@ -97,9 +95,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
     myOriginalTextValue = myComponent.getAttribute(TOOLS_URI, ATTR_TEXT)
   }
 
-  private fun DefaultCommonComboBoxModel<ResourceUrl?>.findIndexForExistingUrl(
-    existingUrl: String
-  ): Int {
+  private fun DefaultCommonComboBoxModel<ResourceUrl?>.findIndexForExistingUrl(existingUrl: String): Int {
 
     if (existingUrl.startsWith(TOOLS_SAMPLE_PREFIX)) {
       for (i in 0 until size) {
@@ -115,9 +111,7 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
   private fun onElementSelected(selectedItem: String?) {
     val attributeValue = if (selectedItem.isNullOrEmpty()) null else selectedItem
     CommandProcessor.getInstance().runUndoTransparentAction {
-      WriteCommandAction.runWriteCommandAction(myProject) {
-        myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue)
-      }
+      WriteCommandAction.runWriteCommandAction(myProject) { myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, attributeValue) }
     }
   }
 

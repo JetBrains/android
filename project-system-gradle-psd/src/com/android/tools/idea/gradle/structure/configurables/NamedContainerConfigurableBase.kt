@@ -20,96 +20,86 @@ import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
 
-/**
- * A container of configurables for type [ModelT].
- */
+/** A container of configurables for type [ModelT]. */
 interface ContainerConfigurable<ModelT> : Disposable {
   fun getChildrenModels(): Collection<ModelT>
+
   fun createChildConfigurable(model: ModelT): NamedConfigurable<out ModelT>
+
   fun onChange(disposable: Disposable, listener: () -> Unit)
 }
 
-/**
- * A [NamedConfigurable] container without an options panel holding configurables for type [ModelT].
- */
-abstract class NamedContainerConfigurableBase<ModelT>(
-  private val name: String
-) : NamedConfigurable<String>(), ContainerConfigurable<ModelT> {
+/** A [NamedConfigurable] container without an options panel holding configurables for type [ModelT]. */
+abstract class NamedContainerConfigurableBase<ModelT>(private val name: String) :
+  NamedConfigurable<String>(), ContainerConfigurable<ModelT> {
   override fun setDisplayName(name: String?) = Unit
+
   override fun apply() = Unit
+
   override fun getBannerSlogan() = name
+
   override fun createOptionsPanel() = null
+
   override fun isModified() = false
+
   override fun getEditableObject() = name
+
   override fun getDisplayName() = name
 }
 
-/**
- * Creates a tree representing the hierarchy of [ContainerConfigurable]s represented by its root [rootConfigurable].
- */
+/** Creates a tree representing the hierarchy of [ContainerConfigurable]s represented by its root [rootConfigurable]. */
 fun createTreeModel(rootConfigurable: NamedConfigurable<*>): ConfigurablesTreeModel =
-  ConfigurablesTreeModel(MasterDetailsComponent.MyNode(rootConfigurable, false))
-    .also { it.initializeNode(it.rootNode, fromConfigurable = rootConfigurable) }
+  ConfigurablesTreeModel(MasterDetailsComponent.MyNode(rootConfigurable, false)).also {
+    it.initializeNode(it.rootNode, fromConfigurable = rootConfigurable)
+  }
 
-/**
- * Initializes [node] which children of [fromConfigurable] and subscribes to change notifications from [fromConfigurable].
- */
-private fun <T : NamedConfigurable<*>> ConfigurablesTreeModel.initializeNode(
-  node: MasterDetailsComponent.MyNode,
-  fromConfigurable: T
-) {
+/** Initializes [node] which children of [fromConfigurable] and subscribes to change notifications from [fromConfigurable]. */
+private fun <T : NamedConfigurable<*>> ConfigurablesTreeModel.initializeNode(node: MasterDetailsComponent.MyNode, fromConfigurable: T) {
   (fromConfigurable as? ContainerConfigurable<*>)?.let {
     this.updateChildrenOf(node, fromConfigurable)
     it.onChange(fromConfigurable) { this.updateChildrenOf(node, fromConfigurable = it) }
   }
 }
 
-/**
- * Updates [parentNode]'s collection of nodes so that it reflects the children of [fromConfigurable].
- */
+/** Updates [parentNode]'s collection of nodes so that it reflects the children of [fromConfigurable]. */
 private fun <T> ConfigurablesTreeModel.updateChildrenOf(
   parentNode: MasterDetailsComponent.MyNode,
-  fromConfigurable: ContainerConfigurable<T>
+  fromConfigurable: ContainerConfigurable<T>,
 ) {
   val children = fromConfigurable.getChildrenModels().toSet()
-  val existing =
-    parentNode
-      .childNodes
-      .map { it.configurable.editableObject to it }
-      .toMap()
+  val existing = parentNode.childNodes.map { it.configurable.editableObject to it }.toMap()
   existing
     .filterKeys { !children.contains(it) }
     .forEach {
       // Remove any nodes that should no longer be there.
       removeNodeFromParent(it.value)
-      (it.value.configurable as? Disposable)?.let { Disposer.dispose(it)}
+      (it.value.configurable as? Disposable)?.let { Disposer.dispose(it) }
     }
-  children
-    .forEachIndexed { index, model ->
-      val existingNode = existing[model]
-      when {
-        existingNode != null ->
-          // Move existing nodes to the right positions if required.
-          if (getIndexOfChild(parentNode, existingNode) != index) {
-            removeNodeFromParent(existingNode)
-            insertNodeInto(existingNode, parentNode, index)
-          } else {
-            this.nodeChanged(existingNode)
-          }
-        else -> {
-          // Create any new nodes and insert them at their positions.
-          val configurable = fromConfigurable.createChildConfigurable(model)
-          if (configurable is Disposable) {
-            Disposer.register(fromConfigurable, configurable)
-          }
-          insertNodeInto(
-            MasterDetailsComponent.MyNode(configurable, false)
-              .also { initializeNode(it, fromConfigurable = configurable) },
-            parentNode,
-            index)
+  children.forEachIndexed { index, model ->
+    val existingNode = existing[model]
+    when {
+      existingNode != null ->
+        // Move existing nodes to the right positions if required.
+        if (getIndexOfChild(parentNode, existingNode) != index) {
+          removeNodeFromParent(existingNode)
+          insertNodeInto(existingNode, parentNode, index)
+        } else {
+          this.nodeChanged(existingNode)
         }
+      else -> {
+        // Create any new nodes and insert them at their positions.
+        val configurable = fromConfigurable.createChildConfigurable(model)
+        if (configurable is Disposable) {
+          Disposer.register(fromConfigurable, configurable)
+        }
+        insertNodeInto(
+          MasterDetailsComponent.MyNode(configurable, false).also { initializeNode(it, fromConfigurable = configurable) },
+          parentNode,
+          index,
+        )
       }
     }
+  }
 }
 
 private val MasterDetailsComponent.MyNode.childNodes

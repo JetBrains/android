@@ -16,13 +16,13 @@
 package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.SdkConstants.DOT_KEEP
 import com.android.SdkConstants.DOT_KTS
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
-import com.android.SdkConstants.DOT_KEEP
 import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
 import com.android.tools.lint.checks.DiscouragedDetector
@@ -93,19 +93,15 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       LintClient.clientName = LintClient.CLIENT_STUDIO
     }
 
-    data class InspectionProfileIssues(
-      val enabledIssues: Set<Issue>,
-      val disabledIssues: Set<Issue>,
-    )
+    data class InspectionProfileIssues(val enabledIssues: Set<Issue>, val disabledIssues: Set<Issue>)
 
     /**
      * Returns the enabled and disabled [Issue]s from [profile].
      *
-     * The reason we want to include the disabled issues: In [LintIdeConfiguration], we want to
-     * treat "undiscovered" third party issues (that were discovered during the lint run, but are
-     * not yet present in the profile) as enabled (if enabled by default), otherwise the first lint
-     * run will have different results to subsequent runs. We can only know if an issue is
-     * undiscovered by including all issues from the profile (both enabled and disabled).
+     * The reason we want to include the disabled issues: In [LintIdeConfiguration], we want to treat "undiscovered" third party issues
+     * (that were discovered during the lint run, but are not yet present in the profile) as enabled (if enabled by default), otherwise the
+     * first lint run will have different results to subsequent runs. We can only know if an issue is undiscovered by including all issues
+     * from the profile (both enabled and disabled).
      */
     fun getIssuesFromInspectionProfile(profile: InspectionProfileImpl): InspectionProfileIssues {
       val tools = profile.tools
@@ -130,11 +126,9 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       issue: Issue,
       context: PsiElement,
     ): Pair<AndroidLintInspectionBase, HighlightDisplayLevel>? {
-      val inspectionShortName =
-        AndroidLintInspectionBase.getInspectionShortNameByIssue(issue) ?: return null
+      val inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(issue) ?: return null
       val key = HighlightDisplayKey.find(inspectionShortName) ?: return null
-      val profile: InspectionProfile =
-        InspectionProjectProfileManager.getInstance(context.project).currentProfile
+      val profile: InspectionProfile = InspectionProjectProfileManager.getInstance(context.project).currentProfile
       if (!profile.isToolEnabled(key, context)) {
         if (!issue.isEnabledByDefault()) {
           // Lint will skip issues (and not report them) for issues that have been disabled,
@@ -145,19 +139,13 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           return null
         }
       }
-      val inspection =
-        profile.getUnwrappedTool(inspectionShortName, context) as AndroidLintInspectionBase?
-          ?: return null
+      val inspection = profile.getUnwrappedTool(inspectionShortName, context) as AndroidLintInspectionBase? ?: return null
       val errorLevel = profile.getErrorLevel(key, context)
       return Pair(inspection, errorLevel)
     }
   }
 
-  override fun collectInformation(
-    file: PsiFile,
-    editor: Editor,
-    hasErrors: Boolean,
-  ): LintEditorResult? {
+  override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): LintEditorResult? {
     return collectInformation(file)
   }
 
@@ -206,10 +194,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       } else if (name.endsWith(EXT_GRADLE_DECLARATIVE)) {
         scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
       } else if (
-        name == OLD_PROGUARD_FILE ||
-          name == FN_PROJECT_PROGUARD_FILE ||
-          name == FN_ANDROID_PROGUARD_FILE ||
-          name.endsWith(DOT_KEEP)
+        name == OLD_PROGUARD_FILE || name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE || name.endsWith(DOT_KEEP)
       ) {
         scope = EnumSet.of(Scope.PROGUARD_FILE)
       } else if (GradleFileType.isGradleFile(mainFile)) {
@@ -231,22 +216,14 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         return lintResult // Lint cannot run without indices.
       }
       val files = listOf(mainFile)
-      val request: LintRequest =
-        LintIdeRequest(
-          client,
-          project,
-          files,
-          listOf(lintResult.getModule()),
-          true, /* incremental */
-        )
+      val request: LintRequest = LintIdeRequest(client, project, files, listOf(lintResult.getModule()), true /* incremental */)
       request.setScope(scope)
       val lint = client.createDriver(request)
       lint.analyze()
 
       // In analyze(), LintDriver's registry is updated to include all discovered third party
       // issues. We can now access these issues, and make sure they are registered.
-      val thirdPartyIssues =
-        lint.registry.issues.filter { issue -> issue.registry is JarFileIssueRegistry }.toList()
+      val thirdPartyIssues = lint.registry.issues.filter { issue -> issue.registry is JarFileIssueRegistry }.toList()
 
       // Ensure all third party issues are registered in the current project's inspection profile.
       AndroidLintInspectionBase.ensureInspectionsRegistered(
@@ -281,8 +258,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         continue
       }
 
-      var (inspection, displayLevel) =
-        getHighlightLevelAndInspection(project, issue, file) ?: continue
+      var (inspection, displayLevel) = getHighlightLevelAndInspection(project, issue, file) ?: continue
       val key = HighlightDisplayKey.find(inspection.shortName) ?: continue
       val startElement = file.findElementAt(range.startOffset)
       val endElement = file.findElementAt(range.endOffset - 1)
@@ -307,9 +283,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
             issue === DiscouragedDetector.ISSUE
         ) {
           ProblemHighlightType.LIKE_DEPRECATED
-        } else if (
-          issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT
-        ) {
+        } else if (issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT) {
           ProblemHighlightType.ERROR // like unknown symbol
         } else if (severity === HighlightSeverity.ERROR) {
           // In recent versions of IntelliJ, HighlightInfo.convertSeverityToProblemHighlight
@@ -323,15 +297,13 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
       // Long warning messages can freeze the IDE due to text layout overhead in Swing.
       // See https://issuetracker.google.com/178779561 for an example (should be a very rare case).
-      val message =
-        if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
+      val message = if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
 
       // This description link is not displayed. When rendering the expanded tooltip, IDEA finds
       // the first link and reads the href value to figure out which TooltipLinkHandler to call to
       // get the inspection description. Because of LINK_PREFIX, it ends up calling
       // LintInspectionDescriptionLinkHandler.getDescription.
-      val descriptionRef =
-        "<a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}${issue.id}\"></a>"
+      val descriptionRef = "<a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}${issue.id}\"></a>"
 
       // We add a "Toggle info (Ctrl+F1)" link to the end of the error message so that users can
       // expand
@@ -351,33 +323,14 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       messageHtml = LintInspectionDescriptionLinkHandler.replaceLinksInHtml(messageHtml, issue.id)
 
       val tooltip = XmlStringUtil.wrapInHtml(descriptionRef + messageHtml + moreLink)
-      var builder =
-        holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
+      var builder = holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
       try {
-        val fixes =
-          inspection.getAllFixes(
-            startElement,
-            endElement,
-            incident,
-            message,
-            quickfixData,
-            fixProviders,
-            issue,
-          )
+        val fixes = inspection.getAllFixes(startElement, endElement, incident, message, quickfixData, fixProviders, issue)
         for (fix in fixes) {
           when (fix) {
             is DefaultLintQuickFix -> {
-              if (
-                fix.isApplicable(
-                  startElement,
-                  endElement,
-                  AndroidQuickfixContexts.EditorContext.TYPE,
-                )
-              ) {
-                val smartRange =
-                  fix.range
-                    ?: SmartPointerManager.getInstance(project)
-                      .createSmartPsiFileRangePointer(file, range)
+              if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
+                val smartRange = fix.range ?: SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
                 builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
               }
             }
@@ -407,14 +360,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           if (action.isAvailable(project, startElement)) {
             val descriptor =
               InspectionManager.getInstance(project)
-                .createProblemDescriptor(
-                  startElement,
-                  endElement,
-                  message,
-                  type,
-                  true,
-                  *LocalQuickFix.EMPTY_ARRAY,
-                )
+                .createProblemDescriptor(startElement, endElement, message, type, true, *LocalQuickFix.EMPTY_ARRAY)
             builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix()
           }
         }
@@ -423,8 +369,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     }
   }
 
-  private class MyDisableInspectionFix(key: HighlightDisplayKey) :
-    IntentionAction, Iconable, PriorityAction {
+  private class MyDisableInspectionFix(key: HighlightDisplayKey) : IntentionAction, Iconable, PriorityAction {
     private val myDisableInspectionToolAction = DisableInspectionToolAction(key)
 
     override fun getText(): String {
@@ -470,10 +415,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       project: Project,
       file: PsiFile,
       range: TextRange,
-    ) : this(
-      quickFix,
-      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range),
-    )
+    ) : this(quickFix, SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range))
 
     override fun getText(): String {
       return myQuickFix.name
@@ -528,24 +470,13 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       return myQuickFix.priority
     }
 
-    override fun generatePreview(
-      project: Project,
-      editor: Editor,
-      file: PsiFile,
-    ): IntentionPreviewInfo {
-      return myQuickFix.generatePreview(project, editor, file)
-        ?: super.generatePreview(project, editor, file)
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+      return myQuickFix.generatePreview(project, editor, file) ?: super.generatePreview(project, editor, file)
     }
   }
 
-  private class MyEditInspectionToolsSettingsAction(
-    key: HighlightDisplayKey,
-    inspection: AndroidLintInspectionBase,
-  ) :
-    CustomEditInspectionToolsSettingsAction(
-      key,
-      Computable { "Edit '" + inspection.displayName + "' inspection settings" },
-    ),
+  private class MyEditInspectionToolsSettingsAction(key: HighlightDisplayKey, inspection: AndroidLintInspectionBase) :
+    CustomEditInspectionToolsSettingsAction(key, Computable { "Edit '" + inspection.displayName + "' inspection settings" }),
     PriorityAction {
     override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
   }

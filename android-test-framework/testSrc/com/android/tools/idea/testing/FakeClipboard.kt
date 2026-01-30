@@ -26,6 +26,5 @@ class FakeClipboard : Clipboard("fake") {
     this.contents = contents
   }
 
-  fun getTextContents() =
-    contents.getTransferData(stringFlavor).toString().lines().joinToString("\n") { it }
+  fun getTextContents() = contents.getTransferData(stringFlavor).toString().lines().joinToString("\n") { it }
 }

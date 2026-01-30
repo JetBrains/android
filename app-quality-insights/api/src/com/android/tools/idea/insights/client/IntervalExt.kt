@@ -23,8 +23,7 @@ import java.time.temporal.ChronoUnit
 // This function converts the analog duration to what is assumed to be the filter that caused
 // them.
 // Because the duration may not be exact due to time passing,
-fun Interval.toTimeFilter():
-  AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter {
+fun Interval.toTimeFilter(): AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter {
   val duration = this.duration
   if (duration >= Duration.of(85, ChronoUnit.DAYS)) {
     return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.TimeFilter.NINETY_DAYS

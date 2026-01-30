@@ -29,8 +29,8 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
- * Identifies classes that implement an Android Activity and adds a gutter icon to run them.
- * (The details of the run configuration are provided by AndroidConfigurationProducer.)
+ * Identifies classes that implement an Android Activity and adds a gutter icon to run them. (The details of the run configuration are
+ * provided by AndroidConfigurationProducer.)
  */
 class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(e: PsiElement): Info? {
@@ -44,18 +44,13 @@ class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
     if (psiClass.isAndroidActivitySubclass()) {
       val activityName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
-        AndroidBundle.message(
-          "android.run.configuration.run",
-          JavaExecutionUtil.getPresentableClassName(activityName)!!
-        )
+        AndroidBundle.message("android.run.configuration.run", JavaExecutionUtil.getPresentableClassName(activityName)!!)
       }
     }
     return null
   }
 
-  private fun PsiElement.isClassToken() =
-    node.elementType == KtTokens.CLASS_KEYWORD || node.elementType == JavaTokenType.CLASS_KEYWORD
+  private fun PsiElement.isClassToken() = node.elementType == KtTokens.CLASS_KEYWORD || node.elementType == JavaTokenType.CLASS_KEYWORD
 
-  private fun PsiElement.isAndroidActivitySubclass() =
-    isSubtypeOf(SdkConstants.CLASS_ACTIVITY)
+  private fun PsiElement.isAndroidActivitySubclass() = isSubtypeOf(SdkConstants.CLASS_ACTIVITY)
 }

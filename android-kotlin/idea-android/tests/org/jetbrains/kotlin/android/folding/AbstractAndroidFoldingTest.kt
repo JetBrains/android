@@ -16,9 +16,8 @@
 
 package org.jetbrains.kotlin.android.folding
 
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import java.io.File
-
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 
 abstract class AbstractAndroidResourceFoldingTest : KotlinAndroidTestCase() {
 

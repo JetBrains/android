@@ -42,7 +42,7 @@ class GradleTaskFinder {
   private fun findTasksToExecuteCore(
     modules: Array<Module>,
     buildMode: BuildMode,
-    expandModules: Boolean = false
+    expandModules: Boolean = false,
   ): ArrayListMultimap<Path, String> {
     val project = modules.firstOrNull()?.project ?: return ArrayListMultimap.create()
     val worker = GradleTaskFinderWorker(project, buildMode, modules.asList(), expandModules)

@@ -19,7 +19,4 @@ import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.GradleDetector
 
 class AndroidLintGradleDependencyInspection :
-  AndroidLintUpdatableDependencyInspection(
-    message("android.lint.inspections.gradle.dependency"),
-    GradleDetector.DEPENDENCY,
-  )
+  AndroidLintUpdatableDependencyInspection(message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY)

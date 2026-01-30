@@ -20,19 +20,15 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import javax.swing.JComponent
 
-/**
- * Creates a pre-configured [MergingUpdateQueue] for [parent] with the given [name] and the [activationComponent].
- */
+/** Creates a pre-configured [MergingUpdateQueue] for [parent] with the given [name] and the [activationComponent]. */
 fun createMergingUpdateQueue(name: String, parent: Disposable, activationComponent: JComponent? = null): MergingUpdateQueue =
-  MergingUpdateQueue(name, 300, true, MergingUpdateQueue.ANY_COMPONENT, parent, activationComponent).apply {
-    setRestartTimerOnAdd(true)
-  }
+  MergingUpdateQueue(name, 300, true, MergingUpdateQueue.ANY_COMPONENT, parent, activationComponent).apply { setRestartTimerOnAdd(true) }
 
-/**
- * Enqueues an update which executes the [body] when run and has the identity of [tag].
- */
+/** Enqueues an update which executes the [body] when run and has the identity of [tag]. */
 fun MergingUpdateQueue.enqueueTagged(tag: Any, body: () -> Unit) {
-  queue(object : Update(tag, false) {
-    override fun run() = body()
-  })
+  queue(
+    object : Update(tag, false) {
+      override fun run() = body()
+    }
+  )
 }

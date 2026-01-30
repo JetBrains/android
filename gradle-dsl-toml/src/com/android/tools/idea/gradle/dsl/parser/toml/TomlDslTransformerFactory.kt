@@ -26,7 +26,7 @@ class TomlDslTransformerFactory : GradleDslTransformerFactory {
   override fun canTransform(psiFile: PsiFile) = psiFile is TomlFile && psiFile.name.endsWith(EXT_TOML)
 
   override fun createParser(psiFile: PsiFile, context: BuildModelContext, dslFile: GradleDslFile) =
-   TomlDslParser(psiFile as TomlFile, dslFile)
+    TomlDslParser(psiFile as TomlFile, dslFile)
 
   override fun createWriter(context: BuildModelContext) = TomlDslWriter(context)
-  }
+}

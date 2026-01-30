@@ -64,8 +64,7 @@ class RulesTableView(
 
   private val persistentStateComponent: RulesPersistentStateComponent = project.service()
   val component: JComponent
-  val tableModel: RulesTableModel =
-    RulesTableModel(persistentStateComponent.state.rulesList).also { scope.initPersistentRules() }
+  val tableModel: RulesTableModel = RulesTableModel(persistentStateComponent.state.rulesList).also { scope.initPersistentRules() }
   val table = TableView(tableModel)
   private val ruleVariables
     get() = RuleVariablesStateComponent.getInstance(project).state.ruleVariables
@@ -91,9 +90,7 @@ class RulesTableView(
           }
           val ruleData = table.selectedObject ?: return@setRemoveAction
           if (TableUtil.doRemoveSelectedItems(table, tableModel, null)) {
-            SwingUtilities.invokeLater {
-              IdeFocusManager.getGlobalInstance().requestFocus(table, true)
-            }
+            SwingUtilities.invokeLater { IdeFocusManager.getGlobalInstance().requestFocus(table, true) }
             TableUtil.updateScroller(table)
             model.setSelectedRule(null)
             scope.launch {
@@ -245,8 +242,7 @@ class RulesTableView(
     }
   }
 
-  private inner class CloneRuleAction :
-    DumbAwareAction("Clone", "Clone rule", AllIcons.Actions.Copy) {
+  private inner class CloneRuleAction : DumbAwareAction("Clone", "Clone rule", AllIcons.Actions.Copy) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {

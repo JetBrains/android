@@ -44,15 +44,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Threshold to trigger a zoom-to-fit operation. It means that if the current scale is more than
- * double the required scale to fit the content, or if the required scale is more than double the
- * current scale, then a zoom-to-fit operation will be performed.
+ * Threshold to trigger a zoom-to-fit operation. It means that if the current scale is more than double the required scale to fit the
+ * content, or if the required scale is more than double the current scale, then a zoom-to-fit operation will be performed.
  */
 private const val ZOOM_TO_FIT_RESCALE_THRESHOLD = 2.0
 
 /**
- * Invokes rendering of the scene when the device size changes in [Configuration]. The lifecycle is
- * tied to corresponding [SceneManger]
+ * Invokes rendering of the scene when the device size changes in [Configuration]. The lifecycle is tied to corresponding [SceneManger]
  *
  * @param sceneManager SceneManager
  * @param configuration Configuration
@@ -126,24 +124,20 @@ class ConfigurationResizeListener(
   }
 
   /**
-   * Calculates the original size of the preview element and applies it to the view object. This is
-   * used when reverting the preview to its original state.
+   * Calculates the original size of the preview element and applies it to the view object. This is used when reverting the preview to its
+   * original state.
    *
-   * If the preview element has `UNDEFINED_DIMENSION` for its width or height, this will be
-   * interpreted as `WRAP_CONTENT` for the corresponding dimension.
+   * If the preview element has `UNDEFINED_DIMENSION` for its width or height, this will be interpreted as `WRAP_CONTENT` for the
+   * corresponding dimension.
    */
   private fun applyOriginalSize(viewObj: Any) {
     val previewElement = sceneManager.model.dataProvider?.previewElement()
     if (previewElement is ComposePreviewElement<*>) {
       val density = configuration.dpi()
       val originalWidthPx =
-        previewElement.configuration.width
-          .takeIf { it != UNDEFINED_DIMENSION }
-          ?.let { ConversionUtil.dpToPx(it, density) }
+        previewElement.configuration.width.takeIf { it != UNDEFINED_DIMENSION }?.let { ConversionUtil.dpToPx(it, density) }
       val originalHeightPx =
-        previewElement.configuration.height
-          .takeIf { it != UNDEFINED_DIMENSION }
-          ?.let { ConversionUtil.dpToPx(it, density) }
+        previewElement.configuration.height.takeIf { it != UNDEFINED_DIMENSION }?.let { ConversionUtil.dpToPx(it, density) }
 
       updateLayoutParams(viewObj, originalWidthPx, originalHeightPx)
     } else {

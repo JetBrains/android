@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.UnsafeFilenameDetector
 
 class AndroidLintUnsanitizedFilenameFromContentProviderInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.unsanitized.filename.from.content.provider"),
-    UnsafeFilenameDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.unsanitized.filename.from.content.provider"), UnsafeFilenameDetector.ISSUE)

@@ -27,9 +27,8 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 
 /**
- * An [AdbServerChannelProvider] that keeps track of [Project] instances to retrieve the path to
- * `adb` on a "best effort" basis. If it "best effort", because Android Studio currently does not
- * support multiple `adb` paths and/or versions.
+ * An [AdbServerChannelProvider] that keeps track of [Project] instances to retrieve the path to `adb` on a "best effort" basis. If it "best
+ * effort", because Android Studio currently does not support multiple `adb` paths and/or versions.
  *
  * This class is thread-safe.
  */
@@ -39,8 +38,7 @@ internal class AndroidAdbServerChannelProvider(
   private val adbFileTracker: AdbFileLocationTracker,
 ) : AdbServerChannelProvider {
   /** The [AdbServerChannelProvider] we delegate to */
-  private val connectProvider =
-    AdbServerChannelProvider.createConnectAddresses(host) { listOf(getAdbSocketAddress()) }
+  private val connectProvider = AdbServerChannelProvider.createConnectAddresses(host) { listOf(getAdbSocketAddress()) }
 
   /** [AdbServerChannelProvider] implementation: delegate to [connectProvider] */
   override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {

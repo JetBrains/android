@@ -59,7 +59,6 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
@@ -67,12 +66,12 @@ import java.util.concurrent.CompletableFuture.supplyAsync
 import java.util.function.BiConsumer
 import java.util.function.Supplier
 import kotlin.properties.Delegates
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val UNRESOLVED_VALUE = "Could not resolve"
 
 /**
- * ViewModel for [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListView]
- * to manage resources in the provided [facet].
+ * ViewModel for [com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListView] to manage resources in the provided [facet].
  *
  * @param facet Starting [AndroidFacet] for the view model.
  * @param resourceResolver [ResourceResolver] that it's used to obtain most of the information for resources.
@@ -92,43 +91,51 @@ class ResourceExplorerListViewModelImpl(
   private val listViewImageCache: ImageCache,
   private val summaryImageCache: ImageCache,
   selectAssetAction: ((asset: Asset) -> Unit)? = null,
-  updateSelectedAssetSetCallback: ((assetSet: ResourceAssetSet) -> Unit)? = null
+  updateSelectedAssetSetCallback: ((assetSet: ResourceAssetSet) -> Unit)? = null,
 ) : ResourceExplorerListViewModel {
-  /**
-   * callback called when the resource model have change. This happen when the facet is changed.
-   */
+  /** callback called when the resource model have change. This happen when the facet is changed. */
   override var updateUiCallback: ((UpdateUiReason) -> Unit)? = null
 
   override var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)? = null
 
-  override var currentResourceType: ResourceType by Delegates.observable(defaultResourceType) { _, oldValue, newValue ->
-    if (newValue != oldValue) {
-      updateUiCallback?.invoke(UpdateUiReason.RESOURCE_TYPE_CHANGED)
+  override var currentResourceType: ResourceType by
+    Delegates.observable(defaultResourceType) { _, oldValue, newValue ->
+      if (newValue != oldValue) {
+        updateUiCallback?.invoke(UpdateUiReason.RESOURCE_TYPE_CHANGED)
+      }
     }
-  }
 
   private val dataManager = ResourceDataManager(facet)
 
-  override val selectedTabName: String get() = currentResourceType.displayName
+  override val selectedTabName: String
+    get() = currentResourceType.displayName
 
-  override val speedSearch = SpeedSearch(true).apply {
-    if (filterOptions.searchString.isNotEmpty()) {
-      updatePattern(filterOptions.searchString)
+  override val speedSearch =
+    SpeedSearch(true).apply {
+      if (filterOptions.searchString.isNotEmpty()) {
+        updatePattern(filterOptions.searchString)
+      }
     }
-  }
 
-  /** Returns actions related to the resources being displayed. These do not directly affect/interact with the [ResourceExplorerListView]. */
+  /**
+   * Returns actions related to the resources being displayed. These do not directly affect/interact with the [ResourceExplorerListView].
+   */
   override val externalActions: Collection<ActionGroup>
     get() =
       when (currentResourceType) {
-        ResourceType.STRING -> listOf(DefaultActionGroup().apply {
-          add(object : OpenStringResourceEditorAction() {
-            override fun update(e: AnActionEvent) {
-              super.update(e)
-              e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+        ResourceType.STRING ->
+          listOf(
+            DefaultActionGroup().apply {
+              add(
+                object : OpenStringResourceEditorAction() {
+                  override fun update(e: AnActionEvent) {
+                    super.update(e)
+                    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+                  }
+                }
+              )
             }
-          })
-        })
+          )
         else -> emptyList()
       }
 
@@ -143,13 +150,17 @@ class ResourceExplorerListViewModelImpl(
   }
 
   override fun clearCacheForCurrentResources() {
-    getCurrentModuleResourceLists().whenCompleteAsync(BiConsumer { lists, throwable ->
-      if (throwable == null) {
-        val designAssets = lists.flatMap { it.assetSets.flatMap { it.assets.filterIsInstance<DesignAsset>() } }
-        designAssets.forEach(::clearImageCache)
-        updateUiCallback?.invoke(UpdateUiReason.IMAGE_CACHE_CHANGED)
-      }
-    }, EdtExecutorService.getInstance())
+    getCurrentModuleResourceLists()
+      .whenCompleteAsync(
+        BiConsumer { lists, throwable ->
+          if (throwable == null) {
+            val designAssets = lists.flatMap { it.assetSets.flatMap { it.assets.filterIsInstance<DesignAsset>() } }
+            designAssets.forEach(::clearImageCache)
+            updateUiCallback?.invoke(UpdateUiReason.IMAGE_CACHE_CHANGED)
+          }
+        },
+        EdtExecutorService.getInstance(),
+      )
   }
 
   override fun clearImageCache(asset: DesignAsset) {
@@ -161,13 +172,15 @@ class ResourceExplorerListViewModelImpl(
   }
 
   override fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
-    getResourceSections(facet,
-                        showModuleDependencies = filterOptions.isShowModuleDependencies,
-                        showLibraries = filterOptions.isShowLibraries,
-                        showSampleData = filterOptions.isShowSampleData,
-                        showAndroidResources = filterOptions.isShowFramework,
-                        showThemeAttributes = filterOptions.isShowThemeAttributes,
-                        typeFilters = filterOptions.currentResourceTypeActiveOptions)
+    getResourceSections(
+      facet,
+      showModuleDependencies = filterOptions.isShowModuleDependencies,
+      showLibraries = filterOptions.isShowLibraries,
+      showSampleData = filterOptions.isShowSampleData,
+      showAndroidResources = filterOptions.isShowFramework,
+      showThemeAttributes = filterOptions.isShowThemeAttributes,
+      typeFilters = filterOptions.currentResourceTypeActiveOptions,
+    )
   }
 
   override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync supplier@{
@@ -176,30 +189,33 @@ class ResourceExplorerListViewModelImpl(
       displayedModuleNames.addAll(AndroidDependenciesCache.getAndroidResourceDependencies(facet.module).map { it.module.name })
     }
 
-    return@supplier findCompatibleFacets(facet.module.project).filter { facet ->
-      // Don't include modules that are already being displayed.
-      !displayedModuleNames.contains(facet.module.name)
-    }.flatMap { facet ->
-      getResourceSections(
-        forFacet = facet,
-        showModuleDependencies = false,
-        showLibraries = false,
-        showSampleData = false,
-        showAndroidResources = false,
-        showThemeAttributes = false,
-        typeFilters = filterOptions.currentResourceTypeActiveOptions
-      )
-    }
+    return@supplier findCompatibleFacets(facet.module.project)
+      .filter { facet ->
+        // Don't include modules that are already being displayed.
+        !displayedModuleNames.contains(facet.module.name)
+      }
+      .flatMap { facet ->
+        getResourceSections(
+          forFacet = facet,
+          showModuleDependencies = false,
+          showLibraries = false,
+          showSampleData = false,
+          showAndroidResources = false,
+          showThemeAttributes = false,
+          typeFilters = filterOptions.currentResourceTypeActiveOptions,
+        )
+      }
   }
 
-
-  private fun getResourceSections(forFacet: AndroidFacet,
-                                  showModuleDependencies: Boolean,
-                                  showLibraries: Boolean,
-                                  showSampleData: Boolean,
-                                  showAndroidResources: Boolean,
-                                  showThemeAttributes: Boolean,
-                                  typeFilters: List<TypeFilter> = emptyList()): List<ResourceSection> {
+  private fun getResourceSections(
+    forFacet: AndroidFacet,
+    showModuleDependencies: Boolean,
+    showLibraries: Boolean,
+    showSampleData: Boolean,
+    showAndroidResources: Boolean,
+    showThemeAttributes: Boolean,
+    typeFilters: List<TypeFilter> = emptyList(),
+  ): List<ResourceSection> {
     val resourceType = currentResourceType
     val resources = mutableListOf<ResourceSection>()
     if (showSampleData) {
@@ -228,10 +244,7 @@ class ResourceExplorerListViewModelImpl(
   override fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>> {
     val assetToPick = resourceAssetSet.getHighestDensityAsset()
 
-    val valueMap = mutableMapOf(
-      Pair("Name", resourceAssetSet.name),
-      Pair("Reference", assetToPick.resourceUrl.toString())
-    )
+    val valueMap = mutableMapOf(Pair("Name", resourceAssetSet.name), Pair("Reference", assetToPick.resourceUrl.toString()))
 
     if (resourceAssetSet.assets.size > 1) {
       // If there's more than one configuration, list them in the configuration map instead.
@@ -243,10 +256,12 @@ class ResourceExplorerListViewModelImpl(
         val resolvedResource = (value as? ResourceItem) ?: asset.resourceItem
         runReadAction {
           dataManager.findPsiElement(resolvedResource)?.let { psiElement ->
-            getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { dataTypeName ->
-              // The data type of the resource (eg: Type: Animated vector)
-              valueMap["Type"] = dataTypeName
-            }
+            getResourceDataType(asset, psiElement)
+              .takeIf { it.isNotBlank() }
+              ?.let { dataTypeName ->
+                // The data type of the resource (eg: Type: Animated vector)
+                valueMap["Type"] = dataTypeName
+              }
           }
         }
         val configuration = asset.resourceItem.getReadableConfigurations()
@@ -264,41 +279,44 @@ class ResourceExplorerListViewModelImpl(
       return completedFuture(emptyMap<String, String>())
     }
     return resourceExplorerSupplyAsync {
-      return@resourceExplorerSupplyAsync resourceAssetSet.assets.map { asset ->
-        val value = resourceResolver.resolveValue(asset)
-        val resolvedResource = (value as? ResourceItem) ?: asset.resourceItem
-        var dataTypeName = ""
-        runReadAction {
-          dataManager.findPsiElement(resolvedResource)?.let { psiElement ->
-            dataTypeName = getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { "${it} - " } ?: ""
+      return@resourceExplorerSupplyAsync resourceAssetSet.assets
+        .map { asset ->
+          val value = resourceResolver.resolveValue(asset)
+          val resolvedResource = (value as? ResourceItem) ?: asset.resourceItem
+          var dataTypeName = ""
+          runReadAction {
+            dataManager.findPsiElement(resolvedResource)?.let { psiElement ->
+              dataTypeName = getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { "${it} - " } ?: ""
+            }
           }
+          Pair(
+            asset.resourceItem.getReadableConfigurations(),
+            if (value == null) UNRESOLVED_VALUE else (dataTypeName + value.getReadableValue()),
+          )
         }
-        Pair(asset.resourceItem.getReadableConfigurations(),
-             if (value == null) UNRESOLVED_VALUE else (dataTypeName + value.getReadableValue()))
-      }.toMap()
+        .toMap()
     }
   }
 
-  override val doSelectAssetAction: (asset: Asset) -> Unit = selectAssetAction ?: { asset ->
-    val psiElement = dataManager.findPsiElement(asset.resourceItem)
-    psiElement?.let { openFileWithPsiElement(it, true, true) }
-  }
+  override val doSelectAssetAction: (asset: Asset) -> Unit =
+    selectAssetAction
+      ?: { asset ->
+        val psiElement = dataManager.findPsiElement(asset.resourceItem)
+        psiElement?.let { openFileWithPsiElement(it, true, true) }
+      }
 
-  override val updateSelectedAssetSet: (assetSet: ResourceAssetSet) -> Unit = {
-    updateSelectedAssetSetCallback?.invoke(it)
-  }
+  override val updateSelectedAssetSet: (assetSet: ResourceAssetSet) -> Unit = { updateSelectedAssetSetCallback?.invoke(it) }
 
-  private val FilterOptions.currentResourceTypeActiveOptions get () = typeFiltersModel.getActiveFilters(currentResourceType)
+  private val FilterOptions.currentResourceTypeActiveOptions
+    get() = typeFiltersModel.getActiveFilters(currentResourceType)
 }
 
 /**
  * Common wrapper for methods that returns resource information in a [CompletableFuture]. Makes sure the method is run in a background
  * thread for long-running operations.
  */
-private fun <T>resourceExplorerSupplyAsync(runnable: () -> T): CompletableFuture<T> =
-  supplyAsync<T>(Supplier<T> {
-    runnable()
-  }, AppExecutorUtil.getAppExecutorService())
+private fun <T> resourceExplorerSupplyAsync(runnable: () -> T): CompletableFuture<T> =
+  supplyAsync<T>(Supplier<T> { runnable() }, AppExecutorUtil.getAppExecutorService())
 
 /**
  * For a resolved resource, returns the readable name of the declared resource data type. This is usually the root of the element defined in
@@ -322,8 +340,7 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
           // For data binding layouts we look for the non-data tag.
           prefix = "Data Binding"
           tag.childrenOfType<XmlTag>().firstOrNull { it.name != SdkConstants.TAG_DATA }?.let { name = it.name }
-        }
-        else {
+        } else {
           name = tag.name
         }
         // Handle package specific types (Eg: androidx.constraint.ConstraintLayout)

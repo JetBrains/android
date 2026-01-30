@@ -38,32 +38,28 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Consumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Component
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class ResourceImportDialogViewModelTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val rule = AndroidProjectRule.withAndroidModel()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun importMoreAssets() {
     val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, emptySequence())
     val fileChooser = createStubFileChooser()
     fileChooser.files = getTestFiles("entertainment/icon_category_entertainment.png")
-    viewModel.importMoreAssets { designAssetSet, _ ->
-      assertThat(designAssetSet.assets[0].name).isEqualTo("icon_category_entertainment")
-    }
+    viewModel.importMoreAssets { designAssetSet, _ -> assertThat(designAssetSet.assets[0].name).isEqualTo("icon_category_entertainment") }
     assertThat(viewModel.assetSets).hasSize(1)
     assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(1)
 
@@ -71,8 +67,7 @@ class ResourceImportDialogViewModelTest {
     viewModel.importMoreAssets { designAssetSet, newDesignAssets ->
       assertThat(newDesignAssets.map { it.file.name }).containsExactly("icon_category_entertainment.xml")
       assertThat(designAssetSet.designAssets.map { it.file.name })
-        .containsExactly("icon_category_entertainment.png",
-                         "icon_category_entertainment.xml")
+        .containsExactly("icon_category_entertainment.png", "icon_category_entertainment.xml")
     }
     assertThat(viewModel.assetSets).hasSize(1)
     assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(2)
@@ -81,8 +76,7 @@ class ResourceImportDialogViewModelTest {
     viewModel.importMoreAssets { designAssetSet, newDesignAssets ->
       assertThat(newDesignAssets).isEmpty()
       assertThat(designAssetSet.designAssets.map { it.file.name })
-        .containsExactly("icon_category_entertainment.png",
-                         "icon_category_entertainment.xml")
+        .containsExactly("icon_category_entertainment.png", "icon_category_entertainment.xml")
     }
     assertThat(viewModel.assetSets).hasSize(1)
     assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(2)
@@ -112,7 +106,8 @@ class ResourceImportDialogViewModelTest {
   @Test
   fun nameValidation() {
     val invalidName = "inv@lid"
-    val expected = "'@' is not a valid file-based resource name character: File-based resource names must contain only lowercase a-z, 0-9, or underscore"
+    val expected =
+      "'@' is not a valid file-based resource name character: File-based resource names must contain only lowercase a-z, 0-9, or underscore"
     val newName = "name2"
 
     val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
@@ -153,12 +148,12 @@ class ResourceImportDialogViewModelTest {
     assertThat(viewModel.assetSets.first().name).isEqualTo("background_image_1")
     assertNull(viewModel.getValidationInfo())
 
-    asset  = DesignAsset(validFileWithPrefix!!, emptyList(), ResourceType.DRAWABLE)
+    asset = DesignAsset(validFileWithPrefix!!, emptyList(), ResourceType.DRAWABLE)
     viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
     assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_image_1")
     assertNull(viewModel.getValidationInfo())
 
-    asset  = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
+    asset = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
     viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
     assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag_e_1")
     assertNull(viewModel.getValidationInfo())
@@ -171,18 +166,20 @@ class ResourceImportDialogViewModelTest {
 
   private fun createStubFileChooser(): StubPathChooser {
     val stubPathChooser = StubPathChooser()
-    rule.replaceService(FileChooserFactory::class.java, object : FileChooserFactoryImpl() {
-      override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?) =
-        stubPathChooser
-    })
+    rule.replaceService(
+      FileChooserFactory::class.java,
+      object : FileChooserFactoryImpl() {
+        override fun createPathChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?) = stubPathChooser
+      },
+    )
     return stubPathChooser
   }
 
   class StubPathChooser : PathChooserDialog {
     var files = emptyList<VirtualFile>()
+
     override fun choose(toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile>>) {
       callback.consume(files)
     }
   }
 }
-

@@ -19,6 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.descendantsOfType
+import java.util.LinkedList
+import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.Metadata
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -26,23 +29,21 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.LinkedList
-import kotlin.metadata.jvm.KotlinClassMetadata
-import kotlin.metadata.jvm.Metadata
 
 internal fun parseMetadata(clazz: IrClass): KotlinClassMetadata? {
   // See https://kotlinlang.org/docs/metadata-jvm.html#extract-metadata-from-bytecode
   val annotation = clazz.annotations.singleOrNull { it.desc == "Lkotlin/Metadata;" }?.values ?: return null
   @Suppress("UNCHECKED_CAST")
-  val metadata = Metadata(
-    kind = annotation["k"] as Int,
-    metadataVersion = (annotation["mv"] as List<Int>?)?.toIntArray(),
-    data1 = (annotation["d1"] as List<String>?)?.toTypedArray(),
-    data2 = (annotation["d2"] as List<String>?)?.toTypedArray(),
-    extraString = annotation["xs"] as String?,
-    packageName = annotation["pn"] as String?,
-    extraInt = annotation["xi"] as Int?
-  )
+  val metadata =
+    Metadata(
+      kind = annotation["k"] as Int,
+      metadataVersion = (annotation["mv"] as List<Int>?)?.toIntArray(),
+      data1 = (annotation["d1"] as List<String>?)?.toTypedArray(),
+      data2 = (annotation["d2"] as List<String>?)?.toTypedArray(),
+      extraString = annotation["xs"] as String?,
+      packageName = annotation["pn"] as String?,
+      extraInt = annotation["xi"] as Int?,
+    )
   return KotlinClassMetadata.readLenient(metadata)
 }
 
@@ -77,7 +78,7 @@ fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageVersionSet
   // Needed so we can diff changes to method parameters and parameter annotations.
   put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
 
-  when(StudioFlags.CLOSURE_SCHEME.get()!!) {
+  when (StudioFlags.CLOSURE_SCHEME.get()!!) {
     StudioFlags.ClosureScheme.CLASS -> {
       put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
       put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)

@@ -17,20 +17,18 @@ package com.android.tools.idea.debug
 
 import com.android.testutils.TestUtils
 import com.intellij.util.xml.NanoXmlUtil
-import junit.framework.Assert
-import net.n3.nanoxml.IXMLBuilder
-import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import junit.framework.Assert
+import net.n3.nanoxml.IXMLBuilder
+import org.junit.Test
 
 class ProjectResourceIdResolverTest {
 
-  /**
-   * Tests that we correctly can read the platform public.xml
-   */
+  /** Tests that we correctly can read the platform public.xml */
   @Test
   @Throws(Exception::class)
   fun testPlatformResourceIdMap() {
@@ -46,7 +44,8 @@ class ProjectResourceIdResolverTest {
   @Test
   @Throws(IOException::class)
   fun testPublicGroupParsing() {
-    val publicXmlContent = """<?xml version="1.0" encoding="utf-8"?><!-- This file defines the base public resources exported by the
+    val publicXmlContent =
+      """<?xml version="1.0" encoding="utf-8"?><!-- This file defines the base public resources exported by the
      platform, which must always exist. --><resources>  <eat-comment />
 
   <public type="attr" name="theme" id="0x01010000" />

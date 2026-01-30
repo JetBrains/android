@@ -19,5 +19,4 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-class DeployTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class DeployTestSuite : IdeaTestSuiteBase()

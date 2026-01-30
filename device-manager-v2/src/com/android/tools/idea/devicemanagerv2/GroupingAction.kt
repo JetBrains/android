@@ -27,10 +27,7 @@ internal class GroupingAction(
   private val attribute: Attribute<DeviceRowData, *>,
   name: String,
 ) : ToggleAction(name) {
-  constructor(
-    table: CategoryTable<DeviceRowData>,
-    column: Column<DeviceRowData, *, *>,
-  ) : this(table, column.attribute, column.name)
+  constructor(table: CategoryTable<DeviceRowData>, column: Column<DeviceRowData, *, *>) : this(table, column.attribute, column.name)
 
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 

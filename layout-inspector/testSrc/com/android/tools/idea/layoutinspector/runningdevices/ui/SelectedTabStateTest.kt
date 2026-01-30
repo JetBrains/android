@@ -257,11 +257,7 @@ class SelectedTabStateTest {
 
     Disposer.dispose(tabComponents)
 
-    verifyUiRemoved(
-      selectedTabState.tabComponents.tabContentPanel,
-      container,
-      tabComponents.displayList.value,
-    )
+    verifyUiRemoved(selectedTabState.tabComponents.tabContentPanel, container, tabComponents.displayList.value)
   }
 
   private fun createTabComponents(): TabComponents {

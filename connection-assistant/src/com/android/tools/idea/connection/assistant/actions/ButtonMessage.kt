@@ -15,7 +15,5 @@
  */
 package com.android.tools.idea.connection.assistant.actions
 
-/**
- * Class to hold title and body message for {@code AssistActionStateManager} used in Connection Assistant
- */
+/** Class to hold title and body message for {@code AssistActionStateManager} used in Connection Assistant */
 data class ButtonMessage(val title: String, val body: String? = null)

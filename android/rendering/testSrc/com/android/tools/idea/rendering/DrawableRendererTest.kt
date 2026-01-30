@@ -22,44 +22,41 @@ import com.intellij.idea.IJIgnore
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
-import org.intellij.lang.annotations.Language
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.concurrent.TimeUnit
+import org.intellij.lang.annotations.Language
+import org.junit.Rule
+import org.junit.Test
 
 class DrawableRendererTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  /**
-   * This exercises the same path as used by the Resource Manager to render previews.
-   * Regression test for b/364904755.
-   */
+  /** This exercises the same path as used by the Resource Manager to render previews. Regression test for b/364904755. */
   @IJIgnore(issue = "AT-4013")
   @Test
   fun testRenderDrawable() {
-    @Language("xml") val drawableContent = """
+    @Language("xml")
+    val drawableContent =
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <shape xmlns:android="http://schemas.android.com/apk/res/android"
           android:shape="rectangle"
           android:tint="#FF0000">
       </shape>
-      """.trimIndent()
+      """
+        .trimIndent()
     val file: VirtualFile = LightVirtualFile("test_resource.xml", drawableContent)
-    val drawableRenderer = DrawableRenderer(
-      projectRule.module.androidFacet!!,
-      file
-    )
+    val drawableRenderer = DrawableRenderer(projectRule.module.androidFacet!!, file)
     Disposer.register(projectRule.testRootDisposable, drawableRenderer)
     val image = drawableRenderer.renderDrawable(drawableContent, Dimension(100, 100)).get(60, TimeUnit.SECONDS)
-    val goldenImage = BufferedImage(image.width, image.height, image.type).also {
-      val g = it.graphics
-      g.color = Color.RED
-      g.fillRect(0, 0, it.width, it.height)
-    }
+    val goldenImage =
+      BufferedImage(image.width, image.height, image.type).also {
+        val g = it.graphics
+        g.color = Color.RED
+        g.fillRect(0, 0, it.width, it.height)
+      }
     assertImageSimilar("drawable", goldenImage, image, .0, 0)
   }
 }

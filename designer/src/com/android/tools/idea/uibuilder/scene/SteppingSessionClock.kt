@@ -18,8 +18,7 @@ package com.android.tools.idea.uibuilder.scene
 import kotlin.time.Duration
 
 /**
- * A [SessionClock] implementation that increments its time by a fixed step on every [getTimeNanos]
- * call, unless it is paused.
+ * A [SessionClock] implementation that increments its time by a fixed step on every [getTimeNanos] call, unless it is paused.
  *
  * @param step The amount to increment the time by on each un-paused call to [getTimeNanos].
  */
@@ -28,8 +27,8 @@ class SteppingSessionClock(private val step: Duration) : SessionClock {
   private var isPaused: Boolean = false
 
   /**
-   * If the clock is not paused, increments the current time by [step] and returns the new time. If
-   * the clock is paused, it returns the current time without incrementing it.
+   * If the clock is not paused, increments the current time by [step] and returns the new time. If the clock is paused, it returns the
+   * current time without incrementing it.
    *
    * @return The current time in nanoseconds.
    */

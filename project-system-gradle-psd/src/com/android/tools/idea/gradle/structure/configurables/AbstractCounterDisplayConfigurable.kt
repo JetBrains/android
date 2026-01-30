@@ -21,7 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.util.EventDispatcher
 
 abstract class AbstractCounterDisplayConfigurable protected constructor(context: PsContext, extraModules: List<PsModule>) :
-    BasePerspectiveConfigurable(context, extraModules), CounterDisplayConfigurable {
+  BasePerspectiveConfigurable(context, extraModules), CounterDisplayConfigurable {
 
   private val myEventDispatcher = EventDispatcher.create(CounterDisplayConfigurable.CountChangeListener::class.java)
 

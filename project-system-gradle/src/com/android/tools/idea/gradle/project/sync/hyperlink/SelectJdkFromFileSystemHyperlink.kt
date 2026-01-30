@@ -23,13 +23,15 @@ import org.jetbrains.annotations.SystemIndependent
 
 /**
  * A [NotificationHyperlink] that allows user to change their project Gradle JDK location from the Project settings popup
+ *
  * @param settingsService Android custom settings service for navigation intents
  * @param gradleRootProjectPath Gradle project root absolute path, if specified allows to select the current project
  */
-class SelectJdkFromFileSystemHyperlink private constructor(
+class SelectJdkFromFileSystemHyperlink
+private constructor(
   private val settingsService: AndroidProjectSettingsService,
   private val gradleRootProjectPath: @SystemIndependent String?,
-  text: String
+  text: String,
 ) : NotificationHyperlink("select.jdk", text) {
 
   companion object {
@@ -37,7 +39,7 @@ class SelectJdkFromFileSystemHyperlink private constructor(
     fun create(
       project: Project,
       rootProjectPath: @SystemIndependent String?,
-      text: String = "Select the Gradle JDK location"
+      text: String = "Select the Gradle JDK location",
     ): SelectJdkFromFileSystemHyperlink? {
       (ProjectSettingsService.getInstance(project) as? AndroidProjectSettingsService)?.let { service ->
         return SelectJdkFromFileSystemHyperlink(service, rootProjectPath, text)

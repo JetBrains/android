@@ -24,10 +24,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class GradleNameTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  fun gradleNameFromString(string : String) : String? {
+  fun gradleNameFromString(string: String): String? {
     val psiFactory = GroovyPsiElementFactory.getInstance(projectRule.project)
     return runReadAction { gradleNameFor(psiFactory.createExpressionFromText(string)) }
   }

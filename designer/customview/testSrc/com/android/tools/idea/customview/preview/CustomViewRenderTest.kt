@@ -29,8 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class CustomViewRenderTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule("tools/adt/idea/designer/customview/testData")
+  @get:Rule val projectRule = AndroidGradleProjectRule("tools/adt/idea/designer/customview/testData")
 
   @Before
   fun setUp() {
@@ -50,29 +49,17 @@ class CustomViewRenderTest {
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue(
-        "The project must compile correctly for the test to pass",
-        isBuildSuccessful,
-      )
+      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
     val virtualFile =
       projectRule.fixture.project
         .guessProjectDir()!!
-        .findFileByRelativePath(
-          "app/src/main/java/com/example/myapplication/BroadcastManagerCustomView.java"
-        )!!
-    val fileContent =
-      getXmlLayout(
-        "com.example.myapplication.BroadcastManagerCustomView",
-        shrinkWidth = false,
-        shrinkHeight = false,
-      )
-    val customPreviewXml =
-      CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
+        .findFileByRelativePath("app/src/main/java/com/example/myapplication/BroadcastManagerCustomView.java")!!
+    val fileContent = getXmlLayout("com.example.myapplication.BroadcastManagerCustomView", shrinkWidth = false, shrinkHeight = false)
+    val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
 
-    val renderTask =
-      createRenderTaskFuture(projectRule.mainAndroidFacet(":app"), customPreviewXml, true).get()
+    val renderTask = createRenderTaskFuture(projectRule.mainAndroidFacet(":app"), customPreviewXml, true).get()
     val renderResult = renderTask.render().get()
     val image = renderResult!!.renderedImage
 
@@ -83,8 +70,7 @@ class CustomViewRenderTest {
     Assert.assertNotNull(image.copy)
 
     val classLoader = renderResult.rootViews.first().viewObject.javaClass.classLoader
-    val broadcastManager =
-      classLoader.loadClass("androidx.localbroadcastmanager.content.LocalBroadcastManager")
+    val broadcastManager = classLoader.loadClass("androidx.localbroadcastmanager.content.LocalBroadcastManager")
     val instanceField = broadcastManager.getDeclaredField("mInstance").apply { isAccessible = true }
 
     Assert.assertNotNull(instanceField.get(null))

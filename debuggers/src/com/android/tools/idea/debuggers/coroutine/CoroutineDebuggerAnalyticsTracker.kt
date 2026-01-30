@@ -33,17 +33,17 @@ interface CoroutineDebuggerAnalyticsTracker {
 
 class CoroutineDebuggerAnalyticsTrackerImpl(val project: Project) : CoroutineDebuggerAnalyticsTracker {
   override fun trackLaunchEvent(isDisabledInSettings: Boolean) {
-    val coroutineDebuggerEventBuilder = CoroutineDebuggerEvent.newBuilder()
-      .setType(CoroutineDebuggerEvent.Type.LAUNCH_EVENT)
-      .setDisabledInSettings(isDisabledInSettings)
+    val coroutineDebuggerEventBuilder =
+      CoroutineDebuggerEvent.newBuilder().setType(CoroutineDebuggerEvent.Type.LAUNCH_EVENT).setDisabledInSettings(isDisabledInSettings)
 
     track(coroutineDebuggerEventBuilder)
   }
 
   private fun track(coroutineDebuggerEvent: CoroutineDebuggerEvent.Builder) {
-    val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.COROUTINE_DEBUGGER)
-      .setCoroutineDebuggerEvent(coroutineDebuggerEvent)
+    val studioEvent: AndroidStudioEvent.Builder =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.COROUTINE_DEBUGGER)
+        .setCoroutineDebuggerEvent(coroutineDebuggerEvent)
 
     studioEvent.withProjectId(project)
     UsageTracker.log(studioEvent)

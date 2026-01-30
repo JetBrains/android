@@ -40,9 +40,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
     val buildGradle = preparedProject.root.resolve("build.gradle")
-    buildGradle.replaceContent {
-      it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }")
-    }
+    buildGradle.replaceContent { it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }") }
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
@@ -63,11 +61,14 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE,
-      expectedPhasesReported = """
+      expectedPhasesReported =
+        """
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent(),
-      expectedFailureDetailsString = """
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -80,7 +81,8 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
               at: no info
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -89,13 +91,9 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_PLUGINS_DSL)
 
     val buildGradle = preparedProject.root.resolve("build.gradle")
-    buildGradle.replaceContent {
-      it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }")
-    }
+    buildGradle.replaceContent { it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }") }
     val settingsGradle = preparedProject.root.resolve("settings.gradle")
-    settingsGradle.replaceContent {
-      it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }")
-    }
+    settingsGradle.replaceContent { it.replace("maven {", "maven {\ncontent { excludeModule(\"com.android.tools.build\", \"gradle\") }") }
 
     runSyncAndCheckBuildIssueFailure(
       preparedProject = preparedProject,
@@ -116,11 +114,14 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE,
-      expectedPhasesReported = """
+      expectedPhasesReported =
+        """
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent(),
-      expectedFailureDetailsString = """
+        """
+          .trimIndent(),
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -133,7 +134,8 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
               at: no info
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -155,7 +157,11 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(events).hasSize(1)
           events.firstOrNull()?.let {
             expect.that(it).isInstanceOf(FileMessageEvent::class.java)
-            expect.that(it.message).contains("Plugin [id: 'com.android.application', version: '$latestKnown', apply: false] was not found in any of the following sources:")
+            expect
+              .that(it.message)
+              .contains(
+                "Plugin [id: 'com.android.application', version: '$latestKnown', apply: false] was not found in any of the following sources:"
+              )
             expect.that((it as? FileMessageEvent)?.filePosition?.file).isEqualTo(buildGradle)
           }
         }
@@ -165,27 +171,37 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
       },
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.UNKNOWN_PLUGIN_COM_ANDROID)
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: org.gradle.tooling.BuildActionFailureException
-                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-              exception: org.gradle.api.ProjectConfigurationException
-                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
-              exception: org.gradle.internal.exceptions.LocationAwareException
-                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
-              exception: org.gradle.api.plugins.UnknownPluginException
-                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.api.ProjectConfigurationException
+                  at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+                exception: org.gradle.internal.exceptions.LocationAwareException
+                  at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+                exception: org.gradle.api.plugins.UnknownPluginException
+                  at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+              }
             }
-          }
-        """.trimIndent())
-      }
+            """
+              .trimIndent()
+          )
+      },
     )
   }
 }

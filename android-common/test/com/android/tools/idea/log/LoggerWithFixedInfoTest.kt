@@ -22,14 +22,13 @@ import org.junit.Test
 
 private class StringLogger : DefaultLogger("") {
   private val _content = StringBuilder()
-  val contents: String get() = _content.toString().trim()
+  val contents: String
+    get() = _content.toString().trim()
 
   private fun log(message: String, t: Throwable?) {
     _content.append(message).appendLine()
 
-    t?.let { ExceptionUtil.getThrowableText(it) }?.let {
-      _content.append(it).appendLine()
-    }
+    t?.let { ExceptionUtil.getThrowableText(it) }?.let { _content.append(it).appendLine() }
   }
 
   override fun debug(message: String, t: Throwable?) {
@@ -61,23 +60,20 @@ class LoggerWithFixedInfoTest {
 
     assertEquals(
       """
-        TestA
-        TestB
-        TestC
-        TestD
-      """.trimIndent(),
-      stringLogger.contents
+      TestA
+      TestB
+      TestC
+      TestD
+      """
+        .trimIndent(),
+      stringLogger.contents,
     )
   }
-
 
   @Test
   fun `verify logging with additional info`() {
     val stringLogger = StringLogger()
-    val log = LoggerWithFixedInfo(stringLogger, mapOf(
-      "key1" to "value1",
-      "key2" to "value2"
-    ))
+    val log = LoggerWithFixedInfo(stringLogger, mapOf("key1" to "value1", "key2" to "value2"))
     log.debug("TestA")
     log.debug("TestB")
     log.warn("TestC")
@@ -85,12 +81,13 @@ class LoggerWithFixedInfoTest {
 
     assertEquals(
       """
-        [key1=value1 key2=value2] TestA
-        [key1=value1 key2=value2] TestB
-        [key1=value1 key2=value2] TestC
-        [key1=value1 key2=value2] TestD
-      """.trimIndent(),
-      stringLogger.contents
+      [key1=value1 key2=value2] TestA
+      [key1=value1 key2=value2] TestB
+      [key1=value1 key2=value2] TestC
+      [key1=value1 key2=value2] TestD
+      """
+        .trimIndent(),
+      stringLogger.contents,
     )
   }
 }

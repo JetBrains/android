@@ -34,31 +34,32 @@ import org.mockito.kotlin.whenever
 
 class AndroidWatchFaceRunConfigurationProducerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Before
   fun setUp() {
     projectRule.fixture.addWearDependenciesToProject()
   }
 
-
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val watchFaceFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTestWatchFace.kt",
-      """
-      package com.example.myapplication
+    val watchFaceFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTestWatchFace.kt",
+        """
+        package com.example.myapplication
 
-      import android.support.wearable.watchface.WatchFaceService
+        import android.support.wearable.watchface.WatchFaceService
 
-      /**
-       * Some comment
-       */
-      class MyTestWatchFace : WatchFaceService() {
-      }
-      """.trimIndent())
+        /**
+         * Some comment
+         */
+        class MyTestWatchFace : WatchFaceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = watchFaceFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -71,16 +72,19 @@ class AndroidWatchFaceRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val watchFaceFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyWatchFaceService.java",
-      """
-      package com.example.myapplication;
+    val watchFaceFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyWatchFaceService.java",
+        """
+        package com.example.myapplication;
 
-      import android.support.wearable.watchface.WatchFaceService;
-        
-      public class MyWatchFaceService extends WatchFaceService {
-      }
-      """.trimIndent())
+        import android.support.wearable.watchface.WatchFaceService;
+          
+        public class MyWatchFaceService extends WatchFaceService {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = watchFaceFile.findElementByText("class")
     val configurationFromClass = createConfigurationFromElement(classElement)
@@ -93,19 +97,22 @@ class AndroidWatchFaceRunConfigurationProducerTest {
   @Test
   @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val watchFaceFile = projectRule.fixture.addFileToProject(
-      "src/com/example/myapplication/MyTestWatchFace.kt",
-      """
-      package com.example.myapplication
+    val watchFaceFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyTestWatchFace.kt",
+        """
+        package com.example.myapplication
 
-      import android.support.wearable.watchface.WatchFaceService
+        import android.support.wearable.watchface.WatchFaceService
 
-      /**
-       * Some comment
-       */
-      class MyTestWatchFace : WatchFaceService() {
-      }
-      """.trimIndent())
+        /**
+         * Some comment
+         */
+        class MyTestWatchFace : WatchFaceService() {
+        }
+        """
+          .trimIndent(),
+      )
 
     val classElement = watchFaceFile.findElementByText("class")
     val context = mock<ConfigurationContext>()
@@ -126,6 +133,6 @@ class AndroidWatchFaceRunConfigurationProducerTest {
   }
 
   private fun createRunConfiguration() =
-    AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(
-      projectRule.project) as AndroidWatchFaceConfiguration
+    AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(projectRule.project)
+      as AndroidWatchFaceConfiguration
 }

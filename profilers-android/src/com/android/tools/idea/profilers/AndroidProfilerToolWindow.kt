@@ -58,13 +58,13 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.content.Content
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private val project: Project) : AspectObserver(), Disposable {
   private val ideProfilerServices: IntellijProfilerServices
@@ -92,9 +92,17 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     val client = ProfilerClient(TransportService.channelName)
     try {
-      profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
-                                  { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) },
-                                  { getToolbarDeviceSelections(project) }, { getPreferredProcessName(project) }, ::getCurrentTaskHandler)
+      profilers =
+        StudioProfilers(
+          client,
+          ideProfilerServices,
+          taskHandlers,
+          { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) },
+          { ProfilerTaskTabs.open(project) },
+          { getToolbarDeviceSelections(project) },
+          { getPreferredProcessName(project) },
+          ::getCurrentTaskHandler,
+        )
 
       val navigator = ideProfilerServices.codeNavigator
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -106,21 +114,25 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       // but then opens the profiling window manually.
       val processInfo = project.getUserData(LAST_RUN_APP_INFO)
       if (processInfo != null) {
-        profilers.setPreferredProcess(processInfo.deviceName,
-                                      processInfo.processName) { p: Common.Process? -> processInfo.processFilter.invoke(p!!) }
+        profilers.setPreferredProcess(processInfo.deviceName, processInfo.processName) { p: Common.Process? ->
+          processInfo.processFilter.invoke(p!!)
+        }
         project.putUserData(LAST_RUN_APP_INFO, null)
-      }
-      else if (!IdeInfo.getInstance().isGameTools){
-        StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
+      } else if (!IdeInfo.getInstance().isGameTools) {
+        StartupManager.getInstance(project).runWhenProjectIsInitialized {
+          profilers.preferredProcessName = getPreferredProcessName(project)
+        }
       }
 
       if (IdeInfo.getInstance().isGameTools && ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
         invokeLater {
-          AndroidNotification.getInstance(project).showBalloon(
-            "Unsupported feature detected",
-            "Standalone Profiler cannot be used in Task-Based UX mode. Please set the profiler.task.based.ux flag in Android Studio to off" +
-            " (or reset it to its default value) and restart the profiler.",
-            NotificationType.ERROR)
+          AndroidNotification.getInstance(project)
+            .showBalloon(
+              "Unsupported feature detected",
+              "Standalone Profiler cannot be used in Task-Based UX mode. Please set the profiler.task.based.ux flag in Android Studio to off" +
+                " (or reset it to its default value) and restart the profiler.",
+              NotificationType.ERROR,
+            )
         }
       }
 
@@ -151,7 +163,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       initializeProfilerTab()
 
       ideProfilerServices.featureTracker.trackProfilerToolWindowCreated()
-    } catch(t: Throwable) {
+    } catch (t: Throwable) {
       client.shutdownChannel()
       throw t
     }
@@ -160,13 +172,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   private fun getToolbarDeviceSelections(project: Project): List<ToolbarDeviceSelection> {
     val devices = DeviceAndSnapshotComboBoxTargetProvider.getInstance().getDeployTarget(project).getAndroidDevices(project)
     try {
-      val selections = devices.map {
-        ToolbarDeviceSelection(it.name, it.version.featureLevel, it.isRunning, it.isDebuggable,
-                               it.ddmlibDevice?.serialNumber ?: "", it.icon)
-      }
+      val selections =
+        devices.map {
+          ToolbarDeviceSelection(
+            it.name,
+            it.version.featureLevel,
+            it.isRunning,
+            it.isDebuggable,
+            it.ddmlibDevice?.serialNumber ?: "",
+            it.icon,
+          )
+        }
       return selections
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       return listOf()
     }
   }
@@ -179,13 +197,14 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   @VisibleForTesting
   fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean, icon: Icon? = null) {
     val contentManager = window.getContentManager()
-    val content = contentManager.factory.createContent(component, tabName, false).also { content ->
-      content.isCloseable = isCloseable
-      icon?.let {
-        content.icon = it
-        content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+    val content =
+      contentManager.factory.createContent(component, tabName, false).also { content ->
+        content.isCloseable = isCloseable
+        icon?.let {
+          content.icon = it
+          content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+        }
       }
-    }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
   }
@@ -212,9 +231,9 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeProfilerTab() {
-    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window,
-                                                                                                      ideProfilerComponents, project)
-    else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
+    profilersTab =
+      if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window, ideProfilerComponents, project)
+      else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 
     profilersPanel = JPanel(BorderLayout())
@@ -228,8 +247,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val homeTab = findHomeTab()
     if (homeTab != null) {
       window.getContentManager().setSelectedContent(homeTab)
-    }
-    else {
+    } else {
       createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
     }
   }
@@ -238,8 +256,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     val pastRecordingsTab = findPastRecordingsTab()
     if (pastRecordingsTab != null) {
       window.getContentManager().setSelectedContent(pastRecordingsTab)
-    }
-    else {
+    } else {
       createNewTab(pastRecordingsPanel, PROFILER_PAST_RECORDINGS_TAB_NAME, false)
     }
   }
@@ -256,8 +273,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       taskTab.displayName = taskTabTitle
       window.getContentManager().setSelectedContent(taskTab)
       window.getContentManager().selectedContent!!.icon = taskIcon
-    }
-    else {
+    } else {
       createNewTab(profilersPanel, taskTabTitle, true, taskIcon)
     }
     currentTaskHandler?.exit()
@@ -268,23 +284,15 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     val createdTaskTab = window.getContentManager().selectedContent!!
 
-    createdTaskTab.setDisposer {
-      onTaskTabClose()
-    }
+    createdTaskTab.setDisposer { onTaskTabClose() }
   }
 
-  /**
-   * Closes the Profiler task tab for a specified task type.
-   */
+  /** Closes the Profiler task tab for a specified task type. */
   fun closeTaskTab(taskType: ProfilerTaskType) {
     val contentManager = window.getContentManager()
     val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isTaskTitleV2Enabled)
-    val taskTab = contentManager.contents.find {
-      it.displayName == taskTabTitle || it.tabName == taskTabTitle
-    }
-    taskTab?.let { content ->
-      contentManager.removeContent(content, true)
-    }
+    val taskTab = contentManager.contents.find { it.displayName == taskTabTitle || it.tabName == taskTabTitle }
+    taskTab?.let { content -> contentManager.removeContent(content, true) }
   }
 
   private fun onTaskTabClose() {
@@ -312,9 +320,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     currentTaskHandler = null
   }
 
-  /**
-   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened.
-   */
+  /** Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened. */
   fun openTaskTab() {
     val taskTab = findTaskTab()
     if (taskTab != null) {
@@ -322,24 +328,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
   }
 
-  /** Sets the profiler's auto-profiling process in case it has been unset.  */
+  /** Sets the profiler's auto-profiling process in case it has been unset. */
   fun profile(processInfo: PreferredProcessInfo) {
     profilers.setPreferredProcess(processInfo.deviceName, processInfo.processName) { p: Common.Process? ->
       processInfo.processFilter.invoke(p!!)
     }
   }
 
-  /**
-   * Disables auto device+process selection.
-   * See: [StudioProfilers.setAutoProfilingEnabled]
-   */
+  /** Disables auto device+process selection. See: [StudioProfilers.setAutoProfilingEnabled] */
   fun disableAutoProfiling() {
     profilers.autoProfilingEnabled = false
   }
 
-  /**
-   * Tries to import a file into an imported session of the profilers and shows an error balloon if it fails to do so.
-   */
+  /** Tries to import a file into an imported session of the profilers and shows an error balloon if it fails to do so. */
   fun openFile(file: VirtualFile) {
     if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
       ideProfilerServices.showNotification(OPEN_FILE_FAILURE_NOTIFICATION)
@@ -357,7 +358,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun getCurrentTaskHandler(): ProfilerTaskHandler? {
-    return currentTaskHandler;
+    return currentTaskHandler
   }
 
   companion object {
@@ -369,14 +370,14 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
      * Key for storing the last app that was run when the profiler window was not opened. This allows the Profilers to start auto-profiling
      * that app when the user opens the window at a later time.
      */
-    @JvmField
-    val LAST_RUN_APP_INFO = Key.create<PreferredProcessInfo>("Profiler.Last.Run.App")
-    private val OPEN_FILE_FAILURE_NOTIFICATION = Notification(
-      Notification.Severity.ERROR,
-      "Failed to open file",
-      "The profiler was unable to open the selected file. Please try opening it " +
-      "again or select a different file.",
-      null)
+    @JvmField val LAST_RUN_APP_INFO = Key.create<PreferredProcessInfo>("Profiler.Last.Run.App")
+    private val OPEN_FILE_FAILURE_NOTIFICATION =
+      Notification(
+        Notification.Severity.ERROR,
+        "Failed to open file",
+        "The profiler was unable to open the selected file. Please try opening it " + "again or select a different file.",
+        null,
+      )
 
     /**
      * Analogous to [StudioProfilers.buildDeviceName] but works with an [IDevice] instead.
@@ -391,9 +392,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       return getDeviceDisplayName(manufacturer, model, serial)
     }
 
-    /**
-     * Gets the display name of a device with the given manufacturer, model, and serial string.
-     */
+    /** Gets the display name of a device with the given manufacturer, model, and serial string. */
     fun getDeviceDisplayName(manufacturer: String, model: String, serial: String): String {
       var deviceModel = model
       val deviceNameBuilder = StringBuilder()
@@ -414,11 +413,12 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
         // There can only be up to one Android app module per selected configuration as the call to getModules can only return up to one
         // module per AndroidRunConfiguration.
-        return (RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfiguration)?.modules?.map {
-          StudioAndroidModuleInfo.getInstance(it)
-        }?.map { it?.packageName }?.firstOrNull()
-      }
-      else {
+        return (RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfiguration)
+          ?.modules
+          ?.map { StudioAndroidModuleInfo.getInstance(it) }
+          ?.map { it?.packageName }
+          ?.firstOrNull()
+      } else {
         for (module in ModuleManager.getInstance(project).modules) {
           val moduleName = getModuleName(module)
           if (moduleName != null) {

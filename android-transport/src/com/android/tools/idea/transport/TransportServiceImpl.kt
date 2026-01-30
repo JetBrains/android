@@ -27,9 +27,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * Implementation of [TransportService]. Use [TransportService.getInstance] in production code to instantiate this class.
- */
+/** Implementation of [TransportService]. Use [TransportService.getInstance] in production code to instantiate this class. */
 class TransportServiceImpl @VisibleForTesting constructor() : TransportService {
   private val dataStoreService: DataStoreService
   private val deviceManager: TransportDeviceManager
@@ -70,8 +68,13 @@ class TransportServiceImpl @VisibleForTesting constructor() : TransportService {
 
   init {
     val datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator
-    dataStoreService = DataStoreService(TransportService.channelName, datastoreDirectory,
-                                        { runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }, logService)
+    dataStoreService =
+      DataStoreService(
+        TransportService.channelName,
+        datastoreDirectory,
+        { runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) },
+        logService,
+      )
     dataStoreService.setNoPiiExceptionHandler { t -> logger.error(NoPiiException(t)) }
     deviceManager = TransportDeviceManager(dataStoreService, messageBus, this)
   }

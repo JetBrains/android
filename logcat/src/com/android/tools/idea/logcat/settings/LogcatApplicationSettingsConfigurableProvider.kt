@@ -18,6 +18,5 @@ package com.android.tools.idea.logcat.settings
 import com.intellij.openapi.options.ConfigurableProvider
 
 internal class LogcatApplicationSettingsConfigurableProvider : ConfigurableProvider() {
-  override fun createConfigurable() =
-    LogcatApplicationSettingsConfigurable(AndroidLogcatSettings.getInstance())
+  override fun createConfigurable() = LogcatApplicationSettingsConfigurable(AndroidLogcatSettings.getInstance())
 }

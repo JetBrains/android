@@ -34,9 +34,7 @@ class DeadlockUIThreadWithLocks : AnAction(), DumbAware {
     lock2.withLock {
       semaphore2.release()
       semaphore1.acquire()
-      lock1.withLock {
-        println("Deadlock before reaching this line.")
-      }
+      lock1.withLock { println("Deadlock before reaching this line.") }
     }
   }
 
@@ -45,9 +43,7 @@ class DeadlockUIThreadWithLocks : AnAction(), DumbAware {
     lock1.withLock {
       semaphore2.acquire()
       semaphore1.release()
-      lock2.withLock {
-        println("Deadlock before reaching this line.")
-      }
+      lock2.withLock { println("Deadlock before reaching this line.") }
     }
   }
 }

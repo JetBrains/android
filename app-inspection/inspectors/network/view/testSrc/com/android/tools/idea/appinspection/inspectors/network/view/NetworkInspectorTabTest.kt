@@ -50,10 +50,7 @@ class NetworkInspectorTabTest {
           override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
             return NetworkInspectorProtocol.Response.newBuilder()
               .apply {
-                startInspectionResponse =
-                  NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
-                    .apply { timestamp = 12345 }
-                    .build()
+                startInspectionResponse = NetworkInspectorProtocol.StartInspectionResponse.newBuilder().apply { timestamp = 12345 }.build()
               }
               .build()
               .toByteArray()
@@ -84,8 +81,7 @@ class NetworkInspectorTabTest {
     val zoomOut = findComponentWithUniqueName(tab.actionsToolBar, "Zoom out") as CommonButton
     val zoomIn = findComponentWithUniqueName(tab.actionsToolBar, "Zoom in") as CommonButton
     val resetZoom = findComponentWithUniqueName(tab.actionsToolBar, "Reset zoom") as CommonButton
-    val zoomToSelection =
-      findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
+    val zoomToSelection = findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
 
     tab.model.timeline.dataRange.set(0.0, 10.0)
     tab.model.timeline.selectionRange.set(0.0, 4.0)
@@ -96,14 +92,12 @@ class NetworkInspectorTabTest {
     val defaultViewRange = Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
     zoomIn.doClick()
     timer.step()
-    val zoomedInViewRange =
-      Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
+    val zoomedInViewRange = Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
     assertThat(zoomedInViewRange.length).isLessThan(defaultViewRange.length)
 
     zoomOut.doClick()
     timer.step()
-    val zoomedOutViewRange =
-      Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
+    val zoomedOutViewRange = Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
     assertThat(zoomedOutViewRange.length).isGreaterThan(zoomedInViewRange.length)
 
     resetZoom.doClick()
@@ -131,8 +125,7 @@ class NetworkInspectorTabTest {
 
     tab.launchJob.join()
 
-    val zoomToSelection =
-      findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
+    val zoomToSelection = findComponentWithUniqueName(tab.actionsToolBar, "Zoom to selection") as CommonButton
 
     assertThat(zoomToSelection.isEnabled).isFalse()
 

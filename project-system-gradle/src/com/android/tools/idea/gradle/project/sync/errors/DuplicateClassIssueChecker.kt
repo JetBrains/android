@@ -22,16 +22,14 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import java.util.function.Consumer
 import org.gradle.tooling.BuildException
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
-/**
- * Replaces href for more information related to duplicate classes to the id of an [OpenLinkQuickFix] so the IDE can open the link
- */
-class DuplicateClassIssueChecker: GradleIssueChecker {
+/** Replaces href for more information related to duplicate classes to the id of an [OpenLinkQuickFix] so the IDE can open the link */
+class DuplicateClassIssueChecker : GradleIssueChecker {
   private val HREF = "d.android.com/r/tools/classpath-sync-errors"
   private val SUFFIX_8_7 = "Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors"
   private val SUFFIX_OLD = "Go to the documentation to learn how to <a href=\"$HREF\">Fix dependency resolution errors</a>."
@@ -54,6 +52,7 @@ class DuplicateClassIssueChecker: GradleIssueChecker {
           override val title = "Duplicate class found"
           override val description = message
           override val quickFixes = listOf(urlLink)
+
           override fun getNavigatable(project: Project): Navigatable? = null
         }
       }
@@ -62,7 +61,8 @@ class DuplicateClassIssueChecker: GradleIssueChecker {
         return object : BuildIssue {
           override val title = "Duplicate class found"
           override val description = message
-          override val quickFixes = emptyList <BuildIssueQuickFix>()
+          override val quickFixes = emptyList<BuildIssueQuickFix>()
+
           override fun getNavigatable(project: Project): Navigatable? = null
         }
       }
@@ -70,13 +70,14 @@ class DuplicateClassIssueChecker: GradleIssueChecker {
     return null
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return failureCause.startsWith(DUPLICATE_CLASS) &&
-           (parentEventId as? String)?.endsWith(":checkDebugDuplicateClasses") == true
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
+    return failureCause.startsWith(DUPLICATE_CLASS) && (parentEventId as? String)?.endsWith(":checkDebugDuplicateClasses") == true
   }
 }

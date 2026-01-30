@@ -31,9 +31,8 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.TR
 import java.awt.Color
 
 /**
- * Class responsible for rendering one or more sequential network requests, with each request
- * appearing as a horizontal bar where each stage of its lifetime (sending, receiving, etc.) is
- * highlighted with unique colors.
+ * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal bar where each stage
+ * of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
  */
 class ConnectionsStateChart(dataList: List<ConnectionData>, range: Range) {
   constructor(data: ConnectionData, range: Range) : this(listOf(data), range)
@@ -52,10 +51,7 @@ class ConnectionsStateChart(dataList: List<ConnectionData>, range: Range) {
     component.heightGap = gap
   }
 
-  private fun createChart(
-    dataList: Collection<ConnectionData>,
-    range: Range,
-  ): StateChart<NetworkState> {
+  private fun createChart(dataList: Collection<ConnectionData>, range: Range): StateChart<NetworkState> {
     val series = DefaultDataSeries<NetworkState>()
     series.add(0, NetworkState.NONE)
     for (data in dataList) {

@@ -76,8 +76,8 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
       "res/drawable/color_drawable.xml",
       // language=xml
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <color xmlns:android="http://schemas.android.com/apk/res/android" android:color="#ff0000" />
+      <?xml version="1.0" encoding="utf-8"?>
+      <color xmlns:android="http://schemas.android.com/apk/res/android" android:color="#ff0000" />
       """
         .trimIndent(),
     )

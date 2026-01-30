@@ -22,9 +22,7 @@ import org.jetbrains.plugins.gradle.util.toJvmVendor
 private const val GRADLE_JVM_VERSION_CRITERIA_KEY = "gradle.jvm.version.criteria"
 private const val GRADLE_JVM_VENDOR_CRITERIA_KEY = "gradle.jvm.vendor.criteria"
 
-/**
- * Simple persistence based on [PropertiesComponent] for the default Daemon JVM criteria to run Gradle builds.
- */
+/** Simple persistence based on [PropertiesComponent] for the default Daemon JVM criteria to run Gradle builds. */
 object GradleDefaultJvmCriteriaStore {
 
   var daemonJvmCriteria: GradleDaemonJvmCriteria?

@@ -33,8 +33,7 @@ class InvalidColorIndexInspectionTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
     fixture.enableInspections(xmlInspection)
     fixture.enableInspections(wffExpressionInspection)
   }
@@ -55,7 +54,7 @@ class InvalidColorIndexInspectionTest {
           <Scene backgroundColor="[CONFIGURATION.some_color_config]" />
           <Parameter expression="[CONFIGURATION.some_color_config]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -85,7 +84,7 @@ class InvalidColorIndexInspectionTest {
           <Parameter expression="[CONFIGURATION.some_color_config.2]" />
           <Parameter expression="[CONFIGURATION.another_color_config.0]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -114,7 +113,7 @@ class InvalidColorIndexInspectionTest {
           <Parameter expression="<error descr="A color index in the range [0, 1] must be specified">[CONFIGURATION.some_color_config]</error>" />
           <Parameter expression="<error descr="A color index in the range [0, 2] must be specified">[CONFIGURATION.another_color_config]</error>" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -140,7 +139,7 @@ class InvalidColorIndexInspectionTest {
           <!-- This is reported as an error by the annotator -->
           <Parameter expression="[<error descr="Unknown configuration">CONFIGURATION.unknown_color_config</error>]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -169,7 +168,7 @@ class InvalidColorIndexInspectionTest {
           <Scene backgroundColor="[CONFIGURATION.some_color_config.<error descr="The color index must be an integer in the range [0, 2]">10</error>]" />
           <Parameter expression="[CONFIGURATION.another_color_config.<error descr="The color index is optional and must be 0 if specified">1</error>]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -201,7 +200,7 @@ class InvalidColorIndexInspectionTest {
           <Parameter expression="<error descr="The color configuration must declare at least one color in a ColorOption">[CONFIGURATION.color_config_with_missing_colors]</error>" />
           <Parameter expression="<error descr="The color configuration must declare at least one color in a ColorOption">[CONFIGURATION.color_config_with_missing_colors.0]</error>" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -229,7 +228,7 @@ class InvalidColorIndexInspectionTest {
           <Scene backgroundColor=<error descr="A color index in the range [0, 2] must be specified">"[CONFIGURATION.some_color_config]"</error> />
           <Parameter expression="[CONFIGURATION.some_color_config]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -257,7 +256,7 @@ class InvalidColorIndexInspectionTest {
           <Scene backgroundColor="[CONFIGURATION.some_color_config]" />
           <Parameter expression="<error descr="A color index in the range [0, 2] must be specified">[CONFIGURATION.some_color_config]</error>" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 

@@ -28,9 +28,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Opens the manage Snapshots dialog.
- */
+/** Opens the manage Snapshots dialog. */
 class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -42,9 +40,7 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
 
-/**
- * Shows a "Manage Snapshots" dialog associated with [emulatorView].
- */
+/** Shows a "Manage Snapshots" dialog associated with [emulatorView]. */
 internal fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): DialogWrapper {
   var dialogWrapper = openDialogs[emulatorView]
   if (dialogWrapper == null) {
@@ -52,40 +48,35 @@ internal fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Proj
     closeDuplicateDialogs(emulator, project)
     dialogWrapper = ManageSnapshotsDialog(emulator, emulatorView).createWrapper(project)
     dialogWrapper.show()
-    Disposer.register(dialogWrapper.disposable) {
-      openDialogs.entries.removeIf { it.value == dialogWrapper }
-    }
+    Disposer.register(dialogWrapper.disposable) { openDialogs.entries.removeIf { it.value == dialogWrapper } }
     openDialogs[emulatorView] = dialogWrapper
   }
   return dialogWrapper
 }
 
-/**
- * Returns the "Manage Snapshots" dialog associated with [emulatorView], or null if no such dialog
- * is shown.
- */
+/** Returns the "Manage Snapshots" dialog associated with [emulatorView], or null if no such dialog is shown. */
 internal fun findManageSnapshotDialog(emulatorView: EmulatorView): DialogWrapper? {
   return openDialogs[emulatorView]
 }
 
 /**
- * Closes all "Manage Snapshots" dialogs for the given [emulator] belonging to other projects.
- * This is done to avoid displaying multiple dialogs for the same emulator.
+ * Closes all "Manage Snapshots" dialogs for the given [emulator] belonging to other projects. This is done to avoid displaying multiple
+ * dialogs for the same emulator.
  */
 private fun closeDuplicateDialogs(emulator: EmulatorController, project: Project) {
-  val conflictingDialogs = openDialogs.entries
-    .filter {
-      val emulatorView = it.key
-      val dataContext = DataManager.getInstance().getDataContext(emulatorView)
-      dataContext.getData(EMULATOR_CONTROLLER_KEY) == emulator && dataContext.getData(CommonDataKeys.PROJECT) != project
-    }
-    .map { it.value }
+  val conflictingDialogs =
+    openDialogs.entries
+      .filter {
+        val emulatorView = it.key
+        val dataContext = DataManager.getInstance().getDataContext(emulatorView)
+        dataContext.getData(EMULATOR_CONTROLLER_KEY) == emulator && dataContext.getData(CommonDataKeys.PROJECT) != project
+      }
+      .map { it.value }
   for (dialogWrapper in conflictingDialogs) {
     dialogWrapper.close(DialogWrapper.CLOSE_EXIT_CODE)
   }
 }
 
-@VisibleForTesting
-internal fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
+@VisibleForTesting internal fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
 
 private val openDialogs = mutableMapOf<EmulatorView, DialogWrapper>()

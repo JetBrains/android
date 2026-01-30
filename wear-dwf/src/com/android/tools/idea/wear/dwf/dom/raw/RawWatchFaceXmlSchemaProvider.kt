@@ -49,9 +49,8 @@ import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.annotations.NonNls
 
 /**
- * Stores whether a Declarative Watch Face file has been opened. This is used to know which files
- * need to be reparsed whenever a manifest has been modified. This is needed to ensure we use the
- * latest WFF version.
+ * Stores whether a Declarative Watch Face file has been opened. This is used to know which files need to be reparsed whenever a manifest
+ * has been modified. This is needed to ensure we use the latest WFF version.
  */
 private val DWF_FILE_IN_USE = Key.create<Boolean>("dwf_file_in_use")
 
@@ -60,9 +59,9 @@ private val DWF_FILE_IN_USE = Key.create<Boolean>("dwf_file_in_use")
  *
  * If the WFF version in the merged manifest is not valid, a fallback version is used instead.
  *
- * Because the schema depends on the merged manifest, and that the merged manifest can be updated
- * asynchronously, we rely on [RawWatchFaceXmlSchemaUpdater] to reparse declarative watch face files
- * to ensure they're using the WFF version defined in the merged manifest.
+ * Because the schema depends on the merged manifest, and that the merged manifest can be updated asynchronously, we rely on
+ * [RawWatchFaceXmlSchemaUpdater] to reparse declarative watch face files to ensure they're using the WFF version defined in the merged
+ * manifest.
  *
  * @see CurrentWFFVersionService
  * @see RawWatchFaceXmlSchemaUpdater
@@ -74,48 +73,39 @@ class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
     // We only want to initialize the service on demand when a declarative watch face file is opened
     RawWatchFaceXmlSchemaUpdater.initializeService(module.project)
     baseFile.putUserData(DWF_FILE_IN_USE, true)
-    val (schemaVersion, isFallback) =
-      CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
+    val (schemaVersion, isFallback) = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
 
     DeclarativeWatchFaceUsageTracker.getInstance().trackXmlSchemaUsed(schemaVersion, isFallback)
 
     return XmlUtil.findXmlFile(
       baseFile,
-      VfsUtilCore.urlToPath(
-        VfsUtilCore.toIdeaUrl(FileUtil.unquote(schemaVersion.schemaUrl.toExternalForm()), false)
-      ),
+      VfsUtilCore.urlToPath(VfsUtilCore.toIdeaUrl(FileUtil.unquote(schemaVersion.schemaUrl.toExternalForm()), false)),
     )
   }
 
   override fun isAvailable(file: XmlFile) =
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() &&
-      isDeclarativeWatchFaceFile(file)
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() && isDeclarativeWatchFaceFile(file)
 }
 
 /**
- * This class attempts to fix a couple of issues regarding the use of XSD files based on a property
- * set within a manifest file.
+ * This class attempts to fix a couple of issues regarding the use of XSD files based on a property set within a manifest file.
  *
- * The first problem is that we rely on the merged manifest to get the WFF version. The merged
- * manifest is not available immediately, and we cannot wait for its computation to end in
- * [RawWatchfaceXmlSchemaProvider.getSchema] as that's called on the EDT. We could read the manifest
- * files directly and determine the WFF, but we'd be potentially introducing extra issues that the
- * merged manifest already takes care of.
+ * The first problem is that we rely on the merged manifest to get the WFF version. The merged manifest is not available immediately, and we
+ * cannot wait for its computation to end in [RawWatchfaceXmlSchemaProvider.getSchema] as that's called on the EDT. We could read the
+ * manifest files directly and determine the WFF, but we'd be potentially introducing extra issues that the merged manifest already takes
+ * care of.
  *
- * The second problem is that the schema returned by [RawWatchfaceXmlSchemaProvider] is cached and
- * the cache dependencies do not include [com.intellij.psi.util.PsiModificationTracker] or any
- * changes to the merged manifest, meaning that any changes to the WFF version in the merged
- * manifest will go unnoticed. Furthermore, if the user opens Studio with a declarative watch face
- * file as the first file to be open before the merged manifest is computed, we can end up without
- * any WFF schema being used. Once the merged manifest has finished computing, the editor will not
- * update itself.
+ * The second problem is that the schema returned by [RawWatchfaceXmlSchemaProvider] is cached and the cache dependencies do not include
+ * [com.intellij.psi.util.PsiModificationTracker] or any changes to the merged manifest, meaning that any changes to the WFF version in the
+ * merged manifest will go unnoticed. Furthermore, if the user opens Studio with a declarative watch face file as the first file to be open
+ * before the merged manifest is computed, we can end up without any WFF schema being used. Once the merged manifest has finished computing,
+ * the editor will not update itself.
  *
- * This class attempts to fix both problems by forcing the declarative watch face files to be
- * reparsed whenever we detect that a new successful merged manifest snapshot has been computed.
+ * This class attempts to fix both problems by forcing the declarative watch face files to be reparsed whenever we detect that a new
+ * successful merged manifest snapshot has been computed.
  */
 @Service(Service.Level.PROJECT)
-private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Project) :
-  MergedManifestSnapshotComputeListener, Disposable {
+private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Project) : MergedManifestSnapshotComputeListener, Disposable {
 
   init {
     val connection = ApplicationManager.getApplication().messageBus.connect()
@@ -139,8 +129,8 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
   override fun dispose() {}
 
   /**
-   * Retrieves the list of DWFs that need to be reparsed. A DWF needs to be reparsed if it has been
-   * opened by a user and has had a schema loaded for it.
+   * Retrieves the list of DWFs that need to be reparsed. A DWF needs to be reparsed if it has been opened by a user and has had a schema
+   * loaded for it.
    *
    * The [DWF_FILE_IN_USE] key is used to determine if a file is in use.
    */
@@ -148,10 +138,7 @@ private class RawWatchFaceXmlSchemaUpdater private constructor(val project: Proj
     getAndroidFacets()
       .filter { it.getModuleSystem().type == Type.TYPE_APP }
       .flatMap { facet ->
-        StudioResourceRepositoryManager.getModuleResources(facet).getResources(
-          ResourceNamespace.RES_AUTO,
-          ResourceType.RAW,
-        ) {
+        StudioResourceRepositoryManager.getModuleResources(facet).getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW) {
           val xmlFile = it.getSourceAsVirtualFile()?.findPsiFile(project) as? XmlFile
           if (xmlFile?.rootTag?.name != TAG_WATCH_FACE) return@getResources false
           // This will be repopulated if the file is in use

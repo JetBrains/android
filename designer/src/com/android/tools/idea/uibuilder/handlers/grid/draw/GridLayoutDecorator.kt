@@ -31,11 +31,7 @@ import java.awt.Graphics2D
  */
 open class GridLayoutDecorator : SceneDecorator() {
 
-  override fun addBackground(
-    list: DisplayList,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
     super.addBackground(list, sceneContext, component)
     with(getGridBarriers(component)) {
       // Add barrier lines
@@ -72,6 +68,5 @@ private class DrawLineCommand(
   }
 
   // TODO: fix this serialize
-  override fun serialize(): String =
-    "com.android.tools.idea.uibuilder.handlers.grid.draw.DrawLineCommand: ($x1, $y1) - ($x2, $y2)"
+  override fun serialize(): String = "com.android.tools.idea.uibuilder.handlers.grid.draw.DrawLineCommand: ($x1, $y1) - ($x2, $y2)"
 }

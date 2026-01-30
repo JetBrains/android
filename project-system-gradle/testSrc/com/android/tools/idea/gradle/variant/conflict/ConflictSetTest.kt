@@ -23,9 +23,7 @@ import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 
-/**
- * Tests for [ConflictSet].
- */
+/** Tests for [ConflictSet]. */
 class ConflictSetTest : ConflictsTestCase() {
 
   fun testFindSelectionConflictsWithoutConflict() {
@@ -36,21 +34,39 @@ class ConflictSetTest : ConflictsTestCase() {
   }
 
   fun testFindSelectionConflictsWithoutEmptyVariantDependency() {
-    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder(dependOnVariant = ""), libModuleBuilder())
+    setupTestProjectFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      rootModuleBuilder,
+      appModuleBuilder(dependOnVariant = ""),
+      libModuleBuilder(),
+    )
 
     val conflicts = ConflictSet.findConflicts(project).selectionConflicts
     assertThat(conflicts).isEmpty()
   }
 
   fun testFindSelectionConflictsWithoutNullVariantDependency() {
-    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder(dependOnVariant = null), libModuleBuilder())
+    setupTestProjectFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      rootModuleBuilder,
+      appModuleBuilder(dependOnVariant = null),
+      libModuleBuilder(),
+    )
 
     val conflicts = ConflictSet.findConflicts(project).selectionConflicts
     assertThat(conflicts).isEmpty()
   }
 
   fun testFindSelectionConflictsWithConflict() {
-    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder(dependOnVariant = "release"), libModuleBuilder())
+    setupTestProjectFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      rootModuleBuilder,
+      appModuleBuilder(dependOnVariant = "release"),
+      libModuleBuilder(),
+    )
 
     val conflicts = ConflictSet.findConflicts(project).selectionConflicts
     assertThat(conflicts).hasSize(1)

@@ -32,18 +32,17 @@ import com.intellij.psi.PsiManager
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ResourceExplorerViewModelTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val disposable = Disposer.newDisposable("ResourceExplorerViewModelTest")
 
@@ -77,9 +76,7 @@ class ResourceExplorerViewModelTest {
 
   @Test
   fun testChangeFacet() {
-    runInEdtAndWait {
-      addAndroidModule("app2", projectRule.project, "com.example.app2") {}
-    }
+    runInEdtAndWait { addAndroidModule("app2", projectRule.project, "com.example.app2") {} }
 
     val modules = ModuleManager.getInstance(projectRule.project).modules
     Truth.assertThat(modules).hasLength(2)
@@ -131,14 +128,19 @@ class ResourceExplorerViewModelTest {
     val resourceChangedLatch = CountDownLatch(1)
     val values = listViewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
-    Truth.assertThat(values
-                       .flatMap { it.assets }
-                       .mapNotNull { it.resourceItem.resourceValue?.value }
-                       .map {
-                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
-                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
-                                                  FileUtil.toSystemIndependentName(it), '/')
-                       })
+    Truth.assertThat(
+        values
+          .flatMap { it.assets }
+          .mapNotNull { it.resourceItem.resourceValue?.value }
+          .map {
+            // ResourceValue.getValue() implementations can return strings with different separators on Windows
+            FileUtil.getRelativePath(
+              FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+              FileUtil.toSystemIndependentName(it),
+              '/',
+            )
+          }
+      )
       .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
 
     listViewModel.updateUiCallback = {
@@ -153,14 +155,19 @@ class ResourceExplorerViewModelTest {
     Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
 
     val newValues = listViewModel.getCurrentModuleResourceLists().get()[0].assetSets
-    Truth.assertThat(newValues
-                       .flatMap { it.assets }
-                       .mapNotNull { it.resourceItem.resourceValue?.value }
-                       .map {
-                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
-                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
-                                                  FileUtil.toSystemIndependentName(it), '/')
-                       })
+    Truth.assertThat(
+        newValues
+          .flatMap { it.assets }
+          .mapNotNull { it.resourceItem.resourceValue?.value }
+          .map {
+            // ResourceValue.getValue() implementations can return strings with different separators on Windows
+            FileUtil.getRelativePath(
+              FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+              FileUtil.toSystemIndependentName(it),
+              '/',
+            )
+          }
+      )
       .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }
 

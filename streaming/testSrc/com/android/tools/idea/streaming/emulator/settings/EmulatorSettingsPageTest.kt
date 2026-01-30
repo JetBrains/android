@@ -26,18 +26,17 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JCheckBox
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JCheckBox
 
 /** Tests for [EmulatorSettingsPage] and [EmulatorSettings]. */
 @RunsInEdt
 class EmulatorSettingsPageTest {
 
-  @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), EdtRule())
+  @get:Rule val ruleChain = RuleChain(ApplicationRule(), EdtRule())
 
   private val settings by lazy { EmulatorSettings.getInstance() }
   private val settingsPage by lazy {
@@ -63,7 +62,7 @@ class EmulatorSettingsPageTest {
     val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in the Running Devices tool window" }
     val activateOnAppLaunchCheckBox = ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching an app" }
     val activateOnTestLaunchCheckBox =
-        ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching a test" }
+      ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching a test" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Synchronize clipboard" }
     val showCameraControlPromptsCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Show camera control prompts" }
     val cameraVelocityControlComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is CameraVelocityControls }

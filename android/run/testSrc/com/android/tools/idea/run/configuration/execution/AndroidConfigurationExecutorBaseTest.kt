@@ -39,7 +39,6 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.RuleChain
 
-
 @Ignore("FakeAdbTestRule hangs")
 abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
@@ -51,12 +50,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
   val projectRule = ProjectRule()
   val cleaner = MockitoCleanerRule()
 
-  @get:Rule
-  val chain: RuleChain = RuleChain
-    .outerRule(cleaner)
-    .around(closeables)
-    .around(projectRule)
-    .around(fakeAdbRule)
+  @get:Rule val chain: RuleChain = RuleChain.outerRule(cleaner).around(closeables).around(projectRule).around(fakeAdbRule)
 
   val project: Project
     get() = projectRule.project
@@ -66,9 +60,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
 
   @After
   fun after() {
-    XDebuggerManager.getInstance(project).debugSessions.forEach {
-      it.stop()
-    }
+    XDebuggerManager.getInstance(project).debugSessions.forEach { it.stop() }
   }
 
   protected class TestApksProvider(private val appId: String) : ApkProvider {
@@ -85,12 +77,10 @@ abstract class AndroidConfigurationExecutorBaseTest {
   }
 
   protected fun getRunContentDescriptorForTests(runContentDescriptorProvider: () -> RunContentDescriptor): RunContentDescriptor {
-    val runContentDescriptor = (ProgressManager.getInstance()
-      .runProcess(Computable { runContentDescriptorProvider.invoke() }, EmptyProgressIndicator()))
+    val runContentDescriptor =
+      (ProgressManager.getInstance().runProcess(Computable { runContentDescriptorProvider.invoke() }, EmptyProgressIndicator()))
     val processHandler = runContentDescriptor.processHandler!!
-    Disposer.register(project) {
-      processHandler.detachProcess()
-    }
+    Disposer.register(project) { processHandler.detachProcess() }
 
     if (!processHandler.isStartNotified) {
       processHandler.startNotify()
@@ -100,10 +90,12 @@ abstract class AndroidConfigurationExecutorBaseTest {
   }
 
   protected fun FakeAdbServerAdbLibRule.connectAndWaitForDevice() =
-    connectDevice(deviceId = "test_device_001",
-                         manufacturer = "Google",
-                         deviceModel = "Pixel7",
-                         release = "10.0.0",
-                         sdk = AndroidApiLevel(26),
-                         hostConnectionType = DeviceState.HostConnectionType.USB)
+    connectDevice(
+      deviceId = "test_device_001",
+      manufacturer = "Google",
+      deviceModel = "Pixel7",
+      release = "10.0.0",
+      sdk = AndroidApiLevel(26),
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
 }

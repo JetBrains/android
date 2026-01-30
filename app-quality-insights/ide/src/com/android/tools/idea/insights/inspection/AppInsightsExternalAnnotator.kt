@@ -49,12 +49,7 @@ private val logger = Logger.getInstance(AppInsightsExternalAnnotator::class.java
 class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationResult>() {
   private val lineMarkerProvider = LineMarkerProvider()
 
-  data class InitialInfo(
-    val insights: List<AppInsight>,
-    val vFile: VirtualFile,
-    val editor: Editor,
-    val project: Project,
-  )
+  data class InitialInfo(val insights: List<AppInsight>, val vFile: VirtualFile, val editor: Editor, val project: Project)
 
   data class AnnotationResult(val insights: List<AppInsight>)
 
@@ -83,11 +78,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         if (collectedInfo.editor.isDisposed) return@mapNotNull null
         if (insight.issue.sampleEvent.appVcsInfo !is AppVcsInfo.ValidInfo) return@mapNotNull insight
 
-        insight.updateToCurrentLineNumber(
-          collectedInfo.vFile,
-          collectedInfo.editor.document,
-          project,
-        )
+        insight.updateToCurrentLineNumber(collectedInfo.vFile, collectedInfo.editor.document, project)
       }
 
     return AnnotationResult(resolved)
@@ -118,9 +109,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
           .range(TextRange(startLineOffset, startLineOffset))
           .gutterIconRenderer(
             AppInsightsGutterRenderer(crashes) { insight ->
-              AppInsightsToolWindowFactory.show(file.project, insight.providerName) {
-                insight.markAsSelected()
-              }
+              AppInsightsToolWindowFactory.show(file.project, insight.providerName) { insight.markAsSelected() }
             }
           )
           .create()
@@ -128,8 +117,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   }
 
   /**
-   * Returns insights for the given [file] from all kinds of sources (e.g. Crashlytics, Play Vitals,
-   * etc).
+   * Returns insights for the given [file] from all kinds of sources (e.g. Crashlytics, Play Vitals, etc).
    *
    * Here each [AppInsightsTabProvider] points to a single kind of source.
    */
@@ -143,32 +131,24 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
             model.controller.insightsInFile(file).also {
-              logger.debug(
-                "Found ${it.size} ${model.controller.provider.displayName} insights for ${file.name}"
-              )
+              logger.debug("Found ${it.size} ${model.controller.provider.displayName} insights for ${file.name}")
             }
           }
           AppInsightsModel.Unauthenticated -> {
-            logger.debug(
-              "Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated."
-            )
+            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated.")
             emptyList()
           }
           AppInsightsModel.Uninitialized -> {
             // This should only happen at project startup, when things are initializing.
             // Skip collection until the insights model is authenticated, after which the
             // framework will call to collect again and get the correct annotations.
-            logger.debug(
-              "Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized."
-            )
+            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized.")
             emptyList()
           }
           AppInsightsModel.InitializationFailed -> {
             // This indicates some failure happened at startup and AQI has no useful information to
             // show.
-            logger.debug(
-              "Skip annotation collection for ${tabProvider.displayName} because its initialization failed."
-            )
+            logger.debug("Skip annotation collection for ${tabProvider.displayName} because its initialization failed.")
             emptyList()
           }
         }
@@ -176,15 +156,8 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
       .flatten()
   }
 
-  /**
-   * Returns [AppInsight] with the up-to-date [AppInsight.line] or null if there's no matching line
-   * number inferred.
-   */
-  private fun AppInsight.updateToCurrentLineNumber(
-    vFile: VirtualFile,
-    document: Document,
-    project: Project,
-  ): AppInsight? {
+  /** Returns [AppInsight] with the up-to-date [AppInsight.line] or null if there's no matching line number inferred. */
+  private fun AppInsight.updateToCurrentLineNumber(vFile: VirtualFile, document: Document, project: Project): AppInsight? {
     val startTime = System.currentTimeMillis()
 
     // We try with best attempt.
@@ -196,13 +169,9 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val endTime = System.currentTimeMillis()
     val latency = endTime - startTime
 
-    service<AppInsightsPerformanceTracker>()
-      .recordVersionControlBasedLineNumberMappingLatency(latency)
-      .also {
-        logger.debug(
-          "It takes $latency ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
-        )
-      }
+    service<AppInsightsPerformanceTracker>().recordVersionControlBasedLineNumberMappingLatency(latency).also {
+      logger.debug("It takes $latency ms to map line number from $oldLineNumber to $newLineNumber in $vFile.")
+    }
 
     newLineNumber ?: return null
 

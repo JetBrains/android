@@ -41,17 +41,12 @@ class StudioAdbLibJdwpTracerFactory : SharedJdwpSessionMonitorFactory {
   }
 
   companion object {
-    private val key =
-      CoroutineScopeCache.Key<StudioAdbLibJdwpTracerFactory>(
-        "StudioAdbLibJdwpTracerFactory session cache key"
-      )
+    private val key = CoroutineScopeCache.Key<StudioAdbLibJdwpTracerFactory>("StudioAdbLibJdwpTracerFactory session cache key")
 
     @JvmStatic
     fun install(session: AdbSession, enabled: () -> Boolean) {
       val factory =
-        session.cache.getOrPutSynchronized(key) {
-          StudioAdbLibJdwpTracerFactory().also { session.addSharedJdwpSessionMonitorFactory(it) }
-        }
+        session.cache.getOrPutSynchronized(key) { StudioAdbLibJdwpTracerFactory().also { session.addSharedJdwpSessionMonitorFactory(it) } }
       factory.enabled = enabled
     }
   }

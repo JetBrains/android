@@ -25,16 +25,14 @@ import com.android.tools.adtui.webp.WebpNativeLibDownloader
 import com.android.tools.idea.ui.screenshot.DeviceFramingOption
 import com.android.tools.idea.ui.screenshot.DeviceScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
-import org.junit.Before
-import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.nio.file.Path
+import org.junit.Before
+import org.junit.Test
 
-/**
- * Tests for [DeviceScreenshotDecorator].
- */
+/** Tests for [DeviceScreenshotDecorator]. */
 class DeviceScreenshotPostprocessorTest {
 
   @Before
@@ -62,8 +60,8 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testCircularClip() {
-    val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID,
-                                          isRoundDisplay = true)
+    val screenshotImage =
+      ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, isRoundDisplay = true)
     val framedImage = postprocessor.decorate(screenshotImage, null, null)
     assertImageSimilar("CircularClip", framedImage)
   }
@@ -80,8 +78,7 @@ class DeviceScreenshotPostprocessorTest {
   private fun assertImageSimilar(name: String, image: BufferedImage) =
     ImageDiffUtil.assertImageSimilar(getGoldenFile(name), ImageUtils.scale(image, 0.125))
 
-  private fun getGoldenFile(name: String): Path =
-    TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+  private fun getGoldenFile(name: String): Path = TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceScreenshotTest/golden"

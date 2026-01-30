@@ -26,16 +26,11 @@ import javax.swing.event.HyperlinkListener
 
 object WearTileRenderErrorContributor {
 
-  /**
-   * This method determines if [throwable] is an error that was caused by a Wear Tile Preview and
-   * that can be reported on.
-   */
-  @JvmStatic
-  fun isHandledByWearTileContributor(throwable: Throwable?) = isWrongUseOfContext(throwable)
+  /** This method determines if [throwable] is an error that was caused by a Wear Tile Preview and that can be reported on. */
+  @JvmStatic fun isHandledByWearTileContributor(throwable: Throwable?) = isWrongUseOfContext(throwable)
 
   /**
-   * This method reports errors caused by Wear Tile Previews. This method should be called if
-   * [isHandledByWearTileContributor] returns true.
+   * This method reports errors caused by Wear Tile Previews. This method should be called if [isHandledByWearTileContributor] returns true.
    */
   @JvmStatic
   fun reportWearTileErrors(
@@ -92,8 +87,8 @@ object WearTileRenderErrorContributor {
       .map { it.setLinkHandler(linkHandler).build() }
 
   /**
-   * Detects if the wrong Context was used. Users should use the Context provided by the preview
-   * method parameter, and not other ones, such as the context from a TileService.
+   * Detects if the wrong Context was used. Users should use the Context provided by the preview method parameter, and not other ones, such
+   * as the context from a TileService.
    */
   private fun isWrongUseOfContext(throwable: Throwable?) =
     throwable?.let {

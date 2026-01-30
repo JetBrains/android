@@ -28,9 +28,7 @@ import com.android.tools.profiler.proto.Trace
  * This handler keeps track of all devices by [registerDevice] and handles callbacks depending on the device from the given [Client].
  */
 internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
-  /**
-   * A device-to-(traceRecords, filePathCache) map to for routing callbacks based on [Client]'s device.
-   */
+  /** A device-to-(traceRecords, filePathCache) map to for routing callbacks based on [Client]'s device. */
   private val deviceToProfilingMetadata = mutableMapOf<IDevice, Pair<Map<Int, LegacyCpuTraceRecord>, MutableMap<String, String>>>()
 
   init {
@@ -38,9 +36,7 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
     ClientData.setMethodProfilingHandler(this)
   }
 
-  /**
-   * Register a device with its associated trace records and byte cache so the handler knows where to route the callbacks.
-   */
+  /** Register a device with its associated trace records and byte cache so the handler knows where to route the callbacks. */
   fun registerDevice(device: IDevice, profilingRecords: Map<Int, LegacyCpuTraceRecord>, filePathCache: MutableMap<String, String>) {
     deviceToProfilingMetadata[device] = Pair(profilingRecords, filePathCache)
   }
@@ -50,10 +46,11 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
       traceRecords[client.clientData.pid]?.let { record ->
         // Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the
         // sdcard. We don't support this.
-        val status = Trace.TraceStopStatus.newBuilder()
-          .setStatus(Trace.TraceStopStatus.Status.CANNOT_COPY_FILE)
-          .setErrorMessage("Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.")
-          .build()
+        val status =
+          Trace.TraceStopStatus.newBuilder()
+            .setStatus(Trace.TraceStopStatus.Status.CANNOT_COPY_FILE)
+            .setErrorMessage("Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.")
+            .build()
         record.traceInfo!!.stopStatus = status
         record.stopLatch.countDown()
       }
@@ -73,21 +70,19 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
   }
 
   /**
-   * The interface says this callback is "called when method tracing failed to start". It may be true
-   * for API < 10 (not having FEATURE_PROFILING_STREAMING), but there appears no executing path trigger it
-   * for API >= 10.
+   * The interface says this callback is "called when method tracing failed to start". It may be true for API < 10 (not having
+   * FEATURE_PROFILING_STREAMING), but there appears no executing path trigger it for API >= 10.
    *
-   * @param client  the client that was profiled.
+   * @param client the client that was profiled.
    * @param message an optional (`null` ok) error message to be displayed.
    */
   override fun onStartFailure(client: Client, message: String) {}
 
   /**
-   * The interface says "Called when method tracing failed to end on the VM side", but in reality
-   * it is called when either start or end fails. Therefore, we rely on whether
-   * (record.myStartLatch) is still valid to distinguish it is a start or stop failure,
+   * The interface says "Called when method tracing failed to end on the VM side", but in reality it is called when either start or end
+   * fails. Therefore, we rely on whether (record.myStartLatch) is still valid to distinguish it is a start or stop failure,
    *
-   * @param client  the client that was profiled.
+   * @param client the client that was profiled.
    * @param message an optional (`null` ok) error message to be displayed.
    */
   override fun onEndFailure(client: Client, message: String) {
@@ -96,12 +91,12 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
         if (record.startLatch.count > 0) {
           record.startFailureMessage = message
           record.startLatch.countDown()
-        }
-        else {
-          val status = Trace.TraceStopStatus.newBuilder()
-            .setStatus(Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
-            .setErrorMessage("Failed to stop profiling: $message")
-            .build()
+        } else {
+          val status =
+            Trace.TraceStopStatus.newBuilder()
+              .setStatus(Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+              .setErrorMessage("Failed to stop profiling: $message")
+              .build()
           record.traceInfo!!.stopStatus = status
           record.stopLatch.countDown()
         }

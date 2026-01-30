@@ -24,10 +24,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.junit.Test
 import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.Files
+import org.junit.Test
 
 class PathStringPoolTest : HeavyPlatformTestCase() {
 

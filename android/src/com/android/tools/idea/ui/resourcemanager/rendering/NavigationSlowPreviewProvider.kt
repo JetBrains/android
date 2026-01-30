@@ -30,9 +30,9 @@ import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.scale.JBUIScale
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * [SlowResourcePreviewProvider] for Navigation assets.
@@ -40,19 +40,20 @@ import java.io.File
  * For valid Navigation graphs, returns a preview of the layout set as the start destination, if there's no defined layout, it will just
  * return a layout placeholder image.
  */
-class NavigationSlowPreviewProvider(
-  private val facet: AndroidFacet,
-  private val resourceResolver: ResourceResolver
-) : SlowResourcePreviewProvider {
+class NavigationSlowPreviewProvider(private val facet: AndroidFacet, private val resourceResolver: ResourceResolver) :
+  SlowResourcePreviewProvider {
   override val previewPlaceholder: BufferedImage = createNavigationPlaceHolder(JBUIScale.scale(100), JBUIScale.scale(100), null)
 
   override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
     val designAsset = (asset as? DesignAsset) ?: return null
     val layoutFileToPreview = resolveLayoutToRender(designAsset)
-    val layoutPreview = layoutFileToPreview?.let {
-      val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(layoutFileToPreview.virtualFile)
-      LayoutRenderer.getInstance(facet).getLayoutRender(layoutFileToPreview, configuration)
-    }?.get()
+    val layoutPreview =
+      layoutFileToPreview
+        ?.let {
+          val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(layoutFileToPreview.virtualFile)
+          LayoutRenderer.getInstance(facet).getLayoutRender(layoutFileToPreview, configuration)
+        }
+        ?.get()
     // TODO(147157808): Provide a different visual when there is nothing to preview. E.g: 'No preview' text
     return createNavigationPlaceHolder(width, height, layoutPreview)
   }
@@ -68,12 +69,13 @@ class NavigationSlowPreviewProvider(
     val rootTag = runReadAction { navPsiFile.rootTag } ?: return null
     val destinationId = rootTag.readAttributeOrNull(SdkConstants.ATTR_START_DESTINATION, SdkConstants.AUTO_URI) ?: return null
     val shortDestId = ResourceUrl.parse(destinationId)?.name ?: return null
-    val destTag = rootTag.childrenOfType<XmlTag>().firstOrNull { tag ->
-      // Find the Tag with the ID of the start destination attribute.
-      val tagId = tag.readAttributeOrNull(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI) ?: return null
-      val tagIdValue = ResourceUrl.parse(tagId)?.name
-      return@firstOrNull tagIdValue?.equals(shortDestId) ?: false
-    } ?: return null
+    val destTag =
+      rootTag.childrenOfType<XmlTag>().firstOrNull { tag ->
+        // Find the Tag with the ID of the start destination attribute.
+        val tagId = tag.readAttributeOrNull(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI) ?: return null
+        val tagIdValue = ResourceUrl.parse(tagId)?.name
+        return@firstOrNull tagIdValue?.equals(shortDestId) ?: false
+      } ?: return null
     // Then see if it has the tools:layout attribute and get the file associated with that resource.
     val layoutUrl = destTag.readAttributeOrNull(SdkConstants.ATTR_LAYOUT, SdkConstants.TOOLS_URI) ?: return null
     val layoutResourceUrl = ResourceUrl.parse(layoutUrl) ?: return null

@@ -30,7 +30,6 @@ import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.U
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -59,13 +58,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 
-/**
- * Controls the device by sending control messages to it.
- */
-internal class DeviceController(
-  disposableParent: Disposable,
-  private val controlChannel: SuspendingSocketChannel
-) : Disposable {
+/** Controls the device by sending control messages to it. */
+internal class DeviceController(disposableParent: Disposable, private val controlChannel: SuspendingSocketChannel) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(javaClass.simpleName, 1)
   private val outputStream = Base128OutputStream(newOutputStream(controlChannel, CONTROL_MSG_BUFFER_SIZE))
@@ -74,12 +68,16 @@ internal class DeviceController(
   private val receiverScope: CoroutineScope
   private val deviceClipboardListeners: MutableList<DeviceClipboardListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val deviceStateListeners: MutableList<DeviceStateListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  private val displayListeners:  MutableList<DisplayListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  private val xrEnvironmentListeners:  MutableList<XrEnvironmentListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  @Volatile var supportedFoldingStates: List<FoldingState> = emptyList()
+  private val displayListeners: MutableList<DisplayListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  private val xrEnvironmentListeners: MutableList<XrEnvironmentListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  @Volatile
+  var supportedFoldingStates: List<FoldingState> = emptyList()
     private set
-  @Volatile var currentFoldingState: FoldingState? = null
+
+  @Volatile
+  var currentFoldingState: FoldingState? = null
     private set
+
   @Volatile var xrInputUnavailableReason: XrInputUnavailableNotification.Reason? = null
   @Volatile private var xrPassthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
   @Volatile private var xrEnvironment: XrEnvironment? = null
@@ -94,16 +92,11 @@ internal class DeviceController(
     startReceivingMessages()
   }
 
-  /**
-   * Sends a control message to the device. The control message is not expected to trigger a response.
-   */
+  /** Sends a control message to the device. The control message is not expected to trigger a response. */
   fun sendControlMessage(message: ControlMessage) {
     try {
-      executor.submit {
-        send(message)
-      }
-    }
-    catch (_: RejectedExecutionException) {
+      executor.submit { send(message) }
+    } catch (_: RejectedExecutionException) {
       // Executor has been shut down by the dispose method.
     }
   }
@@ -111,83 +104,83 @@ internal class DeviceController(
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun getDisplayConfigurations(): List<DisplayDescriptor> {
     val request = DisplayConfigurationRequest(requestIdGenerator)
-    return (sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse)?.displays ?:
-           throw RuntimeException("Unexpected response")
+    return (sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse)?.displays
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun getUiSettings(): UiSettingsResponse {
     val request = UiSettingsRequest(requestIdGenerator)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setDarkMode(darkMode: Boolean): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DARK_MODE, darkMode)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setFontScale(fontScale: Int): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.FONT_SCALE, fontScale)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setScreenDensity(density: Int): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DENSITY, density)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setTalkBack(talkback: Boolean): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.TALKBACK, talkback)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setSelectToSpeak(selectToSpeak: Boolean): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.SELECT_TO_SPEAK, selectToSpeak)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setGestureNavigation(gestureNavigation: Boolean): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.GESTURE_NAVIGATION, gestureNavigation)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setDebugLayout(debugLayout: Boolean): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DEBUG_LAYOUT, debugLayout)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setAppLanguage(applicationId: String, locale: String): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.APP_LOCALE, AppLocale(applicationId, locale))
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun resetUiSettings(): UiSettingsResponse {
     val request = ResetUiSettingsRequest(requestIdGenerator)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
-           ?: throw RuntimeException("Unexpected response")
+      ?: throw RuntimeException("Unexpected response")
   }
 
   /**
-   * Sends a request message to the device and returns the received response.
-   * The [request] has to implement the [CorrelatedMessage] interface.
+   * Sends a request message to the device and returns the received response. The [request] has to implement the [CorrelatedMessage]
+   * interface.
    */
   @Throws(StatusRuntimeException::class, TimeoutException::class)
   private suspend fun sendRequest(request: ControlMessage, timeout: Long, unit: TimeUnit): ControlMessage {
@@ -197,28 +190,22 @@ internal class DeviceController(
         suspendCancellableCoroutine { continuation ->
           responseCallbacks.put(request.requestId, continuation)
           try {
-            executor.submit {
-              send(request)
-            }
-          }
-          catch (_: RejectedExecutionException) {
+            executor.submit { send(request) }
+          } catch (_: RejectedExecutionException) {
             continuation.cancel() // Executor has been shut down by the dispose method.
-          }
-          catch (e: Throwable) {
+          } catch (e: Throwable) {
             continuation.resumeWithException(e)
           }
         }
       }
-    }
-    catch (_: TimeoutCancellationException) {
+    } catch (_: TimeoutCancellationException) {
       throw TimeoutException()
-    }
-    finally {
+    } finally {
       responseCallbacks.remove(request.requestId)
     }
   }
 
-  private fun send(message:ControlMessage) {
+  private fun send(message: ControlMessage) {
     message.serialize(outputStream)
     outputStream.flush()
   }
@@ -229,10 +216,7 @@ internal class DeviceController(
     CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
-    }
-    catch (_: InterruptedException) {
-    }
-    finally {
+    } catch (_: InterruptedException) {} finally {
       deviceClipboardListeners.clear()
     }
   }
@@ -245,10 +229,7 @@ internal class DeviceController(
     deviceClipboardListeners.remove(listener)
   }
 
-  /**
-   * Adds a [DeviceStateListener]. The added listener immediately receives a call with
-   * the current supported device states.
-   */
+  /** Adds a [DeviceStateListener]. The added listener immediately receives a call with the current supported device states. */
   internal fun addDeviceStateListener(listener: DeviceStateListener) {
     deviceStateListeners.add(listener)
     listener.onSupportedDeviceStatesChanged(supportedFoldingStates)
@@ -300,14 +281,11 @@ internal class DeviceController(
             is XrInputUnavailableNotification -> onXrInputUnavailable(message)
             else -> logger.error("Unexpected type of a received message: ${message.type}")
           }
-        }
-        catch (_: EOFException) {
+        } catch (_: EOFException) {
           break
-        }
-        catch (_: ClosedChannelException) {
+        } catch (_: ClosedChannelException) {
           break
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
           if (e.message?.startsWith("Connection reset") == true || e.message?.endsWith("network name is no longer available") == true) {
             break
           }
@@ -321,8 +299,7 @@ internal class DeviceController(
     val continuation = responseCallbacks.remove(response.requestId) ?: return
     if (response is ErrorResponse) {
       continuation.resumeWithException(StatusRuntimeException(Status.UNKNOWN.withDescription(response.errorMessage)))
-    }
-    else {
+    } else {
       continuation.resume(response)
     }
   }
@@ -360,7 +337,12 @@ internal class DeviceController(
 
   private fun onDisplayAddedOrChanged(message: DisplayAddedOrChangedNotification) {
     for (listener in displayListeners) {
-      val displayType = try { DisplayType.entries[message.displayType] } catch (_: IndexOutOfBoundsException) { DisplayType.UNKNOWN }
+      val displayType =
+        try {
+          DisplayType.entries[message.displayType]
+        } catch (_: IndexOutOfBoundsException) {
+          DisplayType.UNKNOWN
+        }
       listener.onDisplayAddedOrChanged(message.displayId, message.width, message.height, message.rotation, displayType)
     }
   }
@@ -457,30 +439,34 @@ internal data class FoldingState(
 
   val icon: Icon? = FOLDING_STATE_ICONS[name]
 
-  constructor(deviceState: DeviceState) :
-    this(deviceState.id, deviceState.adjustedName, deviceState.adjustedSystemProperties, deviceState.physicalProperties)
+  constructor(
+    deviceState: DeviceState
+  ) : this(deviceState.id, deviceState.adjustedName, deviceState.adjustedSystemProperties, deviceState.physicalProperties)
 }
 
 private val DeviceState.adjustedName: String
   get() {
     var adjustedName = name.replaceSuffix("_STATE", "_MODE")
-    adjustedName = when (adjustedName) {
-      "CLOSE" -> "CLOSED"
-      "OPENED" -> "OPEN"
-      "HALF_CLOSED" -> "HALF_OPEN"
-      "HALF_FOLDED" -> "HALF_OPEN"
-      "HALF_OPENED" -> "HALF_OPEN"
-      "CONCURRENT_INNER_DEFAULT", "DUAL" -> "DUAL_DISPLAY_MODE"
-      "REAR_DUAL" -> "REAR_DUAL_MODE"
-      else -> adjustedName
-    }
+    adjustedName =
+      when (adjustedName) {
+        "CLOSE" -> "CLOSED"
+        "OPENED" -> "OPEN"
+        "HALF_CLOSED" -> "HALF_OPEN"
+        "HALF_FOLDED" -> "HALF_OPEN"
+        "HALF_OPENED" -> "HALF_OPEN"
+        "CONCURRENT_INNER_DEFAULT",
+        "DUAL" -> "DUAL_DISPLAY_MODE"
+        "REAR_DUAL" -> "REAR_DUAL_MODE"
+        else -> adjustedName
+      }
     if (adjustedName.startsWith("HALF_")) {
       adjustedName = "HALF-" + adjustedName.substring("HALF_".length)
     }
     return toTitleCase(adjustedName.replace('_', ' ').lowercase())
   }
 
-private val logger get() = Logger.getInstance(DeviceController::class.java)
+private val logger
+  get() = Logger.getInstance(DeviceController::class.java)
 
 private val DeviceState.adjustedSystemProperties: Set<Property>
   // For some unclear reason the video encoder connected to the second display on Samsung Fold5 doesn't

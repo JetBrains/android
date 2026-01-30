@@ -30,9 +30,8 @@ class DeviceInputListenerManager {
   /** Adds a [listener] that will be called when an input event is sent to the device. */
   @UiThread
   fun addDeviceInputListener(deviceSerialNumber: String, listener: DeviceInputListener) {
-    val dispatcher = deviceInputDispatchers.computeIfAbsent(deviceSerialNumber) { serialNumber ->
-      DeviceInputListenerDispatcher(serialNumber)
-    }
+    val dispatcher =
+      deviceInputDispatchers.computeIfAbsent(deviceSerialNumber) { serialNumber -> DeviceInputListenerDispatcher(serialNumber) }
     dispatcher.addListener(listener)
   }
 
@@ -45,8 +44,17 @@ class DeviceInputListenerManager {
     }
   }
 
-  internal fun notifyListenersOfTouchEvent(deviceSerialNumber: String, displayId: Int, displayWidth: Int, displayHeight: Int,
-                                           displayOrientation: Int, x: Int, y: Int, endOfTouch: Boolean, multiTouch: Boolean) {
+  internal fun notifyListenersOfTouchEvent(
+    deviceSerialNumber: String,
+    displayId: Int,
+    displayWidth: Int,
+    displayHeight: Int,
+    displayOrientation: Int,
+    x: Int,
+    y: Int,
+    endOfTouch: Boolean,
+    multiTouch: Boolean,
+  ) {
     val dispatcher = deviceInputDispatchers[deviceSerialNumber] ?: return
     dispatcher.notifyListenersOfTouchEvent(displayId, displayWidth, displayHeight, displayOrientation, x, y, endOfTouch, multiTouch)
   }
@@ -57,41 +65,47 @@ private class DeviceInputListenerDispatcher(val deviceSerialNumber: String) {
 
   private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<DeviceInputListener>()
   private val backgroundExecutor =
-      AppExecutorUtil.createBoundedApplicationPoolExecutor("DeviceInputListenerDispatcher($deviceSerialNumber)", 1)
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("DeviceInputListenerDispatcher($deviceSerialNumber)", 1)
   private val draggingOnDisplays = IntArraySet()
 
   fun addListener(listener: DeviceInputListener) {
     listeners.add(listener)
   }
 
-  fun removeListener(listener: DeviceInputListener): Boolean =
-      listeners.remove(listener)
+  fun removeListener(listener: DeviceInputListener): Boolean = listeners.remove(listener)
 
-  fun hasListeners(): Boolean =
-      listeners.isNotEmpty()
+  fun hasListeners(): Boolean = listeners.isNotEmpty()
 
-  fun notifyListenersOfTouchEvent(displayId: Int, displayWidth: Int, displayHeight: Int, displayOrientation: Int, x: Int, y: Int,
-                                  endOfTouch: Boolean, multiTouch: Boolean) {
+  fun notifyListenersOfTouchEvent(
+    displayId: Int,
+    displayWidth: Int,
+    displayHeight: Int,
+    displayOrientation: Int,
+    x: Int,
+    y: Int,
+    endOfTouch: Boolean,
+    multiTouch: Boolean,
+  ) {
     val timestamp = System.currentTimeMillis()
     val display = AndroidInputEvent.DisplayInfo(displayId, displayWidth, displayHeight, displayOrientation)
-    val touches = when {
-      endOfTouch -> {
-        if (draggingOnDisplays.remove(displayId)) {
-          emptyList<Touch>()
+    val touches =
+      when {
+        endOfTouch -> {
+          if (draggingOnDisplays.remove(displayId)) {
+            emptyList<Touch>()
+          } else {
+            return
+          }
         }
-        else {
-          return
+        multiTouch -> {
+          draggingOnDisplays.add(displayId)
+          listOf(Touch(x, y, 0), Touch(displayWidth - 1 - x, displayHeight - 1 - y, 1))
+        }
+        else -> {
+          draggingOnDisplays.add(displayId)
+          listOf(Touch(x, y, 0))
         }
       }
-      multiTouch -> {
-        draggingOnDisplays.add(displayId)
-        listOf(Touch(x, y, 0), Touch(displayWidth - 1 - x, displayHeight - 1 - y, 1,))
-      }
-      else -> {
-        draggingOnDisplays.add(displayId)
-        listOf(Touch(x, y, 0))
-      }
-    }
     val event = AndroidInputEvent.TouchEvent(deviceSerialNumber, display, timestamp, touches)
     backgroundExecutor.submit {
       for (listener in listeners) {

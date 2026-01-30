@@ -45,9 +45,7 @@ object FeatureSurveys {
   }
 
   fun triggerSurveyByName(surveyFileName: String) {
-    val notification = getFeatureSurveyNotification(surveyFileName)
-                       ?: getBrowserNotification(surveyFileName)
-                       ?: return
+    val notification = getFeatureSurveyNotification(surveyFileName) ?: getBrowserNotification(surveyFileName) ?: return
 
     ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
@@ -102,11 +100,11 @@ object FeatureSurveys {
 
     when {
       config == null ||
-      !config.hasGeneralIntervalCompleted() ||
-      !config.hasGeneralIntervalCancelled() ||
-      !config.hasSpecificIntervalCompleted() ||
-      !config.hasSpecificIntervalCancelled() ||
-      !config.hasIdleIntervalMs() -> DEFAULT_FEATURE_SURVEY_CONFIG
+        !config.hasGeneralIntervalCompleted() ||
+        !config.hasGeneralIntervalCancelled() ||
+        !config.hasSpecificIntervalCompleted() ||
+        !config.hasSpecificIntervalCancelled() ||
+        !config.hasIdleIntervalMs() -> DEFAULT_FEATURE_SURVEY_CONFIG
 
       else -> config
     }
@@ -114,22 +112,20 @@ object FeatureSurveys {
 
   private fun getFeatureSurveyNotification(surveyFileName: String): Notification? {
     val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
-    val survey = ServerFlagService.instance
-                   .getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY)
-                 ?: return null
+    val survey = ServerFlagService.instance.getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY) ?: return null
 
     if (shouldInvokeFeatureSurvey(name)) {
       return null
     }
 
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return null
+    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return null
 
-    val notification = notificationGroup.createNotification(
-      survey.title,
-      "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
-      NotificationType.INFORMATION
-    )
+    val notification =
+      notificationGroup.createNotification(
+        survey.title,
+        "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
+        NotificationType.INFORMATION,
+      )
 
     notification.addAction(FeatureSurveyNotificationAction(survey))
 
@@ -139,27 +135,21 @@ object FeatureSurveys {
   private fun getBrowserNotification(surveyFileName: String): Notification? {
     val name = "$BROWSER_SURVEY_ROOT$surveyFileName"
     val emptySurvey = BrowserSurvey.newBuilder().build()
-    val survey = ServerFlagService.instance
-                   .getProtoOrNull(name, emptySurvey)
-                 ?: return null
+    val survey = ServerFlagService.instance.getProtoOrNull(name, emptySurvey) ?: return null
 
     if (!shouldInvokeSurvey(name)) {
       return null
     }
 
-    val notificationGroup =
-      NotificationGroupManager.getInstance().getNotificationGroup("Browser Survey") ?: return null
+    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Browser Survey") ?: return null
 
-    val notification = notificationGroup.createNotification(
-      survey.title,
-      survey.description,
-      NotificationType.INFORMATION
-    )
+    val notification = notificationGroup.createNotification(survey.title, survey.description, NotificationType.INFORMATION)
 
-    val uniqueId = when {
-      AnalyticsSettings.optedIn -> UUID.randomUUID().toString()
-      else -> "none"
-    }
+    val uniqueId =
+      when {
+        AnalyticsSettings.optedIn -> UUID.randomUUID().toString()
+        else -> "none"
+      }
 
     val url = survey.url.replace("_unique_id", uniqueId)
 
@@ -168,11 +158,15 @@ object FeatureSurveys {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = EventKind.BROWSER_SURVEY_EVENT
-        browserSurveyEvent = BrowserSurveyEvent.newBuilder().apply {
-          this.name = survey.name
-          this.uniqueId = uniqueId
-        }.build()
-      })
+        browserSurveyEvent =
+          BrowserSurveyEvent.newBuilder()
+            .apply {
+              this.name = survey.name
+              this.uniqueId = uniqueId
+            }
+            .build()
+      }
+    )
 
     FeatureSurveyChoiceLogger.featureSurveyInvoked(name, this.config.generalIntervalCompleted, this.config.specificIntervalCompleted)
 
@@ -209,9 +203,7 @@ object FeatureSurveys {
 
       AnalyticsSettings.saveSettings()
 
-      synchronized(lock) {
-        isSurveyPending = false
-      }
+      synchronized(lock) { isSurveyPending = false }
     }
   }
 }

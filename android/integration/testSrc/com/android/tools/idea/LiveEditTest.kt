@@ -15,45 +15,41 @@
  */
 package com.android.tools.idea
 
-import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
-import org.junit.Rule
-import org.junit.Test
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
-
+import org.junit.Rule
+import org.junit.Test
 
 class LiveEditTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
-  /**
-   * Enables Live Edit by modifying the settings on-disk.
-   */
+  /** Enables Live Edit by modifying the settings on-disk. */
   @Throws(IOException::class)
   fun enableLiveEdit() {
     val filetypePaths = system.installation.configDir.resolve("options/other.xml")
     check(!filetypePaths.toFile().exists()) {
-      String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
-                    filetypePaths)
+      String.format(
+        "%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
+        filetypePaths,
+      )
     }
     Files.createDirectories(filetypePaths.parent)
-    val filetypeContents = String.format(
-      "<application>%n" +
-      "  <component name=\"LiveEditConfiguration\">%n" +
-      "    <option name=\"leTriggerMode\" value=\"AUTOMATIC\" />%n" +
-      "    <option name=\"mode\" value=\"LIVE_EDIT\" />%n" +
-      "  </component>%n" +
-      "</application>")
+    val filetypeContents =
+      String.format(
+        "<application>%n" +
+          "  <component name=\"LiveEditConfiguration\">%n" +
+          "    <option name=\"leTriggerMode\" value=\"AUTOMATIC\" />%n" +
+          "    <option name=\"mode\" value=\"LIVE_EDIT\" />%n" +
+          "  </component>%n" +
+          "</application>"
+      )
     Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8)
   }
 
@@ -76,7 +72,7 @@ class LiveEditTest {
           studio.waitForSync()
           studio.waitForIndex()
 
-          println("Waiting for project init");
+          println("Waiting for project init")
           studio.waitForProjectInit()
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
@@ -88,22 +84,19 @@ class LiveEditTest {
           studio.executeAction("Run")
 
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.liveedittest", 60, TimeUnit.SECONDS)
-          adb.runCommand("logcat", emulator = emulator) {
-            waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat", emulator = emulator) { waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS) }
 
           val newContents00 = "import androidx.compose.material3.Button"
           studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE 00.*?// END SEARCH 00", newContents00)
 
-          val newContents01 = "Button(onClick = {}) {\n" +
-                              "  Log.i(\"MainActivity\", \"After editing\")\n" +
-                              "  Text(text = \"Hello, Live Edit and \$name!\")" +
-                              "}\n"
+          val newContents01 =
+            "Button(onClick = {}) {\n" +
+              "  Log.i(\"MainActivity\", \"After editing\")\n" +
+              "  Text(text = \"Hello, Live Edit and \$name!\")" +
+              "}\n"
           studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE 01.*?// END SEARCH 01", newContents01)
 
-          adb.runCommand("logcat", emulator = emulator) {
-            waitForLog(".*After editing.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat", emulator = emulator) { waitForLog(".*After editing.*", 600, TimeUnit.SECONDS) }
         }
       }
     }

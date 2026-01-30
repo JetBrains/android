@@ -27,13 +27,8 @@ import kotlinx.coroutines.flow.update
  *
  * @param tracker The [ComposeAnimationTracker] for tracking animation usage.
  */
-open class FromToStateComboBox<T>(
-  tracker: ComposeAnimationTracker,
-  states: Set<T>,
-  initialState: T,
-) : FromToState<T> {
-  final override val state =
-    MutableStateFlow(initialState to (states.firstOrNull { initialState != it } ?: initialState))
+open class FromToStateComboBox<T>(tracker: ComposeAnimationTracker, states: Set<T>, initialState: T) : FromToState<T> {
+  final override val state = MutableStateFlow(initialState to (states.firstOrNull { initialState != it } ?: initialState))
 
   private val fromState =
     EnumStateAction(
@@ -81,11 +76,8 @@ open class FromToStateComboBox<T>(
 class BooleanFromToState(tracker: ComposeAnimationTracker, initialState: Boolean) :
   FromToStateComboBox<Boolean>(tracker, setOf(true, false), initialState)
 
-class EnumFromToState(
-  tracker: ComposeAnimationTracker,
-  states: Set<Enum<*>>,
-  initialState: Enum<*>,
-) : FromToStateComboBox<Enum<*>>(tracker, states, initialState) {
+class EnumFromToState(tracker: ComposeAnimationTracker, states: Set<Enum<*>>, initialState: Enum<*>) :
+  FromToStateComboBox<Enum<*>>(tracker, states, initialState) {
   init {
     if (!states.contains(initialState)) {
       throw IllegalArgumentException("Initial state $initialState is not present in $states")

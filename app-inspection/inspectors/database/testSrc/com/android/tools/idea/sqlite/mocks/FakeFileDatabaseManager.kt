@@ -23,9 +23,7 @@ import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.delay
 
-open class FakeFileDatabaseManager(
-  private val virtualFile: VirtualFile = MockVirtualFile("mock virtual file")
-) : FileDatabaseManager {
+open class FakeFileDatabaseManager(private val virtualFile: VirtualFile = MockVirtualFile("mock virtual file")) : FileDatabaseManager {
   val databaseFileData = DatabaseFileData(virtualFile)
   val cleanedUpFiles = mutableListOf<DatabaseFileData>()
 

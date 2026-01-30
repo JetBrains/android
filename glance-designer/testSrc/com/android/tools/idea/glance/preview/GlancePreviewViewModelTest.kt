@@ -48,11 +48,7 @@ private class TestPreviewView : PreviewView {
   var showContentCalls = 0
   var updateToolbarCalls = 0
 
-  override fun showErrorMessage(
-    message: String,
-    recoveryUrl: UrlData?,
-    actionToRecover: ActionData?,
-  ) {
+  override fun showErrorMessage(message: String, recoveryUrl: UrlData?, actionToRecover: ActionData?) {
     errorMessages.add(message)
   }
 
@@ -81,8 +77,7 @@ class GlancePreviewViewModelTest {
   private val statusManager =
     object : RenderingBuildStatusManager {
       override var isBuilding: Boolean = false
-      override var statusFlow: MutableStateFlow<RenderingBuildStatus> =
-        MutableStateFlow(RenderingBuildStatus.NotReady)
+      override var statusFlow: MutableStateFlow<RenderingBuildStatus> = MutableStateFlow(RenderingBuildStatus.NotReady)
     }
 
   private val refreshManager = mock<PreviewRefreshManager>()
@@ -105,15 +100,7 @@ class GlancePreviewViewModelTest {
     file = fixture.configureByText("foo.txt", "")
     val filePtr = runReadAction { SmartPointerManager.createPointer(file) }
 
-    viewModel =
-      GlancePreviewViewModel(
-        testView,
-        statusManager,
-        refreshManager,
-        project,
-        filePtr,
-        hasRenderErrors,
-      )
+    viewModel = GlancePreviewViewModel(testView, statusManager, refreshManager, project, filePtr, hasRenderErrors)
   }
 
   @After
@@ -128,30 +115,21 @@ class GlancePreviewViewModelTest {
 
       viewModel.activate()
 
-      Assert.assertEquals(
-        "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last(),
-      )
+      Assert.assertEquals("A successful build is needed before the preview can be displayed", testView.errorMessages.last())
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
       Assert.assertEquals(1, testView.updateToolbarCalls)
 
       viewModel.onEnterSmartMode()
 
-      Assert.assertEquals(
-        "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last(),
-      )
+      Assert.assertEquals("A successful build is needed before the preview can be displayed", testView.errorMessages.last())
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
       Assert.assertEquals(2, testView.updateToolbarCalls)
 
       viewModel.refreshCompleted(false, 10)
 
-      Assert.assertEquals(
-        "A successful build is needed before the preview can be displayed",
-        testView.errorMessages.last(),
-      )
+      Assert.assertEquals("A successful build is needed before the preview can be displayed", testView.errorMessages.last())
       Assert.assertTrue(testView.loadingMessages.isEmpty())
       Assert.assertEquals(0, testView.showContentCalls)
       Assert.assertEquals(3, testView.updateToolbarCalls)
@@ -288,9 +266,7 @@ class GlancePreviewViewModelTest {
     Assert.assertFalse(viewModel.isRefreshing)
 
     // The view model is refreshing while in dumb mode
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      Assert.assertTrue(viewModel.isRefreshing)
-    }
+    DumbModeTestUtils.runInDumbModeSynchronously(project) { Assert.assertTrue(viewModel.isRefreshing) }
 
     DumbModeTestUtils.waitForSmartMode(project)
     Assert.assertFalse(viewModel.isRefreshing)

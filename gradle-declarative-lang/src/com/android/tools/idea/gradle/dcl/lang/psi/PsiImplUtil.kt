@@ -15,17 +15,9 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BOOLEAN
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.DOUBLE_LITERAL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.INTEGER_LITERAL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_PLUS_EQ
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -38,65 +30,61 @@ import com.intellij.psi.util.elementType
 class PsiImplUtil {
   companion object {
     @JvmStatic
-    fun getReceiver(property: DeclarativeProperty): DeclarativeProperty? = when (property) {
-      is DeclarativeBare -> null
-      is DeclarativeQualified -> property.property
-      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
-    }
+    fun getReceiver(property: DeclarativeProperty): DeclarativeProperty? =
+      when (property) {
+        is DeclarativeBare -> null
+        is DeclarativeQualified -> property.property
+        else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
+      }
 
     @JvmStatic
-    fun getField(property: DeclarativeProperty): DeclarativeIdentifier = when (property) {
-      is DeclarativeBare -> property.identifier
-      is DeclarativeQualified -> property.identifier
-      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
-    }
+    fun getField(property: DeclarativeProperty): DeclarativeIdentifier =
+      when (property) {
+        is DeclarativeBare -> property.identifier
+        is DeclarativeQualified -> property.identifier
+        else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+      }
 
     @JvmStatic
-    fun getField(property: DeclarativePropertyReceiver): DeclarativeIdentifier = when (property) {
-      is DeclarativeBareReceiver -> property.identifier
-      is DeclarativeQualifiedReceiver -> property.identifier
-      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
-    }
+    fun getField(property: DeclarativePropertyReceiver): DeclarativeIdentifier =
+      when (property) {
+        is DeclarativeBareReceiver -> property.identifier
+        is DeclarativeQualifiedReceiver -> property.identifier
+        else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+      }
+
+    @JvmStatic fun getReference(property: DeclarativeProperty): PsiReference? = getReferences(property).firstOrNull()
 
     @JvmStatic
-    fun getReference(property: DeclarativeProperty): PsiReference? = getReferences(property).firstOrNull()
+    fun getReferences(property: DeclarativeProperty): Array<PsiReference> = ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
     @JvmStatic
-    fun getReferences(property: DeclarativeProperty): Array<PsiReference> =
-      ReferenceProvidersRegistry.getReferencesFromProviders(property)
+    fun getReceiver(property: DeclarativeAssignableProperty): DeclarativeAssignableProperty? =
+      when (property) {
+        is DeclarativeAssignableBare -> null
+        is DeclarativeAssignableQualified -> property.assignableProperty
+        else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
+      }
+
+    @JvmStatic fun getReceiver(property: DeclarativeSimpleFactory): DeclarativeFactoryReceiver? = null
+
+    @JvmStatic fun getReceiver(property: DeclarativeFactoryPropertyReceiver): DeclarativePropertyReceiver? = property.propertyReceiver
 
     @JvmStatic
-    fun getReceiver(property: DeclarativeAssignableProperty): DeclarativeAssignableProperty? = when (property) {
-      is DeclarativeAssignableBare -> null
-      is DeclarativeAssignableQualified -> property.assignableProperty
-      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
-    }
+    fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier =
+      when (property) {
+        is DeclarativeAssignableBare -> property.identifier
+        is DeclarativeAssignableQualified -> property.identifier
+        else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+      }
 
-    @JvmStatic
-    fun getReceiver(property: DeclarativeSimpleFactory): DeclarativeFactoryReceiver? = null
-
-    @JvmStatic
-    fun getReceiver(property: DeclarativeFactoryPropertyReceiver): DeclarativePropertyReceiver? =
-      property.propertyReceiver
-
-    @JvmStatic
-    fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier = when (property) {
-      is DeclarativeAssignableBare -> property.identifier
-      is DeclarativeAssignableQualified -> property.identifier
-      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
-    }
-
-    @JvmStatic
-    fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
-      assignment.assignableProperty.field
+    @JvmStatic fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier = assignment.assignableProperty.field
 
     @JvmStatic
     fun getAssignmentType(assignment: DeclarativeAssignment): AssignmentType {
       val children = assignment.children
-      return if (children.find { it.elementType == OP_PLUS_EQ } != null)
-        AssignmentType.APPEND
-      else if (children.find { it.elementType == OP_EQ } != null)
-        AssignmentType.ASSIGNMENT
+      return if (children.find { it.elementType == OP_PLUS_EQ } != null) AssignmentType.APPEND
+      else if (children.find { it.elementType == OP_EQ } != null) AssignmentType.ASSIGNMENT
       else {
         throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
       }
@@ -104,32 +92,28 @@ class PsiImplUtil {
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
-       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
+      PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeIdentifier =
       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
 
-    @JvmStatic
-    fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
+    @JvmStatic fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
 
     @JvmStatic
     fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
-    @JvmStatic
-    fun getReference(literal: DeclarativeLiteral): PsiReference? = getReferences(literal).firstOrNull()
+    @JvmStatic fun getReference(literal: DeclarativeLiteral): PsiReference? = getReferences(literal).firstOrNull()
 
     @JvmStatic
-    fun getReferences(literal: DeclarativeLiteral): Array<PsiReference> =
-      ReferenceProvidersRegistry.getReferencesFromProviders(literal)
+    fun getReferences(literal: DeclarativeLiteral): Array<PsiReference> = ReferenceProvidersRegistry.getReferencesFromProviders(literal)
 
     // Name should be nullable to agree with CompositePsiElement.getName() in PSI impl classes
     @JvmStatic
     fun getName(property: DeclarativeIdentifier): String? {
       var text = property.text
-      if (text.startsWith("`") && text.endsWith("`"))
-        text = text.drop(1).dropLast(1)
+      if (text.startsWith("`") && text.endsWith("`")) text = text.drop(1).dropLast(1)
       return StringUtil.unescapeStringCharacters(text)
     }
 
@@ -161,8 +145,8 @@ class PsiImplUtil {
     @JvmStatic
     fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier {
       return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java)
-             ?: block.embeddedFactory?.identifier
-             ?: throw IllegalStateException("DeclarativeBlock `${block.text}` does not have identifier")
+        ?: block.embeddedFactory?.identifier
+        ?: throw IllegalStateException("DeclarativeBlock `${block.text}` does not have identifier")
     }
 
     @JvmStatic
@@ -180,9 +164,7 @@ class PsiImplUtil {
       return list.childrenOfType<DeclarativeValue>().first()
     }
 
-    @JvmStatic
-    fun getReceiver(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeFactoryReceiver =
-      receiver.factoryReceiver
+    @JvmStatic fun getReceiver(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeFactoryReceiver = receiver.factoryReceiver
 
     @JvmStatic
     fun getReceiver(receiver: DeclarativePropertyReceiver): DeclarativePropertyReceiver? =
@@ -192,45 +174,49 @@ class PsiImplUtil {
       }
 
     @JvmStatic
-    fun getValue(literal: DeclarativeLiteral): Any? = when {
-      literal.pair !=null -> literal.pair!!.second
-      literal.boolean != null -> literal.boolean?.text == "true"
-      literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
-      literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
-      literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
-      literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
-      literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
-      literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
-      literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
-      literal.elementType == NULL -> null
-      else -> null
-    }
+    fun getValue(literal: DeclarativeLiteral): Any? =
+      when {
+        literal.pair != null -> literal.pair!!.second
+        literal.boolean != null -> literal.boolean?.text == "true"
+        literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
+        literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
+        literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
+        literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
+        literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
+        literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
+        literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
+        literal.elementType == NULL -> null
+        else -> null
+      }
 
     @JvmStatic
-    fun getValue(literal: DeclarativeSimpleLiteral): Any? = when {
-      literal.boolean != null -> literal.boolean?.text == "true"
-      literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
-      literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
-      literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
-      literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
-      literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
-      literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
-      literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
-      literal.elementType == NULL -> null
-      else -> null
-    }
+    fun getValue(literal: DeclarativeSimpleLiteral): Any? =
+      when {
+        literal.boolean != null -> literal.boolean?.text == "true"
+        literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
+        literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
+        literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
+        literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
+        literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
+        literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
+        literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
+        literal.elementType == NULL -> null
+        else -> null
+      }
 
     private fun String.unquote() = this.removePrefix("\"").removeSuffixIfPresent("\"")
+
     private fun String.unTripleQuote() = this.removePrefix("\"\"\"").removeSuffixIfPresent("\"\"\"")
+
     private fun String.removeSuffixIfPresent(suffix: String) = if (this.endsWith(suffix)) this.dropLast(suffix.length) else this
+
     private fun String.toIntegerOrNull(): Any? {
       if (isEmpty()) return null
       var str = this.replace("_", "")
       val longIndicator = last().lowercaseChar() == 'l'
       if (longIndicator) {
         str = dropLast(1)
-        return if (str.last().lowercaseChar() == 'u') str.dropLast(1).toULong()
-        else str.toLongOrNull()
+        return if (str.last().lowercaseChar() == 'u') str.dropLast(1).toULong() else str.toLongOrNull()
       }
       return if (str.last().lowercaseChar() == 'u') {
         when (val answer = str.dropLast(1).toULong()) {
@@ -238,8 +224,7 @@ class PsiImplUtil {
           in UInt.MIN_VALUE..UInt.MAX_VALUE -> answer.toUInt()
           else -> answer
         }
-      }
-      else
+      } else
         when (val answer = str.toLongOrNull()) {
           null -> null
           in Int.MIN_VALUE..Int.MAX_VALUE -> answer.toInt()

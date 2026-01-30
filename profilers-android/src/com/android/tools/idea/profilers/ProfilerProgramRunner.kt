@@ -69,8 +69,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
         // Anything other than "Run as profileable (low overhead)" and "Run as debuggable (complete data)" cannot run.
         return false
       }
-    }
-    else if (ProfileRunExecutor.EXECUTOR_ID != executorId) {
+    } else if (ProfileRunExecutor.EXECUTOR_ID != executorId) {
       // Anything other than "Profile" cannot run.
       return false
     }
@@ -78,15 +77,21 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     return projectSystem.getSyncManager().run { !isSyncInProgress() && !isSyncNeeded() }
   }
 
-  override val supportedConfigurationTypeIds = listOf(
-    AndroidRunConfigurationType().id,
-    AndroidTestRunConfigurationType().id,
-    AndroidWatchFaceConfigurationType().id,
-    AndroidTileConfigurationType().id
-  )
+  override val supportedConfigurationTypeIds =
+    listOf(
+      AndroidRunConfigurationType().id,
+      AndroidTestRunConfigurationType().id,
+      AndroidWatchFaceConfigurationType().id,
+      AndroidTileConfigurationType().id,
+    )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
-  override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
+
+  override fun run(
+    environment: ExecutionEnvironment,
+    executor: AndroidConfigurationExecutor,
+    indicator: ProgressIndicator,
+  ): RunContentDescriptor {
     if (!isProfilerExecutor(environment.executor.id)) {
       throw RuntimeException("Not a profiler executor")
     }
@@ -106,11 +111,11 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     return if (ProfileRunExecutor.EXECUTOR_ID == executorId) {
       // Profile executor for ASwB.
       doExecuteInternal(state, environment)
-    }
-    else {
+    } else {
       // Profile executor group for Profileable Builds.
       when (AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode) {
-        ProfilingMode.DEBUGGABLE, ProfilingMode.NOT_SET -> doExecuteInternal(state, environment)
+        ProfilingMode.DEBUGGABLE,
+        ProfilingMode.NOT_SET -> doExecuteInternal(state, environment)
         ProfilingMode.PROFILEABLE -> checkProfileableSupportAndExecute(state, environment)
         else -> resolvedPromise(null)
       }
@@ -119,10 +124,12 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
 
   private fun doExecuteInternal(state: RunProfileState, environment: ExecutionEnvironment): Promise<RunContentDescriptor?> {
     val descriptor = super.execute(environment, state)
-    createProfilerToolWindow(environment.project,
-                             environment.runnerAndConfigurationSettings,
-                             environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
-                             environment.executor.id)
+    createProfilerToolWindow(
+      environment.project,
+      environment.runnerAndConfigurationSettings,
+      environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
+      environment.executor.id,
+    )
     return descriptor
   }
 
@@ -139,8 +146,11 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     }
 
     // Prompt the user.
-    Messages.showErrorDialog(environment.project, buildProfileableRequirementMessage(projectSupported, apiLevelSupported, systemSupported),
-                             "Unsupported Device or Emulator")
+    Messages.showErrorDialog(
+      environment.project,
+      buildProfileableRequirementMessage(projectSupported, apiLevelSupported, systemSupported),
+      "Unsupported Device or Emulator",
+    )
 
     // Reset user's selection stored on task enter (e.g. startup tasks being enabled) as the task execution has been canceled and thus the
     // state is invalid.
@@ -153,8 +163,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   }
 
   companion object {
-    @VisibleForTesting
-    const val MAX_MESSAGE_LINE_LENGTH = 120
+    @VisibleForTesting const val MAX_MESSAGE_LINE_LENGTH = 120
 
     @JvmOverloads
     @JvmStatic
@@ -162,7 +171,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       project: Project,
       settings: RunnerAndConfigurationSettings?,
       isSwapExecution: Boolean = false,
-      executorId: String? = null
+      executorId: String? = null,
     ) {
       ThreadingAssertions.assertEventDispatchThread()
 
@@ -205,8 +214,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
         // Track profiling mode.
         // Executor will be null for legacy AGP version, which doesn't support profiling mode.
         // ASwB does not support profiling mode either, but it uses a different ProgramRunner so no event will be recorded.
-        val profilingMode = AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode
-                            ?: ProfilingMode.NOT_SET
+        val profilingMode = AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode ?: ProfilingMode.NOT_SET
         metadataBuilder.profilingMode = profilingMode.analyticsProtoType
         // TODO(b/234158986): track build type metadata (debuggable, profileable, etc.)
       }
@@ -232,9 +240,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
 
     fun isApiLevelSupported(featureLevel: Int) = featureLevel >= (VersionCodes.Q)
 
-    /**
-     * Overload that finds the target device in addition to checking the device's api level.
-     */
+    /** Overload that finds the target device in addition to checking the device's api level. */
     private fun isApiLevelSupported(env: ExecutionEnvironment): Boolean {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
@@ -247,9 +253,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
 
     fun isSystemSupported(isDebuggable: Boolean) = !isDebuggable
 
-    /**
-     * Overload that finds the target device in addition to checking the system support.
-     */
+    /** Overload that finds the target device in addition to checking the system support. */
     private fun isSystemSupported(env: ExecutionEnvironment): Boolean {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
@@ -259,7 +263,6 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       }
       return false
     }
-
 
     @VisibleForTesting
     fun buildProfileableRequirementMessage(isProjectSupported: Boolean, isApiLevelSupported: Boolean, isSystemSupported: Boolean): String {
@@ -274,14 +277,16 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
 
       var message = StringBuilder("“Run as profileable (low overhead)” is not available because it requires ")
       when (reasons.size) {
-        0 -> assert(false)  // This method shouldn't be called with no unsupported reasons
+        0 -> assert(false) // This method shouldn't be called with no unsupported reasons
         1 -> message.append(reasons[0])
         2 -> message.append(reasons[0]).append(" and ").append(reasons[1])
         else -> message.append(reasons[0]).append(", ").append(reasons[1]).append(", and ").append(reasons[2])
       }
 
-      message.append(".<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the app with " +
-                     "\"Profiler: Run as debuggable (complete data)\". <a href=\"${SupportLevel.DOC_LINK}\">More Info</a>")
+      message.append(
+        ".<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the app with " +
+          "\"Profiler: Run as debuggable (complete data)\". <a href=\"${SupportLevel.DOC_LINK}\">More Info</a>"
+      )
       return message.insert(0, "<html>").append("</html>").toString()
     }
   }

@@ -15,25 +15,32 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.diffing
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrParameter
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBlock
 
 private typealias ClassVisit = ClassVisitor.() -> Unit
+
 private typealias MethodVisit = MethodVisitor.() -> Unit
+
 private typealias FieldVisit = FieldVisitor.() -> Unit
+
 private typealias AnnotationVisit = AnnotationVisitor.() -> Unit
+
 private typealias ParameterVisit = ParameterVisitor.() -> Unit
+
 private typealias TryCatchBlockVisit = TryCatchBlockVisitor.() -> Unit
+
 private typealias LocalVariableVisit = LocalVariableVisitor.() -> Unit
 
 object Differ {
   fun diff(old: ByteArray, new: ByteArray): ClassDiff? = diffClasses(IrClass(old), IrClass(new))
+
   fun diff(old: IrClass, new: IrClass) = diffClasses(old, new)
 }
 
@@ -106,9 +113,8 @@ private fun diffMethods(old: IrMethod, new: IrMethod): MethodDiff? {
   }
 
   // Associate try/catch blocks based on their position in the code; if a block has changed position, treat it as a new block.
-  val tryCatchBlocks = diffLists(old.tryCatchBlocks, new.tryCatchBlocks, ::diffTryCatch) {
-    Triple(it.start.index, it.handler.index, it.end.index)
-  }
+  val tryCatchBlocks =
+    diffLists(old.tryCatchBlocks, new.tryCatchBlocks, ::diffTryCatch) { Triple(it.start.index, it.handler.index, it.end.index) }
   if (tryCatchBlocks.added.isNotEmpty() || tryCatchBlocks.removed.isNotEmpty() || tryCatchBlocks.modified.isNotEmpty()) {
     visits.add { visitTryCatchBlocks(tryCatchBlocks.added, tryCatchBlocks.removed, tryCatchBlocks.modified) }
   }
@@ -226,14 +232,16 @@ private fun diffAnnotations(old: IrAnnotation, new: IrAnnotation): AnnotationDif
  *
  * @param old the original list of items. Items present in [old] not in [new] will be added to [ListDiff.removed]
  * @param new the new list of items. Items present in [new] but not in [old] will be added to [ListDiff.added]
- * @param  diffFunc a function to compare items with the same key and return a diff. Should return null if there is no difference
+ * @param diffFunc a function to compare items with the same key and return a diff. Should return null if there is no difference
  * @param keyFunc a function to extract a key from each item. Items with the same key will be diffed with [diffFunc] and the result, if not
- * null, will be added to [ListDiff.modified]
+ *   null, will be added to [ListDiff.modified]
  */
-private fun <Type, DiffType> diffLists(old: List<Type>,
-                                       new: List<Type>,
-                                       diffFunc: (Type, Type) -> DiffType?,
-                                       keyFunc: (Type) -> Any): ListDiff<Type, DiffType> {
+private fun <Type, DiffType> diffLists(
+  old: List<Type>,
+  new: List<Type>,
+  diffFunc: (Type, Type) -> DiffType?,
+  keyFunc: (Type) -> Any,
+): ListDiff<Type, DiffType> {
   val added = mutableListOf<Type>()
   val removed = mutableListOf<Type>()
   val modified = mutableListOf<DiffType>()
@@ -280,9 +288,11 @@ private class AnnotationDiffImpl(override val desc: String, val visits: List<Ann
   override fun accept(visitor: AnnotationVisitor) = visits.forEach { visitor.it() }
 }
 
-private class TryCatchBlockDiffImpl(override val start: IrLabels.IrLabel,
-                                    override val handler: IrLabels.IrLabel,
-                                    override val end: IrLabels.IrLabel,
-                                    val visits: List<TryCatchBlockVisit>) : TryCatchBlockDiff {
+private class TryCatchBlockDiffImpl(
+  override val start: IrLabels.IrLabel,
+  override val handler: IrLabels.IrLabel,
+  override val end: IrLabels.IrLabel,
+  val visits: List<TryCatchBlockVisit>,
+) : TryCatchBlockDiff {
   override fun accept(visitor: TryCatchBlockVisitor) = visits.forEach { visitor.it() }
 }

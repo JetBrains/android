@@ -41,24 +41,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
-import org.intellij.lang.annotations.Language
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseEvent
 import java.io.IOException
 import java.io.InputStreamReader
 import javax.swing.JComponent
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
-internal fun moduleContainsResource(
-  facet: AndroidFacet,
-  type: ResourceType,
-  name: String,
-): Boolean {
-  return StudioResourceRepositoryManager.getModuleResources(facet)
-    .hasResources(ResourceNamespace.TODO(), type, name)
+internal fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
+  return StudioResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {
@@ -77,31 +72,17 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
           return@copyVectorAssetToMainModuleSourceSet
         }
     InputStreamReader(inputStream, Charsets.UTF_8).use { reader ->
-      createResourceFile(
-        project,
-        facet,
-        FD_RES_DRAWABLE,
-        asset + DOT_XML,
-        CharStreams.toString(reader),
-      )
+      createResourceFile(project, facet, FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader))
     }
   } catch (exception: IOException) {
     logger.warn(exception)
   }
 }
 
-internal fun copyLayoutToMainModuleSourceSet(
-  project: Project,
-  facet: AndroidFacet,
-  layout: String,
-  @Language("XML") xml: String,
-) {
+internal fun copyLayoutToMainModuleSourceSet(project: Project, facet: AndroidFacet, layout: String, @Language("XML") xml: String) {
   val message = "Do you want to copy layout $layout to your main module source set?"
 
-  if (
-    Messages.showYesNoDialog(project, message, "Copy Layout", Messages.getQuestionIcon()) ==
-      Messages.NO
-  ) {
+  if (Messages.showYesNoDialog(project, message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
     return
   }
 
@@ -117,12 +98,9 @@ private fun createResourceFile(
 ) {
   WriteCommandAction.runWriteCommandAction(project) {
     try {
-      val directory =
-        getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
+      val directory = getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
 
-      val document =
-        FileDocumentManager.getInstance()
-          .getDocument(directory.createChildData(project, resourceFileName))!!
+      val document = FileDocumentManager.getInstance().getDocument(directory.createChildData(project, resourceFileName))!!
 
       if (document is DocumentImpl && SystemInfo.isWindows) {
         document.setAcceptSlashR(true)
@@ -135,11 +113,7 @@ private fun createResourceFile(
 }
 
 @Throws(IOException::class)
-private fun getResourceDirectoryChild(
-  project: Project,
-  facet: AndroidFacet,
-  child: String,
-): VirtualFile? {
+private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, child: String): VirtualFile? {
   val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
   if (resourceDirectory == null) {
@@ -147,18 +121,15 @@ private fun getResourceDirectoryChild(
     return null
   }
 
-  return resourceDirectory.findChild(child)
-    ?: return resourceDirectory.createChildDirectory(project, child)
+  return resourceDirectory.findChild(child) ?: return resourceDirectory.createChildDirectory(project, child)
 }
 
 /**
- * If a native crash caused by layoutlib is detected, show an error message instead of the design
- * surface in the workbench. This includes a hyperlink that will re-enable the design surface and
- * run the {@link Runnable} argument.
+ * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench. This includes a
+ * hyperlink that will re-enable the design surface and run the {@link Runnable} argument.
  */
 fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
-  val message =
-    "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
+  val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
   val actionData =
     ActionData("Re-enable rendering") {
       Bridge.setNativeCrash(false)
@@ -168,14 +139,8 @@ fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
   loadingStopped(message, actionData)
 }
 
-/**
- * Create an [AWTEventListener] which checks the mouse position to determine if the
- * [zoomControlComponent] should be shown.
- */
-fun createZoomControlAutoHiddenListener(
-  zoomControlPaneOwner: JComponent,
-  zoomControlComponent: JComponent,
-): AWTEventListener {
+/** Create an [AWTEventListener] which checks the mouse position to determine if the [zoomControlComponent] should be shown. */
+fun createZoomControlAutoHiddenListener(zoomControlPaneOwner: JComponent, zoomControlComponent: JComponent): AWTEventListener {
   return AWTEventListener { event ->
     val id: Int = event.id
     if (id == MouseEvent.MOUSE_ENTERED) {
@@ -208,10 +173,7 @@ fun FileEditor.getDesignSurface(): DesignSurface<*>? {
     is TextEditorWithPreview -> previewEditor.getDesignSurface()
     // Check if there is a design surface in the context of presentation. For example, Compose and
     // CustomView preview.
-    is SourceCodePreview ->
-      currentRepresentation?.component?.let {
-        DataManager.getInstance().getDataContext(it).getData(DESIGN_SURFACE)
-      }
+    is SourceCodePreview -> currentRepresentation?.component?.let { DataManager.getInstance().getDataContext(it).getData(DESIGN_SURFACE) }
     else -> DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
   }
 }

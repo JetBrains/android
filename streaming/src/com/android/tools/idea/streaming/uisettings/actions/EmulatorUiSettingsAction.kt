@@ -33,9 +33,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Opens a picker with UI settings of an emulator. */
-internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
-  configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE && it.deviceType != DeviceType.AI_GLASSES },
-) {
+internal class EmulatorUiSettingsAction :
+  AbstractEmulatorAction(
+    configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE && it.deviceType != DeviceType.AI_GLASSES }
+  ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -52,9 +53,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     emulatorView.createCoroutineScope().launch {
       controller.populateModel()
-      withContext(Dispatchers.EDT) {
-        showUiSettingsDialog(project, model, config.deviceType, emulatorView)
-      }
+      withContext(Dispatchers.EDT) { showUiSettingsDialog(project, model, config.deviceType, emulatorView) }
     }
   }
 

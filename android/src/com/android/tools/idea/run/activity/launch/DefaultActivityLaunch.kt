@@ -24,8 +24,8 @@ import com.android.tools.idea.run.activity.ActivityLocator.ActivityLocatorExcept
 import com.android.tools.idea.run.activity.DefaultApkActivityLocator
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JComponent
+import org.jetbrains.android.facet.AndroidFacet
 
 class DefaultActivityLaunch : LaunchOption<DefaultActivityLaunch.State>() {
 
@@ -35,11 +35,10 @@ class DefaultActivityLaunch : LaunchOption<DefaultActivityLaunch.State>() {
       return ImmutableList.of()
     }
 
-   override fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String): String {
+    override fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String): String {
       return try {
         DefaultApkActivityLocator(apkProvider, appId).getQualifiedActivityName(device)
-      }
-      catch (e: ActivityLocatorException) {
+      } catch (e: ActivityLocatorException) {
         throw AndroidExecutionException(UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY, e.message)
       }
     }
@@ -67,12 +66,12 @@ class DefaultActivityLaunch : LaunchOption<DefaultActivityLaunch.State>() {
       }
 
       override fun resetFrom(state: State) {}
+
       override fun applyTo(state: State) {}
     }
   }
 
   companion object {
-    @JvmField
-    val INSTANCE = DefaultActivityLaunch()
+    @JvmField val INSTANCE = DefaultActivityLaunch()
   }
 }

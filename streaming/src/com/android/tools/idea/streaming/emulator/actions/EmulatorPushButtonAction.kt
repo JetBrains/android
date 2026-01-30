@@ -28,8 +28,7 @@ import java.util.function.Predicate
  * Simulates pressing and releasing a button on an Android virtual device.
  *
  * @param keyName the name of the button to press
- * @param modifierKeyName if not null, the name of the second button that is pressed before
- *     the first and released after it
+ * @param modifierKeyName if not null, the name of the second button that is pressed before the first and released after it
  * @param configFilter determines the types of devices the action is applicable to
  * @param skinOverridesConfigFilter presence of a skin button with the same key name overrides hiding by [configFilter]
  */

@@ -25,9 +25,7 @@ import org.junit.runners.JUnit4
 class StorageCapacityTest {
   @Test
   fun storageCapacity() {
-    assertFailsWith(ArithmeticException::class) {
-      StorageCapacity(222_222_222_222, StorageCapacity.Unit.GB)
-    }
+    assertFailsWith(ArithmeticException::class) { StorageCapacity(222_222_222_222, StorageCapacity.Unit.GB) }
   }
 
   @Test

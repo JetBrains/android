@@ -31,14 +31,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import javax.swing.JComponent
 
-/**
- * Creates the actions toolbar used in the old Standalone Layout Inspector. Contains 3D controls.
- */
-class FloatingToolbarProvider(
-  component: JComponent,
-  private val layoutInspector: LayoutInspector,
-  disposable: Disposable,
-) : EditorActionsFloatingToolbarProvider(component, disposable) {
+/** Creates the actions toolbar used in the old Standalone Layout Inspector. Contains 3D controls. */
+class FloatingToolbarProvider(component: JComponent, private val layoutInspector: LayoutInspector, disposable: Disposable) :
+  EditorActionsFloatingToolbarProvider(component, disposable) {
 
   /** Defines the groups of actions shown in the floating toolbar */
   private val actionGroup =
@@ -57,15 +52,13 @@ class FloatingToolbarProvider(
         }
 
       val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
-      val toggle3dGroup =
-        DefaultActionGroup().apply { add(Toggle3dAction { layoutInspector.renderModel }) }
+      val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction { layoutInspector.renderModel }) }
 
       override val otherGroups: List<ActionGroup> = listOf(panSurfaceGroup, toggle3dGroup)
     }
 
   val toggle3dActionButton: ActionButton?
-    get() =
-      findActionButton(actionGroup.toggle3dGroup, Toggle3dAction { layoutInspector.renderModel })
+    get() = findActionButton(actionGroup.toggle3dGroup, Toggle3dAction { layoutInspector.renderModel })
 
   init {
     updateToolbar()

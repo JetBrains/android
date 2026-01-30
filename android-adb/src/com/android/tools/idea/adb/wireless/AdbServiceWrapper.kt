@@ -23,8 +23,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Amount of time to wait for device to come online after pairing. This is the default timeout for
- * [AdbServiceWrapper.waitForOnlineDevice]
+ * Amount of time to wait for device to come online after pairing. This is the default timeout for [AdbServiceWrapper.waitForOnlineDevice]
  */
 internal const val ADB_DEVICE_CONNECT_MILLIS = 120_000L
 
@@ -33,24 +32,22 @@ interface AdbServiceWrapper {
   /**
    * Executes a command using the ADB executable configured for the [Project]
    *
-   * [args] List of argument to pass to ADB executable [stdin] String to pass as "stdin" to the ADB
-   * executable, to be used if there is interaction required
+   * [args] List of argument to pass to ADB executable [stdin] String to pass as "stdin" to the ADB executable, to be used if there is
+   * interaction required
    */
   @AnyThread suspend fun executeCommand(args: List<String>, stdin: String = ""): AdbCommandResult
 
   /**
-   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by
-   * the ADB Host ("host:track-mdns-services" query). The flow is active until an exception is
-   * thrown or cancellation is requested by the flow consumer.
+   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by the ADB Host
+   * ("host:track-mdns-services" query). The flow is active until an exception is thrown or cancellation is requested by the flow consumer.
    */
   @AnyThread fun trackMdnsServices(): Flow<MdnsServices>
 
   /**
-   * Returns when the device corresponding to [pairingResult] is visible as a `connected` device to
-   * the underlying ADB implementation.
+   * Returns when the device corresponding to [pairingResult] is visible as a `connected` device to the underlying ADB implementation.
    *
-   * Throws a [AdbCommandException] in case the device does not show up as online within a
-   * "reasonable" timeout (chosen by the implementation).
+   * Throws a [AdbCommandException] in case the device does not show up as online within a "reasonable" timeout (chosen by the
+   * implementation).
    */
   @AnyThread suspend fun waitForOnlineDevice(pairingResult: PairingResult): AdbOnlineDevice
 

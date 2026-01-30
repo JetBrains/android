@@ -35,13 +35,11 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.intellij.util.messages.Topic
-import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import org.jetbrains.android.util.AndroidBundle
 
-/**
- * Listener of events requesting that Logcat panels for a specific device be shown.
- */
+/** Listener of events requesting that Logcat panels for a specific device be shown. */
 interface ShowLogcatListener {
   fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?)
 
@@ -70,8 +68,7 @@ interface ShowLogcatListener {
   }
 
   companion object {
-    @JvmField
-    val TOPIC = Topic("Command to show logcat panel", ShowLogcatListener::class.java)
+    @JvmField val TOPIC = Topic("Command to show logcat panel", ShowLogcatListener::class.java)
 
     private fun IDevice.toDeviceInfo(): DeviceInfo {
       val release = getProperty(IDevice.PROP_BUILD_VERSION) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.version")
@@ -80,8 +77,7 @@ interface ShowLogcatListener {
         val avdName = avdData?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
         val avdPath = avdData?.avdFolder?.pathString ?: avdName
         EmulatorDeviceInfo(serialNumber, release, version, avdName, avdPath)
-      }
-      else {
+      } else {
         val manufacturer =
           getProperty(IDevice.PROP_DEVICE_MANUFACTURER) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.manufacturer")
         val model = getProperty(IDevice.PROP_DEVICE_MODEL) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.model")
@@ -92,12 +88,15 @@ interface ShowLogcatListener {
     @JvmStatic
     fun getShowLogcatLinkText(device: IDevice): String {
       val serial = device.serialNumber
-      val name = if (device.isEmulator) {
-        AndroidBundle.message("android.launch.task.show.logcat.emulator", device.avdData.getDoneOrNull()?.name?.replace("_", " ") ?: serial)
-      }
-      else {
-        "${device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)} ${device.getProperty(IDevice.PROP_DEVICE_MODEL)} ($serial)"
-      }
+      val name =
+        if (device.isEmulator) {
+          AndroidBundle.message(
+            "android.launch.task.show.logcat.emulator",
+            device.avdData.getDoneOrNull()?.name?.replace("_", " ") ?: serial,
+          )
+        } else {
+          "${device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)} ${device.getProperty(IDevice.PROP_DEVICE_MODEL)} ($serial)"
+        }
       return AndroidBundle.message("android.launch.task.show.logcat", name)
     }
   }

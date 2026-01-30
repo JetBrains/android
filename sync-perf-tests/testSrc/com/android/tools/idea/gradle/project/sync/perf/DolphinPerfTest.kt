@@ -19,10 +19,10 @@ import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.DOLPHIN_
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.DOLPHIN_PROJECT_ROOT
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
-import org.junit.Before
 import java.io.File
+import org.junit.Before
 
-class DolphinPerfTestV2: AbstractGradleSyncPerfTestCase() {
+class DolphinPerfTestV2 : AbstractGradleSyncPerfTestCase() {
   override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
   override val projectName: String = "Dolphin_V2"
   override val useModelV2: Boolean = true

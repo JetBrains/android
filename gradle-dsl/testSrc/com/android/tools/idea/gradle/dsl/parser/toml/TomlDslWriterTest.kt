@@ -31,14 +31,12 @@ import org.junit.Test
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
-class TomlDslWriterTest: LightPlatformTestCase() {
+class TomlDslWriterTest : LightPlatformTestCase() {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "For file: {0}")
-    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+    @JvmStatic @Parameterized.Parameters(name = "For file: {0}") fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
   }
 
-  override fun setUp(){
+  override fun setUp() {
     DeclarativeIdeSupport.override(true)
     super.setUp()
   }
@@ -46,9 +44,11 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testSingleLiteral() {
     val contents = mapOf("foo" to "bar")
-    val expected = """
+    val expected =
+      """
       foo = "bar"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -56,9 +56,11 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testSingleLiteralDottedName() {
     val contents = mapOf("foo.bar" to "val")
-    val expected = """
+    val expected =
+      """
       "foo.bar" = "val"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -66,10 +68,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testMultipleLiterals() {
     val contents = mapOf("foo" to "bar", "baz" to "quux")
-    val expected = """
+    val expected =
+      """
       foo = "bar"
       baz = "quux"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -77,23 +81,27 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testSingleTable() {
     val contents = mapOf("foo" to mapOf("bar" to "baz"))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = "baz"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   @Test
   fun testMultipleTables() {
-    val contents = mapOf("foo" to mapOf("fooA" to "fooB"), "bar" to mapOf ("barA" to "barB"))
-    val expected = """
+    val contents = mapOf("foo" to mapOf("fooA" to "fooB"), "bar" to mapOf("barA" to "barB"))
+    val expected =
+      """
       [foo]
       fooA = "fooB"
       [bar]
       barA = "barB"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -101,22 +109,26 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testTableAfterLiteral() {
     val contents = mapOf("foo" to "bar", "baz" to mapOf("bazA" to "bazB"))
-    val expected = """
+    val expected =
+      """
       foo = "bar"
       [baz]
       bazA = "bazB"
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
   @Test
   fun testEmptyInlineTable() {
-    val contents = mapOf("foo" to mapOf("bar" to mapOf<String,Any>()))
-    val expected = """
+    val contents = mapOf("foo" to mapOf("bar" to mapOf<String, Any>()))
+    val expected =
+      """
       [foo]
       bar = { }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -124,10 +136,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to "quux")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = { baz = "quux" }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -135,10 +149,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testMultipleEntriesInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to "d", "e" to "f")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = { a = "b", c = "d", e = "f" }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -146,10 +162,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testEntriesOfMultipleKindsInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to mapOf("d" to "e"), "f" to "g")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = { a = "b", c = { d = "e" }, f = "g" }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -157,10 +175,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testNestedInlineTables() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to mapOf("quux" to "frob"))))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = { baz = { quux = "frob" } }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -168,10 +188,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testEmptyArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf<String>()))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = []
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -179,10 +201,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", "two", "three")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = ["one", "two", "three"]
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -190,10 +214,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testNestedEmptyArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf<String>(), "two")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = ["one", [], "two"]
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -201,10 +227,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testNestedArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf("two", "three"), "four")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = ["one", ["two", "three"], "four"]
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -212,10 +240,12 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testInlineTableInArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", mapOf("two" to "three"), "four")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = ["one", { two = "three" }, "four"]
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
@@ -223,15 +253,17 @@ class TomlDslWriterTest: LightPlatformTestCase() {
   @Test
   fun testArrayInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to listOf("one", "two"), "quux" to "frob")))
-    val expected = """
+    val expected =
+      """
       [foo]
       bar = { baz = ["one", "two"], quux = "frob" }
-    """.trimIndent()
+      """
+        .trimIndent()
 
     doTest(contents, expected)
   }
 
-  private fun doTest(contents: Map<String,Any>, expected: String) {
+  private fun doTest(contents: Map<String, Any>, expected: String) {
     val libsTomlFile = VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/libs.versions.toml", "")
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
@@ -244,7 +276,7 @@ class TomlDslWriterTest: LightPlatformTestCase() {
     assertEquals(expected, text)
   }
 
-  private fun mapToProperties(map: Map<String,Any>, dslFile: GradleDslFile) {
+  private fun mapToProperties(map: Map<String, Any>, dslFile: GradleDslFile) {
     fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
       when (value) {
         is String -> element.setNewLiteral(key, value)
@@ -253,7 +285,7 @@ class TomlDslWriterTest: LightPlatformTestCase() {
           value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
           element.setNewElement(dslList)
         }
-        is Map<*,*> -> {
+        is Map<*, *> -> {
           val dslMap = GradleDslExpressionMap(element, GradleNameElement.create(key))
           value.forEach { (k, v) -> populate(k as String, v as Any, dslMap) }
           element.setNewElement(dslMap)

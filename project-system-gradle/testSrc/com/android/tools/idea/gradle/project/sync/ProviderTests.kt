@@ -50,6 +50,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
+import java.util.concurrent.TimeUnit
 import org.hamcrest.CoreMatchers
 import org.jetbrains.annotations.Contract
 import org.junit.Assume
@@ -58,21 +60,26 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
-import java.util.concurrent.TimeUnit
 
 sealed class Target {
   data class NamedAppTargetRunConfiguration(val externalSystemModuleId: String?) : Target()
+
   object AppTargetRunConfiguration : Target()
+
   data class TestTargetRunConfiguration(val testClassFqn: String) : Target()
+
   data class WatchFaceRunConfiguration(val testClassFqn: String) : Target()
+
   data class ManuallyAssembled(val gradlePath: String, val forTests: Boolean = false) : Target()
 }
 
 interface ValueNormalizers {
   fun File.toTestString(): String
+
   fun <T> Result<T>.toTestString(toTestString: T.() -> String = { this?.toString() ?: "(null)" }): String
+
   fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion(): String
+
   fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T?
 }
 
@@ -82,7 +89,7 @@ class TestScenario(
   val executeMakeBeforeRun: Boolean = true,
   target: Target = Target.AppTargetRunConfiguration,
   variant: Pair<String, String>? = null,
-  device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
+  device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R),
 ) {
   val setup = TestScenarioSetup(testProject, viaBundle, target, variant, device)
   val testProject = setup.testProject
@@ -101,26 +108,27 @@ data class TestScenarioSetup(
   val viaBundle: Boolean = false,
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
-  val device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
+  val device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R),
 ) {
   val name: String
     get() {
       fun Boolean.prefixed(name: String): String = if (this) "-$name" else ""
-      fun Target.prefixed(): String = when (this) {
-        Target.AppTargetRunConfiguration -> ""
-        is Target.TestTargetRunConfiguration -> "-test:$testClassFqn"
-        is Target.WatchFaceRunConfiguration -> "-watch_face:$testClassFqn"
-        is Target.NamedAppTargetRunConfiguration -> "-app:$externalSystemModuleId"
-        is Target.ManuallyAssembled -> "-assemble:$gradlePath${forTests.prefixed("tests")}"
-      }
+      fun Target.prefixed(): String =
+        when (this) {
+          Target.AppTargetRunConfiguration -> ""
+          is Target.TestTargetRunConfiguration -> "-test:$testClassFqn"
+          is Target.WatchFaceRunConfiguration -> "-watch_face:$testClassFqn"
+          is Target.NamedAppTargetRunConfiguration -> "-app:$externalSystemModuleId"
+          is Target.ManuallyAssembled -> "-assemble:$gradlePath${forTests.prefixed("tests")}"
+        }
 
       fun <T : Any> T?.prefixed() = this?.let { "-$it" } ?: ""
 
       return testProject.projectName +
-             viaBundle.prefixed("via-bundle") +
-             target.prefixed() +
-             device.takeUnless { it.apiLevel == 30 }.prefixed() +
-             variant.prefixed()
+        viaBundle.prefixed("via-bundle") +
+        target.prefixed() +
+        device.takeUnless { it.apiLevel == 30 }.prefixed() +
+        variant.prefixed()
     }
 }
 
@@ -131,13 +139,14 @@ interface TestConfiguration {
 interface ProviderTestDefinition {
   val scenario: TestScenario
   val IGNORE: TestConfiguration.() -> Unit
+
   fun verifyExpectations(
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
     runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
-    device: IDevice
+    device: IDevice,
   )
 
   val stackMarker: (() -> Unit) -> Unit
@@ -154,17 +163,22 @@ interface AggregateTestDefinition : AgpIntegrationTestDefinition {
     project: Project,
     runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
-    device: IDevice
+    device: IDevice,
   )
 
   fun hasAfterMakeExpectations(): Boolean
 }
 
-fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefinition, expect: Expect, valueNormalizers: ValueNormalizers) {
+fun IntegrationTestEnvironment.runProviderTest(
+  testDefinition: AggregateTestDefinition,
+  expect: Expect,
+  valueNormalizers: ValueNormalizers,
+) {
   val agpVersion = testDefinition.agpVersion
-  val testConfiguration = object : TestConfiguration {
-    override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = agpVersion
-  }
+  val testConfiguration =
+    object : TestConfiguration {
+      override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = agpVersion
+    }
 
   with(testDefinition) {
     if (!setup.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${setup.testProject.name} is incompatible with $agpVersion")
@@ -177,44 +191,26 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
         if (variant != null) {
           switchVariant(project, variant.first, variant.second)
         }
-        fun manuallyAssemble(
-          gradlePath: String,
-          forTests: Boolean
-        ): AssembleInvocationResult {
+        fun manuallyAssemble(gradlePath: String, forTests: Boolean): AssembleInvocationResult {
           val module = project.gradleModule(gradlePath)!!
           return try {
-            GradleBuildInvoker.getInstance(project)
-              .assemble(arrayOf(module))
-              .get(3, TimeUnit.MINUTES)
+            GradleBuildInvoker.getInstance(project).assemble(arrayOf(module)).get(3, TimeUnit.MINUTES)
           } finally {
-            runInEdtAndWait {
-              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-            }
+            runInEdtAndWait { AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project) }
           }
         }
 
-        fun androidRunConfigurations() = RunManager
-          .getInstance(project)
-          .allConfigurationsList
-          .filterIsInstance<AndroidRunConfiguration>()
+        fun androidRunConfigurations() = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>()
 
         val (runConfiguration, assembleResult) =
           when (val target = setup.target) {
             Target.AppTargetRunConfiguration ->
-              androidRunConfigurations()
-                .single()
-                .also {
-                  it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle
-                } to null
+              androidRunConfigurations().single().also { it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle } to null
 
             is Target.NamedAppTargetRunConfiguration ->
               androidRunConfigurations()
-                .single {
-                  it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
-                }
-                .also {
-                  it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle
-                } to null
+                .single { it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId } }
+                .also { it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle } to null
 
             is Target.TestTargetRunConfiguration ->
               runReadAction { TestConfigurationTesting.createAndroidTestConfigurationFromClass(project, target.testClassFqn)!! } to null
@@ -238,8 +234,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
           runConfiguration?.executeMakeBeforeRunStepInTest(device)
           verifyExpectations(expect, true, valueNormalizers, project, runConfiguration, assembleResult, device)
         }
-      }
-      finally {
+      } finally {
         runInEdtAndWait {
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
@@ -263,7 +258,8 @@ abstract class ProviderIntegrationTestCase {
         return tests().map { listOf(it).toTypedArray() }
       }
 
-      const val NUMBER_OF_EXPECTATIONS = 2  // Apk and ApplicationIdProvider's.
+      const val NUMBER_OF_EXPECTATIONS = 2 // Apk and ApplicationIdProvider's.
+
       fun tests(): List<AggregateTestDefinition> =
         (APPLICATION_ID_PROVIDER_TESTS + APK_PROVIDER_TESTS)
           .groupBy { it.scenario.setup }
@@ -271,54 +267,53 @@ abstract class ProviderIntegrationTestCase {
     }
   }
 
-  @JvmField
-  @Parameterized.Parameter(0)
-  var testDefinition: AggregateTestDefinition? = null
+  @JvmField @Parameterized.Parameter(0) var testDefinition: AggregateTestDefinition? = null
 
   @Test
   fun testProvider() {
     projectRule.runProviderTest(testDefinition!!, expect, valueNormalizers)
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var expect = Expect.createAndEnableStackTrace()
+  @get:Rule var expect = Expect.createAndEnableStackTrace()
 
   private val m2Dirs by lazy {
-    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths() +
-     TestUtils.getPrebuiltOfflineMavenRepo().toFile())
-      .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
-  }
-
-  private val valueNormalizers = object : ValueNormalizers {
-
-    override fun File.toTestString(): String {
-      val m2Root = m2Dirs.find { path.startsWith(it.path) }
-      val rawPath = if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(projectRule.getBaseTestPath())).path
-      return rawPath.replace("""\b[a-f0-9]{32}\b""".toRegex(RegexOption.IGNORE_CASE), "<hash>")
+    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths() + TestUtils.getPrebuiltOfflineMavenRepo().toFile()).map {
+      File(FileUtil.toCanonicalPath(it.absolutePath))
     }
-
-    override fun <T> Result<T>.toTestString(toTestString: T.() -> String) =
-      (if (this.isSuccess) getOrThrow().toTestString() else null)
-      ?: exceptionOrNull()?.let {
-        val message = it.message?.replace(projectRule.getBaseTestPath(), "<ROOT>")
-        "${it::class.java.simpleName}*> $message"
-      }.orEmpty()
-
-    override fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion() =
-      (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])?.trimIndent().orEmpty()
-
-    override fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T? =
-      (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])
   }
+
+  private val valueNormalizers =
+    object : ValueNormalizers {
+
+      override fun File.toTestString(): String {
+        val m2Root = m2Dirs.find { path.startsWith(it.path) }
+        val rawPath = if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(projectRule.getBaseTestPath())).path
+        return rawPath.replace("""\b[a-f0-9]{32}\b""".toRegex(RegexOption.IGNORE_CASE), "<hash>")
+      }
+
+      override fun <T> Result<T>.toTestString(toTestString: T.() -> String) =
+        (if (this.isSuccess) getOrThrow().toTestString() else null)
+          ?: exceptionOrNull()
+            ?.let {
+              val message = it.message?.replace(projectRule.getBaseTestPath(), "<ROOT>")
+              "${it::class.java.simpleName}*> $message"
+            }
+            .orEmpty()
+
+      override fun Map<AgpVersionSoftwareEnvironmentDescriptor, String>.forVersion() =
+        (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])?.trimIndent().orEmpty()
+
+      override fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T? =
+        (this[testDefinition!!.agpVersion] ?: this[AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT])
+    }
 }
 
 data class AggregateTestDefinitionImpl(
   override val setup: TestScenarioSetup,
   val definitions: List<ProviderTestDefinition>,
-  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
 ) : AggregateTestDefinition {
   override val IGNORE: TestConfiguration.() -> Unit = {
     assumeFalse(definitions.all { test -> kotlin.runCatching { with(test) { IGNORE() } }.isFailure })
@@ -331,24 +326,24 @@ data class AggregateTestDefinitionImpl(
     project: Project,
     runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
-    device: IDevice
+    device: IDevice,
   ) {
-    val testConfiguration = object : TestConfiguration {
-      override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = this@AggregateTestDefinitionImpl.agpVersion
-    }
+    val testConfiguration =
+      object : TestConfiguration {
+        override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = this@AggregateTestDefinitionImpl.agpVersion
+      }
     for (definition in definitions) {
       if (kotlin.runCatching { definition.IGNORE(testConfiguration) }.isFailure) continue
       if (definition.scenario.executeMakeBeforeRun != afterMake) continue
-      definition.stackMarker {
-        definition.verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
-      }
+      definition.stackMarker { definition.verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device) }
     }
   }
 
   override fun hasAfterMakeExpectations(): Boolean = definitions.any { it.scenario.executeMakeBeforeRun }
 
   override val name: String
-    get() = "${setup.name}${
+    get() =
+      "${setup.name}${
       if (definitions.size != NUMBER_OF_EXPECTATIONS) "(${definitions.joinToString(",") { it.javaClass.simpleName}})"
       else ""
     }"

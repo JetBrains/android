@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.api.kotlin
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface KotlinSourceSetModel: GradleBlockModel {
+interface KotlinSourceSetModel : GradleBlockModel {
 
   fun name(): String
 

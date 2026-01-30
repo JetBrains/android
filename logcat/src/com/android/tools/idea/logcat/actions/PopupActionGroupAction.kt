@@ -25,20 +25,11 @@ import com.intellij.openapi.util.NlsActions.ActionText
 import javax.swing.Icon
 
 /** An action that opens a popup with more actions */
-internal abstract class PopupActionGroupAction(
-  text: @ActionText String?,
-  description: @ActionDescription String?,
-  icon: Icon,
-) : DumbAwareAction(text, description, icon) {
+internal abstract class PopupActionGroupAction(text: @ActionText String?, description: @ActionDescription String?, icon: Icon) :
+  DumbAwareAction(text, description, icon) {
   override fun actionPerformed(e: AnActionEvent) {
     JBPopupFactory.getInstance()
-      .createActionGroupPopup(
-        null,
-        DefaultActionGroup(getPopupActions()),
-        e.dataContext,
-        null,
-        true,
-      )
+      .createActionGroupPopup(null, DefaultActionGroup(getPopupActions()), e.dataContext, null, true)
       .showUnderneathOf(e.inputEvent!!.component)
   }
 

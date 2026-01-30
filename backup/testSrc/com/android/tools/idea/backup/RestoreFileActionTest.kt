@@ -54,13 +54,11 @@ class RestoreFileActionTest {
   private val project
     get() = projectRule.project
 
-  private val fakeBackupManager =
-    FakeBackupManager().apply { backupMetaData = BackupMetadata("com.app", CLOUD) }
+  private val fakeBackupManager = FakeBackupManager().apply { backupMetaData = BackupMetadata("com.app", CLOUD) }
 
   private val fakeDialogFactory = FakeDialogFactory()
 
-  private val temporaryFolder =
-    TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
+  private val temporaryFolder = TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
 
   @get:Rule
   val rule =
@@ -133,8 +131,7 @@ class RestoreFileActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Incompatible run configuration"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Incompatible run configuration"))
   }
 
   @Test
@@ -149,8 +146,7 @@ class RestoreFileActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Backup file is invalid"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Backup file is invalid"))
   }
 
   @Test
@@ -166,10 +162,7 @@ class RestoreFileActionTest {
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(
-        DialogData(
-          "Cannot Restore App Data",
-          """Application id in file does not match run app: "com.app" != "com.app.mismatching"""",
-        )
+        DialogData("Cannot Restore App Data", """Application id in file does not match run app: "com.app" != "com.app.mismatching"""")
       )
   }
 
@@ -184,8 +177,7 @@ class RestoreFileActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }
 
   @Test
@@ -200,9 +192,7 @@ class RestoreFileActionTest {
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(
-        DialogData("Cannot Restore App Data", "Action is not supported for multiple devices")
-      )
+      .containsExactly(DialogData("Cannot Restore App Data", "Action is not supported for multiple devices"))
   }
 
   @Test
@@ -216,15 +206,10 @@ class RestoreFileActionTest {
 
     fakeDialogFactory.waitForDialogs(1)
     assertThat(fakeBackupManager.restoreModalInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
+    assertThat(fakeDialogFactory.dialogs).containsExactly(DialogData("Cannot Restore App Data", "Selected device is not running"))
   }
 
-  private fun testEvent(
-    project: Project? = null,
-    serialNumber: String? = null,
-    file: VirtualFile? = null,
-  ): AnActionEvent {
+  private fun testEvent(project: Project? = null, serialNumber: String? = null, file: VirtualFile? = null): AnActionEvent {
     val dataContext = SimpleDataContext.builder()
     project.let { dataContext.add(CommonDataKeys.PROJECT, project) }
     serialNumber.let { dataContext.add(SERIAL_NUMBER_KEY, serialNumber) }

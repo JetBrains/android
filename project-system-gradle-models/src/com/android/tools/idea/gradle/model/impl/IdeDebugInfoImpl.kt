@@ -18,4 +18,4 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeDebugInfo
 import java.io.Serializable
 
-data class IdeDebugInfoImpl(override val projectImportModelProviderClasspath: Map<String, String>): IdeDebugInfo, Serializable
+data class IdeDebugInfoImpl(override val projectImportModelProviderClasspath: Map<String, String>) : IdeDebugInfo, Serializable

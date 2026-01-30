@@ -85,11 +85,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
       addDependency("androidx.test.ext:junit:+", "implementation")
       addDependency("androidx.test.espresso:espresso-core:+", "implementation")
       addDependency("androidx.test.uiautomator:uiautomator:+", "implementation")
-      addDependency(
-        "androidx.benchmark:benchmark-macro-junit4:+",
-        "implementation",
-        macrobenchmarkMinRev,
-      )
+      addDependency("androidx.benchmark:benchmark-macro-junit4:+", "implementation", macrobenchmarkMinRev)
 
       save(eq("<manifest />"), any())
       save(eq(gitignore()), any())
@@ -100,16 +96,14 @@ class BaselineProfilesMacrobenchmarkCommonTest {
 
   @Test
   fun flavorsConfigurationsBuildGradle_empty() {
-    val flavorsBlock =
-      flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), true)
+    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), true)
     assertThat(flavorsBlock).isEmpty()
   }
 
   @Test
   fun flavorsConfigurationsBuildGradle_only_dimensions() {
     val dimen = listOf("tier", "env")
-    val flavorsBlock =
-      flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), true)
+    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), true)
 
     assertThat(flavorsBlock).run {
       contains("flavorDimensions")
@@ -149,16 +143,12 @@ class BaselineProfilesMacrobenchmarkCommonTest {
   fun getTargetModelProductFlavors_fromIdeModel() {
 
     val targetModuleGradleModel = mock<GradleAndroidModelImpl>()
-    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension)
-      .thenReturn(mapOf("ide" to listOf("flavor1", "flavor2")))
+    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension).thenReturn(mapOf("ide" to listOf("flavor1", "flavor2")))
 
     val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
     assertThat(flavors.dimensions).containsExactly("ide")
     assertThat(flavors.flavors)
-      .containsExactly(
-        ProductFlavorsWithDimensions.Item("flavor1", "ide"),
-        ProductFlavorsWithDimensions.Item("flavor2", "ide"),
-      )
+      .containsExactly(ProductFlavorsWithDimensions.Item("flavor1", "ide"), ProductFlavorsWithDimensions.Item("flavor2", "ide"))
   }
 
   @Test
@@ -171,9 +161,6 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
     assertThat(flavors.dimensions).containsExactly("ide", "env")
     assertThat(flavors.flavors)
-      .containsExactly(
-        ProductFlavorsWithDimensions.Item("flavor1", "ide"),
-        ProductFlavorsWithDimensions.Item("flavor2", "env"),
-      )
+      .containsExactly(ProductFlavorsWithDimensions.Item("flavor1", "ide"), ProductFlavorsWithDimensions.Item("flavor2", "env"))
   }
 }

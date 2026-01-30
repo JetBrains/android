@@ -20,18 +20,16 @@ import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.Server
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
-import org.junit.rules.ExternalResource
 import java.util.UUID
+import org.junit.rules.ExternalResource
 
 /**
- * JUnit rule for creating a light, in-process GRPC client / server connection that is initialized
- * with fake services which provides it test data. This class handles starting up / shutting down
- * this connection automatically before / after each test.
+ * JUnit rule for creating a light, in-process GRPC client / server connection that is initialized with fake services which provides it test
+ * data. This class handles starting up / shutting down this connection automatically before / after each test.
  *
- * @param namePrefix A readable name which you can use to identify the server created by this class
- *   if something goes wrong. Often, this will be the name of your test class. To ensure the name
- *   will be unique across all tests, it will additionally be suffixed with a unique ID. Use
- *   [name] to get the full, unique name.
+ * @param namePrefix A readable name which you can use to identify the server created by this class if something goes wrong. Often, this
+ *   will be the name of your test class. To ensure the name will be unique across all tests, it will additionally be suffixed with a unique
+ *   ID. Use [name] to get the full, unique name.
  */
 open class FakeGrpcChannel(namePrefix: String, private vararg val services: BindableService) : ExternalResource() {
   // It can be problematic if GRPC channels with the same name are started at the same time

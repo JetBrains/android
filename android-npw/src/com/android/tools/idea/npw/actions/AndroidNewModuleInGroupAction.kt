@@ -29,7 +29,7 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
     super.update(e)
 
     if (!e.presentation.isVisible) {
-      return  // Nothing to do, if above call to parent update() has disable the action
+      return // Nothing to do, if above call to parent update() has disable the action
     }
 
     val moduleGroups = e.getData(ARRAY_DATA_KEY)

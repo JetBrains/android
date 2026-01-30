@@ -28,7 +28,6 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-
 class QualifierMatcherTest {
 
   @Test
@@ -37,33 +36,39 @@ class QualifierMatcherTest {
     val (resourceName, qualifiers) = qualifierLexer.parsePath("/test/Path/file.png")
     assertEquals("file", resourceName)
     assertEquals(0, qualifiers.size)
-    checkResult(qualifierLexer.parsePath("/test/Path/file-en-rGB-land.png"), "file",
-                LocaleQualifier("en-rGB", "en", "GB", null),
-                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
-    checkResult(qualifierLexer.parsePath("/test/Path-en-rGB-land/file-not-qualifiers.png"), "file_not_qualifiers",
-                LocaleQualifier("en-rGB", "en", "GB", null),
-                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
-    checkResult(qualifierLexer.parsePath("/test/en-rGB-land/file-not-qualifiers.png"), "file_not_qualifiers",
-                LocaleQualifier("en-rGB", "en", "GB", null),
-                ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
+    checkResult(
+      qualifierLexer.parsePath("/test/Path/file-en-rGB-land.png"),
+      "file",
+      LocaleQualifier("en-rGB", "en", "GB", null),
+      ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
+    )
+    checkResult(
+      qualifierLexer.parsePath("/test/Path-en-rGB-land/file-not-qualifiers.png"),
+      "file_not_qualifiers",
+      LocaleQualifier("en-rGB", "en", "GB", null),
+      ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
+    )
+    checkResult(
+      qualifierLexer.parsePath("/test/en-rGB-land/file-not-qualifiers.png"),
+      "file_not_qualifiers",
+      LocaleQualifier("en-rGB", "en", "GB", null),
+      ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE),
+    )
     checkResult(qualifierLexer.parsePath("/test/Path-not-qualifiers/file-not-qualifiers.png"), "file_not_qualifiers")
     // svg is not a valid locale so it should not be returned.
     checkResult(qualifierLexer.parsePath("/test/Path/svg/file.svg"), "file")
-    checkResult(qualifierLexer.parsePath("/test/Path/en/file.svg"), "file",
-                LocaleQualifier("en", "en", null, null))
+    checkResult(qualifierLexer.parsePath("/test/Path/en/file.svg"), "file", LocaleQualifier("en", "en", null, null))
   }
-
 
   @Test
   fun parsePathWithFileNameMappers() {
-    val mappers = setOf(
+    val mappers =
+      setOf(
         StaticStringMapper(
-          mapOf(
-              "@2x" to DensityQualifier(Density.XHIGH),
-              "@3x" to DensityQualifier(Density.XXHIGH)
-          ),
-          DensityQualifier(Density.MEDIUM))
-    )
+          mapOf("@2x" to DensityQualifier(Density.XHIGH), "@3x" to DensityQualifier(Density.XXHIGH)),
+          DensityQualifier(Density.MEDIUM),
+        )
+      )
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x.png"), "icon", DensityQualifier(Density.XHIGH))
     checkResult(qualifierLexer.parsePath("icon@3x.png"), "icon", DensityQualifier(Density.XXHIGH))
@@ -74,16 +79,14 @@ class QualifierMatcherTest {
 
   @Test
   fun parsePathWithIncompleteMapper() {
-    val mappers = setOf(
+    val mappers =
+      setOf(
         StaticStringMapper(
-          mapOf(
-              "@2x" to DensityQualifier(Density.XHIGH),
-              "@3x" to DensityQualifier(Density.XXHIGH)
-          ),
-          DensityQualifier(Density.MEDIUM)),
-        StaticStringMapper(mapOf(
-            "_dark" to NightModeQualifier(NightMode.NIGHT)
-        )))
+          mapOf("@2x" to DensityQualifier(Density.XHIGH), "@3x" to DensityQualifier(Density.XXHIGH)),
+          DensityQualifier(Density.MEDIUM),
+        ),
+        StaticStringMapper(mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))),
+      )
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x_dark.png"), "icon", DensityQualifier(Density.XHIGH), NightModeQualifier(NightMode.NIGHT))
     checkResult(qualifierLexer.parsePath("icon_dark@2x.png"), "icon_dark", DensityQualifier(Density.XHIGH))
@@ -92,14 +95,13 @@ class QualifierMatcherTest {
 
   @Test
   fun parsePathEmptyStringMapper() {
-    val mappers = setOf(
-        StaticStringMapper(mapOf(
-                "@2x" to DensityQualifier(Density.XHIGH),
-                "@3x" to DensityQualifier(Density.XXHIGH),
-                "" to DensityQualifier(Density.MEDIUM))),
-        StaticStringMapper(mapOf(
-            "_dark" to NightModeQualifier(NightMode.NIGHT)
-        )))
+    val mappers =
+      setOf(
+        StaticStringMapper(
+          mapOf("@2x" to DensityQualifier(Density.XHIGH), "@3x" to DensityQualifier(Density.XXHIGH), "" to DensityQualifier(Density.MEDIUM))
+        ),
+        StaticStringMapper(mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))),
+      )
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x_dark.png"), "icon", DensityQualifier(Density.XHIGH), NightModeQualifier(NightMode.NIGHT))
     checkResult(qualifierLexer.parsePath("icon_dark@2x.png"), "icon_dark", DensityQualifier(Density.XHIGH))

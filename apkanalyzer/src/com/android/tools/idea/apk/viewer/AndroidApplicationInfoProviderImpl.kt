@@ -24,9 +24,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.ListenableFuture
 import java.nio.file.Path
 
-/**
- * Extracts an [AndroidApplicationInfo] from an archive entry using AAPT
- */
+/** Extracts an [AndroidApplicationInfo] from an archive entry using AAPT */
 class AndroidApplicationInfoProviderImpl() : AndroidApplicationInfoProvider {
   override fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry): ListenableFuture<AndroidApplicationInfo> {
     val handler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()

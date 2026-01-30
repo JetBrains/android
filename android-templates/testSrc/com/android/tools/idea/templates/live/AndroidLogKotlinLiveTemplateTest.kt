@@ -98,10 +98,11 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
   fun testWtf_inComment() = testNotInComment(TEMPLATE_WTF)
 
   fun testWtf_inMethod() {
-    testLog(TEMPLATE_WTF,
-            additionalData = arrayOf("foo", "e"),
-            methodHeader = "wtfMethod()",
-            expectedCompletion = "Log.wtf(TAG, \"wtfMethod: foo\", e)"
+    testLog(
+      TEMPLATE_WTF,
+      additionalData = arrayOf("foo", "e"),
+      methodHeader = "wtfMethod()",
+      expectedCompletion = "Log.wtf(TAG, \"wtfMethod: foo\", e)",
     )
   }
 
@@ -111,11 +112,13 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     templateName: String,
     additionalData: Array<String> = emptyArray(),
     methodHeader: String = "myMethod()",
-    expectedCompletion: String) {
+    expectedCompletion: String,
+  ) {
     // Given:
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/MyClass.kt",
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/MyClass.kt",
+        """
       package com.example
 
       class MyClass {
@@ -123,8 +126,9 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
               $caret
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // When:
@@ -142,7 +146,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
               $expectedCompletion
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -164,7 +169,7 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     testLog(
       TEMPLATE_LOGM,
       methodHeader = "myMethod(foo: String, bar: String)",
-      expectedCompletion = "Log.d(TAG, \"myMethod() called with: foo = \$foo, bar = \$bar\")"
+      expectedCompletion = "Log.d(TAG, \"myMethod() called with: foo = \$foo, bar = \$bar\")",
     )
   }
 
@@ -182,9 +187,10 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
 
   fun testLogR_inMethod() {
     // Given:
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/MyLogRClass.kt",
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/MyLogRClass.kt",
+        """
       package com.example
 
       class MyLogRClass {
@@ -194,13 +200,15 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
           return result
         }
       }
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // When:
     insertTemplate(TEMPLATE_LOGR)
 
-    //Then:
+    // Then:
     myFixture.checkResult(
       """
       package com.example
@@ -214,15 +222,17 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
           return result
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
   fun testLogR_returnTypeUnit() {
     // Given:
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/MyLogRClass.kt",
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/MyLogRClass.kt",
+        """
       package com.example
 
       class MyLogRClass {
@@ -232,13 +242,15 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
           return result
         }
       }
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // When:
     insertTemplate(TEMPLATE_LOGR)
 
-    //Then:
+    // Then:
     myFixture.checkResult(
       """
       package com.example
@@ -252,7 +264,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
           return result
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -266,11 +279,7 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     // When:
     insertTemplate(TEMPLATE_LOGT)
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.TOP_LEVEL,
-      imports = "", content = "private const val TAG = \"MyClass\""
-    )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.TOP_LEVEL, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
   fun testLogT_inClass() {
@@ -279,11 +288,7 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     // When:
     insertTemplate(TEMPLATE_LOGT)
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.CLASS,
-      imports = "", content = "private const val TAG = \"MyClass\""
-    )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.CLASS, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
   fun testLogT_inCompanionObject() {
@@ -292,18 +297,15 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     // When:
     insertTemplate(TEMPLATE_LOGT)
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(
-      Location.OBJECT_DECLARATION,
-      imports = "", content = "private const val TAG = \"MyClass\""
-    )
-    )
+    myFixture.checkResult(insertIntoPsiFileAt(Location.OBJECT_DECLARATION, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
   fun testLogT_longClassName() {
     // Given:
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/MyExtremelyLongClassName.kt",
-       """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/MyExtremelyLongClassName.kt",
+        """
        package com.example
 
        import android.util.Log
@@ -311,23 +313,26 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
        class MyExtremelyLongClassName {
            $caret
        }
-       """.trimIndent())
+       """
+          .trimIndent(),
+      )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // When:
     insertTemplate(TEMPLATE_LOGT)
 
-    //Then:
+    // Then:
     myFixture.checkResult(
-       """
-       package com.example
+      """
+      package com.example
 
-       import android.util.Log
+      import android.util.Log
 
-       class MyExtremelyLongClassName {
-           private const val TAG = "MyExtremelyLongClassNam"
-       }
-       """.trimIndent()
+      class MyExtremelyLongClassName {
+          private const val TAG = "MyExtremelyLongClassNam"
+      }
+      """
+        .trimIndent()
     )
   }
 

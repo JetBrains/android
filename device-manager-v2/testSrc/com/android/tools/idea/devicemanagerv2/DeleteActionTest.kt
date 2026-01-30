@@ -48,8 +48,7 @@ class DeleteActionTest {
   fun setup() {
     enableHeadlessDialogs(disposableRule.disposable)
     TestDialogManager.setTestDialog(TestDialog.YES)
-    ApplicationManager.getApplication()
-      .replaceService(WearPairingManager::class.java, pairingManager, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(WearPairingManager::class.java, pairingManager, disposableRule.disposable)
   }
 
   // Regression test for b/226299557

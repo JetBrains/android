@@ -45,15 +45,12 @@ class SimpleComposeProjectScenarios {
 
     fun baselineRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
       val facet = projectRule.mainAndroidFacet(":app")
-      val mainActivityFile =
-        facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+      val mainActivityFile = facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
       val renderResult =
         renderPreviewElementForResult(
             facet,
             mainActivityFile,
-            SingleComposePreviewElementInstance.forTesting(
-              "google.simpleapplication.MainActivityKt.DefaultPreview"
-            ),
+            SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview"),
             true,
           )
           .get()
@@ -69,15 +66,12 @@ class SimpleComposeProjectScenarios {
 
     fun complexRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
       val facet = projectRule.mainAndroidFacet(":app")
-      val complexPreviewFile =
-        facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
+      val complexPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
       val renderResult =
         renderPreviewElementForResult(
             facet,
             complexPreviewFile,
-            SingleComposePreviewElementInstance.forTesting(
-              "google.simpleapplication.ComplexPreviewKt.ComplexPreview"
-            ),
+            SingleComposePreviewElementInstance.forTesting("google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
             true,
           )
           .get()
@@ -91,29 +85,19 @@ class SimpleComposeProjectScenarios {
       return renderResult.result!!
     }
 
-    fun complexRenderScenarioWithBoundsCalculation(
-      projectRule: AndroidGradleProjectRule
-    ): RenderResult =
+    fun complexRenderScenarioWithBoundsCalculation(projectRule: AndroidGradleProjectRule): RenderResult =
       complexRenderScenario(projectRule).also {
-        it.rootViews.forEach { viewInfo ->
-          parseViewInfo(
-            viewInfo,
-            logger = Logger.getInstance(SimpleComposeProjectScenarios::class.java),
-          )
-        }
+        it.rootViews.forEach { viewInfo -> parseViewInfo(viewInfo, logger = Logger.getInstance(SimpleComposeProjectScenarios::class.java)) }
       }
 
     fun interactiveRenderScenario(projectRule: AndroidGradleProjectRule): ExtendedRenderResult {
       val facet = projectRule.mainAndroidFacet(":app")
-      val complexPreviewFile =
-        facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
+      val complexPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/ComplexPreview.kt")
       val renderTaskFuture =
         createRenderTaskFuture(
           facet,
           complexPreviewFile,
-          SingleComposePreviewElementInstance.forTesting(
-            "google.simpleapplication.ComplexPreviewKt.ComplexPreview"
-          ),
+          SingleComposePreviewElementInstance.forTesting("google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
           privateClassLoader = true,
           classesToPreload = PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD,
         )
@@ -133,23 +117,14 @@ class SimpleComposeProjectScenarios {
 
         val firstExecutionResult = renderTask.executeCallbacks(0).get(5, TimeUnit.SECONDS)
         val firstTouchEventResult =
-          renderTask
-            .triggerTouchEvent(RenderSession.TouchEventType.PRESS, clickX, clickY, 1000)
-            .get(5, TimeUnit.SECONDS)
+          renderTask.triggerTouchEvent(RenderSession.TouchEventType.PRESS, clickX, clickY, 1000).get(5, TimeUnit.SECONDS)
 
         renderTask.render().get(5, TimeUnit.SECONDS)
         val postTouchEventResult = renderTask.executeCallbacks(frameNanos).get(5, TimeUnit.SECONDS)
         renderTask.render().get(5, TimeUnit.SECONDS)
         renderTask.executeCallbacks(2 * frameNanos).get(5, TimeUnit.SECONDS)
 
-        renderTask
-          .triggerTouchEvent(
-            RenderSession.TouchEventType.RELEASE,
-            clickX,
-            clickY,
-            2 * frameNanos + 1000,
-          )
-          .get(5, TimeUnit.SECONDS)
+        renderTask.triggerTouchEvent(RenderSession.TouchEventType.RELEASE, clickX, clickY, 2 * frameNanos + 1000).get(5, TimeUnit.SECONDS)
 
         renderTask.render().get(5, TimeUnit.SECONDS)
         renderTask.executeCallbacks(3 * frameNanos).get(5, TimeUnit.SECONDS)
@@ -162,12 +137,7 @@ class SimpleComposeProjectScenarios {
         Assert.assertNotEquals(clickPixel or 0xFFFFFF, 0)
         Assert.assertNotEquals(clickPixel, 0xFFFFFFFF)
 
-        return ExtendedRenderResult.create(
-          renderResult,
-          firstExecutionResult,
-          firstTouchEventResult,
-          postTouchEventResult,
-        )
+        return ExtendedRenderResult.create(renderResult, firstExecutionResult, firstTouchEventResult, postTouchEventResult)
       } finally {
         renderTaskFuture.future.get(5, TimeUnit.SECONDS).dispose().get(5, TimeUnit.SECONDS)
       }

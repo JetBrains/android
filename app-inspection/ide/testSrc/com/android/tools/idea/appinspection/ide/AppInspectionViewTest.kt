@@ -86,16 +86,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 
-class TestAppInspectorTabProvider1 :
-  AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
+class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
 
 class TestAppInspectorTabProvider2 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(
     INSPECTOR_ID_2,
-    LibraryInspectorLaunchParams(
-      TEST_JAR,
-      mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0"),
-    ),
+    LibraryInspectorLaunchParams(TEST_JAR, mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0")),
   )
 
 @ExperimentalCoroutinesApi
@@ -103,10 +99,8 @@ class AppInspectionViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
-  private val appInspectionServiceRule =
-    AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
+  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val disposable
@@ -116,20 +110,11 @@ class AppInspectionViewTest {
     get() = Dispatchers.EDT as CoroutineDispatcher
 
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
-    class NotificationData(
-      val content: String,
-      val severity: AppInspectionIdeServices.Severity,
-      val action: AnAction?,
-    )
+    class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val action: AnAction?)
 
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
 
-    override fun showNotification(
-      content: String,
-      title: String,
-      severity: AppInspectionIdeServices.Severity,
-      action: AnAction?,
-    ) {
+    override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, action: AnAction?) {
       val data = NotificationData(content, severity, action)
       notificationListeners.forEach { listener -> listener(data) }
     }
@@ -137,15 +122,11 @@ class AppInspectionViewTest {
 
   private val ideServices = TestIdeServices()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
 
   @Before
   fun setup() {
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.APP_INSPECTION,
-      TestAppInspectorCommandHandler(timer),
-    )
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
   }
 
   @Test
@@ -231,15 +212,11 @@ class AppInspectionViewTest {
           tabs =
             inspectionView.inspectorTabs
               .mapNotNull { it.getUserData(TAB_KEY) }
-              .filter {
-                it.messengers.iterator().hasNext()
-              } // If a tab is "dead", it won't have any messengers
+              .filter { it.messengers.iterator().hasNext() } // If a tab is "dead", it won't have any messengers
 
           assertThat(tabs).hasSize(1)
           inspectionView.processesModel.selectedProcess =
-            inspectionView.processesModel.processes.first { process ->
-              process != inspectionView.processesModel.selectedProcess
-            }
+            inspectionView.processesModel.processes.first { process -> process != inspectionView.processesModel.selectedProcess }
         } else if (i == 1) {
           tabs.forEach { tab -> assertThat(tab.messengers.single().scope.isActive).isFalse() }
         }
@@ -248,16 +225,9 @@ class AppInspectionViewTest {
 
     // Launch two processes and wait for them to show up in combobox
     val fakeDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .build()
-    val fakeProcess1 =
-      FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
-    val fakeProcess2 =
-      FakeTransportService.FAKE_PROCESS.toBuilder().setPid(2).setDeviceId(1).build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
+    val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
+    val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(2).setDeviceId(1).build()
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess1)
     transportService.addProcess(fakeDevice, fakeProcess2)
@@ -346,8 +316,7 @@ class AppInspectionViewTest {
           parentDisposable: Disposable,
         ): AppInspectorTab {
           return object : AppInspectorTab, Disposable {
-            override val messengers: Iterable<AppInspectorMessenger> =
-              listOf(StubTestAppInspectorMessenger())
+            override val messengers: Iterable<AppInspectorMessenger> = listOf(StubTestAppInspectorMessenger())
             override val component = JPanel()
 
             override fun dispose() {
@@ -408,10 +377,7 @@ class AppInspectionViewTest {
             // offline tab.
             assertThat(inspectionView.inspectorTabs).hasSize(2)
             inspectionView.inspectorTabs.forEach { it.waitForContent() }
-            transportService.stopProcess(
-              FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS,
-            )
+            transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
             timer.currentTimeNs += 1
             previousTabs.addAll(inspectionView.inspectorTabs)
           }
@@ -421,21 +387,9 @@ class AppInspectionViewTest {
             assertThat(inspectionView.inspectorTabs).hasSize(1)
             // Verify regardless of tab's offline capability, all messengers are disposed.
             previousTabs.forEach { tab ->
-              assertThat(
-                  tab
-                    .getUserData(TAB_KEY)!!
-                    .messengers
-                    .first()
-                    .scope
-                    .coroutineContext[Job]!!
-                    .isCancelled
-                )
-                .isTrue()
+              assertThat(tab.getUserData(TAB_KEY)!!.messengers.first().scope.coroutineContext[Job]!!.isCancelled).isTrue()
             }
-            transportService.addProcess(
-              FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS,
-            )
+            transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
             timer.currentTimeNs += 1
           }
           2 -> {
@@ -458,12 +412,7 @@ class AppInspectionViewTest {
   @Test
   fun inspectorCrashNotification() = runBlocking {
     val fakeDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
 
     lateinit var inspectionView: AppInspectionView
@@ -488,8 +437,7 @@ class AppInspectionViewTest {
         // The tab shell that will be restarted.
         val crashedTabShell = inspectionView.inspectorTabs.first()
         launch(start = CoroutineStart.UNDISPATCHED) {
-          assertThat(crashedTabShell.componentUpdates.first())
-            .isInstanceOf(TestAppInspectorTabComponent::class.java)
+          assertThat(crashedTabShell.componentUpdates.first()).isInstanceOf(TestAppInspectorTabComponent::class.java)
         }
 
         // Test crash notification shown.
@@ -507,9 +455,7 @@ class AppInspectionViewTest {
             .setAppInspectionEvent(
               AppInspection.AppInspectionEvent.newBuilder()
                 .setInspectorId(INSPECTOR_ID)
-                .setDisposedEvent(
-                  AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build()
-                )
+                .setDisposedEvent(AppInspection.DisposedEvent.newBuilder().setErrorMessage("error").build())
                 .build()
             )
             .build(),
@@ -528,10 +474,7 @@ class AppInspectionViewTest {
           // Make sure clicking the notification causes a new tab to get created
           val action = notificationData.action
           if (action != null) {
-            ActionUtil.performActionDumbAwareWithCallbacks(
-              action,
-              TestActionEvent.createTestEvent(),
-            )
+            ActionUtil.performActionDumbAwareWithCallbacks(action, TestActionEvent.createTestEvent())
           }
         }
         true
@@ -545,12 +488,7 @@ class AppInspectionViewTest {
   @Test
   fun inspectorRestartNotificationShownOnLaunchError() = runBlocking {
     val fakeDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
 
     val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
 
@@ -597,9 +535,7 @@ class AppInspectionViewTest {
         val tab = inspectionView.inspectorTabs[0]
         val initialComponent = tab.waitForContent()
         assertThat((initialComponent as EmptyStatePanel).reasonText)
-          .isEqualTo(
-            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
-          )
+          .isEqualTo(AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName))
 
         val restartedComponent = tab.componentUpdates.first()
         assertThat(restartedComponent).isNotSameAs(initialComponent)
@@ -616,9 +552,7 @@ class AppInspectionViewTest {
     setUpRelaunchingCommandHandler()
     val action = notificationData.action
     if (action != null) {
-      launch(uiDispatcher) {
-        ActionUtil.performActionDumbAwareWithCallbacks(action, TestActionEvent.createTestEvent())
-      }
+      launch(uiDispatcher) { ActionUtil.performActionDumbAwareWithCallbacks(action, TestActionEvent.createTestEvent()) }
     }
     tabsAdded.join()
   }
@@ -626,12 +560,7 @@ class AppInspectionViewTest {
   @Test
   fun inspectorRestartEmptyPanelShownOnLaunchError() = runBlocking {
     val fakeDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
-        .setDeviceId(1)
-        .setModel("fakeModel")
-        .setManufacturer("fakeMan")
-        .setSerial("1")
-        .build()
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
 
     val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
 
@@ -673,12 +602,8 @@ class AppInspectionViewTest {
         assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
         val tab = inspectionView.inspectorTabs[0]
         val initialComponent = tab.waitForContent() as EmptyStatePanel
-        assertThat(initialComponent.reasonText)
-          .isEqualTo(
-            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
-          )
-        assertThat(initialComponent.actionData.single()!!.text)
-          .isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
+        assertThat(initialComponent.reasonText).isEqualTo(AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName))
+        assertThat(initialComponent.actionData.single()!!.text).isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
 
         setUpRelaunchingCommandHandler()
         launch(uiDispatcher) { initialComponent.actionData.single()!!.callback(mock<MouseEvent>()) }
@@ -707,13 +632,7 @@ class AppInspectionViewTest {
           projectRule.project,
           appInspectionServiceRule.apiServices,
           ideServices,
-          {
-            listOf(
-              TestAppInspectorTabProvider1(),
-              TestAppInspectorTabProvider2(),
-              supportsOfflineInspector,
-            )
-          },
+          { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService(),
@@ -738,10 +657,7 @@ class AppInspectionViewTest {
     tabsAdded.join()
 
     timer.currentTimeNs += 1
-    transportService.stopProcess(
-      FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS,
-    )
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
 
@@ -761,13 +677,7 @@ class AppInspectionViewTest {
           projectRule.project,
           appInspectionServiceRule.apiServices,
           ideServices,
-          {
-            listOf(
-              TestAppInspectorTabProvider1(),
-              TestAppInspectorTabProvider2(),
-              supportsOfflineInspector,
-            )
-          },
+          { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2(), supportsOfflineInspector) },
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService(),
@@ -805,10 +715,7 @@ class AppInspectionViewTest {
     tabsAdded.join()
 
     timer.currentTimeNs += 1
-    transportService.stopProcess(
-      FakeTransportService.FAKE_DEVICE,
-      FakeTransportService.FAKE_PROCESS,
-    )
+    transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     tabsUpdated.join()
   }
 
@@ -840,9 +747,7 @@ class AppInspectionViewTest {
           .isEqualTo(
             AppInspectionBundle.message(
               "incompatible.version",
-              (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-                .minVersionLibraryCoordinate
-                .toString(),
+              (provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString(),
             )
           )
 
@@ -942,9 +847,7 @@ class AppInspectionViewTest {
         val statePanel = tab.containerPanel.getComponent(0)
         assertThat(statePanel).isInstanceOf(EmptyStatePanel::class.java)
         assertThat((statePanel as EmptyStatePanel).reasonText)
-          .isEqualTo(
-            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
-          )
+          .isEqualTo(AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName))
         tabsAdded.complete(Unit)
       }
     }
@@ -975,10 +878,7 @@ class AppInspectionViewTest {
 
     val apiServices =
       object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
-        override suspend fun attachToProcess(
-          process: ProcessDescriptor,
-          projectName: String,
-        ): AppInspectionTarget {
+        override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
           throw AppInspectionProcessNoLongerExistsException("process no longer exists!")
         }
       }
@@ -1000,8 +900,7 @@ class AppInspectionViewTest {
         assertThat(inspectionView.inspectorTabs).isEmpty()
         val statePanel = inspectionView.inspectorPanel.getComponent(0)
         assertThat(statePanel).isInstanceOf(EmptyStatePanel::class.java)
-        assertThat((statePanel as EmptyStatePanel).reasonText)
-          .isEqualTo(AppInspectionBundle.message("select.process"))
+        assertThat((statePanel as EmptyStatePanel).reasonText).isEqualTo(AppInspectionBundle.message("select.process"))
         tabsAdded.complete(Unit)
       }
     }
@@ -1040,9 +939,7 @@ class AppInspectionViewTest {
           .isEqualTo(
             AppInspectionBundle.message(
               "incompatible.version",
-              (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-                .minVersionLibraryCoordinate
-                .toString(),
+              (provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString(),
             )
           )
 
@@ -1092,10 +989,7 @@ class AppInspectionViewTest {
       launch {
         // Add a process.
         transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-        transportService.addProcess(
-          FakeTransportService.FAKE_DEVICE,
-          FakeTransportService.FAKE_PROCESS,
-        )
+        transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
       }
       inspectionView.tabsChangedFlow.take(2).collectIndexed { index, _ ->
         if (index == 0) {
@@ -1125,15 +1019,12 @@ class AppInspectionViewTest {
     val unresolvableLibrary = mockMinimumArtifactCoordinate("unresolvable", "artifact", "1.0.0")
     val unresolvableInspector =
       object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
-        override val inspectorLaunchParams =
-          LibraryInspectorLaunchParams(TEST_JAR, unresolvableLibrary)
+        override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, unresolvableLibrary)
       }
-    val incompatibleLibrary =
-      mockMinimumArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
+    val incompatibleLibrary = mockMinimumArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
     val incompatibleInspector =
       object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
-        override val inspectorLaunchParams =
-          LibraryInspectorLaunchParams(TEST_JAR, incompatibleLibrary)
+        override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, incompatibleLibrary)
       }
 
     val launchParamsVerifiedDeferred = CompletableDeferred<Unit>()
@@ -1141,8 +1032,7 @@ class AppInspectionViewTest {
       object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
         override suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger {
           // Verify the jar being launched is the one returned by resolver.
-          assertThat(params.inspectorJar.releaseDirectory)
-            .isEqualTo(Paths.get("path", "to").toString())
+          assertThat(params.inspectorJar.releaseDirectory).isEqualTo(Paths.get("path", "to").toString())
           assertThat(params.inspectorJar.name).isEqualTo("inspector.jar")
           launchParamsVerifiedDeferred.complete(Unit)
           return appInspectionServiceRule.apiServices.launchInspector(params)
@@ -1158,10 +1048,7 @@ class AppInspectionViewTest {
           appInspectionServiceRule.scope,
           uiDispatcher,
           object : InspectorArtifactService {
-            override suspend fun getOrResolveInspectorArtifact(
-              artifactCoordinate: RunningArtifactCoordinate,
-              project: Project,
-            ): Path {
+            override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
               return if (artifactCoordinate.groupId == "unresolvable") {
                 throw AppInspectionArtifactNotFoundException("not resolved", artifactCoordinate)
               } else {
@@ -1184,8 +1071,7 @@ class AppInspectionViewTest {
                 .isEqualTo(
                   AppInspectionBundle.message(
                     "incompatible.version",
-                    (inspectorTab.provider.launchConfigs.single().params
-                        as LibraryInspectorLaunchParams)
+                    (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                       .minVersionLibraryCoordinate
                       .toString(),
                   )
@@ -1197,8 +1083,7 @@ class AppInspectionViewTest {
                 .isEqualTo(
                   AppInspectionBundle.message(
                     "unresolved.inspector",
-                    (inspectorTab.provider.launchConfigs.single().params
-                        as LibraryInspectorLaunchParams)
+                    (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                       .minVersionLibraryCoordinate
                       .toString(),
                   )
@@ -1206,8 +1091,7 @@ class AppInspectionViewTest {
             }
             else -> {
               // Verify it's not an info tab - it's an actual inspector tab.
-              assertThat(inspectorTab.containerPanel.getComponent(0))
-                .isNotInstanceOf(EmptyStatePanel::class.java)
+              assertThat(inspectorTab.containerPanel.getComponent(0)).isNotInstanceOf(EmptyStatePanel::class.java)
             }
           }
         }
@@ -1224,9 +1108,7 @@ class AppInspectionViewTest {
             .addAllResponses(
               command.targetLibrariesList.map {
                 val builder =
-                  AppInspection.LibraryCompatibilityInfo.newBuilder()
-                    .setTargetLibrary(it.coordinate)
-                    .setVersion(it.coordinate.version)
+                  AppInspection.LibraryCompatibilityInfo.newBuilder().setTargetLibrary(it.coordinate).setVersion(it.coordinate.version)
                 if (it.coordinate.version == "INCOMPATIBLE") {
                   builder.status = AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE
                 } else {
@@ -1267,14 +1149,7 @@ class AppInspectionViewTest {
 
     val fakeDevice = FakeTransportService.FAKE_DEVICE
     val fakeProcesses =
-      (1..3)
-        .map { i ->
-          FakeTransportService.FAKE_PROCESS.toBuilder()
-            .setPid(i)
-            .setDeviceId(fakeDevice.deviceId)
-            .build()
-        }
-        .toList()
+      (1..3).map { i -> FakeTransportService.FAKE_PROCESS.toBuilder().setPid(i).setDeviceId(fakeDevice.deviceId).build() }.toList()
 
     // Add a process.
     val selectedProcessChangedQueue = ArrayBlockingQueue<Unit>(1)
@@ -1376,29 +1251,18 @@ class AppInspectionViewTest {
       inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
         when (i) {
           0 -> {
-            val inspectorTabsPane =
-              inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
+            val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
             assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
             inspectionView.inspectorTabs.forEach { it.waitForContent() }
             inspectorTabsPane.selectedIndex = 1
             assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
-            transportService.stopProcess(
-              FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS,
-            )
+            transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
             timer.currentTimeNs += 1
           }
           1 -> {
-            transportService.addProcess(
-              FakeTransportService.FAKE_DEVICE,
-              FakeTransportService.FAKE_PROCESS,
-            )
+            transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
           }
-          2 ->
-            assertThat(
-                (inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex
-              )
-              .isEqualTo(1)
+          2 -> assertThat((inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex).isEqualTo(1)
         }
       }
     }

@@ -46,10 +46,8 @@ private val DEFAULT_HEIGHT = 35
 private val EXTENDED_HEIGHT = DEFAULT_HEIGHT * 2
 
 /** Shows a Panel with an error message */
-class SceneViewErrorsPanel(
-  val errorProvider: () -> List<Throwable>?,
-  val styleProvider: () -> Style = { Style.SOLID },
-) : JPanel(BorderLayout()), UiDataProvider {
+class SceneViewErrorsPanel(val errorProvider: () -> List<Throwable>?, val styleProvider: () -> Style = { Style.SOLID }) :
+  JPanel(BorderLayout()), UiDataProvider {
 
   /** The style applied to the panel */
   enum class Style {
@@ -63,8 +61,7 @@ class SceneViewErrorsPanel(
     TRANSLUCENT,
   }
 
-  private val height =
-    if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) EXTENDED_HEIGHT else DEFAULT_HEIGHT
+  private val height = if (StudioFlags.COMPOSE_RENDER_ERROR_FIX_WITH_AI.get()) EXTENDED_HEIGHT else DEFAULT_HEIGHT
   private val size = JBUI.size(130, height)
   private val label =
     JBLabel(ERROR_LABEL_CONTENT).apply {
@@ -76,13 +73,11 @@ class SceneViewErrorsPanel(
   private var lastStyle: Style? = null
   private val fixWithAiActionGroup = DefaultActionGroup()
   private val fixWithAiToolbar: ActionToolbar =
-    ActionManager.getInstance()
-      .createActionToolbar("SceneViewErrorsPanelToolbar", fixWithAiActionGroup, true)
-      .apply {
-        targetComponent = this@SceneViewErrorsPanel
-        component.isOpaque = false
-        component.border = JBUI.Borders.empty()
-      }
+    ActionManager.getInstance().createActionToolbar("SceneViewErrorsPanelToolbar", fixWithAiActionGroup, true).apply {
+      targetComponent = this@SceneViewErrorsPanel
+      component.isOpaque = false
+      component.border = JBUI.Borders.empty()
+    }
 
   init {
     add(label, BorderLayout.CENTER)

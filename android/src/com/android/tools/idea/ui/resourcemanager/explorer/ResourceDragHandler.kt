@@ -36,43 +36,35 @@ import javax.swing.TransferHandler
  * @param importResourceDelegate Object to which [TransferHandler.importData] is delegated.
  * @param isValidTransferTarget Whether data is being transferred to a valid target.
  */
-fun resourceDragHandler(
-  importResourceDelegate: ImportResourceDelegate,
-  isValidTransferTarget: () -> Boolean
-) = if (GraphicsEnvironment.isHeadless()) {
-  HeadlessDragHandler()
-} else {
-  ResourceDragHandlerImpl(importResourceDelegate, isValidTransferTarget)
-}
+fun resourceDragHandler(importResourceDelegate: ImportResourceDelegate, isValidTransferTarget: () -> Boolean) =
+  if (GraphicsEnvironment.isHeadless()) {
+    HeadlessDragHandler()
+  } else {
+    ResourceDragHandlerImpl(importResourceDelegate, isValidTransferTarget)
+  }
 
 interface ResourceDragHandler {
   fun registerSource(assetList: JList<ResourceAssetSet>)
 }
 
-/**
- * An object that implements this interface consumes [TransferHandler.importData] in [ResourceDragHandler].
- */
+/** An object that implements this interface consumes [TransferHandler.importData] in [ResourceDragHandler]. */
 interface ImportResourceDelegate {
   fun doImport(transferable: Transferable): Boolean
 }
 
-/**
- * DragHandler in headless mode
- */
+/** DragHandler in headless mode */
 class HeadlessDragHandler internal constructor() : ResourceDragHandler {
   override fun registerSource(assetList: JList<ResourceAssetSet>) {
     // Do Nothing
   }
 }
 
-/**
- * Handles the transfers of the assets when they get dragged. Assets are only transferred to valid targets.
- */
+/** Handles the transfers of the assets when they get dragged. Assets are only transferred to valid targets. */
 private class ResourceFilesTransferHandler(
   private val assetList: JList<ResourceAssetSet>,
   private val importDelegate: ImportResourceDelegate,
-  private val isValidTransferTarget: () -> Boolean
-): TransferHandler() {
+  private val isValidTransferTarget: () -> Boolean,
+) : TransferHandler() {
 
   override fun canImport(support: TransferSupport?): Boolean {
     if (support == null) return false
@@ -90,7 +82,7 @@ private class ResourceFilesTransferHandler(
   override fun getDragImage() = createDragPreview(assetList)
 
   override fun createTransferable(c: JComponent?): Transferable {
-    c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
     return com.android.tools.idea.ui.resourcemanager.model.createTransferable(assetList.selectedValue.getHighestDensityAsset())
   }
 
@@ -107,7 +99,7 @@ private class ResourceFilesTransferHandler(
  */
 internal class ResourceDragHandlerImpl(
   private val importDelegate: ImportResourceDelegate,
-  private val isValidTransferTarget: () -> Boolean
+  private val isValidTransferTarget: () -> Boolean,
 ) : ResourceDragHandler {
 
   override fun registerSource(assetList: JList<ResourceAssetSet>) {
@@ -118,13 +110,14 @@ internal class ResourceDragHandlerImpl(
 }
 
 private fun createDragPreview(draggedAssets: JList<ResourceAssetSet>): BufferedImage {
-  val component = draggedAssets.cellRenderer.getListCellRendererComponent(
-    draggedAssets,
-    draggedAssets.selectedValue, //show the preview of the focused and selected item
-    draggedAssets.selectedIndex,
-    false,
-    false
-  )
+  val component =
+    draggedAssets.cellRenderer.getListCellRendererComponent(
+      draggedAssets,
+      draggedAssets.selectedValue, // show the preview of the focused and selected item
+      draggedAssets.selectedIndex,
+      false,
+      false,
+    )
   // The component having no parent to lay it out an set its size, we need to manually to it, otherwise
   // validate() won't be executed.
   component.setSize(component.preferredSize.width, component.preferredSize.height)

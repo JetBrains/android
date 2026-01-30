@@ -19,15 +19,13 @@ import com.intellij.openapi.diagnostic.DelegatingLogger
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * A logger that supports adding additional info as a prefix. This allows to, for example, temporarily log a request id next to every
- * line of the log as:
+ * A logger that supports adding additional info as a prefix. This allows to, for example, temporarily log a request id next to every line
+ * of the log as:
  *
  * "[requestId=anId] The actual log line".
  */
-class LoggerWithFixedInfo(delegate: Logger, information: Map<String, String>): DelegatingLogger<Logger>(delegate) {
-  private val prefix = if (information.isNotEmpty())
-    "[" + information.entries.joinToString(" ") { "${it.key}=${it.value}" } + "] "
-  else ""
+class LoggerWithFixedInfo(delegate: Logger, information: Map<String, String>) : DelegatingLogger<Logger>(delegate) {
+  private val prefix = if (information.isNotEmpty()) "[" + information.entries.joinToString(" ") { "${it.key}=${it.value}" } + "] " else ""
 
   override fun debug(message: String, t: Throwable?) {
     super.debug("$prefix$message", t)

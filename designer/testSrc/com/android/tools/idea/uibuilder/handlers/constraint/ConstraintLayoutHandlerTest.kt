@@ -49,18 +49,12 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     val nlModel =
       model(
           "constraint.xml",
-          component(CONSTRAINT_LAYOUT.defaultName())
-            .id("@+id/root")
-            .withBounds(0, 0, 2000, 2000)
-            .width("1000dp")
-            .height("1000dp"),
+          component(CONSTRAINT_LAYOUT.defaultName()).id("@+id/root").withBounds(0, 0, 2000, 2000).width("1000dp").height("1000dp"),
         )
         .build()
 
     val handler = nlModel.treeReader.find("root")!!.getLayoutHandler {}!!
-    assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
-      handler.clearAttributes(listOf())
-    }
+    assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) { handler.clearAttributes(listOf()) }
   }
 
   @Test
@@ -273,13 +267,8 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     val text1 = model.treeReader.find("text1")!!
     val linear = model.treeReader.find("linear")!!
     val flow = model.treeReader.find("flow")!!
-    NlWriteCommandActionUtil.run(text1, "Move text1") {
-      text1.moveTo(linear, null, InsertType.MOVE, emptySet())
-    }
-    assertEquals(
-      "text2,button",
-      flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS),
-    )
+    NlWriteCommandActionUtil.run(text1, "Move text1") { text1.moveTo(linear, null, InsertType.MOVE, emptySet()) }
+    assertEquals("text2,button", flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS))
   }
 
   private fun nonViewMockedComponent(id: String): NlComponent {
@@ -303,26 +292,10 @@ class ConstraintLayoutHandlerTest : SceneTest() {
                 component(CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
                   .id("@id/flow")
                   .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
-                  .withAttribute(
-                    SdkConstants.AUTO_URI,
-                    SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-                    "parent",
-                  )
-                  .withAttribute(
-                    SdkConstants.AUTO_URI,
-                    SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-                    "parent",
-                  )
-                  .withAttribute(
-                    SdkConstants.AUTO_URI,
-                    SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-                    "parent",
-                  )
-                  .withAttribute(
-                    SdkConstants.AUTO_URI,
-                    SdkConstants.CONSTRAINT_REFERENCED_IDS,
-                    "text1,text2,button",
-                  ),
+                  .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+                  .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+                  .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
+                  .withAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS, "text1,text2,button"),
               )
           ),
       )

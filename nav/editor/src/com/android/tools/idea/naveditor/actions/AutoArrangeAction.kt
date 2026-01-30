@@ -35,17 +35,9 @@ class AutoArrangeAction private constructor() : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     WriteCommandAction.runWriteCommandAction(surface.project) {
-      surface.scene
-        ?.root
-        ?.children
-        ?.map { it.nlComponent }
-        ?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
+      surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
       surface.model?.let { surface.getSceneManager(it) }?.requestRender()
-      surface.scene
-        ?.root
-        ?.children
-        ?.map { it.nlComponent }
-        ?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
+      surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
     }
     surface.zoomController.zoomToFit()
   }
@@ -53,8 +45,6 @@ class AutoArrangeAction private constructor() : AnAction() {
   companion object {
     @JvmStatic
     val instance: AutoArrangeAction
-      get() =
-        ActionManager.getInstance().getAction(DesignerActions.ACTION_AUTO_ARRANGE)
-          as AutoArrangeAction
+      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_AUTO_ARRANGE) as AutoArrangeAction
   }
 }

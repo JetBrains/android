@@ -25,23 +25,22 @@ import com.android.fakeadbserver.services.StatusWriter
 import com.android.fakeadbserver.shellcommandhandlers.ShellHandler
 import java.lang.Thread.sleep
 
-/**
- * Handler for FakeAdbServer that handles shell commands using the given TestShellCommands
- * (i.e. predefined commands and responses).
- */
-class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) : ShellHandler(
-  shellProtocolType) {
+/** Handler for FakeAdbServer that handles shell commands using the given TestShellCommands (i.e. predefined commands and responses). */
+class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) :
+  ShellHandler(shellProtocolType) {
 
   override fun shouldExecute(shellCommand: String, shellCommandArgs: String?): Boolean {
     return shellCommands.get("$shellCommand $shellCommandArgs") != null
   }
 
-  override fun execute(fakeAdbServer: FakeAdbServer,
-                       statusWriter: StatusWriter,
-                       shellCommandOutput: ShellCommandOutput,
-                       device: DeviceState,
-                       shellCommand: String,
-                       shellCommandArgs: String?) {
+  override fun execute(
+    fakeAdbServer: FakeAdbServer,
+    statusWriter: StatusWriter,
+    shellCommandOutput: ShellCommandOutput,
+    device: DeviceState,
+    shellCommand: String,
+    shellCommandArgs: String?,
+  ) {
     val result = shellCommands.get("$shellCommand $shellCommandArgs")
     assert(result != null)
 

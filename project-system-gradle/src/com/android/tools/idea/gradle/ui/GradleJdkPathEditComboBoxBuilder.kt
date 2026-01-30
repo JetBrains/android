@@ -19,25 +19,21 @@ import com.android.tools.idea.sdk.Jdks
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
-import org.jetbrains.annotations.SystemIndependent
 import java.nio.file.Path
+import org.jetbrains.annotations.SystemIndependent
 
 /**
- * Builder for [GradleJdkPathEditComboBox] that creates the component based on a provided list of [Sdk] usually obtained from jdk.table entries.
- * Responsible in filtering, validating and sorting the provided jdks that will be displayed in the component dropdown.
+ * Builder for [GradleJdkPathEditComboBox] that creates the component based on a provided list of [Sdk] usually obtained from jdk.table
+ * entries. Responsible in filtering, validating and sorting the provided jdks that will be displayed in the component dropdown.
  */
 object GradleJdkPathEditComboBoxBuilder {
 
-  fun build(
-    currentJdkPath: @SystemIndependent String?,
-    embeddedJdkPath: Path,
-    suggestedJdks: List<Sdk>,
-    hintMessage: String,
-  ) = GradleJdkPathEditComboBox(
-    currentJdkPath = currentJdkPath ?: embeddedJdkPath.toString(),
-    suggestedJdkPaths = getKnownValidJdks(suggestedJdks, embeddedJdkPath),
-    hintMessage = hintMessage
-  )
+  fun build(currentJdkPath: @SystemIndependent String?, embeddedJdkPath: Path, suggestedJdks: List<Sdk>, hintMessage: String) =
+    GradleJdkPathEditComboBox(
+      currentJdkPath = currentJdkPath ?: embeddedJdkPath.toString(),
+      suggestedJdkPaths = getKnownValidJdks(suggestedJdks, embeddedJdkPath),
+      hintMessage = hintMessage,
+    )
 
   private fun getKnownValidJdks(jdkList: List<Sdk>, embeddedJdkPath: Path) =
     jdkList
@@ -48,9 +44,7 @@ object GradleJdkPathEditComboBoxBuilder {
       .distinct()
       .sortedByDescending { Jdks.getInstance().findVersion(it) }
       .mapNotNull { path ->
-        JavaSdk.getInstance().getVersionString(path.toString())?.let { version ->
-          LabelAndFileForLocation(version, path)
-        }
+        JavaSdk.getInstance().getVersionString(path.toString())?.let { version -> LabelAndFileForLocation(version, path) }
       }
       .toList()
 }

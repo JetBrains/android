@@ -19,19 +19,13 @@ import java.io.File
 import java.io.Serializable
 
 interface IdeAndroidProject : Serializable {
-  /**
-   * Returns the AGP version. This is a string in the format X.Y.Z
-   */
+  /** Returns the AGP version. This is a string in the format X.Y.Z */
   val agpVersion: String
 
-  /**
-   * Returns a project path together with the name and location of the build containing it.
-   */
+  /** Returns a project path together with the name and location of the build containing it. */
   val projectPath: IdeProjectPath
 
-  /**
-   * Returns the type of project: Android application, library, feature, instantApp.
-   */
+  /** Returns the type of project: Android application, library, feature, instantApp. */
   val projectType: IdeAndroidProjectType
 
   val defaultSourceProvider: IdeSourceProviderContainer
@@ -41,10 +35,7 @@ interface IdeAndroidProject : Serializable {
   /**
    * Returns a list of all the variant names.
    *
-   *
-   * This does not include test variant. Test variants are additional artifacts in their
-   * respective variant info.
-   *
+   * This does not include test variant. Test variants are additional artifacts in their respective variant info.
    */
   val basicVariants: Collection<IdeBasicVariant>
 
@@ -58,42 +49,39 @@ interface IdeAndroidProject : Serializable {
   val flavorDimensions: Collection<String>
 
   /**
-   * Returns the compilation target as a string. This is the full extended target hash string.
-   * (see com.android.sdklib.IAndroidTarget#hashString())
+   * Returns the compilation target as a string. This is the full extended target hash string. (see
+   * com.android.sdklib.IAndroidTarget#hashString())
    *
    * @return the target hash string
    */
   val compileTarget: String
 
   /**
-   * Returns the boot classpath matching the compile target. This is typically android.jar plus
-   * other optional libraries.
+   * Returns the boot classpath matching the compile target. This is typically android.jar plus other optional libraries.
    *
    * @return a list of jar files.
    */
   val bootClasspath: Collection<String>
 
-  /** Returns a list of [IdeSigningConfig].  */
+  /** Returns a list of [IdeSigningConfig]. */
   val signingConfigs: Collection<IdeSigningConfig>
 
-  /** Returns the aapt options.  */
+  /** Returns the aapt options. */
   val aaptOptions: IdeAaptOptions
 
-  /** Returns the lint options.  */
+  /** Returns the lint options. */
   val lintOptions: IdeLintOptions?
 
-  /** Returns the compile options for Java code.  */
+  /** Returns the compile options for Java code. */
   val javaCompileOptions: IdeJavaCompileOptions?
 
-  /** Returns the build folder of this project.  */
+  /** Returns the build folder of this project. */
   val buildFolder: File
 
   /**
-   * Returns the resource prefix to use, if any. This is an optional prefix which can be set and
-   * which is used by the defaults to automatically choose new resources with a certain prefix,
-   * warn if resources are not using the given prefix, etc. This helps work with resources in the
-   * app namespace where there could otherwise be unintentional duplicated resource names between
-   * unrelated libraries.
+   * Returns the resource prefix to use, if any. This is an optional prefix which can be set and which is used by the defaults to
+   * automatically choose new resources with a certain prefix, warn if resources are not using the given prefix, etc. This helps work with
+   * resources in the app namespace where there could otherwise be unintentional duplicated resource names between unrelated libraries.
    *
    * @return the optional resource prefix, or null if not set
    */
@@ -106,20 +94,13 @@ interface IdeAndroidProject : Serializable {
    */
   val buildToolsVersion: String?
 
-  /**
-   * Returns true if this is the base feature split.
-   */
+  /** Returns true if this is the base feature split. */
   val isBaseSplit: Boolean
 
-  /**
-   * Returns the list of dynamic features.
-   *
-   */
+  /** Returns the list of dynamic features. */
   val dynamicFeatures: Collection<String>
 
-  /**
-   * The Gradle path of the base feature (if a dynamic feature).
-   */
+  /** The Gradle path of the base feature (if a dynamic feature). */
   val baseFeature: String?
 
   val viewBindingOptions: IdeViewBindingOptions?
@@ -139,12 +120,11 @@ interface IdeAndroidProject : Serializable {
    */
   val namespace: String?
 
-  /** Various flags from AGP  */
+  /** Various flags from AGP */
   val agpFlags: IdeAndroidGradlePluginProjectFlags
 
   /**
-   * Returns the minimal information of variants for this project, excluding test related
-   * variants.
+   * Returns the minimal information of variants for this project, excluding test related variants.
    *
    * @since 4.1
    */
@@ -153,38 +133,31 @@ interface IdeAndroidProject : Serializable {
   /**
    * Returns the lint jars that this module uses to run extra lint checks.
    *
-   *
-   * If null, the model does not contain the information because AGP was an older version, and
-   * alternative ways to get the information should be used.
+   * If null, the model does not contain the information because AGP was an older version, and alternative ways to get the information
+   * should be used.
    */
   val lintChecksJars: List<File>?
 
-  /**
-   * Returns the testNamespace of the main artifact.
-   */
+  /** Returns the testNamespace of the main artifact. */
   val testNamespace: String?
 
   val isKaptEnabled: Boolean
 
   /**
-   * The library desugaring config files to pass to R8.
-   * The list will be empty if library desugaring is not enabled for this Gradle project,
+   * The library desugaring config files to pass to R8. The list will be empty if library desugaring is not enabled for this Gradle project,
    * or for versions of AGP before 8.1.0-alpha05 which did not report the value
    */
   val desugarLibraryConfigFiles: List<File>
 
-  /**
-   * The default variant of a module, if set in the AGP DSL.
-   */
+  /** The default variant of a module, if set in the AGP DSL. */
   val defaultVariantName: String?
 
   /** Lint jar published from the project, if any. */
   val lintJar: File?
 
-  /**
-   * Returns the list of all the test suites defined for this project.
-   */
+  /** Returns the list of all the test suites defined for this project. */
   val testSuites: List<IdeTestSuite>
 }
 
-val IdeAndroidProject.filteredVariantNames: Collection<String> get() = basicVariants.mapNotNull { if (it.hideInStudio) null else it.name }
+val IdeAndroidProject.filteredVariantNames: Collection<String>
+  get() = basicVariants.mapNotNull { if (it.hideInStudio) null else it.name }

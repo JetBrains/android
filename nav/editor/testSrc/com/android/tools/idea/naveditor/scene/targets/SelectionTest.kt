@@ -149,40 +149,23 @@ class SelectionTest : NavTestCase() {
     val action3 = scene.getSceneComponent("action3")!!
 
     lassoSelect(sceneView, guiInputHandler, fragment1)
-    assertContainsElements(
-      surface.selectionModel.selection,
-      fragment1.nlComponent,
-      action1.nlComponent,
-    )
+    assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
 
     lassoSelect(sceneView, guiInputHandler, fragment2)
-    assertContainsElements(
-      surface.selectionModel.selection,
-      fragment2.nlComponent,
-      action2.nlComponent,
-    )
+    assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
 
     lassoSelect(sceneView, guiInputHandler, fragment3)
-    assertContainsElements(
-      surface.selectionModel.selection,
-      fragment3.nlComponent,
-      action3.nlComponent,
-    )
+    assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
 
     guiInputHandler.stopListening()
   }
 
-  private fun lassoSelect(
-    sceneView: SceneView,
-    guiInputHandler: GuiInputHandler,
-    component: SceneComponent,
-  ) {
+  private fun lassoSelect(sceneView: SceneView, guiInputHandler: GuiInputHandler, component: SceneComponent) {
     val rect = component.fillRect(null)
     @SwingCoordinate val x1s = Coordinates.getSwingX(sceneView, rect.x) - LASSO_PADDING
     @SwingCoordinate val y1s = Coordinates.getSwingY(sceneView, rect.y) - LASSO_PADDING
     @SwingCoordinate val x2s = Coordinates.getSwingX(sceneView, rect.x + rect.width) + LASSO_PADDING
-    @SwingCoordinate
-    val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
+    @SwingCoordinate val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
     LayoutTestUtilities.moveMouse(guiInputHandler, 0, 0, x1s, y1s)
     LayoutTestUtilities.pressMouse(guiInputHandler, BUTTON1, x1s, y1s, InputEvent.SHIFT_DOWN_MASK)
     LayoutTestUtilities.dragMouse(guiInputHandler, x1s, y1s, x2s, y2s, 0)

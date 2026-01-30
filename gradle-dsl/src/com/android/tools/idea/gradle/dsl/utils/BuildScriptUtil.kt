@@ -16,15 +16,15 @@
 @file:JvmName("BuildScriptUtil")
 
 /**
- * This file replicates some methods from android.sdk.common; if anything is changed here then it should probably
- * also be changed in that module.
+ * This file replicates some methods from android.sdk.common; if anything is changed here then it should probably also be changed in that
+ * module.
  */
 package com.android.tools.idea.gradle.dsl.utils
 
 import com.intellij.openapi.util.registry.Registry
 import java.io.File
 
-internal fun findGradleBuildFile(dirPath: File) : File {
+internal fun findGradleBuildFile(dirPath: File): File {
   val groovyBuildFile = File(dirPath, FN_BUILD_GRADLE)
   if (groovyBuildFile.isFile) return groovyBuildFile
   val kotlinBuildFile = File(dirPath, FN_BUILD_GRADLE_KTS)
@@ -41,7 +41,7 @@ internal fun findGradleBuildFile(dirPath: File) : File {
   return groovyBuildFile
 }
 
-internal fun findGradleSettingsFile(dirPath: File) : File {
+internal fun findGradleSettingsFile(dirPath: File): File {
   val groovySettingsFile = File(dirPath, FN_SETTINGS_GRADLE)
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)

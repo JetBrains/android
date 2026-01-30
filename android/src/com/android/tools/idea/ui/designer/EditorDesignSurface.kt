@@ -20,18 +20,14 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
 import java.awt.LayoutManager
 
-/**
- * A layout editor design surface.
- */
+/** A layout editor design surface. */
 abstract class EditorDesignSurface(layout: LayoutManager) : AdtPrimaryPanel(layout) {
-  /**
-   * The [OverlayConfiguration] of the [EditorDesignSurface]
-   */
+  /** The [OverlayConfiguration] of the [EditorDesignSurface] */
   val overlayConfiguration: OverlayConfiguration = OverlayConfiguration()
 
   /**
-   * All the configurations represented in the surface. Since there are multiple models, there can be multiple configurations
-   * being rendered.
+   * All the configurations represented in the surface. Since there are multiple models, there can be multiple configurations being
+   * rendered.
    */
   abstract val configurations: List<Configuration>
 
@@ -42,8 +38,6 @@ abstract class EditorDesignSurface(layout: LayoutManager) : AdtPrimaryPanel(layo
    */
   abstract fun forceUserRequestedRefresh()
 
-  /**
-   * When called, this will trigger a re-inflate and refresh of the layout.
-   */
+  /** When called, this will trigger a re-inflate and refresh of the layout. */
   abstract fun forceRefresh()
 }

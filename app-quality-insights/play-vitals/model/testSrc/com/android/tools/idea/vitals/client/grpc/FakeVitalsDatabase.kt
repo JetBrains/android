@@ -47,18 +47,10 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
   private val reportDatabase = ConcurrentHashMap<String, ErrorReport>()
 
   fun addIssue(issue: AppInsightsIssue) {
-    addIssueWithCustomStackTrace(
-      issue,
-      issue.sampleEvent.eventData,
-      issue.sampleEvent.stacktraceGroup.toRawString(),
-    )
+    addIssueWithCustomStackTrace(issue, issue.sampleEvent.eventData, issue.sampleEvent.stacktraceGroup.toRawString())
   }
 
-  fun addIssueWithCustomStackTrace(
-    issue: AppInsightsIssue,
-    eventData: EventData,
-    stacktrace: String,
-  ) {
+  fun addIssueWithCustomStackTrace(issue: AppInsightsIssue, eventData: EventData, stacktrace: String) {
     val errorIssue = issue.issueDetails.toErrorIssue()
     val errorReport = eventToProto(issue, eventData, stacktrace)
     database[issue.id.value] = Cluster(errorIssue, errorReport)
@@ -69,9 +61,7 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
   fun getIssues() = database.values.map { it.issue }
 
   fun getReportsForIds(errorIssueIds: Set<String>): List<ErrorReport> {
-    return database.values
-      .filter { it.report.name.split("/").last() in errorIssueIds }
-      .map { it.report }
+    return database.values.filter { it.report.name.split("/").last() in errorIssueIds }.map { it.report }
   }
 
   private fun IssueDetails.toErrorIssue(): ErrorIssue =
@@ -93,11 +83,7 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
       }
       .build()
 
-  private fun eventToProto(
-    issue: AppInsightsIssue,
-    eventData: EventData,
-    stacktrace: String,
-  ): ErrorReport =
+  private fun eventToProto(issue: AppInsightsIssue, eventData: EventData, stacktrace: String): ErrorReport =
     ErrorReport.newBuilder()
       .apply {
         name = issue.sampleEvent.name
@@ -142,8 +128,7 @@ private fun IssueAnnotation.toProto(): com.google.play.developer.reporting.Issue
     }
     .build()
 
-private fun toAppVersion(value: String) =
-  AppVersion.newBuilder().apply { versionCode = value.toLong() }.build()
+private fun toAppVersion(value: String) = AppVersion.newBuilder().apply { versionCode = value.toLong() }.build()
 
 private fun StacktraceGroup.toRawString() =
   exceptions.joinToString("\n") { stack ->

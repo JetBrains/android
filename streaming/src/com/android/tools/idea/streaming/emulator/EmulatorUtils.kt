@@ -19,9 +19,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.sdklib.internal.avd.AvdInfo
 import com.intellij.ide.ui.LafManager
 
-/**
- * Returns the emulator UI theme matching the current IDE theme.
- */
+/** Returns the emulator UI theme matching the current IDE theme. */
 internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
   val themeName = lafManager.currentUIThemeLookAndFeel.name
   return when {
@@ -36,7 +34,7 @@ internal val AvdInfo.displayNameWithApi: String
   get() {
     val displayName = displayName
     if (displayName.contains(" API ")) {
-      return displayName;
+      return displayName
     }
-    return "$displayName API ${androidVersion.apiStringWithoutExtension}";
+    return "$displayName API ${androidVersion.apiStringWithoutExtension}"
   }

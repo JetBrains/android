@@ -40,22 +40,20 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.jetbrains.kotlin.idea.util.findModule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @RunsInEdt
 class ShowFileInResourceManagerActionTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.onDisk()
+  @get:Rule val rule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Before
   fun setUp() {
@@ -89,9 +87,7 @@ class ShowFileInResourceManagerActionTest {
     val resourceExplorerView = UIUtil.findComponentOfType(resourceExplorer, ResourceExplorerView::class.java)!!
     Disposer.register(rule.fixture.projectDisposable, resourceExplorer)
 
-    waitAndAssert<SectionList>(resourceExplorerView) {
-      it != null && (it.getLists().getOrNull(0)?.model?.size ?: 0) > 0
-    }
+    waitAndAssert<SectionList>(resourceExplorerView) { it != null && (it.getLists().getOrNull(0)?.model?.size ?: 0) > 0 }
 
     val component = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)[0]
     resourceExplorer.selectAsset(rule.module.androidFacet!!, newFile.virtualFile)
@@ -115,9 +111,7 @@ class ShowFileInResourceManagerActionTest {
 
     // Open ResourceManager with facet of app2
     val resourceExplorer = runInEdtAndGet {
-      ResourceExplorer.createForToolWindow(facet2).also {
-        Disposer.register(rule.fixture.projectDisposable, it)
-      }
+      ResourceExplorer.createForToolWindow(facet2).also { Disposer.register(rule.fixture.projectDisposable, it) }
     }
 
     runInEdtAndWait {
@@ -133,13 +127,10 @@ class ShowFileInResourceManagerActionTest {
     assertEquals(rule.module.name, moduleOfSelected)
   }
 
-  private fun checkActionWithFile(resourceManagerAction: ShowFileInResourceManagerAction,
-                                  virtualFile: VirtualFile?): AnActionEvent {
+  private fun checkActionWithFile(resourceManagerAction: ShowFileInResourceManagerAction, virtualFile: VirtualFile?): AnActionEvent {
     val dataContext = createDataContext(virtualFile)
     val testActionEvent = TestActionEvent.createTestEvent(resourceManagerAction, dataContext)
-    runInEdtAndWait {
-      resourceManagerAction.update(testActionEvent)
-    }
+    runInEdtAndWait { resourceManagerAction.update(testActionEvent) }
     return testActionEvent
   }
 

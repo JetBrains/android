@@ -35,15 +35,9 @@ interface AiInsightClient {
   /**
    * Gets AI generated insight for this issue
    *
-   * @param request - Additional context required by the insight client to get insights for the
-   *   crash
+   * @param request - Additional context required by the insight client to get insights for the crash
    */
   suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight
 
-  fun insightFeedbackUpdated(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    feedback: InsightFeedback,
-  )
+  fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback)
 }

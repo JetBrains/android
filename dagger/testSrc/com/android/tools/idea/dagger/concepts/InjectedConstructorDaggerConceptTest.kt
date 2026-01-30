@@ -59,9 +59,7 @@ class InjectedConstructorDaggerConceptTest {
 
   private fun runIndexer(wrapper: DaggerIndexMethodWrapper): Map<String, Set<IndexValue>> =
     mutableMapOf<String, MutableSet<IndexValue>>().also { indexEntries ->
-      InjectedConstructorDaggerConcept.indexers.methodIndexers.forEach {
-        it.addIndexEntries(wrapper, indexEntries)
-      }
+      InjectedConstructorDaggerConcept.indexers.methodIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
     }
 
   @Test
@@ -71,11 +69,11 @@ class InjectedConstructorDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
-      }
-      """
+        class Foo constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -92,12 +90,12 @@ class InjectedConstructorDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.Inject
+        package com.example
+        import javax.inject.Inject
 
-      class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
-      }
-      """
+        class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -111,10 +109,7 @@ class InjectedConstructorDaggerConceptTest {
         "Bar",
         setOf(InjectedConstructorParameterIndexValue(FOO_ID, "arg1")),
         "Baz",
-        setOf(
-          InjectedConstructorParameterIndexValue(FOO_ID, "arg2"),
-          InjectedConstructorParameterIndexValue(FOO_ID, "arg3"),
-        ),
+        setOf(InjectedConstructorParameterIndexValue(FOO_ID, "arg2"), InjectedConstructorParameterIndexValue(FOO_ID, "arg3")),
       )
   }
 
@@ -125,12 +120,12 @@ class InjectedConstructorDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.Inject
+        package com.example
+        import com.other.Inject
 
-      class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
-      }
-      """
+        class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -147,14 +142,14 @@ class InjectedConstructorDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.Inject
+        package com.example
+        import javax.inject.Inject
 
-      class Foo {
-        @Inject
-        fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
-      }
-      """
+        class Foo {
+          @Inject
+          fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -171,12 +166,12 @@ class InjectedConstructorDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.Inject
+        package com.example
+        import javax.inject.Inject
 
-      @Inject
-      fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
-      """
+        @Inject
+        fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -213,8 +208,7 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val constructor1Element: KtConstructor<*> =
-      myFixture.findParentElement("ClassWithInjectedConstructor @Inject cons|tructor")
+    val constructor1Element: KtConstructor<*> = myFixture.findParentElement("ClassWithInjectedConstructor @Inject cons|tructor")
 
     val indexValue1 = InjectedConstructorIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID)
     val indexValue2 = InjectedConstructorIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID)
@@ -222,8 +216,7 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   @Test
@@ -250,16 +243,14 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val constructor1Element: PsiMethod =
-      myFixture.findParentElement("ClassWithInjectedConstru|ctor()")
+    val constructor1Element: PsiMethod = myFixture.findParentElement("ClassWithInjectedConstru|ctor()")
     val indexValue1 = InjectedConstructorIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID)
     val indexValue2 = InjectedConstructorIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID)
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   @Test
@@ -291,18 +282,14 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val parameter1Element: KtParameter =
-      myFixture.findParentElement("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
-    val indexValue1 =
-      InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
-    val indexValue2 =
-      InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
+    val parameter1Element: KtParameter = myFixture.findParentElement("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
+    val indexValue1 = InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
+    val indexValue2 = InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   @Test
@@ -331,26 +318,20 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent(),
     )
 
-    val parameter1Element: PsiParameter =
-      myFixture.findParentElement("ClassWithInjectedConstructor(Bar ba|r)")
-    val indexValue1 =
-      InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
+    val parameter1Element: PsiParameter = myFixture.findParentElement("ClassWithInjectedConstructor(Bar ba|r)")
+    val indexValue1 = InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
 
-    val indexValue2 =
-      InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
+    val indexValue2 = InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList()).isEmpty()
   }
 
   companion object {
     private val FOO_ID = ClassId.fromString("com/example/Foo")
-    private val CLASS_WITH_INJECTED_CONSTRUCTOR_ID =
-      ClassId.fromString("com/example/ClassWithInjectedConstructor")
-    private val CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID =
-      ClassId.fromString("com/example/ClassWithoutInjectedConstructor")
+    private val CLASS_WITH_INJECTED_CONSTRUCTOR_ID = ClassId.fromString("com/example/ClassWithInjectedConstructor")
+    private val CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID = ClassId.fromString("com/example/ClassWithoutInjectedConstructor")
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
@@ -22,16 +23,14 @@ import com.android.tools.idea.testing.DeclarativeAndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.withDeclarative
 import org.hamcrest.core.IsEqual.equalTo
+import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
-import org.junit.After
 
 class PsProjectImplDeclarativeTest {
-  @get:Rule
-  val projectRule: DeclarativeAndroidGradleProjectRule = AndroidGradleProjectRule().withDeclarative()
+  @get:Rule val projectRule: DeclarativeAndroidGradleProjectRule = AndroidGradleProjectRule().withDeclarative()
 
   @Before
   fun before() {
@@ -39,7 +38,7 @@ class PsProjectImplDeclarativeTest {
   }
 
   @After
-  fun after(){
+  fun after() {
     DeclarativeIdeSupport.clearOverride()
   }
 
@@ -56,5 +55,4 @@ class PsProjectImplDeclarativeTest {
     project = PsProjectImpl(projectRule.project)
     assertThat(project.androidGradlePluginVersion, equalTo("8.8.0".asParsed()))
   }
-
 }

@@ -26,8 +26,7 @@ import java.util.Locale
 
 /** Common class that serves functionality for Macrobenchmark and Baseline Profiles templates. */
 object BaselineProfilesMacrobenchmarkCommon {
-  const val FILTER_INSTR_ARG =
-    "android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules"
+  const val FILTER_INSTR_ARG = "android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules"
   const val FILTER_ARG_BASELINE_PROFILE = "baselineprofile"
   const val FILTER_ARG_MACROBENCHMARK = "macrobenchmark"
 
@@ -48,45 +47,29 @@ object BaselineProfilesMacrobenchmarkCommon {
     addIncludeToSettings(newModule.name)
 
     // Create build.gradle(.kts) with the content from [buildGradle] lambda
-    val buildFile =
-      if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
+    val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 
     addCompileSdk(listOfNotNull(minCompileSdk, newModule.apis.buildApi).max())
     // Apply all required dependencies
-    addPlugin(
-      "com.android.test",
-      "com.android.tools.build:gradle",
-      newModule.projectTemplateData.agpVersion.toString(),
-    )
+    addPlugin("com.android.test", "com.android.tools.build:gradle", newModule.projectTemplateData.agpVersion.toString())
     addDependency("androidx.test.ext:junit:+", "implementation")
     addDependency("androidx.test.espresso:espresso-core:+", "implementation")
     addDependency("androidx.test.uiautomator:uiautomator:+", "implementation")
-    addDependency(
-      "androidx.benchmark:benchmark-macro-junit4:+",
-      "implementation",
-      macrobenchmarkMinRev,
-    )
+    addDependency("androidx.benchmark:benchmark-macro-junit4:+", "implementation", macrobenchmarkMinRev)
 
     // Add empty android manifest to be proper Android module
     save("<manifest />", newModule.rootDir.resolve("src/main/AndroidManifest.xml"))
     // Add gitignore with build/
     save(gitignore(), newModule.rootDir.resolve(".gitignore"))
 
-    addKotlinIfNeeded(
-      newModule.projectTemplateData,
-      targetApi = newModule.apis.targetApi.apiLevel,
-      noKtx = true,
-    )
+    addKotlinIfNeeded(newModule.projectTemplateData, targetApi = newModule.apis.targetApi.apiLevel, noKtx = true)
 
     // Create (and open) the content test classes (benchmarks / baseline profile generator)
     customizeModule()
   }
 
-  fun flavorsConfigurationsBuildGradle(
-    flavors: ProductFlavorsWithDimensions,
-    useGradleKts: Boolean,
-  ): String {
+  fun flavorsConfigurationsBuildGradle(flavors: ProductFlavorsWithDimensions, useGradleKts: Boolean): String {
     return buildString {
       if (flavors.dimensions.isNotEmpty()) {
         val dimenString = flavors.dimensions.joinToString(",") { "\"$it\"" }
@@ -110,13 +93,10 @@ object BaselineProfilesMacrobenchmarkCommon {
   }
 
   /**
-   * Retrieves the product flavors from [GradleAndroidModel]. We don't retrieve it from the DSL
-   * model, because it doesn't support loading flavors that aren't set in the build.gradle directly,
-   * for example, when using convention plugins.
+   * Retrieves the product flavors from [GradleAndroidModel]. We don't retrieve it from the DSL model, because it doesn't support loading
+   * flavors that aren't set in the build.gradle directly, for example, when using convention plugins.
    */
-  fun getTargetModelProductFlavors(
-    targetModuleGradleModel: GradleAndroidModel
-  ): ProductFlavorsWithDimensions =
+  fun getTargetModelProductFlavors(targetModuleGradleModel: GradleAndroidModel): ProductFlavorsWithDimensions =
     ProductFlavorsWithDimensions(
       targetModuleGradleModel.productFlavorNamesByFlavorDimension.keys,
       targetModuleGradleModel.productFlavorNamesByFlavorDimension.flatMap { (dimension, flavors) ->
@@ -138,8 +118,5 @@ class ProductFlavorsWithDimensions(val dimensions: Collection<String>, val flavo
 
   data class Item(val name: String, val dimension: String?)
 
-  val flavorNamesGroupedByDimension =
-    dimensions.map { dimensionName ->
-      flavors.filter { it.dimension == dimensionName }.map { it.name }
-    }
+  val flavorNamesGroupedByDimension = dimensions.map { dimensionName -> flavors.filter { it.dimension == dimensionName }.map { it.name } }
 }

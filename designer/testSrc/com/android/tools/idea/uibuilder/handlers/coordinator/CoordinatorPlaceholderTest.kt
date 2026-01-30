@@ -39,8 +39,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     val frameLayout = myScene.getSceneComponent("frame")!!
 
     run {
-      val placeholder =
-        CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
+      val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
       val region = placeholder.region
       assertEquals(frameLayout.drawX, region.left)
       assertEquals(frameLayout.drawY, region.top)
@@ -49,12 +48,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     }
 
     run {
-      val placeholder =
-        CoordinatorPlaceholder(
-          coordinatorLayout,
-          frameLayout,
-          CoordinatorPlaceholder.Type.RIGHT_BOTTOM,
-        )
+      val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.RIGHT_BOTTOM)
       val region = placeholder.region
       assertEquals(frameLayout.drawX + frameLayout.drawWidth - SIZE, region.left)
       assertEquals(frameLayout.drawY + frameLayout.drawHeight - SIZE, region.top)
@@ -69,8 +63,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     val frameLayout = myScene.getSceneComponent("frame")!!
     val textView = myScene.getSceneComponent("textView")!!
 
-    val placeholder =
-      CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
+    val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
     val left = frameLayout.drawX + SIZE / 2 - textView.drawWidth / 2 + 3
     val top = frameLayout.drawY + SIZE / 2 - textView.drawHeight / 2 + 4
     val right = left + textView.drawWidth
@@ -93,8 +86,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(200, textView.drawX)
     assertEquals(0, textView.drawY)
 
-    val placeholder =
-      CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
+    val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
     applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
@@ -102,17 +94,8 @@ class CoordinatorPlaceholderTest : SceneTest() {
 
     assertEquals(frameLayout.drawX, textView.drawX)
     assertEquals(frameLayout.drawY, textView.drawY)
-    assertEquals(
-      "@+id/frame",
-      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR),
-    )
-    assertEquals(
-      "start|top",
-      textView.nlComponent.getAttribute(
-        SdkConstants.AUTO_URI,
-        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-      ),
-    )
+    assertEquals("@+id/frame", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR))
+    assertEquals("start|top", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY))
   }
 
   @Test
@@ -124,12 +107,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(200, textView.drawX)
     assertEquals(0, textView.drawY)
 
-    val placeholder =
-      CoordinatorPlaceholder(
-        coordinatorLayout,
-        frameLayout,
-        CoordinatorPlaceholder.Type.RIGHT_BOTTOM,
-      )
+    val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.RIGHT_BOTTOM)
     applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
@@ -137,33 +115,20 @@ class CoordinatorPlaceholderTest : SceneTest() {
 
     assertEquals(frameLayout.drawX + frameLayout.drawWidth - textView.drawWidth, textView.drawX)
     assertEquals(frameLayout.drawY + +frameLayout.drawHeight - textView.drawHeight, textView.drawY)
-    assertEquals(
-      "@+id/frame",
-      textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR),
-    )
-    assertEquals(
-      "end|bottom",
-      textView.nlComponent.getAttribute(
-        SdkConstants.AUTO_URI,
-        SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
-      ),
-    )
+    assertEquals("@+id/frame", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR))
+    assertEquals("end|bottom", textView.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY))
   }
 
   @Test
   fun testAddComponentWithoutSnappingToAnchor() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
-    val placeholders =
-      coordinatorLayout.nlComponent
-        .getLayoutHandler {}!!
-        .getPlaceholders(coordinatorLayout, emptyList())
+    val placeholders = coordinatorLayout.nlComponent.getLayoutHandler {}!!.getPlaceholders(coordinatorLayout, emptyList())
 
     val left = 100
     val top = 120
 
     val p = Point()
-    val snappedPlaceholders =
-      placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
+    val snappedPlaceholders = placeholders.filter { it.snap(SnappingInfo(left, top, left + 50, top + 50), p) }.toList()
 
     assertSize(1, snappedPlaceholders)
     UsefulTestCase.assertInstanceOf(snappedPlaceholders[0], ViewGroupPlaceholder::class.java)
@@ -184,18 +149,8 @@ class CoordinatorPlaceholderTest : SceneTest() {
             .id("@id/coordinator")
             .width("200dp")
             .height("200dp")
-            .children(
-              component(SdkConstants.FRAME_LAYOUT)
-                .withBounds(0, 0, 400, 400)
-                .id("@id/frame")
-                .width("200dp")
-                .height("200dp")
-            ),
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(400, 0, 60, 60)
-            .id("@id/textView")
-            .width("30dp")
-            .height("30dp"),
+            .children(component(SdkConstants.FRAME_LAYOUT).withBounds(0, 0, 400, 400).id("@id/frame").width("200dp").height("200dp")),
+          component(SdkConstants.TEXT_VIEW).withBounds(400, 0, 60, 60).id("@id/textView").width("30dp").height("30dp"),
         ),
     )
   }

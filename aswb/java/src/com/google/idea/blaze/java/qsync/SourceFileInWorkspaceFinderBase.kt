@@ -36,7 +36,7 @@ abstract class SourceFileInWorkspaceFinderBase : SourceFileFinderBase {
     querySyncManager: QuerySyncManager,
     workspaceRoot: Path,
     projectPath: Path,
-    clsFile: PsiFile
+    clsFile: PsiFile,
   ) : super(project, querySyncManager, workspaceRoot, projectPath, clsFile)
 
   override fun convertToVirtualFile(path: Path): VirtualFile? {
@@ -48,7 +48,9 @@ abstract class SourceFileInWorkspaceFinderBase : SourceFileFinderBase {
     val sourceFileNames = getSourceFileNamesFromClasses()
     val root = workspaceRoot ?: return emptySequence()
 
-    return artifactInfo.sources().asSequence()
+    return artifactInfo
+      .sources()
+      .asSequence()
       .map { pathResolver.resolve(it) }
       .filter { it.fileName.toString() in sourceFileNames }
       .map { root.resolve(it) }

@@ -39,19 +39,20 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.regex.Pattern
+import java.util.regex.Pattern.DOTALL
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import org.jetbrains.plugins.gradle.settings.DistributionType
-import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import java.util.regex.Pattern
-import java.util.regex.Pattern.DOTALL
 
-class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
+class UnsupportedGradleVersionIssueChecker : GradleIssueChecker {
   /** This message is generated in AGP by VersionCheckPlugin */
-  private val UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
+  private val UNSUPPORTED_GRADLE_VERSION_PATTERN =
+    Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val error = getRootCauseAndLocation(issueData.error).first
@@ -74,11 +75,9 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
         buildIssueComposer.addQuickFix(FixGradleVersionInWrapperQuickFix(gradleWrapper, gradleVersion))
         val propertiesFile = gradleWrapper.propertiesFilePath
         if (propertiesFile.exists()) {
-          buildIssueComposer.addQuickFix(
-            "Open Gradle wrapper properties", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, -1, -1)))
+          buildIssueComposer.addQuickFix("Open Gradle wrapper properties", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, -1, -1)))
         }
-      }
-      else {
+      } else {
         val gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(ideaProject)
         if (gradleProjectSettings != null && gradleProjectSettings.distributionType == DistributionType.LOCAL) {
           buildIssueComposer.addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
@@ -91,15 +90,14 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  private fun formatMessage(message: String?) : String? {
+  private fun formatMessage(message: String?): String? {
     if (message == null) return null
     val formattedMsg = StringBuilder()
     if (UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message).matches()) {
       val index = message.indexOf("If using the gradle wrapper")
       if (index != -1) {
         formattedMsg.append(message.substring(0, index).trim())
-      }
-      else formattedMsg.append(message)
+      } else formattedMsg.append(message)
       if (formattedMsg.isNotEmpty() && !formattedMsg.endsWith('.')) formattedMsg.append('.')
       formattedMsg.append("\n\nPlease fix the project's Gradle settings.")
       return formattedMsg.toString()
@@ -118,16 +116,18 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     return null
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     return UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(failureCause).matches()
   }
 
-  class OpenGradleSettingsQuickFix: BuildIssueQuickFix {
+  class OpenGradleSettingsQuickFix : BuildIssueQuickFix {
     override val id = "open.gradle.settings"
 
     override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -143,9 +143,10 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     }
   }
 
-  class FixGradleVersionInWrapperQuickFix(private var gradleWrapper: GradleWrapper?, gradleVersion: String?): DescribedBuildIssueQuickFix {
+  class FixGradleVersionInWrapperQuickFix(private var gradleWrapper: GradleWrapper?, gradleVersion: String?) : DescribedBuildIssueQuickFix {
     override val description: String
       get() = "Change Gradle version in Gradle wrapper to $gradleVersion and re-import project"
+
     override val id = "fix.gradle.version.in.wrapper"
     val gradleVersion: String = gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION
 

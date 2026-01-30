@@ -91,26 +91,12 @@ class NavActionManagerTest : NavTestCase() {
 
   fun testAddElement() {
     val resourceFiles =
-      LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
-        ResourceNamespace.TODO(),
-        ResourceFolderType.LAYOUT,
-      )
-    val layout =
-      resourceFiles.stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get()
-        as XmlFile
+      LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+    val layout = resourceFiles.stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
     WriteCommandAction.runWriteCommandAction(project) {
       val destinationClass =
-        JavaPsiFacade.getInstance(project)
-          .findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))!!
-      Destination.RegularDestination(
-          surface.currentNavigation,
-          "activity",
-          null,
-          destinationClass,
-          "myId",
-          layout,
-        )
-        .addToGraph()
+        JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))!!
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, destinationClass, "myId", layout).addToGraph()
     }
     assertEquals(
       "NlComponent{tag=<navigation>, instance=0}\n" +
@@ -125,10 +111,7 @@ class NavActionManagerTest : NavTestCase() {
       SdkConstants.LAYOUT_RESOURCE_PREFIX + "activity_main",
       newChild.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT),
     )
-    assertEquals(
-      "mytest.navtest.MainActivity",
-      newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME),
-    )
+    assertEquals("mytest.navtest.MainActivity", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
     assertEquals("@+id/myId", newChild.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
 
@@ -144,12 +127,9 @@ class NavActionManagerTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     whenever(surface.currentNavigation).thenReturn(model.treeReader.find("subflow"))
 
-    val psiClass =
-      JavaPsiFacade.getInstance(project)
-        .findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
+    val psiClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(project))
     WriteCommandAction.runWriteCommandAction(project) {
-      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!)
-        .addToGraph()
+      Destination.RegularDestination(surface.currentNavigation, "activity", null, psiClass!!).addToGraph()
     }
     assertEquals(
       "NlComponent{tag=<navigation>, instance=0}\n" +
@@ -227,8 +207,7 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testActivityContextMenu() {
-    val model =
-      model("nav.xml") { navigation(startDestination = "action") { activity("activity") } }
+    val model = model("nav.xml") { navigation(startDestination = "action") { activity("activity") } }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val activity = model.treeReader.find("activity")!!
@@ -263,8 +242,7 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testSubnavContextMenu() {
-    val model =
-      model("nav.xml") { navigation(startDestination = "subflow") { navigation("subflow") } }
+    val model = model("nav.xml") { navigation(startDestination = "subflow") { navigation("subflow") } }
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val subflow = model.treeReader.find("subflow")!!

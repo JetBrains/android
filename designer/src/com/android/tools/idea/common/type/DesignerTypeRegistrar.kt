@@ -20,8 +20,8 @@ import java.util.concurrent.CopyOnWriteArraySet
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Responsible for registering supported [DesignerEditorFileType]s. Types should be registered using
- * the [register] method, as the list returned when fetching the registered types is immutable.
+ * Responsible for registering supported [DesignerEditorFileType]s. Types should be registered using the [register] method, as the list
+ * returned when fetching the registered types is immutable.
  */
 object DesignerTypeRegistrar {
 

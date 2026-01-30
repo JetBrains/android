@@ -27,17 +27,13 @@ import com.android.tools.nativeSymbolizer.createNativeSymbolizer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
-class IntellijUiComponentsProvider(
-  private val project: Project,
-  private val parentDisposable: Disposable,
-) : UiComponentsProvider {
+class IntellijUiComponentsProvider(private val project: Project, private val parentDisposable: Disposable) : UiComponentsProvider {
   override val codeNavigator: CodeNavigator
 
   init {
     val locator = SymbolFilesLocator(ProjectSymbolSource(project))
     val symbolizer = createNativeSymbolizer(locator)
-    codeNavigator =
-      CodeNavigator(IntelliJNavSource(project, symbolizer), CodeNavigator.applicationExecutor)
+    codeNavigator = CodeNavigator(IntelliJNavSource(project, symbolizer), CodeNavigator.applicationExecutor)
   }
 
   override fun createStackTraceView(model: StackTraceModel): StackTraceView {

@@ -47,15 +47,17 @@ import org.junit.Test
 class SaveConfigurationPanelTest {
 
   private val projectRule = ProjectRule()
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   private val project: Project
     get() = projectRule.project
+
   private val projectDir: String
     get() = project.guessProjectDir()?.toNioPath().toString()
+
   private val desktopDir: String
     get() = getDesktopDirectory().toString()
+
   private val timestamp = LocalDateTime.of(2025, 1, 21, 10, 22, 14).atZone(ZoneId.systemDefault()).toInstant()
   private val saveConfig = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
 
@@ -161,6 +163,5 @@ class SaveConfigurationPanelTest {
     fireHyperlinkUpdate(HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, hyperlink))
   }
 
-  private fun String.toPlatformPath(): String =
-      replace('/', File.separatorChar)
+  private fun String.toPlatformPath(): String = replace('/', File.separatorChar)
 }

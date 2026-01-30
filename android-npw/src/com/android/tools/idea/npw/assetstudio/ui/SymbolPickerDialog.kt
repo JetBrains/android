@@ -124,8 +124,7 @@ class SymbolPickerDialog(
   private object SymbolsBundle {
     private val bundleRef = MessageBundleReference(BUNDLE_NAME)
 
-    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
-      bundleRef.message(key, *params)
+    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
   }
 
   private val weightLabel = JLabel(SymbolsBundle.message("label.weight").format(400))
@@ -149,10 +148,8 @@ class SymbolPickerDialog(
       updateFilter()
     }
 
-  private var filteredSymbolList: MutableList<MaterialSymbolsVirtualFile> =
-    ArrayList(EXPECTED_NUMBER_OF_ICONS)
-  private var iconListMap: MutableMap<SymbolConfiguration, List<MaterialSymbolsVirtualFile>> =
-    HashMap()
+  private var filteredSymbolList: MutableList<MaterialSymbolsVirtualFile> = ArrayList(EXPECTED_NUMBER_OF_ICONS)
+  private var iconListMap: MutableMap<SymbolConfiguration, List<MaterialSymbolsVirtualFile>> = HashMap()
   private var metadata: MaterialIconsMetadata = MaterialIconsMetadata.EMPTY
     set(value) {
       field = value
@@ -164,12 +161,9 @@ class SymbolPickerDialog(
 
   private val imageCache = ImageCache.createImageCache(myDisposable, null)
   private val materialSymbolsUrlProvider = materialSymbolsUrlProvider ?: SymbolsSdkUrlProvider()
-  private val materialIconsMetadataUrlProvider =
-    materialIconsMetadataUrlProvider ?: SdkMetadataUrlProvider()
+  private val materialIconsMetadataUrlProvider = materialIconsMetadataUrlProvider ?: SdkMetadataUrlProvider()
   private val resourceResolver =
-    ConfigurationManager.getOrCreateInstance(facet.module)
-      .getConfiguration(LightVirtualFile())
-      .getResourceResolver()
+    ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
 
   // The default panel color in darcula mode is too dark given that our icons are all black.
   // We provide a lighter color for higher contrast.
@@ -183,21 +177,10 @@ class SymbolPickerDialog(
         dispose()
       }
     }
-  private val renderingOptions =
-    LayoutRenderOptions(SessionParams.RenderingMode.SHRINK, true, transparentBackground = true)
-  private val assetPreviewManager =
-    AssetPreviewManagerImpl(
-      facet,
-      imageCache,
-      resourceResolver,
-      null,
-      renderingOptions,
-      placeholderImage,
-    )
+  private val renderingOptions = LayoutRenderOptions(SessionParams.RenderingMode.SHRINK, true, transparentBackground = true)
+  private val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
   private val layoutRenderer =
-    IconPickerCellLayoutRenderer(
-      assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager
-    )
+    IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
 
   private val layoutModel = TableModel(MaterialSymbolsVirtualFile::class, filteredSymbolList)
 
@@ -235,8 +218,7 @@ class SymbolPickerDialog(
   }
 
   private fun setStylesBoxModel() {
-    val collectionComboBoxModel =
-      CollectionComboBoxModel(Symbols.entries.map { it.displayName }, Symbols.OUTLINED.displayName)
+    val collectionComboBoxModel = CollectionComboBoxModel(Symbols.entries.map { it.displayName }, Symbols.OUTLINED.displayName)
     stylesBox.setModel(collectionComboBoxModel)
     stylesBox.isVisible = true
   }
@@ -251,8 +233,7 @@ class SymbolPickerDialog(
       replaceAll { it.replaceFirstChar { char -> char.uppercase() } }
       add(0, SymbolsBundle.message("categories.all"))
     }
-    val collectionComboBoxModel =
-      CollectionComboBoxModel(items, SymbolsBundle.message("categories.all"))
+    val collectionComboBoxModel = CollectionComboBoxModel(items, SymbolsBundle.message("categories.all"))
     categoriesBox.model = collectionComboBoxModel
   }
 
@@ -260,29 +241,21 @@ class SymbolPickerDialog(
     isOKActionEnabled = false
 
     coroutineScope.launch {
-      val vdIcon =
-        MaterialSymbolsLoader.loadVdIcon(
-          icon.symbolConfiguration,
-          icon.metadata,
-          metadata,
-          materialSymbolsUrlProvider,
-        )
+      val vdIcon = MaterialSymbolsLoader.loadVdIcon(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
       selectedIcon = vdIcon
       isOKActionEnabled = true
     }
   }
 
   /**
-   * Function that updates the complete list of loaded Material Symbols, with the currently selected
-   * [SymbolConfiguration], based on the loaded [MaterialIconsMetadata]
+   * Function that updates the complete list of loaded Material Symbols, with the currently selected [SymbolConfiguration], based on the
+   * loaded [MaterialIconsMetadata]
    *
-   * It employs a cache that stores all renders of Material Symbols on a per-configuration basis,
-   * when it gets too large, it gets cleared. This is to facilitate quick and inexpensive
-   * back-and-forth switches between configurations if the user is looking at mostly the same
+   * It employs a cache that stores all renders of Material Symbols on a per-configuration basis, when it gets too large, it gets cleared.
+   * This is to facilitate quick and inexpensive back-and-forth switches between configurations if the user is looking at mostly the same
    * symbols.
    *
-   * It gets triggered whenever a configuration option is modified, or when the [metadata] gets
-   * updated
+   * It gets triggered whenever a configuration option is modified, or when the [metadata] gets updated
    */
   private fun updateIconList() {
     val style = Symbols.getInstance(stylesBox.selectedItem as String)
@@ -330,9 +303,8 @@ class SymbolPickerDialog(
   }
 
   /**
-   * Function that updates the displayed list of Material Symbols, based on the currently selected
-   * filter options and the [layoutIconList]. After filtering, it triggers the required table
-   * updates in order to display what is required
+   * Function that updates the displayed list of Material Symbols, based on the currently selected filter options and the [layoutIconList].
+   * After filtering, it triggers the required table updates in order to display what is required
    *
    * This is triggered on [searchField], [categoriesBox] and [layoutIconList] update
    */
@@ -373,8 +345,8 @@ class SymbolPickerDialog(
   /**
    * Function that, if required, downloads missing font files and metadata to the Sdk
    *
-   * @param forceMetadataDownload even though some automatic checks for updates are in-place, we
-   *   allow the user to manually trigger a redownload through the [refreshButton]
+   * @param forceMetadataDownload even though some automatic checks for updates are in-place, we allow the user to manually trigger a
+   *   redownload through the [refreshButton]
    */
   private fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
     coroutineScope.launch {
@@ -391,12 +363,8 @@ class SymbolPickerDialog(
             // codepoint, but different unsupported families and categories, they spoil the metadata
             // causing issues, so we need to filter them out
             val displayNames = Symbols.entries.map { it.displayName }
-            val icons =
-              it.icons.filter { icon ->
-                !icon.unsupportedFamilies.toMutableList().containsAll(displayNames)
-              }
-            val categories =
-              icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
+            val icons = it.icons.filter { icon -> !icon.unsupportedFamilies.toMutableList().containsAll(displayNames) }
+            val categories = icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
             metadata =
               MaterialIconsMetadata(
                 it.host,
@@ -475,8 +443,7 @@ class SymbolPickerDialog(
     // Register the panel & dialog with the DataManager
     val action = ActionManager.getInstance().getAction(IdeActions.ACTION_FIND)
     if (action != null) {
-      SearchTextField.FindAction()
-        .registerCustomShortcutSet(action.shortcutSet, rootPane, myDisposable)
+      SearchTextField.FindAction().registerCustomShortcutSet(action.shortcutSet, rootPane, myDisposable)
     }
 
     // Set visual properties for initialized components
@@ -494,25 +461,21 @@ class SymbolPickerDialog(
       val source = e.source as JSlider
       if (!source.valueIsAdjusting) {
         updateIconList()
-        weightLabel.text =
-          SymbolsBundle.message("label.weight").format(weightSliderValues[weightSlider.value])
+        weightLabel.text = SymbolsBundle.message("label.weight").format(weightSliderValues[weightSlider.value])
       }
     }
     gradeSlider.addChangeListener { e: ChangeEvent ->
       val source = e.source as JSlider
       if (!source.valueIsAdjusting) {
         updateIconList()
-        gradeLabel.text =
-          SymbolsBundle.message("label.grade").format(gradeSliderValues[gradeSlider.value])
+        gradeLabel.text = SymbolsBundle.message("label.grade").format(gradeSliderValues[gradeSlider.value])
       }
     }
     opticalSizeSlider.addChangeListener { e: ChangeEvent ->
       val source = e.source as JSlider
       if (!source.valueIsAdjusting) {
         updateIconList()
-        opticalSizeLabel.text =
-          SymbolsBundle.message("label.optical_size")
-            .format(opticalSizeSliderValues[opticalSizeSlider.value])
+        opticalSizeLabel.text = SymbolsBundle.message("label.optical_size").format(opticalSizeSliderValues[opticalSizeSlider.value])
       }
     }
 
@@ -549,10 +512,7 @@ class SymbolPickerDialog(
     // symbols to the first row of the slidersPanel
     val slidersPanel = JPanel(GridBagLayout())
     listOf(weightLabel, gradeLabel, opticalSizeLabel).forEachIndexed { index, label ->
-      slidersPanel.add(
-        label,
-        gridConstraintsHelper(index, 0, 1.0, insets = JBUI.insetsRight(JBUI.scale(8))),
-      )
+      slidersPanel.add(label, gridConstraintsHelper(index, 0, 1.0, insets = JBUI.insetsRight(JBUI.scale(8))))
     }
 
     // Add the sliders themselves to the second row of the slidersPanel
@@ -561,35 +521,19 @@ class SymbolPickerDialog(
       slider.setSnapToTicks(true)
       slider.setPaintTicks(true)
 
-      slidersPanel.add(
-        slider,
-        gridConstraintsHelper(index, 1, 1.0, insets = JBUI.insetsRight(JBUI.scale(8))),
-      )
+      slidersPanel.add(slider, gridConstraintsHelper(index, 1, 1.0, insets = JBUI.insetsRight(JBUI.scale(8))))
     }
 
     // Add the filled checkbox and forced refresh button to the right of the 1st and 2nd rows of the
     // sliderPanel
     filledCheckBox.text = SymbolsBundle.message("label.filled")
-    slidersPanel.add(
-      filledCheckBox,
-      gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()),
-    )
-    slidersPanel.add(
-      refreshButton,
-      gridConstraintsHelper(3, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()),
-    )
+    slidersPanel.add(filledCheckBox, gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
+    slidersPanel.add(refreshButton, gridConstraintsHelper(3, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
 
     // Add the sliders panel to the main component of the contentPanel
     panel1.add(
       slidersPanel,
-      gridConstraintsHelper(
-        0,
-        1,
-        1.0,
-        fill = GridBagConstraints.HORIZONTAL,
-        insets = JBUI.insetsTop(JBUI.scale(5)),
-        gridWidth = 3,
-      ),
+      gridConstraintsHelper(0, 1, 1.0, fill = GridBagConstraints.HORIZONTAL, insets = JBUI.insetsTop(JBUI.scale(5)), gridWidth = 3),
     )
 
     iconsPanel.setLayout(BorderLayout(0, 0))
@@ -641,10 +585,7 @@ class SymbolPickerDialog(
     return gbc
   }
 
-  class TableModel<T : Any>(
-    private val columnClass: KClass<T>,
-    private val myFilteredIconList: MutableList<T>,
-  ) : AbstractTableModel() {
+  class TableModel<T : Any>(private val columnClass: KClass<T>, private val myFilteredIconList: MutableList<T>) : AbstractTableModel() {
     override fun getColumnName(column: Int): String? {
       return null
     }

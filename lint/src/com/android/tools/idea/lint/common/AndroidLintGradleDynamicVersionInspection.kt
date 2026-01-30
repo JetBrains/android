@@ -26,28 +26,19 @@ import com.android.tools.lint.detector.api.LintFix.Companion.getString
 import com.intellij.psi.PsiElement
 
 class AndroidLintGradleDynamicVersionInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.gradle.dynamic.version"),
-    GradleDetector.PLUS,
-  ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    incident: Incident,
-  ): Array<LintIdeQuickFix> {
+  AndroidLintInspectionBase(message("android.lint.inspections.gradle.dynamic.version"), GradleDetector.PLUS) {
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, incident: Incident): Array<LintIdeQuickFix> {
     val fixData = incident.fix
     val gc = getString(fixData, KEY_COORDINATE, null)
     val revision = getString(fixData, KEY_REVISION, null)
     if (fixData == null || gc == null || revision == null) {
       return super.getQuickFixes(startElement, endElement, incident)
     }
-    val newFix =
-      create().replace().name("Replace with specific version").text(gc).with("placeholder").build()
+    val newFix = create().replace().name("Replace with specific version").text(gc).with("placeholder").build()
     return arrayOf(
       newFix.toIdeFix(startElement.project, incident) { _, _ ->
         val dependency = parse(gc)
-        val resolved =
-          LintIdeSupport.get().resolveDynamicDependency(startElement.project, dependency)
+        val resolved = LintIdeSupport.get().resolveDynamicDependency(startElement.project, dependency)
         if (resolved == null) {
           gc
         } else {

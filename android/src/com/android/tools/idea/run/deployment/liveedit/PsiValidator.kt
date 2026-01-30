@@ -22,6 +22,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.addIfNotNull
+import kotlin.system.measureTimeMillis
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
@@ -32,16 +33,13 @@ import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComments
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import kotlin.system.measureTimeMillis
 
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
 
 @RequiresReadLock
 fun getPsiValidationState(psiFile: PsiFile): PsiState {
   val state = PsiState(psiFile)
-  val traverseMs = measureTimeMillis {
-    psiFile.accept(state)
-  }
+  val traverseMs = measureTimeMillis { psiFile.accept(state) }
   logger.info("Live Edit: PSI validator traversed PSI in $traverseMs ms")
   return state
 }
@@ -67,9 +65,11 @@ fun validatePsiChanges(old: PsiState?, new: PsiState): List<LiveEditUpdateExcept
   return errors
 }
 
-private fun validateConstructors(psiFile: PsiFile,
-                                 oldConstructors: Map<List<String?>, String>,
-                                 newConstructors: Map<List<String?>, String>): LiveEditUpdateException? {
+private fun validateConstructors(
+  psiFile: PsiFile,
+  oldConstructors: Map<List<String?>, String>,
+  newConstructors: Map<List<String?>, String>,
+): LiveEditUpdateException? {
   for (entry in oldConstructors) {
     val other = newConstructors[entry.key] ?: continue
     if (other != entry.value) {
@@ -94,13 +94,19 @@ private fun validateProperties(psiFile: PsiFile, oldProps: Map<FqName, String>, 
     val other = newProps[entry.key] ?: continue
     if (other != entry.value) {
       return LiveEditUpdateException.unsupportedSourceModificationModifiedField(
-        "$psiFile", "modified property ${entry.key.shortName()} of ${entry.key.parent()}")
+        "$psiFile",
+        "modified property ${entry.key.shortName()} of ${entry.key.parent()}",
+      )
     }
   }
   return null
 }
 
-private fun validateEnums(psiFile: PsiFile, oldEnums: Map<FqName, Map<FqName, String?>>, newEnums: Map<FqName, Map<FqName, String?>>): LiveEditUpdateException? {
+private fun validateEnums(
+  psiFile: PsiFile,
+  oldEnums: Map<FqName, Map<FqName, String?>>,
+  newEnums: Map<FqName, Map<FqName, String?>>,
+): LiveEditUpdateException? {
   for (oldEnum in oldEnums) {
     // If an enum was added/removed, we don't care about catching it here; bytecode diff will catch that.
     val newEntries = newEnums[oldEnum.key] ?: continue
@@ -110,7 +116,6 @@ private fun validateEnums(psiFile: PsiFile, oldEnums: Map<FqName, Map<FqName, St
     }
   }
   return null
-
 }
 
 private fun validateEnum(psiFile: PsiFile, oldEntries: Map<FqName, String?>, newEntries: Map<FqName, String?>): LiveEditUpdateException? {
@@ -171,7 +176,7 @@ class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
   }
 
   override fun visitClassInitializer(initializer: KtClassInitializer) {
-    initBlocks[initializer.startOffset] =flatten(initializer)
+    initBlocks[initializer.startOffset] = flatten(initializer)
     super.visitClassInitializer(initializer)
   }
 
@@ -201,7 +206,7 @@ class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
     klass.body?.let {
       for (entry in it.enumEntries) {
         val entryName = entry.fqName ?: continue
-        entries[entryName] = entry.initializerList?.let { flatten (it) }
+        entries[entryName] = entry.initializerList?.let { flatten(it) }
       }
     }
 

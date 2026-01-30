@@ -36,8 +36,7 @@ class PickLanguageLevelInPSDQuickFix : DescribedBuildIssueQuickFix {
         }
       }
       future.complete(null)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       future.completeExceptionally(e)
     }
     return future

@@ -31,12 +31,18 @@ import com.intellij.psi.tree.TokenSet
 
 class ProguardR8ParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = ProguardR8Lexer()
+
   override fun createParser(project: Project?): PsiParser = ProguardR8Parser()
+
   override fun createElement(node: ASTNode?): PsiElement = ProguardR8PsiTypes.Factory.createElement(node)
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = ProguardR8PsiFile(viewProvider)
 
   override fun getFileNodeType(): IFileElementType = PROGUARD_R8_FILE_NODE_TYPE
+
   override fun getCommentTokens(): TokenSet = TokenSet.create(ProguardR8PsiTypes.LINE_CMT)
+
   override fun getStringLiteralElements(): TokenSet = TokenSet.create(ProguardR8PsiTypes.JAVA_IDENTIFIER)
+
   override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
 }

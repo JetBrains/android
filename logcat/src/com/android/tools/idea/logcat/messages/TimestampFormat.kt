@@ -29,18 +29,10 @@ import java.util.Locale
 internal data class TimestampFormat(val style: Style = DATETIME, val enabled: Boolean = true) {
   enum class Style(val formatter: DateTimeFormatter, val width: Int, val displayName: String) {
     /** 1970-01-01 04:00:01.000 */
-    DATETIME(
-      DATE_TIME_FORMATTER,
-      "1970-01-01 04:00:01.000 ".length,
-      LogcatBundle.message("logcat.header.options.timestamp.datetime"),
-    ),
+    DATETIME(DATE_TIME_FORMATTER, "1970-01-01 04:00:01.000 ".length, LogcatBundle.message("logcat.header.options.timestamp.datetime")),
 
     /** 04:00:01.000 */
-    TIME(
-      TIME_FORMATTER,
-      "04:00:01.000 ".length,
-      LogcatBundle.message("logcat.header.options.timestamp.time"),
-    ),
+    TIME(TIME_FORMATTER, "04:00:01.000 ".length, LogcatBundle.message("logcat.header.options.timestamp.time")),
   }
 
   fun format(instant: Instant, zoneId: ZoneId): String =
@@ -50,11 +42,7 @@ internal data class TimestampFormat(val style: Style = DATETIME, val enabled: Bo
 }
 
 private val DATE_TIME_FORMATTER =
-  DateTimeFormatterBuilder()
-    .append(DateTimeFormatter.ISO_LOCAL_DATE)
-    .appendLiteral(' ')
-    .appendTime()
-    .toFormatter(Locale.ROOT)
+  DateTimeFormatterBuilder().append(DateTimeFormatter.ISO_LOCAL_DATE).appendLiteral(' ').appendTime().toFormatter(Locale.ROOT)
 
 private val TIME_FORMATTER = DateTimeFormatterBuilder().appendTime().toFormatter(Locale.ROOT)
 

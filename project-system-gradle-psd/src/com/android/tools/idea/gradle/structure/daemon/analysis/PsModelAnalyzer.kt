@@ -30,6 +30,5 @@ abstract class PsModelAnalyzer<T : PsModel>(parentDisposable: Disposable) {
 
   abstract val supportedModelType: Class<T>
 
-  @UiThread
-  abstract fun analyze(model: T): Sequence<PsIssue>
+  @UiThread abstract fun analyze(model: T): Sequence<PsIssue>
 }

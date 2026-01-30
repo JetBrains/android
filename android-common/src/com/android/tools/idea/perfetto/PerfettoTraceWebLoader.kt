@@ -17,6 +17,11 @@ package com.android.tools.idea.perfetto
 
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.openapi.diagnostic.Logger
+import java.io.File
+import java.net.URI
+import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -29,15 +34,8 @@ import org.apache.http.entity.ContentType
 import org.apache.http.entity.FileEntity
 import org.apache.http.impl.bootstrap.ServerBootstrap
 import org.jetbrains.ide.PooledThreadExecutor
-import java.io.File
-import java.net.URI
-import java.net.URLEncoder
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.SECONDS
 
-/**
- * Kotlin equivalent of https://github.com/google/perfetto/blob/49ef5c5916fc1304549b681a1129a7a85c82db9f/tools/open_trace_in_ui
- */
+/** Kotlin equivalent of https://github.com/google/perfetto/blob/49ef5c5916fc1304549b681a1129a7a85c82db9f/tools/open_trace_in_ui */
 
 // We reuse the HTTP+RPC port because it's the only one allowed by the CSP
 private const val port = 9001
@@ -46,14 +44,15 @@ private const val origin = "https://ui.perfetto.dev"
 /**
  * Opens a trace in Perfetto Web UI (in the browser).
  *
- * Spins up a temporary web server to provide the trace to Perfetto Web UI.
- * See [https://github.com/google/perfetto/blob/49ef5c5916fc1304549b681a1129a7a85c82db9f/tools/open_trace_in_ui] for more information.
+ * Spins up a temporary web server to provide the trace to Perfetto Web UI. See
+ * [https://github.com/google/perfetto/blob/49ef5c5916fc1304549b681a1129a7a85c82db9f/tools/open_trace_in_ui] for more information.
  */
 object PerfettoTraceWebLoader {
   const val FEATURE_REGISTRY_KEY = "profiler.trace.open.mode.web" // determines whether the feature is enabled via Registry.is(<this key>)
 
   private val taskExecutor = PooledThreadExecutor.INSTANCE
   private val requestQueue = Channel<LoadRequest>(capacity = Channel.UNLIMITED)
+
   private data class LoadRequest(val file: File, val queryParams: String?)
 
   private val logger = Logger.getInstance(PerfettoTraceWebLoader::class.java)
@@ -69,10 +68,13 @@ object PerfettoTraceWebLoader {
 
         // Opening the trace file in ui.perfetto.dev in the browser (with trace file url passed as an url parameter).
         val urlEncodedFileName = URLEncoder.encode(request.file.name, Charsets.UTF_8)
-        val uri = URI.create(buildString {
-          append("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop")
-          if (request.queryParams != null) append("&${request.queryParams}") // note: we assume queryParams are already url-encoded
-        })
+        val uri =
+          URI.create(
+            buildString {
+              append("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop")
+              if (request.queryParams != null) append("&${request.queryParams}") // note: we assume queryParams are already url-encoded
+            }
+          )
         BrowserLauncher.instance.browse(uri)
 
         // Wait until we start serving the trace file, then allow the request to finish before shutting down the server.
@@ -90,29 +92,30 @@ object PerfettoTraceWebLoader {
 }
 
 private class HttpServer(traceFile: File, requestReceivedLatch: CompletableJob) {
-  private var server = ServerBootstrap
-    .bootstrap()
-    .setListenerPort(port)
-    .setSocketConfig(SocketConfig.custom().setSoReuseAddress(true).setSoKeepAlive(true).build())
-    .registerHandler("/${traceFile.name}") { request, response, _ ->
-      when (request.requestLine.method) {
-        "OPTIONS" -> {
-          response.addHeader("Allow", "OPTIONS, GET")
+  private var server =
+    ServerBootstrap.bootstrap()
+      .setListenerPort(port)
+      .setSocketConfig(SocketConfig.custom().setSoReuseAddress(true).setSoKeepAlive(true).build())
+      .registerHandler("/${traceFile.name}") { request, response, _ ->
+        when (request.requestLine.method) {
+          "OPTIONS" -> {
+            response.addHeader("Allow", "OPTIONS, GET")
+          }
+          "GET" -> {
+            response.entity = FileEntity(traceFile, ContentType.DEFAULT_BINARY)
+            requestReceivedLatch.complete()
+          }
+          else -> {
+            response.setStatusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
+            return@registerHandler
+          }
         }
-        "GET" -> {
-          response.entity = FileEntity(traceFile, ContentType.DEFAULT_BINARY)
-          requestReceivedLatch.complete()
-        }
-        else -> {
-          response.setStatusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
-          return@registerHandler
-        }
-      }
 
-      response.setStatusCode(HttpStatus.SC_OK)
-      response.setHeader("Access-Control-Allow-Origin", origin)
-      response.setHeader("Cache-Control", "no-cache")
-    }.create()
+        response.setStatusCode(HttpStatus.SC_OK)
+        response.setHeader("Access-Control-Allow-Origin", origin)
+        response.setHeader("Cache-Control", "no-cache")
+      }
+      .create()
 
   fun start() = server.start()
 

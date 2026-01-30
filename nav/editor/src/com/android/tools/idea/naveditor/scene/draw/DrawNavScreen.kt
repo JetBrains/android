@@ -38,8 +38,7 @@ private const val LOADING_TEXT_1 = "Loading..."
 private const val FONT_NAME = "Default"
 
 /** [DrawCommand] that draws a screen in the navigation editor. */
-class DrawNavScreen(private val rectangle: SwingRectangle, private val image: RefinableImage) :
-  DrawCommandBase() {
+class DrawNavScreen(private val rectangle: SwingRectangle, private val image: RefinableImage) : DrawCommandBase() {
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.clip(rectangle.value)

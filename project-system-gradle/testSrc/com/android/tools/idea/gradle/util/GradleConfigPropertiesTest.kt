@@ -17,19 +17,17 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.LightPlatformTestCase
+import java.io.File
+import java.nio.file.Paths
 import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_CACHE_DIR_NAME
 import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_LOCAL_PROPERTIES_FILE_NAME
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
-import java.nio.file.Paths
 
-class GradleConfigPropertiesTest: LightPlatformTestCase() {
+class GradleConfigPropertiesTest : LightPlatformTestCase() {
 
-  @JvmField
-  @Rule
-  var temporaryFolder = TemporaryFolder()
+  @JvmField @Rule var temporaryFolder = TemporaryFolder()
 
   override fun setUp() {
     super.setUp()
@@ -44,10 +42,11 @@ class GradleConfigPropertiesTest: LightPlatformTestCase() {
 
   @Test
   fun testEmptyProperties() {
-    val properties = GradleConfigProperties(temporaryFolder.root).apply {
-      javaHome = File("")
-      save()
-    }
+    val properties =
+      GradleConfigProperties(temporaryFolder.root).apply {
+        javaHome = File("")
+        save()
+      }
     assertNotNull(properties.javaHome)
     assertEmpty(properties.javaHome.toString())
   }
@@ -65,10 +64,11 @@ class GradleConfigPropertiesTest: LightPlatformTestCase() {
   @Test
   fun testSetJavaHome() {
     val javaHome = File("/path/to/java/home")
-    val properties = GradleConfigProperties(temporaryFolder.root).apply {
-      this.javaHome = javaHome
-      save()
-    }
+    val properties =
+      GradleConfigProperties(temporaryFolder.root).apply {
+        this.javaHome = javaHome
+        save()
+      }
     assertNotNull(properties.javaHome)
     assertEquals(javaHome, properties.javaHome)
   }

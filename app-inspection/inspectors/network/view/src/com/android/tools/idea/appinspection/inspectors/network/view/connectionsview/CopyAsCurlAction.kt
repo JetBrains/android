@@ -56,9 +56,7 @@ internal class CopyAsCurlAction(
       if (data.method != "GET") {
         appendLine("-X '${data.method}'")
       }
-      data.requestHeaders.forEach { header ->
-        appendLine("-H '${header.key}: ${header.value.joinToString { it }}'")
-      }
+      data.requestHeaders.forEach { header -> appendLine("-H '${header.key}: ${header.value.joinToString { it }}'") }
       if (!payload.isEmpty) {
         if (payload.isValidUtf8) {
           appendLine("--data-raw '${payload.toStringUtf8()}'")

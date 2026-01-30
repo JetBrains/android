@@ -26,11 +26,9 @@ import javax.swing.JComponent
 import javax.swing.LayoutStyle
 
 /** A panel with a heading and a close button above a content panel. */
-internal open class CloseablePanel(heading: String, component: JComponent) :
-  JBPanel<CloseablePanel>() {
+internal open class CloseablePanel(heading: String, component: JComponent) : JBPanel<CloseablePanel>() {
   private val headingLabel = headingLabel(heading)
-  val closeButton =
-    IconButton(StudioIcons.Common.CLOSE).apply { constrainSize(JBDimension(22, 22)) }
+  val closeButton = IconButton(StudioIcons.Common.CLOSE).apply { constrainSize(JBDimension(22, 22)) }
 
   init {
     val layout = GroupLayout(this)
@@ -43,11 +41,7 @@ internal open class CloseablePanel(heading: String, component: JComponent) :
             .createSequentialGroup()
             .addContainerGap()
             .addComponent(headingLabel)
-            .addPreferredGap(
-              LayoutStyle.ComponentPlacement.UNRELATED,
-              GroupLayout.DEFAULT_SIZE,
-              Int.MAX_VALUE,
-            )
+            .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
             .addComponent(closeButton)
             .addContainerGap()
         )
@@ -57,12 +51,7 @@ internal open class CloseablePanel(heading: String, component: JComponent) :
       layout
         .createSequentialGroup()
         .addContainerGap()
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(headingLabel)
-            .addComponent(closeButton)
-        )
+        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(headingLabel).addComponent(closeButton))
         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(component)
 

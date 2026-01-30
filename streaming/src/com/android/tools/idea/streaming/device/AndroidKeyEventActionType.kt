@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
-/**
- * Keyboard event actions. See https://developer.android.com/reference/android/view/KeyEvent.
- */
+/** Keyboard event actions. See https://developer.android.com/reference/android/view/KeyEvent. */
 internal enum class AndroidKeyEventActionType(val value: Int) {
   /** The key has been pressed down. See android.view.KeyEvent.ACTION_DOWN. */
   ACTION_DOWN(0),
@@ -29,7 +27,6 @@ internal enum class AndroidKeyEventActionType(val value: Int) {
   ACTION_DOWN_AND_UP(8);
 
   companion object {
-    @JvmStatic
-    fun fromValue(value: Int): AndroidKeyEventActionType? = entries.find { it.value == value }
+    @JvmStatic fun fromValue(value: Int): AndroidKeyEventActionType? = entries.find { it.value == value }
   }
 }

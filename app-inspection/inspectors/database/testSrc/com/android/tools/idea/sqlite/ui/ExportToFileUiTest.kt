@@ -74,12 +74,9 @@ private const val EXPORT_BUTTON_COMPONENT_NAME = "export-button"
 
 /** Test suite verifying Export-to-File feature's UI layer */
 class ExportToFileUiTest : LightPlatformTestCase() {
-  private val databaseId =
-    SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
-  private val column1 =
-    SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
-  private val column2 =
-    SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
+  private val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
   private val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
   private val schema = SqliteSchema(listOf(table1))
 
@@ -109,8 +106,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         assertThat(popUpMenuProvider()).isEmpty()
         exportButton.simulateClick()
       },
-      expectedParams =
-        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_EXPORT_BUTTON),
+      expectedParams = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_EXPORT_BUTTON),
     )
   }
 
@@ -136,8 +132,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         tree.simulateClick(nodePath, BUTTON3) // make pop-up show up
         popUpMenuProvider().single().invokeSingleOption() // execute the only pop-up item
       },
-      expectedParams =
-        ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
+      expectedParams = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
     )
   }
 
@@ -156,31 +151,18 @@ class ExportToFileUiTest : LightPlatformTestCase() {
 
   private fun test_leftPanelView(
     treeNodePredicate: (userObject: Any) -> Boolean,
-    uiInteractions:
-      (
-        nodePath: TreePath,
-        tree: Tree,
-        exportButton: CommonButton,
-        popUpMenuProvider: () -> List<DefaultActionGroup>,
-      ) -> Unit,
+    uiInteractions: (nodePath: TreePath, tree: Tree, exportButton: CommonButton, popUpMenuProvider: () -> List<DefaultActionGroup>) -> Unit,
     expectedParams: ExportDialogParams,
   ) {
     // Set up an ActionManager capturing pop-up menus
-    val testActionManager =
-      mock(ActionManagerEx::class.java, delegatesTo<ActionManager>(ActionManager.getInstance()))
+    val testActionManager = mock(ActionManagerEx::class.java, delegatesTo<ActionManager>(ActionManager.getInstance()))
     val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
-    fun createActionPopupMenu(
-      @Suppress("UNUSED_PARAMETER") place: String,
-      group: ActionGroup,
-    ): ActionPopupMenu {
+    fun createActionPopupMenu(@Suppress("UNUSED_PARAMETER") place: String, group: ActionGroup): ActionPopupMenu {
       popUpMenuActionGroupList.add(group)
       return FakeActionPopupMenu(group)
     }
-    Mockito.doAnswer(answer(::createActionPopupMenu))
-      .whenever(testActionManager)
-      .createActionPopupMenu(anyString(), any())
-    ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, testActionManager, testRootDisposable)
+    Mockito.doAnswer(answer(::createActionPopupMenu)).whenever(testActionManager).createActionPopupMenu(anyString(), any())
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, testActionManager, testRootDisposable)
 
     // Create the UI
     val view = DatabaseInspectorViewImpl(project, testRootDisposable)
@@ -188,20 +170,15 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     view.listeners.add(listener)
 
     val tree = view.component.getDescendant<Tree>()
-    view.updateDatabases(
-      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0))
-    )
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     // Interact with the UI
-    val exportButton =
-      view.component.getDescendant<CommonButton> { it.name == EXPORT_BUTTON_COMPONENT_NAME }
+    val exportButton = view.component.getDescendant<CommonButton> { it.name == EXPORT_BUTTON_COMPONENT_NAME }
     val nodePath =
       (0 until tree.rowCount)
         .map { tree.getPathForRow(it) }
         .single { treeNodePredicate((it.lastPathComponent as DefaultMutableTreeNode).userObject) }
-    val popupMenuProvider: () -> List<DefaultActionGroup> = {
-      popUpMenuActionGroupList.map { it as DefaultActionGroup }
-    }
+    val popupMenuProvider: () -> List<DefaultActionGroup> = { popUpMenuActionGroupList.map { it as DefaultActionGroup } }
     uiInteractions(nodePath, tree, exportButton, popupMenuProvider)
 
     // Verify correct export parameters were passed to the listener
@@ -210,8 +187,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   private fun findExportButtonInActionPanel(tableView: TableViewImpl): CommonButton? {
-    val actionPanel =
-      tableView.component.getDescendant<JComponent> { it.name == TABLE_ACTION_PANEL_COMPONENT_NAME }
+    val actionPanel = tableView.component.getDescendant<JComponent> { it.name == TABLE_ACTION_PANEL_COMPONENT_NAME }
     return actionPanel.findDescendant<CommonButton> { it.name == EXPORT_BUTTON_COMPONENT_NAME }
   }
 
@@ -220,10 +196,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   private fun DefaultActionGroup.invokeSingleOption() {
-    ActionUtil.performActionDumbAwareWithCallbacks(
-      childActionsOrStubs.single(),
-      TestActionEvent.createTestEvent(),
-    )
+    ActionUtil.performActionDumbAwareWithCallbacks(childActionsOrStubs.single(), TestActionEvent.createTestEvent())
   }
 
   private fun Tree.simulateClick(nodePath: TreePath, button: Int) {
@@ -238,19 +211,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         val nodeBounds = getPathBounds(nodePath)!!
         val eventTime = System.currentTimeMillis()
         mouseListeners.forEach { listener ->
-          listener.mousePressed(
-            MouseEvent(
-              this,
-              MOUSE_PRESSED,
-              eventTime,
-              BUTTON3_DOWN_MASK,
-              nodeBounds.x,
-              nodeBounds.y,
-              1,
-              true,
-              button,
-            )
-          )
+          listener.mousePressed(MouseEvent(this, MOUSE_PRESSED, eventTime, BUTTON3_DOWN_MASK, nodeBounds.x, nodeBounds.y, 1, true, button))
         }
       }
       else -> throw IllegalArgumentException()

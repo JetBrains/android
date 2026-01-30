@@ -23,4 +23,4 @@ data class IdeTestSuiteImpl(
   override val sources: List<IdeTestSuiteSourceImpl>,
   override val junitEngineInfo: IdeJUnitEngineInfoImpl,
   override val targetedVariants: List<String>,
-): IdeTestSuite, Serializable
+) : IdeTestSuite, Serializable

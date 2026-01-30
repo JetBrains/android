@@ -22,11 +22,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 
-/**
- * Reference that refers to a [PsiField]
- */
-internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiModelField)
-  : DbExprReference(refExpr, field.psiField, refExpr.id.textRange.shiftLeft(refExpr.textOffset)) {
+/** Reference that refers to a [PsiField] */
+internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiModelField) :
+  DbExprReference(refExpr, field.psiField, refExpr.id.textRange.shiftLeft(refExpr.textOffset)) {
 
   override val resolvedType = field.fieldType
 

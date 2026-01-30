@@ -21,17 +21,16 @@ package com.android.tools.idea.npw.importing
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.vfs.VirtualFile
 
-/**
- * Utility class for common import UI code.
- */
+/** Utility class for common import UI code. */
 
 /**
- * Returns a relative path string to be shown in the UI. Wizard logic operates with VirtualFile's so these paths are only for user.
- * The paths shown are relative to the file system location user specified, showing relative paths will be easier for the user to read.
+ * Returns a relative path string to be shown in the UI. Wizard logic operates with VirtualFile's so these paths are only for user. The
+ * paths shown are relative to the file system location user specified, showing relative paths will be easier for the user to read.
  */
-internal tailrec fun VirtualFile.relativeTo(baseFile: VirtualFile?): String = when {
-  baseFile == null -> path
-  !baseFile.isDirectory -> this.relativeTo(baseFile.parent)
-  fileSystem == baseFile.fileSystem -> toIoFile().relativeTo(baseFile.toIoFile()).path
-  else -> path
-}
+internal tailrec fun VirtualFile.relativeTo(baseFile: VirtualFile?): String =
+  when {
+    baseFile == null -> path
+    !baseFile.isDirectory -> this.relativeTo(baseFile.parent)
+    fileSystem == baseFile.fileSystem -> toIoFile().relativeTo(baseFile.toIoFile()).path
+    else -> path
+  }

@@ -88,9 +88,7 @@ fun baselineProfilesBuildGradle(
         }
 
       buildString {
-        appendLine(
-          "    // This code creates the gradle managed device used to generate baseline profiles."
-        )
+        appendLine("    // This code creates the gradle managed device used to generate baseline profiles.")
         appendLine("    // To use GMD please invoke generation through the command line:")
         appendLine("    // ./gradlew $targetModuleGradlePath:generateBaselineProfile")
         appendLine("    testOptions.managedDevices.allDevices {")
@@ -105,9 +103,7 @@ fun baselineProfilesBuildGradle(
 
   val pluginConfiguration = buildString {
     appendLine("// This is the configuration block for the Baseline Profile plugin.")
-    appendLine(
-      "// You can specify to run the generators on a managed devices or connected devices."
-    )
+    appendLine("// You can specify to run the generators on a managed devices or connected devices.")
     appendLine("baselineProfile {")
     if (useGmd != null) {
       appendLine("managedDevices += \"${useGmd.identifier}\"")

@@ -20,14 +20,13 @@ import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
 import com.intellij.util.ui.ColorIcon
+import java.awt.Color
+import java.io.File
+import javax.swing.ImageIcon
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import java.awt.Color
-import java.io.File
-import javax.swing.ImageIcon
-
 
 abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
 
@@ -37,10 +36,13 @@ abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
 
         try {
             val drawable = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// DRAWABLE")
-            val color = InTextDirectivesUtils.findListWithPrefixes(testFileText, "// COLOR: ").takeIf { it.isNotEmpty() }?.let {
-                val components = it.map { it.toInt(16) }
-                Color(components[0], components[1], components[2])
-            }
+            val color =
+                InTextDirectivesUtils.findListWithPrefixes(testFileText, "// COLOR: ")
+                    .takeIf { it.isNotEmpty() }
+                    ?.let {
+                        val components = it.map { it.toInt(16) }
+                        Color(components[0], components[1], components[2])
+                    }
             if (withRuntime) {
                 ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)
             }
@@ -50,23 +52,23 @@ abstract class AbstractAndroidGutterIconTest : KotlinAndroidTestCase() {
             val sourceFile = myFixture.copyFileToProject(path, "src/${PathUtil.getFileName(path)}")
             myFixture.configureFromExistingVirtualFile(sourceFile)
 
-            val gutter = myFixture.findGuttersAtCaret().find {
-                when {
-                    drawable -> it.icon is ImageIcon
-                    color != null -> {
-                      when (val icon = it.icon) {
-                        is ColorIcon -> icon.iconColor == color
-                        is MultipleColorIcon -> icon.colors[0] == color
-                        else -> false
-                      }
+            val gutter =
+                myFixture.findGuttersAtCaret().find {
+                    when {
+                        drawable -> it.icon is ImageIcon
+                        color != null -> {
+                            when (val icon = it.icon) {
+                                is ColorIcon -> icon.iconColor == color
+                                is MultipleColorIcon -> icon.colors[0] == color
+                                else -> false
+                            }
+                        }
+                        else -> true
                     }
-                    else -> true
                 }
-            }
 
             TestCase.assertNotNull(gutter)
-        }
-        finally {
+        } finally {
             if (withRuntime) {
                 ConfigLibraryUtil.unConfigureKotlinRuntime(myFixture.module)
             }

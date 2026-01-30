@@ -35,15 +35,11 @@ import org.mockito.kotlin.mock
 class SourceToGradleModuleStepTest {
   private lateinit var page: SourceToGradleModuleStep
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Before
   fun setup() {
-    page =
-      SourceToGradleModuleStep(
-        SourceToGradleModuleModel(projectRule.project, DefaultProjectSyncInvoker())
-      )
+    page = SourceToGradleModuleStep(SourceToGradleModuleModel(projectRule.project, DefaultProjectSyncInvoker()))
     page.onWizardStarting(mock<ModelWizard.Facade>())
     Disposer.register(projectRule.fixture.testRootDisposable, page)
   }
@@ -64,8 +60,7 @@ class SourceToGradleModuleStepTest {
   @Test
   fun testCheckPathDoesNotExist() {
     val path = File(AndroidTestBase.getTestDataPath(), "path_that_does_not_exist").path
-    assertThat(page.checkPath(path).message)
-      .isEqualTo(message("android.wizard.module.import.source.browse.invalid.location"))
+    assertThat(page.checkPath(path).message).isEqualTo(message("android.wizard.module.import.source.browse.invalid.location"))
   }
 
   @Test
@@ -76,21 +71,15 @@ class SourceToGradleModuleStepTest {
 
   @Test
   fun testCheckDirectoryWithNoModules() {
-    val noModulesDirectory =
-      File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/")
+    val noModulesDirectory = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/")
     assertThat(noModulesDirectory).exists()
     assertThat(noModulesDirectory).isDirectory()
-    assertThat(page.updateForwardStatus(noModulesDirectory.path).severity)
-      .isEqualTo(Validator.Severity.ERROR)
+    assertThat(page.updateForwardStatus(noModulesDirectory.path).severity).isEqualTo(Validator.Severity.ERROR)
   }
 
   @Test
   fun testCheckSelectFile() {
-    val jarFile =
-      File(
-        AndroidTestBase.getTestDataPath(),
-        TestProjectPaths.IMPORTING + "/simple/lib/library.jar",
-      )
+    val jarFile = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/library.jar")
     assertThat(jarFile).exists()
     assertThat(jarFile).isFile()
     assertThat(page.updateForwardStatus(jarFile.path).severity).isEqualTo(Validator.Severity.ERROR)
@@ -99,15 +88,13 @@ class SourceToGradleModuleStepTest {
   @Test
   fun testCheckPathNotAProject() {
     val path = AndroidTestBase.getTestDataPath()
-    assertThat(page.checkPath(path).message)
-      .isEqualTo(message("android.wizard.module.import.source.browse.cant.import"))
+    assertThat(page.checkPath(path).message).isEqualTo(message("android.wizard.module.import.source.browse.cant.import"))
   }
 
   @Test
   fun testCheckPathInProject() {
     projectRule.loadProject(TestProjectPaths.IMPORTING)
     val path = projectRule.project.basePath!!
-    assertThat(page.checkPath(path).message)
-      .isEqualTo(message("android.wizard.module.import.source.browse.taken.location"))
+    assertThat(page.checkPath(path).message).isEqualTo(message("android.wizard.module.import.source.browse.taken.location"))
   }
 }

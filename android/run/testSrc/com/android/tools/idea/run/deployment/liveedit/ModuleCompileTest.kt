@@ -45,14 +45,16 @@ class ModuleCompileTest {
 
   @Test
   fun testLibModule() {
-    val file = projectRule.fixture.addFileToProject(
-      "$libModule1Name/src/B.kt",
-      """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "$libModule1Name/src/B.kt",
+        """
         public class B() {
           internal fun foo(): Int = 2
         }
-      """.trimIndent(),
-    ) as KtFile
+        """
+          .trimIndent(),
+      ) as KtFile
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -63,27 +65,31 @@ class ModuleCompileTest {
 
     val output = compile(listOf(LiveEditCompilerInput(file, readPsiValidationState(file))), compiler)
     val clazz = loadClass(output)
-    Assert.assertTrue(clazz.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
+    Assert.assertTrue(clazz.declaredMethods.stream().anyMatch { it.name.contains("foo\$$libModule1Name") })
   }
 
   @Test
   fun testDifferentModules() {
-    val file1 = projectRule.fixture.addFileToProject(
-      "$libModule1Name/src/A.kt",
-      """
+    val file1 =
+      projectRule.fixture.addFileToProject(
+        "$libModule1Name/src/A.kt",
+        """
         public class A() {
           internal fun foo(): Int = 2
         }
-      """.trimIndent(),
-    ) as KtFile
-    val file2 = projectRule.fixture.addFileToProject(
-      "$libModule2Name/src/B.kt",
-      """
+        """
+          .trimIndent(),
+      ) as KtFile
+    val file2 =
+      projectRule.fixture.addFileToProject(
+        "$libModule2Name/src/B.kt",
+        """
         public class B() {
           internal fun bar(): Int = 2
         }
-      """.trimIndent(),
-    ) as KtFile
+        """
+          .trimIndent(),
+      ) as KtFile
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -92,8 +98,11 @@ class ModuleCompileTest {
 
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
-    val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
-                                LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
+    val output =
+      compile(
+        listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)), LiveEditCompilerInput(file2, readPsiValidationState(file2))),
+        compiler,
+      )
 
     val clazzA = loadClass(output, "A")
     Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch { it.name.contains("foo\$$libModule1Name") })
@@ -104,28 +113,35 @@ class ModuleCompileTest {
 
   @Test
   fun `Single compiler invocation with files in different modules`() {
-    val file1 = projectRule.fixture.addFileToProject(
-      "$libModule1Name/src/A.kt",
-      """
+    val file1 =
+      projectRule.fixture.addFileToProject(
+        "$libModule1Name/src/A.kt",
+        """
         public class A() {
           internal fun foo(): Int = 2
         }
-      """.trimIndent(),
-    ) as KtFile
-    val file2 = projectRule.fixture.addFileToProject(
-      "$libModule2Name/src/B.kt",
-      """
+        """
+          .trimIndent(),
+      ) as KtFile
+    val file2 =
+      projectRule.fixture.addFileToProject(
+        "$libModule2Name/src/B.kt",
+        """
         public class B() {
           internal fun bar(): Int = 2
         }
-      """.trimIndent(),
-    ) as KtFile
+        """
+          .trimIndent(),
+      ) as KtFile
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileByteArray(listOf(file1, file2))
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
-      val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
-                                  LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
+    val output =
+      compile(
+        listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)), LiveEditCompilerInput(file2, readPsiValidationState(file2))),
+        compiler,
+      )
 
     val clazzA = loadClass(output, "A")
     Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch { it.name.contains("foo\$$libModule1Name") })
@@ -135,8 +151,6 @@ class ModuleCompileTest {
   }
 
   private fun readPsiValidationState(file: PsiFile): PsiState {
-    return runReadAction {
-      getPsiValidationState(file)
-    }
+    return runReadAction { getPsiValidationState(file) }
   }
 }

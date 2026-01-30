@@ -26,10 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.runBlocking
 
-/**
- * Handles analytics that are common across design tools. Acts as an interface between
- * [DesignSurface] and [CommonUsageTracker].
- */
+/** Handles analytics that are common across design tools. Acts as an interface between [DesignSurface] and [CommonUsageTracker]. */
 open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
@@ -64,17 +61,16 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
     }
 
   /**
-   * Sets the [DesignerEditorPanel.State] so all related tracking, like rendering has the
-   * information about the state. If you want to log an editor mode change that was triggered by the
-   * user, you should use [trackSelectEditorMode] instead.
+   * Sets the [DesignerEditorPanel.State] so all related tracking, like rendering has the information about the state. If you want to log an
+   * editor mode change that was triggered by the user, you should use [trackSelectEditorMode] instead.
    */
   fun setEditorModeWithoutTracking(panelState: DesignerEditorPanel.State) {
     this.panelState = panelState
   }
 
   /**
-   * Sets the [EditorFileType] of the file from the editor. This information will be shared with all
-   * related tracking. Calling this method will not log any events.
+   * Sets the [EditorFileType] of the file from the editor. This information will be shared with all related tracking. Calling this method
+   * will not log any events.
    */
   fun setEditorFileTypeWithoutTracking(file: VirtualFile, project: Project) {
     this.editorFileType = runBlocking { getEditorFileTypeForAnalytics(file, project) }
@@ -82,18 +78,14 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) =
     when (panelState) {
-      DesignerEditorPanel.State.FULL ->
-        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
-      DesignerEditorPanel.State.SPLIT ->
-        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
-      DesignerEditorPanel.State.DEACTIVATED ->
-        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+      DesignerEditorPanel.State.FULL -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+      DesignerEditorPanel.State.SPLIT -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+      DesignerEditorPanel.State.DEACTIVATED -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
     }
 
   fun trackIssuePanel(minimized: Boolean) =
     if (minimized) track(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL)
     else track(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL)
 
-  protected fun track(type: LayoutEditorEvent.LayoutEditorEventType) =
-    CommonUsageTracker.getInstance(surface).logAction(type)
+  protected fun track(type: LayoutEditorEvent.LayoutEditorEventType) = CommonUsageTracker.getInstance(surface).logAction(type)
 }

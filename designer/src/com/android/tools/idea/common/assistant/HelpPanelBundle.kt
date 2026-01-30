@@ -32,8 +32,7 @@ import java.net.URL
 data class HelpPanelBundle(val bundleId: String, val bundleXml: String)
 
 /** Base tutorial bundle xml creator. */
-open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) :
-  AssistantBundleCreator {
+open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) : AssistantBundleCreator {
   override fun getBundleId(): String {
     return type.bundleId
   }
@@ -47,12 +46,8 @@ open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBu
   }
 }
 
-/**
- * Assistant Panel tools listener. It listens to assistatnt panel related actions (e.g. open panel,
- * close panel etc) within a project.
- */
-class HelpPanelToolWindowListener private constructor(private var project: Project) :
-  ToolWindowManagerListener, Disposable {
+/** Assistant Panel tools listener. It listens to assistatnt panel related actions (e.g. open panel, close panel etc) within a project. */
+class HelpPanelToolWindowListener private constructor(private var project: Project) : ToolWindowManagerListener, Disposable {
 
   companion object {
     /**

@@ -31,6 +31,8 @@ import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRendere
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFile
+import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -41,14 +43,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.awt.Dimension
-import java.util.concurrent.CompletableFuture
 
 class DrawableSlowPreviewProviderTest {
-  @get:Rule
-  var androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule var androidProjectRule = AndroidProjectRule.inMemory()
 
-  val facet get() = androidProjectRule.fixture.module.androidFacet!!
+  val facet
+    get() = androidProjectRule.fixture.module.androidFacet!!
 
   @Before
   fun setup() {
@@ -76,9 +76,8 @@ class DrawableSlowPreviewProviderTest {
     whenever(resourceResolver.findItemInTheme(resourceItem.referenceToSelf)).thenReturn(frameworkResourceValue)
 
     // Have the drawable renderer return a valid image for our desired framework resource value.
-    whenever(drawableRenderer.getDrawableRender(frameworkResourceValue, mockFile, Dimension(100, 100))).thenReturn(
-      CompletableFuture.completedFuture(image)
-    )
+    whenever(drawableRenderer.getDrawableRender(frameworkResourceValue, mockFile, Dimension(100, 100)))
+      .thenReturn(CompletableFuture.completedFuture(image))
     val provider = DrawableSlowPreviewProvider(facet, resourceResolver, null)
 
     val result = provider.getSlowPreview(100, 100, designAsset)

@@ -69,8 +69,8 @@ internal fun KtProperty.hasBackingField(): Boolean {
 }
 
 /**
- * Looks up the [PsiFile] for a given [VirtualFile] in a given [Project], in a safe way (meaning it
- * will acquire a read lock first, and will check that the file is valid
+ * Looks up the [PsiFile] for a given [VirtualFile] in a given [Project], in a safe way (meaning it will acquire a read lock first, and will
+ * check that the file is valid
  */
 fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
   return ApplicationManager.getApplication()
@@ -86,18 +86,16 @@ fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
 }
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
-    allowAnalysisOnEdt {
-      @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-      allowAnalysisFromWriteAction {
-        analyze(this) {
-          val annotatedSymbol =
-            (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotated
-          val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(fqName)] }
-          annotations?.singleOrNull()?.psi as? KtAnnotationEntry
-        }
-      }
+fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? = allowAnalysisOnEdt {
+  @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+  allowAnalysisFromWriteAction {
+    analyze(this) {
+      val annotatedSymbol = (this@findAnnotation as? KtDeclaration)?.symbol as? KaAnnotated
+      val annotations = annotatedSymbol?.let { it.annotations[ClassId.topLevel(fqName)] }
+      annotations?.singleOrNull()?.psi as? KtAnnotationEntry
     }
+  }
+}
 
 /** Gets and removes the single [DataMap] fix from [incident], if there is one. */
 fun getAndRemoveMapFix(incident: Incident): DataMap? {
@@ -107,9 +105,8 @@ fun getAndRemoveMapFix(incident: Incident): DataMap? {
 }
 
 /**
- * Gets the single [DataMap] fix from [fix], if there is one, and returns a new [LintFix] without
- * the [DataMap] fix, and the [DataMap] fix. Intended for when [fix] can be a [LintFixGroup] and you
- * want to remove the [DataMap] fix from the group. Other cases are also handled.
+ * Gets the single [DataMap] fix from [fix], if there is one, and returns a new [LintFix] without the [DataMap] fix, and the [DataMap] fix.
+ * Intended for when [fix] can be a [LintFixGroup] and you want to remove the [DataMap] fix from the group. Other cases are also handled.
  */
 fun getAndRemoveMapFix(fix: LintFix?): Pair<LintFix?, DataMap?> {
   return when (fix) {
@@ -136,17 +133,12 @@ fun getAndRemoveMapFix(fix: LintFix?): Pair<LintFix?, DataMap?> {
 }
 
 /**
- * For when you need to read/write an inspection profile, but the third party issues you want to
- * refer to are not yet registered because Lint has not yet run from within the IDE (the user did
- * not open a file, nor run Inspect Code...).
+ * For when you need to read/write an inspection profile, but the third party issues you want to refer to are not yet registered because
+ * Lint has not yet run from within the IDE (the user did not open a file, nor run Inspect Code...).
  */
 fun forceRegisterThirdPartyIssues(project: Project, profile: InspectionProfileImpl) {
   val enabledIssues = emptySet<Issue>()
-  val client =
-    LintIdeSupport.get()
-      .createBatchClient(
-        LintBatchResult(project, emptyMap(), AnalysisScope(project), enabledIssues, null)
-      )
+  val client = LintIdeSupport.get().createBatchClient(LintBatchResult(project, emptyMap(), AnalysisScope(project), enabledIssues, null))
   try {
     val modules = ModuleManager.getInstance(project).modules.toList()
     val request = LintIdeRequest(client, project, emptyList(), modules, false)

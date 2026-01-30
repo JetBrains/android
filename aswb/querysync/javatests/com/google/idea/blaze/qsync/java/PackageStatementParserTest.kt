@@ -35,14 +35,12 @@ class PackageStatementParserTest {
   fun basic_package_statement() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          Joiner.on("\n")
-            .join("package com.myorg.somepackage;", "", "public class MyClass {}")
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            Joiner.on("\n").join("package com.myorg.somepackage;", "", "public class MyClass {}").toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.somepackage")
   }
 
@@ -51,22 +49,22 @@ class PackageStatementParserTest {
   fun comment_before_package_statement() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          Joiner.on("\n")
-            .join(
-              "/**",
-              " * Copyright statement!",
-              " * Another line",
-              " */",
-              "package com.myorg.otherpackage;",
-              "",
-              "public class MyClass {}"
-            )
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            Joiner.on("\n")
+              .join(
+                "/**",
+                " * Copyright statement!",
+                " * Another line",
+                " */",
+                "package com.myorg.otherpackage;",
+                "",
+                "public class MyClass {}",
+              )
+              .toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.otherpackage")
   }
 
@@ -75,15 +73,15 @@ class PackageStatementParserTest {
   fun single_line_generated_file() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          (("/* This is a generated file */package com.myorg.package.generated;public"
-            + " final class SomeClass {public final static boolean GENERATED_THING ="
-            + " true;}"))
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            (("/* This is a generated file */package com.myorg.package.generated;public" +
+                " final class SomeClass {public final static boolean GENERATED_THING =" +
+                " true;}"))
+              .toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.package.generated")
   }
 
@@ -92,22 +90,14 @@ class PackageStatementParserTest {
   fun basic_kotlin() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          Joiner.on("\n")
-            .join(
-              "package com.myorg.kotlinpackage",
-              "",
-              "import kotlin.text.*",
-              "",
-              "fun main() {",
-              "    println(\"Hello world!\")",
-              "}"
-            )
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            Joiner.on("\n")
+              .join("package com.myorg.kotlinpackage", "", "import kotlin.text.*", "", "fun main() {", "    println(\"Hello world!\")", "}")
+              .toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.kotlinpackage")
   }
 
@@ -116,20 +106,14 @@ class PackageStatementParserTest {
   fun kotlin_package_annotation() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          Joiner.on("\n")
-            .join(
-              "@file:JvmName(\"MyFile\")",
-              "package com.myorg.kotlinpackage",
-              "",
-              "object MyObject {",
-              "}"
-            )
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            Joiner.on("\n")
+              .join("@file:JvmName(\"MyFile\")", "package com.myorg.kotlinpackage", "", "object MyObject {", "}")
+              .toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.kotlinpackage")
   }
 
@@ -138,20 +122,14 @@ class PackageStatementParserTest {
   fun kotlin_shebang() {
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(
-        ByteArrayInputStream(
-          Joiner.on("\n")
-            .join(
-              "#!/bin/interpreter",
-              "package com.myorg.kotlinpackage",
-              "",
-              "object MyObject {",
-              "}"
-            )
-            .toByteArray(StandardCharsets.UTF_8)
+        psp.readPackage(
+          ByteArrayInputStream(
+            Joiner.on("\n")
+              .join("#!/bin/interpreter", "package com.myorg.kotlinpackage", "", "object MyObject {", "}")
+              .toByteArray(StandardCharsets.UTF_8)
+          )
         )
       )
-    )
       .isEqualTo("com.myorg.kotlinpackage")
   }
 
@@ -161,15 +139,17 @@ class PackageStatementParserTest {
     val outputs = ArrayList<Output?>()
     val psp = PackageStatementParser()
     Truth.assertThat(
-      psp.readPackage(object : NoopContext() {
-        override fun <T : Output?> output(output: T?) {
-          outputs.add(output)
-        }
-      }, Path.of("/file/indeed/not/found!"))
-    ).isNull()
-    Truth.assertThat(outputs)
-      .containsExactly(
-        PrintOutput.error("Cannot read file '/file/indeed/not/found!': /file/indeed/not/found! (No such file or directory)")
+        psp.readPackage(
+          object : NoopContext() {
+            override fun <T : Output?> output(output: T?) {
+              outputs.add(output)
+            }
+          },
+          Path.of("/file/indeed/not/found!"),
+        )
       )
+      .isNull()
+    Truth.assertThat(outputs)
+      .containsExactly(PrintOutput.error("Cannot read file '/file/indeed/not/found!': /file/indeed/not/found! (No such file or directory)"))
   }
 }

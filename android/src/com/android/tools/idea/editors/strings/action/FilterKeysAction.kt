@@ -40,7 +40,9 @@ class FilterKeysAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
-  override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.rowFilter
@@ -59,24 +61,25 @@ class FilterKeysAction : ComboBoxAction() {
 
     group.add(
       object : PanelAction("Filter By Text", "Filter the translations editor table keys by text", AllIcons.General.Filter) {
-          override fun doUpdate(event: AnActionEvent): Boolean = true
+        override fun doUpdate(event: AnActionEvent): Boolean = true
 
-          override fun actionPerformed(event: AnActionEvent) {
-            val textField = JTextField()
-            val dialogBuilder =
-                DialogBuilder().apply {
-                  setTitle("Filter by Text")
-                  setCenterPanel(textField)
-                  setPreferredFocusComponent(textField)
-                }
-            if (dialogBuilder.showAndGet()) {
-              val filterString = textField.text
-              if (filterString.isNotEmpty()) {
-                event.panel.table.rowFilter = TextRowFilter(filterString)
-              }
+        override fun actionPerformed(event: AnActionEvent) {
+          val textField = JTextField()
+          val dialogBuilder =
+            DialogBuilder().apply {
+              setTitle("Filter by Text")
+              setCenterPanel(textField)
+              setPreferredFocusComponent(textField)
+            }
+          if (dialogBuilder.showAndGet()) {
+            val filterString = textField.text
+            if (filterString.isNotEmpty()) {
+              event.panel.table.rowFilter = TextRowFilter(filterString)
             }
           }
-        })
+        }
+      }
+    )
 
     val editor = dataContext.getData(PlatformDataKeys.FILE_EDITOR)
     if (editor is StringResourceEditor) {
@@ -91,28 +94,21 @@ class FilterKeysAction : ComboBoxAction() {
 
   companion object {
     private const val NO_FILTER_TITLE = "Show All Keys"
-    /**
-     * Returns a [PanelAction] that sets the row filter to filter for strings that need translation
-     * to the specified [Locale].
-     */
+
+    /** Returns a [PanelAction] that sets the row filter to filter for strings that need translation to the specified [Locale]. */
     private fun newShowKeysNeedingTranslationForLocaleAction(locale: Locale): PanelAction {
       val text = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
-      return rowFilterUpdatingAction(text) {
-        NeedsTranslationForLocaleRowFilter(locale)
-      }
+      return rowFilterUpdatingAction(text) { NeedsTranslationForLocaleRowFilter(locale) }
     }
 
     /** Returns a [PanelAction] that updates the row filter on the table using the result of the [rowFilterSupplier]. */
-    private fun rowFilterUpdatingAction(
-        text: String,
-        description: String? = null,
-        rowFilterSupplier: () -> StringResourceTableRowFilter?
-    ) =
-        object : PanelAction(text, description) {
-          override fun doUpdate(event: AnActionEvent): Boolean = true
-          override fun actionPerformed(event: AnActionEvent) {
-            event.panel.table.rowFilter = rowFilterSupplier.invoke()
-          }
+    private fun rowFilterUpdatingAction(text: String, description: String? = null, rowFilterSupplier: () -> StringResourceTableRowFilter?) =
+      object : PanelAction(text, description) {
+        override fun doUpdate(event: AnActionEvent): Boolean = true
+
+        override fun actionPerformed(event: AnActionEvent) {
+          event.panel.table.rowFilter = rowFilterSupplier.invoke()
         }
+      }
   }
 }

@@ -22,9 +22,7 @@ import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 
-/**
- * Opens the Device Mirroring settings page.
- */
+/** Opens the Device Mirroring settings page. */
 class OpenDeviceMirroringSettingsAction : AssistActionHandler {
 
   override fun getId(): String = ACTION_KEY

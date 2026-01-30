@@ -18,5 +18,4 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.TrimDetector
 
-class AndroidLintTrimLambdaInspection :
-  AndroidLintInspectionBase(message("android.lint.inspections.trim.lambda"), TrimDetector.ISSUE)
+class AndroidLintTrimLambdaInspection : AndroidLintInspectionBase(message("android.lint.inspections.trim.lambda"), TrimDetector.ISSUE)

@@ -33,9 +33,7 @@ class NamespacedRenderTestWithAppCompat {
 
   val AGP_VERSION = AGP_8_13
 
-  @get:Rule val projectRule = AndroidGradleProjectRule(
-    agpVersionSoftwareEnvironment = AGP_VERSION
-  )
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = AGP_VERSION)
 
   @get:Rule val renderRule = RenderTestRule()
 

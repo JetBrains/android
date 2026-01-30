@@ -23,12 +23,13 @@ import java.io.File
 import java.io.Serializable
 import org.jetbrains.annotations.TestOnly
 
-data class IdePreResolvedModuleLibraryImpl constructor(
+data class IdePreResolvedModuleLibraryImpl
+constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
   override val lintJar: FileImpl?,
-  override val sourceSet: IdeModuleSourceSet
+  override val sourceSet: IdeModuleSourceSet,
 ) : IdePreResolvedModuleLibrary, Serializable {
 
   constructor(
@@ -36,60 +37,41 @@ data class IdePreResolvedModuleLibraryImpl constructor(
     projectPath: String,
     variant: String?,
     lintJar: File?,
-    sourceSet: IdeModuleSourceSet
-  ) : this(
-    buildId = buildId,
-    projectPath = projectPath,
-    variant = variant,
-    lintJar = lintJar?.toImpl(),
-    sourceSet = sourceSet
-  )
+    sourceSet: IdeModuleSourceSet,
+  ) : this(buildId = buildId, projectPath = projectPath, variant = variant, lintJar = lintJar?.toImpl(), sourceSet = sourceSet)
 
   // Used for serialization by the IDE.
   @Suppress("unused")
-  constructor() : this(
-    buildId = "",
-    projectPath = "",
-    variant = null,
-    lintJar = null,
-    sourceSet = IdeModuleWellKnownSourceSet.MAIN
-  )
+  constructor() : this(buildId = "", projectPath = "", variant = null, lintJar = null, sourceSet = IdeModuleWellKnownSourceSet.MAIN)
 
   @get:TestOnly
-  val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
+  val displayName: String
+    get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
 }
 
 data class IdeUnresolvedKmpAndroidModuleLibraryImpl(
   override val buildId: String,
   override val projectPath: String,
   override val lintJar: FileImpl?,
-): IdeUnresolvedKmpAndroidModuleLibrary, Serializable {
+) : IdeUnresolvedKmpAndroidModuleLibrary, Serializable {
 
   constructor(
     buildId: String,
     projectPath: String,
-    lintJar: File?
-  ) : this(
-    buildId = buildId,
-    projectPath = projectPath,
-    lintJar = lintJar?.toImpl()
-  )
+    lintJar: File?,
+  ) : this(buildId = buildId, projectPath = projectPath, lintJar = lintJar?.toImpl())
 
   // Used for serialization by the IDE.
-  @Suppress("unused")
-  constructor() : this(
-    buildId = "",
-    projectPath = "",
-    lintJar = null,
-  )
+  @Suppress("unused") constructor() : this(buildId = "", projectPath = "", lintJar = null)
 }
 
-data class IdeUnresolvedModuleLibraryImpl constructor(
+data class IdeUnresolvedModuleLibraryImpl
+constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
   override val lintJar: FileImpl?,
-  override val artifact: FileImpl
+  override val artifact: FileImpl,
 ) : IdeUnresolvedModuleLibrary, Serializable {
 
   constructor(
@@ -97,35 +79,24 @@ data class IdeUnresolvedModuleLibraryImpl constructor(
     projectPath: String,
     variant: String?,
     lintJar: File?,
-    artifact: File
-  ) : this(
-    buildId = buildId,
-    projectPath = projectPath,
-    variant = variant,
-    lintJar = lintJar?.toImpl(),
-    artifact = artifact.toImpl()
-  )
+    artifact: File,
+  ) : this(buildId = buildId, projectPath = projectPath, variant = variant, lintJar = lintJar?.toImpl(), artifact = artifact.toImpl())
 
   // Used for serialization by the IDE.
-  @Suppress("unused")
-  constructor() : this(
-    buildId = "",
-    projectPath = "",
-    variant = null,
-    lintJar = null,
-    artifact = FileImpl("")
-  )
+  @Suppress("unused") constructor() : this(buildId = "", projectPath = "", variant = null, lintJar = null, artifact = FileImpl(""))
 
   @get:TestOnly
-  val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, null)
+  val displayName: String
+    get() = moduleLibraryDisplayName(buildId, projectPath, variant, null)
 }
 
-data class IdeModuleLibraryImpl constructor(
+data class IdeModuleLibraryImpl
+constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
   override val lintJar: FileImpl?,
-  override val sourceSet: IdeModuleSourceSet
+  override val sourceSet: IdeModuleSourceSet,
 ) : IdeModuleLibrary, Serializable {
 
   constructor(
@@ -133,25 +104,15 @@ data class IdeModuleLibraryImpl constructor(
     projectPath: String,
     variant: String?,
     lintJar: File?,
-    sourceSet: IdeModuleSourceSet
-  ) : this(
-    buildId = buildId,
-    projectPath = projectPath,
-    variant = variant,
-    lintJar = lintJar?.toImpl(),
-    sourceSet = sourceSet
-  )
+    sourceSet: IdeModuleSourceSet,
+  ) : this(buildId = buildId, projectPath = projectPath, variant = variant, lintJar = lintJar?.toImpl(), sourceSet = sourceSet)
 
   @get:TestOnly
-  val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
+  val displayName: String
+    get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
 }
 
-internal fun moduleLibraryDisplayName(
-  buildId: String,
-  projectPath: String,
-  variant: String?,
-  sourceSet: IdeModuleSourceSet?
-): String {
+internal fun moduleLibraryDisplayName(buildId: String, projectPath: String, variant: String?, sourceSet: IdeModuleSourceSet?): String {
   val variantPart = if (!variant.isNullOrEmpty()) "@$variant" else ""
   val sourceSetPart = sourceSet?.takeUnless { it == IdeModuleWellKnownSourceSet.MAIN }?.let { "/$it" }.orEmpty()
   return "$buildId:$projectPath$variantPart$sourceSetPart"

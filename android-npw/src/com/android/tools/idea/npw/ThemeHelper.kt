@@ -31,9 +31,7 @@ import com.intellij.openapi.util.text.StringUtil.trimStart
 
 private const val DEFAULT_THEME_NAME = "Theme.App"
 
-/**
- * Theme utility class for use with templates.
- */
+/** Theme utility class for use with templates. */
 class ThemeHelper(private val module: Module) {
   private val projectRepository: ResourceRepository? = StudioResourceRepositoryManager.getProjectResources(module)
   val appThemeName: String?
@@ -49,8 +47,7 @@ class ThemeHelper(private val module: Module) {
   fun isLocalTheme(themeName: String) = themeName.toProjectStyleResource() != null
 
   private fun String.toProjectStyleResource(): StyleResourceValue? =
-    projectRepository!!.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, this)
-      .firstOrNull()?.resourceValue as StyleResourceValue?
+    projectRepository!!.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, this).firstOrNull()?.resourceValue as StyleResourceValue?
 
   companion object {
     fun themeExists(configuration: Configuration, themeName: String): Boolean = getStyleResource(configuration, themeName) != null
@@ -59,8 +56,8 @@ class ThemeHelper(private val module: Module) {
       val theme = getStyleResource(configuration, themeName) ?: return null
       val resolver = configuration.resourceResolver
       // TODO(namespaces): resolve themeName in the context of the right manifest file.
-      val value = resolver.resolveResValue(
-        resolver.findItemInStyle(theme, ResourceReference.attr(ResourceNamespace.TODO(), "windowActionBar")))
+      val value =
+        resolver.resolveResValue(resolver.findItemInStyle(theme, ResourceReference.attr(ResourceNamespace.TODO(), "windowActionBar")))
       return (value == null || value.value == null) || SdkConstants.VALUE_TRUE == value.value
     }
 

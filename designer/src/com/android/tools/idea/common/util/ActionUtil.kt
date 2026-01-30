@@ -28,13 +28,11 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 /**
  * Wrapper that delegates whether the given [ActionGroup] is visible or not to the passed condition.
  *
- * WARNING: creates custom component for each action, which is different from standard action, and
- * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
+ * WARNING: creates custom component for each action, which is different from standard action, and doesn't respect some properties e.g.
+ * [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
  */
-class ShowGroupUnderConditionWrapper(
-  delegate: ActionGroup,
-  val isVisible: (DataContext) -> Boolean,
-) : ActionGroupWrapper(delegate), CustomComponentAction {
+class ShowGroupUnderConditionWrapper(delegate: ActionGroup, val isVisible: (DataContext) -> Boolean) :
+  ActionGroupWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -49,13 +47,11 @@ class ShowGroupUnderConditionWrapper(
 /**
  * Wrapper that delegates whether the given action is visible or not to the passed condition.
  *
- * WARNING: creates custom component for each action, which is different from standard action, and
- * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
+ * WARNING: creates custom component for each action, which is different from standard action, and doesn't respect some properties e.g.
+ * [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
  */
-class ShowUnderConditionWrapper(
-  delegate: AnAction,
-  private val isVisible: (DataContext) -> Boolean,
-) : AnActionWrapper(delegate), CustomComponentAction {
+class ShowUnderConditionWrapper(delegate: AnAction, private val isVisible: (DataContext) -> Boolean) :
+  AnActionWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -68,15 +64,13 @@ class ShowUnderConditionWrapper(
 }
 
 /**
- * Wraps an [AnAction] to conditionally control its enabled state as well as control whether the
- * action can be performed.
+ * Wraps an [AnAction] to conditionally control its enabled state as well as control whether the action can be performed.
  *
- * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a
- * reason using [reasonForDisabling]. The wrapped [AnAction] will only be able to be performed
- * through the [actionPerformed] method if [isEnabled] returns `true`.
+ * Enables the wrapped action only if [isEnabled] is `true`. When disabled, optionally displays a reason using [reasonForDisabling]. The
+ * wrapped [AnAction] will only be able to be performed through the [actionPerformed] method if [isEnabled] returns `true`.
  *
- * WARNING: creates custom component for each action, which is different from standard action, and
- * doesn't respect some properties e.g. [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
+ * WARNING: creates custom component for each action, which is different from standard action, and doesn't respect some properties e.g.
+ * [ActionUtil.SHOW_TEXT_IN_TOOLBAR]
  *
  * @param delegate The original action.
  * @param isEnabled Determines if the action should be enabled.
@@ -114,8 +108,8 @@ class EnableUnderConditionWrapper(
 /**
  * Returns the unwrapped [AnAction] from a potentially wrapped action.
  *
- * This property will recursively unwrap [EnableUnderConditionWrapper] and
- * [ShowUnderConditionWrapper] instances to get to the original [AnAction].
+ * This property will recursively unwrap [EnableUnderConditionWrapper] and [ShowUnderConditionWrapper] instances to get to the original
+ * [AnAction].
  */
 val AnAction.unwrapped: AnAction
   get() = getDelegate(this)

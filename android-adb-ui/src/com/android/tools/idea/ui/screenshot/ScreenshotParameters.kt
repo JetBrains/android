@@ -44,12 +44,7 @@ private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 
 /** Information required by [ScreenshotAction] */
 class ScreenshotParameters
-private constructor(
-  val serialNumber: String,
-  val deviceType: DeviceType,
-  val deviceName: String,
-  val framingOption: DeviceFramingOption?,
-) {
+private constructor(val serialNumber: String, val deviceType: DeviceType, val deviceName: String, val framingOption: DeviceFramingOption?) {
   private var defaultFrameIndex: Int = 0
   val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
 
@@ -107,7 +102,7 @@ private constructor(
       val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
       val displayDensity = screenshotImage.displayDensity
       val diagonalSizeInches =
-          if (displayDensity == 0) Double.NaN else hypot(displaySize.width.toDouble(), displaySize.height.toDouble()) / displayDensity
+        if (displayDensity == 0) Double.NaN else hypot(displaySize.width.toDouble(), displaySize.height.toDouble()) / displayDensity
       val deviceArtId =
         when {
           deviceType == DeviceType.HANDHELD && (diagonalSizeInches.isNaN() || diagonalSizeInches < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
@@ -119,15 +114,12 @@ private constructor(
   }
 
   /**
-   * Returns the index of the default framing option for the given image. The default framing option
-   * is ignored if [getFramingOptions] returned an empty list.
+   * Returns the index of the default framing option for the given image. The default framing option is ignored if [getFramingOptions]
+   * returned an empty list.
    */
   fun getDefaultFramingOption(): Int = defaultFrameIndex
 
-  private fun findMatchingSkins(
-    screenshotImage: ScreenshotImage,
-    devices: Collection<Device>,
-  ): List<MatchingSkin> {
+  private fun findMatchingSkins(screenshotImage: ScreenshotImage, devices: Collection<Device>): List<MatchingSkin> {
     val displaySize = screenshotImage.displaySize
     val w = displaySize.width.toDouble()
     val h = displaySize.height.toDouble()
@@ -174,9 +166,8 @@ private constructor(
   }
 
   /**
-   * Adds a new device to a list of matching devices maintaining the [MatchingSkin.matchDistance]
-   * ordering and keeping only the matches that don't differ from the best one by more than
-   * [MAX_MATCH_DISTANCE_RATIO].
+   * Adds a new device to a list of matching devices maintaining the [MatchingSkin.matchDistance] ordering and keeping only the matches that
+   * don't differ from the best one by more than [MAX_MATCH_DISTANCE_RATIO].
    */
   private fun MutableList<MatchingSkin>.addMatch(displayName: String, skinFolder: Path, matchDistance: Double) {
     if (isNotEmpty()) {
@@ -218,20 +209,13 @@ private constructor(
 
   private fun Screen.isRound() = screenRound == ScreenRound.ROUND
 
-  private class MatchingSkin(
-    val displayName: String,
-    val skinFolder: Path,
-    val matchDistance: Double,
-  )
+  private class MatchingSkin(val displayName: String, val skinFolder: Path, val matchDistance: Double)
 
   companion object {
 
     val DATA_KEY = DataKey.create<ScreenshotParameters>("ScreenshotParameters")
 
-    private fun getAvdProperties(
-      avdFolder: Path,
-      avdManagerConnection: AvdManagerConnection,
-      ): Map<String, String> {
+    private fun getAvdProperties(avdFolder: Path, avdManagerConnection: AvdManagerConnection): Map<String, String> {
       return avdManagerConnection.findAvdWithFolder(avdFolder)?.properties ?: emptyMap()
     }
 
@@ -253,10 +237,7 @@ private constructor(
     }
 
     private fun getDevices(): Collection<Device> {
-      val deviceManager =
-        DeviceManagers.getDeviceManager(
-          AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null)
-        )
+      val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
       return deviceManager.getDevices(setOf(USER, DEFAULT, VENDOR))
     }
 

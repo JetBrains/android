@@ -29,10 +29,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.diagnostic.Logger
 
 /** Issue selection changed. */
-data class SelectedIssueChanged(
-  val issue: AppInsightsIssue?,
-  val selectionSource: IssueSelectionSource,
-) : ChangeEvent {
+data class SelectedIssueChanged(val issue: AppInsightsIssue?, val selectionSource: IssueSelectionSource) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -53,9 +50,7 @@ data class SelectedIssueChanged(
       )
     }
     Logger.getInstance(SelectedIssueChanged::class.java)
-      .info(
-        "Changing selection from ${(state.issues as? LoadingState.Ready)?.value?.value?.selected} to $issue"
-      )
+      .info("Changing selection from ${(state.issues as? LoadingState.Ready)?.value?.value?.selected} to $issue")
     return StateTransition(
       state.copy(
         issues = state.issues.map { Timed(value = it.value.select(issue), time = it.time) },
@@ -90,10 +85,7 @@ data class SelectedIssueChanged(
             LoadingState.Ready(null)
           },
       ),
-      action =
-        if (issue != null && state.issues is LoadingState.Ready)
-          actionsForSelectedIssue(provider, issue)
-        else Action.NONE,
+      action = if (issue != null && state.issues is LoadingState.Ready) actionsForSelectedIssue(provider, issue) else Action.NONE,
     )
   }
 }

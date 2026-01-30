@@ -21,21 +21,13 @@ import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 interface ModuleGalleryEntry {
-  /**
-   * Icon to be used in the gallery.
-   */
+  /** Icon to be used in the gallery. */
   val icon: Icon?
-  /**
-   * Module template name.
-   */
+  /** Module template name. */
   val name: String
-  /**
-   * Description of the template or `null` if none.
-   */
+  /** Description of the template or `null` if none. */
   val description: String?
 
-  /**
-   * Returns a new instance of a wizard step that will allow the user to edit the details of this module entry
-   */
+  /** Returns a new instance of a wizard step that will allow the user to edit the details of this module entry */
   fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*>
 }

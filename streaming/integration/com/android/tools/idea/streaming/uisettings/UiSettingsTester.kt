@@ -38,55 +38,52 @@ import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toList
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JSlider
 import javax.swing.ListModel
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 
 internal const val APPLICATION_ID = "com.android.tools.languages"
 
-/**
- * The UI settings to verify.
- */
+/** The UI settings to verify. */
 private enum class Setting(
   val command: String,
   val defaultOutput: List<String>,
   val alternateDefaultOutput: List<String> = emptyList(),
-  val trimFunction: (String) -> String? = ::trimValue
+  val trimFunction: (String) -> String? = ::trimValue,
 ) {
   DARK_THEME("cmd uimode night", listOf("Night mode: no")),
   LOCALE("cmd locale get-app-locales $APPLICATION_ID", listOf("Locales for $APPLICATION_ID for user 0 are []")),
-  FONT_SCALE("settings get system font_scale",  listOf("1.0"), emptyList(), ::trimFontScaleValue),
+  FONT_SCALE("settings get system font_scale", listOf("1.0"), emptyList(), ::trimFontScaleValue),
   DENSITY("wm density", listOf("Physical density: 480")),
-  GESTURE("cmd overlay list android | grep -e gestural$ -e three",
-          listOf("[ ] com.android.internal.systemui.navbar.threebutton", "[x] com.android.internal.systemui.navbar.gestural")),
+  GESTURE(
+    "cmd overlay list android | grep -e gestural$ -e three",
+    listOf("[ ] com.android.internal.systemui.navbar.threebutton", "[x] com.android.internal.systemui.navbar.gestural"),
+  ),
   DEBUG_LAYOUT("getprop debug.layout", emptyList(), listOf("false")),
   TALKBACK("settings get secure enabled_accessibility_services", listOf("null")),
   BUTTON_TARGETS("settings get secure accessibility_button_targets", listOf("null")),
 }
 
-private fun trimValue(value: String): String? =
-  value.trim().ifBlank { null }
+private fun trimValue(value: String): String? = value.trim().ifBlank { null }
 
 private fun trimFontScaleValue(value: String): String? {
   return when (value) {
     "null" -> "1.0" // "null" is returned if the setting is deleted
-    "1" -> "1.0"    // Some values are specified without a decimal point
+    "1" -> "1.0" // Some values are specified without a decimal point
     "2" -> "2.0"
     else -> trimValue(value)
   }
 }
 
-/**
- * Holds test methods shared between [EmulatorUiSettingsIntegrationTest] and [DeviceUiSettingsIntegrationTest].
- */
+/** Holds test methods shared between [EmulatorUiSettingsIntegrationTest] and [DeviceUiSettingsIntegrationTest]. */
 internal class UiSettingsTester(private val project: Project, deviceSerialNumber: String) {
   private val device = DeviceSelector.fromSerialNumber(deviceSerialNumber)
   private val adb: AdbDeviceServices
@@ -123,8 +120,7 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
       try {
         val result = executeCommand("echo 123")
         result.singleOrNull() == "123"
-      }
-      catch (ex: AdbDeviceFailResponseException) {
+      } catch (ex: AdbDeviceFailResponseException) {
         false
       }
     }
@@ -191,10 +187,19 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     // Talkback is already on from changeTalkback
     waitForPreviousWriteToComplete()
     checkBox.doClick()
-    waitForSetting(Setting.TALKBACK,
-                   listOf("com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService:com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService"),
-                   listOf("com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService:com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService"))
-    waitForSetting(Setting.BUTTON_TARGETS, listOf("com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService"))
+    waitForSetting(
+      Setting.TALKBACK,
+      listOf(
+        "com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService:com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService"
+      ),
+      listOf(
+        "com.google.android.marvin.talkback/com.google.android.marvin.talkback.TalkBackService:com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService"
+      ),
+    )
+    waitForSetting(
+      Setting.BUTTON_TARGETS,
+      listOf("com.google.android.marvin.talkback/com.google.android.accessibility.selecttospeak.SelectToSpeakService"),
+    )
   }
 
   private suspend fun changeFontSize(dialog: UiSettingsDialog) {
@@ -257,15 +262,24 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
 
     waitForPreviousWriteToComplete()
     comboBox.selectedIndex = 1
-    waitForSetting(Setting.GESTURE, listOf("[ ] com.android.internal.systemui.navbar.gestural", "[x] com.android.internal.systemui.navbar.threebutton"))
+    waitForSetting(
+      Setting.GESTURE,
+      listOf("[ ] com.android.internal.systemui.navbar.gestural", "[x] com.android.internal.systemui.navbar.threebutton"),
+    )
 
     waitForPreviousWriteToComplete()
     comboBox.selectedIndex = 0
-    waitForSetting(Setting.GESTURE, listOf("[ ] com.android.internal.systemui.navbar.threebutton", "[x] com.android.internal.systemui.navbar.gestural"))
+    waitForSetting(
+      Setting.GESTURE,
+      listOf("[ ] com.android.internal.systemui.navbar.threebutton", "[x] com.android.internal.systemui.navbar.gestural"),
+    )
 
     waitForPreviousWriteToComplete()
     comboBox.selectedIndex = 1
-    waitForSetting(Setting.GESTURE, listOf("[ ] com.android.internal.systemui.navbar.gestural", "[x] com.android.internal.systemui.navbar.threebutton"))
+    waitForSetting(
+      Setting.GESTURE,
+      listOf("[ ] com.android.internal.systemui.navbar.gestural", "[x] com.android.internal.systemui.navbar.threebutton"),
+    )
   }
 
   private suspend fun changeDebugLayout(dialog: UiSettingsDialog) {
@@ -301,14 +315,13 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
   }
 
   private suspend fun waitForSetting(setting: Setting, expected: List<String>, alternate: List<String> = listOf("ZZ-NO-MATCH-ZZ")) {
-    var lastResult= emptyList<String>()
+    var lastResult = emptyList<String>()
     try {
       delayUntilCondition(50, 10.seconds) {
         lastResult = executeCommand(setting.command, setting.trimFunction)
         lastResult == expected || lastResult == alternate
       }
-    }
-    catch (ex: TimeoutCancellationException) {
+    } catch (ex: TimeoutCancellationException) {
       throw RuntimeException("Timeout waiting for $setting to yield: ${expected.joinToString()}, was: ${lastResult.joinToString()}", ex)
     }
   }
@@ -321,12 +334,11 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
    * - Timeout waiting for FONT_SCALE to yield: 1.0, was: 0.85
    * - Timeout waiting for DENSITY to yield: Physical density: 480, was: Physical density: 480, Override density: 408
    *
-   * Theory: It is possible that a previous write transaction caused the new value to be visible to reads before the write transaction
-   * has finished. After reading the value this test may cause another write transaction which may be overwritten by the previous
-   * transaction.
+   * Theory: It is possible that a previous write transaction caused the new value to be visible to reads before the write transaction has
+   * finished. After reading the value this test may cause another write transaction which may be overwritten by the previous transaction.
    *
-   * Since those writes happen in async calls in the production code we cannot programmatically wait for the transaction to finish.
-   * Instead, wait a few seconds and hope any previous transactions are done.
+   * Since those writes happen in async calls in the production code we cannot programmatically wait for the transaction to finish. Instead,
+   * wait a few seconds and hope any previous transactions are done.
    */
   private suspend fun waitForPreviousWriteToComplete() {
     delay(8.seconds)

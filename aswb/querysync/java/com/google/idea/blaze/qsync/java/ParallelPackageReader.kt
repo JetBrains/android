@@ -27,27 +27,12 @@ import kotlinx.coroutines.withContext
 /** A [PackageReader] that parallelizes package reads of another [PackageReader]. */
 class ParallelPackageReader : PackageReader.ParallelReader {
 
-  override fun readPackages(
-    context: Context<*>,
-    reader: PackageReader,
-    paths: List<Path>,
-  ): Map<Path, String> = runBlocking(QuerySyncDispatchers.IO) {
-    readPackagesSuspending(context, reader, paths)
-  }
+  override fun readPackages(context: Context<*>, reader: PackageReader, paths: List<Path>): Map<Path, String> =
+    runBlocking(QuerySyncDispatchers.IO) { readPackagesSuspending(context, reader, paths) }
 
-  suspend fun readPackagesSuspending(
-    context: Context<*>,
-    reader: PackageReader,
-    paths: List<Path>,
-  ): Map<Path, String> = coroutineScope {
+  suspend fun readPackagesSuspending(context: Context<*>, reader: PackageReader, paths: List<Path>): Map<Path, String> = coroutineScope {
     withContext(QuerySyncDispatchers.IO) {
-      paths
-        .map { file ->
-          async { reader.readPackage(context, file)?.let { file to it } }
-        }
-        .awaitAll()
-        .filterNotNull()
-        .toMap()
+      paths.map { file -> async { reader.readPackage(context, file)?.let { file to it } } }.awaitAll().filterNotNull().toMap()
     }
   }
 }

@@ -19,19 +19,16 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.testlib.Emulator
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.minutes
-
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 @Ignore("b/328255748")
 class MultipleDevicesInstrumentedTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
   @Test
   fun deployInstrumentedTest() {
@@ -60,10 +57,20 @@ class MultipleDevicesInstrumentedTest {
             studio.executeAction("Run")
             adb.runCommand("logcat", emulator = emulator1).waitForLog(".*Instrumented Test Success!!.*", 5.minutes)
             adb.runCommand("logcat", emulator = emulator2).waitForLog(".*Instrumented Test Success!!.*", 5.minutes)
-            assert(system.installation.ideaLog.findMatchingLines(
-              ".*AndroidProcessHandler - Adding device ${emulator1.serialNumber} to monitor for launched app: com\\.example\\.instrumentedtestapp").size > 0)
-            assert(system.installation.ideaLog.findMatchingLines(
-              ".*AndroidProcessHandler - Adding device ${emulator2.serialNumber} to monitor for launched app: com\\.example\\.instrumentedtestapp").size > 0)
+            assert(
+              system.installation.ideaLog
+                .findMatchingLines(
+                  ".*AndroidProcessHandler - Adding device ${emulator1.serialNumber} to monitor for launched app: com\\.example\\.instrumentedtestapp"
+                )
+                .size > 0
+            )
+            assert(
+              system.installation.ideaLog
+                .findMatchingLines(
+                  ".*AndroidProcessHandler - Adding device ${emulator2.serialNumber} to monitor for launched app: com\\.example\\.instrumentedtestapp"
+                )
+                .size > 0
+            )
           }
         }
       }
@@ -72,7 +79,9 @@ class MultipleDevicesInstrumentedTest {
 
   private fun setDeviceSelection(project: AndroidProject, emulator1: Emulator, emulator2: Emulator) {
     val avdHome = "${emulator1.home.toAbsolutePath()}/.android/avd"
-    project.inject(Path.of(".idea/deploymentTargetSelector.xml"), """
+    project.inject(
+      Path.of(".idea/deploymentTargetSelector.xml"),
+      """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <project version="4">
                   <component name="deploymentTargetSelector">
@@ -97,6 +106,8 @@ class MultipleDevicesInstrumentedTest {
                     </selectionStates>
                   </component>
                 </project>
-        """.trimIndent())
+        """
+        .trimIndent(),
+    )
   }
 }

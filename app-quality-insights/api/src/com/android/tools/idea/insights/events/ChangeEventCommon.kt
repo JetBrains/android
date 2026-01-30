@@ -34,9 +34,7 @@ fun transitionEvent(provider: InsightsProvider, event: Event) =
 fun actionsForSelectedIssue(provider: InsightsProvider, issue: AppInsightsIssue) =
   Action.FetchDetails(issue.id) and
     if (provider.supportsMultipleEvents) {
-      Action.FetchIssueVariants(issue.id) and
-        Action.FetchNotes(issue.id) and
-        Action.ListEvents(issue.id, null, null)
+      Action.FetchIssueVariants(issue.id) and Action.FetchNotes(issue.id) and Action.ListEvents(issue.id, null, null)
     } else {
       Action.FetchInsight(issue.id, null, issue.issueDetails.fatality, issue.sampleEvent)
     }

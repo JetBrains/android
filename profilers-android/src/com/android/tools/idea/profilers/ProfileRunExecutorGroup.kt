@@ -30,61 +30,61 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
-import org.jetbrains.annotations.Nls
 import javax.swing.Icon
+import org.jetbrains.annotations.Nls
 
-/**
- * Executor group to support profiling app as profileable or debuggable in a dropdown menu.
- */
+/** Executor group to support profiling app as profileable or debuggable in a dropdown menu. */
 class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutorGroup.ProfilerSetting>() {
-  /**
-   * A setting maps to a child executor in the group, containing metadata for the child executor.
-   */
+  /** A setting maps to a child executor in the group, containing metadata for the child executor. */
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     @get:Nls
     override val actionName: String
-      get() = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
-        when (profilingMode) {
-          ProfilingMode.PROFILEABLE -> PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
-          ProfilingMode.DEBUGGABLE -> PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
-          else -> "Profiler: Run"
+      get() =
+        if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+          when (profilingMode) {
+            ProfilingMode.PROFILEABLE -> PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
+            ProfilingMode.DEBUGGABLE -> PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
+            else -> "Profiler: Run"
+          }
+        } else {
+          when (profilingMode) {
+            ProfilingMode.PROFILEABLE -> "Profile with low overhead (profileable)"
+            ProfilingMode.DEBUGGABLE -> "Profile with complete data (debuggable)"
+            else -> "Profile"
+          }
         }
-      }
-      else {
-        when (profilingMode) {
-          ProfilingMode.PROFILEABLE -> "Profile with low overhead (profileable)"
-          ProfilingMode.DEBUGGABLE -> "Profile with complete data (debuggable)"
-          else -> "Profile"
-        }
-      }
 
     override val icon: Icon
-      get() = when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> PROFILEABLE_ICON
-        ProfilingMode.DEBUGGABLE -> DEBUGGABLE_ICON
-        else -> StudioIcons.Shell.Toolbar.PROFILER
-      }
+      get() =
+        when (profilingMode) {
+          ProfilingMode.PROFILEABLE -> PROFILEABLE_ICON
+          ProfilingMode.DEBUGGABLE -> DEBUGGABLE_ICON
+          else -> StudioIcons.Shell.Toolbar.PROFILER
+        }
 
     override val startActionText = "Profile"
+
     override fun canRun(profile: RunProfile) = true
+
     override fun isApplicable(project: Project): Boolean {
       val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
       return isProfilingModeSupported
     }
-    override fun getStartActionText(configurationName: String) = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
-      when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> "Profiler: Run '$configurationName' as profileable (low overhead)"
-        ProfilingMode.DEBUGGABLE -> "Profiler: Run '$configurationName' as debuggable (complete data)"
-        else -> "Profiler: Run '$configurationName'"
+
+    override fun getStartActionText(configurationName: String) =
+      if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        when (profilingMode) {
+          ProfilingMode.PROFILEABLE -> "Profiler: Run '$configurationName' as profileable (low overhead)"
+          ProfilingMode.DEBUGGABLE -> "Profiler: Run '$configurationName' as debuggable (complete data)"
+          else -> "Profiler: Run '$configurationName'"
+        }
+      } else {
+        when (profilingMode) {
+          ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead (profileable)"
+          ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data (debuggable)"
+          else -> "Profile '$configurationName'"
+        }
       }
-    }
-    else {
-      when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead (profileable)"
-        ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data (debuggable)"
-        else -> "Profile '$configurationName'"
-      }
-    }
   }
 
   init {
@@ -123,21 +123,19 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    * WARNING: do not call this to get the Profiler tool window ID, instead use [AndroidProfilerToolWindowFactory.ID] directly.
    *
    * Because "Profile" is a Run task, the Run tool window is also updated. This tool window ID is used by the IDEA platform
-   * (RunContentManager) to look up the Run tool window, so it should be "Run" instead of "Android Profiler".
-   * On the other hand, Profiler instantiates its tool window using [AndroidProfilerToolWindowFactory.ID] directly and never calls this
-   * method.
+   * (RunContentManager) to look up the Run tool window, so it should be "Run" instead of "Android Profiler". On the other hand, Profiler
+   * instantiates its tool window using [AndroidProfilerToolWindowFactory.ID] directly and never calls this method.
    */
   override fun getToolWindowId(): String = ToolWindowId.RUN
 
   /**
    * Returns the child executor for the given profiling mode.
    *
-   * The child executor's IDs are in the format of "Android Profiler Group#1", per the implementation of ExecutorGroup. Because
-   * the IDs are not very readable, action name is compared to locate the executor.
+   * The child executor's IDs are in the format of "Android Profiler Group#1", per the implementation of ExecutorGroup. Because the IDs are
+   * not very readable, action name is compared to locate the executor.
    */
-  fun getChildExecutor(profilingMode: ProfilingMode): Executor = childExecutors().filter { e ->
-    e.actionName == ProfilerSetting(profilingMode).actionName
-  }.first()
+  fun getChildExecutor(profilingMode: ProfilingMode): Executor =
+    childExecutors().filter { e -> e.actionName == ProfilerSetting(profilingMode).actionName }.first()
 
   companion object {
     private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER_LOW_OVERHEAD

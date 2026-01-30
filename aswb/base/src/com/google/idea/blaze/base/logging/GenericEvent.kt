@@ -17,10 +17,12 @@ package com.google.idea.blaze.base.logging
 
 import com.intellij.openapi.project.Project
 
-data class GenericEvent @JvmOverloads constructor (
+data class GenericEvent
+@JvmOverloads
+constructor(
   val project: Project?,
   val caller: Any?,
   val eventType: String,
   val keyValues: Map<String, String> = emptyMap(),
-  val durationInNanos: Long? = null
+  val durationInNanos: Long? = null,
 ) : LoggedEvent

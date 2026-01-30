@@ -22,14 +22,12 @@ import org.junit.Test
 
 class FeatureConfigurationTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun `verify configurations from version`() {
     assert(formatFullVersion(channel = "dEv")).isEqualTo(FeatureConfiguration.INTERNAL)
     assert(formatFullVersion()).isEqualTo(FeatureConfiguration.INTERNAL)
-
 
     assert(formatFullVersion(channel = "Canary")).isEqualTo(FeatureConfiguration.PREVIEW)
     assert(formatFullVersion(channel = "Beta")).isEqualTo(FeatureConfiguration.COMPLETE)
@@ -44,9 +42,8 @@ class FeatureConfigurationTest {
   }
 }
 
-private fun assert(versionString: String) = Truth
-  .assertWithMessage(versionString)
-  .that(FeatureConfiguration.getConfigurationFromVersionName(versionString))
+private fun assert(versionString: String) =
+  Truth.assertWithMessage(versionString).that(FeatureConfiguration.getConfigurationFromVersionName(versionString))
 
 private fun formatFullVersion(
   majorVersion: String = "2023",

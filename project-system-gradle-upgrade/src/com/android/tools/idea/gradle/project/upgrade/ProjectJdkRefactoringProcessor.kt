@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -33,45 +36,45 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.lang.JavaVersion
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
-import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = AlwaysNeeded
 
   data class CurrentJdkInfo(val path: String, val javaVersion: JavaVersion)
+
   data class NewJdkInfo(val sdk: Sdk, val path: String?, val javaVersion: JavaVersion)
 
   var newJdkInfo: NewJdkInfo? = null
 
   private val currentJdkInfo by lazy {
     val installationManager = GradleInstallationManager.getInstance()
-    project.basePath?.let { basePath -> installationManager.getGradleJvmPath(project, basePath) }
-      ?.let { gradleJvmPath ->
-        SdkVersionUtil.getJdkVersionInfo(gradleJvmPath)
-          ?.let { CurrentJdkInfo(gradleJvmPath, it.version) }
-      }
+    project.basePath
+      ?.let { basePath -> installationManager.getGradleJvmPath(project, basePath) }
+      ?.let { gradleJvmPath -> SdkVersionUtil.getJdkVersionInfo(gradleJvmPath)?.let { CurrentJdkInfo(gradleJvmPath, it.version) } }
   }
 
   init {
     val jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())
     val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
-    newJdkInfo = jdks
-      .firstOrNull { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel == newCompatibleJdk.languageLevel }
-      ?.let { NewJdkInfo(it, it.homePath, newCompatibleJdk.languageLevel.toJavaVersion()) }
+    newJdkInfo =
+      jdks
+        .firstOrNull { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel == newCompatibleJdk.languageLevel }
+        ?.let { NewJdkInfo(it, it.homePath, newCompatibleJdk.languageLevel.toJavaVersion()) }
   }
 
-  class RequiredJdkNotSelected(languageLevel: LanguageLevel, new: AgpVersion): BlockReason(
-    shortDescription = "Required JDK not selected",
-    description = "Android Gradle Plugin version $new requires running with JDK ${languageLevel.feature()}." +
-                  "Select a suitable JDK from the combo box.",
-  )
+  class RequiredJdkNotSelected(languageLevel: LanguageLevel, new: AgpVersion) :
+    BlockReason(
+      shortDescription = "Required JDK not selected",
+      description =
+        "Android Gradle Plugin version $new requires running with JDK ${languageLevel.feature()}." +
+          "Select a suitable JDK from the combo box.",
+    )
 
   private val isCurrentJdkNewEnough: Boolean
     get() {
@@ -122,14 +125,19 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       //
       // Rather than fight with that some more, work around the problem by defining this very null-like FakePsiElement,
       // which does not trigger the behaviour.  (Why?  I don't know.)
-      val fakePsiElement = object : FakePsiElement() {
-        override fun getParent() = null
-        override fun isValid() = true
-        override fun isWritable() = true
-        override fun getContainingFile() = null
-        override fun getProject() = this@ProjectJdkRefactoringProcessor.project
-        // TODO(b/257040253): override something so that the preview sees something more meaningful than "Read-only Wrapped Psi Element"
-      }
+      val fakePsiElement =
+        object : FakePsiElement() {
+          override fun getParent() = null
+
+          override fun isValid() = true
+
+          override fun isWritable() = true
+
+          override fun getContainingFile() = null
+
+          override fun getProject() = this@ProjectJdkRefactoringProcessor.project
+          // TODO(b/257040253): override something so that the preview sees something more meaningful than "Read-only Wrapped Psi Element"
+        }
       val wrappedPsiElement = WrappedPsiElement(fakePsiElement, this, UPDATE_PROJECT_JDK)
       usages.add(UpdateJdkUsageInfo(wrappedPsiElement, gradleJvmPath, newJdkPath))
     }
@@ -141,13 +149,15 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun getCommandName(): String = AgpUpgradeBundle.message("projectJdkRefactoringProcessor.commandName")
 
-  override fun getShortDescription() = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.feature().let { v ->
-    """
+  override fun getShortDescription() =
+    AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.feature().let { v ->
+      """
       The new version of the Android Gradle Plugin requires a newer version
       of the JDK to run (JDK version $v) than is currently configured for
       this project.
-    """.trimIndent()
-  }
+    """
+        .trimIndent()
+    }
 
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("project-jdk-needs-upgrade")
 
@@ -174,11 +184,8 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   }
 }
 
-class UpdateJdkUsageInfo(
-  element: WrappedPsiElement,
-  private val currentJdkPath: String,
-  private val newJdkPath: String
-) : GradleBuildModelUsageInfo(element) {
+class UpdateJdkUsageInfo(element: WrappedPsiElement, private val currentJdkPath: String, private val newJdkPath: String) :
+  GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AgpUpgradeBundle.message("projectJdkUsageInfo.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -187,10 +194,7 @@ class UpdateJdkUsageInfo(
       GradleJdkConfigurationUtils.setProjectGradleJdkWithSingleGradleRoot(processor.project, path)
     }
     setJdkAsProjectJdk(newJdkPath)
-    UndoHook(
-      undo = { setJdkAsProjectJdk(currentJdkPath) },
-      redo = { setJdkAsProjectJdk(newJdkPath) }
-    ).let { processor.undoHooks.add(it) }
+    UndoHook(undo = { setJdkAsProjectJdk(currentJdkPath) }, redo = { setJdkAsProjectJdk(newJdkPath) }).let { processor.undoHooks.add(it) }
   }
 
   override fun isValid(): Boolean = true // to make sure this shows up in the refactoring preview.

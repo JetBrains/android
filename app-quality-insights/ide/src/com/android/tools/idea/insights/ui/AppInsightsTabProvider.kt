@@ -32,10 +32,6 @@ interface AppInsightsTabProvider {
   fun getConfigurationManager(project: Project): AppInsightsConfigurationManager
 
   companion object {
-    @JvmField
-    val EP_NAME =
-      ExtensionPointName<AppInsightsTabProvider>(
-        "com.android.tools.idea.insights.ui.appInsightsTabProvider"
-      )
+    @JvmField val EP_NAME = ExtensionPointName<AppInsightsTabProvider>("com.android.tools.idea.insights.ui.appInsightsTabProvider")
   }
 }

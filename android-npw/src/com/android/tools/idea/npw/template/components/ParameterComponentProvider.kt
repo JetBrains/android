@@ -20,14 +20,12 @@ import com.android.tools.idea.wizard.ui.WizardUtils
 import javax.swing.JComponent
 
 /**
- * A class responsible for converting a [Parameter] to a [JComponent]. Any parameter
- * that represents a value (most of them, except for e.g. SEPARATOR should
- * be sure to also create an appropriate Swing property to control the component.
+ * A class responsible for converting a [Parameter] to a [JComponent]. Any parameter that represents a value (most of them, except for e.g.
+ * SEPARATOR should be sure to also create an appropriate Swing property to control the component.
  */
-abstract class ParameterComponentProvider<T : JComponent> protected constructor(private val parameter: Parameter<*>) : ComponentProvider<T>() {
-  override fun createComponent(): T = createComponent(parameter).apply {
-    toolTipText = WizardUtils.toHtmlString(parameter.help ?: "")
-  }
+abstract class ParameterComponentProvider<T : JComponent> protected constructor(private val parameter: Parameter<*>) :
+  ComponentProvider<T>() {
+  override fun createComponent(): T = createComponent(parameter).apply { toolTipText = WizardUtils.toHtmlString(parameter.help ?: "") }
 
   protected abstract fun createComponent(parameter: Parameter<*>): T
 }

@@ -43,24 +43,14 @@ import org.jetbrains.android.facet.AndroidFacet
 abstract class NavScreenDecorator : NavBaseDecorator() {
 
   // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
-  override fun buildListChildren(
-    list: DisplayList,
-    time: Long,
-    sceneContext: SceneContext,
-    component: SceneComponent,
-  ) {
+  override fun buildListChildren(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     for (child in component.children) {
       child.buildDisplayList(time, list, sceneContext)
     }
   }
 
-  protected fun buildImage(
-    sceneContext: SceneContext,
-    component: SceneComponent,
-    rectangle: SwingRectangle,
-  ): RefinableImage? {
-    val layout =
-      component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
+  protected fun buildImage(sceneContext: SceneContext, component: SceneComponent, rectangle: SwingRectangle): RefinableImage? {
+    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
 
     if (layout == null && className == null) {
@@ -75,8 +65,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val model = surface.model ?: return empty
     val facet = getFacet(component, model) ?: return empty
 
-    val configuration =
-      surface.configurations.find { it.virtualFile == model.virtualFile } ?: return empty
+    val configuration = surface.configurations.find { it.virtualFile == model.virtualFile } ?: return empty
 
     val resourceUrl = ResourceUrl.parse(layout) ?: return empty
     if (resourceUrl.type != ResourceType.LAYOUT) {
@@ -85,9 +74,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     val resourceResolver = configuration.resourceItemResolver
     val resourceValue =
       ApplicationManager.getApplication().runReadAction<String> {
-        SlowOperations.knownIssue("b/321676532").use {
-          resourceResolver.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value
-        }
+        SlowOperations.knownIssue("b/321676532").use { resourceResolver.resolve(resourceUrl, component.nlComponent.tagDeprecated)?.value }
       } ?: return empty
 
     val file = File(resourceValue)
@@ -96,8 +83,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     }
     val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return empty
 
-    val psiFile =
-      AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
     return manager.getThumbnail(
       psiFile,
@@ -109,8 +95,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
   private fun getFacet(component: SceneComponent, model: NlModel): AndroidFacet? {
     component.nlComponent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_MODULE_NAME)?.let {
-      val moduleManager =
-        ModuleManager.getInstance(component.nlComponent.model.project) ?: return null
+      val moduleManager = ModuleManager.getInstance(component.nlComponent.model.project) ?: return null
       val module = moduleManager.findModuleByName(it) ?: return null
       return AndroidFacet.getInstance(module)
     }

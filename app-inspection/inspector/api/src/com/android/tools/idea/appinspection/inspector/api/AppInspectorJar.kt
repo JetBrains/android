@@ -34,8 +34,7 @@ data class AppInspectorJar(
   /**
    * The development path of the jar relative to tools/idea.
    *
-   * For example:
-   * ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
+   * For example: ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
    */
   val developmentDirectory: String? = null,
 )

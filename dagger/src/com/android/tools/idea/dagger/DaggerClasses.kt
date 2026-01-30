@@ -39,8 +39,7 @@ data class DaggerClass(
   val fqNameString: String by lazy(LazyThreadSafetyMode.PUBLICATION) { classId.asFqNameString() }
 
   companion object {
-    fun fromString(classIdString: String): DaggerClass =
-      DaggerClass(ClassId.fromString(classIdString))
+    fun fromString(classIdString: String): DaggerClass = DaggerClass(ClassId.fromString(classIdString))
   }
 }
 
@@ -49,14 +48,12 @@ object DaggerClasses {
   private val JAVAX_INJECT_PACKAGE_FQNAME = FqName("javax.inject")
   private val DAGGER_ASSISTED_PACKAGE_FQNAME = FqName("dagger.assisted")
 
-  private fun dagger(className: String): DaggerClass =
-    DaggerClass(ClassId(DAGGER_PACKAGE_FQNAME, Name.identifier(className)))
+  private fun dagger(className: String): DaggerClass = DaggerClass(ClassId(DAGGER_PACKAGE_FQNAME, Name.identifier(className)))
 
   private fun daggerAssisted(className: String): DaggerClass =
     DaggerClass(ClassId(DAGGER_ASSISTED_PACKAGE_FQNAME, Name.identifier(className)))
 
-  private fun javaxInject(className: String): DaggerClass =
-    DaggerClass(ClassId(JAVAX_INJECT_PACKAGE_FQNAME, Name.identifier(className)))
+  private fun javaxInject(className: String): DaggerClass = DaggerClass(ClassId(JAVAX_INJECT_PACKAGE_FQNAME, Name.identifier(className)))
 
   private fun DaggerClass.nested(nestedClassName: String): DaggerClass =
     DaggerClass(classId.createNestedClassId(Name.identifier(nestedClassName)))

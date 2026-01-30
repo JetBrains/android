@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter
 
-import org.jetbrains.android.AndroidTestBase
-import org.junit.Test
 import java.awt.Color
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.android.AndroidTestBase
+import org.junit.Test
 
 class DocumentParserTest {
   @Test
   fun checkParsedAssets() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val assets = document.assets
     val colors = assets.colors
@@ -44,8 +44,8 @@ class DocumentParserTest {
 
   @Test
   fun checkForeignLayerStyles() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.foreignLayerStyles
     assertEquals(0, styles?.size)
@@ -55,8 +55,8 @@ class DocumentParserTest {
 
   @Test
   fun checkForeignSymbols() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val symbols = document.foreignSymbols
     assertEquals(74, symbols?.size)
@@ -88,8 +88,8 @@ class DocumentParserTest {
 
   @Test
   fun checkForeignTextStyles() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.foreignTextStyles
     assertEquals(0, styles?.size)
@@ -99,8 +99,8 @@ class DocumentParserTest {
 
   @Test
   fun checkLayerStyles() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.layerStyles
     assertEquals(173, styles.size)
@@ -112,8 +112,8 @@ class DocumentParserTest {
 
   @Test
   fun checkLayerSymbols() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val symbols = document.layerSymbols
     assertEquals(0, symbols.size)
@@ -123,8 +123,8 @@ class DocumentParserTest {
 
   @Test
   fun checkLayerTextStyles() {
-    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument = SketchTestUtils.parseDocument(
-      AndroidTestBase.getTestDataPath() + "/sketch/document.json")
+    val document: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument =
+      SketchTestUtils.parseDocument(AndroidTestBase.getTestDataPath() + "/sketch/document.json")
 
     val styles = document.layerTextStyles
     assertEquals(1439, styles.size)

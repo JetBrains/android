@@ -27,12 +27,12 @@ import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.RunsInEdt
+import java.util.Comparator
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.Comparator
 
 @RunsInEdt
 class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
@@ -241,7 +241,10 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateFailureRetention() }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshotsExpected"))
+    verifyFileContents(
+      buildFile,
+      TestFileName("RemoveFailureRetentionAndEmulatorSnapshots/RemoveFailureRetentionAndEmulatorSnapshotsExpected"),
+    )
   }
 
   @Test
@@ -312,13 +315,14 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
     val earliestSupportedVersion = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION)
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
-    val processorsByEnd = processor.componentRefactoringProcessors.mapNotNull {
-      when (val info = it.necessityInfo) {
-        is PointNecessity -> it to info.change
-        is RegionNecessity -> it to info.originalRemoved
-        else -> null
+    val processorsByEnd =
+      processor.componentRefactoringProcessors.mapNotNull {
+        when (val info = it.necessityInfo) {
+          is PointNecessity -> it to info.change
+          is RegionNecessity -> it to info.originalRemoved
+          else -> null
+        }
       }
-    }
     assertThat(processorsByEnd.filter { it.second < earliestSupportedVersion }).isEmpty()
   }
 
@@ -326,16 +330,17 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   fun testNecessityOrder() {
     val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
-    val processorsWithEndAndStart = processor.componentRefactoringProcessors.mapNotNull {
-      when (val info = it.necessityInfo) {
-        is PointNecessity -> Triple(it, info.change, info.change)
-        is RegionNecessity -> Triple(it, info.originalRemoved, info.replacementAvailable)
-        else -> null
+    val processorsWithEndAndStart =
+      processor.componentRefactoringProcessors.mapNotNull {
+        when (val info = it.necessityInfo) {
+          is PointNecessity -> Triple(it, info.change, info.change)
+          is RegionNecessity -> Triple(it, info.originalRemoved, info.replacementAvailable)
+          else -> null
+        }
       }
-    }
     // There is no guarantee that we will be able to order by both start and end versions.  Somewhat arbitrarily we prefer the
     // ordering by end, then start.
-    val comparator = Comparator.comparing(Triple<*,AgpVersion,AgpVersion>::second).thenComparing(Triple<*,AgpVersion,AgpVersion>::third)
+    val comparator = Comparator.comparing(Triple<*, AgpVersion, AgpVersion>::second).thenComparing(Triple<*, AgpVersion, AgpVersion>::third)
     assertThat(processorsWithEndAndStart).isOrdered(comparator)
   }
 }

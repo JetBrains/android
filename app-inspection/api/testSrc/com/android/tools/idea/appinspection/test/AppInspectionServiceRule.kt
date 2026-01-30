@@ -57,15 +57,12 @@ val DEFAULT_TEST_INSPECTION_STREAM =
       device = FakeTransportService.FAKE_DEVICE
     }
     .build()!!
-val DEFAULT_TEST_INSPECTION_PROCESS =
-  TransportProcessDescriptor(DEFAULT_TEST_INSPECTION_STREAM, FakeTransportService.FAKE_PROCESS)
+val DEFAULT_TEST_INSPECTION_PROCESS = TransportProcessDescriptor(DEFAULT_TEST_INSPECTION_STREAM, FakeTransportService.FAKE_PROCESS)
 
 /**
- * Rule providing all of the underlying components of App Inspection including [executorService],
- * [streamChannel], [transport] and [client].
+ * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
  *
- * It also provides a number of useful utility functions for tests. Normally used in conjunction
- * with [FakeGrpcServer] rule.
+ * It also provides a number of useful utility functions for tests. Normally used in conjunction with [FakeGrpcServer] rule.
  */
 class AppInspectionServiceRule(
   private val timer: FakeTimer,
@@ -93,9 +90,7 @@ class AppInspectionServiceRule(
             .setCommandId(command.commandId)
             .setPid(command.pid)
             .setKind(Common.Event.Kind.AGENT)
-            .setAgentData(
-              Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()
-            )
+            .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
             .setTimestamp(timer.currentTimeNs)
             .build()
         )
@@ -105,24 +100,15 @@ class AppInspectionServiceRule(
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
     executorService = Executors.newSingleThreadExecutor()
-    streamChannel =
-      TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
+    streamChannel = TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
     streamManager = TransportStreamManager(client.transportStub, scope)
     transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
     processDiscovery = AppInspectionProcessDiscovery(streamManager, scope)
-    apiServices =
-      DefaultAppInspectionApiServices(
-        targetManager,
-        { jarCopier },
-        processDiscovery as AppInspectionProcessDiscovery,
-      )
-    transportService.setCommandHandler(
-      Commands.Command.CommandType.ATTACH_AGENT,
-      defaultAttachHandler,
-    )
+    apiServices = DefaultAppInspectionApiServices(targetManager, { jarCopier }, processDiscovery as AppInspectionProcessDiscovery)
+    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
   }
 
   override fun after(description: Description) = runBlocking {
@@ -139,9 +125,7 @@ class AppInspectionServiceRule(
     commandHandler: CommandHandler = TestAppInspectorCommandHandler(timer),
   ): AppInspectionTarget {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also {
-      timer.currentTimeNs += 1
-    }
+    return targetManager.attachToProcess(process, jarCopier, streamChannel, project).also { timer.currentTimeNs += 1 }
   }
 
   /**
@@ -155,18 +139,13 @@ class AppInspectionServiceRule(
     parentScope: CoroutineScope = scope,
   ): AppInspectorMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(
-        inspectorId,
-        transport,
-        timer.currentTimeNs,
-        parentScope.createChildScope(false),
-      )
-      .also { timer.currentTimeNs += 1 }
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs, parentScope.createChildScope(false)).also {
+      timer.currentTimeNs += 1
+    }
   }
 
   fun addEvent(event: Common.Event) {
-    val modifiedEvent =
-      event.toBuilder().setPid(process.pid).setTimestamp(timer.currentTimeNs).build()
+    val modifiedEvent = event.toBuilder().setPid(process.pid).setTimestamp(timer.currentTimeNs).build()
     transportService.addEventToStream(stream.streamId, modifiedEvent)
     timer.currentTimeNs += 1
   }
@@ -174,32 +153,20 @@ class AppInspectionServiceRule(
   /**
    * Generate fake [Common.Event]s using the provided [payloadEvents].
    *
-   * Once this has been called, the complete payload (all passed in payload events concatenated)
-   * should be cached on the other side of the connection, and it can be referenced via the
-   * [payloadId] passed in here.
+   * Once this has been called, the complete payload (all passed in payload events concatenated) should be cached on the other side of the
+   * connection, and it can be referenced via the [payloadId] passed in here.
    *
-   * @param payloadId You may pass in any unique ID you want here. Re-using an old ID will
-   *   potentially overwrite a previously sent payload, so be careful not to do that! In production,
-   *   this value will be generated automatically by the app inspection service, but for tests, you
-   *   can just specify a value, as long as you're consistent about using it later when fetching the
-   *   payload.
+   * @param payloadId You may pass in any unique ID you want here. Re-using an old ID will potentially overwrite a previously sent payload,
+   *   so be careful not to do that! In production, this value will be generated automatically by the app inspection service, but for tests,
+   *   you can just specify a value, as long as you're consistent about using it later when fetching the payload.
    *
    * See also: [AppInspectionTestUtils.createPayloadChunks]
    */
-  fun addAppInspectionPayload(
-    payloadId: Long,
-    payloadEvents: List<AppInspection.AppInspectionPayload>,
-  ) {
-    payloadEvents.forEachIndexed { i, payloadEvent ->
-      addAppInspectionPayload(payloadId, payloadEvent, i == payloadEvents.lastIndex)
-    }
+  fun addAppInspectionPayload(payloadId: Long, payloadEvents: List<AppInspection.AppInspectionPayload>) {
+    payloadEvents.forEachIndexed { i, payloadEvent -> addAppInspectionPayload(payloadId, payloadEvent, i == payloadEvents.lastIndex) }
   }
 
-  fun addAppInspectionPayload(
-    payloadId: Long,
-    payloadEvent: AppInspection.AppInspectionPayload,
-    isEnded: Boolean,
-  ) {
+  fun addAppInspectionPayload(payloadId: Long, payloadEvent: AppInspection.AppInspectionPayload, isEnded: Boolean) {
     addTransportEvent { transportEvent ->
       transportEvent.kind = Common.Event.Kind.APP_INSPECTION_PAYLOAD
       transportEvent.groupId = payloadId

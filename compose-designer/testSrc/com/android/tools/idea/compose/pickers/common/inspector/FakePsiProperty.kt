@@ -17,8 +17,5 @@ package com.android.tools.idea.compose.pickers.common.inspector
 
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 
-internal class FakePsiProperty(
-  override var name: String,
-  override var value: String?,
-  override val defaultValue: String? = null,
-) : PsiPropertyItem
+internal class FakePsiProperty(override var name: String, override var value: String?, override val defaultValue: String? = null) :
+  PsiPropertyItem

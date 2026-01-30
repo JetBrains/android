@@ -29,13 +29,11 @@ import java.awt.Point
 import kotlin.math.max
 
 /**
- * A [SurfaceLayoutManager] which layouts all [PositionableContent]s vertically or horizontally
- * depending on the given available size.
+ * A [SurfaceLayoutManager] which layouts all [PositionableContent]s vertically or horizontally depending on the given available size.
  *
- * The [horizontalPadding] and [verticalPadding] are the minimum gaps between [PositionableContent]
- * and the edges of surface. The [horizontalViewDelta] and [verticalViewDelta] are the fixed gap
- * between different [PositionableContent]s. Padding and view delta are always the same physical
- * sizes on screen regardless the zoom level.
+ * The [horizontalPadding] and [verticalPadding] are the minimum gaps between [PositionableContent] and the edges of surface. The
+ * [horizontalViewDelta] and [verticalViewDelta] are the fixed gap between different [PositionableContent]s. Padding and view delta are
+ * always the same physical sizes on screen regardless the zoom level.
  *
  * [startBorderAlignment] allows to modify the start border aligment. See [Alignment].
  */
@@ -48,8 +46,8 @@ open class SingleDirectionLayoutManager(
 ) : SurfaceLayoutManager {
 
   /**
-   * Determines the alignment for the start border of the element. For a vertical alignment, [START]
-   * would mean left and [END] right. For horizontal, [START] means top and [END] means bottom.
+   * Determines the alignment for the start border of the element. For a vertical alignment, [START] would mean left and [END] right. For
+   * horizontal, [START] means top and [END] means bottom.
    */
   enum class Alignment {
     START,
@@ -66,13 +64,7 @@ open class SingleDirectionLayoutManager(
     @SwingCoordinate availableHeight: Int,
     @SwingCoordinate dimension: Dimension?,
   ): Dimension {
-    return getSize(
-      content,
-      PositionableContent::scaledContentSize,
-      availableWidth,
-      availableHeight,
-      dimension,
-    )
+    return getSize(content, PositionableContent::scaledContentSize, availableWidth, availableHeight, dimension)
   }
 
   private fun getSize(
@@ -89,13 +81,9 @@ open class SingleDirectionLayoutManager(
     val height: Int
     if (vertical) {
       width = content.maxOf { sizeFunc().width } ?: 0
-      height =
-        content.sumOf { margin.vertical + sizeFunc().height + verticalViewDelta } -
-          verticalViewDelta
+      height = content.sumOf { margin.vertical + sizeFunc().height + verticalViewDelta } - verticalViewDelta
     } else {
-      width =
-        content.sumOf { margin.horizontal + sizeFunc().width + horizontalViewDelta } -
-          horizontalViewDelta
+      width = content.sumOf { margin.horizontal + sizeFunc().width + horizontalViewDelta } - horizontalViewDelta
       height = content.maxOf { sizeFunc().height } ?: 0
     }
 
@@ -113,8 +101,7 @@ open class SingleDirectionLayoutManager(
     }
 
     val primary = content.sortByPosition().first()
-    return (availableHeight > 3 * availableWidth / 2) ||
-      primary.scaledContentSize.width > primary.scaledContentSize.height
+    return (availableHeight > 3 * availableWidth / 2) || primary.scaledContentSize.width > primary.scaledContentSize.height
   }
 
   @SurfaceScale
@@ -135,19 +122,12 @@ open class SingleDirectionLayoutManager(
     val reducedAvailableWidth: Int
     val reducedAvailableHeight: Int
     if (vertical) {
-      reducedAvailableWidth =
-        availableWidth - 2 * horizontalPadding - margins.sumOf { it.horizontal }
+      reducedAvailableWidth = availableWidth - 2 * horizontalPadding - margins.sumOf { it.horizontal }
       reducedAvailableHeight =
-        availableHeight -
-          2 * verticalPadding -
-          (content.size - 1) * verticalViewDelta -
-          margins.sumOf { it.vertical }
+        availableHeight - 2 * verticalPadding - (content.size - 1) * verticalViewDelta - margins.sumOf { it.vertical }
     } else {
       reducedAvailableWidth =
-        availableWidth -
-          2 * horizontalPadding -
-          (content.size - 1) * horizontalViewDelta -
-          margins.sumOf { it.horizontal }
+        availableWidth - 2 * horizontalPadding - (content.size - 1) * horizontalViewDelta - margins.sumOf { it.horizontal }
       reducedAvailableHeight = availableHeight - 2 * verticalPadding - margins.sumOf { it.vertical }
     }
 
@@ -155,12 +135,8 @@ open class SingleDirectionLayoutManager(
       // There is not even enough space for paddings. In this case, force using (available size /
       // 100% size) as the fit into scale.
       // This is an extreme case, be aware that this scale does not really fit the content.
-      val preferredSize =
-        getSize(content, PositionableContent::contentSize, availableWidth, availableHeight, null)
-      return minOf(
-        availableWidth.toDouble() / preferredSize.width,
-        availableHeight.toDouble() / preferredSize.height,
-      )
+      val preferredSize = getSize(content, PositionableContent::contentSize, availableWidth, availableHeight, null)
+      return minOf(availableWidth.toDouble() / preferredSize.width, availableHeight.toDouble() / preferredSize.height)
     }
 
     // Get the raw width and height without paddings and view deltas.
@@ -174,10 +150,7 @@ open class SingleDirectionLayoutManager(
       listHeight = content.maxOf { contentSize.height }!!
     }
 
-    return minOf(
-      reducedAvailableWidth.toDouble() / listWidth,
-      reducedAvailableHeight.toDouble() / listHeight,
-    )
+    return minOf(reducedAvailableWidth.toDouble() / listWidth, reducedAvailableHeight.toDouble() / listHeight)
   }
 
   override fun measure(
@@ -234,11 +207,8 @@ open class SingleDirectionLayoutManager(
             startY,
             when (startBorderAlignment) {
               Alignment.START -> startY
-              Alignment.END ->
-                availableHeight - (sceneView.scaledContentSize.height + sceneView.margin.vertical)
-              Alignment.CENTER ->
-                availableHeight / 2 -
-                  (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2
+              Alignment.END -> availableHeight - (sceneView.scaledContentSize.height + sceneView.margin.vertical)
+              Alignment.CENTER -> availableHeight / 2 - (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2
             },
           )
         positionMap[sceneView] = Point(nextX, yPosition)
@@ -250,8 +220,6 @@ open class SingleDirectionLayoutManager(
 }
 
 // Helper functions to improve readability
-private fun Collection<PositionableContent>.sumOf(mapFunc: PositionableContent.() -> Int) =
-  map(mapFunc).sum()
+private fun Collection<PositionableContent>.sumOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).sum()
 
-private fun Collection<PositionableContent>.maxOf(mapFunc: PositionableContent.() -> Int) =
-  map(mapFunc).maxOrNull()
+private fun Collection<PositionableContent>.maxOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).maxOrNull()

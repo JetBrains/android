@@ -55,12 +55,11 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
     // for users who have old documentation installed locally.
     @NonNls private const val SKIP_HEADER = "<!-- END HEADER -->"
 
-    private fun String.isClassDescriptionStart() =
-      startsWith("<h2>Class Overview") || equals("<br><hr>") || equals("<br/><hr/>")
+    private fun String.isClassDescriptionStart() = startsWith("<h2>Class Overview") || equals("<br><hr>") || equals("<br/><hr/>")
 
     /**
-     * Returns true if we've clearly reached the section after the class description. Newer docs
-     * have no marker section or class attribute marking the beginning of the class doc.
+     * Returns true if we've clearly reached the section after the class description. Newer docs have no marker section or class attribute
+     * marking the beginning of the class doc.
      */
     private fun String.isClearlyBeyondClassDescription() = startsWith("<h2 class=\"api-section\"")
 
@@ -131,8 +130,7 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
                 line.isClassDescriptionStart() -> state = CONSUMING_DESCRIPTION
               }
             CONSUMING_DESCRIPTION -> {
-              if (line.startsWith("<h2>") || line.startsWith("<h2 ")) state = SUCCESS
-              else sb.append(line).append("\n")
+              if (line.startsWith("<h2>") || line.startsWith("<h2 ")) state = SUCCESS else sb.append(line).append("\n")
             }
           }
         }

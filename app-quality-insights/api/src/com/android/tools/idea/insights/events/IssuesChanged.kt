@@ -69,9 +69,9 @@ data class IssuesChanged(
 
     state.toIssueRequest(clock)?.let { request ->
       val vcsIntegrationDetailsBuilder =
-        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VcsIntegrationDetails
-          .newBuilder()
-          .apply { hasAppVcsInfo = issues.hasAppVcsInfo() }
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VcsIntegrationDetails.newBuilder().apply {
+          hasAppVcsInfo = issues.hasAppVcsInfo()
+        }
 
       val selectedConnection = state.connections.selected ?: return@let
       tracker.logCrashesFetched(
@@ -100,12 +100,10 @@ data class IssuesChanged(
     val currentVersions = state.filters.versions
     val currentDevices = state.filters.devices
     val currentOses = state.filters.operatingSystems
-    val currentlySelectedIssue =
-      (previousGoodState?.issues as? LoadingState.Ready)?.value?.value?.selected
+    val currentlySelectedIssue = (previousGoodState?.issues as? LoadingState.Ready)?.value?.value?.selected
     val newSelectedIssue =
       if (issues is LoadingState.Ready)
-        issues.value.issues.firstOrNull { it.id == currentlySelectedIssue?.id }
-          ?: issues.value.issues.firstOrNull()
+        issues.value.issues.firstOrNull { it.id == currentlySelectedIssue?.id } ?: issues.value.issues.firstOrNull()
       else null
 
     return StateTransition(
@@ -116,41 +114,30 @@ data class IssuesChanged(
             versions =
               if (issues is LoadingState.Ready) {
                 MultiSelection(emptySet(), issues.value.versions).selectMatching {
-                  currentVersions.allSelected() ||
-                    currentVersions.selected.any { current -> it.value == current.value }
+                  currentVersions.allSelected() || currentVersions.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.versions,
             devices =
               if (issues is LoadingState.Ready) {
                 MultiSelection(emptySet(), issues.value.devices).selectMatching {
-                  currentDevices.allSelected() ||
-                    currentDevices.selected.any { current -> it.value == current.value }
+                  currentDevices.allSelected() || currentDevices.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.devices,
             operatingSystems =
               if (issues is LoadingState.Ready) {
                 MultiSelection(emptySet(), issues.value.operatingSystems).selectMatching {
-                  currentOses.allSelected() ||
-                    currentOses.selected.any { current -> it.value == current.value }
+                  currentOses.allSelected() || currentOses.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.operatingSystems,
           ),
-        currentIssueVariants =
-          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
-        currentIssueDetails =
-          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
-        currentEvents =
-          if (newSelectedIssue != null) transitionEvent(provider, newSelectedIssue.sampleEvent)
-          else LoadingState.Ready(null),
-        currentNotes =
-          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
-        currentInsight =
-          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentIssueVariants = if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentIssueDetails = if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentEvents = if (newSelectedIssue != null) transitionEvent(provider, newSelectedIssue.sampleEvent) else LoadingState.Ready(null),
+        currentNotes = if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentInsight = if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
-      action =
-        if (newSelectedIssue != null) actionsForSelectedIssue(provider, newSelectedIssue)
-        else Action.NONE,
+      action = if (newSelectedIssue != null) actionsForSelectedIssue(provider, newSelectedIssue) else Action.NONE,
     )
   }
 }
@@ -167,19 +154,14 @@ private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
     !GeminiPluginApi.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
     firebaseProject == null -> AiInsightsOptInStatus.UNKNOWN_STATUS
     else ->
-      if (TosPersistence.getInstance().isTosAccepted(firebaseProject))
-        AiInsightsOptInStatus.OPTED_IN
+      if (TosPersistence.getInstance().isTosAccepted(firebaseProject)) AiInsightsOptInStatus.OPTED_IN
       else AiInsightsOptInStatus.UNKNOWN_STATUS
   }
 
 private fun FetchSource.toProto() =
   when (this) {
-    FetchSource.BACKGROUND ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.BACKGROUND
-    FetchSource.REFRESH ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH
-    FetchSource.FILTER ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER
-    FetchSource.PROJECT_SELECTION ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.PROJECT_SELECTION
+    FetchSource.BACKGROUND -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.BACKGROUND
+    FetchSource.REFRESH -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH
+    FetchSource.FILTER -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER
+    FetchSource.PROJECT_SELECTION -> AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.PROJECT_SELECTION
   }

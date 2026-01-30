@@ -36,18 +36,13 @@ private class TestBuildResultListener(val buildManager: ProjectSystemBuildManage
   val completedBuilds = mutableListOf<ProjectSystemBuildManager.BuildResult>()
 
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-    @Suppress("DEPRECATION")
-    assertTrue(buildManager.isBuilding)
+    @Suppress("DEPRECATION") assertTrue(buildManager.isBuilding)
     beforeBuildCompletedResult = result
   }
 
   override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-    @Suppress("DEPRECATION")
-    assertFalse(buildManager.isBuilding)
-    assertEquals(
-      "beforeBuildCompleted must be called before buildCompleted with the same result",
-      beforeBuildCompletedResult, result
-    )
+    @Suppress("DEPRECATION") assertFalse(buildManager.isBuilding)
+    assertEquals("beforeBuildCompleted must be called before buildCompleted with the same result", beforeBuildCompletedResult, result)
     completedBuilds.add(result)
 
     beforeBuildCompletedResult = null
@@ -61,23 +56,21 @@ private class TestBuildResultListener(val buildManager: ProjectSystemBuildManage
   fun assertNoCalls() {
     assertTrue(
       "No calls expected but got $this",
-      completedBuilds.isEmpty()
-        && beforeBuildCompletedResult == null
-        && startedBuildMode.isEmpty()
+      completedBuilds.isEmpty() && beforeBuildCompletedResult == null && startedBuildMode.isEmpty(),
     )
   }
 
   fun completedBuildsDebugString(): String = completedBuilds.joinToString("\n") { "[${it.mode}] ${it.status}" }
 
-  override fun toString(): String = "startedBuildMode = $startedBuildMode, " +
-    "beforeBuildCompletedResult = $beforeBuildCompletedResult, " +
-    "completedBuildsDebugString = ${completedBuildsDebugString()}"
+  override fun toString(): String =
+    "startedBuildMode = $startedBuildMode, " +
+      "beforeBuildCompletedResult = $beforeBuildCompletedResult, " +
+      "completedBuildsDebugString = ${completedBuildsDebugString()}"
 }
 
 class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var buildManager: ProjectSystemBuildManager
-
 
   override fun setUp() {
     super.setUp()
@@ -89,37 +82,26 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   }
 
   fun testGetLastBuildResult_unknownIfNeverSynced() {
-    assertEquals(
-      ProjectSystemBuildManager.BuildStatus.UNKNOWN,
-      buildManager.getLastBuildResult().status
-    )
+    assertEquals(ProjectSystemBuildManager.BuildStatus.UNKNOWN, buildManager.getLastBuildResult().status)
   }
 
   fun testGetLastBuildResult_sameAsBuildResult() {
-    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
-      .setMode(BuildMode.ASSEMBLE)
-      .build()
+    val request =
+      GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug")).setMode(BuildMode.ASSEMBLE).build()
     val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     completer.buildFinished(BuildStatus.SUCCESS)
-    assertEquals(
-      ProjectSystemBuildManager.BuildStatus.SUCCESS,
-      buildManager.getLastBuildResult().status
-    )
+    assertEquals(ProjectSystemBuildManager.BuildStatus.SUCCESS, buildManager.getLastBuildResult().status)
   }
 
   fun testBuildResultListener_success() {
     val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
-    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
-      .setMode(BuildMode.ASSEMBLE)
-      .build()
+    val request =
+      GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug")).setMode(BuildMode.ASSEMBLE).build()
     val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     completer.buildFinished(BuildStatus.SUCCESS)
-    assertEquals(
-      ProjectSystemBuildManager.BuildStatus.SUCCESS,
-      buildManager.getLastBuildResult().status
-    )
+    assertEquals(ProjectSystemBuildManager.BuildStatus.SUCCESS, buildManager.getLastBuildResult().status)
     assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE))
     assertEquals("[COMPILE_OR_ASSEMBLE] SUCCESS", listener.completedBuildsDebugString())
   }
@@ -128,15 +110,11 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
-    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
-      .setMode(BuildMode.ASSEMBLE)
-      .build()
+    val request =
+      GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug")).setMode(BuildMode.ASSEMBLE).build()
     val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     completer.buildFinished(BuildStatus.FAILED)
-    assertEquals(
-      ProjectSystemBuildManager.BuildStatus.FAILED,
-      buildManager.getLastBuildResult().status
-    )
+    assertEquals(ProjectSystemBuildManager.BuildStatus.FAILED, buildManager.getLastBuildResult().status)
     assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE))
     assertEquals("[COMPILE_OR_ASSEMBLE] FAILED", listener.completedBuildsDebugString())
   }
@@ -145,15 +123,10 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val listener = TestBuildResultListener(buildManager)
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
-    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("clean"))
-      .setMode(BuildMode.CLEAN)
-      .build()
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("clean")).setMode(BuildMode.CLEAN).build()
     val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     completer.buildFinished(BuildStatus.SUCCESS)
-    assertEquals(
-      ProjectSystemBuildManager.BuildStatus.SUCCESS,
-      buildManager.getLastBuildResult().status
-    )
+    assertEquals(ProjectSystemBuildManager.BuildStatus.SUCCESS, buildManager.getLastBuildResult().status)
     // Build started does not happen for clean builds
     assertEquals(1, listener.startedBuildMode.count(ProjectSystemBuildManager.BuildMode.CLEAN))
     assertEquals("[CLEAN] SUCCESS", listener.completedBuildsDebugString())
@@ -163,9 +136,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   fun testIsBuilding_withoutListeners() {
     assertFalse(buildManager.isBuilding)
 
-    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
-      .setMode(BuildMode.ASSEMBLE)
-      .build()
+    val request =
+      GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug")).setMode(BuildMode.ASSEMBLE).build()
     val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     assertTrue(buildManager.isBuilding)
     completer.buildFinished(BuildStatus.SUCCESS)

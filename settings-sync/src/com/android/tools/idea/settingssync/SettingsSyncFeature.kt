@@ -43,15 +43,13 @@ class SettingsSyncFeature : LoginFeature {
   override val key: String = "Backup and Sync"
   override val title: String = "Backup and Sync"
 
-  override val description: String =
-    "Sync your settings to your Google Account to keep them across computers and re-installs."
+  override val description: String = "Sync your settings to your Google Account to keep them across computers and re-installs."
 
   override val infoUrl: String? = null
 
   override val infoUrlDisplayText: String? = null
 
-  override val permissionInfoUrl: String =
-    "https://d.android.com/r/studio-ui/settings-sync/permissions"
+  override val permissionInfoUrl: String = "https://d.android.com/r/studio-ui/settings-sync/permissions"
 
   override val settingsAction: AnAction =
     object : AnAction("Configure Backup and Sync") {
@@ -73,9 +71,7 @@ class SettingsSyncFeature : LoginFeature {
       override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.GoogleLogo
       override val title: String = "<b>Google Account Storage:</b> Enable Backup and Sync"
       override val annotatedTitle: AnnotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-          append("Google Account Storage:")
-        }
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Account Storage:") }
         append(" Enable Backup and Sync")
       }
       override val description: String =
@@ -89,8 +85,7 @@ class SettingsSyncFeature : LoginFeature {
       }
     }
 
-  fun allOnboardingPages() =
-    listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
+  fun allOnboardingPages() = listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
 
   override val onLoginCompleted: LoginCompletedCallback
     get() = LoginCompletedCallback { user, loginType ->

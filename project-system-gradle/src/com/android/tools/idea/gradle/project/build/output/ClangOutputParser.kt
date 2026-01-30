@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isBuildFailureOutputLine
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isEndOfBuildOutputLine
 import com.android.utils.cxx.process.NativeBuildOutputClassifier
-import com.android.utils.cxx.process.NativeToolLineClassification.Kind.INFO
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.ERROR
+import com.android.utils.cxx.process.NativeToolLineClassification.Kind.INFO
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.WARNING
 import com.android.utils.cxx.process.regexField
 import com.intellij.build.FilePosition
@@ -34,13 +34,14 @@ import java.util.function.Consumer
 
 /**
  * Pattern matching Gradle output indicating the start of a native build task. For example
- *
  * > Task :app:externalNativeBuildDebug
  */
-private val nativeBuildTaskPattern = Regex(
-  "> Task (?<gradleProject>(?::[^:]+)*):" +
-          "(?:buildCMake|buildNdkBuild|buildNinja|configureCMake|configureNdkBuild|configureNinja|externalNativeBuild)" +
-          "(?<variant>[^ \\[]+)(\\[.*])?(?: [-A-Z]+)?")
+private val nativeBuildTaskPattern =
+  Regex(
+    "> Task (?<gradleProject>(?::[^:]+)*):" +
+      "(?:buildCMake|buildNdkBuild|buildNinja|configureCMake|configureNdkBuild|configureNinja|externalNativeBuild)" +
+      "(?<variant>[^ \\[]+)(\\[.*])?(?: [-A-Z]+)?"
+  )
 
 const val CLANG_COMPILER_MESSAGES_GROUP_PREFIX = "Clang Compiler"
 
@@ -49,11 +50,7 @@ fun compilerMessageGroup(gradleProject: String, variant: String, abi: String?) =
 
 /** Parser that parses Clang output and emit [BuildEvent] indicating with compiler diagnostic messages. */
 class ClangOutputParser : BuildOutputParser {
-  /**
-   * contains parsers for all native tasks that are currently running.
-   *   key: Build Tree node parent ID
-   *   value: parser for that task
-   */
+  /** contains parsers for all native tasks that are currently running. key: Build Tree node parent ID value: parser for that task */
   private val parsers = mutableMapOf<Any, RunningParse>()
 
   /**
@@ -61,11 +58,11 @@ class ClangOutputParser : BuildOutputParser {
    *
    * @param currentLine the most recent line acquired from the passed in [BuildOutputInstantReader]
    * @param reader a reader that is useful to actively consuming more build output or peek previous output. This can be used by parsers that
-   * needs more than the current line to work. Also note that all state changes made to the reader will affect other parsers. That is, if
-   * this parser reads several lines from the reader without reset the reader's state, other parsers won't be able to read such consumed
-   * states. This is useful if the parser knows other parsers won't be interested in the consumed build outputs.
+   *   needs more than the current line to work. Also note that all state changes made to the reader will affect other parsers. That is, if
+   *   this parser reads several lines from the reader without reset the reader's state, other parsers won't be able to read such consumed
+   *   states. This is useful if the parser knows other parsers won't be interested in the consumed build outputs.
    * @param messageConsumer consumer of build events emitted by this parser. For example, upon encountering a syntax error in a source code
-   * file, this parser can emit a [FileMessageEventImpl] so that the IDE will show a corresponding entry in the 'Build Output' UI.
+   *   file, this parser can emit a [FileMessageEventImpl] so that the IDE will show a corresponding entry in the 'Build Output' UI.
    * @return true if the current line is consumed by this parser and should not be passed to other parsers. Otherwise, false.
    */
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
@@ -83,7 +80,7 @@ class ClangOutputParser : BuildOutputParser {
 
     // If there is an end of build signal then flush, close, and clear active parsers.
     if (line.isEndOfBuildOutputLine() || line.isBuildFailureOutputLine()) {
-      for(parser in parsers.values) parser.close()
+      for (parser in parsers.values) parser.close()
       parsers.clear()
       return false
     }
@@ -94,32 +91,25 @@ class ClangOutputParser : BuildOutputParser {
     return true
   }
 
-  /**
-   * Receives build output for a single parentID. Typically this is STDOUT from a single Gradle task.
-   */
-  private data class RunningParse(
-    private val parentId: Any,
-    private val gradleProject: String,
-    private val variant: String) : AutoCloseable {
+  /** Receives build output for a single parentID. Typically this is STDOUT from a single Gradle task. */
+  private data class RunningParse(private val parentId: Any, private val gradleProject: String, private val variant: String) :
+    AutoCloseable {
     private val classier = NativeBuildOutputClassifier { message -> receiveClassification(message) }
     private lateinit var messageConsumer: Consumer<in BuildEvent>
 
-    /**
-     * Send one line of build output to the classifier.
-     */
+    /** Send one line of build output to the classifier. */
     fun parse(line: String, messageConsumer: Consumer<in BuildEvent>) {
       this.messageConsumer = messageConsumer
       classier.consume(line)
     }
 
-    /**
-     * Receives grouped lines that form a single message. Converts them in to Build Output tree nodes.
-     */
+    /** Receives grouped lines that form a single message. Converts them in to Build Output tree nodes. */
     private fun receiveClassification(message: NativeBuildOutputClassifier.Message) {
       // Only diagnostics get forwarded as Build Tree nodes
       if (message !is NativeBuildOutputClassifier.Message.Diagnostic) return
       val commandLinePrefix = if (message.command != null) "${message.command}\n\n" else ""
-      val kind = when (message.classification.kind) {
+      val kind =
+        when (message.classification.kind) {
           ERROR -> MessageEvent.Kind.ERROR
           WARNING -> MessageEvent.Kind.WARNING
           INFO -> MessageEvent.Kind.INFO
@@ -127,16 +117,17 @@ class ClangOutputParser : BuildOutputParser {
       val group = compilerMessageGroup(gradleProject, variant, message.abi)
       val detailedMessage = commandLinePrefix + message.lines.joinToString("\n")
 
-      messageConsumer.accept(if (message.file != null && message.column != null && message.line != null) {
+      messageConsumer.accept(
+        if (message.file != null && message.column != null && message.line != null) {
           val abiMessage = if (message.abi == null) "" else " [${message.abi}]"
           val position = FilePosition(File(message.file!!), message.line!! - 1, message.column!! - 1)
           FileMessageEventImpl(parentId, kind, group, message.body + abiMessage, detailedMessage, position)
         } else {
           MessageEventImpl(parentId, kind, group, message.body, detailedMessage)
-        })
+        }
+      )
     }
 
     override fun close() = classier.close()
   }
 }
-

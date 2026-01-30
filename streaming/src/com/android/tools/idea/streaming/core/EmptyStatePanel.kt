@@ -48,17 +48,13 @@ import org.jetbrains.annotations.TestOnly
 private const val TOP_MARGIN = 0.45
 private const val SIDE_MARGIN = 0.15
 
-/**
- * The panel that is shown in the Running Devices tool window when there are no running
- * embedded emulators and no mirrored devices.
- */
-internal class EmptyStatePanel(
-  private val project: Project,
-  disposableParent: Disposable
-): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
+/** The panel that is shown in the Running Devices tool window when there are no running embedded emulators and no mirrored devices. */
+internal class EmptyStatePanel(private val project: Project, disposableParent: Disposable) :
+  JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
 
   private val emulatorLaunchesInToolWindow: Boolean
-    get()= EmulatorSettings.getInstance().launchInToolWindow
+    get() = EmulatorSettings.getInstance().launchInToolWindow
+
   private val activateOnConnection: Boolean
     get() = DeviceMirroringSettings.getInstance().activateOnConnection
 
@@ -70,20 +66,20 @@ internal class EmptyStatePanel(
     // Allow the panel to receive focus so that the framework considers the tool window active (b/157181475).
     isFocusable = true
 
-    addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        requestFocusInWindow()
+    addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          requestFocusInWindow()
+        }
       }
-    })
+    )
 
     val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, EmulatorSettingsListener { updateContent() })
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateContent() })
 
     val progress = StudioLoggerProgressIndicator(EmptyStatePanel::class.java)
-    Disposer.register(this) {
-      progress.cancel()
-    }
+    Disposer.register(this) { progress.cancel() }
 
     updateContent()
   }
@@ -92,26 +88,27 @@ internal class EmptyStatePanel(
     val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
     val titleColorString = (AdtUiUtils.TITLE_COLOR.rgb and 0xFFFFFF).toString(16)
     val plusSign = "<font color = $titleColorString size=\"+1\"><b>&#xFF0B;</b></font>"
-    val virtualFragment: String = when {
-      emulatorLaunchesInToolWindow ->
-        "To launch a&nbsp;virtual device, click $plusSign and select the device from the list, or use the&nbsp;" +
-        "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
+    val virtualFragment: String =
+      when {
+        emulatorLaunchesInToolWindow ->
+          "To launch a&nbsp;virtual device, click $plusSign and select the device from the list, or use the&nbsp;" +
+            "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
 
-      else ->
-        "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
-        "the&nbsp;<b>Launch in the&nbsp;Running&nbsp;Devices tool window</b> option in&nbsp;the&nbsp;" +
-        "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font> " +
-        "and use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
-    }
-    val physicalFragment: String = when {
-      activateOnConnection ->
-        "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
+        else ->
+          "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
+            "the&nbsp;<b>Launch in the&nbsp;Running&nbsp;Devices tool window</b> option in&nbsp;the&nbsp;" +
+            "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font> " +
+            "and use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
+      }
+    val physicalFragment: String =
+      when {
+        activateOnConnection -> "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
 
-      else ->
-        "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi, click $plusSign and select the&nbsp;device from " +
-        "the&nbsp;list. You may also select the&nbsp;<b>Activate mirroring when a&nbsp;new physical device is connected</b> option " +
-        "in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
-    }
+        else ->
+          "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi, click $plusSign and select the&nbsp;device from " +
+            "the&nbsp;list. You may also select the&nbsp;<b>Activate mirroring when a&nbsp;new physical device is connected</b> option " +
+            "in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+      }
     val html =
       """
       <center>
@@ -119,7 +116,8 @@ internal class EmptyStatePanel(
       <p/>
       <p>$virtualFragment</p>
       </center>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val hyperlinkAction = HyperlinkEventAction { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
@@ -138,23 +136,26 @@ internal class EmptyStatePanel(
       }
     }
 
-    val textComponent = textComponent(text = html, action = hyperlinkAction).apply {
-      font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
-      foreground = StandardColors.PLACEHOLDER_TEXT_COLOR
-    }
+    val textComponent =
+      textComponent(text = html, action = hyperlinkAction).apply {
+        font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
+        foreground = StandardColors.PLACEHOLDER_TEXT_COLOR
+      }
 
-    val c = GridBagConstraints().apply {
-      fill = GridBagConstraints.BOTH
-      gridx = 1
-      gridy = 0
-      weightx = 1 - SIDE_MARGIN * 2
-      weighty = TOP_MARGIN
-    }
-    val icon = JBLabel(StudioIllustrations.Common.DEVICES_LINEUP).apply {
-      horizontalAlignment = SwingConstants.CENTER
-      verticalAlignment = SwingConstants.BOTTOM
-      border = JBUI.Borders.emptyBottom(16)
-    }
+    val c =
+      GridBagConstraints().apply {
+        fill = GridBagConstraints.BOTH
+        gridx = 1
+        gridy = 0
+        weightx = 1 - SIDE_MARGIN * 2
+        weighty = TOP_MARGIN
+      }
+    val icon =
+      JBLabel(StudioIllustrations.Common.DEVICES_LINEUP).apply {
+        horizontalAlignment = SwingConstants.CENTER
+        verticalAlignment = SwingConstants.BOTTOM
+        border = JBUI.Borders.emptyBottom(16)
+      }
     add(icon, c)
 
     c.apply {
@@ -170,9 +171,7 @@ internal class EmptyStatePanel(
     }
     add(createSpacer(), c)
 
-    c.apply {
-      gridx = 2
-    }
+    c.apply { gridx = 2 }
     add(createSpacer(), c)
   }
 
@@ -196,8 +195,7 @@ internal class EmptyStatePanel(
     updateContent()
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   companion object {
     @TestOnly

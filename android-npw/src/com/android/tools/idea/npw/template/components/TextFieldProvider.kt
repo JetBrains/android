@@ -21,10 +21,9 @@ import com.android.tools.idea.wizard.template.Parameter
 import com.android.tools.idea.wizard.template.StringParameter
 import javax.swing.JTextField
 
-/**
- * Provides a textfield well suited for handling [StringParameter].
- */
+/** Provides a textfield well suited for handling [StringParameter]. */
 class TextFieldProvider(parameter: Parameter<String>) : ParameterComponentProvider<JTextField>(parameter) {
   override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
+
   override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
 }

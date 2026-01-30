@@ -37,19 +37,17 @@ private const val BIT_RATE_NOT_REACHED_SCORE = 16
 
 /**
  * Keeps track of per-device-type bit rates of video encoding.
-
- * The bit rate starts as unspecified (represented by zero) delegating the choice to the Screen Sharing Agent.
- * Every call to [bitRateReduced] increments the scores of the matching and higher bit rate candidates by
- * [BIT_RATE_REACHED_SCORE]. If a candidate bit rate reaches [PROMOTION_THRESHOLD], that bit rate becomes
- * the default for the device type. Every call to [bitRateStable] reduces scores of all bit rate candidates by
- * [BIT_RATE_NOT_REACHED_SCORE]. Candidates with negative scores are dropped.
+ *
+ * The bit rate starts as unspecified (represented by zero) delegating the choice to the Screen Sharing Agent. Every call to
+ * [bitRateReduced] increments the scores of the matching and higher bit rate candidates by [BIT_RATE_REACHED_SCORE]. If a candidate bit
+ * rate reaches [PROMOTION_THRESHOLD], that bit rate becomes the default for the device type. Every call to [bitRateStable] reduces scores
+ * of all bit rate candidates by [BIT_RATE_NOT_REACHED_SCORE]. Candidates with negative scores are dropped.
  */
 @Service
 @State(name = "BitRates", storages = [(Storage("device.mirroring.bit.rates.xml"))])
 internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
-  @GuardedBy("bitRateTrackers")
-  var bitRateTrackers = linkedMapOf<String, BitRateTracker>() // Mutable for deserialization.
+  @GuardedBy("bitRateTrackers") var bitRateTrackers = linkedMapOf<String, BitRateTracker>() // Mutable for deserialization.
 
   /** Returns the video encoding bit rate for the given device type. */
   fun getBitRate(deviceProperties: DeviceProperties): Int {
@@ -71,8 +69,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
           bitRateTrackers.iterator().remove()
         }
         bitRateTrackers[key] = BitRateTracker(CandidateBitRate(newBitRate, BIT_RATE_REACHED_SCORE))
-      }
-      else {
+      } else {
         tracker.bitRateReduced(newBitRate)
       }
     }
@@ -114,26 +111,24 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
   @TestOnly
   internal fun clear() {
-    synchronized(bitRateTrackers) {
-      bitRateTrackers.clear()
-    }
+    synchronized(bitRateTrackers) { bitRateTrackers.clear() }
   }
 
   @TestOnly
   fun toXmlString(): String {
-    val element = synchronized(bitRateTrackers) {
-      serialize(this@BitRateManager, createElementIfEmpty = true) ?: throw RuntimeException("Unable to serialize ${this@BitRateManager}")
-    }
+    val element =
+      synchronized(bitRateTrackers) {
+        serialize(this@BitRateManager, createElementIfEmpty = true) ?: throw RuntimeException("Unable to serialize ${this@BitRateManager}")
+      }
     val writer = StringWriter()
     JbXmlOutputter().output(element, writer)
     return writer.toString()
   }
 
   private fun DeviceProperties.key(): String =
-      "${manufacturer ?: ""}|${model ?: ""}|${primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
+    "${manufacturer ?: ""}|${model ?: ""}|${primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
 
-  override fun toString(): String =
-      synchronized(bitRateTrackers) { "BitRateManager(bitRateTrackers=$bitRateTrackers)" }
+  override fun toString(): String = synchronized(bitRateTrackers) { "BitRateManager(bitRateTrackers=$bitRateTrackers)" }
 
   companion object {
     fun getInstance(): BitRateManager = service<BitRateManager>()
@@ -141,13 +136,14 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
   /** Candidate bit rates are kept in descending order. */
   @ConsistentCopyVisibility
-  data class BitRateTracker private constructor(
+  data class BitRateTracker
+  private constructor(
     var bitRate: Int,
-    @XCollection(propertyElementName = "candidates", valueAttributeName = Constants.LIST)
-    val candidates: MutableList<CandidateBitRate>
+    @XCollection(propertyElementName = "candidates", valueAttributeName = Constants.LIST) val candidates: MutableList<CandidateBitRate>,
   ) {
 
     constructor(candidate: CandidateBitRate) : this(0, mutableListOf(candidate))
+
     @Suppress("unused") // For deserialization
     private constructor() : this(0, mutableListOf<CandidateBitRate>())
 
@@ -181,8 +177,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
           // would have already reached PROMOTION_THRESHOLD.
           assert(i == 0)
           bitRate = newBitRate
-        }
-        else {
+        } else {
           candidates.add(i, CandidateBitRate(newBitRate, score))
         }
       }
@@ -202,8 +197,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
       }
     }
 
-    fun isEmpty(): Boolean =
-        bitRate == 0 && candidates.isEmpty()
+    fun isEmpty(): Boolean = bitRate == 0 && candidates.isEmpty()
   }
 
   data class CandidateBitRate(var bitRate: Int, var score: Int) {

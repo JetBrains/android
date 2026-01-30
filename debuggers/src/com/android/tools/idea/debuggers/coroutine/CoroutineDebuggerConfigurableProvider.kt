@@ -30,9 +30,7 @@ import javax.swing.JPanel
 private const val ID = "coroutineDebuggerSettingsConfigurable"
 private const val DISPLAY_NAME = "Coroutine Debugger"
 
-/**
- * Class used by Intellij to get preferences for the Debugger section.
- */
+/** Class used by Intellij to get preferences for the Debugger section. */
 class CoroutineDebuggerConfigurableProvider : DebuggerConfigurableProvider() {
   override fun getConfigurables(category: DebuggerSettingsCategory): List<Configurable> {
     if (!FlagController.isCoroutineDebuggerEnabled) {
@@ -49,9 +47,7 @@ class CoroutineDebuggerConfigurableProvider : DebuggerConfigurableProvider() {
   }
 }
 
-/**
- * Creates and manages the UI shown in the Intellij preferences for the debugger section.
- */
+/** Creates and manages the UI shown in the Intellij preferences for the debugger section. */
 private class CoroutineDebuggerConfigurableUi : ConfigurableUi<CoroutineDebuggerSettings> {
   private val coroutineDebuggerEnabledText = "Enable coroutine debugger"
   private val coroutineDebuggerEnabledCheckbox = JBCheckBox(coroutineDebuggerEnabledText)
@@ -68,7 +64,7 @@ private class CoroutineDebuggerConfigurableUi : ConfigurableUi<CoroutineDebugger
   }
 
   override fun isModified(settings: CoroutineDebuggerSettings): Boolean {
-    return coroutineDebuggerEnabledCheckbox.isSelected != settings.isCoroutineDebuggerEnabled();
+    return coroutineDebuggerEnabledCheckbox.isSelected != settings.isCoroutineDebuggerEnabled()
   }
 
   override fun apply(settings: CoroutineDebuggerSettings) {
@@ -80,9 +76,7 @@ private class CoroutineDebuggerConfigurableUi : ConfigurableUi<CoroutineDebugger
   }
 }
 
-/**
- * Object used to access and set the preferences for the coroutine debugger.
- */
+/** Object used to access and set the preferences for the coroutine debugger. */
 object CoroutineDebuggerSettings {
   private const val COROUTINE_DEBUGGER_ENABLED_DEFAULT = true
   private const val COROUTINE_DEBUGGER_ENABLED = "coroutine.debugger.enabled"

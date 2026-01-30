@@ -50,9 +50,8 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
   val debugLayout = createAndAddListener(model.inDarkMode, customValues)
 
   /**
-   * Check the lastValue and number of changes for each property listener, and make sure they match the property value.
-   * [expectedChanges] are the expected number of changes seen by the property listener.
-   * The lastValue is expected to be:
+   * Check the lastValue and number of changes for each property listener, and make sure they match the property value. [expectedChanges]
+   * are the expected number of changes seen by the property listener. The lastValue is expected to be:
    * - a default value if [expectedCustomValues] is false
    * - a predefined custom value different from the default value if [expectedCustomValues] is true
    */

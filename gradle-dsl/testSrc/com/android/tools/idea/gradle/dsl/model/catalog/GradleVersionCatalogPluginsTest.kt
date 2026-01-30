@@ -22,11 +22,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.dependencies.PluginDeclarationSpecImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSpecImpl
+import java.io.File
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
   @Test
@@ -97,17 +97,20 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
       declarations.addDeclaration("fooPlugin", spec)
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = { id="foo", version="1.8.0" }
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        fooPlugin = { id="foo", version="1.8.0" }
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testAddPluginAsMap2() {
     prepareAddTest { buildModel, catalogModel ->
-
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
       val spec = PluginDeclarationSpecImpl("foo", VersionDeclarationSpecImpl.create("1.8.0")!!)
 
@@ -118,32 +121,38 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
       declarations.addDeclaration("fooPlugin", spec)
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = { id="foo2", version="1.9.0" }
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        fooPlugin = { id="foo2", version="1.9.0" }
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testAddDeclarationAsLiteral() {
     prepareAddTest { buildModel, catalogModel ->
-
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
       declarations.addDeclaration("fooPlugin", "foo:1.8.0")
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = "foo:1.8.0"
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        fooPlugin = "foo:1.8.0"
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testAddDeclarationAsMapWithVersionRef() {
     prepareAddTest { buildModel, catalogModel ->
-
       val versions = catalogModel.getVersionCatalogModel("libs")!!.versionDeclarations()
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
 
@@ -151,86 +160,111 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
       declarations.addDeclaration("fooPlugin", "foo", ReferenceTo(versionDeclaration!!, declarations))
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [versions]
-      fooVersion = "1.8.0"
-      [plugins]
-      fooPlugin = { id = "foo", version.ref = "fooVersion" }
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [versions]
+        fooVersion = "1.8.0"
+        [plugins]
+        fooPlugin = { id = "foo", version.ref = "fooVersion" }
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testAddDeclarationAsMapWithLiteralVersion() {
     prepareAddTest { buildModel, catalogModel ->
-
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
-      val spec = PluginDeclarationSpecImpl("foo",
-                                           VersionDeclarationSpecImpl.create("[1.6.0,1.8.0]!!1.8.0")!!)
+      val spec = PluginDeclarationSpecImpl("foo", VersionDeclarationSpecImpl.create("[1.6.0,1.8.0]!!1.8.0")!!)
 
       declarations.addDeclaration("fooPlugin", spec)
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = { id = "foo", version = "[1.6.0,1.8.0]!!1.8.0" }
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        fooPlugin = { id = "foo", version = "[1.6.0,1.8.0]!!1.8.0" }
+        """
+          .trimIndent(),
+      )
     }
   }
 
-
   @Test
   fun testUpdateVersionInLiteralDeclaration() {
-    prepareUpdateTest("""
+    prepareUpdateTest(
+      """
       [plugins]
       fooPlugin = "foo:1.8.0"
-    """.trimIndent()) { buildModel, catalogModel ->
-
+      """
+        .trimIndent()
+    ) { buildModel, catalogModel ->
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
       val versionModel = declarations.getAll()["fooPlugin"]!!.version()
       versionModel.require().setValue("1.9.0")
 
       applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = "foo:1.9.0"
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        fooPlugin = "foo:1.9.0"
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testRemoveDeclaration() {
-    prepareUpdateTest("""
+    prepareUpdateTest(
+      """
       [versions]
       foo_version = "1.3.0"
       [plugins]
       android_application = { id = "com.android.application", version = "8.0.0-beta01" }
       foo = { id = "foo", version.ref = "foo_version" }
-    """.trimIndent()) { buildModel, catalogModel ->
+      """
+        .trimIndent()
+    ) { buildModel, catalogModel ->
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
       declarations.remove("foo")
       applyChanges(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [versions]
-      foo_version = "1.3.0"
-      [plugins]
-      android_application = { id = "com.android.application", version = "8.0.0-beta01" }
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [versions]
+        foo_version = "1.3.0"
+        [plugins]
+        android_application = { id = "com.android.application", version = "8.0.0-beta01" }
+        """
+          .trimIndent(),
+      )
     }
   }
 
   @Test
   fun testRemoveLastDeclaration() {
-    prepareUpdateTest("""
+    prepareUpdateTest(
+      """
       [plugins]
       android_application = { id = "com.android.application", version = "8.0.0-beta01" }
-    """.trimIndent()) { buildModel, catalogModel ->
+      """
+        .trimIndent()
+    ) { buildModel, catalogModel ->
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
       declarations.remove("android_application")
       applyChanges(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-    """.trimIndent())
+      verifyFileContents(
+        myVersionCatalogFile,
+        """
+        [plugins]
+        """
+          .trimIndent(),
+      )
     }
   }
 
@@ -238,7 +272,7 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
     prepareUpdateTest("", f)
   }
 
-  private fun prepareUpdateTest(catalogContent:String, f: (ProjectBuildModel, GradleVersionCatalogsModel) -> Unit) {
+  private fun prepareUpdateTest(catalogContent: String, f: (ProjectBuildModel, GradleVersionCatalogsModel) -> Unit) {
     writeToBuildFile("")
     writeToVersionCatalogFile(catalogContent)
     val buildModel = projectBuildModel
@@ -247,7 +281,7 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
   }
 
   internal enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    GET_ALL_DECLARATIONS("allDeclarations.versions.toml"), ;
+    GET_ALL_DECLARATIONS("allDeclarations.versions.toml");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/versionCatalogPluginDeclarationModel/$path", extension)

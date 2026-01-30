@@ -34,8 +34,7 @@ fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: Inspecto
     override fun update(event: AnActionEvent) {
       val inspector = LayoutInspectorRootPanel.get(event)
       val hasLineNumberInfo = inspector.hasCapability(Capability.HAS_LINE_NUMBER_INFORMATION)
-      val canObserveStateReads =
-        inspector.hasCapability(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS)
+      val canObserveStateReads = inspector.hasCapability(Capability.CAN_OBSERVE_RECOMPOSE_STATE_READS)
       event.presentation.isEnabled = hasLineNumberInfo && canObserveStateReads
       event.presentation.text =
         when {
@@ -60,10 +59,7 @@ fun createStateReadMenuGroup(selected: ComposeViewNode, inspectorModel: Inspecto
   }
 }
 
-private class ObserveNodeAction(
-  private val model: InspectorStateReadModel,
-  val topNode: ComposeViewNode,
-) : AnAction("Observe Node") {
+private class ObserveNodeAction(private val model: InspectorStateReadModel, val topNode: ComposeViewNode) : AnAction("Observe Node") {
   override fun actionPerformed(event: AnActionEvent) {
     if (model.isNodeObserved(topNode)) {
       model.stopObservingNode(topNode)
@@ -82,13 +78,11 @@ private class ObserveNodeAction(
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = !model.isObservingAll()
-    event.presentation.text =
-      if (model.isNodeObserved(topNode)) "Stop Observing Node" else "Observe Node"
+    event.presentation.text = if (model.isNodeObserved(topNode)) "Stop Observing Node" else "Observe Node"
   }
 }
 
-private class ObserveAllAction(private val model: InspectorStateReadModel) :
-  AnAction("Observe All") {
+private class ObserveAllAction(private val model: InspectorStateReadModel) : AnAction("Observe All") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeAll()
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingAllSelected()
@@ -101,8 +95,7 @@ private class ObserveAllAction(private val model: InspectorStateReadModel) :
   }
 }
 
-private class ObserveNoneAction(private val model: InspectorStateReadModel) :
-  AnAction("Observe None") {
+private class ObserveNoneAction(private val model: InspectorStateReadModel) : AnAction("Observe None") {
   override fun actionPerformed(event: AnActionEvent) {
     model.observeNone()
     LayoutInspectorRootPanel.get(event)?.currentClient?.stats?.observingNoneSelected()

@@ -22,12 +22,14 @@ import java.util.concurrent.Future
 data class SearchResult(
   val artifacts: List<FoundArtifact>,
   val errors: List<Exception>,
-  val stats: SearchResultStats = SearchResultStats.EMPTY
+  val stats: SearchResultStats = SearchResultStats.EMPTY,
 ) {
   constructor(artifacts: List<FoundArtifact>) : this(artifacts, listOf(), SearchResultStats.EMPTY)
-  constructor (e: Exception) : this(listOf(), listOf(e), SearchResultStats.EMPTY)
 
-  val artifactCoordinates: List<String> get() = artifacts.flatMap { it.coordinates }
+  constructor(e: Exception) : this(listOf(), listOf(e), SearchResultStats.EMPTY)
+
+  val artifactCoordinates: List<String>
+    get() = artifacts.flatMap { it.coordinates }
 }
 
 data class SearchResultRepoStats(val duration: Duration) {
@@ -42,43 +44,36 @@ data class SearchResultStats(val stats: Map<PSDEvent.PSDRepositoryUsage.PSDRepos
   companion object {
     fun duration(repo: PSDEvent.PSDRepositoryUsage.PSDRepository, duration: Duration) =
       SearchResultStats(mapOf(repo to SearchResultRepoStats(duration)))
+
     val EMPTY = SearchResultStats(mapOf())
   }
 }
 
-fun Collection<SearchResult>.combine() = SearchResult(
-  flatMap { it.artifacts }
-    .groupBy { it.groupId to it.name }
-    .map {(key, artifacts) ->
-      val (groupId, name) = key
-      FoundArtifact(
-        artifacts.flatMap { it.repositoryNames }.toSet(),
-        groupId,
-        name,
-        artifacts.flatMap { it.unsortedVersions }.toSet()
-      )
-    },
-  flatMap { it.errors },
-  map { it.stats }.combine()
-)
+fun Collection<SearchResult>.combine() =
+  SearchResult(
+    flatMap { it.artifacts }
+      .groupBy { it.groupId to it.name }
+      .map { (key, artifacts) ->
+        val (groupId, name) = key
+        FoundArtifact(artifacts.flatMap { it.repositoryNames }.toSet(), groupId, name, artifacts.flatMap { it.unsortedVersions }.toSet())
+      },
+    flatMap { it.errors },
+    map { it.stats }.combine(),
+  )
 
 fun Collection<SearchResultStats>.combine(): SearchResultStats =
   SearchResultStats(
-    this
-      .flatMap { it.stats.entries }
+    this.flatMap { it.stats.entries }
       .groupBy({ it.key }, { it.value })
-      .mapValues { (_, v) ->
-        v.fold(SearchResultRepoStats.EMPTY) { acc, it -> acc.combineWith(it) }
-      })
-
+      .mapValues { (_, v) -> v.fold(SearchResultRepoStats.EMPTY) { acc, it -> acc.combineWith(it) } }
+  )
 
 fun Future<SearchResult>.getResultSafely(): SearchResult =
   takeUnless { isCancelled }
     .let {
       try {
         get()!!
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         SearchResult(e)
       }
     }

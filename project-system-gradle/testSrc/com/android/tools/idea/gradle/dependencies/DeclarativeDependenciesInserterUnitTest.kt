@@ -44,7 +44,6 @@ class DeclarativeDependenciesInserterUnitTest {
     doBuildTypeTest("releaseImplementation", setOf("release", "debug"), "release" to "implementation")
     doBuildTypeTest("debug", setOf("release", "debug"), null)
     doBuildTypeTest("StagingApi", setOf("Staging"), "Staging" to "api")
-
   }
 
   @Test
@@ -66,8 +65,8 @@ class DeclarativeDependenciesInserterUnitTest {
     doFlavorTypeTest("demoConfig", setOf("demo"), "demo" to "config")
     doFlavorTypeTest("demoImplementation", setOf("demo"), "demo" to "implementation")
     doFlavorTypeTest("someImplementation", setOf("demo"), "some" to "implementation")
-    doFlavorTypeTest("demoimplementation", setOf("demo"),null)
-    doFlavorTypeTest("DemoImplementation", setOf("Demo"),"Demo" to "implementation")
+    doFlavorTypeTest("demoimplementation", setOf("demo"), null)
+    doFlavorTypeTest("DemoImplementation", setOf("Demo"), "Demo" to "implementation")
   }
 
   private fun doBuildTypeTest(configuration: String, output: Pair<String, String>?) {

@@ -31,6 +31,8 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
+import java.io.File
+import kotlin.io.path.absolutePathString
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,33 +40,24 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
-import java.io.File
-import kotlin.io.path.absolutePathString
 
 @RunWith(Parameterized::class)
 class GroovyKotlinDslWriterParityTest : LightPlatformTestCase() {
 
-  @Parameter
-  lateinit var myTestDataExtension: String
+  @Parameter lateinit var myTestDataExtension: String
 
-  @Parameter(1)
-  lateinit var myLanguageName: String
+  @Parameter(1) lateinit var myLanguageName: String
 
   companion object {
     @JvmStatic
     @Parameters(name = "{1}")
-    fun data(): Collection<Array<String>> =
-      listOf(
-        arrayOf(".groovy", "Groovy"),
-        arrayOf(".kts", "Kotlin")
-      )
+    fun data(): Collection<Array<String>> = listOf(arrayOf(".groovy", "Groovy"), arrayOf(".kts", "Kotlin"))
   }
 
   // tests that kotlin and groovy both can create structure like `a = method(1){ prop = "value" }`
   @Test
   fun testAssignmentWithMethodAndClosure() {
     doTest(TestFile.ASSIGNMENT_METHOD_WITH_CLOSURE_EXPECTED) { dslFile ->
-
       val methodCall = GradleDslMethodCall(dslFile, GradleNameElement.create("abc"), "release")
       dslFile.setNewElement(methodCall)
       methodCall.externalSyntax = ExternalNameSyntax.ASSIGNMENT
@@ -87,7 +80,6 @@ class GroovyKotlinDslWriterParityTest : LightPlatformTestCase() {
     val testDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").absolutePathString()
     val expected = FileUtil.loadFile(testFileName.toFile(testDataRelativePath, myTestDataExtension))
 
-
     val file = VfsTestUtil.createFile(project.guessProjectDir()!!, "build$myTestDataExtension", "")
     val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
@@ -96,17 +88,17 @@ class GroovyKotlinDslWriterParityTest : LightPlatformTestCase() {
       dslFile.applyChanges()
       dslFile.saveAllChanges()
     }
-    assertEquals(expected.replace("[ \\r\\t]+".toRegex(), "").trim { it <= ' ' },
-                 VfsUtilCore.loadText(file).replace("[ \\r\\t]+".toRegex(), "").trim { it <= ' ' })
+    assertEquals(
+      expected.replace("[ \\r\\t]+".toRegex(), "").trim { it <= ' ' },
+      VfsUtilCore.loadText(file).replace("[ \\r\\t]+".toRegex(), "").trim { it <= ' ' },
+    )
   }
 
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    ASSIGNMENT_METHOD_WITH_CLOSURE_EXPECTED("assignmentMethodWithClosureExpected"),
-    ;
+    ASSIGNMENT_METHOD_WITH_CLOSURE_EXPECTED("assignmentMethodWithClosureExpected");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/dslWriter/$path", extension)
     }
   }
-
 }

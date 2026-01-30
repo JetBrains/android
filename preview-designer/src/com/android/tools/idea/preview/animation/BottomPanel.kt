@@ -42,12 +42,7 @@ class BottomPanel(rootComponent: JComponent) : JPanel(BorderLayout()) {
       westToolbar.updateActionsAsync()
     }
 
-  private val westToolbar =
-    createToolbarWithNavigation(
-      rootComponent,
-      "ClockTimeToolbar",
-      listOf(ClockTimeLabel(), Separator()),
-    )
+  private val westToolbar = createToolbarWithNavigation(rootComponent, "ClockTimeToolbar", listOf(ClockTimeLabel(), Separator()))
 
   init {
     add(westToolbar.component, BorderLayout.WEST)

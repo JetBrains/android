@@ -25,10 +25,7 @@ import org.intellij.lang.annotations.JdkConstants
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-open class MouseEventBuilder(
-  @SwingCoordinate private val myX: Int,
-  @SwingCoordinate private val myY: Int,
-) {
+open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordinate private val myY: Int) {
   private var mySource: Any = LayoutTestUtilities::class.java
   private var myComponent: Component? = null
   private var myButton = 1
@@ -50,8 +47,7 @@ open class MouseEventBuilder(
     return this
   }
 
-  open fun withComponent(component: Component?): MouseEventBuilder =
-    this.apply { myComponent = component }
+  open fun withComponent(component: Component?): MouseEventBuilder = this.apply { myComponent = component }
 
   open fun withMask(@JdkConstants.InputEventMask mask: Int): MouseEventBuilder {
     myMask = mask
@@ -81,10 +77,7 @@ open class MouseEventBuilder(
     return this
   }
 
-  /**
-   * Set the value of [MouseEvent.getLocationOnScreen]. If this is not set, then [myX] and [myY] is
-   * used by default.
-   */
+  /** Set the value of [MouseEvent.getLocationOnScreen]. If this is not set, then [myX] and [myY] is used by default. */
   open fun withLocationOnScreen(x: Int, y: Int) {
     screenLocationX = x
     screenLocationY = y

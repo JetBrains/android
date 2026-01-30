@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo
 import java.io.File
-
 import java.io.Serializable
 
 data class IdePrivacySandboxSdkInfoImpl(
@@ -34,13 +33,13 @@ data class IdePrivacySandboxSdkInfoImpl(
     additionalApkSplitTask: String,
     additionalApkSplitFile: File,
     taskLegacy: String,
-    outputListingLegacyFile: File
+    outputListingLegacyFile: File,
   ) : this(
     task,
     outputListingFile.toImpl(),
     additionalApkSplitTask,
     additionalApkSplitFile.toImpl(),
     taskLegacy,
-    outputListingLegacyFile.toImpl()
+    outputListingLegacyFile.toImpl(),
   )
 }

@@ -33,8 +33,6 @@ import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -47,6 +45,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.tabs.JBTabsFactory.createTabs
@@ -56,29 +55,22 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.util.Arrays
 import java.util.Locale
-import javax.swing.BoxLayout
 import javax.swing.JPanel
-import com.intellij.ui.components.JBScrollPane
 import javax.swing.ScrollPaneConstants
-import java.awt.FlowLayout
 
-
-/**
- * Shows detailed tests results for a selected device.
- */
+/** Shows detailed tests results for a selected device. */
 class DetailsViewContentView(
   parentDisposable: Disposable,
   private val project: Project,
   logger: AndroidTestSuiteLogger,
   headerActions: List<AnAction>,
-  messageBus: MessageBus = ApplicationManager.getApplication().messageBus
+  messageBus: MessageBus = ApplicationManager.getApplication().messageBus,
 ) : Disposable {
 
-  /**
-   * Returns the root panel.
-   */
+  /** Returns the root panel. */
   val rootPanel: JPanel
 
   @VisibleForTesting val myTestResultLabel: JBLabel = JBLabel()
@@ -94,20 +86,22 @@ class DetailsViewContentView(
   private val myScreenshotAttributesView: ScreenshotAttributesView
   val myJourneysResultsPanel: JourneysResultsPanel
 
-  @VisibleForTesting
-  val myJourneyScreenshotsTab: TabInfo
+  @VisibleForTesting val myJourneyScreenshotsTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, this)
 
-  @VisibleForTesting
-  var lastTabSelectedByUser: TabInfo? = null
+  @VisibleForTesting var lastTabSelectedByUser: TabInfo? = null
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
-  @get:VisibleForTesting var myLogcat: String = ""
+  @get:VisibleForTesting
+  var myLogcat: String = ""
     private set
-  @get:VisibleForTesting var myErrorStackTrace: String = ""
+
+  @get:VisibleForTesting
+  var myErrorStackTrace: String = ""
     private set
+
   private var needsRefreshLogsView: Boolean = true
 
   init {
@@ -138,17 +132,18 @@ class DetailsViewContentView(
     tabs.addTab(myScreenshotAttributesTab)
 
     // Create logcat tab.
-    myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
+    myLogsView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myLogsView)
-    logger.addImpressionWhenDisplayed(
-      myLogsView.component,
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
+    logger.addImpressionWhenDisplayed(myLogsView.component, ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_LOG_VIEW)
     val logsViewWithVerticalToolbar = NonOpaquePanel(BorderLayout())
     logsViewWithVerticalToolbar.add(myLogsView.component, BorderLayout.CENTER)
-    val logViewToolbar = ActionManager.getInstance().createActionToolbar(
-      ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_LOG,
-      DefaultActionGroup(*myLogsView.createConsoleActions()),
-      false)
+    val logViewToolbar =
+      ActionManager.getInstance()
+        .createActionToolbar(
+          ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_LOG,
+          DefaultActionGroup(*myLogsView.createConsoleActions()),
+          false,
+        )
     logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
     logsTab = TabInfo(logsViewWithVerticalToolbar)
@@ -157,14 +152,17 @@ class DetailsViewContentView(
     tabs.addTab(logsTab)
 
     // Create benchmark tab.
-    myBenchmarkView = ConsoleViewImpl(project,  /*viewer=*/true)
+    myBenchmarkView = ConsoleViewImpl(project, /* viewer= */ true)
     Disposer.register(this, myBenchmarkView)
     val benchmarkViewWithVerticalToolbar = NonOpaquePanel(BorderLayout())
     benchmarkViewWithVerticalToolbar.add(myBenchmarkView.component, BorderLayout.CENTER)
-    val benchmarkViewToolbar = ActionManager.getInstance().createActionToolbar(
-      ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_BENCHMARK,
-      DefaultActionGroup(*myBenchmarkView.createConsoleActions()),
-      false)
+    val benchmarkViewToolbar =
+      ActionManager.getInstance()
+        .createActionToolbar(
+          ActionPlaces.ANDROID_TEST_SUITE_DETAILS_VIEW_BENCHMARK,
+          DefaultActionGroup(*myBenchmarkView.createConsoleActions()),
+          false,
+        )
     benchmarkViewWithVerticalToolbar.add(benchmarkViewToolbar.component, BorderLayout.EAST)
     myBenchmarkTab = TabInfo(benchmarkViewWithVerticalToolbar)
     myBenchmarkTab.setText("Benchmark")
@@ -176,7 +174,8 @@ class DetailsViewContentView(
     myDeviceInfoTableView = AndroidDeviceInfoTableView()
     logger.addImpressionWhenDisplayed(
       myDeviceInfoTableView.getComponent(),
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW,
+    )
     myDeviceInfoTab = TabInfo(myDeviceInfoTableView.getComponent())
     myDeviceInfoTab.setText("Device Info")
     myDeviceInfoTab.setTooltipText("Show device information")
@@ -190,59 +189,57 @@ class DetailsViewContentView(
 
     rootPanel.apply {
       // The header panel now uses BorderLayout to ensure the button is always visible.
-      add(JPanel(BorderLayout()).apply {
-        border = JBUI.Borders.compound(
-          JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
-          JBUI.Borders.empty(10)
-        )
+      add(
+        JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), JBUI.Borders.empty(10))
 
-        // The labels are placed in a sub-panel in the center.
-        // Use BorderLayout to allow the error label (CENTER) to scroll
-        // while keeping the device label (WEST) fixed.
-        add(NonOpaquePanel().apply {
-          layout = BorderLayout()
+          // The labels are placed in a sub-panel in the center.
+          // Use BorderLayout to allow the error label (CENTER) to scroll
+          // while keeping the device label (WEST) fixed.
+          add(
+            NonOpaquePanel().apply {
+              layout = BorderLayout()
 
-          // Container for the left-aligned items (Device Name + Separator)
-          val westPanel = NonOpaquePanel(FlowLayout(FlowLayout.LEFT, 0, 0))
-          westPanel.add(myDeviceTestResultLabel)
-          westPanel.add(AndroidTestSuiteView.MyItemSeparator())
-          add(westPanel, BorderLayout.WEST)
+              // Container for the left-aligned items (Device Name + Separator)
+              val westPanel = NonOpaquePanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+              westPanel.add(myDeviceTestResultLabel)
+              westPanel.add(AndroidTestSuiteView.MyItemSeparator())
+              add(westPanel, BorderLayout.WEST)
 
-          // Wrap the error label in a scroll pane
-          val scrollPane = JBScrollPane(
-            myTestResultLabel,
-            ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+              // Wrap the error label in a scroll pane
+              val scrollPane =
+                JBScrollPane(
+                  myTestResultLabel,
+                  ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+                  ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED,
+                )
+              scrollPane.border = JBUI.Borders.empty()
+              scrollPane.viewport.isOpaque = false
+              scrollPane.isOpaque = false
+
+              add(scrollPane, BorderLayout.CENTER)
+            },
+            BorderLayout.CENTER,
           )
-          scrollPane.border = JBUI.Borders.empty()
-          scrollPane.viewport.isOpaque = false
-          scrollPane.isOpaque = false
 
-          add(scrollPane, BorderLayout.CENTER)
-        }, BorderLayout.CENTER)
-
-        // The button is placed on the east side. It's wrapped in a NonOpaquePanel
-        // with a BorderLayout and placed at the NORTH to prevent it from stretching vertically
-        // when the label text wraps to a new line.
-        add(NonOpaquePanel(BorderLayout()).apply {
-          add(toolbar.component, BorderLayout.NORTH)
-        }, BorderLayout.EAST)
-      }, BorderLayout.NORTH)
+          // The button is placed on the east side. It's wrapped in a NonOpaquePanel
+          // with a BorderLayout and placed at the NORTH to prevent it from stretching vertically
+          // when the label text wraps to a new line.
+          add(NonOpaquePanel(BorderLayout()).apply { add(toolbar.component, BorderLayout.NORTH) }, BorderLayout.EAST)
+        },
+        BorderLayout.NORTH,
+      )
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
     }
-    tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
+    tabs.setSelectionChangeHandler(MyTabSelectionHandler(this))
 
     updateSelectedTab()
 
     // We are using a HTML formatted string to set the colors of the test status, so we need to
     // refresh the colors when the theme changes
     val connection = messageBus.connect(this)
-    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-      invokeLater {
-        refreshTestResultLabel()
-      }
-    })
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener { invokeLater { refreshTestResultLabel() } })
   }
 
   private fun setAndroidDevice(androidDevice: AndroidDevice) {
@@ -317,7 +314,7 @@ class DetailsViewContentView(
         testResults?.methodName,
         testResults?.className,
         myAndroidTestCaseResult,
-        diffPercent
+        diffPercent,
       )
     } else {
       myScreenshotTab.isHidden = true
@@ -348,9 +345,7 @@ class DetailsViewContentView(
       return
     }
     val testCaseResult = myAndroidTestCaseResult
-    myDeviceTestResultLabel.text = String.format(Locale.US,
-                                                 "<html>%s</html>",
-                                                 device.getName().htmlEscape())
+    myDeviceTestResultLabel.text = String.format(Locale.US, "<html>%s</html>", device.getName().htmlEscape())
     if (testCaseResult == null) {
       myTestResultLabel.text = "No test status available"
       return
@@ -358,50 +353,42 @@ class DetailsViewContentView(
     if (testCaseResult.isTerminalState) {
       val statusColor = getColorFor(testCaseResult) ?: UIUtil.getActiveTextColor()
       when (testCaseResult) {
-        AndroidTestCaseResult.PASSED -> myTestResultLabel.text = String.format(
-          Locale.US,
-          "<html><font color='%s'>Passed</font></html>",
-          ColorUtil.toHtmlColor(statusColor))
+        AndroidTestCaseResult.PASSED ->
+          myTestResultLabel.text =
+            String.format(Locale.US, "<html><font color='%s'>Passed</font></html>", ColorUtil.toHtmlColor(statusColor))
         AndroidTestCaseResult.FAILED -> {
-          val errorMessage =
-            Arrays.stream(StringUtil.splitByLines(myErrorStackTrace))
-              .findFirst()
-              .orElse("")
+          val errorMessage = Arrays.stream(StringUtil.splitByLines(myErrorStackTrace)).findFirst().orElse("")
           if (StringUtil.isEmptyOrSpaces(errorMessage)) {
-            myTestResultLabel.text = String.format(
-              Locale.US,
-              "<html><font color='%s'>Failed</font></html>",
-              ColorUtil.toHtmlColor(statusColor))
-          }
-          else {
-            myTestResultLabel.text = String.format(
-              Locale.US,
-              "<html><font color='%s'>Failed</font> %s</html>",
-              ColorUtil.toHtmlColor(statusColor),
-              errorMessage.htmlEscape()
+            myTestResultLabel.text =
+              String.format(Locale.US, "<html><font color='%s'>Failed</font></html>", ColorUtil.toHtmlColor(statusColor))
+          } else {
+            myTestResultLabel.text =
+              String.format(
+                Locale.US,
+                "<html><font color='%s'>Failed</font> %s</html>",
+                ColorUtil.toHtmlColor(statusColor),
+                errorMessage.htmlEscape(),
               )
           }
         }
-        AndroidTestCaseResult.SKIPPED -> myTestResultLabel.text = String.format(
-          Locale.US,
-          "<html><font color='%s'>Skipped</font></html>",
-          ColorUtil.toHtmlColor(statusColor))
-        AndroidTestCaseResult.CANCELLED -> myTestResultLabel.text = String.format(
-          Locale.US,
-          "<html><font color='%s'>Cancelled</font></html>",
-          ColorUtil.toHtmlColor(statusColor))
+        AndroidTestCaseResult.SKIPPED ->
+          myTestResultLabel.text =
+            String.format(Locale.US, "<html><font color='%s'>Skipped</font></html>", ColorUtil.toHtmlColor(statusColor))
+        AndroidTestCaseResult.CANCELLED ->
+          myTestResultLabel.text =
+            String.format(Locale.US, "<html><font color='%s'>Cancelled</font></html>", ColorUtil.toHtmlColor(statusColor))
         else -> {
           myTestResultLabel.text = ""
           Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))
         }
       }
-    }
-    else {
+    } else {
       myTestResultLabel.text = String.format(Locale.US, "Running on %s", device.getName())
     }
   }
 
-  @VisibleForTesting fun refreshLogsView() {
+  @VisibleForTesting
+  fun refreshLogsView() {
     needsRefreshLogsView = false
     myLogsView.clear()
 

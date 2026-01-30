@@ -35,13 +35,7 @@ data class NoteId(val issueId: IssueId, val noteId: String, val sessionId: Strin
  * @param author The email of the author of the note.
  * @param body The message body of the note.
  */
-data class Note(
-  val id: NoteId,
-  val timestamp: Instant,
-  val author: String,
-  val body: String,
-  val state: NoteState,
-)
+data class Note(val id: NoteId, val timestamp: Instant, val author: String, val body: String, val state: NoteState)
 
 /** State of the given note. */
 enum class NoteState(val displayText: String) {

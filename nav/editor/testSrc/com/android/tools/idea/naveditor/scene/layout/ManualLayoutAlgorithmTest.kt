@@ -184,9 +184,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
 
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val nullIdComponent = surface.scene!!.getSceneComponent("fragment1")!!
-    WriteCommandAction.runWriteCommandAction(project) {
-      nullIdComponent.nlComponent.setAndroidAttribute(ATTR_ID, null)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { nullIdComponent.nlComponent.setAndroidAttribute(ATTR_ID, null) }
     nullIdComponent.setPosition(100, 200)
     algorithm.save(nullIdComponent)
 
@@ -262,8 +260,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
       }
     val editor =
       object : NavEditor(model.virtualFile, project), DocumentsEditor {
-        override fun getDocuments() =
-          arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
+        override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
       }
     val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
 
@@ -322,11 +319,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     assertEquals(40, fragment2.drawY)
   }
 
-  private fun createAlgorithm(
-    model: SyncNlModel,
-    positions: ManualLayoutAlgorithm.LayoutPositions? = null,
-  ): ManualLayoutAlgorithm {
-    return if (positions == null) ManualLayoutAlgorithm(myModule)
-    else ManualLayoutAlgorithm(positions, myModule)
+  private fun createAlgorithm(model: SyncNlModel, positions: ManualLayoutAlgorithm.LayoutPositions? = null): ManualLayoutAlgorithm {
+    return if (positions == null) ManualLayoutAlgorithm(myModule) else ManualLayoutAlgorithm(positions, myModule)
   }
 }

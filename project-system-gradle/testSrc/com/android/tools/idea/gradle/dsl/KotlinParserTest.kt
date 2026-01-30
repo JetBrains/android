@@ -31,11 +31,15 @@ class KotlinParserTest : HeavyPlatformTestCase() {
       getOrCreateProjectBaseDir()
       val modulePath = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(module.moduleNioFile.parent)!!
       val buildFile = modulePath.createChildData(this, FN_BUILD_GRADLE_KTS)
-      VfsUtil.saveText(buildFile, """
+      VfsUtil.saveText(
+        buildFile,
+        """
         dependencies {
           testImplementation(project(":"))
         }
-      """.trimIndent())
+        """
+          .trimIndent(),
+      )
       TestCase.assertTrue(buildFile.isWritable)
     }
 

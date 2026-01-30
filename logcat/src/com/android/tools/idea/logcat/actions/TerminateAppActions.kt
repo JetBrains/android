@@ -42,8 +42,7 @@ import javax.swing.Icon
 import kotlinx.coroutines.launch
 
 /** A base class for actions that perform app termination */
-internal sealed class TerminateAppActions(text: String, icon: Icon) :
-  DumbAwareAction(text, null, icon) {
+internal sealed class TerminateAppActions(text: String, icon: Icon) : DumbAwareAction(text, null, icon) {
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
@@ -68,20 +67,12 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
     actionPerformed(AdbLibService.getSession(project), process, logcatHeader.applicationId)
   }
 
-  private fun findProcess(
-    project: Project,
-    logcatHeader: LogcatHeader,
-    device: Device,
-  ): JdwpProcess? {
+  private fun findProcess(project: Project, logcatHeader: LogcatHeader, device: Device): JdwpProcess? {
     val adbSession = AdbLibService.getSession(project)
-    val connectedDevice =
-      adbSession.connectedDevicesTracker.device(device.serialNumber) ?: return null
+    val connectedDevice = adbSession.connectedDevicesTracker.device(device.serialNumber) ?: return null
 
     val processes = connectedDevice.jdwpProcessTracker.processesFlow.value
-    return processes.find {
-      it.pid == logcatHeader.pid ||
-        it.properties.processName.getOrNull() == logcatHeader.processName
-    }
+    return processes.find { it.pid == logcatHeader.pid || it.properties.processName.getOrNull() == logcatHeader.processName }
   }
 
   open fun isEnabled(logcatHeader: LogcatHeader): Boolean = true
@@ -102,30 +93,20 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   /**
    * An action that uses `adb shell am force-stop` to terminate an app
    *
-   * This action is enabled if a debuggable process with the same pid or process name is found on
-   * the device.
+   * This action is enabled if a debuggable process with the same pid or process name is found on the device.
    *
-   * Note that the `system_process` process can be debuggable but cannot be force stopped so this
-   * action is disabled for it.
+   * Note that the `system_process` process can be debuggable but cannot be force stopped so this action is disabled for it.
    *
-   * Also note that if a process application id cannot be resolved for some reason, the action is
-   * disabled for it because the action requires an application id.
+   * Also note that if a process application id cannot be resolved for some reason, the action is disabled for it because the action
+   * requires an application id.
    */
   class ForceStopAppAction :
-    TerminateAppActions(
-      LogcatBundle.message("logcat.terminate.app.force.stop"),
-      StudioIcons.DeviceProcessMonitor.FORCE_STOP,
-    ) {
+    TerminateAppActions(LogcatBundle.message("logcat.terminate.app.force.stop"), StudioIcons.DeviceProcessMonitor.FORCE_STOP) {
     override fun isEnabled(logcatHeader: LogcatHeader): Boolean {
-      return logcatHeader.applicationId != "system_process" &&
-        !logcatHeader.applicationId.startsWith("pid-")
+      return logcatHeader.applicationId != "system_process" && !logcatHeader.applicationId.startsWith("pid-")
     }
 
-    override fun actionPerformed(
-      adbSession: AdbSession,
-      process: JdwpProcess,
-      packageName: String,
-    ) {
+    override fun actionPerformed(adbSession: AdbSession, process: JdwpProcess, packageName: String) {
       process.scope.launch {
         try {
           process.device.activityManager.forceStop(packageName)
@@ -140,19 +121,11 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   /**
    * An action that uses kills a [JdwpProcess] directly.
    *
-   * This action is enabled if a debuggable process with the same pid or process name is found on
-   * the device.
+   * This action is enabled if a debuggable process with the same pid or process name is found on the device.
    */
   class KillAppAction :
-    TerminateAppActions(
-      LogcatBundle.message("logcat.terminate.app.kill"),
-      StudioIcons.DeviceProcessMonitor.KILL_PROCESS,
-    ) {
-    override fun actionPerformed(
-      adbSession: AdbSession,
-      process: JdwpProcess,
-      packageName: String,
-    ) {
+    TerminateAppActions(LogcatBundle.message("logcat.terminate.app.kill"), StudioIcons.DeviceProcessMonitor.KILL_PROCESS) {
+    override fun actionPerformed(adbSession: AdbSession, process: JdwpProcess, packageName: String) {
       process.scope.launch {
         try {
           process.sendDdmsExit(1)
@@ -167,39 +140,27 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   /**
    * An action that uses `adb shell am crash` to terminate an app
    *
-   * This action is enabled if a debuggable process with the same pid or process name is found on
-   * the device.
+   * This action is enabled if a debuggable process with the same pid or process name is found on the device.
    *
-   * This action is ony shown for devices with API level > 26 because the `am crash` command is not
-   * available below that.
+   * This action is ony shown for devices with API level > 26 because the `am crash` command is not available below that.
    *
-   * Note that the `system_process` process can be debuggable but cannot be crashed so this action
-   * is disabled for it.
+   * Note that the `system_process` process can be debuggable but cannot be crashed so this action is disabled for it.
    *
-   * Also note that if a process application id cannot be resolved for some reason, the action is
-   * disabled for it because the action requires an application id.
+   * Also note that if a process application id cannot be resolved for some reason, the action is disabled for it because the action
+   * requires an application id.
    *
    * TODO(b/274818920): Use a dedicated icon
    */
-  class CrashAppAction :
-    TerminateAppActions(
-      LogcatBundle.message("logcat.terminate.app.crash"),
-      StudioIcons.Logcat.Toolbar.CRASH_APP,
-    ) {
+  class CrashAppAction : TerminateAppActions(LogcatBundle.message("logcat.terminate.app.crash"), StudioIcons.Logcat.Toolbar.CRASH_APP) {
     override fun isEnabled(logcatHeader: LogcatHeader): Boolean {
-      return logcatHeader.applicationId != "system_process" &&
-        !logcatHeader.applicationId.startsWith("pid-")
+      return logcatHeader.applicationId != "system_process" && !logcatHeader.applicationId.startsWith("pid-")
     }
 
     override fun isVisible(sdk: Int): Boolean {
       return sdk >= 26
     }
 
-    override fun actionPerformed(
-      adbSession: AdbSession,
-      process: JdwpProcess,
-      packageName: String,
-    ) {
+    override fun actionPerformed(adbSession: AdbSession, process: JdwpProcess, packageName: String) {
       process.scope.launch {
         try {
           process.device.activityManager.crash(packageName)

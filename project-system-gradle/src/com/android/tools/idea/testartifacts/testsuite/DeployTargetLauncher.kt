@@ -21,8 +21,8 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 
 /**
- * Launches the device or devices currently selected in the device selector dropdown, and returns
- * the serial numbers of the launched devices.
+ * Launches the device or devices currently selected in the device selector dropdown, and returns the serial numbers of the launched
+ * devices.
  *
  * Will return an empty list if no devices are launched, i.e. there are no devices configured.
  */
@@ -30,20 +30,17 @@ fun launchDevices(project: Project, context: DeployTargetContext = DeployTargetC
   context.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
 
   val currentTargetProvider = context.currentDeployTargetProvider
-  val deployTarget = if (currentTargetProvider.requiresRuntimePrompt(project)) {
-    @Suppress("UnstableApiUsage")
-    invokeAndWaitIfNeeded { currentTargetProvider.showPrompt(project) }
-  }
-  else {
-    currentTargetProvider.getDeployTarget(project)
-  }
+  val deployTarget =
+    if (currentTargetProvider.requiresRuntimePrompt(project)) {
+      @Suppress("UnstableApiUsage") invokeAndWaitIfNeeded { currentTargetProvider.showPrompt(project) }
+    } else {
+      currentTargetProvider.getDeployTarget(project)
+    }
 
   val devices = deployTarget?.launchDevices(project)?.get() ?: emptyList()
   if (devices.isEmpty()) {
     return emptyList()
   }
 
-  return devices.map { device ->
-    device.get().serialNumber
-  }
+  return devices.map { device -> device.get().serialNumber }
 }

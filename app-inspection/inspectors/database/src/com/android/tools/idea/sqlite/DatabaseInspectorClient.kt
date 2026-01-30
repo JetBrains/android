@@ -52,8 +52,8 @@ import kotlinx.coroutines.launch
  * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
- * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must
- *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
+ * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must be created using SupervisorJob, to avoid
+ *   the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient(
   private val project: Project,
@@ -68,8 +68,7 @@ class DatabaseInspectorClient(
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> },
 ) : DatabaseInspectorClientCommandsChannel {
-  private val dbMessenger =
-    DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
   init {
     scope.launch { messenger.eventFlow.collect { eventData -> onRawEvent(eventData) } }
@@ -90,13 +89,7 @@ class DatabaseInspectorClient(
               openedDatabase.isReadOnly,
               openedDatabase.apiClassName,
             )
-          val databaseConnection =
-            LiveDatabaseConnection(
-              parentDisposable,
-              dbMessenger,
-              openedDatabase.databaseId,
-              taskExecutor,
-            )
+          val databaseConnection = LiveDatabaseConnection(parentDisposable, dbMessenger, openedDatabase.databaseId, taskExecutor)
           onDatabaseAddedListener(databaseId, databaseConnection)
         }
       }
@@ -104,14 +97,7 @@ class DatabaseInspectorClient(
         onDatabasePossiblyChanged()
       }
       event.hasDatabaseClosed() -> {
-        invokeLater {
-          onDatabaseClosed(
-            SqliteDatabaseId.fromLiveDatabase(
-              event.databaseClosed.path,
-              event.databaseClosed.databaseId,
-            )
-          )
-        }
+        invokeLater { onDatabaseClosed(SqliteDatabaseId.fromLiveDatabase(event.databaseClosed.path, event.databaseClosed.databaseId)) }
       }
       event.hasErrorOccurred() -> {
         val errorContent = event.errorOccurred.content
@@ -130,8 +116,8 @@ class DatabaseInspectorClient(
   }
 
   /**
-   * Sends a command to the on-device inspector to start looking for database connections. When the
-   * on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
+   * Sends a command to the on-device inspector to start looking for database connections. When the on-device inspector discovers a
+   * connection, it sends back an asynchronous databaseOpen event.
    */
   suspend fun startTrackingDatabaseConnections() {
     val command = TrackDatabasesCommand.newBuilder()
@@ -161,16 +147,12 @@ class DatabaseInspectorClient(
   }
 
   /**
-   * If [keepOpen] is true, sends a command to the on-device inspector to force connections to
-   * databases to stay open, even after the app closes them. Return a future boolean that is true if
-   * `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
+   * If [keepOpen] is true, sends a command to the on-device inspector to force connections to databases to stay open, even after the app
+   * closes them. Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
    */
   override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
     val response =
-      dbMessenger.sendCommandAsync(
-        Command.newBuilder()
-          .setKeepDatabasesOpen(KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen))
-      )
+      dbMessenger.sendCommandAsync(Command.newBuilder().setKeepDatabasesOpen(KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen)))
 
     return response.transform(taskExecutor) {
       return@transform when (it.oneOfCase) {
@@ -182,10 +164,7 @@ class DatabaseInspectorClient(
 
   override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> {
     return dbMessenger
-      .sendCommandAsync(
-        Command.newBuilder()
-          .setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId))
-      )
+      .sendCommandAsync(Command.newBuilder().setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId)))
       .transform(taskExecutor) { response ->
         when (response.oneOfCase) {
           Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> response.acquireDatabaseLock.lockId
@@ -197,10 +176,7 @@ class DatabaseInspectorClient(
 
   override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> {
     return dbMessenger
-      .sendCommandAsync(
-        Command.newBuilder()
-          .setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId))
-      )
+      .sendCommandAsync(Command.newBuilder().setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId)))
       .transform(taskExecutor) { response ->
         when (response.oneOfCase) {
           Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> Unit

@@ -62,8 +62,6 @@ import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.UiNotifyConnector
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -76,17 +74,17 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
 
-class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin,
-                                                                     Configurable.NoScroll {
+class ProjectStructureConfigurable(private val myProject: Project) :
+  SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
   private var myHistory = History(this)
   private val myDetails = Wrapper()
   private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent?>()
   private val myUiState = UIState().also { it.load(myProject) }
-  private val myEmptySelection = JLabel(
-    "<html><body><center>Select a setting to view or edit its details here</center></body></html>",
-    SwingConstants.CENTER
-  )
+  private val myEmptySelection =
+    JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>", SwingConstants.CENTER)
   private val myProjectStructureEventDispatcher = EventDispatcher.create(ProjectStructureListener::class.java)
 
   private var mySplitter: JBSplitter? = null
@@ -105,9 +103,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private var inDoOK = false
   private var needsSync = false
 
-  /**
-   * Handle enable/disable of Ok/Apply buttons
-   */
+  /** Handle enable/disable of Ok/Apply buttons */
   inner class ActionEnablerHelper {
     private var myOkAction: Action? = null
     private var myApplyAction: Action? = null
@@ -115,29 +111,27 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     private var isDisabled = false // flag that means we have validation errors
     private var isInEventLoop = false
 
-    private val propertyChangedListener = object : PropertyChangeListener {
-      override fun propertyChange(evt: PropertyChangeEvent?) {
-        val event = evt ?: return
-        if (event.propertyName == "enabled" && !isInEventLoop) {
-          (event.newValue as? Boolean)?.let { isApplyEnabled = it }
-          if (isDisabled) {
-            isInEventLoop = true
-            myApplyAction?.isEnabled = false
+    private val propertyChangedListener =
+      object : PropertyChangeListener {
+        override fun propertyChange(evt: PropertyChangeEvent?) {
+          val event = evt ?: return
+          if (event.propertyName == "enabled" && !isInEventLoop) {
+            (event.newValue as? Boolean)?.let { isApplyEnabled = it }
+            if (isDisabled) {
+              isInEventLoop = true
+              myApplyAction?.isEnabled = false
+            }
           }
+          isInEventLoop = false
         }
-        isInEventLoop = false
       }
-    }
 
-    private val Action.name: String? get() = getValue(Action.NAME) as? String
+    private val Action.name: String?
+      get() = getValue(Action.NAME) as? String
 
     fun setActions(allActions: List<Action>) {
-      myOkAction = allActions.firstOrNull { action ->
-        action.name?.lowercase()?.contains("ok") ?: false
-      }
-      myApplyAction = allActions.firstOrNull { action ->
-        action.name?.lowercase()?.contains("apply") ?: false
-      }
+      myOkAction = allActions.firstOrNull { action -> action.name?.lowercase()?.contains("ok") ?: false }
+      myApplyAction = allActions.firstOrNull { action -> action.name?.lowercase()?.contains("apply") ?: false }
       myApplyAction?.isEnabled?.let { isApplyEnabled = it }
       myApplyAction?.addPropertyChangeListener(propertyChangedListener)
     }
@@ -146,10 +140,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       isDisabled = !enableActions
       myOkAction?.isEnabled = enableActions
       myApplyAction?.removePropertyChangeListener(propertyChangedListener)
-      if (enableActions)
-        myApplyAction?.isEnabled = isApplyEnabled
-      else
-        myApplyAction?.isEnabled = false
+      if (enableActions) myApplyAction?.isEnabled = isApplyEnabled else myApplyAction?.isEnabled = false
       myApplyAction?.addPropertyChangeListener(propertyChangedListener)
     }
 
@@ -158,7 +149,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myApplyAction = null
       myOkAction = null
     }
-
   }
 
   private var actionEnabler = ActionEnablerHelper()
@@ -188,9 +178,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         detailsContent = toSelect.createComponent()
         myConfigurables[toSelect] = detailsContent
         (toSelect as? Disposable)?.let { configurableDisposable ->
-          Disposer.register(configurableDisposable) {
-            if (mySelectedConfigurable === toSelect) mySelectedConfigurable = null
-          }
+          Disposer.register(configurableDisposable) { if (mySelectedConfigurable === toSelect) mySelectedConfigurable = null }
         }
       }
       myDetails.setContent(detailsContent)
@@ -206,8 +194,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         masterDetails!!.splitter.proportion = myUiState.sideProportion
       }
       masterDetails!!.setHistory(myHistory)
-    }
-    else if (toSelect is Place.Navigator) {
+    } else if (toSelect is Place.Navigator) {
       toSelect.setHistory(myHistory)
     }
 
@@ -228,8 +215,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     myToFocus = toFocus
     if (myToFocus != null) {
-      @Suppress("DEPRECATION")
-      if (requestFocus) UIUtil.requestFocus(myToFocus!!)
+      @Suppress("DEPRECATION") if (requestFocus) UIUtil.requestFocus(myToFocus!!)
     }
 
     val result = ActionCallback()
@@ -267,7 +253,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun getId(): String = "android.project.structure"
 
   @Nls
-  override fun getDisplayName(): String = if (myProject.isDefault) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String =
+    if (myProject.isDefault) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
@@ -278,12 +265,13 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
     initSidePanel()
 
-    val left = object : JPanel(BorderLayout()) {
-      override fun getMinimumSize(): Dimension {
-        val original = super.getMinimumSize()
-        return Dimension(Math.max(original.width, JBUI.scale(170)), original.height)
+    val left =
+      object : JPanel(BorderLayout()) {
+        override fun getMinimumSize(): Dimension {
+          val original = super.getMinimumSize()
+          return Dimension(Math.max(original.width, JBUI.scale(170)), original.height)
+        }
       }
-    }
 
     val toolbarGroup = DefaultActionGroup()
     toolbarGroup.add(BackAction(component, myDisposable))
@@ -320,13 +308,14 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     needsSync = false
     myShowing = true
     try {
-      showDialog(Runnable {
-        if (place != null) {
-          navigateTo(place, true)
+      showDialog(
+        Runnable {
+          if (place != null) {
+            navigateTo(place, true)
+          }
         }
-      })
-    }
-    finally {
+      )
+    } finally {
       myShowing = false
     }
     if (needsSync) {
@@ -339,50 +328,48 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   fun show() = showPlace(null)
 
   private fun showDialog(advanceInit: Runnable) {
-    val dialog = object : SettingsDialog(myProject, "#PSD", this, true, false) {
-      override fun doOKAction() {
-        inDoOK = true
-        try {
-          super.doOKAction()
-        }
-        finally {
-          inDoOK = false
-        }
-      }
-
-      override fun doCancelAction() {
-        // Ask for confirmation to close on ESC with not applied changes.
-        if ((IdeEventQueue.getInstance().trueCurrentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE) {
-          if (isModified) {
-            if (Messages.showDialog(
-                myProject,
-                "You have made changes that have not been applied.",
-                "Discard changes?",
-                arrayOf("Discard changes", "Continue editing"),
-                0,
-                UIUtil.getQuestionIcon()
-              ) != 0) {
-              return
-            }
+    val dialog =
+      object : SettingsDialog(myProject, "#PSD", this, true, false) {
+        override fun doOKAction() {
+          inDoOK = true
+          try {
+            super.doOKAction()
+          } finally {
+            inDoOK = false
           }
         }
-        super.doCancelAction()
+
+        override fun doCancelAction() {
+          // Ask for confirmation to close on ESC with not applied changes.
+          if ((IdeEventQueue.getInstance().trueCurrentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE) {
+            if (isModified) {
+              if (
+                Messages.showDialog(
+                  myProject,
+                  "You have made changes that have not been applied.",
+                  "Discard changes?",
+                  arrayOf("Discard changes", "Continue editing"),
+                  0,
+                  UIUtil.getQuestionIcon(),
+                ) != 0
+              ) {
+                return
+              }
+            }
+          }
+          super.doCancelAction()
+        }
+
+        init {
+          contentPanel.preferredSize = Dimension(JBUI.scale(950), JBUI.scale(500))
+          contentPanel.minimumSize = Dimension(JBUI.scale(900), JBUI.scale(400))
+          // createActions does not create them but rather provide what already created
+          actionEnabler.setActions(createActions().toList())
+        }
       }
 
-      init {
-        contentPanel.preferredSize = Dimension(JBUI.scale(950), JBUI.scale(500))
-        contentPanel.minimumSize = Dimension(JBUI.scale(900), JBUI.scale(400))
-        // createActions does not create them but rather provide what already created
-        actionEnabler.setActions(createActions().toList())
-      }
-    }
-
-    UiNotifyConnector.doWhenFirstShown(dialog.contentPane) {
-      advanceInit.run()
-    }
-    invokeLater(ModalityState.stateForComponent(myDetails)) {
-      myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
-    }
+    UiNotifyConnector.doWhenFirstShown(dialog.contentPane) { advanceInit.run() }
+    invokeLater(ModalityState.stateForComponent(myDetails)) { myProjectStructureEventDispatcher.multicaster.projectStructureInitializing() }
     dialog.showAndGet()
   }
 
@@ -408,9 +395,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private fun addConfigurable(configurable: Configurable) {
     myConfigurables[configurable] = null
     (configurable as? Disposable)?.let { configurableDisposable ->
-      Disposer.register(configurableDisposable) {
-        myConfigurables.remove(configurable)
-      }
+      Disposer.register(configurableDisposable) { myConfigurables.remove(configurable) }
     }
     (configurable as? Place.Navigator)?.setHistory(myHistory)
     val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
@@ -419,7 +404,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       createPlaceFor(configurable),
       Presentation(configurable.displayName),
       counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } },
-      validationDisplayConfigurable?.let { { it.hasValidationErrors() } }
+      validationDisplayConfigurable?.let { { it.hasValidationErrors() } },
     )
     counterDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
     // refresh side panel to update error bubble
@@ -457,8 +442,10 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
       myHistory.clear()
 
-      val toSelect = myUiState.lastEditedConfigurable?.let { lastConfigurableDisplayname -> configurables.firstOrNull { it.displayName == lastConfigurableDisplayname } }
-                     ?: configurables.firstOrNull()
+      val toSelect =
+        myUiState.lastEditedConfigurable?.let { lastConfigurableDisplayname ->
+          configurables.firstOrNull { it.displayName == lastConfigurableDisplayname }
+        } ?: configurables.firstOrNull()
 
       removeSelected()
 
@@ -479,8 +466,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
       myUiState.save(myProject)
       Disposer.dispose(myDisposable)
-    }
-    finally {
+    } finally {
       myDetails.removeAll()
       myDisposable = MyDisposable()
       myConfigurables.clear()
@@ -532,8 +518,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   private class MyDisposable : Disposable {
-    @Volatile
-    internal var disposed: Boolean = false
+    @Volatile internal var disposed: Boolean = false
 
     override fun dispose() {
       disposed = true
@@ -542,6 +527,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   interface ProjectStructureListener : EventListener {
     fun projectStructureInitializing()
+
     fun projectStructureChanged()
   }
 
@@ -558,9 +544,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private fun logUsageApply() {
     val duration = System.currentTimeMillis() - myOpenTimeMs
     val psdEvent =
-      PSDEvent.newBuilder()
-        .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-        .setDurationMs(duration)
+      PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002).setDurationMs(duration)
     myConfigurables.keys.filterIsInstance<TrackedConfigurable>().forEach { it.copyEditedFieldsTo(psdEvent) }
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
@@ -572,21 +556,16 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   companion object {
-    @NonNls
-    const val CATEGORY_NAME = "categoryName"
+    @NonNls const val CATEGORY_NAME = "categoryName"
 
-    @NonNls
-    private const val LAST_EDITED_PROPERTY = "project.structure.last.edited"
+    @NonNls private const val LAST_EDITED_PROPERTY = "project.structure.last.edited"
 
-    @NonNls
-    private const val PROPORTION_PROPERTY = "project.structure.proportion"
+    @NonNls private const val PROPORTION_PROPERTY = "project.structure.proportion"
 
-    @NonNls
-    private const val SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion"
+    @NonNls private const val SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion"
 
     @JvmStatic
-    fun getInstance(project: Project): ProjectStructureConfigurable =
-      project.getService(ProjectStructureConfigurable::class.java)
+    fun getInstance(project: Project): ProjectStructureConfigurable = project.getService(ProjectStructureConfigurable::class.java)
 
     private fun parseFloatValue(value: String?): Float = value?.toFloatOrNull() ?: 0f
 

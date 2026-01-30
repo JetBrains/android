@@ -31,7 +31,8 @@ object ReformatUtil {
   @JvmStatic
   fun reformatRearrangeAndSave(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
-      files.asSequence()
+      files
+        .asSequence()
         .filter { it.isFile }
         // We skip gradlew files, which IntelliJ recognizes as shell files and offers to install the bash IDE plugin. These files are
         // created with the right formatting by the templates and we don't want the balloon on startup.
@@ -39,9 +40,7 @@ object ReformatUtil {
         .forEach {
           val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
           reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
-          FileDocumentManager.getInstance().run {
-            getDocument(virtualFile)?.let { document -> saveDocument(document) }
-          }
+          FileDocumentManager.getInstance().run { getDocument(virtualFile)?.let { document -> saveDocument(document) } }
         }
     }
   }
@@ -49,7 +48,7 @@ object ReformatUtil {
   /**
    * Reformats and rearranges the part of the File concerning the PsiElement received
    *
-   * @param project    The project which contains the given element
+   * @param project The project which contains the given element
    * @param psiElement The element to be reformated and rearranged
    */
   @JvmStatic
@@ -61,21 +60,23 @@ object ReformatUtil {
    *
    * Note: reformatting the PSI file requires that this be wrapped in a write command.
    *
-   * @param project            The project which contains the given element
-   * @param virtualFile        Virtual file to be reformatted and rearranged
-   * @param psiElement         The element in the file to be reformatted and rearranged
+   * @param project The project which contains the given element
+   * @param virtualFile Virtual file to be reformatted and rearranged
+   * @param psiElement The element in the file to be reformatted and rearranged
    * @param keepDocumentLocked True if the document will still be modified in the same write action
    */
   @JvmStatic
   @JvmOverloads
-  fun reformatAndRearrange(project: Project,
-                           virtualFile: VirtualFile,
-                           psiElement: PsiElement? = null,
-                           keepDocumentLocked: Boolean = false) {
+  fun reformatAndRearrange(
+    project: Project,
+    virtualFile: VirtualFile,
+    psiElement: PsiElement? = null,
+    keepDocumentLocked: Boolean = false,
+  ) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-    val document = FileDocumentManager.getInstance().getDocument(virtualFile)
-                   ?: return // The file could be a binary file with no editing support...
+    val document =
+      FileDocumentManager.getInstance().getDocument(virtualFile) ?: return // The file could be a binary file with no editing support...
 
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
     psiDocumentManager.commitDocument(document)

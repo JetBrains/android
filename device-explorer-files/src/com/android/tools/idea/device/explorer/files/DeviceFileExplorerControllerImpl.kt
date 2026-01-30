@@ -68,16 +68,6 @@ import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.withTimeout
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.datatransfer.StringSelection
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -94,22 +84,31 @@ import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.MutableTreeNode
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.withTimeout
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.ide.PooledThreadExecutor
 
-/**
- * Implementation of the Device File Explorer application logic
- */
+/** Implementation of the Device File Explorer application logic */
 @UiThread
 class DeviceFileExplorerControllerImpl(
   private val project: Project,
   private val model: DeviceFileExplorerModel,
   private val view: DeviceFileExplorerView,
   private val fileManager: DeviceExplorerFileManager,
-  private val fileOpener: FileOpener
+  private val fileOpener: FileOpener,
 ) : Disposable, DeviceExplorerTabController {
 
   private val scope = AndroidCoroutineScope(this, uiThread)
   var showLoadingNodeDelayMillis = 200
     @TestOnly set
+
   var transferringNodeRepaintMillis = 100
     @TestOnly set
 
@@ -125,6 +124,7 @@ class DeviceFileExplorerControllerImpl(
   private var isPackageFilterActive = DeviceExplorerSettings.getInstance().isPackageFilterActive
   var packageNamesProvider = ProjectApplicationIdsProvider.getInstance(project)
     @TestOnly set
+
   override var controllerListener: DeviceExplorerControllerListener? = null
 
   init {
@@ -184,9 +184,7 @@ class DeviceFileExplorerControllerImpl(
   }
 
   private suspend fun resetActiveDevice() {
-    model.activeDevice?.let {
-      setActiveDevice(it)
-    }
+    model.activeDevice?.let { setActiveDevice(it) }
   }
 
   private fun startNodeDownload(node: DeviceFileEntryNode) {
@@ -265,7 +263,7 @@ class DeviceFileExplorerControllerImpl(
     }
   }
 
-  private fun newDeviceFileSystem(handle: DeviceHandle?, connectedDevice: ConnectedDevice?): AdbDeviceFileSystem?  =
+  private fun newDeviceFileSystem(handle: DeviceHandle?, connectedDevice: ConnectedDevice?): AdbDeviceFileSystem? =
     if (handle != null && connectedDevice != null) AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher) else null
 
   fun hasActiveDevice(): Boolean {
@@ -275,13 +273,15 @@ class DeviceFileExplorerControllerImpl(
   override fun setup() {
     view.setup(isPackageFilterActive)
     view.enablePackageFilter(packageNamesProvider.getPackageNames().isNotEmpty())
-    project.messageBus.connect(this).subscribe(
-      PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
-      ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
-        view.enablePackageFilter(it.isNotEmpty())
-        scope.launch { resetActiveDevice() }
-      }
-    )
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
+        ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
+          view.enablePackageFilter(it.isNotEmpty())
+          scope.launch { resetActiveDevice() }
+        },
+      )
   }
 
   override fun setActiveConnectedDevice(deviceHandle: DeviceHandle?) {
@@ -321,8 +321,7 @@ class DeviceFileExplorerControllerImpl(
           if (device == model.activeDevice && !treeNode.entry.isDirectory) {
             if (treeNode.isTransferring) {
               view.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", RuntimeException())
-            }
-            else if (!treeNode.entry.isSymbolicLinkToDirectory()) {
+            } else if (!treeNode.entry.isSymbolicLinkToDirectory()) {
               downloadAndOpenFile(treeNode)
             }
           }
@@ -338,16 +337,16 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    private suspend fun downloadAndOpenFile(treeNode: DeviceFileEntryNode) = withContext(uiThread) {
-      try {
-        val path = downloadFileEntryToDefaultLocation(treeNode)
-        DeviceExplorerFilesUtils.findFile(path)
-        openFile(treeNode, path)
+    private suspend fun downloadAndOpenFile(treeNode: DeviceFileEntryNode) =
+      withContext(uiThread) {
+        try {
+          val path = downloadFileEntryToDefaultLocation(treeNode)
+          DeviceExplorerFilesUtils.findFile(path)
+          openFile(treeNode, path)
+        } catch (t: Throwable) {
+          view.reportErrorRelatedToNode(treeNode, "Error opening contents of device file ${getUserFacingNodeName(treeNode)}", t)
+        }
       }
-      catch (t: Throwable) {
-        view.reportErrorRelatedToNode(treeNode, "Error opening contents of device file ${getUserFacingNodeName(treeNode)}", t)
-      }
-    }
 
     private fun getTreeNodeFromEntry(treeNode: DeviceFileEntryNode, entryFullPath: String): DeviceFileEntryNode? {
       val treeNodeRoot = getTreeNodeRoot(treeNode) as? DeviceFileEntryNode ?: return null
@@ -387,7 +386,8 @@ class DeviceFileExplorerControllerImpl(
       wrapFileTransfer(
         { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
         { tracker: FileTransferOperationTracker -> downloadFileEntry(treeNode, localPath, tracker) },
-        true)
+        true,
+      )
       return localPath
     }
 
@@ -405,8 +405,7 @@ class DeviceFileExplorerControllerImpl(
           val summary = if (treeNodes.size == 1) saveSingleNodeAs(treeNodes[0]) else saveMultiNodesAs(commonParentNode, treeNodes)
           summary.action = DeviceExplorerEvent.Action.SAVE_AS
           reportSaveNodesAsSummary(commonParentNode, summary)
-        }
-        catch (t: Throwable) {
+        } catch (t: Throwable) {
           view.reportErrorRelatedToNode(commonParentNode, "Error saving file(s) to local file system", t)
         }
       }
@@ -425,22 +424,20 @@ class DeviceFileExplorerControllerImpl(
         wrapFileTransfer(
           { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
           { tracker: FileTransferOperationTracker -> downloadSingleDirectory(treeNode, localDirectory, tracker) },
-          false)
-      }
-      else {
+          false,
+        )
+      } else {
         // If single file, choose the local file path to download to, then download
         val localFile = chooseSaveAsFilePath(treeNode) ?: cancelAndThrow()
         wrapFileTransfer(
           { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
           { tracker: FileTransferOperationTracker -> downloadSingleFile(treeNode, localFile, tracker) },
-          false)
+          false,
+        )
       }
     }
 
-    private suspend fun saveMultiNodesAs(
-      commonParentNode: DeviceFileEntryNode,
-      treeNodes: List<DeviceFileEntryNode>
-    ): FileTransferSummary {
+    private suspend fun saveMultiNodesAs(commonParentNode: DeviceFileEntryNode, treeNodes: List<DeviceFileEntryNode>): FileTransferSummary {
       assert(!treeNodes.isEmpty())
 
       // For downloading multiple entries, choose a local directory path to download to, then download
@@ -454,16 +451,16 @@ class DeviceFileExplorerControllerImpl(
             downloadSingleNode(treeNode, nodePath, tracker)
           }
         },
-        true)
+        true,
+      )
     }
 
     /**
-     * Wrap a file transfer operation (either "SaveAs" or "Upload") so that the operation
-     * shows various UI elements related to progress (and resets them when the operation
-     * is over).
+     * Wrap a file transfer operation (either "SaveAs" or "Upload") so that the operation shows various UI elements related to progress (and
+     * resets them when the operation is over).
      *
-     * @param prepareTransfer An operation to run before the transfer, typically
-     * to estimate the amount of work, used for tracking progress later on
+     * @param prepareTransfer An operation to run before the transfer, typically to estimate the amount of work, used for tracking progress
+     *   later on
      * @param performTransfer The transfer operation itself
      * @return a [FileTransferSummary] when the whole transfer operation finishes
      * @throws CancellationException if the operation is canceled
@@ -471,25 +468,26 @@ class DeviceFileExplorerControllerImpl(
     private suspend fun wrapFileTransfer(
       prepareTransfer: suspend (FileTransferOperationTracker) -> Unit,
       performTransfer: suspend (FileTransferOperationTracker) -> Unit,
-      backgroundable: Boolean
-    ): FileTransferSummary = withContext(uiThread) {
-      val tracker = FileTransferOperationTracker(view, backgroundable)
-      registerLongRunningOperation(tracker)
-      tracker.start()
-      tracker.setCalculatingText(0, 0)
-      tracker.setIndeterminate(true)
-      Disposer.register(this@DeviceFileExplorerControllerImpl, tracker)
-      view.startTreeBusyIndicator()
-      try {
-        prepareTransfer(tracker)
-        tracker.setIndeterminate(false)
-        performTransfer(tracker)
-      } finally {
-        view.stopTreeBusyIndicator()
-        Disposer.dispose(tracker)
+      backgroundable: Boolean,
+    ): FileTransferSummary =
+      withContext(uiThread) {
+        val tracker = FileTransferOperationTracker(view, backgroundable)
+        registerLongRunningOperation(tracker)
+        tracker.start()
+        tracker.setCalculatingText(0, 0)
+        tracker.setIndeterminate(true)
+        Disposer.register(this@DeviceFileExplorerControllerImpl, tracker)
+        view.startTreeBusyIndicator()
+        try {
+          prepareTransfer(tracker)
+          tracker.setIndeterminate(false)
+          performTransfer(tracker)
+        } finally {
+          view.stopTreeBusyIndicator()
+          Disposer.dispose(tracker)
+        }
+        tracker.summary
       }
-      tracker.summary
-    }
 
     suspend fun addUploadOperationWork(tracker: FileTransferOperationTracker, files: List<Path>) =
       files.forEach { addUploadOperationWork(tracker, it) }
@@ -500,17 +498,11 @@ class DeviceFileExplorerControllerImpl(
       tracker.addWorkEstimate(estimate)
     }
 
-    suspend fun addDownloadOperationWork(
-      tracker: FileTransferOperationTracker,
-      entryNodes: List<DeviceFileEntryNode>
-    ) {
+    suspend fun addDownloadOperationWork(tracker: FileTransferOperationTracker, entryNodes: List<DeviceFileEntryNode>) {
       entryNodes.forEach { addDownloadOperationWork(tracker, it) }
     }
 
-    suspend fun addDownloadOperationWork(
-      tracker: FileTransferOperationTracker,
-      entryNode: DeviceFileEntryNode
-    ) {
+    suspend fun addDownloadOperationWork(tracker: FileTransferOperationTracker, entryNode: DeviceFileEntryNode) {
       val progress = createFileTransferEstimatorProgress(tracker)
       val estimate = workEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress)
       tracker.addWorkEstimate(estimate)
@@ -528,11 +520,7 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    private suspend fun downloadSingleNode(
-      node: DeviceFileEntryNode,
-      localPath: Path,
-      tracker: FileTransferOperationTracker
-    ) {
+    private suspend fun downloadSingleNode(node: DeviceFileEntryNode, localPath: Path, tracker: FileTransferOperationTracker) {
       if (node.entry.isDirectory) {
         downloadSingleDirectory(node, localPath, tracker)
       } else {
@@ -540,11 +528,7 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    private suspend fun downloadSingleFile(
-      treeNode: DeviceFileEntryNode,
-      localPath: Path,
-      tracker: FileTransferOperationTracker
-    ) {
+    private suspend fun downloadSingleFile(treeNode: DeviceFileEntryNode, localPath: Path, tracker: FileTransferOperationTracker) {
       assert(!treeNode.entry.isDirectory)
 
       // Download single file
@@ -556,8 +540,7 @@ class DeviceFileExplorerControllerImpl(
         val entrySize = downloadFileEntry(treeNode, localPath, tracker)
         tracker.summary.addFileCount(1)
         tracker.summary.addByteCount(entrySize)
-      }
-      catch (t: Throwable) {
+      } catch (t: Throwable) {
         tracker.addProblem(Exception("Error saving contents of device file ${getUserFacingNodeName(treeNode)}", t))
       }
     }
@@ -565,7 +548,7 @@ class DeviceFileExplorerControllerImpl(
     private suspend fun downloadSingleDirectory(
       treeNode: DeviceFileEntryNode,
       localDirectoryPath: Path,
-      tracker: FileTransferOperationTracker
+      tracker: FileTransferOperationTracker,
     ) {
       assert(treeNode.entry.isDirectory || treeNode.isSymbolicLinkToDirectory)
       if (tracker.isCancelled) {
@@ -597,13 +580,15 @@ class DeviceFileExplorerControllerImpl(
 
     override fun newFileInvoked(parentTreeNode: DeviceFileEntryNode) {
       scope.launch {
-        newFileOrDirectory(parentTreeNode,
-                           "NewTextFile.txt",
-                           UIBundle.message("new.file.dialog.title"),
-                           UIBundle.message("create.new.file.enter.new.file.name.prompt.text"),
-                           UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
-                           { UIBundle.message("create.new.file.could.not.create.file.error.message", it) },
-                           { parentTreeNode.entry.createNewFile(it) })
+        newFileOrDirectory(
+          parentTreeNode,
+          "NewTextFile.txt",
+          UIBundle.message("new.file.dialog.title"),
+          UIBundle.message("create.new.file.enter.new.file.name.prompt.text"),
+          UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
+          { UIBundle.message("create.new.file.could.not.create.file.error.message", it) },
+          { parentTreeNode.entry.createNewFile(it) },
+        )
         trackAction(DeviceExplorerEvent.Action.NEW_FILE)
       }
     }
@@ -652,15 +637,16 @@ class DeviceFileExplorerControllerImpl(
         view.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
-      val fileEntries = nodes.map {it.entry}.toMutableList()
+      val fileEntries = nodes.map { it.entry }.toMutableList()
       val message = createDeleteConfirmationMessage(fileEntries)
-      val returnValue = Messages.showOkCancelDialog(
-        message,
-        UIBundle.message("delete.dialog.title"),
-        ApplicationBundle.message("button.delete"),
-        CommonBundle.getCancelButtonText(),
-        Messages.getQuestionIcon()
-      )
+      val returnValue =
+        Messages.showOkCancelDialog(
+          message,
+          UIBundle.message("delete.dialog.title"),
+          ApplicationBundle.message("button.delete"),
+          CommonBundle.getCancelButtonText(),
+          Messages.getQuestionIcon(),
+        )
       if (returnValue != Messages.OK) {
         return
       }
@@ -670,9 +656,7 @@ class DeviceFileExplorerControllerImpl(
         val problems: MutableList<String> = LinkedList()
         for (fileEntry in fileEntries) {
           try {
-            withTimeout(FILE_ENTRY_DELETION_TIMEOUT) {
-              fileEntry.delete()
-            }
+            withTimeout(FILE_ENTRY_DELETION_TIMEOUT) { fileEntry.delete() }
           } catch (t: Throwable) {
             LOGGER.info("Error deleting file \"${fileEntry.fullPath}\"", t)
             val problemMessage = emptyToNull(ExceptionUtil.getRootCause(t).message) ?: "Error deleting file"
@@ -705,8 +689,10 @@ class DeviceFileExplorerControllerImpl(
           """
   Could not erase file or folder:
   ${problems[0]}
-  """.trimIndent(),
-          UIBundle.message("error.dialog.title"), Messages.getErrorIcon()
+  """
+            .trimIndent(),
+          UIBundle.message("error.dialog.title"),
+          Messages.getErrorIcon(),
         )
         return
       }
@@ -718,7 +704,8 @@ class DeviceFileExplorerControllerImpl(
       Messages.showMessageDialog(
         """Could not erase files or folders:
   ${StringUtil.join(problems, ",\n  ")}${if (more) "\n  ..." else ""}""",
-        UIBundle.message("error.dialog.title"), Messages.getErrorIcon()
+        UIBundle.message("error.dialog.title"),
+        Messages.getErrorIcon(),
       )
     }
 
@@ -730,11 +717,10 @@ class DeviceFileExplorerControllerImpl(
           UIBundle.message("are.you.sure.you.want.to.delete.selected.file.confirmation.message", filesToDelete[0].name)
         }
       } else {
-        val hasFiles = filesToDelete.any {!it.isDirectory}
-        val hasFolders = filesToDelete.any {it.isDirectory}
+        val hasFiles = filesToDelete.any { !it.isDirectory }
+        val hasFolders = filesToDelete.any { it.isDirectory }
         if (hasFiles && hasFolders) {
-          UIBundle
-            .message("are.you.sure.you.want.to.delete.selected.files.and.directories.confirmation.message", filesToDelete.size)
+          UIBundle.message("are.you.sure.you.want.to.delete.selected.files.and.directories.confirmation.message", filesToDelete.size)
         } else if (hasFolders) {
           UIBundle.message("are.you.sure.you.want.to.delete.selected.folders.confirmation.message", filesToDelete.size)
         } else {
@@ -745,13 +731,15 @@ class DeviceFileExplorerControllerImpl(
 
     override fun newDirectoryInvoked(parentTreeNode: DeviceFileEntryNode) {
       scope.launch {
-        newFileOrDirectory(parentTreeNode,
-                           "NewFolder",
-                           UIBundle.message("new.folder.dialog.title"),
-                           UIBundle.message("create.new.folder.enter.new.folder.name.prompt.text"),
-                           UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
-                           { UIBundle.message("create.new.folder.could.not.create.folder.error.message", it) },
-                           { parentTreeNode.entry.createNewDirectory(it) })
+        newFileOrDirectory(
+          parentTreeNode,
+          "NewFolder",
+          UIBundle.message("new.folder.dialog.title"),
+          UIBundle.message("create.new.folder.enter.new.folder.name.prompt.text"),
+          UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
+          { UIBundle.message("create.new.folder.could.not.create.folder.error.message", it) },
+          { parentTreeNode.entry.createNewDirectory(it) },
+        )
         trackAction(DeviceExplorerEvent.Action.NEW_DIRECTORY)
       }
     }
@@ -763,35 +751,39 @@ class DeviceFileExplorerControllerImpl(
       prompt: String,
       emptyErrorMessage: String,
       errorMessage: (String) -> String,
-      createFunction: suspend (String) -> Unit
+      createFunction: suspend (String) -> Unit,
     ) {
       var initialName = initialName
       getTreeModel() ?: return
       while (true) {
-        val newFileName = Messages.showInputDialog(prompt, title, Messages.getQuestionIcon(), initialName,
-                                                   object : InputValidatorEx {
-          override fun getErrorText(inputString: String): String? {
-            if (StringUtil.isEmpty(inputString.trim { it <= ' ' })) {
-              return emptyErrorMessage
-            } else if (inputString.contains(AdbPathUtil.FILE_SEPARATOR)) {
-              return "Path cannot contain \"/\" characters"
-            }
-            return null
-          }
+        val newFileName =
+          Messages.showInputDialog(
+            prompt,
+            title,
+            Messages.getQuestionIcon(),
+            initialName,
+            object : InputValidatorEx {
+              override fun getErrorText(inputString: String): String? {
+                if (StringUtil.isEmpty(inputString.trim { it <= ' ' })) {
+                  return emptyErrorMessage
+                } else if (inputString.contains(AdbPathUtil.FILE_SEPARATOR)) {
+                  return "Path cannot contain \"/\" characters"
+                }
+                return null
+              }
 
-          override fun checkInput(inputString: String): Boolean {
-            return canClose(inputString)
-          }
+              override fun checkInput(inputString: String): Boolean {
+                return canClose(inputString)
+              }
 
-          override fun canClose(inputString: String): Boolean {
-            return !StringUtil.isEmpty(inputString.trim { it <= ' ' })
-          }
-        }) ?: return
+              override fun canClose(inputString: String): Boolean {
+                return !StringUtil.isEmpty(inputString.trim { it <= ' ' })
+              }
+            },
+          ) ?: return
 
         try {
-          withTimeout(FILE_ENTRY_CREATION_TIMEOUT) {
-            createFunction(newFileName)
-          }
+          withTimeout(FILE_ENTRY_CREATION_TIMEOUT) { createFunction(newFileName) }
 
           // Refresh the parent node to show the newly created file
           parentTreeNode.isLoaded = false
@@ -817,12 +809,15 @@ class DeviceFileExplorerControllerImpl(
 
     private fun showErrorMessage(message: String, error: Throwable) {
       // Add error message from exception if we have one
-      val message = actualCause(error).message?.let {
-        message + """
+      val message =
+        actualCause(error).message?.let {
+          message +
+            """
                 :
                 $it
-                """.trimIndent()
-      } ?: message
+                """
+              .trimIndent()
+        } ?: message
 
       // Show error dialog
       Messages.showMessageDialog(message, UIBundle.message("error.dialog.title"), Messages.getErrorIcon())
@@ -859,17 +854,19 @@ class DeviceFileExplorerControllerImpl(
     private suspend fun uploadVirtualFilesInvoked(
       treeNode: DeviceFileEntryNode,
       files: List<VirtualFile>,
-      action: DeviceExplorerEvent.Action
+      action: DeviceExplorerEvent.Action,
     ) {
       if (!checkLongRunningOperationAllowed()) {
         view.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       try {
-        val transferSummary = wrapFileTransfer(
-          { tracker -> addUploadOperationWork(tracker, files.map { Paths.get(it.path) }) },
-          { tracker -> uploadVirtualFiles(treeNode, files, tracker) },
-          true)
+        val transferSummary =
+          wrapFileTransfer(
+            { tracker -> addUploadOperationWork(tracker, files.map { Paths.get(it.path) }) },
+            { tracker -> uploadVirtualFiles(treeNode, files, tracker) },
+            true,
+          )
         transferSummary.action = action
         reportUploadFilesSummary(treeNode, transferSummary)
       } catch (t: Throwable) {
@@ -884,7 +881,7 @@ class DeviceFileExplorerControllerImpl(
     private suspend fun uploadVirtualFiles(
       parentNode: DeviceFileEntryNode,
       files: List<VirtualFile>,
-      tracker: FileTransferOperationTracker
+      tracker: FileTransferOperationTracker,
     ) {
       // Upload each file
       files.forEach { uploadVirtualFile(parentNode, it, tracker) }
@@ -894,11 +891,7 @@ class DeviceFileExplorerControllerImpl(
       loadNodeChildren(parentNode)
     }
 
-    private suspend fun uploadVirtualFile(
-      treeNode: DeviceFileEntryNode,
-      file: VirtualFile,
-      tracker: FileTransferOperationTracker
-    ) {
+    private suspend fun uploadVirtualFile(treeNode: DeviceFileEntryNode, file: VirtualFile, tracker: FileTransferOperationTracker) {
       if (file.isDirectory) {
         uploadDirectory(treeNode, file, tracker)
       } else {
@@ -906,11 +899,7 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    private suspend fun uploadDirectory(
-      parentNode: DeviceFileEntryNode,
-      file: VirtualFile,
-      tracker: FileTransferOperationTracker
-    ) {
+    private suspend fun uploadDirectory(parentNode: DeviceFileEntryNode, file: VirtualFile, tracker: FileTransferOperationTracker) {
       if (tracker.isCancelled) {
         cancelAndThrow()
       }
@@ -925,7 +914,9 @@ class DeviceFileExplorerControllerImpl(
       val createDirectoryResult: Any =
         try {
           parentEntry.createNewDirectory(directoryName)
-        } catch (t: Throwable) { t }
+        } catch (t: Throwable) {
+          t
+        }
 
       // Refresh node entries
       parentNode.isLoaded = false
@@ -941,10 +932,12 @@ class DeviceFileExplorerControllerImpl(
       if (childNode == null) {
         // Note: This would happen if we didn't filter hidden files in the code below
         //       or if we failed to create the child directory
-        tracker.addProblem(when (createDirectoryResult) {
-          is Throwable -> createDirectoryResult
-          else -> Exception("Error creating directory $directoryName")
-        })
+        tracker.addProblem(
+          when (createDirectoryResult) {
+            is Throwable -> createDirectoryResult
+            else -> Exception("Error creating directory $directoryName")
+          }
+        )
         return
       }
 
@@ -955,11 +948,7 @@ class DeviceFileExplorerControllerImpl(
       uploadVirtualFiles(childNode, childFiles, tracker)
     }
 
-    private suspend fun uploadFile(
-      parentNode: DeviceFileEntryNode,
-      file: VirtualFile,
-      tracker: FileTransferOperationTracker
-    ) {
+    private suspend fun uploadFile(parentNode: DeviceFileEntryNode, file: VirtualFile, tracker: FileTransferOperationTracker) {
       if (tracker.isCancelled) {
         cancelAndThrow()
       }
@@ -971,62 +960,65 @@ class DeviceFileExplorerControllerImpl(
       val localPath = Paths.get(file.path)
       val uploadState = UploadFileState()
       try {
-        parentEntry.uploadFile(localPath, object : FileTransferProgress {
-          private var previousBytes: Long = 0
-          @UiThread
-          override fun progress(currentBytes: Long, totalBytes: Long) {
-            // Update progress UI
-            tracker.processFileBytes(currentBytes - previousBytes)
-            tracker.setUploadFileText(file, currentBytes, totalBytes)
-            previousBytes = currentBytes
-            if (tracker.isInForeground) {
-              // Update Tree UI
-              uploadState.byteCount = totalBytes
+        parentEntry.uploadFile(
+          localPath,
+          object : FileTransferProgress {
+            private var previousBytes: Long = 0
 
-              // First check if child node already exists
-              if (uploadState.childNode == null) {
-                val fileName = localPath.fileName.toString()
-                uploadState.childNode = parentNode.findChildEntry(fileName)
-                if (uploadState.childNode != null) {
-                  startNodeUpload(uploadState.childNode!!)
+            @UiThread
+            override fun progress(currentBytes: Long, totalBytes: Long) {
+              // Update progress UI
+              tracker.processFileBytes(currentBytes - previousBytes)
+              tracker.setUploadFileText(file, currentBytes, totalBytes)
+              previousBytes = currentBytes
+              if (tracker.isInForeground) {
+                // Update Tree UI
+                uploadState.byteCount = totalBytes
+
+                // First check if child node already exists
+                if (uploadState.childNode == null) {
+                  val fileName = localPath.fileName.toString()
+                  uploadState.childNode = parentNode.findChildEntry(fileName)
+                  if (uploadState.childNode != null) {
+                    startNodeUpload(uploadState.childNode!!)
+                  }
                 }
-              }
 
-              // If the child node entry is present, simply update its upload status
-              uploadState.childNode?.let { childNode ->
-                childNode.setTransferProgress(currentBytes, totalBytes)
+                // If the child node entry is present, simply update its upload status
+                uploadState.childNode?.let { childNode ->
+                  childNode.setTransferProgress(currentBytes, totalBytes)
 
-                // Signal upload is done if we got all the bytes
-                if (currentBytes == totalBytes && tracker.isInForeground) {
-                  stopNodeUpload(childNode)
+                  // Signal upload is done if we got all the bytes
+                  if (currentBytes == totalBytes && tracker.isInForeground) {
+                    stopNodeUpload(childNode)
+                  }
+                  return
                 }
-                return
-              }
 
-              // If we already tried to load the children, reset so we try again
-              if (uploadState.loadChildrenJob != null && uploadState.loadChildrenJob!!.isCompleted) {
-                uploadState.loadChildrenJob = null
-              }
+                // If we already tried to load the children, reset so we try again
+                if (uploadState.loadChildrenJob != null && uploadState.loadChildrenJob!!.isCompleted) {
+                  uploadState.loadChildrenJob = null
+                }
 
-              // Start loading children
-              if (currentBytes > 0) {
-                if (uploadState.loadChildrenJob == null) {
-                  parentNode.isLoaded = false
-                  uploadState.loadChildrenJob = scope.launch { loadNodeChildren(parentNode) }
+                // Start loading children
+                if (currentBytes > 0) {
+                  if (uploadState.loadChildrenJob == null) {
+                    parentNode.isLoaded = false
+                    uploadState.loadChildrenJob = scope.launch { loadNodeChildren(parentNode) }
+                  }
                 }
               }
             }
-          }
 
-          @WorkerThread
-          override fun isCancelled(): Boolean {
-            return tracker.isCancelled
-          }
-        })
+            @WorkerThread
+            override fun isCancelled(): Boolean {
+              return tracker.isCancelled
+            }
+          },
+        )
 
         tracker.summary.addFileCount(1)
         tracker.summary.addByteCount(uploadState.byteCount)
-
       } catch (t: Throwable) {
         tracker.addProblem(t)
       }
@@ -1037,14 +1029,14 @@ class DeviceFileExplorerControllerImpl(
     private inner class UploadFileState(
       var loadChildrenJob: Job? = null,
       var childNode: DeviceFileEntryNode? = null,
-      var byteCount: Long = 0
+      var byteCount: Long = 0,
     )
 
     private fun reportFileTransferSummary(
       node: DeviceFileEntryNode,
       summary: FileTransferSummary,
       pastParticiple: String,
-      presentParticiple: String
+      presentParticiple: String,
     ) {
       val fileString = StringUtil.pluralize("file", summary.fileCount)
       val directoryString = StringUtil.pluralize("directory", summary.directoryCount)
@@ -1063,31 +1055,32 @@ class DeviceFileExplorerControllerImpl(
 
       // Report success if no errors
       if (summary.problems.isEmpty()) {
-        val successMessage = if (summary.directoryCount > 0) {
-          String.format(
-            Locale.getDefault(),
-            "Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
-            pastParticiple,
-            summary.fileCount,
-            fileString,
-            summary.directoryCount,
-            directoryString,
-            summary.byteCount,
-            byteCountString,
-            StringUtil.formatDuration(summary.durationMillis)
-          )
-        } else {
-          String.format(
-            Locale.getDefault(),
-            "Successfully %s %,d %s for a total of size of %,d %s in %s.",
-            pastParticiple,
-            summary.fileCount,
-            fileString,
-            summary.byteCount,
-            byteCountString,
-            StringUtil.formatDuration(summary.durationMillis)
-          )
-        }
+        val successMessage =
+          if (summary.directoryCount > 0) {
+            String.format(
+              Locale.getDefault(),
+              "Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
+              pastParticiple,
+              summary.fileCount,
+              fileString,
+              summary.directoryCount,
+              directoryString,
+              summary.byteCount,
+              byteCountString,
+              StringUtil.formatDuration(summary.durationMillis),
+            )
+          } else {
+            String.format(
+              Locale.getDefault(),
+              "Successfully %s %,d %s for a total of size of %,d %s in %s.",
+              pastParticiple,
+              summary.fileCount,
+              fileString,
+              summary.byteCount,
+              byteCountString,
+              StringUtil.formatDuration(summary.durationMillis),
+            )
+          }
         view.reportMessageRelatedToNode(node, successMessage)
         return
       }
@@ -1101,17 +1094,18 @@ class DeviceFileExplorerControllerImpl(
       }
       var message = String.format("There were errors %s files and/or directories", presentParticiple)
       if (summary.fileCount > 0) {
-        message += String.format(
-          Locale.getDefault(),
-          ", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
-          summary.fileCount,
-          fileString,
-          if (summary.fileCount <= 1) "was" else "were",
-          pastParticiple,
-          StringUtil.formatDuration(summary.durationMillis),
-          summary.byteCount,
-          byteCountString
-        )
+        message +=
+          String.format(
+            Locale.getDefault(),
+            ", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
+            summary.fileCount,
+            fileString,
+            if (summary.fileCount <= 1) "was" else "were",
+            pastParticiple,
+            StringUtil.formatDuration(summary.durationMillis),
+            summary.byteCount,
+            byteCountString,
+          )
       }
       view.reportErrorRelatedToNode(
         node,
@@ -1119,7 +1113,7 @@ class DeviceFileExplorerControllerImpl(
         Exception(
           """
   ${StringUtil.join(problems, ",\n  ")}${if (more) "\n  ..." else ""}"""
-        )
+        ),
       )
     }
 
@@ -1134,27 +1128,28 @@ class DeviceFileExplorerControllerImpl(
     private suspend fun chooseSaveAsFilePath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
-      val baseDir = withContext(diskIoThread) {
-        FileUtils.mkdirs(localPath.parent.toFile())
-        VfsUtil.findFileByIoFile(localPath.parent.toFile(), true)
-            ?: throw Exception("Unable to locate file \"${localPath.parent}\"")
-      }
-      val fileWrapper = withContext(uiThread) {
-        val descriptor = FileSaverDescriptor("Save As", "")
-        val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
-        saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: cancelAndThrow()
-      }
+      val baseDir =
+        withContext(diskIoThread) {
+          FileUtils.mkdirs(localPath.parent.toFile())
+          VfsUtil.findFileByIoFile(localPath.parent.toFile(), true) ?: throw Exception("Unable to locate file \"${localPath.parent}\"")
+        }
+      val fileWrapper =
+        withContext(uiThread) {
+          val descriptor = FileSaverDescriptor("Save As", "")
+          val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+          saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: cancelAndThrow()
+        }
       return fileWrapper.file.toPath()
     }
 
     private suspend fun chooseSaveAsDirectoryPath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
-      val localDir = withContext(diskIoThread) {
-        FileUtils.mkdirs(localPath.toFile())
-        VfsUtil.findFileByIoFile(localPath.toFile(), true)
-        ?: throw Exception("Unable to locate directory \"${localPath.parent}\"")
-      }
+      val localDir =
+        withContext(diskIoThread) {
+          FileUtils.mkdirs(localPath.toFile())
+          VfsUtil.findFileByIoFile(localPath.toFile(), true) ?: throw Exception("Unable to locate directory \"${localPath.parent}\"")
+        }
       val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
       val resultPath = AtomicReference<Path?>(null)
       withContext(uiThread) {
@@ -1168,11 +1163,7 @@ class DeviceFileExplorerControllerImpl(
       return resultPath.get()
     }
 
-    private suspend fun downloadFileEntry(
-      treeNode: DeviceFileEntryNode,
-      localPath: Path,
-      tracker: FileTransferOperationTracker
-    ): Long {
+    private suspend fun downloadFileEntry(treeNode: DeviceFileEntryNode, localPath: Path, tracker: FileTransferOperationTracker): Long {
       if (tracker.isCancelled) {
         cancelAndThrow()
       }
@@ -1180,49 +1171,52 @@ class DeviceFileExplorerControllerImpl(
       val entry = treeNode.entry
       val sizeRef = CompletableDeferred<Long>()
       val stopwatch = Stopwatch.createStarted()
-      fileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
-        private var previousBytes: Long = 0
-        @UiThread
-        override fun onStarting(entryFullPath: String) {
-          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-          previousBytes = 0
-          startNodeDownload(currentNode)
-        }
+      fileManager.downloadFileEntry(
+        entry,
+        localPath,
+        object : DownloadProgress {
+          private var previousBytes: Long = 0
 
-        @UiThread
-        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
-          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-          tracker.processFileBytes(currentBytes - previousBytes)
-          previousBytes = currentBytes
-          tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes)
-          if (tracker.isInForeground) {
-            currentNode.setTransferProgress(currentBytes, totalBytes)
-          }
-        }
-
-        @UiThread
-        override fun onCompleted(entryFullPath: String) {
-          sizeRef.complete(previousBytes)
-          if (tracker.isInForeground) {
+          @UiThread
+          override fun onStarting(entryFullPath: String) {
             val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-            stopNodeDownload(currentNode)
+            previousBytes = 0
+            startNodeDownload(currentNode)
           }
-        }
 
-        @AnyThread
-        override fun isCancelled(): Boolean {
-          return tracker.isCancelled
-        }
-      })
+          @UiThread
+          override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
+            val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+            tracker.processFileBytes(currentBytes - previousBytes)
+            previousBytes = currentBytes
+            tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes)
+            if (tracker.isInForeground) {
+              currentNode.setTransferProgress(currentBytes, totalBytes)
+            }
+          }
+
+          @UiThread
+          override fun onCompleted(entryFullPath: String) {
+            sizeRef.complete(previousBytes)
+            if (tracker.isInForeground) {
+              val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+              stopNodeDownload(currentNode)
+            }
+          }
+
+          @AnyThread
+          override fun isCancelled(): Boolean {
+            return tracker.isCancelled
+          }
+        },
+      )
       LOGGER.trace("Downloaded file in $stopwatch: ${entry.fullPath}")
       // downloadFileEntry may complete before onCompleted is called
       return sizeRef.await()
     }
 
     override fun treeNodeExpanding(node: DeviceFileEntryNode) {
-      scope.launch {
-        loadNodeChildren(node)
-      }
+      scope.launch { loadNodeChildren(node) }
     }
 
     private suspend fun loadNodeChildren(node: DeviceFileEntryNode) {
@@ -1255,7 +1249,9 @@ class DeviceFileExplorerControllerImpl(
       startLoadChildren(node)
       try {
         val shouldFilterEntries = node.entry.fullPath.matches(Regex("/data/data/")) && shouldUsePackageFilter()
-        val entries = if (shouldFilterEntries) node.entry.entries().filter { packageNamesProvider.getPackageNames().contains(it.name) } else node.entry.entries()
+        val entries =
+          if (shouldFilterEntries) node.entry.entries().filter { packageNamesProvider.getPackageNames().contains(it.name) }
+          else node.entry.entries()
         if (treeModel != getTreeModel()) {
           // We switched to another device, ignore this callback
           return
@@ -1265,17 +1261,14 @@ class DeviceFileExplorerControllerImpl(
         val oldSelections = treeSelectionModel.selectionPaths
 
         // Collect existing entries that have the "isLinkToDirectory" property set
-        val isLinkToDirectory = node.childEntryNodes
-          .filter { it.isSymbolicLinkToDirectory }
-          .map { it.entry.name }
-          .toSet()
+        val isLinkToDirectory = node.childEntryNodes.filter { it.isSymbolicLinkToDirectory }.map { it.entry.name }.toSet()
 
         // Sort new entries according to presentation sort order
-        val comparator = NodeSorting.CustomComparator<DeviceFileEntry>(
-          nameProvider = { it.name },
-          isDirectory = {
-            it.isDirectory || isLinkToDirectory.contains(it.name)
-          })
+        val comparator =
+          NodeSorting.CustomComparator<DeviceFileEntry>(
+            nameProvider = { it.name },
+            isDirectory = { it.isDirectory || isLinkToDirectory.contains(it.name) },
+          )
 
         val addedNodes = updateChildrenNodes(treeModel, node, entries.sortedWith(comparator))
         LOGGER.debug("Number of nodes added: ${addedNodes.size}")
@@ -1286,8 +1279,8 @@ class DeviceFileExplorerControllerImpl(
         val symlinkNodes = addedNodes.filter { it.entry.isSymbolicLink }
         querySymbolicLinks(symlinkNodes, treeModel)
       } catch (t: Throwable) {
-        val message = emptyToNull(ExceptionUtil.getRootCause(t).message)
-                      ?: "Unable to list entries of directory ${getUserFacingNodeName(node)}"
+        val message =
+          emptyToNull(ExceptionUtil.getRootCause(t).message) ?: "Unable to list entries of directory ${getUserFacingNodeName(node)}"
         node.removeAllChildren()
         node.add(ErrorNode(message))
         node.allowsChildren = true
@@ -1301,7 +1294,7 @@ class DeviceFileExplorerControllerImpl(
     private fun updateChildrenNodes(
       treeModel: DefaultTreeModel,
       parentNode: DeviceFileEntryNode,
-      newEntries: List<DeviceFileEntry>
+      newEntries: List<DeviceFileEntry>,
     ): List<DeviceFileEntryNode> {
       val updateChildrenOps: UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry> =
         object : UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry> {
@@ -1316,17 +1309,11 @@ class DeviceFileExplorerControllerImpl(
             return DeviceFileEntryNode(entry)
           }
 
-          override fun compareNodeWithEntry(
-            node: DeviceFileEntryNode,
-            entry: DeviceFileEntry
-          ): Int {
+          override fun compareNodeWithEntry(node: DeviceFileEntryNode, entry: DeviceFileEntry): Int {
             return node.entry.name.compareTo(entry.name)
           }
 
-          override fun updateNode(
-            node: DeviceFileEntryNode,
-            entry: DeviceFileEntry
-          ) {
+          override fun updateNode(node: DeviceFileEntryNode, entry: DeviceFileEntry) {
             node.entry = entry
           }
         }
@@ -1338,7 +1325,7 @@ class DeviceFileExplorerControllerImpl(
     private fun restoreTreeSelection(
       treeSelectionModel: DefaultTreeSelectionModel,
       oldSelections: Array<TreePath>,
-      parentNode: DefaultMutableTreeNode
+      parentNode: DefaultMutableTreeNode,
     ) {
       val newSelections: MutableSet<TreePath> = HashSet()
       val parentPath = TreePath(parentNode.path)
@@ -1353,7 +1340,7 @@ class DeviceFileExplorerControllerImpl(
       treeSelectionModel: DefaultTreeSelectionModel,
       parentPath: TreePath,
       oldPath: TreePath,
-      selections: MutableSet<TreePath>
+      selections: MutableSet<TreePath>,
     ) {
       if (treeSelectionModel.isPathSelected(oldPath)) {
         return
@@ -1365,32 +1352,30 @@ class DeviceFileExplorerControllerImpl(
         return
       }
       val node = parentPath.lastPathComponent as TreeNode
-      val existingChild = TreeUtil.getChildren(node)
-        .filter { x: TreeNode? -> x == oldPath.lastPathComponent }
-        .findFirst()
-        .orElse(null)
+      val existingChild = TreeUtil.getChildren(node).filter { x: TreeNode? -> x == oldPath.lastPathComponent }.findFirst().orElse(null)
       if (existingChild == null) {
         selections.add(parentPath)
       }
     }
 
     /**
-     * Asynchronously update the tree node UI of the `symlinkNodes` entries if they target
-     * a directory, i.e. update tree nodes with a "Folder" and "Expandable arrow" icon.
+     * Asynchronously update the tree node UI of the `symlinkNodes` entries if they target a directory, i.e. update tree nodes with a
+     * "Folder" and "Expandable arrow" icon.
      */
     private suspend fun querySymbolicLinks(symlinkNodes: List<DeviceFileEntryNode>, treeModel: DefaultTreeModel) {
       // Note: We process (asynchronously) one entry at a time, instead of all of them in parallel,
       //       to avoid flooding the device with too many requests, which would eventually lead
       //       to the device to reject additional requests.
       for (treeNode in symlinkNodes) {
-        val isDirectory = try {
-          treeNode.entry.isSymbolicLinkToDirectory()
-        } catch (t: Throwable) {
-          // Log error, but keep going as we may have more symlinkNodes to examine
-          LOGGER.info("Error determining if file entry \"${treeNode.entry.name}\" is a link to a directory", t)
-          // In case of error, we assume the entry does not target a directory.
-          false
-        }
+        val isDirectory =
+          try {
+            treeNode.entry.isSymbolicLinkToDirectory()
+          } catch (t: Throwable) {
+            // Log error, but keep going as we may have more symlinkNodes to examine
+            LOGGER.info("Error determining if file entry \"${treeNode.entry.name}\" is a link to a directory", t)
+            // In case of error, we assume the entry does not target a directory.
+            false
+          }
 
         // Stop all processing if tree model has changed, i.e. UI has been switched to another device
         if (model.treeModel != treeModel) {
@@ -1428,10 +1413,7 @@ class DeviceFileExplorerControllerImpl(
     log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-        .setDeviceExplorerEvent(
-          DeviceExplorerEvent.newBuilder()
-            .setAction(action)
-        )
+        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder().setAction(action))
     )
   }
 
@@ -1461,22 +1443,18 @@ class DeviceFileExplorerControllerImpl(
     loadingChildrenAlarms.addRequest(::repaintLoadingChildren, transferringNodeRepaintMillis)
   }
 
-  private fun shouldUsePackageFilter() =
-    isPackageFilterActive && packageNamesProvider.getPackageNames().isNotEmpty()
+  private fun shouldUsePackageFilter() = isPackageFilterActive && packageNamesProvider.getPackageNames().isNotEmpty()
 
-  @VisibleForTesting object NodeSorting {
-    /**
-     * Compare [DeviceFileEntryNode] by directory first, by name second.
-     */
-    object EntryNodeComparator : Comparator<DeviceFileEntryNode?> by CustomComparator(
-      nameProvider = { it.entry.name },
-      isDirectory = { it.entry.isDirectory || it.isSymbolicLinkToDirectory }
-    )
+  @VisibleForTesting
+  object NodeSorting {
+    /** Compare [DeviceFileEntryNode] by directory first, by name second. */
+    object EntryNodeComparator :
+      Comparator<DeviceFileEntryNode?> by CustomComparator(
+        nameProvider = { it.entry.name },
+        isDirectory = { it.entry.isDirectory || it.isSymbolicLinkToDirectory },
+      )
 
-    /**
-     * Compare [TreeNode] as [DeviceFileEntryNode]. Any other type of tree node
-     * is considered "less than".
-     */
+    /** Compare [TreeNode] as [DeviceFileEntryNode]. Any other type of tree node is considered "less than". */
     object TreeNodeComparator : Comparator<TreeNode> {
       override fun compare(o1: TreeNode, o2: TreeNode): Int =
         when {
@@ -1493,26 +1471,20 @@ class DeviceFileExplorerControllerImpl(
     }
 
     /**
-     * Compares nulls first, then directories first, then compares files by their name (case insensitive).
-     * Uses the supplied functions to determine what is a directory and what the file names are.
+     * Compares nulls first, then directories first, then compares files by their name (case insensitive). Uses the supplied functions to
+     * determine what is a directory and what the file names are.
      */
-    class CustomComparator<V>(
-      nameProvider: (V) -> String,
-      isDirectory: (V) -> Boolean
-    ) : Comparator<V?> by nullsFirst(compareByDescending<V> {isDirectory(it)}.thenComparing(nameProvider, CompareCaseInsensitive))
-
+    class CustomComparator<V>(nameProvider: (V) -> String, isDirectory: (V) -> Boolean) :
+      Comparator<V?> by nullsFirst(compareByDescending<V> { isDirectory(it) }.thenComparing(nameProvider, CompareCaseInsensitive))
   }
 
   interface FileOpener {
-    @UiThread
-    suspend fun openFile(localPath: Path)
+    @UiThread suspend fun openFile(localPath: Path)
   }
 
   companion object {
     private val LOGGER = logger<DeviceFileExplorerControllerImpl>()
-    private val KEY = Key.create<DeviceFileExplorerControllerImpl>(
-      DeviceFileExplorerControllerImpl::class.java.name
-    )
+    private val KEY = Key.create<DeviceFileExplorerControllerImpl>(DeviceFileExplorerControllerImpl::class.java.name)
     private const val DEVICE_EXPLORER_BUSY_MESSAGE = "Device Explorer is busy, please retry later or cancel current operation"
     private val FILE_ENTRY_CREATION_TIMEOUT = Duration.ofMillis(10000)
     private val FILE_ENTRY_DELETION_TIMEOUT = Duration.ofMillis(10000)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("StreamingConstants")
+
 package com.android.tools.idea.streaming.core
 
 import com.intellij.notification.NotificationGroup
@@ -23,7 +24,6 @@ import icons.StudioIcons
 import javax.swing.JComponent
 
 /** Constants for the Running Devices tool window. */
-
 @JvmField val DISPLAY_VIEW_KEY = DataKey.create<AbstractDisplayView>("DisplayView")
 
 @JvmField val STREAMING_CONTENT_PANEL_KEY = DataKey.create<JComponent>("StreamingContentPanel")
@@ -37,12 +37,13 @@ internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
 
 internal const val STREAMING_SECONDARY_TOOLBAR_ID = "StreamingToolbarSecondary"
 
-internal val FOLDING_STATE_ICONS = mapOf(
-  "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
-  "Dual Display Mode" to StudioIcons.Emulator.Menu.POSTURE_DUAL_DISPLAY,
-  "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
-  "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
-  "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
-  "Rear Display Mode" to StudioIcons.Emulator.Menu.POSTURE_REAR_DISPLAY,
-  "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
-)
+internal val FOLDING_STATE_ICONS =
+  mapOf(
+    "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
+    "Dual Display Mode" to StudioIcons.Emulator.Menu.POSTURE_DUAL_DISPLAY,
+    "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
+    "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
+    "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
+    "Rear Display Mode" to StudioIcons.Emulator.Menu.POSTURE_REAR_DISPLAY,
+    "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
+  )

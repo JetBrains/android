@@ -18,11 +18,8 @@ package com.google.idea.blaze.android.run.runner
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs
 
-/** Builds the APK and optionally installs the APK.  */
+/** Builds the APK and optionally installs the APK. */
 fun interface ApkBuildStep {
-  /**
-   * Builds and optionally installs the APK. Errors and messages are bubbled up to the caller via
-   * the given [BlazeContext].
-   */
+  /** Builds and optionally installs the APK. Errors and messages are bubbled up to the caller via the given [BlazeContext]. */
   fun build(context: BlazeContext): BlazeBuildOutputs
 }

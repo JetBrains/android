@@ -53,22 +53,19 @@ class CodeTransformationDeterminerTest {
   }
 
   @Test
-  fun `suggest fix with instruction that does not contain extract phrase returns empty transformation`() =
-    runBlocking {
-      assertThat(determiner.getApplicableTransformation("")).isEqualTo(NoopTransformation)
-      assertThat(determiner.getApplicableTransformation("Text text text text"))
-        .isEqualTo(NoopTransformation)
-    }
+  fun `suggest fix with instruction that does not contain extract phrase returns empty transformation`() = runBlocking {
+    assertThat(determiner.getApplicableTransformation("")).isEqualTo(NoopTransformation)
+    assertThat(determiner.getApplicableTransformation("Text text text text")).isEqualTo(NoopTransformation)
+  }
 
   @Test
-  fun `suggest fix with instruction that has extract phrase returns correct transformation`():
-    Unit = runBlocking {
+  fun `suggest fix with instruction that has extract phrase returns correct transformation`(): Unit = runBlocking {
     val instruction =
       """
-          This bug is bad.
+      This bug is bad.
 
-          The fix should likely be in AndroidManifest.xml.
-        """
+      The fix should likely be in AndroidManifest.xml.
+      """
         .trimIndent()
     val transformation = determiner.getApplicableTransformation(instruction)
 
@@ -79,36 +76,34 @@ class CodeTransformationDeterminerTest {
   }
 
   @Test
-  fun `insight with extract phrase but could not match project file returns empty transformation`() =
-    runBlocking {
-      returnFilesOverride = emptyList()
-      val instruction =
-        """
-          This bug is bad.
+  fun `insight with extract phrase but could not match project file returns empty transformation`() = runBlocking {
+    returnFilesOverride = emptyList()
+    val instruction =
+      """
+      This bug is bad.
 
-          The fix should likely be in AndroidManifest.xml.
-        """
-          .trimIndent()
-      val transformation = determiner.getApplicableTransformation(instruction)
+      The fix should likely be in AndroidManifest.xml.
+      """
+        .trimIndent()
+    val transformation = determiner.getApplicableTransformation(instruction)
 
-      assertThat(transformation).isInstanceOf(NoopTransformation::class.java)
-    }
+    assertThat(transformation).isInstanceOf(NoopTransformation::class.java)
+  }
 
   @Test
   fun `insight with multiple files is parsed correctly`(): Unit = runBlocking {
     val instruction =
       """
-          This bug is bad.
+      This bug is bad.
 
-          The fix should likely be in AndroidManifest.xml, com/android/test/HelloWorld.kt.
-        """
+      The fix should likely be in AndroidManifest.xml, com/android/test/HelloWorld.kt.
+      """
         .trimIndent()
     val transformation = determiner.getApplicableTransformation(instruction)
 
     assertThat(transformation).isInstanceOf(CodeTransformationImpl::class.java)
     transformation as CodeTransformationImpl
     assertThat(transformation.instruction).isEqualTo(instruction)
-    assertThat(transformation.files.map { it.path })
-      .containsExactly("AndroidManifest.xml", "com/android/test/HelloWorld.kt")
+    assertThat(transformation.files.map { it.path }).containsExactly("AndroidManifest.xml", "com/android/test/HelloWorld.kt")
   }
 }

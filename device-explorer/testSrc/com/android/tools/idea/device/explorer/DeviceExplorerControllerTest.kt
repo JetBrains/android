@@ -28,25 +28,22 @@ import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 class DeviceExplorerControllerTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk()
 
   private val project: Project
     get() = androidProjectRule.project
 
-  @JvmField
-  @Rule
-  val deviceProvisionerRule = DeviceProvisionerRule()
+  @JvmField @Rule val deviceProvisionerRule = DeviceProvisionerRule()
 
   private lateinit var model: DeviceExplorerModel
   private lateinit var view: MockDeviceExplorerView
@@ -62,96 +59,101 @@ class DeviceExplorerControllerTest {
   @After
   fun tearDown() {
     for (device in deviceProvisionerRule.deviceProvisioner.devices.value) {
-      device.state.connectedDevice?.serialNumber?.let {
-        deviceProvisionerRule.fakeAdb.disconnectDevice(it)
-      }
+      device.state.connectedDevice?.serialNumber?.let { deviceProvisionerRule.fakeAdb.disconnectDevice(it) }
     }
   }
 
   @Test
-  fun controllerIsSetAsProjectKey() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare Act
-    val controller = createController()
+  fun controllerIsSetAsProjectKey() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare Act
+      val controller = createController()
 
-    // Assert
-    assertThat(controller).isEqualTo(DeviceExplorerController.getProjectController(project))
-  }
-
-  @Test
-  fun startControllerWithNoDeviceConnected() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val controller = createController()
-
-    // Act
-    controller.setup()
-
-    // Assert
-    pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
-    assertThat(view.viewComboBox().isVisible).isFalse()
-    assertThat(view.viewTabPane().isVisible).isFalse()
-  }
+      // Assert
+      assertThat(controller).isEqualTo(DeviceExplorerController.getProjectController(project))
+    }
 
   @Test
-  fun startControllerWithDeviceConnected() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val controller = createController()
-    connectDevice("test_device_01")
+  fun startControllerWithNoDeviceConnected() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare
+      val controller = createController()
 
-    // Act
-    controller.setup()
+      // Act
+      controller.setup()
 
-    // Assert
-    pumpEventsAndWaitForFutures(tabController.activeDeviceTracker.consumeMany(2))
-    assertThat(view.viewComboBox().isVisible).isTrue()
-    assertThat(view.viewComboBox().itemCount).isEqualTo(1)
-    assertThat(view.viewTabPane().isVisible).isTrue()
-  }
-
-  @Test
-  fun deviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val controller = createController()
-    connectDevice("test_device_01")
-    val newDeviceState = connectDevice("test_device_02")
-    controller.setup()
-    waitForCondition { view.viewComboBox().itemCount == 2 }
-
-    // Act
-    controller.selectActiveDevice(newDeviceState.deviceId)
-
-    // Assert
-    waitForCondition { (view.viewComboBox().selectedItem as? DeviceHandle)?.state?.connectedDevice?.serialNumber ==  newDeviceState.deviceId }
-    assertThat(view.viewComboBox().isVisible).isTrue()
-    assertThat(view.viewTabPane().isVisible).isTrue()
-  }
+      // Assert
+      pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
+      assertThat(view.viewComboBox().isVisible).isFalse()
+      assertThat(view.viewTabPane().isVisible).isFalse()
+    }
 
   @Test
-  fun simulatePackageFilterSelection() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
+  fun startControllerWithDeviceConnected() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare
+      val controller = createController()
+      connectDevice("test_device_01")
 
-    // Act
-    controller.packageFilterToggled(true)
+      // Act
+      controller.setup()
 
-    // Assert
-    pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
-    val isActive = pumpEventsAndWaitForFuture(tabController.packageFilterTracker.consume())
-    assertThat(isActive).isTrue()
-  }
+      // Assert
+      pumpEventsAndWaitForFutures(tabController.activeDeviceTracker.consumeMany(2))
+      assertThat(view.viewComboBox().isVisible).isTrue()
+      assertThat(view.viewComboBox().itemCount).isEqualTo(1)
+      assertThat(view.viewTabPane().isVisible).isTrue()
+    }
 
-  private fun createController(): DeviceExplorerController =
-    DeviceExplorerController(project, model, view, listOf(tabController))
+  @Test
+  fun deviceSelection() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare
+      val controller = createController()
+      connectDevice("test_device_01")
+      val newDeviceState = connectDevice("test_device_02")
+      controller.setup()
+      waitForCondition { view.viewComboBox().itemCount == 2 }
+
+      // Act
+      controller.selectActiveDevice(newDeviceState.deviceId)
+
+      // Assert
+      waitForCondition {
+        (view.viewComboBox().selectedItem as? DeviceHandle)?.state?.connectedDevice?.serialNumber == newDeviceState.deviceId
+      }
+      assertThat(view.viewComboBox().isVisible).isTrue()
+      assertThat(view.viewTabPane().isVisible).isTrue()
+    }
+
+  @Test
+  fun simulatePackageFilterSelection() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      // Prepare
+      val controller = createController()
+      controller.setup()
+
+      // Act
+      controller.packageFilterToggled(true)
+
+      // Assert
+      pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
+      val isActive = pumpEventsAndWaitForFuture(tabController.packageFilterTracker.consume())
+      assertThat(isActive).isTrue()
+    }
+
+  private fun createController(): DeviceExplorerController = DeviceExplorerController(project, model, view, listOf(tabController))
 
   private fun connectDevice(deviceId: String): DeviceState {
-    val deviceState = deviceProvisionerRule.fakeAdb.connectDevice(
-      deviceId = deviceId,
-      manufacturer = "Google",
-      deviceModel = "Pixel 10",
-      release = "8.0",
-      sdk = AndroidApiLevel(31),
-      hostConnectionType = DeviceState.HostConnectionType.USB
-    )
+    val deviceState =
+      deviceProvisionerRule.fakeAdb.connectDevice(
+        deviceId = deviceId,
+        manufacturer = "Google",
+        deviceModel = "Pixel 10",
+        release = "8.0",
+        sdk = AndroidApiLevel(31),
+        hostConnectionType = DeviceState.HostConnectionType.USB,
+      )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
     return deviceState
   }

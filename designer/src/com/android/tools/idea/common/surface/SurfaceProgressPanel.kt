@@ -24,15 +24,12 @@ import java.awt.Dimension
 import javax.swing.JPanel
 
 /**
- * Panel which displays the progress icon. The progress icon can either be a large icon in the
- * center, when there is no rendering showing, or a small icon in the upper right corner when there
- * is a rendering. This is necessary because even though the progress icon looks good on some
- * renderings, depending on the layout theme colors it is invisible in other cases.
+ * Panel which displays the progress icon. The progress icon can either be a large icon in the center, when there is no rendering showing,
+ * or a small icon in the upper right corner when there is a rendering. This is necessary because even though the progress icon looks good
+ * on some renderings, depending on the layout theme colors it is invisible in other cases.
  */
-class SurfaceProgressPanel(
-  private val parentDisposable: Disposable,
-  private val useSmallProgressIcon: () -> Boolean,
-) : JPanel(BorderLayout()) {
+class SurfaceProgressPanel(private val parentDisposable: Disposable, private val useSmallProgressIcon: () -> Boolean) :
+  JPanel(BorderLayout()) {
   private var mySmallProgressIcon: AsyncProcessIcon? = null
   private var myLargeProgressIcon: AsyncProcessIcon? = null
   private var mySmall = false
@@ -43,10 +40,7 @@ class SurfaceProgressPanel(
     isVisible = false
   }
 
-  /**
-   * The "small" icon mode isn't just for the icon size; it's for the layout position too; see
-   * [.doLayout]
-   */
+  /** The "small" icon mode isn't just for the icon size; it's for the layout position too; see [.doLayout] */
   private fun setSmallIcon(small: Boolean) {
     if (small != mySmall) {
       if (myProgressVisible && componentCount != 0) {
@@ -107,12 +101,7 @@ class SurfaceProgressPanel(
     if (mySmall) {
       icon.setBounds(width - size.width - 1, 1, size.width, size.height)
     } else {
-      icon.setBounds(
-        width / 2 - size.width / 2,
-        height / 2 - size.height / 2,
-        size.width,
-        size.height,
-      )
+      icon.setBounds(width / 2 - size.width / 2, height / 2 - size.height / 2, size.width, size.height)
     }
   }
 
@@ -126,18 +115,12 @@ class SurfaceProgressPanel(
   private fun getProgressIcon(small: Boolean): AsyncProcessIcon {
     if (small) {
       if (mySmallProgressIcon == null) {
-        mySmallProgressIcon =
-          AsyncProcessIcon("Android layout rendering").also {
-            Disposer.register(parentDisposable, it)
-          }
+        mySmallProgressIcon = AsyncProcessIcon("Android layout rendering").also { Disposer.register(parentDisposable, it) }
       }
       return mySmallProgressIcon!!
     } else {
       if (myLargeProgressIcon == null) {
-        myLargeProgressIcon =
-          AsyncProcessIcon.Big("Android layout rendering").also {
-            Disposer.register(parentDisposable, it)
-          }
+        myLargeProgressIcon = AsyncProcessIcon.Big("Android layout rendering").also { Disposer.register(parentDisposable, it) }
       }
       return myLargeProgressIcon!!
     }

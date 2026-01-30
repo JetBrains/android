@@ -17,22 +17,16 @@ package com.android.tools.idea.observable.ui
 
 import com.android.tools.idea.observable.CountListener
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
-import org.junit.Test
 import javax.swing.ButtonGroup
 import javax.swing.JRadioButton
+import org.junit.Assert.fail
+import org.junit.Test
 
-/**
- * Unit tests for [SelectedRadioButtonProperty]
- */
+/** Unit tests for [SelectedRadioButtonProperty] */
 class SelectedRadioButtonPropertyTest {
   @Test
   fun testStateIsInSyncWithJRadioButton() {
-    val radioButtons = mapOf(
-      "first" to JRadioButton(),
-      "second" to JRadioButton(),
-      "third" to JRadioButton()
-    )
+    val radioButtons = mapOf("first" to JRadioButton(), "second" to JRadioButton(), "third" to JRadioButton())
     val buttonGroup = ButtonGroup()
     radioButtons.values.forEach(buttonGroup::add)
     val property = SelectedRadioButtonProperty("first", radioButtons.keys.toTypedArray(), *radioButtons.values.toTypedArray())
@@ -81,37 +75,27 @@ class SelectedRadioButtonPropertyTest {
 
   @Test
   fun testInvalidValueThrowsException() {
-    val radioButtons = mapOf(
-      "first" to JRadioButton(),
-      "second" to JRadioButton(),
-      "third" to JRadioButton()
-    )
+    val radioButtons = mapOf("first" to JRadioButton(), "second" to JRadioButton(), "third" to JRadioButton())
     val buttonGroup = ButtonGroup()
     radioButtons.values.forEach(buttonGroup::add)
     val property = SelectedRadioButtonProperty("first", radioButtons.keys.toTypedArray(), *radioButtons.values.toTypedArray())
     try {
       property.set("zero")
       fail()
-    }
-    catch (expected: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
       assertThat(expected).hasMessageThat().contains("Invalid selected value (zero)")
     }
   }
 
   @Test
   fun testInvalidInitialValueThrowsException() {
-    val radioButtons = mapOf(
-      "first" to JRadioButton(),
-      "second" to JRadioButton(),
-      "third" to JRadioButton()
-    )
+    val radioButtons = mapOf("first" to JRadioButton(), "second" to JRadioButton(), "third" to JRadioButton())
     val buttonGroup = ButtonGroup()
     radioButtons.values.forEach(buttonGroup::add)
     try {
       SelectedRadioButtonProperty("zero", radioButtons.keys.toTypedArray(), *radioButtons.values.toTypedArray())
       fail()
-    }
-    catch (expected: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
       assertThat(expected).hasMessageThat().contains("Invalid selected value (zero)")
     }
   }
@@ -121,8 +105,7 @@ class SelectedRadioButtonPropertyTest {
     try {
       SelectedRadioButtonProperty("first", arrayOf("first", "second"), JRadioButton())
       fail()
-    }
-    catch (expected: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
       assertThat(expected).hasMessageThat().contains("The number of values (2) doesn't match the number of radio buttons (1)")
     }
   }
@@ -132,8 +115,7 @@ class SelectedRadioButtonPropertyTest {
     try {
       SelectedRadioButtonProperty("first", arrayOf("first"), JRadioButton(), JRadioButton())
       fail()
-    }
-    catch (expected: IllegalArgumentException) {
+    } catch (expected: IllegalArgumentException) {
       assertThat(expected).hasMessageThat().contains("The number of values (1) doesn't match the number of radio buttons (2)")
     }
   }
@@ -141,16 +123,13 @@ class SelectedRadioButtonPropertyTest {
   // Regression test for b/136112727.
   @Test
   fun testGetDoNotThrowExceptionByRaceCondition() {
-    val radioButtons = mapOf(
-      "first" to JRadioButton(),
-      "second" to JRadioButton()
-    )
+    val radioButtons = mapOf("first" to JRadioButton(), "second" to JRadioButton())
     val buttonGroup = ButtonGroup()
     radioButtons.values.forEach(buttonGroup::add)
     val property = SelectedRadioButtonProperty("first", radioButtons.keys.toTypedArray(), *radioButtons.values.toTypedArray())
     var callbackIsInvoked = false
     radioButtons.getValue("first").addItemListener {
-      property.get()  // This was throwing "java.lang.IllegalStateException: No radio button is selected" before the fix.
+      property.get() // This was throwing "java.lang.IllegalStateException: No radio button is selected" before the fix.
       callbackIsInvoked = true
     }
     property.set("second")

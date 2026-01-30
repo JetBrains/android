@@ -48,14 +48,13 @@ class AndroidTestApplicationLaunchTask(
   private val myExecutionOption: TestExecutionOption?,
   private val myWaitForDebugger: Boolean,
   private val myInstrumentationOptions: String,
-  private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) {
+  private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit,
+) {
 
   companion object {
     private val LOG = Logger.getInstance(AndroidTestApplicationLaunchTask::class.java)
 
-    /**
-     * Creates [AndroidTestApplicationLaunchTask] for all-in-module test.
-     */
+    /** Creates [AndroidTestApplicationLaunchTask] for all-in-module test. */
     @JvmStatic
     fun allInModuleTest(
       instrumentationTestRunner: String,
@@ -63,7 +62,8 @@ class AndroidTestApplicationLaunchTask(
       waitForDebugger: Boolean,
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
-      testExecutionOption: TestExecutionOption?): AndroidTestApplicationLaunchTask {
+      testExecutionOption: TestExecutionOption?,
+    ): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         testLibrariesInUse,
         instrumentationTestRunner,
@@ -74,9 +74,7 @@ class AndroidTestApplicationLaunchTask(
       ) {}
     }
 
-    /**
-     * Creates [AndroidTestApplicationLaunchTask] for all-in-package test.
-     */
+    /** Creates [AndroidTestApplicationLaunchTask] for all-in-package test. */
     @JvmStatic
     fun allInPackageTest(
       instrumentationTestRunner: String,
@@ -85,19 +83,21 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      packageName: String): AndroidTestApplicationLaunchTask {
+      packageName: String,
+    ): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions) { runner -> runner.setTestPackageName(packageName) }
+        instrumentationOptions,
+      ) { runner ->
+        runner.setTestPackageName(packageName)
+      }
     }
 
-    /**
-     * Creates [AndroidTestApplicationLaunchTask] for a single class test.
-     */
+    /** Creates [AndroidTestApplicationLaunchTask] for a single class test. */
     @JvmStatic
     fun classTest(
       instrumentationTestRunner: String,
@@ -106,19 +106,21 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      testClassName: String): AndroidTestApplicationLaunchTask {
+      testClassName: String,
+    ): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions) { runner -> runner.setClassName(testClassName) }
+        instrumentationOptions,
+      ) { runner ->
+        runner.setClassName(testClassName)
+      }
     }
 
-    /**
-     * Creates [AndroidTestApplicationLaunchTask] for a single method test.
-     */
+    /** Creates [AndroidTestApplicationLaunchTask] for a single method test. */
     @JvmStatic
     fun methodTest(
       instrumentationTestRunner: String,
@@ -128,29 +130,28 @@ class AndroidTestApplicationLaunchTask(
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
       testClassName: String,
-      testMethodName: String): AndroidTestApplicationLaunchTask {
+      testMethodName: String,
+    ): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions) { runner ->
+        instrumentationOptions,
+      ) { runner ->
         runner.setMethodName(testClassName, testMethodName)
       }
     }
 
-
     private fun createTestListener(processHandler: ProcessHandler, testView: AndroidTestSuiteView, device: IDevice): ITestRunListener {
-      return DdmlibTestRunListenerAdapter(device, testView).also {
-        processHandler.addProcessListener(it)
-      }
+      return DdmlibTestRunListenerAdapter(device, testView).also { processHandler.addProcessListener(it) }
     }
 
     private fun createUsageTrackerTestRunListener(
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      device: IDevice
+      device: IDevice,
     ): ITestRunListener {
       return UsageTrackerTestRunListener(testLibrariesInUse, testExecutionOption, device)
     }
@@ -165,61 +166,47 @@ class AndroidTestApplicationLaunchTask(
 
     // Run "am instrument" command in a separate thread.
     try {
-      processHandler.addProcessListener(object : ProcessAdapter() {
-        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-          runner.cancel()
+      processHandler.addProcessListener(
+        object : ProcessAdapter() {
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+            runner.cancel()
+          }
         }
-      })
-
-      val testListener = arrayOf(
-        createTestListener(processHandler, testView, device),
-        createUsageTrackerTestRunListener(testLibrariesInUse, myExecutionOption, device)
       )
+
+      val testListener =
+        arrayOf(
+          createTestListener(processHandler, testView, device),
+          createUsageTrackerTestRunListener(testLibrariesInUse, myExecutionOption, device),
+        )
 
       // This issues "am instrument" command and blocks execution.
       runner.run(*testListener)
 
       // runner.cancel() may leave application keep running (b/170232723).
       device.forceStop(myTestApplicationId)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       e.message?.let { testView.printlnError(it) }
       processHandler.detachProcess()
       LOG.warn(e)
     }
   }
 
-  /**
-   * Creates a [RemoteAndroidTestRunner] for a given [device].
-   */
+  /** Creates a [RemoteAndroidTestRunner] for a given [device]. */
   fun createRemoteAndroidTestRunner(device: IDevice): RemoteAndroidTestRunner {
     return when (myExecutionOption) {
       TestExecutionOption.ANDROID_TEST_ORCHESTRATOR ->
-        AndroidTestOrchestratorRemoteAndroidTestRunner(
-          myTestApplicationId,
-          myInstrumentationTestRunner,
-          device,
-          false
-        )
+        AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, false)
       TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR ->
-        AndroidTestOrchestratorRemoteAndroidTestRunner(
-          myTestApplicationId,
-          myInstrumentationTestRunner,
-          device,
-          true
-        )
+        AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, true)
       else -> {
         val statusReporterMode =
           if (device.version.apiLevel >= StatusReporterMode.PROTO_STD.minimumApiLevel) {
             StatusReporterMode.PROTO_STD
-          }
-          else {
+          } else {
             StatusReporterMode.RAW_TEXT
           }
-        RemoteAndroidTestRunner(myTestApplicationId,
-                                myInstrumentationTestRunner,
-                                device,
-                                statusReporterMode)
+        RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, statusReporterMode)
       }
     }.apply {
       setDebug(myWaitForDebugger)

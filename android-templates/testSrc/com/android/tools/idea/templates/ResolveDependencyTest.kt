@@ -21,28 +21,20 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import java.security.InvalidParameterException
+import kotlin.test.assertFailsWith
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.nullable
 import org.mockito.kotlin.whenever
-import java.security.InvalidParameterException
-import kotlin.test.assertFailsWith
 
 class ResolveDependencyTest {
   @Test
   fun resolveInvalidDependency() {
-    assertFailsWith(InvalidParameterException::class) {
-      doTest("bla", "1.0.0", "com.android:lib:1.0.1", "bla")
-    }
-    assertFailsWith(InvalidParameterException::class) {
-      doTest("bla:bla", "1.0.0", "com.android:lib:1.0.1", "bla")
-    }
-    assertFailsWith(InvalidParameterException::class) {
-      doTest("bla", "1.0.0", "not_found", "bla")
-    }
-    assertFailsWith(InvalidParameterException::class) {
-      doTest("bla", "bla2", "not_found", "bla")
-    }
+    assertFailsWith(InvalidParameterException::class) { doTest("bla", "1.0.0", "com.android:lib:1.0.1", "bla") }
+    assertFailsWith(InvalidParameterException::class) { doTest("bla:bla", "1.0.0", "com.android:lib:1.0.1", "bla") }
+    assertFailsWith(InvalidParameterException::class) { doTest("bla", "1.0.0", "not_found", "bla") }
+    assertFailsWith(InvalidParameterException::class) { doTest("bla", "bla2", "not_found", "bla") }
   }
 
   @Test
@@ -65,7 +57,9 @@ class ResolveDependencyTest {
 
   private fun doTest(dependency: String, minRevision: String?, resolved: String, expectResultString: String) {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
-    whenever(mockRepo.resolveDependency(any(Dependency::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
+    whenever(
+        mockRepo.resolveDependency(any(Dependency::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java))
+      )
       .thenReturn(Component.tryParse(resolved))
 
     val expectResult = Dependency.parse(expectResultString)

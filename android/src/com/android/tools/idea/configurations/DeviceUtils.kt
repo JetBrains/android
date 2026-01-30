@@ -29,9 +29,9 @@ import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.util.containers.ContainerUtil
+import kotlin.math.hypot
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import kotlin.math.hypot
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
@@ -47,7 +47,7 @@ enum class DeviceGroup(val displayName: String) {
   OTHER("Other Devices"),
   ADDITIONAL_DEVICE("More Devices"),
   CANONICAL_DEVICE("Reference Devices"),
-  XR("XR Devices");
+  XR("XR Devices"),
 }
 
 /**
@@ -63,13 +63,14 @@ enum class DeviceGroup(val displayName: String) {
  *
  * The order of devices is ascending by its screen size.
  *
+ * @return map of sorted devices
  * @see groupDevices
  * @see DeviceGroup
- * @return map of sorted devices
  */
-fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Device>> = DEVICE_CACHES.getOrPut(configuration) {
-  return groupDevices(configuration.settings.devices)
-}
+fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Device>> =
+  DEVICE_CACHES.getOrPut(configuration) {
+    return groupDevices(configuration.settings.devices)
+  }
 
 /**
  * Group the given devices by [DeviceGroup]:
@@ -86,13 +87,16 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
  *
  * The order of devices by category is in descending alphabetical order (more recent Pixels appear first)
  *
- * @see DeviceGroup
  * @return map of sorted devices
+ * @see DeviceGroup
  */
 fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
-  val sorted = devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
-    .sortedByDescending { it.displayName }
-  return  sorted.groupBy {
+  val sorted =
+    devices
+      .filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+      .sortedByDescending { it.displayName }
+  return sorted
+    .groupBy {
       when {
         isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
         isReferenceDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
@@ -110,8 +114,8 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
 }
 
 /**
- * Returns true if the provided device is a "canonical" device. Canonical devices are a special type of device used in
- * the New UI to represent the most common devices.
+ * Returns true if the provided device is a "canonical" device. Canonical devices are a special type of device used in the New UI to
+ * represent the most common devices.
  */
 fun isCanonicalDevice(device: Device): Boolean {
   val id = device.id
@@ -119,26 +123,21 @@ fun isCanonicalDevice(device: Device): Boolean {
 }
 
 /**
- * Returns true if the provided device is an "additional" device. Additional devices are a special type of device
- * that represent device classes such as Phone, Foldable, Tablet and Desktop. These are used in the New UI as reference
- * devices.
+ * Returns true if the provided device is an "additional" device. Additional devices are a special type of device that represent device
+ * classes such as Phone, Foldable, Tablet and Desktop. These are used in the New UI as reference devices.
  */
 fun isReferenceDevice(device: Device): Boolean {
   val id = device.id
 
-  return id == DEVICE_CLASS_PHONE_ID ||
-         id == DEVICE_CLASS_FOLDABLE_ID ||
-         id == DEVICE_CLASS_TABLET_ID ||
-         id == DEVICE_CLASS_DESKTOP_ID
+  return id == DEVICE_CLASS_PHONE_ID || id == DEVICE_CLASS_FOLDABLE_ID || id == DEVICE_CLASS_TABLET_ID || id == DEVICE_CLASS_DESKTOP_ID
 }
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
   val screen = device.defaultHardware.screen
   // For foldables the device definition diagonal might be for the unfolded device, calculate ourselves.
-  val diagonalLength = if (!screen.isFoldable)
-    screen.diagonalLength
-  else
-    hypot(screen.foldedWidth/screen.pixelDensity.dpiValue.toDouble(), screen.foldedHeight/screen.pixelDensity.dpiValue.toDouble())
+  val diagonalLength =
+    if (!screen.isFoldable) screen.diagonalLength
+    else hypot(screen.foldedWidth / screen.pixelDensity.dpiValue.toDouble(), screen.foldedHeight / screen.pixelDensity.dpiValue.toDouble())
 
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS
@@ -147,14 +146,10 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
   }
 }
 
-/**
- * The must-have uses-feature tag in AndroidManifest for a WearOS project.
- */
+/** The must-have uses-feature tag in AndroidManifest for a WearOS project. */
 private const val WEAR_OS_USE_FEATURE_TAG = "android.hardware.type.watch"
 
-/**
- * Return if the default device is wear device in the given [Module].
- */
+/** Return if the default device is wear device in the given [Module]. */
 @Slow
 fun isUseWearDeviceAsDefault(module: Module): Boolean {
   val facet = AndroidFacet.getInstance(module)
@@ -178,28 +173,23 @@ enum class ReferenceDeviceType {
   MEDIUM_PHONE,
   FOLDABLE,
   MEDIUM_TABLET,
-  DESKTOP
+  DESKTOP,
 }
 
-/**
- * Helper function to find the reference device. The device in [ReferenceDevice] is picked
- */
-fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getReferenceDevice(getSuitableDevices (config), type)
+/** Helper function to find the reference device. The device in [ReferenceDevice] is picked */
+fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getReferenceDevice(getSuitableDevices(config), type)
 
 /**
  * Helper function to find the reference device.
+ *
  * @see [getReferenceDevice]
  */
 fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceDeviceType): Device? {
   return when (type) {
-    ReferenceDeviceType.MEDIUM_PHONE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_PHONE_ID }
-    ReferenceDeviceType.FOLDABLE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_FOLDABLE_ID }
-    ReferenceDeviceType.MEDIUM_TABLET ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_TABLET_ID }
-    ReferenceDeviceType.DESKTOP ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_DESKTOP_ID }
+    ReferenceDeviceType.MEDIUM_PHONE -> devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_PHONE_ID }
+    ReferenceDeviceType.FOLDABLE -> devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_FOLDABLE_ID }
+    ReferenceDeviceType.MEDIUM_TABLET -> devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_TABLET_ID }
+    ReferenceDeviceType.DESKTOP -> devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_DESKTOP_ID }
   }
 }
 
@@ -208,12 +198,13 @@ fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
   return isUseWearDeviceAsDefault(module)
 }
 
-const val DEVICE_CLASS_PHONE_TOOLTIP = "This reference device uses the COMPACT width size class," +
-                                       " which represents 99% of Android phones in portrait orientation."
-const val DEVICE_CLASS_FOLDABLE_TOOLTIP = "This reference device uses the MEDIUM width size class," +
-                                          " which represents foldables in unfolded portrait orientation," +
-                                          " or 94% of all tablets in portrait orientation."
-const val DEVICE_CLASS_TABLET_TOOLTIP = "This reference device uses the EXPANDED width size class," +
-                                        " which represents 97% of Android tablets in landscape orientation."
-const val DEVICE_CLASS_DESKTOP_TOOLTIP = "This reference device uses the EXPANDED width size class," +
-                                         " which represents 97% of Android desktops in landscape orientation."
+const val DEVICE_CLASS_PHONE_TOOLTIP =
+  "This reference device uses the COMPACT width size class," + " which represents 99% of Android phones in portrait orientation."
+const val DEVICE_CLASS_FOLDABLE_TOOLTIP =
+  "This reference device uses the MEDIUM width size class," +
+    " which represents foldables in unfolded portrait orientation," +
+    " or 94% of all tablets in portrait orientation."
+const val DEVICE_CLASS_TABLET_TOOLTIP =
+  "This reference device uses the EXPANDED width size class," + " which represents 97% of Android tablets in landscape orientation."
+const val DEVICE_CLASS_DESKTOP_TOOLTIP =
+  "This reference device uses the EXPANDED width size class," + " which represents 97% of Android desktops in landscape orientation."

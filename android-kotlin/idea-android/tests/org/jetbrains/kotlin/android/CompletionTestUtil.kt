@@ -15,7 +15,6 @@
  */
 package org.jetbrains.kotlin.android
 
-
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElement
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -23,27 +22,24 @@ import org.junit.Assert
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 fun testCompletion(
-  fileText: String,
-  platform: TargetPlatform?,
-  complete: (CompletionType, Int) -> Array<LookupElement>?,
-  defaultCompletionType: CompletionType = CompletionType.BASIC,
-  defaultInvocationCount: Int = 0,
-  additionalValidDirectives: Collection<String> = emptyList()
+    fileText: String,
+    platform: TargetPlatform?,
+    complete: (CompletionType, Int) -> Array<LookupElement>?,
+    defaultCompletionType: CompletionType = CompletionType.BASIC,
+    defaultInvocationCount: Int = 0,
+    additionalValidDirectives: Collection<String> = emptyList(),
 ) {
-  val completionType = ExpectedCompletionUtils.getCompletionType(fileText) ?: defaultCompletionType
-  val invocationCount = ExpectedCompletionUtils.getInvocationCount(fileText) ?: defaultInvocationCount
-  val items = complete(completionType, invocationCount) ?: emptyArray()
+    val completionType = ExpectedCompletionUtils.getCompletionType(fileText) ?: defaultCompletionType
+    val invocationCount = ExpectedCompletionUtils.getInvocationCount(fileText) ?: defaultInvocationCount
+    val items = complete(completionType, invocationCount) ?: emptyArray()
 
-  ExpectedCompletionUtils.assertDirectivesValid(fileText, additionalValidDirectives)
+    ExpectedCompletionUtils.assertDirectivesValid(fileText, additionalValidDirectives)
 
-  val expected = ExpectedCompletionUtils.itemsShouldExist(fileText, platform)
-  val unexpected = ExpectedCompletionUtils.itemsShouldAbsent(fileText, platform)
-  val nothingElse = ExpectedCompletionUtils.isNothingElseExpected(fileText)
+    val expected = ExpectedCompletionUtils.itemsShouldExist(fileText, platform)
+    val unexpected = ExpectedCompletionUtils.itemsShouldAbsent(fileText, platform)
+    val nothingElse = ExpectedCompletionUtils.isNothingElseExpected(fileText)
 
-  Assert.assertTrue(
-    "Should be some assertions about completion",
-    expected.isNotEmpty() || unexpected.isNotEmpty() || nothingElse
-  )
-  ExpectedCompletionUtils.assertContainsRenderedItems(expected, items, ExpectedCompletionUtils.isWithOrder(fileText), nothingElse)
-  ExpectedCompletionUtils.assertNotContainsRenderedItems(unexpected, items)
+    Assert.assertTrue("Should be some assertions about completion", expected.isNotEmpty() || unexpected.isNotEmpty() || nothingElse)
+    ExpectedCompletionUtils.assertContainsRenderedItems(expected, items, ExpectedCompletionUtils.isWithOrder(fileText), nothingElse)
+    ExpectedCompletionUtils.assertNotContainsRenderedItems(unexpected, items)
 }

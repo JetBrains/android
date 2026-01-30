@@ -32,8 +32,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
-  AnimationPreviewTests() {
+class UnsupportedManagerTests(private val animationType: ComposeAnimationType) : AnimationPreviewTests() {
 
   companion object {
     @JvmStatic

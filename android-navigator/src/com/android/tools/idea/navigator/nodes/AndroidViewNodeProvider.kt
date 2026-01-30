@@ -23,9 +23,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.application
 
-/**
- * A provider of nodes representing an IDE module.
- */
+/** A provider of nodes representing an IDE module. */
 interface AndroidViewNodeProvider {
   companion object {
     val EP_NAME: ExtensionPointName<AndroidViewNodeProvider> =
@@ -39,8 +37,8 @@ interface AndroidViewNodeProvider {
   }
 
   /**
-   * For a given [module], returns a collection of nodes that represent it in the Android project view or `null` if the [module]
-   * is not recognised by the provider.
+   * For a given [module], returns a collection of nodes that represent it in the Android project view or `null` if the [module] is not
+   * recognised by the provider.
    */
   fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
 
@@ -53,8 +51,8 @@ interface AndroidViewNodeProvider {
   fun projectContainsExternalFile(project: Project, file: VirtualFile): Boolean = false
 
   /**
-   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module]
-   * is not recognised by the provider.
+   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module] is
+   * not recognised by the provider.
    */
   fun getModuleChildren(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
 
@@ -67,8 +65,8 @@ interface AndroidViewNodeProvider {
   fun moduleContainsExternalFile(module: Module, file: VirtualFile): Boolean = false
 
   /**
-   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module]
-   * is not recognised by the provider.
+   * For a given [module], returns a collection of nodes that represent its content in the Android project view or `null` if the [module] is
+   * not recognised by the provider.
    */
   fun getApkModuleChildren(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? = null
 

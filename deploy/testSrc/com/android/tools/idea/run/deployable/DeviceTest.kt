@@ -28,12 +28,6 @@ import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.services.StatusWriter
 import com.android.sdklib.AndroidApiLevel
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CoroutineScope
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 import java.io.IOException
 import java.io.PrintWriter
 import java.net.Socket
@@ -42,6 +36,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
+import kotlinx.coroutines.CoroutineScope
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 class DeviceTest {
   private lateinit var myPreOBinder: DeviceBinder
@@ -49,27 +49,23 @@ class DeviceTest {
 
   private val myPreOResult = Collections.synchronizedList(mutableListOf<String>())
 
-  @Volatile
-  private var myPreOContinuationLatch = CountDownLatch(1)
+  @Volatile private var myPreOContinuationLatch = CountDownLatch(1)
 
-  @Volatile
-  private var myPreOFinishedLatch = CountDownLatch(1)
+  @Volatile private var myPreOFinishedLatch = CountDownLatch(1)
 
   private val myOResult = Collections.synchronizedList(mutableListOf("package:$APP_ID "))
 
-  @Volatile
-  private var myOContinuationLatch = CountDownLatch(1)
+  @Volatile private var myOContinuationLatch = CountDownLatch(1)
 
-  @Volatile
-  private var myOFinishedLatch = CountDownLatch(1)
+  @Volatile private var myOFinishedLatch = CountDownLatch(1)
   private val myStatPidMap = mutableMapOf<String, List<String>>(getStatLookup(O_VALID_PID) to myOResult)
 
   private val myApplicationIdResolver = ApplicationIdResolver()
 
   private val fakeAdbRule = FakeAdbServerProviderRule {
     installDeviceHandler(
-      getShellHandler(
-        Pattern.compile("^uid.*"), mapOf(APP_ID to myPreOResult), { myPreOContinuationLatch }, { myPreOFinishedLatch }))
+        getShellHandler(Pattern.compile("^uid.*"), mapOf(APP_ID to myPreOResult), { myPreOContinuationLatch }, { myPreOFinishedLatch })
+      )
       .installDeviceHandler(getShellHandler(Pattern.compile("^stat.*"), myStatPidMap, { myOContinuationLatch }, { myOFinishedLatch }))
   }
 
@@ -78,27 +74,19 @@ class DeviceTest {
   private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { fakeAdbRule.fakeAdb.port }
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(fakeAdbRule)
-    .around(useAdbLibAndroidDebugBridgeRule)
-    .around(initAndroidDebugBridgeRule)
+  val ruleChain: RuleChain = RuleChain.outerRule(fakeAdbRule).around(useAdbLibAndroidDebugBridgeRule).around(initAndroidDebugBridgeRule)
 
   @Before
   fun setup() {
-    val preODeviceState = fakeAdbRule.fakeAdb.fakeAdbServer.connectDevice(
-      "test_device_N",
-      "Google",
-      "Nexus Gold",
-      "7.1",
-      AndroidApiLevel(25),
-      DeviceState.HostConnectionType.USB).get()
+    val preODeviceState =
+      fakeAdbRule.fakeAdb.fakeAdbServer
+        .connectDevice("test_device_N", "Google", "Nexus Gold", "7.1", AndroidApiLevel(25), DeviceState.HostConnectionType.USB)
+        .get()
 
-    val oDeviceState = fakeAdbRule.fakeAdb.fakeAdbServer.connectDevice(
-      "test_device_O",
-      "Google",
-      "Nexus Gold",
-      "10.0",
-      AndroidApiLevel(26),
-      DeviceState.HostConnectionType.USB).get()
+    val oDeviceState =
+      fakeAdbRule.fakeAdb.fakeAdbServer
+        .connectDevice("test_device_O", "Google", "Nexus Gold", "10.0", AndroidApiLevel(26), DeviceState.HostConnectionType.USB)
+        .get()
 
     // Test that we obtain 1 device via the ddmlib APIs
     AndroidDebugBridge.terminate()
@@ -252,7 +240,7 @@ class DeviceTest {
       commandPattern: Pattern,
       appIdToPidsMap: Map<String, List<String>>?,
       continuationLatchSupplier: () -> CountDownLatch?,
-      finishedLatchSupplier: () -> CountDownLatch?
+      finishedLatchSupplier: () -> CountDownLatch?,
     ): DeviceCommandHandler {
       return object : DeviceCommandHandler("shell") {
         override fun accept(
@@ -263,7 +251,7 @@ class DeviceTest {
           command: String,
           args: String,
           statusWriter: StatusWriter,
-          shellCommandOutputProvider: (() -> ShellCommandOutput)?
+          shellCommandOutputProvider: (() -> ShellCommandOutput)?,
         ): Boolean {
           if (this.command != command || !commandPattern.matcher(args).matches()) {
             return false
@@ -271,15 +259,10 @@ class DeviceTest {
 
           try {
             writeOkay(socket.outputStream)
-          }
-          catch (_: IOException) {
-          }
+          } catch (_: IOException) {}
 
           if (appIdToPidsMap != null && appIdToPidsMap.isNotEmpty()) {
-            val pids = appIdToPidsMap.entries
-                         .firstOrNull { args.contains(it.key) }
-                         ?.value
-                       ?: emptyList()
+            val pids = appIdToPidsMap.entries.firstOrNull { args.contains(it.key) }?.value ?: emptyList()
 
             try {
               PrintWriter(socket.outputStream).use { pw ->
@@ -292,14 +275,11 @@ class DeviceTest {
 
                 try {
                   continuationLatchSupplier()?.await()
-                }
-                catch (_: InterruptedException) {
+                } catch (_: InterruptedException) {
                   Thread.currentThread().interrupt()
                 }
               }
-            }
-            catch (_: IOException) {
-            }
+            } catch (_: IOException) {}
           }
           return true
         }

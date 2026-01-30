@@ -49,23 +49,18 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   private var checkJob: Job? = null
 
   /**
-   * Get the deprecation status of [serviceName] controlled by ServerFlags. Update the flags in
-   * google3 to control the deprecation status.
+   * Get the deprecation status of [serviceName] controlled by ServerFlags. Update the flags in google3 to control the deprecation status.
    *
-   * When [StudioFlags.USE_POLICY_WITH_DEPRECATE] flag is enabled, the status of service as well as
-   * studio is checked. Service status is prioritized over studio. If service status is not
-   * available, studio status is returned.
+   * When [StudioFlags.USE_POLICY_WITH_DEPRECATE] flag is enabled, the status of service as well as studio is checked. Service status is
+   * prioritized over studio. If service status is not available, studio status is returned.
    *
-   * **Use this method to get a one time value of the flag. This is preferred if your feature gets
-   * called on user interactions (e.g. pop up menu item)**
+   * **Use this method to get a one time value of the flag. This is preferred if your feature gets called on user interactions (e.g. pop up
+   * menu item)**
    *
-   * @param serviceName The service name as used in the server flags storage in the backend. This
-   *   should be the same as server_flags/server_configurations/dev_services/$serviceName.textproto.
+   * @param serviceName The service name as used in the server flags storage in the backend. This should be the same as
+   *   server_flags/server_configurations/dev_services/$serviceName.textproto.
    */
-  override fun getCurrentDeprecationData(
-    serviceName: String,
-    userFriendlyServiceName: String,
-  ): DevServicesDeprecationData {
+  override fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String): DevServicesDeprecationData {
     return if (StudioFlags.USE_POLICY_WITH_DEPRECATE.get()) {
       val proto = checkServiceStatus(serviceName)
       return proto.toDeprecationData(userFriendlyServiceName)
@@ -75,11 +70,9 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   }
 
   /**
-   * Registers the provided [serviceName]. Returns a [StateFlow] containing the latest available
-   * value for the service.
+   * Registers the provided [serviceName]. Returns a [StateFlow] containing the latest available value for the service.
    *
-   * **Use this method to register the listener and get notified of data changes. This is
-   * preferred if your feature is in a toolwindow.**
+   * **Use this method to register the listener and get notified of data changes. This is preferred if your feature is in a toolwindow.**
    */
   override fun registerServiceForChange(
     serviceName: String,
@@ -105,26 +98,18 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   private fun getCurrentDeprecationData(serviceName: String): DevServicesDeprecationData {
     // Proto missing would imply the service is still supported.
     val proto =
-      ServerFlagService.instance.getProtoOrNull(
-        "dev_services/$serviceName",
-        DevServicesDeprecationMetadata.getDefaultInstance(),
-      ) ?: DevServicesDeprecationMetadata.getDefaultInstance()
+      ServerFlagService.instance.getProtoOrNull("dev_services/$serviceName", DevServicesDeprecationMetadata.getDefaultInstance())
+        ?: DevServicesDeprecationMetadata.getDefaultInstance()
 
     return proto.toDeprecationData()
   }
 
-  private fun DevServicesDeprecationMetadata.isDeprecated() =
-    hasHeader() || hasDescription() || hasMoreInfoUrl() || hasShowUpdateAction()
+  private fun DevServicesDeprecationMetadata.isDeprecated() = hasHeader() || hasDescription() || hasMoreInfoUrl() || hasShowUpdateAction()
 
   private fun checkServiceStatus(serviceName: String): DevServicesDeprecationMetadata {
     val defaultInstance = DevServicesDeprecationMetadata.getDefaultInstance()
-    val serviceStatus =
-      DynamicServerFlagService.instance.getProto(
-        "$DEV_SERVICES_DIR_NAME/$serviceName",
-        defaultInstance,
-      )
-    val studioStatus =
-      DynamicServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/studio", defaultInstance)
+    val serviceStatus = DynamicServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/$serviceName", defaultInstance)
+    val studioStatus = DynamicServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/studio", defaultInstance)
     return if (serviceStatus == defaultInstance) {
       studioStatus
     } else {
@@ -133,13 +118,7 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   }
 
   private fun DevServicesDeprecationMetadata.toDeprecationData() =
-    DevServicesDeprecationData(
-      header,
-      description,
-      moreInfoUrl,
-      showUpdateAction,
-      if (isDeprecated()) UNSUPPORTED else SUPPORTED,
-    )
+    DevServicesDeprecationData(header, description, moreInfoUrl, showUpdateAction, if (isDeprecated()) UNSUPPORTED else SUPPORTED)
 
   private fun DevServicesDeprecationMetadata.toDeprecationData(serviceName: String) =
     DevServicesDeprecationData(
@@ -177,9 +156,7 @@ class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: Corou
   private fun checkNewDataAvailable() {
     DynamicServerFlagService.instance.updateFlags()
     listeners.forEach { listener ->
-      listener.mutableStateFlow.update {
-        checkServiceStatus(listener.serviceName).toDeprecationData(listener.userFriendlyServiceName)
-      }
+      listener.mutableStateFlow.update { checkServiceStatus(listener.serviceName).toDeprecationData(listener.userFriendlyServiceName) }
     }
   }
 

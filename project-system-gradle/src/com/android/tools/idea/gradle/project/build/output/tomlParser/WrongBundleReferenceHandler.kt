@@ -33,9 +33,11 @@ import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 
-//- Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
+// - Problem: In version catalog libs, a bundle with name 'bundle' declares a dependency on 'aaa' which doesn't exist.
 class WrongBundleReferenceHandler : TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\.".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex =
+    "\\s+- Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\."
+      .toRegex()
 
   override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
@@ -45,9 +47,7 @@ class WrongBundleReferenceHandler : TomlErrorHandler {
         description.appendLine(problemLine)
 
         val (catalog, bundle, reference) = match.destructured
-        return extractBundleReference(
-          catalog, bundle, reference, description, reader
-        )?.let { listOf(it) } ?: listOf()
+        return extractBundleReference(catalog, bundle, reference, description, reader)?.let { listOf(it) } ?: listOf()
       }
     }
     return listOf()
@@ -58,31 +58,33 @@ class WrongBundleReferenceHandler : TomlErrorHandler {
     bundle: String,
     reference: String,
     description: StringBuilder,
-    reader: BuildOutputInstantReader
+    reader: BuildOutputInstantReader,
   ): BuildIssueEvent? {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_STOP_LINE))
 
-    val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
-      private fun computeNavigable(project: Project,
-                                   virtualFile: VirtualFile): OpenFileDescriptor {
-        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
-        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
-        val element = psiFile.childrenOfType<TomlTable>()
-                        .filter { it.header.key?.text == "bundles" }
-                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-                        .find { it.key.text == bundle }
-        return (element?.value as? TomlArray)?.elements?.find { it.text == "\"$reference\"" }?.let{
-          getDescriptor(it, project, virtualFile)
-        } ?: fileDescriptor
-      }
-      override fun getNavigatable(project: Project): Navigatable? {
-        val file = project.findCatalogFile(catalog) ?: return null
-        return runReadAction {
-          computeNavigable(project, file)
+    val buildIssue =
+      object : TomlErrorMessageAwareIssue(description.toString()) {
+        private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+          val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+          val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+          val element =
+            psiFile
+              .childrenOfType<TomlTable>()
+              .filter { it.header.key?.text == "bundles" }
+              .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+              .find { it.key.text == bundle }
+          return (element?.value as? TomlArray)
+            ?.elements
+            ?.find { it.text == "\"$reference\"" }
+            ?.let { getDescriptor(it, project, virtualFile) } ?: fileDescriptor
+        }
+
+        override fun getNavigatable(project: Project): Navigatable? {
+          val file = project.findCatalogFile(catalog) ?: return null
+          return runReadAction { computeNavigable(project, file) }
         }
       }
-    }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 }

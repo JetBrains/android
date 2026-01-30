@@ -30,14 +30,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related
- * to a bunch of arguments types that we want to test with parametrization.
+ * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related to a bunch of arguments types that we
+ * want to test with parametrization.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
-class LightArgsAndBuilderClassInferredTypeTest(
-  private val defaultValueTypeMapping: DefaultValueTypeMapping
-) {
+class LightArgsAndBuilderClassInferredTypeTest(private val defaultValueTypeMapping: DefaultValueTypeMapping) {
   @get:Rule val safeArgsRule = SafeArgsRule()
 
   companion object {
@@ -88,9 +86,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val builderClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context)
-        as LightArgsBuilderClass
+    val builderClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context) as LightArgsBuilderClass
 
     // We expect two constructors - a copy constructor (which is initialized with the parent args
     builderClass.constructors.let { constructors ->
@@ -101,10 +97,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
         parameters = listOf(Parameter("original", "FragmentArgs")),
       )
 
-      constructors[1].checkSignaturesAndReturnType(
-        name = "Builder",
-        returnType = PsiTypes.nullType().presentableText,
-      )
+      constructors[1].checkSignaturesAndReturnType(name = "Builder", returnType = PsiTypes.nullType().presentableText)
     }
 
     // For the above xml, we expect a getter and setter for each <argument> tag as well as a final
@@ -162,8 +155,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(4)
@@ -223,8 +215,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass =
-      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(5)
@@ -246,10 +237,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
         parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle")),
       )
 
-      methods[3].checkSignaturesAndReturnType(
-        name = "toSavedStateHandle",
-        returnType = "SavedStateHandle",
-      )
+      methods[3].checkSignaturesAndReturnType(name = "toSavedStateHandle", returnType = "SavedStateHandle")
 
       methods[4].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
     }

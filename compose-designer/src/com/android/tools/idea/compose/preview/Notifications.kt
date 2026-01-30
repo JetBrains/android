@@ -31,22 +31,13 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.concurrent.TimeUnit
 
-/**
- * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification
- * update
- */
+/** [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update */
 @Service(Service.Level.PROJECT)
 internal class ComposeNewPreviewNotificationManager : Disposable {
   private val LOG = Logger.getInstance(ComposeNewPreviewNotificationManager::class.java)
 
   private val updateNotificationQueue: MergingUpdateQueue by lazy {
-    MergingUpdateQueue(
-      "Update notifications",
-      TimeUnit.SECONDS.toMillis(2).toInt(),
-      true,
-      null,
-      this,
-    )
+    MergingUpdateQueue("Update notifications", TimeUnit.SECONDS.toMillis(2).toInt(), true, null, this)
   }
 
   override fun dispose() {}

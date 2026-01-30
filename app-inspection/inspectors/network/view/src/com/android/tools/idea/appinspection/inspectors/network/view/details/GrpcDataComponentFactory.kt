@@ -34,11 +34,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.ProjectScope
-import org.xml.sax.InputSource
 import java.io.StringReader
 import javax.swing.JComponent
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.text.RegexOption.MULTILINE
+import org.xml.sax.InputSource
 
 private val GSON = Gson()
 private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -70,8 +70,7 @@ internal class GrpcDataComponentFactory(
 
     return when {
       bytes.isEmpty() -> null
-      fileType != null ->
-        createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
+      fileType != null -> createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
       text.isTextProto() -> createTextProtoComponent(text, bytes)
       else -> createRawComponent(text, bytes)
     }
@@ -80,9 +79,8 @@ internal class GrpcDataComponentFactory(
   /**
    * Creates a component that displays a prototext payload.
    *
-   * The prototext snippet is created by the agent using the `toString()` method with a
-   * `proto-message` annotation comment prepended. We make an attempt to locate the `proto` source
-   * file that contains the definition for the message. If found, it is added as a `proto-file`
+   * The prototext snippet is created by the agent using the `toString()` method with a `proto-message` annotation comment prepended. We
+   * make an attempt to locate the `proto` source file that contains the definition for the message. If found, it is added as a `proto-file`
    * annotation.
    */
   private fun createTextProtoComponent(text: String, bytes: ByteArray): JComponent {
@@ -94,8 +92,7 @@ internal class GrpcDataComponentFactory(
     val fileType = getFileTypeManager().getFileTypeByExtension("textproto")
     val protoTextComponent = createPrettyComponent(protoBytes, fileType)
     val rawComponent = BinaryDataViewer(bytes)
-    val switchingPanel =
-      SwitchingPanel(protoTextComponent, "View Proto Text", rawComponent, "View Raw")
+    val switchingPanel = SwitchingPanel(protoTextComponent, "View Proto Text", rawComponent, "View Raw")
     return createTitledPanel("Payload (Proto)", switchingPanel, switchingPanel.switcher)
   }
 
@@ -112,8 +109,7 @@ internal class GrpcDataComponentFactory(
    *
    * The standard [FileTypeManager.getInstance] doesn't work in tests.
    */
-  private fun getFileTypeManager(): FileTypeManager =
-    ApplicationManager.getApplication().getService(FileTypeManager::class.java)
+  private fun getFileTypeManager(): FileTypeManager = ApplicationManager.getApplication().getService(FileTypeManager::class.java)
 
   override fun createTrailersComponent(): JComponent? {
     return when {
@@ -126,14 +122,7 @@ internal class GrpcDataComponentFactory(
     createTitledPanel(title, createPrettyComponent(bytes, fileType), null)
 
   private fun createPrettyComponent(bytes: ByteArray, fileType: FileType): JComponent {
-    return IntellijDataViewer.createPrettyViewerIfPossible(
-        project,
-        bytes,
-        fileType,
-        true,
-        parentDisposable,
-      )
-      .component
+    return IntellijDataViewer.createPrettyViewerIfPossible(project, bytes, fileType, true, parentDisposable).component
   }
 
   fun interface ProtoFileFinder {
@@ -143,8 +132,9 @@ internal class GrpcDataComponentFactory(
   private class ProtoFileFinderImpl(private val project: Project) : ProtoFileFinder {
     override fun findProtoFiles(): List<VirtualFile> {
       val index = ProjectFileIndex.getInstance(project)
-      return FilenameIndex.getAllFilesByExt(project, "proto", ProjectScope.getContentScope(project))
-        .filter { index.isInSource(it) && !index.isInGeneratedSources(it) }
+      return FilenameIndex.getAllFilesByExt(project, "proto", ProjectScope.getContentScope(project)).filter {
+        index.isInSource(it) && !index.isInGeneratedSources(it)
+      }
     }
   }
 }

@@ -32,8 +32,8 @@ import com.intellij.psi.util.CachedValuesManager
 /**
  * Finder for classes generated from data binding or view binding layout xml files.
  *
- * For example, for a module with an "activity_main.xml" file in it that uses data binding, this
- * class would find the generated "ActivityMainBinding" class.
+ * For example, for a module with an "activity_main.xml" file in it that uses data binding, this class would find the generated
+ * "ActivityMainBinding" class.
  *
  * See [LightBindingClass]
  */
@@ -42,9 +42,8 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   /**
    * A mapping of a fully qualified name to a list of one or more matches.
    *
-   * Although there is usually only one LightBindingClass per fqcn, it is possible for multiple
-   * modules to implement different versions the same class, as long as other modules only depend on
-   * one of them.
+   * Although there is usually only one LightBindingClass per fqcn, it is possible for multiple modules to implement different versions the
+   * same class, as long as other modules only depend on one of them.
    */
   private val fqcnBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val packageBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
@@ -64,32 +63,23 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
 
     fqcnBindingsCache =
       cachedValuesManager.createCachedValue {
-        val fqcnBindings =
-          lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName }
+        val fqcnBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName }
         CachedValueProvider.Result.create(fqcnBindings, *getCommonDependencies())
       }
 
     packageBindingsCache =
       cachedValuesManager.createCachedValue {
-        val packageBindings =
-          lightBindingsCache.value.groupBy { bindingClass ->
-            bindingClass.qualifiedName.substringBeforeLast('.')
-          }
+        val packageBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName.substringBeforeLast('.') }
         CachedValueProvider.Result.create(packageBindings, *getCommonDependencies())
       }
   }
 
   private fun getCommonDependencies(): Array<Any> {
-    return arrayOf(
-      LayoutBindingEnabledFacetsProvider.getInstance(project),
-      ProjectLayoutResourcesModificationTracker.getInstance(project),
-    )
+    return arrayOf(LayoutBindingEnabledFacetsProvider.getInstance(project), ProjectLayoutResourcesModificationTracker.getInstance(project))
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    return fqcnBindingsCache.value[qualifiedName]?.firstOrNull { bindingClass ->
-      PsiSearchScopeUtil.isInScope(scope, bindingClass)
-    }
+    return fqcnBindingsCache.value[qualifiedName]?.firstOrNull { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
@@ -99,11 +89,8 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    val bindingClasses =
-      packageBindingsCache.value[psiPackage.qualifiedName] ?: return PsiClass.EMPTY_ARRAY
-    return bindingClasses
-      .filter { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }
-      .toTypedArray()
+    val bindingClasses = packageBindingsCache.value[psiPackage.qualifiedName] ?: return PsiClass.EMPTY_ARRAY
+    return bindingClasses.filter { bindingClass -> PsiSearchScopeUtil.isInScope(scope, bindingClass) }.toTypedArray()
   }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {

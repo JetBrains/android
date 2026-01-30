@@ -38,8 +38,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
-import org.jetbrains.android.util.AndroidBundle
 import java.time.Duration
+import org.jetbrains.android.util.AndroidBundle
 
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
@@ -50,16 +50,10 @@ class AndroidTileConfigurationExecutor(
   appRunSettings: AppRunSettings,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
-  deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(
-  environment,
-  deviceFutures,
-  appRunSettings,
-  apkProvider,
-  applicationContext,
-  deployer
-) {
+  deployer: ApplicationDeployer,
+) : AndroidWearConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
+
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
     val tileName = AppComponent.getFQEscapedName(applicationId, tileLaunchOptions.componentName!!)
     return getStopTileCallback(tileName, console, isDebug)
@@ -94,8 +88,7 @@ class AndroidTileConfigurationExecutor(
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
       getActivator(app).activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
-    }
-    catch (ex: DeployerException) {
+    } catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }
 
@@ -118,9 +111,8 @@ private class AddTileCommandResultReceiver(private val isCancelledCheck: () -> B
 
   override fun isCancelled(): Boolean = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<String>) = lines.forEach { line ->
-    extractPattern(line, indexPattern)?.let { index = it.toInt() }
-  }
+  override fun processNewLines(lines: Array<String>) =
+    lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
 }
 
 class TileLaunchOptions : WearSurfaceLaunchOptions {
@@ -129,7 +121,7 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
   override val userVisibleComponentTypeName: String = AndroidBundle.message("android.run.configuration.tile")
   override val componentBaseClassesFqNames = WearBaseClasses.TILES
 
-  fun clone() : TileLaunchOptions {
+  fun clone(): TileLaunchOptions {
     val clone = TileLaunchOptions()
     clone.componentName = componentName
     return clone

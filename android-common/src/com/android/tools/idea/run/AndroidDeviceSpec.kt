@@ -18,25 +18,21 @@ package com.android.tools.idea.run
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 
-/**
- * Describes the specification of a device or the common specification of devices the application is to be launched on.
- */
+/** Describes the specification of a device or the common specification of devices the application is to be launched on. */
 interface AndroidDeviceSpec {
   /**
-   * The common version of the device or devices.
-   * Null when combining multiple devices with different versions, or when the version is unknown.
+   * The common version of the device or devices. Null when combining multiple devices with different versions, or when the version is
+   * unknown.
    */
   val commonVersion: AndroidVersion?
-  /**
-   * The minimum version of the device or devices.
-   * Null if the device version is unknown.
-   */
+  /** The minimum version of the device or devices. Null if the device version is unknown. */
   val minVersion: AndroidVersion?
   val density: Density?
   val abis: List<String>
   val deviceSerials: List<String>
   val languages: List<String>
-  /** Whether the device supports the privacy sandbox SDK
+  /**
+   * Whether the device supports the privacy sandbox SDK
    *
    * When there are multiple devices, only true if all devices support it.
    */

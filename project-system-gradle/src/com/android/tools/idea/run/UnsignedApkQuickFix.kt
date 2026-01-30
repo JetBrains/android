@@ -16,10 +16,10 @@
 package com.android.tools.idea.run
 
 import com.android.tools.idea.concurrency.finallySync
+import com.android.tools.idea.gradle.dsl.android.api.android.SigningConfigModel
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
-import com.android.tools.idea.gradle.dsl.android.model.android.android
-import com.android.tools.idea.gradle.dsl.android.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
@@ -54,8 +54,8 @@ constructor(
   private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector,
 ) : ConfigurationQuickFix, Disposable {
   /**
-   * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the
-   * dialog with the OK button, the selected signing config is picked.
+   * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the dialog with the OK button, the selected
+   * signing config is picked.
    *
    * @param module an IDEA module
    * @param selectedBuildTypeName name of the currently selected build type, e.g. debug
@@ -81,8 +81,7 @@ constructor(
   }
 
   override fun applyFix(dataContext: DataContext) {
-    val gradleBuildModel =
-      GradleModelProvider.getInstance().getProjectModel(module.project).getModuleBuildModel(module)
+    val gradleBuildModel = GradleModelProvider.getInstance().getProjectModel(module.project).getModuleBuildModel(module)
     if (gradleBuildModel != null) {
       val signingConfigSelector = makeSigningConfigSelector(gradleBuildModel)
       if (signingConfigSelector.showAndGet()) {
@@ -91,26 +90,19 @@ constructor(
           .buildTypes()
           .find { it.name() == selectedBuildTypeName }
           ?.let { selectedBuildType ->
-            selectedBuildType
-              .signingConfig()
-              .setValue(ReferenceTo(signingConfigSelector.selectedConfig()))
+            selectedBuildType.signingConfig().setValue(ReferenceTo(signingConfigSelector.selectedConfig()))
             // Write signingConfig to Gradle.
-            WriteCommandAction.runWriteCommandAction(
-              module.project,
-              "Select Signing Config",
-              null,
-              { gradleBuildModel.applyChanges() },
-            )
+            WriteCommandAction.runWriteCommandAction(module.project, "Select Signing Config", null, { gradleBuildModel.applyChanges() })
             // Trigger Gradle sync for the signingConfig to take effect.
-            module.project.getSyncManager()
-              .requestSyncProject(TRIGGER_QF_SIGNING_CONFIG_SELECTED.toReason())
-              .finallySync(MoreExecutors.directExecutor()) { callback?.run() }
+            module.project.getSyncManager().requestSyncProject(TRIGGER_QF_SIGNING_CONFIG_SELECTED.toReason()).finallySync(
+              MoreExecutors.directExecutor()
+            ) {
+              callback?.run()
+            }
           }
       }
     } else {
-      throw IllegalStateException(
-        "Gradle build model should not be null for module: ${module.name}."
-      )
+      throw IllegalStateException("Gradle build model should not be null for module: ${module.name}.")
     }
   }
 
@@ -118,17 +110,12 @@ constructor(
     @VisibleForTesting var unsignedApkQuickFix: UnsignedApkQuickFix? = null
 
     /**
-     * To avoid repeatedly creating a new QuickFix (and losing the calling SettingsEditor's
-     * callback), only instantiate a new UnsignedApkQuickFix if the cached one doesn't match. Null
-     * callbacks also will not overwrite the existing cache if the module and build type remain the
-     * same.
+     * To avoid repeatedly creating a new QuickFix (and losing the calling SettingsEditor's callback), only instantiate a new
+     * UnsignedApkQuickFix if the cached one doesn't match. Null callbacks also will not overwrite the existing cache if the module and
+     * build type remain the same.
      */
     @JvmStatic
-    fun create(
-      module: Module,
-      buildType: String,
-      quickFixCallback: Runnable?,
-    ): UnsignedApkQuickFix? {
+    fun create(module: Module, buildType: String, quickFixCallback: Runnable?): UnsignedApkQuickFix? {
       if (
         unsignedApkQuickFix == null ||
           unsignedApkQuickFix?.module != module ||
@@ -156,23 +143,16 @@ interface SigningConfigSelector {
   fun selectedConfig(): SigningConfigModel
 }
 
-/**
- * Dialog for selecting an existing signing config, useful for quick-fixing unsigned APK Run config
- * error.
- */
-class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>) :
-  DialogWrapper(false), SigningConfigSelector {
+/** Dialog for selecting an existing signing config, useful for quick-fixing unsigned APK Run config error. */
+class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>) : DialogWrapper(false), SigningConfigSelector {
   private val rootPanel = JPanel(BorderLayout())
 
   @VisibleForTesting val signingConfigComboBox = ComboBox<SigningConfigModel>()
 
   init {
     title = "Select Signing Config"
-    signingConfigs.forEach(
-      Consumer { item: SigningConfigModel -> signingConfigComboBox.addItem(item) }
-    )
-    signingConfigComboBox.renderer =
-      textListCellRenderer("<unnamed>", SigningConfigModel::name)
+    signingConfigs.forEach(Consumer { item: SigningConfigModel -> signingConfigComboBox.addItem(item) })
+    signingConfigComboBox.renderer = textListCellRenderer("<unnamed>", SigningConfigModel::name)
     init()
   }
 

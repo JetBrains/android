@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -74,8 +73,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncEndedTimeStamp = now()
     if (success) {
       stopAllPhases(GradleSyncStats.GradleSyncPhaseData.PhaseResult.SUCCESS)
-    }
-    else {
+    } else {
       stopAllPhases(GradleSyncStats.GradleSyncPhaseData.PhaseResult.FAILURE)
     }
     return syncEndedTimeStamp - syncStartedTimeStamp
@@ -96,27 +94,29 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase,
     startTimestamp: Long,
     endTimestamp: Long,
-    status: GradleSyncStats.GradleSyncPhaseData.PhaseResult
+    status: GradleSyncStats.GradleSyncPhaseData.PhaseResult,
   ) {
     // It should always be this value on top of the stack normally, but check just in case to not blindly remove a different value.
     if (phasesStack.lastOrNull()?.phase == phase) {
       phasesStack.removeLastOrNull()
     }
-    val finishedPhaseData = GradleSyncStats.GradleSyncPhaseData.newBuilder()
-      .addAllPhaseStack(phasesStack.map { it.phase } + phase)
-      .setPhaseStartTimestampMs(startTimestamp)
-      .setPhaseEndTimestampMs(endTimestamp)
-      .setPhaseResult(status)
+    val finishedPhaseData =
+      GradleSyncStats.GradleSyncPhaseData.newBuilder()
+        .addAllPhaseStack(phasesStack.map { it.phase } + phase)
+        .setPhaseStartTimestampMs(startTimestamp)
+        .setPhaseEndTimestampMs(endTimestamp)
+        .setPhaseResult(status)
     gradleSyncPhasesProfile.add(finishedPhaseData.build())
   }
 
   private fun stopAllPhases(status: GradleSyncStats.GradleSyncPhaseData.PhaseResult) {
     while (phasesStack.isNotEmpty()) {
-      val finishedPhaseData = GradleSyncStats.GradleSyncPhaseData.newBuilder()
-        .addAllPhaseStack(phasesStack.map { it.phase })
-        .setPhaseStartTimestampMs(phasesStack.last().startTimestamp)
-        .setPhaseEndTimestampMs(syncEndedTimeStamp)
-        .setPhaseResult(status)
+      val finishedPhaseData =
+        GradleSyncStats.GradleSyncPhaseData.newBuilder()
+          .addAllPhaseStack(phasesStack.map { it.phase })
+          .setPhaseStartTimestampMs(phasesStack.last().startTimestamp)
+          .setPhaseEndTimestampMs(syncEndedTimeStamp)
+          .setPhaseResult(status)
       gradleSyncPhasesProfile.add(finishedPhaseData.build())
       phasesStack.removeLast()
     }
@@ -127,7 +127,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     project: Project,
     rootProjectPath: @SystemIndependent String?,
     kind: AndroidStudioEvent.EventKind,
-    updateAdditionalData: GradleSyncStats.Builder.() -> Unit = {}
+    updateAdditionalData: GradleSyncStats.Builder.() -> Unit = {},
   ): AndroidStudioEvent.Builder {
     fun generateKotlinSupport(): KotlinSupport.Builder {
       var kotlinVersion: Version? = null
@@ -135,12 +135,15 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 
       val ordering = Ordering.natural<Version>().nullsFirst<Version>()
 
-      ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidDependencyModel.get(module) }.forEach { model ->
-        val dependencies = model.mainArtifactWithDependencies.compileClasspath
+      ModuleManager.getInstance(project)
+        .modules
+        .mapNotNull { module -> GradleAndroidDependencyModel.get(module) }
+        .forEach { model ->
+          val dependencies = model.mainArtifactWithDependencies.compileClasspath
 
-        kotlinVersion = ordering.max(kotlinVersion, dependencies.libraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
-        ktxVersion = ordering.max(ktxVersion, dependencies.libraries.findVersion("androidx.core", "core-ktx"))
-      }
+          kotlinVersion = ordering.max(kotlinVersion, dependencies.libraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
+          ktxVersion = ordering.max(ktxVersion, dependencies.libraries.findVersion("androidx.core", "core-ktx"))
+        }
 
       val kotlinSupport = KotlinSupport.newBuilder()
       if (kotlinVersion != null) kotlinSupport.kotlinSupportVersion = kotlinVersion.toString()
@@ -153,16 +156,18 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     val buildFileTypes = GradleProjectSystemUtil.projectBuildFilesTypes(project)
 
     // Setup the sync stats
-    syncStats.totalTimeMs = when {
-      syncEndedTimeStamp >= 0 -> syncEndedTimeStamp - syncStartedTimeStamp // Sync was successful
-      syncSetupStartedTimeStamp >= 0 -> syncSetupStartedTimeStamp - syncStartedTimeStamp // Only fetching model has finished
-      else -> 0
-    }
-    syncStats.ideTimeMs = when {
-      syncEndedTimeStamp < 0 -> -1  // Sync is in progress or something went wrong during the last sync
-      syncSetupStartedTimeStamp < 0 -> -1 // Sync was done from cache (no gradle nor IDE part was done)
-      else -> syncEndedTimeStamp - syncSetupStartedTimeStamp
-    }
+    syncStats.totalTimeMs =
+      when {
+        syncEndedTimeStamp >= 0 -> syncEndedTimeStamp - syncStartedTimeStamp // Sync was successful
+        syncSetupStartedTimeStamp >= 0 -> syncSetupStartedTimeStamp - syncStartedTimeStamp // Only fetching model has finished
+        else -> 0
+      }
+    syncStats.ideTimeMs =
+      when {
+        syncEndedTimeStamp < 0 -> -1 // Sync is in progress or something went wrong during the last sync
+        syncSetupStartedTimeStamp < 0 -> -1 // Sync was done from cache (no gradle nor IDE part was done)
+        else -> syncEndedTimeStamp - syncSetupStartedTimeStamp
+      }
     syncStats.gradleTimeMs = if (syncSetupStartedTimeStamp >= 0) syncSetupStartedTimeStamp - syncStartedTimeStamp else -1
     syncStats.trigger = trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
@@ -173,30 +178,31 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
     }
     syncStats.updateAdditionalData()
-    if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED
-        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED
-        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE
-        || kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS) {
+    if (
+      kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED ||
+        kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED ||
+        kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE ||
+        kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS
+    ) {
       syncStats.addAllGradleSyncPhasesData(gradleSyncPhasesProfile)
     }
 
-    val gradleVersion = when(kind) {
-      AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED,
-      AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED,
-      AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE,
-      AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS,
-          // "lastSynced" in this case is a misnomer: we are part-way through syncing but
-          // have updated the `lastSyncedGradleVersion` of the state after configuring
-          // the sync operation.
+    val gradleVersion =
+      when (kind) {
+        AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED,
+        AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED,
+        AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE,
+        AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS
+        // "lastSynced" in this case is a misnomer: we are part-way through syncing but
+        // have updated the `lastSyncedGradleVersion` of the state after configuring
+        // the sync operation.
         -> GradleSyncState.getInstance(project).lastSyncedGradleVersion?.version
-      else -> null
-    }
+        else -> null
+      }
     runReadAction {
-      val lastKnownVersion =
-        GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(project)
+      val lastKnownVersion = GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(project)
       if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
-      val lastSuccessfulVersion =
-        GradleProjectSystemUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
+      val lastSuccessfulVersion = GradleProjectSystemUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
       if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
 
       // Set up the Android studio event
@@ -215,15 +221,13 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-data class GradleSyncPhaseStartEvent(
-  val phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase,
-  val startTimestamp: Long
-)
+data class GradleSyncPhaseStartEvent(val phase: GradleSyncStats.GradleSyncPhaseData.SyncPhase, val startTimestamp: Long)
 
 private fun Collection<IdeLibrary>.findVersion(group: String, name: String): Version? =
   filterIsInstance<IdeArtifactLibrary>()
     .firstOrNull { library -> library.component?.let { it.group == group && it.name == name } ?: false }
-    ?.component?.version
+    ?.component
+    ?.version
 
 private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {
   if (!StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
@@ -231,18 +235,19 @@ private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project:
     return
   }
 
-  userRequestedSyncType = when (GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC) {
-    true -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_PARALLEL
-    false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
-  }
+  userRequestedSyncType =
+    when (GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC) {
+      true -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_PARALLEL
+      false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
+    }
 
-  val projectData = ExternalSystemApiUtil.findProjectNode(project,
-                                                          GradleProjectSystemUtil.GRADLE_SYSTEM_ID, rootProjectPath)
+  val projectData = ExternalSystemApiUtil.findProjectNode(project, GradleProjectSystemUtil.GRADLE_SYSTEM_ID, rootProjectPath)
   val executionReport = projectData?.let { ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.SYNC_EXECUTION_REPORT) }?.data
   if (executionReport != null) {
-    studioRequestedSyncType = when (executionReport.parallelFetchForV2ModelsEnabled) {
-      true -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_PARALLEL
-      false -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_SEQUENTIAL
-    }
+    studioRequestedSyncType =
+      when (executionReport.parallelFetchForV2ModelsEnabled) {
+        true -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_PARALLEL
+        false -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_SEQUENTIAL
+      }
   }
 }

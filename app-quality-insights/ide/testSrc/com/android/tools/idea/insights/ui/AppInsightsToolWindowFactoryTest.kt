@@ -61,19 +61,16 @@ class AppInsightsToolWindowFactoryTest {
     projectRule.project.service<AppInsightsSettings>().selectedTabId = "Test 2"
     factory.createTabs(projectRule.project, toolWindow)
 
-    assertThat(toolWindow.contentManager.selectedContent)
-      .isEqualTo(toolWindow.contentManager.contents.find { it.tabName == "Test 2" })
+    assertThat(toolWindow.contentManager.selectedContent).isEqualTo(toolWindow.contentManager.contents.find { it.tabName == "Test 2" })
   }
 
   @Test
   fun isLibraryToolWindow() {
     val toolWindow =
-      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
-        it.id == "App Quality Insights"
-      } ?: throw AssertionError("Tool window not found")
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "App Quality Insights" }
+        ?: throw AssertionError("Tool window not found")
 
-    assertThat(toolWindow.librarySearchClass)
-      .isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
+    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }
 
   @Test
@@ -82,49 +79,32 @@ class AppInsightsToolWindowFactoryTest {
     val provider1 = ActiveTabCollectingTabProvider("provider1", scope)
     val provider2 = ActiveTabCollectingTabProvider("provider2", scope)
 
-    ExtensionTestUtil.maskExtensions(
-      AppInsightsTabProvider.EP_NAME,
-      listOf(provider1, provider2),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(AppInsightsTabProvider.EP_NAME, listOf(provider1, provider2), projectRule.disposable)
 
     val factory = AppInsightsToolWindowFactory()
     val toolWindow = MockToolWindow(projectRule.project)
 
     factory.createTabs(projectRule.project, toolWindow)
 
-    assertThat(toolWindow.contentManager.selectedContent?.displayName)
-      .isEqualTo(provider1.displayName)
+    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider1.displayName)
     waitForCondition { provider1.isTabActive }
     waitForCondition { !provider2.isTabActive }
 
-    toolWindow.contentManager.setSelectedContent(
-      toolWindow.contentManager.contents.first { it.displayName == provider2.displayName }
-    )
-    waitForCondition {
-      toolWindow.contentManager.selectedContent?.displayName != provider1.displayName
-    }
+    toolWindow.contentManager.setSelectedContent(toolWindow.contentManager.contents.first { it.displayName == provider2.displayName })
+    waitForCondition { toolWindow.contentManager.selectedContent?.displayName != provider1.displayName }
 
-    assertThat(toolWindow.contentManager.selectedContent?.displayName)
-      .isEqualTo(provider2.displayName)
+    assertThat(toolWindow.contentManager.selectedContent?.displayName).isEqualTo(provider2.displayName)
     waitForCondition { !provider1.isTabActive }
     waitForCondition { provider2.isTabActive }
   }
 
   private fun waitForCondition(condition: () -> Boolean) = waitForCondition(2.seconds, condition)
 
-  internal class ActiveTabCollectingTabProvider(
-    displayName: String,
-    private val scope: CoroutineScope,
-  ) : TestTabProvider(displayName) {
+  internal class ActiveTabCollectingTabProvider(displayName: String, private val scope: CoroutineScope) : TestTabProvider(displayName) {
     var isTabActive: Boolean = false
       private set
 
-    override fun populateTab(
-      project: Project,
-      tabPanel: AppInsightsTabPanel,
-      activeTabFlow: Flow<Boolean>,
-    ) {
+    override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel, activeTabFlow: Flow<Boolean>) {
       scope.launch { activeTabFlow.collect { isTabActive = it } }
     }
   }

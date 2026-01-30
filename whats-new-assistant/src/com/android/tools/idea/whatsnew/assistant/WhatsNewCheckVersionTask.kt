@@ -21,10 +21,8 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.apache.http.concurrent.FutureCallback
 
-class WhatsNewCheckVersionTask(
-  project: Project,
-  private val uiCallback: FutureCallback<Boolean>
-  ): Task.Backgroundable(project, "Checking What's New Assistant version...") {
+class WhatsNewCheckVersionTask(project: Project, private val uiCallback: FutureCallback<Boolean>) :
+  Task.Backgroundable(project, "Checking What's New Assistant version...") {
 
   private var isNewVersion = false
 

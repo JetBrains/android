@@ -20,9 +20,8 @@ import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlKeySegment
 
 /**
- * Only allow to rename declaration aliases.
- * Reference literals (version.ref value) do not go through this condition
- * as they have reference to library alias.
+ * Only allow to rename declaration aliases. Reference literals (version.ref value) do not go through this condition as they have reference
+ * to library alias.
  */
 class GradleCatalogTomlVetoCondition : Condition<PsiElement> {
   override fun value(psiElement: PsiElement): Boolean {

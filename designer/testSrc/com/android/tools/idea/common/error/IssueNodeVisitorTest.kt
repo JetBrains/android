@@ -33,10 +33,7 @@ class IssueNodeVisitorTest {
 
   @Before
   fun setUp() {
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
   }
 
   @RunsInEdt

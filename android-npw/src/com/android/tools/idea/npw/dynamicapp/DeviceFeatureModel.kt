@@ -20,12 +20,8 @@ import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 
-/**
- * Model for a single row of "device-feature"
- */
+/** Model for a single row of "device-feature" */
 data class DeviceFeatureModel(
-  @JvmField
-  val deviceFeatureType: ObjectProperty<DeviceFeatureKind> = ObjectValueProperty(DeviceFeatureKind.NAME),
-  @JvmField
-  val deviceFeatureValue: StringProperty = StringValueProperty( "")
+  @JvmField val deviceFeatureType: ObjectProperty<DeviceFeatureKind> = ObjectValueProperty(DeviceFeatureKind.NAME),
+  @JvmField val deviceFeatureValue: StringProperty = StringValueProperty(""),
 )

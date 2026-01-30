@@ -24,6 +24,7 @@ import javax.swing.table.TableColumn
 class DeviceMonitorTableModel : AbstractTableModel() {
   private val rows = mutableListOf<ProcessInfo>()
   private val columns = mutableListOf<TableColumn>()
+
   override fun getRowCount(): Int = rows.size
 
   override fun getColumnCount(): Int = columns.size
@@ -107,14 +108,11 @@ class DeviceMonitorTableModel : AbstractTableModel() {
       override fun compare(o1: ProcessInfo, o2: ProcessInfo): Int {
         return if (o1.isPidOnly && o2.isPidOnly) {
           o1.pid.compareTo(o2.pid)
-        }
-        else if (o1.isPidOnly) {
+        } else if (o1.isPidOnly) {
           1
-        }
-        else if (o2.isPidOnly) {
+        } else if (o2.isPidOnly) {
           -1
-        }
-        else {
+        } else {
           o1.safeProcessName.compareTo(o2.safeProcessName)
         }
       }

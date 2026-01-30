@@ -20,9 +20,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createParentDirectories
-import junit.framework.TestCase
 import java.nio.file.Path
 import java.nio.file.Paths
+import junit.framework.TestCase
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 
@@ -62,9 +62,12 @@ class BuildFileListTest : TestCase() {
     val dest2 = Paths.get("file2.txt")
     val dest3 = Paths.get("file3.txt")
 
-    val providers = listOf(TestFileProvider("Provider1", source1, dest1),
-                           TestFileProvider("Provider2", source2, dest2),
-                           TestFileProvider("Provider3", source3, dest3))
+    val providers =
+      listOf(
+        TestFileProvider("Provider1", source1, dest1),
+        TestFileProvider("Provider2", source2, dest2),
+        TestFileProvider("Provider3", source3, dest3),
+      )
 
     val fileList = DiagnosticsSummaryFileProvider.buildFileList(null, providers)
 
@@ -77,9 +80,8 @@ class BuildFileListTest : TestCase() {
     assertThat(fileList[1].destination).isEqualTo(Paths.get("Provider2").resolve(dest2))
   }
 
-  private class TestFileProvider(override val name: String,
-                                 private val source: Path,
-                                 private val destination: Path) : DiagnosticsSummaryFileProvider {
+  private class TestFileProvider(override val name: String, private val source: Path, private val destination: Path) :
+    DiagnosticsSummaryFileProvider {
     override fun getFiles(project: Project?): List<FileInfo> {
       return listOf(FileInfo(source, destination))
     }

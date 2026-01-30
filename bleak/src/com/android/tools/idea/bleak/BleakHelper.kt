@@ -33,13 +33,16 @@ abstract class BleakHelper {
   fun classesFor(cl: ClassLoader?) = loaderToClasses[cl]
 
   abstract fun computeLoadedClasses(): Collection<Any>
+
   abstract fun pauseThreads()
+
   abstract fun resumeThreads()
 }
 
 // non-JNI-based implementation so that at least something can be done without an agent or native code
-class JavaBleakHelper: BleakHelper() {
+class JavaBleakHelper : BleakHelper() {
   override fun pauseThreads() {}
+
   override fun resumeThreads() {}
 
   // this isn't all the classes, just the ones from this class loader and the system class loader.
@@ -51,5 +54,4 @@ class JavaBleakHelper: BleakHelper() {
     classesField.isAccessible = true
     return loaders.flatMap { classesField.get(it) as Vector<*> }
   }
-
 }

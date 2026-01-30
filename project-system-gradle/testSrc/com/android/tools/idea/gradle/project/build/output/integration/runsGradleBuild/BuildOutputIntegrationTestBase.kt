@@ -37,18 +37,17 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.ContainerUtil
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 
 abstract class BuildOutputIntegrationTestBase {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   @Before
@@ -66,17 +65,20 @@ abstract class BuildOutputIntegrationTestBase {
     val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
     val allBuildEventsProcessedLatch = CountDownLatch(1)
     // Build
-    val result = buildAndWait(eventHandler = { event ->
-      if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
-      buildEvents.add(event)
-      // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-      // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-      if (event is FinishBuildEventImpl) {
-        allBuildEventsProcessedLatch.countDown()
+    val result =
+      buildAndWait(
+        eventHandler = { event ->
+          if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
+          buildEvents.add(event)
+          // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+          // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+          if (event is FinishBuildEventImpl) {
+            allBuildEventsProcessedLatch.countDown()
+          }
+        }
+      ) { buildInvoker ->
+        buildInvoker.rebuild()
       }
-    }) { buildInvoker ->
-      buildInvoker.rebuild()
-    }
     assertThat(result.isBuildSuccessful).isEqualTo(expectSuccess)
     allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
     return buildEvents
@@ -85,32 +87,34 @@ abstract class BuildOutputIntegrationTestBase {
   fun PreparedTestProject.openAndBuildWithFailingTasks(
     tasks: List<String>,
     withStacktrace: Boolean,
-    verification: PreparedTestProject.Context.(List<BuildEvent>, Map<String, List<String>>) -> Unit
+    verification: PreparedTestProject.Context.(List<BuildEvent>, Map<String, List<String>>) -> Unit,
   ) {
     open { project ->
       val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
       val outputsMap = mutableMapOf<String, MutableList<String>>()
       val allBuildEventsProcessedLatch = CountDownLatch(1)
       // Build
-      val result = project.buildAndWait(eventHandler = { event ->
-        if (event is OutputBuildEvent) {
-          outputsMap.getOrPut(event.parentPath()) { ArrayList() }
-            .add(event.message)
+      val result =
+        project.buildAndWait(
+          eventHandler = { event ->
+            if (event is OutputBuildEvent) {
+              outputsMap.getOrPut(event.parentPath()) { ArrayList() }.add(event.message)
+            }
+            if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
+            buildEvents.add(event)
+            // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+            // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+            if (event is FinishBuildEventImpl) {
+              allBuildEventsProcessedLatch.countDown()
+            }
+          }
+        ) { buildInvoker ->
+          buildInvoker.executeTasks(
+            GradleBuildInvoker.Request.builder(project, projectRoot, tasks)
+              .setCommandLineArguments(if (withStacktrace) listOf("--stacktrace") else emptyList())
+              .build()
+          )
         }
-        if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
-        buildEvents.add(event)
-        // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-        // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-        if (event is FinishBuildEventImpl) {
-          allBuildEventsProcessedLatch.countDown()
-        }
-      }) { buildInvoker ->
-        buildInvoker.executeTasks(
-          GradleBuildInvoker.Request.builder(project, projectRoot, tasks)
-            .setCommandLineArguments(if (withStacktrace) listOf("--stacktrace") else emptyList())
-            .build()
-        )
-      }
       assertThat(result.isBuildSuccessful).isEqualTo(false)
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
 
@@ -118,39 +122,43 @@ abstract class BuildOutputIntegrationTestBase {
     }
   }
 
-  fun List<BuildEvent>.finishEventFailures() = (filterIsInstance<FinishBuildEvent>().single().result as? FailureResult)?.failures
-                                                       ?: emptyList()
+  fun List<BuildEvent>.finishEventFailures() =
+    (filterIsInstance<FinishBuildEvent>().single().result as? FailureResult)?.failures ?: emptyList()
 
   fun verifyNoStats() {
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    val reportedFailureDetails =
+      usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
     assertThat(reportedFailureDetails).hasSize(0)
   }
+
   fun verifyStats(vararg expectedMessages: BuildErrorMessage.ErrorType) {
-    usageTracker.usages.map { it.studioEvent }.firstOrNull {
-      it.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS
-    }?.also {
-      assertThat(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(*expectedMessages)
-    } ?: fail("No BUILD_OUTPUT_WINDOW_STATS event reported.")
+    usageTracker.usages
+      .map { it.studioEvent }
+      .firstOrNull { it.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+      ?.also { assertThat(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType }).containsExactly(*expectedMessages) }
+      ?: fail("No BUILD_OUTPUT_WINDOW_STATS event reported.")
   }
 
   fun BuildEvent.verifyQuickfix(quickFixId: String, verify: (BuildIssueQuickFix) -> Unit) {
-    findQuickfix(quickFixId)?.let {verify(it) } ?: Assert.fail("Quickfix with id '$quickFixId' not found")
+    findQuickfix(quickFixId)?.let { verify(it) } ?: Assert.fail("Quickfix with id '$quickFixId' not found")
   }
+
   fun List<BuildEvent>.printEvents(): String {
     return joinToString(separator = "\n") { it.toFullPathWithMessage() }
   }
+
   fun BuildEvent.toFullPathWithMessage(): String {
     val parentPath = parentPath()
     val kind = if (this is MessageEvent) "$kind:" else ""
     return "$parentPath > $kind'${message}'"
   }
 
-  fun BuildEvent.parentPath(): String = when (val parentId = parentId) {
-    null, is ExternalSystemTaskId -> "root"
-    else -> "root > ${parentId.toString().substringAfter(" > ")}"
-  }
+  fun BuildEvent.parentPath(): String =
+    when (val parentId = parentId) {
+      null,
+      is ExternalSystemTaskId -> "root"
+      else -> "root > ${parentId.toString().substringAfter(" > ")}"
+    }
 
   fun List<BuildEvent>.findBuildEvent(eventPath: String): BuildEvent {
     return single { it.toFullPathWithMessage() == eventPath }

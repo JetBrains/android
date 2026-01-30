@@ -44,9 +44,8 @@ private const val MAX_BUFFER_SIZE_MB = 100
 private const val MAX_BUFFER_SIZE_KB = 1024 * MAX_BUFFER_SIZE_MB
 
 // TODO(aalbert): Maybe change this to be a ConfigurableUi and use SimpleConfigurable?
-internal class LogcatApplicationSettingsConfigurable(
-  private val logcatSettings: AndroidLogcatSettings
-) : Configurable, Configurable.NoScroll {
+internal class LogcatApplicationSettingsConfigurable(private val logcatSettings: AndroidLogcatSettings) :
+  Configurable, Configurable.NoScroll {
   @VisibleForTesting
   internal val cycleBufferSizeTextField =
     JTextField().apply {
@@ -85,29 +84,19 @@ internal class LogcatApplicationSettingsConfigurable(
     }
 
   // VisibleForTesting
-  internal val ignoreTagsTextField by
-  lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
+  internal val ignoreTagsTextField by lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
 
   // VisibleForTesting
-  internal val ignoreAppsTextField by
-  lazy(NONE) {
-    IgnoreValuesTextField(logcatSettings.ignoredApps, LogcatPresenter::getPackageNames)
-  }
+  internal val ignoreAppsTextField by lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredApps, LogcatPresenter::getPackageNames) }
 
   @VisibleForTesting
-  internal val ignoreValuesNote =
-    JLabel(LogcatBundle.message("logcat.settings.ignore.tags.note")).apply {
-      foreground = JBColor.red
-    }
+  internal val ignoreValuesNote = JLabel(LogcatBundle.message("logcat.settings.ignore.tags.note")).apply { foreground = JBColor.red }
 
   @VisibleForTesting internal val cyclicBufferSizeWarningLabel = JLabel()
 
   @VisibleForTesting
   internal val filterHistoryAutocompleteCheckbox =
-    JCheckBox(
-      LogcatBundle.message("logcat.settings.history.autocomplete"),
-      logcatSettings.filterHistoryAutocomplete,
-    )
+    JCheckBox(LogcatBundle.message("logcat.settings.history.autocomplete"), logcatSettings.filterHistoryAutocomplete)
 
   private val component = JPanel(GridBagLayout())
 
@@ -123,66 +112,32 @@ internal class LogcatApplicationSettingsConfigurable(
           }
         )
         val gridBag = GridBag().anchor(NORTHWEST)
-        add(
-          JLabel(LogcatBundle.message("logcat.settings.buffer.size")),
-          gridBag.nextLine().next().anchor(WEST),
-        )
+        add(JLabel(LogcatBundle.message("logcat.settings.buffer.size")), gridBag.nextLine().next().anchor(WEST))
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
         add(cycleBufferSizeTextField, gridBag.next().anchor(WEST))
-        add(
-          JLabel(LogcatBundle.message("logcat.settings.buffer.kb")),
-          gridBag.next().weightx(1.0).anchor(WEST),
-        )
-        add(
-          cyclicBufferSizeWarningLabel,
-          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10),
-        )
+        add(JLabel(LogcatBundle.message("logcat.settings.buffer.kb")), gridBag.next().weightx(1.0).anchor(WEST))
+        add(cyclicBufferSizeWarningLabel, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
 
-        add(
-          JLabel(LogcatBundle.message("logcat.settings.default.filter")),
-          gridBag.nextLine().next().anchor(WEST),
-        )
+        add(JLabel(LogcatBundle.message("logcat.settings.default.filter")), gridBag.nextLine().next().anchor(WEST))
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(
-          defaultFilterTextField,
-          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
-        )
-        add(
-          mostRecentlyUsedFilterIsDefaultCheckbox,
-          gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10),
-        )
+        add(defaultFilterTextField, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+        add(mostRecentlyUsedFilterIsDefaultCheckbox, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
         defaultFilterTextField.text = logcatSettings.defaultFilter
 
         add(overrideFontSize, gridBag.nextLine().next().anchor(WEST))
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
         add(fontSize, gridBag.next().anchor(WEST))
 
-        add(
-          JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")),
-          gridBag.nextLine().next().anchor(WEST),
-        )
+        add(JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")), gridBag.nextLine().next().anchor(WEST))
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(
-          ignoreTagsTextField.component,
-          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
-        )
-        add(
-          JLabel(LogcatBundle.message("logcat.settings.ignore.apps.label")),
-          gridBag.nextLine().next().anchor(WEST),
-        )
+        add(ignoreTagsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
+        add(JLabel(LogcatBundle.message("logcat.settings.ignore.apps.label")), gridBag.nextLine().next().anchor(WEST))
         add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
-        add(
-          ignoreAppsTextField.component,
-          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
-        )
+        add(ignoreAppsTextField.component, gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine())
         add(ignoreValuesNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
-        ignoreValuesNote.isVisible =
-          LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
+        ignoreValuesNote.isVisible = LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
 
-        add(
-          filterHistoryAutocompleteCheckbox,
-          gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10),
-        )
+        add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
 
         // Add an empty panel that consumes all vertical space bellow.
         add(JPanel(), gridBag.nextLine().next().weighty(1.0))
@@ -195,13 +150,8 @@ internal class LogcatApplicationSettingsConfigurable(
     cyclicBufferSizeWarningLabel.text =
       when {
         value == null || !isValidBufferSize(value) ->
-          LogcatBundle.message(
-            "logcat.settings.buffer.warning.invalid",
-            MAX_BUFFER_SIZE_KB.toString(),
-            MAX_BUFFER_SIZE_MB.toString(),
-          )
-        value > FileSizeLimit.getDefaultContentLoadLimit() / 1024 ->
-          LogcatBundle.message("logcat.settings.buffer.warning.tooLarge")
+          LogcatBundle.message("logcat.settings.buffer.warning.invalid", MAX_BUFFER_SIZE_KB.toString(), MAX_BUFFER_SIZE_MB.toString())
+        value > FileSizeLimit.getDefaultContentLoadLimit() / 1024 -> LogcatBundle.message("logcat.settings.buffer.warning.tooLarge")
         else -> ""
       }
   }
@@ -210,24 +160,20 @@ internal class LogcatApplicationSettingsConfigurable(
 
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
-    return (bufferSizeKb != null &&
-            isValidBufferSize(bufferSizeKb) &&
-            bufferSizeKb != logcatSettings.bufferSize / 1024) ||
-           defaultFilterTextField.text != logcatSettings.defaultFilter ||
-           mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
-           logcatSettings.mostRecentlyUsedFilterIsDefault ||
-           filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
-           overrideFontSize.isSelected != logcatSettings.overrideFontSize ||
-           fontSize.text != logcatSettings.fontSize.toString() ||
-           ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
-           ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
+    return (bufferSizeKb != null && isValidBufferSize(bufferSizeKb) && bufferSizeKb != logcatSettings.bufferSize / 1024) ||
+      defaultFilterTextField.text != logcatSettings.defaultFilter ||
+      mostRecentlyUsedFilterIsDefaultCheckbox.isSelected != logcatSettings.mostRecentlyUsedFilterIsDefault ||
+      filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
+      overrideFontSize.isSelected != logcatSettings.overrideFontSize ||
+      fontSize.text != logcatSettings.fontSize.toString() ||
+      ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
+      ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
   }
 
   override fun reset() {
     cycleBufferSizeTextField.text = (logcatSettings.bufferSize / 1024).toString()
     defaultFilterTextField.text = logcatSettings.defaultFilter
-    mostRecentlyUsedFilterIsDefaultCheckbox.isSelected =
-      logcatSettings.mostRecentlyUsedFilterIsDefault
+    mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = logcatSettings.mostRecentlyUsedFilterIsDefault
     filterHistoryAutocompleteCheckbox.isSelected = logcatSettings.filterHistoryAutocomplete
     overrideFontSize.isSelected = logcatSettings.overrideFontSize
     fontSize.text = logcatSettings.fontSize.toString()
@@ -238,8 +184,7 @@ internal class LogcatApplicationSettingsConfigurable(
   override fun apply() {
     logcatSettings.bufferSize = getBufferSizeKb()?.times(1024) ?: return
     logcatSettings.defaultFilter = defaultFilterTextField.text
-    logcatSettings.mostRecentlyUsedFilterIsDefault =
-      mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
+    logcatSettings.mostRecentlyUsedFilterIsDefault = mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
     logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
     logcatSettings.overrideFontSize = overrideFontSize.isSelected
     logcatSettings.fontSize = fontSize.text.toIntOrNull() ?: 13

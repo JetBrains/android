@@ -19,6 +19,4 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-object ThreadingCheckerTestSuite : IdeaTestSuiteBase() {
-}
+@RunWith(JarTestSuiteRunner::class) object ThreadingCheckerTestSuite : IdeaTestSuiteBase() {}

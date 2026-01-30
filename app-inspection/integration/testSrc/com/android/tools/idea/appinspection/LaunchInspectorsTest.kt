@@ -32,29 +32,25 @@ class LaunchInspectorsTest {
   @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
-   * Verifies that all inspectors are deployed successfully with a non-empty UI component after
-   * opening the App Inspection tool window. <p> <pre> Test Steps:
+   * Verifies that all inspectors are deployed successfully with a non-empty UI component after opening the App Inspection tool window. <p>
+   * <pre> Test Steps:
    * 1. Import minapp in the testData directory of this module
    * 2. Add a few layout elements to the default activity
    * 3. Open the App Inspection tool window
    * 4. Wait until agent deployed
    * 5. Click Run
    * 6. From the device chooser dialog, select the running emulator and click Ok
-   * 7. Open the App Inspection tool window again Verify: Project builds successfully and runs on
-   *    the emulator Find specific UI components for all inspectors Find specific logs for all
-   *    inspector deployments </pre>
+   * 7. Open the App Inspection tool window again Verify: Project builds successfully and runs on the emulator Find specific UI components
+   *    for all inspectors Find specific logs for all inspector deployments </pre>
    *
-   * TODO(b/255808916): The test should be able to run as described above, with the App Inspection
-   *   tool launched before the app. But for some reason, the app detaches if the inspectors are
-   *   initialized right away. A workaround is to not deploy the inspectors until after the app has
-   *   launched. When this bug is fixed, we should add another test so we have 2 versions. One with
-   *   the inspectors tool already open when the app is launched, and another where the tool is
-   *   started after the app is run.
+   * TODO(b/255808916): The test should be able to run as described above, with the App Inspection tool launched before the app. But for
+   *   some reason, the app detaches if the inspectors are initialized right away. A workaround is to not deploy the inspectors until after
+   *   the app has launched. When this bug is fixed, we should add another test so we have 2 versions. One with the inspectors tool already
+   *   open when the app is launched, and another where the tool is started after the app is run.
    */
   @Test
   fun openAppInspectionToolWindow() {
-    val projectArtifactsPath =
-      Paths.get("tools/adt/idea/app-inspection/integration/minapp_project_model")
+    val projectArtifactsPath = Paths.get("tools/adt/idea/app-inspection/integration/minapp_project_model")
     val project = AndroidProject(projectArtifactsPath.resolve("minapp").toString())
     system.installRepo(MavenRepo("tools/adt/idea/app-inspection/integration/minapp_deps.manifest"))
 
@@ -72,13 +68,7 @@ class LaunchInspectorsTest {
           studio.waitForBuild()
 
           studio.executeAction("Run")
-          studio.waitForEmulatorStart(
-            system.installation.ideaLog,
-            emulator,
-            "com\\.example\\.minapp",
-            60,
-            TimeUnit.SECONDS,
-          )
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
 
           // TODO(b/255808916): See TODO section in the test KDoc.
           emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 60, TimeUnit.SECONDS)
@@ -91,25 +81,12 @@ class LaunchInspectorsTest {
           // Component for Network Inspector.
           studio.waitForComponentByClass("RangeTooltipComponent")
 
-          emulator.logCat.waitForMatchingLine(
-            ".*Inspector installed: androidx.sqlite.inspection",
-            60,
-            TimeUnit.SECONDS,
-          )
-          emulator.logCat
-            .reset() // have to reset log position between checks because Inspector lines can appear
+          emulator.logCat.waitForMatchingLine(".*Inspector installed: androidx.sqlite.inspection", 60, TimeUnit.SECONDS)
+          emulator.logCat.reset() // have to reset log position between checks because Inspector lines can appear
           // in any order
-          emulator.logCat.waitForMatchingLine(
-            ".*Inspector installed: backgroundtask.inspection",
-            60,
-            TimeUnit.SECONDS,
-          )
+          emulator.logCat.waitForMatchingLine(".*Inspector installed: backgroundtask.inspection", 60, TimeUnit.SECONDS)
           emulator.logCat.reset()
-          emulator.logCat.waitForMatchingLine(
-            ".*Inspector installed: studio.network.inspection",
-            60,
-            TimeUnit.SECONDS,
-          )
+          emulator.logCat.waitForMatchingLine(".*Inspector installed: studio.network.inspection", 60, TimeUnit.SECONDS)
         }
       }
     }

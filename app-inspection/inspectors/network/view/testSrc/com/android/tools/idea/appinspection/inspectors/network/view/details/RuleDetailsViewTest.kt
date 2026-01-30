@@ -87,8 +87,7 @@ class RuleDetailsViewTest {
     private var latestRegularCommand = InterceptCommand.getDefaultInstance()
     private var latestReorderCommand = InterceptCommand.getDefaultInstance()
 
-    override suspend fun startInspection(): StartInspectionResponse =
-      StartInspectionResponse.getDefaultInstance()
+    override suspend fun startInspection(): StartInspectionResponse = StartInspectionResponse.getDefaultInstance()
 
     override suspend fun interceptResponse(command: InterceptCommand) {
       if (command.hasReorderInterceptRules()) {
@@ -139,13 +138,7 @@ class RuleDetailsViewTest {
     client = TestNetworkInspectorClient()
     tracker = TestNetworkInspectorUsageTracker()
     Disposer.register(testRootDisposable, tracker)
-    services =
-      TestNetworkInspectorServices(
-        codeNavigationProvider,
-        timer,
-        client,
-        IdeNetworkInspectorTracker(projectRule.project),
-      )
+    services = TestNetworkInspectorServices(codeNavigationProvider, timer, client, IdeNetworkInspectorTracker(projectRule.project))
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     model =
       NetworkInspectorModel(
@@ -160,15 +153,7 @@ class RuleDetailsViewTest {
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        testRootDisposable,
-      )
+      NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, testRootDisposable)
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
   }
@@ -300,14 +285,12 @@ class RuleDetailsViewTest {
   fun updateRuleOriginFromDetailsView() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val protocolComponent =
-      findComponentWithUniqueName(ruleDetailsView, "protocolComboBox") as CommonComboBox<*, *>
+    val protocolComponent = findComponentWithUniqueName(ruleDetailsView, "protocolComboBox") as CommonComboBox<*, *>
     assertThat(protocolComponent.getModel().text).isEqualTo("https")
     protocolComponent.setSelectedIndex(1)
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PROTOCOL)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PROTOCOL)
     }
 
     val urlComponent = findComponentWithUniqueName(ruleDetailsView, "urlTextField") as JTextField
@@ -317,8 +300,7 @@ class RuleDetailsViewTest {
     urlComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_HOST)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_HOST)
     }
 
     val portComponent = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
@@ -327,8 +309,7 @@ class RuleDetailsViewTest {
     portComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PORT)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PORT)
     }
 
     // A '/' prefix should be added to path automatically if not already there.
@@ -338,29 +319,24 @@ class RuleDetailsViewTest {
     pathComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PATH)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PATH)
     }
 
-    val queryComponent =
-      findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
+    val queryComponent = findComponentWithUniqueName(ruleDetailsView, "queryTextField") as JTextField
     assertThat(queryComponent.text).isEmpty()
     queryComponent.text = "title=Query_string&action=edit"
     queryComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_QUERY)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_QUERY)
     }
 
-    val methodComponent =
-      findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
+    val methodComponent = findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
     assertThat(methodComponent.getModel().text).isEqualTo("GET")
     methodComponent.setSelectedIndex(2)
 
     assertThat(rule.criteria.host).isEqualTo(url)
-    assertThat(inspectorView.rulesView.table.getValueAt(0, 2))
-      .isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("http://www.google.com:8080/path?title=Query_string&action=edit")
     client.verifyLatestCommand {
       it.interceptRuleUpdated.rule.criteria.also { criteria ->
         assertThat(criteria.protocol).isEqualTo(InterceptCriteria.Protocol.PROTOCOL_HTTP)
@@ -377,20 +353,15 @@ class RuleDetailsViewTest {
   fun updateStatusCodeFromDetailsView() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
     findCodeTextField.text = "200"
     findCodeTextField.onFocusLost()
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_CODE)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_CODE)
     }
     assertThat(newCodeTextField.isEnabled).isFalse()
     isActiveCheckBox.doClick()
@@ -400,8 +371,7 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_CODE)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_CODE)
     }
     client.verifyLatestCommand {
       val transformation = it.interceptRuleUpdated.rule.getTransformation(0)
@@ -417,13 +387,9 @@ class RuleDetailsViewTest {
     addNewRule()
     val table = inspectorView.rulesView.table
     table.selectionModel.addSelectionInterval(0, 0)
-    val savedFindCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val savedNewCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val savedIsActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val savedFindCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val savedNewCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val savedIsActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
     assertThat(savedFindCodeTextField.text).isEqualTo("200")
     assertThat(savedFindCodeTextField.isEnabled).isTrue()
     assertThat(savedNewCodeTextField.text).isEqualTo("404")
@@ -440,9 +406,7 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Switches between add and replace mode
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -459,8 +423,7 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
     }
 
     assertThat(headerTable.rowCount).isEqualTo(1)
@@ -500,9 +463,7 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
@@ -522,8 +483,7 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
     assertThat(headerTable.rowCount).isEqualTo(1)
     assertThat(headerTable.getValueAt(0, 0)).isEqualTo("Edit")
@@ -561,9 +521,7 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.newAddedNameLabel.text = newAddedNameText
       dialog.newAddedValueLabel.text = newAddedValueText
@@ -571,8 +529,7 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.ADD_HEADER)
     }
 
     val editAction = findAction(headerTable.parent.parent.parent, "Edit")
@@ -580,9 +537,7 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -604,13 +559,10 @@ class RuleDetailsViewTest {
     }
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
 
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.editHeaderPanel)
@@ -631,15 +583,7 @@ class RuleDetailsViewTest {
 
     val model = ruleData.headerRuleTableModel
     val headerAddedRule = HeaderAddedRuleData("name", "value")
-    val headerReplacedRule =
-      RuleData.HeaderReplacedRuleData(
-        "findName",
-        true,
-        "findValue",
-        false,
-        "replaceName",
-        "replaceValue",
-      )
+    val headerReplacedRule = RuleData.HeaderReplacedRuleData("findName", true, "findValue", false, "replaceName", "replaceValue")
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
@@ -668,8 +612,7 @@ class RuleDetailsViewTest {
 
     val model = ruleData.headerRuleTableModel
     val headerAddedRule = HeaderAddedRuleData("name", "value")
-    val headerReplacedRule =
-      RuleData.HeaderReplacedRuleData("findName", true, null, false, null, "replaceValue")
+    val headerReplacedRule = RuleData.HeaderReplacedRuleData("findName", true, null, false, null, "replaceValue")
     model.addRow(headerAddedRule)
     model.addRow(headerReplacedRule)
     assertThat(headerTable.rowCount).isEqualTo(2)
@@ -690,9 +633,7 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
 
@@ -733,9 +674,7 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.newHeaderPanel
       // Assert that OK button is disabled since the default value is empty
@@ -766,9 +705,7 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
 
@@ -783,8 +720,7 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     assertThat(bodyTable.rowCount).isEqualTo(1)
     assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Replace")
@@ -817,9 +753,7 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = false
       assertThat(dialog.findTextArea.isEnabled).isTrue()
@@ -835,8 +769,7 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
     assertThat(bodyTable.rowCount).isEqualTo(1)
     assertThat(bodyTable.getValueAt(0, 0)).isEqualTo("Edit")
@@ -869,9 +802,7 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = true
       dialog.replaceTextArea.text = "Test"
@@ -880,13 +811,10 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.replaceEntireBodyCheckBox.isSelected).isTrue()
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
@@ -898,12 +826,9 @@ class RuleDetailsViewTest {
 
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-      assertThat(it.ruleDetailUpdated.component)
-        .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
+      assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.findTextArea.text).isEqualTo("Find")
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
@@ -954,9 +879,7 @@ class RuleDetailsViewTest {
     val urlWarningLabel = findComponentWithUniqueName(ruleDetailsView, "urlWarningLabel") as JBLabel
     assert(urlWarningLabel.isVisible)
 
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
 
     assertThat(rule.criteria.host).isNotEqualTo(invalidUrl)
 
@@ -977,17 +900,14 @@ class RuleDetailsViewTest {
     val ruleDetailsView = detailsPanel.ruleDetailsView
 
     val portComponent = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
-    val portWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
+    val portWarningLabel = findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
     assertThat(portComponent.text).isEmpty()
     portComponent.text = invalidPort
     portComponent.onFocusLost()
 
     assert(portWarningLabel.isVisible)
 
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
 
     assertThat(rule.criteria.port).isNotEqualTo(invalidPort)
 
@@ -1005,30 +925,22 @@ class RuleDetailsViewTest {
   fun warningShownForInvalidFindStatusCode() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
     isActiveCheckBox.doClick()
 
     assertThat(findCodeWarningLabel.isVisible).isTrue()
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
 
     findCodeTextField.text = "123"
     findCodeTextField.onFocusLost()
 
     assertThat(findCodeWarningLabel.isVisible).isFalse()
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
 
     findCodeTextField.text = "-123"
     findCodeTextField.onFocusLost()
@@ -1046,13 +958,9 @@ class RuleDetailsViewTest {
   fun warningShownForInvalidNewStatusCode() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
     isActiveCheckBox.doClick()
 
     // Warning label is visible since the current input is "" which is invalid
@@ -1063,47 +971,33 @@ class RuleDetailsViewTest {
 
     assert(newCodeWarningLabel.isVisible)
 
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
   }
 
   @Test
   fun ruleNotUpdatedWhenNewCodeIsBlank() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
 
     findCodeTextField.text = "123"
     isActiveCheckBox.doClick()
     assert(newCodeTextField.text.isBlank())
 
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
   }
 
   @Test
   fun ruleNotUpdatedWhenBothStatusCodeBlank() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
 
     isActiveCheckBox.doClick()
 
@@ -1112,26 +1006,18 @@ class RuleDetailsViewTest {
     assert(newCodeTextField.text.isBlank())
     assert(newCodeWarningLabel.isVisible)
 
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
   }
 
   @Test
   fun statusCodeInactiveWhenAnyStatusCodeInvalid() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val findCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val newCodeWarningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
@@ -1178,13 +1064,9 @@ class RuleDetailsViewTest {
   fun statusCodeInActiveWhenCheckBoxUnchecked() {
     val rule = addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
-    val findCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val newCodeTextField =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
-        as JCheckBox
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
 
     // Assert checkbox is unselected by default
     assertThat(isActiveCheckBox.isSelected).isFalse()
@@ -1212,33 +1094,16 @@ class RuleDetailsViewTest {
 
     // Assert that status code is inactive
     assertThat(rule.statusCodeRuleData.isActive).isFalse()
-    client.verifyLatestCommand {
-      assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(0)
-    }
+    client.verifyLatestCommand { assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(0) }
   }
 
   @Test
   fun methodComboContainsAllMethods() {
     addNewRule()
-    val combo =
-      findComponentWithUniqueName(detailsPanel.ruleDetailsView, "methodComboBox")
-        as CommonComboBox<*, *>
+    val combo = findComponentWithUniqueName(detailsPanel.ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
 
     val items = (0 until combo.getModel().size).map { combo.getModel().getElementAt(it).toString() }
-    assertThat(items)
-      .containsExactly(
-        "ANY",
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "PATCH",
-        "HEAD",
-        "TRACE",
-        "CONNECT",
-        "OPTIONS",
-      )
-      .inOrder()
+    assertThat(items).containsExactly("ANY", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "TRACE", "CONNECT", "OPTIONS").inOrder()
   }
 
   @Test
@@ -1254,9 +1119,7 @@ class RuleDetailsViewTest {
 
     assertThat(warningLabel.isVisible).isTrue()
     assertThat(warningLabel.toolTipText).isEqualTo("Rule name cannot be blank")
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
     assertThat(rule.name).isEqualTo(ruleName)
   }
 
@@ -1273,9 +1136,7 @@ class RuleDetailsViewTest {
 
     assertThat(warningLabel.isVisible).isTrue()
     assertThat(warningLabel.toolTipText).isEqualTo("Rule named 'New Rule' already exists")
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED) }
     assertThat(rule2.name).isNotEqualTo(rule1.name)
   }
 
@@ -1349,8 +1210,7 @@ class RuleDetailsViewTest {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
-    val warningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
@@ -1363,8 +1223,7 @@ class RuleDetailsViewTest {
     variable.value = "boo"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
-    assertThat(warningLabel.toolTipText)
-      .isEqualTo("Status code should be an integer between 100 and 599")
+    assertThat(warningLabel.toolTipText).isEqualTo("Status code should be an integer between 100 and 599")
   }
 
   @Test
@@ -1374,8 +1233,7 @@ class RuleDetailsViewTest {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
     val textField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
-    val warningLabel =
-      findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
     textField.text = "\${INVALID}"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
@@ -1388,8 +1246,7 @@ class RuleDetailsViewTest {
     variable.value = "10"
     textField.onFocusLost()
     assertThat(warningLabel.isVisible).isTrue()
-    assertThat(warningLabel.toolTipText)
-      .isEqualTo("Status code should be an integer between 100 and 599")
+    assertThat(warningLabel.toolTipText).isEqualTo("Status code should be an integer between 100 and 599")
   }
 
   @Test
@@ -1449,17 +1306,12 @@ class RuleDetailsViewTest {
 
     // All warning labels should be visible
     val warningLabels =
-      TreeWalker(ruleDetailsView).descendants().filter {
-        it.name?.endsWith("WarningLabel") == true && it.name != "nameWarningLabel"
-      }
-    assertThat(warningLabels.filter { it.isVisible }.names())
-      .containsExactlyElementsIn(warningLabels.names())
+      TreeWalker(ruleDetailsView).descendants().filter { it.name?.endsWith("WarningLabel") == true && it.name != "nameWarningLabel" }
+    assertThat(warningLabels.filter { it.isVisible }.names()).containsExactlyElementsIn(warningLabels.names())
 
     // Open variables dialog and add the missing variables
     val variablesAction = findAction(inspectorView.rulesView.component, "Variables")
-    createModalDialogAndInteractWithIt({
-      variablesAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ variablesAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as RuleVariablesDialog
       dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
       dialog.setName(0, "STRING")
@@ -1482,9 +1334,7 @@ class RuleDetailsViewTest {
       assertThat(it.hasInterceptRuleAdded()).isTrue()
       assertThat(it.interceptRuleAdded.ruleId).isEqualTo(RuleData.getLatestId())
     }
-    tracker.verifyLatestEvent {
-      assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_CREATED)
-    }
+    tracker.verifyLatestEvent { assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_CREATED) }
     return model.selectedRule!!
   }
 
@@ -1499,9 +1349,7 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.newHeaderPanel
       dialog.newAddedNameLabel.text = "\${NAME1}"
@@ -1512,9 +1360,7 @@ class RuleDetailsViewTest {
     assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: NAME1, VALUE1")
 
     val editAction = findAction(headerTable.parent.parent.parent, "Edit")
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.newHeaderPanel
       dialog.newAddedNameLabel.text = "\${NAME}"
@@ -1535,9 +1381,7 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({
-      addAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.findTextArea.text = "\${OLD1}"
       dialog.replaceTextArea.text = "\${NEW1}"
@@ -1547,9 +1391,7 @@ class RuleDetailsViewTest {
     assertThat(warningLabel.toolTipText).isEqualTo("Invalid variables: OLD1, NEW1")
 
     val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
-    createModalDialogAndInteractWithIt({
-      editAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as BodyRuleDialog
       dialog.findTextArea.text = "\${OLD}"
       dialog.replaceTextArea.text = "\${NEW}"
@@ -1563,9 +1405,7 @@ class RuleDetailsViewTest {
     addNewRule().apply { criteria.host = "\${HOST}" }
 
     val variablesAction = findAction(inspectorView.rulesView.component, "Variables")
-    createModalDialogAndInteractWithIt({
-      variablesAction.actionPerformed(TestActionEvent.createTestEvent())
-    }) {
+    createModalDialogAndInteractWithIt({ variablesAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
       val dialog = it as RuleVariablesDialog
       dialog.addAction.actionPerformed(TestActionEvent.createTestEvent())
       dialog.setName(0, "HOST")

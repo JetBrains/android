@@ -128,8 +128,7 @@ class GeminiAiInsightClient(
   private val codeContextResolver: CodeContextResolver,
   private val cache: AiInsightCache = AiInsightCache(),
 ) : AiInsightClient {
-  private val logger =
-    Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
+  private val logger = Logger.getInstance("com.android.tools.idea.insights.client.GeminiAiInsightClient")
 
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight =
     if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
@@ -149,81 +148,44 @@ class GeminiAiInsightClient(
       val finalPrompt =
         buildLlmPrompt(project) {
           // Enterprise GCA drops systemMessages, so this has to be a userMessage.
-          userMessage {
-            text(
-              if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE,
-              emptyList(),
-            )
-          }
+          userMessage { text(if (StudioFlags.AQI_FIX_WITH_AGENT.get()) SHORT_GEMINI_PREAMBLE else GEMINI_PREAMBLE, emptyList()) }
           userMessage { text(userPrompt, emptyList()) }
         }
       logger.debug("This is the final prompt:\n$userPrompt")
 
-      val response =
-        GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
+      val response = GeminiPluginApi.getInstance().generate(project, finalPrompt).toList().joinToString("\n")
 
-      AiInsight(
-          response,
-          request.event,
-          insightSource = InsightSource.STUDIO_BOT,
-          codeContextData = contextData,
-        )
-        .also { cache.putAiInsight(request.connection, request.issueId, request.variantId, it) }
+      AiInsight(response, request.event, insightSource = InsightSource.STUDIO_BOT, codeContextData = contextData).also {
+        cache.putAiInsight(request.connection, request.issueId, request.variantId, it)
+      }
     } else {
       // Simulate a delay that would come generating an actual insight
       delay(2000)
-      AiInsight(
-        createPrompt(request, emptyList()),
-        request.event,
-        insightSource = InsightSource.STUDIO_BOT,
-      )
+      AiInsight(createPrompt(request, emptyList()), request.event, insightSource = InsightSource.STUDIO_BOT)
     }
 
-  override fun insightFeedbackUpdated(
-    connection: Connection,
-    issueId: IssueId,
-    variantId: String?,
-    feedback: InsightFeedback,
-  ) {
-    val cachedInsight =
-      getCachedInsight(
-        GeminiCrashInsightRequest(connection, issueId, variantId, "", "", Event.EMPTY)
-      ) ?: return
+  override fun insightFeedbackUpdated(connection: Connection, issueId: IssueId, variantId: String?, feedback: InsightFeedback) {
+    val cachedInsight = getCachedInsight(GeminiCrashInsightRequest(connection, issueId, variantId, "", "", Event.EMPTY)) ?: return
 
     cache.putAiInsight(connection, issueId, variantId, cachedInsight.copy(feedback = feedback))
   }
 
   // Always prefer the insight generated with context regardless of current context sharing setting.
   private fun getCachedInsight(request: GeminiCrashInsightRequest): AiInsight? =
-    cache.getAiInsight(
-      request.connection,
-      request.issueId,
-      request.variantId,
-      ContextSharingState.ALLOWED,
-    )
+    cache.getAiInsight(request.connection, request.issueId, request.variantId, ContextSharingState.ALLOWED)
       ?: if (ContextSharingState.getContextSharingState(project) == ContextSharingState.DISABLED) {
-        cache.getAiInsight(
-          request.connection,
-          request.issueId,
-          request.variantId,
-          ContextSharingState.DISABLED,
-        )
+        cache.getAiInsight(request.connection, request.issueId, request.variantId, ContextSharingState.DISABLED)
       } else {
         null
       }
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
-    if (
-      !GeminiPluginApi.getInstance().isAvailable() ||
-        !GeminiPluginApi.getInstance().isContextAllowed(project)
-    )
+    if (!GeminiPluginApi.getInstance().isAvailable() || !GeminiPluginApi.getInstance().isContextAllowed(project))
       return CodeContextData(emptyList())
     val prompt =
       buildLlmPrompt(project) {
         systemMessage { text(CONTEXT_PREAMBLE, emptyList()) }
-        userMessage {
-          text(String.format(CONTEXT_PROMPT, request.event.prettyStackTrace()), emptyList())
-        }
+        userMessage { text(String.format(CONTEXT_PROMPT, request.event.prettyStackTrace()), emptyList()) }
       }
 
     val response = GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("")
@@ -232,9 +194,7 @@ class GeminiAiInsightClient(
     logger.debug("Gemini wants to see $fileNames")
 
     val contextData = codeContextResolver.getSource(fileNames)
-    logger.debug(
-      "AQI was able to find these context files: ${contextData.codeContext.joinToString { it.filePath }}"
-    )
+    logger.debug("AQI was able to find these context files: ${contextData.codeContext.joinToString { it.filePath }}")
 
     return contextData
   }
@@ -262,8 +222,7 @@ class GeminiAiInsightClient(
           request.event.prettyStackTrace(),
         )
         .trim()
-    var availableContextSpace =
-      GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
+    var availableContextSpace = GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
     val prompt =
       context
         .takeWhile { ctx ->
@@ -276,12 +235,7 @@ class GeminiAiInsightClient(
   }
 }
 
-fun createGeminiInsightRequest(
-  connection: Connection,
-  issueId: IssueId,
-  variantId: String?,
-  event: Event,
-) =
+fun createGeminiInsightRequest(connection: Connection, issueId: IssueId, variantId: String?, event: Event) =
   GeminiCrashInsightRequest(
     connection = connection,
     issueId = issueId,

@@ -60,9 +60,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
     val model =
       model("nav.xml") {
         navigation("root", startDestination = "fragment1") {
-          fragment("fragment1", layout = "activity_main") {
-            argument("argument1", "int", value = "10")
-          }
+          fragment("fragment1", layout = "activity_main") { argument("argument1", "int", value = "10") }
           action("action1", "fragment1") { argument("argument1", value = "15") }
         }
       }
@@ -88,13 +86,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
     assertEquals(tableModel, 0, "argument1", "int", "")
   }
 
-  private fun assertEquals(
-    table: DefaultValueTableModel,
-    row: Int,
-    name: String,
-    type: String,
-    defaultValue: String,
-  ) {
+  private fun assertEquals(table: DefaultValueTableModel, row: Int, name: String, type: String, defaultValue: String) {
     assertEquals(table.getValueAt(row, 0), name)
     assertEquals(table.getValueAt(row, 1), type)
     assertEquals(table.getValueAt(row, 2), defaultValue)

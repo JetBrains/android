@@ -21,18 +21,17 @@ import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import javax.swing.JTable
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JTable
-import org.junit.After
 
 class InstantAppRunConfigurationsDialogTest {
   lateinit var myRunConfiguration: AndroidRunConfiguration
   var parameters = DynamicFeaturesParameters()
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.INSTANT_APP_WITH_DYNAMIC_FEATURES)
+  @get:Rule val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.INSTANT_APP_WITH_DYNAMIC_FEATURES)
 
   @Before
   fun setUp() {
@@ -49,14 +48,16 @@ class InstantAppRunConfigurationsDialogTest {
   }
 
   private fun getFeatureNameCellRenderer(table: JTable, row: Int, column: Int): DynamicFeaturesParameters.FeatureNameCellRenderer {
-    return table.getCellRenderer(row, column).getTableCellRendererComponent(
-      table,
-      table.model.getValueAt(row, column),
-      table.selectionModel.isSelectedIndex(row),
-      true,
-      row,
-      column
-    ) as DynamicFeaturesParameters.FeatureNameCellRenderer
+    return table
+      .getCellRenderer(row, column)
+      .getTableCellRendererComponent(
+        table,
+        table.model.getValueAt(row, column),
+        table.selectionModel.isSelectedIndex(row),
+        true,
+        row,
+        column,
+      ) as DynamicFeaturesParameters.FeatureNameCellRenderer
   }
 
   @Test

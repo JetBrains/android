@@ -19,9 +19,7 @@ import com.android.emulator.control.PaneEntry.PaneIndex
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Shows the virtual sensors page of the emulator extended controls.
- */
+/** Shows the virtual sensors page of the emulator extended controls. */
 class EmulatorShowVirtualSensorsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {

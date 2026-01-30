@@ -31,59 +31,72 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/**
- * Tests for resources registered as generated with Gradle.
- */
+/** Tests for resources registered as generated with Gradle. */
 @RunsInEdt
 class GeneratedResourcesTest {
   val projectRule = AndroidGradleProjectRule()
-  @get:Rule
-  val rule = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule())
   val project by lazy { projectRule.project }
   val fixture by lazy { projectRule.fixture }
 
-  /**
-   * Regression test for b/120750247.
-   */
+  /** Regression test for b/120750247. */
   @Test
   fun testGeneratedRawResource() {
     projectRule.loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB) { projectRoot ->
-      File(projectRoot, "app/build.gradle").appendText(
-        """
-        android {
-          String resGeneratePath = "${"$"}{buildDir}/generated/my_generated_resources/res"
-          def generateResTask = tasks.create(name: 'generateMyResources').doLast {
-              def rawDir = "${"$"}{resGeneratePath}/raw"
-              mkdir(rawDir)
-              file("${"$"}{rawDir}/sample_raw_resource").write("sample text")
-          }
+      File(projectRoot, "app/build.gradle")
+        .appendText(
+          """
+          android {
+            String resGeneratePath = "${"$"}{buildDir}/generated/my_generated_resources/res"
+            def generateResTask = tasks.create(name: 'generateMyResources').doLast {
+                def rawDir = "${"$"}{resGeneratePath}/raw"
+                mkdir(rawDir)
+                file("${"$"}{rawDir}/sample_raw_resource").write("sample text")
+            }
 
-          def resDir = files(resGeneratePath).builtBy(generateResTask)
+            def resDir = files(resGeneratePath).builtBy(generateResTask)
 
-          applicationVariants.all { variant ->
-              variant.registerGeneratedResFolders(resDir)
+            applicationVariants.all { variant ->
+                variant.registerGeneratedResFolders(resDir)
+            }
           }
-        }
-        """.trimIndent())
-      File(projectRoot, "gradle.properties").appendText(
-        """
-        android.newDsl=false
-        """.trimIndent())
+          """
+            .trimIndent()
+        )
+      File(projectRoot, "gradle.properties")
+        .appendText(
+          """
+          android.newDsl=false
+          """
+            .trimIndent()
+        )
     }
 
     AndroidProjectRootListener.ensureSubscribed(project)
-    Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
-                       .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
+    Truth.assertThat(
+        StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!.getResources(
+          ResourceNamespace.RES_AUTO,
+          ResourceType.RAW,
+          "sample_raw_resource",
+        )
+      )
+      .isEmpty()
 
     projectRule.generateSources()
     IndexingTestUtil.waitUntilIndexesAreReady(project)
 
-    Truth.assertThat(StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!
-                       .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
+    Truth.assertThat(
+        StudioResourceRepositoryManager.getAppResources(project.findAppModule())!!.getResources(
+          ResourceNamespace.RES_AUTO,
+          ResourceType.RAW,
+          "sample_raw_resource",
+        )
+      )
+      .isNotEmpty()
 
     fixture.openFileInEditor(
-      project.guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/com/example/projectwithappandlib/app/MainActivity.java")!!)
+      project.guessProjectDir()!!.findFileByRelativePath("app/src/main/java/com/example/projectwithappandlib/app/MainActivity.java")!!
+    )
 
     fixture.moveCaret("int id = |item.getItemId();")
     fixture.type("R.raw.")

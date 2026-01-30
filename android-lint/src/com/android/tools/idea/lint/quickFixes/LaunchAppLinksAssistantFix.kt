@@ -33,27 +33,14 @@ class LaunchAppLinksAssistantFix : DefaultLintQuickFix("Launch App Links Assista
     return toolWindowManager.getToolWindow("App Links Assistant")
   }
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean =
-    IdeInfo.getInstance().isAndroidStudio &&
-      getAppLinksAssistantToolWindow(startElement.project) != null
+  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean =
+    IdeInfo.getInstance().isAndroidStudio && getAppLinksAssistantToolWindow(startElement.project) != null
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
+  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     val window = getAppLinksAssistantToolWindow(startElement.project) ?: return
     window.isShowStripeButton = true
     window.show()
   }
 
-  override fun generatePreview(
-    project: Project,
-    editor: Editor,
-    file: PsiFile,
-  ): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
+  override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
 }

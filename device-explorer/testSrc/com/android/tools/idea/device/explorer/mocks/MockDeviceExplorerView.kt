@@ -26,6 +26,7 @@ class MockDeviceExplorerView(project: Project, model: DeviceExplorerModel) : Dev
   private val viewImpl = DeviceExplorerViewImpl(project, model, "TEST_ID")
 
   fun viewComboBox() = viewImpl.getDeviceCombo()
+
   fun viewTabPane() = viewImpl.getTabPane()
 
   override fun setup() {

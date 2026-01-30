@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import java.util.Arrays
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.util.Arrays
 
 class RecyclerViewAdapterLoaderTest {
   @Test

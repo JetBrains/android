@@ -41,8 +41,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(false) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultRunExecutor.getRunExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
@@ -52,8 +52,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultRunExecutor.getRunExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
@@ -66,7 +66,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
@@ -80,32 +81,32 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
   }
@@ -118,8 +119,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
-                                                         DefaultDebugExecutor.getDebugExecutorInstance())
+      val amStartOptions =
+        contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("--attach-agent /data/data/com.test.application/code_cache/coroutine_debugger_agent.so", amStartOptions)
     }
   }

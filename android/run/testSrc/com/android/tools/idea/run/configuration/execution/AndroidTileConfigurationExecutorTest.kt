@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.deployer.Activator
@@ -39,35 +38,38 @@ import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 @Ignore("FakeAdbTestRule hangs")
 class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
-  //Expected am commands
+  // Expected am commands
   private val forceStop = "force-stop com.example.app"
   private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
-  private val addTile = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component"
+  private val addTile =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component"
   private val showTile = "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 101"
   private val setDebugAppAm = "set-debug-app -w 'com.example.app'"
-  private val setDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
-  private val removeTile = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation remove-tile --ecn component com.example.app/com.example.app.Component"
+  private val setDebugAppBroadcast =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-debug-app --es package 'com.example.app'"
+  private val removeTile =
+    "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation remove-tile --ecn component com.example.app/com.example.app.Component"
   private val clearDebugAppAm = "clear-debug-app"
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run Tile", AndroidTileConfigurationType().configurationFactories.single())
+    val configSettings =
+      RunManager.getInstance(project).createConfiguration("run Tile", AndroidTileConfigurationType().configurationFactories.single())
     return ExecutionEnvironment(executorInstance, DefaultStudioProgramRunner(), configSettings, project)
   }
 
@@ -85,45 +87,50 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
-        addTile -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"Index=[101]\"")
-        showTile -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          // Unsuccessful execution of show tile.
-          "Broadcast completed: result=2")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
+        addTile ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"Index=[101]\""
+          )
+        showTile ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              // Unsuccessful execution of show tile.
+              "Broadcast completed: result=2"
+          )
       }
     }
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = TileLaunchOptions().apply {
-        componentName = this@AndroidTileConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
-    }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(
-      env,
-      deviceFutures,
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
-
+    val executor =
+      AndroidTileConfigurationExecutor(
+        env,
+        deviceFutures,
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
-
 
     // Check version
     assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
@@ -143,8 +150,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
-    assertThat(consoleOutput)
-      .contains("Warning: Launch was successful, but you may need to bring up the tile manually.")
+    assertThat(consoleOutput).contains("Warning: Launch was successful, but you may need to bring up the tile manually.")
   }
 
   @Test
@@ -152,8 +158,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     // Use DefaultRunExecutor, equivalent of pressing run button.
     val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
-    val failedResponse = "Broadcast completed: result=2, data=\"Internal failure.\"\n" +
-                         "End of output."
+    val failedResponse = "Broadcast completed: result=2, data=\"Internal failure.\"\n" + "End of output."
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
@@ -164,9 +169,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
         addTile -> shellCommandOutput.writeStdout(failedResponse)
       }
     }
@@ -174,23 +181,24 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = TileLaunchOptions().apply {
-        componentName = this@AndroidTileConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
-    }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(
-      env,
-      deviceFutures,
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidTileConfigurationExecutor(
+        env,
+        deviceFutures,
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
       getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
@@ -213,42 +221,47 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
       }
     }
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = TileLaunchOptions().apply {
-        componentName = this@AndroidTileConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
-    }
 
     val activator = mock<Activator>()
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(activator).activate(any(), any(), any<AppComponent.Mode>(), any(), any())
+      .whenever(activator)
+      .activate(any(), any(), any<AppComponent.Mode>(), any(), any())
 
     val app = mock<App>()
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(
-      env,
-      deviceFutures,
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidTileConfigurationExecutor(
+        env,
+        deviceFutures,
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
     val spyExecutor = Mockito.spy(executor)
     Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
-    val e = assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
-      getRunContentDescriptorForTests { spyExecutor.run(EmptyProgressIndicator()) }
-    }
+    val e =
+      assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
+        getRunContentDescriptorForTests { spyExecutor.run(EmptyProgressIndicator()) }
+      }
 
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
   }
@@ -269,9 +282,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> shellCommandOutput.writeStdout(
-          "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
-          "Broadcast completed: result=1, data=\"3\"")
+        checkVersion ->
+          shellCommandOutput.writeStdout(
+            "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
+              "Broadcast completed: result=1, data=\"3\""
+          )
         addTile -> {
           deviceState.startClient(1234, 1235, appId, true)
           shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"Index=[101]\"")
@@ -289,23 +304,24 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
-      override val componentLaunchOptions = TileLaunchOptions().apply {
-        componentName = this@AndroidTileConfigurationExecutorTest.componentName
+    val settings =
+      object : AppRunSettings {
+        override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
+        override val componentLaunchOptions =
+          TileLaunchOptions().apply { componentName = this@AndroidTileConfigurationExecutorTest.componentName }
       }
-    }
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(
-      env,
-      deviceFutures,
-      settings,
-      TestApksProvider(appId),
-      TestApplicationProjectContext(appId),
-      appInstaller
-    )
+    val executor =
+      AndroidTileConfigurationExecutor(
+        env,
+        deviceFutures,
+        settings,
+        TestApksProvider(appId),
+        TestApplicationProjectContext(appId),
+        appInstaller,
+      )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     assertThat(runContentDescriptor.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)

@@ -26,28 +26,29 @@ import java.nio.file.Path
 // We store here all information we need when an app is deployed to a device.
 /**
  * @param buildSystemAPILevels minSdkVersionForDexing values from build system. Empty if that information isn't provided and we should
- *                        discover that from DEX file markers.
+ *   discover that from DEX file markers.
  */
-class LiveEditApp(private val apks: Set<Path>,
-                  private val deviceAPILevel: ApiLevel,
-                  private val buildSystemAPILevels: MutableSet<MinApiLevel> = mutableSetOf()) {
+class LiveEditApp(
+  private val apks: Set<Path>,
+  private val deviceAPILevel: ApiLevel,
+  private val buildSystemAPILevels: MutableSet<MinApiLevel> = mutableSetOf(),
+) {
 
-  val minAPI : MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
+  val minAPI: MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
   private val logger = LiveEditLogger("LE App")
 
   // We store some events in a journal so we can output a proper error message in case of failure later.
   private val journal = mutableListOf<String>()
 
-  private fun calculateMinAPI(apks: Set<Path>) : MinApiLevel {
+  private fun calculateMinAPI(apks: Set<Path>): MinApiLevel {
     val start = System.nanoTime()
-    val minApis : MutableSet<MinApiLevel> = if (buildSystemAPILevels.isEmpty()) {
-      mutableSetOf<MinApiLevel>().apply {
-        apks.forEach{ extractMinApiFromDexMarkers(it) }
+    val minApis: MutableSet<MinApiLevel> =
+      if (buildSystemAPILevels.isEmpty()) {
+        mutableSetOf<MinApiLevel>().apply { apks.forEach { extractMinApiFromDexMarkers(it) } }
+      } else {
+        journal("Build system minSdkVersionForDexing = ${buildSystemAPILevels.joinToString(", ")}")
+        buildSystemAPILevels
       }
-    } else {
-      journal("Build system minSdkVersionForDexing = ${buildSystemAPILevels.joinToString(", ")}")
-      buildSystemAPILevels
-    }
 
     if (minApis.size > 1 && !COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK.get()) {
       throw badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")

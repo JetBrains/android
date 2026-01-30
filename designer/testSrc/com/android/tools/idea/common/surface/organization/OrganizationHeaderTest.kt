@@ -50,9 +50,7 @@ class OrganizationHeaderTest {
   fun nameIsDisplayed() {
     val group = OrganizationGroup("method", "Organization Display Name")
     composeTestRule.setContent(darkMode = false) { OrganizationHeader(group) }
-    composeTestRule
-      .onNodeWithTag("displayName", true)
-      .assertTextContains("Organization Display Name")
+    composeTestRule.onNodeWithTag("displayName", true).assertTextContains("Organization Display Name")
   }
 
   @Test
@@ -82,8 +80,6 @@ class OrganizationHeaderTest {
   @Ignore("Visual test")
   fun previewHeader() {
     val group = OrganizationGroup("method", "Organization Group")
-    standaloneSingleWindowApplication(title = "Preview") {
-      StudioTestTheme(darkMode = false) { OrganizationHeader(group) }
-    }
+    standaloneSingleWindowApplication(title = "Preview") { StudioTestTheme(darkMode = false) { OrganizationHeader(group) } }
   }
 }

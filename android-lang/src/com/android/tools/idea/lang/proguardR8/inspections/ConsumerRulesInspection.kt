@@ -23,7 +23,6 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.intellij.codeInspection.LocalInspectionTool
-import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElement
@@ -53,25 +52,27 @@ import org.jetbrains.kotlin.idea.base.util.module
 // there are multiple different ways that this information flows through. (defaultConfig, variant specific config etc.)
 private val CONSUMER_RULES_FILE_NAME_PATTERN = Regex(pattern = "consumer[_|-]?[r|R]ules?[_|-]?(\\w*)?\\.(pro|text|cfg|keep)")
 
-private val BANNED_DIRECTIVES_IN_CONSUMER_RULES = setOf(
-  "-dontobfuscate",
-  "-dontoptimize",
-  "-dontshrink",
-  "-repackageclasses",
-  "-flattenpackagehierarchy",
-  "-allowaccessmodification",
-  "-renamesourcefileattribute",
-)
+private val BANNED_DIRECTIVES_IN_CONSUMER_RULES =
+  setOf(
+    "-dontobfuscate",
+    "-dontoptimize",
+    "-dontshrink",
+    "-repackageclasses",
+    "-flattenpackagehierarchy",
+    "-allowaccessmodification",
+    "-renamesourcefileattribute",
+  )
 
 private const val FLAG_KEEP_ATTRIBUTES = "-keepattributes"
 
-private val BANNED_KEEP_ATTRIBUTES_VALUES = setOf(
-  "LineNumberTable",
-  "RuntimeInvisibleAnnotations",
-  "RuntimeInvisibleTypeAnnotations",
-  "RuntimeInvisibleParameterAnnotations",
-  "SourceFile"
-)
+private val BANNED_KEEP_ATTRIBUTES_VALUES =
+  setOf(
+    "LineNumberTable",
+    "RuntimeInvisibleAnnotations",
+    "RuntimeInvisibleTypeAnnotations",
+    "RuntimeInvisibleParameterAnnotations",
+    "SourceFile",
+  )
 
 class ConsumerRulesInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
@@ -91,7 +92,7 @@ class ConsumerRulesInspection : LocalInspectionTool() {
           holder.registerProblem(
             flag,
             "Global flags should never be placed in library consumer rules, since they prevent optimizations in apps using the library",
-            ProblemHighlightType.WARNING
+            ProblemHighlightType.WARNING,
           )
           return
         }
@@ -100,23 +101,23 @@ class ConsumerRulesInspection : LocalInspectionTool() {
           val rule = flag.parentOfType<ProguardR8Rule>()
           val arguments = rule?.childrenOfType<ProguardR8FlagArgument>()
           val argumentValues = arguments?.flatMap { it.childrenOfType<ProguardR8File>() } ?: emptyList()
-          val bannedArgumentValues = argumentValues.filter { proguardR8FileElement ->
-            val argumentValue = proguardR8FileElement.text
-            if (BANNED_KEEP_ATTRIBUTES_VALUES.contains(argumentValue)) {
-              // Fast check
-              true
+          val bannedArgumentValues =
+            argumentValues.filter { proguardR8FileElement ->
+              val argumentValue = proguardR8FileElement.text
+              if (BANNED_KEEP_ATTRIBUTES_VALUES.contains(argumentValue)) {
+                // Fast check
+                true
+              } else {
+                val regex = argumentValue.wildCardAsRegexOrNull() // Check for wildcard matches.
+                regex?.matches(argumentValue) ?: false
+              }
             }
-            else {
-              val regex = argumentValue.wildCardAsRegexOrNull() // Check for wildcard matches.
-              regex?.matches(argumentValue) ?: false
-            }
-          }
           if (bannedArgumentValues.isNotEmpty()) {
             bannedArgumentValues.forEach { argument ->
               holder.registerProblem(
                 argument,
                 "Attribute ${argument.text} should never be placed in library consumer rules, since it prevents optimizations in apps using the library",
-                ProblemHighlightType.WARNING
+                ProblemHighlightType.WARNING,
               )
             }
             return
@@ -140,6 +141,5 @@ private fun fileLikelyHasConsumerRules(element: PsiElement): Boolean {
 private fun String.wildCardAsRegexOrNull(): Regex? {
   return if (contains(char = '*')) {
     Regex(pattern = replace(oldValue = "*", newValue = "(.*)?")) // Replace it with groups.
-  }
-  else null
+  } else null
 }

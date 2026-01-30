@@ -36,31 +36,31 @@ object KotlinAndroidViewConstructorUtils {
     // The reason is avoiding passing 0 as defStyleAttr which causes the component default theme to be
     // removed. For example, a new class with android.widget.Button as a supertype, would cause the custom
     // Button not to have a theme.
-    val ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES = setOf(
-      REQUIRED_SUPERTYPE,
-      ClassId.fromString("android/view/ViewGroup"),
-    )
+    val ALLOWED_THREE_PARAMETER_CONSTRUCTOR_DIRECT_SUPERTYPES = setOf(REQUIRED_SUPERTYPE, ClassId.fromString("android/view/ViewGroup"))
 
-    val REQUIRED_CONSTRUCTOR_SIGNATURE = listOf(
-      ClassId.fromString("android/content/Context"),
-      ClassId.fromString("android/util/AttributeSet"),
-      StandardClassIds.Int,
-    )
+    val REQUIRED_CONSTRUCTOR_SIGNATURE =
+        listOf(ClassId.fromString("android/content/Context"), ClassId.fromString("android/util/AttributeSet"), StandardClassIds.Int)
 
     fun applyFix(project: Project, element: KtSuperTypeEntry, useThreeParameterConstructor: Boolean) {
         val psiFactory = KtPsiFactory(project, markGenerated = true)
         val ktClass = element.containingClass() ?: return
 
-        val (constructorSignature, superCallSignature) = if (useThreeParameterConstructor) {
-            """(
-          context: android.content.Context, attrs: android.util.AttributeSet? = null, defStyleAttr: Int = 0
-          )""".trimIndent() to "(context, attrs, defStyleAttr)"
-        }
-        else {
-            """(
-          context: android.content.Context, attrs: android.util.AttributeSet? = null
-          )""".trimIndent() to "(context, attrs)"
-        }
+        val (constructorSignature, superCallSignature) =
+            if (useThreeParameterConstructor) {
+                """
+                (
+                          context: android.content.Context, attrs: android.util.AttributeSet? = null, defStyleAttr: Int = 0
+                          )
+                """
+                    .trimIndent() to "(context, attrs, defStyleAttr)"
+            } else {
+                """
+                (
+                          context: android.content.Context, attrs: android.util.AttributeSet? = null
+                          )
+                """
+                    .trimIndent() to "(context, attrs)"
+            }
         val newPrimaryConstructor = psiFactory.createPrimaryConstructor(constructorSignature)
 
         val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)

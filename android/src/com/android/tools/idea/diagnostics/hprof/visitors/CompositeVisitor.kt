@@ -27,24 +27,12 @@ import java.nio.ByteBuffer
 class CompositeVisitor(private vararg val visitors: HProfVisitor) : HProfVisitor() {
 
   override fun preVisit() {
-    visitors.forEach {
-      it.visitorContext = visitorContext
-    }
+    visitors.forEach { it.visitorContext = visitorContext }
 
     visitors.forEach { it.preVisit() }
     disableAll()
-    RecordType.values().forEach { type ->
-      if (visitors.any { it.isEnabled(type) })
-        enable(type)
-      else
-        disable(type)
-    }
-    HeapDumpRecordType.values().forEach { type ->
-      if (visitors.any { it.isEnabled(type) })
-        enable(type)
-      else
-        disable(type)
-    }
+    RecordType.values().forEach { type -> if (visitors.any { it.isEnabled(type) }) enable(type) else disable(type) }
+    HeapDumpRecordType.values().forEach { type -> if (visitors.any { it.isEnabled(type) }) enable(type) else disable(type) }
   }
 
   override fun postVisit() {
@@ -59,21 +47,21 @@ class CompositeVisitor(private vararg val visitors: HProfVisitor) : HProfVisitor
     visitors.forEach { it.visitLoadClass(classSerialNumber, classObjectId, stackSerialNumber, classNameStringId) }
   }
 
-  override fun visitStackFrame(stackFrameId: Long,
-                               methodNameStringId: Long,
-                               methodSignatureStringId: Long,
-                               sourceFilenameStringId: Long,
-                               classSerialNumber: Long,
-                               lineNumber: Int) {
+  override fun visitStackFrame(
+    stackFrameId: Long,
+    methodNameStringId: Long,
+    methodSignatureStringId: Long,
+    sourceFilenameStringId: Long,
+    classSerialNumber: Long,
+    lineNumber: Int,
+  ) {
     visitors.forEach {
       it.visitStackFrame(stackFrameId, methodNameStringId, methodSignatureStringId, sourceFilenameStringId, classSerialNumber, lineNumber)
     }
   }
 
   override fun visitStackTrace(stackTraceSerialNumber: Long, threadSerialNumber: Long, numberOfFrames: Int, stackFrameIds: LongArray) {
-    visitors.forEach {
-      it.visitStackTrace(stackTraceSerialNumber, threadSerialNumber, numberOfFrames, stackFrameIds)
-    }
+    visitors.forEach { it.visitStackTrace(stackTraceSerialNumber, threadSerialNumber, numberOfFrames, stackFrameIds) }
   }
 
   override fun visitAllocSites() {
@@ -148,17 +136,27 @@ class CompositeVisitor(private vararg val visitors: HProfVisitor) : HProfVisitor
     visitors.forEach { it.visitPrimitiveArrayDump(arrayObjectId, stackTraceSerialNumber, numberOfElements, elementType) }
   }
 
-  override fun visitClassDump(classId: Long,
-                              stackTraceSerialNumber: Long,
-                              superClassId: Long,
-                              classloaderClassId: Long,
-                              instanceSize: Long,
-                              constants: Array<ConstantPoolEntry>,
-                              staticFields: Array<StaticFieldEntry>,
-                              instanceFields: Array<InstanceFieldEntry>) {
+  override fun visitClassDump(
+    classId: Long,
+    stackTraceSerialNumber: Long,
+    superClassId: Long,
+    classloaderClassId: Long,
+    instanceSize: Long,
+    constants: Array<ConstantPoolEntry>,
+    staticFields: Array<StaticFieldEntry>,
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {
     visitors.forEach {
-      it.visitClassDump(classId, stackTraceSerialNumber, superClassId, classloaderClassId, instanceSize, constants, staticFields,
-                        instanceFields)
+      it.visitClassDump(
+        classId,
+        stackTraceSerialNumber,
+        superClassId,
+        classloaderClassId,
+        instanceSize,
+        constants,
+        staticFields,
+        instanceFields,
+      )
     }
   }
 
@@ -173,5 +171,4 @@ class CompositeVisitor(private vararg val visitors: HProfVisitor) : HProfVisitor
   override fun visitUnloadClass(classSerialNumber: Long) {
     visitors.forEach { it.visitUnloadClass(classSerialNumber) }
   }
-
 }

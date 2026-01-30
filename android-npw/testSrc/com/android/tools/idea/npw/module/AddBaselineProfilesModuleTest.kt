@@ -52,38 +52,20 @@ import org.junit.runners.Parameterized
 class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
 
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useGmdParam={0}")
-    fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
+    @JvmStatic @Parameterized.Parameters(name = "useGmdParam={0}") fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
 
-    fun addNewBaselineProfilesModule(
-      projectRule: AndroidGradleProjectRule,
-      useGmdParam: Boolean,
-      useGradleKtsParam: Boolean,
-    ) {
+    fun addNewBaselineProfilesModule(projectRule: AndroidGradleProjectRule, useGmdParam: Boolean, useGradleKtsParam: Boolean) {
       projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
       val project = projectRule.project
       val model =
-        NewBaselineProfilesModuleModel(
-            project = project,
-            moduleParent = ":",
-            projectSyncInvoker = emptyProjectSyncInvoker,
-          )
-          .apply {
-            androidSdkInfo.value =
-              AndroidVersionsInfo.VersionItem.fromStableVersion(
-                SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-              )
-            targetModule.value = project.findAppModule()
-            useGradleKts.set(useGradleKtsParam)
-            useGmd.set(useGmdParam)
-            agpVersionSelector.set(
-              AgpVersionSelector.FixedVersion(
-                GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!
-              )
-            )
-          }
+        NewBaselineProfilesModuleModel(project = project, moduleParent = ":", projectSyncInvoker = emptyProjectSyncInvoker).apply {
+          androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
+          targetModule.value = project.findAppModule()
+          useGradleKts.set(useGradleKtsParam)
+          useGmd.set(useGmdParam)
+          agpVersionSelector.set(AgpVersionSelector.FixedVersion(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!))
+        }
 
       model.handleFinished() // Generate module files
 
@@ -101,8 +83,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
       }
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewBaselineProfilesModuleTest() {
@@ -112,9 +93,7 @@ class AddBaselineProfilesModuleTest(private val useGmdParam: Boolean) {
 
 class ConfigureBaselineProfilesModuleStepTest {
 
-  @get:Rule
-  val projectRule =
-    AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion()).onEdt()
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion()).onEdt()
 
   private lateinit var disposable: Disposable
 

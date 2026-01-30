@@ -33,10 +33,7 @@ import javax.swing.JSeparator
 internal abstract class PsiPropertiesInspectorBuilder : InspectorBuilder<PsiPropertyItem> {
   protected abstract val editorProvider: EditorProvider<PsiPropertyItem>
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<PsiPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<PsiPropertyItem>) {
     inspector.addEditorsForProperties(properties.values)
   }
 

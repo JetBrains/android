@@ -23,19 +23,21 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 
 class PsDependencyComparator(private val myUiSettings: PsUISettings) : Comparator<PsBaseDependency> {
 
-  private fun PsBaseDependency.getTypePriority() = when (this) {
-    is PsModuleDependency -> 0
-    is PsLibraryDependency -> 1
-    is PsJarDependency -> 2
-    else -> -1
-  }
+  private fun PsBaseDependency.getTypePriority() =
+    when (this) {
+      is PsModuleDependency -> 0
+      is PsLibraryDependency -> 1
+      is PsJarDependency -> 2
+      else -> -1
+    }
 
-  private fun PsBaseDependency.getSortText() = when (this) {
-    is PsModuleDependency -> toText()
-    is PsLibraryDependency -> spec.getDisplayText(myUiSettings)
-    is PsJarDependency -> filePath
-    else -> name
-  }
+  private fun PsBaseDependency.getSortText() =
+    when (this) {
+      is PsModuleDependency -> toText()
+      is PsLibraryDependency -> spec.getDisplayText(myUiSettings)
+      is PsJarDependency -> filePath
+      else -> name
+    }
 
   override fun compare(d1: PsBaseDependency, d2: PsBaseDependency): Int =
     compareValuesBy(d1, d2, { it.getTypePriority() }, { it.getSortText() })

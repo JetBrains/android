@@ -97,7 +97,7 @@ private val vectorDrawable =
       <path android:fillColor="@android:color/white" android:pathData="M13.7827,15.1719l2.1213,-2.1213l5.9962,5.9962l-2.1213,2.1213z"/>
       <path android:fillColor="@android:color/white" android:pathData="M17.5,10c1.93,0 3.5,-1.57 3.5,-3.5c0,-0.58 -0.16,-1.12 -0.41,-1.6l-2.7,2.7L16.4,6.11l2.7,-2.7C18.62,3.16 18.08,3 17.5,3C15.57,3 14,4.57 14,6.5c0,0.41 0.08,0.8 0.21,1.16l-1.85,1.85l-1.78,-1.78l0.71,-0.71L9.88,5.61L12,3.49c-1.17,-1.17 -3.07,-1.17 -4.24,0L4.22,7.03l1.41,1.41H2.81L2.1,9.15l3.54,3.54l0.71,-0.71V9.15l1.41,1.41l0.71,-0.71l1.78,1.78l-7.41,7.41l2.12,2.12L16.34,9.79C16.7,9.92 17.09,10 17.5,10z"/>
   </vector>
-"""
+  """
     .trimIndent()
 
 /**
@@ -118,47 +118,49 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     val JAVA_RESOURCES_FILE =
       // language=Java
       """
-        package p1.p2;
+      package p1.p2;
 
-        class RClassAndroidTest {
-            public static void useResources() {
-                // Both main R class references will contain all innner R class types, and all fields in completion
-                int a = com.example.mylib.R.string.;
-                int b = p1.p2.R.string.;
-                int c = R.string.anotherLib;
-                int d = Nothing.Inner.number;
-            }
-        }
-        public class Nothing() {
-            static class Inner() {
-                public static int number = 0;
-            }
-        }"""
+      class RClassAndroidTest {
+          public static void useResources() {
+              // Both main R class references will contain all innner R class types, and all fields in completion
+              int a = com.example.mylib.R.string.;
+              int b = p1.p2.R.string.;
+              int c = R.string.anotherLib;
+              int d = Nothing.Inner.number;
+          }
+      }
+      public class Nothing() {
+          static class Inner() {
+              public static int number = 0;
+          }
+      }
+      """
         .trimIndent()
 
     val KOTLIN_RESOURCE_FILE =
       // language=kotlin
       """
-        package p1.p2
+      package p1.p2
 
-        class RClassAndroidTest {
-            fun useResources() {
-                listOf(
-                    // Both main R class references will contain all innner R class types, and all fields in completion
-                    com.example.mylib.R.string.,
-                    p1.p2.R.string.,
-                    R.string.anotherLib,
-                    Nothing.Inner.number
-                )
-            }
-        }
-        class Nothing() {
-            class Inner() {
-                companion object {
-                    val number = 0
-                }
-            }
-        }"""
+      class RClassAndroidTest {
+          fun useResources() {
+              listOf(
+                  // Both main R class references will contain all innner R class types, and all fields in completion
+                  com.example.mylib.R.string.,
+                  p1.p2.R.string.,
+                  R.string.anotherLib,
+                  Nothing.Inner.number
+              )
+          }
+      }
+      class Nothing() {
+          class Inner() {
+              companion object {
+                  val number = 0
+              }
+          }
+      }
+      """
         .trimIndent()
 
     fun resolveReferenceUnderCaret(fixture: CodeInsightTestFixture): PsiElement {
@@ -170,10 +172,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       // it does turn out that we need to wait,
       // we can investigate further if there's a better trigger to wait for than just looping and
       // retrying.
-      return executeWithRetries<AssertionError, PsiElement>(
-        duration = 2.seconds,
-        sleepBetweenRetries = 100.milliseconds,
-      ) {
+      return executeWithRetries<AssertionError, PsiElement>(duration = 2.seconds, sleepBetweenRetries = 100.milliseconds) {
         fixture.elementAtCaret
       }
     }
@@ -191,9 +190,8 @@ abstract class SingleModuleLightClassesTestBase {
   @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().withKotlin().onEdt()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    } as JavaCodeInsightTestFixture
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
+      as JavaCodeInsightTestFixture
   }
   private val project by lazy { myFixture.project }
   private val myModule by lazy { myFixture.module }
@@ -204,10 +202,7 @@ abstract class SingleModuleLightClassesTestBase {
   @Before
   fun setUp() {
     MergedManifestModificationListener.ensureSubscribed(project)
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-    )
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.addFileToProject(
       "/res/values/values.xml",
       // language=xml
@@ -233,19 +228,19 @@ abstract class SingleModuleLightClassesTestBase {
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
-      package p1.p2;
+        package p1.p2;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(R.string.appString);
-          }
-      }
-      """
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -260,18 +255,18 @@ abstract class SingleModuleLightClassesTestBase {
         "/src/p1/p2/MainActivity.kt",
         // language=kotlin
         """
-      package p1.p2
+        package p1.p2
 
-      import android.app.Activity
-      import android.os.Bundle
+        import android.app.Activity
+        import android.os.Bundle
 
-      class MainActivity : Activity() {
-          override fun onCreate(savedInstanceState: Bundle?) {
-              super.onCreate(savedInstanceState)
-              resources.getString(R.string.appString)
-          }
-      }
-      """
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                resources.getString(R.string.appString)
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -517,8 +512,7 @@ abstract class SingleModuleLightClassesTestBase {
     )
 
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsExactly("LabelView_android_maxHeight", "LabelView_foo", "LabelView", "class")
+    assertThat(myFixture.lookupElementStrings).containsExactly("LabelView_android_maxHeight", "LabelView_foo", "LabelView", "class")
   }
 
   @Test
@@ -585,24 +579,13 @@ abstract class SingleModuleLightClassesTestBase {
   @Test
   fun addingAar() {
     // Initialize the light classes code.
-    assertThat(
-        myFixture.javaFacade.findClass("p1.p2.R", GlobalSearchScope.everythingScope(project))
-      )
-      .isNotNull()
+    assertThat(myFixture.javaFacade.findClass("p1.p2.R", GlobalSearchScope.everythingScope(project))).isNotNull()
 
     addAarDependency(myFixture, myModule, "someLib", "com.example.someLib") { resDir ->
-      resDir.parentFile
-        .resolve(SdkConstants.FN_RESOURCE_TEXT)
-        .writeText("int string some_lib_string 0x7f010001")
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("int string some_lib_string 0x7f010001")
     }
 
-    assertThat(
-        myFixture.javaFacade.findClass(
-          "com.example.someLib.R",
-          GlobalSearchScope.everythingScope(project),
-        )
-      )
-      .isNotNull()
+    assertThat(myFixture.javaFacade.findClass("com.example.someLib.R", GlobalSearchScope.everythingScope(project))).isNotNull()
   }
 
   @Test
@@ -620,23 +603,13 @@ abstract class SingleModuleLightClassesTestBase {
       )
 
     myFixture.configureFromExistingVirtualFile(strings.virtualFile)
-    assertThat(
-        myFixture.javaFacade
-          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
-          .fields
-          .map(PsiField::getName)
-      )
+    assertThat(myFixture.javaFacade.findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!.fields.map(PsiField::getName))
       .containsExactly("appString", "foo")
 
     myFixture.renameElementAtCaretUsingHandler("bar")
     waitForResourceRepositoryUpdates(myFacet, 2)
 
-    assertThat(
-        myFixture.javaFacade
-          .findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!
-          .fields
-          .map(PsiField::getName)
-      )
+    assertThat(myFixture.javaFacade.findClass("p1.p2.R.string", GlobalSearchScope.everythingScope(project))!!.fields.map(PsiField::getName))
       .containsExactly("appString", "bar")
   }
 
@@ -706,8 +679,7 @@ abstract class SingleModuleLightClassesTestBase {
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name)
-      .isEqualTo("string")
+    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name).isEqualTo("string")
   }
 
   @Test
@@ -717,19 +689,19 @@ abstract class SingleModuleLightClassesTestBase {
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
-      package p1.p2;
+        package p1.p2;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(R.string.appString);
-          }
-      }
-      """
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -794,18 +766,13 @@ class SingleModuleNamespacedLightClassesTest : SingleModuleLightClassesTestBase(
 @RunsInEdt
 abstract class AppAndLibModulesLightClassesTestBase {
 
-  abstract fun getAgpProjectFlags(
-    builder: AndroidProjectStubBuilder
-  ): IdeAndroidGradlePluginProjectFlagsImpl
+  abstract fun getAgpProjectFlags(builder: AndroidProjectStubBuilder): IdeAndroidGradlePluginProjectFlagsImpl
 
   private val appModuleBuilder =
     AndroidModuleModelBuilder(
       gradlePath = ":app",
       selectedBuildVariant = "debug",
-      createAndroidProjectBuilderForDefaultTestProjectStructure(
-          IdeAndroidProjectType.PROJECT_TYPE_APP,
-          "p1.p2",
-        )
+      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_APP, "p1.p2")
         .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) }
         .withAgpProjectFlags { getAgpProjectFlags(this) },
     )
@@ -814,10 +781,7 @@ abstract class AppAndLibModulesLightClassesTestBase {
     AndroidModuleModelBuilder(
       gradlePath = ":mylib",
       selectedBuildVariant = "debug",
-      createAndroidProjectBuilderForDefaultTestProjectStructure(
-          IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
-          "com.example.mylib",
-        )
+      createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "com.example.mylib")
         .withAgpProjectFlags { getAgpProjectFlags(this) },
     )
 
@@ -838,33 +802,19 @@ abstract class AppAndLibModulesLightClassesTestBase {
       .onEdt()
 
   protected val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    } as JavaCodeInsightTestFixture
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
+      as JavaCodeInsightTestFixture
   }
   protected val project by lazy { myFixture.project }
 
-  protected val appModule by lazy {
-    project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN)!!
-  }
-  protected val libModule by lazy {
-    project.gradleModule(":mylib", IdeModuleWellKnownSourceSet.MAIN)!!
-  }
+  protected val appModule by lazy { project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN)!! }
+  protected val libModule by lazy { project.gradleModule(":mylib", IdeModuleWellKnownSourceSet.MAIN)!! }
 
   @Before
   fun setUp() {
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-    )
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "app/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
-    )
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      "mylib/${SdkConstants.FN_ANDROID_MANIFEST_XML}",
-    )
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "app/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "mylib/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
     myFixture.addFileToProject(
       "/app/res/values/values.xml",
       // language=xml
@@ -879,9 +829,7 @@ abstract class AppAndLibModulesLightClassesTestBase {
         .trimIndent(),
     )
 
-    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
-      `package`.value = "com.example.mylib"
-    }
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) { `package`.value = "com.example.mylib" }
 
     myFixture.addFileToProject(
       "mylib/res/values/values.xml",
@@ -902,8 +850,7 @@ abstract class AppAndLibModulesLightClassesTestBase {
 
 class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesTestBase() {
 
-  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) =
-    builder.buildAgpProjectFlagsStub()
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) = builder.buildAgpProjectFlagsStub()
 
   /** Regression test for b/191952219. */
   @Test
@@ -913,25 +860,25 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
         "/app/src/p1/p2/MainActivity.kt",
         // language=kotlin
         """
-      package p1.p2
+        package p1.p2
 
-      import android.app.Activity
-      import android.os.Bundle
+        import android.app.Activity
+        import android.os.Bundle
 
-      class MainActivity : Activity() {
-          override fun onCreate(savedInstanceState: Bundle?) {
-              super.onCreate(savedInstanceState)
-              R.string.appString
-              R.string.app_String
-              R.string.libString
-              com.example.mylib.R.string.libString
-              R.string.lib_String
-              com.example.mylib.R.string.lib_String
-              R.string.lib_String_Bar
-              com.example.mylib.R.string.<caret>lib_String_Bar
-          }
-      }
-      """
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                R.string.appString
+                R.string.app_String
+                R.string.libString
+                com.example.mylib.R.string.libString
+                R.string.lib_String
+                com.example.mylib.R.string.lib_String
+                R.string.lib_String_Bar
+                com.example.mylib.R.string.<caret>lib_String_Bar
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -943,10 +890,7 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
     assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
   }
 
-  /**
-   * Regression test for b/191952219. In Java, fully qualified resources did not resolve from
-   * library modules.
-   */
+  /** Regression test for b/191952219. In Java, fully qualified resources did not resolve from library modules. */
   @Test
   fun javaFlattenedResources() {
     val activity =
@@ -954,26 +898,26 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
         "/app/src/p1/p2/MainActivity.java",
         // language=java
         """
-      package p1.p2;
+        package p1.p2;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              int a = R.string.appString;
-              a = R.string.app_String;
-              a = R.string.libString;
-              a = com.example.mylib.R.string.libString;
-              a = R.string.lib_String;
-              a = com.example.mylib.R.string.lib_String;
-              a = R.string.lib_String_Bar;
-              a = com.example.mylib.R.string.<caret>lib_String_Bar;
-          }
-      }
-      """
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int a = R.string.appString;
+                a = R.string.app_String;
+                a = R.string.libString;
+                a = com.example.mylib.R.string.libString;
+                a = R.string.lib_String;
+                a = com.example.mylib.R.string.lib_String;
+                a = R.string.lib_String_Bar;
+                a = com.example.mylib.R.string.<caret>lib_String_Bar;
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -1013,8 +957,7 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
     assertThat(appClassUseScope.isSearchInModuleContent(appModule)).isTrue()
     assertThat(appClassUseScope.isSearchInModuleContent(appModule, true)).isTrue()
 
-    val libClassUseScope =
-      myFixture.findClass("com.example.mylib.R", activity)!!.useScope as GlobalSearchScope
+    val libClassUseScope = myFixture.findClass("com.example.mylib.R", activity)!!.useScope as GlobalSearchScope
     assertThat(libClassUseScope.isSearchInLibraries).isFalse()
     assertThat(libClassUseScope.isSearchInModuleContent(libModule)).isTrue()
     assertThat(libClassUseScope.isSearchInModuleContent(appModule)).isTrue()
@@ -1024,44 +967,31 @@ class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesT
 
 class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClassesTestBase() {
 
-  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) =
-    builder.buildAgpProjectFlagsStub().copy(transitiveRClasses = false)
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) = builder.buildAgpProjectFlagsStub().copy(transitiveRClasses = false)
 
-  /**
-   * Testing completion elements provided via
-   * [AndroidNonTransitiveRClassKotlinCompletionContributor]
-   */
+  /** Testing completion elements provided via [AndroidNonTransitiveRClassKotlinCompletionContributor] */
   @Test
   fun nonTransitiveKotlinCompletion() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.kt",
-        KOTLIN_RESOURCE_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.kt", KOTLIN_RESOURCE_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
     // Check that the lib class reference only contains library resources
     myFixture.moveCaret("com.example.mylib.R.string.|,")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
 
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
 
     // R class references with package prefix only get resources in original R class
     myFixture.moveCaret("p1.p2.R.string.|,")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
 
     myFixture.moveCaret("p1.p2.R.|string.,")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
+    assertThat(myFixture.lookupElementStrings).containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
 
     myFixture.moveCaret("R.string.|anotherLib,")
     myFixture.completeBasic()
@@ -1087,26 +1017,26 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       "/app/src/p1/p2/RClassAndroidTest.kt",
       // language=kotlin
       """
-        package p1.p2
+      package p1.p2
 
-        class RClassAndroidTest {
-            fun useResources() {
-                listOf(
-                    // Both main R class references will contain all innner R class types, and all fields in completion
-                    com.example.mylib.R.string.,
-                    p1.p2.R.string.anotherAppString,
-                    com.example.mylib.R.string.anotherLibString,
-                    Nothing.Inner.number
-                )
-            }
-        }
-        class Nothing() {
-            class Inner() {
-                companion object {
-                    val number = 0
-                }
-            }
-        }
+      class RClassAndroidTest {
+          fun useResources() {
+              listOf(
+                  // Both main R class references will contain all innner R class types, and all fields in completion
+                  com.example.mylib.R.string.,
+                  p1.p2.R.string.anotherAppString,
+                  com.example.mylib.R.string.anotherLibString,
+                  Nothing.Inner.number
+              )
+          }
+      }
+      class Nothing() {
+          class Inner() {
+              companion object {
+                  val number = 0
+              }
+          }
+      }
       """
         .trimIndent(),
       true,
@@ -1119,21 +1049,22 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
         "/app/src/p3/p4/RClassAndroidTest.kt",
         // language=kotlin
         """
-      package p3.p4
+        package p3.p4
 
-      import com.example.mylib.R
+        import com.example.mylib.R
 
-      class RClassAndroidTest {
-          fun useResources() {
-              listOf(
-                  // Both main R class references will contain all innner R class types, and all fields in completion
-                  R.string.,
-                  p1.p2.R.string.,
-                  R.string.anotherApp,
-                  0
-              )
-          }
-      }"""
+        class RClassAndroidTest {
+            fun useResources() {
+                listOf(
+                    // Both main R class references will contain all innner R class types, and all fields in completion
+                    R.string.,
+                    p1.p2.R.string.,
+                    R.string.anotherApp,
+                    0
+                )
+            }
+        }
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(otherPackage)
@@ -1146,15 +1077,13 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
 
     myFixture.moveCaret("p1.p2.R.string.|,")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
     myFixture.type("anotherApp")
     myFixture.completeBasic()
 
     myFixture.moveCaret("R.string.|anotherApp,")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
 
     myFixture.moveCaret("R.string.anotherApp|,")
     myFixture.completeBasic()
@@ -1177,85 +1106,58 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
                   0
               )
           }
-      }"""
+      }
+      """
         .trimIndent(),
       true,
     )
   }
 
-  /**
-   * Testing completion elements provided via [AndroidNonTransitiveRClassJavaCompletionContributor]
-   */
+  /** Testing completion elements provided via [AndroidNonTransitiveRClassJavaCompletionContributor] */
   @Test
   fun nonTransitiveJavaCompletionWithPrefix() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
     // R class references with package prefix only get resources in original R class
     myFixture.moveCaret("p1.p2.R.string.|;")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
 
     myFixture.moveCaret("p1.p2.R.|string.;")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
+    assertThat(myFixture.lookupElementStrings).containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
   }
 
   @Test
   fun nonTransitiveJavaCompletionLibraryResources() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
     // Check that the lib class reference only contains library resources
     myFixture.moveCaret("com.example.mylib.R.string.|;")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
   }
 
   @Test
   fun nonTransitiveJavaCompletionExtraElements() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
     myFixture.moveCaret("R.string.|anotherLib;")
     myFixture.completeBasic()
     assertThat(myFixture.lookupElements!!.map { it.toPresentableText() })
-      .containsAllIn(
-        arrayOf("anotherLibString  (com.example.mylib) Int", "libString  (com.example.mylib) Int")
-      )
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+      .containsAllIn(arrayOf("anotherLibString  (com.example.mylib) Int", "libString  (com.example.mylib) Int"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
   }
 
   @Test
   fun nonTransitiveJavaCompletionInsertHandler() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -1271,22 +1173,22 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       "/app/src/p1/p2/RClassAndroidTest.java",
       // language=Java
       """
-        package p1.p2;
+      package p1.p2;
 
-        class RClassAndroidTest {
-            public static void useResources() {
-                // Both main R class references will contain all innner R class types, and all fields in completion
-                int a = com.example.mylib.R.string.;
-                int b = R.string.anotherAppString;
-                int c = com.example.mylib.R.string.anotherLibString;
-                int d = Nothing.Inner.number;
-            }
-        }
-        public class Nothing() {
-            static class Inner() {
-                public static int number = 0;
-            }
-        }
+      class RClassAndroidTest {
+          public static void useResources() {
+              // Both main R class references will contain all innner R class types, and all fields in completion
+              int a = com.example.mylib.R.string.;
+              int b = R.string.anotherAppString;
+              int c = com.example.mylib.R.string.anotherLibString;
+              int d = Nothing.Inner.number;
+          }
+      }
+      public class Nothing() {
+          static class Inner() {
+              public static int number = 0;
+          }
+      }
       """
         .trimIndent(),
       true,
@@ -1295,12 +1197,7 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
 
   @Test
   fun nonTransitiveJavaCompletionDifferentPackage() {
-    val androidTest =
-      createFile(
-        project.guessProjectDir()!!,
-        "/app/src/p1/p2/RClassAndroidTest.java",
-        JAVA_RESOURCES_FILE,
-      )
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -1311,18 +1208,19 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
         "/app/src/p3/p4/RClassAndroidTest.java",
         // language=Java
         """
-      package p3.p4;
+        package p3.p4;
 
-      import com.example.mylib.R;
+        import com.example.mylib.R;
 
-      class RClassAndroidTest {
-          public static void foo() {
-              int a = R.string.;
-              int b = p1.p2.R.string.;
-              int c = R.string.anotherApp;
-              int d = 0;
-          }
-      }"""
+        class RClassAndroidTest {
+            public static void foo() {
+                int a = R.string.;
+                int b = p1.p2.R.string.;
+                int c = R.string.anotherApp;
+                int d = 0;
+            }
+        }
+        """
           .trimIndent(),
       )
     myFixture.configureFromExistingVirtualFile(otherPackage)
@@ -1335,15 +1233,13 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
 
     myFixture.moveCaret("p1.p2.R.string.|;")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
     myFixture.type("anotherApp")
     myFixture.completeBasic()
 
     myFixture.moveCaret("R.string.|anotherApp;")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+    assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
 
     myFixture.moveCaret("R.string.anotherApp|;")
     myFixture.completeBasic()
@@ -1363,7 +1259,8 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
               int c = p1.p2.R.string.anotherAppString;
               int d = 0;
           }
-      }"""
+      }
+      """
         .trimIndent(),
       true,
     )
@@ -1375,20 +1272,20 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
       "/app/src/p1/p2/MainActivity.java",
       // language=java
       """
-    package p1.p2;
+      package p1.p2;
 
-    import android.app.Activity;
-    import android.os.Bundle;
+      import android.app.Activity;
+      import android.os.Bundle;
 
-    public class MainActivity extends Activity {
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            getResources().getString(R.string.${"libString" highlightedAs ERROR});
-            getResources().getString(com.example.mylib.R.string.libString);
-        }
-    }
-    """
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              getResources().getString(R.string.${"libString" highlightedAs ERROR});
+              getResources().getString(com.example.mylib.R.string.libString);
+          }
+      }
+      """
         .trimIndent(),
     )
 
@@ -1396,13 +1293,11 @@ class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClass
 
     myFixture.moveCaret("(R.string.|libString")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllOf("appString", "anotherAppString", "class")
+    assertThat(myFixture.lookupElementStrings).containsAllOf("appString", "anotherAppString", "class")
 
     myFixture.moveCaret("mylib.R.string.|libString")
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsAllOf("libString", "anotherLibString", "class")
+    assertThat(myFixture.lookupElementStrings).containsAllOf("libString", "anotherLibString", "class")
   }
 }
 
@@ -1444,12 +1339,7 @@ class AppAndLibModulesNonFinalResourceIdsLightClassesTest : AppAndLibModulesLigh
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
-    assertThat(
-        (elementAtCaret as PsiModifierListOwner)
-          .modifierList!!
-          .hasExplicitModifier(PsiModifier.FINAL)
-      )
-      .isFalse()
+    assertThat((elementAtCaret as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isFalse()
   }
 }
 
@@ -1492,20 +1382,14 @@ class AppAndLibModulesFinalResourceIdsLightClassesTest : AppAndLibModulesLightCl
     with(myFixture.elementAtCaret) {
       assertThat(this).isInstanceOf(ResourceLightField::class.java)
       assertThat((this as ResourceLightField).resourceName).isEqualTo("basicID")
-      assertThat(
-          (this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)
-        )
-        .isTrue()
+      assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
     }
 
     myFixture.moveCaret("case R.string.app|String")
     with(myFixture.elementAtCaret) {
       assertThat(this).isInstanceOf(ResourceLightField::class.java)
       assertThat((this as ResourceLightField).resourceName).isEqualTo("appString")
-      assertThat(
-          (this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)
-        )
-        .isTrue()
+      assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
     }
   }
 }
@@ -1517,13 +1401,7 @@ class UnrelatedModules : LightClassesTestBase() {
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
     modules: MutableList<MyAdditionalModuleData>,
   ) {
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      "unrelatedLib",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      false,
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, "unrelatedLib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY, false)
   }
 
   override fun setUp() {
@@ -1531,9 +1409,7 @@ class UnrelatedModules : LightClassesTestBase() {
 
     val libModule = getAdditionalModuleByName("unrelatedLib")!!
 
-    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) {
-      `package`.value = "p1.p2.unrelatedLib"
-    }
+    updatePrimaryManifest(AndroidFacet.getInstance(libModule)!!) { `package`.value = "p1.p2.unrelatedLib" }
 
     myFixture.addFileToProject(
       "${getAdditionalModulePath("unrelatedLib")}/res/values/values.xml",
@@ -1548,9 +1424,9 @@ class UnrelatedModules : LightClassesTestBase() {
   }
 
   /**
-   * Regression test for b/110776676. p1.p2 is potentially special, because it contains the R class,
-   * p1.p2.util is a regular package that contains a regular class. We need to make sure the parent
-   * of p1.p2.util `equals` to p1.p2 from the facade, otherwise various tree views get confused.
+   * Regression test for b/110776676. p1.p2 is potentially special, because it contains the R class, p1.p2.util is a regular package that
+   * contains a regular class. We need to make sure the parent of p1.p2.util `equals` to p1.p2 from the facade, otherwise various tree views
+   * get confused.
    */
   fun testPackageParent() {
     myFixture.addFileToProject(
@@ -1604,17 +1480,13 @@ class UnrelatedModules : LightClassesTestBase() {
         .resolve(SdkConstants.FN_RESOURCE_TEXT)
         .writeText(
           """
-        int string aar_lib_string 0x7f010001
-        """
+          int string aar_lib_string 0x7f010001
+          """
             .trimIndent()
         )
     }
 
-    val aarRClass =
-      myFixture.javaFacade.findClass(
-        "com.example.aarlib.R",
-        GlobalSearchScope.everythingScope(project),
-      )!!
+    val aarRClass = myFixture.javaFacade.findClass("com.example.aarlib.R", GlobalSearchScope.everythingScope(project))!!
     val useScope = aarRClass.useScope as GlobalSearchScope
     assertTrue(useScope.isSearchInModuleContent(myModule))
     assertFalse(useScope.isSearchInModuleContent(getAdditionalModuleByName("unrelatedLib")!!))
@@ -1628,9 +1500,7 @@ class NamespacedModuleWithAarLightClassesTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
-    }
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString() }
   }
   private val project by lazy { myFixture.project }
   private val myModule by lazy { myFixture.module }
@@ -1638,10 +1508,7 @@ class NamespacedModuleWithAarLightClassesTest {
 
   @Before
   fun setUp() {
-    myFixture.copyFileToProject(
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-      SdkConstants.FN_ANDROID_MANIFEST_XML,
-    )
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
 
     AndroidModel.setForTests(myFacet, namespaced(myFacet))
     updatePrimaryManifest(myFacet) { `package`.value = "p1.p2" }
@@ -1732,8 +1599,7 @@ class NamespacedModuleWithAarLightClassesTest {
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name)
-      .isEqualTo("string")
+    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name).isEqualTo("string")
   }
 
   @Test
@@ -1743,19 +1609,19 @@ class NamespacedModuleWithAarLightClassesTest {
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
-      package p1.p2;
+        package p1.p2;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(com.example.mylibrary.R.string.my_aar_string);
-          }
-      }
-      """
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.my_aar_string);
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -1778,15 +1644,15 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         .resolve(SdkConstants.FN_RESOURCE_TEXT)
         .writeText(
           """
-        int string my_aar_string 0x7f010001
-        int string another_aar_string 0x7f010002
-        int attr attrOne 0x7f040001
-        int attr attrTwo 0x7f040002
-        int[] styleable LibStyleable { 0x7f040001, 0x7f040002, 0x7f040003 }
-        int styleable LibStyleable_attrOne 0
-        int styleable LibStyleable_attrTwo 1
-        int styleable LibStyleable_android_maxWidth 2
-        """
+          int string my_aar_string 0x7f010001
+          int string another_aar_string 0x7f010002
+          int attr attrOne 0x7f040001
+          int attr attrTwo 0x7f040002
+          int[] styleable LibStyleable { 0x7f040001, 0x7f040002, 0x7f040003 }
+          int styleable LibStyleable_attrOne 0
+          int styleable LibStyleable_attrTwo 1
+          int styleable LibStyleable_android_maxWidth 2
+          """
             .trimIndent()
         )
     }
@@ -1795,8 +1661,8 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         .resolve(SdkConstants.FN_RESOURCE_TEXT)
         .writeText(
           """
-        int string another_lib_string 0x7f010001
-        """
+          int string another_lib_string 0x7f010001
+          """
             .trimIndent()
         )
     }
@@ -1831,8 +1697,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
 
     // Regression test for b/141392340, make sure getResolveScope() doesn't throw when called on AAR
     // classes that don't have a module.
-    assertThat(ElementPresentationUtil.getClassKind(aarRClass as PsiClass))
-      .isEqualTo(ElementPresentationUtil.CLASS_KIND_CLASS)
+    assertThat(ElementPresentationUtil.getClassKind(aarRClass as PsiClass)).isEqualTo(ElementPresentationUtil.CLASS_KIND_CLASS)
   }
 
   fun testResourceNames_string() {
@@ -1861,8 +1726,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
     myFixture.checkHighlighting()
     assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings)
-      .containsExactly("my_aar_string", "another_aar_string", "class")
+    assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
   }
 
   fun testUsageInfos() {
@@ -1871,19 +1735,19 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
-      package p1.p2;
+        package p1.p2;
 
-      import android.app.Activity;
-      import android.os.Bundle;
+        import android.app.Activity;
+        import android.os.Bundle;
 
-      public class MainActivity extends Activity {
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              getResources().getString(com.example.mylibrary.R.string.my_aar_string);
-          }
-      }
-      """
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.my_aar_string);
+            }
+        }
+        """
           .trimIndent(),
       )
 
@@ -1923,20 +1787,13 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
     val elementUnderCaret = resolveReferenceUnderCaret()
     assertThat(elementUnderCaret).isInstanceOf(StyleableAttrLightField::class.java)
     val styleable = (elementUnderCaret as StyleableAttrLightField).styleableAttrFieldUrl.styleable
-    assertThat(styleable)
-      .isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
+    assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
     val attr = elementUnderCaret.styleableAttrFieldUrl.attr
     assertThat(attr).isEqualTo(ResourceReference(RES_AUTO, ResourceType.ATTR, "attrOne"))
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings)
-      .containsExactly(
-        "LibStyleable",
-        "LibStyleable_attrOne",
-        "LibStyleable_attrTwo",
-        "LibStyleable_android_maxWidth",
-        "class",
-      )
+      .containsExactly("LibStyleable", "LibStyleable_attrOne", "LibStyleable_attrTwo", "LibStyleable_android_maxWidth", "class")
   }
 
   fun testResourceNames_styleableWithPackage() {
@@ -1965,11 +1822,9 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
     val elementUnderCaret = resolveReferenceUnderCaret()
     assertThat(elementUnderCaret).isInstanceOf(StyleableAttrLightField::class.java)
     val styleable = (elementUnderCaret as StyleableAttrLightField).styleableAttrFieldUrl.styleable
-    assertThat(styleable)
-      .isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
+    assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
     val attr = elementUnderCaret.styleableAttrFieldUrl.attr
-    assertThat(attr)
-      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "maxWidth"))
+    assertThat(attr).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "maxWidth"))
   }
 
   fun testRClassCompletion_java() {
@@ -2005,12 +1860,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
     assertThat(firstSuggestion).isInstanceOf(ResourceRepositoryRClass::class.java)
     assertThat((firstSuggestion as PsiClass).qualifiedName).isEqualTo("p1.p2.R")
 
-    assertThat(
-        this.myFixture.lookupElements!!
-          .mapNotNull { it.psiElement as? PsiClass }
-          .filter { it.name == "R" }
-          .map { it.qualifiedName }
-      )
+    assertThat(this.myFixture.lookupElements!!.mapNotNull { it.psiElement as? PsiClass }.filter { it.name == "R" }.map { it.qualifiedName })
       .containsExactly("p1.p2.R", "com.example.mylibrary.R", "com.example.anotherLib.R")
   }
 
@@ -2037,8 +1887,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
       )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name)
-      .isEqualTo("string")
+    assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
   }
 
   /** Regression test for b/118485835. */
@@ -2060,12 +1909,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     myFixture.completeBasic()
 
-    assertThat(
-        this.myFixture.lookupElements!!
-          .mapNotNull { it.psiElement as? PsiClass }
-          .filter { it.name == "R" }
-          .map { it.qualifiedName }
-      )
+    assertThat(this.myFixture.lookupElements!!.mapNotNull { it.psiElement as? PsiClass }.filter { it.name == "R" }.map { it.qualifiedName })
       .containsExactly("p1.p2.R", "com.example.mylibrary.R", "com.example.anotherLib.R")
   }
 
@@ -2082,7 +1926,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
           int styleable FontFamilyFont_font notANumber
           int styleable FontFamilyFont_fontStyle 4
           int styleable FontFamilyFont_fontWeight 5
-        """
+          """
             .trimIndent()
         )
     }
@@ -2163,12 +2007,11 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
 }
 
 /**
- * The default lookup string from CodeInsightTestFixture, only includes the item text, and not other
- * aspects of the lookup element such as tail text and type text. We want to verify certain aspects
- * are present in the lookup elements.
+ * The default lookup string from CodeInsightTestFixture, only includes the item text, and not other aspects of the lookup element such as
+ * tail text and type text. We want to verify certain aspects are present in the lookup elements.
  *
- * Be careful using this on Java elements such as resource fields, as the int constant value in the
- * tail text is not always the same on repeated test runs.
+ * Be careful using this on Java elements such as resource fields, as the int constant value in the tail text is not always the same on
+ * repeated test runs.
  */
 private fun LookupElement.toPresentableText(): String {
   val presentation = LookupElementPresentation()

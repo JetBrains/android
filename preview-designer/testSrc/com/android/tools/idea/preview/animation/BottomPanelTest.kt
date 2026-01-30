@@ -45,16 +45,9 @@ class BottomPanelTest {
   @Before
   fun setUp() {
     val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
-        )
-        .build()
+      NlModelBuilderUtil.model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)).build()
     }
-    surface =
-      NlSurfaceBuilder.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
+    surface = NlSurfaceBuilder.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
     surface.addModelsWithoutRender(listOf(model))
   }
 

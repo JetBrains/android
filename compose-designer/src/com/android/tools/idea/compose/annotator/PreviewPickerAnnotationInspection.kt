@@ -27,25 +27,15 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 /**
  * LocalInspection for the Compose @Preview annotation.
  *
- * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent
- * Lint checks of its own).
+ * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent Lint checks of its own).
  */
-class PreviewPickerAnnotationInspection :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
+class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, function: KtNamedFunction, previewAnnotation: KtAnnotationEntry) {
     runPreviewPickerChecks(holder, previewAnnotation)
   }
 
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
+  override fun visitPreviewAnnotation(holder: ProblemsHolder, annotationClass: KtClass, previewAnnotation: KtAnnotationEntry) {
     runPreviewPickerChecks(holder, previewAnnotation)
   }
 
@@ -56,7 +46,6 @@ class PreviewPickerAnnotationInspection :
 
     if (previewAnnotation.getModuleSystem()?.usesCompose != true) return
 
-    PreviewAnnotationCheck.checkAnnotation(previewAnnotation, holder.manager, holder.isOnTheFly)
-      ?.let { holder.registerProblem(it) }
+    PreviewAnnotationCheck.checkAnnotation(previewAnnotation, holder.manager, holder.isOnTheFly)?.let { holder.registerProblem(it) }
   }
 }

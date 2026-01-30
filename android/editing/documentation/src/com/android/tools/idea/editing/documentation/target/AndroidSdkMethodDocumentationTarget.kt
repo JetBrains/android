@@ -32,14 +32,7 @@ private constructor(
   sourceElement: PsiElement?,
   url: String,
   localJavaDocInfo: String?,
-) :
-  AndroidSdkMemberDocumentationTarget<PsiMethod>(
-    targetElement,
-    containingClass,
-    sourceElement,
-    url,
-    localJavaDocInfo,
-  ) {
+) : AndroidSdkMemberDocumentationTarget<PsiMethod>(targetElement, containingClass, sourceElement, url, localJavaDocInfo) {
 
   override fun create(
     targetElement: PsiMethod,
@@ -47,14 +40,7 @@ private constructor(
     sourceElement: PsiElement?,
     url: String,
     localJavaDocInfo: String?,
-  ) =
-    AndroidSdkMethodDocumentationTarget(
-      targetElement,
-      containingClass,
-      sourceElement,
-      url,
-      localJavaDocInfo,
-    )
+  ) = AndroidSdkMethodDocumentationTarget(targetElement, containingClass, sourceElement, url, localJavaDocInfo)
 
   override fun filter(reader: BufferedReader, stringBuilder: StringBuilder) {
     val qName = containingClass.qualifiedName
@@ -69,33 +55,21 @@ private constructor(
 
   companion object {
     /**
-     * Creates [DocumentationTarget] representing a method in the Android SDK. [targetElement]
-     * points to the method in the Android SDK that needs documentation, and [sourceElement]
-     * represents the original reference to that method from which the user is requesting the
+     * Creates [DocumentationTarget] representing a method in the Android SDK. [targetElement] points to the method in the Android SDK that
+     * needs documentation, and [sourceElement] represents the original reference to that method from which the user is requesting the
      * documentation.
      */
     fun create(targetElement: PsiMethod, sourceElement: PsiElement?): DocumentationTarget? {
       val containingClass = targetElement.containingClass ?: return null
       val classUrl = containingClass.documentationUrl() ?: return null
-      val types =
-        targetElement.getSignature(PsiSubstitutor.EMPTY).parameterTypes.joinToString {
-          it.canonicalText
-        }
+      val types = targetElement.getSignature(PsiSubstitutor.EMPTY).parameterTypes.joinToString { it.canonicalText }
       val url = "$classUrl#${targetElement.name}($types)"
 
-      val localJavaDocInfo =
-        JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(listOf(url))
+      val localJavaDocInfo = JavaDocInfoGenerator(targetElement.project, targetElement).generateDocInfo(listOf(url))
 
-      return AndroidSdkMethodDocumentationTarget(
-        targetElement,
-        containingClass,
-        sourceElement,
-        url,
-        localJavaDocInfo,
-      )
+      return AndroidSdkMethodDocumentationTarget(targetElement, containingClass, sourceElement, url, localJavaDocInfo)
     }
 
-    private val methodHeadingRegex =
-      Regex("<H[34].*>(.+?)</H[34]>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+    private val methodHeadingRegex = Regex("<H[34].*>(.+?)</H[34]>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
   }
 }

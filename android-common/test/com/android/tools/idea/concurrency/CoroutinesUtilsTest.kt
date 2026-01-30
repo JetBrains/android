@@ -34,8 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class CoroutinesUtilsTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Before
   fun setUp() {
@@ -47,11 +46,12 @@ class CoroutinesUtilsTest {
     // Prepare
     val disposable = Disposer.newDisposable()
     val scope = AndroidCoroutineScope(disposable)
-    val job = scope.launch {
-      while (true) {
-        delay(1_000)
+    val job =
+      scope.launch {
+        while (true) {
+          delay(1_000)
+        }
       }
-    }
 
     // Act
     Disposer.dispose(disposable)
@@ -75,14 +75,16 @@ class CoroutinesUtilsTest {
         // parent scope finishes.
         var result: Int? = 5
         // This job never finishes because it uses the same TestDispatcher
-        val job = scope.launch {
-          result = withTimeoutOrNull(1_000) {
-            while (true) {
-              delay(50)
-            }
-            5
+        val job =
+          scope.launch {
+            result =
+              withTimeoutOrNull(1_000) {
+                while (true) {
+                  delay(50)
+                }
+                5
+              }
           }
-        }
         job.join()
 
         // Assert
@@ -98,12 +100,13 @@ class CoroutinesUtilsTest {
     // Prepare
     val disposable = Disposer.newDisposable()
     val scope = AndroidCoroutineScope(disposable)
-    val job = scope.launch {
-      while (true) {
-        delay(50)
-        yield()
+    val job =
+      scope.launch {
+        while (true) {
+          delay(50)
+          yield()
+        }
       }
-    }
 
     // Act
     Disposer.dispose(disposable)

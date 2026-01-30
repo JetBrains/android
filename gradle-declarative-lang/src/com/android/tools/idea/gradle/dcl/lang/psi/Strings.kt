@@ -19,7 +19,10 @@ fun String.escape(): String {
   val sb = StringBuilder()
   for (char in this) {
     when (char) {
-      '\'', '\"', '\\', '\$' -> sb.append('\\').append(char)
+      '\'',
+      '\"',
+      '\\',
+      '\$' -> sb.append('\\').append(char)
       '\t' -> sb.append("\\t")
       '\b' -> sb.append("\\b")
       '\n' -> sb.append("\\n")
@@ -78,5 +81,4 @@ fun String.unescape(): String {
   return sb.toString()
 }
 
-fun String.unescapeMultiline(): String? =
-  this.replace("\${'$'}", "$")
+fun String.unescapeMultiline(): String? = this.replace("\${'$'}", "$")

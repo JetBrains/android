@@ -63,16 +63,9 @@ internal constructor(
     val layout = GroupLayout(panel)
     val button = createComboBoxButton(presentation)
     val horizontalGroup =
-      layout
-        .createSequentialGroup()
-        .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250))
-        .addGap(scale.applyAsInt(3))
+      layout.createSequentialGroup().addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250)).addGap(scale.applyAsInt(3))
     val verticalGroup: GroupLayout.Group =
-      layout
-        .createSequentialGroup()
-        .addGap(0, 0, Short.MAX_VALUE.toInt())
-        .addComponent(button)
-        .addGap(0, 0, Short.MAX_VALUE.toInt())
+      layout.createSequentialGroup().addGap(0, 0, Short.MAX_VALUE.toInt()).addComponent(button).addGap(0, 0, Short.MAX_VALUE.toInt())
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
     panel.setLayout(layout)
@@ -84,8 +77,7 @@ internal constructor(
     return DeviceAndSnapshotComboBoxButton(presentation)
   }
 
-  private inner class DeviceAndSnapshotComboBoxButton(presentation: Presentation) :
-    ComboBoxButton(presentation) {
+  private inner class DeviceAndSnapshotComboBoxButton(presentation: Presentation) : ComboBoxButton(presentation) {
     init {
       setName("deviceAndSnapshotComboBoxButton")
     }
@@ -120,14 +112,9 @@ internal constructor(
 
   override fun shouldShowDisabledActions() = true
 
-  override fun createPopupActionGroup(
-    button: JComponent,
-    context: DataContext,
-  ): DefaultActionGroup {
+  override fun createPopupActionGroup(button: JComponent, context: DataContext): DefaultActionGroup {
     val project = context.getData(CommonDataKeys.PROJECT)!!
-    return createDeviceSelectorActionGroup(
-      devicesService(project).loadedDevicesOrNull() ?: throw IllegalStateException()
-    )
+    return createDeviceSelectorActionGroup(devicesService(project).loadedDevicesOrNull() ?: throw IllegalStateException())
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -153,9 +140,7 @@ internal constructor(
     if (!DeployableToDevice.deploysToLocalDevice(configuration)) {
       presentation.setEnabled(false)
       if (IdeInfo.getInstance().isAndroidStudio) {
-        presentation.setDescription(
-          "Not applicable for the \"${configuration.name}\" configuration"
-        )
+        presentation.setDescription("Not applicable for the \"${configuration.name}\" configuration")
       } else {
         presentation.setVisible(false)
       }
@@ -190,20 +175,15 @@ internal constructor(
   }
 
   private fun setActiveExecutionTarget(project: Project, targets: List<DeploymentTarget>) {
-    executionTargetService(project).activeTarget =
-      DeviceAndSnapshotComboBoxExecutionTarget(targets, devicesService(project))
+    executionTargetService(project).activeTarget = DeviceAndSnapshotComboBoxExecutionTarget(targets, devicesService(project))
   }
 
   companion object {
     /** The key for the LaunchCompatibility presentation client property */
-    @JvmField
-    val LAUNCH_COMPATIBILITY_KEY =
-      Key<LaunchCompatibility>("DeviceAndSnapshotComboBoxAction.launchCompatibility")
+    @JvmField val LAUNCH_COMPATIBILITY_KEY = Key<LaunchCompatibility>("DeviceAndSnapshotComboBoxAction.launchCompatibility")
 
     @JvmStatic
     val instance: DeviceAndSnapshotComboBoxAction
-      get() =
-        ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox")
-          as DeviceAndSnapshotComboBoxAction
+      get() = ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox") as DeviceAndSnapshotComboBoxAction
   }
 }

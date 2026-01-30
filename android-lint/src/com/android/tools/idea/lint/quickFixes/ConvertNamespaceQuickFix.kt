@@ -28,14 +28,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 
-class ConvertNamespaceQuickFix(element: PsiElement) :
-  PsiBasedModCommandAction<PsiElement>(element) {
+class ConvertNamespaceQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiElement>(element) {
   override fun getFamilyName() = "ConvertNamespaceQuickFix"
 
   override fun getPresentation(context: ActionContext, element: PsiElement) =
-    PsiTreeUtil.getParentOfType(element, XmlTag::class.java)?.let {
-      Presentation.of(message("android.lint.fix.replace.namespace"))
-    }
+    PsiTreeUtil.getParentOfType(element, XmlTag::class.java)?.let { Presentation.of(message("android.lint.fix.replace.namespace")) }
 
   override fun perform(context: ActionContext, element: PsiElement): ModCommand {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return ModCommand.nop()

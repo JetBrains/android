@@ -44,17 +44,14 @@ class WearTileDeviceSpecInjectionContributorTest {
       "src/invalid/Preview.kt",
       // language=kotlin
       """
-          package invalid
+      package invalid
 
-          annotation class Preview(val device: String = "")
-        """
+      annotation class Preview(val device: String = "")
+      """
         .trimIndent(),
     )
 
-    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
-      KotlinLanguage.INSTANCE,
-      injectionContributor,
-    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(KotlinLanguage.INSTANCE, injectionContributor)
   }
 
   @Test

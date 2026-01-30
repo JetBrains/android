@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics
 
 import com.android.tools.idea.diagnostics.freeze.FreezeGraph
 import java.lang.management.ManagementFactory
-import java.lang.management.ThreadInfo
 import java.util.function.BiConsumer
 
 class LockStatusReportContributor : DiagnosticReportContributor {
@@ -35,14 +34,12 @@ class LockStatusReportContributor : DiagnosticReportContributor {
       sb.appendLine()
       sb.appendJvmAnalysis()
       report = sb.toString()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       report = "ERROR: ${t.stackTraceToString()}\n$sb"
     }
   }
 
-  override fun stopCollection(totalDurationMs: Long) {
-  }
+  override fun stopCollection(totalDurationMs: Long) {}
 
   override fun getReport(): String {
     return report
@@ -62,10 +59,9 @@ class LockStatusReportContributor : DiagnosticReportContributor {
     appendLine("AWT thread ID: ${awtThread?.threadId}")
     if (deadlockedThreads.isEmpty()) {
       appendLine("JVM did not detect any deadlocks")
-    }
-    else {
-      val awtDeadlockedString = if (awtThread != null && deadlockedThreads.contains(awtThread.threadId)) "AWT#${awtThread.threadId}"
-      else "background"
+    } else {
+      val awtDeadlockedString =
+        if (awtThread != null && deadlockedThreads.contains(awtThread.threadId)) "AWT#${awtThread.threadId}" else "background"
       appendLine("JVM detected a deadlock ($awtDeadlockedString)")
       appendLine("Deadlocked threads: [${deadlockedThreads.joinToString(", ")}]")
     }
@@ -81,11 +77,9 @@ class LockStatusReportContributor : DiagnosticReportContributor {
           append(" - DEADLOCKED")
         }
         appendLine()
-      }
-      else if (lockedMonitors.isNotEmpty() || lockedSynchronizers.isNotEmpty()) {
+      } else if (lockedMonitors.isNotEmpty() || lockedSynchronizers.isNotEmpty()) {
         appendLine("Thread #${threadInfo.threadId}: ${threadInfo.threadState}")
-      }
-      else {
+      } else {
         continue
       }
       if (lockedMonitors.isNotEmpty()) {
@@ -116,4 +110,3 @@ class LockStatusReportContributor : DiagnosticReportContributor {
     append(freezeGraph.summary)
   }
 }
-

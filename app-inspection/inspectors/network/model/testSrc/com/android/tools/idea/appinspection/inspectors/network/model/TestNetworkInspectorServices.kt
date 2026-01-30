@@ -35,8 +35,7 @@ class TestNetworkInspectorServices(
       override suspend fun startInspection(): NetworkInspectorProtocol.StartInspectionResponse =
         NetworkInspectorProtocol.StartInspectionResponse.getDefaultInstance()
 
-      override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
-        Unit
+      override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
     },
   override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker(),
 ) : NetworkInspectorServices {
@@ -49,12 +48,7 @@ class TestNetworkInspectorServices(
         TODO("Not yet implemented")
       }
 
-      override fun showNotification(
-        content: String,
-        title: String,
-        severity: AppInspectionIdeServices.Severity,
-        action: AnAction?,
-      ) {
+      override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, action: AnAction?) {
         TODO("Not yet implemented")
       }
 

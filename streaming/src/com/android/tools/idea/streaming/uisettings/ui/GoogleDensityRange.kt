@@ -29,9 +29,9 @@ private const val MIN_DIMENSION_DP = 320
 object GoogleDensityRange {
 
   /**
-   * Compute the available display sizes as it is computed on Google devices.
-   * Other OEM vendors may choose to display a different density range in the settings on the device.
-   * The code based on: frameworks/base/packages/SettingsLib/src/com/android/settingslib/display/DisplayDensityUtils.java (udc-dev)
+   * Compute the available display sizes as it is computed on Google devices. Other OEM vendors may choose to display a different density
+   * range in the settings on the device. The code based on:
+   * frameworks/base/packages/SettingsLib/src/com/android/settingslib/display/DisplayDensityUtils.java (udc-dev)
    */
   fun computeDensityRange(screenSize: Dimension, physicalDensity: Int): List<Int> {
     val minDimensionPx = minOf(screenSize.width, screenSize.height)

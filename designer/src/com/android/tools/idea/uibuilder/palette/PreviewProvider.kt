@@ -73,20 +73,14 @@ private const val LINEAR_LAYOUT =
 """
 
 /**
- * Creates a preview image that is used when dragging an item from the palette. If possible a image
- * is generated from the actual Android view. Otherwise we simply generate the image from the icon
- * used in the palette.
+ * Creates a preview image that is used when dragging an item from the palette. If possible a image is generated from the actual Android
+ * view. Otherwise we simply generate the image from the icon used in the palette.
  */
 class PreviewProvider(
   private val myDesignSurfaceSupplier: Supplier<DesignSurface<*>?>,
   private val myDependencyManager: DependencyManager,
 ) {
-  class ImageAndDimension(
-    val image: BufferedImage,
-    val dimension: Dimension,
-    val rendering: Future<*>?,
-    val disposal: Future<*>?,
-  )
+  class ImageAndDimension(val image: BufferedImage, val dimension: Dimension, val rendering: Future<*>?, val disposal: Future<*>?)
 
   @VisibleForTesting var renderTimeoutMillis = 600L
 
@@ -122,13 +116,9 @@ class PreviewProvider(
   }
 
   @VisibleForTesting
-  private fun renderDragImage(
-    item: Palette.Item
-  ): CompletableFuture<Pair<BufferedImage?, Future<*>?>> {
+  private fun renderDragImage(item: Palette.Item): CompletableFuture<Pair<BufferedImage?, Future<*>?>> {
     val scene = sceneView
-    val xml =
-      scene?.let { constructPreviewXml(it, item) }
-        ?: return CompletableFuture.completedFuture(Pair(null, null))
+    val xml = scene?.let { constructPreviewXml(it, item) } ?: return CompletableFuture.completedFuture(Pair(null, null))
 
     return getRenderTask(scene.sceneManager.model.configuration)
       .thenCompose { renderTask -> renderImage(renderTask, xml) }
@@ -152,10 +142,7 @@ class PreviewProvider(
       } catch (exception: IncorrectOperationException) {
         return null
       }
-    val component =
-      runWriteAction {
-        model.treeWriter.createComponent(tag, null, null, InsertType.CREATE_PREVIEW)
-      } ?: return null
+    val component = runWriteAction { model.treeWriter.createComponent(tag, null, null, InsertType.CREATE_PREVIEW) } ?: return null
 
     // Some components require a parent to render correctly.
     val componentTag = component.tag ?: return null
@@ -166,9 +153,7 @@ class PreviewProvider(
     val module = ConfigurationManager.getFromConfiguration(configuration).module
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
-    return renderService
-      .taskBuilderWithHtmlLogger(AndroidBuildTargetReference.gradleOnly(facet), configuration)
-      .build()
+    return renderService.taskBuilderWithHtmlLogger(AndroidBuildTargetReference.gradleOnly(facet), configuration).build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {
@@ -177,12 +162,7 @@ class PreviewProvider(
       return null
     }
     val view = result.rootViews.firstOrNull()?.children?.firstOrNull() ?: return null
-    if (
-      image.height < view.bottom ||
-        image.width < view.right ||
-        view.bottom <= view.top ||
-        view.right <= view.left
-    ) {
+    if (image.height < view.bottom || image.width < view.right || view.bottom <= view.top || view.right <= view.left) {
       return null
     }
     val scene = sceneView ?: return null
@@ -211,16 +191,12 @@ class PreviewProvider(
   private val sceneView: SceneView?
     get() = myDesignSurfaceSupplier.get()?.focusedSceneView
 
-  private fun renderImage(
-    renderTask: RenderTask?,
-    xml: String,
-  ): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
+  private fun renderImage(renderTask: RenderTask?, xml: String): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
     if (renderTask == null) {
       return CompletableFuture.completedFuture(Pair(null, null))
     }
     val file = runReadAction {
-      PsiFileFactory.getInstance(renderTask.context.module.project)
-        .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
+      PsiFileFactory.getInstance(renderTask.context.module.project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
     }
     assert(file is XmlFile)
     renderTask.setXmlFile(PsiXmlFile(file as XmlFile))

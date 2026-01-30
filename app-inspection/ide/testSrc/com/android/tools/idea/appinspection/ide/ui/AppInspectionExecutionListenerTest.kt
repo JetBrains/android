@@ -28,9 +28,9 @@ import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.testFramework.ProjectRule
+import kotlin.random.Random
 import org.junit.Rule
 import org.junit.Test
-import kotlin.random.Random
 
 class AppInspectionExecutionListenerTest {
   @get:Rule val projectRule = ProjectRule()
@@ -42,10 +42,7 @@ class AppInspectionExecutionListenerTest {
     val env =
       ExecutionEnvironmentBuilder.create(
           DefaultRunExecutor.getRunExecutorInstance(),
-          AndroidRunConfiguration(
-            projectRule.project,
-            AndroidRunConfigurationType.getInstance().factory,
-          ),
+          AndroidRunConfiguration(projectRule.project, AndroidRunConfigurationType.getInstance().factory),
         )
         .build()
         .apply {
@@ -57,9 +54,7 @@ class AppInspectionExecutionListenerTest {
     run { // Start process "p1"
       AndroidSessionInfo.create(handler1, listOf(device), "com.example.p1")
 
-      project.messageBus
-        .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
-        .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
+      project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
 
       // Make sure that the process p1 is recorded as the recent process:
       assertThat(RecentProcess.get(project)!!.deviceSerialNumber).isSameAs(device.serialNumber)
@@ -71,9 +66,7 @@ class AppInspectionExecutionListenerTest {
       val handler2 = AndroidProcessHandler("com.example.p2")
       AndroidSessionInfo.create(handler2, listOf(device), "com.example.p2")
 
-      project.messageBus
-        .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
-        .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
+      project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
 
       // Make sure that the process p2 is now recorded as the recent process:
       assertThat(RecentProcess.get(project)!!.deviceSerialNumber).isSameAs(device.serialNumber)

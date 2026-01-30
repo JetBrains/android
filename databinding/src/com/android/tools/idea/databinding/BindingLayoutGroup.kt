@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding
 import com.google.common.collect.ImmutableList
 
 /**
- * A collection of relevant information for one (or more) related layout XML files - that is, a base
- * layout with possible alternate (e.g. landscape) configurations.
+ * A collection of relevant information for one (or more) related layout XML files - that is, a base layout with possible alternate (e.g.
+ * landscape) configurations.
  */
 class BindingLayoutGroup(layouts: Collection<BindingLayout>) {
   init {
@@ -30,8 +30,7 @@ class BindingLayoutGroup(layouts: Collection<BindingLayout>) {
 
   val mainLayout: BindingLayout
     // Safe to assume there should always be at least one layout in a group.
-    get() =
-      layouts.firstOrNull { layout -> layout.resource.configuration.isDefault } ?: layouts.first()
+    get() = layouts.firstOrNull { layout -> layout.resource.configuration.isDefault } ?: layouts.first()
 
   override fun equals(other: Any?): Boolean {
     return other is BindingLayoutGroup && layouts == other.layouts

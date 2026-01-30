@@ -28,11 +28,7 @@ class ShowUrlQuickFix(private val fix: ShowUrl) : DefaultLintQuickFix(null) {
 
   override fun startInWriteAction(): Boolean = false
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
+  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     BrowserUtil.browse(fix.url)
     fix.onUrlOpen?.let { it() }
   }

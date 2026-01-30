@@ -36,22 +36,16 @@ import com.intellij.psi.util.TypeConversionUtil
  */
 class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
 
-  /**
-   * An enum class that defines how a [PsiModelClass] exposes its members.
-   */
+  /** An enum class that defines how a [PsiModelClass] exposes its members. */
   enum class MemberAccess {
     ALL_MEMBERS {
       override fun accept(psiModelMember: PsiModelMember) = true
     },
-    /**
-     * Access mode that only exposes statics.
-     */
+    /** Access mode that only exposes statics. */
     STATICS_ONLY {
       override fun accept(psiModelMember: PsiModelMember) = psiModelMember.isStatic
     },
-    /**
-     * Access mode that only exposes non-statics.
-     */
+    /** Access mode that only exposes non-statics. */
     NON_STATICS_ONLY {
       override fun accept(psiModelMember: PsiModelMember) = !psiModelMember.isStatic
     };
@@ -59,69 +53,51 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     abstract fun accept(psiModelMember: PsiModelMember): Boolean
   }
 
-  /**
-   * Constructs a [PsiClass] of the given [.type]. Returns null if [.type] is not an instance of [PsiClassType].
-   */
+  /** Constructs a [PsiClass] of the given [.type]. Returns null if [.type] is not an instance of [PsiClassType]. */
   val psiClass: PsiClass?
     get() = (type as? PsiClassType)?.resolve()
 
-  /**
-   * Returns true if this ModelClass represents an array.
-   */
+  /** Returns true if this ModelClass represents an array. */
   val isArray = type is PsiArrayType
 
-  /**
-   * Returns true if this is a Generic e.g. List&lt;String>.
-   */
+  /** Returns true if this is a Generic e.g. List&lt;String>. */
   val isGeneric = typeArguments.isNotEmpty()
 
-  /**
-   * Returns true if this is a wildcard type argument.
-   */
+  /** Returns true if this is a wildcard type argument. */
   // b/129719057 implement wildcard
   val isWildcard = false
 
-  /**
-   * Returns true if this ModelClass represents a void
-   */
+  /** Returns true if this ModelClass represents a void */
   val isVoid = PsiTypes.voidType().equalsToText(type.canonicalText)
 
   /**
-   * Returns true if this is a type variable. For example, in List&lt;T>, T is a type variable.
-   * However, List&lt;String>, String is not a type variable.
+   * Returns true if this is a type variable. For example, in List&lt;T>, T is a type variable. However, List&lt;String>, String is not a
+   * type variable.
    */
   // b/129719057 implement typeVar
   val isTypeVar = false
 
-  /**
-   * Returns true if this ModelClass or its type arguments contains any type variable or wildcard.
-   */
+  /** Returns true if this ModelClass or its type arguments contains any type variable or wildcard. */
   // b/129719057 implement typeVar and wildCard so isIncomplete could return true
   val isIncomplete: Boolean
     get() = isTypeVar || isWildcard || typeArguments.any { typeArg -> typeArg.isIncomplete }
 
   /**
-   * Returns a list of Generic type parameters for the class. For example, if the class
-   * is List&lt;T>, then the return value will be a list containing T. null is returned
-   * if this is not a generic type
+   * Returns a list of Generic type parameters for the class. For example, if the class is List&lt;T>, then the return value will be a list
+   * containing T. null is returned if this is not a generic type
    */
   val typeArguments: List<PsiModelClass>
-    get() = (type as? PsiClassType)?.parameters
-              ?.map { typeParameter -> PsiModelClass(typeParameter, mode) }
-            ?: listOf()
+    get() = (type as? PsiClassType)?.parameters?.map { typeParameter -> PsiModelClass(typeParameter, mode) } ?: listOf()
 
-  /**
-   * Returns the list of fields in the class and all its superclasses.
-   */
+  /** Returns the list of fields in the class and all its superclasses. */
   val allFields: List<PsiModelField>
     get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(this, it) } ?: listOf()
 
   /**
    * Returns the list of methods in the class and all its superclasses.
    *
-   * If a method is declared in multiple classes or interfaces, only the latest one are returned.
-   * For example, toString() is declared in [java.lang.Object] and overridden in [java.lang.String],
-   * only the overriding one is returned.
+   * If a method is declared in multiple classes or interfaces, only the latest one are returned. For example, toString() is declared in
+   * [java.lang.Object] and overridden in [java.lang.String], only the overriding one is returned.
    */
   val allMethods: List<PsiModelMethod>
     get() {
@@ -143,142 +119,111 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       }
       val methods = ArrayList<PsiModelMethod>()
       while (psiClass != null) {
-        val newMethods = psiClass.methods.filter {
-          // Only keep the methods that do not have equivalents in the result set with same name and signatures.
-          newMethod ->
-          methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
-        }
+        val newMethods =
+          psiClass.methods.filter {
+            // Only keep the methods that do not have equivalents in the result set with same name and signatures.
+            newMethod ->
+            methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
+          }
         methods.addAll(newMethods.map { PsiModelMethod(this, it) })
         psiClass = psiClass.superClass
       }
       return methods
     }
 
-  /**
-   * Returns the [PsiSubstitutor] which can be used to resolve generic types for fields and methods.
-   */
+  /** Returns the [PsiSubstitutor] which can be used to resolve generic types for fields and methods. */
   val substitutor: PsiSubstitutor
     get() {
       // Create the substitutor for this class
       var substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
       // Add substitutors from its super types
-      type.superTypes.forEach { superType ->
-        substitutor = substitutor.putAll(PsiModelClass(superType, mode).substitutor)
-      }
+      type.superTypes.forEach { superType -> substitutor = substitutor.putAll(PsiModelClass(superType, mode).substitutor) }
       return substitutor
     }
 
-  /**
-   * Returns true if this is an ObservableField, or any of the primitive versions
-   * such as ObservableBoolean and ObservableInt
-   */
+  /** Returns true if this is an ObservableField, or any of the primitive versions such as ObservableBoolean and ObservableInt */
   val isObservableField
     get() =
-      psiClass?.let { resolvedClass ->
-        mode.observableFields.any { className ->
-          isErasureAssignableTo(className, resolvedClass)
-        }
-      } ?: false
+      psiClass?.let { resolvedClass -> mode.observableFields.any { className -> isErasureAssignableTo(className, resolvedClass) } } ?: false
 
-  /**
-   * Returns true if this is a LiveData
-   */
+  /** Returns true if this is a LiveData */
   val isLiveData
-    get() = psiClass?.let { resolvedClass ->
-      isErasureAssignableTo(mode.liveData, resolvedClass)
-    } ?: false
+    get() = psiClass?.let { resolvedClass -> isErasureAssignableTo(mode.liveData, resolvedClass) } ?: false
 
-  /**
-   * Returns true if this is a StateFlow
-   */
+  /** Returns true if this is a StateFlow */
   val isStateFlow
-    get() = psiClass.takeIf { mode == DataBindingMode.ANDROIDX }?.let { resolvedClass ->
-      isErasureAssignableTo(SdkConstants.CLASS_STATE_FLOW, resolvedClass)
-    } ?: false
+    get() =
+      psiClass
+        .takeIf { mode == DataBindingMode.ANDROIDX }
+        ?.let { resolvedClass -> isErasureAssignableTo(SdkConstants.CLASS_STATE_FLOW, resolvedClass) } ?: false
 
-  /**
-   * Returns the name of the simple getter method when this is an observable type or
-   * `null` for any other type
-   */
+  /** Returns the name of the simple getter method when this is an observable type or `null` for any other type */
   private val observableGetterName: String?
-    get() = when {
-      isObservableField -> "get"
-      isLiveData || isStateFlow -> "getValue"
-      else -> null
-    }
+    get() =
+      when {
+        isObservableField -> "get"
+        isLiveData || isStateFlow -> "getValue"
+        else -> null
+      }
 
   /**
-   * Returns a type that this current type is wrapping. For example, if this type is a `LiveData&lt;String>`, then
-   * return `String`. If this is not a type that wraps another type, then its own type is returned.
+   * Returns a type that this current type is wrapping. For example, if this type is a `LiveData&lt;String>`, then return `String`. If this
+   * is not a type that wraps another type, then its own type is returned.
    *
-   * This method can be useful, for example, to allow code completion to provide methods / fields for the
-   * underlying type instead of the parent type itself.
+   * This method can be useful, for example, to allow code completion to provide methods / fields for the underlying type instead of the
+   * parent type itself.
    *
    * see [isLiveData], [isStateFlow], [isObservableField]
    */
   val unwrapped: PsiModelClass
-    get() = observableGetterName?.let { name ->
-      // Find the return type of getter function from LiveData/StateFlow/ObservableField
-      val getterTypeModelClass = getMethod(name, listOf(), MemberAccess.NON_STATICS_ONLY, allowProtected = false)?.returnType
-                                 ?: return this
-      // Recursively unwrap the getter type
-      PsiModelClass(getterTypeModelClass.type, mode).unwrapped
-    } ?: this
+    get() =
+      observableGetterName?.let { name ->
+        // Find the return type of getter function from LiveData/StateFlow/ObservableField
+        val getterTypeModelClass =
+          getMethod(name, listOf(), MemberAccess.NON_STATICS_ONLY, allowProtected = false)?.returnType ?: return this
+        // Recursively unwrap the getter type
+        PsiModelClass(getterTypeModelClass.type, mode).unwrapped
+      } ?: this
 
   /**
-   * Returns whether or not the type associated with `that` can be assigned to
-   * the type associated with this ModelClass. If this and that only require boxing or unboxing
-   * then true is returned.
+   * Returns whether or not the type associated with `that` can be assigned to the type associated with this ModelClass. If this and that
+   * only require boxing or unboxing then true is returned.
    *
    * @param that the ModelClass to compare.
-   * @return true if `that` requires only boxing or if `that` is an
-   * implementation of or subclass of `this`.
+   * @return true if `that` requires only boxing or if `that` is an implementation of or subclass of `this`.
    */
   fun isAssignableFrom(that: PsiModelClass) = type.isAssignableFrom(that.type)
 
-  /**
-   * Returns this class type without any generic type arguments.
-   */
+  /** Returns this class type without any generic type arguments. */
   fun erasure() = PsiModelClass(TypeConversionUtil.erasure(type), mode)
 
-  /**
-   * Finds public methods that matches the given name exactly. These may be resolved into
-   * listener methods during Expr.resolveListeners.
-   */
+  /** Finds public methods that matches the given name exactly. These may be resolved into listener methods during Expr.resolveListeners. */
   fun findMethods(name: String, memberAccess: MemberAccess): List<PsiModelMethod> {
-    return allMethods.filter { method ->
-      method.isPublic &&
-      method.name == name &&
-      memberAccess.accept(method)
-    }
+    return allMethods.filter { method -> method.isPublic && method.name == name && memberAccess.accept(method) }
   }
 
   /**
-   * Returns an array containing all public methods (or protected if allowProtected is true)
-   * on the type represented by this ModelClass with the name `name` and can
-   * take the passed-in types as arguments. This will also work if the arguments match
-   * VarArgs parameter.
+   * Returns an array containing all public methods (or protected if allowProtected is true) on the type represented by this ModelClass with
+   * the name `name` and can take the passed-in types as arguments. This will also work if the arguments match VarArgs parameter.
    *
    * @param name The name of the method to find.
    * @param args The types that the method should accept.
-   * @param memberAccess a filter that accepts certain types of members -- can be static
-   * members, non-static members or all members.
+   * @param memberAccess a filter that accepts certain types of members -- can be static members, non-static members or all members.
    * @param allowProtected true if the method can be protected as well as public.
-   * @param unwrapObservableFields true if the method should check for auto-unwrapping the
-   * observable field.
-   *
-   * @return An array containing all public methods with the name `name` and taking
-   * `args` parameters.
+   * @param unwrapObservableFields true if the method should check for auto-unwrapping the observable field.
+   * @return An array containing all public methods with the name `name` and taking `args` parameters.
    */
-  private fun getMethods(name: String,
-                         args: List<PsiModelClass>,
-                         memberAccess: MemberAccess,
-                         allowProtected: Boolean): List<PsiModelMethod> {
+  private fun getMethods(
+    name: String,
+    args: List<PsiModelClass>,
+    memberAccess: MemberAccess,
+    allowProtected: Boolean,
+  ): List<PsiModelMethod> {
     return allMethods.filter { method ->
-      (method.isPublic || (allowProtected && method.isProtected))
-      && memberAccess.accept(method)
-      && name == method.name
-      && method.acceptsArguments(args)
+      (method.isPublic || (allowProtected && method.isProtected)) &&
+        memberAccess.accept(method) &&
+        name == method.name &&
+        method.acceptsArguments(args)
     }
   }
 
@@ -287,17 +232,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    *
    * @param name The method name to find
    * @param args The arguments that the method should accept
-   * @param memberAccess a filter that accepts certain types of members -- can be static
-   * members, non-static members or all members.
+   * @param memberAccess a filter that accepts certain types of members -- can be static members, non-static members or all members.
    * @param allowProtected true if the method can be protected as well as public.
-   * @param unwrapObservableFields true if the method should check for auto-unwrapping the
-   * observable field.
+   * @param unwrapObservableFields true if the method should check for auto-unwrapping the observable field.
    */
-  fun getMethod(name: String,
-                args: List<PsiModelClass>,
-                memberAccess: MemberAccess,
-                allowProtected: Boolean
-  ): PsiModelMethod? {
+  fun getMethod(name: String, args: List<PsiModelClass>, memberAccess: MemberAccess, allowProtected: Boolean): PsiModelMethod? {
     val methods = getMethods(name, args, memberAccess, allowProtected)
     if (methods.isEmpty()) {
       return null
@@ -311,17 +250,15 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
 
   private fun getField(name: String, memberAccess: MemberAccess): PsiModelField? {
     return allFields.firstOrNull { field ->
-      (name == field.name || name == stripFieldName(field.name))
-      && memberAccess.accept(field)
-      && field.isPublic
+      (name == field.name || name == stripFieldName(field.name)) && memberAccess.accept(field) && field.isPublic
     }
   }
 
   /**
    * Returns the getter method or field that the name refers to.
+   *
    * @param name The name of the field or the body of the method name -- can be getName() or isName().
-   * @param memberAccess a filter that accepts certain types of members -- can be static
-   * members or all members
+   * @param memberAccess a filter that accepts certain types of members -- can be static members or all members
    * @return the getter method or field that the name refers to or null if none can be found.
    */
   fun findGetterOrField(name: String, memberAccess: MemberAccess): PsiModelMember? {
@@ -331,9 +268,10 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     }
     val capitalized = StringUtils.capitalize(name)!!
     val methodNames = arrayOf("get$capitalized", "is$capitalized")
-    val method = methodNames
-      .flatMap { methodName -> getMethods(methodName, ArrayList(), MemberAccess.NON_STATICS_ONLY, allowProtected = false) }
-      .firstOrNull { method -> method.returnType?.isVoid == false }
+    val method =
+      methodNames
+        .flatMap { methodName -> getMethods(methodName, ArrayList(), MemberAccess.NON_STATICS_ONLY, allowProtected = false) }
+        .firstOrNull { method -> method.returnType?.isVoid == false }
     // could not find a method. Look for a public field
     return method ?: getField(name, memberAccess)
   }
@@ -341,11 +279,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   fun findSetter(fieldName: String, parameterType: PsiModelClass): PsiModelMethod? {
     val setterName = "set${fieldName.usLocaleCapitalize()}"
     return allMethods.firstOrNull { method ->
-      method.isPublic
-      && MemberAccess.NON_STATICS_ONLY.accept(method)
-      && setterName == method.name
-      && method.parameterTypes.size == 1
-      && method.parameterTypes[0] == parameterType
+      method.isPublic &&
+        MemberAccess.NON_STATICS_ONLY.accept(method) &&
+        setterName == method.name &&
+        method.parameterTypes.size == 1 &&
+        method.parameterTypes[0] == parameterType
     }
   }
 
@@ -356,19 +294,13 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
 
   override fun hashCode() = type.hashCode().xor(mode.hashCode())
 
-  /**
-   * Returns true if [erasure] is assignable to a base class with [baseClassName] and [context].
-   */
+  /** Returns true if [erasure] is assignable to a base class with [baseClassName] and [context]. */
   private fun isErasureAssignableTo(baseClassName: String, context: PsiClass) =
-    LayoutBindingTypeUtil.parsePsiType(baseClassName, context)?.let {
-      PsiModelClass(it, mode).isAssignableFrom(erasure())
-    } ?: false
+    LayoutBindingTypeUtil.parsePsiType(baseClassName, context)?.let { PsiModelClass(it, mode).isAssignableFrom(erasure()) } ?: false
 
   companion object {
 
-    /**
-     * Converts the target field name to a consistent value, e.g. stripping "m_" or other common prefixes
-     */
+    /** Converts the target field name to a consistent value, e.g. stripping "m_" or other common prefixes */
     private fun stripFieldName(fieldName: String): String {
       if (fieldName.length > 2) {
         val start = fieldName[2]
@@ -379,8 +311,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       if (fieldName.length > 1) {
         val start = fieldName[1]
         val fieldIdentifier = fieldName[0]
-        if (fieldIdentifier == '_' || (fieldIdentifier == 'm' && Character.isJavaIdentifierStart(start) &&
-                                       !Character.isLowerCase(start))) {
+        if (fieldIdentifier == '_' || (fieldIdentifier == 'm' && Character.isJavaIdentifierStart(start) && !Character.isLowerCase(start))) {
           return Character.toLowerCase(start) + fieldName.substring(2)
         }
       }

@@ -40,8 +40,13 @@ class TemplateIcon(private val delegateIcon: Icon) : JBScalableIcon() {
 
   override fun scale(scale: Float): Icon = apply {
     _scale = scale
-    cropRectangle = Rectangle((cropRectangle.x * scale).toInt(), (cropRectangle.y * scale).toInt(),
-                              (cropRectangle.width * scale).toInt(), (cropRectangle.height * scale).toInt())
+    cropRectangle =
+      Rectangle(
+        (cropRectangle.x * scale).toInt(),
+        (cropRectangle.y * scale).toInt(),
+        (cropRectangle.width * scale).toInt(),
+        (cropRectangle.height * scale).toInt(),
+      )
   }
 
   override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {

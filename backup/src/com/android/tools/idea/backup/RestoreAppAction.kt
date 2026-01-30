@@ -64,10 +64,7 @@ internal class RestoreAppAction(
     e.presentation.text = config.presentation.text
     e.presentation.description = config.presentation.description
 
-    if (
-      (e.place == "MainToolbar" || e.place == "MainMenu") &&
-        actionHelper.getDeployTargetCount(project) != 1
-    ) {
+    if ((e.place == "MainToolbar" || e.place == "MainMenu") && actionHelper.getDeployTargetCount(project) != 1) {
       return e.presentation.enableRichTooltip(this, message("error.multiple.devices"))
     }
 
@@ -84,11 +81,7 @@ internal class RestoreAppAction(
     val backupManager = BackupManager.getInstance(project)
 
     val ok =
-      runWithModalProgressBlocking(
-        ModalTaskOwner.project(project),
-        "Collecting Data",
-        cancellable(),
-      ) {
+      runWithModalProgressBlocking(ModalTaskOwner.project(project), "Collecting Data", cancellable()) {
         reportSequentialProgress { reporter ->
           val steps = 2
           var step = 0

@@ -35,11 +35,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param editor the [Editor] for the file.
  * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
-internal class SourceCodePreview(
-  psiFile: PsiFile,
-  textEditor: Editor,
-  providers: Collection<PreviewRepresentationProvider>,
-) : MultiRepresentationPreview(psiFile, textEditor, providers) {
+internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
+  MultiRepresentationPreview(psiFile, textEditor, providers) {
 
   val project = psiFile.project
 
@@ -56,10 +53,9 @@ internal class SourceCodePreview(
         DUMB_MODE,
         object : DumbService.DumbModeListener {
           /**
-           * Update representations in case we are at the project startup and we get into non-Smart
-           * Mode. We do not want to get [updateRepresentationsAsync] executed simply on the
-           * [exitDumbMode] as the project is not started yet and AndroidModel is not initialized.
-           * Instead, we want to schedule the representation updates during the non-Smart Mode.
+           * Update representations in case we are at the project startup and we get into non-Smart Mode. We do not want to get
+           * [updateRepresentationsAsync] executed simply on the [exitDumbMode] as the project is not started yet and AndroidModel is not
+           * initialized. Instead, we want to schedule the representation updates during the non-Smart Mode.
            */
           override fun enteredDumbMode() {
             if (afterSyncUpdateScheduled.getAndSet(true)) {
@@ -84,8 +80,8 @@ internal class SourceCodePreview(
   }
 
   /**
-   * Schedules [runWhenSmartAndSynced] so that it gets scheduled with [DumbService.runWhenSmart]
-   * that waits for the project to finish initialization.
+   * Schedules [runWhenSmartAndSynced] so that it gets scheduled with [DumbService.runWhenSmart] that waits for the project to finish
+   * initialization.
    */
   private fun scheduleRepresentationsUpdates() {
     // invokeLater required due to IDEA-321276: calling runWhenSmart() inside

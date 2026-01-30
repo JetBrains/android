@@ -84,8 +84,7 @@ private fun getStatusForFastPreview(project: Project, previewStatus: PreviewView
 fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
   val previewStatus = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return null
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
-  return if (fastPreviewEnabled) getStatusForFastPreview(project, previewStatus)
-  else getStatus(project, previewStatus)
+  return if (fastPreviewEnabled) getStatusForFastPreview(project, previewStatus) else getStatus(project, previewStatus)
 }
 
 private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
@@ -96,29 +95,18 @@ private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
   }
 }
 
-/**
- * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
- * things like the current editor.
- */
+/** Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for things like the current editor. */
 @VisibleForTesting
 fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   val fileProvider = FileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
-    val linksList =
-      listOfNotNull(
-        createTitleActionLink(fileProvider),
-        createErrorsActionLink(previewStatusNotification),
-      )
+    val linksList = listOfNotNull(createTitleActionLink(fileProvider), createErrorsActionLink(previewStatusNotification))
     return@let InformationPopupImpl(
       title = null,
       description = previewStatusNotification.description,
       additionalActions =
         listOf(
-          ToggleFastPreviewAction(
-            fastPreviewSurfaceProvider = { dataContext ->
-              dataContext.findPreviewManager(FastPreviewSurface.KEY)
-            }
-          )
+          ToggleFastPreviewAction(fastPreviewSurfaceProvider = { dataContext -> dataContext.findPreviewManager(FastPreviewSurface.KEY) })
         ),
       links = linksList,
     )
@@ -134,9 +122,7 @@ private fun createErrorsActionLink(it: PreviewStatus): AnActionLink? =
 
 private fun createTitleActionLink(fileProvider: KFunction0<PsiFile?>): AnActionLink =
   AnActionLink(
-    text =
-      message("action.build.and.refresh.title").replace("&&", "&") +
-        getBuildAndRefreshShortcut().asString(),
+    text = message("action.build.and.refresh.title").replace("&&", "&") + getBuildAndRefreshShortcut().asString(),
     // Remove any ampersand escaping for tooltips (not needed in these links)
     anAction = BuildAndRefresh(fileProvider),
   )

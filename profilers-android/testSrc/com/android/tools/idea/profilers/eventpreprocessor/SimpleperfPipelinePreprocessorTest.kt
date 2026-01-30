@@ -28,14 +28,22 @@ class SimpleperfPipelinePreprocessorTest {
     const val TRACE_ID = 1234L
   }
 
-  private val validEvent = Common.Event.newBuilder().setTraceData(Trace.TraceData.newBuilder().setTraceStarted(
-    Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(Trace.TraceInfo.newBuilder()
-                                                              .setTraceId(TRACE_ID)
-                                                              .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                                                                                  .setSimpleperfOptions(
-                                                                                    Trace.SimpleperfOptions.newBuilder().addSymbolDirs(
-                                                                                      "/path"))))))
-    .build()
+  private val validEvent =
+    Common.Event.newBuilder()
+      .setTraceData(
+        Trace.TraceData.newBuilder()
+          .setTraceStarted(
+            Trace.TraceData.TraceStarted.newBuilder()
+              .setTraceInfo(
+                Trace.TraceInfo.newBuilder()
+                  .setTraceId(TRACE_ID)
+                  .setConfiguration(
+                    Trace.TraceConfiguration.newBuilder().setSimpleperfOptions(Trace.SimpleperfOptions.newBuilder().addSymbolDirs("/path"))
+                  )
+              )
+          )
+      )
+      .build()
 
   @Test
   fun filterOnStartTraceCaptures() {
@@ -79,5 +87,4 @@ class SimpleperfPipelinePreprocessorTest {
     val bytesRequest = Transport.BytesRequest.newBuilder().setId(TRACE_ID.toString()).build()
     assertThat(pipelinePreprocessor.shouldPreprocess(bytesRequest)).isFalse()
   }
-
 }

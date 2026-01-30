@@ -112,9 +112,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
 
-    ApplicationManager.getApplication().runReadAction {
-      assertEquals(expected, backend.getAttribute("text", ANDROID_URI))
-    }
+    ApplicationManager.getApplication().runReadAction { assertEquals(expected, backend.getAttribute("text", ANDROID_URI)) }
   }
 
   fun testGetAttributeReadNotPermittedThread() {
@@ -266,9 +264,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
       assertTrue(ApplicationManager.getApplication().isReadAccessAllowed)
       assertThrows(
         IncorrectOperationException::class.java,
-        ThrowableRunnable<IncorrectOperationException> {
-          backend.setAttribute("text", ANDROID_URI, changed)
-        },
+        ThrowableRunnable<IncorrectOperationException> { backend.setAttribute("text", ANDROID_URI, changed) },
       )
     }
   }
@@ -292,12 +288,12 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
     assertEquals(
       // language=xml
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Text" />
+      <?xml version="1.0" encoding="utf-8"?>
+      <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Text" />
       """
         .trimIndent(),
       xmlFile.text,

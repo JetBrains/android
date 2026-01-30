@@ -20,23 +20,28 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
-import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Provides a combobox which presents the user with a list of C++ standards.
- */
+/** Provides a combobox which presents the user with a list of C++ standards. */
 class CppStandardComboProvider : ComponentProvider<ComboBox<CppStandardType>>() {
-  override fun createComponent(): ComboBox<CppStandardType> = ComboBox(DefaultComboBoxModel(CppStandardType.values())).apply {
-    renderer = object : SimpleListCellRenderer<CppStandardType>() {
-      override fun customize(list: JList<out CppStandardType>, value: CppStandardType, index: Int, selected: Boolean, hasFocus: Boolean) {
-        text = value.name
-      }
+  override fun createComponent(): ComboBox<CppStandardType> =
+    ComboBox(DefaultComboBoxModel(CppStandardType.values())).apply {
+      renderer =
+        object : SimpleListCellRenderer<CppStandardType>() {
+          override fun customize(
+            list: JList<out CppStandardType>,
+            value: CppStandardType,
+            index: Int,
+            selected: Boolean,
+            hasFocus: Boolean,
+          ) {
+            text = value.name
+          }
+        }
+      toolTipText = message("android.wizard.cppStandard.combo.tooltip")
     }
-    toolTipText = message("android.wizard.cppStandard.combo.tooltip")
-  }
 
   override fun createProperty(component: ComboBox<CppStandardType>): AbstractProperty<*> = SelectedItemProperty<String>(component)
 }
-

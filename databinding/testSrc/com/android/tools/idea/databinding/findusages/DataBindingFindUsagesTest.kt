@@ -36,8 +36,7 @@ import org.junit.Test
 /**
  * Checking that DataBinding elements appear in Android Resource Usages.
  *
- * Currently we only support Android Resources usages including DataBinding elements, and not the
- * other way around.
+ * Currently we only support Android Resources usages including DataBinding elements, and not the other way around.
  */
 class DataBindingFindUsagesTest() {
 
@@ -59,17 +58,14 @@ class DataBindingFindUsagesTest() {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
-  /**
-   * Checks that calling find usages of a layout element will find the equivalent DataBinding
-   * classes.
-   */
+  /** Checks that calling find usages of a layout element will find the equivalent DataBinding classes. */
   @Test
   fun assertDataBindingAppearsInLayoutResourceUsages() {
     fixture.addFileToProject(
@@ -87,7 +83,7 @@ class DataBindingFindUsagesTest() {
                 android:layout_height="fill_parent" />
         </LinearLayout>
       </layout>
-    """
+      """
         .trimIndent(),
     )
 
@@ -123,40 +119,40 @@ class DataBindingFindUsagesTest() {
     assertThat(presentation)
       .isEqualTo(
         """
-      <root> (5)
-       Layout Resource
-        @layout/activity_main
-       Usages in Project Files (5)
-        Class static member access (1)
-         app (1)
-          java.test.db (1)
-           MainActivity (1)
-            onCreate(Bundle) (1)
-             12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-        Local variable declaration (1)
-         app (1)
-          java.test.db (1)
-           MainActivity (1)
-            onCreate(Bundle) (1)
-             12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-        Resource declaration in Android resources XML (1)
-         app (1)
-          res/layout (1)
-           activity_main.xml (1)
-            1<?xml version="1.0" encoding="utf-8"?>
-        Resource reference in code (1)
-         app (1)
-          java.test.db (1)
-           MainActivity (1)
-            onCreate(Bundle) (1)
-             15int value = R.layout.activity_main;
-        Usage in import (1)
-         app (1)
-          java.test.db (1)
-           MainActivity (1)
-            6import test.db.databinding.ActivityMainBinding;
+        <root> (5)
+         Layout Resource
+          @layout/activity_main
+         Usages in Project Files (5)
+          Class static member access (1)
+           app (1)
+            java.test.db (1)
+             MainActivity (1)
+              onCreate(Bundle) (1)
+               12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+          Local variable declaration (1)
+           app (1)
+            java.test.db (1)
+             MainActivity (1)
+              onCreate(Bundle) (1)
+               12ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+          Resource declaration in Android resources XML (1)
+           app (1)
+            res/layout (1)
+             activity_main.xml (1)
+              1<?xml version="1.0" encoding="utf-8"?>
+          Resource reference in code (1)
+           app (1)
+            java.test.db (1)
+             MainActivity (1)
+              onCreate(Bundle) (1)
+               15int value = R.layout.activity_main;
+          Usage in import (1)
+           app (1)
+            java.test.db (1)
+             MainActivity (1)
+              6import test.db.databinding.ActivityMainBinding;
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -204,7 +200,7 @@ class DataBindingFindUsagesTest() {
               setContentView(binding.getRoot());
           }
       }
-    """
+      """
         .trimIndent(),
     )
 
@@ -214,23 +210,23 @@ class DataBindingFindUsagesTest() {
     assertThat(presentation)
       .isEqualTo(
         """
-      <root> (2)
-       ID Resource
-        @id/button
-       Usages in Project Files (2)
-        Resource declaration in Android resources XML (1)
-         app (1)
-          res/layout (1)
-           activity_main.xml (1)
-            7android:id="@+id/button"
-        Unclassified (1)
-         app (1)
-          java.test.db (1)
-           MainActivity (1)
-            onCreate(Bundle) (1)
-             13System.out.println(binding.button.getId());
+        <root> (2)
+         ID Resource
+          @id/button
+         Usages in Project Files (2)
+          Resource declaration in Android resources XML (1)
+           app (1)
+            res/layout (1)
+             activity_main.xml (1)
+              7android:id="@+id/button"
+          Unclassified (1)
+           app (1)
+            java.test.db (1)
+             MainActivity (1)
+              onCreate(Bundle) (1)
+               13System.out.println(binding.button.getId());
 
-    """
+        """
           .trimIndent()
       )
   }
@@ -242,18 +238,18 @@ class DataBindingFindUsagesTest() {
         "res/layout/activity_main.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-            <Button
-                android:id="@+id/button"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" />
-        </LinearLayout>
-      </layout>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+              <Button
+                  android:id="@+id/button"
+                  android:layout_width="fill_parent"
+                  android:layout_height="fill_parent" />
+          </LinearLayout>
+        </layout>
+        """
           .trimIndent(),
       )
 
@@ -262,18 +258,18 @@ class DataBindingFindUsagesTest() {
         "res/layout/activity_main2.xml",
         // language=XML
         """
-      <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-            <Button
-                android:id="@+id/button"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" />
-        </LinearLayout>
-      </layout>
-    """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <LinearLayout
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+              <Button
+                  android:id="@+id/button"
+                  android:layout_width="fill_parent"
+                  android:layout_height="fill_parent" />
+          </LinearLayout>
+        </layout>
+        """
           .trimIndent(),
       )
 
@@ -297,7 +293,7 @@ class DataBindingFindUsagesTest() {
               setContentView(binding.getRoot());
           }
       }
-    """
+      """
         .trimIndent(),
     )
 
@@ -311,26 +307,26 @@ class DataBindingFindUsagesTest() {
     assertThat(presentationLayout1)
       .contains(
         """
-      |  Resource declaration in Android resources XML (2)
-      |   app (2)
-      |    res/layout (2)
-      |     activity_main.xml (1)
-      |      7android:id="@+id/button"
-      |     activity_main2.xml (1)
-      |      7android:id="@+id/button"
-      """
+        |  Resource declaration in Android resources XML (2)
+        |   app (2)
+        |    res/layout (2)
+        |     activity_main.xml (1)
+        |      7android:id="@+id/button"
+        |     activity_main2.xml (1)
+        |      7android:id="@+id/button"
+        """
           .trimMargin()
       )
     assertThat(presentationLayout1)
       .contains(
         """
-      |  Unclassified (1)
-      |   app (1)
-      |    java.test.db (1)
-      |     MainActivity (1)
-      |      onCreate(Bundle) (1)
-      |       13System.out.println(binding.button.getId());
-      """
+        |  Unclassified (1)
+        |   app (1)
+        |    java.test.db (1)
+        |     MainActivity (1)
+        |      onCreate(Bundle) (1)
+        |       13System.out.println(binding.button.getId());
+        """
           .trimMargin()
       )
 
@@ -343,14 +339,14 @@ class DataBindingFindUsagesTest() {
     assertThat(presentationLayout2)
       .contains(
         """
-      |  Resource declaration in Android resources XML (2)
-      |   app (2)
-      |    res/layout (2)
-      |     activity_main.xml (1)
-      |      7android:id="@+id/button"
-      |     activity_main2.xml (1)
-      |      7android:id="@+id/button"
-      """
+        |  Resource declaration in Android resources XML (2)
+        |   app (2)
+        |    res/layout (2)
+        |     activity_main.xml (1)
+        |      7android:id="@+id/button"
+        |     activity_main2.xml (1)
+        |      7android:id="@+id/button"
+        """
           .trimMargin()
       )
     assertThat(presentationLayout2).doesNotContain("binding.button")
@@ -367,10 +363,7 @@ class DataBindingFindUsagesTest() {
     targets!!
     var presentation: String? = null
     ApplicationManager.getApplication().invokeAndWait {
-      presentation =
-        fixture.getUsageViewTreeTextRepresentation(
-          (targets.first() as PsiElementUsageTarget).element
-        )
+      presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
     }
 
     return presentation!!

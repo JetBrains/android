@@ -29,33 +29,31 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * A caching [AsyncSupplier] which ensures an expensive-to-compute value isn't computed more than once in
- * a set period. It makes sense to use a [ThrottlingAsyncSupplier] when you expect [AsyncSupplier.get]
- * to be called more frequently than what's reasonable given time or resource constraints.
+ * A caching [AsyncSupplier] which ensures an expensive-to-compute value isn't computed more than once in a set period. It makes sense to
+ * use a [ThrottlingAsyncSupplier] when you expect [AsyncSupplier.get] to be called more frequently than what's reasonable given time or
+ * resource constraints.
  *
- * [ThrottlingAsyncSupplier] works by delaying computation in order to merge rapid successions of
- * [AsyncSupplier.get] requests. It guarantees that the computed value reflects the state of the world
- * at or after the time that [AsyncSupplier.get] was called. This is in contrast to [CachedAsyncSupplier],
- * for which [AsyncSupplier.get] may return the future corresponding to an already in-progress computation.
+ * [ThrottlingAsyncSupplier] works by delaying computation in order to merge rapid successions of [AsyncSupplier.get] requests. It
+ * guarantees that the computed value reflects the state of the world at or after the time that [AsyncSupplier.get] was called. This is in
+ * contrast to [CachedAsyncSupplier], for which [AsyncSupplier.get] may return the future corresponding to an already in-progress
+ * computation.
  */
 class ThrottlingAsyncSupplier<V : Any>(
   private val compute: () -> V,
   @AnyThread private val isUpToDate: (value: V) -> Boolean,
-  private val mergingPeriod: Duration
+  private val mergingPeriod: Duration,
 ) : AsyncSupplier<V>, Disposable, ModificationTracker {
 
   private val alarm = Alarm(POOLED_THREAD, this)
   private val scheduledComputation = AtomicReference<Computation<V>?>(null)
   /**
-   * The completed [Computation] representing the last successful invocation of [compute].
-   * Our implementation of [now] simply returns the result of this [Computation].
+   * The completed [Computation] representing the last successful invocation of [compute]. Our implementation of [now] simply returns the
+   * result of this [Computation].
    */
   private val lastSuccessfulComputation = AtomicReference<Computation<V>?>(null)
   /**
-   * The completed [Computation] representing the last invocation of [compute] that
-   * encountered an exception during execution.
-   * We use the timestamp of this [Computation] later in [determineDelay] to avoid
-   * waiting longer than we need to for guaranteeing the [mergingPeriod]
+   * The completed [Computation] representing the last invocation of [compute] that encountered an exception during execution. We use the
+   * timestamp of this [Computation] later in [determineDelay] to avoid waiting longer than we need to for guaranteeing the [mergingPeriod]
    * between invocations.
    */
   private val lastFailedComputation = AtomicReference<Computation<V>?>(null)
@@ -68,14 +66,15 @@ class ThrottlingAsyncSupplier<V : Any>(
   /**
    * Returns a modification count corresponding to changes in the value of [now].
    *
-   * The count is updated for each successful invocation of [compute] triggered by this supplier,
-   * and invocations that throw an exception are ignored.
+   * The count is updated for each successful invocation of [compute] triggered by this supplier, and invocations that throw an exception
+   * are ignored.
    */
   override fun getModificationCount() = lastSuccessfulComputation.get()?.let { it.modificationCountWhenScheduled + 1 } ?: -1L
 
   /**
-   * Returns the result of the last successful invocation of [compute] triggered by this supplier
-   * (invocations that throw an exception are ignored).
+   * Returns the result of the last successful invocation of [compute] triggered by this supplier (invocations that throw an exception are
+   * ignored).
+   *
    * @see AsyncSupplier.now
    */
   override val now: V?
@@ -109,9 +108,11 @@ class ThrottlingAsyncSupplier<V : Any>(
     // another computation. In that case, we haven't yet checked the freshness of the result
     // of the first computation, so we should see if it's still valid before recomputing.
     val cachedComputation = lastSuccessfulComputation.get()
-    if (cachedComputation != null
-        && cachedComputation.modificationCountWhenScheduled == computation.modificationCountWhenScheduled
-        && isUpToDate(cachedComputation.getResultNow())) {
+    if (
+      cachedComputation != null &&
+        cachedComputation.modificationCountWhenScheduled == computation.modificationCountWhenScheduled &&
+        isUpToDate(cachedComputation.getResultNow())
+    ) {
       computation.complete(cachedComputation.getResultNow())
       computation.broadcastResult()
       return
@@ -121,8 +122,7 @@ class ThrottlingAsyncSupplier<V : Any>(
     val result: V
     try {
       result = compute()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       computation.completeExceptionally(t)
       lastFailedComputation.set(computation)
       computation.broadcastResult()
@@ -134,10 +134,8 @@ class ThrottlingAsyncSupplier<V : Any>(
   }
 
   private fun determineDelay(lastSuccessfulComputation: Computation<V>?, lastFailedComputation: Computation<V>?): Long {
-    val lastComputationTime = maxOf(
-      lastSuccessfulComputation?.getCompletionTimestamp() ?: -1L,
-      lastFailedComputation?.getCompletionTimestamp() ?: -1L
-    )
+    val lastComputationTime =
+      maxOf(lastSuccessfulComputation?.getCompletionTimestamp() ?: -1L, lastFailedComputation?.getCompletionTimestamp() ?: -1L)
     if (lastComputationTime < 0) {
       return mergingPeriod.toMillis()
     }
@@ -148,7 +146,9 @@ class ThrottlingAsyncSupplier<V : Any>(
 
 private sealed class ComputationResult<V> {
   val timestampMs = System.currentTimeMillis()
+
   data class Value<V>(val value: V) : ComputationResult<V>()
+
   data class Error<V>(val error: Throwable) : ComputationResult<V>()
 }
 
@@ -172,8 +172,7 @@ private class Computation<V>(val modificationCountWhenScheduled: Long) {
     val result = getResultAndCheckComplete()
     if (result is ComputationResult.Value) {
       future.set(result.value)
-    }
-    else {
+    } else {
       future.setException((result as ComputationResult.Error).error)
     }
   }

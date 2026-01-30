@@ -41,13 +41,9 @@ private constructor(
   }
 
   companion object {
-    @JvmStatic
-    fun create(facet: AndroidFacet, parentDisposable: Disposable) =
-      ProjectResourceRepository(facet, parentDisposable)
+    @JvmStatic fun create(facet: AndroidFacet, parentDisposable: Disposable) = ProjectResourceRepository(facet, parentDisposable)
 
-    private fun computeRepositories(
-      facet: AndroidFacet
-    ): List<LocalResourceRepository<VirtualFile>> {
+    private fun computeRepositories(facet: AndroidFacet): List<LocalResourceRepository<VirtualFile>> {
       val main = StudioResourceRepositoryManager.getModuleResources(facet)
 
       // List of module facets the given module depends on.
@@ -56,8 +52,7 @@ private constructor(
         return listOf(main)
       }
 
-      val resources: MutableList<LocalResourceRepository<VirtualFile>> =
-        ArrayList(dependencies.size + 1)
+      val resources: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(dependencies.size + 1)
       resources.add(main)
       for (dependency in dependencies) {
         resources.add(StudioResourceRepositoryManager.getModuleResources(dependency))

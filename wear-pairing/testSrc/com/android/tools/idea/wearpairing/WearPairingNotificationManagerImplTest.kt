@@ -24,76 +24,31 @@ class WearPairingNotificationManagerImplTest {
 
     val pairing =
       WearPairingManager.PhoneWearPair(
-        phone =
-          PairingDevice(
-            "phone1",
-            "Phone",
-            AndroidVersion(34),
-            true,
-            false,
-            true,
-            ConnectionState.ONLINE,
-          ),
-        wear =
-          PairingDevice(
-            "wear1",
-            "Wear",
-            AndroidVersion(30),
-            true,
-            true,
-            true,
-            ConnectionState.ONLINE,
-          ),
+        phone = PairingDevice("phone1", "Phone", AndroidVersion(34), true, false, true, ConnectionState.ONLINE),
+        wear = PairingDevice("wear1", "Wear", AndroidVersion(30), true, true, true, ConnectionState.ONLINE),
       )
-    assertTrue(
-      "No notifications are expected at this point",
-      notificationManager.pendingNotifications.isEmpty(),
-    )
+    assertTrue("No notifications are expected at this point", notificationManager.pendingNotifications.isEmpty())
     notificationManager.showReconnectMessageBalloon(pairing, null)
     assertEquals(
       """
       Wear OS emulator reconnected
       Wear reconnected with Phone.<br/>
 
-    """
+      """
         .trimIndent(),
       notificationManager.pendingNotifications.joinToString("\n") { "${it.title}\n${it.content}\n" },
     )
 
     val secondPairing =
       WearPairingManager.PhoneWearPair(
-        phone =
-          PairingDevice(
-            "phone2",
-            "Phone",
-            AndroidVersion(34),
-            true,
-            false,
-            true,
-            ConnectionState.ONLINE,
-          ),
-        wear =
-          PairingDevice(
-            "wear2",
-            "Wear",
-            AndroidVersion(30),
-            true,
-            true,
-            true,
-            ConnectionState.ONLINE,
-          ),
+        phone = PairingDevice("phone2", "Phone", AndroidVersion(34), true, false, true, ConnectionState.ONLINE),
+        wear = PairingDevice("wear2", "Wear", AndroidVersion(30), true, true, true, ConnectionState.ONLINE),
       )
     notificationManager.dismissNotifications(secondPairing)
-    assertFalse(
-      "Notifications should not have been dismissed using the wrong pairing",
-      notificationManager.pendingNotifications.isEmpty(),
-    )
+    assertFalse("Notifications should not have been dismissed using the wrong pairing", notificationManager.pendingNotifications.isEmpty())
 
     notificationManager.dismissNotifications(pairing)
-    assertTrue(
-      "Notifications should have been dismissed",
-      notificationManager.pendingNotifications.isEmpty(),
-    )
+    assertTrue("Notifications should have been dismissed", notificationManager.pendingNotifications.isEmpty())
   }
 
   @Test
@@ -102,32 +57,11 @@ class WearPairingNotificationManagerImplTest {
 
     val pairing =
       WearPairingManager.PhoneWearPair(
-        phone =
-          PairingDevice(
-            "phone1",
-            "Phone",
-            AndroidVersion(34),
-            true,
-            false,
-            true,
-            ConnectionState.ONLINE,
-          ),
-        wear =
-          PairingDevice(
-            "wear1",
-            "Wear",
-            AndroidVersion(30),
-            true,
-            true,
-            true,
-            ConnectionState.ONLINE,
-          ),
+        phone = PairingDevice("phone1", "Phone", AndroidVersion(34), true, false, true, ConnectionState.ONLINE),
+        wear = PairingDevice("wear1", "Wear", AndroidVersion(30), true, true, true, ConnectionState.ONLINE),
       )
     notificationManager.showReconnectMessageBalloon(pairing, null)
-    assertTrue(
-      "A notification should have been triggered",
-      notificationManager.pendingNotifications.isNotEmpty(),
-    )
+    assertTrue("A notification should have been triggered", notificationManager.pendingNotifications.isNotEmpty())
     notificationManager.showConnectionDroppedBalloon("offline", pairing, null)
 
     // Only the last notification will remain
@@ -136,7 +70,7 @@ class WearPairingNotificationManagerImplTest {
       Wear OS emulator connection dropped
       offline has gone offline. Wear will reconnect with Phone when it returns.<br/>
 
-    """
+      """
         .trimIndent(),
       notificationManager.pendingNotifications.joinToString("\n") { "${it.title}\n${it.content}\n" },
     )

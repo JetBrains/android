@@ -41,35 +41,34 @@ private const val SUBMIT_BUTTON_TEXT = "Submit"
 private const val NEXT_BUTTON_TEXT = "Next"
 private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 30, 50)
 
-class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?)
-  : DialogWrapper(null), ActionListener, ItemListener {
+class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?) :
+  DialogWrapper(null), ActionListener, ItemListener {
   val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
   val ordering: MutableList<Int> = mutableListOf()
 
-  val content: JComponent = Box.createVerticalBox().apply {
-    border = CENTER_PANEL_BORDER
-    add(JBLabel(survey.question))
-    add(Box.createVerticalStrut(JBUI.scale(10)))
+  val content: JComponent =
+    Box.createVerticalBox().apply {
+      border = CENTER_PANEL_BORDER
+      add(JBLabel(survey.question))
+      add(Box.createVerticalStrut(JBUI.scale(10)))
 
-    for (i in 0 until survey.optionsCount) {
-      ordering.add(i)
-    }
+      for (i in 0 until survey.optionsCount) {
+        ordering.add(i)
+      }
 
-    if (survey.hasRandomOrder() && survey.randomOrder) {
-      ordering.shuffle()
-    }
+      if (survey.hasRandomOrder() && survey.randomOrder) {
+        ordering.shuffle()
+      }
 
-    for (i in ordering) {
-      add(createButton(survey.optionsList[ordering[i]]))
+      for (i in ordering) {
+        add(createButton(survey.optionsList[ordering[i]]))
+      }
     }
-  }
 
   init {
     isAutoAdjustable = true
-    setOKButtonText(
-      followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT
-    )
+    setOKButtonText(followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT)
     setResizable(false)
     title = survey.title
     isOKActionEnabled = false
@@ -96,9 +95,7 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
     super.doCancelAction(source)
   }
 
-  /**
-   * Implementation of [ItemListener] to handle keyboard selection.
-   */
+  /** Implementation of [ItemListener] to handle keyboard selection. */
   override fun itemStateChanged(e: ItemEvent) {
     handleSelection()
   }
@@ -111,33 +108,35 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
     isOKActionEnabled = buttons.any { it.isSelected }
   }
 
-  private fun createButton(option: Option) = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    alignmentX = JPanel.LEFT_ALIGNMENT
-    val button = JRadioButton().apply {
-      addActionListener(this@SingleChoiceDialog)
-      addItemListener(this@SingleChoiceDialog)
-      buttonGroup.add(this)
-    }
-    add(button)
-    buttons.add(button)
-    add(JBLabel(option.label, option.icon, JBLabel.LEFT).apply {
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          delegateActionToButton(button, e)
+  private fun createButton(option: Option) =
+    JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+      alignmentX = JPanel.LEFT_ALIGNMENT
+      val button =
+        JRadioButton().apply {
+          addActionListener(this@SingleChoiceDialog)
+          addItemListener(this@SingleChoiceDialog)
+          buttonGroup.add(this)
         }
-      })
-    })
-  }
+      add(button)
+      buttons.add(button)
+      add(
+        JBLabel(option.label, option.icon, JBLabel.LEFT).apply {
+          addMouseListener(
+            object : MouseAdapter() {
+              override fun mouseClicked(e: MouseEvent) {
+                delegateActionToButton(button, e)
+              }
+            }
+          )
+        }
+      )
+    }
 
-  /**
-   * Select the button when the user clicks the label
-   */
+  /** Select the button when the user clicks the label */
   private fun delegateActionToButton(button: JRadioButton, e: MouseEvent) {
     button.requestFocus()
     button.isSelected = true
-    button.actionListeners.forEach { actionListener ->
-      actionListener.actionPerformed(ActionEvent(e.source, e.id, button.actionCommand))
-    }
+    button.actionListeners.forEach { actionListener -> actionListener.actionPerformed(ActionEvent(e.source, e.id, button.actionCommand)) }
   }
 }
 
@@ -145,8 +144,7 @@ class ShowSatisfactionDialogAction : DumbAwareAction("Show satisfaction dialog")
   override fun actionPerformed(e: AnActionEvent) {
     if (ApplicationManager.getApplication().isInternal) {
       AndroidStudioUsageTracker.requestUserSentiment()
-    }
-    else {
+    } else {
       throw RuntimeException("${ShowSatisfactionDialogAction::class.simpleName} can only be called in internal builds")
     }
   }

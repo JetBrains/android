@@ -23,36 +23,35 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Class test definition used to instantiate test [PseudoClass] instances. This definition contains a way to group
- * class information needed by [PseudoClass] without needing an available [PseudoClassLocator].
+ * Class test definition used to instantiate test [PseudoClass] instances. This definition contains a way to group class information needed
+ * by [PseudoClass] without needing an available [PseudoClassLocator].
  */
 private data class ClassDef(val superName: String, val isInterface: Boolean = false, val interfaces: List<String> = listOf())
 
-/**
- * A test [PseudoClassLocator] that provides static [PseudoClass] instances from the given class definitions.
- */
+/** A test [PseudoClassLocator] that provides static [PseudoClass] instances from the given class definitions. */
 private class MapClassLocator(private val map: Map<String, ClassDef>) : PseudoClassLocator {
-  override fun locatePseudoClass(classFqn: String): PseudoClass = map[classFqn]?.let {
-    PseudoClass.forTest(classFqn, it.superName, it.isInterface, it.interfaces, this)
-  } ?: PseudoClass.objectPseudoClass()
+  override fun locatePseudoClass(classFqn: String): PseudoClass =
+    map[classFqn]?.let { PseudoClass.forTest(classFqn, it.superName, it.isInterface, it.interfaces, this) }
+      ?: PseudoClass.objectPseudoClass()
 }
 
 class ClassWriterWithPseudoClassLocatorTest {
-  private val classLocator = MapClassLocator(
-    mapOf(
-      "java.lang.Object" to ClassDef("java.lang.Object"),
-      // Interfaces
-      "p.I1" to ClassDef("java.lang.Object", true),
-      "p.I2" to ClassDef("java.lang.Object", true),
-      "p.SI1" to ClassDef("java.lang.Object", true, listOf("p.I1")),
-      "p.SI2" to ClassDef("java.lang.Object", true, listOf("p.I2")),
-      // Classes
-      "p.C1" to ClassDef("java.lang.Object", false, listOf("p.SI1")),
-      "p.C2" to ClassDef("java.lang.Object", false, listOf("p.SI2")),
-      "p.SC1" to ClassDef("p.C1"),
-      "p.SSC1" to ClassDef("p.SC1")
+  private val classLocator =
+    MapClassLocator(
+      mapOf(
+        "java.lang.Object" to ClassDef("java.lang.Object"),
+        // Interfaces
+        "p.I1" to ClassDef("java.lang.Object", true),
+        "p.I2" to ClassDef("java.lang.Object", true),
+        "p.SI1" to ClassDef("java.lang.Object", true, listOf("p.I1")),
+        "p.SI2" to ClassDef("java.lang.Object", true, listOf("p.I2")),
+        // Classes
+        "p.C1" to ClassDef("java.lang.Object", false, listOf("p.SI1")),
+        "p.C2" to ClassDef("java.lang.Object", false, listOf("p.SI2")),
+        "p.SC1" to ClassDef("p.C1"),
+        "p.SSC1" to ClassDef("p.SC1"),
+      )
     )
-  )
 
   @Test
   fun `can locate PseudoClass instances correctly`() {
@@ -89,11 +88,14 @@ class ClassWriterWithPseudoClassLocatorTest {
   fun `check interface chains are correctly resolved`() {
     val sc1 = classLocator.locatePseudoClass("p.SC1")
 
-    assertEquals("""
+    assertEquals(
+      """
       p.I1
       p.SI1
-    """.trimIndent(),
-                 sc1.interfaces().map { it.name }.sorted().joinToString("\n"))
+      """
+        .trimIndent(),
+      sc1.interfaces().map { it.name }.sorted().joinToString("\n"),
+    )
   }
 
   @Test

@@ -60,44 +60,15 @@ class WatchFaceStudioFileImporterTest {
 
     assertThat(result).isEqualTo(WFSImportResult.Success)
 
-    fixture.checkResultByFile(
-      "src/main/$FN_ANDROID_MANIFEST_XML",
-      "import/aab/expected/$FN_ANDROID_MANIFEST_XML",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/raw/watchface.xml",
-      "import/aab/expected/res/raw/watchface.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face.xml",
-      "import/aab/expected/res/xml/watch_face.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face_info.xml",
-      "import/aab/expected/res/xml/watch_face_info.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face_shapes.xml",
-      "import/aab/expected/res/xml/watch_face_shapes.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/values/strings.xml",
-      "import/aab/expected/res/values/strings.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/values-es/strings.xml",
-      "import/aab/expected/res/values-es/strings.xml",
-      true,
-    )
+    fixture.checkResultByFile("src/main/$FN_ANDROID_MANIFEST_XML", "import/aab/expected/$FN_ANDROID_MANIFEST_XML", true)
+    fixture.checkResultByFile("src/main/res/raw/watchface.xml", "import/aab/expected/res/raw/watchface.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face.xml", "import/aab/expected/res/xml/watch_face.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face_info.xml", "import/aab/expected/res/xml/watch_face_info.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face_shapes.xml", "import/aab/expected/res/xml/watch_face_shapes.xml", true)
+    fixture.checkResultByFile("src/main/res/values/strings.xml", "import/aab/expected/res/values/strings.xml", true)
+    fixture.checkResultByFile("src/main/res/values-es/strings.xml", "import/aab/expected/res/values-es/strings.xml", true)
 
-    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists())
-      .isTrue()
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists()).isTrue()
     assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/").children).hasLength(54)
   }
 
@@ -115,44 +86,15 @@ class WatchFaceStudioFileImporterTest {
 
     assertThat(result).isEqualTo(WFSImportResult.Success)
 
-    fixture.checkResultByFile(
-      "src/main/$FN_ANDROID_MANIFEST_XML",
-      "import/apk/expected/$FN_ANDROID_MANIFEST_XML",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/raw/watchface.xml",
-      "import/apk/expected/res/raw/watchface.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face.xml",
-      "import/apk/expected/res/xml/watch_face.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face_info.xml",
-      "import/apk/expected/res/xml/watch_face_info.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/xml/watch_face_shapes.xml",
-      "import/apk/expected/res/xml/watch_face_shapes.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/values/strings.xml",
-      "import/apk/expected/res/values/strings.xml",
-      true,
-    )
-    fixture.checkResultByFile(
-      "src/main/res/values-es/strings.xml",
-      "import/apk/expected/res/values-es/strings.xml",
-      true,
-    )
+    fixture.checkResultByFile("src/main/$FN_ANDROID_MANIFEST_XML", "import/apk/expected/$FN_ANDROID_MANIFEST_XML", true)
+    fixture.checkResultByFile("src/main/res/raw/watchface.xml", "import/apk/expected/res/raw/watchface.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face.xml", "import/apk/expected/res/xml/watch_face.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face_info.xml", "import/apk/expected/res/xml/watch_face_info.xml", true)
+    fixture.checkResultByFile("src/main/res/xml/watch_face_shapes.xml", "import/apk/expected/res/xml/watch_face_shapes.xml", true)
+    fixture.checkResultByFile("src/main/res/values/strings.xml", "import/apk/expected/res/values/strings.xml", true)
+    fixture.checkResultByFile("src/main/res/values-es/strings.xml", "import/apk/expected/res/values-es/strings.xml", true)
 
-    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists())
-      .isTrue()
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists()).isTrue()
     assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/").children).hasLength(54)
   }
 
@@ -165,20 +107,13 @@ class WatchFaceStudioFileImporterTest {
         ioDispatcher = StandardTestDispatcher(testScheduler),
       )
     val aabFilePath = testDataPath.resolve("import/aab/example.aab")
-    fixture.copyFileToProject(
-      "import/AndroidManifest_existing.xml",
-      "src/main/$FN_ANDROID_MANIFEST_XML",
-    )
+    fixture.copyFileToProject("import/AndroidManifest_existing.xml", "src/main/$FN_ANDROID_MANIFEST_XML")
 
     val result = importer.import(aabFilePath)
 
     assertThat(result).isEqualTo(WFSImportResult.Success)
 
-    fixture.checkResultByFile(
-      "src/main/$FN_ANDROID_MANIFEST_XML",
-      "import/aab/expected/AndroidManifest_merged.xml",
-      true,
-    )
+    fixture.checkResultByFile("src/main/$FN_ANDROID_MANIFEST_XML", "import/aab/expected/AndroidManifest_merged.xml", true)
   }
 
   @Test
@@ -239,9 +174,7 @@ class WatchFaceStudioFileImporterTest {
 
     assertThat(result).isEqualTo(WFSImportResult.Success)
     val watchFaceRunConfiguration =
-      RunManager.getInstance(projectRule.project).allConfigurationsList.find {
-        it is AndroidDeclarativeWatchFaceConfiguration
-      }
+      RunManager.getInstance(projectRule.project).allConfigurationsList.find { it is AndroidDeclarativeWatchFaceConfiguration }
     assertThat(watchFaceRunConfiguration).isNotNull()
     assertThat(watchFaceRunConfiguration!!.name).isEqualTo("Camping")
   }

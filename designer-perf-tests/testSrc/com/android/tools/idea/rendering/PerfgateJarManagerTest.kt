@@ -43,10 +43,7 @@ private val benchmark =
     .setDescription("Base line for Jar file access (mean) after $NUMBER_OF_SAMPLES samples.")
     .build()
 
-/**
- * Holder for a jar file with utilities used in the tests. The path will be removed after this
- * [Closeable] is closed.
- */
+/** Holder for a jar file with utilities used in the tests. The path will be removed after this [Closeable] is closed. */
 @JvmInline
 private value class Jar(val path: Path) : Closeable {
   /** Returns a URI to a file contained in the jar in the given [filePath]. */
@@ -112,9 +109,7 @@ class PerfgateJarManagerTest {
         val jarManager = JarManager.withNoCache(projectRule.project, projectRule.testRootDisposable)
         // val jarManager = JarManager.withCache(true)
         val stopWatch = Stopwatch.createStarted()
-        (0 until numberOfFiles).shuffled().forEach {
-          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
-        }
+        (0 until numberOfFiles).shuffled().forEach { jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!! }
         samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
 
@@ -134,9 +129,7 @@ class PerfgateJarManagerTest {
       repeat(NUMBER_OF_SAMPLES) {
         val jarManager = JarManager.getInstance(projectRule.project)
         val stopWatch = Stopwatch.createStarted()
-        (0 until numberOfFiles).shuffled().forEach {
-          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
-        }
+        (0 until numberOfFiles).shuffled().forEach { jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!! }
         samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
 
@@ -159,9 +152,7 @@ class PerfgateJarManagerTest {
       repeat(NUMBER_OF_SAMPLES) {
         val jarManager = JarManager.getInstance(projectRule.project)
         val stopWatch = Stopwatch.createStarted()
-        (0 until numberOfFiles).shuffled().forEach {
-          jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!!
-        }
+        (0 until numberOfFiles).shuffled().forEach { jarManager.loadFileFromJar(jar.asURIToFile(it.toString()))!! }
         samples.add(MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
       }
 

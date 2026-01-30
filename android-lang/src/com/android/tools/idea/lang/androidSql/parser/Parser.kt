@@ -37,14 +37,21 @@ import com.intellij.psi.util.PsiTreeUtil
 
 open class AndroidSqlParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = AndroidSqlLexer()
+
   override fun createParser(project: Project?): PsiParser = AndroidSqlParser()
+
   override fun createElement(node: ASTNode?): PsiElement = AndroidSqlPsiTypes.Factory.createElement(node)
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = AndroidSqlFile(viewProvider)
 
   override fun getFileNodeType(): IFileElementType = ANDROID_SQL_FILE_NODE_TYPE
+
   override fun getWhitespaceTokens(): TokenSet = WHITE_SPACES
+
   override fun getCommentTokens(): TokenSet = COMMENTS
+
   override fun getStringLiteralElements(): TokenSet = STRING_LITERALS
+
   override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
 
   companion object {

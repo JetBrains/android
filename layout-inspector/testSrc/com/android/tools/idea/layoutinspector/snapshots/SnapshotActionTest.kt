@@ -109,10 +109,7 @@ class SnapshotActionTest {
     fileOpenCaptureRule.checkEditorOpened(tempFile.name, focusEditor = true)
   }
 
-  private fun createEvent(
-    isConnected: Boolean = false,
-    isRenderModelActive: Boolean = true,
-  ): AnActionEvent = runBlocking {
+  private fun createEvent(isConnected: Boolean = false, isRenderModelActive: Boolean = true): AnActionEvent = runBlocking {
     val inspector: LayoutInspector = mock()
     val model: InspectorModel = mock()
     val renderModel: RenderModel = mock()
@@ -133,23 +130,14 @@ class SnapshotActionTest {
       .saveSnapshot(any(), any())
     doAnswer { isConnected }.whenever(client).isConnected
     val dataContext = SimpleDataContext.getSimpleContext(LAYOUT_INSPECTOR_DATA_KEY, inspector)
-    AnActionEvent.createEvent(
-      dataContext,
-      Presentation(),
-      ActionPlaces.UNKNOWN,
-      ActionUiKind.NONE,
-      null,
-    )
+    AnActionEvent.createEvent(dataContext, Presentation(), ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
   }
 
   @Suppress("SameParameterValue")
   private fun overrideFileChooser(expectedFileName: String, fileToReturn: VirtualFileWrapper?) {
     val factory: FileChooserFactoryImpl =
       object : FileChooserFactoryImpl() {
-        override fun createSaveFileDialog(
-          descriptor: FileSaverDescriptor,
-          project: Project?,
-        ): FileSaverDialog {
+        override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
           return object : FileSaverDialog {
             override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper? {
               assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
@@ -163,11 +151,7 @@ class SnapshotActionTest {
           }
         }
 
-        override fun createFileChooser(
-          descriptor: FileChooserDescriptor,
-          project: Project?,
-          parent: Component?
-        ): FileChooserDialog =
+        override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog =
           object : FileChooserDialog {
             override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> =
               arrayOf(fileToReturn!!.virtualFile!!)

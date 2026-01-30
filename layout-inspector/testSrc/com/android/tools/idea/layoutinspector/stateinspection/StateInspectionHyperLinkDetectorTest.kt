@@ -48,10 +48,7 @@ class StateInspectionHyperLinkDetectorTest {
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/SnapshotState.kt", "")
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/ValueHolders.kt", "")
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/snapshots/Snapshot.kt", "")
-    projectRule.fixture.addFileToProject(
-      "src/androidx/compose/runtime/internal/ComposableLambda.kt",
-      "",
-    )
+    projectRule.fixture.addFileToProject("src/androidx/compose/runtime/internal/ComposableLambda.kt", "")
     installFakeExtensionPoints(projectRule.testRootDisposable)
   }
 

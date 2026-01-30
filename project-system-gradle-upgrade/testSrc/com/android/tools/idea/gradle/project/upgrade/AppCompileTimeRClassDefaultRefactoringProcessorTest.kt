@@ -36,7 +36,8 @@ class AppCompileTimeRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMod
     val processor = AppCompileTimeRClassDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.enableAppCompileTimeRClass=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.enableAppCompileTimeRClass=false")
   }
 
   @Test
@@ -44,9 +45,11 @@ class AppCompileTimeRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMod
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
     val processor = AppCompileTimeRClassDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.enableAppCompileTimeRClass=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .doesNotContain("android.enableAppCompileTimeRClass=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.enableAppCompileTimeRClass=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.enableAppCompileTimeRClass=false")
   }
 
   @Test
@@ -55,7 +58,8 @@ class AppCompileTimeRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMod
     projectRule.fixture.addFileToProject("gradle.properties", "android.enableAppCompileTimeRClass=false")
     val processor = AppCompileTimeRClassDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.enableAppCompileTimeRClass=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.enableAppCompileTimeRClass=false")
   }
 
   @Test
@@ -64,7 +68,8 @@ class AppCompileTimeRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMod
     projectRule.fixture.addFileToProject("gradle.properties", "android.enableAppCompileTimeRClass=true")
     val processor = AppCompileTimeRClassDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.enableAppCompileTimeRClass=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) }))
+      .contains("android.enableAppCompileTimeRClass=true")
   }
 
   @Test

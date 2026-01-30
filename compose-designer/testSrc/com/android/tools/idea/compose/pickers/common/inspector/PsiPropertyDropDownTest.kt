@@ -28,12 +28,6 @@ import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
@@ -44,6 +38,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 
 internal class PsiPropertyDropDownTest {
 
@@ -74,8 +74,7 @@ internal class PsiPropertyDropDownTest {
     }
 
     val property = FakePsiProperty("prop", "visible")
-    val enumValues =
-      listOf(SimpleEnumValue("visible"), SimpleEnumValue("invisible"), SimpleEnumValue("gone"))
+    val enumValues = listOf(SimpleEnumValue("visible"), SimpleEnumValue("invisible"), SimpleEnumValue("gone"))
     val enumSupport = EnumSupport.simple(enumValues)
 
     var selectedValueSetterCount = 0
@@ -215,27 +214,23 @@ internal class PsiPropertyDropDownTest {
   }
 
   private fun getWrappedComboBox(comboBox: PsiPropertyDropDown): CommonComboBox<EnumValue, *> {
-    @Suppress("UNCHECKED_CAST") return comboBox.components.single() as CommonComboBox<EnumValue, *>
+    @Suppress("UNCHECKED_CAST")
+    return comboBox.components.single() as CommonComboBox<EnumValue, *>
   }
 
   private val CommonComboBox<EnumValue, *>.selectedEnumValue
     get() = selectedItem as? EnumValue
 
-  private fun isPopupVisible(dropDown: PsiPropertyDropDown): Boolean =
-    getWrappedComboBox(dropDown).isPopupVisible
+  private fun isPopupVisible(dropDown: PsiPropertyDropDown): Boolean = getWrappedComboBox(dropDown).isPopupVisible
 
   private fun createDropDown(model: PsiDropDownModel): PsiPropertyDropDown {
-    val dropdown =
-      PsiPropertyDropDown(model, EditorContext.TABLE_EDITOR, PsiEnumValueCellRenderer())
+    val dropdown = PsiPropertyDropDown(model, EditorContext.TABLE_EDITOR, PsiEnumValueCellRenderer())
     val wrapped = getWrappedComboBox(dropdown)
     wrapped.setUI(FakeComboBoxUI())
     return dropdown
   }
 
-  private fun createDropDown(
-    property: PsiPropertyItem,
-    enumSupport: EnumSupport,
-  ): PsiPropertyDropDown {
+  private fun createDropDown(property: PsiPropertyItem, enumSupport: EnumSupport): PsiPropertyDropDown {
     val model = PsiDropDownModel(property, enumSupport)
     return createDropDown(model)
   }
@@ -251,12 +246,7 @@ internal class PsiPropertyDropDownTest {
       get() = _keyCount
 
     init {
-      registerActionKey(
-        { _keyCount++ },
-        KeyStrokes.ESCAPE,
-        "escape",
-        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-      )
+      registerActionKey({ _keyCount++ }, KeyStrokes.ESCAPE, "escape", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     }
   }
 }

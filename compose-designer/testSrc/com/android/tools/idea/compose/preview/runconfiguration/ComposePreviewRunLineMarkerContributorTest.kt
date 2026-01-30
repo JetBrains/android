@@ -33,11 +33,8 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 private fun PsiFile.findFunctionIdentifier(name: String): PsiElement {
-  val function =
-    PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
-  return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first {
-    it.node.elementType == KtTokens.IDENTIFIER
-  }!!
+  val function = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
+  return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first { it.node.elementType == KtTokens.IDENTIFIER }!!
 }
 
 class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
@@ -62,12 +59,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     modules: MutableList<MyAdditionalModuleData>,
   ) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      "myLibrary",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-    )
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
   fun testGetInfo() {

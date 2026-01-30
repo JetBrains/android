@@ -40,16 +40,9 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Before
   fun setup() {
-    val ep =
-      ApplicationManager.getApplication()
-        .extensionArea
-        .getExtensionPoint<CompletionContributorEP>(CompletionContributor.EP.name)
+    val ep = ApplicationManager.getApplication().extensionArea.getExtensionPoint<CompletionContributorEP>(CompletionContributor.EP.name)
     ep.registerExtension(
-      CompletionContributorEP(
-        DeviceSpecLanguage.id,
-        DeviceSpecCompletionContributor::class.java.name,
-        ep.pluginDescriptor,
-      ),
+      CompletionContributorEP(DeviceSpecLanguage.id, DeviceSpecCompletionContributor::class.java.name, ep.pluginDescriptor),
       fixture.testRootDisposable,
     )
     runInEdtAndWait {
@@ -149,9 +142,7 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
 
     // completion for 'id' prefix
-    fixture.completeDeviceSpec(
-      "id$caret"
-    ) // Note that 'id' also matches 'width' in the full 'spec:...' definition
+    fixture.completeDeviceSpec("id$caret") // Note that 'id' also matches 'width' in the full 'spec:...' definition
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals(REFERENCE_PHONE_SPEC, fixture.lookupElementStrings!![1])

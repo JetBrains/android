@@ -39,15 +39,20 @@ class AndroidKtPsiUtilsTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
-  private val myFixture get() = projectRule.fixture
+  private val myFixture
+    get() = projectRule.fixture
 
   @Test
   fun testKtClass_insideBody() {
-    val file = setFileContents("""
-      class Foo {
-        // <caret> body
-      }
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        class Foo {
+          // <caret> body
+        }
+        """
+          .trimIndent()
+      )
 
     val classReference = file.getElementAtCaret<KtClass>()
     assertThat(classReference.insideBody(myFixture.caretOffset)).isTrue()
@@ -58,11 +63,15 @@ class AndroidKtPsiUtilsTest {
   fun testKtProperty_hasBackingField() {
     fun PsiFile.findProperty(name: String) = find<KtProperty> { it.name == name }
 
-    val file = setFileContents("""
-      val propertyWithBackingField: String = "foo"
-      val propertyWithoutBackingField: String get() = "bar"
-      val delegatedProperty: String by lazy { "baz" }
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        val propertyWithBackingField: String = "foo"
+        val propertyWithoutBackingField: String get() = "bar"
+        val delegatedProperty: String by lazy { "baz" }
+        """
+          .trimIndent()
+      )
 
     assertThat(file.findProperty("propertyWithBackingField").hasBackingField()).isTrue()
     assertThat(file.findProperty("propertyWithoutBackingField").hasBackingField()).isFalse()
@@ -71,12 +80,16 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotationEntry_getQualifiedName_validReference() {
-    val file = setFileContents("""
-      annotation class Foo
+    val file =
+      setFileContents(
+        """
+        annotation class Foo
 
-      @<caret>Foo
-      object Bar
-    """.trimIndent())
+        @<caret>Foo
+        object Bar
+        """
+          .trimIndent()
+      )
 
     val annotationEntry = file.getElementAtCaret<KtAnnotationEntry>()
     assertThat(annotationEntry.getQualifiedName()).isEqualTo("com.android.example.Foo")
@@ -84,10 +97,14 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotationEntry_getQualifiedName_invalidReference() {
-    val file = setFileContents("""
-      @<caret>Foo
-      object Bar
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        @<caret>Foo
+        object Bar
+        """
+          .trimIndent()
+      )
 
     val annotationEntry = file.getElementAtCaret<KtAnnotationEntry>()
     assertThat(annotationEntry.getQualifiedName()).isNull()
@@ -95,12 +112,16 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotationEntry_fqNameMatches() {
-    val file = setFileContents("""
-      annotation class Foo
+    val file =
+      setFileContents(
+        """
+        annotation class Foo
 
-      @<caret>Foo
-      object Bar
-    """.trimIndent())
+        @<caret>Foo
+        object Bar
+        """
+          .trimIndent()
+      )
 
     val annotationEntry = file.getElementAtCaret<KtAnnotationEntry>()
 
@@ -114,30 +135,43 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtClass_className() {
-    val file = setFileContents("""
-      class <caret>Foo
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        class <caret>Foo
+        """
+          .trimIndent()
+      )
 
     assertThat(file.getElementAtCaret<KtClass>().getQualifiedName()).isEqualTo("com.android.example.Foo")
   }
 
   @Test
   fun testKtClass_className_kotlinBuiltin() {
-    val file = setFileContents("""
-      class <caret>Foo
-    """.trimIndent(), packageName = "kotlin.some.pkg")
+    val file =
+      setFileContents(
+        """
+        class <caret>Foo
+        """
+          .trimIndent(),
+        packageName = "kotlin.some.pkg",
+      )
 
     assertThat(file.getElementAtCaret<KtClass>().getQualifiedName()).isNull()
   }
 
   @Test
   fun testKtAnnotationEntry_findArgumentExpression() {
-    val file = setFileContents("""
-      annotation class Foo(val bar: String)
+    val file =
+      setFileContents(
+        """
+        annotation class Foo(val bar: String)
 
-      @<caret>Foo(bar = "baz")
-      object Quux
-    """.trimIndent())
+        @<caret>Foo(bar = "baz")
+        object Quux
+        """
+          .trimIndent()
+      )
 
     val annotationEntry = file.getElementAtCaret<KtAnnotationEntry>()
     val argumentExpression = annotationEntry.findArgumentExpression("bar")
@@ -147,10 +181,14 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtExpression_tryEvaluateConstant_stringConstant() {
-    val file = setFileContents("""
-      const val bar = 42
-      val <caret>foo = "foo" + bar + "baz"
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        const val bar = 42
+        val <caret>foo = "foo" + bar + "baz"
+        """
+          .trimIndent()
+      )
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isEqualTo("foo42baz")
@@ -159,10 +197,14 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtExpression_tryEvaluateConstant_integerConstant() {
-    val file = setFileContents("""
-      const val foo = 2
-      val <caret>bar = 1 + foo + 3
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        const val foo = 2
+        val <caret>bar = 1 + foo + 3
+        """
+          .trimIndent()
+      )
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isNull()
@@ -171,12 +213,16 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtExpression_tryEvaluateConstant_chainOfPropertyReferences() {
-    val file = setFileContents("""
-      val foo = 42
-      val bar = foo
-      val baz = bar
-      val <caret>quux = baz
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        val foo = 42
+        val bar = foo
+        val baz = bar
+        val <caret>quux = baz
+        """
+          .trimIndent()
+      )
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isNull()
@@ -186,14 +232,18 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtExpression_tryEvaluateConstant_chainOfLocalVariableReferences() {
-    val file = setFileContents("""
-      fun f() {
-        val foo = 42
-        val bar = foo
-        val baz = bar
-        val <caret>quux = baz
-      }
-    """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        fun f() {
+          val foo = 42
+          val bar = foo
+          val baz = bar
+          val <caret>quux = baz
+        }
+        """
+          .trimIndent()
+      )
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isNull()
@@ -203,11 +253,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtExpression_tryEvaluateConstant_notConstant() {
-    val file = setFileContents("""
-      import kotlin.random.Random
+    val file =
+      setFileContents(
+        """
+        import kotlin.random.Random
 
-      val <caret>foo = Random.nextInt(10)
-    """.trimIndent())
+        val <caret>foo = Random.nextInt(10)
+        """
+          .trimIndent()
+      )
 
     val expression: KtExpression = file.getElementAtCaret<KtProperty>().initializer!!
     assertThat(expression.tryEvaluateConstant()).isNull()
@@ -218,15 +272,19 @@ class AndroidKtPsiUtilsTest {
   fun testKtNamedFunction_className() {
     fun PsiFile.findFunction(name: String) = find<KtNamedFunction> { it.name == name }
 
-    val file = setFileContents("""
-      fun topLevelFun() {}
+    val file =
+      setFileContents(
+        """
+        fun topLevelFun() {}
 
-      class SomeClass {
-        fun innerFun() {
-          fun nestedFun() {}
+        class SomeClass {
+          fun innerFun() {
+            fun nestedFun() {}
+          }
         }
-      }
-      """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     assertThat(file.findFunction("topLevelFun").getClassName()).isEqualTo("com.android.example.MyFileKt")
     assertThat(file.findFunction("innerFun").getClassName()).isEqualTo("com.android.example.SomeClass")
@@ -235,11 +293,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testGetPreviousInQualifiedChain() {
-    val file = setFileContents("""
-      fun foo() {
-        val id = R.layout.<caret>activity
-      }
-      """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        fun foo() {
+          val id = R.layout.<caret>activity
+        }
+        """
+          .trimIndent()
+      )
 
     val fieldReference = file.getElementAtCaret<KtExpression>()
     assertThat(fieldReference.text).isEqualTo("activity")
@@ -248,11 +310,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testGetNextInQualifiedChain() {
-    val file = setFileContents("""
-      fun foo() {
-        val id = <caret>R.layout.activity
-      }
-      """.trimIndent())
+    val file =
+      setFileContents(
+        """
+        fun foo() {
+          val id = <caret>R.layout.activity
+        }
+        """
+          .trimIndent()
+      )
 
     val classReference = file.getElementAtCaret<KtExpression>()
     assertThat(classReference.text).isEqualTo("R")
@@ -286,11 +352,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotated_declaration() {
-    val file = setFileContents("""
-      annotation class Foo
+    val file =
+      setFileContents(
+        """
+        annotation class Foo
 
-      @Foo fun <caret>f(block: (param: Any) -> Unit)
-      """.trimIndent())
+        @Foo fun <caret>f(block: (param: Any) -> Unit)
+        """
+          .trimIndent()
+      )
 
     val funElement = file.getElementAtCaret<KtNamedFunction>()
     val fooClassId = ClassId.fromString("com/android/example/Foo")
@@ -300,11 +370,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotated_typeReference() {
-    val file = setFileContents("""
-      annotation class Foo
+    val file =
+      setFileContents(
+        """
+        annotation class Foo
 
-      fun f(<caret>block: @Foo ((param: Any) -> Unit))
-    """.trimIndent())
+        fun f(<caret>block: @Foo ((param: Any) -> Unit))
+        """
+          .trimIndent()
+      )
 
     val parameterElement = file.getElementAtCaret<KtParameter>()
     val typeReference = parameterElement.typeReference!!
@@ -315,11 +389,15 @@ class AndroidKtPsiUtilsTest {
 
   @Test
   fun testKtAnnotated_functionTypeParameter() {
-    val file = setFileContents("""
-      annotation class Foo
+    val file =
+      setFileContents(
+        """
+        annotation class Foo
 
-      fun f(block: (<caret>param: @Foo Any) -> Unit)
-    """.trimIndent())
+        fun f(block: (<caret>param: @Foo Any) -> Unit)
+        """
+          .trimIndent()
+      )
 
     val parameterElement = file.getElementAtCaret<KtParameter>()
     assertThat(parameterElement.isFunctionTypeParameter).isTrue()
@@ -336,8 +414,7 @@ class AndroidKtPsiUtilsTest {
     PsiTreeUtil.findChildrenOfType(this, T::class.java).first(predicate)
 
   private fun setFileContents(@Language("kotlin") contents: String, packageName: String = "com.android.example"): PsiFile =
-    myFixture.addFileToProject(
-      "src/${packageName.replace('.', '/')}/MyFile.kt",
-      "package ${packageName}\n\n${contents}"
-    ).also { myFixture.configureFromExistingVirtualFile(it.virtualFile) }
+    myFixture.addFileToProject("src/${packageName.replace('.', '/')}/MyFile.kt", "package ${packageName}\n\n${contents}").also {
+      myFixture.configureFromExistingVirtualFile(it.virtualFile)
+    }
 }

@@ -36,10 +36,9 @@ import javax.swing.JComponent
 import javax.swing.JPasswordField
 import javax.swing.JTextField
 
-/**
- * Dialog box allowing the user to edit or create an [RepositorySource]. Does some very basic validation.
- */
-class EditSourceDialog(private val provider: RepositorySourceProvider, private val existingSource: RepositorySource?) : DialogWrapper(null) {
+/** Dialog box allowing the user to edit or create an [RepositorySource]. Does some very basic validation. */
+class EditSourceDialog(private val provider: RepositorySourceProvider, private val existingSource: RepositorySource?) :
+  DialogWrapper(null) {
 
   private val existingAuth = existingSource?.let { AndroidAuthenticator.getAuthentication(existingSource.url) }
   private val urlField = JTextField(existingSource?.url ?: "http://")
@@ -49,23 +48,23 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   private val passwordField = JPasswordField(existingAuth?.let { OneTimeString(existingAuth.password, clearable = true).toString() })
 
   val uiName: String
-      get() = nameField.text
+    get() = nameField.text
 
   val url: String
-      get() = urlField.text
+    get() = urlField.text
 
   init {
     isModal = true
 
-    urlField.addActionListener {
-      initValidation()
-    }
+    urlField.addActionListener { initValidation() }
 
-    urlField.addFocusListener(object : FocusAdapter() {
-      override fun focusLost(e: FocusEvent) {
-        initValidation()
+    urlField.addFocusListener(
+      object : FocusAdapter() {
+        override fun focusLost(e: FocusEvent) {
+          initValidation()
+        }
       }
-    })
+    )
 
     init()
   }
@@ -75,8 +74,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   private fun getErrorMessage(urlString: String): String? {
     try {
       URL(urlString)
-    }
-    catch (e: MalformedURLException) {
+    } catch (e: MalformedURLException) {
       return "URL is invalid"
     }
 

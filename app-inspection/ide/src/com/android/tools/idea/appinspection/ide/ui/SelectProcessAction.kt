@@ -59,23 +59,15 @@ val NO_DEVICE_ACTION =
   }
 
 private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
-val ICON_PHONE =
-  ColoredIconGenerator.generateColoredIcon(
-    StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
-    ICON_COLOR,
-  )
-val ICON_EMULATOR =
-  ColoredIconGenerator.generateColoredIcon(
-    StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
-    ICON_COLOR,
-  )
+val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
+val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
 /**
- * An action that presents a list of devices and processes, allowing the user to select a process,
- * along with a stop button (for stopping any active process)
+ * An action that presents a list of devices and processes, allowing the user to select a process, along with a stop button (for stopping
+ * any active process)
  *
- * Once selected, the process automatically informs the passed in [ProcessesModel], which in turn
- * notifies other components that a new process is now active.
+ * Once selected, the process automatically informs the passed in [ProcessesModel], which in turn notifies other components that a new
+ * process is now active.
  *
  * @param supportsOffline If true, this means when a process is stopped, it remains in the list,
  * ```
@@ -110,8 +102,7 @@ val ICON_EMULATOR =
 class SelectProcessAction(
   private val model: ProcessesModel,
   private val supportsOffline: Boolean = true,
-  private val createProcessLabel: (ProcessDescriptor) -> String =
-    Companion::createDefaultProcessLabel,
+  private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
   private val stopPresentation: StopPresentation = StopPresentation(),
   private val onStopAction: ((ProcessDescriptor) -> Unit)? = null,
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
@@ -198,8 +189,7 @@ class SelectProcessAction(
     val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"),
   )
 
-  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
-    ToggleAction(processDescriptor.buildProcessName()) {
+  private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) : ToggleAction(processDescriptor.buildProcessName()) {
 
     override fun getActionUpdateThread() = BGT
 
@@ -217,8 +207,7 @@ class SelectProcessAction(
     }
   }
 
-  private inner class DeviceAction(private val device: DeviceDescriptor) :
-    DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
+  private inner class DeviceAction(private val device: DeviceDescriptor) : DropDownAction(device.buildDeviceName(), null, device.toIcon()) {
 
     override fun getActionUpdateThread() = BGT
 

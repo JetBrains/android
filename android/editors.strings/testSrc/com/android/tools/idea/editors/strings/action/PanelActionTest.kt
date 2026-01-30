@@ -47,9 +47,7 @@ class PanelActionTest {
     get() = projectRule.project
 
   // Lazy so that enough of the Application is initialized
-  private val e: AnActionEvent by lazy {
-    TestActionEvent.createTestEvent(dataContextBuilder.build())
-  }
+  private val e: AnActionEvent by lazy { TestActionEvent.createTestEvent(dataContextBuilder.build()) }
 
   @Test
   fun update_nullRequiredData() {
@@ -101,9 +99,7 @@ class PanelActionTest {
 
   @Test
   fun update_hasRequiredData() {
-    dataContextBuilder
-      .add(CommonDataKeys.PROJECT, project)
-      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+    dataContextBuilder.add(CommonDataKeys.PROJECT, project).add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
 
     falsePanelAction.update(e)
 
@@ -120,9 +116,7 @@ class PanelActionTest {
 
   @Test
   fun getPanel() {
-    dataContextBuilder
-      .add(CommonDataKeys.PROJECT, project)
-      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+    dataContextBuilder.add(CommonDataKeys.PROJECT, project).add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
 
     whenever(stringResourceEditor.panel).thenReturn(mock())
     truePanelAction.actionPerformed(e)
@@ -134,8 +128,7 @@ class PanelActionTest {
     var doUpdateInvoked = false
       private set
 
-    override fun doUpdate(event: AnActionEvent): Boolean =
-      doUpdateResult.also { doUpdateInvoked = true }
+    override fun doUpdate(event: AnActionEvent): Boolean = doUpdateResult.also { doUpdateInvoked = true }
 
     override fun actionPerformed(event: AnActionEvent) {
       assertThat(event.panel).isSameAs(stringResourceEditor.panel)

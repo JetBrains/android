@@ -46,12 +46,10 @@ class AtfAnalyzerComposeTest {
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"
       )
-    val uiCheckPreviews =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
 
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
     val issueMessages = issues.map { it.summary }.distinct()
@@ -68,33 +66,24 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val issues =
-      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
-        it.type == VisualLintErrorType.ATF_COLORBLIND
-      }
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter { it.type == VisualLintErrorType.ATF_COLORBLIND }
 
     Assert.assertEquals(1, issues.size)
 
     val selectedIssueToShowInProblems = issues.first()
 
-    Assert.assertEquals(
-      "Insufficient color contrast for color blind users",
-      selectedIssueToShowInProblems.summary,
-    )
+    Assert.assertEquals("Insufficient color contrast for color blind users", selectedIssueToShowInProblems.summary)
 
     val problemDescriptionHtml = selectedIssueToShowInProblems.description
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
-    Assert.assertTrue(
-      "Color contrast check fails for Tritanopes colorblind configuration" in problemDescriptionHtml
-    )
+    Assert.assertTrue("Color contrast check fails for Tritanopes colorblind configuration" in problemDescriptionHtml)
   }
 
   @Test
@@ -104,23 +93,17 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview"
       )
 
-    val uiCheckPreviews =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val issues =
-      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
-        it.type == VisualLintErrorType.ATF_COLORBLIND
-      }
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter { it.type == VisualLintErrorType.ATF_COLORBLIND }
 
     Assert.assertEquals(2, issues.size)
 
     // All the problems have the same message but different descriptions
-    issues.forEach {
-      Assert.assertEquals("Insufficient color contrast for color blind users", it.summary)
-    }
+    issues.forEach { Assert.assertEquals("Insufficient color contrast for color blind users", it.summary) }
 
     val selectedIssueToShowInProblems = issues.first().apply { combineWithIssue(issues[1]) }
 
@@ -128,10 +111,7 @@ class AtfAnalyzerComposeTest {
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
-    Assert.assertTrue(
-      "Color contrast check fails for Deuteranopes and 1 other colorblind configuration" in
-        problemDescriptionHtml
-    )
+    Assert.assertTrue("Color contrast check fails for Deuteranopes and 1 other colorblind configuration" in problemDescriptionHtml)
   }
 
   @Test
@@ -141,23 +121,17 @@ class AtfAnalyzerComposeTest {
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview"
       )
 
-    val uiCheckPreviews =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val visualLintPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val visualLintPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val issues =
-      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter {
-        it.type == VisualLintErrorType.ATF_COLORBLIND
-      }
+      collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile).filter { it.type == VisualLintErrorType.ATF_COLORBLIND }
 
     Assert.assertEquals(3, issues.size)
 
     // All the problems have the same message but different descriptions
-    issues.forEach {
-      Assert.assertEquals("Insufficient color contrast for color blind users", it.summary)
-    }
+    issues.forEach { Assert.assertEquals("Insufficient color contrast for color blind users", it.summary) }
 
     val selectedIssueToShowInProblems =
       issues.first().apply {
@@ -169,10 +143,7 @@ class AtfAnalyzerComposeTest {
 
     // Don't test the whole problemDescriptionHtml string because part of the content is provided
     // from ATF
-    Assert.assertTrue(
-      "Color contrast check fails for Deuteranopes and 2 other colorblind configurations" in
-        problemDescriptionHtml
-    )
+    Assert.assertTrue("Color contrast check fails for Deuteranopes and 2 other colorblind configurations" in problemDescriptionHtml)
   }
 
   private fun collectIssuesFromRenders(
@@ -199,8 +170,6 @@ class AtfAnalyzerComposeTest {
       // the NlModel
       val result = renderResult.result!!
       NlModelHierarchyUpdater.updateHierarchy(result, nlModel)
-      AtfAnalyzer.findIssues(result, nlModel.configuration).map {
-        createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF)
-      }
+      AtfAnalyzer.findIssues(result, nlModel.configuration).map { createVisualLintRenderIssue(it, nlModel, VisualLintErrorType.ATF) }
     }
 }

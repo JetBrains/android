@@ -43,15 +43,14 @@ import org.junit.Rule
 import org.junit.Test
 
 class AarDependencyCompatibilityIssueCheckerIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Test
   fun testAarDependencyCompatibilityIssue() {
     projectRule.loadProject(
       TestProjectPaths.ANDROIDX_WITH_LIB_MODULE,
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk(AndroidApiLevel(33)).resolve()
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk(AndroidApiLevel(33)).resolve(),
     )
     val appModule = project.findAppModule()
     val libModule = project.findModule("mylibrary")
@@ -59,23 +58,19 @@ class AarDependencyCompatibilityIssueCheckerIntegrationTest {
     val appBuildModel = projectModel.getModuleBuildModel(appModule)
     appBuildModel!!.dependencies().addModule("implementation", ":mylibrary")
     ApplicationManager.getApplication().invokeAndWait {
-      libModule.getBuildScriptPsiFile()?.virtualFile?.toIoFile()
-        ?.appendText("\nandroid.defaultConfig.aarMetadata.minCompileSdk 34")
-      WriteCommandAction.runWriteCommandAction(project) {
-        projectModel.applyChanges()
-      }
+      libModule.getBuildScriptPsiFile()?.virtualFile?.toIoFile()?.appendText("\nandroid.defaultConfig.aarMetadata.minCompileSdk 34")
+      WriteCommandAction.runWriteCommandAction(project) { projectModel.applyChanges() }
     }
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
-      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
-        generatedExceptions.add(exception)
+    val taskNotificationListener =
+      object : ExternalSystemTaskNotificationListener {
+        override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
+          generatedExceptions.add(exception)
+        }
       }
-    }
     val projectPath = project.basePath.orEmpty()
     val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
-    val settings = GradleExecutionSettings().apply {
-      tasks = listOf(":app:assembleDebug")
-    }
+    val settings = GradleExecutionSettings().apply { tasks = listOf(":app:assembleDebug") }
     try {
       AndroidGradleTaskManager().executeTasks(projectPath, id, settings, taskNotificationListener)
     } catch (_: ExternalSystemException) {

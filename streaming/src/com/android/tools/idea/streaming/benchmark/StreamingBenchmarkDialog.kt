@@ -44,12 +44,17 @@ import kotlin.properties.Delegates
 /** ComponentPredicate that wraps a simple [Boolean] value. */
 private class BooleanComponentPredicate(initialValue: Boolean) : ComponentPredicate() {
   private val listeners: MutableList<(Boolean) -> Unit> = mutableListOf()
-  private var value: Boolean by Delegates.observable(initialValue) { _, old, new ->
-    if (old != new) listeners.forEach { it(new) }
+  private var value: Boolean by Delegates.observable(initialValue) { _, old, new -> if (old != new) listeners.forEach { it(new) } }
+
+  fun set(newValue: Boolean) {
+    value = newValue
   }
-  fun set(newValue: Boolean) { value = newValue }
+
   override fun invoke() = value
-  override fun addListener(listener: (Boolean) -> Unit) { listeners.add(listener) }
+
+  override fun addListener(listener: (Boolean) -> Unit) {
+    listeners.add(listener)
+  }
 }
 
 private const val DEFAULT_READY_PROGRESS_LABEL = "Preparing to benchmark"
@@ -57,8 +62,8 @@ private const val DEFAULT_READY_PROGRESS_LABEL = "Preparing to benchmark"
 /**
  * Dialog that facilitates benchmarking device mirroring.
  *
- * The dialog shows options for benchmarking and also shows progress while the benchmarking is underway.
- * When benchmarking finishes, a dialog displaying results is popped up.
+ * The dialog shows options for benchmarking and also shows progress while the benchmarking is underway. When benchmarking finishes, a
+ * dialog displaying results is popped up.
  */
 class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
   private val isGettingReady = BooleanComponentPredicate(false)
@@ -69,7 +74,7 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
   private val readyProgressBar = JProgressBar(DefaultBoundedRangeModel(0, 0, 0, 100))
   private val dispatchedProgressBar = JProgressBar(DefaultBoundedRangeModel(0, 0, 0, 100))
   private val receivedProgressBar = JProgressBar(DefaultBoundedRangeModel(0, 0, 0, 100))
-  private var benchmarker: Benchmarker<Point>?  = null
+  private var benchmarker: Benchmarker<Point>? = null
   private var touchRateHz = 60
   private var maxTouches = 10_000
   private var step = 1
@@ -79,58 +84,49 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
 
   private fun createPanel() = panel {
     panel {
-      row("Input event rate") {
-        intTextField(1..240, 5).bindIntText(::touchRateHz)
-        text("Hz")
+        row("Input event rate") {
+          intTextField(1..240, 5).bindIntText(::touchRateHz)
+          text("Hz")
+        }
+        row("Max input events") { intTextField(1..Int.MAX_VALUE, 100).bindIntText(::maxTouches) }
+        collapsibleGroup("Advanced Options") {
+            row("Drag speed") {
+              intTextField(1..10, 1).bindIntText(::step)
+              text("px/frame")
+            }
+            row("Spikiness") {
+              intTextField(0..100, 1).bindIntText(::spikiness)
+              text("oscillations/row")
+            }
+            row("Bits per channel") {
+              intTextField(0..8, 1).bindIntText(::bitsPerChannel)
+              text("use 0 for monochrome")
+            }
+            row("Frame latency bits") { intTextField(1..16, 1).bindIntText(::latencyBits) }
+          }
+          .apply { expanded = false }
       }
-      row("Max input events") {
-        intTextField(1..Int.MAX_VALUE, 100).bindIntText(::maxTouches)
-      }
-      collapsibleGroup("Advanced Options") {
-        row("Drag speed") {
-          intTextField(1..10, 1).bindIntText(::step)
-          text("px/frame")
-        }
-        row("Spikiness") {
-          intTextField(0..100, 1).bindIntText(::spikiness)
-          text("oscillations/row")
-        }
-        row("Bits per channel") {
-          intTextField(0..8, 1).bindIntText(::bitsPerChannel)
-          text("use 0 for monochrome")
-        }
-        row("Frame latency bits") {
-          intTextField(1..16, 1).bindIntText(::latencyBits)
-        }
-      }.apply { expanded = false }
-    }.enabledIf(isStopped)
+      .enabledIf(isStopped)
     panel {
-      separator()
-      row {
-        text("For accurate results, keep Android Studio visible until benchmarking is complete.").align(AlignX.CENTER)
+        separator()
+        row { text("For accurate results, keep Android Studio visible until benchmarking is complete.").align(AlignX.CENTER) }
+        separator()
+        row(readyProgressLabel) {
+            cell(readyProgressBar)
+            button("Cancel") { benchmarker?.stop() }.enabledIf(isGettingReady)
+          }
+          .visibleIf(isGettingReady)
+        row("Input events dispatched") {
+            cell(dispatchedProgressBar)
+            button("Cancel") { benchmarker?.stop() }.enabledIf(isRunning)
+          }
+          .visibleIf(isRunning)
+        row("Input events returned") { cell(receivedProgressBar) }.visibleIf(isRunning)
       }
-      separator()
-      row(readyProgressLabel) {
-        cell(readyProgressBar)
-        button("Cancel") {
-          benchmarker?.stop()
-        }.enabledIf(isGettingReady)
-      }.visibleIf(isGettingReady)
-      row("Input events dispatched") {
-        cell(dispatchedProgressBar)
-        button("Cancel") {
-          benchmarker?.stop()
-        }.enabledIf(isRunning)
-      }.visibleIf(isRunning)
-      row("Input events returned") {
-        cell(receivedProgressBar)
-      }.visibleIf(isRunning)
-    }.visibleIf(isStopped.not())
+      .visibleIf(isStopped.not())
   }
 
-  /**
-   * Creates the dialog wrapper.
-   */
+  /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     val dialogPanel = createPanel()
     val startAction = StartBenchmarkAction(project, dialogPanel)
@@ -141,10 +137,12 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
       panel = dialogPanel,
       project = project,
       parent = parent,
-      createActions = { listOf(startAction, CloseDialogAction()) })
+      createActions = { listOf(startAction, CloseDialogAction()) },
+    )
   }
 
-  private inner class StartBenchmarkAction(private val project: Project?, private val dialogPanel: DialogPanel) : AbstractAction("Benchmark!") {
+  private inner class StartBenchmarkAction(private val project: Project?, private val dialogPanel: DialogPanel) :
+    AbstractAction("Benchmark!") {
     init {
       putValue(DialogWrapper.DEFAULT_ACTION, true)
     }
@@ -152,17 +150,27 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
     override fun actionPerformed(e: ActionEvent?) {
       if (project == null) return
       dialogPanel.apply()
-      val readyIndicator: ProgressIndicator = object : ProgressIndicatorBase() {
-        override fun setFraction(fraction: Double) { readyProgressBar.updateProgress(fraction) }
-        override fun setIndeterminate(indeterminate: Boolean) { readyProgressBar.isIndeterminate = indeterminate }
-        override fun setText(text: String?) { readyProgressLabel.text = text }
-      }
+      val readyIndicator: ProgressIndicator =
+        object : ProgressIndicatorBase() {
+          override fun setFraction(fraction: Double) {
+            readyProgressBar.updateProgress(fraction)
+          }
+
+          override fun setIndeterminate(indeterminate: Boolean) {
+            readyProgressBar.isIndeterminate = indeterminate
+          }
+
+          override fun setText(text: String?) {
+            readyProgressLabel.text = text
+          }
+        }
       val deviceAdapter = DeviceAdapter(project, target, bitsPerChannel, latencyBits, maxTouches, step, spikiness, readyIndicator)
-      benchmarker = Benchmarker(deviceAdapter, touchRateHz).apply {
-        addCallbacks(BenchmarkingCallbacks(project))
-        start()
-        isGettingReady.set(true)
-      }
+      benchmarker =
+        Benchmarker(deviceAdapter, touchRateHz).apply {
+          addCallbacks(BenchmarkingCallbacks(project))
+          start()
+          isGettingReady.set(true)
+        }
     }
   }
 
@@ -195,8 +203,10 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
     override fun onFailure(failureMessage: String) {
       if (failureMessage.isNotEmpty()) {
         ApplicationManager.getApplication().invokeLater {
-          NotificationGroupManager.getInstance().getNotificationGroup("DeviceMirrorBenchmarking")
-            .createNotification(ERROR_TITLE, failureMessage, NotificationType.ERROR).notify(project)
+          NotificationGroupManager.getInstance()
+            .getNotificationGroup("DeviceMirrorBenchmarking")
+            .createNotification(ERROR_TITLE, failureMessage, NotificationType.ERROR)
+            .notify(project)
         }
       }
     }

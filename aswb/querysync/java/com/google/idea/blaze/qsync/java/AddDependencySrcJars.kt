@@ -19,21 +19,21 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
-import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
+import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import kotlin.jvm.optionals.getOrNull
 
 /**
- * Adds checked-in `.srcjar` files from external dependencies to the project proto. This
- * allows those sources to be shown in the IDE instead of decompiled class files.
+ * Adds checked-in `.srcjar` files from external dependencies to the project proto. This allows those sources to be shown in the IDE instead
+ * of decompiled class files.
  */
 class AddDependencySrcJars(
   private val projectDefinition: ProjectDefinition,
   private val pathResolver: ProjectPath.Resolver,
-  private val srcJarInnerPathFinder: SrcJarInnerPathFinder
+  private val srcJarInnerPathFinder: SrcJarInnerPathFinder,
 ) : ProjectProtoUpdateOperation {
   @Throws(BuildException::class)
   override fun update(
@@ -50,21 +50,16 @@ class AddDependencySrcJars(
       if (projectDefinition.isIncluded(javaInfo.label())) {
         continue
       }
-      update
-        .library(target.label()) {
-          addSourceJars(
-            javaInfo.srcJars().flatMap { srcJar ->
-              // these are workspace relative srcjar paths.
-              srcJarInnerPathFinder
-                .findInnerJarPaths(
-                  pathResolver.resolve(srcJar).toFile(),
-                  AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY,
-                  srcJar.toString()
-                )
-                .map { srcJar.withInnerJarPath(it.path()) }
-            }
-          )
-        }
+      update.library(target.label()) {
+        addSourceJars(
+          javaInfo.srcJars().flatMap { srcJar ->
+            // these are workspace relative srcjar paths.
+            srcJarInnerPathFinder
+              .findInnerJarPaths(pathResolver.resolve(srcJar).toFile(), AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY, srcJar.toString())
+              .map { srcJar.withInnerJarPath(it.path()) }
+          }
+        )
+      }
     }
   }
 }

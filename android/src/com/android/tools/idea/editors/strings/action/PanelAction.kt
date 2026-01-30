@@ -29,35 +29,33 @@ import javax.swing.Icon
 /**
  * Base class for actions on a [StringResourceViewPanel].
  *
- * Makes accessing the panel from [AnActionEvent] easy so that subclasses need not hold on to a
- * reference to the panel.
+ * Makes accessing the panel from [AnActionEvent] easy so that subclasses need not hold on to a reference to the panel.
  */
-abstract class PanelAction(
-    @ActionText text: String? = null,
-    @ActionDescription description: String? = null,
-    icon: Icon? = null
-) : AnAction(text, description, icon) {
+abstract class PanelAction(@ActionText text: String? = null, @ActionDescription description: String? = null, icon: Icon? = null) :
+  AnAction(text, description, icon) {
   /** The [StringResourceViewPanel] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.panel: StringResourceViewPanel
     get() {
-      return (getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor)?.panel ?:
-          throw AssertionError("Action is called outside of an editor context")
+      return (getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor)?.panel
+        ?: throw AssertionError("Action is called outside of an editor context")
     }
+
   /** The non-`null` [Project] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.requiredProject: Project
     get() = project ?: throw AssertionError("Action is called outside of a project context")
 
   private fun AnActionEvent.hasRequiredData(): Boolean =
-      (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)
+    (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   final override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.hasRequiredData() && doUpdate(e)
   }
 
   /**
-   * Handles action-specific [AnAction.update(AnActionEvent)] functionality. Only called if the
-   * [AnActionEvent] has a valid `panel` and `requiredProject`.
+   * Handles action-specific [AnAction.update(AnActionEvent)] functionality. Only called if the [AnActionEvent] has a valid `panel` and
+   * `requiredProject`.
    *
    * @return whether the action should be enabled
    */

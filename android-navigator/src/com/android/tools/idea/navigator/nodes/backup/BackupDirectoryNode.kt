@@ -26,14 +26,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.collections.immutable.toImmutableList
 
-/**
- * A group node in the Android Project View for a directory that contains back files
- */
-internal open class BackupDirectoryNode internal constructor(
-  project: Project,
-  private val dirName: String,
-  settings: ViewSettings
-) : ProjectViewNode<String>(project, dirName, settings), DirectoryNode {
+/** A group node in the Android Project View for a directory that contains back files */
+internal open class BackupDirectoryNode internal constructor(project: Project, private val dirName: String, settings: ViewSettings) :
+  ProjectViewNode<String>(project, dirName, settings), DirectoryNode {
 
   private val children = mutableListOf<AbstractTreeNode<*>>()
 
@@ -45,8 +40,7 @@ internal open class BackupDirectoryNode internal constructor(
     return true
   }
 
-  @Suppress("UnstableApiUsage")
-  override fun getSortOrder(settings: NodeSortSettings) = NodeSortOrder.FOLDER
+  @Suppress("UnstableApiUsage") override fun getSortOrder(settings: NodeSortSettings) = NodeSortOrder.FOLDER
 
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     return children.toImmutableList()

@@ -42,11 +42,8 @@ import javax.swing.event.PopupMenuEvent
  *
  * Uses Intellij's implementation for the popup to support speed search.
  */
-internal class PsiPropertyDropDown(
-  model: PsiDropDownModel,
-  context: EditorContext,
-  listCellRenderer: ListCellRenderer<EnumValue>,
-) : JPanel(BorderLayout()) {
+internal class PsiPropertyDropDown(model: PsiDropDownModel, context: EditorContext, listCellRenderer: ListCellRenderer<EnumValue>) :
+  JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, context, listCellRenderer)
 
   init {
@@ -59,44 +56,26 @@ internal class PsiPropertyDropDown(
   @TestOnly fun getSelectedItemForTest() = comboBox.selectedItem as EnumValue
 }
 
-private class WrappedComboBox(
-  model: PsiDropDownModel,
-  context: EditorContext,
-  renderer: ListCellRenderer<EnumValue>,
-) : CommonComboBox<EnumValue, PsiDropDownModel>(model) {
+private class WrappedComboBox(model: PsiDropDownModel, context: EditorContext, renderer: ListCellRenderer<EnumValue>) :
+  CommonComboBox<EnumValue, PsiDropDownModel>(model) {
   private val textField = editor.editorComponent as CommonTextField<*>
   private var inSetup = false
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    @Suppress("UnstableApiUsage")
-    putClientProperty(
-      USE_LIVE_UPDATE_MODEL,
-      true,
-    ) // Ask Intellij's popup list model to update automatically
+    @Suppress("UnstableApiUsage") putClientProperty(USE_LIVE_UPDATE_MODEL, true) // Ask Intellij's popup list model to update automatically
     setRenderer(renderer)
     background = secondaryPanelBackground
     isSwingPopup = false // Use Intellij's popup component
-    preferredSize =
-      preferredSize // Make sure the size cannot be modified by layout managers, otherwise the popup
+    preferredSize = preferredSize // Make sure the size cannot be modified by layout managers, otherwise the popup
     // may close unexpectedly
     isOpaque = false
 
     // Register key stroke navigation for dropdowns
     unregisterKeyboardAction(KeyStrokes.ESCAPE) // Remove existing bindings
     registerActionKey(this::escape, KeyStrokes.ESCAPE, "escape", { wouldConsumeEscape() })
-    registerActionKey(
-      this::transferFocus,
-      KeyStrokes.TAB,
-      "tab",
-      condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
-    registerActionKey(
-      this::transferFocusBackward,
-      KeyStrokes.BACKTAB,
-      "backtab",
-      condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
+    registerActionKey(this::transferFocus, KeyStrokes.TAB, "tab", condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey(this::transferFocusBackward, KeyStrokes.BACKTAB, "backtab", condition = WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     // We consume the shift, otherwise the popup will show when backtab-ing
     registerActionKey(
@@ -107,11 +86,7 @@ private class WrappedComboBox(
     )
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
 
-    HelpSupportBinding.registerHelpKeyActions(
-      this,
-      { model.property },
-      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-    )
+    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, true)
     }

@@ -22,8 +22,7 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AdbDelegateUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 
-class AdbDelegateUsageTrackerImpl
-private constructor(session: AdbSession, private val sourceType: AdbDelegateUsageEvent.SourceType) :
+class AdbDelegateUsageTrackerImpl private constructor(session: AdbSession, private val sourceType: AdbDelegateUsageEvent.SourceType) :
   AdbDelegateUsageTracker {
   private val logger = adbLogger(session)
 
@@ -40,10 +39,7 @@ private constructor(session: AdbSession, private val sourceType: AdbDelegateUsag
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_DELEGATE_USAGE_EVENT)
         .setAdbDelegateUsageEvent(
-          AdbDelegateUsageEvent.newBuilder()
-            .setMethod(usageEventMethod)
-            .setSourceType(sourceType)
-            .setIsException(isException)
+          AdbDelegateUsageEvent.newBuilder().setMethod(usageEventMethod).setSourceType(sourceType).setIsException(isException)
         )
     )
   }

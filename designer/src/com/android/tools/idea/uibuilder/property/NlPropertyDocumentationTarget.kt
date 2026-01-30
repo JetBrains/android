@@ -38,9 +38,7 @@ class NlPropertyDocumentationTarget(
   override fun computePresentation(): TargetPresentation {
     val item = currentPropertyItem().blockingGet(100, TimeUnit.MILLISECONDS)
     val property = item?.asProperty()
-    return TargetPresentation.builder(property?.name ?: "")
-      .icon(property?.iconPresentation())
-      .presentation()
+    return TargetPresentation.builder(property?.name ?: "").icon(property?.iconPresentation()).presentation()
   }
 
   override fun createPointer(): Pointer<NlPropertyDocumentationTarget> = this
@@ -58,9 +56,7 @@ class NlPropertyDocumentationTarget(
           try {
             val item = currentPropertyItem().blockingGet(100, TimeUnit.MILLISECONDS)
             val property = item?.asProperty() ?: return null
-            return DocumentationResult.documentation(
-              HelpActions.createHelpText(property, allowEmptyDescription = true)
-            )
+            return DocumentationResult.documentation(HelpActions.createHelpText(property, allowEmptyDescription = true))
           } catch (ex: Exception) {
             return null
           }

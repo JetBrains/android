@@ -18,17 +18,13 @@ package com.android.tools.idea.gradle.model
 /**
  * Class representing the tested variants.
  *
- * This is currently used by the test modules, and contains the same pieces of information
- * as the ones used to define the tested application (and it's variant).
+ * This is currently used by the test modules, and contains the same pieces of information as the ones used to define the tested application
+ * (and it's variant).
  */
 interface IdeTestedTargetVariant {
-  /**
-   * Returns the Gradle path of the project that is being tested.
-   */
+  /** Returns the Gradle path of the project that is being tested. */
   val targetProjectPath: String
 
-  /**
-   * Returns the variant of the tested project.
-   */
+  /** Returns the variant of the tested project. */
   val targetVariant: String
 }

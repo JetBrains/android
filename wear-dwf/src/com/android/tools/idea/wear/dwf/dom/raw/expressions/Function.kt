@@ -22,8 +22,7 @@ import com.android.tools.wear.wff.WFFVersion
  * Represents a function that can be called in an expression.
  *
  * @see com.android.tools.idea.wear.dwf.WFFConstants.Functions
- * @see <a
- *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/arithmetic-expression#functions">Functions</a>
+ * @see <a href="https://developer.android.com/reference/wear-os/wff/common/attributes/arithmetic-expression#functions">Functions</a>
  */
 data class Function(val id: String, val requiredVersion: WFFVersion)
 

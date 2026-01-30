@@ -29,14 +29,14 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.NAVIGATION_UI_KTX
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig
+import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.*
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.MatchedStrategy
 import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.PluginInsertionStep
 import com.android.tools.idea.gradle.dependencies.PluginsHelper
-import com.android.tools.idea.gradle.dependencies.PluginInsertionConfig.*
+import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.android.model.android.android
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.DependencyManagementException
@@ -88,35 +88,32 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
     /**
-     * The KGP versions displayed on the dropdown come from [ConfigureDialogWithModulesAndVersion.VERSIONS_LIST_URL]
-     * response where the latest 20 rows are used. However, this class doesn't handle the case when the stdlib isn't
-     * added by default for versions < 1.4.0 since those will never end up being displayed
+     * The KGP versions displayed on the dropdown come from [ConfigureDialogWithModulesAndVersion.VERSIONS_LIST_URL] response where the
+     * latest 20 rows are used. However, this class doesn't handle the case when the stdlib isn't added by default for versions < 1.4.0
+     * since those will never end up being displayed
      * https://kotlinlang.org/docs/whatsnew14.html#dependency-on-the-standard-library-added-by-default
      */
     override fun getMinimumSupportedVersion() = "1.4.0"
 
-    private fun ChangedConfiguratorFiles.addAll(files:Set<PsiFile>) =
-        files.forEach { storeOriginalFileContent(it) }
+    private fun ChangedConfiguratorFiles.addAll(files: Set<PsiFile>) = files.forEach { storeOriginalFileContent(it) }
 
     private val insertionConfig: PluginInsertionConfig
 
     init {
         val steps = LinkedHashSet<PluginInsertionStep>()
-        steps.addAll(listOf(
-            BuildscriptClasspathWithVariableInsertionStep,
-            PluginBlockInsertionStep,
-            PluginManagementInsertionStep))
-        insertionConfig = PluginInsertionConfig(
-            steps,
-            MatchedStrategy.UPDATE_VERSION,
-            "kotlin_version",
-            true
-        )
+        steps.addAll(listOf(BuildscriptClasspathWithVariableInsertionStep, PluginBlockInsertionStep, PluginManagementInsertionStep))
+        insertionConfig = PluginInsertionConfig(steps, MatchedStrategy.UPDATE_VERSION, "kotlin_version", true)
     }
 
     // for all cases method is called for top level build.gradle and then for selected/all modules build.gradle
-    override fun addElementsToFiles(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
-                                    jvmTarget: String?, addVersion: Boolean, changedFiles: ChangedConfiguratorFiles) {
+    override fun addElementsToFiles(
+        file: PsiFile,
+        isTopLevelProjectFile: Boolean,
+        originalVersion: IdeKotlinVersion,
+        jvmTarget: String?,
+        addVersion: Boolean,
+        changedFiles: ChangedConfiguratorFiles,
+    ) {
         if (isTopLevelProjectFile) return
         val version = originalVersion.rawVersion // TODO(b/244338901): Migrate to IdeKotlinVersion.
         val module = ModuleUtil.findModuleForPsiElement(file) ?: return
@@ -127,48 +124,46 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         val pluginId = "org.jetbrains.kotlin.android"
         val classpathModule = "org.jetbrains.kotlin:kotlin-gradle-plugin"
         val helper = PluginsHelper.withModel(projectBuildModel)
-        val kotlinPluginAddedFiles = helper.addPluginOrClasspath(
-            pluginId,
-            classpathModule,
-            version,
-            listOf(moduleBuildModel),
-            classpathMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
-            config = insertionConfig
-        )
+        val kotlinPluginAddedFiles =
+            helper.addPluginOrClasspath(
+                pluginId,
+                classpathModule,
+                version,
+                listOf(moduleBuildModel),
+                classpathMatcher = GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, "$classpathModule:$version"),
+                config = insertionConfig,
+            )
         if (kotlinPluginAddedFiles.isNotEmpty()) {
             changedFiles.addAll(kotlinPluginAddedFiles)
 
             // handle an allprojects block if present.
-            projectBuildModel.projectBuildModel?.repositories()?.takeIf { it.psiElement != null }?.let {
-                helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) }
-            }
+            projectBuildModel.projectBuildModel
+                ?.repositories()
+                ?.takeIf { it.psiElement != null }
+                ?.let { helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) } }
         }
         if (file.project.isAndroidx()) {
             val ktxCoreVersion = IdeGoogleMavenRepository.findVersion(ANDROIDX_CORE_KTX.mavenGroupId, ANDROIDX_CORE_KTX.mavenArtifactId)
             val richVersion = ktxCoreVersion?.let { RichVersion.require(it) } ?: RichVersion.parse("+")
             (addDependency(projectBuildModel, moduleBuildModel, ANDROIDX_CORE_KTX, richVersion) +
-             addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
-                .let {
-                    changedFiles.addAll(it)
-                }
+                    addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, androidxKtxLibraryMap))
+                .let { changedFiles.addAll(it) }
         }
-        addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, nonAndroidxKtxLibraryMap).let {
-            changedFiles.addAll(it)
-        }
+        addKtxDependenciesFromMap(projectBuildModel, module, moduleBuildModel, nonAndroidxKtxLibraryMap).let { changedFiles.addAll(it) }
 
         LanguageLevel.parse(jvmTarget)?.let { languageLevel ->
             moduleBuildModel.android().kotlinOptions().jvmTarget().setLanguageLevel(languageLevel)
             moduleBuildModel.psiFile?.let { changedFiles.storeOriginalFileContent(it) }
         }
-        moduleBuildModel.repositories().takeIf { it.psiElement != null }?.let {
-            helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) }
-        }
-        projectBuildModel.projectSettingsModel?.dependencyResolutionManagement()?.repositories()
-            ?.takeIf { it.psiElement != null }?.let {
-                helper.addRepositoryFor(version, it)?.let { file ->
-                    changedFiles.storeOriginalFileContent(file)
-                }
-            }
+        moduleBuildModel
+            .repositories()
+            .takeIf { it.psiElement != null }
+            ?.let { helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) } }
+        projectBuildModel.projectSettingsModel
+            ?.dependencyResolutionManagement()
+            ?.repositories()
+            ?.takeIf { it.psiElement != null }
+            ?.let { helper.addRepositoryFor(version, it)?.let { file -> changedFiles.storeOriginalFileContent(file) } }
         projectBuildModel.applyChanges()
     }
 
@@ -192,19 +187,30 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return configuredModules
     }
 
-    private fun doConfigure(project: Project,
-                            modules: List<Module>,
-                            version: IdeKotlinVersion): Pair<NotificationMessageCollector, Set<Module>> {
+    private fun doConfigure(
+        project: Project,
+        modules: List<Module>,
+        version: IdeKotlinVersion,
+    ): Pair<NotificationMessageCollector, Set<Module>> {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val modulesAndJvmTargets = modules
-                .mapNotNull { module -> GradleAndroidModel.get(module)?.getTargetLanguageLevel()?.let {
-                    languageLevel -> module.name to languageLevel.toJavaVersion().toString() }
-                }
-                .toMap()
-            val configurationResult = configureWithVersion(project, modules, version, collector,
-                                                                         kotlinVersionsAndModules = emptyMap(),
-                                                                         modulesAndJvmTargets = modulesAndJvmTargets)
+            val modulesAndJvmTargets =
+                modules
+                    .mapNotNull { module ->
+                        GradleAndroidModel.get(module)?.getTargetLanguageLevel()?.let { languageLevel ->
+                            module.name to languageLevel.toJavaVersion().toString()
+                        }
+                    }
+                    .toMap()
+            val configurationResult =
+                configureWithVersion(
+                    project,
+                    modules,
+                    version,
+                    collector,
+                    kotlinVersionsAndModules = emptyMap(),
+                    modulesAndJvmTargets = modulesAndJvmTargets,
+                )
 
             val configuredModules = configurationResult.configuredModules
             val changedFiles = configurationResult.changedFiles
@@ -214,35 +220,40 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             }
             // Sync after changing build scripts
             project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED.toReason())
-            UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-                override fun undo() {
-                    project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
-                }
+            UndoManager.getInstance(project)
+                .undoableActionPerformed(
+                    object : BasicUndoableAction() {
+                        override fun undo() {
+                            project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+                        }
 
-                override fun redo() {
-                    project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
-                }
-            })
+                        override fun redo() {
+                            project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+                        }
+                    }
+                )
             Pair(collector, configuredModules)
         }
     }
 
     private fun addDependency(
-      projectBuildModel: ProjectBuildModel,
-      moduleBuildModel: GradleBuildModel,
-      id: GoogleMavenArtifactId,
-      version: RichVersion
+        projectBuildModel: ProjectBuildModel,
+        moduleBuildModel: GradleBuildModel,
+        id: GoogleMavenArtifactId,
+        version: RichVersion,
     ): Set<PsiFile> =
-      DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
-                                                                    ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version.toString()).compactNotation(),
-                                                                    moduleBuildModel)
+        DependenciesHelper.withModel(projectBuildModel)
+            .addDependency(
+                "implementation",
+                ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version.toString()).compactNotation(),
+                moduleBuildModel,
+            )
 
     // Return the Version of the resolved dependency if the module depends on it, and null otherwise.
     private fun getDependencyVersion(module: Module, id: GoogleMavenArtifactId): Version? {
         return try {
             (module.getModuleSystem() as? GradleModuleSystem)?.getResolvedDependency(id.getModule(), DependencyScopeType.MAIN)?.version
-        }
-        catch (e: DependencyManagementException) {
+        } catch (e: DependencyManagementException) {
             null
         }
     }
@@ -251,14 +262,12 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         projectBuildModel: ProjectBuildModel,
         module: Module,
         moduleBuildModel: GradleBuildModel,
-        libraryMap: Map<GoogleMavenArtifactId, GoogleMavenArtifactId>
+        libraryMap: Map<GoogleMavenArtifactId, GoogleMavenArtifactId>,
     ): Set<PsiFile> {
         val updatedFiles = mutableSetOf<PsiFile>()
         for ((library, ktxLibrary) in libraryMap) {
             getDependencyVersion(module, library)?.let {
-                updatedFiles.addAll(
-                  addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, RichVersion.require(it))
-                )
+                updatedFiles.addAll(addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, RichVersion.require(it)))
             }
         }
         return updatedFiles
@@ -268,12 +277,13 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         module: Module,
         feature: LanguageFeature,
         state: LanguageFeature.State,
-        forTests: Boolean
+        forTests: Boolean,
     ) {
-        val (enabledString, disabledString) = when (feature) {
-            LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
-            else -> "-XXLanguage:+${feature.name}" to "-XXLanguage:-${feature.name}"
-        }
+        val (enabledString, disabledString) =
+            when (feature) {
+                LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
+                else -> "-XXLanguage:+${feature.name}" to "-XXLanguage:-${feature.name}"
+            }
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
@@ -303,19 +313,13 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
-
     companion object {
         private const val NAME = "android-gradle"
 
         private const val KOTLIN_ANDROID = "kotlin-android"
 
-        private val nonAndroidxKtxLibraryMap = mapOf(
-            NAVIGATION_UI to NAVIGATION_UI_KTX,
-            NAVIGATION_FRAGMENT to NAVIGATION_FRAGMENT_KTX,
-        )
+        private val nonAndroidxKtxLibraryMap = mapOf(NAVIGATION_UI to NAVIGATION_UI_KTX, NAVIGATION_FRAGMENT to NAVIGATION_FRAGMENT_KTX)
 
-        private val androidxKtxLibraryMap = mapOf(
-            ANDROIDX_LIFECYCLE_EXTENSIONS to ANDROIDX_LIFECYCLE_VIEWMODEL_KTX,
-        )
+        private val androidxKtxLibraryMap = mapOf(ANDROIDX_LIFECYCLE_EXTENSIONS to ANDROIDX_LIFECYCLE_VIEWMODEL_KTX)
     }
 }

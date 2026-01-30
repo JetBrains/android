@@ -15,28 +15,22 @@
  */
 package com.android.tools.idea.gradle.model
 
-/**
- * A test suite source folder
- */
+/** A test suite source folder */
 interface IdeTestSuiteSource {
 
-  /**
-   * Supported source folders types.
-   */
-  enum class SourceType { ASSETS, HOST_JAR, TEST_APK }
+  /** Supported source folders types. */
+  enum class SourceType {
+    ASSETS,
+    HOST_JAR,
+    TEST_APK,
+  }
 
-  /**
-   * Source folder type.
-   */
+  /** Source folder type. */
   val type: SourceType
 
-  /**
-   * Source folder name
-   */
+  /** Source folder name */
   val name: String
 
-  /**
-   * Source folder abstraction.
-   */
+  /** Source folder abstraction. */
   val sourceProvider: IdeSourceProvider
 }

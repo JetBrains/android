@@ -32,10 +32,9 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 
 class AddToNewGraphActionTest : NavTestCase() {
   /**
-   * Reparent fragments 2 and 3 into a new nested navigation After the reparent: The action from
-   * fragment1 to fragment2 should point to the new navigation The exit action from fragment4 to
-   * fragment2 should also point to the new navigation The action from fragment2 to fragment3 should
-   * remain unchanged
+   * Reparent fragments 2 and 3 into a new nested navigation After the reparent: The action from fragment1 to fragment2 should point to the
+   * new navigation The exit action from fragment4 to fragment2 should also point to the new navigation The action from fragment2 to
+   * fragment3 should remain unchanged
    */
   fun testAddToNewGraphAction() {
     val model =
@@ -60,13 +59,7 @@ class AddToNewGraphActionTest : NavTestCase() {
 
       verifyNoMoreInteractions(tracker)
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
-      assertSameElements(
-        root.children.map { it.id },
-        "fragment1",
-        "fragment2",
-        "fragment3",
-        "navigation1",
-      )
+      assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
       val fragment2 = model.treeReader.find("fragment2")!!
       val fragment3 = model.treeReader.find("fragment3")!!
@@ -111,19 +104,11 @@ class AddToNewGraphActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.scene?.getSceneComponent("f1")?.setPosition(100, 200)
     surface.scene?.getSceneComponent("f2")?.setPosition(400, 500)
-    surface.selectionModel.setSelection(
-      listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!)
-    )
-    surface
-      .getSceneManager(model)
-      ?.save(
-        listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!)
-      )
+    surface.selectionModel.setSelection(listOf(model.treeReader.find("f1")!!, model.treeReader.find("f2")!!))
+    surface.getSceneManager(model)?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
 
     val action = AddToNewGraphAction()
-    action.actionPerformed(
-      TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
-    )
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     assertEquals(2, surface.scene?.root?.children?.size)
 

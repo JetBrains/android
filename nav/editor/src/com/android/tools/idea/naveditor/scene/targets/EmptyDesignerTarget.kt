@@ -48,11 +48,9 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
     @NavCoordinate b: Int,
   ): Boolean {
     @NavCoordinate val width = minOf(Coordinates.getAndroidDimension(surface, WIDTH), r - l)
-    @NavCoordinate
-    val height = minOf(Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight), b - t)
+    @NavCoordinate val height = minOf(Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight), b - t)
 
-    myLeft =
-      maxOf(((l + r - width) / 2), Coordinates.getAndroidDimension(surface, MIN_X_OFFSET)).toFloat()
+    myLeft = maxOf(((l + r - width) / 2), Coordinates.getAndroidDimension(surface, MIN_X_OFFSET)).toFloat()
     myTop = ((t + b - height) / 2).toFloat()
     myRight = myLeft + width
     myBottom = myTop + height
@@ -60,11 +58,7 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
     return false
   }
 
-  override fun addHit(
-    transform: SceneContext,
-    picker: ScenePicker.Writer,
-    @JdkConstants.InputEventMask modifiersEx: Int,
-  ) {
+  override fun addHit(transform: SceneContext, picker: ScenePicker.Writer, @JdkConstants.InputEventMask modifiersEx: Int) {
     picker.addRect(
       this,
       0,
@@ -84,7 +78,6 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
     val navActionManager = (surface.actionManager as? NavActionManager)
     val addDestinationMenuAction = navActionManager?.addDestinationMenu ?: return
-    ActionManager.getInstance()
-      .tryToExecute(addDestinationMenuAction, null, surface, "EmptyDesignerSurface", true)
+    ActionManager.getInstance().tryToExecute(addDestinationMenuAction, null, surface, "EmptyDesignerSurface", true)
   }
 }

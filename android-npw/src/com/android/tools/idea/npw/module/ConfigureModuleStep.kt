@@ -95,13 +95,11 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   // Indicates if the existing project uses Version Catalogs
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // Indicates if the new dependencies for the new module will be managed by Version Catalogs
-  private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> =
-    OptionalValueProperty()
+  private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration
   // language is not visible,
   // thus, build script is determined if the existing project has KTS usage
-  private val buildConfigurationLanguage:
-    OptionalValueProperty<BuildConfigurationLanguageForNewModule> =
+  private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguageForNewModule> =
     OptionalValueProperty(if (model.project.hasKtsUsage()) KTS else Groovy)
 
   private val disposable by lazy { parentDisposable ?: this }
@@ -120,25 +118,14 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     ValidatorPanel(disposable, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
-      registerValidator(
-        model.androidSdkInfo,
-        ApiVersionValidator(model.project.isAndroidx(), formFactor),
-      )
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
       registerKtsAgpVersionValidation(model)
       registerValidator(
         versionCatalogUse,
         createValidator {
           if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get())
-            return@createValidator Validator.Result(
-              INFO,
-              message("android.wizard.module.will.not.use.version.catalog"),
-            )
-          if (
-            it.isPresent &&
-              it.get() &&
-              versionCatalogUseForNewModule.get().isPresent &&
-              !versionCatalogUseForNewModule.value
-          ) {
+            return@createValidator Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
+          if (it.isPresent && it.get() && versionCatalogUseForNewModule.get().isPresent && !versionCatalogUseForNewModule.value) {
             // Meaning existing project uses Version Catalogs, but new module's dependencies are not
             // managed by Version Catalogs
             Validator.Result(INFO, message("android.wizard.module.will.not.use.version.catalog"))
@@ -148,8 +135,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 
       AndroidCoroutineScope(disposable).launch(Dispatchers.IO) {
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
-        val versionCatalogUseForNewModuleValue =
-          determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
+        val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
@@ -168,19 +154,12 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val moduleValidator = ModuleValidator(model.project)
 
   private val licenseAgreementStep =
-    LicenseAgreementStep(
-      LicenseAgreementModel(sdkManagerLocalPath),
-      { installLicenseRequests },
-      StudioWizardLayout.DEFAULT_BORDER_INSETS,
-    )
+    LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), { installLicenseRequests }, StudioWizardLayout.DEFAULT_BORDER_INSETS)
 
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
-    bindings.bindTwoWay(
-      SelectedItemProperty(buildConfigurationLanguageCombo),
-      buildConfigurationLanguage,
-    )
+    bindings.bindTwoWay(SelectedItemProperty(buildConfigurationLanguageCombo), buildConfigurationLanguage)
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)
@@ -190,9 +169,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       }
     bindings.bind(packageNameText, computedPackageName, isPackageNameSynced)
     bindings.bind(model.packageName, packageNameText)
-    listeners.listen(packageNameText) { value: String ->
-      isPackageNameSynced.set(value == computedPackageName.get())
-    }
+    listeners.listen(packageNameText) { value: String -> isPackageNameSynced.set(value == computedPackageName.get()) }
 
     val isModuleNameSynced: BoolProperty = BoolValueProperty(true)
 
@@ -200,19 +177,11 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     // Module name is generate from application name in case of Android Module (e.g. mobile, watch)
     // but in all other cases
     // a hardcoded name is used (e.g. "benchmark", "lib").
-    val defaultModuleName =
-      if (model.moduleName.isEmpty.get()) model.applicationName else model.moduleName
-    val computedModuleName =
-      UniqueModuleGradlePathWithParentExpression(
-        model.project,
-        defaultModuleName,
-        model.moduleParent,
-      )
+    val defaultModuleName = if (model.moduleName.isEmpty.get()) model.applicationName else model.moduleName
+    val computedModuleName = UniqueModuleGradlePathWithParentExpression(model.project, defaultModuleName, model.moduleParent)
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
-    listeners.listen(moduleNameText) { value: String ->
-      isModuleNameSynced.set(value == computedModuleName.get())
-    }
+    listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
@@ -231,25 +200,18 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     // TODO: The old version only loaded the list of version once, and kept everything on a static
     // field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
-    apiLevelCombo.init(
-      formFactor,
-      androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel).filterNot { it.isPreview },
-    )
+    apiLevelCombo.init(formFactor, androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel).filterNot { it.isPreview })
   }
 
   override fun onProceeding() {
     // Now that the module name was validated, update the model template
-    model.template.set(
-      GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get())
-    )
+    model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get()))
     model.useGradleKts.set(buildConfigurationLanguage.value == KTS)
 
     installRequests.clear()
     installLicenseRequests.clear()
 
-    installRequests.addAll(
-      androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value))
-    )
+    installRequests.addAll(androidVersionsInfo.loadInstallPackageList(listOf(model.androidSdkInfo.value)))
     installLicenseRequests.addAll(installRequests.map { it.remote!! })
 
     licenseAgreementStep.reload()
@@ -271,9 +233,7 @@ fun ValidatorPanel.registerKtsAgpVersionValidation(model: ProjectModelData) {
     model.agpVersionSelector,
     createValidator { version ->
       if (model.useGradleKts.get() && !version.willSelectAtLeast(minKtsAgpVersion))
-        Validator.Result.fromNullableMessage(
-          message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION)
-        )
+        Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
       else Validator.Result.OK
     },
     model.useGradleKts,

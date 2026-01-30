@@ -18,9 +18,7 @@ package com.android.tools.idea.profilers
 import com.android.tools.profilers.StudioProfilersView
 import com.intellij.openapi.Disposable
 
-/**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersView].
- */
+/** A tab in the Profiler tool window, wrapping a [StudioProfilersView]. */
 interface StudioProfilersTab : Disposable {
   val view: StudioProfilersView
 }

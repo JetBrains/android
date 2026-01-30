@@ -55,32 +55,17 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        """
           .trimIndent(),
       )
 
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
-          classIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
-          fieldIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
-          methodIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
+          classIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
+          fieldIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
+          methodIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
         )
       )
 
@@ -94,9 +79,9 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {}
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {}
+        """
           .trimIndent(),
       )
 
@@ -123,11 +108,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {
-        constructor(arg1: Int) {}
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {
+          constructor(arg1: Int) {}
+        }
+        """
           .trimIndent(),
       )
 
@@ -137,11 +122,7 @@ class DaggerDataIndexerTest {
           methodIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (
-                  wrapper.getIsConstructor() &&
-                    wrapper.getSimpleName() == "CoffeeMaker" &&
-                    wrapper.getParameters().size == 1
-                )
+                if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker" && wrapper.getParameters().size == 1)
                   indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
@@ -158,11 +139,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {
-        fun foo() {}
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {
+          fun foo() {}
+        }
+        """
           .trimIndent(),
       )
 
@@ -172,8 +153,7 @@ class DaggerDataIndexerTest {
           methodIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
-                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
         )
@@ -189,10 +169,10 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
+        package com.example // comment with 'dagger' to ensure indexer runs
 
-      fun foo() {}
-      """
+        fun foo() {}
+        """
           .trimIndent(),
       )
 
@@ -202,8 +182,7 @@ class DaggerDataIndexerTest {
           methodIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
-                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
         )
@@ -219,11 +198,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {
-        val foo: Int = 0
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {
+          val foo: Int = 0
+        }
+        """
           .trimIndent(),
       )
 
@@ -233,8 +212,7 @@ class DaggerDataIndexerTest {
           fieldIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (wrapper.getSimpleName() == "foo")
-                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+                if (wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
         )
@@ -250,11 +228,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker {
-        class CoffeeFilter
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker {
+          class CoffeeFilter
+        }
+        """
           .trimIndent(),
       )
 
@@ -265,8 +243,7 @@ class DaggerDataIndexerTest {
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
                 when (wrapper.getClassId()) {
-                  ClassId.fromString("com/example/CoffeeMaker") ->
-                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  ClassId.fromString("com/example/CoffeeMaker") -> indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
                   ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
@@ -286,11 +263,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      interface CoffeeMaker {
-        interface CoffeeFilter
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        interface CoffeeMaker {
+          interface CoffeeFilter
+        }
+        """
           .trimIndent(),
       )
 
@@ -301,8 +278,7 @@ class DaggerDataIndexerTest {
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
                 when (wrapper.getClassId()) {
-                  ClassId.fromString("com/example/CoffeeMaker") ->
-                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  ClassId.fromString("com/example/CoffeeMaker") -> indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
                   ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
@@ -322,11 +298,11 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // comment with 'dagger' to ensure indexer runs
-      object CoffeeMaker {
-        object CoffeeFilter
-      }
-      """
+        package com.example // comment with 'dagger' to ensure indexer runs
+        object CoffeeMaker {
+          object CoffeeFilter
+        }
+        """
           .trimIndent(),
       )
 
@@ -337,8 +313,7 @@ class DaggerDataIndexerTest {
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
                 when (wrapper.getClassId()) {
-                  ClassId.fromString("com/example/CoffeeMaker") ->
-                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  ClassId.fromString("com/example/CoffeeMaker") -> indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
                   ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
@@ -358,9 +333,9 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // dagger
-      class Foo
-      """
+        package com.example // dagger
+        class Foo
+        """
           .trimIndent(),
       )
 
@@ -369,9 +344,9 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example // inject
-      class Foo
-      """
+        package com.example // inject
+        class Foo
+        """
           .trimIndent(),
       )
 
@@ -380,21 +355,16 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      class Foo
-      """
+        package com.example
+        class Foo
+        """
           .trimIndent(),
       )
 
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
-          classIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            )
+          classIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) })
         )
       )
 
@@ -410,32 +380,17 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // comment with 'dagger' to ensure indexer runs
-      """
+        package com.example; // comment with 'dagger' to ensure indexer runs
+        """
           .trimIndent(),
       )
 
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
-          classIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
-          fieldIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
-          methodIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            ),
+          classIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
+          fieldIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
+          methodIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
         )
       )
 
@@ -449,11 +404,11 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker {
-        public CoffeeMaker() {}
-      }
-      """
+        package com.example; // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker {
+          public CoffeeMaker() {}
+        }
+        """
           .trimIndent(),
       )
 
@@ -480,11 +435,11 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {
-        public void foo() {}
-      }
-      """
+        package com.example; // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {
+          public void foo() {}
+        }
+        """
           .trimIndent(),
       )
 
@@ -494,8 +449,7 @@ class DaggerDataIndexerTest {
           methodIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
-                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
         )
@@ -511,11 +465,11 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // comment with 'dagger' to ensure indexer runs
-      class CoffeeMaker() {
-        public int foo;
-      }
-      """
+        package com.example; // comment with 'dagger' to ensure indexer runs
+        class CoffeeMaker() {
+          public int foo;
+        }
+        """
           .trimIndent(),
       )
 
@@ -525,8 +479,7 @@ class DaggerDataIndexerTest {
           fieldIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (wrapper.getSimpleName() == "foo")
-                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+                if (wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
               }
             )
         )
@@ -542,13 +495,13 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // comment with 'dagger' to ensure indexer runs
-      public class CoffeeMaker {
-        public void foo() {}
+        package com.example; // comment with 'dagger' to ensure indexer runs
+        public class CoffeeMaker {
+          public void foo() {}
 
-        public class CoffeeFilter {}
-      }
-      """
+          public class CoffeeFilter {}
+        }
+        """
           .trimIndent(),
       )
 
@@ -559,8 +512,7 @@ class DaggerDataIndexerTest {
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
                 when (wrapper.getClassId()) {
-                  ClassId.fromString("com/example/CoffeeMaker") ->
-                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  ClassId.fromString("com/example/CoffeeMaker") -> indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
                   ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
@@ -580,9 +532,9 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // dagger
-      class Foo {}
-      """
+        package com.example; // dagger
+        class Foo {}
+        """
           .trimIndent(),
       )
 
@@ -591,9 +543,9 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example; // inject
-      class Foo {}
-      """
+        package com.example; // inject
+        class Foo {}
+        """
           .trimIndent(),
       )
 
@@ -602,21 +554,16 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      class Foo {}
-      """
+        package com.example;
+        class Foo {}
+        """
           .trimIndent(),
       )
 
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
-          classIndexers =
-            listOf(
-              DaggerConceptIndexer { _, indexEntries ->
-                indexEntries["found"] = mutableSetOf(fakeIndexValue)
-              }
-            )
+          classIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) })
         )
       )
 

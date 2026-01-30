@@ -48,8 +48,7 @@ import org.junit.Test
 @RunsInEdt
 class ExtractVariableWorkerTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private fun doTestExtractVariable(resolvedProject: Project) {
 
@@ -64,40 +63,54 @@ class ExtractVariableWorkerTest {
       assertThat(newProperty.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
 
       worker.commit("compileSdkVersion")
-      assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
-                                                DslText.Reference("compileSdkVersion"))
-                                                           .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("compileSdkVersion").value,
-                 equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>()))
+      assertThat(
+        compileSdkVersion.getParsedValue(),
+        equalTo(
+          ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk, DslText.Reference("compileSdkVersion"))
+            .annotated()
+        ),
+      )
+      assertThat(
+        appModule.variables.getOrCreateVariable("compileSdkVersion").value,
+        equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>()),
+      )
     }
 
     run {
       val worker = ExtractVariableWorker(compileSdkVersion)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
-      assertThat(newName, equalTo("compileSdkVersion1"))   // The second suggested name is the preferredName + "1".
-      assertThat(newProperty.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
-                                                DslText.Reference("compileSdkVersion"))
-                                                           .annotated()))
+      assertThat(newName, equalTo("compileSdkVersion1")) // The second suggested name is the preferredName + "1".
+      assertThat(
+        newProperty.getParsedValue(),
+        equalTo(
+          ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk, DslText.Reference("compileSdkVersion"))
+            .annotated()
+        ),
+      )
 
       worker.commit("otherName")
-      assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
-                                                DslText.Reference("otherName"))
-                                                           .annotated()))
-      assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo(
-                   ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt(), DslText.Reference("compileSdkVersion"))))
+      assertThat(
+        compileSdkVersion.getParsedValue(),
+        equalTo(
+          ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk, DslText.Reference("otherName")).annotated()
+        ),
+      )
+      assertThat(
+        appModule.variables.getOrCreateVariable("otherName").value,
+        equalTo(
+          ParsedValue.Set.Parsed(
+            AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt(),
+            DslText.Reference("compileSdkVersion"),
+          )
+        ),
+      )
     }
   }
 
   @Test
   fun testExtractVariableGroovy() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
-    preparedProject.open { resolvedProject ->
-      doTestExtractVariable(resolvedProject)
-    }
+    preparedProject.open { resolvedProject -> doTestExtractVariable(resolvedProject) }
   }
 
   @Test
@@ -120,29 +133,31 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(compileSdkVersion)
         val (newName, newProperty) = worker.changeScope(appModule.variables, "")
         assertThat(newName, equalTo("compileSdkVersion"))
-        assertThat(newProperty.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
-
+        assertThat(
+          newProperty.getParsedValue(),
+          equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()),
+        )
 
         val (newName2, newProperty2) = worker.changeScope(project.variables, "renamedName")
         assertThat(newName2, equalTo("renamedName"))
-        assertThat(newProperty2.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
+        assertThat(
+          newProperty2.getParsedValue(),
+          equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()),
+        )
 
         worker.commit("renamedName")
         assertThat(
           compileSdkVersion.getParsedValue(),
           equalTo(
-            ParsedValue.Set.Parsed(
-              AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
-              DslText.Reference("renamedName")
-            )
+            ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk, DslText.Reference("renamedName"))
               .annotated()
-          )
+          ),
         )
         assertThat(appModule.variables.getVariable("renamedName"), nullValue())
 
         assertThat(
           project.variables.getOrCreateVariable("renamedName").value,
-          equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>())
+          equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>()),
         )
       }
     }
@@ -203,16 +218,10 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(junitVersion)
         val (newName, newProperty) = worker.changeScope(appModule.variables, "")
         assertThat(newName, equalTo("junitVersion"))
-        assertThat(
-          newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated())
-        )
+        assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
         worker.commit("junitVersion")
 
-        assertThat(
-          appModule.variables.getOrCreateVariable("junitVersion").value,
-          equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal))
-        )
+        assertThat(appModule.variables.getOrCreateVariable("junitVersion").value, equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
       }
 
       run {
@@ -220,15 +229,12 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(mockitoVersion)
         val (newName, newProperty) = worker.changeScope(appModule.variables, "")
         assertThat(newName, equalTo("mockitoCoreVersion"))
-        assertThat(
-          newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal).annotated())
-        )
+        assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal).annotated()))
         worker.commit("mockitoCoreVersion")
 
         assertThat(
           appModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal))
+          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal)),
         )
       }
     }
@@ -251,16 +257,10 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(junitVersion)
         val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
         assertThat(newName, equalTo("junitVersion"))
-        assertThat(
-          newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated())
-        )
+        assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
         worker.commit("junitVersion")
 
-        assertThat(
-          javaModule.variables.getOrCreateVariable("junitVersion").value,
-          equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal))
-        )
+        assertThat(javaModule.variables.getOrCreateVariable("junitVersion").value, equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
       }
 
       run {
@@ -268,15 +268,12 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(mockitoVersion)
         val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
         assertThat(newName, equalTo("mockitoCoreVersion"))
-        assertThat(
-          newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal).annotated())
-        )
+        assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal).annotated()))
         worker.commit("mockitoCoreVersion")
 
         assertThat(
           javaModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal))
+          equalTo(ParsedValue.Set.Parsed("5.12.0", DslText.Literal)),
         )
       }
     }
@@ -336,9 +333,8 @@ class ExtractVariableWorkerTest {
         checkPreferredName(multiDexEnabled, "releaseMultiDexEnabled")
       }
       run {
-        val multiDexEnabled = PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.bind(
-          appModule.productFlavors.find { it.name == "bar" }!!
-        )
+        val multiDexEnabled =
+          PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.bind(appModule.productFlavors.find { it.name == "bar" }!!)
         checkPreferredName(multiDexEnabled, "barMultiDexEnabled")
       }
 

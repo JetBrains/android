@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AccessibilityViewScrollActionsDetector
 
 class AndroidLintAccessibilityScrollActionsInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.accessibility.scroll.actions"),
-    AccessibilityViewScrollActionsDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.accessibility.scroll.actions"), AccessibilityViewScrollActionsDetector.ISSUE)

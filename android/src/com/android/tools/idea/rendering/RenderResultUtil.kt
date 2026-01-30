@@ -18,28 +18,23 @@ package com.android.tools.idea.rendering
 import com.android.tools.rendering.RenderResult
 import java.util.concurrent.CancellationException
 
-/**
- * Extension implementing some heuristics to detect custom View rendering errors. This allows to
- * identify render errors better.
- */
+/** Extension implementing some heuristics to detect custom View rendering errors. This allows to identify render errors better. */
 fun RenderResult?.isErrorResult(): Boolean =
   this != null // If there is not result, we have no errors.
-  && (!renderResult.isSuccess
-      || (logger.hasErrors() && renderResult.exception !is CancellationException))
+  && (!renderResult.isSuccess || (logger.hasErrors() && renderResult.exception !is CancellationException))
 
-fun RenderResult?.isCancellationException(): Boolean =
-  this != null && renderResult.exception is CancellationException
+fun RenderResult?.isCancellationException(): Boolean = this != null && renderResult.exception is CancellationException
 
 fun RenderResult?.isSuccess(): Boolean = this?.renderResult?.isSuccess == true
 
 /**
- * Extension implementing some heuristics to detect custom View rendering errors. This allows to
- * identify render errors better.
+ * Extension implementing some heuristics to detect custom View rendering errors. This allows to identify render errors better.
+ *
  * @param customViewFqcn
  */
 fun RenderResult?.isErrorResult(customViewFqcn: String): Boolean {
-  return isErrorResult() || this?.logger?.brokenClasses?.values?.any {
-    it is ReflectiveOperationException &&
-    it.stackTrace.any { ex -> customViewFqcn == ex.className }
-  } ?: true
+  return isErrorResult() ||
+    this?.logger?.brokenClasses?.values?.any {
+      it is ReflectiveOperationException && it.stackTrace.any { ex -> customViewFqcn == ex.className }
+    } ?: true
 }

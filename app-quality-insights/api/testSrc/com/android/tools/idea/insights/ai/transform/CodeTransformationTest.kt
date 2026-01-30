@@ -34,30 +34,21 @@ class CodeTransformationTest {
 
   @Test
   fun `applying a transformation with no target files throws IllegalStateException`() {
-    assertThrows(IllegalStateException::class.java) {
-      CodeTransformationImpl(projectRule.project, "", emptyList()).apply()
-    }
+    assertThrows(IllegalStateException::class.java) { CodeTransformationImpl(projectRule.project, "", emptyList()).apply() }
   }
 
   @Test
   fun `applying a transformation with no FixSuggester EP throws IllegalStateException`() {
-    assertThrows(IllegalStateException::class.java) {
-      CodeTransformationImpl(projectRule.project, "", listOf(mock<VirtualFile>())).apply()
-    }
+    assertThrows(IllegalStateException::class.java) { CodeTransformationImpl(projectRule.project, "", listOf(mock<VirtualFile>())).apply() }
   }
 
   @Test
   fun `apply calls FixSuggester EP`() {
     val fixSuggester = mock<FixSuggester>()
     val file = mock<VirtualFile>()
-    ExtensionTestUtil.maskExtensions(
-      FixSuggester.EP_NAME,
-      listOf(fixSuggester),
-      projectRule.disposable,
-    )
+    ExtensionTestUtil.maskExtensions(FixSuggester.EP_NAME, listOf(fixSuggester), projectRule.disposable)
 
     CodeTransformationImpl(projectRule.project, "Rename variable a to b", listOf(file)).apply()
-    verify(fixSuggester)
-      .suggestFix(eq(projectRule.project), eq("Rename variable a to b"), eq(listOf(file)), any())
+    verify(fixSuggester).suggestFix(eq(projectRule.project), eq("Rename variable a to b"), eq(listOf(file)), any())
   }
 }

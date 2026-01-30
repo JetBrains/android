@@ -33,10 +33,8 @@ data class GlancePreviewElement<T>(
   override val hasAnimations: Boolean = false,
   override val instanceId: String = methodFqn,
 ) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
-  override fun createDerivedInstance(
-    displaySettings: PreviewDisplaySettings,
-    config: PreviewConfiguration,
-  ) = copy(displaySettings = displaySettings, configuration = config)
+  override fun createDerivedInstance(displaySettings: PreviewDisplaySettings, config: PreviewConfiguration) =
+    copy(displaySettings = displaySettings, configuration = config)
 }
 
 typealias PsiGlancePreviewElement = GlancePreviewElement<SmartPsiElementPointer<PsiElement>>

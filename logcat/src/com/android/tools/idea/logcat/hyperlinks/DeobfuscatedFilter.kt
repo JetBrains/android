@@ -45,8 +45,7 @@ internal class DeobfuscatedFilter(private val editor: EditorEx) : Filter, DumbAw
     override fun navigate(project: Project) {
       val offset = editor.caretModel.offset
       editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-        val message =
-          it.getUserData(LOGCAT_MESSAGE_KEY) ?: return@processRangeMarkersOverlappingWith true
+        val message = it.getUserData(LOGCAT_MESSAGE_KEY) ?: return@processRangeMarkersOverlappingWith true
         val title = LogcatBundle.message("logcat.proguard.original.trace.dialog.title")
         val header = LogcatBundle.message("logcat.proguard.original.trace.dialog.header")
         val text = message.message.replace("r8-map-id-.*:".toRegex(), "SourceFile:")

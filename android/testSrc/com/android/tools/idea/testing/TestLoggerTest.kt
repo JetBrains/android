@@ -21,17 +21,15 @@ import com.intellij.openapi.diagnostic.awaitLogQueueProcessed
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestLoggerFactory
-import org.junit.ClassRule
-import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.readText
+import org.junit.ClassRule
+import org.junit.Test
 
 class TestLoggerTest {
   companion object {
-    @JvmStatic
-    @get:ClassRule
-    val appRule = ApplicationRule()
+    @JvmStatic @get:ClassRule val appRule = ApplicationRule()
   }
 
   @Test

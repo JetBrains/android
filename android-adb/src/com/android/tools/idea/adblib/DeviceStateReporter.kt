@@ -50,10 +50,8 @@ class DeviceStateReporter : ProjectActivity {
       val lastOnlineByDeviceSerial = mutableMapOf<String, Long>()
       val previousStateByDeviceSerial = mutableMapOf<String, DeviceState>()
 
-      session.deviceInfoChangeFlow(AdbUsageTracker.DeviceInfo::createFrom).collect {
-        (deviceState, deviceSerial, calculationResult) ->
-        var timeSinceLastOnlineNs =
-          lastOnlineByDeviceSerial[deviceSerial]?.let { timeProvider.nanoTime() - it }
+      session.deviceInfoChangeFlow(AdbUsageTracker.DeviceInfo::createFrom).collect { (deviceState, deviceSerial, calculationResult) ->
+        var timeSinceLastOnlineNs = lastOnlineByDeviceSerial[deviceSerial]?.let { timeProvider.nanoTime() - it }
 
         val previousDeviceState = previousStateByDeviceSerial[deviceSerial]
         // Device goes offline (i.e. stops being online)
@@ -90,26 +88,18 @@ class DeviceStateReporter : ProjectActivity {
     }
   }
 
-  private data class DeviceStateChange<T>(
-    val deviceState: DeviceState,
-    val deviceSerial: String,
-    val calculationResult: T?,
-  )
+  private data class DeviceStateChange<T>(val deviceState: DeviceState, val deviceSerial: String, val calculationResult: T?)
 
   /**
-   * This flow can be used to keep track of the connected devices and their state transitions such
-   * as devices coming online and eventually disconnecting.
+   * This flow can be used to keep track of the connected devices and their state transitions such as devices coming online and eventually
+   * disconnecting.
    *
-   * @param calculation calculate additional data. Caches it when the data is calculated for the
-   *   device that is in ONLINE state (this is done because some properties are available only when
-   *   the device goes online, and we want the result of this calculation to be available even when
-   *   the device goes offline)
+   * @param calculation calculate additional data. Caches it when the data is calculated for the device that is in ONLINE state (this is
+   *   done because some properties are available only when the device goes online, and we want the result of this calculation to be
+   *   available even when the device goes offline)
    */
-  private fun <T> AdbSession.deviceInfoChangeFlow(
-    calculation: suspend (ConnectedDevice) -> T
-  ): Flow<DeviceStateChange<T>> = channelFlow {
-    val allConnectedDevices: MutableSet<ConnectedDevice> =
-      Collections.newSetFromMap(IdentityHashMap())
+  private fun <T> AdbSession.deviceInfoChangeFlow(calculation: suspend (ConnectedDevice) -> T): Flow<DeviceStateChange<T>> = channelFlow {
+    val allConnectedDevices: MutableSet<ConnectedDevice> = Collections.newSetFromMap(IdentityHashMap())
     val deviceInfoTrackingJobs = IdentityHashMap<ConnectedDevice, Job>()
     val whenOnlineCalculationCache = ConcurrentHashMap<ConnectedDevice, T>()
     connectedDevicesTracker.connectedDevices.collect { value ->
@@ -123,20 +113,12 @@ class DeviceStateReporter : ProjectActivity {
         allConnectedDevices.removeAll(removedDevices)
         for (removedDevice in removedDevices) {
           deviceInfoTrackingJobs.remove(removedDevice)?.also {
-            it.cancel(
-              "Cancelling DeviceInfo tracking for removed device [${removedDevice.serialNumber}]"
-            )
+            it.cancel("Cancelling DeviceInfo tracking for removed device [${removedDevice.serialNumber}]")
             it.join()
             // DISCONNECTED value is emitted from here rather than from `deviceInfoFlow` collector
             // since cancelling the `deviceInfoTrackingJob` sometimes results in DISCONNECTED value
             // being skipped.
-            send(
-              DeviceStateChange(
-                DeviceState.DISCONNECTED,
-                removedDevice.serialNumber,
-                whenOnlineCalculationCache[removedDevice],
-              )
-            )
+            send(DeviceStateChange(DeviceState.DISCONNECTED, removedDevice.serialNumber, whenOnlineCalculationCache[removedDevice]))
             whenOnlineCalculationCache.remove(removedDevice)
           }
         }
@@ -151,16 +133,11 @@ class DeviceStateReporter : ProjectActivity {
                 // the result (also storing it in the cache if the device is online)
                 val cachedValue =
                   if (addedConnectedDevice.isOnline) {
-                    whenOnlineCalculationCache.getOrPut(addedConnectedDevice) {
-                      calculation(addedConnectedDevice)
-                    }
+                    whenOnlineCalculationCache.getOrPut(addedConnectedDevice) { calculation(addedConnectedDevice) }
                   } else {
-                    whenOnlineCalculationCache[addedConnectedDevice]
-                      ?: calculation(addedConnectedDevice)
+                    whenOnlineCalculationCache[addedConnectedDevice] ?: calculation(addedConnectedDevice)
                   }
-                send(
-                  DeviceStateChange(deviceInfo.deviceState, deviceInfo.serialNumber, cachedValue)
-                )
+                send(DeviceStateChange(deviceInfo.deviceState, deviceInfo.serialNumber, cachedValue))
               }
           }
         }

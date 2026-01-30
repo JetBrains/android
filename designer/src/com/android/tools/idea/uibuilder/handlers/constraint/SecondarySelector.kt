@@ -18,10 +18,9 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.tools.idea.common.model.NlComponent
 
 /**
- * Represents one of the constraints of the given [component]. This class is used to for example
- * indicate which constraint is being highlighted on hover or selected. The components are
- * considered Primary while the constraints are considered Secondary (as they link primary
- * components).
+ * Represents one of the constraints of the given [component]. This class is used to for example indicate which constraint is being
+ * highlighted on hover or selected. The components are considered Primary while the constraints are considered Secondary (as they link
+ * primary components).
  */
 data class SecondarySelector(val component: NlComponent, val constraint: Constraint) {
   enum class Constraint {

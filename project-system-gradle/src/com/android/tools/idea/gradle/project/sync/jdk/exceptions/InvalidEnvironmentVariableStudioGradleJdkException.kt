@@ -30,14 +30,13 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
  * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with [JDK_LOCATION_ENV_VARIABLE_NAME] macro
  * and this system environment variable isn't defined, invalid or corrupted.
  */
-class InvalidEnvironmentVariableStudioGradleJdkException(
-  project: Project,
-  gradleRootPath: @SystemIndependent String,
-): GradleJdkException(project, gradleRootPath) {
+class InvalidEnvironmentVariableStudioGradleJdkException(project: Project, gradleRootPath: @SystemIndependent String) :
+  GradleJdkException(project, gradleRootPath) {
 
   override val cause: InvalidGradleJdkCause
     get() {
       val environmentVariablePath = IdeSdks.getInstance().envVariableJdkValue?.let { Path(it) }
-      return if (environmentVariablePath == null) UndefinedEnvironmentVariableStudioGradleJdk else InvalidEnvironmentVariableStudioGradleJdk(environmentVariablePath)
+      return if (environmentVariablePath == null) UndefinedEnvironmentVariableStudioGradleJdk
+      else InvalidEnvironmentVariableStudioGradleJdk(environmentVariablePath)
     }
 }

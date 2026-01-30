@@ -35,15 +35,13 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.concurrency.ThreadingAssertions
 
-const val SPLITTER_KEY =
-  "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
+const val SPLITTER_KEY = "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
 
 private const val DEFAULT_WINDOW_WIDTH = 800
 
 /**
- * Object used to track tabs that have Layout Inspector enabled across multiple projects. Layout
- * Inspector should be enabled only once for each tab, across projects. Multiple projects connecting
- * to the same process is not a supported use case by Layout Inspector.
+ * Object used to track tabs that have Layout Inspector enabled across multiple projects. Layout Inspector should be enabled only once for
+ * each tab, across projects. Multiple projects connecting to the same process is not a supported use case by Layout Inspector.
  */
 object LayoutInspectorManagerGlobalState {
   val tabsWithLayoutInspector = mutableSetOf<DeviceId>()
@@ -130,10 +128,7 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       value.layoutInspector.deviceModel?.forcedDeviceSerialNumber = value.deviceId.serialNumber
       value.layoutInspector.foregroundProcessDetection?.start(value.deviceId.serialNumber)
 
-      val selectedDevice =
-        value.layoutInspector.deviceModel?.devices?.find {
-          it.serial == value.deviceId.serialNumber
-        }
+      val selectedDevice = value.layoutInspector.deviceModel?.devices?.find { it.serial == value.deviceId.serialNumber }
       // the device might not be available yet in app inspection
       if (selectedDevice != null) {
         // start polling
@@ -148,9 +143,7 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
       value.enableLayoutInspector()
     }
 
-  /**
-   * The list of tabs currently open in Running Devices, with or without Layout Inspector enabled.
-   */
+  /** The list of tabs currently open in Running Devices, with or without Layout Inspector enabled. */
   private var existingRunningDevicesTabs: List<DeviceId> = emptyList()
 
   init {
@@ -205,14 +198,11 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
 
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
     ThreadingAssertions.assertEventDispatchThread()
-    val selectedTabContent =
-      RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
+    val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
 
     val streamingDevicePanel = checkNotNull(selectedTabContent?.component)
 
-    val selectedTabDataProvider =
-      DataManager.getInstance()
-        .customizeDataContext(DataContext.EMPTY_CONTEXT, streamingDevicePanel)
+    val selectedTabDataProvider = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, streamingDevicePanel)
 
     val streamingContentPanel = STREAMING_CONTENT_PANEL_KEY.getData(selectedTabDataProvider)
 
@@ -239,13 +229,10 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (enable) {
-      val toolWindow =
-        ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-          as? ToolWindowEx
+      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) as? ToolWindowEx
       toolWindow?.let {
         // When Running Devices tabs are in split mode, there can be multiple components.
-        val currentWidth =
-          toolWindow.contentManager.contentsRecursively.maxOfOrNull { it.component.width }
+        val currentWidth = toolWindow.contentManager.contentsRecursively.maxOfOrNull { it.component.width }
         val desiredWidth = JBUIScale.scale(DEFAULT_WINDOW_WIDTH)
         // Resize only if the tool window is currently smaller than the desired width.
         if (currentWidth != null && currentWidth < desiredWidth) {
@@ -306,8 +293,8 @@ internal class LayoutInspectorManagerImpl(private val project: Project) : Layout
 }
 
 /**
- * Utility function to get [LayoutInspector] from a [Project] Call this only when LayoutInspector
- * needs to be used, see [LayoutInspectorProjectService.getLayoutInspector].
+ * Utility function to get [LayoutInspector] from a [Project] Call this only when LayoutInspector needs to be used, see
+ * [LayoutInspectorProjectService.getLayoutInspector].
  */
 private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService.getInstance(this).getLayoutInspector()

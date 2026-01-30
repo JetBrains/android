@@ -29,28 +29,21 @@ interface DaggerIndexFieldWrapper : DaggerIndexAnnotatedWrapper {
   fun getContainingClass(): DaggerIndexClassWrapper?
 }
 
-internal class KtPropertyWrapper(
-  private val ktProperty: KtProperty,
-  private val importHelper: KotlinImportHelper,
-) : DaggerIndexAnnotatedKotlinWrapper(ktProperty, importHelper), DaggerIndexFieldWrapper {
+internal class KtPropertyWrapper(private val ktProperty: KtProperty, private val importHelper: KotlinImportHelper) :
+  DaggerIndexAnnotatedKotlinWrapper(ktProperty, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = ktProperty.name!!
 
-  override fun getType(): DaggerIndexTypeWrapper? =
-    ktProperty.typeReference?.let { KtTypeReferenceWrapper(it, importHelper) }
+  override fun getType(): DaggerIndexTypeWrapper? = ktProperty.typeReference?.let { KtTypeReferenceWrapper(it, importHelper) }
 
   override fun getContainingClass(): DaggerIndexClassWrapper? =
     ktProperty.containingClassOrObject?.let { KtClassOrObjectWrapper(it, importHelper) }
 }
 
-internal class PsiFieldWrapper(
-  private val psiField: PsiField,
-  private val importHelper: JavaImportHelper,
-) : DaggerIndexAnnotatedJavaWrapper(psiField, importHelper), DaggerIndexFieldWrapper {
+internal class PsiFieldWrapper(private val psiField: PsiField, private val importHelper: JavaImportHelper) :
+  DaggerIndexAnnotatedJavaWrapper(psiField, importHelper), DaggerIndexFieldWrapper {
   override fun getSimpleName() = psiField.name
 
-  override fun getType(): DaggerIndexTypeWrapper? =
-    psiField.typeElement?.let { PsiTypeElementWrapper(it) }
+  override fun getType(): DaggerIndexTypeWrapper? = psiField.typeElement?.let { PsiTypeElementWrapper(it) }
 
-  override fun getContainingClass(): DaggerIndexClassWrapper? =
-    psiField.containingClass?.let { PsiClassWrapper(it, importHelper) }
+  override fun getContainingClass(): DaggerIndexClassWrapper? = psiField.containingClass?.let { PsiClassWrapper(it, importHelper) }
 }

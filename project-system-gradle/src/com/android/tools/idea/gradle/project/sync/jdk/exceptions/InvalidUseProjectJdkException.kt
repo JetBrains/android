@@ -23,13 +23,11 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 
 /**
- * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with [USE_PROJECT_JDK] macro
- * being this the default if not defined and the project JDK located under .idea/misc.xml file isn't defined or invalid
+ * A [GradleJdkException] when gradle root [GradleProjectSettings.getGradleJvm] is configured with [USE_PROJECT_JDK] macro being this the
+ * default if not defined and the project JDK located under .idea/misc.xml file isn't defined or invalid
  */
-class InvalidUseProjectJdkException(
-  project: Project,
-  gradleRootPath: @SystemIndependent String
-): GradleJdkException(project, gradleRootPath) {
+class InvalidUseProjectJdkException(project: Project, gradleRootPath: @SystemIndependent String) :
+  GradleJdkException(project, gradleRootPath) {
 
   override val cause = InvalidProjectJdk
 }

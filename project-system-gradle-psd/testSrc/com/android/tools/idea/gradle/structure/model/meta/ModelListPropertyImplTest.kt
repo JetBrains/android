@@ -36,24 +36,28 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
 
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = null
+
     override fun getParsed(model: Model): Model? = this
+
     override fun prepareForModification(model: Model) = Unit
+
     override fun setModified(model: Model) = Unit
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (String) -> Annotated<ParsedValue<T>>,
-    caster: ResolvedPropertyModel.() -> T?
+    caster: ResolvedPropertyModel.() -> T?,
   ): ModelListPropertyCore<T> {
     val resolved = resolve()
     return Model.listProperty(
-      "description",
-      resolvedValueGetter = { null },
-      parsedPropertyGetter = { resolved },
-      getter = { caster() },
-      setter = { setValue(it) },
-      parser = { value -> parse(value) }
-    ).bind(Model)
+        "description",
+        resolvedValueGetter = { null },
+        parsedPropertyGetter = { resolved },
+        getter = { caster() },
+        setter = { setValue(it) },
+        parser = { value -> parse(value) },
+      )
+      .bind(Model)
   }
 
   @Test
@@ -111,8 +115,7 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     assertThat(list.isModified, equalTo(true))
 
     fun verify(ext: ExtModel, expectModified: Boolean) {
-      editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
+      editableValues = ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propA = editableValues[0]
       val prop3 = editableValues[1]
       val prop3rd = editableValues[2]
@@ -155,13 +158,12 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     editableValues[3].testSetValue("E")
 
     list.addItem(4).also {
-      assertThat(it.isModified, equalTo(true))  // A newly inserted item is modified.
+      assertThat(it.isModified, equalTo(true)) // A newly inserted item is modified.
       it.testSetValue("ZZ")
     }
 
     fun verify(ext: ExtModel) {
-      editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
+      editableValues = ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val prop3 = editableValues[0]
       val prop3rd = editableValues[1]
       val propD = editableValues[2]
@@ -191,7 +193,7 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     list.deleteItem(2)
     var editableValues = list.getEditableValues()
 
-    //elements before and after deleted one are not modified
+    // elements before and after deleted one are not modified
     assertThat(editableValues[0].isModified, equalTo(false))
     assertThat(editableValues[3].isModified, equalTo(false))
 
@@ -203,11 +205,10 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     list.addItem(0).testSetValue("ZZ")
     editableValues = list.getEditableValues()
     assertThat(editableValues[0].isModified, equalTo(true))
-    assertThat(editableValues[4].isModified, equalTo(false)) //last element is still not modified
+    assertThat(editableValues[4].isModified, equalTo(false)) // last element is still not modified
 
     fun verify(ext: ExtModel) {
-      editableValues =
-          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
+      editableValues = ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues()
       val propZZ = editableValues[0]
       val prop1 = editableValues[1]
       val prop3rd = editableValues[2]
@@ -238,8 +239,12 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     var localModified = false
     var localModifying = false
     @Suppress("UNCHECKED_CAST")
-    val reboundProp = (propList.getEditableValues()[0] as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
-      .rebind(newResolvedProperty) { localModifying = true ; it (); localModified = true }
+    val reboundProp =
+      (propList.getEditableValues()[0] as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>).rebind(newResolvedProperty) {
+        localModifying = true
+        it()
+        localModified = true
+      }
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
@@ -260,5 +265,4 @@ class ModelListPropertyImplTest : PsdGradleFileModelTestCase() {
     val propList = extModel.findProperty("propList2").wrap(::parseString, ResolvedPropertyModel::asString)
     assertThat(propList.getEditableValues().size, equalTo(0)) // do not parse kotlin lambda initializer for now
   }
-
 }

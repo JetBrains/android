@@ -22,13 +22,11 @@ import java.util.Objects
 
 /** Describes additional decorations applied to a screenshot image. */
 class ScreenshotDecorationOption
-    private constructor(private val clipAction: String?, val background: Color? = null, val framingOption: FramingOption? = null) {
+private constructor(private val clipAction: String?, val background: Color? = null, val framingOption: FramingOption? = null) {
 
   constructor(framingOption: FramingOption) : this(null, null, framingOption)
 
-  /**
-   * The numerical ID of the decoration option if [framingOption] is null, otherwise -1.
-   */
+  /** The numerical ID of the decoration option if [framingOption] is null, otherwise -1. */
   val id: Int
     get() {
       return when (this) {

@@ -25,7 +25,6 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
-import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -42,7 +41,7 @@ class DeclarativeErrorParser : FailureDetailsHandler {
     failure: GradleBuildFailureParser.ParsedFailureDetails,
     location: FilePosition?,
     parentEventId: Any,
-    messageConsumer: Consumer<in BuildEvent>
+    messageConsumer: Consumer<in BuildEvent>,
   ): Boolean {
     if (failure.whatWentWrongSectionLines.firstOrNull()?.startsWith(BUILD_ISSUE_START) == true) {
       val reader = LinesBuildOutputInstantReader(failure.whatWentWrongSectionLines.drop(1), parentEventId)
@@ -52,27 +51,28 @@ class DeclarativeErrorParser : FailureDetailsHandler {
   }
 
   private fun readFileIssues(reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-     var result = false
-      val problemLine = reader.readLine() ?: return false
-      FAILED_BUILD_FILE_PATTERN.matchEntire(problemLine)?.let { // now we fully sure that it's a declarative problem
-        val (filename) = it.destructured
-        val projectFile = File(filename)
-        val issueTitle = buildIssueTitle(filename)
+    var result = false
+    val problemLine = reader.readLine() ?: return false
+    FAILED_BUILD_FILE_PATTERN.matchEntire(problemLine)?.let { // now we fully sure that it's a declarative problem
+      val (filename) = it.destructured
+      val projectFile = File(filename)
+      val issueTitle = buildIssueTitle(filename)
 
-        var successReadSubject = false
-        do {
-          successReadSubject = readSubject(reader, messageConsumer, issueTitle, projectFile)
-          if(successReadSubject) result = true
-        }
-        while (successReadSubject)
+      var successReadSubject = false
+      do {
+        successReadSubject = readSubject(reader, messageConsumer, issueTitle, projectFile)
+        if (successReadSubject) result = true
+      } while (successReadSubject)
     }
     return result
   }
 
-  private fun readSubject(reader: BuildOutputInstantReader,
-                          messageConsumer: Consumer<in BuildEvent>,
-                          issueTitle: String,
-                          projectFile: File): Boolean {
+  private fun readSubject(
+    reader: BuildOutputInstantReader,
+    messageConsumer: Consumer<in BuildEvent>,
+    issueTitle: String,
+    projectFile: File,
+  ): Boolean {
     var foundIssue = false
     val subject = reader.readLine() ?: return false
     SUBJECT_PROBLEM_LINE_PATTERN.matchEntire(subject)?.let {
@@ -81,50 +81,53 @@ class DeclarativeErrorParser : FailureDetailsHandler {
         val reasonLine = reader.readLine() ?: return foundIssue
         val description = StringBuilder().appendLine(issueTitle).appendLine(reasonLine)
 
-        readResult = readIssue(reasonLine, description.toString(), projectFile, reader.parentEventId)?.also {
-          // filter out errors for same position
-          if (notOnSamePosition(readResult, it)) messageConsumer.accept(it.event)
-          foundIssue = true
-        }
+        readResult =
+          readIssue(reasonLine, description.toString(), projectFile, reader.parentEventId)?.also {
+            // filter out errors for same position
+            if (notOnSamePosition(readResult, it)) messageConsumer.accept(it.event)
+            foundIssue = true
+          }
         if (readResult == null) {
           reader.pushBack()
         }
-      }
-      while (readResult != null)
+      } while (readResult != null)
     }
     return foundIssue
   }
 
   data class ReadResult(val event: BuildIssueEvent, val lineNumber: Int, val columnNumber: Int)
 
-  private fun notOnSamePosition(previous:ReadResult?, current:ReadResult) :Boolean =
+  private fun notOnSamePosition(previous: ReadResult?, current: ReadResult): Boolean =
     previous == null || (current.lineNumber != previous.lineNumber || current.columnNumber != previous.columnNumber)
 
   private fun readIssue(reasonLine: String, description: String, projectFile: File, parentEventId: Any): ReadResult? {
     PROBLEM_LINE_PATTERN.matchEntire(reasonLine)?.let { reason ->
       val (lineNumber, columnNumber) = reason.destructured
-      val buildIssue = object : ErrorMessageAwareBuildIssue {
-        override val description: String = description.trimEnd()
-        override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-        override val title: String = BUILD_ISSUE_TITLE
-        override val buildErrorMessage: BuildErrorMessage
-          get() = BuildErrorMessage.newBuilder().apply {
-            errorShownType = BuildErrorMessage.ErrorType.INVALID_DECLARATIVE_DEFINITION
-            fileLocationIncluded = true
-            fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
-            lineLocationIncluded = true
-          }.build()
+      val buildIssue =
+        object : ErrorMessageAwareBuildIssue {
+          override val description: String = description.trimEnd()
+          override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+          override val title: String = BUILD_ISSUE_TITLE
+          override val buildErrorMessage: BuildErrorMessage
+            get() =
+              BuildErrorMessage.newBuilder()
+                .apply {
+                  errorShownType = BuildErrorMessage.ErrorType.INVALID_DECLARATIVE_DEFINITION
+                  fileLocationIncluded = true
+                  fileIncludedType = BuildErrorMessage.FileType.PROJECT_FILE
+                  lineLocationIncluded = true
+                }
+                .build()
 
-        override fun getNavigatable(project: Project): Navigatable? {
-          val virtualFile = VfsUtil.findFileByIoFile(projectFile, false) ?: return null
-          return OpenFileDescriptor(project, virtualFile, lineNumber.toInt() - 1, columnNumber.toInt() - 1)
+          override fun getNavigatable(project: Project): Navigatable? {
+            val virtualFile = VfsUtil.findFileByIoFile(projectFile, false) ?: return null
+            return OpenFileDescriptor(project, virtualFile, lineNumber.toInt() - 1, columnNumber.toInt() - 1)
+          }
         }
-
-      }
       return ReadResult(
         BuildIssueEventImpl(parentEventId, buildIssue, MessageEvent.Kind.ERROR),
         lineNumber.toInt() - 1,
-        columnNumber.toInt() - 1
+        columnNumber.toInt() - 1,
       )
     }
     return null
@@ -133,7 +136,7 @@ class DeclarativeErrorParser : FailureDetailsHandler {
   companion object {
     const val BUILD_ISSUE_TITLE: String = "Declarative project configure issue"
     const val BUILD_ISSUE_START: String = "A problem occurred configuring project "
+
     fun buildIssueTitle(fileName: String): String = "Failed to interpret declarative file '$fileName'"
   }
-
 }

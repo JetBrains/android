@@ -33,11 +33,8 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-abstract class NavToolbarMenu(
-  protected val surface: NavDesignSurface,
-  description: String,
-  icon: Icon,
-) : IconWithTextAction("", description, icon), Toggleable {
+abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
+  IconWithTextAction("", description, icon), Toggleable {
   protected val BACKGROUND_COLOR: Color = UIUtil.getListBackground()
   protected var balloonHasDisplayedAndClosed = false
   private var balloon: Balloon? = null

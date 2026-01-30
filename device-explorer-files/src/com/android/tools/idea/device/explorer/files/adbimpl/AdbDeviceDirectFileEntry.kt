@@ -20,22 +20,21 @@ import com.android.ddmlib.SyncException
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 /**
  * A [AdbDeviceFileEntry] that goes directly to the remote file system for its file operations.
  *
- *
- * The (optional) `runAs` parameter is directly passed to the [AdbFileListing] and
- * [AdbFileOperations] methods to use as a `"run-as package-name" prefix`.
+ * The (optional) `runAs` parameter is directly passed to the [AdbFileListing] and [AdbFileOperations] methods to use as a `"run-as
+ * package-name" prefix`.
  */
 class AdbDeviceDirectFileEntry(
   device: AdbDeviceFileSystem,
   entry: AdbFileListingEntry,
   parent: AdbDeviceFileEntry?,
-  private val myRunAs: String?
+  private val myRunAs: String?,
 ) : AdbDeviceFileEntry(device, entry, parent) {
   override suspend fun entries(): List<DeviceFileEntry> =
     fileSystem.adbFileListing.getChildrenRunAs(myEntry, myRunAs).map { AdbDeviceDefaultFileEntry(fileSystem, it, this) }
@@ -47,19 +46,14 @@ class AdbDeviceDirectFileEntry(
       fileSystem.adbFileOperations.deleteFileRunAs(fullPath, myRunAs)
     }
 
-  override suspend fun createNewFile(fileName: String) =
-    fileSystem.adbFileOperations.createNewFileRunAs(fullPath, fileName, myRunAs)
+  override suspend fun createNewFile(fileName: String) = fileSystem.adbFileOperations.createNewFileRunAs(fullPath, fileName, myRunAs)
 
   override suspend fun createNewDirectory(directoryName: String) =
     fileSystem.adbFileOperations.createNewDirectoryRunAs(fullPath, directoryName, myRunAs)
 
-  override suspend fun isSymbolicLinkToDirectory(): Boolean =
-    fileSystem.adbFileListing.isDirectoryLinkRunAs(myEntry, myRunAs)
+  override suspend fun isSymbolicLinkToDirectory(): Boolean = fileSystem.adbFileListing.isDirectoryLinkRunAs(myEntry, myRunAs)
 
-  override suspend fun downloadFile(
-    localPath: Path,
-    progress: FileTransferProgress
-  ) =
+  override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) =
     // Note: First try to download the file as the default user. If we get a permission error,
     //       download the file via a temp. directory using the "su 0" user.
     try {
@@ -72,11 +66,7 @@ class AdbDeviceDirectFileEntry(
       }
     }
 
-  override suspend fun uploadFile(
-    localPath: Path,
-    fileName: String,
-    progress: FileTransferProgress
-  ) {
+  override suspend fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress) {
     val remotePath = AdbPathUtil.resolve(myEntry.fullPath, fileName)
 
     // If the device is *not* root, but supports "su 0", the ADB Sync service may not have the
@@ -90,7 +80,7 @@ class AdbDeviceDirectFileEntry(
       try {
         fileSystem.adbFileOperations.touchFileAsDefaultUser(remotePath)
         fileSystem.adbFileTransfer.uploadFile(localPath, remotePath, progress)
-      } catch(e : AdbShellCommandException) {
+      } catch (e: AdbShellCommandException) {
         fileSystem.adbFileTransfer.uploadFileViaTempLocation(localPath, remotePath, progress, null)
       }
     } else {
@@ -100,9 +90,7 @@ class AdbDeviceDirectFileEntry(
   }
 
   private suspend fun isDeviceSuAndNotRoot(): Boolean =
-    withContext(fileSystem.dispatcher) {
-      fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot()
-    }
+    withContext(fileSystem.dispatcher) { fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot() }
 
   companion object {
     private fun isSyncPermissionError(pullError: SyncException): Boolean {

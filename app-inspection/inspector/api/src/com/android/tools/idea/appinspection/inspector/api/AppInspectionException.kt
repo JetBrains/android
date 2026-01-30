@@ -17,8 +17,7 @@ package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 
-abstract class AppInspectionException(message: String, cause: Throwable? = null) :
-  Exception(message, cause)
+abstract class AppInspectionException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
@@ -28,67 +27,49 @@ abstract class AppInspectionException(message: String, cause: Throwable? = null)
 open class AppInspectionConnectionException(message: String) : AppInspectionException(message)
 
 /**
- * Signals that the inspector crashed on device, a case particularly interesting to users that also
- * will happen to interrupt the current exception.
+ * Signals that the inspector crashed on device, a case particularly interesting to users that also will happen to interrupt the current
+ * exception.
  */
 class AppInspectionCrashException(message: String) : AppInspectionConnectionException(message)
 
-/**
- * This happens when App Inspection service disposes an inspector because it was replaced by a
- * different project.
- */
-class AppInspectorForcefullyDisposedException(message: String) :
-  AppInspectionConnectionException(message)
+/** This happens when App Inspection service disposes an inspector because it was replaced by a different project. */
+class AppInspectorForcefullyDisposedException(message: String) : AppInspectionConnectionException(message)
 
 /** Base class for all service errors. */
-abstract class AppInspectionServiceException(message: String, cause: Throwable? = null) :
-  AppInspectionException(message, cause)
+abstract class AppInspectionServiceException(message: String, cause: Throwable? = null) : AppInspectionException(message, cause)
 
 /**
- * Thrown when an error is encountered during inspector launch other than version incompatibility
- * (see [AppInspectionVersionIncompatibleException]).
+ * Thrown when an error is encountered during inspector launch other than version incompatibility (see
+ * [AppInspectionVersionIncompatibleException]).
  */
 class AppInspectionLaunchException(message: String) : AppInspectionServiceException(message)
 
 /** Thrown when trying to launch an inspector on a device that cannot be found. */
-class AppInspectionCannotFindAdbDeviceException(message: String) :
-  AppInspectionServiceException(message)
+class AppInspectionCannotFindAdbDeviceException(message: String) : AppInspectionServiceException(message)
 
 /**
  * Thrown when trying to launch an inspector on a process that no longer exists.
  *
- * Note: This may not necessarily signal something is broken. We expect this to happen occasionally
- * due to bad timing. For example: user selects a process for inspection on device X right when X is
- * shutting down.
+ * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
+ * selects a process for inspection on device X right when X is shutting down.
  */
-class AppInspectionProcessNoLongerExistsException(message: String, cause: Throwable? = null) :
-  AppInspectionServiceException(message, cause)
+class AppInspectionProcessNoLongerExistsException(message: String, cause: Throwable? = null) : AppInspectionServiceException(message, cause)
 
-/**
- * Thrown when launching an inspector that is incompatible with the version of the library in the
- * running app.
- */
-class AppInspectionVersionIncompatibleException(message: String) :
-  AppInspectionServiceException(message)
+/** Thrown when launching an inspector that is incompatible with the version of the library in the running app. */
+class AppInspectionVersionIncompatibleException(message: String) : AppInspectionServiceException(message)
 
 /** Thrown when the targeted library version does not exist in the app. */
-class AppInspectionVersionMissingException(message: String) :
-  AppInspectionServiceException(message)
+class AppInspectionVersionMissingException(message: String) : AppInspectionServiceException(message)
 
 /** Thrown when the targeted library does not exist in the app. */
-class AppInspectionLibraryMissingException(message: String) :
-  AppInspectionServiceException(message)
+class AppInspectionLibraryMissingException(message: String) : AppInspectionServiceException(message)
 
 /** Thrown when target app was proguarded. */
 class AppInspectionAppProguardedException(message: String) : AppInspectionServiceException(message)
 
 /** Thrown when an inspector artifact can't be resolved. */
-class AppInspectionArtifactNotFoundException(
-  message: String,
-  val artifactCoordinate: RunningArtifactCoordinate,
-  cause: Throwable? = null,
-) : AppInspectionServiceException(message, cause)
+class AppInspectionArtifactNotFoundException(message: String, val artifactCoordinate: RunningArtifactCoordinate, cause: Throwable? = null) :
+  AppInspectionServiceException(message, cause)
 
 /** Thrown when failed to attach the transport agent. */
-class AppInspectionAgentUnattachableException(cause: Throwable? = null) :
-  AppInspectionServiceException("The agent is unattachable", cause)
+class AppInspectionAgentUnattachableException(cause: Throwable? = null) : AppInspectionServiceException("The agent is unattachable", cause)

@@ -50,31 +50,26 @@ private fun createTexturePattern(scaledCellSize: Int): BufferedImage {
   }
 }
 
-/**
- * A [JPanel] which draws a chessboard pattern as its background when [showChessboard] is true.
- */
-class ChessBoardPanel(
-  cellSize: Int = 10,
-  layoutManager: LayoutManager = BorderLayout())
-  : JPanel(layoutManager) {
+/** A [JPanel] which draws a chessboard pattern as its background when [showChessboard] is true. */
+class ChessBoardPanel(cellSize: Int = 10, layoutManager: LayoutManager = BorderLayout()) : JPanel(layoutManager) {
 
-  /**
-   * The Chess Board [Paint], it updates itself whenever the theme changes.
-   */
-  private val chessBoardPaint by object {
-    private val scaledCellSize = JBUIScale.scale(cellSize)
-    private val scaledPatternSize = scaledCellSize * 2
+  /** The Chess Board [Paint], it updates itself whenever the theme changes. */
+  private val chessBoardPaint by
+    object {
+      private val scaledCellSize = JBUIScale.scale(cellSize)
+      private val scaledPatternSize = scaledCellSize * 2
 
-    private var isDarkTheme = !JBColor.isBright()
-    private var paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
-      if (isDarkTheme == JBColor.isBright()) {
-        isDarkTheme = !JBColor.isBright()
-        paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
+      private var isDarkTheme = !JBColor.isBright()
+      private var paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
+
+      operator fun getValue(thisRef: Any?, property: KProperty<*>): Paint {
+        if (isDarkTheme == JBColor.isBright()) {
+          isDarkTheme = !JBColor.isBright()
+          paint = TexturePaint(createTexturePattern(scaledCellSize), createTextureAnchor(scaledPatternSize))
+        }
+        return paint
       }
-      return paint
     }
-  }
 
   var showChessboard: Boolean = true
 
@@ -88,10 +83,7 @@ class ChessBoardPanel(
         val oldPaint = paint
         paint = chessBoardPaint
         val insets = insets
-        fillRect(insets.left,
-                 insets.top,
-                 size.width - insets.right - insets.left,
-                 size.height - insets.bottom - insets.top)
+        fillRect(insets.left, insets.top, size.width - insets.right - insets.left, size.height - insets.bottom - insets.top)
         paint = oldPaint
       }
     }

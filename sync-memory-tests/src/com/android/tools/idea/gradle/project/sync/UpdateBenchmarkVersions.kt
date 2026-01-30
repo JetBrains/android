@@ -21,12 +21,11 @@ val GRADLE_SNAPSHOTS_URL = "https://services.gradle.org/distributions-snapshots"
 val TOOLS_EXTERNAL_GRADLE_PATH = "tools/external/gradle"
 val AGP_INTEGRATION_TESTS_PATH = "tools/adt/idea/android-test-framework/testSrc/com/android/tools/idea/testing/AgpIntegrationTests.kt"
 
-
 fun main(args: Array<String>) {
   val type = args[0]
   val repoDir = System.getenv("BUILD_WORKSPACE_DIRECTORY")
   checkNotNull(repoDir) { "Must use bazel to invoke this script!" }
-  check(type == "gradle" || type == "kotlin") { "first argument must be gradle or kotlin"}
+  check(type == "gradle" || type == "kotlin") { "first argument must be gradle or kotlin" }
   if (type == "gradle") {
     val gradleVersion = args[1]
 
@@ -51,17 +50,18 @@ fun main(args: Array<String>) {
     File("$repoDir/$TOOLS_EXTERNAL_GRADLE_PATH/${oldGradleVersion!!.versionToDist()}").delete()
 
     println("Update the gradle version in the test code")
-    File("$repoDir/$AGP_INTEGRATION_TESTS_PATH")
-      .replaceLine("const val GRADLE_SNAPSHOT_VERSION = ", newVersion = gradleVersion)
+    File("$repoDir/$AGP_INTEGRATION_TESTS_PATH").replaceLine("const val GRADLE_SNAPSHOT_VERSION = ", newVersion = gradleVersion)
 
-    val commitMessage = """
+    val commitMessage =
+      """
     Update comparison benchmark Gradle version
 
     to $gradleVersion
 
     Bug: 365508657
     Test: N/A
-  """.trimIndent()
+  """
+        .trimIndent()
     println("Creating tools/external/gradle change")
     runGitCommit(repoDir, TOOLS_EXTERNAL_GRADLE_PATH, commitMessage)
     println("Creating tools/adt/idea change")
@@ -80,8 +80,7 @@ fun main(args: Array<String>) {
     println("Old version: $oldKotlinVersion")
 
     println("Update artifacts.bzl")
-    File("$repoDir/tools/base/bazel/maven/artifacts.bzl")
-      .replaceLine(lineEnd = "$oldKotlinVersion\",", newVersion = kotlinVersion)
+    File("$repoDir/tools/base/bazel/maven/artifacts.bzl").replaceLine(lineEnd = "$oldKotlinVersion\",", newVersion = kotlinVersion)
     println("Update tools/base/build-system/integration-test/BUILD.bazel")
     File("$repoDir/tools/base/build-system/integration-test/BUILD.bazel")
       .replaceLine(lineStart = "LATEST_KOTLIN_VERSION_FOR_SYNC_BENCHMARKS = ", newVersion = kotlinVersion)
@@ -89,49 +88,61 @@ fun main(args: Array<String>) {
     File("$repoDir/tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java")
       .replaceLine(lineStart = "    public static final String LATEST_KOTLIN_VERSION = ", newVersion = kotlinVersion)
 
-
     println("Running maven_fetch.sh")
     "$repoDir/tools/base/bazel/maven/maven_fetch.sh".runCommand(repoDir)
 
     println("Delete all directories named $oldKotlinVersion in prebuilts/tools")
-    File("$repoDir/prebuilts/tools/common/m2").walkTopDown().filter{
-      it.isDirectory && it.name == oldKotlinVersion
-    }.forEach { it.deleteRecursively() }
+    File("$repoDir/prebuilts/tools/common/m2")
+      .walkTopDown()
+      .filter { it.isDirectory && it.name == oldKotlinVersion }
+      .forEach { it.deleteRecursively() }
 
-    val commitMessage = """
+    val commitMessage =
+      """
     Update comparison benchmark Kotlin version
 
     to $kotlinVersion
 
     Bug: 365509858
     Test: N/A
-  """.trimIndent()
-
+  """
+        .trimIndent()
 
     println("Creating tools/adt/idea change")
     runGitCommit(repoDir, "tools/adt/idea", commitMessage, listOf(AGP_INTEGRATION_TESTS_PATH))
     println("Creating prebuilts/tools change")
-    runGitCommit(repoDir, "prebuilts/tools", commitMessage, listOf("prebuilts/tools/*$kotlinVersion*", "prebuilts/tools/*$oldKotlinVersion*"))
+    runGitCommit(
+      repoDir,
+      "prebuilts/tools",
+      commitMessage,
+      listOf("prebuilts/tools/*$kotlinVersion*", "prebuilts/tools/*$oldKotlinVersion*"),
+    )
     println("Creating tools/base change")
-    runGitCommit(repoDir, "tools/base", commitMessage, listOf(
-      "tools/base/bazel/maven/artifacts.bzl",
-      "tools/base/bazel/maven/BUILD.maven",
-      "tools/base/build-system/integration-test/BUILD.bazel",
-      "tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java"))
+    runGitCommit(
+      repoDir,
+      "tools/base",
+      commitMessage,
+      listOf(
+        "tools/base/bazel/maven/artifacts.bzl",
+        "tools/base/bazel/maven/BUILD.maven",
+        "tools/base/build-system/integration-test/BUILD.bazel",
+        "tools/base/testutils/src/main/java/com/android/testutils/TestUtils.java",
+      ),
+    )
   }
 }
 
 private fun File.replaceLine(lineStart: String? = null, lineEnd: String? = null, newVersion: String) = apply {
-  writeText(readLines().joinToString("\n", postfix = "\n") {
-    if (lineStart != null && it.startsWith(lineStart)) {
-      val maybeSemicolon = if (it.endsWith(";")) ";" else ""
-      "$lineStart\"$newVersion\"$maybeSemicolon"
-    } else if (lineEnd != null && it.endsWith(lineEnd)) {
-      it.replace(lineEnd, "$newVersion\",")
+  writeText(
+    readLines().joinToString("\n", postfix = "\n") {
+      if (lineStart != null && it.startsWith(lineStart)) {
+        val maybeSemicolon = if (it.endsWith(";")) ";" else ""
+        "$lineStart\"$newVersion\"$maybeSemicolon"
+      } else if (lineEnd != null && it.endsWith(lineEnd)) {
+        it.replace(lineEnd, "$newVersion\",")
+      } else it
     }
-    else
-      it
-  })
+  )
 }
 
 private fun String.versionToDist() = "gradle-$this-bin.zip"
@@ -139,7 +150,7 @@ private fun String.versionToDist() = "gradle-$this-bin.zip"
 private fun runGitCommit(repoDir: String, gitPath: String, message: String, changedFiles: List<String>? = null) {
   val files = changedFiles?.joinToString(" ") { "$repoDir/$it" } ?: "-A" // add all if null
   "git -C $repoDir/$gitPath add $files".runCommand(repoDir)
-  runCommand(repoDir,*"git -C $repoDir/$gitPath commit -m".split(" ").toTypedArray() + message)
+  runCommand(repoDir, *"git -C $repoDir/$gitPath commit -m".split(" ").toTypedArray() + message)
 }
 
 fun String.runCommand(directory: String) = runCommand(directory, *split(" ").toTypedArray())
@@ -149,6 +160,6 @@ private fun runCommand(directory: String, vararg command: String) {
     .directory(File(directory))
     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
     .redirectError(ProcessBuilder.Redirect.INHERIT)
-    .start().waitFor()
-
+    .start()
+    .waitFor()
 }

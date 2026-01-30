@@ -19,18 +19,16 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import java.nio.file.Path
 
 /**
- * Screenshot framing option based either on a device skin or on a [DeviceArtDescriptor].
- * The [skinFolder] and [deviceArtDescriptor] properties are mutually exclusive. One of them
- * is guaranteed to be not null.
+ * Screenshot framing option based either on a device skin or on a [DeviceArtDescriptor]. The [skinFolder] and [deviceArtDescriptor]
+ * properties are mutually exclusive. One of them is guaranteed to be not null.
  */
 @Suppress("DataClassPrivateConstructor")
 @ConsistentCopyVisibility
-data class DeviceFramingOption private constructor(
-  override val displayName: String,
-  val skinFolder: Path?,
-  val deviceArtDescriptor: DeviceArtDescriptor?
-) : FramingOption {
+data class DeviceFramingOption
+private constructor(override val displayName: String, val skinFolder: Path?, val deviceArtDescriptor: DeviceArtDescriptor?) :
+  FramingOption {
 
   constructor(displayName: String, skinFolder: Path) : this(displayName, skinFolder, null)
+
   constructor(deviceArtDescriptor: DeviceArtDescriptor) : this(deviceArtDescriptor.name, null, deviceArtDescriptor)
 }

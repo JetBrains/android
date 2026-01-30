@@ -26,16 +26,11 @@ import com.android.tools.profiler.proto.Transport
 class LayoutInspectorTransportConfigContributor : TransportConfigContributor {
   override fun customizeProxyService(proxy: TransportProxy) {}
 
-  override fun customizeAgentConfig(
-    configBuilder: Agent.AgentConfig.Builder,
-    runConfig: AndroidRunConfigurationBase?,
-  ) {}
+  override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) {}
 
   override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {
     configBuilder.setLayoutInspectorConfig(
-      configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(
-        LayoutInspectorSettings.getInstance().autoConnectEnabled
-      )
+      configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(LayoutInspectorSettings.getInstance().autoConnectEnabled)
     )
   }
 }

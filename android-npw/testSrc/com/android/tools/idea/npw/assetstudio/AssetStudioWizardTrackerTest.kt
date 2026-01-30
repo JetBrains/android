@@ -104,12 +104,12 @@ class AssetStudioWizardTrackerTest {
     @Language("xml")
     val drawableContent =
       """
-        <?xml version="1.0" encoding="utf-8"?>
-        <shape xmlns:android="http://schemas.android.com/apk/res/android"
-            android:shape="rectangle"
-            android:tint="#FF0000">
-        </shape>
-        """
+      <?xml version="1.0" encoding="utf-8"?>
+      <shape xmlns:android="http://schemas.android.com/apk/res/android"
+          android:shape="rectangle"
+          android:tint="#FF0000">
+      </shape>
+      """
         .trimIndent()
     return LightVirtualFile("test_resource.xml", drawableContent)
   }

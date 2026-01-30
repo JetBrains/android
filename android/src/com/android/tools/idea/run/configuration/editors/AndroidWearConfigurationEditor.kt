@@ -64,10 +64,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
-  private val project: Project,
-  private val configuration: T,
-) : SettingsEditor<T>() {
+open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private val project: Project, private val configuration: T) :
+  SettingsEditor<T>() {
 
   protected val modulesComboBox = ModulesComboBox()
 
@@ -93,12 +91,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
           component?.parent?.parent?.apply {
             removeAll()
             layout = BorderLayout()
-            add(
-              JBPanelWithEmptyText()
-                .withEmptyText(
-                  AndroidBundle.message("android.run.configuration.synchronization.warning")
-                )
-            )
+            add(JBPanelWithEmptyText().withEmptyText(AndroidBundle.message("android.run.configuration.synchronization.warning")))
           }
         }
         return@launch
@@ -114,8 +107,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
       wearComponentFqNameComboBox.model = DefaultComboBoxModel(emptyArray())
     } else {
       availableComponents = blockingContext {
-        ApplicationManager.getApplication()
-          .runReadAction(Computable { findAvailableComponents(module) })
+        ApplicationManager.getApplication().runReadAction(Computable { findAvailableComponents(module) })
       }
       wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
     }
@@ -142,8 +134,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
     modulesComboBox.addActionListener(moduleListener)
   }
 
-  private fun getComponentSearchScope(module: Module) =
-    AndroidWearConfigurationEditorToken.getComponentSearchScope(module)
+  private fun getComponentSearchScope(module: Module) = AndroidWearConfigurationEditorToken.getComponentSearchScope(module)
 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
@@ -159,9 +150,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
   }
 
   protected fun Panel.getInstallFlagsTextField() {
-    row(AndroidBundle.message("android.run.configuration.wear.install.flags")) {
-      textField().bindText(::installFlags).align(AlignX.FILL)
-    }
+    row(AndroidBundle.message("android.run.configuration.wear.install.flags")) { textField().bindText(::installFlags).align(AlignX.FILL) }
   }
 
   protected fun Panel.getComponentComboBox() {
@@ -172,18 +161,11 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
               DefaultComboBoxModel(emptyArray<String>()),
               renderer =
                 object : SimpleListCellRenderer<String>() {
-                  override fun customize(
-                    list: JList<out String>,
-                    value: String?,
-                    index: Int,
-                    selected: Boolean,
-                    hasFocus: Boolean,
-                  ) {
+                  override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
                     text =
                       when {
                         value != null -> value
-                        modulesComboBox.item == null ->
-                          AndroidBundle.message("android.run.configuration.wear.module.not.chosen")
+                        modulesComboBox.item == null -> AndroidBundle.message("android.run.configuration.wear.module.not.chosen")
                         list.selectionModel.maxSelectionIndex == -1 ->
                           AndroidBundle.message(
                             "android.run.configuration.wear.component.not.found",
@@ -204,9 +186,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
             .applyToComponent {
               maximumSize = Dimension(400, maximumSize.height)
               setMinLength(400)
-              addPropertyChangeListener("model") {
-                this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
-              }
+              addPropertyChangeListener("model") { this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0 }
             }
             .component
       }
@@ -216,9 +196,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
   protected fun Panel.getModuleChooser() {
     row {
         label(AndroidBundle.message("android.run.configuration.module.label"))
-        cell(modulesComboBox).align(AlignX.FILL).applyToComponent {
-          maximumSize = Dimension(400, maximumSize.height)
-        }
+        cell(modulesComboBox).align(AlignX.FILL).applyToComponent { maximumSize = Dimension(400, maximumSize.height) }
       }
       .layout(RowLayout.LABEL_ALIGNED)
   }
@@ -228,9 +206,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
     val facade = JavaPsiFacade.getInstance(project)
     val projectAllScope = ProjectScope.getAllScope(project)
     val surfaceBaseClasses =
-      configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
-        facade.findClass(it, projectAllScope)
-      }
+      configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull { facade.findClass(it, projectAllScope) }
     val resultScope = getComponentSearchScope(module)
     return surfaceBaseClasses
       .flatMap { baseClass ->
@@ -243,8 +219,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
             // inheritance index is broken and we are
             // forced to use the ProjectScope to ensure the parent classes are found by the
             // ClassInheritorsSearch.
-            !(it.isInterface ||
-              it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
+            !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
               PsiSearchScopeUtil.isInScope(resultScope, it)
           }
           .findAll()

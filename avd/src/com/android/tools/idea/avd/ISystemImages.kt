@@ -96,11 +96,7 @@ internal object ISystemImages {
 
         launch {
           try {
-            repoManager.loadRemotePackages(
-              indicator,
-              StudioDownloader(),
-              StudioSettingsController.getInstance(),
-            )
+            repoManager.loadRemotePackages(indicator, StudioDownloader(), StudioSettingsController.getInstance())
             trySend(RemoteImagesLoaded)
           } catch (e: Exception) {
             thisLogger().warn("Loading remote images", e)
@@ -145,8 +141,7 @@ private fun ISystemImage.incompatibleArchitectureWarning(): String? =
     CpuArchitecture.X86_64 ->
       when (Abi.getEnum(primaryAbiType)) {
         in listOf(Abi.X86_64, Abi.X86) -> null
-        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A) ->
-          "ARM images will run very slowly on x86 hosts."
+        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A) -> "ARM images will run very slowly on x86 hosts."
         else -> "Compatibility with $primaryAbiType images is unknown."
       }
     // An ARM host can only run ARM64 images (not 32-bit ARM).
@@ -165,11 +160,9 @@ private fun ISystemImage.incompatibleArchitectureWarning(): String? =
   }
 
 private fun ISystemImage.atdWarning(): String? =
-  "Automated Test Device (ATD) images are intended for headless testing only."
-    .takeIf { SystemImageTags.isAtd(tags) }
+  "Automated Test Device (ATD) images are intended for headless testing only.".takeIf { SystemImageTags.isAtd(tags) }
 
-internal fun ISystemImage.imageWarnings(): List<String> =
-  listOfNotNull(incompatibleArchitectureWarning(), atdWarning())
+internal fun ISystemImage.imageWarnings(): List<String> = listOfNotNull(incompatibleArchitectureWarning(), atdWarning())
 
 internal fun ISystemImage?.allAbiTypes(): PersistentList<String> =
   if (this == null) persistentListOf() else abiTypes.toPersistentList().plus(translatedAbiTypes)

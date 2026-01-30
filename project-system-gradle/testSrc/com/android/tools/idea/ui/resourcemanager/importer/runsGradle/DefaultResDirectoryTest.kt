@@ -23,14 +23,13 @@ import com.android.tools.idea.ui.resourcemanager.importer.getOrCreateDefaultResD
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class DefaultResDirectoryTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testGetOrCreateDefaultResDirectoryExists() {

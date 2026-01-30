@@ -51,6 +51,11 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
+import java.util.concurrent.CountDownLatch
+import javax.swing.JTextField
+import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -58,11 +63,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.event.FocusEvent
-import java.awt.event.KeyEvent
-import java.util.concurrent.CountDownLatch
-import javax.swing.JTextField
-import kotlin.time.Duration.Companion.seconds
 
 @RunWith(JUnit4::class)
 class StringResourceViewPanelFakeUiTest {
@@ -78,8 +78,7 @@ class StringResourceViewPanelFakeUiTest {
   @Before
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/android/testData").toString()
     resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
     localResourceRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory))
 
@@ -88,9 +87,7 @@ class StringResourceViewPanelFakeUiTest {
       fakeUi = FakeUi(stringResourceViewPanel.loadingPanel)
       fakeUi.root.validate()
     }
-    AppUIExecutor.onWriteThread().run {
-      ResourceLoadingTask(stringResourceViewPanel).queue()
-    }
+    AppUIExecutor.onWriteThread().run { ResourceLoadingTask(stringResourceViewPanel).queue() }
   }
 
   @Test
@@ -111,8 +108,7 @@ class StringResourceViewPanelFakeUiTest {
   @Test
   fun dataLoadCorrectly() {
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
-    val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
-      .map(stringResourceViewPanel.table::getColumnName)
+    val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount).map(stringResourceViewPanel.table::getColumnName)
     assertThat(locales).isEqualTo(DEFAULT_LOCALES)
     assertThat(stringResourceViewPanel.table.getColumnAt(RESOURCE_FOLDER_COLUMN)).isEqualTo(List(DEFAULT_KEYS.size) { "res" })
   }
@@ -125,9 +121,7 @@ class StringResourceViewPanelFakeUiTest {
 
     stringResourceViewPanel.table.selectCellAt(row, KEY_COLUMN)
     fakeUi.keyboard.setFocus(stringResourceViewPanel.table.frozenTable)
-    createModalDialogAndInteractWithIt({ fakeUi.keyboard.press(KeyEvent.VK_DELETE)}) {
-      it.close(DialogWrapper.OK_EXIT_CODE)
-    }
+    createModalDialogAndInteractWithIt({ fakeUi.keyboard.press(KeyEvent.VK_DELETE) }) { it.close(DialogWrapper.OK_EXIT_CODE) }
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN))
       .containsExactlyElementsIn(DEFAULT_KEYS.slice(DEFAULT_KEYS.indices.minus(row)))
   }
@@ -163,8 +157,8 @@ class StringResourceViewPanelFakeUiTest {
   fun overwriteKey() {
     val row = 2
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
-    val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
-      .mapNotNull(stringResourceViewPanel.table.model::getLocale)
+    val locales =
+      (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount).mapNotNull(stringResourceViewPanel.table.model::getLocale)
     val oldResources = locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it) }
     val newKey = "new_key"
 
@@ -174,19 +168,21 @@ class StringResourceViewPanelFakeUiTest {
     // Editing a key runs a refactor which happens in invokeLater(), so wait for that to finish.
     waitForCondition(2.seconds) { stringResourceViewPanel.table.getValueAt(row, KEY_COLUMN) == "new_key" }
 
-    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(
-      DEFAULT_KEYS.toMutableList().apply { this[row] = newKey})
-    assertThat(locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it)}).isEmpty()
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS.toMutableList().apply { this[row] = newKey })
+    assertThat(locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it) }).isEmpty()
 
-    locales.mapNotNull { getResourceItem(newKey, it)}.zip(oldResources).forEach { (new, old) ->
-      assertThat(new.name).isEqualTo(newKey)
-      assertThat(new.type).isEqualTo(old.type)
-      assertThat(new.resourceValue?.resourceType).isEqualTo(old.resourceValue?.resourceType)
-      assertThat(new.resourceValue?.name).isEqualTo(newKey)
-      assertThat(new.resourceValue?.namespace).isEqualTo(old.resourceValue?.namespace)
-      assertThat(new.resourceValue?.value).isEqualTo(old.resourceValue?.value)
-      assertThat(new.source).isEqualTo(old.source)
-    }
+    locales
+      .mapNotNull { getResourceItem(newKey, it) }
+      .zip(oldResources)
+      .forEach { (new, old) ->
+        assertThat(new.name).isEqualTo(newKey)
+        assertThat(new.type).isEqualTo(old.type)
+        assertThat(new.resourceValue?.resourceType).isEqualTo(old.resourceValue?.resourceType)
+        assertThat(new.resourceValue?.name).isEqualTo(newKey)
+        assertThat(new.resourceValue?.namespace).isEqualTo(old.resourceValue?.namespace)
+        assertThat(new.resourceValue?.value).isEqualTo(old.resourceValue?.value)
+        assertThat(new.source).isEqualTo(old.source)
+      }
   }
 
   @Test
@@ -300,9 +296,7 @@ class StringResourceViewPanelFakeUiTest {
 
   private fun <T> LocalResourceRepository<T>.waitForPendingUpdates() {
     val latch = CountDownLatch(1)
-    invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
-      latch.countDown()
-    }
+    invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { latch.countDown() }
     latch.await()
   }
 
@@ -312,12 +306,13 @@ class StringResourceViewPanelFakeUiTest {
   }
 
   private fun getResourceItem(name: String, locale: Locale): ResourceItem? =
-    localResourceRepository
-      .getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, name)
-      .find { locale.qualifier == it.configuration.localeQualifier }
+    localResourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, name).find {
+      locale.qualifier == it.configuration.localeQualifier
+    }
 
   companion object {
-    val DEFAULT_KEYS = listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2")
+    val DEFAULT_KEYS =
+      listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2")
     val DEFAULT_LOCALES =
       listOf("English (en)", "English (en) in India (IN)", "English (en) in United Kingdom (GB)", "French (fr)", "Hindi (hi)")
   }

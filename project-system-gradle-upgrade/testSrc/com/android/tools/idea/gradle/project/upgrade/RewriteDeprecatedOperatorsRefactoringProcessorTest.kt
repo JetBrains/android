@@ -21,7 +21,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
 @RunsInEdt
-class RewriteDeprecatedOperatorsRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class RewriteDeprecatedOperatorsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   private fun rewriteDeprecatedOperatorsRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(project, current, new)
 

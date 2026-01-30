@@ -24,36 +24,39 @@ import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManag
 import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import kotlin.test.assertEquals
+import org.junit.Rule
+import org.junit.Test
 
 class DesignAssetCellRendererTest {
 
-  @get:Rule
-  var imageCacheRule = ImageCacheRule()
+  @get:Rule var imageCacheRule = ImageCacheRule()
 
-  @get:Rule
-  var androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule var androidProjectRule = AndroidProjectRule.inMemory()
+
   @Test
   fun getListCellRendererComponent() {
-    val imageIcon = ImageIcon(BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
-      with(createGraphics()) {
-        color = Color(0x012345)
-        fillRect(0, 0, 100, 100)
-      }
-    })
+    val imageIcon =
+      ImageIcon(
+        BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
+          with(createGraphics()) {
+            color = Color(0x012345)
+            fillRect(0, 0, 100, 100)
+          }
+        }
+      )
 
     val assetPreviewManager = StubAssetPreviewManager(imageIcon)
-    val jList = AssetListView(emptyList()).apply {
-      fixedCellHeight = 100
-      fixedCellWidth = 100
-    }
+    val jList =
+      AssetListView(emptyList()).apply {
+        fixedCellHeight = 100
+        fixedCellWidth = 100
+      }
 
     val renderer = DesignAssetCellRenderer(assetPreviewManager)
     val designAssetSet = ResourceAssetSet("name", listOf(DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)))

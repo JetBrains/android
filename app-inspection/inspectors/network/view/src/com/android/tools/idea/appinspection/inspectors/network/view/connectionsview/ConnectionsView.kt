@@ -50,14 +50,13 @@ import javax.swing.table.TableCellRenderer
 import kotlin.io.path.writer
 
 /**
- * This class responsible for displaying table of connections information (e.g. url, duration,
- * timeline) for network inspector. Each row in the table represents a single connection.
+ * This class responsible for displaying table of connections information (e.g. url, duration, timeline) for network inspector. Each row in
+ * the table represents a single connection.
  */
 class ConnectionsView(project: Project, private val model: NetworkInspectorModel) : AspectObserver() {
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
-  private val connectionsTable =
-    TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
+  private val connectionsTable = TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
 
   val component: JComponent
     get() = connectionsTable
@@ -65,17 +64,13 @@ class ConnectionsView(project: Project, private val model: NetworkInspectorModel
   init {
     customizeConnectionsTable()
     ConfigColumnTableAspect.apply(project, connectionsTable, NetworkInspectorViewState.getInstance().columns)
-    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
-      updateTableSelection()
-    }
+    model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateTableSelection() }
   }
 
   private fun customizeConnectionsTable() {
     connectionsTable.autoCreateRowSorter = true
 
-    ConnectionColumn.entries.forEach {
-      setRenderer(it, it.getCellRenderer(connectionsTable, model))
-    }
+    ConnectionColumn.entries.forEach { setRenderer(it, it.getCellRenderer(connectionsTable, model)) }
 
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     connectionsTable.addMouseListener(
@@ -175,9 +170,8 @@ class ConnectionsView(project: Project, private val model: NetworkInspectorModel
   /**
    * Export connection data list to a file
    *
-   * Although [ConnectionData] are data classes and can be serialized directly, that results in
-   * undesirable representation of the data. Instead, we convert [HttpData] and [GrpcData] to a
-   * [Map<String, Any>].
+   * Although [ConnectionData] are data classes and can be serialized directly, that results in undesirable representation of the data.
+   * Instead, we convert [HttpData] and [GrpcData] to a [Map<String, Any>].
    */
   fun exportConnections(path: Path) {
     val gson = GsonBuilder().setPrettyPrinting().create()
@@ -232,8 +226,7 @@ private fun GrpcData.forExport(): Map<String, Any> {
 }
 
 /** Collapse [List<String>] to a single string using a join */
-private fun Map<String, List<String>>.forExport() =
-  entries.associate { e -> e.key to e.value.joinToString { it } }
+private fun Map<String, List<String>>.forExport() = entries.associate { e -> e.key to e.value.joinToString { it } }
 
 /** Export as a [Base64] string */
 private fun ByteString.forExport() = Base64.getEncoder().encode(toByteArray()).decodeToString()

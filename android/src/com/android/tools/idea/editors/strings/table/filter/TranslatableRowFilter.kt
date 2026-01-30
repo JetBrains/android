@@ -20,8 +20,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNT
 
 /** A filter that shows only rows that contain translatable resources. */
 class TranslatableRowFilter : StringResourceTableRowFilter() {
-  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean =
-      !(entry.getValue(UNTRANSLATABLE_COLUMN) as Boolean)
+  override fun include(entry: Entry<out StringResourceTableModel, out Int>): Boolean = !(entry.getValue(UNTRANSLATABLE_COLUMN) as Boolean)
 
   override fun getDescription(): String = "Show Translatable Keys"
 }

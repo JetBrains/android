@@ -23,12 +23,16 @@ class PsBuildScript(override val parent: PsProject) : PsChildModel() {
   override val descriptor by Descriptors
   override val name: String = "buildScript"
   override val isDeclared: Boolean = parent.isDeclared
-  val parsedModel: BuildScriptModel? get() = parent.parsedModel.projectBuildModel?.buildscript()
+  val parsedModel: BuildScriptModel?
+    get() = parent.parsedModel.projectBuildModel?.buildscript()
 
   object Descriptors : ModelDescriptor<PsBuildScript, Nothing, BuildScriptModel> {
     override fun getResolved(model: PsBuildScript): Nothing? = null
+
     override fun getParsed(model: PsBuildScript): BuildScriptModel? = model.parsedModel
+
     override fun prepareForModification(model: PsBuildScript) = Unit
+
     override fun setModified(model: PsBuildScript) {
       model.isModified = true
     }

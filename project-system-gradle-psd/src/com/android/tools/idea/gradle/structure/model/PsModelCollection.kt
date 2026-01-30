@@ -22,20 +22,31 @@ import java.util.stream.Stream
 
 interface PsModelCollection<T> : Collection<T> {
   val items: Collection<T>
+
   fun forEach(consumer: (T) -> Unit) = forEach(Consumer { consumer(it) })
+
   fun onChange(disposable: Disposable, listener: () -> Unit)
 
-  override val size: Int get() = items.size
+  override val size: Int
+    get() = items.size
+
   override fun contains(element: T): Boolean = items.contains(element)
+
   override fun containsAll(elements: Collection<T>): Boolean = items.containsAll(elements)
+
   override fun isEmpty(): Boolean = items.isEmpty()
+
   override fun iterator(): Iterator<T> = items.iterator()
+
   override fun parallelStream(): Stream<T> = items.parallelStream()
+
   override fun spliterator(): Spliterator<T> = items.spliterator()
+
   override fun stream(): Stream<T> = items.stream()
 }
 
 interface PsKeyedModelCollection<KeyT, T> : PsModelCollection<T> {
   val entries: Map<KeyT, T>
+
   fun findElement(key: KeyT): T?
 }

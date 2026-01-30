@@ -42,7 +42,7 @@ class StackTraceExpanderTest {
          at Junk.d(Junk.java:27)
          at Junk.c(Junk.java:21)
          ... 3 more
-        """
+      """
         .trimIndent()
     val expected =
       """
@@ -134,7 +134,7 @@ class StackTraceExpanderTest {
          at Junk2.b(Junk2.java:17)
          at Junk2.a(Junk2.java:11)
          ... 1 more
-        """
+      """
         .trimIndent()
     val expected =
       """
@@ -182,7 +182,7 @@ class StackTraceExpanderTest {
          at Junk.b(Junk.java:17)
          at Junk.a(Junk.java:11)
          ... 12 more
-        """
+      """
         .trimIndent()
     val expected =
       """

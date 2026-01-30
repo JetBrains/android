@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Returns a flow that is updated each time [NlOptionsConfigurable]s are updated. The flow value
- * will be the current state of preview essentials mode.
+ * Returns a flow that is updated each time [NlOptionsConfigurable]s are updated. The flow value will be the current state of preview
+ * essentials mode.
  */
 fun essentialsModeFlow(project: Project, parentDisposable: Disposable): StateFlow<Boolean> {
   val flow = MutableStateFlow(PreviewEssentialsModeManager.isEssentialsModeEnabled)
@@ -31,9 +31,7 @@ fun essentialsModeFlow(project: Project, parentDisposable: Disposable): StateFlo
     .connect(parentDisposable)
     .subscribe(
       NlOptionsConfigurable.Listener.TOPIC,
-      NlOptionsConfigurable.Listener {
-        flow.value = PreviewEssentialsModeManager.isEssentialsModeEnabled
-      },
+      NlOptionsConfigurable.Listener { flow.value = PreviewEssentialsModeManager.isEssentialsModeEnabled },
     )
   return flow
 }

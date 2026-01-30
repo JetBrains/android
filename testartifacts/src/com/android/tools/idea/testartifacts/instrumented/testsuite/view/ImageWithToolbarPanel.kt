@@ -44,145 +44,170 @@ import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * A self-contained panel that displays an image with a title and a toolbar for zoom controls.
- */
-class ImageWithToolbarPanel(
-  val title: ScreenshotViewType,
-  showToolbar: Boolean,
-  showTitle: Boolean
-) : JPanel(BorderLayout(0, 4)) {
-  private val imageLabel = object : JBLabel() {
-    private var gridVisible = false
-    private var chessboardVisible = false
+/** A self-contained panel that displays an image with a title and a toolbar for zoom controls. */
+class ImageWithToolbarPanel(val title: ScreenshotViewType, showToolbar: Boolean, showTitle: Boolean) : JPanel(BorderLayout(0, 4)) {
+  private val imageLabel =
+    object : JBLabel() {
+        private var gridVisible = false
+        private var chessboardVisible = false
 
-    fun setGridVisible(visible: Boolean) {
-      if (gridVisible != visible) {
-        gridVisible = visible
-        repaint()
-      }
-    }
-    fun isGridVisible(): Boolean = gridVisible
-    fun setChessboardVisible(visible: Boolean) {
-      if (chessboardVisible != visible) {
-        chessboardVisible = visible
-        repaint()
-      }
-    }
-    fun isChessboardVisible(): Boolean = chessboardVisible
+        fun setGridVisible(visible: Boolean) {
+          if (gridVisible != visible) {
+            gridVisible = visible
+            repaint()
+          }
+        }
 
-    override fun paintComponent(g: Graphics) {
-      if (chessboardVisible) {
-        val g2d = g.create() as Graphics2D
-        try {
-          val color1 = UIUtil.getPanelBackground()
-          val color2 = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-          val squareSize = 8
-          var x = 0
-          while (x < width) {
-            var y = 0
-            while (y < height) {
-              g2d.color = if ((x / squareSize + y / squareSize) % 2 == 0) color1 else color2
-              g2d.fillRect(x, y, squareSize, squareSize)
-              y += squareSize
+        fun isGridVisible(): Boolean = gridVisible
+
+        fun setChessboardVisible(visible: Boolean) {
+          if (chessboardVisible != visible) {
+            chessboardVisible = visible
+            repaint()
+          }
+        }
+
+        fun isChessboardVisible(): Boolean = chessboardVisible
+
+        override fun paintComponent(g: Graphics) {
+          if (chessboardVisible) {
+            val g2d = g.create() as Graphics2D
+            try {
+              val color1 = UIUtil.getPanelBackground()
+              val color2 = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
+              val squareSize = 8
+              var x = 0
+              while (x < width) {
+                var y = 0
+                while (y < height) {
+                  g2d.color = if ((x / squareSize + y / squareSize) % 2 == 0) color1 else color2
+                  g2d.fillRect(x, y, squareSize, squareSize)
+                  y += squareSize
+                }
+                x += squareSize
+              }
+            } finally {
+              g2d.dispose()
             }
-            x += squareSize
           }
-        }
-        finally {
-          g2d.dispose()
-        }
-      }
 
-      super.paintComponent(g) // This will draw the icon (the actual image)
+          super.paintComponent(g) // This will draw the icon (the actual image)
 
-      if (icon == null) return
+          if (icon == null) return
 
-      val g2d = g.create() as Graphics2D
-      try {
-        val iconX = (width - icon.iconWidth) / 2
-        val iconY = (height - icon.iconHeight) / 2
+          val g2d = g.create() as Graphics2D
+          try {
+            val iconX = (width - icon.iconWidth) / 2
+            val iconY = (height - icon.iconHeight) / 2
 
-        // Only draw the border for the "Diff" image panel.
-        if (title == ScreenshotViewType.DIFF) {
-          // Draw a subtle, theme-aware border around the actual image to clearly delineate its boundaries.
-          g2d.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
-          g2d.drawRect(iconX, iconY, icon.iconWidth - 1, icon.iconHeight - 1)
-        }
+            // Only draw the border for the "Diff" image panel.
+            if (title == ScreenshotViewType.DIFF) {
+              // Draw a subtle, theme-aware border around the actual image to clearly delineate its boundaries.
+              g2d.color = JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()
+              g2d.drawRect(iconX, iconY, icon.iconWidth - 1, icon.iconHeight - 1)
+            }
 
-        if (gridVisible) {
-          // The grid is drawn relative to the image's top-left corner.
-          g2d.translate(iconX, iconY)
-          g2d.color = Color(128, 128, 128, 128)
-          val gridSize = (20 * currentScale).toInt().coerceAtLeast(1)
+            if (gridVisible) {
+              // The grid is drawn relative to the image's top-left corner.
+              g2d.translate(iconX, iconY)
+              g2d.color = Color(128, 128, 128, 128)
+              val gridSize = (20 * currentScale).toInt().coerceAtLeast(1)
 
-          for (x in 0..icon.iconWidth step gridSize) {
-            g2d.drawLine(x, 0, x, icon.iconHeight)
-          }
-          for (y in 0..icon.iconHeight step gridSize) {
-            g2d.drawLine(0, y, icon.iconWidth, y)
+              for (x in 0..icon.iconWidth step gridSize) {
+                g2d.drawLine(x, 0, x, icon.iconHeight)
+              }
+              for (y in 0..icon.iconHeight step gridSize) {
+                g2d.drawLine(0, y, icon.iconWidth, y)
+              }
+            }
+          } finally {
+            g2d.dispose()
           }
         }
       }
-      finally {
-        g2d.dispose()
+      .apply {
+        // The border is now drawn in paintComponent to match the image's exact bounds.
+        horizontalAlignment = SwingConstants.CENTER
       }
+  private val placeholderLabel =
+    JBLabel().apply {
+      horizontalAlignment = SwingConstants.CENTER
+      verticalAlignment = SwingConstants.CENTER
     }
-  }.apply {
-    // The border is now drawn in paintComponent to match the image's exact bounds.
-    horizontalAlignment = SwingConstants.CENTER
-  }
-  private val placeholderLabel = JBLabel().apply {
-    horizontalAlignment = SwingConstants.CENTER
-    verticalAlignment = SwingConstants.CENTER
-  }
   val scrollPane = JScrollPane()
   // A simple, non-opaque panel to wrap the image label. This resolves a Swing layout conflict
   // that was preventing the scrollbars from appearing correctly.
   private val imageContainer = JPanel(BorderLayout())
 
-  @VisibleForTesting
-  val toolbar: ActionToolbar
+  @VisibleForTesting val toolbar: ActionToolbar
   private var originalImage: BufferedImage? = null
-  @VisibleForTesting
-  var currentScale = 1.0
-  @VisibleForTesting
-  var isAutoFitting = false
+  @VisibleForTesting var currentScale = 1.0
+  @VisibleForTesting var isAutoFitting = false
 
   // Expose actions for testing
   @VisibleForTesting
-  val zoomInAction = object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-    override fun actionPerformed(e: AnActionEvent) = zoomIn()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = canZoomIn() }
-  }
+  val zoomInAction =
+    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+      override fun actionPerformed(e: AnActionEvent) = zoomIn()
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = canZoomIn()
+      }
+    }
   @VisibleForTesting
-  val zoomOutAction = object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-    override fun actionPerformed(e: AnActionEvent) = zoomOut()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = canZoomOut() }
-  }
+  val zoomOutAction =
+    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+      override fun actionPerformed(e: AnActionEvent) = zoomOut()
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = canZoomOut()
+      }
+    }
   @VisibleForTesting
-  val oneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-    override fun actionPerformed(e: AnActionEvent) = setActualSize()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() && currentScale != 1.0 }
-  }
+  val oneToOneAction =
+    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+      override fun actionPerformed(e: AnActionEvent) = setActualSize()
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = hasImage() && currentScale != 1.0
+      }
+    }
   @VisibleForTesting
-  val fitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-    override fun actionPerformed(e: AnActionEvent) = fitToScreen()
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() && !isAutoFitting }
-  }
+  val fitToScreenAction =
+    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+      override fun actionPerformed(e: AnActionEvent) = fitToScreen()
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = hasImage() && !isAutoFitting
+      }
+    }
   @VisibleForTesting
-  val toggleGridViewAction = object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-    override fun isSelected(e: AnActionEvent): Boolean = isGridVisible()
-    override fun setSelected(e: AnActionEvent, state: Boolean) = setGridVisible(state)
-    override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
-  }
+  val toggleGridViewAction =
+    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+      override fun isSelected(e: AnActionEvent): Boolean = isGridVisible()
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) = setGridVisible(state)
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = hasImage()
+      }
+    }
 
   @VisibleForTesting
   val toggleChessboardAction =
-    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ImageWithToolbarPanel::class.java)) {
+    object :
+      ToggleAction(
+        "Chessboard",
+        "Toggle Chessboard Background",
+        IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ImageWithToolbarPanel::class.java),
+      ) {
       override fun isSelected(e: AnActionEvent): Boolean = isChessboardVisible()
+
       override fun setSelected(e: AnActionEvent, state: Boolean) = setChessboardVisible(state)
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = hasImage() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = hasImage()
+      }
     }
 
   private var dynamicMinScale = 0.1
@@ -197,18 +222,20 @@ class ImageWithToolbarPanel(
   init {
     border = JBUI.Borders.empty(if (showTitle) 10 else 0, 10, 10, 10)
 
-    val actionGroup = DefaultActionGroup().apply {
-      add(toggleChessboardAction)
-      add(toggleGridViewAction)
-      addSeparator()
-      add(zoomOutAction)
-      add(zoomInAction)
-      add(oneToOneAction)
-      add(fitToScreenAction)
-    }
-    toolbar = ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
-      targetComponent = this@ImageWithToolbarPanel
-    }
+    val actionGroup =
+      DefaultActionGroup().apply {
+        add(toggleChessboardAction)
+        add(toggleGridViewAction)
+        addSeparator()
+        add(zoomOutAction)
+        add(zoomInAction)
+        add(oneToOneAction)
+        add(fitToScreenAction)
+      }
+    toolbar =
+      ActionManager.getInstance().createActionToolbar("ScreenshotImageToolbar", actionGroup, true).apply {
+        targetComponent = this@ImageWithToolbarPanel
+      }
 
     if (showTitle || showToolbar) {
       val headerPanel = JPanel(BorderLayout())
@@ -231,13 +258,15 @@ class ImageWithToolbarPanel(
     imageContainer.add(imageLabel, BorderLayout.CENTER)
     add(scrollPane, BorderLayout.CENTER)
 
-    scrollPane.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        if (isAutoFitting) {
-          fitToScreen()
+    scrollPane.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent?) {
+          if (isAutoFitting) {
+            fitToScreen()
+          }
         }
       }
-    })
+    )
   }
 
   // Public API for external control
@@ -281,11 +310,17 @@ class ImageWithToolbarPanel(
   }
 
   fun setGridVisible(visible: Boolean) = imageLabel.setGridVisible(visible)
+
   fun isGridVisible(): Boolean = imageLabel.isGridVisible()
+
   fun setChessboardVisible(visible: Boolean) = imageLabel.setChessboardVisible(visible)
+
   fun isChessboardVisible(): Boolean = imageLabel.isChessboardVisible()
+
   fun canZoomIn(): Boolean = originalImage != null && currentScale < dynamicMaxScale
+
   fun canZoomOut(): Boolean = originalImage != null && currentScale > dynamicMinScale
+
   fun hasImage(): Boolean = originalImage != null
 
   @UiThread

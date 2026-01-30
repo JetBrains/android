@@ -18,14 +18,10 @@ package com.android.tools.idea.adb.wireless
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
 
-class MockDevicePairingView(
-  project: Project,
-  notificationService: WiFiPairingNotificationService,
-  override val model: WiFiPairingModel,
-) : WiFiPairingView {
+class MockDevicePairingView(project: Project, notificationService: WiFiPairingNotificationService, override val model: WiFiPairingModel) :
+  WiFiPairingView {
   val hyperlinkListener = MockWiFiPairingHyperlinkListener()
-  private val viewImpl =
-    WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener, null)
+  private val viewImpl = WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener, null)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()
@@ -36,8 +32,7 @@ class MockDevicePairingView(
   val showQrCodePairingStartedTracker = FutureValuesTracker<Unit>()
   val showQrCodePairingInProgressTracker = FutureValuesTracker<PairingMdnsService>()
   val showQrCodePairingWaitForDeviceTracker = FutureValuesTracker<PairingResult>()
-  val showQrCodePairingSuccessTracker =
-    FutureValuesTracker<Pair<PairingMdnsService, AdbOnlineDevice>>()
+  val showQrCodePairingSuccessTracker = FutureValuesTracker<Pair<PairingMdnsService, AdbOnlineDevice>>()
   val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<PairingMdnsService, Throwable>>()
   val showMdnsDisabledOnAdbServer = FutureValuesTracker<PairingMdnsService>()
 
@@ -86,10 +81,7 @@ class MockDevicePairingView(
     viewImpl.showQrCodePairingWaitForDevice(pairingResult)
   }
 
-  override fun showQrCodePairingSuccess(
-    pairingMdnsService: PairingMdnsService,
-    device: AdbOnlineDevice,
-  ) {
+  override fun showQrCodePairingSuccess(pairingMdnsService: PairingMdnsService, device: AdbOnlineDevice) {
     showQrCodePairingSuccessTracker.produce(Pair(pairingMdnsService, device))
     viewImpl.showQrCodePairingSuccess(pairingMdnsService, device)
   }

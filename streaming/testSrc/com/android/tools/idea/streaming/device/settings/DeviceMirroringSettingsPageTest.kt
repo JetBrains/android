@@ -25,19 +25,18 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JCheckBox
+import javax.swing.JTextField
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JCheckBox
-import javax.swing.JTextField
 
 /** Tests for [DeviceMirroringSettingsPage] and [DeviceMirroringSettings]. */
 @RunsInEdt
 class DeviceMirroringSettingsPageTest {
 
-  @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), EdtRule(), HeadlessDialogRule())
+  @get:Rule val ruleChain = RuleChain(ApplicationRule(), EdtRule(), HeadlessDialogRule())
 
   private val settings by lazy { DeviceMirroringSettings.getInstance() }
   private val settingsPage by lazy {
@@ -62,11 +61,11 @@ class DeviceMirroringSettingsPageTest {
     val component = settingsPage.createComponent()!!
     val ui = FakeUi(component)
     val activateOnConnectionCheckBox =
-        ui.getComponent<JCheckBox> { it.text == "Activate mirroring when a new physical device is connected" }
+      ui.getComponent<JCheckBox> { it.text == "Activate mirroring when a new physical device is connected" }
     val activateOnAppLaunchCheckBox =
-        ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching an app on a physical device" }
+      ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching an app on a physical device" }
     val activateOnTestLaunchCheckBox =
-        ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching a test on a physical device" }
+      ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching a test on a physical device" }
     val redirectAudioCheckBox = ui.getComponent<JCheckBox> { it.text == "Redirect audio from local devices" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Synchronize clipboard" }
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()

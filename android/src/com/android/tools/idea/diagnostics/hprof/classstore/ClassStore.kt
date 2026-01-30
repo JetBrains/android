@@ -31,12 +31,9 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
   private val primitiveArrayToClassDefinition = HashMap<Type, ClassDefinition>()
 
   init {
-    fun getClashedNameWithIndex(classDefinition: ClassDefinition,
-                                index: Int): String {
-      if (classDefinition.name.endsWith(';'))
-        return "${classDefinition.name.removeSuffix(";")}!$index;"
-      else
-        return "${classDefinition.name}!$index"
+    fun getClashedNameWithIndex(classDefinition: ClassDefinition, index: Int): String {
+      if (classDefinition.name.endsWith(';')) return "${classDefinition.name.removeSuffix(";")}!$index;"
+      else return "${classDefinition.name}!$index"
     }
 
     val clashedClassNames = mutableSetOf<String>()
@@ -45,8 +42,7 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
       var clashed = false
       if (clashedClassNames.contains(className)) {
         clashed = true
-      }
-      else {
+      } else {
         val clashedClass = stringToClassDefinition.remove(className)
         // If there is more than one class with this name, rename first class too.
         if (clashedClass != null) {
@@ -63,14 +59,12 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
         do {
           newName = getClashedNameWithIndex(classDefinition, i)
           i++
-        }
-        while (stringToClassDefinition.containsKey(newName))
+        } while (stringToClassDefinition.containsKey(newName))
 
         val newClassDefinition = classDefinition.copyWithName(newName)
         stringToClassDefinition[newName] = newClassDefinition
         classes.put(classDefinition.id, newClassDefinition)
-      }
-      else {
+      } else {
         stringToClassDefinition[classDefinition.name] = classDefinition
       }
     }
@@ -100,8 +94,7 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
         if (prevClassDefinition != null) {
           shortNameToClassDefinition[shortPrettyName] = null
         }
-      }
-      else {
+      } else {
         shortNameToClassDefinition[shortPrettyName] = it
       }
     }
@@ -140,17 +133,13 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
   }
 
   fun forEachClass(func: (ClassDefinition) -> Unit) {
-    classes.values.forEach {
-      func(it)
-    }
+    classes.values.forEach { func(it) }
   }
 
   fun createStoreWithRemappedIDs(idMapper: IDMapper): ClassStore {
     fun map(id: Long): Long = idMapper.getID(id)
     val newClasses = Long2ObjectOpenHashMap<ClassDefinition>()
-    classes.values.forEach {
-      newClasses.put(map(it.id), it.copyWithRemappedIDs(idMapper))
-    }
+    classes.values.forEach { newClasses.put(map(it.id), it.copyWithRemappedIDs(idMapper)) }
     return ClassStore(newClasses)
   }
 
@@ -162,8 +151,7 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
           return classDefinition.prettyName.substringAfterLast('.')
         }
       }
-    }
-    else if (classDefinitionToShortPrettyName.contains(classDefinition)) {
+    } else if (classDefinitionToShortPrettyName.contains(classDefinition)) {
       return classDefinition.prettyName.substringAfterLast('.')
     }
     return classDefinition.prettyName

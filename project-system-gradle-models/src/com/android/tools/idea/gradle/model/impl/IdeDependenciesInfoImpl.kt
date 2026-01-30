@@ -18,7 +18,5 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import java.io.Serializable
 
-data class IdeDependenciesInfoImpl(
-  override val includeInApk: Boolean,
-  override val includeInBundle: Boolean
-) : IdeDependenciesInfo, Serializable
+data class IdeDependenciesInfoImpl(override val includeInApk: Boolean, override val includeInBundle: Boolean) :
+  IdeDependenciesInfo, Serializable

@@ -31,10 +31,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 
-class DeleteAction(
-  private val applicationScope: CoroutineScope =
-    AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
-) : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
+class DeleteAction(private val applicationScope: CoroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())) :
+  DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -49,10 +47,7 @@ class DeleteAction(
     val isRunning = deviceRowData.status == DeviceRowData.Status.ONLINE
     val runningSuffix = " This will stop the device.".takeIf { isRunning } ?: ""
     if (
-      MessageDialogBuilder.yesNo(
-          "Confirm Deletion",
-          "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix",
-        )
+      MessageDialogBuilder.yesNo("Confirm Deletion", "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix")
         .ask(e.componentToRestoreFocusTo())
     ) {
       DeviceManagerUsageTracker.logDeviceManagerEvent(
@@ -73,9 +68,7 @@ class DeleteAction(
       // Deleting a paired device unpairs it
       deviceHandle.state.properties.wearPairingId?.let { wearPairingId ->
         // The WearPairingManager is an Application-scoped service, so we use that scope too.
-        applicationScope.launch {
-          WearPairingManager.getInstance().removeAllPairedDevices(wearPairingId)
-        }
+        applicationScope.launch { WearPairingManager.getInstance().removeAllPairedDevices(wearPairingId) }
       }
     }
   }

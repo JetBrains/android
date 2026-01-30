@@ -19,6 +19,7 @@ import java.lang.reflect.Method
 
 /**
  * Finds method with the name that contains [subname] as substring.
+ *
  * @param subname a substring of method name.
  * @return the [Method] if found or null otherwise.
  */

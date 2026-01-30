@@ -36,6 +36,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import com.intellij.psi.util.parentOfType
+import java.util.regex.Pattern
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -55,8 +56,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import java.util.regex.Pattern
-
 
 class ResourceFoldingBuilder : FoldingBuilderEx() {
 
@@ -65,49 +64,37 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         private val FORMAT = Pattern.compile("%(\\d+\\$)?([-+#, 0(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])")
         private const val FOLD_MAX_LENGTH = 60
         private val UNIT_TEST_MODE: Boolean = ApplicationManager.getApplication().isUnitTestMode
-        private val RESOURCE_TYPES = listOf(ResourceType.STRING,
-                                            ResourceType.DIMEN,
-                                            ResourceType.INTEGER,
-                                            ResourceType.PLURALS)
+        private val RESOURCE_TYPES = listOf(ResourceType.STRING, ResourceType.DIMEN, ResourceType.INTEGER, ResourceType.PLURALS)
     }
 
     private val isFoldingEnabled = AndroidFoldingSettings.getInstance().isCollapseAndroidStrings
 
     override fun getPlaceholderText(node: ASTNode): String? {
 
-        tailrec fun KtElement.unwrapReferenceAndGetValue(
-          ktCallElement: KtCallElement? = null
-        ): String? = when (this) {
-            is KtDotQualifiedExpression ->
-                selectorExpression?.unwrapReferenceAndGetValue(ktCallElement)
-            is KtCallElement ->
-                valueArguments.firstOrNull()?.getArgumentExpression()?.unwrapReferenceAndGetValue(this)
-            else ->
-                (this as? KtReferenceExpression)?.getAndroidResourceValue(ktCallElement)
-        }
+        tailrec fun KtElement.unwrapReferenceAndGetValue(ktCallElement: KtCallElement? = null): String? =
+            when (this) {
+                is KtDotQualifiedExpression -> selectorExpression?.unwrapReferenceAndGetValue(ktCallElement)
+                is KtCallElement -> valueArguments.firstOrNull()?.getArgumentExpression()?.unwrapReferenceAndGetValue(this)
+                else -> (this as? KtReferenceExpression)?.getAndroidResourceValue(ktCallElement)
+            }
 
         val element = SourceTreeToPsiMap.treeElementToPsi(node) as? KtElement ?: return null
         return element.unwrapReferenceAndGetValue()
     }
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
-        if (root !is KtFile ||
-            root.isScript() ||
-            quick && !UNIT_TEST_MODE ||
-            !isFoldingEnabled ||
-            AndroidFacet.getInstance(root) == null
-        ) {
+        if (root !is KtFile || root.isScript() || quick && !UNIT_TEST_MODE || !isFoldingEnabled || AndroidFacet.getInstance(root) == null) {
             return emptyArray()
         }
 
         val result = arrayListOf<FoldingDescriptor>()
         root.accept(
-          object : KtTreeVisitorVoid() {
-              override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
-                  expression.getFoldingDescriptor()?.let { result.add(it) }
-                  super.visitSimpleNameExpression(expression)
-              }
-          }
+            object : KtTreeVisitorVoid() {
+                override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
+                    expression.getFoldingDescriptor()?.let { result.add(it) }
+                    super.visitSimpleNameExpression(expression)
+                }
+            }
         )
 
         return result.toTypedArray()
@@ -148,10 +135,10 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     private fun KtCallElement.isFoldableGetResourceValueCall(): Boolean {
         return checkMethodName { methodName ->
             methodName == "getString" ||
-            methodName == "getText" ||
-            methodName == "getInteger" ||
-            methodName.startsWith("getDimension") ||
-            methodName.startsWith("getQuantityString")
+                methodName == "getText" ||
+                methodName == "getInteger" ||
+                methodName.startsWith("getDimension") ||
+                methodName.startsWith("getQuantityString")
         }
     }
 
@@ -175,9 +162,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         return null
     }
 
-    private fun KtReferenceExpression.getAndroidResourceValue(
-      call: KtCallElement? = null
-    ): String? {
+    private fun KtReferenceExpression.getAndroidResourceValue(call: KtCallElement? = null): String? {
         lateinit var resourceModule: Module
         lateinit var resourceType: ResourceType
         var resolvedName: String? = null
@@ -202,8 +187,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
         if (resourceType == ResourceType.STRING || resourceType == ResourceType.PLURALS) {
             return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"'
-        }
-        else if (resourceType == ResourceType.INTEGER || text.length <= 1) {
+        } else if (resourceType == ResourceType.INTEGER || text.length <= 1) {
             // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
             // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
             // This is similar to how IntelliJ 14 handles call parameters
@@ -215,10 +199,10 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     private tailrec fun ResourceRepository.getResourceValue(
-      type: ResourceType,
-      name: String,
-      referenceConfig: FolderConfiguration,
-      processedValues: MutableSet<String>? = null
+        type: ResourceType,
+        name: String,
+        referenceConfig: FolderConfiguration,
+        processedValues: MutableSet<String>? = null,
     ): String? {
         val value = getConfiguredValue(type, name, referenceConfig)?.value ?: return null
         if (!value.startsWith('@')) {
@@ -294,8 +278,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
                     numberString = numberString.substring(0, numberString.length - 1)
                     number = Integer.parseInt(numberString)
                     nextNumber = number + 1
-                }
-                else {
+                } else {
                     number = nextNumber++
                 }
 
@@ -312,8 +295,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
                     sb.append('}')
                     start = index
                 }
-            }
-            else {
+            } else {
                 var i = start
                 val n = formatString.length
                 while (i < n) {

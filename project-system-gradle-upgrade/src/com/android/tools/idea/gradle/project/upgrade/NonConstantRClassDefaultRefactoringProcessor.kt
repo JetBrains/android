@@ -20,8 +20,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 
 class NonConstantRClassDefaultRefactoringProcessor : AbstractBooleanPropertyDefaultRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT
   override val propertyKey = "android.nonFinalResIds"
@@ -34,19 +35,21 @@ class NonConstantRClassDefaultRefactoringProcessor : AbstractBooleanPropertyDefa
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("non-constant-r-class-default")
 
   override fun getCommandName() = AgpUpgradeBundle.message("nonConstantRClassDefaultRefactoringProcessor.commandName")
+
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonConstantRClass"
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.NON_CONSTANT_R_CLASS_DEFAULT)
 
-  override fun getShortDescription() = """
+  override fun getShortDescription() =
+    """
     R classes in applications and tests previously used constant values that can be
     inlined by the java compiler. The default behaviour in the Android Gradle
     plugin is changing to speed up builds and allow more precise shrinking; this
     processor inserts a property in gradle.properties to preserve the current
     default.
-  """.trimIndent()
-
+    """
+      .trimIndent()
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-beta01")

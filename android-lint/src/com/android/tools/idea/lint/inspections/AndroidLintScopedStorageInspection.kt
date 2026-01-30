@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ScopedStorageDetector
 
 class AndroidLintScopedStorageInspection :
-  AndroidLintInspectionBase(
-    AndroidLintBundle.message("android.lint.inspections.scoped.storage"),
-    ScopedStorageDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.scoped.storage"), ScopedStorageDetector.ISSUE)

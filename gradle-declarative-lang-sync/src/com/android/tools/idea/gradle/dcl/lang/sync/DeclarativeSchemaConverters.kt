@@ -54,40 +54,41 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
   val top = topLevelReceiverType.convert(schema)
   schema.topLevelReceiver = top
   dataClasses.putAll(
-    dataClassTypesByFqName.mapNotNull {
-      keyValue -> keyValue.value.convert(schema)?.let { keyValue.key.convert() to it }
-    }.toMap()
+    dataClassTypesByFqName.mapNotNull { keyValue -> keyValue.value.convert(schema)?.let { keyValue.key.convert() to it } }.toMap()
   )
   safeRun {
     dataClasses.putAll(
-      genericInstantiationsByFqName.mapNotNull {
-        // deliberately ignore generic type for now
-        keyValue ->
-        keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
-      }.toMap()
+      genericInstantiationsByFqName
+        .mapNotNull {
+          // deliberately ignore generic type for now
+          keyValue ->
+          keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
+        }
+        .toMap()
     )
   }
   safeRun {
     augmentedTypes.putAll(
-      assignmentAugmentationsByTypeName.mapNotNull {
-        // deliberately ignore generic type for now
-        keyValue -> keyValue.key.convert() to keyValue.value.mapNotNull { it.convert() }
-      }.toMap()
+      assignmentAugmentationsByTypeName
+        .mapNotNull {
+          // deliberately ignore generic type for now
+          keyValue ->
+          keyValue.key.convert() to keyValue.value.mapNotNull { it.convert() }
+        }
+        .toMap()
     )
   }
   safeRun {
-    //TODO IDEA-374715 Uncomment once Gradle API 9.0 migration is done
-    //infixFunctions.putAll(
+    // TODO IDEA-374715 Uncomment once Gradle API 9.0 migration is done
+    // infixFunctions.putAll(
     //  infixFunctionsByFqName.mapNotNull {
     //    keyValue ->
     //    keyValue.value.convert()?.let { keyValue.key.simpleName to it }
     //  }.toMap()
-    //)
+    // )
   }
   topFunctions.putAll(
-    externalFunctionsByFqName.mapNotNull { keyValue ->
-      keyValue.value.convert()?.let { keyValue.key.simpleName to it }
-    }.toMap()
+    externalFunctionsByFqName.mapNotNull { keyValue -> keyValue.value.convert()?.let { keyValue.key.simpleName to it } }.toMap()
   )
   return schema
 }
@@ -95,8 +96,7 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
 fun safeRun(f: () -> Unit) {
   try {
     f.invoke()
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     LOG.warn(ExternalSystemException("Caught exception during declarative schema serialization", e))
   }
 }
@@ -116,14 +116,8 @@ private fun DataType.ClassDataType.convert(schema: BuildDeclarativeSchema): Clas
   }
 
 private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
-  val supertypes = supertypes.map {
-    FullName(it.qualifiedName)
-  }.toSet()
-  val properties = properties.mapNotNull { dataProp ->
-    dataProp.valueType.convert()?.let {
-      DataProperty(dataProp.name, it)
-    }
-  }
+  val supertypes = supertypes.map { FullName(it.qualifiedName) }.toSet()
+  val properties = properties.mapNotNull { dataProp -> dataProp.valueType.convert()?.let { DataProperty(dataProp.name, it) } }
   val memberFunctions = memberFunctions.mapNotNull { it.convert(schema) }
   return ClassModel(memberFunctions, FullName(name.qualifiedName), properties, supertypes)
 }
@@ -131,89 +125,94 @@ private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
 private fun DataType.ParameterizedTypeInstance.convert(): ParameterizedClassModel =
   ParameterizedClassModel(FullName(name.qualifiedName), this.typeArguments.mapNotNull { it.convert() })
 
-private fun EnumClass.convert(): EnumModel =
-  EnumModel(FullName(name.qualifiedName), this.entryNames)
+private fun EnumClass.convert(): EnumModel = EnumModel(FullName(name.qualifiedName), this.entryNames)
 
 private fun AssignmentAugmentation.convert(): AugmentationKind? =
   if (this.kind is AssignmentAugmentationKind.Plus) AugmentationKind.PLUS else null
 
-private fun FunctionSemantics.convert(): FunctionSemantic? = when (this) {
-  is FunctionSemantics.AccessAndConfigure ->
-    when (val type = accessor.objectType) {
-      is Name -> BlockFunction(type.convert())
-      is Type -> (type.dataType as? DataClass)?.let { BlockFunction(DataClassRef(FullName(it.name.qualifiedName))) }
-      else -> null
+private fun FunctionSemantics.convert(): FunctionSemantic? =
+  when (this) {
+    is FunctionSemantics.AccessAndConfigure ->
+      when (val type = accessor.objectType) {
+        is Name -> BlockFunction(type.convert())
+        is Type -> (type.dataType as? DataClass)?.let { BlockFunction(DataClassRef(FullName(it.name.qualifiedName))) }
+        else -> null
+      }
+    is FunctionSemantics.Pure -> returnValueType.convert()?.let { PlainFunction(it) }
+    is FunctionSemantics.AddAndConfigure -> {
+      val configType = configuredType.convert()
+      if (configureBlockRequirement.isValidIfLambdaIsPresent(true) && configType is DataClassRef) {
+        BlockFunction(configType) // if lambda is possible - make it block function
+      } else returnValueType.convert()?.let { PlainFunction(it) }
     }
-  is FunctionSemantics.Pure -> returnValueType.convert()?.let { PlainFunction(it) }
-  is FunctionSemantics.AddAndConfigure -> {
-    val configType = configuredType.convert()
-    if (configureBlockRequirement.isValidIfLambdaIsPresent(true) && configType is DataClassRef) {
-      BlockFunction(configType) // if lambda is possible - make it block function
-    } else returnValueType.convert()?.let { PlainFunction(it) }
+    is FunctionSemantics.Builder -> returnValueType.convert()?.let { PlainFunction(it) }
+    else -> {
+      LOG.warn("Cannot recognize declarative schema class of FunctionSemantics:" + javaClass.canonicalName)
+      null
+    }
   }
-  is FunctionSemantics.Builder -> returnValueType.convert()?.let { PlainFunction(it) }
-  else -> {
-    LOG.warn("Cannot recognize declarative schema class of FunctionSemantics:" + javaClass.canonicalName)
-    null
-  }
-}
 
-private fun SchemaMemberFunction.convert(schema: BuildDeclarativeSchema): com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction? {
+private fun SchemaMemberFunction.convert(
+  schema: BuildDeclarativeSchema
+): com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction? {
   val parameters = parameters.mapNotNull { it.convert() }
   val convertedReceiver = (receiver as? Name)?.convert() ?: return null
   val convertedSemantics = semantics.convert() ?: return null
   return SchemaMemberFunction(convertedReceiver, simpleName, parameters, convertedSemantics)
 }
 
-private fun DataParameter.convert() =
-  type.convert()?.let { IdeDataParameter(name, it) }
+private fun DataParameter.convert() = type.convert()?.let { IdeDataParameter(name, it) }
 
 private fun FqName.convert() = FullName(qualifiedName)
-private fun DataType.convert(): PrimitiveType? = when (this) {
-  is DataType.IntDataType -> SimpleDataType.INT
-  is DataType.LongDataType -> SimpleDataType.LONG
-  is DataType.UnitType -> SimpleDataType.UNIT
-  is DataType.StringDataType -> SimpleDataType.STRING
-  is DataType.BooleanDataType -> SimpleDataType.BOOLEAN
-  is DataType.NullType -> SimpleDataType.NULL
-  is DataType.TypeVariableUsage -> GenericType
-  is EnumClass ->{
-    LOG.warn("Cannot recognize declarative schema enum of DataType:" + javaClass.canonicalName)
-    null
-  }
-  is DataClass -> {
-    LOG.warn("Cannot recognize declarative schema class of DataType:" + javaClass.canonicalName)
-    null
-  }
-  else -> {
-    LOG.warn("Cannot recognize declarative type of DataType:" + javaClass.canonicalName)
-    null
-  }
-}
 
-private fun DataTypeRef.convert(): DataTypeReference? = when (this) {
-  is Name -> convert()
-  is Type -> dataType.convert()?.let {
-    when (it) {
-      is SimpleDataType -> SimpleTypeRef(it)
-      is GenericType -> GenericTypeRef
+private fun DataType.convert(): PrimitiveType? =
+  when (this) {
+    is DataType.IntDataType -> SimpleDataType.INT
+    is DataType.LongDataType -> SimpleDataType.LONG
+    is DataType.UnitType -> SimpleDataType.UNIT
+    is DataType.StringDataType -> SimpleDataType.STRING
+    is DataType.BooleanDataType -> SimpleDataType.BOOLEAN
+    is DataType.NullType -> SimpleDataType.NULL
+    is DataType.TypeVariableUsage -> GenericType
+    is EnumClass -> {
+      LOG.warn("Cannot recognize declarative schema enum of DataType:" + javaClass.canonicalName)
+      null
+    }
+    is DataClass -> {
+      LOG.warn("Cannot recognize declarative schema class of DataType:" + javaClass.canonicalName)
+      null
+    }
+    else -> {
+      LOG.warn("Cannot recognize declarative type of DataType:" + javaClass.canonicalName)
+      null
     }
   }
-  is DataTypeRef.NameWithArgs -> convert()
-  else -> {
-    LOG.warn("Cannot recognize declarative schema class of DataTypeRef:" + javaClass.canonicalName)
-    null
+
+private fun DataTypeRef.convert(): DataTypeReference? =
+  when (this) {
+    is Name -> convert()
+    is Type ->
+      dataType.convert()?.let {
+        when (it) {
+          is SimpleDataType -> SimpleTypeRef(it)
+          is GenericType -> GenericTypeRef
+        }
+      }
+    is DataTypeRef.NameWithArgs -> convert()
+    else -> {
+      LOG.warn("Cannot recognize declarative schema class of DataTypeRef:" + javaClass.canonicalName)
+      null
+    }
   }
-}
 
+private fun DataTypeRef.NameWithArgs.convert(): DataClassRefWithTypes =
+  DataClassRefWithTypes(fqName.convert(), typeArguments.mapNotNull { it.convert() })
 
-private fun DataTypeRef.NameWithArgs.convert(): DataClassRefWithTypes = DataClassRefWithTypes(fqName.convert(),
-                                                                                              typeArguments.mapNotNull { it.convert() })
-
-private fun DataType.ParameterizedTypeInstance.TypeArgument.convert(): GenericTypeArgument? = when (this) {
-  is DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument -> type.convert()?.let { ConcreteGeneric(it) }
-  is DataType.ParameterizedTypeInstance.TypeArgument.StarProjection -> StarGeneric
-}
+private fun DataType.ParameterizedTypeInstance.TypeArgument.convert(): GenericTypeArgument? =
+  when (this) {
+    is DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument -> type.convert()?.let { ConcreteGeneric(it) }
+    is DataType.ParameterizedTypeInstance.TypeArgument.StarProjection -> StarGeneric
+  }
 
 private fun Name.convert(): DataClassRef = DataClassRef(fqName.convert())
 

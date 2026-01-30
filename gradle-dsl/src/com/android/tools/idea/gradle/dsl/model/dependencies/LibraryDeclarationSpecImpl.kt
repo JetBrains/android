@@ -22,10 +22,8 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists
 
-class LibraryDeclarationSpecImpl(private var name: String,
-                                 private var group: String,
-                                 private var version: VersionDeclarationSpec?) : LibraryDeclarationSpec {
-
+class LibraryDeclarationSpecImpl(private var name: String, private var group: String, private var version: VersionDeclarationSpec?) :
+  LibraryDeclarationSpec {
 
   companion object {
     fun create(notation: String): LibraryDeclarationSpecImpl? {
@@ -63,19 +61,18 @@ class LibraryDeclarationSpecImpl(private var name: String,
     version = newVersion
   }
 
-  fun setStringVersion(newVersion: String?){
+  fun setStringVersion(newVersion: String?) {
     version = newVersion?.let { VersionDeclarationSpecImpl.create(it) }
   }
 
   override fun toString(): String = compactNotation()
 
   override fun compactNotation(): String {
-    val versionString = version?.let {
-      val str = it.compactNotation()
-      if (str.isNullOrBlank()) null else str
-    }
-    return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(
-      Lists.newArrayList(group, name, versionString)
-    )
+    val versionString =
+      version?.let {
+        val str = it.compactNotation()
+        if (str.isNullOrBlank()) null else str
+      }
+    return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(Lists.newArrayList(group, name, versionString))
   }
 }

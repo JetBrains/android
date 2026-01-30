@@ -24,12 +24,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 
-class FakeDependencyDeclarationElement(private val parent: GradleDslElement,
-                                       name: GradleNameElement,
-                                       private val literal: GradleDslLiteral,
-                                       private val getter: (LibraryDeclarationSpec) -> String?,
-                                       private val setter: (LibraryDeclarationSpecImpl, String) -> Unit,
-                                       canDelete: Boolean) : FakeElement(parent, name, literal, canDelete) {
+class FakeDependencyDeclarationElement(
+  private val parent: GradleDslElement,
+  name: GradleNameElement,
+  private val literal: GradleDslLiteral,
+  private val getter: (LibraryDeclarationSpec) -> String?,
+  private val setter: (LibraryDeclarationSpecImpl, String) -> Unit,
+  canDelete: Boolean,
+) : FakeElement(parent, name, literal, canDelete) {
 
   override fun extractValue(): Any? {
     return getSpec()?.let { getter.invoke(it) }
@@ -54,7 +56,6 @@ class FakeDependencyDeclarationElement(private val parent: GradleDslElement,
 
   override fun getResolvedVariables(): List<GradleReferenceInjection?> = listOf()
 
-
   override fun getDependencies(): List<GradleReferenceInjection?> {
     return resolvedVariables
   }
@@ -62,9 +63,7 @@ class FakeDependencyDeclarationElement(private val parent: GradleDslElement,
   override fun isReference(): Boolean = false
 
   private fun getSpec(): LibraryDeclarationSpecImpl? {
-    val value =  literal.getValue(String::class.java) ?: return null
+    val value = literal.getValue(String::class.java) ?: return null
     return LibraryDeclarationSpecImpl.create(value)
   }
-
 }
-

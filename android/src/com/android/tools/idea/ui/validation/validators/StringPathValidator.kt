@@ -22,12 +22,12 @@ import java.nio.file.Paths
 class StringPathValidator(private val pathValidator: PathValidator) : Validator<String> {
 
   override fun validate(value: String): Validator.Result {
-    val path = try {
-      Paths.get(value)
-    }
-    catch (e: InvalidPathException) {
-      return Validator.Result(Validator.Severity.ERROR, "${pathValidator.pathName} in not a valid file system path")
-    }
+    val path =
+      try {
+        Paths.get(value)
+      } catch (e: InvalidPathException) {
+        return Validator.Result(Validator.Severity.ERROR, "${pathValidator.pathName} in not a valid file system path")
+      }
     return pathValidator.validate(path)
   }
 }

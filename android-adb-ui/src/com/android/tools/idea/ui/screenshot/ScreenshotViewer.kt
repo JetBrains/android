@@ -99,19 +99,15 @@ import org.jetbrains.annotations.NonNls
  *
  * @param project defines the context for the viewer
  * @param screenshotImage the screenshot to display
- * @param backingFile the temporary file containing the screenshot, which is deleted when the viewer
- *     is closed
- * @param screenshotProvider an optional provider of additional screenshots. The *Recapture*
- *     button is hidden if not provided
- * @param screenshotDecorator an optional postprocessor used for framing and clipping.
- *     The framing options are hidden if not provided
- * @param framingOptions available choices of frames. Ignored if [screenshotDecorator]
- *     is null. The pull-down list of framing options is shown only when [screenshotDecorator] is
- *     not null and there are two or more framing options.
+ * @param backingFile the temporary file containing the screenshot, which is deleted when the viewer is closed
+ * @param screenshotProvider an optional provider of additional screenshots. The *Recapture* button is hidden if not provided
+ * @param screenshotDecorator an optional postprocessor used for framing and clipping. The framing options are hidden if not provided
+ * @param framingOptions available choices of frames. Ignored if [screenshotDecorator] is null. The pull-down list of framing options is
+ *   shown only when [screenshotDecorator] is not null and there are two or more framing options.
  * @param defaultFramingOption the index of the default framing option in the [framingOptions] list
  * @param allowImageRotation determines whether the rotation buttons are available or not
  * @param dialogLocationArbiter allows multiple dialogs to avoid being displayed on top of each other
-*/
+ */
 class ScreenshotViewer(
   private val project: Project,
   screenshotImage: ScreenshotImage,
@@ -132,8 +128,10 @@ class ScreenshotViewer(
   private val settings = DeviceScreenshotSettings.getInstance()
   private val saveConfig
     get() = settings.saveConfig
+
   private val saveLocation: String
-    get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
+    get() = saveConfigResolver.expandSaveLocation(saveConfig.saveLocation)
+
   private var scale = settings.scale
   private var frameScreenshot = settings.frameScreenshot
   private var nonFramingDecorationId = settings.nonFramingDecorationId
@@ -143,36 +141,34 @@ class ScreenshotViewer(
   private var decorationComboBox = ComboBox<ScreenshotDecorationOption>()
 
   /**
-   * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3.
-   * Used only if rotation buttons are enabled.
+   * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3. Used only if rotation buttons are
+   * enabled.
    */
   private var rotationQuadrants: Int
 
   /**
-   * Reference to the screenshot obtained from the device and then rotated by [rotationQuadrants].
-   * Accessed from both EDT and background threads.
+   * Reference to the screenshot obtained from the device and then rotated by [rotationQuadrants]. Accessed from both EDT and background
+   * threads.
    */
   private val sourceImageRef = AtomicReference<ScreenshotImage>()
 
-  /**
-   * Reference to the framed screenshot displayed on screen. Accessed from both EDT and background threads.
-   */
+  /** Reference to the framed screenshot displayed on screen. Accessed from both EDT and background threads. */
   private val displayedImageRef = AtomicReference<TimestampedImage>()
 
-  /**
-   * The user specified destination where the screenshot was saved, or null of the screenshot was not saved.
-   */
+  /** The user specified destination where the screenshot was saved, or null of the screenshot was not saved. */
   private var screenshotFile: Path? = null
 
   init {
-    require(framingOptions.isEmpty() || 0 <= defaultFramingOption && defaultFramingOption < framingOptions.size)
-        { "Invalid defaultFramingOption:$defaultFramingOption framingOptions:$framingOptions" }
+    require(framingOptions.isEmpty() || 0 <= defaultFramingOption && defaultFramingOption < framingOptions.size) {
+      "Invalid defaultFramingOption:$defaultFramingOption framingOptions:$framingOptions"
+    }
 
     isModal = false
-    title = when (screenshotImage.displayId) {
-      PRIMARY_DISPLAY_ID -> message("screenshot.dialog.title.primary.display", screenshotImage.deviceName)
-      else -> message("screenshot.dialog.title.secondary.display", screenshotImage.deviceName, screenshotImage.displayId)
-    }
+    title =
+      when (screenshotImage.displayId) {
+        PRIMARY_DISPLAY_ID -> message("screenshot.dialog.title.primary.display", screenshotImage.deviceName)
+        else -> message("screenshot.dialog.title.secondary.display", screenshotImage.deviceName, screenshotImage.displayId)
+      }
     sourceImageRef.set(screenshotImage)
     rotationQuadrants = screenshotImage.screenshotOrientationQuadrants
     displayedImageRef.set(TimestampedImage(processedImage))
@@ -198,11 +194,11 @@ class ScreenshotViewer(
 
     when {
       frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
-          decorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex) // Select the default framing option.
+        decorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex) // Select the default framing option.
       nonFramingDecorationId == ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id && canClipDeviceMask ->
-          decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
+        decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
       nonFramingDecorationId == ScreenshotDecorationOption.PLAY_COMPATIBLE.id && isPlayCompatibleWearScreenshot ->
-          decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
+        decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
       else -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.RECTANGULAR)
     }
 
@@ -240,42 +236,37 @@ class ScreenshotViewer(
 
         cell(decorationComboBox).align(AlignX.RIGHT)
       }
-      row {
-        cell(imageFileEditor.component).align(Align.FILL)
-      }.resizableRow()
+      row { cell(imageFileEditor.component).align(Align.FILL) }.resizableRow()
       row(message("screenshot.options.resolution")) {
-        comboBox(listOf(100, 50, 25))
-          .onChanged { updateScale(it.item / 100.0) }
-          .applyToComponent { item = (scale * 100).roundToInt() }
+        comboBox(listOf(100, 50, 25)).onChanged { updateScale(it.item / 100.0) }.applyToComponent { item = (scale * 100).roundToInt() }
       }
       row {
         text(message("screenrecord.options.save.directory"))
-        text(saveLocation)
-          .applyToComponent { saveLocationText = this }
-        link(message("configure.save.link.text")) { configureSave() }
-          .align(AlignX.RIGHT)
+        text(saveLocation).applyToComponent { saveLocationText = this }
+        link(message("configure.save.link.text")) { configureSave() }.align(AlignX.RIGHT)
       }
     }
 
     // The following panel prevents the minimum size of the dialog from growing when it is resized.
-    val sizingPanel = object : BorderLayoutPanel() {
-      private var initialMinSize: Dimension? = null
+    val sizingPanel =
+      object : BorderLayoutPanel() {
+        private var initialMinSize: Dimension? = null
 
-      override fun getMinimumSize(): Dimension {
-        return initialMinSize ?: super.getMinimumSize().apply {
-          // To prevent the dialog from shrinking too much, constrain the height to be not less than the minimum width.
-          height = max(width, height)
-          initialMinSize = this
+        override fun getMinimumSize(): Dimension {
+          return initialMinSize
+            ?: super.getMinimumSize().apply {
+              // To prevent the dialog from shrinking too much, constrain the height to be not less than the minimum width.
+              height = max(width, height)
+              initialMinSize = this
+            }
         }
       }
-    }
     return sizingPanel.addToCenter(dialogPanel)
   }
 
   /**
-   * This override is needed because [createCenterPanel] doesn't return [DialogPanel] and because
-   * [DeviceScreenshotSettings.scale] and [DeviceScreenshotSettings.frameScreenshot] have to be updated
-   * only after a successful screenshot saving.
+   * This override is needed because [createCenterPanel] doesn't return [DialogPanel] and because [DeviceScreenshotSettings.scale] and
+   * [DeviceScreenshotSettings.frameScreenshot] have to be updated only after a successful screenshot saving.
    */
   override fun applyFields() {
     dialogPanel.apply()
@@ -284,8 +275,7 @@ class ScreenshotViewer(
     settings.nonFramingDecorationId = nonFramingDecorationId
   }
 
-  override fun getHelpId(): String =
-      "org.jetbrains.android.r/studio-ui/am-screenshot.html"
+  override fun getHelpId(): String = "org.jetbrains.android.r/studio-ui/am-screenshot.html"
 
   override fun createDefaultActions() {
     super.createDefaultActions()
@@ -294,8 +284,14 @@ class ScreenshotViewer(
 
   override fun doOKAction() {
     val image = displayedImageRef.get() ?: return
-    val expandedFilename = saveConfigResolver.expandFilenamePattern(
-      saveConfig.saveLocation, saveConfig.filenameTemplate, EXT_PNG, image.timestamp, settings.screenshotCount + 1)
+    val expandedFilename =
+      saveConfigResolver.expandFilenamePattern(
+        saveConfig.saveLocation,
+        saveConfig.filenameTemplate,
+        EXT_PNG,
+        image.timestamp,
+        settings.screenshotCount + 1,
+      )
     val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
     try {
       Files.createDirectories(file.parent)
@@ -303,8 +299,7 @@ class ScreenshotViewer(
       settings.screenshotCount++
       screenshotFile = file
       logScreenshotUsage()
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       val error = e.message ?: e.javaClass.name
       showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
       return
@@ -336,11 +331,8 @@ class ScreenshotViewer(
     }
   }
 
-  /**
-   * Makes the screenshot viewer's focus on the image itself when opened, to allow keyboard shortcut copying.
-   */
-  override fun getPreferredFocusedComponent(): JComponent =
-      imageFileEditor.component
+  /** Makes the screenshot viewer's focus on the image itself when opened, to allow keyboard shortcut copying. */
+  override fun getPreferredFocusedComponent(): JComponent = imageFileEditor.component
 
   override fun getDimensionServiceKey(): @NonNls String {
     val displayId = sourceImageRef.get().displayId
@@ -350,8 +342,7 @@ class ScreenshotViewer(
     }
   }
 
-  override fun getInitialLocation(): Point? =
-      dialogLocationArbiter?.suggestLocation(this)
+  override fun getInitialLocation(): Point? = dialogLocationArbiter?.suggestLocation(this)
 
   override fun beforeShowCallback() {
     dialogLocationArbiter?.dialogShown(this)
@@ -369,13 +360,11 @@ class ScreenshotViewer(
       ApplicationManager.getApplication().runWriteAction {
         try {
           backingFile.delete(this)
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
           thisLogger().error(e)
         }
       }
-    }
-    finally {
+    } finally {
       super.dispose()
     }
   }
@@ -402,20 +391,14 @@ class ScreenshotViewer(
         try {
           val screenshotImage = screenshotProvider.captureScreenshot()
           sourceImageRef.set(screenshotImage)
-          ApplicationManager.getApplication().invokeLater {
-            processScreenshot(if (allowImageRotation) rotationQuadrants else 0)
-          }
-        }
-        catch (e: CancellationException) {
+          ApplicationManager.getApplication().invokeLater { processScreenshot(if (allowImageRotation) rotationQuadrants else 0) }
+        } catch (e: CancellationException) {
           throw e
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
           val cause = getMessage(e) ?: e.javaClass.name
           val message = message("screenshot.error.generic", cause)
           thisLogger().error(message, e)
-          ApplicationManager.getApplication().invokeLater {
-            showErrorDialog(project, message, message("screenshot.action.title"))
-          }
+          ApplicationManager.getApplication().invokeLater { showErrorDialog(project, message, message("screenshot.action.title")) }
         }
       }
     }
@@ -455,11 +438,8 @@ class ScreenshotViewer(
     // such as: Right click image -> Open in external editor
     ApplicationManager.getApplication().runWriteAction {
       try {
-        backingFile.getOutputStream(this).use { stream ->
-          writePng(processedImage, stream)
-        }
-      }
-      catch (e: IOException) {
+        backingFile.getOutputStream(this).use { stream -> writePng(processedImage, stream) }
+      } catch (e: IOException) {
         thisLogger().error("Unexpected error while writing to ${backingFile.toNioPath()}", e)
       }
     }
@@ -478,12 +458,13 @@ class ScreenshotViewer(
     imageEditor.document.value = displayedImageRef.get().image
     // Resize the dialog after the image editor finishes its internal resizing.
     val imageComponent = imageEditor.contentComponent
-    val listener = object : PropertyChangeListener {
-      override fun propertyChange(event: PropertyChangeEvent) {
-        imageComponent.removePropertyChangeListener(ZOOM_FACTOR_PROP, this)
-        pack()
+    val listener =
+      object : PropertyChangeListener {
+        override fun propertyChange(event: PropertyChangeEvent) {
+          imageComponent.removePropertyChangeListener(ZOOM_FACTOR_PROP, this)
+          pack()
+        }
       }
-    }
     imageComponent.addPropertyChangeListener(ZOOM_FACTOR_PROP, listener)
 
     // After image has updated, set the focus to image to allow keyboard shortcut copying.
@@ -491,19 +472,21 @@ class ScreenshotViewer(
   }
 
   private fun logScreenshotUsage() {
-    val usageDeviceType = when (sourceImageRef.get()?.deviceType) {
-      DeviceType.WEAR -> DeviceScreenshotEvent.DeviceType.WEAR
-      DeviceType.HANDHELD -> DeviceScreenshotEvent.DeviceType.PHONE
-      DeviceType.TV -> DeviceScreenshotEvent.DeviceType.TV
-      else -> DeviceScreenshotEvent.DeviceType.UNKNOWN_DEVICE_TYPE
-    }
+    val usageDeviceType =
+      when (sourceImageRef.get()?.deviceType) {
+        DeviceType.WEAR -> DeviceScreenshotEvent.DeviceType.WEAR
+        DeviceType.HANDHELD -> DeviceScreenshotEvent.DeviceType.PHONE
+        DeviceType.TV -> DeviceScreenshotEvent.DeviceType.TV
+        else -> DeviceScreenshotEvent.DeviceType.UNKNOWN_DEVICE_TYPE
+      }
 
-    val usageDecorationOption = when (decorationComboBox.selectedItem) {
-      ScreenshotDecorationOption.RECTANGULAR -> DecorationOption.RECTANGULAR
-      ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP -> DecorationOption.DISPLAY_SHAPE_CLIP
-      ScreenshotDecorationOption.PLAY_COMPATIBLE -> DecorationOption.PLAY_COMPATIBLE
-      else -> DecorationOption.FRAMED
-    }
+    val usageDecorationOption =
+      when (decorationComboBox.selectedItem) {
+        ScreenshotDecorationOption.RECTANGULAR -> DecorationOption.RECTANGULAR
+        ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP -> DecorationOption.DISPLAY_SHAPE_CLIP
+        ScreenshotDecorationOption.PLAY_COMPATIBLE -> DecorationOption.PLAY_COMPATIBLE
+        else -> DecorationOption.FRAMED
+      }
 
     val event = DeviceScreenshotEvent.newBuilder().setDeviceType(usageDeviceType).setDecorationOption(usageDecorationOption)
     log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT).setDeviceScreenshotEvent(event))
@@ -535,8 +518,11 @@ class ScreenshotViewer(
     private const val ZOOM_FACTOR_PROP: @NonNls String = "ImageEditor.zoomFactor"
     private const val SCREENSHOT_VIEWER_DIMENSIONS_KEY: @NonNls String = "ScreenshotViewer"
 
-    fun getDefaultDecoration(screenshotImage: ScreenshotImage, screenshotDecorator: ScreenshotDecorator,
-                             defaultFramingOption: FramingOption?): ScreenshotDecorationOption {
+    fun getDefaultDecoration(
+      screenshotImage: ScreenshotImage,
+      screenshotDecorator: ScreenshotDecorator,
+      defaultFramingOption: FramingOption?,
+    ): ScreenshotDecorationOption {
       val frameScreenshot = service<DeviceScreenshotSettings>().frameScreenshot
       // Clipping is available when either the postprocessor supports it or for round devices.
       val canClipDeviceMask = screenshotDecorator.canClipToDisplayShape || screenshotImage.isRoundDisplay
@@ -548,9 +534,9 @@ class ScreenshotViewer(
       return when {
         frameScreenshot && defaultFramingOption != null -> ScreenshotDecorationOption(defaultFramingOption)
         settings.nonFramingDecorationId == ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP.id && canClipDeviceMask ->
-            ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP
+          ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP
         settings.nonFramingDecorationId == ScreenshotDecorationOption.PLAY_COMPATIBLE.id && isPlayCompatibleWearScreenshot ->
-            ScreenshotDecorationOption.PLAY_COMPATIBLE
+          ScreenshotDecorationOption.PLAY_COMPATIBLE
         else -> ScreenshotDecorationOption.RECTANGULAR
       }
     }
@@ -558,11 +544,8 @@ class ScreenshotViewer(
     @Throws(IOException::class)
     private fun writePng(image: BufferedImage, outFile: Path) {
       try {
-        Files.newOutputStream(outFile).use { stream ->
-          writePng(image, stream)
-        }
-      }
-      catch (e: IOException) {
+        Files.newOutputStream(outFile).use { stream -> writePng(image, stream) }
+      } catch (e: IOException) {
         Files.deleteIfExists(outFile)
         throw e
       }
@@ -594,12 +577,10 @@ class ScreenshotViewer(
             metadata.setFromTree("javax_imageio_png_1.0", node)
 
             pngWriter.write(IIOImage(image, null, metadata))
-          }
-          else {
+          } else {
             pngWriter.write(image)
           }
-        }
-        finally {
+        } finally {
           pngWriter.dispose()
         }
       }

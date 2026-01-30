@@ -26,8 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class FakeSourcesTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testFakeSources() {

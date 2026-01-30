@@ -13,18 +13,17 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [AndroidProjectChecker]
- */
+/** Tests for [AndroidProjectChecker] */
 class AndroidProjectCheckerTest {
   private val projectRule = ProjectRule()
-  private val project get() = projectRule.project
+  private val project
+    get() = projectRule.project
+
   private val disposableRule = DisposableRule()
 
   private val mockProjectFacetManager by lazy { Mockito.spy(ProjectFacetManager.getInstance(project)) }
 
-  @get:Rule
-  val rule = RuleChain(projectRule, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {

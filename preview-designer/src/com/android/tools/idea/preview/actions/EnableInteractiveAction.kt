@@ -29,11 +29,7 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
 /** Action that controls when to enable the Interactive mode. */
 class EnableInteractiveAction :
-  DumbAwareAction(
-    message("action.interactive.title"),
-    message("action.interactive.description"),
-    INTERACTIVE_PREVIEW,
-  ) {
+  DumbAwareAction(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -43,8 +39,7 @@ class EnableInteractiveAction :
     e.presentation.isVisible = !isAiGlassesDevice
     e.presentation.isEnabled = !isEssentialsModeEnabled && !isAiGlassesDevice
     e.presentation.description =
-      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
-      else message("action.interactive.description")
+      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description") else message("action.interactive.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {

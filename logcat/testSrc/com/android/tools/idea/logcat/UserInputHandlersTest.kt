@@ -37,9 +37,9 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.ClientProperty
+import java.awt.event.KeyEvent
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.KeyEvent
 
 /** Tests for [UserInputHandlers] */
 @RunsInEdt
@@ -47,8 +47,7 @@ class UserInputHandlersTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor
@@ -325,13 +324,10 @@ class UserInputHandlersTest {
   }
 
   private fun EditorEx.getActions() =
-    ClientProperty.get(contentComponent, ACTIONS_KEY)
-      ?: throw IllegalStateException("ACTIONS_KEY not found")
+    ClientProperty.get(contentComponent, ACTIONS_KEY) ?: throw IllegalStateException("ACTIONS_KEY not found")
 
   private fun EditorEx.pressEnter() {
-    getActions()
-      .first { it.shortcutSet == ENTER }
-      .actionPerformed(TestActionEvent.createTestEvent())
+    getActions().first { it.shortcutSet == ENTER }.actionPerformed(TestActionEvent.createTestEvent())
   }
 
   private fun EditorEx.pressTab() {
@@ -360,11 +356,7 @@ class UserInputHandlersTest {
 }
 
 private fun EditorEx.type(text: String) {
-  text.forEach { char ->
-    contentComponent.keyListeners.forEach {
-      it.keyTyped(KeyEvent(contentComponent, 0, 0, 0, 0, char))
-    }
-  }
+  text.forEach { char -> contentComponent.keyListeners.forEach { it.keyTyped(KeyEvent(contentComponent, 0, 0, 0, 0, char)) } }
 }
 
 private fun EditorEx.append(text: String) {
@@ -373,6 +365,5 @@ private fun EditorEx.append(text: String) {
 
 private fun List<AnAction>.performAction(id: String) {
   val shortcuts = KeymapManager.getInstance().activeKeymap.getShortcuts(id)
-  first { it.shortcutSet.shortcuts.contentEquals(shortcuts) }
-    .actionPerformed(TestActionEvent.createTestEvent())
+  first { it.shortcutSet.shortcuts.contentEquals(shortcuts) }.actionPerformed(TestActionEvent.createTestEvent())
 }

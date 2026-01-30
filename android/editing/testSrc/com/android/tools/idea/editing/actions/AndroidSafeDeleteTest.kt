@@ -46,24 +46,18 @@ class AndroidSafeDeleteTest {
         "src/p1/p2/MyActivity.java",
         // language=Java
         """
-      package p1.p2;
-      public class MyActivity extends android.app.Activity {}
-      """
+        package p1.p2;
+        public class MyActivity extends android.app.Activity {}
+        """
           .trimIndent(),
       )
 
-    val activityClass = runReadAction {
-      myFixture.javaFacade.findClass(
-        "p1.p2.MyActivity",
-        GlobalSearchScope.fileScope(activityPsiFile),
-      )
-    }
+    val activityClass = runReadAction { myFixture.javaFacade.findClass("p1.p2.MyActivity", GlobalSearchScope.fileScope(activityPsiFile)) }
     assertThat(activityClass).isNotNull()
 
     ApplicationManager.getApplication().invokeAndWait {
       assertFailsWith<ConflictsInTestsException>(
-        message =
-          "Class <b><code>p1.p2.MyActivity</code></b> has 1 usage that is not safe to delete."
+        message = "Class <b><code>p1.p2.MyActivity</code></b> has 1 usage that is not safe to delete."
       ) {
         SafeDeleteHandler.invoke(myProject, arrayOf(activityClass), myFixture.module, true, null)
       }
@@ -104,8 +98,7 @@ class AndroidSafeDeleteTest {
 
     ApplicationManager.getApplication().invokeAndWait {
       assertFailsWith<ConflictsInTestsException>(
-        message =
-          "Field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete."
+        message = "Field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete."
       ) {
         SafeDeleteHandler.invoke(myProject, arrayOf(resFile), myFixture.module, true, null)
       }

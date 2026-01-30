@@ -51,11 +51,7 @@ import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
 
-private fun createSpeedEvent(
-  time: Long,
-  sent: Long,
-  received: Long,
-): NetworkInspectorProtocol.Event {
+private fun createSpeedEvent(time: Long, sent: Long, received: Long): NetworkInspectorProtocol.Event {
   return NetworkInspectorProtocol.Event.newBuilder()
     .apply {
       timestamp = TimeUnit.SECONDS.toNanos(time)
@@ -125,15 +121,7 @@ class NetworkInspectorViewTest {
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
     inspectorView =
-      NetworkInspectorView(
-        projectRule.project,
-        model,
-        FakeUiComponentsProvider(),
-        component,
-        services,
-        scope,
-        disposableRule.disposable,
-      )
+      NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope, disposableRule.disposable)
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)
     fakeUi = FakeUi(component)
@@ -165,26 +153,11 @@ class NetworkInspectorViewTest {
     val start = fakeUi.getPosition(lineChart)
     fakeUi.mouse.drag(start.x, start.y, (9000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isFalse()
-    fakeUi.mouse.drag(
-      (start.x + 10000000 * microSecondToX).toInt(),
-      start.y,
-      (5000000 * microSecondToX).toInt(),
-      0,
-    )
+    fakeUi.mouse.drag((start.x + 10000000 * microSecondToX).toInt(), start.y, (5000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isTrue()
-    fakeUi.mouse.drag(
-      (start.x + 20000000 * microSecondToX).toInt(),
-      start.y,
-      (5000000 * microSecondToX).toInt(),
-      0,
-    )
+    fakeUi.mouse.drag((start.x + 20000000 * microSecondToX).toInt(), start.y, (5000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isFalse()
-    fakeUi.mouse.drag(
-      (start.x + 35000000 * microSecondToX).toInt(),
-      start.y,
-      (2500000 * microSecondToX).toInt(),
-      0,
-    )
+    fakeUi.mouse.drag((start.x + 35000000 * microSecondToX).toInt(), start.y, (2500000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isTrue()
     fakeUi.mouse.drag(start.x, start.y, (40000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isTrue()

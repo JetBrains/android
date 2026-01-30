@@ -39,10 +39,7 @@ class SceneViewIssueNodeVisitorTest {
 
   @Before
   fun setUp() {
-    rule.projectRule.replaceProjectService(
-      DesignerCommonIssuePanelModelProvider::class.java,
-      TestIssuePanelModelProvider(),
-    )
+    rule.projectRule.replaceProjectService(DesignerCommonIssuePanelModelProvider::class.java, TestIssuePanelModelProvider())
   }
 
   @RunsInEdt
@@ -78,9 +75,7 @@ class SceneViewIssueNodeVisitorTest {
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(issue1, issue2, issue3))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -121,9 +116,7 @@ class SceneViewIssueNodeVisitorTest {
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(issue1, issue2, issue3))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -164,9 +157,7 @@ class SceneViewIssueNodeVisitorTest {
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(issue1, issue2, issue3))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()
@@ -208,9 +199,7 @@ class SceneViewIssueNodeVisitorTest {
       )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
-    rule.project.messageBus
-      .syncPublisher(IssueProviderListener.TOPIC)
-      .issueUpdated(this, listOf(issue1, issue2, issue3))
+    rule.project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, listOf(issue1, issue2, issue3))
 
     panel.setSelectedNode(visitor)
     IdeEventQueue.getInstance().flushQueue()

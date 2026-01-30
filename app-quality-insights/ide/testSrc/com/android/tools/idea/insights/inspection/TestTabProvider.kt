@@ -36,9 +36,7 @@ open class TestTabProvider(override val displayName: String) : AppInsightsTabPro
 
   private val modelFlow =
     MutableStateFlow<AppInsightsModel>(
-      AppInsightsModel.Authenticated(
-        StubAppInsightsProjectLevelController(retrieveInsights = { _ -> fakeInsights })
-      )
+      AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController(retrieveInsights = { _ -> fakeInsights }))
     )
 
   private val configManager: AppInsightsConfigurationManager =
@@ -52,11 +50,7 @@ open class TestTabProvider(override val displayName: String) : AppInsightsTabPro
       override val offlineStatusManager = OfflineStatusManagerImpl()
     }
 
-  override fun populateTab(
-    project: Project,
-    tabPanel: AppInsightsTabPanel,
-    activeTabFlow: Flow<Boolean>,
-  ) = Unit
+  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel, activeTabFlow: Flow<Boolean>) = Unit
 
   override fun getConfigurationManager(project: Project) = configManager
 

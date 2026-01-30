@@ -54,8 +54,7 @@ class AddCompiledJavaDepsTest {
     val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
     val update = ProjectProtoUpdate(original)
-    javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext(),
-                    ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
+    javaDeps.update(update, ArtifactTracker.State.EMPTY, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries).isEqualTo(original.libraries)
     Truth.assertThat(newProject.modules).isEqualTo(original.modules)
@@ -66,52 +65,47 @@ class AddCompiledJavaDepsTest {
   @Throws(Exception::class)
   fun dep_built() {
     val javaDeps = AddCompiledJavaDeps(ImmutableSet.of())
-    val artifactState = ArtifactTracker.State.forJavaArtifacts(
-      DependencyBuildContext.create("", buildTimestamp),
-      JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect")).toBuilder()
-        .setJars(
-          ImmutableList.of(
-            BuildArtifact.create(
-              "jardigest",
-              Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
-              of("//java/com/google/common/collect:collect")
+    val artifactState =
+      ArtifactTracker.State.forJavaArtifacts(
+        DependencyBuildContext.create("", buildTimestamp),
+        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
+          .toBuilder()
+          .setJars(
+            ImmutableList.of(
+              BuildArtifact.create(
+                "jardigest",
+                Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
+                of("//java/com/google/common/collect:collect"),
+              )
             )
           )
-        )
-        .build()
-    )
+          .build(),
+      )
     val expectedLibraries =
       arrayOf(
         ProjectProto.Library(
           name = Label.of("//java/com/google/common/collect:collect"),
-          classesJarList =  listOf(ProjectPath.projectRelative(Path.of(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar"))),
-          sourcesList = emptyList()
+          classesJarList =
+            listOf(ProjectPath.projectRelative(Path.of(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar"))),
+          sourcesList = emptyList(),
         )
       )
-    val original =
-      ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
+    val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
-    val update =
-      ProjectProtoUpdate(original)
+    val update = ProjectProtoUpdate(original)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
-    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
-      .containsExactly(ArtifactDirectories.JAVADEPS)
-    Truth.assertThat(
-      newProject
-        .artifactDirectories
-        .directoriesMap[ArtifactDirectories.JAVADEPS]!!
-        .contents
-    )
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).containsExactly(ArtifactDirectories.JAVADEPS)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap[ArtifactDirectories.JAVADEPS]!!.contents)
       .containsExactly(
         "build-out/java/com/google/common/collect/libcollect.jar",
         ProjectProto.ProjectArtifact(
           target = Label.of("//java/com/google/common/collect:collect"),
           buildArtifact = ProjectProto.BuildArtifact("jardigest"),
           fromBuild = buildTimestamp,
-          transform = ArtifactTransform.COPY
-        )
+          transform = ArtifactTransform.COPY,
+        ),
       )
   }
 
@@ -119,32 +113,29 @@ class AddCompiledJavaDepsTest {
   @Throws(Exception::class)
   fun dep_built_empty_jar() {
     val javaDeps = AddCompiledJavaDeps(ImmutableSet.of("empty_jar_digest"))
-    val artifactState = ArtifactTracker.State.forJavaArtifacts(
-      DependencyBuildContext.create("", buildTimestamp),
-      JavaArtifactInfo
-        .empty(of("//java/com/google/common/collect:collect"))
-        .toBuilder()
-        .setJars(
-          ImmutableList.of(
-            BuildArtifact.create(
-              "empty_jar_digest",
-              Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
-              of("//java/com/google/common/collect:collect")
+    val artifactState =
+      ArtifactTracker.State.forJavaArtifacts(
+        DependencyBuildContext.create("", buildTimestamp),
+        JavaArtifactInfo.empty(of("//java/com/google/common/collect:collect"))
+          .toBuilder()
+          .setJars(
+            ImmutableList.of(
+              BuildArtifact.create(
+                "empty_jar_digest",
+                Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
+                of("//java/com/google/common/collect:collect"),
+              )
             )
           )
-        )
-        .build()
-    )
+          .build(),
+      )
     val expectedLibraries = arrayOf<ProjectProto.Library>()
-    val original =
-      ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
+    val original = ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
 
-    val update =
-      ProjectProtoUpdate(original)
+    val update = ProjectProtoUpdate(original)
     javaDeps.update(update, artifactState, NoopContext(), ProjectPath.ExternalRepositoryFinder.createEmptyForTests())
     val newProject = update.build()
     Truth.assertThat(newProject.libraries.values).containsExactly(*expectedLibraries)
-    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys)
-      .doesNotContain(ArtifactDirectories.JAVADEPS)
+    Truth.assertThat(newProject.artifactDirectories.directoriesMap.keys).doesNotContain(ArtifactDirectories.JAVADEPS)
   }
 }

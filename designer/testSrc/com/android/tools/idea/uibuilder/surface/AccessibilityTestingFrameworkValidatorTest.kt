@@ -81,8 +81,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
   }
 
   private fun renderAndValidate(layout: String, validationChecks: (ValidatorResult) -> Unit) {
-    val layoutFile =
-      myFixture.addFileToProject("res/layout/layoutvalidator.xml", layout).virtualFile
+    val layoutFile = myFixture.addFileToProject("res/layout/layoutvalidator.xml", layout).virtualFile
     val layoutConfiguration = RenderTestUtil.getConfiguration(myModule, layoutFile)
     RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration, true) {
       val result = Futures.getUnchecked(it.render())
@@ -95,13 +94,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     return ValidatorUtil.generateResults(TEST_POLICY, result.validatorResult as ValidatorHierarchy)
   }
 
-  private fun filter(
-    results: List<ValidatorData.Issue>,
-    sourceClass: String,
-  ): List<ValidatorData.Issue?> {
-    return results
-      .stream()
-      .filter { issue: ValidatorData.Issue -> sourceClass == issue.mSourceClass }
-      .collect(Collectors.toList())
+  private fun filter(results: List<ValidatorData.Issue>, sourceClass: String): List<ValidatorData.Issue?> {
+    return results.stream().filter { issue: ValidatorData.Issue -> sourceClass == issue.mSourceClass }.collect(Collectors.toList())
   }
 }

@@ -50,20 +50,14 @@ import javax.swing.JTextField
 import org.jetbrains.android.util.AndroidBundle
 
 class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
-  ModelWizardStep<DynamicFeatureModel?>(
-    model,
-    AndroidBundle.message("android.wizard.module.new.dynamic.download.options"),
-  ) {
+  ModelWizardStep<DynamicFeatureModel?>(model, AndroidBundle.message("android.wizard.module.new.dynamic.download.options")) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
   private val featureTitle: JTextField = JBTextField()
-  private val installationOptionCombo: JComboBox<DownloadInstallKind> =
-    ComboBox(DefaultComboBoxModel(DownloadInstallKind.values()))
-  private val downloadConditionsForm: ModuleDownloadConditions =
-    ModuleDownloadConditions().apply { setModel(model.deviceFeatures) }
-  private val fusingCheckbox: JCheckBox =
-    JBCheckBox("Fusing (include module at install-time for pre-Lollipop devices)")
+  private val installationOptionCombo: JComboBox<DownloadInstallKind> = ComboBox(DefaultComboBoxModel(DownloadInstallKind.values()))
+  private val downloadConditionsForm: ModuleDownloadConditions = ModuleDownloadConditions().apply { setModel(model.deviceFeatures) }
+  private val fusingCheckbox: JCheckBox = JBCheckBox("Fusing (include module at install-time for pre-Lollipop devices)")
 
   val panel: DialogPanel = panel {
     row {
@@ -131,17 +125,13 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
 
     // Initialize "conditions" sub-form
     val isConditionalPanelActive =
-      IsEqualToExpression(
-        model.downloadInstallKind,
-        Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS),
-      )
+      IsEqualToExpression(model.downloadInstallKind, Optional.of(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS))
     downloadConditionsForm.init(model.project, validatorPanel, isConditionalPanelActive)
 
     // Show the "conditions" panel only if the dropdown selection is "with conditions"
     listeners.listenAndFire(model.downloadInstallKind) { value: Optional<DownloadInstallKind> ->
       downloadConditionsForm.myRootPanel.isVisible =
-        value.isPresent &&
-          value.get() === DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
+        value.isPresent && value.get() === DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS
     }
     validatorPanel.registerValidator(model.featureTitle, ProjectNameValidator())
   }
@@ -162,5 +152,4 @@ class ConfigureModuleDownloadOptionsStep(model: DynamicFeatureModel) :
   }
 }
 
-private const val linkUrl =
-  AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/fusing"
+private const val linkUrl = AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/dynamic-delivery/fusing"

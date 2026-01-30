@@ -39,19 +39,17 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GALLERY
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GRID
 
 /**
- * Usage tracker to collect all the metrics of the settings panel found in Preferences > Editor > Ui
- * Tools. This tracker tracks settings preferences of [NlOptionsConfigurable].
+ * Usage tracker to collect all the metrics of the settings panel found in Preferences > Editor > Ui Tools. This tracker tracks settings
+ * preferences of [NlOptionsConfigurable].
  */
 interface UiToolsPreferenceUsageTracker {
 
   /**
-   * Tracks the default mode the user choose to show editor modes for files or layout mode to show
-   * Previews
+   * Tracks the default mode the user choose to show editor modes for files or layout mode to show Previews
    *
    * @param resourcesViewMode The default editor mode for resources files.
    * @param kotlinViewMode The default editor mode for Kotlin files.
-   * @param shouldAlwaysShowSplitMode Tracks if the user choose to always show split mode on
-   *   Previews.
+   * @param shouldAlwaysShowSplitMode Tracks if the user choose to always show split mode on Previews.
    * @param previewLayoutType The default layout type for Previews.
    * @param trackPadSensitivity The trackpad sensitivity when zooming.
    * @param resourceUsage The user's preferences for essential mode and live updates.
@@ -116,15 +114,13 @@ interface UiToolsPreferenceUsageTracker {
 
   companion object {
     fun getInstance(): UiToolsPreferenceUsageTracker {
-      return if (AnalyticsSettings.optedIn) UiToolsPreferenceUsageTrackerImpl
-      else UiToolsPreferenceNoOpUsageTracker
+      return if (AnalyticsSettings.optedIn) UiToolsPreferenceUsageTrackerImpl else UiToolsPreferenceNoOpUsageTracker
     }
   }
 }
 
 private object UiToolsPreferenceUsageTrackerImpl : UiToolsPreferenceUsageTracker {
-  private val executorService =
-    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val executorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
   override fun logEvent(preferencesEventProvider: () -> UiToolsPreferencesEvent) {
     try {

@@ -18,34 +18,39 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.intellij.openapi.util.text.StringUtil
 
-/**
- * Abstract base class for all implementations of [DeviceFileEntry] that rely on
- * an underlying [AdbFileListingEntry].
- */
+/** Abstract base class for all implementations of [DeviceFileEntry] that rely on an underlying [AdbFileListingEntry]. */
 abstract class AdbDeviceFileEntry(
   override val fileSystem: AdbDeviceFileSystem,
   internal val myEntry: AdbFileListingEntry,
-  override val parent: AdbDeviceFileEntry?
+  override val parent: AdbDeviceFileEntry?,
 ) : DeviceFileEntry {
 
   override fun toString() = myEntry.toString()
 
   override val name: String
     get() = myEntry.name
+
   override val fullPath: String
     get() = myEntry.fullPath
+
   override val permissions: DeviceFileEntry.Permissions
     get() = AdbPermissions(myEntry.permissions)
+
   override val lastModifiedDate: DeviceFileEntry.DateTime
     get() = AdbDateTime(myEntry.date, myEntry.time)
+
   override val size: Long
     get() = myEntry.size
+
   override val isDirectory: Boolean
     get() = myEntry.isDirectory
+
   override val isFile: Boolean
     get() = myEntry.isFile
+
   override val isSymbolicLink: Boolean
     get() = myEntry.isSymbolicLink
+
   override val symbolicLinkTarget: String?
     get() {
       if (isSymbolicLink) {

@@ -22,12 +22,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * An [LlmPrompt] represents a prompt sent to a (text only) LLM. A prompt typically consists of
- * messages with various [Role]s. Use [buildLlmPrompt] to construct a prompt.
+ * An [LlmPrompt] represents a prompt sent to a (text only) LLM. A prompt typically consists of messages with various [Role]s. Use
+ * [buildLlmPrompt] to construct a prompt.
  *
- * Note: This is a small subset of the full API provided inside aiplugin.core. This API is only
- * meant to be used for simple text inference. If you need more features, then consult the README.md
- * file for more info on how to structure your code to get access to the full API.
+ * Note: This is a small subset of the full API provided inside aiplugin.core. This API is only meant to be used for simple text inference.
+ * If you need more features, then consult the README.md file for more info on how to structure your code to get access to the full API.
  */
 interface LlmPrompt {
   enum class Role {
@@ -106,8 +105,7 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
 
     override fun text(str: String, filesUsed: Collection<VirtualFile>) = content(str, filesUsed)
 
-    override fun code(code: String, language: Language, filesUsed: Collection<VirtualFile>) =
-      content(mdFormat(code, language), filesUsed)
+    override fun code(code: String, language: Language, filesUsed: Collection<VirtualFile>) = content(mdFormat(code, language), filesUsed)
 
     private fun content(text: String, filesUsed: Collection<VirtualFile>) {
       if (filesUsed.isNotEmpty()) {

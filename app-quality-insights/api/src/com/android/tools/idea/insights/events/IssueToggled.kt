@@ -26,11 +26,7 @@ import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.issue.IssueState
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
-data class IssueToggled(
-  val issue: IssueId,
-  val issueState: IssueState,
-  private val isUndo: Boolean = false,
-) : ChangeEvent {
+data class IssueToggled(val issue: IssueId, val issueState: IssueState, private val isUndo: Boolean = false) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -45,12 +41,8 @@ data class IssueToggled(
           AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.newBuilder()
             .apply {
               statusChange =
-                if (issueState == IssueState.OPEN)
-                  AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange
-                    .OPENED
-                else
-                  AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange
-                    .CLOSED
+                if (issueState == IssueState.OPEN) AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.OPENED
+                else AppQualityInsightsUsageEvent.AppQualityInsightsIssueChangedDetails.StatusChange.CLOSED
             }
             .build(),
         )

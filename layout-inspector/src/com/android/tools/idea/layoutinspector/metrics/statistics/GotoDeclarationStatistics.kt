@@ -42,12 +42,7 @@ class GotoDeclarationStatistics {
 
   /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorGotoDeclaration.Builder) {
-    if (
-      menuActionClicks > 0 ||
-        actionShortcutKeyStrokes > 0 ||
-        treeDoubleClicks > 0 ||
-        renderDoubleClicks > 0
-    ) {
+    if (menuActionClicks > 0 || actionShortcutKeyStrokes > 0 || treeDoubleClicks > 0 || renderDoubleClicks > 0) {
       dataSupplier().let {
         it.clicksMenuAction = menuActionClicks
         it.keyStrokesShortcut = actionShortcutKeyStrokes

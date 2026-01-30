@@ -131,24 +131,15 @@ class GlancePreviewElementTest {
         organizationGroup = "organization group",
         organizationName = "organization name",
       )
-    val newConfig =
-      PreviewConfiguration.cleanAndGet(
-        device = "id:derived_device",
-        fontScale = 3f,
-        locale = "fr-FR",
-      )
+    val newConfig = PreviewConfiguration.cleanAndGet(device = "id:derived_device", fontScale = 3f, locale = "fr-FR")
 
-    val derivedPreviewElement =
-      originalPreviewElement.createDerivedInstance(newPreviewDisplaySettings, newConfig)
+    val derivedPreviewElement = originalPreviewElement.createDerivedInstance(newPreviewDisplaySettings, newConfig)
 
     assertEquals(newPreviewDisplaySettings, derivedPreviewElement.displaySettings)
     assertEquals(newConfig, derivedPreviewElement.configuration)
     assertEquals(originalPreviewElement.methodFqn, derivedPreviewElement.methodFqn)
     assertEquals(originalPreviewElement.instanceId, derivedPreviewElement.instanceId)
-    assertEquals(
-      originalPreviewElement.previewElementDefinition,
-      derivedPreviewElement.previewElementDefinition,
-    )
+    assertEquals(originalPreviewElement.previewElementDefinition, derivedPreviewElement.previewElementDefinition)
     assertEquals(originalPreviewElement.previewBody, derivedPreviewElement.previewBody)
     assertEquals(originalPreviewElement.hasAnimations, derivedPreviewElement.hasAnimations)
   }

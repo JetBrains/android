@@ -38,10 +38,7 @@ class DefaultValueTableModelTest : NavTestCase() {
     val fragment1 = model.treeReader.find("fragment1")!!
     val action1 = model.treeReader.find("action1")!!
 
-    val table =
-      DefaultValueTableModel(
-        fragment1.children.sortedBy { it.argumentName }.map { DefaultValueModel(it, action1) }
-      )
+    val table = DefaultValueTableModel(fragment1.children.sortedBy { it.argumentName }.map { DefaultValueModel(it, action1) })
 
     assertEquals(table.rowCount, 3)
     assertEquals(table, 0, "argument1", "string", "")
@@ -62,13 +59,7 @@ class DefaultValueTableModelTest : NavTestCase() {
     assertNotNull(action1.children.firstOrNull { it.argumentName == "argument1" })
   }
 
-  private fun assertEquals(
-    table: DefaultValueTableModel,
-    index: Int,
-    name: String,
-    type: String,
-    defaultValue: String,
-  ) {
+  private fun assertEquals(table: DefaultValueTableModel, index: Int, name: String, type: String, defaultValue: String) {
     assertEquals(table.getValueAt(index, 0), name)
     assertEquals(table.getValueAt(index, 1), type)
     assertEquals(table.getValueAt(index, 2), defaultValue)

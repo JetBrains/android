@@ -32,10 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertNotNull
 
-internal suspend fun <T> StateFlow<T>.waitForValue(
-  value: T,
-  timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS,
-) {
+internal suspend fun <T> StateFlow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {
   awaitStatus("Timeout waiting for value $value", timeoutSeconds.seconds) { it == value }
 }
 
@@ -45,36 +42,21 @@ internal fun FakeUi.clickOnApplyButton() {
 }
 
 // The UI loads on asynchronous coroutine, we need to wait
-internal inline fun <reified T> FakeUi.waitForDescendant(
-  crossinline predicate: (T) -> Boolean = { true }
-): T {
-  waitForCondition(WearHealthServicesPanelTest.TEST_MAX_WAIT_TIME_SECONDS, TimeUnit.SECONDS) {
-    root.findDescendant(predicate) != null
-  }
+internal inline fun <reified T> FakeUi.waitForDescendant(crossinline predicate: (T) -> Boolean = { true }): T {
+  waitForCondition(WearHealthServicesPanelTest.TEST_MAX_WAIT_TIME_SECONDS, TimeUnit.SECONDS) { root.findDescendant(predicate) != null }
   return root.findDescendant(predicate)!!
 }
 
-internal fun FakeUi.triggerEventsButton() =
-  waitForDescendant<ActionButton> { it.icon == AllIcons.Actions.More }
+internal fun FakeUi.triggerEventsButton() = waitForDescendant<ActionButton> { it.icon == AllIcons.Actions.More }
 
-internal fun FakeUi.clickOnTriggerEvent(
-  fakePopupProvider: () -> List<AnAction>,
-  eventName: String? = null,
-) {
+internal fun FakeUi.clickOnTriggerEvent(fakePopupProvider: () -> List<AnAction>, eventName: String? = null) {
   val triggerEventsButton = triggerEventsButton()
   triggerEventsButton.click()
 
-  val triggerEventActions =
-    fakePopupProvider().flatMap {
-      (it as? DropDownAction)?.childActionsOrStubs?.toList() ?: emptyList()
-    }
+  val triggerEventActions = fakePopupProvider().flatMap { (it as? DropDownAction)?.childActionsOrStubs?.toList() ?: emptyList() }
 
-  val triggerEventAction =
-    triggerEventActions.firstOrNull { eventName == null || it.templateText == eventName }
-  assertNotNull(
-    "An event trigger action${eventName?.let { " with name $eventName " }} was expected",
-    triggerEventAction,
-  )
+  val triggerEventAction = triggerEventActions.firstOrNull { eventName == null || it.templateText == eventName }
+  assertNotNull("An event trigger action${eventName?.let { " with name $eventName " }} was expected", triggerEventAction)
 
   triggerEventAction!!.actionPerformed(createTestEvent())
 }

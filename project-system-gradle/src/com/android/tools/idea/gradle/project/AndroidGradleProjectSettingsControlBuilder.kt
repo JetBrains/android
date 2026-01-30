@@ -47,21 +47,20 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.plugins.gradle.service.settings.IdeaGradleProjectSettingsControlBuilder
-import org.jetbrains.plugins.gradle.service.settings.JavaGradleProjectSettingsControlBuilder
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
-import org.jetbrains.plugins.gradle.util.getGradleJvmLookupProvider
 import java.awt.GridBagConstraints
 import java.io.File
 import java.nio.file.Path
 import javax.swing.JPanel
 import kotlin.io.path.absolutePathString
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.plugins.gradle.service.settings.IdeaGradleProjectSettingsControlBuilder
+import org.jetbrains.plugins.gradle.service.settings.JavaGradleProjectSettingsControlBuilder
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
+import org.jetbrains.plugins.gradle.util.getGradleJvmLookupProvider
 
 @Suppress("UnstableApiUsage")
-class AndroidGradleProjectSettingsControlBuilder(
-  private val myInitialSettings: GradleProjectSettings
-) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
+class AndroidGradleProjectSettingsControlBuilder(private val myInitialSettings: GradleProjectSettings) :
+  JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
 
   companion object {
     const val GRADLE_LOCAL_JAVA_HOME = "GRADLE_LOCAL_JAVA_HOME"
@@ -90,10 +89,11 @@ class AndroidGradleProjectSettingsControlBuilder(
       recreateGradleJdkComboBox(project, ProjectSdksModel())
 
       val gradleJdkLabel = JBLabel(AndroidBundle.message("gradle.settings.jdk.component.label.text"))
-      val gradleJdkLabelConstraints = ExternalSystemUiUtil.getLabelConstraints(indentLevel).apply {
-        anchor(GridBagConstraints.NORTHWEST)
-        insets.top =  ExternalSystemUiUtil.INSETS + ExternalSystemUiUtil.INSETS * indentLevel
-      }
+      val gradleJdkLabelConstraints =
+        ExternalSystemUiUtil.getLabelConstraints(indentLevel).apply {
+          anchor(GridBagConstraints.NORTHWEST)
+          insets.top = ExternalSystemUiUtil.INSETS + ExternalSystemUiUtil.INSETS * indentLevel
+        }
       gradleJdkLabel.labelFor = myGradleJdkComboBoxWrapper
       content?.add(gradleJdkLabel, gradleJdkLabelConstraints)
       content?.add(myGradleJdkComboBoxWrapper!!, ExternalSystemUiUtil.getFillLineConstraints(0))
@@ -110,11 +110,12 @@ class AndroidGradleProjectSettingsControlBuilder(
           if (sdkInfo.name != GRADLE_LOCAL_JAVA_HOME && !ExternalSystemJdkUtil.isValidJdk(sdkInfo.homePath)) {
             throw ConfigurationException("Gradle JDK option is incorrect:\nPath: ${sdkInfo.homePath}")
           } else if (sdkInfo.name == GRADLE_LOCAL_JAVA_HOME && !ExternalSystemJdkUtil.isValidJdk(selectedJdkPath)) {
-            throw ConfigurationException(
-              AndroidBundle.message("gradle.settings.jdk.invalid.path.error", (selectedJdkPath ?: "<empty>")))
+            throw ConfigurationException(AndroidBundle.message("gradle.settings.jdk.invalid.path.error", (selectedJdkPath ?: "<empty>")))
           }
         }
-        is SdkInfo.Resolving, SdkInfo.Unresolved, null -> {}
+        is SdkInfo.Resolving,
+        SdkInfo.Unresolved,
+        null -> {}
       }
     }
     return super.validate(settings)
@@ -132,10 +133,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     gradleLocalJavaHomeComboBox?.run {
       if (isModified) {
         applySelection()
-        myGradleJdkComboBox?.updateJdkReferenceItem(
-          name = GRADLE_LOCAL_JAVA_HOME,
-          homePath = selectedJdkPath
-        )
+        myGradleJdkComboBox?.updateJdkReferenceItem(name = GRADLE_LOCAL_JAVA_HOME, homePath = selectedJdkPath)
         GradleConfigProperties(initialSettings).run {
           javaHome = File(selectedJdkPath)
           save()
@@ -169,11 +167,8 @@ class AndroidGradleProjectSettingsControlBuilder(
     resetGradleJdkComboBox(project, settings, wizardContext)
   }
 
-  override fun resetGradleJdkComboBox(project: Project?,
-                                      settings: GradleProjectSettings?,
-                                      wizardContext: WizardContext?) {
-    if (myGradleJdkComboBox == null)
-      return
+  override fun resetGradleJdkComboBox(project: Project?, settings: GradleProjectSettings?, wizardContext: WizardContext?) {
+    if (myGradleJdkComboBox == null) return
 
     val checkedProject = if (project == null || project.isDisposed) ProjectManager.getInstance().defaultProject else project
     val structureConfigurable = ProjectStructureConfigurable.getInstance(checkedProject)
@@ -222,13 +217,14 @@ class AndroidGradleProjectSettingsControlBuilder(
     val boxModel = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel)
     sdksModel.projectSdk = projectJdk
 
-    myGradleJdkComboBox = GradleJdkComboBox(
-      sdkComboBoxModel = boxModel,
-      sdkLookupProvider = getGradleJvmLookupProvider(project, myInitialSettings),
-      externalProjectSettings = myInitialSettings
-    )
+    myGradleJdkComboBox =
+      GradleJdkComboBox(
+        sdkComboBoxModel = boxModel,
+        sdkLookupProvider = getGradleJvmLookupProvider(project, myInitialSettings),
+        externalProjectSettings = myInitialSettings,
+      )
     myGradleJdkComboBox?.addItemSelectedLister {
-      if ((it as?  SdkListItem.SdkReferenceItem)?.name == GRADLE_LOCAL_JAVA_HOME) {
+      if ((it as? SdkListItem.SdkReferenceItem)?.name == GRADLE_LOCAL_JAVA_HOME) {
         gradleLocalJavaHomeComboBox?.isVisible = true
       } else {
         gradleLocalJavaHomeComboBox?.isVisible = false
@@ -236,23 +232,22 @@ class AndroidGradleProjectSettingsControlBuilder(
       }
     }
     val gradleRootProjectFile = File(initialSettings.externalProjectPath)
-    gradleLocalJavaHomeComboBox = GradleJdkPathEditComboBoxBuilder.build(
-      currentJdkPath = GradleConfigProperties(gradleRootProjectFile).javaHome?.path,
-      embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
-      suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
-      hintMessage = AndroidBundle.message("gradle.settings.jdk.edit.path.hint")
-    )
+    gradleLocalJavaHomeComboBox =
+      GradleJdkPathEditComboBoxBuilder.build(
+        currentJdkPath = GradleConfigProperties(gradleRootProjectFile).javaHome?.path,
+        embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
+        suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
+        hintMessage = AndroidBundle.message("gradle.settings.jdk.edit.path.hint"),
+      )
 
     // Add JAVA_HOME
-    IdeSdks.getInstance().jdkFromJavaHome?.let {
-      myGradleJdkComboBox?.addJdkReferenceItem(JAVA_HOME, it)
-    }
+    IdeSdks.getInstance().jdkFromJavaHome?.let { myGradleJdkComboBox?.addJdkReferenceItem(JAVA_HOME, it) }
 
     // Add GRADLE_LOCAL_JAVA_HOME
     myGradleJdkComboBox?.addJdkReferenceItem(
       name = GRADLE_LOCAL_JAVA_HOME,
       homePath = gradleLocalJavaHomeComboBox?.selectedJdkPath.orEmpty(),
-      isValid = true
+      isValid = true,
     )
 
     myGradleJdkComboBoxWrapper?.add(myGradleJdkComboBox?.component)
@@ -305,12 +300,12 @@ class AndroidGradleProjectSettingsControlBuilder(
   }
 
   private fun removeHardcodedSdkNames(sdksModel: ProjectSdksModel) {
-    sdksModel.sdks.filter {
-      val undesiredHardcodedNaming = listOf(EMBEDDED_JDK_NAME, ANDROID_STUDIO_JAVA_HOME_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME)
-      undesiredHardcodedNaming.contains(it.name)
-    }.forEach {
-      sdksModel.removeSdk(it)
-    }
+    sdksModel.sdks
+      .filter {
+        val undesiredHardcodedNaming = listOf(EMBEDDED_JDK_NAME, ANDROID_STUDIO_JAVA_HOME_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME)
+        undesiredHardcodedNaming.contains(it.name)
+      }
+      .forEach { sdksModel.removeSdk(it) }
   }
 
   private fun wrapExceptions(runnable: ThrowableRunnable<Throwable>) {

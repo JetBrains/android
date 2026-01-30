@@ -33,19 +33,19 @@ internal const val ERROR_LOG_PREFIX = "[databinding] "
 internal data class EncodedMessage(
   @SerializedName("msg") val message: String,
   @SerializedName("file") val filePath: String,
-  @SerializedName("pos") val locations: List<FileLocation>
+  @SerializedName("pos") val locations: List<FileLocation>,
 )
 
 internal data class FileLocation(
   @SerializedName("line0") val startLine: Int,
   @SerializedName("col0") val startCol: Int,
   @SerializedName("line1") val endLine: Int,
-  @SerializedName("col1") val endCol: Int)
+  @SerializedName("col1") val endCol: Int,
+)
 
 /**
- * Parser for data binding output errors. This class supports parsing both JSON data binding
- * formats and a legacy hand-crafted format, as well as finding and reporting any errors found within the
- * exception obtained through the Gradle tooling api.
+ * Parser for data binding output errors. This class supports parsing both JSON data binding formats and a legacy hand-crafted format, as
+ * well as finding and reporting any errors found within the exception obtained through the Gradle tooling api.
  */
 class DataBindingOutputParser : BuildOutputParser {
 
@@ -58,7 +58,6 @@ class DataBindingOutputParser : BuildOutputParser {
 
   /**
    * Parser for data binding JSON output errors, which look something like this:
-   *
    * ```
    * Found data binding error(s):
    *
@@ -73,9 +72,7 @@ class DataBindingOutputParser : BuildOutputParser {
       private const val ERROR_LOG_HEADER = "Found data binding error(s):"
     }
 
-    /**
-     * JSON parser, shared across parsing calls to take advantage of the caching it does.
-     */
+    /** JSON parser, shared across parsing calls to take advantage of the caching it does. */
     private val gson = Gson()
 
     override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
@@ -99,19 +96,18 @@ class DataBindingOutputParser : BuildOutputParser {
         val summary = msg.message.substringBefore('\n')
         if (msg.locations.isEmpty()) {
           messageConsumer.accept(MessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
-        }
-        else {
+        } else {
           // Note: msg.filePath is relative, but the build output window can't seem to find the
           // file unless we feed it the absolute path directly.
           val sourceFile = File(msg.filePath).absoluteFile
           val location = msg.locations.first()
           val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
           messageConsumer.accept(
-            FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition))
+            FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition)
+          )
         }
         return true
-      }
-      catch (ignored: Exception) {
+      } catch (ignored: Exception) {
         return false
       }
     }
@@ -119,15 +115,14 @@ class DataBindingOutputParser : BuildOutputParser {
 
   /**
    * Parser for legacy data binding output errors, which look something like this:
-   *
    * ```
    * Found data binding errors.
    * **** data binding error ****msg:... file:... loc:... ****\ data binding error ****\n" +
    * **** data binding error ****msg:... file:... loc:... ****\ data binding error ****\n" +
    * ```
    *
-   * where `msg` is the user-readable error message, `file` is a path to the problematic file,
-   * and `loc` refers to the start and end positions surrounding the error
+   * where `msg` is the user-readable error message, `file` is a path to the problematic file, and `loc` refers to the start and end
+   * positions surrounding the error
    */
   private class LegacyDataBindingOutputParser : BuildOutputParser {
     companion object {
@@ -135,9 +130,7 @@ class DataBindingOutputParser : BuildOutputParser {
 
       private val ERROR_LOG_REGEX = Regex("""\*\*\*\*/ data binding error \*\*\*\*(.+)\*\*\*\*\\ data binding error \*\*\*\*""")
       private val ERROR_MESSAGE_REGEX = Regex("msg:(.+) file:(.+) loc:(.+) ")
-      /**
-       * Location looks something like: loc:36:28 - 36:32
-       */
+      /** Location looks something like: loc:36:28 - 36:32 */
       private val LOCATION_REGEX = Regex("""(\d+):(\d+) - (\d+):(\d+)""")
     }
 
@@ -175,14 +168,17 @@ class DataBindingOutputParser : BuildOutputParser {
             fileLink.append(":").append(filePosition.startColumn + 1)
           }
         }
-        val detailedMessage = """
+        val detailedMessage =
+          """
           $fileLink
           $msg
-          """.trimIndent()
-        messageConsumer.accept(FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, msg, detailedMessage, filePosition))
+          """
+            .trimIndent()
+        messageConsumer.accept(
+          FileMessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, msg, detailedMessage, filePosition)
+        )
         return true
-      }
-      catch (ignored: Exception) {
+      } catch (ignored: Exception) {
         return false
       }
     }

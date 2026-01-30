@@ -53,8 +53,7 @@ class SelectionTest {
   @Test
   fun `selectionOf for enums with initialValue should create valid selection`() {
     val selection = selectionOf(initialValue = SelectionEnum.ONE)
-    assertThat(selection)
-      .isEqualTo(Selection(SelectionEnum.ONE, listOf(SelectionEnum.ONE, SelectionEnum.TWO)))
+    assertThat(selection).isEqualTo(Selection(SelectionEnum.ONE, listOf(SelectionEnum.ONE, SelectionEnum.TWO)))
   }
 
   @Test
@@ -72,17 +71,13 @@ class SelectionTest {
   @Test
   fun `multiSelectionOf for enums without initialValue should create valid selection`() {
     val selection = multiSelectionOf<SelectionEnum>()
-    assertThat(selection)
-      .isEqualTo(MultiSelection(emptySet(), listOf(SelectionEnum.ONE, SelectionEnum.TWO)))
+    assertThat(selection).isEqualTo(MultiSelection(emptySet(), listOf(SelectionEnum.ONE, SelectionEnum.TWO)))
   }
 
   @Test
   fun `multiSelectionOf for enums with initialValue should create valid selection`() {
     val selection = multiSelectionOf(initialValue = setOf(SelectionEnum.TWO))
-    assertThat(selection)
-      .isEqualTo(
-        MultiSelection(setOf(SelectionEnum.TWO), listOf(SelectionEnum.ONE, SelectionEnum.TWO))
-      )
+    assertThat(selection).isEqualTo(MultiSelection(setOf(SelectionEnum.TWO), listOf(SelectionEnum.ONE, SelectionEnum.TWO)))
   }
 
   @Test

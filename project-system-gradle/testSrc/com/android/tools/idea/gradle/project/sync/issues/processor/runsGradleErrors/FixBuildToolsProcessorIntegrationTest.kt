@@ -35,8 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class FixBuildToolsProcessorIntegrationTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   val project by lazy { projectRule.project }
 
   @Test
@@ -59,9 +58,7 @@ class FixBuildToolsProcessorIntegrationTest {
 
     val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = runReadAction { processor.findUsages() }
-    WriteCommandAction.runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { processor.performRefactoring(usages) }
 
     assertThat(String(file.contentsToByteArray())).contains("buildToolsVersion '77.7.7'")
   }
@@ -75,15 +72,17 @@ class FixBuildToolsProcessorIntegrationTest {
     val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
     val usages = runReadAction { processor.findUsages() }
     var synced = false
-    GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        synced = true
-      }
-    }, projectRule.fixture.testRootDisposable)
+    GradleSyncState.subscribe(
+      project,
+      object : GradleSyncListener {
+        override fun syncSucceeded(project: Project) {
+          synced = true
+        }
+      },
+      projectRule.fixture.testRootDisposable,
+    )
 
-    WriteCommandAction.runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { processor.performRefactoring(usages) }
     getInstance().requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED)
 
     assertThat(synced).isTrue()

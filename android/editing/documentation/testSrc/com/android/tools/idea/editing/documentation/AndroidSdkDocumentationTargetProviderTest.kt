@@ -50,6 +50,16 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -68,21 +78,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.net.URI
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.milliseconds
 
-private const val TEST_DATA_DIR =
-  "tools/adt/idea/android/editing/documentation/testData/androidSdkDocumentationTargetProvider"
-private const val TEXT_VIEW_DOC_URL_PREFIX =
-  "http://developer.android.com/reference/android/widget/"
+private const val TEST_DATA_DIR = "tools/adt/idea/android/editing/documentation/testData/androidSdkDocumentationTargetProvider"
+private const val TEXT_VIEW_DOC_URL_PREFIX = "http://developer.android.com/reference/android/widget/"
 // The contents here don't really matter.
 private const val SIMPLE_HTML = "<html><body>Yo, this is HTML.</body></html>"
 private const val JSON = "application/json"
@@ -90,8 +88,7 @@ private const val FAKE_KEY = "amazingKey"
 private val HOST = "https://${CONTENT_SERVING.apiName}.clients6.google.com"
 private const val PATH = "/v1/namespaces/prod/resources/%s/locales/en?key=%s&fields=html_body"
 
-private fun CharSequence.collapseSpaces() =
-  replace(Regex(" {2,}"), " ").replace(Regex("^ +", RegexOption.MULTILINE), "")
+private fun CharSequence.collapseSpaces() = replace(Regex(" {2,}"), " ").replace(Regex("^ +", RegexOption.MULTILINE), "")
 
 private val FETCH_STATS =
   FetchStats(
@@ -146,19 +143,13 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   private val postFilteringPath by lazy {
     if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
-      TestUtils.resolveWorkspacePath(
-        "$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.Safe.html"
-      )
+      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.Safe.html")
     } else {
-      TestUtils.resolveWorkspacePath(
-        "$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.html"
-      )
+      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.${testConfig.targetType.simpleName}.Rendered.html")
     }
   }
 
-  private val documentationContentAfterFiltering by lazy {
-    Files.readString(postFilteringPath).collapseSpaces()
-  }
+  private val documentationContentAfterFiltering by lazy { Files.readString(postFilteringPath).collapseSpaces() }
 
   private val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
 
@@ -174,14 +165,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
       testConfig.useContentServingApi != ContentServingApiState.DISABLED
     )
     project.replaceService(UrlFileCache::class.java, mockUrlFileCache, fixture.testRootDisposable)
-    val providers =
-      if (testConfig.useContentServingApi == ContentServingApiState.MISSING_PROVIDER) listOf()
-      else listOf(fakeApiKeyProvider)
-    ExtensionTestUtil.maskExtensions(
-      GoogleApiKeyProvider.EP_NAME,
-      providers,
-      fixture.testRootDisposable,
-    )
+    val providers = if (testConfig.useContentServingApi == ContentServingApiState.MISSING_PROVIDER) listOf() else listOf(fakeApiKeyProvider)
+    ExtensionTestUtil.maskExtensions(GoogleApiKeyProvider.EP_NAME, providers, fixture.testRootDisposable)
   }
 
   @Test
@@ -203,21 +188,16 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     assertThat((documentationData as DocumentationData).html).isEqualTo(SIMPLE_HTML)
 
     // Independently check that the passed-in filter is doing the right thing.
-    @Suppress("DeferredResultUnused")
-    verify(mockUrlFileCache)
-      .getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
+    @Suppress("DeferredResultUnused") verify(mockUrlFileCache).getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
 
     val filterOutput =
       FileInputStream(preFilteringPath.toFile())
-        .use { inputStream ->
-          String(transformCaptor.firstValue.invoke(inputStream).readAllBytes())
-        }
+        .use { inputStream -> String(transformCaptor.firstValue.invoke(inputStream).readAllBytes()) }
         .collapseSpaces()
 
     assertThat(filterOutput).isEqualTo(documentationContentAfterFiltering)
 
-    val editingMetricsEvents =
-      usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
+    val editingMetricsEvents = usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
     assertThat(editingMetricsEvents).hasSize(1)
     with(editingMetricsEvents.single()) {
       assertThat(hasEditingMetricsEvent())
@@ -238,8 +218,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   @Test
   fun checkDocumentation_slow() {
     val completableDeferred = CompletableDeferred<Pair<Path, FetchStats>>()
-    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
-      .thenReturn(completableDeferred)
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any())).thenReturn(completableDeferred)
 
     setUpCursor()
     val doc = getDocsAtCursor().single()
@@ -255,20 +234,15 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     assertThat((documentationData as DocumentationData).html).isEqualTo(SIMPLE_HTML)
 
     // Independently check that the passed-in filter is doing the right thing.
-    @Suppress("DeferredResultUnused")
-    verify(mockUrlFileCache)
-      .getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
+    @Suppress("DeferredResultUnused") verify(mockUrlFileCache).getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
 
     val filterOutput =
       FileInputStream(preFilteringPath.toFile())
-        .use { inputStream ->
-          String(transformCaptor.firstValue.invoke(inputStream).readAllBytes())
-        }
+        .use { inputStream -> String(transformCaptor.firstValue.invoke(inputStream).readAllBytes()) }
         .collapseSpaces()
     assertThat(filterOutput).isEqualTo(documentationContentAfterFiltering)
 
-    val editingMetricsEvents =
-      usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
+    val editingMetricsEvents = usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
     assertThat(editingMetricsEvents).hasSize(1)
     with(editingMetricsEvents.single()) {
       assertThat(hasEditingMetricsEvent())
@@ -289,8 +263,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   @Test
   fun checkDocumentationWhenServerUnavailable() {
     val completableDeferred = CompletableDeferred<Nothing>()
-    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
-      .thenReturn(completableDeferred)
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any())).thenReturn(completableDeferred)
 
     setUpCursor()
     val doc = getDocsAtCursor().single()
@@ -298,9 +271,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     val documentation = runReadAction { doc.computeDocumentation() }
     assertThat(documentation).isInstanceOf(AsyncDocumentation::class.java)
 
-    completableDeferred.completeExceptionally(
-      RemoteFileCache.RemoteFileCacheException(FETCH_STATS, IOException())
-    )
+    completableDeferred.completeExceptionally(RemoteFileCache.RemoteFileCacheException(FETCH_STATS, IOException()))
 
     val documentationData = runBlocking { (documentation as AsyncDocumentation).supplier() }
     assertThat(documentationData).isInstanceOf(DocumentationData::class.java)
@@ -311,8 +282,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     assertThat(html).contains("class")
     assertThat(html).contains("TextView")
 
-    val editingMetricsEvents =
-      usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
+    val editingMetricsEvents = usageTrackerRule.usages.map { it.studioEvent }.filter { it.kind == EDITING_METRICS_EVENT }
     assertThat(editingMetricsEvents).hasSize(1)
     with(editingMetricsEvents.single()) {
       assertThat(hasEditingMetricsEvent())
@@ -352,8 +322,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     when (navigatable) {
       is PsiClass -> assertThat(navigatable.qualifiedName).isEqualTo("android.widget.TextView")
       is PsiEnumConstant -> {
-        assertThat(navigatable.containingClass?.qualifiedName)
-          .isEqualTo("android.widget.TextView.BufferType")
+        assertThat(navigatable.containingClass?.qualifiedName).isEqualTo("android.widget.TextView.BufferType")
         assertThat(navigatable.name).isEqualTo("EDITABLE")
       }
       is PsiField -> {
@@ -397,8 +366,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     // would need to remove sources so that the provider in question runs, and this specific test
     // would put the sources back.
     val testDataSourceRoot =
-      LocalFileSystem.getInstance()
-        .findFileByPath(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/androidSources").toString())
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/androidSources").toString())
     requireNotNull(testDataSourceRoot)
     sdk.sdkModificator.apply {
       addRoot(testDataSourceRoot, OrderRootType.SOURCES)
@@ -465,8 +433,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   private fun getDocsAtCursor(): List<DocumentationTarget> {
     return runReadAction {
-      IdeDocumentationTargetProvider.getInstance(project)
-        .documentationTargets(fixture.editor, fixture.file, fixture.caretOffset)
+      IdeDocumentationTargetProvider.getInstance(project).documentationTargets(fixture.editor, fixture.file, fixture.caretOffset)
     }
   }
 
@@ -526,8 +493,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
           fileName = "TextView.html",
           urlSuffix = "#addTextChangedListener(android.text.TextWatcher)",
           cursorWindow = "addText|ChangedListener",
-          hintStrings =
-            listOf("android.widget.TextView", "addTextChangedListener", "TextWatcher", "void"),
+          hintStrings = listOf("android.widget.TextView", "addTextChangedListener", "TextWatcher", "void"),
           ContentServingApiState.ENABLED,
         ),
       )
@@ -537,12 +503,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     fun data(): List<TestConfig> {
       val kotlinConfigs = JAVA_CONFIGS.map { it.copy(language = KotlinLanguage.INSTANCE) }
       val enabledConfigs = JAVA_CONFIGS + kotlinConfigs
-      val disabledConfigs =
-        enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.DISABLED) }
-      val missingConfigs =
-        enabledConfigs.map {
-          it.copy(useContentServingApi = ContentServingApiState.MISSING_PROVIDER)
-        }
+      val disabledConfigs = enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.DISABLED) }
+      val missingConfigs = enabledConfigs.map { it.copy(useContentServingApi = ContentServingApiState.MISSING_PROVIDER) }
       return enabledConfigs + disabledConfigs + missingConfigs
     }
   }

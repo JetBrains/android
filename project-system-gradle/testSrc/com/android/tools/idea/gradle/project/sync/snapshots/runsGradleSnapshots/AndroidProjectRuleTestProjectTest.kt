@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.snapshots.runsGradleSnapshots
 
 import com.android.tools.idea.gradle.model.impl.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
@@ -28,8 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidProjectRuleTestProjectTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+  @get:Rule val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
   @Test
   fun testSync() {
@@ -38,7 +37,7 @@ class AndroidProjectRuleTestProjectTest {
         GradleSourceSetProjectPath(
           PathUtil.toSystemIndependentName(projectRule.testHelpers.projectRoot.path),
           ":app",
-          sourceSet = IdeModuleWellKnownSourceSet.MAIN
+          sourceSet = IdeModuleWellKnownSourceSet.MAIN,
         )
       )
     val appAndroidTestModule = projectRule.project.gradleModule(":app")!!.getAndroidTestModule()!!
@@ -51,7 +50,7 @@ class AndroidProjectRuleTestProjectTest {
         GradleSourceSetProjectPath(
           PathUtil.toSystemIndependentName(projectRule.testHelpers.projectRoot.path),
           ":app",
-          sourceSet = IdeModuleWellKnownSourceSet.MAIN
+          sourceSet = IdeModuleWellKnownSourceSet.MAIN,
         )
       )
     val appAndroidTestModule = projectRule.project.gradleModule(":app")!!.getAndroidTestModule()!!

@@ -30,8 +30,5 @@ fun RootProvider.isEqualTo(rootProvider: RootProvider): Boolean {
   return true
 }
 
-private fun containsDifferentRoots(
-  orderRootType: OrderRootType,
-  rootsA: RootProvider,
-  rootsB: RootProvider
-) = !Arrays.equals(rootsA.getUrls(orderRootType), rootsB.getUrls(orderRootType))
+private fun containsDifferentRoots(orderRootType: OrderRootType, rootsA: RootProvider, rootsB: RootProvider) =
+  !Arrays.equals(rootsA.getUrls(orderRootType), rootsB.getUrls(orderRootType))

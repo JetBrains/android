@@ -43,7 +43,7 @@ class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
       val project = element.project
 
       if (ApplicationManager.getApplication().isDispatchThread) {
-        with (DumbService.getInstance(project)) {
+        with(DumbService.getInstance(project)) {
           // When indexing is happening and alternative resolve is enabled, FileTypeIndex will wait for indexing to be complete.
           // Return null here to avoid a deadlock if this is being called from the event thread.
           if (isDumb && isAlternativeResolveEnabled) return null
@@ -51,11 +51,12 @@ class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
       }
 
       val cachedValuesManager = CachedValuesManager.getManager(project)
-      val files = cachedValuesManager.getCachedValue(project) {
-        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.projectScope(project))
-        val keepRules = FileTypeIndex.getFiles(KeepRulesR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
-        CachedValueProvider.Result(proguardFiles + keepRules, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
-      }
+      val files =
+        cachedValuesManager.getCachedValue(project) {
+          val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.projectScope(project))
+          val keepRules = FileTypeIndex.getFiles(KeepRulesR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
+          CachedValueProvider.Result(proguardFiles + keepRules, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+        }
       return if (files.isEmpty()) null else GlobalSearchScope.filesScope(project, files)
     }
     return null

@@ -21,26 +21,10 @@ import com.intellij.openapi.editor.RawText
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
-/**
- * [CopyPastePreProcessor] that does nothing other than setting [CodeEditingAction.UserPaste] when
- * the user pastes.
- */
+/** [CopyPastePreProcessor] that does nothing other than setting [CodeEditingAction.UserPaste] when the user pastes. */
 class CodeEditedCopyPastePreProcessor : CopyPastePreProcessor {
-  override fun preprocessOnCopy(
-    file: PsiFile,
-    startOffsets: IntArray,
-    endOffsets: IntArray,
-    text: String,
-  ): String? = null
+  override fun preprocessOnCopy(file: PsiFile, startOffsets: IntArray, endOffsets: IntArray, text: String): String? = null
 
-  override fun preprocessOnPaste(
-    project: Project,
-    file: PsiFile,
-    editor: Editor,
-    text: String,
-    rawText: RawText?,
-  ) =
-    text.also {
-      CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.UserPaste)
-    }
+  override fun preprocessOnPaste(project: Project, file: PsiFile, editor: Editor, text: String, rawText: RawText?) =
+    text.also { CodeEditedMetricsService.getInstance().setCodeEditingAction(CodeEditingAction.UserPaste) }
 }

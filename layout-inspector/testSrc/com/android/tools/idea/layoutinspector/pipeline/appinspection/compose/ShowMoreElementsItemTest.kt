@@ -136,10 +136,7 @@ class ShowMoreElementsItemTest {
     assertThat(ptable.itemCount).isEqualTo(6)
   }
 
-  private fun createGroup(
-    lookup: ViewNodeAndResourceLookup,
-    reference: ParameterReference? = null,
-  ): ParameterGroupItem {
+  private fun createGroup(lookup: ViewNodeAndResourceLookup, reference: ParameterReference? = null): ParameterGroupItem {
     return ParameterGroupItem(
       "group",
       PropertyType.ITERABLE,
@@ -155,8 +152,7 @@ class ShowMoreElementsItemTest {
   }
 
   private fun createEditorProviderFor(showMore: ShowMoreElementsItem): PTableCellEditorProvider {
-    val button =
-      ActionButton(showMore.link, null, ActionPlaces.UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
+    val button = ActionButton(showMore.link, null, ActionPlaces.UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
     val defaultEditor = DefaultPTableCellEditor()
     val showMoreEditor =
       object : DefaultPTableCellEditor() {
@@ -165,11 +161,7 @@ class ShowMoreElementsItemTest {
       }
     val editorProvider =
       object : PTableCellEditorProvider {
-        override fun invoke(
-          table: PTable,
-          item: PTableItem,
-          column: PTableColumn,
-        ): PTableCellEditor {
+        override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellEditor {
           return if (item == showMore) showMoreEditor else defaultEditor
         }
       }

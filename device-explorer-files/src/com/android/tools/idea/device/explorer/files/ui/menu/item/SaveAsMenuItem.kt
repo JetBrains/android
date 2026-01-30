@@ -25,24 +25,21 @@ import java.awt.event.KeyEvent
 import javax.swing.Icon
 import javax.swing.KeyStroke
 
-class SaveAsMenuItem(
-  listener: DeviceFileExplorerActionListener,
-  private val context: MenuContext
-) : NonToggleMenuItem(listener) {
-  override fun getText(nodes: List<DeviceFileEntryNode>): String =
-    if (nodes.size > 1) "Save To..." else "Save As..."
+class SaveAsMenuItem(listener: DeviceFileExplorerActionListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
+  override fun getText(nodes: List<DeviceFileEntryNode>): String = if (nodes.size > 1) "Save To..." else "Save As..."
 
   override val icon: Icon
     get() = AllIcons.Actions.Download
 
   override val shortcuts: Array<Shortcut?>
-    get() = arrayOf(
-      KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
-      KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null))
+    get() =
+      arrayOf(
+        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
+        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
+      )
 
   override val isVisible: Boolean
-    get() =
-      if (context == MenuContext.Toolbar) true else super.isVisible
+    get() = if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun run(nodes: List<DeviceFileEntryNode>) {
     listener.saveNodesAs(nodes)

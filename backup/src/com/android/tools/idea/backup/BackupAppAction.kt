@@ -65,21 +65,13 @@ internal class BackupAppAction(
 
   private fun doBackup(project: Project, backupInfo: Valid) {
     val backupManager = BackupManager.getInstance(project)
-    backupManager.showBackupDialog(
-      backupInfo.serialNumber,
-      backupInfo.applicationId,
-      BACKUP_APP_ACTION,
-    )
+    backupManager.showBackupDialog(backupInfo.serialNumber, backupInfo.applicationId, BACKUP_APP_ACTION)
   }
 
   private fun AnActionEvent.getBackupInfo(): BackupInfo {
     val project = project ?: throw IllegalStateException("Missing project")
-    val serialNumber =
-      actionHelper.getDeployTargetSerial(project)
-        ?: return Invalid(message("error.device.not.running"))
-    val applicationId =
-      actionHelper.getApplicationId(project)
-        ?: return Invalid(message("error.incompatible.run.config"))
+    val serialNumber = actionHelper.getDeployTargetSerial(project) ?: return Invalid(message("error.device.not.running"))
+    val applicationId = actionHelper.getApplicationId(project) ?: return Invalid(message("error.incompatible.run.config"))
 
     val targetCount = actionHelper.getDeployTargetCount(project)
     return when {

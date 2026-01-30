@@ -40,7 +40,13 @@ fun shouldDebugSandboxSdk(apkProvider: ApkProvider, device: IDevice, state: Andr
 }
 
 @Throws(ExecutionException::class)
-suspend fun attachDebuggerToSandboxSdk(device: IDevice, applicationId: String, env: ExecutionEnvironment, indicator: ProgressIndicator, console: ConsoleView) {
+suspend fun attachDebuggerToSandboxSdk(
+  device: IDevice,
+  applicationId: String,
+  env: ExecutionEnvironment,
+  indicator: ProgressIndicator,
+  console: ConsoleView,
+) {
   val debugger = AndroidJavaDebugger()
   DebugSessionStarter.attachDebuggerToStartedProcess(
     device,
@@ -55,9 +61,8 @@ suspend fun attachDebuggerToSandboxSdk(device: IDevice, applicationId: String, e
     indicator,
     console,
     15,
-    ClientData.DebuggerStatus.DEFAULT
+    ClientData.DebuggerStatus.DEFAULT,
   )
-
 }
 
 private fun hasDebugSandboxSdkEnabled(state: AndroidDebuggerState): Boolean {

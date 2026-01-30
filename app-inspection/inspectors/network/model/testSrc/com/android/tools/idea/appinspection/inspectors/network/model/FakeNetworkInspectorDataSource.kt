@@ -21,20 +21,14 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import java.util.concurrent.TimeUnit
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
-class FakeNetworkInspectorDataSource(
-  httpEventList: List<Event> = emptyList(),
-  private val speedEventList: List<Event> = emptyList(),
-) : NetworkInspectorDataSource {
+class FakeNetworkInspectorDataSource(httpEventList: List<Event> = emptyList(), private val speedEventList: List<Event> = emptyList()) :
+  NetworkInspectorDataSource {
   var resetCalledCount = 0
 
-  private val dataHandler =
-    DataHandler(StubNetworkInspectorTracker()).apply {
-      httpEventList.forEach { handleHttpConnectionEvent(it) }
-    }
+  private val dataHandler = DataHandler(StubNetworkInspectorTracker()).apply { httpEventList.forEach { handleHttpConnectionEvent(it) } }
 
   private fun Event.isInRange(range: Range) =
-    timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) &&
-      timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
+    timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) && timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
 
   override fun queryForConnectionData(range: Range): List<ConnectionData> =
     dataHandler.getHttpDataForRange(range) + dataHandler.getGrpcDataForRange(range)

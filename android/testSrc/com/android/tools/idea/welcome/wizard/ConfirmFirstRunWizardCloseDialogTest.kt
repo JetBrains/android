@@ -57,11 +57,7 @@ class ConfirmFirstRunWizardCloseDialogTest {
     }
   }
 
-  private fun withMockedCheckboxDialogThatReturns(
-    returnCode: Int,
-    checkboxSelected: Boolean,
-    func: () -> Unit,
-  ) {
+  private fun withMockedCheckboxDialogThatReturns(returnCode: Int, checkboxSelected: Boolean, func: () -> Unit) {
     Mockito.mockStatic(Messages::class.java).use { messages ->
       // Mock the dialog and capture the exitFunc
       messages

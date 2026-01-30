@@ -20,10 +20,7 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import icons.StudioIcons
 import javax.swing.Icon
 
-class SynchronizeNodesMenuItem(
-  listener: DeviceFileExplorerActionListener,
-  private val context: MenuContext
-) : NonToggleMenuItem(listener) {
+class SynchronizeNodesMenuItem(listener: DeviceFileExplorerActionListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Synchronize"
 
   override val icon: Icon
@@ -31,11 +28,10 @@ class SynchronizeNodesMenuItem(
 
   override val shortcutId: String
     get() = // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-      "Refresh"
+    "Refresh"
 
   override val isVisible: Boolean
-    get() =
-      if (context == MenuContext.Toolbar) true else super.isVisible
+    get() = if (context == MenuContext.Toolbar) true else super.isVisible
 
   override val isEnabled: Boolean
     get() = if (context == MenuContext.Toolbar) true else super.isEnabled

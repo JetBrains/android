@@ -63,8 +63,7 @@ class PlayPolicyInsightsJarCache(
   private val cachedDir: Path?,
   private val downloader: Downloader,
   private var googleMavenRepository: GoogleMavenRepository? = null,
-  private val allowPreview: Boolean =
-    FeatureConfiguration.current.stabilityLevel <= FeatureConfiguration.PREVIEW.stabilityLevel,
+  private val allowPreview: Boolean = FeatureConfiguration.current.stabilityLevel <= FeatureConfiguration.PREVIEW.stabilityLevel,
 ) {
   constructor(client: AndroidLintIdeClient) : this(client, getCacheDir(), StudioDownloader())
 
@@ -74,8 +73,7 @@ class PlayPolicyInsightsJarCache(
   private val bundledJar: File? = getBundledJar()
   @VisibleForTesting val isUpdating = MutableStateFlow(false)
   @kotlin.concurrent.Volatile private var nextUpdatingTimeMs = 0L
-  private val targetLibraryVersion =
-    StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.get().trim()
+  private val targetLibraryVersion = StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.get().trim()
 
   private fun getGoogleMavenRepository(): GoogleMavenRepository {
     return googleMavenRepository
@@ -83,14 +81,10 @@ class PlayPolicyInsightsJarCache(
         val cacheDir = client.getCacheDir(MAVEN_GOOGLE_CACHE_DIR_KEY, true)
         val repository =
           object : GoogleMavenRepository(cacheDir?.toPath()) {
-            override fun readUrlData(
-              url: String,
-              timeout: Int,
-              lastModified: Long,
-            ): ReadUrlDataResult = readUrlData(client, url, timeout, lastModified)
+            override fun readUrlData(url: String, timeout: Int, lastModified: Long): ReadUrlDataResult =
+              readUrlData(client, url, timeout, lastModified)
 
-            override fun error(throwable: Throwable, message: String?) =
-              client.log(throwable, message)
+            override fun error(throwable: Throwable, message: String?) = client.log(throwable, message)
           }
 
         googleMavenRepository = repository
@@ -102,9 +96,7 @@ class PlayPolicyInsightsJarCache(
   private fun getBundledJar(): File? {
     val path =
       if (StudioPathManager.isRunningFromSources()) {
-        StudioPathManager.resolvePathFromSourcesRoot(
-          "tools/adt/idea/android-lint/policy-checks/${BUNDLED_JAR_PATH}"
-        )
+        StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android-lint/policy-checks/${BUNDLED_JAR_PATH}")
       } else {
         val homePath: String = FileUtil.toSystemIndependentName(PathManager.getHomePath())
         Paths.get(homePath, "plugins/android/resources/${BUNDLED_JAR_PATH}")
@@ -154,11 +146,7 @@ class PlayPolicyInsightsJarCache(
         }
       }
     } catch (e: Exception) {
-      client.log(
-        Severity.WARNING,
-        e,
-        "Failed to find cached lint rule jar: ${GROUP_ID}-${ARTIFACT_ID}",
-      )
+      client.log(Severity.WARNING, e, "Failed to find cached lint rule jar: ${GROUP_ID}-${ARTIFACT_ID}")
     }
 
     updateCachedJar()
@@ -178,10 +166,7 @@ class PlayPolicyInsightsJarCache(
     }
     if (isUpdating.compareAndSet(expect = false, update = true)) {
       // Apply the minimum backoff time for next update.
-      nextUpdatingTimeMs =
-        nextUpdatingTimeMs.coerceAtMost(
-          actionTimeMs + TimeUnit.MINUTES.toMillis(MIN_UPDATE_BACKOFF_MINUTES)
-        )
+      nextUpdatingTimeMs = nextUpdatingTimeMs.coerceAtMost(actionTimeMs + TimeUnit.MINUTES.toMillis(MIN_UPDATE_BACKOFF_MINUTES))
       scope
         .launch(Dispatchers.IO) {
           try {
@@ -193,9 +178,7 @@ class PlayPolicyInsightsJarCache(
                 ?: return@launch
             val jarName = "${ARTIFACT_ID}-${version}.jar"
             val urlResolver: (String) -> URL = { fileName ->
-              URL(
-                "${GMAVEN_BASE_URL}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${version}/${fileName}"
-              )
+              URL("${GMAVEN_BASE_URL}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${version}/${fileName}")
             }
             val jarPath = dir.resolve(jarName)
             val jarFile = jarPath.toFile()
@@ -207,12 +190,7 @@ class PlayPolicyInsightsJarCache(
 
             if (!verified()) {
               val shaFile = jarFile.sha256File()
-              downloader.downloadFullyWithCaching(
-                urlResolver(shaFile.name),
-                shaFile.toPath(),
-                null,
-                object : ProgressIndicatorAdapter() {},
-              )
+              downloader.downloadFullyWithCaching(urlResolver(shaFile.name), shaFile.toPath(), null, object : ProgressIndicatorAdapter() {})
               sha256FileText = jarFile.sha256FileText()
             }
 
@@ -241,11 +219,7 @@ class PlayPolicyInsightsJarCache(
               }
             }
           } catch (e: IOException) {
-            client.log(
-              e,
-              "Failed to remove outdated jars in %s folder",
-              GOOGLE_PLAY_POLICY_INSIGHTS_KEY,
-            )
+            client.log(e, "Failed to remove outdated jars in %s folder", GOOGLE_PLAY_POLICY_INSIGHTS_KEY)
           }
         }
         .invokeOnCompletion { isUpdating.value = false }
@@ -253,31 +227,23 @@ class PlayPolicyInsightsJarCache(
   }
 
   /** Checksum of the file with sha256 algorithm. */
-  private fun File.sha256(): String =
-    takeIf { exists() }?.let { Hashing.sha256().hashBytes(Files.toByteArray(this)).toString() }
-      ?: ""
+  private fun File.sha256(): String = takeIf { exists() }?.let { Hashing.sha256().hashBytes(Files.toByteArray(this)).toString() } ?: ""
 
   /** Checksum read from its sha256 file. */
-  private fun File.sha256FileText(): String =
-    sha256File().takeIf { it.exists() }?.readText()?.trim() ?: ""
+  private fun File.sha256FileText(): String = sha256File().takeIf { it.exists() }?.readText()?.trim() ?: ""
 
   private fun File.sha256File(): File = File("${path}.sha256")
 
-  private fun sha256Verified(checksum1: String, checksum2: String) =
-    checksum1.isNotEmpty() && checksum1 == checksum2
+  private fun sha256Verified(checksum1: String, checksum2: String) = checksum1.isNotEmpty() && checksum1 == checksum2
 
   private fun cachedFileVerified(file: File, timestamp: Long = file.lastModified()) {
     cachedFile = file
-    nextUpdatingTimeMs =
-      nextUpdatingTimeMs.coerceAtMost(timestamp + TimeUnit.DAYS.toMillis(CACHE_EXPIRY_DAYS))
+    nextUpdatingTimeMs = nextUpdatingTimeMs.coerceAtMost(timestamp + TimeUnit.DAYS.toMillis(CACHE_EXPIRY_DAYS))
   }
 }
 
 private fun getCacheDir(): Path? {
-  if (
-    ApplicationManager.getApplication().isUnitTestMode ||
-      GuiTestingService.getInstance().isGuiTestingMode
-  ) {
+  if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
     return null
   }
   return Paths.get(PathManager.getSystemPath()).normalize().resolve(GOOGLE_PLAY_POLICY_INSIGHTS_KEY)

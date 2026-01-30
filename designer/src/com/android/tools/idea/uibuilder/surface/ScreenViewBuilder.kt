@@ -43,24 +43,20 @@ class ScreenViewBuilder(val surface: NlDesignSurface, private val manager: Layou
   fun withColorSet(colorSet: ColorSet) = this.apply { this.colorSet = colorSet }
 
   /** Sets a new provider that will determine the [Layer]s to be used. */
-  fun withLayersProvider(layersProvider: Function<ScreenView, ImmutableList<Layer>>) =
-    this.apply { this.layersProvider = layersProvider }
+  fun withLayersProvider(layersProvider: Function<ScreenView, ImmutableList<Layer>>) = this.apply { this.layersProvider = layersProvider }
 
   /** Sets a new [ContentSizePolicy]. */
-  fun withContentSizePolicy(contentSizePolicy: ContentSizePolicy) =
-    this.apply { this.contentSizePolicy = contentSizePolicy }
+  fun withContentSizePolicy(contentSizePolicy: ContentSizePolicy) = this.apply { this.contentSizePolicy = contentSizePolicy }
 
   /** Sets a new [ContentSizePolicy]. */
   fun withShapePolicy(shapePolicy: ShapePolicy) = this.apply { this.shapePolicy = shapePolicy }
 
   /**
-   * Sets a new [ContentSizePolicy]. The method receives the current policy and returns a new one
-   * that can wrap it. Use this method if you want to decorate the current policy and not simply
-   * replace it.
+   * Sets a new [ContentSizePolicy]. The method receives the current policy and returns a new one that can wrap it. Use this method if you
+   * want to decorate the current policy and not simply replace it.
    */
-  fun decorateContentSizePolicy(
-    contentSizePolicyProvider: (ContentSizePolicy) -> ContentSizePolicy
-  ) = this.apply { this.contentSizePolicy = contentSizePolicyProvider(contentSizePolicy) }
+  fun decorateContentSizePolicy(contentSizePolicyProvider: (ContentSizePolicy) -> ContentSizePolicy) =
+    this.apply { this.contentSizePolicy = contentSizePolicyProvider(contentSizePolicy) }
 
   /** Disables the visible border. */
   fun disableBorder() = this.apply { hasBorderLayer = false }

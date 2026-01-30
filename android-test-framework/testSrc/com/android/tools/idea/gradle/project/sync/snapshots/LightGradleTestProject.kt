@@ -57,25 +57,14 @@ interface LightGradleTestProject : TestProjectDefinition {
     sdk: Sdk?,
     syncReady: Boolean,
   ): PreparedTestProject {
-    val preparedProject =
-      templateProject.prepareTestProject(
-        integrationTestEnvironment,
-        name,
-        agpVersion,
-        ndkVersion,
-        sdk,
-        syncReady,
-      )
+    val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion, sdk, syncReady)
     preparedProject.root.resolve(".gradle").mkdir()
     return object : PreparedTestProject {
       override fun <T> open(
         updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
         body: PreparedTestProject.Context.(Project) -> T,
       ): T {
-        return openProjectAndRunTestWithTestFixturesAvailable(
-          openProjectImplementation = ::openProject,
-          testBody = body,
-        )
+        return openProjectAndRunTestWithTestFixturesAvailable(openProjectImplementation = ::openProject, testBody = body)
       }
 
       @RequiresBackgroundThread
@@ -85,18 +74,10 @@ interface LightGradleTestProject : TestProjectDefinition {
           ProjectManagerEx.getInstanceEx()
             .openProject(
               Path.of(integrationTestEnvironment.getBaseTestPath(), name).parent.resolve(name),
-              options.copy(
-                beforeInitTasks = options.beforeInitTasks + { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) }
-              ),
+              options.copy(beforeInitTasks = options.beforeInitTasks + { it.putUserData(GradleSyncExecutor.ALWAYS_SKIP_SYNC, true) }),
             ) ?: error("Failed to open a test project")
         return try {
-          invokeAndWaitIfNeeded {
-            setupTestProjectFromAndroidModel(
-              project,
-              preparedProject.root,
-              *modelBuilders.toTypedArray(),
-            )
-          }
+          invokeAndWaitIfNeeded { setupTestProjectFromAndroidModel(project, preparedProject.root, *modelBuilders.toTypedArray()) }
           when (integrationTestEnvironment.runOpenBodyOnEdt) {
             true -> runInEdtAndGet { body(project, preparedProject.root) }
             false -> body(project, preparedProject.root)

@@ -29,9 +29,8 @@ import javax.swing.Icon
 /** An abstract view action */
 abstract class AbstractViewAction
 /**
- * Creates a new view action with a given icon and label. By default, this class will make the
- * action visible and set the {@link ViewAction} icon and label into the passed {@link
- * ViewActionPresentation}.
+ * Creates a new view action with a given icon and label. By default, this class will make the action visible and set the {@link ViewAction}
+ * icon and label into the passed {@link ViewActionPresentation}.
  *
  * @param myIcon the icon to be shown if in the toolbar
  * @param myLabel the menu label (if in a context menu) or the tooltip (if in a toolbar)
@@ -60,8 +59,8 @@ constructor(protected val myIcon: Icon?, protected val myLabel: String) : ViewAc
 
 object ViewActionUtils {
   /**
-   * Returns the "View Options" default menu item. This can be used by handlers that one to
-   * customize the option by adding additional actions to it
+   * Returns the "View Options" default menu item. This can be used by handlers that one to customize the option by adding additional
+   * actions to it
    */
   @JvmStatic
   @JvmOverloads
@@ -78,10 +77,7 @@ object ViewActionUtils {
       ),
     )
 
-  /**
-   * Returns the toggle size actions, which contains the [ToggleSizeViewAction] for horizontal and
-   * vertical directions.
-   */
+  /** Returns the toggle size actions, which contains the [ToggleSizeViewAction] for horizontal and vertical directions. */
   @JvmStatic
   fun getToggleSizeActions(): List<ViewAction> {
     val actions = mutableListOf<ViewAction>()

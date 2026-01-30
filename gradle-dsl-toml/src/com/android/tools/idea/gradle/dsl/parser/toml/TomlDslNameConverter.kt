@@ -30,30 +30,32 @@ interface TomlDslNameConverter : GradleDslNameConverter {
 
   override fun getKind() = GradleDslNameConverter.Kind.CATALOG_TOML
 
-  override fun externalNameForParent(modelName: String, context: GradleDslElement) = ExternalNameInfo(modelName,
-                                                                                                      ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
+  override fun externalNameForParent(modelName: String, context: GradleDslElement) =
+    ExternalNameInfo(modelName, ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
 
-  override fun psiToName(element: PsiElement): String = when (element) {
-    is TomlKeySegment -> GradleNameElement.escape(element.name ?: element.text)
-    is TomlKey -> element.segments.let { segments ->
-      GradleNameElement.join(segments.map { segment -> segment.name ?: return@let null })
-    } ?: GradleNameElement.escape(element.text)
+  override fun psiToName(element: PsiElement): String =
+    when (element) {
+      is TomlKeySegment -> GradleNameElement.escape(element.name ?: element.text)
+      is TomlKey ->
+        element.segments.let { segments -> GradleNameElement.join(segments.map { segment -> segment.name ?: return@let null }) }
+          ?: GradleNameElement.escape(element.text)
 
-    else -> GradleNameElement.escape(element.text)
-  }
+      else -> GradleNameElement.escape(element.text)
+    }
 
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    val literal = try {
-      TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
-    } catch (e: Exception) {
-      throw IllegalStateException("Cannot create reference out of literal $referenceText", e)
-    }
-    val name = when (val kind = literal.kind) {
-      is TomlLiteralKind.String -> kind.value
-      else -> referenceText
-    }
+    val literal =
+      try {
+        TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
+      } catch (e: Exception) {
+        throw IllegalStateException("Cannot create reference out of literal $referenceText", e)
+      }
+    val name =
+      when (val kind = literal.kind) {
+        is TomlLiteralKind.String -> kind.value
+        else -> referenceText
+      }
 
     return "$name"
   }
-
 }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
@@ -52,19 +52,11 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 
 // These categories will be using a new wizard
-val NEW_WIZARD_CATEGORIES =
-  setOf(Category.Activity, Category.Google, Category.Car, Category.Compose)
+val NEW_WIZARD_CATEGORIES = setOf(Category.Activity, Category.Google, Category.Car, Category.Compose)
 @JvmField val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
-private fun defaultShowWizardDialog(
-  modelWizard: ModelWizard,
-  dialogTitle: String,
-  project: Project,
-): Unit =
-  StudioWizardDialogBuilder(modelWizard, dialogTitle)
-    .setProject(project)
-    .build(SimpleStudioWizardLayout())
-    .show()
+private fun defaultShowWizardDialog(modelWizard: ModelWizard, dialogTitle: String, project: Project): Unit =
+  StudioWizardDialogBuilder(modelWizard, dialogTitle).setProject(project).build(SimpleStudioWizardLayout()).show()
 
 /** An action to launch a wizard to create a component from a template. */
 // TODO(qumeric): consider accepting [Template] instead?
@@ -76,12 +68,7 @@ constructor(
   private val minSdkApi: Int,
   private val templateConstraints: Collection<TemplateConstraint> = setOf(),
   private val showWizardDialog: (ModelWizard, String, Project) -> Unit = ::defaultShowWizardDialog,
-) :
-  AnAction(
-    templateName,
-    AndroidBundle.message("android.wizard.action.new.component", templateName),
-    null,
-  ) {
+) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
 
   @Deprecated("Please use the main constructor")
   constructor(
@@ -123,42 +110,26 @@ constructor(
     presentation.isVisible = true
     when {
       minSdkApi > moduleInfo.minSdkVersion.featureLevel -> {
-        presentation.text =
-          AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
         presentation.isEnabled = false
       }
       templateConstraints.contains(TemplateConstraint.AndroidX) && !module.project.isAndroidx() -> {
-        presentation.text =
-          AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.Compose) &&
-        !hasComposeMinAgpVersion(module.project) -> {
-        presentation.text =
-          AndroidBundle.message(
-            "android.wizard.action.requires.new.agp",
-            templateName,
-            COMPOSE_MIN_AGP_VERSION,
-          )
+      templateConstraints.contains(TemplateConstraint.Compose) && !hasComposeMinAgpVersion(module.project) -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
         presentation.isEnabled = false
       }
       templateConstraints.contains(TemplateConstraint.Aidl) &&
-        ProjectBuildModel.get(module.project)
-          .getModuleBuildModel(module)
-          ?.android()
-          ?.buildFeatures()
-          ?.aidl()
-          ?.toBoolean() != true -> {
-        presentation.text =
-          AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
+        ProjectBuildModel.get(module.project).getModuleBuildModel(module)?.android()?.buildFeatures()?.aidl()?.toBoolean() != true -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
         presentation.isEnabled = false
       }
       else -> {
         val facet = AndroidFacet.getInstance(module)
         val isProjectReady =
-          facet != null &&
-            AndroidModel.get(facet) != null &&
-            facet.configuration.projectType != AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+          facet != null && AndroidModel.get(facet) != null && facet.configuration.projectType != AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
         presentation.isEnabled = isProjectReady
       }
     }
@@ -184,8 +155,7 @@ constructor(
     assert(moduleTemplates.isNotEmpty())
 
     val initialPackageSuggestion =
-      if (targetDirectory == null) facet.getModuleSystem().getPackageName()
-      else facet.getPackageForPath(moduleTemplates, targetDirectory)
+      if (targetDirectory == null) facet.getModuleSystem().getPackageName() else facet.getPackageForPath(moduleTemplates, targetDirectory)
 
     val templateModel =
       fromFacet(
@@ -198,9 +168,7 @@ constructor(
         MENU_GALLERY,
       )
     val newActivity =
-      TemplateResolver.getAllTemplates()
-        .filter { WizardUiContext.MenuEntry in it.uiContexts }
-        .find { it.name == templateName }
+      TemplateResolver.getAllTemplates().filter { WizardUiContext.MenuEntry in it.uiContexts }.find { it.name == templateName }
 
     templateModel.newTemplate = newActivity!!
 
@@ -218,19 +186,13 @@ constructor(
           else -> "android.wizard.config.component.title"
         }
       )
-    val wizardBuilder =
-      ModelWizard.Builder().apply {
-        addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates))
-      }
+    val wizardBuilder = ModelWizard.Builder().apply { addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates)) }
 
     showWizardDialog(wizardBuilder.build(), dialogTitle, module.project)
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
   }
 
-  private fun getModuleTemplates(
-    facet: AndroidFacet,
-    targetDirectory: VirtualFile?,
-  ): List<NamedModuleTemplate> {
+  private fun getModuleTemplates(facet: AndroidFacet, targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     return facet.getModuleTemplates(targetDirectory).filter {
       // Do not allow to create Android Components from the templates into source sets without a
       // source root.

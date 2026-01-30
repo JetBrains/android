@@ -41,37 +41,41 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class VersionCatalogFindGroovyUsageTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   private val myFixture by lazy { projectRule.fixture }
   private val myProject by lazy { projectRule.project }
 
-  private val service = object: VersionCatalogFilesModel {
-    val map = mapOf("libs" to "gradle/libs.versions.toml")
-    override fun getCatalogNameToFileMapping(project: Project): Map<String, String> =
-      map.mapValues { project.basePath + "/" + it.value }
-    override fun getCatalogNameToFileMapping(module: Module): Map<String, String>  =
-      map.mapValues { module.project.basePath + "/" + it.value }
-  }
+  private val service =
+    object : VersionCatalogFilesModel {
+      val map = mapOf("libs" to "gradle/libs.versions.toml")
+
+      override fun getCatalogNameToFileMapping(project: Project): Map<String, String> = map.mapValues { project.basePath + "/" + it.value }
+
+      override fun getCatalogNameToFileMapping(module: Module): Map<String, String> =
+        map.mapValues { module.project.basePath + "/" + it.value }
+    }
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().registerExtension(
-      EP_NAME, service, projectRule.fixture.testRootDisposable
-    )
+    ApplicationManager.getApplication().registerExtension(EP_NAME, service, projectRule.fixture.testRootDisposable)
   }
 
   @Test
   fun testHasUsages() {
-    testVersionCatalogFindUsagesInSubmodule("""
+    testVersionCatalogFindUsagesInSubmodule(
+      """
       [libraries]
       groov${caret}y = "org.codehaus.groovy:groovy:2.7.3"
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation libs.groovy
       }
-    """.trimIndent()) {
+      """
+        .trimIndent(),
+    ) {
       assertThat(it).hasSize(1)
       assertThat(it.first().file).isInstanceOf(GroovyFileBase::class.java)
     }
@@ -79,28 +83,38 @@ class VersionCatalogFindGroovyUsageTest {
 
   @Test
   fun testHasNoUsages() {
-    testVersionCatalogFindUsagesInSubmodule("""
+    testVersionCatalogFindUsagesInSubmodule(
+      """
       [libraries]
       groov${caret}y = "org.codehaus.groovy:groovy:2.7.3"
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation libs.groovy2
       }
-    """.trimIndent()) {
+      """
+        .trimIndent(),
+    ) {
       assertThat(it).isEmpty()
     }
   }
 
   @Test
-  fun testHasUsagesWithUnderscoreAlias(){
-    testVersionCatalogFindUsagesInSubmodule("""
+  fun testHasUsagesWithUnderscoreAlias() {
+    testVersionCatalogFindUsagesInSubmodule(
+      """
       [libraries]
       groov${caret}y_core = { group="org.codehaus.groovy", name = "groovy", version ="2.7.3"}
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation libs.groovy.core
       }
-    """.trimIndent()) {
+      """
+        .trimIndent(),
+    ) {
       assertThat(it).hasSize(1)
       assertThat(it.first().file).isInstanceOf(GroovyFileBase::class.java)
     }
@@ -108,21 +122,29 @@ class VersionCatalogFindGroovyUsageTest {
 
   @Test
   fun testHasUsagesWithDotAlias() {
-    testVersionCatalogFindUsagesInSubmodule("""
+    testVersionCatalogFindUsagesInSubmodule(
+      """
       [libraries]
       groov${caret}y.core = { group="org.codehaus.groovy", name = "groovy", version ="2.7.3"}
-    """.trimIndent(), """
+    """
+        .trimIndent(),
+      """
       dependencies {
         implementation libs.groovy.core
       }
-    """.trimIndent()) {
+      """
+        .trimIndent(),
+    ) {
       assertThat(it).hasSize(1)
       assertThat(it.first().file).isInstanceOf(GroovyFileBase::class.java)
     }
   }
 
-  private fun testVersionCatalogFindUsagesInSubmodule(versionCatalogText: String, buildGradleText: String,
-                                                      checker: (Collection<UsageInfo>) -> Unit) {
+  private fun testVersionCatalogFindUsagesInSubmodule(
+    versionCatalogText: String,
+    buildGradleText: String,
+    checker: (Collection<UsageInfo>) -> Unit,
+  ) {
     projectRule.load(SIMPLE_APPLICATION_VERSION_CATALOG)
     val path = myProject.guessProjectDir()!!
     val versionCatalogFile = createFile(path, "gradle/libs.versions.toml", versionCatalogText)
@@ -131,10 +153,14 @@ class VersionCatalogFindGroovyUsageTest {
     myFixture.configureFromExistingVirtualFile(versionCatalogFile)
 
     runReadAction {
-      ProgressManager.getInstance().runProcess({
-                                                 val usages = myFixture.findUsages(myFixture.elementAtCaret)
-                                                 checker(usages)
-                                               }, EmptyProgressIndicator())
+      ProgressManager.getInstance()
+        .runProcess(
+          {
+            val usages = myFixture.findUsages(myFixture.elementAtCaret)
+            checker(usages)
+          },
+          EmptyProgressIndicator(),
+        )
     }
   }
 }

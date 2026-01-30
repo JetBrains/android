@@ -18,14 +18,12 @@ package com.android.tools.idea.preview.util.device.check
 import com.android.tools.preview.config.DimUnit
 import com.intellij.openapi.actionSystem.DataKey
 
-internal val DeviceSpecCheckStateKey =
-  DataKey.create<DeviceSpecCheckState>("preview.check.device.spec.fix.state")
+internal val DeviceSpecCheckStateKey = DataKey.create<DeviceSpecCheckState>("preview.check.device.spec.fix.state")
 
 /**
  * Class to keep track of the check result of DeviceSpec parameters.
  *
- * This should be used to simplify the fix step of a
- * [com.android.tools.idea.compose.annotator.check.common.ParameterRule].
+ * This should be used to simplify the fix step of a [com.android.tools.idea.compose.annotator.check.common.ParameterRule].
  *
  * @see DimensionParameterRule
  */
@@ -33,8 +31,7 @@ internal class DeviceSpecCheckState {
   private val parametersFixState = mutableMapOf<String, ParameterCheckResult>()
 
   /**
-   * The unit that all dimension parameters are expected to have. Should be set from the first
-   * parameter that has no issues.
+   * The unit that all dimension parameters are expected to have. Should be set from the first parameter that has no issues.
    *
    * @see DimensionParameterRule
    */
@@ -72,9 +69,6 @@ internal enum class DimensionParameterCheckResult : ParameterCheckResult {
   /** The number part of the value is correct, but there's no suffix for the unit. */
   MissingUnit,
 
-  /**
-   * The number part is correct, and there is a suffix for the unit, however, it does not match the
-   * unit of other parameters.
-   */
+  /** The number part is correct, and there is a suffix for the unit, however, it does not match the unit of other parameters. */
   WrongUnit,
 }

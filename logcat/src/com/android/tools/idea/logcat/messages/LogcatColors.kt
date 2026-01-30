@@ -24,16 +24,16 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The logcat-tags-palette.json file is
- * [auto generated](https://source.cloud.google.com/google.com:adux-source/studio-palettes/+/master:client/app/index.js;l=176)
- * and should be updated when the design team creates new colors.
+ * [auto generated](https://source.cloud.google.com/google.com:adux-source/studio-palettes/+/master:client/app/index.js;l=176) and should be
+ * updated when the design team creates new colors.
  */
 private const val PALETTE_JSON_FILENAME = "/palette/logcat-tags-palette.json"
 
 /**
  * Manages the various colors used in a log view.
  *
- * Colors are stored as [TextAttributes] which can be assigned to
- * [com.intellij.openapi.editor.Document] [com.intellij.openapi.editor.markup.MarkupModel] ranges.
+ * Colors are stored as [TextAttributes] which can be assigned to [com.intellij.openapi.editor.Document]
+ * [com.intellij.openapi.editor.markup.MarkupModel] ranges.
  *
  * [LogLevel] colors are provided with an extension method.
  *
@@ -43,28 +43,23 @@ internal class LogcatColors {
 
   private val colorPaletteManager by lazy {
     javaClass.getResourceAsStream(PALETTE_JSON_FILENAME)?.let {
-      ColorPaletteManager(
-        Gson().fromJson(it.reader(), Array<ColorPaletteManager.ColorPalette>::class.java)
-      )
+      ColorPaletteManager(Gson().fromJson(it.reader(), Array<ColorPaletteManager.ColorPalette>::class.java))
     } ?: throw IllegalStateException("Resource not found")
   }
   private val tagColors = ConcurrentHashMap<Int, TextAttributes>()
 
   /** Map a [LogLevel] to a [TextAttributesKey] object for rendering a log level. */
   internal fun getLogLevelKey(level: LogLevel) =
-    LEVEL_KEYS[level]
-      ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
+    LEVEL_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
 
   /** Map a [LogLevel] to a [TextAttributesKey] object for rendering a message. */
   internal fun getMessageKey(level: LogLevel) =
-    MESSAGE_KEYS[level]
-      ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
+    MESSAGE_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
 
   /**
    * Map a Logcat tag to a [TextAttributes] object.
    *
-   * Leverage [ColorPaletteManager] for color selection but since we use [TextAttributes], we
-   * maintain our own cache.
+   * Leverage [ColorPaletteManager] for color selection but since we use [TextAttributes], we maintain our own cache.
    */
   internal fun getTagColor(tag: String): TextAttributes {
     val index = tag.hashCode()

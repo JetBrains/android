@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.android.model.android.android
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
@@ -47,8 +47,7 @@ import org.mockito.kotlin.whenever
 
 class BaselineProfilesModuleTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+  @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
@@ -75,21 +74,14 @@ class BaselineProfilesModuleTest {
     assertConfigurationsSize(runManager.allConfigurationsList, 1)
 
     val generateRunConfiguration =
-      runManager.allConfigurationsList.find {
-        it.name == "$RUN_CONFIGURATION_NAME for ${appModule.getModuleNameForGradleTask()}"
-      }
+      runManager.allConfigurationsList.find { it.name == "$RUN_CONFIGURATION_NAME for ${appModule.getModuleNameForGradleTask()}" }
     assertThat(generateRunConfiguration).isNotNull()
     assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
   }
 
   @Test
   fun runConfiguration() {
-    val task =
-      runConfigurationGradleTask(
-        "moduleName",
-        "variantName",
-        BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE,
-      )
+    val task = runConfigurationGradleTask("moduleName", "variantName", BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE)
     assertThat(task).run {
       contains(":moduleName:${baselineProfileTaskName("variantName")}")
       contains(
@@ -108,10 +100,8 @@ class BaselineProfilesModuleTest {
   }
 
   /** We're checking +1 size, because of implicit app run configuration */
-  private fun assertConfigurationsSize(
-    configurationsList: List<RunConfiguration>,
-    expectedSize: Int,
-  ) = assertThat(configurationsList).hasSize(expectedSize + 1)
+  private fun assertConfigurationsSize(configurationsList: List<RunConfiguration>, expectedSize: Int) =
+    assertThat(configurationsList).hasSize(expectedSize + 1)
 
   @Test
   fun checkMinSdkUsesLowestPGOOrTargetModule() {
@@ -129,8 +119,7 @@ class BaselineProfilesModuleTest {
     targetModuleAndroidModel?.defaultConfig()?.minSdkVersion()?.setValue(lowerThanPGO)
     WriteCommandAction.runWriteCommandAction(project) { projectBuildModel?.applyChanges() }
 
-    assertThat(getBaselineProfilesMinSdk(appModule))
-      .isEqualTo(SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
+    assertThat(getBaselineProfilesMinSdk(appModule)).isEqualTo(SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
 
     // Verify anything higher than LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION is preserved
     val higherThanPGO = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION + 1
@@ -153,11 +142,7 @@ class BaselineProfilesModuleTest {
     // Basic case
     assertThat(
         chooseReleaseTargetApplicationId(
-          basicVariants =
-            listOf(
-              mockIdeBasicVariant("debug", "com.test.debug"),
-              mockIdeBasicVariant("release", "com.test.release"),
-            ),
+          basicVariants = listOf(mockIdeBasicVariant("debug", "com.test.debug"), mockIdeBasicVariant("release", "com.test.release")),
           defaultValue = "com.test",
         )
       )
@@ -166,11 +151,7 @@ class BaselineProfilesModuleTest {
     // Release not found (this should never happen)
     assertThat(
         chooseReleaseTargetApplicationId(
-          basicVariants =
-            listOf(
-              mockIdeBasicVariant("debug", "com.test.debug"),
-              mockIdeBasicVariant("somethingElse", "com.test.release"),
-            ),
+          basicVariants = listOf(mockIdeBasicVariant("debug", "com.test.debug"), mockIdeBasicVariant("somethingElse", "com.test.release")),
           defaultValue = "com.test",
         )
       )

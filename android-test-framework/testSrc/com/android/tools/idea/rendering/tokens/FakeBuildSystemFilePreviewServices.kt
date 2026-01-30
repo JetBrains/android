@@ -43,16 +43,11 @@ import com.intellij.testFramework.ExtensionTestUtil
 import java.nio.file.Path
 import org.jetbrains.annotations.TestOnly
 
-/**
- * An implementation of [BuildSystemFilePreviewServices] for use in tests that allows simulating
- * custom scenarios.
- */
+/** An implementation of [BuildSystemFilePreviewServices] for use in tests that allows simulating custom scenarios. */
 @TestOnly
 class FakeBuildSystemFilePreviewServices(
   buildTargets: FakeBuildSystemFilePreviewServices.() -> BuildTargets = { FakeBuildTargets() },
-  buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = {
-    FakeBuildServices()
-  },
+  buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = { FakeBuildServices() },
   private val classFiles: Map<String, ByteArray> = mapOf(),
   private val versionString: String = DEFAULT_RUNTIME_VERSION,
 ) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
@@ -62,9 +57,7 @@ class FakeBuildSystemFilePreviewServices(
   override val buildTargets: BuildTargets = buildTargets()
   override val buildServices: BuildServices<BuildTargetReference> = buildServices()
 
-  override fun getRenderingServices(
-    buildTargetReference: BuildTargetReference
-  ): BuildSystemFilePreviewServices.RenderingServices {
+  override fun getRenderingServices(buildTargetReference: BuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
     return object : BuildSystemFilePreviewServices.RenderingServices {
       override val classFileFinder: ClassFileFinder? =
         object : ClassFileFinder {
@@ -77,25 +70,16 @@ class FakeBuildSystemFilePreviewServices(
     }
   }
 
-  override fun getApplicationLiveEditServices(
-    buildTargetReference: BuildTargetReference
-  ): ApplicationLiveEditServices {
+  override fun getApplicationLiveEditServices(buildTargetReference: BuildTargetReference): ApplicationLiveEditServices {
     return ApplicationLiveEditServicesForTests(classFiles, versionString)
   }
 
-  override fun subscribeBuildListener(
-    project: Project,
-    parentDisposable: Disposable,
-    listener: BuildListener,
-  ) {
+  override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
     synchronized(listener) { listeners.add(listener) }
     Disposer.register(parentDisposable) { synchronized(listener) { listeners.remove(listener) } }
   }
 
-  /**
-   * Simulates a build of artifacts affecting rendering at the level of
-   * [BuildSystemFilePreviewServices].
-   */
+  /** Simulates a build of artifacts affecting rendering at the level of [BuildSystemFilePreviewServices]. */
   fun simulateArtifactBuild(
     buildStatus: BuildStatus,
     buildMode: BuildMode = BuildMode.COMPILE,
@@ -103,8 +87,7 @@ class FakeBuildSystemFilePreviewServices(
   ) {
     val buildResult = BuildListener.BuildResult(buildStatus, EverythingGlobalScope())
     val buildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
-    synchronized(listeners) { listeners.toList() }
-      .forEach { listener -> listener.buildStarted(buildMode, buildResultFuture) }
+    synchronized(listeners) { listeners.toList() }.forEach { listener -> listener.buildStarted(buildMode, buildResultFuture) }
     lastStatus = buildStatus
     completion.addListener({ buildResultFuture.set(buildResult) }, directExecutor())
   }
@@ -113,16 +96,9 @@ class FakeBuildSystemFilePreviewServices(
 
   override fun isApplicable(buildTargetReference: BuildTargetReference): Boolean = true
 
-  /**
-   * Registers this fake implementation for the lifespan of [parentDisposable] for all project
-   * systems.
-   */
+  /** Registers this fake implementation for the lifespan of [parentDisposable] for all project systems. */
   fun register(parentDisposable: Disposable) {
-    ExtensionTestUtil.maskExtensions(
-      BuildSystemFilePreviewServices.EP_NAME,
-      listOf(this),
-      parentDisposable,
-    )
+    ExtensionTestUtil.maskExtensions(BuildSystemFilePreviewServices.EP_NAME, listOf(this), parentDisposable)
   }
 
   class FakeBuildTargets : BuildTargets {

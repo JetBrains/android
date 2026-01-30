@@ -23,5 +23,5 @@ enum class ScreenshotViewType(val displayText: String) {
   /** Displays the difference between the new and reference images. */
   DIFF("Diff"),
   /** Displays the original reference (or "golden") image. */
-  REFERENCE("Reference")
+  REFERENCE("Reference"),
 }

@@ -50,15 +50,10 @@ class AbstractInspectorClientTest {
 
   @Test
   fun clientWithAdbResponseConnects() {
-    adbSession.deviceServices.configureShellCommand(
-      DeviceSelector.fromSerialNumber(process.device.serial),
-      "echo ok",
-      stdout = "ok",
-    )
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(process.device.serial), "echo ok", stdout = "ok")
 
     val project = projectRule.project
-    val client =
-      MyClient(project, process, NotificationModel(project), adbSession, disposableRule.disposable)
+    val client = MyClient(project, process, NotificationModel(project), adbSession, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     runBlocking { client.connect(projectRule.project) }
@@ -76,14 +71,12 @@ class AbstractInspectorClientTest {
     )
 
     val project = projectRule.project
-    val client =
-      MyClient(project, process, NotificationModel(project), adbSession, disposableRule.disposable)
+    val client = MyClient(project, process, NotificationModel(project), adbSession, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     runBlocking { client.connect(projectRule.project) }
     assertThat(client.isConnected).isFalse()
-    verify(monitor, times(0))
-      .updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    verify(monitor, times(0)).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 }
 
@@ -114,10 +107,7 @@ private class MyClient(
 
   override fun refresh() {}
 
-  override suspend fun saveSnapshot(
-    path: Path,
-    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type,
-  ) {}
+  override suspend fun saveSnapshot(path: Path, screenshotType: LayoutInspectorViewProtocol.Screenshot.Type) {}
 
   override val treeLoader: TreeLoader = mock()
   override val inLiveMode = false

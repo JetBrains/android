@@ -24,14 +24,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-
 internal class ShellCommandInputProviderTest {
 
   private val projectRule = ProjectRule()
   private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, fakeAdbSessionRule)
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule)
 
   private val deviceServices = fakeAdbSessionRule.adbSession.deviceServices
   private val serialNumber = "123"
@@ -43,26 +41,32 @@ internal class ShellCommandInputProviderTest {
   @Test
   fun canHandleTextCommand() {
     deviceServices.configureShellCommand(device, "input keyboard -d -1 text Testing", "done")
-    val result = runBlockingWithTimeout { shellInputProvider.input(
-      project = project,
-      serialNumber = serialNumber,
-      source = "keyboard",
-      displayID = -1,
-      command = "text",
-      args = listOf("Testing")) }
+    val result = runBlockingWithTimeout {
+      shellInputProvider.input(
+        project = project,
+        serialNumber = serialNumber,
+        source = "keyboard",
+        displayID = -1,
+        command = "text",
+        args = listOf("Testing"),
+      )
+    }
     assertEquals("done", result)
   }
 
   @Test
   fun canHandleKeyEvent() {
     deviceServices.configureShellCommand(device, "input touchscreen -d 5 motionevent DOWN 500 200", "done")
-    val result = runBlockingWithTimeout { shellInputProvider.input(
-      project = project,
-      serialNumber = serialNumber,
-      source = "touchscreen",
-      displayID = 5,
-      command = "motionevent",
-      args = listOf("DOWN", "500", "200")) }
+    val result = runBlockingWithTimeout {
+      shellInputProvider.input(
+        project = project,
+        serialNumber = serialNumber,
+        source = "touchscreen",
+        displayID = 5,
+        command = "motionevent",
+        args = listOf("DOWN", "500", "200"),
+      )
+    }
     assertEquals("done", result)
   }
 

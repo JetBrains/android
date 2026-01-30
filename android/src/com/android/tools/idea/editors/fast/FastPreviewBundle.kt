@@ -22,6 +22,7 @@ private const val BUNDLE_NAME = "bundle.fast.FastPreview"
 
 object FastPreviewBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
 
   fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.lazyMessage(key, *params)

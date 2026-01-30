@@ -71,8 +71,5 @@ class DynamicServerFlagServiceTest {
   }
 
   private fun flagBuilder(value: String) =
-    mapOf(
-      "string" to
-        ServerFlagValueData(0, FlagValue.newBuilder().apply { stringValue = value }.build())
-    )
+    mapOf("string" to ServerFlagValueData(0, FlagValue.newBuilder().apply { stringValue = value }.build()))
 }

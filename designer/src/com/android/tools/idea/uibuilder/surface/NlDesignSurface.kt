@@ -79,8 +79,7 @@ import kotlin.math.min
 import kotlinx.coroutines.launch
 
 /**
- * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or
- * more device renderings, etc
+ * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or more device renderings, etc
  *
  * @param sceneManagerProvider Allows customizing the generation of [SceneManager]s
  * @param delegateUiDataProvider See [NlSurfaceBuilder.setDelegateUiDataProvider]
@@ -89,16 +88,10 @@ class NlDesignSurface
 internal constructor(
   project: Project,
   private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
-  actionManagerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
-        out DesignSurface<LayoutlibSceneManager>
-      >,
+  actionManagerProvider: (DesignSurface<LayoutlibSceneManager>) -> ActionManager<out DesignSurface<LayoutlibSceneManager>>,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
-  actionHandlerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
-        DesignSurface<LayoutlibSceneManager>
-      >,
+  actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<DesignSurface<LayoutlibSceneManager>>,
   private val delegateUiDataProvider: UiDataProvider?,
   selectionModel: SelectionModel,
   zoomControlsPolicy: ZoomControlsPolicy,
@@ -174,12 +167,7 @@ internal constructor(
 
   override val zoomController: ZoomController =
     NlDesignSurfaceZoomController(
-        {
-          sceneViewLayoutManager.getFitIntoScale(
-            sceneViewPanel.positionableContent,
-            viewport.extentSize,
-          )
-        },
+        { sceneViewLayoutManager.getFitIntoScale(sceneViewPanel.positionableContent, viewport.extentSize) },
         analyticsManager,
         selectionModel,
         this,
@@ -223,9 +211,8 @@ internal constructor(
   }
 
   /**
-   * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned.
-   * This can be disabled to avoid moving the screens around when the user is resizing the canvas.
-   * See [CanvasResizeInteraction]
+   * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned. This can be disabled to avoid moving the
+   * screens around when the user is resizing the canvas. See [CanvasResizeInteraction]
    *
    * @param isResizing true to enable the resize mode
    */
@@ -235,18 +222,13 @@ internal constructor(
     setSurfaceAutoscrolls(isResizing)
   }
 
-  /**
-   * When true, the surface will autoscroll when the mouse gets near the edges. See
-   * [JScrollPane.setAutoscrolls]
-   */
+  /** When true, the surface will autoscroll when the mouse gets near the edges. See [JScrollPane.setAutoscrolls] */
   private fun setSurfaceAutoscrolls(enabled: Boolean) {
     scrollPane?.autoscrolls = enabled
   }
 
   fun setScreenViewProvider(newScreenViewProvider: ScreenViewProvider, setAsDefault: Boolean) {
-    (newScreenViewProvider as? NlScreenViewProvider)?.let {
-      if (setAsDefault) savePreferredMode(it)
-    }
+    (newScreenViewProvider as? NlScreenViewProvider)?.let { if (setAsDefault) savePreferredMode(it) }
     screenViewProvider = newScreenViewProvider
   }
 
@@ -255,8 +237,7 @@ internal constructor(
   }
 
   /**
-   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on
-   * mouse hover
+   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on mouse hover
    *
    * @param value if true, force painting
    */
@@ -267,13 +248,9 @@ internal constructor(
     repaint()
   }
 
-  /**
-   * The offsets to the left and top edges when scrolling to a component by calling
-   * [scrollToVisible]
-   */
+  /** The offsets to the left and top edges when scrolling to a component by calling [scrollToVisible] */
   @get:SwingCoordinate
-  override val scrollToVisibleOffset =
-    Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
+  override val scrollToVisibleOffset = Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
 
   override fun setModel(newModel: NlModel?) {
     accessoryPanel.setModel(model)
@@ -293,8 +270,8 @@ internal constructor(
   }
 
   /**
-   * Notifies the design surface that the given screen view (which must be showing in this design
-   * surface) has been rendered (possibly with errors)
+   * Notifies the design surface that the given screen view (which must be showing in this design surface) has been rendered (possibly with
+   * errors)
    */
   fun updateErrorDisplay() {
     if (isRenderingSynchronously) {
@@ -302,19 +279,10 @@ internal constructor(
       return
     }
 
-    errorQueue.updateErrorDisplay(
-      layoutScannerControl,
-      visualLintIssueProvider,
-      this,
-      issueModel,
-      this::sceneManagers,
-    )
+    errorQueue.updateErrorDisplay(layoutScannerControl, visualLintIssueProvider, this, issueModel, this::sceneManagers)
   }
 
-  /**
-   * Notifies the design surface that a model being shown in this surface has been rendered (or
-   * re-rendered).
-   */
+  /** Notifies the design surface that a model being shown in this surface has been rendered (or re-rendered). */
   fun modelRendered() {
     updateErrorDisplay()
 
@@ -343,13 +311,12 @@ internal constructor(
   }
 
   /**
-   * Triggers a re-inflation and re-render. This method doesn't wait for the refresh to finish, but
-   * it sets up a progress indicator to inform the user about the refresh progress.
+   * Triggers a re-inflation and re-render. This method doesn't wait for the refresh to finish, but it sets up a progress indicator to
+   * inform the user about the refresh progress.
    */
   override fun forceUserRequestedRefresh() {
     // When the user initiates the refresh, give some feedback via progress indicator.
-    val refreshProgressIndicator =
-      BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
+    val refreshProgressIndicator = BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
     scope
       .launch {
         sceneManagers.forEach {
@@ -399,10 +366,7 @@ internal constructor(
     @SwingCoordinate val targetSwingX = areaToCenter.centerX.toInt()
     @SwingCoordinate val targetSwingY = areaToCenter.centerY.toInt()
     // Center to position.
-    setScrollPosition(
-      targetSwingX - swingViewportSize.width / 2,
-      targetSwingY - swingViewportSize.height / 2,
-    )
+    setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2)
     @SurfaceScale val fitScale = zoomController.getFitScale()
 
     if (zoomController.scale > fitScale) {
@@ -412,19 +376,17 @@ internal constructor(
   }
 
   /**
-   * Zoom (in or out) and move the scroll position to ensure that the given rectangle is fully
-   * visible and centered. When zooming, the sceneViews may move around, and so the rectangle's
-   * coordinates should be relative to the sceneView. The given rectangle should be a subsection of
-   * the given sceneView.
+   * Zoom (in or out) and move the scroll position to ensure that the given rectangle is fully visible and centered. When zooming, the
+   * sceneViews may move around, and so the rectangle's coordinates should be relative to the sceneView. The given rectangle should be a
+   * subsection of the given sceneView.
    *
    * @param sceneView the [SceneView] that contains the given rectangle
-   * @param rectangle the rectangle that should be visible, with its coordinates relative to the
-   *   sceneView, and with its currentsize (before zooming).
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the sceneView, and with its currentsize (before
+   *   zooming).
    */
   fun zoomAndCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle) {
     if (scrollPane == null) {
-      Logger.getInstance(NlDesignSurface::class.java)
-        .warn("The scroll pane is null, cannot zoom and center.")
+      Logger.getInstance(NlDesignSurface::class.java).warn("The scroll pane is null, cannot zoom and center.")
       return
     }
 
@@ -476,8 +438,7 @@ internal constructor(
     }
     val zoomCenterInView = Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y)
 
-    viewportScroller =
-      ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
+    viewportScroller = ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
   }
 
   /** Return whenever surface is rotating. */
@@ -488,8 +449,8 @@ internal constructor(
     get() = supportedActionsProvider.get()
 
   /**
-   * Sets the min size allowed for the scrollable surface. This is useful in cases where we have an
-   * interaction that needs to extend the available space.
+   * Sets the min size allowed for the scrollable surface. This is useful in cases where we have an interaction that needs to extend the
+   * available space.
    */
   var scrollableViewMinSize: Dimension = Dimension()
     set(value) {
@@ -511,12 +472,10 @@ internal constructor(
           .map { DnDTransferComponent(it.tagName, it.tag!!.text, it.w, it.h) }
           .collect(ImmutableList.toImmutableList())
 
-      val selectedModels =
-        selectionModel.selection.stream().map { it.model }.collect(ImmutableSet.toImmutableSet())
+      val selectedModels = selectionModel.selection.stream().map { it.model }.collect(ImmutableSet.toImmutableSet())
 
       if (selectedModels.size != 1) {
-        Logger.getInstance(NlDesignSurface::class.java)
-          .warn("Elements from multiple models were selected.")
+        Logger.getInstance(NlDesignSurface::class.java).warn("Elements from multiple models were selected.")
       }
 
       val selectedModel = Iterables.getFirst(selectedModels, null)
@@ -524,8 +483,8 @@ internal constructor(
     }
 
   /**
-   * Sets the [SceneViewAlignment] for the [SceneView]s. This only applies to [SceneView]s when the
-   * content size is less than the minimum size allowed. See [SceneViewPanel].
+   * Sets the [SceneViewAlignment] for the [SceneView]s. This only applies to [SceneView]s when the content size is less than the minimum
+   * size allowed. See [SceneViewPanel].
    */
   fun setSceneViewAlignment(sceneViewAlignment: SceneViewAlignment) {
     sceneViewPanel.sceneViewAlignment = sceneViewAlignment.alignmentX
@@ -544,10 +503,7 @@ internal constructor(
   fun resetColorBlindMode() {
     colorBlindMode = ColorBlindMode.NONE
     for (manager in sceneManagers) {
-      manager.model.configuration.setImageTransformation(
-        Configuration.ImageTransformationType.COLOR_BLIND_MODE,
-        null,
-      )
+      manager.model.configuration.setImageTransformation(Configuration.ImageTransformationType.COLOR_BLIND_MODE, null)
     }
   }
 }

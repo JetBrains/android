@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import kotlin.time.Clock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.guava.await
@@ -36,7 +37,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
-import kotlin.time.Clock
 
 class DeviceSelectorIntegrationTest {
   @get:Rule val edtRule = EdtRule()
@@ -68,10 +68,7 @@ class DeviceSelectorIntegrationTest {
     )
   }
 
-  /**
-   * Use the DeviceAndSnapshotComboBoxTarget to activate a device, as if we had clicked Run, and
-   * verify that the device gets activated.
-   */
+  /** Use the DeviceAndSnapshotComboBoxTarget to activate a device, as if we had clicked Run, and verify that the device gets activated. */
   @RunsInEdt
   @Test
   fun activation() {

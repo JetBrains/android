@@ -44,16 +44,10 @@ class AndroidWatchFaceConfigurationExecutor(
   appRunSettings: AppRunSettings,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
-  deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(
-  environment,
-  deviceFutures,
-  appRunSettings,
-  apkProvider,
-  applicationContext,
-  deployer
-) {
+  deployer: ApplicationDeployer,
+) : AndroidWearConfigurationExecutor(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer) {
   private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
+
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
   @WorkerThread
@@ -74,8 +68,7 @@ class AndroidWatchFaceConfigurationExecutor(
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled == true }
     try {
       getActivator(app).activate(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver, device)
-    }
-    catch (ex: DeployerException) {
+    } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }
   }
@@ -87,7 +80,7 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
   override val componentBaseClassesFqNames = WearBaseClasses.WATCH_FACES
   override var componentName: String? = null
 
-  fun clone() : WatchFaceLaunchOptions {
+  fun clone(): WatchFaceLaunchOptions {
     val clone = WatchFaceLaunchOptions()
     clone.componentName = componentName
     return clone

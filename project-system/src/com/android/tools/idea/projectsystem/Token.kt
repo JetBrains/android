@@ -18,11 +18,9 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.extensions.ExtensionPointName
 
 /**
- * This interface is to be extended by concrete project systems with a suitable implementation of
- * [isApplicable], and also extended by IDE feature modules defining interface methods to modify
- * the project (or query it, but usually this should not be necessary for queries).  These
- * interfaces should be implemented in build-system-specific modules corresponding for the respective
- * IDE feature.
+ * This interface is to be extended by concrete project systems with a suitable implementation of [isApplicable], and also extended by IDE
+ * feature modules defining interface methods to modify the project (or query it, but usually this should not be necessary for queries).
+ * These interfaces should be implemented in build-system-specific modules corresponding for the respective IDE feature.
  */
 interface Token {
   fun isApplicable(projectSystem: AndroidProjectSystem): Boolean

@@ -35,12 +35,10 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 /**
- * Helper function to wrapped [NlTreeWriter.addComponents] to select the added [NlComponent]s when
- * [insertType] is [InsertType.CREATE]. This happens when adding a new created [NlComponent]s into
- * [NlModel] but not moving the existing [NlComponent]s.
+ * Helper function to wrapped [NlTreeWriter.addComponents] to select the added [NlComponent]s when [insertType] is [InsertType.CREATE]. This
+ * happens when adding a new created [NlComponent]s into [NlModel] but not moving the existing [NlComponent]s.
  *
- * We use [NlTreeWriter.addComponents] to create and moving [NlComponent]s, so we need to check the
- * [insertType].
+ * We use [NlTreeWriter.addComponents] to create and moving [NlComponent]s, so we need to check the [insertType].
  *
  * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
  */
@@ -68,9 +66,8 @@ fun NlTreeWriter.addComponentsAndSelectedIfCreated(
 }
 
 /**
- * Helper function to wrapped [NlTreeWriter.addComponents] to add and selected the added
- * [NlComponent]s. This is used to add a new created [NlComponent]s into [NlModel] but not moving
- * the existing [NlComponent]s.
+ * Helper function to wrapped [NlTreeWriter.addComponents] to add and selected the added [NlComponent]s. This is used to add a new created
+ * [NlComponent]s into [NlModel] but not moving the existing [NlComponent]s.
  *
  * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
  */
@@ -83,14 +80,7 @@ fun NlTreeWriter.createAndSelectComponents(
   selectionModel: SelectionModel,
   attributeUpdatingTask: Runnable? = null,
 ) {
-  addComponents(
-    toAdd,
-    receiver,
-    before,
-    InsertType.CREATE,
-    { selectionModel.setSelection(toAdd) },
-    attributeUpdatingTask,
-  )
+  addComponents(toAdd, receiver, before, InsertType.CREATE, { selectionModel.setSelection(toAdd) }, attributeUpdatingTask)
 }
 
 /**
@@ -116,8 +106,7 @@ class NlTreeWriter(
   val ids: Set<String>
     get() {
       val resources: ResourceRepository = StudioResourceRepositoryManager.getAppResources(facet)
-      var ids: Set<String> =
-        HashSet(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet())
+      var ids: Set<String> = HashSet(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet())
       val pendingIds = pendingIds
       if (pendingIds.isNotEmpty()) {
         val all: MutableSet<String> = HashSet(pendingIds.size + ids.size)
@@ -128,12 +117,7 @@ class NlTreeWriter(
       return ids
     }
 
-  fun determineInsertType(
-    dragType: DragType,
-    item: DnDTransferItem?,
-    asPreview: Boolean,
-    generateIds: Boolean,
-  ): InsertType {
+  fun determineInsertType(dragType: DragType, item: DnDTransferItem?, asPreview: Boolean, generateIds: Boolean): InsertType {
     if (item != null && item.isFromPalette) {
       return if (asPreview) InsertType.CREATE_PREVIEW else InsertType.CREATE
     }
@@ -146,12 +130,7 @@ class NlTreeWriter(
   }
 
   /** Add tags component to the specified receiver before the given sibling. */
-  fun addTags(
-    added: List<NlComponent>,
-    receiver: NlComponent,
-    before: NlComponent?,
-    insertType: InsertType,
-  ) {
+  fun addTags(added: List<NlComponent>, receiver: NlComponent, before: NlComponent?, insertType: InsertType) {
     NlWriteCommandActionUtil.run(added, generateAddComponentsDescription(added, insertType)) {
       for (component in added) {
         component.addTags(receiver, before, insertType)
@@ -189,9 +168,9 @@ class NlTreeWriter(
   }
 
   /**
-   * Adds components to the specified receiver before the given sibling. If insertType is a move the
-   * components specified should be components from this model. The callback function
-   * {@param #onComponentAdded} gives a chance to do additional task when components are added.
+   * Adds components to the specified receiver before the given sibling. If insertType is a move the components specified should be
+   * components from this model. The callback function {@param #onComponentAdded} gives a chance to do additional task when components are
+   * added.
    */
   fun addComponents(
     toAdd: List<NlComponent>,
@@ -204,9 +183,8 @@ class NlTreeWriter(
   }
 
   /**
-   * Adds components to the specified receiver before the given sibling. If insertType is a move the
-   * components specified should be components from this model. The callback function
-   * [onComponentAdded] gives a chance to do additional task when components are added.
+   * Adds components to the specified receiver before the given sibling. If insertType is a move the components specified should be
+   * components from this model. The callback function [onComponentAdded] gives a chance to do additional task when components are added.
    */
   @JvmOverloads
   fun addComponents(
@@ -231,15 +209,7 @@ class NlTreeWriter(
     }
 
     val callback = Runnable {
-      addComponentInWriteCommand(
-        toAdd,
-        receiver,
-        before,
-        insertType,
-        onComponentAdded,
-        attributeUpdatingTask,
-        groupId,
-      )
+      addComponentInWriteCommand(toAdd, receiver, before, insertType, onComponentAdded, attributeUpdatingTask, groupId)
     }
     if (insertType == InsertType.MOVE) {
       // The components are just moved, so there are no new dependencies.
@@ -247,33 +217,24 @@ class NlTreeWriter(
       return
     }
 
-    ApplicationManager.getApplication().invokeLater {
-      NlDependencyManager.getInstance().addDependencies(toAdd, facet, false, callback)
-    }
+    ApplicationManager.getApplication().invokeLater { NlDependencyManager.getInstance().addDependencies(toAdd, facet, false, callback) }
   }
 
   /**
-   * Creates a new component of the given type. It will optionally insert it as a child of the given
-   * parent (and optionally right before the given sibling or null to append at the end.)
+   * Creates a new component of the given type. It will optionally insert it as a child of the given parent (and optionally right before the
+   * given sibling or null to append at the end.)
    *
-   * Note: This operation can only be called when the caller is already holding a write lock. This
-   * will be the case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and
-   * [DragHandler.commit].
+   * Note: This operation can only be called when the caller is already holding a write lock. This will be the case from [ViewHandler]
+   * callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
    *
-   * Note: The caller is responsible for calling [.notifyModified] if the creation completes
-   * successfully.
+   * Note: The caller is responsible for calling [.notifyModified] if the creation completes successfully.
    *
    * @param tag The XmlTag for the component.
    * @param parent The parent to add this component to.
    * @param before The sibling to insert immediately before, or null to append
    * @param insertType The reason for this creation.
    */
-  fun createComponent(
-    tag: XmlTag,
-    parent: NlComponent?,
-    before: NlComponent?,
-    insertType: InsertType,
-  ): NlComponent? {
+  fun createComponent(tag: XmlTag, parent: NlComponent?, before: NlComponent?, insertType: InsertType): NlComponent? {
     var addedTag = tag
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
@@ -312,13 +273,7 @@ class NlTreeWriter(
 
   fun delete(components: Collection<NlComponent?>) {
     // Group by parent and ask each one to participate
-    WriteCommandAction.runWriteCommandAction(
-      facet.module.project,
-      "Delete Component",
-      null,
-      { handleDeletion(components) },
-      file(),
-    )
+    WriteCommandAction.runWriteCommandAction(facet.module.project, "Delete Component", null, { handleDeletion(components) }, file())
     notifyModified(ChangeType.DELETE)
   }
 
@@ -337,11 +292,7 @@ class NlTreeWriter(
     groupId: String?,
   ) {
     DumbService.getInstance(facet.module.project).runWhenSmart {
-      NlWriteCommandActionUtil.run(
-        toAdd,
-        generateAddComponentsDescription(toAdd, insertType),
-        groupId,
-      ) {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), groupId) {
         // Update the attribute before adding components, if need.
         attributeUpdatingTask?.run()
         handleAddition(toAdd, receiver, before, insertType)
@@ -351,12 +302,7 @@ class NlTreeWriter(
     }
   }
 
-  private fun handleAddition(
-    added: List<NlComponent>,
-    receiver: NlComponent,
-    before: NlComponent?,
-    insertType: InsertType,
-  ) {
+  private fun handleAddition(added: List<NlComponent>, receiver: NlComponent, before: NlComponent?, insertType: InsertType) {
     for (component in added) {
       component.moveTo(receiver, before, insertType, ids)
     }
@@ -392,10 +338,7 @@ class NlTreeWriter(
     }
   }
 
-  private fun generateAddComponentsDescription(
-    toAdd: List<NlComponent>,
-    insertType: InsertType,
-  ): String {
+  private fun generateAddComponentsDescription(toAdd: List<NlComponent>, insertType: InsertType): String {
     val dragType = insertType.dragType
     var componentType = ""
     if (toAdd.size == 1) {

@@ -24,8 +24,8 @@ import com.android.tools.lint.checks.ApiDetector
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintAction
-import org.jetbrains.android.AndroidTestCase
 import javax.swing.JButton
+import org.jetbrains.android.AndroidTestCase
 
 class ProvideLintFeedbackPanelTest : AndroidTestCase() {
   fun testFeedback() {
@@ -47,10 +47,7 @@ class ProvideLintFeedbackPanelTest : AndroidTestCase() {
         }
       }
 
-      val usages =
-        usageTracker.usages.filter {
-          it.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_ACTION
-        }
+      val usages = usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_ACTION }
       assertThat(usages).hasSize(1)
       with(usages[0].studioEvent) {
         with(lintAction) {

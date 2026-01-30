@@ -34,8 +34,7 @@ class WrongThreadInterproceduralTest : LightJavaCodeInsightFixtureAdtTestCase() 
   private fun addFile(file: String) = myFixture.copyFileToProject("callgraph/$file", "src/$file")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
+    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
 
     // Most of the test uses the new AndroidX annotations, but we make sure that the old annotations
     // work too.
@@ -43,16 +42,13 @@ class WrongThreadInterproceduralTest : LightJavaCodeInsightFixtureAdtTestCase() 
     addFile("SupportAnnotations$ext")
 
     val virtualFile = addFile("ThreadAnnotations$ext")
-    val (_, receiverEval, graph) =
-      buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
+    val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val paths = searchForInterproceduralThreadAnnotationViolations(graph, receiverEval)
 
     val pathStrs =
       paths
         .map { (searchNodes, _, _) ->
-          searchNodes.joinToString(separator = " -> ") { (contextualNode, _) ->
-            contextualNode.node.shortName
-          }
+          searchNodes.joinToString(separator = " -> ") { (contextualNode, _) -> contextualNode.node.shortName }
         }
         .toSortedSet()
         .joinToString(separator = "\n")

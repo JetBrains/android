@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.structure.configurables.ui
 
-/**
- * A component that together with other instances of the specific class manages a consistent UI state across all the modules.
- */
+/** A component that together with other instances of the specific class manages a consistent UI state across all the modules. */
 interface CrossModuleUiStateComponent {
-  /**
-   * Restores the UI state persisted in the external storage by this or another instance.
-   */
+  /** Restores the UI state persisted in the external storage by this or another instance. */
   fun restoreUiState()
 }

@@ -25,22 +25,17 @@ interface NotificationListener {
   fun notificationsChanged(notifications: List<StatusNotification>)
 }
 
-fun learnMoreAction(url: String) =
-  StatusNotificationAction("Learn More") { BrowserUtil.browse(url) }
+fun learnMoreAction(url: String) = StatusNotificationAction("Learn More") { BrowserUtil.browse(url) }
 
 /** Holds the currently active notifications in a Layout Inspector session. */
 class NotificationModel(val project: Project) {
 
-  val dismissAction =
-    StatusNotificationAction("Dismiss") { notification -> removeNotification(notification.id) }
+  val dismissAction = StatusNotificationAction("Dismiss") { notification -> removeNotification(notification.id) }
 
   /** The current list of notifications. This list may change at any time. */
   private val notificationData = mutableListOf<StatusNotification>()
 
-  /**
-   * A copy of [notificationData]. Once retrieved the list of notification is guaranteed not to
-   * change.
-   */
+  /** A copy of [notificationData]. Once retrieved the list of notification is guaranteed not to change. */
   private val notificationList = AtomicReference<List<StatusNotification>>(emptyList())
 
   /** Listeners to be notified when the notifications have changed. */
@@ -66,8 +61,7 @@ class NotificationModel(val project: Project) {
    * @param text the text of the notification.
    * @param status the kind of notification (error, warning, info)
    * @param actions the list of actions to show with this notification.
-   * @param sticky if true the notification will stay until explicitly dismissed with
-   *   [removeNotification].
+   * @param sticky if true the notification will stay until explicitly dismissed with [removeNotification].
    */
   fun addNotification(
     id: String,

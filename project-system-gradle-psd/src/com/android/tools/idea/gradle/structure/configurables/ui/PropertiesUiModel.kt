@@ -51,18 +51,12 @@ import javax.swing.table.TableCellEditor
  */
 class PropertiesUiModel<in ModelT>(val properties: List<PropertyUiModel<ModelT, *>>)
 
-/**
- * A UI model of a property of type [PropertyT] of a model of type [ModelT].
- */
+/** A UI model of a property of type [PropertyT] of a model of type [ModelT]. */
 interface PropertyUiModel<in ModelT, out PropertyT : Any> {
-  /**
-   * The plain text description of the property as it should appear in the UI.
-   */
+  /** The plain text description of the property as it should appear in the UI. */
   val propertyDescription: String
 
-  /**
-   * Creates a property editor bound to a property of [model] which described by this model.
-   */
+  /** Creates a property editor bound to a property of [model] which described by this model. */
   fun createEditor(
     context: PsContext,
     project: PsProject,
@@ -70,24 +64,22 @@ interface PropertyUiModel<in ModelT, out PropertyT : Any> {
     model: ModelT,
     cellEditor: TableCellEditor? = null,
     validator: PropertyEditorValidator? = null,
-    ): ModelPropertyEditor<PropertyT>
+  ): ModelPropertyEditor<PropertyT>
 }
 
-typealias
-  PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
-  (project: PsProject,
-   module: PsModule?,
-   model: ModelT,
-   ModelPropertyT,
-   PsVariablesScope?,
-   cellEditor: TableCellEditor?,
-   validator: PropertyEditorValidator?,
-   logValueEdited: () -> Unit
-  ) ->
-  ModelPropertyEditor<PropertyT>
+typealias PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
+  (
+    project: PsProject,
+    module: PsModule?,
+    model: ModelT,
+    ModelPropertyT,
+    PsVariablesScope?,
+    cellEditor: TableCellEditor?,
+    validator: PropertyEditorValidator?,
+    logValueEdited: () -> Unit,
+  ) -> ModelPropertyEditor<PropertyT>
 
-typealias
-  PropertyEditorCoreFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
+typealias PropertyEditorCoreFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
   (ModelPropertyCoreT, ModelPropertyContextT, PsVariablesScope?, cellEditor: TableCellEditor?) -> ModelPropertyEditor<PropertyT>
 
 /**
@@ -95,25 +87,31 @@ typealias
  *
  * @param editorFactory the function to create an editor bound to [property]
  */
-fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
-  ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>> uiProperty(
+fun <
+  ModelT,
+  PropertyT : Any,
+  ValueT : Any,
+  ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
+  ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>,
+> uiProperty(
   property: ModelPropertyT,
   editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>,
-  psdUsageLogFieldId: PSDEvent.PSDField?
-): PropertyUiModel<ModelT, *> =
-  PropertyUiModelImpl(property, editorFactory, psdUsageLogFieldId)
+  psdUsageLogFieldId: PSDEvent.PSDField?,
+): PropertyUiModel<ModelT, *> = PropertyUiModelImpl(property, editorFactory, psdUsageLogFieldId)
 
 class PropertyUiModelImpl<
-  in ModelT, PropertyT : Any,
+  in ModelT,
+  PropertyT : Any,
   ValueT : Any,
   out ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
-  out ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>>
-(
+  out ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>,
+>(
   private val property: ModelPropertyT,
   private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>,
-  private val psdUsageLogFieldId: PSDEvent.PSDField?
+  private val psdUsageLogFieldId: PSDEvent.PSDField?,
 ) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
+
   override fun createEditor(
     context: PsContext,
     project: PsProject,
@@ -121,25 +119,23 @@ class PropertyUiModelImpl<
     model: ModelT,
     cellEditor: TableCellEditor?,
     validator: PropertyEditorValidator?,
-    ): ModelPropertyEditor<PropertyT> {
+  ): ModelPropertyEditor<PropertyT> {
     return editorFactory(project, module, model, property, module?.variables ?: project.variables, cellEditor, validator) {
       psdUsageLogFieldId?.let { context.logFieldEdited(it) }
     }
   }
 }
 
-fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
-  ModelPropertyContext<T>.createDefaultEditorExtensions(
+fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> ModelPropertyContext<T>.createDefaultEditorExtensions(
   project: PsProject,
-  module: PsModule?
+  module: PsModule?,
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
   listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
     ExtractNewVariableExtension(project, module),
-    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
+    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null,
   )
 
-fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
-  simplePropertyEditor(
+fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>> simplePropertyEditor(
   project: PsProject,
   module: PsModule?,
   model: ModelT,
@@ -147,7 +143,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
   unusedValidator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit
+  logValueEdited: () -> Unit,
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
@@ -158,26 +154,25 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     boundContext.createDefaultEditorExtensions(project, module),
     isPropertyContext = true,
     cellEditor = cellEditor,
-    logValueEdited = logValueEdited)
+    logValueEdited = logValueEdited,
+  )
 }
 
-fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropertyCore<String>>>
-  stringPropertyEditor(
+fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropertyCore<String>>> stringPropertyEditor(
   project: PsProject,
   module: PsModule?,
-  model:  ModelT,
+  model: ModelT,
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
   validator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit
+  logValueEdited: () -> Unit,
 ): StringPropertyEditor<ModelPropertyCore<String>> {
   val boundProperty = property.bind(model)
-  val boundContext =  object : PropertyContextStub<String>() {
-    @Suppress("UNCHECKED_CAST")
-    override fun parseEditorText(text: String): Annotated<ParsedValue<String>> =
-      parseString(text)
-  }
+  val boundContext =
+    object : PropertyContextStub<String>() {
+      @Suppress("UNCHECKED_CAST") override fun parseEditorText(text: String): Annotated<ParsedValue<String>> = parseString(text)
+    }
   return stringVariablePropertyEditor(
     boundProperty,
     boundContext,
@@ -185,19 +180,19 @@ fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropert
     isPropertyContext = true,
     cellEditor = cellEditor,
     validator,
-    logValueEdited = logValueEdited)
+    logValueEdited = logValueEdited,
+  )
 }
 
-fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
-  noExtractButtonPropertyEditor(
+fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>> noExtractButtonPropertyEditor(
   project: PsProject,
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
-  logValueEdited: () -> Unit
-): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>>  {
+  logValueEdited: () -> Unit,
+): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return simplePropertyEditor(
@@ -208,11 +203,15 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     isPropertyContext = true,
     cellEditor = cellEditor,
     logValueEdited = logValueEdited,
-    hideMiniButton = true)
+    hideMiniButton = true,
+  )
 }
 
-fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
-  androidGradlePluginVersionViewer(
+fun <
+  ModelT,
+  ValueT : Any,
+  ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>,
+> androidGradlePluginVersionViewer(
   project: PsProject,
   module: PsModule?,
   model: ModelT,
@@ -220,8 +219,8 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
   unusedValidator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit
-): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>>  {
+  logValueEdited: () -> Unit,
+): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   val noteText = "Use the AGP Upgrade Assistant to change the project's version of AGP."
@@ -236,7 +235,8 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     logValueEdited = logValueEdited,
     viewOnly = true,
     hideMiniButton = !boundProperty.getCanExtractVariable(),
-    note = noteText to "https://developer.android.com/$noteRedirectPath")
+    note = noteText to "https://developer.android.com/$noteRedirectPath",
+  )
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -248,24 +248,27 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   variablesScope: PsVariablesScope? = null,
   unusedCellEditor: TableCellEditor?,
   unusedValidator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit
+  logValueEdited: () -> Unit,
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>>(
-      boundProperty, boundContext,
-      { propertyCore, _, variables, cellEditor: TableCellEditor? ->
-        simplePropertyEditor(
-            propertyCore,
-            boundContext,
-            variables,
-            boundContext.createDefaultEditorExtensions(project, module),
-            isPropertyContext = true,
-            cellEditor = cellEditor,
-            logValueEdited = logValueEdited)
-      },
-      variablesScope,
-      logValueEdited)
+    boundProperty,
+    boundContext,
+    { propertyCore, _, variables, cellEditor: TableCellEditor? ->
+      simplePropertyEditor(
+        propertyCore,
+        boundContext,
+        variables,
+        boundContext.createDefaultEditorExtensions(project, module),
+        isPropertyContext = true,
+        cellEditor = cellEditor,
+        logValueEdited = logValueEdited,
+      )
+    },
+    variablesScope,
+    logValueEdited,
+  )
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -277,23 +280,25 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   variablesScope: PsVariablesScope? = null,
   unusedCellEditor: TableCellEditor?,
   unusedValidator: PropertyEditorValidator?,
-  logValueEdited: () -> Unit
+  logValueEdited: () -> Unit,
 ): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return MapPropertyEditor(
-      boundProperty, boundContext,
-      { propertyCore, _, variables, cellEditor ->
-        simplePropertyEditor(
-            propertyCore,
-            boundContext,
-            variables,
-            boundContext.createDefaultEditorExtensions(project, module),
-            isPropertyContext = true,
-            cellEditor = cellEditor,
-            logValueEdited = logValueEdited
-        )
-      },
-      variablesScope,
-      logValueEdited)
+    boundProperty,
+    boundContext,
+    { propertyCore, _, variables, cellEditor ->
+      simplePropertyEditor(
+        propertyCore,
+        boundContext,
+        variables,
+        boundContext.createDefaultEditorExtensions(project, module),
+        isPropertyContext = true,
+        cellEditor = cellEditor,
+        logValueEdited = logValueEdited,
+      )
+    },
+    variablesScope,
+    logValueEdited,
+  )
 }

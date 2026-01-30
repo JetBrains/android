@@ -33,14 +33,14 @@ class InsightTextPaneTest {
 
     * **NullPointerException:** The code might be attempting to access a null object, which would result in a `NullPointerException`.
     * **ArrayIndexOutOfBoundsException:** The code might be trying to access an element in an array that is out of bounds, which would result in an `ArrayIndexOutOfBoundsException`.
-  """
+    """
       .trimIndent()
   private val renderedText =
     """
     The application crashed with a java.lang.RuntimeException exception with the message "Test Crash vcs". This could be caused by a number of factors, such as:
     NullPointerException: The code might be attempting to access a null object, which would result in a NullPointerException.
     ArrayIndexOutOfBoundsException: The code might be trying to access an element in an array that is out of bounds, which would result in an ArrayIndexOutOfBoundsException.
-  """
+    """
       .trimIndent()
 
   @Test
@@ -50,8 +50,7 @@ class InsightTextPaneTest {
 
     pane.select(151, 180)
     pane.performCopy(DataContext.EMPTY_CONTEXT)
-    assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor))
-      .isEqualTo("such as:\nNullPointerException")
+    assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)).isEqualTo("such as:\nNullPointerException")
   }
 
   @Test
@@ -59,8 +58,7 @@ class InsightTextPaneTest {
     val pane = InsightTextPane(projectRule.project)
     pane.text = markdownText
     pane.performCopy(DataContext.EMPTY_CONTEXT)
-    assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor))
-      .isEqualTo(renderedText)
+    assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)).isEqualTo(renderedText)
   }
 
   @Test
@@ -69,47 +67,47 @@ class InsightTextPaneTest {
 
     pane.text =
       """
-        First Line
+      First Line
 
-        **Header:**
-        1. **ListItem1**
-        2. **ListItem2**
+      **Header:**
+      1. **ListItem1**
+      2. **ListItem2**
 
-        **Header2:**
+      **Header2:**
 
-        Some text
+      Some text
 
-        **Header3:**
-        * **Item1**
-        * **Item2**
+      **Header3:**
+      * **Item1**
+      * **Item2**
 
-        Paragraph of text
-        
-        **Header4:**
-        Another paragraph
-    """
+      Paragraph of text
+
+      **Header4:**
+      Another paragraph
+      """
         .trimIndent()
 
     assertThat(pane.text.stripSpaceAndNonTextHtmlTags())
       .isEqualTo(
         """
-  <p>First Line</p>
-  <p><b>Header:</b></p>
-  <ol>
-  <li><b>ListItem1</b></li>
-  <li><b>ListItem2</b></li>
-  </ol>
-  <p><b>Header2:</b></p>
-  <p>Some text</p>
-  <p><b>Header3:</b></p>
-  <ul>
-  <li><b>Item1</b></li>
-  <li><b>Item2</b></li>
-  </ul>
-  <p>Paragraph of text</p>
-  <p><b>Header4:</b>
-  Another paragraph</p>
-"""
+        <p>First Line</p>
+        <p><b>Header:</b></p>
+        <ol>
+        <li><b>ListItem1</b></li>
+        <li><b>ListItem2</b></li>
+        </ol>
+        <p><b>Header2:</b></p>
+        <p>Some text</p>
+        <p><b>Header3:</b></p>
+        <ul>
+        <li><b>Item1</b></li>
+        <li><b>Item2</b></li>
+        </ul>
+        <p>Paragraph of text</p>
+        <p><b>Header4:</b>
+        Another paragraph</p>
+        """
           .trimIndent()
           .replace("\n", "")
       )
@@ -117,9 +115,7 @@ class InsightTextPaneTest {
 
   private fun String.stripSpaceAndNonTextHtmlTags(): String {
     var text = this
-    listOf("<html>", "<head>", "</head>", "<body>", "</body>", "</html>", "<wbr>").forEach {
-      text = text.replace(it, "")
-    }
+    listOf("<html>", "<head>", "</head>", "<body>", "</body>", "</html>", "<wbr>").forEach { text = text.replace(it, "") }
     return text.lines().filter { it.isNotBlank() }.joinToString("") { it.trim() }.trim()
   }
 }

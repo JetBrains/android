@@ -31,23 +31,16 @@ import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 class EnableUiCheckAction :
-  DumbAwareAction(
-    message("action.uicheck.title"),
-    message("action.uicheck.description"),
-    StudioIcons.Compose.Toolbar.UI_CHECK,
-  ) {
+  DumbAwareAction(message("action.uicheck.title"), message("action.uicheck.description"), StudioIcons.Compose.Toolbar.UI_CHECK) {
 
   override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
-    val disableForWear =
-      Device.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
-        !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
+    val disableForWear = Device.isWear(e.getData(SCENE_VIEW)?.configuration?.device) && !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled && !disableForWear
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
-      else if (disableForWear) message("action.uicheck.wear.description")
-      else message("action.uicheck.description")
+      else if (disableForWear) message("action.uicheck.wear.description") else message("action.uicheck.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {

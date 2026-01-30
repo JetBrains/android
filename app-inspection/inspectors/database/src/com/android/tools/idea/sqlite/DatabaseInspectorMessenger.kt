@@ -51,21 +51,18 @@ class DatabaseInspectorMessenger(
   /**
    * The alternate version of sendCommand using futures. It delegates work to [sendCommand].
    *
-   * This is intended to be used in the interim while database inspector is being migrated to kotlin
-   * coroutines, or for Java clients that cannot be easily ported to Kotlin.
+   * This is intended to be used in the interim while database inspector is being migrated to kotlin coroutines, or for Java clients that
+   * cannot be easily ported to Kotlin.
    */
-  fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> =
-    scope.future { sendCommand(command) }
+  fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> = scope.future { sendCommand(command) }
 }
 
 // Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling
 // convention
-suspend fun DatabaseInspectorMessenger.sendCommand(commandBuilder: Command.Builder) =
-  sendCommand(commandBuilder.build())
+suspend fun DatabaseInspectorMessenger.sendCommand(commandBuilder: Command.Builder) = sendCommand(commandBuilder.build())
 
 // Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling
 // convention
-fun DatabaseInspectorMessenger.sendCommandAsync(commandBuilder: Command.Builder) =
-  sendCommandAsync(commandBuilder.build())
+fun DatabaseInspectorMessenger.sendCommandAsync(commandBuilder: Command.Builder) = sendCommandAsync(commandBuilder.build())
 
 typealias ErrorsSideChannel = (Command, SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit

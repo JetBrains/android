@@ -133,6 +133,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   private var pid: Long = grpcPort.toLong()
   private val registrationFile: Path
     get() = registrationDirectory.resolve("pid_$pid.ini")
+
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
   private var grpcServer: Server? = null
@@ -144,10 +145,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   val isRunning: Boolean
     get() {
-      return synchronized(lifeCycleLock) {
-        startTime != 0L
-      }
+      return synchronized(lifeCycleLock) { startTime != 0L }
     }
+
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
   private var screenshotStreamRequest: ImageFormat? = null
   @Volatile private var screenshotStreamObserver: StreamObserver<Image>? = null
@@ -155,7 +155,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
 
-  @Volatile var devicePosture: PostureValue? = config.postures.lastOrNull()?.posture
+  @Volatile
+  var devicePosture: PostureValue? = config.postures.lastOrNull()?.posture
     private set(value) {
       if (value != null && value != field) {
         field = value
@@ -163,8 +164,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
       }
     }
-  @Volatile var xrOptions: XrOptions = XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
+
+  @Volatile
+  var xrOptions: XrOptions = XrOptions.newBuilder().setEnvironment(XrOptions.Environment.LIVING_ROOM_DAY).build()
     private set
+
   private var foldedDisplay: FoldedDisplay? = null
     set(value) {
       if (field != value) {
@@ -181,11 +185,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     set(value) {
       val oldValue = clipboardInternal.getAndSet(value)
       if (value != oldValue) {
-        executor.execute {
-          clipboardStreamObserver?.sendStreamingResponse(ClipData.newBuilder().setText(value).build())
-        }
+        executor.execute { clipboardStreamObserver?.sendStreamingResponse(ClipData.newBuilder().setText(value).build()) }
       }
     }
+
   private var virtualSceneCameraActiveInternal = AtomicBoolean()
   var virtualSceneCameraActive: Boolean
     get() = virtualSceneCameraActiveInternal.get()
@@ -197,14 +200,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         }
       }
     }
+
   var displayMode = config.displayModes.firstOrNull { it.width == config.displayWidth && it.height == config.displayHeight }
   val avdName: String
     get() = config.avdName
 
   @Volatile var extendedControlsVisible = false
 
-  @Volatile var frameNumber: UInt = 0u
+  @Volatile
+  var frameNumber: UInt = 0u
     private set
+
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
   private val incompatibleSnapshots = ConcurrentCollectionFactory.createConcurrentSet<String>()
 
@@ -213,6 +219,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   val serialPort: Int
     get() = grpcPort - 3000 // Just like a real emulator.
+
   val serialNumber: String
     get() = "emulator-$serialPort"
 
@@ -225,11 +232,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       pid += 10000
       val keysToExtract = setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot", "fastboot.forceFastBoot")
       val map = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract)
-      val snapshotId = when {
-        map["fastboot.forceFastBoot"] == "yes" -> "default_boot"
-        map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
-        else -> null
-      }
+      val snapshotId =
+        when {
+          map["fastboot.forceFastBoot"] == "yes" -> "default_boot"
+          map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
+          else -> null
+        }
       lastLoadedSnapshot = if (snapshotId == null || snapshotId in incompatibleSnapshots) null else snapshotId
 
       startTime = System.currentTimeMillis()
@@ -253,7 +261,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$id" $embeddedFlags
         grpc.port=$grpcPort
         grpc.token=RmFrZSBnUlBDIHRva2Vu
-        """.trimIndent()
+        """
+      .trimIndent()
   }
 
   /** Stops the Emulator. The Emulator is completely shut down when the method returns. */
@@ -262,9 +271,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       if (startTime != 0L) {
         try {
           Files.delete(registrationFile)
-        }
-        catch (_: NoSuchFileException) {
-        }
+        } catch (_: NoSuchFileException) {}
         if (grpcSemaphore.availablePermits() == 0) {
           resumeGrpc()
         }
@@ -306,8 +313,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     grpcServer?.shutdownNow()
     try {
       grpcServer?.awaitTermination(10, TimeUnit.SECONDS)
-    }
-    catch (_: InterruptedException) {
+    } catch (_: InterruptedException) {
       thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
     }
     grpcServer = null
@@ -336,20 +342,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   /** Folds/unfolds the primary display. */
   fun setPosture(posture: PostureValue) {
-    executor.submit {
-      devicePosture = posture
-    }.get()
+    executor.submit { devicePosture = posture }.get()
   }
 
   /**
-   * Waits for the next gRPC call while dispatching UI events. Returns the next gRPC call and removes
-   * it from the queue of recorded calls. Throws TimeoutException if the call is not recorded within
-   * the specified timeout.
+   * Waits for the next gRPC call while dispatching UI events. Returns the next gRPC call and removes it from the queue of recorded calls.
+   * Throws TimeoutException if the call is not recorded within the specified timeout.
    */
   @UiThread
   @Throws(TimeoutException::class)
   fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = DEFAULT_CALL_FILTER): GrpcCallRecord =
-      grpcCallLog.get(timeout, filter)
+    grpcCallLog.get(timeout, filter)
 
   /** Clears the gRPC call log. */
   @UiThread
@@ -398,18 +401,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       for (j in 0 until m) {
         val x = w * i
         val y = h * j
-        val triangle1 = Path2D.Double().apply {
-          moveTo(x, y)
-          lineTo(x + w, y)
-          lineTo(x, y + h)
-          closePath()
-        }
-        val triangle2 = Path2D.Double().apply {
-          moveTo(x + w, y + h)
-          lineTo(x + w, y)
-          lineTo(x, y + h)
-          closePath()
-        }
+        val triangle1 =
+          Path2D.Double().apply {
+            moveTo(x, y)
+            lineTo(x + w, y)
+            lineTo(x, y + h)
+            closePath()
+          }
+        val triangle2 =
+          Path2D.Double().apply {
+            moveTo(x + w, y + h)
+            lineTo(x + w, y)
+            lineTo(x, y + h)
+            closePath()
+          }
         g.paint = interpolate(startColor1, endColor1, i.toDouble() / (n - 1))
         g.fill(triangle1)
         g.paint = interpolate(startColor2, endColor2, j.toDouble() / (m - 1))
@@ -428,10 +433,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     val screenshotFile = snapshotFolder.resolve("screenshot.png")
     image.writeImage("PNG", screenshotFile)
 
-    val snapshotMessage = Snapshot.newBuilder()
-      .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
-      .setCreationTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
-      .build()
+    val snapshotMessage =
+      Snapshot.newBuilder()
+        .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
+        .setCreationTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
+        .build()
     val snapshotFile = snapshotFolder.resolve("snapshot.pb")
     Files.newOutputStream(snapshotFile, CREATE).use { stream ->
       val codedStream = CodedOutputStream.newInstance(stream)
@@ -453,8 +459,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     try {
       responseObserver.onNext(response)
       responseObserver.onCompleted()
-    }
-    catch (e: StatusRuntimeException) {
+    } catch (e: StatusRuntimeException) {
       if (e.status.code != Status.Code.CANCELLED) {
         throw e
       }
@@ -464,8 +469,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   private fun <T> StreamObserver<T>.sendStreamingResponse(response: T) {
     try {
       onNext(response)
-    }
-    catch (e: StatusRuntimeException) {
+    } catch (e: StatusRuntimeException) {
       if (e.status.code != Status.Code.CANCELLED) {
         throw e
       }
@@ -488,18 +492,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       }
     }
 
-    val imageFormat = ImageFormat.newBuilder()
-      .setFormat(ImgFormat.RGB888)
-      .setWidth(rotatedImage.width)
-      .setHeight(rotatedImage.height)
-      .setRotation(Rotation.newBuilder().setRotation(displayRotation))
+    val imageFormat =
+      ImageFormat.newBuilder()
+        .setFormat(ImgFormat.RGB888)
+        .setWidth(rotatedImage.width)
+        .setHeight(rotatedImage.height)
+        .setRotation(Rotation.newBuilder().setRotation(displayRotation))
     foldedDisplay?.let { imageFormat.foldedDisplay = it }
     displayMode?.let { imageFormat.displayMode = it.displayModeId }
 
-    val response = Image.newBuilder()
-      .setImage(ByteString.copyFrom(imageBytes))
-      .setFormat(imageFormat)
-      .setSeq((++frameNumber).toInt())
+    val response = Image.newBuilder().setImage(ByteString.copyFrom(imageBytes)).setFormat(imageFormat).setSeq((++frameNumber).toInt())
     responseObserver.sendStreamingResponse(response.build())
   }
 
@@ -522,20 +524,18 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     val h = if (height == 0) displayHeight else min(height, displayHeight)
     return if (displayRotation.number % 2 == 0) {
       Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
-    }
-    else {
+    } else {
       Dimension(h.coerceAtMost((w / aspectRatio).toInt()), w.coerceAtMost((h * aspectRatio).toInt()))
     }
   }
 
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean, displayId: Int): Notification =
-      Notification.newBuilder().setCameraNotification(CameraNotification.newBuilder().setActive(cameraActive).setDisplay(displayId)).build()
+    Notification.newBuilder().setCameraNotification(CameraNotification.newBuilder().setActive(cameraActive).setDisplay(displayId)).build()
 
   private fun createPostureNotification(posture: PostureValue): Notification =
-      Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
+    Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
 
-  private fun createXrOptionsNotification(xrOptions: XrOptions): Notification =
-      Notification.newBuilder().setXrOptions(xrOptions).build()
+  private fun createXrOptionsNotification(xrOptions: XrOptions): Notification = Notification.newBuilder().setXrOptions(xrOptions).build()
 
   private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
     val configIniFile = avdFolder.resolve("config.ini")
@@ -559,9 +559,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
   }
 
-  private inner class EmulatorControllerService(
-    private val executor: ExecutorService
-  ) : EmulatorControllerGrpc.EmulatorControllerImplBase() {
+  private inner class EmulatorControllerService(private val executor: ExecutorService) :
+    EmulatorControllerGrpc.EmulatorControllerImplBase() {
 
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
@@ -588,20 +587,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
     override fun getXrOptions(request: Empty, responseObserver: StreamObserver<XrOptions>) {
-      executor.execute {
-        sendResponse(responseObserver, xrOptions)
-      }
+      executor.execute { sendResponse(responseObserver, xrOptions) }
     }
 
     private fun findPosture(valueType: PostureDescriptor.ValueType, value: Float): PostureValue? =
-        config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
+      config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
 
     override fun getStatus(request: Empty, responseObserver: StreamObserver<EmulatorStatus>) {
       executor.execute {
-        val response = EmulatorStatus.newBuilder()
-          .setUptime(System.currentTimeMillis() - startTime)
-          .setBooted(true)
-          .build()
+        val response = EmulatorStatus.newBuilder().setUptime(System.currentTimeMillis() - startTime).setBooted(true).build()
         sendResponse(responseObserver, response)
       }
     }
@@ -627,9 +621,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         if (virtualSceneCameraActive) {
           responseObserver.sendStreamingResponse(createVirtualSceneCameraNotification(true, PRIMARY_DISPLAY_ID))
         }
-        devicePosture?.let {
-          responseObserver.sendStreamingResponse(createPostureNotification(it))
-        }
+        devicePosture?.let { responseObserver.sendStreamingResponse(createPostureNotification(it)) }
         if (config.deviceType == DeviceType.XR_HEADSET) {
           responseObserver.sendStreamingResponse(createXrOptionsNotification(xrOptions))
         }
@@ -657,38 +649,28 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
     override fun sendKey(request: KeyboardEvent, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun sendMouse(request: MouseEvent, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun sendTouch(request: TouchEvent, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun streamInputEvent(responseObserver: StreamObserver<Empty>): StreamObserver<InputEvent> {
       return object : EmptyStreamObserver<InputEvent>() {
         override fun onCompleted() {
-          executor.execute {
-            sendEmptyResponse(responseObserver)
-          }
+          executor.execute { sendEmptyResponse(responseObserver) }
         }
       }
     }
 
     override fun getVmState(request: Empty, responseObserver: StreamObserver<VmRunState>) {
       executor.execute {
-        val response = VmRunState.newBuilder()
-          .setState(VmRunState.RunState.RUNNING)
-          .build()
+        val response = VmRunState.newBuilder().setState(VmRunState.RunState.RUNNING).build()
         sendResponse(responseObserver, response)
       }
     }
@@ -703,15 +685,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
     override fun rotateVirtualSceneCamera(request: RotationRadian, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun setVirtualSceneCameraVelocity(request: Velocity, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
 
     override fun getScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
@@ -722,16 +700,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
         val stream = ByteArrayOutputStream()
         ImageIO.write(image, "PNG", stream)
 
-        val imageFormat = ImageFormat.newBuilder()
-          .setFormat(ImgFormat.PNG)
-          .setWidth(image.width)
-          .setHeight(image.height)
-          .setRotation(Rotation.newBuilder().setRotation(displayRotation))
+        val imageFormat =
+          ImageFormat.newBuilder()
+            .setFormat(ImgFormat.PNG)
+            .setWidth(image.width)
+            .setHeight(image.height)
+            .setRotation(Rotation.newBuilder().setRotation(displayRotation))
         displayMode?.let { imageFormat.displayMode = it.displayModeId }
 
-        val response = Image.newBuilder()
-          .setImage(ByteString.copyFrom(stream.toByteArray()))
-          .setFormat(imageFormat)
+        val response = Image.newBuilder().setImage(ByteString.copyFrom(stream.toByteArray())).setFormat(imageFormat)
         sendResponse(responseObserver, response.build())
       }
     }
@@ -758,16 +735,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
               val invalid = snapshotId in incompatibleSnapshots
               if (request.statusFilter == SnapshotFilter.LoadStatus.All || !invalid) {
                 val snapshotProtoFile = snapshotFolder.resolve("snapshot.pb")
-                val snapshotMessage = Files.newInputStream(snapshotProtoFile).use {
-                  Snapshot.parseFrom(it)
-                }
+                val snapshotMessage = Files.newInputStream(snapshotProtoFile).use { Snapshot.parseFrom(it) }
                 val snapshotDetails = SnapshotDetails.newBuilder()
                 snapshotDetails.snapshotId = snapshotId
-                snapshotDetails.status = when {
-                  invalid -> SnapshotDetails.LoadStatus.Incompatible
-                  snapshotId == lastLoadedSnapshot -> SnapshotDetails.LoadStatus.Loaded
-                  else -> SnapshotDetails.LoadStatus.Compatible
-                }
+                snapshotDetails.status =
+                  when {
+                    invalid -> SnapshotDetails.LoadStatus.Incompatible
+                    snapshotId == lastLoadedSnapshot -> SnapshotDetails.LoadStatus.Loaded
+                    else -> SnapshotDetails.LoadStatus.Compatible
+                  }
                 val details = Snapshot.newBuilder()
                 details.logicalName = snapshotMessage.logicalName
                 details.description = snapshotMessage.description
@@ -778,8 +754,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
               }
             }
           }
-        }
-        catch (_: NoSuchFileException) {
+        } catch (_: NoSuchFileException) {
           // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
         }
 
@@ -813,9 +788,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
   }
 
-  private inner class UiControllerService(
-    private val executor: ExecutorService
-  ) : UiControllerGrpc.UiControllerImplBase() {
+  private inner class UiControllerService(private val executor: ExecutorService) : UiControllerGrpc.UiControllerImplBase() {
 
     override fun showExtendedControls(request: PaneEntry, responseObserver: StreamObserver<ExtendedControlsStatus>) {
       executor.execute {
@@ -834,28 +807,29 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
     override fun setUiTheme(themingStyle: ThemingStyle, responseObserver: StreamObserver<Empty>) {
-      executor.execute {
-        sendEmptyResponse(responseObserver)
-      }
+      executor.execute { sendEmptyResponse(responseObserver) }
     }
   }
 
   private inner class LoggingInterceptor : ServerInterceptor {
 
-    override fun <ReqT, RespT> interceptCall(call: ServerCall<ReqT, RespT>,
-                                             headers: Metadata,
-                                             handler: ServerCallHandler<ReqT, RespT>): ServerCall.Listener<ReqT> {
+    override fun <ReqT, RespT> interceptCall(
+      call: ServerCall<ReqT, RespT>,
+      headers: Metadata,
+      handler: ServerCallHandler<ReqT, RespT>,
+    ): ServerCall.Listener<ReqT> {
       val callRecord = GrpcCallRecord(call.methodDescriptor.fullMethodName)
       grpcCallLog.add(callRecord)
 
-      val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
-        override fun sendMessage(response: RespT) {
-          grpcSemaphore.withPermit {
-            super.sendMessage(response)
-            callRecord.responseMessageCounter.add(Unit)
+      val forwardingCall =
+        object : SimpleForwardingServerCall<ReqT, RespT>(call) {
+          override fun sendMessage(response: RespT) {
+            grpcSemaphore.withPermit {
+              super.sendMessage(response)
+              callRecord.responseMessageCounter.add(Unit)
+            }
           }
         }
-      }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
           grpcSemaphore.withPermit {
@@ -908,20 +882,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       try {
         waitForCompletion(timeout)
         fail("The $methodName call was not cancelled")
-      }
-      catch (_: CancellationException) {
+      } catch (_: CancellationException) {
         // Expected.
       }
     }
 
     /**
-     * Waits for the next gRPC request while dispatching UI events. Returns the next gRPC request and removes
-     * it from the queue of recorded requests. Throws TimeoutException if the request does not arrive within
-     * the specified timeout.
+     * Waits for the next gRPC request while dispatching UI events. Returns the next gRPC request and removes it from the queue of recorded
+     * requests. Throws TimeoutException if the request does not arrive within the specified timeout.
      */
-    @UiThread
-    @Throws(TimeoutException::class)
-    fun getNextRequest(timeout: Duration): MessageOrBuilder = requestMessages.get(timeout)
+    @UiThread @Throws(TimeoutException::class) fun getNextRequest(timeout: Duration): MessageOrBuilder = requestMessages.get(timeout)
 
     override fun toString(): String {
       return requestMessages.firstOrNull()?.let { "$methodName(${shortDebugString(it)})" } ?: methodName
@@ -939,12 +909,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   }
 
   companion object {
-    /**
-     * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
-     */
+    /** Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute. */
     @JvmStatic
     fun createPhoneAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(29, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(29, 0),
+    ): Path {
       val api = androidVersion.apiStringWithoutExtension
       val avdId = "Pixel_3_XL_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -953,7 +924,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86
@@ -995,9 +967,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=${skinFolder}
           tag.display=Google APIs
           tag.id=google_apis
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1017,29 +991,33 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput = true
           hw.sdCard = false
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google APIs.
-          Pkg.Revision=1
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=google_apis
-          SystemImage.TagDisplay=Google APIs
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google APIs.
+        Pkg.Revision=1
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=google_apis
+        SystemImage.TagDisplay=Google APIs
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
-     */
+    /** Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute. */
     @JvmStatic
     fun createAvdWithSkinButtons(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(26, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(26, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Nexus_One_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1048,7 +1026,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis/x86/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86
@@ -1090,9 +1069,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=${skinFolder}
           tag.display=Google APIs
           tag.id=google_apis
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch=x86
           hw.cpu.model=qemu32
           hw.cpu.ncore=4
@@ -1112,29 +1093,33 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput=true
           hw.sdCard=false
           android.sdk.root=$sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86 with Google APIs.
-          Pkg.Revision=1
-          SystemImage.Abi=x86
-          SystemImage.TagId=google_apis
-          SystemImage.TagDisplay=Google APIs
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86 with Google APIs.
+        Pkg.Revision=1
+        SystemImage.Abi=x86
+        SystemImage.TagId=google_apis
+        SystemImage.TagDisplay=Google APIs
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake "Pixel Tablet" AVD. The skin path in config.ini is relative.
-     */
+    /** Creates a fake "Pixel Tablet" AVD. The skin path in config.ini is relative. */
     @JvmStatic
     fun createTabletAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(34, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Pixel_Tablet_API_$api"
       val avdFolder = parentFolder.resolve("$avdId.avd")
@@ -1145,7 +1130,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86
@@ -1187,9 +1173,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=skins/${skinName}
           tag.display=Google Play
           tag.id=google_apis_playstore
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1209,29 +1197,33 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput = true
           hw.sdCard = false
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google Play.
-          Pkg.Revision=1
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=google_apis_playstore
-          SystemImage.TagDisplay=Google Play
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google Play.
+        Pkg.Revision=1
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=google_apis_playstore
+        SystemImage.TagDisplay=Google Play
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake "Pixel Fold" AVD. The skin path in config.ini is absolute.
-     */
+    /** Creates a fake "Pixel Fold" AVD. The skin path in config.ini is absolute. */
     @JvmStatic
     fun createFoldableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(33, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(33, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1240,7 +1232,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=true
           abi.type=x86_64
@@ -1297,9 +1290,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=${skinFolder}
           tag.display=Google PLay
           tag.id=google_apis_playstore
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86_64
           hw.cpu.ncore = 4
           hw.lcd.width = 2208
@@ -1334,29 +1329,33 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput = true
           hw.sdCard = false
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google APIs.
-          Pkg.Revision=1
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=google_apis
-          SystemImage.TagDisplay=Google APIs
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google APIs.
+        Pkg.Revision=1
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=google_apis
+        SystemImage.TagDisplay=Google APIs
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake 7.4 "Rollable" AVD.
-     */
+    /** Creates a fake 7.4 "Rollable" AVD. */
     @JvmStatic
     fun createRollableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(31, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(31, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "7.4_Rollable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1364,7 +1363,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86
@@ -1425,9 +1425,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path = _no_skin
           tag.display=Google APIs
           tag.id=google_apis
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86_64
           hw.cpu.ncore = 4
           hw.lcd.width = 1600
@@ -1470,29 +1472,33 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput = true
           hw.sdCard = false
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google APIs.
-          Pkg.Revision=1
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=google_apis
-          SystemImage.TagDisplay=Google APIs
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google APIs.
+        Pkg.Revision=1
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=google_apis
+        SystemImage.TagDisplay=Google APIs
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake "Resizable" AVD.
-     */
+    /** Creates a fake "Resizable" AVD. */
     @JvmStatic
     fun createResizableAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(32, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Resizable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1500,7 +1506,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/google_apis/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86_64
@@ -1552,9 +1559,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=_no_skin
           tag.display=Google APIs
           tag.id=google_apis
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86_64
           hw.cpu.ncore = 4
           hw.lcd.width = 1080
@@ -1577,30 +1586,34 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           android.sdk.root = $sdkFolder
           hw.initialOrientation = Portrait
           hw.device.name = resizable
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google APIs.
-          Pkg.Revision=1
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=google_apis
-          SystemImage.TagDisplay=Google APIs
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google APIs.
+        Pkg.Revision=1
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=google_apis
+        SystemImage.TagDisplay=Google APIs
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake "Android Wear Round" AVD. The skin path in config.ini is absolute.
-     */
+    /** Creates a fake "Android Wear Round" AVD. The skin path in config.ini is absolute. */
     @JvmStatic
     fun createWatchAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(30, 0),
-        skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(30, 0),
+      skinFolder: Path? = getSkinFolder("wearos_small_round"),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Android_Wear_Round_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1608,7 +1621,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/android-wear/x86/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=true
           abi.type=x86
@@ -1650,9 +1664,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=${skinFolder ?: "_no_skin"}
           tag.display=Wear OS
           tag.id=android-wear
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1673,17 +1689,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.sdCard = true
           hw.sdCard.path = $avdFolder/sdcard.img
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=Android SDK Platform
-          Pkg.UserSrc=false
-          Pkg.Revision=8
-          SystemImage.Abi=x86
-          SystemImage.GpuSupport=true
-          SystemImage.TagId=android-wear
-          SystemImage.TagDisplay=Wear OS
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=Android SDK Platform
+        Pkg.UserSrc=false
+        Pkg.Revision=8
+        SystemImage.Abi=x86
+        SystemImage.GpuSupport=true
+        SystemImage.TagId=android-wear
+        SystemImage.TagDisplay=Wear OS
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
@@ -1692,7 +1711,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     /** Creates a fake XR Headset AVD. */
     @JvmStatic
     fun createXrHeadsetAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(34, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "XR_Headset_Device_API_$api"
       val abi = "x86_64"
@@ -1701,7 +1723,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/android-xr/$abi/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=true
           abi.type=$abi
@@ -1743,9 +1766,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path = _no_skin
           tag.displaynames = Android XR System Image
           tag.ids=android-xr
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = $abi
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1767,9 +1792,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.sdCard = true
           hw.sdCard.path = $avdFolder/sdcard.img
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
+      val sourceProperties =
+        """
           Pkg.Desc=Android XR SDK System Image $abi
           Pkg.UserSrc=false
           Pkg.Revision=2
@@ -1777,7 +1804,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           SystemImage.GpuSupport=true
           SystemImage.TagId=android-xr
           SystemImage.TagDisplay=Android XR System Image
-          """.trimIndent()
+          """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
@@ -1786,7 +1814,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     /** Creates a fake AI Glasses AVD. */
     @JvmStatic
     fun createAiGlassesAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(34, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "AI_Glasses"
       val abi = "x86_64"
@@ -1795,7 +1826,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/android-xr-glasses/$abi/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=$abi
@@ -1839,9 +1871,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.touchpad0.width = 1543
           hw.touchpad0.height = 297
           hw.screen = no-touch
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = $abi
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1866,9 +1900,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.touchpad0.width = 1543
           hw.touchpad0.height = 297
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
+      val sourceProperties =
+        """
           Pkg.Desc=Android XR Glasses SDK System Image
           Pkg.UserSrc=false
           Pkg.Revision=2
@@ -1876,18 +1912,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           SystemImage.GpuSupport=true
           SystemImage.TagId=android-xr-glasses
           SystemImage.TagDisplay=Android XR Glasses
-          """.trimIndent()
+          """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    /**
-     * Creates a fake Automotive AVD.
-     */
+    /** Creates a fake Automotive AVD. */
     @JvmStatic
     fun createAutomotiveAvd(
-        parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(32, 0)): Path {
+      parentFolder: Path,
+      sdkFolder: Path = getSdkFolder(parentFolder),
+      androidVersion: AndroidVersion = AndroidVersion(32, 0),
+    ): Path {
       val api = androidVersion.androidApiLevel.majorVersion
       val avdId = "Automotive_1024p_landscape_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
@@ -1895,7 +1933,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       val systemImage = "system-images/android-$api/android-automotive-playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
-      val configIni = """
+      val configIni =
+        """
           AvdId=${avdId}
           PlayStore.enabled=false
           abi.type=x86_64
@@ -1944,9 +1983,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           skin.path=_no_skin
           tag.display = Automotive with Play Store
           tag.id = android-automotive-playstore
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val hardwareIni = """
+      val hardwareIni =
+        """
           hw.cpu.arch = x86_64
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
@@ -1976,17 +2017,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
           hw.audioOutput = true
           hw.sdCard = false
           android.sdk.root = $sdkFolder
-          """.trimIndent()
+          """
+          .trimIndent()
 
-      val sourceProperties = """
-          Pkg.Desc=System Image x86_64 with Google Play Store.
-          SystemImage.Abi=x86_64
-          SystemImage.TagId=android-automotive-playstore
-          SystemImage.TagDisplay=Automotive with Play Store
-          SystemImage.GpuSupport=true
-          Addon.VendorId=google
-          Addon.VendorDisplay=Google Inc.
-          """.trimIndent()
+      val sourceProperties =
+        """
+        Pkg.Desc=System Image x86_64 with Google Play Store.
+        SystemImage.Abi=x86_64
+        SystemImage.TagId=android-automotive-playstore
+        SystemImage.TagDisplay=Automotive with Play Store
+        SystemImage.GpuSupport=true
+        Addon.VendorId=google
+        Addon.VendorDisplay=Google Inc.
+        """
+          .trimIndent()
 
       createSystemImage(systemImageFolder, androidVersion, sourceProperties)
       return createAvd(avdId, avdFolder, configIni, hardwareIni)
@@ -1998,7 +2042,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       }
       systemImageFolder.createDirectories()
       val abi = systemImageFolder.fileName.toString()
-      val packageContents = """
+      val packageContents =
+        """
           <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
           <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/04">
             <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
@@ -2012,7 +2057,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
               <display-name>Google APIs System Image</display-name>
             </localPackage>
           </ns:sdk-sys-img>
-          """.trimIndent()
+          """
+          .trimIndent()
       Files.writeString(systemImageFolder.resolve("package.xml"), packageContents)
       Files.writeString(systemImageFolder.resolve("source.properties"), sourceProperties + '\n' + androidVersion.sourceProperties)
       Files.createFile(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))
@@ -2027,22 +2073,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       return avdFolder
     }
 
-    @JvmStatic
-    fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
+    @JvmStatic fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
 
-    @JvmStatic
-    fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
+    @JvmStatic fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
 
-    @JvmStatic
-    fun grpcServerName(port: Int) = "FakeEmulator@${port}"
+    @JvmStatic fun grpcServerName(port: Int) = "FakeEmulator@${port}"
 
-    @JvmStatic
-    fun getSdkFolder(avdRootFolder: Path): Path = avdRootFolder.resolve("Sdk")
+    @JvmStatic fun getSdkFolder(avdRootFolder: Path): Path = avdRootFolder.resolve("Sdk")
 
     /**
-     * Waits for the next queued item while dispatching UI events. Returns the next item and removes
-     * it from the queue of recorded items. Throws TimeoutException if the specified waiting time
-     * elapses before an element is available.
+     * Waits for the next queued item while dispatching UI events. Returns the next item and removes it from the queue of recorded items.
+     * Throws TimeoutException if the specified waiting time elapses before an element is available.
      */
     @UiThread
     @Throws(TimeoutException::class)
@@ -2062,12 +2103,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     }
 
     @JvmStatic
-    val DEFAULT_CALL_FILTER = CallFilter("android.emulation.control.EmulatorController/getVmState",
-                                         "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                         "android.emulation.control.EmulatorController/streamNotification",
-                                         "android.emulation.control.EmulatorController/getXrOptions")
-    val IGNORE_SCREENSHOT_CALL_FILTER =
-        DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
+    val DEFAULT_CALL_FILTER =
+      CallFilter(
+        "android.emulation.control.EmulatorController/getVmState",
+        "android.emulation.control.EmulatorController/getDisplayConfigurations",
+        "android.emulation.control.EmulatorController/streamNotification",
+        "android.emulation.control.EmulatorController/getXrOptions",
+      )
+    val IGNORE_SCREENSHOT_CALL_FILTER = DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }
 }
 
@@ -2087,9 +2130,12 @@ private val AndroidVersion.sourceProperties: String
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
-private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
-                                   ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
-                                   ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
-                                   ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
+private val COLOR_SCHEMES =
+  listOf(
+    ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
+    ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
+    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
+    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)),
+  )
 
 private const val DEVICE_ART_RESOURCES_DIR = "tools/adt/idea/artwork/resources/device-art-resources"

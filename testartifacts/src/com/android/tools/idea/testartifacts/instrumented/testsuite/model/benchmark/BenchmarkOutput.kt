@@ -25,14 +25,12 @@ import com.intellij.execution.ui.ConsoleViewContentType
  * removed. The constructor expects the testMetrics map, and will look at the {@link BENCHMARK_TEST_METRICS_KEY} key for benchmark specific
  * lines.
  *
- * Each line is processed in the following way,
- * Remove "benchmark: " prefix
- * Collect any potential hyperlinks (expected in markup format, eg [title](url))
+ * Each line is processed in the following way, Remove "benchmark: " prefix Collect any potential hyperlinks (expected in markup format, eg
+ * [title](url))
  *
  * When formatting the benchmark to be printed to a console, each line is printed with hyperlinks inline formatted according to the
  * benchmark output.
  */
-
 interface HyperlinkListener {
   fun hyperlinkClicked(path: String)
 }
@@ -40,15 +38,11 @@ interface HyperlinkListener {
 class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
   constructor(benchmarkOutput: String) : this(parse(benchmarkOutput))
 
-  /**
-   * Merge the contents of two BenchmarkOutput objects into a new unified benchmark object.
-   */
+  /** Merge the contents of two BenchmarkOutput objects into a new unified benchmark object. */
   fun fold(other: BenchmarkOutput) = BenchmarkOutput(lines + other.lines)
 
   fun print(console: ConsoleView, type: ConsoleViewContentType, hyperlinkListener: HyperlinkListener? = null) {
-    lines.forEach {
-      it.print(console, type, hyperlinkListener)
-    }
+    lines.forEach { it.print(console, type, hyperlinkListener) }
   }
 
   companion object {
@@ -57,12 +51,11 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
     /**
      * Valid links look something like:
      *
-     * `timeToInitialDisplayMs   [min 346.4](file://ExampleStartupBenchmark_startup.perfetto-trace)`
-     * `seen in iterations: [0](uri://ExampleStartupBenchmark_startup_iter.perfetto-trace?enablePlugins=...)(100 count)`
+     * `timeToInitialDisplayMs [min 346.4](file://ExampleStartupBenchmark_startup.perfetto-trace)` `seen in iterations:
+     * [0](uri://ExampleStartupBenchmark_startup_iter.perfetto-trace?enablePlugins=...)(100 count)`
      *
-     * `file://` links are guaranteed to not have parameters (and may be present in either V2 or V3)
-     * `uri://` links may have parameters (and are only present in V3)
-     * `http` and `https://` links are also sometimes emitted by the Benchmark, but they link to DAC.
+     * `file://` links are guaranteed to not have parameters (and may be present in either V2 or V3) `uri://` links may have parameters (and
+     * are only present in V3) `http` and `https://` links are also sometimes emitted by the Benchmark, but they link to DAC.
      */
     val BENCHMARK_LINK_REGEX = Regex("""(\[(?<title>[^]]*)])?\((?<link>(?<protocol>(file|uri|http|https)://)(?<path>[^)]*))\)""")
     val LINK_GROUP = "link"
@@ -70,9 +63,7 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
   }
 }
 
-/**
- * BenchmarkLine is a helper class to collect and print hyperlinks to a given {@link ConsoleView}
- */
+/** BenchmarkLine is a helper class to collect and print hyperlinks to a given {@link ConsoleView} */
 class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
   fun print(console: ConsoleView, type: ConsoleViewContentType, hyperlinkListener: HyperlinkListener?) {
     if (matches == null) {
@@ -85,9 +76,7 @@ class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
         val title = match.groups["title"]?.value ?: "[Link]"
         val link = match.groups[LINK_GROUP]?.value ?: ""
         console.print(rawText.substring(offsetStart, nextStart), type)
-        console.printHyperlink(title) {
-          hyperlinkListener?.hyperlinkClicked(link)
-        }
+        console.printHyperlink(title) { hyperlinkListener?.hyperlinkClicked(link) }
         offsetStart = match.range.last + 1
         match = match.next()
       }
@@ -97,15 +86,11 @@ class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
   }
 }
 
-/**
- * Retrieves benchmark output text from a given benchmark output.
- */
+/** Retrieves benchmark output text from a given benchmark output. */
 private fun parse(benchmarkOutput: String): List<BenchmarkLine> {
   if (benchmarkOutput.isEmpty()) {
     return mutableListOf()
   }
   val strLines = benchmarkOutput.split("\n")
-  return strLines.map {
-    BenchmarkLine(it, BENCHMARK_LINK_REGEX.find(it))
-  }.toList()
+  return strLines.map { BenchmarkLine(it, BENCHMARK_LINK_REGEX.find(it)) }.toList()
 }

@@ -29,18 +29,21 @@ class ModuleUnsupportedConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule,
-  @NlsContexts.Label val message: String = AndroidGradlePsdBundle.message("android.module.unsupported.configurable.label.default")
-) :
-  AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
+  @NlsContexts.Label val message: String = AndroidGradlePsdBundle.message("android.module.unsupported.configurable.label.default"),
+) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
 
-  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
-    init {
-      add(JBLabel(message).apply { horizontalAlignment = SwingConstants.CENTER; })
+  override fun createPanel(): AbstractMainPanel =
+    object : AbstractMainPanel(context) {
+      init {
+        add(JBLabel(message).apply { horizontalAlignment = SwingConstants.CENTER })
+      }
+
+      override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
+
+      override fun restoreUiState() = Unit
+
+      override fun dispose() = Unit
     }
-    override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
-    override fun restoreUiState() = Unit
-    override fun dispose() = Unit
-  }
 
   override fun getId(): String = "android.psd.unsupported_module." + module.name
 }

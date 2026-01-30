@@ -46,12 +46,7 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
 
     val children = surface.scene?.root?.children!!
 
-    while (
-      children.any {
-        Math.abs(it.getDrawX(0) - point.x) < tolerance &&
-          Math.abs(it.getDrawY(0) - point.y) < tolerance
-      }
-    ) {
+    while (children.any { Math.abs(it.getDrawX(0) - point.x) < tolerance && Math.abs(it.getDrawY(0) - point.y) < tolerance }) {
       point.translate(incrementalOffset, incrementalOffset)
     }
     component.setPosition(point.x, point.y)

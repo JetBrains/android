@@ -27,50 +27,59 @@ import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
 
-class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
+class GroovyBuildFileCompilationBrokenTest : AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
     expectedErrorNodeNameVerifier: (String) -> Unit,
-    expectedFailureDetailsString: String
-  ) = runSyncAndCheckGeneralFailure(
-    preparedProject = preparedProject,
-    verifySyncViewEvents = { _, buildEvents ->
-      // Expect single MessageEvent on Sync Output
-      buildEvents.filterIsInstance<MessageEvent>().let { events ->
-        expect.that(events).hasSize(1)
-        events.firstOrNull()?.let {
-          expectedErrorNodeNameVerifier(it.message)
-          expect.that(it.group).isEqualTo("Other Messages")
+    expectedFailureDetailsString: String,
+  ) =
+    runSyncAndCheckGeneralFailure(
+      preparedProject = preparedProject,
+      verifySyncViewEvents = { _, buildEvents ->
+        // Expect single MessageEvent on Sync Output
+        buildEvents.filterIsInstance<MessageEvent>().let { events ->
+          expect.that(events).hasSize(1)
+          events.firstOrNull()?.let {
+            expectedErrorNodeNameVerifier(it.message)
+            expect.that(it.group).isEqualTo("Other Messages")
+          }
         }
-      }
-      // Make sure no additional error build issue events are generated
-      expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
-      expect.that(buildEvents.finishEventFailures()).isEmpty()
-    },
-    verifyFailureReported = {
-      expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.GROOVY_COMPILATION_ERROR)
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-      expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
-    },
-  )
+        // Make sure no additional error build issue events are generated
+        expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
+        expect.that(buildEvents.finishEventFailures()).isEmpty()
+      },
+      verifyFailureReported = {
+        expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.GROOVY_COMPILATION_ERROR)
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+          .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
+      },
+    )
 
   @Test
   fun testBrokenGroovyCompilation1() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
-      root.resolve(SdkConstants.FN_BUILD_GRADLE).appendText("\nprintln(\"foo\")\n)(")
-    })
+    val preparedProject =
+      projectRule.prepareTestProject(
+        AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+          root.resolve(SdkConstants.FN_BUILD_GRADLE).appendText("\nprintln(\"foo\")\n)(")
+        }
+      )
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
-      expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unexpected input: '(\"foo\")")
-      },
-      expectedFailureDetailsString = """
+      expectedErrorNodeNameVerifier = { expect.that(it).startsWith("Unexpected input: '(\"foo\")") },
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -83,7 +92,8 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#compileScript
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -92,16 +102,15 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
     preparedProject.root.resolve("app/" + SdkConstants.FN_BUILD_GRADLE).let {
-      //This should result in '}throw new RuntimeException()' breaking compilation with missed space.
+      // This should result in '}throw new RuntimeException()' breaking compilation with missed space.
       it.appendText("throw new RuntimeException()")
     }
 
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
-      expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unexpected input: 'throw'")
-      },
-      expectedFailureDetailsString = """
+      expectedErrorNodeNameVerifier = { expect.that(it).startsWith("Unexpected input: 'throw'") },
+      expectedFailureDetailsString =
+        """
         failure {
           error {
             exception: org.gradle.tooling.BuildActionFailureException
@@ -114,7 +123,8 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#compileScript
           }
         }
-      """.trimIndent()
+        """
+          .trimIndent(),
     )
   }
 
@@ -142,27 +152,37 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       },
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO)
-        expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        expect
+          .that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
-        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
-          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
-          FAILURE : SYNC_TOTAL
-        """.trimIndent())
-        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
-          failure {
-            error {
-              exception: org.gradle.tooling.BuildActionFailureException
-                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
-              exception: org.gradle.api.ProjectConfigurationException
-                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
-              exception: org.gradle.api.GradleScriptException
-                at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
-              exception: org.codehaus.groovy.runtime.typehandling.GroovyCastException
-                at: [1]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+        expect
+          .that(it.gradleSyncStats.printPhases())
+          .isEqualTo(
+            """
+            FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+            FAILURE : SYNC_TOTAL
+            """
+              .trimIndent()
+          )
+        Truth.assertThat(it.gradleFailureDetails.toTestString())
+          .isEqualTo(
+            """
+            failure {
+              error {
+                exception: org.gradle.tooling.BuildActionFailureException
+                  at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+                exception: org.gradle.api.ProjectConfigurationException
+                  at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+                exception: org.gradle.api.GradleScriptException
+                  at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+                exception: org.codehaus.groovy.runtime.typehandling.GroovyCastException
+                  at: [1]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+              }
             }
-          }
-        """.trimIndent())
-      }
+            """
+              .trimIndent()
+          )
+      },
     )
   }
 }

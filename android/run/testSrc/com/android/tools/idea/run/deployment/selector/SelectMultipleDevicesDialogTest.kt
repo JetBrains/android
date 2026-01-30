@@ -67,8 +67,7 @@ class SelectMultipleDevicesDialogTest {
     ApplicationManager.getApplication().invokeAndWait { dialog.performOKAction() }
     testScope.advanceUntilIdle()
 
-    assertThat(devicesSelectedService.getTargetsSelectedWithDialog())
-      .containsExactly(DeploymentTarget(device, DefaultBoot))
+    assertThat(devicesSelectedService.getTargetsSelectedWithDialog()).containsExactly(DeploymentTarget(device, DefaultBoot))
     assertThat(devicesSelectedService.devicesAndTargets.isMultipleSelectionMode).isTrue()
   }
 
@@ -83,9 +82,7 @@ class SelectMultipleDevicesDialogTest {
     val validationInfo = dialog.doValidate()
 
     assertThat(validationInfo?.message)
-      .isEqualTo(
-        "Some of the selected targets are for the same device. Each target should be for a different device."
-      )
+      .isEqualTo("Some of the selected targets are for the same device. Each target should be for a different device.")
     assertThat(validationInfo?.component).isNull()
   }
 

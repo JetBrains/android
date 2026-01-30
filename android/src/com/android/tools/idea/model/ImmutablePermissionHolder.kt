@@ -21,18 +21,16 @@ import com.android.tools.lint.checks.PermissionHolder
 /**
  * A [PermissionHolder.SetPermissionLookup] that covers the permissions granted to a module.
  *
- * Each [ImmutablePermissionHolder] instance is backed by pre-computed immutable [Set]s which are
- * accessible to callers without any additional heavy lifting. This is in contrast to
- * [PermissionHolder.SetPermissionLookup], which may be backed with mutable sets that change over
- * time, and generic [PermissionHolder]s, for which obtaining the set of granted permissions may
- * involve non-trivial overhead.
+ * Each [ImmutablePermissionHolder] instance is backed by pre-computed immutable [Set]s which are accessible to callers without any
+ * additional heavy lifting. This is in contrast to [PermissionHolder.SetPermissionLookup], which may be backed with mutable sets that
+ * change over time, and generic [PermissionHolder]s, for which obtaining the set of granted permissions may involve non-trivial overhead.
  */
 class ImmutablePermissionHolder(
   minSdk: AndroidVersion,
   targetSdk: AndroidVersion,
   val permissions: Set<String>,
-  val revocable: Set<String>
-): PermissionHolder.SetPermissionLookup(permissions, revocable, minSdk, targetSdk) {
+  val revocable: Set<String>,
+) : PermissionHolder.SetPermissionLookup(permissions, revocable, minSdk, targetSdk) {
   companion object {
     @JvmField val EMPTY = ImmutablePermissionHolder(AndroidVersion.DEFAULT, AndroidVersion.DEFAULT, setOf(), setOf())
   }

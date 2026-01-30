@@ -31,19 +31,21 @@ import com.intellij.openapi.vfs.VfsUtilCore.loadText
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findFile
 import com.intellij.testFramework.RunsInEdt
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
-class VersionCatalogRenamingKtsTest  {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule().onEdt()
+class VersionCatalogRenamingKtsTest {
+  @get:Rule val projectRule = AndroidGradleProjectRule().onEdt()
 
-  private val fixture get() = projectRule.fixture
-  private val project get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
+
+  private val project
+    get() = projectRule.project
 
   @Before
   fun removeKtsIndexing() {
@@ -62,19 +64,18 @@ class VersionCatalogRenamingKtsTest  {
     fixture.moveCaret("[libraries]\nconstraint-lay|out")
     fixture.renameElementAtCaret("my-constraint-layout")
 
-    runWriteAction {
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    runWriteAction { FileDocumentManager.getInstance().saveAllDocuments() }
 
     // Check expected results
     assertEquals(
-      catalogSnapshot.replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout")
+      catalogSnapshot
+        .replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout")
         .replaceFirst("both = [\"constraint-layout\"", "both = [\"my-constraint-layout\""),
-      loadText(project.findPrimaryCatalog())
+      loadText(project.findPrimaryCatalog()),
     )
     assertEquals(
       buildFileSnapshot.replaceFirst("libs.constraint.layout", "libs.my.constraint.layout"),
-      loadText(project.findAppGradleBuild())
+      loadText(project.findAppGradleBuild()),
     )
   }
 
@@ -90,19 +91,11 @@ class VersionCatalogRenamingKtsTest  {
     fixture.moveCaret("[libraries]\nju|nit")
     fixture.renameElementAtCaret("junit4")
 
-    runWriteAction {
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    runWriteAction { FileDocumentManager.getInstance().saveAllDocuments() }
 
     // Check expected results
-    assertEquals(
-      catalogSnapshot.replaceFirst("[libraries]\njunit", "[libraries]\njunit4"),
-      loadText(project.findTestCatalog())
-    )
-    assertEquals(
-      buildFileSnapshot.replaceFirst("junit", "junit4"),
-      loadText(project.findAppGradleBuild())
-    )
+    assertEquals(catalogSnapshot.replaceFirst("[libraries]\njunit", "[libraries]\njunit4"), loadText(project.findTestCatalog()))
+    assertEquals(buildFileSnapshot.replaceFirst("junit", "junit4"), loadText(project.findAppGradleBuild()))
   }
 
   @Test
@@ -118,27 +111,25 @@ class VersionCatalogRenamingKtsTest  {
     fixture.moveCaret("android-appl|ication")
     fixture.renameElementAtCaret("android-application-new")
 
-    runWriteAction {
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
+    runWriteAction { FileDocumentManager.getInstance().saveAllDocuments() }
 
     // Check expected results
-    assertEquals(
-      catalogSnapshot.replaceFirst("android-application", "android-application-new"),
-      loadText(project.findPrimaryCatalog())
-    )
+    assertEquals(catalogSnapshot.replaceFirst("android-application", "android-application-new"), loadText(project.findPrimaryCatalog()))
     assertEquals(
       buildFileSnapshot.replaceFirst("libs.plugins.android.application", "libs.plugins.android.application.new"),
-      loadText(project.findAppGradleBuild())
+      loadText(project.findAppGradleBuild()),
     )
     assertEquals(
       projectBuildFileSnapshot.replaceFirst("libs.plugins.android.application", "libs.plugins.android.application.new"),
-      loadText(findGradleBuild())
+      loadText(findGradleBuild()),
     )
   }
 
   private fun Project.findAppGradleBuild(): VirtualFile = findAppModule().guessModuleDir()!!.findChild("build.gradle.kts")!!
+
   private fun Project.findPrimaryCatalog(): VirtualFile = guessProjectDir()!!.findFile("gradle/libs.versions.toml")!!
+
   private fun Project.findTestCatalog(): VirtualFile = guessProjectDir()!!.findFile("gradle/libsTest.versions.toml")!!
+
   private fun findGradleBuild(): VirtualFile = VfsUtil.findFileByIoFile(File(project.basePath).resolve("build.gradle.kts"), true)!!
 }

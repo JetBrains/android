@@ -49,20 +49,13 @@ class ErrorBalloonTest {
   private val projectRule = ProjectRule()
   private val controllerRule =
     AppInsightsProjectLevelControllerRule(projectRule) { msg, hyperlinkListener ->
-      AppInsightsToolWindowFactory.showBalloon(
-        projectRule.project,
-        MessageType.ERROR,
-        msg,
-        hyperlinkListener,
-      )
+      AppInsightsToolWindowFactory.showBalloon(projectRule.project, MessageType.ERROR, msg, hyperlinkListener)
     }
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)!!
 
-  private class TransferableArgumentMatcher(private val expectedData: String) :
-    ArgumentMatcher<Transferable> {
-    override fun matches(actualTransferable: Transferable) =
-      expectedData == actualTransferable.getTransferData(DataFlavor.stringFlavor)
+  private class TransferableArgumentMatcher(private val expectedData: String) : ArgumentMatcher<Transferable> {
+    override fun matches(actualTransferable: Transferable) = expectedData == actualTransferable.getTransferData(DataFlavor.stringFlavor)
   }
 
   @Test
@@ -83,9 +76,7 @@ class ErrorBalloonTest {
           }
           verify(clipboard)
             .setContents(
-              ArgumentMatchers.argThat(
-                TransferableArgumentMatcher("Update: I managed to reproduce this issue.")
-              ),
+              ArgumentMatchers.argThat(TransferableArgumentMatcher("Update: I managed to reproduce this issue.")),
               ArgumentMatchers.isNull(),
             )
           balloonShown = true
@@ -96,10 +87,7 @@ class ErrorBalloonTest {
 
     val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
     controllerRule.consumeInitialState(
-      state =
-        LoadingState.Ready(
-          IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-        ),
+      state = LoadingState.Ready(IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)),
       notesState = LoadingState.Ready(listOf(NOTE1)),
     )
 

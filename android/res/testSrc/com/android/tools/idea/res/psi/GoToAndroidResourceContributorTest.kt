@@ -41,8 +41,7 @@ import org.junit.Test
 /** Tests for [GoToAndroidResourceContributor]. */
 @RunsInEdt
 class GoToAndroidResourceContributorTest {
-  val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
+  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
 
   @get:Rule val chain = RuleChain(projectRule, EdtRule())
 
@@ -51,51 +50,45 @@ class GoToAndroidResourceContributorTest {
     projectRule.fixture.addFileToProject(
       "src/main/res/values/strings.xml",
       """
-        <resources>
-          <string name="my_string">My string</string>
-        </resources>
-        """
+      <resources>
+        <string name="my_string">My string</string>
+      </resources>
+      """
         .trimIndent(),
     )
     projectRule.fixture.addFileToProject(
       "src/main/res/layout/my_layout.xml",
       """
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@+id/activity_main"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
-          <View
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/my_view"/>
-          <View
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/my_view"/>
-          <View
-            android:id="@+id/my_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        </RelativeLayout>
-        """
+      <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/activity_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <View
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_below="@+id/my_view"/>
+        <View
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_below="@+id/my_view"/>
+        <View
+          android:id="@+id/my_view"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"/>
+      </RelativeLayout>
+      """
         .trimIndent(),
     )
   }
 
-  private fun navigate(
-    name: String,
-    pattern: String,
-    expectedNumberOfResults: Int = 1,
-    selectResult: Int = 0,
-  ): PsiElement {
+  private fun navigate(name: String, pattern: String, expectedNumberOfResults: Int = 1, selectResult: Int = 0): PsiElement {
     val model = GotoSymbolModel2(projectRule.project, projectRule.testRootDisposable)
     val searchResults = model.getElementsByName(name, false, pattern)
     assertThat(searchResults).hasLength(expectedNumberOfResults)
     val result = searchResults[selectResult]
     assertThat(result).isInstanceOf(NavigationItem::class.java)
     val textWithIcon = ModuleRendererFactory.findInstance(result).getModuleTextWithIcon(result)
-    assertThat(textWithIcon!!.text)
-      .isEqualTo(projectRule.module.getModuleSystem().getProductionAndroidModule()!!.name)
+    assertThat(textWithIcon!!.text).isEqualTo(projectRule.module.getModuleSystem().getProductionAndroidModule()!!.name)
     assertThat(textWithIcon.icon).isEqualTo(AllIcons.Nodes.Module)
     assertThat((result as NavigationItem).presentation!!.getIcon(false)).isNotNull()
     UIUtil.dispatchAllInvocationEvents()
@@ -119,8 +112,7 @@ class GoToAndroidResourceContributorTest {
   fun testGoToString() {
     val element = navigate("my_string", "my_s")
     assertThat(element.text).isEqualTo("\"my_string\"")
-    assertThat(element.parent.parent.text)
-      .isEqualTo("<string name=\"my_string\">My string</string>")
+    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My string</string>")
   }
 
   @Test
@@ -128,16 +120,15 @@ class GoToAndroidResourceContributorTest {
     projectRule.fixture.addFileToProject(
       "src/debug/res/values/strings.xml",
       """
-        <resources>
-          <string name="my_string">My debug string</string>
-        </resources>
-        """
+      <resources>
+        <string name="my_string">My debug string</string>
+      </resources>
+      """
         .trimIndent(),
     )
     val element = navigate("my_string", "my_s", expectedNumberOfResults = 2, selectResult = 0)
     assertThat(element.text).isEqualTo("\"my_string\"")
-    assertThat(element.parent.parent.text)
-      .isEqualTo("<string name=\"my_string\">My debug string</string>")
+    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My debug string</string>")
   }
 
   @Test
@@ -155,10 +146,8 @@ class GoToAndroidResourceContributorTest {
   }
 
   /**
-   * Tries to emulate what
-   * [com.intellij.ide.actions.searcheverywhere.TrivialElementsEqualityProvider] is doing to
-   * deduplicate the result list. Unfortunately some of the types involved are not public, so we
-   * cannot do exactly the same.
+   * Tries to emulate what [com.intellij.ide.actions.searcheverywhere.TrivialElementsEqualityProvider] is doing to deduplicate the result
+   * list. Unfortunately some of the types involved are not public, so we cannot do exactly the same.
    */
   @Test
   fun testEquality() {

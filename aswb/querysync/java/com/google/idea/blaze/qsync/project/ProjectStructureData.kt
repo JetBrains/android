@@ -21,9 +21,8 @@ import java.nio.file.Path
 /**
  * A data class to hold the information required to setup a basic project structure.
  *
- * This class encapsulates a subset of data from [BuildGraphData] that is needed by
- * [GraphToProjectConverter] to setup a basic project. Its contents can be instantiated from a
- * directory traversal and without running `bazel query`.
+ * This class encapsulates a subset of data from [BuildGraphData] that is needed by [GraphToProjectConverter] to setup a basic project. Its
+ * contents can be instantiated from a directory traversal and without running `bazel query`.
  */
 data class ProjectStructureData(
   val javaSourceFiles: List<Path>,

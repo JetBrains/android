@@ -23,8 +23,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** Step to show a message that the SDK is missing. */
-class MissingSdkAlertStep(private val tracker: FirstRunWizardTracker) :
-  ModelWizardStep.WithoutModel("Missing SDK") {
+class MissingSdkAlertStep(private val tracker: FirstRunWizardTracker) : ModelWizardStep.WithoutModel("Missing SDK") {
   private val panel = createPanel()
 
   override fun getComponent(): JComponent = panel

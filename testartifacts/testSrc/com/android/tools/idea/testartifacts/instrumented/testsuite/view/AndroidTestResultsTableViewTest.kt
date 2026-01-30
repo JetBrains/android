@@ -58,8 +58,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
@@ -69,25 +69,17 @@ import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import org.mockito.Mockito
 
-/**
- * Unit tests for [AndroidTestResultsTableView].
- */
+/** Unit tests for [AndroidTestResultsTableView]. */
 @RunWith(JUnit4::class)
 @RunsInEdt
 class AndroidTestResultsTableViewTest {
 
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(EdtRule())
-    .around(disposableRule)
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(disposableRule)
 
-  @get:Rule
-  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Mock lateinit var mockListener: AndroidTestResultsTableListener
   @Mock lateinit var mockModule: Module
@@ -95,8 +87,7 @@ class AndroidTestResultsTableViewTest {
   @Mock lateinit var mockAndroidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager
   @Mock lateinit var mockAndroidTestRunConfiguration: AndroidTestRunConfiguration
 
-  @Mock
-  lateinit var mockTestResultsPsiElementProvider: TestResultsPsiElementProvider
+  @Mock lateinit var mockTestResultsPsiElementProvider: TestResultsPsiElementProvider
 
   // Workaround for Kotlin nullability check.
   // Mockito.argThat returns null for interface types.
@@ -106,22 +97,39 @@ class AndroidTestResultsTableViewTest {
       override val methodName: String = ""
       override val className: String = ""
       override val packageName: String = ""
+
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+
       override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+
       override fun getTestResultSummaryText(devices: List<AndroidDevice>): String = ""
+
       override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
+
       override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
+
       override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats = AndroidTestResultStats()
+
       override fun getLogcat(device: AndroidDevice): String = ""
+
       override fun getStartTime(device: AndroidDevice): Long? = null
+
       override fun getDuration(device: AndroidDevice): Duration? = null
+
       override fun getTotalDuration(): Duration = Duration.ZERO
+
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
+
       override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
+
       override fun getRetentionInfo(device: AndroidDevice): File? = null
+
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+
       override fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = mapOf()
+
       override fun getAllTestCases(): List<AndroidTestCase> = emptyList()
     }
   }
@@ -139,9 +147,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun initialTable() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
 
     // Assert columns.
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
@@ -149,14 +163,20 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
 
     // Assert rows.
-    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1) // Root aggregation row
   }
 
   @Test
   fun addDevice() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
 
     table.addDevice(device("deviceId1", "deviceName1"))
     table.addDevice(device("deviceId2", "deviceName2"))
@@ -171,9 +191,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResults() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testcase1OnDevice1 = AndroidTestCase("testid1", "method1", "class1", "package1")
@@ -240,19 +266,25 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithLogcat() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", logcat="logcatA"))
-    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", logcat="logcatB"))
-    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", logcat="logcatC"))
-    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", logcat="logcatD"))
-    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", logcat="logcatE"))
-    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", logcat="logcatF"))
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", logcat = "logcatA"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", logcat = "logcatB"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", logcat = "logcatC"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", logcat = "logcatD"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", logcat = "logcatE"))
+    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", logcat = "logcatF"))
 
     assertThat(table.getTableViewForTesting().getItem(0).getLogcat(device1)).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getLogcat(device1)).isEqualTo("")
@@ -271,29 +303,39 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithBenchmark() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark="benchmarkA"))
-    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark="benchmarkB"))
-    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark="benchmarkC"))
-    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark="benchmarkD"))
-    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark="benchmarkE"))
-    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark="benchmarkF"))
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark = "benchmarkA"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark = "benchmarkB"))
+    table.addTestCase(device1, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark = "benchmarkC"))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", benchmark = "benchmarkD"))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark = "benchmarkE"))
+    table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark = "benchmarkF"))
 
-    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA, benchmarkB, benchmarkC")
-    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA, benchmarkB")
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device1).lines.joinToString { it.rawText })
+      .isEqualTo("benchmarkA, benchmarkB, benchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device1).lines.joinToString { it.rawText })
+      .isEqualTo("benchmarkA, benchmarkB")
     assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA")
     assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkB")
     assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkC")
     assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkC")
 
-    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD, benchmarkE, benchmarkF")
-    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD, benchmarkE")
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device2).lines.joinToString { it.rawText })
+      .isEqualTo("benchmarkD, benchmarkE, benchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device2).lines.joinToString { it.rawText })
+      .isEqualTo("benchmarkD, benchmarkE")
     assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD")
     assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkE")
     assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkF")
@@ -302,17 +344,26 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithRetention() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val retentionFilePath = "foo"
-    val testcase1OnDevice1 = AndroidTestCase(id = "testid1",
-                                             methodName = "method1",
-                                             className = "class1",
-                                             packageName = "package1",
-                                             result = AndroidTestCaseResult.FAILED,
-                                             retentionSnapshot = File(retentionFilePath))
+    val testcase1OnDevice1 =
+      AndroidTestCase(
+        id = "testid1",
+        methodName = "method1",
+        className = "class1",
+        packageName = "package1",
+        result = AndroidTestCaseResult.FAILED,
+        retentionSnapshot = File(retentionFilePath),
+      )
 
     table.addDevice(device1)
     table.addTestCase(device1, testcase1OnDevice1)
@@ -323,25 +374,43 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithDuration() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 100))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 200))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 300))
-    table.addTestCase(device2,
-                      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 400))
-    table.addTestCase(device2,
-                      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 500))
-    table.addTestCase(device2,
-                      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 600))
+    table.addTestCase(
+      device1,
+      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 100),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 200),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 300),
+    )
+    table.addTestCase(
+      device2,
+      AndroidTestCase("testid1", "method1", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 400),
+    )
+    table.addTestCase(
+      device2,
+      AndroidTestCase("testid2", "method2", "class1", "package1", startTimestampMillis = 0, endTimestampMillis = 500),
+    )
+    table.addTestCase(
+      device2,
+      AndroidTestCase("testid3", "method1", "class2", "package1", startTimestampMillis = 0, endTimestampMillis = 600),
+    )
 
     assertThat(table.getTableViewForTesting().getItem(0).getDuration(device1)).isEqualTo(Duration.ofMillis(100 + 200 + 300))
     assertThat(table.getTableViewForTesting().getItem(1).getDuration(device1)).isEqualTo(Duration.ofMillis(100 + 200))
@@ -360,9 +429,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithNoClass() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testcase1OnDevice1 = AndroidTestCase("testid1", "method1", "", "")
@@ -414,9 +489,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithTestSteps() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testCase1OnDevice1 = AndroidTestCase("testid1", "method1", "class1", "package1")
@@ -528,9 +609,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun clickTestResultsRow() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -568,9 +655,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun editCellAtShouldNotCrashWithFilterApplied() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -589,9 +682,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setRowFilter() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device = device("deviceId", "deviceName")
     val testcase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
     val testcase2 = AndroidTestCase("testid2", "method2", "class2", "package2")
@@ -599,9 +698,7 @@ class AndroidTestResultsTableViewTest {
     table.addDevice(device)
     table.addTestCase(device, testcase1)
     table.addTestCase(device, testcase2)
-    table.setRowFilter { results ->
-      results.methodName == "method2"
-    }
+    table.setRowFilter { results -> results.methodName == "method2" }
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(3)
@@ -612,9 +709,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun filteringWorksForTestSteps() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device = device("deviceId", "deviceName")
     val testcase1 = AndroidTestCase("testid1", "method1", "class1", "package1", result = AndroidTestCaseResult.FAILED)
     val testcase1step1 = AndroidTestStep("testid1.step1", 0, "case1 step1", result = AndroidTestCaseResult.PASSED)
@@ -630,9 +733,7 @@ class AndroidTestResultsTableViewTest {
     table.addTestStep(device, testcase2, testcase2step1)
 
     // Apply filter
-    table.setRowFilter { results ->
-      results.getTestResultSummary() == AndroidTestCaseResult.FAILED
-    }
+    table.setRowFilter { results -> results.getTestResultSummary() == AndroidTestCaseResult.FAILED }
 
     // Verify that the only the FAILED test is shown
     var view = table.getTableViewForTesting()
@@ -661,9 +762,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setColumnFilter() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val device3 = device("deviceId3", "deviceName3")
@@ -684,9 +791,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(model.columns[5].name).isEqualTo("deviceName3")
 
     // Apply column filter.
-    table.setColumnFilter { device ->
-      device.id == "deviceId2"
-    }
+    table.setColumnFilter { device -> device.id == "deviceId2" }
 
     // Status column is not displayed because only a single device is selected.
     assertThat(view.columnCount).isEqualTo(3)
@@ -695,9 +800,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(model.columns[2].name).isEqualTo("deviceName2")
 
     // Apply column filter.
-    table.setColumnFilter { device ->
-      device.id == "deviceId1" || device.id == "deviceId2"
-    }
+    table.setColumnFilter { device -> device.id == "deviceId1" || device.id == "deviceId2" }
 
     // Status column is displayed because multiple devices are selected.
     assertThat(view.columnCount).isEqualTo(5)
@@ -718,9 +821,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setColumnFilterWithSortColumnSelected() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val device3 = device("deviceId3", "deviceName3")
@@ -743,15 +852,13 @@ class AndroidTestResultsTableViewTest {
 
     // Click on the device1 table header to sort them by device1 results in ascending order.
     var deviceStatusColumnPositionX =
-      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + columnModel.getColumn(2).width  + 1
+      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + columnModel.getColumn(2).width + 1
     view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /* clickCount= */ 1, false))
     }
 
     // Apply column filter to filter by device 2, which removes the current sort column.
-    table.setColumnFilter { device ->
-      device.id == "deviceId2"
-    }
+    table.setColumnFilter { device -> device.id == "deviceId2" }
 
     // Device2 is displayed.
     assertThat(view.columnCount).isEqualTo(3)
@@ -760,10 +867,9 @@ class AndroidTestResultsTableViewTest {
     assertThat(model.columns[2].name).isEqualTo("deviceName2")
 
     // Click on the device2 table header to sort them by device2 in ascending order.
-    deviceStatusColumnPositionX =
-      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
+    deviceStatusColumnPositionX = columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
     view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /* clickCount= */ 1, false))
     }
 
     // Apply column filter to show all devices.
@@ -781,103 +887,205 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun startTime() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     val startTime0 = 100L
     val startTime1 = 101L
     val startTime2 = 102L
     table.addDevice(device1)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1",
-                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
-                                      result = AndroidTestCaseResult.FAILED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1",
-                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
-                                      result = AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid2", "method2", "class1", "package1",
-                                      startTimestampMillis = startTime2, endTimestampMillis = 100,
-                                      result = AndroidTestCaseResult.PASSED))
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid3",
+        "method1",
+        "class2",
+        "package1",
+        startTimestampMillis = startTime0,
+        endTimestampMillis = 400,
+        result = AndroidTestCaseResult.FAILED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid1",
+        "method1",
+        "class1",
+        "package1",
+        startTimestampMillis = startTime1,
+        endTimestampMillis = 200,
+        result = AndroidTestCaseResult.SKIPPED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid2",
+        "method2",
+        "class1",
+        "package1",
+        startTimestampMillis = startTime2,
+        endTimestampMillis = 100,
+        result = AndroidTestCaseResult.PASSED,
+      ),
+    )
 
     assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isEqualTo(startTime0)
   }
 
   @Test
   fun startTimeWithNull() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     val startTime0 = 100L
     val startTime1: Long? = null
     table.addDevice(device1)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1",
-                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
-                                      result = AndroidTestCaseResult.FAILED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1",
-                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
-                                      result = AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid3",
+        "method1",
+        "class2",
+        "package1",
+        startTimestampMillis = startTime0,
+        endTimestampMillis = 400,
+        result = AndroidTestCaseResult.FAILED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid1",
+        "method1",
+        "class1",
+        "package1",
+        startTimestampMillis = startTime1,
+        endTimestampMillis = 200,
+        result = AndroidTestCaseResult.SKIPPED,
+      ),
+    )
 
     assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isEqualTo(startTime0)
   }
 
   @Test
   fun startTimeAllNull() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     val startTime0: Long? = null
     val startTime1: Long? = null
     table.addDevice(device1)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1",
-                                      startTimestampMillis = startTime0, endTimestampMillis = 400,
-                                      result = AndroidTestCaseResult.FAILED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1",
-                                      startTimestampMillis = startTime1, endTimestampMillis = 200,
-                                      result = AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid3",
+        "method1",
+        "class2",
+        "package1",
+        startTimestampMillis = startTime0,
+        endTimestampMillis = 400,
+        result = AndroidTestCaseResult.FAILED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid1",
+        "method1",
+        "class1",
+        "package1",
+        startTimestampMillis = startTime1,
+        endTimestampMillis = 200,
+        result = AndroidTestCaseResult.SKIPPED,
+      ),
+    )
 
     assertThat((table.getModelForTesting().root as AndroidTestResults).getStartTime(device1)).isNull()
   }
 
   @Test
   fun sortRows() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     table.addDevice(device1)
-    table.addTestCase(device1,
-                      AndroidTestCase("testid3", "method1", "class2", "package1",
-                                      startTimestampMillis = 0, endTimestampMillis = 400,
-                                      result = AndroidTestCaseResult.FAILED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid1", "method1", "class1", "package1",
-                                      startTimestampMillis = 0, endTimestampMillis = 200,
-                                      result = AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device1,
-                      AndroidTestCase("testid2", "method2", "class1", "package1",
-                                      startTimestampMillis = 0, endTimestampMillis = 100,
-                                      result = AndroidTestCaseResult.PASSED))
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid3",
+        "method1",
+        "class2",
+        "package1",
+        startTimestampMillis = 0,
+        endTimestampMillis = 400,
+        result = AndroidTestCaseResult.FAILED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid1",
+        "method1",
+        "class1",
+        "package1",
+        startTimestampMillis = 0,
+        endTimestampMillis = 200,
+        result = AndroidTestCaseResult.SKIPPED,
+      ),
+    )
+    table.addTestCase(
+      device1,
+      AndroidTestCase(
+        "testid2",
+        "method2",
+        "class1",
+        "package1",
+        startTimestampMillis = 0,
+        endTimestampMillis = 100,
+        result = AndroidTestCaseResult.PASSED,
+      ),
+    )
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(6)
 
     // Click on test name table header to sort them by name in ascending order.
-    view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
-    }
+    view.tableHeader.mouseListeners.forEach { it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /* clickCount= */ 1, false)) }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -887,9 +1095,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")
 
     // Click on test name table header again to sort them by name in descending order.
-    view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
-    }
+    view.tableHeader.mouseListeners.forEach { it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /* clickCount= */ 1, false)) }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
@@ -899,9 +1105,7 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method1")
 
     // Click on test name table header again to bring back the original insertion order.
-    view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
-    }
+    view.tableHeader.mouseListeners.forEach { it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /* clickCount= */ 1, false)) }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
@@ -913,54 +1117,64 @@ class AndroidTestResultsTableViewTest {
     // Click on test duration table header to sort them by duration in ascending order.
     val durationColumnPositionX = view.tableHeader.columnModel.getColumn(0).width + 1
     view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, durationColumnPositionX, 0, /*clickCount=*/1, false))
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, durationColumnPositionX, 0, /* clickCount= */ 1, false))
     }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // 100 ms
-    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // 200 ms
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method2") // 100 ms
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method1") // 200 ms
     assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class2.")
-    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // 400 ms
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class2.method1") // 400 ms
 
     // Click on test status table header to sort them by test status in ascending order.
     val columnModel = view.tableHeader.columnModel
     val statusColumnPositionX = columnModel.getColumn(0).width + columnModel.getColumn(1).width + 1
     view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, statusColumnPositionX, 0, /*clickCount=*/1, false))
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, statusColumnPositionX, 0, /* clickCount= */ 1, false))
     }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
-    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1") // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
-    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1") // skipped
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2") // passed
 
     // Click on a device test status table header to sort them by test status in ascending order.
-    val deviceStatusColumnPositionX =
-      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
+    val deviceStatusColumnPositionX = columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
     view.tableHeader.mouseListeners.forEach {
-      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /* clickCount= */ 1, false))
     }
 
     assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
-    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1") // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
-    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // skipped
-    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // passed
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("package1.class1.method1") // skipped
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2") // passed
   }
 
   @Test
   fun tableShouldUpdateColumnsWidthsAfterResize() {
     whenever(mockAndroidTestRunConfiguration.project).thenReturn(projectRule.project)
-    val androidTestResultsUserPreferencesManager = AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("deviceId1"))
-    val table = AndroidTestResultsTableView(mockListener, projectRule.project, mockModule, mockLogger,
-                                            androidTestResultsUserPreferencesManager, mockTestResultsPsiElementProvider)
+    val androidTestResultsUserPreferencesManager =
+      AndroidTestResultsUserPreferencesManager(mockAndroidTestRunConfiguration, hashSetOf("deviceId1"))
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        androidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     table.addDevice(device1)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
+    table.addTestCase(
+      device1,
+      AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"),
+    )
 
     // Assert that each column's preferred width is set to its default value when the table is created.
     assertThat(androidTestResultsUserPreferencesManager.getUserPreferredColumnWidth("Tests", 0)).isEqualTo(360)
@@ -984,14 +1198,23 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun tableShouldRetainSelectionAfterDataIsUpdated() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
     table.addDevice(device1)
-    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
+    table.addTestCase(
+      device1,
+      AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"),
+    )
 
     // Select the test case 1.
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
@@ -1023,9 +1246,15 @@ class AndroidTestResultsTableViewTest {
     whenever(mockPsiMethod.isValid).thenReturn(true)
     whenever(mockPsiMethod.project).thenReturn(projectRule.project)
 
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     assertThat(table.getTableViewForTesting()).isInstanceOf(UiDataProvider::class.java)
 
     val device1 = device("deviceId1", "deviceName1")
@@ -1033,9 +1262,14 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device1, testCase)
 
     // Select the test case 1.
-    whenever(mockTestResultsPsiElementProvider.getPsiElement(eq(projectRule.project),
-                                                             argThat { it.methodName == "myTestMethodName" },
-                                                             eq(mockModule))).thenReturn(mockPsiMethod)
+    whenever(
+        mockTestResultsPsiElementProvider.getPsiElement(
+          eq(projectRule.project),
+          argThat { it.methodName == "myTestMethodName" },
+          eq(mockModule),
+        )
+      )
+      .thenReturn(mockPsiMethod)
     table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(2, 2)
     run {
@@ -1050,9 +1284,10 @@ class AndroidTestResultsTableViewTest {
     }
 
     // Select the test class.
-    whenever(mockTestResultsPsiElementProvider.getPsiElement(eq(projectRule.project),
-                                                             argThat { it.className == "mytestclass" },
-                                                             eq(mockModule))).thenReturn(mockPsiClass)
+    whenever(
+        mockTestResultsPsiElementProvider.getPsiElement(eq(projectRule.project), argThat { it.className == "mytestclass" }, eq(mockModule))
+      )
+      .thenReturn(mockPsiClass)
     table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
     run {
       val dataContext = IdeUiService.getInstance().createUiDataContext(table.getTableViewForTesting())
@@ -1081,16 +1316,21 @@ class AndroidTestResultsTableViewTest {
     val mockDataProvider = mock<DataProvider>()
     TestApplicationManager.getInstance().setDataProvider(mockDataProvider, disposableRule.disposable)
 
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val tableView = table.getTableViewForTesting()
 
-    table.addTestCase(device("deviceId1", "deviceName1"),
-                      AndroidTestCase("testid1", "myTestMethodName", "mytestclass", "mytestpackage"))
+    table.addTestCase(device("deviceId1", "deviceName1"), AndroidTestCase("testid1", "myTestMethodName", "mytestclass", "mytestpackage"))
 
     // Double click on the table.
-    val doubleClickEvent = MouseEvent(tableView, 0, 0, 0, 0, 0, /*clickCount=*/2, false)
+    val doubleClickEvent = MouseEvent(tableView, 0, 0, 0, 0, 0, /* clickCount= */ 2, false)
     tableView.mouseListeners.forEach { it.mouseClicked(doubleClickEvent) }
 
     // We cannot directly check whether or not the source code is opened, so we test it indirectly
@@ -1102,9 +1342,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun expandAllAndCollapseAllAction() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     table.addDevice(device1)
     table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1"))
@@ -1141,9 +1387,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun navigateToPrevAndNextFailedTestAction() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     table.addDevice(device1)
     table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.FAILED))
@@ -1161,19 +1413,25 @@ class AndroidTestResultsTableViewTest {
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
     nextFailedTestAction.actionPerformed(mockActionEvent)
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
-    nextFailedTestAction.actionPerformed(mockActionEvent)  // No more next failed tests so nothing happens.
+    nextFailedTestAction.actionPerformed(mockActionEvent) // No more next failed tests so nothing happens.
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class2.method1")
     prevFailedTestAction.actionPerformed(mockActionEvent)
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
-    prevFailedTestAction.actionPerformed(mockActionEvent)  // No more prev failed tests so nothing happens.
+    prevFailedTestAction.actionPerformed(mockActionEvent) // No more prev failed tests so nothing happens.
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
   }
 
   @Test
   fun setTestSuiteResult() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     table.addDevice(device1)
@@ -1198,9 +1456,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setTestResultStatsForListOfDevices() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -1218,7 +1482,8 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1, device2))).isEqualTo("2/2")
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1))).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device2))).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1, device2))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1, device2)))
+      .isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1)).passed).isEqualTo(1)
     assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device2)).passed).isEqualTo(1)
     assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1, device2)).passed).isEqualTo(2)
@@ -1226,9 +1491,15 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun countSkippedTestCases() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
 
     table.addDevice(device1)
@@ -1246,21 +1517,26 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun selectAndroidTestCase() {
-    val table = AndroidTestResultsTableView(
-      mockListener, projectRule.project, mockModule, mockLogger, mockAndroidTestResultsUserPreferencesManager,
-      mockTestResultsPsiElementProvider)
+    val table =
+      AndroidTestResultsTableView(
+        mockListener,
+        projectRule.project,
+        mockModule,
+        mockLogger,
+        mockAndroidTestResultsUserPreferencesManager,
+        mockTestResultsPsiElementProvider,
+      )
     val device1 = device("deviceId1", "deviceName1")
     table.addDevice(device1)
 
-    val testCases = arrayOf(
-      AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.FAILED),
-      AndroidTestCase("testid2", "method2", "class1", "package1", AndroidTestCaseResult.PASSED),
-      AndroidTestCase("testid3", "method1", "class2", "package1", AndroidTestCaseResult.FAILED)
-    )
+    val testCases =
+      arrayOf(
+        AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.FAILED),
+        AndroidTestCase("testid2", "method2", "class1", "package1", AndroidTestCaseResult.PASSED),
+        AndroidTestCase("testid3", "method1", "class2", "package1", AndroidTestCaseResult.FAILED),
+      )
 
-    testCases.forEach {
-      table.addTestCase(device1, it)
-    }
+    testCases.forEach { table.addTestCase(device1, it) }
 
     val tableView = table.getTableViewForTesting()
 

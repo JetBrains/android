@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
-import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.intellij.ide.actionsOnSave.ActionOnSaveContext
 import com.intellij.ide.actionsOnSave.ActionOnSaveInfo
 import com.intellij.ide.actionsOnSave.ActionOnSaveInfoProvider
@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.ui.components.ActionLink
 
 class LiveEditOnSaveInfo(context: ActionOnSaveContext) : ActionOnSaveInfo(context) {
-  private val liveEditUiKey : Key<Boolean> = Key("Live Edit On Save Info")
+  private val liveEditUiKey: Key<Boolean> = Key("Live Edit On Save Info")
 
   override fun apply() {
     val ui = isActionOnSaveEnabled
@@ -39,7 +39,8 @@ class LiveEditOnSaveInfo(context: ActionOnSaveContext) : ActionOnSaveInfo(contex
   }
 
   override fun isModified(): Boolean {
-    // TODO(b/291643741) Replace with the following commented out line when Live Edit settings page can refresh based on Actions on Save settings.
+    // TODO(b/291643741) Replace with the following commented out line when Live Edit settings page can refresh based on Actions on Save
+    // settings.
     // isActionOnSaveEnabled != settingInConfigurable()
     return false
   }

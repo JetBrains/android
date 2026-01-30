@@ -57,4 +57,3 @@ enum class Type(val typeId: Int, val size: Int, private val arrayName: String) {
     }
   }
 }
-

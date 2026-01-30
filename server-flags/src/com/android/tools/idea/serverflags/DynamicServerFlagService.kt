@@ -18,10 +18,7 @@ package com.android.tools.idea.serverflags
 import com.intellij.openapi.components.service
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 
-/**
- * Variation of [ServerFlagService] with the ability to update the flags and get the latest values
- * from server.
- */
+/** Variation of [ServerFlagService] with the ability to update the flags and get the latest values from server. */
 interface DynamicServerFlagService : ServerFlagService {
   @RequiresBackgroundThread fun updateFlags()
 

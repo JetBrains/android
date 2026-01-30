@@ -17,5 +17,4 @@ package com.android.tools.idea.device.explorer.monitor.mocks
 
 import com.android.tools.idea.device.explorer.monitor.processes.Device
 
-class MockDevice(override val name: String, override val serialNumber: String) : Device {
-}
+class MockDevice(override val name: String, override val serialNumber: String) : Device {}

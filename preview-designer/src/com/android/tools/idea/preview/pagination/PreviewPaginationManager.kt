@@ -28,16 +28,10 @@ interface PreviewPaginationManager {
   /** The number (0-indexed) of the currently selected page. */
   var selectedPage: Int
 
-  /**
-   * Returns the total number of currently available pages, or null if unknown yet due to some
-   * initializations still running.
-   */
+  /** Returns the total number of currently available pages, or null if unknown yet due to some initializations still running. */
   fun getTotalPages(): Int?
 
-  /**
-   * Returns the total number of elements available across all pages, or null if unknown yet due to
-   * some initializations still running.
-   */
+  /** Returns the total number of elements available across all pages, or null if unknown yet due to some initializations still running. */
   fun getTotalElements(): Int?
 
   companion object {

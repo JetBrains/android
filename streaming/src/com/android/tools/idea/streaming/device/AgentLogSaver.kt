@@ -35,10 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-/**
- * Obtains logcat output from the device and writes messages related to the screen sharing agent
- * to `screen_sharing_agent.log`.
- */
+/** Obtains logcat output from the device and writes messages related to the screen sharing agent to `screen_sharing_agent.log`. */
 internal object AgentLogSaver {
 
   val logFile: Path
@@ -60,17 +57,13 @@ internal object AgentLogSaver {
             writer.write("\n")
           }
         }
-      }
-      catch (e: CancellationException) {
+      } catch (e: CancellationException) {
         throw e
-      }
-      catch (e: EOFException) {
+      } catch (e: EOFException) {
         // Expected.
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         logger.warn("Unable to save logcat output", e)
-      }
-      finally {
+      } finally {
         logWriter?.close()
       }
     }

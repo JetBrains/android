@@ -22,12 +22,11 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Activity
 import org.jetbrains.android.dom.manifest.Application
 
-
-class AddActivityToManifest : AbstractRegisterComponentAction<Activity>(
-    text = "Add activity to manifest",
-    componentClassName = SdkConstants.CLASS_ACTIVITY,
-) {
+class AddActivityToManifest :
+    AbstractRegisterComponentAction<Activity>(text = "Add activity to manifest", componentClassName = SdkConstants.CLASS_ACTIVITY) {
     override fun Application.getCurrentComponents(): List<Activity> = activities
+
     override fun Application.addComponent(): Activity = addActivity()
+
     override fun Activity.getComponentClass(): AndroidAttributeValue<PsiClass> = activityClass
 }

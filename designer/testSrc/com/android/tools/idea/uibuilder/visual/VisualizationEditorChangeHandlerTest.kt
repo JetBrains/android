@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.EdtRule
+import javax.swing.JComponent
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -34,7 +35,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.JComponent
 
 @RunWith(JUnit4::class)
 class VisualizationEditorChangeHandlerTest {
@@ -46,37 +46,21 @@ class VisualizationEditorChangeHandlerTest {
   @Test
   fun testEditorChange() {
     val handler = SyncVisualizationEditorChangeHandler(TestVisualizationContentProvider)
-    val layoutFile =
-      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
-    val ktFile =
-      projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
 
     // The initial availability of tool window is false because there is no editor.
     val toolWindow = VisualizationTestToolWindow(projectRule.project).apply { isAvailable = false }
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
-    handler.onFileEditorChange(
-      FileEditorManager.getInstance(projectRule.project).selectedEditor,
-      projectRule.project,
-      toolWindow,
-    )
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    handler.onFileEditorChange(FileEditorManager.getInstance(projectRule.project).selectedEditor, projectRule.project, toolWindow)
     assertTrue(toolWindow.isAvailable)
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      projectRule.fixture.openFileInEditor(ktFile.virtualFile)
-    }
-    handler.onFileEditorChange(
-      FileEditorManager.getInstance(projectRule.project).selectedEditor,
-      projectRule.project,
-      toolWindow,
-    )
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
+    handler.onFileEditorChange(FileEditorManager.getInstance(projectRule.project).selectedEditor, projectRule.project, toolWindow)
     assertFalse(toolWindow.isAvailable)
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      projectRule.fixture.openFileInEditor(ktFile.virtualFile)
-    }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
     handler.onFileEditorChange(null, projectRule.project, toolWindow)
     assertFalse(toolWindow.isAvailable)
   }
@@ -84,39 +68,25 @@ class VisualizationEditorChangeHandlerTest {
   @Test
   fun testFileClose() {
     val handler = SyncVisualizationEditorChangeHandler(TestVisualizationContentProvider)
-    val layoutFile =
-      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
 
     // The initial availability of tool window is false because there is no editor.
     val toolWindow = VisualizationTestToolWindow(projectRule.project).apply { isAvailable = false }
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
-    handler.onFileEditorChange(
-      FileEditorManager.getInstance(projectRule.project).selectedEditor,
-      projectRule.project,
-      toolWindow,
-    )
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    handler.onFileEditorChange(FileEditorManager.getInstance(projectRule.project).selectedEditor, projectRule.project, toolWindow)
     assertTrue(toolWindow.isAvailable)
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
     }
-    handler.onFileClose(
-      FileEditorManager.getInstance(projectRule.project),
-      toolWindow,
-      layoutFile.virtualFile,
-    )
+    handler.onFileClose(FileEditorManager.getInstance(projectRule.project), toolWindow, layoutFile.virtualFile)
     assertFalse(toolWindow.isAvailable)
   }
 }
 
 object TestVisualizationContentProvider : VisualizationContentProvider {
-  override fun createVisualizationForm(
-    project: Project,
-    toolWindow: ToolWindow,
-  ): VisualizationContent {
+  override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationContent {
     val panel = object : JComponent(), VisualizationContent by TestVisualizationContent() {}
     with(toolWindow.contentManager) {
       val content = factory.createContent(panel, "Test Validation Tool", true)
@@ -134,8 +104,7 @@ class TestVisualizationContent : VisualizationContent {
 
   private var currentConfigurationSet: ConfigurationSet = ConfigurationSet.WindowSizeDevices
 
-  override fun setNextEditor(editor: FileEditor): Boolean =
-    getFolderType(editor.file) == ResourceFolderType.LAYOUT
+  override fun setNextEditor(editor: FileEditor): Boolean = getFolderType(editor.file) == ResourceFolderType.LAYOUT
 
   override fun fileClosed(editorManager: FileEditorManager, file: VirtualFile) = Unit
 

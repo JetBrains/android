@@ -29,11 +29,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
-fun getNativeSourceNodes(project: Project,
-                         ndkModuleModel: NdkModuleModel,
-                         settings: ViewSettings): Collection<AbstractTreeNode<*>> {
-  val module = ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)
-               ?: return emptyList() // the module could be missing in case user changes project structure and sync
+fun getNativeSourceNodes(project: Project, ndkModuleModel: NdkModuleModel, settings: ViewSettings): Collection<AbstractTreeNode<*>> {
+  val module =
+    ModuleManager.getInstance(project).findModuleByName(ndkModuleModel.moduleName)
+      ?: return emptyList() // the module could be missing in case user changes project structure and sync
   val ndkModel = ndkModuleModel.ndkModel
   return getContentRootBasedNativeNodes(module, settings)
 }

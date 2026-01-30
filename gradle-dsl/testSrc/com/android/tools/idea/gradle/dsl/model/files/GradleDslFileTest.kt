@@ -31,9 +31,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.utils.FileUtils.toSystemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class GradleDslFileTest : GradleFileModelTestCase() {
   @Test
@@ -51,8 +51,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     run {
       val files = buildModel.involvedFiles
       assertSize(5, files)
-      val expected = listOf(myBuildFile.path, mySubModuleBuildFile.path,
-                            myPropertiesFile.path, mySubModulePropertiesFile.path, myVersionCatalogFile.path)
+      val expected =
+        listOf(
+          myBuildFile.path,
+          mySubModuleBuildFile.path,
+          myPropertiesFile.path,
+          mySubModulePropertiesFile.path,
+          myVersionCatalogFile.path,
+        )
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
@@ -116,12 +122,13 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       assertSize(5, files)
       val fileParent = myBuildFile.parent
       val expected =
-        listOf(myBuildFile.path,
-               fileParent.findChild(a)!!.path,
-               fileParent.findChild(b)!!.path,
-               fileParent.findChild("gradle.properties")!!.path,
-               myVersionCatalogFile.path
-               )
+        listOf(
+          myBuildFile.path,
+          fileParent.findChild(a)!!.path,
+          fileParent.findChild(b)!!.path,
+          fileParent.findChild("gradle.properties")!!.path,
+          myVersionCatalogFile.path,
+        )
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
@@ -197,12 +204,10 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE("listPropertiesFromAppliedFilesAppliedFileOne"),
     LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO("listPropertiesFromAppliedFilesAppliedFileTwo"),
     APPLY_FROM_BLOCK("applyFromBlock"),
-    APPLY_FROM_BLOCK_APPLIED("applyFromBlockApplied"),
-    ;
+    APPLY_FROM_BLOCK_APPLIED("applyFromBlockApplied");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/gradleDslFile/$path", extension)
     }
   }
-
 }

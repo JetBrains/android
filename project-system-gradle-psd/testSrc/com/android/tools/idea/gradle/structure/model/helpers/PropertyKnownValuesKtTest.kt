@@ -35,8 +35,7 @@ import org.junit.Test
 @RunsInEdt
 class PropertyKnownValuesKtTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testBuildTypeMatchingFallbackValuesCore() {
@@ -46,7 +45,7 @@ class PropertyKnownValuesKtTest {
 
       assertThat(
         buildTypeMatchingFallbackValuesCore(project),
-        equalTo(listOf(ValueDescriptor("debug"), ValueDescriptor("release"), ValueDescriptor("specialRelease")))
+        equalTo(listOf(ValueDescriptor("debug"), ValueDescriptor("release"), ValueDescriptor("specialRelease"))),
       )
     }
   }
@@ -59,11 +58,11 @@ class PropertyKnownValuesKtTest {
 
       assertThat(
         productFlavorMatchingFallbackValuesCore(project, "foo"),
-        equalTo(listOf(ValueDescriptor("basic"), ValueDescriptor("paid")))
+        equalTo(listOf(ValueDescriptor("basic"), ValueDescriptor("paid"))),
       )
       assertThat(
         productFlavorMatchingFallbackValuesCore(project, "bar"),
-        equalTo(listOf(ValueDescriptor("bar"), ValueDescriptor("otherBar")))
+        equalTo(listOf(ValueDescriptor("bar"), ValueDescriptor("otherBar"))),
       )
     }
   }
@@ -72,29 +71,31 @@ class PropertyKnownValuesKtTest {
   fun testToVersionValueDescriptors() {
     val searchResults =
       listOf(
-        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
-        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
-        SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
-      ).combine()
+          SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
+          SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
+          SearchResult(listOf(), listOf(Exception("1"), Exception("2"))),
+        )
+        .combine()
 
     assertThat(
       searchResults.toVersionValueDescriptors(),
-      IsEqual.equalTo(
-        listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"), ValueDescriptor("0.9"))))
+      IsEqual.equalTo(listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"), ValueDescriptor("0.9"))),
+    )
   }
 
   @Test
   fun testToVersionValueDescriptorsWithMinimum() {
     val searchResults =
       listOf(
-        SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
-        SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
-        SearchResult(listOf(), listOf(Exception("1"), Exception("2")))
-      ).combine()
+          SearchResult(listOf(FoundArtifact("rep1", "group", "name", listOf(Version.parse("1.0"), Version.parse("1.1"))))),
+          SearchResult(listOf(FoundArtifact("rep2", "group", "name", listOf(Version.parse("1.0"), Version.parse("0.9"))))),
+          SearchResult(listOf(), listOf(Exception("1"), Exception("2"))),
+        )
+        .combine()
 
     assertThat(
       searchResults.toVersionValueDescriptors { it >= Version.parse("1.0") },
-      IsEqual.equalTo(
-        listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"))))
+      IsEqual.equalTo(listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"))),
+    )
   }
 }

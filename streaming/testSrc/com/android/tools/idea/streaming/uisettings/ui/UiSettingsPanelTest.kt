@@ -27,37 +27,37 @@ import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TestName
 import java.awt.Dimension
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JLabel
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 
 class UiSettingsPanelTest {
   private val nameRule = TestName()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(nameRule, disposableRule)
+  @get:Rule val ruleChain = RuleChain(nameRule, disposableRule)
 
   private lateinit var model: UiSettingsModel
   private lateinit var panel: UiSettingsPanel
   private lateinit var ui: FakeUi
   private var lastCommand: String = ""
   private val deviceTypeFromTestName: DeviceType
-    get() = when {
-      nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
-      nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
-      nameRule.methodName.endsWith("Tv") -> DeviceType.TV
-      nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
-      nameRule.methodName.endsWith("Xr") -> DeviceType.XR_HEADSET
-      else -> DeviceType.HANDHELD
-    }
+    get() =
+      when {
+        nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
+        nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
+        nameRule.methodName.endsWith("Tv") -> DeviceType.TV
+        nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
+        nameRule.methodName.endsWith("Xr") -> DeviceType.XR_HEADSET
+        else -> DeviceType.HANDHELD
+      }
 
   @Before
   fun before() {

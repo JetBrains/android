@@ -29,29 +29,14 @@ class DesignerCommonIssueNodeComparatorTest {
   fun testSortedBySeverityOnly() {
     val fileName = TestNode()
 
-    val node1 =
-      IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
-    val node2 =
-      IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
-    val node3 =
-      IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
-    val node4 =
-      IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
-    val node5 =
-      IssueNode(
-        null,
-        TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
-    val node6 =
-      IssueNode(
-        null,
-        TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
+    val node1 = IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
+    val node2 = IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
+    val node3 = IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
+    val node4 = IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
+    val node5 = IssueNode(null, TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION), fileName)
+    val node6 = IssueNode(null, TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION), fileName)
 
-    val comparator =
-      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = false)
+    val comparator = DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = false)
 
     val sorted = listOf(node5, node3, node4, node6, node2, node1).sortedWith(comparator)
     assertEquals(listOf(node2, node1, node3, node4, node5, node6), sorted)
@@ -60,29 +45,14 @@ class DesignerCommonIssueNodeComparatorTest {
   @Test
   fun testSortedByNameOnly() {
     val fileName = TestNode()
-    val node1 =
-      IssueNode(null, TestIssue(summary = "xxx", severity = HighlightSeverity.ERROR), fileName)
-    val node2 =
-      IssueNode(null, TestIssue(summary = "zzz", severity = HighlightSeverity.ERROR), fileName)
-    val node3 =
-      IssueNode(null, TestIssue(summary = "XXX", severity = HighlightSeverity.WARNING), fileName)
-    val node4 =
-      IssueNode(null, TestIssue(summary = "ZZZ", severity = HighlightSeverity.WARNING), fileName)
-    val node5 =
-      IssueNode(
-        null,
-        TestIssue(summary = "xxX", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
-    val node6 =
-      IssueNode(
-        null,
-        TestIssue(summary = "zzZ", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
+    val node1 = IssueNode(null, TestIssue(summary = "xxx", severity = HighlightSeverity.ERROR), fileName)
+    val node2 = IssueNode(null, TestIssue(summary = "zzz", severity = HighlightSeverity.ERROR), fileName)
+    val node3 = IssueNode(null, TestIssue(summary = "XXX", severity = HighlightSeverity.WARNING), fileName)
+    val node4 = IssueNode(null, TestIssue(summary = "ZZZ", severity = HighlightSeverity.WARNING), fileName)
+    val node5 = IssueNode(null, TestIssue(summary = "xxX", severity = HighlightSeverity.INFORMATION), fileName)
+    val node6 = IssueNode(null, TestIssue(summary = "zzZ", severity = HighlightSeverity.INFORMATION), fileName)
 
-    val comparator =
-      DesignerCommonIssueNodeComparator(sortedBySeverity = false, sortedByName = true)
+    val comparator = DesignerCommonIssueNodeComparator(sortedBySeverity = false, sortedByName = true)
 
     val sorted = listOf(node5, node3, node4, node6, node2, node1).sortedWith(comparator)
     assertEquals(listOf(node1, node5, node3, node2, node6, node4), sorted)
@@ -91,26 +61,12 @@ class DesignerCommonIssueNodeComparatorTest {
   @Test
   fun testSortedBySeverityAndName() {
     val fileName = TestNode()
-    val node1 =
-      IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
-    val node2 =
-      IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
-    val node3 =
-      IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
-    val node4 =
-      IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
-    val node5 =
-      IssueNode(
-        null,
-        TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
-    val node6 =
-      IssueNode(
-        null,
-        TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
+    val node1 = IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
+    val node2 = IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
+    val node3 = IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
+    val node4 = IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
+    val node5 = IssueNode(null, TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION), fileName)
+    val node6 = IssueNode(null, TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION), fileName)
 
     val comparator = DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
 
@@ -121,29 +77,14 @@ class DesignerCommonIssueNodeComparatorTest {
   @Test
   fun testNotSorted() {
     val fileName = TestNode()
-    val node1 =
-      IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
-    val node2 =
-      IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
-    val node3 =
-      IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
-    val node4 =
-      IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
-    val node5 =
-      IssueNode(
-        null,
-        TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
-    val node6 =
-      IssueNode(
-        null,
-        TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION),
-        fileName,
-      )
+    val node1 = IssueNode(null, TestIssue(summary = "aaa", severity = HighlightSeverity.ERROR), fileName)
+    val node2 = IssueNode(null, TestIssue(summary = "AAA", severity = HighlightSeverity.ERROR), fileName)
+    val node3 = IssueNode(null, TestIssue(summary = "bbb", severity = HighlightSeverity.WARNING), fileName)
+    val node4 = IssueNode(null, TestIssue(summary = "BBB", severity = HighlightSeverity.WARNING), fileName)
+    val node5 = IssueNode(null, TestIssue(summary = "ccc", severity = HighlightSeverity.INFORMATION), fileName)
+    val node6 = IssueNode(null, TestIssue(summary = "CCC", severity = HighlightSeverity.INFORMATION), fileName)
 
-    val comparator =
-      DesignerCommonIssueNodeComparator(sortedBySeverity = false, sortedByName = false)
+    val comparator = DesignerCommonIssueNodeComparator(sortedBySeverity = false, sortedByName = false)
 
     val original = listOf(node5, node3, node4, node6, node2, node1)
     val sorted = original.sortedWith(comparator)
@@ -177,13 +118,11 @@ class IssueNodeSeverityComparatorTest {
 
     val errorNode2 = IssueNode(null, TestIssue(severity = HighlightSeverity.ERROR), null)
     val warningNode2 = IssueNode(null, TestIssue(severity = HighlightSeverity.WARNING), null)
-    val informationNode2 =
-      IssueNode(null, TestIssue(severity = HighlightSeverity.INFORMATION), null)
+    val informationNode2 = IssueNode(null, TestIssue(severity = HighlightSeverity.INFORMATION), null)
 
     assertEquals(
       listOf(errorNode, errorNode2, warningNode, warningNode2, informationNode, informationNode2),
-      listOf(warningNode, informationNode, informationNode2, errorNode, warningNode2, errorNode2)
-        .sortedWith(IssueNodeSeverityComparator),
+      listOf(warningNode, informationNode, informationNode2, errorNode, warningNode2, errorNode2).sortedWith(IssueNodeSeverityComparator),
     )
   }
 }
@@ -212,10 +151,7 @@ class IssueNodeNameComparatorTest {
     assertTrue(IssueNodeNameComparator.compare(nodeA, nodeAUpperCase) < 0)
     assertTrue(IssueNodeNameComparator.compare(nodeAUpperCase, nodeA) > 0)
 
-    assertEquals(
-      listOf(nodeA, nodeAUpperCase, nodeB),
-      listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator),
-    )
+    assertEquals(listOf(nodeA, nodeAUpperCase, nodeB), listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator))
   }
 }
 
@@ -237,18 +173,13 @@ class PreprocessNodeComparatorTest {
     assertEquals(1, PreprocessNodeComparator.compare(nodeB, nodeA))
 
     val unsortedList = listOf(nodeA, nodeB, nodeAUpperCase).shuffled()
-    assertEquals(
-      listOf(nodeAUpperCase, nodeA, nodeB),
-      unsortedList.sortedWith(PreprocessNodeComparator),
-    )
+    assertEquals(listOf(nodeAUpperCase, nodeA, nodeB), unsortedList.sortedWith(PreprocessNodeComparator))
   }
 
   @Test
   fun testSortingATFIssues() {
-    val atfNodeA =
-      TestIssueNode(NlAtfIssue(createIssueValidatorData("EditableContentDescCheck"), mock(), null))
-    val atfNodeB =
-      TestIssueNode(NlAtfIssue(createIssueValidatorData("ImageContrastCheck"), mock(), null))
+    val atfNodeA = TestIssueNode(NlAtfIssue(createIssueValidatorData("EditableContentDescCheck"), mock(), null))
+    val atfNodeB = TestIssueNode(NlAtfIssue(createIssueValidatorData("ImageContrastCheck"), mock(), null))
     val otherNode = TestNode("other")
 
     // Basic cases
@@ -258,10 +189,7 @@ class PreprocessNodeComparatorTest {
 
     val unsortedList = listOf(atfNodeA, atfNodeB, otherNode).shuffled()
 
-    assertEquals(
-      listOf(atfNodeA, atfNodeB, otherNode),
-      unsortedList.sortedWith(PreprocessNodeComparator),
-    )
+    assertEquals(listOf(atfNodeA, atfNodeB, otherNode), unsortedList.sortedWith(PreprocessNodeComparator))
   }
 }
 

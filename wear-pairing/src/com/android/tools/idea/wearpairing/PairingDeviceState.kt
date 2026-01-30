@@ -17,9 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.AndroidVersion
 
-/**
- * Used to persist Pairing Device State. Class fields need default values to allow serialization.
- */
+/** Used to persist Pairing Device State. Class fields need default values to allow serialization. */
 data class PairingDeviceState(
   var deviceID: String = "?",
   var displayName: String = "?",

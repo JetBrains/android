@@ -37,15 +37,10 @@ class AddActionToolbarAction private constructor() : AnAction() {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface
     val selection = surface?.selectionModel?.selection
 
-    e.presentation.isEnabled =
-      selection?.singleOrNull()?.let { supportsSubtag(selection[0], NavActionElement::class.java) }
-        ?: false
+    e.presentation.isEnabled = selection?.singleOrNull()?.let { supportsSubtag(selection[0], NavActionElement::class.java) } ?: false
   }
 
-  private fun supportsSubtag(
-    component: NlComponent,
-    subtag: Class<out AndroidDomElement>,
-  ): Boolean {
+  private fun supportsSubtag(component: NlComponent, subtag: Class<out AndroidDomElement>): Boolean {
     val model = component.model
     val schema = NavigationSchema.get(model.module)
     return schema.getDestinationSubtags(component.tagName).containsKey(subtag)
@@ -54,8 +49,7 @@ class AddActionToolbarAction private constructor() : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface ?: return
     surface.selectionModel.selection.firstOrNull()?.let {
-      val dialog =
-        AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it, NavEditorEvent.Source.TOOLBAR)
+      val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, it, NavEditorEvent.Source.TOOLBAR)
       showAndUpdateFromDialog(dialog, surface, false)
     }
   }
@@ -63,8 +57,6 @@ class AddActionToolbarAction private constructor() : AnAction() {
   companion object {
     @JvmStatic
     val instance: AddActionToolbarAction
-      get() =
-        ActionManager.getInstance().getAction(DesignerActions.ACTION_ADD_ACTION)
-          as AddActionToolbarAction
+      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ADD_ACTION) as AddActionToolbarAction
   }
 }

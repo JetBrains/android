@@ -25,9 +25,10 @@ import org.junit.Test
 class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
   @Test
   fun testVersionRefCompletionInLibraries() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -35,8 +36,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version.ref = "a$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -45,9 +47,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testVersionRefCompletionInPlugins() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -58,8 +61,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [plugins]
         application = { module = "com.android.tools.build:gradle", version.ref = "a$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -68,9 +72,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testRefCompletionInLibraries() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -78,8 +83,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version = { ref = "a$caret" } }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -88,9 +94,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testRefCompletionInPlugins() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -101,8 +108,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [plugins]
         application = { module = "com.android.tools.build:gradle", version = { ref = "a$caret" } }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -111,9 +119,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testNoRefCompletionWithoutVersion() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -121,8 +130,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", foo = { ref = "a$caret" } }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -131,9 +141,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testNoCompletionInFoo() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -141,8 +152,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [foo]
         compat = { module = "androidx.appcompat:appcompat", version.ref = "a$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -151,9 +163,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testCompletionForVersionsToml() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/deps.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/deps.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -161,8 +174,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version.ref = "a$caret" }
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -171,9 +185,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testSuggestionsForBundle() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         agp = "7.1.2"
         appcompat = "1.4.0"
@@ -184,8 +199,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [bundles]
         core = [ "a$caret" ]
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -194,16 +210,18 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testCompletionForBundle() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
 
         [bundles]
         core = [ "c$caret" ]
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -212,9 +230,10 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testSuggestionsForExistingBundle() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [versions]
         appcompat = "1.4.0"
         compose = "0.1.2"
@@ -226,8 +245,9 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
         [bundles]
         core = [ "c$caret", "compat" ]
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
@@ -236,21 +256,22 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
 
   @Test
   fun testCompletionForExistingBundle() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
+    val tomlFile =
+      myFixture.addFileToProject(
+        "gradle/libs.versions.toml",
+        """
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version = "1.4.0" }
         compose = { module = "androidx.appcompat:compose", version.ref = "0.1.2" }
 
         [bundles]
         core = [ "c$caret", "compat" ]
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
     Truth.assertThat(myFixture.file.text).contains("core = [ \"compose\", \"compat\" ]")
   }
-
 }

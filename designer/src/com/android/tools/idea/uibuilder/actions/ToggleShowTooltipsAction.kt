@@ -22,8 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
 import com.intellij.util.ui.LafIconLookup
 
-class ToggleShowTooltipsAction(label: String = "Show Tooltips") :
-  ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
+class ToggleShowTooltipsAction(label: String = "Show Tooltips") : ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
 
   override fun isSelected(
     editor: ViewEditor,

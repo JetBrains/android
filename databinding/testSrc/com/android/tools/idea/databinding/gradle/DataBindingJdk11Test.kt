@@ -32,8 +32,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * In JDK9, the IntelliJ logic around resolving packages changed, requiring a backing directory.
- * This test makes sure our changes to support that work.
+ * In JDK9, the IntelliJ logic around resolving packages changed, requiring a backing directory. This test makes sure our changes to support
+ * that work.
  *
  * See the project's build.gradle file, which targets JDK11.
  */
@@ -47,8 +47,7 @@ class DataBindingJdk11Test {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -72,8 +71,7 @@ class DataBindingJdk11Test {
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    val mainActivityFile =
-      fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
+    val mainActivityFile = fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
 
     fixture.configureFromExistingVirtualFile(mainActivityFile)
     fixture.checkHighlighting(false, false, false)

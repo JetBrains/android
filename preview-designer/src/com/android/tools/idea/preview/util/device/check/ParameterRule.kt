@@ -40,8 +40,7 @@ internal abstract class ParameterRule {
   abstract fun checkValue(value: String, dataProvider: DataProvider): Boolean
 
   /**
-   * Returns a valid String based off [value]. [value] is the original parameter input, and it's
-   * guaranteed to have failed [checkValue].
+   * Returns a valid String based off [value]. [value] is the original parameter input, and it's guaranteed to have failed [checkValue].
    *
    * Returns null if it's not possible to fix the original [value].
    *
@@ -49,18 +48,12 @@ internal abstract class ParameterRule {
    */
   abstract fun attemptFix(value: String, dataProvider: DataProvider): String?
 
-  /**
-   * Returns a valid String for the given [value], either by the result of [attemptFix] or using
-   * [defaultValue].
-   */
-  fun getFixedOrDefaultValue(value: String, dataProvider: DataProvider): String =
-    attemptFix(value, dataProvider) ?: defaultValue
+  /** Returns a valid String for the given [value], either by the result of [attemptFix] or using [defaultValue]. */
+  fun getFixedOrDefaultValue(value: String, dataProvider: DataProvider): String = attemptFix(value, dataProvider) ?: defaultValue
 
   companion object {
 
-    /**
-     * Basic implementation of [ParameterRule], does not attempt to fix any given value for [name].
-     */
+    /** Basic implementation of [ParameterRule], does not attempt to fix any given value for [name]. */
     fun simpleParameterRule(
       name: String,
       expectedType: ExpectedValueType,
@@ -72,8 +65,7 @@ internal abstract class ParameterRule {
         override val defaultValue: String = defaultValue
         override val expectedType: ExpectedValueType = expectedType
 
-        override fun checkValue(value: String, dataProvider: DataProvider): Boolean =
-          valueCheck(value)
+        override fun checkValue(value: String, dataProvider: DataProvider): Boolean = valueCheck(value)
 
         override fun attemptFix(value: String, dataProvider: DataProvider): String? = null
       }

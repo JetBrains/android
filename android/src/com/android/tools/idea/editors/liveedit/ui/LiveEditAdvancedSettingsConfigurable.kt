@@ -27,10 +27,9 @@ import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle
 
-
-class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
-  AndroidBundle.message("live.edit.advanced.settings.configurable.display.name"), "android.live.edit"
-), Configurable.NoScroll {
+class LiveEditAdvancedSettingsConfigurable :
+  BoundSearchableConfigurable(AndroidBundle.message("live.edit.advanced.settings.configurable.display.name"), "android.live.edit"),
+  Configurable.NoScroll {
   override fun createPanel(): DialogPanel {
     val liveEditSettings = LiveEditAdvancedConfiguration.getInstance()
 
@@ -47,17 +46,16 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
           .comment(AndroidBundle.message("live.edit.configurable.enable.allow.structural.redefinition.comment"))
       }
       row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
-        intTextField(LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE)
-          .bindIntText(liveEditSettings::refreshRateMs)
-          .columns(4)
+        intTextField(LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE).bindIntText(liveEditSettings::refreshRateMs).columns(4)
         comment(AndroidBundle.message("live.edit.configurable.refresh.rate.comment"))
       }
     }
   }
 }
 
-class LiveEditAdvancedSettingsConfigurableProvider: ConfigurableProvider() {
-  override fun createConfigurable(): Configurable? = if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU.get()) LiveEditAdvancedSettingsConfigurable() else null
+class LiveEditAdvancedSettingsConfigurableProvider : ConfigurableProvider() {
+  override fun createConfigurable(): Configurable? =
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU.get()) LiveEditAdvancedSettingsConfigurable() else null
 
   override fun canCreateConfigurable(): Boolean {
     return StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU.get()

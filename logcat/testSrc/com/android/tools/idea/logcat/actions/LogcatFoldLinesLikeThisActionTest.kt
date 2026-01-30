@@ -33,8 +33,7 @@ class LogcatFoldLinesLikeThisActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor

@@ -65,10 +65,7 @@ class FakeSqliteResultSet(
   override fun dispose() {}
 
   fun insertRowAtIndex(index: Int, value: Int) {
-    rows.add(
-      index,
-      SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) }),
-    )
+    rows.add(index, SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) }))
   }
 
   fun deleteRowAtIndex(index: Int) {

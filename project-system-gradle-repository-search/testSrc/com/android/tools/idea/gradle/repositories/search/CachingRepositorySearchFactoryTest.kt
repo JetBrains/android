@@ -58,8 +58,8 @@ class CachingRepositorySearchFactoryTest {
     module1Repos.search(SearchRequest(ArbitraryModulesSearchQuery("group", "name"), 10, 0))
     module2Repos.search(SearchRequest(ArbitraryModulesSearchQuery("group", "name"), 10, 0))
 
-      Assert.assertThat(a1Searched, CoreMatchers.equalTo(1))
-      Assert.assertThat(a2Searched, CoreMatchers.equalTo(0))
-      Assert.assertThat(b2Searched, CoreMatchers.equalTo(1))
+    Assert.assertThat(a1Searched, CoreMatchers.equalTo(1))
+    Assert.assertThat(a2Searched, CoreMatchers.equalTo(0))
+    Assert.assertThat(b2Searched, CoreMatchers.equalTo(1))
   }
 }

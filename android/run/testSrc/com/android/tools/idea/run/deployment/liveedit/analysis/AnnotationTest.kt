@@ -18,20 +18,19 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class AnnotationTest {
   private var projectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -46,23 +45,30 @@ class AnnotationTest {
 
   @Test
   fun testAnnotationWithEnumParams() {
-    val file = projectRule.createKtFile("A.kt", """
+    val file =
+      projectRule.createKtFile(
+        "A.kt",
+        """
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.A)
         val field: Int = 0
-      }""")
+      }""",
+      )
 
     val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    projectRule.modifyKtFile(file, """
+    projectRule.modifyKtFile(
+      file,
+      """
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.B)
         val field: Int = 0
-      }""")
+      }""",
+    )
 
     val new = projectRule.directApiCompileIr(file)["A"]!!
 

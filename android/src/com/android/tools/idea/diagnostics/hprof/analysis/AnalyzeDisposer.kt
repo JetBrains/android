@@ -39,16 +39,16 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
   private var prepareException: Exception? = null
 
-  data class Grouping(val childClass: ClassDefinition,
-                      val parentClass: ClassDefinition?,
-                      val rootClass: ClassDefinition)
+  data class Grouping(val childClass: ClassDefinition, val parentClass: ClassDefinition?, val rootClass: ClassDefinition)
 
   class InstanceStats {
     private val parentIds = LongArrayList()
     private val rootIds = LongOpenHashSet()
 
     fun parentCount() = LongOpenHashSet(parentIds).count()
+
     fun rootCount() = rootIds.count()
+
     fun objectCount() = parentIds.count()
 
     fun registerObject(parentId: Long, rootId: Long) {
@@ -60,9 +60,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
   data class DisposedDominatorReportEntry(val classDefinition: ClassDefinition, val count: Long, val size: Long)
 
   companion object {
-    val TOP_REPORTED_CLASSES = setOf(
-      "com.intellij.openapi.project.impl.ProjectImpl"
-    )
+    val TOP_REPORTED_CLASSES = setOf("com.intellij.openapi.project.impl.ProjectImpl")
   }
 
   fun prepareDisposerChildren() {
@@ -81,25 +79,21 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
       when {
         // current implementation of Disposer (object->parent mapping)
-        objectTreeClass.hasRefField("myObject2ParentNode") ->
-          getDisposerParentToChildrenFromMyObject2ParentNode(result)
+        objectTreeClass.hasRefField("myObject2ParentNode") -> getDisposerParentToChildrenFromMyObject2ParentNode(result)
 
         // handles old Disposer implementations
-        objectTreeClass.hasRefField("myObject2NodeMap") ->
-          getDisposerParentToChildrenFromMyObject2NodeMapField(result)
+        objectTreeClass.hasRefField("myObject2NodeMap") -> getDisposerParentToChildrenFromMyObject2NodeMapField(result)
       }
 
       // trim the result
       result.values.forEach(IntArrayList::trim)
       result.trim()
-    } catch (ex : Exception) {
+    } catch (ex: Exception) {
       prepareException = ex
     }
   }
 
-  private fun getDisposerParentToChildrenFromMyObject2ParentNode(
-    result: Int2ObjectOpenHashMap<IntArrayList>
-  ) {
+  private fun getDisposerParentToChildrenFromMyObject2ParentNode(result: Int2ObjectOpenHashMap<IntArrayList>) {
     val nav = analysisContext.navigator
     nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
     nav.goToInstanceField(null, "myObject2ParentNode")
@@ -113,8 +107,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val childId = keys.getLong(i)
       val parentObjectNodeObjectId = values.getLong(i)
 
-      if (childId == 0L || parentObjectNodeObjectId == 0L)
-        continue
+      if (childId == 0L || parentObjectNodeObjectId == 0L) continue
 
       nav.goTo(parentObjectNodeObjectId)
       val parentId = nav.getInstanceFieldObjectId(null, "myObject")
@@ -123,9 +116,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
   }
 
-  private fun getDisposerParentToChildrenFromMyObject2NodeMapField(
-    result: Int2ObjectOpenHashMap<IntArrayList>
-  ) {
+  private fun getDisposerParentToChildrenFromMyObject2NodeMapField(result: Int2ObjectOpenHashMap<IntArrayList>) {
     val nav = analysisContext.navigator
 
     goToArrayOfDisposableObjectNodes(nav)
@@ -138,10 +129,10 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val childId = nav.getInstanceFieldObjectId(null, "myObject")
       nav.goTo(objectNodeParentId)
 
-        val parentId = if (nav.isNull()) {
+      val parentId =
+        if (nav.isNull()) {
           0L
-        }
-        else {
+        } else {
           nav.getInstanceFieldObjectId(null, "myObject")
         }
 
@@ -162,8 +153,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     nav.goToInstanceField(null, "myObject2NodeMap")
     if (nav.getClass().name == "gnu.trove.THashMap") {
       nav.goToInstanceField("gnu.trove.THashMap", "_values")
-    }
-    else {
+    } else {
       nav.goToInstanceField("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", "value")
     }
     if (nav.isNull()) {
@@ -175,15 +165,19 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
   }
 
   private fun verifyClassIsObjectNode(clazzObjectTree: ClassDefinition) {
-    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectNode" &&
-        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectNode") {
+    if (
+      clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectNode" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectNode"
+    ) {
       throw ObjectNavigator.NavigationException("Wrong type, expected ObjectNode: ${clazzObjectTree.name}")
     }
   }
 
   private fun verifyClassIsObjectTree(clazzObjectTree: ClassDefinition) {
-    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
-        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree") {
+    if (
+      clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree"
+    ) {
       throw ObjectNavigator.NavigationException("Wrong type, expected ObjectTree: ${clazzObjectTree.name}")
     }
   }
@@ -197,18 +191,24 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     fun equals(other: DisposerNode): Boolean = className == other.className
 
     override fun equals(other: Any?): Boolean = other != null && other is DisposerNode && equals(other)
+
     override fun hashCode() = className.hashCode()
+
     override fun description(): String = "[$subtreeSize] $count $className"
+
     override fun children(): Collection<TreeNode> = children.values.sortedByDescending { it.subtreeSize }
 
     fun addInstance() {
-       count++
+      count++
     }
 
     fun getChildForClassName(name: String): DisposerNode = children.getOrPut(name, { DisposerNode(name) })
   }
 
-  private enum class SubTreeUpdaterOperation  { PROCESS_CHILDREN, UPDATE_SIZE }
+  private enum class SubTreeUpdaterOperation {
+    PROCESS_CHILDREN,
+    UPDATE_SIZE,
+  }
 
   fun prepareDisposerTreeSummarySection(options: AnalysisConfig.DisposerTreeSummaryOptions): String = buildString {
     TruncatingPrintBuffer(options.headLimit, 0, this::appendLine).use { buffer ->
@@ -229,7 +229,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val topLevelObjectIds = IntOpenHashSet(analysisContext.disposerParentToChildren.keys)
       analysisContext.disposerParentToChildren.values.forEach { set -> topLevelObjectIds.removeAll(set) }
       try {
-       val rootNode = DisposerNode("<root>")
+        val rootNode = DisposerNode("<root>")
 
         data class StackObject(val node: DisposerNode, val childrenIds: IntCollection)
 
@@ -240,20 +240,22 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           val (currentNode, childrenIds) = stack.pop()
 
           val nodeToChildren = HashMap<DisposerNode, IntArrayList>()
-          childrenIds.forEach(IntConsumer {
-            val childNode: DisposerNode
-            if (it == 0) {
-              childNode = rootNode
-            } else {
-              val childClassName = nav.getClassForObjectId(it.toLong()).name
-              childNode = currentNode.getChildForClassName(childClassName)
+          childrenIds.forEach(
+            IntConsumer {
+              val childNode: DisposerNode
+              if (it == 0) {
+                childNode = rootNode
+              } else {
+                val childClassName = nav.getClassForObjectId(it.toLong()).name
+                childNode = currentNode.getChildForClassName(childClassName)
+              }
+              childNode.addInstance()
+              val tIntArrayList = objectId2Children[it]
+              if (tIntArrayList != null) {
+                nodeToChildren.getOrPut(childNode) { IntArrayList() }.addAll(tIntArrayList)
+              }
             }
-            childNode.addInstance()
-            val tIntArrayList = objectId2Children[it]
-            if (tIntArrayList != null) {
-              nodeToChildren.getOrPut(childNode) { IntArrayList() }.addAll(tIntArrayList)
-            }
-          })
+          )
           nodeToChildren.forEach { (node, children) -> stack.push(StackObject(node, children)) }
         }
 
@@ -272,8 +274,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
             currentNode.children.values.forEach {
               nodeStack.push(SubtreeSizeUpdateStackObject(it, SubTreeUpdaterOperation.PROCESS_CHILDREN))
             }
-          }
-          else {
+          } else {
             assert(operation == SubTreeUpdaterOperation.UPDATE_SIZE)
 
             currentNode.children.values.forEach { currentNode.subtreeSize += it.subtreeSize }
@@ -289,8 +290,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           visualizer.visualizeTree(it, buffer, analysisContext.config.disposerOptions.disposerTreeSummaryOptions)
           buffer.println()
         }
-      }
-      catch (ex: Exception) {
+      } catch (ex: Exception) {
         buffer.println(ExceptionUtil.getThrowableText(ex))
       }
     }
@@ -336,7 +336,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         val leakId = nav.id.toInt()
         disposedObjectsIDs.add(leakId)
       }
-    } catch (navEx : ObjectNavigator.NavigationException) {
+    } catch (navEx: ObjectNavigator.NavigationException) {
       prepareException = navEx
     }
   }
@@ -373,9 +373,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           .sortedByDescending { it.intValue }
           .partition { TOP_REPORTED_CLASSES.contains(it.key.name) }
           .let { it.first + it.second }
-          .forEach { entry ->
-            buffer.println("  ${entry.intValue} ${entry.key.prettyName}")
-          }
+          .forEach { entry -> buffer.println("  ${entry.intValue} ${entry.key.prettyName}") }
       }
       appendLine()
     }
@@ -399,44 +397,40 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       allDominatorsCount += dominatorClassInstanceCount
       allDominatorsSubgraphSize += dominatorClassSubgraphSize
       disposedDominatorClassSizeList.add(
-        DisposedDominatorReportEntry(classDefinition, dominatorClassInstanceCount, dominatorClassSubgraphSize))
+        DisposedDominatorReportEntry(classDefinition, dominatorClassInstanceCount, dominatorClassSubgraphSize)
+      )
     }
 
     if (disposerOptions.includeDisposedObjectsSummary) {
       TruncatingPrintBuffer(30, 0, this::appendLine).use { buffer ->
         buffer.println("Disposed-but-strong-referenced dominator object count: $allDominatorsCount")
-        buffer.println(
-          "Disposed-but-strong-referenced dominator sub-graph size: ${toShortStringAsSize(allDominatorsSubgraphSize)}")
+        buffer.println("Disposed-but-strong-referenced dominator sub-graph size: ${toShortStringAsSize(allDominatorsSubgraphSize)}")
         disposedDominatorClassSizeList
           .sortedBy { it.classDefinition.name }
           .sortedByDescending { it.size }
           .forEach { entry ->
             buffer.println(
-              "  ${toPaddedShortStringAsSize(entry.size)} - ${toShortStringAsCount(entry.count)} ${entry.classDefinition.name}")
+              "  ${toPaddedShortStringAsSize(entry.size)} - ${toShortStringAsCount(entry.count)} ${entry.classDefinition.name}"
+            )
           }
       }
       appendLine()
     }
 
     if (disposerOptions.includeDisposedObjectsDetails) {
-      val instancesListInOrder = getInstancesListInPriorityOrder(
-        leakedInstancesByClass,
-        disposedDominatorClassSizeList
-      )
+      val instancesListInOrder = getInstancesListInPriorityOrder(leakedInstancesByClass, disposedDominatorClassSizeList)
 
       TruncatingPrintBuffer(700, 0, this::appendLine).use { buffer ->
-        instancesListInOrder
-          .forEach { instances ->
-            // Pick first instance to get class name
-            nav.goTo(instances.getLong(0))
-            buffer.println(
-              "Disposed but still strong-referenced objects: ${instances.count()} ${nav.getClass().prettyName}, most common paths from GC-roots:")
-            val gcRootPathsTree = GCRootPathsTree(analysisContext, disposerOptions.disposedObjectsDetailsTreeDisplayOptions, nav.getClass())
-            instances.forEach { leakId ->
-              gcRootPathsTree.registerObject(leakId.toInt())
-            }
-            gcRootPathsTree.printTree().lineSequence().forEach(buffer::println)
-          }
+        instancesListInOrder.forEach { instances ->
+          // Pick first instance to get class name
+          nav.goTo(instances.getLong(0))
+          buffer.println(
+            "Disposed but still strong-referenced objects: ${instances.count()} ${nav.getClass().prettyName}, most common paths from GC-roots:"
+          )
+          val gcRootPathsTree = GCRootPathsTree(analysisContext, disposerOptions.disposedObjectsDetailsTreeDisplayOptions, nav.getClass())
+          instances.forEach { leakId -> gcRootPathsTree.registerObject(leakId.toInt()) }
+          gcRootPathsTree.printTree().lineSequence().forEach(buffer::println)
+        }
       }
     }
   }
@@ -447,8 +441,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     if (id == 0) return false
     var currentId = id
     do {
-      if (refIndexList[currentId] == RefIndexUtil.SOFT_REFERENCE ||
-          refIndexList[currentId] == RefIndexUtil.WEAK_REFERENCE) {
+      if (refIndexList[currentId] == RefIndexUtil.SOFT_REFERENCE || refIndexList[currentId] == RefIndexUtil.WEAK_REFERENCE) {
         return false
       }
       val next = parentList[currentId]
@@ -461,10 +454,10 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     return true
   }
 
-
   private fun getInstancesListInPriorityOrder(
     classToLeakedIdsList: HashMap<ClassDefinition, LongArrayList>,
-    disposedDominatorReportEntries: List<DisposedDominatorReportEntry>): List<LongArrayList> {
+    disposedDominatorReportEntries: List<DisposedDominatorReportEntry>,
+  ): List<LongArrayList> {
     val result = mutableListOf<LongArrayList>()
 
     // Make a mutable copy. When a class instances are added to the result list, remove the class entry from the copy.
@@ -483,26 +476,18 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     // Alternate between class with most instances leaked and class with most bytes leaked
 
     // Prepare instance count class list by priority
-    val classOrderByInstanceCount = ArrayDeque(
-      classToLeakedIdsListCopy
-        .entries
-        .sortedBy { it.key.name }
-        .sortedByDescending { it.value.count() }
-        .map { it.key }
-    )
+    val classOrderByInstanceCount =
+      ArrayDeque(classToLeakedIdsListCopy.entries.sortedBy { it.key.name }.sortedByDescending { it.value.count() }.map { it.key })
 
     // Prepare dominator bytes count class list by priority
-    val classOrderByByteCount = ArrayDeque(
-      disposedDominatorReportEntries
-        .sortedBy { it.classDefinition.name }
-        .sortedByDescending { it.size }
-        .map { it.classDefinition }
-    )
+    val classOrderByByteCount =
+      ArrayDeque(
+        disposedDominatorReportEntries.sortedBy { it.classDefinition.name }.sortedByDescending { it.size }.map { it.classDefinition }
+      )
 
     // zip, but ignore duplicates
     var nextByInstanceCount = true
-    while (!classOrderByInstanceCount.isEmpty() ||
-           !classOrderByByteCount.isEmpty()) {
+    while (!classOrderByInstanceCount.isEmpty() || !classOrderByByteCount.isEmpty()) {
       val nextCollection = if (nextByInstanceCount) classOrderByInstanceCount else classOrderByByteCount
       if (!nextCollection.isEmpty()) {
         val nextClass = nextCollection.removeFirst()
@@ -518,10 +503,6 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
   fun computeStrongReferencedDisposedObjectsIDs() {
     val strongReferencedDisposedObjectsIDs = analysisContext.strongReferencedDisposedObjectsIDs
     strongReferencedDisposedObjectsIDs.clear()
-    analysisContext.disposedObjectsIDs.forEach { id ->
-      if (isStrongReferenced(id))
-        strongReferencedDisposedObjectsIDs.add(id)
-    }
+    analysisContext.disposedObjectsIDs.forEach { id -> if (isStrongReferenced(id)) strongReferencedDisposedObjectsIDs.add(id) }
   }
-
 }

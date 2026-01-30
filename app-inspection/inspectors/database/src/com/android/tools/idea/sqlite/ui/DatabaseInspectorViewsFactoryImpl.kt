@@ -38,19 +38,13 @@ import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 @Service
 class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
   companion object {
-    @JvmStatic
-    fun getInstance() =
-      ApplicationManager.getApplication()
-        .getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
+    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
   }
 
   override fun createTableView(type: TableViewType) = TableViewImpl(type)
 
-  override fun createEvaluatorView(
-    project: Project,
-    schemaProvider: SchemaProvider,
-    tableView: TableView,
-  ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
+  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView) =
+    SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
 
   override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
     ParametersBindingDialogViewImpl(sqliteStatementText, project, true)
@@ -61,11 +55,8 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
   ): ExportToFileDialogView = ExportToFileDialogViewImpl(project, params)
 
-  override fun createExportInProgressView(
-    project: Project,
-    job: Job,
-    taskDispatcher: CoroutineDispatcher,
-  ): ExportInProgressView = ExportInProgressViewImpl(project, job, taskDispatcher)
+  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView =
+    ExportInProgressViewImpl(project, job, taskDispatcher)
 
   override fun createDatabaseInspectorView(project: Project) =
     DatabaseInspectorViewImpl(project, project.getService(ProjectDisposableScope::class.java))

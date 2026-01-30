@@ -26,13 +26,12 @@ import org.junit.Test
 class CorruptGradleDependencyIssueCheckerTest {
   private val corruptGradleDependencyIssueChecker = CorruptGradleDependencyIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {
     val cause = Throwable("Premature end of Content-Length delimited message body")
-    val issueData = GradleIssueData(projectRule.project.basePath!!, cause, null,null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, cause, null, null)
 
     val buildIssue = corruptGradleDependencyIssueChecker.check(issueData)
 
@@ -48,13 +47,15 @@ class CorruptGradleDependencyIssueCheckerTest {
   @Test
   fun testCheckIssueHandled() {
     assertThat(
-      corruptGradleDependencyIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Premature end of Content-Length delimited message body",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
+        corruptGradleDependencyIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "Premature end of Content-Length delimited message body",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isEqualTo(true)
   }
 }

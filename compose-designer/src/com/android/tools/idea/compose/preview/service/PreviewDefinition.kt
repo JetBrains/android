@@ -22,11 +22,10 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 /**
- * A lightweight definition of a single `@Preview` annotation found on a `@Composable` function.
- * This can be a direct annotation or one resolved through a multipreview annotation.
+ * A lightweight definition of a single `@Preview` annotation found on a `@Composable` function. This can be a direct annotation or one
+ * resolved through a multipreview annotation.
  *
- * @param displayName A user-friendly name for the preview, combining the function name and the
- *   preview annotation name if available.
+ * @param displayName A user-friendly name for the preview, combining the function name and the preview annotation name if available.
  * @param functionPointer A smart pointer to the `@Composable` function.
  * @param annotationPointer A smart pointer to the specific "leaf" `@Preview` annotation.
  */
@@ -37,11 +36,7 @@ data class PreviewDefinition(
 ) {
   companion object {
     @RequiresReadLock
-    fun create(
-      function: KtNamedFunction,
-      leafAnnotation: KtAnnotationEntry,
-      leafName: String?,
-    ): PreviewDefinition {
+    fun create(function: KtNamedFunction, leafAnnotation: KtAnnotationEntry, leafName: String?): PreviewDefinition {
       val smartPointerManager = SmartPointerManager.getInstance(function.project)
       val functionName = function.name ?: "UnknownFunction"
       val displayName = if (leafName.isNullOrEmpty()) functionName else "$functionName:$leafName"

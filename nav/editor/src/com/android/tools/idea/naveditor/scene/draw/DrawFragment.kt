@@ -47,8 +47,7 @@ class DrawFragment(
 
     if (highlightColor != null) {
       val spacing = 2 * FRAGMENT_BORDER_SPACING * scale
-      val roundRectangle =
-        SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
+      val roundRectangle = SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
       list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }
 

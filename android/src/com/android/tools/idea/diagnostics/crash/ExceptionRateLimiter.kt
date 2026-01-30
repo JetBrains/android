@@ -22,7 +22,7 @@ class ExceptionRateLimiter(
   private val maxEventsPerPeriod: Int = 10,
   private val periodMs: Long = TimeUnit.MINUTES.toMillis(10),
   private val allowancePerSignature: Int = 2,
-  private val timeProvider: () -> Long = { TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) }
+  private val timeProvider: () -> Long = { TimeUnit.NANOSECONDS.toMillis(System.nanoTime()) },
 ) {
   data class SignatureStatistics(var count: Int, var deniedSinceLastAllow: Int)
 
@@ -31,6 +31,7 @@ class ExceptionRateLimiter(
   private var globalCount = 0
 
   private fun isPowerOfTwo(n: Int) = n and (n - 1) == 0
+
   private val queue = ArrayDeque<Long>(maxEventsPerPeriod)
 
   @Synchronized
@@ -59,10 +60,7 @@ class ExceptionRateLimiter(
     return deny(stats)
   }
 
-  /**
-   * Added current timestamp to the queue, if queue is full, returns evicted timestamp.
-   * Otherwise return <code>null</code>
-   */
+  /** Added current timestamp to the queue, if queue is full, returns evicted timestamp. Otherwise return <code>null</code> */
   private fun updateTimeQueue(currentTimeMs: Long): Long? {
     queue.addLast(currentTimeMs)
     if (queue.size <= maxEventsPerPeriod) {
@@ -84,12 +82,13 @@ class ExceptionRateLimiter(
 
   enum class PermissionType {
     DENY,
-    ALLOW
+    ALLOW,
   }
 
-  data class Permit(val permissionType: PermissionType,
-                    val deniedSinceLastAllow: Int,
-                    val globalExceptionCounter: Int,
-                    val localExceptionCounter: Int)
-
+  data class Permit(
+    val permissionType: PermissionType,
+    val deniedSinceLastAllow: Int,
+    val globalExceptionCounter: Int,
+    val localExceptionCounter: Int,
+  )
 }

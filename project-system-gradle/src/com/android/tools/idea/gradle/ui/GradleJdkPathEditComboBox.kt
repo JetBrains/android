@@ -32,9 +32,6 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
@@ -43,12 +40,14 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.event.DocumentEvent
 import javax.swing.plaf.basic.BasicComboBoxEditor
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.annotations.VisibleForTesting
 
 private val minimumAndPreferredWidth
   get() = JBUI.scale(300)
-/**
- * Dedicated [ComboBox] component to edit JDK path selection, displaying dropdown with suggested JDKs and expose browse button.
- */
+
+/** Dedicated [ComboBox] component to edit JDK path selection, displaying dropdown with suggested JDKs and expose browse button. */
 class GradleJdkPathEditComboBox(
   private val suggestedJdkPaths: List<LabelAndFileForLocation>,
   private var currentJdkPath: @SystemIndependent String?,
@@ -57,15 +56,21 @@ class GradleJdkPathEditComboBox(
 
   val isModified: Boolean
     get() = selectedJdkPath != currentJdkPath
+
   val selectedJdkPath: String
     get() = jdkComboBox.editor.item.toString()
+
   @get:VisibleForTesting
   val itemCount: Int
     get() = jdkComboBox.itemCount
+
   @get:VisibleForTesting
   var selectedItem: Any?
     get() = jdkComboBox.selectedItem
-    set(value) { jdkComboBox.selectedItem = value }
+    set(value) {
+      jdkComboBox.selectedItem = value
+    }
+
   @get:VisibleForTesting
   val editor: ComboBoxEditor
     get() = jdkComboBox.editor
@@ -91,16 +96,16 @@ class GradleJdkPathEditComboBox(
 
   private fun createJdkComboBox() {
     panel {
-      row {
-        add(jdkComboBox)
-        comment(comment = hintMessage) { BrowserUtil.browse(it.url) }.applyToComponent {
-          foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER)
-          font = JBFont.small()
+        row {
+          add(jdkComboBox)
+          comment(comment = hintMessage) { BrowserUtil.browse(it.url) }
+            .applyToComponent {
+              foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER)
+              font = JBFont.small()
+            }
         }
       }
-    }.also {
-      add(it)
-    }
+      .also { add(it) }
   }
 
   fun applySelection() {
@@ -111,8 +116,7 @@ class GradleJdkPathEditComboBox(
     jdkComboBox.editor.item = currentJdkPath
   }
 
-  @VisibleForTesting
-  fun getItemAt(index: Int): LabelAndFileForLocation = jdkComboBox.getItemAt(index)
+  @VisibleForTesting fun getItemAt(index: Int): LabelAndFileForLocation = jdkComboBox.getItemAt(index)
 
   override fun getPreferredSize(): Dimension {
     val preferredSize = super.getPreferredSize()
@@ -131,10 +135,8 @@ class GradleJdkPathEditComboBox(
     jdkComboBox.isEnabled = enabled
   }
 
-  private fun createJdkComboBoxEditor() = GradleJdkPathComboBoxEditor(
-    jdkComboBox = jdkComboBox,
-    onTextChanged = { validateSelectedJdkPath() }
-  )
+  private fun createJdkComboBoxEditor() =
+    GradleJdkPathComboBoxEditor(jdkComboBox = jdkComboBox, onTextChanged = { validateSelectedJdkPath() })
 
   private fun validateSelectedJdkPath() {
     jdkComboBox.editor.editorComponent.apply {
@@ -144,29 +146,31 @@ class GradleJdkPathEditComboBox(
 
   private class GradleJdkPathComboBoxEditor(
     private val jdkComboBox: ComboBox<LabelAndFileForLocation>,
-    private val onTextChanged: () -> Unit
+    private val onTextChanged: () -> Unit,
   ) : BasicComboBoxEditor() {
 
-    override fun createEditorComponent() = ExtendableTextField().apply {
-      addExtension(createJdkBrowseButton())
-      document.addDocumentListener(object : DocumentAdapter() {
-        override fun textChanged(e: DocumentEvent) {
-          onTextChanged()
-        }
-      })
-      border = null
-    }
-
-    private fun createJdkBrowseButton() = ExtendableTextComponent.Extension.create(
-      AllIcons.General.OpenDisk,
-      AllIcons.General.OpenDiskHover,
-      AndroidBundle.message("gradle.settings.jdk.browse.button.tooltip.text")
-    ) {
-      jdkComboBox.isPopupVisible = false
-      SdkConfigurationUtil.selectSdkHome(JavaSdk.getInstance()) { jdkPath ->
-        jdkComboBox.editor.item = jdkPath
+    override fun createEditorComponent() =
+      ExtendableTextField().apply {
+        addExtension(createJdkBrowseButton())
+        document.addDocumentListener(
+          object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+              onTextChanged()
+            }
+          }
+        )
+        border = null
       }
-    }
+
+    private fun createJdkBrowseButton() =
+      ExtendableTextComponent.Extension.create(
+        AllIcons.General.OpenDisk,
+        AllIcons.General.OpenDiskHover,
+        AndroidBundle.message("gradle.settings.jdk.browse.button.tooltip.text"),
+      ) {
+        jdkComboBox.isPopupVisible = false
+        SdkConfigurationUtil.selectSdkHome(JavaSdk.getInstance()) { jdkPath -> jdkComboBox.editor.item = jdkPath }
+      }
   }
 
   private class JdkComboBoxCellRenderer : ColoredListCellRenderer<LabelAndFileForLocation>() {
@@ -175,7 +179,7 @@ class GradleJdkPathEditComboBox(
       value: LabelAndFileForLocation,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean
+      hasFocus: Boolean,
     ) {
       icon = JavaSdk.getInstance().icon
       append(value.label)

@@ -38,22 +38,20 @@ class GradleJvmSupportMatrixExtensionsTest(private val gradleVersion: GradleVers
   }
 
   @Test
-  fun `Gradle recommended java version` () {
+  fun `Gradle recommended java version`() {
     val recommendedNonLtsVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, false)
     val expectedRecommendedVersion = gradleVersion.supportedJavaVersions.last()
     assertEquals(expectedRecommendedVersion, recommendedNonLtsVersion)
   }
 
   @Test
-  fun `Gradle recommended java version considering only LTS` () {
+  fun `Gradle recommended java version considering only LTS`() {
     val recommendedLtsVersion = GradleJvmSupportMatrix.getRecommendedJavaVersion(gradleVersion, true)
-    val expectedRecommendedVersion = gradleVersion.supportedJavaVersions.last {
-      JavaVersionLts.isLtsVersion(it)
-    }
+    val expectedRecommendedVersion = gradleVersion.supportedJavaVersions.last { JavaVersionLts.isLtsVersion(it) }
     assertEquals(expectedRecommendedVersion, recommendedLtsVersion)
   }
 
   private val GradleVersion.supportedJavaVersions: List<JavaVersion>
-    get() = GradleJvmSupportMatrix.getSupportedJavaVersions(this)
-      .filter { it.feature <= IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature() }
+    get() =
+      GradleJvmSupportMatrix.getSupportedJavaVersions(this).filter { it.feature <= IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature() }
 }

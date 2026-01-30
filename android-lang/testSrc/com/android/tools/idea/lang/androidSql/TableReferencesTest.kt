@@ -35,17 +35,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
@@ -54,17 +58,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM u<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM u<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
@@ -73,17 +81,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM 'u<caret>ser'") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM 'u<caret>ser'") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
@@ -92,17 +104,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "people")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM <caret>people") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM <caret>people") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val referenceTarget = myFixture.elementAtCaret
     assertThat(referenceTarget).isInstanceOf(PsiLiteralExpression::class.java)
@@ -112,31 +128,38 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testRename_fromSql() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("Person")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM Person") List<Person> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM Person") List<Person> getAll();
+      }
+      """
+        .trimIndent()
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.Person"))
   }
@@ -144,31 +167,38 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testRename_fromSql_quoted() {
     myFixture.addRoomEntity("com.example.Order")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface OrderDao {
-          @Query("SELECT * FROM 'O<caret>rder'") List<Order> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface OrderDao {
+        @Query("SELECT * FROM 'O<caret>rder'") List<Order> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("OrderItem")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface OrderDao {
-          @Query("SELECT * FROM OrderItem") List<OrderItem> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface OrderDao {
+        @Query("SELECT * FROM OrderItem") List<OrderItem> getAll();
+      }
+      """
+        .trimIndent()
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.OrderItem"))
   }
@@ -176,31 +206,38 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testRename_fromJava() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM User") List<<caret>User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM User") List<<caret>User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("Person")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM Person") List<Person> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM Person") List<Person> getAll();
+      }
+      """
+        .trimIndent()
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.Person"))
   }
@@ -208,23 +245,28 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testRename_escaping() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val newName = "Order" // this is a SQL keyword.
 
     myFixture.renameElementAtCaret(newName)
 
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
         package com.example;
 
         import androidx.room.Dao;
@@ -234,7 +276,9 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
         public interface UserDao {
           @Query("SELECT * FROM `$newName`") List<$newName> getAll();
         }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.$newName"))
   }
@@ -242,143 +286,173 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testCodeCompletion_select() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM User") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM User") List<User> getAll();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCodeCompletion_update() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("UPDATE U<caret>") void update();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("UPDATE U<caret>") void update();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("UPDATE User") void update();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("UPDATE User") void update();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCodeCompletion_delete() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("DELETE FROM U<caret>") void delete();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("DELETE FROM U<caret>") void delete();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("DELETE FROM User") void delete();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("DELETE FROM User") void delete();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCodeCompletion_caseSensitivity() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM u<caret>") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM u<caret>") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.completeBasic()
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user") List<User> getAll();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testCodeCompletion_multiple() {
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "people")
     myFixture.addRoomEntity("com.example.Address")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM <caret>") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM <caret>") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
-      .containsExactly(
-        "people" to myFixture.findClass("com.example.User"),
-        "Address" to myFixture.findClass("com.example.Address"))
+      .containsExactly("people" to myFixture.findClass("com.example.User"), "Address" to myFixture.findClass("com.example.Address"))
   }
 
   fun testCodeCompletion_escaping() {
@@ -386,17 +460,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.Order")
     val userClass = myFixture.addRoomEntity("com.example.User", tableNameOverride = "funny people")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM <caret>") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM <caret>") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val lookupElements = myFixture.completeBasic()
 
@@ -404,38 +482,46 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
       .containsExactly(
         "`funny people`" to userClass,
         "Address" to myFixture.findClass("com.example.Address"),
-        "`Order`" to myFixture.findClass("com.example.Order")) // ORDER is a keyword in SQL.
+        "`Order`" to myFixture.findClass("com.example.Order"),
+      ) // ORDER is a keyword in SQL.
 
     myFixture.lookup.currentItem = lookupElements.find { it.psiElement === userClass }
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM `funny people`") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM `funny people`") List<User> getAll();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testUsages() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == AndroidSqlLanguage.INSTANCE }).isNotNull()
   }
@@ -443,17 +529,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testUsages_caseInsensitive() {
     myFixture.addRoomEntity("com.example.User")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
       .isNotNull()
@@ -462,17 +552,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testUsages_tableNameOverride() {
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "people")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM people") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM people") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
       .isNotNull()
@@ -481,17 +575,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testUsages_tableNameOverride_escaping() {
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo`bar")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM `foo``bar`") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM `foo``bar`") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
       .isNotNull()
@@ -500,17 +598,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testUsages_tableNameOverride_spaces() {
     myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo bar")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM `foo bar`") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM `foo bar`") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
       .isNotNull()
@@ -519,17 +621,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testUsages_keyword() {
     myFixture.addRoomEntity("com.example.Order")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface OrderDao {
-          @Query("SELECT * FROM `Order`") List<Order> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface OrderDao {
+        @Query("SELECT * FROM `Order`") List<Order> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == AndroidSqlLanguage.INSTANCE })
       .isNotNull()
@@ -538,17 +644,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testQualifiedColumns() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u<caret>ser.name FROM user") List<String> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u<caret>ser.name FROM user") List<String> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
@@ -556,17 +666,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testAliases() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT a<caret>lias.name FROM user AS alias") List<String> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT a<caret>lias.name FROM user AS alias") List<String> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val elementAtCaret = myFixture.elementAtCaret
     // Unfortunately it seems that calling navigate() on elementAtCaret doesn't work in the test fixture (probably because of injection).
@@ -578,17 +692,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testAliases_hiding() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u<caret>ser.name FROM user AS alias") List<String> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u<caret>ser.name FROM user AS alias") List<String> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.referenceAtCaret.resolve()).isNull()
   }
@@ -597,17 +715,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT * FROM user u JOIN book b ON u.uid = <caret>b.bid") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user u JOIN book b ON u.uid = <caret>b.bid") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(AndroidSqlTableAliasName::class.java)
@@ -617,17 +739,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testWithClause_newTable() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (SELECT uid FROM user) SELECT uid FROM id<caret>s") List<Integer> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (SELECT uid FROM user) SELECT uid FROM id<caret>s") List<Integer> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(AndroidSqlTableDefinitionName::class.java)
@@ -638,17 +764,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testWithClause_subquery() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (SELECT uid FROM u<caret>ser) SELECT uid FROM ids") List<Integer> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (SELECT uid FROM u<caret>ser) SELECT uid FROM ids") List<Integer> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
   }
@@ -657,17 +787,21 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.User", "uid" ofType "int")
     myFixture.addRoomEntity("com.example.Book", "bid" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
-        package com.example;
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Query;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (SELECT uid FROM u<caret>ser) SELECT * FROM <caret>") List<User> getAll();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (SELECT uid FROM u<caret>ser) SELECT * FROM <caret>") List<User> getAll();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User", "Book", "ids")
   }
@@ -675,19 +809,23 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testViews() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (SELECT id from user) DELETE FROM <caret>")
-          void deleteAdults();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (SELECT id from user) DELETE FROM <caret>")
+        void deleteAdults();
+      }
+      """
+        .trimIndent(),
+    )
 
     // "ids" is a view, you cannot delete from it.
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("User")
@@ -696,143 +834,172 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testAliasRenaming() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u.id FROM user <caret>u")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u.id FROM user <caret>u")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("u1")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u1.id FROM user u1")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u1.id FROM user u1")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testAliasRenaming_join() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u.id FROM user <caret>u JOIN user u2")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u.id FROM user <caret>u JOIN user u2")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("u1")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("SELECT u1.id FROM user u1 JOIN user u2")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("SELECT u1.id FROM user u1 JOIN user u2")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testWithTableRenaming_noColumns() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids AS (SELECT id FROM user) SELECT id FROM <caret>ids")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids AS (SELECT id FROM user) SELECT id FROM <caret>ids")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("user_ids")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH user_ids AS (SELECT id FROM user) SELECT id FROM user_ids")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH user_ids AS (SELECT id FROM user) SELECT id FROM user_ids")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testWithTableRenaming_columns() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("UserDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "UserDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH ids(x) AS (SELECT id FROM user) SELECT x FROM <caret>ids")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH ids(x) AS (SELECT id FROM user) SELECT x FROM <caret>ids")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent(),
+    )
 
     myFixture.renameElementAtCaret("user_ids")
 
-    myFixture.checkResult("""
-        package com.example;
+    myFixture.checkResult(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface UserDao {
-          @Query("WITH user_ids(x) AS (SELECT id FROM user) SELECT x FROM user_ids")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface UserDao {
+        @Query("WITH user_ids(x) AS (SELECT id FROM user) SELECT x FROM user_ids")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testViews_inDao() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.addClass("""
+    myFixture.addClass(
+      """
       package com.example;
 
       import androidx.room.DatabaseView;
@@ -841,32 +1008,38 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
       public class Ids {
         public int id;
       }
-    """.trimIndent())
+      """
+        .trimIndent()
+    )
 
-    myFixture.configureByText("SomeDao.java", """
-        package com.example;
+    myFixture.configureByText(
+      "SomeDao.java",
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Query;
-        import java.util.List;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
 
-        @Dao
-        public interface SomeDao {
-          @Query("SELECT * FROM <caret>")
-          List<Integer> getIds();
-        }
-    """.trimIndent())
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM <caret>")
+        List<Integer> getIds();
+      }
+      """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
-      .containsExactly(
-        "ids" to myFixture.findClass("com.example.Ids"),
-        "User" to myFixture.findClass("com.example.User"))
+      .containsExactly("ids" to myFixture.findClass("com.example.Ids"), "User" to myFixture.findClass("com.example.User"))
   }
 
   fun testViews_inTheViewItself() {
     myFixture.addRoomEntity("com.example.User", "id" ofType "int")
 
-    myFixture.configureByText("Ids.java", """
+    myFixture.configureByText(
+      "Ids.java",
+      """
       package com.example;
 
       import androidx.room.DatabaseView;
@@ -875,7 +1048,9 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
       public class Ids {
         public int id;
       }
-    """.trimIndent())
+    """
+        .trimIndent(),
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString to it.psiElement })
       .containsExactly("User" to myFixture.findClass("com.example.User"))
@@ -886,34 +1061,41 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.addRoomEntity("com.example.first.User")
     myFixture.addRoomEntity("com.example.second.User")
 
-    myFixture.addClass("""
-        package com.example;
+    myFixture.addClass(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Database;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Database;
+      import androidx.room.Query;
 
-        @Database(entities = {com.example.first.User.class}, version = 1)
-        public abstract class AppDatabaseWithFirstUser extends RoomDatabase {
-            public abstract UserDaoWithFirstUser userDao();
-        }
-    """.trimIndent())
+      @Database(entities = {com.example.first.User.class}, version = 1)
+      public abstract class AppDatabaseWithFirstUser extends RoomDatabase {
+          public abstract UserDaoWithFirstUser userDao();
+      }
+      """
+        .trimIndent()
+    )
 
-    myFixture.addClass( """
-        package com.example;
+    myFixture.addClass(
+      """
+      package com.example;
 
-        import androidx.room.Dao;
-        import androidx.room.Database;
-        import androidx.room.Query;
+      import androidx.room.Dao;
+      import androidx.room.Database;
+      import androidx.room.Query;
 
-        @Database(entities = {com.example.second.User.class}, version = 1)
-        public abstract class AppDatabaseWithSecondUser extends RoomDatabase {
-            public abstract UserDaoWithSecondUser userDao();
-        }
-    """.trimIndent())
+      @Database(entities = {com.example.second.User.class}, version = 1)
+      public abstract class AppDatabaseWithSecondUser extends RoomDatabase {
+          public abstract UserDaoWithSecondUser userDao();
+      }
+      """
+        .trimIndent()
+    )
 
-
-    var dao = myFixture.addClass( """
+    var dao =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Dao;
@@ -923,13 +1105,17 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
         public interface UserDaoWithFirstUser {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
-    """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.first.User"))
 
-    dao = myFixture.addClass( """
+    dao =
+      myFixture.addClass(
+        """
         package com.example;
 
         import androidx.room.Dao;
@@ -939,7 +1125,9 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
         public interface UserDaoWithSecondUser {
           @Query("SELECT * FROM U<caret>ser") List<User> getAll();
         }
-    """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
 
@@ -947,20 +1135,25 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun test_viewsResolve() {
-    myFixture.addClass( """
-        package com.example;
-        import androidx.room.Entity;
-        import androidx.room.PrimaryKey;
-        @Entity
-        public class Person {
-            @PrimaryKey(autoGenerate = true) public int id;
-            public String name;
-            public String lastName;
-            public int age;
-        }
-    """.trimIndent())
+    myFixture.addClass(
+      """
+      package com.example;
+      import androidx.room.Entity;
+      import androidx.room.PrimaryKey;
+      @Entity
+      public class Person {
+          @PrimaryKey(autoGenerate = true) public int id;
+          public String name;
+          public String lastName;
+          public int age;
+      }
+      """
+        .trimIndent()
+    )
 
-    val viewClass = myFixture.addClass( """
+    val viewClass =
+      myFixture.addClass(
+        """
         package com.example;
         import androidx.room.DatabaseView;
         @DatabaseView("SELECT name, age FROM Person")
@@ -968,32 +1161,41 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
             public String name;
             public int age;
         }
-    """.trimIndent())
+        """
+          .trimIndent()
+      )
 
-    myFixture.addClass("""
-        package com.example;
-        import androidx.room.Database;
-        import androidx.room.RoomDatabase;
-        @Database(entities = {Person.class}, views = {PersonView.class}, version = 1, exportSchema = false)
-        public abstract class PersonDB extends RoomDatabase {
-            public abstract PersonDAO personDAO();
-        }
-    """.trimIndent())
-
-    val dao = myFixture.addClass("""
+    myFixture.addClass(
+      """
       package com.example;
-      import androidx.room.Dao;
-      import androidx.room.Query;
-      import java.util.List;
-      @Dao
-      public interface PersonDAO {
-          @Query("SELECT name FROM Person")
-          List<String> getNamesFromPersonTable();
-          @Query("SELECT na<caret>me FROM PersonView")
-          List<String> getNamesFromPersonView();
+      import androidx.room.Database;
+      import androidx.room.RoomDatabase;
+      @Database(entities = {Person.class}, views = {PersonView.class}, version = 1, exportSchema = false)
+      public abstract class PersonDB extends RoomDatabase {
+          public abstract PersonDAO personDAO();
       }
+      """
+        .trimIndent()
+    )
 
-    """.trimIndent())
+    val dao =
+      myFixture.addClass(
+        """
+        package com.example;
+        import androidx.room.Dao;
+        import androidx.room.Query;
+        import java.util.List;
+        @Dao
+        public interface PersonDAO {
+            @Query("SELECT name FROM Person")
+            List<String> getNamesFromPersonTable();
+            @Query("SELECT na<caret>me FROM PersonView")
+            List<String> getNamesFromPersonView();
+        }
+
+        """
+          .trimIndent()
+      )
 
     myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
 

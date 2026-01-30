@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePropert
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class DisableConstraintsHyperlink: SyncIssueNotificationHyperlink(
-  "disable.constraints",
-  "Disable dependency constraints property ",
-  AndroidStudioEvent.GradleSyncQuickFix.DISABLE_LIBRARY_CONSTRAINTS_HYPERLINK
-) {
+class DisableConstraintsHyperlink :
+  SyncIssueNotificationHyperlink(
+    "disable.constraints",
+    "Disable dependency constraints property ",
+    AndroidStudioEvent.GradleSyncQuickFix.DISABLE_LIBRARY_CONSTRAINTS_HYPERLINK,
+  ) {
   override fun execute(project: Project) {
     if (project.isDisposed) {
       return

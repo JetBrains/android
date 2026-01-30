@@ -17,21 +17,15 @@ package com.android.tools.idea.transport.manager
 
 import com.android.tools.profiler.proto.Common
 
-/**
- * The set of parameters that will be used to query results from Transport pipeline.
- */
+/** The set of parameters that will be used to query results from Transport pipeline. */
 class StreamEventQuery(
   val eventKind: Common.Event.Kind,
   val processId: (() -> Int)? = null,
   val groupId: (() -> Long)? = null,
   val startTime: (() -> Long)? = null,
   val endTime: () -> Long = { Long.MAX_VALUE },
-  /**
-   * Custom filtering criteria for events. This is NOT part of the query - it will be executed on events received from query.
-   */
+  /** Custom filtering criteria for events. This is NOT part of the query - it will be executed on events received from query. */
   val filter: (Common.Event) -> Boolean = { true },
-  /**
-   * The sort order is not part of the query. Instead, the results are sorted after they are received.
-   */
-  val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp)
+  /** The sort order is not part of the query. Instead, the results are sorted after they are received. */
+  val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp),
 )

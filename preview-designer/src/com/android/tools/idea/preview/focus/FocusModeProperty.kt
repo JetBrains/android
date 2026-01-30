@@ -23,15 +23,12 @@ import kotlin.reflect.KProperty
 /**
  * [FocusMode] property delegate to be used by views which need [FocusMode] support.
  *
- * When the [FocusMode] is not null, this property delegate replaces the given [mainSurface] from
- * the given [component] with a [JPanel] containing tabs provided by [FocusMode.component] at the
- * north and [mainSurface] in the center.
+ * When the [FocusMode] is not null, this property delegate replaces the given [mainSurface] from the given [component] with a [JPanel]
+ * containing tabs provided by [FocusMode.component] at the north and [mainSurface] in the center.
  *
- * When the [FocusMode] is null, the [mainSurface] is restored within [content] and the [JPanel]
- * with the focus tabs is removed.
+ * When the [FocusMode] is null, the [mainSurface] is restored within [content] and the [JPanel] with the focus tabs is removed.
  */
-class FocusModeProperty(private val content: JPanel, private val mainSurface: NlDesignSurface) :
-  JPanel(BorderLayout()) {
+class FocusModeProperty(private val content: JPanel, private val mainSurface: NlDesignSurface) : JPanel(BorderLayout()) {
 
   private var focusMode: FocusMode? = null
 

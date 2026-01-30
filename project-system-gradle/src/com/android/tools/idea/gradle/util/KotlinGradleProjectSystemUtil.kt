@@ -25,14 +25,14 @@ import org.jetbrains.kotlin.idea.gradleTooling.compareTo
 
 object KotlinGradleProjectSystemUtil {
   /**
-   * Determines the versions of the Kotlin plugin in use in the external (Gradle) project with root at projectPath.  The result can be:
+   * Determines the versions of the Kotlin plugin in use in the external (Gradle) project with root at projectPath. The result can be:
    * - an empty list, if there are no Kotlin modules in the project.
    * - list with multiple items in descending order, if there are multiple Kotlin modules using different versions of the Kotlin compiler.
    * - null, if sync has never succeeded in this session.
    */
   fun getKotlinVersionsInUse(project: Project, gradleProjectPath: String): List<KotlinGradlePluginVersion>? {
-    val projectData = ExternalSystemApiUtil.findProjectNode(project, GradleProjectSystemUtil.GRADLE_SYSTEM_ID, gradleProjectPath)
-                      ?: return null
+    val projectData =
+      ExternalSystemApiUtil.findProjectNode(project, GradleProjectSystemUtil.GRADLE_SYSTEM_ID, gradleProjectPath) ?: return null
 
     val kotlinVersions = mutableSetOf<KotlinGradlePluginVersion>()
 

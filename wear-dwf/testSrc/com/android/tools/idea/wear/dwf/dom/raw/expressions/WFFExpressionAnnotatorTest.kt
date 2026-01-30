@@ -37,18 +37,14 @@ class WFFExpressionAnnotatorTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule
-  val projectRule =
-    AndroidProjectRule.withAndroidModel(
-      createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 })
-    )
+  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 }))
 
   val fixture
     get() = projectRule.fixture
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
   }
 
   @Test
@@ -60,16 +56,13 @@ class WFFExpressionAnnotatorTest {
 
     val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
     assertThat(infos[0].text).isEqualTo("log10")
-    assertThat(infos[0].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.FUNCTION_ID.key)
+    assertThat(infos[0].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.FUNCTION_ID.key)
     assertThat(infos[1].text).isEqualTo("unknownFunction")
-    assertThat(infos[1].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.FUNCTION_ID.key)
+    assertThat(infos[1].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.FUNCTION_ID.key)
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("unknownFunction")
-    assertThat(error.forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown function</html>")
   }
 
@@ -82,16 +75,13 @@ class WFFExpressionAnnotatorTest {
 
     val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
     assertThat(infos[0].text).isEqualTo("WEEK_IN_MONTH")
-    assertThat(infos[0].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[0].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
     assertThat(infos[1].text).isEqualTo("UNKNOWN_DATA_SOURCE")
-    assertThat(infos[1].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[1].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("UNKNOWN_DATA_SOURCE")
-    assertThat(error.forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown data source</html>")
   }
 
@@ -109,7 +99,7 @@ class WFFExpressionAnnotatorTest {
           </UserConfigurations>
           <Parameter expression="[CONFIGURATION.someConfig] * [CONFIGURATION.unknownConfig]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -120,16 +110,13 @@ class WFFExpressionAnnotatorTest {
     val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
     assertThat(infos).hasSize(2)
     assertThat(infos[0].text).isEqualTo("CONFIGURATION.someConfig")
-    assertThat(infos[0].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
+    assertThat(infos[0].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
     assertThat(infos[1].text).isEqualTo("CONFIGURATION.unknownConfig")
-    assertThat(infos[1].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
+    assertThat(infos[1].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("CONFIGURATION.unknownConfig")
-    assertThat(error.forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown configuration</html>")
   }
 
@@ -146,27 +133,21 @@ class WFFExpressionAnnotatorTest {
     val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
     assertThat(infos).hasSize(4)
     assertThat(infos[0].text).isEqualTo("WEATHER.CONDITION")
-    assertThat(infos[0].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[0].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
     assertThat(infos[1].text).isEqualTo("WEATHER.UNKNOWN")
-    assertThat(infos[1].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[1].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
     assertThat(infos[2].text).isEqualTo("WEATHER.HOURS.0.CONDITION")
-    assertThat(infos[2].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[2].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
     assertThat(infos[3].text).isEqualTo("WEATHER.DAYS.0.UNKNOWN")
-    assertThat(infos[3].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[3].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
 
     val errors = highlightInfos.filter { it.severity == HighlightSeverity.ERROR }
     assertThat(errors).hasSize(2)
     assertThat(errors[0].text).isEqualTo("WEATHER.UNKNOWN")
-    assertThat(errors[0].forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(errors[0].forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(errors[0].toolTip).isEqualTo("<html>Unknown data source</html>")
     assertThat(errors[1].text).isEqualTo("WEATHER.DAYS.0.UNKNOWN")
-    assertThat(errors[1].forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(errors[1].forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(errors[1].toolTip).isEqualTo("<html>Unknown data source</html>")
   }
 
@@ -181,24 +162,24 @@ class WFFExpressionAnnotatorTest {
         "res/raw/watch_face.xml",
         // language=XML
         """
-      <WatchFace>
-        <Scene>
-          <ComplicationSlot>
-            <Complication type="SHORT_TEXT">
-              <PartText>
-                  <Text>
-                      <BitmapFont>
-                          <Template>%s
-                              <Parameter expression="[COMPLICATION.SMALL_IMAGE]" />
-                          </Template>
-                      </BitmapFont>
-                  </Text>
-              </PartText>
-            </Complication>
-          </ComplicationSlot>
-        </Scene>
-      </WatchFace>
-      """
+        <WatchFace>
+          <Scene>
+            <ComplicationSlot>
+              <Complication type="SHORT_TEXT">
+                <PartText>
+                    <Text>
+                        <BitmapFont>
+                            <Template>%s
+                                <Parameter expression="[COMPLICATION.SMALL_IMAGE]" />
+                            </Template>
+                        </BitmapFont>
+                    </Text>
+                </PartText>
+              </Complication>
+            </ComplicationSlot>
+          </Scene>
+        </WatchFace>
+        """
           .trimIndent(),
       )
 
@@ -221,7 +202,7 @@ class WFFExpressionAnnotatorTest {
           <PartText><Reference name="someReference" /></PartText>
           <Parameter expression="[REFERENCE.someReference] * [REFERENCE.unknownReference]" />
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -230,11 +211,9 @@ class WFFExpressionAnnotatorTest {
     val infos = fixture.doHighlighting().filter { it.severity == HighlightSeverity.INFORMATION }
     assertThat(infos).hasSize(2)
     assertThat(infos[0].text).isEqualTo("REFERENCE.someReference")
-    assertThat(infos[0].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
+    assertThat(infos[0].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
     assertThat(infos[1].text).isEqualTo("REFERENCE.unknownReference")
-    assertThat(infos[1].forcedTextAttributesKey)
-      .isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
+    assertThat(infos[1].forcedTextAttributesKey).isEqualTo(WFFExpressionTextAttributes.REFERENCE.key)
   }
 
   @Test
@@ -259,7 +238,7 @@ class WFFExpressionAnnotatorTest {
             </PartDraw>
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 
@@ -267,8 +246,7 @@ class WFFExpressionAnnotatorTest {
 
     val error = fixture.doHighlighting(HighlightSeverity.ERROR).single()
     assertThat(error.text).isEqualTo("REFERENCE.unknownReference")
-    assertThat(error.forcedTextAttributesKey)
-      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown reference</html>")
   }
 
@@ -288,7 +266,7 @@ class WFFExpressionAnnotatorTest {
             </PartDraw>
           </Scene>
         </WatchFace>
-      """
+        """
           .trimIndent(),
       )
 

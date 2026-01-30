@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
@@ -36,14 +37,13 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
-import java.nio.file.Path
 
 /**
  * Manager that validates the project JDK configuration adding more granularity on the IntelliJ exception [ExternalSystemJdkException]
  * allowing us to notify properly the user, improving recovery suggestions and error tracking.
  *
- * IMPORTANT: Specifying a project without linked GradleSettings might result in false positive when validation JDK configuration
- * since [GradleInstallationManager] will take instead [GradleInstallationManager.getAvailableJavaHome] into consideration
+ * IMPORTANT: Specifying a project without linked GradleSettings might result in false positive when validation JDK configuration since
+ * [GradleInstallationManager] will take instead [GradleInstallationManager.getAvailableJavaHome] into consideration
  *
  * NOTE: Projects using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria)
  * should not do any validation given that defined criteria will take precedence over the Gradle JDK configuration.
@@ -51,40 +51,33 @@ import java.nio.file.Path
 class GradleJdkValidationManager private constructor() {
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): GradleJdkValidationManager = project.getService(GradleJdkValidationManager::class.java)
+    @JvmStatic fun getInstance(project: Project): GradleJdkValidationManager = project.getService(GradleJdkValidationManager::class.java)
   }
 
-  suspend fun validateProjectGradleJvmPath(
-    project: Project,
-    gradleRootPath: @SystemIndependent String
-  ): GradleJdkException? {
+  suspend fun validateProjectGradleJvmPath(project: Project, gradleRootPath: @SystemIndependent String): GradleJdkException? {
     val gradleProjectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath) ?: return null
     return validateProjectGradleJvmPath(project, gradleProjectSettings)
   }
 
-  suspend fun validateProjectGradleJvmPath(
-    project: Project,
-    gradleProjectSettings: GradleProjectSettings
-  ): GradleJdkException? {
+  suspend fun validateProjectGradleJvmPath(project: Project, gradleProjectSettings: GradleProjectSettings): GradleJdkException? {
     // Avoid Gradle JDK configuration validation for projects using Daemon JVM criteria since this will take precedence
     // delegating to Gradle the responsibility to locate matching toolchain locally or download one
     if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(gradleProjectSettings)) return null
     val gradleRootPath = gradleProjectSettings.externalProjectPath
-    val resolvedGradleJdkPath = AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, gradleRootPath)?.asPath()?.let { gradleJdkPath ->
-      val validJdkPath = IdeSdks.getInstance().validateJdkPath(gradleJdkPath)
-      if (validJdkPath != null) return null
-      gradleJdkPath
-    }
+    val resolvedGradleJdkPath =
+      AndroidStudioGradleInstallationManager.instance.resolveGradleJvmPath(project, gradleRootPath)?.asPath()?.let { gradleJdkPath ->
+        val validJdkPath = IdeSdks.getInstance().validateJdkPath(gradleJdkPath)
+        if (validJdkPath != null) return null
+        gradleJdkPath
+      }
 
-    val gradleJdkException = if (IdeSdks.getInstance().isUsingEnvVariableJdk) {
-      InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath)
-    } else {
-      getInvalidJdkExceptionBasedOnGradleJvm(project, gradleRootPath, resolvedGradleJdkPath)
-    }
-    gradleJdkException?.let {
-      JdkAnalyticsTracker.reportInvalidJdkException(project, it.reason)
-    }
+    val gradleJdkException =
+      if (IdeSdks.getInstance().isUsingEnvVariableJdk) {
+        InvalidEnvironmentVariableStudioGradleJdkException(project, gradleRootPath)
+      } else {
+        getInvalidJdkExceptionBasedOnGradleJvm(project, gradleRootPath, resolvedGradleJdkPath)
+      }
+    gradleJdkException?.let { JdkAnalyticsTracker.reportInvalidJdkException(project, it.reason) }
     return gradleJdkException
   }
 
@@ -92,11 +85,12 @@ class GradleJdkValidationManager private constructor() {
   private fun getInvalidJdkExceptionBasedOnGradleJvm(
     project: Project,
     gradleRootPath: @SystemIndependent String,
-    resolvedGradleJdkPath: Path?
+    resolvedGradleJdkPath: Path?,
   ): GradleJdkException? {
     val gradleSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
     return when (val gradleJvm = gradleSettings?.gradleJvm) {
-      null, ExternalSystemJdkUtil.USE_PROJECT_JDK -> InvalidUseProjectJdkException(project, gradleRootPath)
+      null,
+      ExternalSystemJdkUtil.USE_PROJECT_JDK -> InvalidUseProjectJdkException(project, gradleRootPath)
       ExternalSystemJdkUtil.USE_INTERNAL_JAVA -> null // Internal Jdk is expected to be always valid
       ExternalSystemJdkUtil.USE_JAVA_HOME -> InvalidEnvironmentVariableJavaHomeException(project, gradleRootPath, resolvedGradleJdkPath)
       USE_GRADLE_JAVA_HOME -> InvalidGradlePropertiesJavaHomeException(project, gradleRootPath, resolvedGradleJdkPath)

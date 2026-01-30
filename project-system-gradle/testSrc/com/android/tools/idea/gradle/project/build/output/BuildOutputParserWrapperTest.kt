@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -38,14 +37,11 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 class BuildOutputParserWrapperTest {
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
-  @get:Rule
-  val tempDirRule = TemporaryDirectoryRule()
+  @get:Rule val tempDirRule = TemporaryDirectoryRule()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
   private val mockGradleErrorQuickFixProvider = mock<GradleErrorQuickFixProvider>()
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
@@ -59,9 +55,9 @@ class BuildOutputParserWrapperTest {
     myParserWrapper = BuildOutputParserWrapper(parser, ID)
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
 
-    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, mockGradleErrorQuickFixProvider, projectRule.project)
+    ApplicationManager.getApplication()
+      .registerExtension(GradleErrorQuickFixProvider.EP_NAME, mockGradleErrorQuickFixProvider, projectRule.project)
   }
-
 
   @Test
   fun `test when GradleErrorQuickFixProvider is not available, quick fix is not added to the build event`() {
@@ -76,21 +72,27 @@ class BuildOutputParserWrapperTest {
   fun `test when GradleErrorQuickFixProvider is available, a quick fix is added to the build event`() {
     messageEvent = createMessageEvent(ERROR)
 
-    whenever(mockGradleErrorQuickFixProvider.createBuildIssueAdditionalQuickFix(messageEvent, ID)).thenReturn(
-      object: DescribedBuildIssueQuickFix{
-        override val description: String
-          get() = "Quick fix description"
-        override val id: String
-          get() = "com.some.plugin.quickfix"
-      }
-    )
+    whenever(mockGradleErrorQuickFixProvider.createBuildIssueAdditionalQuickFix(messageEvent, ID))
+      .thenReturn(
+        object : DescribedBuildIssueQuickFix {
+          override val description: String
+            get() = "Quick fix description"
+
+          override val id: String
+            get() = "com.some.plugin.quickfix"
+        }
+      )
 
     myParserWrapper.parse(null, null) { event ->
       // MessageEvent is converted into a BuildIssueEvent which holds the quickfix.
       assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
-      assertThat(event.description).isEqualTo("""
+      assertThat(event.description)
+        .isEqualTo(
+          """
         ${messageEvent.description}
-        <a href="com.some.plugin.quickfix">Quick fix description</a>""".trimIndent())
+        <a href="com.some.plugin.quickfix">Quick fix description</a>"""
+            .trimIndent()
+        )
       val quickFixes = (event as BuildIssueEvent).issue.quickFixes
       assertThat(quickFixes).hasSize(1)
     }
@@ -103,12 +105,7 @@ class BuildOutputParserWrapperTest {
     detailedMessage: String = "Detailed error message",
     id: Any = ID,
   ): MessageEventImpl {
-    return MessageEventImpl(
-      id,
-      kind,
-      group,
-      message,
-      detailedMessage)
+    return MessageEventImpl(id, kind, group, message, detailedMessage)
   }
 
   companion object {

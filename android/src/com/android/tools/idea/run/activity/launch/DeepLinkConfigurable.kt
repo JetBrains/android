@@ -33,53 +33,61 @@ import org.jetbrains.android.util.AndroidTreeClassChooserFactory.createInheritan
 import org.jetbrains.android.util.AndroidUtils
 
 class DeepLinkConfigurable(project: Project, context: LaunchOptionConfigurableContext) : LaunchOptionConfigurable<DeepLinkLaunch.State?> {
-  private val deepLinkField = ComponentWithBrowseButton(JBTextField(), null).apply {
-    addActionListener {
-      if (!project.isInitialized) {
-        return@addActionListener
+  private val deepLinkField =
+    ComponentWithBrowseButton(JBTextField(), null).apply {
+      addActionListener {
+        if (!project.isInitialized) {
+          return@addActionListener
+        }
+        val module = context.getModule()
+        if (module == null) {
+          Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
+          return@addActionListener
+        }
+        val dialog = DeepLinkChooserDialog(project, module)
+        dialog.title = "Select URL"
+        dialog.show()
+        val deepLinkSelected = dialog.selectedDeepLink
+        if (!deepLinkSelected.isNullOrEmpty()) {
+          childComponent.setText(deepLinkSelected)
+        }
       }
-      val module = context.getModule()
-      if (module == null) {
-        Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
-        return@addActionListener
-      }
-      val dialog = DeepLinkChooserDialog(project, module)
-      dialog.title = "Select URL"
-      dialog.show()
-      val deepLinkSelected = dialog.selectedDeepLink
-      if (!deepLinkSelected.isNullOrEmpty()) {
-        childComponent.setText(deepLinkSelected)
+      childComponent.emptyText.text = "Specify URL declared in the manifest"
+    }
+  private val activityField =
+    ComponentWithBrowseButton(JBTextField(), null).apply {
+      addActionListener {
+        if (!project.isInitialized) {
+          return@addActionListener
+        }
+        val facade = JavaPsiFacade.getInstance(project)
+        val activityBaseClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project))
+        if (activityBaseClass == null) {
+          Messages.showErrorDialog(project, AndroidBundle.message("cant.find.activity.class.error"), "Specific Activity Launcher")
+          return@addActionListener
+        }
+        val module = context.getModule()
+        if (module == null) {
+          Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Specific Activity Launcher")
+          return@addActionListener
+        }
+        val initialSelection = facade.findClass(childComponent.text, module.moduleWithDependenciesScope)
+        val chooser: TreeClassChooser =
+          createInheritanceClassChooser(
+            project,
+            "Select Activity Class",
+            module.moduleWithDependenciesScope,
+            activityBaseClass,
+            initialSelection,
+            null,
+          )
+        chooser.showDialog()
+        val selClass = chooser.selected
+        if (selClass != null) {
+          childComponent.text = ActivityLocatorUtils.getQualifiedActivityName(selClass)
+        }
       }
     }
-    childComponent.emptyText.text = "Specify URL declared in the manifest"
-  }
-  private val activityField = ComponentWithBrowseButton(JBTextField(), null).apply {
-    addActionListener {
-      if (!project.isInitialized) {
-        return@addActionListener
-      }
-      val facade = JavaPsiFacade.getInstance(project)
-      val activityBaseClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project))
-      if (activityBaseClass == null) {
-        Messages.showErrorDialog(project, AndroidBundle.message("cant.find.activity.class.error"), "Specific Activity Launcher")
-        return@addActionListener
-      }
-      val module = context.getModule()
-      if (module == null) {
-        Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Specific Activity Launcher")
-        return@addActionListener
-      }
-      val initialSelection = facade.findClass(childComponent.text, module.moduleWithDependenciesScope)
-      val chooser: TreeClassChooser = createInheritanceClassChooser(
-        project, "Select Activity Class", module.moduleWithDependenciesScope, activityBaseClass, initialSelection, null
-      )
-      chooser.showDialog()
-      val selClass = chooser.selected
-      if (selClass != null) {
-        childComponent.text = ActivityLocatorUtils.getQualifiedActivityName(selClass)
-      }
-    }
-  }
   private val panel = panel {
     row {
       label("URL:")

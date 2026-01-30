@@ -32,7 +32,7 @@ class LiveEditLogger(val tag: String) {
     try {
       return LiveEditAdvancedConfiguration.getInstance().useDebugMode
     } catch (e: Exception) {
-      return false;
+      return false
     }
   }
 
@@ -67,9 +67,7 @@ class LiveEditLogger(val tag: String) {
     try {
       Files.write(path, data)
       log("Wrote debug file at '${path.toAbsolutePath()}'")
-
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       log("Unable to write debug file '${path.toAbsolutePath()}'")
     }
   }

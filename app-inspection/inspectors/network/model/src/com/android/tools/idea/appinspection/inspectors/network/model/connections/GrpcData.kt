@@ -18,18 +18,20 @@ package com.android.tools.idea.appinspection.inspectors.network.model.connection
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.annotations.VisibleForTesting
-import studio.network.inspection.NetworkInspectorProtocol
-import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
+import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
 
 /**
- * Data of gRPC connection. Each [GrpcData] object matches a gRPC connection with a unique id, and
- * it includes both request data and response data. Request data is filled immediately when the
- * connection starts. Response data may start empty but filled when connection completes.
+ * Data of gRPC connection. Each [GrpcData] object matches a gRPC connection with a unique id, and it includes both request data and
+ * response data. Request data is filled immediately when the connection starts. Response data may start empty but filled when connection
+ * completes.
  */
 @Suppress("DataClassPrivateConstructor")
-data class GrpcData @VisibleForTesting constructor(
+data class GrpcData
+@VisibleForTesting
+constructor(
   override val id: Long,
   override val updateTimeUs: Long,
   override val requestStartTimeUs: Long,
@@ -119,11 +121,7 @@ data class GrpcData @VisibleForTesting constructor(
 
   internal fun withGrpcResponseHeaders(event: NetworkInspectorProtocol.Event): GrpcData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
-    return copy(
-      id = id,
-      updateTimeUs = timestamp,
-      responseHeaders = event.grpcEvent.grpcResponseHeaders.responseHeadersList.toMap(),
-    )
+    return copy(id = id, updateTimeUs = timestamp, responseHeaders = event.grpcEvent.grpcResponseHeaders.responseHeadersList.toMap())
   }
 
   internal fun withGrpcCallEnded(event: NetworkInspectorProtocol.Event): GrpcData {
@@ -205,8 +203,6 @@ data class GrpcData @VisibleForTesting constructor(
   }
 }
 
-private fun List<GrpcMetadata>.toMap() =
-  associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }
+private fun List<GrpcMetadata>.toMap() = associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }
 
-private fun NetworkInspectorProtocol.Event.toJavaThread() =
-  JavaThread(grpcEvent.grpcThread.threadId, grpcEvent.grpcThread.threadName)
+private fun NetworkInspectorProtocol.Event.toJavaThread() = JavaThread(grpcEvent.grpcThread.threadId, grpcEvent.grpcThread.threadName)

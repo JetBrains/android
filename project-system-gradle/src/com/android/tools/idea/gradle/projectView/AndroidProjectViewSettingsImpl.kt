@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.projectView
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings.Companion.PROJECT_VIEW_KEY
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProjectViewDefaultViewEvent
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.annotations.OptionTag
 
@@ -33,7 +32,7 @@ import com.intellij.util.xmlb.annotations.OptionTag
   name = "AndroidProjectViewSettings",
   storages = [Storage("androidProjectWindow.xml", roamingType = RoamingType.LOCAL)],
 )
-class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStateComponent<ProjectViewSettingsState> {
+class AndroidProjectViewSettingsImpl : AndroidProjectViewSettings, PersistentStateComponent<ProjectViewSettingsState> {
   private var state = ProjectViewSettingsState()
 
   override var defaultToProjectView: Boolean
@@ -67,10 +66,12 @@ class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStat
   }
 
   private fun trackDefaultViewSetting(setting: Boolean) {
-    val defaultView = if (setting) ProjectViewDefaultViewEvent.DefaultView.PROJECT_VIEW else ProjectViewDefaultViewEvent.DefaultView.ANDROID_VIEW
+    val defaultView =
+      if (setting) ProjectViewDefaultViewEvent.DefaultView.PROJECT_VIEW else ProjectViewDefaultViewEvent.DefaultView.ANDROID_VIEW
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.PROJECT_VIEW_DEFAULT_VIEW_EVENT).setProjectViewDefaultViewEvent(
-        ProjectViewDefaultViewEvent.newBuilder().setDefaultView(defaultView))
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_VIEW_DEFAULT_VIEW_EVENT)
+        .setProjectViewDefaultViewEvent(ProjectViewDefaultViewEvent.newBuilder().setDefaultView(defaultView))
     )
   }
 
@@ -80,6 +81,5 @@ class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStat
 }
 
 class ProjectViewSettingsState : BaseState() {
-  @get:OptionTag("default_to_project_view")
-  var defaultToProjectView by property(false)
+  @get:OptionTag("default_to_project_view") var defaultToProjectView by property(false)
 }

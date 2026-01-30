@@ -41,10 +41,6 @@ import com.google.wireless.android.sdk.stats.MachineDetails
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerExtension
-import org.junit.Assert
-import org.mockito.Mockito
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.awt.GraphicsDevice
 import java.io.File
 import java.time.ZoneOffset
@@ -52,6 +48,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
+import org.junit.Assert
+import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO = 180
 private const val SENTIMENT_SURVEY_INTERVAL_FLAG_NAME = "analytics/surveys/sentiment/interval.days"
@@ -62,9 +62,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    ApplicationManager.getApplication().registerExtension(
-      MendelFlagsProvider.EP_NAME, mockMendelFlagsProvider, testRootDisposable
-    )
+    ApplicationManager.getApplication().registerExtension(MendelFlagsProvider.EP_NAME, mockMendelFlagsProvider, testRootDisposable)
   }
 
   override fun tearDown() {
@@ -91,41 +89,40 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
     // (we normally use the studio install path).
     val root = File(File.separator)
     // Stub out the Operating System MX Bean to get consistent system info in the test.
-    osBean = object : StubOperatingSystemMXBean() {
-      override fun getAvailableProcessors(): Int {
-        return 16
-      }
+    osBean =
+      object : StubOperatingSystemMXBean() {
+        override fun getAvailableProcessors(): Int {
+          return 16
+        }
 
-      override fun getTotalPhysicalMemorySize(): Long {
-        return 16L * 1024 * 1024 * 1024
+        override fun getTotalPhysicalMemorySize(): Long {
+          return 16L * 1024 * 1024 * 1024
+        }
       }
-    }
 
     // Stub out the Graphics Environment to get consistent screen sizes in the test.
-    graphicsEnvironment = object : StubGraphicsEnvironment() {
-      override fun getScreenDevices(): Array<GraphicsDevice> {
-        return arrayOf(
-          withBounds(640, 480),
-          withBounds(1024, 768)
-        )
-      }
+    graphicsEnvironment =
+      object : StubGraphicsEnvironment() {
+        override fun getScreenDevices(): Array<GraphicsDevice> {
+          return arrayOf(withBounds(640, 480), withBounds(1024, 768))
+        }
 
-      override fun isHeadlessInstance(): Boolean {
-        return false
+        override fun isHeadlessInstance(): Boolean {
+          return false
+        }
       }
-    }
     try {
-      val expected = MachineDetails.newBuilder()
-        .setAvailableProcessors(16)
-        .setTotalRam(16L * 1024 * 1024 * 1024)
-        .setTotalDisk(root.totalSpace)
-        .addDisplay(DisplayDetails.newBuilder().setWidth(640).setHeight(480).setSystemScale(1.0f))
-        .addDisplay(DisplayDetails.newBuilder().setWidth(1024).setHeight(768).setSystemScale(1.0f))
-        .build()
+      val expected =
+        MachineDetails.newBuilder()
+          .setAvailableProcessors(16)
+          .setTotalRam(16L * 1024 * 1024 * 1024)
+          .setTotalDisk(root.totalSpace)
+          .addDisplay(DisplayDetails.newBuilder().setWidth(640).setHeight(480).setSystemScale(1.0f))
+          .addDisplay(DisplayDetails.newBuilder().setWidth(1024).setHeight(768).setSystemScale(1.0f))
+          .build()
       val result = getMachineDetails(root)
       Assert.assertEquals(expected, result)
-    }
-    finally {
+    } finally {
       // undo the stubbing of Operating System MX Bean.
       osBean = null
       // undo the stubbing of Graphics Environment.
@@ -141,8 +138,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       Truth.assertThat(buildActiveExperimentList()).containsExactly("single")
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "one,two")
       Truth.assertThat(buildActiveExperimentList()).containsExactly("one", "two")
-    }
-    finally {
+    } finally {
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "")
     }
   }
@@ -157,8 +153,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
 
       whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(listOf(1, 2))
       Truth.assertThat(buildActiveExperimentList()).containsExactly("1", "2")
-    }
-    finally {
+    } finally {
       whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(emptyList())
     }
   }
@@ -168,8 +163,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(listOf(1))
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "single")
       Truth.assertThat(buildActiveExperimentList()).containsExactly("1", "single")
-    }
-    finally {
+    } finally {
       whenever(mockMendelFlagsProvider.getActiveExperimentIds()).thenReturn(emptyList())
       System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "")
     }
@@ -180,18 +174,22 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       AnalyticsSettings.dateProvider = StubDateProvider(2016, 4, 18)
 
       // opted in user who never was asked should be asked on matching day
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // opted in user who was asked more than a year ago should be asked on matching day
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentAnswerDate = Date(115, 4, 17)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentAnswerDate = Date(115, 4, 17)
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // 181 days ago
@@ -200,87 +198,103 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       calendar.add(Calendar.DAY_OF_YEAR, -181)
 
       // opted in user who was asked more than the frequency set
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        popSentimentQuestionFrequency = 90
-        lastSentimentAnswerDate = calendar.getTime()
-        lastSentimentQuestionDate = calendar.getTime()
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          popSentimentQuestionFrequency = 90
+          lastSentimentAnswerDate = calendar.getTime()
+          lastSentimentQuestionDate = calendar.getTime()
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // opted in user who was asked less than the frequency set
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        popSentimentQuestionFrequency = 90
-        lastSentimentAnswerDate = AnalyticsSettings.dateProvider.now()
-        lastSentimentQuestionDate = AnalyticsSettings.dateProvider.now()
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          popSentimentQuestionFrequency = 90
+          lastSentimentAnswerDate = AnalyticsSettings.dateProvider.now()
+          lastSentimentQuestionDate = AnalyticsSettings.dateProvider.now()
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked less than a year ago should not be asked
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentAnswerDate = Date(115, 4, 20)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentAnswerDate = Date(115, 4, 20)
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked more than a year ago should not be asked on non-matching day
       AnalyticsSettings.dateProvider = StubDateProvider(2016, 5, 19)
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentAnswerDate = Date(115, 4, 18)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentAnswerDate = Date(115, 4, 18)
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked today but didn't answer, should not be prompted again today
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = Date(116, 5, 19)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = Date(116, 5, 19)
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked recently but didn't answer, should be prompted again on a later date
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = Date(115, 10, 11)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = Date(115, 10, 11)
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // opted in user who was asked recently but didn't answer, should be not be prompted until 7 days passed.
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = Date(116, 5, 18)
-        lastSentimentAnswerDate = Date(115, 5, 10)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = Date(116, 5, 18)
+          lastSentimentAnswerDate = Date(115, 5, 10)
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked recently but didn't answer, should be prompted again on a later date, when also answered last year
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = Date(115, 10, 11)
-        lastSentimentAnswerDate = Date(115, 5, 10)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = Date(115, 10, 11)
+          lastSentimentAnswerDate = Date(115, 5, 10)
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // opted in user who was got asked and answered recently should not be asked again
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = Date(116, 5, 19)
-        lastSentimentAnswerDate = Date(116, 5, 19)
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = Date(116, 5, 19)
+          lastSentimentAnswerDate = Date(116, 5, 19)
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
-
-    }
-    finally {
+    } finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM
     }
   }
@@ -288,12 +302,9 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
   fun testShouldRequestUserSentimentOverrides() {
     AnalyticsSettings.dateProvider = StubDateProvider(2025, 3, 1)
     val service = Mockito.mock(ServerFlagService::class.java)
-    whenever(service.getInt(SENTIMENT_SURVEY_INTERVAL_FLAG_NAME,
-                            AnalyticsSettings.daysInYear())).thenReturn(100)
-    whenever(service.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME, DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO
-    )).thenReturn(10)
-    ApplicationManager.getApplication()
-      .registerServiceInstance(ServerFlagService::class.java, service, testRootDisposable)
+    whenever(service.getInt(SENTIMENT_SURVEY_INTERVAL_FLAG_NAME, AnalyticsSettings.daysInYear())).thenReturn(100)
+    whenever(service.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME, DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO)).thenReturn(10)
+    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service, testRootDisposable)
 
     try {
       // opted in user should not be asked again 9 days after declining to answer
@@ -301,45 +312,52 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       calendar.setTime(AnalyticsSettings.dateProvider.now())
       calendar.add(Calendar.DAY_OF_YEAR, -9)
 
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = calendar.getTime()
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = calendar.getTime()
+        }
+      )
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user should be asked again 11 days after declining to answer
       calendar.setTime(AnalyticsSettings.dateProvider.now())
       calendar.add(Calendar.DAY_OF_YEAR, -11)
 
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentQuestionDate = calendar.getTime()
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentQuestionDate = calendar.getTime()
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
 
       // opted in user should not be 29 days after last answer
       calendar.setTime(AnalyticsSettings.dateProvider.now())
       calendar.add(Calendar.DAY_OF_YEAR, -29)
 
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-        lastSentimentAnswerDate = calendar.getTime()
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+          lastSentimentAnswerDate = calendar.getTime()
+        }
+      )
 
       Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user should be asked on 1st day of the year
       calendar.setTime(AnalyticsSettings.dateProvider.now())
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = true
-      })
+      AnalyticsSettings.setInstanceForTest(
+        AnalyticsSettingsData().apply {
+          userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+          optedIn = true
+        }
+      )
       Assert.assertTrue(shouldRequestUserSentiment())
-    }
-    finally {
+    } finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM
     }
   }
@@ -347,59 +365,71 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
   fun testShouldInvokeSurvey() {
     // non-opted in users should be presented with surveys
     AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = false
-      nextFeatureSurveyDate = Date(120, 4, 17)
-      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = false
+        nextFeatureSurveyDate = Date(120, 4, 17)
+        nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
+      }
+    )
     assertTrue(shouldInvokeSurvey("featureSurvey"))
   }
 
   fun testShouldInvokeFeatureSurvey() {
     // opted out user should not request user sentiment
     AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = false
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = false
+      }
+    )
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
     //  shouldInvokeFeatureSurvey should return false before general interval elapses
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-      nextFeatureSurveyDate = Date(120, 4, 19)
-      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        nextFeatureSurveyDate = Date(120, 4, 19)
+        nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
+      }
+    )
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
     //  shouldInvokeFeatureSurvey should return false before specific interval elapses
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-      nextFeatureSurveyDate = Date(120, 4, 17)
-      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 19))
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        nextFeatureSurveyDate = Date(120, 4, 17)
+        nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 19))
+      }
+    )
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
     // shouldInvokeFeatureSurvey should return true after both intervals elapse
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-      nextFeatureSurveyDate = Date(120, 4, 17)
-      nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        nextFeatureSurveyDate = Date(120, 4, 17)
+        nextFeatureSurveyDateMap = mutableMapOf("featureSurvey" to Date(120, 4, 17))
+      }
+    )
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
     FeatureSurveys.FeatureSurveyChoiceLogger.log("featureSurvey", 0)
   }
 
   fun testFeatureSurveyResponded() {
     AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+      }
+    )
 
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
     FeatureSurveys.FeatureSurveyChoiceLogger.log("featureSurvey", 0)
@@ -416,10 +446,12 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
 
   fun testFeatureSurveyCancelled() {
     AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      optedIn = true
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+      }
+    )
 
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
     FeatureSurveys.FeatureSurveyChoiceLogger.cancel("featureSurvey")
@@ -435,24 +467,30 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
   }
 
   fun testHasUserBeenPromptedForOptin() {
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      lastOptinPromptVersion = null
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        lastOptinPromptVersion = null
+      }
+    )
 
     assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
 
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      lastOptinPromptVersion = "invalid"
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        lastOptinPromptVersion = "invalid"
+      }
+    )
 
     assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
 
-    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-      lastOptinPromptVersion = "2021.1"
-    })
+    AnalyticsSettings.setInstanceForTest(
+      AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        lastOptinPromptVersion = "2021.1"
+      }
+    )
 
     assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "0"))
     assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "1"))

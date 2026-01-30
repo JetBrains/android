@@ -23,18 +23,14 @@ import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.documentation.LinkResolveResult
 import com.intellij.psi.JavaPsiFacade
 
-/**
- * [DocumentationLinkHandler] that ensures links to other PSI elements work correctly from
- * [AndroidSdkDocumentationTarget]s.
- */
+/** [DocumentationLinkHandler] that ensures links to other PSI elements work correctly from [AndroidSdkDocumentationTarget]s. */
 class AndroidSdkDocumentationLinkHandler : DocumentationLinkHandler {
   override fun resolveLink(target: DocumentationTarget, url: String): LinkResolveResult? {
     if (target !is AndroidSdkDocumentationTarget<*>) return null
     if (url.startsWith(DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL)) {
       val qualifiedName = url.removePrefix(DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL)
       val element =
-        JavaPsiFacade.getInstance(target.targetElement.project)
-          .findClass(qualifiedName, target.targetElement.resolveScope) ?: return null
+        JavaPsiFacade.getInstance(target.targetElement.project).findClass(qualifiedName, target.targetElement.resolveScope) ?: return null
       return LinkResolveResult.resolvedTarget(psiDocumentationTargets(element, element).first())
     }
     return null

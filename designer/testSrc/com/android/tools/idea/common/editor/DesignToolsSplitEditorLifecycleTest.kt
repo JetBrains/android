@@ -70,7 +70,7 @@ class DesignToolsSplitEditorLifecycleTest {
                 android:fontWeight="400"
                 android:font="@font/lobster_italic" />
         </font-family>
-       """
+        """
           .trimIndent(),
       )
     file.putUserData(FileEditorProvider.KEY, DesignFilesPreviewEditorProvider())
@@ -78,9 +78,7 @@ class DesignToolsSplitEditorLifecycleTest {
       runBlocking(uiThread) {
         val editor =
           withContext(uiThread) {
-            val editors =
-              FileEditorManager.getInstance(projectRule.project)
-                .openFile(file.virtualFile, true, true)
+            val editors = FileEditorManager.getInstance(projectRule.project).openFile(file.virtualFile, true, true)
             (editors[0] as DesignToolsSplitEditor)
           }
         editor

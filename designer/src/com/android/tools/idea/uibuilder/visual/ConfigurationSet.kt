@@ -19,10 +19,7 @@ interface ConfigurationSet {
   /** The unique id of this models provider. */
   val id: String
 
-  /**
-   * The name of this models provider. The name can be duplicated, and it shows on the dropdown menu
-   * of configuration set action.
-   */
+  /** The name of this models provider. The name can be duplicated, and it shows on the dropdown menu of configuration set action. */
   val name: String
   val visible: Boolean
     get() = true
@@ -33,8 +30,7 @@ interface ConfigurationSet {
     override val id = "pixelDevices"
     override val name = "Pixel Devices"
 
-    override fun createModelsProvider(listener: ConfigurationSetListener) =
-      PixelDeviceModelsProvider
+    override fun createModelsProvider(listener: ConfigurationSetListener) = PixelDeviceModelsProvider
 
     override val visible = false
   }
@@ -59,8 +55,7 @@ interface ConfigurationSet {
     override val id = "colorBlind"
     override val name = "Color Blind"
 
-    override fun createModelsProvider(listener: ConfigurationSetListener) =
-      ColorBlindModeModelsProvider
+    override fun createModelsProvider(listener: ConfigurationSetListener) = ColorBlindModeModelsProvider
   }
 
   object LargeFont : ConfigurationSet {
@@ -82,57 +77,43 @@ interface ConfigurationSet {
 }
 
 /**
- * The custom category which is created by user. The user-made custom category is removable, which
- * means user can delete the custom category if they choose.
+ * The custom category which is created by user. The user-made custom category is removable, which means user can delete the custom category
+ * if they choose.
  */
-class UserDefinedCustom(
-  override val id: String,
-  val customConfigurationSet: CustomConfigurationSet,
-) : ConfigurationSet {
+class UserDefinedCustom(override val id: String, val customConfigurationSet: CustomConfigurationSet) : ConfigurationSet {
   override val name: String = customConfigurationSet.title
 
-  override fun createModelsProvider(listener: ConfigurationSetListener) =
-    CustomModelsProvider(id, customConfigurationSet, listener)
+  override fun createModelsProvider(listener: ConfigurationSetListener) = CustomModelsProvider(id, customConfigurationSet, listener)
 }
 
 object ConfigurationSetProvider {
   @JvmField val defaultSet = ConfigurationSet.WindowSizeDevices
 
-  @JvmStatic
-  fun getConfigurationSets(): List<ConfigurationSet> = getGroupedConfigurationSets().flatten()
+  @JvmStatic fun getConfigurationSets(): List<ConfigurationSet> = getGroupedConfigurationSets().flatten()
 
   @JvmStatic
   fun getGroupedConfigurationSets(): List<List<ConfigurationSet>> {
-    val predefinedGroup1 =
-      listOf(
-        ConfigurationSet.WindowSizeDevices,
-        ConfigurationSet.WearDevices,
-        ConfigurationSet.ProjectLocal,
-      )
+    val predefinedGroup1 = listOf(ConfigurationSet.WindowSizeDevices, ConfigurationSet.WearDevices, ConfigurationSet.ProjectLocal)
     val customGroup = VisualizationUtil.getUserMadeConfigurationSets()
     val predefinedGroup2 = listOf(ConfigurationSet.ColorBlindMode, ConfigurationSet.LargeFont)
 
     return listOf(predefinedGroup1, customGroup, predefinedGroup2)
   }
 
-  @JvmStatic
-  fun getConfigurationById(id: String): ConfigurationSet? =
-    getConfigurationSets().firstOrNull { it.id == id }
+  @JvmStatic fun getConfigurationById(id: String): ConfigurationSet? = getConfigurationSets().firstOrNull { it.id == id }
 }
 
 interface ConfigurationSetListener {
   /**
-   * Callback when selected [ConfigurationSet] is changed. For example, the selected
-   * [ConfigurationSet] is changed from [ConfigurationSet.PixelDevices] to
-   * [ConfigurationSet.ProjectLocal].
+   * Callback when selected [ConfigurationSet] is changed. For example, the selected [ConfigurationSet] is changed from
+   * [ConfigurationSet.PixelDevices] to [ConfigurationSet.ProjectLocal].
    */
   fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet)
 
   /**
-   * Callback when the current [ConfigurationSet] changes the provided
-   * [com.android.tools.idea.common.model.NlModel]s. For example, when user add one more
-   * configuration in a [UserDefinedCustom]. In such case this callback is triggered because the
-   * [UserDefinedCustom] now provides one more [com.android.tools.idea.common.model.NlModel].
+   * Callback when the current [ConfigurationSet] changes the provided [com.android.tools.idea.common.model.NlModel]s. For example, when
+   * user add one more configuration in a [UserDefinedCustom]. In such case this callback is triggered because the [UserDefinedCustom] now
+   * provides one more [com.android.tools.idea.common.model.NlModel].
    */
   fun onCurrentConfigurationSetUpdated()
 }

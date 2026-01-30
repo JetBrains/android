@@ -29,11 +29,7 @@ import org.junit.Test
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
   @get:Rule
   val projectRule =
-    WearTileProjectRule(
-      AndroidProjectRule.withAndroidModels(
-        AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())
-      )
-    )
+    WearTileProjectRule(AndroidProjectRule.withAndroidModels(AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())))
 
   private val fixture
     get() = projectRule.fixture
@@ -54,7 +50,7 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
 
       @Preview
       annotation class AMultiPreviewAnnotation
-     """
+      """
         .trimIndent(),
     )
   }
@@ -66,21 +62,21 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
         "src/test/java/Test.kt",
         // language=kotlin
         """
-      import androidx.wear.tiles.tooling.preview.Preview
-      import androidx.wear.tiles.tooling.preview.TilePreviewData
-      import test.AMultiPreviewAnnotation
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+        import test.AMultiPreviewAnnotation
 
-      @Preview
-      fun tilePreviewInUnitTest() = TilePreviewData()
+        @Preview
+        fun tilePreviewInUnitTest() = TilePreviewData()
 
-      fun someMethodWithTilePreviewSignatureButNotAnnotated() = TilePreviewData()
+        fun someMethodWithTilePreviewSignatureButNotAnnotated() = TilePreviewData()
 
-      @Preview
-      fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
+        @Preview
+        fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
 
-      @AMultiPreviewAnnotation
-      fun tilePreviewInUnitTestsWithMultiPreview() = TilePreviewData()
-      """
+        @AMultiPreviewAnnotation
+        fun tilePreviewInUnitTestsWithMultiPreview() = TilePreviewData()
+        """
           .trimIndent(),
       )
 
@@ -90,20 +86,20 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
       listOf(
         // language=kotlin
         """
-          @Preview
-          fun tilePreviewInUnitTest() = TilePreviewData()
+        @Preview
+        fun tilePreviewInUnitTest() = TilePreviewData()
         """
           .trimIndent(),
         // language=kotlin
         """
-          @Preview
-          fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
+        @Preview
+        fun someAnnotatedMethodButWithoutTilePreviewSignature() = Unit
         """
           .trimIndent(),
         // language=kotlin
         """
-          @AMultiPreviewAnnotation
-          fun tilePreviewInUnitTestsWithMultiPreview() = TilePreviewData()
+        @AMultiPreviewAnnotation
+        fun tilePreviewInUnitTestsWithMultiPreview() = TilePreviewData()
         """
           .trimIndent(),
       ),
@@ -121,30 +117,30 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
         "src/test/java/Test.java",
         // language=java
         """
-      import androidx.wear.tiles.tooling.preview.Preview;
-      import androidx.wear.tiles.tooling.preview.TilePreviewData;
-      import test.AMultiPreviewAnnotation;
+        import androidx.wear.tiles.tooling.preview.Preview;
+        import androidx.wear.tiles.tooling.preview.TilePreviewData;
+        import test.AMultiPreviewAnnotation;
 
-      class Test {
-        @Preview
-        TilePreviewData tilePreviewInUnitTest() {
-          return new TilePreviewData();
-        }
+        class Test {
+          @Preview
+          TilePreviewData tilePreviewInUnitTest() {
+            return new TilePreviewData();
+          }
 
-        TilePreviewData someMethodWithTilePreviewSignatureButNotAnnotated() {
-          return new TilePreviewData();
-        }
+          TilePreviewData someMethodWithTilePreviewSignatureButNotAnnotated() {
+            return new TilePreviewData();
+          }
 
-        @Preview
-        void someAnnotatedMethodButWithoutTilePreviewSignature() {
-        }
+          @Preview
+          void someAnnotatedMethodButWithoutTilePreviewSignature() {
+          }
 
-        @AMultiPreviewAnnotation
-        TilePreviewData tilePreviewInUnitTestsWithMultiPreview() {
-          return new TilePreviewData();
+          @AMultiPreviewAnnotation
+          TilePreviewData tilePreviewInUnitTestsWithMultiPreview() {
+            return new TilePreviewData();
+          }
         }
-      }
-      """
+        """
           .trimIndent(),
       )
 
@@ -154,25 +150,25 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
       listOf(
         // language=java
         """
-          @Preview
-            TilePreviewData tilePreviewInUnitTest() {
-              return new TilePreviewData();
-            }
+        @Preview
+          TilePreviewData tilePreviewInUnitTest() {
+            return new TilePreviewData();
+          }
         """
           .trimIndent(),
         // language=java
         """
-          @Preview
-            void someAnnotatedMethodButWithoutTilePreviewSignature() {
-            }
+        @Preview
+          void someAnnotatedMethodButWithoutTilePreviewSignature() {
+          }
         """
           .trimIndent(),
         // language=java
         """
-          @AMultiPreviewAnnotation
-            TilePreviewData tilePreviewInUnitTestsWithMultiPreview() {
-              return new TilePreviewData();
-            }
+        @AMultiPreviewAnnotation
+          TilePreviewData tilePreviewInUnitTestsWithMultiPreview() {
+            return new TilePreviewData();
+          }
         """
           .trimIndent(),
       ),

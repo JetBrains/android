@@ -26,31 +26,23 @@ class SourceProvidersImpl(
   override val currentTestSuiteSourceProviders: Map<String, List<NamedIdeaSourceProvider>>,
   override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>,
   override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>,
-
-  @Suppress("OverridingDeprecatedMember")
-  override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>,
+  @Suppress("OverridingDeprecatedMember") override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>,
   override val generatedSources: IdeaSourceProvider,
   override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider>,
   override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider>,
-  override val generatedTestFixturesSources: IdeaSourceProvider
+  override val generatedTestFixturesSources: IdeaSourceProvider,
 ) : SourceProviders {
-  override val sources: IdeaSourceProvider =
-    createMergedSourceProvider(ScopeType.MAIN, currentSourceProviders)
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(ScopeType.MAIN, currentSourceProviders)
   override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider> =
-    mutableMapOf<TestComponentType.HostTest, IdeaSourceProvider>().apply {
-       currentHostTestSourceProviders.forEach {
-         put(it.key, createMergedSourceProvider(it.key.scopeTypeByName(), it.value))
-       }
-     }.toImmutableMap()
+    mutableMapOf<TestComponentType.HostTest, IdeaSourceProvider>()
+      .apply { currentHostTestSourceProviders.forEach { put(it.key, createMergedSourceProvider(it.key.scopeTypeByName(), it.value)) } }
+      .toImmutableMap()
   override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider> =
-    mutableMapOf<TestComponentType.DeviceTest, IdeaSourceProvider>().apply {
-      currentDeviceTestSourceProviders.forEach {
-        put(it.key, createMergedSourceProvider(it.key.scopeTypeByName(), it.value))
-      }
-    }.toImmutableMap()
+    mutableMapOf<TestComponentType.DeviceTest, IdeaSourceProvider>()
+      .apply { currentDeviceTestSourceProviders.forEach { put(it.key, createMergedSourceProvider(it.key.scopeTypeByName(), it.value)) } }
+      .toImmutableMap()
 
-  override val testSuiteSources: Map<String, List<IdeaSourceProvider>> =
-    currentTestSuiteSourceProviders
+  override val testSuiteSources: Map<String, List<IdeaSourceProvider>> = currentTestSuiteSourceProviders
 
   override val testFixturesSources: IdeaSourceProvider =
     createMergedSourceProvider(ScopeType.TEST_FIXTURES, currentTestFixturesSourceProviders)

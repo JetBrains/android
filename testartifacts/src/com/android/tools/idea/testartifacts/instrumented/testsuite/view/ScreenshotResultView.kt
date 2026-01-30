@@ -54,61 +54,49 @@ import org.jetbrains.jewel.ui.component.SegmentedControl
 import org.jetbrains.jewel.ui.component.SegmentedControlButtonData
 import org.jetbrains.jewel.ui.component.Text
 
-
-/**
- * This is a placeholder for showing Screenshot Test Results.
- */
+/** This is a placeholder for showing Screenshot Test Results. */
 class ScreenshotResultView {
 
   val myView: JPanel = JPanel(BorderLayout())
 
   // Panels for the "All" tab (common toolbar, individual titles)
-  @VisibleForTesting
-  val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
-  @VisibleForTesting
-  val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
-  @VisibleForTesting
-  val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
+  @VisibleForTesting val newImagePanel = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = false, showTitle = true)
+  @VisibleForTesting val diffImagePanel = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = false, showTitle = true)
+  @VisibleForTesting val refImagePanel = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = false, showTitle = true)
 
   private val multiViewPanels = listOf(newImagePanel, diffImagePanel, refImagePanel)
 
   // Panels for the single-view tabs (with individual toolbars and titles)
-  @VisibleForTesting
-  val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
-  @VisibleForTesting
-  val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
-  @VisibleForTesting
-  val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
+  @VisibleForTesting val newImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.NEW, showToolbar = true, showTitle = false)
+  @VisibleForTesting val diffImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.DIFF, showToolbar = true, showTitle = false)
+  @VisibleForTesting val refImagePanelSingle = ImageWithToolbarPanel(ScreenshotViewType.REFERENCE, showToolbar = true, showTitle = false)
 
   private val contentPanel = JPanel(CardLayout())
 
-  @VisibleForTesting
-  var selectedTab by mutableStateOf(ScreenshotViewType.ALL.displayText)
+  @VisibleForTesting var selectedTab by mutableStateOf(ScreenshotViewType.ALL.displayText)
 
-  private val composeTabBar = ComposePanel().apply {
-    var componentWidth by mutableIntStateOf(0)
+  private val composeTabBar =
+    ComposePanel().apply {
+      var componentWidth by mutableIntStateOf(0)
 
-    setContent {
-      SwingBridgeTheme {
-        val buttonData = remember(selectedTab) {
-          ScreenshotViewType.values().map { viewId ->
-            SegmentedControlButtonData(
-              selected = viewId.displayText == selectedTab,
-              content = { _ -> Text(viewId.displayText) },
-              onSelect = { selectTab(viewId.displayText) },
-            )
+      setContent {
+        SwingBridgeTheme {
+          val buttonData =
+            remember(selectedTab) {
+              ScreenshotViewType.values().map { viewId ->
+                SegmentedControlButtonData(
+                  selected = viewId.displayText == selectedTab,
+                  content = { _ -> Text(viewId.displayText) },
+                  onSelect = { selectTab(viewId.displayText) },
+                )
+              }
+            }
+          Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.Center) {
+            SegmentedControl(buttons = buttonData, enabled = true)
           }
-        }
-        Row(
-          modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-          horizontalArrangement = Arrangement.Center
-        ) {
-          SegmentedControl(buttons = buttonData, enabled = true)
         }
       }
     }
-  }
-
 
   var newImagePath: String = ""
   var refImagePath: String = ""
@@ -117,60 +105,78 @@ class ScreenshotResultView {
 
   // Expose common actions for testing
   @VisibleForTesting
-  val commonZoomInAction = object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+  val commonZoomInAction =
+    object : AnAction("Zoom In", null, AllIcons.General.ZoomIn) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomIn() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.canZoomIn() }
+      }
     }
-  }
+
   @VisibleForTesting
   fun selectTab(tab: String) {
     selectedTab = tab
     val cardLayout = contentPanel.layout as CardLayout
     cardLayout.show(contentPanel, tab)
   }
-  @VisibleForTesting
-  val commonZoomOutAction = object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
-    }
-  }
-  @VisibleForTesting
-  val commonOneToOneAction = object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
-    }
-  }
-  @VisibleForTesting
-  val commonFitToScreenAction = object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
-    override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
-    }
-  }
-  @VisibleForTesting
-  val commonToggleGridViewAction = object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
-    override fun isSelected(e: AnActionEvent): Boolean {
-      // The state should be the same for all, so checking the first is enough.
-      return multiViewPanels.firstOrNull()?.isGridVisible() ?: false
-    }
 
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      multiViewPanels.forEach { it.setGridVisible(state) }
-    }
+  @VisibleForTesting
+  val commonZoomOutAction =
+    object : AnAction("Zoom Out", null, AllIcons.General.ZoomOut) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.zoomOut() }
 
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.canZoomOut() }
+      }
     }
-  }
+  @VisibleForTesting
+  val commonOneToOneAction =
+    object : AnAction("1:1", "Actual Size", AllIcons.General.ActualZoom) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.setActualSize() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && it.currentScale != 1.0 }
+      }
+    }
+  @VisibleForTesting
+  val commonFitToScreenAction =
+    object : AnAction("Fit to Screen", "Fit image to screen", AllIcons.General.FitContent) {
+      override fun actionPerformed(e: AnActionEvent) = multiViewPanels.forEach { it.fitToScreen() }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() && !it.isAutoFitting }
+      }
+    }
+  @VisibleForTesting
+  val commonToggleGridViewAction =
+    object : ToggleAction("Grid", "Toggle Grid Overlay", AllIcons.Graph.Grid) {
+      override fun isSelected(e: AnActionEvent): Boolean {
+        // The state should be the same for all, so checking the first is enough.
+        return multiViewPanels.firstOrNull()?.isGridVisible() ?: false
+      }
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        multiViewPanels.forEach { it.setGridVisible(state) }
+      }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
+      }
+    }
 
   @VisibleForTesting
   val commonToggleChessboardAction =
-    object : ToggleAction("Chessboard", "Toggle Chessboard Background", IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java)) {
+    object :
+      ToggleAction(
+        "Chessboard",
+        "Toggle Chessboard Background",
+        IconLoader.getIcon("/org/intellij/images/icons/expui/chessboard.svg", ScreenshotResultView::class.java),
+      ) {
       override fun isSelected(e: AnActionEvent): Boolean = multiViewPanels.firstOrNull()?.isChessboardVisible() ?: false
+
       override fun setSelected(e: AnActionEvent, state: Boolean) = multiViewPanels.forEach { it.setChessboardVisible(state) }
+
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = multiViewPanels.any { it.hasImage() }
       }
@@ -178,15 +184,17 @@ class ScreenshotResultView {
 
   init {
     // Use nested OnePixelSplitters to create a three-panel view
-    val rightSplit = OnePixelSplitter(false, 0.5f).apply {
-      firstComponent = diffImagePanel
-      secondComponent = refImagePanel
-    }
+    val rightSplit =
+      OnePixelSplitter(false, 0.5f).apply {
+        firstComponent = diffImagePanel
+        secondComponent = refImagePanel
+      }
 
-    val mainSplit = OnePixelSplitter(false, 0.33f).apply {
-      firstComponent = newImagePanel
-      secondComponent = rightSplit
-    }
+    val mainSplit =
+      OnePixelSplitter(false, 0.33f).apply {
+        firstComponent = newImagePanel
+        secondComponent = rightSplit
+      }
 
     // Create a new panel for the "All" tab that includes the common toolbar
     val allTabPanel = JPanel(BorderLayout())
@@ -201,45 +209,49 @@ class ScreenshotResultView {
     val horizontalModels = multiViewPanels.map { it.scrollPane.horizontalScrollBar.model }
     val verticalModels = multiViewPanels.map { it.scrollPane.verticalScrollBar.model }
 
-    val horizontalSyncListener = object : ChangeListener {
-      var isSyncing = false
-      override fun stateChanged(e: ChangeEvent) {
-        if (isSyncing) return
+    val horizontalSyncListener =
+      object : ChangeListener {
+        var isSyncing = false
 
-        try {
-          isSyncing = true
-          val sourceModel = e.source as BoundedRangeModel
-          val newValue = sourceModel.value
-          horizontalModels.forEach { model ->
-            if (model !== sourceModel) {
-              model.value = newValue
+        override fun stateChanged(e: ChangeEvent) {
+          if (isSyncing) return
+
+          try {
+            isSyncing = true
+            val sourceModel = e.source as BoundedRangeModel
+            val newValue = sourceModel.value
+            horizontalModels.forEach { model ->
+              if (model !== sourceModel) {
+                model.value = newValue
+              }
             }
+          } finally {
+            isSyncing = false
           }
-        } finally {
-          isSyncing = false
         }
       }
-    }
 
-    val verticalSyncListener = object : ChangeListener {
-      var isSyncing = false
-      override fun stateChanged(e: ChangeEvent) {
-        if (isSyncing) return
+    val verticalSyncListener =
+      object : ChangeListener {
+        var isSyncing = false
 
-        try {
-          isSyncing = true
-          val sourceModel = e.source as BoundedRangeModel
-          val newValue = sourceModel.value
-          verticalModels.forEach { model ->
-            if (model !== sourceModel) {
-              model.value = newValue
+        override fun stateChanged(e: ChangeEvent) {
+          if (isSyncing) return
+
+          try {
+            isSyncing = true
+            val sourceModel = e.source as BoundedRangeModel
+            val newValue = sourceModel.value
+            verticalModels.forEach { model ->
+              if (model !== sourceModel) {
+                model.value = newValue
+              }
             }
+          } finally {
+            isSyncing = false
           }
-        } finally {
-          isSyncing = false
         }
       }
-    }
 
     horizontalModels.forEach { it.addChangeListener(horizontalSyncListener) }
     verticalModels.forEach { it.addChangeListener(verticalSyncListener) }
@@ -254,18 +266,17 @@ class ScreenshotResultView {
   }
 
   private fun createCommonToolbar(): ActionToolbar {
-    val actionGroup = DefaultActionGroup().apply {
-      add(commonToggleChessboardAction)
-      add(commonToggleGridViewAction)
-      addSeparator()
-      add(commonZoomOutAction)
-      add(commonZoomInAction)
-      add(commonOneToOneAction)
-      add(commonFitToScreenAction)
-    }
-    return ActionManager.getInstance().createActionToolbar("ScreenshotCommonToolbar", actionGroup, true).apply {
-      targetComponent = myView
-    }
+    val actionGroup =
+      DefaultActionGroup().apply {
+        add(commonToggleChessboardAction)
+        add(commonToggleGridViewAction)
+        addSeparator()
+        add(commonZoomOutAction)
+        add(commonZoomInAction)
+        add(commonOneToOneAction)
+        add(commonFitToScreenAction)
+      }
+    return ActionManager.getInstance().createActionToolbar("ScreenshotCommonToolbar", actionGroup, true).apply { targetComponent = myView }
   }
 
   @UiThread
@@ -295,16 +306,15 @@ class ScreenshotResultView {
   private fun loadImageAsync(filePath: String, targetPanel: ImageWithToolbarPanel, placeholder: String) {
     targetPanel.setPlaceholder(placeholder)
     AppExecutorUtil.getAppExecutorService().submit {
-      val image = try {
-        val file = File(filePath)
-        if (file.exists()) ImageIO.read(file) else null
-      } catch (e: Exception) {
-        null
-      }
+      val image =
+        try {
+          val file = File(filePath)
+          if (file.exists()) ImageIO.read(file) else null
+        } catch (e: Exception) {
+          null
+        }
 
-      UIUtil.invokeLaterIfNeeded {
-        targetPanel.setImage(image)
-      }
+      UIUtil.invokeLaterIfNeeded { targetPanel.setImage(image) }
     }
   }
 }

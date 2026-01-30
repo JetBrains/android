@@ -46,8 +46,7 @@ class VisualizationFormTest {
   @RunsInEdt
   @Test
   fun testInitFormWithLayoutEditor() {
-    val form =
-      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
     form.activate() // Ensure the full initialization is triggered
 
     val file = rule.fixture.addFileToProject("res/layout/test.xml", "")
@@ -57,11 +56,7 @@ class VisualizationFormTest {
       val editor = FileEditorManager.getInstance(rule.project).selectedEditor!!
       assertTrue(form.setNextEditor(editor))
 
-      PlatformTestUtil.waitWithEventsDispatching(
-        "Failed to open the editor",
-        { form.editor == editor },
-        60,
-      )
+      PlatformTestUtil.waitWithEventsDispatching("Failed to open the editor", { form.editor == editor }, 60)
     } finally {
       FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
     }
@@ -72,8 +67,7 @@ class VisualizationFormTest {
   fun testNotInitWithNonLayoutResourceFile() {
     // Visualization Form doesn't work with non-layout resource files. E.g. drawables, preferences,
     // etc.
-    val form =
-      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
     val file = rule.fixture.addFileToProject("res/drawable/test.xml", "")
     rule.fixture.openFileInEditor(file.virtualFile)
     try {
@@ -87,8 +81,7 @@ class VisualizationFormTest {
   @RunsInEdt
   @Test
   fun testNotInitWithTextEditor() {
-    val form =
-      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
 
     val file = rule.fixture.addFileToProject("test.txt", "")
     rule.fixture.openFileInEditor(file.virtualFile)
@@ -103,10 +96,8 @@ class VisualizationFormTest {
   @RunsInEdt
   @Test
   fun testZoomToFitOnConfigurationChanged() {
-    val form =
-      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
-    val zoomController =
-      form.getDesignSurfaceForTestOnly().zoomController as NlDesignSurfaceZoomController
+    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val zoomController = form.getDesignSurfaceForTestOnly().zoomController as NlDesignSurfaceZoomController
 
     val file = rule.fixture.addFileToProject("res/layout/test.xml", "")
     rule.fixture.openFileInEditor(file.virtualFile)

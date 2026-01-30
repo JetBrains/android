@@ -70,14 +70,8 @@ class SingleDeviceSelectProcessActionTest {
     testProcessDiscovery.addDevice(process1.device)
     testProcessDiscovery.fireConnected(process1)
 
-    val deviceModel =
-      DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
-    val processPicker =
-      SingleDeviceSelectProcessAction(
-        deviceModel,
-        targetDeviceSerialNumber = "serial",
-        onProcessSelected = {},
-      )
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
+    val processPicker = SingleDeviceSelectProcessAction(deviceModel, targetDeviceSerialNumber = "serial", onProcessSelected = {})
 
     latch.await()
 
@@ -97,14 +91,9 @@ class SingleDeviceSelectProcessActionTest {
     testProcessDiscovery.addDevice(process1.device)
     testProcessDiscovery.fireConnected(process1)
 
-    val deviceModel =
-      DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
     val processPicker =
-      SingleDeviceSelectProcessAction(
-        deviceModel,
-        targetDeviceSerialNumber = "wrong serial number",
-        onProcessSelected = {},
-      )
+      SingleDeviceSelectProcessAction(deviceModel, targetDeviceSerialNumber = "wrong serial number", onProcessSelected = {})
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -130,14 +119,9 @@ class SingleDeviceSelectProcessActionTest {
     testProcessDiscovery.fireConnected(process2)
     testProcessDiscovery.fireConnected(process1)
 
-    val deviceModel =
-      DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processModel, setOf(process1.device))
     val processPicker =
-      SingleDeviceSelectProcessAction(
-        deviceModel,
-        targetDeviceSerialNumber = fakeStream.device.serial,
-        onProcessSelected = {},
-      )
+      SingleDeviceSelectProcessAction(deviceModel, targetDeviceSerialNumber = fakeStream.device.serial, onProcessSelected = {})
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -159,8 +143,7 @@ class SingleDeviceSelectProcessActionTest {
     testProcessDiscovery.addDevice(process.device)
     testProcessDiscovery.fireConnected(process)
 
-    val deviceModel =
-      DeviceModel(projectRule.testRootDisposable, processModel, setOf(process.device))
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processModel, setOf(process.device))
     var processSelected = false
     val latch = CountDownLatch(1)
     val processPicker =
@@ -206,14 +189,9 @@ class SingleDeviceSelectProcessActionTest {
     testProcessDiscovery.addDevice(process.device)
     testProcessDiscovery.fireConnected(process)
 
-    val deviceModel =
-      DeviceModel(projectRule.testRootDisposable, processModel, setOf(process.device))
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, processModel, setOf(process.device))
     val processPicker =
-      SingleDeviceSelectProcessAction(
-        deviceModel,
-        targetDeviceSerialNumber = fakeStream.device.serial,
-        onProcessSelected = {},
-      )
+      SingleDeviceSelectProcessAction(deviceModel, targetDeviceSerialNumber = fakeStream.device.serial, onProcessSelected = {})
 
     processPicker.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -225,12 +203,7 @@ class SingleDeviceSelectProcessActionTest {
 
   @Test
   fun testActionIsNotVisibleByDefault() = withAutoConnect {
-    val processPicker =
-      SingleDeviceSelectProcessAction(
-        mock(),
-        targetDeviceSerialNumber = "serial",
-        onProcessSelected = {},
-      )
+    val processPicker = SingleDeviceSelectProcessAction(mock(), targetDeviceSerialNumber = "serial", onProcessSelected = {})
 
     val fakeEvent = createFakeEvent()
     processPicker.update(fakeEvent)
@@ -260,8 +233,7 @@ private fun createFakeStream(
   serial: String = UUID.randomUUID().toString(),
   isEmulator: Boolean = true,
 ): Common.Stream {
-  val device =
-    createFakeDevice(deviceName).toBuilder().setSerial(serial).setIsEmulator(isEmulator).build()
+  val device = createFakeDevice(deviceName).toBuilder().setSerial(serial).setIsEmulator(isEmulator).build()
 
   return Common.Stream.newBuilder().setDevice(device).build()
 }
@@ -269,12 +241,8 @@ private fun createFakeStream(
 private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
   return TransportProcessDescriptor(
     this,
-    FakeTransportService.FAKE_PROCESS.toBuilder()
-      .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
-      .setPid(pid)
-      .build(),
+    FakeTransportService.FAKE_PROCESS.toBuilder().setName(name ?: FakeTransportService.FAKE_PROCESS_NAME).setPid(pid).build(),
   )
 }
 
-private fun createFakeEvent(): AnActionEvent =
-  createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
+private fun createFakeEvent(): AnActionEvent = createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)

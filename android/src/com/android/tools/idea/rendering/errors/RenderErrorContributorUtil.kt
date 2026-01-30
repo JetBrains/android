@@ -30,18 +30,8 @@ import com.intellij.icons.AllIcons
  */
 fun createBuildTheProjectMessage(linkManager: HtmlLinkManager, textBefore: String? = null): MessageTip {
   val builder = HtmlBuilder()
-  textBefore?.let {
-    builder.add(it).newline()
-  }
-  return MessageTip(
-    AllIcons.General.Information,
-    builder.addLink(
-        "Tip: ",
-        "Build",
-        " the project.",
-        linkManager.createBuildProjectUrl()
-      )
-  )
+  textBefore?.let { builder.add(it).newline() }
+  return MessageTip(AllIcons.General.Information, builder.addLink("Tip: ", "Build", " the project.", linkManager.createBuildProjectUrl()))
 }
 
 /**
@@ -52,8 +42,7 @@ fun createBuildTheProjectMessage(linkManager: HtmlLinkManager, textBefore: Strin
 fun createBuildTheModuleMessage(linkManager: HtmlLinkManager): MessageTip {
   return MessageTip(
     AllIcons.General.Information,
-    HtmlBuilder()
-      .addLink("Tip: ", "Build", " the module.", linkManager.createBuildModuleUrl())
+    HtmlBuilder().addLink("Tip: ", "Build", " the module.", linkManager.createBuildModuleUrl()),
   )
 }
 
@@ -65,13 +54,7 @@ fun createBuildTheModuleMessage(linkManager: HtmlLinkManager): MessageTip {
 fun createBuildAndRefreshPreviewMessage(linkManager: HtmlLinkManager): MessageTip {
   return MessageTip(
     AllIcons.General.Information,
-    HtmlBuilder()
-      .addLink(
-        "Tip: ",
-        "Build & Refresh",
-        " the preview.",
-        linkManager.createRefreshRenderUrl()
-      )
+    HtmlBuilder().addLink("Tip: ", "Build & Refresh", " the preview.", linkManager.createRefreshRenderUrl()),
   )
 }
 
@@ -82,12 +65,7 @@ fun createBuildAndRefreshPreviewMessage(linkManager: HtmlLinkManager): MessageTi
  * @param throwable the exception on which you want to show the action
  */
 fun HtmlBuilder.addExceptionMessage(linkManager: HtmlLinkManager, throwable: Throwable?): HtmlBuilder {
-  throwable?.let {
-    addLink(
-      "Show Exception",
-      linkManager.createActionLink(ShowExceptionFix(throwable))
-    )
-  }
+  throwable?.let { addLink("Show Exception", linkManager.createActionLink(ShowExceptionFix(throwable))) }
   return this
 }
 
@@ -95,18 +73,17 @@ fun HtmlBuilder.addExceptionMessage(linkManager: HtmlLinkManager, throwable: Thr
  * Create a [MessageTip] with a link to the bug report page
  *
  * @param linkManager the manager with the action to take
-*/
+ */
 fun createAddReportBugMessage(linkManager: HtmlLinkManager, textBefore: String? = null): MessageTip {
   val builder = HtmlBuilder()
-  textBefore?.let {
-    builder.add(it).newline()
-  }
+  textBefore?.let { builder.add(it).newline() }
   return MessageTip(
     AllIcons.General.Information,
     builder.addLink(
       null,
       "Report Bug",
       ".",
-      linkManager.createActionLink { module -> SubmitBugReportAction.submit(module?.project ?: return@createActionLink) })
+      linkManager.createActionLink { module -> SubmitBugReportAction.submit(module?.project ?: return@createActionLink) },
+    ),
   )
 }

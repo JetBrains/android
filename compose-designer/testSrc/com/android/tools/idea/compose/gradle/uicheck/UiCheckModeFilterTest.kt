@@ -43,8 +43,7 @@ class UiCheckModeFilterTest {
         showDecorations = false,
       )
 
-    val previewElements =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
 
@@ -106,8 +105,7 @@ class UiCheckModeFilterTest {
         showDecorations = true,
       )
 
-    val previewElements =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
+    val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
 
@@ -169,8 +167,7 @@ class UiCheckModeFilterTest {
         showDecorations = false,
       )
 
-    val previewElements =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = true)
+    val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = true)
 
     // Either if changing show decoration Wear previews shouldn't change.
     assertWearPreviewElements(previewElements)
@@ -184,16 +181,14 @@ class UiCheckModeFilterTest {
         showDecorations = true,
       )
 
-    val previewElements =
-      UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = true)
+    val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = true)
 
     // Either if changing show decoration Wear previews shouldn't change.
     assertWearPreviewElements(previewElements)
   }
 
   private fun assertWearPreviewElements(
-    previewElements:
-      Collection<SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>>
+    previewElements: Collection<SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>>
   ) {
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
 

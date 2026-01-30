@@ -68,35 +68,23 @@ class VisualLintIssueNodeTest {
                   ComponentDescriptor(SdkConstants.TEXT_VIEW)
                     .width("100dp")
                     .height("20dp")
-                    .withAttribute(
-                      SdkConstants.ANDROID_URI,
-                      SdkConstants.ATTR_LAYOUT_MARGIN,
-                      "-10dp",
-                    )
+                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "-10dp")
                 )
             ),
         )
         .build()
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
-    val issue =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.BOUNDS,
-        model.treeReader.components.first().children,
-        issueProvider,
-      )
+    val issue = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.treeReader.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
     // This navigation should open Validation Tool and set configuration set to
     // ConfigurationSet.WindowSizeDevices
-    val toolManager =
-      VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
     rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow =
-      ToolWindowManager.getInstance(rule.project)
-        .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
@@ -125,22 +113,13 @@ class VisualLintIssueNodeTest {
                 .width("100dp")
                 .height("20dp")
                 .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "-10dp")
-                .withAttribute(
-                  SdkConstants.TOOLS_URI,
-                  SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue,
-                )
+                .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
             ),
         )
         .build()
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
-    val issue =
-      createTestVisualLintRenderIssue(
-        errorType,
-        model.treeReader.components.first().children,
-        issueProvider,
-      )
+    val issue = createTestVisualLintRenderIssue(errorType, model.treeReader.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
@@ -165,23 +144,16 @@ class VisualLintIssueNodeTest {
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
-      createTestVisualLintRenderIssue(
-        VisualLintErrorType.WEAR_MARGIN,
-        model.treeReader.components.first().children,
-        issueProvider,
-      )
+      createTestVisualLintRenderIssue(VisualLintErrorType.WEAR_MARGIN, model.treeReader.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
     // This navigation should open Validation Tool and set configuration set to
     // ConfigurationSet.WearDevices
-    val toolManager =
-      VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
     rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow =
-      ToolWindowManager.getInstance(rule.project)
-        .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
@@ -210,23 +182,14 @@ class VisualLintIssueNodeTest {
               ComponentDescriptor(SdkConstants.TEXT_VIEW)
                 .width("100dp")
                 .height("20dp")
-                .withAttribute(
-                  SdkConstants.TOOLS_URI,
-                  SdkConstants.ATTR_IGNORE,
-                  errorType.ignoredAttributeValue,
-                )
+                .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
             ),
         )
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
-    val issue =
-      createTestVisualLintRenderIssue(
-        errorType,
-        model.treeReader.components.first().children,
-        issueProvider,
-      )
+    val issue = createTestVisualLintRenderIssue(errorType, model.treeReader.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }
@@ -293,23 +256,14 @@ class VisualLintIssueNodeTest {
 
   @Test
   fun testComponentSignature_nestedNoArguments() {
-    val offset =
-      COMPOSABLE_CONTENT.indexOf(
-        "SimpleComposable()",
-        COMPOSABLE_CONTENT.indexOf("OuterComposable"),
-      )
+    val offset = COMPOSABLE_CONTENT.indexOf("SimpleComposable()", COMPOSABLE_CONTENT.indexOf("OuterComposable"))
     runSignatureTest(COMPOSABLE_CONTENT, offset, 16, "SimpleComposable()")
   }
 
   @Test
   fun testComponentSignature_multipleArguments() {
     val offset = COMPOSABLE_CONTENT.indexOf("ComposableWithArgs(text = \"hello\", value = 123)")
-    runSignatureTest(
-      COMPOSABLE_CONTENT,
-      offset,
-      17,
-      "ComposableWithArgs(text = \"hello\", value = 123)",
-    )
+    runSignatureTest(COMPOSABLE_CONTENT, offset, 17, "ComposableWithArgs(text = \"hello\", value = 123)")
   }
 
   @Test
@@ -324,14 +278,8 @@ class VisualLintIssueNodeTest {
     runSignatureTest(COMPOSABLE_CONTENT, offset, 5, null)
   }
 
-  private fun runSignatureTest(
-    composableContent: String,
-    offset: Int,
-    expectedLine: Int,
-    expectedSignature: String?,
-  ) {
-    val file =
-      rule.fixture.addFileToProject("src/com/example/ComponentSignatures.kt", composableContent)
+  private fun runSignatureTest(composableContent: String, offset: Int, expectedLine: Int, expectedSignature: String?) {
+    val file = rule.fixture.addFileToProject("src/com/example/ComponentSignatures.kt", composableContent)
     val model = mock(NlModel::class.java)
     whenever(model.project).thenReturn(rule.project)
     whenever(model.virtualFile).thenReturn(file.virtualFile)
@@ -356,32 +304,32 @@ class VisualLintIssueNodeTest {
   private companion object {
     private val COMPOSABLE_CONTENT =
       """
-    package com.example
+      package com.example
 
-    import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.Composable
 
-    @Composable
-    fun SimpleComposable() { // line 5
-        // some content
-    }
+      @Composable
+      fun SimpleComposable() { // line 5
+          // some content
+      }
 
-    @Composable
-    fun ComposableWithArgs(text: String, value: Int) { // line 10
-        // some content
-    }
+      @Composable
+      fun ComposableWithArgs(text: String, value: Int) { // line 10
+          // some content
+      }
 
-    @Composable
-    fun OuterComposable() { // line 15
-        SimpleComposable() // line 16
-        ComposableWithArgs(text = "hello", value = 123) // line 17
-    }
+      @Composable
+      fun OuterComposable() { // line 15
+          SimpleComposable() // line 16
+          ComposableWithArgs(text = "hello", value = 123) // line 17
+      }
 
-    val notAComposable = 1 // line 20
+      val notAComposable = 1 // line 20
 
-    fun topLevelCall() { // line 22
-      SimpleComposable() // line 23
-    }
-    """
+      fun topLevelCall() { // line 22
+        SimpleComposable() // line 23
+      }
+      """
         .trimIndent()
   }
 }

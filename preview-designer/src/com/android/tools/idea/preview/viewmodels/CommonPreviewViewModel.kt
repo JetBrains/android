@@ -140,8 +140,7 @@ open class CommonPreviewViewModel(
 
   private val buildAndRefreshAction: ActionData
     get() {
-      val actionDataText =
-        "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
+      val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       return ActionData(actionDataText) {
         psiFilePointer.element?.virtualFile?.let { project.requestBuildArtifactsForRendering(it) }
         // workbench.repaint() // Repaint the workbench, otherwise the text and link will keep
@@ -154,10 +153,8 @@ open class CommonPreviewViewModel(
       previewView.showContent()
     } else {
       when {
-        DumbService.getInstance(project).isDumb ->
-          previewView.showLoadingMessage(message("panel.indexing"))
-        renderingBuildStatusManager.isBuilding ->
-          previewView.showLoadingMessage(message("panel.building"))
+        DumbService.getInstance(project).isDumb -> previewView.showLoadingMessage(message("panel.indexing"))
+        renderingBuildStatusManager.isBuilding -> previewView.showLoadingMessage(message("panel.building"))
         renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild -> {
           previewView.showErrorMessage(message("panel.needs.build"), null, buildAndRefreshAction)
         }
@@ -167,10 +164,7 @@ open class CommonPreviewViewModel(
   }
 
   override val isRefreshing: Boolean
-    get() =
-      previewRefreshManager.refreshingTypeFlow.value != null ||
-        DumbService.isDumb(project) ||
-        renderingBuildStatusManager.isBuilding
+    get() = previewRefreshManager.refreshingTypeFlow.value != null || DumbService.isDumb(project) || renderingBuildStatusManager.isBuilding
 
   override val hasRenderErrors: Boolean
     get() = hasPreviews.get() && (!hasRendered.get() || hasErrorRenderResult())
@@ -182,17 +176,14 @@ open class CommonPreviewViewModel(
     get() = renderingBuildStatusManager.status is RenderingBuildStatus.OutOfDate
 
   override val areResourcesOutOfDate: Boolean
-    get() =
-      (renderingBuildStatusManager.status as? RenderingBuildStatus.OutOfDate)
-        ?.areResourcesOutOfDate == true
+    get() = (renderingBuildStatusManager.status as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate == true
 
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 }
 
 /**
- * Converts the given duration to a display string that contains minutes (if the duration is greater
- * than 60s), seconds and milliseconds.
+ * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and milliseconds.
  */
 private fun Duration.toDisplayString(): String {
   val durationMs = toMillis()

@@ -24,18 +24,16 @@ import org.junit.Test
 class DeviceCrossReferenceTest {
   @Test
   fun crossReferenceTest() {
-    val usbDevices = listOf(
-      UsbDevice("First USB Device", "Teh vendor", "A product", "0xBAADF00D", "123456", "A device"),
-      UsbDevice("Another USB Device", "Teh vendor", "A product", null, "123456"),
-      UsbDevice("Third USB Device", "Teh vendor", "A product", null, "111111"),
-      UsbDevice("Fourth USB Device", "Teh vendor", "A product")
-    )
+    val usbDevices =
+      listOf(
+        UsbDevice("First USB Device", "Teh vendor", "A product", "0xBAADF00D", "123456", "A device"),
+        UsbDevice("Another USB Device", "Teh vendor", "A product", null, "123456"),
+        UsbDevice("Third USB Device", "Teh vendor", "A product", null, "111111"),
+        UsbDevice("Fourth USB Device", "Teh vendor", "A product"),
+      )
 
-    val adbDevices = listOf(
-      AdbDevice(null, null),
-      AdbDevice("123456", IDevice.DeviceState.ONLINE),
-      AdbDevice("222222", IDevice.DeviceState.UNAUTHORIZED)
-    )
+    val adbDevices =
+      listOf(AdbDevice(null, null), AdbDevice("123456", IDevice.DeviceState.ONLINE), AdbDevice("222222", IDevice.DeviceState.UNAUTHORIZED))
 
     val xrefs = crossReference(usbDevices, emptyList(), adbDevices)
     val summaries = xrefs.map { summarize(it) }

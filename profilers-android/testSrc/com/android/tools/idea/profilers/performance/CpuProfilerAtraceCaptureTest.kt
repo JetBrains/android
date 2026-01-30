@@ -19,9 +19,9 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import org.junit.Test
 
 /**
- * Atrace test for measuring the memory overhead of loading / parsing a atrace capture.
- * Note: This test is in its own class due to weak/soft reference leaks if the test runner runs other performance test these references
- * impact the memory results of this test. Without any way to force the GC this is the only reliable way to get a stable memory record.
+ * Atrace test for measuring the memory overhead of loading / parsing a atrace capture. Note: This test is in its own class due to weak/soft
+ * reference leaks if the test runner runs other performance test these references impact the memory results of this test. Without any way
+ * to force the GC this is the only reliable way to get a stable memory record.
  */
 class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
   @Test
@@ -29,6 +29,8 @@ class CpuProfilerAtraceCaptureTest : CpuProfilerMemoryLoadTestBase() {
     loadCaptureAndReport(
       "Atrace-10-sec",
       CpuProfilerTestUtils.getTraceFile("performance/atrace_10s_tanks.trace"),
-      "com.google.android.tanks", 7366)
+      "com.google.android.tanks",
+      7366,
+    )
   }
 }

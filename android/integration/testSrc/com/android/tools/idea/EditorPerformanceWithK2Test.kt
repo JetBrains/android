@@ -22,13 +22,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class EditorPerformanceWithK2Test {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun testCompletionAndGotoDeclarationK2() {

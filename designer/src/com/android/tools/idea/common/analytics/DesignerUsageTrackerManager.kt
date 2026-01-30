@@ -24,22 +24,20 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+import org.jetbrains.annotations.TestOnly
 
 class DesignerUsageTrackerManager<T : Any, K : Disposable>(
   private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
   private val nopTracker: T,
 ) {
 
-  private val sTrackersCache =
-    CacheBuilder.newBuilder().weakKeys().expireAfterAccess(5, TimeUnit.MINUTES).build<K, T>()
-  private val ourExecutorService =
-    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val sTrackersCache = CacheBuilder.newBuilder().weakKeys().expireAfterAccess(5, TimeUnit.MINUTES).build<K, T>()
+  private val ourExecutorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
   /** Returns an UsageTracker for the given surface or a no-op tracker if the surface is null */
   @VisibleForTesting
@@ -60,15 +58,13 @@ class DesignerUsageTrackerManager<T : Any, K : Disposable>(
   }
 
   /**
-   * Returns an usage tracker for the given surface or a no-op tracker if the surface is null or
-   * stats tracking is disabled. The stats are also disabled during unit testing.
+   * Returns an usage tracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled. The stats are
+   * also disabled during unit testing.
    */
   fun getInstance(key: K?): T {
     // If we are in unit testing mode, do not allow creating new instances.
     // Test instances should be used.
-    return if (AnalyticsSettings.optedIn)
-      getInstanceInner(key, !ApplicationManager.getApplication().isUnitTestMode)
-    else nopTracker
+    return if (AnalyticsSettings.optedIn) getInstanceInner(key, !ApplicationManager.getApplication().isUnitTestMode) else nopTracker
   }
 
   /** Sets the corresponding usage tracker for a [DesignSurface] in tests. */

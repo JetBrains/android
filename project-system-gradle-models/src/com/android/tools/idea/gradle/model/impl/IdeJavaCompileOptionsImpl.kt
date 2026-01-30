@@ -22,5 +22,5 @@ data class IdeJavaCompileOptionsImpl(
   override val encoding: String,
   override val sourceCompatibility: String,
   override val targetCompatibility: String,
-  override val isCoreLibraryDesugaringEnabled: Boolean
+  override val isCoreLibraryDesugaringEnabled: Boolean,
 ) : IdeJavaCompileOptions, Serializable

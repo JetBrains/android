@@ -36,14 +36,12 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
         var bytes: ByteArray? = null
 
         @Synchronized
-        override fun accept(
-          fileIndex: Int, data: ByteDataView, descriptors: Set<String>, handler: DiagnosticsHandler) {
+        override fun accept(fileIndex: Int, data: ByteDataView, descriptors: Set<String>, handler: DiagnosticsHandler) {
             if (bytes != null) throw IllegalStateException("Multidex not supported")
             bytes = data.copyByteData()
         }
 
-        override fun finished(handler: DiagnosticsHandler) {
-        }
+        override fun finished(handler: DiagnosticsHandler) {}
     }
 
     override fun dex(classes: Collection<ClassToLoad>): ByteArray? {
@@ -51,11 +49,11 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
             val builder: D8Command.Builder = D8Command.builder()
             val consumer = DexConsumer()
             for ((_, _, bytes) in classes) {
-                builder.addClassProgramData(bytes, Origin.unknown());
+                builder.addClassProgramData(bytes, Origin.unknown())
             }
             builder.mode = CompilationMode.DEBUG
             builder.programConsumer = consumer
-            builder.minApiLevel = 26  // Android O+
+            builder.minApiLevel = 26 // Android O+
             D8.run(builder.build())
             return consumer.bytes
         } catch (e: Exception) {

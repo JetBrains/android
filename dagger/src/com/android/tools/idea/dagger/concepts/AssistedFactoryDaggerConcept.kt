@@ -62,22 +62,15 @@ import org.jetbrains.kotlin.psi.KtFunction
  * 1. The factory class.
  * 2. The parameters of its creation method.
  *
- * See also: [AssistedFactory](https://dagger.dev/api/latest/dagger/assisted/AssistedFactory.html)
- * and [AssistedInject](https://dagger.dev/api/latest/dagger/assisted/AssistedInject.html)
+ * See also: [AssistedFactory](https://dagger.dev/api/latest/dagger/assisted/AssistedFactory.html) and
+ * [AssistedInject](https://dagger.dev/api/latest/dagger/assisted/AssistedInject.html)
  */
 object AssistedFactoryDaggerConcept : DaggerConcept {
   override val indexers =
-    DaggerConceptIndexers(
-      classIndexers = listOf(AssistedFactoryIndexer),
-      methodIndexers = listOf(AssistedFactoryMethodIndexer),
-    )
-  override val indexValueReaders =
-    listOf(AssistedFactoryClassIndexValue.Reader, AssistedFactoryMethodIndexValue.Reader)
+    DaggerConceptIndexers(classIndexers = listOf(AssistedFactoryIndexer), methodIndexers = listOf(AssistedFactoryMethodIndexer))
+  override val indexValueReaders = listOf(AssistedFactoryClassIndexValue.Reader, AssistedFactoryMethodIndexValue.Reader)
   override val daggerElementIdentifiers =
-    DaggerElementIdentifiers.of(
-      AssistedFactoryClassIndexValue.identifiers,
-      AssistedFactoryMethodIndexValue.identifiers,
-    )
+    DaggerElementIdentifiers.of(AssistedFactoryClassIndexValue.identifiers, AssistedFactoryMethodIndexValue.identifiers)
 }
 
 private object AssistedFactoryIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> {
@@ -104,10 +97,7 @@ private object AssistedFactoryMethodIndexer : DaggerConceptIndexer<DaggerIndexMe
     val classId = containingClass.getClassId()
     val methodSimpleName = wrapper.getSimpleName()
 
-    indexEntries.addIndexValue(
-      methodReturnTypeSimpleName,
-      AssistedFactoryMethodIndexValue(classId, methodSimpleName),
-    )
+    indexEntries.addIndexValue(methodReturnTypeSimpleName, AssistedFactoryMethodIndexValue(classId, methodSimpleName))
   }
 }
 
@@ -154,10 +144,7 @@ internal data class AssistedFactoryClassIndexValue(val classId: ClassId) : Index
 }
 
 @VisibleForTesting
-internal data class AssistedFactoryMethodIndexValue(
-  val classId: ClassId,
-  val methodSimpleName: String,
-) : IndexValue() {
+internal data class AssistedFactoryMethodIndexValue(val classId: ClassId, val methodSimpleName: String) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
@@ -168,28 +155,18 @@ internal data class AssistedFactoryMethodIndexValue(
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_METHOD
 
-    override fun read(input: DataInput) =
-      AssistedFactoryMethodIndexValue(input.readClassId(), input.readString())
+    override fun read(input: DataInput) = AssistedFactoryMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtFunction): DaggerElement? {
-      if (
-        psiElement
-          .parentOfType<KtClassOrObject>()
-          ?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) != true
-      )
-        return null
+      if (psiElement.parentOfType<KtClassOrObject>()?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) != true) return null
 
       return AssistedFactoryMethodDaggerElement(psiElement)
     }
 
     private fun identify(psiElement: PsiMethod): DaggerElement? {
-      if (
-        psiElement.parentOfType<PsiClass>()?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) !=
-          true
-      )
-        return null
+      if (psiElement.parentOfType<PsiClass>()?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) != true) return null
 
       return AssistedFactoryMethodDaggerElement(psiElement)
     }
@@ -202,11 +179,9 @@ internal data class AssistedFactoryMethodIndexValue(
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
-    JavaPsiFacade.getInstance(project)
-      .findClass(classId.asFqNameString(), scope)
-      ?.methods
-      ?.asSequence()
-      ?.filter { it.name == methodSimpleName } ?: emptySequence()
+    JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)?.methods?.asSequence()?.filter {
+      it.name == methodSimpleName
+    } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -217,13 +192,9 @@ internal data class AssistedFactoryMethodDaggerElement(
   internal val methodName: String?,
 ) : DaggerElement() {
 
-  internal constructor(
-    psiElement: KtFunction
-  ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+  internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
 
-  internal constructor(
-    psiElement: PsiMethod
-  ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+  internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
 
@@ -233,25 +204,15 @@ internal data class AssistedFactoryMethodDaggerElement(
     // The assisted inject constructor is always indexed with a fully-qualified name, so that's all
     // we have to look up.
     val indexKeys = listOf(returnedType.canonicalText)
-    return getRelatedDaggerElementsFromIndex<AssistedInjectConstructorDaggerElement>(indexKeys)
-      .map {
-        DaggerRelatedElement(
-          it,
-          DaggerBundle.message("assisted.inject"),
-          "navigate.to.assisted.inject",
-          it.methodName,
-        )
-      }
+    return getRelatedDaggerElementsFromIndex<AssistedInjectConstructorDaggerElement>(indexKeys).map {
+      DaggerRelatedElement(it, DaggerBundle.message("assisted.inject"), "navigate.to.assisted.inject", it.methodName)
+    }
   }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    resolveCandidate is AssistedInjectConstructorDaggerElement &&
-      resolveCandidate.constructedType == this.returnedType
+    resolveCandidate is AssistedInjectConstructorDaggerElement && resolveCandidate.constructedType == this.returnedType
 
   companion object {
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>(
-        "AssistedFactoryMethodDaggerElement_RelatedElements"
-      )
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("AssistedFactoryMethodDaggerElement_RelatedElements")
   }
 }

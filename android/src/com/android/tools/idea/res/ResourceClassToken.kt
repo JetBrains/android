@@ -27,17 +27,13 @@ interface ResourceClassToken<P : AndroidProjectSystem> : Token {
   fun getSourceSet(projectSystem: P, module: Module): SourceSet
 
   companion object {
-    val EP_NAME =
-      ExtensionPointName<ResourceClassToken<AndroidProjectSystem>>(
-        "com.android.tools.idea.res.resourceClassToken"
-      )
+    val EP_NAME = ExtensionPointName<ResourceClassToken<AndroidProjectSystem>>("com.android.tools.idea.res.resourceClassToken")
 
     /** Return the most appropriate [ModuleRClass.SourceSet] for this module. */
     @JvmStatic
     fun getSourceSet(module: Module): SourceSet {
       val projectSystem = module.project.getProjectSystem()
-      return projectSystem.getTokenOrNull(EP_NAME)?.getSourceSet(projectSystem, module)
-        ?: SourceSet.MAIN
+      return projectSystem.getTokenOrNull(EP_NAME)?.getSourceSet(projectSystem, module) ?: SourceSet.MAIN
     }
   }
 }

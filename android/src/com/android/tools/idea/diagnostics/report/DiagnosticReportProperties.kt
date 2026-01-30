@@ -26,7 +26,7 @@ data class DiagnosticReportProperties(
   val reportTime: Long = AnalyticsSettings.dateProvider.now().time,
   val sessionId: String? = UsageTracker.sessionId,
   val studioVersion: String? = UsageTracker.version,
-  val kotlinVersion: String? = computeKotlinVersion()
+  val kotlinVersion: String? = computeKotlinVersion(),
 ) {
   fun asProductDataMap(): Map<String, String> {
     val map = mutableMapOf("reportTime" to reportTime.toString())
@@ -39,8 +39,7 @@ data class DiagnosticReportProperties(
 private fun computeKotlinVersion(): String? {
   return try {
     PluginManager.getInstance().findEnabledPlugin(PluginId.getId("org.jetbrains.kotlin"))?.version
-  }
-  catch (ignored: Throwable) {
+  } catch (ignored: Throwable) {
     null
   }
 }

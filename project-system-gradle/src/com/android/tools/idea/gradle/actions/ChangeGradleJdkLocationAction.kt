@@ -19,18 +19,15 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHy
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/**
- * Simple action that uses [OpenGradleSettingsHyperlink] to allow the user to change their project JDK
- */
-class ChangeGradleJdkLocationAction : DumbAwareAction(
-  "Change Gradle JDK Location",
-  "Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync",
-  null
-) {
+/** Simple action that uses [OpenGradleSettingsHyperlink] to allow the user to change their project JDK */
+class ChangeGradleJdkLocationAction :
+  DumbAwareAction(
+    "Change Gradle JDK Location",
+    "Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync",
+    null,
+  ) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.project?.let {
-      OpenGradleSettingsHyperlink.showGradleSettings(it)
-    }
+    e.project?.let { OpenGradleSettingsHyperlink.showGradleSettings(it) }
   }
 }

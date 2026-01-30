@@ -29,9 +29,8 @@ import org.jetbrains.android.facet.AndroidFacet
 const val JAVA_LANG = "java.lang."
 
 /**
- * Given a [PsiElement], return an associated entry in the [BindingXmlIndex] for it.
- * This will return null if the IDEA module of the [PsiElement] cannot be found,
- * doesn't have an Android facet attached to it, or databinding is not enabled on it.
+ * Given a [PsiElement], return an associated entry in the [BindingXmlIndex] for it. This will return null if the IDEA module of the
+ * [PsiElement] cannot be found, doesn't have an Android facet attached to it, or databinding is not enabled on it.
  */
 fun getBindingIndexEntry(element: PsiElement): BindingXmlIndex.Entry? {
   val module = ModuleUtilCore.findModuleForPsiElement(element)
@@ -49,11 +48,9 @@ fun getBindingIndexEntry(element: PsiElement): BindingXmlIndex.Entry? {
 }
 
 /**
- * Return a search scope that includes this module's R resources, or null if that scope is not found given
- * the calling [PsiElement]
+ * Return a search scope that includes this module's R resources, or null if that scope is not found given the calling [PsiElement]
  *
- * This method should only be called within a data binding expression,
- * as its containing layout file is guaranteed to be two folders below
+ * This method should only be called within a data binding expression, as its containing layout file is guaranteed to be two folders below
  * its parent 'res/' folder.
  */
 val PsiElement.resolveScopeWithResources: GlobalSearchScope?

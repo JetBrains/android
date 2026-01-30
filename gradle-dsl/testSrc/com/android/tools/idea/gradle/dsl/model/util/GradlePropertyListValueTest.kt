@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import java.io.File
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
-import java.io.File
 
 class GradlePropertyListValueTest : GradleFileModelTestCase() {
   @Test
@@ -140,15 +140,15 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.SET_LIST_VALUE_EXPECTED)
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     REPLACE_LIST_VALUE("replaceListValue"),
     REPLACE_LIST_VALUE_EXPECTED("replaceListValueExpected"),
     REPLACE_LIST_VALUE_ON_NONE_LIST("replaceListValueOnNoneList"),
     REMOVE_LIST_VALUES("removeListValues"),
     REMOVE_LIST_VALUES_EXPECTED("removeListValuesExpected"),
     SET_LIST_VALUE("setListValue"),
-    SET_LIST_VALUE_EXPECTED("setListValueExpected"),
-    ;
+    SET_LIST_VALUE_EXPECTED("setListValueExpected");
+
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/gradlePropertyListValue/$path", extension)
     }

@@ -27,13 +27,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class HighlightingAfterTypingTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standardWithTmpDir()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   @Test
   fun testHighlightingAfterTyping() {
@@ -42,7 +38,7 @@ class HighlightingAfterTypingTest {
     val project = AndroidProject(projectArtifactsPath.resolve("architecture-samples").toString())
     // Don't show Decompiler legal notice in case of resolving in .class files.
     system.installation.acceptLegalDecompilerNotice()
-    system.getInstallation().copySystemDir(projectArtifactsPath);
+    system.getInstallation().copySystemDir(projectArtifactsPath)
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/editor_performance_test_deps.manifest"))
@@ -54,15 +50,18 @@ class HighlightingAfterTypingTest {
       studio.waitForSyncSkippedLog()
       studio.waitForIndexingSkippedLog()
 
-      studio.openFile(null, "app/src/main/java/com/example/android/architecture/blueprints/todoapp/addedittask/AddEditTaskViewModel.kt", 89,
-                      19, false,
-                      false)
+      studio.openFile(
+        null,
+        "app/src/main/java/com/example/android/architecture/blueprints/todoapp/addedittask/AddEditTaskViewModel.kt",
+        89,
+        19,
+        false,
+        false,
+      )
       // We set up caret after the `updateTitle` symbol and press backspace 5 times to remove
       // the `Title` part.
       // "_uiState.updateTitle<caret> {"
-      repeat(5) {
-        studio.pressKey(AndroidStudio.Keys.BACKSPACE, null)
-      }
+      repeat(5) { studio.pressKey(AndroidStudio.Keys.BACKSPACE, null) }
       // Now lets type the "Title" back and measure how long it takes to rehighlight the file.
       studio.delayType(null, 100, "Title")
       studio.waitForFinishedCodeAnalysis(null)
@@ -71,11 +70,15 @@ class HighlightingAfterTypingTest {
 
     val benchmark = PlatformPerformanceBenchmark(watcher.dashboardName!!)
 
-    system.installation.telemetry.get("highlighting_AddEditTaskViewModel.kt").reduce { _, e -> e }.get().let {
-      benchmark.log("highlighting_AddEditTaskViewModel", it)
-    }
-    system.installation.telemetry.get("firstCodeAnalysis").reduce { _, e -> e }.get().let {
-      benchmark.log("firstCodeAnalysis", it, if (SystemInfo.isWindows) 75 else 2)
-    }
+    system.installation.telemetry
+      .get("highlighting_AddEditTaskViewModel.kt")
+      .reduce { _, e -> e }
+      .get()
+      .let { benchmark.log("highlighting_AddEditTaskViewModel", it) }
+    system.installation.telemetry
+      .get("firstCodeAnalysis")
+      .reduce { _, e -> e }
+      .get()
+      .let { benchmark.log("firstCodeAnalysis", it, if (SystemInfo.isWindows) 75 else 2) }
   }
 }

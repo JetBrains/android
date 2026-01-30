@@ -21,10 +21,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.SimpleConfigurationType
+import kotlin.time.Clock
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Clock
 
 class SelectedTargetStateServiceTest {
   @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
@@ -39,10 +39,7 @@ class SelectedTargetStateServiceTest {
   }
 
   internal fun arbitraryDropdownSelection() =
-    DropdownSelection(
-      target = TargetId(arbitraryDeviceId(), null, DefaultBoot),
-      timestamp = Clock.System.now(),
-    )
+    DropdownSelection(target = TargetId(arbitraryDeviceId(), null, DefaultBoot), timestamp = Clock.System.now())
 
   private fun arbitraryDeviceId() = DeviceId("Test", false, "device${nextCounter()}")
 
@@ -52,17 +49,11 @@ class SelectedTargetStateServiceTest {
 
   @Test
   fun loadStateRemovesObsoleteRunConfigurationStates() {
-    val existingConfig =
-      runManager.createConfiguration("existing config", AndroidRunConfigurationType::class.java)
+    val existingConfig = runManager.createConfiguration("existing config", AndroidRunConfigurationType::class.java)
     runManager.addConfiguration(existingConfig)
 
-    val oldConfigState =
-      SelectionState(runConfigName = "old config", dropdownSelection = arbitraryDropdownSelection())
-    val existingConfigState =
-      SelectionState(
-        runConfigName = "existing config",
-        dropdownSelection = arbitraryDropdownSelection(),
-      )
+    val oldConfigState = SelectionState(runConfigName = "old config", dropdownSelection = arbitraryDropdownSelection())
+    val existingConfigState = SelectionState(runConfigName = "existing config", dropdownSelection = arbitraryDropdownSelection())
     val persistedRunConfigState =
       SelectionStateList().apply {
         selectionStates.add(existingConfigState.toXml())
@@ -71,18 +62,15 @@ class SelectedTargetStateServiceTest {
 
     stateService.loadState(persistedRunConfigState)
 
-    val newConfig =
-      runManager.createConfiguration("old config", AndroidRunConfigurationType::class.java)
+    val newConfig = runManager.createConfiguration("old config", AndroidRunConfigurationType::class.java)
     assertThat(stateService.getState(existingConfig.configuration)).isEqualTo(existingConfigState)
     assertThat(stateService.getState(newConfig.configuration)).isNotEqualTo(oldConfigState)
   }
 
   @Test
   fun getStateRemovesInvalidRunConfigurationStates() {
-    val existingConfig =
-      runManager.createConfiguration("existing config", AndroidRunConfigurationType::class.java)
-    val nonAndroidConfig =
-      runManager.createConfiguration("non android config", SimpleConfigurationType::class.java)
+    val existingConfig = runManager.createConfiguration("existing config", AndroidRunConfigurationType::class.java)
+    val nonAndroidConfig = runManager.createConfiguration("non android config", SimpleConfigurationType::class.java)
     runManager.addConfiguration(existingConfig)
     runManager.addConfiguration(nonAndroidConfig)
 

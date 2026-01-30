@@ -29,19 +29,11 @@ import com.intellij.openapi.project.Project
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 
-class DefaultUiComponentsProvider(
-  private val project: Project,
-  private val parentDisposable: Disposable,
-) : UiComponentsProvider {
+class DefaultUiComponentsProvider(private val project: Project, private val parentDisposable: Disposable) : UiComponentsProvider {
   private val gson = Gson()
   private val xml = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 
-  override fun createDataViewer(
-    bytes: ByteArray,
-    contentType: ContentType,
-    styleHint: DataViewer.Style,
-    formatted: Boolean,
-  ): DataViewer {
+  override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return when {
       contentType.isSupportedImageType -> IntellijImageDataViewer(bytes, parentDisposable)
       contentType.isMultipart -> IntellijDataViewer.createRawTextViewer(bytes)
@@ -59,13 +51,7 @@ class DefaultUiComponentsProvider(
     return when (styleHint) {
       DataViewer.Style.RAW -> IntellijDataViewer.createRawTextViewer(bytes)
       DataViewer.Style.PRETTY ->
-        IntellijDataViewer.createPrettyViewerIfPossible(
-          project,
-          bytes,
-          contentType.fileType,
-          formatted,
-          parentDisposable,
-        )
+        IntellijDataViewer.createPrettyViewerIfPossible(project, bytes, contentType.fileType, formatted, parentDisposable)
       DataViewer.Style.INVALID -> throw RuntimeException("DataViewer style is invalid.")
     }
   }
@@ -73,11 +59,7 @@ class DefaultUiComponentsProvider(
   /*
    * Some web services may not specify content correctly so we try detecting it.
    */
-  private fun handleUnsupportedContentType(
-    bytes: ByteArray,
-    styleHint: DataViewer.Style,
-    formatted: Boolean,
-  ): DataViewer {
+  private fun handleUnsupportedContentType(bytes: ByteArray, styleHint: DataViewer.Style, formatted: Boolean): DataViewer {
     return when {
       bytes.isJson() -> createViewer(bytes, ContentType.JSON, styleHint, formatted)
       bytes.isXml() -> createViewer(bytes, ContentType.XML, styleHint, formatted)

@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ApiDetector
 
 class AndroidLintNioDesugaringInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.nio.desugaring"),
-    ApiDetector.NIO_DESUGARING,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.nio.desugaring"), ApiDetector.NIO_DESUGARING)

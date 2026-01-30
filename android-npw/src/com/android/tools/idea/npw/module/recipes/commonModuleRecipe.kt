@@ -43,12 +43,7 @@ fun RecipeExecutor.generateCommonModule(
   generateGenericLocalTests: Boolean = false,
   generateGenericInstrumentedTests: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  themesXml: String? =
-    androidModuleThemes(
-      data.projectTemplateData.androidXSupport,
-      data.apis.minApi,
-      data.themesData.main.name,
-    ),
+  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.apis.minApi, data.themesData.main.name),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
   addLintOptions: Boolean = false,
@@ -58,8 +53,7 @@ fun RecipeExecutor.generateCommonModule(
   useVersionCatalog: Boolean,
   appTitleResName: String = "app_name",
 ) {
-  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) =
-    data
+  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
   val language = projectData.language
   val isLibraryProject = data.isLibrary

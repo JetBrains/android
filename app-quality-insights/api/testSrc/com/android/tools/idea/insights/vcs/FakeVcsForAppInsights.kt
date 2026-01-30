@@ -29,16 +29,11 @@ class FakeVcsForAppInsights : VcsForAppInsights {
 
   override fun isApplicable(vcs: AbstractVcs) = vcs is MockAbstractVcs
 
-  override fun createVcsContent(
-    localFilePath: FilePath,
-    revision: String,
-    project: Project,
-  ): ContentRevision {
+  override fun createVcsContent(localFilePath: FilePath, revision: String, project: Project): ContentRevision {
     return FakeContentRevision(localFilePath, revision) { vcsContentProvider(localFilePath) }
   }
 
-  override fun createVcsRevision(revision: String): VcsRevisionNumber =
-    FakeVcsRevisionNumber(revision)
+  override fun createVcsRevision(revision: String): VcsRevisionNumber = FakeVcsRevisionNumber(revision)
 
   var vcsContentProvider = { filePath: FilePath -> FileUtil.loadFile(filePath.ioFile) }
 }

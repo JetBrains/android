@@ -35,9 +35,7 @@ class ExportProjectZipExcludesGradleContributor : ExportProjectZipExcludesContri
     result.add(File(basePath, SdkConstants.DOT_GRADLE))
     result.add(File(basePath, GradleProjectSystemUtil.BUILD_DIR_DEFAULT_NAME))
     result.add(File(basePath, Project.DIRECTORY_STORE_FOLDER))
-    ModuleManager.getInstance(project).modules.forEach { module ->
-      module.moduleFile?.let { result.add(it.toIoFile())}
-    }
+    ModuleManager.getInstance(project).modules.forEach { module -> module.moduleFile?.let { result.add(it.toIoFile()) } }
     return result
   }
 }

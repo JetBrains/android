@@ -63,8 +63,10 @@ class DialogLocationArbiter {
   fun calculateAdjustedLocation(baseLocation: Point, size: Dimension, graphicsConfiguration: GraphicsConfiguration): Point {
     val bounds = graphicsConfiguration.adjustedBounds
     val offset = JBUIScale.scale(40)
-    return Point((baseLocation.x + offset).coerceIn(bounds.x, bounds.x + bounds.width - size.width),
-                 (baseLocation.y + offset).coerceIn(bounds.y, bounds.y + bounds.height - size.height))
+    return Point(
+      (baseLocation.x + offset).coerceIn(bounds.x, bounds.x + bounds.width - size.width),
+      (baseLocation.y + offset).coerceIn(bounds.y, bounds.y + bounds.height - size.height),
+    )
   }
 
   private val GraphicsConfiguration.adjustedBounds: Rectangle

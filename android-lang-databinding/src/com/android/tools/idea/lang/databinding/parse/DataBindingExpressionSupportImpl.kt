@@ -39,9 +39,9 @@ class DataBindingExpressionSupportImpl : DataBindingExpressionSupport {
     while (matcher.find()) {
       index = matcher.end()
     }
-    var def = expr.substring(index, expr.length - 1).trim { it <= ' ' }  // remove the trailing "}"
+    var def = expr.substring(index, expr.length - 1).trim { it <= ' ' } // remove the trailing "}"
     if (def.startsWith("\"") && def.endsWith("\"")) {
-      def = def.substring(1, def.length - 1)       // Unquote the string.
+      def = def.substring(1, def.length - 1) // Unquote the string.
     }
     return def
   }
@@ -62,13 +62,11 @@ class DataBindingExpressionSupportImpl : DataBindingExpressionSupport {
           val stringLiteral = constantValue.node.findChildByType(DbTokenTypes.STRING_LITERAL)
           return if (stringLiteral == null) {
             constantValue.text
-          }
-          else {
+          } else {
             val text = stringLiteral.text
             return if (text.length > 1) {
-              text.substring(1, text.length - 1)  // return unquoted string literal.
-            }
-            else {
+              text.substring(1, text.length - 1) // return unquoted string literal.
+            } else {
               text
             }
           }
@@ -77,5 +75,4 @@ class DataBindingExpressionSupportImpl : DataBindingExpressionSupport {
     }
     return null
   }
-
 }

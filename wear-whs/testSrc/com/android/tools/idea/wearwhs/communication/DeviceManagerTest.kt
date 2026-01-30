@@ -76,59 +76,54 @@ class DeviceManagerTest {
   }
 
   @Test
-  fun `test setCapabilities throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
+  fun `test setCapabilities throws connection lost exception when adb session is closed`() = runBlocking {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
 
-      adbSession.close()
+    adbSession.close()
 
-      assertFailure(deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)))
-    }
-
-  @Test
-  fun `test overrideValues throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
-
-      adbSession.close()
-
-      assertFailure(deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(50))))
-    }
+    assertFailure(deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)))
+  }
 
   @Test
-  fun `test loadActiveExercise throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
+  fun `test overrideValues throws connection lost exception when adb session is closed`() = runBlocking {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
 
-      adbSession.close()
+    adbSession.close()
 
-      assertFailure(deviceManager.loadActiveExercise())
-    }
-
-  @Test
-  fun `test triggerEvent throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
-
-      adbSession.close()
-
-      assertFailure(deviceManager.triggerEvent(EventTrigger("whs.TEST", "test")))
-    }
+    assertFailure(deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(50))))
+  }
 
   @Test
-  fun `test loadCurrentCapabilityStates throws connection lost exception when adb session is closed`() =
-    runBlocking {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
+  fun `test loadActiveExercise throws connection lost exception when adb session is closed`() = runBlocking {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
 
-      adbSession.close()
+    adbSession.close()
 
-      assertFailure(deviceManager.loadCurrentCapabilityStates())
-    }
+    assertFailure(deviceManager.loadActiveExercise())
+  }
+
+  @Test
+  fun `test triggerEvent throws connection lost exception when adb session is closed`() = runBlocking {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertFailure(deviceManager.triggerEvent(EventTrigger("whs.TEST", "test")))
+  }
+
+  @Test
+  fun `test loadCurrentCapabilityStates throws connection lost exception when adb session is closed`() = runBlocking {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
+
+    adbSession.close()
+
+    assertFailure(deviceManager.loadCurrentCapabilityStates())
+  }
 
   @Test
   fun `enabling capability when serial number is not set does not result in crash`() = runTest {
@@ -152,11 +147,7 @@ class DeviceManagerTest {
     deviceManager: ContentProviderDeviceManager = ContentProviderDeviceManager(adbSessionProvider),
     adbSession: FakeAdbSession = this.adbSession,
   ) = runTest {
-    adbSession.deviceServices.configureShellCommand(
-      DeviceSelector.fromSerialNumber(serialNumber),
-      expectedAdbCommand,
-      "",
-    )
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), expectedAdbCommand, "")
 
     deviceManager.setSerialNumber(serialNumber)
 
@@ -176,20 +167,14 @@ class DeviceManagerTest {
     assertEquals(expectedAdbCommand, shellRequest.command)
   }
 
-  private fun assertEnablingCapabilitySendsAdbCommand(
-    dataType: WhsDataType,
-    expectedAdbCommand: String,
-  ) = runTest {
+  private fun assertEnablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager -> deviceManager.setCapabilities(mapOf(dataType to true)) },
       expectedAdbCommand,
     )
   }
 
-  private fun assertDisablingCapabilitySendsAdbCommand(
-    dataType: WhsDataType,
-    expectedAdbCommand: String,
-  ) = runTest {
+  private fun assertDisablingCapabilitySendsAdbCommand(dataType: WhsDataType, expectedAdbCommand: String) = runTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager -> deviceManager.setCapabilities(mapOf(dataType to false)) },
       expectedAdbCommand,
@@ -198,74 +183,38 @@ class DeviceManagerTest {
 
   @Test
   fun `enable and disable steps`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.STEPS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.STEPS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:b:false")
   }
 
   @Test
   fun `enable and disable distance`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.DISTANCE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.DISTANCE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.DISTANCE, "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:b:false")
   }
 
   @Test
   fun `enable and disable calories`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.CALORIES,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.CALORIES,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.CALORIES, "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:b:false")
   }
 
   @Test
   fun `enable and disable floors`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.FLOORS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.FLOORS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.FLOORS, "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:b:false")
   }
 
   @Test
   fun `enable and disable elevation gain`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_GAIN, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:b:false")
   }
 
   @Test
   fun `enable and disable elevation loss`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.ELEVATION_LOSS, "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:b:false")
   }
 
   @Test
@@ -282,153 +231,80 @@ class DeviceManagerTest {
 
   @Test
   fun `enable and disable location`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.LOCATION,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.LOCATION,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.LOCATION, "$CONTENT_UPDATE_SHELL_COMMAND --bind LOCATION:b:false")
   }
 
   @Test
   fun `enable and disable heart rate bpm`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.HEART_RATE_BPM, "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:b:false")
   }
 
   @Test
   fun `enable and disable speed`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.SPEED,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.SPEED,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.SPEED, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.SPEED, "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:b:false")
   }
 
   @Test
   fun `enable and disable pace`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.PACE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.PACE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.PACE, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.PACE, "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:b:false")
   }
 
   @Test
   fun `enable and disable steps per minute`() {
-    assertEnablingCapabilitySendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:true",
-    )
-    assertDisablingCapabilitySendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE,
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:false",
-    )
+    assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:true")
+    assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:b:false")
   }
 
   @Test
-  fun `setting capability override value when serial number is not set does not result in crash`() =
-    runTest {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+  fun `setting capability override value when serial number is not set does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
-      val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55))) }
-      job.join()
-    }
+    val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55))) }
+    job.join()
+  }
 
-  private fun assertOverrideSendsAdbCommand(
-    overrideValue: WhsDataValue,
-    expectedAdbCommand: String,
-  ) = runTest {
-    assertDeviceManagerFunctionSendsAdbCommand(
-      { deviceManager -> deviceManager.overrideValues(listOf(overrideValue)) },
-      expectedAdbCommand,
-    )
+  private fun assertOverrideSendsAdbCommand(overrideValue: WhsDataValue, expectedAdbCommand: String) = runTest {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(listOf(overrideValue)) }, expectedAdbCommand)
   }
 
   @Test
   fun `override steps`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS.value(55),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:i:55",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS.value(55), "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:i:55")
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS:s:\"\"")
   }
 
   @Test
   fun `override distance`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.DISTANCE.value(10f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:f:10.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.DISTANCE.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE.value(10f), "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:f:10.0")
+    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind DISTANCE:s:\"\"")
   }
 
   @Test
   fun `override calories`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.CALORIES.value(100f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:100.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.CALORIES.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES.value(100f), "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:100.0")
+    assertOverrideSendsAdbCommand(WhsDataType.CALORIES.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:s:\"\"")
   }
 
   @Test
   fun `override floors`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.FLOORS.value(5f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:f:5.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.FLOORS.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.FLOORS.value(5f), "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:f:5.0")
+    assertOverrideSendsAdbCommand(WhsDataType.FLOORS.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind FLOORS:s:\"\"")
   }
 
   @Test
   fun `override elevation gain`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN.value(50f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:f:50.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_GAIN.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN.value(50f), "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:f:50.0")
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_GAIN:s:\"\"")
   }
 
   @Test
   fun `override elevation loss`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS.value(20f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:20.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.ELEVATION_LOSS.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS.value(20f), "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:20.0")
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:s:\"\"")
   }
 
   @Test
@@ -445,58 +321,32 @@ class DeviceManagerTest {
 
   @Test
   fun `override heart rate bpm`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM.value(65f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:f:65.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.HEART_RATE_BPM.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM.value(65f), "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:f:65.0")
+    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind HEART_RATE_BPM:s:\"\"")
   }
 
   @Test
   fun `override speed`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.SPEED.value(30f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:f:30.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.SPEED.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.SPEED.value(30f), "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:f:30.0")
+    assertOverrideSendsAdbCommand(WhsDataType.SPEED.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind SPEED:s:\"\"")
   }
 
   @Test
   fun `override pace`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.PACE.value(20f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:f:20.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.PACE.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.PACE.value(20f), "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:f:20.0")
+    assertOverrideSendsAdbCommand(WhsDataType.PACE.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind PACE:s:\"\"")
   }
 
   @Test
   fun `override steps per minute`() {
-    assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE.value(25f),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:f:25.0",
-    )
-    assertOverrideSendsAdbCommand(
-      WhsDataType.STEPS_PER_MINUTE.noValue(),
-      "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:s:\"\"",
-    )
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE.value(25f), "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:f:25.0")
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE.noValue(), "$CONTENT_UPDATE_SHELL_COMMAND --bind STEPS_PER_MINUTE:s:\"\"")
   }
 
   @Test
   fun `trigger auto pause event`() = runBlocking {
     assertDeviceManagerFunctionSendsAdbCommand(
-      { deviceManager ->
-        deviceManager.triggerEvent(EventTrigger("whs.AUTO_PAUSE_DETECTED", "label"))
-      },
+      { deviceManager -> deviceManager.triggerEvent(EventTrigger("whs.AUTO_PAUSE_DETECTED", "label")) },
       "am broadcast -a \"whs.AUTO_PAUSE_DETECTED\" com.google.android.wearable.healthservices",
     )
   }
@@ -512,11 +362,7 @@ class DeviceManagerTest {
   @Test
   fun `trigger full swing golf shot event`() = runBlocking {
     assertDeviceManagerFunctionSendsAdbCommand(
-      { deviceManager ->
-        deviceManager.triggerEvent(
-          EventTrigger("whs.GOLF_SHOT", "label", mapOf("golf_shot_swing_type" to "full"))
-        )
-      },
+      { deviceManager -> deviceManager.triggerEvent(EventTrigger("whs.GOLF_SHOT", "label", mapOf("golf_shot_swing_type" to "full"))) },
       "am broadcast -a \"whs.GOLF_SHOT\" --es golf_shot_swing_type \"full\" com.google.android.wearable.healthservices",
     )
   }
@@ -538,13 +384,12 @@ class DeviceManagerTest {
   }
 
   @Test
-  fun `setting multiple capabilities without setting serial number does not result in crash`() =
-    runTest {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+  fun `setting multiple capabilities without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
-      val job = launch { deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)) }
-      job.join()
-    }
+    val job = launch { deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true)) }
+    job.join()
+  }
 
   @Test
   fun `setting multiple capabilities triggers expected adb command with keys in alphabetical order`() {
@@ -572,24 +417,19 @@ class DeviceManagerTest {
   }
 
   @Test
-  fun `setting multiple override values without setting serial number does not result in crash`() =
-    runTest {
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+  fun `setting multiple override values without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
 
-      val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55f))) }
-      job.join()
-    }
+    val job = launch { deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55f))) }
+    job.join()
+  }
 
   @Test
   fun `setting multiple float override values triggers expected adb command with keys in alphabetical order`() {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          listOf(
-            WhsDataType.DISTANCE.value(12.0f),
-            WhsDataType.CALORIES.value(123.0f),
-            WhsDataType.FLOORS.value(5.0f),
-          )
+          listOf(WhsDataType.DISTANCE.value(12.0f), WhsDataType.CALORIES.value(123.0f), WhsDataType.FLOORS.value(5.0f))
         )
       },
       "$CONTENT_UPDATE_SHELL_COMMAND --bind CALORIES:f:123.0 --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0",
@@ -599,11 +439,7 @@ class DeviceManagerTest {
   @Test
   fun `setting float and int override values triggers expected adb command with keys in alphabetical order`() {
     assertDeviceManagerFunctionSendsAdbCommand(
-      { deviceManager ->
-        deviceManager.overrideValues(
-          listOf(WhsDataType.STEPS.value(55), WhsDataType.ELEVATION_LOSS.value(5.0f))
-        )
-      },
+      { deviceManager -> deviceManager.overrideValues(listOf(WhsDataType.STEPS.value(55), WhsDataType.ELEVATION_LOSS.value(5.0f))) },
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55",
     )
   }
@@ -613,11 +449,7 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager ->
         deviceManager.overrideValues(
-          listOf(
-            WhsDataType.STEPS.value(55),
-            WhsDataType.ELEVATION_LOSS.value(5.0f),
-            WhsDataType.PACE.noValue(),
-          )
+          listOf(WhsDataType.STEPS.value(55), WhsDataType.ELEVATION_LOSS.value(5.0f), WhsDataType.PACE.noValue())
         )
       },
       "$CONTENT_UPDATE_SHELL_COMMAND --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55",
@@ -641,36 +473,30 @@ class DeviceManagerTest {
     )
   }
 
-  private fun assertExerciseCommandParsesResultsCorrectly(response: String, expected: Boolean) =
-    runTest {
-      val queryExerciseStateCommand =
-        "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
-      adbSession.deviceServices.configureShellCommand(
-        DeviceSelector.fromSerialNumber(serialNumber),
-        queryExerciseStateCommand,
-        response,
-      )
-      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-      deviceManager.setSerialNumber(serialNumber)
+  private fun assertExerciseCommandParsesResultsCorrectly(response: String, expected: Boolean) = runTest {
+    val queryExerciseStateCommand = "content query --uri content://com.google.android.wearable.healthservices.dev.exerciseinfo"
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryExerciseStateCommand, response)
+    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+    deviceManager.setSerialNumber(serialNumber)
 
-      val previousCount = adbSession.deviceServices.shellV2Requests.size
+    val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-      var isSupported = false
-      val job = launch { isSupported = deviceManager.loadActiveExercise().getOrThrow() }
-      job.join()
+    var isSupported = false
+    val job = launch { isSupported = deviceManager.loadActiveExercise().getOrThrow() }
+    job.join()
 
-      val currentCount = adbSession.deviceServices.shellV2Requests.size
-      val newRequestsCount = currentCount - previousCount
+    val currentCount = adbSession.deviceServices.shellV2Requests.size
+    val newRequestsCount = currentCount - previousCount
 
-      assertEquals(1, newRequestsCount)
+    assertEquals(1, newRequestsCount)
 
-      val shellRequest = adbSession.deviceServices.shellV2Requests.last
+    val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
-      assert(shellRequest.deviceSelector.contains(serialNumber))
-      assertEquals(queryExerciseStateCommand, shellRequest.command)
+    assert(shellRequest.deviceSelector.contains(serialNumber))
+    assertEquals(queryExerciseStateCommand, shellRequest.command)
 
-      assertEquals(expected, isSupported)
-    }
+    assertEquals(expected, isSupported)
+  }
 
   @Test
   fun `load active exercise returns true when exercise is active`() =
@@ -692,41 +518,33 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
-    response: String,
-    expectedCapabilites: Map<WhsDataType, CapabilityState>,
-  ) = runTest {
-    val queryContentProviderCommand = "content query --uri $WHS_CONTENT_PROVIDER_URI"
-    adbSession.deviceServices.configureShellCommand(
-      DeviceSelector.fromSerialNumber(serialNumber),
-      queryContentProviderCommand,
-      response,
-    )
+  private fun assertLoadCapabilitiesAdbResponseIsParsedCorrectly(response: String, expectedCapabilites: Map<WhsDataType, CapabilityState>) =
+    runTest {
+      val queryContentProviderCommand = "content query --uri $WHS_CONTENT_PROVIDER_URI"
+      adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), queryContentProviderCommand, response)
 
-    val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
-    deviceManager.setSerialNumber(serialNumber)
+      val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+      deviceManager.setSerialNumber(serialNumber)
 
-    val previousCount = adbSession.deviceServices.shellV2Requests.size
+      val previousCount = adbSession.deviceServices.shellV2Requests.size
 
-    var parsedCapabilities: Map<WhsDataType, CapabilityState> =
-      WHS_CAPABILITIES.associate { it.dataType to CapabilityState.disabled(it.dataType) }
-    val job = launch {
-      parsedCapabilities = deviceManager.loadCurrentCapabilityStates().getOrThrow()
+      var parsedCapabilities: Map<WhsDataType, CapabilityState> =
+        WHS_CAPABILITIES.associate { it.dataType to CapabilityState.disabled(it.dataType) }
+      val job = launch { parsedCapabilities = deviceManager.loadCurrentCapabilityStates().getOrThrow() }
+      job.join()
+
+      val currentCount = adbSession.deviceServices.shellV2Requests.size
+      val newRequestsCount = currentCount - previousCount
+
+      assertEquals(1, newRequestsCount)
+
+      val shellRequest = adbSession.deviceServices.shellV2Requests.last
+
+      assert(shellRequest.deviceSelector.contains(serialNumber))
+      assertEquals(queryContentProviderCommand, shellRequest.command)
+
+      assertEquals(expectedCapabilites, parsedCapabilities)
     }
-    job.join()
-
-    val currentCount = adbSession.deviceServices.shellV2Requests.size
-    val newRequestsCount = currentCount - previousCount
-
-    assertEquals(1, newRequestsCount)
-
-    val shellRequest = adbSession.deviceServices.shellV2Requests.last
-
-    assert(shellRequest.deviceSelector.contains(serialNumber))
-    assertEquals(queryContentProviderCommand, shellRequest.command)
-
-    assertEquals(expectedCapabilites, parsedCapabilities)
-  }
 
   @Test
   fun `unexpected ADB response results in no capabilities being reported`() {
@@ -742,18 +560,18 @@ class DeviceManagerTest {
     // In all other cases enabled state and override values should be parsed as seen in table
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
       """
-                                                       Row: 0 data_type=STEPS_PER_MINUTE, is_enabled=false, override_value=0.0
-                                                       Row: 1 data_type=SPEED, is_enabled=true, override_value=0.0
-                                                       Row: 2 data_type=FLOORS, is_enabled=false, override_value=5.0
-                                                       Row: 3 data_type=ABSOLUTE_ELEVATION, is_enabled=false, override_value=0.0
-                                                       Row: 4 data_type=ELEVATION_LOSS, is_enabled=false, override_value=0.0
-                                                       Row: 5 data_type=DISTANCE, is_enabled=true, override_value=0.0
-                                                       Row: 6 data_type=ELEVATION_GAIN, is_enabled=false, override_value=0.0
-                                                       Row: 7 data_type=CALORIES, is_enabled=false, override_value=0.0
-                                                       Row: 8 data_type=PACE, is_enabled=false, override_value=0.0
-                                                       Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0
-                                                       Row: 10 data_type=STEPS, is_enabled=true, override_value=42
-                                                       """
+      Row: 0 data_type=STEPS_PER_MINUTE, is_enabled=false, override_value=0.0
+      Row: 1 data_type=SPEED, is_enabled=true, override_value=0.0
+      Row: 2 data_type=FLOORS, is_enabled=false, override_value=5.0
+      Row: 3 data_type=ABSOLUTE_ELEVATION, is_enabled=false, override_value=0.0
+      Row: 4 data_type=ELEVATION_LOSS, is_enabled=false, override_value=0.0
+      Row: 5 data_type=DISTANCE, is_enabled=true, override_value=0.0
+      Row: 6 data_type=ELEVATION_GAIN, is_enabled=false, override_value=0.0
+      Row: 7 data_type=CALORIES, is_enabled=false, override_value=0.0
+      Row: 8 data_type=PACE, is_enabled=false, override_value=0.0
+      Row: 9 data_type=HEART_RATE_BPM, is_enabled=true, override_value=55.0
+      Row: 10 data_type=STEPS, is_enabled=true, override_value=42
+      """
         .trimIndent(),
       mapOf(
         WhsDataType.STEPS_PER_MINUTE to CapabilityState.disabled(WhsDataType.STEPS_PER_MINUTE),
@@ -775,13 +593,12 @@ class DeviceManagerTest {
   fun `float capabilities are parsed correctly`() {
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
       """
-         Row: 0 data_type=HEART_RATE_BPM, is_enabled=true, override_value=554E2
-         Row: 1 data_type=STEPS, is_enabled=true, override_value=42
-       """
+      Row: 0 data_type=HEART_RATE_BPM, is_enabled=true, override_value=554E2
+      Row: 1 data_type=STEPS, is_enabled=true, override_value=42
+      """
         .trimIndent(),
       mapOf(
-        WhsDataType.HEART_RATE_BPM to
-          CapabilityState(true, WhsDataType.HEART_RATE_BPM.value(55400.0f)),
+        WhsDataType.HEART_RATE_BPM to CapabilityState(true, WhsDataType.HEART_RATE_BPM.value(55400.0f)),
         WhsDataType.STEPS to CapabilityState(true, WhsDataType.STEPS.value(42)),
       ),
     )
@@ -791,10 +608,10 @@ class DeviceManagerTest {
   fun `unknown data type capabilities are ignored`() {
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
       """
-                                                       Row: 0 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
-                                                       Row: 1 data_type=STEPS, is_enabled=true, override_value=0
-                                                       Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
-                                                       """
+      Row: 0 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
+      Row: 1 data_type=STEPS, is_enabled=true, override_value=0
+      Row: 2 data_type=DATA_TYPE_UNKNOWN, is_enabled=true, override_value=0
+      """
         .trimIndent(),
       mapOf(WhsDataType.STEPS to CapabilityState(true, WhsDataType.STEPS.value(0))),
     )
@@ -909,7 +726,7 @@ class DeviceManagerTest {
   fun `disabled capabilities of a known type that don't have a value are parsed correctly`() {
     assertLoadCapabilitiesAdbResponseIsParsedCorrectly(
       """
-       Row: 0 data_type=LOCATION, is_enabled=false, override_value=0
+      Row: 0 data_type=LOCATION, is_enabled=false, override_value=0
       """
         .trimIndent(),
       mapOf(WhsDataType.LOCATION to CapabilityState.disabled(WhsDataType.LOCATION)),

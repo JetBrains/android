@@ -27,8 +27,7 @@ import org.junit.Test
 class MissingPlatformIssueCheckerIntegrationTest {
   private val missingPlatformIssueChecker = MissingPlatformIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {

@@ -56,8 +56,7 @@ class ImageViewAssistantTest {
         }
       }
 
-    val assistant =
-      ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
+    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
     val content = assistant.component.content
 
     assistant.sampleDataLoaded.get()

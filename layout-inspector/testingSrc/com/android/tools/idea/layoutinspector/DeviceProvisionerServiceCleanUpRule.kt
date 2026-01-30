@@ -25,14 +25,12 @@ import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 
 /**
- * Cancel and wait for the DeviceProvisioner Job after a test is finished. This avoids the job to
- * execute after FakeAdbServerAdbLibRule or FakeAdbServerRule has stopped the FakeAdbServer. If the
- * DeviceProvisioner is allowed to continue after FakeAdbServer is stopped it may lead to uncaught
- * coroutine exceptions which may be reported in unrelated tests using TestScope.runTest. See
+ * Cancel and wait for the DeviceProvisioner Job after a test is finished. This avoids the job to execute after FakeAdbServerAdbLibRule or
+ * FakeAdbServerRule has stopped the FakeAdbServer. If the DeviceProvisioner is allowed to continue after FakeAdbServer is stopped it may
+ * lead to uncaught coroutine exceptions which may be reported in unrelated tests using TestScope.runTest. See
  * ExceptionCollector.addOnExceptionCallback.
  */
-class DeviceProvisionerServiceCleanUpRule(private val projectProvider: () -> Project) :
-  ExternalResource() {
+class DeviceProvisionerServiceCleanUpRule(private val projectProvider: () -> Project) : ExternalResource() {
   private lateinit var deviceProvisioner: DeviceProvisioner
 
   override fun before() {

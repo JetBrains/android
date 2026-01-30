@@ -46,13 +46,7 @@ class ChooseFragmentTypeStepTest {
   fun testNoTemplateForNewModule() {
     val template = mock<Template>()
     assertThat(
-        template.validate(
-          moduleApiLevel = 5,
-          isNewModule = true,
-          isAndroidxProject = false,
-          language = Java,
-          messageKeys = messageKeys,
-        )
+        template.validate(moduleApiLevel = 5, isNewModule = true, isAndroidxProject = false, language = Java, messageKeys = messageKeys)
       )
       .isEqualTo("")
   }
@@ -63,13 +57,7 @@ class ChooseFragmentTypeStepTest {
     whenever(template.minSdk).thenReturn(9)
 
     assertThat(
-        template.validate(
-          moduleApiLevel = 5,
-          isNewModule = true,
-          isAndroidxProject = true,
-          language = Java,
-          messageKeys = messageKeys,
-        )
+        template.validate(moduleApiLevel = 5, isNewModule = true, isAndroidxProject = true, language = Java, messageKeys = messageKeys)
       )
       .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
@@ -80,13 +68,7 @@ class ChooseFragmentTypeStepTest {
     whenever(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
 
     assertThat(
-        template.validate(
-          moduleApiLevel = 5,
-          isNewModule = false,
-          isAndroidxProject = false,
-          language = Java,
-          messageKeys = messageKeys,
-        )
+        template.validate(moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java, messageKeys = messageKeys)
       )
       .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
   }

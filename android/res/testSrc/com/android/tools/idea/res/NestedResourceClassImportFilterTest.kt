@@ -142,13 +142,7 @@ class NestedResourceClassImportFilterTest {
       }
 
     val nestedRClassInfo =
-      ClassInfo(
-        FqName("com.example.R.fnord"),
-        ClassKind.CLASS,
-        Modality.FINAL,
-        visibilityThatDoesNotMatter,
-        isNested = true,
-      )
+      ClassInfo(FqName("com.example.R.fnord"), ClassKind.CLASS, Modality.FINAL, visibilityThatDoesNotMatter, isNested = true)
 
     val filter = NestedResourceClassImportFilter()
     assertThat(filter.allowClassImport(nestedRClassInfo, ktFile)).isFalse()

@@ -74,8 +74,26 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-val JAVA_KEY_WORDS = TokenSet.create(CLASS, INTERFACE, ENUM, EXTENDS, IMPLEMENTS, STATIC, ABSTRACT, PRIVATE, PROTECTED, PUBLIC,
-                                     SYNCHRONIZED, STRICTFP, FINAL, NATIVE, VOLATILE, TRANSIENT, AT_INTERFACE)
+val JAVA_KEY_WORDS =
+  TokenSet.create(
+    CLASS,
+    INTERFACE,
+    ENUM,
+    EXTENDS,
+    IMPLEMENTS,
+    STATIC,
+    ABSTRACT,
+    PRIVATE,
+    PROTECTED,
+    PUBLIC,
+    SYNCHRONIZED,
+    STRICTFP,
+    FINAL,
+    NATIVE,
+    VOLATILE,
+    TRANSIENT,
+    AT_INTERFACE,
+  )
 
 val JAVA_PRIMITIVE = TokenSet.create(BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, VOID)
 
@@ -98,8 +116,7 @@ enum class ProguardR8TextAttributes(fallback: TextAttributesKey) {
   SEMICOLON(DefaultLanguageHighlighterColors.SEMICOLON),
   FLAG(DefaultLanguageHighlighterColors.CONSTANT),
   IDENTIFIER(DefaultLanguageHighlighterColors.IDENTIFIER),
-  ANNOTATION(DefaultLanguageHighlighterColors.METADATA)
-  ;
+  ANNOTATION(DefaultLanguageHighlighterColors.METADATA);
 
   val key = TextAttributesKey.createTextAttributesKey("PROGUARD_R8_$name", fallback)
   val keys = arrayOf(key)
@@ -119,8 +136,10 @@ class ProguardR8SyntaxHighlighter : SyntaxHighlighterBase() {
       in JAVA_IDENTIFIER_TOKENS -> return ProguardR8TextAttributes.IDENTIFIER.keys
       in METHOD_FIELD_WILDCARDS -> return ProguardR8TextAttributes.METHOD_FIELD_WILDCARDS.keys
       in PATHS -> return ProguardR8TextAttributes.STRING.keys
-      LPAREN, RPAREN -> return ProguardR8TextAttributes.PARENTHESES.keys
-      CLOSE_BRACE, OPEN_BRACE -> return ProguardR8TextAttributes.BRACES.keys
+      LPAREN,
+      RPAREN -> return ProguardR8TextAttributes.PARENTHESES.keys
+      CLOSE_BRACE,
+      OPEN_BRACE -> return ProguardR8TextAttributes.BRACES.keys
       SEMICOLON -> return ProguardR8TextAttributes.SEMICOLON.keys
       COMMA -> return ProguardR8TextAttributes.COMMA.keys
 

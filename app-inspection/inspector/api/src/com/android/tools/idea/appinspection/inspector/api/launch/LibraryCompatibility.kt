@@ -22,10 +22,9 @@ data class LibraryCompatibility(
   /** The coordinate of the library artifact. */
   val coordinate: ArtifactCoordinate,
   /**
-   * A list of fully qualified class names that is expected to be available from the library
-   * specified by this artifact. This parameter is optional, and only affects the error code given
-   * if the library specified cannot be found. The list provides some forward safety in case the
-   * library class names change.
+   * A list of fully qualified class names that is expected to be available from the library specified by this artifact. This parameter is
+   * optional, and only affects the error code given if the library specified cannot be found. The list provides some forward safety in case
+   * the library class names change.
    */
   val expectedClassNames: List<String> = emptyList(),
 ) {

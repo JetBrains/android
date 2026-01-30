@@ -122,24 +122,18 @@ import org.mockito.kotlin.whenever
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
 
-private class TestPreviewElementProvider(
-  private val previewElements: Sequence<PsiTestPreviewElement>
-) : PreviewElementProvider<PsiTestPreviewElement> {
+private class TestPreviewElementProvider(private val previewElements: Sequence<PsiTestPreviewElement>) :
+  PreviewElementProvider<PsiTestPreviewElement> {
   override suspend fun previewElements(): Sequence<PsiTestPreviewElement> = previewElements
 }
 
-private val TEST_PREVIEW_ELEMENT_KEY =
-  DataKey.create<PsiTestPreviewElement>("PsiTestPreviewElement")
+private val TEST_PREVIEW_ELEMENT_KEY = DataKey.create<PsiTestPreviewElement>("PsiTestPreviewElement")
 
-private class TestPreviewElementModelAdapter :
-  PreviewElementModelAdapter<PsiTestPreviewElement, NlModel> {
+private class TestPreviewElementModelAdapter : PreviewElementModelAdapter<PsiTestPreviewElement, NlModel> {
 
   override fun toXml(previewElement: PsiTestPreviewElement): String = ""
 
-  override fun applyToConfiguration(
-    previewElement: PsiTestPreviewElement,
-    configuration: Configuration,
-  ) {}
+  override fun applyToConfiguration(previewElement: PsiTestPreviewElement, configuration: Configuration) {}
 
   override fun modelToElement(model: NlModel): PsiTestPreviewElement? =
     if (!model.isDisposed) {
@@ -148,17 +142,13 @@ private class TestPreviewElementModelAdapter :
 
   override fun createDataProvider(previewElement: PsiTestPreviewElement): NlDataProvider =
     object : NlDataProvider(TEST_PREVIEW_ELEMENT_KEY) {
-      override fun getData(dataId: String): Any? =
-        previewElement.takeIf { dataId == TEST_PREVIEW_ELEMENT_KEY.name }
+      override fun getData(dataId: String): Any? = previewElement.takeIf { dataId == TEST_PREVIEW_ELEMENT_KEY.name }
     }
 
   override fun toLogString(previewElement: PsiTestPreviewElement): String = ""
 
-  override fun createLightVirtualFile(
-    content: String,
-    backedFile: VirtualFile,
-    id: Long,
-  ): LightVirtualFile = InMemoryLayoutVirtualFile("test.xml", content, backedFile)
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile =
+    InMemoryLayoutVirtualFile("test.xml", content, backedFile)
 }
 
 class CommonPreviewRepresentationTest {
@@ -186,21 +176,20 @@ class CommonPreviewRepresentationTest {
     smartPointerManager = SmartPointerManager.getInstance(project)
     // use the "real" refresh manager and not a "for test" instance to actually test how the common
     // representation uses it
-    refreshManager =
-      PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED)
+    refreshManager = PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED)
 
     psiFile =
       fixture.configureByText(
         "Test.kt",
         // language=kotlin
         """
-      annotation class Preview
+        annotation class Preview
 
-      @Preview
-      fun MyFun() {
-        println("Hello world!")
-      }
-    """
+        @Preview
+        fun MyFun() {
+          println("Hello world!")
+        }
+        """
           .trimIndent(),
       )
   }
@@ -218,9 +207,7 @@ class CommonPreviewRepresentationTest {
     // building the project again should invalidate the preview representation
     assertFalse(previewRepresentation.isInvalidatedForTest())
     buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
-      previewRepresentation.isInvalidatedForTest()
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) { previewRepresentation.isInvalidatedForTest() }
     assertTrue(previewRepresentation.isInvalidatedForTest())
 
     // unblock the refresh manager
@@ -233,16 +220,14 @@ class CommonPreviewRepresentationTest {
       """
       start testRequest
       user-cancel testRequest
-    """
+      """
         .trimIndent(),
       TestPreviewRefreshRequest.log.toString().trimIndent(),
     )
 
     // As a consequence of the build a refresh should happen in the preview representation now
     // that the refresh manager was unblocked
-    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      !previewRepresentation.isInvalidatedForTest()
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) { !previewRepresentation.isInvalidatedForTest() }
     assertFalse(previewRepresentation.isInvalidatedForTest())
     previewRepresentation.onDeactivateImmediately()
   }
@@ -250,16 +235,11 @@ class CommonPreviewRepresentationTest {
   @Test
   fun testFastPreviewIsRequested() = runBlocking {
     val requestCompleted = CompletableDeferred<Unit>()
-    val testTracker =
-      TestFastPreviewTrackerManager(showTimes = false) { requestCompleted.complete(Unit) }
+    val testTracker = TestFastPreviewTrackerManager(showTimes = false) { requestCompleted.complete(Unit) }
     val fastPreviewManager = FastPreviewManager.getInstance(project)
     assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
 
-    project.replaceService(
-      FastPreviewTrackerManager::class.java,
-      testTracker,
-      fixture.testRootDisposable,
-    )
+    project.replaceService(FastPreviewTrackerManager::class.java, testTracker, fixture.testRootDisposable)
 
     val previewRepresentation = createPreviewRepresentation()
     previewRepresentation.compileAndWaitForRefresh()
@@ -279,9 +259,7 @@ class CommonPreviewRepresentationTest {
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(psiFile.virtualFile)
       projectRule.fixture.moveCaret("println(\"Hello world!\")|")
-      projectRule.fixture.editor.executeAndSave {
-        insertText("\nprintln(\"added during test execution\")")
-      }
+      projectRule.fixture.editor.executeAndSave { insertText("\nprintln(\"added during test execution\")") }
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
@@ -303,8 +281,7 @@ class CommonPreviewRepresentationTest {
     runTest {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
-      val context =
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+      val context = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
 
       assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
       assertTrue(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
@@ -331,11 +308,7 @@ class CommonPreviewRepresentationTest {
     // reactivating the representation shouldn't enqueue a new refresh
     previewRepresentation.onActivate()
     assertFalse(previewRepresentation.isInvalidatedForTest())
-    assertFails {
-      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-        refreshManager.getTotalRequestsInQueueForTest() == 1
-      }
-    }
+    assertFails { delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) { refreshManager.getTotalRequestsInQueueForTest() == 1 } }
     assertFalse(previewRepresentation.isInvalidatedForTest())
     blockingRefresh.runningRefreshJob!!.cancel()
   }
@@ -348,9 +321,7 @@ class CommonPreviewRepresentationTest {
     var blockingRefresh = blockRefreshManager()
     previewRepresentation.onDeactivateImmediately()
     // Quality refresh on deactivation to decrease qualities
-    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-      refreshManager.getTotalRequestsInQueueForTest() == 1
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) { refreshManager.getTotalRequestsInQueueForTest() == 1 }
     assertFalse(previewRepresentation.isInvalidatedForTest())
     // unblock and wait for the quality refresh to be taken out of the queue
     blockingRefresh.runningRefreshJob!!.cancel()
@@ -359,9 +330,7 @@ class CommonPreviewRepresentationTest {
     previewRepresentation.onActivate()
     // Another quality refresh on reactivation
     assertFalse(previewRepresentation.isInvalidatedForTest())
-    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-      refreshManager.getTotalRequestsInQueueForTest() == 1
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) { refreshManager.getTotalRequestsInQueueForTest() == 1 }
     assertFalse(previewRepresentation.isInvalidatedForTest())
     blockingRefresh.runningRefreshJob?.cancel()
   }
@@ -374,9 +343,7 @@ class CommonPreviewRepresentationTest {
     var refreshTrackerFailed = false
     var successEventCount = 0
     val refreshTracker = PreviewRefreshTrackerForTest {
-      if (
-        it.result != PreviewRefreshEvent.RefreshResult.SUCCESS || it.previewRendersList.isEmpty()
-      ) {
+      if (it.result != PreviewRefreshEvent.RefreshResult.SUCCESS || it.previewRendersList.isEmpty()) {
         return@PreviewRefreshTrackerForTest
       }
       try {
@@ -405,10 +372,7 @@ class CommonPreviewRepresentationTest {
     try {
       AnalyticsSettings.optedIn = true
       runTest {
-        PreviewRefreshTracker.setInstanceForTest(
-          previewRepresentation.previewView.mainSurface,
-          refreshTracker,
-        )
+        PreviewRefreshTracker.setInstanceForTest(previewRepresentation.previewView.mainSurface, refreshTracker)
         previewRepresentation.compileAndWaitForRefresh()
         delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) { successEventCount > 0 }
         assertFalse(refreshTrackerFailed)
@@ -440,8 +404,7 @@ class CommonPreviewRepresentationTest {
       }
 
       runReadAction {
-        val expectedOffset =
-          fixture.findElementByText("@Preview", KtAnnotationEntry::class.java).textOffset
+        val expectedOffset = fixture.findElementByText("@Preview", KtAnnotationEntry::class.java).textOffset
         assertEquals(expectedOffset, projectRule.fixture.caretOffset)
       }
 
@@ -458,20 +421,20 @@ class CommonPreviewRepresentationTest {
           "Test.kt",
           // language=kotlin
           """
-      annotation class Preview
+          annotation class Preview
 
-      @Preview // second due to source offset
-      fun second() {
-      }
+          @Preview // second due to source offset
+          fun second() {
+          }
 
-      @Preview // third, fourth and fifth - will have different names and groups
-      fun thirdFourthFifth() {
-      }
+          @Preview // third, fourth and fifth - will have different names and groups
+          fun thirdFourthFifth() {
+          }
 
-      @Preview // first - will have the TOP display positioning
-      fun first() {
-      }
-    """
+          @Preview // first - will have the TOP display positioning
+          fun first() {
+          }
+          """
             .trimIndent(),
         )
 
@@ -481,44 +444,22 @@ class CommonPreviewRepresentationTest {
           previewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // first"),
         )
 
-      val second =
-        PsiTestPreviewElement(
-          previewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // second")
-        )
+      val second = PsiTestPreviewElement(previewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // second"))
 
-      val thirdFourthAndFifthPreviewElementDefinition =
-        previewElementDefinitionForTextAtCaret("@|Preview // third, fourth and fifth")
+      val thirdFourthAndFifthPreviewElementDefinition = previewElementDefinitionForTextAtCaret("@|Preview // third, fourth and fifth")
 
       val third =
-        PsiTestPreviewElement(
-          displayName = "1",
-          groupName = "3",
-          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
-        )
+        PsiTestPreviewElement(displayName = "1", groupName = "3", previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition)
       val fourth =
-        PsiTestPreviewElement(
-          displayName = "2",
-          groupName = "2",
-          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
-        )
+        PsiTestPreviewElement(displayName = "2", groupName = "2", previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition)
       val fifth =
-        PsiTestPreviewElement(
-          displayName = "3",
-          groupName = "1",
-          previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition,
-        )
+        PsiTestPreviewElement(displayName = "3", groupName = "1", previewElementDefinition = thirdFourthAndFifthPreviewElementDefinition)
 
-      val preview =
-        createPreviewRepresentation(
-          TestPreviewElementProvider(sequenceOf(first, second, third, fourth, fifth).shuffled())
-        )
+      val preview = createPreviewRepresentation(TestPreviewElementProvider(sequenceOf(first, second, third, fourth, fifth).shuffled()))
       preview.compileAndWaitForRefresh()
 
-      val actualPreviewElements =
-        preview.renderedPreviewElementsFlowForTest().value.asCollection().toList()
-      assertThat(actualPreviewElements)
-        .containsExactly(first, second, third, fourth, fifth)
-        .inOrder()
+      val actualPreviewElements = preview.renderedPreviewElementsFlowForTest().value.asCollection().toList()
+      assertThat(actualPreviewElements).containsExactly(first, second, third, fourth, fifth).inOrder()
 
       preview.onDeactivateImmediately()
     }
@@ -529,26 +470,18 @@ class CommonPreviewRepresentationTest {
   fun animationPreviewScopeIsCancelledWhenExitingAnimationInspectorMode() {
     runTest {
       val animationPreview =
-        mock<AnimationPreview<AnimationManager>>().also {
-          whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
-        }
+        mock<AnimationPreview<AnimationManager>>().also { whenever(it.component).thenReturn(TooltipLayeredPane(JPanel())) }
       val previewRepresentation = createPreviewRepresentation(animationPreview = animationPreview)
       previewRepresentation.compileAndWaitForRefresh()
 
       // start animation inspection
       previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
-      previewRepresentation.mode.awaitStatus("Animation Inspection mode expected", 1.seconds) {
-        it is PreviewMode.AnimationInspection
-      }
-      retryUntilPassing(1.seconds) {
-        assertThat(previewRepresentation.currentAnimationPreview).isEqualTo(animationPreview)
-      }
+      previewRepresentation.mode.awaitStatus("Animation Inspection mode expected", 1.seconds) { it is PreviewMode.AnimationInspection }
+      retryUntilPassing(1.seconds) { assertThat(previewRepresentation.currentAnimationPreview).isEqualTo(animationPreview) }
 
       // stop animation inspection
       previewRepresentation.setMode(PreviewMode.Default())
-      previewRepresentation.mode.awaitStatus("Default mode expected", 1.seconds) {
-        it is PreviewMode.Default
-      }
+      previewRepresentation.mode.awaitStatus("Default mode expected", 1.seconds) { it is PreviewMode.Default }
       retryUntilPassing(1.seconds) {
         verify(animationPreview, times(1)).cancelScope()
         assertThat(previewRepresentation.currentAnimationPreview).isNull()
@@ -562,9 +495,7 @@ class CommonPreviewRepresentationTest {
   fun flowsAreCanceledOnDeactivate() {
     runTest {
       val previewElementProvider =
-        mock<PreviewElementProvider<PsiTestPreviewElement>>().also {
-          whenever(it.previewElements()).thenReturn(emptySequence())
-        }
+        mock<PreviewElementProvider<PsiTestPreviewElement>>().also { whenever(it.previewElements()).thenReturn(emptySequence()) }
       val previewRepresentation = createPreviewRepresentation(previewElementProvider)
       previewRepresentation.compileAndWaitForRefresh()
       clearInvocations(previewElementProvider)
@@ -573,14 +504,10 @@ class CommonPreviewRepresentationTest {
       // the lifecycle is active
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
         projectRule.fixture.editor.moveCaretToEnd()
-        projectRule.fixture.editor.executeAndSave {
-          insertText("\n\n// some change to the file\n\n")
-        }
+        projectRule.fixture.editor.executeAndSave { insertText("\n\n// some change to the file\n\n") }
       }
       // wait for 2 seconds to give time for the flows to update themselves
-      retryUntilPassing(2.seconds) {
-        runBlocking { verify(previewElementProvider).previewElements() }
-      }
+      retryUntilPassing(2.seconds) { runBlocking { verify(previewElementProvider).previewElements() } }
 
       // once the lifecycle is deactivated, new preview elements should no longer be requested
       previewRepresentation.onDeactivateImmediately()
@@ -588,9 +515,7 @@ class CommonPreviewRepresentationTest {
 
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
         projectRule.fixture.editor.moveCaretToEnd()
-        projectRule.fixture.editor.executeAndSave {
-          insertText("\n\n// some change to the file\n\n")
-        }
+        projectRule.fixture.editor.executeAndSave { insertText("\n\n// some change to the file\n\n") }
       }
       // wait for 2 seconds to give time for the flows to update themselves in case of a regression
       delay(2.seconds)
@@ -608,11 +533,7 @@ class CommonPreviewRepresentationTest {
     persistedPreviewRepresentation.setMode(PreviewMode.Focus(null))
     assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(null))
     retryUntilPassing(1.seconds) {
-      assertThat(
-          persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-            ?.currentLayoutOption
-            ?.value
-        )
+      assertThat(persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value)
         .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
 
@@ -626,11 +547,7 @@ class CommonPreviewRepresentationTest {
     restoredPreviewRepresentation.compileAndWaitForRefresh()
     assertThat(restoredPreviewRepresentation.mode.value).isInstanceOf(PreviewMode.Focus::class.java)
     retryUntilPassing(1.seconds) {
-      assertThat(
-          restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-            ?.currentLayoutOption
-            ?.value
-        )
+      assertThat(restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value)
         .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
 
@@ -645,17 +562,11 @@ class CommonPreviewRepresentationTest {
     val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
     persistedPreviewRepresentation.compileAndWaitForRefresh()
 
-    assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
-      .isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+    assertThat(persistedPreviewRepresentation.mode.value.layoutOption).isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     persistedPreviewRepresentation.setMode(PreviewMode.Focus(previewElement))
-    assertThat(persistedPreviewRepresentation.mode.value)
-      .isEqualTo(PreviewMode.Focus(previewElement))
+    assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(previewElement))
     retryUntilPassing(1.seconds) {
-      assertThat(
-          persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-            ?.currentLayoutOption
-            ?.value
-        )
+      assertThat(persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value)
         .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
 
@@ -666,14 +577,9 @@ class CommonPreviewRepresentationTest {
     val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
     restoredPreviewRepresentation.setState(state)
     restoredPreviewRepresentation.compileAndWaitForRefresh()
-    assertThat(restoredPreviewRepresentation.mode.value)
-      .isEqualTo(PreviewMode.Focus(previewElement))
+    assertThat(restoredPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(previewElement))
     retryUntilPassing(1.seconds) {
-      assertThat(
-          restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-            ?.currentLayoutOption
-            ?.value
-        )
+      assertThat(restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value)
         .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
     }
 
@@ -683,8 +589,7 @@ class CommonPreviewRepresentationTest {
   // Regression test for b/373572532
   @Test
   fun groupSelectionIsPersisted(): Unit = runTest {
-    val previewElement =
-      PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+    val previewElement = PsiTestPreviewElement(displayName = "test element", groupName = "test group")
     val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
     val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
     persistedPreviewRepresentation.compileAndWaitForRefresh()
@@ -699,8 +604,7 @@ class CommonPreviewRepresentationTest {
     val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
     restoredPreviewRepresentation.setState(state)
     restoredPreviewRepresentation.compileAndWaitForRefresh()
-    assertThat(restoredPreviewRepresentation.groupManager.groupFilter)
-      .isEqualTo(PreviewGroup.namedGroup("test group"))
+    assertThat(restoredPreviewRepresentation.groupManager.groupFilter).isEqualTo(PreviewGroup.namedGroup("test group"))
 
     restoredPreviewRepresentation.onDeactivateImmediately()
   }
@@ -708,42 +612,31 @@ class CommonPreviewRepresentationTest {
   @Test
   fun `test animation preview is hidden if there is build error in the file`() = runBlocking {
     val animationPreview =
-      mock<AnimationPreview<AnimationManager>>().also {
-        whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
-      }
-    val previewElement =
-      PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+      mock<AnimationPreview<AnimationManager>>().also { whenever(it.component).thenReturn(TooltipLayeredPane(JPanel())) }
+    val previewElement = PsiTestPreviewElement(displayName = "test element", groupName = "test group")
     val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
-    val previewRepresentation =
-      createPreviewRepresentation(previewElementProvider, animationPreview)
+    val previewRepresentation = createPreviewRepresentation(previewElementProvider, animationPreview)
     previewRepresentation.compileAndWaitForRefresh()
 
     // start animation inspection
     previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
-    delayUntilCondition(delayPerIterationMs = 200) {
-      previewRepresentation.previewView.bottomPanel != null
-    }
+    delayUntilCondition(delayPerIterationMs = 200) { previewRepresentation.previewView.bottomPanel != null }
     // Simulate out of date and failed build
     whenever(previewViewModelMock.isOutOfDate).thenReturn(true)
     buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.FAILED)
-    delayUntilCondition(delayPerIterationMs = 200) {
-      previewRepresentation.previewView.bottomPanel == null
-    }
+    delayUntilCondition(delayPerIterationMs = 200) { previewRepresentation.previewView.bottomPanel == null }
 
     // build is successful, panel is shown again
     whenever(previewViewModelMock.isOutOfDate).thenReturn(false)
     buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
-    delayUntilCondition(delayPerIterationMs = 200) {
-      previewRepresentation.previewView.bottomPanel != null
-    }
+    delayUntilCondition(delayPerIterationMs = 200) { previewRepresentation.previewView.bottomPanel != null }
     previewRepresentation.onDeactivateImmediately()
   }
 
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // Wait for refresh queue to be empty
     delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
-      refreshManager.getTotalRequestsInQueueForTest() == 0 &&
-        refreshManager.refreshingTypeFlow.value == null
+      refreshManager.getTotalRequestsInQueueForTest() == 0 && refreshManager.refreshingTypeFlow.value == null
     }
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -792,18 +685,13 @@ class CommonPreviewRepresentationTest {
           { previewElementProvider },
           modelAdapter,
           viewConstructor = { project, surfaceBuilder, parentDisposable ->
-            CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
-              previewView = it
-            }
+            CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also { previewView = it }
           },
           viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
           configureDesignSurface = {},
           renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
           createRefreshEventBuilder = { surface ->
-            PreviewRefreshEventBuilder(
-              PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
-              PreviewRefreshTracker.getInstance(surface),
-            )
+            PreviewRefreshEventBuilder(PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE, PreviewRefreshTracker.getInstance(surface))
           },
         ) {
 
@@ -813,23 +701,16 @@ class CommonPreviewRepresentationTest {
     return previewRepresentation
   }
 
-  private suspend fun CommonPreviewRepresentation<PsiTestPreviewElement>
-    .compileAndWaitForRefresh() {
+  private suspend fun CommonPreviewRepresentation<PsiTestPreviewElement>.compileAndWaitForRefresh() {
     // Wait until indexes are ready and status is needs build
     IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
-    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      getProjectBuildStatusForTest() == RenderingBuildStatus.NeedsBuild
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) { getProjectBuildStatusForTest() == RenderingBuildStatus.NeedsBuild }
 
     // Activate and wait for build listener setup to finish
     assertFalse(hasBuildListenerSetupFinishedForTest())
     onActivate()
-    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      hasBuildListenerSetupFinishedForTest()
-    }
-    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-      hasFlowInitializationFinishedForTest()
-    }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) { hasBuildListenerSetupFinishedForTest() }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) { hasFlowInitializationFinishedForTest() }
     assertTrue(isInvalidatedForTest())
 
     // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
@@ -843,34 +724,23 @@ class CommonPreviewRepresentationTest {
       // refresh, leading to the condition below never succeeding. Instead, here we manually
       // wait for the rendering build status to be ready and then trigger a refresh to ensure at
       // least once refresh has occurred.
-      delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
-        getProjectBuildStatusForTest() is RenderingBuildStatus.Ready
-      }
+      delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) { getProjectBuildStatusForTest() is RenderingBuildStatus.Ready }
       requestRefreshForTest()
     }
 
     delayUntilCondition(delayPerIterationMs = 1000, 40.seconds) {
-      !isInvalidatedForTest() &&
-        refreshManager.getTotalRequestsInQueueForTest() == 0 &&
-        refreshManager.refreshingTypeFlow.value == null
+      !isInvalidatedForTest() && refreshManager.getTotalRequestsInQueueForTest() == 0 && refreshManager.refreshingTypeFlow.value == null
     }
   }
 
-  private suspend fun previewElementDefinitionForTextAtCaret(
-    textWithCaret: String
-  ): SmartPsiElementPointer<PsiElement> {
+  private suspend fun previewElementDefinitionForTextAtCaret(textWithCaret: String): SmartPsiElementPointer<PsiElement> {
     withContext(Dispatchers.EDT) { fixture.moveCaret(textWithCaret) }
-    return runReadAction {
-      fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) }
-    }
+    return runReadAction { fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) } }
   }
 
   private val CommonPreviewRepresentation<*>.groupManager: PreviewGroupManager
     get() {
-      val context =
-        DataManager.getInstance()
-          .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
-      return PreviewGroupManager.KEY.getData(context)
-        ?: fail("Expected a group manager to be present")
+      val context = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+      return PreviewGroupManager.KEY.getData(context) ?: fail("Expected a group manager to be present")
     }
 }

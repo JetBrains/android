@@ -22,7 +22,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import jdk.jfr.consumer.RecordedEvent
+import kotlin.test.assertFailsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,17 +35,12 @@ import org.junit.runners.JUnit4
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
-import kotlin.test.assertFailsWith
 
 private const val REPORT_TYPE = "Test Report"
 
 @RunWith(JUnit4::class)
 class JfrReportGeneratorTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val fakeEventFilter = FakeEventFilter()
   private val now = Instant.EPOCH
@@ -58,8 +57,7 @@ class JfrReportGeneratorTest {
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(
-      RecordingManager::class.java, recordingManager, projectRule.project.earlyDisposable)
+    ApplicationManager.getApplication().replaceService(RecordingManager::class.java, recordingManager, projectRule.project.earlyDisposable)
     whenever(recordingManager.startCapture(any())).thenAnswer {
       startedCapture = (it.arguments[0] as JfrReportGenerator.Capture)
       null
@@ -122,10 +120,11 @@ class JfrReportGeneratorTest {
 
   @Test
   fun capture_completeAndGenerateReport_failure_nullEnd() {
-    val success = capture.completeAndGenerateReport(Instant.MAX) {
-      ++callbackInvocations
-      true
-    }
+    val success =
+      capture.completeAndGenerateReport(Instant.MAX) {
+        ++callbackInvocations
+        true
+      }
 
     assertThat(success).isFalse()
     assertThat(callbackInvocations).isEqualTo(0)
@@ -136,10 +135,11 @@ class JfrReportGeneratorTest {
   fun capture_completeAndGenerateReport_failure_nonNullEnd() {
     capture.end = now
 
-    val success = capture.completeAndGenerateReport(now) {
-      ++callbackInvocations
-      true
-    }
+    val success =
+      capture.completeAndGenerateReport(now) {
+        ++callbackInvocations
+        true
+      }
 
     assertThat(success).isFalse()
     assertThat(callbackInvocations).isEqualTo(0)
@@ -150,10 +150,11 @@ class JfrReportGeneratorTest {
   fun capture_completeAndGenerateReport_success_unfinished() {
     capture.end = now
 
-    val success = capture.completeAndGenerateReport(now.plusMillis(1L)) {
-      ++callbackInvocations
-      true
-    }
+    val success =
+      capture.completeAndGenerateReport(now.plusMillis(1L)) {
+        ++callbackInvocations
+        true
+      }
 
     assertThat(success).isTrue()
     assertThat(callbackInvocations).isEqualTo(0)
@@ -167,10 +168,11 @@ class JfrReportGeneratorTest {
     testJfrReportGenerator.reportToReturn = mapOf()
     var callbackInvocations = 0
 
-    val success = capture.completeAndGenerateReport(now.plusMillis(1L)) {
-      ++callbackInvocations
-      true
-    }
+    val success =
+      capture.completeAndGenerateReport(now.plusMillis(1L)) {
+        ++callbackInvocations
+        true
+      }
 
     assertThat(success).isTrue()
     assertThat(callbackInvocations).isEqualTo(0)
@@ -182,11 +184,12 @@ class JfrReportGeneratorTest {
     capture.end = now
     testJfrReportGenerator.finish()
 
-    val success = capture.completeAndGenerateReport(now.plusMillis(1L)) {
-      ++callbackInvocations
-      callbackReport = it
-      true
-    }
+    val success =
+      capture.completeAndGenerateReport(now.plusMillis(1L)) {
+        ++callbackInvocations
+        callbackReport = it
+        true
+      }
 
     assertThat(success).isTrue()
     assertThat(callbackInvocations).isEqualTo(1)
@@ -208,9 +211,7 @@ class JfrReportGeneratorTest {
 
     testJfrReportGenerator.finish()
 
-    val success = capture.completeAndGenerateReport(now.plusMillis(1L)) {
-      throw CloneNotSupportedException("No Cloning!")
-    }
+    val success = capture.completeAndGenerateReport(now.plusMillis(1L)) { throw CloneNotSupportedException("No Cloning!") }
 
     assertThat(success).isTrue()
     assertThat(testJfrReportGenerator.completedCaptures).containsExactly(capture)
@@ -219,9 +220,7 @@ class JfrReportGeneratorTest {
   @Test
   fun startCapture_throwsIfCaptureInProgress() {
     testJfrReportGenerator.startCapture()
-    assertFailsWith<IllegalStateException> {
-      testJfrReportGenerator.startCapture()
-    }
+    assertFailsWith<IllegalStateException> { testJfrReportGenerator.startCapture() }
   }
 
   @Test
@@ -246,9 +245,7 @@ class JfrReportGeneratorTest {
 
   @Test
   fun stopCapture_throwsIfNoCaptureInProgress() {
-    assertFailsWith<IllegalStateException> {
-      testJfrReportGenerator.stopCapture()
-    }
+    assertFailsWith<IllegalStateException> { testJfrReportGenerator.stopCapture() }
   }
 
   @Test
@@ -275,18 +272,24 @@ class JfrReportGeneratorTest {
 
   private class FakeEventFilter : EventFilter {
     var accepting = true
+
     override fun accepts(event: RecordedEvent) = accepting
   }
 
   private class TestJfrReportGenerator(
-    clock: Clock, reportType: String, eventFilter: EventFilter, startOffsetMs: Long = 0, endOffsetMs: Long = 0):
-    JfrReportGenerator(reportType, eventFilter, startOffsetMs, endOffsetMs, clock) {
-    val defaultReport = mapOf(
-      "The Regrettes" to "Barely On My Mind",
-      "Metric" to "All Comes Crashing",
-      "COIN" to "Cutie",
-      "Broken Bells" to "The Ghost Inside",
-    )
+    clock: Clock,
+    reportType: String,
+    eventFilter: EventFilter,
+    startOffsetMs: Long = 0,
+    endOffsetMs: Long = 0,
+  ) : JfrReportGenerator(reportType, eventFilter, startOffsetMs, endOffsetMs, clock) {
+    val defaultReport =
+      mapOf(
+        "The Regrettes" to "Barely On My Mind",
+        "Metric" to "All Comes Crashing",
+        "COIN" to "Cutie",
+        "Broken Bells" to "The Ghost Inside",
+      )
     val acceptedEvents: MutableList<Pair<RecordedEvent, Capture>> = mutableListOf()
     val completedCaptures: MutableList<Capture> = mutableListOf()
     var reportToReturn = defaultReport
@@ -302,4 +305,3 @@ class JfrReportGeneratorTest {
     override fun generateReport(): Map<String, String> = reportToReturn
   }
 }
-

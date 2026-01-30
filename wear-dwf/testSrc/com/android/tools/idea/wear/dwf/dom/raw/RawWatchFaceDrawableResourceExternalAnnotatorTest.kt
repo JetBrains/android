@@ -36,8 +36,7 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
 
     // add a manifest file for the `res/` folder to be considered a resource folder
     fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "")
@@ -50,19 +49,12 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
 
   @Test
   fun `resources are not annotated when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     setupSampleDrawableResourcesFromWatchFaceExample()
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
-    val annotations =
-      fixture
-        .doHighlighting()
-        .filter { it.gutterIconRenderer is GutterIconRenderer }
-        .map { it.text }
+    val annotations = fixture.doHighlighting().filter { it.gutterIconRenderer is GutterIconRenderer }.map { it.text }
 
     assertThat(annotations).isEmpty()
   }
@@ -74,11 +66,7 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
-    val annotations =
-      fixture
-        .doHighlighting()
-        .filter { it.gutterIconRenderer is GutterIconRenderer }
-        .map { it.text }
+    val annotations = fixture.doHighlighting().filter { it.gutterIconRenderer is GutterIconRenderer }.map { it.text }
 
     assertThat(annotations).isEmpty()
   }
@@ -89,19 +77,15 @@ class RawWatchFaceDrawableResourceExternalAnnotatorTest {
     val watchFaceFile = fixture.copyFileToProject("res/raw/watch_face_example.xml")
     fixture.configureFromExistingVirtualFile(watchFaceFile)
 
-    val annotations =
-      fixture
-        .doHighlighting()
-        .filter { it.gutterIconRenderer is GutterIconRenderer }
-        .map { it.text }
+    val annotations = fixture.doHighlighting().filter { it.gutterIconRenderer is GutterIconRenderer }.map { it.text }
 
     val expected = drawables.map { "\"$it\"" }
     assertThat(annotations).containsExactlyElementsIn(expected)
   }
 
   /**
-   * Adds some sampled icons and resources drawables referenced from
-   * `testData/res/raw/watch_face_example.xml`. This method returns the drawables used.
+   * Adds some sampled icons and resources drawables referenced from `testData/res/raw/watch_face_example.xml`. This method returns the
+   * drawables used.
    */
   private fun setupSampleDrawableResourcesFromWatchFaceExample(): List<String> {
     val icons =

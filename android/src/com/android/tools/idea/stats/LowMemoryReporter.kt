@@ -35,39 +35,46 @@ class LowMemoryReporter : Disposable {
   private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), manualReset = true)
 
   companion object {
-    fun getInstance() : LowMemoryReporter {
-      return ApplicationManager.getApplication().getService(LowMemoryReporter::class.java);
+    fun getInstance(): LowMemoryReporter {
+      return ApplicationManager.getApplication().getService(LowMemoryReporter::class.java)
     }
   }
 
   init {
-    lowMemoryWatcherAll = LowMemoryWatcher.register {
-      // According to https://docs.oracle.com/javase/7/docs/api/java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED,
-      // the notification is emitted once when the threshold is exceeded, and is not emitted again until the VM goes below the threshold.
-      // So we don't have to explicitly rate limit our reports.
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_LOW_MEMORY_EVENT)
-                         .setJavaProcessStats(CommonMetricsData.javaProcessStats))
-      if (limiter.tryAcquire()) {
-        try {
-          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
-        } finally {
-          limiter.reset()
+    lowMemoryWatcherAll =
+      LowMemoryWatcher.register {
+        // According to
+        // https://docs.oracle.com/javase/7/docs/api/java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED,
+        // the notification is emitted once when the threshold is exceeded, and is not emitted again until the VM goes below the threshold.
+        // So we don't have to explicitly rate limit our reports.
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.STUDIO_LOW_MEMORY_EVENT)
+            .setJavaProcessStats(CommonMetricsData.javaProcessStats)
+        )
+        if (limiter.tryAcquire()) {
+          try {
+            AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
+          } finally {
+            limiter.reset()
+          }
         }
       }
-    }
-    lowMemoryWatcherAfterGc = LowMemoryWatcher.register(
-      {
-        if (limiter.disable()) {
-          // Already disabled, one of previous calls called lowMemoryDetected and is responsible for resetting the limiter.
-          return@register
-        }
-        try {
-          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
-        } finally {
-          limiter.reset()
-        }
-      }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+    lowMemoryWatcherAfterGc =
+      LowMemoryWatcher.register(
+        {
+          if (limiter.disable()) {
+            // Already disabled, one of previous calls called lowMemoryDetected and is responsible for resetting the limiter.
+            return@register
+          }
+          try {
+            AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
+          } finally {
+            limiter.reset()
+          }
+        },
+        LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC,
+      )
   }
 
   override fun dispose() {
@@ -79,7 +86,7 @@ class LowMemoryReporter : Disposable {
 
   internal class OnStartup : ApplicationInitializedListener {
     override suspend fun execute() {
-      getInstance();
+      getInstance()
     }
   }
 }

@@ -19,5 +19,4 @@ import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.EnterOnlineMode
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 
-fun ConnectionMode.toEvent() =
-  if (this == ConnectionMode.ONLINE) EnterOnlineMode else EnterOfflineMode
+fun ConnectionMode.toEvent() = if (this == ConnectionMode.ONLINE) EnterOnlineMode else EnterOfflineMode

@@ -30,8 +30,9 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 
 class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha08"))
 
@@ -48,8 +49,7 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
           usages.add(NonTransitiveRClassUsageInfo(wrappedPsiElement))
         }
       }
-    }
-    else if (baseDir.exists()) {
+    } else if (baseDir.exists()) {
       val baseDirPsiDirectory = PsiManager.getInstance(project).findDirectory(baseDir)
       if (baseDirPsiDirectory is PsiElement) {
         val wrappedPsiElement = WrappedPsiElement(baseDirPsiDirectory, this, INSERT_PROPERTY)
@@ -65,13 +65,15 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
 
   override fun getCommandName(): String = AgpUpgradeBundle.message("nonTransitiveRClassDefaultRefactoringProcessor.commandName")
 
-  override fun getShortDescription() = """
+  override fun getShortDescription() =
+    """
     R classes in this project are transitive, pulling in information from their
     dependencies.  The default behaviour in the Android Gradle Plugin is changing;
     this processor inserts a property in gradle.properties to preserve the current
     default.  You can migrate your project to non-transitive R classes now or later
     using the "Migrate to Non-Transitive R Classes" action under "Refactor".
-  """.trimIndent()
+    """
+      .trimIndent()
 
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.nonTransitiveRClass"
 
@@ -83,7 +85,8 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AgpUpgradeBundle.message("nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
+      override fun getProcessedElementsHeader() =
+        AgpUpgradeBundle.message("nonTransitiveRClassDefaultRefactoringProcessor.usageView.header")
     }
   }
 
@@ -92,17 +95,17 @@ class NonTransitiveRClassDefaultRefactoringProcessor : AgpUpgradeComponentRefact
   }
 }
 
-class NonTransitiveRClassUsageInfo(
-  private val wrappedElement: WrappedPsiElement
-) : GradleBuildModelUsageInfo(wrappedElement) {
+class NonTransitiveRClassUsageInfo(private val wrappedElement: WrappedPsiElement) : GradleBuildModelUsageInfo(wrappedElement) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
-      is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-      is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
-        (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
+    val (propertiesFile, psiFile) =
+      when (val realElement = wrappedElement.realElement) {
+        is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
+        is PsiDirectory ->
+          (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile(FN_GRADLE_PROPERTIES)).let {
+            (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
+          }
+        else -> return
       }
-      else -> return
-    }
     otherAffectedFiles.add(psiFile)
     propertiesFile.addProperty("android.nonTransitiveRClass", "false")
   }

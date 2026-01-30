@@ -24,16 +24,27 @@ import java.util.Objects
  * @param runConfiguration, the current test's AndroidTestRunConfiguration, used to calculate a hash value key.
  * @param deviceIds, a set of the selected devices' deviceIds, used to calculate a hash value key.
  */
-class AndroidTestResultsUserPreferencesManager(private val runConfiguration: AndroidTestRunConfiguration, private val deviceIds: HashSet<String>) {
+class AndroidTestResultsUserPreferencesManager(
+  private val runConfiguration: AndroidTestRunConfiguration,
+  private val deviceIds: HashSet<String>,
+) {
   /**
    * Gets the preferred width of a given test column, or returns the default width if there is no preference saved.
    *
-   * @oaram columnName is used to identify the column.
    * @param defaultWidth is used to update the user preferences and returned when there is no preference saved.
+   * @oaram columnName is used to identify the column.
    */
   fun getUserPreferredColumnWidth(columnName: String, defaultWidth: Int): Int {
-    val androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> = AndroidTestResultsUserPreferences.getInstance(runConfiguration.project).androidTestResultsTableState
-    val key = Objects.hash(runConfiguration.TESTING_TYPE, runConfiguration.PACKAGE_NAME, runConfiguration.CLASS_NAME, runConfiguration.METHOD_NAME, deviceIds)
+    val androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> =
+      AndroidTestResultsUserPreferences.getInstance(runConfiguration.project).androidTestResultsTableState
+    val key =
+      Objects.hash(
+        runConfiguration.TESTING_TYPE,
+        runConfiguration.PACKAGE_NAME,
+        runConfiguration.CLASS_NAME,
+        runConfiguration.METHOD_NAME,
+        deviceIds,
+      )
     return if (androidTestResultsTableState.containsKey(key)) {
       val columnPreferences: HashMap<String, Int> = androidTestResultsTableState[key]!!.preferredColumnWidths
       if (columnPreferences.containsKey(columnName)) {
@@ -53,12 +64,20 @@ class AndroidTestResultsUserPreferencesManager(private val runConfiguration: And
   /**
    * Sets the preferred width of a given test column to the provided width.
    *
-   * @oaram columnName is used to identify the column.
    * @param width is the width to set the preferred width of this column to.
+   * @oaram columnName is used to identify the column.
    */
   fun setUserPreferredColumnWidth(columnName: String, width: Int) {
-    val androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> = AndroidTestResultsUserPreferences.getInstance(runConfiguration.project).androidTestResultsTableState
-    val key = Objects.hash(runConfiguration.TESTING_TYPE, runConfiguration.PACKAGE_NAME, runConfiguration.CLASS_NAME, runConfiguration.METHOD_NAME, deviceIds)
+    val androidTestResultsTableState: HashMap<Int, AndroidTestResultsTableState> =
+      AndroidTestResultsUserPreferences.getInstance(runConfiguration.project).androidTestResultsTableState
+    val key =
+      Objects.hash(
+        runConfiguration.TESTING_TYPE,
+        runConfiguration.PACKAGE_NAME,
+        runConfiguration.CLASS_NAME,
+        runConfiguration.METHOD_NAME,
+        deviceIds,
+      )
     if (androidTestResultsTableState.containsKey(key)) {
       val preferredWidths = androidTestResultsTableState[key]!!.preferredColumnWidths
       preferredWidths[columnName] = width

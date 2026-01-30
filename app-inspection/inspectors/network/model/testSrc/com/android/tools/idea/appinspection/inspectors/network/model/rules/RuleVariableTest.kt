@@ -45,8 +45,7 @@ class RuleVariableTest {
   fun applyTo_list() {
     val variables = listOf(RuleVariable("NAME", "Foo"), RuleVariable("AGE", "10"))
 
-    assertThat(variables.applyTo("My name is \${NAME} and I'm \${AGE} years old"))
-      .isEqualTo("My name is Foo and I'm 10 years old")
+    assertThat(variables.applyTo("My name is \${NAME} and I'm \${AGE} years old")).isEqualTo("My name is Foo and I'm 10 years old")
   }
 
   @Test

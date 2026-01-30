@@ -41,49 +41,43 @@ import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
 import java.util.regex.Pattern
 
-class PsAndroidModuleAnalyzer(
-  val parentDisposable: Disposable,
-  val pathRenderer: PsPathRenderer
-) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
+class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer: PsPathRenderer) :
+  PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
   @UiThread
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
     return analyzeModuleVariants(model) +
-           analyzeDeclaredDependencies(model) +
-           analyzeLibraryVersionPromotions(model) +
-           analyzeDependencyScopes(model) +
-           analyzeSdkIndexLibraries(model)
+      analyzeDeclaredDependencies(model) +
+      analyzeLibraryVersionPromotions(model) +
+      analyzeDependencyScopes(model) +
+      analyzeSdkIndexLibraries(model)
   }
 
-  private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
-    analyzeModuleDependencies(model, pathRenderer) +
-    analyzeProductFlavors(model, pathRenderer)
+  private fun analyzeModuleVariants(model: PsAndroidModule): Sequence<PsIssue> =
+    analyzeModuleDependencies(model, pathRenderer) + analyzeProductFlavors(model, pathRenderer)
 
   private fun analyzeDeclaredDependencies(model: PsAndroidModule): Sequence<PsIssue> {
     val issuesByData = transferSyncIssues(model.resolvedSyncIssues)
     return model.dependencies.libraries.asSequence().flatMap { dependency ->
       val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
       analyzeDeclaredDependency(dependency) +
-      (issuesByData[issueKey]?.asSequence()?.map { issue -> createIssueFrom(issue, dependency.path) } ?: sequenceOf())
+        (issuesByData[issueKey]?.asSequence()?.map { issue -> createIssueFrom(issue, dependency.path) } ?: sequenceOf())
     }
   }
 
   private fun analyzeLibraryVersionPromotions(model: PsAndroidModule): Sequence<PsIssue> {
     val promotedLibraries =
-      model
-        .resolvedVariants
+      model.resolvedVariants
         .flatMap { it.artifacts }
         .flatMap { it.dependencies.libraries }
         .flatMap { resolved ->
           resolved
             .getReverseDependencies()
-            .filterIsInstance<ReverseDependency.Declared>()  // TODO(b/74948244): Implement POM dependency promotion analysis.
+            .filterIsInstance<ReverseDependency.Declared>() // TODO(b/74948244): Implement POM dependency promotion analysis.
             .filter { it.spec != resolved.spec }
-            .map {
-              PathSpaceAndPromotedTo(it, resolved.spec) to resolved
-            }
+            .map { PathSpaceAndPromotedTo(it, resolved.spec) to resolved }
         }
         .groupBy({ it.first }, { it.second })
 
@@ -91,21 +85,24 @@ class PsAndroidModuleAnalyzer(
 
     return promotedLibraries.asSequence().map { (promotion, resolvedDependencies) ->
       val (path, spec, promotedTo) = promotion
-      val scopes = scopeAggregator.aggregate(
-        resolvedDependencies
-          .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
-          .toSet())
+      val scopes =
+        scopeAggregator.aggregate(
+          resolvedDependencies
+            .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
+            .toSet()
+        )
       val declaredVersion = spec.version
       val promotedVersion = promotedTo.version
-      val (message, severity) = when {
-        declaredVersion == null -> "Gradle provided version $promotedVersion" to INFO
-        promotedVersion == null -> "Gradle promotion from $declaredVersion to unknown version" to WARNING
-        RichVersion.parse(declaredVersion).lowerBound.isPrefixInfimum ->
-          "Gradle provided version $promotedVersion for $declaredVersion" to INFO
-        Version.parse(declaredVersion) > Version.parse(promotedVersion) ->
-          "Gradle demoted library version from $declaredVersion to $promotedVersion" to WARNING
-        else -> "Gradle promoted library version from $declaredVersion to $promotedVersion" to INFO
-      }
+      val (message, severity) =
+        when {
+          declaredVersion == null -> "Gradle provided version $promotedVersion" to INFO
+          promotedVersion == null -> "Gradle promotion from $declaredVersion to unknown version" to WARNING
+          RichVersion.parse(declaredVersion).lowerBound.isPrefixInfimum ->
+            "Gradle provided version $promotedVersion for $declaredVersion" to INFO
+          Version.parse(declaredVersion) > Version.parse(promotedVersion) ->
+            "Gradle demoted library version from $declaredVersion to $promotedVersion" to WARNING
+          else -> "Gradle promoted library version from $declaredVersion to $promotedVersion" to INFO
+        }
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.
       PsGeneralIssue(message, "in: ${scopes.joinToString("\n") { it.toString() }}", path, PROJECT_ANALYSIS, severity)
     }
@@ -113,35 +110,34 @@ class PsAndroidModuleAnalyzer(
 
   private fun analyzeDependencyScopes(model: PsAndroidModule): Sequence<PsIssue> {
     return ((model.dependencies.libraries as List<PsDeclaredDependency>) +
-            (model.dependencies.jars as List<PsDeclaredDependency>) +
-            (model.dependencies.modules as List<PsDeclaredDependency>))
+        (model.dependencies.jars as List<PsDeclaredDependency>) +
+        (model.dependencies.modules as List<PsDeclaredDependency>))
       .asSequence()
       .flatMap { dependency -> analyzeDependencyScope(dependency) }
   }
 
   private fun analyzeSdkIndexLibraries(model: PsAndroidModule): Sequence<PsIssue> {
     val updateStorage = AvailableLibraryUpdateStorage.getInstance(model.parent.ideProject)
-    return model
-      .resolvedVariants
+    return model.resolvedVariants
       .asSequence()
       .flatMap { it.artifacts }
       .flatMap { it.dependencies.libraries }
-      .flatMap { library ->
-        library
-          .getReverseDependencies()
-          .filterIsInstance<ReverseDependency.Transitive>()
-          .map { library }
-      }
+      .flatMap { library -> library.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>().map { library } }
       .filter { it is PsDeclaredLibraryDependency }
       .distinct()
-      .map { getSdkIndexIssueFor(it as PsDeclaredLibraryDependency, availableUpdates = updateStorage)}
+      .map { getSdkIndexIssueFor(it as PsDeclaredLibraryDependency, availableUpdates = updateStorage) }
       .flatten()
   }
 
-  private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {
-    constructor (declaration: ReverseDependency.Declared, promotedTo: PsArtifactDependencySpec) : this(
-      declaration.dependency.path,
-      declaration.spec, promotedTo)
+  private data class PathSpaceAndPromotedTo(
+    val path: PsPath,
+    val spec: PsArtifactDependencySpec,
+    val promotedTo: PsArtifactDependencySpec,
+  ) {
+    constructor(
+      declaration: ReverseDependency.Declared,
+      promotedTo: PsArtifactDependencySpec,
+    ) : this(declaration.dependency.path, declaration.spec, promotedTo)
   }
 
   private fun createScopeAggregator(model: PsAndroidModule): PsMessageScopeAggregator {
@@ -149,7 +145,8 @@ class PsAndroidModuleAnalyzer(
       model.buildTypes.map { it.name }.toSet(),
       model.flavorDimensions.map { dimension ->
         model.productFlavors.filter { it.effectiveDimension == dimension.name }.map { it.name }.toSet()
-      })
+      },
+    )
   }
 }
 
@@ -177,5 +174,4 @@ private fun getSeverity(issue: IdeSyncIssue): PsIssue.Severity {
   return INFO
 }
 
-private fun transferSyncIssues(syncIssues: SyncIssues?) =
-  syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()
+private fun transferSyncIssues(syncIssues: SyncIssues?) = syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()

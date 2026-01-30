@@ -30,10 +30,9 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 class NestedGraphToolbarActionTest : NavTestCase() {
 
   /**
-   * Reparent fragments 2 and 3 into a new nested navigation After the reparent: The action from
-   * fragment1 to fragment2 should point to the new navigation The exit action from fragment4 to
-   * fragment2 should also point to the new navigation The action from fragment2 to fragment3 should
-   * remain unchanged
+   * Reparent fragments 2 and 3 into a new nested navigation After the reparent: The action from fragment1 to fragment2 should point to the
+   * new navigation The exit action from fragment4 to fragment2 should also point to the new navigation The action from fragment2 to
+   * fragment3 should remain unchanged
    */
   fun testNestedGraphToolbarAction() {
     val model =
@@ -58,13 +57,7 @@ class NestedGraphToolbarActionTest : NavTestCase() {
       val root = model.treeReader.components[0]
 
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
-      assertSameElements(
-        root.children.map { it.id },
-        "fragment1",
-        "fragment2",
-        "fragment3",
-        "navigation1",
-      )
+      assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
       verifyNoMoreInteractions(tracker)
 

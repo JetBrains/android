@@ -197,12 +197,7 @@ class NavPropertiesViewTest : NavTestCase() {
     assertEquals(FakeLineType.PANEL, inspector.lines[line].type)
   }
 
-  private fun checkEditor(
-    inspector: FakeInspectorPanel,
-    line: Int,
-    namespace: String,
-    name: String,
-  ) {
+  private fun checkEditor(inspector: FakeInspectorPanel, line: Int, namespace: String, name: String) {
     assertTrue(line < inspector.lines.size)
     assertEquals(FakeLineType.PROPERTY, inspector.lines[line].type)
     assertEquals(name, inspector.lines[line].editorModel?.property?.name)

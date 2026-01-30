@@ -22,9 +22,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  *
  * These profiler task actions are to be performed in a sequential format:
  *
- * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) ->
- * Select dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) ->
- * StartProfilerTaskAction -> StopProfilerTaskAction
+ * ProfilerSelectDeviceAction -> ProfilerSelectProcessAction -> Select Profiler Tasks (System trace, Callstack sample, etc.) -> Select
+ * dropdown actions (SetProfilingStartingPointToNowAction or SetProfilingStartingPointToProcessStartAction) -> StartProfilerTaskAction ->
+ * StopProfilerTaskAction
  */
 class ProfilerSelectProcessAction : ProfilerTaskActionBase() {
   override fun actionPerformed(e: AnActionEvent) {
@@ -34,9 +34,7 @@ class ProfilerSelectProcessAction : ProfilerTaskActionBase() {
     val processList = myTaskHomeModel.processListModel.getSelectedDeviceProcesses()
     // This Action is designed for profiler E2E testing, since all the profiler-integration tests will use minApp as the test application
     // Choosing the process with the name containing minApp.
-    val process = processList.find { process ->
-      process.name.contains("minapp")
-    }
+    val process = processList.find { process -> process.name.contains("minapp") }
 
     assert(process != null)
     myTaskHomeModel.processListModel.onProcessSelection(process!!)

@@ -26,10 +26,7 @@ import com.android.tools.property.panel.impl.support.EditorProviderImpl
 import com.android.tools.property.panel.impl.ui.PropertyComboBox
 import javax.swing.JComponent
 
-/**
- * Custom EditorProvider for PsiProperties, makes sure that we use the correct component and
- * renderer to instantiate Dropdowns.
- */
+/** Custom EditorProvider for PsiProperties, makes sure that we use the correct component and renderer to instantiate Dropdowns. */
 internal class PsiEditorProvider(
   enumSupportProvider: EnumSupportProvider<PsiPropertyItem>,
   psiControlTypeProvider: PsiPropertyItemControlTypeProvider,

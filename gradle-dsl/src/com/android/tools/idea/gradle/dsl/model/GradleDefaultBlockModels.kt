@@ -58,7 +58,6 @@ import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 
-
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuildFile> {
 
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleBuildFile>> {
@@ -73,25 +72,24 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return when (kind) {
-      DECLARATIVE -> mapOf(
-        "javaApplication" to JavaDclElement.JAVA_APPLICATION,
-        "javaLibrary" to JavaDclElement.JAVA_LIBRARY
-      )
+      DECLARATIVE -> mapOf("javaApplication" to JavaDclElement.JAVA_APPLICATION, "javaLibrary" to JavaDclElement.JAVA_LIBRARY)
       else -> DEFAULT_ROOT_ELEMENTS_MAP
     }
   }
 
   companion object {
-    private val DEFAULT_ROOT_ELEMENTS_MAP = mapOf(
-      "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
-      "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
-      "dependencies" to DependenciesDslElement.DEPENDENCIES,
-      "ext" to ExtDslElement.EXT,
-      "java" to JavaDslElement.JAVA,
-      "kotlin" to KotlinDslElement.KOTLIN,
-      "repositories" to RepositoriesDslElement.REPOSITORIES,
-      "subprojects" to SubProjectsDslElement.SUBPROJECTS,
-      "plugins" to PluginsDslElement.PLUGINS)
+    private val DEFAULT_ROOT_ELEMENTS_MAP =
+      mapOf(
+        "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
+        "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
+        "dependencies" to DependenciesDslElement.DEPENDENCIES,
+        "ext" to ExtDslElement.EXT,
+        "java" to JavaDslElement.JAVA,
+        "kotlin" to KotlinDslElement.KOTLIN,
+        "repositories" to RepositoriesDslElement.REPOSITORIES,
+        "subprojects" to SubProjectsDslElement.SUBPROJECTS,
+        "plugins" to PluginsDslElement.PLUGINS,
+      )
 
     private fun declarativeJavaBuilder(file: GradleBuildFile): JavaDeclarativeModel {
       file.getPropertyElement(JavaDclElement.JAVA_APPLICATION)?.let { element ->
@@ -104,63 +102,58 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       throw IllegalStateException("Cannot create java[Application|Library] dsl element")
     }
 
-    private val DEFAULT_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
-      BuildScriptModel::class.java from {
-        BuildScriptModelImpl(it.ensurePropertyElementAt(BuildScriptDslElement.BUILDSCRIPT, 0))
-      },
+    private val DEFAULT_ROOT_AVAILABLE_MODELS =
+      listOf<BlockModelBuilder<*, GradleBuildFile>>(
+        BuildScriptModel::class.java from { BuildScriptModelImpl(it.ensurePropertyElementAt(BuildScriptDslElement.BUILDSCRIPT, 0)) },
+        ConfigurationsModel::class.java from
+          {
+            ConfigurationsModelImpl(
+              it.ensurePropertyElementBefore(ConfigurationsDslElement.CONFIGURATIONS, DependenciesDslElement::class.java)
+            )
+          },
+        DependenciesModel::class.java from
+          { file ->
+            val dependenciesDslElement: DependenciesDslElement = file.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES)
+            ScriptDependenciesModelImpl(dependenciesDslElement)
+          },
+        ExtModel::class.java from
+          {
+            var at = 0
+            val elements: List<GradleDslElement> = it.currentElements
+            for (element in elements) {
+              when (element) {
+                is ApplyDslElement,
+                is PluginsDslElement,
+                is BuildScriptDslElement -> at += 1
+                else -> break
+              }
+            }
+            val extDslElement: ExtDslElement = it.ensurePropertyElementAt(ExtDslElement.EXT, at)
+            return@from ExtModelImpl(extDslElement)
+          },
+        JavaModel::class.java from { JavaModelImpl(it.ensurePropertyElement(JavaDslElement.JAVA)) },
+        KotlinModel::class.java from { KotlinModelImpl(it.ensurePropertyElement(KotlinDslElement.KOTLIN)) },
+        RepositoriesModel::class.java from { RepositoriesModelImpl(it.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES)) },
+      )
 
-      ConfigurationsModel::class.java from {
-        ConfigurationsModelImpl(it.ensurePropertyElementBefore(ConfigurationsDslElement.CONFIGURATIONS, DependenciesDslElement::class.java))
-      },
-
-      DependenciesModel::class.java from { file ->
-        val dependenciesDslElement: DependenciesDslElement = file.ensurePropertyElement(
-          DependenciesDslElement.DEPENDENCIES)
-        ScriptDependenciesModelImpl(dependenciesDslElement)
-      },
-
-      ExtModel::class.java from {
-        var at = 0
-        val elements: List<GradleDslElement> = it.currentElements
-        for (element in elements) {
-          when (element) {
-            is ApplyDslElement, is PluginsDslElement, is BuildScriptDslElement -> at += 1
-            else -> break
-          }
-        }
-        val extDslElement: ExtDslElement = it.ensurePropertyElementAt(ExtDslElement.EXT, at)
-        return@from ExtModelImpl(extDslElement)
-      },
-
-      JavaModel::class.java from {
-        JavaModelImpl(it.ensurePropertyElement(JavaDslElement.JAVA))
-      },
-
-      KotlinModel::class.java from {
-        KotlinModelImpl(it.ensurePropertyElement(KotlinDslElement.KOTLIN))
-      },
-
-      RepositoriesModel::class.java from {
-        RepositoriesModelImpl(it.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES))
-      },
-    )
-
-    private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
-      BuildScriptModel::class.java from { EmptyBuildScriptModel() },
-      ConfigurationsModel::class.java from { EmptyConfigurationsModelImpl() },
-      DependenciesModel::class.java from { EmptyDependenciesModelImpl() },
-      ExtModel::class.java from { EmptyExtModelImpl() },
-      JavaModel::class.java from { EmptyJavaModelImpl() },
-      KotlinModel::class.java from { EmptyKotlinModelImpl() },
-      RepositoriesModel::class.java from { EmptyRepositoriesModelImpl() },
-      JavaDeclarativeModel::class.java from { declarativeJavaBuilder(it) },
-    )
+    private val DECLARATIVE_ROOT_AVAILABLE_MODELS =
+      listOf<BlockModelBuilder<*, GradleBuildFile>>(
+        BuildScriptModel::class.java from { EmptyBuildScriptModel() },
+        ConfigurationsModel::class.java from { EmptyConfigurationsModelImpl() },
+        DependenciesModel::class.java from { EmptyDependenciesModelImpl() },
+        ExtModel::class.java from { EmptyExtModelImpl() },
+        JavaModel::class.java from { EmptyJavaModelImpl() },
+        KotlinModel::class.java from { EmptyKotlinModelImpl() },
+        RepositoriesModel::class.java from { EmptyRepositoriesModelImpl() },
+        JavaDeclarativeModel::class.java from { declarativeJavaBuilder(it) },
+      )
   }
 }
 
 private infix fun <M, P> Class<M>.from(action: (P) -> M): BlockModelBuilder<M, P> where M : GradleDslModel, P : GradlePropertiesDslElement {
   return object : BlockModelBuilder<M, P> {
     override fun modelClass() = this@from
+
     override fun create(p: P): M = action(p)
   }
 }

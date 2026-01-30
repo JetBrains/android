@@ -35,10 +35,8 @@ import org.jetbrains.annotations.VisibleForTesting
 const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 
 /** A dialog box that allows adding and editing body rules. */
-class BodyRuleDialog(
-  transformation: RuleData.TransformationRuleData?,
-  private val saveAction: (RuleData.TransformationRuleData) -> Unit,
-) : DialogWrapper(false) {
+class BodyRuleDialog(transformation: RuleData.TransformationRuleData?, private val saveAction: (RuleData.TransformationRuleData) -> Unit) :
+  DialogWrapper(false) {
 
   @VisibleForTesting val findTextArea = JBTextArea(15, 25)
 
@@ -115,13 +113,7 @@ class BodyRuleDialog(
     if (replaceEntireBodyCheckBox.isSelected) {
       saveAction(RuleData.BodyReplacedRuleData(replaceTextArea.text))
     } else {
-      saveAction(
-        RuleData.BodyModifiedRuleData(
-          findTextArea.text,
-          regexCheckBox.isSelected,
-          replaceTextArea.text,
-        )
-      )
+      saveAction(RuleData.BodyModifiedRuleData(findTextArea.text, regexCheckBox.isSelected, replaceTextArea.text))
     }
   }
 

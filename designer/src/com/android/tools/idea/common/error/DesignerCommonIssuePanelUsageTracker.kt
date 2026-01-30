@@ -40,29 +40,20 @@ interface DesignerCommonIssuePanelUsageTracker {
 
   companion object {
     fun getInstance(): DesignerCommonIssuePanelUsageTracker {
-      return if (AnalyticsSettings.optedIn) DesignerCommonIssuePanelUsageTrackerImpl
-      else DesignerCommonIssuePanelNoOpUsageTracker
+      return if (AnalyticsSettings.optedIn) DesignerCommonIssuePanelUsageTrackerImpl else DesignerCommonIssuePanelNoOpUsageTracker
     }
   }
 }
 
 private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePanelUsageTracker {
-  private val executorService =
-    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val executorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
   override fun trackChangingCommonIssuePanelVisibility(visibility: Boolean, project: Project) {
-    trackEvent(project) {
-      UniversalProblemsPanelEvent.newBuilder().setProblemsPanelVisibility(visibility).build()
-    }
+    trackEvent(project) { UniversalProblemsPanelEvent.newBuilder().setProblemsPanelVisibility(visibility).build() }
   }
 
-  override fun trackNavigationFromIssue(
-    target: UniversalProblemsPanelEvent.IssueNavigated,
-    project: Project,
-  ) {
-    trackEvent(project) {
-      UniversalProblemsPanelEvent.newBuilder().setIssueNavigated(target).build()
-    }
+  override fun trackNavigationFromIssue(target: UniversalProblemsPanelEvent.IssueNavigated, project: Project) {
+    trackEvent(project) { UniversalProblemsPanelEvent.newBuilder().setIssueNavigated(target).build() }
   }
 
   override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) {
@@ -106,13 +97,9 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
 private object DesignerCommonIssuePanelNoOpUsageTracker : DesignerCommonIssuePanelUsageTracker {
   override fun trackChangingCommonIssuePanelVisibility(visibility: Boolean, project: Project) = Unit
 
-  override fun trackNavigationFromIssue(
-    target: UniversalProblemsPanelEvent.IssueNavigated,
-    project: Project,
-  ) = Unit
+  override fun trackNavigationFromIssue(target: UniversalProblemsPanelEvent.IssueNavigated, project: Project) = Unit
 
-  override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) =
-    Unit
+  override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) = Unit
 
   override fun trackSelectingIssue(project: Project) = Unit
 }

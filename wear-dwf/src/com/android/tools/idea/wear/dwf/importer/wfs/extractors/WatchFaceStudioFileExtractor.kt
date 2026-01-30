@@ -28,8 +28,8 @@ interface WatchFaceStudioFileExtractor {
 }
 
 /**
- * Represents an item such as a manifest or a resource that has been extracted from a file
- * containing watch face data, such as an `.apk` or an `.aab` file.
+ * Represents an item such as a manifest or a resource that has been extracted from a file containing watch face data, such as an `.apk` or
+ * an `.aab` file.
  *
  * @see WatchFaceStudioFileExtractor
  */
@@ -41,17 +41,9 @@ sealed interface ExtractedItem {
     val filePath: Path
   }
 
-  data class StringResource(
-    override val name: String,
-    override val filePath: Path,
-    val value: String,
-  ) : Resource
+  data class StringResource(override val name: String, override val filePath: Path, val value: String) : Resource
 
-  data class BinaryResource(
-    override val name: String,
-    override val filePath: Path,
-    val binaryContent: ByteArray,
-  ) : Resource {
+  data class BinaryResource(override val name: String, override val filePath: Path, val binaryContent: ByteArray) : Resource {
     // https://www.jetbrains.com/help/inspectopedia/ArrayInDataClass.html
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
@@ -74,9 +66,5 @@ sealed interface ExtractedItem {
     }
   }
 
-  data class TextResource(
-    override val name: String,
-    override val filePath: Path,
-    val text: String,
-  ) : Resource
+  data class TextResource(override val name: String, override val filePath: Path, val text: String) : Resource
 }

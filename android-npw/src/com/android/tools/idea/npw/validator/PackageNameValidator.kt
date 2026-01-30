@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.validator
 import com.android.tools.adtui.validation.Validator
 import org.jetbrains.android.util.AndroidUtils
 
-class PackageNameValidator: Validator<String> {
-  override fun validate(value: String): Validator.Result =
-    Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value))
+class PackageNameValidator : Validator<String> {
+  override fun validate(value: String): Validator.Result = Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value))
 }

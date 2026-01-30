@@ -1,12 +1,11 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.catalog
 
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
+import com.android.tools.idea.gradle.dsl.model.GradleModelSource
 import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
 import com.android.utils.mapValuesNotNull
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
@@ -16,12 +15,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import java.io.File
 import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
-import com.android.tools.idea.gradle.dsl.model.GradleModelSource
 
 /**
- * This is a copy of JetBrains GradleVersionCatalogHandler that provides access to Studio Version Catalog model.
- * Class must be deleted once intellij.gradle.analysis is enabled in Studio or platform navigation relies on
- * gradle.dsl.api module
+ * This is a copy of JetBrains GradleVersionCatalogHandler that provides access to Studio Version Catalog model. Class must be deleted once
+ * intellij.gradle.analysis is enabled in Studio or platform navigation relies on gradle.dsl.api module
  */
 @Suppress("UnstableApiUsage")
 class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
@@ -39,8 +36,7 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     val project = context.project
     val scope = context.resolveScope
     val module = ModuleUtilCore.findModuleForPsiElement(context) ?: return null
-    val versionCatalogsModel =
-      GradleModelSource.getInstance().getCachedVersionCatalogsModel(module)
+    val versionCatalogsModel = GradleModelSource.getInstance().getCachedVersionCatalogsModel(module)
     val versionCatalogModel = versionCatalogsModel.getVersionCatalogModel(catalogName)
     // TODO add support for removing catalog from settings - now it switches to sync information
     if (versionCatalogModel != null) {

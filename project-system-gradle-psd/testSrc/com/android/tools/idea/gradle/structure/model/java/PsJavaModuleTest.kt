@@ -29,14 +29,11 @@ import junit.framework.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [PsAndroidModule].
- */
+/** Tests for [PsAndroidModule]. */
 @RunsInEdt
 class PsJavaModuleTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testImportantConfigurations() {
@@ -45,27 +42,29 @@ class PsJavaModuleTest {
       val appModule = moduleWithSyncedModel(project, "jav")
       assertNotNull(appModule)
 
-      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY)).containsExactly(
-        "implementation",
-        "annotationProcessor",
-        "api",
-        "compile",
-        "runtime",
-        "testAnnotationProcessor",
-        "testImplementation",
-        "testRuntime"
-      )
+      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY))
+        .containsExactly(
+          "implementation",
+          "annotationProcessor",
+          "api",
+          "compile",
+          "runtime",
+          "testAnnotationProcessor",
+          "testImplementation",
+          "testRuntime",
+        )
 
-      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE)).containsExactly(
-        "implementation",
-        "annotationProcessor",
-        "api",
-        "compile",
-        "runtime",
-        "testAnnotationProcessor",
-        "testImplementation",
-        "testRuntime"
-      )
+      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE))
+        .containsExactly(
+          "implementation",
+          "annotationProcessor",
+          "api",
+          "compile",
+          "runtime",
+          "testAnnotationProcessor",
+          "testImplementation",
+          "testRuntime",
+        )
     }
   }
 
@@ -75,35 +74,35 @@ class PsJavaModuleTest {
     projectRule.psTestWithProject(preparedProject) {
       val appModule = moduleWithSyncedModel(project, "jav")
       assertNotNull(appModule)
-      Truth.assertThat(appModule.getConfigurations()).containsExactly(
-        "implementation",
-        "annotationProcessor",
-        "api",
-        "compile",
-        "compileOnly",
-        "runtime",
-        "runtimeOnly",
-        "testAnnotationProcessor",
-        "testCompile",
-        "testCompileOnly",
-        "testImplementation",
-        "testRuntime",
-        "testRuntimeOnly",
-        "compileClasspath",
-        "testCompileClasspath",
-        "archives",
-        "apiElements",
-        "runtimeElements",
-        "testResultsElementsForTest",
-        "testRuntimeClasspath",
-        "runtimeClasspath",
-        "default",
-        "mainSourceElements",
-        "compileOnlyApi"
-      )
+      Truth.assertThat(appModule.getConfigurations())
+        .containsExactly(
+          "implementation",
+          "annotationProcessor",
+          "api",
+          "compile",
+          "compileOnly",
+          "runtime",
+          "runtimeOnly",
+          "testAnnotationProcessor",
+          "testCompile",
+          "testCompileOnly",
+          "testImplementation",
+          "testRuntime",
+          "testRuntimeOnly",
+          "compileClasspath",
+          "testCompileClasspath",
+          "archives",
+          "apiElements",
+          "runtimeElements",
+          "testResultsElementsForTest",
+          "testRuntimeClasspath",
+          "runtimeClasspath",
+          "default",
+          "mainSourceElements",
+          "compileOnlyApi",
+        )
     }
   }
-
 }
 
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsJavaModule {

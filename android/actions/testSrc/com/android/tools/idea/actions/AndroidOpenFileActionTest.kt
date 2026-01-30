@@ -23,9 +23,7 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [AndroidOpenFileAction]
- */
+/** Tests for [AndroidOpenFileAction] */
 class AndroidOpenFileActionTest : TestCase() {
 
   fun testSelectableFiles() {

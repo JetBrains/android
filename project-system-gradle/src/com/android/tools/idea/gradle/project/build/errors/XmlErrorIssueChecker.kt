@@ -20,9 +20,9 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import java.util.function.Consumer
 
 class XmlErrorIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -30,17 +30,15 @@ class XmlErrorIssueChecker : GradleIssueChecker {
     return null
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     val parser = XmlErrorOutputParser()
-    return message.lines().map { line ->
-       parser.parseLine(MessageEvent.Kind.ERROR, line, parentEventId, messageConsumer)
-    }.any { it }
+    return message.lines().map { line -> parser.parseLine(MessageEvent.Kind.ERROR, line, parentEventId, messageConsumer) }.any { it }
   }
-
-
 }

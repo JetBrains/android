@@ -24,16 +24,12 @@ import java.nio.file.Paths
 
 private const val outputLogFileName: String = "StudioFlagInfo.txt"
 
-/**
- * A [DiagnosticsSummaryFileProvider] that includes debug information about Studio flag overrides
- */
+/** A [DiagnosticsSummaryFileProvider] that includes debug information about Studio flag overrides */
 object StudioFlagsDiagnosticFileProvider : DiagnosticsSummaryFileProvider {
   override val name: String = "Studio Flags"
 
   override fun getFiles(project: Project?): List<FileInfo> {
-    val outputFile =
-      DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
-        .resolve(outputLogFileName)
+    val outputFile = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath()).resolve(outputLogFileName)
     Files.writeString(outputFile, StudioFlags.FLAGS.toString("StudioFlags"))
     return listOf(FileInfo(outputFile, Paths.get(outputLogFileName)))
   }

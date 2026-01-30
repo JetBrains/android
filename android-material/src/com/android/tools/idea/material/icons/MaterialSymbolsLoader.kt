@@ -28,18 +28,15 @@ import com.android.tools.idea.material.icons.download.MaterialSymbolsUpdater
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import java.io.File
+import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import java.nio.file.Path
 
-/**
- * Class providing the loading of Metadata and [VdIcon] for Material Symbols, and ensures the font
- * files required for rendering exist
- */
+/** Class providing the loading of Metadata and [VdIcon] for Material Symbols, and ensures the font files required for rendering exist */
 class MaterialSymbolsLoader {
   companion object {
 
@@ -62,16 +59,11 @@ class MaterialSymbolsLoader {
       val symbolDownloadsToStart =
         Symbols.entries.filter {
           !materialSymbolsUrlProvider.hasFontPathInSdk(it) ||
-            checkAgeForRefresh(
-              materialSymbolsUrlProvider.getLocalFontFile(it)!!,
-              REFRESH_INTERVAL_DAYS,
-            ) ||
+            checkAgeForRefresh(materialSymbolsUrlProvider.getLocalFontFile(it)!!, REFRESH_INTERVAL_DAYS) ||
             forceDownload
         }
       val downloads: MutableList<Job> =
-        symbolDownloadsToStart
-          .map { scope.launch { downloadFonts(it, materialSymbolsUrlProvider) } }
-          .toMutableList()
+        symbolDownloadsToStart.map { scope.launch { downloadFonts(it, materialSymbolsUrlProvider) } }.toMutableList()
 
       val metadataParsingResult = tryToParseMetadata(callback, materialIconsMetadataUrlProvider)
       if (!metadataParsingResult || forceDownload) {
@@ -86,14 +78,11 @@ class MaterialSymbolsLoader {
     }
 
     @WorkerThread
-    private fun downloadFonts(
-      type: Symbols,
-      materialSymbolsUrlProvider: MaterialSymbolsUrlProvider,
-    ) = MaterialSymbolsUpdater.downloadFontFiles(type, materialSymbolsUrlProvider)
+    private fun downloadFonts(type: Symbols, materialSymbolsUrlProvider: MaterialSymbolsUrlProvider) =
+      MaterialSymbolsUpdater.downloadFontFiles(type, materialSymbolsUrlProvider)
 
     /**
-     * Tries to locate and parse [MaterialIconsMetadata] in the Sdk, on failure falls back
-     * temporarily to the metadata bundled with Studio
+     * Tries to locate and parse [MaterialIconsMetadata] in the Sdk, on failure falls back temporarily to the metadata bundled with Studio
      *
      * @param callback Callback function to be called when metadata has been successfully parsed
      * @return true if parsing the file in the Sdk succeeded, false otherwise
@@ -137,11 +126,10 @@ class MaterialSymbolsLoader {
     /**
      * Loads or downloads if missing the [VdIcon] representation of the requested Material Symbol
      *
-     * @param symbolConfiguration [SymbolConfiguration] detailing the visual properties of the
-     *   Material Symbol
+     * @param symbolConfiguration [SymbolConfiguration] detailing the visual properties of the Material Symbol
      * @param iconMetadata The [MaterialMetadataIcon] of the Material Symbol to be loaded
-     * @param iconsMetadata The [MaterialIconsMetadata] of the entire list of Material Symbols,
-     *   required for instantiating the [MaterialVdIconsLoader]
+     * @param iconsMetadata The [MaterialIconsMetadata] of the entire list of Material Symbols, required for instantiating the
+     *   [MaterialVdIconsLoader]
      * @return [VdIcon] of the corresponding Material Symbol
      */
     fun loadVdIcon(
@@ -152,24 +140,15 @@ class MaterialSymbolsLoader {
     ): VdIcon {
       val iconFileName = symbolConfiguration.toFileName(iconMetadata.name)
       val loader = MaterialVdIconsLoader(iconsMetadata, SdkMaterialIconsUrlProvider())
-      val loadedIcon =
-        loader.loadVdIcon(symbolConfiguration.type.localName, iconMetadata.name, iconFileName)
+      val loadedIcon = loader.loadVdIcon(symbolConfiguration.type.localName, iconMetadata.name, iconFileName)
 
       if (loadedIcon != null) {
         return loadedIcon
       }
 
-      MaterialSymbolsUpdater.downloadVdIcon(
-        symbolConfiguration,
-        iconMetadata.name,
-        materialSymbolsUrlProvider,
-      )
+      MaterialSymbolsUpdater.downloadVdIcon(symbolConfiguration, iconMetadata.name, materialSymbolsUrlProvider)
 
-      return loader.loadVdIcon(
-        symbolConfiguration.type.localName,
-        iconMetadata.name,
-        iconFileName,
-      )!!
+      return loader.loadVdIcon(symbolConfiguration.type.localName, iconMetadata.name, iconFileName)!!
     }
   }
 }

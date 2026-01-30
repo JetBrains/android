@@ -60,16 +60,12 @@ abstract class AbstractInspectorClient(
       }
     }
 
-  private val stateCallbacks =
-    ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
-  private val errorCallbacks =
-    ListenerCollection.createWithDirectExecutor<InspectorClient.ErrorListener>()
+  private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
+  private val errorCallbacks = ListenerCollection.createWithDirectExecutor<InspectorClient.ErrorListener>()
   private val rootsEventCallbacks = ListenerCollection.createWithDirectExecutor<(List<*>) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners =
-    ListenerCollection.createWithDirectExecutor<
-      (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
-    >()
+    ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
   var launchMonitor: InspectorClientLaunchMonitor =
     InspectorClientLaunchMonitor(notificationModel, attachStateListeners, stats, coroutineScope)
@@ -95,9 +91,7 @@ abstract class AbstractInspectorClient(
     treeEventCallbacks.add(callback)
   }
 
-  final override fun registerConnectionTimeoutCallback(
-    callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
-  ) {
+  final override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) {
     attachStateListeners.add(callback)
   }
 
@@ -127,10 +121,7 @@ abstract class AbstractInspectorClient(
 
     // Test that we can actually contact the device via ADB, and fail fast if we can't.
     val commandOutput =
-      adbSession.deviceServices.shellAsText(
-        device = DeviceSelector.fromSerialNumber(process.device.serial),
-        command = "echo ok",
-      )
+      adbSession.deviceServices.shellAsText(device = DeviceSelector.fromSerialNumber(process.device.serial), command = "echo ok")
     if (commandOutput.stdout.trim() != "ok") {
       state = InspectorClient.State.DISCONNECTED
       return
@@ -167,10 +158,7 @@ abstract class AbstractInspectorClient(
   final override fun disconnect() {
     coroutineScope.launch {
       synchronized(disconnectStateLock) {
-        if (
-          state == InspectorClient.State.DISCONNECTED ||
-            state == InspectorClient.State.DISCONNECTING
-        ) {
+        if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
           return@launch
         }
         state = InspectorClient.State.DISCONNECTING

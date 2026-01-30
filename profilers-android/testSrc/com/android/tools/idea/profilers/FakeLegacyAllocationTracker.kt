@@ -20,9 +20,7 @@ import java.util.concurrent.Executor
 import java.util.function.Consumer
 
 class FakeLegacyAllocationTracker() : LegacyAllocationTracker {
-  /**
-   * Auxiliary static test data used for verifying legacy allocation tracking workflow
-   */
+  /** Auxiliary static test data used for verifying legacy allocation tracking workflow */
   companion object {
     val RAW_DATA = byteArrayOf('a'.code.toByte())
   }
@@ -36,15 +34,14 @@ class FakeLegacyAllocationTracker() : LegacyAllocationTracker {
     trackingState = enabled
     if (!enabled) {
       Thread {
-        try {
-          parsingWaitLatch.await()
-        }
-        catch (ignored: InterruptedException) {
-        }
+          try {
+            parsingWaitLatch.await()
+          } catch (ignored: InterruptedException) {}
 
-        allocationConsumer!!.accept(if (returnNullTrackingData) null else RAW_DATA)
-        parsingDoneLatch.countDown()
-      }.start()
+          allocationConsumer!!.accept(if (returnNullTrackingData) null else RAW_DATA)
+          parsingDoneLatch.countDown()
+        }
+        .start()
     }
 
     return true

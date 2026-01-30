@@ -23,14 +23,14 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
+import org.jetbrains.annotations.VisibleForTesting
 
 data class SdkIndexLinkQuickFixNoLog(
   override val text: String,
   val url: String,
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-): PsQuickFix, Serializable {
+) : PsQuickFix, Serializable {
   override fun execute(context: PsContext) {
     browseFunction(url)
   }
@@ -43,8 +43,8 @@ data class SdkIndexLinkQuickFix(
   val artifactId: String,
   val version: String,
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-  val eventReport: ((Project?) -> Unit) = { project -> logClickEvent(groupId, artifactId, version, project)}
-): PsQuickFix, Serializable {
+  val eventReport: ((Project?) -> Unit) = { project -> logClickEvent(groupId, artifactId, version, project) },
+) : PsQuickFix, Serializable {
   override fun execute(context: PsContext) {
     applyQuickfix(context.project.ideProject)
   }
@@ -57,11 +57,13 @@ data class SdkIndexLinkQuickFix(
 }
 
 private fun logClickEvent(groupId: String, artifactId: String, versionString: String, project: Project?) {
-  val event = AndroidStudioEvent.newBuilder()
-    .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
-    .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED)
-    .withProjectId(project)
-    .setSdkIndexLibraryDetails(
-      SdkIndexLibraryDetails.newBuilder().setGroupId(groupId).setArtifactId(artifactId).setVersionString(versionString))
+  val event =
+    AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
+      .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED)
+      .withProjectId(project)
+      .setSdkIndexLibraryDetails(
+        SdkIndexLibraryDetails.newBuilder().setGroupId(groupId).setArtifactId(artifactId).setVersionString(versionString)
+      )
   UsageTracker.log(event)
 }

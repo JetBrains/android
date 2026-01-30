@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.google.common.truth.Truth
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightPlatformTestCase
+import java.io.File
+import kotlin.io.path.absolutePathString
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,26 +33,18 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
-import java.io.File
-import kotlin.io.path.absolutePathString
 
 @RunWith(Parameterized::class)
 class GroovyKotlinDslParserParityTest : LightPlatformTestCase() {
 
-  @Parameter
-  lateinit var myTestDataExtension: String
+  @Parameter lateinit var myTestDataExtension: String
 
-  @Parameter(1)
-  lateinit var myLanguageName: String
+  @Parameter(1) lateinit var myLanguageName: String
 
   companion object {
     @JvmStatic
     @Parameters(name = "{1}")
-    fun data(): Collection<Array<String>> =
-      listOf(
-        arrayOf(".groovy", "Groovy"),
-        arrayOf(".kts", "Kotlin")
-      )
+    fun data(): Collection<Array<String>> = listOf(arrayOf(".groovy", "Groovy"), arrayOf(".kts", "Kotlin"))
   }
 
   @Test
@@ -85,12 +79,10 @@ class GroovyKotlinDslParserParityTest : LightPlatformTestCase() {
   }
 
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
-    ASSIGNMENT_METHOD_WITH_CLOSURE("assignmentMethodWithClosure"),
-    ;
+    ASSIGNMENT_METHOD_WITH_CLOSURE("assignmentMethodWithClosure");
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/dslParser/$path", extension)
     }
   }
-
 }

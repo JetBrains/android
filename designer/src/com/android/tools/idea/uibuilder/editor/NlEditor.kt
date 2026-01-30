@@ -53,8 +53,7 @@ private val LAYOUT_EDITOR_SUPPORTED_ACTIONS =
     NlSupportedActions.REFRESH,
   )
 
-class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFileType) :
-  DesignerEditor(file, project, fileType) {
+class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFileType) : DesignerEditor(file, project, fileType) {
 
   override fun getEditorId() = NL_EDITOR_ID
 
@@ -67,9 +66,7 @@ class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFile
       WorkBench(myProject, WORKBENCH_NAME, this, this),
       {
         NlSurfaceBuilder.builder(myProject, this) { surface, model ->
-            defaultSceneManagerProvider(surface, model).apply {
-              visualLintMode = VisualLintMode.RUN_IN_BACKGROUND
-            }
+            defaultSceneManagerProvider(surface, model).apply { visualLintMode = VisualLintMode.RUN_IN_BACKGROUND }
           }
           .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
           .build()
@@ -79,9 +76,7 @@ class NlEditor(file: VirtualFile, project: Project, fileType: DesignerEditorFile
       AndroidEditorSettings.getInstance().globalState.preferredSurfaceState(),
     )
 
-  private fun toolWindowDefinitions(
-    facet: AndroidFacet
-  ): List<ToolWindowDefinition<DesignSurface<*>>> {
+  private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface<*>>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface<*>>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))

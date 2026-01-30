@@ -19,20 +19,22 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 
-/**
- * This class handles end session commands by finding the begin session event created then adding a session ended event to to list.
- */
+/** This class handles end session commands by finding the begin session event created then adding a session ended event to to list. */
 class EndSession(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val beginEvent = events.find { it.groupId == command.endSession.sessionId && it.kind == Common.Event.Kind.SESSION }
     beginEvent?.let {
-      events.add(Common.Event.newBuilder().apply {
-        pid = it.pid
-        groupId = command.endSession.sessionId
-        kind = Common.Event.Kind.SESSION
-        isEnded = true
-        timestamp = timer.currentTimeNs
-      }.build())
+      events.add(
+        Common.Event.newBuilder()
+          .apply {
+            pid = it.pid
+            groupId = command.endSession.sessionId
+            kind = Common.Event.Kind.SESSION
+            isEnded = true
+            timestamp = timer.currentTimeNs
+          }
+          .build()
+      )
     }
   }
 }

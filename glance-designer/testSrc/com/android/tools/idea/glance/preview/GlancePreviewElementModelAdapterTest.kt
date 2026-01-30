@@ -48,14 +48,10 @@ private fun simplestDisplaySettings(name: String = "") =
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
   override fun toXml(previewElement: PsiGlancePreviewElement) = ""
 
-  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
-    LightVirtualFile()
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) = LightVirtualFile()
 }
 
-private fun glancePreviewElement(
-  methodFqn: String,
-  displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
-) =
+private fun glancePreviewElement(methodFqn: String, displaySettings: PreviewDisplaySettings = simplestDisplaySettings()) =
   PsiGlancePreviewElement(
     displaySettings = displaySettings,
     previewElementDefinition = null,
@@ -88,42 +84,36 @@ class GlancePreviewElementModelAdapterTest {
   @Test
   fun testAppWidgetXml_defaultSize() {
     assertEquals(
-      """<androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:minWidth="1px"
-    android:minHeight="1px"
-    tools:composableName="foo" />
+      """
+      <androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:minWidth="1px"
+          android:minHeight="1px"
+          tools:composableName="foo" />
 
-"""
+      """
         .trimIndent(),
-      AppWidgetModelAdapter.toXml(
-        GlancePreviewElement(
-          simplestDisplaySettings(),
-          null,
-          null,
-          "foo",
-          PreviewConfiguration.cleanAndGet(),
-        )
-      ),
+      AppWidgetModelAdapter.toXml(GlancePreviewElement(simplestDisplaySettings(), null, null, "foo", PreviewConfiguration.cleanAndGet())),
     )
   }
 
   @Test
   fun testAppWidgetXml_withSize() {
     assertEquals(
-      """<androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="1234dp"
-    android:layout_height="2000dp"
-    android:minWidth="1px"
-    android:minHeight="1px"
-    tools:composableName="foo" />
+      """
+      <androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="1234dp"
+          android:layout_height="2000dp"
+          android:minWidth="1px"
+          android:minHeight="1px"
+          tools:composableName="foo" />
 
-"""
+      """
         .trimIndent(),
       AppWidgetModelAdapter.toXml(
         GlancePreviewElement(

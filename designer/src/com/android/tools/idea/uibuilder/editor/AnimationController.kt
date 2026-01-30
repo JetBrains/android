@@ -30,8 +30,7 @@ interface AnimationController {
   fun getPlayStatus(): PlayStatus
 
   /**
-   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value
-   * will be truncated to be within the range.
+   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
    */
   fun setFrameMs(frameMs: Long)
 

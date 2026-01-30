@@ -39,14 +39,14 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.ui.Messages
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
-class ClassLoadingIssueChecker: GradleIssueChecker {
+class ClassLoadingIssueChecker : GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
   private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError:(.*)")
   private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException:(.*)")
@@ -69,8 +69,11 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       if (JavaSdkVersion.JDK_1_7 != JavaSdk.getInstance().getVersion(jdk)) return@buildString
       // Otherwise, we are using Jdk7.
       when (jdkVersion) {
-        null -> append("Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle. \n" +
-                       "Please update to a newer version (e.g. 1.7.0_67).")
+        null ->
+          append(
+            "Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle. \n" +
+              "Please update to a newer version (e.g. 1.7.0_67)."
+          )
         else -> append("You are using JDK version '${jdkVersion.version.toFeatureMinorUpdateString()}'.")
       }
     }
@@ -90,26 +93,32 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       addDescriptionOnNewLine("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
       startNewParagraph()
       addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
-      addDescriptionOnNewLine("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
+      addDescriptionOnNewLine(
+        "The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem."
+      )
       startNewParagraph()
       when (ApplicationManager.getApplication().isRestartCapable) {
         true -> addQuickFix("Stop Gradle build processes (requires restart)", stopGradleDaemonQuickFix)
         false -> addQuickFix("Open Gradle Daemon documentation", stopGradleDaemonQuickFix)
       }
-      addDescriptionOnNewLine("Your project may be using a third-party plugin which is not compatible with the other " +
-                                         "plugins in the project or the version of Gradle requested by the project.\n\n" +
-                                         "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
+      addDescriptionOnNewLine(
+        "Your project may be using a third-party plugin which is not compatible with the other " +
+          "plugins in the project or the version of Gradle requested by the project.\n\n" +
+          "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes."
+      )
     }
 
     return buildIssueComposer.composeBuildIssue()
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     if (stacktrace != null && NO_SUCH_METHOD_TRACE_PATTERN.matcher(stacktrace).find()) return true
     if (stacktrace != null && CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find()) return true
     if (failureCause.contains(CANNOT_BE_CAST_TO_EXCEPTION)) return true
@@ -153,21 +162,20 @@ class StopGradleDaemonQuickFix : BuildIssueQuickFix {
 
     if (ApplicationManager.getApplication().isRestartCapable) {
       val title = "Stop Gradle Daemons"
-      val message = """
-          Stopping all Gradle daemons will terminate any running Gradle builds (e.g. from the command line).
-          This action will also restart the IDE.
-          Do you want to continue?
-          """.trimIndent()
-      val answer = Messages.showYesNoDialog(project, message, title,  Messages.getQuestionIcon())
+      val message =
+        """
+        Stopping all Gradle daemons will terminate any running Gradle builds (e.g. from the command line).
+        This action will also restart the IDE.
+        Do you want to continue?
+        """
+          .trimIndent()
+      val answer = Messages.showYesNoDialog(project, message, title, Messages.getQuestionIcon())
       if (answer == Messages.YES) {
         // Run the action asynchronously from the pooled thread to avoid causing unnecessary UI freezes while waiting for Gradle to close.
-        executeOnPooledThread {
-          GradleProjectSystemUtil.stopAllGradleDaemonsAndRestart()
-        }
+        executeOnPooledThread { GradleProjectSystemUtil.stopAllGradleDaemonsAndRestart() }
         future.complete(null)
       }
-    }
-    else {
+    } else {
       invokeLater {
         BrowserUtil.browse("http://www.gradle.org/docs/current/userguide/gradle_daemon.html")
         future.complete(null)

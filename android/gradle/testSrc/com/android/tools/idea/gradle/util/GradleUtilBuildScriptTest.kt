@@ -23,13 +23,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
 import com.intellij.testFramework.rules.TempDirectory
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
-  @get:Rule
-  val tempDir = TempDirectory();
+  @get:Rule val tempDir = TempDirectory()
 
   private fun File.toVFile() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)!!
 
@@ -37,8 +36,7 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   fun findGroovyBuildFile() {
     val groovyBuildFile = tempDir.newFile(FN_BUILD_GRADLE).toVFile()
     assertThat(groovyBuildFile).isNotNull()
-    val foundBuildFile =
-      GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
+    val foundBuildFile = GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
     assertThat(foundBuildFile).isEqualTo(groovyBuildFile)
   }
 
@@ -46,8 +44,7 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   fun findKotlinBuildFile() {
     val kotlinBuildFile = tempDir.newFile(FN_BUILD_GRADLE_KTS).toVFile()
     assertThat(kotlinBuildFile).isNotNull()
-    val foundBuildFile =
-      GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
+    val foundBuildFile = GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
     assertThat(foundBuildFile).isEqualTo(kotlinBuildFile)
   }
 
@@ -55,8 +52,7 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   fun findGroovySettingsFile() {
     val groovySettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE).toVFile()
     assertThat(groovySettingsFile).isNotNull()
-    val foundSettingsFile =
-      GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
+    val foundSettingsFile = GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
     assertThat(foundSettingsFile).isEqualTo(groovySettingsFile)
   }
 
@@ -64,8 +60,7 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
   fun findKotlinSettingsFile() {
     val kotlinSettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE_KTS).toVFile()
     assertThat(kotlinSettingsFile).isNotNull()
-    val foundSettingsFile =
-      GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
+    val foundSettingsFile = GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
     assertThat(foundSettingsFile).isEqualTo(kotlinSettingsFile)
   }
 
@@ -92,16 +87,14 @@ class GradleUtilBuildScriptTest : BareTestFixtureTestCase() {
     assertThat(groovyBuildFile).isNotNull()
     val kotlinBuildFile = tempDir.newFile(FN_BUILD_GRADLE_KTS).toVFile()
     assertThat(kotlinBuildFile).isNotNull()
-    val foundBuildFile =
-      GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
+    val foundBuildFile = GradleProjectSystemUtil.findGradleBuildFile(tempDir.root.toVFile())
     assertThat(foundBuildFile).isEqualTo(groovyBuildFile)
 
     val groovySettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE).toVFile()
     assertThat(groovyBuildFile).isNotNull()
     val kotlinSettingsFile = tempDir.newFile(FN_SETTINGS_GRADLE_KTS).toVFile()
     assertThat(kotlinSettingsFile).isNotNull()
-    val foundSettingsFile =
-      GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
+    val foundSettingsFile = GradleProjectSystemUtil.findGradleSettingsFile(tempDir.root.toVFile())
     assertThat(foundSettingsFile).isEqualTo(groovySettingsFile)
   }
 }

@@ -27,16 +27,9 @@ class NavDesignSurfaceShortcutTest : NavTestCase() {
 
   fun testNavDesignSurfaceProvideTheZoomableContext() {
     // Simply test NavDesignSurface provide data for ZOOMABLE_KEY
-    val surface =
-      NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
+    val surface = NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
     val event =
-      createEvent(
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface),
-        null,
-        "",
-        ActionUiKind.NONE,
-        null,
-      )
+      createEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface), null, "", ActionUiKind.NONE, null)
     assertNotNull(event.getData(ZOOMABLE_KEY))
   }
 }

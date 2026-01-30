@@ -91,24 +91,12 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
-    val keyEvent =
-      if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-    registerAction(
-      addToNewGraphAction,
-      KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent),
-      focusablePane,
-    )
-    addToNewGraphAction.registerCustomShortcutSet(
-      KeyEvent.VK_G,
-      AdtUiUtils.getActionMask(),
-      focusablePane,
-    )
+    val keyEvent = if (ClientSystemInfo.isMac()) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
   }
 
-  override fun getPopupMenuActions(
-    leafComponent: NlComponent?,
-    mouseEvent: MouseEvent,
-  ): DefaultActionGroup {
+  override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup {
     val group = DefaultActionGroup()
 
     if (leafComponent == null) {
@@ -141,9 +129,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    orientationAction.updateActionsImmediately(
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface)
-    )
+    orientationAction.updateActionsImmediately(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface))
 
     group.add(selectAllAction)
 
@@ -161,8 +147,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   }
 
   private fun addDestinationGroup(group: DefaultActionGroup, component: NlComponent) {
-    val activateComponentAction =
-      ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", component)
+    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", component)
     group.add(activateComponentAction)
 
     group.addSeparator()

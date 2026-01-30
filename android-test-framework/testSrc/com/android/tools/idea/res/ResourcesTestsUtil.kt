@@ -48,33 +48,25 @@ import java.util.jar.JarOutputStream
 import org.jetbrains.android.AndroidTestBase
 
 /**
- * Creates and adds an Android Module to the given project. The module file would be located under
- * [Project.getBasePath] + "/[moduleName]/[moduleName].iml"
+ * Creates and adds an Android Module to the given project. The module file would be located under [Project.getBasePath] +
+ * "/[moduleName]/[moduleName].iml"
  *
  * Runs the given [function][createResources] to add resources to the module.
  *
  * @param moduleName name given to the new module.
  * @param project current working project.
  * @param packageName the module's package name (this will be recorded in its Android manifest)
- * @param createResources code that will be invoked on the module resources folder, to add desired
- *   resources. VFS will be refreshed after the function is done.
+ * @param createResources code that will be invoked on the module resources folder, to add desired resources. VFS will be refreshed after
+ *   the function is done.
  * @return The instance of the created module added to the project.
  */
-fun addAndroidModule(
-  moduleName: String,
-  project: Project,
-  packageName: String,
-  createResources: (moduleResDir: File) -> Unit,
-): Module {
+fun addAndroidModule(moduleName: String, project: Project, packageName: String, createResources: (moduleResDir: File) -> Unit): Module {
   val root = project.basePath
   val moduleDir = File(FileUtilRt.toSystemDependentName(root!!), moduleName)
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
   createAndroidManifest(moduleDir, packageName)
-  val module = runWriteAction {
-    ModuleManager.getInstance(project)
-      .newModule(moduleFilePath.path, JavaModuleType.getModuleType().id)
-  }
+  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, JavaModuleType.getModuleType().id) }
   Facets.createAndAddAndroidFacet(module)
 
   val moduleResDir = moduleDir.resolve(SdkConstants.FD_RES)
@@ -103,14 +95,14 @@ private fun createAndroidManifest(dir: File, packageName: String) {
 /**
  * Adds a library dependency to the given module and runs the given function to add resources to it.
  *
- * [StudioResourceRepositoryManager] will find the newly added library and create a separate
- * repository for it when [StudioResourceRepositoryManager.getCachedAppResources] is called.
+ * [StudioResourceRepositoryManager] will find the newly added library and create a separate repository for it when
+ * [StudioResourceRepositoryManager.getCachedAppResources] is called.
  *
  * @param module module to add the dependency to.
  * @param libraryName name of the newly created [LibraryOrderEntry].
  * @param packageName package name to be put in the library manifest.
- * @param createResources code that will be invoked on the library resources folder, to add desired
- *   resources. VFS will be refreshed after the function is done.
+ * @param createResources code that will be invoked on the library resources folder, to add desired resources. VFS will be refreshed after
+ *   the function is done.
  */
 fun addAarDependency(
   fixture: CodeInsightTestFixture,
@@ -152,19 +144,12 @@ fun addAarDependency(
 }
 
 /**
- * Adds an AARv2 library dependency to the given module. The library uses the checked-in example
- * res.apk file which uses `com.example.mylibrary` package name and contains a single resource,
- * `@string/my_aar_string`.
+ * Adds an AARv2 library dependency to the given module. The library uses the checked-in example res.apk file which uses
+ * `com.example.mylibrary` package name and contains a single resource, `@string/my_aar_string`.
  */
 fun addBinaryAarDependency(module: Module) {
   // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
-  PsiTestUtil.addLibrary(
-    module,
-    "mylibrary.aar",
-    "${AndroidTestBase.getTestDataPath()}/dom/layout/myaar-v2",
-    "classes.jar",
-    "res.apk",
-  )
+  PsiTestUtil.addLibrary(module, "mylibrary.aar", "${AndroidTestBase.getTestDataPath()}/dom/layout/myaar-v2", "classes.jar", "res.apk")
 }
 
 fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String): ResourceItem {
@@ -173,12 +158,7 @@ fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: Strin
   return list[0]
 }
 
-fun getSingleItem(
-  repository: ResourceRepository,
-  type: ResourceType,
-  key: String,
-  filter: Predicate<ResourceItem>,
-): ResourceItem {
+fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   var found: ResourceItem? = null
   for (item in list) {
@@ -190,8 +170,7 @@ fun getSingleItem(
   return found!!
 }
 
-class DefinedInOrUnder internal constructor(fileOrDirectory: VirtualFile) :
-  Predicate<ResourceItem> {
+class DefinedInOrUnder internal constructor(fileOrDirectory: VirtualFile) : Predicate<ResourceItem> {
   private val myFileOrDirectory = fileOrDirectory.toPathString()
 
   override fun test(item: ResourceItem): Boolean {

@@ -20,11 +20,11 @@ import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.keysMatch
 import com.android.ide.common.repository.pickLibraryVariableName
 import com.android.ide.common.repository.pickVersionVariableName
+import com.android.tools.idea.gradle.dsl.android.api.android.testOptions.testSuites.TestSuiteModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.android.api.android.testOptions.testSuites.TestSuiteModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
@@ -44,7 +44,8 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     dependency: String,
     enforced: Boolean,
     parsedModel: GradleBuildModel,
-    matcher: DependencyMatcher): Set<PsiFile> {
+    matcher: DependencyMatcher,
+  ): Set<PsiFile> {
     val buildscriptDependencies = parsedModel.dependencies()
     return getOrAddDependencyToCatalog(projectModel, dependency, matcher) { alias, updatedFiles ->
       val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
@@ -56,27 +57,26 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
-  override fun addDependency(configuration: String,
-                             dependency: String,
-                             excludes: List<ArtifactDependencySpec>,
-                             parsedModel: GradleBuildModel,
-                             matcher: DependencyMatcher,
-                             sourceSetName: String?): Set<PsiFile> =
+  override fun addDependency(
+    configuration: String,
+    dependency: String,
+    excludes: List<ArtifactDependencySpec>,
+    parsedModel: GradleBuildModel,
+    matcher: DependencyMatcher,
+    sourceSetName: String?,
+  ): Set<PsiFile> =
     getOrAddDependencyToCatalog(projectModel, dependency, matcher) { alias, changedFiles ->
       val dependenciesModel = getDependenciesModel(sourceSetName, parsedModel)
       if (dependenciesModel != null && !dependenciesModel.hasArtifact(matcher)) {
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
-        dependenciesModel.addArtifact(configuration, reference, excludes).also {
-          changedFiles.addIfNotNull(parsedModel.psiFile)
-        }
+        dependenciesModel.addArtifact(configuration, reference, excludes).also { changedFiles.addIfNotNull(parsedModel.psiFile) }
       }
     }
 
   /**
    * Adds a test suite engine dependency to the given [TestSuiteModel].
    *
-   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s
-   * enginesDependencies, this function does nothing.
+   * If a dependency with the same group and name already exists in the [TestSuiteModel]'s enginesDependencies, this function does nothing.
    *
    * @param testSuiteModel The [TestSuiteModel] to add the dependency to.
    * @param dependency The dependency string in compact notation (e.g., "group:name:version").
@@ -84,15 +84,16 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
    */
   override fun addTestSuiteEngineDependency(testSuiteModel: TestSuiteModel, dependency: String): Set<PsiFile> {
     val parsedDependency = Dependency.parse(dependency)
-    val testSuiteEngineDependencyMatcher = object : DependencyMatcher {
-      override fun match(model: LibraryDeclarationModel): Boolean {
-        return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
-      }
+    val testSuiteEngineDependencyMatcher =
+      object : DependencyMatcher {
+        override fun match(model: LibraryDeclarationModel): Boolean {
+          return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
+        }
 
-      override fun match(model: ArtifactDependencyModel): Boolean {
-        return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
+        override fun match(model: ArtifactDependencyModel): Boolean {
+          return with(model) { group().toString() == parsedDependency.group && name().toString() == parsedDependency.name }
+        }
       }
-    }
 
     return getOrAddDependencyToCatalog(projectModel, dependency, testSuiteEngineDependencyMatcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), testSuiteModel.useJunitEngine())
@@ -103,24 +104,20 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
-  override fun updateDependencyVersion(dependency: Dependency,
-                                       buildModel: GradleBuildModel) {
+  override fun updateDependencyVersion(dependency: Dependency, buildModel: GradleBuildModel) {
     check(dependency.version != null) { "Version must not be null for updateDependencyVersion" }
     val catalogsModel = projectModel.versionCatalogsModel
 
     findDependency(dependency, buildModel)?.let { artifact ->
-      if (artifact.isVersionCatalogDependency)
-        updateCatalogLibrary(catalogsModel, artifact, dependency.version!!)
-      else
-        super.updateDependencyVersion(dependency, buildModel)
+      if (artifact.isVersionCatalogDependency) updateCatalogLibrary(catalogsModel, artifact, dependency.version!!)
+      else super.updateDependencyVersion(dependency, buildModel)
     }
   }
 
   private fun getDependenciesModel(sourceSetName: String?, parsedModel: GradleBuildModel): DependenciesModel? {
     return if (sourceSetName != null) {
       parsedModel.kotlin().sourceSets().find { it.name() == sourceSetName }?.dependencies()
-    }
-    else {
+    } else {
       parsedModel.dependencies()
     }
   }
@@ -130,10 +127,12 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
   companion object {
     val log = Logger.getInstance(DependenciesHelper::class.java)
 
-    internal fun getOrAddDependencyToCatalog(projectModel: ProjectBuildModel,
-                                             dependency: String,
-                                            matcher: DependencyMatcher,
-                                            handler: (Alias, MutableSet<PsiFile>) -> Unit): Set<PsiFile> {
+    internal fun getOrAddDependencyToCatalog(
+      projectModel: ProjectBuildModel,
+      dependency: String,
+      matcher: DependencyMatcher,
+      handler: (Alias, MutableSet<PsiFile>) -> Unit,
+    ): Set<PsiFile> {
       val updatedFiles = mutableSetOf<PsiFile>()
       val (alias, updatedFile) = getOrAddDependencyToCatalog(projectModel, dependency, matcher)
       updatedFiles.addIfNotNull(updatedFile)
@@ -145,29 +144,34 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     internal fun getCatalogModel(projectModel: ProjectBuildModel): GradleVersionCatalogModel {
       val catalogModel = DependenciesHelper.getDefaultCatalogModel(projectModel)
       // check invariant that at this point catalog must be available as algorithm chose to add dependency to catalog
-      check(catalogModel != null) { "Catalog ${DependenciesHelper.getDefaultCatalogName(projectModel)} must be available to add dependency" }
+      check(catalogModel != null) {
+        "Catalog ${DependenciesHelper.getDefaultCatalogName(projectModel)} must be available to add dependency"
+      }
       return catalogModel
     }
 
-    private fun getOrAddDependencyToCatalog(projectModel: ProjectBuildModel, dependency: String, matcher: DependencyMatcher): Pair<Alias?, PsiFile?> {
+    private fun getOrAddDependencyToCatalog(
+      projectModel: ProjectBuildModel,
+      dependency: String,
+      matcher: DependencyMatcher,
+    ): Pair<Alias?, PsiFile?> {
       val catalogModel = getCatalogModel(projectModel)
-      val result = findCatalogDeclaration(catalogModel, matcher)?.let { Pair(it, null) } ?: Pair(addCatalogLibrary(catalogModel, dependency),
-                                                                                                 catalogModel.psiFile)
+      val result =
+        findCatalogDeclaration(catalogModel, matcher)?.let { Pair(it, null) }
+          ?: Pair(addCatalogLibrary(catalogModel, dependency), catalogModel.psiFile)
       if (result.first == null) {
         log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
       }
       return result
     }
 
-    private fun findCatalogDeclaration(catalogModel: GradleVersionCatalogModel,
-                                       matcher: DependencyMatcher): Alias? {
+    private fun findCatalogDeclaration(catalogModel: GradleVersionCatalogModel, matcher: DependencyMatcher): Alias? {
       val declarations = catalogModel.libraryDeclarations().getAll()
       return declarations.filter { matcher.match(it.value) }.map { it.key }.firstOrNull()
     }
 
     @JvmStatic
-    fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel,
-                          dependency: Dependency): Alias? {
+    fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel, dependency: Dependency): Alias? {
       val libraries = catalogModel.libraryDeclarations()
       val names = libraries.getAllAliases()
 
@@ -187,16 +191,14 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
         }
 
         libraries.addDeclaration(alias, dependency.name, group, ReferenceTo(version, libraries))
-      }
-      else {
+      } else {
         libraries.addDeclaration(alias, dependency.name, group)
       }
       return alias
     }
 
     @JvmStatic
-    fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel,
-                          coordinate: String): Alias? {
+    fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel, coordinate: String): Alias? {
 
       val dependency = Dependency.parse(coordinate)
       if (dependency.group == null) {
@@ -206,8 +208,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       return addCatalogLibrary(catalogModel, dependency)
     }
 
-    private fun addCatalogVersionForLibrary(catalogModel: GradleVersionCatalogModel,
-                                            dependency: Dependency): VersionDeclarationModel? {
+    private fun addCatalogVersionForLibrary(catalogModel: GradleVersionCatalogModel, dependency: Dependency): VersionDeclarationModel? {
       val versions = catalogModel.versionDeclarations()
       val names = versions.getAllAliases()
       val alias: Alias = pickVersionVariableName(dependency, names)
@@ -219,24 +220,27 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
 
     @JvmStatic
-    fun updateCatalogLibrary(catalogsModel: GradleVersionCatalogsModel,
-                             dependency: ArtifactDependencyModel,
-                             version: RichVersion): Boolean {
+    fun updateCatalogLibrary(
+      catalogsModel: GradleVersionCatalogsModel,
+      dependency: ArtifactDependencyModel,
+      version: RichVersion,
+    ): Boolean {
       val catalogModel: GradleVersionCatalogModel = dependency.findVersionCatalogModel(catalogsModel) ?: return false
       val alias = dependency.getAlias() ?: return false
       val libraries = catalogModel.libraryDeclarations()
 
-      //construct new dependency with version
+      // construct new dependency with version
       val dependencySpec = Dependency.parse(dependency.spec.compactNotation()).copy(version = version)
 
       val result = libraries.getAll().entries.find { keysMatch(it.key, alias) } ?: return false
-      val version = addCatalogVersionForLibrary(catalogModel, dependencySpec) ?: return false.also {
-        log.warn("Cannot update catalog library (wrong version format): $dependency")
-      }
+      val version =
+        addCatalogVersionForLibrary(catalogModel, dependencySpec)
+          ?: return false.also { log.warn("Cannot update catalog library (wrong version format): $dependency") }
 
       result.value.updateVersion(version)
       return true
     }
+
     private fun ArtifactDependencyModel.findVersionCatalogModel(catalogsModel: GradleVersionCatalogsModel): GradleVersionCatalogModel? {
       val referenceString: String = completeModel().unresolvedModel.getValue(GradlePropertyModel.STRING_TYPE) ?: return null
       val catalogName = referenceString.substringBefore(".")

@@ -23,6 +23,7 @@ import com.intellij.psi.tree.TokenSet
  * Implements parser for ProguardR8
  *
  * acceptJavaIdentifiers flag switch lexer to the state in which it can to accept java identifiers,
+ *
  * @see _ProguardR8Lexer.flex
  */
 class ProguardR8Lexer(private val acceptJavaIdentifiers: Boolean = false) : FlexAdapter(_ProguardR8Lexer()) {
@@ -34,11 +35,8 @@ class ProguardR8Lexer(private val acceptJavaIdentifiers: Boolean = false) : Flex
       return lexer.tokenType == ProguardR8PsiTypes.JAVA_IDENTIFIER && lexer.tokenEnd == name.length
     }
 
-    val wildcardsTokenSet = TokenSet.create(
-      ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS,
-      ProguardR8PsiTypes.ASTERISK,
-      ProguardR8PsiTypes.DOUBLE_ASTERISK
-    )
+    val wildcardsTokenSet =
+      TokenSet.create(ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS, ProguardR8PsiTypes.ASTERISK, ProguardR8PsiTypes.DOUBLE_ASTERISK)
   }
 
   override fun getFlex(): _ProguardR8Lexer {

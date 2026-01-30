@@ -42,8 +42,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-private const val OLD_FILE_CONTENT =
-  "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
+private const val OLD_FILE_CONTENT = "old" // For this test, it doesn't matter if it's a valid Vector Drawable file
 private const val NEW_FILE_CONTENT = "new"
 
 class MaterialSymbolsUpdaterTest {
@@ -64,15 +63,9 @@ class MaterialSymbolsUpdaterTest {
     val mockDownloader = Mockito.mock(FileDownloader::class.java)
 
     downloads.forEach {
-      val descriptor =
-        DownloadableFileDescriptionImpl(
-          it.url,
-          FileUtil.toSystemDependentName(it.destinationPath),
-          "tmp",
-        )
+      val descriptor = DownloadableFileDescriptionImpl(it.url, FileUtil.toSystemDependentName(it.destinationPath), "tmp")
 
-      whenever(mockDownloadableFileService.createFileDescription(it.url, it.downloadPath))
-        .thenReturn(descriptor)
+      whenever(mockDownloadableFileService.createFileDescription(it.url, it.downloadPath)).thenReturn(descriptor)
 
       whenever(mockDownloader.download(Mockito.any())).thenAnswer {
         val downloadedFile =
@@ -83,19 +76,14 @@ class MaterialSymbolsUpdaterTest {
               writeText(NEW_FILE_CONTENT)
             }
             .toFile()
-        return@thenAnswer listOf(
-          Pair<File, DownloadableFileDescription>(downloadedFile, descriptor)
-        )
+        return@thenAnswer listOf(Pair<File, DownloadableFileDescription>(downloadedFile, descriptor))
       }
     }
 
     whenever(
         mockDownloadableFileService.createDownloader(
           Mockito.any(),
-          Mockito.argThat {
-            listOf("MaterialSymbolsFont", "MaterialSymbolsMetadata", "PickedMaterialSymbol")
-              .contains(it)
-          },
+          Mockito.argThat { listOf("MaterialSymbolsFont", "MaterialSymbolsMetadata", "PickedMaterialSymbol").contains(it) },
         )
       )
       .thenReturn(mockDownloader)
@@ -115,20 +103,12 @@ class MaterialSymbolsUpdaterTest {
     val downloadPathDir = "variablefont/${testStyle.localName}"
     val downloadName = "${testStyle.localName}.ttf"
 
-    downloadDir
-      .resolve(downloadPathDir)
-      .apply { createDirectories() }
-      .resolve(downloadName)
-      .writeText(OLD_FILE_CONTENT)
+    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
 
     val urlProvider = SymbolsSdkUrlProvider()
     mockDownloadService(
       listOf(
-        FakeDownload(
-          url = downloadUrl,
-          downloadPath = testStyle.remoteFileName,
-          destinationPath = "${downloadPathDir}/${downloadName}",
-        )
+        FakeDownload(url = downloadUrl, downloadPath = testStyle.remoteFileName, destinationPath = "${downloadPathDir}/${downloadName}")
       )
     )
 
@@ -150,19 +130,11 @@ class MaterialSymbolsUpdaterTest {
     val downloadPathDir = "variablefont/${testStyle.localName}"
     val downloadName = "${testStyle.localName}.ttf"
 
-    downloadDir
-      .resolve(downloadPathDir)
-      .apply { createDirectories() }
-      .resolve(downloadName)
-      .writeText(OLD_FILE_CONTENT)
+    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
 
     mockDownloadService(
       listOf(
-        FakeDownload(
-          url = downloadUrl,
-          downloadPath = testStyle.remoteFileName,
-          destinationPath = "${downloadPathDir}/${downloadName}",
-        )
+        FakeDownload(url = downloadUrl, downloadPath = testStyle.remoteFileName, destinationPath = "${downloadPathDir}/${downloadName}")
       )
     )
 
@@ -185,15 +157,7 @@ class MaterialSymbolsUpdaterTest {
 
     downloadDir.apply { createDirectories() }.resolve(tempDownloadName).writeText(OLD_FILE_CONTENT)
 
-    mockDownloadService(
-      listOf(
-        FakeDownload(
-          url = downloadUrl,
-          downloadPath = tempDownloadName,
-          destinationPath = tempDownloadName,
-        )
-      )
-    )
+    mockDownloadService(listOf(FakeDownload(url = downloadUrl, downloadPath = tempDownloadName, destinationPath = tempDownloadName)))
 
     val fontFile = downloadDir.resolve(tempDownloadName)
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
@@ -214,15 +178,7 @@ class MaterialSymbolsUpdaterTest {
 
     downloadDir.apply { createDirectories() }.resolve(tempDownloadName).writeText(OLD_FILE_CONTENT)
 
-    mockDownloadService(
-      listOf(
-        FakeDownload(
-          url = downloadUrl,
-          downloadPath = tempDownloadName,
-          destinationPath = tempDownloadName,
-        )
-      )
-    )
+    mockDownloadService(listOf(FakeDownload(url = downloadUrl, downloadPath = tempDownloadName, destinationPath = tempDownloadName)))
 
     val fontFile = downloadDir.resolve(tempDownloadName)
     assertEquals(OLD_FILE_CONTENT, fontFile.readText())
@@ -242,11 +198,7 @@ class MaterialSymbolsUpdaterTest {
     val downloadPathDir = "${symbolConfiguration.type.localName}/${symbolName}"
     val downloadName = symbolConfiguration.toFileName(symbolName)
 
-    downloadDir
-      .resolve(downloadPathDir)
-      .apply { createDirectories() }
-      .resolve(downloadName)
-      .writeText(OLD_FILE_CONTENT)
+    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
 
     mockDownloadService(
       listOf(
@@ -277,11 +229,7 @@ class MaterialSymbolsUpdaterTest {
     val downloadPathDir = "${symbolConfiguration.type.localName}/${symbolName}"
     val downloadName = symbolConfiguration.toFileName(symbolName)
 
-    downloadDir
-      .resolve(downloadPathDir)
-      .apply { createDirectories() }
-      .resolve(downloadName)
-      .writeText(OLD_FILE_CONTENT)
+    downloadDir.resolve(downloadPathDir).apply { createDirectories() }.resolve(downloadName).writeText(OLD_FILE_CONTENT)
 
     mockDownloadService(
       listOf(

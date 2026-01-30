@@ -22,9 +22,7 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-/**
- * Persistent Device Explorer settings
- */
+/** Persistent Device Explorer settings */
 @State(name = "DeviceExplorer", storages = [Storage("deviceExplorer.xml")])
 class DeviceExplorerSettings : PersistentStateComponent<DeviceExplorerSettings> {
   var downloadLocation: String = getDefaultDownloadLocation()

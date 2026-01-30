@@ -26,8 +26,7 @@ import org.junit.Test
 // Runs simplified versions of the perfgate benchmarks in SimpleHighlightingBenchmark
 // to catch breakages in presubmit.
 class SimpleHighlightingBenchmarkTest {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+  @get:Rule val gradleRule = AndroidGradleProjectRule()
 
   // A simplified version of the highlighting benchmark,
   // with no warmup and only one iteration
@@ -46,9 +45,9 @@ class SimpleHighlightingBenchmarkTest {
           action = {
             val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
             assert(info.isEmpty())
-          }
+          },
         )
-      }
+      },
     )
   }
 }

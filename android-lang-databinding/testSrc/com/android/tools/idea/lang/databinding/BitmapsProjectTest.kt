@@ -29,25 +29,22 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * A test which loads the "testData/projects/bitmaps" data binding project. The test is
- * designed to ensure a data binding project that uses Kotlin also works.
+ * A test which loads the "testData/projects/bitmaps" data binding project. The test is designed to ensure a data binding project that uses
+ * Kotlin also works.
  */
 @RunsInEdt
 class BitmapsProjectTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
-  @get:Rule
-  val chain = RuleChain(projectRule, EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
+  @get:Rule val chain = RuleChain(projectRule, EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
 
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to inspect the state of our parsed files. In
+   * other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture

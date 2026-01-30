@@ -18,9 +18,7 @@ package com.android.tools.idea.lang.agsl.psi
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.tree.IElementType
 
-/**
- * The basic interface that need to be extended by all GLSL PSI elements.
- */
+/** The basic interface that need to be extended by all GLSL PSI elements. */
 interface AgslPsiElement : NavigatablePsiElement {
   fun getTokenType(): IElementType?
 

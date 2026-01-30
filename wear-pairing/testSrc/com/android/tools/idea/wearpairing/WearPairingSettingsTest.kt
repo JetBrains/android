@@ -48,24 +48,20 @@ class WearPairingSettingsTest {
 
   @Before
   fun setUp() {
-    WearPairingManager.getInstance()
-      .loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   @Test
   fun roundTrip() {
-    assertThat(phoneDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE))
-      .isEqualTo(phoneDevice)
-    assertThat(wearDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE))
-      .isEqualTo(wearDevice)
+    assertThat(phoneDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE)).isEqualTo(phoneDevice)
+    assertThat(wearDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE)).isEqualTo(wearDevice)
   }
 
   @Test
   fun loadSettingsShouldSetPairedDevices() {
     assertThat(WearPairingManager.getInstance().getPairsForDevice(phoneDevice.deviceID)).isEmpty()
 
-    val pairedDevices =
-      listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
+    val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
     val pairedConnectionState =
       PairingConnectionsState().apply {
         phoneId = phoneDevice.deviceID
@@ -81,16 +77,13 @@ class WearPairingSettingsTest {
     assertThat(phoneWearPair.wear.deviceID).isEqualTo(wearDevice.deviceID)
     assertThat(phoneWearPair.phone.state).isEqualTo(ConnectionState.DISCONNECTED)
     assertThat(phoneWearPair.wear.state).isEqualTo(ConnectionState.DISCONNECTED)
-    assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID)
-      .isEqualTo(wearDevice.deviceID)
-    assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID)
-      .isEqualTo(phoneDevice.deviceID)
+    assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID).isEqualTo(wearDevice.deviceID)
+    assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID).isEqualTo(phoneDevice.deviceID)
   }
 
   @Test
   fun addListenerShouldReceiveCurrentState() {
-    val pairedDevices =
-      listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
+    val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
     val pairedConnectionState =
       PairingConnectionsState().apply {
         phoneId = phoneDevice.deviceID
@@ -111,7 +104,6 @@ class WearPairingSettingsTest {
         }
       )
 
-    assertThat(receivedPairingStatus?.pairingStatus)
-      .isEqualTo(WearPairingManager.PairingState.OFFLINE)
+    assertThat(receivedPairingStatus?.pairingStatus).isEqualTo(WearPairingManager.PairingState.OFFLINE)
   }
 }

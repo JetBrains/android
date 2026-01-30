@@ -62,40 +62,28 @@ class TypeResolverTest {
   @Test
   fun testBySpecialType() {
     assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ABOVE, null, null)).isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_TO_END_OF, null, null))
-      .isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_END_TO_END_OF, null, null))
-      .isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ALIGN_TOP, null, null))
-      .isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_TOP_TO_TOP_OF, null, null))
-      .isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_CHECKED_BUTTON, null, null))
-      .isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_TO_END_OF, null, null)).isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_END_TO_END_OF, null, null)).isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ALIGN_TOP, null, null)).isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_TOP_TO_TOP_OF, null, null)).isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_CHECKED_BUTTON, null, null)).isEqualTo(NlPropertyType.ID)
     assertThat(TypeResolver.resolveType(ATTR_CHECKED_CHIP, null, null)).isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, null, null))
-      .isEqualTo(NlPropertyType.ID)
-    assertThat(TypeResolver.resolveType(ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, null, null))
-      .isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, null, null)).isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, null, null)).isEqualTo(NlPropertyType.ID)
   }
 
   @Test
   fun testFromAttributeDefinition() {
-    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.BOOLEAN))
-      .isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
-    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.COLOR))
-      .isEqualTo(NlPropertyType.COLOR_STATE_LIST)
-    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.DIMENSION))
-      .isEqualTo(NlPropertyType.DIMENSION)
+    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.BOOLEAN)).isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
+    assertThat(resolve(ATTR_TEXT_COLOR, AttributeFormat.COLOR)).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
+    assertThat(resolve(ATTR_ELEVATION, AttributeFormat.DIMENSION)).isEqualTo(NlPropertyType.DIMENSION)
     assertThat(resolve(ATTR_MAXIMUM, AttributeFormat.FLOAT)).isEqualTo(NlPropertyType.FLOAT)
-    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION))
-      .isEqualTo(NlPropertyType.FRACTION)
+    assertThat(resolve(ATTR_TEXT_ALL_CAPS, AttributeFormat.FRACTION)).isEqualTo(NlPropertyType.FRACTION)
     assertThat(resolve(ATTR_TEXT, AttributeFormat.STRING)).isEqualTo(NlPropertyType.STRING)
     assertThat(resolve(ATTR_FONT_FAMILY, AttributeFormat.STRING)).isEqualTo(NlPropertyType.FONT)
     assertThat(resolve(ATTR_VISIBILITY, AttributeFormat.ENUM)).isEqualTo(NlPropertyType.ENUM)
     assertThat(resolve(ATTR_INPUT_TYPE, AttributeFormat.FLAGS)).isEqualTo(NlPropertyType.FLAGS)
-    assertThat(resolve(ATTR_LAYOUT_WIDTH, AttributeFormat.ENUM, AttributeFormat.DIMENSION))
-      .isEqualTo(NlPropertyType.DIMENSION)
+    assertThat(resolve(ATTR_LAYOUT_WIDTH, AttributeFormat.ENUM, AttributeFormat.DIMENSION)).isEqualTo(NlPropertyType.DIMENSION)
   }
 
   @Test
@@ -104,28 +92,19 @@ class TypeResolverTest {
     assertThat(TypeResolver.resolveType(ATTR_CLASS, null, null)).isEqualTo(NlPropertyType.FRAGMENT)
     assertThat(TypeResolver.resolveType(ATTR_LAYOUT, null, null)).isEqualTo(NlPropertyType.LAYOUT)
     assertThat(TypeResolver.resolveType(ATTR_SHOW_IN, null, null)).isEqualTo(NlPropertyType.LAYOUT)
-    assertThat(TypeResolver.resolveType(ATTR_ELEVATION, null, null))
-      .isEqualTo(NlPropertyType.DIMENSION)
-    assertThat(TypeResolver.resolveType(ATTR_STATE_LIST_ANIMATOR, null, null))
-      .isEqualTo(NlPropertyType.ANIMATOR)
-    assertThat(TypeResolver.resolveType(NavigationSchema.ATTR_POP_ENTER_ANIM, null, null))
-      .isEqualTo(NlPropertyType.ANIMATOR)
-    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ANCHOR, null, null))
-      .isEqualTo(NlPropertyType.ID)
+    assertThat(TypeResolver.resolveType(ATTR_ELEVATION, null, null)).isEqualTo(NlPropertyType.DIMENSION)
+    assertThat(TypeResolver.resolveType(ATTR_STATE_LIST_ANIMATOR, null, null)).isEqualTo(NlPropertyType.ANIMATOR)
+    assertThat(TypeResolver.resolveType(NavigationSchema.ATTR_POP_ENTER_ANIM, null, null)).isEqualTo(NlPropertyType.ANIMATOR)
+    assertThat(TypeResolver.resolveType(ATTR_LAYOUT_ANCHOR, null, null)).isEqualTo(NlPropertyType.ID)
   }
 
   @Test
   fun testFromNameFallback() {
-    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND, null, null))
-      .isEqualTo(NlPropertyType.DRAWABLE)
-    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND_TINT, null, null))
-      .isEqualTo(NlPropertyType.COLOR_STATE_LIST)
-    assertThat(TypeResolver.resolveType(ATTR_TEXT_APPEARANCE, null, null))
-      .isEqualTo(NlPropertyType.TEXT_APPEARANCE)
-    assertThat(TypeResolver.resolveType(ATTR_SWITCH_TEXT_APPEARANCE, null, null))
-      .isEqualTo(NlPropertyType.TEXT_APPEARANCE)
-    assertThat(TypeResolver.resolveType(ATTR_SCROLLBAR_STYLE, null, null))
-      .isEqualTo(NlPropertyType.STYLE)
+    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND, null, null)).isEqualTo(NlPropertyType.DRAWABLE)
+    assertThat(TypeResolver.resolveType(ATTR_BACKGROUND_TINT, null, null)).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
+    assertThat(TypeResolver.resolveType(ATTR_TEXT_APPEARANCE, null, null)).isEqualTo(NlPropertyType.TEXT_APPEARANCE)
+    assertThat(TypeResolver.resolveType(ATTR_SWITCH_TEXT_APPEARANCE, null, null)).isEqualTo(NlPropertyType.TEXT_APPEARANCE)
+    assertThat(TypeResolver.resolveType(ATTR_SCROLLBAR_STYLE, null, null)).isEqualTo(NlPropertyType.STYLE)
     assertThat(TypeResolver.resolveType("XYZ", null, null)).isEqualTo(NlPropertyType.STRING)
   }
 
@@ -137,17 +116,11 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, editTextPreference))
-      .isEqualTo(NlPropertyType.STRING)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, editTextPreference)).isEqualTo(NlPropertyType.STRING)
 
     val listPreference =
-      createPsiClass(
-        PreferenceClasses.CLASS_LIST_PREFERENCE,
-        PreferenceClasses.CLASS_DIALOG_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE,
-      )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, listPreference))
-      .isEqualTo(NlPropertyType.STRING)
+      createPsiClass(PreferenceClasses.CLASS_LIST_PREFERENCE, PreferenceClasses.CLASS_DIALOG_PREFERENCE, PreferenceClasses.CLASS_PREFERENCE)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, listPreference)).isEqualTo(NlPropertyType.STRING)
 
     val multiSelectListPreference =
       createPsiClass(
@@ -155,8 +128,7 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiSelectListPreference))
-      .isEqualTo(NlPropertyType.STRING_ARRAY)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiSelectListPreference)).isEqualTo(NlPropertyType.STRING_ARRAY)
 
     val multiCheckListPreference =
       createPsiClass(
@@ -164,24 +136,13 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_DIALOG_PREFERENCE,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiCheckListPreference))
-      .isEqualTo(NlPropertyType.STRING)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, multiCheckListPreference)).isEqualTo(NlPropertyType.STRING)
 
-    val ringtonePreference =
-      createPsiClass(
-        PreferenceClasses.CLASS_RINGTONE_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE,
-      )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, ringtonePreference))
-      .isEqualTo(NlPropertyType.STRING)
+    val ringtonePreference = createPsiClass(PreferenceClasses.CLASS_RINGTONE_PREFERENCE, PreferenceClasses.CLASS_PREFERENCE)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, ringtonePreference)).isEqualTo(NlPropertyType.STRING)
 
-    val seekBarPreference =
-      createPsiClass(
-        PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE,
-        PreferenceClasses.CLASS_PREFERENCE,
-      )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, seekBarPreference))
-      .isEqualTo(NlPropertyType.INTEGER)
+    val seekBarPreference = createPsiClass(PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE, PreferenceClasses.CLASS_PREFERENCE)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, seekBarPreference)).isEqualTo(NlPropertyType.INTEGER)
 
     val checkBoxPreference =
       createPsiClass(
@@ -189,8 +150,7 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_TWO_STATE_PREFERENCE,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, checkBoxPreference))
-      .isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, checkBoxPreference)).isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
 
     val switchPreference =
       createPsiClass(
@@ -198,8 +158,7 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_TWO_STATE_PREFERENCE,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, switchPreference))
-      .isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, switchPreference)).isEqualTo(NlPropertyType.THREE_STATE_BOOLEAN)
 
     val dialogPreference =
       createPsiClass(
@@ -207,8 +166,7 @@ class TypeResolverTest {
         PreferenceClasses.CLASS_PREFERENCE_GROUP,
         PreferenceClasses.CLASS_PREFERENCE,
       )
-    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, dialogPreference))
-      .isEqualTo(NlPropertyType.UNKNOWN)
+    assertThat(TypeResolver.resolveType(ATTR_DEFAULT_VALUE, null, dialogPreference)).isEqualTo(NlPropertyType.UNKNOWN)
   }
 
   private fun createPsiClass(vararg names: String): PsiClass? {

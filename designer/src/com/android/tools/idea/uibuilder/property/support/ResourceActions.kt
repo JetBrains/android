@@ -51,8 +51,7 @@ const val PICK_A_RESOURCE = "Pick a Resource"
  *
  * Note: this may change pending UX specifications.
  */
-class ToggleShowResolvedValueAction(val model: NlPropertiesModel) :
-  AnAction("Toggle Computed Value") {
+class ToggleShowResolvedValueAction(val model: NlPropertiesModel) : AnAction("Toggle Computed Value") {
 
   init {
     shortcutSet = CustomShortcutSet(SHORTCUT)
@@ -68,8 +67,7 @@ class ToggleShowResolvedValueAction(val model: NlPropertiesModel) :
   }
 }
 
-object OpenResourceManagerAction :
-  AnAction("Open Resource Manager", PICK_A_RESOURCE, StudioIcons.Common.PROPERTY_UNBOUND) {
+object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESOURCE, StudioIcons.Common.PROPERTY_UNBOUND) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
@@ -86,15 +84,10 @@ object OpenResourceManagerAction :
   private fun selectFromResourceDialog(property: NlPropertyItem): String? {
     val propertyName = property.name
     val tag = property.components.firstOrNull()?.backend?.tag ?: return null
-    val hasImageTag =
-      property.components
-        .stream()
-        .filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }
-        .findFirst()
+    val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
     val defaultResourceType = getDefaultResourceType(propertyName)
     val isImageViewDrawable =
-      hasImageTag.isPresent &&
-        (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
+      hasImageTag.isPresent && (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
     val dialog: ResourcePickerDialog =
       createResourcePickerDialog(
@@ -114,8 +107,8 @@ object OpenResourceManagerAction :
   /**
    * For some attributes, it make more sense the display a specific type by default.
    *
-   * For example `textColor` has more chance to have a color value than a drawable value, so in the
-   * [ResourcePickerDialog], we need to select the Color tab by default.
+   * For example `textColor` has more chance to have a color value than a drawable value, so in the [ResourcePickerDialog], we need to
+   * select the Color tab by default.
    *
    * @param propertyName The property name to get the associated default type from.
    * @return The [ResourceType] that should be selected by default for the provided property name.
@@ -123,11 +116,9 @@ object OpenResourceManagerAction :
   private fun getDefaultResourceType(propertyName: String): ResourceType? {
     val lowerCaseProperty = propertyName.lowercase(Locale.getDefault())
     return when {
-      lowerCaseProperty.contains("color") || lowerCaseProperty.contains("tint") ->
-        ResourceType.COLOR
-      lowerCaseProperty.contains("drawable") ||
-        propertyName == SdkConstants.ATTR_SRC ||
-        propertyName == SdkConstants.ATTR_SRC_COMPAT -> ResourceType.DRAWABLE
+      lowerCaseProperty.contains("color") || lowerCaseProperty.contains("tint") -> ResourceType.COLOR
+      lowerCaseProperty.contains("drawable") || propertyName == SdkConstants.ATTR_SRC || propertyName == SdkConstants.ATTR_SRC_COMPAT ->
+        ResourceType.DRAWABLE
       else -> null
     }
   }
@@ -148,9 +139,8 @@ typealias ColorPickerCreator =
 object ColorSelectionAction : TestableColorSelectionAction()
 
 @Suppress("ComponentNotRegistered")
-open class TestableColorSelectionAction(
-  @TestOnly val onCreateColorPicker: ColorPickerCreator = ::createAndShowColorPickerPopup
-) : AnAction("Select Color") {
+open class TestableColorSelectionAction(@TestOnly val onCreateColorPicker: ColorPickerCreator = ::createAndShowColorPickerPopup) :
+  AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
     val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
@@ -167,13 +157,7 @@ open class TestableColorSelectionAction(
       }
     val initialColor = currentColor ?: Color.WHITE
     val restoreFocusTo = event.componentToRestoreFocusTo()
-    selectFromColorDialog(
-      event.locationFromEvent(),
-      actualProperty,
-      initialColor,
-      resourceValue,
-      restoreFocusTo,
-    )
+    selectFromColorDialog(event.locationFromEvent(), actualProperty, initialColor, resourceValue, restoreFocusTo)
   }
 
   private fun selectFromColorDialog(
@@ -186,8 +170,7 @@ open class TestableColorSelectionAction(
     onCreateColorPicker(
       initialColor,
       resourceValue,
-      property.model.surface?.focusedSceneView?.configuration
-        ?: property.model.surface?.configurations?.firstOrNull(),
+      property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull(),
       ResourcePickerSources.allSources(),
       restoreFocusTo,
       location,

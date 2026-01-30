@@ -32,8 +32,8 @@ class StartDestinationActionTest : NavTestCase() {
 
     assertEquals(
       """
-        NlComponent{tag=<navigation>, instance=0}
-            NlComponent{tag=<fragment>, instance=1}
+      NlComponent{tag=<navigation>, instance=0}
+          NlComponent{tag=<fragment>, instance=1}
       """
         .trimIndent(),
       NlTreeDumper().toTree(model.treeReader.components),

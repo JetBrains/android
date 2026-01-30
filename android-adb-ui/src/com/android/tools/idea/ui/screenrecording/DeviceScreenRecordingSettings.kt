@@ -70,8 +70,7 @@ internal class DeviceScreenRecordingSettings : PersistentStateComponent<DeviceSc
     if (size != null && scale != 1.0) {
       width = roundToMultipleOf16(size.width * scale)
       height = roundToMultipleOf16(size.height * scale)
-    }
-    else {
+    } else {
       width = 0
       height = 0
     }

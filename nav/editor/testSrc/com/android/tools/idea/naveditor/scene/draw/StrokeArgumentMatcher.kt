@@ -27,6 +27,5 @@ class StrokeArgumentMatcher(private val expected: Stroke) : ArgumentMatcher<Stro
     }
   }
 
-  private fun matchBasicStroke(stroke: BasicStroke) =
-    (expected as? BasicStroke)?.lineWidth == stroke.lineWidth
+  private fun matchBasicStroke(stroke: BasicStroke) = (expected as? BasicStroke)?.lineWidth == stroke.lineWidth
 }

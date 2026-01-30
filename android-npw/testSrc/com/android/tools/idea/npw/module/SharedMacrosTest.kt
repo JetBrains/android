@@ -33,14 +33,8 @@ class SharedMacrosTest {
     assertEquals("minSdkVersion \"S\"", minSdk(AndroidMajorVersion(30, "S"), agpVersion))
     assertEquals("targetSdkVersion \"S\"", targetSdk(AndroidMajorVersion(30, "S"), agpVersion))
 
-    assertEquals(
-      "minSdkVersion \"SomeFutureVersion\"",
-      minSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
-    )
-    assertEquals(
-      "targetSdkVersion \"SomeFutureVersion\"",
-      targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
-    )
+    assertEquals("minSdkVersion \"SomeFutureVersion\"", minSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion))
+    assertEquals("targetSdkVersion \"SomeFutureVersion\"", targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion))
   }
 
   @Test
@@ -56,13 +50,7 @@ class SharedMacrosTest {
     assertEquals("minSdkPreview \"S\"", minSdk(AndroidMajorVersion(30, "S"), agpVersion))
     assertEquals("targetSdkPreview \"S\"", targetSdk(AndroidMajorVersion(30, "S"), agpVersion))
 
-    assertEquals(
-      "minSdkPreview \"SomeFutureVersion\"",
-      minSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
-    )
-    assertEquals(
-      "targetSdkPreview \"SomeFutureVersion\"",
-      targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
-    )
+    assertEquals("minSdkPreview \"SomeFutureVersion\"", minSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion))
+    assertEquals("targetSdkPreview \"SomeFutureVersion\"", targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion))
   }
 }

@@ -55,16 +55,11 @@ class IssueNotificationActionTest {
 
   @Rule @JvmField val projectRule = AndroidProjectRule.inMemory()
 
-  private fun createSurface(
-    issueModel: IssueModel,
-    issueProvider: VisualLintIssueProvider,
-    model: NlModel,
-  ): NlDesignSurface {
+  private fun createSurface(issueModel: IssueModel, issueProvider: VisualLintIssueProvider, model: NlModel): NlDesignSurface {
     val surface = mock<NlDesignSurface>()
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.project).thenReturn(projectRule.project)
-    whenever(surface.supportedActions)
-      .thenReturn(ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL))
+    whenever(surface.supportedActions).thenReturn(ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL))
 
     whenever(surface.visualLintIssueProvider).thenReturn(issueProvider)
 
@@ -101,9 +96,7 @@ class IssueNotificationActionTest {
     assertEquals(IssueNotificationAction.NO_ISSUE, actionEvent.presentation.description)
 
     run {
-      issueProvider.addAllIssues(
-        listOf(createSingleIssueWithSeverity(HighlightSeverity.INFORMATION, model))
-      )
+      issueProvider.addAllIssues(listOf(createSingleIssueWithSeverity(HighlightSeverity.INFORMATION, model)))
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.INFO_INLINE, actionEvent.presentation.icon)
       assertEquals(IssueNotificationAction.SHOW_ISSUE, actionEvent.presentation.description)
@@ -111,9 +104,7 @@ class IssueNotificationActionTest {
     }
 
     run {
-      issueProvider.addAllIssues(
-        listOf(createSingleIssueWithSeverity(HighlightSeverity.WARNING, model))
-      )
+      issueProvider.addAllIssues(listOf(createSingleIssueWithSeverity(HighlightSeverity.WARNING, model)))
       action.update(actionEvent)
       assertTrue(actionEvent.presentation.isEnabled)
       assertEquals(StudioIcons.Common.WARNING_INLINE, actionEvent.presentation.icon)
@@ -122,9 +113,7 @@ class IssueNotificationActionTest {
     }
 
     run {
-      issueProvider.addAllIssues(
-        listOf(createSingleIssueWithSeverity(HighlightSeverity.ERROR, model))
-      )
+      issueProvider.addAllIssues(listOf(createSingleIssueWithSeverity(HighlightSeverity.ERROR, model)))
       action.update(actionEvent)
       assertTrue(actionEvent.presentation.isEnabled)
       assertEquals(StudioIcons.Common.ERROR_INLINE, actionEvent.presentation.icon)
@@ -137,24 +126,16 @@ class IssueNotificationActionTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testToggleBehaviour() {
-    projectRule.replaceProjectService(
-      ToolWindowManager::class.java,
-      TestToolWindowManager(projectRule.project),
-    )
+    projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(projectRule.project))
     val manager = ToolWindowManager.getInstance(projectRule.project)
     val toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     runInEdtAndWait {
       val contentManager = toolWindow.contentManager
       val content =
-        contentManager.factory
-          .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
-          .apply { isCloseable = false }
+        contentManager.factory.createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true).apply { isCloseable = false }
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
-      ProblemsViewToolWindowUtils.addTab(
-        projectRule.project,
-        SharedIssuePanelProvider(projectRule.project),
-      )
+      ProblemsViewToolWindowUtils.addTab(projectRule.project, SharedIssuePanelProvider(projectRule.project))
     }
 
     val issueModel = IssueModel(projectRule.testRootDisposable, projectRule.project)

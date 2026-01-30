@@ -40,15 +40,18 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
 
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = this
+
     override fun getParsed(model: Model): Model? = this
+
     override fun prepareForModification(model: Model) = Unit
+
     override fun setModified(model: Model) = Unit
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (String) -> Annotated<ParsedValue<T>>,
     caster: ResolvedPropertyModel.() -> T?,
-    resolvedValue: T? = null
+    resolvedValue: T? = null,
   ): ModelSimpleProperty<Model, T> {
     val resolved = resolve()
     return Model.property(
@@ -57,14 +60,18 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
       parsedPropertyGetter = { resolved },
       getter = { caster() },
       setter = { setValue(it) },
-      parser = { value -> parse(value) }
+      parser = { value -> parse(value) },
     )
   }
 
   private fun <T : Any> ModelSimpleProperty<Model, T>.testValue() = bind(Model).testValue()
+
   private fun <T : Any> ModelSimpleProperty<Model, T>.testIsModified() = bind(Model).isModified
+
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetValue(value: T?) = bind(Model).testSetValue(value)
+
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetReference(value: String) = bind(Model).testSetReference(value)
+
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetInterpolatedString(value: String) =
     bind(Model).testSetInterpolatedString(value)
 
@@ -114,8 +121,10 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
 
     assertThat(propValue.bind(Model).getValue().annotation, nullValue())
     assertThat(prop25.bind(Model).getValue().annotation, equalTo<ValueAnnotation?>(ValueAnnotation.Error("Resolved: 26")))
-    assertThat(propTrue.bind(Model).getValue().annotation,
-               equalTo<ValueAnnotation?>(ValueAnnotation.Warning("Resolved value is unavailable.")))
+    assertThat(
+      propTrue.bind(Model).getValue().annotation,
+      equalTo<ValueAnnotation?>(ValueAnnotation.Warning("Resolved value is unavailable.")),
+    )
     assertThat(propRef.bind(Model).getValue().annotation, nullValue())
   }
 
@@ -135,7 +144,7 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     propValue.testSetValue("changed")
     assertThat(propValue.testValue(), equalTo("changed"))
     assertThat(propValue.testIsModified(), equalTo(true))
-    assertThat(propRef.testIsModified(), equalTo(false))  // Changing a dependee does not make the dependent modified.
+    assertThat(propRef.testIsModified(), equalTo(false)) // Changing a dependee does not make the dependent modified.
 
     prop25.testSetValue(26)
     assertThat(prop25.testValue(), equalTo(26))
@@ -163,7 +172,8 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     propTrue.testSetReference("2 + 2")
     assertThat<Annotated<ParsedValue<Boolean>>>(
       propTrue.bind(Model).getParsedValue(),
-      equalTo<Annotated<ParsedValue<Boolean>>>(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()))
+      equalTo<Annotated<ParsedValue<Boolean>>>(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()),
+    )
   }
 
   @Test
@@ -179,8 +189,11 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     var localModifying = false
     @Suppress("UNCHECKED_CAST")
     val reboundProp =
-      (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
-        .rebind(newResolvedProperty) { localModifying = true; it(); localModified = true }
+      (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>).rebind(newResolvedProperty) {
+        localModifying = true
+        it()
+        localModified = true
+      }
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
@@ -202,15 +215,20 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     val findProperty = extModel.findProperty("prop25")
     val resolved = findProperty.resolve()
     var property: ResolvedPropertyModel? = null
-    val notYetProp25 = Model.property(
-      "description",
-      resolvedValueGetter = { 26 },
-      parsedPropertyGetter = { property },
-      parsedPropertyInitializer = { property = resolved; resolved },
-      getter = { asInt() },
-      setter = { setValue(it) },
-      parser = { value -> (::parseInt)(value) }
-    ).bind(Model)
+    val notYetProp25 =
+      Model.property(
+          "description",
+          resolvedValueGetter = { 26 },
+          parsedPropertyGetter = { property },
+          parsedPropertyInitializer = {
+            property = resolved
+            resolved
+          },
+          getter = { asInt() },
+          setter = { setValue(it) },
+          parser = { value -> (::parseInt)(value) },
+        )
+        .bind(Model)
 
     assertThat(notYetProp25.getParsedValue().value, equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
     notYetProp25.setParsedValue(25.asParsed())

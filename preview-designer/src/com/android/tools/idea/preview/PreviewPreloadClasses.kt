@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.preview
 
-/**
- * Contains lists of classes to preload when rendering previews in different scenarios, like for
- * example when using interactive preview.
- */
+/** Contains lists of classes to preload when rendering previews in different scenarios, like for example when using interactive preview. */
 object PreviewPreloadClasses {
   @JvmStatic
   /** List of classes to preload when using interactive preview */

@@ -86,20 +86,15 @@ class LintModelFactory : LintModelModuleLoader {
   private val libraryResolverMap = mutableMapOf<String, LintModelLibrary>()
   private val libraryResolver = DefaultLintModelLibraryResolver(libraryResolverMap)
 
-  /**
-   * Factory from an XML folder to a [LintModelModule]. The files were previously saved by
-   * [LintModelSerialization.writeModule].
-   */
+  /** Factory from an XML folder to a [LintModelModule]. The files were previously saved by [LintModelSerialization.writeModule]. */
   fun create(source: File): LintModelModule = LintModelSerialization.readModule(source)
 
   /**
-   * Converter from the builder model library to lint's own model. If [deep] is true, it will create
-   * a deep copy; otherwise, it will create wrapper objects. The advantage of a shallow copy is that
-   * some expensive fields are only computed lazily (such as all the variant data, which may not be
-   * needed in the IDE when running on the fly analysis). The advantage of a deep copy is that (at
-   * least during testing) all fields are accessed so we can make sure there are no inconvertible
-   * data, and when all the data is going to be used anyway there's no benefit in the additional
-   * overhead of lazy lookup.
+   * Converter from the builder model library to lint's own model. If [deep] is true, it will create a deep copy; otherwise, it will create
+   * wrapper objects. The advantage of a shallow copy is that some expensive fields are only computed lazily (such as all the variant data,
+   * which may not be needed in the IDE when running on the fly analysis). The advantage of a deep copy is that (at least during testing)
+   * all fields are accessed so we can make sure there are no inconvertible data, and when all the data is going to be used anyway there's
+   * no benefit in the additional overhead of lazy lookup.
    */
   fun create(
     project: IdeAndroidProject,
@@ -160,16 +155,11 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   /**
-   * Ensures that the given [library] (if applicable, module or artifact) has a corresponding object
-   * within [libraryResolverMap]. If one already exists this method does nothing otherwise we create
-   * a [LintModelLibrary] for the given [IdeLibrary].
+   * Ensures that the given [library] (if applicable, module or artifact) has a corresponding object within [libraryResolverMap]. If one
+   * already exists this method does nothing otherwise we create a [LintModelLibrary] for the given [IdeLibrary].
    */
   private fun maybeRegisterLintModelLibrary(library: IdeLibrary, isProvided: Boolean): Boolean {
-    if (
-      !(library is IdeModuleLibrary ||
-        (library is IdeArtifactLibrary && library.artifactAddress.isNotEmpty()))
-    )
-      return false
+    if (!(library is IdeModuleLibrary || (library is IdeArtifactLibrary && library.artifactAddress.isNotEmpty()))) return false
 
     libraryResolverMap[library.getIdentifier()]?.let {
       return true
@@ -244,8 +234,7 @@ class LintModelFactory : LintModelModuleLoader {
           DefaultLintModelDependency(
             identifier = library.getIdentifier(),
             artifactName = library.getArtifactName(),
-            requestedCoordinates =
-              null, // Always null in builder models and not present in Ide* models.
+            requestedCoordinates = null, // Always null in builder models and not present in Ide* models.
             // Deep copy
             dependencies = emptyList(), // Dependency hierarchy is not yet supported.
             libraryResolver = libraryResolver,
@@ -268,10 +257,7 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getArtifact(
-    artifact: IdeAndroidArtifact,
-    type: LintModelArtifactType,
-  ): LintModelAndroidArtifact {
+  private fun getArtifact(artifact: IdeAndroidArtifact, type: LintModelArtifactType): LintModelAndroidArtifact {
     return DefaultLintModelAndroidArtifact(
       applicationId = artifact.applicationId,
       dependencies = getDependencies(artifact),
@@ -283,10 +269,7 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getArtifact(
-    artifact: IdeJavaArtifact,
-    type: LintModelArtifactType,
-  ): LintModelJavaArtifact {
+  private fun getArtifact(artifact: IdeJavaArtifact, type: LintModelArtifactType): LintModelJavaArtifact {
     return DefaultLintModelJavaArtifact(
       dependencies = getDependencies(artifact),
       classFolders = artifact.classesFolder.toList(),
@@ -294,10 +277,7 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getBuildType(
-    multiVariantData: IdeMultiVariantData,
-    variant: IdeVariant,
-  ): IdeBuildType {
+  private fun getBuildType(multiVariantData: IdeMultiVariantData, variant: IdeVariant): IdeBuildType {
     val buildTypeName = variant.buildType
     return multiVariantData.buildTypes.first { it.buildType.name == buildTypeName }.buildType
   }
@@ -314,15 +294,11 @@ class LintModelFactory : LintModelModuleLoader {
       name = variant.name,
       useSupportLibraryVectorDrawables = useSupportLibraryVectorDrawables(variant),
       mainArtifactOrNull = getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN),
-      testArtifact =
-        getUnitTestArtifact(
-          variant
-        ), // TODO(karimai): we need to change the Lint models to add screenshot Test  artifact.
+      testArtifact = getUnitTestArtifact(variant), // TODO(karimai): we need to change the Lint models to add screenshot Test  artifact.
       androidTestArtifact = getAndroidTestArtifact(variant),
       testFixturesArtifact = getTestFixturesArtifact(variant),
       mergedManifest = null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
-      manifestMergeReport =
-        null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
+      manifestMergeReport = null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
       `package` = null, // not in the old builder model
       minSdkVersion = variant.minSdkVersion.toAndroidVersion(),
       targetSdkVersion = variant.targetSdkVersion?.toAndroidVersion(),
@@ -349,14 +325,12 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun getAndroidTestArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
-    val artifact =
-      variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
+    val artifact = variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
     return getArtifact(artifact, LintModelArtifactType.INSTRUMENTATION_TEST)
   }
 
   private fun getUnitTestArtifact(variant: IdeVariant): LintModelJavaArtifact? {
-    val artifact =
-      variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } ?: return null
+    val artifact = variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } ?: return null
     return getArtifact(artifact, LintModelArtifactType.UNIT_TEST)
   }
 
@@ -380,9 +354,7 @@ class LintModelFactory : LintModelModuleLoader {
     }
 
     val mainArtifact = variant.mainArtifact
-    mainArtifact.multiFlavorSourceProvider?.let { sourceProvider ->
-      providers.add(getMainSourceProvider(sourceProvider))
-    }
+    mainArtifact.multiFlavorSourceProvider?.let { sourceProvider -> providers.add(getMainSourceProvider(sourceProvider)) }
 
     var debugVariant = false
     for (buildTypeContainer in project.multiVariantData?.buildTypes.orEmpty()) {
@@ -400,10 +372,7 @@ class LintModelFactory : LintModelModuleLoader {
     return providers
   }
 
-  private fun computeSourceProviders(
-    project: IdeAndroidProject,
-    variant: IdeVariant,
-  ): List<LintModelSourceProvider> {
+  private fun computeSourceProviders(project: IdeAndroidProject, variant: IdeVariant): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
     if (project.projectType != IdeAndroidProjectType.PROJECT_TYPE_TEST) {
@@ -453,11 +422,7 @@ class LintModelFactory : LintModelModuleLoader {
           buildTypeContainer.extraSourceProviders
             .filter { filter(it) }
             .forEach { extra ->
-              getSourceProvider(
-                  providerContainer = extra,
-                  debugOnly = buildTypeContainer.buildType.isDebuggable,
-                )
-                ?.let { providers.add(it) }
+              getSourceProvider(providerContainer = extra, debugOnly = buildTypeContainer.buildType.isDebuggable)?.let { providers.add(it) }
             }
         }
       }
@@ -467,20 +432,14 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   /**
-   * TODO: This is not correct; this method simultaneously returns both the unit test and
-   *   instrumentation test folders. These two are not normally combined in the build system (they
-   *   can contain conflicting definitions of the class for example). Lint uses this method in a
-   *   couple of different ways: (1) to find all the source files it must analyze in turn (for that
-   *   purpose, this method is okay), and (2) to set up the class path in the CLI setup for PSI.
-   *   This is problematic, but solving it properly is going to take more work (e.g. we need to do
-   *   separate handling for each test target), and since this is the way lint has always worked
-   *   we're leaving this brokenness here for now until we address this with the dependency graph
-   *   rewrite.
+   * TODO: This is not correct; this method simultaneously returns both the unit test and instrumentation test folders. These two are not
+   *   normally combined in the build system (they can contain conflicting definitions of the class for example). Lint uses this method in a
+   *   couple of different ways: (1) to find all the source files it must analyze in turn (for that purpose, this method is okay), and (2)
+   *   to set up the class path in the CLI setup for PSI. This is problematic, but solving it properly is going to take more work (e.g. we
+   *   need to do separate handling for each test target), and since this is the way lint has always worked we're leaving this brokenness
+   *   here for now until we address this with the dependency graph rewrite.
    */
-  private fun computeTestSourceProviders(
-    project: IdeAndroidProject,
-    variant: IdeVariant,
-  ): List<LintModelSourceProvider> {
+  private fun computeTestSourceProviders(project: IdeAndroidProject, variant: IdeVariant): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
     if (project.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
@@ -492,10 +451,7 @@ class LintModelFactory : LintModelModuleLoader {
     return providers
   }
 
-  private fun computeTestFixturesSourceProviders(
-    project: IdeAndroidProject,
-    variant: IdeVariant,
-  ): List<LintModelSourceProvider> {
+  private fun computeTestFixturesSourceProviders(project: IdeAndroidProject, variant: IdeVariant): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
     providers.addAll(computeExtraSourceProviders(project, variant) { it.isTestFixtures() })
@@ -506,12 +462,7 @@ class LintModelFactory : LintModelModuleLoader {
         providers.add(
           getSourceProvider(
             it,
-            debugOnly =
-              project.multiVariantData!!
-                .buildTypes
-                .first { it.buildType.name == variant.buildType }
-                .buildType
-                .isDebuggable,
+            debugOnly = project.multiVariantData!!.buildTypes.first { it.buildType.name == variant.buildType }.buildType.isDebuggable,
           )
         )
       }
@@ -519,10 +470,7 @@ class LintModelFactory : LintModelModuleLoader {
     return providers
   }
 
-  private fun getSourceProvider(
-    providerContainer: IdeExtraSourceProvider,
-    debugOnly: Boolean = false,
-  ): LintModelSourceProvider? {
+  private fun getSourceProvider(providerContainer: IdeExtraSourceProvider, debugOnly: Boolean = false): LintModelSourceProvider? {
     val provider = providerContainer.sourceProvider ?: return null
     return DefaultLintModelSourceProvider(
       manifestFiles = listOfNotNull(provider.manifestFile),
@@ -561,14 +509,10 @@ class LintModelFactory : LintModelModuleLoader {
     return DefaultLintModelResourceField(type = type, name = name, value = value)
   }
 
-  private fun getBuildFeatures(
-    project: IdeAndroidProject,
-    agpVersion: AgpVersion?,
-  ): LintModelBuildFeatures {
+  private fun getBuildFeatures(project: IdeAndroidProject, agpVersion: AgpVersion?): LintModelBuildFeatures {
     return DefaultLintModelBuildFeatures(
       viewBinding = usesViewBinding(project, agpVersion),
-      coreLibraryDesugaringEnabled =
-        project.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true,
+      coreLibraryDesugaringEnabled = project.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true,
     )
   }
 
@@ -597,8 +541,7 @@ class LintModelFactory : LintModelModuleLoader {
     return DefaultLintModelMavenName(groupId, androidProject.projectPath.projectPath, "")
   }
 
-  private fun getLintOptions(project: IdeAndroidProject): LintModelLintOptions =
-    getLintOptions(project.lintOptions)
+  private fun getLintOptions(project: IdeAndroidProject): LintModelLintOptions = getLintOptions(project.lintOptions)
 
   private fun getLintOptions(options: IdeLintOptions?): LintModelLintOptions {
     return if (options != null) {
@@ -654,9 +597,9 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   /**
-   * An [LintModelModule] which holds on to the underlying builder-model and lazily constructs parts
-   * of the model less likely to be needed (such as all the variants). This is particularly useful
-   * when lint is running on a subset of checks on the fly in the editor in the IDE for example.
+   * An [LintModelModule] which holds on to the underlying builder-model and lazily constructs parts of the model less likely to be needed
+   * (such as all the variants). This is particularly useful when lint is running on a subset of checks on the fly in the editor in the IDE
+   * for example.
    */
   inner class LazyLintModelModule(
     override val loader: LintModelModuleLoader,
@@ -720,8 +663,7 @@ class LintModelFactory : LintModelModuleLoader {
               // (Not just using findVariant since that searches linearly
               // through variant list to match by name)
               variantMap[variant.name]
-                ?: LazyLintModelVariant(this, project, variant, multiVariantData, libraryResolver)
-                  .also { variantMap[it.name] = it }
+                ?: LazyLintModelVariant(this, project, variant, multiVariantData, libraryResolver).also { variantMap[it.name] = it }
             }
             .also { _variants = it }
 
@@ -732,9 +674,7 @@ class LintModelFactory : LintModelModuleLoader {
       variantMap[name]
         ?: run {
           val buildVariant = projectVariants.firstOrNull { it.name == name }
-          buildVariant
-            ?.let { LazyLintModelVariant(this, project, it, multiVariantData, libraryResolver) }
-            ?.also { variantMap[name] = it }
+          buildVariant?.let { LazyLintModelVariant(this, project, it, multiVariantData, libraryResolver) }?.also { variantMap[name] = it }
         }
 
     override fun defaultVariant(): LintModelVariant? {
@@ -788,49 +728,32 @@ class LintModelFactory : LintModelModuleLoader {
 
     private var _sourceProviders: List<LintModelSourceProvider>? = null
     override val sourceProviders: List<LintModelSourceProvider>
-      get() =
-        _sourceProviders ?: computeSourceProviders(project, variant).also { _sourceProviders = it }
+      get() = _sourceProviders ?: computeSourceProviders(project, variant).also { _sourceProviders = it }
 
     private var _testSourceProviders: List<LintModelSourceProvider>? = null
     override val testSourceProviders: List<LintModelSourceProvider>
-      get() =
-        _testSourceProviders
-          ?: computeTestSourceProviders(project, variant).also { _testSourceProviders = it }
+      get() = _testSourceProviders ?: computeTestSourceProviders(project, variant).also { _testSourceProviders = it }
 
     private var _testFixturesSourceProviders: List<LintModelSourceProvider>? = null
     override val testFixturesSourceProviders: List<LintModelSourceProvider>
       get() =
-        _testFixturesSourceProviders
-          ?: computeTestFixturesSourceProviders(project, variant).also {
-            _testFixturesSourceProviders = it
-          }
+        _testFixturesSourceProviders ?: computeTestFixturesSourceProviders(project, variant).also { _testFixturesSourceProviders = it }
 
     private var _resValues: Map<String, LintModelResourceField>? = null
     override val resValues: Map<String, LintModelResourceField>
-      get() =
-        _resValues
-          ?: variant.resValues.mapValues { it.value.toResourceField() }.also { _resValues = it }
+      get() = _resValues ?: variant.resValues.mapValues { it.value.toResourceField() }.also { _resValues = it }
 
     private var _manifestPlaceholders: Map<String, String>? = null
     override val manifestPlaceholders: Map<String, String>
-      get() =
-        _manifestPlaceholders ?: variant.manifestPlaceholders.also { _manifestPlaceholders = it }
+      get() = _manifestPlaceholders ?: variant.manifestPlaceholders.also { _manifestPlaceholders = it }
 
     private var _mainArtifact: LintModelAndroidArtifact? = null
     @Deprecated("This property is deprecated.", replaceWith = ReplaceWith("artifact"))
     override val mainArtifact: LintModelAndroidArtifact
-      get() =
-        _mainArtifact
-          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
-            _mainArtifact = it
-          }
+      get() = _mainArtifact ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also { _mainArtifact = it }
 
     override val artifact: LintModelArtifact
-      get() =
-        _mainArtifact
-          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
-            _mainArtifact = it
-          }
+      get() = _mainArtifact ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also { _mainArtifact = it }
 
     private var _testArtifact: LintModelJavaArtifact? = null
     override val testArtifact: LintModelJavaArtifact?
@@ -838,14 +761,11 @@ class LintModelFactory : LintModelModuleLoader {
 
     private var _androidTestArtifact: LintModelAndroidArtifact? = null
     override val androidTestArtifact: LintModelAndroidArtifact?
-      get() =
-        _androidTestArtifact ?: getAndroidTestArtifact(variant).also { _androidTestArtifact = it }
+      get() = _androidTestArtifact ?: getAndroidTestArtifact(variant).also { _androidTestArtifact = it }
 
     private var _testFixturesArtifact: LintModelAndroidArtifact? = null
     override val testFixturesArtifact: LintModelAndroidArtifact?
-      get() =
-        _testFixturesArtifact
-          ?: getTestFixturesArtifact(variant).also { _testFixturesArtifact = it }
+      get() = _testFixturesArtifact ?: getTestFixturesArtifact(variant).also { _testFixturesArtifact = it }
 
     private var _proguardFiles: Collection<File>? = null
     override val proguardFiles: Collection<File>
@@ -853,13 +773,11 @@ class LintModelFactory : LintModelModuleLoader {
 
     private var _consumerProguardFiles: Collection<File>? = null
     override val consumerProguardFiles: Collection<File>
-      get() =
-        _consumerProguardFiles ?: variant.consumerProguardFiles.also { _consumerProguardFiles = it }
+      get() = _consumerProguardFiles ?: variant.consumerProguardFiles.also { _consumerProguardFiles = it }
 
     private var _buildFeatures: LintModelBuildFeatures? = null
     override val buildFeatures: LintModelBuildFeatures
-      get() =
-        _buildFeatures ?: getBuildFeatures(project, module.agpVersion).also { _buildFeatures = it }
+      get() = _buildFeatures ?: getBuildFeatures(project, module.agpVersion).also { _buildFeatures = it }
 
     override val partialResultsDir: File?
       get() = null
@@ -872,13 +790,12 @@ class LintModelFactory : LintModelModuleLoader {
     fun getMavenName(artifact: IdeArtifactLibrary): LintModelMavenName =
       when (val component = artifact.component) {
         null -> DefaultLintModelMavenName(NON_MAVEN, artifact.name)
-        else ->
-          DefaultLintModelMavenName(component.group, component.name, component.version.toString())
+        else -> DefaultLintModelMavenName(component.group, component.name, component.version.toString())
       }
 
     /**
-     * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values
-     * defined by AndroidProjectTypes.PROJECT_TYPE_*.
+     * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values defined by
+     * AndroidProjectTypes.PROJECT_TYPE_*.
      */
     @JvmStatic
     fun getModuleType(typeId: Int): LintModelModuleType {
@@ -906,8 +823,7 @@ class LintModelFactory : LintModelModuleLoader {
         IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
         IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> LintModelModuleType.FEATURE
         IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
-        IdeAndroidProjectType.PROJECT_TYPE_ATOM ->
-          throw IllegalArgumentException("The value $type is not a valid project type ID")
+        IdeAndroidProjectType.PROJECT_TYPE_ATOM -> throw IllegalArgumentException("The value $type is not a valid project type ID")
       }
     }
 

@@ -44,8 +44,7 @@ class WatchFaceShapesDomTest {
 
   @Before
   fun setup() {
-    fixture.testDataPath =
-      resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/${RES_XML_FOLDER}").toString()
+    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/${RES_XML_FOLDER}").toString()
     // add a manifest file for the `res/` folder to be considered a resource folder
     fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "<manifest />")
   }
@@ -58,50 +57,35 @@ class WatchFaceShapesDomTest {
         "${RES_XML_FOLDER}/watch_face_shapes.xml",
         // language=xml
         """
-          <WatchFaces />
+        <WatchFaces />
         """
           .trimIndent(),
       ) as XmlFile
 
     assertTrue(description.isMyFile(watchFaceShapesFile, projectRule.module))
 
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
-      false,
-      projectRule.testRootDisposable,
-    )
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(false, projectRule.testRootDisposable)
     assertFalse(description.isMyFile(watchFaceShapesFile, projectRule.module))
   }
 
   @Test
   fun `tag completion`() {
-    domRule.testCompletion(
-      "watch_face_shapes_completion_tag.xml",
-      "watch_face_shapes_completion_tag_after.xml",
-    )
+    domRule.testCompletion("watch_face_shapes_completion_tag.xml", "watch_face_shapes_completion_tag_after.xml")
   }
 
   @Test
   fun `attribute completion`() {
-    domRule.testCompletion(
-      "watch_face_shapes_completion_attr.xml",
-      "watch_face_shapes_completion_attr_after.xml",
-    )
+    domRule.testCompletion("watch_face_shapes_completion_attr.xml", "watch_face_shapes_completion_attr_after.xml")
   }
 
   @Test
   fun `attribute completion variants`() {
-    assertEquals(
-      listOf("file", "height", "shape", "width"),
-      domRule.getCompletionResults("watch_face_shapes_completion_attr_variants.xml"),
-    )
+    assertEquals(listOf("file", "height", "shape", "width"), domRule.getCompletionResults("watch_face_shapes_completion_attr_variants.xml"))
   }
 
   @Test
   fun `shape completion variants`() {
-    assertEquals(
-      listOf("CIRCLE", "RECTANGLE"),
-      domRule.getCompletionResults("watch_face_shapes_completion_shape_variants.xml"),
-    )
+    assertEquals(listOf("CIRCLE", "RECTANGLE"), domRule.getCompletionResults("watch_face_shapes_completion_shape_variants.xml"))
   }
 
   @Test
@@ -111,10 +95,10 @@ class WatchFaceShapesDomTest {
       "res/values/dimens.xml",
       // language=XML
       """
-        <resources>
-          <dimen name="width">450dp</dimen>
-          <dimen name="height">450dp</dimen>
-        </resources>
+      <resources>
+        <dimen name="width">450dp</dimen>
+        <dimen name="height">450dp</dimen>
+      </resources>
       """
         .trimIndent(),
     )
@@ -123,7 +107,7 @@ class WatchFaceShapesDomTest {
     val watchFace =
       """
       <WatchFace />
-    """
+      """
         .trimIndent()
 
     fixture.addFileToProject("res/raw/watch_face.xml", watchFace)

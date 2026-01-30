@@ -44,14 +44,16 @@ abstract class RemapIDsVisitor : HProfVisitor() {
     addMapping(arrayObjectId, currentID++)
   }
 
-  override fun visitClassDump(classId: Long,
-                              stackTraceSerialNumber: Long,
-                              superClassId: Long,
-                              classloaderClassId: Long,
-                              instanceSize: Long,
-                              constants: Array<ConstantPoolEntry>,
-                              staticFields: Array<StaticFieldEntry>,
-                              instanceFields: Array<InstanceFieldEntry>) {
+  override fun visitClassDump(
+    classId: Long,
+    stackTraceSerialNumber: Long,
+    superClassId: Long,
+    classloaderClassId: Long,
+    instanceSize: Long,
+    constants: Array<ConstantPoolEntry>,
+    staticFields: Array<StaticFieldEntry>,
+    instanceFields: Array<InstanceFieldEntry>,
+  ) {
     addMapping(classId, currentID++)
   }
 
@@ -81,8 +83,7 @@ abstract class RemapIDsVisitor : HProfVisitor() {
         override fun getIDMapper(): IDMapper {
           return object : IDMapper {
             override fun getID(id: Long): Long {
-              if (isValidID(id))
-                return map[id].toLong()
+              if (isValidID(id)) return map[id].toLong()
               else {
                 return 0
               }
@@ -97,9 +98,7 @@ abstract class RemapIDsVisitor : HProfVisitor() {
     }
 
     fun createFileBased(channel: FileChannel, maxInstanceCount: Long): RemapIDsVisitor {
-      val remapIDsMap = FileBackedHashMap.createEmpty(
-        channel,
-        maxInstanceCount, KEY_SIZE, VALUE_SIZE)
+      val remapIDsMap = FileBackedHashMap.createEmpty(channel, maxInstanceCount, KEY_SIZE, VALUE_SIZE)
       return object : RemapIDsVisitor() {
         override fun addMapping(oldId: Long, newId: Int) {
           if (oldId == 0L) return
@@ -109,10 +108,9 @@ abstract class RemapIDsVisitor : HProfVisitor() {
         override fun getIDMapper(): IDMapper {
           return object : IDMapper {
             override fun getID(id: Long): Long {
-              return if (id == 0L) 0L else
-              {
-                if (remapIDsMap.containsKey(id))
-                  remapIDsMap[id]!!.int.toLong()
+              return if (id == 0L) 0L
+              else {
+                if (remapIDsMap.containsKey(id)) remapIDsMap[id]!!.int.toLong()
                 else {
                   return 0
                 }
@@ -133,7 +131,5 @@ abstract class RemapIDsVisitor : HProfVisitor() {
 
     private const val KEY_SIZE = 8
     private const val VALUE_SIZE = 4
-
   }
-
 }

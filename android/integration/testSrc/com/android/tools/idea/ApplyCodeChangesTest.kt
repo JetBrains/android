@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -15,32 +14,28 @@
  * limitations under the License.
  */
 package com.android.tools.idea
+
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.testlib.Emulator
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
-class ApplyCodeChangesTest {
-  @JvmField
-  @Rule
-  val system: AndroidSystem = AndroidSystem.standard()
 
-  @JvmField
-  @Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+class ApplyCodeChangesTest {
+  @JvmField @Rule val system: AndroidSystem = AndroidSystem.standard()
+
+  @JvmField @Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * ETE Test for Apply Code Changes.
    *
-   * The goal is to run project, modify a BroadcastReceiver and verify the change by sending an
-   * intent from the ADB shell.
+   * The goal is to run project, modify a BroadcastReceiver and verify the change by sending an intent from the ADB shell.
    *
-   * Since Apply Code Changes do not rely on Activity restart, we need a robust way to interact
-   * with the running application in a lockstep manner for verification so we base our test on a
-   * small isolated BroadcastReceiver in the shared project.
+   * Since Apply Code Changes do not rely on Activity restart, we need a robust way to interact with the running application in a lockstep
+   * manner for verification so we base our test on a small isolated BroadcastReceiver in the shared project.
    */
   @Test
   fun applyChangesTest() {
@@ -59,7 +54,7 @@ class ApplyCodeChangesTest {
           studio.waitForSync()
           studio.waitForIndex()
 
-          println("Waiting for project init");
+          println("Waiting for project init")
           studio.waitForProjectInit()
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
@@ -73,31 +68,37 @@ class ApplyCodeChangesTest {
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.applychanges", 60, TimeUnit.SECONDS)
 
           println("Waiting for application startup")
-          adb.runCommand("logcat") {
-            waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS) }
 
-          adb.runCommand("shell", "am", "broadcast", "-a", "com.example.applychanges.MyBroadcastReceiver.intent.TEST",
-                         "-n", "com.example.applychanges/.MyBroadcastReceiver")
+          adb.runCommand(
+            "shell",
+            "am",
+            "broadcast",
+            "-a",
+            "com.example.applychanges.MyBroadcastReceiver.intent.TEST",
+            "-n",
+            "com.example.applychanges/.MyBroadcastReceiver",
+          )
 
-          adb.runCommand("logcat") {
-            waitForLog(".*onReceive Before.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*onReceive Before.*", 600, TimeUnit.SECONDS) }
 
           val newContents = "printAfter()\n"
           studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE ONRECEIVE LINE.*?// END ONRECEIVE SEARCH", newContents)
           studio.executeAction("android.deploy.CodeSwap")
 
-          adb.runCommand("logcat") {
-            waitForLog(".*Using Structure Redefinition Extension.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*Using Structure Redefinition Extension.*", 600, TimeUnit.SECONDS) }
 
-          adb.runCommand("shell", "am", "broadcast", "-a", "com.example.applychanges.MyBroadcastReceiver.intent.TEST",
-                         "-n", "com.example.applychanges/.MyBroadcastReceiver")
+          adb.runCommand(
+            "shell",
+            "am",
+            "broadcast",
+            "-a",
+            "com.example.applychanges.MyBroadcastReceiver.intent.TEST",
+            "-n",
+            "com.example.applychanges/.MyBroadcastReceiver",
+          )
 
-          adb.runCommand("logcat") {
-            waitForLog(".*onReceive After.*", 600, TimeUnit.SECONDS);
-          }
+          adb.runCommand("logcat") { waitForLog(".*onReceive After.*", 600, TimeUnit.SECONDS) }
         }
       }
     }

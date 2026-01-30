@@ -74,8 +74,8 @@ fun createScrollPane(component: JComponent): JBScrollPane {
 }
 
 /**
- * Like [.createScrollPane] but for components you only want to support vertical scrolling for. This
- * is useful if scroll panes are nested within scroll panes.
+ * Like [.createScrollPane] but for components you only want to support vertical scrolling for. This is useful if scroll panes are nested
+ * within scroll panes.
  */
 fun createVerticalScrollPane(component: JComponent): JBScrollPane {
   val scrollPane: JBScrollPane = createScrollPane(component)
@@ -86,14 +86,9 @@ fun createVerticalScrollPane(component: JComponent): JBScrollPane {
 /**
  * Creates a panel with a consistent style.
  *
- * We use a [HideablePanel] even though we make i non-hideable because it provides a consistent
- * title with an option switcher component.
+ * We use a [HideablePanel] even though we make i non-hideable because it provides a consistent title with an option switcher component.
  */
-fun createTitledPanel(
-  title: String,
-  content: JComponent,
-  northEastComponent: JComponent?,
-): HideablePanel {
+fun createTitledPanel(title: String, content: JComponent, northEastComponent: JComponent?): HideablePanel {
   return HideablePanel.Builder(title, content)
     .setNorthEastComponent(northEastComponent)
     .setPanelBorder(JBUI.Borders.emptyTop(10))
@@ -104,8 +99,8 @@ fun createTitledPanel(
 }
 
 /**
- * Create a component that shows a list of key/value pairs and some additional margins. If there are
- * no values in the map, this returns a label indicating that no data is available.
+ * Create a component that shows a list of key/value pairs and some additional margins. If there are no values in the map, this returns a
+ * label indicating that no data is available.
  */
 fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
   if (map.isEmpty()) {
@@ -141,19 +136,11 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
     mainJPanel.add(currJPanel)
   }
   mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
-  return createVerticalScrollPane(mainJPanel).apply {
-    invokeLater { viewport.viewPosition = Point(0, 0) }
-  }
+  return createVerticalScrollPane(mainJPanel).apply { invokeLater { viewport.viewPosition = Point(0, 0) } }
 }
 
-/**
- * Create a component that shows a category [name] with [TitledSeparator] and a list of following
- * [entryComponents].
- */
-fun createCategoryPanel(
-  name: String?,
-  vararg entryComponents: Pair<JComponent, JComponent>,
-): JPanel {
+/** Create a component that shows a category [name] with [TitledSeparator] and a list of following [entryComponents]. */
+fun createCategoryPanel(name: String?, vararg entryComponents: Pair<JComponent, JComponent>): JPanel {
   val panel = JPanel(VerticalLayout(6))
   if (name != null) {
     val headingPanel = TitledSeparator(name)
@@ -179,12 +166,7 @@ fun createCategoryPanel(
 }
 
 /** Create a [JBTextField] with preferred `width` and focus lost listener. */
-fun createTextField(
-  initialText: String?,
-  hintText: String,
-  name: String? = null,
-  focusLost: (String) -> Unit = {},
-) =
+fun createTextField(initialText: String?, hintText: String, name: String? = null, focusLost: (String) -> Unit = {}) =
   JBTextField(initialText).apply {
     emptyText.appendText(hintText)
     // Adjust TextField size to contain hintText properly

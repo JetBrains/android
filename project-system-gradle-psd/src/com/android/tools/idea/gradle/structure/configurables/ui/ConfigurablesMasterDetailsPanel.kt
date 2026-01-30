@@ -36,68 +36,74 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
-import org.jetbrains.kotlin.utils.addIfNotNull
 import javax.swing.JComponent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 const val PROPERTY_PLACE_NAME: String = "android.psd.property"
-/**
- * A master-details panel for configurables representing type [ModelT].
- */
+
+/** A master-details panel for configurables representing type [ModelT]. */
 abstract class ConfigurablesMasterDetailsPanel<ModelT>(
-    override val title: String,
-    private val placeName: String,
-    private val treeModel: ConfigurablesTreeModel,
-    private val uiSettings: PsUISettings
+  override val title: String,
+  private val placeName: String,
+  private val treeModel: ConfigurablesTreeModel,
+  private val uiSettings: PsUISettings,
 ) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, CrossModuleUiStateComponent, Disposable {
 
   private var inQuietSelection = false
 
   abstract fun getRemoveAction(): AnAction?
+
   abstract fun getRenameAction(): AnAction?
+
   abstract fun getCreateActions(): List<AnAction>
+
   abstract fun PsUISettings.getLastEditedItem(): String?
+
   abstract fun PsUISettings.setLastEditedItem(value: String?)
 
   init {
     // Calling initTree() first so that various changes made by the call can can be
     // overridden below. The method invocation, however, is still required. It configures
     // the cell renderer which does not display icons otherwise.
-    @Suppress("LeakingThis")
-    initTree()
+    @Suppress("LeakingThis") initTree()
 
     splitter.orientation = true
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
     myRoot = treeModel.rootNode as MyNode
-    treeModel.addTreeModelListener(object: TreeModelListener{
-      override fun treeNodesInserted(e: TreeModelEvent?) {
-        val treePath = e?.treePath
-        if (treePath?.parentPath == null) {
-          tree.expandPath(treePath)
+    treeModel.addTreeModelListener(
+      object : TreeModelListener {
+        override fun treeNodesInserted(e: TreeModelEvent?) {
+          val treePath = e?.treePath
+          if (treePath?.parentPath == null) {
+            tree.expandPath(treePath)
+          }
         }
+
+        override fun treeStructureChanged(e: TreeModelEvent?) = Unit
+
+        override fun treeNodesChanged(e: TreeModelEvent?) = Unit
+
+        override fun treeNodesRemoved(e: TreeModelEvent?) = Unit
       }
-
-      override fun treeStructureChanged(e: TreeModelEvent?)= Unit
-
-      override fun treeNodesChanged(e: TreeModelEvent?) = Unit
-
-      override fun treeNodesRemoved(e: TreeModelEvent?) = Unit
-    })
+    )
     tree.isRootVisible = false
     TreeUtil.expandAll(tree)
   }
 
   private var myComponent: JComponent? = null
 
-  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also {
-    myComponent = it
-    // Additionally register some shortcuts to be available while focus is within the component.
-    registerShortcuts(it)
-  }
+  override fun getComponent(): JComponent =
+    myComponent
+      ?: super.createComponent().also {
+        myComponent = it
+        // Additionally register some shortcuts to be available while focus is within the component.
+        registerShortcuts(it)
+      }
 
   final override fun createComponent(): Nothing = throw UnsupportedOperationException("Use getComponent() instead.")
 
@@ -111,16 +117,19 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   override fun createActions(fromPopup: Boolean): ArrayList<AnAction>? {
     if (!actionsCreated) {
       val createActions = getCreateActions()
-      createActionInstance = when {
-        createActions.size == 1 -> createActions[0]
-        createActions.isNotEmpty() ->
-          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.addIcon) {
-            override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-              return createActions.toTypedArray()
-            }
-          })
-        else -> null
-      }
+      createActionInstance =
+        when {
+          createActions.size == 1 -> createActions[0]
+          createActions.isNotEmpty() ->
+            MyActionGroupWrapper(
+              object : ActionGroup("Add", "Add", IconUtil.addIcon) {
+                override fun getChildren(e: AnActionEvent?): Array<AnAction> {
+                  return createActions.toTypedArray()
+                }
+              }
+            )
+          else -> null
+        }
 
       removeActionInstance = getRemoveAction()
       renameActionInstance = getRenameAction()
@@ -169,8 +178,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   }
 
   private fun findConfigurableNode(configurableDisplayName: String): MyNode? =
-    treeModel
-      .rootNode
+    treeModel.rootNode
       .breadthFirstEnumeration()
       .asSequence()
       .mapNotNull { it as? MyNode }
@@ -180,8 +188,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
       }
 
   private fun findFirstLeafConfigurableNode(): MyNode? =
-    treeModel
-      .rootNode
+    treeModel.rootNode
       .breadthFirstEnumeration()
       .asSequence()
       .mapNotNull { it as? MyNode }
@@ -212,8 +219,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
       inQuietSelection = true
       try {
         selectNode(configurableNode)
-      }
-      finally {
+      } finally {
         inQuietSelection = false
       }
     }
@@ -241,8 +247,8 @@ fun validateAndShow(title: String = "Error", validateAction: () -> String?): Boo
 
 class NameValidator(val validator: (String?) -> String?) : InputValidator {
   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-  override fun canClose(inputString: String?): Boolean =
-    validateAndShow { validator(inputString) }
+
+  override fun canClose(inputString: String?): Boolean = validateAndShow { validator(inputString) }
 }
 
 fun renameWithDialog(
@@ -252,18 +258,19 @@ fun renameWithDialog(
   renameReferencesMessage: String,
   currentName: String?,
   validator: NameValidator,
-  block: (newName: String, renameReferences: Boolean) -> Unit
+  block: (newName: String, renameReferences: Boolean) -> Unit,
 ) {
-  val (newName, alsoRenameRelated) = Messages.showInputDialogWithCheckBox(
-    message,
-    title,
-    renameReferencesMessage,
-    renameReferencesCheckbox,
-    renameReferencesCheckbox,
-    null,
-    currentName.orEmpty(),
-    validator
-  )
+  val (newName, alsoRenameRelated) =
+    Messages.showInputDialogWithCheckBox(
+      message,
+      title,
+      renameReferencesMessage,
+      renameReferencesCheckbox,
+      renameReferencesCheckbox,
+      null,
+      currentName.orEmpty(),
+      validator,
+    )
   if (newName != null) {
     block(newName, alsoRenameRelated)
   }

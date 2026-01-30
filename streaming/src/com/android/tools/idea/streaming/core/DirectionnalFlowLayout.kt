@@ -22,9 +22,8 @@ import java.awt.Dimension
 import java.awt.Point
 
 /**
- * Lays out child components in a row or column depending on [direction] with the given [gap]
- * between them. In the orthogonal direction the child components occupy all available space of the
- * container.
+ * Lays out child components in a row or column depending on [direction] with the given [gap] between them. In the orthogonal direction the
+ * child components occupy all available space of the container.
  */
 class DirectionalFlowLayout(val direction: Direction = Direction.LEFT_TO_RIGHT, val gap: Int = 0) : AbstractLayoutManager() {
 
@@ -64,11 +63,9 @@ class DirectionalFlowLayout(val direction: Direction = Direction.LEFT_TO_RIGHT, 
     }
   }
 
-  override fun minimumLayoutSize(container: Container): Dimension =
-      combinedSize(container, Component::getMinimumSize)
+  override fun minimumLayoutSize(container: Container): Dimension = combinedSize(container, Component::getMinimumSize)
 
-  override fun preferredLayoutSize(container: Container): Dimension =
-      combinedSize(container, Component::getPreferredSize)
+  override fun preferredLayoutSize(container: Container): Dimension = combinedSize(container, Component::getPreferredSize)
 
   private fun combinedSize(container: Container, sizeProperty: (Component) -> Dimension): Dimension {
     val result = Dimension()
@@ -103,6 +100,9 @@ class DirectionalFlowLayout(val direction: Direction = Direction.LEFT_TO_RIGHT, 
   }
 
   enum class Direction {
-    LEFT_TO_RIGHT, RIGHT_TO_LEFT, TOP_TO_BOTTOM, BOTTOM_TO_TOP
+    LEFT_TO_RIGHT,
+    RIGHT_TO_LEFT,
+    TOP_TO_BOTTOM,
+    BOTTOM_TO_TOP,
   }
 }

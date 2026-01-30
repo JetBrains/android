@@ -37,9 +37,8 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * [PsiElementFinder] that provides light Manifest classes.
  *
- * This class is a project service, but it's not declared as [PsiElementFinder.EP] extension.
- * The reason for that is that it's up to the project system to decide whether to use this logic
- * (see [ProjectSystemPsiElementFinder]).
+ * This class is a project service, but it's not declared as [PsiElementFinder.EP] extension. The reason for that is that it's up to the
+ * project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
 @Service(Service.Level.PROJECT)
 class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFinder() {
@@ -47,16 +46,12 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
   companion object {
     private const val SUFFIX = "." + SdkConstants.FN_MANIFEST_BASE
     private val MODULE_MANIFEST_CLASS =
-      Key<PsiClass>(
-        AndroidManifestClassPsiElementFinder::class.qualifiedName!! + ".MODULE_MANIFEST_CLASS"
-      )
+      Key<PsiClass>(AndroidManifestClassPsiElementFinder::class.qualifiedName!! + ".MODULE_MANIFEST_CLASS")
 
-    @JvmStatic
-    fun getInstance(project: Project): AndroidManifestClassPsiElementFinder = project.service()
+    @JvmStatic fun getInstance(project: Project): AndroidManifestClassPsiElementFinder = project.service()
   }
 
-  override fun findClass(qualifiedName: String, scope: GlobalSearchScope) =
-    findClasses(qualifiedName, scope).firstOrNull()
+  override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
     val targetPackageName = psiPackage.qualifiedName
@@ -76,27 +71,19 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     return project
       .getProjectSystem()
       .getAndroidFacetsWithPackageName(packageName)
-      .mapNotNull { facet ->
-        getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
-      }
+      .mapNotNull { facet -> getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) } }
       .toTypedArray()
   }
 
   fun getManifestClassForFacet(facet: AndroidFacet) =
-    if (
-      facet.hasManifestClass() &&
-        ManifestClassToken.shouldGenerateManifestLightClasses(facet.module)
-    ) {
-      facet.computeUserDataIfAbsent(MODULE_MANIFEST_CLASS) {
-        ManifestClass(facet, PsiManager.getInstance(project))
-      }
+    if (facet.hasManifestClass() && ManifestClassToken.shouldGenerateManifestLightClasses(facet.module)) {
+      facet.computeUserDataIfAbsent(MODULE_MANIFEST_CLASS) { ManifestClass(facet, PsiManager.getInstance(project)) }
     } else {
       null
     }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    val isNamespaceOrParentPackage =
-      project.getProjectSystem().isNamespaceOrParentPackage(qualifiedName)
+    val isNamespaceOrParentPackage = project.getProjectSystem().isNamespaceOrParentPackage(qualifiedName)
     return if (isNamespaceOrParentPackage) {
       AndroidLightPackage.withName(qualifiedName, project)
     } else {
@@ -105,7 +92,6 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {
-    return !getCustomPermissions(this).isNullOrEmpty() ||
-      !getCustomPermissionGroups(this).isNullOrEmpty()
+    return !getCustomPermissions(this).isNullOrEmpty() || !getCustomPermissionGroups(this).isNullOrEmpty()
   }
 }

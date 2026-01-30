@@ -32,27 +32,30 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunsInEdt
 class ResourceExplorerToolbarViewModelTest {
 
-  @get:Rule
-  var rule = AndroidProjectRule.onDisk()
+  @get:Rule var rule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private lateinit var viewModel: ResourceExplorerToolbarViewModel
 
   @Before
   fun setUp() {
-    viewModel = ResourceExplorerToolbarViewModel(
-      rule.module.androidFacet!!, ResourceType.DRAWABLE, ImportersProvider(), FilterOptions.createDefault())
+    viewModel =
+      ResourceExplorerToolbarViewModel(
+        rule.module.androidFacet!!,
+        ResourceType.DRAWABLE,
+        ImportersProvider(),
+        FilterOptions.createDefault(),
+      )
     rule.fixture.testDataPath = getTestDataDirectory()
   }
 
@@ -63,11 +66,15 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Test
   fun getImportersActions() {
-    val importers = viewModel.getImportersActions().map {
-      val event = TestActionEvent(DataContext.EMPTY_CONTEXT, it)
-      it .update(event)
-      event.presentation.text
-    }.sorted()
+    val importers =
+      viewModel
+        .getImportersActions()
+        .map {
+          val event = TestActionEvent(DataContext.EMPTY_CONTEXT, it)
+          it.update(event)
+          event.presentation.text
+        }
+        .sorted()
     assertThat(importers).isEmpty()
   }
 
@@ -95,8 +102,8 @@ class ResourceExplorerToolbarViewModelTest {
     assertTrue(viewModel.addActions.getChildren(null).hasValueActionOfType(ResourceType.DRAWABLE))
 
     // For Color
-    viewModel = ResourceExplorerToolbarViewModel(
-      rule.module.androidFacet!!, ResourceType.COLOR, ImportersProvider(), FilterOptions.createDefault())
+    viewModel =
+      ResourceExplorerToolbarViewModel(rule.module.androidFacet!!, ResourceType.COLOR, ImportersProvider(), FilterOptions.createDefault())
     assertTrue(viewModel.addActions.getChildren(null).hasValueActionOfType(ResourceType.COLOR))
   }
 
@@ -116,9 +123,8 @@ class ResourceExplorerToolbarViewModelTest {
   }
 }
 
-private fun Array<AnAction>.hasValueActionOfType(type: ResourceType): Boolean
-  = filterIsInstance<NewResourceFileAction>()
-  .any {
+private fun Array<AnAction>.hasValueActionOfType(type: ResourceType): Boolean =
+  filterIsInstance<NewResourceFileAction>().any {
     val event = TestActionEvent(DataContext.EMPTY_CONTEXT, it)
     it.update(event)
 

@@ -30,12 +30,16 @@ fun launchSandboxSdk(device: IDevice, clientAppPackage: String, logger: Logger) 
   // Stop any previous sdk processes. It could error if the process is not found which we can ignore.
   val stopCommandReceiver = CollectingOutputReceiver()
   device.executeShellCommand(getCommandStopSdkSandbox(clientAppPackage), stopCommandReceiver)
-  if (stopCommandReceiver.output.isNotEmpty()) { logger.debug(stopCommandReceiver.output) }
+  if (stopCommandReceiver.output.isNotEmpty()) {
+    logger.debug(stopCommandReceiver.output)
+  }
 
   // Temp allowlist command shouldn't return anything useful.
   val allowCommandReceiver = CollectingOutputReceiver()
   device.executeShellCommand(getCommandAllowList(clientAppPackage), allowCommandReceiver)
-  if (allowCommandReceiver.output.isNotEmpty()) { logger.debug(allowCommandReceiver.output) }
+  if (allowCommandReceiver.output.isNotEmpty()) {
+    logger.debug(allowCommandReceiver.output)
+  }
 
   val startCommandReceiver = CollectingOutputReceiver()
   device.executeShellCommand(getCommandStartSdkSandbox(clientAppPackage), startCommandReceiver)
@@ -45,7 +49,9 @@ fun launchSandboxSdk(device: IDevice, clientAppPackage: String, logger: Logger) 
       throw AndroidExecutionException(pattern.key, matcher.group())
     }
   }
-  if (startCommandReceiver.output.isNotEmpty()) { logger.debug(startCommandReceiver.output) }
+  if (startCommandReceiver.output.isNotEmpty()) {
+    logger.debug(startCommandReceiver.output)
+  }
 }
 
 // Need to split command string because it doesn't use inclusive language
@@ -62,11 +68,12 @@ const val SANDBOX_SDK_ALREADY_RUNNING = "(.*)Sdk sandbox already running for(.*)
 const val FAILED_TO_START = "(.*)Sdk sandbox failed to start in [0-9]+ seconds(.*)"
 const val PACKAGE_NOT_DEBUGGABLE = "(.*)Package [^ ]+ must be debuggable(.*)"
 
-private val errorPatterns = mapOf<String, Pattern>(
-  SANDBOX_IS_DISABLED to Pattern.compile(SANDBOX_IS_DISABLED),
-  PACKAGE_NOT_FOUND to Pattern.compile(PACKAGE_NOT_FOUND),
-  BACKGROUND_START_NOT_ALLOWED to Pattern.compile(BACKGROUND_START_NOT_ALLOWED),
-  SANDBOX_SDK_ALREADY_RUNNING to Pattern.compile(SANDBOX_SDK_ALREADY_RUNNING),
-  FAILED_TO_START to Pattern.compile(FAILED_TO_START),
-  PACKAGE_NOT_DEBUGGABLE to Pattern.compile(PACKAGE_NOT_DEBUGGABLE)
-)
+private val errorPatterns =
+  mapOf<String, Pattern>(
+    SANDBOX_IS_DISABLED to Pattern.compile(SANDBOX_IS_DISABLED),
+    PACKAGE_NOT_FOUND to Pattern.compile(PACKAGE_NOT_FOUND),
+    BACKGROUND_START_NOT_ALLOWED to Pattern.compile(BACKGROUND_START_NOT_ALLOWED),
+    SANDBOX_SDK_ALREADY_RUNNING to Pattern.compile(SANDBOX_SDK_ALREADY_RUNNING),
+    FAILED_TO_START to Pattern.compile(FAILED_TO_START),
+    PACKAGE_NOT_DEBUGGABLE to Pattern.compile(PACKAGE_NOT_DEBUGGABLE),
+  )

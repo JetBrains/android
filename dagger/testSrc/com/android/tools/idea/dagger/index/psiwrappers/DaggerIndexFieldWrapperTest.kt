@@ -53,12 +53,12 @@ class DaggerIndexFieldWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        lateinit var bar: Baz
-      }
-      """
+        class Foo {
+          lateinit var bar: Baz
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -78,12 +78,12 @@ class DaggerIndexFieldWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        val bar = resultOfSomeFunction()
-      }
-      """
+        class Foo {
+          val bar = resultOfSomeFunction()
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -100,18 +100,18 @@ class DaggerIndexFieldWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.*
+        import dagger.*
 
-      class Foo {
+        class Foo {
 
-        @Binds
-        @Module()
-        @Component(true)
-        val bar: Baz
-      }
-      """
+          @Binds
+          @Module()
+          @Component(true)
+          val bar: Baz
+        }
+        """
           .trimIndent(),
       ) as KtFile
 
@@ -134,11 +134,11 @@ class DaggerIndexFieldWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {
-        private Baz bar;
-      }
-      """
+        package com.example;
+        public class Foo {
+          private Baz bar;
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 
@@ -158,18 +158,18 @@ class DaggerIndexFieldWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      import dagger.*;
+        import dagger.*;
 
-      public class Foo {
+        public class Foo {
 
-        @Binds
-        @Module()
-        @Component(true)
-        private Baz bar;
-      }
-      """
+          @Binds
+          @Module()
+          @Component(true)
+          private Baz bar;
+        }
+        """
           .trimIndent(),
       ) as PsiJavaFile
 

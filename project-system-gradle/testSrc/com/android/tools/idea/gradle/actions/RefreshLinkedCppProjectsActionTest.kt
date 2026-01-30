@@ -26,20 +26,17 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
-
 class RefreshLinkedCppProjectsActionTest : HeavyPlatformTestCase() {
 
-  @Mock
-  var mySyncState: GradleSyncState? = null
+  @Mock var mySyncState: GradleSyncState? = null
 
-  @Mock
-  private val myEvent: AnActionEvent? = null
+  @Mock private val myEvent: AnActionEvent? = null
 
   private var myPresentation: Presentation? = null
   private var myAction: SyncProjectAction? = null
 
   override fun setUp() {
-    super.setUp();
+    super.setUp()
     MockitoAnnotations.initMocks(this)
 
     myPresentation = Presentation()

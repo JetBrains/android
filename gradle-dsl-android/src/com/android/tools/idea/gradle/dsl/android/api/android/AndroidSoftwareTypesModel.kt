@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.android.api.android
 import com.android.tools.idea.gradle.dsl.api.SoftwareTypesModel
 
 interface AndroidSoftwareTypesModel : SoftwareTypesModel {
-  fun androidApp() : AndroidModel
-  fun androidLibrary() : AndroidModel
+  fun androidApp(): AndroidModel
+
+  fun androidLibrary(): AndroidModel
 }

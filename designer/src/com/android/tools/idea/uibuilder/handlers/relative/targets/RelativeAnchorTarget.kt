@@ -58,8 +58,7 @@ import com.android.tools.idea.uibuilder.model.ensureLiveId
 import java.util.Locale
 
 /** Target offers the anchors in RelativeLayout. */
-class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
-  AnchorTarget(type, isParent) {
+class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type, isParent) {
 
   /** Used to record the aligned component ids. */
   private val alignedComponentIds = mutableSetOf<String>()
@@ -88,14 +87,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
       super.render(list, sceneContext)
 
       if (myIsDragging) {
-        list.addConnection(
-          sceneContext,
-          centerX,
-          centerY,
-          myLastX.toFloat(),
-          myLastY.toFloat(),
-          type.ordinal,
-        )
+        list.addConnection(sceneContext, centerX, centerY, myLastX.toFloat(), myLastY.toFloat(), type.ordinal)
       }
     }
   }
@@ -146,17 +138,15 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
     if (!sameDirection) {
       return false
     }
-    return if (dest.isEdge) component.parent === dest.component
-    else component.parent === dest.component.parent
+    return if (dest.isEdge) component.parent === dest.component else component.parent === dest.component.parent
   }
 
   /**
-   * If this target can become the destination of current dragging anchor. Returns true if this is
-   * not dragging but aligning to the dragging component.
+   * If this target can become the destination of current dragging anchor. Returns true if this is not dragging but aligning to the dragging
+   * component.
    */
   private fun isConnectible(filterType: Scene.FilterType): Boolean {
-    val draggingAnchorTarget =
-      myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
+    val draggingAnchorTarget = myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
     if (isAlignedTo(draggingAnchorTarget.myComponent)) {
       return false
     }
@@ -196,11 +186,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
     myIsDragging = true
   }
 
-  override fun mouseRelease(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    closestTargets: List<Target>,
-  ) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     super.mouseRelease(x, y, closestTargets)
     if (isParent) {
       return
@@ -212,9 +198,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
       if (this in closestTargets) {
         handleConstraintDeletion(transactions)
       } else {
-        closestTargets.filterIsInstance<RelativeAnchorTarget>().firstOrNull()?.let {
-          handleConstraintConnection(transactions, it)
-        }
+        closestTargets.filterIsInstance<RelativeAnchorTarget>().firstOrNull()?.let { handleConstraintConnection(transactions, it) }
       }
     }
 
@@ -230,10 +214,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
     updateAlignedComponentIds()
   }
 
-  private fun handleConstraintConnection(
-    attributesTransaction: AttributesTransaction,
-    target: RelativeAnchorTarget,
-  ) {
+  private fun handleConstraintConnection(attributesTransaction: AttributesTransaction, target: RelativeAnchorTarget) {
     val nlComponent = myComponent.authoritativeNlComponent
     connectTo(target, attributesTransaction)
     val message =
@@ -268,28 +249,18 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
 
     clearAssociatedAttribute(transaction)
 
-    getProperAttributesForLayout(alignmentAttribute).forEach {
-      transaction.setAndroidAttribute(it, alignmentValue)
-    }
+    getProperAttributesForLayout(alignmentAttribute).forEach { transaction.setAndroidAttribute(it, alignmentValue) }
 
     val (marginAttribute, marginValue) = calculateMargin(other, alignmentAttribute) ?: return
-    getProperAttributesForLayout(marginAttribute).forEach {
-      transaction.setAndroidAttribute(it, marginValue)
-    }
+    getProperAttributesForLayout(marginAttribute).forEach { transaction.setAndroidAttribute(it, marginValue) }
   }
 
-  /**
-   * Remove the attributes related to this target. These include alignment and margin attributes.
-   */
+  /** Remove the attributes related to this target. These include alignment and margin attributes. */
   private fun clearAssociatedAttribute(transaction: AttributesTransaction) {
     // Remove alignment attribute(s)
-    findRelatedAlignmentAttributes()
-      .flatMap { getProperAttributesForLayout(it) }
-      .forEach { transaction.removeAndroidAttribute(it) }
+    findRelatedAlignmentAttributes().flatMap { getProperAttributesForLayout(it) }.forEach { transaction.removeAndroidAttribute(it) }
     // Remove margin attribute(s)
-    getProperAttributesForLayout(findRelatedMarginAttribute()).forEach {
-      transaction.removeAndroidAttribute(it)
-    }
+    getProperAttributesForLayout(findRelatedMarginAttribute()).forEach { transaction.removeAndroidAttribute(it) }
   }
 
   private fun findRelatedAlignmentAttributes() =
@@ -347,10 +318,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
       Type.BASELINE -> myComponent.drawY + myComponent.baseline
     }
 
-  private fun calculateMargin(
-    other: RelativeAnchorTarget,
-    alignAttribute: String,
-  ): Pair<String, String>? {
+  private fun calculateMargin(other: RelativeAnchorTarget, alignAttribute: String): Pair<String, String>? {
     val marginAttribute =
       when (alignAttribute) {
         ATTR_LAYOUT_ALIGN_TOP,
@@ -382,8 +350,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
     return Pair(marginAttribute, String.format(Locale.US, VALUE_N_DP, marginValue))
   }
 
-  private fun getProperAttributesForLayout(attribute: String?) =
-    getProperAttributesForLayout(myComponent, attribute)
+  private fun getProperAttributesForLayout(attribute: String?) = getProperAttributesForLayout(myComponent, attribute)
 }
 
 private val SIBLING_ALIGNMENT_ATTRIBUTES =

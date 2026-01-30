@@ -29,19 +29,18 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
       return
     }
 
-    val (keyValue, name) = runReadAction {
-      element.parentOfType<TomlKeyValue>() to element.name
-    }
+    val (keyValue, name) = runReadAction { element.parentOfType<TomlKeyValue>() to element.name }
     keyValue ?: return
     val nameParts = name?.getVersionCatalogParts() ?: return
     val identifier = nameParts.lastOrNull() ?: return
     val getter = PropertyUtilBase.getAccessorName(identifier, PropertyKind.GETTER)
 
     val project = element.project
-    val searchScope = when (val effectiveScope = queryParameters.effectiveSearchScope) {
-      is GlobalSearchScope -> KotlinScriptSearchScope(project, effectiveScope)
-      else -> effectiveScope
-    }
+    val searchScope =
+      when (val effectiveScope = queryParameters.effectiveSearchScope) {
+        is GlobalSearchScope -> KotlinScriptSearchScope(project, effectiveScope)
+        else -> effectiveScope
+      }
     val searchContext = UsageSearchContext.IN_CODE
     val processor = MyProcessor(keyValue, nameParts)
     val search: (String) -> Unit = { queryParameters.optimizer.searchWord(it, searchScope, searchContext, true, element, processor) }
@@ -65,7 +64,7 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
   private class KtsVersionCatalogReference(
     refExpr: KtNameReferenceExpression,
     val oldNameParts: List<String>,
-    val searchedElement: TomlKeyValue
+    val searchedElement: TomlKeyValue,
   ) : PsiReferenceBase<KtNameReferenceExpression>(refExpr) {
 
     override fun resolve(): PsiElement {
@@ -79,15 +78,19 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
       if (elementToReplace is KtDotQualifiedExpression) {
         val (catalogName, tableName) = getCatalogDotExpression(elementToReplace)
         catalogName?.let {
-          val newElementText = StringBuilder()
-            .append(catalogName.text).append(".")
-            .apply {
-              when (val table = tableName?.text) {
-                "plugins", "bundles", "versions" -> append(table).append(".")
+          val newElementText =
+            StringBuilder()
+              .append(catalogName.text)
+              .append(".")
+              .apply {
+                when (val table = tableName?.text) {
+                  "plugins",
+                  "bundles",
+                  "versions" -> append(table).append(".")
+                }
               }
-            }
-            .append(parts.joinToString("."))
-            .toString()
+              .append(parts.joinToString("."))
+              .toString()
           val newElement = KtPsiFactory(element.project).createExpression(newElementText)
           return elementToReplace.replace(newElement)
         }
@@ -106,5 +109,4 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
   }
 }
 
-private fun String.getVersionCatalogParts() : List<String> = split("_", "-")
-
+private fun String.getVersionCatalogParts(): List<String> = split("_", "-")

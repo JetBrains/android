@@ -34,9 +34,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerExtension
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -49,13 +46,14 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.junit.BeforeClass
+import org.junit.ClassRule
+import org.junit.Test
 
 class DrawableGridTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = AndroidProjectRule.onDisk()
+    @JvmField @ClassRule val rule = AndroidProjectRule.onDisk()
 
     @JvmStatic
     @BeforeClass
@@ -67,11 +65,14 @@ class DrawableGridTest {
   @Test
   fun canTSelectNullElement() {
     val resourceValue = ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", "")
-    val grid = DrawableGrid(rule.fixture.module,
-                            DefaultListModel<ResourceValue>().apply {
-                              addElement(resourceValue)
-                              addElement(null)
-                            })
+    val grid =
+      DrawableGrid(
+        rule.fixture.module,
+        DefaultListModel<ResourceValue>().apply {
+          addElement(resourceValue)
+          addElement(null)
+        },
+      )
 
     grid.selectedIndex = 1
     Truth.assertThat(grid.selectedIndex).isEqualTo(1)
@@ -87,29 +88,35 @@ class DrawableGridTest {
   @Test
   fun renderCell() {
 
-    val image = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
-      with(createGraphics()) {
-        color = testColor
-        drawRect(0, 0, 1, 1)
-        dispose()
+    val image =
+      ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).apply {
+        with(createGraphics()) {
+          color = testColor
+          drawRect(0, 0, 1, 1)
+          dispose()
+        }
       }
-    }
     val renderer = StubRenderer()
     renderer.registerAsExtension(rule.fixture.project)
     val childFile = createFakeFile("file")
     val resourceValue = ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "resourceValue", childFile.path)
-    val grid = DrawableGrid(rule.fixture.module,
-                            DefaultListModel<ResourceValue>().apply {
-                              addElement(resourceValue)
-                              addElement(null)
-                            })
+    val grid =
+      DrawableGrid(
+        rule.fixture.module,
+        DefaultListModel<ResourceValue>().apply {
+          addElement(resourceValue)
+          addElement(null)
+        },
+      )
 
     grid.cellRenderer.getListCellRendererComponent(grid, resourceValue, 1, false, false)
 
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      renderer.simulateRender(image)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    })
+    UIUtil.invokeAndWaitIfNeeded(
+      Runnable {
+        renderer.simulateRender(image)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
+    )
 
     renderer.waitForRender()
     Truth.assertWithMessage("Renderer was never called").that(renderer.hasRendered()).isTrue()
@@ -133,8 +140,7 @@ class DrawableGridTest {
 private val testingImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
 private val testingComponent = JPanel()
 
-private fun assertColor(icon: Icon,
-                        pixelRgb: Int) {
+private fun assertColor(icon: Icon, pixelRgb: Int) {
   val graphics = testingImage.createGraphics()
   graphics.clearRect(0, 0, 1, 1)
   graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_DEFAULT)
@@ -149,10 +155,8 @@ class StubRenderer : DesignAssetRenderer {
 
   override fun isFileSupported(file: VirtualFile) = true
 
-  override fun getImage(file: VirtualFile,
-                        module: Module?,
-                        dimension: Dimension,
-                        context: Any?): CompletableFuture<out BufferedImage?> = future
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any?): CompletableFuture<out BufferedImage?> =
+    future
 
   fun simulateRender(image: BufferedImage?) {
     future.complete(image)
@@ -166,8 +170,7 @@ class StubRenderer : DesignAssetRenderer {
   fun hasRendered() = latch.count == 0L
 
   fun registerAsExtension(disposable: Disposable) {
-    ApplicationManager.getApplication().registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"),
-                                       this,
-                                       disposable)
+    ApplicationManager.getApplication()
+      .registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"), this, disposable)
   }
 }

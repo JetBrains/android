@@ -38,177 +38,144 @@ import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.nio.file.Path
-import java.nio.file.Paths
 
 class AppInspectorTabLaunchSupportTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
-  private val appInspectionServiceRule =
-    AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
+  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
 
   private val notApplicableInspector =
     object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override fun isApplicable() = false
     }
-  private val frameworkInspector =
-    object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
+  private val frameworkInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
   private val incompatibleLibraryInspector =
     object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
       override val inspectorLaunchParams =
-        LibraryInspectorLaunchParams(
-          TEST_JAR,
-          mockMinimumArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE"),
-        )
+        LibraryInspectorLaunchParams(TEST_JAR, mockMinimumArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE"))
     }
   private val libraryInspector =
     object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
-      override val inspectorLaunchParams =
-        LibraryInspectorLaunchParams(TEST_JAR, mockMinimumArtifactCoordinate("a", "b", "1.0.0"))
+      override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, mockMinimumArtifactCoordinate("a", "b", "1.0.0"))
     }
 
   private val unresolvedLibrary = mockMinimumArtifactCoordinate("fallback", "library", "1.0.0")
   private val unresolvedJar = AppInspectorJar("fallback_jar")
   private val unresolvedLibraryInspector =
     object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
-      override val inspectorLaunchParams =
-        LibraryInspectorLaunchParams(unresolvedJar, unresolvedLibrary)
+      override val inspectorLaunchParams = LibraryInspectorLaunchParams(unresolvedJar, unresolvedLibrary)
     }
 
   /**
-   * This tests all 4 possible scenarios during and leading up to the launch of a library inspector
-   * tab + 1 framework inspector.
+   * This tests all 4 possible scenarios during and leading up to the launch of a library inspector tab + 1 framework inspector.
    *
    * The 4 library inspectors are: 1) not applicable - inspector tab shouldn't be included in result
-   * 2) incompatible inspector - an info tab should be created with an appropriate error message 3)
-   *    compatible inspector - a mutable tab created and inspector jar set to the resolved one 4)
-   *    compatible inspector but failed to resolve its jar - an info tab should be created with an
-   *    appropriate error message
+   * 2) incompatible inspector - an info tab should be created with an appropriate error message 3) compatible inspector - a mutable tab
+   *    created and inspector jar set to the resolved one 4) compatible inspector but failed to resolve its jar - an info tab should be
+   *    created with an appropriate error message
    */
   @Test
-  fun getApplicableTabProviders() =
-    runBlocking {
-      val support =
-        AppInspectorTabLaunchSupport(
-          {
-            listOf(
-              notApplicableInspector,
-              frameworkInspector,
-              incompatibleLibraryInspector,
-              libraryInspector,
-              unresolvedLibraryInspector,
-            )
-          },
-          appInspectionServiceRule.apiServices,
-          projectRule.project,
-          object : InspectorArtifactService {
-            override suspend fun getOrResolveInspectorArtifact(
-              artifactCoordinate: RunningArtifactCoordinate,
-              project: Project,
-            ): Path {
-              return if (artifactCoordinate.sameArtifact(unresolvedLibrary)) {
-                throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
-              } else {
-                Paths.get("resolved", "jar")
-              }
+  fun getApplicableTabProviders() = runBlocking {
+    val support =
+      AppInspectorTabLaunchSupport(
+        { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
+        appInspectionServiceRule.apiServices,
+        projectRule.project,
+        object : InspectorArtifactService {
+          override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: RunningArtifactCoordinate, project: Project): Path {
+            return if (artifactCoordinate.sameArtifact(unresolvedLibrary)) {
+              throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
+            } else {
+              Paths.get("resolved", "jar")
             }
-          },
-        )
+          }
+        },
+      )
 
-      transportService.setCommandHandler(
-        Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(
-          timer,
-          getLibraryVersionsResponse = { getLibraryVersionsCommand ->
-            AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
-              .addAllResponses(
-                getLibraryVersionsCommand.targetLibrariesList
-                  .map { compatibility ->
-                    if (compatibility.coordinate.version == "INCOMPATIBLE") {
-                      AppInspection.LibraryCompatibilityInfo.newBuilder()
-                        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
-                        .setTargetLibrary(compatibility.coordinate)
-                        .setVersion(compatibility.coordinate.version)
-                        .build()
-                    } else {
-                      val version =
-                        compatibility.coordinate.version.takeIf { it != "1.0.0" } ?: "1.0.1"
-                      AppInspection.LibraryCompatibilityInfo.newBuilder()
-                        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
-                        .setTargetLibrary(compatibility.coordinate)
-                        .setVersion(version)
-                        .build()
-                    }
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(
+        timer,
+        getLibraryVersionsResponse = { getLibraryVersionsCommand ->
+          AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
+            .addAllResponses(
+              getLibraryVersionsCommand.targetLibrariesList
+                .map { compatibility ->
+                  if (compatibility.coordinate.version == "INCOMPATIBLE") {
+                    AppInspection.LibraryCompatibilityInfo.newBuilder()
+                      .setStatus(AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
+                      .setTargetLibrary(compatibility.coordinate)
+                      .setVersion(compatibility.coordinate.version)
+                      .build()
+                  } else {
+                    val version = compatibility.coordinate.version.takeIf { it != "1.0.0" } ?: "1.0.1"
+                    AppInspection.LibraryCompatibilityInfo.newBuilder()
+                      .setStatus(AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
+                      .setTargetLibrary(compatibility.coordinate)
+                      .setVersion(version)
+                      .build()
                   }
-                  .toList()
-              )
-              .build()
-          },
-        ),
-      )
+                }
+                .toList()
+            )
+            .build()
+        },
+      ),
+    )
 
-      transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-      transportService.addProcess(
-        FakeTransportService.FAKE_DEVICE,
-        FakeTransportService.FAKE_PROCESS,
-      )
-      val processReadyDeferred = CompletableDeferred<Unit>()
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    val processReadyDeferred = CompletableDeferred<Unit>()
 
-      appInspectionServiceRule.addProcessListener(
-        object : SimpleProcessListener() {
-          override fun onProcessConnected(process: ProcessDescriptor) {
-            processReadyDeferred.complete(Unit)
-          }
-
-          override fun onProcessDisconnected(process: ProcessDescriptor) {}
-        }
-      )
-
-      processReadyDeferred.await()
-
-      val tabTargetsList = support.getInspectorTabJarTargets(createFakeProcessDescriptor())
-
-      val (resolvedTabs, unresolvedTabs) =
-        tabTargetsList.partition { tabTargets ->
-          tabTargets.targets.values.all { target -> target is InspectorJarTarget.Resolved }
+    appInspectionServiceRule.addProcessListener(
+      object : SimpleProcessListener() {
+        override fun onProcessConnected(process: ProcessDescriptor) {
+          processReadyDeferred.complete(Unit)
         }
 
-      assertThat(resolvedTabs).hasSize(2)
-      assertThat(unresolvedTabs).hasSize(2)
+        override fun onProcessDisconnected(process: ProcessDescriptor) {}
+      }
+    )
 
-      assertThat(unresolvedTabs.map { it.provider })
-        .containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+    processReadyDeferred.await()
 
-      resolvedTabs.forEach { tabTargets ->
-        val target = tabTargets.targets.values.single()
-        val jar = (target as InspectorJarTarget.Resolved).jar
-        when (tabTargets.provider) {
-          frameworkInspector -> {
-            assertThat(target.artifactCoordinate).isNull()
-            assertThat(jar).isSameAs(TEST_JAR)
+    val tabTargetsList = support.getInspectorTabJarTargets(createFakeProcessDescriptor())
+
+    val (resolvedTabs, unresolvedTabs) =
+      tabTargetsList.partition { tabTargets -> tabTargets.targets.values.all { target -> target is InspectorJarTarget.Resolved } }
+
+    assertThat(resolvedTabs).hasSize(2)
+    assertThat(unresolvedTabs).hasSize(2)
+
+    assertThat(unresolvedTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+
+    resolvedTabs.forEach { tabTargets ->
+      val target = tabTargets.targets.values.single()
+      val jar = (target as InspectorJarTarget.Resolved).jar
+      when (tabTargets.provider) {
+        frameworkInspector -> {
+          assertThat(target.artifactCoordinate).isNull()
+          assertThat(jar).isSameAs(TEST_JAR)
+        }
+        else -> {
+          (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.let { minimum ->
+            assertThat(target.artifactCoordinate?.sameArtifact(minimum)).isTrue()
+            assertThat(minimum.version).isNotEqualTo(target.artifactCoordinate?.version)
           }
-          else -> {
-            (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-              .minVersionLibraryCoordinate
-              .let { minimum ->
-                assertThat(target.artifactCoordinate?.sameArtifact(minimum)).isTrue()
-                assertThat(minimum.version).isNotEqualTo(target.artifactCoordinate?.version)
-              }
-            assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
-          }
+          assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
         }
       }
     }
+  }
 }

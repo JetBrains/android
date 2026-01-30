@@ -31,120 +31,119 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.util.application
+import java.io.File
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncListener
-import java.io.File
 
 abstract class PhasedSyncSnapshotTestBase(checkObjectIdentity: Boolean = false) {
 
   private val modelDumpSyncContributor = ModelDumpSyncContributor(checkObjectIdentity)
-  internal val intermediateDump get() = modelDumpSyncContributor.intermediateDump
-  internal val knownAndroidPaths get() = modelDumpSyncContributor.knownAndroidPaths
+  internal val intermediateDump
+    get() = modelDumpSyncContributor.intermediateDump
 
+  internal val knownAndroidPaths
+    get() = modelDumpSyncContributor.knownAndroidPaths
 
   @Suppress("UnstableApiUsage")
   fun setupPhasedSyncIntermediateStateCollector(disposable: Disposable) {
-    application.messageBus.connect(disposable)
-      .subscribe(GradleSyncListener.TOPIC, modelDumpSyncContributor)
+    application.messageBus.connect(disposable).subscribe(GradleSyncListener.TOPIC, modelDumpSyncContributor)
   }
 
   companion object {
-    val phasedSyncTestProjects = listOf(
-      TestProject.SIMPLE_APPLICATION,
-      TestProject.SIMPLE_APPLICATION_VIA_SYMLINK,
-      TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK,
-      TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
-      TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS,
-      TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION,
-      TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR,
-      TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST,
-      TestProject.PURE_JAVA_PROJECT,
-      TestProject.MAIN_IN_ROOT,
-      TestProject.NESTED_MODULE,
-      TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE,
-      TestProject.TRANSITIVE_DEPENDENCIES,
-      TestProject.WITH_GRADLE_METADATA,
-      TestProject.TEST_FIXTURES,
-      TestProject.TEST_ONLY_MODULE,
-      TestProject.APP_WITH_ML_MODELS,
-      TestProject.MULTI_FLAVOR,
-      TestProject.MULTI_FLAVOR_SWITCH_VARIANT,
-      TestProject.MULTI_FLAVOR_WITH_FILTERING,
-      TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
-      TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
-      TestProject.KOTLIN_GRADLE_DSL,
-      TestProject.NEW_SYNC_KOTLIN_TEST,
-      TestProject.PSD_SAMPLE_GROOVY,
-      TestProject.COMPOSITE_BUILD,
-      TestProject.APP_WITH_BUILDSRC,
-      TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN,
-      TestProject.KOTLIN_MULTIPLATFORM,
-      TestProject.KOTLIN_MULTIPLATFORM_WITHJS,
-      TestProject.KOTLIN_MULTIPLATFORM_IOS,
-      TestProject.KOTLIN_MULTIPLATFORM_JVM,
-      TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP,
-      TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE,
-      TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION,
-      TestProject.KOTLIN_KAPT,
-      TestProject.API_DEPENDENCY,
-      TestProject.LIGHT_SYNC_REFERENCE,
-      TestProject.NON_STANDARD_SOURCE_SETS,
-      TestProject.BUILDSRC_WITH_COMPOSITE,
-      TestProject.APP_WITH_BUILD_FEATURES_ENABLED,
-      TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME,
-      TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED,
-      TestProject.TEST_STATIC_DIR,
-
-      TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML,
-      TestProject.COMPATIBILITY_TESTS_AS_36,
-      TestProject.TWO_JARS,
-      TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
-      TestProject.TEST_SUITES,
-    )
+    val phasedSyncTestProjects =
+      listOf(
+        TestProject.SIMPLE_APPLICATION,
+        TestProject.SIMPLE_APPLICATION_VIA_SYMLINK,
+        TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK,
+        TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT,
+        TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS,
+        TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION,
+        TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR,
+        TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST,
+        TestProject.PURE_JAVA_PROJECT,
+        TestProject.MAIN_IN_ROOT,
+        TestProject.NESTED_MODULE,
+        TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE,
+        TestProject.TRANSITIVE_DEPENDENCIES,
+        TestProject.WITH_GRADLE_METADATA,
+        TestProject.TEST_FIXTURES,
+        TestProject.TEST_ONLY_MODULE,
+        TestProject.APP_WITH_ML_MODELS,
+        TestProject.MULTI_FLAVOR,
+        TestProject.MULTI_FLAVOR_SWITCH_VARIANT,
+        TestProject.MULTI_FLAVOR_WITH_FILTERING,
+        TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+        TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
+        TestProject.KOTLIN_GRADLE_DSL,
+        TestProject.NEW_SYNC_KOTLIN_TEST,
+        TestProject.PSD_SAMPLE_GROOVY,
+        TestProject.COMPOSITE_BUILD,
+        TestProject.APP_WITH_BUILDSRC,
+        TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN,
+        TestProject.KOTLIN_MULTIPLATFORM,
+        TestProject.KOTLIN_MULTIPLATFORM_WITHJS,
+        TestProject.KOTLIN_MULTIPLATFORM_IOS,
+        TestProject.KOTLIN_MULTIPLATFORM_JVM,
+        TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP,
+        TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE,
+        TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION,
+        TestProject.KOTLIN_KAPT,
+        TestProject.API_DEPENDENCY,
+        TestProject.LIGHT_SYNC_REFERENCE,
+        TestProject.NON_STANDARD_SOURCE_SETS,
+        TestProject.BUILDSRC_WITH_COMPOSITE,
+        TestProject.APP_WITH_BUILD_FEATURES_ENABLED,
+        TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME,
+        TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED,
+        TestProject.TEST_STATIC_DIR,
+        TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML,
+        TestProject.COMPATIBILITY_TESTS_AS_36,
+        TestProject.TWO_JARS,
+        TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        TestProject.TEST_SUITES,
+      )
   }
 }
-
 
 data class ModuleDumpWithType(
-  val phasedSyncModuleNames : List<String>,
+  val phasedSyncModuleNames: List<String>,
   val androidModuleNames: List<String>,
   val projectStructure: Sequence<String>,
-  val ideModels: Sequence<String>
+  val ideModels: Sequence<String>,
 )
 
-fun ModuleDumpWithType.projectStructure() : String = annotate().projectStructure.joinToString(separator = "\n")
-fun ModuleDumpWithType.ideModels() : String = annotate().ideModels.joinToString(separator = "\n")
+fun ModuleDumpWithType.projectStructure(): String = annotate().projectStructure.joinToString(separator = "\n")
+
+fun ModuleDumpWithType.ideModels(): String = annotate().ideModels.joinToString(separator = "\n")
+
 fun ModuleDumpWithType.filterToPhasedSyncModules() = includeByModuleName(phasedSyncModuleNames)
+
 fun ModuleDumpWithType.filterToAndroidModules() = includeByModuleName(androidModuleNames)
 
-fun ModuleDumpWithType.annotate() = copy(
-  projectStructure = projectStructure.annotate(phasedSyncModuleNames, androidModuleNames),
-  ideModels = ideModels.annotate(phasedSyncModuleNames, androidModuleNames)
-)
+fun ModuleDumpWithType.annotate() =
+  copy(
+    projectStructure = projectStructure.annotate(phasedSyncModuleNames, androidModuleNames),
+    ideModels = ideModels.annotate(phasedSyncModuleNames, androidModuleNames),
+  )
 
-fun Sequence<String>.annotate(
-  phasedSyncModuleNames: List<String>,
-  androidModuleNames: List<String>
-) = this.map { line ->
-  buildString {
-    if (phasedSyncModuleNames.any { line.contains("MODULE ($it)") })
-      append("PHASED")
-    else
-      append("LEGACY")
-    append(" ")
-    if (androidModuleNames.any { line.contains("MODULE ($it)") })
-      append("ANDROID")
-    else
-      append("NON-ANDROID")
-    append(" ")
-    append(line)
+fun Sequence<String>.annotate(phasedSyncModuleNames: List<String>, androidModuleNames: List<String>) =
+  this.map { line ->
+    buildString {
+      if (phasedSyncModuleNames.any { line.contains("MODULE ($it)") }) append("PHASED") else append("LEGACY")
+      append(" ")
+      if (androidModuleNames.any { line.contains("MODULE ($it)") }) append("ANDROID") else append("NON-ANDROID")
+      append(" ")
+      append(line)
+    }
   }
-}
 
-fun ModuleDumpWithType.filterOutExpectedInconsistencies() = copy(
-  projectStructure = projectStructure.filter { line ->
-    !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
-  })
+fun ModuleDumpWithType.filterOutExpectedInconsistencies() =
+  copy(
+    projectStructure =
+      projectStructure.filter { line ->
+        !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
+      }
+  )
 
 fun Project.dumpModules(knownAndroidPaths: Set<File>, checkObjectIdentity: Boolean = false): ModuleDumpWithType {
   // Filter KTS modules since with IntelliJ 2025.2 there are differences between intermediate and full sync b/431159711
@@ -153,77 +152,61 @@ fun Project.dumpModules(knownAndroidPaths: Set<File>, checkObjectIdentity: Boole
     phasedSyncModuleNames = modulesFiltered.filter { it.moduleFilePath.isEmpty() }.map { it.name },
     androidModuleNames = modulesFiltered.filter { it.projectDirectory() in knownAndroidPaths }.map { it.name },
     projectStructure = dumpAllModuleEntries(checkObjectIdentity),
-    ideModels = dumpAllIdeModels()
+    ideModels = dumpAllIdeModels(),
   )
 }
 
-private fun Project.dumpAllModuleEntries(checkObjectIdentity: Boolean) : Sequence<String> {
+private fun Project.dumpAllModuleEntries(checkObjectIdentity: Boolean): Sequence<String> {
   val dumper = createDumper(checkObjectIdentity)
-  modules.sortedBy { it.name }.forEach {
-    dumper.dump(it)
-  }
+  modules.sortedBy { it.name }.forEach { dumper.dump(it) }
 
   return dumper.toString().nameProperties()
 }
 
-private fun Project.dumpAllIdeModels() : Sequence<String> {
+private fun Project.dumpAllIdeModels(): Sequence<String> {
   val dumper = createDumper(checkObjectIdentity = false)
-  dumper.dumpAndroidIdeModel(
-      this,
-      kotlinModels = { null },
-      kaptModels = { null },
-      mppModels = { null },
-      externalProjects = { null },
+  dumper.dumpAndroidIdeModel(this, kotlinModels = { null }, kaptModels = { null }, mppModels = { null }, externalProjects = { null })
+
+  return dumper.toString().nameProperties()
+}
+
+private fun Project.createDumper(checkObjectIdentity: Boolean) =
+  ProjectDumper(
+    androidSdk = getSdk().toFile(),
+    devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
+    projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+    forSnapshotComparison = true,
+    checkObjectIdentity = checkObjectIdentity,
   )
 
-  return dumper.toString().nameProperties()
-}
+private fun Module.projectDirectory(): File? =
+  ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }
 
-
-private fun Project.createDumper(checkObjectIdentity: Boolean) = ProjectDumper(
-  androidSdk = getSdk().toFile(),
-  devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
-  projectJdk = ProjectRootManager.getInstance(this).projectSdk,
-  forSnapshotComparison = true,
-  checkObjectIdentity = checkObjectIdentity
-)
-
-private fun Module.projectDirectory(): File? = ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }
-
-val DEPENDENCY_RELATED_PROPERTIES = setOf(
-  "/ORDER_ENTRY",
-  "/LIBRARY",
-)
-
+val DEPENDENCY_RELATED_PROPERTIES = setOf("/ORDER_ENTRY", "/LIBRARY")
 
 private fun String.nameProperties(): Sequence<String> =
-  this
-    .splitToSequence('\n')
-    .let { nameProperties(
-      it,
-      attachValue = true,
-      // Make sure the top level entries where all children end up being filtered also gets filtered
-      skipTopLevel = true
-    ) }
+  this.splitToSequence('\n')
+    .let {
+      nameProperties(
+        it,
+        attachValue = true,
+        // Make sure the top level entries where all children end up being filtered also gets filtered
+        skipTopLevel = true,
+      )
+    }
     .map { it.first }
 
-private fun ModuleDumpWithType.excludeByModuleName(names: List<String>) = copy (
-  projectStructure = projectStructure.filter { line ->
-    names.none { line.contains("MODULE ($it)") }
-  },
-  ideModels = ideModels.filter { line ->
-    names.none { line.contains("MODULE ($it)") }
-  }
-)
+private fun ModuleDumpWithType.excludeByModuleName(names: List<String>) =
+  copy(
+    projectStructure = projectStructure.filter { line -> names.none { line.contains("MODULE ($it)") } },
+    ideModels = ideModels.filter { line -> names.none { line.contains("MODULE ($it)") } },
+  )
 
-private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
-  projectStructure = projectStructure.filter { line ->
-    names.any { line.contains("MODULE ($it)") }
-  },
-  ideModels = ideModels.filter { line ->
-    names.any { line.contains("MODULE ($it)") }
-  }
-)
+private fun ModuleDumpWithType.includeByModuleName(names: List<String>) =
+  copy(
+    projectStructure = projectStructure.filter { line -> names.any { line.contains("MODULE ($it)") } },
+    ideModels = ideModels.filter { line -> names.any { line.contains("MODULE ($it)") } },
+  )
 
 @Suppress("UnstableApiUsage")
 internal class ModelDumpSyncContributor(val checkObjectIdentity: Boolean) : GradleSyncListener {
@@ -232,13 +215,13 @@ internal class ModelDumpSyncContributor(val checkObjectIdentity: Boolean) : Grad
 
   override fun onModelFetchCompleted(context: ProjectResolverContext) {
     // Multiple composite builds can invoke this method, so keeping track of all android projects
-    knownAndroidPaths += context.allBuilds.flatMap { buildModel ->
-      buildModel.projects.sortedBy{ it.path }.filter { projectModel ->
-        context.getProjectModel(projectModel, Versions::class.java) != null
-      }.map {
-        it.projectDirectory
+    knownAndroidPaths +=
+      context.allBuilds.flatMap { buildModel ->
+        buildModel.projects
+          .sortedBy { it.path }
+          .filter { projectModel -> context.getProjectModel(projectModel, Versions::class.java) != null }
+          .map { it.projectDirectory }
       }
-    }
 
     intermediateDump = context.project.dumpModules(knownAndroidPaths, checkObjectIdentity)
   }

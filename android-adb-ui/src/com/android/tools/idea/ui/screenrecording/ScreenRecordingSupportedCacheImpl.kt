@@ -29,8 +29,8 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.delay
 import java.time.Duration
+import kotlinx.coroutines.delay
 
 private const val SCREEN_RECORDER_DEVICE_PATH = "/system/bin/screenrecord"
 private val COMMAND_TIMEOUT = Duration.ofSeconds(5)
@@ -64,7 +64,10 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
       return true // Reputable vendors support screen recording.
     }
     return connectedDeviceState.connectedDevice.cache.getOrPutSuspending(
-        cacheKey, fastDefaultValue = { true }, defaultValue = { computeIsSupported(serialNumber) })
+      cacheKey,
+      fastDefaultValue = { true },
+      defaultValue = { computeIsSupported(serialNumber) },
+    )
   }
 
   private suspend fun computeIsSupported(serialNumber: String): Boolean {
@@ -74,8 +77,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
       try {
         val out = execute(serialNumber, "ls $SCREEN_RECORDER_DEVICE_PATH")
         return out.trim() == SCREEN_RECORDER_DEVICE_PATH
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         thisLogger().warn("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
         delay(IS_SUPPORTED_RETRY_TIMEOUT.toMillis())
       }
@@ -83,9 +85,8 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   }
 
   private suspend fun execute(serialNumber: String, command: String): String =
-      adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber), command, commandTimeout = COMMAND_TIMEOUT).stdout
 }
 
 private fun DeviceProvisioner.findConnectedDevice(serialNumber: String): DeviceState.Connected? =
-    devices.value.firstOrNull { it.state.connectedDevice?.deviceInfo?.serialNumber == serialNumber }?.state as? DeviceState.Connected
-
+  devices.value.firstOrNull { it.state.connectedDevice?.deviceInfo?.serialNumber == serialNumber }?.state as? DeviceState.Connected

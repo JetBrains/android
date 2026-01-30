@@ -102,10 +102,7 @@ class Mat3D(
   val cc: Double,
 ) {
 
-  /**
-   * in order: [row1.first, row1.second, row1.third] [row2.first, row2.second, row2.third]
-   * [row3.first, row3.second, row3.third]
-   */
+  /** in order: [row1.first, row1.second, row1.third] [row2.first, row2.second, row2.third] [row3.first, row3.second, row3.third] */
   internal constructor(
     row1: Double3D,
     row2: Double3D,

@@ -21,30 +21,23 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.intellij.psi.PsiElement
 
 /**
- * This class was created to make a base for empty models that
- * are not available in Declarative but exists in Groovy/Kts
- * Such models stub model interfaces by returning empty list of child elements
- * and throwing exception for any mutations.
+ * This class was created to make a base for empty models that are not available in Declarative but exists in Groovy/Kts Such models stub
+ * model interfaces by returning empty list of child elements and throwing exception for any mutations.
  *
- * This way we preserve existing API for now and make it usable for
- * checks that random code can do without knowing type of build.
+ * This way we preserve existing API for now and make it usable for checks that random code can do without knowing type of build.
  */
-open class EmptyGradleBlockModel: GradleBlockModel {
+open class EmptyGradleBlockModel : GradleBlockModel {
   override fun getPsiElement(): PsiElement? = null
 
-  override fun delete() =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun delete() = throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun getRawPropertyHolder(): GradleDslElement =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun getRawPropertyHolder(): GradleDslElement = throw UnsupportedOperationException("Call is not supported for Declarative")
 
-  override fun getHolder(): GradleDslElement =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun getHolder(): GradleDslElement = throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun getRawElement(): GradleDslElement? = null
 
-  override fun getFullyQualifiedName(): String =
-    throw UnsupportedOperationException("Call is not supported for Declarative")
+  override fun getFullyQualifiedName(): String = throw UnsupportedOperationException("Call is not supported for Declarative")
 
   override fun getInScopeProperties(): Map<String, GradlePropertyModel> = mapOf()
 

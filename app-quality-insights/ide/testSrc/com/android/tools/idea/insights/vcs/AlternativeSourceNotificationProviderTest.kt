@@ -47,8 +47,7 @@ import org.mockito.kotlin.mock
 
 @RunsInEdt
 class AlternativeSourceNotificationProviderTest {
-  private val ACTIVE_FLV1_APP_ID =
-    "com.example.app.flv1.release" // We use this as the current app id for all tests.
+  private val ACTIVE_FLV1_APP_ID = "com.example.app.flv1.release" // We use this as the current app id for all tests.
   private val INACTIVE_FLV2_APP_ID = "com.example.app.flv2.release"
 
   private val PACKAGE_DIR = "com/example/app"
@@ -56,7 +55,7 @@ class AlternativeSourceNotificationProviderTest {
     """
     package com.example.app
     Class Foo {}
-  """
+    """
       .trimIndent()
 
   private val projectRule =
@@ -86,12 +85,7 @@ class AlternativeSourceNotificationProviderTest {
     val flv2File = projectRule.fixture.addFileToProject("app/src/flv2/$PACKAGE_DIR/Foo.kt", SRC)
     val flv3File = projectRule.fixture.addFileToProject("app/src/flv3/$PACKAGE_DIR/Foo.kt", SRC)
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(INACTIVE_FLV2_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(INACTIVE_FLV2_APP_ID))
     val fileEditor = diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable)
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
@@ -106,12 +100,7 @@ class AlternativeSourceNotificationProviderTest {
     val flv2File = projectRule.fixture.addFileToProject("app/src/flv2/$PACKAGE_DIR/Foo.kt", SRC)
     val flv3File = projectRule.fixture.addFileToProject("app/src/flv3/$PACKAGE_DIR/Foo.kt", SRC)
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(ACTIVE_FLV1_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(ACTIVE_FLV1_APP_ID))
     val fileEditor = diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable)
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
@@ -124,42 +113,25 @@ class AlternativeSourceNotificationProviderTest {
   fun `do not show banner when no alternatives`() {
     val flv1File = projectRule.fixture.addFileToProject("app/src/flv1/$PACKAGE_DIR/Foo.kt", SRC)
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(INACTIVE_FLV2_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(INACTIVE_FLV2_APP_ID))
     val fileEditor = diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable)
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
     assertThat(panel).isNull()
-    assertThat(fileEditor.getUserData(provider.APP_SCOPE_MATCH_RESULT_KEY))
-      .isNull() // We don't reach the step to check scope.
+    assertThat(fileEditor.getUserData(provider.APP_SCOPE_MATCH_RESULT_KEY)).isNull() // We don't reach the step to check scope.
   }
 
   @Test
   fun `do not show banner when no package name qualified alternatives`() {
-    val flv1File =
-      projectRule.fixture.addFileToProject(
-        "app/src/flv1/Foo.kt",
-        SRC,
-      ) // package name is "com.example.app"
-    val flv2File =
-      projectRule.fixture.addFileToProject("app/src/flv2/Foo.kt", "class Foo") // package name is ""
+    val flv1File = projectRule.fixture.addFileToProject("app/src/flv1/Foo.kt", SRC) // package name is "com.example.app"
+    val flv2File = projectRule.fixture.addFileToProject("app/src/flv2/Foo.kt", "class Foo") // package name is ""
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(ACTIVE_FLV1_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(ACTIVE_FLV1_APP_ID))
     val fileEditor = diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable)
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
     assertThat(panel).isNull()
-    assertThat(fileEditor.getUserData(provider.APP_SCOPE_MATCH_RESULT_KEY))
-      .isEqualTo(null) // we don't reach the step to check scope
+    assertThat(fileEditor.getUserData(provider.APP_SCOPE_MATCH_RESULT_KEY)).isEqualTo(null) // we don't reach the step to check scope
   }
 
   @Test
@@ -183,18 +155,10 @@ class AlternativeSourceNotificationProviderTest {
     val flv2File = projectRule.fixture.addFileToProject("app/src/flv2/$PACKAGE_DIR/Foo.kt", SRC)
     val flv3File = projectRule.fixture.addFileToProject("app/src/flv3/$PACKAGE_DIR/Foo.kt", SRC)
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(ACTIVE_FLV1_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(ACTIVE_FLV1_APP_ID))
     val fileEditor =
       diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable).apply {
-        putUserData(
-          provider.APP_SCOPE_MATCH_RESULT_KEY,
-          AlternativeSourceNotificationProvider.AppScopeMatchResult.MISMATCH,
-        )
+        putUserData(provider.APP_SCOPE_MATCH_RESULT_KEY, AlternativeSourceNotificationProvider.AppScopeMatchResult.MISMATCH)
       }
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
@@ -209,18 +173,10 @@ class AlternativeSourceNotificationProviderTest {
     val flv2File = projectRule.fixture.addFileToProject("app/src/flv2/$PACKAGE_DIR/Foo.kt", SRC)
     val flv3File = projectRule.fixture.addFileToProject("app/src/flv3/$PACKAGE_DIR/Foo.kt", SRC)
 
-    val diffFile =
-      createDiffFile(
-        flv1File.virtualFile,
-        projectRule.project,
-        createConnection(INACTIVE_FLV2_APP_ID),
-      )
+    val diffFile = createDiffFile(flv1File.virtualFile, projectRule.project, createConnection(INACTIVE_FLV2_APP_ID))
     val fileEditor =
       diffFile.createFileEditor(projectRule.project, projectRule.testRootDisposable).apply {
-        putUserData(
-          provider.APP_SCOPE_MATCH_RESULT_KEY,
-          AlternativeSourceNotificationProvider.AppScopeMatchResult.MATCH,
-        )
+        putUserData(provider.APP_SCOPE_MATCH_RESULT_KEY, AlternativeSourceNotificationProvider.AppScopeMatchResult.MATCH)
       }
     val panel = provider.collectNotificationData(projectRule.project, diffFile)?.apply(fileEditor)
 
@@ -233,9 +189,7 @@ class AlternativeSourceNotificationProviderTest {
     val labels = flatten().filterIsInstance<JLabel>().map { it.text }.filterNot { it.isEmpty() }
     assertThat(labels).containsExactly(provider.TEXT_WARNING, "Alternative sources: ")
 
-    val comboBoxes =
-      flatten()
-        .filterIsInstance<ComboBox<AlternativeSourceNotificationProvider.ComboBoxFileElement>>()
+    val comboBoxes = flatten().filterIsInstance<ComboBox<AlternativeSourceNotificationProvider.ComboBoxFileElement>>()
     assertThat(comboBoxes.size).isEqualTo(1)
     comboBoxes.single().assertContents()
 
@@ -244,38 +198,20 @@ class AlternativeSourceNotificationProviderTest {
   }
 
   private fun ComboBox<AlternativeSourceNotificationProvider.ComboBoxFileElement>.assertContents() {
-    val items =
-      (0 until itemCount).map {
-        getItemAt(it) as AlternativeSourceNotificationProvider.ComboBoxFileElement
-      }
+    val items = (0 until itemCount).map { getItemAt(it) as AlternativeSourceNotificationProvider.ComboBoxFileElement }
     assertThat(items.map { PathUtil.toSystemIndependentName(it.toString()) })
       .containsExactly("flv1/…/Foo.kt", "flv2/…/Foo.kt", "flv3/…/Foo.kt")
   }
 
-  private fun createDiffFile(
-    file: VirtualFile,
-    project: Project,
-    origin: Connection?,
-  ): InsightsDiffVirtualFile {
+  private fun createDiffFile(file: VirtualFile, project: Project, origin: Connection?): InsightsDiffVirtualFile {
     val contextDataForDiff =
-      ContextDataForDiff(
-        vcsKey = VCS_CATEGORY.TEST_VCS,
-        revision = "123",
-        filePath = file.toVcsFilePath(),
-        lineNumber = 4,
-        origin = origin,
-      )
+      ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = file.toVcsFilePath(), lineNumber = 4, origin = origin)
     return InsightsDiffVirtualFile(InsightsDiffViewProvider(contextDataForDiff, project))
   }
 
-  private fun InsightsDiffVirtualFile.createFileEditor(
-    project: Project,
-    parentDisposable: Disposable,
-  ): FileEditor {
+  private fun InsightsDiffVirtualFile.createFileEditor(project: Project, parentDisposable: Disposable): FileEditor {
     val processor = createViewer(project)
-    return DiffEditorViewerFileEditor(this, processor).apply {
-      Disposer.register(parentDisposable, this)
-    }
+    return DiffEditorViewerFileEditor(this, processor).apply { Disposer.register(parentDisposable, this) }
   }
 
   private fun createConnection(appId: String): Connection {

@@ -25,10 +25,9 @@ import kotlin.time.Duration
 /**
  * A description of a device that can be displayed in a [DeviceTable].
  *
- * This interface uses an "extensible data class" pattern. Concrete subtypes are implemented as data
- * classes, and are free to add additional fields. The Builder class exists in order to allow
- * updates to the common fields generically. (This ended up being mostly irrelevant after the
- * de-unification of the dialog.)
+ * This interface uses an "extensible data class" pattern. Concrete subtypes are implemented as data classes, and are free to add additional
+ * fields. The Builder class exists in order to allow updates to the common fields generically. (This ended up being mostly irrelevant after
+ * the de-unification of the dialog.)
  */
 interface DeviceProfile {
   val apiRange: Range<Int>
@@ -53,8 +52,8 @@ interface DeviceProfile {
   @Composable fun Icon(modifier: Modifier)
 
   /**
-   * Subtypes should extend this Builder with the additional fields needed, and create their own
-   * [copyFrom] overload that calls super.copyFrom() to initialize the superclass fields.
+   * Subtypes should extend this Builder with the additional fields needed, and create their own [copyFrom] overload that calls
+   * super.copyFrom() to initialize the superclass fields.
    */
   abstract class Builder {
     lateinit var apiRange: Range<Int>
@@ -92,8 +91,7 @@ interface DeviceProfile {
   }
 }
 
-fun DeviceProfile.update(block: DeviceProfile.Builder.() -> Unit): DeviceProfile =
-  toBuilder().apply(block).build()
+fun DeviceProfile.update(block: DeviceProfile.Builder.() -> Unit): DeviceProfile = toBuilder().apply(block).build()
 
 object FormFactors {
   const val PHONE = "Phone"

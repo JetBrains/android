@@ -34,11 +34,7 @@ fun androidModuleThemesMaterial3(themeName: String) =
   </style>
 </resources>"""
 
-fun androidModuleThemes(
-  useAndroidX: Boolean,
-  minSdk: AndroidMajorVersion,
-  themeName: String = "Theme.App",
-) =
+fun androidModuleThemes(useAndroidX: Boolean, minSdk: AndroidMajorVersion, themeName: String = "Theme.App") =
   if (useAndroidX)
     """<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Base application theme. -->

@@ -17,10 +17,13 @@ package com.android.tools.idea.stats
 
 import com.android.tools.idea.serverflags.protos.FeatureSurveyConfig
 
-val DEFAULT_FEATURE_SURVEY_CONFIG: FeatureSurveyConfig = FeatureSurveyConfig.newBuilder().apply {
-  generalIntervalCompleted = 30
-  generalIntervalCancelled = 7
-  specificIntervalCompleted = 365
-  specificIntervalCancelled = 7
-  idleIntervalMs = 30000
-}.build()
+val DEFAULT_FEATURE_SURVEY_CONFIG: FeatureSurveyConfig =
+  FeatureSurveyConfig.newBuilder()
+    .apply {
+      generalIntervalCompleted = 30
+      generalIntervalCancelled = 7
+      specificIntervalCompleted = 365
+      specificIntervalCancelled = 7
+      idleIntervalMs = 30000
+    }
+    .build()

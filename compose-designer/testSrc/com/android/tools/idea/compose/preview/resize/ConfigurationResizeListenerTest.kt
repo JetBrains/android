@@ -90,10 +90,7 @@ class ConfigurationResizeListenerTest {
     val sceneManager = mock<LayoutlibSceneManager>()
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener =
-      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
-        advanceUntilIdle()
-      }
+    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher).also { advanceUntilIdle() }
 
     listener.changed(CFG_NIGHT_MODE or CFG_ACTIVITY) // No CFG_DEVICE
     advanceUntilIdle()
@@ -121,12 +118,7 @@ class ConfigurationResizeListenerTest {
     val configuration = createConfiguration(500, 600)
 
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     configuration.updateScreenSize(700, 800)
@@ -142,17 +134,11 @@ class ConfigurationResizeListenerTest {
     val configuration = createConfiguration(500, 600)
 
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     val newDevice = device(500, 1000)
-    val state =
-      newDevice.defaultState.deepCopy()!!.apply { orientation = ScreenOrientation.LANDSCAPE }
+    val state = newDevice.defaultState.deepCopy()!!.apply { orientation = ScreenOrientation.LANDSCAPE }
     configuration.setEffectiveDevice(newDevice, state)
     advanceUntilIdle()
 
@@ -176,12 +162,7 @@ class ConfigurationResizeListenerTest {
     }
 
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
@@ -202,12 +183,7 @@ class ConfigurationResizeListenerTest {
     whenever(sceneManager.viewObject).thenReturn(null) // Return null viewObject
 
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
     configuration.addListener(listener)
     configuration.updateScreenSize(700, 800)
 
@@ -240,12 +216,7 @@ class ConfigurationResizeListenerTest {
     whenever(sceneManager.viewObject).thenReturn(testView)
 
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
@@ -268,10 +239,7 @@ class ConfigurationResizeListenerTest {
     val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener =
-      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
-        advanceUntilIdle()
-      }
+    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher).also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     // Simulate multiple, rapid device changes.
@@ -294,12 +262,7 @@ class ConfigurationResizeListenerTest {
     val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val listener =
-      ConfigurationResizeListener(
-          sceneManager,
-          configuration,
-          StandardTestDispatcher(testScheduler),
-        )
-        .also { advanceUntilIdle() }
+      ConfigurationResizeListener(sceneManager, configuration, StandardTestDispatcher(testScheduler)).also { advanceUntilIdle() }
 
     configuration.addListener(listener)
 
@@ -316,15 +279,11 @@ class ConfigurationResizeListenerTest {
     val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
-    val listener =
-      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
-        advanceUntilIdle()
-      }
+    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher).also { advanceUntilIdle() }
     configuration.addListener(listener)
 
     // Make requestRenderWithNewSize always throw an exception
-    whenever(sceneManager.requestRenderWithNewSize(any(), any()))
-      .thenThrow(RuntimeException("Simulated error"))
+    whenever(sceneManager.requestRenderWithNewSize(any(), any())).thenThrow(RuntimeException("Simulated error"))
 
     // Simulate multiple device changes.  Every call should throw, but collectLatest should keep
     // going.
@@ -341,75 +300,70 @@ class ConfigurationResizeListenerTest {
   }
 
   @Test
-  fun `listener uses original size when forceUseOriginalSize is true and in shrink mode`() =
-    runTest {
-      val viewObj = mock<View>()
-      val layoutParams = ViewGroup.LayoutParams(11, 12)
-      whenever(viewObj.layoutParams)
-        .thenReturn(layoutParams) // viewObj returns our real LayoutParams
+  fun `listener uses original size when forceUseOriginalSize is true and in shrink mode`() = runTest {
+    val viewObj = mock<View>()
+    val layoutParams = ViewGroup.LayoutParams(11, 12)
+    whenever(viewObj.layoutParams).thenReturn(layoutParams) // viewObj returns our real LayoutParams
 
-      val previewElement =
-        SingleComposePreviewElementInstance.forTesting<Unit>(
-          "test",
-          configuration =
-            PreviewConfiguration.cleanAndGet(width = UNDEFINED_DIMENSION, height = 100),
-        )
+    val previewElement =
+      SingleComposePreviewElementInstance.forTesting<Unit>(
+        "test",
+        configuration = PreviewConfiguration.cleanAndGet(width = UNDEFINED_DIMENSION, height = 100),
+      )
 
-      val model = mock<NlModel>()
-      `when`(model.dataProvider)
-        .thenReturn(
-          object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
-            override fun getData(dataId: String) =
-              previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
-          }
-        )
-
-      val sceneManager =
-        createSceneManager(false).also { sm ->
-          whenever(sm.model).thenReturn(model)
-          whenever(sm.forceNextResizeToUseOriginalSize).doAnswer { true }
-          whenever(sm.viewObject).thenReturn(viewObj)
-          whenever(sm.executeInRenderSessionAsync(any(), any(), any())).then {
-            val callback = it.getArgument(0, Runnable::class.java)
-            callback.run()
-            CompletableFuture.completedFuture(null)
-          }
+    val model = mock<NlModel>()
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) = previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
         }
+      )
 
-      val initialWidth = 500
-      val initialHeight = 600
-      val configuration = createConfiguration(initialWidth, initialHeight)
+    val sceneManager =
+      createSceneManager(false).also { sm ->
+        whenever(sm.model).thenReturn(model)
+        whenever(sm.forceNextResizeToUseOriginalSize).doAnswer { true }
+        whenever(sm.viewObject).thenReturn(viewObj)
+        whenever(sm.executeInRenderSessionAsync(any(), any(), any())).then {
+          val callback = it.getArgument(0, Runnable::class.java)
+          callback.run()
+          CompletableFuture.completedFuture(null)
+        }
+      }
 
-      val dispatcher = StandardTestDispatcher(testScheduler)
-      val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
-      Disposer.register(sceneManager, listener)
-      configuration.addListener(listener)
+    val initialWidth = 500
+    val initialHeight = 600
+    val configuration = createConfiguration(initialWidth, initialHeight)
 
-      advanceUntilIdle()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
+    Disposer.register(sceneManager, listener)
+    configuration.addListener(listener)
 
-      // Act
-      val newWidth = initialWidth + 100
-      val newHeight = initialHeight + 100
-      configuration.updateScreenSize(newWidth, newHeight)
-      advanceUntilIdle()
+    advanceUntilIdle()
 
-      // Verify that the viewObj's LayoutParams were changed to WRAP_CONTENT
-      assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, viewObj.layoutParams.width)
-      assertEquals(100, viewObj.layoutParams.height)
+    // Act
+    val newWidth = initialWidth + 100
+    val newHeight = initialHeight + 100
+    configuration.updateScreenSize(newWidth, newHeight)
+    advanceUntilIdle()
 
-      // Verify the flag was reset on the sceneManager
-      verify(sceneManager).forceNextResizeToUseOriginalSize = false
+    // Verify that the viewObj's LayoutParams were changed to WRAP_CONTENT
+    assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, viewObj.layoutParams.width)
+    assertEquals(100, viewObj.layoutParams.height)
 
-      // Verify requestRenderWithNewSize was called with the newDeviceSize from configuration.
-      verify(sceneManager).requestRenderWithNewSize(newWidth, newHeight)
+    // Verify the flag was reset on the sceneManager
+    verify(sceneManager).forceNextResizeToUseOriginalSize = false
 
-      Disposer.dispose(sceneManager)
-    }
+    // Verify requestRenderWithNewSize was called with the newDeviceSize from configuration.
+    verify(sceneManager).requestRenderWithNewSize(newWidth, newHeight)
+
+    Disposer.dispose(sceneManager)
+  }
 
   // Helper function to create a Configuration
   private fun createConfiguration(width: Int, height: Int): Configuration {
-    val configuration =
-      Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configurationSettings, FolderConfiguration.createDefault())
     configuration.setDevice(device(width, height), true)
 
     return configuration

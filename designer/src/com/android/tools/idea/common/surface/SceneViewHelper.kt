@@ -25,15 +25,14 @@ import com.android.tools.idea.common.scene.SceneComponent
 import org.intellij.lang.annotations.JdkConstants
 
 /**
- * Selects the component under the given x,y coordinate, optionally toggling or replacing the
- * selection.
+ * Selects the component under the given x,y coordinate, optionally toggling or replacing the selection.
  *
  * @param x The mouse click x coordinate, in Swing coordinates.
  * @param y The mouse click y coordinate, in Swing coordinates.
- * @param allowToggle If true, clicking an unselected component adds it to the selection, and
- *   clicking a selected component removes it from the selection. If not, the selection is replaced.
- * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
- *   selection (including possibly other selected components) alone
+ * @param allowToggle If true, clicking an unselected component adds it to the selection, and clicking a selected component removes it from
+ *   the selection. If not, the selection is replaced.
+ * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the selection (including possibly other
+ *   selected components) alone
  */
 fun SceneView.selectComponentAt(
   @SwingCoordinate x: Int,
@@ -73,11 +72,7 @@ fun SceneView.selectComponentAt(
   return component
 }
 
-fun SceneView.selectComponent(
-  component: NlComponent?,
-  allowToggle: Boolean,
-  ignoreIfAlreadySelected: Boolean,
-) {
+fun SceneView.selectComponent(component: NlComponent?, allowToggle: Boolean, ignoreIfAlreadySelected: Boolean) {
   if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
     return
   }

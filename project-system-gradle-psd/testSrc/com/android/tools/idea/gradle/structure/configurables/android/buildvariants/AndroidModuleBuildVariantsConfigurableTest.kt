@@ -33,8 +33,7 @@ import org.junit.Test
 @RunsInEdt
 class AndroidModuleBuildVariantsConfigurableTest {
 
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testProductFlavorsTreeStructure() {
@@ -49,16 +48,19 @@ class AndroidModuleBuildVariantsConfigurableTest {
       val node = treeModel.rootNode
 
       // Note: indentation matters!
-      val expectedStructure = """
-      Flavor Dimensions
-          dim1
-              paid
-              free
-          foo
-              foo1
-              foo2
-          (invalid)
-              bar1""".trimIndent()
+      val expectedStructure =
+        """
+        Flavor Dimensions
+            dim1
+                paid
+                free
+            foo
+                foo1
+                foo2
+            (invalid)
+                bar1
+        """
+          .trimIndent()
       val treeStructure = node.testStructure()
       // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
       Truth.assertThat(treeStructure.toString()).isEqualTo(expectedStructure)

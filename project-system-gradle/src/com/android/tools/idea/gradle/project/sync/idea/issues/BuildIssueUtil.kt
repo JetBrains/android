@@ -29,13 +29,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
-/**
- * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
- */
+/** Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling. */
 class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle Sync issues.") {
   val descriptionComposer = BuildIssueDescriptionComposer(baseMessage)
 
-  val issueQuickFixes: List<BuildIssueQuickFix> get() = descriptionComposer.quickFixes
+  val issueQuickFixes: List<BuildIssueQuickFix>
+    get() = descriptionComposer.quickFixes
 
   fun addDescriptionOnNewLine(message: String): BuildIssueComposer {
     descriptionComposer.newLine()
@@ -77,17 +76,20 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
       override val title: String = issueTitle
       override val description = descriptionComposer.description
       override val quickFixes = descriptionComposer.quickFixes
+
       override fun getNavigatable(project: Project) = null
     }
   }
 
-  fun composeErrorMessageAwareBuildIssue(buildErrorMessage: BuildErrorMessage) = object : ErrorMessageAwareBuildIssue {
-    override val title: String = issueTitle
-    override val description = descriptionComposer.description
-    override val quickFixes = descriptionComposer.quickFixes
-    override val buildErrorMessage = buildErrorMessage
-    override fun getNavigatable(project: Project) = null
-  }
+  fun composeErrorMessageAwareBuildIssue(buildErrorMessage: BuildErrorMessage) =
+    object : ErrorMessageAwareBuildIssue {
+      override val title: String = issueTitle
+      override val description = descriptionComposer.description
+      override val quickFixes = descriptionComposer.quickFixes
+      override val buildErrorMessage = buildErrorMessage
+
+      override fun getNavigatable(project: Project) = null
+    }
 }
 
 class BuildIssueDescriptionComposer(baseMessage: String = "") {
@@ -96,9 +98,9 @@ class BuildIssueDescriptionComposer(baseMessage: String = "") {
 
   val description: String
     get() = descriptionBuilder.toString()
+
   val quickFixes: List<BuildIssueQuickFix>
     get() = issueQuickFixes
-
 
   fun addDescription(additionalDescription: BuildIssueDescriptionComposer) {
     descriptionBuilder.append(additionalDescription.description)
@@ -131,30 +133,25 @@ class BuildIssueDescriptionComposer(baseMessage: String = "") {
   }
 }
 
-/**
- * Find the Idea project instance associated with a given Gradle project's external path.
- */
-//TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
+/** Find the Idea project instance associated with a given Gradle project's external path. */
+// TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
 fun fetchIdeaProjectForGradleProject(projectPath: String): Project? {
   return runReadAction {
     val projectVirtualFile = VfsUtil.findFileByIoFile(File(projectPath), false) ?: return@runReadAction null
-    ProjectManager.getInstance().openProjects.firstOrNull {
-      ProjectFileIndex.getInstance(it).isInContent(projectVirtualFile)
-    }
+    ProjectManager.getInstance().openProjects.firstOrNull { ProjectFileIndex.getInstance(it).isInContent(projectVirtualFile) }
   }
 }
 
-/**
- * A [BuildIssueQuickFix] that contains an associated description which is used to display the quick fix.
- */
+/** A [BuildIssueQuickFix] that contains an associated description which is used to display the quick fix. */
 interface DescribedBuildIssueQuickFix : BuildIssueQuickFix {
-  val description : String
+  val description: String
   val html: String
     get() = "<a href=\"${id}\">$description</a>"
 }
 
 abstract class OpenLinkDescribedQuickFix : DescribedBuildIssueQuickFix {
   abstract val link: String
+
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 

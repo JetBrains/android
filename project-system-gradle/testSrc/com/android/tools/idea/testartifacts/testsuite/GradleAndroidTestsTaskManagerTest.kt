@@ -34,8 +34,7 @@ import org.mockito.kotlin.whenever
 
 class GradleAndroidTestsTaskManagerTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
   private val mockId: ExternalSystemTaskId = mock()
 
@@ -85,9 +84,7 @@ class GradleAndroidTestsTaskManagerTest {
       return
     }
 
-    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = {
-      listOf("device1", "device2")
-    })
+    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = { listOf("device1", "device2") })
     val settings = GradleExecutionSettings()
     settings.putUserData(DeployableToDevice.KEY, true)
 
@@ -103,15 +100,11 @@ class GradleAndroidTestsTaskManagerTest {
       return
     }
 
-    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = {
-      emptyList()
-    })
+    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = { emptyList() })
     val settings = GradleExecutionSettings()
     settings.putUserData(DeployableToDevice.KEY, true)
 
-    assertThrows(ProcessCanceledException::class.java) {
-      taskManager.configureTasks("", mockId, settings, null)
-    }
+    assertThrows(ProcessCanceledException::class.java) { taskManager.configureTasks("", mockId, settings, null) }
 
     assertThat(settings.env["ANDROID_SERIAL"]).isNull()
   }
@@ -123,9 +116,7 @@ class GradleAndroidTestsTaskManagerTest {
       return
     }
 
-    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = {
-      listOf("device1", "device2")
-    })
+    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = { listOf("device1", "device2") })
     val settings = GradleExecutionSettings()
     settings.putUserData(DeployableToDevice.KEY, false)
 
@@ -144,9 +135,7 @@ class GradleAndroidTestsTaskManagerTest {
     StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.overrideForTest(false, rule.testRootDisposable)
     StudioFlags.AGP_TEST_SUITES_ENABLED.overrideForTest(false, rule.testRootDisposable)
 
-    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = {
-      listOf("device1", "device2")
-    })
+    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = { listOf("device1", "device2") })
     val settings = GradleExecutionSettings()
     settings.putUserData(DeployableToDevice.KEY, true)
 
@@ -165,9 +154,7 @@ class GradleAndroidTestsTaskManagerTest {
     StudioFlags.ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS.overrideForTest(false, rule.testRootDisposable)
     StudioFlags.AGP_TEST_SUITES_ENABLED.overrideForTest(true, rule.testRootDisposable)
 
-    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = {
-      listOf("device1", "device2")
-    })
+    val taskManager = GradleAndroidTestsTaskManager(deviceLauncher = { listOf("device1", "device2") })
     val settings = GradleExecutionSettings()
     settings.putUserData(DeployableToDevice.KEY, true)
 

@@ -69,12 +69,12 @@ class TimeBasedReminderTest : HeavyPlatformTestCase() {
     assertNotNull(stored)
     assertEquals(current, stored)
   }
-  
+
   fun testPropertiesReadWrite() {
     reminder.lastTimeStamp = 777
     reminder.doNotAskForApplication = true
     reminder.doNotAskForProject = true
-    
+
     assertEquals(777, reminder.lastTimeStamp)
     assertTrue(reminder.doNotAskForApplication)
     assertTrue(reminder.doNotAskForProject)
@@ -82,8 +82,15 @@ class TimeBasedReminderTest : HeavyPlatformTestCase() {
 
   fun testNotificationSettingsChange() {
     NotificationsConfiguration.getNotificationsConfiguration().changeSettings(NOTIFICATION_ID, NotificationDisplayType.BALLOON, true, true)
-    val reminderNotification = TimeBasedReminder(project, "test.property", notificationGroupId = NOTIFICATION_ID, defaultShouldLog = true,
-                                                 defaultShouldRead = true, defaultNotificationType = NotificationDisplayType.BALLOON)
+    val reminderNotification =
+      TimeBasedReminder(
+        project,
+        "test.property",
+        notificationGroupId = NOTIFICATION_ID,
+        defaultShouldLog = true,
+        defaultShouldRead = true,
+        defaultNotificationType = NotificationDisplayType.BALLOON,
+      )
     // Check notifications are disabled
     reminderNotification.doNotAskForApplication = true
     var notificationSettings = NotificationsConfigurationImpl.getSettings(NOTIFICATION_ID)
@@ -101,7 +108,8 @@ class TimeBasedReminderTest : HeavyPlatformTestCase() {
     // Check that enabling the notification also enables the reminder
     reminderNotification.doNotAskForApplication = true
     assertTrue(reminderNotification.doNotAskForApplication)
-    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(NOTIFICATION_ID, NotificationDisplayType.STICKY_BALLOON, true, true)
+    NotificationsConfiguration.getNotificationsConfiguration()
+      .changeSettings(NOTIFICATION_ID, NotificationDisplayType.STICKY_BALLOON, true, true)
     assertFalse(reminderNotification.doNotAskForApplication)
   }
 }

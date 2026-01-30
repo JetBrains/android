@@ -23,39 +23,24 @@ import com.intellij.openapi.project.Project
 @Service
 class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(PairDevicesUsingWiFiService::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(PairDevicesUsingWiFiService::class.java)!!
   }
 
   private val randomProvider by lazy { RandomProvider() }
 
   private val adbService: AdbServiceWrapper by lazy { AdbServiceWrapperAdbLibImpl(project) }
 
-  private val devicePairingService: WiFiPairingService by lazy {
-    WiFiPairingServiceImpl(randomProvider, adbService)
-  }
+  private val devicePairingService: WiFiPairingService by lazy { WiFiPairingServiceImpl(randomProvider, adbService) }
 
-  private val notificationService: WiFiPairingNotificationService by lazy {
-    WiFiPairingNotificationServiceImpl(project)
-  }
+  private val notificationService: WiFiPairingNotificationService by lazy { WiFiPairingNotificationServiceImpl(project) }
 
   override fun dispose() {
     // Nothing to do
   }
 
-  fun createPairingDialogController(
-    mdnsServiceUnderPairing: TrackingMdnsService? = null
-  ): WiFiPairingController {
+  fun createPairingDialogController(mdnsServiceUnderPairing: TrackingMdnsService? = null): WiFiPairingController {
     val model = WiFiPairingModel()
-    val view =
-      WiFiPairingViewImpl(
-        project,
-        notificationService,
-        model,
-        WiFiPairingHyperlinkListener,
-        mdnsServiceUnderPairing,
-      )
+    val view = WiFiPairingViewImpl(project, notificationService, model, WiFiPairingHyperlinkListener, mdnsServiceUnderPairing)
     return WiFiPairingControllerImpl(
       project,
       this,

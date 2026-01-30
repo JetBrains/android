@@ -34,22 +34,18 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Utility method that creates a [NlModel] with the provided [xmlContent] as the root component. The
- * [xmlContent] should just include the tag name without the brackets.
+ * Utility method that creates a [NlModel] with the provided [xmlContent] as the root component. The [xmlContent] should just include the
+ * tag name without the brackets.
  *
- * The model is backed by a [LightVirtualFile] and is virtually located under a `layout` directory
- * which means its [ConfigurationManager] uses the default configuration.
+ * The model is backed by a [LightVirtualFile] and is virtually located under a `layout` directory which means its [ConfigurationManager]
+ * uses the default configuration.
  *
- * The inner model uses a stub implementation of [NlModel.TagSnapshotTreeNode] so any behavior
- * relying on the implementation used in NlModel won't work. Maintainer of this class are free to
- * implement the real behavior if needed.
+ * The inner model uses a stub implementation of [NlModel.TagSnapshotTreeNode] so any behavior relying on the implementation used in NlModel
+ * won't work. Maintainer of this class are free to implement the real behavior if needed.
  *
  * **This file should stay mockito free.**
  */
-fun createNlModelFromTagName(
-  androidFacet: AndroidFacet,
-  xmlContent: String = generateRootXml(SdkConstants.LINEAR_LAYOUT),
-): NlModel {
+fun createNlModelFromTagName(androidFacet: AndroidFacet, xmlContent: String = generateRootXml(SdkConstants.LINEAR_LAYOUT)): NlModel {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
   val model =
@@ -79,9 +75,7 @@ fun NlComponent.addChild(xmlTag: String): NlComponent {
 
 private fun createComponent(xmlTag: String, nlModel: NlModel): NlComponent {
   val nlComponent = runInEdtAndGet {
-    runWriteAction {
-      NlComponent(nlModel, XmlElementFactory.getInstance(nlModel.project).createTagFromText(xmlTag))
-    }
+    runWriteAction { NlComponent(nlModel, XmlElementFactory.getInstance(nlModel.project).createTagFromText(xmlTag)) }
   }
   val mixin = NlComponentMixin(nlComponent)
   nlComponent.setMixin(mixin)
@@ -97,8 +91,7 @@ private class StubTagSnapshotTreeNode(private val component: NlComponent) : TagS
     get() = component.snapshot
 }
 
-private class LightLayoutFile(xmlContent: String) :
-  LightVirtualFile("layout.xml", XmlFileType.INSTANCE, xmlContent) {
+private class LightLayoutFile(xmlContent: String) : LightVirtualFile("layout.xml", XmlFileType.INSTANCE, xmlContent) {
   private val parent = LightVirtualFile("layout")
 
   override fun getParent(): VirtualFile {
@@ -106,9 +99,7 @@ private class LightLayoutFile(xmlContent: String) :
   }
 }
 
-/**
- * Generate the base xml string containing namespace declaration, layout attributes and default id.
- */
+/** Generate the base xml string containing namespace declaration, layout attributes and default id. */
 @Language("XML")
 fun generateRootXml(rootTag: String = SdkConstants.LINEAR_LAYOUT) =
   """<?xml version="1.0" encoding="utf-8"?>

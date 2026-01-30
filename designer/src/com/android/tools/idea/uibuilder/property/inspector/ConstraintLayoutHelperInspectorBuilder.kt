@@ -56,14 +56,10 @@ private const val ADD_PROPERTY_ACTION_TITLE = "Add View Reference"
 private const val DELETE_ROW_ACTION_TITLE = "Remove selected View reference"
 
 /** Builder for the ConstraintHelper references panel */
-class ConstraintLayoutHelperInspectorBuilder(
-  private val editorProvider: EditorProvider<NlPropertyItem>
-) : InspectorBuilder<NlPropertyItem> {
+class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
 
-  override fun attachToInspector(
-    inspector: InspectorPanel,
-    properties: PropertiesTable<NlPropertyItem>,
-  ) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return
     }
@@ -83,8 +79,7 @@ class ConstraintLayoutHelperInspectorBuilder(
     inspector.addEditor(editorProvider.createEditor(property), titleModel)
   }
 
-  private class AddNewRowAction(panel: ReferencesIdsPanel) :
-    AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
+  private class AddNewRowAction(panel: ReferencesIdsPanel) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
     var panel = panel
     var dataModel = panel.getDataModel()
     var titleModel: InspectorLineModel? = null
@@ -138,8 +133,7 @@ class ConstraintLayoutHelperInspectorBuilder(
     }
   }
 
-  private class DeleteRowAction(panel: ReferencesIdsPanel) :
-    AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
+  private class DeleteRowAction(panel: ReferencesIdsPanel) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var panel = panel
     var titleModel: InspectorLineModel? = null
 

@@ -42,31 +42,17 @@ import org.jetbrains.uast.UMethod
 /** [FilePreviewElementFinder] for Compose Preview annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder<PsiComposePreviewElement> {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
-    findAnnotatedMethodsValues(
-        project,
-        vFile,
-        COMPOSABLE_ANNOTATION_FQ_NAME,
-        COMPOSABLE_ANNOTATION_NAME,
-      ) { methods ->
+    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
         getPreviewNodes(methods, false)
       }
       .any()
 
   /**
-   * Returns all the preview elements in the [vFile]. Preview elements are `@Composable` functions
-   * that are also tagged with `@Preview`. A `@Composable` function tagged with `@Preview` can
-   * return multiple preview elements.
+   * Returns all the preview elements in the [vFile]. Preview elements are `@Composable` functions that are also tagged with `@Preview`. A
+   * `@Composable` function tagged with `@Preview` can return multiple preview elements.
    */
-  override suspend fun findPreviewElements(
-    project: Project,
-    vFile: VirtualFile,
-  ): Collection<PsiComposePreviewElement> {
-    return findAnnotatedMethodsValues(
-      project,
-      vFile,
-      COMPOSABLE_ANNOTATION_FQ_NAME,
-      COMPOSABLE_ANNOTATION_NAME,
-    ) { methods ->
+  override suspend fun findPreviewElements(project: Project, vFile: VirtualFile): Collection<PsiComposePreviewElement> {
+    return findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
       flow {
         val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
         val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().toSet()

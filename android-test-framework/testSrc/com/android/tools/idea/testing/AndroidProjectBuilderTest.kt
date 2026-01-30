@@ -71,15 +71,7 @@ class AndroidProjectBuilderTest {
           },
         )
         .build()
-    val model =
-      builder(
-        "projectName",
-        ":app",
-        File("/root"),
-        File("/root/app"),
-        "99.99-agp",
-        InternedModels(null),
-      )
+    val model = builder("projectName", ":app", File("/root"), File("/root/app"), "99.99-agp", InternedModels(null))
 
     expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2").inOrder()
     expect
@@ -95,11 +87,7 @@ class AndroidProjectBuilderTest {
         "firstXyzSecondXyzRelease",
       )
     expect
-      .that(
-        model.variants.map {
-          it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.applicationId
-        }
-      )
+      .that(model.variants.map { it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.applicationId })
       .containsAllOf("testFirstAbc", "testFirstXyz", "testFirstXyz", "testFirstXyz", "testFirstXyz")
     expect
       .that(model.variants.map { it.deprecatedPreMergedTestApplicationId })

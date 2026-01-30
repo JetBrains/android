@@ -37,11 +37,9 @@ class SyncDueMessageTest {
 
   private var time: Long = 0L
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var projectManagerMock: ProjectManager
   private lateinit var propertiesComponent: PropertiesComponent
@@ -162,7 +160,10 @@ class SyncDueMessageTest {
     properties2.setValue(SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP, time.toString())
 
     val text = SyncDueMessage.getSnoozedProjectsSummaryNote()
-    assertThat(text).isEqualTo("Reminders snoozed for projects: <br />&nbsp;&nbsp;&nbsp;\"Project-X\" (/User/Projects/Project-X-copy-one)<br />&nbsp;&nbsp;&nbsp;\"Project-X\" (/User/Projects/Project-X-copy-two)")
+    assertThat(text)
+      .isEqualTo(
+        "Reminders snoozed for projects: <br />&nbsp;&nbsp;&nbsp;\"Project-X\" (/User/Projects/Project-X-copy-one)<br />&nbsp;&nbsp;&nbsp;\"Project-X\" (/User/Projects/Project-X-copy-two)"
+      )
   }
 
   private fun createMockProject(name: String, basePath: String? = "/mock/path/$name"): Pair<Project, PropertiesComponentMock> {

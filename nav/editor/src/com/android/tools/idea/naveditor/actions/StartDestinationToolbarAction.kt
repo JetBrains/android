@@ -38,9 +38,7 @@ class StartDestinationToolbarAction private constructor() : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    executeCallbackIfValidDestination(e) {
-      WriteCommandAction.runWriteCommandAction(it.model.project) { it.setAsStartDestination() }
-    }
+    executeCallbackIfValidDestination(e) { WriteCommandAction.runWriteCommandAction(it.model.project) { it.setAsStartDestination() } }
   }
 
   private fun executeCallbackIfValidDestination(e: AnActionEvent, callback: (NlComponent) -> Unit) {
@@ -60,8 +58,6 @@ class StartDestinationToolbarAction private constructor() : AnAction() {
   companion object {
     @JvmStatic
     val instance: StartDestinationToolbarAction
-      get() =
-        ActionManager.getInstance().getAction(DesignerActions.ACTION_ASSIGN_START_DESTINATION)
-          as StartDestinationToolbarAction
+      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ASSIGN_START_DESTINATION) as StartDestinationToolbarAction
   }
 }

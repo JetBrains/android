@@ -26,20 +26,21 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 fun setExecutionTargetForConfiguration(project: Project, device: IDevice?, config: RunConfiguration, testRootDisposable: Disposable) {
-  val executionTarget = object : AndroidExecutionTarget() {
-    override fun getId() = "Test Target"
+  val executionTarget =
+    object : AndroidExecutionTarget() {
+      override fun getId() = "Test Target"
 
-    override fun getDisplayName() = "Test Target"
+      override fun getDisplayName() = "Test Target"
 
-    override fun getIcon() = null
+      override fun getIcon() = null
 
-    override fun getAvailableDeviceCount() = 1
+      override fun getAvailableDeviceCount() = 1
 
-    override fun getRunningDevices() = if (device == null) emptyList() else listOf(device)
-  }
+      override fun getRunningDevices() = if (device == null) emptyList() else listOf(device)
+    }
 
-  val executionTargetManager = mock<ExecutionTargetManager>()
-    .also {
+  val executionTargetManager =
+    mock<ExecutionTargetManager>().also {
       whenever(it.activeTarget).thenReturn(executionTarget)
       whenever(it.getTargetsFor(config)).thenReturn(listOf(executionTarget))
     }

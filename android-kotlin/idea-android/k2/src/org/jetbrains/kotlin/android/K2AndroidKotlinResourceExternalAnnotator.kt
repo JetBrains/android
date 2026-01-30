@@ -26,23 +26,21 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAnnotatorBase() {
-    override fun KtNameReferenceExpression.resolveToResourceReference(): ResourceReference? = analyze(this) {
-        val javaFieldSymbol = mainReference.resolveToSymbol() as? KaJavaFieldSymbol ?: return null
-        val type = getAndroidResourceType(javaFieldSymbol) ?: return null
-        return if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
-            val referenceType = getResourceReferenceType(javaFieldSymbol)
-            @Suppress("SuspiciousPackagePrivateAccess") //false-positive, see https://youtrack.jetbrains.com/issue/KTIJ-34018
-            ResourceReference(referenceType.namespace, type, getReferencedName())
+    override fun KtNameReferenceExpression.resolveToResourceReference(): ResourceReference? =
+        analyze(this) {
+            val javaFieldSymbol = mainReference.resolveToSymbol() as? KaJavaFieldSymbol ?: return null
+            val type = getAndroidResourceType(javaFieldSymbol) ?: return null
+            return if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
+                val referenceType = getResourceReferenceType(javaFieldSymbol)
+                @Suppress("SuspiciousPackagePrivateAccess") // false-positive, see https://youtrack.jetbrains.com/issue/KTIJ-34018
+                ResourceReference(referenceType.namespace, type, getReferencedName())
+            } else {
+                null
+            }
         }
-        else {
-            null
-        }
-    }
 
     companion object {
-        /**
-         * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
-         */
+        /** Since this function uses [KtJavaFieldSymbol], it must run inside [analyze]. */
         private fun KaSession.getAndroidResourceType(field: KaJavaFieldSymbol): ResourceType? {
             if (getResourceReferenceType(field) == ResourceReferenceType.NONE) {
                 return null
@@ -52,9 +50,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
             return ResourceType.fromClassName(containingClassName)
         }
 
-        /**
-         * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
-         */
+        /** Since this function uses [KtJavaFieldSymbol], it must run inside [analyze]. */
         private fun KaSession.getResourceReferenceType(field: KaJavaFieldSymbol): ResourceReferenceType {
             val containingClassId = field.callableId?.classId ?: return ResourceReferenceType.NONE
             val rClassName = containingClassId.outerClassId?.shortClassName ?: return ResourceReferenceType.NONE
@@ -63,8 +59,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
                 val rClassPackageFqName = containingClassId.packageFqName
                 return if (rClassPackageFqName.asString() == SdkConstants.ANDROID_PKG) {
                     ResourceReferenceType.FRAMEWORK
-                }
-                else {
+                } else {
                     ResourceReferenceType.APP
                 }
             }

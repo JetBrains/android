@@ -22,13 +22,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.troubleshooting.TroubleInfoCollector
 
 private fun findAllComposePreviewManagers(project: Project): Collection<ComposePreviewManager> =
-  FileEditorManager.getInstance(project)?.allEditors?.mapNotNull { it.getPreviewManager() }
-    ?: emptyList()
+  FileEditorManager.getInstance(project)?.allEditors?.mapNotNull { it.getPreviewManager() } ?: emptyList()
 
 private fun collectComposePreviewManagerInfo(project: Project): String =
-  findAllComposePreviewManagers(project).joinToString("\n") {
-    "ComposePreviewManager: status=${it.status()} mode=${it.mode.value}"
-  }
+  findAllComposePreviewManagers(project).joinToString("\n") { "ComposePreviewManager: status=${it.status()} mode=${it.mode.value}" }
 
 /** [TroubleInfoCollector] to collect information related to Compose Preview. */
 class ComposePreviewTroubleInfoCollector : TroubleInfoCollector {

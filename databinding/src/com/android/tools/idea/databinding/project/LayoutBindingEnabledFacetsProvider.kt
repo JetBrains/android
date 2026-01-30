@@ -29,18 +29,15 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * A cache of all facets in the current project that currently have data binding / view binding
- * enabled on them.
+ * A cache of all facets in the current project that currently have data binding / view binding enabled on them.
  *
- * This class also serves as a [ModificationTracker] which is incremented whenever data binding
- * and/or view binding is enabled / disabled for any module in the current project.
+ * This class also serves as a [ModificationTracker] which is incremented whenever data binding and/or view binding is enabled / disabled
+ * for any module in the current project.
  */
 @Service(Service.Level.PROJECT)
 class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTracker {
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(LayoutBindingEnabledFacetsProvider::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(LayoutBindingEnabledFacetsProvider::class.java)!!
   }
 
   private val allBindingEnabledModules: CachedValue<List<AndroidFacet>>
@@ -67,12 +64,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
               DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled()
             }
 
-          CachedValueProvider.Result.create(
-            facets,
-            dataBindingTracker,
-            viewBindingTracker,
-            moduleManager,
-          )
+          CachedValueProvider.Result.create(facets, dataBindingTracker, viewBindingTracker, moduleManager)
         },
         false,
       )
@@ -80,10 +72,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
     dataBindingEnabledModules =
       cachedValuesManager.createCachedValue(
         {
-          val facets =
-            allBindingEnabledModules.value.filter { facet ->
-              DataBindingUtil.isDataBindingEnabled(facet)
-            }
+          val facets = allBindingEnabledModules.value.filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
           CachedValueProvider.Result.create(facets, dataBindingTracker, moduleManager)
         },
         false,
@@ -92,8 +81,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
     viewBindingEnabledModules =
       cachedValuesManager.createCachedValue(
         {
-          val facets =
-            allBindingEnabledModules.value.filter { facet -> facet.isViewBindingEnabled() }
+          val facets = allBindingEnabledModules.value.filter { facet -> facet.isViewBindingEnabled() }
           CachedValueProvider.Result.create(facets, viewBindingTracker, moduleManager)
         },
         false,
@@ -107,7 +95,5 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   fun getViewBindingEnabledFacets(): List<AndroidFacet> = viewBindingEnabledModules.value
 
   override fun getModificationCount() =
-    dataBindingTracker.modificationCount +
-      viewBindingTracker.modificationCount +
-      moduleManager.modificationCount
+    dataBindingTracker.modificationCount + viewBindingTracker.modificationCount + moduleManager.modificationCount
 }

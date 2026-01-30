@@ -28,27 +28,27 @@ class TabLayoutHandlerTest {
     assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.oldName(), XmlType.COMPONENT_CREATION))
       .isEqualTo(
         """
-      <android.support.design.widget.TabLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content">
+        <android.support.design.widget.TabLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-          <android.support.design.widget.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Monday" />
+            <android.support.design.widget.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monday" />
 
-          <android.support.design.widget.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Tuesday" />
+            <android.support.design.widget.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tuesday" />
 
-          <android.support.design.widget.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Wednesday" />
-      </android.support.design.widget.TabLayout>
+            <android.support.design.widget.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wednesday" />
+        </android.support.design.widget.TabLayout>
 
-      """
+        """
           .trimIndent()
       )
   }
@@ -59,27 +59,27 @@ class TabLayoutHandlerTest {
     assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.newName(), XmlType.COMPONENT_CREATION))
       .isEqualTo(
         """
-      <com.google.android.material.tabs.TabLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content">
+        <com.google.android.material.tabs.TabLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-          <com.google.android.material.tabs.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Monday" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monday" />
 
-          <com.google.android.material.tabs.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Tuesday" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tuesday" />
 
-          <com.google.android.material.tabs.TabItem
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Wednesday" />
-      </com.google.android.material.tabs.TabLayout>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wednesday" />
+        </com.google.android.material.tabs.TabLayout>
 
-      """
+        """
           .trimIndent()
       )
   }

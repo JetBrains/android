@@ -28,11 +28,10 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Component that tracks / caches all [AndroidFacet] instances that have enabled safe args on them,
- * for quick iteration in light class short names caches and class finders.
+ * Component that tracks / caches all [AndroidFacet] instances that have enabled safe args on them, for quick iteration in light class short
+ * names caches and class finders.
  *
- * This component also serves as a [ModificationTracker] that will allow caches to know when this
- * list might have been updated.
+ * This component also serves as a [ModificationTracker] that will allow caches to know when this list might have been updated.
  */
 @Service(Service.Level.PROJECT)
 class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTracker {
@@ -52,8 +51,7 @@ class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTr
     modulesUsingSafeArgsCache =
       cachedValuesManager.createCachedValue(
         {
-          val facets =
-            facetManager.getFacets(AndroidFacet.ID).filter { facet -> facet.isSafeArgsEnabled() }
+          val facets = facetManager.getFacets(AndroidFacet.ID).filter { facet -> facet.isSafeArgsEnabled() }
 
           CachedValueProvider.Result.create(facets, this)
         },
@@ -61,7 +59,5 @@ class SafeArgsEnabledFacetsProjectService(val project: Project) : ModificationTr
       )
   }
 
-  override fun getModificationCount() =
-    ModuleManager.getInstance(project).modificationCount +
-      project.safeArgsModeTracker.modificationCount
+  override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount + project.safeArgsModeTracker.modificationCount
 }

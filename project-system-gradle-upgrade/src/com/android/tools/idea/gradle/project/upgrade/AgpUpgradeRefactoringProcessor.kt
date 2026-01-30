@@ -117,10 +117,10 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   constructor(project: Project, agpVersion: AgpVersion) : super(project) {
     this.project = project
     this.projectBuildModel =
-      ProjectBuildModel.get(project)
-        .also { it.context.agpVersion = AndroidGradlePluginVersion.tryParse(agpVersion.toString()) }
+      ProjectBuildModel.get(project).also { it.context.agpVersion = AndroidGradlePluginVersion.tryParse(agpVersion.toString()) }
   }
-  constructor(processor: GradleBuildModelRefactoringProcessor): super(processor.project) {
+
+  constructor(processor: GradleBuildModelRefactoringProcessor) : super(processor.project) {
     this.project = processor.project
     this.projectBuildModel = processor.projectBuildModel
   }
@@ -167,19 +167,16 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
       projectBuildModel.reparse()
     }
 
-    psiSpoilingUsageInfos.forEach {
-      if (it is SpoilingGradleBuildModelUsageInfo)
-        it.performPsiSpoilingRefactoringFor(this)
-    }
+    psiSpoilingUsageInfos.forEach { if (it is SpoilingGradleBuildModelUsageInfo) it.performPsiSpoilingRefactoringFor(this) }
 
     super.performPsiSpoilingRefactoring()
   }
 }
 
 /**
- * Instances of [GradleBuildModelUsageInfo] should perform their refactor through the buildModel, and must not
- * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
- * should be done using [SpoilingGradleBuildModelUsageInfo] instances.
+ * Instances of [GradleBuildModelUsageInfo] should perform their refactor through the buildModel, and must not invalidate either the
+ * BuildModel or the underlying Psi in their [performBuildModelRefactoring] method. Any spoiling should be done using
+ * [SpoilingGradleBuildModelUsageInfo] instances.
  */
 abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo(element) {
   fun performRefactoringFor(processor: GradleBuildModelRefactoringProcessor) {
@@ -190,42 +187,44 @@ abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo
   abstract fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor)
 
   private fun logBuildModelRefactoring() {
-    val path = when (val basePath = project.basePath) {
-      null -> this.virtualFile?.name
-      else -> this.virtualFile?.toIoFile()?.toRelativeString(File(basePath)) ?: this.virtualFile?.name
-    }
+    val path =
+      when (val basePath = project.basePath) {
+        null -> this.virtualFile?.name
+        else -> this.virtualFile?.toIoFile()?.toRelativeString(File(basePath)) ?: this.virtualFile?.name
+      }
     LOG.info("performing \"${this.tooltipText}\" build model refactoring in '${path}'")
   }
 
   abstract override fun getTooltipText(): String
 
   /**
-   * Fundamentally, implementations of [GradleBuildModelUsageInfo] are data classes, in that we expect never to mutate
-   * them, and their contents and class identity encode their semantics.  Unfortunately, there's a slight mismatch; the
-   * equality semantics of the UsageInfo PsiElement are not straightforward (they are considered equal if they point to
-   * the same range, even if they're not the identical element), but since the [UsageInfo] superclass constructor requires
-   * a PsiElement, we must have a PsiElement in the primary constructor, so the automatically-generated methods from a
-   * data class will not do the right thing.
+   * Fundamentally, implementations of [GradleBuildModelUsageInfo] are data classes, in that we expect never to mutate them, and their
+   * contents and class identity encode their semantics. Unfortunately, there's a slight mismatch; the equality semantics of the UsageInfo
+   * PsiElement are not straightforward (they are considered equal if they point to the same range, even if they're not the identical
+   * element), but since the [UsageInfo] superclass constructor requires a PsiElement, we must have a PsiElement in the primary constructor,
+   * so the automatically-generated methods from a data class will not do the right thing.
    *
-   * Instead, we simulate the parts of a data class we need here; by having a function which subclasses must implement, and
-   * final implementations of equals() and hashCode() which use that function.  The default implementation here encodes that
-   * document range is sufficient to discriminate between instances, which in practice will be true for replacements and
-   * deletions but will not be in general for additions.
+   * Instead, we simulate the parts of a data class we need here; by having a function which subclasses must implement, and final
+   * implementations of equals() and hashCode() which use that function. The default implementation here encodes that document range is
+   * sufficient to discriminate between instances, which in practice will be true for replacements and deletions but will not be in general
+   * for additions.
    */
   open fun getDiscriminatingValues(): List<Any> = listOf()
 
   /**
-   * Most actions taken by a [GradleBuildModelUsageInfo] in its [performBuildModelRefactoring] method affect project files through the
-   * build model, which takes responsibility for making sure that documents are saved and psi is not blocking.  Some actions affect
-   * files outside that model, however, and any such actions are responsible for adding those files to this set so that they can be
-   * accumulated for handling alongside the build model files.
+   * Most actions taken by a [GradleBuildModelUsageInfo] in its [performBuildModelRefactoring] method affect project files through the build
+   * model, which takes responsibility for making sure that documents are saved and psi is not blocking. Some actions affect files outside
+   * that model, however, and any such actions are responsible for adding those files to this set so that they can be accumulated for
+   * handling alongside the build model files.
    */
   val otherAffectedFiles = mutableSetOf<PsiFile>()
 
-  final override fun equals(other: Any?) = super.equals(other) && when(other) {
-    is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
-    else -> false
-  }
+  final override fun equals(other: Any?) =
+    super.equals(other) &&
+      when (other) {
+        is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
+        else -> false
+      }
 
   final override fun hashCode() = super.hashCode() xor getDiscriminatingValues().hashCode()
 }
@@ -233,12 +232,10 @@ abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo
 /**
  * Instances of [SpoilingGradleBuildModelUsageInfo] should perform any build model refactoring in their extension of
  * [performBuildModelRefactoring], which must call this class's method; they may then perform Psi-spoiling refactoring in their
- * [performPsiSpoilingBuildModelRefactoring] method in any way they desire, operating after changes to the buildModel have been applied
- * and reparsed.
+ * [performPsiSpoilingBuildModelRefactoring] method in any way they desire, operating after changes to the buildModel have been applied and
+ * reparsed.
  */
-abstract class SpoilingGradleBuildModelUsageInfo(
-  element: WrappedPsiElement
-) : GradleBuildModelUsageInfo(element) {
+abstract class SpoilingGradleBuildModelUsageInfo(element: WrappedPsiElement) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     noteForPsiSpoilingBuildModelRefactoring(processor)
   }
@@ -256,91 +253,86 @@ abstract class SpoilingGradleBuildModelUsageInfo(
   }
 }
 
-data class UndoHook(
-  val undo: () -> Unit,
-  val redo: () -> Unit
-)
+data class UndoHook(val undo: () -> Unit, val redo: () -> Unit)
 
-class AgpUpgradeRefactoringProcessor(
-  project: Project,
-  val current: AgpVersion,
-  val new: AgpVersion
-) : GradleBuildModelRefactoringProcessor(project, current) {
+class AgpUpgradeRefactoringProcessor(project: Project, val current: AgpVersion, val new: AgpVersion) :
+  GradleBuildModelRefactoringProcessor(project, current) {
 
   val uuid = UUID.randomUUID().toString()
   val agpVersionRefactoringProcessor by lazy { componentRefactoringProcessors.firstNotNullOf { it as? AgpVersionRefactoringProcessor } }
   val componentRefactoringProcessorsWithAgpVersionProcessorLast
     get() = componentRefactoringProcessors.sortedBy { if (it is AgpVersionRefactoringProcessor) 1 else 0 }
-  val componentRefactoringProcessors = listOf(
-    AgpVersionRefactoringProcessor(this),
-    GradleVersionRefactoringProcessor(this),
-    GradlePluginsRefactoringProcessor(this),
-    ProjectJdkRefactoringProcessor(this),
-    // AGP 7.x
-    CompileRuntimeConfigurationRefactoringProcessor(this),
-    REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
-    RedundantPropertiesRefactoringProcessor(this),
-    // AGP 8.x
-    R8FullModeDefaultRefactoringProcessor(this),
-    RenderScriptDefaultRefactoringProcessor(this),
-    BuildConfigDefaultRefactoringProcessor(this),
-    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
-    AidlDefaultRefactoringProcessor(this),
-    NonTransitiveRClassDefaultRefactoringProcessor(this),
-    NonConstantRClassDefaultRefactoringProcessor(this),
-    REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
-    // AGP 9.x
-    JCenterToMavenCentralRefactoringProcessor(this),
-    MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
-    MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
-    MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(this),
-    MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(this),
-    MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
-    REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
-    MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
-    ShadersDefaultRefactoringProcessor(this),
-    Kotlin20RefactoringProcessor(this),
-    UseAndroidXDefaultRefactoringProcessor(this),
-    ResValuesDefaultRefactoringProcessor(this),
-    BlockAidlProcessor(this),
-    BlockRenderScriptProcessor(this),
-    BlockAnalysisPerComponentProcessor(this),
-    BlockEmulatorControlProcessor(this),
-    BlockUnifiedTestPlatformProcessor(this),
-    BlockMinifyLocalDependenciesLibrariesProcessor(this),
-    BlockPreciseShrinkingProcessor(this),
-    BlockResourceOptimizationsProcessor(this),
-    BlockBuildFeaturesBuildConfigProcessor(this),
-    TargetSdkDefaultRefactoringProcessor(this),
-    AppCompileTimeRClassDefaultRefactoringProcessor(this),
-    DeprecatedLibraryTargetSdkRefactoringProcessor(this),
-    BuildTypesUnitTestDefaultRefactoringProcessor(this),
-    DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
-    EnforceUniquePackageNameRefactoringProcessor(this),
-    DependencyConstraintsRefactoringProcessor(this), // AGP 9.0.0-alpha02
-    R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
-    R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
-    BlockR8IntegratedResourceShrinkingProcessor(this),
-    REMOVE_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),  // AGP 9.0.0-alpha03
-    BuiltInKotlinDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha03
-    NewDslDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha04
-    AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
-    AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
-    RemoveImplementationPropertiesRefactoringProcessor(this),
-    DynamicFeatureConsumerProguardFilesProcessor(this),
-    GradleDaemonJvmCriteriaRefactoringProcessor(this),
-    // AGP 10.x
-    BlockR8StrictFullModeForKeepRulesProcessor(this),
-    BlockR8OptimizedResourceShrinkingProcessor(this),
-    BlockUsesSdkInManifestProcessor(this),
-  )
+
+  val componentRefactoringProcessors =
+    listOf(
+      AgpVersionRefactoringProcessor(this),
+      GradleVersionRefactoringProcessor(this),
+      GradlePluginsRefactoringProcessor(this),
+      ProjectJdkRefactoringProcessor(this),
+      // AGP 7.x
+      CompileRuntimeConfigurationRefactoringProcessor(this),
+      REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
+      RedundantPropertiesRefactoringProcessor(this),
+      // AGP 8.x
+      R8FullModeDefaultRefactoringProcessor(this),
+      RenderScriptDefaultRefactoringProcessor(this),
+      BuildConfigDefaultRefactoringProcessor(this),
+      AndroidManifestPackageToNamespaceRefactoringProcessor(this),
+      AidlDefaultRefactoringProcessor(this),
+      NonTransitiveRClassDefaultRefactoringProcessor(this),
+      NonConstantRClassDefaultRefactoringProcessor(this),
+      REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
+      // AGP 9.x
+      JCenterToMavenCentralRefactoringProcessor(this),
+      MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
+      MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
+      MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(this),
+      MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(this),
+      MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
+      REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
+      MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
+      ShadersDefaultRefactoringProcessor(this),
+      Kotlin20RefactoringProcessor(this),
+      UseAndroidXDefaultRefactoringProcessor(this),
+      ResValuesDefaultRefactoringProcessor(this),
+      BlockAidlProcessor(this),
+      BlockRenderScriptProcessor(this),
+      BlockAnalysisPerComponentProcessor(this),
+      BlockEmulatorControlProcessor(this),
+      BlockUnifiedTestPlatformProcessor(this),
+      BlockMinifyLocalDependenciesLibrariesProcessor(this),
+      BlockPreciseShrinkingProcessor(this),
+      BlockResourceOptimizationsProcessor(this),
+      BlockBuildFeaturesBuildConfigProcessor(this),
+      TargetSdkDefaultRefactoringProcessor(this),
+      AppCompileTimeRClassDefaultRefactoringProcessor(this),
+      DeprecatedLibraryTargetSdkRefactoringProcessor(this),
+      BuildTypesUnitTestDefaultRefactoringProcessor(this),
+      DisallowUsesSdkInManifestDefaultRefactoringProcessor(this),
+      EnforceUniquePackageNameRefactoringProcessor(this),
+      DependencyConstraintsRefactoringProcessor(this), // AGP 9.0.0-alpha02
+      R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
+      R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
+      BlockR8IntegratedResourceShrinkingProcessor(this),
+      REMOVE_EMULATOR_SNAPSHOTS.RefactoringProcessor(this), // AGP 9.0.0-alpha03
+      BuiltInKotlinDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha03
+      NewDslDefaultRefactoringProcessor(this), // AGP 9.0.0-alpha04
+      AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
+      AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
+      RemoveImplementationPropertiesRefactoringProcessor(this),
+      DynamicFeatureConsumerProguardFilesProcessor(this),
+      GradleDaemonJvmCriteriaRefactoringProcessor(this),
+      // AGP 10.x
+      BlockR8StrictFullModeForKeepRulesProcessor(this),
+      BlockR8OptimizedResourceShrinkingProcessor(this),
+      BlockUsesSdkInManifestProcessor(this),
+    )
 
   val targets = mutableListOf<PsiElement>()
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
   var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
-  final fun blockProcessorExecution() =
-    componentRefactoringProcessors.any { it.isEnabled && it.isBlocked }
+  final fun blockProcessorExecution() = componentRefactoringProcessors.any { it.isEnabled && it.isBlocked }
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -366,17 +358,20 @@ class AgpUpgradeRefactoringProcessor(
     projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
-    componentRefactoringProcessors.forEach { processor ->
-      usages.addAll(processor.findUsages())
-    }
+    componentRefactoringProcessors.forEach { processor -> usages.addAll(processor.findUsages()) }
     targets.clear()
     projectBuildModel.projectBuildModel?.let {
-      targets.add(object : FakePsiElement() {
-        override fun getParent() = it.psiElement
-        override fun canNavigate() = false
-        override fun getContainingFile() = it.psiFile
-        override fun getName() = "Upgrading Project Build Configuration"
-      })
+      targets.add(
+        object : FakePsiElement() {
+          override fun getParent() = it.psiElement
+
+          override fun canNavigate() = false
+
+          override fun getContainingFile() = it.psiFile
+
+          override fun getName() = "Upgrading Project Build Configuration"
+        }
+      )
     }
 
     foundUsages = usages.size > 0
@@ -385,13 +380,14 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
-    val filtered = refUsages.get().filter {
-      when (it) {
-        is R8FullModeUsageInfo ->
-          (it.element as? WrappedPsiElement)?.usageType == R8FullModeDefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
-        else -> true
+    val filtered =
+      refUsages.get().filter {
+        when (it) {
+          is R8FullModeUsageInfo ->
+            (it.element as? WrappedPsiElement)?.usageType == R8FullModeDefaultRefactoringProcessor.INSERT_OLD_USAGE_TYPE
+          else -> true
+        }
       }
-    }
     refUsages.set(filtered.toTypedArray())
     prepareSuccessful()
     return true
@@ -403,7 +399,7 @@ class AgpUpgradeRefactoringProcessor(
       return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
     }
 
-    val elements: MutableSet<PsiElement> = ReferenceOpenHashSet()  // protect against poorly implemented equality
+    val elements: MutableSet<PsiElement> = ReferenceOpenHashSet() // protect against poorly implemented equality
 
     for (usage in usages) {
       @Suppress("SENSELESS_COMPARISON") // preserve correspondence with BaseRefactoringProcessor
@@ -440,12 +436,10 @@ class AgpUpgradeRefactoringProcessor(
         if (usage is UsageInfo2UsageAdapter && usage.usageInfo.isDynamicUsage) {
           dynamicUsagesCount++
           dynamicUsagesCodeFiles.add(containingFile)
-        }
-        else if (elementUsage.isNonCodeUsage) {
+        } else if (elementUsage.isNonCodeUsage) {
           nonCodeUsageCount++
           nonCodeFiles.add(containingFile)
-        }
-        else {
+        } else {
           codeUsageCount++
           codeFiles.add(containingFile)
         }
@@ -461,34 +455,40 @@ class AgpUpgradeRefactoringProcessor(
     if (commentReferencesText != null) {
       presentation.nonCodeUsagesString = commentReferencesText
     }
-    presentation.setDynamicUsagesString("Dynamic " + StringUtil.decapitalize(
-      descriptor.getCodeReferencesText(dynamicUsagesCount, dynamicUsagesCodeFiles.size)))
+    presentation.setDynamicUsagesString(
+      "Dynamic " + StringUtil.decapitalize(descriptor.getCodeReferencesText(dynamicUsagesCount, dynamicUsagesCodeFiles.size))
+    )
     return presentation
-
   }
 
   private fun showUsageView(viewDescriptor: UsageViewDescriptor, factory: Factory<UsageSearcher>, usageInfos: Array<out UsageInfo>) {
     val viewManager = UsageViewManager.getInstance(myProject)
 
     val initialElements = viewDescriptor.elements
-    val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements, true)
-      .map {
-        when (val action = backFromPreviewAction) {
-          null -> WrappedUsageTarget(it)
-          else -> WrappedConfigurableUsageTarget(it, action)
-        }
-      }
-      .toArray(UsageTarget.EMPTY_ARRAY)
-    val convertUsagesRef = Ref<Array<Usage>>()
-    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
-        {
-          ApplicationManager.getApplication().runReadAction {
-            @Suppress("UNCHECKED_CAST")
-            val usages: Array<Usage> = UsageInfo2UsageAdapter.convert(usageInfos) as Array<Usage>
-            convertUsagesRef.set(usages)
+    val targets: Array<out UsageTarget> =
+      PsiElement2UsageTargetAdapter.convert(initialElements, true)
+        .map {
+          when (val action = backFromPreviewAction) {
+            null -> WrappedUsageTarget(it)
+            else -> WrappedConfigurableUsageTarget(it, action)
           }
-        },
-        RefactoringBundle.message("refactoring.preprocess.usages.progress"), true, myProject)) {
+        }
+        .toArray(UsageTarget.EMPTY_ARRAY)
+    val convertUsagesRef = Ref<Array<Usage>>()
+    if (
+      !ProgressManager.getInstance()
+        .runProcessWithProgressSynchronously(
+          {
+            ApplicationManager.getApplication().runReadAction {
+              @Suppress("UNCHECKED_CAST") val usages: Array<Usage> = UsageInfo2UsageAdapter.convert(usageInfos) as Array<Usage>
+              convertUsagesRef.set(usages)
+            }
+          },
+          RefactoringBundle.message("refactoring.preprocess.usages.progress"),
+          true,
+          myProject,
+        )
+    ) {
       return
     }
 
@@ -500,12 +500,12 @@ class AgpUpgradeRefactoringProcessor(
 
     val presentation = createPresentation(viewDescriptor, usages)
     if (usageView == null) {
-      usageView = viewManager.showUsages(targets, usages, presentation, factory).apply {
-        Disposer.register(this, { usageView = null })
-        customizeUsagesView(viewDescriptor, this)
-      }
-    }
-    else {
+      usageView =
+        viewManager.showUsages(targets, usages, presentation, factory).apply {
+          Disposer.register(this, { usageView = null })
+          customizeUsagesView(viewDescriptor, this)
+        }
+    } else {
       (usageView as? UsageViewImpl)?.run {
         removeUsagesBulk(this.usages)
         appendUsagesInBulk(listOf(*usages))
@@ -515,10 +515,10 @@ class AgpUpgradeRefactoringProcessor(
       }
     }
     // TODO(xof): investigate whether UnloadedModules are a thing we support / understand
-    //val unloadedModules = computeUnloadedModulesFromUseScope(viewDescriptor)
-    //if (!unloadedModules.isEmpty()) {
+    // val unloadedModules = computeUnloadedModulesFromUseScope(viewDescriptor)
+    // if (!unloadedModules.isEmpty()) {
     //  usageView?.appendUsage(UnknownUsagesInUnloadedModules(unloadedModules))
-    //}
+    // }
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
@@ -537,40 +537,38 @@ class AgpUpgradeRefactoringProcessor(
     val viewDescriptor = createUsageViewDescriptor(usages)
     val elements = viewDescriptor.elements
     val targets = PsiElement2UsageTargetAdapter.convert(elements, true)
-    val factory = Factory<UsageSearcher> {
-      object : UsageInfoSearcherAdapter() {
-        override fun generate(
-          processor: Processor<in Usage?>) {
-          ApplicationManager.getApplication().runReadAction {
-            var i = 0
-            while (i < elements.size) {
-              elements[i] = targets[i].element
-              i++
+    val factory =
+      Factory<UsageSearcher> {
+        object : UsageInfoSearcherAdapter() {
+          override fun generate(processor: Processor<in Usage?>) {
+            ApplicationManager.getApplication().runReadAction {
+              var i = 0
+              while (i < elements.size) {
+                elements[i] = targets[i].element
+                i++
+              }
+              refreshElements(elements)
             }
-            refreshElements(
-              elements)
+            processUsages(processor, myProject)
           }
-          processUsages(
-            processor,
-            myProject)
-        }
 
-        override fun findUsages(): Array<UsageInfo> {
-          return this@AgpUpgradeRefactoringProcessor.findUsages()
+          override fun findUsages(): Array<UsageInfo> {
+            return this@AgpUpgradeRefactoringProcessor.findUsages()
+          }
         }
       }
-    }
 
     showUsageView(viewDescriptor, factory, usages)
   }
 
-  var backFromPreviewAction : Action? = null
+  var backFromPreviewAction: Action? = null
     set(value) {
       backFromPreviewAction?.let { additionalPreviewActions.remove(it) }
       field = value
       value?.let { additionalPreviewActions.add(it) }
     }
-  private var additionalPreviewActions : MutableList<Action> = mutableListOf()
+
+  private var additionalPreviewActions: MutableList<Action> = mutableListOf()
 
   // Note: this override does almost the same as the base method as of 2020-07-29, except for adding and renaming
   // some buttons.  Because of the limited support for extension, we have to reimplement most of the base method
@@ -596,15 +594,15 @@ class AgpUpgradeRefactoringProcessor(
       val label = AgpUpgradeBundle.message("usageView.doAction")
       usageView.addPerformOperationAction(refactoringRunnable, commandName, canNotMakeString, label, false)
     }
-    usageView.setRerunAction(object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent?) = doRun()
-    })
+    usageView.setRerunAction(
+      object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent?) = doRun()
+      }
+    )
 
     this.usageView = usageView
 
-    additionalPreviewActions.forEach {
-      usageView.addButtonToLowerPane(it)
-    }
+    additionalPreviewActions.forEach { usageView.addButtonToLowerPane(it) }
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
@@ -628,38 +626,47 @@ class AgpUpgradeRefactoringProcessor(
     super.performPsiSpoilingRefactoring()
     val executedUsagesSize = executedUsages.size
     val requestedFilesSize = projectBuildModel.context.allRequestedFiles.size
-    val listener = object : GradleSyncListener {
-      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED, executedUsagesSize, requestedFilesSize)
-      override fun syncFailed(project: Project, errorMessage: String) =
-        trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
-      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
-    }
+    val listener =
+      object : GradleSyncListener {
+        override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED, executedUsagesSize, requestedFilesSize)
+
+        override fun syncFailed(project: Project, errorMessage: String) =
+          trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
+
+        override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
+      }
     val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED, dontFocusSyncFailureOutput = !showBuildOutputOnSyncFailure)
     syncRequestCallback?.invoke()
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
-    UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo() {
-        undoHooks.reversed().forEach { it.undo.invoke() }
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_UNDONE))
-      }
-      override fun redo() {
-        undoHooks.forEach { it.redo.invoke() }
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_REDONE))
-      }
-    })
+    UndoManager.getInstance(project)
+      .undoableActionPerformed(
+        object : BasicUndoableAction() {
+          override fun undo() {
+            undoHooks.reversed().forEach { it.undo.invoke() }
+            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_UNDONE))
+          }
+
+          override fun redo() {
+            undoHooks.forEach { it.redo.invoke() }
+            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_REDONE))
+          }
+        }
+      )
   }
 
   var myCommandName: String = AgpUpgradeBundle.message("agpUpgradeRefactoringProcessor.commandName", current, new)
 
   override fun getCommandName() = myCommandName
 
-  fun setCommandName(value: String) { myCommandName = value }
+  fun setCommandName(value: String) {
+    myCommandName = value
+  }
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
 
   /**
-   * Parsing models is potentially expensive, so client code can call this method on a background thread before changing the modality
-   * state or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
+   * Parsing models is potentially expensive, so client code can call this method on a background thread before changing the modality state
+   * or performing other user interface actions, which (if parsing were to happen in their scope) might block the whole UI.
    */
   fun ensureParsedModels() {
     // TODO(b/169667833): add methods that explicitly compute and cache the list or retrieve it from cache (computeAllIncluded... /
@@ -687,12 +694,14 @@ class AgpUpgradeRefactoringProcessor(
           // done on the EDT).
           componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
         },
-        commandName, true, project)
+        commandName,
+        true,
+        project,
+      )
     }
     if (ApplicationManager.getApplication().isUnitTestMode) {
       runnable.invoke()
-    }
-    else {
+    } else {
       ThreadingAssertions.assertBackgroundThread()
       val future = CompletableFuture<Unit>()
       DumbService.getInstance(project).runWhenSmart {
@@ -707,18 +716,19 @@ class AgpUpgradeRefactoringProcessor(
 internal fun notifyCancelledUpgrade(project: Project, current: AgpVersion) {
   // TODO(xof): this is now only called from the forced upgrade flow, where this notification is probably not the right one: we should
   //  probably re-show the forced upgrade modal dialog instead.
-  val notification = UpgradeSuggestion(
-    AgpUpgradeBundle.message("notifyCancelledUpgrade.title"),
-    AgpUpgradeBundle.message("notifyCancelledUpgrade.body"),
-    project,
-    current
-  )
+  val notification =
+    UpgradeSuggestion(
+      AgpUpgradeBundle.message("notifyCancelledUpgrade.title"),
+      AgpUpgradeBundle.message("notifyCancelledUpgrade.body"),
+      project,
+      current,
+    )
   notification.notify(project)
 }
 
 /**
- * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
- * to the process, and then running the processor under that user input's direction.
+ * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input to the
+ * process, and then running the processor under that user input's direction.
  */
 fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) {
   DumbService.getInstance(project).smartInvokeLater {
@@ -728,43 +738,40 @@ fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: AgpVe
 }
 
 /**
-One common way to characterise a compatibility change is that some old feature f_o is deprecated in favour of some new feature f_n from
-version v_n (when the new feature f_n is available); the old feature f_o is finally removed in version v_o.  That is, feature f_n is
-available in the versions [v_n, +∞), and f_o is available in versions (-∞, v_o) -- note the exclusion of v_o, which is the first version
-in which f_o is *not* available.  For the rest of this analysis to hold, we also assume that v_n <= v_o -- that is, there is a set
-of versions where the features overlap, or else a feature is replaced wholesale in a single version, but that there is no period where
-neither of the features is present.
-
-If we can characterise the upgrade from a (cur, new > cur) pair of AGP versions, a compatibility change (implemented by a single
-component refactoring) can be put into one of six categories:
-
-| 1 | 2 | 3 | 4 | Necessity
-|---|---|---|---|----------
-|v_n|v_o|cur|new| [IRRELEVANT_PAST]
-|cur|new|v_n|v_o| [IRRELEVANT_FUTURE]
-|cur|v_n|v_o|new| [MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)
-|v_n|cur|v_o|new| [MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)
-|cur|v_n|new|v_o| [OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade)
-|v_n|cur|new|v_o| [OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)
-
-with the conventions for v_n and v_o as described above, equality in version numbers (e.g. if we are upgrading to the first version
-where a feature appears or disappears) is handled by v_n/v_o sorting before cur/new -- so that when comparing a feature version against
-an version associated with an AGP dependency, we must use the < or >= operators depending on whether the feature version is on the left
-or right of the operator respectively.
-
-For the possibly-simpler case where we have a discontinuity in behaviour, v_o = v_n = vvv, and the three possible cases are:
-
-| 1 | 2 | 3 | Necessity
-+---+---+---+----------
-|vvv|cur|new| [IRRELEVANT_PAST]
-|cur|vvv|new| [MANDATORY_CODEPENDENT]
-|cur|new|vvv| [IRRELEVANT_FUTURE]
-
-(again in case of equality, vvv sorts before cur and new)
-
-If other refactorings come along which are more complicated than can be supported by this model of a single feature replaced by another,
-we might need more necessity values.
-*/
+ * One common way to characterise a compatibility change is that some old feature f_o is deprecated in favour of some new feature f_n from
+ * version v_n (when the new feature f_n is available); the old feature f_o is finally removed in version v_o. That is, feature f_n is
+ * available in the versions [v_n, +∞), and f_o is available in versions (-∞, v_o) -- note the exclusion of v_o, which is the first version
+ * in which f_o is *not* available. For the rest of this analysis to hold, we also assume that v_n <= v_o -- that is, there is a set of
+ * versions where the features overlap, or else a feature is replaced wholesale in a single version, but that there is no period where
+ * neither of the features is present.
+ *
+ * If we can characterise the upgrade from a (cur, new > cur) pair of AGP versions, a compatibility change (implemented by a single
+ * component refactoring) can be put into one of six categories:
+ *
+ * | 1   | 2   | 3   | 4   | Necessity                                                                                                       |
+ * |-----|-----|-----|-----|-----------------------------------------------------------------------------------------------------------------|
+ * | v_n | v_o | cur | new | [IRRELEVANT_PAST]                                                                                               |
+ * | cur | new | v_n | v_o | [IRRELEVANT_FUTURE]                                                                                             |
+ * | cur | v_n | v_o | new | [MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)                 |
+ * | v_n | cur | v_o | new | [MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)                 |
+ * | cur | v_n | new | v_o | [OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade) |
+ * | v_n | cur | new | v_o | [OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)            |
+ *
+ * with the conventions for v_n and v_o as described above, equality in version numbers (e.g. if we are upgrading to the first version where
+ * a feature appears or disappears) is handled by v_n/v_o sorting before cur/new -- so that when comparing a feature version against an
+ * version associated with an AGP dependency, we must use the < or >= operators depending on whether the feature version is on the left or
+ * right of the operator respectively.
+ *
+ * For the possibly-simpler case where we have a discontinuity in behaviour, v_o = v_n = vvv, and the three possible cases are:
+ *
+ * | 1 | 2 | 3 | Necessity +---+---+---+---------- |vvv|cur|new| [IRRELEVANT_PAST] |cur|vvv|new| [MANDATORY_CODEPENDENT] |cur|new|vvv|
+ * [IRRELEVANT_FUTURE]
+ *
+ * (again in case of equality, vvv sorts before cur and new)
+ *
+ * If other refactorings come along which are more complicated than can be supported by this model of a single feature replaced by another,
+ * we might need more necessity values.
+ */
 enum class AgpUpgradeComponentNecessity {
   IRRELEVANT_PAST,
   IRRELEVANT_FUTURE,
@@ -777,42 +784,44 @@ enum class AgpUpgradeComponentNecessity {
 abstract class AgpUpgradeComponentNecessityInfo {
   abstract fun computeNecessity(current: AgpVersion, new: AgpVersion): AgpUpgradeComponentNecessity
 }
+
 object AlwaysNeeded : AgpUpgradeComponentNecessityInfo() {
   override fun computeNecessity(current: AgpVersion, new: AgpVersion) = MANDATORY_CODEPENDENT
 }
+
 data class PointNecessity(val change: AgpVersion) : AgpUpgradeComponentNecessityInfo() {
-  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
-    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-    current >= change && new >= change -> IRRELEVANT_PAST
-    current < change && new >= change -> MANDATORY_CODEPENDENT
-    current < change && new < change -> IRRELEVANT_FUTURE
-    else -> throw RuntimeException("cannot happen")
-  }
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) =
+    when {
+      current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+      current >= change && new >= change -> IRRELEVANT_PAST
+      current < change && new >= change -> MANDATORY_CODEPENDENT
+      current < change && new < change -> IRRELEVANT_FUTURE
+      else -> throw RuntimeException("cannot happen")
+    }
 }
+
 /** [replacementAvailable] must be less than [originalRemoved]. */
-data class RegionNecessity(
-  val replacementAvailable: AgpVersion,
-  val originalRemoved: AgpVersion
-) : AgpUpgradeComponentNecessityInfo() {
-  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
-    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-    replacementAvailable > originalRemoved ->
-      throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
-    current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
-    current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
-    current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
-    current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
-    current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
-    current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
-    else -> throw RuntimeException("cannot happen")
-  }
+data class RegionNecessity(val replacementAvailable: AgpVersion, val originalRemoved: AgpVersion) : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) =
+    when {
+      current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+      replacementAvailable > originalRemoved ->
+        throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
+      current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
+      current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
+      current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
+      current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
+      current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
+      current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
+      else -> throw RuntimeException("cannot happen")
+    }
 }
 
 // Each individual refactoring involved in an AGP Upgrade is implemented as its own refactoring processor.  For a "batch" upgrade, most
 // of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
-abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
+abstract class AgpUpgradeComponentRefactoringProcessor : GradleBuildModelRefactoringProcessor {
   val current: AgpVersion
   val new: AgpVersion
   val uuid: String
@@ -826,10 +835,15 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     get() {
       if (_isEnabled == null) {
         LOG.info("initializing isEnabled for \"${this.commandName}\" refactoring from ${necessity()}")
-        _isEnabled = when (necessity()) {
-          IRRELEVANT_FUTURE, IRRELEVANT_PAST -> false
-          MANDATORY_CODEPENDENT, MANDATORY_INDEPENDENT, OPTIONAL_CODEPENDENT, OPTIONAL_INDEPENDENT -> true
-        }
+        _isEnabled =
+          when (necessity()) {
+            IRRELEVANT_FUTURE,
+            IRRELEVANT_PAST -> false
+            MANDATORY_CODEPENDENT,
+            MANDATORY_INDEPENDENT,
+            OPTIONAL_CODEPENDENT,
+            OPTIONAL_INDEPENDENT -> true
+          }
       }
       return _isEnabled!!
     }
@@ -842,7 +856,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
     get() {
       if (_isAlwaysNoOpForProject == null) {
-        DumbService.getInstance(project).runReadActionInSmartMode {_isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject() }
+        DumbService.getInstance(project).runReadActionInSmartMode { _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject() }
       }
       return _isAlwaysNoOpForProject!!
     }
@@ -856,30 +870,26 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   }
 
   /**
-   * This function should be overridden by individual component processors in order to compute (within a read action) any non-volatile
-   * state relating to their operation.
+   * This function should be overridden by individual component processors in order to compute (within a read action) any non-volatile state
+   * relating to their operation.
    */
   open fun initializeComponentExtraCaches() = Unit
 
-  sealed class BlockReason(
-    val shortDescription: String,
-    val description: String? = null,
-    val readMoreUrl: ReadMoreUrlRedirect? = null
-  )
+  sealed class BlockReason(val shortDescription: String, val description: String? = null, val readMoreUrl: ReadMoreUrlRedirect? = null)
 
   open fun blockProcessorReasons(): List<BlockReason> = listOf()
 
   val isBlocked: Boolean
     get() = blockProcessorReasons().isNotEmpty()
 
-  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current) {
     this.current = current
     this.new = new
     this.uuid = UUID.randomUUID().toString()
     this.hasParentProcessor = false
   }
 
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
     this.current = processor.current
     this.new = processor.new
     this.uuid = processor.uuid
@@ -940,16 +950,18 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     val url: String
       get() = "https://developer.android.com/r/tools/upgrade-assistant/$leaf"
   }
+
   protected open val readMoreUrlRedirect: ReadMoreUrlRedirect? = null
+
   fun getReadMoreUrl(): String? = readMoreUrlRedirect?.url
 
   open fun getShortDescription(): String? = null
 
   /**
-   * Return whether this refactoring processor is known to perform no changes to the project, no matter what the settings
-   * of the processor are; a return value of false may nevertheless lead to no changes, but true must never be returned
-   * if the processor does in fact make changes.  The default method checks whether the processor finds any usages, returning
-   * true if not and false otherwise; component processors may override or extend.
+   * Return whether this refactoring processor is known to perform no changes to the project, no matter what the settings of the processor
+   * are; a return value of false may nevertheless lead to no changes, but true must never be returned if the processor does in fact make
+   * changes. The default method checks whether the processor finds any usages, returning true if not and false otherwise; component
+   * processors may override or extend.
    */
   protected open fun computeIsAlwaysNoOpForProject(): Boolean = findComponentUsages().isEmpty()
 
@@ -970,11 +982,12 @@ data class PropertiesOperationsRefactoringInfo(
   val shortDescriptionSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val propertiesOperationInfos: List<PropertiesOperationInfo>
+  val propertiesOperationInfos: List<PropertiesOperationInfo>,
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
     override val necessityInfo = RegionNecessity(optionalFromVersion, requiredFromVersion)
@@ -989,9 +1002,7 @@ data class PropertiesOperationsRefactoringInfo(
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo ->
-          usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
-        }
+        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo -> usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel)) }
       }
       return usages.toArray(UsageInfo.EMPTY_ARRAY)
     }
@@ -1011,15 +1022,15 @@ data class PropertiesOperationsRefactoringInfo(
 }
 
 data class MovePropertiesInfo(
-  val sourceToDestinationPropertyModelGetters: List<
-    Pair<GradleBuildModel.() -> ResolvedPropertyModel, GradleBuildModel.() -> ResolvedPropertyModel>>,
+  val sourceToDestinationPropertyModelGetters:
+    List<Pair<GradleBuildModel.() -> ResolvedPropertyModel, GradleBuildModel.() -> ResolvedPropertyModel>>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType,
-): PropertiesOperationInfo {
+) : PropertiesOperationInfo {
 
   override fun findBuildModelUsages(
     processor: AgpUpgradeComponentRefactoringProcessor,
-    buildModel: GradleBuildModel
+    buildModel: GradleBuildModel,
   ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
@@ -1043,11 +1054,12 @@ data class MovePropertiesInfo(
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val valueModel = sourcePropertyModel.unresolvedModel
 
-      val value: Any = when (valueModel.valueType) {
-        GradlePropertyModel.ValueType.LIST -> valueModel.getValue(LIST_TYPE) ?: return
-        GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
-        else -> valueModel.getValue(OBJECT_TYPE) ?: return
-      }
+      val value: Any =
+        when (valueModel.valueType) {
+          GradlePropertyModel.ValueType.LIST -> valueModel.getValue(LIST_TYPE) ?: return
+          GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
+          else -> valueModel.getValue(OBJECT_TYPE) ?: return
+        }
 
       buildModel.(destinationPropertyModelGetter)().setValue(value)
       sourcePropertyModel.delete()
@@ -1062,12 +1074,12 @@ data class MovePropertiesInfo(
 data class RemovePropertiesInfo(
   val propertyModelListGetter: GradleBuildModel.() -> List<DeletablePsiElementHolder>,
   val tooltipTextSupplier: Supplier<String>,
-  val usageType: UsageType
-): PropertiesOperationInfo {
+  val usageType: UsageType,
+) : PropertiesOperationInfo {
 
   override fun findBuildModelUsages(
     processor: AgpUpgradeComponentRefactoringProcessor,
-    buildModel: GradleBuildModel
+    buildModel: GradleBuildModel,
   ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     buildModel.(propertyModelListGetter)().forEach { model ->
@@ -1079,10 +1091,8 @@ data class RemovePropertiesInfo(
     return usages
   }
 
-  inner class RemovePropertyUsageInfo(
-    element: WrappedPsiElement,
-    val model: DeletablePsiElementHolder
-  ) : GradleBuildModelUsageInfo(element) {
+  inner class RemovePropertyUsageInfo(element: WrappedPsiElement, val model: DeletablePsiElementHolder) :
+    GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       model.delete()
@@ -1098,11 +1108,11 @@ data class RewriteObsoletePropertiesInfo(
   val propertyModelListGetter: GradleBuildModel.() -> List<ResolvedPropertyModel>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType,
-): PropertiesOperationInfo {
+) : PropertiesOperationInfo {
 
   override fun findBuildModelUsages(
     processor: AgpUpgradeComponentRefactoringProcessor,
-    buildModel: GradleBuildModel
+    buildModel: GradleBuildModel,
   ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     buildModel.(propertyModelListGetter)().forEach property@{ property ->
@@ -1117,10 +1127,7 @@ data class RewriteObsoletePropertiesInfo(
     return usages
   }
 
-  inner class RewritePropertyUsageInfo(
-    element: WrappedPsiElement,
-    val model: ResolvedPropertyModel,
-  ): GradleBuildModelUsageInfo(element) {
+  inner class RewritePropertyUsageInfo(element: WrappedPsiElement, val model: ResolvedPropertyModel) : GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       model.rewrite()
@@ -1131,12 +1138,13 @@ data class RewriteObsoletePropertiesInfo(
     override fun getDiscriminatingValues(): List<Any> = listOf(this@RewriteObsoletePropertiesInfo)
   }
 }
+
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
  *
- * This usage type provider will only provide a usage type if the element in question is a [WrappedPsiElement], which is not
- * intended for use outside this package; it will return null in all other cases.  The [UsageType] it returns should give
- * a high-level description of the effect the refactoring will have on this usage.
+ * This usage type provider will only provide a usage type if the element in question is a [WrappedPsiElement], which is not intended for
+ * use outside this package; it will return null in all other cases. The [UsageType] it returns should give a high-level description of the
+ * effect the refactoring will have on this usage.
  */
 class AgpComponentUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? = (element as? WrappedPsiElement)?.usageType
@@ -1174,56 +1182,57 @@ internal fun isUpdatableLintRelatedDependency(toVersion: AgpVersion, model: Arti
   return if (toVersion.toLintVersion().compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
-internal fun AgpVersion.toLintVersion(): Version =
-  Version.parse("${this.major + 23}.${this.toString().substringAfter('.')}")
-
+internal fun AgpVersion.toLintVersion(): Version = Version.parse("${this.major + 23}.${this.toString().substringAfter('.')}")
 
 /**
- * Helper functions for metrics, placed out of the way of the main logic, which are responsible for building and logging
- * AndroidStudioEvent messages at various stages:
+ * Helper functions for metrics, placed out of the way of the main logic, which are responsible for building and logging AndroidStudioEvent
+ * messages at various stages:
  * - of the operation of the overall processor: [AgpUpgradeRefactoringProcessor.trackProcessorUsage]
  * - of an individual component: [AgpUpgradeComponentRefactoringProcessor.trackComponentUsage].
  *
- * Currently, the difference between these messages is simply that the Processor reports on the state of all its
- * Components, while each Component reports only on itself.
+ * Currently, the difference between these messages is simply that the Processor reports on the state of all its Components, while each
+ * Component reports only on itself.
  */
-internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
-  kind: UpgradeAssistantEventKind,
-  usages: Int? = null,
-  files: Int? = null,
-) {
-  val processorEvent = UpgradeAssistantProcessorEvent.newBuilder()
-    .setUpgradeUuid(uuid)
-    .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind)
-                    .apply { usages?.let { setUsages(it) } }
-                    .apply { files?.let { setFiles(it) } }
-                    .build())
-  componentRefactoringProcessors.forEach {
-    processorEvent.addComponentInfo(it.getComponentInfo())
-  }
+internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int? = null, files: Int? = null) {
+  val processorEvent =
+    UpgradeAssistantProcessorEvent.newBuilder()
+      .setUpgradeUuid(uuid)
+      .setCurrentAgpVersion(current.toString())
+      .setNewAgpVersion(new.toString())
+      .setEventInfo(
+        UpgradeAssistantEventInfo.newBuilder()
+          .setKind(kind)
+          .apply { usages?.let { setUsages(it) } }
+          .apply { files?.let { setFiles(it) } }
+          .build()
+      )
+  componentRefactoringProcessors.forEach { processorEvent.addComponentInfo(it.getComponentInfo()) }
 
-  val studioEvent = AndroidStudioEvent.newBuilder()
-    .setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_PROCESSOR_EVENT).withProjectId(project)
-    .setUpgradeAssistantProcessorEvent(processorEvent.build())
+  val studioEvent =
+    AndroidStudioEvent.newBuilder()
+      .setCategory(PROJECT_SYSTEM)
+      .setKind(UPGRADE_ASSISTANT_PROCESSOR_EVENT)
+      .withProjectId(project)
+      .setUpgradeAssistantProcessorEvent(processorEvent.build())
 
   UsageTracker.log(studioEvent)
 }
 
-private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(
-  kind: UpgradeAssistantEventKind,
-  usages: Int,
-  files: Int,
-) {
-  val componentEvent = UpgradeAssistantComponentEvent.newBuilder()
-    .setUpgradeUuid(uuid)
-    .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
-    .setComponentInfo(getComponentInfo().build())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).setFiles(files).build())
-    .build()
-  val studioEvent = AndroidStudioEvent.newBuilder()
-    .setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_COMPONENT_EVENT).withProjectId(project)
-    .setUpgradeAssistantComponentEvent(componentEvent)
+private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(kind: UpgradeAssistantEventKind, usages: Int, files: Int) {
+  val componentEvent =
+    UpgradeAssistantComponentEvent.newBuilder()
+      .setUpgradeUuid(uuid)
+      .setCurrentAgpVersion(current.toString())
+      .setNewAgpVersion(new.toString())
+      .setComponentInfo(getComponentInfo().build())
+      .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).setFiles(files).build())
+      .build()
+  val studioEvent =
+    AndroidStudioEvent.newBuilder()
+      .setCategory(PROJECT_SYSTEM)
+      .setKind(UPGRADE_ASSISTANT_COMPONENT_EVENT)
+      .withProjectId(project)
+      .setUpgradeAssistantComponentEvent(componentEvent)
 
   UsageTracker.log(studioEvent)
 }

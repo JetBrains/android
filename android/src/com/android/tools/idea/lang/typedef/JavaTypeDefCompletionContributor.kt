@@ -32,8 +32,8 @@ import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
- * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for
- * code completion on a [PsiReferenceExpression](argument).
+ * Decorates, reprioritizes, and possibly adds named constants from Android typedef annotations for code completion on a
+ * [PsiReferenceExpression](argument).
  *
  * See also [IntDef](https://developer.android.com/reference/androidx/annotation/IntDef),
  * [LongDef](https://developer.android.com/reference/androidx/annotation/LongDef), and
@@ -44,14 +44,12 @@ class JavaTypeDefCompletionContributor : TypeDefCompletionContributor() {
   override val elementPattern: ElementPattern<PsiElement> =
     psiElement()
       .withParent(
-        psiElement(PsiReferenceExpression::class.java)
-          .inside(psiElement(PsiExpressionList::class.java).withParent(PsiCall::class.java))
+        psiElement(PsiReferenceExpression::class.java).inside(psiElement(PsiExpressionList::class.java).withParent(PsiCall::class.java))
       )
 
   override val insertHandler =
     object : TypeDefInsertHandler() {
-      override fun shouldOptimizeImports(project: Project) =
-        CodeInsightWorkspaceSettings.getInstance(project).isOptimizeImportsOnTheFly
+      override fun shouldOptimizeImports(project: Project) = CodeInsightWorkspaceSettings.getInstance(project).isOptimizeImportsOnTheFly
 
       override fun bindToTarget(context: InsertionContext, target: PsiElement) {
         val expr = context.getParent() as? PsiReference ?: return

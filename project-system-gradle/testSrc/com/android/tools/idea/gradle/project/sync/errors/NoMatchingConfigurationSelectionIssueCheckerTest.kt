@@ -32,14 +32,15 @@ class NoMatchingConfigurationSelectionIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is false when pattern is not present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = "This message should not be consumed",
-      failureCause = "",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = "This message should not be consumed",
+        failureCause = "",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     assertFalse(consumed)
     assertEmpty(testConsumer.messageEvents)
   }
@@ -47,14 +48,15 @@ class NoMatchingConfigurationSelectionIssueCheckerTest {
   @Test
   fun `consumeBuildOutputFailureMessage is true when pattern is present`() {
     val testConsumer = TestMessageEventConsumer()
-    val consumed = issueChecker.consumeBuildOutputFailureMessage(
-      message = createErrorMessage(agpVersion = "8.1.0", agpCompiledVersion = "11", gradleJdkVersion = "8"),
-      failureCause = "",
-      stacktrace = null,
-      location = null,
-      parentEventId = "",
-      testConsumer
-    )
+    val consumed =
+      issueChecker.consumeBuildOutputFailureMessage(
+        message = createErrorMessage(agpVersion = "8.1.0", agpCompiledVersion = "11", gradleJdkVersion = "8"),
+        failureCause = "",
+        stacktrace = null,
+        location = null,
+        parentEventId = "",
+        testConsumer,
+      )
     assertTrue(consumed)
     assertEmpty(testConsumer.messageEvents)
   }
@@ -96,8 +98,9 @@ class NoMatchingConfigurationSelectionIssueCheckerTest {
     val issueData = GradleIssueData("projectFolderPath", Throwable(message), null, null)
     val issue = issueChecker.createBuildIssue(issueData)
     assertThat(issue).isNotNull()
-    val expectedMessage = "This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
-                          "current AGP requires a Gradle JVM that supports version $agpCompiledVersion."
+    val expectedMessage =
+      "This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
+        "current AGP requires a Gradle JVM that supports version $agpCompiledVersion."
     assertThat(issue!!.description).contains(expectedMessage)
     val quickFixes = issue.quickFixes
     assertThat(quickFixes).hasSize(2)
@@ -107,18 +110,18 @@ class NoMatchingConfigurationSelectionIssueCheckerTest {
 
   private fun createErrorMessage(agpVersion: String, agpCompiledVersion: String, gradleJdkVersion: String) =
     "No matching variant of com.android.tools.build:gradle:$agpVersion was found. The consumer was configured to find a library for use " +
-    "during runtime, compatible with Java $gradleJdkVersion, packaged as a jar, and its dependencies declared externally, as well as " +
-    "attribute 'org.gradle.plugin.api-version' with value '8.0' but:\n" +
-    "  - Variant 'apiElements' capability com.android.tools.build:gradle:$agpVersion declares a library, packaged as a jar, and its " +
-    "dependencies declared externally:\n" +
-    "      - Incompatible because this component declares a component for use during compile-time, compatible with Java " +
-    "$agpCompiledVersion and the consumer needed a component for use during runtime, compatible with Java $gradleJdkVersion\n" +
-    "      - Other compatible attribute:\n" +
-    "          - Doesn't say anything about org.gradle.plugin.api-version (required '8.0')\n" +
-    "  - Variant 'runtimeElements' capability com.android.tools.build:gradle:$agpVersion declares a library for use during runtime, " +
-    "packaged as a jar, and its dependencies declared externally:\n" +
-    "      - Incompatible because this component declares a component, compatible with Java $agpCompiledVersion and the consumer needed " +
-    "a component, compatible with Java $gradleJdkVersion\n" +
-    "      - Other compatible attribute:\n" +
-    "          - Doesn't say anything about org.gradle.plugin.api-version (required '8.0')"
+      "during runtime, compatible with Java $gradleJdkVersion, packaged as a jar, and its dependencies declared externally, as well as " +
+      "attribute 'org.gradle.plugin.api-version' with value '8.0' but:\n" +
+      "  - Variant 'apiElements' capability com.android.tools.build:gradle:$agpVersion declares a library, packaged as a jar, and its " +
+      "dependencies declared externally:\n" +
+      "      - Incompatible because this component declares a component for use during compile-time, compatible with Java " +
+      "$agpCompiledVersion and the consumer needed a component for use during runtime, compatible with Java $gradleJdkVersion\n" +
+      "      - Other compatible attribute:\n" +
+      "          - Doesn't say anything about org.gradle.plugin.api-version (required '8.0')\n" +
+      "  - Variant 'runtimeElements' capability com.android.tools.build:gradle:$agpVersion declares a library for use during runtime, " +
+      "packaged as a jar, and its dependencies declared externally:\n" +
+      "      - Incompatible because this component declares a component, compatible with Java $agpCompiledVersion and the consumer needed " +
+      "a component, compatible with Java $gradleJdkVersion\n" +
+      "      - Other compatible attribute:\n" +
+      "          - Doesn't say anything about org.gradle.plugin.api-version (required '8.0')"
 }

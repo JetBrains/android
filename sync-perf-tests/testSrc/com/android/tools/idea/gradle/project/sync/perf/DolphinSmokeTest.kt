@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.sync.perf
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
-import org.junit.Before
 import java.io.File
+import org.junit.Before
 
-class DolphinSmokeTest: AbstractGradleSyncSmokeTestCase() {
+class DolphinSmokeTest : AbstractGradleSyncSmokeTestCase() {
   override val relativePath: String = TestProjectPaths.DOLPHIN_PROJECT_ANDROID_ROOT
-  //Do not build (times out in pre submit)
+  // Do not build (times out in pre submit)
   override val buildTask: String? = null
 
   @Before

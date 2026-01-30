@@ -24,17 +24,13 @@ import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlinx.collections.immutable.toImmutableList
 
-/**
- * A group node in the Android Project View that contains all the backup files in the project
- */
-internal class BackupGroupNode(project: Project, settings: ViewSettings)
-  : ProjectViewNode<String>(project, "/", settings), DirectoryNode {
+/** A group node in the Android Project View that contains all the backup files in the project */
+internal class BackupGroupNode(project: Project, settings: ViewSettings) : ProjectViewNode<String>(project, "/", settings), DirectoryNode {
   private val children = mutableListOf<AbstractTreeNode<*>>()
 
   override fun addChild(node: AbstractTreeNode<*>) {
@@ -50,16 +46,19 @@ internal class BackupGroupNode(project: Project, settings: ViewSettings)
     val dirs = mutableMapOf<String, DirectoryNode>()
     dirs.clear()
     children.clear()
-    ProjectFileIndex.getInstance(project).iterateContent(
-      {
-        val parent = it.parent.toNioPath().relativeToProject(project)
-        if (parent.isAbsolute) {
-          // If the file is not under the project dir, ignore it.
-          return@iterateContent true
-        }
-        dirs.getOrCreateDirectoryNode(parent.pathString).addChild(BackupFileNode(project, it, settings))
-        true
-      }, { it.extension == "backup" })
+    ProjectFileIndex.getInstance(project)
+      .iterateContent(
+        {
+          val parent = it.parent.toNioPath().relativeToProject(project)
+          if (parent.isAbsolute) {
+            // If the file is not under the project dir, ignore it.
+            return@iterateContent true
+          }
+          dirs.getOrCreateDirectoryNode(parent.pathString).addChild(BackupFileNode(project, it, settings))
+          true
+        },
+        { it.extension == "backup" },
+      )
 
     return children.toImmutableList()
   }

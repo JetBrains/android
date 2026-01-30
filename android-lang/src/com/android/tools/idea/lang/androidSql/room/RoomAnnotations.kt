@@ -33,4 +33,3 @@ object RoomAnnotations {
 }
 
 const val AUTO_VALUE_ANNOTATION = "com.google.auto.value.AutoValue"
-

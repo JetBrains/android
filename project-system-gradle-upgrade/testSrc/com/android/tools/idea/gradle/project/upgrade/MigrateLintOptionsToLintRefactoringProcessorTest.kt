@@ -23,23 +23,23 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class MigrateLintOptionsToLintRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
-  @get:Rule
-  val expect: Expect = Expect.createAndEnableStackTrace()
+class MigrateLintOptionsToLintRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+  @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   private fun lintOptionsToLintRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {
-    val expectedNecessitiesMap = mapOf(
-      ("4.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("4.2.0" to "7.1.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
-      ("7.1.0" to "7.2.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
-      ("7.1.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
-      ("4.2.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("9.0.0" to "9.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
-    )
+    val expectedNecessitiesMap =
+      mapOf(
+        ("4.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+        ("4.2.0" to "7.1.0") to AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT,
+        ("7.1.0" to "7.2.0") to AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT,
+        ("7.1.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT,
+        ("4.2.0" to "9.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+        ("9.0.0" to "9.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+      )
     expectedNecessitiesMap.forEach { (t, u) ->
       val processor = lintOptionsToLintRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)

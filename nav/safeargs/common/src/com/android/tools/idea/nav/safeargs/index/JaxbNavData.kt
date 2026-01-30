@@ -20,8 +20,6 @@ package com.android.tools.idea.nav.safeargs.index
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceUrl
-import org.w3c.dom.Document
-import org.w3c.dom.Element
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAccessType
 import javax.xml.bind.annotation.XmlAccessorType
@@ -32,6 +30,8 @@ import javax.xml.bind.annotation.XmlRootElement
 import javax.xml.bind.annotation.adapters.XmlAdapter
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
 import javax.xml.transform.dom.DOMResult
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 
 // NOTE: If you change any class in this file, you should also increment NavXmlIndex#getVersion()
 
@@ -42,10 +42,7 @@ private class AndroidIdAdapter : XmlAdapter<String, String>() {
   override fun unmarshal(s: String) = ResourceUrl.parse(s)?.name ?: ""
 }
 
-/**
- * Adapter to handle serializing attributes that represent android IDs that might not be present.
- * See also: [AndroidIdAdapter]
- */
+/** Adapter to handle serializing attributes that represent android IDs that might not be present. See also: [AndroidIdAdapter] */
 private class OptionalAndroidIdAdapter : XmlAdapter<String?, String?>() {
   private val delegateAdapter = AndroidIdAdapter()
 
@@ -55,12 +52,10 @@ private class OptionalAndroidIdAdapter : XmlAdapter<String?, String?>() {
 }
 
 /**
- * An adapter which allows us to catch any unspecified tag and try to fit it into a
- * [MaybeNavDestinationData].
+ * An adapter which allows us to catch any unspecified tag and try to fit it into a [MaybeNavDestinationData].
  *
- * This adapter will always succeed at creating a "maybe" destination, but only if expected
- * attributes are found on the custom tag will it return a non-null destination if
- * [MaybeNavDestinationData.toDestination] is called.
+ * This adapter will always succeed at creating a "maybe" destination, but only if expected attributes are found on the custom tag will it
+ * return a non-null destination if [MaybeNavDestinationData.toDestination] is called.
  */
 private class MaybeDestinationAdapter : XmlAdapter<Element, MaybeNavDestinationData>() {
   private val jaxbContext = JAXBContext.newInstance(MutableMaybeNavDestinationData::class.java)
@@ -85,8 +80,7 @@ data class MutableNavArgumentData(
   @field:XmlAttribute(namespace = ANDROID_URI) override var name: String,
   @field:XmlAttribute(namespace = AUTO_URI, name = "argType") override var type: String?,
   @field:XmlAttribute(namespace = AUTO_URI, name = "nullable") override var nullable: String?,
-  @field:XmlAttribute(namespace = ANDROID_URI, name = "defaultValue")
-  override var defaultValue: String?,
+  @field:XmlAttribute(namespace = ANDROID_URI, name = "defaultValue") override var defaultValue: String?,
 ) : NavArgumentData {
   constructor() : this("", null, null, null)
 }
@@ -94,28 +88,18 @@ data class MutableNavArgumentData(
 @XmlRootElement(name = "action")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class MutableNavActionData(
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = ANDROID_URI)
-  override var id: String,
-  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = AUTO_URI)
-  override var destination: String?,
-  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = AUTO_URI)
-  override var popUpTo: String?,
+  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class) @field:XmlAttribute(namespace = ANDROID_URI) override var id: String,
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class) @field:XmlAttribute(namespace = AUTO_URI) override var destination: String?,
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class) @field:XmlAttribute(namespace = AUTO_URI) override var popUpTo: String?,
   @field:XmlElement(name = "argument") override var arguments: List<MutableNavArgumentData>,
 ) : NavActionData {
   constructor() : this("", null, null, mutableListOf())
 }
 
-@XmlRootElement(
-  name = "maybeDestination"
-) // Fake root element name only used for indexing, required by JAXB marshalling
+@XmlRootElement(name = "maybeDestination") // Fake root element name only used for indexing, required by JAXB marshalling
 @XmlAccessorType(XmlAccessType.FIELD)
 data class MutableMaybeNavDestinationData(
-  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = ANDROID_URI)
-  var id: String?,
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class) @field:XmlAttribute(namespace = ANDROID_URI) var id: String?,
   @field:XmlAttribute(namespace = ANDROID_URI) var name: String?,
   @field:XmlElement(name = "argument") var arguments: List<MutableNavArgumentData>,
   @field:XmlElement(name = "action") var actions: List<MutableNavActionData>,
@@ -138,12 +122,8 @@ data class MutableMaybeNavDestinationData(
 @XmlRootElement(name = "navigation")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class MutableNavNavigationData(
-  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = ANDROID_URI)
-  override var id: String?,
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
-  @field:XmlAttribute(namespace = AUTO_URI)
-  override var startDestination: String,
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class) @field:XmlAttribute(namespace = ANDROID_URI) override var id: String?,
+  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class) @field:XmlAttribute(namespace = AUTO_URI) override var startDestination: String,
   @field:XmlElement(name = "action") override var actions: List<MutableNavActionData>,
   @field:XmlElement(name = "argument") override var arguments: List<MutableNavArgumentData>,
   @field:XmlElement(name = "navigation") override var navigations: List<MutableNavNavigationData>,

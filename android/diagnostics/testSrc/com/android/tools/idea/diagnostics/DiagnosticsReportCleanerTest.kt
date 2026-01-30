@@ -18,10 +18,10 @@ package com.android.tools.idea.diagnostics
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.createParentDirectories
-import junit.framework.TestCase
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
+import junit.framework.TestCase
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.exists

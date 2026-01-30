@@ -27,8 +27,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
-typealias EntryUpdateEventListener =
-  (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
+typealias EntryUpdateEventListener = (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
 
 enum class EntryUpdateEventType {
   ADD,
@@ -42,23 +41,16 @@ sealed class WmiMessengerTarget {
   class Unresolved(val error: String) : WmiMessengerTarget()
 }
 
-/**
- * A Wrapper class that contains either [WorkManagerInspectorProtocol.Event] or
- * [BackgroundTaskInspectorProtocol.Event].
- */
+/** A Wrapper class that contains either [WorkManagerInspectorProtocol.Event] or [BackgroundTaskInspectorProtocol.Event]. */
 class EventWrapper(val case: Case, data: ByteArray) {
   enum class Case {
     WORK,
     BACKGROUND_TASK,
   }
 
-  @TestOnly
-  constructor(event: WorkManagerInspectorProtocol.Event) : this(Case.WORK, event.toByteArray())
+  @TestOnly constructor(event: WorkManagerInspectorProtocol.Event) : this(Case.WORK, event.toByteArray())
 
-  @TestOnly
-  constructor(
-    event: BackgroundTaskInspectorProtocol.Event
-  ) : this(Case.BACKGROUND_TASK, event.toByteArray())
+  @TestOnly constructor(event: BackgroundTaskInspectorProtocol.Event) : this(Case.BACKGROUND_TASK, event.toByteArray())
 
   val workEvent =
     (if (case == Case.WORK) WorkManagerInspectorProtocol.Event.parseFrom(data)
@@ -68,10 +60,7 @@ class EventWrapper(val case: Case, data: ByteArray) {
     else BackgroundTaskInspectorProtocol.Event.getDefaultInstance())!!
 }
 
-/**
- * Class used to send commands to and handle events from the on-device work manager inspector and
- * background task inspector.
- */
+/** Class used to send commands to and handle events from the on-device work manager inspector and background task inspector. */
 class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
   private val wmiMessengerTarget: WmiMessengerTarget,
@@ -91,29 +80,21 @@ class BackgroundTaskInspectorClient(
   init {
     val trackBackgroundTaskCommand =
       BackgroundTaskInspectorProtocol.Command.newBuilder()
-        .setTrackBackgroundTask(
-          BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance()
-        )
+        .setTrackBackgroundTask(BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance())
         .build()
     scope.launch {
       btiMessenger.sendRawCommand(trackBackgroundTaskCommand.toByteArray())
-      btiMessenger.eventFlow.collect { eventData ->
-        handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, eventData))
-      }
+      btiMessenger.eventFlow.collect { eventData -> handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, eventData)) }
     }
 
     if (wmiMessengerTarget is WmiMessengerTarget.Resolved) {
       val trackWorkManagerCommand =
         WorkManagerInspectorProtocol.Command.newBuilder()
-          .setTrackWorkManager(
-            WorkManagerInspectorProtocol.TrackWorkManagerCommand.getDefaultInstance()
-          )
+          .setTrackWorkManager(WorkManagerInspectorProtocol.TrackWorkManagerCommand.getDefaultInstance())
           .build()
       scope.launch {
         wmiMessengerTarget.messenger.sendRawCommand(trackWorkManagerCommand.toByteArray())
-        wmiMessengerTarget.messenger.eventFlow.collect { eventData ->
-          handleEvent(EventWrapper(EventWrapper.Case.WORK, eventData))
-        }
+        wmiMessengerTarget.messenger.eventFlow.collect { eventData -> handleEvent(EventWrapper(EventWrapper.Case.WORK, eventData)) }
       }
     }
   }
@@ -142,28 +123,21 @@ class BackgroundTaskInspectorClient(
   }
 
   /**
-   * Returns an entry with [entryId]. Entries are updated from non-UI thread and could be
-   * inconsistent with data acquired from UI thread.
+   * Returns an entry with [entryId]. Entries are updated from non-UI thread and could be inconsistent with data acquired from UI thread.
    */
   fun getEntry(entryId: String): BackgroundTaskEntry? {
     return entryMap[entryId]
   }
 
   fun cancelWorkById(id: String) {
-    val cancelCommand =
-      WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
-    val command =
-      WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
-    scope.launch {
-      (wmiMessengerTarget as WmiMessengerTarget.Resolved)
-        .messenger
-        .sendRawCommand(command.toByteArray())
-    }
+    val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
+    val command = WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
+    scope.launch { (wmiMessengerTarget as WmiMessengerTarget.Resolved).messenger.sendRawCommand(command.toByteArray()) }
   }
 
   /**
-   * Returns a chain of works with topological ordering containing the selected work. Entries are
-   * updated from non-UI thread and could be inconsistent with data acquired from UI thread.
+   * Returns a chain of works with topological ordering containing the selected work. Entries are updated from non-UI thread and could be
+   * inconsistent with data acquired from UI thread.
    *
    * @param id id of the selected work.
    */

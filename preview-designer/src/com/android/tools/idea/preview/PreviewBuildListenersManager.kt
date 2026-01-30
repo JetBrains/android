@@ -31,13 +31,11 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Class responsible for setting up a Project System build listener, and also a fast preview
- * compilation listener when [isFastPreviewSupported] is true, that will update the preview state
- * according to the build events by calling [invalidate], [refresh] and
+ * Class responsible for setting up a Project System build listener, and also a fast preview compilation listener when
+ * [isFastPreviewSupported] is true, that will update the preview state according to the build events by calling [invalidate], [refresh] and
  * [requestVisibilityAndNotificationsUpdate].
  *
- * TODO(b/328056861): remove [requestVisibilityAndNotificationsUpdate] once Compose Preview starts
- *   using [PreviewViewModel].
+ * TODO(b/328056861): remove [requestVisibilityAndNotificationsUpdate] once Compose Preview starts using [PreviewViewModel].
  */
 class PreviewBuildListenersManager(
   private val isFastPreviewSupported: Boolean,
@@ -60,10 +58,7 @@ class PreviewBuildListenersManager(
   ) {
     val psiFile = runReadAction { psiFilePointer.element }
     if (psiFile == null) {
-      log.warn(
-        "PsiFile was disposed before the preview initialization completed. " +
-          "Build listeners were not set up for this PsiFile."
-      )
+      log.warn("PsiFile was disposed before the preview initialization completed. " + "Build listeners were not set up for this PsiFile.")
       return
     }
     val buildTargetReference = BuildTargetReference.from(psiFile) ?: return
@@ -122,15 +117,10 @@ class PreviewBuildListenersManager(
           disposable,
           object : FastPreviewManager.Companion.FastPreviewManagerListener {
             override fun onCompilationStarted(files: Collection<PsiFile>) {
-              psiFile.let { editorFile ->
-                if (files.any { it.isEquivalentTo(editorFile) }) onBuildStarted()
-              }
+              psiFile.let { editorFile -> if (files.any { it.isEquivalentTo(editorFile) }) onBuildStarted() }
             }
 
-            override fun onCompilationComplete(
-              result: CompilationResult,
-              files: Collection<PsiFile>,
-            ) {
+            override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
               // Notify on any Fast Preview compilation to ensure we refresh all the previews
               // correctly.
               afterBuildComplete(result == CompilationResult.Success)

@@ -70,14 +70,10 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     whenever(mockSchemaProvider.getSchema(any())).thenReturn(SqliteSchema(emptyList()))
 
     dropPsiCachesCallCounter = 0
-    view =
-      SqliteEvaluatorViewImpl(project, TableViewImpl(TABLE), mockSchemaProvider) {
-        dropPsiCachesCallCounter += 1
-      }
+    view = SqliteEvaluatorViewImpl(project, TableViewImpl(TABLE), mockSchemaProvider) { dropPsiCachesCallCounter += 1 }
     view.component.size = Dimension(600, 200)
 
-    sqliteUtil =
-      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
   }
 
@@ -113,11 +109,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   fun testActiveDatabaseRemainsActiveWhenNewDbsAreAdded() {
     // Prepare
     val model = OpenDatabaseInspectorModel()
-    val evaluatorController =
-      sqliteEvaluatorController(
-        model,
-        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
-      )
+    val evaluatorController = sqliteEvaluatorController(model, DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()))
     evaluatorController.setUp()
 
     val db0 = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("db0")))
@@ -186,14 +178,10 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
   fun testRefreshButtonIsDisabledByDefault() {
     // Prepare
-    val refreshButton =
-      TreeWalker(view.tableView.component).descendants().first { it.name == "refresh-button" }
+    val refreshButton = TreeWalker(view.tableView.component).descendants().first { it.name == "refresh-button" }
 
     val evaluatorController =
-      sqliteEvaluatorController(
-        OpenDatabaseInspectorModel(),
-        DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
-      )
+      sqliteEvaluatorController(OpenDatabaseInspectorModel(), DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()))
 
     // Act
     evaluatorController.setUp()
@@ -207,11 +195,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val sqliteFile = createAdHocSqliteDatabase()
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          sqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     val database = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(sqliteFile))
@@ -227,10 +211,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      controller.showAndExecuteSqlStatement(
-        database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-      )
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert
@@ -242,10 +223,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      controller.showAndExecuteSqlStatement(
-        database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-      )
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert
@@ -280,8 +258,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
   fun testSqliteStatementTextChanged() {
     // Prepare
-    val collapsedEditor =
-      TreeWalker(view.component).descendants().first { it.name == "editor" } as EditorTextField
+    val collapsedEditor = TreeWalker(view.component).descendants().first { it.name == "editor" } as EditorTextField
 
     val invocations = mutableListOf<String>()
     val mockListener =
@@ -306,11 +283,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     val sqliteFile = createAdHocSqliteDatabase()
     realDatabaseConnection =
       pumpEventsAndWaitForFuture(
-        getJdbcDatabaseConnection(
-          testRootDisposable,
-          sqliteFile,
-          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()),
-        )
+        getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
       )
 
     val database = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(sqliteFile))
@@ -327,10 +300,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     model.addDatabaseSchema(unrelated, SqliteSchema(emptyList()))
 
     pumpEventsAndWaitForFuture(
-      controller.showAndExecuteSqlStatement(
-        database,
-        SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
-      )
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
@@ -355,8 +325,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     controller.setUp()
 
     val table1 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
-    val messagePanel1 =
-      TreeWalker(view.component).descendants().first { it.name == "message-panel" }
+    val messagePanel1 = TreeWalker(view.component).descendants().first { it.name == "message-panel" }
 
     assertThat(messagePanel1).isNotNull()
     assertThat(table1).isNull()
@@ -364,8 +333,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     view.showTableView()
 
     val table2 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
-    val messagePanel2 =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
+    val messagePanel2 = TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
 
     assertThat(messagePanel2).isNull()
     assertThat(table2).isNotNull()
@@ -375,8 +343,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     view.showTableView()
 
     val table1 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
-    val messagePanel1 =
-      TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
+    val messagePanel1 = TreeWalker(view.component).descendants().firstOrNull { it.name == "message-panel" }
 
     assertThat(messagePanel1).isNull()
     assertThat(table1).isNotNull()
@@ -384,8 +351,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
     view.showMessagePanel("message")
 
     val table2 = TreeWalker(view.component).descendants().filterIsInstance<JTable>().firstOrNull()
-    val messagePanel2 =
-      TreeWalker(view.component).descendants().first { it.name == "message-panel" }
+    val messagePanel2 = TreeWalker(view.component).descendants().first { it.name == "message-panel" }
 
     assertThat(messagePanel2).isNotNull()
     assertThat(table2).isNull()
@@ -393,8 +359,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
 
   private fun sqliteEvaluatorController(
     model: DatabaseInspectorModel = OpenDatabaseInspectorModel(),
-    repository: DatabaseRepositoryImpl =
-      DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
+    repository: DatabaseRepositoryImpl = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
   ): SqliteEvaluatorController {
     return SqliteEvaluatorController(
         project,

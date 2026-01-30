@@ -35,7 +35,8 @@ class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
       "androidx.annotation.RecentlyNonNull",
       "androidx.annotation.RecentlyNullable",
       "android.annotation.NonNull",
-      "android.annotation.Nullable")
+      "android.annotation.Nullable",
+    )
   }
 
   override fun cleanup(source: PsiModifierListOwner, targetClass: PsiElement?, target: PsiModifierListOwner) {
@@ -67,12 +68,10 @@ class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
           if (psiFacade.findClass(prev, target.resolveScope) != null) {
             AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
           }
-        }
-        else {
+        } else {
           AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
         }
-      }
-      else {
+      } else {
         break
       }
     }

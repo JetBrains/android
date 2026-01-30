@@ -56,9 +56,9 @@ fun Editor.deleteLine() {
 }
 
 /**
- * Moves the caret the number of [lines] specified. A negative number indicates the caret moving up,
- * a positive one moving down. If [setToEnd] is false the method, when possible, will try to set the
- * caret at the same distance from the start as it was in the current line.
+ * Moves the caret the number of [lines] specified. A negative number indicates the caret moving up, a positive one moving down. If
+ * [setToEnd] is false the method, when possible, will try to set the caret at the same distance from the start as it was in the current
+ * line.
  */
 fun Editor.moveCaretLines(lines: Int, setToEnd: Boolean = true) {
   val line = document.getLineNumber(caretModel.offset)

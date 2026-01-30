@@ -31,10 +31,8 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 /** Action that shows a dialog to change the tag name of a component */
 class MorphComponentAction
 @JvmOverloads
-constructor(
-  component: NlComponent,
-  private val getMorphSuggestions: (NlComponent) -> List<String> = MorphManager::getMorphSuggestion,
-) : AnAction("Convert view...") {
+constructor(component: NlComponent, private val getMorphSuggestions: (NlComponent) -> List<String> = MorphManager::getMorphSuggestion) :
+  AnAction("Convert view...") {
 
   private val myNlComponent = component
   private var myNewName = component.tagName
@@ -45,25 +43,16 @@ constructor(
     val project = myNlComponent.model.project
     val facet = myNlComponent.model.facet
     val dependencyManager = NlDependencyManager.getInstance()
-    val component =
-      NlComponent(
-        myNlComponent.model,
-        XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>"),
-      )
+    val component = NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>"))
     NlComponentRegistrar.accept(component)
-    dependencyManager.addDependencies(listOf(component), facet, true) {
-      editTagNameAndAttributes(project, newTagName)
-    }
+    dependencyManager.addDependencies(listOf(component), facet, true) { editTagNameAndAttributes(project, newTagName) }
   }
 
   /** Edit the tag name and remove the attributes that are not needed anymore. */
   @UiThread
   private fun editTagNameAndAttributes(project: Project, newTagName: String) {
     DumbService.getInstance(project).runWhenSmart {
-      NlWriteCommandActionUtil.run(
-        myNlComponent,
-        "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}",
-      ) {
+      NlWriteCommandActionUtil.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}") {
         myNlComponent.tagDeprecated.name = newTagName
         myNlComponent.removeObsoleteAttributes()
         myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)

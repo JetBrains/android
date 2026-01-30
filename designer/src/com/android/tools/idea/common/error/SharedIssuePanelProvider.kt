@@ -48,9 +48,7 @@ class SharedIssuePanelProvider(private val project: Project) : ProblemsViewPanel
 
     val psiFiles = readAction { files.filter { it.isValid }.mapNotNull { it.toPsiFile(project) } }
     val fileNameString = files.joinToString { it.name }
-    return if (
-      psiFiles.size == files.size && psiFiles.all { LayoutFileType.isResourceTypeOf(it) }
-    ) {
+    return if (psiFiles.size == files.size && psiFiles.all { LayoutFileType.isResourceTypeOf(it) }) {
       "No layout problems in $fileNameString and qualifiers"
     } else {
       "No problems in $fileNameString"

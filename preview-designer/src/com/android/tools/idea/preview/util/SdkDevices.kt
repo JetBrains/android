@@ -29,10 +29,7 @@ import org.jetbrains.android.sdk.StudioAndroidSdkData
  */
 fun getSdkDevices(module: Module): List<Device> {
   return AndroidFacet.getInstance(module)?.let { facet ->
-    StudioAndroidSdkData.getSdkData(facet)
-      ?.deviceManager
-      ?.getDevices(DeviceManager.ALL_DEVICES)
-      ?.toList()
+    StudioAndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.toList()
   } ?: emptyList()
 }
 

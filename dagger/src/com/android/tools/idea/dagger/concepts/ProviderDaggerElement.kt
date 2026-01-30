@@ -39,8 +39,7 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
   protected abstract fun getIndexKeys(): List<String>
 
   /** Gets info for any @Qualifier annotations on this element. */
-  protected val qualifierInfo by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
+  protected val qualifierInfo by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
 
   abstract fun canProvideFor(consumer: ConsumerDaggerElementBase): Boolean
 
@@ -55,8 +54,8 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
     }
 
   /**
-   * Gets a custom name for use when displaying a related consumer in navigation text. This
-   * generally returns the name of a higher-level element than the consumer itself.
+   * Gets a custom name for use when displaying a related consumer in navigation text. This generally returns the name of a higher-level
+   * element than the consumer itself.
    */
   private fun PsiElement.getCustomRelatedElementDisplayName() =
     when (this) {
@@ -70,8 +69,8 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
     }
 
   /**
-   * When displaying the relationship between this provider and a consumer, the description of the
-   * relationship has to change when the consumer is a top-level component or entry point.
+   * When displaying the relationship between this provider and a consumer, the description of the relationship has to change when the
+   * consumer is a top-level component or entry point.
    */
   private fun ConsumerDaggerElementBase.getRelationDescriptionKey(): String =
     when (this) {
@@ -87,10 +86,9 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
     /**
      * Returns whether the given type from a consumer can be provided by the second type.
      *
-     * In the simple case, a Consumer consumes the exact type that a Provider provides. But a
-     * Consumer can also ask for variations of the type, such as wrapping a type `Foo` as
-     * `dagger.Lazy<Foo>`. This method indicates whether the current type is able to be returned by
-     * a Provider defined with the specified type.
+     * In the simple case, a Consumer consumes the exact type that a Provider provides. But a Consumer can also ask for variations of the
+     * type, such as wrapping a type `Foo` as `dagger.Lazy<Foo>`. This method indicates whether the current type is able to be returned by a
+     * Provider defined with the specified type.
      */
     @JvmStatic
     protected fun PsiType.matchesProvidedType(providedType: PsiType) =
@@ -98,18 +96,14 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
   }
 }
 
-internal data class ProviderDaggerElement(
-  override val psiElement: PsiElement,
-  private val providedPsiType: PsiType,
-) : ProviderDaggerElementBase() {
+internal data class ProviderDaggerElement(override val psiElement: PsiElement, private val providedPsiType: PsiType) :
+  ProviderDaggerElementBase() {
 
   internal constructor(psiElement: KtClassOrObject) : this(psiElement, psiElement.classToPsiType())
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
 
-  internal constructor(
-    psiElement: KtParameter
-  ) : this(psiElement, requireNotNull(psiElement.psiType))
+  internal constructor(psiElement: KtParameter) : this(psiElement, requireNotNull(psiElement.psiType))
 
   internal constructor(psiElement: PsiClass) : this(psiElement, psiElement.classToPsiType())
 
@@ -128,11 +122,9 @@ internal data class ProviderDaggerElement(
   }
 
   override fun canProvideFor(consumer: ConsumerDaggerElementBase) =
-    consumer.consumedType.matchesProvidedType(providedPsiType) &&
-      qualifierInfo == consumer.qualifierInfo
+    consumer.consumedType.matchesProvidedType(providedPsiType) && qualifierInfo == consumer.qualifierInfo
 
   companion object {
-    private val RELATED_ELEMENTS_KEY =
-      Key<CachedValue<List<DaggerRelatedElement>>>("ProviderDaggerElement_RelatedElements")
+    private val RELATED_ELEMENTS_KEY = Key<CachedValue<List<DaggerRelatedElement>>>("ProviderDaggerElement_RelatedElements")
   }
 }

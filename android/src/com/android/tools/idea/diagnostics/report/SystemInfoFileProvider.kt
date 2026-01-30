@@ -23,11 +23,12 @@ import java.nio.file.Paths
 private const val FILE_NAME = "SystemInfo.log"
 
 /*
-  SystemInfoFileProvider copies the text from the SendFeedbackAction into
-  a text file so that it can be included in the diagnostic summary report
- */
+ SystemInfoFileProvider copies the text from the SendFeedbackAction into
+ a text file so that it can be included in the diagnostic summary report
+*/
 object SystemInfoFileProvider : DiagnosticsSummaryFileProvider {
   override val name: String = "System Info"
+
   override fun getFiles(project: Project?): List<FileInfo> {
     val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
     val path = dir.resolve(FILE_NAME)

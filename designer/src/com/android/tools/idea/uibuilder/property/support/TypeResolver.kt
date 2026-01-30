@@ -30,20 +30,13 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 /**
  * Temporary type resolver.
  *
- * Eventually we want the library and framework to specify the correct type for each attribute. This
- * is the fallback if this information is not available.
+ * Eventually we want the library and framework to specify the correct type for each attribute. This is the fallback if this information is
+ * not available.
  */
 object TypeResolver {
 
-  fun resolveType(
-    name: String,
-    attribute: AttributeDefinition?,
-    componentClass: PsiClass?,
-  ): NlPropertyType {
-    return lookupByName(name, componentClass)
-      ?: bySpecialType(name)
-      ?: fromAttributeDefinition(attribute)
-      ?: fallbackByName(name)
+  fun resolveType(name: String, attribute: AttributeDefinition?, componentClass: PsiClass?): NlPropertyType {
+    return lookupByName(name, componentClass) ?: bySpecialType(name) ?: fromAttributeDefinition(attribute) ?: fallbackByName(name)
   }
 
   private fun bySpecialType(name: String): NlPropertyType? {
@@ -112,8 +105,7 @@ object TypeResolver {
       SdkConstants.ATTR_NEXT_FOCUS_RIGHT,
       SdkConstants.ATTR_NEXT_FOCUS_UP,
       SdkConstants.ATTR_TOOLBAR_ID -> NlPropertyType.ID
-      SdkConstants.ATTR_EDITOR_EXTRAS ->
-        NlPropertyType.ID // TODO: Support <input-extras> as resource type?
+      SdkConstants.ATTR_EDITOR_EXTRAS -> NlPropertyType.ID // TODO: Support <input-extras> as resource type?
       SdkConstants.ATTR_BACKGROUND,
       SdkConstants.ATTR_BUTTON,
       SdkConstants.ATTR_CHECK_MARK,
@@ -296,14 +288,12 @@ object TypeResolver {
   /**
    * Find the type of the "defaultValue" attribute.
    *
-   * The attribute "defaultValue" defined on the "Preference" tag is known to have multiple types.
-   * Classes derived from "android.preference.Preference" or "androidx.preference.Preference"
-   * override the method "onGetDefaultValue" to read the value expected for this attribute. It can
-   * be either a boolean, string, integer, or a string array depending on the [componentClass].
+   * The attribute "defaultValue" defined on the "Preference" tag is known to have multiple types. Classes derived from
+   * "android.preference.Preference" or "androidx.preference.Preference" override the method "onGetDefaultValue" to read the value expected
+   * for this attribute. It can be either a boolean, string, integer, or a string array depending on the [componentClass].
    *
-   * Some derived classes do not read the value at all e.g. "PreferenceCategory". For these
-   * components we simply return [NlPropertyType.UNKNOWN] indicating that we should hide this
-   * attribute in the properties panel.
+   * Some derived classes do not read the value at all e.g. "PreferenceCategory". For these components we simply return
+   * [NlPropertyType.UNKNOWN] indicating that we should hide this attribute in the properties panel.
    */
   private fun defaultValueType(componentClass: PsiClass?): NlPropertyType =
     when (componentClass?.qualifiedName) {
@@ -321,18 +311,14 @@ object TypeResolver {
       PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
       PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
       PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
-      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.oldName() ->
-        NlPropertyType.STRING_ARRAY
-      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.newName() ->
-        NlPropertyType.STRING_ARRAY
+      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING_ARRAY
+      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING_ARRAY
       PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
       PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
       PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.INTEGER
       PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.INTEGER
-      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.oldName() ->
-        NlPropertyType.THREE_STATE_BOOLEAN
-      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.newName() ->
-        NlPropertyType.THREE_STATE_BOOLEAN
+      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.THREE_STATE_BOOLEAN
+      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.THREE_STATE_BOOLEAN
       else -> defaultValueType(componentClass.superClass)
     }
 
@@ -346,9 +332,7 @@ object TypeResolver {
       "drawable",
       "icon",
       "indicator" -> return NlPropertyType.DRAWABLE
-      "color" ->
-        return if (secondLast == "text") return NlPropertyType.COLOR_STATE_LIST
-        else NlPropertyType.COLOR
+      "color" -> return if (secondLast == "text") return NlPropertyType.COLOR_STATE_LIST else NlPropertyType.COLOR
       "appearance" -> if (secondLast == "text") return NlPropertyType.TEXT_APPEARANCE
       "handle" -> if (thirdLast == "text" && secondLast == "select") return NlPropertyType.DRAWABLE
       "layout" -> return NlPropertyType.LAYOUT
@@ -356,8 +340,7 @@ object TypeResolver {
       "style" -> return NlPropertyType.STYLE
       else -> {
         if (thirdLast == "text" && secondLast == "appearance") return NlPropertyType.TEXT_APPEARANCE
-        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle")
-          return NlPropertyType.DRAWABLE
+        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle") return NlPropertyType.DRAWABLE
       }
     }
     return NlPropertyType.STRING
@@ -373,8 +356,7 @@ object TypeResolver {
       } else if (index < 0) {
         parts.add(part)
       }
-      part =
-        if (index >= 0) part[index].lowercaseChar().toString() + part.substring(index + 1) else ""
+      part = if (index >= 0) part[index].lowercaseChar().toString() + part.substring(index + 1) else ""
     }
     return parts
   }

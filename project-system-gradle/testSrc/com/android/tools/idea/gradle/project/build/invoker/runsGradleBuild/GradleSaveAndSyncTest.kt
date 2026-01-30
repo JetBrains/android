@@ -28,8 +28,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
 class GradleSaveAndSyncTest {
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun testSaveAndSyncIsCalledOnBuild() {
@@ -37,9 +36,7 @@ class GradleSaveAndSyncTest {
     val saveAndSyncHandler = spy(SaveAndSyncHandler.getInstance())
     projectRule.replaceService(SaveAndSyncHandler::class.java, saveAndSyncHandler)
     simpleApplication.open { project ->
-      val result = project.buildAndWait {buildInvoker ->
-        buildInvoker.assemble()
-      }
+      val result = project.buildAndWait { buildInvoker -> buildInvoker.assemble() }
       verify(saveAndSyncHandler).scheduleRefresh()
       Truth.assertThat(result.isBuildSuccessful).isTrue()
     }

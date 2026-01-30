@@ -51,21 +51,11 @@ private fun generateLayoutAndQualifierTitle(file: VirtualFile?): String {
   return "$qualifier/$fileName"
 }
 
-/**
- * The dropdown menu for changing layout qualifier. Note that this action is also registered to
- * action system in designer.xml.
- */
+/** The dropdown menu for changing layout qualifier. Note that this action is also registered to action system in designer.xml. */
 class LayoutQualifierDropdownMenu(file: VirtualFile?) :
-  DropDownAction(
-    generateLayoutAndQualifierTitle(file),
-    "Action to switch and create qualifiers for layout files",
-    null,
-  ) {
+  DropDownAction(generateLayoutAndQualifierTitle(file), "Action to switch and create qualifiers for layout files", null) {
 
-  /**
-   * The default constructor is used by register point of action system through reflection. See
-   * designer.xml file.
-   */
+  /** The default constructor is used by register point of action system through reflection. See designer.xml file. */
   @Suppress("unused") private constructor() : this(null)
 
   private val displayText = generateLayoutAndQualifierTitle(file)
@@ -75,8 +65,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    val screenViewProvider =
-      (e.dataContext.getData(DESIGN_SURFACE) as NlDesignSurface?)?.screenViewProvider
+    val screenViewProvider = (e.dataContext.getData(DESIGN_SURFACE) as NlDesignSurface?)?.screenViewProvider
     // Only enable when using layout editor
     e.presentation.isEnabled =
       screenViewProvider == NlScreenViewProvider.RENDER ||
@@ -168,11 +157,8 @@ class SwitchToVariationAction(
   }
 }
 
-class CreateVariationAction(
-  private val mySurface: EditorDesignSurface,
-  title: String,
-  private val myNewFolder: String?,
-) : AnAction(title, null, null) {
+class CreateVariationAction(private val mySurface: EditorDesignSurface, title: String, private val myNewFolder: String?) :
+  AnAction(title, null, null) {
   override fun actionPerformed(e: AnActionEvent) {
     OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true)
   }

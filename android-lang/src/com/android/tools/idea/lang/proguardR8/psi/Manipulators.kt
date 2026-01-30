@@ -32,12 +32,8 @@ import com.intellij.util.IncorrectOperationException
 
 class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8QualifiedName>() {
 
-  private val quotedElements = arrayOf(
-    SINGLE_QUOTED_CLASS,
-    DOUBLE_QUOTED_CLASS,
-    UNTERMINATED_SINGLE_QUOTED_CLASS,
-    UNTERMINATED_DOUBLE_QUOTED_CLASS
-  )
+  private val quotedElements =
+    arrayOf(SINGLE_QUOTED_CLASS, DOUBLE_QUOTED_CLASS, UNTERMINATED_SINGLE_QUOTED_CLASS, UNTERMINATED_DOUBLE_QUOTED_CLASS)
   private val terminatedQuotedElements = arrayOf(SINGLE_QUOTED_CLASS, DOUBLE_QUOTED_CLASS)
 
   private fun createQualifiedNameFromText(text: String, element: ProguardR8QualifiedName): ProguardR8QualifiedName? {
@@ -83,8 +79,7 @@ class ProguardR8ClassMemberNameManipulator : AbstractElementManipulator<Proguard
       // After the 2024.2 merge, this identifier (coming from Kotlin) may be surrounding in back-ticks since it's not valid Java. For the
       // error message, it's okay to remove that.
       val identifierForError =
-        if (newContent.startsWith('`') && newContent.endsWith('`')) newContent.substring(1, newContent.length - 1)
-        else newContent
+        if (newContent.startsWith('`') && newContent.endsWith('`')) newContent.substring(1, newContent.length - 1) else newContent
       throw IncorrectOperationException("\"$identifierForError\" is not an identifier for Shrinker Config.")
     }
 
@@ -115,11 +110,12 @@ class ProguardR8FileManipulator : AbstractElementManipulator<ProguardR8File>() {
 
   override fun getRangeInElement(element: ProguardR8File): TextRange {
     val start = if (element.isQuoted) 1 else 0
-    val end = when {
-      element.singleQuotedString != null -> element.text.length - 1
-      element.doubleQuotedString != null -> element.text.length - 1
-      else -> element.text.length
-    }
+    val end =
+      when {
+        element.singleQuotedString != null -> element.text.length - 1
+        element.doubleQuotedString != null -> element.text.length - 1
+        else -> element.text.length
+      }
     return TextRange.create(start, end)
   }
 }

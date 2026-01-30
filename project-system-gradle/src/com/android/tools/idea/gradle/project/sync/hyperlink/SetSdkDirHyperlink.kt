@@ -32,14 +32,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ModalityUiUtil
 import java.io.File
 
-class SetSdkDirHyperlink(
-  val project: Project,
-  @get:VisibleForTesting val localPropertiesPaths: List<String>
-) : SyncIssueNotificationHyperlink(
-  "set.sdkdir",
-  "Set sdk.dir in local.properties and sync project",
-  AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK
-) {
+class SetSdkDirHyperlink(val project: Project, @get:VisibleForTesting val localPropertiesPaths: List<String>) :
+  SyncIssueNotificationHyperlink(
+    "set.sdkdir",
+    "Set sdk.dir in local.properties and sync project",
+    AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK,
+  ) {
   companion object {
     private const val SDK_DIR_UNDO_NAME = "Setup Sdk Location"
   }
@@ -49,13 +47,10 @@ class SetSdkDirHyperlink(
     setSdkDirsAndRequestSync(localProperties)
   }
 
-  private class SetSdkDirUndoableAction(
-    val localProperties: List<LocalProperties>,
-    val sdkData: AndroidSdkData
-  ) : GlobalUndoableAction() {
+  private class SetSdkDirUndoableAction(val localProperties: List<LocalProperties>, val sdkData: AndroidSdkData) : GlobalUndoableAction() {
     /**
-     * Absence from this map means the LocalProperties file did not exist and was create by undo,
-     * null means the file existed but had no sdk.dir property set.
+     * Absence from this map means the LocalProperties file did not exist and was create by undo, null means the file existed but had no
+     * sdk.dir property set.
      */
     private val changeHistory = mutableMapOf<LocalProperties, String?>()
 
@@ -82,16 +77,20 @@ class SetSdkDirHyperlink(
   private fun setSdkDirsAndRequestSync(localProperties: List<LocalProperties>) {
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
     if (sdkData != null) {
-      ModalityUiUtil.invokeLaterIfNeeded(
-        ModalityState.defaultModalityState())
-        {
-          CommandProcessor.getInstance().executeCommand(project, {
-            val undoableAction = SetSdkDirUndoableAction(localProperties, sdkData)
-            undoableAction.redo()
-            UndoManager.getInstance(project).undoableActionPerformed(undoableAction)
-            project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED.toReason())
-          }, SDK_DIR_UNDO_NAME, null)
-        }
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
+        CommandProcessor.getInstance()
+          .executeCommand(
+            project,
+            {
+              val undoableAction = SetSdkDirUndoableAction(localProperties, sdkData)
+              undoableAction.redo()
+              UndoManager.getInstance(project).undoableActionPerformed(undoableAction)
+              project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED.toReason())
+            },
+            SDK_DIR_UNDO_NAME,
+            null,
+          )
+      }
     }
   }
 }

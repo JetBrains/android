@@ -30,8 +30,7 @@ private sealed class PreviewElementMatcher<K>(val keySelector: (PreviewElement<*
     val groups = indexedModelElements.groupByTo(mutableMapOf()) { keySelector(it.second) }
     indexedElements.forEach { (elementIdx, element) ->
       if (modelIndexForElement[elementIdx] == -1) {
-        val (modelIdx, modelElement) =
-          groups[keySelector(element)]?.removeLastOrNull() ?: return@forEach
+        val (modelIdx, modelElement) = groups[keySelector(element)]?.removeLastOrNull() ?: return@forEach
         modelIndexForElement[elementIdx] = modelIdx
         indexedModelElements.remove(modelIdx to modelElement)
       }
@@ -44,23 +43,18 @@ private sealed class PreviewElementMatcher<K>(val keySelector: (PreviewElement<*
 private object Identity : PreviewElementMatcher<PreviewElement<*>>({ it })
 
 private object MethodAndSettings :
-  PreviewElementMatcher<Pair<String?, PreviewDisplaySettings?>>({
-    (it as? MethodPreviewElement<*>)?.methodFqn to it?.displaySettings
-  })
+  PreviewElementMatcher<Pair<String?, PreviewDisplaySettings?>>({ (it as? MethodPreviewElement<*>)?.methodFqn to it?.displaySettings })
 
-private object Method :
-  PreviewElementMatcher<String?>({ (it as? MethodPreviewElement<*>)?.methodFqn })
+private object Method : PreviewElementMatcher<String?>({ (it as? MethodPreviewElement<*>)?.methodFqn })
 
 private object None : PreviewElementMatcher<Unit>({})
 
 private val matchersSortedByPriority = listOf(Identity, MethodAndSettings, Method, None)
 
 /**
- * Returns a number indicating how [el1] [PreviewElement] is to the [el2] [PreviewElement]. 0
- * meaning they are equal and higher the number the more dissimilar they are. This allows for, when
- * re-using models, the model with the most similar [PreviewElement] is re-used. When the user is
- * just switching groups or selecting a specific model, this allows switching to the existing
- * preview faster.
+ * Returns a number indicating how [el1] [PreviewElement] is to the [el2] [PreviewElement]. 0 meaning they are equal and higher the number
+ * the more dissimilar they are. This allows for, when re-using models, the model with the most similar [PreviewElement] is re-used. When
+ * the user is just switching groups or selecting a specific model, this allows switching to the existing preview faster.
  */
 fun <T : PreviewElement<*>> calcAffinity(el1: T, el2: T?): Int =
   matchersSortedByPriority
@@ -71,10 +65,9 @@ fun <T : PreviewElement<*>> calcAffinity(el1: T, el2: T?): Int =
     }
 
 /**
- * Matches [PreviewElement]s with the most similar models. For a [List] of [PreviewElement]
- * ([elements]) returns a [List] of the same size with the indices of the best matched models. The
- * indices are for the input [models] [List]. If there are less [models] than [elements] then
- * indices for some [PreviewElement]s will be set to -1.
+ * Matches [PreviewElement]s with the most similar models. For a [List] of [PreviewElement] ([elements]) returns a [List] of the same size
+ * with the indices of the best matched models. The indices are for the input [models] [List]. If there are less [models] than [elements]
+ * then indices for some [PreviewElement]s will be set to -1.
  */
 @RequiresBackgroundThread
 fun <T : PreviewElement<*>, M> matchElementsToModels(
@@ -86,15 +79,9 @@ fun <T : PreviewElement<*>, M> matchElementsToModels(
     elements.mapIndexed { elementIdx, element -> elementIdx to element }.toMutableSet()
 
   val indexedModelElements: MutableSet<Pair<Int, PreviewElement<*>?>> =
-    models
-      .mapIndexed { modelIdx, model ->
-        modelIdx to previewElementModelAdapter.modelToElement(model)
-      }
-      .toMutableSet()
+    models.mapIndexed { modelIdx, model -> modelIdx to previewElementModelAdapter.modelToElement(model) }.toMutableSet()
 
   val modelIndexForElement = MutableList(elements.size) { -1 }
-  matchersSortedByPriority.forEach {
-    it.groupAndMatch(indexedElements, indexedModelElements, modelIndexForElement)
-  }
+  matchersSortedByPriority.forEach { it.groupAndMatch(indexedElements, indexedModelElements, modelIndexForElement) }
   return modelIndexForElement
 }

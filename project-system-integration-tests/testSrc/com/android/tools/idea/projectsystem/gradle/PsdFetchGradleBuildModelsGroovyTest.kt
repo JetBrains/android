@@ -17,7 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import org.junit.Test
 
-class PsdFetchGradleBuildModelsGroovyTest: PsdFetchGradleBuildModelsTestBase() {
+class PsdFetchGradleBuildModelsGroovyTest : PsdFetchGradleBuildModelsTestBase() {
   private val groovyTestProjectPath = "tools/adt/idea/project-system-integration-tests/testData/sdkindexapp"
   private val groovyTestRepoManifest = "tools/adt/idea/project-system-integration-tests/sdkindexproject_deps.manifest"
 

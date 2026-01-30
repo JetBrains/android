@@ -63,12 +63,7 @@ class AehdWizardTest {
   private val projectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
   @get:Rule
-  val chain =
-    RuleChain(
-      projectRule,
-      HeadlessDialogRule(),
-      EdtRule(),
-    ) // AndroidProjectRule must get initialized off the EDT thread
+  val chain = RuleChain(projectRule, HeadlessDialogRule(), EdtRule()) // AndroidProjectRule must get initialized off the EDT thread
 
   private lateinit var mockAndroidSdksStatic: MockedStatic<AndroidSdks>
   private lateinit var mockAehdWizardController: AehdWizardController
@@ -93,8 +88,7 @@ class AehdWizardTest {
     whenever(AndroidSdks.getInstance()).thenReturn(mockAndroidSdks)
 
     mockAehdWizardController = mock(AehdWizardController::class.java)
-    whenever(mockAehdWizardController.getPackagesToInstall(any(), any()))
-      .thenReturn(listOf(remotePackage))
+    whenever(mockAehdWizardController.getPackagesToInstall(any(), any())).thenReturn(listOf(remotePackage))
     whenever(mockAehdWizardController.setupAehd(any(), any(), any())).thenReturn(true)
   }
 
@@ -106,20 +100,13 @@ class AehdWizardTest {
   @Test
   fun navigatingThroughWizardInstallsAehd() {
     showWizard(mockAehdWizardController, mock()) { fakeUi ->
-      val infoStepTitle =
-        checkNotNull(
-          fakeUi.findComponent<JLabel> {
-            it.text.contains("Installing Android Emulator hypervisor driver")
-          }
-        )
+      val infoStepTitle = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Installing Android Emulator hypervisor driver") })
       assertTrue { fakeUi.isShowing(infoStepTitle) }
 
       val infoStepDescription =
         checkNotNull(
           fakeUi.findComponent<JLabel> {
-            it.text.contains(
-              "This wizard will execute Android Emulator hypervisor driver stand-alone installer."
-            )
+            it.text.contains("This wizard will execute Android Emulator hypervisor driver stand-alone installer.")
           }
         )
       assertTrue { fakeUi.isShowing(infoStepDescription) }
@@ -133,8 +120,7 @@ class AehdWizardTest {
 
       // Accept all licenses
       val tree = checkNotNull(fakeUi.findComponent<Tree>())
-      val acceptButton =
-        checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
+      val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
       for (i in 0..<tree.rowCount) {
         tree.setSelectionRow(i)
         acceptButton.doClick()
@@ -144,8 +130,7 @@ class AehdWizardTest {
       nextButton.doClick()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-      val installingStepTitle =
-        checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Invoking installer") })
+      val installingStepTitle = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Invoking installer") })
       assertTrue { fakeUi.isShowing(installingStepTitle) }
 
       val finishButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.equals("Finish") })
@@ -182,8 +167,7 @@ class AehdWizardTest {
 
       // Accept all licenses
       val tree = checkNotNull(fakeUi.findComponent<Tree>())
-      val acceptButton =
-        checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
+      val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
       for (i in 0..<tree.rowCount) {
         tree.setSelectionRow(i)
         acceptButton.doClick()
@@ -199,25 +183,17 @@ class AehdWizardTest {
 
       inOrder(mockTracker).apply {
         verify(mockTracker).trackWizardStarted()
-        verify(mockTracker)
-          .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.AEHD_INSTALL_INFO)
-        verify(mockTracker)
-          .trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
+        verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.AEHD_INSTALL_INFO)
+        verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
         verify(mockTracker).trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK)
         verify(mockTracker).trackWizardFinished(SetupWizardEvent.CompletionStatus.FINISHED)
       }
 
       verify(mockTracker, never()).trackInstallationMode(any())
       verify(mockTracker, never()).trackSdkInstallLocationChanged()
-      verify(mockTracker)
-        .trackSdkComponentsToInstall(
-          listOf(SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.AEHD)
-        )
+      verify(mockTracker).trackSdkComponentsToInstall(listOf(SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.AEHD))
       verify(mockTracker).trackInstallingComponentsStarted()
-      verify(mockTracker)
-        .trackInstallingComponentsFinished(
-          SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS
-        )
+      verify(mockTracker).trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS)
     }
   }
 
@@ -237,17 +213,8 @@ class AehdWizardTest {
     }
   }
 
-  private fun showWizard(
-    aehdWizardController: AehdWizardController,
-    tracker: FirstRunWizardTracker,
-    showCallback: (FakeUi) -> Unit,
-  ) {
-    val wizard =
-      AehdModelWizard(
-        AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES,
-        aehdWizardController,
-        tracker,
-      )
+  private fun showWizard(aehdWizardController: AehdWizardController, tracker: FirstRunWizardTracker, showCallback: (FakeUi) -> Unit) {
+    val wizard = AehdModelWizard(AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES, aehdWizardController, tracker)
 
     createModalDialogAndInteractWithIt(dialogTrigger = { wizard.showAndGet() }) { dialogWrapper ->
       showCallback(FakeUi(getRoot(dialogWrapper.contentPane)))

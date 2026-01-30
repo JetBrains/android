@@ -19,8 +19,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import javax.swing.JComponent
 
 /**
- * An inspector tab wraps one or more related app inspectors which are then used together to present
- * a cohesive UI to the user, allowing them to surface runtime information about their app.
+ * An inspector tab wraps one or more related app inspectors which are then used together to present a cohesive UI to the user, allowing
+ * them to surface runtime information about their app.
  */
 interface AppInspectorTab {
   val messengers: Iterable<AppInspectorMessenger>

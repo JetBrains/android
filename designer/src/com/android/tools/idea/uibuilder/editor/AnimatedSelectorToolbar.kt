@@ -60,8 +60,7 @@ class AnimatedSelectorToolbar
  * @param listener [AnimationListener] that will be called in every tick
  * @param tickStepMs Number of milliseconds to advance in every animator tick
  * @param minTimeMs Start milliseconds for the animation
- * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no
- *   time limit
+ * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
  */
 private constructor(
   parentDisposable: Disposable,
@@ -71,14 +70,7 @@ private constructor(
   minTimeMs: Long,
   initialMaxTimeMs: Long,
 ) :
-  AnimationToolbar(
-    parentDisposable,
-    listener,
-    tickStepMs,
-    minTimeMs,
-    initialMaxTimeMs,
-    AnimationToolbarType.ANIMATED_SELECTOR,
-  ),
+  AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs, AnimationToolbarType.ANIMATED_SELECTOR),
   Disposable {
 
   private var comboBox: ComboBox<String>? = null
@@ -102,10 +94,7 @@ private constructor(
         val transitionId = box.item
         animatedSelectorModel.setPreviewOption(transitionId)
         // Update visibility of slider bar
-        setTimeSliderVisibility(
-          SdkConstants.TAG_ANIMATION_LIST ==
-            animatedSelectorModel.getPreviewOptionTagName(transitionId)
-        )
+        setTimeSliderVisibility(SdkConstants.TAG_ANIMATION_LIST == animatedSelectorModel.getPreviewOptionTagName(transitionId))
         onTransitionChanged(transitionId != ID_ANIMATED_SELECTOR_MODEL)
       }
     }
@@ -115,12 +104,11 @@ private constructor(
   }
 
   /**
-   * Set up the ability and visibility of control buttons. When [playable] is true, it means there
-   * is an animation to play, we enable backFrame, stop, play, and forwardFrame buttons and setup
-   * the property tooltips.
+   * Set up the ability and visibility of control buttons. When [playable] is true, it means there is an animation to play, we enable
+   * backFrame, stop, play, and forwardFrame buttons and setup the property tooltips.
    *
-   * When [playable] is false, it means there is no animation to play. We still keep them visible
-   * but disable them, and setup the tooltips to notify user there is no animation.
+   * When [playable] is false, it means there is no animation to play. We still keep them visible but disable them, and setup the tooltips
+   * to notify user there is no animation.
    */
   private fun onTransitionChanged(playable: Boolean) {
     if (playable) {
@@ -144,17 +132,12 @@ private constructor(
     }
   }
 
-  /**
-   * Do not select any transition. This should reset the box item to [ID_ANIMATED_SELECTOR_MODEL].
-   */
+  /** Do not select any transition. This should reset the box item to [ID_ANIMATED_SELECTOR_MODEL]. */
   fun setNoTransition() {
     comboBox?.selectedIndex = 0
   }
 
-  /**
-   * Return if the any transition is selected. This means the selected item is
-   * [ID_ANIMATED_SELECTOR_MODEL].
-   */
+  /** Return if the any transition is selected. This means the selected item is [ID_ANIMATED_SELECTOR_MODEL]. */
   fun isTransitionSelected(): Boolean {
     return (comboBox?.selectedIndex ?: -1) > 0
   }
@@ -168,21 +151,13 @@ private constructor(
       tickStepMs: Long,
       minTimeMs: Long,
     ): AnimatedSelectorToolbar {
-      return AnimatedSelectorToolbar(
-        parentDisposable,
-        animatedSelectorModel,
-        listener,
-        tickStepMs,
-        minTimeMs,
-        0,
-      )
+      return AnimatedSelectorToolbar(parentDisposable, animatedSelectorModel, listener, tickStepMs, minTimeMs, 0)
     }
   }
 }
 
 /** The box model for selecting the animation to preview. */
-private class AnimationOptionComboBoxModel(ids: Set<String>) :
-  DefaultComboBoxModel<String>(), CommonComboBoxModel<String> {
+private class AnimationOptionComboBoxModel(ids: Set<String>) : DefaultComboBoxModel<String>(), CommonComboBoxModel<String> {
 
   init {
     ids.forEach { addElement(it) }
@@ -202,22 +177,17 @@ private class AnimationOptionComboBoxModel(ids: Set<String>) :
 
 private object EmptyModelUpdater : NlModelUpdaterInterface {
   // Do nothing because the file content will be re-wrote frequently.
-  override fun updateFromTagSnapshot(
-    model: NlModel,
-    newRoot: XmlTag?,
-    roots: List<TagSnapshotTreeNode>,
-  ) = Unit
+  override fun updateFromTagSnapshot(model: NlModel, newRoot: XmlTag?, roots: List<TagSnapshotTreeNode>) = Unit
 
   override fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>) = Unit
 }
 
 private const val ID_ANIMATED_SELECTOR_MODEL = "Select Transition..."
-private const val XMLNS_ANDROID_NAMESPACE =
-  "${SdkConstants.XMLNS_ANDROID}=\"${SdkConstants.ANDROID_URI}\""
+private const val XMLNS_ANDROID_NAMESPACE = "${SdkConstants.XMLNS_ANDROID}=\"${SdkConstants.ANDROID_URI}\""
 
 /**
- * For creating and saving the data of animated selector file. It creates a temp file and replacing
- * the content of animated selector file when switching between transitions.
+ * For creating and saving the data of animated selector file. It creates a temp file and replacing the content of animated selector file
+ * when switching between transitions.
  */
 class AnimatedSelectorModel(
   originalFile: VirtualFile,
@@ -237,15 +207,7 @@ class AnimatedSelectorModel(
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlFile = originalFile.toPsiFile(project) as XmlFile
     tempModelFile = createTempAnimatedSelectorFile()
-    nlModelOfTempFile =
-      createModelWithFile(
-        parentDisposable,
-        project,
-        buildTarget,
-        componentRegistrar,
-        config,
-        tempModelFile,
-      )
+    nlModelOfTempFile = createModelWithFile(parentDisposable, project, buildTarget, componentRegistrar, config, tempModelFile)
 
     animationTags = createIdAnimationMap(xmlFile)
 
@@ -264,29 +226,20 @@ class AnimatedSelectorModel(
     setPreviewOption(ID_ANIMATED_SELECTOR_MODEL)
   }
 
-  /**
-   * Create the (id, XmlTag) pairs as an index map. It is used to find the target XmlTag by
-   * animation id.
-   */
+  /** Create the (id, XmlTag) pairs as an index map. It is used to find the target XmlTag by animation id. */
   private fun createIdAnimationMap(xmlFile: XmlFile): Map<String, XmlTag> {
     val rootTag = xmlFile.rootTag!!
-    val transitions =
-      rootTag.subTags.asSequence().filter { it.name == SdkConstants.TAG_TRANSITION }.toList()
+    val transitions = rootTag.subTags.asSequence().filter { it.name == SdkConstants.TAG_TRANSITION }.toList()
 
     val maps = mutableMapOf(ID_ANIMATED_SELECTOR_MODEL to rootTag)
     for (transition in transitions) {
-      val fromIdAttribute =
-        transition.getAttribute(SdkConstants.ATTR_FROM_ID, SdkConstants.ANDROID_URI)?.value
-          ?: continue
-      val toIdAttribute =
-        transition.getAttribute(SdkConstants.ATTR_TO_ID, SdkConstants.ANDROID_URI)?.value
-          ?: continue
+      val fromIdAttribute = transition.getAttribute(SdkConstants.ATTR_FROM_ID, SdkConstants.ANDROID_URI)?.value ?: continue
+      val toIdAttribute = transition.getAttribute(SdkConstants.ATTR_TO_ID, SdkConstants.ANDROID_URI)?.value ?: continue
       val fromId = ResourceUrl.parse(fromIdAttribute)?.name ?: continue
       val toId = ResourceUrl.parse(toIdAttribute)?.name ?: continue
       val animationTag =
-        transition.subTags.firstOrNull {
-          it.name == SdkConstants.TAG_ANIMATED_VECTOR || it.name == SdkConstants.TAG_ANIMATION_LIST
-        } ?: continue
+        transition.subTags.firstOrNull { it.name == SdkConstants.TAG_ANIMATED_VECTOR || it.name == SdkConstants.TAG_ANIMATION_LIST }
+          ?: continue
       val transitionId = "$fromId to $toId"
       maps[transitionId] = animationTag
     }
@@ -316,10 +269,8 @@ class AnimatedSelectorModel(
     val fileName = "drawable_" + UUID.randomUUID().toString().replace("-", "_")
     val systemTempDir = File(FileUtilRt.getTempDirectory()).toVirtualFile()!!
     val tempDrawableDir =
-      systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER)
-        ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
-    val physicalChildInTempDrawableFile =
-      FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), fileName, ".xml", true, true)
+      systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER) ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
+    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), fileName, ".xml", true, true)
     return physicalChildInTempDrawableFile.toVirtualFile(true)!!
   }
 
@@ -333,10 +284,7 @@ class AnimatedSelectorModel(
   /** Get the [NlModel] for animated selector file. Which should be created by a temp file. */
   fun getNlModel() = nlModelOfTempFile
 
-  /**
-   * Set the content of given the [option], this will change the content of temp file to the given
-   * option.
-   */
+  /** Set the content of given the [option], this will change the content of temp file to the given option. */
   fun setPreviewOption(option: String) {
     if (currentOption == option) {
       return

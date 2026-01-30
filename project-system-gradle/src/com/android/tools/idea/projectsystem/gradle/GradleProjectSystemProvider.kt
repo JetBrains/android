@@ -20,18 +20,21 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.intellij.openapi.project.Project
 
 /**
- * A [GradleProjectSystemProvider] determines whether or not a [GradleProjectSystem] would be applicable for a given project.
- * If so, the provider is responsible for creating the instance of [GradleProjectSystem] that should be associated with the project.
+ * A [GradleProjectSystemProvider] determines whether or not a [GradleProjectSystem] would be applicable for a given project. If so, the
+ * provider is responsible for creating the instance of [GradleProjectSystem] that should be associated with the project.
  *
  * We provide this functionality in [GradleProjectSystemProvider] instead of having [GradleProjectSystem] implement
- * [AndroidProjectSystemProvider] itself because there are times when we want to instantiate the provider extension without creating
- * a new instance of the project system. In particular, the provider extension may be instantiated after the disposal of the project, in
- * which case we can't create the project system because it interacts with the project during instantiation.
+ * [AndroidProjectSystemProvider] itself because there are times when we want to instantiate the provider extension without creating a new
+ * instance of the project system. In particular, the provider extension may be instantiated after the disposal of the project, in which
+ * case we can't create the project system because it interacts with the project during instantiation.
  */
 class GradleProjectSystemProvider : AndroidProjectSystemProvider {
   override val id = ID
+
   override fun isApplicable(project: Project) = Info.getInstance(project).isBuildWithGradle
+
   override fun projectSystemFactory(project: Project) = GradleProjectSystem(project)
+
   companion object {
     const val ID = "com.android.tools.idea.GradleProjectSystem"
   }

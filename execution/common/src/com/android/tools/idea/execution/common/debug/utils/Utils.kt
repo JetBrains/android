@@ -34,16 +34,16 @@ import java.util.function.Function
 
 const val SECONDS_BETWEEN_LOGGING_WAIT_STATUS: Long = 1
 
-/**
- * Returns client with appId in [appIds] with [waitingProcessState], otherwise throws [ExecutionException].
- */
+/** Returns client with appId in [appIds] with [waitingProcessState], otherwise throws [ExecutionException]. */
 @WorkerThread
 @Throws(ExecutionException::class)
-internal fun waitForClientReadyForDebug(device: IDevice,
-                                        appIds: Collection<String>,
-                                        pollTimeoutSeconds: Long = 15,
-                                        indicator: ProgressIndicator,
-                                        waitingProcessState: ClientData.DebuggerStatus = ClientData.DebuggerStatus.WAITING): Client {
+internal fun waitForClientReadyForDebug(
+  device: IDevice,
+  appIds: Collection<String>,
+  pollTimeoutSeconds: Long = 15,
+  indicator: ProgressIndicator,
+  waitingProcessState: ClientData.DebuggerStatus = ClientData.DebuggerStatus.WAITING,
+): Client {
   indicator.text = "Waiting for processes ${appIds.joinToString()}"
   val lastLogTimes: MutableMap<String, Long> = mutableMapOf()
   val logger = Logger.getInstance("waitForClientReadyForDebug")
@@ -68,16 +68,17 @@ internal fun waitForClientReadyForDebug(device: IDevice,
   }
   if (appIds.size > 1) {
     throw ExecutionException("Process IDs ${appIds.joinToString()} were not found. Aborting session.")
-  }
-  else {
+  } else {
     throw ExecutionException("Process ID ${appIds.joinToString()} was not found. Aborting session.")
   }
 }
 
-private fun getClientWithAppId(device: IDevice,
-                               appId: String,
-                               lastLogTimes: MutableMap<String, Long>,
-                               waitingProcessState: ClientData.DebuggerStatus): Client? {
+private fun getClientWithAppId(
+  device: IDevice,
+  appId: String,
+  lastLogTimes: MutableMap<String, Long>,
+  waitingProcessState: ClientData.DebuggerStatus,
+): Client? {
   val clients = DeploymentApplicationService.instance.findClient(device, appId)
   if (clients.isNotEmpty()) {
     val logger = Logger.getInstance("waitForClientReadyForDebug")
@@ -104,9 +105,12 @@ private fun getClientWithAppId(device: IDevice,
       }
 
       ClientData.DebuggerStatus.ERROR -> {
-        val message = String.format(Locale.US,
-                                    "Debug port (%1\$d) is busy, make sure there is no other active debug connection to the same application",
-                                    client.debuggerListenPort)
+        val message =
+          String.format(
+            Locale.US,
+            "Debug port (%1\$d) is busy, make sure there is no other active debug connection to the same application",
+            client.debuggerListenPort,
+          )
         throw ExecutionException(message)
       }
 
@@ -122,11 +126,15 @@ private fun getClientWithAppId(device: IDevice,
   return null
 }
 
-/**
- * Shows [ExecutionException] in Debug Tool Window.
- */
+/** Shows [ExecutionException] in Debug Tool Window. */
 fun showError(project: Project, e: ExecutionException, sessionName: String) {
-  ExecutionUtil.handleExecutionError(project, ToolWindowId.DEBUG, e,
-                                     ExecutionBundle.message("error.running.configuration.message", sessionName),
-                                     e.message, Function.identity(), null)
+  ExecutionUtil.handleExecutionError(
+    project,
+    ToolWindowId.DEBUG,
+    e,
+    ExecutionBundle.message("error.running.configuration.message", sessionName),
+    e.message,
+    Function.identity(),
+    null,
+  )
 }

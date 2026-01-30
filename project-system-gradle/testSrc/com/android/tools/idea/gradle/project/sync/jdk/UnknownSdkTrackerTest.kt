@@ -25,13 +25,11 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
 
-class UnknownSdkTrackerTest: LightPlatformTestCase() {
+class UnknownSdkTrackerTest : LightPlatformTestCase() {
 
   @Test
   fun `test Given disabled UnknownSdkTracker When project JDK is invalid Then no notification was triggered`() {
-    runWriteActionAndWait {
-      ProjectRootManager.getInstance(project).projectSdk = IdeaTestUtil.getMockJdk17()
-    }
+    runWriteActionAndWait { ProjectRootManager.getInstance(project).projectSdk = IdeaTestUtil.getMockJdk17() }
     UnknownSdkTracker.getInstance(project).updateUnknownSdks()
 
     NonBlockingReadActionImpl.waitForAsyncTaskCompletion()

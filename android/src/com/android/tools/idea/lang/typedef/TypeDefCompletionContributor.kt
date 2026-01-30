@@ -54,13 +54,9 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private const val VALUES_ATTR_NAME = "value"
 
-/**
- * Base class for language-specific [CompletionContributor]s that enhance completions for Android
- * TypeDefs
- */
+/** Base class for language-specific [CompletionContributor]s that enhance completions for Android TypeDefs */
 sealed class TypeDefCompletionContributor : CompletionContributor() {
-  private val postDotElementPattern: ElementPattern<PsiElement> =
-    PlatformPatterns.psiElement().afterLeaf(".")
+  private val postDotElementPattern: ElementPattern<PsiElement> = PlatformPatterns.psiElement().afterLeaf(".")
 
   /** A pattern defining where the contributor should run. */
   internal abstract val elementPattern: ElementPattern<PsiElement>
@@ -68,15 +64,9 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   /** For a given [PsiElement], computes the [TypeDef], if any, that constrains it. */
   internal abstract fun computeConstrainingTypeDef(position: PsiElement): TypeDef?
 
-  override fun fillCompletionVariants(
-    parameters: CompletionParameters,
-    result: CompletionResultSet,
-  ) {
+  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     // First, find the typedef, if it exists.
-    val def =
-      parameters.position
-        .takeIf { elementPattern.accepts(it) }
-        ?.let { computeConstrainingTypeDef(it) }
+    val def = parameters.position.takeIf { elementPattern.accepts(it) }?.let { computeConstrainingTypeDef(it) }
 
     // If no typedef, just pass the existing results through.
     if (def == null) {
@@ -107,9 +97,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
     }
 
     // Filter out any subsequent results for those typedef values.
-    result.runRemainingContributors(parameters) {
-      if (it.lookupElement.psiElement?.navigationElement !in def.values) result.passResult(it)
-    }
+    result.runRemainingContributors(parameters) { if (it.lookupElement.psiElement?.navigationElement !in def.values) result.passResult(it) }
   }
 
   protected abstract val insertHandler: InsertHandler<LookupElement>
@@ -123,17 +111,14 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
       val target = item.psiElement ?: return
       bindToTarget(context, target)
       if (shouldOptimizeImports(context.project)) {
-        val psiFile =
-          PsiDocumentManager.getInstance(context.project).getPsiFile(context.document) ?: return
+        val psiFile = PsiDocumentManager.getInstance(context.project).getPsiFile(context.document) ?: return
         OptimizeImportsProcessor(context.project, psiFile).runWithoutProgress()
       }
     }
 
-    protected fun InsertionContext.getParent(): PsiElement? =
-      file.findElementAt(startOffset)?.parent
+    protected fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
-    protected inline fun <reified T : PsiElement> InsertionContext.getMaximalParentOfType():
-      PsiElement? {
+    protected inline fun <reified T : PsiElement> InsertionContext.getMaximalParentOfType(): PsiElement? {
       val parent = getParent()
       return parent?.parents(true)?.firstOrNull() { it.parent !is T }
     }
@@ -142,14 +127,10 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   /**
    * Returns the [TypeDef] for an argument with given [argName] or [argIndex] within this element.
    *
-   * For example, if this element is a function whose third argument named "argThree" is a
-   * `@StringDef`, then this method will return a [TypeDef] with type [TypeDef.Type.STRING] if
-   * called with [argIndex] 2 or [argName] "argThree".
+   * For example, if this element is a function whose third argument named "argThree" is a `@StringDef`, then this method will return a
+   * [TypeDef] with type [TypeDef.Type.STRING] if called with [argIndex] 2 or [argName] "argThree".
    */
-  internal fun PsiElement.getArgumentTypeDef(
-    argName: String? = null,
-    argIndex: Int = -1,
-  ): TypeDef? =
+  internal fun PsiElement.getArgumentTypeDef(argName: String? = null, argIndex: Int = -1): TypeDef? =
     when (this) {
       is PsiMethod -> getArgumentTypeDef(argIndex)
       is KtFunction -> getArgumentTypeDef(argName, argIndex)
@@ -164,17 +145,13 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   }
 
   /**
-   * Heuristically determines whether this type is worth investigating further for being a typedef.
-   * May speed things up so that we don't bother trying to find a TypeDef for a parameter that
-   * doesn't satisfy this predicate.
+   * Heuristically determines whether this type is worth investigating further for being a typedef. May speed things up so that we don't
+   * bother trying to find a TypeDef for a parameter that doesn't satisfy this predicate.
    *
-   * If you had a `com.example.String`, we would return `true`, but going on to the next step we
-   * would find that it was not a `@StringDef`.
+   * If you had a `com.example.String`, we would return `true`, but going on to the next step we would find that it was not a `@StringDef`.
    */
   private fun PsiParameter.isPotentialTypeDefType() =
-    type == PsiTypes.intType() ||
-      type == PsiTypes.longType() ||
-      (type as? PsiClassType)?.name == "String"
+    type == PsiTypes.intType() || type == PsiTypes.longType() || (type as? PsiClassType)?.name == "String"
 
   private fun KtFunction.getArgumentTypeDef(argName: String?, argIndex: Int): TypeDef? =
     when (argName) {
@@ -184,25 +161,17 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
       ?.annotationEntries
       ?.firstNotNullOfOrNull { it.getReferredTypeDef() }
 
-  /**
-   * Returns [TypeDef] for annotation class to which given [KtAnnotationEntry] resolves, or `null`
-   * if there is no TypeDef annotation.
-   */
+  /** Returns [TypeDef] for annotation class to which given [KtAnnotationEntry] resolves, or `null` if there is no TypeDef annotation. */
   private fun KtAnnotationEntry.getReferredTypeDef(): TypeDef? {
-    val annotationElement =
-      calleeExpression?.constructorReferenceExpression?.mainReference?.resolve() ?: return null
+    val annotationElement = calleeExpression?.constructorReferenceExpression?.mainReference?.resolve() ?: return null
 
     return CachedValuesManager.getCachedValue(annotationElement) {
-      val source =
-        annotationElement.let { if (it is KtPrimaryConstructor) it.containingClass() else it }
+      val source = annotationElement.let { if (it is KtPrimaryConstructor) it.containingClass() else it }
       CachedValueProvider.Result(source?.navigationElement?.toTypeDef(), annotationElement)
     }
   }
 
-  /**
-   * Returns [TypeDef] for annotation class to which given [PsiAnnotation] resolves, or `null` if
-   * there is no TypeDef annotation.
-   */
+  /** Returns [TypeDef] for annotation class to which given [PsiAnnotation] resolves, or `null` if there is no TypeDef annotation. */
   private fun PsiAnnotation.getReferredTypeDef(): TypeDef? {
     val declaration = nameReferenceElement?.resolve()?.navigationElement
     val annotationElement =
@@ -212,15 +181,10 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
         else -> return null
       }
 
-    return CachedValuesManager.getCachedValue(declaration) {
-      CachedValueProvider.Result(annotationElement.toTypeDef(), declaration)
-    }
+    return CachedValuesManager.getCachedValue(declaration) { CachedValueProvider.Result(annotationElement.toTypeDef(), declaration) }
   }
 
-  /**
-   * Returns [TypeDef] represented by a given [PsiElement] if it is an annotated TypeDef annotation,
-   * otherwise `null`.
-   */
+  /** Returns [TypeDef] represented by a given [PsiElement] if it is an annotated TypeDef annotation, otherwise `null`. */
   private fun PsiElement.toTypeDef(): TypeDef? =
     when (this) {
       is PsiClass -> toTypeDef()
@@ -229,8 +193,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
     }
 
   private fun PsiClass.toTypeDef(): TypeDef? {
-    val typeDefAnnotation =
-      annotations.find { it.qualifiedName in TypeDef.ANNOTATION_FQ_NAMES } ?: return null
+    val typeDefAnnotation = annotations.find { it.qualifiedName in TypeDef.ANNOTATION_FQ_NAMES } ?: return null
     val type = TypeDef.ANNOTATION_FQ_NAMES[typeDefAnnotation.qualifiedName] ?: return null
     return TypeDef(this, typeDefAnnotation.getValueAttributeValues(), type)
   }
@@ -251,12 +214,9 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
 
   /** Returns values of attribute "value". */
   private fun PsiAnnotation.getValueAttributeValues(): List<PsiElement> {
-    val values =
-      findDeclaredAttributeValue(VALUES_ATTR_NAME) as? PsiArrayInitializerMemberValue
-        ?: return emptyList()
+    val values = findDeclaredAttributeValue(VALUES_ATTR_NAME) as? PsiArrayInitializerMemberValue ?: return emptyList()
     return values.initializers.mapNotNull {
-      if (it is PsiReferenceExpression) it.resolve()
-      else (it.navigationElement as? KtExpression)?.resolveMainReference()
+      if (it is PsiReferenceExpression) it.resolve() else (it.navigationElement as? KtExpression)?.resolveMainReference()
     }
   }
 
@@ -275,10 +235,8 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
 
   /** Handles the case where the `value` attribute is explicitly named. */
   private fun KtAnnotationEntry.getExplicitValueAttributeValues(): List<PsiElement>? {
-    val valueArgument =
-      valueArguments.find { it.getArgumentName()?.asName?.asString() == VALUES_ATTR_NAME }
-    val valueExpressions =
-      (valueArgument?.getArgumentExpression() as? KtCollectionLiteralExpression)?.innerExpressions
+    val valueArgument = valueArguments.find { it.getArgumentName()?.asName?.asString() == VALUES_ATTR_NAME }
+    val valueExpressions = (valueArgument?.getArgumentExpression() as? KtCollectionLiteralExpression)?.innerExpressions
     return valueExpressions?.mapNotNull { it.resolveMainReference() }
   }
 
@@ -286,8 +244,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   private fun KtAnnotationEntry.getImplicitValueAttributeValues(): List<PsiElement> =
     valueArguments.mapNotNull { it.getArgumentExpression()?.resolveMainReference() }
 
-  private fun KtExpression.resolveMainReference(): PsiElement? =
-    unqualified()?.mainReference?.resolve()
+  private fun KtExpression.resolveMainReference(): PsiElement? = unqualified()?.mainReference?.resolve()
 
   private tailrec fun KtExpression.unqualified(): KtExpression? =
     when (this) {

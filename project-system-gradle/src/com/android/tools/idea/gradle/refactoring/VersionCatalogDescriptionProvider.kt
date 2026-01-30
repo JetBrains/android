@@ -24,9 +24,9 @@ import org.toml.lang.psi.TomlKeySegment
 class VersionCatalogDescriptionProvider : ElementDescriptionProvider {
   override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
     // to not interfere with plain toml files
-    if(!isVersionCatalogFile(element)) return null
+    if (!isVersionCatalogFile(element)) return null
     if (element !is TomlKeySegment) return null
-    if(isVersionCatalogAlias(element)) {
+    if (isVersionCatalogAlias(element)) {
       if (location is UsageViewShortNameLocation) return element.name // return short name
 
       // in all other cases return description

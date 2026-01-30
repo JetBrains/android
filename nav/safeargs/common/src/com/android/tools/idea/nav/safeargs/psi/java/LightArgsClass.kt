@@ -61,12 +61,8 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
   private val backingXmlTag by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
-  private val navArgsType by lazy {
-    PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope)
-  }
-  private val navArgsClass by lazy {
-    JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope)
-  }
+  private val navArgsType by lazy { PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope) }
+  private val navArgsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope) }
 
   override fun getImplementsListTypes() = arrayOf(navArgsType)
 
@@ -95,8 +91,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
     val bundleType = parsePsiType(navInfo.packageName, "android.os.Bundle", null, this)
-    val savedStateHandleType =
-      parsePsiType(navInfo.packageName, "androidx.lifecycle.SavedStateHandle", null, this)
+    val savedStateHandleType = parsePsiType(navInfo.packageName, "androidx.lifecycle.SavedStateHandle", null, this)
 
     val methods = mutableListOf<PsiMethod>()
 
@@ -112,11 +107,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
     )
 
     methods.add(
-      createMethod(
-          name = "fromBundle",
-          modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-          returnType = annotateNullability(thisType),
-        )
+      createMethod(name = "fromBundle", modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = annotateNullability(thisType))
         .addParameter("bundle", bundleType)
     )
 
@@ -124,11 +115,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
     // methods.
     if (navInfo.navFeatures.contains(SafeArgsFeature.FROM_SAVED_STATE_HANDLE)) {
       methods.add(
-        createMethod(
-            name = "fromSavedStateHandle",
-            modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-            returnType = annotateNullability(thisType),
-          )
+        createMethod(name = "fromSavedStateHandle", modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = annotateNullability(thisType))
           .addParameter("savedStateHandle", savedStateHandleType)
       )
     }
@@ -136,12 +123,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
     // Add on version specific methods since the navigation library side is keeping introducing new
     // methods.
     if (navInfo.navFeatures.contains(SafeArgsFeature.TO_SAVED_STATE_HANDLE)) {
-      methods.add(
-        createMethod(
-          name = "toSavedStateHandle",
-          returnType = annotateNullability(savedStateHandleType),
-        )
-      )
+      methods.add(createMethod(name = "toSavedStateHandle", returnType = annotateNullability(savedStateHandleType)))
     }
 
     methods.add(createMethod(name = "toBundle", returnType = annotateNullability(bundleType)))
@@ -153,8 +135,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
     return destination.arguments
       .asSequence()
       .map { arg ->
-        val targetArgumentTag =
-          backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+        val targetArgumentTag = backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
         createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()

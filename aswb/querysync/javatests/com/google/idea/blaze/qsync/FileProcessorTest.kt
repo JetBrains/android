@@ -60,17 +60,13 @@ class FileProcessorTest {
 
   @Test
   fun testCcSourceFiles() {
-    assertThat(process("cpp/lib/file.cc"))
-      .isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.cc"), QuerySyncLanguage.CC))
-    assertThat(process("cpp/lib/file.h"))
-      .isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.h"), QuerySyncLanguage.CC))
-    assertThat(process("cpp/lib/file.hpp"))
-      .isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.hpp"), QuerySyncLanguage.CC))
+    assertThat(process("cpp/lib/file.cc")).isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.cc"), QuerySyncLanguage.CC))
+    assertThat(process("cpp/lib/file.h")).isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.h"), QuerySyncLanguage.CC))
+    assertThat(process("cpp/lib/file.hpp")).isEqualTo(FileProcessResult.SourceFile(Path.of("cpp/lib/file.hpp"), QuerySyncLanguage.CC))
   }
 
   @Test
   fun testProtoSourceFiles() {
-    assertThat(process("proto/my_service.proto"))
-      .isEqualTo(FileProcessResult.SourceFile(Path.of("proto/my_service.proto"), null))
+    assertThat(process("proto/my_service.proto")).isEqualTo(FileProcessResult.SourceFile(Path.of("proto/my_service.proto"), null))
   }
 }

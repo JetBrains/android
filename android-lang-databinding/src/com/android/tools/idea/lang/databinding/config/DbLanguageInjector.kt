@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.databinding.config
 import com.android.SdkConstants.PREFIX_BINDING_EXPR
 import com.android.SdkConstants.PREFIX_TWOWAY_BINDING_EXPR
 import com.android.SdkConstants.TAG_LAYOUT
-
 import com.android.utils.isBindingExpression
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.InjectedLanguagePlaces
@@ -46,12 +45,10 @@ class DbLanguageInjector : LanguageInjector {
     val endIndex: Int
     if (valueText.endsWith("}")) {
       endIndex = unescapedValue.lastIndexOf('}')
-    }
-    else {
+    } else {
       if (host.getNode().lastChildNode.elementType === XmlTokenType.XML_ATTRIBUTE_VALUE_END_DELIMITER) {
         endIndex = host.getLastChild().startOffsetInParent
-      }
-      else {
+      } else {
         endIndex = unescapedValue.length
       }
     }

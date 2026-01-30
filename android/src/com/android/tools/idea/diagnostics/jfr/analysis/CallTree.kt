@@ -45,7 +45,7 @@ class CallTree(val name: String) {
   // this assumes sort() has been called
   override fun toString(): String = buildString {
     if (children.size > 1 && children[1].time > MIN_TIME_CUTOFF_MS) {
-      children.forEach { c -> if (c.time > MIN_TIME_CUTOFF_MS) append(c.toString(1, true))}
+      children.forEach { c -> if (c.time > MIN_TIME_CUTOFF_MS) append(c.toString(1, true)) }
     } else if (children.isNotEmpty()) {
       if (children[0].time > MIN_TIME_CUTOFF_MS) append(children[0].toString(0, false))
     }
@@ -57,7 +57,7 @@ class CallTree(val name: String) {
     if (branch) append("+ ")
     appendLine("$name [${time}ms] ($sampleCount)")
     if (children.size > 1 && children[1].time > MIN_TIME_CUTOFF_MS) {
-      children.forEach { c -> if (c.time > MIN_TIME_CUTOFF_MS) append(c.toString(depth+1, true))}
+      children.forEach { c -> if (c.time > MIN_TIME_CUTOFF_MS) append(c.toString(depth + 1, true)) }
     } else if (children.isNotEmpty()) {
       if (children[0].time > MIN_TIME_CUTOFF_MS) append(children[0].toString(depth, false))
     }

@@ -26,10 +26,10 @@ import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
 import java.time.Duration
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
 
 /** The production implementation of [AdbLibService] */
 internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
@@ -38,9 +38,7 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session by lazy {
-    createProjectSession(project)
-  }
+  override val session by lazy { createProjectSession(project) }
 
   override fun dispose() {
     session.close()
@@ -56,10 +54,7 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
         AdbLibApplicationService.instance.adbServerController?.let {
           // TODO: use this project's adb file location in the channel provider
           AdbLibApplicationService.instance.channelProvider
-        }
-          ?: AdbServerChannelProvider.createConnectAddresses(host) {
-            listOf(getAdbSocketAddress(project, host))
-          }
+        } ?: AdbServerChannelProvider.createConnectAddresses(host) { listOf(getAdbSocketAddress(project, host)) }
 
       return AdbSession.createChildSession(
           parentSession = AdbLibApplicationService.instance.session,
@@ -76,17 +71,13 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
         }
     }
 
-    private suspend fun getAdbSocketAddress(
-      project: Project,
-      host: AdbSessionHost,
-    ): InetSocketAddress {
+    private suspend fun getAdbSocketAddress(project: Project, host: AdbSessionHost): InetSocketAddress {
       return withContext(host.ioDispatcher) {
         val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
         if (needToConnect) {
           // Ensure ddmlib is initialized with ADB server path from project context
           val adbFile =
-            AdbFileProvider.fromProject(project).get()
-              ?: throw IllegalStateException("ADB has not been initialized for this project")
+            AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("ADB has not been initialized for this project")
           AdbService.getInstance().getDebugBridge(adbFile).await()
         }
         AndroidDebugBridge.getSocketAddress()

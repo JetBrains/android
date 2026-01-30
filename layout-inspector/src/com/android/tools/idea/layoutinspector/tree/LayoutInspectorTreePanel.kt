@@ -81,8 +81,7 @@ import javax.swing.tree.TreePath
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
-  ToolContent.getToolContent(this.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
-    as? LayoutInspectorTreePanel
+  ToolContent.getToolContent(this.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
 
 fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
@@ -123,13 +122,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       modelModified(oldWindow, newWindow, isStructuralChange)
       componentTreePanel.repaint()
     }
-  private val selectionChangedListener: SelectionListener =
-    SelectionListener { oldView, newView, origin ->
-      selectionChanged(oldView, newView, origin)
-    }
-  private val connectionListener: ConnectionListener = ConnectionListener { inspectorClient ->
-    handleConnectionChange(inspectorClient)
+  private val selectionChangedListener: SelectionListener = SelectionListener { oldView, newView, origin ->
+    selectionChanged(oldView, newView, origin)
   }
+  private val connectionListener: ConnectionListener = ConnectionListener { inspectorClient -> handleConnectionChange(inspectorClient) }
   private val componentTreeSelectionListener: (List<Any>) -> Unit = {
     val view = (it.firstOrNull() as? TreeViewNode)?.view
     inspectorModel?.setSelection(view, SelectionOrigin.COMPONENT_TREE)
@@ -147,18 +143,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   init {
     Disposer.register(parentDisposable, this)
 
-    val gotoDeclarationAction =
-      ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
-    val shortcuts =
-      gotoDeclarationAction.shortcutSet.shortcuts
-        .filterIsInstance<KeyboardShortcut>()
-        .toTypedArray()
+    val gotoDeclarationAction = ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
+    val shortcuts = gotoDeclarationAction.shortcutSet.shortcuts.filterIsInstance<KeyboardShortcut>().toTypedArray()
     if (gotoDeclarationAction != null) {
-      GotoDeclarationAction.registerCustomShortcutSet(
-        CustomShortcutSet(*shortcuts),
-        componentTreePanel,
-        parentDisposable,
-      )
+      GotoDeclarationAction.registerCustomShortcutSet(CustomShortcutSet(*shortcuts), componentTreePanel, parentDisposable)
     }
     componentTreeSelectionModel.addSelectionListener(componentTreeSelectionListener)
 
@@ -208,8 +196,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           // Hide the child counts if this node was collapsed because of 'composeAsCallstack'.
           // Note that a single call node may have multiple tree children as a result of hidden
           // system nodes in which case we do want to show the child counts.
-          val singleCall =
-            layoutInspector?.treeSettings?.let { node.view.isSingleCall(it) } ?: false
+          val singleCall = layoutInspector?.treeSettings?.let { node.view.isSingleCall(it) } ?: false
           if (!singleCall || node.children.size > 1) node.view.recompositions.childCount else 0
         },
         foreground = JBColor(Gray._192, Gray._128),
@@ -252,10 +239,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
-    val header =
-      SmallTextLabel("Recomposition counts").apply {
-        border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, TEXT_HORIZONTAL_BORDER)
-      }
+    val header = SmallTextLabel("Recomposition counts").apply { border = JBUI.Borders.empty(ICON_VERTICAL_BORDER, TEXT_HORIZONTAL_BORDER) }
     val reset =
       CommonHyperLinkLabel().apply {
         text = "Reset"
@@ -320,14 +304,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
     if (node != null) {
       inspectorModel?.let {
-        showViewContextMenu(
-          selectedView = node.view,
-          views = listOf(node.view),
-          inspectorModel = it,
-          source = component,
-          x = x,
-          y = y,
-        )
+        showViewContextMenu(selectedView = node.view, views = listOf(node.view), inspectorModel = it, source = component, x = x, y = y)
       }
     }
   }
@@ -336,12 +313,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun doubleClick(item: Any) {
     layoutInspector?.let {
       it.currentClient.stats.gotoSourceFromTreeDoubleClick()
-      GotoDeclaration.navigateToSelectedView(
-        it.coroutineScope,
-        it.inspectorModel,
-        it.currentClient,
-        it.notificationModel,
-      )
+      GotoDeclaration.navigateToSelectedView(it.coroutineScope, it.inspectorModel, it.currentClient, it.notificationModel)
     }
   }
 
@@ -352,8 +324,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           layoutInspector?.currentClient?.isConnected ?: false &&
           layoutInspector?.currentClient !is FileEditorInspectorClient &&
           layoutInspector.hasCapability(Capability.HAS_LINE_NUMBER_INFORMATION)
-      val showChildCounts =
-        show && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.get()
+      val showChildCounts = show && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.get()
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
       interactions.setColumnVisibility(2, showChildCounts)
@@ -498,11 +469,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     if (filter.isEmpty() && !treeSettings.highlightSemantics) {
       return true
     }
-    if (
-      treeSettings.highlightSemantics &&
-        !node.view.hasMergedSemantics &&
-        !node.view.hasUnmergedSemantics
-    ) {
+    if (treeSettings.highlightSemantics && !node.view.hasMergedSemantics && !node.view.hasUnmergedSemantics) {
       return false
     }
     val name = node.view.qualifiedName
@@ -569,20 +536,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
     updateRecompositionColumnVisibility()
     inspectorModel?.let { model ->
-      layoutInspector
-        ?.currentClient
-        ?.stats
-        ?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
+      layoutInspector?.currentClient?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
     }
     // Make an explicit update of the toolbar now (the tree expand actions may have been
     // enabled/disabled)
     invokeLater { toolWindowCallback?.updateActions() }
 
     invokeLater {
-      if (
-        componentTreeSelectionModel.currentSelection.isEmpty() &&
-          inspectorModel?.selection?.treeNode != null
-      ) {
+      if (componentTreeSelectionModel.currentSelection.isEmpty() && inspectorModel?.selection?.treeNode != null) {
         // The selection in the tree panel has gone out of sync with the inspector model, put them
         // back in sync. This can happen for example if the tree panel is recreated while the
         // inspector model already has a selection. When the new instance of the tree panel is
@@ -590,16 +551,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         // modification listener, restoring the selection in the tree will fail, because at that
         // point
         // the tree is still empty.
-        componentTreeSelectionModel.currentSelection =
-          listOfNotNull(inspectorModel?.selection?.treeNode)
+        componentTreeSelectionModel.currentSelection = listOfNotNull(inspectorModel?.selection?.treeNode)
       }
     }
   }
 
   /**
-   * Add the TreeViewNode(s) of [window] root to the corresponding [windowRoots] such that the
-   * TreeViewNode tree reflect the current system filter setting. Since the [window] root may be
-   * currently hidden there may be multiple roots. Return these roots.
+   * Add the TreeViewNode(s) of [window] root to the corresponding [windowRoots] such that the TreeViewNode tree reflect the current system
+   * filter setting. Since the [window] root may be currently hidden there may be multiple roots. Return these roots.
    */
   private fun addToRoot(window: AndroidWindow): List<TreeViewNode> {
     temp.children.clear()
@@ -632,15 +591,13 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
    * - Skip hidden nodes by:
    *     - Not adding the skipped node to the parent [TreeViewNode]
    *     - Set the [TreeViewNode] parent to the first non skipped parent
-   *     - Children of skipped nodes will find the first non skipped parent by using the parent
-   *       field of its parents [TreeViewNode]
+   *     - Children of skipped nodes will find the first non skipped parent by using the parent field of its parents [TreeViewNode]
    * - Collapsing compose nodes to a callstack is handled by:
    *     - Set the [TreeViewNode] parent to the first parent that has siblings.
    *
-   * There is an exception to the above rules. If we are collapsing compose nodes and a node with
-   * multiple children is a child in a single call chain and is also a hidden node, we should NOT
-   * add it's children to the top node in the call tree, but rather find the first parent that is
-   * not hidden.
+   * There is an exception to the above rules. If we are collapsing compose nodes and a node with multiple children is a child in a single
+   * call chain and is also a hidden node, we should NOT add it's children to the top node in the call tree, but rather find the first
+   * parent that is not hidden.
    */
   private fun ViewNode.ReadAccess.updateHierarchy(window: AndroidWindow, root: TreeViewNode) {
     val treeSettings = layoutInspector?.treeSettings ?: return
@@ -654,14 +611,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     while (pending.isNotEmpty()) {
       val node = pending.removeLast()
       var parent = node.parent ?: error("The node cannot be the root")
-      val skipNodeParent =
-        parent.isSingleCall(treeSettings) || !parent.isInComponentTree(treeSettings)
+      val skipNodeParent = parent.isSingleCall(treeSettings) || !parent.isInComponentTree(treeSettings)
       var parentTreeNode = (if (skipNodeParent) parent.treeNode.parent else parent.treeNode) ?: root
-      if (
-        parent.isSingleCall(treeSettings) &&
-          !node.isInComponentTree(treeSettings) &&
-          node.children.size > 1
-      ) {
+      if (parent.isSingleCall(treeSettings) && !node.isInComponentTree(treeSettings) && node.children.size > 1) {
         while (!parent.isInComponentTree(treeSettings) && parent !== start) {
           parent = parent.parent ?: error("The node cannot be the root")
         }
@@ -685,16 +637,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   /**
-   * Checks if the tree node has a "compose callstack" relation. This essentially verifies if the
-   * node's unfiltered original parent is the same as the one presented in the component tree.
+   * Checks if the tree node has a "compose callstack" relation. This essentially verifies if the node's unfiltered original parent is the
+   * same as the one presented in the component tree.
    */
   @VisibleForTesting
   fun isCallStackNode(nodePath: TreePath): Boolean {
     val node = nodePath.lastPathComponent as TreeViewNode
     val nodeView = readAccess { node.view.parent }
-    return layoutInspector?.treeSettings?.let {
-      nodeView?.findClosestUnfilteredNode(it)?.treeNode
-    } !== node.parent
+    return layoutInspector?.treeSettings?.let { nodeView?.findClosestUnfilteredNode(it)?.treeNode } !== node.parent
   }
 
   @Suppress("UNUSED_PARAMETER")
@@ -729,8 +679,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
     override fun idOf(node: TreeViewNode) = node.view.viewId?.name
 
-    override fun textValueOf(node: TreeViewNode) =
-      if (node.view.isInlined) "(inline)" else node.view.textValue.nullize()?.let { "\"$it\"" }
+    override fun textValueOf(node: TreeViewNode) = if (node.view.isInlined) "(inline)" else node.view.textValue.nullize()?.let { "\"$it\"" }
 
     override fun iconOf(node: TreeViewNode): Icon = IconProvider.getIconForView(node.view)
 

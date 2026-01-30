@@ -25,22 +25,18 @@ import com.intellij.openapi.vfs.isFile
 import com.intellij.util.indexing.IndexableSetContributor
 import java.io.File
 
-/**
- * Contributor iterates and add .versions.toml files from gradle folder,
- * ignoring subdirectories.
- */
+/** Contributor iterates and add .versions.toml files from gradle folder, ignoring subdirectories. */
 class VersionCatalogFileIndexContributor : IndexableSetContributor() {
   companion object {
     private const val GRADLE_FOLDER = "gradle"
   }
+
   override fun getAdditionalProjectRootsToIndex(project: Project): Set<VirtualFile> {
     val versionsTomlFilter = VirtualFileFilter { file ->
       (file.isDirectory && file.name == GRADLE_FOLDER) || file.name.endsWith(EXT_VERSIONS_TOML)
     }
     val result = mutableSetOf<VirtualFile>()
-    LocalFileSystem.getInstance().findFileByIoFile(
-      File(project.basePath, GRADLE_FOLDER)
-    )?.let {
+    LocalFileSystem.getInstance().findFileByIoFile(File(project.basePath, GRADLE_FOLDER))?.let {
       iterateChildrenRecursively(it, versionsTomlFilter) { file ->
         if (file.isFile) result.add(file)
         true

@@ -43,12 +43,10 @@ internal const val TIMEOUT_SEC = 5L
 /**
  * Waits for [MessageProcessor] to idle and execute some code.
  * 1. Waits until all entries sent to the channel are received.
- * 2. Waits for the worker threads that received the channel entries to complete (launch work on UI
- *    thread)
+ * 2. Waits for the worker threads that received the channel entries to complete (launch work on UI thread)
  * 3. Posts code to be executed on the UI thread and wait.
  *
- * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return
- * immediately.
+ * Note that this cannot work on the UI Thread itself because [runInEdtAndWait] would return immediately.
  */
 internal fun MessageProcessor.onIdle(run: () -> Unit) {
   assert(!SwingUtilities.isEventDispatchThread())
@@ -59,11 +57,7 @@ internal fun MessageProcessor.onIdle(run: () -> Unit) {
   // prohibited by the one provided by the framework (BackendThreadPoolExecutor). See
   // AndroidExecutorsRule for how to inject a compliant
   // executor.
-  awaitQuiescence(
-    AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor,
-    TIMEOUT_SEC,
-    TimeUnit.SECONDS,
-  )
+  awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, TimeUnit.SECONDS)
   runInEdtAndWait { run() }
 }
 
@@ -74,11 +68,9 @@ fun logcatMessage(
   tid: Int = 2,
   appId: String = "com.example.app",
   tag: String = "ExampleTag",
-  timestamp: Instant =
-    Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
   message: String = "message",
-): LogcatMessage =
-  LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, "", tag, timestamp), message)
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, "", tag, timestamp), message)
 
 /** Convenience creation of a [LogcatMessage] for testing */
 internal fun logcatMessage(
@@ -88,20 +80,14 @@ internal fun logcatMessage(
   appId: String = "com.example.app",
   processName: String = "com.example.app",
   tag: String = "ExampleTag",
-  timestamp: Instant =
-    Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
   message: String = "message",
-): LogcatMessage =
-  LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, processName, tag, timestamp), message)
+): LogcatMessage = LogcatMessage(LogcatHeader(logLevel, pid, tid, appId, processName, tag, timestamp), message)
 
-internal fun waitForCondition(condition: () -> Boolean) =
-  waitForCondition(TIMEOUT_SEC, TimeUnit.SECONDS, condition)
+internal fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOUT_SEC, TimeUnit.SECONDS, condition)
 
 fun logcatTestActionEvent(editor: EditorEx, project: Project): AnActionEvent {
   return TestActionEvent.createTestEvent(
-    SimpleDataContext.builder()
-      .add(LogcatPresenter.EDITOR, editor)
-      .add(CommonDataKeys.PROJECT, project)
-      .build()
+    SimpleDataContext.builder().add(LogcatPresenter.EDITOR, editor).add(CommonDataKeys.PROJECT, project).build()
   )
 }

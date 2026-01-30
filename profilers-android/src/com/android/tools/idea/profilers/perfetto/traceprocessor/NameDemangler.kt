@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-/**
- * Interface passed to heapprofd converter to demangle names
- */
+/** Interface passed to heapprofd converter to demangle names */
 interface NameDemangler {
-  /**
-   * Demange in place should enumerate all StackFrames provided and update method names in-place.
-   */
+  /** Demange in place should enumerate all StackFrames provided and update method names in-place. */
   fun demangleInplace(stackFrames: Collection<NameHolder>)
 }
 
-/**
- * Interface for supplying the name that will be demangled. The demangled name will replace the initial value.
- */
+/** Interface for supplying the name that will be demangled. The demangled name will replace the initial value. */
 interface NameHolder {
   var name: String
 }

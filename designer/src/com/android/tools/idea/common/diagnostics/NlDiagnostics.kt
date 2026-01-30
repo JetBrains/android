@@ -64,9 +64,7 @@ private class NlDiagnosticsImpl : NlDiagnosticsRead, NlDiagnosticsWrite {
   }
 
   override fun renderTime(percentile: Int): Long =
-    if (lastRenderTimes.size > 0)
-      Quantiles.percentiles().index(percentile).compute(lastRenderTimes).toLong()
-    else -1
+    if (lastRenderTimes.size > 0) Quantiles.percentiles().index(percentile).compute(lastRenderTimes).toLong() else -1
 }
 
 /** Key for [NlDiagnosticsManager] to read/write from cache. */
@@ -74,10 +72,7 @@ interface NlDiagnosticKey
 
 object NlDiagnosticsManager {
   private val cache =
-    CacheBuilder.newBuilder()
-      .weakKeys()
-      .expireAfterAccess(5, TimeUnit.MINUTES)
-      .build<NlDiagnosticKey, NlDiagnosticsImpl>()
+    CacheBuilder.newBuilder().weakKeys().expireAfterAccess(5, TimeUnit.MINUTES).build<NlDiagnosticKey, NlDiagnosticsImpl>()
 
   /** Returns the [NlDiagnosticsRead] instance associated to the given surface */
   @JvmStatic

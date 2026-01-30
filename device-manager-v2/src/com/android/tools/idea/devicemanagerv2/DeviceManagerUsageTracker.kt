@@ -21,11 +21,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 
 internal object DeviceManagerUsageTracker {
   fun logEvent(event: DeviceManagerEvent) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-        .setDeviceManagerEvent(event)
-    )
+    UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER).setDeviceManagerEvent(event))
   }
 
   fun logDeviceManagerEvent(kind: DeviceManagerEvent.EventKind) {

@@ -20,9 +20,9 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.util.xmlb.XmlSerializer
+import java.nio.file.Path
 import kotlin.time.Instant
 import org.junit.Test
-import java.nio.file.Path
 
 class SelectionStatePersistenceTest {
   @Test
@@ -34,43 +34,41 @@ class SelectionStatePersistenceTest {
     val target3 = TargetId(DeviceId("Test", false, "hijk"), null, ColdBoot)
     selectionState.runConfigName = "app"
     selectionState.selectionMode = SelectionMode.DIALOG
-    selectionState.dropdownSelection =
-      DropdownSelectionXml(
-        target = target1.toXml(),
-        timestamp = Instant.parse("2023-01-08T01:02:03Z"),
-      )
+    selectionState.dropdownSelection = DropdownSelectionXml(target = target1.toXml(), timestamp = Instant.parse("2023-01-08T01:02:03Z"))
     selectionState.dialogSelection = DialogSelectionXml(listOf(target2, target3).toXml())
 
     selectionState.assertSerializes(
-      """<SelectionState runConfigName="app">
-        |  <option name="selectionMode" value="DIALOG" />
-        |  <DropdownSelection timestamp="2023-01-08T01:02:03Z">
-        |    <Target type="DEFAULT_BOOT">
-        |      <handle />
-        |      <template>
-        |        <DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />
-        |      </template>
-        |    </Target>
-        |  </DropdownSelection>
-        |  <DialogSelection>
-        |    <targets>
-        |      <Target type="DEFAULT_BOOT">
-        |        <handle>
-        |          <DeviceId pluginId="Test" type="HANDLE" identifier="efg" />
-        |        </handle>
-        |        <template>
-        |          <DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />
-        |        </template>
-        |      </Target>
-        |      <Target type="COLD_BOOT">
-        |        <handle>
-        |          <DeviceId pluginId="Test" type="HANDLE" identifier="hijk" />
-        |        </handle>
-        |        <template />
-        |      </Target>
-        |    </targets>
-        |  </DialogSelection>
-        |</SelectionState>"""
+      """
+      |<SelectionState runConfigName="app">
+      |  <option name="selectionMode" value="DIALOG" />
+      |  <DropdownSelection timestamp="2023-01-08T01:02:03Z">
+      |    <Target type="DEFAULT_BOOT">
+      |      <handle />
+      |      <template>
+      |        <DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />
+      |      </template>
+      |    </Target>
+      |  </DropdownSelection>
+      |  <DialogSelection>
+      |    <targets>
+      |      <Target type="DEFAULT_BOOT">
+      |        <handle>
+      |          <DeviceId pluginId="Test" type="HANDLE" identifier="efg" />
+      |        </handle>
+      |        <template>
+      |          <DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />
+      |        </template>
+      |      </Target>
+      |      <Target type="COLD_BOOT">
+      |        <handle>
+      |          <DeviceId pluginId="Test" type="HANDLE" identifier="hijk" />
+      |        </handle>
+      |        <template />
+      |      </Target>
+      |    </targets>
+      |  </DialogSelection>
+      |</SelectionState>
+      """
         .trimMargin()
     )
   }
@@ -78,27 +76,23 @@ class SelectionStatePersistenceTest {
   @Test
   fun serializeDeviceId() {
     val id = DeviceId("Test", true, "abcd").toXml()
-    assertThat(id.toXmlText())
-      .isEqualTo("""<DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />""")
+    assertThat(id.toXmlText()).isEqualTo("""<DeviceId pluginId="Test" type="TEMPLATE" identifier="abcd" />""")
   }
 
   @Test
   fun serializeBootWithSnapshot() {
-    val target =
-      TargetId(
-        DeviceId("Test", false, "abcd"),
-        null,
-        BootSnapshot(LocalEmulatorSnapshot("snap", Path.of("/tmp/foo/snap"))),
-      )
+    val target = TargetId(DeviceId("Test", false, "abcd"), null, BootSnapshot(LocalEmulatorSnapshot("snap", Path.of("/tmp/foo/snap"))))
 
     val targetXml = target.toXml()
     targetXml.assertSerializes(
-      """<Target type="BOOT_WITH_SNAPSHOT">
-          |  <handle>
-          |    <DeviceId pluginId="Test" type="HANDLE" identifier="abcd" />
-          |  </handle>
-          |  <Snapshot name="snap" path="/tmp/foo/snap" type="LOCAL_EMULATOR" />
-          |</Target>"""
+      """
+      |<Target type="BOOT_WITH_SNAPSHOT">
+      |  <handle>
+      |    <DeviceId pluginId="Test" type="HANDLE" identifier="abcd" />
+      |  </handle>
+      |  <Snapshot name="snap" path="/tmp/foo/snap" type="LOCAL_EMULATOR" />
+      |</Target>
+      """
         .trimMargin()
     )
 
@@ -106,21 +100,16 @@ class SelectionStatePersistenceTest {
   }
 
   /**
-   * Verify that this object can be serialized to XML and then deserialized to an equivalent object.
-   * Then, if exactMatch is false, verify that the given XML deserializes into an equivalent object.
-   * If true, verify that it results in the exact XML text given. (This is useful for generating the
-   * expected XML output.)
+   * Verify that this object can be serialized to XML and then deserialized to an equivalent object. Then, if exactMatch is false, verify
+   * that the given XML deserializes into an equivalent object. If true, verify that it results in the exact XML text given. (This is useful
+   * for generating the expected XML output.)
    */
-  internal inline fun <reified T : Any> T.assertSerializes(
-    expectedText: String,
-    exactMatch: Boolean = false,
-  ) {
+  internal inline fun <reified T : Any> T.assertSerializes(expectedText: String, exactMatch: Boolean = false) {
     val element = XmlSerializer.serialize(this)
     if (exactMatch) {
       assertThat(JDOMUtil.write(element)).isEqualTo(expectedText)
     } else {
-      assertThat(XmlSerializer.deserialize(JDOMUtil.load(expectedText), T::class.java))
-        .isEqualTo(this)
+      assertThat(XmlSerializer.deserialize(JDOMUtil.load(expectedText), T::class.java)).isEqualTo(this)
     }
     assertThat(XmlSerializer.deserialize(element, T::class.java)).isEqualTo(this)
   }

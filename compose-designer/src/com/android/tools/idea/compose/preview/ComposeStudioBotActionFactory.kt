@@ -25,8 +25,8 @@ interface ComposeStudioBotActionFactory {
   fun createPreviewGenerator(): AnAction
 
   /**
-   * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both
-   * the preview image and its corresponding code into account.
+   * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both the preview image and its corresponding
+   * code into account.
    */
   fun transformPreviewAction(): AnAction
 
@@ -45,14 +45,14 @@ interface ComposeStudioBotActionFactory {
   fun fixComposeRenderIssueAction(): AnAction
 
   /**
-   * [DropdownAction] to list AI agent-based actions that are specific to a single preview. It's
-   * expected to be displayed in the context menu.
+   * [DropdownAction] to list AI agent-based actions that are specific to a single preview. It's expected to be displayed in the context
+   * menu.
    */
   fun previewAgentsDropDownAction(): DropDownAction
 
   /**
-   * [DefaultActionGroup] to list AI agent-based actions that are specific to a single preview. It's
-   * expected to be displayed in overflow menu.
+   * [DefaultActionGroup] to list AI agent-based actions that are specific to a single preview. It's expected to be displayed in overflow
+   * menu.
    */
   fun previewAgentsActionGroup(): DefaultActionGroup
 
@@ -64,8 +64,6 @@ interface ComposeStudioBotActionFactory {
 
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
-        ExtensionPointName.create(
-            "com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
-        )
+      ExtensionPointName.create("com.android.tools.idea.compose.preview.composeStudioBotActionFactory")
   }
 }

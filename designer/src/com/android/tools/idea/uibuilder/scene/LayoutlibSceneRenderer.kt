@@ -73,13 +73,11 @@ private class RenderRequest(val trigger: LayoutEditorRenderResult.Trigger?) {
 }
 
 /**
- * Class responsible for inflation and rendering of the given [NlModel]. It's configurable via its
- * [sceneRenderConfiguration]. This class is also responsible for handling render requests by
- * enqueueing them, skipping some and processing others (see [requestsChannel]), and handling the
- * lifecycle of its associated [RenderTask]s and [RenderResult]s.
+ * Class responsible for inflation and rendering of the given [NlModel]. It's configurable via its [sceneRenderConfiguration]. This class is
+ * also responsible for handling render requests by enqueueing them, skipping some and processing others (see [requestsChannel]), and
+ * handling the lifecycle of its associated [RenderTask]s and [RenderResult]s.
  *
- * @param parentDisposable parent to use when registering this renderer into the [Disposer], usually
- *   the scene manager using this renderer.
+ * @param parentDisposable parent to use when registering this renderer into the [Disposer], usually the scene manager using this renderer.
  * @param disposeExecutor executor where deactivation should be executed when disposing.
  * @param model the [NlModel] that this renderer will be rendering.
  * @param surface the [NlDesignSurface] where the model is being displayed.
@@ -96,10 +94,7 @@ class LayoutlibSceneRenderer(
   private val isActive = AtomicBoolean(true)
   private val renderIsRunning = AtomicBoolean(false)
 
-  /**
-   * Worker thread based coroutine scope used for processing render requests, and performing
-   * inflation and rendering.
-   */
+  /** Worker thread based coroutine scope used for processing render requests, and performing inflation and rendering. */
   private val scope: CoroutineScope
 
   /** Lock guarding execution of [NlModelHierarchyUpdater.updateHierarchy] for [model]. */
@@ -115,16 +110,15 @@ class LayoutlibSceneRenderer(
   private val requestsLock = Mutex()
 
   /** The configuration to use when inflating and rendering, and for creating new [RenderTask]s. */
-  val sceneRenderConfiguration =
-    LayoutlibSceneRenderConfiguration(model, surface, layoutScannerConfig)
+  val sceneRenderConfiguration = LayoutlibSceneRenderConfiguration(model, surface, layoutScannerConfig)
 
   /** The version of Android resources when the last inflation was done. See [ResourceVersion] */
   var renderedVersion: ResourceVersion? = null
     private set
 
   /**
-   * The quality used the last time the content of this scene manager was successfully rendered.
-   * Defaults to 0 until a successful render happens.
+   * The quality used the last time the content of this scene manager was successfully rendered. Defaults to 0 until a successful render
+   * happens.
    */
   var lastRenderQuality = 0f
     private set
@@ -157,9 +151,8 @@ class LayoutlibSceneRenderer(
     private set
 
   /**
-   * Executes all callbacks in the current [renderTask] until there are no more callbacks to
-   * execute. This method will suspend until all callbacks have been executed, or we reach time
-   * limit.
+   * Executes all callbacks in the current [renderTask] until there are no more callbacks to execute. This method will suspend until all
+   * callbacks have been executed, or we reach time limit.
    */
   suspend fun executeAllCallbacks() {
     var hasCallbacks = true
@@ -184,17 +177,11 @@ class LayoutlibSceneRenderer(
         else {
           oldResult = field
           field =
-            if (
-              sceneRenderConfiguration.cacheSuccessfulRenderImage &&
-                newResult.isErrorResult() &&
-                oldResult.containsValidImage()
-            ) {
+            if (sceneRenderConfiguration.cacheSuccessfulRenderImage && newResult.isErrorResult() && oldResult.containsValidImage()) {
               // newResult can not be null if isErrorResult is true
               // oldResult can not be null if containsValidImage is true
               newResult!!.copyWithNewImageAndRootViewDimensions(
-                StudioRenderService.getInstance(newResult.project)
-                  .sharedImagePool
-                  .copyOf(oldResult!!.getRenderedImage().copy),
+                StudioRenderService.getInstance(newResult.project).sharedImagePool.copyOf(oldResult!!.getRenderedImage().copy),
                 oldResult.rootViewDimensions,
               )
             } else newResult
@@ -204,14 +191,13 @@ class LayoutlibSceneRenderer(
     }
 
   /**
-   * This channel will receive all render requests but will keep at most one in its queue, dropping
-   * old requests waiting to be processed when a newer comes in.
+   * This channel will receive all render requests but will keep at most one in its queue, dropping old requests waiting to be processed
+   * when a newer comes in.
    */
   private val requestsChannel = Channel<RenderRequest>(capacity = Channel.CONFLATED)
 
   /**
-   * This flow contains the [RenderRequest.requestTime] of the latest request that has finished to
-   * be processed, regardless of the result.
+   * This flow contains the [RenderRequest.requestTime] of the latest request that has finished to be processed, regardless of the result.
    */
   private val lastProcessedRenderRequestTime = MutableStateFlow<Long>(-1)
 
@@ -227,8 +213,7 @@ class LayoutlibSceneRenderer(
         try {
           if (isActive.get()) {
             val doubleRender = sceneRenderConfiguration.doubleRender.getAndSet(false)
-            val executeCallbacks =
-              sceneRenderConfiguration.executeCallbacksAfterRender.getAndSet(false)
+            val executeCallbacks = sceneRenderConfiguration.executeCallbacksAfterRender.getAndSet(false)
             doRender(it, executeCallbacks)
             if (doubleRender) {
               doRender(it, executeCallbacks)
@@ -241,9 +226,7 @@ class LayoutlibSceneRenderer(
         } catch (t: Throwable) {
           log.warn(t)
         } finally {
-          lastProcessedRenderRequestTime.tryEmit(
-            maxOf(lastProcessedRenderRequestTime.value, it.requestTime)
-          )
+          lastProcessedRenderRequestTime.tryEmit(maxOf(lastProcessedRenderRequestTime.value, it.requestTime))
           renderIsRunning.set(false)
         }
       }
@@ -253,8 +236,8 @@ class LayoutlibSceneRenderer(
   /**
    * Adds a new [RenderRequest] to the queue and returns immediately.
    *
-   * Note that it's not guaranteed that this specific request will be executed, as it could be
-   * replaced by a newer request that arrives later, before this one starts to execute.
+   * Note that it's not guaranteed that this specific request will be executed, as it could be replaced by a newer request that arrives
+   * later, before this one starts to execute.
    *
    * @param trigger reason that triggered the render, used for tracking purposes
    */
@@ -265,8 +248,8 @@ class LayoutlibSceneRenderer(
   /**
    * Adds a new [RenderRequest] to the queue and waits for it or some newer request to complete.
    *
-   * Note that it's not guaranteed that this specific request will be executed, as it could be
-   * replaced by a newer request that arrives later, before this one starts to execute.
+   * Note that it's not guaranteed that this specific request will be executed, as it could be replaced by a newer request that arrives
+   * later, before this one starts to execute.
    *
    * @param trigger reason that triggered the render, used for tracking purposes
    */
@@ -282,9 +265,7 @@ class LayoutlibSceneRenderer(
    *
    * Note: this method will return `null` if the renderer has been disposed.
    */
-  private suspend fun enqueueRenderRequest(
-    trigger: LayoutEditorRenderResult.Trigger?
-  ): RenderRequest? {
+  private suspend fun enqueueRenderRequest(trigger: LayoutEditorRenderResult.Trigger?): RenderRequest? {
     // TODO(b/405340706): remove once the root cause of the early facet disposal is fixed
     if (isDisposed.get()) {
       log.warn("requesting render after LayoutlibSceneRenderer has been disposed")
@@ -302,8 +283,8 @@ class LayoutlibSceneRenderer(
   /**
    * Render the model and update the view hierarchy.
    *
-   * This method will also [inflate] the model when forced or needed (i.e. when
-   * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
+   * This method will also [inflate] the model when forced or needed (i.e. when [LayoutlibSceneRenderConfiguration.needsInflation] is true
+   * or when [renderTask] is null).
    */
   @RequiresBackgroundThread
   private suspend fun doRender(request: RenderRequest, executeCallbacks: Boolean) {
@@ -315,23 +296,16 @@ class LayoutlibSceneRenderer(
     try {
       // Inflate only if needed
       if (renderTask == null && !sceneRenderConfiguration.needsInflation.get()) {
-        log.warn(
-          "Configuration indicates that inflation is not needed, but renderTask is null, reinflating anyway"
-        )
+        log.warn("Configuration indicates that inflation is not needed, but renderTask is null, reinflating anyway")
       }
-      val inflateResult =
-        if (sceneRenderConfiguration.needsInflation.getAndSet(false) || renderTask == null)
-          inflate()
-        else null
+      val inflateResult = if (sceneRenderConfiguration.needsInflation.getAndSet(false) || renderTask == null) inflate() else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
         return
       }
       renderTask?.let {
         if (sceneRenderConfiguration.elapsedFrameTimeMs != -1L) {
-          it.setElapsedFrameTimeNanos(
-            TimeUnit.MILLISECONDS.toNanos(sceneRenderConfiguration.elapsedFrameTimeMs)
-          )
+          it.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(sceneRenderConfiguration.elapsedFrameTimeMs))
         }
 
         if (sceneRenderConfiguration.clearOverrideRenderSize) {
@@ -359,16 +333,9 @@ class LayoutlibSceneRenderer(
       if (!model.isDisposed) {
         val renderService = StudioRenderService.getInstance(model.project)
         val logger =
-          if (sceneRenderConfiguration.logRenderErrors)
-            renderService.createHtmlLogger(model.project)
-          else renderService.nopLogger
+          if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(model.project) else renderService.nopLogger
 
-        result =
-          createRenderTaskErrorResult(
-            file,
-            throwable = (throwable as? CompletionException)?.cause ?: throwable,
-            logger = logger,
-          )
+        result = createRenderTaskErrorResult(file, throwable = (throwable as? CompletionException)?.cause ?: throwable, logger = logger)
       }
       throw throwable
     } finally {
@@ -381,21 +348,18 @@ class LayoutlibSceneRenderer(
         result?.let {
           // In an unlikely event when result is disposed we can still safely request the size of
           // the image
-          NlDiagnosticsManager.getWriteInstance(surface)
-            .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
-          CommonUsageTracker.getInstance(surface)
-            .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
+          NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
+          CommonUsageTracker.getInstance(surface).logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
         }
       }
     }
   }
 
   /**
-   * Creates a new [RenderTask] using the [renderTaskFactory] and uses it to inflate the model and
-   * update the view hierarchy.
+   * Creates a new [RenderTask] using the [renderTaskFactory] and uses it to inflate the model and update the view hierarchy.
    *
-   * Returns the [RenderResult] of the inflate operation, which might be an error result, or null if
-   * the model could not be inflated (e.g. because the project was disposed).
+   * Returns the [RenderResult] of the inflate operation, which might be an error result, or null if the model could not be inflated (e.g.
+   * because the project was disposed).
    *
    * It throws a [CancellationException] if cancelled midway.
    */
@@ -421,9 +385,7 @@ class LayoutlibSceneRenderer(
     renderedVersion = resourceNotificationManager.getCurrentVersion(facet, file, configuration)
 
     val renderService = StudioRenderService.getInstance(project)
-    val logger =
-      if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(project)
-      else renderService.nopLogger
+    val logger = if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(project) else renderService.nopLogger
 
     var result: RenderResult? = null
     var newTask: RenderTask? = null
@@ -451,8 +413,7 @@ class LayoutlibSceneRenderer(
         // Do more updates async
         scope.launch {
           model.notifyListenersModelDerivedDataChanged()
-          CommonUsageTracker.getInstance(surface)
-            .logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
+          CommonUsageTracker.getInstance(surface).logRenderResult(null, result, CommonUsageTracker.RenderResultType.INFLATE)
         }
       } else {
         // If the result is not successful or the renderer is disposed, then we discard the task.
@@ -477,22 +438,14 @@ class LayoutlibSceneRenderer(
         result == null -> throw IllegalStateException("Inflate returned null RenderResult")
         result.renderResult.exception != null -> throw result.renderResult.exception
         !result.renderResult.isSuccess ->
-          throw IllegalStateException(
-            "Inflate returned unsuccessful RenderResult without an internal exception"
-          )
+          throw IllegalStateException("Inflate returned unsuccessful RenderResult without an internal exception")
       }
       return result
     } catch (throwable: Throwable) {
       // Do not ignore ClassNotFoundException on inflate
       if (throwable is ClassNotFoundException) {
         logger.addMessage(
-          RenderProblem.createHtml(
-            ProblemSeverity.ERROR,
-            "Error inflating the preview",
-            logger.linkManager,
-            throwable,
-            ShowFixFactory,
-          )
+          RenderProblem.createHtml(ProblemSeverity.ERROR, "Error inflating the preview", logger.linkManager, throwable, ShowFixFactory)
         )
       } else {
         logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", throwable, null, null)
@@ -501,8 +454,7 @@ class LayoutlibSceneRenderer(
     }
   }
 
-  private fun RenderResult?.containsValidImage() =
-    this?.renderedImage?.let { it.width > 1 && it.height > 1 } ?: false
+  private fun RenderResult?.containsValidImage() = this?.renderedImage?.let { it.width > 1 && it.height > 1 } ?: false
 
   // TODO(b/335424569): make this method private
   /** Updates the hierarchy based on the [model]'s render/inflate result. */
@@ -529,12 +481,8 @@ class LayoutlibSceneRenderer(
     }
   }
 
-  /**
-   * Returns true when there are running or pending render requests and the renderer is not
-   * currently deactivated.
-   */
-  @OptIn(ExperimentalCoroutinesApi::class)
-  fun isRendering() = isActive.get() && (!requestsChannel.isEmpty || renderIsRunning.get())
+  /** Returns true when there are running or pending render requests and the renderer is not currently deactivated. */
+  @OptIn(ExperimentalCoroutinesApi::class) fun isRendering() = isActive.get() && (!requestsChannel.isEmpty || renderIsRunning.get())
 
   override fun dispose() {
     if (isDisposed.getAndSet(true)) return

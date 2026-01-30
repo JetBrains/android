@@ -19,20 +19,20 @@ import com.android.tools.nativeSymbolizer.NativeSymbolizer
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
-/**
- * Combines all the individual [NavSource]s needed navigate to [CodeLocation]s in an IntelliJ
- * project.
- */
-class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer): NavSource {
+/** Combines all the individual [NavSource]s needed navigate to [CodeLocation]s in an IntelliJ project. */
+class IntelliJNavSource(project: Project, symbolizer: NativeSymbolizer) : NavSource {
   // Order matters. First match will be used. If a nav source as more requirements to match a code
   // location, it should come earlier in the list.
-  private val sources = listOf(FileLineNavigable(project),
-                               ApkMappingNavigable(project),
-                               NativeNavSource(project, symbolizer),
-                               PsiOuterClassAndLine(project),
-                               PsiMethod(project),
-                               PsiInnerClass(project),
-                               ComposeTracingNavSource(project))
+  private val sources =
+    listOf(
+      FileLineNavigable(project),
+      ApkMappingNavigable(project),
+      NativeNavSource(project, symbolizer),
+      PsiOuterClassAndLine(project),
+      PsiMethod(project),
+      PsiInnerClass(project),
+      ComposeTracingNavSource(project),
+    )
 
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     return sources.asSequence().map { it.lookUp(location, arch) }.filterNotNull().firstOrNull()

@@ -33,9 +33,7 @@ class ProjectLightResourceClassServiceTest {
   @get:Rule val rule: AndroidProjectRule = inMemory()
 
   private fun getProjectRClass(): PsiClass = runReadAction {
-    ProjectLightResourceClassService.getInstance(rule.project)
-      .getLightRClassesDefinedByModule(rule.module)
-      .single()
+    ProjectLightResourceClassService.getInstance(rule.project).getLightRClassesDefinedByModule(rule.module).single()
   }
 
   @Test
@@ -43,9 +41,7 @@ class ProjectLightResourceClassServiceTest {
     val rClass = getProjectRClass()
     assertThat(rClass.name).isEqualTo("R")
 
-    assertWithMessage("Before a build, the same R class should be returned")
-      .that(getProjectRClass())
-      .isSameAs(rClass)
+    assertWithMessage("Before a build, the same R class should be returned").that(getProjectRClass()).isSameAs(rClass)
 
     rule.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
@@ -56,8 +52,6 @@ class ProjectLightResourceClassServiceTest {
         )
       )
 
-    assertWithMessage("After a build, R class should re-generate")
-      .that(getProjectRClass())
-      .isNotSameAs(rClass)
+    assertWithMessage("After a build, R class should re-generate").that(getProjectRClass()).isNotSameAs(rClass)
   }
 }

@@ -43,22 +43,20 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.PathUtilRt
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-
+import kotlinx.coroutines.withContext
 
 /**
- * Default implementation of [DeviceExplorerFileManager] that integrates with
- * [VirtualFile], [com.intellij.openapi.fileEditor.FileEditorManager] and
- * [com.intellij.openapi.application.Application.runWriteAction]
+ * Default implementation of [DeviceExplorerFileManager] that integrates with [VirtualFile],
+ * [com.intellij.openapi.fileEditor.FileEditorManager] and [com.intellij.openapi.application.Application.runWriteAction]
  */
-class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructor(
-  private val project: Project,
-  private val defaultDownloadPathSupplier: () -> Path
-) : DeviceExplorerFileManager {
+class DeviceExplorerFileManagerImpl
+@NonInjectable
+@VisibleForTesting
+constructor(private val project: Project, private val defaultDownloadPathSupplier: () -> Path) : DeviceExplorerFileManager {
   private val LOGGER = thisLogger()
 
   private val temporaryEditorFiles = mutableListOf<VirtualFile>()
@@ -68,10 +66,9 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   }
 
   /** Service constructor */
-  private constructor(project: Project) : this(
-    project,
-    defaultDownloadPathSupplier = { Paths.get(DeviceExplorerSettings.getInstance().downloadLocation) }
-  )
+  private constructor(
+    project: Project
+  ) : this(project, defaultDownloadPathSupplier = { Paths.get(DeviceExplorerSettings.getInstance().downloadLocation) })
 
   fun getDefaultLocalPathForDevice(device: DeviceFileSystem): Path {
     val rootPath = defaultDownloadPathSupplier()
@@ -83,14 +80,8 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
     return getPathForEntry(entry, devicePath)
   }
 
-  override suspend fun downloadFileEntry(
-    entry: DeviceFileEntry,
-    localPath: Path,
-    progress: DownloadProgress
-  ): VirtualFile {
-    withContext(diskIoThread) {
-      FileUtils.mkdirs(localPath.parent.toFile())
-    }
+  override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile {
+    withContext(diskIoThread) { FileUtils.mkdirs(localPath.parent.toFile()) }
     return withWriteSafeContextWithCurrentModality {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       VfsUtil.findFileByIoFile(localPath.toFile(), true)?.let {
@@ -125,16 +116,13 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
 
   /**
    * Downloads the file corresponding to the [DeviceFileEntry] passed as argument, to the local path specified.
+   *
    * @param entry The entry corresponding to the file to download.
    * @param localPath Where to download the file.
    * @param progress Progress indicator for the download operation.
    */
   @UiThread
-  private suspend fun downloadFile(
-    entry: DeviceFileEntry,
-    localPath: Path,
-    progress: DownloadProgress
-  ): VirtualFile {
+  private suspend fun downloadFile(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile {
     val fileTransferProgress = createFileTransferProgress(entry, progress)
     progress.onStarting(entry.fullPath)
     try {
@@ -178,7 +166,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   }
 
   private fun mapName(name: String): String {
-    return PathUtilRt.suggestFileName(name,  /*allowDots*/true,  /*allowSpaces*/true)
+    return PathUtilRt.suggestFileName(name, /*allowDots*/ true, /*allowSpaces*/ true)
   }
 
   private fun deleteTemporaryFile(localPath: Path) {
@@ -193,8 +181,10 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
     val file = findFile(localPath, true)
     withContext(uiThread) {
       file.name.let { fileName ->
-        file.fileType.takeIf { it != FileTypes.UNKNOWN } ?: FileTypeManager.getInstance().getFileTypeByFileName(
-          fileName).takeIf { it != FileTypes.UNKNOWN } ?: associateFileType(fileName) ?: cancelAndThrow()
+        file.fileType.takeIf { it != FileTypes.UNKNOWN }
+          ?: FileTypeManager.getInstance().getFileTypeByFileName(fileName).takeIf { it != FileTypes.UNKNOWN }
+          ?: associateFileType(fileName)
+          ?: cancelAndThrow()
       }
       OpenFileAction.openFile(file, project)
       temporaryEditorFiles.add(file)

@@ -46,19 +46,23 @@ fun logEvent(eventType: EventType, modelInfo: ModelInfo) {
               .setIsValidModel(true)
               .setHasMetadata(modelInfo.isMetadataExisted)
               .setFileSize(modelInfo.modelSize)
-              .setFileHash(modelInfo.modelHash))))
+              .setFileHash(modelInfo.modelHash)
+          )
+      )
+  )
 }
 
 fun logEvent(eventType: EventType, modelFile: VirtualFile) {
-  ApplicationManager.getApplication().executeOnPooledThread(Runnable {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
-        .setMlModelBindingEvent(
-          MlModelBindingEvent.newBuilder()
-            .setEventType(eventType)
-            .addModelMetadatas(getModelMetadata(modelFile))))
-  })
+  ApplicationManager.getApplication()
+    .executeOnPooledThread(
+      Runnable {
+        UsageTracker.log(
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
+            .setMlModelBindingEvent(MlModelBindingEvent.newBuilder().setEventType(eventType).addModelMetadatas(getModelMetadata(modelFile)))
+        )
+      }
+    )
 }
 
 private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
@@ -75,8 +79,7 @@ private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
       val modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(bytes))
       metadataBuilder.isValidModel = true
       metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       metadataBuilder.isValidModel = false
     }
   }

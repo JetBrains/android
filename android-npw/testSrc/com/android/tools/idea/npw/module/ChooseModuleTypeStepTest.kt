@@ -34,23 +34,13 @@ class ChooseModuleTypeStepTest {
 
   @Test
   fun testSortSingleModuleEntries() {
-    assertThat(sort(message("android.wizard.module.new.mobile")))
-      .containsExactly(message("android.wizard.module.new.mobile"))
-      .inOrder()
+    assertThat(sort(message("android.wizard.module.new.mobile"))).containsExactly(message("android.wizard.module.new.mobile")).inOrder()
   }
 
   @Test
   fun testSortTwoModuleEntries() {
-    assertThat(
-        sort(
-          message("android.wizard.module.new.library"),
-          message("android.wizard.module.new.mobile"),
-        )
-      )
-      .containsExactly(
-        message("android.wizard.module.new.mobile"),
-        message("android.wizard.module.new.library"),
-      )
+    assertThat(sort(message("android.wizard.module.new.library"), message("android.wizard.module.new.mobile")))
+      .containsExactly(message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"))
       .inOrder()
     assertThat(sort("A", message("android.wizard.module.new.mobile")))
       .containsExactly(message("android.wizard.module.new.mobile"), "A")
@@ -121,17 +111,14 @@ class ChooseModuleTypeStepTest {
           message("android.wizard.module.import.gradle.title"),
           message("android.wizard.module.import.eclipse.title"),
           message("android.wizard.module.new.java.or.kotlin.library"),
-          if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get())
-            message("android.wizard.module.new.baselineprofiles.module.app")
+          if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) message("android.wizard.module.new.baselineprofiles.module.app")
           else null,
           message("android.wizard.module.new.benchmark.module.app"),
-          if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get())
-            message("android.wizard.module.new.kotlin.multiplatform.library")
+          if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) message("android.wizard.module.new.kotlin.multiplatform.library")
           else null,
         )
         .filterNot {
-          it == message("android.wizard.module.import.gradle.title") ||
-            it == message("android.wizard.module.import.eclipse.title")
+          it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
         }
         .filterNotNull()
 
@@ -147,10 +134,7 @@ class ChooseModuleTypeStepTest {
           moduleParent = ":",
         )
       )
-      .containsExactly(
-        message("android.wizard.module.new.mobile"),
-        message("android.wizard.module.new.kotlin.multiplatform.library"),
-      )
+      .containsExactly(message("android.wizard.module.new.mobile"), message("android.wizard.module.new.kotlin.multiplatform.library"))
       .inOrder()
 
     assertThat(
@@ -165,8 +149,7 @@ class ChooseModuleTypeStepTest {
   }
 
   private fun sort(vararg entries: String, moduleParent: String = ":"): List<String> {
-    val moduleDescriptions =
-      entries.map { entry -> mock<ModuleGalleryEntry> { on { name } doReturn entry } }
+    val moduleDescriptions = entries.map { entry -> mock<ModuleGalleryEntry> { on { name } doReturn entry } }
 
     val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent)
 

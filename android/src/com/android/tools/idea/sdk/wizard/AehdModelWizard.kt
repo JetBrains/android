@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AehdModelWizard(
   private val installationIntention: AehdSdkComponentTreeNode.InstallationIntention,
   private val aehdWizardController: AehdWizardController,
-  private val tracker: FirstRunWizardTracker
+  private val tracker: FirstRunWizardTracker,
 ) {
   companion object {
     var LOG: Logger = Logger.getInstance(AehdModelWizard::class.java)
@@ -57,23 +57,25 @@ class AehdModelWizard(
   fun showAndGet(): Boolean {
     tracker.trackWizardStarted()
     val modelWizard = buildModelWizard()
-    val wizardDialog: ModelWizardDialog = StudioWizardDialogBuilder(modelWizard, "AEHD")
-      .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
-      .build()
-    modelWizard.addResultListener(object : ModelWizard.WizardListener {
-      override fun onWizardFinished(wizardResult: WizardResult) {
-        tracker.trackWizardFinished(
-          if (wizardResult == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
-          else SetupWizardEvent.CompletionStatus.CANCELED
-        )
+    val wizardDialog: ModelWizardDialog =
+      StudioWizardDialogBuilder(modelWizard, "AEHD")
+        .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
+        .build()
+    modelWizard.addResultListener(
+      object : ModelWizard.WizardListener {
+        override fun onWizardFinished(wizardResult: WizardResult) {
+          tracker.trackWizardFinished(
+            if (wizardResult == WizardResult.FINISHED) SetupWizardEvent.CompletionStatus.FINISHED
+            else SetupWizardEvent.CompletionStatus.CANCELED
+          )
+        }
       }
-    })
+    )
     return wizardDialog.showAndGet()
   }
 
   private fun buildModelWizard(): ModelWizard {
-    val modelWizardBuilder = ModelWizard.Builder()
-      .addStep(getInstallationStep(installationIntention))
+    val modelWizardBuilder = ModelWizard.Builder().addStep(getInstallationStep(installationIntention))
 
     if (installationIntention != AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL) {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -82,20 +84,17 @@ class AehdModelWizard(
       val progressIndicator = StudioLoggerProgressIndicator(javaClass)
       sdkHandler
         .getRepoManager(progressIndicator)
-        .loadSynchronously(cacheExpirationMs = RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-                           runner = StudioProgressRunner(false, "Finding Available SDK Components", null),
-                           downloader = StudioDownloader(), settings = StudioSettingsController.getInstance())
+        .loadSynchronously(
+          cacheExpirationMs = RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+          runner = StudioProgressRunner(false, "Finding Available SDK Components", null),
+          downloader = StudioDownloader(),
+          settings = StudioSettingsController.getInstance(),
+        )
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
-      val packagesToInstallSupplier = {
-        aehdWizardController.getPackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode)
-      }
+      val packagesToInstallSupplier = { aehdWizardController.getPackagesToInstall(sdkHandler, myAehdSdkComponentTreeNode) }
       modelWizardBuilder.addStep(
-        object :
-          LicenseAgreementStep(
-            LicenseAgreementModel(sdkHandler.location),
-            packagesToInstallSupplier,
-          ) {
+        object : LicenseAgreementStep(LicenseAgreementModel(sdkHandler.location), packagesToInstallSupplier) {
           override fun onShowing() {
             super.onShowing()
             tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.LICENSE_AGREEMENT)
@@ -117,13 +116,15 @@ class AehdModelWizard(
       }
     }
 
-    modelWizard.addResultListener(object : ModelWizard.WizardListener {
-      override fun onWizardFinished(result: WizardResult) {
-        if (!progressStep.isSuccessfullyCompleted.get()) {
-          aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, LOG)
+    modelWizard.addResultListener(
+      object : ModelWizard.WizardListener {
+        override fun onWizardFinished(result: WizardResult) {
+          if (!progressStep.isSuccessfullyCompleted.get()) {
+            aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, LOG)
+          }
         }
       }
-    })
+    )
 
     return modelWizard
   }
@@ -149,8 +150,8 @@ class AehdModelWizard(
     }
   }
 
-  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, name: String, private val tracker: FirstRunWizardTracker): AbstractProgressStep<BlankModel>(
-    model, name) {
+  inner class SetupProgressStep(model: AehdModelWizard.BlankModel, name: String, private val tracker: FirstRunWizardTracker) :
+    AbstractProgressStep<BlankModel>(model, name) {
     val isSuccessfullyCompleted = AtomicBooleanProperty(false)
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
 
@@ -169,39 +170,35 @@ class AehdModelWizard(
       val application = ApplicationManager.getApplication()
       application.assertIsDispatchThread()
 
-      val task: Task.Backgroundable = object : Task.Backgroundable(null, "AEHD Installation", true) {
-        override fun run(indicator: ProgressIndicator) {
-          tracker.trackInstallingComponentsStarted()
-          try {
-            tracker.trackSdkComponentsToInstall(listOf(myAehdSdkComponentTreeNode.sdkComponentsMetricKind()))
+      val task: Task.Backgroundable =
+        object : Task.Backgroundable(null, "AEHD Installation", true) {
+          override fun run(indicator: ProgressIndicator) {
+            tracker.trackInstallingComponentsStarted()
+            try {
+              tracker.trackSdkComponentsToInstall(listOf(myAehdSdkComponentTreeNode.sdkComponentsMetricKind()))
 
-            val success = aehdWizardController.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
-            isSuccessfullyCompleted.set(success)
-          }
-          catch (e: Exception) {
-            LOG.warn("Exception caught while trying to configure AEHD", e)
-            showConsole()
-            print(e.message + "\n", ConsoleViewContentType.ERROR_OUTPUT)
-          }
-          finally {
-            if (this@SetupProgressStep.isCanceled()) {
-              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.CANCELED)
-            }
-            else if (isSuccessfullyCompleted.get()) {
-              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS)
-            }
-            else {
-              tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.ERROR)
+              val success = aehdWizardController.setupAehd(myAehdSdkComponentTreeNode, this@SetupProgressStep, progressIndicator)
+              isSuccessfullyCompleted.set(success)
+            } catch (e: Exception) {
+              LOG.warn("Exception caught while trying to configure AEHD", e)
+              showConsole()
+              print(e.message + "\n", ConsoleViewContentType.ERROR_OUTPUT)
+            } finally {
+              if (this@SetupProgressStep.isCanceled()) {
+                tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.CANCELED)
+              } else if (isSuccessfullyCompleted.get()) {
+                tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS)
+              } else {
+                tracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.ERROR)
+              }
             }
           }
         }
-      }
       ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, getProgressIndicator())
     }
   }
 
-  class BlankModel: WizardModel() {
-    override fun handleFinished() {
-    }
+  class BlankModel : WizardModel() {
+    override fun handleFinished() {}
   }
 }

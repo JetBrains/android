@@ -142,16 +142,7 @@ data class VitalsDetailsState(
 }
 
 private val DefaultVitalsDetailsState =
-  VitalsDetailsState(
-    null,
-    null,
-    emptySet(),
-    null,
-    ConnectionMode.ONLINE,
-    emptySet(),
-    emptySet(),
-    null,
-  )
+  VitalsDetailsState(null, null, emptySet(), null, ConnectionMode.ONLINE, emptySet(), emptySet(), null)
 
 class VitalsIssueDetailsPanel(
   controller: AppInsightsProjectLevelController,
@@ -185,8 +176,7 @@ class VitalsIssueDetailsPanel(
   private val affectedVersionsLabel = JLabel().apply { border = JBUI.Borders.empty(6, 0, 2, 0) }
 
   // Event id, console link
-  private val eventIdLabel =
-    CursorFollowingTooltipLabel(parentDisposable, StudioIcons.AppQualityInsights.ISSUE, "Event ID")
+  private val eventIdLabel = CursorFollowingTooltipLabel(parentDisposable, StudioIcons.AppQualityInsights.ISSUE, "Event ID")
   private val vitalsConsoleLink: HyperlinkLabel =
     HyperlinkLabel("View on Android Vitals").apply {
       isFocusable = true
@@ -196,30 +186,16 @@ class VitalsIssueDetailsPanel(
     }
 
   // Device, SDK level, Timestamp, VCS Commit
-  private val deviceLabel =
-    CursorFollowingTooltipLabel(
-      parentDisposable,
-      StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN,
-      "Affected Device",
-    )
+  private val deviceLabel = CursorFollowingTooltipLabel(parentDisposable, StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN, "Affected Device")
   private val affectedApiLevelsLabel =
-    CursorFollowingTooltipLabel(
-      parentDisposable,
-      StudioIcons.LayoutEditor.Toolbar.ANDROID_API,
-      "Affected API Level",
-    )
+    CursorFollowingTooltipLabel(parentDisposable, StudioIcons.LayoutEditor.Toolbar.ANDROID_API, "Affected API Level")
 
   private val timestampLabel =
-    CursorFollowingTooltipLabel(
-      parentDisposable,
-      StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK,
-      "Event Timestamp",
-    )
+    CursorFollowingTooltipLabel(parentDisposable, StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK, "Event Timestamp")
   private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
-  private val insightsPanel =
-    transparentPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false))
+  private val insightsPanel = transparentPanel(VerticalFlowLayout(VerticalFlowLayout.MIDDLE, true, false))
 
   private val mainPanel: JPanel =
     object : JPanel(CardLayout()) {
@@ -238,11 +214,7 @@ class VitalsIssueDetailsPanel(
     AppInsightsStatusText(mainPanel) { detailsState.value.selectedIssue == null }
       .apply {
         appendText(NOTHING_SELECTED_LABEL, EMPTY_STATE_TITLE_FORMAT)
-        appendSecondaryText(
-          "Select an issue to view the stack trace.",
-          EMPTY_STATE_TEXT_FORMAT,
-          null,
-        )
+        appendSecondaryText("Select an issue to view the stack trace.", EMPTY_STATE_TEXT_FORMAT, null)
       }
 
   private val scrollPane: JScrollPane
@@ -256,10 +228,7 @@ class VitalsIssueDetailsPanel(
         .map { it.selectedIssue }
         .distinctUntilChanged()
         .collect { issue ->
-          (mainPanel.layout as CardLayout).show(
-            mainPanel,
-            if (issue != null) MAIN_CARD else EMPTY_CARD,
-          )
+          (mainPanel.layout as CardLayout).show(mainPanel, if (issue != null) MAIN_CARD else EMPTY_CARD)
           if (issue == null) {
             header.clear()
           } else {
@@ -282,10 +251,7 @@ class VitalsIssueDetailsPanel(
                     state.connectionMode,
                     AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails.newBuilder()
                       .apply {
-                        source =
-                          AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
-                            .ConsoleOpenSource
-                            .DETAILS
+                        source = AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails.ConsoleOpenSource.DETAILS
                         crashType = issue.issueDetails.fatality.toCrashType()
                       }
                       .build(),
@@ -324,11 +290,7 @@ class VitalsIssueDetailsPanel(
       border = JBUI.Borders.empty(0, 8)
       add(createBodySection(), BorderLayout.NORTH)
       add(
-        DetailsTabbedPane(
-            "VitalsDetails",
-            listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.stackPanel)),
-            stackTraceConsole,
-          )
+        DetailsTabbedPane("VitalsDetails", listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.stackPanel)), stackTraceConsole)
           .component,
         BorderLayout.CENTER,
       )
@@ -377,13 +339,10 @@ class VitalsIssueDetailsPanel(
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
       try {
-        AndroidVersion.fromString(issue.sampleEvent.eventData.operatingSystemInfo.displayVersion)
-          .getFullReleaseName(includeApiLevel = true)
+        AndroidVersion.fromString(issue.sampleEvent.eventData.operatingSystemInfo.displayVersion).getFullReleaseName(includeApiLevel = true)
       } catch (_: IllegalArgumentException) {
         Logger.getInstance(this::class.java)
-          .warn(
-            "Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}"
-          )
+          .warn("Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}")
         "unknown"
       }
 
@@ -421,8 +380,7 @@ class VitalsIssueDetailsPanel(
 
   private fun verticalScaledStrut(height: Int = 5) = Box.createVerticalStrut(JBUI.scale(height))
 
-  private fun horizontalScaledStrut(width: Int = DETAIL_PANEL_HORIZONTAL_SPACING) =
-    Box.createHorizontalStrut(JBUI.scale(width))
+  private fun horizontalScaledStrut(width: Int = DETAIL_PANEL_HORIZONTAL_SPACING) = Box.createHorizontalStrut(JBUI.scale(width))
 }
 
 private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =

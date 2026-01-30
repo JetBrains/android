@@ -22,13 +22,11 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-internal class ClearLogcatAction :
-  DumbAwareAction(LogcatBundle.message("logcat.clear.log.action.text"), null, AllIcons.Actions.GC) {
+internal class ClearLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.clear.log.action.text"), null, AllIcons.Actions.GC) {
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
-    e.presentation.isEnabled =
-      logcatPresenter.getConnectedDevice() != null && !logcatPresenter.isLogcatEmpty()
+    e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null && !logcatPresenter.isLogcatEmpty()
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -109,8 +109,7 @@ class LayoutQualifierDropdownMenuTest {
   @Test
   fun checkActionTitle() {
     val file2 = projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "").virtualFile
-    val file3 =
-      projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "").virtualFile
+    val file3 = projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "").virtualFile
     waitForResourceRepositoryUpdates(projectRule.module)
 
     val presentation = Presentation()
@@ -135,9 +134,7 @@ class LayoutQualifierDropdownMenuTest {
     projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "")
     waitForResourceRepositoryUpdates(projectRule.module)
 
-    val landConfig =
-      ConfigurationManager.getOrCreateInstance(projectRule.module)
-        .getConfiguration(variantFile.virtualFile)
+    val landConfig = ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(variantFile.virtualFile)
     whenever(surface.configurations).thenReturn(ImmutableList.of(landConfig))
     val action = LayoutQualifierDropdownMenu(variantFile.virtualFile)
     action.updateActions(context)

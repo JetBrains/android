@@ -96,10 +96,7 @@ class ActionHandleTargetTest : NavTestCase() {
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "fragment3")
 
-      val action =
-        model.treeReader.find("fragment1")!!.children.first {
-          it.isAction && it.id == "action_fragment1_to_fragment3"
-        }
+      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction && it.id == "action_fragment1_to_fragment3" }
       assertEquals(model.treeReader.find("fragment3")!!, action.actionDestination)
       assertSameElements(surface.selectionModel.selection, action)
 
@@ -236,12 +233,7 @@ class ActionHandleTargetTest : NavTestCase() {
     dragAndRelease(p1.x, p1.y, p2.x, p2.y)
   }
 
-  private fun dragAndRelease(
-    @SwingCoordinate x1: Int,
-    @SwingCoordinate y1: Int,
-    @SwingCoordinate x2: Int,
-    @SwingCoordinate y2: Int,
-  ) {
+  private fun dragAndRelease(@SwingCoordinate x1: Int, @SwingCoordinate y1: Int, @SwingCoordinate x2: Int, @SwingCoordinate y2: Int) {
     LayoutTestUtilities.pressMouse(myGuiInputHandler, MouseEvent.BUTTON1, x1, y1, 0)
     LayoutTestUtilities.dragMouse(myGuiInputHandler, x1, y1, x2, y2, 0)
     LayoutTestUtilities.releaseMouse(myGuiInputHandler, MouseEvent.BUTTON1, x2, y2, 0)

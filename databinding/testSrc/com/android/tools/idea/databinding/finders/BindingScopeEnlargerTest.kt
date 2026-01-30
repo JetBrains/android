@@ -64,8 +64,7 @@ class BindingScopeEnlargerTest {
   /**
    * Expose the underlying project rule fixture directly.
    *
-   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
-   * [AndroidProjectRule] is initialized to use the disk.
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our [AndroidProjectRule] is initialized to use the disk.
    */
   private val fixture
     get() = projectRule.fixture
@@ -86,7 +85,7 @@ class BindingScopeEnlargerTest {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """
+      """
         .trimIndent(),
     )
 
@@ -111,12 +110,7 @@ class BindingScopeEnlargerTest {
 
     assertThat(PsiSearchScopeUtil.isInScope(scope, allLightBindingClasses.single()))
     assertThat(PsiSearchScopeUtil.isInScope(scope, requireNotNull(moduleCache.lightBrClass)))
-    assertThat(
-      PsiSearchScopeUtil.isInScope(
-        scope,
-        requireNotNull(moduleCache.lightDataBindingComponentClass),
-      )
-    )
+    assertThat(PsiSearchScopeUtil.isInScope(scope, requireNotNull(moduleCache.lightDataBindingComponentClass)))
   }
 }
 
@@ -143,10 +137,7 @@ class BindingScopeEnlargerMultiModuleTest {
         AndroidModuleModelBuilder(
           ":lib",
           "debug",
-          AndroidProjectBuilder(
-            projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-            namespace = { "com.example.lib" },
-          ),
+          AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, namespace = { "com.example.lib" }),
         ),
       )
       .initAndroid(true)
@@ -155,12 +146,8 @@ class BindingScopeEnlargerMultiModuleTest {
 
   private val project by lazy { projectRule.project }
 
-  private val appModule by lazy {
-    requireNotNull(project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN))
-  }
-  private val libModule by lazy {
-    requireNotNull(project.gradleModule(":lib", IdeModuleWellKnownSourceSet.MAIN))
-  }
+  private val appModule by lazy { requireNotNull(project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN)) }
+  private val libModule by lazy { requireNotNull(project.gradleModule(":lib", IdeModuleWellKnownSourceSet.MAIN)) }
 
   private val appFacet by lazy { requireNotNull(appModule.androidFacet) }
   private val libFacet by lazy { requireNotNull(libModule.androidFacet) }
@@ -185,37 +172,23 @@ class BindingScopeEnlargerMultiModuleTest {
 
     val appLightBindingClass = appLightBindingClasses.single()
     val libLightBindingClass = libLightBindingClasses.single()
-    assertThat(appLightBindingClass.qualifiedName)
-      .isEqualTo("com.example.app.databinding.ActivityAppBinding")
-    assertThat(libLightBindingClass.qualifiedName)
-      .isEqualTo("com.example.lib.databinding.ActivityLibBinding")
+    assertThat(appLightBindingClass.qualifiedName).isEqualTo("com.example.app.databinding.ActivityAppBinding")
+    assertThat(libLightBindingClass.qualifiedName).isEqualTo("com.example.lib.databinding.ActivityLibBinding")
 
     // The app module should have both binding classes in scope, whereas the lib module should only
     // have its own class.
-    val appActivityClass =
-      fixture
-        .addFileToProject("app/src/main/src/AppActivity.java", "public class AppActivity {}")
-        .getFirstJavaClass()
-    val libActivityClass =
-      fixture
-        .addFileToProject("lib/src/main/src/LibActivity.java", "public class LibActivity {}")
-        .getFirstJavaClass()
+    val appActivityClass = fixture.addFileToProject("app/src/main/src/AppActivity.java", "public class AppActivity {}").getFirstJavaClass()
+    val libActivityClass = fixture.addFileToProject("lib/src/main/src/LibActivity.java", "public class LibActivity {}").getFirstJavaClass()
 
     runReadAction {
-      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appLightBindingClass))
-        .isTrue()
-      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libLightBindingClass))
-        .isTrue()
-      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appLightBindingClass))
-        .isFalse()
-      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libLightBindingClass))
-        .isTrue()
+      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, appLightBindingClass)).isTrue()
+      assertThat(PsiSearchScopeUtil.isInScope(appActivityClass.resolveScope, libLightBindingClass)).isTrue()
+      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, appLightBindingClass)).isFalse()
+      assertThat(PsiSearchScopeUtil.isInScope(libActivityClass.resolveScope, libLightBindingClass)).isTrue()
     }
   }
 
-  private fun AndroidFacet.getLightBindingClasses() = runReadAction {
-    LayoutBindingModuleCache.getInstance(this).getLightBindingClasses()
-  }
+  private fun AndroidFacet.getLightBindingClasses() = runReadAction { LayoutBindingModuleCache.getInstance(this).getLightBindingClasses() }
 
   private fun PsiFile.getFirstJavaClass() = runReadAction { (this as PsiJavaFile).classes.first() }
 }

@@ -42,8 +42,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 
 /** [VisualLintIssueProvider] to be used when dealing with Compose. */
-class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
-  VisualLintIssueProvider(parentDisposable) {
+class ComposeVisualLintIssueProvider(parentDisposable: Disposable) : VisualLintIssueProvider(parentDisposable) {
 
   fun onUiCheckStart(instanceId: String) {
     uiCheckInstanceId = instanceId
@@ -63,16 +62,11 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
       val suppressedTypes = runReadAction {
         previewElement.previewElementDefinition?.let { pointer ->
           val annotationEntry = (pointer.element as? KtAnnotationEntry) ?: return@let emptyList()
-          val composableFunction =
-            annotationEntry.parentOfType<KtFunction>() ?: return@let emptyList()
-          val suppress =
-            composableFunction.annotationEntries.find { it.fqNameMatches("kotlin.Suppress") }
-              ?: return@let emptyList()
+          val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@let emptyList()
+          val suppress = composableFunction.annotationEntries.find { it.fqNameMatches("kotlin.Suppress") } ?: return@let emptyList()
           suppress.valueArguments
             .mapNotNull { it.getArgumentExpression()?.text }
-            .mapNotNull {
-              VisualLintErrorType.getTypeByIgnoredAttribute(it.substring(1, it.length - 1))
-            }
+            .mapNotNull { VisualLintErrorType.getTypeByIgnoredAttribute(it.substring(1, it.length - 1)) }
         } ?: emptyList()
       }
       issue.type in suppressedTypes
@@ -94,9 +88,8 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 }
 
 /**
- * Task used to suppress a Visual Lint error happening in Compose. It adds a [Suppress] annotation
- * to the Composable that created the [previewElement], adding the type of error to suppress as an
- * argument to the annotation.
+ * Task used to suppress a Visual Lint error happening in Compose. It adds a [Suppress] annotation to the Composable that created the
+ * [previewElement], adding the type of error to suppress as an argument to the annotation.
  */
 class ComposeVisualLintSuppressTask(
   private val facet: AndroidFacet,
@@ -106,20 +99,15 @@ class ComposeVisualLintSuppressTask(
 ) : VisualLintSuppressTask {
 
   override fun run() {
-    VisualLintUsageTracker.getInstance()
-      .trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, facet)
+    VisualLintUsageTracker.getInstance().trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, facet)
     val previewElementDefinitionPtr = previewElement.previewElementDefinition ?: return
     var composableFunctionPtr: SmartPsiElementPointer<KtFunction>? = null
     var suppressPtr: SmartPsiElementPointer<KtAnnotationEntry>? = null
     ApplicationManager.getApplication().runReadAction {
-      val annotationEntry =
-        (previewElementDefinitionPtr.element as? KtAnnotationEntry) ?: return@runReadAction
+      val annotationEntry = (previewElementDefinitionPtr.element as? KtAnnotationEntry) ?: return@runReadAction
       val composableFunction = annotationEntry.parentOfType<KtFunction>() ?: return@runReadAction
       composableFunctionPtr = composableFunction.createSmartPointer()
-      suppressPtr =
-        composableFunction.annotationEntries
-          .find { it.fqNameMatches("kotlin.Suppress") }
-          ?.createSmartPointer()
+      suppressPtr = composableFunction.annotationEntries.find { it.fqNameMatches("kotlin.Suppress") }?.createSmartPointer()
     }
 
     val composableFunction = composableFunctionPtr?.element ?: return
@@ -132,16 +120,10 @@ class ComposeVisualLintSuppressTask(
         if (suppressPtr != null) {
           suppressPtr
             ?.element
-            ?.addNewValueArgument(
-              KtPsiFactory(project).createArgument("\"${issueType.ignoredAttributeValue}\""),
-              KtPsiFactory(project),
-            )
+            ?.addNewValueArgument(KtPsiFactory(project).createArgument("\"${issueType.ignoredAttributeValue}\""), KtPsiFactory(project))
         } else {
-          val suppress =
-            KtPsiFactory(project)
-              .createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
-          ShortenReferencesFacility.getInstance()
-            .shorten(composableFunction.addAnnotationEntry(suppress))
+          val suppress = KtPsiFactory(project).createAnnotationEntry("@kotlin.Suppress(\"${issueType.ignoredAttributeValue}\")")
+          ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(suppress))
         }
       },
       previewElement.containingFile,
@@ -149,7 +131,6 @@ class ComposeVisualLintSuppressTask(
   }
 
   override fun isValid(): Boolean {
-    return previewElement.previewElementDefinition?.let { runReadAction { it.element?.isValid } }
-      ?: false
+    return previewElement.previewElementDefinition?.let { runReadAction { it.element?.isValid } } ?: false
   }
 }

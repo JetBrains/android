@@ -36,8 +36,7 @@ import kotlin.math.min
  */
 internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx) : ToggleAction(), DumbAware {
   init {
-    @Suppress("DialogTitleCapitalization")
-    val message = LogcatBundle.message("logcat.scroll.to.end.action.text")
+    @Suppress("DialogTitleCapitalization") val message = LogcatBundle.message("logcat.scroll.to.end.action.text")
     templatePresentation.description = message
     templatePresentation.text = message
     templatePresentation.icon = AllIcons.RunConfigurations.Scroll_down
@@ -54,8 +53,7 @@ internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx) :
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
       EditorUtil.scrollToTheEnd(editor)
-    }
-    else {
+    } else {
       val lastLine = max(0, editor.document.lineCount - 1)
       val currentPosition = editor.caretModel.logicalPosition
       val position = LogicalPosition(max(0, min(currentPosition.line, (lastLine - 1))), currentPosition.column)

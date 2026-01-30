@@ -21,7 +21,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.components.JBCheckBox
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-class AndroidStudioGradleSettingsControlProviderTest: LightPlatformTestCase() {
+class AndroidStudioGradleSettingsControlProviderTest : LightPlatformTestCase() {
 
   fun testStoreExternallyCheckBoxIsNotDisplayed() {
     val gradleSettings = GradleSettings(project)
@@ -29,7 +29,8 @@ class AndroidStudioGradleSettingsControlProviderTest: LightPlatformTestCase() {
 
     val container = PaintAwarePanel()
     controlBuilder.fillUi(container, 0)
-    val generateImlFiles = container.findAllDescendants(JBCheckBox::class.java) { it.text == "Generate *.iml files for modules imported from Gradle" }
+    val generateImlFiles =
+      container.findAllDescendants(JBCheckBox::class.java) { it.text == "Generate *.iml files for modules imported from Gradle" }
     assertEmpty(generateImlFiles.toList())
   }
 }

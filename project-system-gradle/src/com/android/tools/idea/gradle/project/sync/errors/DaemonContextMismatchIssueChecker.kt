@@ -22,15 +22,14 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import java.util.function.Consumer
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
-import java.util.function.Consumer
 
 /**
- * This checker only produces issue for only of possible DaemonContextMismatch errors, the one related
- * to jdk mismatch. Other cases (see [org.gradle.launcher.daemon.context.DaemonCompatibilitySpec.whyUnsatisfied])
- * remain uncovered by this issue checker.
+ * This checker only produces issue for only of possible DaemonContextMismatch errors, the one related to jdk mismatch. Other cases (see
+ * [org.gradle.launcher.daemon.context.DaemonCompatibilitySpec.whyUnsatisfied]) remain uncovered by this issue checker.
  */
 class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   private val JAVA_HOME = "javaHome="
@@ -48,27 +47,32 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
 
       // Log metrics.
       SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
-      return BuildIssueComposer(messageLines[2]).apply {
-        addDescriptionOnNewLine(expectedAndActual)
-        startNewParagraph()
-        addDescriptionOnNewLine("Please configure the JDK to match the expected one.")
-        startNewParagraph()
-        addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
-      }.composeBuildIssue()
+      return BuildIssueComposer(messageLines[2])
+        .apply {
+          addDescriptionOnNewLine(expectedAndActual)
+          startNewParagraph()
+          addDescriptionOnNewLine("Please configure the JDK to match the expected one.")
+          startNewParagraph()
+          addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
+        }
+        .composeBuildIssue()
     }
 
     return null
   }
 
-  override fun consumeBuildOutputFailureMessage(message: String,
-                                                failureCause: String,
-                                                stacktrace: String?,
-                                                location: FilePosition?,
-                                                parentEventId: Any,
-                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun consumeBuildOutputFailureMessage(
+    message: String,
+    failureCause: String,
+    stacktrace: String?,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>,
+  ): Boolean {
     val failureLines = failureCause.lines()
-    return failureLines[0].contains(ERROR_DAEMON) && failureLines.size > 3
-           && (failureLines[2] == JVM_IS_INCOMPATIBLE || failureLines[2] == JAVA_HOME_DIFFERENT)
+    return failureLines[0].contains(ERROR_DAEMON) &&
+      failureLines.size > 3 &&
+      (failureLines[2] == JVM_IS_INCOMPATIBLE || failureLines[2] == JAVA_HOME_DIFFERENT)
   }
 
   private fun parseExpectedAndActualJavaHome(message: String): String? {

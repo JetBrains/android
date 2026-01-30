@@ -28,8 +28,8 @@ import javax.swing.JProgressBar
 /**
  * A dialog that displays a progress bar when file-by-file analysis is being generated
  *
- * @param onCancel A cancel [Runnable] to execute if the `Cancel` is clicked. We use a Runnable
- *   rather than a Kotlin `() -> Unit` lambda because we need to be callable from Java.
+ * @param onCancel A cancel [Runnable] to execute if the `Cancel` is clicked. We use a Runnable rather than a Kotlin `() -> Unit` lambda
+ *   because we need to be callable from Java.
  */
 internal class FileByFileProgressDialog {
   private val status = JLabel("Initializing...")

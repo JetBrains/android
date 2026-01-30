@@ -32,11 +32,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.project.Project
 
-class NewLibraryModuleModel(
-  project: Project,
-  moduleParent: String,
-  projectSyncInvoker: ProjectSyncInvoker,
-) :
+class NewLibraryModuleModel(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker) :
   ModuleModel(
     name = "lib",
     commandName = "New Library Module",
@@ -73,11 +69,7 @@ class NewLibraryModuleModel(
     object : ModuleTemplateRenderer() {
       override val recipe: Recipe
         get() = { td: TemplateData ->
-          generatePureLibrary(
-            moduleData = td as ModuleTemplateData,
-            className = className.get(),
-            useGradleKts = useGradleKts.get(),
-          )
+          generatePureLibrary(moduleData = td as ModuleTemplateData, className = className.get(), useGradleKts = useGradleKts.get())
         }
     }
 }

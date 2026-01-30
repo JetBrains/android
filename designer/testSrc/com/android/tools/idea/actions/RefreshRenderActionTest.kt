@@ -46,11 +46,7 @@ class RefreshRenderActionTest {
   fun `action enabled by default for non NlDesignSurface`() {
     val renderAction = RefreshRenderAction.getInstance()
     val surface = mock<DesignSurface<*>>()
-    val event =
-      TestActionEvent.createTestEvent(
-        renderAction,
-        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
-      )
+    val event = TestActionEvent.createTestEvent(renderAction, SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface))
     renderAction.update(event)
 
     assertTrue(event.presentation.isEnabled)
@@ -65,11 +61,9 @@ class RefreshRenderActionTest {
 
     // Replace the IdeFocusManager to make the action think that
     // the current focus is a text field.
-    val customFocusManager =
-      mock(IdeFocusManager::class.java, delegatesTo<Any?>(IdeFocusManager.getGlobalInstance()))
+    val customFocusManager = mock(IdeFocusManager::class.java, delegatesTo<Any?>(IdeFocusManager.getGlobalInstance()))
     doReturn(textField).whenever(customFocusManager).focusOwner
-    ApplicationManager.getApplication()
-      .replaceService(IdeFocusManager::class.java, customFocusManager, projectRule.disposable)
+    ApplicationManager.getApplication().replaceService(IdeFocusManager::class.java, customFocusManager, projectRule.disposable)
     val event =
       createEvent(
         SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
@@ -88,11 +82,7 @@ class RefreshRenderActionTest {
   fun `action is not supported shows disabled`() {
     val renderAction = RefreshRenderAction.getInstance()
     val surface = mock<NlDesignSurface>()
-    val event =
-      TestActionEvent.createTestEvent(
-        renderAction,
-        SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface),
-      )
+    val event = TestActionEvent.createTestEvent(renderAction, SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface))
     renderAction.update(event)
 
     assertFalse(event.presentation.isEnabled)

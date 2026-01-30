@@ -55,59 +55,31 @@ internal const val NUMBER_OF_SAMPLES = 10
 val uiCheckBenchmark =
   Benchmark.Builder("UI Check Benchmark")
     .setProject("Design tools")
-    .setDescription(
-      "Benchmark for measuring performance of UI Check, using $NUMBER_OF_SAMPLES samples."
-    )
+    .setDescription("Benchmark for measuring performance of UI Check, using $NUMBER_OF_SAMPLES samples.")
     .build()
 
-data class ExtendedPreviewConfiguration(
-  val configuration: PreviewConfiguration,
-  val showDecorations: Boolean,
-)
+data class ExtendedPreviewConfiguration(val configuration: PreviewConfiguration, val showDecorations: Boolean)
 
 internal val UiCheckConfigurations =
   listOf(
     // Reference Phone
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(device = REFERENCE_PHONE_SPEC),
-      true,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_PHONE_SPEC), true),
     // Reference Phone Landscape
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(
-        device = "spec:width=411dp,height=891dp,orientation=landscape"
-      ),
-      true,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=411dp,height=891dp,orientation=landscape"), true),
     // Reference Foldable
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(device = REFERENCE_FOLDABLE_SPEC),
-      true,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_FOLDABLE_SPEC), true),
     // Reference Tablet
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(device = REFERENCE_TABLET_SPEC),
-      true,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_TABLET_SPEC), true),
     // Reference Desktop
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(device = REFERENCE_DESKTOP_SPEC),
-      true,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = REFERENCE_DESKTOP_SPEC), true),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 0.85f), false),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1f), false),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1.15f), false),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1.3f), false),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1.8f), false),
     ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 2f), false),
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(uiMode = Configuration.UI_MODE_NIGHT_NO),
-      false,
-    ),
-    ExtendedPreviewConfiguration(
-      PreviewConfiguration.cleanAndGet(uiMode = Configuration.UI_MODE_NIGHT_YES),
-      false,
-    ),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(uiMode = Configuration.UI_MODE_NIGHT_NO), false),
+    ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(uiMode = Configuration.UI_MODE_NIGHT_YES), false),
   )
 
 class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
@@ -131,10 +103,8 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
   @Test
   fun testComposeVisualLintRun() {
     val facet = projectRule.mainAndroidFacet(":app")
-    val uiCheckPreviewFile =
-      facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
-    val visualLintIssueProvider =
-      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
       val renderResult =
@@ -164,22 +134,13 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
       measures =
         listOf(
           ElapsedTimeMeasurement(Metric("compose_linting_time")),
-          HeapSnapshotMemoryUseMeasurement(
-            "android:designTools",
-            null,
-            Metric("compose_linting_memory_use"),
-          ),
+          HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("compose_linting_memory_use")),
           LayoutlibNativeMemoryMeasurement(Metric("compose_linting_layoutlib_native_memory_use")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(
-          projectRule.fixture.testRootDisposable,
-          visualLintIssueProvider,
-          emptyList(),
-          resultToModelMap,
-        )
+        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, emptyList(), resultToModelMap)
     }
   }
 }

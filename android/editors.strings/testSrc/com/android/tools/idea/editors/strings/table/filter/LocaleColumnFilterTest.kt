@@ -34,8 +34,7 @@ class LocaleColumnFilterTest {
   @Test
   fun getDescription() {
     assertThat(localeColumnFilterAr.getDescription()).isEqualTo("Arabic (ar)")
-    assertThat(localeColumnFilterEs.getDescription())
-        .isEqualTo("Spanish (es) in United States (US)")
+    assertThat(localeColumnFilterEs.getDescription()).isEqualTo("Spanish (es) in United States (US)")
   }
 
   @Test

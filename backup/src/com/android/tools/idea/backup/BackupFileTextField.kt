@@ -37,8 +37,7 @@ import kotlin.io.path.pathString
  * Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton]
  */
 class BackupFileTextField private constructor(project: Project) :
-  ComponentWithBrowseButton<TextFieldWithHistory>(TextFieldWithProjectStoredHistory(project), null),
-  TextAccessor {
+  ComponentWithBrowseButton<TextFieldWithHistory>(TextFieldWithProjectStoredHistory(project), null), TextAccessor {
 
   val textComponent: JTextComponent = childComponent.textEditor
 

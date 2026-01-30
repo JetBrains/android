@@ -19,8 +19,8 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 /**
- * This interface provides extension point to customize the list of new Modules that can be created.
- * Each provider can return a list of Modules it knows how how to create, and a UI Step to implement its creation.
+ * This interface provides extension point to customize the list of new Modules that can be created. Each provider can return a list of
+ * Modules it knows how how to create, and a UI Step to implement its creation.
  */
 interface ModuleDescriptionProvider {
   fun getDescriptions(project: Project): Collection<ModuleGalleryEntry>

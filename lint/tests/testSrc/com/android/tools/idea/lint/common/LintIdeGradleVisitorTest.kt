@@ -321,13 +321,11 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     val configuration = Mockito.mock(Configuration::class.java)
     whenever(project.getConfiguration(any())).thenReturn(configuration)
 
-    val request =
-      LintIdeRequest(client, myFixture.project, listOf(file.virtualFile), emptyList(), true)
+    val request = LintIdeRequest(client, myFixture.project, listOf(file.virtualFile), emptyList(), true)
     val driver = Mockito.mock(LintDriver::class.java)
     whenever(driver.client).thenReturn(client)
     whenever(driver.request).thenReturn(request)
-    val context =
-      GradleContext(visitor, driver, project, null, file.virtualFile.toNioPath().toFile())
+    val context = GradleContext(visitor, driver, project, null, file.virtualFile.toNioPath().toFile())
     visitor.visitBuildScript(context, listOf(detector))
 
     // The order may vary slightly due to differences in the way we're handling
@@ -374,13 +372,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     valueCookie: Any,
     statementCookie: Any,
   ) {
-    log(
-      "checkDslPropertyAssignment",
-      "property" to property,
-      "value" to value,
-      "parent" to parent,
-      "parentParent" to parentParent,
-    )
+    log("checkDslPropertyAssignment", "property" to property, "value" to value, "parent" to parent, "parentParent" to parentParent)
   }
 
   override fun checkMethodCall(

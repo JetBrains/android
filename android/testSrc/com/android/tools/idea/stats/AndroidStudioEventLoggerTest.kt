@@ -36,8 +36,7 @@ private val EVENT_LOG_GROUP = EventLogGroup("documentation", 1)
 
 @RunWith(JUnit4::class)
 class AndroidStudioEventLoggerTest {
-  @get:Rule
-  val usageTrackerRule = UsageTrackerRule()
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val testScheduler = TestCoroutineScheduler()
   private val testDispatcher = StandardTestDispatcher(testScheduler)

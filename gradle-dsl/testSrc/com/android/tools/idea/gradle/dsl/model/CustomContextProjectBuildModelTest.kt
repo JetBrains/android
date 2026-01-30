@@ -26,12 +26,17 @@ import org.junit.Test
 class CustomContextProjectBuildModelTest : GradleFileModelTestCase() {
 
   override fun createContext(): BuildModelContext {
-    return BuildModelContext.create(project, object : ResolvedConfigurationFileLocationProvider {
-      override fun getGradleBuildFile(module: Module): VirtualFile? = null
-      override fun getGradleProjectRootPath(module: Module): @SystemIndependent String? = null
-      override fun getGradleProjectRootPath(project: Project): @SystemIndependent String =
-        throw RuntimeException("Method should not be called")
-    })
+    return BuildModelContext.create(
+      project,
+      object : ResolvedConfigurationFileLocationProvider {
+        override fun getGradleBuildFile(module: Module): VirtualFile? = null
+
+        override fun getGradleProjectRootPath(module: Module): @SystemIndependent String? = null
+
+        override fun getGradleProjectRootPath(project: Project): @SystemIndependent String =
+          throw RuntimeException("Method should not be called")
+      },
+    )
   }
 
   // Regression for b/328089063
@@ -43,5 +48,4 @@ class CustomContextProjectBuildModelTest : GradleFileModelTestCase() {
     val vcModel = pbm.versionCatalogsModel
     assertContainsElements(vcModel.catalogNames(), "libs")
   }
-
 }

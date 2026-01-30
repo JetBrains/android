@@ -18,7 +18,5 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.device.actions.DeviceBackButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorBackButtonAction
 
-/**
- * Simulates pressing the Back button on an Android device.
- */
+/** Simulates pressing the Back button on an Android device. */
 internal class StreamingBackButtonAction : StreamingPushButtonAction(EmulatorBackButtonAction(), DeviceBackButtonAction())

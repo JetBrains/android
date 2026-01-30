@@ -30,7 +30,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
     ALL_REFERENCES,
     ONLY_STRONG_REFERENCES,
     STRONG_EXCLUDING_INNER_CLASS,
-    NO_REFERENCES
+    NO_REFERENCES,
   }
 
   data class RootObject(val id: Long, val reason: RootReason)
@@ -46,15 +46,19 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
   abstract fun getClass(): ClassDefinition
 
   abstract fun getReferencesCopy(): LongArrayList
+
   abstract fun copyReferencesTo(outReferences: LongArrayList)
 
   abstract fun getClassForObjectId(id: Long): ClassDefinition
+
   abstract fun getRootReasonForObjectId(id: Long): RootReason?
 
   abstract fun getObjectSize(): Int
 
   abstract fun getSoftReferenceId(): Long
+
   abstract fun getWeakReferenceId(): Long
+
   abstract fun getSoftWeakReferenceIndex(): Int
 
   fun goToInstanceField(className: String?, fieldName: String) {
@@ -82,26 +86,33 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
   private fun getStaticFieldObjectId(className: String, fieldName: String): Long {
     val staticField =
       classStore[className].staticFields.firstOrNull { it.name == fieldName }
-      ?: throw NavigationException("Missing static field $fieldName in class $className")
+        ?: throw NavigationException("Missing static field $fieldName in class $className")
     return staticField.objectId
   }
 
   companion object {
-    fun createOnAuxiliaryFiles(parser: HProfEventBasedParser,
-                               auxOffsetsChannel: FileChannel,
-                               auxChannel: FileChannel,
-                               hprofMetadata: HProfMetadata,
-                               instanceCount: Long): ObjectNavigator {
+    fun createOnAuxiliaryFiles(
+      parser: HProfEventBasedParser,
+      auxOffsetsChannel: FileChannel,
+      auxChannel: FileChannel,
+      hprofMetadata: HProfMetadata,
+      instanceCount: Long,
+    ): ObjectNavigator {
       val createAuxiliaryFilesVisitor = CreateAuxiliaryFilesVisitor(auxOffsetsChannel, auxChannel, hprofMetadata.classStore, parser)
 
       parser.accept(createAuxiliaryFilesVisitor, "auxFiles")
 
       val auxBuffer = auxChannel.map(FileChannel.MapMode.READ_ONLY, 0, auxChannel.size())
-      val auxOffsetsBuffer =
-        auxOffsetsChannel.map(FileChannel.MapMode.READ_ONLY, 0, auxOffsetsChannel.size())
+      val auxOffsetsBuffer = auxOffsetsChannel.map(FileChannel.MapMode.READ_ONLY, 0, auxOffsetsChannel.size())
 
-      return ObjectNavigatorOnAuxFiles(hprofMetadata.roots, auxOffsetsBuffer, auxBuffer, hprofMetadata.classStore, instanceCount,
-                                       parser.idSize)
+      return ObjectNavigatorOnAuxFiles(
+        hprofMetadata.roots,
+        auxOffsetsBuffer,
+        auxBuffer,
+        hprofMetadata.classStore,
+        instanceCount,
+        parser.idSize,
+      )
     }
   }
 
@@ -110,4 +121,3 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
   // Some objects may have additional data (varies by type). Only available when referenceResolution != NO_REFERENCES.
   abstract fun getExtraData(): Int
 }
-

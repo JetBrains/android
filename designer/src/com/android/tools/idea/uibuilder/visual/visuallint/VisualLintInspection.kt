@@ -30,8 +30,7 @@ abstract class VisualLintInspection(val type: VisualLintErrorType) : GlobalInspe
 
   override fun getShortName() = type.shortName
 
-  override fun getOptionsPane(): OptPane =
-    pane(checkbox(this::runInBackground.name, "Run in background"))
+  override fun getOptionsPane(): OptPane = pane(checkbox(this::runInBackground.name, "Run in background"))
 
   override fun getOptionController(): OptionController {
     return super.getOptionController().onValueSet(this::runInBackground.name) {

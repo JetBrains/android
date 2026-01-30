@@ -64,12 +64,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         }
       """
         .trimIndent()
-    val lintFix =
-      LintFix.create()
-        .name("Create ${newFile.name}")
-        .newFile(newFile, source)
-        .select("// ()your code here")
-        .build()
+    val lintFix = LintFix.create().name("Create ${newFile.name}").newFile(newFile, source).select("// ()your code here").build()
 
     val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
     myFixture.launchAction(fix.rawIntention())
@@ -96,12 +91,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
       """
         .trimIndent()
     val lintFix =
-      LintFix.create()
-        .name("Create ${newFile.name}")
-        .newFile(newFile, source)
-        .reformat(true)
-        .select("// (your code here)")
-        .build()
+      LintFix.create().name("Create ${newFile.name}").newFile(newFile, source).reformat(true).select("// (your code here)").build()
 
     val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
     myFixture.launchAction(fix.rawIntention())
@@ -135,10 +125,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
 
     val virtualBinFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(newFile)
     val contents = virtualBinFile?.contentsToByteArray()
-    assertEquals(
-      Base64.getEncoder().encodeToString(binary),
-      Base64.getEncoder().encodeToString(contents),
-    )
+    assertEquals(Base64.getEncoder().encodeToString(binary), Base64.getEncoder().encodeToString(contents))
   }
 
   fun testDeletion() {
@@ -148,19 +135,14 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
 
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(
-        ThrowableRunnable {
-          folder.virtualFile.createChildData(this, "delete.txt").apply {
-            setBinaryContent("contents".toByteArray())
-          }
-        }
+        ThrowableRunnable { folder.virtualFile.createChildData(this, "delete.txt").apply { setBinaryContent("contents".toByteArray()) } }
       )
 
     val deleteVirtualFile = folder.findFile("delete.txt")?.virtualFile!!
     val deleteFile = VfsUtilCore.virtualToIoFile(deleteVirtualFile)
     assertTrue(deleteFile.isFile)
 
-    val lintFix =
-      LintFix.create().name("Delete ${deleteVirtualFile.name}").deleteFile(deleteFile).build()
+    val lintFix = LintFix.create().name("Delete ${deleteVirtualFile.name}").deleteFile(deleteFile).build()
 
     val fix = lintFix.toIdeFix(currentFile) as ModCommandLintQuickFix
     myFixture.launchAction(fix.rawIntention())

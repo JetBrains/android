@@ -70,33 +70,18 @@ class StudioDeprecationCheckerTest {
   private val deprecatedDataFlow = MutableStateFlow(DevServicesDeprecationData.EMPTY)
   private val service =
     object : DevServicesDeprecationDataProvider {
-      override fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String) =
-        deprecatedDataFlow.value
+      override fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String) = deprecatedDataFlow.value
 
-      override fun registerServiceForChange(
-        serviceName: String,
-        userFriendlyServiceName: String,
-        disposable: Disposable,
-      ) = deprecatedDataFlow.asStateFlow()
+      override fun registerServiceForChange(serviceName: String, userFriendlyServiceName: String, disposable: Disposable) =
+        deprecatedDataFlow.asStateFlow()
     }
 
   @Before
   fun setup() {
-    application.replaceService(
-      DevServicesDeprecationDataProvider::class.java,
-      service,
-      disposableRule.disposable,
-    )
+    application.replaceService(DevServicesDeprecationDataProvider::class.java, service, disposableRule.disposable)
     PropertiesComponent.getInstance().unsetValue(PROP_KEY)
     deprecationData =
-      DevServicesDeprecationData(
-        "header",
-        "description",
-        "moreInfoUrl",
-        true,
-        DevServicesDeprecationStatus.DEPRECATED,
-        null,
-      )
+      DevServicesDeprecationData("header", "description", "moreInfoUrl", true, DevServicesDeprecationStatus.DEPRECATED, null)
     scope = disposableRule.disposable.createCoroutineScope()
     checker = StudioDeprecationChecker(scope)
   }
@@ -110,18 +95,14 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testNoNotificationWhenSupported() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED) }
 
     assertThat(notifications).isEmpty()
   }
 
   @Test
   fun testNoNotificationWhenDateNotAvailableInDeprecated() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED) }
     assertThat(notifications).isEmpty()
   }
 
@@ -151,19 +132,13 @@ class StudioDeprecationCheckerTest {
 
     assertThat(notification.icon).isEqualTo(AllIcons.General.Warning)
     assertThat(notification.type).isEqualTo(NotificationType.WARNING)
-    assertThat(notification.title)
-      .isEqualTo(
-        "Cloud services won't be accessible after ${deprecatedDataFlow.value.formattedDate()}"
-      )
-    assertThat(notification.content)
-      .isEqualTo("Please update Android Studio to ensure uninterrupted access to cloud services.")
+    assertThat(notification.title).isEqualTo("Cloud services won't be accessible after ${deprecatedDataFlow.value.formattedDate()}")
+    assertThat(notification.content).isEqualTo("Please update Android Studio to ensure uninterrupted access to cloud services.")
   }
 
   @Test
   fun testNotificationWhenDateLessThanThresholdWhenUnsupported() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()
@@ -171,8 +146,7 @@ class StudioDeprecationCheckerTest {
     assertThat(notification.icon).isEqualTo(AllIcons.General.Error)
     assertThat(notification.type).isEqualTo(NotificationType.ERROR)
     assertThat(notification.title).isEqualTo("Unsupported Android Studio version")
-    assertThat(notification.content)
-      .isEqualTo("This version of Android Studio is no longer compatible with cloud services.")
+    assertThat(notification.content).isEqualTo("This version of Android Studio is no longer compatible with cloud services.")
   }
 
   @Test
@@ -205,15 +179,13 @@ class StudioDeprecationCheckerTest {
     // Update
     actions[0].actionPerformed(TestActionEvent.createTestEvent(), notification)
     delayUntilCondition(200) { PropertiesComponent.getInstance().getValue(PROP_KEY, "") != "" }
-    assertThat(PropertiesComponent.getInstance().getValue(PROP_KEY, ""))
-      .isEqualTo(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+    assertThat(PropertiesComponent.getInstance().getValue(PROP_KEY, "")).isEqualTo(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
   }
 
   @Test
   fun testNoNotificationWhenPropDateMatchesDeprecationDate() = runTest {
     val now = LocalDate.now()
-    PropertiesComponent.getInstance()
-      .setValue(PROP_KEY, now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+    PropertiesComponent.getInstance().setValue(PROP_KEY, now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
     deprecatedDataFlow.update { deprecationData.copy(date = now) }
 
     assertThat(notifications).isEmpty()
@@ -221,22 +193,16 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testEventTrackedWhenNotificationShown() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     waitForCondition(2.seconds) {
-      usageTrackerRule.usages.firstOrNull {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
-      } != null
+      usageTrackerRule.usages.firstOrNull { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT } !=
+        null
     }
 
     val shownEvent =
-      usageTrackerRule.usages.first {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
-      }
+      usageTrackerRule.usages.first { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
     with(shownEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
-      assertThat(deprecationStatus)
-        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
       assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
       assertThat(userNotified).isTrue()
     }
@@ -244,24 +210,16 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testEventTrackedWhenUpdateClicked() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()
-    (notification.actions.first() as NotificationAction).actionPerformed(
-      TestActionEvent.createTestEvent(),
-      notification,
-    )
+    (notification.actions.first() as NotificationAction).actionPerformed(TestActionEvent.createTestEvent(), notification)
 
     val updateEvent =
-      usageTrackerRule.usages.last {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
-      }
+      usageTrackerRule.usages.last { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
     with(updateEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
-      assertThat(deprecationStatus)
-        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
       assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
       assertThat(updateClicked).isTrue()
     }
@@ -269,24 +227,16 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testEventTrackedWhenMoreInfoClicked() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()
-    (notification.actions.last() as NotificationAction).actionPerformed(
-      TestActionEvent.createTestEvent(),
-      notification,
-    )
+    (notification.actions.last() as NotificationAction).actionPerformed(TestActionEvent.createTestEvent(), notification)
 
     val moreInfoEvent =
-      usageTrackerRule.usages.last {
-        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
-      }
+      usageTrackerRule.usages.last { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
     with(moreInfoEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
-      assertThat(deprecationStatus)
-        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
       assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
       assertThat(moreInfoClicked).isTrue()
     }
@@ -294,15 +244,11 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testNotificationExpiredWhenStatusChangesFromUNSUPPORTEDtoSUPPORTED() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED) }
 
     delayUntilCondition(200) { notification.isExpired }
   }
@@ -322,9 +268,7 @@ class StudioDeprecationCheckerTest {
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.SUPPORTED) }
 
     delayUntilCondition(200) { notification.isExpired }
   }
@@ -345,9 +289,7 @@ class StudioDeprecationCheckerTest {
 
     val notification = notifications.first()
     assertThat(notification.icon).isEqualTo(AllIcons.General.Warning)
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notification.isExpired }
 
     delayUntilCondition(200) { notifications.firstOrNull() != notification }
@@ -358,9 +300,7 @@ class StudioDeprecationCheckerTest {
 
   @Test
   fun testNotificationExpiredWhenStatusChangesFromUNSUPPORTEDtoDEPRECATED() = runTest {
-    deprecatedDataFlow.update {
-      deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
-    }
+    deprecatedDataFlow.update { deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED) }
     delayUntilCondition(200) { notifications.isNotEmpty() }
 
     val notification = notifications.first()

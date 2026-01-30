@@ -49,9 +49,7 @@ internal class HoneyFaceXmlConverter {
     // The scene object is a list that only has a single root item
     val rootSceneItem = honeyFace.scene.single()
     assert(rootSceneItem.name == "Root")
-    rootSceneItem.child
-      ?.mapNotNull { document.createSceneElement(it) }
-      ?.forEach { scene.appendChild(it) }
+    rootSceneItem.child?.mapNotNull { document.createSceneElement(it) }?.forEach { scene.appendChild(it) }
     watchFace.appendChild(scene)
 
     document.appendChild(watchFace)
@@ -111,7 +109,7 @@ private fun HslaColor.toHtmlString(): String {
 }
 
 /**
- * We use this function instead of [ColorUtil.toHtmlColor] as that method puts the alpha at the end
- * (e.g. #000000ff for opaque black) instead of at the front where it needs to be (e.g #ff000000).
+ * We use this function instead of [ColorUtil.toHtmlColor] as that method puts the alpha at the end (e.g. #000000ff for opaque black)
+ * instead of at the front where it needs to be (e.g #ff000000).
  */
 private fun Color.toHtmlString() = "#${Integer.toHexString(rgb)}"

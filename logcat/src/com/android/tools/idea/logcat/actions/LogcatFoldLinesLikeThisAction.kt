@@ -25,10 +25,7 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.UIUtil
 
-/**
- * A version of [com.intellij.execution.console.FoldLinesLikeThis] that works without a
- * [com.intellij.execution.ui.ConsoleView]
- */
+/** A version of [com.intellij.execution.console.FoldLinesLikeThis] that works without a [com.intellij.execution.ui.ConsoleView] */
 internal class LogcatFoldLinesLikeThisAction(private val editor: Editor) :
   DumbAwareAction(ActionsBundle.message("action.ConsoleView.FoldLinesLikeThis.text")) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -63,9 +60,7 @@ private fun getSingleLineSelection(editor: Editor): String? {
     val offset = editor.caretModel.offset
     if (offset <= document.textLength) {
       val lineNumber = document.getLineNumber(offset)
-      document.text
-        .substring(document.getLineStartOffset(lineNumber), document.getLineEndOffset(lineNumber))
-        .ifBlank { null }
+      document.text.substring(document.getLineStartOffset(lineNumber), document.getLineEndOffset(lineNumber)).ifBlank { null }
     } else {
       null
     }

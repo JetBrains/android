@@ -32,6 +32,8 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.scale.JBUIScale
 import icons.StudioIcons
+import java.awt.Font
+import kotlin.test.fail
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.jetbrains.android.facet.AndroidFacet
@@ -41,8 +43,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.isNull
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -51,8 +53,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Font
-import kotlin.test.fail
 
 /** Tests for the [StringResourceEditor] class. */
 @RunWith(JUnit4::class)
@@ -81,11 +81,8 @@ class StringResourceEditorTest {
   @Before
   fun setUp() {
     facet = projectRule.module.androidFacet!!
-    resourceNotificationManager =
-      projectRule.mockProjectService(ResourceNotificationManager::class.java)
-    doAnswer { currentResourceVersion }
-      .whenever(resourceNotificationManager)
-      .getCurrentVersion(any(), isNull(), isNull())
+    resourceNotificationManager = projectRule.mockProjectService(ResourceNotificationManager::class.java)
+    doAnswer { currentResourceVersion }.whenever(resourceNotificationManager).getCurrentVersion(any(), isNull(), isNull())
 
     doAnswer {
         listeners.add(it.getArgument(0))
@@ -145,16 +142,12 @@ class StringResourceEditorTest {
 
   @Test
   fun state() {
-    FileEditorStateLevel.values().forEach {
-      assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE)
-    }
+    FileEditorStateLevel.values().forEach { assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE) }
 
     // Setting the state should do nothing.
     editor.setState { _, _ -> fail("Should never be called") }
 
-    FileEditorStateLevel.values().forEach {
-      assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE)
-    }
+    FileEditorStateLevel.values().forEach { assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE) }
   }
 
   @Test
@@ -184,8 +177,7 @@ class StringResourceEditorTest {
 
   @Test
   fun toStringCorrect() {
-    assertThat(editor.toString())
-      .isEqualTo("StringResourceEditor ${facet} ${System.identityHashCode(editor)}")
+    assertThat(editor.toString()).isEqualTo("StringResourceEditor ${facet} ${System.identityHashCode(editor)}")
   }
 
   @Test

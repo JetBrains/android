@@ -24,11 +24,10 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 
 /**
- * Group of actions for users to interact with the pagination mechanism of a [PreviewRepresentation]
- * that supports it ([PreviewPaginationManager]).
+ * Group of actions for users to interact with the pagination mechanism of a [PreviewRepresentation] that supports it
+ * ([PreviewPaginationManager]).
  */
-class PaginationActionGroup :
-  DefaultActionGroup(PreviewBundle.message("action.preview.pagination.title"), false) {
+class PaginationActionGroup : DefaultActionGroup(PreviewBundle.message("action.preview.pagination.title"), false) {
 
   init {
     add(PageSizeSelectorAction())

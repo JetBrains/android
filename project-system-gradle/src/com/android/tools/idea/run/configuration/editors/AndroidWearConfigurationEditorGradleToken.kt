@@ -17,9 +17,9 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.intellij.openapi.module.Module
 import com.intellij.psi.search.GlobalSearchScope
@@ -27,6 +27,7 @@ import com.intellij.psi.search.GlobalSearchScope
 class AndroidWearConfigurationEditorGradleToken : AndroidWearConfigurationEditorToken<GradleProjectSystem>, GradleToken {
   override fun isModuleAccepted(projectSystem: GradleProjectSystem, module: Module): Boolean =
     module.isHolderModule() && super.isModuleAccepted(projectSystem, module)
+
   override fun getComponentSearchScope(projectSystem: GradleProjectSystem, module: Module): GlobalSearchScope =
     module.getMainModule().getModuleSystem().getResolveScope(ScopeType.MAIN)
 }

@@ -23,8 +23,8 @@ import com.google.common.annotations.VisibleForTesting
 /**
  * Picks the version of AGP to use for new projects and modules.
  *
- * For existing projects, FixedVersion is used, but for new projects, the version might be resolved
- * during template render, see [newProjectAgpVersionSelector]
+ * For existing projects, FixedVersion is used, but for new projects, the version might be resolved during template render, see
+ * [newProjectAgpVersionSelector]
  */
 sealed class AgpVersionSelector {
 
@@ -32,13 +32,11 @@ sealed class AgpVersionSelector {
   abstract fun resolveVersion(publishedAgpVersions: () -> Set<AgpVersion>): AgpVersion
 
   /**
-   * Returns true if the selector will select an AGP version of at least the version passed
-   * irrespective of the published AGP versions.
+   * Returns true if the selector will select an AGP version of at least the version passed irrespective of the published AGP versions.
    *
-   * The only time [willSelectAtLeast]`(version)` will not be equivalent to
-   * [resolveVersion]`(AgpVersions::getAvailableVersions)` is when differentiating between minor
-   * versions is important and [newProjectAgpVersionSelector] returns a [MaximumPatchVersion]
-   * selector. See AgoVersionSelectorTest for examples.
+   * The only time [willSelectAtLeast]`(version)` will not be equivalent to [resolveVersion]`(AgpVersions::getAvailableVersions)` is when
+   * differentiating between minor versions is important and [newProjectAgpVersionSelector] returns a [MaximumPatchVersion] selector. See
+   * AgoVersionSelectorTest for examples.
    */
   abstract fun willSelectAtLeast(version: AgpVersion): Boolean
 

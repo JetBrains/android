@@ -36,29 +36,25 @@ abstract class AndroidWearConfigurationExecutor(
   appRunSettings: AppRunSettings,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
-  deployer: ApplicationDeployer
-) : AndroidConfigurationExecutorBase(
-  environment,
-  deviceFutures,
-  appRunSettings,
-  apkProvider,
-  applicationContext,
-  deployer
-) {
+  deployer: ApplicationDeployer,
+) : AndroidConfigurationExecutorBase(environment, deviceFutures, appRunSettings, apkProvider, applicationContext, deployer) {
 
   override suspend fun startDebugSession(
     device: IDevice,
     applicationContext: ApplicationProjectContext,
     console: ConsoleView,
-    indicator: ProgressIndicator
+    indicator: ProgressIndicator,
   ): XDebugSessionImpl {
     checkAndroidVersionForWearDebugging(device.version, console)
     return DebugSessionStarter.attachDebuggerToStartedProcess(
-      device, applicationContext, environment, AndroidJavaDebugger(),
+      device,
+      applicationContext,
+      environment,
+      AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
       getStopCallback(console, applicationContext.applicationId, true),
       indicator,
-      console
+      console,
     )
   }
 

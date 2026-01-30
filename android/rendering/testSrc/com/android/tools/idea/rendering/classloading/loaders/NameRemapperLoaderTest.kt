@@ -24,14 +24,7 @@ class NameRemapperLoaderTest {
   @Test
   fun `check remapping`() {
     // A simple remapper that adds "b." in front of the requested class name
-    val loader = NameRemapperLoader(
-      StaticLoader(
-        "b.a.class1" to ByteArray(1),
-        "b.a.class2" to ByteArray(2)
-      )
-    ) {
-      "b.$it"
-    }
+    val loader = NameRemapperLoader(StaticLoader("b.a.class1" to ByteArray(1), "b.a.class2" to ByteArray(2))) { "b.$it" }
     assertNull(loader.loadClass(""))
     assertNull(loader.loadClass("b.a.class1"))
     assertEquals(1, loader.loadClass("a.class1")?.size)

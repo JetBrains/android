@@ -20,10 +20,7 @@ import com.intellij.debugger.engine.DebuggerUtils
 import com.intellij.debugger.engine.FieldVisibilityProvider
 import com.sun.jdi.Field
 
-private val SHADOW_FIELDS = setOf(
-  "shadow${'$'}_klass_",
-  "shadow${'$'}_monitor_",
-)
+private val SHADOW_FIELDS = setOf("shadow${'$'}_klass_", "shadow${'$'}_monitor_")
 
 class AndroidFieldVisibilityProvider : FieldVisibilityProvider {
   override fun shouldDisplay(field: Field): Boolean {

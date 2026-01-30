@@ -23,8 +23,7 @@ import java.awt.LayoutManager
 /**
  * Layout manager that uses the size of the parent component to display the components.
  *
- * This is useful with the [javax.swing.JLayeredPane] so every layer will take all the space in the
- * pane.
+ * This is useful with the [javax.swing.JLayeredPane] so every layer will take all the space in the pane.
  */
 class MatchParentLayoutManager : LayoutManager {
   override fun layoutContainer(parent: Container) {

@@ -18,16 +18,14 @@ package com.android.tools.idea.streaming.emulator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.runBlocking
-import org.junit.Rule
-import org.junit.Test
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.test.fail
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
 
-/**
- * Tests for [RunningEmulatorCatalog].
- */
+/** Tests for [RunningEmulatorCatalog]. */
 class RunningEmulatorCatalogTest {
 
   private val projectRule = ProjectRule()
@@ -43,15 +41,18 @@ class RunningEmulatorCatalogTest {
     val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     val eventQueue = LinkedBlockingDeque<CatalogEvent>()
-    catalog.addListener(object : RunningEmulatorCatalog.Listener {
-      override fun emulatorAdded(emulator: EmulatorController) {
-        eventQueue.add(CatalogEvent(EventType.ADDED, emulator))
-      }
+    catalog.addListener(
+      object : RunningEmulatorCatalog.Listener {
+        override fun emulatorAdded(emulator: EmulatorController) {
+          eventQueue.add(CatalogEvent(EventType.ADDED, emulator))
+        }
 
-      override fun emulatorRemoved(emulator: EmulatorController) {
-        eventQueue.add(CatalogEvent(EventType.REMOVED, emulator))
-      }
-    }, updateIntervalMillis = 1000)
+        override fun emulatorRemoved(emulator: EmulatorController) {
+          eventQueue.add(CatalogEvent(EventType.REMOVED, emulator))
+        }
+      },
+      updateIntervalMillis = 1000,
+    )
 
     // Check that the catalog is empty.
     assertThat(catalog.emulators).isEmpty()
@@ -102,7 +103,10 @@ class RunningEmulatorCatalogTest {
     assertThat(runBlocking { catalog.updateNow().await() }).isEmpty()
   }
 
-  private enum class EventType { ADDED, REMOVED }
+  private enum class EventType {
+    ADDED,
+    REMOVED,
+  }
 
   private class CatalogEvent(val type: EventType, val emulator: EmulatorController)
 }

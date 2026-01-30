@@ -20,15 +20,13 @@ import com.android.tools.adtui.common.SwingLength
 import java.awt.Dimension
 
 /**
- * Represents the scale factor of the design surface and the conversion factor between [SwingLength]
- * and [AndroidLength]
+ * Represents the scale factor of the design surface and the conversion factor between [SwingLength] and [AndroidLength]
  *
  * AndroidLength * Scale = SwingLength SwingLength / Scale = AndroidLength
  */
 @JvmInline
 value class Scale(val value: Double) {
-  operator fun times(length: AndroidLength): SwingLength =
-    SwingLength(value.toFloat() * length.value)
+  operator fun times(length: AndroidLength): SwingLength = SwingLength(value.toFloat() * length.value)
 }
 
 operator fun AndroidLength.times(rhs: Scale): SwingLength = rhs * this
@@ -36,8 +34,7 @@ operator fun AndroidLength.times(rhs: Scale): SwingLength = rhs * this
 operator fun SwingLength.div(rhs: Scale): AndroidLength = AndroidLength(rhs.value.toFloat() / value)
 
 /**
- * Apply a scale to the receiver. Notice: this function has lateral effects, the receiver would also
- * change its size.
+ * Apply a scale to the receiver. Notice: this function has lateral effects, the receiver would also change its size.
  *
  * @return the new scaled dimension applied to the receiver.
  */
@@ -48,8 +45,7 @@ fun Dimension.scaleBy(scale: Double): Dimension {
 }
 
 /**
- * Returns a dimension with an applied scale factor. Notice: this function doesn't have lateral
- * effects, it doesn't change the Dimension
+ * Returns a dimension with an applied scale factor. Notice: this function doesn't have lateral effects, it doesn't change the Dimension
  *
  * @return the new scaled dimension.
  */

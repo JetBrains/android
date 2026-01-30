@@ -34,8 +34,7 @@ class AndroidRunConfigurationForDynamicAppTest {
   private val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.DYNAMIC_APP)
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {
@@ -45,16 +44,13 @@ class AndroidRunConfigurationForDynamicAppTest {
   @Test
   @Throws(Exception::class)
   fun testDynamicAppApks() {
-    val configSettings = RunManager.getInstance(projectRule.project)
-      .allSettings
-      .find { it.configuration is AndroidRunConfiguration }!!
+    val configSettings = RunManager.getInstance(projectRule.project).allSettings.find { it.configuration is AndroidRunConfiguration }!!
 
     val config = configSettings.configuration as AndroidRunConfiguration
     config.setModule(projectRule.module)
     try {
       configSettings.checkSettings()
-    }
-    catch (e: RuntimeConfigurationException) {
+    } catch (e: RuntimeConfigurationException) {
       Assert.fail(e.message)
     }
   }

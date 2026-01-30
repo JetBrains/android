@@ -30,14 +30,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 
-class AddWatchFaceFormatVersionPropertyQuickFix :
-  DefaultLintQuickFix(message("android.lint.fix.add.wff.version.property")) {
+class AddWatchFaceFormatVersionPropertyQuickFix : DefaultLintQuickFix(message("android.lint.fix.add.wff.version.property")) {
 
-  override fun apply(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    context: AndroidQuickfixContexts.Context,
-  ) {
+  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     val parent = PsiTreeUtil.getParentOfType<XmlTag>(startElement, XmlTag::class.java, false)
     if (parent?.name != NODE_APPLICATION) {
       return
@@ -58,11 +53,7 @@ class AddWatchFaceFormatVersionPropertyQuickFix :
     wffVersionProperty.setAttribute(ATTR_VALUE, ANDROID_URI, WATCH_FACE_FORMAT_DEFAULT_VERSION)
   }
 
-  override fun isApplicable(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    contextType: AndroidQuickfixContexts.ContextType,
-  ): Boolean {
+  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
     val parent = PsiTreeUtil.getParentOfType(startElement, XmlTag::class.java, false)
     return parent?.name == TAG_APPLICATION
   }

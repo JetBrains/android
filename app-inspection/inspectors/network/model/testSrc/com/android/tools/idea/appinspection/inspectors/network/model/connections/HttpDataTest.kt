@@ -46,12 +46,7 @@ class HttpDataTest {
 
   @Test
   fun testResponseCode() {
-    val data =
-      createFakeHttpData(
-        1,
-        responseHeaders = listOf(httpHeader("Content-Type", "text/html; charset=UTF-8")),
-        responseCode = 302,
-      )
+    val data = createFakeHttpData(1, responseHeaders = listOf(httpHeader("Content-Type", "text/html; charset=UTF-8")), responseCode = 302)
     assertThat(data.responseCode).isEqualTo(302)
     assertThat(data.responseHeaders["content-type"]).containsExactly("text/html; charset=UTF-8")
   }
@@ -85,15 +80,7 @@ class HttpDataTest {
   @Test
   fun testSetRequestFields() {
     val data =
-      createFakeHttpData(
-        1,
-        requestHeaders =
-          listOf(
-            httpHeader("first", "1"),
-            httpHeader("second", "2"),
-            httpHeader("equation", "x+y=10"),
-          ),
-      )
+      createFakeHttpData(1, requestHeaders = listOf(httpHeader("first", "1"), httpHeader("second", "2"), httpHeader("equation", "x+y=10")))
     val headers = data.requestHeaders
     assertThat(headers.size).isEqualTo(3)
     assertThat(headers["first"]).containsExactly("1")
@@ -111,8 +98,7 @@ class HttpDataTest {
 
   @Test
   fun isFormDataFromContentType() {
-    assertThat(HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").isFormData)
-      .isTrue()
+    assertThat(HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").isFormData).isTrue()
     assertThat(HttpData.ContentType("application/x-www-form-urlencoded").isFormData).isTrue()
     assertThat(HttpData.ContentType("Application/x-www-form-urlencoded;").isFormData).isTrue()
     assertThat(HttpData.ContentType("").isFormData).isFalse()
@@ -123,11 +109,7 @@ class HttpDataTest {
   @Test
   fun contentLengthFromLowerCaseData() {
     val data =
-      createFakeHttpData(
-        1,
-        responseHeaders =
-          listOf(httpHeader("CoNtEnt-LEngtH", "10000"), httpHeader("response-status-code", "200")),
-      )
+      createFakeHttpData(1, responseHeaders = listOf(httpHeader("CoNtEnt-LEngtH", "10000"), httpHeader("response-status-code", "200")))
     assertThat(data.responseHeaders["content-length"]).containsExactly("10000")
     assertThat(data.responseHeaders["cOnTenT-leNGth"]).containsExactly("10000")
   }
@@ -137,8 +119,7 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseHeaders =
-          listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "404")),
+        responseHeaders = listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "404")),
         responseCode = 200,
       )
     assertThat(data.responseCode).isEqualTo(200)
@@ -153,11 +134,7 @@ class HttpDataTest {
       createFakeHttpData(
         1,
         responseHeaders =
-          listOf(
-            httpHeader("content-length", "10000"),
-            httpHeader("response-status-code", "200"),
-            httpHeader("content-encoding", "gzip"),
-          ),
+          listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "200"), httpHeader("content-encoding", "gzip")),
         responsePayload = ByteString.copyFrom(byteOutput.toByteArray()),
       )
     assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("test")
@@ -170,11 +147,7 @@ class HttpDataTest {
       createFakeHttpData(
         1,
         responseHeaders =
-          listOf(
-            httpHeader("content-length", "10000"),
-            httpHeader("response-status-code", "200"),
-            httpHeader("content-encoding", "gzip"),
-          ),
+          listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "200"), httpHeader("content-encoding", "gzip")),
         responsePayload = ByteString.copyFrom(malformedBytes),
       )
     assertThat(data.getReadableResponsePayload().toByteArray()).isEqualTo(malformedBytes)
@@ -186,8 +159,7 @@ class HttpDataTest {
    *    echo -n <content> | brotli -Z | base64
    * ```
    *
-   * The brotli command doesn't compress short strings unless they are highly compressible so the
-   * test uses `000000000000`
+   * The brotli command doesn't compress short strings unless they are highly compressible so the test uses `000000000000`
    */
   @Test
   fun decodesBrotliResponsePayload() {
@@ -196,11 +168,7 @@ class HttpDataTest {
       createFakeHttpData(
         1,
         responseHeaders =
-          listOf(
-            httpHeader("content-length", "10000"),
-            httpHeader("response-status-code", "200"),
-            httpHeader("content-encoding", "br"),
-          ),
+          listOf(httpHeader("content-length", "10000"), httpHeader("response-status-code", "200"), httpHeader("content-encoding", "br")),
         responsePayload = payload,
       )
     assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("000000000000")

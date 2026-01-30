@@ -229,31 +229,23 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
-    val bar1ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
+    val bar1ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
+    val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
-    val bar2ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
+    val bar2ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
+    val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
-    val bar3ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
+    val bar3ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
+    val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val bar4ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|4()").getReturnTypeReference()!!
-    val bar4ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar4ReturnTypeElement)
+    val bar4ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|4()").getReturnTypeReference()!!
+    val bar4ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar4ReturnTypeElement)
 
     assertThat(bar4ReturnTypeWrapper.getSimpleName()).isEqualTo("Map")
   }
@@ -278,24 +270,18 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
-    val bar1ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
+    val bar1ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
+    val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("Int")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
-    val bar2ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
+    val bar2ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
+    val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("Int")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
-    val bar3ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
+    val bar3ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
+    val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("Int")
   }
@@ -320,24 +306,18 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
-    val bar1ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
+    val bar1ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
+    val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("String")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
-    val bar2ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
+    val bar2ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
+    val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("String")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
-    val bar3ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
+    val bar3ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
+    val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("String")
   }
@@ -361,31 +341,23 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
-    val bar1ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
+    val bar1ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|1()").getReturnTypeReference()!!
+    val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("Array")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
-    val bar2ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
+    val bar2ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|2()").getReturnTypeReference()!!
+    val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("Array")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
-    val bar3ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
+    val bar3ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|3()").getReturnTypeReference()!!
+    val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("IntArray")
 
-    val bar4ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("bar|4()").getReturnTypeReference()!!
-    val bar4ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar4ReturnTypeElement)
+    val bar4ReturnTypeElement = myFixture.findParentElement<KtFunction>("bar|4()").getReturnTypeReference()!!
+    val bar4ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(bar4ReturnTypeElement)
 
     assertThat(bar4ReturnTypeWrapper.getSimpleName()).isEqualTo("Array")
   }
@@ -411,45 +383,33 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as KtFile
 
-    val nullable1ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|1()").getReturnTypeReference()!!
-    val nullable1ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable1ReturnTypeElement)
+    val nullable1ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|1()").getReturnTypeReference()!!
+    val nullable1ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable1ReturnTypeElement)
 
     assertThat(nullable1ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar")
 
-    val nullable2ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|2()").getReturnTypeReference()!!
-    val nullable2ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable2ReturnTypeElement)
+    val nullable2ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|2()").getReturnTypeReference()!!
+    val nullable2ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable2ReturnTypeElement)
 
     assertThat(nullable2ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar")
 
-    val nullable3ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|3()").getReturnTypeReference()!!
-    val nullable3ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable3ReturnTypeElement)
+    val nullable3ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|3()").getReturnTypeReference()!!
+    val nullable3ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable3ReturnTypeElement)
 
     assertThat(nullable3ReturnTypeWrapper.getSimpleName()).isEqualTo("Array")
 
-    val nullable4ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|4()").getReturnTypeReference()!!
-    val nullable4ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable4ReturnTypeElement)
+    val nullable4ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|4()").getReturnTypeReference()!!
+    val nullable4ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable4ReturnTypeElement)
 
     assertThat(nullable4ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val nullable5ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|5()").getReturnTypeReference()!!
-    val nullable5ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable5ReturnTypeElement)
+    val nullable5ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|5()").getReturnTypeReference()!!
+    val nullable5ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable5ReturnTypeElement)
 
     assertThat(nullable5ReturnTypeWrapper.getSimpleName()).isEqualTo("Int")
 
-    val nullable6ReturnTypeElement =
-      myFixture.findParentElement<KtFunction>("nullable|6()").getReturnTypeReference()!!
-    val nullable6ReturnTypeWrapper =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable6ReturnTypeElement)
+    val nullable6ReturnTypeElement = myFixture.findParentElement<KtFunction>("nullable|6()").getReturnTypeReference()!!
+    val nullable6ReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable6ReturnTypeElement)
 
     assertThat(nullable6ReturnTypeWrapper.getSimpleName()).isEqualTo("IntArray")
   }
@@ -488,10 +448,8 @@ class DaggerIndexTypeWrapperTest {
 
     for (argCount in listOf("0", "1", "2", "22", "N")) {
       val window = "getFunction${argCount}Ty|pe()"
-      val functionReturnTypeElement =
-        myFixture.findParentElement<KtFunction>(window).getReturnTypeReference()!!
-      val functionReturnTypeWrapper =
-        DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(functionReturnTypeElement)
+      val functionReturnTypeElement = myFixture.findParentElement<KtFunction>(window).getReturnTypeReference()!!
+      val functionReturnTypeWrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(functionReturnTypeElement)
 
       assertWithMessage("Expected return value 'Function$argCount'")
         .that(functionReturnTypeWrapper.getSimpleName())
@@ -631,20 +589,17 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as PsiJavaFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
+    val bar1ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
     val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
+    val bar2ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
     val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
+    val bar3ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
     val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("Map")
@@ -668,20 +623,17 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as PsiJavaFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
+    val bar1ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
     val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("Integer")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
+    val bar2ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
     val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("Integer")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
+    val bar3ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
     val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("Integer")
@@ -704,14 +656,12 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as PsiJavaFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
+    val bar1ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
     val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("String")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
+    val bar2ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
     val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("String")
@@ -737,32 +687,27 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent(),
       ) as PsiJavaFile
 
-    val bar1ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
+    val bar1ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|1()").returnTypeElement!!
     val bar1ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar1ReturnTypeElement)
 
     assertThat(bar1ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar[]")
 
-    val bar2ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
+    val bar2ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|2()").returnTypeElement!!
     val bar2ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar2ReturnTypeElement)
 
     assertThat(bar2ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar[]")
 
-    val bar3ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
+    val bar3ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|3()").returnTypeElement!!
     val bar3ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar3ReturnTypeElement)
 
     assertThat(bar3ReturnTypeWrapper.getSimpleName()).isEqualTo("Integer[]")
 
-    val bar4ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|4()").returnTypeElement!!
+    val bar4ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|4()").returnTypeElement!!
     val bar4ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar4ReturnTypeElement)
 
     assertThat(bar4ReturnTypeWrapper.getSimpleName()).isEqualTo("int[]")
 
-    val bar5ReturnTypeElement =
-      myFixture.findParentElement<PsiMethod>("bar|5()").returnTypeElement!!
+    val bar5ReturnTypeElement = myFixture.findParentElement<PsiMethod>("bar|5()").returnTypeElement!!
     val bar5ReturnTypeWrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(bar5ReturnTypeElement)
 
     assertThat(bar5ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar[]")

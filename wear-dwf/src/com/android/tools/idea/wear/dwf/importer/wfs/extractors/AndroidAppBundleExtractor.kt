@@ -46,8 +46,7 @@ private const val AAB_MANIFEST_PATH = "$BASE_PATH/manifest/${FN_ANDROID_MANIFEST
  *
  * Inside the `.aab` file, there is a `base/` folder that contains the watch face data.
  */
-class AndroidAppBundleExtractor(private val ioDispatcher: CoroutineDispatcher) :
-  WatchFaceStudioFileExtractor {
+class AndroidAppBundleExtractor(private val ioDispatcher: CoroutineDispatcher) : WatchFaceStudioFileExtractor {
 
   override suspend fun extract(aabFilePath: Path) =
     flow {
@@ -57,16 +56,10 @@ class AndroidAppBundleExtractor(private val ioDispatcher: CoroutineDispatcher) :
               "The $aabFilePath file is expected to be an Android App Bundle archive"
             }
 
-          emit(
-            ExtractedItem.Manifest(
-              readXmlContent(archive, archive.contentRoot.resolve(AAB_MANIFEST_PATH))
-            )
-          )
+          emit(ExtractedItem.Manifest(readXmlContent(archive, archive.contentRoot.resolve(AAB_MANIFEST_PATH))))
 
           val resourceTable =
-            archive.contentRoot.resolve(AAB_RESOURCES_PB_PATH).inputStream().buffered().use {
-              Resources.ResourceTable.parseFrom(it)
-            }
+            archive.contentRoot.resolve(AAB_RESOURCES_PB_PATH).inputStream().buffered().use { Resources.ResourceTable.parseFrom(it) }
 
           resourceTable.packageList.forEach { pkg ->
             pkg.typeList.forEach { type ->
@@ -89,17 +82,9 @@ class AndroidAppBundleExtractor(private val ioDispatcher: CoroutineDispatcher) :
                         )
                       ResourceType.RAW,
                       ResourceType.XML ->
-                        ExtractedItem.TextResource(
-                          name = resourceName,
-                          filePath = filePath,
-                          text = readXmlContent(archive, sourcePath),
-                        )
+                        ExtractedItem.TextResource(name = resourceName, filePath = filePath, text = readXmlContent(archive, sourcePath))
                       ResourceType.DRAWABLE ->
-                        ExtractedItem.BinaryResource(
-                          name = resourceName,
-                          filePath = filePath,
-                          binaryContent = sourcePath.readBytes(),
-                        )
+                        ExtractedItem.BinaryResource(name = resourceName, filePath = filePath, binaryContent = sourcePath.readBytes())
                       else -> error("Unsupported type $resourceType")
                     }
 
@@ -122,14 +107,7 @@ class AndroidAppBundleExtractor(private val ioDispatcher: CoroutineDispatcher) :
   }
 
   private fun stringResourcePath(configValue: Resources.ConfigValue): Path {
-    val folderConfiguration =
-      FolderConfiguration().apply {
-        localeQualifier = LocaleQualifier.getQualifier(configValue.config.locale)
-      }
-    return Path.of(
-      RES_FOLDER,
-      folderConfiguration.getFolderName(ResourceFolderType.VALUES),
-      DEFAULT_STRING_RESOURCE_FILE_NAME,
-    )
+    val folderConfiguration = FolderConfiguration().apply { localeQualifier = LocaleQualifier.getQualifier(configValue.config.locale) }
+    return Path.of(RES_FOLDER, folderConfiguration.getFolderName(ResourceFolderType.VALUES), DEFAULT_STRING_RESOURCE_FILE_NAME)
   }
 }

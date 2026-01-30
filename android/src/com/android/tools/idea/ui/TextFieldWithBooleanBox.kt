@@ -34,17 +34,17 @@ import javax.swing.event.DocumentEvent
  */
 fun JTextField.wrapWithBooleanCheckBox(defaultValue: Boolean): JPanel {
   val booleanCheckBox = ThreeStateCheckBox()
-  booleanCheckBox.addItemListener {
-    text = booleanCheckBox.state.stateToBoolean()
-  }
+  booleanCheckBox.addItemListener { text = booleanCheckBox.state.stateToBoolean() }
   booleanCheckBox.state = if (defaultValue) ThreeStateCheckBox.State.SELECTED else ThreeStateCheckBox.State.NOT_SELECTED
   val textFieldWithIcon = TextFieldWithLeftComponent(booleanCheckBox, this)
 
-  this.document.addDocumentListener(object : DocumentAdapter() {
-    override fun textChanged(e: DocumentEvent) {
-      booleanCheckBox.state = this@wrapWithBooleanCheckBox.text.trim().toState()
+  this.document.addDocumentListener(
+    object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        booleanCheckBox.state = this@wrapWithBooleanCheckBox.text.trim().toState()
+      }
     }
-  })
+  )
   return textFieldWithIcon
 }
 

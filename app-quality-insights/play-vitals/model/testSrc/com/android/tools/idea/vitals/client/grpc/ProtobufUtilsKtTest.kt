@@ -32,13 +32,13 @@ class ProtobufUtilsKtTest {
     assertThat(utcNow.toProtoDateTime(utcZoneId).toString().trim())
       .isEqualTo(
         """
-          year: 2022
-          month: 6
-          day: 8
-          hours: 10
-          time_zone {
-            id: "UTC"
-          }
+        year: 2022
+        month: 6
+        day: 8
+        hours: 10
+        time_zone {
+          id: "UTC"
+        }
         """
           .trimIndent()
       )
@@ -63,13 +63,13 @@ class ProtobufUtilsKtTest {
     assertThat(proto.truncate(TimeGranularity.HOURLY).toString().trim())
       .isEqualTo(
         """
-            year: 2023
-            month: 4
-            day: 12
-            hours: 8
-            time_zone {
-              id: "America/Los_Angeles"
-            }
+        year: 2023
+        month: 4
+        day: 12
+        hours: 8
+        time_zone {
+          id: "America/Los_Angeles"
+        }
         """
           .trimIndent()
       )
@@ -77,12 +77,12 @@ class ProtobufUtilsKtTest {
     assertThat(proto.truncate(TimeGranularity.DAILY).toString().trim())
       .isEqualTo(
         """
-            year: 2023
-            month: 4
-            day: 12
-            time_zone {
-              id: "America/Los_Angeles"
-            }
+        year: 2023
+        month: 4
+        day: 12
+        time_zone {
+          id: "America/Los_Angeles"
+        }
         """
           .trimIndent()
       )
@@ -90,13 +90,13 @@ class ProtobufUtilsKtTest {
     assertThat(proto.truncate(TimeGranularity.FULL_RANGE).toString().trim())
       .isEqualTo(
         """
-            year: 2023
-            month: 4
-            day: 12
-            hours: 8
-            time_zone {
-              id: "America/Los_Angeles"
-            }
+        year: 2023
+        month: 4
+        day: 12
+        hours: 8
+        time_zone {
+          id: "America/Los_Angeles"
+        }
         """
           .trimIndent()
       )

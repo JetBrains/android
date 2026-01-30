@@ -36,8 +36,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.StateRe
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.StringEntry
 
 // example: "at androidx.compose.runtime.CompositionImpl.recordReadOf(Composition.kt:1015)"
-private val stackTraceLinePattern =
-  Regex("\\s*at ([\\w$\\.]+)\\.([\\w$-]+)\\(([ $\\.\\w]+):(-?\\d+)\\)")
+private val stackTraceLinePattern = Regex("\\s*at ([\\w$\\.]+)\\.([\\w$-]+)\\(([ $\\.\\w]+):(-?\\d+)\\)")
 
 // Need to create a helper function to avoid name ambiguity
 private fun createComposableString(id: Int, str: String): StringEntry {
@@ -140,9 +139,7 @@ fun Parameter.Builder.Reference(init: ParameterReference.Builder.() -> Unit) {
   referenceBuilder.apply(init).build()
 }
 
-fun RecompositionStateReadResponse(
-  init: RecompositionStateReadResponseBuilder.() -> Unit
-): GetRecompositionStateReadResponse {
+fun RecompositionStateReadResponse(init: RecompositionStateReadResponseBuilder.() -> Unit): GetRecompositionStateReadResponse {
   val builder = RecompositionStateReadResponseBuilder()
   builder.init()
   return builder.build()
@@ -201,12 +198,7 @@ class StateReadBuilder(private val strings: TestStringTable) {
     builder.value = parameter.build()
   }
 
-  fun StackTraceLine(
-    declaringClass: String,
-    methodName: String,
-    fileName: String,
-    lineNumber: Int,
-  ) {
+  fun StackTraceLine(declaringClass: String, methodName: String, fileName: String, lineNumber: Int) {
     builder.addStackTraceLine(
       StackTraceLine.newBuilder().apply {
         this.declaringClass = strings.add(declaringClass)
@@ -220,12 +212,7 @@ class StateReadBuilder(private val strings: TestStringTable) {
   fun ParseStackTraceLines(trace: String) {
     trace.lines().forEach { line ->
       val match = stackTraceLinePattern.matchEntire(line) ?: error("Could not parse: \"$line\"")
-      StackTraceLine(
-        match.groupValues[1],
-        match.groupValues[2],
-        match.groupValues[3],
-        match.groupValues[4].toInt(),
-      )
+      StackTraceLine(match.groupValues[1], match.groupValues[2], match.groupValues[3], match.groupValues[4].toInt())
     }
   }
 

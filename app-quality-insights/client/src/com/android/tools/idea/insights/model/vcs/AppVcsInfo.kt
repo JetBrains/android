@@ -50,8 +50,7 @@ fun decode(textProto: String): BuildStamp {
   return try {
     BuildStamp.newBuilder().apply { TextFormat.getParser().merge(textProto, this) }.build()
   } catch (exception: Exception) {
-    Logger.getLogger("AppVcsInfo")
-      .log(Level.WARNING, "Error when decoding from text proto ($textProto): $exception")
+    Logger.getLogger("AppVcsInfo").log(Level.WARNING, "Error when decoding from text proto ($textProto): $exception")
     BuildStamp.getDefaultInstance()
   }
 }

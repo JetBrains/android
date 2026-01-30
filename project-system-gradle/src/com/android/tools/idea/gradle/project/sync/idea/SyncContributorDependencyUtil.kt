@@ -75,12 +75,7 @@ import org.jetbrains.plugins.gradle.service.syncAction.virtualFileUrlManager
 private val LOG = currentClassLogger()
 
 /** Represents a source module. Used for setting up module to module dependencies. */
-private data class SourceSetModuleId(
-  val buildId: BuildId,
-  val projectPath: String,
-  val sourceSetName: String
-)
-
+private data class SourceSetModuleId(val buildId: BuildId, val projectPath: String, val sourceSetName: String)
 
 /**
  * Each project needs a certain amount of input and mutable state when resolving dependencies.
@@ -104,7 +99,7 @@ private class SyncContributorAndroidProjectDependenciesContext(
     populateDependenciesForModule(scope, wellKnownSourceSetName)
   }
 
-  /** Populates the dependencies of the module corresponding to the given artifact.  */
+  /** Populates the dependencies of the module corresponding to the given artifact. */
   fun IdeDependenciesCore.populateDependenciesForModule(scope: DependencyScope, sourceSetName: String) {
     val moduleName = "${androidProjectContext.resolveHolderModuleName()}.$sourceSetName"
     val entitySource = AndroidGradleSourceSetEntitySource(androidProjectContext.projectEntitySource, sourceSetName)
@@ -120,58 +115,55 @@ private class SyncContributorAndroidProjectDependenciesContext(
 
     // It's best to be lenient when resolving dependencies to make sure sync progresses.
     // It seems this can fail in some scenarios involving variant switching and propagation of the selected variant
-    dependencies.flatMap { ideLibraryModelResolver.resolve(it, lenient = true) }.mapNotNull {
-      when (it) {
-        is IdeAndroidLibrary ->
-          LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)
+    dependencies
+      .flatMap { ideLibraryModelResolver.resolve(it, lenient = true) }
+      .mapNotNull {
+        when (it) {
+          is IdeAndroidLibrary -> LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)
 
-        is IdeJavaLibrary ->
-          LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)
+          is IdeJavaLibrary -> LibraryDependency(it.getOrCreateLibraryEntity(entitySource, moduleName).symbolicId, false, scope)
 
-        is IdeModuleLibrary ->
-          sourceSetModuleIdToEntityMap[it.id()]?.let { entity ->
-            ModuleDependency(
-              entity.symbolicId,
-              false,
-              scope,
-              // Dependencies to test fixtures modules are marked as "production on test"
-              productionOnTest = it.sourceSet.sourceSetName == IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
-            )
-          }
-        else -> null
-      }.takeIf { it !in existingDependencies }
-    }.distinct().let { dependenciesToAdd: List<ModuleDependencyItem> ->
-      if(LOG.isTraceEnabled) {
-        LOG.trace("Adding dependencies for $moduleName: $dependenciesToAdd")
+          is IdeModuleLibrary ->
+            sourceSetModuleIdToEntityMap[it.id()]?.let { entity ->
+              ModuleDependency(
+                entity.symbolicId,
+                false,
+                scope,
+                // Dependencies to test fixtures modules are marked as "production on test"
+                productionOnTest = it.sourceSet.sourceSetName == IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName,
+              )
+            }
+          else -> null
+        }.takeIf { it !in existingDependencies }
       }
-      if (dependenciesToAdd.isNotEmpty()) {
-        updatedEntities.modifyModuleEntity(moduleEntity) {
-          dependencies.addAll(dependenciesToAdd)
+      .distinct()
+      .let { dependenciesToAdd: List<ModuleDependencyItem> ->
+        if (LOG.isTraceEnabled) {
+          LOG.trace("Adding dependencies for $moduleName: $dependenciesToAdd")
+        }
+        if (dependenciesToAdd.isNotEmpty()) {
+          updatedEntities.modifyModuleEntity(moduleEntity) { dependencies.addAll(dependenciesToAdd) }
         }
       }
-    }
   }
 
   /** Convert the IDE model to an id for the map we use. */
-  private fun IdeModuleLibrary.id() = SourceSetModuleId(
-    BuildId(File(buildId)),
-    projectPath,
-    sourceSet.sourceSetName
-  )
+  private fun IdeModuleLibrary.id() = SourceSetModuleId(BuildId(File(buildId)), projectPath, sourceSet.sourceSetName)
 
   fun IdeArtifactLibrary.processName() = "Gradle: $name"
 
-  /** Converts a file to the exact format required by the platform .*/
-  fun File.toLibraryRootPath() = libraryRootPathCache.computeIfAbsent(this) {
-    androidProjectContext.context.virtualFileUrlManager.getOrCreateFromUrl(VfsUtil.getUrlForLibraryRoot(this))
-  }
+  /** Converts a file to the exact format required by the platform . */
+  fun File.toLibraryRootPath() =
+    libraryRootPathCache.computeIfAbsent(this) {
+      androidProjectContext.context.virtualFileUrlManager.getOrCreateFromUrl(VfsUtil.getUrlForLibraryRoot(this))
+    }
 
   /* Creates a library entity or find an existing one from storage, also counting any newly created ones. */
   fun getOrCreateLibraryEntity(moduleName: String, name: String, libraryEntityProvider: () -> LibraryEntityBuilder): LibraryEntity {
     fun lookup(tableId: LibraryTableId) = libraryIdToEntityMap[LibraryId(name, tableId)]
     // Look up existing modules, reducing specificity of the table each time
-    val existingProjectLibrary = lookup(LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName)))
-                                 ?: lookup(LibraryTableId.ProjectLibraryTableId)
+    val existingProjectLibrary =
+      lookup(LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName))) ?: lookup(LibraryTableId.ProjectLibraryTableId)
 
     if (existingProjectLibrary != null) {
       return existingProjectLibrary
@@ -184,60 +176,57 @@ private class SyncContributorAndroidProjectDependenciesContext(
   }
 
   /** Tries to resolve any existing annotation files on disk next to an artifact jar. */
-  fun File.annotationRoots() = listOf(
-    parentFile.resolve(FN_ANNOTATIONS_ZIP),
-    parentFile.resolve(name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP)
-  ).filter { it.isFile }.map {
-    LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId(AnnotationOrderRootType.getInstance().name()))
-  }
+  fun File.annotationRoots() =
+    listOf(parentFile.resolve(FN_ANNOTATIONS_ZIP), parentFile.resolve(name.removeSuffix(DOT_JAR) + "-" + FN_ANNOTATIONS_ZIP))
+      .filter { it.isFile }
+      .map { LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId(AnnotationOrderRootType.getInstance().name())) }
 
   fun IdeArtifactLibrary.sourcesAndJavaDocRoots() =
     listOfNotNull(docJar?.let { LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId(JavadocOrderRootType.getInstance().name())) }) +
-    srcJars.map { LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId.SOURCES) }
-
+      srcJars.map { LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId.SOURCES) }
 
   fun IdeJavaLibrary.getOrCreateLibraryEntity(entitySource: AndroidGradleSourceSetEntitySource, moduleName: String) =
     getOrCreateLibraryEntity(moduleName, processName()) {
       LibraryEntity(
         processName(),
         LibraryTableId.ProjectLibraryTableId,
-        roots = listOf(
-          LibraryRoot(artifact.toLibraryRootPath(), LibraryRootTypeId.COMPILED))
-                + sourcesAndJavaDocRoots()
-                + artifact.annotationRoots()
-        ,
-        entitySource = entitySource
+        roots =
+          listOf(LibraryRoot(artifact.toLibraryRootPath(), LibraryRootTypeId.COMPILED)) +
+            sourcesAndJavaDocRoots() +
+            artifact.annotationRoots(),
+        entitySource = entitySource,
       )
     }
-
 
   fun IdeAndroidLibrary.getOrCreateLibraryEntity(entitySource: AndroidGradleSourceSetEntitySource, moduleName: String) =
     getOrCreateLibraryEntity(moduleName, processName()) {
       LibraryEntity(
         processName(),
         LibraryTableId.ProjectLibraryTableId,
-        roots = (compileJarFiles + listOf(resFolder, manifest))
-                  .filter { it.exists() }
-                  .flatMap { listOf(LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId.COMPILED)) + it.annotationRoots()} +
-                sourcesAndJavaDocRoots(),
-        entitySource = entitySource
+        roots =
+          (compileJarFiles + listOf(resFolder, manifest))
+            .filter { it.exists() }
+            .flatMap { listOf(LibraryRoot(it.toLibraryRootPath(), LibraryRootTypeId.COMPILED)) + it.annotationRoots() } +
+            sourcesAndJavaDocRoots(),
+        entitySource = entitySource,
       )
     }
 }
-
 
 internal fun setupAndroidDependenciesForAllProjects(
   context: ProjectResolverContext,
   allAndroidContexts: List<SyncContributorAndroidProjectContext>,
   storage: ImmutableEntityStorage,
-  phase: GradleSyncPhase
+  phase: GradleSyncPhase,
 ): ImmutableEntityStorage {
   val project = context.project
 
-  val libraryTable = context.getRootModel(IdeUnresolvedLibraryTableImpl::class.java) ?: run {
-    LOG.info("No library table found, returning early with no updates")
-    return storage
-  }
+  val libraryTable =
+    context.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
+      ?: run {
+        LOG.info("No library table found, returning early with no updates")
+        return storage
+      }
   val updatedEntities = MutableEntityStorage.from(storage)
   val ideLibraryModelResolver = buildIdeLibraryModelResolver(context, libraryTable)
   val sourceSetModuleIdToModuleEntityMap = buildSourceSetModuleIdToModuleEntityMap(storage, context, project, phase, allAndroidContexts)
@@ -245,50 +234,50 @@ internal fun setupAndroidDependenciesForAllProjects(
   // Make the storage state into a mutable one to be able track newly created entities.
   val libraryIdToEntityMap: MutableMap<LibraryId, LibraryEntity> =
     storage.entities(LibraryEntity::class.java).associateBy { it.symbolicId }.toMutableMap()
-  val moduleNameToEntityMap: Map<String, ModuleEntity> =
-    storage.entities(ModuleEntity::class.java).associateBy { it.name }
+  val moduleNameToEntityMap: Map<String, ModuleEntity> = storage.entities(ModuleEntity::class.java).associateBy { it.name }
   val libraryRootPathCache = mutableMapOf<File, VirtualFileUrl>()
 
   allAndroidContexts.forEach {
     SyncContributorAndroidProjectDependenciesContext(
-      it,
-      updatedEntities,
-      ideLibraryModelResolver,
-      sourceSetModuleIdToModuleEntityMap,
-      moduleNameToEntityMap,
-      libraryIdToEntityMap,
-      libraryRootPathCache
-    ).populateDependenciesForAndroidProject()
+        it,
+        updatedEntities,
+        ideLibraryModelResolver,
+        sourceSetModuleIdToModuleEntityMap,
+        moduleNameToEntityMap,
+        libraryIdToEntityMap,
+        libraryRootPathCache,
+      )
+      .populateDependenciesForAndroidProject()
   }
   return updatedEntities.toSnapshot()
 }
 
-
 private fun SyncContributorAndroidProjectDependenciesContext.populateDependenciesForAndroidProject() {
-  val ideVariant = with(androidProjectContext) {
-    val variant = context.getProjectModel(androidProjectContext.projectModel, IdeVariantCore::class.java) as? IdeVariantCoreImpl
-    androidProjectContext.kaptGradleModel?.let { variant?.patchForKapt(it) } ?: variant ?: return
-  }
+  val ideVariant =
+    with(androidProjectContext) {
+      val variant = context.getProjectModel(androidProjectContext.projectModel, IdeVariantCore::class.java) as? IdeVariantCoreImpl
+      androidProjectContext.kaptGradleModel?.let { variant?.patchForKapt(it) } ?: variant ?: return
+    }
 
-  val classpathsToProcess = listOfNotNull(
-    ideVariant.mainArtifact.asCompileDependency(),
-    ideVariant.testFixturesArtifact?.asCompileDependency(),
-    ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.asTestDependency(),
-  ) + ideVariant.hostTestArtifacts.map {
-    it.asTestDependency()
-  } + if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
-    // TODO(445381129): Pass the dependencies through once they have been added to the test suite artifact
-    ideVariant.testSuiteArtifacts.map { it.asEmptyTestDependency() }
-  } else {
-    emptyList()
-  }
+  val classpathsToProcess =
+    listOfNotNull(
+      ideVariant.mainArtifact.asCompileDependency(),
+      ideVariant.testFixturesArtifact?.asCompileDependency(),
+      ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.asTestDependency(),
+    ) +
+      ideVariant.hostTestArtifacts.map { it.asTestDependency() } +
+      if (StudioFlags.AGP_TEST_SUITES_ENABLED.get()) {
+        // TODO(445381129): Pass the dependencies through once they have been added to the test suite artifact
+        ideVariant.testSuiteArtifacts.map { it.asEmptyTestDependency() }
+      } else {
+        emptyList()
+      }
 
-  classpathsToProcess.forEach { (name, classpath, scope) ->
-    classpath.populateDependenciesForModule(scope, name)
-  }
+  classpathsToProcess.forEach { (name, classpath, scope) -> classpath.populateDependenciesForModule(scope, name) }
 
-  val allKnownModuleEntities = listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) +
-                               knownModuleNames.mapNotNull { moduleNameToEntityMap[it] }
+  val allKnownModuleEntities =
+    listOfNotNull(moduleNameToEntityMap[androidProjectContext.resolveHolderModuleName()]) +
+      knownModuleNames.mapNotNull { moduleNameToEntityMap[it] }
 
   allKnownModuleEntities.forEach { entity ->
     attachDependenciesToModuleEntity(updatedEntities, entity, IdeVariantImpl(ideVariant, ideLibraryModelResolver))
@@ -300,51 +289,55 @@ private fun SyncContributorAndroidProjectDependenciesContext.populateDependencie
 /* Used to refer to the library table from dependency models. */
 private fun buildIdeLibraryModelResolver(
   context: ProjectResolverContext,
-  libraryTable: IdeUnresolvedLibraryTable
+  libraryTable: IdeUnresolvedLibraryTable,
 ): IdeLibraryModelResolverImpl {
   val artifactToSourceSetMap = buildJarArtifactToSourceSetMapFromPlatformModels(context)
-  val resolvedTable = ResolvedLibraryTableBuilder(
-    getGradlePathBy = { null },
-    getModuleDataNode = { null },
-    resolveArtifact = { artifactToSourceSetMap[it] },
-    resolveKmpAndroidMainSourceSet = { null },
-    ignoreKmpFailures=true
-  ).buildResolvedLibraryTable(libraryTable)
+  val resolvedTable =
+    ResolvedLibraryTableBuilder(
+        getGradlePathBy = { null },
+        getModuleDataNode = { null },
+        resolveArtifact = { artifactToSourceSetMap[it] },
+        resolveKmpAndroidMainSourceSet = { null },
+        ignoreKmpFailures = true,
+      )
+      .buildResolvedLibraryTable(libraryTable)
 
-  return IdeLibraryModelResolverImpl.fromLibraryTables(
-    globalLibraryTable = resolvedTable,
-    kmpLibraryTable = null
-  )
+  return IdeLibraryModelResolverImpl.fromLibraryTables(globalLibraryTable = resolvedTable, kmpLibraryTable = null)
 }
 
 /**
- * Artifacts jar paths are  used to resolve to Java projects to their source sets. This builds a mapping from jars to their Gradle paths
+ * Artifacts jar paths are used to resolve to Java projects to their source sets. This builds a mapping from jars to their Gradle paths
  * representing the source set modules.
  *
  * A jar might map to multiple source sets (as it's not specific enough), so each file might correspond to multiple source sets.
  */
-private fun buildJarArtifactToSourceSetMapFromPlatformModels(context: ProjectResolverContext): Map<File?, List<GradleSourceSetProjectPath>> = context.allBuilds.flatMap { buildModel ->
-  buildModel.projects.flatMap { projectModel ->
-    context.getProjectModel(projectModel, GradleSourceSetModel::class.java)
-      ?.sourceSets.orEmpty()
-      .values.flatMap { sourceSet ->
-        sourceSet.artifacts.map {
-          it to GradleSourceSetProjectPath(
-            PathUtil.toSystemIndependentName(buildModel.rootProject.projectDirectory.path),
-            projectModel.path,
-            IdeModuleSourceSetImpl.wellKnownOrCreate(sourceSet.name)
-          )
-        }
+private fun buildJarArtifactToSourceSetMapFromPlatformModels(
+  context: ProjectResolverContext
+): Map<File?, List<GradleSourceSetProjectPath>> =
+  context.allBuilds
+    .flatMap { buildModel ->
+      buildModel.projects.flatMap { projectModel ->
+        context
+          .getProjectModel(projectModel, GradleSourceSetModel::class.java)
+          ?.sourceSets
+          .orEmpty()
+          .values
+          .flatMap { sourceSet ->
+            sourceSet.artifacts.map {
+              it to
+                GradleSourceSetProjectPath(
+                  PathUtil.toSystemIndependentName(buildModel.rootProject.projectDirectory.path),
+                  projectModel.path,
+                  IdeModuleSourceSetImpl.wellKnownOrCreate(sourceSet.name),
+                )
+            }
+          }
+          .groupBy({ (artifact, sourceSets) -> artifact }) { (artifact, sourceSets) -> sourceSets }
+          .entries
+          .filter { (artifact, sourceSets) -> sourceSets.isNotEmpty() }
       }
-      .groupBy( { (artifact, sourceSets) -> artifact } ) {
-        (artifact, sourceSets) -> sourceSets
-      }.entries.filter { (artifact, sourceSets) ->
-        sourceSets.isNotEmpty()
-      }
-  }
-}.associate { (artifact, sourceSets) ->
-  artifact to sourceSets
-}
+    }
+    .associate { (artifact, sourceSets) -> artifact to sourceSets }
 
 /** Returns the mapping from [SourceSetModuleId] to module entities for all projects. */
 private fun buildSourceSetModuleIdToModuleEntityMap(
@@ -352,64 +345,83 @@ private fun buildSourceSetModuleIdToModuleEntityMap(
   context: ProjectResolverContext,
   project: Project,
   phase: GradleSyncPhase,
-  allAndroidContexts: List<SyncContributorAndroidProjectContext>
+  allAndroidContexts: List<SyncContributorAndroidProjectContext>,
 ): Map<SourceSetModuleId, ModuleEntity> {
   // First build a map of all known source sets
-  val allSourceSetModuleIdsMap: Map<String, SourceSetModuleId> = (
-    buildAndroidSourceSetModuleIdsMap(allAndroidContexts, context) +
-    buildJavaSourceSetModuleIdsMap(context, project, phase)).toMap()
+  val allSourceSetModuleIdsMap: Map<String, SourceSetModuleId> =
+    (buildAndroidSourceSetModuleIdsMap(allAndroidContexts, context) + buildJavaSourceSetModuleIdsMap(context, project, phase)).toMap()
 
   // And associate them with existing entities
-  return storage.entities(ModuleEntity::class.java).mapNotNull { entity ->
-    val exModuleOptions = entity.exModuleOptions ?: return@mapNotNull null.also {
-      LOG.debug("External module options not found for module ${entity.name}")
+  return storage
+    .entities(ModuleEntity::class.java)
+    .mapNotNull { entity ->
+      val exModuleOptions =
+        entity.exModuleOptions ?: return@mapNotNull null.also { LOG.debug("External module options not found for module ${entity.name}") }
+      val sourceSetModuleId =
+        allSourceSetModuleIdsMap[exModuleOptions.linkedProjectId]
+          ?: return@mapNotNull null.also { LOG.debug("Source set mapping not found for ${exModuleOptions.linkedProjectId}") }
+      sourceSetModuleId to entity
     }
-    val sourceSetModuleId = allSourceSetModuleIdsMap[exModuleOptions.linkedProjectId] ?: return@mapNotNull null.also {
-      LOG.debug("Source set mapping not found for ${exModuleOptions.linkedProjectId}")
-    }
-    sourceSetModuleId to entity
-  }.toMap()
+    .toMap()
 }
 
 /** Returns the mapping from [SourceSetModuleId] to module entities for Java projects. */
-private fun buildJavaSourceSetModuleIdsMap(context: ProjectResolverContext, project: Project, phase: GradleSyncPhase): Map<String, SourceSetModuleId> = context.allBuilds.flatMap { buildModel ->
-  buildModel.projects.flatMap { projectModel ->
-    with(SyncContributorProjectContext(context, project, phase, buildModel, projectModel)) {
-      val sourceSetModel = context.getProjectModel(projectModel, GradleSourceSetModel::class.java) ?: (return@flatMap emptyList()).also {
-        LOG.debug("No GradleSourceSet model found for ${projectModel.path}")
-      }
-      sourceSetModel.sourceSets.values.map {
-        val linkedProjectId = GradleProjectResolverUtil.getModuleId(context, externalProject, it)
-        linkedProjectId to SourceSetModuleId(
-          buildId = BuildId(buildModel.buildIdentifier.rootDir),
-          projectPath = projectModel.path,
-          sourceSetName = it.name,
-        )
+private fun buildJavaSourceSetModuleIdsMap(
+  context: ProjectResolverContext,
+  project: Project,
+  phase: GradleSyncPhase,
+): Map<String, SourceSetModuleId> =
+  context.allBuilds
+    .flatMap { buildModel ->
+      buildModel.projects.flatMap { projectModel ->
+        with(SyncContributorProjectContext(context, project, phase, buildModel, projectModel)) {
+          val sourceSetModel =
+            context.getProjectModel(projectModel, GradleSourceSetModel::class.java)
+              ?: (return@flatMap emptyList()).also { LOG.debug("No GradleSourceSet model found for ${projectModel.path}") }
+          sourceSetModel.sourceSets.values.map {
+            val linkedProjectId = GradleProjectResolverUtil.getModuleId(context, externalProject, it)
+            linkedProjectId to
+              SourceSetModuleId(
+                buildId = BuildId(buildModel.buildIdentifier.rootDir),
+                projectPath = projectModel.path,
+                sourceSetName = it.name,
+              )
+          }
+        }
       }
     }
-  }
-}.toMap()
+    .toMap()
 
 /** Returns the mapping from [SourceSetModuleId] to module entities for Android projects. */
 private fun buildAndroidSourceSetModuleIdsMap(
   allAndroidContexts: List<SyncContributorAndroidProjectContext>,
-  context: ProjectResolverContext
-): Map<String, SourceSetModuleId> = allAndroidContexts.flatMap {
-  with(it) {
-    // Well known source sets can be a target dependency, so it's what we populate the map with
-    IdeModuleWellKnownSourceSet.entries.map {
-      val linkedProjectId = "${GradleProjectResolverUtil.getModuleId(context, externalProject)}:${it.sourceSetName}"
-      linkedProjectId to SourceSetModuleId(
-        buildId = BuildId(buildModel.buildIdentifier.rootDir),
-        projectPath = projectModel.path,
-        sourceSetName = it.sourceSetName
-      )
+  context: ProjectResolverContext,
+): Map<String, SourceSetModuleId> =
+  allAndroidContexts
+    .flatMap {
+      with(it) {
+        // Well known source sets can be a target dependency, so it's what we populate the map with
+        IdeModuleWellKnownSourceSet.entries.map {
+          val linkedProjectId = "${GradleProjectResolverUtil.getModuleId(context, externalProject)}:${it.sourceSetName}"
+          linkedProjectId to
+            SourceSetModuleId(
+              buildId = BuildId(buildModel.buildIdentifier.rootDir),
+              projectPath = projectModel.path,
+              sourceSetName = it.sourceSetName,
+            )
+        }
+      }
     }
-  }
-}.toMap()
+    .toMap()
 
+private fun IdeAndroidArtifactCore.asCompileDependency() =
+  Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.COMPILE)
 
-private fun IdeAndroidArtifactCore.asCompileDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.COMPILE)
-private fun IdeAndroidArtifactCore.asTestDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
-private fun IdeJavaArtifactCore.asTestDependency() = Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
-private fun IdeTestSuiteVariantTargetImpl.asEmptyTestDependency() = Triple(suiteName, IdeDependenciesCoreDirect(emptyList()), DependencyScope.TEST)
+private fun IdeAndroidArtifactCore.asTestDependency() =
+  Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
+
+private fun IdeJavaArtifactCore.asTestDependency() =
+  Triple(name.toWellKnownSourceSet().sourceSetName, compileClasspathCore, DependencyScope.TEST)
+
+private fun IdeTestSuiteVariantTargetImpl.asEmptyTestDependency() =
+  Triple(suiteName, IdeDependenciesCoreDirect(emptyList()), DependencyScope.TEST)

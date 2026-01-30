@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.dependencies
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 
-/**
- * Similar to DependenciesHelper to manage adding plugins
- * to studio projects
- */
+/** Similar to DependenciesHelper to manage adding plugins to studio projects */
 abstract class PluginsHelper {
   companion object {
     @JvmStatic

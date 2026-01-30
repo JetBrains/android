@@ -16,8 +16,4 @@
 package com.android.tools.idea.insights.model.common
 
 /** A named group of [DataPoint]s. */
-data class StatsGroup<T : Number>(
-  val groupName: String,
-  val percentage: T,
-  val breakdown: List<DataPoint<T>>,
-)
+data class StatsGroup<T : Number>(val groupName: String, val percentage: T, val breakdown: List<DataPoint<T>>)

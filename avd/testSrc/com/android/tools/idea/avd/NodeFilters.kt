@@ -28,15 +28,13 @@ internal fun SemanticsNodeInteractionsProvider.onNodeWithEditableText(
   substring: Boolean = false,
   ignoreCase: Boolean = false,
   useUnmergedTree: Boolean = false,
-): SemanticsNodeInteraction =
-  onNode(hasSetTextAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
+): SemanticsNodeInteraction = onNode(hasSetTextAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
 
 internal fun SemanticsNodeInteractionsProvider.onNodeWithClickableText(
   text: String,
   substring: Boolean = false,
   ignoreCase: Boolean = false,
   useUnmergedTree: Boolean = false,
-): SemanticsNodeInteraction =
-  onNode(hasClickAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
+): SemanticsNodeInteraction = onNode(hasClickAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
 
 internal fun SemanticsNodeInteractionsProvider.onTooltips() = onNode(isPopup()).onChildren()

@@ -50,8 +50,7 @@ internal class LiveEditIssueNotificationActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
 
   @Before
   fun setUp() {
@@ -63,25 +62,27 @@ internal class LiveEditIssueNotificationActionTest {
     val service = LiveEditService.getInstance(projectRule.project)
     val device: IDevice = mock()
 
-    val context = SimpleDataContext.builder()
-      .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
-      .add(CommonDataKeys.PROJECT, projectRule.project)
-      .build()
+    val context =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .build()
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    LiveEditDeviceMap.deviceMap[projectRule.project] = object : DeviceGetter {
-      override fun serial(dataContext: DataContext): String {
-        return "serial"
-      }
+    LiveEditDeviceMap.deviceMap[projectRule.project] =
+      object : DeviceGetter {
+        override fun serial(dataContext: DataContext): String {
+          return "serial"
+        }
 
-      override fun device(dataContext: DataContext): IDevice {
-        return device
-      }
+        override fun device(dataContext: DataContext): IDevice {
+          return device
+        }
 
-      override fun devices(): List<IDevice> {
-        return listOf(device)
+        override fun devices(): List<IDevice> {
+          return listOf(device)
+        }
       }
-    }
     service.getDeployMonitor().liveEditDevices.addDevice(device, LiveEditStatus.UpToDate)
 
     val action = LiveEditIssueNotificationAction()
@@ -99,20 +100,22 @@ internal class LiveEditIssueNotificationActionTest {
       deviceModel = "model",
       release = "10.0.0",
       sdk = AndroidApiLevel(30),
-      hostConnectionType = DeviceState.HostConnectionType.USB)
+      hostConnectionType = DeviceState.HostConnectionType.USB,
+    )
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     // Event two. Pretending we are running device window. We should have the shorten status.
     val file = projectRule.fixture.configureByText("A.kt", "")
-    runBlocking(uiThread) { projectRule.fixture.openFileInEditor (file.virtualFile) }
+    runBlocking(uiThread) { projectRule.fixture.openFileInEditor(file.virtualFile) }
 
     val toolWindow: ToolWindow = mock()
     whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
-    val context = SimpleDataContext.builder()
-      .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
-      .add(CommonDataKeys.PROJECT, projectRule.project)
-      .add(SERIAL_NUMBER_KEY, device.serialNumber)
-      .build()
+    val context =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(SERIAL_NUMBER_KEY, device.serialNumber)
+        .build()
 
     service.getDeployMonitor().liveEditDevices.addDevice(device, LiveEditStatus.UpToDate)
 

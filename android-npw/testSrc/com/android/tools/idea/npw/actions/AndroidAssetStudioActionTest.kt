@@ -43,11 +43,7 @@ class AndroidAssetStudioActionTest {
   @get:Rule
   val projectRule =
     AndroidProjectRule.withAndroidModels(
-      AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        createAndroidProjectBuilderForDefaultTestProjectStructure(),
-      )
+      AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure())
     )
 
   @Test
@@ -56,14 +52,8 @@ class AndroidAssetStudioActionTest {
 
     // Use paths that match the default test project structure (legacy/IntelliJ style likely)
     // based on debug output showing 'res' at root.
-    projectRule.fixture.addFileToProject(
-      "AndroidManifest.xml",
-      "<manifest package=\"com.example\"/>",
-    )
-    val stringsVirtual =
-      projectRule.fixture
-        .addFileToProject("res/values/strings.xml", "<resources></resources>")
-        .virtualFile
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
+    val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
     projectRule.fixture.addFileToProject("src/Main.java", "")
 
     ApplicationManager.getApplication().runReadAction {
@@ -77,11 +67,7 @@ class AndroidAssetStudioActionTest {
       var createWizardCalled = false
       val action =
         object : AndroidAssetStudioAction("Test", "Test Description") {
-          override fun createWizard(
-            facet: AndroidFacet,
-            template: NamedModuleTemplate,
-            resFolder: File,
-          ): ModelWizard {
+          override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {
             createWizardCalled = true
             return mock(ModelWizard::class.java)
           }
@@ -121,23 +107,14 @@ class AndroidAssetStudioActionTest {
   @Test
   fun testUpdateDisabledWhenMissingInfo() {
     val project = projectRule.project
-    projectRule.fixture.addFileToProject(
-      "AndroidManifest.xml",
-      "<manifest package=\"com.example\"/>",
-    )
-    val stringsVirtual =
-      projectRule.fixture
-        .addFileToProject("res/values/strings.xml", "<resources></resources>")
-        .virtualFile
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", "<manifest package=\"com.example\"/>")
+    val stringsVirtual = projectRule.fixture.addFileToProject("res/values/strings.xml", "<resources></resources>").virtualFile
 
     ApplicationManager.getApplication().runReadAction {
       val action =
         object : AndroidAssetStudioAction("Test", "Test Description") {
-          override fun createWizard(
-            facet: AndroidFacet,
-            template: NamedModuleTemplate,
-            resFolder: File,
-          ): ModelWizard = mock(ModelWizard::class.java)
+          override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard =
+            mock(ModelWizard::class.java)
 
           override fun showWizard(wizard: ModelWizard, facet: AndroidFacet) {}
 
@@ -151,30 +128,20 @@ class AndroidAssetStudioActionTest {
 
       // 1. Missing Project
       var dataContext =
-        SimpleDataContext.builder()
-          .add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual)
-          .add(LangDataKeys.IDE_VIEW, ideView)
-          .build()
+        SimpleDataContext.builder().add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual).add(LangDataKeys.IDE_VIEW, ideView).build()
       var event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
       action.update(event)
       assertThat(event.presentation.isVisible).isFalse()
 
       // 2. Missing Virtual File
-      dataContext =
-        SimpleDataContext.builder()
-          .add(CommonDataKeys.PROJECT, project)
-          .add(LangDataKeys.IDE_VIEW, ideView)
-          .build()
+      dataContext = SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).add(LangDataKeys.IDE_VIEW, ideView).build()
       event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
       action.update(event)
       assertThat(event.presentation.isVisible).isFalse()
 
       // 3. Missing IdeView
       dataContext =
-        SimpleDataContext.builder()
-          .add(CommonDataKeys.PROJECT, project)
-          .add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual)
-          .build()
+        SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).add(CommonDataKeys.VIRTUAL_FILE, stringsVirtual).build()
       event = AnActionEvent.createEvent(dataContext, null, "menu", ActionUiKind.POPUP, null)
       action.update(event)
       assertThat(event.presentation.isVisible).isFalse()

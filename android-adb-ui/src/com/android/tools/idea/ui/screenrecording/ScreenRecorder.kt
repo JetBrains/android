@@ -36,8 +36,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
@@ -45,6 +43,8 @@ import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
 /** Amount of time before reaching recording time limit when the recording is shown as stopping. */
@@ -55,11 +55,7 @@ private const val ADVANCE_NOTICE_MILLIS = 100
  *
  * TODO(b/235094713): Add tests
  */
-internal class ScreenRecorder(
-  private val project: Project,
-  private val recordingProvider: RecordingProvider,
-  deviceName: String,
-) {
+internal class ScreenRecorder(private val project: Project, private val recordingProvider: RecordingProvider, deviceName: String) {
 
   private val settings = DeviceScreenRecordingSettings.getInstance()
   private val dialogTitle = message("screenrecord.dialog.title", deviceName)
@@ -85,24 +81,22 @@ internal class ScreenRecorder(
     try {
       recordingHandle.await()
       closeDialog(dialog)
-    }
-    catch (e: CancellationException) {
+    } catch (e: CancellationException) {
       closeDialog(dialog)
       try {
         recordingProvider.cancelRecording()
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         thisLogger().warn(message("screenrecord.error.cancelling"), e)
       }
       throw e
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       closeDialog(dialog)
       thisLogger().warn("Screen recording failed", e)
-      val message = when (val cause = e.message) {
-        null -> message("screenrecord.error")
-        else -> message("screenrecord.error.with.cause", cause)
-      }
+      val message =
+        when (val cause = e.message) {
+          null -> message("screenrecord.error")
+          else -> message("screenrecord.error.with.cause", cause)
+        }
       showErrorDialog(message)
       return
     }
@@ -120,18 +114,21 @@ internal class ScreenRecorder(
     val saveConfigResolver = project.service<SaveConfigurationResolver>()
     val saveConfig = settings.saveConfig
     val expandedFilename =
-      saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate, recordingProvider.fileExtension,
-                                               recordingTimestamp, settings.recordingCount + 1)
+      saveConfigResolver.expandFilenamePattern(
+        saveConfig.saveLocation,
+        saveConfig.filenameTemplate,
+        recordingProvider.fileExtension,
+        recordingTimestamp,
+        settings.recordingCount + 1,
+      )
     val recordingFile = Paths.get(expandedFilename)
 
     try {
       recordingProvider.pullRecording(recordingFile)
       settings.recordingCount++
-    }
-    catch (e: CancellationException) {
+    } catch (e: CancellationException) {
       throw e
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       val message = message("screenrecord.error.save", recordingFile)
       thisLogger().warn(message, e)
       showErrorDialog(message)
@@ -154,9 +151,7 @@ internal class ScreenRecorder(
   }
 
   private fun showErrorDialog(errorMessage: String) {
-    UIUtil.invokeLaterIfNeeded {
-      Messages.showErrorDialog(errorMessage, message("screenrecord.error.popup.title"))
-    }
+    UIUtil.invokeLaterIfNeeded { Messages.showErrorDialog(errorMessage, message("screenrecord.error.popup.title")) }
   }
 
   private suspend fun getTargetFile(extension: String): Path? {
@@ -188,4 +183,3 @@ internal class ScreenRecorder(
     }
   }
 }
-

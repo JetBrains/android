@@ -37,8 +37,7 @@ internal abstract class AbstractStreamingActionGroup<T : ActionGroup, U : Action
   override fun update(event: AnActionEvent) {
     if (getEmulatorController(event) == null) {
       physicalDeviceAction.update(event)
-    }
-    else {
+    } else {
       virtualDeviceAction.update(event)
     }
   }
@@ -46,8 +45,7 @@ internal abstract class AbstractStreamingActionGroup<T : ActionGroup, U : Action
   override fun actionPerformed(event: AnActionEvent) {
     if (getEmulatorController(event) == null) {
       physicalDeviceAction.actionPerformed(event)
-    }
-    else {
+    } else {
       virtualDeviceAction.actionPerformed(event)
     }
   }
@@ -55,12 +53,11 @@ internal abstract class AbstractStreamingActionGroup<T : ActionGroup, U : Action
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
     return if (event == null || getEmulatorController(event) == null) {
       physicalDeviceAction.getChildren(event)
-    }
-    else {
+    } else {
       virtualDeviceAction.getChildren(event)
     }
   }
 }
 
 internal open class StreamingActionGroup(virtualDeviceAction: ActionGroup, physicalDeviceAction: ActionGroup) :
-    AbstractStreamingActionGroup<ActionGroup, ActionGroup>(virtualDeviceAction, physicalDeviceAction)
+  AbstractStreamingActionGroup<ActionGroup, ActionGroup>(virtualDeviceAction, physicalDeviceAction)

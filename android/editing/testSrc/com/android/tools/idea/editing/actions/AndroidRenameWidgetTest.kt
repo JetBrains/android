@@ -42,10 +42,8 @@ class AndroidRenameWidgetTest {
   @get:Rule var androidProjectRule: AndroidProjectRule = AndroidProjectRule.withSdk()
 
   private val myFixture by lazy {
-    androidProjectRule.fixture.apply {
-      testDataPath =
-        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
-    } as JavaCodeInsightTestFixture
+    androidProjectRule.fixture.apply { testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString() }
+      as JavaCodeInsightTestFixture
   }
 
   private val myProject by lazy { androidProjectRule.project }
@@ -71,8 +69,7 @@ class AndroidRenameWidgetTest {
 
   @Test
   fun renameWidget() {
-    val file: VirtualFile =
-      myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml")
+    val file: VirtualFile = myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml")
     myFixture.configureFromExistingVirtualFile(file)
 
     checkAndRename("MyWidget1")
@@ -82,8 +79,7 @@ class AndroidRenameWidgetTest {
 
   @Test
   fun renameWidget1() {
-    val file: VirtualFile =
-      myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml")
+    val file: VirtualFile = myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml")
     myFixture.configureFromExistingVirtualFile(file)
 
     checkAndRename("MyWidget1")
@@ -93,8 +89,7 @@ class AndroidRenameWidgetTest {
 
   @Test
   fun renameWidgetPackage1() {
-    val file: VirtualFile =
-      myFixture.copyFileToProject(BASE_PATH + "layout_widget1.xml", "res/layout/layout_widget1.xml")
+    val file: VirtualFile = myFixture.copyFileToProject(BASE_PATH + "layout_widget1.xml", "res/layout/layout_widget1.xml")
     myFixture.configureFromExistingVirtualFile(file)
 
     checkAndRename("newPackage")
@@ -113,23 +108,14 @@ class AndroidRenameWidgetTest {
         .trimIndent(),
     )
     myFixture.copyFileToProject(BASE_PATH + "MyPreference.java", "src/p1/p2/MyPreference.java")
-    val f: VirtualFile =
-      myFixture.copyFileToProject(BASE_PATH + "layout_widget2.xml", "res/layout/layout_widget2.xml")
+    val f: VirtualFile = myFixture.copyFileToProject(BASE_PATH + "layout_widget2.xml", "res/layout/layout_widget2.xml")
     myFixture.configureFromExistingVirtualFile(f)
     myFixture.copyFileToProject(BASE_PATH + "custom_pref.xml", "res/xml/custom_pref.xml")
 
     doMovePackage("p1.p2", "p1.newp")
 
-    myFixture.checkResultByFile(
-      "res/layout/layout_widget2.xml",
-      BASE_PATH + "layout_widget2_after.xml",
-      false,
-    )
-    myFixture.checkResultByFile(
-      "res/xml/custom_pref.xml",
-      BASE_PATH + "custom_pref_after.xml",
-      false,
-    )
+    myFixture.checkResultByFile("res/layout/layout_widget2.xml", BASE_PATH + "layout_widget2_after.xml", false)
+    myFixture.checkResultByFile("res/xml/custom_pref.xml", BASE_PATH + "custom_pref_after.xml", false)
   }
 
   private fun doMovePackage(packageName: String, newPackageName: String) {
@@ -156,11 +142,7 @@ class AndroidRenameWidgetTest {
 
   private fun checkAndRename(newName: String) {
     val action = RenameElementAction()
-    val e =
-      TestActionEvent.createTestEvent(
-        action,
-        DataManager.getInstance().getDataContext(myFixture.editor.component),
-      )
+    val e = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(myFixture.editor.component))
 
     runReadAction { action.update(e) }
 

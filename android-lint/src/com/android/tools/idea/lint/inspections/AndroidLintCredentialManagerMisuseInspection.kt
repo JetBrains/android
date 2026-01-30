@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.CredentialManagerMisuseDetector
 
 class AndroidLintCredentialManagerMisuseInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.credential.manager.misuse"),
-    CredentialManagerMisuseDetector.ISSUE,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.credential.manager.misuse"), CredentialManagerMisuseDetector.ISSUE)

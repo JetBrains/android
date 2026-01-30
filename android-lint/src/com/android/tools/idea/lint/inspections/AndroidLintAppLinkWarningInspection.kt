@@ -20,7 +20,4 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AppLinksValidDetector
 
 class AndroidLintAppLinkWarningInspection :
-  AndroidLintInspectionBase(
-    message("android.lint.inspections.app.link.warning"),
-    AppLinksValidDetector.APP_LINK_WARNING,
-  )
+  AndroidLintInspectionBase(message("android.lint.inspections.app.link.warning"), AppLinksValidDetector.APP_LINK_WARNING)

@@ -28,30 +28,26 @@ import javax.swing.JComponent
 
 private const val TITLE = "Device Settings"
 
-internal class UiSettingsHeader(
-  private val model: UiSettingsModel
-) : BorderLayoutPanel() {
+internal class UiSettingsHeader(private val model: UiSettingsModel) : BorderLayoutPanel() {
   init {
     background = JBUI.CurrentTheme.ComplexPopup.HEADER_BACKGROUND
-    add(panel {
-      row(title(TITLE)) {
-        this
-        link(RESET_TITLE) { model.resetAction() }
-          .accessibleName(RESET_TITLE)
-          .apply { component.name = RESET_TITLE }
-          .visibleIf(model.differentFromDefault)
-          .align(AlignX.RIGHT)
-      }
-    }.apply {
-      isOpaque = false
-    })
+    add(
+      panel {
+          row(title(TITLE)) {
+            this
+            link(RESET_TITLE) { model.resetAction() }
+              .accessibleName(RESET_TITLE)
+              .apply { component.name = RESET_TITLE }
+              .visibleIf(model.differentFromDefault)
+              .align(AlignX.RIGHT)
+          }
+        }
+        .apply { isOpaque = false }
+    )
   }
 
-  /**
-   * Create a label for the title of the panel.
-   */
-  private fun title(title: String): JBLabel =
-    JBLabel(title).apply { font = UIUtil.getLabelFont().deriveFont(Font.BOLD) }
+  /** Create a label for the title of the panel. */
+  private fun title(title: String): JBLabel = JBLabel(title).apply { font = UIUtil.getLabelFont().deriveFont(Font.BOLD) }
 
   private fun <T : JComponent> Cell<T>.visibleIf(predicate: ReadOnlyProperty<Boolean>): Cell<T> {
     visible(predicate.value)

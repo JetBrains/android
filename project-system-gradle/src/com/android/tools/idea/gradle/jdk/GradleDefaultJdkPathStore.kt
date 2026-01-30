@@ -19,9 +19,7 @@ import com.intellij.ide.util.PropertiesComponent
 
 private const val GRADLE_JDK_PATH_KEY = "gradle.jdk.path"
 
-/**
- * Simple persistence based on [PropertiesComponent] for the default JDK used to run Gradle daemon.
- */
+/** Simple persistence based on [PropertiesComponent] for the default JDK used to run Gradle daemon. */
 object GradleDefaultJdkPathStore {
 
   var jdkPath: String?

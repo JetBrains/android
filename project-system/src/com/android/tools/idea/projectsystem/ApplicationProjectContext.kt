@@ -25,11 +25,11 @@ import com.intellij.openapi.extensions.ExtensionPointName
  *
  * There are two major ways an instance of [ApplicationProjectContext] is supposed ot be obtained:
  *
- *   (1) When the IDE launches a new Android process, the project system specific execution subsystem is supposed to instantiate and pass
- *   a new instance of [ApplicationProjectContext] to the caller. Normally it is a part of run configuration support.
+ * (1) When the IDE launches a new Android process, the project system specific execution subsystem is supposed to instantiate and pass a
+ * new instance of [ApplicationProjectContext] to the caller. Normally it is a part of run configuration support.
  *
- *   (2) When the IDE attaches to an already running Android process, the [ApplicationProjectContextProvider] should be used to obtain
- *   an instance of [ApplicationProjectContext] in a project system specific way.
+ * (2) When the IDE attaches to an already running Android process, the [ApplicationProjectContextProvider] should be used to obtain an
+ * instance of [ApplicationProjectContext] in a project system specific way.
  *
  * **Note**: Project systems might need to recognise their own instances and reject other implementation
  */
@@ -42,9 +42,9 @@ interface ApplicationProjectContext {
  * [AndroidProjectSystem].
  *
  * Note: this mechanism is applicable when the IDE is attaching to an already Running process. When deploying and launching a new process
- *       the project/build system should construct the [ApplicationProjectContext] directly.
+ * the project/build system should construct the [ApplicationProjectContext] directly.
  */
-interface ApplicationProjectContextProvider<P : AndroidProjectSystem>: Token {
+interface ApplicationProjectContextProvider<P : AndroidProjectSystem> : Token {
 
   /** A best-effort identifier for a running application */
   data class RunningApplicationIdentity(
@@ -62,6 +62,7 @@ interface ApplicationProjectContextProvider<P : AndroidProjectSystem>: Token {
     /** Returns the application ID, or the heuristic (which may not be correct) for Android Q and older.) */
     val heuristicApplicationId: String?
       get() = applicationId ?: processName?.substringBefore(":")
+
     companion object {
       fun Client.asRunningApplicationIdentity(): RunningApplicationIdentity {
         return RunningApplicationIdentity(
@@ -74,10 +75,13 @@ interface ApplicationProjectContextProvider<P : AndroidProjectSystem>: Token {
 
   companion object {
     val EP_NAME =
-      ExtensionPointName<ApplicationProjectContextProvider<AndroidProjectSystem>>("com.android.tools.idea.projectsystem.ApplicationProjectContextProvider")
+      ExtensionPointName<ApplicationProjectContextProvider<AndroidProjectSystem>>(
+        "com.android.tools.idea.projectsystem.ApplicationProjectContextProvider"
+      )
 
     @JvmStatic
-    fun AndroidProjectSystem.getApplicationProjectContextProvider(): ApplicationProjectContextProvider<AndroidProjectSystem> = getToken(EP_NAME)
+    fun AndroidProjectSystem.getApplicationProjectContextProvider(): ApplicationProjectContextProvider<AndroidProjectSystem> =
+      getToken(EP_NAME)
 
     @JvmStatic
     fun AndroidProjectSystem.getApplicationProjectContext(client: Client): ApplicationProjectContext? =

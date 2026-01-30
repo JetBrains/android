@@ -90,27 +90,17 @@ import org.jetbrains.jewel.ui.component.Icon
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
 suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
-  val sdkHandler =
-    getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
+  val sdkHandler = getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
   val source = withContext(workerThread) { LocalVirtualDeviceSource.create(sdkHandler) }
   return withContext(uiThread) {
     var avdInfo: AvdInfo? = null
-    val wizard =
-      AddDeviceWizard(
-        source,
-        project,
-        accelerationCheck = { checkAcceleration(source.sdkHandler) },
-        onAdd = { avdInfo = it },
-      )
+    val wizard = AddDeviceWizard(source, project, accelerationCheck = { checkAcceleration(source.sdkHandler) }, onAdd = { avdInfo = it })
     val created = wizard.createDialog(parent = parent).showAndGet()
     if (created) {
       UsageTracker.log(
         AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-          .setDeviceManagerEvent(
-            DeviceManagerEvent.newBuilder()
-              .setKind(DeviceManagerEvent.EventKind.VIRTUAL_CREATE_ACTION)
-          )
+          .setDeviceManagerEvent(DeviceManagerEvent.newBuilder().setKind(DeviceManagerEvent.EventKind.VIRTUAL_CREATE_ACTION))
       )
     }
     avdInfo
@@ -125,29 +115,17 @@ internal class AddDeviceWizard(
 ) {
 
   fun createDialog(parent: Component? = null): ComposeWizard {
-    return ComposeWizard(
-      project,
-      "Add Device",
-      parent = parent,
-      minimumSize = DEVICE_DIALOG_MIN_SIZE,
-    ) {
-      DeviceGridPage()
-    }
+    return ComposeWizard(project, "Add Device", parent = parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { DeviceGridPage() }
   }
 
-  /**
-   * The first page of the AVD creation wizard; displays a [DeviceTable] allowing selection of a
-   * [VirtualDeviceProfile].
-   */
+  /** The first page of the AVD creation wizard; displays a [DeviceTable] allowing selection of a [VirtualDeviceProfile]. */
   @Composable
   internal fun WizardPageScope.DeviceGridPage() {
     val component = LocalComponent.current
     val density = LocalDensity.current
 
     var accelerationError by remember { mutableStateOf(AccelerationErrorCode.ALREADY_INSTALLED) }
-    LaunchedEffect(Unit) {
-      withContext(AndroidDispatchers.workerThread) { accelerationError = accelerationCheck() }
-    }
+    LaunchedEffect(Unit) { withContext(AndroidDispatchers.workerThread) { accelerationError = accelerationCheck() } }
 
     val deviceTableShowDetailsState = getOrCreateState { DeviceTableShowDetailsState() }
     val lazyListState = getOrCreateState { LazyListState() }
@@ -189,14 +167,8 @@ internal class AddDeviceWizard(
       leftSideButtons =
         remember(deviceProvider) {
           listOf(
-            WizardButton(
-              "New hardware profile...",
-              WizardAction { CreateDeviceAction(deviceProvider).actionPerformed(null) },
-            ),
-            WizardButton(
-              "Import hardware profile...",
-              WizardAction { ImportDevicesAction(deviceProvider).actionPerformed(null) },
-            ),
+            WizardButton("New hardware profile...", WizardAction { CreateDeviceAction(deviceProvider).actionPerformed(null) }),
+            WizardButton("Import hardware profile...", WizardAction { ImportDevicesAction(deviceProvider).actionPerformed(null) }),
           )
         }
 
@@ -219,14 +191,8 @@ internal class AddDeviceWizard(
             profiles,
             avdColumns,
             filterContent = {
-              SingleSelectionRadioButtons(
-                FormFactor.uniqueValuesOf(profiles),
-                filterState.formFactorFilter,
-              )
-              Divider(
-                orientation = Orientation.Horizontal,
-                Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 2.dp),
-              )
+              SingleSelectionRadioButtons(FormFactor.uniqueValuesOf(profiles), filterState.formFactorFilter)
+              Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 2.dp))
               CheckboxRow(
                 "Show obsolete device profiles",
                 checked = filterState.showDeprecated,
@@ -243,19 +209,14 @@ internal class AddDeviceWizard(
 
               val menu = JBPopupMenu()
 
-              fun createMenuItem(action: DeviceUiAction) =
-                JBMenuItem(action).apply { text = action.text }
+              fun createMenuItem(action: DeviceUiAction) = JBMenuItem(action).apply { text = action.text }
 
               menu.add(createMenuItem(CloneDeviceAction(deviceProvider)))
               menu.add(createMenuItem(EditDeviceAction(deviceProvider)))
               menu.add(createMenuItem(ExportDeviceAction(deviceProvider)))
               menu.add(createMenuItem(DeleteDeviceAction(deviceProvider)))
 
-              menu.show(
-                component,
-                (offset.x / density.density).toInt(),
-                (offset.y / density.density).toInt(),
-              )
+              menu.show(component, (offset.x / density.density).toInt(), (offset.y / density.density).toInt())
             },
             modifier = Modifier.weight(1f),
           )
@@ -265,8 +226,7 @@ internal class AddDeviceWizard(
   }
 
   private suspend fun finish(device: VirtualDevice): Boolean {
-    val avdInfo =
-      withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(source.avdManager).add(device) }
+    val avdInfo = withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(source.avdManager).add(device) }
     if (avdInfo != null) {
       onAdd(avdInfo)
     }
@@ -277,8 +237,7 @@ internal class AddDeviceWizard(
 private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>() {
   var showDeprecated: Boolean by mutableStateOf(false)
 
-  override fun apply(row: VirtualDeviceProfile): Boolean =
-    super.apply(row) && (showDeprecated || !row.isDeprecated)
+  override fun apply(row: VirtualDeviceProfile): Boolean = super.apply(row) && (showDeprecated || !row.isDeprecated)
 }
 
 private val virtualDeviceName =
@@ -292,11 +251,7 @@ private val virtualDeviceName =
 private val playColumn =
   TableColumn<VirtualDeviceProfile>(
     "Play",
-    TableColumnWidth.ToFit(
-      "Play",
-      textStyle = TextStyle.Default.copy(fontWeight = FontWeight.Bold),
-      extraPadding = 16.dp,
-    ),
+    TableColumnWidth.ToFit("Play", textStyle = TextStyle.Default.copy(fontWeight = FontWeight.Bold), extraPadding = 16.dp),
     comparator = compareBy { it.isGooglePlaySupported },
   ) { profile, _ ->
     if (profile.isGooglePlaySupported) {
@@ -309,9 +264,7 @@ private val playColumn =
   }
 
 private val avdColumns =
-  with(DeviceTableColumns) {
-    persistentListOf(icon, virtualDeviceName, playColumn, apiRange, width, height, density)
-  }
+  with(DeviceTableColumns) { persistentListOf(icon, virtualDeviceName, playColumn, apiRange, width, height, density) }
 
 internal val DEVICE_DIALOG_MIN_SIZE
   get() = JBUI.size(750, 550)

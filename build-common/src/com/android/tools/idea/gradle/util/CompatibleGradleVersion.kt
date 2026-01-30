@@ -48,9 +48,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_8_10_2(GradleVersion.version("8.10.2")),
   VERSION_8_11_1(GradleVersion.version("8.11.1")),
   VERSION_8_13(GradleVersion.version("8.13")),
-  VERSION_FOR_DEV(GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)),
-
-  ;
+  VERSION_FOR_DEV(GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION));
 
   companion object {
     private fun getAssociatedGradleVersion(agpVersion: AgpVersion): CompatibleGradleVersion {
@@ -87,7 +85,9 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
         else -> VERSION_FOR_DEV
       }
     }
+
     private val VERSION_MIN = getAssociatedGradleVersion(AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION))
+
     fun getCompatibleGradleVersion(agpVersion: AgpVersion): CompatibleGradleVersion {
       val compatibleGradleVersion = getAssociatedGradleVersion(agpVersion)
       return when {

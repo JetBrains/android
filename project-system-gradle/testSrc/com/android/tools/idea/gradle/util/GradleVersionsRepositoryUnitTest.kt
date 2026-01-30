@@ -24,7 +24,8 @@ class GradleVersionsRepositoryUnitTest {
   @Test
   fun testParse() {
     @Language("JSON")
-    val response = """
+    val response =
+      """
 [ {
   "version" : "5.5-20190702010046+0000",
   "buildTime" : "20190702010046+0000",
@@ -252,20 +253,23 @@ class GradleVersionsRepositoryUnitTest {
 }]"""
 
     val versions = parseGradleVersionsResponse(response.byteInputStream())
-    Truth.assertThat(versions).containsExactly(
-      "5.5",
-      "5.5-rc-4",
-      "5.5-rc-3",
-      "5.5-rc-2",
-      "5.5-rc-1",
-      "5.4.1",
-      "5.4",
-      "5.4-rc-1",
-      "5.3.1",
-      "5.3",
-      "5.3-rc-3",
-      "5.3-rc-2",
-      "5.3-rc-1",
-      "5.2.1").inOrder()
+    Truth.assertThat(versions)
+      .containsExactly(
+        "5.5",
+        "5.5-rc-4",
+        "5.5-rc-3",
+        "5.5-rc-2",
+        "5.5-rc-1",
+        "5.4.1",
+        "5.4",
+        "5.4-rc-1",
+        "5.3.1",
+        "5.3",
+        "5.3-rc-3",
+        "5.3-rc-2",
+        "5.3-rc-1",
+        "5.2.1",
+      )
+      .inOrder()
   }
 }

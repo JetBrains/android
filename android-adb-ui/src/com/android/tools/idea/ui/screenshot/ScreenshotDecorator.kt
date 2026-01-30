@@ -20,21 +20,18 @@ import com.android.annotations.concurrency.Slow
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-/**
- * Used in conjunction with [ScreenshotViewer].
- */
+/** Used in conjunction with [ScreenshotViewer]. */
 interface ScreenshotDecorator {
   /**
    * Adds a device frame to a screenshot image.
    *
    * @param screenshotImage the screenshot image to process
-   * @param framingOption determines the type of the frame to add to the image, or null to possibly
-   *     adjust the screenshot without adding a frame
+   * @param framingOption determines the type of the frame to add to the image, or null to possibly adjust the screenshot without adding a
+   *   frame
    * @param backgroundColor the background color to use when clipping the screenshot
    * @return the framed image
    */
-  @Slow
-  fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage
+  @Slow fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage
 
   /**
    * Decorates a screenshot by adding device frame or clopping it to the screen shape.
@@ -45,11 +42,8 @@ interface ScreenshotDecorator {
    */
   @Slow
   fun decorate(screenshotImage: ScreenshotImage, decorationOption: ScreenshotDecorationOption): BufferedImage =
-      decorate(screenshotImage, decorationOption.framingOption, decorationOption.background)
+    decorate(screenshotImage, decorationOption.framingOption, decorationOption.background)
 
-  /**
-   * Indicates whether the postprocessor is capable of clipping a screenshot image to the shape of
-   * the device display.
-   */
+  /** Indicates whether the postprocessor is capable of clipping a screenshot image to the shape of the device display. */
   val canClipToDisplayShape: Boolean
 }

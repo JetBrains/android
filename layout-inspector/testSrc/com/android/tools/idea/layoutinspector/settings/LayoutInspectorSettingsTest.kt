@@ -25,8 +25,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
-private val EMBEDDED_LAYOUT_INSPECTOR_FLAG =
-  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
+private val EMBEDDED_LAYOUT_INSPECTOR_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
 
 class LayoutInspectorSettingsTest {
 

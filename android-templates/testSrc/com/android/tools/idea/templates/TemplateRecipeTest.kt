@@ -22,19 +22,17 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.io.File
 
 class TemplateRecipeTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  var tmpFolderRule = TemporaryFolder()
+  @get:Rule var tmpFolderRule = TemporaryFolder()
 
   @Test
   fun fileAlreadyExistWarning() {
@@ -42,16 +40,17 @@ class TemplateRecipeTest {
     val mockModuleTemplateData = mock<ModuleTemplateData>()
     whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
 
-    val renderingContext = RenderingContext(
-      projectRule.project,
-      projectRule.module,
-      "file already exists test",
-      mockModuleTemplateData,
-      tmpFolderRule.root,
-      tmpFolderRule.root,
-      true,
-      true
-    )
+    val renderingContext =
+      RenderingContext(
+        projectRule.project,
+        projectRule.module,
+        "file already exists test",
+        mockModuleTemplateData,
+        tmpFolderRule.root,
+        tmpFolderRule.root,
+        true,
+        true,
+      )
 
     runWriteCommandAction(projectRule.project) {
       val vfTo = projectRule.project.baseDir.findOrCreateChildData(this, "childTo")

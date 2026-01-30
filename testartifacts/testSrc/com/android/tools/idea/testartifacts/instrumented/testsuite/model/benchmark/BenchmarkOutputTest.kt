@@ -19,6 +19,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchma
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import kotlin.test.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -26,7 +27,6 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
-import kotlin.test.assertNotNull
 
 @RunWith(JUnit4::class)
 class BenchmarkOutputTest {
@@ -87,21 +87,19 @@ class BenchmarkOutputTest {
 
   @Test
   fun supportedHyperLinkFormats() {
-      val path = "/path/to/resource"
-      val parameters = "foo=bar"
-      val contents = """
+    val path = "/path/to/resource"
+    val parameters = "foo=bar"
+    val contents =
+      """
         This V3 [link](uri://$path?$parameters) is valid.
         This V2 [link](file://$path) is valid.
-      """.trimIndent()
+      """
+        .trimIndent()
     val benchmark = BenchmarkOutput(contents)
-    val v3Link = benchmark.lines.find {
-      it.rawText.contains("V3")
-    }
+    val v3Link = benchmark.lines.find { it.rawText.contains("V3") }
     assertNotNull(v3Link)
     assertThat(v3Link.matches?.groups?.get(LINK_GROUP)?.value == "uri://$path?$parameters")
-    val v2Link = benchmark.lines.find {
-      it.rawText.contains("V2")
-    }
+    val v2Link = benchmark.lines.find { it.rawText.contains("V2") }
     assertNotNull(v2Link)
     assertThat(v2Link.matches?.groups?.get(LINK_GROUP)?.value == "file://$path")
   }
@@ -114,16 +112,18 @@ class BenchmarkOutputTest {
     assertThat(result).isNotEqualTo(benchmarkA)
     assertThat(result).isNotEqualTo(benchmarkB)
     assertThat(result).isNotEqualTo(BenchmarkOutput.Empty)
-    assertThat(result.lines.joinToString{ it.rawText }).isEqualTo("benchmarkA, benchmarkB")
+    assertThat(result.lines.joinToString { it.rawText }).isEqualTo("benchmarkA, benchmarkB")
   }
 
-  private fun validateConsoleOutput(benchmark: BenchmarkOutput, expectedOuput: String = "", expectedLinkLabels: List<String> = emptyList()) {
+  private fun validateConsoleOutput(
+    benchmark: BenchmarkOutput,
+    expectedOuput: String = "",
+    expectedLinkLabels: List<String> = emptyList(),
+  ) {
     val testView = mock(ConsoleView::class.java)
     val outputString = StringBuffer()
     val printedHyperlinks = mutableListOf<String>()
-    whenever(testView.print(anyString(), any())).then {
-      outputString.append(it.arguments[0])
-    }
+    whenever(testView.print(anyString(), any())).then { outputString.append(it.arguments[0]) }
     whenever(testView.printHyperlink(anyString(), any())).then {
       printedHyperlinks.add(it.arguments[0].toString())
       outputString.append(it.arguments[0])

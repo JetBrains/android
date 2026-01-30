@@ -23,10 +23,10 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
-import org.xml.sax.SAXParseException
 import java.io.File
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import org.xml.sax.SAXParseException
 
 class XmlErrorOutputParser : BuildOutputParser {
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
@@ -63,19 +63,12 @@ class XmlErrorOutputParser : BuildOutputParser {
             XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
             message,
             message,
-            FilePosition(file, lineNumber, columnNumber)
+            FilePosition(file, lineNumber, columnNumber),
           )
         )
-      }
-      else {
+      } else {
         messageConsumer.accept(
-          MessageEventImpl(
-            parentEventId,
-            messageKind,
-            XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX,
-            message,
-            message
-          )
+          MessageEventImpl(parentEventId, messageKind, XML_PARSING_GROUP + MESSAGE_GROUP_ERROR_SUFFIX, message, message)
         )
       }
 
@@ -84,7 +77,6 @@ class XmlErrorOutputParser : BuildOutputParser {
     return false
   }
 
-
   private fun parseNumber(numberAsString: String?): Int {
     if (numberAsString == null) {
       return -1
@@ -92,8 +84,7 @@ class XmlErrorOutputParser : BuildOutputParser {
     return try {
       // FilePosition is 0-based while the exception output is 1-based
       Integer.valueOf(numberAsString) - 1
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       -1
     }
   }
@@ -102,12 +93,12 @@ class XmlErrorOutputParser : BuildOutputParser {
     const val XML_PARSING_GROUP = "Xml parsing"
 
     /**
-     * Matches the sax parsing exception format:
-     * org.xml.sax.SAXParseException; systemId: <file>; lineNumber: <lineNumber>; columnNumber: <colNumber>; <message>
+     * Matches the sax parsing exception format: org.xml.sax.SAXParseException; systemId: <file>; lineNumber: <lineNumber>; columnNumber:
+     * <colNumber>; <message>
      *
      * See [SAXParseException.toString]
      */
-    private val pattern = Pattern.compile(
-      "^(?:publicId: .*?)?(?:; systemId: (.*?))?(?:; lineNumber: (.*?))?(?:; columnNumber: (.*?))?(?:; (.*))?$")
+    private val pattern =
+      Pattern.compile("^(?:publicId: .*?)?(?:; systemId: (.*?))?(?:; lineNumber: (.*?))?(?:; columnNumber: (.*?))?(?:; (.*))?$")
   }
 }

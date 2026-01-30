@@ -17,13 +17,6 @@ package com.android.tools.idea.streaming.device
 
 import com.android.testutils.assertThrows
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Test
 import java.io.IOException
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -35,10 +28,15 @@ import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Test
 
-/**
- * Tests for the [newOutputStream] and [newInputStream] functions defined in `SuspendingChannels.kt`.
- */
+/** Tests for the [newOutputStream] and [newInputStream] functions defined in `SuspendingChannels.kt`. */
 class SuspendingChannelsTest {
   private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -69,11 +67,9 @@ class SuspendingChannelsTest {
           try {
             exception = null
             stream.waitForData(1, 10, MILLISECONDS)
-          }
-          catch (e: Throwable) {
+          } catch (e: Throwable) {
             exception = e
-          }
-          finally {
+          } finally {
             steps[3].countDown()
           }
         }
@@ -163,18 +159,8 @@ class SuspendingChannelsTest {
     val connected = CountDownLatch(1)
 
     val serverChannel = SuspendingServerSocketChannel(AsynchronousServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0)))
-    coroutineScope.launch {
-      serverChannel.use {
-        serverChannel.accept().use {
-          connected.countDown()
-        }
-      }
-    }
-    runBlocking {
-      SuspendingSocketChannel.open().use { channel ->
-        channel.connect(serverChannel.localAddress)
-      }
-    }
+    coroutineScope.launch { serverChannel.use { serverChannel.accept().use { connected.countDown() } } }
+    runBlocking { SuspendingSocketChannel.open().use { channel -> channel.connect(serverChannel.localAddress) } }
     assertThat(connected.await(200, MILLISECONDS)).isTrue()
   }
 

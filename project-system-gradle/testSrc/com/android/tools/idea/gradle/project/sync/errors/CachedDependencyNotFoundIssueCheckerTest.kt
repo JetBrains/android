@@ -26,8 +26,7 @@ import org.junit.Test
 class CachedDependencyNotFoundIssueCheckerTest {
   private val cachedDependencyNotFoundIssueChecker = CachedDependencyNotFoundIssueChecker()
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun testCheckIssue() {
@@ -46,13 +45,15 @@ class CachedDependencyNotFoundIssueCheckerTest {
   @Test
   fun testIssueHandled() {
     assertThat(
-      cachedDependencyNotFoundIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "No cached version of dependency, available for offline mode.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isTrue()
+        cachedDependencyNotFoundIssueChecker.consumeBuildOutputFailureMessage(
+          "Build failed with Exception",
+          "No cached version of dependency, available for offline mode.",
+          null,
+          null,
+          "",
+          TestMessageEventConsumer(),
+        )
+      )
+      .isTrue()
   }
 }

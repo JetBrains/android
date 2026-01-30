@@ -22,21 +22,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.annotations.TestOnly
 
 /** Action to add a new string resource key. */
-class AddKeyAction
-@TestOnly
-internal constructor(private val stringResourceWriter: StringResourceWriter) :
-    PanelAction("Add Key", description = null, AllIcons.General.Add) {
+class AddKeyAction @TestOnly internal constructor(private val stringResourceWriter: StringResourceWriter) :
+  PanelAction("Add Key", description = null, AllIcons.General.Add) {
   constructor() : this(StringResourceWriter.INSTANCE)
+
   override fun doUpdate(event: AnActionEvent): Boolean = event.panel.table.data != null
 
   override fun actionPerformed(event: AnActionEvent) {
     val data: StringResourceData =
-        requireNotNull(event.panel.table.data) {
-          "Panel's StringResourceTable must contain non-null StringResourceData!"
-        }
+      requireNotNull(event.panel.table.data) { "Panel's StringResourceTable must contain non-null StringResourceData!" }
     val dialog = NewStringKeyDialog(event.panel.facet, data.keys.toSet())
-    if (dialog.showAndGet() &&
-        stringResourceWriter.addDefault(event.requiredProject, dialog.key, dialog.defaultValue)) {
+    if (dialog.showAndGet() && stringResourceWriter.addDefault(event.requiredProject, dialog.key, dialog.defaultValue)) {
       event.panel.reloadData()
     }
   }

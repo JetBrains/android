@@ -57,13 +57,13 @@ internal class DeviceSpecCheckTest {
       "src/test/Preview.kt",
       // language=kotlin
       """
-    package test
+      package test
 
-    @Repeatable
-    annotation class Preview(
-      val device: String = ""
-    )
-    """
+      @Repeatable
+      annotation class Preview(
+        val device: String = ""
+      )
+      """
         .trimIndent(),
     )
     inspectionManager = InspectionManager.getInstance(fixture.project)
@@ -79,7 +79,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         fun myFun() {}
-      """
+        """
           .trimIndent()
       )
     assertTrue(result.issues.isEmpty())
@@ -92,7 +92,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "   ")
         fun myFun() {}
-      """
+        """
           .trimIndent()
       )
     assertTrue(result.issues.isEmpty())
@@ -108,7 +108,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:width=1080px,height=1920px,dpi=320")
         void myFun() {}
-      """
+        """
           .trimIndent()
       )
     assertTrue(result.issues.isEmpty())
@@ -121,7 +121,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "   ")
         void myFun() {}
-      """
+        """
           .trimIndent()
       )
     assertTrue(result.issues.isEmpty())
@@ -137,14 +137,11 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(4, result.issues.size)
-    assertEquals(
-      listOf(BadType::class, Unknown::class, Repeated::class, Missing::class),
-      result.issues.map { it::class },
-    )
+    assertEquals(listOf(BadType::class, Unknown::class, Repeated::class, Missing::class), result.issues.map { it::class })
     assertEquals("spec:isRound=false,width=411dp,dpi=320,height=891dp", result.proposedFix)
 
     result =
@@ -155,15 +152,12 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = " abc ")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals(
-      "Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".",
-      result.issues[0].parameterName,
-    )
+    assertEquals("Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".", result.issues[0].parameterName)
     assertEquals("id:pixel_5", result.proposedFix)
   }
 
@@ -177,14 +171,11 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
         void myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(4, result.issues.size)
-    assertEquals(
-      listOf(BadType::class, Unknown::class, Repeated::class, Missing::class),
-      result.issues.map { it::class },
-    )
+    assertEquals(listOf(BadType::class, Unknown::class, Repeated::class, Missing::class), result.issues.map { it::class })
     assertEquals("spec:isRound=false,width=411dp,dpi=320,height=891dp", result.proposedFix)
 
     result =
@@ -195,15 +186,12 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = " abc ")
         void myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
-    assertEquals(
-      "Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".",
-      result.issues[0].parameterName,
-    )
+    assertEquals("Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".", result.issues[0].parameterName)
     assertEquals("id:pixel_5", result.proposedFix)
   }
 
@@ -218,13 +206,10 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:width=100,isRound=no")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
-    assertEquals(
-      listOf(BadType::class, BadType::class, Missing::class),
-      result.issues.map { it::class },
-    )
+    assertEquals(listOf(BadType::class, BadType::class, Missing::class), result.issues.map { it::class })
     assertEquals("spec:width=100dp,isRound=false,height=891dp", result.proposedFix)
 
     // First valid unit is `dp`, other dimension parameters should have the same unit
@@ -236,7 +221,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:width=100dp,height=400.56px,chinSize=30")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(listOf(BadType::class, BadType::class), result.issues.map { it::class })
@@ -251,22 +236,19 @@ internal class DeviceSpecCheckTest {
           "test.kt",
           // language=kotlin
           """
-        package example
-        import test.Preview
+          package example
+          import test.Preview
 
-        @Preview(device = "spec:width=1080px,height=1920pxdpi=320")
-        fun myFun() {}
-"""
+          @Preview(device = "spec:width=1080px,height=1920pxdpi=320")
+          fun myFun() {}
+          """
             .trimIndent(),
         )
         .virtualFile
 
     val annotation = runWriteActionAndWait {
       rule.fixture.openFileInEditor(vFile)
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<KtAnnotationEntry>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
 
@@ -286,7 +268,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "id:device_1")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -307,7 +289,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "id:device_1")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -322,7 +304,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "id:pixel_4")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertFalse(result.hasIssues)
@@ -341,7 +323,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "id:device_1")
         fun myFun() {}
-"""
+        """
           .trimIndent(),
         defaultDeviceId = defaultDeviceId,
       )
@@ -362,7 +344,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "id:Nexus 5")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertFalse(result.hasIssues)
@@ -380,7 +362,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "name:Nexus 11")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -395,7 +377,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "name:Pixel Tablet")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertFalse(result.hasIssues)
@@ -411,7 +393,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "name:Nexus 11")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -431,7 +413,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:parent=device_1")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -447,7 +429,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:parent=pixel_4,orientation=portrait,navigation=buttons")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(0, result.issues.size)
@@ -461,7 +443,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:parent=pixel_6,orientation=portrait,foo=bar")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -477,7 +459,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait,navigation=gesture")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(5, result.issues.size)
@@ -486,10 +468,7 @@ internal class DeviceSpecCheckTest {
     assertEquals(Unknown::class, result.issues[2]::class)
     assertEquals(Unknown::class, result.issues[3]::class)
     assertEquals(Unknown::class, result.issues[4]::class)
-    assertEquals(
-      "spec:parent=pixel_4_xl,orientation=portrait,navigation=gesture",
-      result.proposedFix,
-    )
+    assertEquals("spec:parent=pixel_4_xl,orientation=portrait,navigation=gesture", result.proposedFix)
 
     // Width and parent ID, missing height, parent takes priority
     result =
@@ -500,7 +479,7 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "spec:width=1080px,parent=pixel_4_xl")
         fun myFun() {}
-"""
+        """
           .trimIndent()
       )
     assertEquals(1, result.issues.size)
@@ -514,26 +493,21 @@ internal class DeviceSpecCheckTest {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        package example
-        import test.Preview
+      package example
+      import test.Preview
 
-        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
-        fun myFun() {}
-"""
+      @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
+      fun myFun() {}
+      """
         .trimIndent(),
     )
 
     val annotation = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<KtAnnotationEntry>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
 
-    val problem = runReadAction {
-      DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true)
-    }
+    val problem = runReadAction { DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true) }
 
     assertNotNull(problem)
     assertEquals(
@@ -549,21 +523,16 @@ internal class DeviceSpecCheckTest {
 
 
       Missing parameter: height.
-    """
+      """
         .trimIndent(),
       problem.descriptionTemplate,
     )
     val fix = problem.fixes?.singleOrNull()
     assertNotNull(fix)
 
-    WriteCommandAction.runWriteCommandAction(fixture.project) {
-      (fix as LocalQuickFixOnPsiElement).applyFix()
-    }
+    WriteCommandAction.runWriteCommandAction(fixture.project) { (fix as LocalQuickFixOnPsiElement).applyFix() }
     val fixedAnnotationEntry = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<KtAnnotationEntry>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(fixedAnnotationEntry)
     val hasIssues = runReadAction { fixedAnnotationEntry.hasIssues() }
@@ -576,26 +545,21 @@ internal class DeviceSpecCheckTest {
       JavaFileType.INSTANCE,
       // language=java
       """
-        package example;
-        import test.Preview;
+      package example;
+      import test.Preview;
 
-        @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
-        void myFun() {}
-"""
+      @Preview(device = "spec:isRound=true,isRound=false,width=qwe,dpi=320,madeUpParam")
+      void myFun() {}
+      """
         .trimIndent(),
     )
 
     val annotation = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<PsiAnnotation>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<PsiAnnotation>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
 
-    val problem = runReadAction {
-      DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true)
-    }
+    val problem = runReadAction { DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true) }
 
     assertNotNull(problem)
     assertEquals(
@@ -611,31 +575,23 @@ internal class DeviceSpecCheckTest {
 
 
       Missing parameter: height.
-    """
+      """
         .trimIndent(),
       problem.descriptionTemplate,
     )
     val fix = problem.fixes?.singleOrNull()
     assertNotNull(fix)
 
-    WriteCommandAction.runWriteCommandAction(fixture.project) {
-      (fix as LocalQuickFixOnPsiElement).applyFix()
-    }
+    WriteCommandAction.runWriteCommandAction(fixture.project) { (fix as LocalQuickFixOnPsiElement).applyFix() }
     val fixedAnnotation = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<PsiAnnotation>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<PsiAnnotation>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(fixedAnnotation)
     val hasIssues = runReadAction { fixedAnnotation.hasIssues() }
     assertFalse(hasIssues)
   }
 
-  /**
-   * Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first
-   * Preview annotation found.
-   */
+  /** Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first Preview annotation found. */
   private fun addKotlinFileAndCheckPreviewAnnotation(
     @Language("kotlin") fileContents: String,
     defaultDeviceId: String = DEFAULT_DEVICE_ID,
@@ -643,30 +599,19 @@ internal class DeviceSpecCheckTest {
     rule.fixture.configureByText(KotlinFileType.INSTANCE, fileContents)
 
     val annotation = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<KtAnnotationEntry>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<KtAnnotationEntry>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
 
     return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation, defaultDeviceId) }
   }
 
-  /**
-   * Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first
-   * Preview annotation found.
-   */
-  private fun addJavaFileAndCheckPreviewAnnotation(
-    @Language("JAVA") fileContents: String
-  ): CheckResult {
+  /** Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first Preview annotation found. */
+  private fun addJavaFileAndCheckPreviewAnnotation(@Language("JAVA") fileContents: String): CheckResult {
     rule.fixture.configureByText(JavaFileType.INSTANCE, fileContents)
 
     val annotation = runInEdtAndGet {
-      rule.fixture
-        .moveCaret("@Prev|iew")
-        .parentOfType<PsiAnnotation>()
-        ?.toUElement(UAnnotation::class.java)
+      rule.fixture.moveCaret("@Prev|iew").parentOfType<PsiAnnotation>()?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
 

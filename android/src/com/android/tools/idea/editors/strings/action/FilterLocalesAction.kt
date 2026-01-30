@@ -34,7 +34,9 @@ class FilterLocalesAction : ComboBoxAction() {
   init {
     templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
   }
+
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.columnFilter
@@ -60,6 +62,7 @@ class FilterLocalesAction : ComboBoxAction() {
 
   companion object {
     private const val NO_FILTER_TITLE = "Show All Locales"
+
     /** Returns a [PanelAction] that sets the column filter to filter for the given [locale]. */
     private fun newShowLocaleAction(locale: Locale): PanelAction {
       val text = "Show ${Locale.getLocaleLabel(locale, /* brief= */ false)}"
@@ -70,10 +73,11 @@ class FilterLocalesAction : ComboBoxAction() {
     private fun columnFilterUpdatingAction(
       text: String,
       description: String? = null,
-      columnFilterSupplier: () -> StringResourceTableColumnFilter?
+      columnFilterSupplier: () -> StringResourceTableColumnFilter?,
     ) =
       object : PanelAction(text, description) {
         override fun doUpdate(event: AnActionEvent): Boolean = true
+
         override fun actionPerformed(event: AnActionEvent) {
           event.panel.table.columnFilter = columnFilterSupplier.invoke()
         }

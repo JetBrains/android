@@ -42,7 +42,7 @@ class ActionButtonMetricsEventBuilder {
   private fun actionEventBuilder(
     project: Project,
     actionKey: String,
-    actionEventType: ActionButtonEvent.EventType
+    actionEventType: ActionButtonEvent.EventType,
   ): ActionButtonEvent.Builder {
     createdActions.add(actionKey)
     return when (actionKey) {
@@ -53,7 +53,7 @@ class ActionButtonMetricsEventBuilder {
 
   private fun commonActionEventBuilder(
     actionButtonType: ActionButtonEvent.ActionButtonType,
-    actionEventType: ActionButtonEvent.EventType
+    actionEventType: ActionButtonEvent.EventType,
   ): ActionButtonEvent.Builder {
     return ActionButtonEvent.newBuilder().also {
       it.actionButtonType = actionButtonType

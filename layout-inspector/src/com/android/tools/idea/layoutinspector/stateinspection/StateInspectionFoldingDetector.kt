@@ -36,8 +36,7 @@ private const val RECOMPOSE = "at androidx.compose.runtime.RecomposeScopeImpl.co
 private const val LAMBDA_INVOKE = "at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke"
 private const val VALUE = "value: "
 
-private val RECORD_READ_EXCEPTION_PREFIXES =
-  listOf(SNAPSHOT_PACKAGE, SNAPSHOT_CLASS, KOTLIN_METHOD, DYNAMIC_VALUE)
+private val RECORD_READ_EXCEPTION_PREFIXES = listOf(SNAPSHOT_PACKAGE, SNAPSHOT_CLASS, KOTLIN_METHOD, DYNAMIC_VALUE)
 
 /**
  * Adds line folding to the content of an editor with State Inspection data.
@@ -102,10 +101,7 @@ private val RECORD_READ_EXCEPTION_PREFIXES =
  * - the start of the exception stacktrace (common to all/most state reads)
  * - the end of the exception stacktrace (usually doesn't hold informative data)
  */
-internal class StateInspectionFoldingDetector(
-  private val editor: Editor,
-  private val scope: CoroutineScope,
-) {
+internal class StateInspectionFoldingDetector(private val editor: Editor, private val scope: CoroutineScope) {
   private val document = editor.document
   private val foldingModel = editor.foldingModel as? FoldingModelEx
   private var lines: List<String> = emptyList()
@@ -130,8 +126,7 @@ internal class StateInspectionFoldingDetector(
       when {
         line.startsWith(VALUE) -> lineIndex = foldDetailedValue(lineIndex)
         line.startsWith(RECORD_READ_OF) -> lineIndex = foldStartOfReadException(lineIndex)
-        line.startsWith(RECOMPOSE) || line.startsWith(LAMBDA_INVOKE) ->
-          lineIndex = foldEndOfException(lineIndex)
+        line.startsWith(RECOMPOSE) || line.startsWith(LAMBDA_INVOKE) -> lineIndex = foldEndOfException(lineIndex)
         else -> lineIndex++
       }
     }
@@ -173,9 +168,7 @@ internal class StateInspectionFoldingDetector(
     val next = lines.indexOfFirst(start) { it.isEmpty() }
     if (next > start) {
       val placeholderText = LayoutInspectorBundle.message("layout.inspector.value.folding.hint")
-      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let {
-        it.isExpanded = false
-      }
+      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let { it.isExpanded = false }
     }
     return next
   }
@@ -200,8 +193,8 @@ internal class StateInspectionFoldingDetector(
    *     ...
    *  ```
    *
-   * i.e. it always starts with `CompositionImpl.recordReadOf`. We want to fold from this line down
-   * to a line that we think has useful information skipping all lines around snapshot handling.
+   * i.e. it always starts with `CompositionImpl.recordReadOf`. We want to fold from this line down to a line that we think has useful
+   * information skipping all lines around snapshot handling.
    */
   private fun foldStartOfReadException(start: Int): Int {
     // First skip the `CompositionImpl.recordReadOf` before we enter this function:
@@ -226,14 +219,8 @@ internal class StateInspectionFoldingDetector(
 
     if (next > start) {
       // Fold the start of the exception here:
-      val placeholderText =
-        LayoutInspectorBundle.message(
-          "layout.inspector.stacktrace.folding.hint",
-          (next - start + 1).toString(),
-        )
-      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let {
-        it.isExpanded = false
-      }
+      val placeholderText = LayoutInspectorBundle.message("layout.inspector.stacktrace.folding.hint", (next - start + 1).toString())
+      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let { it.isExpanded = false }
     }
     return next
   }
@@ -276,8 +263,8 @@ internal class StateInspectionFoldingDetector(
    *
    *  ```
    *
-   * i.e. start with either: `RecomposeScopeImpl.compose` or `ComposableLambdaImpl.invoke`. We want
-   * to fold from this line down to the first empty line.
+   * i.e. start with either: `RecomposeScopeImpl.compose` or `ComposableLambdaImpl.invoke`. We want to fold from this line down to the first
+   * empty line.
    */
   private fun foldEndOfException(start: Int): Int {
     var next = lines.indexOfFirst(start) { it.isEmpty() }
@@ -288,20 +275,13 @@ internal class StateInspectionFoldingDetector(
 
     if (next > start) {
       // Fold the end of the exception here:
-      val placeholderText =
-        LayoutInspectorBundle.message(
-          "layout.inspector.stacktrace.folding.hint",
-          (next - start + 1).toString(),
-        )
-      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let {
-        it.isExpanded = false
-      }
+      val placeholderText = LayoutInspectorBundle.message("layout.inspector.stacktrace.folding.hint", (next - start + 1).toString())
+      editor.foldingModel.addFoldRegion(startOffset(start), endOffset(next), placeholderText)?.let { it.isExpanded = false }
     }
     return next
   }
 
-  private fun line(lineNumber: Int): String =
-    if (lines.size > lineNumber) lines[lineNumber].trimStart() else ""
+  private fun line(lineNumber: Int): String = if (lines.size > lineNumber) lines[lineNumber].trimStart() else ""
 
   private fun fetchLines() {
     val text = document.getText()

@@ -21,21 +21,13 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.lint.client.api.PlatformLookup
 
 /**
- * Implementation of the [PlatformLookup] interface which is backed by the real SDK manager
- * ([AndroidSdkHandler]). This is primarily used in the IDE, where it's typically already available.
- * Lint only uses a tiny subset of what the SDK manager offers, and it's somewhat expensive to
- * create (performing recursive directory traversals looking for things like system images etc), so
- * there is a different implementation available for lint's purposes as SimplePlatformLookup.
+ * Implementation of the [PlatformLookup] interface which is backed by the real SDK manager ([AndroidSdkHandler]). This is primarily used in
+ * the IDE, where it's typically already available. Lint only uses a tiny subset of what the SDK manager offers, and it's somewhat expensive
+ * to create (performing recursive directory traversals looking for things like system images etc), so there is a different implementation
+ * available for lint's purposes as SimplePlatformLookup.
  */
-class SdkManagerPlatformLookup(
-  private val sdkHandler: AndroidSdkHandler,
-  private val logger: ProgressIndicatorAdapter,
-) : PlatformLookup {
-  override fun getLatestSdkTarget(
-    minApi: Int,
-    includePreviews: Boolean,
-    includeAddOns: Boolean,
-  ): IAndroidTarget? {
+class SdkManagerPlatformLookup(private val sdkHandler: AndroidSdkHandler, private val logger: ProgressIndicatorAdapter) : PlatformLookup {
+  override fun getLatestSdkTarget(minApi: Int, includePreviews: Boolean, includeAddOns: Boolean): IAndroidTarget? {
     val targets = getTargets(includeAddOns)
     for (i in targets.indices.reversed()) {
       val target = targets[i]

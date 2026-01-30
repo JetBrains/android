@@ -31,29 +31,21 @@ import kotlinx.coroutines.future.await
  *
  * Note that cancellations are not considered to be an error.
  */
-fun SceneView.hasRenderErrors(): Boolean =
-  (sceneManager as? LayoutlibSceneManager).hasRenderErrors()
+fun SceneView.hasRenderErrors(): Boolean = (sceneManager as? LayoutlibSceneManager).hasRenderErrors()
 
-fun SceneView.getRenderResultIfError(): RenderResult? =
-  (sceneManager as? LayoutlibSceneManager).getRenderResultIfError()
+fun SceneView.getRenderResultIfError(): RenderResult? = (sceneManager as? LayoutlibSceneManager).getRenderResultIfError()
 
 /** Returns whether the [SceneView] has a valid image. */
 fun SceneView.hasValidImage(): Boolean = (sceneManager as? LayoutlibSceneManager).hasValidImage()
 
-fun LayoutlibSceneManager?.hasValidImage(): Boolean =
-  this?.renderResult?.renderedImage?.isValid ?: false
+fun LayoutlibSceneManager?.hasValidImage(): Boolean = this?.renderResult?.renderedImage?.isValid ?: false
 
 fun LayoutlibSceneManager?.hasRenderErrors(): Boolean = this?.renderResult.isErrorResult()
 
-fun LayoutlibSceneManager?.getRenderResultIfError(): RenderResult? =
-  this?.renderResult?.takeIf { it.isErrorResult() }
+fun LayoutlibSceneManager?.getRenderResultIfError(): RenderResult? = this?.renderResult?.takeIf { it.isErrorResult() }
 
-suspend fun LayoutlibSceneManager.executeInRenderSession(
-  useLongTimeout: Boolean = false,
-  callback: () -> Unit,
-) {
-  this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS)
-    .await()
+suspend fun LayoutlibSceneManager.executeInRenderSession(useLongTimeout: Boolean = false, callback: () -> Unit) {
+  this.executeInRenderSessionAsync({ callback() }, if (useLongTimeout) 5L else 0L, TimeUnit.SECONDS).await()
 }
 
 /** Update the [TargetProvider] of the given [component] and its subcomponents. */

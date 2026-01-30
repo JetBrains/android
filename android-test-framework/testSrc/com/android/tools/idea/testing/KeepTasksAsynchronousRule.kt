@@ -17,16 +17,12 @@ package com.android.tools.idea.testing
 
 import org.junit.runner.Description
 
-/**
- * Prevents [com.intellij.openapi.progress.Task.Backgroundable] from running synchronously in tests.
- */
-class KeepTasksAsynchronousRule(private val overrideKeepTasksAsynchronous: Boolean) :
-  NamedExternalResource() {
+/** Prevents [com.intellij.openapi.progress.Task.Backgroundable] from running synchronously in tests. */
+class KeepTasksAsynchronousRule(private val overrideKeepTasksAsynchronous: Boolean) : NamedExternalResource() {
   private var originalIntellijProgressTaskIgnoreHeadlessProperty: String? = null
 
   override fun before(description: Description) {
-    originalIntellijProgressTaskIgnoreHeadlessProperty =
-      System.getProperty(ignoreHeadlessPropertyName)
+    originalIntellijProgressTaskIgnoreHeadlessProperty = System.getProperty(ignoreHeadlessPropertyName)
     setValue(overrideKeepTasksAsynchronous)
   }
 

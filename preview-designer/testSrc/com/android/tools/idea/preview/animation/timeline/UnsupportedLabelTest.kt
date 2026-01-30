@@ -37,19 +37,9 @@ class UnsupportedLabelTest {
 
     // Create labels, all are visible.
     val labelOne =
-      UnsupportedLabel(
-        slider,
-        0,
-        slider.sliderUI.positionProxy.minimumXPosition(),
-        slider.sliderUI.positionProxy.maximumXPosition(),
-      )
+      UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy.minimumXPosition(), slider.sliderUI.positionProxy.maximumXPosition())
     val labelTwo =
-      UnsupportedLabel(
-        slider,
-        0,
-        slider.sliderUI.positionProxy.minimumXPosition(),
-        slider.sliderUI.positionProxy.maximumXPosition(),
-      )
+      UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy.minimumXPosition(), slider.sliderUI.positionProxy.maximumXPosition())
     assertTrue(slider.components[1].isVisible)
     assertTrue(slider.components[2].isVisible)
     // componentCount is +1 to the number of labels here and checks below because slider also
@@ -61,12 +51,7 @@ class UnsupportedLabelTest {
     assertFalse(slider.components[1].isVisible)
 
     // Instead of creating new label, find and enable unused label.
-    UnsupportedLabel(
-      slider,
-      0,
-      slider.sliderUI.positionProxy.minimumXPosition(),
-      slider.sliderUI.positionProxy.maximumXPosition(),
-    )
+    UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy.minimumXPosition(), slider.sliderUI.positionProxy.maximumXPosition())
     assertTrue(slider.components[1].isVisible)
     assertEquals(3, slider.componentCount)
 
@@ -75,23 +60,13 @@ class UnsupportedLabelTest {
     assertFalse(slider.components[2].isVisible)
 
     // Instead of creating new label, find and enable unused label.
-    UnsupportedLabel(
-      slider,
-      0,
-      slider.sliderUI.positionProxy.minimumXPosition(),
-      slider.sliderUI.positionProxy.maximumXPosition(),
-    )
+    UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy.minimumXPosition(), slider.sliderUI.positionProxy.maximumXPosition())
     assertTrue(slider.components[2].isVisible)
     assertEquals(3, slider.componentCount)
 
     // All labels are enabled, create new one.
     val labelThree =
-      UnsupportedLabel(
-        slider,
-        0,
-        slider.sliderUI.positionProxy.minimumXPosition(),
-        slider.sliderUI.positionProxy.maximumXPosition(),
-      )
+      UnsupportedLabel(slider, 0, slider.sliderUI.positionProxy.minimumXPosition(), slider.sliderUI.positionProxy.maximumXPosition())
     assertEquals(4, slider.componentCount)
 
     // Dispose all labels

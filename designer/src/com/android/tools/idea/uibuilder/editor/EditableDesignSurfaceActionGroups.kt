@@ -26,10 +26,7 @@ import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
-/**
- * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only
- * work for that kind of files.
- */
+/** Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only work for that kind of files. */
 class EditableDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup

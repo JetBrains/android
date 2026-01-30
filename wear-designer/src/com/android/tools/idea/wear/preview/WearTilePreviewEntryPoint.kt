@@ -24,22 +24,14 @@ import org.jdom.Element
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 
-/**
- * [EntryPoint] implementation to mark `@Preview` functions as entry points and avoid them being
- * flagged as unused.
- */
+/** [EntryPoint] implementation to mark `@Preview` functions as entry points and avoid them being flagged as unused. */
 class WearTilePreviewEntryPoint : EntryPoint() {
   private var isSelected: Boolean = true
 
-  override fun isEntryPoint(refElement: RefElement, psiElement: PsiElement): Boolean =
-    isEntryPoint(psiElement)
+  override fun isEntryPoint(refElement: RefElement, psiElement: PsiElement): Boolean = isEntryPoint(psiElement)
 
   override fun isEntryPoint(psiElement: PsiElement): Boolean =
-    isSelected &&
-      psiElement
-        .takeIf { it.isMethodWithTilePreviewSignature() }
-        ?.toUElement(UMethod::class.java)
-        .hasTilePreviewAnnotation()
+    isSelected && psiElement.takeIf { it.isMethodWithTilePreviewSignature() }?.toUElement(UMethod::class.java).hasTilePreviewAnnotation()
 
   override fun readExternal(element: Element) = element.deserializeInto(this)
 
